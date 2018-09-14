@@ -1,7 +1,9 @@
 #pragma once
 #include <score/command/Command.hpp>
 #include <score/command/CommandGeneratorMap.hpp>
+
 #include <score_lib_base_export.h>
+
 #include <utility>
 
 namespace score

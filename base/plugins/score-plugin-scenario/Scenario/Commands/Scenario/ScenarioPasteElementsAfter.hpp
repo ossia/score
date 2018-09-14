@@ -1,14 +1,16 @@
 #pragma once
-#include <QJsonObject>
-#include <QMap>
-#include <QVector>
+#include <Process/Dataflow/Cable.hpp>
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
+
 #include <score/command/Command.hpp>
 #include <score/model/Identifier.hpp>
 #include <score/model/path/Path.hpp>
 #include <score/selection/Selection.hpp>
 #include <score/tools/std/Optional.hpp>
-#include <Process/Dataflow/Cable.hpp>
+
+#include <QJsonObject>
+#include <QMap>
+#include <QVector>
 namespace Scenario
 {
 struct Point;
@@ -22,14 +24,12 @@ class SCORE_PLUGIN_SCENARIO_EXPORT ScenarioPasteElementsAfter final
     : public score::Command
 {
   SCORE_COMMAND_DECL(
-      ScenarioCommandFactoryName(),
-      ScenarioPasteElementsAfter,
+      ScenarioCommandFactoryName(), ScenarioPasteElementsAfter,
       "Paste elements after sync")
 public:
   ScenarioPasteElementsAfter(
-      const Scenario::ProcessModel& path
-      , const Scenario::TimeSyncModel& attach_sync
-      , const QJsonObject& obj);
+      const Scenario::ProcessModel& path,
+      const Scenario::TimeSyncModel& attach_sync, const QJsonObject& obj);
 
   void undo(const score::DocumentContext& ctx) const override;
   void redo(const score::DocumentContext& ctx) const override;

@@ -2,7 +2,25 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "DocumentManager.hpp"
 
+#include <score/application/ApplicationComponents.hpp>
+#include <score/model/Identifier.hpp>
+#include <score/plugins/application/GUIApplicationPlugin.hpp>
+#include <score/plugins/documentdelegate/DocumentDelegateFactory.hpp>
+#include <score/plugins/documentdelegate/plugin/DocumentPlugin.hpp>
+#include <score/plugins/panel/PanelDelegate.hpp>
+#include <score/plugins/qt_interfaces/PluginRequirements_QtInterface.hpp>
+#include <score/tools/IdentifierGeneration.hpp>
+#include <score/tools/std/Optional.hpp>
+
+#include <core/application/ApplicationSettings.hpp>
+#include <core/command/CommandStack.hpp>
+#include <core/command/CommandStackSerialization.hpp>
+#include <core/document/Document.hpp>
+#include <core/document/DocumentBackups.hpp>
+#include <core/document/DocumentModel.hpp>
+#include <core/presenter/Presenter.hpp>
 #include <core/view/QRecentFilesMenu.h>
+#include <core/view/Window.hpp>
 
 #include <ossia/detail/algorithms.hpp>
 
@@ -18,30 +36,15 @@
 #include <QSettings>
 #include <QStringList>
 #include <QVariant>
+
 #include <multi_index/hashed_index.hpp>
 #include <multi_index/identity.hpp>
 #include <multi_index/mem_fun.hpp>
 #include <multi_index/member.hpp>
 #include <multi_index_container.hpp>
-#include <core/application/ApplicationSettings.hpp>
-#include <core/command/CommandStack.hpp>
-#include <core/command/CommandStackSerialization.hpp>
-#include <core/document/Document.hpp>
-#include <core/document/DocumentBackups.hpp>
-#include <core/document/DocumentModel.hpp>
-#include <core/presenter/Presenter.hpp>
-#include <core/view/Window.hpp>
-#include <score/application/ApplicationComponents.hpp>
-#include <score/model/Identifier.hpp>
-#include <score/plugins/application/GUIApplicationPlugin.hpp>
-#include <score/plugins/documentdelegate/DocumentDelegateFactory.hpp>
-#include <score/plugins/documentdelegate/plugin/DocumentPlugin.hpp>
-#include <score/plugins/panel/PanelDelegate.hpp>
-#include <score/plugins/qt_interfaces/PluginRequirements_QtInterface.hpp>
-#include <score/tools/IdentifierGeneration.hpp>
-#include <score/tools/std/Optional.hpp>
-#include <utility>
 #include <wobjectimpl.h>
+
+#include <utility>
 W_OBJECT_IMPL(score::DocumentManager)
 namespace score
 {
@@ -56,14 +59,12 @@ namespace bmi = multi_index;
 using LocalPluginVersionsMap = bmi::multi_index_container<
     score::Plugin_QtInterface*,
     bmi::indexed_by<bmi::hashed_unique<bmi::const_mem_fun<
-        score::Plugin_QtInterface,
-        UuidKey<score::Plugin>,
+        score::Plugin_QtInterface, UuidKey<score::Plugin>,
         &score::Plugin_QtInterface::key>>>>;
 using LoadedPluginVersionsMap = bmi::multi_index_container<
     score::Plugin_QtInterface*,
     bmi::indexed_by<bmi::hashed_unique<bmi::member<
-        score::LoadedPluginVersions,
-        UuidKey<score::Plugin>,
+        score::LoadedPluginVersions, UuidKey<score::Plugin>,
         &score::LoadedPluginVersions::plugin>>>>;
 
 namespace std
@@ -419,7 +420,7 @@ Document* DocumentManager::loadStack(
 static QString lastOpenFileName()
 {
   QSettings s;
-  if(s.contains("score/last_open_doc"))
+  if (s.contains("score/last_open_doc"))
     return s.value("score/last_open_doc").toString();
   return {};
 }
@@ -431,8 +432,10 @@ Document* DocumentManager::loadFile(const score::GUIApplicationContext& ctx)
     return nullptr;
 
   QString loadname = QFileDialog::getOpenFileName(
-      m_view, tr("Open"), lastOpenFileName(), "*.scorebin *.score *.scorejson");
-  QSettings s; s.setValue("score/last_open_doc", QFileInfo(loadname).absoluteDir().path());
+      m_view, tr("Open"), lastOpenFileName(),
+      "*.scorebin *.score *.scorejson");
+  QSettings s;
+  s.setValue("score/last_open_doc", QFileInfo(loadname).absoluteDir().path());
   return loadFile(ctx, loadname);
 }
 

@@ -1,8 +1,10 @@
 #pragma once
+#include <score/model/IdentifiedObjectMap.hpp>
+
+#include <nano_signal_slot.hpp>
+
 #include <array>
 #include <iostream>
-#include <nano_signal_slot.hpp>
-#include <score/model/IdentifiedObjectMap.hpp>
 #include <utility>
 
 namespace score

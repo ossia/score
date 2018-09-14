@@ -3,6 +3,7 @@
 #include "ConditionView.hpp"
 
 #include <Process/Style/ScenarioStyle.hpp>
+
 #include <QColor>
 #include <QGraphicsSceneMouseEvent>
 #include <QPainter>

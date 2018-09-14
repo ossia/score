@@ -1,9 +1,12 @@
 #pragma once
 #include <Process/Dataflow/Cable.hpp>
+
 #include <score_plugin_scenario_export.h>
 
 namespace Process
-{ class ProcessModel; }
+{
+class ProcessModel;
+}
 namespace Dataflow
 {
 using SerializedCables

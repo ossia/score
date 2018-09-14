@@ -1,12 +1,13 @@
 #include "score_addon_skeleton.hpp"
 
+#include <score/plugins/customfactory/FactorySetup.hpp>
+
 #include <Skeleton/CommandFactory.hpp>
 #include <Skeleton/Executor.hpp>
 #include <Skeleton/Inspector.hpp>
 #include <Skeleton/Layer.hpp>
 #include <Skeleton/LocalTree.hpp>
 #include <Skeleton/Process.hpp>
-#include <score/plugins/customfactory/FactorySetup.hpp>
 #include <score_addon_skeleton_commands_files.hpp>
 
 score_addon_skeleton::score_addon_skeleton()

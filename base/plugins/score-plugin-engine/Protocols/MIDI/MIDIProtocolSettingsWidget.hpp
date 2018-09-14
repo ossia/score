@@ -1,9 +1,10 @@
 #pragma once
-#include <ossia/network/midi/midi.hpp>
-#include <wobjectdefs.h>
-
 #include <Device/Protocol/DeviceSettings.hpp>
 #include <Device/Protocol/ProtocolSettingsWidget.hpp>
+
+#include <ossia/network/midi/midi.hpp>
+
+#include <wobjectdefs.h>
 
 class QComboBox;
 class QCheckBox;

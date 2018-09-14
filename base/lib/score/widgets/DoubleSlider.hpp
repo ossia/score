@@ -1,16 +1,18 @@
 #pragma once
-#include <QDebug>
-#include <wobjectdefs.h>
-#include <QSlider>
-#include <limits>
-#include <QProxyStyle>
 #include <score/tools/Clamp.hpp>
+
+#include <QDebug>
+#include <QProxyStyle>
+#include <QSlider>
+
 #include <score_lib_base_export.h>
+#include <wobjectdefs.h>
+
+#include <limits>
 
 namespace score
 {
-class SCORE_LIB_BASE_EXPORT AbsoluteSliderStyle final
-    : public QProxyStyle
+class SCORE_LIB_BASE_EXPORT AbsoluteSliderStyle final : public QProxyStyle
 {
 public:
   using QProxyStyle::QProxyStyle;
@@ -19,14 +21,11 @@ public:
   static AbsoluteSliderStyle* instance() noexcept;
 
   int styleHint(
-      QStyle::StyleHint hint
-      , const QStyleOption* option
-      , const QWidget* widget
-      , QStyleHintReturn* returnData) const override;
+      QStyle::StyleHint hint, const QStyleOption* option,
+      const QWidget* widget, QStyleHintReturn* returnData) const override;
 };
 
-class SCORE_LIB_BASE_EXPORT Slider
-    : public QSlider
+class SCORE_LIB_BASE_EXPORT Slider : public QSlider
 {
 public:
   Slider(Qt::Orientation ort, QWidget* widg);
@@ -57,6 +56,7 @@ public:
   double value() const;
 
 public:
-  void valueChanged(double arg_1) E_SIGNAL(SCORE_LIB_BASE_EXPORT, valueChanged, arg_1);
+  void valueChanged(double arg_1)
+      E_SIGNAL(SCORE_LIB_BASE_EXPORT, valueChanged, arg_1);
 };
 }

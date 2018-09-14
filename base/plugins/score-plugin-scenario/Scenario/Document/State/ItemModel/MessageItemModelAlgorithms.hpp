@@ -23,14 +23,11 @@ void updateTreeWithMessageList(
 
 // Messages from a process
 void updateTreeWithMessageList(
-    Process::MessageNode& rootNode,
-    State::MessageList lst,
-    const Id<Process::ProcessModel>& proc,
-    ProcessPosition pos);
+    Process::MessageNode& rootNode, State::MessageList lst,
+    const Id<Process::ProcessModel>& proc, ProcessPosition pos);
 
 void updateTreeWithRemovedProcess(
-    Process::MessageNode& rootNode,
-    const Id<Process::ProcessModel>& proc,
+    Process::MessageNode& rootNode, const Id<Process::ProcessModel>& proc,
     ProcessPosition pos);
 
 void updateTreeWithRemovedInterval(

@@ -1,11 +1,12 @@
 #pragma once
 #include <Device/Address/AddressSettings.hpp>
 #include <Explorer/Common/AddressSettings/Widgets/AddressSettingsWidget.hpp>
-#include <QComboBox>
-#include <QFormLayout>
 #include <State/ValueConversion.hpp>
 #include <State/Widgets/Values/NumericValueWidget.hpp>
 #include <State/Widgets/Values/VecWidgets.hpp>
+
+#include <QComboBox>
+#include <QFormLayout>
 
 namespace Explorer
 {

@@ -1,11 +1,11 @@
 #pragma once
+#include <Process/Dataflow/Port.hpp>
+#include <Process/Dataflow/WidgetInlets.hpp>
+
 #include <ossia/dataflow/graph_node.hpp>
 #include <ossia/dataflow/nodes/faust/faust_utils.hpp>
 #include <ossia/dataflow/port.hpp>
 #include <ossia/network/domain/domain.hpp>
-
-#include <Process/Dataflow/WidgetInlets.hpp>
-#include <Process/Dataflow/Port.hpp>
 
 namespace Media
 {
@@ -36,7 +36,7 @@ struct UI
   }
   void declare(FAUSTFLOAT* zone, const char* key, const char* val)
   {
-      qDebug() << "UI: " <<  key << val;
+    qDebug() << "UI: " << key << val;
   }
   void
   addSoundfile(const char* label, const char* filename, Soundfile** sf_zone)
@@ -51,40 +51,30 @@ struct UI
 
   void addCheckButton(const char* label, FAUSTFLOAT* zone)
   {
-    auto inl = new Process::Toggle{bool(*zone), label, getStrongId(fx.inlets()), &fx};
+    auto inl = new Process::Toggle{bool(*zone), label,
+                                   getStrongId(fx.inlets()), &fx};
     fx.inlets().push_back(inl);
   }
 
   void addVerticalSlider(
-      const char* label,
-      FAUSTFLOAT* zone,
-      FAUSTFLOAT init,
-      FAUSTFLOAT min,
-      FAUSTFLOAT max,
-      FAUSTFLOAT step)
+      const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min,
+      FAUSTFLOAT max, FAUSTFLOAT step)
   {
-    auto inl = new Process::FloatSlider{min, max, init, label, getStrongId(fx.inlets()), &fx};
+    auto inl = new Process::FloatSlider{
+        min, max, init, label, getStrongId(fx.inlets()), &fx};
     fx.inlets().push_back(inl);
   }
 
   void addHorizontalSlider(
-      const char* label,
-      FAUSTFLOAT* zone,
-      FAUSTFLOAT init,
-      FAUSTFLOAT min,
-      FAUSTFLOAT max,
-      FAUSTFLOAT step)
+      const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min,
+      FAUSTFLOAT max, FAUSTFLOAT step)
   {
     addVerticalSlider(label, zone, init, min, max, step);
   }
 
   void addNumEntry(
-      const char* label,
-      FAUSTFLOAT* zone,
-      FAUSTFLOAT init,
-      FAUSTFLOAT min,
-      FAUSTFLOAT max,
-      FAUSTFLOAT step)
+      const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min,
+      FAUSTFLOAT max, FAUSTFLOAT step)
   {
     // TODO spinbox ?
     addVerticalSlider(label, zone, init, min, max, step);
@@ -127,7 +117,7 @@ struct UpdateUI
   }
   void declare(FAUSTFLOAT* zone, const char* key, const char* val)
   {
-      qDebug() << "UpdateUI: " <<  key << val;
+    qDebug() << "UpdateUI: " << key << val;
   }
   void
   addSoundfile(const char* label, const char* filename, Soundfile** sf_zone)
@@ -138,7 +128,7 @@ struct UpdateUI
   {
     if (i < fx.inlets().size())
     {
-      if(auto inlet = dynamic_cast<Process::Button*>(fx.inlets()[i]))
+      if (auto inlet = dynamic_cast<Process::Button*>(fx.inlets()[i]))
       {
         inlet->setCustomData(label);
       }
@@ -164,7 +154,7 @@ struct UpdateUI
   {
     if (i < fx.inlets().size())
     {
-      if(auto inlet = dynamic_cast<Process::Toggle*>(fx.inlets()[i]))
+      if (auto inlet = dynamic_cast<Process::Toggle*>(fx.inlets()[i]))
       {
         inlet->setCustomData(label);
         inlet->setValue(bool(*zone));
@@ -180,7 +170,8 @@ struct UpdateUI
     }
     else
     {
-      auto inl = new Process::Toggle{bool(*zone), label, getStrongId(fx.inlets()), &fx};
+      auto inl = new Process::Toggle{bool(*zone), label,
+                                     getStrongId(fx.inlets()), &fx};
       fx.inlets().push_back(inl);
       fx.controlAdded(inl->id());
     }
@@ -188,16 +179,12 @@ struct UpdateUI
   }
 
   void addVerticalSlider(
-      const char* label,
-      FAUSTFLOAT* zone,
-      FAUSTFLOAT init,
-      FAUSTFLOAT min,
-      FAUSTFLOAT max,
-      FAUSTFLOAT step)
+      const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min,
+      FAUSTFLOAT max, FAUSTFLOAT step)
   {
     if (i < fx.inlets().size())
     {
-      if(auto inlet = dynamic_cast<Process::FloatSlider*>(fx.inlets()[i]))
+      if (auto inlet = dynamic_cast<Process::FloatSlider*>(fx.inlets()[i]))
       {
         inlet->setCustomData(label);
         inlet->setDomain(ossia::make_domain(min, max));
@@ -213,7 +200,8 @@ struct UpdateUI
     }
     else
     {
-      auto inl = new Process::FloatSlider{min, max, init, label, getStrongId(fx.inlets()), &fx};
+      auto inl = new Process::FloatSlider{
+          min, max, init, label, getStrongId(fx.inlets()), &fx};
       fx.inlets().push_back(inl);
       fx.controlAdded(inl->id());
     }
@@ -221,23 +209,15 @@ struct UpdateUI
   }
 
   void addHorizontalSlider(
-      const char* label,
-      FAUSTFLOAT* zone,
-      FAUSTFLOAT init,
-      FAUSTFLOAT min,
-      FAUSTFLOAT max,
-      FAUSTFLOAT step)
+      const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min,
+      FAUSTFLOAT max, FAUSTFLOAT step)
   {
     addVerticalSlider(label, zone, init, min, max, step);
   }
 
   void addNumEntry(
-      const char* label,
-      FAUSTFLOAT* zone,
-      FAUSTFLOAT init,
-      FAUSTFLOAT min,
-      FAUSTFLOAT max,
-      FAUSTFLOAT step)
+      const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min,
+      FAUSTFLOAT max, FAUSTFLOAT step)
   {
     addVerticalSlider(label, zone, init, min, max, step);
   }

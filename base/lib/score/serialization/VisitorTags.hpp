@@ -1,5 +1,6 @@
 #pragma once
 #include <score/serialization/IsTemplate.hpp>
+
 #include <type_traits>
 
 // Inherit from this to have
@@ -68,7 +69,6 @@ struct is_entity<T, enable_if_entity<T>> : std::true_type
 {
 };
 
-
 struct has_no_base
 {
 };
@@ -89,7 +89,6 @@ struct base_kind<T, std::void_t<typename T::base_type>>
   using type = has_base;
   static constexpr bool value = true;
 };
-
 
 //! Classes that only inherit from score::SerializableInterface
 struct visitor_abstract_tag
@@ -140,50 +139,45 @@ struct serialization_tag
 
 template <typename T>
 struct serialization_tag<
-    T,
-    std::enable_if_t<
-        !is_identified_object<T>::value && is_abstract_base<T>::value
-        && !is_custom_serialized<T>::value>>
+    T, std::enable_if_t<
+           !is_identified_object<T>::value && is_abstract_base<T>::value
+           && !is_custom_serialized<T>::value>>
 {
   using type = visitor_abstract_tag;
 };
 
 template <typename T>
 struct serialization_tag<
-    T,
-    std::enable_if_t<
-        is_identified_object<T>::value && !is_entity<T>::value
-        && !is_abstract_base<T>::value && !is_custom_serialized<T>::value>>
+    T, std::enable_if_t<
+           is_identified_object<T>::value && !is_entity<T>::value
+           && !is_abstract_base<T>::value && !is_custom_serialized<T>::value>>
 {
   using type = visitor_object_tag;
 };
 
 template <typename T>
 struct serialization_tag<
-    T,
-    std::enable_if_t<
-        is_identified_object<T>::value && !is_entity<T>::value
-        && is_abstract_base<T>::value && !is_custom_serialized<T>::value>>
+    T, std::enable_if_t<
+           is_identified_object<T>::value && !is_entity<T>::value
+           && is_abstract_base<T>::value && !is_custom_serialized<T>::value>>
 {
   using type = visitor_abstract_object_tag;
 };
 
 template <typename T>
 struct serialization_tag<
-    T,
-    std::enable_if_t<
-        is_entity<T>::value && !is_abstract_base<T>::value
-        && !is_custom_serialized<T>::value>>
+    T, std::enable_if_t<
+           is_entity<T>::value && !is_abstract_base<T>::value
+           && !is_custom_serialized<T>::value>>
 {
   using type = visitor_entity_tag;
 };
 
 template <typename T>
 struct serialization_tag<
-    T,
-    std::enable_if_t<
-        is_entity<T>::value && is_abstract_base<T>::value
-        && !is_custom_serialized<T>::value>>
+    T, std::enable_if_t<
+           is_entity<T>::value && is_abstract_base<T>::value
+           && !is_custom_serialized<T>::value>>
 {
   using type = visitor_abstract_entity_tag;
 };

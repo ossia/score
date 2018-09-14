@@ -7,6 +7,11 @@
 #include <Scenario/Process/Algorithms/Accessors.hpp>
 #include <Scenario/Process/Algorithms/ContainersAccessors.hpp>
 #include <Scenario/Process/ScenarioInterface.hpp>
+
+#include <score/model/ModelMetadata.hpp>
+
+#include <ossia/detail/pod_vector.hpp>
+
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/breadth_first_search.hpp>
 #include <boost/graph/connected_components.hpp>
@@ -14,8 +19,6 @@
 #include <boost/graph/labeled_graph.hpp>
 #include <boost/graph/topological_sort.hpp>
 #include <boost/range/iterator_range.hpp>
-#include <score/model/ModelMetadata.hpp>
-#include <ossia/detail/pod_vector.hpp>
 
 namespace Scenario
 {

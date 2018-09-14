@@ -5,13 +5,13 @@
 #include "LocalDevice.hpp"
 #include "LocalProtocolSettingsWidget.hpp"
 
-
-
 #include <Device/Protocol/DeviceSettings.hpp>
+#include <Protocols/Local/LocalSpecificSettings.hpp>
+
+#include <QObject>
+
 #include <Engine/ApplicationPlugin.hpp>
 #include <LocalTree/LocalTreeDocumentPlugin.hpp>
-#include <Protocols/Local/LocalSpecificSettings.hpp>
-#include <QObject>
 namespace Device
 {
 class DeviceInterface;

@@ -7,7 +7,9 @@
 #include <Midi/MidiExecutor.hpp>
 #include <Midi/MidiFactory.hpp>
 #include <Process/Dataflow/Port.hpp>
+
 #include <score/plugins/customfactory/FactorySetup.hpp>
+
 #include <score_plugin_midi_commands_files.hpp>
 
 score_plugin_midi::score_plugin_midi() = default;
@@ -21,8 +23,7 @@ score_plugin_midi::factories(
       score::ApplicationContext,
       FW<Process::ProcessModelFactory, Midi::ProcessFactory>,
       FW<Process::LayerFactory, Midi::LayerFactory>,
-      FW<Execution::ProcessComponentFactory,
-         Midi::Executor::ComponentFactory>,
+      FW<Execution::ProcessComponentFactory, Midi::Executor::ComponentFactory>,
       FW<Scenario::DropHandler, Midi::DropMidiInSenario>,
       FW<Inspector::InspectorWidgetFactory, Midi::InspectorFactory>>(ctx, key);
 }
@@ -35,7 +36,7 @@ score_plugin_midi::make_commands()
       Midi::CommandFactoryName(), CommandGeneratorMap{}};
 
   ossia::for_each_type<
-    #include <score_plugin_midi_commands.hpp>
+#include <score_plugin_midi_commands.hpp>
       >(score::commands::FactoryInserter{cmds.second});
 
   return cmds;

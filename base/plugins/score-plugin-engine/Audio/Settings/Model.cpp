@@ -4,7 +4,10 @@ namespace Audio::Settings
 namespace Parameters
 {
 // portaudio is the default
-SETTINGS_PARAMETER_IMPL(Driver){QStringLiteral("Audio/Driver"), Audio::AudioFactory::ConcreteKey{score::uuids::string_generator::compute("e7543875-3b22-457c-bf41-75504637686f")}};
+SETTINGS_PARAMETER_IMPL(Driver){
+    QStringLiteral("Audio/Driver"),
+    Audio::AudioFactory::ConcreteKey{score::uuids::string_generator::compute(
+        "e7543875-3b22-457c-bf41-75504637686f")}};
 SETTINGS_PARAMETER_IMPL(CardIn){QStringLiteral("Audio/CardIn"), ""};
 SETTINGS_PARAMETER_IMPL(CardOut){QStringLiteral("Audio/CardOut"), ""};
 SETTINGS_PARAMETER_IMPL(BufferSize){QStringLiteral("Audio/BufferSize"), 64};
@@ -42,7 +45,6 @@ Model::Model(QSettings& set, const score::ApplicationContext& ctx)
     QSettings s;                                                     \
     s.setValue(Parameters::Name.key, QVariant::fromValue(m_##Name)); \
   }
-
 
 AUDIO_PARAMETER_CPP(Audio::AudioFactory::ConcreteKey, Model, Driver)
 AUDIO_PARAMETER_CPP(QString, Model, CardIn)

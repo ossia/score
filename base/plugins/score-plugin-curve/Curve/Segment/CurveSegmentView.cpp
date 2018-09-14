@@ -4,27 +4,29 @@
 
 #include "CurveSegmentModel.hpp"
 
-#include <ossia/detail/math.hpp>
-
 #include <Curve/CurveStyle.hpp>
 #include <Curve/Palette/CurvePoint.hpp>
 #include <Process/Style/ScenarioStyle.hpp>
+
+#include <score/model/Identifier.hpp>
+#include <score/selection/Selectable.hpp>
+#include <score/tools/Todo.hpp>
+
+#include <ossia/detail/math.hpp>
+
 #include <QGraphicsSceneEvent>
 #include <QPainter>
 #include <QPen>
-#include <cstddef>
-#include <score/selection/Selectable.hpp>
-#include <score/tools/Todo.hpp>
-#include <vector>
-#include <score/model/Identifier.hpp>
 
 #include <wobjectimpl.h>
+
+#include <cstddef>
+#include <vector>
 W_OBJECT_IMPL(Curve::SegmentView)
 namespace Curve
 {
 SegmentView::SegmentView(
-    const SegmentModel* model,
-    const Curve::Style& style,
+    const SegmentModel* model, const Curve::Style& style,
     QGraphicsItem* parent)
     : QGraphicsItem{parent}, m_style{style}
 {

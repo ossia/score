@@ -4,14 +4,17 @@
 
 #include "MoveEventFactoryInterface.hpp"
 
-#include <QByteArray>
 #include <Scenario/Commands/Scenario/Displacement/MoveEventList.hpp>
 #include <Scenario/Commands/Scenario/Displacement/SerializableMoveEvent.hpp>
-#include <algorithm>
+
 #include <score/application/ApplicationContext.hpp>
 #include <score/model/Identifier.hpp>
 #include <score/plugins/customfactory/StringFactoryKey.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
+
+#include <QByteArray>
+
+#include <algorithm>
 
 namespace Scenario
 {
@@ -21,10 +24,8 @@ namespace Command
 {
 
 MoveEventOnCreationMeta::MoveEventOnCreationMeta(
-    const Scenario::ProcessModel& scenarioPath,
-    Id<EventModel> eventId,
-    TimeVal newDate,
-    ExpandMode mode)
+    const Scenario::ProcessModel& scenarioPath, Id<EventModel> eventId,
+    TimeVal newDate, ExpandMode mode)
     : SerializableMoveEvent{}
     , m_moveEventImplementation(
           score::AppContext()
@@ -33,10 +34,7 @@ MoveEventOnCreationMeta::MoveEventOnCreationMeta(
                   score::AppContext(),
                   MoveEventFactoryInterface::Strategy::CREATION)
               .make(
-                  scenarioPath,
-                  std::move(eventId),
-                  std::move(newDate),
-                  mode,
+                  scenarioPath, std::move(eventId), std::move(newDate), mode,
                   LockMode::Free))
 {
 }
@@ -83,12 +81,8 @@ void MoveEventOnCreationMeta::deserializeImpl(DataStreamOutput& qDataStream)
 }
 
 void MoveEventOnCreationMeta::update(
-    Scenario::ProcessModel& scenario,
-    const Id<EventModel>& eventId,
-    const TimeVal& newDate,
-    double y,
-    ExpandMode mode,
-    LockMode lm)
+    Scenario::ProcessModel& scenario, const Id<EventModel>& eventId,
+    const TimeVal& newDate, double y, ExpandMode mode, LockMode lm)
 {
   m_moveEventImplementation->update(
       scenario, eventId, newDate, y, mode, LockMode::Free);

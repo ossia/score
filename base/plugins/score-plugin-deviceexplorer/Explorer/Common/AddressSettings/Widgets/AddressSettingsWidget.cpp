@@ -2,11 +2,16 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "AddressSettingsWidget.hpp"
 
-#include <ossia/network/base/node_attributes.hpp>
-
 #include <Device/Address/AddressSettings.hpp>
 #include <Device/Address/ClipMode.hpp>
 #include <Device/Address/IOType.hpp>
+#include <State/Widgets/UnitWidget.hpp>
+
+#include <score/widgets/SignalUtils.hpp>
+
+#include <ossia-qt/metatypes.hpp>
+#include <ossia/network/base/node_attributes.hpp>
+
 #include <QBoxLayout>
 #include <QCheckBox>
 #include <QComboBox>
@@ -19,9 +24,7 @@
 #include <QString>
 #include <QStringList>
 #include <QVariant>
-#include <State/Widgets/UnitWidget.hpp>
-#include <score/widgets/SignalUtils.hpp>
-#include <ossia-qt/metatypes.hpp>
+
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Explorer::AccessModeComboBox)
 W_OBJECT_IMPL(Explorer::BoundingModeComboBox)

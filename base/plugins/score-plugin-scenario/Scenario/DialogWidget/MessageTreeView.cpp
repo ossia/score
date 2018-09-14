@@ -4,6 +4,17 @@
 
 #include <Device/Node/DeviceNode.hpp>
 #include <Process/State/MessageNode.hpp>
+#include <Scenario/Commands/State/RemoveMessageNodes.hpp>
+#include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
+#include <Scenario/Document/State/StateModel.hpp>
+
+#include <score/command/Dispatchers/CommandDispatcher.hpp>
+#include <score/document/DocumentContext.hpp>
+#include <score/document/DocumentInterface.hpp>
+#include <score/model/path/Path.hpp>
+#include <score/model/tree/TreeNode.hpp>
+#include <score/tools/Todo.hpp>
+
 #include <QAbstractItemView>
 #include <QAction>
 #include <QContextMenuEvent>
@@ -16,16 +27,7 @@
 #include <QResizeEvent>
 #include <QSet>
 #include <QString>
-#include <Scenario/Commands/State/RemoveMessageNodes.hpp>
-#include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
-#include <Scenario/Document/State/StateModel.hpp>
 #include <qnamespace.h>
-#include <score/command/Dispatchers/CommandDispatcher.hpp>
-#include <score/document/DocumentContext.hpp>
-#include <score/document/DocumentInterface.hpp>
-#include <score/model/path/Path.hpp>
-#include <score/model/tree/TreeNode.hpp>
-#include <score/tools/Todo.hpp>
 
 class QWidget;
 namespace Scenario

@@ -1,12 +1,16 @@
 #pragma once
-#include <QObject>
-#include <wobjectdefs.h>
-#include <QString>
-#include <algorithm>
+#include <score/tools/Version.hpp>
+
 #include <core/document/Document.hpp>
 #include <core/document/DocumentBuilder.hpp>
-#include <score/tools/Version.hpp>
+
+#include <QObject>
+#include <QString>
+
 #include <score_lib_base_export.h>
+#include <wobjectdefs.h>
+
+#include <algorithm>
 #include <set>
 #include <vector>
 class QRecentFilesMenu;
@@ -51,9 +55,8 @@ protected:
 /**
  * @brief Owns the documents
  */
-class SCORE_LIB_BASE_EXPORT DocumentManager
-    : public QObject
-    , public DocumentList
+class SCORE_LIB_BASE_EXPORT DocumentManager : public QObject,
+                                              public DocumentList
 {
   W_OBJECT(DocumentManager)
 public:
@@ -129,7 +132,8 @@ public:
   bool preparingNewDocument() const;
 
 public:
-  void documentChanged(score::Document* arg_1) E_SIGNAL(SCORE_LIB_BASE_EXPORT, documentChanged, arg_1);
+  void documentChanged(score::Document* arg_1)
+      E_SIGNAL(SCORE_LIB_BASE_EXPORT, documentChanged, arg_1);
 
 private:
   void prepareNewDocument(const score::GUIApplicationContext& ctx);

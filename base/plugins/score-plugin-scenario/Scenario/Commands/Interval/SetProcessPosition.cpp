@@ -4,6 +4,7 @@
 
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
+
 #include <score/model/path/PathSerialization.hpp>
 
 namespace Scenario
@@ -11,8 +12,7 @@ namespace Scenario
 namespace Command
 {
 PutProcessBefore::PutProcessBefore(
-    const IntervalModel& cst,
-    optional<Id<Process::ProcessModel>> proc,
+    const IntervalModel& cst, optional<Id<Process::ProcessModel>> proc,
     Id<Process::ProcessModel> proc2)
     : m_path{cst}, m_proc{std::move(proc)}, m_proc2{std::move(proc2)}
 {
@@ -24,9 +24,10 @@ PutProcessBefore::PutProcessBefore(
   auto it2_hash = hash.find(proc2);
   SCORE_ASSERT(it2_hash != hash.end());
 
-  std::list<Process::ProcessModel*>::const_iterator it2_order = it2_hash.value().second;
+  std::list<Process::ProcessModel*>::const_iterator it2_order
+      = it2_hash.value().second;
   auto next = it2_order++;
-  if(next != seq.end())
+  if (next != seq.end())
   {
     m_old_after_proc2 = (*next)->id();
   }
@@ -47,8 +48,7 @@ void PutProcessBefore::redo(const score::DocumentContext& ctx) const
 }
 
 void PutProcessBefore::putBefore(
-    const score::DocumentContext& ctx,
-    optional<Id<Process::ProcessModel>> t1,
+    const score::DocumentContext& ctx, optional<Id<Process::ProcessModel>> t1,
     Id<Process::ProcessModel> t2) const
 {
   auto& cst = m_path.find(ctx);
@@ -65,7 +65,7 @@ void PutProcessBefore::putBefore(
   SCORE_ASSERT(it2_hash != hash.end());
   auto& it2_order = it2_hash.value().second;
 
-  if(t1)
+  if (t1)
   {
     // put before t1
     auto it1_hash = hash.find(*t1);
@@ -97,12 +97,8 @@ void PutProcessBefore::deserializeImpl(DataStreamOutput& s)
   s >> m_path >> m_proc >> m_proc2 >> m_old_after_proc2;
 }
 
-
-
-
 PutStateProcessBefore::PutStateProcessBefore(
-    const StateModel& cst,
-    optional<Id<Process::ProcessModel>> proc,
+    const StateModel& cst, optional<Id<Process::ProcessModel>> proc,
     Id<Process::ProcessModel> proc2)
     : m_path{cst}, m_proc{std::move(proc)}, m_proc2{std::move(proc2)}
 {
@@ -114,9 +110,10 @@ PutStateProcessBefore::PutStateProcessBefore(
   auto it2_hash = hash.find(proc2);
   SCORE_ASSERT(it2_hash != hash.end());
 
-  std::list<Process::ProcessModel*>::const_iterator it2_order = it2_hash.value().second;
+  std::list<Process::ProcessModel*>::const_iterator it2_order
+      = it2_hash.value().second;
   auto next = it2_order++;
-  if(next != seq.end())
+  if (next != seq.end())
   {
     m_old_after_proc2 = (*next)->id();
   }
@@ -137,8 +134,7 @@ void PutStateProcessBefore::redo(const score::DocumentContext& ctx) const
 }
 
 void PutStateProcessBefore::putBefore(
-    const score::DocumentContext& ctx,
-    optional<Id<Process::ProcessModel>> t1,
+    const score::DocumentContext& ctx, optional<Id<Process::ProcessModel>> t1,
     Id<Process::ProcessModel> t2) const
 {
   auto& cst = m_path.find(ctx);
@@ -155,7 +151,7 @@ void PutStateProcessBefore::putBefore(
   SCORE_ASSERT(it2_hash != hash.end());
   auto& it2_order = it2_hash.value().second;
 
-  if(t1)
+  if (t1)
   {
     // put before t1
     auto it1_hash = hash.find(*t1);
@@ -186,7 +182,5 @@ void PutStateProcessBefore::deserializeImpl(DataStreamOutput& s)
 {
   s >> m_path >> m_proc >> m_proc2 >> m_old_after_proc2;
 }
-
-
 }
 }

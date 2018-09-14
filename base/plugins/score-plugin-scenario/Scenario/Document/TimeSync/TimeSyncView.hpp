@@ -1,13 +1,16 @@
 #pragma once
+#include <Scenario/Document/CommentBlock/TextItem.hpp>
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentViewConstants.hpp>
+#include <Scenario/Document/VerticalExtent.hpp>
+
+#include <score/model/ColorReference.hpp>
+
 #include <QColor>
 #include <QGraphicsItem>
 #include <QPoint>
 #include <QRect>
 #include <QTextLayout>
-#include <Scenario/Document/CommentBlock/TextItem.hpp>
-#include <Scenario/Document/ScenarioDocument/ScenarioDocumentViewConstants.hpp>
-#include <Scenario/Document/VerticalExtent.hpp>
-#include <score/model/ColorReference.hpp>
+
 #include <score_plugin_scenario_export.h>
 class QGraphicsSceneMouseEvent;
 class QPainter;
@@ -39,8 +42,7 @@ public:
   }
 
   void paint(
-      QPainter* painter,
-      const QStyleOptionGraphicsItem* option,
+      QPainter* painter, const QStyleOptionGraphicsItem* option,
       QWidget* widget) override;
 
   // QGraphicsItem interface

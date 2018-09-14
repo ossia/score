@@ -2,17 +2,19 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "UndoApplicationPlugin.hpp"
 
-#include <QIcon>
-#include <QKeySequence>
-#include <QString>
-#include <QToolBar>
+#include <score/actions/Menu.hpp>
+#include <score/plugins/application/GUIApplicationPlugin.hpp>
+#include <score/widgets/SetIcons.hpp>
+
 #include <core/command/CommandStack.hpp>
 #include <core/document/Document.hpp>
 #include <core/presenter/CoreActions.hpp>
 #include <core/presenter/CoreApplicationPlugin.hpp>
-#include <score/actions/Menu.hpp>
-#include <score/plugins/application/GUIApplicationPlugin.hpp>
-#include <score/widgets/SetIcons.hpp>
+
+#include <QIcon>
+#include <QKeySequence>
+#include <QString>
+#include <QToolBar>
 
 class QObject;
 
@@ -30,7 +32,7 @@ score::UndoApplicationPlugin::UndoApplicationPlugin(
   setIcons(
       &m_undoAction, QStringLiteral(":/icons/prev_on.png"),
       QStringLiteral(":/icons/prev_off.png"),
-      QStringLiteral(":/icons/prev_disabled.png") );
+      QStringLiteral(":/icons/prev_disabled.png"));
 
   con(m_undoAction, &QAction::triggered,
       [&]() { currentDocument()->commandStack().undo(); });
@@ -43,7 +45,7 @@ score::UndoApplicationPlugin::UndoApplicationPlugin(
   setIcons(
       &m_redoAction, QStringLiteral(":/icons/next_on.png"),
       QStringLiteral(":/icons/next_off.png"),
-      QStringLiteral(":/icons/next_disabled.png") );
+      QStringLiteral(":/icons/next_disabled.png"));
 
   con(m_redoAction, &QAction::triggered,
       [&]() { currentDocument()->commandStack().redo(); });
@@ -114,7 +116,8 @@ auto score::UndoApplicationPlugin::makeGUIElements() -> GUIElements
     auto bar = new QToolBar;
     bar->addAction(&m_undoAction);
     bar->addAction(&m_redoAction);
-    toolbars.emplace_back(bar, StringKey<score::Toolbar>("Undo"), Qt::TopToolBarArea, 500);
+    toolbars.emplace_back(
+        bar, StringKey<score::Toolbar>("Undo"), Qt::TopToolBarArea, 500);
   }
 
   Menu& edit = context.menus.get().at(Menus::Edit());

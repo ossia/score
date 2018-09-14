@@ -17,9 +17,7 @@ class GenericModelFactory;
 
 template <typename Model_T, typename... MakeArgs_T, typename... LoadArgs_T>
 class GenericModelFactory<
-    Model_T,
-    MakeArgs<MakeArgs_T...>,
-    LoadArgs<LoadArgs_T...>>
+    Model_T, MakeArgs<MakeArgs_T...>, LoadArgs<LoadArgs_T...>>
 {
 public:
   virtual ~GenericModelFactory() = default;

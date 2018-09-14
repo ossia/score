@@ -2,12 +2,13 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "MIDISpecificSettings.hpp"
 
-#include <QJsonObject>
-#include <QJsonValue>
-#include <QString>
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/serialization/JSONValueVisitor.hpp>
 #include <score/serialization/JSONVisitor.hpp>
+
+#include <QJsonObject>
+#include <QJsonValue>
+#include <QString>
 
 template <>
 void DataStreamReader::read(const Engine::Network::MIDISpecificSettings& n)

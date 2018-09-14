@@ -1,16 +1,20 @@
 #pragma once
-#include <ossia/editor/scenario/time_process.hpp>
-#include <ossia/dataflow/graph_node.hpp>
-#include <wobjectdefs.h>
-
 #include <Process/ExecutionComponent.hpp>
 #include <Process/Process.hpp>
 #include <Process/ProcessComponent.hpp>
-#include <QObject>
-#include <memory>
+
 #include <score/model/ComponentFactory.hpp>
 #include <score/plugins/customfactory/ModelFactory.hpp>
+
+#include <ossia/dataflow/graph_node.hpp>
+#include <ossia/editor/scenario/time_process.hpp>
+
+#include <QObject>
+
 #include <score_lib_process_export.h>
+#include <wobjectdefs.h>
+
+#include <memory>
 
 namespace ossia
 {
@@ -33,23 +37,19 @@ public:
 };
 
 class SCORE_LIB_PROCESS_EXPORT ProcessComponent
-    : public Process::GenericProcessComponent<const Context>
-    , public std::enable_shared_from_this<ProcessComponent>
+    : public Process::GenericProcessComponent<const Context>,
+      public std::enable_shared_from_this<ProcessComponent>
 {
   W_OBJECT(ProcessComponent)
   ABSTRACT_COMPONENT_METADATA(
-      Execution::ProcessComponent,
-      "d0f714de-c832-42d8-a605-60f5ffd0b7af")
+      Execution::ProcessComponent, "d0f714de-c832-42d8-a605-60f5ffd0b7af")
 
 public:
   static constexpr bool is_unique = true;
 
   ProcessComponent(
-      Process::ProcessModel& proc,
-      const Context& ctx,
-      const Id<score::Component>& id,
-      const QString& name,
-      QObject* parent);
+      Process::ProcessModel& proc, const Context& ctx,
+      const Id<score::Component>& id, const QString& name, QObject* parent);
 
   //! Reimplement this if the element needs two-phase initialization.
   virtual void lazy_init();
@@ -72,8 +72,10 @@ public:
   }
 
   std::shared_ptr<ossia::graph_node> node;
+
 public:
-  void nodeChanged(ossia::node_ptr old_node, ossia::node_ptr new_node) E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, nodeChanged, old_node, new_node);
+  void nodeChanged(ossia::node_ptr old_node, ossia::node_ptr new_node)
+      E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, nodeChanged, old_node, new_node);
 
 protected:
   std::shared_ptr<ossia::time_process> m_ossia_process;
@@ -83,8 +85,8 @@ template <typename Process_T, typename OSSIA_Process_T>
 struct ProcessComponent_T
     : public Process::GenericProcessComponent_T<ProcessComponent, Process_T>
 {
-  using Process::GenericProcessComponent_T<ProcessComponent, Process_T>::
-      GenericProcessComponent_T;
+  using Process::GenericProcessComponent_T<
+      ProcessComponent, Process_T>::GenericProcessComponent_T;
 
   OSSIA_Process_T& OSSIAProcess() const
   {
@@ -94,33 +96,27 @@ struct ProcessComponent_T
 
 class SCORE_LIB_PROCESS_EXPORT ProcessComponentFactory
     : public score::GenericComponentFactory<
-          Process::ProcessModel,
-          Execution::Context,
+          Process::ProcessModel, Execution::Context,
           Execution::ProcessComponentFactory>
 {
   SCORE_ABSTRACT_COMPONENT_FACTORY(Execution::ProcessComponent)
 public:
   virtual ~ProcessComponentFactory() override;
   virtual std::shared_ptr<ProcessComponent> make(
-      Process::ProcessModel& proc,
-      const Context& ctx,
-      const Id<score::Component>& id,
-      QObject* parent) const = 0;
+      Process::ProcessModel& proc, const Context& ctx,
+      const Id<score::Component>& id, QObject* parent) const = 0;
 };
 
 template <typename ProcessComponent_T>
 class ProcessComponentFactory_T
     : public score::GenericComponentFactoryImpl<
-          ProcessComponent_T,
-          ProcessComponentFactory>
+          ProcessComponent_T, ProcessComponentFactory>
 {
 public:
   using model_type = typename ProcessComponent_T::model_type;
   std::shared_ptr<ProcessComponent> make(
-      Process::ProcessModel& proc,
-      const Context& ctx,
-      const Id<score::Component>& id,
-      QObject* parent) const final override
+      Process::ProcessModel& proc, const Context& ctx,
+      const Id<score::Component>& id, QObject* parent) const final override
   {
     try
     {
@@ -138,8 +134,7 @@ public:
 
 class SCORE_LIB_PROCESS_EXPORT ProcessComponentFactoryList final
     : public score::GenericComponentFactoryList<
-          Process::ProcessModel,
-          Execution::Context,
+          Process::ProcessModel, Execution::Context,
           Execution::ProcessComponentFactory>
 {
 public:

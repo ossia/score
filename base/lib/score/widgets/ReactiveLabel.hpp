@@ -1,6 +1,7 @@
 #pragma once
-#include <QLabel>
 #include <score/tools/Todo.hpp>
+
+#include <QLabel>
 
 namespace score
 {

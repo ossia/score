@@ -4,34 +4,35 @@
 #include <Midi/Commands/AddNote.hpp>
 #include <Midi/Commands/SetOutput.hpp>
 #include <Midi/MidiProcess.hpp>
-#include <rtmidi17/reader.hpp>
+#include <Scenario/Commands/CommandAPI.hpp>
 #include <Scenario/Commands/Interval/AddProcessToInterval.hpp>
 #include <Scenario/Commands/Interval/Rack/Slot/AddLayerModelToSlot.hpp>
 #include <Scenario/Commands/Scenario/Creations/CreateTimeSync_Event_State.hpp>
 #include <Scenario/Process/Temporal/TemporalScenarioPresenter.hpp>
+
 #include <score/command/Dispatchers/MacroCommandDispatcher.hpp>
-#include <Scenario/Commands/CommandAPI.hpp>
+
 #include <QByteArray>
 #include <QFile>
-#include <QMimeData>
 #include <QFileInfo>
+#include <QMimeData>
 #include <QUrl>
+
+#include <rtmidi17/reader.hpp>
 
 namespace Midi
 {
 
 bool DropMidiInSenario::drop(
-    const Scenario::TemporalScenarioPresenter& pres,
-    QPointF pos,
+    const Scenario::TemporalScenarioPresenter& pres, QPointF pos,
     const QMimeData& mime)
 {
   auto song = MidiTrack::parse(mime, pres.context().context);
   if (song.tracks.empty())
     return false;
 
-  Scenario::Command::Macro m{
-      new Scenario::Command::AddProcessInNewBoxMacro,
-      pres.context().context};
+  Scenario::Command::Macro m{new Scenario::Command::AddProcessInNewBoxMacro,
+                             pres.context().context};
 
   // Create a box.
   const Scenario::ProcessModel& scenar = pres.model();
@@ -51,7 +52,8 @@ bool DropMidiInSenario::drop(
     m.createSlot(interval);
 
     // Set midi data
-    m.submit(new Midi::ReplaceNotes{proc, track.notes, track.min, track.max, t});
+    m.submit(
+        new Midi::ReplaceNotes{proc, track.notes, track.min, track.max, t});
 
     m.addLayer(
         Scenario::SlotPath{interval, int(interval.smallView().size() - 1)},
@@ -88,7 +90,7 @@ MidiTrack::parse(const QMimeData& mime, const score::DocumentContext& ctx)
       return {};
 
     QFile f(mime.urls().first().toLocalFile());
-    if(!QFileInfo{f}.suffix().toLower().contains("mid"))
+    if (!QFileInfo{f}.suffix().toLower().contains("mid"))
       return {};
 
     if (!f.open(QIODevice::ReadOnly))

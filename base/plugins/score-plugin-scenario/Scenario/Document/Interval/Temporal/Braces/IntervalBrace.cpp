@@ -3,12 +3,13 @@
 #include "IntervalBrace.hpp"
 
 #include <Process/Style/ScenarioStyle.hpp>
+#include <Scenario/Document/Interval/IntervalPresenter.hpp>
+#include <Scenario/Document/Interval/IntervalView.hpp>
+
 #include <QCursor>
 #include <QGraphicsSceneEvent>
 #include <QPainter>
 #include <QPen>
-#include <Scenario/Document/Interval/IntervalPresenter.hpp>
-#include <Scenario/Document/Interval/IntervalView.hpp>
 
 namespace Scenario
 {

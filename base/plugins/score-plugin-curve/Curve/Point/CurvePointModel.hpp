@@ -1,11 +1,13 @@
 #pragma once
 #include <Curve/Palette/CurvePoint.hpp>
-#include <wobjectdefs.h>
+
 #include <score/model/IdentifiedObject.hpp>
 #include <score/model/Identifier.hpp>
 #include <score/selection/Selectable.hpp>
 #include <score/tools/std/Optional.hpp>
+
 #include <score_plugin_curve_export.h>
+#include <wobjectdefs.h>
 
 class QObject;
 namespace Curve

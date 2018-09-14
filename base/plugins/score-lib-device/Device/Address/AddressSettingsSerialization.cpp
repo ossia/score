@@ -2,11 +2,19 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "AddressSettings.hpp"
 
+#include <Device/Address/ClipMode.hpp>
+#include <Device/Address/IOType.hpp>
+#include <State/Domain.hpp>
+#include <State/Value.hpp>
+#include <State/ValueSerialization.hpp>
+
+#include <score/serialization/AnySerialization.hpp>
+#include <score/serialization/DataStreamVisitor.hpp>
+#include <score/serialization/JSONVisitor.hpp>
+
 #include <ossia/network/dataspace/dataspace.hpp>
 #include <ossia/network/dataspace/dataspace_visitors.hpp>
 
-#include <Device/Address/ClipMode.hpp>
-#include <Device/Address/IOType.hpp>
 #include <QDataStream>
 #include <QJsonArray>
 #include <QJsonObject>
@@ -15,12 +23,6 @@
 #include <QString>
 #include <QStringList>
 #include <QtGlobal>
-#include <State/Domain.hpp>
-#include <State/Value.hpp>
-#include <State/ValueSerialization.hpp>
-#include <score/serialization/AnySerialization.hpp>
-#include <score/serialization/DataStreamVisitor.hpp>
-#include <score/serialization/JSONVisitor.hpp>
 
 template <>
 void DataStreamReader::read(const Device::AddressSettingsCommon& n)

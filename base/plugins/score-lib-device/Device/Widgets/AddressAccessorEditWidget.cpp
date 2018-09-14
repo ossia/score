@@ -1,19 +1,23 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "AddressAccessorEditWidget.hpp"
-#include <Device/Widgets/DeviceCompleter.hpp>
+
+#include <Device/ItemModels/NodeBasedItemModel.hpp>
 #include <Device/Node/NodeListMimeSerialization.hpp>
 #include <Device/QMenuView/qmenuview.h>
-#include <Device/ItemModels/NodeBasedItemModel.hpp>
+#include <Device/Widgets/DeviceCompleter.hpp>
 #include <Device/Widgets/DeviceModelProvider.hpp>
-
 #include <State/Widgets/AddressLineEdit.hpp>
 #include <State/Widgets/UnitWidget.hpp>
+
+#include <score/document/DocumentContext.hpp>
 #include <score/widgets/MarginLess.hpp>
+
 #include <ossia/editor/state/destination_qualifiers.hpp>
 #include <ossia/network/value/value.hpp>
-#include <score/document/DocumentContext.hpp>
+
 #include <QHBoxLayout>
+
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Device::AddressAccessorEditWidget)
 namespace Device
@@ -24,25 +28,28 @@ AddressAccessorEditWidget::AddressAccessorEditWidget(
 {
   setAcceptDrops(true);
   auto lay = new score::MarginLess<QVBoxLayout>{this};
-  m_lineEdit = new State::AddressAccessorLineEdit<AddressAccessorEditWidget>{this};
+  m_lineEdit
+      = new State::AddressAccessorLineEdit<AddressAccessorEditWidget>{this};
 
   m_qualifiers = new State::DestinationQualifierWidget{this};
   m_qualifiers->setVisible(false);
-  connect(m_qualifiers, &State::DestinationQualifierWidget::qualifiersChanged, this, [=] (const auto& qual) {
-    if(m_address.address.qualifiers != qual)
-    {
-      m_address.address.qualifiers = qual;
-      m_lineEdit->setText(m_address.address.toString_unsafe());
-      addressChanged(m_address);
-    }
-  });
+  connect(
+      m_qualifiers, &State::DestinationQualifierWidget::qualifiersChanged,
+      this, [=](const auto& qual) {
+        if (m_address.address.qualifiers != qual)
+        {
+          m_address.address.qualifiers = qual;
+          m_lineEdit->setText(m_address.address.toString_unsafe());
+          addressChanged(m_address);
+        }
+      });
 
   auto act = new QAction{this};
   act->setIcon(QIcon(":/icons/unit_icon.png"));
   m_lineEdit->addAction(act, QLineEdit::TrailingPosition);
 
   connect(act, &QAction::triggered, [=] {
-    if(m_qualifiers->isVisible())
+    if (m_qualifiers->isVisible())
     {
       m_qualifiers->setVisible(false);
     }
@@ -54,7 +61,7 @@ AddressAccessorEditWidget::AddressAccessorEditWidget(
 
   {
     auto& plist = ctx.app.interfaces<DeviceModelProviderList>();
-    if(auto provider = plist.getBestProvider(ctx))
+    if (auto provider = plist.getBestProvider(ctx))
     {
       m_model = provider->getNodeModel(ctx);
     }
@@ -76,7 +83,7 @@ AddressAccessorEditWidget::AddressAccessorEditWidget(
       m_address
           = Device::makeFullAddressAccessorSettings(*res, *m_model, 0., 1.);
     }
-    else if(res)
+    else if (res)
     {
       m_address.address = *res;
     }
@@ -89,7 +96,7 @@ AddressAccessorEditWidget::AddressAccessorEditWidget(
       m_lineEdit, &QLineEdit::customContextMenuRequested, this,
       &AddressAccessorEditWidget::customContextMenuEvent);
 
-  if(m_model)
+  if (m_model)
     m_lineEdit->setCompleter(new DeviceCompleter{*m_model, this});
 
   lay->addWidget(m_lineEdit);
@@ -101,7 +108,7 @@ void AddressAccessorEditWidget::setAddress(const State::AddressAccessor& addr)
   m_address = Device::FullAddressAccessorSettings{};
   m_address.address = addr;
   m_lineEdit->setText(m_address.address.toString_unsafe());
-  if(m_qualifiers->qualifiers() != m_address.address.qualifiers)
+  if (m_qualifiers->qualifiers() != m_address.address.qualifiers)
     m_qualifiers->setQualifiers(m_address.address.qualifiers);
 }
 void AddressAccessorEditWidget::setFullAddress(
@@ -109,7 +116,7 @@ void AddressAccessorEditWidget::setFullAddress(
 {
   m_address = std::move(addr);
   m_lineEdit->setText(m_address.address.toString_unsafe());
-  if(m_qualifiers->qualifiers() != m_address.address.qualifiers)
+  if (m_qualifiers->qualifiers() != m_address.address.qualifiers)
     m_qualifiers->setQualifiers(m_address.address.qualifiers);
 }
 
@@ -136,15 +143,17 @@ void AddressAccessorEditWidget::dragEnterEvent(QDragEnterEvent* event)
 
 void AddressAccessorEditWidget::customContextMenuEvent(const QPoint& p)
 {
-  if(m_model)
+  if (m_model)
   {
     auto device_menu = new QMenuView{m_lineEdit};
     device_menu->setModel(m_model);
-    connect(device_menu, &QMenuView::triggered, this, [&](const QModelIndex& m) {
-      setFullAddress(makeFullAddressAccessorSettings(m_model->nodeFromModelIndex(m)));
+    connect(
+        device_menu, &QMenuView::triggered, this, [&](const QModelIndex& m) {
+          setFullAddress(
+              makeFullAddressAccessorSettings(m_model->nodeFromModelIndex(m)));
 
-      addressChanged(m_address);
-    });
+          addressChanged(m_address);
+        });
 
     device_menu->exec(m_lineEdit->mapToGlobal(p));
     delete device_menu;

@@ -1,7 +1,4 @@
 #pragma once
-#include <QByteArray>
-#include <algorithm>
-#include <iterator>
 #include <score/command/CommandData.hpp>
 #include <score/command/CommandGeneratorMap.hpp>
 #include <score/plugins/Addon.hpp>
@@ -11,7 +8,13 @@
 #include <score/tools/Todo.hpp>
 #include <score/tools/std/HashMap.hpp>
 #include <score/tools/std/IndirectContainer.hpp>
+
+#include <QByteArray>
+
 #include <score_lib_base_export.h>
+
+#include <algorithm>
+#include <iterator>
 #include <utility>
 #include <vector>
 

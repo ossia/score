@@ -1,12 +1,15 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
-#include <QVector>
-#include <QtAlgorithms>
-#include <core/command/CommandStack.hpp>
-#include <core/document/Document.hpp>
 #include <score/command/Command.hpp>
 #include <score/command/Validity/ValidityChecker.hpp>
 #include <score/document/DocumentContext.hpp>
+
+#include <core/command/CommandStack.hpp>
+#include <core/document/Document.hpp>
+
+#include <QVector>
+#include <QtAlgorithms>
+
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(score::CommandStack)
 namespace score

@@ -3,14 +3,17 @@
 #include "FullViewIntervalHeader.hpp"
 
 #include <Process/Style/ScenarioStyle.hpp>
+#include <Scenario/Document/Interval/IntervalHeader.hpp>
+
+#include <score/widgets/GraphicsItem.hpp>
+#include <score/widgets/WidgetWrapper.hpp>
+
 #include <QGraphicsScene>
 #include <QGraphicsView>
 #include <QList>
 #include <QPoint>
-#include <Scenario/Document/Interval/IntervalHeader.hpp>
+
 #include <cmath>
-#include <score/widgets/GraphicsItem.hpp>
-#include <score/widgets/WidgetWrapper.hpp>
 
 class QGraphicsItem;
 class QPainter;

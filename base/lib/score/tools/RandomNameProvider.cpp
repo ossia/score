@@ -2,13 +2,15 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "RandomNameProvider.hpp"
 
+#include <score/tools/IdentifierGeneration.hpp>
+
 #include <QByteArray>
 #include <QFile>
 #include <QFlags>
 #include <QIODevice>
 #include <QStringList>
+
 #include <cstdlib>
-#include <score/tools/IdentifierGeneration.hpp>
 
 struct WordList : public QStringList
 {

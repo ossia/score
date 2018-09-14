@@ -2,11 +2,12 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "ExecutorView.hpp"
 
+#include <score/widgets/SignalUtils.hpp>
+
 #include <QCheckBox>
 #include <QComboBox>
 #include <QFormLayout>
 #include <QSpinBox>
-#include <score/widgets/SignalUtils.hpp>
 
 namespace Execution
 {
@@ -32,7 +33,8 @@ View::View() : m_widg{new QWidget}
   SETTINGS_UI_TOGGLE_SETUP("Logging", Logging);
   SETTINGS_UI_TOGGLE_SETUP("Benchmark", Bench);
   SETTINGS_UI_TOGGLE_SETUP("Value compilation", ValueCompilation);
-  SETTINGS_UI_TOGGLE_SETUP("Transport value compilation", TransportValueCompilation);
+  SETTINGS_UI_TOGGLE_SETUP(
+      "Transport value compilation", TransportValueCompilation);
 
   m_Clock = new QComboBox;
   lay->addRow(tr("Clock source"), m_Clock);
@@ -40,8 +42,7 @@ View::View() : m_widg{new QWidget}
   connect(
       m_Clock, SignalUtils::QComboBox_currentIndexChanged_int(), this,
       [this](int i) {
-        ClockChanged(
-            m_Clock->itemData(i).value<ClockFactory::ConcreteKey>());
+        ClockChanged(m_Clock->itemData(i).value<ClockFactory::ConcreteKey>());
       });
 
   SETTINGS_UI_SPINBOX_SETUP("Rate (default clock only)", Rate);

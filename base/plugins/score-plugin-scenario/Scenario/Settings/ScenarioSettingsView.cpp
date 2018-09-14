@@ -2,6 +2,10 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "ScenarioSettingsView.hpp"
 
+#include <score/model/Skin.hpp>
+#include <score/serialization/JSONVisitor.hpp>
+#include <score/widgets/SignalUtils.hpp>
+
 #include <QApplication>
 #include <QCheckBox>
 #include <QComboBox>
@@ -18,9 +22,6 @@
 #include <QSyntaxHighlighter>
 #include <QTextEdit>
 #include <QtColorWidgets/ColorWheel>
-#include <score/model/Skin.hpp>
-#include <score/serialization/JSONVisitor.hpp>
-#include <score/widgets/SignalUtils.hpp>
 
 namespace Scenario
 {

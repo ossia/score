@@ -2,6 +2,20 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "ScenarioDocumentView.hpp"
 
+#include <Scenario/Application/Menus/TransportActions.hpp>
+#include <Scenario/Application/ScenarioApplicationPlugin.hpp>
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentViewConstants.hpp>
+#include <Scenario/Document/ScenarioDocument/SnapshotAction.hpp>
+#include <Scenario/Settings/ScenarioSettingsModel.hpp>
+
+#include <score/application/ApplicationContext.hpp>
+#include <score/model/Skin.hpp>
+#include <score/plugins/documentdelegate/DocumentDelegateView.hpp>
+#include <score/widgets/DoubleSlider.hpp>
+#include <score/widgets/GraphicsProxyObject.hpp>
+#include <score/widgets/MarginLess.hpp>
+#include <score/widgets/TextLabel.hpp>
+
 #include <QAction>
 #include <QApplication>
 #include <QBoxLayout>
@@ -20,21 +34,9 @@
 #include <QTimer>
 #include <QToolBar>
 #include <QWidget>
-#include <Scenario/Application/Menus/TransportActions.hpp>
-#include <Scenario/Application/ScenarioApplicationPlugin.hpp>
-#include <Scenario/Document/ScenarioDocument/ScenarioDocumentViewConstants.hpp>
-#include <Scenario/Document/ScenarioDocument/SnapshotAction.hpp>
-#include <Scenario/Settings/ScenarioSettingsModel.hpp>
-#include <score/application/ApplicationContext.hpp>
-#include <score/model/Skin.hpp>
-#include <score/plugins/documentdelegate/DocumentDelegateView.hpp>
-#include <score/widgets/DoubleSlider.hpp>
-#include <score/widgets/GraphicsProxyObject.hpp>
-#include <score/widgets/MarginLess.hpp>
-#include <score/widgets/TextLabel.hpp>
 
 #if defined(SCORE_WEBSOCKETS)
-#  include "WebSocketView.hpp"
+#include "WebSocketView.hpp"
 #endif
 #include <Process/Style/ScenarioStyle.hpp>
 
@@ -72,7 +74,6 @@ ProcessGraphicsView::ProcessGraphicsView(
 
 ProcessGraphicsView::~ProcessGraphicsView()
 {
-
 }
 
 void ProcessGraphicsView::drawBackground(QPainter* painter, const QRectF& rect)
@@ -182,7 +183,6 @@ void ProcessGraphicsView::leaveEvent(QEvent* event)
   QGraphicsView::leaveEvent(event);
 }
 
-
 ScenarioDocumentView::ScenarioDocumentView(
     const score::DocumentContext& ctx, QObject* parent)
     : score::DocumentDelegateView{parent}
@@ -265,7 +265,6 @@ ScenarioDocumentView::ScenarioDocumentView(
 
 ScenarioDocumentView::~ScenarioDocumentView()
 {
-
 }
 
 QWidget* ScenarioDocumentView::getWidget()

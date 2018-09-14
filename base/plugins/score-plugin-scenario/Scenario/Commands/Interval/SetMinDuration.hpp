@@ -2,9 +2,11 @@
 #include <Process/TimeValue.hpp>
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
+
 #include <score/command/Command.hpp>
 #include <score/model/path/Path.hpp>
 #include <score/model/path/PathSerialization.hpp>
+
 #include <tests/helpers/ForwardDeclaration.hpp>
 
 namespace Scenario

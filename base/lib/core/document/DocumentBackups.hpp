@@ -1,7 +1,9 @@
 #pragma once
 #include <QByteArray>
 #include <QString>
+
 #include <score_lib_base_export.h>
+
 #include <utility>
 #include <vector>
 

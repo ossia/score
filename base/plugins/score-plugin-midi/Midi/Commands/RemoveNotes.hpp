@@ -1,6 +1,7 @@
 #pragma once
 #include <Midi/Commands/CommandFactory.hpp>
 #include <Midi/MidiNote.hpp>
+
 #include <score/model/path/Path.hpp>
 
 namespace Midi

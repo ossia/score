@@ -1,6 +1,7 @@
 #pragma once
-#include <QObject>
 #include <core/settings/SettingsPresenter.hpp>
+
+#include <QObject>
 
 namespace score
 {

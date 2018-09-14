@@ -1,12 +1,13 @@
 #pragma once
-#include <ossia/detail/algorithms.hpp>
-
 #include <Scenario/Commands/Interval/Rack/AddSlotToRack.hpp>
 #include <Scenario/Commands/Scenario/ShowRackInViewModel.hpp>
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
+
 #include <score/command/AggregateCommand.hpp>
 #include <score/tools/IdentifierGeneration.hpp>
+
+#include <ossia/detail/algorithms.hpp>
 
 namespace Scenario
 {
@@ -27,8 +28,7 @@ class AddMultipleProcessesToIntervalMacro final
     : public score::AggregateCommand
 {
   SCORE_COMMAND_DECL(
-      ScenarioCommandFactoryName(),
-      AddMultipleProcessesToIntervalMacro,
+      ScenarioCommandFactoryName(), AddMultipleProcessesToIntervalMacro,
       "Add processes to interval")
 
 public:

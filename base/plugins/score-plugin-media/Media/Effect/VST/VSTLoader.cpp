@@ -3,11 +3,11 @@
 #include <stdexcept>
 
 #if defined(_WIN32)
-#  include <windows.h>
+#include <windows.h>
 #elif defined(__APPLE__)
-#  include <CoreFoundation/CoreFoundation.h>
+#include <CoreFoundation/CoreFoundation.h>
 #elif __linux__
-#  include <dlfcn.h>
+#include <dlfcn.h>
 #endif
 
 namespace Media

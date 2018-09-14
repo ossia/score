@@ -6,4 +6,3 @@ namespace Execution
 struct Context;
 using Component = score::GenericComponent<const Context>;
 }
-

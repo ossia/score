@@ -1,14 +1,5 @@
 #pragma once
 
-#include <QColor>
-#include <wobjectdefs.h>
-#include <QFormLayout>
-#include <QLineEdit>
-#include <QPixmap>
-#include <QString>
-#include <QToolButton>
-#include <QVBoxLayout>
-#include <QWidget>
 #include <Scenario/Commands/Metadata/ChangeElementColor.hpp>
 #include <Scenario/Commands/Metadata/ChangeElementComments.hpp>
 #include <Scenario/Commands/Metadata/ChangeElementLabel.hpp>
@@ -16,10 +7,22 @@
 #include <Scenario/Commands/Metadata/SetExtendedMetadata.hpp>
 #include <Scenario/Inspector/CommentEdit.hpp>
 #include <Scenario/Inspector/ExtendedMetadataWidget.hpp>
+
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/model/IdentifiedObject.hpp>
 #include <score/widgets/MarginLess.hpp>
 #include <score/widgets/TextLabel.hpp>
+
+#include <QColor>
+#include <QFormLayout>
+#include <QLineEdit>
+#include <QPixmap>
+#include <QString>
+#include <QToolButton>
+#include <QVBoxLayout>
+#include <QWidget>
+
+#include <wobjectdefs.h>
 
 namespace score
 {
@@ -48,10 +51,8 @@ class MetadataWidget final : public QWidget
 
 public:
   explicit MetadataWidget(
-      const score::ModelMetadata& metadata,
-      const score::CommandStackFacade& m,
-      const QObject* docObject,
-      QWidget* parent = nullptr);
+      const score::ModelMetadata& metadata, const score::CommandStackFacade& m,
+      const QObject* docObject, QWidget* parent = nullptr);
 
   ~MetadataWidget();
 
@@ -98,7 +99,8 @@ public:
   void labelChanged(QString arg) W_SIGNAL(labelChanged, arg);
   void commentsChanged(QString arg) W_SIGNAL(commentsChanged, arg);
   void colorChanged(score::ColorRef arg) W_SIGNAL(colorChanged, arg);
-  void extendedMetadataChanged(const QVariantMap& arg) W_SIGNAL(extendedMetadataChanged, arg);
+  void extendedMetadataChanged(const QVariantMap& arg)
+      W_SIGNAL(extendedMetadataChanged, arg);
 
 private:
   static const constexpr int m_colorIconSize{21};
@@ -117,7 +119,7 @@ private:
   CommentEdit m_comments;
   QToolButton m_colorButton;
   QToolButton m_cmtBtn;
-  //ExtendedMetadataWidget m_meta;
+  // ExtendedMetadataWidget m_meta;
   QPixmap m_colorButtonPixmap{4 * m_colorIconSize / 3,
                               4 * m_colorIconSize / 3};
 

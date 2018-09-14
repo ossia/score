@@ -2,6 +2,7 @@
 class QByteArray;
 class QVariant;
 #include <score/model/Identifier.hpp>
+
 #include <score_lib_base_export.h>
 namespace score
 {
@@ -26,19 +27,14 @@ public:
   explicit DocumentBuilder(QObject* parentPresenter, QWidget* parentView);
 
   Document* newDocument(
-      const score::GUIApplicationContext& ctx,
-      const Id<DocumentModel>& id,
+      const score::GUIApplicationContext& ctx, const Id<DocumentModel>& id,
       score::DocumentDelegateFactory& doctype);
   Document* loadDocument(
-      const score::GUIApplicationContext& ctx,
-      QString filename,
-      const QVariant& data,
-      score::DocumentDelegateFactory& doctype);
+      const score::GUIApplicationContext& ctx, QString filename,
+      const QVariant& data, score::DocumentDelegateFactory& doctype);
   Document* restoreDocument(
-      const score::GUIApplicationContext& ctx,
-      QString filename,
-      const QByteArray& docData,
-      const QByteArray& cmdData,
+      const score::GUIApplicationContext& ctx, QString filename,
+      const QByteArray& docData, const QByteArray& cmdData,
       score::DocumentDelegateFactory& doctype);
 
 private:

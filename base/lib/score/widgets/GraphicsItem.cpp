@@ -2,9 +2,10 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "GraphicsItem.hpp"
 
+#include <score/plugins/customfactory/UuidKey.hpp>
+
 #include <QGraphicsItem>
 #include <QGraphicsScene>
-#include <score/plugins/customfactory/UuidKey.hpp>
 
 void deleteGraphicsObject(QGraphicsObject* item)
 {

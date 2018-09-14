@@ -2,6 +2,12 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "TestApplication.hpp"
 
+#include <score/plugins/documentdelegate/DocumentDelegateFactory.hpp>
+#include <score/plugins/documentdelegate/plugin/DocumentPlugin.hpp>
+#include <score/plugins/panel/PanelDelegate.hpp>
+#include <score/plugins/settingsdelegate/SettingsDelegateFactory.hpp>
+#include <score/selection/Selection.hpp>
+
 #include <core/application/ApplicationRegistrar.hpp>
 #include <core/application/SafeQApplication.hpp>
 #include <core/document/DocumentModel.hpp>
@@ -12,11 +18,6 @@
 #include <core/undo/Panel/UndoPanelFactory.hpp>
 #include <core/undo/UndoApplicationPlugin.hpp>
 #include <core/view/Window.hpp>
-#include <score/plugins/documentdelegate/DocumentDelegateFactory.hpp>
-#include <score/plugins/documentdelegate/plugin/DocumentPlugin.hpp>
-#include <score/plugins/panel/PanelDelegate.hpp>
-#include <score/plugins/settingsdelegate/SettingsDelegateFactory.hpp>
-#include <score/selection/Selection.hpp>
 TestApplication::TestApplication(int& argc, char** argv) : QObject{nullptr}
 {
   m_app = new SafeQApplication{argc, argv};

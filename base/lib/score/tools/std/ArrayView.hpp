@@ -5,9 +5,9 @@
 #include <stdexcept>
 
 #if defined(_WIN32)
-#  include <malloc.h>
+#include <malloc.h>
 #else
-#  include <alloca.h>
+#include <alloca.h>
 #endif
 
 namespace score

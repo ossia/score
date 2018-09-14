@@ -1,14 +1,16 @@
 #pragma once
-#include <ossia/network/domain/domain.hpp>
-#include <Process/Dataflow/WidgetInlets.hpp>
-#include <wobjectdefs.h>
-
-#include <rtmidi17/message.hpp>
 #include <Process/Dataflow/Port.hpp>
+#include <Process/Dataflow/WidgetInlets.hpp>
+#include <State/Domain.hpp>
+
+#include <ossia/network/domain/domain.hpp>
+
 #include <QObject>
 #include <QVariant>
 #include <QVector>
-#include <State/Domain.hpp>
+
+#include <rtmidi17/message.hpp>
+#include <wobjectdefs.h>
 namespace JS
 {
 class Inlet : public QObject
@@ -31,6 +33,7 @@ public:
   {
     return false;
   }
+
 public:
   void setAddress(QString address)
   {
@@ -39,11 +42,13 @@ public:
 
     m_address = address;
     addressChanged(m_address);
-  }; W_SLOT(setAddress)
+  };
+  W_SLOT(setAddress)
 public:
   void addressChanged(QString address) W_SIGNAL(addressChanged, address);
 
-W_PROPERTY(QString, address READ address WRITE setAddress NOTIFY addressChanged)
+  W_PROPERTY(
+      QString, address READ address WRITE setAddress NOTIFY addressChanged)
 };
 class Outlet : public QObject
 {
@@ -60,6 +65,7 @@ public:
   {
     return m_address;
   }
+
 public:
   void setAddress(QString address)
   {
@@ -68,11 +74,13 @@ public:
 
     m_address = address;
     addressChanged(m_address);
-  }; W_SLOT(setAddress)
+  };
+  W_SLOT(setAddress)
 public:
   void addressChanged(QString address) W_SIGNAL(addressChanged, address);
 
-W_PROPERTY(QString, address READ address WRITE setAddress NOTIFY addressChanged)
+  W_PROPERTY(
+      QString, address READ address WRITE setAddress NOTIFY addressChanged)
 };
 struct ValueMessage
 {
@@ -117,8 +125,8 @@ public:
     m_values.append(std::move(val));
   }
 
-W_PROPERTY(QVariantList, values READ values)
-W_PROPERTY(QVariant, value READ value)
+  W_PROPERTY(QVariantList, values READ values)
+  W_PROPERTY(QVariant, value READ value)
 };
 
 class ControlInlet : public Inlet
@@ -145,14 +153,14 @@ public:
   }
   void setValue(QVariant value);
 
-W_PROPERTY(QVariant, value READ value)
+  W_PROPERTY(QVariant, value READ value)
 };
 
 class FloatSlider : public ValueInlet
 {
   W_OBJECT(FloatSlider)
 
-  public:
+public:
   using ValueInlet::ValueInlet;
   virtual ~FloatSlider() override;
   qreal getMin() const
@@ -174,7 +182,8 @@ class FloatSlider : public ValueInlet
 
   Process::Inlet* make(Id<Process::Port>&& id, QObject* parent) override
   {
-    return new Process::FloatSlider{(float)m_min, (float)m_max, (float)m_init, objectName(), id, parent};
+    return new Process::FloatSlider{(float)m_min, (float)m_max, (float)m_init,
+                                    objectName(), id,           parent};
   }
 
 public:
@@ -190,7 +199,8 @@ public:
       m_min = m;
       minChanged(m);
     }
-  }; W_SLOT(setMin)
+  };
+  W_SLOT(setMin)
 
   void setMax(qreal m)
   {
@@ -199,7 +209,8 @@ public:
       m_max = m;
       maxChanged(m);
     }
-  }; W_SLOT(setMax)
+  };
+  W_SLOT(setMax)
 
   void setInit(qreal m)
   {
@@ -208,23 +219,24 @@ public:
       m_init = m;
       initChanged(m);
     }
-  }; W_SLOT(setInit)
+  };
+  W_SLOT(setInit)
 
 private:
   qreal m_min{};
   qreal m_max{};
   qreal m_init{};
 
-W_PROPERTY(qreal, init READ init WRITE setInit NOTIFY initChanged)
-W_PROPERTY(qreal, max READ getMax WRITE setMax NOTIFY maxChanged)
-W_PROPERTY(qreal, min READ getMin WRITE setMin NOTIFY minChanged)
+  W_PROPERTY(qreal, init READ init WRITE setInit NOTIFY initChanged)
+  W_PROPERTY(qreal, max READ getMax WRITE setMax NOTIFY maxChanged)
+  W_PROPERTY(qreal, min READ getMin WRITE setMin NOTIFY minChanged)
 };
 
 class IntSlider : public ValueInlet
 {
   W_OBJECT(IntSlider)
 
-  public:
+public:
   using ValueInlet::ValueInlet;
   virtual ~IntSlider() override;
   int getMin() const
@@ -246,7 +258,8 @@ class IntSlider : public ValueInlet
 
   Process::Inlet* make(Id<Process::Port>&& id, QObject* parent) override
   {
-    return new Process::IntSlider{m_min, m_max, m_init, objectName(), id, parent};
+    return new Process::IntSlider{m_min,        m_max, m_init,
+                                  objectName(), id,    parent};
   }
 
 public:
@@ -262,7 +275,8 @@ public:
       m_min = m;
       minChanged(m);
     }
-  }; W_SLOT(setMin)
+  };
+  W_SLOT(setMin)
 
   void setMax(int m)
   {
@@ -271,7 +285,8 @@ public:
       m_max = m;
       maxChanged(m);
     }
-  }; W_SLOT(setMax)
+  };
+  W_SLOT(setMax)
 
   void setInit(int m)
   {
@@ -280,16 +295,17 @@ public:
       m_init = m;
       initChanged(m);
     }
-  }; W_SLOT(setInit)
+  };
+  W_SLOT(setInit)
 
 private:
   int m_min{};
   int m_max{};
   int m_init{};
 
-W_PROPERTY(int, init READ init WRITE setInit NOTIFY initChanged)
-W_PROPERTY(int, max READ getMax WRITE setMax NOTIFY maxChanged)
-W_PROPERTY(int, min READ getMin WRITE setMin NOTIFY minChanged)
+  W_PROPERTY(int, init READ init WRITE setInit NOTIFY initChanged)
+  W_PROPERTY(int, max READ getMax WRITE setMax NOTIFY maxChanged)
+  W_PROPERTY(int, min READ getMin WRITE setMin NOTIFY minChanged)
 };
 
 class Enum : public ValueInlet
@@ -343,7 +359,8 @@ public:
       m_choices = m;
       choicesChanged(m);
     }
-  }; W_SLOT(setChoices)
+  };
+  W_SLOT(setChoices)
 
   void setIndex(int m)
   {
@@ -352,14 +369,16 @@ public:
       m_index = m;
       indexChanged(m);
     }
-  }; W_SLOT(setIndex)
+  };
+  W_SLOT(setIndex)
 
 private:
   QStringList m_choices{};
   int m_index{};
 
-W_PROPERTY(int, index READ index WRITE setIndex NOTIFY indexChanged)
-W_PROPERTY(QStringList, choices READ choices WRITE setChoices NOTIFY choicesChanged)
+  W_PROPERTY(int, index READ index WRITE setIndex NOTIFY indexChanged)
+  W_PROPERTY(
+      QStringList, choices READ choices WRITE setChoices NOTIFY choicesChanged)
 };
 
 class Toggle : public ValueInlet
@@ -393,18 +412,18 @@ public:
       m_checked = m;
       checkedChanged(m);
     }
-  }; W_SLOT(setChecked)
+  };
+  W_SLOT(setChecked)
 
 private:
   bool m_checked{};
 
-W_PROPERTY(bool, checked READ checked WRITE setChecked NOTIFY checkedChanged)
+  W_PROPERTY(bool, checked READ checked WRITE setChecked NOTIFY checkedChanged)
 };
 
 class LineEdit : public ValueInlet
 {
   W_OBJECT(LineEdit)
-
 
 public:
   using ValueInlet::ValueInlet;
@@ -433,12 +452,13 @@ public:
       m_text = m;
       textChanged(m);
     }
-  }; W_SLOT(setText)
+  };
+  W_SLOT(setText)
 
 private:
   QString m_text{};
 
-W_PROPERTY(QString, text READ text WRITE setText NOTIFY textChanged)
+  W_PROPERTY(QString, text READ text WRITE setText NOTIFY textChanged)
 };
 
 class ValueOutlet : public Outlet
@@ -464,11 +484,14 @@ public:
     p->type = Process::PortType::Message;
     return p;
   }
-public:
-  void setValue(QVariant value); W_SLOT(setValue);
-  void addValue(qreal timestamp, QVariant t); W_SLOT(addValue);
 
-W_PROPERTY(QVariant, value READ value WRITE setValue)
+public:
+  void setValue(QVariant value);
+  W_SLOT(setValue);
+  void addValue(qreal timestamp, QVariant t);
+  W_SLOT(addValue);
+
+  W_PROPERTY(QVariant, value READ value WRITE setValue)
 };
 
 class AudioInlet : public Inlet
@@ -556,7 +579,7 @@ public:
       QVector<int> m;
       m.resize(N);
 
-      for(std::size_t i = 0; i < N; i++)
+      for (std::size_t i = 0; i < N; i++)
         m[i] = mess.bytes[i];
 
       m_midi.push_back(QVariant::fromValue(m));

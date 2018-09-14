@@ -2,15 +2,17 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "MessagesPanel.hpp"
 
+#include <ossia-qt/invoke.hpp>
 #include <ossia/detail/logger.hpp>
 
 #include <QDockWidget>
 #include <QFileInfo>
 #include <QListWidget>
 #include <QMenu>
-#include <deque>
-#include <ossia-qt/invoke.hpp>
+
 #include <wobjectimpl.h>
+
+#include <deque>
 W_OBJECT_IMPL(score::MessagesPanelDelegate)
 namespace score
 {
@@ -164,7 +166,6 @@ MessagesPanelDelegate::MessagesPanelDelegate(
           m_itemModel->clear();
         }
       });
-
 }
 
 QWidget* MessagesPanelDelegate::widget()

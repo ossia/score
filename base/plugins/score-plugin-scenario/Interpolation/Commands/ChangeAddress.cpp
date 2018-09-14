@@ -1,24 +1,23 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
-#include <ossia/editor/state/destination_qualifiers.hpp>
-
-#include <Interpolation/Commands/ChangeAddress.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
 #include <Scenario/Document/State/ItemModel/MessageItemModelAlgorithms.hpp>
 #include <Scenario/Process/Algorithms/Accessors.hpp>
 #include <Scenario/Process/ScenarioInterface.hpp>
 #include <State/ValueSerialization.hpp>
+
 #include <score/model/path/PathSerialization.hpp>
+
+#include <ossia/editor/state/destination_qualifiers.hpp>
+
+#include <Interpolation/Commands/ChangeAddress.hpp>
 
 namespace Interpolation
 {
 ChangeAddress::ChangeAddress(
-    const ProcessModel& proc,
-    const State::AddressAccessor& addr,
-    const ossia::value& start,
-    const ossia::value& end,
-    const State::Unit& u)
+    const ProcessModel& proc, const State::AddressAccessor& addr,
+    const ossia::value& start, const ossia::value& end, const State::Unit& u)
     : m_path{proc}
     , m_oldAddr{proc.address()}
     , m_newAddr{addr}
@@ -68,8 +67,7 @@ void ChangeAddress::deserializeImpl(DataStreamOutput& s)
 }
 
 void ChangeInterpolationAddress(
-    const ProcessModel& proc,
-    const State::AddressAccessor& addr,
+    const ProcessModel& proc, const State::AddressAccessor& addr,
     CommandDispatcher<>& disp)
 {
   // Various checks

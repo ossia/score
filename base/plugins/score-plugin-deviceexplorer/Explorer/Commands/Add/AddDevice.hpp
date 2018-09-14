@@ -1,8 +1,10 @@
 #pragma once
 #include <Device/Protocol/DeviceSettings.hpp>
 #include <Explorer/Commands/DeviceExplorerCommandFactory.hpp>
+
 #include <score/command/Command.hpp>
 #include <score/model/path/Path.hpp>
+
 #include <score_plugin_deviceexplorer_export.h>
 
 struct DataStreamInput;

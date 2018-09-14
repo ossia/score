@@ -1,8 +1,9 @@
 #pragma once
-#include <QGridLayout>
-#include <QWidget>
 #include <score/widgets/ClearLayout.hpp>
 #include <score/widgets/MarginLess.hpp>
+
+#include <QGridLayout>
+#include <QWidget>
 
 /**
  * @brief The WidgetWrapper class

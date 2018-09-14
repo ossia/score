@@ -1,8 +1,10 @@
 #pragma once
 #include <Device/Node/DeviceNode.hpp>
-#include <wobjectdefs.h>
+
 #include <QObject>
+
 #include <score_plugin_deviceexplorer_export.h>
+#include <wobjectdefs.h>
 namespace State
 {
 struct Address;

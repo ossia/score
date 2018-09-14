@@ -5,8 +5,11 @@
 #include <Process/Dataflow/Cable.hpp>
 #include <Process/Dataflow/PortFactory.hpp>
 #include <Process/Dataflow/PortListWidget.hpp>
+
 #include <score/model/path/PathSerialization.hpp>
+
 #include <ossia-qt/value_metatypes.hpp>
+
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Process::Port)
 W_OBJECT_IMPL(Process::Inlet)
@@ -254,39 +257,29 @@ PortFactory::~PortFactory()
 }
 
 Dataflow::PortItem* PortFactory::makeItem(
-    Inlet& port,
-    const score::DocumentContext& ctx,
-    QGraphicsItem* parent,
+    Inlet& port, const score::DocumentContext& ctx, QGraphicsItem* parent,
     QObject* context)
 {
   return new Dataflow::PortItem{port, ctx, parent};
 }
 
 Dataflow::PortItem* PortFactory::makeItem(
-    Outlet& port,
-    const score::DocumentContext& ctx,
-    QGraphicsItem* parent,
+    Outlet& port, const score::DocumentContext& ctx, QGraphicsItem* parent,
     QObject* context)
 {
   return new Dataflow::PortItem{port, ctx, parent};
 }
 
 void PortFactory::setupInspector(
-      Inlet& port,
-      const score::DocumentContext& ctx,
-      QWidget* parent,
-      Inspector::Layout& lay,
-      QObject* context)
+    Inlet& port, const score::DocumentContext& ctx, QWidget* parent,
+    Inspector::Layout& lay, QObject* context)
 {
   PortWidgetSetup::setupInLayout(port, ctx, lay, parent);
 }
 
 void PortFactory::setupInspector(
-      Outlet& port,
-      const score::DocumentContext& ctx,
-      QWidget* parent,
-      Inspector::Layout& lay,
-      QObject* context)
+    Outlet& port, const score::DocumentContext& ctx, QWidget* parent,
+    Inspector::Layout& lay, QObject* context)
 {
   PortWidgetSetup::setupInLayout(port, ctx, lay, parent);
 }
@@ -339,7 +332,8 @@ SCORE_LIB_PROCESS_EXPORT void
 DataStreamReader::read<Process::Port>(const Process::Port& p)
 {
   insertDelimiter();
-  m_stream << p.type << p.hidden << p.m_customData << p.m_exposed << p.m_description << p.m_address;
+  m_stream << p.type << p.hidden << p.m_customData << p.m_exposed
+           << p.m_description << p.m_address;
   insertDelimiter();
 }
 template <>
@@ -347,7 +341,8 @@ SCORE_LIB_PROCESS_EXPORT void
 DataStreamWriter::write<Process::Port>(Process::Port& p)
 {
   checkDelimiter();
-  m_stream >> p.type >> p.hidden >> p.m_customData >> p.m_exposed >> p.m_description >> p.m_address;
+  m_stream >> p.type >> p.hidden >> p.m_customData >> p.m_exposed
+      >> p.m_description >> p.m_address;
   checkDelimiter();
 }
 

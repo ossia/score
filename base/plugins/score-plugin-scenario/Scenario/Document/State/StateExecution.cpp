@@ -1,43 +1,38 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+#include <Process/ExecutionContext.hpp>
+#include <Process/ExecutionSetup.hpp>
 #include <Scenario/Document/State/StateExecution.hpp>
+#include <Scenario/Execution/score2OSSIA.hpp>
 
 #include <ossia/dataflow/node_process.hpp>
 #include <ossia/dataflow/nodes/state.hpp>
-#include <ossia/editor/scenario/time_event.hpp>
-#include <Process/ExecutionSetup.hpp>
-#include <Scenario/Execution/score2OSSIA.hpp>
-
-#include <Process/ExecutionContext.hpp>
 #include <ossia/detail/pod_vector.hpp>
+#include <ossia/editor/scenario/time_event.hpp>
 
 namespace Execution
 {
 StateComponentBase::StateComponentBase(
-    const Scenario::StateModel& element,
-    const Execution::Context& ctx,
-    const Id<score::Component>& id,
-    QObject* parent)
+    const Scenario::StateModel& element, const Execution::Context& ctx,
+    const Id<score::Component>& id, QObject* parent)
     : Execution::Component{ctx, id, "Executor::State", nullptr}
     , m_model{&element}
-    , m_node{std::make_shared<ossia::nodes::state_writer>(Engine::score_to_ossia::state(element, ctx))}
+    , m_node{std::make_shared<ossia::nodes::state_writer>(
+          Engine::score_to_ossia::state(element, ctx))}
 {
-  connect(&element, &Scenario::StateModel::sig_statesUpdated,
-          this, [this, &ctx] {
-    in_exec(
-          [
-          n=m_node
-         ,x=Engine::score_to_ossia::state(*m_model, ctx)
-          ] () mutable {
-      n->data = std::move(x);
-    });
-  });
+  connect(
+      &element, &Scenario::StateModel::sig_statesUpdated, this, [this, &ctx] {
+        in_exec([n = m_node,
+                 x = Engine::score_to_ossia::state(*m_model, ctx)]() mutable {
+          n->data = std::move(x);
+        });
+      });
 }
 
 void StateComponentBase::onDelete() const
 {
   system().setup.unregister_node({}, {}, m_node);
-  if(m_ev)
+  if (m_ev)
   {
     in_exec([gr = this->system().execGraph, ev = m_ev] {
       auto& procs = ev->get_time_processes();
@@ -51,8 +46,7 @@ void StateComponentBase::onDelete() const
 }
 
 ProcessComponent* StateComponentBase::make(
-    const Id<score::Component>& id,
-    ProcessComponentFactory& fac,
+    const Id<score::Component>& id, ProcessComponentFactory& fac,
     Process::ProcessModel& proc)
 {
   try
@@ -89,8 +83,7 @@ ProcessComponent* StateComponentBase::make(
         oproc->node->set_logging(proc.selection.get());
 
       std::weak_ptr<ossia::time_process> oproc_weak = oproc;
-      std::weak_ptr<ossia::graph_interface> g_weak
-          = plug->system().execGraph;
+      std::weak_ptr<ossia::graph_interface> g_weak = plug->system().execGraph;
 
       in_exec([cst = m_ev, oproc_weak, g_weak, propagated_outlets] {
         if (auto oproc = oproc_weak.lock())
@@ -136,8 +129,7 @@ StateComponent::~StateComponent()
 {
 }
 
-void StateComponent::onSetup(
-    const std::shared_ptr<ossia::time_event>& root)
+void StateComponent::onSetup(const std::shared_ptr<ossia::time_event>& root)
 {
   m_ev = root;
   m_ev->add_time_process(std::make_shared<ossia::node_process>(m_node));
@@ -148,12 +140,11 @@ void StateComponent::onSetup(
 
 void StateComponent::init()
 {
-  if(m_model)
+  if (m_model)
   {
     init_hierarchy();
   }
 }
-
 
 void StateComponent::cleanup(const std::shared_ptr<StateComponent>& self)
 {

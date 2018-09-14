@@ -1,13 +1,14 @@
 #pragma once
 #include <State/OSSIASerializationImpl.hpp>
+
 #include <ossia/detail/size.hpp>
+
 #include <brigand/sequences/list.hpp>
 
 //////////// Value Variant serialization /////////////
 template <typename Functor>
 void apply_typeonly(
-    Functor&& functor,
-    ossia::value_variant_type::Type type,
+    Functor&& functor, ossia::value_variant_type::Type type,
     ossia::value_variant_type& var)
 {
   using namespace ossia;
@@ -105,16 +106,8 @@ struct TSerializer<JSONObject, ossia::value_variant_type>
   }
 
   using value_type_list = brigand::list<
-      float,
-      int,
-      ossia::vec2f,
-      ossia::vec3f,
-      ossia::vec4f,
-      ossia::impulse,
-      bool,
-      std::string,
-      std::vector<ossia::value>,
-      char>;
+      float, int, ossia::vec2f, ossia::vec3f, ossia::vec4f, ossia::impulse,
+      bool, std::string, std::vector<ossia::value>, char>;
 
   static auto init_keys()
   {
@@ -191,8 +184,7 @@ QJsonArray toJsonArray(const std::vector<ossia::value>& array)
   return arr;
 }
 
-QJsonArray
-toJsonArray(const std::vector<ossia::flat_set<ossia::value>>& array)
+QJsonArray toJsonArray(const std::vector<ossia::flat_set<ossia::value>>& array)
 {
   QJsonArray arr;
   for (auto& v : array)

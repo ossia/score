@@ -1,7 +1,8 @@
 #pragma once
-#include <core/command/CommandStack.hpp>
 #include <score/command/Dispatchers/ICommandDispatcher.hpp>
 #include <score/command/Dispatchers/SendStrategy.hpp>
+
+#include <core/command/CommandStack.hpp>
 
 // Creates commands on a list and keep updating the latest command
 // up to the next new command.

@@ -1,9 +1,4 @@
 #pragma once
-#include <QApplication>
-#include <QDir>
-#include <QDirIterator>
-#include <QFile>
-#include <QTimer>
 #include <Scenario/Application/ScenarioActions.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
@@ -11,12 +6,21 @@
 #include <Scenario/Document/State/StateModel.hpp>
 #include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
+
+#include <score/actions/ActionManager.hpp>
+#include <score/plugins/documentdelegate/DocumentDelegateFactory.hpp>
+
 #include <core/command/CommandStack.hpp>
 #include <core/document/Document.hpp>
 #include <core/document/DocumentModel.hpp>
 #include <core/presenter/DocumentManager.hpp>
-#include <score/actions/ActionManager.hpp>
-#include <score/plugins/documentdelegate/DocumentDelegateFactory.hpp>
+
+#include <QApplication>
+#include <QDir>
+#include <QDirIterator>
+#include <QFile>
+#include <QTimer>
+
 #include <thread>
 
 class TestObject : public QObject

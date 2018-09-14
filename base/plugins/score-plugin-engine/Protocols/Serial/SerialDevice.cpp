@@ -4,17 +4,19 @@
 #if defined(OSSIA_PROTOCOL_SERIAL)
 #include "SerialDevice.hpp"
 
+#include <Device/Protocol/DeviceSettings.hpp>
+#include <Explorer/DeviceList.hpp>
+#include <Explorer/DeviceLogging.hpp>
+#include <Protocols/Serial/SerialSpecificSettings.hpp>
+
+#include <ossia-qt/serial/serial_protocol.hpp>
 #include <ossia/network/generic/generic_device.hpp>
 #include <ossia/network/generic/generic_parameter.hpp>
 
-#include <Device/Protocol/DeviceSettings.hpp>
-#include <Explorer/DeviceLogging.hpp>
-#include <Protocols/Serial/SerialSpecificSettings.hpp>
-#include <Explorer/DeviceList.hpp>
 #include <QString>
 #include <QVariant>
+
 #include <memory>
-#include <ossia-qt/serial/serial_protocol.hpp>
 namespace Engine
 {
 namespace Network
@@ -40,7 +42,9 @@ bool SerialDevice::reconnect()
         = settings().deviceSpecificSettings.value<SerialSpecificSettings>();
 
     m_dev = std::make_unique<ossia::net::serial_device>(
-        std::make_unique<ossia::net::serial_protocol>(stgs.text.toUtf8(), stgs.port), settings().name.toStdString());
+        std::make_unique<ossia::net::serial_protocol>(
+            stgs.text.toUtf8(), stgs.port),
+        settings().name.toStdString());
 
     deviceChanged(nullptr, m_dev.get());
 

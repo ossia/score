@@ -1,9 +1,10 @@
 #pragma once
+#include <score/statemachine/StateMachineUtils.hpp>
+
 #include <QApplication>
 #include <QGraphicsItem>
 #include <QGraphicsScene>
 #include <QStateMachine>
-#include <score/statemachine/StateMachineUtils.hpp>
 
 template <typename Coordinates>
 class GraphicsSceneTool

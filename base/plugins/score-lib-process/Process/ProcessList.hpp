@@ -1,5 +1,6 @@
 #pragma once
 #include <Process/ProcessFactory.hpp>
+
 #include <score/plugins/customfactory/FactoryFamily.hpp>
 
 namespace Process

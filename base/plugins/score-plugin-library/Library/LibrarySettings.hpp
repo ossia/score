@@ -1,31 +1,29 @@
 #pragma once
 
 #include <Process/TimeValue.hpp>
-#include <wobjectdefs.h>
+
+#include <score/plugins/settingsdelegate/SettingsDelegateFactory.hpp>
+#include <score/plugins/settingsdelegate/SettingsDelegateModel.hpp>
+#include <score/plugins/settingsdelegate/SettingsDelegatePresenter.hpp>
 #include <score/plugins/settingsdelegate/SettingsDelegateView.hpp>
 #include <score/widgets/SpinBoxes.hpp>
 
-#include <Process/TimeValue.hpp>
 #include <wobjectdefs.h>
-#include <score/plugins/settingsdelegate/SettingsDelegateModel.hpp>
-#include <score/plugins/settingsdelegate/SettingsDelegatePresenter.hpp>
-#include <score/plugins/settingsdelegate/SettingsDelegateFactory.hpp>
 
-#define SETTINGS_UI_PATH_HPP(Control)   \
-public:                                 \
-  void set##Control(QString);           \
-  void Control##Changed(QString arg)    \
-       W_SIGNAL(Control##Changed, arg); \
-                                        \
-private:                                \
+#define SETTINGS_UI_PATH_HPP(Control)                                 \
+public:                                                               \
+  void set##Control(QString);                                         \
+  void Control##Changed(QString arg) W_SIGNAL(Control##Changed, arg); \
+                                                                      \
+private:                                                              \
   QLineEdit* m_##Control{};
 
-#define SETTINGS_UI_PATH_SETUP(Text, Control)           \
-  m_##Control = new QLineEdit{m_widg};                  \
-  lay->addRow(tr(Text), m_##Control);                   \
-  connect(                                              \
-      m_##Control, &QLineEdit::editingFinished, this,   \
-      [=] { Control##Changed(m_##Control->text()); });
+#define SETTINGS_UI_PATH_SETUP(Text, Control)                   \
+  m_##Control = new QLineEdit{m_widg};                          \
+  lay->addRow(tr(Text), m_##Control);                           \
+  connect(m_##Control, &QLineEdit::editingFinished, this, [=] { \
+    Control##Changed(m_##Control->text());                      \
+  });
 
 #define SETTINGS_UI_PATH_IMPL(Control) \
   void View::set##Control(QString val) \
@@ -35,17 +33,16 @@ private:                                \
       m_##Control->setText(val);       \
   }
 
-
 class QComboBox;
 class QSpinBox;
 class QCheckBox;
 namespace Library::Settings
 {
-class Model final
-    : public score::SettingsDelegateModel
+class Model final : public score::SettingsDelegateModel
 {
   W_OBJECT(Model)
   QString m_Path;
+
 public:
   Model(QSettings& set, const score::ApplicationContext& ctx);
 
@@ -78,7 +75,6 @@ private:
   QString settingsName() override;
   QIcon settingsIcon() override;
 };
-
 
 SCORE_DECLARE_SETTINGS_FACTORY(
     Factory, Model, Presenter, View, "d6966670-f69f-48d0-96f6-72a5e2190cbc")

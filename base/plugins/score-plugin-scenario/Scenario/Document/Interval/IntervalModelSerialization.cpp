@@ -4,11 +4,8 @@
 #include <Process/ProcessList.hpp>
 #include <Process/TimeValue.hpp>
 #include <Process/TimeValueSerialization.hpp>
-#include <QJsonArray>
-#include <QJsonObject>
-#include <QJsonValue>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
-#include <algorithm>
+
 #include <score/application/ApplicationContext.hpp>
 #include <score/model/EntityMap.hpp>
 #include <score/model/Identifier.hpp>
@@ -19,6 +16,12 @@
 #include <score/serialization/JSONValueVisitor.hpp>
 #include <score/serialization/JSONVisitor.hpp>
 #include <score/tools/std/Optional.hpp>
+
+#include <QJsonArray>
+#include <QJsonObject>
+#include <QJsonValue>
+
+#include <algorithm>
 
 template <>
 SCORE_PLUGIN_SCENARIO_EXPORT void

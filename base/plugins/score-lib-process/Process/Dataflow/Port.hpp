@@ -1,20 +1,23 @@
 #pragma once
-#include <ossia/detail/small_vector.hpp>
-#include <wobjectdefs.h>
-#include <ossia/network/value/value.hpp>
-
-#include <QPointer>
-#include <QUuid>
+#include <Process/Dataflow/PortType.hpp>
 #include <State/Address.hpp>
 #include <State/Domain.hpp>
-#include <Process/Dataflow/PortType.hpp>
+
 #include <score/model/IdentifiedObject.hpp>
 #include <score/model/path/Path.hpp>
 #include <score/plugins/customfactory/SerializableInterface.hpp>
 #include <score/selection/Selectable.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/serialization/JSONVisitor.hpp>
+
+#include <ossia/detail/small_vector.hpp>
+#include <ossia/network/value/value.hpp>
+
+#include <QPointer>
+#include <QUuid>
+
 #include <score_lib_process_export.h>
+#include <wobjectdefs.h>
 
 namespace Process
 {
@@ -25,31 +28,22 @@ class ControlInlet;
 class ControlOutlet;
 }
 UUID_METADATA(
-    SCORE_LIB_PROCESS_EXPORT,
-    Process::Port,
-    Process::Inlet,
+    SCORE_LIB_PROCESS_EXPORT, Process::Port, Process::Inlet,
     "8884228a-d197-4b0a-b6ca-d1fb15291559")
 UUID_METADATA(
-    SCORE_LIB_PROCESS_EXPORT,
-    Process::Port,
-    Process::Outlet,
+    SCORE_LIB_PROCESS_EXPORT, Process::Port, Process::Outlet,
     "34e2c5a7-18c4-4759-b6cc-46feaeee06e2")
 UUID_METADATA(
-    SCORE_LIB_PROCESS_EXPORT,
-    Process::Port,
-    Process::ControlInlet,
+    SCORE_LIB_PROCESS_EXPORT, Process::Port, Process::ControlInlet,
     "9a13fb32-269a-47bf-99a9-930188c1f19c")
 UUID_METADATA(
-    SCORE_LIB_PROCESS_EXPORT,
-    Process::Port,
-    Process::ControlOutlet,
+    SCORE_LIB_PROCESS_EXPORT, Process::Port, Process::ControlOutlet,
     "3620ea94-5991-41cf-89b3-11f842cc39d0")
 namespace Process
 {
 class Cable;
-class SCORE_LIB_PROCESS_EXPORT Port
-    : public IdentifiedObject<Port>
-    , public score::SerializableInterface<Port>
+class SCORE_LIB_PROCESS_EXPORT Port : public IdentifiedObject<Port>,
+                                      public score::SerializableInterface<Port>
 {
   W_OBJECT(Port)
   SCORE_SERIALIZE_FRIENDS
@@ -77,17 +71,25 @@ public:
   }
 
 public:
-  void setCustomData(const QString& customData); W_SLOT(setCustomData);
-  void setExposed(const QString& add); W_SLOT(setExposed);
-  void setDescription(const QString& add); W_SLOT(setDescription);
-  void setAddress(const State::AddressAccessor& address); W_SLOT(setAddress);
+  void setCustomData(const QString& customData);
+  W_SLOT(setCustomData);
+  void setExposed(const QString& add);
+  W_SLOT(setExposed);
+  void setDescription(const QString& add);
+  W_SLOT(setDescription);
+  void setAddress(const State::AddressAccessor& address);
+  W_SLOT(setAddress);
 
 public:
-  void exposedChanged(const QString& addr) E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, exposedChanged, addr);
-  void descriptionChanged(const QString& txt) E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, descriptionChanged, txt);
+  void exposedChanged(const QString& addr)
+      E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, exposedChanged, addr);
+  void descriptionChanged(const QString& txt)
+      E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, descriptionChanged, txt);
   void cablesChanged() E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, cablesChanged);
-  void customDataChanged(const QString& customData) E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, customDataChanged, customData);
-  void addressChanged(const State::AddressAccessor& address) E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, addressChanged, address);
+  void customDataChanged(const QString& customData)
+      E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, customDataChanged, customData);
+  void addressChanged(const State::AddressAccessor& address)
+      E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, addressChanged, address);
 
 protected:
   Port() = delete;
@@ -108,9 +110,13 @@ private:
   State::AddressAccessor m_address;
   score::Components m_components;
 
-W_PROPERTY(State::AddressAccessor, address READ address WRITE setAddress NOTIFY addressChanged)
+  W_PROPERTY(
+      State::AddressAccessor,
+      address READ address WRITE setAddress NOTIFY addressChanged)
 
-W_PROPERTY(QString, customData READ customData WRITE setCustomData NOTIFY customDataChanged)
+  W_PROPERTY(
+      QString,
+      customData READ customData WRITE setCustomData NOTIFY customDataChanged)
 };
 
 class SCORE_LIB_PROCESS_EXPORT Inlet : public Port
@@ -156,8 +162,10 @@ public:
   }
 
 public:
-  void valueChanged(const ossia::value& v) E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, valueChanged, v);
-  void domainChanged(const State::Domain& d) E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, domainChanged, d);
+  void valueChanged(const ossia::value& v)
+      E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, valueChanged, v);
+  void domainChanged(const State::Domain& d)
+      E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, domainChanged, d);
 
 public:
   void setValue(const ossia::value& value)
@@ -167,7 +175,8 @@ public:
       m_value = value;
       valueChanged(value);
     }
-  }; W_SLOT(setValue)
+  };
+  W_SLOT(setValue)
 
   void setDomain(const State::Domain& d)
   {
@@ -176,15 +185,17 @@ public:
       m_domain = d;
       domainChanged(d);
     }
-  }; W_SLOT(setDomain)
+  };
+  W_SLOT(setDomain)
 
 private:
   ossia::value m_value;
   State::Domain m_domain;
 
-W_PROPERTY(State::Domain, domain READ domain WRITE setDomain NOTIFY domainChanged)
+  W_PROPERTY(
+      State::Domain, domain READ domain WRITE setDomain NOTIFY domainChanged)
 
-W_PROPERTY(ossia::value, value READ value WRITE setValue NOTIFY valueChanged)
+  W_PROPERTY(ossia::value, value READ value WRITE setValue NOTIFY valueChanged)
 };
 
 class SCORE_LIB_PROCESS_EXPORT Outlet : public Port
@@ -207,21 +218,24 @@ public:
   bool propagate() const;
 
 public:
-  void propagateChanged(bool propagate) E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, propagateChanged, propagate);
+  void propagateChanged(bool propagate)
+      E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, propagateChanged, propagate);
 
 public:
-  void setPropagate(bool propagate); W_SLOT(setPropagate);
+  void setPropagate(bool propagate);
+  W_SLOT(setPropagate);
 
 private:
   bool m_propagate{false};
 
-W_PROPERTY(bool, propagate READ propagate WRITE setPropagate NOTIFY propagateChanged)
+  W_PROPERTY(
+      bool,
+      propagate READ propagate WRITE setPropagate NOTIFY propagateChanged)
 };
 
 class SCORE_LIB_PROCESS_EXPORT ControlOutlet final : public Outlet
 {
   W_OBJECT(ControlOutlet)
-
 
   SCORE_SERIALIZE_FRIENDS
 public:
@@ -244,8 +258,10 @@ public:
   }
 
 public:
-  void valueChanged(const ossia::value& v) E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, valueChanged, v);
-  void domainChanged(const State::Domain& d) E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, domainChanged, d);
+  void valueChanged(const ossia::value& v)
+      E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, valueChanged, v);
+  void domainChanged(const State::Domain& d)
+      E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, domainChanged, d);
 
 public:
   void setValue(const ossia::value& value)
@@ -255,7 +271,8 @@ public:
       m_value = value;
       valueChanged(value);
     }
-  }; W_SLOT(setValue)
+  };
+  W_SLOT(setValue)
 
   void setDomain(const State::Domain& d)
   {
@@ -264,15 +281,17 @@ public:
       m_domain = d;
       domainChanged(d);
     }
-  }; W_SLOT(setDomain)
+  };
+  W_SLOT(setDomain)
 
 private:
   ossia::value m_value;
   State::Domain m_domain;
 
-W_PROPERTY(State::Domain, domain READ domain WRITE setDomain NOTIFY domainChanged)
+  W_PROPERTY(
+      State::Domain, domain READ domain WRITE setDomain NOTIFY domainChanged)
 
-W_PROPERTY(ossia::value, value READ value WRITE setValue NOTIFY valueChanged)
+  W_PROPERTY(ossia::value, value READ value WRITE setValue NOTIFY valueChanged)
 };
 
 inline std::unique_ptr<Inlet>

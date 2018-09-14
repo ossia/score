@@ -1,8 +1,10 @@
 #pragma once
-#include <QObject>
-#include <QShortcut>
 #include <score/document/DocumentContext.hpp>
 #include <score/tools/std/Optional.hpp>
+
+#include <QObject>
+#include <QShortcut>
+
 #include <score_lib_base_export.h>
 class Selection;
 namespace score
@@ -21,10 +23,7 @@ class PanelView;
 struct SCORE_LIB_BASE_EXPORT PanelStatus
 {
   PanelStatus(
-      bool isShown,
-      Qt::DockWidgetArea d,
-      int prio,
-      QString name,
+      bool isShown, Qt::DockWidgetArea d, int prio, QString name,
       const QKeySequence& sc);
 
   const bool shown;              // Controls if it is shown by default.

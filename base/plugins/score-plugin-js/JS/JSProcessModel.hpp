@@ -1,10 +1,13 @@
 #pragma once
 #include <JS/JSProcessMetadata.hpp>
-#include <wobjectdefs.h>
 #include <Process/Process.hpp>
+
 #include <QFileSystemWatcher>
 #include <QQmlComponent>
 #include <QQmlEngine>
+
+#include <wobjectdefs.h>
+
 #include <memory>
 namespace JS
 {
@@ -15,8 +18,7 @@ class ProcessModel final : public Process::ProcessModel
   W_OBJECT(ProcessModel)
 public:
   explicit ProcessModel(
-      const TimeVal& duration,
-      const Id<Process::ProcessModel>& id,
+      const TimeVal& duration, const Id<Process::ProcessModel>& id,
       QObject* parent);
 
   template <typename Impl>
@@ -40,8 +42,10 @@ public:
   ~ProcessModel() override;
 
   QObject* m_dummyObject{};
+
 public:
-  void scriptError(int arg_1, const QString& arg_2) W_SIGNAL(scriptError, arg_1, arg_2);
+  void scriptError(int arg_1, const QString& arg_2)
+      W_SIGNAL(scriptError, arg_1, arg_2);
   void scriptOk() W_SIGNAL(scriptOk);
   void scriptChanged(const QString& arg_1) W_SIGNAL(scriptChanged, arg_1);
 

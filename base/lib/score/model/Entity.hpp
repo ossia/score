@@ -1,7 +1,8 @@
 #pragma once
-#include <ossia-qt/name_utils.hpp>
 #include <score/model/ComponentSerialization.hpp>
 #include <score/model/EntityBase.hpp>
+
+#include <ossia-qt/name_utils.hpp>
 
 namespace score
 {

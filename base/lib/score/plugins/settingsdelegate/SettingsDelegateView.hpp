@@ -1,5 +1,6 @@
 #pragma once
 #include <QWidget>
+
 #include <score_lib_base_export.h>
 
 class QComboBox;
@@ -38,50 +39,46 @@ protected:
 using GlobalSettingsView = SettingsDelegateView<SettingsDelegateModel>;
 }
 
-#define SETTINGS_UI_COMBOBOX_HPP(Control) \
-public:                                   \
-  void set##Control(QString);             \
-public:                                   \
-  void Control##Changed(QString arg)      \
-       W_SIGNAL(Control##Changed, arg);   \
-                                          \
-private:                                  \
+#define SETTINGS_UI_COMBOBOX_HPP(Control)                             \
+public:                                                               \
+  void set##Control(QString);                                         \
+                                                                      \
+public:                                                               \
+  void Control##Changed(QString arg) W_SIGNAL(Control##Changed, arg); \
+                                                                      \
+private:                                                              \
   QComboBox* m_##Control{};
 
-#define SETTINGS_UI_NUM_COMBOBOX_HPP(Control) \
-public:                                       \
-  void set##Control(int);                     \
-  void Control##Changed(int arg)              \
-       W_SIGNAL(Control##Changed, arg);       \
-                                              \
-private:                                      \
+#define SETTINGS_UI_NUM_COMBOBOX_HPP(Control)                     \
+public:                                                           \
+  void set##Control(int);                                         \
+  void Control##Changed(int arg) W_SIGNAL(Control##Changed, arg); \
+                                                                  \
+private:                                                          \
   QComboBox* m_##Control{};
 
-#define SETTINGS_UI_TOGGLE_HPP(Control) \
-public:                                 \
-  void set##Control(bool);              \
-  void Control##Changed(bool arg)       \
-       W_SIGNAL(Control##Changed, arg); \
-                                        \
-private:                                \
+#define SETTINGS_UI_TOGGLE_HPP(Control)                            \
+public:                                                            \
+  void set##Control(bool);                                         \
+  void Control##Changed(bool arg) W_SIGNAL(Control##Changed, arg); \
+                                                                   \
+private:                                                           \
   QCheckBox* m_##Control{};
 
-#define SETTINGS_UI_SPINBOX_HPP(Control) \
-public:                                  \
-  void set##Control(int);                \
-  void Control##Changed(int arg)         \
-       W_SIGNAL(Control##Changed, arg);  \
-                                         \
-private:                                 \
+#define SETTINGS_UI_SPINBOX_HPP(Control)                          \
+public:                                                           \
+  void set##Control(int);                                         \
+  void Control##Changed(int arg) W_SIGNAL(Control##Changed, arg); \
+                                                                  \
+private:                                                          \
   QSpinBox* m_##Control{};
 
-#define SETTINGS_UI_DOUBLE_SPINBOX_HPP(Control) \
-public:                                         \
-  void set##Control(double);                    \
-  void Control##Changed(double arg)             \
-       W_SIGNAL(Control##Changed, arg);         \
-                                                \
-private:                                        \
+#define SETTINGS_UI_DOUBLE_SPINBOX_HPP(Control)                      \
+public:                                                              \
+  void set##Control(double);                                         \
+  void Control##Changed(double arg) W_SIGNAL(Control##Changed, arg); \
+                                                                     \
+private:                                                             \
   QDoubleSpinBox* m_##Control{};
 
 #define SETTINGS_UI_COMBOBOX_SETUP(Text, Control, Values)                  \

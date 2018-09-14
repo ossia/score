@@ -4,22 +4,25 @@
 
 #include "JSAPIWrapper.hpp"
 
+#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
+#include <JS/JSProcessModel.hpp>
+#include <Scenario/Execution/score2OSSIA.hpp>
+
+#include <ossia-qt/invoke.hpp>
+#include <ossia-qt/js_utilities.hpp>
+#include <ossia/dataflow/port.hpp>
 #include <ossia/detail/logger.hpp>
 #include <ossia/editor/scenario/time_interval.hpp>
 #include <ossia/editor/state/message.hpp>
-#include <ossia/dataflow/port.hpp>
 #include <ossia/editor/state/state.hpp>
 
-#include <Execution/DocumentPlugin.hpp>
-#include <Engine/OSSIA2score.hpp>
-#include <Scenario/Execution/score2OSSIA.hpp>
-#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
-#include <JS/JSProcessModel.hpp>
 #include <QEventLoop>
 #include <QQmlComponent>
 #include <QQmlContext>
-#include <ossia-qt/invoke.hpp>
-#include <ossia-qt/js_utilities.hpp>
+
+#include <Engine/OSSIA2score.hpp>
+#include <Execution/DocumentPlugin.hpp>
+
 #include <vector>
 
 namespace JS
@@ -59,11 +62,13 @@ struct js_control_updater
   }
 };
 
-struct js_process final
-    : public ossia::node_process
+struct js_process final : public ossia::node_process
 {
   using node_process::node_process;
-  js_node& js() const { return static_cast<js_node&>(*node); }
+  js_node& js() const
+  {
+    return static_cast<js_node&>(*node);
+  }
   void start() override
   {
     QMetaObject::invokeMethod(js().m_object, "start", Qt::DirectConnection);
@@ -82,28 +87,24 @@ struct js_process final
   }
   void transport(ossia::time_value date, double pos) override
   {
-    QMetaObject::invokeMethod(js().m_object, "transport", Qt::DirectConnection,
-                              Q_ARG(QVariant, double(date)),
-                              Q_ARG(QVariant, pos));
+    QMetaObject::invokeMethod(
+        js().m_object, "transport", Qt::DirectConnection,
+        Q_ARG(QVariant, double(date)), Q_ARG(QVariant, pos));
   }
   void offset(ossia::time_value date, double pos) override
   {
-    QMetaObject::invokeMethod(js().m_object, "offset", Qt::DirectConnection,
-                              Q_ARG(QVariant, double(date)),
-                              Q_ARG(QVariant, pos));
+    QMetaObject::invokeMethod(
+        js().m_object, "offset", Qt::DirectConnection,
+        Q_ARG(QVariant, double(date)), Q_ARG(QVariant, pos));
   }
 };
 Component::Component(
-    JS::ProcessModel& element,
-    const ::Execution::Context& ctx,
-    const Id<score::Component>& id,
-    QObject* parent)
-    : ::Execution::
-          ProcessComponent_T<JS::ProcessModel, ossia::node_process>{
-              element, ctx, id, "JSComponent", parent}
+    JS::ProcessModel& element, const ::Execution::Context& ctx,
+    const Id<score::Component>& id, QObject* parent)
+    : ::Execution::ProcessComponent_T<JS::ProcessModel, ossia::node_process>{
+          element, ctx, id, "JSComponent", parent}
 {
-  std::shared_ptr<js_node> node
-      = std::make_shared<js_node>(*ctx.execState);
+  std::shared_ptr<js_node> node = std::make_shared<js_node>(*ctx.execState);
   this->node = node;
   auto proc = std::make_shared<js_process>(node);
   m_ossia_process = proc;
@@ -137,13 +138,12 @@ Component::Component(
     }
   }
 
-  con(element, &JS::ProcessModel::qmlDataChanged,
-      this, [=] (const QString& str) {
-    in_exec(
-          [proc=std::dynamic_pointer_cast<js_node>(node),
-          str]
-    { proc->setScript(std::move(str)); });
-  });
+  con(element, &JS::ProcessModel::qmlDataChanged, this,
+      [=](const QString& str) {
+        in_exec([proc = std::dynamic_pointer_cast<js_node>(node), str] {
+          proc->setScript(std::move(str));
+        });
+      });
 }
 
 Component::~Component()
@@ -336,7 +336,8 @@ void js_node::run(ossia::token_request tk, ossia::exec_state_facade) noexcept
       dat.write_value(ossia::qt::qt_to_ossia{}(v), tk.tick_start());
     for (auto& v : m_valOutlets[i].first->values)
     {
-      dat.write_value(ossia::qt::qt_to_ossia{}(std::move(v.value)), v.timestamp);
+      dat.write_value(
+          ossia::qt::qt_to_ossia{}(std::move(v.value)), v.timestamp);
     }
     m_valOutlets[i].first->clear();
   }

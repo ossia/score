@@ -1,5 +1,6 @@
 #pragma once
 #include <QObject>
+
 #include <score_lib_base_export.h>
 #include <wobjectdefs.h>
 
@@ -36,8 +37,9 @@ public:
     }
   }
 
-  void set(bool b) const E_SIGNAL(SCORE_LIB_BASE_EXPORT, set, b) void changed(bool b)
-      E_SIGNAL(SCORE_LIB_BASE_EXPORT, changed, b)
+  void set(bool b) const
+      E_SIGNAL(SCORE_LIB_BASE_EXPORT, set, b) void changed(bool b)
+          E_SIGNAL(SCORE_LIB_BASE_EXPORT, changed, b)
 
-          private : bool m_val{};
+              private : bool m_val{};
 };

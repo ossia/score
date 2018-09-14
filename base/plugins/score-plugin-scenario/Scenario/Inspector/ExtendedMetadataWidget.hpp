@@ -1,6 +1,8 @@
 #pragma once
 #include <QWidget>
+
 #include <wobjectdefs.h>
+
 #include <utility>
 #include <vector>
 class QFormLayout;

@@ -5,7 +5,6 @@
 #include <Process/Process.hpp>
 #include <Process/ProcessList.hpp>
 #include <Scenario/Document/Interval/Slot.hpp>
-#include <algorithm>
 
 #include <score/application/ApplicationContext.hpp>
 #include <score/model/EntityMap.hpp>
@@ -13,6 +12,8 @@
 #include <score/model/path/PathSerialization.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/tools/IdentifierGeneration.hpp>
+
+#include <algorithm>
 #include <vector>
 
 namespace Scenario

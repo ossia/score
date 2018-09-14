@@ -1,6 +1,5 @@
 #pragma once
 
-#include <Effect/EffectLayer.hpp>
 #include <Dataflow/UI/PortItem.hpp>
 #include <Media/Commands/InsertEffect.hpp>
 #include <Media/Effect/DefaultEffectItem.hpp>
@@ -10,27 +9,33 @@
 #include <Process/LayerPresenter.hpp>
 #include <Process/LayerView.hpp>
 #include <Process/ProcessMimeSerialization.hpp>
-#include <Process/Style/ScenarioStyle.hpp>
 #include <Process/Style/Pixmaps.hpp>
+#include <Process/Style/ScenarioStyle.hpp>
 #include <Process/WidgetLayer/WidgetProcessFactory.hpp>
-#include <QFileInfo>
+#include <Scenario/Application/Menus/ScenarioCopy.hpp>
+#include <Scenario/Document/CommentBlock/TextItem.hpp>
+#include <Scenario/Document/Interval/IntervalModel.hpp>
+
+#include <score/selection/SelectionDispatcher.hpp>
+#include <score/widgets/GraphicWidgets.hpp>
+#include <score/widgets/RectItem.hpp>
+
+#include <core/document/Document.hpp>
+
 #include <ossia/detail/thread.hpp>
+
+#include <QApplication>
+#include <QDrag>
+#include <QFileInfo>
 #include <QGraphicsProxyWidget>
 #include <QGraphicsScene>
 #include <QGraphicsSceneMouseEvent>
 #include <QJsonDocument>
-#include <QApplication>
+#include <QMetaProperty>
 #include <QPainter>
 #include <QWindow>
-#include <QDrag>
-#include <QMetaProperty>
-#include <core/document/Document.hpp>
-#include <Scenario/Application/Menus/ScenarioCopy.hpp>
-#include <Scenario/Document/CommentBlock/TextItem.hpp>
-#include <score/selection/SelectionDispatcher.hpp>
-#include <score/widgets/GraphicWidgets.hpp>
-#include <score/widgets/RectItem.hpp>
-#include <Scenario/Document/Interval/IntervalModel.hpp>
+
+#include <Effect/EffectLayer.hpp>
 
 namespace score
 {
@@ -73,11 +78,8 @@ struct EffectUi
 };
 
 static void resetInlets(
-    Process::ProcessModel& effect,
-    const Process::LayerContext& ctx,
-    QGraphicsItem* root,
-    QObject* parent,
-    EffectUi& ui)
+    Process::ProcessModel& effect, const Process::LayerContext& ctx,
+    QGraphicsItem* root, QObject* parent, EffectUi& ui)
 {
   qDeleteAll(ui.inlets);
   ui.inlets.clear();
@@ -98,11 +100,8 @@ static void resetInlets(
 }
 
 static void resetOutlets(
-    Process::ProcessModel& effect,
-    const Process::LayerContext& ctx,
-    QGraphicsItem* root,
-    QObject* parent,
-    EffectUi& ui)
+    Process::ProcessModel& effect, const Process::LayerContext& ctx,
+    QGraphicsItem* root, QObject* parent, EffectUi& ui)
 {
   qDeleteAll(ui.outlets);
   ui.outlets.clear();
@@ -121,29 +120,25 @@ static void resetOutlets(
     x += 10.;
   }
 }
-class EffectTitleItem final
-    : public QObject
-    , public QGraphicsItem
+class EffectTitleItem final : public QObject, public QGraphicsItem
 {
   W_OBJECT(EffectTitleItem)
 public:
   EffectTitleItem(
-      Process::ProcessModel& effect,
-      const Effect::ProcessModel& object,
-      const Process::LayerContext& ctx,
-      QObject* parent,
-      EffectUi& ui)
-  : QObject{parent}
-  , m_effect{effect}
+      Process::ProcessModel& effect, const Effect::ProcessModel& object,
+      const Process::LayerContext& ctx, QObject* parent, EffectUi& ui)
+      : QObject{parent}, m_effect{effect}
   {
     const auto& doc = ctx.context;
     const auto& pixmaps = Process::Pixmaps::instance();
     const auto& skin = ScenarioStyle::instance();
 
-    if(auto ui_btn = Process::makeExternalUIButton(effect, ctx.context, this, this))
+    if (auto ui_btn
+        = Process::makeExternalUIButton(effect, ctx.context, this, this))
       ui_btn->setPos({5, 4});
 
-    auto rm_btn = new score::QGraphicsPixmapButton{pixmaps.rm_process_on, pixmaps.rm_process_off, this};
+    auto rm_btn = new score::QGraphicsPixmapButton{
+        pixmaps.rm_process_on, pixmaps.rm_process_off, this};
     connect(
         rm_btn, &score::QGraphicsPixmapButton::clicked, this,
         [&]() {
@@ -165,22 +160,27 @@ public:
     resetOutlets(effect, ctx, this, parent, ui);
     ui.cons.push_back(
         con(effect, &Process::ProcessModel::inletsChanged, this,
-            [=, &effect, &ctx, &ui] { resetInlets(effect, ctx, this, parent, ui); }));
+            [=, &effect, &ctx, &ui] {
+              resetInlets(effect, ctx, this, parent, ui);
+            }));
     ui.cons.push_back(
         con(effect, &Process::ProcessModel::outletsChanged, this,
-            [=, &effect, &ctx, &ui] { resetOutlets(effect, ctx, this, parent, ui); }));
+            [=, &effect, &ctx, &ui] {
+              resetOutlets(effect, ctx, this, parent, ui);
+            }));
 
     connect(this, &EffectTitleItem::clicked, this, [&] {
       doc.focusDispatcher.focus(&ctx.presenter);
       score::SelectionDispatcher{doc.selectionStack}.setAndCommit({&effect});
     });
-
   }
   QRectF boundingRect() const override
   {
     return {0, 0, 170, 40};
   }
-  void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override
+  void paint(
+      QPainter* painter, const QStyleOptionGraphicsItem* option,
+      QWidget* widget) override
   {
     static const auto pen = QPen{Qt::transparent};
     static const auto brush = QBrush{QColor(qRgba(80, 100, 140, 1))};
@@ -194,7 +194,6 @@ public:
 
   void setHighlight(bool b)
   {
-
   }
   void clicked() E_SIGNAL(, clicked);
 
@@ -214,8 +213,10 @@ private:
   }
   void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override
   {
-    auto min_dist = (event->screenPos() - event->buttonDownScreenPos(Qt::LeftButton))
-        .manhattanLength() >= QApplication::startDragDistance();
+    auto min_dist
+        = (event->screenPos() - event->buttonDownScreenPos(Qt::LeftButton))
+              .manhattanLength()
+          >= QApplication::startDragDistance();
     if (min_dist)
     {
       auto drag = new QDrag{this->parent()};
@@ -244,11 +245,9 @@ private:
 class View final : public Process::LayerView
 {
 public:
-  explicit View(QGraphicsItem* parent)
-    : Process::LayerView{parent}
+  explicit View(QGraphicsItem* parent) : Process::LayerView{parent}
   {
   }
-
 
   void
   setup(const Effect::ProcessModel& object, const Process::LayerContext& ctx)
@@ -310,9 +309,10 @@ public:
   {
     int idx = m_effects.size();
     int i = 0;
-    for(const auto& item : m_effects)
+    for (const auto& item : m_effects)
     {
-      if(pos.x() < item->root_item->pos().x() + item->root_item->boundingRect().width() * 0.5)
+      if (pos.x() < item->root_item->pos().x()
+                        + item->root_item->boundingRect().width() * 0.5)
       {
         idx = i;
         break;
@@ -338,18 +338,18 @@ private:
   {
     if (m_invalid)
     {
-      p->fillRect(boundingRect(),
-                  ScenarioStyle::instance().AudioPortBrush);
+      p->fillRect(boundingRect(), ScenarioStyle::instance().AudioPortBrush);
     }
 
-    if(m_lit)
+    if (m_lit)
     {
       int idx = *m_lit;
 
       p->setRenderHint(QPainter::Antialiasing, false);
       p->setPen(ScenarioStyle::instance().TransparentPen);
       p->setBrush(ScenarioStyle::instance().StateDot.getBrush());
-      p->drawRoundedRect(QRectF(2.5 + idx * 180, 15, 5, boundingRect().height() - 30), 4, 4);
+      p->drawRoundedRect(
+          QRectF(2.5 + idx * 180, 15, 5, boundingRect().height() - 30), 4, 4);
       p->setRenderHint(QPainter::Antialiasing, false);
     }
   }
@@ -413,10 +413,8 @@ class Presenter final : public Process::LayerPresenter
 {
 public:
   explicit Presenter(
-      const Effect::ProcessModel& model,
-      View* view,
-      const Process::ProcessPresenterContext& ctx,
-      QObject* parent)
+      const Effect::ProcessModel& model, View* view,
+      const Process::ProcessPresenterContext& ctx, QObject* parent)
       : LayerPresenter{ctx, parent}, m_layer{model}, m_view{view}
   {
     putToFront();
@@ -424,13 +422,14 @@ public:
       m_context.context.focusDispatcher.focus(this);
     });
 
-    connect(m_view, &View::askContextMenu,
-            this, &Presenter::contextMenuRequested);
-    connect(m_view, &View::dropReceived,
-            this, [=] (const QPointF& pos, const QMimeData& m) {
-      int idx = view->findDropPosition(pos);
-      on_drop(m, idx);
-    });
+    connect(
+        m_view, &View::askContextMenu, this, &Presenter::contextMenuRequested);
+    connect(
+        m_view, &View::dropReceived, this,
+        [=](const QPointF& pos, const QMimeData& m) {
+          int idx = view->findDropPosition(pos);
+          on_drop(m, idx);
+        });
 
     auto& m = static_cast<const Effect::ProcessModel&>(model);
     con(m, &Effect::ProcessModel::effectsChanged, this, [&] {
@@ -482,7 +481,7 @@ public:
   void on_drop(const QMimeData& mime, int pos)
   {
     const auto& ctx = context().context;
-    if(mime.hasFormat(score::mime::processdata()))
+    if (mime.hasFormat(score::mime::processdata()))
     {
       Mime<Process::ProcessData>::Deserializer des{mime};
       Process::ProcessData p = des.deserialize();
@@ -492,21 +491,26 @@ public:
       d.submitCommand(cmd);
       return;
     }
-    else if(mime.hasFormat(score::mime::effect()))
+    else if (mime.hasFormat(score::mime::effect()))
     {
-      auto json = QJsonDocument::fromJson(mime.data(score::mime::effect())).object();
+      auto json
+          = QJsonDocument::fromJson(mime.data(score::mime::effect())).object();
       const auto pid = ossia::get_pid();
-      const bool same_doc = (pid == json["PID"].toInt()) && (ctx.document.id().val() == json["Document"] .toInt());
+      const bool same_doc
+          = (pid == json["PID"].toInt())
+            && (ctx.document.id().val() == json["Document"].toInt());
 
-      if(same_doc)
+      if (same_doc)
       {
-        const auto old_p = fromJsonObject<Path<Process::ProcessModel>>(json["Path"]);
-        if(auto obj = old_p.try_find(ctx))
+        const auto old_p
+            = fromJsonObject<Path<Process::ProcessModel>>(json["Path"]);
+        if (auto obj = old_p.try_find(ctx))
         {
-          if(obj->parent() == &m_layer)
+          if (obj->parent() == &m_layer)
           {
-            QTimer::singleShot(0, [this, &ctx, id=obj->id(), pos] {
-              CommandDispatcher<>{ctx.commandStack}.submitCommand(new MoveEffect(m_layer, id, pos));
+            QTimer::singleShot(0, [this, &ctx, id = obj->id(), pos] {
+              CommandDispatcher<>{ctx.commandStack}.submitCommand(
+                  new MoveEffect(m_layer, id, pos));
             });
             return;
           }
@@ -516,24 +520,24 @@ public:
           // todo
           return;
         }
-
       }
     }
     else
     {
-      bool all_layers = ossia::all_of(
-            mime.urls(),
-            [] (const QUrl& u) { return QFileInfo{u.toLocalFile()}.suffix() == "layer"; });
+      bool all_layers = ossia::all_of(mime.urls(), [](const QUrl& u) {
+        return QFileInfo{u.toLocalFile()}.suffix() == "layer";
+      });
 
       QJsonObject json;
-      if(mime.hasFormat(score::mime::layerdata()))
+      if (mime.hasFormat(score::mime::layerdata()))
       {
-        json = QJsonDocument::fromJson(mime.data(score::mime::layerdata())).object();
+        json = QJsonDocument::fromJson(mime.data(score::mime::layerdata()))
+                   .object();
       }
-      else if(mime.hasUrls() && all_layers)
+      else if (mime.hasUrls() && all_layers)
       {
         auto path = mime.urls().first().toLocalFile();
-        if(QFile f{path}; f.open(QIODevice::ReadOnly))
+        if (QFile f{path}; f.open(QIODevice::ReadOnly))
         {
           json = QJsonDocument::fromJson(f.readAll()).object();
         }
@@ -546,15 +550,17 @@ public:
       // TODO refactor in some way with DropLayerInInterval ?
       /*
       const auto pid = ossia::get_pid();
-      const bool same_doc = (pid == json["PID"].toInt()) && (ctx.document.id().val() == json["Document"] .toInt());
-      const bool small_view = json["View"].toString() == "Small";
-      const int slot_index = json["SlotIndex"].toInt();
+      const bool same_doc = (pid == json["PID"].toInt()) &&
+      (ctx.document.id().val() == json["Document"] .toInt()); const bool
+      small_view = json["View"].toString() == "Small"; const int slot_index =
+      json["SlotIndex"].toInt();
 
       if(same_doc)
       {
-        const auto old_p = fromJsonObject<Path<Process::ProcessModel>>(json["Path"]);
-        if(auto obj = old_p.try_find(ctx))
-        if(auto itv = qobject_cast<Scenario::IntervalModel*>(obj->parent()))
+        const auto old_p =
+      fromJsonObject<Path<Process::ProcessModel>>(json["Path"]); if(auto obj =
+      old_p.try_find(ctx)) if(auto itv =
+      qobject_cast<Scenario::IntervalModel*>(obj->parent()))
         {
           if(small_view && (qApp->keyboardModifiers() & Qt::ALT))
           {

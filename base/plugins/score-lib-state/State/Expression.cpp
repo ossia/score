@@ -2,11 +2,12 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "Expression.hpp"
 
+#include <State/Message.hpp>
+#include <State/Relation.hpp>
+#include <State/ValueConversion.hpp>
+
 #include <QMap>
 #include <QStringBuilder>
-#include <State/Relation.hpp>
-#include <State/Message.hpp>
-#include <State/ValueConversion.hpp>
 namespace State
 {
 QString Message::toString() const
@@ -25,8 +26,7 @@ bool operator<(const State::ExprData& lhs, const State::ExprData& rhs)
   return false;
 }
 }
-template class SCORE_LIB_STATE_EXPORT
-    std::list<State::ExprData>;
+template class SCORE_LIB_STATE_EXPORT std::list<State::ExprData>;
 QString State::ExprData::toString() const
 {
   static const QMap<State::BinaryOperator, QString> binopMap{
@@ -208,9 +208,9 @@ bool operator==(
   auto l = lhs.begin();
   auto e = lhs.end();
   auto r = rhs.begin();
-  while(l != e)
+  while (l != e)
   {
-    if(*l != *r)
+    if (*l != *r)
       return false;
     ++l;
     ++r;
@@ -383,8 +383,7 @@ bool TreeNode<State::ExprData>::hasChildren() const
   return !m_children.empty();
 }
 
-std::list<TreeNode<State::ExprData>>&
-TreeNode<State::ExprData>::children()
+std::list<TreeNode<State::ExprData>>& TreeNode<State::ExprData>::children()
 {
   return m_children;
 }

@@ -1,12 +1,14 @@
 #pragma once
+#include <Scenario/Document/Interval/Slot.hpp>
+#include <Scenario/Palette/ScenarioPoint.hpp>
+
+#include <score/model/path/Path.hpp>
+#include <score/statemachine/StateMachineUtils.hpp>
+
 #include <QAbstractTransition>
 #include <QPointF>
 #include <QState>
 #include <QStateMachine>
-#include <Scenario/Document/Interval/Slot.hpp>
-#include <Scenario/Palette/ScenarioPoint.hpp>
-#include <score/model/path/Path.hpp>
-#include <score/statemachine/StateMachineUtils.hpp>
 
 namespace Scenario
 {

@@ -3,16 +3,15 @@
 #include "MoveNotes.hpp"
 
 #include <Midi/MidiProcess.hpp>
+
 #include <score/model/path/PathSerialization.hpp>
 
 namespace Midi
 {
 
 MoveNotes::MoveNotes(
-    const ProcessModel& model,
-    const std::vector<Id<Note>>& to_move,
-    int note_delta,
-    double t_delta)
+    const ProcessModel& model, const std::vector<Id<Note>>& to_move,
+    int note_delta, double t_delta)
     : m_model{model}
 {
   m_before.reserve(to_move.size());

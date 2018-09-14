@@ -1,13 +1,16 @@
 #include <Library/LibrarySettings.hpp>
-#include <QFormLayout>
-#include <QLineEdit>
-#include <QApplication>
-#include <QStyle>
+
 #include <score/command/Command.hpp>
 #include <score/command/Dispatchers/ICommandDispatcher.hpp>
 #include <score/command/SettingsCommand.hpp>
+
+#include <QApplication>
 #include <QDir>
+#include <QFormLayout>
+#include <QLineEdit>
 #include <QStandardPaths>
+#include <QStyle>
+
 #include <wobjectimpl.h>
 
 W_OBJECT_IMPL(Library::Settings::View)
@@ -18,12 +21,11 @@ namespace Library::Settings
 
 namespace Parameters
 {
-SETTINGS_PARAMETER_IMPL(Path){QStringLiteral("Library/Path"),
-      [] {
-         auto paths = QStandardPaths::standardLocations(QStandardPaths::DocumentsLocation);
-         return paths[0] + "/ossia score library";
-      }()
-};
+SETTINGS_PARAMETER_IMPL(Path){QStringLiteral("Library/Path"), [] {
+                                auto paths = QStandardPaths::standardLocations(
+                                    QStandardPaths::DocumentsLocation);
+                                return paths[0] + "/ossia score library";
+                              }()};
 
 static auto list()
 {
@@ -45,14 +47,13 @@ Model::Model(QSettings& set, const score::ApplicationContext& ctx)
 {
   score::setupDefaultSettings(set, Parameters::list(), *this);
   auto lib_folder = getPath();
-  if(QDir dir{lib_folder}; !dir.exists())
+  if (QDir dir{lib_folder}; !dir.exists())
   {
     initSystemLibrary(dir);
   }
 }
 
 SCORE_SETTINGS_PARAMETER_CPP(QString, Model, Path)
-
 
 Presenter::Presenter(Model& m, View& v, QObject* parent)
     : score::GlobalSettingsPresenter{m, v, parent}
@@ -70,10 +71,7 @@ QIcon Presenter::settingsIcon()
   return QApplication::style()->standardIcon(QStyle::SP_DriveHDIcon);
 }
 
-
-
-View::View()
-  : m_widg{new QWidget}
+View::View() : m_widg{new QWidget}
 {
   auto lay = new QFormLayout;
   m_widg->setLayout(lay);

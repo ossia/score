@@ -4,8 +4,10 @@
 #include <Process/TimeValue.hpp>
 #include <Scenario/Commands/Scenario/Displacement/SerializableMoveEvent.hpp>
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
+
 #include <score/model/Identifier.hpp>
 #include <score/model/path/Path.hpp>
+
 #include <score_plugin_scenario_export.h>
 struct DataStreamInput;
 struct DataStreamOutput;
@@ -21,15 +23,12 @@ class SCORE_PLUGIN_SCENARIO_EXPORT MoveEventOnCreationMeta final
     : public SerializableMoveEvent
 {
   SCORE_COMMAND_DECL(
-      ScenarioCommandFactoryName(),
-      MoveEventOnCreationMeta,
+      ScenarioCommandFactoryName(), MoveEventOnCreationMeta,
       "Move an event on creation")
 public:
   MoveEventOnCreationMeta(
-      const Scenario::ProcessModel& scenarioPath,
-      Id<EventModel> eventId,
-      TimeVal newDate,
-      ExpandMode mode);
+      const Scenario::ProcessModel& scenarioPath, Id<EventModel> eventId,
+      TimeVal newDate, ExpandMode mode);
   ~MoveEventOnCreationMeta();
 
   void undo(const score::DocumentContext& ctx) const override;
@@ -37,12 +36,8 @@ public:
 
   const Path<Scenario::ProcessModel>& path() const override;
   void update(
-      Scenario::ProcessModel& scenario,
-      const Id<EventModel>& eventId,
-      const TimeVal& newDate,
-      double,
-      ExpandMode mode,
-      LockMode lm) override;
+      Scenario::ProcessModel& scenario, const Id<EventModel>& eventId,
+      const TimeVal& newDate, double, ExpandMode mode, LockMode lm) override;
 
   // Command interface
 protected:

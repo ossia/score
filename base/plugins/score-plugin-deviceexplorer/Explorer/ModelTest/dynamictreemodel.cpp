@@ -285,11 +285,8 @@ ModelMoveCommand::ModelMoveCommand(DynamicTreeModel* model, QObject* parent)
 {
 }
 bool ModelMoveCommand::emitPreSignal(
-    const QModelIndex& srcParent,
-    int srcStart,
-    int srcEnd,
-    const QModelIndex& destParent,
-    int destRow)
+    const QModelIndex& srcParent, int srcStart, int srcEnd,
+    const QModelIndex& destParent, int destRow)
 {
   return m_model->beginMoveRows(
       srcParent, srcStart, srcEnd, destParent, destRow);
@@ -359,11 +356,8 @@ ModelResetCommand::~ModelResetCommand()
 }
 
 bool ModelResetCommand::emitPreSignal(
-    const QModelIndex& srcParent,
-    int srcStart,
-    int srcEnd,
-    const QModelIndex& destParent,
-    int destRow)
+    const QModelIndex& srcParent, int srcStart, int srcEnd,
+    const QModelIndex& destParent, int destRow)
 {
   Q_UNUSED(srcParent);
   Q_UNUSED(srcStart);
@@ -390,11 +384,8 @@ ModelResetCommandFixed::~ModelResetCommandFixed()
 }
 
 bool ModelResetCommandFixed::emitPreSignal(
-    const QModelIndex& srcParent,
-    int srcStart,
-    int srcEnd,
-    const QModelIndex& destParent,
-    int destRow)
+    const QModelIndex& srcParent, int srcStart, int srcEnd,
+    const QModelIndex& destParent, int destRow)
 {
   Q_UNUSED(srcParent);
   Q_UNUSED(srcStart);

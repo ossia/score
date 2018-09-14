@@ -1,6 +1,7 @@
 #pragma once
 #include <Midi/Commands/CommandFactory.hpp>
 #include <Midi/MidiNote.hpp>
+
 #include <score/command/AggregateCommand.hpp>
 #include <score/model/path/Path.hpp>
 
@@ -13,8 +14,7 @@ class ScaleNotes final : public score::Command
   SCORE_COMMAND_DECL(Midi::CommandFactoryName(), ScaleNotes, "Scale notes")
 public:
   ScaleNotes(
-      const ProcessModel& model,
-      const std::vector<Id<Note>>& to_move,
+      const ProcessModel& model, const std::vector<Id<Note>>& to_move,
       double delta);
 
   void undo(const score::DocumentContext& ctx) const override;

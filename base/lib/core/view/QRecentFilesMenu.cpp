@@ -1,128 +1,130 @@
 #include "QRecentFilesMenu.h"
+
 #include <QFileInfo>
+
 #include <wobjectimpl.h>
 W_REGISTER_ARGTYPE(QAction*)
 W_OBJECT_IMPL(QRecentFilesMenu)
 
 static const qint32 RecentFilesMenuMagic = 0xff;
 
-QRecentFilesMenu::QRecentFilesMenu(QWidget * parent)
-  : QRecentFilesMenu({}, parent)
+QRecentFilesMenu::QRecentFilesMenu(QWidget* parent)
+    : QRecentFilesMenu({}, parent)
 {
 }
 
-QRecentFilesMenu::QRecentFilesMenu(const QString & title, QWidget * parent)
-: QMenu(title, parent)
-, m_maxCount(5)
-, m_format(QLatin1String("%d %s"))
+QRecentFilesMenu::QRecentFilesMenu(const QString& title, QWidget* parent)
+    : QMenu(title, parent), m_maxCount(5), m_format(QLatin1String("%d %s"))
 {
-    connect(this, &QRecentFilesMenu::triggered, this, &QRecentFilesMenu::menuTriggered);
+  connect(
+      this, &QRecentFilesMenu::triggered, this,
+      &QRecentFilesMenu::menuTriggered);
 
-    setMaxCount(m_maxCount);
+  setMaxCount(m_maxCount);
 }
 
-void QRecentFilesMenu::addRecentFile(const QString &fileName)
+void QRecentFilesMenu::addRecentFile(const QString& fileName)
 {
-    m_files.removeAll(fileName);
-    m_files.prepend(fileName);
+  m_files.removeAll(fileName);
+  m_files.prepend(fileName);
 
-    while (m_files.size() > maxCount())
-        m_files.removeLast();
+  while (m_files.size() > maxCount())
+    m_files.removeLast();
 
-    updateRecentFileActions();
+  updateRecentFileActions();
 }
 
 void QRecentFilesMenu::clearMenu()
 {
-    m_files.clear();
+  m_files.clear();
 
-    updateRecentFileActions();
+  updateRecentFileActions();
 }
 
 int QRecentFilesMenu::maxCount() const
 {
-    return m_maxCount;
+  return m_maxCount;
 }
 
-void QRecentFilesMenu::setFormat(const QString &format)
+void QRecentFilesMenu::setFormat(const QString& format)
 {
-    if (m_format == format)
-        return;
-    m_format = format;
+  if (m_format == format)
+    return;
+  m_format = format;
 
-    updateRecentFileActions();
+  updateRecentFileActions();
 }
 
-const QString & QRecentFilesMenu::format() const
+const QString& QRecentFilesMenu::format() const
 {
-    return m_format;
+  return m_format;
 }
 
 QByteArray QRecentFilesMenu::saveState() const
 {
-    int version = 0;
-    QByteArray data;
-    QDataStream stream(&data, QIODevice::WriteOnly);
+  int version = 0;
+  QByteArray data;
+  QDataStream stream(&data, QIODevice::WriteOnly);
 
-    stream << qint32(RecentFilesMenuMagic);
-    stream << qint32(version);
-    stream << m_files;
+  stream << qint32(RecentFilesMenuMagic);
+  stream << qint32(version);
+  stream << m_files;
 
-    return data;
+  return data;
 }
 
-bool QRecentFilesMenu::restoreState(const QByteArray &state)
+bool QRecentFilesMenu::restoreState(const QByteArray& state)
 {
-    int version = 0;
-    QByteArray sd = state;
-    QDataStream stream(&sd, QIODevice::ReadOnly);
-    qint32 marker;
-    qint32 v;
+  int version = 0;
+  QByteArray sd = state;
+  QDataStream stream(&sd, QIODevice::ReadOnly);
+  qint32 marker;
+  qint32 v;
 
-    stream >> marker;
-    stream >> v;
-    if (marker != RecentFilesMenuMagic || v != version)
-        return false;
+  stream >> marker;
+  stream >> v;
+  if (marker != RecentFilesMenuMagic || v != version)
+    return false;
 
-    stream >> m_files;
+  stream >> m_files;
 
-    updateRecentFileActions();
+  updateRecentFileActions();
 
-    return true;
+  return true;
 }
 
 void QRecentFilesMenu::setMaxCount(int count)
 {
-    m_maxCount = count;
+  m_maxCount = count;
 
-    updateRecentFileActions();
+  updateRecentFileActions();
 }
 
 void QRecentFilesMenu::menuTriggered(QAction* action)
 {
-    if (action->data().isValid())
-        recentFileTriggered(action->data().toString());
+  if (action->data().isValid())
+    recentFileTriggered(action->data().toString());
 }
 
 void QRecentFilesMenu::updateRecentFileActions()
 {
-    int numRecentFiles = qMin(m_files.size(), maxCount());
+  int numRecentFiles = qMin(m_files.size(), maxCount());
 
-    clear();
+  clear();
 
-    for (int i = 0; i < numRecentFiles; ++i) {
-        QString strippedName = QFileInfo(m_files[i]).fileName();
+  for (int i = 0; i < numRecentFiles; ++i)
+  {
+    QString strippedName = QFileInfo(m_files[i]).fileName();
 
-        QString text = m_format;
-        text.replace(QLatin1String("%d"), QString::number(i + 1));
-        text.replace(QLatin1String("%s"), strippedName);
+    QString text = m_format;
+    text.replace(QLatin1String("%d"), QString::number(i + 1));
+    text.replace(QLatin1String("%s"), strippedName);
 
-        QAction* recentFileAct = addAction(text);
-        recentFileAct->setData(m_files[i]);
-    }
-    addSeparator();
-    addAction(tr("Clear Menu"), this, SLOT(clearMenu()));
+    QAction* recentFileAct = addAction(text);
+    recentFileAct->setData(m_files[i]);
+  }
+  addSeparator();
+  addAction(tr("Clear Menu"), this, SLOT(clearMenu()));
 
-    setEnabled(numRecentFiles > 0);
+  setEnabled(numRecentFiles > 0);
 }
-

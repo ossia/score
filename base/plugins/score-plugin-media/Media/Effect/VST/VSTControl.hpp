@@ -1,7 +1,8 @@
 #pragma once
 #include <Dataflow/UI/PortItem.hpp>
-#include <wobjectdefs.h>
 #include <Media/Effect/VST/VSTEffectModel.hpp>
+
+#include <wobjectdefs.h>
 
 namespace Media::VST
 {
@@ -49,6 +50,7 @@ public:
       valueChanged(v);
     }
   }
+
 public:
   void valueChanged(float arg_1) W_SIGNAL(valueChanged, arg_1);
 
@@ -63,8 +65,7 @@ public:
 
   void setupMenu(QMenu& menu, const score::DocumentContext& ctx) override;
   bool on_createAutomation(
-      Scenario::IntervalModel& cst,
-      std::function<void(score::Command*)> macro,
+      Scenario::IntervalModel& cst, std::function<void(score::Command*)> macro,
       const score::DocumentContext& ctx) override;
 };
 
@@ -78,15 +79,11 @@ public:
   Process::Port* load(const VisitorVariant& vis, QObject* parent) override;
 
   Dataflow::PortItem* makeItem(
-      Process::Inlet& port,
-      const score::DocumentContext& ctx,
-      QGraphicsItem* parent,
-      QObject* context) override;
+      Process::Inlet& port, const score::DocumentContext& ctx,
+      QGraphicsItem* parent, QObject* context) override;
 
   Dataflow::PortItem* makeItem(
-      Process::Outlet& port,
-      const score::DocumentContext& ctx,
-      QGraphicsItem* parent,
-      QObject* context) override;
+      Process::Outlet& port, const score::DocumentContext& ctx,
+      QGraphicsItem* parent, QObject* context) override;
 };
 }

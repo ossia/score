@@ -2,12 +2,14 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "InspectorSectionWidget.hpp"
 
+#include <score/tools/Todo.hpp>
+#include <score/widgets/SetIcons.hpp>
+
 #include <QAction>
 #include <QLayoutItem>
 #include <QMenu>
 #include <qnamespace.h>
-#include <score/tools/Todo.hpp>
-#include <score/widgets/SetIcons.hpp>
+
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Inspector::InspectorSectionWidget)
 namespace Inspector
@@ -17,9 +19,10 @@ MenuButton::MenuButton(QWidget* parent)
 {
   setFlat(true);
   setObjectName(QStringLiteral("SettingsMenu"));
-  auto icon = makeIcons(QStringLiteral(":/icons/gear_on.png"),
-                        QStringLiteral(":/icons/gear_off.png"),
-                        QStringLiteral(":/icons/gear_disabled.png"));
+  auto icon = makeIcons(
+      QStringLiteral(":/icons/gear_on.png"),
+      QStringLiteral(":/icons/gear_off.png"),
+      QStringLiteral(":/icons/gear_disabled.png"));
   setIcon(icon);
   setIconSize(QSize(16, 16));
 }

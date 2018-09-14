@@ -1,10 +1,5 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
-#include <core/document/Document.hpp>
-#include <core/document/DocumentModel.hpp>
-#include <core/settings/Settings.hpp>
-#include <core/settings/SettingsPresenter.hpp>
-#include <core/settings/SettingsView.hpp>
 #include <score/plugins/ProjectSettings/ProjectSettingsFactory.hpp>
 #include <score/plugins/ProjectSettings/ProjectSettingsModel.hpp>
 #include <score/plugins/ProjectSettings/ProjectSettingsPresenter.hpp>
@@ -13,6 +8,12 @@
 #include <score/plugins/settingsdelegate/SettingsDelegateFactory.hpp>
 #include <score/plugins/settingsdelegate/SettingsDelegateModel.hpp>
 #include <score/plugins/settingsdelegate/SettingsDelegateView.hpp>
+
+#include <core/document/Document.hpp>
+#include <core/document/DocumentModel.hpp>
+#include <core/settings/Settings.hpp>
+#include <core/settings/SettingsPresenter.hpp>
+#include <core/settings/SettingsView.hpp>
 
 namespace score
 {
@@ -39,8 +40,7 @@ void Settings::setupView()
 }
 
 void Settings::setupSettingsPlugin(
-    QSettings& s,
-    const score::ApplicationContext& ctx,
+    QSettings& s, const score::ApplicationContext& ctx,
     SettingsDelegateFactory& plugin)
 {
   auto model = plugin.makeModel(s, ctx);

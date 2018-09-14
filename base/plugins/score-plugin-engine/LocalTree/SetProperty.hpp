@@ -1,7 +1,8 @@
 #pragma once
+#include <ossia/network/base/node.hpp>
+
 #include <LocalTree/BaseCallbackWrapper.hpp>
 #include <LocalTree/TypeConversion.hpp>
-#include <ossia/network/base/node.hpp>
 
 namespace LocalTree
 {
@@ -10,21 +11,17 @@ struct SetPropertyWrapper final : public BaseCallbackWrapper
 {
   SetFun setFun;
 
-  SetPropertyWrapper(
-      ossia::net::parameter_base& param_addr,
-      SetFun prop)
+  SetPropertyWrapper(ossia::net::parameter_base& param_addr, SetFun prop)
       : BaseCallbackWrapper{param_addr}, setFun{prop}
   {
     callbackIt = addr.add_callback([=](const ossia::value& v) { setFun(v); });
 
-    //addr.set_value(typename ossia::qt_property_converter<T>::type{});
+    // addr.set_value(typename ossia::qt_property_converter<T>::type{});
   }
 };
 
 template <typename T, typename Callback>
-auto make_setProperty(
-    ossia::net::parameter_base& addr,
-    Callback prop)
+auto make_setProperty(ossia::net::parameter_base& addr, Callback prop)
 {
   return std::make_unique<SetPropertyWrapper<T, Callback>>(addr, prop);
 }

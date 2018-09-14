@@ -3,7 +3,8 @@
 #include <Dataflow/Inspector/DataflowWidget.hpp>
 #include <Dataflow/UI/PortItem.hpp>
 #include <Inspector/InspectorWidgetFactoryInterface.hpp>
-#include <Interpolation/InterpolationFactory.hpp>
+#include <Process/Dataflow/PortListWidget.hpp>
+#include <Process/Dataflow/WidgetInlets.hpp>
 #include <Process/TimeValue.hpp>
 #include <Process/TimeValueSerialization.hpp>
 #include <Scenario/Application/Drops/AutomationDropHandler.hpp>
@@ -14,7 +15,6 @@
 #include <Scenario/Commands/Scenario/Displacement/MoveEventClassicFactory.hpp>
 #include <Scenario/Commands/Scenario/Displacement/MoveEventList.hpp>
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
-#include <Scenario/Document/Event/EventExecution.hpp>
 #include <Scenario/Commands/TimeSync/TriggerCommandFactory/BaseScenarioTriggerCommandFactory.hpp>
 #include <Scenario/Commands/TimeSync/TriggerCommandFactory/ScenarioTriggerCommandFactory.hpp>
 #include <Scenario/Commands/TimeSync/TriggerCommandFactory/TriggerCommandFactory.hpp>
@@ -27,6 +27,7 @@
 #include <Scenario/Document/DisplayedElements/DisplayedElementsToolPalette/DisplayedElementsToolPaletteFactoryList.hpp>
 #include <Scenario/Document/DisplayedElements/DisplayedElementsToolPalette/ScenarioDisplayedElementsToolPaletteFactory.hpp>
 #include <Scenario/Document/DisplayedElements/ScenarioDisplayedElementsProvider.hpp>
+#include <Scenario/Document/Event/EventExecution.hpp>
 #include <Scenario/Document/Event/ExecutionStatus.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentFactory.hpp>
 #include <Scenario/ExecutionChecker/CSPCoherencyCheckerList.hpp>
@@ -35,15 +36,15 @@
 #include <Scenario/Inspector/ObjectTree/ObjectItemModel.hpp>
 #include <Scenario/Inspector/Scenario/ScenarioInspectorFactory.hpp>
 #include <Scenario/Inspector/ScenarioInspectorWidgetFactoryWrapper.hpp>
-#include <Scenario/Process/ScenarioFactory.hpp>
-#include <Scenario/Process/ScenarioExecution.hpp>
-#include <Scenario/Settings/ScenarioSettingsFactory.hpp>
 #include <Scenario/Library/SlotLibraryHandler.hpp>
-#include <score_plugin_scenario.hpp>
+#include <Scenario/Process/ScenarioExecution.hpp>
+#include <Scenario/Process/ScenarioFactory.hpp>
+#include <Scenario/Settings/ScenarioSettingsFactory.hpp>
 #include <State/Message.hpp>
 #include <State/Unit.hpp>
 #include <State/Value.hpp>
 #include <State/ValueSerialization.hpp>
+
 #include <score/command/Command.hpp>
 #include <score/command/CommandGeneratorMap.hpp>
 #include <score/plugins/customfactory/FactorySetup.hpp>
@@ -54,50 +55,47 @@
 #include <score/plugins/qt_interfaces/GUIApplicationPlugin_QtInterface.hpp>
 #include <score/tools/std/HashMap.hpp>
 #include <score/widgets/GraphicsItem.hpp>
-#include <score_plugin_scenario_commands_files.hpp>
-#include <utility>
+
 #include <QList>
 #include <QMetaType>
 #include <QPainterPath>
 #include <QString>
 
+#include <Interpolation/InterpolationFactory.hpp>
+#include <score_plugin_scenario.hpp>
+#include <score_plugin_scenario_commands_files.hpp>
 #include <wobjectimpl.h>
 
-#include <Process/Dataflow/PortListWidget.hpp>
-#include <Process/Dataflow/WidgetInlets.hpp>
+#include <utility>
 
 namespace Dataflow
 {
-template<typename T>
+template <typename T>
 struct WidgetInletFactory final : public AutomatablePortFactory
 {
-    using Model_T = T;
-    UuidKey<Process::Port> concreteKey() const noexcept override
-    {
-      return Metadata<ConcreteKey_k, Model_T>::get();
-    }
+  using Model_T = T;
+  UuidKey<Process::Port> concreteKey() const noexcept override
+  {
+    return Metadata<ConcreteKey_k, Model_T>::get();
+  }
 
-    Model_T* load(const VisitorVariant& vis, QObject* parent) override
-    {
-      return score::deserialize_dyn(vis, [&](auto&& deserializer) {
-        return new Model_T{deserializer, parent};
-      });
-    }
+  Model_T* load(const VisitorVariant& vis, QObject* parent) override
+  {
+    return score::deserialize_dyn(vis, [&](auto&& deserializer) {
+      return new Model_T{deserializer, parent};
+    });
+  }
 
-    void setupInspector(
-        Process::Inlet& port,
-        const score::DocumentContext& ctx,
-        QWidget* parent,
-        Inspector::Layout& lay,
-        QObject* context) override
-    {
-      using factory = typename Model_T::control_type;
-      auto& ctrl = static_cast<Model_T&>(port);
-      auto widg = factory::make_widget(ctrl, ctrl, ctx, parent, parent);
-      Process::PortWidgetSetup::setupControl(ctrl, widg, ctx, lay, parent);
-    }
+  void setupInspector(
+      Process::Inlet& port, const score::DocumentContext& ctx, QWidget* parent,
+      Inspector::Layout& lay, QObject* context) override
+  {
+    using factory = typename Model_T::control_type;
+    auto& ctrl = static_cast<Model_T&>(port);
+    auto widg = factory::make_widget(ctrl, ctrl, ctx, parent, parent);
+    Process::PortWidgetSetup::setupControl(ctrl, widg, ctx, lay, parent);
+  }
 };
-
 }
 
 W_OBJECT_IMPL(Interpolation::Presenter)
@@ -168,8 +166,7 @@ score_plugin_scenario::factoryFamilies()
 
 template <>
 struct FactoryBuilder<
-    score::GUIApplicationContext,
-    Scenario::ScenarioTemporalLayerFactory>
+    score::GUIApplicationContext, Scenario::ScenarioTemporalLayerFactory>
 {
   static auto make(const score::GUIApplicationContext& ctx)
   {
@@ -203,10 +200,11 @@ score_plugin_scenario::factories(
       FW<score::SettingsDelegateFactory, Scenario::Settings::Factory>,
       FW<score::PanelDelegateFactory, Scenario::ObjectPanelDelegateFactory>,
       //      FW<score::PanelDelegateFactory, Scenario::PanelDelegateFactory>,
-      FW<Scenario::DropHandler, Scenario::MessageDropHandler, Scenario::DropScenario,
-         Scenario::DropProcessInScenario, Scenario::DropPortInScenario, Scenario::DropLayerInScenario>,
-      FW<Scenario::IntervalDropHandler, Scenario::DropProcessInInterval, Scenario::DropLayerInInterval,
-         Scenario::AutomationDropHandler>,
+      FW<Scenario::DropHandler, Scenario::MessageDropHandler,
+         Scenario::DropScenario, Scenario::DropProcessInScenario,
+         Scenario::DropPortInScenario, Scenario::DropLayerInScenario>,
+      FW<Scenario::IntervalDropHandler, Scenario::DropProcessInInterval,
+         Scenario::DropLayerInInterval, Scenario::AutomationDropHandler>,
       FW<Inspector::InspectorWidgetFactory,
          ScenarioInspectorWidgetFactoryWrapper,
          Interpolation::StateInspectorFactory, ScenarioInspectorFactory,
@@ -216,21 +214,21 @@ score_plugin_scenario::factories(
       FW<Process::PortFactory, Dataflow::InletFactory,
          Dataflow::ControlInletFactory, Dataflow::OutletFactory,
          Dataflow::ControlOutletFactory,
-      Dataflow::WidgetInletFactory<Process::FloatSlider>,
-      Dataflow::WidgetInletFactory<Process::LogFloatSlider>,
-      Dataflow::WidgetInletFactory<Process::IntSlider>,
-      Dataflow::WidgetInletFactory<Process::IntSpinBox>,
-      Dataflow::WidgetInletFactory<Process::Toggle>,
-      Dataflow::WidgetInletFactory<Process::Button>,
-      Dataflow::WidgetInletFactory<Process::ChooserToggle>,
-      Dataflow::WidgetInletFactory<Process::LineEdit>,
-      Dataflow::WidgetInletFactory<Process::ComboBox>,
-      Dataflow::WidgetInletFactory<Process::Enum>,
-      Dataflow::WidgetInletFactory<Process::TimeSignatureChooser>
-      >
-      , FW<Execution::ProcessComponentFactory, Execution::ScenarioComponentFactory>
-      , FW<Library::LibraryInterface, Scenario::SlotLibraryHandler, Scenario::ScenarioLibraryHandler>
-      >(ctx, key);
+         Dataflow::WidgetInletFactory<Process::FloatSlider>,
+         Dataflow::WidgetInletFactory<Process::LogFloatSlider>,
+         Dataflow::WidgetInletFactory<Process::IntSlider>,
+         Dataflow::WidgetInletFactory<Process::IntSpinBox>,
+         Dataflow::WidgetInletFactory<Process::Toggle>,
+         Dataflow::WidgetInletFactory<Process::Button>,
+         Dataflow::WidgetInletFactory<Process::ChooserToggle>,
+         Dataflow::WidgetInletFactory<Process::LineEdit>,
+         Dataflow::WidgetInletFactory<Process::ComboBox>,
+         Dataflow::WidgetInletFactory<Process::Enum>,
+         Dataflow::WidgetInletFactory<Process::TimeSignatureChooser>>,
+      FW<Execution::ProcessComponentFactory,
+         Execution::ScenarioComponentFactory>,
+      FW<Library::LibraryInterface, Scenario::SlotLibraryHandler,
+         Scenario::ScenarioLibraryHandler>>(ctx, key);
 }
 
 std::pair<const CommandGroupKey, CommandGeneratorMap>
@@ -244,7 +242,7 @@ score_plugin_scenario::make_commands()
       ScenarioCommandFactoryName(), CommandGeneratorMap{}};
 
   ossia::for_each_type<
-    #include <score_plugin_scenario_commands.hpp>
+#include <score_plugin_scenario_commands.hpp>
       >(score::commands::FactoryInserter{cmds.second});
 
   return cmds;

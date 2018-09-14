@@ -1,14 +1,18 @@
 #pragma once
-#include <QMenuBar>
-#include <wobjectdefs.h>
-#include <core/presenter/DocumentManager.hpp>
-#include <core/settings/Settings.hpp>
 #include <score/actions/ActionManager.hpp>
 #include <score/actions/MenuManager.hpp>
 #include <score/actions/ToolbarManager.hpp>
 #include <score/application/ApplicationComponents.hpp>
 #include <score/application/GUIApplicationContext.hpp>
+
+#include <core/presenter/DocumentManager.hpp>
+#include <core/settings/Settings.hpp>
+
+#include <QMenuBar>
+
 #include <score_lib_base_export.h>
+#include <wobjectdefs.h>
+
 #include <vector>
 class QObject;
 
@@ -35,11 +39,8 @@ class SCORE_LIB_BASE_EXPORT Presenter final : public QObject
 
 public:
   Presenter(
-      const score::ApplicationSettings& app,
-      const score::Settings& set,
-      score::ProjectSettings& pset,
-      score::View* view,
-      QObject* parent);
+      const score::ApplicationSettings& app, const score::Settings& set,
+      score::ProjectSettings& pset, score::View* view, QObject* parent);
 
   // Exit score
   bool exit();

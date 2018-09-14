@@ -1,5 +1,6 @@
 #pragma once
 #include <Explorer/Commands/DeviceExplorerCommandFactory.hpp>
+
 #include <score/command/AggregateCommand.hpp>
 
 namespace Explorer

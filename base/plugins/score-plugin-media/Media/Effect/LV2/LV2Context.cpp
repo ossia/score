@@ -2,9 +2,10 @@
 
 #include "lv2_atom_helpers.hpp"
 
-#include <iostream>
 #include <lilv/lilv.h>
 #include <lilv/lilvmm.hpp>
+
+#include <iostream>
 
 uint32_t LV2_Atom_Buffer::chunk_type;
 uint32_t LV2_Atom_Buffer::sequence_type;
@@ -23,10 +24,8 @@ struct WorkerData
   const void* data;
 };
 
-static LV2_URID do_uri_map(
-    LV2_URI_Map_Callback_Data ptr,
-    const char*               ,
-    const char*               val)
+static LV2_URID
+do_uri_map(LV2_URI_Map_Callback_Data ptr, const char*, const char* val)
 {
   auto& c = *static_cast<LV2::GlobalContext*>(ptr);
   auto& map = c.uri_map_left;

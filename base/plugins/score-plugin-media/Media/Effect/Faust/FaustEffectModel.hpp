@@ -1,16 +1,19 @@
 #pragma once
 #if defined(HAS_FAUST)
-#include <ossia/dataflow/node_process.hpp>
-#include <wobjectdefs.h>
-
-#include <Effect/EffectFactory.hpp>
-#include <Process/Execution/ProcessComponent.hpp>
 #include <Media/Effect/DefaultEffectItem.hpp>
+#include <Process/Execution/ProcessComponent.hpp>
 #include <Process/GenericProcessFactory.hpp>
 #include <Process/Inspector/ProcessInspectorWidgetDelegate.hpp>
 #include <Process/Inspector/ProcessInspectorWidgetDelegateFactory.hpp>
 #include <Process/Process.hpp>
+
+#include <ossia/dataflow/node_process.hpp>
+
 #include <QDialog>
+
+#include <Effect/EffectFactory.hpp>
+#include <wobjectdefs.h>
+
 #include <faust/dsp/llvm-c-dsp.h>
 namespace Media::Faust
 {
@@ -18,18 +21,10 @@ class FaustEffectModel;
 }
 
 PROCESS_METADATA(
-    ,
-    Media::Faust::FaustEffectModel,
-    "5354c61a-1649-4f59-b952-5c2f1b79c1bd",
-    "Faust",
-    "Faust",
-    Process::ProcessCategory::Script,
-    "Audio",
+    , Media::Faust::FaustEffectModel, "5354c61a-1649-4f59-b952-5c2f1b79c1bd",
+    "Faust", "Faust", Process::ProcessCategory::Script, "Audio",
     "Faust process. Refer to https://faust.grame.fr",
-    "GRAME and the Faust team",
-    {"Script"},
-    {},
-    {},
+    "GRAME and the Faust team", {"Script"}, {}, {},
     Process::ProcessFlags::ExternalEffect)
 DESCRIPTION_METADATA(, Media::Faust::FaustEffectModel, "Faust")
 namespace Media::Faust
@@ -44,9 +39,7 @@ class FaustEffectModel : public Process::ProcessModel
 
 public:
   FaustEffectModel(
-      TimeVal t,
-      const QString& faustProgram,
-      const Id<Process::ProcessModel>&,
+      TimeVal t, const QString& faustProgram, const Id<Process::ProcessModel>&,
       QObject* parent);
   ~FaustEffectModel();
 
@@ -75,7 +68,10 @@ public:
     return m_outlets;
   }
 
-  bool hasExternalUI() const { return false; }
+  bool hasExternalUI() const
+  {
+    return false;
+  }
 
   llvm_dsp_factory* faust_factory{};
   llvm_dsp* faust_object{};
@@ -96,7 +92,8 @@ QString EffectProcessFactory_T<
 
 template <>
 Process::Descriptor
-EffectProcessFactory_T<Media::Faust::FaustEffectModel>::descriptor(QString d) const;
+EffectProcessFactory_T<Media::Faust::FaustEffectModel>::descriptor(
+    QString d) const;
 }
 class QPlainTextEdit;
 namespace Media::Faust
@@ -109,8 +106,7 @@ struct FaustEditDialog : public QDialog
 
 public:
   FaustEditDialog(
-      const FaustEffectModel& e,
-      const score::DocumentContext& ctx,
+      const FaustEffectModel& e, const score::DocumentContext& ctx,
       QWidget* parent);
 
   QString text() const;
@@ -122,33 +118,29 @@ class InspectorWidget final
 public:
   explicit InspectorWidget(
       const Media::Faust::FaustEffectModel& object,
-      const score::DocumentContext& doc,
-      QWidget* parent);
+      const score::DocumentContext& doc, QWidget* parent);
 
 private:
   QPlainTextEdit* m_textedit{};
 };
 
 class InspectorFactory final
-    : public Process::
-          InspectorWidgetDelegateFactory_T<FaustEffectModel, InspectorWidget>
+    : public Process::InspectorWidgetDelegateFactory_T<
+          FaustEffectModel, InspectorWidget>
 {
   SCORE_CONCRETE("6f1b2f7f-29ec-4ba4-b07e-8aa227ec3806")
 };
 
 using FaustEffectFactory = Process::EffectProcessFactory_T<FaustEffectModel>;
 using LayerFactory = Process::EffectLayerFactory_T<
-    FaustEffectModel,
-    Media::Effect::DefaultEffectItem,
-    FaustEditDialog>;
+    FaustEffectModel, Media::Effect::DefaultEffectItem, FaustEditDialog>;
 }
 
 namespace Execution
 {
 class FaustEffectComponent final
     : public Execution::ProcessComponent_T<
-          Media::Faust::FaustEffectModel,
-          ossia::node_process>
+          Media::Faust::FaustEffectModel, ossia::node_process>
 {
   W_OBJECT(FaustEffectComponent)
   COMPONENT_METADATA("eb4f83af-5ddc-4f2f-9426-6f8a599a1e96")
@@ -157,10 +149,8 @@ public:
   static constexpr bool is_unique = true;
 
   FaustEffectComponent(
-      Media::Faust::FaustEffectModel& proc,
-      const Execution::Context& ctx,
-      const Id<score::Component>& id,
-      QObject* parent);
+      Media::Faust::FaustEffectModel& proc, const Execution::Context& ctx,
+      const Id<score::Component>& id, QObject* parent);
 };
 using FaustEffectComponentFactory
     = Execution::ProcessComponentFactory_T<FaustEffectComponent>;

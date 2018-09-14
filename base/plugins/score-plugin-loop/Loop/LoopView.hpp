@@ -1,7 +1,9 @@
 #pragma once
 #include <Process/LayerView.hpp>
-#include <wobjectdefs.h>
+
 #include <QRect>
+
+#include <wobjectdefs.h>
 
 class QGraphicsItem;
 class QPainter;

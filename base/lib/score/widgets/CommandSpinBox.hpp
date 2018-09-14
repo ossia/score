@@ -1,7 +1,8 @@
 #pragma once
-#include <QObject>
 #include <score/command/Dispatchers/SingleOngoingCommandDispatcher.hpp>
 #include <score/widgets/SignalUtils.hpp>
+
+#include <QObject>
 namespace score
 {
 /**
@@ -13,8 +14,7 @@ struct CommandSpinbox : public QObject
 {
   using model_type = typename Property::model_type;
   CommandSpinbox(
-      const model_type& model,
-      const score::CommandStackFacade& stck,
+      const model_type& model, const score::CommandStackFacade& stck,
       QWidget* parent)
       : m_sb{new SpinBox{parent}}, m_slotDisp{stck}
   {

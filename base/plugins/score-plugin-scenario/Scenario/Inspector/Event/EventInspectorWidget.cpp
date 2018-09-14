@@ -5,16 +5,6 @@
 
 #include <Inspector/InspectorWidgetBase.hpp>
 #include <Process/TimeValue.hpp>
-#include <QBoxLayout>
-#include <QColor>
-#include <QComboBox>
-#include <QDebug>
-#include <QFormLayout>
-#include <QLabel>
-#include <QLayout>
-#include <QMenu>
-#include <QString>
-#include <QWidget>
 #include <Scenario/Commands/Event/SetCondition.hpp>
 #include <Scenario/Commands/TimeSync/TriggerCommandFactory/TriggerCommandFactoryList.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
@@ -27,7 +17,7 @@
 #include <Scenario/Process/ScenarioInterface.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
 #include <State/Expression.hpp>
-#include <algorithm>
+
 #include <score/application/ApplicationContext.hpp>
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/document/DocumentContext.hpp>
@@ -44,15 +34,29 @@
 #include <score/widgets/SignalUtils.hpp>
 #include <score/widgets/TextLabel.hpp>
 
+#include <QBoxLayout>
+#include <QColor>
+#include <QComboBox>
+#include <QDebug>
+#include <QFormLayout>
+#include <QLabel>
+#include <QLayout>
+#include <QMenu>
+#include <QString>
+#include <QWidget>
+
 #include <wobjectimpl.h>
+
+#include <algorithm>
 W_OBJECT_IMPL(Scenario::EventInspectorWidget)
 namespace Scenario
 {
 EventInspectorWidget::EventInspectorWidget(
-    const EventModel& object,
-    const score::DocumentContext& doc,
+    const EventModel& object, const score::DocumentContext& doc,
     QWidget* parent)
-    : Inspector::InspectorWidgetBase{object, doc, parent, tr("Event (%1)").arg(object.metadata().getName())}
+    : Inspector::InspectorWidgetBase{object, doc, parent,
+                                     tr("Event (%1)")
+                                         .arg(object.metadata().getName())}
     , m_model{&object}
     , m_context{doc}
     , m_commandDispatcher{doc.commandStack}
@@ -212,5 +216,4 @@ void EventInspectorWidget::on_conditionReset()
       = new Scenario::Command::SetCondition{*m_model, State::Expression{}};
   m_commandDispatcher.submitCommand(cmd);
 }
-
 }

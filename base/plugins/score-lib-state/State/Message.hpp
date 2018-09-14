@@ -42,7 +42,6 @@ inline bool operator<(const State::MessageList&, const State::MessageList&)
 {
   return false;
 }
-
 }
 
 Q_DECLARE_METATYPE(State::Message)

@@ -4,9 +4,10 @@
 
 #include "ExplorerModel.hpp"
 
+#include <score/widgets/SignalUtils.hpp>
+
 #include <QCheckBox>
 #include <QFormLayout>
-#include <score/widgets/SignalUtils.hpp>
 namespace Explorer::Settings
 {
 View::View() : m_widg{new QWidget}

@@ -3,12 +3,9 @@
 #include <Process/Process.hpp>
 #include <Process/ProcessList.hpp>
 #include <Process/State/MessageNode.hpp>
-#include <QJsonArray>
-#include <QJsonObject>
-#include <QJsonValue>
 #include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
-#include <algorithm>
+
 #include <score/document/DocumentContext.hpp>
 #include <score/document/DocumentInterface.hpp>
 #include <score/model/Identifier.hpp>
@@ -18,6 +15,12 @@
 #include <score/serialization/JSONValueVisitor.hpp>
 #include <score/serialization/JSONVisitor.hpp>
 #include <score/tools/Todo.hpp>
+
+#include <QJsonArray>
+#include <QJsonObject>
+#include <QJsonValue>
+
+#include <algorithm>
 
 namespace Scenario
 {

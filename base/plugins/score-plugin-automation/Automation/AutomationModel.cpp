@@ -2,8 +2,6 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "AutomationModel.hpp"
 
-#include <ossia/editor/state/destination_qualifiers.hpp>
-
 #include <Automation/AutomationProcessMetadata.hpp>
 #include <Automation/State/AutomationState.hpp>
 #include <Curve/CurveModel.hpp>
@@ -12,15 +10,19 @@
 #include <Curve/Segment/CurveSegmentModel.hpp>
 #include <Curve/Segment/Power/PowerSegment.hpp>
 #include <Process/Dataflow/Port.hpp>
-#include <QDebug>
-#include <QPoint>
 #include <State/Address.hpp>
+
 #include <score/document/DocumentInterface.hpp>
 #include <score/model/IdentifiedObjectMap.hpp>
 #include <score/model/Identifier.hpp>
 #include <score/model/ModelMetadata.hpp>
 #include <score/tools/MapCopy.hpp>
 #include <score/tools/std/Optional.hpp>
+
+#include <ossia/editor/state/destination_qualifiers.hpp>
+
+#include <QDebug>
+#include <QPoint>
 
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Automation::ProcessModel)
@@ -42,8 +44,7 @@ void ProcessModel::init()
 }
 
 ProcessModel::ProcessModel(
-    const TimeVal& duration,
-    const Id<Process::ProcessModel>& id,
+    const TimeVal& duration, const Id<Process::ProcessModel>& id,
     QObject* parent)
     : CurveProcessModel{duration, id,
                         Metadata<ObjectKey_k, ProcessModel>::get(), parent}

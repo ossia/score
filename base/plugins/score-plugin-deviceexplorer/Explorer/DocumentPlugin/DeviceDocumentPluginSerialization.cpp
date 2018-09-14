@@ -4,6 +4,7 @@
 
 #include <Device/Protocol/DeviceInterface.hpp>
 #include <Explorer/Explorer/DeviceExplorerModel.hpp>
+
 #include <score/serialization/VariantSerialization.hpp>
 
 template <>

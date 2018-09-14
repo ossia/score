@@ -1,5 +1,6 @@
 #pragma once
 #include <score/plugins/customfactory/UuidKey.hpp>
+
 #include <score_lib_base_export.h>
 
 namespace score
@@ -56,7 +57,6 @@ public:
   //! Identifies an interface uniquely.
   virtual InterfaceKey interfaceKey() const noexcept = 0;
 };
-
 }
 
 /**
@@ -84,6 +84,7 @@ public:                                                            \
                                                                    \
   using ConcreteKey = UuidKey<Type>;                               \
   virtual ConcreteKey concreteKey() const noexcept = 0;            \
+                                                                   \
 private:
 
 /**

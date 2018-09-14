@@ -13,13 +13,15 @@
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentPresenter.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentView.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioScene.hpp>
-#include <algorithm>
+
 #include <score/application/ApplicationContext.hpp>
 #include <score/document/DocumentInterface.hpp>
 #include <score/model/Identifier.hpp>
 #include <score/statemachine/GraphicsSceneToolPalette.hpp>
 #include <score/tools/std/Optional.hpp>
 #include <score/widgets/GraphicsProxyObject.hpp>
+
+#include <algorithm>
 
 namespace Scenario
 {

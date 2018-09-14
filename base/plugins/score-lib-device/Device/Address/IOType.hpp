@@ -1,7 +1,8 @@
 #pragma once
+#include <score/tools/std/Optional.hpp>
+
 #include <ossia/network/common/parameter_properties.hpp>
 
-#include <score/tools/std/Optional.hpp>
 #include <score_lib_device_export.h>
 
 class QString;

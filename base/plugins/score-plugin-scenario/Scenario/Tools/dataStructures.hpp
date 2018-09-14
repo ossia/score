@@ -7,13 +7,16 @@ needed
 
 #include <Dataflow/Commands/CableHelpers.hpp>
 #include <Process/TimeValue.hpp>
-#include <QByteArray>
-#include <QMap>
-#include <QPair>
 #include <Scenario/Document/Event/ExecutionStatus.hpp>
+
 #include <score/model/Identifier.hpp>
 #include <score/model/path/Path.hpp>
 #include <score/tools/std/HashMap.hpp>
+
+#include <QByteArray>
+#include <QMap>
+#include <QPair>
+
 #include <score_plugin_scenario_export.h>
 
 namespace Scenario

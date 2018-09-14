@@ -1,12 +1,13 @@
 #pragma once
 #include <Automation/Commands/ChangeAddress.hpp>
-#include <wobjectdefs.h>
-#include <Metronome/MetronomeModel.hpp>
-#include <Metronome/MetronomeView.hpp>
 #include <Curve/Process/CurveProcessPresenter.hpp>
 #include <Device/Node/NodeListMimeSerialization.hpp>
 #include <Process/ProcessContext.hpp>
 #include <State/MessageListSerialization.hpp>
+
+#include <Metronome/MetronomeModel.hpp>
+#include <Metronome/MetronomeView.hpp>
+#include <wobjectdefs.h>
 
 namespace Metronome
 {
@@ -16,10 +17,8 @@ class LayerPresenter final
   W_OBJECT(LayerPresenter)
 public:
   LayerPresenter(
-      const Curve::Style& style,
-      const Metronome::ProcessModel& layer,
-      LayerView* view,
-      const Process::ProcessPresenterContext& context,
+      const Curve::Style& style, const Metronome::ProcessModel& layer,
+      LayerView* view, const Process::ProcessPresenterContext& context,
       QObject* parent)
       : CurveProcessPresenter{style, layer, view, context, parent}
   {

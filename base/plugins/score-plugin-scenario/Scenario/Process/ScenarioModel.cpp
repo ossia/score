@@ -7,11 +7,6 @@
 
 #include <Process/Process.hpp>
 #include <Process/TimeValue.hpp>
-#include <QDataStream>
-#include <QDebug>
-#include <QIODevice>
-#include <QMap>
-#include <QtGlobal>
 #include <Scenario/Commands/Scenario/Displacement/MoveEventMeta.hpp>
 #include <Scenario/Document/CommentBlock/CommentBlockModel.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
@@ -23,7 +18,7 @@
 #include <Scenario/Process/Algorithms/Accessors.hpp>
 #include <Scenario/Process/Algorithms/ProcessPolicy.hpp>
 #include <Scenario/Process/ScenarioProcessMetadata.hpp>
-#include <core/document/Document.hpp>
+
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/document/DocumentContext.hpp>
 #include <score/document/DocumentInterface.hpp>
@@ -34,21 +29,29 @@
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/tools/IdentifierGeneration.hpp>
 #include <score/tools/Todo.hpp>
-#include <vector>
+
+#include <core/document/Document.hpp>
+
+#include <QDataStream>
+#include <QDebug>
+#include <QIODevice>
+#include <QMap>
+#include <QtGlobal>
 
 #include <wobjectimpl.h>
+
+#include <vector>
 W_OBJECT_IMPL(Scenario::ProcessModel)
 namespace Scenario
 {
 
 ProcessModel::ProcessModel(
-    const TimeVal& duration,
-    const Id<Process::ProcessModel>& id,
+    const TimeVal& duration, const Id<Process::ProcessModel>& id,
     QObject* parent)
-    : Process::
-          ProcessModel{duration, id,
-                       Metadata<ObjectKey_k, Scenario::ProcessModel>::get(),
-                       parent}
+    : Process::ProcessModel{duration, id,
+                            Metadata<
+                                ObjectKey_k, Scenario::ProcessModel>::get(),
+                            parent}
     , inlet{Process::make_inlet(Id<Process::Port>(0), this)}
     , outlet{Process::make_outlet(Id<Process::Port>(0), this)}
     , m_startTimeSyncId{Scenario::startId<TimeSyncModel>()}
@@ -85,10 +88,14 @@ void ProcessModel::init()
 
 ProcessModel::~ProcessModel()
 {
-  try {
+  try
+  {
     score::IDocument::documentContext(*parent()).selectionStack.clear();
-  } catch (...) {
-    // Sometimes the scenario isn't in the hierarchy, e.G. in ScenarioPasteElements
+  }
+  catch (...)
+  {
+    // Sometimes the scenario isn't in the hierarchy, e.G. in
+    // ScenarioPasteElements
   }
   comments.clear();
   intervals.clear();
@@ -215,22 +222,19 @@ Selection ProcessModel::selectedChildren() const
 void ProcessModel::changeDuration(IntervalModel& itv, const TimeVal& v)
 {
   Command::MoveEventMeta cmd(
-        *this, this->states.at(itv.endState()).eventId(),
-        itv.date() + v, itv.heightPercentage(), ExpandMode::GrowShrink, LockMode::Free);
+      *this, this->states.at(itv.endState()).eventId(), itv.date() + v,
+      itv.heightPercentage(), ExpandMode::GrowShrink, LockMode::Free);
   cmd.redo(score::IDocument::documentContext(*this));
 }
 
-void ProcessModel::changeDuration(const Scenario::IntervalModel& itv,
-                                  OngoingCommandDispatcher& dispatcher,
-                                  const TimeVal& val,
-                                  ExpandMode expandmode,
-                                  LockMode lockmode)
+void ProcessModel::changeDuration(
+    const Scenario::IntervalModel& itv, OngoingCommandDispatcher& dispatcher,
+    const TimeVal& val, ExpandMode expandmode, LockMode lockmode)
 {
   auto& scenario = *this;
   dispatcher.submitCommand<Command::MoveEventMeta>(
-      scenario, scenario.state(itv.endState()).eventId(),
-      itv.date() + val, itv.heightPercentage(), expandmode,
-      lockmode);
+      scenario, scenario.state(itv.endState()).eventId(), itv.date() + val,
+      itv.heightPercentage(), expandmode, lockmode);
 }
 
 void ProcessModel::setSelection(const Selection& s) const

@@ -2,8 +2,9 @@
 
 #include <Process/Dataflow/Port.hpp>
 
-#include <wobjectimpl.h>
 #include <ossia/detail/pod_vector.hpp>
+
+#include <wobjectimpl.h>
 W_OBJECT_IMPL(Media::Step::Model)
 namespace Media
 {
@@ -11,8 +12,7 @@ namespace Step
 {
 
 Model::Model(
-    const TimeVal& duration,
-    const Id<Process::ProcessModel>& id,
+    const TimeVal& duration, const Id<Process::ProcessModel>& id,
     QObject* parent)
     : Process::ProcessModel{duration, id,
                             Metadata<ObjectKey_k, ProcessModel>::get(), parent}

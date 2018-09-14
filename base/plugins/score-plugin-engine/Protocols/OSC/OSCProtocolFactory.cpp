@@ -4,11 +4,12 @@
 
 #include "OSCDevice.hpp"
 
-#include <ossia/network/base/device.hpp>
-
 #include <Device/Protocol/DeviceSettings.hpp>
 #include <Protocols/OSC/OSCProtocolSettingsWidget.hpp>
 #include <Protocols/OSC/OSCSpecificSettings.hpp>
+
+#include <ossia/network/base/device.hpp>
+
 #include <QObject>
 
 namespace Device

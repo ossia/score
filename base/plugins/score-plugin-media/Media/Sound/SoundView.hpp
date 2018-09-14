@@ -1,13 +1,17 @@
 #pragma once
 #include <Media/AudioArray.hpp>
-#include <wobjectdefs.h>
 #include <Media/MediaFileHandle.hpp>
 #include <Process/LayerView.hpp>
 #include <Process/TimeValue.hpp>
 #include <Process/ZoomHelper.hpp>
-#include <QPointer>
+
 #include <score/widgets/GraphicsItem.hpp>
+
 #include <ossia/detail/pod_vector.hpp>
+
+#include <QPointer>
+
+#include <wobjectdefs.h>
 namespace Media
 {
 namespace Sound
@@ -41,11 +45,14 @@ public:
   }
 
 public:
-  void recompute(const MediaFileHandle* arg_1, double arg_2) W_SIGNAL(recompute, arg_1, arg_2);
-  void ready(QList<QPainterPath> arg_1, QPainterPath arg_2, double z) W_SIGNAL(ready, arg_1, arg_2, z);
+  void recompute(const MediaFileHandle* arg_1, double arg_2)
+      W_SIGNAL(recompute, arg_1, arg_2);
+  void ready(QList<QPainterPath> arg_1, QPainterPath arg_2, double z)
+      W_SIGNAL(ready, arg_1, arg_2, z);
 
 private:
-  void on_recompute(const MediaFileHandle* data, double ratio); W_SLOT(on_recompute);
+  void on_recompute(const MediaFileHandle* data, double ratio);
+  W_SLOT(on_recompute);
 
 private:
   // Returns what to do depending on current density and stored density
@@ -53,9 +60,7 @@ private:
 
   // Computes a data set for the given ZoomRatio
   void computeDataSet(
-      const MediaFileHandle& m_data,
-      ZoomRatio ratio,
-      double* densityptr,
+      const MediaFileHandle& m_data, ZoomRatio ratio, double* densityptr,
       std::vector<ossia::float_vector>& dataset);
 
   void drawWaveForms(const MediaFileHandle& data, ZoomRatio ratio);

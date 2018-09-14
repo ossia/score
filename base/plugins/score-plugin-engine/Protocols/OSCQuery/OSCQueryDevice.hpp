@@ -1,8 +1,9 @@
 #pragma once
-#include <ossia/network/base/device.hpp>
-#include <wobjectdefs.h>
-
 #include <Device/Protocol/DeviceInterface.hpp>
+
+#include <ossia/network/base/device.hpp>
+
+#include <wobjectdefs.h>
 
 namespace Engine
 {
@@ -21,8 +22,10 @@ public:
 public:
   void sig_command() W_SIGNAL(sig_command);
   void sig_disconnect() W_SIGNAL(sig_disconnect);
+
 private:
-  void slot_command(); W_SLOT(slot_command);
+  void slot_command();
+  W_SLOT(slot_command);
 };
 }
 }

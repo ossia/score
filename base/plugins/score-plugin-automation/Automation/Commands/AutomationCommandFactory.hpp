@@ -1,5 +1,6 @@
 #pragma once
 #include <score/command/Command.hpp>
+
 #include <score_plugin_automation_export.h>
 namespace Automation
 {

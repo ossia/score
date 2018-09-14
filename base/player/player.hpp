@@ -1,6 +1,7 @@
 #pragma once
-#include <atomic>
 #include <score_player_export.h>
+
+#include <atomic>
 #include <string>
 #include <thread>
 namespace ossia

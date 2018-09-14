@@ -1,5 +1,6 @@
 #pragma once
 #include <Scenario/Document/Interval/IntervalExecution.hpp>
+
 #include <wobjectdefs.h>
 
 namespace Execution
@@ -8,12 +9,10 @@ class IntervalRawPtrComponentBase;
 class IntervalRawPtrComponent;
 }
 
-
 namespace score
 {
 template <>
-struct is_component_serializable<
-    Execution::IntervalRawPtrComponentBase>
+struct is_component_serializable<Execution::IntervalRawPtrComponentBase>
 {
   using type = score::not_serializable_tag;
 };
@@ -41,10 +40,8 @@ public:
 
   static const constexpr bool is_unique = true;
   IntervalRawPtrComponentBase(
-      Scenario::IntervalModel& score_cst,
-      const Context& ctx,
-      const Id<score::Component>& id,
-      QObject* parent);
+      Scenario::IntervalModel& score_cst, const Context& ctx,
+      const Id<score::Component>& id, QObject* parent);
   IntervalRawPtrComponentBase(const IntervalRawPtrComponentBase&) = delete;
   IntervalRawPtrComponentBase(IntervalRawPtrComponentBase&&) = delete;
   IntervalRawPtrComponentBase& operator=(const IntervalRawPtrComponentBase&)
@@ -71,8 +68,7 @@ public:
   void executionStopped();
 
   ProcessComponent* make(
-      const Id<score::Component>& id,
-      ProcessComponentFactory& factory,
+      const Id<score::Component>& id, ProcessComponentFactory& factory,
       Process::ProcessModel& process);
   std::function<void()>
   removing(const Process::ProcessModel& e, ProcessComponent& c);
@@ -102,8 +98,8 @@ protected:
 };
 
 class SCORE_PLUGIN_SCENARIO_EXPORT IntervalRawPtrComponent final
-    : public score::
-          PolymorphicComponentHierarchy<IntervalRawPtrComponentBase, false>
+    : public score::PolymorphicComponentHierarchy<
+          IntervalRawPtrComponentBase, false>
 {
   W_OBJECT(IntervalRawPtrComponent)
 
@@ -136,12 +132,14 @@ public:
   //! To be called from the API edition thread
   void onSetup(
       std::shared_ptr<IntervalRawPtrComponent> self,
-      ossia::time_interval* ossia_cst,
-      interval_duration_data dur);
+      ossia::time_interval* ossia_cst, interval_duration_data dur);
+
 public:
-  void sig_callback(double position, ossia::time_value date) W_SIGNAL(sig_callback, position, date);
+  void sig_callback(double position, ossia::time_value date)
+      W_SIGNAL(sig_callback, position, date);
+
 public:
-  void slot_callback(double position, ossia::time_value date); W_SLOT(slot_callback);
+  void slot_callback(double position, ossia::time_value date);
+  W_SLOT(slot_callback);
 };
 }
-

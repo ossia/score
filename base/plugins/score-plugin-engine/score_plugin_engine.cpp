@@ -3,83 +3,88 @@
 
 #include "score_plugin_engine.hpp"
 
+#include <Device/Protocol/ProtocolFactoryInterface.hpp>
+#include <Process/Execution/ProcessComponent.hpp>
+#include <Protocols/Local/LocalProtocolFactory.hpp>
+
+#include <score/plugins/customfactory/FactoryFamily.hpp>
+#include <score/plugins/customfactory/FactorySetup.hpp>
+#include <score/plugins/customfactory/StringFactoryKey.hpp>
+
+#include <ossia/editor/scenario/time_event.hpp>
 #include <ossia/network/base/device.hpp>
 
-#include <Device/Protocol/ProtocolFactoryInterface.hpp>
+#include <QString>
+
+#include <Audio/AudioPanel.hpp>
+#include <Audio/DummyInterface.hpp>
+#include <Audio/JackInterface.hpp>
+#include <Audio/PortAudioInterface.hpp>
+#include <Audio/SDLInterface.hpp>
+#include <Audio/Settings/Factory.hpp>
 #include <Engine/ApplicationPlugin.hpp>
+#include <Engine/Listening/PlayListeningHandlerFactory.hpp>
 #include <Execution/Clock/ClockFactory.hpp>
 #include <Execution/Clock/DefaultClock.hpp>
 #include <Execution/DocumentPlugin.hpp>
-#include <Process/Execution/ProcessComponent.hpp>
 #include <Execution/Settings/ExecutorFactory.hpp>
-#include <Engine/Listening/PlayListeningHandlerFactory.hpp>
 #include <LocalTree/Scenario/AutomationComponent.hpp>
 #include <LocalTree/Scenario/LoopComponent.hpp>
 #include <LocalTree/Scenario/MappingComponent.hpp>
 #include <LocalTree/Scenario/ScenarioComponent.hpp>
-#include <Protocols/Local/LocalProtocolFactory.hpp>
-#include <Audio/Settings/Factory.hpp>
-#include <Audio/AudioPanel.hpp>
-#include <QString>
-#include <ossia/editor/scenario/time_event.hpp>
+
 #include <ossia-config.hpp>
-#include <score/plugins/customfactory/FactoryFamily.hpp>
-#include <score/plugins/customfactory/FactorySetup.hpp>
-#include <score/plugins/customfactory/StringFactoryKey.hpp>
-#include <Audio/DummyInterface.hpp>
-#include <Audio/JackInterface.hpp>
-#include <Audio/SDLInterface.hpp>
-#include <Audio/PortAudioInterface.hpp>
 #if defined(OSSIA_PROTOCOL_MINUIT)
-#  include <Protocols/Minuit/MinuitProtocolFactory.hpp>
+#include <Protocols/Minuit/MinuitProtocolFactory.hpp>
 #endif
 #if defined(OSSIA_PROTOCOL_OSC)
-#  include <Protocols/OSC/OSCProtocolFactory.hpp>
+#include <Protocols/OSC/OSCProtocolFactory.hpp>
 #endif
 
 #if defined(OSSIA_PROTOCOL_OSCQUERY)
-#  include <Protocols/OSCQuery/OSCQueryProtocolFactory.hpp>
+#include <Protocols/OSCQuery/OSCQueryProtocolFactory.hpp>
 #endif
 
 #if defined(OSSIA_PROTOCOL_MIDI)
-#  include <Protocols/MIDI/MIDIProtocolFactory.hpp>
+#include <Protocols/MIDI/MIDIProtocolFactory.hpp>
 #endif
 #if defined(OSSIA_PROTOCOL_HTTP)
-#  include <Protocols/HTTP/HTTPProtocolFactory.hpp>
+#include <Protocols/HTTP/HTTPProtocolFactory.hpp>
 #endif
 #if defined(OSSIA_PROTOCOL_WEBSOCKETS)
-#  include <Protocols/WS/WSProtocolFactory.hpp>
+#include <Protocols/WS/WSProtocolFactory.hpp>
 #endif
 #if defined(OSSIA_PROTOCOL_SERIAL)
-#  include <Protocols/Serial/SerialProtocolFactory.hpp>
+#include <Protocols/Serial/SerialProtocolFactory.hpp>
 #endif
 #if defined(OSSIA_PROTOCOL_PHIDGETS)
-#  include <Protocols/Phidgets/PhidgetsProtocolFactory.hpp>
+#include <Protocols/Phidgets/PhidgetsProtocolFactory.hpp>
 #endif
 #if defined(OSSIA_PROTOCOL_JOYSTICK)
-#  include <Protocols/Joystick/JoystickProtocolFactory.hpp>
+#include <Protocols/Joystick/JoystickProtocolFactory.hpp>
 #endif
 #if defined(OSSIA_PROTOCOL_WIIMOTE)
 #  include <Protocols/Wiimote/WiimoteProtocolFactory.hpp>
 #endif
 
-#include <Execution/Dataflow/DataflowClock.hpp>
 #include <Protocols/Audio/AudioDevice.hpp>
+
+#include <Execution/Dataflow/DataflowClock.hpp>
 #include <Execution/Dataflow/ManualClock.hpp>
-#include <score_plugin_scenario.hpp>
 #include <score_plugin_deviceexplorer.hpp>
+#include <score_plugin_scenario.hpp>
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Execution::ManualClock::TimeWidget)
 
 score_plugin_engine::score_plugin_engine()
 {
-  qRegisterMetaType<Execution::ClockFactory::ConcreteKey>(
+  qRegisterMetaType<Execution::ClockFactory::ConcreteKey>("ClockKey");
+  qRegisterMetaTypeStreamOperators<Execution::ClockFactory::ConcreteKey>(
       "ClockKey");
-  qRegisterMetaTypeStreamOperators<
-      Execution::ClockFactory::ConcreteKey>("ClockKey");
 
   qRegisterMetaType<Audio::AudioFactory::ConcreteKey>("AudioKey");
-  qRegisterMetaTypeStreamOperators<Audio::AudioFactory::ConcreteKey>("AudioKey");
+  qRegisterMetaTypeStreamOperators<Audio::AudioFactory::ConcreteKey>(
+      "AudioKey");
 }
 
 score_plugin_engine::~score_plugin_engine()
@@ -97,8 +102,8 @@ score_plugin_engine::factoryFamilies()
 {
   return make_ptr_vector<
       score::InterfaceListBase, LocalTree::ProcessComponentFactoryList,
-      Execution::ProcessComponentFactoryList,
-      Execution::ClockFactoryList, Audio::AudioFactoryList>();
+      Execution::ProcessComponentFactoryList, Execution::ClockFactoryList,
+      Audio::AudioFactoryList>();
 }
 
 std::vector<std::unique_ptr<score::InterfaceBase>>
@@ -149,8 +154,8 @@ score_plugin_engine::factories(
          Dataflow::AudioProtocolFactory
 #endif
 #if defined(OSSIA_PROTOCOL_JOYSTICK)
-        ,
-        Network::JoystickProtocolFactory
+         ,
+         Network::JoystickProtocolFactory
 #endif
 #if defined(OSSIA_PROTOCOL_WIIMOTE)
         ,
@@ -158,35 +163,36 @@ score_plugin_engine::factories(
 #endif
          >,
 
-      FW<Audio::AudioFactory,
-          Audio::DummyFactory
-          #if defined(OSSIA_AUDIO_JACK)
-          , Audio::JackFactory
-          #endif
-          #if defined(OSSIA_AUDIO_PORTAUDIO)
-          , Audio::PortAudioFactory
-          #endif
-          #if defined(OSSIA_AUDIO_SDL)
-          , Audio::SDLFactory
-          #endif
-      >,
+      FW<Audio::AudioFactory, Audio::DummyFactory
+#if defined(OSSIA_AUDIO_JACK)
+         ,
+         Audio::JackFactory
+#endif
+#if defined(OSSIA_AUDIO_PORTAUDIO)
+         ,
+         Audio::PortAudioFactory
+#endif
+#if defined(OSSIA_AUDIO_SDL)
+         ,
+         Audio::SDLFactory
+#endif
+         >,
 
       FW<Explorer::ListeningHandlerFactory,
          Execution::PlayListeningHandlerFactory>,
       FW<score::SettingsDelegateFactory, Execution::Settings::Factory,
          Audio::Settings::Factory>,
       FW<LocalTree::ProcessComponentFactory,
-         LocalTree::ScenarioComponentFactory,
-         LocalTree::LoopComponentFactory,
+         LocalTree::ScenarioComponentFactory, LocalTree::LoopComponentFactory,
          LocalTree::AutomationComponentFactory,
          LocalTree::MappingComponentFactory>,
-      FW<score::PanelDelegateFactory,
-         Audio::PanelDelegateFactory>,
+      FW<score::PanelDelegateFactory, Audio::PanelDelegateFactory>,
       FW<Execution::ClockFactory
          // , Execution::ControlClockFactory
-         , Dataflow::ClockFactory
+         ,
+         Dataflow::ClockFactory
          // , Engine::ManualClock::ClockFactory
-      >>(ctx, key);
+         >>(ctx, key);
 }
 
 auto score_plugin_engine::required() const -> std::vector<score::PluginKey>

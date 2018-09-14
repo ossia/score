@@ -1,10 +1,13 @@
 #pragma once
 #include <Scenario/Process/ScenarioInterface.hpp>
+
 #include <score/model/Identifier.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/serialization/JSONVisitor.hpp>
 #include <score/tools/std/IndirectContainer.hpp>
+
 #include <score_plugin_scenario_export.h>
+
 #include <tuple>
 
 class DataStream;

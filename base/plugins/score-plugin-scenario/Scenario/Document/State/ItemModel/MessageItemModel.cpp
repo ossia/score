@@ -2,40 +2,42 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "MessageItemModel.hpp"
 
-#include <ossia/network/value/value_traits.hpp>
-
 #include <Process/State/MessageNode.hpp>
-#include <QFlags>
-#include <QJsonDocument>
-#include <QMap>
-#include <QMimeData>
-#include <QObject>
-#include <QString>
 #include <Scenario/Commands/State/AddMessagesToState.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
 #include <State/Message.hpp>
 #include <State/MessageListSerialization.hpp>
 #include <State/StateMimeTypes.hpp>
 #include <State/ValueConversion.hpp>
-#include <algorithm>
+
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
+#include <score/document/DocumentContext.hpp>
 #include <score/model/path/Path.hpp>
 #include <score/model/tree/TreeNode.hpp>
 #include <score/model/tree/TreeNodeItemModel.hpp>
 #include <score/serialization/JSONVisitor.hpp>
 #include <score/tools/std/Optional.hpp>
-#include <score/document/DocumentContext.hpp>
+
+#include <ossia/network/value/value_traits.hpp>
+
 #include <QFile>
 #include <QFileInfo>
+#include <QFlags>
+#include <QJsonDocument>
+#include <QMap>
+#include <QMimeData>
+#include <QObject>
+#include <QString>
 #include <QUrl>
+
 #include <wobjectimpl.h>
+
+#include <algorithm>
 W_OBJECT_IMPL(Scenario::MessageItemModel)
 namespace Scenario
 {
 class StateModel;
-MessageItemModel::MessageItemModel(
-    const StateModel& sm,
-    QObject* parent)
+MessageItemModel::MessageItemModel(const StateModel& sm, QObject* parent)
     : TreeNodeBasedItemModel<Process::MessageNode>{parent}
     , stateModel{sm}
     , m_rootNode{}
@@ -175,8 +177,8 @@ QMimeData* MessageItemModel::mimeData(const QModelIndexList& indexes) const
 {
   SelectedNodes nodes;
   ossia::transform(
-        indexes, std::back_inserter(nodes.parents),
-        [&](const QModelIndex& idx) { return &nodeFromModelIndex(idx); });
+      indexes, std::back_inserter(nodes.parents),
+      [&](const QModelIndex& idx) { return &nodeFromModelIndex(idx); });
   nodes.parents = filterUniqueParents(nodes.parents);
 
   State::MessageList messages;
@@ -197,10 +199,7 @@ QMimeData* MessageItemModel::mimeData(const QModelIndexList& indexes) const
 }
 
 bool MessageItemModel::canDropMimeData(
-    const QMimeData* data,
-    Qt::DropAction action,
-    int row,
-    int column,
+    const QMimeData* data, Qt::DropAction action, int row, int column,
     const QModelIndex& parent) const
 {
   if (action == Qt::IgnoreAction)
@@ -222,10 +221,7 @@ bool MessageItemModel::canDropMimeData(
 }
 
 bool MessageItemModel::dropMimeData(
-    const QMimeData* data,
-    Qt::DropAction action,
-    int row,
-    int column,
+    const QMimeData* data, Qt::DropAction action, int row, int column,
     const QModelIndex& parent)
 {
   if (action == Qt::IgnoreAction)
@@ -242,36 +238,39 @@ bool MessageItemModel::dropMimeData(
   {
     State::MessageList ml;
     fromJsonArray(
-        QJsonDocument::fromJson(data->data(score::mime::messagelist())).array(),
+        QJsonDocument::fromJson(data->data(score::mime::messagelist()))
+            .array(),
         ml);
 
     auto cmd = new Command::AddMessagesToState{stateModel, ml};
 
-    CommandDispatcher<> disp(score::IDocument::documentContext(stateModel).commandStack);
+    CommandDispatcher<> disp(
+        score::IDocument::documentContext(stateModel).commandStack);
     beginResetModel();
     disp.submitCommand(cmd);
     endResetModel();
   }
-  else if(data->hasUrls())
+  else if (data->hasUrls())
   {
     State::MessageList ml;
-    for(const auto& u : data->urls())
+    for (const auto& u : data->urls())
     {
       auto path = u.toLocalFile();
-      if(QFile f{path}; QFileInfo{f}.suffix() == "cues" && f.open(QIODevice::ReadOnly))
+      if (QFile f{path};
+          QFileInfo{f}.suffix() == "cues" && f.open(QIODevice::ReadOnly))
       {
         State::MessageList sub;
-        fromJsonArray(
-            QJsonDocument::fromJson(f.readAll()).array(),
-            sub);
+        fromJsonArray(QJsonDocument::fromJson(f.readAll()).array(), sub);
         ml += sub;
       }
     }
 
-    if(!ml.empty())
+    if (!ml.empty())
     {
       auto cmd = new Command::AddMessagesToState{stateModel, ml};
-      CommandDispatcher<>{score::IDocument::documentContext(stateModel).commandStack}.submitCommand(cmd);
+      CommandDispatcher<>{
+          score::IDocument::documentContext(stateModel).commandStack}
+          .submitCommand(cmd);
     }
   }
   return false;
@@ -334,7 +333,8 @@ bool MessageItemModel::setData(
       auto cmd = new Command::AddMessagesToState{
           stateModel, State::MessageList{{address(n), value}}};
 
-      CommandDispatcher<> disp(score::IDocument::documentContext(stateModel).commandStack);
+      CommandDispatcher<> disp(
+          score::IDocument::documentContext(stateModel).commandStack);
       beginResetModel();
       disp.submitCommand(cmd);
       endResetModel();

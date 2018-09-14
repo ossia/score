@@ -1,9 +1,11 @@
 #pragma once
 #include <Device/Node/DeviceNode.hpp>
 #include <Device/Protocol/DeviceSettings.hpp>
+
 #include <ossia-qt/device_metatype.hpp>
-#include <score_lib_device_export.h>
+
 #include <nano_observer.hpp>
+#include <score_lib_device_export.h>
 #include <wobjectdefs.h>
 namespace ossia
 {
@@ -45,9 +47,8 @@ enum DeviceLogging : int8_t
   LogUnfolded,
   LogEverything
 };
-class SCORE_LIB_DEVICE_EXPORT DeviceInterface
-    : public QObject
-    , public Nano::Observer
+class SCORE_LIB_DEVICE_EXPORT DeviceInterface : public QObject,
+                                                public Nano::Observer
 {
   W_OBJECT(DeviceInterface)
 
@@ -64,7 +65,8 @@ public:
 
   virtual void disconnect();
   virtual bool reconnect() = 0;
-  virtual void recreate(const Device::Node&); // Argument is the node of the device, used for recreation
+  virtual void recreate(const Device::Node&); // Argument is the node of the
+                                              // device, used for recreation
   bool connected() const;
 
   void updateSettings(const Device::DeviceSettings&);
@@ -111,37 +113,35 @@ public:
 
   Nano::Signal<void(const State::Address&, const ossia::value&)> valueUpdated;
 
-
 public:
   // These signals are emitted if a device changes from the inside
   void pathAdded(const State::Address& arg_1)
-  E_SIGNAL(SCORE_LIB_DEVICE_EXPORT, pathAdded, arg_1);
+      E_SIGNAL(SCORE_LIB_DEVICE_EXPORT, pathAdded, arg_1);
   void pathUpdated(
-      const State::Address& arg_1,           // current address
+      const State::Address& arg_1, // current address
       const Device::AddressSettings& arg_2)
-  E_SIGNAL(SCORE_LIB_DEVICE_EXPORT, pathUpdated, arg_1, arg_2); // new data
+      E_SIGNAL(SCORE_LIB_DEVICE_EXPORT, pathUpdated, arg_1, arg_2); // new data
   void pathRemoved(const State::Address& arg_1)
-  E_SIGNAL(SCORE_LIB_DEVICE_EXPORT, pathRemoved, arg_1);
+      E_SIGNAL(SCORE_LIB_DEVICE_EXPORT, pathRemoved, arg_1);
 
   // In case the whole namespace changed?
-  void namespaceUpdated()
-  E_SIGNAL(SCORE_LIB_DEVICE_EXPORT, namespaceUpdated);
+  void namespaceUpdated() E_SIGNAL(SCORE_LIB_DEVICE_EXPORT, namespaceUpdated);
 
   // In case the device changed
-  void deviceChanged(ossia::net::device_base* old_dev, ossia::net::device_base* new_dev)
-  E_SIGNAL(SCORE_LIB_DEVICE_EXPORT, deviceChanged, old_dev, new_dev);
+  void deviceChanged(
+      ossia::net::device_base* old_dev, ossia::net::device_base* new_dev)
+      E_SIGNAL(SCORE_LIB_DEVICE_EXPORT, deviceChanged, old_dev, new_dev);
 
   /* If logging is enabled, these two signals may be sent
    * when something happens */
   void logInbound(const QString& arg_1) const
-  E_SIGNAL(SCORE_LIB_DEVICE_EXPORT, logInbound, arg_1);
+      E_SIGNAL(SCORE_LIB_DEVICE_EXPORT, logInbound, arg_1);
   void logOutbound(const QString& arg_1) const
-  E_SIGNAL(SCORE_LIB_DEVICE_EXPORT, logOutbound, arg_1);
+      E_SIGNAL(SCORE_LIB_DEVICE_EXPORT, logOutbound, arg_1);
 
 protected:
   Device::DeviceSettings m_settings;
   DeviceCapas m_capas;
-
 
   using callback_pair = std::pair<
       ossia::net::parameter_base*,
@@ -150,8 +150,7 @@ protected:
 
   void removeListening_impl(ossia::net::node_base& node, State::Address addr);
   void removeListening_impl(
-      ossia::net::node_base& node,
-      State::Address addr,
+      ossia::net::node_base& node, State::Address addr,
       std::vector<State::Address>&);
   void
   renameListening_impl(const State::Address& parent, const QString& newName);
@@ -167,8 +166,7 @@ private:
   bool m_callbacksEnabled = false;
 };
 
-class SCORE_LIB_DEVICE_EXPORT OwningDeviceInterface
-    : public DeviceInterface
+class SCORE_LIB_DEVICE_EXPORT OwningDeviceInterface : public DeviceInterface
 {
 public:
   ~OwningDeviceInterface() override;
@@ -201,4 +199,3 @@ findNodeFromPath(const Device::Node& path, ossia::net::device_base& dev);
 SCORE_LIB_DEVICE_EXPORT ossia::net::node_base*
 findNodeFromPath(const QStringList& path, ossia::net::device_base& dev);
 }
-

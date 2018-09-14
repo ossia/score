@@ -1,9 +1,11 @@
 #pragma once
+#include <score/command/Command.hpp>
+#include <score/command/Validity/ValidityChecker.hpp>
+
 #include <QObject>
 #include <QStack>
 #include <QString>
-#include <score/command/Command.hpp>
-#include <score/command/Validity/ValidityChecker.hpp>
+
 #include <wobjectdefs.h>
 
 namespace score
@@ -91,7 +93,8 @@ public:
    * @brief Emitted when a command was pushed on the stack
    * @param cmd the command that was pushed
    */
-  void localCommand(score::Command* cmd) E_SIGNAL(SCORE_LIB_BASE_EXPORT, localCommand, cmd)
+  void localCommand(score::Command* cmd)
+      E_SIGNAL(SCORE_LIB_BASE_EXPORT, localCommand, cmd)
 
       /**
        * @brief Emitted when the user calls "Undo"
@@ -103,19 +106,23 @@ public:
        */
       void localRedo() E_SIGNAL(SCORE_LIB_BASE_EXPORT, localRedo)
 
-          void localIndexChanged(int v) E_SIGNAL(SCORE_LIB_BASE_EXPORT, localIndexChanged, v)
+          void localIndexChanged(int v) E_SIGNAL(
+              SCORE_LIB_BASE_EXPORT, localIndexChanged, v)
 
-              void canUndoChanged(bool b) E_SIGNAL(SCORE_LIB_BASE_EXPORT,
-                  canUndoChanged, b) void canRedoChanged(bool b)
+              void canUndoChanged(bool b) E_SIGNAL(
+                  SCORE_LIB_BASE_EXPORT, canUndoChanged,
+                  b) void canRedoChanged(bool b)
                   E_SIGNAL(SCORE_LIB_BASE_EXPORT, canRedoChanged, b)
 
-                      void undoTextChanged(QString b) E_SIGNAL(SCORE_LIB_BASE_EXPORT,
-                          undoTextChanged, b) void redoTextChanged(QString b)
+                      void undoTextChanged(QString b) E_SIGNAL(
+                          SCORE_LIB_BASE_EXPORT, undoTextChanged,
+                          b) void redoTextChanged(QString b)
                           E_SIGNAL(SCORE_LIB_BASE_EXPORT, redoTextChanged, b)
 
-                              void indexChanged(int b)
-                                  E_SIGNAL(SCORE_LIB_BASE_EXPORT, indexChanged, b) void stackChanged()
-                                      E_SIGNAL(SCORE_LIB_BASE_EXPORT, stackChanged)
+                              void indexChanged(int b) E_SIGNAL(
+                                  SCORE_LIB_BASE_EXPORT, indexChanged,
+                                  b) void stackChanged()
+                                  E_SIGNAL(SCORE_LIB_BASE_EXPORT, stackChanged)
 
       // These signals are low-level and are sent on each operation that
       // affects the stacks

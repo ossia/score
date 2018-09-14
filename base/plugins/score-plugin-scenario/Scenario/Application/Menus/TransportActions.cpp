@@ -2,20 +2,23 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "TransportActions.hpp"
 
+#include <Scenario/Application/ScenarioActions.hpp>
+#include <Scenario/Application/ScenarioApplicationPlugin.hpp>
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
+
+#include <score/actions/ActionManager.hpp>
+#include <score/actions/Menu.hpp>
+#include <score/actions/MenuManager.hpp>
+#include <score/widgets/SetIcons.hpp>
+
+#include <core/application/ApplicationSettings.hpp>
+
 #include <QAction>
 #include <QApplication>
 #include <QMainWindow>
 #include <QString>
 #include <QToolBar>
-#include <Scenario/Application/ScenarioActions.hpp>
-#include <Scenario/Application/ScenarioApplicationPlugin.hpp>
-#include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
-#include <core/application/ApplicationSettings.hpp>
 #include <qnamespace.h>
-#include <score/actions/ActionManager.hpp>
-#include <score/actions/Menu.hpp>
-#include <score/actions/MenuManager.hpp>
-#include <score/widgets/SetIcons.hpp>
 class QMenu;
 
 namespace Scenario
@@ -54,7 +57,8 @@ TransportActions::TransportActions(const score::GUIApplicationContext& context)
   m_stop->setShortcut(Qt::Key_Return);
   m_stop->setShortcutContext(Qt::WidgetWithChildrenShortcut);
   setIcons(
-      m_stop, QStringLiteral(":/icons/stop_on.png"), QStringLiteral(":/icons/stop_off.png"),
+      m_stop, QStringLiteral(":/icons/stop_on.png"),
+      QStringLiteral(":/icons/stop_off.png"),
       QStringLiteral(":/icons/stop_disabled.png"));
   /*
       m_goToStart = new QAction{tr("⏮ Start"), nullptr};
@@ -90,7 +94,8 @@ TransportActions::TransportActions(const score::GUIApplicationContext& context)
                         // false for "play" state (i.e. currently paused)
     setIcons(
         m_play,
-        b ? QStringLiteral(":/icons/pause_on.png") : QStringLiteral(":/icons/play_on.png"),
+        b ? QStringLiteral(":/icons/pause_on.png")
+          : QStringLiteral(":/icons/play_on.png"),
         b ? QStringLiteral(":/icons/pause_off.png")
           : QStringLiteral(":/icons/play_off.png"),
         b ? QStringLiteral(":/icons/pause_disabled.png")
@@ -104,8 +109,8 @@ TransportActions::TransportActions(const score::GUIApplicationContext& context)
           : QStringLiteral(":/icons/play_glob_on.png"),
         b ? QStringLiteral(":/icons/pause_off.png")
           : QStringLiteral(":/icons/play_glob_off.png"),
-          b ? QStringLiteral(":/icons/pause_disabled.png")
-            : QStringLiteral(":/icons/play_glob_disabled.png"));
+        b ? QStringLiteral(":/icons/pause_disabled.png")
+          : QStringLiteral(":/icons/play_glob_disabled.png"));
   };
   connect(m_play, &QAction::toggled, this, [=](bool b) {
     on_play(b);
@@ -194,7 +199,8 @@ void TransportActions::makeGUIElements(score::GUIElements& ref)
     bar->addAction(m_stopAndInit);
 
     ref.toolbars.emplace_back(
-        bar, StringKey<score::Toolbar>("Transport"), Qt::BottomToolBarArea, 200);
+        bar, StringKey<score::Toolbar>("Transport"), Qt::BottomToolBarArea,
+        200);
   }
 
   {

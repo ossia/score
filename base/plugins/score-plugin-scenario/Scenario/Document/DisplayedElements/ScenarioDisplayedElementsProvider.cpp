@@ -2,7 +2,6 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "ScenarioDisplayedElementsProvider.hpp"
 
-#include <QObject>
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/Event/EventPresenter.hpp>
 #include <Scenario/Document/Interval/FullView/FullViewIntervalPresenter.hpp>
@@ -12,9 +11,12 @@
 #include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
 #include <Scenario/Document/TimeSync/TimeSyncPresenter.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
+
 #include <score/model/EntityMap.hpp>
 #include <score/model/Identifier.hpp>
 #include <score/tools/std/Optional.hpp>
+
+#include <QObject>
 
 namespace Scenario
 {
@@ -48,10 +50,8 @@ ScenarioDisplayedElementsProvider::make(IntervalModel& cst) const
 
 DisplayedElementsPresenterContainer
 ScenarioDisplayedElementsProvider::make_presenters(
-    const IntervalModel& m,
-    const Process::ProcessPresenterContext& ctx,
-    QGraphicsItem* view_parent,
-    QObject* parent) const
+    const IntervalModel& m, const Process::ProcessPresenterContext& ctx,
+    QGraphicsItem* view_parent, QObject* parent) const
 {
   if (auto sm = dynamic_cast<Scenario::ProcessModel*>(m.parent()))
   {

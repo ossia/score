@@ -2,19 +2,20 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "ProcessInspectorWidgetDelegateFactory.hpp"
 
+#include <Process/Dataflow/PortListWidget.hpp>
 #include <Process/Process.hpp>
-#include <QWidget>
+
+#include <score/widgets/TextLabel.hpp>
+
 #include <QHBoxLayout>
 #include <QTabWidget>
-#include <score/widgets/TextLabel.hpp>
-#include <Process/Dataflow/PortListWidget.hpp>
+#include <QWidget>
 namespace Process
 {
 InspectorWidgetDelegateFactory::~InspectorWidgetDelegateFactory() = default;
 
 QWidget* InspectorWidgetDelegateFactory::make(
-    const QList<const QObject*>& objects,
-    const score::DocumentContext& doc,
+    const QList<const QObject*>& objects, const score::DocumentContext& doc,
     QWidget* parent) const
 {
   if (objects.empty())
@@ -43,10 +44,8 @@ bool InspectorWidgetDelegateFactory::matches(
 }
 
 QWidget* InspectorWidgetDelegateFactory::wrap(
-    const ProcessModel& process
-    , const score::DocumentContext& doc
-    , QWidget* w
-    , QWidget* parent)
+    const ProcessModel& process, const score::DocumentContext& doc, QWidget* w,
+    QWidget* parent)
 {
   auto widg = new QWidget{parent};
   auto lay = new QVBoxLayout{widg};

@@ -4,6 +4,7 @@
 
 #include <Process/ProcessList.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
+
 #include <score/application/ApplicationContext.hpp>
 #include <score/document/DocumentContext.hpp>
 #include <score/model/path/PathSerialization.hpp>
@@ -20,8 +21,7 @@ AddStateProcessToState::AddStateProcessToState(
 }
 
 AddStateProcessToState::AddStateProcessToState(
-    const Scenario::StateModel& state,
-    Id<Process::ProcessModel> processId,
+    const Scenario::StateModel& state, Id<Process::ProcessModel> processId,
     UuidKey<Process::ProcessModel> process)
     : m_path{state}
     , m_processName{process}

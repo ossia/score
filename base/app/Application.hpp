@@ -1,12 +1,16 @@
 #pragma once
-#include <QApplication>
-#include <wobjectdefs.h>
+#include <score/application/ApplicationContext.hpp>
+
 #include <core/application/ApplicationInterface.hpp>
 #include <core/application/ApplicationSettings.hpp>
 #include <core/plugin/PluginManager.hpp>
 #include <core/settings/Settings.hpp>
+
+#include <QApplication>
+
+#include <wobjectdefs.h>
+
 #include <memory>
-#include <score/application/ApplicationContext.hpp>
 
 namespace score
 {
@@ -27,9 +31,7 @@ class View;
  * parent of every other object created.
  * It does instantiate the rest of the software (MVP, settings, plugins).
  */
-class Application final
-    : public QObject
-    , public score::GUIApplicationInterface
+class Application final : public QObject, public score::GUIApplicationInterface
 {
   W_OBJECT(Application)
   friend class ChildEventFilter;

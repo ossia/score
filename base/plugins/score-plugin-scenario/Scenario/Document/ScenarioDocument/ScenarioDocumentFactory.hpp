@@ -4,6 +4,7 @@
 #include <score/plugins/documentdelegate/DocumentDelegateModel.hpp>
 #include <score/plugins/documentdelegate/DocumentDelegatePresenter.hpp>
 #include <score/plugins/documentdelegate/DocumentDelegateView.hpp>
+
 #include <score_plugin_scenario_export.h>
 
 namespace score
@@ -31,13 +32,11 @@ class SCORE_PLUGIN_SCENARIO_EXPORT ScenarioDocumentFactory final
       score::DocumentDelegateView& view) override;
 
   void make(
-      const score::DocumentContext& ctx,
-      score::DocumentDelegateModel*& ptr,
+      const score::DocumentContext& ctx, score::DocumentDelegateModel*& ptr,
       score::DocumentModel* parent) override;
 
   void load(
-      const VisitorVariant&,
-      const score::DocumentContext& ctx,
+      const VisitorVariant&, const score::DocumentContext& ctx,
       score::DocumentDelegateModel*& ptr,
       score::DocumentModel* parent) override;
 };

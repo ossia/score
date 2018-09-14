@@ -1,7 +1,4 @@
 #pragma once
-#include <QGraphicsItem>
-#include <QState>
-#include <QStateMachine>
 #include <Scenario/Document/BaseScenario/BaseScenario.hpp>
 #include <Scenario/Document/Event/ConditionView.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
@@ -23,9 +20,15 @@
 #include <Scenario/Document/TimeSync/TriggerView.hpp>
 #include <Scenario/Palette/ScenarioPaletteBaseTransitions.hpp>
 #include <Scenario/Palette/ScenarioPoint.hpp>
-#include <chrono>
+
 #include <score/model/Identifier.hpp>
 #include <score/statemachine/GraphicsSceneTool.hpp>
+
+#include <QGraphicsItem>
+#include <QState>
+#include <QStateMachine>
+
+#include <chrono>
 
 namespace score
 {
@@ -40,8 +43,7 @@ bool isUnderMouse(Element ev, const QPointF& scenePos)
 
 template <typename PresenterContainer, typename IdToIgnore>
 QList<Id<typename PresenterContainer::model_type>> getCollidingModels(
-    const PresenterContainer& array,
-    const QVector<IdToIgnore>& ids,
+    const PresenterContainer& array, const QVector<IdToIgnore>& ids,
     QPointF scenePt)
 {
   using namespace std;
@@ -161,23 +163,13 @@ protected:
   }
 
   template <
-      typename EventFun,
-      typename StateFun,
-      typename TimeSyncFun,
-      typename IntervalFun,
-      typename LeftBraceFun,
-      typename RightBraceFun,
-      typename SlotHandleFun,
-      typename NothingFun>
+      typename EventFun, typename StateFun, typename TimeSyncFun,
+      typename IntervalFun, typename LeftBraceFun, typename RightBraceFun,
+      typename SlotHandleFun, typename NothingFun>
   void mapTopItem(
-      const QGraphicsItem* item,
-      StateFun st_fun,
-      EventFun ev_fun,
-      TimeSyncFun tn_fun,
-      IntervalFun cst_fun,
-      LeftBraceFun lbrace_fun,
-      RightBraceFun rbrace_fun,
-      SlotHandleFun handle_fun,
+      const QGraphicsItem* item, StateFun st_fun, EventFun ev_fun,
+      TimeSyncFun tn_fun, IntervalFun cst_fun, LeftBraceFun lbrace_fun,
+      RightBraceFun rbrace_fun, SlotHandleFun handle_fun,
       NothingFun nothing_fun) const
   {
     if (!item)

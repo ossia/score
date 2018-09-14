@@ -1,17 +1,16 @@
 #pragma once
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentViewConstants.hpp>
+
 #include <QGraphicsItem>
 #include <QStaticText>
 #include <QString>
-#include <Scenario/Document/ScenarioDocument/ScenarioDocumentViewConstants.hpp>
 
 class QGraphicsSceneMouseEvent;
 
 namespace Scenario
 {
 class IntervalView;
-class IntervalHeader
-    : public QObject
-    , public QGraphicsItem
+class IntervalHeader : public QObject, public QGraphicsItem
 {
 public:
   enum class State

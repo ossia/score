@@ -1,8 +1,5 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
-#include <ossia/network/value/value.hpp>
-#include <ossia/network/value/value_conversion.hpp>
-
 #include <Automation/AutomationModel.hpp>
 #include <Automation/AutomationProcessMetadata.hpp>
 #include <Automation/Commands/InitAutomation.hpp>
@@ -20,8 +17,6 @@
 #include <Process/ExpandMode.hpp>
 #include <Process/Process.hpp>
 #include <Process/TimeValue.hpp>
-#include <QApplication>
-#include <QString>
 #include <Recording/Commands/Record.hpp>
 #include <Recording/Record/RecordAutomations/RecordAutomationCreationVisitor.hpp>
 #include <Recording/Record/RecordAutomations/RecordAutomationFirstParameterCallbackVisitor.hpp>
@@ -41,9 +36,7 @@
 #include <Scenario/Process/ScenarioModel.hpp>
 #include <State/Value.hpp>
 #include <State/ValueConversion.hpp>
-#include <algorithm>
-#include <core/document/Document.hpp>
-#include <qnamespace.h>
+
 #include <score/command/Dispatchers/MacroCommandDispatcher.hpp>
 #include <score/document/DocumentInterface.hpp>
 #include <score/model/EntityMap.hpp>
@@ -51,8 +44,20 @@
 #include <score/model/path/Path.hpp>
 #include <score/model/tree/TreeNode.hpp>
 #include <score/tools/std/Optional.hpp>
-#include <type_traits>
+
+#include <core/document/Document.hpp>
+
+#include <ossia/network/value/value.hpp>
+#include <ossia/network/value/value_conversion.hpp>
+
+#include <QApplication>
+#include <QString>
+#include <qnamespace.h>
+
+#include <algorithm>
 #include <utility>
+
+#include <type_traits>
 namespace Curve
 {
 class SegmentModel;
@@ -102,15 +107,11 @@ bool AutomationRecorder::setup(
     // Add a custom callback.
     if (curve_mode == Curve::Settings::Mode::Parameter)
     {
-      dev.valueUpdated
-          .connect<&AutomationRecorder::parameterCallback>(
-              *this);
+      dev.valueUpdated.connect<&AutomationRecorder::parameterCallback>(*this);
     }
     else
     {
-      dev.valueUpdated
-          .connect<&AutomationRecorder::messageCallback>(
-              *this);
+      dev.valueUpdated.connect<&AutomationRecorder::messageCallback>(*this);
     }
 
     m_recordCallbackConnections.push_back(&dev);
@@ -132,11 +133,13 @@ void AutomationRecorder::stop()
     {
       if (curve_mode == Curve::Settings::Mode::Parameter)
       {
-        dev->valueUpdated.disconnect<&AutomationRecorder::parameterCallback>(*this);
+        dev->valueUpdated.disconnect<&AutomationRecorder::parameterCallback>(
+            *this);
       }
       else
       {
-        dev->valueUpdated.disconnect<&AutomationRecorder::messageCallback>(*this);
+        dev->valueUpdated.disconnect<&AutomationRecorder::messageCallback>(
+            *this);
       }
     }
   }
@@ -242,11 +245,8 @@ void AutomationRecorder::parameterCallback(
 }
 
 bool AutomationRecorder::finish(
-    State::AddressAccessor addr,
-    const RecordData& recorded,
-    const TimeVal& msecs,
-    bool simplify,
-    int simplifyRatio)
+    State::AddressAccessor addr, const RecordData& recorded,
+    const TimeVal& msecs, bool simplify, int simplifyRatio)
 {
   Curve::PointArraySegment& segt = recorded.segment;
   if (segt.points().empty()

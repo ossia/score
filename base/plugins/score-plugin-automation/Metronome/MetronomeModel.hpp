@@ -1,15 +1,18 @@
 #pragma once
-#include <Metronome/MetronomeProcessMetadata.hpp>
-#include <wobjectdefs.h>
 #include <Curve/Process/CurveProcessModel.hpp>
 #include <Process/TimeValue.hpp>
+#include <State/Address.hpp>
+
+#include <score/model/Identifier.hpp>
+#include <score/serialization/VisitorInterface.hpp>
+
 #include <QByteArray>
 #include <QObject>
 #include <QString>
-#include <State/Address.hpp>
-#include <score/model/Identifier.hpp>
-#include <score/serialization/VisitorInterface.hpp>
+
+#include <Metronome/MetronomeProcessMetadata.hpp>
 #include <score_plugin_automation_export.h>
+#include <wobjectdefs.h>
 
 namespace Metronome
 {
@@ -23,12 +26,9 @@ class SCORE_PLUGIN_AUTOMATION_EXPORT ProcessModel final
 
   // Min and max to scale the curve with at execution
 
-
-
 public:
   ProcessModel(
-      const TimeVal& duration,
-      const Id<Process::ProcessModel>& id,
+      const TimeVal& duration, const Id<Process::ProcessModel>& id,
       QObject* parent);
   ~ProcessModel() override;
 
@@ -53,10 +53,14 @@ public:
   std::unique_ptr<Process::Outlet> outlet;
 
   void init();
+
 public:
-  void addressChanged(const State::Address& arg_1) E_SIGNAL(SCORE_PLUGIN_AUTOMATION_EXPORT, addressChanged, arg_1);
-  void minChanged(double arg_1) E_SIGNAL(SCORE_PLUGIN_AUTOMATION_EXPORT, minChanged, arg_1);
-  void maxChanged(double arg_1) E_SIGNAL(SCORE_PLUGIN_AUTOMATION_EXPORT, maxChanged, arg_1);
+  void addressChanged(const State::Address& arg_1)
+      E_SIGNAL(SCORE_PLUGIN_AUTOMATION_EXPORT, addressChanged, arg_1);
+  void minChanged(double arg_1)
+      E_SIGNAL(SCORE_PLUGIN_AUTOMATION_EXPORT, minChanged, arg_1);
+  void maxChanged(double arg_1)
+      E_SIGNAL(SCORE_PLUGIN_AUTOMATION_EXPORT, maxChanged, arg_1);
 
 private:
   //// ProcessModel ////
@@ -72,10 +76,12 @@ private:
   double m_min{};
   double m_max{};
 
-W_PROPERTY(double, max READ max WRITE setMax NOTIFY maxChanged)
+  W_PROPERTY(double, max READ max WRITE setMax NOTIFY maxChanged)
 
-W_PROPERTY(double, min READ min WRITE setMin NOTIFY minChanged)
+  W_PROPERTY(double, min READ min WRITE setMin NOTIFY minChanged)
 
-W_PROPERTY(State::Address, address READ address WRITE setAddress NOTIFY addressChanged)
+  W_PROPERTY(
+      State::Address,
+      address READ address WRITE setAddress NOTIFY addressChanged)
 };
 }

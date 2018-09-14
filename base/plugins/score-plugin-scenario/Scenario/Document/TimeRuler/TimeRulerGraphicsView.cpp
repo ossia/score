@@ -3,8 +3,9 @@
 #include "TimeRulerGraphicsView.hpp"
 
 #include <Process/Style/ScenarioStyle.hpp>
-#include <QWheelEvent>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentViewConstants.hpp>
+
+#include <QWheelEvent>
 
 namespace Scenario
 {
@@ -15,13 +16,13 @@ TimeRulerGraphicsView::TimeRulerGraphicsView(QGraphicsScene* scene)
   setRenderHints(
       QPainter::Antialiasing | QPainter::SmoothPixmapTransform
       | QPainter::TextAntialiasing);
-//#if !defined(SCORE_OPENGL)
+  //#if !defined(SCORE_OPENGL)
 
 #if !defined(__EMSCRIPTEN__)
   setAttribute(Qt::WA_OpaquePaintEvent, true);
   setAttribute(Qt::WA_PaintOnScreen, true);
 #endif
-//#endif
+  //#endif
   setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
   setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
   setFocusPolicy(Qt::NoFocus);

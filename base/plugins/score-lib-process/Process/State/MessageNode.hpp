@@ -1,15 +1,19 @@
 #pragma once
-#include <QString>
-#include <QStringList>
-#include <QVector>
 #include <State/Address.hpp>
 #include <State/Message.hpp>
 #include <State/Value.hpp>
-#include <array>
+
 #include <score/model/Identifier.hpp>
 #include <score/model/tree/TreeNode.hpp>
 #include <score/tools/std/Optional.hpp>
+
+#include <QString>
+#include <QStringList>
+#include <QVector>
+
 #include <score_lib_process_export.h>
+
+#include <array>
 
 namespace Process
 {
@@ -87,4 +91,5 @@ SCORE_LIB_PROCESS_EXPORT State::MessageList
 getUserMessages(const MessageNode&);
 }
 
-extern template class SCORE_LIB_PROCESS_EXPORT TreeNode<Process::StateNodeData>;
+extern template class SCORE_LIB_PROCESS_EXPORT
+    TreeNode<Process::StateNodeData>;

@@ -1,6 +1,19 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+#include <score/application/ApplicationContext.hpp>
+#include <score/model/IdentifiedObjectAbstract.hpp>
+#include <score/model/path/ObjectIdentifier.hpp>
+#include <score/model/path/ObjectPath.hpp>
+#include <score/model/path/RelativePath.hpp>
+#include <score/tools/std/Optional.hpp>
+
+#include <core/document/Document.hpp>
+#include <core/document/DocumentModel.hpp>
+#include <core/presenter/DocumentManager.hpp>
+
 #include <ossia/detail/algorithms.hpp>
+#include <ossia/detail/hash.hpp>
+#include <ossia/detail/murmur3.hpp>
 
 #include <QApplication>
 #include <QByteArray>
@@ -8,22 +21,13 @@
 #include <QList>
 #include <QObject>
 #include <QStringBuilder>
-#include <core/document/Document.hpp>
-#include <core/document/DocumentModel.hpp>
-#include <core/presenter/DocumentManager.hpp>
-#include <iterator>
 #include <qnamespace.h>
-#include <score/application/ApplicationContext.hpp>
-#include <score/model/IdentifiedObjectAbstract.hpp>
-#include <score/model/path/ObjectIdentifier.hpp>
-#include <score/model/path/ObjectPath.hpp>
-#include <score/model/path/RelativePath.hpp>
-#include <score/tools/std/Optional.hpp>
-#include <stdexcept>
+
 #include <sys/types.h>
+
+#include <iterator>
+#include <stdexcept>
 #include <typeinfo>
-#include <ossia/detail/murmur3.hpp>
-#include <ossia/detail/hash.hpp>
 
 namespace std
 {
@@ -31,7 +35,8 @@ SCORE_LIB_BASE_EXPORT std::size_t hash<ObjectIdentifier>::
 operator()(const ObjectIdentifier& path) const
 {
   uint32_t seed = 0;
-  ossia::murmur::murmur3_x86_32(path.objectName().data(), path.objectName().size() * 2, seed, seed);
+  ossia::murmur::murmur3_x86_32(
+      path.objectName().data(), path.objectName().size() * 2, seed, seed);
   ossia::hash_combine(seed, path.id());
   return seed;
 }
@@ -39,7 +44,7 @@ SCORE_LIB_BASE_EXPORT std::size_t hash<ObjectPath>::
 operator()(const ObjectPath& path) const
 {
   std::size_t seed = 0;
-  for(const auto& v : path.vec())
+  for (const auto& v : path.vec())
   {
     ossia::hash_combine(seed, hash<ObjectIdentifier>{}(v));
   }
@@ -131,7 +136,8 @@ QObject* ObjectPath::find_impl(const score::DocumentContext& ctx) const
   return obj;
 }
 
-QObject* ObjectPath::find_impl_unsafe(const score::DocumentContext& ctx) const noexcept
+QObject* ObjectPath::find_impl_unsafe(const score::DocumentContext& ctx) const
+    noexcept
 {
   using namespace score;
   QObject* obj = &ctx.document.model();
@@ -150,18 +156,15 @@ QObject* ObjectPath::find_impl_unsafe(const score::DocumentContext& ctx) const n
   return obj;
 }
 
-
 void replacePathPart(
-    const ObjectPath& src
-    , const ObjectPath& target
-    , ObjectPath& toChange)
+    const ObjectPath& src, const ObjectPath& target, ObjectPath& toChange)
 {
   auto& src_v = src.vec();
   auto& tgt_v = target.vec();
   auto& v = toChange.vec();
 #ifdef SCORE_DEBUG
   SCORE_ASSERT(v.size() > src_v.size());
-  for(std::size_t i = 0; i < src_v.size(); i++)
+  for (std::size_t i = 0; i < src_v.size(); i++)
   {
     SCORE_ASSERT(v[i] == src_v[i]);
   }

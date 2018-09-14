@@ -1,22 +1,28 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "CoreApplicationPlugin.hpp"
+
 #include "AboutDialog.hpp"
 
-#include <QMessageBox>
-#include <QDesktopServices>
-#include <QUrl>
-#include <core/view/QRecentFilesMenu.h>
+#include <score/actions/Menu.hpp>
+#include <score/plugins/documentdelegate/DocumentDelegateFactory.hpp>
+
 #include <core/presenter/CoreActions.hpp>
 #include <core/settings/Settings.hpp>
 #include <core/settings/SettingsView.hpp>
+#include <core/view/QRecentFilesMenu.h>
 #include <core/view/Window.hpp>
-#include <score/actions/Menu.hpp>
-#include <score/plugins/documentdelegate/DocumentDelegateFactory.hpp>
+
+#include <QDesktopServices>
+#include <QMessageBox>
+#include <QUrl>
+
 #include <score_git_info.hpp>
 
-SCORE_DECLARE_ACTION(Documentation, "&Documentation", Common, QKeySequence::UnknownKey)
-SCORE_DECLARE_ACTION(Issues, "&Report Issues", Common, QKeySequence::UnknownKey)
+SCORE_DECLARE_ACTION(
+    Documentation, "&Documentation", Common, QKeySequence::UnknownKey)
+SCORE_DECLARE_ACTION(
+    Issues, "&Report Issues", Common, QKeySequence::UnknownKey)
 SCORE_DECLARE_ACTION(Forum, "&Forum", Common, QKeySequence::UnknownKey)
 
 namespace score
@@ -86,7 +92,7 @@ void CoreApplicationPlugin::openProjectSettings()
 
 void CoreApplicationPlugin::help()
 {
-   QDesktopServices::openUrl(QUrl("https://ossia.github.io/score"));
+  QDesktopServices::openUrl(QUrl("https://ossia.github.io/score"));
 }
 
 void CoreApplicationPlugin::about()
@@ -290,10 +296,8 @@ GUIElements CoreApplicationPlugin::makeGUIElements()
 
     {
       auto doc_act = new QAction(m_presenter.view());
-      connect(
-            doc_act, &QAction::triggered, this,
-            [] {
-         QDesktopServices::openUrl(QUrl("https://ossia.github.io/score/"));
+      connect(doc_act, &QAction::triggered, this, [] {
+        QDesktopServices::openUrl(QUrl("https://ossia.github.io/score/"));
       });
       e.actions.add<Actions::Documentation>(doc_act);
       about->addAction(doc_act);
@@ -301,10 +305,9 @@ GUIElements CoreApplicationPlugin::makeGUIElements()
 
     {
       auto issues_act = new QAction(m_presenter.view());
-      connect(
-            issues_act, &QAction::triggered, this,
-            [] {
-         QDesktopServices::openUrl(QUrl("https://github.com/OSSIA/score/issues"));
+      connect(issues_act, &QAction::triggered, this, [] {
+        QDesktopServices::openUrl(
+            QUrl("https://github.com/OSSIA/score/issues"));
       });
       e.actions.add<Actions::Issues>(issues_act);
       about->addAction(issues_act);
@@ -312,10 +315,8 @@ GUIElements CoreApplicationPlugin::makeGUIElements()
 
     {
       auto forum_act = new QAction(m_presenter.view());
-      connect(
-            forum_act, &QAction::triggered, this,
-            [] {
-         QDesktopServices::openUrl(QUrl("http://forum.ossia.io/"));
+      connect(forum_act, &QAction::triggered, this, [] {
+        QDesktopServices::openUrl(QUrl("http://forum.ossia.io/"));
       });
       e.actions.add<Actions::Forum>(forum_act);
       about->addAction(forum_act);

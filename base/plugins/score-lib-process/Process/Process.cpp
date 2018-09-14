@@ -2,27 +2,29 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "Process.hpp"
 
-#include <ossia/detail/algorithms.hpp>
-
 #include <Process/Dataflow/Port.hpp>
 #include <Process/ExpandMode.hpp>
 #include <Process/TimeValue.hpp>
-#include <QObject>
-#include <algorithm>
+
 #include <score/model/IdentifiedObject.hpp>
 #include <score/model/Identifier.hpp>
 #include <score/model/ModelMetadata.hpp>
-#include <stdexcept>
+
+#include <ossia/detail/algorithms.hpp>
+
+#include <QObject>
+
 #include <wobjectimpl.h>
+
+#include <algorithm>
+#include <stdexcept>
 W_OBJECT_IMPL(Process::ProcessModel)
 template class IdentifiedObject<Process::ProcessModel>;
 template class score::SerializableInterface<Process::ProcessModelFactory>;
 namespace Process
 {
 ProcessModel::ProcessModel(
-    TimeVal duration,
-    const Id<ProcessModel>& id,
-    const QString& name,
+    TimeVal duration, const Id<ProcessModel>& id, const QString& name,
     QObject* parent)
     : Entity{id, name, parent}
     , m_duration{std::move(duration)}

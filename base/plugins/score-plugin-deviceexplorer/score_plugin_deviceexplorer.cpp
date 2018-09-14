@@ -4,20 +4,22 @@
 
 #include "DeviceExplorerApplicationPlugin.hpp"
 
-#include <ossia/audio/audio_protocol.hpp>
-
 #include <Device/Protocol/ProtocolList.hpp>
 #include <Explorer/Commands/DeviceExplorerCommandFactory.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPluginFactory.hpp>
+#include <Explorer/Explorer/ExplorerModelProvider.hpp>
 #include <Explorer/Listening/ListeningHandlerFactoryList.hpp>
 #include <Explorer/Panel/DeviceExplorerPanelFactory.hpp>
 #include <Explorer/Settings/ExplorerFactory.hpp>
-#include <Explorer/Explorer/ExplorerModelProvider.hpp>
 #include <State/ValueSerialization.hpp>
+
 #include <score/plugins/customfactory/FactorySetup.hpp>
 #include <score/serialization/AnySerialization.hpp>
 #include <score/tools/std/HashMap.hpp>
+
+#include <ossia/audio/audio_protocol.hpp>
+
 #include <score_plugin_deviceexplorer_commands_files.hpp>
 struct audio_mapping_attr
 {
@@ -83,10 +85,9 @@ std::vector<std::unique_ptr<score::InterfaceListBase>>
 score_plugin_deviceexplorer::factoryFamilies()
 {
   return make_ptr_vector<
-      score::InterfaceListBase
-      , Device::ProtocolFactoryList
-      , Device::DeviceModelProviderList
-      , Explorer::ListeningHandlerFactoryList>();
+      score::InterfaceListBase, Device::ProtocolFactoryList,
+      Device::DeviceModelProviderList,
+      Explorer::ListeningHandlerFactoryList>();
 }
 
 std::vector<std::unique_ptr<score::InterfaceBase>>
@@ -99,8 +100,7 @@ score_plugin_deviceexplorer::factories(
          Explorer::ProjectSettings::Factory>,
       FW<score::PanelDelegateFactory, Explorer::PanelDelegateFactory>,
       FW<score::SettingsDelegateFactory, Explorer::Settings::Factory>,
-      FW<Device::DeviceModelProvider, Explorer::ModelProvider>>(
-      ctx, key);
+      FW<Device::DeviceModelProvider, Explorer::ModelProvider>>(ctx, key);
 }
 
 score::GUIApplicationPlugin*
@@ -118,7 +118,7 @@ score_plugin_deviceexplorer::make_commands()
       DeviceExplorerCommandFactoryName(), CommandGeneratorMap{}};
 
   ossia::for_each_type<
-    #include <score_plugin_deviceexplorer_commands.hpp>
+#include <score_plugin_deviceexplorer_commands.hpp>
       >(score::commands::FactoryInserter{cmds.second});
 
   return cmds;

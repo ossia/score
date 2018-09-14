@@ -1,8 +1,10 @@
 #pragma once
 #include <Device/Node/DeviceNode.hpp>
-#include <wobjectdefs.h>
+
 #include <QObject>
 #include <QString>
+
+#include <wobjectdefs.h>
 
 namespace Device
 {

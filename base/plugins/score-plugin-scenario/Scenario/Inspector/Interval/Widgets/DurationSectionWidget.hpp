@@ -2,6 +2,7 @@
 #include <Inspector/InspectorSectionWidget.hpp>
 #include <Process/TimeValue.hpp>
 #include <Scenario/Palette/Tool.hpp>
+
 #include <score/command/Dispatchers/OngoingCommandDispatcher.hpp>
 
 class QCheckBox;
@@ -25,12 +26,11 @@ class DurationWidget final : public QWidget
 {
 public:
   DurationWidget(
-      const Scenario::EditionSettings& set,
-      QFormLayout& lay,
+      const Scenario::EditionSettings& set, QFormLayout& lay,
       IntervalInspectorWidget* parent);
 
 private:
   EditionGrid* m_editingWidget{};
-  //PlayGrid* m_playingWidget{};
+  // PlayGrid* m_playingWidget{};
 };
 }

@@ -4,11 +4,11 @@
 
 #include <Curve/Palette/CurvePoint.hpp>
 #include <Curve/Segment/CurveSegmentData.hpp>
+
 #include <score/model/IdentifiedObject.hpp>
+#include <score/model/IdentifiedObjectMap.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/serialization/JSONVisitor.hpp>
-#include <score/model/IdentifiedObjectMap.hpp>
-
 
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Curve::SegmentModel)
@@ -33,9 +33,7 @@ SegmentModel::SegmentModel(const SegmentData& data, QObject* parent)
 }
 
 SegmentModel::SegmentModel(
-    Curve::Point s,
-    Curve::Point e,
-    const Id<SegmentModel>& id,
+    Curve::Point s, Curve::Point e, const Id<SegmentModel>& id,
     QObject* parent)
     : IdentifiedObject<
           SegmentModel>{id, Metadata<ObjectKey_k, SegmentModel>::get(), parent}

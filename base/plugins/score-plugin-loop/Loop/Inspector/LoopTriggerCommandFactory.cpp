@@ -3,15 +3,17 @@
 #include "LoopTriggerCommandFactory.hpp"
 
 #include <Loop/LoopProcessModel.hpp>
-#include <QByteArray>
 #include <Scenario/Commands/TimeSync/AddTrigger.hpp>
 #include <Scenario/Commands/TimeSync/RemoveTrigger.hpp>
 #include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
 #include <Scenario/Process/ScenarioInterface.hpp>
+
 #include <score/command/Command.hpp>
 #include <score/model/path/Path.hpp>
 #include <score/model/path/PathSerialization.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
+
+#include <QByteArray>
 
 bool LoopTriggerCommandFactory::matches(
     const Scenario::TimeSyncModel& tn) const

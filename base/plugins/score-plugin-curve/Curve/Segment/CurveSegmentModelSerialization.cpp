@@ -9,14 +9,10 @@
 #include <Curve/Palette/CurvePoint.hpp>
 #include <Curve/Point/CurvePointModel.hpp>
 #include <Curve/Point/CurvePointView.hpp>
-#include <Curve/Segment/CurveSegmentView.hpp>
 #include <Curve/Segment/CurveSegmentData.hpp>
 #include <Curve/Segment/CurveSegmentFactory.hpp>
-#include <QJsonObject>
-#include <QJsonValue>
-#include <QPoint>
-#include <QVariant>
-#include <algorithm>
+#include <Curve/Segment/CurveSegmentView.hpp>
+
 #include <score/application/ApplicationContext.hpp>
 #include <score/model/Identifier.hpp>
 #include <score/plugins/customfactory/FactoryFamily.hpp>
@@ -25,11 +21,20 @@
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/serialization/JSONValueVisitor.hpp>
 #include <score/serialization/JSONVisitor.hpp>
+
+#include <QJsonObject>
+#include <QJsonValue>
+#include <QPoint>
+#include <QVariant>
+
+#include <algorithm>
 #include <vector>
 
-//template class SCORE_PLUGIN_CURVE_EXPORT IdContainer<Curve::SegmentModel>;
-template class SCORE_PLUGIN_CURVE_EXPORT IdContainer<Curve::PointView, Curve::PointModel>;
-template class SCORE_PLUGIN_CURVE_EXPORT IdContainer<Curve::SegmentView, Curve::SegmentModel>;
+// template class SCORE_PLUGIN_CURVE_EXPORT IdContainer<Curve::SegmentModel>;
+template class SCORE_PLUGIN_CURVE_EXPORT
+    IdContainer<Curve::PointView, Curve::PointModel>;
+template class SCORE_PLUGIN_CURVE_EXPORT
+    IdContainer<Curve::SegmentView, Curve::SegmentModel>;
 
 template <>
 SCORE_PLUGIN_CURVE_EXPORT void
@@ -116,8 +121,7 @@ JSONObjectWriter::write(Curve::SegmentModel& segmt)
 namespace Curve
 {
 Curve::SegmentModel* createCurveSegment(
-    const Curve::SegmentList& csl,
-    const Curve::SegmentData& dat,
+    const Curve::SegmentList& csl, const Curve::SegmentData& dat,
     QObject* parent)
 {
   auto fact = csl.get(dat.type);

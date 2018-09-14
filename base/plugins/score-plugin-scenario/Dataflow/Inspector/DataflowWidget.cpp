@@ -1,7 +1,9 @@
 #include <Dataflow/Commands/EditConnection.hpp>
 #include <Dataflow/Inspector/DataflowWidget.hpp>
-#include <QFormLayout>
+
 #include <score/widgets/SignalUtils.hpp>
+
+#include <QFormLayout>
 
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Dataflow::PortWidget)
@@ -24,8 +26,7 @@ PortWidget::PortWidget(const score::DocumentContext& model, QWidget* parent)
 }
 
 DataflowWidget::DataflowWidget(
-    const score::DocumentContext& doc,
-    const Process::ProcessModel& proc,
+    const score::DocumentContext& doc, const Process::ProcessModel& proc,
     QWidget* parent)
     : QWidget{parent}
     , m_proc{proc}
@@ -134,8 +135,7 @@ void DataflowWidget::reinit()
 }
 
 CableWidget::CableWidget(
-    const Process::Cable& cable,
-    const score::DocumentContext& ctx,
+    const Process::Cable& cable, const score::DocumentContext& ctx,
     QWidget* parent)
     : InspectorWidgetBase{cable, ctx, parent, tr("Cable")}
 {
@@ -158,8 +158,7 @@ CableInspectorFactory::CableInspectorFactory() : InspectorWidgetFactory{}
 
 QWidget* CableInspectorFactory::make(
     const QList<const QObject*>& sourceElements,
-    const score::DocumentContext& doc,
-    QWidget* parent) const
+    const score::DocumentContext& doc, QWidget* parent) const
 {
   return new CableWidget{
       safe_cast<const Process::Cable&>(*sourceElements.first()), doc, parent};

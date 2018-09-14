@@ -1,13 +1,16 @@
 #pragma once
+#include <score/model/EntityMap.hpp>
+#include <score/plugins/customfactory/UuidKey.hpp>
+#include <score/tools/std/HashMap.hpp>
+
 #include <ossia/detail/algorithms.hpp>
 
 #include <QByteArray>
 #include <QJsonObject>
-#include <score/model/EntityMap.hpp>
-#include <score/plugins/customfactory/UuidKey.hpp>
-#include <score/tools/std/HashMap.hpp>
-#include <utility>
+
 #include <wobjectdefs.h>
+
+#include <utility>
 namespace score
 {
 struct lazy_init_t
@@ -116,71 +119,72 @@ using DataStreamComponents
 using JSONComponents
     = score::hash_map<UuidKey<score::SerializableComponent>, QJsonObject>;
 }
-extern template class SCORE_LIB_BASE_EXPORT tsl::
-    hopscotch_map<UuidKey<score::SerializableComponent>, QByteArray>;
-extern template class SCORE_LIB_BASE_EXPORT tsl::
-    hopscotch_map<UuidKey<score::SerializableComponent>, QJsonObject>;
+extern template class SCORE_LIB_BASE_EXPORT
+    tsl::hopscotch_map<UuidKey<score::SerializableComponent>, QByteArray>;
+extern template class SCORE_LIB_BASE_EXPORT
+    tsl::hopscotch_map<UuidKey<score::SerializableComponent>, QJsonObject>;
 
 /**
  * \macro ABSTRACT_COMPONENT_METADATA
  */
-#define ABSTRACT_COMPONENT_METADATA(Type, Uuid)                             \
-public:                                                                     \
-  using base_component_type = Type;                                         \
-                                                                            \
-  static Q_DECL_RELAXED_CONSTEXPR Component::Key static_key() noexcept      \
-  {                                                                         \
-    return_uuid(Uuid);                                                      \
-  }                                                                         \
-                                                                            \
-  static Q_DECL_RELAXED_CONSTEXPR bool base_key_match(Component::Key other) noexcept \
-  {                                                                         \
-    return static_key() == other;                                           \
-  }                                                                         \
-                                                                            \
+#define ABSTRACT_COMPONENT_METADATA(Type, Uuid)                        \
+public:                                                                \
+  using base_component_type = Type;                                    \
+                                                                       \
+  static Q_DECL_RELAXED_CONSTEXPR Component::Key static_key() noexcept \
+  {                                                                    \
+    return_uuid(Uuid);                                                 \
+  }                                                                    \
+                                                                       \
+  static Q_DECL_RELAXED_CONSTEXPR bool base_key_match(                 \
+      Component::Key other) noexcept                                   \
+  {                                                                    \
+    return static_key() == other;                                      \
+  }                                                                    \
+                                                                       \
 private:
 
 /**
  * \macro COMPONENT_METADATA
  */
-#define COMPONENT_METADATA(Uuid)                              \
-public:                                                       \
+#define COMPONENT_METADATA(Uuid)                                       \
+public:                                                                \
   static Q_DECL_RELAXED_CONSTEXPR Component::Key static_key() noexcept \
-  {                                                           \
-    return_uuid(Uuid);                                        \
-  }                                                           \
-                                                              \
-  Component::Key key() const noexcept final  override                   \
-  {                                                           \
-    return static_key();                                      \
-  }                                                           \
-                                                              \
-  bool key_match(Component::Key other) const noexcept final  override   \
-  {                                                           \
-    return static_key() == other                              \
-           || base_component_type::base_key_match(other);     \
-  }                                                           \
-                                                              \
+  {                                                                    \
+    return_uuid(Uuid);                                                 \
+  }                                                                    \
+                                                                       \
+  Component::Key key() const noexcept final override                   \
+  {                                                                    \
+    return static_key();                                               \
+  }                                                                    \
+                                                                       \
+  bool key_match(Component::Key other) const noexcept final override   \
+  {                                                                    \
+    return static_key() == other                                       \
+           || base_component_type::base_key_match(other);              \
+  }                                                                    \
+                                                                       \
 private:
 
 /**
  * \macro COMMON_COMPONENT_METADATA
  */
-#define COMMON_COMPONENT_METADATA(Uuid)                       \
-public:                                                       \
+#define COMMON_COMPONENT_METADATA(Uuid)                                \
+public:                                                                \
   static Q_DECL_RELAXED_CONSTEXPR Component::Key static_key() noexcept \
-  {                                                           \
-    return_uuid(Uuid);                                        \
-  }                                                           \
-                                                              \
-  Component::Key key() const noexcept final override          \
-  {                                                           \
-    return static_key();                                      \
-  }                                                           \
-                                                              \
-  bool key_match(Component::Key other) const noexcept final  override   \
-  {                                                           \
-    return static_key() == other;                             \
-  }                                                           \
-                                                              \
+  {                                                                    \
+    return_uuid(Uuid);                                                 \
+  }                                                                    \
+                                                                       \
+  Component::Key key() const noexcept final override                   \
+  {                                                                    \
+    return static_key();                                               \
+  }                                                                    \
+                                                                       \
+  bool key_match(Component::Key other) const noexcept final override   \
+  {                                                                    \
+    return static_key() == other;                                      \
+  }                                                                    \
+                                                                       \
 private:

@@ -1,7 +1,9 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "DoubleSlider.hpp"
+
 #include <QPainter>
+
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(score::DoubleSlider)
 namespace score
@@ -16,14 +18,11 @@ AbsoluteSliderStyle* AbsoluteSliderStyle::instance() noexcept
   return &style;
 }
 
-
 int AbsoluteSliderStyle::styleHint(
-      QStyle::StyleHint hint
-      , const QStyleOption* option
-      , const QWidget* widget
-      , QStyleHintReturn* returnData) const
+    QStyle::StyleHint hint, const QStyleOption* option, const QWidget* widget,
+    QStyleHintReturn* returnData) const
 {
-  switch(hint)
+  switch (hint)
   {
     case QStyle::SH_Slider_AbsoluteSetButtons:
       return Qt::AllButtons;
@@ -32,8 +31,7 @@ int AbsoluteSliderStyle::styleHint(
   }
 }
 
-DoubleSlider::DoubleSlider(QWidget* parent)
-  : Slider{Qt::Horizontal, parent}
+DoubleSlider::DoubleSlider(QWidget* parent) : Slider{Qt::Horizontal, parent}
 {
   setMinimum(0);
   setMaximum(max + 1);
@@ -56,14 +54,12 @@ double DoubleSlider::value() const
   return QSlider::value() / max;
 }
 
-Slider::Slider(Qt::Orientation ort, QWidget* widg)
-  : QSlider{ort, widg}
+Slider::Slider(Qt::Orientation ort, QWidget* widg) : QSlider{ort, widg}
 {
   setStyle(AbsoluteSliderStyle::instance());
 }
 
-Slider::Slider(QWidget* widg)
-  : Slider{Qt::Horizontal, widg}
+Slider::Slider(QWidget* widg) : Slider{Qt::Horizontal, widg}
 {
 }
 
@@ -87,7 +83,8 @@ void Slider::paint(QPainter& p)
   p.drawRoundedRect(rect().adjusted(2, 2, -2, -2), round, round);
 
   p.setBrush(QColor("#666"));
-  p.drawRoundedRect(QRect{3, 3, int(ratio * (width() - 6)), height() - 6}, round, round);
+  p.drawRoundedRect(
+      QRect{3, 3, int(ratio * (width() - 6)), height() - 6}, round, round);
 }
 
 void Slider::paintWithText(const QString& s)
@@ -99,5 +96,4 @@ void Slider::paintWithText(const QString& s)
   p.setFont(QFont("Ubuntu", 8));
   p.drawText(QRect{13, 3, (width() - 16), height() - 6}, s);
 }
-
 }

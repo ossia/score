@@ -3,6 +3,7 @@
 #include "player.hpp"
 
 #include <get_library_path.hpp>
+
 #include <memory>
 #include <sstream>
 extern "C"
@@ -10,6 +11,7 @@ extern "C"
 #include <cicm_wrapper.h>
 }
 #include <iostream>
+
 #include <ossia-pd/src/device.hpp>
 #include <ossia-pd/src/utils.hpp>
 namespace score

@@ -1,6 +1,7 @@
 #pragma once
 #include <QJsonObject>
 #include <QMetaType>
+
 #include <wobjectdefs.h>
 
 namespace Engine

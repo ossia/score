@@ -1,14 +1,16 @@
 #pragma once
-#include <QJsonObject>
-#include <QList>
-#include <QPoint>
 #include <Scenario/Application/Menus/ObjectsActions/EventActions.hpp>
 #include <Scenario/Application/Menus/ObjectsActions/IntervalActions.hpp>
 #include <Scenario/Application/Menus/ObjectsActions/StateActions.hpp>
+
 #include <score/actions/Action.hpp>
 #include <score/actions/Menu.hpp>
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/selection/Selection.hpp>
+
+#include <QJsonObject>
+#include <QList>
+#include <QPoint>
 class QAction;
 class QMenu;
 class QToolBar;
@@ -40,8 +42,7 @@ private:
   QJsonObject cutSelectedElementsToJson();
   void pasteElements(const QJsonObject& obj, const Scenario::Point& origin);
   void pasteElementsAfter(
-      const QJsonObject& obj,
-      const Scenario::Point& origin,
+      const QJsonObject& obj, const Scenario::Point& origin,
       const Selection& sel);
   void writeJsonToSelectedElements(const QJsonObject& obj);
 

@@ -1,23 +1,24 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "IntervalView.hpp"
-#include "IntervalModel.hpp"
 
 #include "IntervalMenuOverlay.hpp"
+#include "IntervalModel.hpp"
 #include "IntervalPresenter.hpp"
+
+#include <Process/Dataflow/CableItem.hpp>
 #include <Process/ProcessMimeSerialization.hpp>
 #include <Scenario/Application/Menus/ScenarioCopy.hpp>
-#include <Process/Dataflow/CableItem.hpp>
-#include <QDrag>
-#include <QMimeData>
+#include <Scenario/Process/ScenarioInterface.hpp>
+#include <Scenario/Process/ScenarioModel.hpp>
+
 #include <QCursor>
+#include <QDrag>
 #include <QGraphicsSceneEvent>
+#include <QMimeData>
 #include <QtGlobal>
 
 #include <wobjectimpl.h>
-
-#include <Scenario/Process/ScenarioInterface.hpp>
-#include <Scenario/Process/ScenarioModel.hpp>
 W_OBJECT_IMPL(Scenario::IntervalView)
 namespace Scenario
 {
@@ -49,9 +50,9 @@ IntervalView::IntervalView(IntervalPresenter& presenter, QGraphicsItem* parent)
 
 IntervalView::~IntervalView()
 {
-  for(auto item : childItems())
+  for (auto item : childItems())
   {
-    if(item->type() == Dataflow::CableItem::static_type())
+    if (item->type() == Dataflow::CableItem::static_type())
     {
       item->setParentItem(nullptr);
     }
@@ -171,18 +172,22 @@ void IntervalView::mousePressEvent(QGraphicsSceneMouseEvent* event)
 
 void IntervalView::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 {
-  if(event->buttons() & Qt::MiddleButton)
+  if (event->buttons() & Qt::MiddleButton)
   {
-    if(auto si = dynamic_cast<Scenario::ScenarioInterface*>(presenter().model().parent()))
+    if (auto si = dynamic_cast<Scenario::ScenarioInterface*>(
+            presenter().model().parent()))
     {
-      auto obj = copySelectedElementsToJson(*const_cast<ScenarioInterface*>(si), m_presenter.context());
+      auto obj = copySelectedElementsToJson(
+          *const_cast<ScenarioInterface*>(si), m_presenter.context());
 
       if (!obj.empty())
       {
         QDrag d{this};
         auto m = new QMimeData;
-        QJsonDocument doc{obj};;
-        m->setData(score::mime::scenariodata(), doc.toJson(QJsonDocument::Indented));
+        QJsonDocument doc{obj};
+        ;
+        m->setData(
+            score::mime::scenariodata(), doc.toJson(QJsonDocument::Indented));
         d.setMimeData(m);
         d.exec();
       }

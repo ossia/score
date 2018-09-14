@@ -7,7 +7,6 @@
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/Interval/Slot.hpp>
 #include <Scenario/Settings/ScenarioSettingsModel.hpp>
-#include <algorithm>
 
 #include <score/application/ApplicationContext.hpp>
 #include <score/document/DocumentContext.hpp>
@@ -16,6 +15,8 @@
 #include <score/model/path/PathSerialization.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/tools/IdentifierGeneration.hpp>
+
+#include <algorithm>
 #include <vector>
 
 namespace Scenario

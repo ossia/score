@@ -10,8 +10,7 @@ class IntervalModel;
 namespace Execution
 {
 class BaseScenarioElement;
-class SCORE_PLUGIN_ENGINE_EXPORT DefaultClock final
-    : public Clock
+class SCORE_PLUGIN_ENGINE_EXPORT DefaultClock final : public Clock
 {
 public:
   DefaultClock(const Context& ctx);
@@ -34,8 +33,7 @@ public:
 
 private:
   // Clock interface
-  void play_impl(
-      const TimeVal& t, Execution::BaseScenarioElement&) override;
+  void play_impl(const TimeVal& t, Execution::BaseScenarioElement&) override;
   void pause_impl(Execution::BaseScenarioElement&) override;
   void resume_impl(Execution::BaseScenarioElement&) override;
   void stop_impl(Execution::BaseScenarioElement&) override;
@@ -53,8 +51,7 @@ class SCORE_PLUGIN_ENGINE_EXPORT ControlClockFactory final
 public:
   virtual ~ControlClockFactory();
   QString prettyName() const override;
-  std::unique_ptr<Clock>
-  make(const Execution::Context& ctx) override;
+  std::unique_ptr<Clock> make(const Execution::Context& ctx) override;
 
   time_function
   makeTimeFunction(const score::DocumentContext& ctx) const override;
@@ -62,4 +59,3 @@ public:
   makeReverseTimeFunction(const score::DocumentContext& ctx) const override;
 };
 }
-

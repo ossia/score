@@ -1,7 +1,8 @@
 #pragma once
 #include <score/plugins/ProjectSettings/ProjectSettingsView.hpp>
-#include <wobjectdefs.h>
 #include <score/plugins/settingsdelegate/SettingsDelegateView.hpp>
+
+#include <wobjectdefs.h>
 class QCheckBox;
 namespace Explorer::Settings
 {
@@ -12,6 +13,7 @@ public:
   View();
 
   void setLocalTree(bool);
+
 public:
   void localTreeChanged(bool arg_1) W_SIGNAL(localTreeChanged, arg_1);
 

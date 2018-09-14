@@ -4,14 +4,17 @@
 
 #include <Curve/Segment/CurveSegmentList.hpp>
 #include <Curve/Segment/CurveSegmentModelSerialization.hpp>
-#include <QJsonArray>
-#include <QJsonObject>
-#include <QJsonValue>
+
 #include <score/application/ApplicationContext.hpp>
 #include <score/model/IdentifiedObjectMap.hpp>
 #include <score/plugins/customfactory/StringFactoryKey.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/serialization/JSONVisitor.hpp>
+
+#include <QJsonArray>
+#include <QJsonObject>
+#include <QJsonValue>
+
 #include <sys/types.h>
 
 template <>

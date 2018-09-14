@@ -4,17 +4,18 @@
 
 #include "Unit.hpp"
 
+#include <State/ValueConversion.hpp>
+
+#include <score/serialization/DataStreamVisitor.hpp>
+#include <score/serialization/JSONVisitor.hpp>
+
 #include <ossia/detail/apply.hpp>
 #include <ossia/network/dataspace/dataspace.hpp>
 #include <ossia/network/dataspace/dataspace_visitors.hpp>
 #include <ossia/network/value/value.hpp>
 
-#include <State/ValueConversion.hpp>
-#include <score/serialization/DataStreamVisitor.hpp>
-#include <score/serialization/JSONVisitor.hpp>
-
 #include <wobjectimpl.h>
-//W_GADGET_IMPL(State::Unit)
+// W_GADGET_IMPL(State::Unit)
 
 namespace State
 {

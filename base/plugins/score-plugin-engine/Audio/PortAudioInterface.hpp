@@ -1,16 +1,18 @@
 #pragma once
-#include <Audio/AudioInterface.hpp>
-#include <Audio/Settings/Model.hpp>
-#include <Audio/Settings/View.hpp>
 #include <score/widgets/SignalUtils.hpp>
+
 #include <ossia/audio/portaudio_protocol.hpp>
+
+#include <QComboBox>
 #include <QFormLayout>
 #include <QListWidget>
 #include <QMenu>
 #include <QPushButton>
 #include <QWidget>
-#include <QFormLayout>
-#include <QComboBox>
+
+#include <Audio/AudioInterface.hpp>
+#include <Audio/Settings/Model.hpp>
+#include <Audio/Settings/View.hpp>
 
 namespace Audio
 {
@@ -31,8 +33,7 @@ struct PortAudioCard
   int in_index{-1};
   int out_index{-1};
 };
-class PortAudioFactory final
-    : public AudioFactory
+class PortAudioFactory final : public AudioFactory
 {
   SCORE_CONCRETE("e7543875-3b22-457c-bf41-75504637686f")
 public:
@@ -40,8 +41,9 @@ public:
 
   PortAudioFactory()
   {
-    // Important note : for this to work, no audio engine must have been created
-    // e.g. Pa_Initialize will crash if there's already a jack thread running
+    // Important note : for this to work, no audio engine must have been
+    // created e.g. Pa_Initialize will crash if there's already a jack thread
+    // running
     rescan();
   }
 
@@ -103,63 +105,60 @@ public:
           break;
       }
 
-      devices.push_back(PortAudioCard{{}, {}, QObject::tr("Disabled"), -1, 0, 0, {}});
+      devices.push_back(
+          PortAudioCard{{}, {}, QObject::tr("Disabled"), -1, 0, 0, {}});
       for (int card = 0; card < hostapi->deviceCount; card++)
       {
         auto dev_idx = Pa_HostApiDeviceIndexToDeviceIndex(i, card);
         auto dev = Pa_GetDeviceInfo(dev_idx);
-        auto raw_name = QString::fromLocal8Bit(Pa_GetDeviceInfo(dev_idx)->name);
+        auto raw_name
+            = QString::fromLocal8Bit(Pa_GetDeviceInfo(dev_idx)->name);
 
         devices.push_back(PortAudioCard{
-                            api_text,
-                            raw_name,
-                            "(" + api_text + ") " + raw_name,
-                            dev_idx,
-                            dev->maxInputChannels, dev->maxOutputChannels,
-                            hostapi->type});
+            api_text, raw_name, "(" + api_text + ") " + raw_name, dev_idx,
+            dev->maxInputChannels, dev->maxOutputChannels, hostapi->type});
       }
     }
 
     Pa_Terminate();
   }
 
-  QString prettyName() const override { return QObject::tr("PortAudio"); }
+  QString prettyName() const override
+  {
+    return QObject::tr("PortAudio");
+  }
   std::unique_ptr<ossia::audio_engine> make_engine(
       const Audio::Settings::Model& set,
       const score::ApplicationContext& ctx) override
   {
     return std::make_unique<ossia::portaudio_engine>(
-          "ossia score",
-          set.getCardIn().toStdString(),
-          set.getCardOut().toStdString(),
-          set.getDefaultIn(),
-          set.getDefaultOut(),
-          set.getRate(),
-          set.getBufferSize());
+        "ossia score", set.getCardIn().toStdString(),
+        set.getCardOut().toStdString(), set.getDefaultIn(),
+        set.getDefaultOut(), set.getRate(), set.getBufferSize());
   }
 
   void setCardIn(QComboBox* combo, QString val)
   {
-    auto dev_it = ossia::find_if(devices, [&] (const PortAudioCard& d) { return d.raw_name == val; });
-    if(dev_it != devices.end())
+    auto dev_it = ossia::find_if(
+        devices, [&](const PortAudioCard& d) { return d.raw_name == val; });
+    if (dev_it != devices.end())
     {
       combo->setCurrentIndex(dev_it->in_index);
     }
   }
   void setCardOut(QComboBox* combo, QString val)
   {
-    auto dev_it = ossia::find_if(devices, [&] (const PortAudioCard& d) { return d.raw_name == val; });
-    if(dev_it != devices.end())
+    auto dev_it = ossia::find_if(
+        devices, [&](const PortAudioCard& d) { return d.raw_name == val; });
+    if (dev_it != devices.end())
     {
       combo->setCurrentIndex(dev_it->out_index);
     }
   }
 
   QWidget* make_settings(
-      Audio::Settings::Model& m,
-      Audio::Settings::View& v,
-      score::SettingsCommandDispatcher& m_disp,
-      QWidget* parent) override
+      Audio::Settings::Model& m, Audio::Settings::View& v,
+      score::SettingsCommandDispatcher& m_disp, QWidget* parent) override
   {
 
     auto w = new QWidget{parent};
@@ -175,7 +174,7 @@ public:
     devices.front().out_index = 0;
 
     // Normal devices
-    for(std::size_t i = 1; i < devices.size(); i++)
+    for (std::size_t i = 1; i < devices.size(); i++)
     {
       auto& card = devices[i];
       if (card.inputChan > 0)
@@ -196,30 +195,33 @@ public:
     {
       lay->addRow(QObject::tr("Input device"), card_in);
 
-      auto update_dev = [=,&m,&m_disp] (const PortAudioCard& dev) {
-        if(dev.raw_name != m.getCardIn())
+      auto update_dev = [=, &m, &m_disp](const PortAudioCard& dev) {
+        if (dev.raw_name != m.getCardIn())
         {
-          m_disp.submitDeferredCommand<Audio::Settings::SetModelCardIn>(m, dev.raw_name);
-          m_disp.submitDeferredCommand<Audio::Settings::SetModelDefaultIn>(m, dev.inputChan);
-          if(dev.hostapi != PaHostApiTypeId::paMME)
+          m_disp.submitDeferredCommand<Audio::Settings::SetModelCardIn>(
+              m, dev.raw_name);
+          m_disp.submitDeferredCommand<Audio::Settings::SetModelDefaultIn>(
+              m, dev.inputChan);
+          if (dev.hostapi != PaHostApiTypeId::paMME)
           {
-            if(dev.out_index != -1 && dev.out_index != card_out->currentIndex())
+            if (dev.out_index != -1
+                && dev.out_index != card_out->currentIndex())
               card_out->setCurrentIndex(dev.out_index);
           }
         }
       };
 
       QObject::connect(
-            card_in, SignalUtils::QComboBox_currentIndexChanged_int(),
-            &v, [=] (int i) { update_dev(devices[card_in->itemData(i).toInt()]); });
+          card_in, SignalUtils::QComboBox_currentIndexChanged_int(), &v,
+          [=](int i) { update_dev(devices[card_in->itemData(i).toInt()]); });
 
-      if(m.getCardIn().isEmpty())
+      if (m.getCardIn().isEmpty())
       {
         auto default_in = Pa_GetDefaultInputDevice();
 
-        for(auto& v : devices)
+        for (auto& v : devices)
         {
-          if(v.dev_idx == default_in)
+          if (v.dev_idx == default_in)
           {
             update_dev(v);
             break;
@@ -235,14 +237,16 @@ public:
     {
       lay->addRow(QObject::tr("Output device"), card_out);
 
-      auto update_dev = [=,&m,&m_disp] (const PortAudioCard& dev) {
-        if(dev.raw_name != m.getCardOut())
+      auto update_dev = [=, &m, &m_disp](const PortAudioCard& dev) {
+        if (dev.raw_name != m.getCardOut())
         {
-          m_disp.submitDeferredCommand<Audio::Settings::SetModelCardOut>(m, dev.raw_name);
-          m_disp.submitDeferredCommand<Audio::Settings::SetModelDefaultOut>(m, dev.outputChan);
-          if(dev.hostapi != PaHostApiTypeId::paMME)
+          m_disp.submitDeferredCommand<Audio::Settings::SetModelCardOut>(
+              m, dev.raw_name);
+          m_disp.submitDeferredCommand<Audio::Settings::SetModelDefaultOut>(
+              m, dev.outputChan);
+          if (dev.hostapi != PaHostApiTypeId::paMME)
           {
-            if(dev.in_index != -1 && dev.in_index != card_in->currentIndex())
+            if (dev.in_index != -1 && dev.in_index != card_in->currentIndex())
               card_in->setCurrentIndex(dev.in_index);
           }
         }
@@ -250,14 +254,14 @@ public:
 
       QObject::connect(
           card_out, SignalUtils::QComboBox_currentIndexChanged_int(), &v,
-          [=] (int i) { update_dev(devices[card_out->itemData(i).toInt()]); });
+          [=](int i) { update_dev(devices[card_out->itemData(i).toInt()]); });
 
-      if(m.getCardOut().isEmpty())
+      if (m.getCardOut().isEmpty())
       {
         auto default_out = Pa_GetDefaultOutputDevice();
-        for(auto& v : devices)
+        for (auto& v : devices)
         {
-          if(v.dev_idx == default_out)
+          if (v.dev_idx == default_out)
           {
             update_dev(v);
             break;
@@ -270,7 +274,7 @@ public:
       }
     }
 
-    con(m, &Model::changed, &v, [=,&m] {
+    con(m, &Model::changed, &v, [=, &m] {
       setCardIn(card_in, m.getCardIn());
       setCardOut(card_out, m.getCardOut());
     });

@@ -1,6 +1,7 @@
 #pragma once
-#include <QAbstractItemModel>
 #include <score/tools/Todo.hpp>
+
+#include <QAbstractItemModel>
 /**
  * @brief Base implementation of a tree for QAbstractItemModel
  *

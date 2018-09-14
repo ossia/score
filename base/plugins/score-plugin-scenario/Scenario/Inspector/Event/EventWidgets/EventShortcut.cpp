@@ -2,10 +2,11 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "EventShortcut.hpp"
 
+#include <score/widgets/MarginLess.hpp>
+
 #include <QBoxLayout>
 #include <QCheckBox>
 #include <QPushButton>
-#include <score/widgets/MarginLess.hpp>
 
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Scenario::EventShortCut)

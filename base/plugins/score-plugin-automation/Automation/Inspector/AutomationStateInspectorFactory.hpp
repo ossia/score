@@ -1,5 +1,6 @@
 #pragma once
 #include <Inspector/InspectorWidgetFactoryInterface.hpp>
+
 #include <QList>
 
 namespace Automation
@@ -12,8 +13,7 @@ public:
 
   QWidget* make(
       const QList<const QObject*>& sourceElements,
-      const score::DocumentContext& doc,
-      QWidget* parent) const override;
+      const score::DocumentContext& doc, QWidget* parent) const override;
 
   bool matches(const QList<const QObject*>& objects) const override;
 };

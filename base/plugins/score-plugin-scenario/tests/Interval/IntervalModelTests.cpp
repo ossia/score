@@ -1,6 +1,5 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
-#include <QtTest/QtTest>
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/Interval/Rack/RackModel.hpp>
@@ -8,7 +7,10 @@
 #include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
 #include <Scenario/Process/Algorithms/StandardCreationPolicy.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
+
 #include <score/model/path/Path.hpp>
+
+#include <QtTest/QtTest>
 
 class IntervalModelTests : public QObject
 {
@@ -19,7 +21,6 @@ public:
   }
 
 private:
-
   void CreateSlotTest()
   {
     IntervalModel model{Id<IntervalModel>{0}, Id<IntervalViewModel>{0}, this};

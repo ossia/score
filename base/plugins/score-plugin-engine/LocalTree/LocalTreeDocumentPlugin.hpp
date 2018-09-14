@@ -4,8 +4,10 @@
 #include "SetProperty.hpp"
 
 #include <Protocols/Local/LocalDevice.hpp>
+
 #include <score/plugins/documentdelegate/plugin/DocumentPlugin.hpp>
 #include <score/tools/Metadata.hpp>
+
 #include <score_plugin_engine_export.h>
 namespace score
 {
@@ -24,12 +26,12 @@ class StateModel;
 namespace LocalTree
 {
 class Interval;
-class SCORE_PLUGIN_ENGINE_EXPORT DocumentPlugin final : public score::DocumentPlugin
+class SCORE_PLUGIN_ENGINE_EXPORT DocumentPlugin final
+    : public score::DocumentPlugin
 {
 public:
   DocumentPlugin(
-      const score::DocumentContext& doc,
-      Id<score::DocumentPlugin> id,
+      const score::DocumentContext& doc, Id<score::DocumentPlugin> id,
       QObject* parent);
 
   ~DocumentPlugin();
@@ -60,4 +62,3 @@ private:
   Engine::Network::LocalDevice m_localDeviceWrapper;
 };
 }
-

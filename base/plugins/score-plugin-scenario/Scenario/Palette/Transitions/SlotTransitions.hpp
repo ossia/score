@@ -1,7 +1,9 @@
 #pragma once
 
 #include <Scenario/Palette/ScenarioPaletteBaseEvents.hpp>
+
 #include <score/statemachine/StateMachineUtils.hpp>
+
 #include <score_plugin_scenario_export.h>
 class QEvent;
 namespace Scenario

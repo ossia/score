@@ -5,10 +5,12 @@
 #include "Implementation/InspectorPanel.hpp"
 
 #include <Inspector/InspectorWidgetList.hpp>
-#include <QVBoxLayout>
+
 #include <score/selection/SelectionStack.hpp>
 #include <score/widgets/ClearLayout.hpp>
 #include <score/widgets/MarginLess.hpp>
+
+#include <QVBoxLayout>
 
 namespace InspectorPanel
 {

@@ -8,6 +8,7 @@
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentView.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
 #include <Scenario/Process/Temporal/TemporalScenarioPresenter.hpp>
+
 #include <score/plugins/documentdelegate/DocumentDelegateView.hpp>
 #include <score/tools/std/Optional.hpp>
 // This part is somewhat similar to what moc does
@@ -20,18 +21,6 @@
 #include <Process/LayerPresenter.hpp>
 #include <Process/Process.hpp>
 #include <Process/Tools/ProcessGraphicsView.hpp>
-#include <QAction>
-#include <QByteArray>
-#include <QIODevice>
-#include <QJsonArray>
-#include <QJsonDocument>
-#include <QJsonObject>
-#include <QJsonValue>
-#include <QKeySequence>
-#include <QList>
-#include <QMenu>
-#include <QString>
-#include <QToolBar>
 #include <Scenario/Application/Menus/ObjectMenuActions.hpp>
 #include <Scenario/Application/Menus/ScenarioContextMenuManager.hpp>
 #include <Scenario/Application/ScenarioActions.hpp>
@@ -44,15 +33,7 @@
 #include <Scenario/Document/State/StateModel.hpp>
 #include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
 #include <Scenario/Palette/Tool.hpp>
-#include <algorithm>
-#include <core/application/ApplicationSettings.hpp>
-#include <core/document/Document.hpp>
-#include <core/document/DocumentModel.hpp>
-#include <core/document/DocumentPresenter.hpp>
-#include <core/document/DocumentView.hpp>
-#include <core/presenter/Presenter.hpp>
-#include <core/view/Window.hpp>
-#include <qnamespace.h>
+
 #include <score/actions/Menu.hpp>
 #include <score/document/DocumentInterface.hpp>
 #include <score/model/EntityMap.hpp>
@@ -60,17 +41,45 @@
 #include <score/model/Identifier.hpp>
 #include <score/plugins/application/GUIApplicationPlugin.hpp>
 #include <score/plugins/documentdelegate/DocumentDelegateModel.hpp>
-#include <string.h>
 
+#include <core/application/ApplicationSettings.hpp>
+#include <core/document/Document.hpp>
+#include <core/document/DocumentModel.hpp>
+#include <core/document/DocumentPresenter.hpp>
+#include <core/document/DocumentView.hpp>
+#include <core/presenter/Presenter.hpp>
+#include <core/view/Window.hpp>
+
+#include <QAction>
+#include <QByteArray>
+#include <QIODevice>
+#include <QJsonArray>
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QJsonValue>
+#include <QKeySequence>
+#include <QList>
+#include <QMenu>
+#include <QString>
+#include <QToolBar>
+#include <qnamespace.h>
+
+#include <string.h>
 #include <wobjectimpl.h>
+
+#include <algorithm>
 W_OBJECT_IMPL(Scenario::ScenarioExecution)
 W_OBJECT_IMPL(Scenario::ScenarioApplicationPlugin)
 SCORE_DECLARE_ACTION(
     ShowCables, "&Show cables", Dataflow, Qt::ALT + Qt::SHIFT + Qt::Key_G)
 namespace Scenario
 {
-ScenarioExecution::ScenarioExecution() { }
-ScenarioExecution::~ScenarioExecution() { }
+ScenarioExecution::ScenarioExecution()
+{
+}
+ScenarioExecution::~ScenarioExecution()
+{
+}
 void test_parse_expr_full();
 
 ScenarioApplicationPlugin::ScenarioApplicationPlugin(
@@ -128,10 +137,11 @@ ScenarioApplicationPlugin::ScenarioApplicationPlugin(
     if (doc)
     {
       Dataflow::CableItem::g_cables_enabled = c;
-      ScenarioDocumentPresenter* plug = score::IDocument::try_get<ScenarioDocumentPresenter>(*doc);
+      ScenarioDocumentPresenter* plug
+          = score::IDocument::try_get<ScenarioDocumentPresenter>(*doc);
 
       auto& p = doc->context().plugin<Process::DocumentPlugin>();
-      for(const auto& port : p.ports())
+      for (const auto& port : p.ports())
       {
         Dataflow::PortItem& item = *port.second;
         item.resetPortVisible();

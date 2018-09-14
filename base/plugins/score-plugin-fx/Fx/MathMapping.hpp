@@ -13,8 +13,9 @@ struct Node
     static const constexpr auto category = "Control";
     static const constexpr auto author = "ossia score, ExprTK (Arash Partow)";
     static const constexpr auto kind = Process::ProcessCategory::Mapping;
-    static const constexpr auto description = "Applies a math expression to an input.\n"
-                                              "See the documentation at http://www.partow.net/programming/exprtk";
+    static const constexpr auto description
+        = "Applies a math expression to an input.\n"
+          "See the documentation at http://www.partow.net/programming/exprtk";
     static const constexpr auto tags = std::array<const char*, 0>{};
     static const constexpr auto uuid
         = make_uuid("ae84e8b6-74ff-4259-aeeb-305d95cdfcab");
@@ -57,15 +58,9 @@ struct Node
 
   using control_policy = ossia::safe_nodes::last_tick;
   static void
-  run(const ossia::value_port& input,
-      const std::string& expr,
-      float a,
-      float b,
-      float c,
-      ossia::value_port& output,
-      ossia::token_request tk,
-      ossia::exec_state_facade st,
-      State& self)
+  run(const ossia::value_port& input, const std::string& expr, float a,
+      float b, float c, ossia::value_port& output, ossia::token_request tk,
+      ossia::exec_state_facade st, State& self)
   {
     if (!updateExpr(self, expr))
       return;
@@ -99,8 +94,9 @@ struct Node
     static const constexpr auto author = "ossia score, ExprTK (Arash Partow)";
     static const constexpr auto tags = std::array<const char*, 0>{};
     static const constexpr auto kind = Process::ProcessCategory::AudioEffect;
-    static const constexpr auto description = "Applies a math expression to an audio input.\n"
-                                              "See the documentation at http://www.partow.net/programming/exprtk";
+    static const constexpr auto description
+        = "Applies a math expression to an audio input.\n"
+          "See the documentation at http://www.partow.net/programming/exprtk";
     static const constexpr auto uuid
         = make_uuid("13e1f4b0-1c2c-40e6-93ad-dfc91aac5335");
 
@@ -141,15 +137,9 @@ struct Node
 
   using control_policy = ossia::safe_nodes::last_tick;
   static void
-  run(const ossia::audio_port& input,
-      const std::string& expr,
-      float a,
-      float b,
-      float c,
-      ossia::audio_port& output,
-      ossia::token_request tk,
-      ossia::exec_state_facade st,
-      State& self)
+  run(const ossia::audio_port& input, const std::string& expr, float a,
+      float b, float c, ossia::audio_port& output, ossia::token_request tk,
+      ossia::exec_state_facade st, State& self)
   {
     if (tk.date > tk.prev_date)
     {

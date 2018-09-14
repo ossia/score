@@ -3,15 +3,18 @@
 #include "ScenarioDocumentModel.hpp"
 
 #include <Process/Dataflow/Cable.hpp>
-#include <QJsonDocument>
-#include <QJsonObject>
-#include <QJsonValue>
 #include <Scenario/Document/BaseScenario/BaseScenario.hpp>
 #include <Scenario/Document/DisplayedElements/DisplayedElementsProviderList.hpp>
-#include <algorithm>
+
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/serialization/JSONVisitor.hpp>
 #include <score/serialization/VisitorCommon.hpp>
+
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QJsonValue>
+
+#include <algorithm>
 namespace score
 {
 class DocumentDelegateModel;

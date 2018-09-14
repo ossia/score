@@ -1,4 +1,5 @@
 #include <Process/Commands/ProcessCommandFactory.hpp>
+
 #include <score/command/Command.hpp>
 namespace Process
 {

@@ -1,7 +1,8 @@
 #pragma once
 #include <score/model/IdentifiedObject.hpp>
-#include <wobjectdefs.h>
 #include <score/selection/Selectable.hpp>
+
+#include <wobjectdefs.h>
 
 namespace Midi
 {
@@ -126,7 +127,6 @@ public:
   {
     return m_velocity;
   }
-
 
   void scale(double s) noexcept;
 

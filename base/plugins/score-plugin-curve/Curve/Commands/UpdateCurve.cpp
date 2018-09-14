@@ -4,10 +4,12 @@
 
 #include <Curve/CurveModel.hpp>
 #include <Curve/Segment/CurveSegmentData.hpp>
-#include <algorithm>
+
 #include <score/model/path/Path.hpp>
 #include <score/model/path/PathSerialization.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
+
+#include <algorithm>
 
 namespace Curve
 {

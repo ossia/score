@@ -1,8 +1,10 @@
 #pragma once
 #include <Curve/Commands/CurveCommandFactory.hpp>
 #include <Curve/Segment/CurveSegmentData.hpp>
+
 #include <score/command/Command.hpp>
 #include <score/model/path/Path.hpp>
+
 #include <vector>
 
 struct DataStreamInput;

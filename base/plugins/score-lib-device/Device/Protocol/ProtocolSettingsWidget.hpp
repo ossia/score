@@ -2,9 +2,11 @@
 
 #include <Device/Address/AddressSettings.hpp>
 #include <Device/Protocol/DeviceSettings.hpp>
+
 #include <QDialog>
 #include <QString>
 #include <QWidget>
+
 #include <score_lib_device_export.h>
 
 namespace Device

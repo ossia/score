@@ -1,12 +1,12 @@
 #pragma once
-#include <LocalTree/BaseProperty.hpp>
 #include <ossia/network/base/parameter.hpp>
+
+#include <LocalTree/BaseProperty.hpp>
 #include <score_plugin_engine_export.h>
 
 namespace LocalTree
 {
-class SCORE_PLUGIN_ENGINE_EXPORT BaseCallbackWrapper
-    : public BaseProperty
+class SCORE_PLUGIN_ENGINE_EXPORT BaseCallbackWrapper : public BaseProperty
 {
 public:
   using BaseProperty::BaseProperty;
@@ -15,4 +15,3 @@ public:
   ossia::net::parameter_base::callback_index callbackIt{};
 };
 }
-

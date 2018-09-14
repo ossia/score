@@ -3,14 +3,15 @@
 #include "ExplorerModel.hpp"
 
 #include <QSettings>
+
 #include <wobjectimpl.h>
 
 namespace Explorer::Settings
 {
 namespace Parameters
 {
-SETTINGS_PARAMETER_IMPL(LocalTree){
-    QStringLiteral("score_plugin_LocalTree"), true};
+SETTINGS_PARAMETER_IMPL(LocalTree){QStringLiteral("score_plugin_LocalTree"),
+                                   true};
 SETTINGS_PARAMETER_IMPL(LogLevel){
     QStringLiteral("score_plugin_engine/LogLevel"),
     DeviceLogLevel{}.logEverything};

@@ -3,6 +3,7 @@
 #include "SetCommentText.hpp"
 
 #include <Scenario/Document/CommentBlock/CommentBlockModel.hpp>
+
 #include <score/model/path/PathSerialization.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
 

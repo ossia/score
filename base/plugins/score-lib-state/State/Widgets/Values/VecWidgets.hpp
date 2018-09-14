@@ -1,16 +1,19 @@
 #pragma once
+#include <State/Value.hpp>
+
+#include <score/widgets/MarginLess.hpp>
+#include <score/widgets/SignalUtils.hpp>
+#include <score/widgets/TextLabel.hpp>
+
 #include <ossia/network/domain/domain.hpp>
-#include <wobjectdefs.h>
 
 #include <QDoubleSpinBox>
 #include <QFormLayout>
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QWidget>
-#include <State/Value.hpp>
-#include <score/widgets/MarginLess.hpp>
-#include <score/widgets/SignalUtils.hpp>
-#include <score/widgets/TextLabel.hpp>
+
+#include <wobjectdefs.h>
 
 namespace State
 {

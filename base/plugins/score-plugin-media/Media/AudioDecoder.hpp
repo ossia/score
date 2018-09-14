@@ -1,9 +1,12 @@
 #pragma once
+#include <Media/AudioArray.hpp>
+
 #include <ossia/detail/optional.hpp>
+
+#include <QThread>
+
 #include <wobjectdefs.h>
 
-#include <Media/AudioArray.hpp>
-#include <QThread>
 #include <atomic>
 #include <vector>
 struct AVFrame;
@@ -14,7 +17,6 @@ namespace Media
 using audio_handle = ossia::audio_handle;
 using audio_array = ossia::audio_array;
 using audio_sample = ossia::audio_sample;
-
 
 struct AudioInfo
 {
@@ -46,9 +48,12 @@ public:
   void newData() W_SIGNAL(newData);
   void finishedDecoding(audio_handle hdl) W_SIGNAL(finishedDecoding, hdl);
 
-  void startDecode(QString str, audio_handle hdl) W_SIGNAL(startDecode, str, hdl);
+  void startDecode(QString str, audio_handle hdl)
+      W_SIGNAL(startDecode, str, hdl);
+
 public:
-  void on_startDecode(QString, audio_handle hdl); W_SLOT(on_startDecode);
+  void on_startDecode(QString, audio_handle hdl);
+  W_SLOT(on_startDecode);
 
 private:
   std::size_t read_length(const QString& path);

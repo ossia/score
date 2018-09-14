@@ -1,34 +1,36 @@
 #include "Executor.hpp"
-#include <Skeleton/Process.hpp>
-#include <ossia/dataflow/port.hpp>
+
 #include <Process/ExecutionContext.hpp>
+
+#include <ossia/dataflow/port.hpp>
+
+#include <Skeleton/Process.hpp>
 namespace Skeleton
 {
-class node final
-    : public ossia::nonowning_graph_node
+class node final : public ossia::nonowning_graph_node
 {
 public:
   node()
   {
   }
 
-  void run(ossia::token_request tk, ossia::exec_state_facade s) noexcept override
+  void
+  run(ossia::token_request tk, ossia::exec_state_facade s) noexcept override
   {
   }
 
   std::string label() const noexcept override
-  { return "skeleton"; }
+  {
+    return "skeleton";
+  }
 
 private:
 };
 
 ProcessExecutorComponent::ProcessExecutorComponent(
-    Skeleton::Model& element,
-    const Execution::Context& ctx,
-    const Id<score::Component>& id,
-    QObject* parent)
-    : ProcessComponent_T{
-        element, ctx, id, "SkeletonExecutorComponent", parent}
+    Skeleton::Model& element, const Execution::Context& ctx,
+    const Id<score::Component>& id, QObject* parent)
+    : ProcessComponent_T{element, ctx, id, "SkeletonExecutorComponent", parent}
 {
   auto n = std::make_shared<Skeleton::node>();
   this->node = n;

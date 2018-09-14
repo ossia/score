@@ -1,6 +1,7 @@
 #pragma once
 #include <Device/Address/AddressSettings.hpp>
 #include <Mapping/Commands/MappingCommandFactory.hpp>
+
 #include <score/command/Command.hpp>
 #include <score/model/path/Path.hpp>
 

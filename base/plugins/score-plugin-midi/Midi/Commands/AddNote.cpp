@@ -4,6 +4,7 @@
 
 #include <Midi/MidiProcess.hpp>
 #include <Process/TimeValueSerialization.hpp>
+
 #include <score/model/path/PathSerialization.hpp>
 #include <score/tools/IdentifierGeneration.hpp>
 
@@ -37,11 +38,8 @@ void AddNote::deserializeImpl(DataStreamOutput& s)
 }
 
 ReplaceNotes::ReplaceNotes(
-    const ProcessModel& model,
-    const std::vector<NoteData>& n,
-    int min,
-    int max,
-    TimeVal d)
+    const ProcessModel& model, const std::vector<NoteData>& n, int min,
+    int max, TimeVal d)
     : m_model{model}
     , m_oldmin{model.range().first}
     , m_oldmax{model.range().second}

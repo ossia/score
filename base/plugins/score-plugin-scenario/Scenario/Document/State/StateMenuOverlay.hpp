@@ -1,11 +1,12 @@
 #pragma once
 #include <Process/Style/ScenarioStyle.hpp>
+#include <Scenario/Document/State/StateView.hpp>
+
 #include <QBrush>
 #include <QGraphicsItem>
 #include <QGraphicsSceneMouseEvent>
 #include <QPainter>
 #include <QPen>
-#include <Scenario/Document/State/StateView.hpp>
 
 namespace Scenario
 {
@@ -24,8 +25,7 @@ public:
   }
 
   void paint(
-      QPainter* painter,
-      const QStyleOptionGraphicsItem* option,
+      QPainter* painter, const QStyleOptionGraphicsItem* option,
       QWidget* widget) override
   {
     auto& skin = ScenarioStyle::instance();

@@ -1,9 +1,12 @@
 #pragma once
 
+#include <score/plugins/application/GUIApplicationPlugin.hpp>
+
 #include <QAction>
 #include <QList>
-#include <score/plugins/application/GUIApplicationPlugin.hpp>
+
 #include <score_lib_base_export.h>
+
 #include <vector>
 
 class QObject;

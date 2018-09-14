@@ -1,5 +1,6 @@
 #pragma once
 #include <Process/Process.hpp>
+
 #include <score_plugin_scenario_export.h>
 namespace Scenario
 {
@@ -25,8 +26,7 @@ struct SCORE_PLUGIN_SCENARIO_EXPORT Slot
   {
   }
   Slot(
-      std::vector<Id<Process::ProcessModel>> p,
-      Id<Process::ProcessModel> fp,
+      std::vector<Id<Process::ProcessModel>> p, Id<Process::ProcessModel> fp,
       qreal h)
       : processes{std::move(p)}, frontProcess{std::move(fp)}, height{h}
   {

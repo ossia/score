@@ -1,14 +1,18 @@
 #pragma once
+#include <score/model/path/ObjectIdentifier.hpp>
+
 #include <QHash>
 #include <QObject>
 #include <QPointer>
 #include <QString>
-#include <algorithm>
-#include <initializer_list>
-#include <score/model/path/ObjectIdentifier.hpp>
+
 #include <score_lib_base_export.h>
-#include <type_traits>
+
+#include <algorithm>
 #include <vector>
+
+#include <initializer_list>
+#include <type_traits>
 namespace score
 {
 struct DocumentContext;
@@ -54,7 +58,9 @@ class SCORE_LIB_BASE_EXPORT ObjectPath
   }
 
 public:
-  ObjectPath() noexcept { }
+  ObjectPath() noexcept
+  {
+  }
   ~ObjectPath() noexcept = default;
   QString toString() const noexcept;
 
@@ -170,7 +176,8 @@ private:
   mutable QPointer<QObject> m_cache;
 };
 
-SCORE_LIB_BASE_EXPORT void replacePathPart(const ObjectPath& src, const ObjectPath& target, ObjectPath& toChange);
+SCORE_LIB_BASE_EXPORT void replacePathPart(
+    const ObjectPath& src, const ObjectPath& target, ObjectPath& toChange);
 inline uint qHash(const ObjectPath& obj, uint seed)
 {
   return qHash(obj.toString(), seed);

@@ -3,13 +3,15 @@
 #include "Expression.hpp"
 #include "Relation.hpp"
 
-#include <QJsonObject>
-#include <QJsonValue>
 #include <State/ValueSerialization.hpp>
+
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/serialization/JSONValueVisitor.hpp>
 #include <score/serialization/JSONVisitor.hpp>
 #include <score/serialization/VariantSerialization.hpp>
+
+#include <QJsonObject>
+#include <QJsonValue>
 
 template <>
 void DataStreamReader::read(const State::Pulse& rel)

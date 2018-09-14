@@ -6,8 +6,6 @@
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <Process/Process.hpp>
 #include <Process/State/MessageNode.hpp>
-#include <QObject>
-#include <QString>
 #include <Scenario/Commands/Cohesion/CreateCurveFromStates.hpp>
 #include <Scenario/Commands/Cohesion/InterpolateMacro.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
@@ -20,8 +18,7 @@
 #include <State/Message.hpp>
 #include <State/Value.hpp>
 #include <State/ValueConversion.hpp>
-#include <algorithm>
-#include <iterator>
+
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/document/DocumentInterface.hpp>
 #include <score/model/EntityMap.hpp>
@@ -30,7 +27,14 @@
 #include <score/model/tree/TreeNode.hpp>
 #include <score/selection/SelectionStack.hpp>
 #include <score/tools/IdentifierGeneration.hpp>
+
 #include <ossia/editor/state/destination_qualifiers.hpp>
+
+#include <QObject>
+#include <QString>
+
+#include <algorithm>
+#include <iterator>
 #include <utility>
 #include <vector>
 
@@ -100,7 +104,10 @@ struct MessagePairs
               interval.processes, [&](const Process::ProcessModel& proc) {
                 auto ptr
                     = dynamic_cast<const Automation::ProcessModel*>(&proc);
-                return ptr && ptr->address().address == message.address.address; // check for the pure "address" part
+                return ptr
+                       && ptr->address().address
+                              == message.address.address; // check for the pure
+                                                          // "address" part
               });
 
           if (has_existing_curve)
@@ -111,7 +118,7 @@ struct MessagePairs
 
           // TODO handle sub-vecs
           auto sz = message.value.apply(value_size{});
-          for(std::size_t i = 0; i < sz; i++)
+          for (std::size_t i = 0; i < sz; i++)
           {
             auto m = message;
             auto& acc = m.address.qualifiers.get().accessors;
@@ -174,9 +181,8 @@ void InterpolateStates(
     for (const auto& elt : pairs.numericMessages)
     {
       Curve::CurveDomain d = ossia::apply(
-            get_curve_domain{elt.first.address, {}, rootNode},
-            elt.first.value.v,
-            elt.second.value.v);
+          get_curve_domain{elt.first.address, {}, rootNode}, elt.first.value.v,
+          elt.second.value.v);
 
       macro->addCommand(new CreateAutomationFromStates{
           interval, macro->slotsToUse, process_ids[cur_proc],
@@ -189,9 +195,10 @@ void InterpolateStates(
     for (const auto& elt : pairs.listMessages)
     {
       Curve::CurveDomain d = ossia::apply(
-            get_curve_domain{elt.first.address, elt.first.address.qualifiers.get().accessors, rootNode},
-            elt.first.value.v,
-            elt.second.value.v);
+          get_curve_domain{elt.first.address,
+                           elt.first.address.qualifiers.get().accessors,
+                           rootNode},
+          elt.first.value.v, elt.second.value.v);
 
       macro->addCommand(new CreateAutomationFromStates{
           interval, macro->slotsToUse, process_ids[cur_proc],

@@ -1,10 +1,12 @@
 #pragma once
 
 #include <Device/Protocol/DeviceSettings.hpp>
-#include <wobjectdefs.h>
+
 #include <QDialog>
 #include <QList>
 #include <QString>
+
+#include <wobjectdefs.h>
 
 class QComboBox;
 class QFormLayout;
@@ -36,8 +38,8 @@ public:
   void setEditingInvalidState(bool);
 
 protected:
-
-  void updateProtocolWidget(); W_SLOT(updateProtocolWidget);
+  void updateProtocolWidget();
+  W_SLOT(updateProtocolWidget);
 
 protected:
   void buildGUI();

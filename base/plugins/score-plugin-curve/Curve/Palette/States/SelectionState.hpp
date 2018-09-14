@@ -2,6 +2,7 @@
 #include <Curve/CurvePresenter.hpp>
 #include <Curve/CurveView.hpp>
 #include <Curve/Palette/CurvePalette.hpp>
+
 #include <score/statemachine/CommonSelectionState.hpp>
 
 namespace Curve
@@ -18,10 +19,8 @@ private:
 
 public:
   SelectionState(
-      score::SelectionStack& stack,
-      const Curve::ToolPalette& parentSM,
-      View& view,
-      QState* parent)
+      score::SelectionStack& stack, const Curve::ToolPalette& parentSM,
+      View& view, QState* parent)
       : CommonSelectionState{stack, &view, parent}
       , m_parentSM{parentSM}
       , m_view{view}

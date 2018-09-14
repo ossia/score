@@ -2,21 +2,23 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "LinearSegment.hpp"
 
-#include <ossia/editor/curve/curve_segment/linear.hpp>
-
 #include <Curve/Palette/CurvePoint.hpp>
-#include <QPoint>
+
 #include <score/model/Identifier.hpp>
-#include <score/serialization/VisitorCommon.hpp>
-#include <vector>
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/serialization/JSONVisitor.hpp>
+#include <score/serialization/VisitorCommon.hpp>
+
+#include <ossia/editor/curve/curve_segment/linear.hpp>
+
+#include <QPoint>
+
+#include <vector>
 
 namespace Curve
 {
 LinearSegment::LinearSegment(
-    const LinearSegment& other,
-    const IdentifiedObject::id_type& id,
+    const LinearSegment& other, const IdentifiedObject::id_type& id,
     QObject* parent)
     : SegmentModel{other.start(), other.end(), id, parent}
 {
@@ -64,7 +66,6 @@ ossia::curve_segment<int> LinearSegment::makeIntFunction() const
 {
   return ossia::curve_segment_linear<int>{};
 }
-
 }
 
 template <>

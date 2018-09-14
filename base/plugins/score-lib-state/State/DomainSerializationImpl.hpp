@@ -347,8 +347,7 @@ struct TSerializer<DataStream, ossia::domain_base<bool>>
 
 template <typename Functor>
 void apply_typeonly(
-    Functor&& functor,
-    ossia::domain_base_variant::Type type,
+    Functor&& functor, ossia::domain_base_variant::Type type,
     ossia::domain_base_variant& var)
 {
   using namespace ossia;
@@ -447,17 +446,11 @@ struct TSerializer<JSONObject, ossia::domain_base_variant>
   }
 
   using value_type_list = brigand::list<
-      ossia::domain_base<ossia::impulse>,
-      ossia::domain_base<bool>,
-      ossia::domain_base<int>,
-      ossia::domain_base<float>,
-      ossia::domain_base<char>,
-      ossia::domain_base<std::string>,
-      ossia::vector_domain,
-      ossia::vecf_domain<2>,
-      ossia::vecf_domain<3>,
-      ossia::vecf_domain<4>,
-      ossia::domain_base<ossia::value>>;
+      ossia::domain_base<ossia::impulse>, ossia::domain_base<bool>,
+      ossia::domain_base<int>, ossia::domain_base<float>,
+      ossia::domain_base<char>, ossia::domain_base<std::string>,
+      ossia::vector_domain, ossia::vecf_domain<2>, ossia::vecf_domain<3>,
+      ossia::vecf_domain<4>, ossia::domain_base<ossia::value>>;
 
   static auto init_keys()
   {

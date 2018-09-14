@@ -1,5 +1,6 @@
 #pragma once
 #include <score/tools/Metadata.hpp>
+
 #include <score_lib_base_export.h>
 /**
  * @brief The InvisibleRootNodeTag struct

@@ -7,7 +7,8 @@
 
 #include <QObject>
 
-namespace Engine::Network {
+namespace Engine::Network
+{
 
 QString JoystickProtocolFactory::prettyName() const
 {
@@ -58,5 +59,4 @@ bool JoystickProtocolFactory::checkCompatibility(
   auto b_ = b.deviceSpecificSettings.value<JoystickSpecificSettings>();
   return a_.joystick_id != b_.joystick_id;
 }
-
 }

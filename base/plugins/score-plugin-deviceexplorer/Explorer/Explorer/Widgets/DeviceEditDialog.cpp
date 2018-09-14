@@ -5,6 +5,12 @@
 #include <Device/Protocol/ProtocolFactoryInterface.hpp>
 #include <Device/Protocol/ProtocolList.hpp>
 #include <Device/Protocol/ProtocolSettingsWidget.hpp>
+
+#include <score/plugins/customfactory/FactoryFamily.hpp>
+#include <score/plugins/customfactory/StringFactoryKey.hpp>
+#include <score/widgets/SignalUtils.hpp>
+#include <score/widgets/TextLabel.hpp>
+
 #include <QComboBox>
 #include <QDialogButtonBox>
 #include <QFlags>
@@ -15,13 +21,10 @@
 #include <QVariant>
 #include <QWidget>
 #include <qnamespace.h>
-#include <score/plugins/customfactory/FactoryFamily.hpp>
-#include <score/plugins/customfactory/StringFactoryKey.hpp>
-#include <score/widgets/SignalUtils.hpp>
-#include <score/widgets/TextLabel.hpp>
-#include <utility>
 
 #include <wobjectimpl.h>
+
+#include <utility>
 W_OBJECT_IMPL(Explorer::DeviceEditDialog)
 namespace Explorer
 {

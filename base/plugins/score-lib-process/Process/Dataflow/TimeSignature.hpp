@@ -2,8 +2,9 @@
 #include <ossia/detail/optional.hpp>
 
 #include <string>
-#include <string_view>
 #include <utility>
+
+#include <string_view>
 
 namespace Control
 {

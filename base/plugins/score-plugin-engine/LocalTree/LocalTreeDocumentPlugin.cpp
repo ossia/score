@@ -1,22 +1,25 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "LocalTreeDocumentPlugin.hpp"
-#include <Protocols/Local/LocalProtocolFactory.hpp>
-#include <Protocols/Local/LocalSpecificSettings.hpp>
+
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <Explorer/Settings/ExplorerModel.hpp>
+#include <Protocols/Local/LocalProtocolFactory.hpp>
+#include <Protocols/Local/LocalSpecificSettings.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
+
+#include <score/tools/IdentifierGeneration.hpp>
+
 #include <core/document/Document.hpp>
 #include <core/document/DocumentModel.hpp>
-#include <score/tools/IdentifierGeneration.hpp>
-#include <LocalTree/Scenario/IntervalComponent.hpp>
-#include <ossia/network/local/local.hpp>
 
 #include <ossia/network/generic/generic_device.hpp>
+#include <ossia/network/local/local.hpp>
+
+#include <LocalTree/Scenario/IntervalComponent.hpp>
 
 LocalTree::DocumentPlugin::DocumentPlugin(
-    const score::DocumentContext& ctx,
-    Id<score::DocumentPlugin> id,
+    const score::DocumentContext& ctx, Id<score::DocumentPlugin> id,
     QObject* parent)
     : score::DocumentPlugin{ctx, std::move(id), "LocalTree::DocumentPlugin",
                             parent}

@@ -1,11 +1,11 @@
 #include <Dataflow/Commands/EditConnection.hpp>
+
 #include <score/model/path/PathSerialization.hpp>
 
 namespace Dataflow
 {
 CreateCable::CreateCable(
-    const Scenario::ScenarioDocumentModel& dp,
-    Id<Process::Cable> theCable,
+    const Scenario::ScenarioDocumentModel& dp, Id<Process::Cable> theCable,
     Process::CableData dat)
     : m_model{dp}, m_cable{std::move(theCable)}, m_dat{std::move(dat)}
 {
@@ -13,8 +13,7 @@ CreateCable::CreateCable(
 }
 
 CreateCable::CreateCable(
-    const Scenario::ScenarioDocumentModel& dp,
-    Id<Process::Cable> theCable,
+    const Scenario::ScenarioDocumentModel& dp, Id<Process::Cable> theCable,
     const Process::Cable& cable)
     : m_model{dp}, m_cable{std::move(theCable)}
 {

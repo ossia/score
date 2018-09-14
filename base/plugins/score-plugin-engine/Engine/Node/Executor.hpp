@@ -1,14 +1,16 @@
 #pragma once
+#include <Explorer/DeviceList.hpp>
+#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
+#include <Process/Execution/ProcessComponent.hpp>
+#include <Process/ExecutionContext.hpp>
+#include <Scenario/Execution/score2OSSIA.hpp>
+
 #include <ossia/dataflow/safe_nodes/executor.hpp>
 
-#include <Process/Execution/ProcessComponent.hpp>
+#include <QTimer>
+
 #include <Engine/Node/Process.hpp>
 #include <Engine/Node/TickPolicy.hpp>
-#include <Scenario/Execution/score2OSSIA.hpp>
-#include <Explorer/DeviceList.hpp>
-#include <Process/ExecutionContext.hpp>
-#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
-#include <QTimer>
 
 namespace Control
 {
@@ -123,10 +125,8 @@ struct setup_Impl1
 
 template <typename Info, typename Node_T, typename Element_T>
 void setup_node(
-    const std::shared_ptr<Node_T>& node_ptr,
-    Element_T& element,
-    const Execution::Context& ctx,
-    QObject* parent)
+    const std::shared_ptr<Node_T>& node_ptr, Element_T& element,
+    const Execution::Context& ctx, QObject* parent)
 {
   using namespace ossia::safe_nodes;
   constexpr const auto control_count = info_functions<Info>::control_count;
@@ -169,9 +169,8 @@ void setup_node(
 }
 
 template <typename Info>
-class Executor final
-    : public Execution::
-          ProcessComponent_T<ControlProcess<Info>, ossia::node_process>
+class Executor final : public Execution::ProcessComponent_T<
+                           ControlProcess<Info>, ossia::node_process>
 {
 public:
   static Q_DECL_RELAXED_CONSTEXPR score::Component::Key static_key() noexcept
@@ -191,13 +190,11 @@ public:
   }
 
   Executor(
-      ControlProcess<Info>& element,
-      const ::Execution::Context& ctx,
-      const Id<score::Component>& id,
-      QObject* parent)
-      : Execution::
-            ProcessComponent_T<ControlProcess<Info>, ossia::node_process>{
-                element, ctx, id, "Executor::ControlProcess<Info>", parent}
+      ControlProcess<Info>& element, const ::Execution::Context& ctx,
+      const Id<score::Component>& id, QObject* parent)
+      : Execution::ProcessComponent_T<
+            ControlProcess<Info>, ossia::node_process>{
+            element, ctx, id, "Executor::ControlProcess<Info>", parent}
   {
     auto node = std::make_shared<ossia::safe_nodes::safe_node<Info>>();
     this->node = node;

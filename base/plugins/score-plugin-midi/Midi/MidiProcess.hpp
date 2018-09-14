@@ -1,9 +1,11 @@
 #pragma once
 #include <Midi/MidiNote.hpp>
-#include <wobjectdefs.h>
 #include <Midi/MidiProcessMetadata.hpp>
 #include <Process/Process.hpp>
+
 #include <score/tools/Clamp.hpp>
+
+#include <wobjectdefs.h>
 
 namespace Midi
 {
@@ -17,8 +19,7 @@ class SCORE_PLUGIN_MIDI_EXPORT ProcessModel final
 public:
   PROCESS_METADATA_IMPL(Midi::ProcessModel)
   explicit ProcessModel(
-      const TimeVal& duration,
-      const Id<Process::ProcessModel>& id,
+      const TimeVal& duration, const Id<Process::ProcessModel>& id,
       QObject* parent);
 
   template <typename Impl>

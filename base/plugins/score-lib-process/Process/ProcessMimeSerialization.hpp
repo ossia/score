@@ -1,9 +1,11 @@
 #pragma once
 #include <Process/ProcessFactory.hpp>
-#include <QJsonDocument>
+
 #include <score/plugins/customfactory/SerializableInterface.hpp>
 #include <score/serialization/JSONVisitor.hpp>
 #include <score/serialization/MimeVisitor.hpp>
+
+#include <QJsonDocument>
 namespace score
 {
 namespace mime

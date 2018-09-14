@@ -7,27 +7,30 @@
 
 #include <JS/Qml/QmlObjects.hpp>
 #include <Process/Dataflow/Port.hpp>
+#include <State/Expression.hpp>
+
+#include <score/document/DocumentInterface.hpp>
+#include <score/model/Identifier.hpp>
+#include <score/serialization/VisitorCommon.hpp>
+#include <score/tools/DeleteAll.hpp>
+#include <score/tools/File.hpp>
+
+#include <core/document/Document.hpp>
+
 #include <QFileInfo>
 #include <QFileSystemWatcher>
 #include <QQmlComponent>
 #include <QQmlEngine>
-#include <State/Expression.hpp>
-#include <algorithm>
-#include <core/document/Document.hpp>
-#include <score/document/DocumentInterface.hpp>
-#include <score/model/Identifier.hpp>
-#include <score/serialization/VisitorCommon.hpp>
-#include <score/tools/File.hpp>
-#include <score/tools/DeleteAll.hpp>
-#include <vector>
 
 #include <wobjectimpl.h>
+
+#include <algorithm>
+#include <vector>
 W_OBJECT_IMPL(JS::ProcessModel)
 namespace JS
 {
 ProcessModel::ProcessModel(
-    const TimeVal& duration,
-    const Id<Process::ProcessModel>& id,
+    const TimeVal& duration, const Id<Process::ProcessModel>& id,
     QObject* parent)
     : Process::ProcessModel{duration, id,
                             Metadata<ObjectKey_k, ProcessModel>::get(), parent}
@@ -49,14 +52,14 @@ Item {
 
 ProcessModel::~ProcessModel()
 {
-  if(m_dummyObject)
+  if (m_dummyObject)
     m_dummyObject->deleteLater();
 }
 
 void ProcessModel::setScript(const QString& script)
 {
   m_watch.reset();
-  if(m_dummyObject)
+  if (m_dummyObject)
     m_dummyObject->deleteLater();
   m_dummyObject = nullptr;
   m_dummyComponent.reset();
@@ -103,7 +106,7 @@ void ProcessModel::setQmlData(const QByteArray& data, bool isFile)
     return;
 
   m_qmlData = data;
-  if(m_dummyObject)
+  if (m_dummyObject)
     m_dummyObject->deleteLater();
   m_dummyObject = nullptr;
   m_dummyComponent.reset();

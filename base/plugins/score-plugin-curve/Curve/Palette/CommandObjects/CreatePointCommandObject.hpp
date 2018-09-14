@@ -1,5 +1,6 @@
 #pragma once
 #include <Curve/Palette/CommandObjects/CurveCommandObjectBase.hpp>
+
 #include <vector>
 
 namespace score

@@ -1,15 +1,18 @@
 #pragma once
+#include <Scenario/Document/Interval/IntervalHeader.hpp>
+
+#include <score/widgets/GraphicWidgets.hpp>
+#include <score/widgets/MimeData.hpp>
+
 #include <ossia/detail/optional.hpp>
-#include <wobjectdefs.h>
 
 #include <QGlyphRun>
 #include <QGraphicsItem>
 #include <QRect>
 #include <QTextLayout>
-#include <Scenario/Document/Interval/IntervalHeader.hpp>
 #include <qnamespace.h>
-#include <score/widgets/GraphicWidgets.hpp>
-#include <score/widgets/MimeData.hpp>
+
+#include <wobjectdefs.h>
 
 class QGraphicsSceneMouseEvent;
 class QPainter;
@@ -34,8 +37,7 @@ private:
   QRectF boundingRect() const override;
 
   void paint(
-      QPainter* painter,
-      const QStyleOptionGraphicsItem* option,
+      QPainter* painter, const QStyleOptionGraphicsItem* option,
       QWidget* widget) override;
 
   void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
@@ -53,8 +55,7 @@ public:
 
   QRectF boundingRect() const override;
   void paint(
-      QPainter* painter,
-      const QStyleOptionGraphicsItem* option,
+      QPainter* painter, const QStyleOptionGraphicsItem* option,
       QWidget* widget) override;
   void updateButtons();
   void enableOverlay(bool b);
@@ -63,12 +64,14 @@ public:
     m_hasFocus = b;
     update();
   }
+
 public:
   void doubleClicked() W_SIGNAL(doubleClicked);
 
   void intervalHoverEnter() W_SIGNAL(intervalHoverEnter);
   void intervalHoverLeave() W_SIGNAL(intervalHoverLeave);
-  void dropReceived(const QPointF& pos, const QMimeData& arg_2) W_SIGNAL(dropReceived, pos, arg_2);
+  void dropReceived(const QPointF& pos, const QMimeData& arg_2)
+      W_SIGNAL(dropReceived, pos, arg_2);
 
 protected:
   void hoverEnterEvent(QGraphicsSceneHoverEvent* h) override;

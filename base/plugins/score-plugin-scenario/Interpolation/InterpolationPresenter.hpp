@@ -1,12 +1,13 @@
 #pragma once
 #include <Curve/CurveStyle.hpp>
-#include <wobjectdefs.h>
 #include <Curve/Process/CurveProcessPresenter.hpp>
 #include <Device/Node/NodeListMimeSerialization.hpp>
+#include <State/MessageListSerialization.hpp>
+
 #include <Interpolation/Commands/ChangeAddress.hpp>
 #include <Interpolation/InterpolationProcess.hpp>
 #include <Interpolation/InterpolationView.hpp>
-#include <State/MessageListSerialization.hpp>
+#include <wobjectdefs.h>
 
 namespace Interpolation
 {
@@ -15,11 +16,8 @@ class Presenter final : public Curve::CurveProcessPresenter<ProcessModel, View>
   W_OBJECT(Presenter)
 public:
   Presenter(
-      const Curve::Style& style,
-      const ProcessModel& layer,
-      View* view,
-      const Process::ProcessPresenterContext& context,
-      QObject* parent)
+      const Curve::Style& style, const ProcessModel& layer, View* view,
+      const Process::ProcessPresenterContext& context, QObject* parent)
       : CurveProcessPresenter{style, layer, view, context, parent}
   {
     con(m_layer, &ProcessModel::tweenChanged, this,

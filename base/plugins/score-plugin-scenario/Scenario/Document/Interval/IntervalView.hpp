@@ -1,14 +1,16 @@
 #pragma once
-#include <QBrush>
-#include <wobjectdefs.h>
-#include <QGraphicsItem>
-#include <QPen>
 #include <Scenario/Document/CommentBlock/TextItem.hpp>
 #include <Scenario/Document/Interval/ExecutionState.hpp>
 #include <Scenario/Document/Interval/Temporal/Braces/LeftBrace.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentViewConstants.hpp>
+
+#include <QBrush>
+#include <QGraphicsItem>
+#include <QPen>
 #include <qnamespace.h>
+
 #include <score_plugin_scenario_export.h>
+#include <wobjectdefs.h>
 class QGraphicsSceneMouseEvent;
 
 struct ScenarioStyle;
@@ -19,9 +21,8 @@ class LeftBraceView;
 class RightBraceView;
 class SimpleTextItem;
 class IntervalMenuOverlay;
-class SCORE_PLUGIN_SCENARIO_EXPORT IntervalView
-    : public QObject
-    , public QGraphicsItem
+class SCORE_PLUGIN_SCENARIO_EXPORT IntervalView : public QObject,
+                                                  public QGraphicsItem
 {
   W_OBJECT(IntervalView)
   Q_INTERFACES(QGraphicsItem)
@@ -131,7 +132,8 @@ public:
   }
 
 public:
-  void requestOverlayMenu(QPointF arg_1) E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, requestOverlayMenu, arg_1);
+  void requestOverlayMenu(QPointF arg_1)
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, requestOverlayMenu, arg_1);
 
 protected:
   void setGripCursor();

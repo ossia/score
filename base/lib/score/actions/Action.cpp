@@ -2,9 +2,11 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "Action.hpp"
 
-#include <core/presenter/DocumentManager.hpp>
 #include <score/actions/ActionManager.hpp>
 #include <score/selection/SelectionStack.hpp>
+
+#include <core/presenter/DocumentManager.hpp>
+
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(score::CustomActionCondition)
 namespace score
@@ -62,10 +64,7 @@ ActionGroupKey ActionGroup::key() const
 }
 
 Action::Action(
-    QAction* act,
-    QString text,
-    ActionKey key,
-    ActionGroupKey k,
+    QAction* act, QString text, ActionKey key, ActionGroupKey k,
     const QKeySequence& defaultShortcut)
     : m_impl{act}
     , m_text{std::move(text)}
@@ -78,12 +77,8 @@ Action::Action(
   updateTexts();
 }
 Action::Action(
-    QAction* act,
-    QString text,
-    ActionKey key,
-    ActionGroupKey k,
-    const QKeySequence& defaultShortcut,
-    const QKeySequence& defaultShortcut2)
+    QAction* act, QString text, ActionKey key, ActionGroupKey k,
+    const QKeySequence& defaultShortcut, const QKeySequence& defaultShortcut2)
     : m_impl{act}
     , m_text{std::move(text)}
     , m_key{std::move(key)}
@@ -96,10 +91,7 @@ Action::Action(
 }
 
 Action::Action(
-    QAction* act,
-    QString text,
-    const char* key,
-    const char* group_key,
+    QAction* act, QString text, const char* key, const char* group_key,
     const QKeySequence& defaultShortcut)
     : m_impl{act}
     , m_text{std::move(text)}

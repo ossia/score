@@ -1,5 +1,6 @@
 #pragma once
 #include <QWidget>
+
 #include <score_lib_process_export.h>
 
 namespace Inspector
@@ -22,52 +23,40 @@ namespace Process
 {
 class ProcessModel;
 
-
 class SCORE_LIB_PROCESS_EXPORT PortWidgetSetup final
 {
 public:
   static void setupAlone(
-      const Process::Port& port
-      , const score::DocumentContext& ctx
-      , Inspector::Layout& lay
-      , QWidget* parent);
+      const Process::Port& port, const score::DocumentContext& ctx,
+      Inspector::Layout& lay, QWidget* parent);
   static void setupInLayout(
-      const Process::Port& port
-      , const score::DocumentContext& ctx
-      , Inspector::Layout& lay
-      , QWidget* parent);
-  static void setupControl(const Process::ControlInlet& inlet
-                           , QWidget* inlet_widget
-                           , const score::DocumentContext& ctx
-                           , Inspector::Layout& lay
-                           , QWidget* parent);
+      const Process::Port& port, const score::DocumentContext& ctx,
+      Inspector::Layout& lay, QWidget* parent);
+  static void setupControl(
+      const Process::ControlInlet& inlet, QWidget* inlet_widget,
+      const score::DocumentContext& ctx, Inspector::Layout& lay,
+      QWidget* parent);
 
   static QWidget* makeAddressWidget(
-      const Process::Port& port
-      , const score::DocumentContext& ctx
-      , QWidget* parent);
+      const Process::Port& port, const score::DocumentContext& ctx,
+      QWidget* parent);
 
-  private:
+private:
   static void setupImpl(
-      const QString& txt
-      , const Port& port
-      , const score::DocumentContext& ctx
-      , Inspector::Layout& lay
-      , QWidget* parent);
+      const QString& txt, const Port& port, const score::DocumentContext& ctx,
+      Inspector::Layout& lay, QWidget* parent);
 };
 /**
  * @brief Show the list of ports / addresses
  *
  * For use in the process inspectors.
  */
-class PortListWidget final
-    : public QWidget
+class PortListWidget final : public QWidget
 {
 public:
   PortListWidget(
-      const Process::ProcessModel& proc
-      , const score::DocumentContext& ctx
-      , QWidget* parent);
+      const Process::ProcessModel& proc, const score::DocumentContext& ctx,
+      QWidget* parent);
 
   void reload();
 

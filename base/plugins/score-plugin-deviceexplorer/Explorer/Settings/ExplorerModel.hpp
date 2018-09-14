@@ -1,8 +1,9 @@
 #pragma once
 #include <score/plugins/ProjectSettings/ProjectSettingsModel.hpp>
-#include <wobjectdefs.h>
 #include <score/plugins/settingsdelegate/SettingsDelegateModel.hpp>
+
 #include <score_plugin_deviceexplorer_export.h>
+#include <wobjectdefs.h>
 namespace Explorer::Settings
 {
 struct DeviceLogLevel
@@ -21,15 +22,16 @@ class SCORE_PLUGIN_DEVICEEXPLORER_EXPORT Model
 {
   W_OBJECT(Model)
 
-
   bool m_LocalTree = false;
   QString m_LogLevel;
 
 public:
   Model(QSettings& set, const score::ApplicationContext& ctx);
 
-  SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_DEVICEEXPLORER_EXPORT, bool, LocalTree)
-  SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_DEVICEEXPLORER_EXPORT, QString, LogLevel)
+  SCORE_SETTINGS_PARAMETER_HPP(
+      SCORE_PLUGIN_DEVICEEXPLORER_EXPORT, bool, LocalTree)
+  SCORE_SETTINGS_PARAMETER_HPP(
+      SCORE_PLUGIN_DEVICEEXPLORER_EXPORT, QString, LogLevel)
 };
 
 SCORE_SETTINGS_PARAMETER(Model, LogLevel)
@@ -42,9 +44,7 @@ class Model;
 }
 
 UUID_METADATA(
-    ,
-    score::DocumentPluginFactory,
-    Explorer::ProjectSettings::Model,
+    , score::DocumentPluginFactory, Explorer::ProjectSettings::Model,
     "1f923578-08c3-49be-9ba9-69c144ee2e32")
 
 namespace Explorer::ProjectSettings
@@ -71,9 +71,12 @@ public:
     vis.writeTo(*this);
   }
 
-  SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_DEVICEEXPLORER_EXPORT, qreal, MidiImportRatio)
-  SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_DEVICEEXPLORER_EXPORT, bool, RefreshOnStart)
-  SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_DEVICEEXPLORER_EXPORT, bool, ReconnectOnStart)
+  SCORE_SETTINGS_PARAMETER_HPP(
+      SCORE_PLUGIN_DEVICEEXPLORER_EXPORT, qreal, MidiImportRatio)
+  SCORE_SETTINGS_PARAMETER_HPP(
+      SCORE_PLUGIN_DEVICEEXPLORER_EXPORT, bool, RefreshOnStart)
+  SCORE_SETTINGS_PARAMETER_HPP(
+      SCORE_PLUGIN_DEVICEEXPLORER_EXPORT, bool, ReconnectOnStart)
 };
 
 SCORE_SETTINGS_PARAMETER(Model, MidiImportRatio)

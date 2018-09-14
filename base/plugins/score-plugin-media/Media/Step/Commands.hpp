@@ -1,10 +1,12 @@
 #pragma once
 #include <Media/Commands/MediaCommandFactory.hpp>
 #include <Media/Step/Model.hpp>
+
 #include <score/command/Command.hpp>
 #include <score/command/PropertyCommand.hpp>
 #include <score/model/path/Path.hpp>
 #include <score/model/path/PathSerialization.hpp>
+
 #include <ossia/detail/pod_vector.hpp>
 
 namespace Media

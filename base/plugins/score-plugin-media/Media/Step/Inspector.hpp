@@ -3,13 +3,15 @@
 #include <Media/Step/Model.hpp>
 #include <Process/Inspector/ProcessInspectorWidgetDelegate.hpp>
 #include <Process/Inspector/ProcessInspectorWidgetDelegateFactory.hpp>
-#include <QFormLayout>
-#include <QLineEdit>
-#include <QSpinBox>
+
 #include <score/command/Dispatchers/OngoingCommandDispatcher.hpp>
 #include <score/document/DocumentContext.hpp>
 #include <score/widgets/DoubleSlider.hpp>
 #include <score/widgets/SignalUtils.hpp>
+
+#include <QFormLayout>
+#include <QLineEdit>
+#include <QSpinBox>
 
 namespace Media
 {
@@ -52,8 +54,7 @@ public:
       m_dispatcher.commit();
     });
     con(m_dur, &QSpinBox::editingFinished, this, [&]() {
-      m_dispatcher.submitCommand<SetStepDuration>(
-          obj, m_dur.value());
+      m_dispatcher.submitCommand<SetStepDuration>(obj, m_dur.value());
       m_dispatcher.commit();
     });
     con(m_min, &QDoubleSpinBox::editingFinished, this, [&]() {

@@ -1,7 +1,9 @@
 #pragma once
-#include <QObject>
 #include <score/command/SettingsCommand.hpp>
 #include <score/plugins/documentdelegate/plugin/DocumentPlugin.hpp>
+
+#include <QObject>
+
 #include <score_lib_base_export.h>
 namespace score
 {

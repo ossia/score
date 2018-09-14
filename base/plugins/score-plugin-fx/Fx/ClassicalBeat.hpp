@@ -1,5 +1,6 @@
 #pragma once
 #include <Engine/Node/PdNode.hpp>
+
 #include <numeric>
 namespace Nodes
 {
@@ -14,7 +15,8 @@ struct Node
     static const constexpr auto category = "Control";
     static const constexpr auto author = "ossia score";
     static const constexpr auto kind = Process::ProcessCategory::Generator;
-    static const constexpr auto description = "A simple metronome - currently only supports 3/4 and 4/4";
+    static const constexpr auto description
+        = "A simple metronome - currently only supports 3/4 and 4/4";
     static const constexpr auto tags = std::array<const char*, 0>{};
     static const constexpr auto uuid
         = make_uuid("5d71816e-e081-4d85-b385-fb42472b41bf");
@@ -40,11 +42,8 @@ struct Node
 
   using control_policy = ossia::safe_nodes::last_tick;
   static void
-  run(float tempo,
-      const Control::time_signature& sig,
-      ossia::value_port& res,
-      ossia::token_request tk,
-      ossia::exec_state_facade st)
+  run(float tempo, const Control::time_signature& sig, ossia::value_port& res,
+      ossia::token_request tk, ossia::exec_state_facade st)
   {
     if (tk.date > tk.prev_date)
     {
@@ -65,7 +64,6 @@ struct Node
             res.write_value(1, tk.to_tick_time(next));
           else
             res.write_value(0, tk.to_tick_time(next));
-
         }
         else if (sig == Control::time_signature{4, 4})
         {

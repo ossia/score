@@ -12,17 +12,20 @@
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentPresenter.hpp>
 
-#include <core/document/Document.hpp>
-#include <core/document/DocumentPresenter.hpp>
-#include <map>
 #include <score/application/ApplicationContext.hpp>
 #include <score/document/DocumentContext.hpp>
 #include <score/document/DocumentInterface.hpp>
 #include <score/model/ModelMetadata.hpp>
 #include <score/tools/IdentifierGeneration.hpp>
 #include <score/tools/Todo.hpp>
-#include <utility>
+
+#include <core/document/Document.hpp>
+#include <core/document/DocumentPresenter.hpp>
+
 #include <wobjectimpl.h>
+
+#include <map>
+#include <utility>
 W_OBJECT_IMPL(Scenario::IntervalModel)
 
 namespace Scenario
@@ -57,8 +60,7 @@ IntervalModel::~IntervalModel()
 void IntervalModel::initConnections()
 {
   processes.added.connect<&IntervalModel::on_addProcess>(this);
-  processes.removing
-      .connect<&IntervalModel::on_removingProcess>(this);
+  processes.removing.connect<&IntervalModel::on_removingProcess>(this);
 }
 
 IntervalModel::IntervalModel(DataStream::Deserializer& vis, QObject* parent)
@@ -380,30 +382,30 @@ void IntervalModel::swapSlots(int pos1, int pos2, Slot::RackView v)
   {
     auto& v = m_fullView;
     int N = (int)v.size();
-    if(pos1 < N && pos2 < N)
+    if (pos1 < N && pos2 < N)
     {
-      if(pos1 < pos2)
+      if (pos1 < pos2)
       {
         auto val = *(v.begin() + pos1);
 
         v.insert(v.begin() + pos2, val);
         v.erase(v.begin() + pos1);
       }
-      else if(pos1 > pos2)
+      else if (pos1 > pos2)
       {
         auto val = *(v.begin() + pos1);
 
         v.insert(v.begin() + pos2, val);
         v.erase(v.begin() + pos1 + 1);
       }
-      //std::swap(*(v.begin() + pos1), *(v.begin() + pos2));
+      // std::swap(*(v.begin() + pos1), *(v.begin() + pos2));
     }
-    else if(pos1 < N && pos2 >= N)
+    else if (pos1 < N && pos2 >= N)
     {
       auto it = v.begin() + pos1;
       std::rotate(it, it + 1, v.end());
     }
-    else if(pos2 < N && pos1 >= N)
+    else if (pos2 < N && pos1 >= N)
     {
       auto it = v.begin() + pos2;
       std::rotate(it, it + 1, v.end());
@@ -413,30 +415,30 @@ void IntervalModel::swapSlots(int pos1, int pos2, Slot::RackView v)
   {
     auto& v = m_smallView;
     int N = v.size();
-    if(pos1 < N && pos2 < N)
+    if (pos1 < N && pos2 < N)
     {
-      if(pos1 < pos2)
+      if (pos1 < pos2)
       {
         auto val = *(v.begin() + pos1);
 
         v.insert(v.begin() + pos2, val);
         v.erase(v.begin() + pos1);
       }
-      else if(pos1 > pos2)
+      else if (pos1 > pos2)
       {
         auto val = *(v.begin() + pos1);
 
         v.insert(v.begin() + pos2, val);
         v.erase(v.begin() + pos1 + 1);
       }
-      //std::swap(*(v.begin() + pos1), *(v.begin() + pos2));
+      // std::swap(*(v.begin() + pos1), *(v.begin() + pos2));
     }
-    else if(pos1 < N && pos2 >= N)
+    else if (pos1 < N && pos2 >= N)
     {
       auto it = v.begin() + pos1;
       std::rotate(it, it + 1, v.end());
     }
-    else if(pos2 < N && pos1 >= N)
+    else if (pos2 < N && pos1 >= N)
     {
       auto it = v.begin() + pos2;
       std::rotate(it, it + 1, v.end());

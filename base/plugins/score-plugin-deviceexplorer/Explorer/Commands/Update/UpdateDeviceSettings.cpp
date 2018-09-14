@@ -6,11 +6,13 @@
 #include <Device/Protocol/DeviceSettings.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <Explorer/DocumentPlugin/NodeUpdateProxy.hpp>
-#include <algorithm>
+
 #include <score/model/path/Path.hpp>
 #include <score/model/path/PathSerialization.hpp>
 #include <score/model/tree/TreeNode.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
+
+#include <algorithm>
 #include <vector>
 
 namespace Explorer
@@ -18,8 +20,7 @@ namespace Explorer
 namespace Command
 {
 UpdateDeviceSettings::UpdateDeviceSettings(
-    const DeviceDocumentPlugin& devplug,
-    const QString& name,
+    const DeviceDocumentPlugin& devplug, const QString& name,
     const Device::DeviceSettings& parameters)
     : m_newParameters(parameters)
 {

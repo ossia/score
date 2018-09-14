@@ -1,11 +1,15 @@
 #pragma once
 #include <Process/TimeValue.hpp>
-#include <wobjectdefs.h>
-#include <QObject>
-#include <chrono>
+
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/serialization/JSONVisitor.hpp>
+
+#include <QObject>
+
 #include <score_plugin_scenario_export.h>
+#include <wobjectdefs.h>
+
+#include <chrono>
 
 class DataStream;
 class JSONObject;
@@ -18,7 +22,6 @@ class IntervalModel;
 class SCORE_PLUGIN_SCENARIO_EXPORT IntervalDurations final : public QObject
 {
   // These dates are relative to the beginning of the interval.
-
 
   SCORE_SERIALIZE_FRIENDS
 
@@ -111,25 +114,61 @@ public:
   };
 
 public:
-  void defaultDurationChanged(const TimeVal& arg) E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, defaultDurationChanged, arg);
-  void minDurationChanged(const TimeVal& arg) E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, minDurationChanged, arg);
-  void maxDurationChanged(const TimeVal& arg) E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, maxDurationChanged, arg);
-  void playPercentageChanged(double arg) E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, playPercentageChanged, arg);
-  void rigidityChanged(bool arg) E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, rigidityChanged, arg);
-  void minNullChanged(bool isMinNull) E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, minNullChanged, isMinNull);
-  void maxInfiniteChanged(bool isMaxInfinite) E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, maxInfiniteChanged, isMaxInfinite);
-  void speedChanged(double speed) E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, speedChanged, speed);
-  void guiDurationChanged(TimeVal guiDuration) E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, guiDurationChanged, guiDuration);
+  void defaultDurationChanged(const TimeVal& arg)
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, defaultDurationChanged, arg);
+  void minDurationChanged(const TimeVal& arg)
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, minDurationChanged, arg);
+  void maxDurationChanged(const TimeVal& arg)
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, maxDurationChanged, arg);
+  void playPercentageChanged(double arg)
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, playPercentageChanged, arg);
+  void rigidityChanged(bool arg)
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, rigidityChanged, arg);
+  void minNullChanged(bool isMinNull)
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, minNullChanged, isMinNull);
+  void maxInfiniteChanged(bool isMaxInfinite) E_SIGNAL(
+      SCORE_PLUGIN_SCENARIO_EXPORT, maxInfiniteChanged, isMaxInfinite);
+  void speedChanged(double speed)
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, speedChanged, speed);
+  void guiDurationChanged(TimeVal guiDuration)
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, guiDurationChanged, guiDuration);
 
-  PROPERTY(double, speed READ speed WRITE setSpeed NOTIFY speedChanged, W_Final)
-  PROPERTY(bool, isMaxInfinite READ isMaxInfinite WRITE setMaxInfinite NOTIFY maxInfiniteChanged, W_Final)
-  PROPERTY(bool, isMinNull READ isMinNull WRITE setMinNull NOTIFY minNullChanged, W_Final)
-  PROPERTY(bool, isRigid READ isRigid WRITE setRigid NOTIFY rigidityChanged, W_Final)
-  PROPERTY(double, percentage READ playPercentage WRITE setPlayPercentage NOTIFY playPercentageChanged, W_Final)
-  PROPERTY(TimeVal, guiDuration READ guiDuration WRITE setGuiDuration NOTIFY guiDurationChanged, W_Final)
-  PROPERTY(TimeVal, max READ maxDuration WRITE setMaxDuration NOTIFY maxDurationChanged, W_Final)
-  PROPERTY(TimeVal, min READ minDuration WRITE setMinDuration NOTIFY minDurationChanged, W_Final)
-  PROPERTY(TimeVal, default READ defaultDuration WRITE setDefaultDuration NOTIFY defaultDurationChanged, W_Final)
+  PROPERTY(
+      double, speed READ speed WRITE setSpeed NOTIFY speedChanged, W_Final)
+  PROPERTY(
+      bool,
+      isMaxInfinite READ isMaxInfinite WRITE setMaxInfinite NOTIFY
+          maxInfiniteChanged,
+      W_Final)
+  PROPERTY(
+      bool, isMinNull READ isMinNull WRITE setMinNull NOTIFY minNullChanged,
+      W_Final)
+  PROPERTY(
+      bool, isRigid READ isRigid WRITE setRigid NOTIFY rigidityChanged,
+      W_Final)
+  PROPERTY(
+      double,
+      percentage READ playPercentage WRITE setPlayPercentage NOTIFY
+          playPercentageChanged,
+      W_Final)
+  PROPERTY(
+      TimeVal,
+      guiDuration READ guiDuration WRITE setGuiDuration NOTIFY
+          guiDurationChanged,
+      W_Final)
+  PROPERTY(
+      TimeVal,
+      max READ maxDuration WRITE setMaxDuration NOTIFY maxDurationChanged,
+      W_Final)
+  PROPERTY(
+      TimeVal,
+      min READ minDuration WRITE setMinDuration NOTIFY minDurationChanged,
+      W_Final)
+  PROPERTY(
+      TimeVal,
+      default READ defaultDuration WRITE setDefaultDuration NOTIFY
+          defaultDurationChanged,
+      W_Final)
 private:
   IntervalModel& m_model;
 

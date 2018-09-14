@@ -1,9 +1,6 @@
 #pragma once
-#include <QObject>
-#include <QString>
-#include <QStringList>
-#include <core/plugin/PluginDependencyGraph.hpp>
 #include <score/application/ApplicationContext.hpp>
+#include <score/plugins/PluginInstances.hpp>
 #include <score/plugins/customfactory/FactoryFamily.hpp>
 #include <score/plugins/qt_interfaces/CommandFactory_QtInterface.hpp>
 #include <score/plugins/qt_interfaces/FactoryFamily_QtInterface.hpp>
@@ -11,8 +8,15 @@
 #include <score/plugins/qt_interfaces/GUIApplicationPlugin_QtInterface.hpp>
 #include <score/plugins/qt_interfaces/PluginRequirements_QtInterface.hpp>
 #include <score/tools/std/Optional.hpp>
-#include <score/plugins/PluginInstances.hpp>
+
+#include <core/plugin/PluginDependencyGraph.hpp>
+
+#include <QObject>
+#include <QString>
+#include <QStringList>
+
 #include <score_lib_base_export.h>
+
 #include <vector>
 namespace score
 {
@@ -51,14 +55,12 @@ std::pair<score::Plugin_QtInterface*, PluginLoadingError> loadPlugin(
     const std::vector<score::Addon>& availablePlugins);
 
 ossia::optional<score::Addon> makeAddon(
-    const QString& addon_path,
-    const QJsonObject& json_addon,
+    const QString& addon_path, const QJsonObject& json_addon,
     const std::vector<score::Addon>& availablePlugins);
 
 template <typename Registrar_T>
 void registerPluginsImpl(
-    const std::vector<score::Addon>& availablePlugins,
-    Registrar_T& registrar,
+    const std::vector<score::Addon>& availablePlugins, Registrar_T& registrar,
     const score::GUIApplicationContext& context)
 {
   // Load what the plug-ins have to offer.
@@ -98,8 +100,7 @@ void registerPluginsImpl(
 
 template <typename Registrar_T>
 void registerPlugins(
-    const std::vector<score::Addon>& availablePlugins,
-    Registrar_T& registrar,
+    const std::vector<score::Addon>& availablePlugins, Registrar_T& registrar,
     const score::GUIApplicationContext& context)
 {
   for (const score::Addon& addon : availablePlugins)

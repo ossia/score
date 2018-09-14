@@ -3,6 +3,7 @@
 #include "CurveTool.hpp"
 
 #include <Curve/Palette/CurvePalette.hpp>
+
 #include <score/statemachine/GraphicsSceneTool.hpp>
 
 namespace Curve

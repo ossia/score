@@ -11,23 +11,23 @@
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/Interval/Temporal/Braces/LeftBrace.hpp>
 #include <Scenario/Document/ModelConsistency.hpp>
-#include <qnamespace.h>
+
 #include <score/model/EntityMap.hpp>
 #include <score/model/Identifier.hpp>
 #include <score/selection/Selectable.hpp>
 #include <score/tools/Todo.hpp>
 #include <score/tools/std/Optional.hpp>
+
 #include <QPainter>
+#include <qnamespace.h>
+
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Scenario::IntervalPresenter)
 namespace Scenario
 {
 IntervalPresenter::IntervalPresenter(
-    const IntervalModel& model,
-    IntervalView* view,
-    IntervalHeader* header,
-    const Process::ProcessPresenterContext& ctx,
-    QObject* parent)
+    const IntervalModel& model, IntervalView* view, IntervalHeader* header,
+    const Process::ProcessPresenterContext& ctx, QObject* parent)
     : QObject{parent}
     , m_model{model}
     , m_view{view}

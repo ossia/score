@@ -1,8 +1,9 @@
 #pragma once
+#include <score/serialization/IsTemplate.hpp>
+
 #include <ossia/detail/config.hpp>
 
 #include <hopscotch_map.h>
-#include <score/serialization/IsTemplate.hpp>
 namespace score
 {
 template <typename... Args>

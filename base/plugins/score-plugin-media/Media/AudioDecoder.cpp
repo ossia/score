@@ -1,13 +1,15 @@
 #include "AudioDecoder.hpp"
 
+#include <score/tools/Todo.hpp>
+
 #include <QApplication>
 #include <QDebug>
 #include <QTimer>
+
 #include <eggs/variant.hpp>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <score/tools/Todo.hpp>
 
 #if __has_include(<libavcodec/avcodec.h>)
 extern "C"
@@ -35,7 +37,7 @@ constexpr audio_sample convert_sample(SampleFormat i);
 template <>
 constexpr audio_sample convert_sample<int16_t, 16>(int16_t i)
 {
-  if constexpr(std::is_same_v<audio_sample, float>)
+  if constexpr (std::is_same_v<audio_sample, float>)
     return (i + .5f) / (0x7FFF + .5f);
   else
     return (i + .5) / (0x7FFF + .5);
@@ -44,11 +46,12 @@ constexpr audio_sample convert_sample<int16_t, 16>(int16_t i)
 template <>
 constexpr audio_sample convert_sample<int32_t, 24>(int32_t i)
 {
-  if constexpr(std::is_same_v<audio_sample, float>)
-    return ((int32_t)i >> 8) / ((audio_sample)std::numeric_limits<int32_t>::max() / 256.f);
+  if constexpr (std::is_same_v<audio_sample, float>)
+    return ((int32_t)i >> 8)
+           / ((audio_sample)std::numeric_limits<int32_t>::max() / 256.f);
   else
-    return ((int32_t)i >> 8) / ((audio_sample)std::numeric_limits<int32_t>::max() / 256.);
-
+    return ((int32_t)i >> 8)
+           / ((audio_sample)std::numeric_limits<int32_t>::max() / 256.);
 }
 
 template <>
@@ -64,9 +67,7 @@ constexpr audio_sample convert_sample<float, 32>(float i)
 }
 
 template <
-    typename SampleFormat,
-    std::size_t Channels,
-    std::size_t SampleSize,
+    typename SampleFormat, std::size_t Channels, std::size_t SampleSize,
     bool Planar>
 struct Decoder;
 
@@ -167,8 +168,7 @@ struct Decoder<SampleFormat, dynamic_channels, SampleSize, true>
 };
 
 using decoder_t = eggs::variant<
-    Decoder<int16_t, 1, 16, true>,
-    Decoder<int16_t, 2, 16, true>,
+    Decoder<int16_t, 1, 16, true>, Decoder<int16_t, 2, 16, true>,
     Decoder<int16_t, 2, 16, false>, /*
      Decoder<int16_t, 4, 16, true>,
      Decoder<int16_t, 4, 16, false>,
@@ -179,8 +179,7 @@ using decoder_t = eggs::variant<
     Decoder<int16_t, dynamic_channels, 16, true>,
     Decoder<int16_t, dynamic_channels, 16, false>,
 
-    Decoder<int32_t, 1, 24, true>,
-    Decoder<int32_t, 2, 24, true>,
+    Decoder<int32_t, 1, 24, true>, Decoder<int32_t, 2, 24, true>,
     Decoder<int32_t, 2, 24, false>, /*
      Decoder<int32_t, 4, 24, true>,
      Decoder<int32_t, 4, 24, false>,
@@ -191,8 +190,7 @@ using decoder_t = eggs::variant<
     Decoder<int32_t, dynamic_channels, 24, true>,
     Decoder<int32_t, dynamic_channels, 24, false>,
 
-    Decoder<int32_t, 1, 32, true>,
-    Decoder<int32_t, 2, 32, true>,
+    Decoder<int32_t, 1, 32, true>, Decoder<int32_t, 2, 32, true>,
     Decoder<int32_t, 2, 32, false>, /*
      Decoder<int32_t, 4, 32, true>,
      Decoder<int32_t, 4, 32, false>,
@@ -203,8 +201,7 @@ using decoder_t = eggs::variant<
     Decoder<int32_t, dynamic_channels, 32, true>,
     Decoder<int32_t, dynamic_channels, 32, false>,
 
-    Decoder<float, 1, 32, true>,
-    Decoder<float, 2, 32, true>,
+    Decoder<float, 1, 32, true>, Decoder<float, 2, 32, true>,
     Decoder<float, 2, 32, false>, /*
    Decoder<float,   4, 32, true>,
    Decoder<float,   4, 32, false>,

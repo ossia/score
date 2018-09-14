@@ -3,25 +3,6 @@
 #include "Document.hpp"
 #include "DocumentModel.hpp"
 
-#include <QByteArray>
-#include <QCryptographicHash>
-#include <QDataStream>
-#include <QIODevice>
-#include <QJsonObject>
-#include <QJsonValue>
-#include <QMetaType>
-#include <QPair>
-#include <QString>
-#include <QVariant>
-#include <QVector>
-#include <QtGlobal>
-#include <algorithm>
-#include <core/application/ApplicationSettings.hpp>
-#include <core/command/CommandStack.hpp>
-#include <core/document/DocumentPresenter.hpp>
-#include <core/document/DocumentView.hpp>
-#include <core/presenter/DocumentManager.hpp>
-#include <iterator>
 #include <score/application/ApplicationComponents.hpp>
 #include <score/application/ApplicationContext.hpp>
 #include <score/document/DocumentContext.hpp>
@@ -36,6 +17,28 @@
 #include <score/serialization/JSONVisitor.hpp>
 #include <score/tools/IdentifierGeneration.hpp>
 #include <score/tools/std/Optional.hpp>
+
+#include <core/application/ApplicationSettings.hpp>
+#include <core/command/CommandStack.hpp>
+#include <core/document/DocumentPresenter.hpp>
+#include <core/document/DocumentView.hpp>
+#include <core/presenter/DocumentManager.hpp>
+
+#include <QByteArray>
+#include <QCryptographicHash>
+#include <QDataStream>
+#include <QIODevice>
+#include <QJsonObject>
+#include <QJsonValue>
+#include <QMetaType>
+#include <QPair>
+#include <QString>
+#include <QVariant>
+#include <QVector>
+#include <QtGlobal>
+
+#include <algorithm>
+#include <iterator>
 #include <stdexcept>
 #include <vector>
 
@@ -142,11 +145,8 @@ QByteArray Document::saveAsByteArray()
 
 // Load document
 Document::Document(
-    const QString& name,
-    const QVariant& data,
-    DocumentDelegateFactory& factory,
-    QWidget* parentview,
-    QObject* parent)
+    const QString& name, const QVariant& data,
+    DocumentDelegateFactory& factory, QWidget* parentview, QObject* parent)
     : QObject{parent}
     , m_metadata{name}
     , m_commandStack{*this}
@@ -175,10 +175,8 @@ Document::Document(
 }
 
 Document::Document(
-    const QString& name,
-    const QVariant& data,
-    DocumentDelegateFactory& factory,
-    QObject* parent)
+    const QString& name, const QVariant& data,
+    DocumentDelegateFactory& factory, QObject* parent)
     : QObject{parent}
     , m_metadata{name}
     , m_commandStack{*this}
@@ -199,8 +197,7 @@ Document::Document(
 }
 
 void DocumentModel::loadDocumentAsByteArray(
-    score::DocumentContext& ctx,
-    const QByteArray& data,
+    score::DocumentContext& ctx, const QByteArray& data,
     DocumentDelegateFactory& fact)
 {
   // Deserialize the first parts
@@ -271,8 +268,7 @@ void DocumentModel::loadDocumentAsByteArray(
 }
 
 void DocumentModel::loadDocumentAsJson(
-    score::DocumentContext& ctx,
-    const QJsonObject& json,
+    score::DocumentContext& ctx, const QJsonObject& json,
     DocumentDelegateFactory& fact)
 {
   const auto& doc_obj = json.find("Document");
@@ -323,10 +319,8 @@ void DocumentModel::loadDocumentAsJson(
 
 // Load document model
 DocumentModel::DocumentModel(
-    score::DocumentContext& ctx,
-    const QVariant& data,
-    DocumentDelegateFactory& fact,
-    QObject* parent)
+    score::DocumentContext& ctx, const QVariant& data,
+    DocumentDelegateFactory& fact, QObject* parent)
     : IdentifiedObject{Id<DocumentModel>(score::id_generator::getFirstId()),
                        "DocumentModel", parent}
 {

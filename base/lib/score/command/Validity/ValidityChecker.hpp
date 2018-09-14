@@ -1,5 +1,6 @@
 #pragma once
 #include <score/plugins/customfactory/FactoryFamily.hpp>
+
 #include <score_lib_base_export.h>
 
 namespace score
@@ -16,8 +17,7 @@ struct DocumentContext;
  *
  * @todo Do these checks when loading something.
  */
-class SCORE_LIB_BASE_EXPORT ValidityChecker
-    : public score::InterfaceBase
+class SCORE_LIB_BASE_EXPORT ValidityChecker : public score::InterfaceBase
 {
   SCORE_INTERFACE(ValidityChecker, "08d4e533-e212-41ba-b0c1-643cc2c98cae")
 public:

@@ -1,11 +1,13 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
-#include <Spline/SplineView.hpp>
 #include <Process/Style/ScenarioStyle.hpp>
+
 #include <QColorDialog>
 #include <QEasingCurve>
 #include <QGraphicsSceneMoveEvent>
 #include <QPainter>
+
+#include <Spline/SplineView.hpp>
 // Disclaimer:
 // Part of the code comes from splineeditor.cpp from
 // the Qt project:

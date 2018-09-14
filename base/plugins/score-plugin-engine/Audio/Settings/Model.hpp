@@ -1,22 +1,33 @@
 #pragma once
-#include <Audio/AudioInterface.hpp>
 #include <score/plugins/ProjectSettings/ProjectSettingsModel.hpp>
-#include <wobjectdefs.h>
 #include <score/plugins/settingsdelegate/SettingsDelegateModel.hpp>
-#include <score_plugin_engine_export.h>
 
-#define AUDIO_PARAMETER_HPP(Export, Type, Name)                                          \
-public:                                                                                  \
-  Type get##Name() const;                                                                \
-  void set##Name(Type);                                                                  \
-  W_PROPERTY(Type, Name READ get##Name WRITE set##Name)                                  \
-  struct p_ ## Name {                                                                    \
-    using param_type = Type;                                                             \
-    using model_type = W_ThisType;                                                       \
-    static constexpr auto name = #Name;                                                  \
-    static constexpr auto get() { constexpr auto x = &model_type::get##Name; return x; } \
-    static constexpr auto set() { constexpr auto x = &model_type::set##Name; return x; } \
-  };                                                                                     \
+#include <Audio/AudioInterface.hpp>
+#include <score_plugin_engine_export.h>
+#include <wobjectdefs.h>
+
+#define AUDIO_PARAMETER_HPP(Export, Type, Name)         \
+public:                                                 \
+  Type get##Name() const;                               \
+  void set##Name(Type);                                 \
+  W_PROPERTY(Type, Name READ get##Name WRITE set##Name) \
+  struct p_##Name                                       \
+  {                                                     \
+    using param_type = Type;                            \
+    using model_type = W_ThisType;                      \
+    static constexpr auto name = #Name;                 \
+    static constexpr auto get()                         \
+    {                                                   \
+      constexpr auto x = &model_type::get##Name;        \
+      return x;                                         \
+    }                                                   \
+    static constexpr auto set()                         \
+    {                                                   \
+      constexpr auto x = &model_type::set##Name;        \
+      return x;                                         \
+    }                                                   \
+  };                                                    \
+                                                        \
 private:
 
 namespace Audio::Settings
@@ -38,7 +49,8 @@ public:
   Model(QSettings& set, const score::ApplicationContext& ctx);
 
   void changed() E_SIGNAL(SCORE_PLUGIN_ENGINE_EXPORT, changed);
-  AUDIO_PARAMETER_HPP(SCORE_PLUGIN_ENGINE_EXPORT, Audio::AudioFactory::ConcreteKey, Driver)
+  AUDIO_PARAMETER_HPP(
+      SCORE_PLUGIN_ENGINE_EXPORT, Audio::AudioFactory::ConcreteKey, Driver)
   AUDIO_PARAMETER_HPP(SCORE_PLUGIN_ENGINE_EXPORT, QString, CardIn)
   AUDIO_PARAMETER_HPP(SCORE_PLUGIN_ENGINE_EXPORT, QString, CardOut)
   AUDIO_PARAMETER_HPP(SCORE_PLUGIN_ENGINE_EXPORT, int, BufferSize)

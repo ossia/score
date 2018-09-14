@@ -6,27 +6,28 @@
 
 #include <Process/Process.hpp>
 #include <Process/State/ProcessStateDataInterface.hpp>
-#include <QAbstractItemModel>
-#include <QObject>
 #include <Scenario/Document/Event/ExecutionStatus.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
 #include <Scenario/Process/ScenarioInterface.hpp>
 #include <State/Message.hpp>
-#include <algorithm>
+
 #include <score/document/DocumentContext.hpp>
 #include <score/document/DocumentInterface.hpp>
 #include <score/model/IdentifiedObject.hpp>
 #include <score/model/Identifier.hpp>
 
+#include <QAbstractItemModel>
+#include <QObject>
+
 #include <wobjectimpl.h>
+
+#include <algorithm>
 W_OBJECT_IMPL(Scenario::StateModel)
 namespace Scenario
 {
 StateModel::StateModel(
-    const Id<StateModel>& id,
-    const Id<EventModel>& eventId,
-    double yPos,
+    const Id<StateModel>& id, const Id<EventModel>& eventId, double yPos,
     QObject* parent)
     : Entity{id, Metadata<ObjectKey_k, StateModel>::get(), parent}
     , m_eventId{eventId}
@@ -39,7 +40,6 @@ StateModel::StateModel(
 
 StateModel::~StateModel()
 {
-
 }
 
 void StateModel::init()

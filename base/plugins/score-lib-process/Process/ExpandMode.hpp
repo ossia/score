@@ -1,5 +1,6 @@
 #pragma once
 #include <QMetaType>
+
 #include <wobjectdefs.h>
 
 enum ExpandMode : int8_t

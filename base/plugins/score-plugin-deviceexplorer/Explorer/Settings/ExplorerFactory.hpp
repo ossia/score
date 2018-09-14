@@ -2,6 +2,7 @@
 #include <Explorer/Settings/ExplorerModel.hpp>
 #include <Explorer/Settings/ExplorerPresenter.hpp>
 #include <Explorer/Settings/ExplorerView.hpp>
+
 #include <score/plugins/ProjectSettings/ProjectSettingsFactory.hpp>
 #include <score/plugins/settingsdelegate/SettingsDelegateFactory.hpp>
 

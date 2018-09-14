@@ -6,19 +6,22 @@
 #include "EventPresenter.hpp"
 
 #include <Process/Style/ScenarioStyle.hpp>
+#include <Scenario/Document/Event/ExecutionStatus.hpp>
+#include <Scenario/Document/VerticalExtent.hpp>
+
+#include <score/model/ModelMetadata.hpp>
+
 #include <QBrush>
 #include <QCursor>
 #include <QGraphicsSceneEvent>
 #include <QGraphicsSceneMouseEvent>
 #include <QPainter>
 #include <QPen>
-#include <Scenario/Document/Event/ExecutionStatus.hpp>
-#include <Scenario/Document/VerticalExtent.hpp>
-#include <algorithm>
 #include <qnamespace.h>
-#include <score/model/ModelMetadata.hpp>
 
 #include <wobjectimpl.h>
+
+#include <algorithm>
 W_OBJECT_IMPL(Scenario::EventView)
 
 namespace Scenario
@@ -49,7 +52,6 @@ EventView::EventView(EventPresenter& presenter, QGraphicsItem* parent)
 
 EventView::~EventView()
 {
-
 }
 
 void EventView::setCondition(const QString& cond)

@@ -4,11 +4,9 @@
 
 #include <Process/Process.hpp>
 #include <Process/ProcessList.hpp>
-#include <QDataStream>
-#include <QtGlobal>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Process/Algorithms/ProcessPolicy.hpp>
-#include <algorithm>
+
 #include <score/application/ApplicationContext.hpp>
 #include <score/model/EntityMap.hpp>
 #include <score/model/IdentifiedObject.hpp>
@@ -17,6 +15,11 @@
 #include <score/plugins/customfactory/StringFactoryKey.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/tools/MapCopy.hpp>
+
+#include <QDataStream>
+#include <QtGlobal>
+
+#include <algorithm>
 
 namespace Scenario
 {

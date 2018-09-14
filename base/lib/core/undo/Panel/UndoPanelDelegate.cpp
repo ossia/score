@@ -2,9 +2,10 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "UndoPanelDelegate.hpp"
 
-#include <QVBoxLayout>
 #include <core/document/Document.hpp>
 #include <core/undo/Panel/Widgets/UndoListWidget.hpp>
+
+#include <QVBoxLayout>
 
 namespace score
 {

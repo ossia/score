@@ -1,10 +1,12 @@
 #pragma once
 
-#include <QString>
-#include <wobjectdefs.h>
-#include <QWidget>
 #include <Scenario/Inspector/ExpressionValidator.hpp>
 #include <State/Expression.hpp>
+
+#include <QString>
+#include <QWidget>
+
+#include <wobjectdefs.h>
 
 class QComboBox;
 class QLabel;
@@ -45,9 +47,7 @@ class SimpleExpressionEditorWidget final : public QWidget
   W_OBJECT(SimpleExpressionEditorWidget)
 public:
   SimpleExpressionEditorWidget(
-      const score::DocumentContext&,
-      int index,
-      QWidget* parent = nullptr,
+      const score::DocumentContext&, int index, QWidget* parent = nullptr,
       QMenu* menu = nullptr);
 
   State::Expression relation();

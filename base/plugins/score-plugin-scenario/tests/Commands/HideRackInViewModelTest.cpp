@@ -2,7 +2,6 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include <Process/AbstractScenarioLayerModel.hpp>
 #include <Process/ProcessList.hpp>
-#include <QtTest/QtTest>
 #include <Scenario/Commands/Interval/AddLayerModelToSlot.hpp>
 #include <Scenario/Commands/Interval/AddProcessToInterval.hpp>
 #include <Scenario/Commands/Interval/AddRackToInterval.hpp>
@@ -18,8 +17,12 @@
 #include <Scenario/Document/Interval/Slot.hpp>
 #include <Scenario/Process/ScenarioFactory.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
-#include <core/command/CommandStack.hpp>
+
 #include <score/document/DocumentInterface.hpp>
+
+#include <core/command/CommandStack.hpp>
+
+#include <QtTest/QtTest>
 using namespace score;
 using namespace Scenario::Command;
 

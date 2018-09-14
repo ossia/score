@@ -1,8 +1,8 @@
 #include "CableHelpers.hpp"
 
-#include <ossia/detail/ptr_set.hpp>
-
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
+
+#include <ossia/detail/ptr_set.hpp>
 
 namespace Dataflow
 {

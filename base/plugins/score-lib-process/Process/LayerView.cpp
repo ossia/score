@@ -2,10 +2,11 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "LayerView.hpp"
 
+#include <Process/Dataflow/CableItem.hpp>
 #include <Process/HeaderDelegate.hpp>
 #include <Process/ProcessMimeSerialization.hpp>
 #include <Process/Style/ScenarioStyle.hpp>
-#include <Process/Dataflow/CableItem.hpp>
+
 #include <QGraphicsSceneDragDropEvent>
 #include <QMimeData>
 #include <QPainter>
@@ -21,17 +22,20 @@ HeaderDelegate::~HeaderDelegate()
 
 LayerView::~LayerView()
 {
-  for(auto item : childItems())
+  for (auto item : childItems())
   {
-    if(item->type() == Dataflow::CableItem::static_type())
+    if (item->type() == Dataflow::CableItem::static_type())
     {
       item->setParentItem(nullptr);
     }
   }
 }
-void LayerView::heightChanged(qreal) { }
-void LayerView::widthChanged(qreal) { }
-
+void LayerView::heightChanged(qreal)
+{
+}
+void LayerView::widthChanged(qreal)
+{
+}
 
 MiniLayer::~MiniLayer() = default;
 
@@ -72,7 +76,7 @@ void LayerView::paint(
 
 void LayerView::setHeight(qreal height) noexcept
 {
-  if(height != m_height)
+  if (height != m_height)
   {
     prepareGeometryChange();
     m_height = height;
@@ -82,7 +86,7 @@ void LayerView::setHeight(qreal height) noexcept
 
 void LayerView::setWidth(qreal width) noexcept
 {
-  if(width != m_width)
+  if (width != m_width)
   {
     prepareGeometryChange();
     m_width = width;

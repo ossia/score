@@ -2,25 +2,23 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "MappingExecution.hpp"
 
-#include <ossia/dataflow/nodes/mapping.hpp>
-#include <ossia/editor/mapper/detail/mapper_visitor.hpp>
-
 #include <Curve/CurveConversion.hpp>
 #include <Device/Protocol/DeviceInterface.hpp>
-#include <Process/ExecutionFunctions.hpp>
 #include <Process/ExecutionContext.hpp>
+#include <Process/ExecutionFunctions.hpp>
+
+#include <ossia/dataflow/nodes/mapping.hpp>
+#include <ossia/editor/mapper/detail/mapper_visitor.hpp>
 namespace Mapping
 {
 namespace RecreateOnPlay
 {
 Component::Component(
-    ::Mapping::ProcessModel& element,
-    const ::Execution::Context& ctx,
-    const Id<score::Component>& id,
-    QObject* parent)
-    : ::Execution::
-          ProcessComponent_T<Mapping::ProcessModel, ossia::node_process>{
-              element, ctx, id, "MappingElement", parent}
+    ::Mapping::ProcessModel& element, const ::Execution::Context& ctx,
+    const Id<score::Component>& id, QObject* parent)
+    : ::Execution::ProcessComponent_T<
+          Mapping::ProcessModel, ossia::node_process>{element, ctx, id,
+                                                      "MappingElement", parent}
 {
   node = std::make_shared<ossia::nodes::mapping>();
   m_ossia_process = std::make_shared<ossia::node_process>(node);
@@ -52,10 +50,10 @@ Component::~Component()
 void Component::recompute()
 {
   const auto& devices = *system().execState;
-  auto ossia_source_addr = Execution::makeDestination(
-      devices, process().sourceAddress());
-  auto ossia_target_addr = Execution::makeDestination(
-      devices, process().targetAddress());
+  auto ossia_source_addr
+      = Execution::makeDestination(devices, process().sourceAddress());
+  auto ossia_target_addr
+      = Execution::makeDestination(devices, process().targetAddress());
 
   std::shared_ptr<ossia::curve_abstract> curve;
   if (ossia_source_addr && ossia_target_addr)
@@ -67,13 +65,16 @@ void Component::recompute()
         sourceAddressType, targetAddressType); // If the type changes we need
                                                // to rebuild the curve.
   }
-  else if(ossia_source_addr)
+  else if (ossia_source_addr)
   {
-    curve = rebuildCurve(ossia_source_addr->address().get_value_type(), ossia_source_addr->address().get_value_type());
+    curve = rebuildCurve(
+        ossia_source_addr->address().get_value_type(),
+        ossia_source_addr->address().get_value_type());
   }
-  else if(ossia_target_addr)
+  else if (ossia_target_addr)
   {
-    curve = rebuildCurve(ossia::val_type::FLOAT, ossia_target_addr->address().get_value_type());
+    curve = rebuildCurve(
+        ossia::val_type::FLOAT, ossia_target_addr->address().get_value_type());
   }
   else
   {
@@ -85,9 +86,7 @@ void Component::recompute()
     std::function<void()> v
         = [proc = std::dynamic_pointer_cast<ossia::nodes::mapping>(
                OSSIAProcess().node),
-           curve] {
-            proc->set_behavior(std::move(curve));
-          };
+           curve] { proc->set_behavior(std::move(curve)); };
     in_exec([fun = std::move(v)] { fun(); });
     return;
   }

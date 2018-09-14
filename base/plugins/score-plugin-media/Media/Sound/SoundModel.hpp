@@ -1,21 +1,21 @@
 #pragma once
 #include <Media/MediaFileHandle.hpp>
-#include <wobjectdefs.h>
 #include <Media/Sound/SoundMetadata.hpp>
 #include <Process/Dataflow/Port.hpp>
 #include <Process/Process.hpp>
+
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/serialization/JSONVisitor.hpp>
 #include <score/serialization/VisitorCommon.hpp>
+
+#include <wobjectdefs.h>
 namespace Media
 {
 namespace Sound
 {
 class ProcessModel;
 
-class ProcessModel final
-    : public Process::ProcessModel
-    , public Nano::Observer
+class ProcessModel final : public Process::ProcessModel, public Nano::Observer
 {
   SCORE_SERIALIZE_FRIENDS
   PROCESS_METADATA_IMPL(Media::Sound::ProcessModel)
@@ -24,8 +24,7 @@ class ProcessModel final
 
 public:
   explicit ProcessModel(
-      const TimeVal& duration,
-      const Id<Process::ProcessModel>& id,
+      const TimeVal& duration, const Id<Process::ProcessModel>& id,
       QObject* parent);
 
   ~ProcessModel() override;
@@ -57,15 +56,31 @@ public:
   void on_mediaChanged();
 
   std::unique_ptr<Process::Outlet> outlet;
+
 public:
   void fileChanged() W_SIGNAL(fileChanged);
-  void upmixChannelsChanged(int upmixChannels) W_SIGNAL(upmixChannelsChanged, upmixChannels);
-  void startChannelChanged(int startChannel) W_SIGNAL(startChannelChanged, startChannel);
-  void startOffsetChanged(qint32 startOffset) W_SIGNAL(startOffsetChanged, startOffset);
+  void upmixChannelsChanged(int upmixChannels)
+      W_SIGNAL(upmixChannelsChanged, upmixChannels);
+  void startChannelChanged(int startChannel)
+      W_SIGNAL(startChannelChanged, startChannel);
+  void startOffsetChanged(qint32 startOffset)
+      W_SIGNAL(startOffsetChanged, startOffset);
 
-  PROPERTY(int, startChannel READ startChannel WRITE setStartChannel NOTIFY startChannelChanged, W_Final)
-  PROPERTY(int, upmixChannels READ upmixChannels WRITE setUpmixChannels NOTIFY upmixChannelsChanged, W_Final)
-  PROPERTY(int, startOffset READ startOffset WRITE setStartOffset NOTIFY startOffsetChanged, W_Final)
+  PROPERTY(
+      int,
+      startChannel READ startChannel WRITE setStartChannel NOTIFY
+          startChannelChanged,
+      W_Final)
+  PROPERTY(
+      int,
+      upmixChannels READ upmixChannels WRITE setUpmixChannels NOTIFY
+          upmixChannelsChanged,
+      W_Final)
+  PROPERTY(
+      int,
+      startOffset READ startOffset WRITE setStartOffset NOTIFY
+          startOffsetChanged,
+      W_Final)
 
 private:
   void init();
@@ -75,7 +90,6 @@ private:
   int m_startChannel{};
   qint32 m_startOffset{};
   qint32 m_endOffset{};
-
 };
 }
 }

@@ -1,8 +1,10 @@
 #pragma once
-#include <Process/Execution/ProcessComponent.hpp>
 #include <Loop/LoopProcessModel.hpp>
-#include <memory>
+#include <Process/Execution/ProcessComponent.hpp>
+
 #include <score/model/Identifier.hpp>
+
+#include <memory>
 
 class DeviceList;
 namespace Process
@@ -39,16 +41,13 @@ namespace RecreateOnPlay
 {
 // TODO see if this can be used for the base scenario model too.
 class Component final
-    : public ::Execution::
-          ProcessComponent_T<Loop::ProcessModel, ossia::loop>
+    : public ::Execution::ProcessComponent_T<Loop::ProcessModel, ossia::loop>
 {
   COMPONENT_METADATA("77b987ae-7bc8-4273-aa9c-9e4ba53a053d")
 public:
   Component(
-      ::Loop::ProcessModel& element,
-      const ::Execution::Context& ctx,
-      const Id<score::Component>& id,
-      QObject* parent);
+      ::Loop::ProcessModel& element, const ::Execution::Context& ctx,
+      const Id<score::Component>& id, QObject* parent);
 
   virtual ~Component();
 
@@ -63,10 +62,8 @@ private:
 private:
   std::shared_ptr<Execution::IntervalRawPtrComponent> m_ossia_interval;
 
-  std::shared_ptr<Execution::TimeSyncRawPtrComponent>
-      m_ossia_startTimeSync;
-  std::shared_ptr<Execution::TimeSyncRawPtrComponent>
-      m_ossia_endTimeSync;
+  std::shared_ptr<Execution::TimeSyncRawPtrComponent> m_ossia_startTimeSync;
+  std::shared_ptr<Execution::TimeSyncRawPtrComponent> m_ossia_endTimeSync;
 
   std::shared_ptr<Execution::EventComponent> m_ossia_startEvent;
   std::shared_ptr<Execution::EventComponent> m_ossia_endEvent;
@@ -75,11 +72,9 @@ private:
   std::shared_ptr<Execution::StateComponent> m_ossia_endState;
 };
 
-using ComponentFactory
-    = ::Execution::ProcessComponentFactory_T<Component>;
+using ComponentFactory = ::Execution::ProcessComponentFactory_T<Component>;
 }
 }
 
 SCORE_CONCRETE_COMPONENT_FACTORY(
-    Execution::ProcessComponentFactory,
-    Loop::RecreateOnPlay::ComponentFactory)
+    Execution::ProcessComponentFactory, Loop::RecreateOnPlay::ComponentFactory)

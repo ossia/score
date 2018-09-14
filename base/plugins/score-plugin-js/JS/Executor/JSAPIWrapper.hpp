@@ -1,10 +1,12 @@
 #pragma once
-#include <wobjectdefs.h>
+#include <score/tools/std/StringHash.hpp>
+
+#include <ossia/dataflow/dataflow_fwd.hpp>
 #include <ossia/detail/hash_map.hpp>
 
 #include <QtQml/QJSEngine>
-#include <score/tools/std/StringHash.hpp>
-#include <ossia/dataflow/dataflow_fwd.hpp>
+
+#include <wobjectdefs.h>
 namespace ossia
 {
 struct execution_state;
@@ -22,8 +24,10 @@ public:
   ~ExecStateWrapper() override;
 
 public:
-  QVariant read(const QString& address); W_SLOT(read);
-  void write(const QString& address, const QVariant& value); W_SLOT(write);
+  QVariant read(const QString& address);
+  W_SLOT(read);
+  void write(const QString& address, const QVariant& value);
+  W_SLOT(write);
 
 private:
   ossia::execution_state& devices;

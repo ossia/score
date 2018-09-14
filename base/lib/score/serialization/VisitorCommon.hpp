@@ -1,6 +1,7 @@
 #pragma once
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/serialization/JSONVisitor.hpp>
+
 #include <type_traits>
 
 /**

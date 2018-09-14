@@ -1,15 +1,18 @@
 #pragma once
 
-#include <Execution/Clock/ClockFactory.hpp>
-#include <wobjectdefs.h>
-#include <Execution/Clock/DefaultClock.hpp>
-#include <Execution/DocumentPlugin.hpp>
 #include <Scenario/Document/Interval/IntervalExecution.hpp>
+
 #include <ossia/editor/scenario/time_value.hpp>
+
 #include <QHBoxLayout>
 #include <QMainWindow>
 #include <QPushButton>
 #include <QToolBar>
+
+#include <Execution/Clock/ClockFactory.hpp>
+#include <Execution/Clock/DefaultClock.hpp>
+#include <Execution/DocumentPlugin.hpp>
+#include <wobjectdefs.h>
 namespace Execution
 {
 namespace ManualClock
@@ -40,14 +43,12 @@ public:
   void advance(int arg_1) W_SIGNAL(advance, arg_1);
 };
 
-class Clock final
-    : public QObject
-    , public Execution::Clock
-    , public Nano::Observer
+class Clock final : public QObject,
+                    public Execution::Clock,
+                    public Nano::Observer
 {
 public:
-  Clock(const Execution::Context& ctx)
-      : Execution::Clock{ctx}, m_default{ctx}
+  Clock(const Execution::Context& ctx) : Execution::Clock{ctx}, m_default{ctx}
   {
   }
 
@@ -58,8 +59,7 @@ public:
 private:
   TimeWidget* m_widg{};
   // Clock interface
-  void play_impl(
-      const TimeVal& t, Execution::BaseScenarioElement& bs) override
+  void play_impl(const TimeVal& t, Execution::BaseScenarioElement& bs) override
   {
     m_paused = false;
 

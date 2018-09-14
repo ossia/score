@@ -1,5 +1,7 @@
 #include "score_plugin_media.hpp"
 
+#include <Library/JSONLibrary/ProcessesItemModel.hpp>
+#include <Library/LibraryInterface.hpp>
 #include <Media/ApplicationPlugin.hpp>
 #include <Media/Effect/EffectExecutor.hpp>
 #include <Media/Effect/EffectProcessFactory.hpp>
@@ -15,32 +17,32 @@
 #include <Media/Step/Executor.hpp>
 #include <Media/Step/Factory.hpp>
 #include <Media/Step/Inspector.hpp>
-#include <Library/LibraryInterface.hpp>
-#include <Library/JSONLibrary/ProcessesItemModel.hpp>
-#include <QAction>
 #include <Scenario/Application/ScenarioApplicationPlugin.hpp>
 
+#include <QAction>
+
 #if defined(LILV_SHARED)
-#  include <Media/Effect/LV2/LV2EffectModel.hpp>
-#  include <Media/Effect/LV2/LV2Window.hpp>
+#include <Media/Effect/LV2/LV2EffectModel.hpp>
+#include <Media/Effect/LV2/LV2Window.hpp>
 #endif
 #if defined(HAS_VST2)
-#  include <Media/Effect/VST/VSTControl.hpp>
-#  include <Media/Effect/VST/VSTEffectModel.hpp>
-#  include <Media/Effect/VST/VSTExecutor.hpp>
-#  include <Media/Effect/VST/VSTWidgets.hpp>
+#include <Media/Effect/VST/VSTControl.hpp>
+#include <Media/Effect/VST/VSTEffectModel.hpp>
+#include <Media/Effect/VST/VSTExecutor.hpp>
+#include <Media/Effect/VST/VSTWidgets.hpp>
 #endif
 #if defined(HAS_FAUST)
-#  include <Media/Effect/Faust/FaustEffectModel.hpp>
+#include <Media/Effect/Faust/FaustEffectModel.hpp>
 #endif
-#include <core/document/Document.hpp>
-#include <core/document/DocumentModel.hpp>
 #include <score/plugins/application/GUIApplicationPlugin.hpp>
 #include <score/plugins/customfactory/FactoryFamily.hpp>
 #include <score/plugins/customfactory/FactorySetup.hpp>
 #include <score/plugins/settingsdelegate/SettingsDelegateFactory.hpp>
-#include <score_plugin_media_commands_files.hpp>
 
+#include <core/document/Document.hpp>
+#include <core/document/DocumentModel.hpp>
+
+#include <score_plugin_media_commands_files.hpp>
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Media::Step::View)
 W_OBJECT_IMPL(Media::Effect::EffectTitleItem)
@@ -48,88 +50,93 @@ W_OBJECT_IMPL(Media::Effect::EffectTitleItem)
 #if defined(HAS_VST2)
 namespace Media::VST
 {
-  class LibraryHandler final
-      : public Library::LibraryInterface
+class LibraryHandler final : public Library::LibraryInterface
+{
+  SCORE_CONCRETE("6a13c3cc-bca7-44d6-a0ef-644e99204460")
+  void setup(
+      Library::ProcessesItemModel& model,
+      const score::GUIApplicationContext& ctx) override
   {
-    SCORE_CONCRETE("6a13c3cc-bca7-44d6-a0ef-644e99204460")
-    void setup(Library::ProcessesItemModel& model, const score::GUIApplicationContext& ctx) override
+    const auto& key = VSTEffectFactory{}.concreteKey();
+    QModelIndex node = model.find(key);
+    if (node == QModelIndex{})
     {
-      const auto& key = VSTEffectFactory{}.concreteKey();
-      QModelIndex node = model.find(key);
-      if(node == QModelIndex{})
-      {
-        return;
-      }
-      auto& parent = *reinterpret_cast<Library::ProcessNode*>(node.internalPointer());
+      return;
+    }
+    auto& parent
+        = *reinterpret_cast<Library::ProcessNode*>(node.internalPointer());
 
-      auto& plug = ctx.applicationPlugin<Media::ApplicationPlugin>();
-      for(const auto& vst : plug.vst_infos)
+    auto& plug = ctx.applicationPlugin<Media::ApplicationPlugin>();
+    for (const auto& vst : plug.vst_infos)
+    {
+      if (vst.isValid)
       {
-        if(vst.isValid)
-        {
-          QJsonObject obj;
-          obj["Type"] = "Process";
-          obj["uuid"] = toJsonValue(key.impl());
-          obj["Data"] = QString::number(vst.uniqueID);
-          parent.emplace_back(Library::ProcessData{vst.prettyName, QIcon{}, obj, key}, &parent);
-        }
+        QJsonObject obj;
+        obj["Type"] = "Process";
+        obj["uuid"] = toJsonValue(key.impl());
+        obj["Data"] = QString::number(vst.uniqueID);
+        parent.emplace_back(
+            Library::ProcessData{vst.prettyName, QIcon{}, obj, key}, &parent);
       }
     }
-  };
+  }
+};
 }
 #endif
 
 #if defined(LILV_SHARED)
 namespace Media::LV2
 {
-  class LibraryHandler final
-      : public Library::LibraryInterface
+class LibraryHandler final : public Library::LibraryInterface
+{
+  SCORE_CONCRETE("570f0b92-a091-47ff-a5c3-a585e07df2bf")
+  void setup(
+      Library::ProcessesItemModel& model,
+      const score::GUIApplicationContext& ctx) override
   {
-    SCORE_CONCRETE("570f0b92-a091-47ff-a5c3-a585e07df2bf")
-    void setup(Library::ProcessesItemModel& model, const score::GUIApplicationContext& ctx) override
+    const auto& key = LV2EffectFactory{}.concreteKey();
+    QModelIndex node = model.find(key);
+    if (node == QModelIndex{})
     {
-      const auto& key = LV2EffectFactory{}.concreteKey();
-      QModelIndex node = model.find(key);
-      if(node == QModelIndex{})
+      return;
+    }
+    auto& parent
+        = *reinterpret_cast<Library::ProcessNode*>(node.internalPointer());
+
+    auto& plug = ctx.applicationPlugin<Media::ApplicationPlugin>();
+    auto& world = plug.lilv;
+
+    auto plugs = world.get_all_plugins();
+
+    std::map<QString, QVector<QString>> categories;
+
+    auto it = plugs.begin();
+    while (!plugs.is_end(it))
+    {
+      auto plug = plugs.get(it);
+      const auto class_name = plug.get_class().get_label().as_string();
+      const auto plug_name = plug.get_name().as_string();
+      categories[class_name].push_back(plug_name);
+      it = plugs.next(it);
+    }
+
+    for (auto& category : categories)
+    {
+      auto& cat = parent.emplace_back(
+          Library::ProcessData{category.first, QIcon{}, {}, {}}, &parent);
+      for (auto& plug : category.second)
       {
-        return;
-      }
-      auto& parent = *reinterpret_cast<Library::ProcessNode*>(node.internalPointer());
-
-      auto& plug = ctx.applicationPlugin<Media::ApplicationPlugin>();
-      auto& world = plug.lilv;
-
-      auto plugs = world.get_all_plugins();
-
-      std::map<QString, QVector<QString>> categories;
-
-      auto it = plugs.begin();
-      while (!plugs.is_end(it))
-      {
-        auto plug = plugs.get(it);
-        const auto class_name = plug.get_class().get_label().as_string();
-        const auto plug_name = plug.get_name().as_string();
-        categories[class_name].push_back(plug_name);
-        it = plugs.next(it);
-      }
-
-      for(auto& category : categories)
-      {
-        auto& cat = parent.emplace_back(Library::ProcessData{category.first, QIcon{}, {}, {}}, &parent);
-        for(auto& plug : category.second)
-        {
-          QJsonObject obj;
-          obj["Type"] = "Process";
-          obj["uuid"] = toJsonValue(key.impl());
-          obj["Data"] = plug;
-          cat.emplace_back(Library::ProcessData{plug, QIcon{}, obj, key}, &cat);
-        }
+        QJsonObject obj;
+        obj["Type"] = "Process";
+        obj["uuid"] = toJsonValue(key.impl());
+        obj["Data"] = plug;
+        cat.emplace_back(Library::ProcessData{plug, QIcon{}, obj, key}, &cat);
       }
     }
-  };
+  }
+};
 }
 #endif
-
 
 score_plugin_media::score_plugin_media()
 {
@@ -148,7 +155,7 @@ score_plugin_media::make_commands()
       Media::CommandFactoryName(), CommandGeneratorMap{}};
 
   ossia::for_each_type<
-    #include <score_plugin_media_commands.hpp>
+#include <score_plugin_media_commands.hpp>
       >(score::commands::FactoryInserter{cmds.second});
 
   return cmds;
@@ -173,45 +180,53 @@ score_plugin_media::factories(
   return instantiate_factories<
       score::ApplicationContext,
       FW<Process::ProcessModelFactory, Media::Sound::ProcessFactory,
-         Media::Effect::ProcessFactory, Media::Step::ProcessFactory, Media::Merger::ProcessFactory
+         Media::Effect::ProcessFactory, Media::Step::ProcessFactory,
+         Media::Merger::ProcessFactory
 #if defined(HAS_FAUST)
-         , Media::Faust::FaustEffectFactory
+         ,
+         Media::Faust::FaustEffectFactory
 #endif
 #if defined(LILV_SHARED)
-         , Media::LV2::LV2EffectFactory
+         ,
+         Media::LV2::LV2EffectFactory
 #endif
 #if defined(HAS_VST2)
-         , Media::VST::VSTEffectFactory
+         ,
+         Media::VST::VSTEffectFactory
 #endif
          >,
-      FW<Inspector::InspectorWidgetFactory
-      , Media::Sound::InspectorFactory
-      , Media::Effect::InspectorFactory
-    #if defined(HAS_FAUST)
-      , Media::Faust::InspectorFactory
-    #endif
-      , Media::Step::InspectorFactory
-      , Media::Merger::InspectorFactory
-      >,
+      FW<Inspector::InspectorWidgetFactory, Media::Sound::InspectorFactory,
+         Media::Effect::InspectorFactory
+#if defined(HAS_FAUST)
+         ,
+         Media::Faust::InspectorFactory
+#endif
+         ,
+         Media::Step::InspectorFactory, Media::Merger::InspectorFactory>,
       FW<Process::LayerFactory, Media::Sound::LayerFactory,
-         Media::Effect::LayerFactory,
-         Media::Step::LayerFactory, Media::Merger::LayerFactory
+         Media::Effect::LayerFactory, Media::Step::LayerFactory,
+         Media::Merger::LayerFactory
 #if defined(HAS_VST2)
-         , Media::VST::LayerFactory
+         ,
+         Media::VST::LayerFactory
 #endif
 #if defined(LILV_SHARED)
-         , Media::LV2::LayerFactory
+         ,
+         Media::LV2::LayerFactory
 #endif
 #if defined(HAS_FAUST)
-         , Media::Faust::LayerFactory
+         ,
+         Media::Faust::LayerFactory
 #endif
          >,
       FW<Library::LibraryInterface
 #if defined(HAS_VST2)
-         , Media::VST::LibraryHandler
+         ,
+         Media::VST::LibraryHandler
 #endif
 #if defined(LILV_SHARED)
-         , Media::LV2::LibraryHandler
+         ,
+         Media::LV2::LibraryHandler
 #endif
          >,
 
@@ -219,10 +234,8 @@ score_plugin_media::factories(
       FW<Process::PortFactory, Media::VST::VSTControlPortFactory>,
 #endif
 
-      FW<Execution::ProcessComponentFactory,
-         Execution::SoundComponentFactory,
-         Media::EffectProcessComponentFactory,
-         Execution::StepComponentFactory,
+      FW<Execution::ProcessComponentFactory, Execution::SoundComponentFactory,
+         Media::EffectProcessComponentFactory, Execution::StepComponentFactory,
          Execution::MergerComponentFactory
 #if defined(HAS_VST2)
          ,

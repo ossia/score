@@ -1,6 +1,7 @@
 #pragma once
 #include <Loop/LoopProcessModel.hpp>
 #include <Process/Inspector/ProcessInspectorWidgetDelegate.hpp>
+
 #include <QVBoxLayout>
 
 namespace Loop
@@ -10,10 +11,8 @@ class InspectorWidget final
 {
 public:
   explicit InspectorWidget(
-      const Loop::ProcessModel& object,
-      const score::DocumentContext& context,
+      const Loop::ProcessModel& object, const score::DocumentContext& context,
       QWidget* parent);
   ~InspectorWidget() override;
 };
-
 }

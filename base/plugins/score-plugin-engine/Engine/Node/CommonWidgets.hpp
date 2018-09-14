@@ -2,6 +2,7 @@
 #include <ossia/detail/string_map.hpp>
 
 #include <Engine/Node/Widgets.hpp>
+
 #include <array>
 namespace Control
 {
@@ -66,9 +67,14 @@ enum Waveform
 inline auto& waveformMap()
 {
   static const ossia::string_view_map<Waveform> waveform_map{
-      {"Sin", Sin},        {"Triangle", Triangle}, {"Saw", Saw},
-      {"Square", Square},  {"Sample & Hold", SampleAndHold},
-      {"Noise 1", Noise1}, {"Noise 2", Noise2}, {"Noise 3", Noise3}};
+      {"Sin", Sin},
+      {"Triangle", Triangle},
+      {"Saw", Saw},
+      {"Square", Square},
+      {"Sample & Hold", SampleAndHold},
+      {"Noise 1", Noise1},
+      {"Noise 2", Noise2},
+      {"Noise 3", Noise3}};
   return waveform_map;
 }
 static constexpr auto WaveformChooser()
@@ -76,8 +82,8 @@ static constexpr auto WaveformChooser()
   return Control::make_enum(
       "Waveform", 0U,
       ossia::make_array(
-          "Sin", "Triangle", "Saw", "Square", "Sample & Hold", "Noise 1", "Noise 2",
-          "Noise 3"));
+          "Sin", "Triangle", "Saw", "Square", "Sample & Hold", "Noise 1",
+          "Noise 2", "Noise 3"));
 }
 constexpr auto QuantificationChooser()
 {

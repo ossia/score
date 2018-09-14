@@ -1,14 +1,16 @@
 #pragma once
 #include <Dataflow/Commands/CableHelpers.hpp>
-#include <QByteArray>
-#include <QPair>
-#include <QVector>
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
 #include <Scenario/Document/Interval/Slot.hpp>
+
 #include <score/command/Command.hpp>
 #include <score/model/Identifier.hpp>
 #include <score/model/path/Path.hpp>
 #include <score/tools/std/Optional.hpp>
+
+#include <QByteArray>
+#include <QPair>
+#include <QVector>
 struct DataStreamInput;
 struct DataStreamOutput;
 namespace Process
@@ -24,8 +26,7 @@ namespace Command
 class RemoveProcessFromInterval final : public score::Command
 {
   SCORE_COMMAND_DECL(
-      ScenarioCommandFactoryName(),
-      RemoveProcessFromInterval,
+      ScenarioCommandFactoryName(), RemoveProcessFromInterval,
       "Remove a process")
 public:
   RemoveProcessFromInterval(

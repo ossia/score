@@ -3,13 +3,15 @@
 #include <Media/Merger/Model.hpp>
 #include <Process/Inspector/ProcessInspectorWidgetDelegate.hpp>
 #include <Process/Inspector/ProcessInspectorWidgetDelegateFactory.hpp>
-#include <QFormLayout>
-#include <QLineEdit>
-#include <QSpinBox>
+
 #include <score/command/Dispatchers/OngoingCommandDispatcher.hpp>
 #include <score/document/DocumentContext.hpp>
 #include <score/widgets/DoubleSlider.hpp>
 #include <score/widgets/SignalUtils.hpp>
+
+#include <QFormLayout>
+#include <QLineEdit>
+#include <QSpinBox>
 
 namespace Media
 {
@@ -33,8 +35,7 @@ public:
         [&] { m_count.setValue(obj.inCount()); });
 
     con(m_count, &QSpinBox::editingFinished, this, [&]() {
-      m_dispatcher.submitCommand<SetMergeInCount>(
-          obj, m_count.value());
+      m_dispatcher.submitCommand<SetMergeInCount>(obj, m_count.value());
       m_dispatcher.commit();
     });
 

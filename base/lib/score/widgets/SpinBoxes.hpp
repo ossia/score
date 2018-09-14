@@ -3,6 +3,7 @@
 #include <QSpinBox>
 #include <QTimeEdit>
 #include <QWheelEvent>
+
 #include <type_traits>
 
 namespace score

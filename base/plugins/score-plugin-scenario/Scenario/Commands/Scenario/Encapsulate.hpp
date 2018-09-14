@@ -1,11 +1,18 @@
 #pragma once
-#include <Scenario/Commands/ScenarioCommandFactory.hpp>
 #include <Scenario/Application/Menus/ScenarioCopy.hpp>
+#include <Scenario/Commands/ScenarioCommandFactory.hpp>
+
 #include <score/command/AggregateCommand.hpp>
-namespace score { class CommandStackFacade; }
+namespace score
+{
+class CommandStackFacade;
+}
 namespace Scenario
 {
-namespace Command { class Macro; }
+namespace Command
+{
+class Macro;
+}
 class IntervalModel;
 namespace Command
 {
@@ -28,15 +35,15 @@ struct EncapsData
 };
 
 EncapsData EncapsulateElements(
-    Scenario::Command::Macro& disp,
-    CategorisedScenario& cat,
+    Scenario::Command::Macro& disp, CategorisedScenario& cat,
     const ProcessModel& scenar);
 
 // Encapsulate the selected elements of scenar in a new sub-scenario
 void EncapsulateInScenario(
     const ProcessModel& scenar, const score::CommandStackFacade& stack);
 
-// Decpasulate a sub-scenar passed in argument in its parent scenario if possible
+// Decpasulate a sub-scenar passed in argument in its parent scenario if
+// possible
 void DecapsulateScenario(
     const ProcessModel& scenar, const score::CommandStackFacade& stack);
 

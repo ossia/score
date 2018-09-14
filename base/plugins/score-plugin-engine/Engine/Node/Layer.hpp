@@ -1,17 +1,20 @@
 #pragma once
 #include <Dataflow/UI/PortItem.hpp>
-#include <Effect/EffectLayer.hpp>
-#include <Engine/Node/Process.hpp>
-#include <Engine/Node/Widgets.hpp>
 #include <Process/Focus/FocusDispatcher.hpp>
 #include <Process/LayerPresenter.hpp>
 #include <Process/LayerView.hpp>
 #include <Process/Style/ScenarioStyle.hpp>
+#include <Scenario/Document/CommentBlock/TextItem.hpp>
+
+#include <score/widgets/RectItem.hpp>
+
 #include <QGraphicsProxyWidget>
 #include <QGraphicsSceneMouseEvent>
 #include <QPainter>
-#include <Scenario/Document/CommentBlock/TextItem.hpp>
-#include <score/widgets/RectItem.hpp>
+
+#include <Effect/EffectLayer.hpp>
+#include <Engine/Node/Process.hpp>
+#include <Engine/Node/Widgets.hpp>
 
 namespace Control
 {
@@ -90,8 +93,7 @@ private:
   }
 
   Process::LayerPresenter* makeLayerPresenter(
-      const Process::ProcessModel& lm,
-      Process::LayerView* v,
+      const Process::ProcessModel& lm, Process::LayerView* v,
       const Process::ProcessPresenterContext& context,
       QObject* parent) const final override
   {
@@ -106,8 +108,7 @@ private:
   }
 
   QGraphicsItem* makeItem(
-      const Process::ProcessModel& proc,
-      const score::DocumentContext& ctx,
+      const Process::ProcessModel& proc, const score::DocumentContext& ctx,
       score::RectItem* parent) const final override
   {
     auto rootItem = new score::EmptyRectItem{parent};

@@ -4,52 +4,48 @@
 
 #include "BaseScenarioComponent.hpp"
 
+#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
+#include <Protocols/Audio/AudioDevice.hpp>
+#include <Scenario/Application/ScenarioActions.hpp>
+#include <Scenario/Document/BaseScenario/BaseScenario.hpp>
+#include <Scenario/Document/Interval/IntervalExecution.hpp>
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
+#include <Scenario/Execution/score2OSSIA.hpp>
+
+#include <score/actions/ActionManager.hpp>
+#include <score/plugins/documentdelegate/plugin/DocumentPlugin.hpp>
+
+#include <core/document/Document.hpp>
+#include <core/document/DocumentModel.hpp>
+
 #include <ossia/audio/audio_protocol.hpp>
 #include <ossia/dataflow/execution_state.hpp>
 #include <ossia/dataflow/graph/graph_interface.hpp>
-#include <ossia/dataflow/port.hpp>
 #include <ossia/dataflow/graph_edge.hpp>
+#include <ossia/dataflow/port.hpp>
 #include <ossia/detail/logger.hpp>
 #include <ossia/editor/scenario/time_interval.hpp>
-
-#include <Engine/ApplicationPlugin.hpp>
-#include <Scenario/Document/Interval/IntervalExecution.hpp>
-#include <Execution/Settings/ExecutorModel.hpp>
-#include <Protocols/Audio/AudioDevice.hpp>
-#include <Audio/Settings/Model.hpp>
-#include <Scenario/Execution/score2OSSIA.hpp>
-#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
-#include <Scenario/Application/ScenarioActions.hpp>
-#include <Scenario/Document/BaseScenario/BaseScenario.hpp>
-#include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
-#include <core/document/Document.hpp>
-#include <core/document/DocumentModel.hpp>
-#include <score/actions/ActionManager.hpp>
 #include <ossia/network/common/path.hpp>
-#include <score/plugins/documentdelegate/plugin/DocumentPlugin.hpp>
+
 #include <QCoreApplication>
+
+#include <Audio/Settings/Model.hpp>
+#include <Engine/ApplicationPlugin.hpp>
+#include <Execution/Settings/ExecutorModel.hpp>
 #include <wobjectimpl.h>
 W_REGISTER_ARGTYPE(ossia::bench_map)
 W_OBJECT_IMPL(Execution::DocumentPlugin)
 namespace Execution
 {
 DocumentPlugin::DocumentPlugin(
-    const score::DocumentContext& ctx,
-    Id<score::DocumentPlugin> id,
+    const score::DocumentContext& ctx, Id<score::DocumentPlugin> id,
     QObject* parent)
     : score::DocumentPlugin{ctx, std::move(id), "OSSIADocumentPlugin", parent}
     , settings{ctx.app.settings<Execution::Settings::Model>()}
     , m_execQueue(1024)
     , m_editionQueue(1024)
-    , m_ctx{ctx,
-            m_created,
-            {},
-            {},
-            m_execQueue,
-            m_editionQueue,
-            m_setup_ctx,
-            execGraph,
-            execState}
+    , m_ctx{ctx,         m_created, {},       {}, m_execQueue, m_editionQueue,
+            m_setup_ctx, execGraph, execState}
     , m_setup_ctx{m_ctx}
     , m_base{m_ctx, this}
 {
@@ -67,31 +63,30 @@ DocumentPlugin::DocumentPlugin(
         audio_device);
   }
 
-  con(devs.list(), &Device::DeviceList::deviceAdded, this,
-      [=] (auto& dev) {
-    if(auto d = dev.getDevice())
+  con(devs.list(), &Device::DeviceList::deviceAdded, this, [=](auto& dev) {
+    if (auto d = dev.getDevice())
     {
-      connect(&dev, &Device::DeviceInterface::deviceChanged,
-              this, [=] (ossia::net::device_base* old_dev, ossia::net::device_base* new_dev) {
-        if(old_dev)
-          unregisterDevice(old_dev);
-        if(new_dev)
-          registerDevice(new_dev);
-      });
+      connect(
+          &dev, &Device::DeviceInterface::deviceChanged, this,
+          [=](ossia::net::device_base* old_dev,
+              ossia::net::device_base* new_dev) {
+            if (old_dev)
+              unregisterDevice(old_dev);
+            if (new_dev)
+              registerDevice(new_dev);
+          });
       registerDevice(d);
     }
   });
-  con(devs.list(), &Device::DeviceList::deviceRemoved, this,
-      [=] (auto& dev) {
-    if(auto d = dev.getDevice())
+  con(devs.list(), &Device::DeviceList::deviceRemoved, this, [=](auto& dev) {
+    if (auto d = dev.getDevice())
       unregisterDevice(d);
   });
 
   auto& model = ctx.model<Scenario::ScenarioDocumentModel>();
-  model.cables.mutable_added
-      .connect<&SetupContext::on_cableCreated>(m_setup_ctx);
-  model.cables.removing
-      .connect<&SetupContext::on_cableRemoved>(m_setup_ctx);
+  model.cables.mutable_added.connect<&SetupContext::on_cableCreated>(
+      m_setup_ctx);
+  model.cables.removing.connect<&SetupContext::on_cableRemoved>(m_setup_ctx);
 
   con(m_base, &Execution::BaseScenarioElement::finished, this,
       [=] {
@@ -105,7 +100,6 @@ DocumentPlugin::DocumentPlugin(
       Qt::QueuedConnection);
   connect(this, &DocumentPlugin::sig_bench, this, &DocumentPlugin::slot_bench);
 }
-
 
 DocumentPlugin::~DocumentPlugin()
 {
@@ -136,8 +130,11 @@ void DocumentPlugin::on_finished()
   clear();
 
   execState = std::make_unique<ossia::execution_state>();
-  auto& devlist = score::DocumentPlugin::context().plugin<Explorer::DeviceDocumentPlugin>().list().devices();
-  if(audio_device)
+  auto& devlist = score::DocumentPlugin::context()
+                      .plugin<Explorer::DeviceDocumentPlugin>()
+                      .list()
+                      .devices();
+  if (audio_device)
     execState->register_device(audio_device->getDevice());
   for (auto dev : devlist)
   {
@@ -176,7 +173,8 @@ void DocumentPlugin::makeGraph()
 {
   using namespace ossia;
   const score::DocumentContext& ctx = m_ctx.doc;
-  auto& devlist = ctx.plugin<Explorer::DeviceDocumentPlugin>().list().devices();
+  auto& devlist
+      = ctx.plugin<Explorer::DeviceDocumentPlugin>().list().devices();
   auto& audiosettings = ctx.app.settings<Audio::Settings::Model>();
 
   static const Execution::Settings::SchedulingPolicies sched_t;
@@ -200,7 +198,7 @@ void DocumentPlugin::makeGraph()
   execState->samples_since_start = 0;
   execState->start_date = 0; // TODO set it in the first callback
   execState->cur_date = execState->start_date;
-  if(audio_device)
+  if (audio_device)
     execState->register_device(audio_device->getDevice());
   for (auto dev : devlist)
   {
@@ -236,7 +234,6 @@ void DocumentPlugin::reload(Scenario::IntervalModel& cst)
     m_base.baseInterval().stop();
   }
   clear();
-
 
   const score::DocumentContext& ctx = m_ctx.doc;
   auto& settings = ctx.app.settings<Execution::Settings::Model>();
@@ -348,5 +345,4 @@ void DocumentPlugin::slot_bench(ossia::bench_map b, int64_t ns)
     }
   }
 }
-
 }

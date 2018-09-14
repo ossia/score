@@ -3,10 +3,12 @@
 #include "DeviceExplorerFilterProxyModel.hpp"
 
 #include <Explorer/Explorer/DeviceExplorerModel.hpp>
+
+#include <score/tools/Todo.hpp>
+
 #include <QAbstractItemModel>
 #include <QString>
 #include <QVariant>
-#include <score/tools/Todo.hpp>
 class QObject;
 
 namespace Explorer

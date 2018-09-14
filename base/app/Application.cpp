@@ -2,6 +2,30 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "Application.hpp"
 
+#include <score/application/ApplicationComponents.hpp>
+#include <score/application/GUIApplicationContext.hpp>
+#include <score/command/Validity/ValidityChecker.hpp>
+#include <score/model/Identifier.hpp>
+#include <score/model/path/ObjectIdentifier.hpp>
+#include <score/plugins/application/GUIApplicationPlugin.hpp>
+#include <score/plugins/documentdelegate/DocumentDelegateFactory.hpp>
+#include <score/selection/Selection.hpp>
+#include <score/tools/IdentifierGeneration.hpp>
+#include <score/tools/std/Optional.hpp>
+#include <score/widgets/Pixmap.hpp>
+
+#include <core/application/ApplicationRegistrar.hpp>
+#include <core/application/ApplicationSettings.hpp>
+#include <core/application/SafeQApplication.hpp>
+#include <core/document/DocumentBackups.hpp>
+#include <core/document/DocumentModel.hpp>
+#include <core/presenter/DocumentManager.hpp>
+#include <core/presenter/Presenter.hpp>
+#include <core/view/Window.hpp>
+
+#include <ossia-qt/qt_logger.hpp>
+#include <ossia/context.hpp>
+#include <ossia/detail/logger.hpp>
 
 #include <QByteArray>
 #include <QCoreApplication>
@@ -20,39 +44,19 @@
 #include <QStringList>
 #include <QStyle>
 #include <QStyleFactory>
-#include <algorithm>
-#include <core/application/ApplicationRegistrar.hpp>
-#include <core/application/ApplicationSettings.hpp>
-#include <core/application/SafeQApplication.hpp>
-#include <core/document/DocumentBackups.hpp>
-#include <core/document/DocumentModel.hpp>
-#include <core/presenter/DocumentManager.hpp>
-#include <core/presenter/Presenter.hpp>
-#include <core/view/Window.hpp>
 #include <qnamespace.h>
-#include <score/application/ApplicationComponents.hpp>
-#include <score/application/GUIApplicationContext.hpp>
-#include <score/command/Validity/ValidityChecker.hpp>
-#include <score/model/Identifier.hpp>
-#include <score/model/path/ObjectIdentifier.hpp>
-#include <score/plugins/application/GUIApplicationPlugin.hpp>
-#include <score/plugins/documentdelegate/DocumentDelegateFactory.hpp>
-#include <score/selection/Selection.hpp>
-#include <score/tools/IdentifierGeneration.hpp>
-#include <score/tools/std/Optional.hpp>
+
 #include <spdlog/spdlog.h>
-#include <ossia/context.hpp>
-#include <ossia/detail/logger.hpp>
+
+#include <algorithm>
 #include <vector>
-#include <score/widgets/Pixmap.hpp>
-#include <ossia-qt/qt_logger.hpp>
 
 #if __has_include(<QQuickStyle>)
-#  include <QQuickStyle>
+#include <QQuickStyle>
 #endif
 
 #if defined(SCORE_STATIC_PLUGINS)
-#  include <score_static_plugins.hpp>
+#include <score_static_plugins.hpp>
 #endif
 
 #include <wobjectimpl.h>
@@ -76,10 +80,12 @@ static void setQApplicationSettings(QApplication& m_app)
   QFontDatabase::addApplicationFont(":/Ubuntu-R.ttf");       // Ubuntu Regular
   QFontDatabase::addApplicationFont(":/Ubuntu-B.ttf");       // Ubuntu Bold
   QFontDatabase::addApplicationFont(":/Ubuntu-L.ttf");       // Ubuntu Light
-  QFontDatabase::addApplicationFont(":/Catamaran-Regular.ttf"); // Catamaran Regular
-  QFontDatabase::addApplicationFont(":/Montserrat-Regular.ttf");       // Montserrat
+  QFontDatabase::addApplicationFont(
+      ":/Catamaran-Regular.ttf"); // Catamaran Regular
+  QFontDatabase::addApplicationFont(":/Montserrat-Regular.ttf"); // Montserrat
 
-  QFile stylesheet_file{":/qsimpledarkstyle.qss"};//":/qdarkstyle/qdarkstyle.qss"};
+  QFile stylesheet_file{
+      ":/qsimpledarkstyle.qss"}; //":/qdarkstyle/qdarkstyle.qss"};
   stylesheet_file.open(QFile::ReadOnly);
   QString stylesheet = QLatin1String(stylesheet_file.readAll());
 
@@ -110,7 +116,6 @@ static void setQApplicationSettings(QApplication& m_app)
   QQuickStyle::setStyle(":/desktopqqc2style/Desktop");
 #endif
 }
-
 
 } // namespace score
 
@@ -199,7 +204,7 @@ void Application::init()
 
   score::setQApplicationMetadata();
 #if !defined(SCORE_DEBUG) && !defined(__EMSCRIPTEN__)
-#  define SCORE_SPLASH_SCREEN 1
+#define SCORE_SPLASH_SCREEN 1
 #endif
 #if defined(SCORE_SPLASH_SCREEN)
   QSplashScreen* splash{};
@@ -222,7 +227,8 @@ void Application::init()
   path += ";" + QCoreApplication::applicationDirPath() + "/plugins";
   qputenv("PATH", path);
   SetDllDirectoryW((wchar_t*)QCoreApplication::applicationDirPath().utf16());
-  SetDllDirectoryW((wchar_t*)(QCoreApplication::applicationDirPath() + "/plugins").utf16());
+  SetDllDirectoryW(
+      (wchar_t*)(QCoreApplication::applicationDirPath() + "/plugins").utf16());
 #endif
 
   // MVP

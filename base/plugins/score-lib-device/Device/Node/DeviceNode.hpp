@@ -1,16 +1,20 @@
 #pragma once
 #include <Device/Address/AddressSettings.hpp>
 #include <Device/Protocol/DeviceSettings.hpp>
-#include <QList>
-#include <QString>
-#include <QStringList>
 #include <State/Address.hpp>
 #include <State/Message.hpp>
-#include <algorithm>
+
 #include <score/model/tree/TreeNode.hpp>
 #include <score/model/tree/TreePath.hpp>
 #include <score/model/tree/VariantBasedNode.hpp>
+
+#include <QList>
+#include <QString>
+#include <QStringList>
+
 #include <score_lib_device_export.h>
+
+#include <algorithm>
 
 class DataStream;
 class JSONObject;
@@ -21,8 +25,8 @@ struct AddressSettings;
 struct DeviceSettings;
 
 class SCORE_LIB_DEVICE_EXPORT DeviceExplorerNode
-    : public score::
-          VariantBasedNode<Device::DeviceSettings, Device::AddressSettings>
+    : public score::VariantBasedNode<
+          Device::DeviceSettings, Device::AddressSettings>
 {
   SCORE_SERIALIZE_FRIENDS
 
@@ -109,7 +113,6 @@ merge(Device::Node base, const State::MessageList& other);
 SCORE_LIB_DEVICE_EXPORT void
 merge(Device::Node& base, const State::Message& message);
 
-
 // Generic algorithms for DeviceExplorerNode-like structures.
 template <typename Node_T, typename It>
 Node_T* try_getNodeFromString_impl(Node_T& n, It begin, It end)
@@ -154,6 +157,7 @@ Node_T* try_getNodeFromAddress(Node_T& root, const State::Address& addr)
 bool operator<(const Device::Node& lhs, const Device::Node& rhs);
 }
 
-extern template class SCORE_LIB_DEVICE_EXPORT TreeNode<Device::DeviceExplorerNode>;
+extern template class SCORE_LIB_DEVICE_EXPORT
+    TreeNode<Device::DeviceExplorerNode>;
 
 W_REGISTER_ARGTYPE(Device::Node*)

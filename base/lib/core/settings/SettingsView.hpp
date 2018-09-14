@@ -1,4 +1,7 @@
 #pragma once
+#include <score/plugins/settingsdelegate/SettingsDelegatePresenter.hpp>
+#include <score/plugins/settingsdelegate/SettingsDelegateView.hpp>
+
 #include <QBoxLayout>
 #include <QDialog>
 #include <QDialogButtonBox>
@@ -7,8 +10,7 @@
 #include <QSize>
 #include <QStackedWidget>
 #include <QWidget>
-#include <score/plugins/settingsdelegate/SettingsDelegatePresenter.hpp>
-#include <score/plugins/settingsdelegate/SettingsDelegateView.hpp>
+
 #include <set>
 
 class QWidget;

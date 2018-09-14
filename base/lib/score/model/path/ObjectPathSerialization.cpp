@@ -2,11 +2,12 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "ObjectPath.hpp"
 
+#include <score/serialization/DataStreamVisitor.hpp>
+#include <score/serialization/JSONVisitor.hpp>
+
 #include <QJsonArray>
 #include <QJsonObject>
 #include <QJsonValue>
-#include <score/serialization/DataStreamVisitor.hpp>
-#include <score/serialization/JSONVisitor.hpp>
 
 template <>
 SCORE_LIB_BASE_EXPORT void DataStreamReader::read(const ObjectPath& path)

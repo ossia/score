@@ -2,24 +2,12 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "CurveModel.hpp"
 
-#include <ossia/detail/algorithms.hpp>
-#include <ossia/network/domain/domain_base.hpp>
-
 #include <Curve/Point/CurvePointModel.hpp>
 #include <Curve/Segment/CurveSegmentData.hpp>
 #include <Curve/Segment/CurveSegmentList.hpp>
 #include <Curve/Segment/CurveSegmentModel.hpp>
 #include <Curve/Segment/CurveSegmentModelSerialization.hpp>
-
-#include <multi_index/hashed_index.hpp>
-#include <multi_index/mem_fun.hpp>
-#include <multi_index/member.hpp>
-#include <multi_index/ordered_index.hpp>
-#include <multi_index_container.hpp>
-
 #include <State/ValueConversion.hpp>
-#include <algorithm>
-
 
 #include <score/application/ApplicationContext.hpp>
 #include <score/document/DocumentContext.hpp>
@@ -33,7 +21,17 @@
 #include <score/tools/IdentifierGeneration.hpp>
 #include <score/tools/MapCopy.hpp>
 
+#include <ossia/detail/algorithms.hpp>
+#include <ossia/network/domain/domain_base.hpp>
+
+#include <multi_index/hashed_index.hpp>
+#include <multi_index/mem_fun.hpp>
+#include <multi_index/member.hpp>
+#include <multi_index/ordered_index.hpp>
+#include <multi_index_container.hpp>
 #include <wobjectimpl.h>
+
+#include <algorithm>
 W_OBJECT_IMPL(Curve::Model)
 
 namespace Curve

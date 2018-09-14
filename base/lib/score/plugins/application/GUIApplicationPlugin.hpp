@@ -1,10 +1,12 @@
 #pragma once
-#include <QString>
-#include <qnamespace.h>
 #include <score/actions/Action.hpp>
 #include <score/actions/Menu.hpp>
 #include <score/actions/Toolbar.hpp>
 #include <score/application/GUIApplicationContext.hpp>
+
+#include <QString>
+#include <qnamespace.h>
+
 #include <vector>
 class QAction;
 class QObject;

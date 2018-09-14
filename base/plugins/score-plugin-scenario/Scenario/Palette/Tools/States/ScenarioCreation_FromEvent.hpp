@@ -1,6 +1,5 @@
 #pragma once
 
-#include <QFinalState>
 #include <Scenario/Commands/Scenario/Creations/CreateEvent_State.hpp>
 #include <Scenario/Commands/Scenario/Creations/CreateState.hpp>
 #include <Scenario/Commands/Scenario/Displacement/MoveNewEvent.hpp>
@@ -14,6 +13,8 @@
 #include <Scenario/Palette/Transitions/StateTransitions.hpp>
 #include <Scenario/Palette/Transitions/TimeSyncTransitions.hpp>
 
+#include <QFinalState>
+
 namespace Scenario
 {
 template <typename Scenario_T, typename ToolPalette_T>
@@ -22,10 +23,8 @@ class Creation_FromEvent final
 {
 public:
   Creation_FromEvent(
-      const ToolPalette_T& stateMachine,
-      const Scenario_T& scenarioPath,
-      const score::CommandStackFacade& stack,
-      QState* parent)
+      const ToolPalette_T& stateMachine, const Scenario_T& scenarioPath,
+      const score::CommandStackFacade& stack, QState* parent)
       : CreationState<Scenario_T, ToolPalette_T>{
             stateMachine, stack, std::move(scenarioPath), parent}
   {

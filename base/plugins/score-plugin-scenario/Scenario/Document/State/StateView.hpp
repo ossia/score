@@ -1,14 +1,17 @@
 #pragma once
+#include <Scenario/Document/Event/ExecutionStatus.hpp>
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentViewConstants.hpp>
+
+#include <score/model/ColorReference.hpp>
+#include <score/widgets/MimeData.hpp>
+
 #include <QColor>
-#include <wobjectdefs.h>
 #include <QGraphicsItem>
 #include <QRect>
 #include <QtGlobal>
-#include <Scenario/Document/Event/ExecutionStatus.hpp>
-#include <Scenario/Document/ScenarioDocument/ScenarioDocumentViewConstants.hpp>
-#include <score/model/ColorReference.hpp>
-#include <score/widgets/MimeData.hpp>
+
 #include <score_plugin_scenario_export.h>
+#include <wobjectdefs.h>
 
 class QGraphicsSceneDragDropEvent;
 class QGraphicsSceneMouseEvent;
@@ -22,9 +25,8 @@ namespace Scenario
 class StateMenuOverlay;
 class StatePresenter;
 
-class SCORE_PLUGIN_SCENARIO_EXPORT StateView final
-    : public QObject
-    , public QGraphicsItem
+class SCORE_PLUGIN_SCENARIO_EXPORT StateView final : public QObject,
+                                                     public QGraphicsItem
 {
   W_OBJECT(StateView)
   Q_INTERFACES(QGraphicsItem)
@@ -58,8 +60,7 @@ public:
   }
 
   void paint(
-      QPainter* painter,
-      const QStyleOptionGraphicsItem* option,
+      QPainter* painter, const QStyleOptionGraphicsItem* option,
       QWidget* widget) override;
 
   void setContainMessage(bool);
@@ -68,8 +69,10 @@ public:
   void disableOverlay();
 
 public:
-  void dropReceived(const QMimeData& arg_1) E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, dropReceived, arg_1);
-  void startCreateMode() E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, startCreateMode);
+  void dropReceived(const QMimeData& arg_1)
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, dropReceived, arg_1);
+  void startCreateMode()
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, startCreateMode);
 
 protected:
   void mousePressEvent(QGraphicsSceneMouseEvent* event) override;

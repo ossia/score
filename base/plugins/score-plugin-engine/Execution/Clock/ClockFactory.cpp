@@ -2,11 +2,14 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "ClockFactory.hpp"
 
-#include <Execution/DocumentPlugin.hpp>
 #include <Scenario/Document/Interval/IntervalExecution.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentPresenter.hpp>
-#include <core/document/DocumentView.hpp>
+
 #include <score/document/DocumentInterface.hpp>
+
+#include <core/document/DocumentView.hpp>
+
+#include <Execution/DocumentPlugin.hpp>
 
 namespace Execution
 {
@@ -15,15 +18,16 @@ Clock::~Clock() = default;
 ClockFactory::~ClockFactory() = default;
 
 Clock::Clock(const Context& ctx)
-  : context{ctx}
-  , scenario{context.doc.plugin<DocumentPlugin>().baseScenario()}
+    : context{ctx}
+    , scenario{context.doc.plugin<DocumentPlugin>().baseScenario()}
 {
 }
 
 void Clock::play(const TimeVal& t)
 {
   play_impl(t, scenario);
-  if(auto v = score::IDocument::get<Scenario::ScenarioDocumentPresenter>(context.doc.document))
+  if (auto v = score::IDocument::get<Scenario::ScenarioDocumentPresenter>(
+          context.doc.document))
   {
     v->startTimeBar(scenario.baseInterval().interval());
   }
@@ -44,7 +48,8 @@ void Clock::stop()
   if (scenario.active())
     stop_impl(scenario);
 
-  if(auto v = score::IDocument::get<Scenario::ScenarioDocumentPresenter>(context.doc.document))
+  if (auto v = score::IDocument::get<Scenario::ScenarioDocumentPresenter>(
+          context.doc.document))
   {
     v->stopTimeBar();
   }
@@ -55,4 +60,3 @@ bool Clock::paused() const
   return false;
 }
 }
-

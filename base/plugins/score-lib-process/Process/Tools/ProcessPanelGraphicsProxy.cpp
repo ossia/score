@@ -3,6 +3,7 @@
 #include "ProcessPanelGraphicsProxy.hpp"
 
 #include <Process/Style/ScenarioStyle.hpp>
+
 #include <QPainter>
 
 class QStyleOptionGraphicsItem;

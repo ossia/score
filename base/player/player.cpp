@@ -4,29 +4,31 @@
 
 #include "player_impl.hpp"
 
+#include <Device/Protocol/DeviceInterface.hpp>
+
+#include <score/plugins/application/GUIApplicationPlugin.hpp>
+
 #include <ossia/detail/logger.hpp>
 #include <ossia/network/generic/generic_device.hpp>
 
 #include <Execution/Settings/ExecutorModel.hpp>
-#include <Device/Protocol/DeviceInterface.hpp>
-#include <score/plugins/application/GUIApplicationPlugin.hpp>
 #if defined(SCORE_PLUGIN_AUDIO)
-#  include <Audio/AudioStreamEngine/AudioApplicationPlugin.hpp>
-#  include <Audio/AudioStreamEngine/AudioDocumentPlugin.hpp>
-#  include <Audio/AudioStreamEngine/Clock/AudioClock.hpp>
-#  include <Audio/Settings/Card/CardSettingsModel.hpp>
+#include <Audio/AudioStreamEngine/AudioApplicationPlugin.hpp>
+#include <Audio/AudioStreamEngine/AudioDocumentPlugin.hpp>
+#include <Audio/AudioStreamEngine/Clock/AudioClock.hpp>
+#include <Audio/Settings/Card/CardSettingsModel.hpp>
 #endif
 
 #if defined(SCORE_ADDON_NETWORK)
-#  include <Network/Document/ClientPolicy.hpp>
-#  include <Network/Document/DocumentPlugin.hpp>
-#  include <Network/Document/Execution/BasicPruner.hpp>
-#  include <Network/PlayerPlugin.hpp>
-#  include <Network/Settings/NetworkSettingsModel.hpp>
+#include <Network/Document/ClientPolicy.hpp>
+#include <Network/Document/DocumentPlugin.hpp>
+#include <Network/Document/Execution/BasicPruner.hpp>
+#include <Network/PlayerPlugin.hpp>
+#include <Network/Settings/NetworkSettingsModel.hpp>
 #endif
 
 #if defined(SCORE_STATIC_PLUGINS)
-#  include <score_static_plugins.hpp>
+#include <score_static_plugins.hpp>
 #endif
 
 namespace score
@@ -92,8 +94,7 @@ void PlayerImpl::init()
   }
 
 #if defined(SCORE_PLUGIN_AUDIO)
-  auto& exec_settings
-      = m_appContext.settings<Execution::Settings::Model>();
+  auto& exec_settings = m_appContext.settings<Execution::Settings::Model>();
   exec_settings.setClock(
       Audio::AudioStreamEngine::AudioClockFactory::static_concreteKey());
   auto& audio_settings = m_appContext.settings<Audio::Settings::Model>();
@@ -217,11 +218,11 @@ void PlayerImpl::setupLoadedDocument()
 
   // Create execution plug-ins
   const score::DocumentContext& ctx = m_currentDocument->context();
-  m_localTreePlugin = new LocalTree::DocumentPlugin{
-      ctx, Id<DocumentPlugin>{999}, nullptr};
+  m_localTreePlugin
+      = new LocalTree::DocumentPlugin{ctx, Id<DocumentPlugin>{999}, nullptr};
   m_localTreePlugin->init();
-  m_execPlugin = new Execution::DocumentPlugin{
-      ctx, Id<DocumentPlugin>{998}, nullptr};
+  m_execPlugin
+      = new Execution::DocumentPlugin{ctx, Id<DocumentPlugin>{998}, nullptr};
 
   DocumentModel& doc_model = m_currentDocument->model();
   doc_model.addPluginModel(m_localTreePlugin);
@@ -304,8 +305,7 @@ void PlayerImpl::prepare_play()
   m_execPlugin->reload(root_cst);
   auto& exec_ctx = m_execPlugin->context();
 
-  auto& exec_settings
-      = m_appContext.settings<Execution::Settings::Model>();
+  auto& exec_settings = m_appContext.settings<Execution::Settings::Model>();
   m_clock = exec_settings.makeClock(exec_ctx);
 }
 

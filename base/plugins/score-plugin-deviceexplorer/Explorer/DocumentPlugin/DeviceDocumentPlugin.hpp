@@ -1,21 +1,24 @@
 #pragma once
 #include <Device/Node/DeviceNode.hpp>
-#include <wobjectdefs.h>
 #include <Explorer/DeviceList.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPluginFactory.hpp>
 #include <Explorer/DocumentPlugin/NodeUpdateProxy.hpp>
 #include <Explorer/Explorer/DeviceExplorerModel.hpp>
 #include <Explorer/Listening/ListeningHandler.hpp>
-#include <core/document/Document.hpp>
+
 #include <score/plugins/documentdelegate/plugin/DocumentPlugin.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/serialization/JSONVisitor.hpp>
+
+#include <core/document/Document.hpp>
+
 #include <score_plugin_deviceexplorer_export.h>
+#include <wobjectdefs.h>
 namespace Explorer
 {
 class SCORE_PLUGIN_DEVICEEXPLORER_EXPORT DeviceDocumentPlugin final
-    : public score::SerializableDocumentPlugin
-    , public Nano::Observer
+    : public score::SerializableDocumentPlugin,
+      public Nano::Observer
 {
   W_OBJECT(DeviceDocumentPlugin)
   SCORE_SERIALIZE_FRIENDS
@@ -23,8 +26,7 @@ class SCORE_PLUGIN_DEVICEEXPLORER_EXPORT DeviceDocumentPlugin final
   MODEL_METADATA_IMPL(DeviceDocumentPlugin)
 public:
   explicit DeviceDocumentPlugin(
-      const score::DocumentContext& ctx,
-      Id<DocumentPlugin> id,
+      const score::DocumentContext& ctx, Id<DocumentPlugin> id,
       QObject* parent);
 
   virtual ~DeviceDocumentPlugin();

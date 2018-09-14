@@ -2,9 +2,11 @@
 #include <Curve/Palette/CurvePoint.hpp>
 #include <Curve/Point/CurvePointView.hpp>
 #include <Curve/Segment/CurveSegmentView.hpp>
+
+#include <score/statemachine/GraphicsSceneTool.hpp>
+
 #include <QGraphicsItem>
 #include <QPoint>
-#include <score/statemachine/GraphicsSceneTool.hpp>
 
 namespace Curve
 {
@@ -18,11 +20,8 @@ public:
 protected:
   template <typename PointFun, typename SegmentFun, typename NothingFun>
   void mapTopItem(
-      QPointF scenePoint,
-      const QGraphicsItem* pressedItem,
-      PointFun pt_fun,
-      SegmentFun seg_fun,
-      NothingFun nothing_fun) const
+      QPointF scenePoint, const QGraphicsItem* pressedItem, PointFun pt_fun,
+      SegmentFun seg_fun, NothingFun nothing_fun) const
   {
     if (!pressedItem)
     {

@@ -1,6 +1,7 @@
 #include "EditFaustEffect.hpp"
 
 #include <Media/Effect/Faust/FaustEffectModel.hpp>
+
 #include <score/model/path/PathSerialization.hpp>
 #include <score/tools/IdentifierGeneration.hpp>
 namespace Media

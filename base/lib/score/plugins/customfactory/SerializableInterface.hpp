@@ -61,8 +61,7 @@ Type deserialize_key(DataStream::Deserializer& des)
  */
 template <typename FactoryList_T, typename... Args>
 auto deserialize_interface(
-    const FactoryList_T& factories,
-    DataStream::Deserializer& des,
+    const FactoryList_T& factories, DataStream::Deserializer& des,
     Args&&... args) -> typename FactoryList_T::object_type*
 {
   QByteArray b;
@@ -101,8 +100,7 @@ auto deserialize_interface(
 
 template <typename FactoryList_T, typename... Args>
 auto deserialize_interface(
-    const FactoryList_T& factories,
-    DataStream::Deserializer&& des,
+    const FactoryList_T& factories, DataStream::Deserializer&& des,
     Args&&... args) -> typename FactoryList_T::object_type*
 {
   QByteArray b;
@@ -141,8 +139,7 @@ auto deserialize_interface(
 
 template <typename FactoryList_T, typename... Args>
 auto deserialize_interface(
-    const FactoryList_T& factories,
-    JSONObject::Deserializer& des,
+    const FactoryList_T& factories, JSONObject::Deserializer& des,
     Args&&... args) -> typename FactoryList_T::object_type*
 {
   // Deserialize the interface identifier
@@ -171,8 +168,7 @@ auto deserialize_interface(
 
 template <typename FactoryList_T, typename... Args>
 auto deserialize_interface(
-    const FactoryList_T& factories,
-    JSONObject::Deserializer&& des,
+    const FactoryList_T& factories, JSONObject::Deserializer&& des,
     Args&&... args) -> typename FactoryList_T::object_type*
 {
   // Deserialize the interface identifier
@@ -203,16 +199,16 @@ auto deserialize_interface(
  * @macro MODEL_METADATA_IMPL Provides default implementations of methods of
  * SerializableInterface.
  */
-#define MODEL_METADATA_IMPL(Model_T)                                  \
-  static key_type static_concreteKey()                                \
-  {                                                                   \
-    return Metadata<ConcreteKey_k, Model_T>::get();                   \
-  }                                                                   \
-  key_type concreteKey() const override                               \
-  {                                                                   \
-    return static_concreteKey();                                      \
-  }                                                                   \
-  void serialize_impl(const VisitorVariant& vis) const override       \
-  {                                                                   \
-    score::serialize_dyn(vis, *this);                                 \
+#define MODEL_METADATA_IMPL(Model_T)                            \
+  static key_type static_concreteKey()                          \
+  {                                                             \
+    return Metadata<ConcreteKey_k, Model_T>::get();             \
+  }                                                             \
+  key_type concreteKey() const override                         \
+  {                                                             \
+    return static_concreteKey();                                \
+  }                                                             \
+  void serialize_impl(const VisitorVariant& vis) const override \
+  {                                                             \
+    score::serialize_dyn(vis, *this);                           \
   }

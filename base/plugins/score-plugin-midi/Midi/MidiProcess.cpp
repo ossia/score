@@ -2,14 +2,14 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include <Midi/MidiProcess.hpp>
 #include <Process/Dataflow/Port.hpp>
+
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Midi::ProcessModel)
 
 namespace Midi
 {
 ProcessModel::ProcessModel(
-    const TimeVal& duration,
-    const Id<Process::ProcessModel>& id,
+    const TimeVal& duration, const Id<Process::ProcessModel>& id,
     QObject* parent)
     : Process::ProcessModel{duration, id,
                             Metadata<ObjectKey_k, ProcessModel>::get(), parent}
@@ -190,8 +190,8 @@ void JSONObjectWriter::write(Midi::Note& n)
 template <>
 void DataStreamReader::read(const Midi::ProcessModel& proc)
 {
-  m_stream << *proc.outlet << proc.channel()
-           << proc.m_range.first << proc.m_range.second;
+  m_stream << *proc.outlet << proc.channel() << proc.m_range.first
+           << proc.m_range.second;
 
   const auto& notes = proc.notes;
 
@@ -208,8 +208,7 @@ template <>
 void DataStreamWriter::write(Midi::ProcessModel& proc)
 {
   proc.outlet = Process::make_outlet(*this, &proc);
-  m_stream >> proc.m_channel >> proc.m_range.first
-      >> proc.m_range.second;
+  m_stream >> proc.m_channel >> proc.m_range.first >> proc.m_range.second;
   int n;
   m_stream >> n;
   for (int i = 0; i < n; i++)

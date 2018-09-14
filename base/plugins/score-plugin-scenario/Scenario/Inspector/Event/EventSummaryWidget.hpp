@@ -1,6 +1,7 @@
 #pragma once
 
 #include <QWidget>
+
 #include <memory>
 
 namespace score
@@ -16,8 +17,7 @@ class EventSummaryWidget final : public QWidget
 {
 public:
   EventSummaryWidget(
-      const EventModel& object,
-      const score::DocumentContext& doc,
+      const EventModel& object, const score::DocumentContext& doc,
       QWidget* parent = nullptr);
   ~EventSummaryWidget() override;
   const EventModel& event;

@@ -1,6 +1,7 @@
 #pragma once
 #include <score/plugins/panel/PanelDelegate.hpp>
 #include <score/plugins/panel/PanelDelegateFactory.hpp>
+
 #include <score_lib_base_export.h>
 class QListWidget;
 class QListView;
@@ -18,8 +19,8 @@ static const QColor dark3 = QColor(Qt::darkRed).darker();
 static const QColor dark4 = QColor(Qt::darkBlue).darker();
 }
 class SCORE_LIB_BASE_EXPORT MessagesPanelDelegate final
-    : public QObject
-    , public score::PanelDelegate
+    : public QObject,
+      public score::PanelDelegate
 {
   friend class err_sink;
   W_OBJECT(MessagesPanelDelegate)
@@ -31,6 +32,7 @@ public:
   void qtLog(const std::string& str);
 
   QDockWidget* dock();
+
 private:
   QWidget* widget() override;
 

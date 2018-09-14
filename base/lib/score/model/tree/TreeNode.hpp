@@ -1,6 +1,7 @@
 #pragma once
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/serialization/JSONVisitor.hpp>
+
 #include <list>
 /**
  * @brief Base type for a tree data structure.
@@ -9,7 +10,7 @@
  * It can then be used in abstract item models easily.
  */
 
-template<typename T>
+template <typename T>
 auto& child_at(const std::list<T>& list, int index)
 {
   SCORE_ASSERT(index >= 0 && index < list.size());
@@ -18,7 +19,7 @@ auto& child_at(const std::list<T>& list, int index)
   return *it;
 }
 
-template<typename T>
+template <typename T>
 auto& child_at(std::list<T>& list, int index)
 {
   SCORE_ASSERT(index >= 0 && index < list.size());
@@ -27,14 +28,14 @@ auto& child_at(std::list<T>& list, int index)
   return *it;
 }
 
-template<typename T>
+template <typename T>
 int index_of_child(const std::list<T>& list, const T* child)
 {
   int i = 0;
   const auto end = list.end();
-  for(auto it = list.begin(); it != end; ++it)
+  for (auto it = list.begin(); it != end; ++it)
   {
-    if(&(*it) == child)
+    if (&(*it) == child)
       return i;
     i++;
   }
@@ -228,7 +229,7 @@ public:
   }
   void reserve(std::size_t s)
   {
-    //m_children.reserve(s);
+    // m_children.reserve(s);
   }
   void resize(std::size_t s)
   {
@@ -318,7 +319,6 @@ struct TSerializer<JSONObject, TreeNode<T>>
     }
   }
 };
-
 
 // True if gramps is a parent, grand-parent, etc. of node.
 template <typename Node_T>

@@ -1,7 +1,8 @@
 #pragma once
+#include <Process/LayerView.hpp>
+
 #include <Color/GradientModel.hpp>
 #include <wobjectdefs.h>
-#include <Process/LayerView.hpp>
 namespace Gradient
 {
 class View final : public Process::LayerView
@@ -19,9 +20,12 @@ public:
   }
 
 public:
-  void setColor(double pos, QColor arg_2) E_SIGNAL(SCORE_PLUGIN_AUTOMATION_EXPORT, setColor, pos, arg_2);
-  void movePoint(double old, double cur) E_SIGNAL(SCORE_PLUGIN_AUTOMATION_EXPORT, movePoint, old, cur);
-  void removePoint(double pos) E_SIGNAL(SCORE_PLUGIN_AUTOMATION_EXPORT, removePoint, pos);
+  void setColor(double pos, QColor arg_2)
+      E_SIGNAL(SCORE_PLUGIN_AUTOMATION_EXPORT, setColor, pos, arg_2);
+  void movePoint(double old, double cur)
+      E_SIGNAL(SCORE_PLUGIN_AUTOMATION_EXPORT, movePoint, old, cur);
+  void removePoint(double pos)
+      E_SIGNAL(SCORE_PLUGIN_AUTOMATION_EXPORT, removePoint, pos);
 
 private:
   void paint_impl(QPainter*) const override;

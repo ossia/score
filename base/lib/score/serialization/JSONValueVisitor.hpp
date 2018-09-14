@@ -1,15 +1,16 @@
 #pragma once
+#include <score/model/EntityBase.hpp>
+#include <score/serialization/StringConstants.hpp>
+#include <score/serialization/VisitorInterface.hpp>
+#include <score/serialization/VisitorTags.hpp>
+
+#include <ossia/detail/flat_set.hpp>
 #include <ossia/detail/small_vector.hpp>
 
 #include <QJsonArray>
 #include <QJsonObject>
 #include <QJsonValue>
 #include <QMap>
-#include <ossia/detail/flat_set.hpp>
-#include <score/model/EntityBase.hpp>
-#include <score/serialization/StringConstants.hpp>
-#include <score/serialization/VisitorInterface.hpp>
-#include <score/serialization/VisitorTags.hpp>
 template <class>
 class StringKey;
 
@@ -110,8 +111,8 @@ private:
   template <template <class...> class T, typename... Args>
   void write(
       T<Args...>& obj,
-      typename std::enable_if<is_template<T<Args...>>::value, void>::
-          type* = nullptr)
+      typename std::enable_if<
+          is_template<T<Args...>>::value, void>::type* = nullptr)
   {
     TSerializer<JSONValue, T<Args...>>::writeTo(*this, obj);
   }
@@ -359,9 +360,8 @@ void fromJsonValueArray(
 #endif
 
 template <
-    typename Container,
-    std::enable_if_t<
-        !std::is_arithmetic<typename Container::value_type>::value>* = nullptr>
+    typename Container, std::enable_if_t<!std::is_arithmetic<
+                            typename Container::value_type>::value>* = nullptr>
 QJsonArray toJsonValueArray(const Container& c)
 {
   QJsonArray arr;
@@ -375,9 +375,8 @@ QJsonArray toJsonValueArray(const Container& c)
 }
 
 template <
-    typename Container,
-    std::enable_if_t<
-        std::is_arithmetic<typename Container::value_type>::value>* = nullptr>
+    typename Container, std::enable_if_t<std::is_arithmetic<
+                            typename Container::value_type>::value>* = nullptr>
 QJsonArray toJsonValueArray(const Container& c)
 {
   QJsonArray arr;
@@ -570,7 +569,8 @@ struct TSerializer<JSONValue, UuidKey<U>>
 template <typename T, typename Alloc>
 struct TSerializer<JSONValue, std::vector<T, Alloc>>
 {
-  static void readFrom(JSONValue::Serializer& s, const std::vector<T, Alloc>& vec)
+  static void
+  readFrom(JSONValue::Serializer& s, const std::vector<T, Alloc>& vec)
   {
     QJsonArray arr;
     for (const auto& e : vec)
@@ -701,8 +701,7 @@ QJsonArray toJsonArray(const std::array<optional<float>, N>& array)
 }
 
 template <std::size_t N>
-QJsonArray
-toJsonArray(const std::array<ossia::flat_set<float>, N>& array)
+QJsonArray toJsonArray(const std::array<ossia::flat_set<float>, N>& array)
 {
   QJsonArray arr;
   for (auto& v : array)

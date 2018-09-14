@@ -4,14 +4,17 @@
 
 #include <Curve/CurveModel.hpp>
 #include <Process/Dataflow/Port.hpp>
-#include <QJsonObject>
-#include <QJsonValue>
 #include <State/Address.hpp>
-#include <algorithm>
+
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/serialization/JSONValueVisitor.hpp>
 #include <score/serialization/JSONVisitor.hpp>
 #include <score/serialization/VisitorCommon.hpp>
+
+#include <QJsonObject>
+#include <QJsonValue>
+
+#include <algorithm>
 
 template <>
 void DataStreamReader::read(const Mapping::ProcessModel& autom)

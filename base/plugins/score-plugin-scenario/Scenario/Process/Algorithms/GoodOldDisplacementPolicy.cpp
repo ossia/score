@@ -2,9 +2,6 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "GoodOldDisplacementPolicy.hpp"
 
-#include <QByteArray>
-#include <QMap>
-#include <QPair>
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/Interval/IntervalDurations.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
@@ -13,11 +10,16 @@
 #include <Scenario/Process/Algorithms/Accessors.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
 #include <Scenario/Tools/dataStructures.hpp>
+
 #include <score/model/EntityMap.hpp>
 #include <score/model/Identifier.hpp>
 #include <score/model/path/Path.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/tools/std/Optional.hpp>
+
+#include <QByteArray>
+#include <QMap>
+#include <QPair>
 
 template <typename T>
 class Reader;
@@ -27,8 +29,7 @@ namespace Scenario
 void GoodOldDisplacementPolicy::computeDisplacement(
     Scenario::ProcessModel& scenario,
     const QVector<Id<TimeSyncModel>>& draggedElements,
-    const TimeVal& deltaTime,
-    ElementsProperties& elementsProperties)
+    const TimeVal& deltaTime, ElementsProperties& elementsProperties)
 {
   // this old behavior supports only the move of one timesync
   if (draggedElements.length() != 1)

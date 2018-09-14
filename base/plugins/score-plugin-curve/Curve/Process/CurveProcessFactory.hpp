@@ -2,21 +2,19 @@
 #include <Curve/CurveStyle.hpp>
 #include <Process/Process.hpp>
 #include <Process/ProcessFactory.hpp>
+
 #include <score/serialization/VisitorCommon.hpp>
+
 #include <score_plugin_curve_export.h>
 
 namespace Curve
 {
 class EditionSettings;
 template <
-    typename Model_T,
-    typename LayerPresenter_T,
-    typename LayerView_T,
-    typename CurveColors_T,
-    typename HeaderDelegate_T>
-class CurveLayerFactory_T final
-    : public Process::LayerFactory
-    , public StyleInterface
+    typename Model_T, typename LayerPresenter_T, typename LayerView_T,
+    typename CurveColors_T, typename HeaderDelegate_T>
+class CurveLayerFactory_T final : public Process::LayerFactory,
+                                  public StyleInterface
 {
 public:
   virtual ~CurveLayerFactory_T() = default;
@@ -29,8 +27,7 @@ public:
   }
 
   LayerPresenter_T* makeLayerPresenter(
-      const Process::ProcessModel& lm,
-      Process::LayerView* v,
+      const Process::ProcessModel& lm, Process::LayerView* v,
       const Process::ProcessPresenterContext& context,
       QObject* parent) const final override
   {

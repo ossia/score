@@ -4,12 +4,13 @@
 
 #include "SettingsCommand.hpp"
 
-#include <QDataStream>
-#include <QIODevice>
-#include <QtGlobal>
 #include <score/application/ApplicationContext.hpp>
 #include <score/command/Command.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
+
+#include <QDataStream>
+#include <QIODevice>
+#include <QtGlobal>
 namespace score
 {
 Command::Command() /*:

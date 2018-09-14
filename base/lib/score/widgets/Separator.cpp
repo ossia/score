@@ -2,11 +2,12 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "Separator.hpp"
 
+#include <score/widgets/MarginLess.hpp>
+#include <score/widgets/TextLabel.hpp>
+
 #include <QBoxLayout>
 #include <QFrame>
 #include <QLayout>
-#include <score/widgets/MarginLess.hpp>
-#include <score/widgets/TextLabel.hpp>
 namespace score
 {
 HSeparator::HSeparator(QWidget* parent) : QWidget{parent}

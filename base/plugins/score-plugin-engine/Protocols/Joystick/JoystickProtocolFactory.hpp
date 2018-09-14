@@ -2,7 +2,8 @@
 
 #include <Protocols/DefaultProtocolFactory.hpp>
 
-namespace Engine::Network {
+namespace Engine::Network
+{
 
 class JoystickProtocolFactory final : public DefaultProtocolFactory
 {
@@ -28,5 +29,4 @@ class JoystickProtocolFactory final : public DefaultProtocolFactory
       const Device::DeviceSettings& a,
       const Device::DeviceSettings& b) const override;
 };
-
 }

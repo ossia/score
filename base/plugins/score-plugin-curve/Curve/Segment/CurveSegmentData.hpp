@@ -1,5 +1,6 @@
 #pragma once
 #include <Curve/Palette/CurvePoint.hpp>
+
 #include <score/model/IdentifiedObject.hpp>
 #include <score/plugins/customfactory/UuidKey.hpp>
 #include <score/tools/IdentifierGeneration.hpp>
@@ -62,13 +63,9 @@ struct SegmentData
   SegmentData& operator=(SegmentData&&) = default;
 
   SegmentData(
-      Id<SegmentModel> i,
-      Curve::Point s,
-      Curve::Point e,
-      OptionalId<SegmentModel> prev,
-      OptionalId<SegmentModel> foll,
-      const UuidKey<Curve::SegmentFactory>& t,
-      QVariant data)
+      Id<SegmentModel> i, Curve::Point s, Curve::Point e,
+      OptionalId<SegmentModel> prev, OptionalId<SegmentModel> foll,
+      const UuidKey<Curve::SegmentFactory>& t, QVariant data)
       : id(std::move(i))
       , start(s)
       , end(e)

@@ -7,12 +7,8 @@ class LinearSegment;
 }
 
 CURVE_SEGMENT_METADATA(
-    SCORE_PLUGIN_CURVE_EXPORT,
-    Curve::LinearSegment,
-    "a8bd14e2-d7e4-47cd-b76a-6a88fa11f0d2",
-    "Linear",
-    "Linear",
-    "")
+    SCORE_PLUGIN_CURVE_EXPORT, Curve::LinearSegment,
+    "a8bd14e2-d7e4-47cd-b76a-6a88fa11f0d2", "Linear", "Linear", "")
 
 namespace Curve
 {

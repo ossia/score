@@ -1,5 +1,6 @@
 #pragma once
 #include <Inspector/InspectorWidgetFactoryInterface.hpp>
+
 #include <QList>
 
 namespace Scenario
@@ -17,8 +18,7 @@ public:
 
   QWidget* make(
       const QList<const QObject*>& sourceElements,
-      const score::DocumentContext& doc,
-      QWidget* parent) const override;
+      const score::DocumentContext& doc, QWidget* parent) const override;
 
   bool update(QWidget* cur, const QList<const IdentifiedObjectAbstract*>& obj)
       const override;

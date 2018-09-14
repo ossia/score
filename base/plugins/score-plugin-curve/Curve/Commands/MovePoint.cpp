@@ -6,12 +6,15 @@
 #include <Curve/CurveModel.hpp>
 #include <Curve/Point/CurvePointModel.hpp>
 #include <Curve/Segment/CurveSegmentModel.hpp>
-#include <QPoint>
-#include <algorithm>
+
 #include <score/model/IdentifiedObjectMap.hpp>
 #include <score/model/path/Path.hpp>
 #include <score/model/path/PathSerialization.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
+
+#include <QPoint>
+
+#include <algorithm>
 
 namespace Curve
 {
@@ -66,8 +69,7 @@ void MovePoint::redo(const score::DocumentContext& ctx) const
 }
 
 void MovePoint::update(
-    const Model& obj,
-    const Id<PointModel>& pointId,
+    const Model& obj, const Id<PointModel>& pointId,
     const Curve::Point& newPoint)
 {
   m_newPoint = newPoint;

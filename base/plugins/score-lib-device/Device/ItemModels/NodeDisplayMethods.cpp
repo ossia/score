@@ -2,19 +2,20 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "NodeDisplayMethods.hpp"
 
-#include <ossia/network/domain/domain.hpp>
-#include <ossia/network/value/value_conversion.hpp>
-
 #include <Device/Address/AddressSettings.hpp>
 #include <Device/Address/IOType.hpp>
 #include <Device/Node/DeviceNode.hpp>
 #include <Device/Protocol/DeviceInterface.hpp>
 #include <Device/Protocol/DeviceSettings.hpp>
-#include <QBrush>
-#include <QFont>
 #include <State/Domain.hpp>
 #include <State/Value.hpp>
 #include <State/ValueConversion.hpp>
+
+#include <ossia/network/domain/domain.hpp>
+#include <ossia/network/value/value_conversion.hpp>
+
+#include <QBrush>
+#include <QFont>
 #include <qnamespace.h>
 
 namespace ossia

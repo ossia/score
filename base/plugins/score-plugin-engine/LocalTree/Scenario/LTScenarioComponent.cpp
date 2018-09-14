@@ -6,11 +6,8 @@ namespace LocalTree
 {
 
 ScenarioComponentBase::ScenarioComponentBase(
-    const Id<score::Component>& id,
-    ossia::net::node_base& parent,
-    Scenario::ProcessModel& scenario,
-    DocumentPlugin& sys,
-    QObject* parent_obj)
+    const Id<score::Component>& id, ossia::net::node_base& parent,
+    Scenario::ProcessModel& scenario, DocumentPlugin& sys, QObject* parent_obj)
     : ProcessComponent_T<Scenario::ProcessModel>{parent,
                                                  scenario,
                                                  sys,

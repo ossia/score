@@ -1,17 +1,20 @@
 #pragma once
-#include <score/tools/std/Optional.hpp>
 #include <Library/JSONLibrary/ProcessesItemModel.hpp>
+
+#include <score/tools/std/Optional.hpp>
 
 #include <QStandardItemModel>
 #include <QTableView>
 #include <QTreeView>
 class QFileSystemModel;
 class QSortFilterProxyModel;
-namespace score { struct GUIApplicationContext; }
+namespace score
+{
+struct GUIApplicationContext;
+}
 namespace Library
 {
-class ProcessTreeView
-    : public QTreeView
+class ProcessTreeView : public QTreeView
 {
   W_OBJECT(ProcessTreeView)
 public:
@@ -31,7 +34,6 @@ public:
 private:
   ProcessesItemModel* m_model{};
   ProcessTreeView m_tv;
-
 };
 }
 
@@ -41,7 +43,8 @@ namespace Library
 class SystemLibraryWidget : public QWidget
 {
 public:
-  SystemLibraryWidget(const score::GUIApplicationContext& ctx, QWidget* parent);
+  SystemLibraryWidget(
+      const score::GUIApplicationContext& ctx, QWidget* parent);
   ~SystemLibraryWidget();
 
   void setRoot(QString path);
@@ -50,7 +53,6 @@ private:
   QFileSystemModel* m_model{};
   QSortFilterProxyModel* m_proxy{};
   QTreeView m_tv;
-
 };
 }
 
@@ -60,15 +62,16 @@ namespace Library
 class ProjectLibraryWidget : public QWidget
 {
 public:
-  ProjectLibraryWidget(const score::GUIApplicationContext& ctx, QWidget* parent);
+  ProjectLibraryWidget(
+      const score::GUIApplicationContext& ctx, QWidget* parent);
   ~ProjectLibraryWidget();
 
   void setRoot(QString path);
+
 private:
   QFileSystemModel* m_model{};
   QSortFilterProxyModel* m_proxy{};
   QTreeView m_tv;
-
 };
 }
 

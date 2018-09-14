@@ -2,22 +2,25 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "InterpolationInspectorWidget.hpp"
 
+#include <State/ValueConversion.hpp>
+
 #include <score/document/DocumentContext.hpp>
+#include <score/widgets/ReactiveLabel.hpp>
+#include <score/widgets/TextLabel.hpp>
+
 #include <ossia/editor/state/destination_qualifiers.hpp>
 #include <ossia/network/dataspace/dataspace_visitors.hpp>
-#include <Interpolation/Commands/ChangeAddress.hpp>
-#include <State/ValueConversion.hpp>
+
 #include <QCheckBox>
 #include <QFormLayout>
 #include <QLabel>
-#include <score/widgets/ReactiveLabel.hpp>
-#include <score/widgets/TextLabel.hpp>
+
+#include <Interpolation/Commands/ChangeAddress.hpp>
 
 namespace Interpolation
 {
 InspectorWidget::InspectorWidget(
-    const ProcessModel& automationModel,
-    const score::DocumentContext& doc,
+    const ProcessModel& automationModel, const score::DocumentContext& doc,
     QWidget* parent)
     : InspectorWidgetDelegate_T{automationModel, parent}
     , m_dispatcher{doc.commandStack}
@@ -77,8 +80,7 @@ void InspectorWidget::on_tweenChanged()
 }
 
 StateInspectorWidget::StateInspectorWidget(
-    const ProcessState& object,
-    const score::DocumentContext& doc,
+    const ProcessState& object, const score::DocumentContext& doc,
     QWidget* parent)
     : InspectorWidgetBase{object, doc, parent, tr("State")}
     , m_state{object}
@@ -113,8 +115,7 @@ StateInspectorFactory::StateInspectorFactory() : InspectorWidgetFactory{}
 
 QWidget* StateInspectorFactory::make(
     const QList<const QObject*>& sourceElements,
-    const score::DocumentContext& doc,
-    QWidget* parent) const
+    const score::DocumentContext& doc, QWidget* parent) const
 {
   return new StateInspectorWidget{
       safe_cast<const ProcessState&>(*sourceElements.first()), doc, parent};
@@ -124,5 +125,4 @@ bool StateInspectorFactory::matches(const QList<const QObject*>& objects) const
 {
   return dynamic_cast<const ProcessState*>(objects.first());
 }
-
 }

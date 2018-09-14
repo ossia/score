@@ -1,5 +1,6 @@
 #pragma once
 #include <Recording/Commands/RecordingCommandFactory.hpp>
+
 #include <score/command/AggregateCommand.hpp>
 
 namespace Recording

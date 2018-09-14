@@ -2,18 +2,17 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "InterpStateProcess.hpp"
 
-#include <ossia/editor/state/destination_qualifiers.hpp>
-#include <ossia/network/dataspace/dataspace_visitors.hpp>
-
 #include <Curve/Segment/Power/PowerSegment.hpp>
 #include <State/ValueSerialization.hpp>
+
+#include <ossia/editor/state/destination_qualifiers.hpp>
+#include <ossia/network/dataspace/dataspace_visitors.hpp>
 
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(InterpState::ProcessModel)
 namespace InterpState
 {
 ProcessModel::~ProcessModel() = default;
-
 
 bool ProcessModel::contentHasDuration() const
 {
@@ -26,8 +25,7 @@ TimeVal ProcessModel::contentDuration() const
 }
 
 ProcessModel::ProcessModel(
-    const TimeVal& duration,
-    const Id<Process::ProcessModel>& id,
+    const TimeVal& duration, const Id<Process::ProcessModel>& id,
     QObject* parent)
     : CurveProcessModel{duration, id,
                         Metadata<ObjectKey_k, ProcessModel>::get(), parent}

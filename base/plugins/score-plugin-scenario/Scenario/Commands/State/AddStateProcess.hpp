@@ -1,8 +1,10 @@
 #pragma once
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
+
 #include <score/command/Command.hpp>
 #include <score/model/Identifier.hpp>
 #include <score/model/path/Path.hpp>
+
 #include <score_plugin_scenario_export.h>
 
 // RENAMEME
@@ -21,16 +23,14 @@ class SCORE_PLUGIN_SCENARIO_EXPORT AddStateProcessToState final
     : public score::Command
 {
   SCORE_COMMAND_DECL(
-      ScenarioCommandFactoryName(),
-      AddStateProcessToState,
+      ScenarioCommandFactoryName(), AddStateProcessToState,
       "Add a state process")
 public:
   AddStateProcessToState(
       const Scenario::StateModel& state,
       UuidKey<Process::ProcessModel> process);
   AddStateProcessToState(
-      const Scenario::StateModel& state,
-      Id<Process::ProcessModel> idToUse,
+      const Scenario::StateModel& state, Id<Process::ProcessModel> idToUse,
       UuidKey<Process::ProcessModel> process);
 
   void undo(const score::DocumentContext& ctx) const override;

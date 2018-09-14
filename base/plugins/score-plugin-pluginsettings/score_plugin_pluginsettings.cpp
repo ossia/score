@@ -1,7 +1,9 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include <PluginSettings/PluginSettings.hpp>
+
 #include <score/plugins/customfactory/FactorySetup.hpp>
+
 #include <score_plugin_pluginsettings.hpp>
 
 score_plugin_pluginsettings::score_plugin_pluginsettings() = default;

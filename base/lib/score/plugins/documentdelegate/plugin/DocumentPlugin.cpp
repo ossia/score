@@ -10,10 +10,8 @@ namespace score
 class Document;
 
 DocumentPlugin::DocumentPlugin(
-    const score::DocumentContext& ctx,
-    Id<DocumentPlugin> id,
-    const QString& name,
-    QObject* parent)
+    const score::DocumentContext& ctx, Id<DocumentPlugin> id,
+    const QString& name, QObject* parent)
     : IdentifiedObject<DocumentPlugin>{id, name, parent}, m_context{ctx}
 {
 }

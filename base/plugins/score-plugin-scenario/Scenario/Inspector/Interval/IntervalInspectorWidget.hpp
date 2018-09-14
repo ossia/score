@@ -1,14 +1,18 @@
 #pragma once
 
 #include <Inspector/InspectorWidgetBase.hpp>
-#include <QString>
-#include <QVector>
-#include <list>
-#include <memory>
-#include <nano_signal_slot.hpp>
+
 #include <score/model/Identifier.hpp>
 #include <score/tools/std/HashMap.hpp>
+
+#include <QString>
+#include <QVector>
+
+#include <nano_signal_slot.hpp>
 #include <score_plugin_scenario_export.h>
+
+#include <list>
+#include <memory>
 #include <vector>
 namespace Inspector
 {
@@ -35,10 +39,8 @@ class SCORE_PLUGIN_SCENARIO_EXPORT IntervalInspectorWidget final
 {
 public:
   explicit IntervalInspectorWidget(
-      const Inspector::InspectorWidgetList& list,
-      const IntervalModel& object,
-      const score::DocumentContext& context,
-      QWidget* parent = nullptr);
+      const Inspector::InspectorWidgetList& list, const IntervalModel& object,
+      const score::DocumentContext& context, QWidget* parent = nullptr);
 
   ~IntervalInspectorWidget() override;
 

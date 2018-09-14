@@ -6,8 +6,7 @@ namespace Command
 {
 
 MergeEvents::MergeEvents(
-    const ProcessModel& scenario,
-    Id<EventModel> clickedEv,
+    const ProcessModel& scenario, Id<EventModel> clickedEv,
     Id<EventModel> hoveredEv)
     : m_scenarioPath{scenario}
     , m_movingEventId{std::move(clickedEv)}

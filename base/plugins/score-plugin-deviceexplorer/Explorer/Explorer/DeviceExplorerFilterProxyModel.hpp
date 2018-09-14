@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Explorer/Explorer/Column.hpp>
+
 #include <QSortFilterProxyModel>
 
 class QModelIndex;

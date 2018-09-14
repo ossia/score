@@ -2,19 +2,22 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "MoveEventMeta.hpp"
 
-#include <QByteArray>
 #include <Scenario/Commands/Scenario/Displacement/MoveEventList.hpp>
 #include <Scenario/Commands/Scenario/Displacement/SerializableMoveEvent.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
 #include <Scenario/Process/Algorithms/VerticalMovePolicy.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
-#include <algorithm>
+
 #include <score/application/ApplicationContext.hpp>
 #include <score/model/Identifier.hpp>
 #include <score/model/path/PathSerialization.hpp>
 #include <score/plugins/customfactory/StringFactoryKey.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
+
+#include <QByteArray>
+
+#include <algorithm>
 
 namespace Scenario
 {
@@ -22,12 +25,8 @@ class EventModel;
 namespace Command
 {
 MoveEventMeta::MoveEventMeta(
-    const Scenario::ProcessModel& scenar,
-    Id<EventModel> eventId,
-    TimeVal newDate,
-    double y,
-    ExpandMode mode,
-    LockMode lm)
+    const Scenario::ProcessModel& scenar, Id<EventModel> eventId,
+    TimeVal newDate, double y, ExpandMode mode, LockMode lm)
     : SerializableMoveEvent{}
     , m_scenario{scenar}
     , m_eventId{std::move(eventId)}
@@ -51,12 +50,8 @@ MoveEventMeta::MoveEventMeta(
 }
 
 MoveEventMeta::MoveEventMeta(
-    const Scenario::ProcessModel& scenar,
-    Id<EventModel> eventId,
-    TimeVal newDate,
-    double y,
-    ExpandMode mode,
-    LockMode lm,
+    const Scenario::ProcessModel& scenar, Id<EventModel> eventId,
+    TimeVal newDate, double y, ExpandMode mode, LockMode lm,
     Id<StateModel> sid)
     : SerializableMoveEvent{}
     , m_scenario{scenar}
@@ -93,12 +88,8 @@ const Path<Scenario::ProcessModel>& MoveEventMeta::path() const
 }
 
 void MoveEventMeta::update(
-    ProcessModel& scenar,
-    const Id<EventModel>& eventId,
-    const TimeVal& newDate,
-    double y,
-    ExpandMode mode,
-    LockMode lock)
+    ProcessModel& scenar, const Id<EventModel>& eventId,
+    const TimeVal& newDate, double y, ExpandMode mode, LockMode lock)
 {
   if (lock == m_lock)
   {
@@ -118,12 +109,8 @@ void MoveEventMeta::update(
 }
 
 void MoveEventMeta::update(
-    ProcessModel& scenar,
-    const Id<EventModel>& eventId,
-    const TimeVal& newDate,
-    double y,
-    ExpandMode mode,
-    LockMode lock,
+    ProcessModel& scenar, const Id<EventModel>& eventId,
+    const TimeVal& newDate, double y, ExpandMode mode, LockMode lock,
     const Id<StateModel>& st)
 {
   if (lock == m_lock)
@@ -145,7 +132,7 @@ void MoveEventMeta::update(
 
 void MoveEventMeta::serializeImpl(DataStreamInput& s) const
 {
-  int l = (int) m_lock;
+  int l = (int)m_lock;
   s << m_scenario << m_eventId << m_stateId << l << m_oldY << m_newY
     << m_moveEventImplementation->serialize();
 }
@@ -156,7 +143,7 @@ void MoveEventMeta::deserializeImpl(DataStreamOutput& s)
   int l;
   s >> m_scenario >> m_eventId >> m_stateId >> l >> m_oldY >> m_newY
       >> cmdData;
-  m_lock = (LockMode) l;
+  m_lock = (LockMode)l;
 
   m_moveEventImplementation
       = score::AppContext()
@@ -197,12 +184,8 @@ void MoveEventMeta::updateY(Scenario::ProcessModel& scenar, double y) const
 }
 
 MoveTopEventMeta::MoveTopEventMeta(
-    const Scenario::ProcessModel& scenarioPath,
-    Id<EventModel> eventId,
-    TimeVal newDate,
-    double y,
-    ExpandMode mode,
-    LockMode)
+    const Scenario::ProcessModel& scenarioPath, Id<EventModel> eventId,
+    TimeVal newDate, double y, ExpandMode mode, LockMode)
     : SerializableMoveEvent{}
     , m_scenario{scenarioPath}
     , m_eventId{std::move(eventId)}
@@ -213,10 +196,7 @@ MoveTopEventMeta::MoveTopEventMeta(
                   score::AppContext(),
                   MoveEventFactoryInterface::Strategy::MOVE)
               .make(
-                  scenarioPath,
-                  m_eventId,
-                  std::move(newDate),
-                  mode,
+                  scenarioPath, m_eventId, std::move(newDate), mode,
                   LockMode::Free))
 {
 }
@@ -257,12 +237,8 @@ void MoveTopEventMeta::deserializeImpl(DataStreamOutput& s)
 }
 
 void MoveTopEventMeta::update(
-    Scenario::ProcessModel& scenar,
-    const Id<EventModel>& eventId,
-    const TimeVal& newDate,
-    double y,
-    ExpandMode mode,
-    LockMode lm)
+    Scenario::ProcessModel& scenar, const Id<EventModel>& eventId,
+    const TimeVal& newDate, double y, ExpandMode mode, LockMode lm)
 {
   m_moveEventImplementation->update(
       scenar, eventId, newDate, y, mode, LockMode::Free);

@@ -5,12 +5,11 @@ namespace Library
 
 LibraryInterface::~LibraryInterface()
 {
-
 }
 
-void LibraryInterface::setup(ProcessesItemModel& model, const score::GUIApplicationContext& ctx)
+void LibraryInterface::setup(
+    ProcessesItemModel& model, const score::GUIApplicationContext& ctx)
 {
-
 }
 
 QStringList LibraryInterface::acceptedFiles() const
@@ -24,9 +23,8 @@ QStringList LibraryInterface::acceptedMimeTypes() const
 }
 
 bool LibraryInterface::onDrop(
-    FileSystemModel& model
-    , const QMimeData& mime
-    , int row, int column, const QModelIndex& parent)
+    FileSystemModel& model, const QMimeData& mime, int row, int column,
+    const QModelIndex& parent)
 {
   return false;
 }

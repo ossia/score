@@ -6,11 +6,6 @@
 #include <Process/LayerPresenter.hpp>
 #include <Process/Process.hpp>
 #include <Process/ProcessList.hpp>
-#include <QAction>
-#include <QApplication>
-#include <QMenu>
-#include <QPoint>
-#include <QString>
 #include <Scenario/Application/ScenarioApplicationPlugin.hpp>
 #include <Scenario/Commands/CommandAPI.hpp>
 #include <Scenario/Commands/Interval/AddLayerInNewSlot.hpp>
@@ -30,7 +25,7 @@
 #include <Scenario/Process/Temporal/TemporalScenarioPresenter.hpp>
 #include <Scenario/Process/Temporal/TemporalScenarioView.hpp>
 #include <Scenario/ViewCommands/PutLayerModelToFront.hpp>
-#include <algorithm>
+
 #include <score/application/ApplicationContext.hpp>
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/command/Dispatchers/MacroCommandDispatcher.hpp>
@@ -43,13 +38,19 @@
 #include <score/selection/SelectionStack.hpp>
 #include <score/tools/std/Optional.hpp>
 
+#include <QAction>
+#include <QApplication>
+#include <QMenu>
+#include <QPoint>
+#include <QString>
+
+#include <algorithm>
+
 namespace Scenario
 {
 void ScenarioContextMenuManager::createSlotContextMenu(
-    const score::DocumentContext& ctx,
-    QMenu& menu,
-    const TemporalIntervalPresenter& pres,
-    int slot_index)
+    const score::DocumentContext& ctx, QMenu& menu,
+    const TemporalIntervalPresenter& pres, int slot_index)
 {
   using namespace Scenario::Command;
   // TODO see
@@ -77,8 +78,7 @@ void ScenarioContextMenuManager::createSlotContextMenu(
   // Then removal of slot
   auto removeSlotAct = menu.addAction(tr("Remove this slot"));
   QObject::connect(removeSlotAct, &QAction::triggered, [&, slot_path]() {
-    auto cmd = new RemoveSlotFromRack{slot_path,
-                                                         slot_path.find(ctx)};
+    auto cmd = new RemoveSlotFromRack{slot_path, slot_path.find(ctx)};
     CommandDispatcher<>{ctx.commandStack}.submitCommand(cmd);
   });
 
@@ -100,8 +100,7 @@ void ScenarioContextMenuManager::createSlotContextMenu(
         name = p.prettyShortName();
       QAction* procAct = new QAction{name, existing_processes_submenu};
       QObject::connect(procAct, &QAction::triggered, [&, slot_path]() mutable {
-        auto cmd2 = new AddLayerModelToSlot{
-            std::move(slot_path), p};
+        auto cmd2 = new AddLayerModelToSlot{std::move(slot_path), p};
         CommandDispatcher<>{ctx.commandStack}.submitCommand(cmd2);
       });
       existing_processes_submenu->addAction(procAct);
@@ -119,12 +118,10 @@ void ScenarioContextMenuManager::createSlotContextMenu(
 
         dialog->on_okPressed
             = [&, slot_path](const auto& proc, const QString& data) mutable {
-                QuietMacroCommandDispatcher<
-                    CreateProcessInExistingSlot>
-                    disp{ctx.commandStack};
+                QuietMacroCommandDispatcher<CreateProcessInExistingSlot> disp{
+                    ctx.commandStack};
 
-                auto cmd1 = new AddOnlyProcessToInterval(
-                    interval, proc, data);
+                auto cmd1 = new AddOnlyProcessToInterval(interval, proc, data);
                 cmd1->redo(ctx);
                 disp.submitCommand(cmd1);
 
@@ -153,7 +150,7 @@ void ScenarioContextMenuManager::createSlotContextMenu(
     dialog->on_okPressed = [&](const auto& proc, const QString& data) {
       Macro m{new AddProcessInNewSlot, ctx};
 
-      if(auto p = m.createProcess(interval, proc, data))
+      if (auto p = m.createProcess(interval, proc, data))
       {
         m.createSlot(interval);
         m.addLayerToLastSlot(interval, *p);
@@ -170,10 +167,8 @@ void ScenarioContextMenuManager::createSlotContextMenu(
 }
 
 void ScenarioContextMenuManager::createSlotContextMenu(
-    const score::DocumentContext& ctx,
-    QMenu& menu,
-    const FullViewIntervalPresenter& pres,
-    int slot_index)
+    const score::DocumentContext& ctx, QMenu& menu,
+    const FullViewIntervalPresenter& pres, int slot_index)
 {
   auto& interval = pres.model();
   const FullSlot& slot = interval.fullView().at(slot_index);
@@ -183,7 +178,8 @@ void ScenarioContextMenuManager::createSlotContextMenu(
     using namespace Scenario::Command;
     Macro m{new DuplicateProcess, ctx};
 
-    auto& proc = m.duplicateProcess(interval, interval.processes.at(slot.process));
+    auto& proc
+        = m.duplicateProcess(interval, interval.processes.at(slot.process));
     m.createSlot(interval);
     m.addLayerToLastSlot(interval, proc);
 
@@ -193,10 +189,8 @@ void ScenarioContextMenuManager::createSlotContextMenu(
 }
 
 void ScenarioContextMenuManager::createProcessSelectorContextMenu(
-    const score::DocumentContext& ctx,
-    QMenu& menu,
-    const TemporalIntervalPresenter& pres,
-    int slot_index)
+    const score::DocumentContext& ctx, QMenu& menu,
+    const TemporalIntervalPresenter& pres, int slot_index)
 {
   using namespace Scenario::Command;
   // TODO see
@@ -221,9 +215,7 @@ void ScenarioContextMenuManager::createProcessSelectorContextMenu(
 }
 
 void ScenarioContextMenuManager::createLayerContextMenu(
-    QMenu& menu,
-    QPoint pos,
-    QPointF scenepos,
+    QMenu& menu, QPoint pos, QPointF scenepos,
     const Process::LayerContextMenuManager& lcmmgr,
     Process::LayerPresenter& pres)
 {
@@ -268,9 +260,7 @@ void ScenarioContextMenuManager::createLayerContextMenu(
 }
 
 void ScenarioContextMenuManager::createLayerContextMenuForProcess(
-    QMenu& menu,
-    QPoint pos,
-    QPointF scenepos,
+    QMenu& menu, QPoint pos, QPointF scenepos,
     const Process::LayerContextMenuManager& lcmmgr,
     Process::LayerPresenter& pres)
 {

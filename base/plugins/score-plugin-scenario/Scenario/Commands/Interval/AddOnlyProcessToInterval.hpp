@@ -1,9 +1,11 @@
 #pragma once
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
+
 #include <score/command/Command.hpp>
 #include <score/model/Identifier.hpp>
 #include <score/model/path/Path.hpp>
 #include <score/tools/std/Optional.hpp>
+
 #include <score_plugin_scenario_export.h>
 struct DataStreamInput;
 struct DataStreamOutput;
@@ -27,14 +29,11 @@ class SCORE_PLUGIN_SCENARIO_EXPORT AddOnlyProcessToInterval final
       ScenarioCommandFactoryName(), AddOnlyProcessToInterval, "Add a process")
 public:
   AddOnlyProcessToInterval(
-      const IntervalModel& cst,
-      UuidKey<Process::ProcessModel> process,
+      const IntervalModel& cst, UuidKey<Process::ProcessModel> process,
       const QString& dat);
   AddOnlyProcessToInterval(
-      const IntervalModel& cst,
-      Id<Process::ProcessModel> idToUse,
-      UuidKey<Process::ProcessModel> process,
-      const QString& dat);
+      const IntervalModel& cst, Id<Process::ProcessModel> idToUse,
+      UuidKey<Process::ProcessModel> process, const QString& dat);
 
   void undo(const score::DocumentContext& ctx) const override;
   void redo(const score::DocumentContext& ctx) const override;
@@ -74,18 +73,19 @@ class SCORE_PLUGIN_SCENARIO_EXPORT LoadOnlyProcessInInterval final
     : public score::Command
 {
   SCORE_COMMAND_DECL(
-      ScenarioCommandFactoryName(), LoadOnlyProcessInInterval, "Load a process")
+      ScenarioCommandFactoryName(), LoadOnlyProcessInInterval,
+      "Load a process")
 public:
   LoadOnlyProcessInInterval(
-      const IntervalModel& cst,
-      Id<Process::ProcessModel> idToUse,
+      const IntervalModel& cst, Id<Process::ProcessModel> idToUse,
       const QJsonObject& obj);
 
   void undo(const score::DocumentContext& ctx) const override;
   void redo(const score::DocumentContext& ctx) const override;
 
   void undo(IntervalModel&) const;
-  Process::ProcessModel& redo(IntervalModel&, const score::DocumentContext& ctx) const;
+  Process::ProcessModel&
+  redo(IntervalModel&, const score::DocumentContext& ctx) const;
 
   const Path<IntervalModel>& intervalPath() const
   {
@@ -111,15 +111,13 @@ class SCORE_PLUGIN_SCENARIO_EXPORT DuplicateOnlyProcessToInterval final
     : public score::Command
 {
   SCORE_COMMAND_DECL(
-      ScenarioCommandFactoryName(),
-      DuplicateOnlyProcessToInterval,
+      ScenarioCommandFactoryName(), DuplicateOnlyProcessToInterval,
       "Duplicate a process")
 public:
   DuplicateOnlyProcessToInterval(
       const IntervalModel& cst, const Process::ProcessModel&);
   DuplicateOnlyProcessToInterval(
-      const IntervalModel& cst,
-      Id<Process::ProcessModel> idToUse,
+      const IntervalModel& cst, Id<Process::ProcessModel> idToUse,
       const Process::ProcessModel&);
 
   void undo(const score::DocumentContext& ctx) const override;

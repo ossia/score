@@ -1,26 +1,29 @@
 #include "AddressItemModel.hpp"
 
+#include <Explorer/Commands/Update/UpdateAddressSettings.hpp>
+#include <Explorer/Common/AddressSettings/Widgets/AddressSettingsWidget.hpp>
+#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
+#include <Explorer/DocumentPlugin/NodeUpdateProxy.hpp>
+#include <State/Expression.hpp>
+#include <State/ValueConversion.hpp>
+#include <State/Widgets/UnitWidget.hpp>
+
+#include <score/command/Dispatchers/CommandDispatcher.hpp>
+#include <score/widgets/DoubleSlider.hpp>
+#include <score/widgets/MarginLess.hpp>
+#include <score/widgets/SignalUtils.hpp>
+
+#include <ossia-qt/metatypes.hpp>
 #include <ossia/network/base/node_attributes.hpp>
 #include <ossia/network/dataspace/dataspace_visitors.hpp>
 #include <ossia/network/domain/domain.hpp>
 #include <ossia/network/value/value_traits.hpp>
 
-#include <Explorer/Commands/Update/UpdateAddressSettings.hpp>
-#include <Explorer/Common/AddressSettings/Widgets/AddressSettingsWidget.hpp>
-#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
-#include <Explorer/DocumentPlugin/NodeUpdateProxy.hpp>
 #include <QHBoxLayout>
+#include <QLineEdit>
 #include <QPainter>
 #include <QSpinBox>
-#include <State/ValueConversion.hpp>
-#include <State/Widgets/UnitWidget.hpp>
-#include <ossia-qt/metatypes.hpp>
-#include <score/command/Dispatchers/CommandDispatcher.hpp>
-#include <score/widgets/DoubleSlider.hpp>
-#include <score/widgets/MarginLess.hpp>
-#include <score/widgets/SignalUtils.hpp>
-#include <QLineEdit>
-#include <State/Expression.hpp>
+
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Explorer::AddressItemModel)
 W_OBJECT_IMPL(Explorer::AddressValueWidget)
@@ -33,8 +36,7 @@ AddressItemModel::AddressItemModel(QObject* parent)
 }
 
 void AddressItemModel::setState(
-    DeviceExplorerModel* model,
-    Device::NodePath nodepath,
+    DeviceExplorerModel* model, Device::NodePath nodepath,
     const Device::FullAddressSettings& s)
 {
   beginResetModel();
@@ -277,7 +279,8 @@ QVariant AddressItemModel::data(const QModelIndex& index, int role) const
               return tr("Name");
             case Rows::Address:
               return tr("Address");
-            default: break;
+            default:
+              break;
           }
           break;
         }
@@ -289,7 +292,8 @@ QVariant AddressItemModel::data(const QModelIndex& index, int role) const
               return m_settings.address.path.last();
             case Rows::Address:
               return m_settings.address.toString();
-            default: break;
+            default:
+              break;
           }
           break;
         }
@@ -449,7 +453,8 @@ QVariant AddressItemModel::data(const QModelIndex& index, int role) const
         case Rows::Max:
           return QVariant::fromValue(ossia::get_max(m_settings.domain.get()));
         case Rows::Values:
-          return QVariant::fromValue(ossia::get_values(m_settings.domain.get()));
+          return QVariant::fromValue(
+              ossia::get_values(m_settings.domain.get()));
       }
     }
     else
@@ -461,7 +466,7 @@ QVariant AddressItemModel::data(const QModelIndex& index, int role) const
   {
     if (index.column() == 1)
     {
-      switch(index.row())
+      switch (index.row())
       {
         case Rows::Repetition:
           return m_settings.repetitionFilter == ossia::repetition_filter::ON
@@ -469,7 +474,7 @@ QVariant AddressItemModel::data(const QModelIndex& index, int role) const
                      : Qt::Unchecked;
         case Rows::Value:
         {
-          if(auto b = m_settings.value.target<bool>())
+          if (auto b = m_settings.value.target<bool>())
           {
             return *b ? Qt::Checked : Qt::Unchecked;
           }
@@ -520,9 +525,9 @@ Qt::ItemFlags AddressItemModel::flags(const QModelIndex& index) const
   if (index.row() < Rows::Count)
     f |= flags[index.row()];
 
-  if(index.row() == Value)
+  if (index.row() == Value)
   {
-    if(m_settings.value.target<bool>())
+    if (m_settings.value.target<bool>())
     {
       f |= Qt::ItemIsUserCheckable;
       f |= Qt::ItemIsEnabled;
@@ -542,8 +547,7 @@ AddressItemDelegate::~AddressItemDelegate()
 }
 
 void AddressItemDelegate::paint(
-    QPainter* painter,
-    const QStyleOptionViewItem& option,
+    QPainter* painter, const QStyleOptionViewItem& option,
     const QModelIndex& index) const
 {
   QStyledItemDelegate::paint(painter, option, index);
@@ -561,8 +565,7 @@ class SliderValueWidget final : public AddressValueWidget
 {
 public:
   SliderValueWidget(int min, int max, QWidget* parent)
-      : AddressValueWidget{parent}
-      , m_slider{this}
+      : AddressValueWidget{parent}, m_slider{this}
   {
     m_slider.setOrientation(Qt::Horizontal);
     m_slider.setRange(min, max);
@@ -644,8 +647,7 @@ private:
 class ListValueWidget final : public AddressValueWidget
 {
 public:
-  ListValueWidget(QWidget* parent)
-      : AddressValueWidget{parent}
+  ListValueWidget(QWidget* parent) : AddressValueWidget{parent}
   {
     m_edit.setContentsMargins(0, 0, 0, 0);
     this->setFocusProxy(&m_edit);
@@ -655,7 +657,7 @@ public:
   ossia::value get() const override
   {
     auto val = State::parseValue(m_edit.text().toStdString());
-    if(val)
+    if (val)
       return *val;
     return std::vector<ossia::value>{};
   }
@@ -714,25 +716,21 @@ struct make_dataspace
 AddressValueWidget*
 make_value_widget(Device::FullAddressSettings addr, QWidget* parent)
 {
-  if(auto widg = ossia::apply(make_dataspace{}, addr.unit.get().v))
+  if (auto widg = ossia::apply(make_dataspace{}, addr.unit.get().v))
     return widg;
 
   auto& dom = addr.domain.get();
   auto min = dom.get_min(), max = dom.get_max();
-  if (min.valid()  && max.valid() && addr.value.valid())
+  if (min.valid() && max.valid() && addr.value.valid())
   {
     switch (addr.value.get_type())
     {
       case ossia::val_type::FLOAT:
-        return new DoubleSliderValueWidget{
-          ossia::convert<float>(min),
-              ossia::convert<float>(max),
-              parent};
+        return new DoubleSliderValueWidget{ossia::convert<float>(min),
+                                           ossia::convert<float>(max), parent};
       case ossia::val_type::INT:
-        return new SliderValueWidget{
-          ossia::convert<int>(min),
-              ossia::convert<int>(max),
-              parent};
+        return new SliderValueWidget{ossia::convert<int>(min),
+                                     ossia::convert<int>(max), parent};
       default:
         break;
     }
@@ -772,8 +770,7 @@ make_max_widget(Device::FullAddressSettings addr, QWidget* parent)
 }
 
 QWidget* AddressItemDelegate::createEditor(
-    QWidget* parent,
-    const QStyleOptionViewItem& option,
+    QWidget* parent, const QStyleOptionViewItem& option,
     const QModelIndex& index) const
 {
   auto model = qobject_cast<const AddressItemModel*>(index.model());

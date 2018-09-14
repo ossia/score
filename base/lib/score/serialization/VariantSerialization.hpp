@@ -1,9 +1,12 @@
 #pragma once
-#include <QDebug>
-#include <eggs/variant.hpp>
-#include <ossia/detail/for_each.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/serialization/JSONVisitor.hpp>
+
+#include <ossia/detail/for_each.hpp>
+
+#include <QDebug>
+
+#include <eggs/variant.hpp>
 
 /**
  * @file VariantSerialization

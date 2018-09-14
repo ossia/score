@@ -1,7 +1,8 @@
 #pragma once
+#include <score/command/CommandFactoryKey.hpp>
+
 #include <QByteArray>
 #include <QString>
-#include <score/command/CommandFactoryKey.hpp>
 
 namespace score
 {

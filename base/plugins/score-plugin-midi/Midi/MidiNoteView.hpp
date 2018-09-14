@@ -1,15 +1,15 @@
 #pragma once
 #include <Midi/MidiNote.hpp>
-#include <wobjectdefs.h>
+
 #include <QGraphicsItem>
 #include <QObject>
+
+#include <wobjectdefs.h>
 
 namespace Midi
 {
 class View;
-class NoteView final
-    : public QObject
-    , public QGraphicsItem
+class NoteView final : public QObject, public QGraphicsItem
 {
   W_OBJECT(NoteView)
   Q_INTERFACES(QGraphicsItem)
@@ -20,7 +20,7 @@ public:
 
   void setWidth(qreal w) noexcept
   {
-    if(m_width != w)
+    if (m_width != w)
     {
       prepareGeometryChange();
       m_width = w;
@@ -29,7 +29,7 @@ public:
 
   void setHeight(qreal h) noexcept
   {
-    if(m_height != h)
+    if (m_height != h)
     {
       prepareGeometryChange();
       m_height = h;
@@ -42,14 +42,15 @@ public:
   }
 
   void paint(
-      QPainter* painter,
-      const QStyleOptionGraphicsItem* option,
+      QPainter* painter, const QStyleOptionGraphicsItem* option,
       QWidget* widget) override;
 
   QRectF computeRect() const noexcept;
   QPointF closestPos(QPointF note) const noexcept;
+
 public:
-  void noteChanged(int arg_1, double arg_2) W_SIGNAL(noteChanged, arg_1, arg_2); // pitch, scaled between [0; 1]
+  void noteChanged(int arg_1, double arg_2)
+      W_SIGNAL(noteChanged, arg_1, arg_2); // pitch, scaled between [0; 1]
   void noteChangeFinished() W_SIGNAL(noteChangeFinished);
   void noteScaled(double arg_1) W_SIGNAL(noteScaled, arg_1);
 

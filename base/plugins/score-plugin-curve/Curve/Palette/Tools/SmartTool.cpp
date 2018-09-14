@@ -14,12 +14,14 @@
 #include <Curve/Point/CurvePointView.hpp>
 #include <Curve/Segment/CurveSegmentModel.hpp>
 #include <Curve/Segment/CurveSegmentView.hpp>
-#include <QStateMachine>
+
 #include <score/document/DocumentInterface.hpp>
 #include <score/selection/Selection.hpp>
 #include <score/selection/SelectionDispatcher.hpp>
 #include <score/statemachine/StateMachineUtils.hpp>
 #include <score/tools/std/Optional.hpp>
+
+#include <QStateMachine>
 
 namespace Curve
 {

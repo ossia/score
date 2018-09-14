@@ -1,9 +1,12 @@
 #pragma once
 #include <Process/Dataflow/Cable.hpp>
+
 #include <score/tools/std/HashMap.hpp>
-#include <ossia/detail/small_vector.hpp>
-#include <ossia/dataflow/port.hpp>
+
 #include <ossia/dataflow/graph_edge.hpp>
+#include <ossia/dataflow/port.hpp>
+#include <ossia/detail/small_vector.hpp>
+
 #include <QMetaObject>
 namespace Process
 {
@@ -24,10 +27,11 @@ struct AddressAccessor;
 namespace Execution
 {
 struct Context;
-struct SCORE_LIB_PROCESS_EXPORT SetupContext final
-    : public QObject
+struct SCORE_LIB_PROCESS_EXPORT SetupContext final : public QObject
 {
-  SetupContext(Context& other): context{other} { }
+  SetupContext(Context& other) : context{other}
+  {
+  }
   Context& context;
   void register_node(
       const Process::ProcessModel& proc,
@@ -36,20 +40,16 @@ struct SCORE_LIB_PROCESS_EXPORT SetupContext final
       const Process::ProcessModel& proc,
       const std::shared_ptr<ossia::graph_node>& node);
   void register_node(
-      const Process::Inlets& inlets,
-      const Process::Outlets& outlets,
+      const Process::Inlets& inlets, const Process::Outlets& outlets,
       const std::shared_ptr<ossia::graph_node>& node);
   void register_inlet(
-      Process::Inlet& inlet,
-      const ossia::inlet_ptr& exec,
+      Process::Inlet& inlet, const ossia::inlet_ptr& exec,
       const std::shared_ptr<ossia::graph_node>& node);
   void unregister_node(
-      const Process::Inlets& inlets,
-      const Process::Outlets& outlets,
+      const Process::Inlets& inlets, const Process::Outlets& outlets,
       const std::shared_ptr<ossia::graph_node>& node);
   void unregister_node_soft(
-      const Process::Inlets& inlets,
-      const Process::Outlets& outlets,
+      const Process::Inlets& inlets, const Process::Outlets& outlets,
       const std::shared_ptr<ossia::graph_node>& node);
   void set_destination(
       const State::AddressAccessor& address, const ossia::inlet_ptr&);
@@ -60,18 +60,19 @@ struct SCORE_LIB_PROCESS_EXPORT SetupContext final
   void on_cableRemoved(const Process::Cable& c);
   void connectCable(Process::Cable& cable);
 
-  score::hash_map<Process::Outlet*, std::pair<ossia::node_ptr, ossia::outlet_ptr>>
-          outlets;
-  score::hash_map<Process::Inlet*, std::pair<ossia::node_ptr, ossia::inlet_ptr>>
-          inlets;
+  score::hash_map<
+      Process::Outlet*, std::pair<ossia::node_ptr, ossia::outlet_ptr>>
+      outlets;
+  score::hash_map<
+      Process::Inlet*, std::pair<ossia::node_ptr, ossia::inlet_ptr>>
+      inlets;
   score::hash_map<Id<Process::Cable>, std::shared_ptr<ossia::graph_edge>>
       m_cables;
 
   score::hash_map<
-      std::shared_ptr<ossia::graph_node>,
-      std::vector<QMetaObject::Connection>>
+      std::shared_ptr<ossia::graph_node>, std::vector<QMetaObject::Connection>>
       runtime_connections;
-  score::hash_map<const ossia::graph_node*, const Process::ProcessModel*> proc_map;
+  score::hash_map<const ossia::graph_node*, const Process::ProcessModel*>
+      proc_map;
 };
-
 }

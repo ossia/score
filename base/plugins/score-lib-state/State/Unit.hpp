@@ -1,9 +1,12 @@
 #pragma once
-#include <QMetaType>
-#include <memory>
 #include <score/serialization/VisitorInterface.hpp>
+
+#include <QMetaType>
+
 #include <score_lib_state_export.h>
 #include <wobjectdefs.h>
+
+#include <memory>
 
 namespace ossia
 {
@@ -13,7 +16,7 @@ namespace State
 {
 struct SCORE_LIB_STATE_EXPORT Unit
 {
-  //W_GADGET(Unit)
+  // W_GADGET(Unit)
 public:
   Unit() noexcept;
   Unit(const Unit& other) noexcept;

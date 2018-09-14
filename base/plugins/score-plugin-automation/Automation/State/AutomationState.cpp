@@ -2,8 +2,6 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "AutomationState.hpp"
 
-#include <ossia/network/dataspace/dataspace_visitors.hpp>
-
 #include <Automation/AutomationModel.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <Explorer/Explorer/DeviceExplorerModel.hpp>
@@ -12,13 +10,15 @@
 #include <State/Message.hpp>
 #include <State/Value.hpp>
 #include <State/ValueConversion.hpp>
-#include <algorithm>
-
 
 #include <score/document/DocumentContext.hpp>
 #include <score/document/DocumentInterface.hpp>
 #include <score/model/IdentifiedObjectMap.hpp>
 #include <score/tools/Todo.hpp>
+
+#include <ossia/network/dataspace/dataspace_visitors.hpp>
+
+#include <algorithm>
 class QObject;
 namespace Automation
 {

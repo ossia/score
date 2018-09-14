@@ -1,15 +1,18 @@
 #pragma once
+#include <score/model/Identifier.hpp>
+#include <score/tools/std/ArrayView.hpp>
+#include <score/tools/std/Optional.hpp>
+
 #include <ossia/detail/algorithms.hpp>
+
+#include <sys/types.h>
 
 #include <algorithm>
 #include <cstddef>
 #include <iterator>
-#include <score/model/Identifier.hpp>
-#include <score/tools/std/ArrayView.hpp>
-#include <score/tools/std/Optional.hpp>
-#include <sys/types.h>
-#include <type_traits>
 #include <vector>
+
+#include <type_traits>
 
 namespace score
 {
@@ -100,9 +103,8 @@ auto getStrongId(const score::dynvector_impl<Id<T>>& v)
 }
 
 template <
-    typename Container,
-    std::enable_if_t<
-        std::is_pointer<typename Container::value_type>::value>* = nullptr>
+    typename Container, std::enable_if_t<std::is_pointer<
+                            typename Container::value_type>::value>* = nullptr>
 auto getStrongId(const Container& v)
     -> Id<typename std::remove_pointer<typename Container::value_type>::type>
 {
@@ -121,9 +123,8 @@ auto getStrongId(const Container& v)
 }
 
 template <
-    typename Container,
-    std::enable_if_t<
-        !std::is_pointer<typename Container::value_type>::value>* = nullptr>
+    typename Container, std::enable_if_t<!std::is_pointer<
+                            typename Container::value_type>::value>* = nullptr>
 auto getStrongId(const Container& v) -> Id<typename Container::value_type>
 {
   using namespace std;

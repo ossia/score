@@ -1,16 +1,14 @@
 #include "ObjectItemModel.hpp"
 
-#include <Effect/EffectFactory.hpp>
 #include <Process/Process.hpp>
 #include <Process/ProcessList.hpp>
 #include <Process/Style/ScenarioStyle.hpp>
-#include <QToolButton>
+#include <Scenario/Commands/Interval/AddOnlyProcessToInterval.hpp>
 #include <Scenario/Commands/Interval/CreateProcessInNewSlot.hpp>
 #include <Scenario/Commands/Interval/RemoveProcessFromInterval.hpp>
+#include <Scenario/Commands/Interval/SetProcessPosition.hpp>
 #include <Scenario/Commands/State/AddStateProcess.hpp>
 #include <Scenario/Commands/State/RemoveStateProcess.hpp>
-#include <Scenario/Commands/Interval/AddOnlyProcessToInterval.hpp>
-#include <Scenario/Commands/Interval/SetProcessPosition.hpp>
 #include <Scenario/DialogWidget/AddProcessDialog.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
@@ -19,24 +17,32 @@
 #include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
 #include <Scenario/Process/Algorithms/Accessors.hpp>
 #include <Scenario/Process/ScenarioInterface.hpp>
+
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/command/Dispatchers/MacroCommandDispatcher.hpp>
 #include <score/widgets/TextLabel.hpp>
+
+#include <QToolButton>
+
+#include <Effect/EffectFactory.hpp>
 
 // SearchWidget
 #include <Device/Node/NodeListMimeSerialization.hpp>
 #include <Explorer/Explorer/DeviceExplorerWidget.hpp>
 #include <Explorer/Panel/DeviceExplorerPanelDelegate.hpp>
-#include <QJsonDocument>
-#include <QJsonObject>
 #include <Scenario/Commands/CommandAPI.hpp>
 #include <Scenario/Commands/Metadata/ChangeElementName.hpp>
 #include <Scenario/Document/CommentBlock/CommentBlockModel.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentPresenter.hpp>
 #include <State/MessageListSerialization.hpp>
-#include <core/presenter/DocumentManager.hpp>
+
 #include <score/application/ApplicationContext.hpp>
 #include <score/plugins/panel/PanelDelegate.hpp>
+
+#include <core/presenter/DocumentManager.hpp>
+
+#include <QJsonDocument>
+#include <QJsonObject>
 
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Scenario::ObjectItemModel)
@@ -47,7 +53,6 @@ ObjectItemModel::ObjectItemModel(
     const score::DocumentContext& ctx, QObject* parent)
     : QAbstractItemModel{parent}, m_ctx{ctx}
 {
-
 }
 
 void ObjectItemModel::setSelected(QList<const IdentifiedObjectAbstract*> objs)
@@ -132,9 +137,11 @@ void ObjectItemModel::setupConnections()
     if (auto cst = qobject_cast<const Scenario::IntervalModel*>(obj))
     {
       cst->processes.added
-          .connect<&ObjectItemModel::recompute<const Process::ProcessModel&>>(*this);
+          .connect<&ObjectItemModel::recompute<const Process::ProcessModel&>>(
+              *this);
       cst->processes.removed
-          .connect<&ObjectItemModel::recompute<const Process::ProcessModel&>>(*this);
+          .connect<&ObjectItemModel::recompute<const Process::ProcessModel&>>(
+              *this);
 
       for (auto& proc : cst->processes)
         m_aliveMap.insert(&proc, &proc);
@@ -159,12 +166,12 @@ void ObjectItemModel::setupConnections()
             if (auto* sptr = scenar.findState(st))
             {
               m_aliveMap.insert(sptr, sptr);
-              sptr->stateProcesses.added
-                  .connect<&ObjectItemModel::recompute<const Process::ProcessModel&>>(
-                      *this);
-              sptr->stateProcesses.removed
-                  .connect<&ObjectItemModel::recompute<const Process::ProcessModel&>>(
-                      *this);
+              sptr->stateProcesses.added.connect<
+                  &ObjectItemModel::recompute<const Process::ProcessModel&>>(
+                  *this);
+              sptr->stateProcesses.removed.connect<
+                  &ObjectItemModel::recompute<const Process::ProcessModel&>>(
+                  *this);
 
               for (const auto& sp : sptr->stateProcesses)
                 m_aliveMap.insert(&sp, &sp);
@@ -186,10 +193,12 @@ void ObjectItemModel::setupConnections()
         if (auto* sptr = scenar.findState(st))
         {
           m_aliveMap.insert(sptr, sptr);
-          sptr->stateProcesses.added
-              .connect<&ObjectItemModel::recompute<const Process::ProcessModel&>>(*this);
-          sptr->stateProcesses.removed
-              .connect<&ObjectItemModel::recompute<const Process::ProcessModel&>>(*this);
+          sptr->stateProcesses.added.connect<
+              &ObjectItemModel::recompute<const Process::ProcessModel&>>(
+              *this);
+          sptr->stateProcesses.removed.connect<
+              &ObjectItemModel::recompute<const Process::ProcessModel&>>(
+              *this);
 
           for (const auto& sp : sptr->stateProcesses)
             m_aliveMap.insert(&sp, &sp);
@@ -201,9 +210,11 @@ void ObjectItemModel::setupConnections()
       auto& s = *st;
       m_aliveMap.insert(&s, &s);
       s.stateProcesses.added
-          .connect<&ObjectItemModel::recompute<const Process::ProcessModel&>>(*this);
+          .connect<&ObjectItemModel::recompute<const Process::ProcessModel&>>(
+              *this);
       s.stateProcesses.removed
-          .connect<&ObjectItemModel::recompute<const Process::ProcessModel&>>(*this);
+          .connect<&ObjectItemModel::recompute<const Process::ProcessModel&>>(
+              *this);
 
       for (const auto& sp : s.stateProcesses)
         m_aliveMap.insert(&sp, &sp);
@@ -589,8 +600,8 @@ Qt::ItemFlags ObjectItemModel::flags(const QModelIndex& index) const
   f |= Qt::ItemIsEditable;
   f |= Qt::ItemIsDropEnabled;
 
-  auto p = (QObject*) index.internalPointer();
-  if(auto q = qobject_cast<Process::ProcessModel*>(p))
+  auto p = (QObject*)index.internalPointer();
+  if (auto q = qobject_cast<Process::ProcessModel*>(p))
   {
     f |= Qt::ItemIsDragEnabled;
   }
@@ -610,19 +621,18 @@ bool ObjectItemModel::setData(
     CommandDispatcher<> disp{m_ctx.commandStack};
     auto new_name = value.toString();
 
-    auto sanitize = [&] (auto* ptr) {
+    auto sanitize = [&](auto* ptr) {
       if (new_name == ptr->metadata().getName())
         return false;
       using T = std::remove_reference_t<decltype(*ptr)>;
-      if(new_name.isEmpty())
+      if (new_name.isEmpty())
         new_name = QString("%1.0").arg(Metadata<PrettyName_k, T>::get());
       return true;
     };
 
-
     if (auto cst = qobject_cast<Scenario::IntervalModel*>(sel))
     {
-      if(!sanitize(cst))
+      if (!sanitize(cst))
         return false;
 
       disp.submitCommand<Command::ChangeElementName<Scenario::IntervalModel>>(
@@ -631,7 +641,7 @@ bool ObjectItemModel::setData(
     }
     else if (auto ev = qobject_cast<Scenario::EventModel*>(sel))
     {
-      if(!sanitize(ev))
+      if (!sanitize(ev))
         return false;
 
       disp.submitCommand<Command::ChangeElementName<Scenario::EventModel>>(
@@ -640,7 +650,7 @@ bool ObjectItemModel::setData(
     }
     else if (auto tn = qobject_cast<Scenario::TimeSyncModel*>(sel))
     {
-      if(!sanitize(tn))
+      if (!sanitize(tn))
         return false;
 
       disp.submitCommand<Command::ChangeElementName<Scenario::TimeSyncModel>>(
@@ -649,7 +659,7 @@ bool ObjectItemModel::setData(
     }
     else if (auto st = qobject_cast<Scenario::StateModel*>(sel))
     {
-      if(!sanitize(st))
+      if (!sanitize(st))
         return false;
 
       disp.submitCommand<Command::ChangeElementName<Scenario::StateModel>>(
@@ -660,7 +670,7 @@ bool ObjectItemModel::setData(
     {
       if (new_name == p->metadata().getName())
         return false;
-      if(new_name.isEmpty())
+      if (new_name.isEmpty())
         new_name = QString("%1.0").arg(p->objectName());
 
       disp.submitCommand<Command::ChangeElementName<Process::ProcessModel>>(
@@ -673,46 +683,51 @@ bool ObjectItemModel::setData(
 
 QMimeData* ObjectItemModel::mimeData(const QModelIndexList& indexes) const
 {
-  if(indexes.size() != 1)
+  if (indexes.size() != 1)
     return nullptr;
 
-  auto p = (QObject*) indexes.front().internalPointer();
-  if(!p)
+  auto p = (QObject*)indexes.front().internalPointer();
+  if (!p)
     return nullptr;
 
   auto q = qobject_cast<Process::ProcessModel*>(p);
-  if(!q)
+  if (!q)
     return nullptr;
 
   auto m = new QMimeData;
-  m->setData("score/object-item-model-index", score::marshall<DataStream>(Path<Process::ProcessModel>{*q}));
+  m->setData(
+      "score/object-item-model-index",
+      score::marshall<DataStream>(Path<Process::ProcessModel>{*q}));
   return m;
 }
 
-bool ObjectItemModel::canDropMimeData(const QMimeData* data, Qt::DropAction action, int row, int column, const QModelIndex& parent) const
+bool ObjectItemModel::canDropMimeData(
+    const QMimeData* data, Qt::DropAction action, int row, int column,
+    const QModelIndex& parent) const
 {
-  if(!parent.isValid())
+  if (!parent.isValid())
     return false;
 
-  auto obj = score::unmarshall<Path<Process::ProcessModel>>(data->data("score/object-item-model-index"));
+  auto obj = score::unmarshall<Path<Process::ProcessModel>>(
+      data->data("score/object-item-model-index"));
   auto other = obj.try_find(m_ctx);
-  if(!other)
+  if (!other)
     return false;
 
-  auto p = (QObject*) parent.internalPointer();
+  auto p = (QObject*)parent.internalPointer();
   Process::ProcessModel* the_proc{};
-  if(auto itv = qobject_cast<Scenario::IntervalModel*>(p))
+  if (auto itv = qobject_cast<Scenario::IntervalModel*>(p))
   {
-    if(other->parent() != itv)
+    if (other->parent() != itv)
       return false;
-    if(row < itv->processes.size())
+    if (row < itv->processes.size())
     {
       auto pb = itv->processes.map().m_order.begin();
       std::advance(pb, row);
 
       the_proc = *pb;
       // Row: the row before the process
-      if(other == the_proc)
+      if (other == the_proc)
         return false;
     }
     else
@@ -721,19 +736,19 @@ bool ObjectItemModel::canDropMimeData(const QMimeData* data, Qt::DropAction acti
     }
     return true;
   }
-  else if(auto sta = qobject_cast<Scenario::StateModel*>(p))
+  else if (auto sta = qobject_cast<Scenario::StateModel*>(p))
   {
-    if(other->parent() != sta)
+    if (other->parent() != sta)
       return false;
 
-    if(row < sta->stateProcesses.size())
+    if (row < sta->stateProcesses.size())
     {
       auto pb = sta->stateProcesses.map().m_order.begin();
       std::advance(pb, row);
 
       the_proc = *pb;
       // Row: the row before the process
-      if(other == the_proc)
+      if (other == the_proc)
         return false;
     }
     else
@@ -746,11 +761,11 @@ bool ObjectItemModel::canDropMimeData(const QMimeData* data, Qt::DropAction acti
   {
     the_proc = qobject_cast<Process::ProcessModel*>(p);
 
-    if(!the_proc)
+    if (!the_proc)
       return false;
-    if(other == the_proc)
+    if (other == the_proc)
       return false;
-    if(other->parent() != the_proc->parent())
+    if (other->parent() != the_proc->parent())
       return false;
     return true;
   }
@@ -758,38 +773,42 @@ bool ObjectItemModel::canDropMimeData(const QMimeData* data, Qt::DropAction acti
   return true;
 }
 
-bool ObjectItemModel::dropMimeData(const QMimeData* data, Qt::DropAction action, int row, int column, const QModelIndex& parent)
+bool ObjectItemModel::dropMimeData(
+    const QMimeData* data, Qt::DropAction action, int row, int column,
+    const QModelIndex& parent)
 {
   using namespace Scenario::Command;
-  if(!parent.isValid())
+  if (!parent.isValid())
     return false;
 
-  auto obj = score::unmarshall<Path<Process::ProcessModel>>(data->data("score/object-item-model-index"));
+  auto obj = score::unmarshall<Path<Process::ProcessModel>>(
+      data->data("score/object-item-model-index"));
   auto other = obj.try_find(m_ctx);
-  if(!other)
+  if (!other)
     return false;
 
-  auto p = (QObject*) parent.internalPointer();
+  auto p = (QObject*)parent.internalPointer();
 
-  auto move_in_itv = [=] (auto itv, int row) {
-    if(other->parent() != itv)
+  auto move_in_itv = [=](auto itv, int row) {
+    if (other->parent() != itv)
       return false;
 
-    if(row < itv->processes.size())
+    if (row < itv->processes.size())
     {
       auto pb = itv->processes.map().m_order.begin();
       std::advance(pb, row);
 
       auto the_proc = *pb;
       // Row: the row before the process
-      if(other == the_proc)
+      if (other == the_proc)
         return false;
 
       // put before row: row == 0 -> begin
       CommandDispatcher<> disp{m_ctx.dispatcher};
-      disp.submitCommand(new PutProcessBefore{*itv, the_proc->id(), other->id()});
+      disp.submitCommand(
+          new PutProcessBefore{*itv, the_proc->id(), other->id()});
     }
-    else if(row >= itv->processes.size())
+    else if (row >= itv->processes.size())
     {
       // put at end
       CommandDispatcher<> disp{m_ctx.dispatcher};
@@ -798,25 +817,26 @@ bool ObjectItemModel::dropMimeData(const QMimeData* data, Qt::DropAction action,
     return true;
   };
 
-  auto move_in_state = [=] (auto sta, int row)  {
-    if(other->parent() != sta)
+  auto move_in_state = [=](auto sta, int row) {
+    if (other->parent() != sta)
       return false;
 
-    if(row < sta->stateProcesses.size())
+    if (row < sta->stateProcesses.size())
     {
       auto pb = sta->stateProcesses.map().m_order.begin();
       std::advance(pb, row);
 
       auto the_proc = *pb;
       // Row: the row before the process
-      if(other == the_proc)
+      if (other == the_proc)
         return false;
 
       // put before row: row == 0 -> begin
       CommandDispatcher<> disp{m_ctx.dispatcher};
-      disp.submitCommand(new PutStateProcessBefore{*sta, the_proc->id(), other->id()});
+      disp.submitCommand(
+          new PutStateProcessBefore{*sta, the_proc->id(), other->id()});
     }
-    else if(row >= sta->stateProcesses.size())
+    else if (row >= sta->stateProcesses.size())
     {
       // put at end
       CommandDispatcher<> disp{m_ctx.dispatcher};
@@ -825,11 +845,11 @@ bool ObjectItemModel::dropMimeData(const QMimeData* data, Qt::DropAction action,
     return true;
   };
 
-  if(auto itv = qobject_cast<Scenario::IntervalModel*>(p))
+  if (auto itv = qobject_cast<Scenario::IntervalModel*>(p))
   {
     return move_in_itv(itv, row);
   }
-  else if(auto sta = qobject_cast<Scenario::StateModel*>(p))
+  else if (auto sta = qobject_cast<Scenario::StateModel*>(p))
   {
     return move_in_state(sta, row);
   }
@@ -837,22 +857,25 @@ bool ObjectItemModel::dropMimeData(const QMimeData* data, Qt::DropAction action,
   {
     auto the_proc = qobject_cast<Process::ProcessModel*>(p);
 
-    if(!the_proc)
+    if (!the_proc)
       return false;
-    if(other == the_proc)
+    if (other == the_proc)
       return false;
-    if(other->parent() != the_proc->parent())
+    if (other->parent() != the_proc->parent())
       return false;
 
-    if(auto itv = qobject_cast<Scenario::IntervalModel*>(the_proc->parent()))
+    if (auto itv = qobject_cast<Scenario::IntervalModel*>(the_proc->parent()))
     {
       CommandDispatcher<> disp{m_ctx.dispatcher};
-      disp.submitCommand(new PutProcessBefore{*itv, the_proc->id(), other->id()});
+      disp.submitCommand(
+          new PutProcessBefore{*itv, the_proc->id(), other->id()});
     }
-    else if(auto sta = qobject_cast<Scenario::StateModel*>(the_proc->parent()))
+    else if (
+        auto sta = qobject_cast<Scenario::StateModel*>(the_proc->parent()))
     {
       CommandDispatcher<> disp{m_ctx.dispatcher};
-      disp.submitCommand(new PutStateProcessBefore{*sta, the_proc->id(), other->id()});
+      disp.submitCommand(
+          new PutStateProcessBefore{*sta, the_proc->id(), other->id()});
     }
     return true;
   }
@@ -1080,12 +1103,11 @@ void ObjectWidget::contextMenuEvent(QContextMenuEvent* ev)
         auto& fact = m_ctx.app.interfaces<Process::ProcessFactoryList>();
         auto dialog = new AddProcessDialog{
             fact, Process::ProcessFlags::SupportsTemporal, this};
-        dialog->on_okPressed = [&](const auto& proc, QString dat)
-        {
+        dialog->on_okPressed = [&](const auto& proc, QString dat) {
           using namespace Scenario::Command;
           Macro m{new AddProcessInNewSlot, m_ctx};
 
-          if(auto p = m.createProcess(*cst, proc, dat))
+          if (auto p = m.createProcess(*cst, proc, dat))
           {
             m.createSlot(*cst);
             m.addLayerToLastSlot(*cst, *p);
@@ -1290,8 +1312,7 @@ void NeighbourSelector::selectDown()
 }
 
 SearchWidget::SearchWidget(const score::GUIApplicationContext& ctx)
-  : score::SearchLineEdit{nullptr}
-  , m_ctx{ctx}
+    : score::SearchLineEdit{nullptr}, m_ctx{ctx}
 {
   setAcceptDrops(true);
   const auto& appCtx = score::GUIAppContext();
@@ -1515,5 +1536,3 @@ void SearchWidget::dropEvent(QDropEvent* ev)
   }
 }
 }
-
-

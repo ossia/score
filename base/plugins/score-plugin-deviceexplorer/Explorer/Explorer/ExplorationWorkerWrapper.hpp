@@ -2,6 +2,7 @@
 #include "ExplorationWorker.hpp"
 
 #include <Device/Protocol/DeviceInterface.hpp>
+
 #include <QApplication>
 #include <QMessageBox>
 #include <QThread>
@@ -25,8 +26,7 @@ class ExplorationWorkerWrapper final : public QObject
 public:
   template <typename OnSuccess_t>
   ExplorationWorkerWrapper(
-      OnSuccess_t&& success,
-      DeviceExplorerWidget& widg,
+      OnSuccess_t&& success, DeviceExplorerWidget& widg,
       Device::DeviceInterface& dev)
       : worker{new ExplorationWorker{dev}}
       , m_widget{widg}
@@ -97,8 +97,7 @@ private:
 
 template <typename OnSuccess_t>
 static auto make_worker(
-    OnSuccess_t&& success,
-    DeviceExplorerWidget& widg,
+    OnSuccess_t&& success, DeviceExplorerWidget& widg,
     Device::DeviceInterface& dev)
 {
   return new ExplorationWorkerWrapper<OnSuccess_t>{std::move(success), widg,

@@ -1,8 +1,9 @@
 #pragma once
 
-#include <QWidget>
 #include <Scenario/Inspector/Expression/ExpressionMenu.hpp>
 #include <State/Expression.hpp>
+
+#include <QWidget>
 
 namespace Inspector
 {
@@ -25,8 +26,7 @@ public:
   TriggerInspectorWidget(
       const score::DocumentContext&,
       const Command::TriggerCommandFactoryList& fact,
-      const TimeSyncModel& object,
-      Inspector::InspectorWidgetBase* parent);
+      const TimeSyncModel& object, Inspector::InspectorWidgetBase* parent);
 
   void on_triggerChanged();
 

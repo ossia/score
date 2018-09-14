@@ -2,11 +2,13 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "ObjectLocker.hpp"
 
-#include <algorithm>
 #include <score/document/DocumentInterface.hpp>
 #include <score/model/path/ObjectPath.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
+
 #include <wobjectimpl.h>
+
+#include <algorithm>
 W_OBJECT_IMPL(score::ObjectLocker)
 namespace score
 {

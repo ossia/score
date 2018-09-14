@@ -2,23 +2,26 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "ChangeAddresses.hpp"
 
-#include <ossia/network/domain/domain.hpp>
-#include <ossia/network/value/value_conversion.hpp>
-
 #include <Device/Address/AddressSettings.hpp>
 #include <Device/Node/DeviceNode.hpp>
 #include <Mapping/MappingModel.hpp>
-#include <QString>
-#include <QStringList>
 #include <State/Address.hpp>
 #include <State/Domain.hpp>
 #include <State/Value.hpp>
 #include <State/ValueConversion.hpp>
-#include <algorithm>
+
 #include <score/model/path/Path.hpp>
 #include <score/model/path/PathSerialization.hpp>
 #include <score/model/tree/TreeNode.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
+
+#include <ossia/network/domain/domain.hpp>
+#include <ossia/network/value/value_conversion.hpp>
+
+#include <QString>
+#include <QStringList>
+
+#include <algorithm>
 namespace Mapping
 {
 ChangeSourceAddress::ChangeSourceAddress(

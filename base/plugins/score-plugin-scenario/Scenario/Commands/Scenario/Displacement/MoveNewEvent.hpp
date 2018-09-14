@@ -5,10 +5,12 @@
 #include <Process/ExpandMode.hpp>
 #include <Process/TimeValue.hpp>
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
+
 #include <score/command/Command.hpp>
 #include <score/model/Identifier.hpp>
 #include <score/model/path/Path.hpp>
 #include <score/tools/std/Optional.hpp>
+
 #include <score_plugin_scenario_export.h>
 
 struct DataStreamInput;
@@ -32,31 +34,19 @@ class SCORE_PLUGIN_SCENARIO_EXPORT MoveNewEvent final : public score::Command
       ScenarioCommandFactoryName(), MoveNewEvent, "Move a new event")
 public:
   MoveNewEvent(
-      const Scenario::ProcessModel& scenarioPath,
-      Id<IntervalModel> intervalId,
-      Id<EventModel> eventId,
-      TimeVal date,
-      const double y,
-      bool yLocked);
+      const Scenario::ProcessModel& scenarioPath, Id<IntervalModel> intervalId,
+      Id<EventModel> eventId, TimeVal date, const double y, bool yLocked);
   MoveNewEvent(
-      const Scenario::ProcessModel& scenarioPath,
-      Id<IntervalModel> intervalId,
-      Id<EventModel> eventId,
-      TimeVal date,
-      const double y,
-      bool yLocked,
+      const Scenario::ProcessModel& scenarioPath, Id<IntervalModel> intervalId,
+      Id<EventModel> eventId, TimeVal date, const double y, bool yLocked,
       ExpandMode);
 
   void undo(const score::DocumentContext& ctx) const override;
   void redo(const score::DocumentContext& ctx) const override;
 
   void update(
-      Scenario::ProcessModel& s,
-      unused_t,
-      const Id<EventModel>& id,
-      const TimeVal& date,
-      const double y,
-      bool yLocked)
+      Scenario::ProcessModel& s, unused_t, const Id<EventModel>& id,
+      const TimeVal& date, const double y, bool yLocked)
   {
     m_cmd.update(s, id, date, y, ExpandMode::Scale, LockMode::Free);
     m_y = y;

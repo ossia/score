@@ -1,7 +1,9 @@
 #pragma once
-#include <QGraphicsItem>
-#include <Scenario/Document/ScenarioDocument/ScenarioDocumentViewConstants.hpp>
 #include <Scenario/Document/Interval/Slot.hpp>
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentViewConstants.hpp>
+
+#include <QGraphicsItem>
+
 #include <wobjectdefs.h>
 
 namespace Scenario
@@ -43,8 +45,7 @@ public:
 
   QRectF boundingRect() const override;
   void paint(
-      QPainter* painter,
-      const QStyleOptionGraphicsItem* option,
+      QPainter* painter, const QStyleOptionGraphicsItem* option,
       QWidget* widget) override;
 
   void setWidth(qreal width);
@@ -65,9 +66,7 @@ private:
   int m_slotIndex{};
 };
 
-class SlotDragOverlay final
-    : public QObject
-    , public QGraphicsItem
+class SlotDragOverlay final : public QObject, public QGraphicsItem
 {
   W_OBJECT(SlotDragOverlay)
 public:
@@ -77,12 +76,15 @@ public:
   Slot::RackView view;
   QRectF boundingRect() const override;
 
-  void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;
+  void paint(
+      QPainter* painter, const QStyleOptionGraphicsItem* option,
+      QWidget* widget) override;
 
   void dropBefore(int slot) W_SIGNAL(dropBefore, slot);
   void dropIn(int slot) W_SIGNAL(dropIn, slot);
 
   void onDrag(QPointF pos);
+
 private:
   void dragEnterEvent(QGraphicsSceneDragDropEvent* event) override;
   void dragMoveEvent(QGraphicsSceneDragDropEvent* event) override;
@@ -90,7 +92,7 @@ private:
 
   void dropEvent(QGraphicsSceneDragDropEvent* event) override;
 
-  private:
-    QRectF m_drawnRect;
+private:
+  QRectF m_drawnRect;
 };
 }

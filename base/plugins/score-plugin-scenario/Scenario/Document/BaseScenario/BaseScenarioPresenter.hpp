@@ -8,6 +8,7 @@
 #include <Scenario/Document/State/StatePresenter.hpp>
 #include <Scenario/Document/TimeSync/TimeSyncPresenter.hpp>
 #include <Scenario/Document/TimeSync/TimeSyncView.hpp>
+
 #include <score/tools/std/IndirectContainer.hpp>
 
 template <typename Model_T, typename IntervalPresenter_T>
@@ -20,26 +21,22 @@ public:
 
   virtual ~BaseScenarioPresenter() = default;
 
-  score::IndirectContainer<IntervalPresenter_T>
-  getIntervals() const
+  score::IndirectContainer<IntervalPresenter_T> getIntervals() const
   {
     return {m_intervalPresenter};
   }
 
-  score::IndirectContainer<Scenario::StatePresenter>
-  getStates() const
+  score::IndirectContainer<Scenario::StatePresenter> getStates() const
   {
     return {m_startStatePresenter, m_endStatePresenter};
   }
 
-  score::IndirectContainer<Scenario::EventPresenter>
-  getEvents() const
+  score::IndirectContainer<Scenario::EventPresenter> getEvents() const
   {
     return {m_startEventPresenter, m_endEventPresenter};
   }
 
-  score::IndirectContainer<Scenario::TimeSyncPresenter>
-  getTimeSyncs() const
+  score::IndirectContainer<Scenario::TimeSyncPresenter> getTimeSyncs() const
   {
     return {m_startNodePresenter, m_endNodePresenter};
   }

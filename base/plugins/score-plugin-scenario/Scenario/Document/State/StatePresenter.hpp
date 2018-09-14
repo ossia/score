@@ -1,10 +1,12 @@
 #pragma once
 #include <Scenario/Document/State/StateView.hpp>
-#include <wobjectdefs.h>
+
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/model/Identifier.hpp>
 #include <score/widgets/GraphicsItem.hpp>
+
 #include <score_plugin_scenario_export.h>
+#include <wobjectdefs.h>
 
 namespace Scenario
 {
@@ -15,7 +17,8 @@ class SCORE_PLUGIN_SCENARIO_EXPORT StatePresenter final : public QObject
 
 public:
   StatePresenter(
-      const StateModel& model, const score::DocumentContext& ctx, QGraphicsItem* parentview, QObject* parent);
+      const StateModel& model, const score::DocumentContext& ctx,
+      QGraphicsItem* parentview, QObject* parent);
 
   virtual ~StatePresenter();
 
@@ -30,9 +33,12 @@ public:
   void handleDrop(const QMimeData& mime);
 
 public:
-  void pressed(const QPointF& arg_1) E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, pressed, arg_1);
-  void moved(const QPointF& arg_1) E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, moved, arg_1);
-  void released(const QPointF& arg_1) E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, released, arg_1);
+  void pressed(const QPointF& arg_1)
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, pressed, arg_1);
+  void moved(const QPointF& arg_1)
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, moved, arg_1);
+  void released(const QPointF& arg_1)
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, released, arg_1);
 
   void hoverEnter() E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, hoverEnter);
   void hoverLeave() E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, hoverLeave);

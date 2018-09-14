@@ -3,9 +3,11 @@
 #include "InterpStateView.hpp"
 
 #include <Process/Style/ScenarioStyle.hpp>
+
+#include <score/model/Skin.hpp>
+
 #include <QGraphicsSceneMouseEvent>
 #include <QPainter>
-#include <score/model/Skin.hpp>
 
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(InterpState::View)

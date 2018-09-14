@@ -4,7 +4,8 @@ namespace Media::Settings
 namespace Parameters
 {
 
-SETTINGS_PARAMETER_IMPL(VstPaths){
+SETTINGS_PARAMETER_IMPL(VstPaths)
+{
   QStringLiteral("Effect/VstPaths"),
 #if defined(__APPLE__)
   {

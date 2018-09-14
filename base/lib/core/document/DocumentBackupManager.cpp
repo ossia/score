@@ -4,13 +4,14 @@
 
 #include "Document.hpp"
 
+#include <core/application/CommandBackupFile.hpp>
+#include <core/application/OpenDocumentsFile.hpp>
+
 #include <QFile>
 #include <QMap>
 #include <QSettings>
 #include <QStringList>
 #include <QVariant>
-#include <core/application/CommandBackupFile.hpp>
-#include <core/application/OpenDocumentsFile.hpp>
 
 score::DocumentBackupManager::DocumentBackupManager(score::Document& doc)
     : QObject{&doc}, m_doc{doc}

@@ -1,6 +1,7 @@
 #pragma once
-#include <ossia/editor/scenario/time_value.hpp>
 #include <Process/TimeValue.hpp>
+
+#include <ossia/editor/scenario/time_value.hpp>
 
 namespace Engine::ossia_to_score
 {

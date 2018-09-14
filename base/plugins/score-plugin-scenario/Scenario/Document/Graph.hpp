@@ -1,6 +1,8 @@
 #pragma once
-#include <boost/graph/adjacency_list.hpp>
 #include <score/tools/std/HashMap.hpp>
+
+#include <boost/graph/adjacency_list.hpp>
+
 #include <score_plugin_scenario_export.h>
 
 namespace Scenario
@@ -16,11 +18,7 @@ using GraphVertex = Scenario::TimeSyncModel*;
 using GraphEdge = Scenario::IntervalModel*;
 
 using Graph = boost::adjacency_list<
-    boost::vecS,
-    boost::vecS,
-    boost::directedS,
-    GraphVertex,
-    GraphEdge>;
+    boost::vecS, boost::vecS, boost::directedS, GraphVertex, GraphEdge>;
 
 /**
  * @brief A directed graph of all the TimeSync%s in a ScenarioInterface.

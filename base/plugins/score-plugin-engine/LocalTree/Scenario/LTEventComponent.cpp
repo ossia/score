@@ -2,15 +2,11 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "EventComponent.hpp"
 
-
 namespace LocalTree
 {
 Event::Event(
-    ossia::net::node_base& parent,
-    const Id<score::Component>& id,
-    Scenario::EventModel& event,
-    DocumentPlugin& doc,
-    QObject* parent_comp)
+    ossia::net::node_base& parent, const Id<score::Component>& id,
+    Scenario::EventModel& event, DocumentPlugin& doc, QObject* parent_comp)
     : CommonComponent{parent, event.metadata(), doc,
                       id,     "EventComponent", parent_comp}
 {
@@ -62,5 +58,4 @@ Event::Event(
 
   exp_a->set_value(event.condition().toString().toStdString());
 }
-
 }

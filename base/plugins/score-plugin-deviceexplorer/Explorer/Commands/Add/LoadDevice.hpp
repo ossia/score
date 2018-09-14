@@ -1,6 +1,7 @@
 #pragma once
 #include <Device/Node/DeviceNode.hpp>
 #include <Explorer/Commands/DeviceExplorerCommandFactory.hpp>
+
 #include <score/command/Command.hpp>
 #include <score/model/path/Path.hpp>
 
@@ -37,8 +38,7 @@ class ReloadWholeDevice final : public score::Command
       DeviceExplorerCommandFactoryName(), ReloadWholeDevice, "Reload a device")
 public:
   ReloadWholeDevice(
-      const DeviceDocumentPlugin& devplug,
-      Device::Node&& oldnode,
+      const DeviceDocumentPlugin& devplug, Device::Node&& oldnode,
       Device::Node&& newnode);
 
   void undo(const score::DocumentContext& ctx) const override;

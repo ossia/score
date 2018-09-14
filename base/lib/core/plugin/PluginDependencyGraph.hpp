@@ -1,15 +1,19 @@
 #pragma once
-#include <QObject>
-#include <boost/graph/adjacency_list.hpp>
-#include <boost/graph/topological_sort.hpp>
-#include <chrono>
-#include <exception>
-#include <memory>
-#include <ossia/detail/pod_vector.hpp>
 #include <score/plugins/Addon.hpp>
 #include <score/plugins/qt_interfaces/GUIApplicationPlugin_QtInterface.hpp>
 #include <score/plugins/qt_interfaces/PluginRequirements_QtInterface.hpp>
 #include <score/tools/std/HashMap.hpp>
+
+#include <ossia/detail/pod_vector.hpp>
+
+#include <boost/graph/adjacency_list.hpp>
+#include <boost/graph/topological_sort.hpp>
+
+#include <QObject>
+
+#include <chrono>
+#include <exception>
+#include <memory>
 #include <set>
 namespace score
 {
@@ -34,8 +38,8 @@ struct PluginDependencyGraph
     const score::Addon* addon{};
   };
 
-  using Graph = boost::
-      adjacency_list<boost::vecS, boost::vecS, boost::directedS, GraphVertex>;
+  using Graph = boost::adjacency_list<
+      boost::vecS, boost::vecS, boost::directedS, GraphVertex>;
 
 public:
   explicit PluginDependencyGraph(const std::vector<score::Addon>& addons)

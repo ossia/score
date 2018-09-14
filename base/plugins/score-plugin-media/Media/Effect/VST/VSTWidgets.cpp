@@ -5,20 +5,23 @@
 #include <Dataflow/Commands/CreateModulation.hpp>
 #include <Dataflow/Commands/EditConnection.hpp>
 #include <Dataflow/UI/PortItem.hpp>
-#include <Engine/Node/CommonWidgets.hpp>
 #include <Media/Commands/VSTCommands.hpp>
+#include <Media/Effect/Settings/Model.hpp>
 #include <Media/Effect/VST/VSTControl.hpp>
-#include <QAction>
-#include <QMenu>
 #include <Scenario/Commands/Interval/AddLayerInNewSlot.hpp>
 #include <Scenario/Commands/Interval/AddOnlyProcessToInterval.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
+
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/command/Dispatchers/MacroCommandDispatcher.hpp>
-#include <QGraphicsScene>
-#include <wobjectimpl.h>
-#include <Media/Effect/Settings/Model.hpp>
 #include <score/widgets/Pixmap.hpp>
+
+#include <QAction>
+#include <QGraphicsScene>
+#include <QMenu>
+
+#include <Engine/Node/CommonWidgets.hpp>
+#include <wobjectimpl.h>
 
 W_OBJECT_IMPL(Media::VST::VSTWindow)
 W_OBJECT_IMPL(Media::VST::VSTGraphicsSlider)
@@ -83,10 +86,7 @@ void VSTGraphicsSlider::paint(
   char str[256]{};
   fx->dispatcher(fx, effGetParamDisplay, num, 0, str, m_value);
   score::DefaultGraphicsSliderImpl::paint(
-        *this,
-        score::Skin::instance(),
-        QString::fromUtf8(str),
-        painter, widget);
+      *this, score::Skin::instance(), QString::fromUtf8(str), painter, widget);
 }
 
 bool VSTGraphicsSlider::isInHandle(QPointF p)
@@ -110,8 +110,7 @@ QRectF VSTGraphicsSlider::handleRect() const
 }
 
 VSTEffectItem::VSTEffectItem(
-    const VSTEffectModel& effect,
-    const score::DocumentContext& doc,
+    const VSTEffectModel& effect, const score::DocumentContext& doc,
     score::RectItem* root)
     : score::EmptyRectItem{root}
 {
@@ -163,8 +162,7 @@ VSTEffectItem::VSTEffectItem(
 }
 
 void VSTEffectItem::setupInlet(
-    const VSTEffectModel& fx,
-    VSTControlInlet& inlet,
+    const VSTEffectModel& fx, VSTControlInlet& inlet,
     const score::DocumentContext& doc)
 {
   auto rect = new score::EmptyRectItem{this};
@@ -247,23 +245,25 @@ bool VSTWindow::hasUI(AEffect& e)
   return e.flags & VstAEffectFlags::effFlagsHasEditor;
 }
 
-VSTWindow::VSTWindow(const VSTEffectModel& e, const score::DocumentContext& ctx, QWidget* parent)
-  : VSTWindow{e, ctx}
+VSTWindow::VSTWindow(
+    const VSTEffectModel& e, const score::DocumentContext& ctx,
+    QWidget* parent)
+    : VSTWindow{e, ctx}
 {
   setAttribute(Qt::WA_DeleteOnClose, true);
   if (!m_defaultWidg)
   {
     connect(
-          &ctx.coarseUpdateTimer, &QTimer::timeout, this,
-          [=] {
-      if (auto eff = effect.lock())
-        eff->fx->dispatcher(eff->fx, effEditIdle, 0, 0, nullptr, 0);
-    },
-    Qt::UniqueConnection);
+        &ctx.coarseUpdateTimer, &QTimer::timeout, this,
+        [=] {
+          if (auto eff = effect.lock())
+            eff->fx->dispatcher(eff->fx, effEditIdle, 0, 0, nullptr, 0);
+        },
+        Qt::UniqueConnection);
   }
 
   bool ontop = ctx.app.settings<Media::Settings::Model>().getVstAlwaysOnTop();
-  if(ontop)
+  if (ontop)
   {
     setWindowFlag(Qt::WindowStaysOnTopHint, true);
   }
@@ -297,11 +297,8 @@ void VSTWindow::resize(int w, int h)
 }
 
 QGraphicsItem* VSTFloatSlider::make_item(
-    AEffect* fx,
-    VSTControlInlet& inlet,
-    const score::DocumentContext& ctx,
-    QWidget* parent,
-    QObject* context)
+    AEffect* fx, VSTControlInlet& inlet, const score::DocumentContext& ctx,
+    QWidget* parent, QObject* context)
 {
   auto sl = new VSTGraphicsSlider{fx, inlet.fxNum, nullptr};
   sl->setRect({0., 0., 150., 15.});

@@ -1,58 +1,59 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
+#include <Process/Execution/ProcessComponent.hpp>
+#include <Process/ExecutionContext.hpp>
+#include <Scenario/Document/Event/EventExecution.hpp>
+#include <Scenario/Document/Event/EventModel.hpp>
+#include <Scenario/Document/Event/ExecutionStatus.hpp>
+#include <Scenario/Document/Interval/IntervalDurations.hpp>
+#include <Scenario/Document/Interval/IntervalExecution.hpp>
+#include <Scenario/Document/State/StateExecution.hpp>
+#include <Scenario/Document/State/StateModel.hpp>
+#include <Scenario/Document/TimeSync/TimeSyncExecution.hpp>
+#include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
+#include <Scenario/Execution/score2OSSIA.hpp>
+#include <Scenario/ExecutionChecker/CSPCoherencyCheckerInterface.hpp>
+#include <Scenario/ExecutionChecker/CSPCoherencyCheckerList.hpp>
+#include <Scenario/ExecutionChecker/CoherencyCheckerFactoryInterface.hpp>
+#include <Scenario/Process/Algorithms/Accessors.hpp>
 #include <Scenario/Process/ScenarioExecution.hpp>
+#include <Scenario/Process/ScenarioModel.hpp>
+
+#include <score/document/DocumentInterface.hpp>
+#include <score/model/EntityMap.hpp>
+#include <score/model/IdentifiedObjectMap.hpp>
+#include <score/model/Identifier.hpp>
+
+#include <core/document/Document.hpp>
 
 #include <ossia/dataflow/graph/graph_interface.hpp>
+#include <ossia/dataflow/graph_edge.hpp>
 #include <ossia/editor/loop/loop.hpp>
 #include <ossia/editor/scenario/scenario.hpp>
 #include <ossia/editor/scenario/time_event.hpp>
 #include <ossia/editor/scenario/time_interval.hpp>
 #include <ossia/editor/scenario/time_sync.hpp>
 #include <ossia/editor/scenario/time_value.hpp>
-#include <ossia/dataflow/graph_edge.hpp>
 #include <ossia/editor/state/state.hpp>
 
-
-#include <Scenario/Document/Interval/IntervalExecution.hpp>
-#include <Scenario/Document/Event/EventExecution.hpp>
-#include <Scenario/Document/TimeSync/TimeSyncExecution.hpp>
-#include <Scenario/Document/State/StateExecution.hpp>
-#include <Process/ExecutionContext.hpp>
-#include <Process/Execution/ProcessComponent.hpp>
-#include <Scenario/Execution/score2OSSIA.hpp>
-#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <QDebug>
-#include <Scenario/Document/Event/EventModel.hpp>
-#include <Scenario/Document/Event/ExecutionStatus.hpp>
-#include <Scenario/Document/Interval/IntervalDurations.hpp>
-#include <Scenario/Document/State/StateModel.hpp>
-#include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
-#include <Scenario/ExecutionChecker/CSPCoherencyCheckerInterface.hpp>
-#include <Scenario/ExecutionChecker/CSPCoherencyCheckerList.hpp>
-#include <Scenario/ExecutionChecker/CoherencyCheckerFactoryInterface.hpp>
-#include <Scenario/Process/Algorithms/Accessors.hpp>
-#include <Scenario/Process/ScenarioModel.hpp>
-#include <algorithm>
-#include <core/document/Document.hpp>
-#include <score/document/DocumentInterface.hpp>
-#include <score/model/EntityMap.hpp>
-#include <score/model/IdentifiedObjectMap.hpp>
-#include <score/model/Identifier.hpp>
-#include <vector>
 
 #include <wobjectimpl.h>
+
+#include <algorithm>
+#include <vector>
 W_OBJECT_IMPL(Execution::ScenarioComponentBase)
 
 namespace Execution
 {
 ScenarioComponentBase::ScenarioComponentBase(
-    Scenario::ProcessModel& element,
-    const Context& ctx,
-    const Id<score::Component>& id,
-    QObject* parent)
+    Scenario::ProcessModel& element, const Context& ctx,
+    const Id<score::Component>& id, QObject* parent)
     : ProcessComponent_T<
-          Scenario::ProcessModel,
-          ossia::scenario>{element, ctx, id, "ScenarioComponent", nullptr}
+          Scenario::ProcessModel, ossia::scenario>{element, ctx, id,
+                                                   "ScenarioComponent",
+                                                   nullptr}
     , m_ctx{ctx}
 {
   this->setObjectName("OSSIAScenarioElement");
@@ -70,10 +71,8 @@ ScenarioComponentBase::~ScenarioComponentBase()
 }
 
 ScenarioComponent::ScenarioComponent(
-    Scenario::ProcessModel& proc,
-    const Context& ctx,
-    const Id<score::Component>& id,
-    QObject* parent)
+    Scenario::ProcessModel& proc, const Context& ctx,
+    const Id<score::Component>& id, QObject* parent)
     : ScenarioComponentHierarchy{score::lazy_init_t{}, proc, ctx, id, parent}
 {
 }
@@ -432,12 +431,12 @@ ScenarioComponentBase::make<TimeSyncComponent, Scenario::TimeSyncModel>(
   if (tn.id() == Scenario::startId<Scenario::TimeSyncModel>())
   {
     ossia_tn = OSSIAProcess().get_start_time_sync();
-    //qDebug() << "root" << tn.expression().toString();
+    // qDebug() << "root" << tn.expression().toString();
   }
   else
   {
     ossia_tn = std::make_shared<ossia::time_sync>();
-    //qDebug() << "non root" << tn.expression().toString();
+    // qDebug() << "non root" << tn.expression().toString();
     must_add = true;
   }
 
@@ -596,4 +595,3 @@ void ScenarioComponentBase::timeSyncCallback(
   }
 }
 }
-

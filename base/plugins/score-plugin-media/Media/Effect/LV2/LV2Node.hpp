@@ -1,16 +1,16 @@
 #pragma once
-#include <ossia/dataflow/fx_node.hpp>
-#include <ossia/dataflow/port.hpp>
-
 #include <Media/Effect/LV2/LV2Context.hpp>
 #include <Media/Effect/LV2/lv2_atom_helpers.hpp>
+
+#include <ossia/dataflow/fx_node.hpp>
+#include <ossia/dataflow/port.hpp>
 #include <ossia/detail/pod_vector.hpp>
 
 namespace Media
 {
 namespace LV2
 {
-template<typename OnExecFinished>
+template <typename OnExecFinished>
 struct lv2_node final : public ossia::graph_node
 {
   LV2Data data;
@@ -23,8 +23,7 @@ struct lv2_node final : public ossia::graph_node
 
   OnExecFinished onFinished;
   lv2_node(LV2Data dat, int sampleRate, OnExecFinished of)
-    : data{dat}
-    , onFinished{of}
+      : data{dat}, onFinished{of}
   {
     data.host.global->sampleRate = sampleRate;
     const std::size_t audio_in_size = data.audio_in_ports.size();
@@ -90,7 +89,6 @@ struct lv2_node final : public ossia::graph_node
 
     if (!fInstance)
       throw std::runtime_error("Error while creating a LV2 plug-in");
-
 
     // MIDI
     fMidiIns.reserve(midi_in_size);
@@ -169,27 +167,32 @@ struct lv2_node final : public ossia::graph_node
 
     // Copy midi
     int first_midi_idx = (audio_in_size > 0 ? 1 : 0) + cv_size;
-    for(int i = 0; i < fMidiIns.size(); i++)
+    for (int i = 0; i < fMidiIns.size(); i++)
     {
-      ossia::midi_port& ossia_port = *this->inputs()[i + first_midi_idx]->data.template target<ossia::midi_port>();
+      ossia::midi_port& ossia_port
+          = *this->inputs()[i + first_midi_idx]
+                 ->data.template target<ossia::midi_port>();
       auto& lv2_port = fMidiIns[i];
       Iterator it{lv2_port.buf};
 
-      for(const rtmidi::message& msg : ossia_port.messages)
+      for (const rtmidi::message& msg : ossia_port.messages)
       {
-        it.write(msg.timestamp, 0, data.host.midi_event_id, msg.bytes.size(), msg.bytes.data());
+        it.write(
+            msg.timestamp, 0, data.host.midi_event_id, msg.bytes.size(),
+            msg.bytes.data());
       }
     }
 
     // Copy controls
     auto control_start = (audio_in_size > 0 ? 1 : 0) + midi_in_size + cv_size;
-    for(std::size_t i = control_start; i < control_in_size; i++)
+    for (std::size_t i = control_start; i < control_in_size; i++)
     {
-      auto& in = m_inlets[i]->data.template target<ossia::value_port>()->get_data();
+      auto& in
+          = m_inlets[i]->data.template target<ossia::value_port>()->get_data();
 
-      if(!in.empty())
+      if (!in.empty())
       {
-        if(auto f = in.back().value.template target<float>())
+        if (auto f = in.back().value.template target<float>())
         {
           fInControls[i - control_start] = *f;
         }
@@ -219,23 +222,25 @@ struct lv2_node final : public ossia::graph_node
 
     // Copy midi
     int first_midi_idx = (audio_out_size > 0 ? 1 : 0);
-    for(int i = 0; i < fMidiOuts.size(); i++)
+    for (int i = 0; i < fMidiOuts.size(); i++)
     {
-      ossia::midi_port& ossia_port = *this->outputs()[i + first_midi_idx]->data.template target<ossia::midi_port>();
+      ossia::midi_port& ossia_port
+          = *this->outputs()[i + first_midi_idx]
+                 ->data.template target<ossia::midi_port>();
       auto& lv2_port = fMidiOuts[i];
       Iterator it{lv2_port.buf};
 
-      while(it.is_valid())
+      while (it.is_valid())
       {
         uint8_t* bytes;
         auto ev = it.get(&bytes);
 
-        if(ev->body.type == data.host.midi_event_id)
+        if (ev->body.type == data.host.midi_event_id)
         {
           rtmidi::message msg;
           msg.timestamp = ev->time.frames;
           msg.bytes.resize(ev->body.size);
-          for(std::size_t i = 0; i < ev->body.size; i++)
+          for (std::size_t i = 0; i < ev->body.size; i++)
             msg.bytes[i] = bytes[i];
           ossia_port.messages.push_back(std::move(msg));
         }
@@ -244,8 +249,8 @@ struct lv2_node final : public ossia::graph_node
     }
 
     // Copy controls
-    auto control_start = (audio_out_size > 0 ? 1 : 0) + midi_out_size ;
-    for(std::size_t i = control_start; i < control_out_size; i++)
+    auto control_start = (audio_out_size > 0 ? 1 : 0) + midi_out_size;
+    for (std::size_t i = control_start; i < control_out_size; i++)
     {
       auto& out = *m_outlets[i]->data.template target<ossia::value_port>();
 
@@ -286,7 +291,8 @@ struct lv2_node final : public ossia::graph_node
 
       if (audio_ins > 0)
       {
-        const auto& audio_in = *m_inlets[0]->data.template target<ossia::audio_port>();
+        const auto& audio_in
+            = *m_inlets[0]->data.template target<ossia::audio_port>();
         for (std::size_t i = 0; i < audio_ins; i++)
         {
           in_vec[i].resize(samples);
@@ -317,7 +323,8 @@ struct lv2_node final : public ossia::graph_node
 
       if (audio_outs > 0)
       {
-        auto& audio_out = *m_outlets[0]->data.template target<ossia::audio_port>();
+        auto& audio_out
+            = *m_outlets[0]->data.template target<ossia::audio_port>();
         audio_out.samples.resize(audio_outs);
         for (std::size_t i = 0; i < audio_outs; i++)
         {

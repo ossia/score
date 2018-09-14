@@ -1,22 +1,25 @@
 #if defined(HAS_FAUST)
 #include "FaustEffectModel.hpp"
 
+#include <Media/Commands/EditFaustEffect.hpp>
+#include <Media/Effect/Faust/FaustUtils.hpp>
+#include <Process/Dataflow/PortFactory.hpp>
+#include <Process/ExecutionContext.hpp>
+
+#include <score/command/Dispatchers/CommandDispatcher.hpp>
+#include <score/tools/IdentifierGeneration.hpp>
+
 #include <ossia/dataflow/execution_state.hpp>
 #include <ossia/dataflow/nodes/faust/faust_node.hpp>
 
-#include <Media/Commands/EditFaustEffect.hpp>
-#include <Media/Effect/Faust/FaustUtils.hpp>
-#include <Process/ExecutionContext.hpp>
-#include <Process/Dataflow/PortFactory.hpp>
 #include <QDialog>
 #include <QDialogButtonBox>
 #include <QPlainTextEdit>
 #include <QVBoxLayout>
-#include <iostream>
-#include <score/command/Dispatchers/CommandDispatcher.hpp>
-#include <score/tools/IdentifierGeneration.hpp>
 
 #include <wobjectimpl.h>
+
+#include <iostream>
 W_OBJECT_IMPL(Media::Faust::FaustEffectModel)
 
 namespace Process
@@ -31,21 +34,19 @@ QString EffectProcessFactory_T<
 
 template <>
 Process::Descriptor
-EffectProcessFactory_T<Media::Faust::FaustEffectModel>::descriptor(QString d) const
+EffectProcessFactory_T<Media::Faust::FaustEffectModel>::descriptor(
+    QString d) const
 {
   Process::Descriptor desc;
   return desc;
 }
-
 }
 namespace Media::Faust
 {
 
 FaustEffectModel::FaustEffectModel(
-    TimeVal t,
-    const QString& faustProgram,
-    const Id<Process::ProcessModel>& id,
-    QObject* parent)
+    TimeVal t, const QString& faustProgram,
+    const Id<Process::ProcessModel>& id, QObject* parent)
     : Process::ProcessModel{t, id, "Faust", parent}
 {
   init();
@@ -179,15 +180,15 @@ void FaustEffectModel::reload()
   }
 
   auto lines = fx_text.split('\n');
-  for(int i = 0; i < std::min(5, lines.size()); i++)
+  for (int i = 0; i < std::min(5, lines.size()); i++)
   {
-    if(lines[i].startsWith("declare name"))
+    if (lines[i].startsWith("declare name"))
     {
       auto s = lines[i].indexOf('"', 12);
-      if(s > 0)
+      if (s > 0)
       {
         auto e = lines[i].indexOf('"', s + 1);
-        if(e > s)
+        if (e > s)
         {
           m_declareName = "Faust: " + lines[i].mid(s + 1, e - s - 1);
           prettyNameChanged();
@@ -198,12 +199,10 @@ void FaustEffectModel::reload()
   }
 }
 
-
 InspectorWidget::InspectorWidget(
-    const Media::Faust::FaustEffectModel& fx
-    , const score::DocumentContext& doc
-    , QWidget* parent)
-  : InspectorWidgetDelegate_T{fx, parent}
+    const Media::Faust::FaustEffectModel& fx,
+    const score::DocumentContext& doc, QWidget* parent)
+    : InspectorWidgetDelegate_T{fx, parent}
 {
   auto lay = new QVBoxLayout{this};
   this->setLayout(lay);
@@ -218,8 +217,7 @@ InspectorWidget::InspectorWidget(
 }
 
 FaustEditDialog::FaustEditDialog(
-    const FaustEffectModel& fx,
-    const score::DocumentContext& ctx,
+    const FaustEffectModel& fx, const score::DocumentContext& ctx,
     QWidget* parent)
     : QDialog{parent}, m_effect{fx}
 {
@@ -285,10 +283,8 @@ namespace Execution
 {
 
 Execution::FaustEffectComponent::FaustEffectComponent(
-    Media::Faust::FaustEffectModel& proc,
-    const Execution::Context& ctx,
-    const Id<score::Component>& id,
-    QObject* parent)
+    Media::Faust::FaustEffectModel& proc, const Execution::Context& ctx,
+    const Id<score::Component>& id, QObject* parent)
     : ProcessComponent_T{proc, ctx, id, "FaustComponent", parent}
 {
   if (proc.faust_object)
@@ -313,7 +309,6 @@ Execution::FaustEffectComponent::FaustEffectComponent(
     }
   }
 }
-
 }
 W_OBJECT_IMPL(Execution::FaustEffectComponent)
 #endif

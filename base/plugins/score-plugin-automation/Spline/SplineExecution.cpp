@@ -2,21 +2,20 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "SplineExecution.hpp"
 
-#include <ossia/dataflow/nodes/spline.hpp>
 #include <Process/ExecutionContext.hpp>
+
+#include <ossia/dataflow/nodes/spline.hpp>
 namespace Spline
 {
 namespace RecreateOnPlay
 {
 using spline = ossia::nodes::spline;
 Component::Component(
-    ::Spline::ProcessModel& element,
-    const ::Execution::Context& ctx,
-    const Id<score::Component>& id,
-    QObject* parent)
-    : ::Execution::
-          ProcessComponent_T<Spline::ProcessModel, ossia::node_process>{
-              element, ctx, id, "Executor::SplineComponent", parent}
+    ::Spline::ProcessModel& element, const ::Execution::Context& ctx,
+    const Id<score::Component>& id, QObject* parent)
+    : ::Execution::ProcessComponent_T<
+          Spline::ProcessModel, ossia::node_process>{
+          element, ctx, id, "Executor::SplineComponent", parent}
 {
   auto node = std::make_shared<spline>();
   this->node = node;

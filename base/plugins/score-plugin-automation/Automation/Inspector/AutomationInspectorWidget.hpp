@@ -1,11 +1,14 @@
 #pragma once
 #include <Automation/AutomationModel.hpp>
+#include <Process/Inspector/ProcessInspectorWidgetDelegate.hpp>
+
+#include <score/command/Dispatchers/CommandDispatcher.hpp>
+
+#include <QString>
+
 #include <Color/GradientModel.hpp>
 #include <Metronome/MetronomeModel.hpp>
 #include <Spline/SplineModel.hpp>
-#include <Process/Inspector/ProcessInspectorWidgetDelegate.hpp>
-#include <QString>
-#include <score/command/Dispatchers/CommandDispatcher.hpp>
 
 class QLabel;
 class QWidget;
@@ -39,8 +42,7 @@ class InspectorWidget final
 {
 public:
   explicit InspectorWidget(
-      const ProcessModel& object,
-      const score::DocumentContext& context,
+      const ProcessModel& object, const score::DocumentContext& context,
       QWidget* parent);
 
 private:
@@ -65,8 +67,7 @@ class InspectorWidget final
 {
 public:
   explicit InspectorWidget(
-      const ProcessModel& object,
-      const score::DocumentContext& context,
+      const ProcessModel& object, const score::DocumentContext& context,
       QWidget* parent);
 
 private:
@@ -86,8 +87,7 @@ class InspectorWidget final
 {
 public:
   explicit InspectorWidget(
-      const ProcessModel& object,
-      const score::DocumentContext& context,
+      const ProcessModel& object, const score::DocumentContext& context,
       QWidget* parent);
 
 private:
@@ -109,8 +109,7 @@ class InspectorWidget final
 {
 public:
   explicit InspectorWidget(
-      const ProcessModel& object,
-      const score::DocumentContext& context,
+      const ProcessModel& object, const score::DocumentContext& context,
       QWidget* parent);
 
 private:

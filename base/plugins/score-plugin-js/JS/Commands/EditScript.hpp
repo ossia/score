@@ -1,8 +1,10 @@
 #pragma once
 #include <JS/Commands/JSCommandFactory.hpp>
-#include <QString>
+
 #include <score/command/Command.hpp>
 #include <score/model/path/Path.hpp>
+
+#include <QString>
 
 struct DataStreamInput;
 struct DataStreamOutput;

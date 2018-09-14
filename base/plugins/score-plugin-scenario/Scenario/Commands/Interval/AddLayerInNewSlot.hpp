@@ -1,10 +1,12 @@
 #pragma once
-#include <QByteArray>
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
+
 #include <score/command/Command.hpp>
 #include <score/model/Identifier.hpp>
 #include <score/model/path/Path.hpp>
 #include <score/tools/std/Optional.hpp>
+
+#include <QByteArray>
 
 struct DataStreamInput;
 struct DataStreamOutput;

@@ -1,7 +1,9 @@
 #pragma once
-#include <QPointer>
-#include <wobjectdefs.h>
 #include <score/model/IdentifiedObjectAbstract.hpp>
+
+#include <QPointer>
+
+#include <wobjectdefs.h>
 
 /**
  * A selection is a set of objects.
@@ -116,8 +118,7 @@ Selection filterSelections(T* pressedModel, Selection sel, bool cumulation)
  * with ctrl pressed.
  */
 inline Selection filterSelections(
-    Selection& newSelection,
-    const Selection& currentSelection,
+    Selection& newSelection, const Selection& currentSelection,
     bool cumulation)
 {
   if (cumulation)

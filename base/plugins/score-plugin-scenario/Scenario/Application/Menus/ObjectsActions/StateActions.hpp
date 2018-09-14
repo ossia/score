@@ -1,9 +1,12 @@
 #pragma once
 
 #include <Process/Layer/LayerContextMenu.hpp>
-#include <QAction>
+
 #include <score/actions/Menu.hpp>
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
+
+#include <QAction>
+
 #include <score_plugin_scenario_export.h>
 namespace score
 {

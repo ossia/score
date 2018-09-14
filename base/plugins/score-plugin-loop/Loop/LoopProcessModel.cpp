@@ -5,10 +5,9 @@
 
 #include "Loop/LoopProcessMetadata.hpp"
 
-#include <ossia/detail/algorithms.hpp>
-
 #include <Process/Process.hpp>
 #include <Process/Style/ScenarioStyle.hpp>
+#include <Process/TimeValueSerialization.hpp>
 #include <Scenario/Commands/MoveBaseEvent.hpp>
 #include <Scenario/Document/BaseScenario/BaseScenarioContainer.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
@@ -16,8 +15,7 @@
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
 #include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
-#include <algorithm>
-#include <qnamespace.h>
+
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/document/DocumentContext.hpp>
 #include <score/document/DocumentInterface.hpp>
@@ -25,16 +23,21 @@
 #include <score/model/ModelMetadata.hpp>
 #include <score/model/Skin.hpp>
 #include <score/serialization/VisitorCommon.hpp>
-#include <Process/TimeValueSerialization.hpp>
 #include <score/tools/std/Optional.hpp>
-#include <tuple>
+
+#include <ossia/detail/algorithms.hpp>
+
+#include <qnamespace.h>
+
 #include <wobjectimpl.h>
+
+#include <algorithm>
+#include <tuple>
 W_OBJECT_IMPL(Loop::ProcessModel)
 namespace Loop
 {
 ProcessModel::ProcessModel(
-    const TimeVal& duration,
-    const Id<Process::ProcessModel>& id,
+    const TimeVal& duration, const Id<Process::ProcessModel>& id,
     QObject* parent)
     : Process::ProcessModel{duration, id,
                             Metadata<ObjectKey_k, ProcessModel>::get(), parent}
@@ -115,24 +118,23 @@ void ProcessModel::setSelection(const Selection& s) const
   });
 }
 
-void ProcessModel::changeDuration(Scenario::IntervalModel& itv, const TimeVal& v)
+void ProcessModel::changeDuration(
+    Scenario::IntervalModel& itv, const TimeVal& v)
 {
   Scenario::Command::MoveBaseEvent<Loop::ProcessModel> cmd(
-        *this, endEvent().id(), v, 0., ExpandMode::GrowShrink, LockMode::Free);
+      *this, endEvent().id(), v, 0., ExpandMode::GrowShrink, LockMode::Free);
   cmd.redo(score::IDocument::documentContext(*this));
 }
 
-void ProcessModel::changeDuration(const Scenario::IntervalModel& itv,
-                                  OngoingCommandDispatcher& dispatcher,
-                                  const TimeVal& val,
-                                  ExpandMode expandmode,
-                                  LockMode lockmode)
+void ProcessModel::changeDuration(
+    const Scenario::IntervalModel& itv, OngoingCommandDispatcher& dispatcher,
+    const TimeVal& val, ExpandMode expandmode, LockMode lockmode)
 {
   auto& loop = *this;
   dispatcher
       .submitCommand<Scenario::Command::MoveBaseEvent<Loop::ProcessModel>>(
-          loop, loop.state(itv.endState()).eventId(), itv.date() + val,
-          0, expandmode, lockmode);
+          loop, loop.state(itv.endState()).eventId(), itv.date() + val, 0,
+          expandmode, lockmode);
 }
 
 const QVector<Id<Scenario::IntervalModel>> intervalsBeforeTimeSync(

@@ -1,9 +1,10 @@
 #pragma once
-#include <LocalTree/LocalTreeComponent.hpp>
-#include <LocalTree/Scenario/ProcessComponent.hpp>
 #include <Scenario/Document/Components/IntervalComponent.hpp>
+
 #include <score/model/ComponentHierarchy.hpp>
 
+#include <LocalTree/LocalTreeComponent.hpp>
+#include <LocalTree/Scenario/ProcessComponent.hpp>
 
 namespace LocalTree
 {
@@ -17,19 +18,15 @@ public:
   using model_t = Process::ProcessModel;
   using component_t = LocalTree::ProcessComponent;
   using component_factory_t = LocalTree::ProcessComponentFactory;
-  using component_factory_list_t
-      = LocalTree::ProcessComponentFactoryList;
+  using component_factory_list_t = LocalTree::ProcessComponentFactoryList;
 
   IntervalBase(
-      ossia::net::node_base& parent,
-      const Id<score::Component>& id,
-      Scenario::IntervalModel& interval,
-      DocumentPlugin& sys,
+      ossia::net::node_base& parent, const Id<score::Component>& id,
+      Scenario::IntervalModel& interval, DocumentPlugin& sys,
       QObject* parent_comp);
 
   ProcessComponent* make(
-      const Id<score::Component>& id,
-      ProcessComponentFactory& factory,
+      const Id<score::Component>& id, ProcessComponentFactory& factory,
       Process::ProcessModel& process);
 
   bool
@@ -59,4 +56,3 @@ public:
   }
 };
 }
-

@@ -5,9 +5,12 @@
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentPresenter.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentView.hpp>
-#include <algorithm>
-#include <core/document/DocumentModel.hpp>
+
 #include <score/serialization/VisitorCommon.hpp>
+
+#include <core/document/DocumentModel.hpp>
+
+#include <algorithm>
 
 namespace Scenario
 {
@@ -27,8 +30,7 @@ score::DocumentDelegatePresenter* ScenarioDocumentFactory::makePresenter(
 }
 
 void ScenarioDocumentFactory::make(
-    const score::DocumentContext& ctx,
-    score::DocumentDelegateModel*& ptr,
+    const score::DocumentContext& ctx, score::DocumentDelegateModel*& ptr,
     score::DocumentModel* parent)
 {
   std::allocator<ScenarioDocumentModel> alloc;
@@ -38,10 +40,8 @@ void ScenarioDocumentFactory::make(
 }
 
 void ScenarioDocumentFactory::load(
-    const VisitorVariant& vis,
-    const score::DocumentContext& ctx,
-    score::DocumentDelegateModel*& ptr,
-    score::DocumentModel* parent)
+    const VisitorVariant& vis, const score::DocumentContext& ctx,
+    score::DocumentDelegateModel*& ptr, score::DocumentModel* parent)
 {
   std::allocator<ScenarioDocumentModel> alloc;
   auto res = alloc.allocate(1);

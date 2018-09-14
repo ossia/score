@@ -2,9 +2,11 @@
 #include <Device/Address/AddressSettings.hpp>
 #include <Device/Node/DeviceNode.hpp>
 #include <Explorer/Commands/DeviceExplorerCommandFactory.hpp>
+
 #include <score/command/Command.hpp>
 #include <score/model/path/Path.hpp>
 #include <score/model/tree/TreePath.hpp>
+
 #include <score_plugin_deviceexplorer_export.h>
 
 struct DataStreamInput;
@@ -22,10 +24,8 @@ class SCORE_PLUGIN_DEVICEEXPLORER_EXPORT AddAddress final
       DeviceExplorerCommandFactoryName(), AddAddress, "Add an address")
 public:
   AddAddress(
-      const DeviceDocumentPlugin& devplug,
-      const Device::NodePath& nodePath,
-      InsertMode insert,
-      const Device::AddressSettings& addressSettings);
+      const DeviceDocumentPlugin& devplug, const Device::NodePath& nodePath,
+      InsertMode insert, const Device::AddressSettings& addressSettings);
 
   void undo(const score::DocumentContext& ctx) const override;
   void redo(const score::DocumentContext& ctx) const override;

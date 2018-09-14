@@ -11,8 +11,6 @@ namespace Sound
 {
 using ProcessFactory = Process::ProcessFactory_T<Sound::ProcessModel>;
 using LayerFactory = Process::LayerFactory_T<
-    Sound::ProcessModel,
-    Sound::LayerPresenter,
-    Sound::LayerView>;
+    Sound::ProcessModel, Sound::LayerPresenter, Sound::LayerView>;
 }
 }

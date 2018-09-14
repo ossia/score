@@ -4,11 +4,12 @@
 
 #include "OSCQueryDevice.hpp"
 
-#include <ossia/network/base/device.hpp>
-
 #include <Device/Protocol/DeviceSettings.hpp>
 #include <Protocols/OSCQuery/OSCQueryProtocolSettingsWidget.hpp>
 #include <Protocols/OSCQuery/OSCQuerySpecificSettings.hpp>
+
+#include <ossia/network/base/device.hpp>
+
 #include <QObject>
 
 namespace Device

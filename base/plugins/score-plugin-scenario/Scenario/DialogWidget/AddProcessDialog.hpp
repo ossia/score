@@ -1,6 +1,8 @@
 #pragma once
 #include <Process/ProcessList.hpp>
+
 #include <QDialog>
+
 #include <score_plugin_scenario_export.h>
 class QListWidget;
 namespace Scenario
@@ -12,8 +14,7 @@ public:
 
   AddProcessDialog(
       const Process::ProcessFactoryList& plist,
-      Process::ProcessFlags acceptable,
-      QWidget* parent);
+      Process::ProcessFlags acceptable, QWidget* parent);
   ~AddProcessDialog();
 
   void launchWindow();

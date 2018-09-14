@@ -8,6 +8,7 @@
 #include <Scenario/Process/ScenarioModel.hpp>
 #include <Scenario/Tools/dataStructures.hpp>
 #include <Scenario/Tools/elementFindingHelper.hpp>
+
 #include <score/model/Identifier.hpp>
 #include <score/model/path/Path.hpp>
 #include <score/model/path/PathSerialization.hpp>
@@ -63,11 +64,8 @@ public:
    * @param mode
    */
   MoveEvent(
-      const Scenario::ProcessModel& scenario,
-      const Id<EventModel>& eventId,
-      const TimeVal& newDate,
-      ExpandMode mode,
-      LockMode lock)
+      const Scenario::ProcessModel& scenario, const Id<EventModel>& eventId,
+      const TimeVal& newDate, ExpandMode mode, LockMode lock)
       : SerializableMoveEvent{}, m_path{scenario}, m_mode{mode}, m_lock{lock}
   {
     auto& s = const_cast<Scenario::ProcessModel&>(scenario);
@@ -85,12 +83,8 @@ public:
   }
 
   void update(
-      Scenario::ProcessModel& scenario,
-      const Id<EventModel>& eventId,
-      const TimeVal& newDate,
-      double,
-      ExpandMode,
-      LockMode) override
+      Scenario::ProcessModel& scenario, const Id<EventModel>& eventId,
+      const TimeVal& newDate, double, ExpandMode, LockMode) override
   {
     // we need to compute the new time delta
     // NOTE: in the future in would be better to give directly the delta value

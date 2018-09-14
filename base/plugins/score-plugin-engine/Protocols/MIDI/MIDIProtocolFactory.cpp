@@ -7,6 +7,7 @@
 
 #include <Device/Protocol/DeviceSettings.hpp>
 #include <Protocols/MIDI/MIDISpecificSettings.hpp>
+
 #include <QObject>
 
 namespace Device
@@ -51,18 +52,15 @@ Device::ProtocolSettingsWidget* MIDIProtocolFactory::makeSettingsWidget()
 }
 
 Device::AddressDialog* MIDIProtocolFactory::makeAddAddressDialog(
-    const Device::DeviceInterface& dev,
-    const score::DocumentContext& ctx,
+    const Device::DeviceInterface& dev, const score::DocumentContext& ctx,
     QWidget* parent)
 {
   return nullptr;
 }
 
 Device::AddressDialog* MIDIProtocolFactory::makeEditAddressDialog(
-    const Device::AddressSettings&,
-    const Device::DeviceInterface& dev,
-    const score::DocumentContext& ctx,
-    QWidget*)
+    const Device::AddressSettings&, const Device::DeviceInterface& dev,
+    const score::DocumentContext& ctx, QWidget*)
 {
   return nullptr;
 }

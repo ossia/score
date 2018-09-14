@@ -5,6 +5,7 @@
 #include <Process/TimeValueSerialization.hpp>
 #include <Scenario/Document/CommentBlock/CommentBlockModel.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
+
 #include <score/model/path/PathSerialization.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
 
@@ -13,9 +14,7 @@ namespace Scenario
 namespace Command
 {
 MoveCommentBlock::MoveCommentBlock(
-    const ProcessModel& scenar,
-    Id<CommentBlockModel> id,
-    TimeVal newDate,
+    const ProcessModel& scenar, Id<CommentBlockModel> id, TimeVal newDate,
     double newY)
     : m_path{scenar}
     , m_id{std::move(id)}

@@ -1,6 +1,7 @@
 #pragma once
 #include <QObject>
 #include <QPoint>
+
 #include <score_lib_base_export.h>
 
 class QGraphicsScene;

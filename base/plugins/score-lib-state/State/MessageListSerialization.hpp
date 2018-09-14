@@ -1,8 +1,10 @@
 #pragma once
-#include <QJsonDocument>
 #include <State/Message.hpp>
+
 #include <score/serialization/JSONVisitor.hpp>
 #include <score/serialization/MimeVisitor.hpp>
+
+#include <QJsonDocument>
 
 namespace score
 {

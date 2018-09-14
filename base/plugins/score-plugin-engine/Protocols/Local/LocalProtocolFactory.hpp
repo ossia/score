@@ -1,5 +1,6 @@
 #pragma once
 #include <Protocols/DefaultProtocolFactory.hpp>
+
 #include <QString>
 #include <QVariant>
 

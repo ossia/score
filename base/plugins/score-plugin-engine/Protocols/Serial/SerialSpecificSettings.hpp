@@ -5,6 +5,7 @@
 #include <QMetaType>
 #include <QSerialPortInfo>
 #include <QString>
+
 #include <wobjectdefs.h>
 
 namespace Engine

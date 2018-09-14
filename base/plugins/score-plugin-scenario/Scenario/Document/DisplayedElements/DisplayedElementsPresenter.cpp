@@ -2,11 +2,8 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "DisplayedElementsPresenter.hpp"
 
-#include <ossia/detail/algorithms.hpp>
-
 #include <Process/TimeValue.hpp>
 #include <Process/ZoomHelper.hpp>
-#include <QApplication>
 #include <Scenario/Document/BaseScenario/BaseScenario.hpp>
 #include <Scenario/Document/BaseScenario/BaseScenarioPresenter.hpp>
 #include <Scenario/Document/DisplayedElements/DisplayedElementsProviderList.hpp>
@@ -35,10 +32,16 @@
 #include <score/tools/Todo.hpp>
 #include <score/tools/std/Optional.hpp>
 #include <score/widgets/GraphicsProxyObject.hpp>
-#include <tuple>
-#include <type_traits>
+
+#include <ossia/detail/algorithms.hpp>
+
+#include <QApplication>
 
 #include <wobjectimpl.h>
+
+#include <tuple>
+
+#include <type_traits>
 W_OBJECT_IMPL(Scenario::DisplayedElementsPresenter)
 namespace Scenario
 {

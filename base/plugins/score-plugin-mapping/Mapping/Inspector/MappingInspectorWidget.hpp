@@ -1,6 +1,7 @@
 #pragma once
 #include <Mapping/MappingModel.hpp>
 #include <Process/Inspector/ProcessInspectorWidgetDelegate.hpp>
+
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 class QWidget;
 
@@ -30,8 +31,7 @@ class InspectorWidget : public Process::InspectorWidgetDelegate_T<ProcessModel>
 {
 public:
   explicit InspectorWidget(
-      const ProcessModel& object,
-      const score::DocumentContext& context,
+      const ProcessModel& object, const score::DocumentContext& context,
       QWidget* parent);
 
 private:

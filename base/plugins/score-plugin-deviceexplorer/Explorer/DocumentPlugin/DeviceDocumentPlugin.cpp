@@ -11,15 +11,8 @@
 #include <Explorer/DocumentPlugin/DeviceDocumentPluginFactory.hpp>
 #include <Explorer/DocumentPlugin/NodeUpdateProxy.hpp>
 #include <Explorer/Listening/ListeningHandlerFactoryList.hpp>
-#include <QApplication>
-#include <QJsonArray>
-#include <QJsonObject>
-#include <QMessageBox>
-#include <QObject>
-#include <QString>
 #include <State/Address.hpp>
-#include <algorithm>
-#include <iostream>
+
 #include <score/application/ApplicationContext.hpp>
 #include <score/document/DocumentContext.hpp>
 #include <score/model/tree/TreeNode.hpp>
@@ -27,10 +20,20 @@
 #include <score/plugins/customfactory/StringFactoryKey.hpp>
 #include <score/plugins/documentdelegate/plugin/DocumentPlugin.hpp>
 #include <score/serialization/VisitorCommon.hpp>
-#include <stdexcept>
-#include <vector>
+
+#include <QApplication>
+#include <QJsonArray>
+#include <QJsonObject>
+#include <QMessageBox>
+#include <QObject>
+#include <QString>
 
 #include <wobjectimpl.h>
+
+#include <algorithm>
+#include <iostream>
+#include <stdexcept>
+#include <vector>
 W_OBJECT_IMPL(Explorer::DeviceDocumentPlugin)
 namespace Explorer
 {
@@ -191,9 +194,7 @@ ListeningHandler& DeviceDocumentPlugin::listening() const
 void DeviceDocumentPlugin::initDevice(Device::DeviceInterface& newdev)
 {
   newdev.reconnect();
-  newdev.valueUpdated
-      .connect<&DeviceDocumentPlugin::on_valueUpdated>(
-          *this);
+  newdev.valueUpdated.connect<&DeviceDocumentPlugin::on_valueUpdated>(*this);
 
   con(newdev, &Device::DeviceInterface::pathAdded, this,
       [&](const State::Address& addr) {

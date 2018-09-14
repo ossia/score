@@ -6,11 +6,13 @@
 #include <Device/Protocol/DeviceSettings.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <Explorer/DocumentPlugin/NodeUpdateProxy.hpp>
-#include <algorithm>
+
 #include <score/model/path/Path.hpp>
 #include <score/model/path/PathSerialization.hpp>
 #include <score/model/tree/TreeNode.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
+
+#include <algorithm>
 
 namespace Explorer
 {
@@ -45,8 +47,7 @@ void LoadDevice::deserializeImpl(DataStreamOutput& d)
 }
 
 ReloadWholeDevice::ReloadWholeDevice(
-    const DeviceDocumentPlugin& devplug,
-    Device::Node&& oldNode,
+    const DeviceDocumentPlugin& devplug, Device::Node&& oldNode,
     Device::Node&& newNode)
     : m_oldNode(std::move(oldNode)), m_newNode(std::move(newNode))
 {

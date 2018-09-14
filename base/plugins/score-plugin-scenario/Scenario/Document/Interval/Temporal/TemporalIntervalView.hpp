@@ -1,17 +1,20 @@
 #pragma once
 #include <Process/TimeValue.hpp>
-#include <wobjectdefs.h>
+#include <Scenario/Document/CommentBlock/TextItem.hpp>
+#include <Scenario/Document/Interval/ExecutionState.hpp>
+#include <Scenario/Document/Interval/IntervalView.hpp>
+
+#include <score/model/ColorReference.hpp>
+#include <score/widgets/MimeData.hpp>
+
 #include <QColor>
 #include <QPainter>
 #include <QPoint>
 #include <QRect>
 #include <QString>
 #include <QtGlobal>
-#include <Scenario/Document/CommentBlock/TextItem.hpp>
-#include <Scenario/Document/Interval/ExecutionState.hpp>
-#include <Scenario/Document/Interval/IntervalView.hpp>
-#include <score/model/ColorReference.hpp>
-#include <score/widgets/MimeData.hpp>
+
+#include <wobjectdefs.h>
 namespace Process
 {
 class LayerPresenter;
@@ -34,8 +37,7 @@ public:
 
   const TemporalIntervalPresenter& presenter() const;
   void paint(
-      QPainter* painter,
-      const QStyleOptionGraphicsItem* option,
+      QPainter* painter, const QStyleOptionGraphicsItem* option,
       QWidget* widget) override;
 
   void enableOverlay(bool b);
@@ -47,10 +49,14 @@ public:
 
   void updateOverlayPos();
   void setSelected(bool selected);
+
 public:
-  void intervalHoverEnter() E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, intervalHoverEnter);
-  void intervalHoverLeave() E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, intervalHoverLeave);
-  void dropReceived(const QPointF& pos, const QMimeData& arg_2) E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, dropReceived, pos, arg_2);
+  void intervalHoverEnter()
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, intervalHoverEnter);
+  void intervalHoverLeave()
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, intervalHoverLeave);
+  void dropReceived(const QPointF& pos, const QMimeData& arg_2)
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, dropReceived, pos, arg_2);
 
 private:
   void hoverEnterEvent(QGraphicsSceneHoverEvent* h) override;

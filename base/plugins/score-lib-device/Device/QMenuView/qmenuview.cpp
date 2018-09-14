@@ -43,6 +43,7 @@ J'ai apporté quelques modifications en plus.
 #include "qmenuview_p.h"
 
 #include <Device/QMenuView/qmenuview.h>
+
 #include <QAbstractItemModel>
 #include <QAction>
 #include <QEvent>
@@ -54,8 +55,8 @@ J'ai apporté quelques modifications en plus.
 #include <QString>
 #include <QVariant>
 #include <qnamespace.h>
-#include <wobjectimpl.h>
 
+#include <wobjectimpl.h>
 
 Q_DECLARE_METATYPE(QModelIndex)
 W_OBJECT_IMPL(ClickableMenu)
@@ -131,7 +132,8 @@ void QMenuViewPrivate::aboutToShow()
     {
       QModelIndex idx = qvariant_cast<QModelIndex>(v);
       _menu->createMenu(idx, *menu, menu);
-      disconnect(menu, &QMenu::aboutToShow, this, &QMenuViewPrivate::aboutToShow);
+      disconnect(
+          menu, &QMenu::aboutToShow, this, &QMenuViewPrivate::aboutToShow);
       return;
     }
   }
@@ -184,7 +186,8 @@ QMenuView::QMenuView(QWidget* parent)
 {
   connect(this, &QMenu::triggered, d.data(), &QMenuViewPrivate::triggered);
   connect(this, &QMenu::hovered, d.data(), &QMenuViewPrivate::hovered);
-  connect(this, &QMenuView::aboutToShow, d.data(), &QMenuViewPrivate::aboutToShow);
+  connect(
+      this, &QMenuView::aboutToShow, d.data(), &QMenuViewPrivate::aboutToShow);
 }
 
 //! Destroy the menu.
@@ -288,7 +291,8 @@ void QMenuView::createMenu(
     menu->setEnabled(true);
     // menu->setEnabled(parent.flags().testFlag(Qt::ItemIsEnabled));
 
-    connect(menu, &QMenu::aboutToShow, d.data(), &QMenuViewPrivate::aboutToShow);
+    connect(
+        menu, &QMenu::aboutToShow, d.data(), &QMenuViewPrivate::aboutToShow);
 
     return;
   }

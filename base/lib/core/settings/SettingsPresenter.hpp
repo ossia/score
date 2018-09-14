@@ -1,7 +1,10 @@
 #pragma once
-#include <QObject>
-#include <core/settings/SettingsView.hpp>
 #include <score/plugins/settingsdelegate/SettingsDelegatePresenter.hpp>
+
+#include <core/settings/SettingsView.hpp>
+
+#include <QObject>
+
 #include <vector>
 
 namespace score

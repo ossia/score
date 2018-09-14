@@ -2,10 +2,11 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "Relation.hpp"
 
+#include <State/ValueConversion.hpp>
+
 #include <ossia/editor/state/destination_qualifiers.hpp>
 
 #include <QMap>
-#include <State/ValueConversion.hpp>
 namespace State
 {
 

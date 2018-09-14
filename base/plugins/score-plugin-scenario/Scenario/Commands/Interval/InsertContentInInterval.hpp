@@ -1,11 +1,13 @@
 #pragma once
 #include <Process/ExpandMode.hpp>
-#include <QJsonObject>
-#include <QMap>
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
+
 #include <score/command/Command.hpp>
 #include <score/model/Identifier.hpp>
 #include <score/model/path/Path.hpp>
+
+#include <QJsonObject>
+#include <QMap>
 
 struct DataStreamInput;
 struct DataStreamOutput;
@@ -23,13 +25,11 @@ class SCORE_PLUGIN_SCENARIO_EXPORT InsertContentInInterval final
     : public score::Command
 {
   SCORE_COMMAND_DECL(
-      ScenarioCommandFactoryName(),
-      InsertContentInInterval,
+      ScenarioCommandFactoryName(), InsertContentInInterval,
       "Insert content in a interval")
 public:
   InsertContentInInterval(
-      QJsonObject&& sourceInterval,
-      const IntervalModel& targetInterval,
+      QJsonObject&& sourceInterval, const IntervalModel& targetInterval,
       ExpandMode mode);
 
   void undo(const score::DocumentContext& ctx) const override;

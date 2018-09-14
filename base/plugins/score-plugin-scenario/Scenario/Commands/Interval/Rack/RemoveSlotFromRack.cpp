@@ -3,13 +3,16 @@
 #include "RemoveSlotFromRack.hpp"
 
 #include <Scenario/Document/Interval/IntervalModel.hpp>
+
 #include <score/model/EntityMap.hpp>
 #include <score/model/path/ObjectIdentifier.hpp>
 #include <score/model/path/Path.hpp>
 #include <score/model/path/PathSerialization.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
-#include <type_traits>
+
 #include <utility>
+
+#include <type_traits>
 
 namespace Scenario
 {

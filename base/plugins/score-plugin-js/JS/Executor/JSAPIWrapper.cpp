@@ -2,15 +2,15 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "JSAPIWrapper.hpp"
 
+#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
+#include <Explorer/DocumentPlugin/NodeUpdateProxy.hpp>
+#include <Scenario/Execution/score2OSSIA.hpp>
+
+#include <ossia-qt/js_utilities.hpp>
+#include <ossia/dataflow/dataflow.hpp>
 #include <ossia/dataflow/execution_state.hpp>
 #include <ossia/detail/apply.hpp>
 #include <ossia/network/value/value.hpp>
-
-#include <Scenario/Execution/score2OSSIA.hpp>
-#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
-#include <Explorer/DocumentPlugin/NodeUpdateProxy.hpp>
-#include <ossia-qt/js_utilities.hpp>
-#include <ossia/dataflow/dataflow.hpp>
 
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(JS::ExecStateWrapper)
@@ -75,7 +75,7 @@ const ossia::destination_t& ExecStateWrapper::find_address(const QString& str)
     }
   }
 
-  if(auto p = ossia::traversal::make_path(str.toStdString()))
+  if (auto p = ossia::traversal::make_path(str.toStdString()))
   {
     auto [it, b] = m_address_cache.insert({str, *p});
     return it->second;
@@ -92,18 +92,20 @@ QVariant ExecStateWrapper::read(const QString& address)
     QVariant var;
     QVariantMap mv;
 
-    bool unique = ossia::apply_to_destination(addr, devices.exec_devices(),
-      [&] (ossia::net::parameter_base* addr, bool unique) {
-        if(unique)
-        {
-          var = addr->value().apply(ossia::qt::ossia_to_qvariant{});
-        }
-        else
-        {
-          mv[QString::fromStdString(addr->get_node().osc_address())] = addr->value().apply(ossia::qt::ossia_to_qvariant{});
-        }
-    });
-    if(unique)
+    bool unique = ossia::apply_to_destination(
+        addr, devices.exec_devices(),
+        [&](ossia::net::parameter_base* addr, bool unique) {
+          if (unique)
+          {
+            var = addr->value().apply(ossia::qt::ossia_to_qvariant{});
+          }
+          else
+          {
+            mv[QString::fromStdString(addr->get_node().osc_address())]
+                = addr->value().apply(ossia::qt::ossia_to_qvariant{});
+          }
+        });
+    if (unique)
       return var;
     else
       return mv;
@@ -117,10 +119,11 @@ void ExecStateWrapper::write(const QString& address, const QVariant& value)
   {
     auto val = ossia::qt::qt_to_ossia{}(value);
 
-    ossia::apply_to_destination(addr, devices.exec_devices(),
-      [&] (ossia::net::parameter_base* addr, bool unique) {
-        devices.insert(*addr, ossia::typed_value{val});
-    });
+    ossia::apply_to_destination(
+        addr, devices.exec_devices(),
+        [&](ossia::net::parameter_base* addr, bool unique) {
+          devices.insert(*addr, ossia::typed_value{val});
+        });
   }
 }
 }

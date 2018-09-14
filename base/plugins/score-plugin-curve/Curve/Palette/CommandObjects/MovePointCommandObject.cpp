@@ -10,18 +10,22 @@
 #include <Curve/Palette/CurvePaletteBaseStates.hpp>
 #include <Curve/Palette/CurvePoint.hpp>
 #include <Curve/Point/CurvePointModel.hpp>
-#include <QPoint>
-#include <algorithm>
-#include <boost/operators.hpp>
+
 #include <score/command/Dispatchers/SingleOngoingCommandDispatcher.hpp>
 #include <score/model/Identifier.hpp>
 #include <score/tools/std/Optional.hpp>
-#include <vector>
+
+#include <boost/operators.hpp>
+
+#include <QPoint>
 
 #include <multi_index/hashed_index.hpp>
 #include <multi_index/mem_fun.hpp>
 #include <multi_index/member.hpp>
 #include <multi_index_container.hpp>
+
+#include <algorithm>
+#include <vector>
 
 namespace bmi = multi_index;
 namespace score
@@ -31,14 +35,12 @@ class CommandStackFacade;
 
 namespace Curve
 {
-struct CurveSegmentMap : bmi::multi_index_container<
-    SegmentData,
-    bmi::indexed_by<bmi::hashed_unique<
-        bmi::member<SegmentData, Id<SegmentModel>, &SegmentData::id>,
-        CurveDataHash
-       >
-     >
-   >
+struct CurveSegmentMap
+    : bmi::multi_index_container<
+          SegmentData,
+          bmi::indexed_by<bmi::hashed_unique<
+              bmi::member<SegmentData, Id<SegmentModel>, &SegmentData::id>,
+              CurveDataHash>>>
 {
   using multi_index_container::multi_index_container;
 };

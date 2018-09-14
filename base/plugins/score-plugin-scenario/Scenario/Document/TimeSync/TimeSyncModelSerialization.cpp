@@ -5,14 +5,9 @@
 
 #include <Process/TimeValue.hpp>
 #include <Process/TimeValueSerialization.hpp>
-#include <QDataStream>
-#include <QJsonArray>
-#include <QJsonObject>
-#include <QJsonValue>
-#include <QtGlobal>
 #include <Scenario/Document/VerticalExtent.hpp>
 #include <State/Expression.hpp>
-#include <algorithm>
+
 #include <score/model/Identifier.hpp>
 #include <score/model/ModelMetadata.hpp>
 #include <score/model/tree/TreeNode.hpp>
@@ -20,6 +15,14 @@
 #include <score/serialization/JSONValueVisitor.hpp>
 #include <score/serialization/JSONVisitor.hpp>
 #include <score/tools/std/Optional.hpp>
+
+#include <QDataStream>
+#include <QJsonArray>
+#include <QJsonObject>
+#include <QJsonValue>
+#include <QtGlobal>
+
+#include <algorithm>
 
 template <>
 SCORE_PLUGIN_SCENARIO_EXPORT void

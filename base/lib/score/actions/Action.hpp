@@ -1,11 +1,13 @@
 #pragma once
+#include <score/document/DocumentContext.hpp>
+#include <score/plugins/customfactory/StringFactoryKey.hpp>
+
 #include <QAction>
 #include <QMenu>
 #include <QString>
 #include <QToolBar>
+
 #include <memory>
-#include <score/document/DocumentContext.hpp>
-#include <score/plugins/customfactory/StringFactoryKey.hpp>
 
 /**
  * \file Action.hpp
@@ -77,24 +79,15 @@ class SCORE_LIB_BASE_EXPORT Action
 {
 public:
   Action(
-      QAction* act,
-      QString text,
-      ActionKey key,
-      ActionGroupKey k,
+      QAction* act, QString text, ActionKey key, ActionGroupKey k,
       const QKeySequence& defaultShortcut);
   Action(
-      QAction* act,
-      QString text,
-      ActionKey key,
-      ActionGroupKey k,
+      QAction* act, QString text, ActionKey key, ActionGroupKey k,
       const QKeySequence& defaultShortcut,
       const QKeySequence& defaultShortcut2);
 
   Action(
-      QAction* act,
-      QString text,
-      const char* key,
-      const char* group_key,
+      QAction* act, QString text, const char* key, const char* group_key,
       const QKeySequence& defaultShortcut);
 
   ActionKey key() const;
@@ -274,9 +267,8 @@ struct SCORE_LIB_BASE_EXPORT SelectionActionCondition : public ActionCondition
  * Will be checked when the \ref CustomActionCondition::changed signal is
  * emitted
  */
-struct SCORE_LIB_BASE_EXPORT CustomActionCondition
-    : public QObject
-    , public ActionCondition
+struct SCORE_LIB_BASE_EXPORT CustomActionCondition : public QObject,
+                                                     public ActionCondition
 {
   W_OBJECT(CustomActionCondition)
 

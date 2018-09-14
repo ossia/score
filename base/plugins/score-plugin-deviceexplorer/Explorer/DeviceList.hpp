@@ -1,11 +1,14 @@
 #pragma once
 #include <Device/Protocol/DeviceInterface.hpp>
-#include <wobjectdefs.h>
 #include <Device/Protocol/DeviceSettings.hpp>
+
 #include <QString>
+
+#include <score_plugin_deviceexplorer_export.h>
+#include <wobjectdefs.h>
+
 #include <algorithm>
 #include <functional>
-#include <score_plugin_deviceexplorer_export.h>
 #include <vector>
 
 namespace Device
@@ -49,19 +52,25 @@ public:
     return m_audioDevice;
   }
   const std::vector<DeviceInterface*>& devices() const;
-public:
-  void logInbound(const QString& arg_1) const E_SIGNAL(SCORE_PLUGIN_DEVICEEXPLORER_EXPORT, logInbound, arg_1);
-  void logOutbound(const QString& arg_1) const E_SIGNAL(SCORE_PLUGIN_DEVICEEXPLORER_EXPORT, logOutbound, arg_1);
-  void logError(const QString& arg_1) const E_SIGNAL(SCORE_PLUGIN_DEVICEEXPLORER_EXPORT, logError, arg_1);
 
-  void deviceAdded(DeviceInterface& dev) const E_SIGNAL(SCORE_PLUGIN_DEVICEEXPLORER_EXPORT, deviceAdded, dev);
-  void deviceRemoved(DeviceInterface& dev) const E_SIGNAL(SCORE_PLUGIN_DEVICEEXPLORER_EXPORT, deviceRemoved, dev);
+public:
+  void logInbound(const QString& arg_1) const
+      E_SIGNAL(SCORE_PLUGIN_DEVICEEXPLORER_EXPORT, logInbound, arg_1);
+  void logOutbound(const QString& arg_1) const
+      E_SIGNAL(SCORE_PLUGIN_DEVICEEXPLORER_EXPORT, logOutbound, arg_1);
+  void logError(const QString& arg_1) const
+      E_SIGNAL(SCORE_PLUGIN_DEVICEEXPLORER_EXPORT, logError, arg_1);
+
+  void deviceAdded(DeviceInterface& dev) const
+      E_SIGNAL(SCORE_PLUGIN_DEVICEEXPLORER_EXPORT, deviceAdded, dev);
+  void deviceRemoved(DeviceInterface& dev) const
+      E_SIGNAL(SCORE_PLUGIN_DEVICEEXPLORER_EXPORT, deviceRemoved, dev);
+
 private:
   std::vector<DeviceInterface*> m_devices;
   DeviceInterface *m_localDevice{}, *m_audioDevice{};
   bool m_logging = false;
 };
-
 }
 
 W_REGISTER_ARGTYPE(Device::DeviceInterface&)

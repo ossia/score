@@ -6,8 +6,11 @@
 #include <Curve/Palette/Tools/MoveTool.hpp>
 #include <Curve/Palette/Tools/SmartTool.hpp>
 #include <Process/Tools/ToolPalette.hpp>
-#include <QPoint>
+
 #include <score/statemachine/GraphicsSceneToolPalette.hpp>
+
+#include <QPoint>
+
 #include <score_plugin_curve_export.h>
 namespace score
 {

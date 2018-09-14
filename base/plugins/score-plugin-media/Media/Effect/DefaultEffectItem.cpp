@@ -1,15 +1,16 @@
 #include "DefaultEffectItem.hpp"
 
 #include <Dataflow/UI/PortItem.hpp>
-#include <Engine/Node/Widgets.hpp>
 #include <Process/Style/ScenarioStyle.hpp>
-#include <QGraphicsScene>
 #include <Scenario/Document/CommentBlock/TextItem.hpp>
+
+#include <QGraphicsScene>
+
+#include <Engine/Node/Widgets.hpp>
 namespace Media::Effect
 {
 DefaultEffectItem::DefaultEffectItem(
-    const Process::ProcessModel& effect,
-    const score::DocumentContext& doc,
+    const Process::ProcessModel& effect, const score::DocumentContext& doc,
     score::RectItem* root)
     : score::RectItem{root}
 {

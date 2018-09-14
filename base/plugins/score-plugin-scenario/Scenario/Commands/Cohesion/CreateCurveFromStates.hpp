@@ -1,15 +1,18 @@
 #pragma once
 #include <Automation/AutomationProcessMetadata.hpp>
-#include <Interpolation/InterpolationProcess.hpp>
 #include <Process/ProcessList.hpp>
 #include <Scenario/Commands/Interval/AddOnlyProcessToInterval.hpp>
 #include <Scenario/Commands/Interval/Rack/Slot/AddLayerModelToSlot.hpp>
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <State/Address.hpp>
+
 #include <score/application/ApplicationContext.hpp>
 #include <score/command/Command.hpp>
 #include <score/model/Identifier.hpp>
+
+#include <Interpolation/InterpolationProcess.hpp>
+
 #include <utility>
 #include <vector>
 
@@ -37,13 +40,14 @@ public:
   CreateProcessAndLayers() = default;
 
   CreateProcessAndLayers(
-      const IntervalModel& interval,
-      const std::vector<SlotPath>& slotList,
-      Id<Process::ProcessModel> procId,
-      UuidKey<Process::ProcessModel> key);
+      const IntervalModel& interval, const std::vector<SlotPath>& slotList,
+      Id<Process::ProcessModel> procId, UuidKey<Process::ProcessModel> key);
 
   void undo(const score::DocumentContext& ctx) const final override;
-  const Id<Process::ProcessModel>& processId() const { return m_addProcessCmd.processId(); }
+  const Id<Process::ProcessModel>& processId() const
+  {
+    return m_addProcessCmd.processId();
+  }
 
 protected:
   void serializeImpl(DataStreamInput& s) const override;
@@ -57,17 +61,13 @@ class SCORE_PLUGIN_SCENARIO_EXPORT CreateAutomationFromStates final
     : public CreateProcessAndLayers
 {
   SCORE_COMMAND_DECL(
-      ScenarioCommandFactoryName(),
-      CreateAutomationFromStates,
+      ScenarioCommandFactoryName(), CreateAutomationFromStates,
       "CreateCurveFromStates")
 public:
   CreateAutomationFromStates(
-      const IntervalModel& interval,
-      const std::vector<SlotPath>& slotList,
-      Id<Process::ProcessModel> curveId,
-      State::AddressAccessor address,
-      const Curve::CurveDomain&,
-      bool tween = false);
+      const IntervalModel& interval, const std::vector<SlotPath>& slotList,
+      Id<Process::ProcessModel> curveId, State::AddressAccessor address,
+      const Curve::CurveDomain&, bool tween = false);
 
   void redo(const score::DocumentContext& ctx) const override;
 
@@ -86,18 +86,13 @@ class SCORE_PLUGIN_SCENARIO_EXPORT CreateInterpolationFromStates final
     : public CreateProcessAndLayers
 {
   SCORE_COMMAND_DECL(
-      ScenarioCommandFactoryName(),
-      CreateInterpolationFromStates,
+      ScenarioCommandFactoryName(), CreateInterpolationFromStates,
       "CreateInterpolationFromStates")
 public:
   CreateInterpolationFromStates(
-      const IntervalModel& interval,
-      const std::vector<SlotPath>& slotList,
-      Id<Process::ProcessModel> curveId,
-      State::AddressAccessor address,
-      ossia::value start,
-      ossia::value end,
-      bool tween = false);
+      const IntervalModel& interval, const std::vector<SlotPath>& slotList,
+      Id<Process::ProcessModel> curveId, State::AddressAccessor address,
+      ossia::value start, ossia::value end, bool tween = false);
 
   void redo(const score::DocumentContext& ctx) const override;
 

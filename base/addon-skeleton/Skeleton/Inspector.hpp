@@ -1,8 +1,10 @@
 #pragma once
 #include <Process/Inspector/ProcessInspectorWidgetDelegate.hpp>
 #include <Process/Inspector/ProcessInspectorWidgetDelegateFactory.hpp>
-#include <Skeleton/Process.hpp>
+
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
+
+#include <Skeleton/Process.hpp>
 
 namespace Skeleton
 {
@@ -11,8 +13,7 @@ class InspectorWidget final
 {
 public:
   explicit InspectorWidget(
-      const Skeleton::Model& object,
-      const score::DocumentContext& context,
+      const Skeleton::Model& object, const score::DocumentContext& context,
       QWidget* parent);
   ~InspectorWidget();
 

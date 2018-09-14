@@ -1,20 +1,22 @@
 #pragma once
 #include <Process/Execution/ProcessComponent.hpp>
-#include <wobjectdefs.h>
-
-#include <ossia/editor/scenario/time_event.hpp>
-
+#include <Scenario/Document/Components/ScenarioComponent.hpp>
 #include <Scenario/Document/Event/EventExecution.hpp>
 #include <Scenario/Document/Interval/IntervalExecution.hpp>
+#include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/State/StateExecution.hpp>
 #include <Scenario/Document/TimeSync/TimeSyncExecution.hpp>
-#include <Scenario/Document/Components/ScenarioComponent.hpp>
-#include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Tools/dataStructures.hpp>
-#include <memory>
+
 #include <score/model/IdentifiedObjectMap.hpp>
 #include <score/model/Identifier.hpp>
 #include <score/tools/std/Optional.hpp>
+
+#include <ossia/editor/scenario/time_event.hpp>
+
+#include <wobjectdefs.h>
+
+#include <memory>
 
 Q_DECLARE_METATYPE(std::shared_ptr<Execution::EventComponent>)
 W_REGISTER_ARGTYPE(std::shared_ptr<Execution::EventComponent>)
@@ -67,10 +69,8 @@ class SCORE_PLUGIN_SCENARIO_EXPORT ScenarioComponentBase
 
 public:
   ScenarioComponentBase(
-      Scenario::ProcessModel& proc,
-      const Context& ctx,
-      const Id<score::Component>& id,
-      QObject* parent);
+      Scenario::ProcessModel& proc, const Context& ctx,
+      const Id<score::Component>& id, QObject* parent);
   ~ScenarioComponentBase() override;
 
   const auto& states() const
@@ -78,8 +78,7 @@ public:
     return m_ossia_states;
   }
   const score::hash_map<
-      Id<Scenario::IntervalModel>,
-      std::shared_ptr<IntervalComponent>>&
+      Id<Scenario::IntervalModel>, std::shared_ptr<IntervalComponent>>&
   intervals() const
   {
     return m_ossia_intervals;
@@ -119,7 +118,8 @@ public:
 
 public:
   void sig_eventCallback(
-      std::shared_ptr<EventComponent> arg_1, ossia::time_event::status st) W_SIGNAL(sig_eventCallback, arg_1, st);
+      std::shared_ptr<EventComponent> arg_1, ossia::time_event::status st)
+      W_SIGNAL(sig_eventCallback, arg_1, st);
 
 protected:
   void startIntervalExecution(const Id<Scenario::IntervalModel>&);
@@ -129,17 +129,17 @@ protected:
   void eventCallback(
       std::shared_ptr<EventComponent> ev, ossia::time_event::status newStatus);
 
-  void timeSyncCallback(
-      Execution::TimeSyncComponent* tn, ossia::time_value date);
+  void
+  timeSyncCallback(Execution::TimeSyncComponent* tn, ossia::time_value date);
 
-  score::
-      hash_map<Id<Scenario::IntervalModel>, std::shared_ptr<IntervalComponent>>
-          m_ossia_intervals;
+  score::hash_map<
+      Id<Scenario::IntervalModel>, std::shared_ptr<IntervalComponent>>
+      m_ossia_intervals;
   score::hash_map<Id<Scenario::StateModel>, std::shared_ptr<StateComponent>>
       m_ossia_states;
-  score::
-      hash_map<Id<Scenario::TimeSyncModel>, std::shared_ptr<TimeSyncComponent>>
-          m_ossia_timesyncs;
+  score::hash_map<
+      Id<Scenario::TimeSyncModel>, std::shared_ptr<TimeSyncComponent>>
+      m_ossia_timesyncs;
   score::hash_map<Id<Scenario::EventModel>, std::shared_ptr<EventComponent>>
       m_ossia_timeevents;
 
@@ -154,27 +154,21 @@ protected:
 };
 
 using ScenarioComponentHierarchy = HierarchicalScenarioComponent<
-    ScenarioComponentBase,
-    Scenario::ProcessModel,
-    IntervalComponent,
-    EventComponent,
-    TimeSyncComponent,
-    StateComponent,
-    false>;
+    ScenarioComponentBase, Scenario::ProcessModel, IntervalComponent,
+    EventComponent, TimeSyncComponent, StateComponent, false>;
 
-struct SCORE_PLUGIN_SCENARIO_EXPORT ScenarioComponent final : public ScenarioComponentHierarchy
+struct SCORE_PLUGIN_SCENARIO_EXPORT ScenarioComponent final
+    : public ScenarioComponentHierarchy
 {
   ScenarioComponent(
-      Scenario::ProcessModel& proc,
-      const Context& ctx,
-      const Id<score::Component>& id,
-      QObject* parent);
+      Scenario::ProcessModel& proc, const Context& ctx,
+      const Id<score::Component>& id, QObject* parent);
 
   void lazy_init() override;
 
   void cleanup() override;
 };
 
-using ScenarioComponentFactory = Execution::ProcessComponentFactory_T<ScenarioComponent>;
+using ScenarioComponentFactory
+    = Execution::ProcessComponentFactory_T<ScenarioComponent>;
 }
-

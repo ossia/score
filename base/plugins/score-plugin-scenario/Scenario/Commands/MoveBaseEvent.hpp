@@ -8,6 +8,7 @@
 #include <Scenario/Process/Algorithms/ProcessPolicy.hpp>
 #include <Scenario/Process/Algorithms/StandardDisplacementPolicy.hpp>
 #include <Scenario/Tools/dataStructures.hpp>
+
 #include <score/command/Command.hpp>
 #include <score/model/Identifier.hpp>
 #include <score/model/path/Path.hpp>
@@ -28,8 +29,7 @@ class MoveBaseEvent final : public score::Command
 private:
   template <typename ScaleFun>
   static void updateDuration(
-      SimpleScenario_T& scenar,
-      const TimeVal& newDuration,
+      SimpleScenario_T& scenar, const TimeVal& newDuration,
       ScaleFun&& scaleMethod)
   {
     scenar.endEvent().setDate(newDuration);
@@ -68,26 +68,19 @@ public:
   MoveBaseEvent() = default;
 
   MoveBaseEvent(
-      const SimpleScenario_T& scenar,
-      const Id<EventModel>& event,
-      const TimeVal& date,
-      double y,
-      ExpandMode mode,
-      LockMode)
+      const SimpleScenario_T& scenar, const Id<EventModel>& event,
+      const TimeVal& date, double y, ExpandMode mode, LockMode)
       : m_path{scenar}, m_newDate{date}, m_mode{mode}
   {
     const Scenario::IntervalModel& interval = scenar.interval();
     m_oldDate = interval.duration.defaultDuration();
-    m_saveData = IntervalSaveData{interval, true}; // TODO fix the "clear" under this
+    m_saveData
+        = IntervalSaveData{interval, true}; // TODO fix the "clear" under this
   }
 
   MoveBaseEvent(
-      const SimpleScenario_T& scenar,
-      const Id<EventModel>& event,
-      const TimeVal& date,
-      double y,
-      ExpandMode mode,
-      LockMode lm,
+      const SimpleScenario_T& scenar, const Id<EventModel>& event,
+      const TimeVal& date, double y, ExpandMode mode, LockMode lm,
       Id<StateModel>)
       : MoveBaseEvent{scenar, event, date, y, mode, lm}
   {
@@ -133,12 +126,7 @@ public:
     m_newDate = date;
   }
   void update(
-      unused_t,
-      unused_t,
-      const TimeVal& date,
-      double,
-      ExpandMode,
-      LockMode,
+      unused_t, unused_t, const TimeVal& date, double, ExpandMode, LockMode,
       unused_t)
   {
     m_newDate = date;

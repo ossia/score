@@ -4,17 +4,18 @@
 
 #include <Inspector/InspectorSectionWidget.hpp>
 #include <Process/Process.hpp>
-#include <QLabel>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Inspector/SelectionButton.hpp>
+
 #include <score/document/DocumentContext.hpp>
 #include <score/widgets/TextLabel.hpp>
+
+#include <QLabel>
 
 namespace Scenario
 {
 IntervalSummaryWidget::IntervalSummaryWidget(
-    const IntervalModel& object,
-    const score::DocumentContext& doc,
+    const IntervalModel& object, const score::DocumentContext& doc,
     QWidget* parent)
     : QWidget(parent)
     , interval{object}

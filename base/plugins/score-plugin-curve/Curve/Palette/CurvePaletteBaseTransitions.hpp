@@ -84,33 +84,25 @@ private:
 };
 
 using ClickOnNothing_Transition = PositionedCurveTransition<
-    Element::Nothing_tag,
-    score::Modifier::Click_tag>;
+    Element::Nothing_tag, score::Modifier::Click_tag>;
 using ClickOnPoint_Transition = PositionedCurveTransition<
-    Element::Point_tag,
-    score::Modifier::Click_tag>;
+    Element::Point_tag, score::Modifier::Click_tag>;
 using ClickOnSegment_Transition = PositionedCurveTransition<
-    Element::Segment_tag,
-    score::Modifier::Click_tag>;
+    Element::Segment_tag, score::Modifier::Click_tag>;
 
 using MoveOnNothing_Transition = PositionedCurveTransition<
-    Element::Nothing_tag,
-    score::Modifier::Move_tag>;
+    Element::Nothing_tag, score::Modifier::Move_tag>;
 using MoveOnPoint_Transition
     = PositionedCurveTransition<Element::Point_tag, score::Modifier::Move_tag>;
 using MoveOnSegment_Transition = PositionedCurveTransition<
-    Element::Segment_tag,
-    score::Modifier::Move_tag>;
+    Element::Segment_tag, score::Modifier::Move_tag>;
 
 using ReleaseOnNothing_Transition = PositionedCurveTransition<
-    Element::Nothing_tag,
-    score::Modifier::Release_tag>;
+    Element::Nothing_tag, score::Modifier::Release_tag>;
 using ReleaseOnPoint_Transition = PositionedCurveTransition<
-    Element::Point_tag,
-    score::Modifier::Release_tag>;
+    Element::Point_tag, score::Modifier::Release_tag>;
 using ReleaseOnSegment_Transition = PositionedCurveTransition<
-    Element::Segment_tag,
-    score::Modifier::Release_tag>;
+    Element::Segment_tag, score::Modifier::Release_tag>;
 
 class ClickOnAnything_Transition final
     : public GenericTransition<QAbstractTransition>

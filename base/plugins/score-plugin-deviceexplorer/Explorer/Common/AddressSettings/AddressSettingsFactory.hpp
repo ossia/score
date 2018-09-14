@@ -1,8 +1,10 @@
 #pragma once
+#include <State/Value.hpp>
+
 #include <QList>
 #include <QMap>
 #include <QString>
-#include <State/Value.hpp>
+
 #include <memory>
 namespace Explorer
 {
@@ -28,8 +30,8 @@ public:
 private:
   AddressSettingsFactory();
 
-  std::
-      map<ossia::val_type, std::unique_ptr<AddressSettingsWidgetFactoryMethod>>
-          m_addressSettingsWidgetFactory;
+  std::map<
+      ossia::val_type, std::unique_ptr<AddressSettingsWidgetFactoryMethod>>
+      m_addressSettingsWidgetFactory;
 };
 }

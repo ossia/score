@@ -4,20 +4,23 @@
 
 #include "DeviceDocumentPlugin.hpp"
 
-#include <ossia/detail/algorithms.hpp>
-
 #include <Device/Address/AddressSettings.hpp>
 #include <Device/Node/DeviceNode.hpp>
 #include <Device/Protocol/DeviceInterface.hpp>
 #include <Device/Protocol/DeviceSettings.hpp>
 #include <Explorer/DeviceList.hpp>
 #include <Explorer/Explorer/DeviceExplorerModel.hpp>
-#include <QDebug>
-#include <QStringList>
 #include <State/Address.hpp>
-#include <algorithm>
+
 #include <score/model/tree/TreeNode.hpp>
 #include <score/tools/std/Optional.hpp>
+
+#include <ossia/detail/algorithms.hpp>
+
+#include <QDebug>
+#include <QStringList>
+
+#include <algorithm>
 #include <vector>
 
 namespace Explorer
@@ -67,8 +70,7 @@ void NodeUpdateProxy::removeDevice(const Device::DeviceSettings& dev)
 
 void NodeUpdateProxy::addAddress(
     const Device::NodePath& parentPath,
-    const Device::AddressSettings& settings,
-    int row)
+    const Device::AddressSettings& settings, int row)
 {
   auto parentnode = parentPath.toNode(&devModel.rootNode());
   if (!parentnode)
@@ -94,8 +96,7 @@ void NodeUpdateProxy::addAddress(
   addLocalAddress(*parentnode, settings, row);
 }
 
-void NodeUpdateProxy::addAddress(
-    const Device::FullAddressSettings& full)
+void NodeUpdateProxy::addAddress(const Device::FullAddressSettings& full)
 {
   // Add in the device implementation
   auto& dev = devModel.list().device(full.address.device);
@@ -104,8 +105,7 @@ void NodeUpdateProxy::addAddress(
   dev.addAddress(full);
   dev.setLearning(learning);
   // Add in the device explorer
-  //addLocalAddress(*parentnode, settings, row);
-
+  // addLocalAddress(*parentnode, settings, row);
 }
 
 void NodeUpdateProxy::rec_addNode(
@@ -202,8 +202,7 @@ void NodeUpdateProxy::updateLocalValue(
 }
 
 void NodeUpdateProxy::updateLocalSettings(
-    const State::Address& addr,
-    const Device::AddressSettings& set,
+    const State::Address& addr, const Device::AddressSettings& set,
     Device::DeviceInterface& newdev)
 {
   auto n = Device::try_getNodeFromAddress(devModel.rootNode(), addr);

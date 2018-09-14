@@ -1,10 +1,12 @@
 #pragma once
 
 #include <Curve/CurveView.hpp>
-#include <wobjectdefs.h>
 #include <Process/LayerView.hpp>
+
 #include <QString>
 #include <QTextLayout>
+
+#include <wobjectdefs.h>
 
 class QGraphicsItem;
 class QPainter;

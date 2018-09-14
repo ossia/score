@@ -4,6 +4,7 @@
 #include <Scenario/Palette/Tools/States/ScenarioSelectionState.hpp>
 #include <Scenario/Palette/Transitions/SlotTransitions.hpp>
 #include <Scenario/Process/Algorithms/StandardDisplacementPolicy.hpp>
+
 #include <score/selection/SelectionDispatcher.hpp>
 
 namespace Scenario
@@ -12,13 +13,9 @@ class ToolPalette;
 
 // TODO Generic smart tool with variadic...
 template <
-    typename Scenario_T,
-    typename ToolPalette_T,
-    typename View_T,
-    typename MoveIntervalWrapper_T,
-    typename MoveLeftBraceWrapper_T,
-    typename MoveRightBraceWrapper_T,
-    typename MoveEventWrapper_T,
+    typename Scenario_T, typename ToolPalette_T, typename View_T,
+    typename MoveIntervalWrapper_T, typename MoveLeftBraceWrapper_T,
+    typename MoveRightBraceWrapper_T, typename MoveEventWrapper_T,
     typename MoveTimeSyncWrapper_T>
 class SmartTool final : public ToolBase<ToolPalette_T>
 {

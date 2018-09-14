@@ -10,24 +10,26 @@
 #include <Process/LayerView.hpp>
 #include <Process/ProcessContext.hpp>
 #include <Process/ProcessList.hpp>
-#include <QGraphicsScene>
-#include <QList>
+#include <Process/Style/ScenarioStyle.hpp>
 #include <Scenario/Application/Menus/ScenarioContextMenuManager.hpp>
 #include <Scenario/Application/ScenarioApplicationPlugin.hpp>
+#include <Scenario/Commands/Interval/Rack/SwapSlots.hpp>
 #include <Scenario/Document/Interval/DefaultHeaderDelegate.hpp>
 #include <Scenario/Document/Interval/FullView/FullViewIntervalView.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/Interval/IntervalPresenter.hpp>
 #include <Scenario/Document/Interval/SlotHandle.hpp>
 #include <Scenario/Document/Interval/SlotHeader.hpp>
-#include <QPainter>
-#include <Process/Style/ScenarioStyle.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentPresenter.hpp>
 
 #include <score/document/DocumentInterface.hpp>
 #include <score/widgets/GraphicsItem.hpp>
+
+#include <QGraphicsScene>
+#include <QList>
+#include <QPainter>
+
 #include <wobjectimpl.h>
-#include <Scenario/Commands/Interval/Rack/SwapSlots.hpp>
 W_OBJECT_IMPL(Scenario::FullViewIntervalPresenter)
 namespace Scenario
 {
@@ -37,11 +39,15 @@ void FullViewIntervalPresenter::startSlotDrag(int curslot, QPointF pos) const
 {
   // Create an overlay object
   full_slot_drag_overlay = new SlotDragOverlay{*this, Slot::FullView};
-  connect(full_slot_drag_overlay, &SlotDragOverlay::dropBefore,
-          this, [=] (int slot) {
-    CommandDispatcher<>{this->m_context.commandStack}
-    .submitCommand<Command::ChangeSlotPosition>(this->m_model, Slot::RackView::FullView, curslot, slot);
-  }, Qt::QueuedConnection); // needed because else SlotHeader is removed and stopSlotDrag can't be called
+  connect(
+      full_slot_drag_overlay, &SlotDragOverlay::dropBefore, this,
+      [=](int slot) {
+        CommandDispatcher<>{this->m_context.commandStack}
+            .submitCommand<Command::ChangeSlotPosition>(
+                this->m_model, Slot::RackView::FullView, curslot, slot);
+      },
+      Qt::QueuedConnection); // needed because else SlotHeader is removed and
+                             // stopSlotDrag can't be called
 
   full_slot_drag_overlay->setParentItem(view());
   full_slot_drag_overlay->onDrag(pos);
@@ -54,10 +60,8 @@ void FullViewIntervalPresenter::stopSlotDrag() const
 }
 
 FullViewIntervalPresenter::FullViewIntervalPresenter(
-    const IntervalModel& interval,
-    const Process::ProcessPresenterContext& ctx,
-    QGraphicsItem* parentobject,
-    QObject* parent)
+    const IntervalModel& interval, const Process::ProcessPresenterContext& ctx,
+    QGraphicsItem* parentobject, QObject* parent)
     : IntervalPresenter{
           interval, new FullViewIntervalView{*this, parentobject},
           new FullViewIntervalHeader{ctx, parentobject}, ctx, parent}
@@ -107,7 +111,7 @@ FullViewIntervalPresenter::FullViewIntervalPresenter(
       [=](int i, int j, Slot::RackView v) {
         if (v == Slot::FullView)
           on_rackChanged();
-  });
+      });
 
   con(m_model, &IntervalModel::slotResized, this, [this](const SlotId& s) {
     if (s.fullView())
@@ -124,9 +128,9 @@ FullViewIntervalPresenter::~FullViewIntervalPresenter()
 {
   auto view = Scenario::view(this);
   auto sc = view->scene();
-  if(sc)
+  if (sc)
   {
-    for(auto& slt : m_slots)
+    for (auto& slt : m_slots)
     {
       if (slt.header)
       {
@@ -138,7 +142,7 @@ FullViewIntervalPresenter::~FullViewIntervalPresenter()
         sc->removeItem(slt.handle);
         delete slt.handle;
       }
-      for(auto& layer : slt.processes)
+      for (auto& layer : slt.processes)
       {
         // The presenter will delete their views
         delete layer.presenter;
@@ -149,7 +153,7 @@ FullViewIntervalPresenter::~FullViewIntervalPresenter()
   }
   else
   {
-    for(auto& slt : m_slots)
+    for (auto& slt : m_slots)
     {
       if (slt.header)
       {
@@ -159,7 +163,7 @@ FullViewIntervalPresenter::~FullViewIntervalPresenter()
       {
         delete slt.handle;
       }
-      for(auto& layer : slt.processes)
+      for (auto& layer : slt.processes)
       {
         // The presenter will delete their views
         delete layer.presenter;

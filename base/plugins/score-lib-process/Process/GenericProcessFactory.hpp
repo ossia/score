@@ -1,5 +1,6 @@
 #pragma once
 #include <Process/ProcessFactory.hpp>
+
 #include <score/serialization/VisitorCommon.hpp>
 
 namespace Process
@@ -37,20 +38,16 @@ private:
   }
 
   Model_T* make(
-      const TimeVal& duration,
-      const QString& data,
-      const Id<Process::ProcessModel>& id,
-      QObject* parent) final override;
+      const TimeVal& duration, const QString& data,
+      const Id<Process::ProcessModel>& id, QObject* parent) final override;
 
   Model_T* load(const VisitorVariant& vis, QObject* parent) final override;
 };
 
 template <typename Model_T>
 Model_T* ProcessFactory_T<Model_T>::make(
-    const TimeVal& duration,
-    const QString& data,
-    const Id<Process::ProcessModel>& id,
-    QObject* parent)
+    const TimeVal& duration, const QString& data,
+    const Id<Process::ProcessModel>& id, QObject* parent)
 {
   return new Model_T{duration, id, parent};
 }
@@ -65,9 +62,7 @@ ProcessFactory_T<Model_T>::load(const VisitorVariant& vis, QObject* parent)
 }
 
 template <
-    typename Model_T,
-    typename LayerPresenter_T,
-    typename LayerView_T,
+    typename Model_T, typename LayerPresenter_T, typename LayerView_T,
     typename HeaderDelegate_T = default_t>
 class LayerFactory_T final : public Process::LayerFactory
 {
@@ -88,8 +83,7 @@ private:
   }
 
   LayerPresenter_T* makeLayerPresenter(
-      const Process::ProcessModel& lm,
-      Process::LayerView* v,
+      const Process::ProcessModel& lm, Process::LayerView* v,
       const Process::ProcessPresenterContext& context,
       QObject* parent) const final override
   {

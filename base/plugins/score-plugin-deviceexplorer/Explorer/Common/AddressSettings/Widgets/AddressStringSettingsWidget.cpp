@@ -3,13 +3,14 @@
 #include "AddressStringSettingsWidget.hpp"
 
 #include <Explorer/Common/AddressSettings/Widgets/AddressSettingsWidget.hpp>
+#include <State/Value.hpp>
+#include <State/ValueConversion.hpp>
+#include <State/Widgets/Values/StringValueWidget.hpp>
+
 #include <QFormLayout>
 #include <QLineEdit>
 #include <QPushButton>
 #include <QString>
-#include <State/Value.hpp>
-#include <State/ValueConversion.hpp>
-#include <State/Widgets/Values/StringValueWidget.hpp>
 
 class QWidget;
 

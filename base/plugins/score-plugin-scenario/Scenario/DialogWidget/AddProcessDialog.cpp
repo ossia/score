@@ -4,6 +4,7 @@
 #include <QHBoxLayout>
 #include <QListWidget>
 #include <QPushButton>
+
 #include <set>
 namespace Scenario
 {
@@ -15,8 +16,7 @@ public:
 };
 
 AddProcessDialog::AddProcessDialog(
-    const Process::ProcessFactoryList& plist,
-    Process::ProcessFlags acceptable,
+    const Process::ProcessFactoryList& plist, Process::ProcessFlags acceptable,
     QWidget* parent)
     : QDialog{parent}, m_factoryList{plist}, m_flags{acceptable}
 {

@@ -1,12 +1,14 @@
 #pragma once
-#include <Color/GradientMetadata.hpp>
-#include <wobjectdefs.h>
 #include <Process/Dataflow/Port.hpp>
 #include <Process/Process.hpp>
 #include <State/Address.hpp>
 #include <State/Unit.hpp>
+
 #include <ossia/detail/flat_map.hpp>
+
+#include <Color/GradientMetadata.hpp>
 #include <score_plugin_automation_export.h>
+#include <wobjectdefs.h>
 
 namespace Gradient
 {
@@ -20,8 +22,7 @@ class SCORE_PLUGIN_AUTOMATION_EXPORT ProcessModel final
 
 public:
   ProcessModel(
-      const TimeVal& duration,
-      const Id<Process::ProcessModel>& id,
+      const TimeVal& duration, const Id<Process::ProcessModel>& id,
       QObject* parent);
   ~ProcessModel() override;
 
@@ -48,8 +49,10 @@ public:
   std::unique_ptr<Process::Outlet> outlet;
 
 public:
-  void tweenChanged(bool tween) E_SIGNAL(SCORE_PLUGIN_AUTOMATION_EXPORT, tweenChanged, tween);
-  void gradientChanged() E_SIGNAL(SCORE_PLUGIN_AUTOMATION_EXPORT, gradientChanged);
+  void tweenChanged(bool tween)
+      E_SIGNAL(SCORE_PLUGIN_AUTOMATION_EXPORT, tweenChanged, tween);
+  void gradientChanged()
+      E_SIGNAL(SCORE_PLUGIN_AUTOMATION_EXPORT, gradientChanged);
 
   PROPERTY(bool, tween READ tween WRITE setTween NOTIFY tweenChanged)
 private:

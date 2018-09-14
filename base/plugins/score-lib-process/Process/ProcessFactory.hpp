@@ -1,8 +1,10 @@
 #pragma once
 #include <Process/ProcessMetadata.hpp>
 #include <Process/TimeValue.hpp>
+
 #include <score/model/Identifier.hpp>
 #include <score/plugins/customfactory/FactoryInterface.hpp>
+
 #include <score_lib_process_export.h>
 
 class QGraphicsItem;
@@ -42,9 +44,7 @@ public:
   virtual QString customConstructionData() const;
 
   virtual Process::ProcessModel* make(
-      const TimeVal& duration,
-      const QString& data,
-      const Id<ProcessModel>& id,
+      const TimeVal& duration, const QString& data, const Id<ProcessModel>& id,
       QObject* parent)
       = 0;
 
@@ -52,18 +52,15 @@ public:
       = 0;
 };
 
-class SCORE_LIB_PROCESS_EXPORT LayerFactory
-    : public score::InterfaceBase
+class SCORE_LIB_PROCESS_EXPORT LayerFactory : public score::InterfaceBase
 {
   SCORE_INTERFACE(ProcessModel, "aeee61e4-89aa-42ec-aa33-bf4522ed710b")
 public:
   ~LayerFactory() override;
 
   virtual Process::LayerPresenter* makeLayerPresenter(
-      const Process::ProcessModel&,
-      Process::LayerView*,
-      const Process::ProcessPresenterContext& context,
-      QObject* parent) const;
+      const Process::ProcessModel&, Process::LayerView*,
+      const Process::ProcessPresenterContext& context, QObject* parent) const;
 
   virtual Process::LayerView*
   makeLayerView(const Process::ProcessModel&, QGraphicsItem* parent) const;
@@ -72,16 +69,14 @@ public:
   makeMiniLayer(const Process::ProcessModel&, QGraphicsItem* parent) const;
 
   virtual QGraphicsItem* makeItem(
-      const Process::ProcessModel&,
-      const score::DocumentContext& ctx,
+      const Process::ProcessModel&, const score::DocumentContext& ctx,
       score::RectItem* parent) const;
 
   virtual bool hasExternalUI(
       const Process::ProcessModel& proc,
       const score::DocumentContext& ctx) const;
   virtual QWidget* makeExternalUI(
-      const Process::ProcessModel&,
-      const score::DocumentContext& ctx,
+      const Process::ProcessModel&, const score::DocumentContext& ctx,
       QWidget* parent) const;
 
   virtual HeaderDelegate*

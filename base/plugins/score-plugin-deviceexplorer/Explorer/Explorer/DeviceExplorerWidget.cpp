@@ -10,8 +10,6 @@
 #include "Widgets/AddressEditDialog.hpp"
 #include "Widgets/DeviceEditDialog.hpp"
 
-#include <ossia/detail/algorithms.hpp>
-
 #include <Device/Address/AddressSettings.hpp>
 #include <Device/Loading/IScoreDeviceLoader.hpp>
 #include <Device/Loading/JamomaDeviceLoader.hpp>
@@ -31,6 +29,22 @@
 #include <Explorer/Explorer/AddressItemModel.hpp>
 #include <Explorer/Explorer/DeviceExplorerModel.hpp>
 #include <Explorer/Listening/ListeningHandler.hpp>
+#include <State/Address.hpp>
+#include <State/Value.hpp>
+
+#include <score/command/Dispatchers/CommandDispatcher.hpp>
+#include <score/model/IdentifiedObject.hpp>
+#include <score/model/path/Path.hpp>
+#include <score/model/tree/InvisibleRootNode.hpp>
+#include <score/model/tree/TreeNode.hpp>
+#include <score/plugins/application/GUIApplicationPlugin.hpp>
+#include <score/tools/std/Optional.hpp>
+#include <score/widgets/SetIcons.hpp>
+#include <score/widgets/SignalUtils.hpp>
+
+#include <ossia-qt/js_utilities.hpp>
+#include <ossia/detail/algorithms.hpp>
+
 #include <QAbstractProxyModel>
 #include <QAction>
 #include <QBoxLayout>
@@ -52,7 +66,6 @@
 #include <QMenu>
 #include <QPair>
 #include <QPushButton>
-#include <QToolButton>
 #include <QRegExp>
 #include <QSet>
 #include <QSize>
@@ -60,24 +73,15 @@
 #include <QString>
 #include <QStringList>
 #include <QTableView>
+#include <QToolButton>
 #include <QTreeView>
-#include <State/Address.hpp>
-#include <State/Value.hpp>
-#include <algorithm>
-#include <ossia-qt/js_utilities.hpp>
 #include <qnamespace.h>
-#include <score/command/Dispatchers/CommandDispatcher.hpp>
-#include <score/model/IdentifiedObject.hpp>
-#include <score/model/path/Path.hpp>
-#include <score/model/tree/InvisibleRootNode.hpp>
-#include <score/model/tree/TreeNode.hpp>
-#include <score/plugins/application/GUIApplicationPlugin.hpp>
-#include <score/tools/std/Optional.hpp>
-#include <score/widgets/SetIcons.hpp>
-#include <score/widgets/SignalUtils.hpp>
+
+#include <wobjectimpl.h>
+
+#include <algorithm>
 #include <set>
 #include <stdexcept>
-#include <wobjectimpl.h>
 W_OBJECT_IMPL(Explorer::DeviceExplorerWidget)
 namespace Explorer
 {
@@ -292,7 +296,6 @@ void DeviceExplorerWidget::buildGUI()
   addButtonIcon.addPixmap(
       QString(":/resources/images/add_off.png"), QIcon::Mode::Normal,
       QIcon::State::On);
-
 
   addButton->setIcon(addButtonIcon);
   addButton->setFixedSize(QSize(24, 24));

@@ -4,6 +4,9 @@
 #include "MetronomeView.hpp"
 
 #include <Process/LayerView.hpp>
+
+#include <score/model/Skin.hpp>
+
 #include <QFlags>
 #include <QFont>
 #include <QGraphicsItem>
@@ -11,7 +14,6 @@
 #include <QPainter>
 #include <QRect>
 #include <qnamespace.h>
-#include <score/model/Skin.hpp>
 
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Metronome::LayerView)

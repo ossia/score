@@ -3,8 +3,6 @@
 
 #include "ScenarioPalette.hpp"
 
-#include <QApplication>
-#include <QRect>
 #include <Scenario/Application/ScenarioEditionSettings.hpp>
 #include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
 #include <Scenario/Palette/Tool.hpp>
@@ -14,12 +12,17 @@
 #include <Scenario/Process/ScenarioModel.hpp>
 #include <Scenario/Process/Temporal/TemporalScenarioPresenter.hpp>
 #include <Scenario/Process/Temporal/TemporalScenarioView.hpp>
-#include <algorithm>
+
 #include <score/command/Command.hpp>
 #include <score/model/Identifier.hpp>
 #include <score/plugins/customfactory/StringFactoryKey.hpp>
 #include <score/statemachine/GraphicsSceneToolPalette.hpp>
 #include <score/tools/std/Optional.hpp>
+
+#include <QApplication>
+#include <QRect>
+
+#include <algorithm>
 #include <vector>
 
 namespace Scenario

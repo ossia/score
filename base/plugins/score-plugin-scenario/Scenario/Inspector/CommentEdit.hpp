@@ -1,5 +1,6 @@
 #pragma once
 #include <QTextEdit>
+
 #include <wobjectdefs.h>
 
 namespace Scenario

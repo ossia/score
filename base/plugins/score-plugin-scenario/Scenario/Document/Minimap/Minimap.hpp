@@ -1,15 +1,16 @@
 #pragma once
 
 #include <Process/TimeValue.hpp>
-#include <wobjectdefs.h>
+
 #include <QGraphicsItem>
+
 #include <score_plugin_scenario_export.h>
+#include <wobjectdefs.h>
 class QGraphicsView;
 namespace Scenario
 {
-class SCORE_PLUGIN_SCENARIO_EXPORT Minimap final
-    : public QObject
-    , public QGraphicsItem
+class SCORE_PLUGIN_SCENARIO_EXPORT Minimap final : public QObject,
+                                                   public QGraphicsItem
 {
   W_OBJECT(Minimap)
   Q_INTERFACES(QGraphicsItem)
@@ -45,13 +46,13 @@ public:
 
 public:
   void rescale() W_SIGNAL(rescale);
-  void visibleRectChanged(double l, double r) W_SIGNAL(visibleRectChanged, l, r);
+  void visibleRectChanged(double l, double r)
+      W_SIGNAL(visibleRectChanged, l, r);
 
 private:
   QRectF boundingRect() const override;
   void paint(
-      QPainter* painter,
-      const QStyleOptionGraphicsItem* option,
+      QPainter* painter, const QStyleOptionGraphicsItem* option,
       QWidget* widget) override;
 
   void mousePressEvent(QGraphicsSceneMouseEvent*) override;

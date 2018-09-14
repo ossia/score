@@ -3,15 +3,18 @@
 #include <Device/Address/AddressSettings.hpp>
 #include <Device/Node/DeviceNode.hpp>
 #include <Process/TimeValue.hpp>
-#include <QObject>
-#include <QTimer>
 #include <Recording/Commands/Record.hpp>
 #include <Scenario/Commands/Scenario/Displacement/MoveNewEvent.hpp>
 #include <State/Address.hpp>
-#include <chrono>
-#include <memory>
+
 #include <score/command/Dispatchers/MacroCommandDispatcher.hpp>
 #include <score/tools/std/HashMap.hpp>
+
+#include <QObject>
+#include <QTimer>
+
+#include <chrono>
+#include <memory>
 #include <vector>
 
 namespace RedoStrategy
@@ -54,9 +57,7 @@ struct RecordContext;
  */
 using RecordListening = std::vector<std::vector<Device::Node*>>;
 using RecordCommandDispatcher = GenericMacroCommandDispatcher<
-    Recording::Record,
-    RedoStrategy::Quiet,
-    SendStrategy::UndoRedo>;
+    Recording::Record, RedoStrategy::Quiet, SendStrategy::UndoRedo>;
 
 struct Box
 {

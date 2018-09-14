@@ -36,7 +36,7 @@ struct indirect_iterator
   {
     return **it;
   }
-  value_type* operator-> ()
+  value_type* operator->()
   {
     return *it;
   }
@@ -170,9 +170,7 @@ indirect_map_iterator<T> make_indirect_map_iterator(const T& it)
   return indirect_map_iterator<T>{it};
 }
 
-template <
-    typename T,
-    typename U = std::allocator<T*>>
+template <typename T, typename U = std::allocator<T*>>
 class IndirectContainer : std::vector<T*, U>
 {
 public:

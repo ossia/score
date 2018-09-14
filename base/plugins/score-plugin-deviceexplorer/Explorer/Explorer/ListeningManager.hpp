@@ -1,5 +1,6 @@
 #pragma once
 #include <Device/Node/DeviceNode.hpp>
+
 #include <score_plugin_deviceexplorer_export.h>
 namespace Device
 {
@@ -30,12 +31,10 @@ public:
 
 private:
   void disableListening_rec(
-      const Device::Node& node,
-      Device::DeviceInterface&,
+      const Device::Node& node, Device::DeviceInterface&,
       ListeningHandler& lm);
   void enableListening_rec(
-      const QModelIndex& index,
-      Device::DeviceInterface&,
+      const QModelIndex& index, Device::DeviceInterface&,
       ListeningHandler& lm);
 
   Device::DeviceInterface& deviceFromNode(const Device::Node&);

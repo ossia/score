@@ -1,26 +1,25 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
+#include <Process/ExecutionContext.hpp>
+#include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
 #include <Scenario/Document/TimeSync/TimeSyncRawPtrExecution.hpp>
+#include <Scenario/Execution/score2OSSIA.hpp>
 
 #include <ossia/detail/logger.hpp>
 #include <ossia/editor/expression/expression.hpp>
 #include <ossia/editor/scenario/time_sync.hpp>
 #include <ossia/editor/state/state.hpp>
 
-#include <Process/ExecutionContext.hpp>
-#include <Scenario/Execution/score2OSSIA.hpp>
-#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <QDebug>
-#include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
+
 #include <exception>
 
 namespace Execution
 {
 TimeSyncRawPtrComponent::TimeSyncRawPtrComponent(
-    const Scenario::TimeSyncModel& element,
-    const Execution::Context& ctx,
-    const Id<score::Component>& id,
-    QObject* parent)
+    const Scenario::TimeSyncModel& element, const Execution::Context& ctx,
+    const Id<score::Component>& id, QObject* parent)
     : Execution::Component{ctx, id, "Executor::Event", nullptr}
     , m_score_node{&element}
 {
@@ -41,14 +40,14 @@ void TimeSyncRawPtrComponent::cleanup()
 
 ossia::expression_ptr TimeSyncRawPtrComponent::makeTrigger() const
 {
-  if(auto element = m_score_node)
+  if (auto element = m_score_node)
   {
     if (element->active())
     {
       try
       {
         return Engine::score_to_ossia::trigger_expression(
-              element->expression(), *system().execState);
+            element->expression(), *system().execState);
       }
       catch (std::exception& e)
       {
@@ -97,5 +96,4 @@ void TimeSyncRawPtrComponent::on_GUITrigger()
 {
   this->in_exec([e = m_ossia_node] { e->trigger_request = true; });
 }
-
 }

@@ -18,8 +18,7 @@ public:
 
 private:
   void setListening(
-      Device::DeviceInterface& dev,
-      const State::Address& addr,
+      Device::DeviceInterface& dev, const State::Address& addr,
       bool b) override;
 
   void setListening(

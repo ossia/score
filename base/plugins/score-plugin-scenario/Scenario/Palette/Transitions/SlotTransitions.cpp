@@ -3,8 +3,10 @@
 #include "SlotTransitions.hpp"
 
 #include <Scenario/Palette/ScenarioPaletteBaseStates.hpp>
-#include <algorithm>
+
 #include <score/model/path/Path.hpp>
+
+#include <algorithm>
 
 class QEvent;
 

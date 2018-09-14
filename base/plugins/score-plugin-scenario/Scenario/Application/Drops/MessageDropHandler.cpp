@@ -2,7 +2,6 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "MessageDropHandler.hpp"
 
-#include <QMimeData>
 #include <Scenario/Application/ScenarioValidity.hpp>
 #include <Scenario/Commands/CommandAPI.hpp>
 #include <Scenario/Commands/Scenario/Creations/CreateStateMacro.hpp>
@@ -14,9 +13,12 @@
 #include <Scenario/Process/Temporal/TemporalScenarioPresenter.hpp>
 #include <Scenario/Process/Temporal/TemporalScenarioView.hpp>
 #include <State/MessageListSerialization.hpp>
+
+#include <score/command/Dispatchers/MacroCommandDispatcher.hpp>
+
 #include <QFile>
 #include <QFileInfo>
-#include <score/command/Dispatchers/MacroCommandDispatcher.hpp>
+#include <QMimeData>
 
 namespace Scenario
 {
@@ -72,16 +74,14 @@ std::abs(cur_st->heightPercentage() - pt.y))
 */
 
 bool MessageDropHandler::dragEnter(
-    const Scenario::TemporalScenarioPresenter& pres,
-    QPointF pos,
+    const Scenario::TemporalScenarioPresenter& pres, QPointF pos,
     const QMimeData& mime)
 {
   return dragMove(pres, pos, mime);
 }
 
 bool MessageDropHandler::dragMove(
-    const Scenario::TemporalScenarioPresenter& pres,
-    QPointF pos,
+    const Scenario::TemporalScenarioPresenter& pres, QPointF pos,
     const QMimeData& mime)
 {
   if (!mime.formats().contains(score::mime::messagelist()) && !mime.hasUrls())
@@ -105,8 +105,7 @@ bool MessageDropHandler::dragMove(
 }
 
 bool MessageDropHandler::dragLeave(
-    const Scenario::TemporalScenarioPresenter& pres,
-    QPointF pos,
+    const Scenario::TemporalScenarioPresenter& pres, QPointF pos,
     const QMimeData& mime)
 {
   pres.stopDrawDragLine();
@@ -114,8 +113,7 @@ bool MessageDropHandler::dragLeave(
 }
 
 bool MessageDropHandler::drop(
-    const Scenario::TemporalScenarioPresenter& pres,
-    QPointF pos,
+    const Scenario::TemporalScenarioPresenter& pres, QPointF pos,
     const QMimeData& mime)
 {
   using namespace Scenario::Command;
@@ -127,28 +125,26 @@ bool MessageDropHandler::drop(
     Mime<State::MessageList>::Deserializer des{mime};
     ml = des.deserialize();
   }
-  else if(mime.hasUrls())
+  else if (mime.hasUrls())
   {
-    for(const auto& u : mime.urls())
+    for (const auto& u : mime.urls())
     {
       auto path = u.toLocalFile();
-      if(QFile f{path}; QFileInfo{f}.suffix() == "cues" && f.open(QIODevice::ReadOnly))
+      if (QFile f{path};
+          QFileInfo{f}.suffix() == "cues" && f.open(QIODevice::ReadOnly))
       {
         State::MessageList sub;
-        fromJsonArray(
-            QJsonDocument::fromJson(f.readAll()).array(),
-            sub);
+        fromJsonArray(QJsonDocument::fromJson(f.readAll()).array(), sub);
         ml += sub;
       }
     }
   }
 
-  if(ml.empty())
+  if (ml.empty())
     return true;
 
-  Scenario::Command::Macro m{
-    new Scenario::Command::CreateStateMacro,
-    pres.context().context};
+  Scenario::Command::Macro m{new Scenario::Command::CreateStateMacro,
+                             pres.context().context};
 
   const Scenario::ProcessModel& scenar = pres.model();
   Id<StateModel> createdState;
@@ -167,7 +163,8 @@ bool MessageDropHandler::drop(
     }
     else
     {
-      auto& i = m.createIntervalAfter(scenar, state->id(), {pt.date, state->heightPercentage()});
+      auto& i = m.createIntervalAfter(
+          scenar, state->id(), {pt.date, state->heightPercentage()});
       createdState = i.endState();
     }
   }

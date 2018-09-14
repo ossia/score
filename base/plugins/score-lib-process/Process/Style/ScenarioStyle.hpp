@@ -1,9 +1,11 @@
 #pragma once
+#include <score/model/ColorReference.hpp>
+
 #include <QBrush>
 #include <QColor>
 #include <QPen>
 #include <qnamespace.h>
-#include <score/model/ColorReference.hpp>
+
 #include <score_lib_process_export.h>
 namespace score
 {

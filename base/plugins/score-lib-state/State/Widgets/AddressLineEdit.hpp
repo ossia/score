@@ -1,11 +1,12 @@
 #pragma once
 #include "AddressValidator.hpp"
 
+#include <State/MessageListSerialization.hpp>
+#include <State/Widgets/AddressValidator.hpp>
+
 #include <QDropEvent>
 #include <QLineEdit>
 #include <QValidator>
-#include <State/MessageListSerialization.hpp>
-#include <State/Widgets/AddressValidator.hpp>
 
 namespace State
 {
@@ -61,7 +62,7 @@ class AddressAccessorLineEdit final
     : public AddressLineEditBase<AddressAccessorValidator, Parent_T>
 {
 public:
-  using AddressLineEditBase<AddressAccessorValidator, Parent_T>::
-      AddressLineEditBase;
+  using AddressLineEditBase<
+      AddressAccessorValidator, Parent_T>::AddressLineEditBase;
 };
 }

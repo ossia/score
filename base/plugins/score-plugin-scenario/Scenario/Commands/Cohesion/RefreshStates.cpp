@@ -13,10 +13,12 @@
 #include <Scenario/Process/ScenarioModel.hpp>
 #include <State/Message.hpp>
 #include <State/Value.hpp>
-#include <algorithm>
+
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/document/DocumentInterface.hpp>
 #include <score/selection/SelectionStack.hpp>
+
+#include <algorithm>
 #include <vector>
 
 namespace Scenario
@@ -37,8 +39,7 @@ void RefreshStates(const score::DocumentContext& doc)
 }
 
 void RefreshStates(
-    const QList<const StateModel*>& states,
-    const score::DocumentContext& doc)
+    const QList<const StateModel*>& states, const score::DocumentContext& doc)
 {
   if (states.empty())
     return;

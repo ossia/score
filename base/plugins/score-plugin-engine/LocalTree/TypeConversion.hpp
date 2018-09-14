@@ -1,7 +1,8 @@
 #pragma once
-#include <ossia/editor/scenario/time_value.hpp>
-#include <ossia-qt/matching_type.hpp>
 #include <Process/TimeValue.hpp>
+
+#include <ossia-qt/matching_type.hpp>
+#include <ossia/editor/scenario/time_value.hpp>
 namespace ossia
 {
 template <>

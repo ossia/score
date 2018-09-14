@@ -1,5 +1,6 @@
 #pragma once
 #include <score_plugin_scenario_export.h>
+
 #include <vector>
 class QJsonObject;
 class QObject;
@@ -40,12 +41,10 @@ struct SCORE_PLUGIN_SCENARIO_EXPORT CategorisedScenario
 QJsonObject copyBaseInterval(const IntervalModel&);
 
 SCORE_PLUGIN_SCENARIO_EXPORT
-QJsonObject copySelectedScenarioElements(
-    const Scenario::ProcessModel& sm);
+QJsonObject copySelectedScenarioElements(const Scenario::ProcessModel& sm);
 
 SCORE_PLUGIN_SCENARIO_EXPORT
-QJsonObject copyWholeScenario(
-    const Scenario::ProcessModel& sm);
+QJsonObject copyWholeScenario(const Scenario::ProcessModel& sm);
 
 SCORE_PLUGIN_SCENARIO_EXPORT
 QJsonObject copySelectedScenarioElements(
@@ -73,6 +72,6 @@ QJsonObject copyProcess(const Process::ProcessModel&);
 QJsonObject
 copySelectedScenarioElements(const BaseScenarioContainer& sm, QObject* parent);
 
-QJsonObject copySelectedElementsToJson(ScenarioInterface& s, const score::DocumentContext& ctx);
-
+QJsonObject copySelectedElementsToJson(
+    ScenarioInterface& s, const score::DocumentContext& ctx);
 }

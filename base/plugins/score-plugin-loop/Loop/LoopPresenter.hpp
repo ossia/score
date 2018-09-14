@@ -1,17 +1,20 @@
 #pragma once
 #include <Loop/LoopProcessModel.hpp>
-#include <wobjectdefs.h>
 #include <Loop/LoopViewUpdater.hpp>
 #include <Loop/Palette/LoopToolPalette.hpp>
 #include <Process/Focus/FocusDispatcher.hpp>
 #include <Process/LayerPresenter.hpp>
 #include <Process/ProcessContext.hpp>
 #include <Process/ZoomHelper.hpp>
-#include <QDebug>
-#include <QPoint>
 #include <Scenario/Document/BaseScenario/BaseScenarioPresenter.hpp>
+
 #include <score/model/Identifier.hpp>
 #include <score/widgets/GraphicsItem.hpp>
+
+#include <QDebug>
+#include <QPoint>
+
+#include <wobjectdefs.h>
 
 namespace Process
 {
@@ -36,8 +39,8 @@ struct DocumentContext;
 
 namespace Loop
 {
-inline void removeSelection(
-    const Loop::ProcessModel& model, const score::DocumentContext&)
+inline void
+removeSelection(const Loop::ProcessModel& model, const score::DocumentContext&)
 {
 }
 void clearContentFromSelection(
@@ -47,21 +50,18 @@ void clearContentFromSelection(
 namespace Loop
 {
 class LayerPresenter final
-    : public Process::LayerPresenter
-    , public BaseScenarioPresenter<
-          Loop::ProcessModel,
-          Scenario::TemporalIntervalPresenter>
-    , public Nano::Observer
+    : public Process::LayerPresenter,
+      public BaseScenarioPresenter<
+          Loop::ProcessModel, Scenario::TemporalIntervalPresenter>,
+      public Nano::Observer
 {
   W_OBJECT(LayerPresenter)
   friend class ViewUpdater;
 
 public:
   LayerPresenter(
-      const Loop::ProcessModel&,
-      LayerView* view,
-      const Process::ProcessPresenterContext& ctx,
-      QObject* parent);
+      const Loop::ProcessModel&, LayerView* view,
+      const Process::ProcessPresenterContext& ctx, QObject* parent);
 
   ~LayerPresenter();
   LayerView& view() const
@@ -70,8 +70,7 @@ public:
   }
 
   using BaseScenarioPresenter<
-      Loop::ProcessModel,
-      Scenario::TemporalIntervalPresenter>::event;
+      Loop::ProcessModel, Scenario::TemporalIntervalPresenter>::event;
   using QObject::event;
 
   void setWidth(qreal width) override;
@@ -94,9 +93,7 @@ public:
   }
 
   void fillContextMenu(
-      QMenu&,
-      QPoint pos,
-      QPointF scenepos,
+      QMenu&, QPoint pos, QPointF scenepos,
       const Process::LayerContextMenuManager&) override;
 
 public:

@@ -2,13 +2,13 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "RecordAutomationCreationVisitor.hpp"
 
-#include <ossia/network/domain/domain.hpp>
-
 #include <Automation/AutomationModel.hpp>
 #include <Curve/Segment/PointArray/PointArraySegment.hpp>
 #include <Scenario/Commands/Interval/AddOnlyProcessToInterval.hpp>
 #include <Scenario/Commands/Interval/Rack/Slot/AddLayerModelToSlot.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
+
+#include <ossia/network/domain/domain.hpp>
 
 namespace Recording
 {

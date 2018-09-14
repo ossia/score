@@ -4,6 +4,7 @@
 
 #include <Recording/Commands/Record.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
+
 #include <score/document/DocumentContext.hpp>
 
 #include <wobjectimpl.h>

@@ -5,6 +5,7 @@
 
 #include <Process/LayerView.hpp>
 #include <Process/Style/ScenarioStyle.hpp>
+
 #include <QFlags>
 #include <QFont>
 #include <QGraphicsItem>

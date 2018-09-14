@@ -3,11 +3,12 @@
 
 #include "BaseScenario.hpp"
 
-#include <QJsonObject>
-#include <QJsonValue>
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/serialization/JSONValueVisitor.hpp>
 #include <score/serialization/JSONVisitor.hpp>
+
+#include <QJsonObject>
+#include <QJsonValue>
 
 namespace Scenario
 {

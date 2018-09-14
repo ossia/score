@@ -1,9 +1,10 @@
 #pragma once
-#include <QString>
-#include <QVariant>
 #include <score/plugins/customfactory/UuidKey.hpp>
 #include <score/tools/Metadata.hpp>
 #include <score/tools/Todo.hpp>
+
+#include <QString>
+#include <QVariant>
 namespace Device
 {
 class ProtocolFactory;

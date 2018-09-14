@@ -3,6 +3,7 @@
 #include "TypeComboBox.hpp"
 
 #include <State/ValueConversion.hpp>
+
 #include <score/widgets/SignalUtils.hpp>
 
 #include <wobjectimpl.h>

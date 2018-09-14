@@ -1,5 +1,6 @@
 #pragma once
 #include <Process/ProcessList.hpp>
+
 #include <score/document/DocumentContext.hpp>
 class FocusDispatcher;
 namespace Process

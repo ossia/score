@@ -2,8 +2,10 @@
 
 #include <Process/State/MessageNode.hpp>
 #include <Process/State/ProcessStateDataInterface.hpp>
-#include <QString>
 #include <State/Message.hpp>
+
+#include <QString>
+
 #include <vector>
 
 class QObject;

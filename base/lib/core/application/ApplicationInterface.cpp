@@ -2,21 +2,23 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "ApplicationInterface.hpp"
 
-#include <QModelIndex>
-#include <core/application/ApplicationRegistrar.hpp>
-#include <core/plugin/PluginManager.hpp>
-#include <core/presenter/CoreApplicationPlugin.hpp>
-#include <core/settings/Settings.hpp>
-#include <core/undo/Panel/UndoPanelFactory.hpp>
-#include <core/undo/UndoApplicationPlugin.hpp>
-#include <core/view/Window.hpp>
 #include <score/application/ApplicationContext.hpp>
 #include <score/model/ComponentSerialization.hpp>
 #include <score/plugins/ProjectSettings/ProjectSettingsFactory.hpp>
 #include <score/plugins/documentdelegate/DocumentDelegateFactory.hpp>
 #include <score/plugins/documentdelegate/plugin/DocumentPlugin.hpp>
 #include <score/plugins/settingsdelegate/SettingsDelegateFactory.hpp>
+
+#include <core/application/ApplicationRegistrar.hpp>
 #include <core/messages/MessagesPanel.hpp>
+#include <core/plugin/PluginManager.hpp>
+#include <core/presenter/CoreApplicationPlugin.hpp>
+#include <core/settings/Settings.hpp>
+#include <core/undo/Panel/UndoPanelFactory.hpp>
+#include <core/undo/UndoApplicationPlugin.hpp>
+#include <core/view/Window.hpp>
+
+#include <QModelIndex>
 namespace score
 {
 ApplicationInterface* ApplicationInterface::m_instance;
@@ -49,8 +51,7 @@ GUIApplicationInterface::~GUIApplicationInterface()
 }
 void GUIApplicationInterface::loadPluginData(
     const score::GUIApplicationContext& ctx,
-    score::GUIApplicationRegistrar& registrar,
-    score::Settings& settings,
+    score::GUIApplicationRegistrar& registrar, score::Settings& settings,
     score::Presenter& presenter)
 {
   registrar.registerFactory(std::make_unique<score::DocumentDelegateList>());
@@ -112,12 +113,8 @@ void GUIApplicationInterface::loadPluginData(
 }
 
 GUIApplicationContext::GUIApplicationContext(
-    const ApplicationSettings& a,
-    const ApplicationComponents& b,
-    DocumentManager& c,
-    MenuManager& d,
-    ToolbarManager& e,
-    ActionManager& f,
+    const ApplicationSettings& a, const ApplicationComponents& b,
+    DocumentManager& c, MenuManager& d, ToolbarManager& e, ActionManager& f,
     const std::vector<std::unique_ptr<SettingsDelegateModel>>& g,
     QMainWindow* mw)
     : score::ApplicationContext{a, b, c, g}

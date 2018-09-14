@@ -25,15 +25,12 @@ bool validate(const State::Expression& expr)
     return checkLeaves(&expr);
 }
 */
-#include <ossia/editor/state/destination_qualifiers.hpp>
-
-#include <QDebug>
-#include <QObject>
-#include <QString>
-#include <QStringList>
-#include <QtTest/QtTest>
 #include <State/Expression.hpp>
 #include <State/TraversalPath.hpp>
+
+#include <ossia-qt/js_utilities.hpp>
+#include <ossia/editor/state/destination_qualifiers.hpp>
+
 #include <boost/proto/operators.hpp>
 #include <boost/spirit/home/qi/detail/parse_auto.hpp>
 #include <boost/spirit/home/qi/operator/expect.hpp>
@@ -41,11 +38,18 @@ bool validate(const State::Expression& expr)
 #include <boost/spirit/home/qi/parse_attr.hpp>
 #include <boost/spirit/home/support/common_terminals.hpp>
 #include <boost/variant/detail/apply_visitor_unary.hpp>
+
+#include <QDebug>
+#include <QObject>
+#include <QString>
+#include <QStringList>
+#include <QtTest/QtTest>
+
 #include <eggs/variant/variant.hpp>
-#include <ossia-qt/js_utilities.hpp>
 using namespace score;
 #include <State/ExpressionParser.cpp>
 #include <State/ValueConversion.hpp>
+
 #include <iterator>
 #include <list>
 #include <string>
@@ -439,14 +443,14 @@ private Q_SLOTS:
 
   void test_parse_expr_full()
   {
-    for (auto& input :
-         std::list<std::string>{"%dev:/minuit% != [1, 2, 3.12, 'c'];",
-                                "{ %dev:/minuit% != [1, 2, 3.12, 'c'] };",
-                                "%a:/b% >= %c:/d/e/f%;", "{ %a:/b% >= %c:/d/e/f% };",
-                                "{ %dev:/minuit% != [1, 2, 3.12, 'c']} and not "
-                                "{ %a:/b% >= %c:/d/e/f% };",
-                                "{ { %dev:/minuit% != [1, 2, 3.12, 'c'] } and "
-                                "not { %a:/b% >= %c:/d/e/f% } };"})
+    for (auto& input : std::list<std::string>{
+             "%dev:/minuit% != [1, 2, 3.12, 'c'];",
+             "{ %dev:/minuit% != [1, 2, 3.12, 'c'] };",
+             "%a:/b% >= %c:/d/e/f%;", "{ %a:/b% >= %c:/d/e/f% };",
+             "{ %dev:/minuit% != [1, 2, 3.12, 'c']} and not "
+             "{ %a:/b% >= %c:/d/e/f% };",
+             "{ { %dev:/minuit% != [1, 2, 3.12, 'c'] } and "
+             "not { %a:/b% >= %c:/d/e/f% } };"})
     {
       auto f(std::begin(input)), l(std::end(input));
       Expression_parser<decltype(f)> p;
@@ -507,18 +511,18 @@ private Q_SLOTS:
         State::parseAddressAccessor("myapp:/score/color.1@[color.rgb.r]")));
     QVERIFY(bool(State::parseExpression("{ %myapp:/score% > 2}"s)));
     QVERIFY(bool(State::parseExpression("{2 > %myapp:/stagescore% }"s)));
-    QVERIFY(
-        bool(State::parseExpression("{ %myapp:/score% > %myapp:/stagescore% }"s)));
+    QVERIFY(bool(
+        State::parseExpression("{ %myapp:/score% > %myapp:/stagescore% }"s)));
     QVERIFY(bool(
         State::parseExpression("{ %myapp:/score% >= %myapp:/stagescore% }"s)));
-    QVERIFY(bool(
-        State::parseExpression("{ %my_app:/score% > %my_app:/stagescore% }"s)));
-    QVERIFY(bool(
-        State::parseExpression("{ %my_app:/score% > %my_app:/stage_score% }"s)));
-    QVERIFY(bool(
-        State::parseExpression("{ %my_app:/score% > %my_app:/stage_score% }"s)));
-    QVERIFY(bool(
-        State::parseExpression("{ { %A:/B% > %c:/D% } and { %e:/f% > %g:/h% } }"s)));
+    QVERIFY(bool(State::parseExpression(
+        "{ %my_app:/score% > %my_app:/stagescore% }"s)));
+    QVERIFY(bool(State::parseExpression(
+        "{ %my_app:/score% > %my_app:/stage_score% }"s)));
+    QVERIFY(bool(State::parseExpression(
+        "{ %my_app:/score% > %my_app:/stage_score% }"s)));
+    QVERIFY(bool(State::parseExpression(
+        "{ { %A:/B% > %c:/D% } and { %e:/f% > %g:/h% } }"s)));
   }
 
   void test_parse_patternmatch()

@@ -2,6 +2,7 @@
 #include <Automation/Commands/AutomationCommandFactory.hpp>
 #include <Curve/Palette/CurvePoint.hpp>
 #include <Device/Address/AddressSettings.hpp>
+
 #include <score/command/Command.hpp>
 #include <score/model/path/Path.hpp>
 
@@ -46,8 +47,7 @@ class ProcessModel;
 class ChangeSplineAddress final : public score::Command
 {
   SCORE_COMMAND_DECL(
-      Automation::CommandFactoryName(),
-      ChangeSplineAddress,
+      Automation::CommandFactoryName(), ChangeSplineAddress,
       "ChangeSplineAddress")
 public:
   ChangeSplineAddress(
@@ -73,8 +73,7 @@ class ProcessModel;
 class ChangeMetronomeAddress final : public score::Command
 {
   SCORE_COMMAND_DECL(
-      Automation::CommandFactoryName(),
-      ChangeMetronomeAddress,
+      Automation::CommandFactoryName(), ChangeMetronomeAddress,
       "ChangeMetronomeAddress")
 public:
   ChangeMetronomeAddress(

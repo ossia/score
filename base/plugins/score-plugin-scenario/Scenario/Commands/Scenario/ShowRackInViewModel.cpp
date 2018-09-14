@@ -3,10 +3,12 @@
 #include "ShowRackInViewModel.hpp"
 
 #include <Scenario/Document/Interval/IntervalModel.hpp>
-#include <algorithm>
+
 #include <score/model/path/Path.hpp>
 #include <score/model/path/PathSerialization.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
+
+#include <algorithm>
 
 namespace Scenario
 {

@@ -2,9 +2,11 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "UndoListWidget.hpp"
 
-#include <QItemSelectionModel>
-#include <core/command/CommandStack.hpp>
 #include <score/command/Command.hpp>
+
+#include <core/command/CommandStack.hpp>
+
+#include <QItemSelectionModel>
 
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(score::UndoListWidget)

@@ -2,19 +2,22 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "PlayContextMenu.hpp"
 
-#include <Engine/ApplicationPlugin.hpp>
-#include <Execution/ContextMenu/PlayFromIntervalInScenario.hpp>
-#include <Execution/DocumentPlugin.hpp>
-#include <Scenario/Execution/score2OSSIA.hpp>
 #include <Scenario/Application/ScenarioActions.hpp>
 #include <Scenario/Application/ScenarioApplicationPlugin.hpp>
 #include <Scenario/Application/ScenarioRecordInitData.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
+#include <Scenario/Execution/score2OSSIA.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
 #include <Scenario/Process/Temporal/TemporalScenarioPresenter.hpp>
 #include <Scenario/Process/Temporal/TemporalScenarioView.hpp>
+
 #include <core/presenter/DocumentManager.hpp>
+
 #include <ossia/editor/state/state_element.hpp>
+
+#include <Engine/ApplicationPlugin.hpp>
+#include <Execution/ContextMenu/PlayFromIntervalInScenario.hpp>
+#include <Execution/DocumentPlugin.hpp>
 namespace Execution
 {
 
@@ -82,8 +85,7 @@ PlayContextMenu::PlayContextMenu(
       [=](const Scenario::ScenarioInterface& scenar,
           const Id<StateModel>& id) {
         const auto& ctx = m_ctx.documents.currentDocument()->context();
-        auto& r_ctx
-            = ctx.plugin<Execution::DocumentPlugin>().context();
+        auto& r_ctx = ctx.plugin<Execution::DocumentPlugin>().context();
 
         auto ossia_state
             = Engine::score_to_ossia::state(scenar.state(id), r_ctx);

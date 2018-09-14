@@ -4,11 +4,12 @@
 
 #include "MinuitDevice.hpp"
 
-#include <ossia/network/base/device.hpp>
-
 #include <Device/Protocol/DeviceSettings.hpp>
 #include <Protocols/Minuit/MinuitProtocolSettingsWidget.hpp>
 #include <Protocols/Minuit/MinuitSpecificSettings.hpp>
+
+#include <ossia/network/base/device.hpp>
+
 #include <QObject>
 
 namespace Device

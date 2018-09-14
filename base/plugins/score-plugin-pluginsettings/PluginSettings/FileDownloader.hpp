@@ -1,10 +1,11 @@
 #pragma once
 #include <QByteArray>
-#include <wobjectdefs.h>
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
 #include <QNetworkRequest>
 #include <QObject>
+
+#include <wobjectdefs.h>
 
 namespace score
 {

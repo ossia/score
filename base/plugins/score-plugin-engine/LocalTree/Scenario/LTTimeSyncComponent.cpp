@@ -7,10 +7,8 @@
 namespace LocalTree
 {
 TimeSync::TimeSync(
-    ossia::net::node_base& parent,
-    const Id<score::Component>& id,
-    Scenario::TimeSyncModel& timeSync,
-    DocumentPlugin& doc,
+    ossia::net::node_base& parent, const Id<score::Component>& id,
+    Scenario::TimeSyncModel& timeSync, DocumentPlugin& doc,
     QObject* parent_comp)
     : CommonComponent{parent, timeSync.metadata(), doc,
                       id,     "TimeSyncComponent", parent_comp}
@@ -19,4 +17,3 @@ TimeSync::TimeSync(
       node(), "trigger", [&](auto) { timeSync.triggeredByGui(); }));
 }
 }
-

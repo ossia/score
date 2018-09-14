@@ -1,10 +1,12 @@
 #pragma once
-#include <QString>
-#include <wobjectdefs.h>
-#include <QVector>
-#include <QWidget>
 #include <Scenario/Inspector/ExpressionValidator.hpp>
 #include <State/Expression.hpp>
+
+#include <QString>
+#include <QVector>
+#include <QWidget>
+
+#include <wobjectdefs.h>
 
 /* ****************************************************************
  * This class contain an aggregation of simples expressions.

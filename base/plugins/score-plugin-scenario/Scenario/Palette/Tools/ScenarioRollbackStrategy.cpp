@@ -9,6 +9,7 @@
 #include <Scenario/Commands/Scenario/Creations/CreateInterval_State_Event_TimeSync.hpp>
 #include <Scenario/Commands/Scenario/Creations/CreateSequence.hpp>
 #include <Scenario/Commands/Scenario/Creations/CreateState.hpp>
+
 #include <score/command/Command.hpp>
 #include <score/plugins/customfactory/StringFactoryKey.hpp>
 

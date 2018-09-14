@@ -1,6 +1,6 @@
 #pragma once
-#include <State/ValueParser.hpp>
 #include <State/Address.hpp>
+#include <State/ValueParser.hpp>
 BOOST_FUSION_ADAPT_STRUCT(State::Address, (QString, device)(QStringList, path))
 
 BOOST_FUSION_ADAPT_STRUCT(
@@ -18,7 +18,6 @@ namespace
 namespace qi = boost::spirit::qi;
 
 using boost::spirit::qi::rule;
-
 
 template <typename Iterator>
 struct Address_parser : qi::grammar<Iterator, State::Address()>
@@ -97,7 +96,6 @@ struct AddressAccessor_parser : qi::grammar<Iterator, State::AddressAccessor()>
   AddressQualifiers_parser<Iterator> qualifiers;
 };
 }
-
 
 ossia::optional<State::Address> State::parseAddress(const QString& str)
 {

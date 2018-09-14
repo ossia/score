@@ -1,7 +1,9 @@
 #pragma once
-#include <QPointF>
 #include <Scenario/Process/ScenarioGlobalCommandManager.hpp>
+
 #include <score/statemachine/CommonSelectionState.hpp>
+
+#include <QPointF>
 
 namespace Scenario
 {
@@ -17,10 +19,8 @@ private:
 
 public:
   SelectionState(
-      score::SelectionStack& stack,
-      const ToolPalette_T& parentSM,
-      View_T& scenarioview,
-      QState* parent)
+      score::SelectionStack& stack, const ToolPalette_T& parentSM,
+      View_T& scenarioview, QState* parent)
       : CommonSelectionState{stack, &scenarioview, parent}
       , m_parentSM{parentSM}
       , m_scenarioView{scenarioview}
@@ -67,8 +67,7 @@ public:
 
   void on_delete() override
   {
-    removeSelection(
-        m_parentSM.model(), m_parentSM.context().context);
+    removeSelection(m_parentSM.model(), m_parentSM.context().context);
   }
 
   void on_deleteContent() override

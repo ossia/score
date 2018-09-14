@@ -2,12 +2,14 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include <Media/Effect/Settings/Model.hpp>
 #include <Media/Effect/Settings/View.hpp>
+
+#include <score/widgets/SignalUtils.hpp>
+
 #include <QFileDialog>
 #include <QFormLayout>
 #include <QListWidget>
 #include <QMenu>
 #include <QPushButton>
-#include <score/widgets/SignalUtils.hpp>
 namespace Media::Settings
 {
 View::View() : m_widg{new QWidget}

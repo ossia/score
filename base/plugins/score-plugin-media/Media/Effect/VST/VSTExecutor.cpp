@@ -1,25 +1,23 @@
 #include "VSTExecutor.hpp"
 
+#include <Media/Effect/VST/VSTControl.hpp>
+#include <Media/Effect/VST/VSTNode.hpp>
+#include <Process/ExecutionContext.hpp>
+
 #include <ossia/dataflow/execution_state.hpp>
 #include <ossia/dataflow/fx_node.hpp>
 #include <ossia/dataflow/graph_node.hpp>
-#include <ossia/detail/logger.hpp>
 #include <ossia/dataflow/port.hpp>
+#include <ossia/detail/logger.hpp>
 #include <ossia/network/domain/domain.hpp>
-
-#include <Process/ExecutionContext.hpp>
-#include <Media/Effect/VST/VSTControl.hpp>
-#include <Media/Effect/VST/VSTNode.hpp>
 
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Execution::VSTEffectComponent)
 namespace Execution
 {
 VSTEffectComponent::VSTEffectComponent(
-    Media::VST::VSTEffectModel& proc,
-    const Execution::Context& ctx,
-    const Id<score::Component>& id,
-    QObject* parent)
+    Media::VST::VSTEffectModel& proc, const Execution::Context& ctx,
+    const Id<score::Component>& id, QObject* parent)
     : ProcessComponent_T{proc, ctx, id, "VSTComponent", parent}
 {
   if (!proc.fx || !proc.fx->fx)

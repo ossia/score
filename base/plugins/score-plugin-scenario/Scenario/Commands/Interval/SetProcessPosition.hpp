@@ -1,5 +1,6 @@
 #pragma once
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
+
 #include <score/command/Command.hpp>
 #include <score/model/path/Path.hpp>
 
@@ -24,8 +25,7 @@ class PutProcessBefore final : public score::Command
 public:
   // Put proc2 before proc
   PutProcessBefore(
-      const IntervalModel& cst,
-      optional<Id<Process::ProcessModel>> proc,
+      const IntervalModel& cst, optional<Id<Process::ProcessModel>> proc,
       Id<Process::ProcessModel> proc2);
 
   void undo(const score::DocumentContext& ctx) const override;
@@ -50,13 +50,13 @@ private:
 class PutStateProcessBefore final : public score::Command
 {
   SCORE_COMMAND_DECL(
-      ScenarioCommandFactoryName(), PutStateProcessBefore, "Set process position")
+      ScenarioCommandFactoryName(), PutStateProcessBefore,
+      "Set process position")
 
 public:
   // Put proc2 before proc
   PutStateProcessBefore(
-      const StateModel& cst,
-      optional<Id<Process::ProcessModel>> proc,
+      const StateModel& cst, optional<Id<Process::ProcessModel>> proc,
       Id<Process::ProcessModel> proc2);
 
   void undo(const score::DocumentContext& ctx) const override;
@@ -77,6 +77,5 @@ private:
   Id<Process::ProcessModel> m_proc2;
   optional<Id<Process::ProcessModel>> m_old_after_proc2;
 };
-
 }
 }

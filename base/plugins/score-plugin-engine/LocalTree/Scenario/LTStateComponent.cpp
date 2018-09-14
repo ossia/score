@@ -3,28 +3,29 @@
 #include "StateComponent.hpp"
 
 #include <Scenario/Application/ScenarioApplicationPlugin.hpp>
-#include <Scenario/Process/ScenarioInterface.hpp>
 #include <Scenario/Process/Algorithms/Accessors.hpp>
+#include <Scenario/Process/ScenarioInterface.hpp>
+
 #include <ossia/editor/state/state_element.hpp>
 
 namespace LocalTree
 {
 
 State::State(
-    ossia::net::node_base& parent,
-    const Id<score::Component>& id,
-    Scenario::StateModel& state,
-    DocumentPlugin& doc,
-    QObject* parent_comp)
+    ossia::net::node_base& parent, const Id<score::Component>& id,
+    Scenario::StateModel& state, DocumentPlugin& doc, QObject* parent_comp)
     : CommonComponent{parent, state.metadata(), doc,
                       id,     "StateComponent", parent_comp}
 {
   m_properties.push_back(
       add_setProperty<::State::impulse>(node(), "trigger", [&](auto) {
-        auto plug = doc.context().app.findGuiApplicationPlugin<Scenario::ScenarioApplicationPlugin>();
+        auto plug = doc.context()
+                        .app.findGuiApplicationPlugin<
+                            Scenario::ScenarioApplicationPlugin>();
         if (plug)
         {
-          plug->execution().playState(Scenario::parentScenario(state), state.id());
+          plug->execution().playState(
+              Scenario::parentScenario(state), state.id());
         }
       }));
 }

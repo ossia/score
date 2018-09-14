@@ -4,11 +4,12 @@
 
 #include "HTTPDevice.hpp"
 
-#include <ossia/network/base/device.hpp>
-
 #include <Device/Protocol/DeviceSettings.hpp>
 #include <Protocols/HTTP/HTTPProtocolSettingsWidget.hpp>
 #include <Protocols/HTTP/HTTPSpecificSettings.hpp>
+
+#include <ossia/network/base/device.hpp>
+
 #include <QObject>
 
 namespace Device

@@ -4,6 +4,7 @@
 #include "ResizeSlotVertically.hpp"
 
 #include <Scenario/Document/Interval/IntervalModel.hpp>
+
 #include <score/model/path/Path.hpp>
 #include <score/model/path/PathSerialization.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>

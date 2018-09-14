@@ -5,6 +5,11 @@
 #include "CurvePointModel.hpp"
 
 #include <Curve/CurveStyle.hpp>
+
+#include <score/model/Identifier.hpp>
+#include <score/selection/Selectable.hpp>
+#include <score/tools/Todo.hpp>
+
 #include <QColor>
 #include <QCursor>
 #include <QGraphicsSceneEvent>
@@ -12,9 +17,6 @@
 #include <QPen>
 #include <QtGlobal>
 #include <qnamespace.h>
-#include <score/selection/Selectable.hpp>
-#include <score/tools/Todo.hpp>
-#include <score/model/Identifier.hpp>
 
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Curve::PointView)

@@ -1,5 +1,6 @@
 #pragma once
 #include <ossia/detail/config.hpp>
+
 #include <cinttypes>
 namespace Process
 {
@@ -28,7 +29,8 @@ enum ProcessFlags : int64_t
   //! When created in an interval, go on the top slot or in a new slot
   PutInNewSlot = 16,
 
-  //! The process won't change if the parent duration changes (eg it's a filter)
+  //! The process won't change if the parent duration changes (eg it's a
+  //! filter)
   TimeIndependent = 32,
 
   SupportsLasting = SupportsTemporal | SupportsEffectChain,

@@ -1,15 +1,19 @@
 #pragma once
 #include <Curve/Segment/CurveSegmentData.hpp>
-#include <QByteArray>
-#include <QPoint>
-#include <QVector>
-#include <algorithm>
+
 #include <score/command/Dispatchers/SingleOngoingCommandDispatcher.hpp>
 #include <score/model/Identifier.hpp>
 #include <score/model/path/Path.hpp>
 #include <score/tools/IdentifierGeneration.hpp>
 #include <score/tools/std/Optional.hpp>
+
+#include <QByteArray>
+#include <QPoint>
+#include <QVector>
+
 #include <score_plugin_curve_export.h>
+
+#include <algorithm>
 #include <vector>
 
 namespace score

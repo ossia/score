@@ -3,6 +3,15 @@
 
 #include "MessageNode.hpp"
 
+#include <State/Value.hpp>
+#include <State/ValueSerialization.hpp>
+
+#include <score/model/Identifier.hpp>
+#include <score/serialization/DataStreamVisitor.hpp>
+#include <score/serialization/JSONValueVisitor.hpp>
+#include <score/serialization/JSONVisitor.hpp>
+#include <score/serialization/VisitorCommon.hpp>
+
 #include <QDataStream>
 #include <QJsonArray>
 #include <QJsonObject>
@@ -10,16 +19,10 @@
 #include <QString>
 #include <QVector>
 #include <QtGlobal>
-#include <State/Value.hpp>
-#include <State/ValueSerialization.hpp>
+
 #include <algorithm>
 #include <array>
 #include <cstddef>
-#include <score/model/Identifier.hpp>
-#include <score/serialization/DataStreamVisitor.hpp>
-#include <score/serialization/JSONValueVisitor.hpp>
-#include <score/serialization/JSONVisitor.hpp>
-#include <score/serialization/VisitorCommon.hpp>
 
 namespace Process
 {

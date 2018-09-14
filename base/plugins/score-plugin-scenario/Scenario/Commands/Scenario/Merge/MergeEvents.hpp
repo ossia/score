@@ -9,6 +9,7 @@
 #include <Scenario/Process/Algorithms/StandardDisplacementPolicy.hpp>
 #include <Scenario/Process/Algorithms/VerticalMovePolicy.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
+
 #include <score/command/AggregateCommand.hpp>
 #include <score/command/Command.hpp>
 #include <score/model/Identifier.hpp>
@@ -26,8 +27,7 @@ class SCORE_PLUGIN_SCENARIO_EXPORT MergeEvents final : public score::Command
   SCORE_COMMAND_DECL(ScenarioCommandFactoryName(), MergeEvents, "Merge events")
 public:
   MergeEvents(
-      const ProcessModel& scenario,
-      Id<EventModel> clickedEv,
+      const ProcessModel& scenario, Id<EventModel> clickedEv,
       Id<EventModel> hoveredEv);
 
   void undo(const score::DocumentContext& ctx) const override;

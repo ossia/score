@@ -21,8 +21,7 @@ ScenarioInspectorWidgetFactoryWrapper::~ScenarioInspectorWidgetFactoryWrapper()
 
 QWidget* ScenarioInspectorWidgetFactoryWrapper::make(
     const QList<const QObject*>& sourceElements,
-    const score::DocumentContext& doc,
-    QWidget* parent) const
+    const score::DocumentContext& doc, QWidget* parent) const
 {
   std::set<const IntervalModel*> intervals;
   std::set<const TimeSyncModel*> timesyncs;

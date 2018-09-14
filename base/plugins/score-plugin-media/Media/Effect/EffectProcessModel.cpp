@@ -1,11 +1,13 @@
-#include <Effect/EffectFactory.hpp>
 #include <Media/Effect/EffectProcessModel.hpp>
 #include <Process/Dataflow/Port.hpp>
 #include <Process/Process.hpp>
 #include <Process/ProcessList.hpp>
-#include <QFile>
+
 #include <score/tools/Clamp.hpp>
 
+#include <QFile>
+
+#include <Effect/EffectFactory.hpp>
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Media::Effect::ProcessModel)
 namespace Media
@@ -14,8 +16,7 @@ namespace Effect
 {
 
 ProcessModel::ProcessModel(
-    const TimeVal& duration,
-    const Id<Process::ProcessModel>& id,
+    const TimeVal& duration, const Id<Process::ProcessModel>& id,
     QObject* parent)
     : Process::ProcessModel{duration, id,
                             Metadata<ObjectKey_k, ProcessModel>::get(), parent}
@@ -47,7 +48,7 @@ void ProcessModel::insertEffect(Process::ProcessModel* eff, int pos)
   }
   clamp(pos, 0, int(m_effects.size()));
 
-  if(!bad_effect)
+  if (!bad_effect)
   {
     if (pos > 0)
     {
@@ -76,7 +77,7 @@ void ProcessModel::insertEffect(Process::ProcessModel* eff, int pos)
       eff, &Process::ProcessModel::outletsChanged, this,
       &ProcessModel::checkChaining);
 
-  if(!bad_effect)
+  if (!bad_effect)
   {
     if (pos == 0)
     {
@@ -100,7 +101,6 @@ void ProcessModel::insertEffect(Process::ProcessModel* eff, int pos)
     inletsChanged();
     outletsChanged();
   }
-
 
   effectsChanged();
 }

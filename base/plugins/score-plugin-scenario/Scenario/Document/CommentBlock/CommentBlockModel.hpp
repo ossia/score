@@ -1,22 +1,26 @@
 #pragma once
 
 #include <Process/TimeValue.hpp>
-#include <wobjectdefs.h>
-#include <QObject>
+
 #include <score/model/IdentifiedObject.hpp>
 #include <score/model/Identifier.hpp>
 #include <score/selection/Selectable.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/serialization/JSONVisitor.hpp>
 #include <score/tools/Metadata.hpp>
+
+#include <QObject>
+
 #include <score_plugin_scenario_export.h>
+#include <wobjectdefs.h>
 class DataStream;
 class JSONObject;
 class QTextDocument;
 
 namespace Scenario
 {
-class SCORE_PLUGIN_SCENARIO_EXPORT CommentBlockModel final : public IdentifiedObject<CommentBlockModel>
+class SCORE_PLUGIN_SCENARIO_EXPORT CommentBlockModel final
+    : public IdentifiedObject<CommentBlockModel>
 {
   W_OBJECT(CommentBlockModel)
 
@@ -26,9 +30,7 @@ public:
   Selectable selection;
 
   CommentBlockModel(
-      const Id<CommentBlockModel>& id,
-      const TimeVal& date,
-      double yPos,
+      const Id<CommentBlockModel>& id, const TimeVal& date, double yPos,
       QObject* parent);
 
   template <typename DeserializerVisitor>
@@ -49,7 +51,8 @@ public:
 
 public:
   void dateChanged(const TimeVal& arg_1) W_SIGNAL(dateChanged, arg_1);
-  void heightPercentageChanged(bool arg_1) W_SIGNAL(heightPercentageChanged, arg_1);
+  void heightPercentageChanged(bool arg_1)
+      W_SIGNAL(heightPercentageChanged, arg_1);
   void contentChanged(QString arg_1) W_SIGNAL(contentChanged, arg_1);
 
 private:

@@ -1,6 +1,4 @@
 #pragma once
-#include <QFinalState>
-#include <QGraphicsScene>
 #include <Scenario/Commands/Interval/Rack/Slot/ResizeSlotVertically.hpp>
 #include <Scenario/Commands/Interval/Rack/SwapSlots.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
@@ -8,8 +6,12 @@
 #include <Scenario/Palette/ScenarioPaletteBaseStates.hpp>
 #include <Scenario/Palette/ScenarioPaletteBaseTransitions.hpp>
 #include <Scenario/Palette/Transitions/AnythingTransitions.hpp>
+
 #include <score/command/Dispatchers/SingleOngoingCommandDispatcher.hpp>
 #include <score/document/DocumentInterface.hpp>
+
+#include <QFinalState>
+#include <QGraphicsScene>
 
 namespace Scenario
 {
@@ -69,8 +71,7 @@ class ResizeSlotState final : public SlotState
 {
 public:
   ResizeSlotState(
-      const score::CommandStackFacade& stack,
-      const ToolPalette_T& sm,
+      const score::CommandStackFacade& stack, const ToolPalette_T& sm,
       QState* parent)
       : SlotState{parent}, m_ongoingDispatcher{stack}, m_sm{sm}
   {

@@ -3,14 +3,17 @@
 #include "DataStreamVisitor.hpp"
 #include "JSONValueVisitor.hpp"
 
+#include <score/tools/std/Optional.hpp>
+
+#include <boost/none_t.hpp>
+
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonValue>
 #include <QPoint>
 #include <QTransform>
+
 #include <array>
-#include <boost/none_t.hpp>
-#include <score/tools/std/Optional.hpp>
 
 template <typename T>
 class Reader;

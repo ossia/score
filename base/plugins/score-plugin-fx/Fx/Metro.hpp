@@ -1,5 +1,6 @@
 #pragma once
 #include <Engine/Node/PdNode.hpp>
+
 #include <numeric>
 namespace Nodes
 {
@@ -52,17 +53,13 @@ struct Node
 
   using control_policy = ossia::safe_nodes::last_tick;
   static void
-  run(float quantif,
-      float freq,
-      bool val,
-      float tempo,
-      ossia::value_port& res,
-      ossia::token_request tk,
-      ossia::exec_state_facade st)
+  run(float quantif, float freq, bool val, float tempo, ossia::value_port& res,
+      ossia::token_request tk, ossia::exec_state_facade st)
   {
     if (tk.date > tk.prev_date)
     {
-      const auto period = get_period(val, quantif, freq, tempo, st.sampleRate());
+      const auto period
+          = get_period(val, quantif, freq, tempo, st.sampleRate());
       const auto next = next_date(tk.prev_date, period);
       if (tk.in_range(next))
       {

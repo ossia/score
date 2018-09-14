@@ -1,10 +1,11 @@
 #pragma once
 #include <Scenario/Document/Interval/IntervalPresenter.hpp>
-#include <wobjectdefs.h>
 #include <Scenario/Document/Interval/Slot.hpp>
 #include <Scenario/Document/Interval/SlotPresenter.hpp>
 #include <Scenario/Document/Interval/Temporal/TemporalIntervalView.hpp>
+
 #include <score_plugin_scenario_export.h>
+#include <wobjectdefs.h>
 class QGraphicsItem;
 class QObject;
 namespace Process
@@ -33,10 +34,8 @@ public:
 
   TemporalIntervalPresenter(
       const IntervalModel& viewModel,
-      const Process::ProcessPresenterContext& ctx,
-      bool handles,
-      QGraphicsItem* parentobject,
-      QObject* parent);
+      const Process::ProcessPresenterContext& ctx, bool handles,
+      QGraphicsItem* parentobject, QObject* parent);
 
   ~TemporalIntervalPresenter() override;
 
@@ -53,9 +52,12 @@ public:
 
   void requestSlotMenu(int slot, QPoint pos, QPointF sp) const override;
   void requestProcessSelectorMenu(int slot, QPoint pos, QPointF sp) const;
+
 public:
-  void intervalHoverEnter() E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, intervalHoverEnter);
-  void intervalHoverLeave() E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, intervalHoverLeave);
+  void intervalHoverEnter()
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, intervalHoverEnter);
+  void intervalHoverLeave()
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, intervalHoverLeave);
 
 private:
   double rackHeight() const;

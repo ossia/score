@@ -1,6 +1,7 @@
 #pragma once
 #include <Media/Commands/MediaCommandFactory.hpp>
 #include <Media/Merger/Model.hpp>
+
 #include <score/command/Command.hpp>
 #include <score/command/PropertyCommand.hpp>
 #include <score/model/path/Path.hpp>

@@ -2,11 +2,6 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "EventPresenter.hpp"
 
-#include <QGraphicsItem>
-#include <QMimeData>
-#include <QRect>
-#include <QSize>
-#include <QStringList>
 #include <Scenario/Commands/Event/State/AddStateWithData.hpp>
 #include <Scenario/Commands/Scenario/Creations/CreateState.hpp>
 #include <Scenario/Commands/State/AddMessagesToState.hpp>
@@ -19,7 +14,7 @@
 #include <State/Expression.hpp>
 #include <State/Message.hpp>
 #include <State/MessageListSerialization.hpp>
-#include <algorithm>
+
 #include <score/document/DocumentContext.hpp>
 #include <score/document/DocumentInterface.hpp>
 #include <score/model/Identifier.hpp>
@@ -29,7 +24,15 @@
 #include <score/tools/Todo.hpp>
 #include <score/widgets/GraphicsItem.hpp>
 
+#include <QGraphicsItem>
+#include <QMimeData>
+#include <QRect>
+#include <QSize>
+#include <QStringList>
+
 #include <wobjectimpl.h>
+
+#include <algorithm>
 W_OBJECT_IMPL(Scenario::EventPresenter)
 
 namespace Scenario

@@ -1,5 +1,6 @@
 #pragma once
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
+
 #include <score/command/Command.hpp>
 #include <score/model/ColorReference.hpp>
 #include <score/model/path/Path.hpp>

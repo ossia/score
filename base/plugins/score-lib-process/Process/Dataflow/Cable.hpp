@@ -1,12 +1,15 @@
 #pragma once
-#include <QPointer>
-#include <wobjectdefs.h>
-#include <QUuid>
 #include <State/Address.hpp>
+
 #include <score/model/IdentifiedObject.hpp>
 #include <score/model/path/Path.hpp>
 #include <score/selection/Selectable.hpp>
+
+#include <QPointer>
+#include <QUuid>
+
 #include <score_lib_process_export.h>
+#include <wobjectdefs.h>
 
 namespace ossia
 {
@@ -53,8 +56,6 @@ class SCORE_LIB_PROCESS_EXPORT Cable final : public IdentifiedObject<Cable>
 {
   W_OBJECT(Cable)
 
-
-
 public:
   Selectable selection;
   Cable() = delete;
@@ -78,19 +79,21 @@ public:
   Path<Process::Inlet> sink() const;
 
   void setType(CableType type);
+
 public:
-  void typeChanged(CableType type) E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, typeChanged, type);
+  void typeChanged(CableType type)
+      E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, typeChanged, type);
 
 private:
   CableType m_type{};
   Path<Process::Outlet> m_source;
   Path<Process::Inlet> m_sink;
 
-W_PROPERTY(Path<Process::Inlet>, sink READ sink)
+  W_PROPERTY(Path<Process::Inlet>, sink READ sink)
 
-W_PROPERTY(Path<Process::Outlet>, source READ source)
+  W_PROPERTY(Path<Process::Outlet>, source READ source)
 
-W_PROPERTY(CableType, type READ type WRITE setType NOTIFY typeChanged)
+  W_PROPERTY(CableType, type READ type WRITE setType NOTIFY typeChanged)
 };
 }
 

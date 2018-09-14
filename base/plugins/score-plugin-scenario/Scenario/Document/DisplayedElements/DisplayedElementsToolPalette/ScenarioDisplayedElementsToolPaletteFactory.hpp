@@ -1,5 +1,6 @@
 #pragma once
 #include <Scenario/Document/DisplayedElements/DisplayedElementsToolPalette/DisplayedElementsToolPaletteFactory.hpp>
+
 #include <memory>
 
 class GraphicsSceneToolPalette;
@@ -17,8 +18,7 @@ public:
   bool matches(const IntervalModel& interval) const override;
 
   std::unique_ptr<GraphicsSceneToolPalette> make(
-      ScenarioDocumentPresenter& pres
-      , const IntervalModel& interval
-      , QGraphicsItem* parent) override;
+      ScenarioDocumentPresenter& pres, const IntervalModel& interval,
+      QGraphicsItem* parent) override;
 };
 }

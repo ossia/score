@@ -1,14 +1,20 @@
 #pragma once
-#include <QString>
 #include <score/plugins/application/GUIApplicationPlugin.hpp>
 #include <score/plugins/documentdelegate/plugin/DocumentPlugin.hpp>
 
-namespace score { class MessagesPanelDelegate; }
-namespace Device { class DeviceList; }
+#include <QString>
+
+namespace score
+{
+class MessagesPanelDelegate;
+}
+namespace Device
+{
+class DeviceList;
+}
 namespace Explorer
 {
-class ApplicationPlugin final
-    : public score::GUIApplicationPlugin
+class ApplicationPlugin final : public score::GUIApplicationPlugin
 {
 public:
   ApplicationPlugin(const score::GUIApplicationContext& app);
@@ -20,7 +26,8 @@ private:
     QObject::disconnect(m_outbound);
     QObject::disconnect(m_error);
   }
-  void setupConnections(score::MessagesPanelDelegate&, Device::DeviceList& devices);
+  void
+  setupConnections(score::MessagesPanelDelegate&, Device::DeviceList& devices);
   void on_newDocument(score::Document& doc) override;
   void on_documentChanged(
       score::Document* olddoc, score::Document* newdoc) override;

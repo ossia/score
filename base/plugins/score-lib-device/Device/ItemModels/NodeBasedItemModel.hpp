@@ -2,11 +2,15 @@
 #include <Device/Address/AddressSettings.hpp>
 #include <Device/Node/DeviceNode.hpp>
 #include <Device/Protocol/DeviceSettings.hpp>
-#include <QAbstractItemModel>
+
 #include <score/model/tree/InvisibleRootNode.hpp>
 #include <score/model/tree/TreeNode.hpp>
 #include <score/model/tree/TreeNodeItemModel.hpp>
+
+#include <QAbstractItemModel>
+
 #include <score_lib_device_export.h>
+
 #include <vector>
 
 namespace Device
@@ -44,7 +48,6 @@ public:
     QModelIndex parentIndex = modelIndexFromNode(parentNode, 0);
 
     beginInsertRows(parentIndex, row, row);
-
 
     auto it = parentNode.begin();
     std::advance(it, row);
@@ -89,12 +92,8 @@ public:
 
 SCORE_LIB_DEVICE_EXPORT Device::FullAddressAccessorSettings
 makeFullAddressAccessorSettings(
-    const State::AddressAccessor& mess,
-    const Device::NodeBasedItemModel& ctx,
-    ossia::value min,
-    ossia::value max);
+    const State::AddressAccessor& mess, const Device::NodeBasedItemModel& ctx,
+    ossia::value min, ossia::value max);
 SCORE_LIB_DEVICE_EXPORT Device::FullAddressAccessorSettings
-makeFullAddressAccessorSettings(
-    const Device::Node& mess);
-
+makeFullAddressAccessorSettings(const Device::Node& mess);
 }

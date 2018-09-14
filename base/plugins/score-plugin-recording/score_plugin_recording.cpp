@@ -2,15 +2,18 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "score_plugin_recording.hpp"
 
-#include <QString>
 #include <Recording/ApplicationPlugin.hpp>
 #include <Recording/Commands/RecordingCommandFactory.hpp>
-#include <score_plugin_scenario.hpp>
+
 #include <score/plugins/customfactory/FactorySetup.hpp>
 #include <score/tools/ForEachType.hpp>
 #include <score/tools/std/HashMap.hpp>
+
+#include <QString>
+
 #include <score_plugin_engine.hpp>
 #include <score_plugin_recording_commands_files.hpp>
+#include <score_plugin_scenario.hpp>
 
 score_plugin_recording::score_plugin_recording() = default;
 score_plugin_recording::~score_plugin_recording() = default;
@@ -35,7 +38,7 @@ score_plugin_recording::make_commands()
       RecordingCommandFactoryName(), CommandGeneratorMap{}};
 
   ossia::for_each_type<
-    #include <score_plugin_recording_commands.hpp>
+#include <score_plugin_recording_commands.hpp>
       >(score::commands::FactoryInserter{cmds.second});
 
   return cmds;

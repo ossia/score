@@ -1,8 +1,10 @@
 #pragma once
-#include <QState>
-#include <wobjectdefs.h>
 #include <score/selection/SelectionDispatcher.hpp>
 #include <score/statemachine/StateMachineTools.hpp>
+
+#include <QState>
+
+#include <wobjectdefs.h>
 
 class QGraphicsItem;
 

@@ -1,12 +1,14 @@
 #pragma once
 #include "CreateInterval.hpp"
 
-#include <QString>
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
+
 #include <score/command/Command.hpp>
 #include <score/model/Identifier.hpp>
 #include <score/model/path/Path.hpp>
 #include <score/tools/std/Optional.hpp>
+
+#include <QString>
 
 struct DataStreamInput;
 struct DataStreamOutput;
@@ -24,15 +26,12 @@ class SCORE_PLUGIN_SCENARIO_EXPORT CreateInterval_State final
     : public score::Command
 {
   SCORE_COMMAND_DECL(
-      ScenarioCommandFactoryName(),
-      CreateInterval_State,
+      ScenarioCommandFactoryName(), CreateInterval_State,
       "Create an interval and a state")
 public:
   CreateInterval_State(
-      const Scenario::ProcessModel& scenario,
-      Id<StateModel> startState,
-      Id<EventModel> endEvent,
-      double endStateY);
+      const Scenario::ProcessModel& scenario, Id<StateModel> startState,
+      Id<EventModel> endEvent, double endStateY);
 
   const Path<Scenario::ProcessModel>& scenarioPath() const
   {

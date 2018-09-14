@@ -1,17 +1,20 @@
 #pragma once
+#include <Device/Address/ClipMode.hpp>
+#include <Device/Address/IOType.hpp>
+#include <State/Domain.hpp>
+#include <State/Message.hpp>
+#include <State/Unit.hpp>
+
+#include <score/tools/Metadata.hpp>
+
 #include <ossia/detail/any_map.hpp>
 #include <ossia/network/base/node_attributes.hpp>
 #include <ossia/network/common/parameter_properties.hpp>
 
-#include <Device/Address/ClipMode.hpp>
-#include <Device/Address/IOType.hpp>
 #include <QString>
 #include <QVariant>
 #include <QVariantList>
-#include <State/Domain.hpp>
-#include <State/Message.hpp>
-#include <State/Unit.hpp>
-#include <score/tools/Metadata.hpp>
+
 #include <score_lib_device_export.h>
 
 namespace Device
@@ -158,8 +161,7 @@ struct SCORE_LIB_DEVICE_EXPORT FullAddressAccessorSettings
       State::AddressAccessor&& addr, AddressSettingsCommon&& f) noexcept;
 
   FullAddressAccessorSettings(
-      const State::AddressAccessor& addr,
-      const ossia::value& min,
+      const State::AddressAccessor& addr, const ossia::value& min,
       const ossia::value& max) noexcept;
 
   ossia::value value;

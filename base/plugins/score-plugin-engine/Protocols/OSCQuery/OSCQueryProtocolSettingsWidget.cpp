@@ -5,19 +5,20 @@
 #include "OSCQuerySpecificSettings.hpp"
 
 #include <Device/Protocol/ProtocolSettingsWidget.hpp>
+#include <State/Widgets/AddressFragmentLineEdit.hpp>
+
 #include <QAction>
 #include <QFormLayout>
+#include <QJsonDocument>
 #include <QLabel>
 #include <QLineEdit>
+#include <QNetworkReply>
 #include <QPushButton>
 #include <QSpinBox>
 #include <QString>
 #include <QVariant>
-#include <State/Widgets/AddressFragmentLineEdit.hpp>
-#include <QNetworkReply>
-#include <QJsonDocument>
 #if defined(OSSIA_DNSSD)
-#  include <Explorer/Widgets/ZeroConf/ZeroconfBrowser.hpp>
+#include <Explorer/Widgets/ZeroConf/ZeroconfBrowser.hpp>
 #endif
 
 class QWidget;
@@ -33,24 +34,25 @@ OSCQueryProtocolSettingsWidget::OSCQueryProtocolSettingsWidget(QWidget* parent)
 
   m_localHostEdit = new QLineEdit(this);
 
-  connect(&m_http_client, &QNetworkAccessManager::finished,
-          this, [&] (QNetworkReply* ret) {
-    if(ret != m_cur_reply)
-    {
-      ret->deleteLater();
-      return;
-    }
+  connect(
+      &m_http_client, &QNetworkAccessManager::finished, this,
+      [&](QNetworkReply* ret) {
+        if (ret != m_cur_reply)
+        {
+          ret->deleteLater();
+          return;
+        }
 
-    auto doc = QJsonDocument::fromJson(ret->readAll());
-    if(doc.object().contains("NAME"))
-    {
-      auto str = doc.object()["NAME"].toString();
-      if(!str.isEmpty())
-        m_deviceNameEdit->setText(str);
-    }
-    ret->deleteLater();
-    m_cur_reply = nullptr;
-  });
+        auto doc = QJsonDocument::fromJson(ret->readAll());
+        if (doc.object().contains("NAME"))
+        {
+          auto str = doc.object()["NAME"].toString();
+          if (!str.isEmpty())
+            m_deviceNameEdit->setText(str);
+        }
+        ret->deleteLater();
+        m_cur_reply = nullptr;
+      });
 
   QFormLayout* layout = new QFormLayout;
 
@@ -64,15 +66,18 @@ OSCQueryProtocolSettingsWidget::OSCQueryProtocolSettingsWidget(QWidget* parent)
       [=](QString name, QString ip, int port, QMap<QString, QByteArray> txt) {
         m_deviceNameEdit->setText(name);
 
-        if(auto ret = m_http_client.get(QNetworkRequest(QUrl("http://" + ip + ":" + QString::number(port) + "/?HOST_INFO"))))
+        if (auto ret = m_http_client.get(QNetworkRequest(QUrl(
+                "http://" + ip + ":" + QString::number(port)
+                + "/?HOST_INFO"))))
         {
           m_cur_reply = ret;
         }
 
-        if(txt.contains("WebSockets") && txt["WebSockets"] == "true")
+        if (txt.contains("WebSockets") && txt["WebSockets"] == "true")
           m_localHostEdit->setText("ws://" + ip + ":" + QString::number(port));
         else
-          m_localHostEdit->setText("http://" + ip + ":" + QString::number(port));
+          m_localHostEdit->setText(
+              "http://" + ip + ":" + QString::number(port));
       });
   layout->addWidget(pb);
 #endif

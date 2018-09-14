@@ -1,6 +1,7 @@
 #pragma once
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
 #include <Scenario/Document/Interval/Slot.hpp>
+
 #include <score/command/Command.hpp>
 #include <score/model/Identifier.hpp>
 #include <score/model/path/Path.hpp>
@@ -16,9 +17,11 @@ namespace Command
 {
 class ChangeSlotPosition final : public score::Command
 {
-  SCORE_COMMAND_DECL(ScenarioCommandFactoryName(), ChangeSlotPosition, "Change slot position")
+  SCORE_COMMAND_DECL(
+      ScenarioCommandFactoryName(), ChangeSlotPosition, "Change slot position")
 public:
-  ChangeSlotPosition(Path<IntervalModel>&& rack, Slot::RackView, int pos1, int pos2);
+  ChangeSlotPosition(
+      Path<IntervalModel>&& rack, Slot::RackView, int pos1, int pos2);
 
   void undo(const score::DocumentContext& ctx) const override;
   void redo(const score::DocumentContext& ctx) const override;
@@ -52,7 +55,9 @@ protected:
 
 class MoveLayerInNewSlot final : public SlotCommand
 {
-  SCORE_COMMAND_DECL(ScenarioCommandFactoryName(), MoveLayerInNewSlot, "Move layer in new slot")
+  SCORE_COMMAND_DECL(
+      ScenarioCommandFactoryName(), MoveLayerInNewSlot,
+      "Move layer in new slot")
 public:
   MoveLayerInNewSlot(const IntervalModel&, int pos1, int pos2);
 };
@@ -67,11 +72,11 @@ public:
 
 class MergeLayerInSlot final : public SlotCommand
 {
-  SCORE_COMMAND_DECL(ScenarioCommandFactoryName(), MergeLayerInSlot, "Merge layer")
+  SCORE_COMMAND_DECL(
+      ScenarioCommandFactoryName(), MergeLayerInSlot, "Merge layer")
 
 public:
   MergeLayerInSlot(const IntervalModel&, int pos1, int pos2);
 };
-
 }
 }

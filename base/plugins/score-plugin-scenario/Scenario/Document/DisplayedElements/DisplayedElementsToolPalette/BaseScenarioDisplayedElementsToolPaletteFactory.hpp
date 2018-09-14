@@ -1,5 +1,6 @@
 #pragma once
 #include <Scenario/Document/DisplayedElements/DisplayedElementsToolPalette/DisplayedElementsToolPaletteFactory.hpp>
+
 #include <memory>
 
 class GraphicsSceneToolPalette;

@@ -3,13 +3,16 @@
 #include "MidiView.hpp"
 
 #include <Midi/MidiStyle.hpp>
+
+#include <score/widgets/GraphicsItem.hpp>
+
 #include <QGraphicsScene>
 #include <QGraphicsSceneContextMenuEvent>
 #include <QGraphicsSceneMouseEvent>
 #include <QGraphicsView>
 #include <QKeyEvent>
 #include <QPainter>
-#include <score/widgets/GraphicsItem.hpp>
+
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Midi::View)
 namespace Midi
@@ -30,7 +33,7 @@ View::~View()
 
 void View::heightChanged(qreal h)
 {
-  QImage bg(1920, h, QImage::Format_ARGB32_Premultiplied );
+  QImage bg(1920, h, QImage::Format_ARGB32_Premultiplied);
   QPainter painter(&bg);
   auto p = &painter;
 
@@ -163,7 +166,7 @@ void View::paint_impl(QPainter* p) const
     const auto view_left = v->mapToScene(0, 0);
     const auto left = std::max(0., this->mapFromScene(view_left).x());
 
-    p->drawPixmap(left,0, m_bgCache);
+    p->drawPixmap(left, 0, m_bgCache);
   }
   if (!m_selectArea.isEmpty())
   {
@@ -258,5 +261,7 @@ NoteData View::noteAtPos(QPointF point) const
 }
 
 int View::visibleCount() const
-{ return m_max - m_min + 1; }
+{
+  return m_max - m_min + 1;
+}
 }

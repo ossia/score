@@ -1,8 +1,9 @@
 #pragma once
+#include <score/selection/Selection.hpp>
+
 #include <QPushButton>
 #include <QString>
 #include <QWidget>
-#include <score/selection/Selection.hpp>
 
 class QPushButton;
 
@@ -14,9 +15,7 @@ class SelectionButton final : public QPushButton
 {
 public:
   SelectionButton(
-      const QString& text,
-      Selection target,
-      score::SelectionDispatcher& disp,
+      const QString& text, Selection target, score::SelectionDispatcher& disp,
       QWidget* parent);
 
   template <typename Obj>
@@ -29,9 +28,7 @@ public:
 
   template <typename Obj>
   static SelectionButton* make(
-      const QString& text,
-      Obj&& obj,
-      score::SelectionDispatcher& disp,
+      const QString& text, Obj&& obj, score::SelectionDispatcher& disp,
       QWidget* parent)
   {
     auto but = new SelectionButton{text, Selection{obj}, disp, parent};

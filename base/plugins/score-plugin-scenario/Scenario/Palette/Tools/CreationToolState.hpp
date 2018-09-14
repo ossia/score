@@ -17,6 +17,7 @@
 #include <Scenario/Palette/Transitions/NothingTransitions.hpp>
 #include <Scenario/Palette/Transitions/StateTransitions.hpp>
 #include <Scenario/Palette/Transitions/TimeSyncTransitions.hpp>
+
 #include <score/document/DocumentInterface.hpp>
 #include <score/statemachine/StateMachineTools.hpp>
 
@@ -211,17 +212,11 @@ private:
   }
 
   template <
-      typename StateFun,
-      typename EventFun,
-      typename TimeSyncFun,
+      typename StateFun, typename EventFun, typename TimeSyncFun,
       typename NothingFun>
   void mapWithCollision(
-      QPointF point,
-      StateFun st_fun,
-      EventFun ev_fun,
-      TimeSyncFun tn_fun,
-      NothingFun nothing_fun,
-      const QVector<Id<StateModel>>& createdStates,
+      QPointF point, StateFun st_fun, EventFun ev_fun, TimeSyncFun tn_fun,
+      NothingFun nothing_fun, const QVector<Id<StateModel>>& createdStates,
       const QVector<Id<EventModel>>& createdEvents,
       const QVector<Id<TimeSyncModel>>& createdTimeSyncs)
   {

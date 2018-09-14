@@ -2,9 +2,11 @@
 #include <Media/Input/InputModel.hpp>
 #include <Media/Sound/SoundModel.hpp>
 #include <Process/Inspector/ProcessInspectorWidgetDelegate.hpp>
+
+#include <score/command/Dispatchers/CommandDispatcher.hpp>
+
 #include <QLineEdit>
 #include <QSpinBox>
-#include <score/command/Dispatchers/CommandDispatcher.hpp>
 
 namespace Media
 {
@@ -15,8 +17,7 @@ class InspectorWidget final
 {
 public:
   explicit InspectorWidget(
-      const ProcessModel& object,
-      const score::DocumentContext& doc,
+      const ProcessModel& object, const score::DocumentContext& doc,
       QWidget* parent);
 
 private:
@@ -27,5 +28,4 @@ private:
   QSpinBox m_startOffset;
 };
 }
-
 }

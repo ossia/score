@@ -3,12 +3,12 @@
 #include "ScenarioScene.hpp"
 
 #include <QWidget>
+
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Scenario::ScenarioScene)
 namespace Scenario
 {
-ScenarioScene::ScenarioScene(QObject* parent):
-  QGraphicsScene{parent}
+ScenarioScene::ScenarioScene(QObject* parent) : QGraphicsScene{parent}
 {
   setItemIndexMethod(QGraphicsScene::NoIndex);
 }

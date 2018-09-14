@@ -1,12 +1,13 @@
 #pragma once
 #include <QBrush>
-#include <wobjectdefs.h>
 #include <QFont>
 #include <QObject>
 #include <QPair>
 #include <QPen>
 #include <QVector>
+
 #include <score_lib_base_export.h>
+#include <wobjectdefs.h>
 class QJsonObject;
 namespace score
 {

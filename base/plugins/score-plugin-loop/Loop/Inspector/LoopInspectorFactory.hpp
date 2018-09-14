@@ -6,8 +6,8 @@
 namespace Loop
 {
 class InspectorFactory final
-    : public Process::
-          InspectorWidgetDelegateFactory_T<ProcessModel, InspectorWidget>
+    : public Process::InspectorWidgetDelegateFactory_T<
+          ProcessModel, InspectorWidget>
 {
   SCORE_CONCRETE("f45f98f2-f721-4ffa-9219-114832fe06bd")
 };

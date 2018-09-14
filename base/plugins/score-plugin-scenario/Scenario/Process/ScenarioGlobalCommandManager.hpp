@@ -1,6 +1,8 @@
 #pragma once
-#include <QList>
 #include <Scenario/Process/Algorithms/Accessors.hpp>
+
+#include <QList>
+
 #include <score_plugin_scenario_export.h>
 class BaseScenario;
 namespace Scenario

@@ -2,29 +2,33 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "ChangeAddress.hpp"
 
-#include <ossia/editor/state/destination_qualifiers.hpp>
-#include <ossia/network/domain/domain.hpp>
-#include <ossia/network/value/value_conversion.hpp>
-
 #include <Automation/AutomationModel.hpp>
-#include <Color/GradientModel.hpp>
-#include <Metronome/MetronomeModel.hpp>
-#include <Spline/SplineModel.hpp>
 #include <Curve/Point/CurvePointModel.hpp>
 #include <Device/Address/AddressSettings.hpp>
 #include <Device/Node/DeviceNode.hpp>
 #include <Explorer/Explorer/DeviceExplorerModel.hpp>
-#include <QString>
-#include <QStringList>
 #include <State/Address.hpp>
 #include <State/Domain.hpp>
 #include <State/Value.hpp>
 #include <State/ValueConversion.hpp>
-#include <algorithm>
+
 #include <score/model/path/Path.hpp>
 #include <score/model/path/PathSerialization.hpp>
 #include <score/model/tree/TreeNode.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
+
+#include <ossia/editor/state/destination_qualifiers.hpp>
+#include <ossia/network/domain/domain.hpp>
+#include <ossia/network/value/value_conversion.hpp>
+
+#include <QString>
+#include <QStringList>
+
+#include <Color/GradientModel.hpp>
+#include <Metronome/MetronomeModel.hpp>
+#include <Spline/SplineModel.hpp>
+
+#include <algorithm>
 
 namespace Automation
 {

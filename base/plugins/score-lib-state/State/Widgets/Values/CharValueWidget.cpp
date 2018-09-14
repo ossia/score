@@ -2,6 +2,11 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "CharValueWidget.hpp"
 
+#include <State/Widgets/Values/ValueWidget.hpp>
+
+#include <score/widgets/MarginLess.hpp>
+#include <score/widgets/TextLabel.hpp>
+
 #include <QDialogButtonBox>
 #include <QGridLayout>
 #include <QHBoxLayout>
@@ -10,9 +15,6 @@
 #include <QPushButton>
 #include <QString>
 #include <QVBoxLayout>
-#include <State/Widgets/Values/ValueWidget.hpp>
-#include <score/widgets/MarginLess.hpp>
-#include <score/widgets/TextLabel.hpp>
 
 namespace State
 {

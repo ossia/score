@@ -1,12 +1,15 @@
 #pragma once
 #include <Curve/CurveModel.hpp>
-#include <wobjectdefs.h>
 #include <Curve/Point/CurvePointModel.hpp>
 #include <Curve/Segment/CurveSegmentModel.hpp>
 #include <Process/Process.hpp>
-#include <QString>
+
 #include <score/selection/Selection.hpp>
+
+#include <QString>
+
 #include <score_plugin_curve_export.h>
+#include <wobjectdefs.h>
 
 namespace Curve
 {
@@ -16,9 +19,7 @@ class SCORE_PLUGIN_CURVE_EXPORT CurveProcessModel
   W_OBJECT(CurveProcessModel)
 public:
   CurveProcessModel(
-      TimeVal duration,
-      const Id<ProcessModel>& id,
-      const QString& name,
+      TimeVal duration, const Id<ProcessModel>& id, const QString& name,
       QObject* parent)
       : Process::ProcessModel(duration, id, name, parent)
   {

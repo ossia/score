@@ -1,8 +1,9 @@
 #pragma once
+#include <score/model/path/Path.hpp>
+
 #include <QAbstractTransition>
 #include <QEvent>
 #include <QState>
-#include <score/model/path/Path.hpp>
 
 /**
  * This file contains base types for the events and transitions of
@@ -87,9 +88,7 @@ private:
 };
 
 template <
-    typename Transition,
-    typename SourceState,
-    typename TargetState,
+    typename Transition, typename SourceState, typename TargetState,
     typename... Args>
 Transition*
 make_transition(SourceState source, TargetState dest, Args&&... args)

@@ -9,5 +9,4 @@ enum class PortType
   Audio,
   Midi
 };
-
 }

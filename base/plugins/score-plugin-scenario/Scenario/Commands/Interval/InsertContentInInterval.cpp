@@ -6,18 +6,11 @@
 #include <Process/ExpandMode.hpp>
 #include <Process/Process.hpp>
 #include <Process/ProcessList.hpp>
-#include <QDataStream>
-#include <QtGlobal>
 #include <Scenario/Document/Interval/IntervalDurations.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/Interval/Slot.hpp>
 #include <Scenario/Process/Algorithms/ProcessPolicy.hpp>
-#include <algorithm>
 
-
-#include <functional>
-#include <iterator>
-#include <map>
 #include <score/application/ApplicationContext.hpp>
 #include <score/document/DocumentContext.hpp>
 #include <score/model/EntityMap.hpp>
@@ -26,6 +19,14 @@
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/serialization/JSONVisitor.hpp>
 #include <score/tools/IdentifierGeneration.hpp>
+
+#include <QDataStream>
+#include <QtGlobal>
+
+#include <algorithm>
+#include <functional>
+#include <iterator>
+#include <map>
 #include <utility>
 #include <vector>
 
@@ -35,8 +36,7 @@ namespace Command
 {
 
 InsertContentInInterval::InsertContentInInterval(
-    QJsonObject&& sourceInterval,
-    const IntervalModel& targetInterval,
+    QJsonObject&& sourceInterval, const IntervalModel& targetInterval,
     ExpandMode mode)
     : m_source{std::move(sourceInterval)}
     , m_target{std::move(targetInterval)}

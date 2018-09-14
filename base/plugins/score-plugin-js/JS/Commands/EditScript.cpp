@@ -3,9 +3,11 @@
 #include "EditScript.hpp"
 
 #include <JS/JSProcessModel.hpp>
-#include <algorithm>
+
 #include <score/model/path/PathSerialization.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
+
+#include <algorithm>
 namespace JS
 {
 EditScript::EditScript(const ProcessModel& model, const QString& text)

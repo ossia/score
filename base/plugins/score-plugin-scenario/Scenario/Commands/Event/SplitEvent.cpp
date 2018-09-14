@@ -2,8 +2,6 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "SplitEvent.hpp"
 
-#include <QDataStream>
-#include <QtGlobal>
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
 #include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
@@ -18,6 +16,10 @@
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/tools/IdentifierGeneration.hpp>
 #include <score/tools/RandomNameProvider.hpp>
+
+#include <QDataStream>
+#include <QtGlobal>
+
 #include <vector>
 
 namespace Scenario
@@ -25,8 +27,7 @@ namespace Scenario
 namespace Command
 {
 SplitEvent::SplitEvent(
-    const Scenario::ProcessModel& scenario,
-    Id<EventModel> event,
+    const Scenario::ProcessModel& scenario, Id<EventModel> event,
     QVector<Id<StateModel>> movingstates)
     : m_scenarioPath{scenario}
     , m_originalEvent{std::move(event)}
@@ -37,10 +38,8 @@ SplitEvent::SplitEvent(
 }
 
 SplitEvent::SplitEvent(
-    const Scenario::ProcessModel& scenario,
-    Id<EventModel> event,
-    Id<EventModel> new_event,
-    QVector<Id<StateModel>> movingstates)
+    const Scenario::ProcessModel& scenario, Id<EventModel> event,
+    Id<EventModel> new_event, QVector<Id<StateModel>> movingstates)
     : m_scenarioPath{scenario}
     , m_originalEvent{std::move(event)}
     , m_newEvent{new_event}

@@ -1,19 +1,23 @@
 #pragma once
 #include <Process/Dataflow/CableItem.hpp>
-#include <wobjectdefs.h>
 #include <Process/Focus/FocusDispatcher.hpp>
 #include <Process/ProcessContext.hpp>
 #include <Process/ZoomHelper.hpp>
-#include <QPoint>
-#include <QRect>
 #include <Scenario/Document/DisplayedElements/DisplayedElementsModel.hpp>
 #include <Scenario/Document/DisplayedElements/DisplayedElementsPresenter.hpp>
 #include <Scenario/Document/ScenarioDocument/ProcessFocusManager.hpp>
-#include <memory>
+
 #include <score/plugins/documentdelegate/DocumentDelegatePresenter.hpp>
 #include <score/selection/Selection.hpp>
 #include <score/selection/SelectionDispatcher.hpp>
 #include <score/statemachine/GraphicsSceneToolPalette.hpp>
+
+#include <QPoint>
+#include <QRect>
+
+#include <wobjectdefs.h>
+
+#include <memory>
 
 class ObjectPath;
 class QSize;
@@ -89,17 +93,24 @@ public:
 
   void startTimeBar(Scenario::IntervalModel& itv);
   void stopTimeBar();
+
 public:
-  void pressed(QPointF arg_1) E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, pressed, arg_1);
-  void moved(QPointF arg_1) E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, moved, arg_1);
-  void released(QPointF arg_1) E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, released, arg_1);
+  void pressed(QPointF arg_1)
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, pressed, arg_1);
+  void moved(QPointF arg_1)
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, moved, arg_1);
+  void released(QPointF arg_1)
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, released, arg_1);
   void escPressed() E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, escPressed);
 
-  void setFocusedPresenter(QPointer<Process::LayerPresenter> arg_1) E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, setFocusedPresenter, arg_1);
+  void setFocusedPresenter(QPointer<Process::LayerPresenter> arg_1)
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, setFocusedPresenter, arg_1);
 
 private:
-  void on_windowSizeChanged(QSize); W_SLOT(on_windowSizeChanged);
-  void on_viewReady(); W_SLOT(on_viewReady);
+  void on_windowSizeChanged(QSize);
+  W_SLOT(on_windowSizeChanged);
+  void on_viewReady();
+  W_SLOT(on_viewReady);
 
 private:
   void updateTimeBar();

@@ -2,165 +2,163 @@
 
 #include "lv2_atom_helpers.hpp"
 
-#include <ossia/dataflow/execution_state.hpp>
-#include <ossia/dataflow/graph_node.hpp>
-#include <ossia/detail/logger.hpp>
-#include <ossia/detail/math.hpp>
-#include <ossia/network/domain/domain.hpp>
-#include <ossia/detail/pod_vector.hpp>
-
-#include <Execution/DocumentPlugin.hpp>
 #include <Media/ApplicationPlugin.hpp>
-#include <QFile>
-#include <QUrl>
-#include <cmath>
-#include <iostream>
-#include <memory>
-#include <score/tools/Todo.hpp>
-#include <set>
 #include <Media/Effect/LV2/LV2Context.hpp>
 #include <Media/Effect/LV2/LV2Node.hpp>
 #include <Media/Effect/LV2/LV2Window.hpp>
 #include <Process/Dataflow/WidgetInlets.hpp>
-#include <score/tools/std/StringHash.hpp>
-#include <score/tools/DeleteAll.hpp>
 
-#include <wobjectimpl.h>
-#include <QListWidget>
+#include <score/tools/DeleteAll.hpp>
+#include <score/tools/Todo.hpp>
+#include <score/tools/std/StringHash.hpp>
+
+#include <ossia/dataflow/execution_state.hpp>
+#include <ossia/dataflow/graph_node.hpp>
+#include <ossia/detail/logger.hpp>
+#include <ossia/detail/math.hpp>
+#include <ossia/detail/pod_vector.hpp>
+#include <ossia/network/domain/domain.hpp>
+
 #include <QDialogButtonBox>
-#include <QPushButton>
+#include <QFile>
 #include <QHBoxLayout>
+#include <QListWidget>
+#include <QPushButton>
+#include <QUrl>
+
+#include <Execution/DocumentPlugin.hpp>
+#include <cmath>
+#include <wobjectimpl.h>
+
+#include <iostream>
+#include <memory>
+#include <set>
 W_OBJECT_IMPL(Media::LV2::LV2EffectModel)
 namespace Media::LV2
 {
-  optional<Lilv::Plugin> find_lv2_plugin(Lilv::World& world, QString path)
+optional<Lilv::Plugin> find_lv2_plugin(Lilv::World& world, QString path)
+{
+  static tsl::hopscotch_map<QString, const LilvPlugin*> plug_map;
+  if (auto it = plug_map.find(path); it != plug_map.end())
   {
-    static tsl::hopscotch_map<QString, const LilvPlugin*> plug_map;
-    if(auto it = plug_map.find(path); it != plug_map.end())
-    {
-      if(it->second)
-        return it->second;
-      else
-        return {};
-    }
+    if (it->second)
+      return it->second;
+    else
+      return {};
+  }
 
-    auto old_str = path;
-    const bool isFile = QFile(QUrl(path).toString(QUrl::PreferLocalFile)).exists();
-    if (isFile)
-    {
-      if (*path.rbegin() != '/')
-        path.append('/');
-    }
+  auto old_str = path;
+  const bool isFile
+      = QFile(QUrl(path).toString(QUrl::PreferLocalFile)).exists();
+  if (isFile)
+  {
+    if (*path.rbegin() != '/')
+      path.append('/');
+  }
 
+  auto plugs = world.get_all_plugins();
+  auto it = plugs.begin();
+  while (!plugs.is_end(it))
+  {
+    auto plug = plugs.get(it);
+    if ((isFile && QString(plug.get_bundle_uri().as_string()) == path)
+        || (!isFile && QString(plug.get_name().as_string()) == path))
+    {
+      plug_map[old_str] = plug;
+      return plug;
+    }
+    else if (!isFile && QString(plug.get_name().as_string()) == path)
+    {
+      plug_map[old_str] = plug;
+      return plug;
+    }
+    else
+    {
+      it = plugs.next(it);
+    }
+  }
+
+  plug_map[old_str] = nullptr;
+  return {};
+}
+
+struct LV2PluginChooserDialog : public QDialog
+{
+  LV2PluginChooserDialog(Lilv::World& world, QWidget* parent) : QDialog{parent}
+  {
+    this->setLayout(&m_lay);
+    this->window()->setWindowTitle(QObject::tr("Select a LV2 plug-in"));
+
+    m_buttons.addButton(QDialogButtonBox::StandardButton::Ok);
+    m_buttons.addButton(QDialogButtonBox::StandardButton::Close);
+    m_buttons.setOrientation(Qt::Vertical);
+
+    m_lay.addWidget(&m_categories);
+    m_lay.addWidget(&m_plugins);
+    m_lay.addWidget(&m_buttons);
     auto plugs = world.get_all_plugins();
+
+    QStringList items;
+
     auto it = plugs.begin();
     while (!plugs.is_end(it))
     {
       auto plug = plugs.get(it);
-      if ((isFile && QString(plug.get_bundle_uri().as_string()) == path)
-          || (!isFile && QString(plug.get_name().as_string()) == path))
+      const auto class_name = plug.get_class().get_label().as_string();
+      const auto plug_name = plug.get_name().as_string();
+      auto sub_it = m_categories_map.find(class_name);
+      if (sub_it == m_categories_map.end())
       {
-        plug_map[old_str] = plug;
-        return plug;
-      }
-      else if (!isFile && QString(plug.get_name().as_string()) == path)
-      {
-        plug_map[old_str] = plug;
-        return plug;
+        m_categories_map.insert({class_name, {plug_name}});
       }
       else
       {
-        it = plugs.next(it);
+        sub_it->second.append(plug_name);
       }
+      it = plugs.next(it);
     }
 
-    plug_map[old_str] = nullptr;
-    return {};
+    for (auto& category : m_categories_map)
+    {
+      m_categories.addItem(category.first);
+    }
+
+    con(m_categories, &QListWidget::currentTextChanged, this,
+        &LV2PluginChooserDialog::updateProcesses);
+
+    auto accept_item = [&](auto item) {
+      if (item)
+      {
+        m_accepted = item->text();
+        QDialog::close();
+      }
+    };
+    con(m_plugins, &QListWidget::itemDoubleClicked, this, accept_item);
+
+    con(m_buttons, &QDialogButtonBox::accepted, this,
+        [=] { accept_item(m_plugins.currentItem()); });
   }
 
-
-  struct LV2PluginChooserDialog
-      : public QDialog
+  void updateProcesses(const QString& str)
   {
-    LV2PluginChooserDialog(Lilv::World& world, QWidget* parent)
-      : QDialog{parent}
+    m_plugins.clear();
+    for (auto plug : m_categories_map[str])
     {
-      this->setLayout(&m_lay);
-      this->window()->setWindowTitle(QObject::tr("Select a LV2 plug-in"));
-
-      m_buttons.addButton(QDialogButtonBox::StandardButton::Ok);
-      m_buttons.addButton(QDialogButtonBox::StandardButton::Close);
-      m_buttons.setOrientation(Qt::Vertical);
-
-      m_lay.addWidget(&m_categories);
-      m_lay.addWidget(&m_plugins);
-      m_lay.addWidget(&m_buttons);
-      auto plugs = world.get_all_plugins();
-
-      QStringList items;
-
-      auto it = plugs.begin();
-      while (!plugs.is_end(it))
-      {
-        auto plug = plugs.get(it);
-        const auto class_name = plug.get_class().get_label().as_string();
-        const auto plug_name = plug.get_name().as_string();
-        auto sub_it = m_categories_map.find(class_name);
-        if(sub_it == m_categories_map.end())
-        {
-          m_categories_map.insert({class_name, {plug_name}});
-        }
-        else
-        {
-          sub_it->second.append(plug_name);
-        }
-        it = plugs.next(it);
-      }
-
-      for(auto& category : m_categories_map)
-      {
-        m_categories.addItem(category.first);
-      }
-
-      con(m_categories, &QListWidget::currentTextChanged, this,
-          &LV2PluginChooserDialog::updateProcesses);
-
-      auto accept_item = [&](auto item) {
-        if (item)
-        {
-          m_accepted = item->text();
-          QDialog::close();
-        }
-      };
-      con(m_plugins, &QListWidget::itemDoubleClicked, this, accept_item);
-
-      con(m_buttons, &QDialogButtonBox::accepted, this, [=] {
-        accept_item(m_plugins.currentItem());
-      });
+      m_plugins.addItem(plug);
     }
+  }
 
+  QString m_accepted;
+  QHBoxLayout m_lay;
+  QListWidget m_categories;
+  QListWidget m_plugins;
+  QDialogButtonBox m_buttons;
 
-    void updateProcesses(const QString& str)
-    {
-      m_plugins.clear();
-      for(auto plug : m_categories_map[str])
-      {
-        m_plugins.addItem(plug);
-      }
-    }
-
-    QString m_accepted;
-    QHBoxLayout m_lay;
-    QListWidget m_categories;
-    QListWidget m_plugins;
-    QDialogButtonBox m_buttons;
-
-    std::map<QString, QVector<QString>> m_categories_map;
-  };
+  std::map<QString, QVector<QString>> m_categories_map;
+};
 }
 namespace Process
 {
-
 
 template <>
 QString
@@ -176,7 +174,6 @@ EffectProcessFactory_T<Media::LV2::LV2EffectModel>::customConstructionData()
   return dial.m_accepted;
 }
 
-
 template <>
 Process::Descriptor
 EffectProcessFactory_T<Media::LV2::LV2EffectModel>::descriptor(QString d) const
@@ -185,7 +182,7 @@ EffectProcessFactory_T<Media::LV2::LV2EffectModel>::descriptor(QString d) const
   auto& app_plug
       = score::AppComponents().applicationPlugin<Media::ApplicationPlugin>();
   auto& host = app_plug.lv2_host_context;
-  if(auto plug = Media::LV2::find_lv2_plugin(app_plug.lilv, d))
+  if (auto plug = Media::LV2::find_lv2_plugin(app_plug.lilv, d))
   {
     desc.prettyName = plug->get_name().as_string();
     desc.categoryText = plug->get_class().get_label().as_string();
@@ -228,7 +225,7 @@ EffectProcessFactory_T<Media::LV2::LV2EffectModel>::descriptor(QString d) const
         }
         else
         {
-          //midi_other_ports.push_back(i);
+          // midi_other_ports.push_back(i);
         }
       }
       else if (port.is_a(host.cv_class))
@@ -247,21 +244,19 @@ EffectProcessFactory_T<Media::LV2::LV2EffectModel>::descriptor(QString d) const
         }
         else
         {
-          //control_other_ports.push_back(i);
+          // control_other_ports.push_back(i);
         }
       }
       else
       {
-        //control_other_ports.push_back(i);
+        // control_other_ports.push_back(i);
       }
     }
 
     desc.inlets = ins;
     desc.outlets = outs;
-
   }
   return desc;
-
 }
 }
 
@@ -271,9 +266,7 @@ namespace LV2
 {
 
 LV2EffectModel::LV2EffectModel(
-    TimeVal t,
-    const QString& path,
-    const Id<Process::ProcessModel>& id,
+    TimeVal t, const QString& path, const Id<Process::ProcessModel>& id,
     QObject* parent)
     : ProcessModel{t, id, "LV2Effect", parent}, m_effectPath{path}
 {
@@ -295,19 +288,21 @@ QString LV2EffectModel::prettyName() const
 
 bool LV2EffectModel::hasExternalUI() const
 {
-  if(!plugin)
+  if (!plugin)
     return false;
 
-  auto& p = score::GUIAppContext().applicationPlugin<Media::ApplicationPlugin>();
+  auto& p
+      = score::GUIAppContext().applicationPlugin<Media::ApplicationPlugin>();
   const auto native_ui_type_uri = "http://lv2plug.in/ns/extensions/ui#Qt5UI";
   auto the_uis = lilv_plugin_get_uis(plugin);
   auto native_ui_type = lilv_new_uri(p.lilv.me, native_ui_type_uri);
-  LILV_FOREACH(uis, u, the_uis) {
+  LILV_FOREACH(uis, u, the_uis)
+  {
     const LilvUI* this_ui = lilv_uis_get(the_uis, u);
-    if (lilv_ui_is_supported(this_ui,
-                             suil_ui_supported,
-                             native_ui_type,
-                             &effectContext.ui_type)) {
+    if (lilv_ui_is_supported(
+            this_ui, suil_ui_supported, native_ui_type,
+            &effectContext.ui_type))
+    {
       return true;
     }
   }
@@ -348,15 +343,16 @@ void LV2EffectModel::readPlugin()
   int out_id = 0;
 
   // AUDIO
-  if(audio_in_size > 0)
+  if (audio_in_size > 0)
   {
     m_inlets.push_back(new Process::Inlet{Id<Process::Port>{in_id++}, this});
     m_inlets[0]->type = Process::PortType::Audio;
   }
 
-  if(audio_out_size > 0)
+  if (audio_out_size > 0)
   {
-    m_outlets.push_back(new Process::Outlet{Id<Process::Port>{out_id++}, this});
+    m_outlets.push_back(
+        new Process::Outlet{Id<Process::Port>{out_id++}, this});
     m_outlets[0]->type = Process::PortType::Audio;
     m_outlets[0]->setPropagate(true);
   }
@@ -401,23 +397,24 @@ void LV2EffectModel::readPlugin()
     Lilv::Node n = p.get_name();
 
     auto port = new Process::FloatSlider{
-            fParamMin[port_id], fParamMax[port_id], fParamInit[port_id],
-            QString::fromUtf8(n.as_string()),
-            Id<Process::Port>{in_id++}, this};
+        fParamMin[port_id],         fParamMax[port_id],
+        fParamInit[port_id],        QString::fromUtf8(n.as_string()),
+        Id<Process::Port>{in_id++}, this};
 
     control_map.insert({port_id, {port, false}});
     connect(
         port, &Process::ControlInlet::valueChanged, this,
-        [this, port, port_id] (const ossia::value& v) {
-      if(effectContext.ui_instance)
-      {
-        auto& writing = control_map[port_id].second;
-        writing = true;
-        float f = ossia::convert<float>(v);
-        suil_instance_port_event(effectContext.ui_instance, port_id, sizeof(float), 0, &f);
-        writing = false;
-      }
-    });
+        [this, port, port_id](const ossia::value& v) {
+          if (effectContext.ui_instance)
+          {
+            auto& writing = control_map[port_id].second;
+            writing = true;
+            float f = ossia::convert<float>(v);
+            suil_instance_port_event(
+                effectContext.ui_instance, port_id, sizeof(float), 0, &f);
+            writing = false;
+          }
+        });
 
     m_inlets.push_back(port);
   }
@@ -439,7 +436,6 @@ void LV2EffectModel::readPlugin()
     m_outlets.push_back(port);
   }
 
-
   effectContext.instance = lilv_plugin_instantiate(
       effectContext.plugin.me, app_plug.lv2_context->sampleRate,
       app_plug.lv2_host_context.features);
@@ -460,7 +456,7 @@ void LV2EffectModel::reload()
       = score::AppComponents().applicationPlugin<Media::ApplicationPlugin>();
   auto& world = app_plug.lilv;
 
-  if(auto plug = find_lv2_plugin(world, path))
+  if (auto plug = find_lv2_plugin(world, path))
   {
     plugin = plug->me;
     effectContext.plugin.me = *plug;
@@ -468,7 +464,6 @@ void LV2EffectModel::reload()
     metadata().setLabel(QString(plug->get_name().as_string()));
   }
 }
-
 }
 }
 
@@ -506,29 +501,29 @@ struct on_finish
   void operator()()
   {
     auto p = self.lock();
-    if(!p)
+    if (!p)
       return;
 
-    p->in_edit([s=self] {
+    p->in_edit([s = self] {
       auto p = s.lock();
 
-      if(!p)
+      if (!p)
         return;
       auto nn = p->node;
-      if(!nn)
+      if (!nn)
         return;
       auto& node = *static_cast<lv2_node<on_finish>*>(nn.get());
 
-      for(int k = 0; k < node.data.control_out_ports.size(); k++)
+      for (int k = 0; k < node.data.control_out_ports.size(); k++)
       {
         auto port = node.data.control_out_ports[k];
         float val = node.fOutControls[k];
 
-        auto cport = static_cast<LV2EffectModel&>(p->process()).control_out_map[port];
+        auto cport
+            = static_cast<LV2EffectModel&>(p->process()).control_out_map[port];
         cport->setValue(val);
       }
     });
-
 
     /* TODO do the same thing than in jalv
     for(auto& port : data.event_out_port)
@@ -551,12 +546,9 @@ struct on_finish
   }
 };
 
-
 LV2EffectComponent::LV2EffectComponent(
-    Media::LV2::LV2EffectModel& proc,
-    const Execution::Context& ctx,
-    const Id<score::Component>& id,
-    QObject* parent)
+    Media::LV2::LV2EffectModel& proc, const Execution::Context& ctx,
+    const Id<score::Component>& id, QObject* parent)
     : ProcessComponent_T{proc, ctx, id, "LV2Component", parent}
 {
 }
@@ -573,13 +565,13 @@ void LV2EffectComponent::lazy_init()
 
   auto node = std::make_shared<Media::LV2::lv2_node<on_finish>>(
       Media::LV2::LV2Data{host.lv2_host_context, proc.effectContext},
-      ctx.execState->sampleRate,
-      of);
+      ctx.execState->sampleRate, of);
 
   for (std::size_t i = proc.m_controlInStart; i < proc.inlets().size(); i++)
   {
     auto inlet = static_cast<Process::ControlInlet*>(proc.inlets()[i]);
-    node->fInControls[i - proc.m_controlInStart] = ossia::convert<float>(inlet->value());
+    node->fInControls[i - proc.m_controlInStart]
+        = ossia::convert<float>(inlet->value());
     auto inl = node->inputs()[i];
     connect(
         inlet, &Process::ControlInlet::valueChanged, this,
@@ -596,14 +588,12 @@ void LV2EffectComponent::lazy_init()
 }
 
 void LV2EffectComponent::writeAtomToUi(
-    uint32_t port_index,
-    uint32_t type,
-    uint32_t size,
-    const void* body)
+    uint32_t port_index, uint32_t type, uint32_t size, const void* body)
 {
-  auto& p = score::GUIAppContext().applicationPlugin<Media::ApplicationPlugin>();
+  auto& p
+      = score::GUIAppContext().applicationPlugin<Media::ApplicationPlugin>();
   Media::LV2::Message ev;
-  ev.index    = port_index;
+  ev.index = port_index;
   ev.protocol = p.lv2_host_context.atom_eventTransfer;
   ev.body.resize(sizeof(LV2_Atom) + size);
 
@@ -614,15 +604,15 @@ void LV2EffectComponent::writeAtomToUi(
   }
 
   {
-    uint8_t* data = reinterpret_cast<uint8_t*>(ev.body.data() + sizeof(LV2_Atom));
+    uint8_t* data
+        = reinterpret_cast<uint8_t*>(ev.body.data() + sizeof(LV2_Atom));
 
-    auto b = (const uint8_t*) body;
-    for(uint32_t i = 0; i < size; i++)
+    auto b = (const uint8_t*)body;
+    for (uint32_t i = 0; i < size; i++)
       data[i] = b[i];
   }
 
   process().plugin_events.enqueue(std::move(ev));
 }
-
 }
 W_OBJECT_IMPL(Media::LV2::LV2EffectComponent)

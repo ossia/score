@@ -3,6 +3,7 @@
 #include <Media/Input/InputModel.hpp>
 #include <Media/MediaFileHandle.hpp>
 #include <Media/Sound/SoundModel.hpp>
+
 #include <score/command/Command.hpp>
 #include <score/command/PropertyCommand.hpp>
 #include <score/model/path/Path.hpp>
@@ -29,12 +30,17 @@ private:
   QString m_old, m_new;
   TimeVal m_olddur;
 };
-
 }
 
-PROPERTY_COMMAND_T(Media, ChangeStart, Sound::ProcessModel::p_startChannel, "Change start channel")
-PROPERTY_COMMAND_T(Media, ChangeUpmix, Sound::ProcessModel::p_upmixChannels, "Change upmix channels")
-PROPERTY_COMMAND_T(Media, ChangeStartOffset, Sound::ProcessModel::p_startOffset, "Change start offset")
+PROPERTY_COMMAND_T(
+    Media, ChangeStart, Sound::ProcessModel::p_startChannel,
+    "Change start channel")
+PROPERTY_COMMAND_T(
+    Media, ChangeUpmix, Sound::ProcessModel::p_upmixChannels,
+    "Change upmix channels")
+PROPERTY_COMMAND_T(
+    Media, ChangeStartOffset, Sound::ProcessModel::p_startOffset,
+    "Change start offset")
 SCORE_COMMAND_DECL_T(Media::ChangeStart)
 SCORE_COMMAND_DECL_T(Media::ChangeUpmix)
 SCORE_COMMAND_DECL_T(Media::ChangeStartOffset)

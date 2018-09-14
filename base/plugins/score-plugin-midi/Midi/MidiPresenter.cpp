@@ -1,8 +1,6 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 
-#include <ossia/detail/math.hpp>
-
 #include <Midi/Commands/AddNote.hpp>
 #include <Midi/Commands/RemoveNotes.hpp>
 #include <Midi/Commands/ScaleNotes.hpp>
@@ -13,19 +11,25 @@
 #include <Midi/MidiView.hpp>
 #include <Process/Focus/FocusDispatcher.hpp>
 #include <Process/Layer/LayerContextMenu.hpp>
-#include <QAction>
-#include <QApplication>
-#include <QInputDialog>
-#include <QMenu>
-#include <boost/range/adaptor/filtered.hpp>
-#include <boost/range/adaptor/transformed.hpp>
-#include <boost/range/algorithm/copy.hpp>
-#include <core/document/Document.hpp>
-#include <core/document/DocumentModel.hpp>
+
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/command/Dispatchers/MacroCommandDispatcher.hpp>
 #include <score/document/DocumentContext.hpp>
 #include <score/document/DocumentInterface.hpp>
+
+#include <core/document/Document.hpp>
+#include <core/document/DocumentModel.hpp>
+
+#include <ossia/detail/math.hpp>
+
+#include <boost/range/adaptor/filtered.hpp>
+#include <boost/range/adaptor/transformed.hpp>
+#include <boost/range/algorithm/copy.hpp>
+
+#include <QAction>
+#include <QApplication>
+#include <QInputDialog>
+#include <QMenu>
 
 #if __has_include(<valgrind/callgrind.h>)
 #include <valgrind/callgrind.h>
@@ -33,10 +37,8 @@
 namespace Midi
 {
 Presenter::Presenter(
-    const Midi::ProcessModel& layer,
-    View* view,
-    const Process::ProcessPresenterContext& ctx,
-    QObject* parent)
+    const Midi::ProcessModel& layer, View* view,
+    const Process::ProcessPresenterContext& ctx, QObject* parent)
     : LayerPresenter{ctx, parent}
     , m_layer{layer}
     , m_view{view}
@@ -93,21 +95,19 @@ Presenter::Presenter(
     on_noteAdded(note);
   }
 #if __has_include(<valgrind/callgrind.h>)
-  //CALLGRIND_START_INSTRUMENTATION;
+  // CALLGRIND_START_INSTRUMENTATION;
 #endif
 }
 
 Presenter::~Presenter()
 {
 #if __has_include(<valgrind/callgrind.h>)
-  //CALLGRIND_STOP_INSTRUMENTATION;
+  // CALLGRIND_STOP_INSTRUMENTATION;
 #endif
 }
 
 void Presenter::fillContextMenu(
-    QMenu& menu,
-    QPoint pos,
-    QPointF scenepos,
+    QMenu& menu, QPoint pos, QPointF scenepos,
     const Process::LayerContextMenuManager& cm)
 {
   auto act = menu.addAction(tr("Rescale midi"));

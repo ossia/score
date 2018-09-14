@@ -1,6 +1,13 @@
 #pragma once
+#include <score/document/DocumentContext.hpp>
+#include <score/plugins/panel/PanelDelegate.hpp>
+#include <score/plugins/panel/PanelDelegateFactory.hpp>
+#include <score/selection/SelectionDispatcher.hpp>
+#include <score/selection/SelectionStack.hpp>
+#include <score/widgets/MarginLess.hpp>
+#include <score/widgets/SearchLineEdit.hpp>
+
 #include <QAbstractItemModel>
-#include <wobjectdefs.h>
 #include <QContextMenuEvent>
 #include <QHeaderView>
 #include <QLabel>
@@ -9,13 +16,8 @@
 #include <QPushButton>
 #include <QTreeView>
 #include <QVBoxLayout>
-#include <score/document/DocumentContext.hpp>
-#include <score/plugins/panel/PanelDelegate.hpp>
-#include <score/plugins/panel/PanelDelegateFactory.hpp>
-#include <score/selection/SelectionDispatcher.hpp>
-#include <score/selection/SelectionStack.hpp>
-#include <score/widgets/MarginLess.hpp>
-#include <score/widgets/SearchLineEdit.hpp>
+
+#include <wobjectdefs.h>
 class QToolButton;
 class QGraphicsSceneMouseEvent;
 namespace Scenario
@@ -23,9 +25,7 @@ namespace Scenario
 // TimeSync / event / state / state processes
 // or
 // Interval / processes
-class ObjectItemModel final
-    : public QAbstractItemModel
-    , public Nano::Observer
+class ObjectItemModel final : public QAbstractItemModel, public Nano::Observer
 {
   W_OBJECT(ObjectItemModel)
 public:
@@ -44,16 +44,19 @@ public:
   QVariant data(const QModelIndex& index, int role) const override;
   Qt::ItemFlags flags(const QModelIndex& index) const override;
 
-  bool setData(
-      const QModelIndex& index,
-      const QVariant& value,
-      int role) override;
+  bool
+  setData(const QModelIndex& index, const QVariant& value, int role) override;
 
-  QMimeData*mimeData(const QModelIndexList& indexes) const override;
-  bool canDropMimeData(const QMimeData* data, Qt::DropAction action, int row, int column, const QModelIndex& parent) const override;
-  bool dropMimeData(const QMimeData* data, Qt::DropAction action, int row, int column, const QModelIndex& parent) override;
+  QMimeData* mimeData(const QModelIndexList& indexes) const override;
+  bool canDropMimeData(
+      const QMimeData* data, Qt::DropAction action, int row, int column,
+      const QModelIndex& parent) const override;
+  bool dropMimeData(
+      const QMimeData* data, Qt::DropAction action, int row, int column,
+      const QModelIndex& parent) override;
   Qt::DropActions supportedDropActions() const override;
   Qt::DropActions supportedDragActions() const override;
+
 public:
   void changed() W_SIGNAL(changed);
 
@@ -81,8 +84,6 @@ private:
 
   const score::DocumentContext& m_ctx;
   std::vector<QMetaObject::Connection> m_itemCon;
-
-
 };
 
 class ObjectWidget final : public QTreeView
@@ -142,8 +143,7 @@ private:
   score::SelectionDispatcher m_selectionDispatcher;
 };
 
-class SearchWidget final
-    : public score::SearchLineEdit
+class SearchWidget final : public score::SearchLineEdit
 {
 public:
   SearchWidget(const score::GUIApplicationContext& ctx);

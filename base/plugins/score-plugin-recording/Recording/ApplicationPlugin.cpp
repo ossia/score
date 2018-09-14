@@ -3,26 +3,30 @@
 #include "ApplicationPlugin.hpp"
 
 #include <Curve/Settings/CurveSettingsModel.hpp>
-#include <Engine/ApplicationPlugin.hpp>
-#include <QAction>
-#include <QApplication>
-#include <QMainWindow>
-#include <QString>
-#include <QToolBar>
 #include <Recording/Record/RecordManager.hpp>
 #include <Recording/Record/RecordProviderFactory.hpp>
 #include <Scenario/Application/ScenarioActions.hpp>
 #include <Scenario/Application/ScenarioApplicationPlugin.hpp>
 #include <Scenario/Commands/Cohesion/DoForSelectedIntervals.hpp>
 #include <Scenario/Palette/ScenarioPoint.hpp>
-#include <core/application/ApplicationSettings.hpp>
-#include <core/document/Document.hpp>
-#include <qnamespace.h>
+
 #include <score/actions/ActionManager.hpp>
 #include <score/actions/Menu.hpp>
 #include <score/application/ApplicationContext.hpp>
 #include <score/plugins/application/GUIApplicationPlugin.hpp>
 #include <score/widgets/SetIcons.hpp>
+
+#include <core/application/ApplicationSettings.hpp>
+#include <core/document/Document.hpp>
+
+#include <QAction>
+#include <QApplication>
+#include <QMainWindow>
+#include <QString>
+#include <QToolBar>
+#include <qnamespace.h>
+
+#include <Engine/ApplicationPlugin.hpp>
 
 namespace Recording
 {

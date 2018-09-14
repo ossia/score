@@ -1,8 +1,10 @@
 #pragma once
 #include <Curve/CurveView.hpp>
-#include <wobjectdefs.h>
 #include <Process/LayerView.hpp>
+
 #include <QTextLayout>
+
+#include <wobjectdefs.h>
 
 namespace InterpState
 {
