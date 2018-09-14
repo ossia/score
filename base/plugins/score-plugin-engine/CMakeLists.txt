@@ -259,6 +259,20 @@ set(JOYSTICK_SRCS
   "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Joystick/JoystickSpecificSettingsSerialization.cpp"
 )
 
+set(WIIMOTE_HDRS
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Wiimote/WiimoteDevice.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Wiimote/WiimoteProtocolFactory.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Wiimote/WiimoteProtocolSettingsWidget.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Wiimote/WiimoteSpecificSettings.hpp"
+)
+
+set(WIIMOTE_SRCS
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Wiimote/WiimoteDevice.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Wiimote/WiimoteProtocolFactory.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Wiimote/WiimoteProtocolSettingsWidget.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Wiimote/WiimoteSpecificSettingsSerialization.cpp"
+)
+
 add_library(${PROJECT_NAME} ${SRCS} ${HDRS})
 
 if(OSSIA_PROTOCOL_OSC)
@@ -299,6 +313,10 @@ endif()
 
 if(OSSIA_PROTOCOL_JOYSTICK)
     target_sources(${PROJECT_NAME} PRIVATE ${JOYSTICK_HDRS} ${JOYSTICK_SRCS})
+endif()
+
+if(OSSIA_PROTOCOL_WIIMOTE)
+    target_sources(${PROJECT_NAME} PRIVATE ${WIIMOTE_HDRS} ${WIIMOTE_SRCS})
 endif()
 
 if(OSSIA_PROTOCOL_AUDIO)
