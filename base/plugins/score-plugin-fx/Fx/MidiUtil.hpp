@@ -210,7 +210,8 @@ struct Node
     static const constexpr auto author = "ossia score";
     static const constexpr auto tags = std::array<const char*, 0>{};
     static const constexpr auto kind = Process::ProcessCategory::MidiEffect;
-    static const constexpr auto description = "Maps a midi input to a given scale";
+    static const constexpr auto description
+        = "Maps a midi input to a given scale";
     static const constexpr auto uuid
         = make_uuid("06b33b83-bb67-4f7a-9980-f5d66e4266c5");
 
@@ -218,23 +219,10 @@ struct Node
     static const constexpr midi_out midi_outs[]{"out"};
     static const constexpr auto controls = std::make_tuple(
         Control::make_unvalidated_enum(
-            "Scale",
-            0U,
+            "Scale", 0U,
             ossia::make_array(
-                "all",
-                "ionian",
-                "dorian",
-                "phyrgian",
-                "lydian",
-                "mixolydian",
-                "aeolian",
-                "locrian",
-                "I",
-                "II",
-                "III",
-                "IV",
-                "V",
-                "VI",
+                "all", "ionian", "dorian", "phyrgian", "lydian", "mixolydian",
+                "aeolian", "locrian", "I", "II", "III", "IV", "V", "VI",
                 "VII")),
         Control::Widgets::OctaveSlider("Base", 0, 1),
         Control::Widgets::OctaveSlider("Transpose", -4, 4));
@@ -249,12 +237,8 @@ struct Node
   };
 
   static void exec(
-      const ossia::midi_port& midi_in,
-      const scale_array& scale,
-      int transp,
-      ossia::midi_port& midi_out,
-      const ossia::time_value& offset,
-      State& self)
+      const ossia::midi_port& midi_in, const scale_array& scale, int transp,
+      ossia::midi_port& midi_out, const ossia::time_value& offset, State& self)
   {
     for (const auto& msg : midi_in.messages)
     {
@@ -310,12 +294,8 @@ struct Node
   }
 
   static void update(
-      const ossia::midi_port& midi_in,
-      const scale_array& scale,
-      int transp,
-      ossia::midi_port& midi_out,
-      const ossia::time_value& offset,
-      State& self)
+      const ossia::midi_port& midi_in, const scale_array& scale, int transp,
+      ossia::midi_port& midi_out, const ossia::time_value& offset, State& self)
   {
     for (auto& notes : self.map)
     {
@@ -342,10 +322,8 @@ struct Node
       const ossia::safe_nodes::timed_vec<std::string>& sc,
       const ossia::safe_nodes::timed_vec<int>& base,
       const ossia::safe_nodes::timed_vec<int>& transp,
-      ossia::midi_port& midi_out,
-      ossia::token_request tk,
-      ossia::exec_state_facade st,
-      State& self)
+      ossia::midi_port& midi_out, ossia::token_request tk,
+      ossia::exec_state_facade st, State& self)
   {
     const auto& new_scale = sc.rbegin()->second;
     const int new_base = base.rbegin()->second;

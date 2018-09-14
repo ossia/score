@@ -2,14 +2,15 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "PlayToolState.hpp"
 
-#include <QApplication>
-#include <QKeyEvent>
 #include <Scenario/Application/ScenarioApplicationPlugin.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentPresenter.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
 #include <Scenario/Document/State/StatePresenter.hpp>
 #include <Scenario/Palette/ScenarioPalette.hpp>
 #include <Scenario/Palette/ScenarioPoint.hpp>
+
+#include <QApplication>
+#include <QKeyEvent>
 namespace Scenario
 {
 PlayToolState::PlayToolState(const Scenario::ToolPalette& sm)
@@ -27,7 +28,8 @@ void PlayToolState::on_pressed(
   if (!item)
     return;
 
-  auto root = score::IDocument::get<ScenarioDocumentPresenter>(m_sm.context().context.document);
+  auto root = score::IDocument::get<ScenarioDocumentPresenter>(
+      m_sm.context().context.document);
   SCORE_ASSERT(root);
   auto root_itv = root->presenters().intervalPresenter();
   auto itv_pt = root_itv->view()->mapFromScene(scenePoint);

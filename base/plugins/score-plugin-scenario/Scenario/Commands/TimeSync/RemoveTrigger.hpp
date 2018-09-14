@@ -4,6 +4,7 @@
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
 #include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
 #include <State/Expression.hpp>
+
 #include <score/command/Command.hpp>
 #include <score/model/path/Path.hpp>
 

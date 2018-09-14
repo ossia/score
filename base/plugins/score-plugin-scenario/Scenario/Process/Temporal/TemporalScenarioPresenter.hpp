@@ -1,10 +1,8 @@
 #pragma once
 #include <Process/Focus/FocusDispatcher.hpp>
-#include <wobjectdefs.h>
 #include <Process/LayerPresenter.hpp>
 #include <Process/ProcessContext.hpp>
 #include <Process/ZoomHelper.hpp>
-#include <Scenario/Instantiations.hpp>
 #include <Scenario/Document/CommentBlock/CommentBlockModel.hpp>
 #include <Scenario/Document/CommentBlock/CommentBlockPresenter.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
@@ -15,14 +13,18 @@
 #include <Scenario/Document/State/StatePresenter.hpp>
 #include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
 #include <Scenario/Document/TimeSync/TimeSyncPresenter.hpp>
+#include <Scenario/Instantiations.hpp>
 #include <Scenario/Palette/ScenarioPalette.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
 #include <Scenario/Process/Temporal/ScenarioViewInterface.hpp>
+
 #include <score/command/Dispatchers/OngoingCommandDispatcher.hpp>
 #include <score/model/IdentifiedObjectMap.hpp>
 #include <score/model/Identifier.hpp>
 #include <score/tools/std/Optional.hpp>
 #include <score/widgets/GraphicsItem.hpp>
+
+#include <wobjectdefs.h>
 
 namespace Scenario
 {
@@ -31,8 +33,8 @@ class EditionSettings;
 class TemporalScenarioView;
 
 class SCORE_PLUGIN_SCENARIO_EXPORT TemporalScenarioPresenter final
-    : public Process::LayerPresenter
-    , public Nano::Observer
+    : public Process::LayerPresenter,
+      public Nano::Observer
 {
   W_OBJECT(TemporalScenarioPresenter)
 
@@ -42,11 +44,9 @@ class SCORE_PLUGIN_SCENARIO_EXPORT TemporalScenarioPresenter final
 
 public:
   TemporalScenarioPresenter(
-      Scenario::EditionSettings&,
-      const Scenario::ProcessModel& model,
+      Scenario::EditionSettings&, const Scenario::ProcessModel& model,
       Process::LayerView* view,
-      const Process::ProcessPresenterContext& context,
-      QObject* parent);
+      const Process::ProcessPresenterContext& context, QObject* parent);
   ~TemporalScenarioPresenter();
 
   const Scenario::ProcessModel& model() const override;
@@ -117,9 +117,7 @@ public:
   }
 
   void fillContextMenu(
-      QMenu&,
-      QPoint pos,
-      QPointF scenepos,
+      QMenu&, QPoint pos, QPointF scenepos,
       const Process::LayerContextMenuManager&) override;
 
   bool event(QEvent* e) override
@@ -129,11 +127,15 @@ public:
 
   void drawDragLine(const Scenario::StateModel&, Scenario::Point) const;
   void stopDrawDragLine() const;
-public:
-  void linesExtremityScaled(int arg_1, int arg_2) E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, linesExtremityScaled, arg_1, arg_2);
 
-  void keyPressed(int arg_1) E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, keyPressed, arg_1);
-  void keyReleased(int arg_1) E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, keyReleased, arg_1);
+public:
+  void linesExtremityScaled(int arg_1, int arg_2) E_SIGNAL(
+      SCORE_PLUGIN_SCENARIO_EXPORT, linesExtremityScaled, arg_1, arg_2);
+
+  void keyPressed(int arg_1)
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, keyPressed, arg_1);
+  void keyReleased(int arg_1)
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, keyReleased, arg_1);
 
 public:
   // Model -> view

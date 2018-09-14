@@ -8,6 +8,7 @@
 #include <Curve/Palette/CurvePaletteBaseStates.hpp>
 #include <Curve/Palette/CurvePoint.hpp>
 #include <Curve/Segment/CurveSegmentModel.hpp>
+
 #include <score/command/Dispatchers/SingleOngoingCommandDispatcher.hpp>
 #include <score/model/IdentifiedObjectMap.hpp>
 #include <score/model/path/Path.hpp>

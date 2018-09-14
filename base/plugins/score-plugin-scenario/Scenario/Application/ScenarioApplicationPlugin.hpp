@@ -1,15 +1,19 @@
 #pragma once
 #include <Process/Layer/LayerContextMenu.hpp>
-#include <wobjectdefs.h>
-#include <QVector>
 #include <Scenario/Application/Menus/ObjectMenuActions.hpp>
 #include <Scenario/Application/Menus/ToolMenuActions.hpp>
 #include <Scenario/Application/Menus/TransportActions.hpp>
 #include <Scenario/Application/ScenarioEditionSettings.hpp>
 #include <Scenario/Execution/ScenarioExecution.hpp>
 #include <Scenario/Palette/ScenarioPoint.hpp>
+
 #include <score/plugins/application/GUIApplicationPlugin.hpp>
+
+#include <QVector>
+
 #include <score_plugin_scenario_export.h>
+#include <wobjectdefs.h>
+
 #include <vector>
 
 namespace Process
@@ -34,8 +38,8 @@ class ScenarioInterface;
 class StateModel;
 
 class SCORE_PLUGIN_SCENARIO_EXPORT ScenarioApplicationPlugin final
-    : public QObject
-    , public score::GUIApplicationPlugin
+    : public QObject,
+      public score::GUIApplicationPlugin
 {
   W_OBJECT(ScenarioApplicationPlugin)
   friend class ScenarioContextMenuManager;
@@ -71,8 +75,10 @@ public:
   }
 
 public:
-  void keyPressed(int arg_1) E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, keyPressed, arg_1);
-  void keyReleased(int arg_1) E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, keyReleased, arg_1);
+  void keyPressed(int arg_1)
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, keyPressed, arg_1);
+  void keyReleased(int arg_1)
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, keyReleased, arg_1);
 
 private:
   void prepareNewDocument() override;

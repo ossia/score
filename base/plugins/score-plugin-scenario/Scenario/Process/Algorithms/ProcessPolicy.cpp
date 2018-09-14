@@ -2,8 +2,6 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "ProcessPolicy.hpp"
 
-#include <ossia/detail/algorithms.hpp>
-
 #include <Process/State/ProcessStateDataInterface.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
@@ -11,6 +9,8 @@
 #include <Scenario/Document/State/StateModel.hpp>
 #include <Scenario/Process/Algorithms/Accessors.hpp>
 #include <Scenario/Process/ScenarioInterface.hpp>
+
+#include <ossia/detail/algorithms.hpp>
 namespace Scenario
 {
 static void AddProcessBeforeState(
@@ -140,7 +140,6 @@ void EraseProcess(
 
   interval.processes.erase(proc);
 }
-
 
 void SetPreviousInterval(StateModel& state, const IntervalModel& interval)
 {

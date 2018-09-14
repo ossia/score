@@ -1,9 +1,10 @@
 #pragma once
+#include <Process/LayerView.hpp>
+
 #include <ossia/editor/automation/tinysplinecpp.h>
-#include <wobjectdefs.h>
 
 #include <Spline/SplineModel.hpp>
-#include <Process/LayerView.hpp>
+#include <wobjectdefs.h>
 namespace Spline
 {
 class View final : public Process::LayerView

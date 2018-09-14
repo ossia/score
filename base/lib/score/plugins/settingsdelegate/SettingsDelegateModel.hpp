@@ -1,10 +1,12 @@
 #pragma once
+#include <score/command/SettingsCommand.hpp>
+#include <score/tools/Todo.hpp>
+
 #include <ossia/detail/algorithms.hpp>
 
 #include <QObject>
 #include <QSettings>
-#include <score/command/SettingsCommand.hpp>
-#include <score/tools/Todo.hpp>
+
 #include <score_lib_base_export.h>
 
 namespace score
@@ -56,25 +58,25 @@ void setupDefaultSettings(QSettings& set, const T& tuple, Model& model)
 }
 }
 
-#define SETTINGS_PARAMETER_IMPL(Name) const score::sp<Model::p_ ## Name> Name
+#define SETTINGS_PARAMETER_IMPL(Name) const score::sp<Model::p_##Name> Name
 
-#define SCORE_SETTINGS_COMMAND(ModelType, Name)                          \
-  struct Set##ModelType##Name final                                      \
-      : public score::SettingsCommand<ModelType::p_ ## Name>   \
-  {                                                                      \
-    static constexpr const bool is_deferred = false;                     \
-    SCORE_SETTINGS_COMMAND_DECL(Set##ModelType##Name)                    \
+#define SCORE_SETTINGS_COMMAND(ModelType, Name)            \
+  struct Set##ModelType##Name final                        \
+      : public score::SettingsCommand<ModelType::p_##Name> \
+  {                                                        \
+    static constexpr const bool is_deferred = false;       \
+    SCORE_SETTINGS_COMMAND_DECL(Set##ModelType##Name)      \
   };
 
 #define SCORE_SETTINGS_PARAMETER(ModelType, Name) \
   SCORE_SETTINGS_COMMAND(ModelType, Name)
 
-#define SCORE_SETTINGS_DEFERRED_COMMAND(ModelType, Name)                 \
-  struct Set##ModelType##Name final                                      \
-      : public score::SettingsCommand<ModelType::p_ ## Name>   \
-  {                                                                      \
-    static constexpr const bool is_deferred = true;                      \
-    SCORE_SETTINGS_COMMAND_DECL(Set##ModelType##Name)                    \
+#define SCORE_SETTINGS_DEFERRED_COMMAND(ModelType, Name)   \
+  struct Set##ModelType##Name final                        \
+      : public score::SettingsCommand<ModelType::p_##Name> \
+  {                                                        \
+    static constexpr const bool is_deferred = true;        \
+    SCORE_SETTINGS_COMMAND_DECL(Set##ModelType##Name)      \
   };
 
 #define SCORE_SETTINGS_DEFERRED_PARAMETER(ModelType, Name) \

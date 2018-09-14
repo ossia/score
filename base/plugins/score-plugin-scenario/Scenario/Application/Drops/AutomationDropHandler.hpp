@@ -16,8 +16,7 @@ class DropProcessInScenario final : public DropHandler
   SCORE_CONCRETE("9a094988-b05f-4e10-8e0d-56e8d46e084d")
 
   bool drop(
-      const Scenario::TemporalScenarioPresenter&,
-      QPointF pos,
+      const Scenario::TemporalScenarioPresenter&, QPointF pos,
       const QMimeData& mime) override;
 };
 
@@ -26,8 +25,7 @@ class DropPortInScenario final : public DropHandler
   SCORE_CONCRETE("b71dd84e-e242-4451-bab5-970215c6b120")
 
   bool drop(
-      const Scenario::TemporalScenarioPresenter&,
-      QPointF pos,
+      const Scenario::TemporalScenarioPresenter&, QPointF pos,
       const QMimeData& mime) override;
 };
 
@@ -36,8 +34,7 @@ class DropLayerInScenario final : public DropHandler
   SCORE_CONCRETE("0eb96d95-3f5f-4e7a-b806-d03d0ac88b48")
 
   bool drop(
-      const Scenario::TemporalScenarioPresenter&,
-      QPointF pos,
+      const Scenario::TemporalScenarioPresenter&, QPointF pos,
       const QMimeData& mime) override;
 };
 
@@ -46,8 +43,7 @@ class DropScenario final : public DropHandler
   SCORE_CONCRETE("34961e8b-19a5-408f-af90-55f59ce8c58a")
 
   bool drop(
-      const Scenario::TemporalScenarioPresenter&,
-      QPointF pos,
+      const Scenario::TemporalScenarioPresenter&, QPointF pos,
       const QMimeData& mime) override;
 };
 
@@ -55,12 +51,12 @@ class DropLayerInInterval final : public IntervalDropHandler
 {
   SCORE_CONCRETE("9df2eac6-6680-43cc-9634-60324416ba04")
 
-  bool drop(
-      const Scenario::IntervalModel&,
-      const QMimeData& mime) override;
+  bool drop(const Scenario::IntervalModel&, const QMimeData& mime) override;
 
 public:
-  static void perform(const IntervalModel& interval, const score::DocumentContext& doc, Scenario::Command::Macro& m, const QJsonObject& json);
+  static void perform(
+      const IntervalModel& interval, const score::DocumentContext& doc,
+      Scenario::Command::Macro& m, const QJsonObject& json);
 };
 /**
  * @brief The ProcessDropHandler class

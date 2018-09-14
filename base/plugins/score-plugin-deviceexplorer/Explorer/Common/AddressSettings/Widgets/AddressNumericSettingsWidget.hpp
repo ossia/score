@@ -1,8 +1,14 @@
 #pragma once
 #include "AddressSettingsWidget.hpp"
 
-#include <ossia/network/value/value_conversion.hpp>
+#include <State/ValueConversion.hpp>
+#include <State/Widgets/UnitWidget.hpp>
+#include <State/Widgets/Values/NumericValueWidget.hpp>
+
+#include <score/widgets/SpinBoxes.hpp>
+
 #include <ossia/network/dataspace/dataspace_visitors.hpp>
+#include <ossia/network/value/value_conversion.hpp>
 
 #include <QComboBox>
 #include <QDebug>
@@ -11,10 +17,6 @@
 #include <QLabel>
 #include <QLineEdit>
 #include <QSpinBox>
-#include <State/ValueConversion.hpp>
-#include <State/Widgets/Values/NumericValueWidget.hpp>
-#include <State/Widgets/UnitWidget.hpp>
-#include <score/widgets/SpinBoxes.hpp>
 
 namespace Explorer
 {
@@ -46,15 +48,16 @@ public:
     m_layout->insertRow(0, makeLabel(tr("Value"), this), m_valueSBox);
     m_layout->insertRow(1, makeLabel(tr("Domain"), this), m_domainEdit);
 
-    connect(m_unit, &State::UnitWidget::unitChanged,
-            this, [=] (const State::Unit& u) {
-      auto dom = ossia::get_unit_default_domain(u.get());
+    connect(
+        m_unit, &State::UnitWidget::unitChanged, this,
+        [=](const State::Unit& u) {
+          auto dom = ossia::get_unit_default_domain(u.get());
 
-      if(auto p = dom.v.target<ossia::domain_base<float>>())
-      {
-        m_domainEdit->set_domain(dom);
-      }
-    });
+          if (auto p = dom.v.target<ossia::domain_base<float>>())
+          {
+            m_domainEdit->set_domain(dom);
+          }
+        });
 
     m_valueSBox->setValue(0);
     m_domainEdit->set_domain(

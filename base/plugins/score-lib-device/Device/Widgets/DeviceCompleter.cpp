@@ -5,11 +5,13 @@
 #include <Device/ItemModels/NodeBasedItemModel.hpp>
 #include <Device/Node/DeviceNode.hpp>
 #include <Device/Protocol/DeviceSettings.hpp>
+
+#include <score/model/tree/TreeNode.hpp>
+
 #include <QAbstractItemModel>
 #include <QChar>
 #include <QVariant>
 #include <qnamespace.h>
-#include <score/model/tree/TreeNode.hpp>
 
 class QObject;
 

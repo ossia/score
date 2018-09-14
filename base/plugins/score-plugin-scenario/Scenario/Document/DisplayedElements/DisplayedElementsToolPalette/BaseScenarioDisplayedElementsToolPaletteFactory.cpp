@@ -4,9 +4,11 @@
 
 #include "BaseScenarioDisplayedElementsToolPalette.hpp"
 
-#include <QObject>
 #include <Scenario/Document/BaseScenario/BaseScenario.hpp>
+
 #include <score/statemachine/GraphicsSceneToolPalette.hpp>
+
+#include <QObject>
 
 namespace Scenario
 {

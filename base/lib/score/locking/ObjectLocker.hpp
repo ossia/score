@@ -1,9 +1,12 @@
 #pragma once
+#include <score/model/path/ObjectPath.hpp>
+
 #include <QByteArray>
 #include <QObject>
-#include <score/model/path/ObjectPath.hpp>
-#include <vector>
+
 #include <wobjectdefs.h>
+
+#include <vector>
 namespace score
 {
 /**
@@ -22,8 +25,9 @@ public:
   explicit ObjectLocker(QObject* parent);
 
   // To the network
-  void lock(QByteArray b) E_SIGNAL(SCORE_LIB_BASE_EXPORT, lock, b) void unlock(QByteArray b)
-      E_SIGNAL(SCORE_LIB_BASE_EXPORT, unlock, b)
+  void lock(QByteArray b)
+      E_SIGNAL(SCORE_LIB_BASE_EXPORT, lock, b) void unlock(QByteArray b)
+          E_SIGNAL(SCORE_LIB_BASE_EXPORT, unlock, b)
 
       // From the network
       void on_lock(QByteArray b);

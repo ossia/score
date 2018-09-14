@@ -12,6 +12,7 @@
 
 #include <Device/Address/AddressSettings.hpp>
 #include <Explorer/Common/AddressSettings/Widgets/AddressVecSettingsWidget.hpp>
+
 #include <QObject>
 
 namespace Explorer

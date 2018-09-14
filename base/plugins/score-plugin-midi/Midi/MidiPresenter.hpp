@@ -2,24 +2,22 @@
 #include <Midi/Commands/MoveNotes.hpp>
 #include <Midi/MidiProcess.hpp>
 #include <Process/LayerPresenter.hpp>
-#include <nano_observer.hpp>
+
 #include <score/command/Dispatchers/SingleOngoingCommandDispatcher.hpp>
+
+#include <nano_observer.hpp>
 class QMimeData;
 namespace Midi
 {
 class NoteView;
 class View;
 class Note;
-class Presenter final
-    : public Process::LayerPresenter
-    , public Nano::Observer
+class Presenter final : public Process::LayerPresenter, public Nano::Observer
 {
 public:
   explicit Presenter(
-      const Midi::ProcessModel& model,
-      View* view,
-      const Process::ProcessPresenterContext& ctx,
-      QObject* parent);
+      const Midi::ProcessModel& model, View* view,
+      const Process::ProcessPresenterContext& ctx, QObject* parent);
   ~Presenter() override;
 
   void setWidth(qreal width) override;
@@ -51,9 +49,7 @@ private:
   SingleOngoingCommandDispatcher<MoveNotes> m_ongoing;
   ZoomRatio m_zr{};
   void fillContextMenu(
-      QMenu& menu,
-      QPoint pos,
-      QPointF scenepos,
+      QMenu& menu, QPoint pos, QPointF scenepos,
       const Process::LayerContextMenuManager& cm) override;
 };
 }

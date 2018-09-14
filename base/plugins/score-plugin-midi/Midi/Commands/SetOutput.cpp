@@ -3,6 +3,7 @@
 #include "SetOutput.hpp"
 
 #include <Midi/MidiProcess.hpp>
+
 #include <score/model/path/PathSerialization.hpp>
 
 namespace Midi

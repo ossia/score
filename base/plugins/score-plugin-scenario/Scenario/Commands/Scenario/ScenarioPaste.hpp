@@ -1,5 +1,6 @@
 #pragma once
 #include <Scenario/Process/ScenarioModel.hpp>
+
 #include <score/tools/IdentifierGeneration.hpp>
 
 #include <QJsonObject>
@@ -8,22 +9,22 @@ namespace Scenario
 struct ScenarioBeingCopied
 {
   ScenarioBeingCopied(
-      const QJsonObject& obj,
-      const Scenario::ProcessModel& scenario
-      , const score::DocumentContext& ctx)
+      const QJsonObject& obj, const Scenario::ProcessModel& scenario,
+      const score::DocumentContext& ctx)
   {
-    // TODO this is really a bad idea... either they should be properly added, or
-    // the json should be modified without including anything in the scenario.
-    // Especially their parents aren't coherent (TimeSync must not have a parent
-    // because it tries to access the event in the scenario if it has one)
-    // We deserialize everything
+    // TODO this is really a bad idea... either they should be properly added,
+    // or the json should be modified without including anything in the
+    // scenario. Especially their parents aren't coherent (TimeSync must not
+    // have a parent because it tries to access the event in the scenario if it
+    // has one) We deserialize everything
     {
       const auto json_arr = obj["Intervals"].toArray();
       intervals.reserve(json_arr.size());
       for (const auto& element : json_arr)
       {
-        intervals.emplace_back(new IntervalModel{
-                                 JSONObject::Deserializer{element.toObject()}, (QObject*)&scenario});
+        intervals.emplace_back(
+            new IntervalModel{JSONObject::Deserializer{element.toObject()},
+                              (QObject*)&scenario});
       }
     }
     {
@@ -32,7 +33,7 @@ struct ScenarioBeingCopied
       for (const auto& element : json_arr)
       {
         timesyncs.emplace_back(new TimeSyncModel{
-                                 JSONObject::Deserializer{element.toObject()}, nullptr});
+            JSONObject::Deserializer{element.toObject()}, nullptr});
       }
     }
     {
@@ -41,7 +42,7 @@ struct ScenarioBeingCopied
       for (const auto& element : json_arr)
       {
         events.emplace_back(new EventModel{
-                              JSONObject::Deserializer{element.toObject()}, nullptr});
+            JSONObject::Deserializer{element.toObject()}, nullptr});
       }
     }
     {
@@ -49,8 +50,9 @@ struct ScenarioBeingCopied
       states.reserve(json_arr.size());
       for (const auto& element : json_arr)
       {
-        states.emplace_back(new StateModel{
-                              JSONObject::Deserializer{element.toObject()}, (QObject*)&scenario});
+        states.emplace_back(
+            new StateModel{JSONObject::Deserializer{element.toObject()},
+                           (QObject*)&scenario});
       }
     }
     {
@@ -58,20 +60,20 @@ struct ScenarioBeingCopied
       cables.reserve(json_arr.size());
       for (const auto& element : json_arr)
       {
-        cables.emplace_back(score::unmarshall<Process::CableData>(element.toObject()));
+        cables.emplace_back(
+            score::unmarshall<Process::CableData>(element.toObject()));
       }
     }
 
     // We generate identifiers for the forthcoming elements
     interval_ids = getStrongIdRange2<IntervalModel>(
-          intervals.size(), scenario.intervals, intervals);
+        intervals.size(), scenario.intervals, intervals);
     timesync_ids = getStrongIdRange2<TimeSyncModel>(
-          timesyncs.size(), scenario.timeSyncs, timesyncs);
-    event_ids
-        = getStrongIdRange2<EventModel>(events.size(), scenario.events, events);
-    state_ids
-        = getStrongIdRange2<StateModel>(states.size(), scenario.states, states);
-
+        timesyncs.size(), scenario.timeSyncs, timesyncs);
+    event_ids = getStrongIdRange2<EventModel>(
+        events.size(), scenario.events, events);
+    state_ids = getStrongIdRange2<StateModel>(
+        states.size(), scenario.states, states);
   }
 
   std::vector<TimeSyncModel*> timesyncs;
@@ -84,6 +86,5 @@ struct ScenarioBeingCopied
   std::vector<Id<TimeSyncModel>> timesync_ids;
   std::vector<Id<EventModel>> event_ids;
   std::vector<Id<StateModel>> state_ids;
-
 };
 }

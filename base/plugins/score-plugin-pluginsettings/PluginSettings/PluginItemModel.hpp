@@ -1,11 +1,14 @@
 #pragma once
+#include <score/plugins/Addon.hpp>
+
 #include <ossia/detail/algorithms.hpp>
+
+#include <boost/iterator/filter_iterator.hpp>
 
 #include <QAbstractItemModel>
 #include <QImage>
 #include <QUrl>
-#include <boost/iterator/filter_iterator.hpp>
-#include <score/plugins/Addon.hpp>
+
 #include <wobjectdefs.h>
 namespace PluginSettings
 {
@@ -42,11 +45,10 @@ struct AddonVectorWrapper
 
   const std::vector<score::Addon>& vec;
 
-  using iterator = boost::
-      filter_iterator<not_core_addon, std::vector<score::Addon>::iterator>;
+  using iterator = boost::filter_iterator<
+      not_core_addon, std::vector<score::Addon>::iterator>;
   using const_iterator = boost::filter_iterator<
-      not_core_addon,
-      std::vector<score::Addon>::const_iterator>;
+      not_core_addon, std::vector<score::Addon>::const_iterator>;
 
   auto size() const
   {

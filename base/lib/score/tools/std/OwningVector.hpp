@@ -1,11 +1,11 @@
 #pragma once
 #include <score/tools/std/IndirectContainer.hpp>
+
 #include <memory>
 #include <vector>
 
 template <
-    template <class, class> class Container,
-    typename T,
+    template <class, class> class Container, typename T,
     typename U = std::allocator<std::unique_ptr<T>>>
 class PtrContainer : Container<std::unique_ptr<T>, U>
 {

@@ -4,6 +4,7 @@
 
 #include <Scenario/Document/CommentBlock/CommentBlockModel.hpp>
 #include <Scenario/Document/CommentBlock/CommentBlockView.hpp>
+
 #include <score/widgets/GraphicsItem.hpp>
 
 #include <wobjectimpl.h>

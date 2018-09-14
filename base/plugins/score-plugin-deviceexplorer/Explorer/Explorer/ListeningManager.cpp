@@ -55,8 +55,7 @@ void ListeningManager::enableListening(Device::Node& node)
 }
 
 void ListeningManager::disableListening_rec(
-    const Device::Node& node,
-    Device::DeviceInterface& dev,
+    const Device::Node& node, Device::DeviceInterface& dev,
     ListeningHandler& lm)
 {
   if (node.is<Device::AddressSettings>())
@@ -71,8 +70,7 @@ void ListeningManager::disableListening_rec(
 }
 
 void ListeningManager::enableListening_rec(
-    const QModelIndex& proxy_index,
-    Device::DeviceInterface& dev,
+    const QModelIndex& proxy_index, Device::DeviceInterface& dev,
     ListeningHandler& lm)
 {
   int i = 0;

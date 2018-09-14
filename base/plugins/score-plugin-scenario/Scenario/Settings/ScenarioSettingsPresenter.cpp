@@ -5,11 +5,12 @@
 #include "ScenarioSettingsModel.hpp"
 #include "ScenarioSettingsView.hpp"
 
-#include <QApplication>
-#include <QStyle>
 #include <score/command/Command.hpp>
 #include <score/command/Dispatchers/ICommandDispatcher.hpp>
 #include <score/command/SettingsCommand.hpp>
+
+#include <QApplication>
+#include <QStyle>
 
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Scenario::Settings::Model)

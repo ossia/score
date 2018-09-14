@@ -1,9 +1,11 @@
 #pragma once
-#include <Color/GradientModel.hpp>
 #include <Automation/Commands/AutomationCommandFactory.hpp>
 #include <Device/Address/AddressSettings.hpp>
 #include <Process/LayerPresenter.hpp>
+
 #include <score/model/path/PathSerialization.hpp>
+
+#include <Color/GradientModel.hpp>
 
 template <>
 struct is_custom_serialized<QColor> : public std::true_type
@@ -125,10 +127,8 @@ class Presenter final : public Process::LayerPresenter
 {
 public:
   explicit Presenter(
-      const Gradient::ProcessModel& model,
-      Gradient::View* view,
-      const Process::ProcessPresenterContext& ctx,
-      QObject* parent);
+      const Gradient::ProcessModel& model, Gradient::View* view,
+      const Process::ProcessPresenterContext& ctx, QObject* parent);
 
   void setWidth(qreal width) override;
   void setHeight(qreal height) override;

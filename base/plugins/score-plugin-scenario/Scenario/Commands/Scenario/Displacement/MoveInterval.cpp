@@ -6,10 +6,12 @@
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Process/Algorithms/VerticalMovePolicy.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
-#include <algorithm>
+
 #include <score/model/EntityMap.hpp>
 #include <score/model/path/PathSerialization.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
+
+#include <algorithm>
 
 namespace Scenario
 {

@@ -2,8 +2,9 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "DataStreamVisitor.hpp"
 
-#include <QIODevice>
 #include <score/application/ApplicationContext.hpp>
+
+#include <QIODevice>
 
 template <typename T>
 class Reader;

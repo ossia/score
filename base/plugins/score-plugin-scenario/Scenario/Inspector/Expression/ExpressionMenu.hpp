@@ -1,10 +1,12 @@
 #pragma once
+#include <State/Expression.hpp>
+
 #include <QAction>
-#include <wobjectdefs.h>
 #include <QInputDialog>
 #include <QMenu>
 #include <QObject>
-#include <State/Expression.hpp>
+
+#include <wobjectdefs.h>
 
 namespace Scenario
 {

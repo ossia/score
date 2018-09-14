@@ -3,7 +3,9 @@
 #include <Inspector/InspectorWidgetFactoryInterface.hpp>
 #include <Process/Dataflow/PortFactory.hpp>
 #include <Process/Dataflow/PortItem.hpp>
+
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
+
 #include <score_plugin_scenario_export.h>
 namespace Scenario
 {
@@ -36,16 +38,12 @@ public:
 
 private:
   Dataflow::PortItem* makeItem(
-      Process::Inlet& port,
-      const score::DocumentContext& ctx,
-      QGraphicsItem* parent,
-      QObject* context) override;
+      Process::Inlet& port, const score::DocumentContext& ctx,
+      QGraphicsItem* parent, QObject* context) override;
 
   Dataflow::PortItem* makeItem(
-      Process::Outlet& port,
-      const score::DocumentContext& ctx,
-      QGraphicsItem* parent,
-      QObject* context) override;
+      Process::Outlet& port, const score::DocumentContext& ctx,
+      QGraphicsItem* parent, QObject* context) override;
 };
 
 template <typename Model_T>
@@ -74,33 +72,29 @@ using ControlOutletFactory = AutomatablePortFactory_T<Process::ControlOutlet>;
 
 struct ControlInletFactory final : public AutomatablePortFactory
 {
-    using Model_T = Process::ControlInlet;
-    UuidKey<Process::Port> concreteKey() const noexcept override
-    {
-      return Metadata<ConcreteKey_k, Model_T>::get();
-    }
+  using Model_T = Process::ControlInlet;
+  UuidKey<Process::Port> concreteKey() const noexcept override
+  {
+    return Metadata<ConcreteKey_k, Model_T>::get();
+  }
 
-    Model_T* load(const VisitorVariant& vis, QObject* parent) override
-    {
-      return score::deserialize_dyn(vis, [&](auto&& deserializer) {
-        return new Model_T{deserializer, parent};
-      });
-    }
+  Model_T* load(const VisitorVariant& vis, QObject* parent) override
+  {
+    return score::deserialize_dyn(vis, [&](auto&& deserializer) {
+      return new Model_T{deserializer, parent};
+    });
+  }
 
-    void setupInspector(
-        Process::Inlet& port,
-        const score::DocumentContext& ctx,
-        QWidget* parent,
-        Inspector::Layout& lay,
-        QObject* context) override;
+  void setupInspector(
+      Process::Inlet& port, const score::DocumentContext& ctx, QWidget* parent,
+      Inspector::Layout& lay, QObject* context) override;
 };
 
 class PortTooltip final : public QWidget
 {
 public:
   PortTooltip(
-      const score::DocumentContext& ctx,
-      const Process::Port& p,
+      const score::DocumentContext& ctx, const Process::Port& p,
       QWidget* parent);
 };
 
@@ -114,8 +108,7 @@ public:
 
   QWidget* make(
       const QList<const QObject*>& sourceElements,
-      const score::DocumentContext& doc,
-      QWidget* parent) const override
+      const score::DocumentContext& doc, QWidget* parent) const override
   {
     return new PortTooltip{
         doc, safe_cast<const Process::Port&>(*sourceElements.first()), parent};

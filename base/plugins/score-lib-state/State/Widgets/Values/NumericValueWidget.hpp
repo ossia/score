@@ -1,6 +1,10 @@
 #pragma once
 #include "ValueWidget.hpp"
 
+#include <score/widgets/MarginLess.hpp>
+#include <score/widgets/SpinBoxes.hpp>
+#include <score/widgets/TextLabel.hpp>
+
 #include <ossia/network/domain/domain.hpp>
 
 #include <QCheckBox>
@@ -11,9 +15,6 @@
 #include <QLabel>
 #include <QPushButton>
 #include <QVBoxLayout>
-#include <score/widgets/MarginLess.hpp>
-#include <score/widgets/SpinBoxes.hpp>
-#include <score/widgets/TextLabel.hpp>
 
 namespace State
 {

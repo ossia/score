@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Inspector/InspectorWidgetBase.hpp>
+
 #include <QLabel>
 
 namespace Automation
@@ -12,8 +13,7 @@ class StateInspectorWidget final : public Inspector::InspectorWidgetBase
 {
 public:
   explicit StateInspectorWidget(
-      const ProcessState& object,
-      const score::DocumentContext& context,
+      const ProcessState& object, const score::DocumentContext& context,
       QWidget* parent = nullptr);
 
 private:

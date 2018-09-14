@@ -1,6 +1,6 @@
 #pragma once
-#include <QLineEdit>
 #include <QAction>
+#include <QLineEdit>
 
 namespace score
 {
@@ -8,8 +8,7 @@ namespace score
 class SearchLineEdit : public QLineEdit
 {
 public:
-  SearchLineEdit(QWidget* parent)
-    : QLineEdit{parent}
+  SearchLineEdit(QWidget* parent) : QLineEdit{parent}
   {
     setPlaceholderText("Search");
     auto act = new QAction{this};
@@ -22,5 +21,4 @@ public:
 
   virtual void search() = 0;
 };
-
 }

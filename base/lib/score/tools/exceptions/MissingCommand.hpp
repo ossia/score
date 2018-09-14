@@ -1,5 +1,6 @@
 #pragma once
 #include <score/command/Command.hpp>
+
 #include <stdexcept>
 
 namespace score

@@ -2,34 +2,37 @@
 
 #include "VSTWidgets.hpp"
 
-#include <ossia/detail/math.hpp>
-#include <ossia/detail/pod_vector.hpp>
-
-#include <Execution/DocumentPlugin.hpp>
-#include <Audio/Settings/Model.hpp>
 #include <Media/ApplicationPlugin.hpp>
 #include <Media/Commands/VSTCommands.hpp>
 #include <Media/Effect/VST/VSTControl.hpp>
 #include <Media/Effect/VST/VSTLoader.hpp>
 #include <Process/Dataflow/Port.hpp>
 #include <Process/Dataflow/PortFactory.hpp>
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
+
+#include <score/tools/DeleteAll.hpp>
+#include <score/tools/IdentifierGeneration.hpp>
+#include <score/tools/Todo.hpp>
+
+#include <ossia-qt/invoke.hpp>
+#include <ossia/detail/math.hpp>
+#include <ossia/detail/pod_vector.hpp>
+
 #include <QFile>
 #include <QFileInfo>
 #include <QInputDialog>
 #include <QTimer>
 #include <QUrl>
-#include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
+
+#include <Audio/Settings/Model.hpp>
+#include <Execution/DocumentPlugin.hpp>
 #include <cmath>
+#include <websocketpp/base64/base64.hpp>
+#include <wobjectimpl.h>
+
 #include <iostream>
 #include <memory>
-#include <ossia-qt/invoke.hpp>
-#include <score/tools/IdentifierGeneration.hpp>
-#include <score/tools/Todo.hpp>
-#include <score/tools/DeleteAll.hpp>
 #include <set>
-#include <websocketpp/base64/base64.hpp>
-
-#include <wobjectimpl.h>
 W_OBJECT_IMPL(Media::VST::VSTEffectModel)
 namespace Process
 {
@@ -73,9 +76,10 @@ EffectProcessFactory_T<Media::VST::VSTEffectModel>::descriptor(QString d) const
       = score::GUIAppContext().applicationPlugin<Media::ApplicationPlugin>();
 
   auto it = ossia::find_if(
-        app.vst_infos,
-        [=] (const Media::ApplicationPlugin::vst_info& vst) { return vst.uniqueID == d.toInt(); });
-  if(it != app.vst_infos.end())
+      app.vst_infos, [=](const Media::ApplicationPlugin::vst_info& vst) {
+        return vst.uniqueID == d.toInt();
+      });
+  if (it != app.vst_infos.end())
   {
     desc.prettyName = it->displayName;
     desc.author = it->author;
@@ -85,20 +89,24 @@ EffectProcessFactory_T<Media::VST::VSTEffectModel>::descriptor(QString d) const
       desc.category = Process::ProcessCategory::Synth;
 
       auto inlets = std::vector<Process::PortType>{Process::PortType::Midi};
-      for(int i = 0; i < it->controls; i++) inlets.push_back(Process::PortType::Message);
+      for (int i = 0; i < it->controls; i++)
+        inlets.push_back(Process::PortType::Message);
       desc.inlets = std::move(inlets);
 
-      desc.outlets = {std::vector<Process::PortType>{Process::PortType::Audio}};
+      desc.outlets
+          = {std::vector<Process::PortType>{Process::PortType::Audio}};
     }
     else
     {
       desc.category = Process::ProcessCategory::AudioEffect;
 
       auto inlets = std::vector<Process::PortType>{Process::PortType::Audio};
-      for(int i = 0; i < it->controls; i++) inlets.push_back(Process::PortType::Message);
+      for (int i = 0; i < it->controls; i++)
+        inlets.push_back(Process::PortType::Message);
       desc.inlets = std::move(inlets);
 
-      desc.outlets = {std::vector<Process::PortType>{Process::PortType::Audio}};
+      desc.outlets
+          = {std::vector<Process::PortType>{Process::PortType::Audio}};
     }
   }
   return desc;
@@ -108,9 +116,7 @@ EffectProcessFactory_T<Media::VST::VSTEffectModel>::descriptor(QString d) const
 namespace Media::VST
 {
 VSTEffectModel::VSTEffectModel(
-    TimeVal t,
-    const QString& path,
-    const Id<Process::ProcessModel>& id,
+    TimeVal t, const QString& path, const Id<Process::ProcessModel>& id,
     QObject* parent)
     : ProcessModel{t, id, "VST", parent}, m_effectId{path.toInt()}
 {
@@ -130,7 +136,7 @@ QString VSTEffectModel::prettyName() const
 
 bool VSTEffectModel::hasExternalUI() const
 {
-  if(!fx)
+  if (!fx)
     return false;
   return bool(fx->fx->flags & VstAEffectFlags::effFlagsHasEditor);
 }
@@ -235,10 +241,10 @@ void VSTEffectModel::on_addControl_impl(VSTControlInlet* ctrl)
 
 void VSTEffectModel::reloadControls()
 {
-  if(!fx)
+  if (!fx)
     return;
 
-  for(auto ctrl : controls)
+  for (auto ctrl : controls)
   {
     ctrl.second->setValue(fx->getParameter(ctrl.first));
   }
@@ -252,11 +258,7 @@ QString VSTEffectModel::getString(AEffectOpcodes op, int param)
 }
 
 intptr_t vst_host_callback(
-    AEffect* effect,
-    int32_t opcode,
-    int32_t index,
-    intptr_t value,
-    void* ptr,
+    AEffect* effect, int32_t opcode, int32_t index, intptr_t value, void* ptr,
     float opt)
 {
   intptr_t result = 0;
@@ -373,9 +375,10 @@ intptr_t vst_host_callback(
     case audioMasterGetCurrentProcessLevel:
     {
       static const auto& context = score::GUIAppContext();
-      static const auto& plug = context.applicationPlugin<Media::ApplicationPlugin>();
+      static const auto& plug
+          = context.applicationPlugin<Media::ApplicationPlugin>();
       auto this_t = std::this_thread::get_id();
-      if(this_t == plug.mainThreadId())
+      if (this_t == plug.mainThreadId())
       {
         result = kVstProcessLevelUser;
       }
@@ -459,7 +462,7 @@ AEffect* getPluginInstance(const QString& name)
     auto it = app.vst_modules.find(info_it->uniqueID);
     if (it != app.vst_modules.end())
     {
-      if(!it->second)
+      if (!it->second)
         it->second = new Media::VST::VSTModule{info_it->path.toStdString()};
 
       if (auto m = it->second->getMain())
@@ -500,7 +503,7 @@ AEffect* getPluginInstance(int32_t id)
     auto it = app.vst_modules.find(info_it->uniqueID);
     if (it != app.vst_modules.end())
     {
-      if(!it->second)
+      if (!it->second)
         it->second = new Media::VST::VSTModule{info_it->path.toStdString()};
       if (auto m = it->second->getMain())
       {
@@ -576,12 +579,14 @@ void VSTEffectModel::create()
 
   // Tempo
   {
-    auto tempo = new Process::FloatSlider(20., 200., 120., "Tempo", Id<Process::Port>{inlet_i++}, this);
+    auto tempo = new Process::FloatSlider(
+        20., 200., 120., "Tempo", Id<Process::Port>{inlet_i++}, this);
     m_inlets.push_back(tempo);
   }
   {
     // Signature
-    auto sig = new Process::TimeSignatureChooser("4/4", "Time signature", Id<Process::Port>{inlet_i++}, this);
+    auto sig = new Process::TimeSignatureChooser(
+        "4/4", "Time signature", Id<Process::Port>{inlet_i++}, this);
     m_inlets.push_back(sig);
   }
 
@@ -668,52 +673,52 @@ void DataStreamWriter::write(Media::VST::VSTEffectModel& eff)
   m_stream >> kind;
   eff.load();
 
-  if(kind == SCORE_DATASTREAM_IDENTIFY_VST_CHUNK)
+  if (kind == SCORE_DATASTREAM_IDENTIFY_VST_CHUNK)
   {
-      std::string chunk;
-      m_stream >> chunk;
-      if(!chunk.empty())
-      {
-          QPointer<Media::VST::VSTEffectModel> ptr = &eff;
-          QTimer::singleShot(1000, [chunk=std::move(chunk), ptr] () mutable {
-            if (!ptr)
-              return;
-            auto& eff = *ptr;
-            if (eff.fx)
-            {
-              if (eff.fx->fx->flags & effFlagsProgramChunks)
-              {
-                  eff.fx->dispatch(effSetChunk, 0, chunk.size(), chunk.data(), 0.f);
-
-                  for (std::size_t i = 3; i < eff.inlets().size(); i++)
-                  {
-                    auto inlet
-                        = safe_cast<Media::VST::VSTControlInlet*>(eff.inlets()[i]);
-                    inlet->setValue(eff.fx->getParameter(inlet->fxNum));
-                  }
-              }
-            }
-          });
-      }
-  }
-  else if(kind == SCORE_DATASTREAM_IDENTIFY_VST_PARAMS)
-  {
-      ossia::float_vector params;
-      m_stream >> params;
-
+    std::string chunk;
+    m_stream >> chunk;
+    if (!chunk.empty())
+    {
       QPointer<Media::VST::VSTEffectModel> ptr = &eff;
-      QTimer::singleShot(1000, [params=std::move(params), ptr] {
+      QTimer::singleShot(1000, [chunk = std::move(chunk), ptr]() mutable {
         if (!ptr)
           return;
         auto& eff = *ptr;
         if (eff.fx)
         {
-            for (std::size_t i = 0; i < params.size(); i++)
+          if (eff.fx->fx->flags & effFlagsProgramChunks)
+          {
+            eff.fx->dispatch(effSetChunk, 0, chunk.size(), chunk.data(), 0.f);
+
+            for (std::size_t i = 3; i < eff.inlets().size(); i++)
             {
-              eff.fx->setParameter(i, params[i]);
+              auto inlet
+                  = safe_cast<Media::VST::VSTControlInlet*>(eff.inlets()[i]);
+              inlet->setValue(eff.fx->getParameter(inlet->fxNum));
             }
+          }
         }
       });
+    }
+  }
+  else if (kind == SCORE_DATASTREAM_IDENTIFY_VST_PARAMS)
+  {
+    ossia::float_vector params;
+    m_stream >> params;
+
+    QPointer<Media::VST::VSTEffectModel> ptr = &eff;
+    QTimer::singleShot(1000, [params = std::move(params), ptr] {
+      if (!ptr)
+        return;
+      auto& eff = *ptr;
+      if (eff.fx)
+      {
+        for (std::size_t i = 0; i < params.size(); i++)
+        {
+          eff.fx->setParameter(i, params[i]);
+        }
+      }
+    });
   }
 
   checkDelimiter();

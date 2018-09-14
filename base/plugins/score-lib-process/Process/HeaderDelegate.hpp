@@ -1,7 +1,7 @@
 #pragma once
-#include <ossia/detail/small_vector.hpp>
-
 #include <Process/LayerPresenter.hpp>
+
+#include <ossia/detail/small_vector.hpp>
 namespace Dataflow
 {
 class PortItem;
@@ -9,12 +9,12 @@ class PortItem;
 namespace Process
 {
 class SCORE_LIB_PROCESS_EXPORT HeaderDelegate
-    : public QObject
-    , public Process::GraphicsShapeItem
+    : public QObject,
+      public Process::GraphicsShapeItem
 {
 public:
   HeaderDelegate(const Process::LayerPresenter& p)
-    : presenter{const_cast<Process::LayerPresenter*>(&p)}
+      : presenter{const_cast<Process::LayerPresenter*>(&p)}
   {
   }
 
@@ -41,8 +41,7 @@ public:
 protected:
   void updatePorts();
   void paint(
-      QPainter* painter,
-      const QStyleOptionGraphicsItem* option,
+      QPainter* painter, const QStyleOptionGraphicsItem* option,
       QWidget* widget) override;
 
   QImage m_line, m_bench;

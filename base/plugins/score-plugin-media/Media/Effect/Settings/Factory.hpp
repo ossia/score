@@ -2,6 +2,7 @@
 #include <Media/Effect/Settings/Model.hpp>
 #include <Media/Effect/Settings/Presenter.hpp>
 #include <Media/Effect/Settings/View.hpp>
+
 #include <score/plugins/settingsdelegate/SettingsDelegateFactory.hpp>
 namespace Media::Settings
 {

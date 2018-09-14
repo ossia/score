@@ -1,13 +1,9 @@
 #pragma once
 #include <Process/TimeValue.hpp>
-#include <wobjectdefs.h>
-#include <QObject>
-#include <QString>
-#include <QVector>
 #include <Scenario/Document/Event/ExecutionStatus.hpp>
 #include <Scenario/Document/VerticalExtent.hpp>
 #include <State/Expression.hpp>
-#include <chrono>
+
 #include <score/model/Component.hpp>
 #include <score/model/EntityImpl.hpp>
 #include <score/model/IdentifiedObject.hpp>
@@ -15,7 +11,15 @@
 #include <score/selection/Selectable.hpp>
 #include <score/tools/Metadata.hpp>
 #include <score/tools/std/Optional.hpp>
+
+#include <QObject>
+#include <QString>
+#include <QVector>
+
 #include <score_plugin_scenario_export.h>
+#include <wobjectdefs.h>
+
+#include <chrono>
 class DataStream;
 class JSONObject;
 
@@ -37,10 +41,8 @@ public:
 
   /** The class **/
   TimeSyncModel(
-      const Id<TimeSyncModel>& id,
-      const VerticalExtent& extent,
-      const TimeVal& date,
-      QObject* parent);
+      const Id<TimeSyncModel>& id, const VerticalExtent& extent,
+      const TimeVal& date, QObject* parent);
 
   template <typename DeserializerVisitor>
   TimeSyncModel(DeserializerVisitor&& vis, QObject* parent)
@@ -74,16 +76,22 @@ public:
   void setActive(bool active);
 
 public:
-  void extentChanged(const Scenario::VerticalExtent& arg_1) E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, extentChanged, arg_1);
-  void dateChanged(const TimeVal& arg_1) E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, dateChanged, arg_1);
+  void extentChanged(const Scenario::VerticalExtent& arg_1)
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, extentChanged, arg_1);
+  void dateChanged(const TimeVal& arg_1)
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, dateChanged, arg_1);
 
-  void newEvent(const Id<Scenario::EventModel>& eventId) E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, newEvent, eventId);
-  void eventRemoved(const Id<Scenario::EventModel>& eventId) E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, eventRemoved, eventId);
+  void newEvent(const Id<Scenario::EventModel>& eventId)
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, newEvent, eventId);
+  void eventRemoved(const Id<Scenario::EventModel>& eventId)
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, eventRemoved, eventId);
 
-  void triggerChanged(const State::Expression& arg_1) E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, triggerChanged, arg_1);
+  void triggerChanged(const State::Expression& arg_1)
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, triggerChanged, arg_1);
   void activeChanged() E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, activeChanged);
 
-  void triggeredByGui() const E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, triggeredByGui);
+  void triggeredByGui() const
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, triggeredByGui);
 
 private:
   TimeVal m_date{std::chrono::seconds{0}};

@@ -6,6 +6,7 @@
 #include <Process/TimeValueSerialization.hpp>
 #include <Scenario/Document/Interval/IntervalDurations.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
+
 #include <score/model/path/Path.hpp>
 #include <score/model/path/PathSerialization.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
@@ -69,7 +70,7 @@ void SetRigidity::serializeImpl(DataStreamInput& s) const
 void SetRigidity::deserializeImpl(DataStreamOutput& s)
 {
   s >> m_path >> m_oldMinDuration >> m_oldMaxDuration >> m_rigidity
-    >> m_oldRigidity >> m_oldIsNull >> m_oldIsInfinite;
+      >> m_oldRigidity >> m_oldIsNull >> m_oldIsInfinite;
 }
 }
 }

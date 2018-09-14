@@ -4,17 +4,14 @@
 
 #include <ossia/detail/algorithms.hpp>
 
-
 namespace LocalTree
 {
 IntervalBase::IntervalBase(
-    ossia::net::node_base& parent,
-    const Id<score::Component>& id,
-    Scenario::IntervalModel& interval,
-    DocumentPlugin& doc,
+    ossia::net::node_base& parent, const Id<score::Component>& id,
+    Scenario::IntervalModel& interval, DocumentPlugin& doc,
     QObject* parent_comp)
     : parent_t{parent, interval.metadata(), interval,   doc,
-               id, "IntervalComponent", parent_comp}
+               id,     "IntervalComponent", parent_comp}
     , m_processesNode{*node().create_child("processes")}
 {
   using namespace Scenario;
@@ -28,8 +25,7 @@ IntervalBase::IntervalBase(
 }
 
 ProcessComponent* IntervalBase::make(
-    const Id<score::Component>& id,
-    ProcessComponentFactory& factory,
+    const Id<score::Component>& id, ProcessComponentFactory& factory,
     Process::ProcessModel& process)
 {
   return factory.make(id, m_processesNode, process, system(), this);
@@ -40,5 +36,4 @@ bool IntervalBase::removing(
 {
   return true;
 }
-
 }

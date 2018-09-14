@@ -4,24 +4,15 @@
 
 #include "ZoomPolicy.hpp"
 
-#include <ossia/detail/math.hpp>
-
 #include <Dataflow/Commands/EditConnection.hpp>
+#include <Process/DocumentPlugin.hpp>
 #include <Process/LayerPresenter.hpp>
 #include <Process/LayerView.hpp>
 #include <Process/Process.hpp>
 #include <Process/ProcessList.hpp>
 #include <Process/Style/ScenarioStyle.hpp>
-#include <Process/DocumentPlugin.hpp>
 #include <Process/TimeValue.hpp>
 #include <Process/Tools/ProcessGraphicsView.hpp>
-#include <QMainWindow>
-#include <QScrollBar>
-#include <QPolygon>
-#include <QSize>
-#include <QString>
-#include <QWidget>
-#include <QtGlobal>
 #include <Scenario/Application/ScenarioApplicationPlugin.hpp>
 #include <Scenario/Document/DisplayedElements/DisplayedElementsModel.hpp>
 #include <Scenario/Document/DisplayedElements/DisplayedElementsPresenter.hpp>
@@ -38,7 +29,7 @@
 #include <Scenario/Document/ScenarioDocument/ScenarioScene.hpp>
 #include <Scenario/Document/TimeRuler/TimeRuler.hpp>
 #include <Scenario/Settings/ScenarioSettingsModel.hpp>
-#include <core/view/Window.hpp>
+
 #include <score/application/ApplicationContext.hpp>
 #include <score/document/DocumentContext.hpp>
 #include <score/document/DocumentInterface.hpp>
@@ -52,6 +43,19 @@
 #include <score/tools/Clamp.hpp>
 #include <score/tools/Todo.hpp>
 #include <score/widgets/DoubleSlider.hpp>
+
+#include <core/view/Window.hpp>
+
+#include <ossia/detail/math.hpp>
+
+#include <QMainWindow>
+#include <QPolygon>
+#include <QScrollBar>
+#include <QSize>
+#include <QString>
+#include <QWidget>
+#include <QtGlobal>
+
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Scenario::ScenarioDocumentPresenter)
 namespace Scenario
@@ -90,9 +94,9 @@ ScenarioDocumentPresenter::ScenarioDocumentPresenter(
   if (auto win = static_cast<score::View*>(score::GUIAppContext().mainWindow))
   {
     connect(
-        win, &View::sizeChanged,
-        this, &ScenarioDocumentPresenter::on_windowSizeChanged,
-          Qt::QueuedConnection);
+        win, &View::sizeChanged, this,
+        &ScenarioDocumentPresenter::on_windowSizeChanged,
+        Qt::QueuedConnection);
     connect(
         win, &View::ready, this, &ScenarioDocumentPresenter::on_viewReady,
         Qt::QueuedConnection);
@@ -126,7 +130,8 @@ ScenarioDocumentPresenter::ScenarioDocumentPresenter(
 
   // Focus
   connect(
-      &m_focusDispatcher, qOverload<QPointer<Process::LayerPresenter>>(&FocusDispatcher::focus),
+      &m_focusDispatcher,
+      qOverload<QPointer<Process::LayerPresenter>>(&FocusDispatcher::focus),
       this, &ScenarioDocumentPresenter::setFocusedPresenter,
       Qt::QueuedConnection);
 
@@ -167,9 +172,11 @@ ScenarioDocumentPresenter::ScenarioDocumentPresenter(
   setDisplayedInterval(model().baseInterval());
 
   model()
-      .cables.mutable_added.connect<&ScenarioDocumentPresenter::on_cableAdded>(*this);
+      .cables.mutable_added.connect<&ScenarioDocumentPresenter::on_cableAdded>(
+          *this);
   model()
-      .cables.removing.connect<&ScenarioDocumentPresenter::on_cableRemoving>(*this);
+      .cables.removing.connect<&ScenarioDocumentPresenter::on_cableRemoving>(
+          *this);
 }
 
 ScenarioDocumentPresenter::~ScenarioDocumentPresenter()
@@ -311,7 +318,6 @@ void ScenarioDocumentPresenter::stopTimeBar()
   bar.setVisible(false);
   bar.playing = false;
   bar.setInterval(nullptr);
-
 }
 static bool window_size_set = false;
 void ScenarioDocumentPresenter::on_windowSizeChanged(QSize)
@@ -648,8 +654,9 @@ void ScenarioDocumentPresenter::setDisplayedInterval(IntervalModel& interval)
   // Setup of the state machine.
   const auto& fact
       = ctx.app.interfaces<DisplayedElementsToolPaletteFactoryList>();
-  m_stateMachine
-      = fact.make(&DisplayedElementsToolPaletteFactory::make, *this, interval, &view().baseItem());
+  m_stateMachine = fact.make(
+      &DisplayedElementsToolPaletteFactory::make, *this, interval,
+      &view().baseItem());
 
   m_updatingView = true;
   m_scenarioPresenter.on_displayedIntervalChanged(interval);

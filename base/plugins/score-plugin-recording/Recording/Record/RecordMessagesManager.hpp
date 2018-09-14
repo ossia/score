@@ -1,7 +1,8 @@
 #pragma once
 #include <Recording/Record/RecordProviderFactory.hpp>
-#include <wobjectdefs.h>
 #include <Recording/Record/RecordTools.hpp>
+
+#include <wobjectdefs.h>
 namespace Recording
 {
 struct RecordedMessage
@@ -9,10 +10,9 @@ struct RecordedMessage
   double percentage;
   State::Message m;
 };
-class MessageRecorder
-    : public QObject
-    , public RecordProvider
-    , public Nano::Observer
+class MessageRecorder : public QObject,
+                        public RecordProvider,
+                        public Nano::Observer
 {
   W_OBJECT(MessageRecorder)
 public:

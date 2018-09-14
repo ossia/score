@@ -1,14 +1,14 @@
 #pragma once
-#include <Process/Dataflow/Port.hpp>
 #include <Process/Commands/ProcessCommandFactory.hpp>
+#include <Process/Dataflow/Port.hpp>
 #include <State/Value.hpp>
 #include <State/ValueSerialization.hpp>
+
 #include <score/model/path/PathSerialization.hpp>
 
 namespace Process
 {
-class SCORE_LIB_PROCESS_EXPORT SetControlValue final
-    : public score::Command
+class SCORE_LIB_PROCESS_EXPORT SetControlValue final : public score::Command
 {
   SCORE_COMMAND_DECL(
       Process::CommandFactoryName(), SetControlValue, "Set a control")
@@ -53,4 +53,3 @@ private:
   ossia::value m_old, m_new;
 };
 }
-

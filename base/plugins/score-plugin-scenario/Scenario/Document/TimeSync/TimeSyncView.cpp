@@ -5,17 +5,20 @@
 #include "TimeSyncPresenter.hpp"
 
 #include <Process/Style/ScenarioStyle.hpp>
+#include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
+#include <Scenario/Document/VerticalExtent.hpp>
+
+#include <score/model/ModelMetadata.hpp>
+
 #include <QBrush>
 #include <QCursor>
 #include <QGraphicsScene>
 #include <QGraphicsSceneEvent>
 #include <QPainter>
 #include <QPen>
-#include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
-#include <Scenario/Document/VerticalExtent.hpp>
-#include <algorithm>
 #include <qnamespace.h>
-#include <score/model/ModelMetadata.hpp>
+
+#include <algorithm>
 
 class QStyleOptionGraphicsItem;
 class QWidget;

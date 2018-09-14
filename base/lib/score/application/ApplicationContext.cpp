@@ -4,8 +4,7 @@
 
 score::ApplicationContext::ApplicationContext(
     const score::ApplicationSettings& app,
-    const score::ApplicationComponents& c,
-    DocumentList& l,
+    const score::ApplicationComponents& c, DocumentList& l,
     const std::vector<std::unique_ptr<score::SettingsDelegateModel>>& set)
     : applicationSettings{app}, components{c}, documents{l}, m_settings{set}
 {

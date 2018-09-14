@@ -1,13 +1,15 @@
-#include <score_lib_process.hpp>
-#include <score_lib_process_commands_files.hpp>
-#include <score/plugins/customfactory/FactorySetup.hpp>
-#include <score/plugins/application/GUIApplicationPlugin.hpp>
-#include <score/plugins/documentdelegate/plugin/DocumentPluginCreator.hpp>
-#include <Process/DocumentPlugin.hpp>
 #include <Process/Dataflow/PortFactory.hpp>
+#include <Process/DocumentPlugin.hpp>
 #include <Process/LayerPresenter.hpp>
 #include <Process/ProcessFactory.hpp>
 #include <Process/ProcessList.hpp>
+
+#include <score/plugins/application/GUIApplicationPlugin.hpp>
+#include <score/plugins/customfactory/FactorySetup.hpp>
+#include <score/plugins/documentdelegate/plugin/DocumentPluginCreator.hpp>
+
+#include <score_lib_process.hpp>
+#include <score_lib_process_commands_files.hpp>
 
 score_lib_process::score_lib_process() = default;
 score_lib_process::~score_lib_process() = default;
@@ -17,19 +19,17 @@ score_lib_process::factories(
     const score::ApplicationContext& ctx, const score::InterfaceKey& key) const
 {
   using namespace Process;
-  return instantiate_factories<
-      score::ApplicationContext>(
-        ctx, key);
+  return instantiate_factories<score::ApplicationContext>(ctx, key);
 }
 
-std::vector<std::unique_ptr<score::InterfaceListBase> > score_lib_process::factoryFamilies()
+std::vector<std::unique_ptr<score::InterfaceListBase>>
+score_lib_process::factoryFamilies()
 {
   return make_ptr_vector<
       score::InterfaceListBase, Process::ProcessFactoryList,
       Process::PortFactoryList, Process::LayerFactoryList,
       Process::ProcessFactoryList>();
 }
-
 
 std::pair<const CommandGroupKey, CommandGeneratorMap>
 score_lib_process::make_commands()
@@ -39,7 +39,7 @@ score_lib_process::make_commands()
       CommandFactoryName(), CommandGeneratorMap{}};
 
   ossia::for_each_type<
-    #include <score_lib_process_commands.hpp>
+#include <score_lib_process_commands.hpp>
       >(score::commands::FactoryInserter{cmds.second});
 
   return cmds;

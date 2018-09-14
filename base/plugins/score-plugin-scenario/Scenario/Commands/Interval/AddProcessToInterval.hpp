@@ -2,9 +2,6 @@
 #include <Process/Process.hpp>
 #include <Process/ProcessFactory.hpp>
 #include <Process/ProcessList.hpp>
-#include <QByteArray>
-#include <QObject>
-#include <QString>
 #include <Scenario/Commands/Interval/AddOnlyProcessToInterval.hpp>
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
@@ -15,6 +12,7 @@
 #include <Scenario/Process/ScenarioInterface.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
 #include <Scenario/Settings/ScenarioSettingsModel.hpp>
+
 #include <score/application/ApplicationContext.hpp>
 #include <score/command/AggregateCommand.hpp>
 #include <score/command/Command.hpp>
@@ -27,6 +25,11 @@
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/tools/IdentifierGeneration.hpp>
 #include <score/tools/std/Optional.hpp>
+
+#include <QByteArray>
+#include <QObject>
+#include <QString>
+
 #include <vector>
 
 namespace Scenario
@@ -37,15 +40,13 @@ class SCORE_PLUGIN_SCENARIO_EXPORT AddProcessToInterval final
     : public score::Command
 {
   SCORE_COMMAND_DECL(
-      ScenarioCommandFactoryName(),
-      AddProcessToInterval,
+      ScenarioCommandFactoryName(), AddProcessToInterval,
       "Add a process to a interval")
 
 public:
   AddProcessToInterval(
       const IntervalModel& interval,
-      const UuidKey<Process::ProcessModel>& process,
-      const QString& dat);
+      const UuidKey<Process::ProcessModel>& process, const QString& dat);
   ~AddProcessToInterval();
 
   void undo(const score::DocumentContext& ctx) const override;
@@ -67,14 +68,11 @@ class SCORE_PLUGIN_SCENARIO_EXPORT LoadProcessInInterval final
     : public score::Command
 {
   SCORE_COMMAND_DECL(
-      ScenarioCommandFactoryName(),
-      LoadProcessInInterval,
+      ScenarioCommandFactoryName(), LoadProcessInInterval,
       "Load a process in an interval")
 
 public:
-  LoadProcessInInterval(
-      const IntervalModel& interval,
-      const QJsonObject& dat);
+  LoadProcessInInterval(const IntervalModel& interval, const QJsonObject& dat);
   ~LoadProcessInInterval();
 
   void undo(const score::DocumentContext& ctx) const override;
@@ -94,8 +92,7 @@ class SCORE_PLUGIN_SCENARIO_EXPORT AddProcessInNewBoxMacro final
     : public score::AggregateCommand
 {
   SCORE_COMMAND_DECL(
-      ScenarioCommandFactoryName(),
-      AddProcessInNewBoxMacro,
+      ScenarioCommandFactoryName(), AddProcessInNewBoxMacro,
       "Add a process in a new box")
 
 public:
@@ -106,8 +103,7 @@ class SCORE_PLUGIN_SCENARIO_EXPORT DropProcessInIntervalMacro final
     : public score::AggregateCommand
 {
   SCORE_COMMAND_DECL(
-      ScenarioCommandFactoryName(),
-      DropProcessInIntervalMacro,
+      ScenarioCommandFactoryName(), DropProcessInIntervalMacro,
       "Drop a process in an interval")
 };
 }

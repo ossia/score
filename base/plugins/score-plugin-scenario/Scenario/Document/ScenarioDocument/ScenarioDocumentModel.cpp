@@ -5,10 +5,6 @@
 
 #include <Process/LayerPresenter.hpp>
 #include <Process/Process.hpp>
-#include <QApplication>
-#include <QFileInfo>
-#include <QList>
-#include <QObject>
 #include <Scenario/Application/ScenarioApplicationPlugin.hpp>
 #include <Scenario/Commands/Interval/AddOnlyProcessToInterval.hpp>
 #include <Scenario/Commands/Interval/Rack/AddSlotToRack.hpp>
@@ -30,10 +26,7 @@
 #include <Scenario/Process/ScenarioModel.hpp>
 #include <Scenario/Process/ScenarioProcessMetadata.hpp>
 #include <Scenario/Settings/ScenarioSettingsModel.hpp>
-#include <algorithm>
 
-#include <chrono>
-#include <core/document/Document.hpp>
 #include <score/application/ApplicationContext.hpp>
 #include <score/document/DocumentContext.hpp>
 #include <score/document/DocumentInterface.hpp>
@@ -48,7 +41,17 @@
 #include <score/tools/Todo.hpp>
 #include <score/tools/std/Optional.hpp>
 
+#include <core/document/Document.hpp>
+
+#include <QApplication>
+#include <QFileInfo>
+#include <QList>
+#include <QObject>
+
 #include <wobjectimpl.h>
+
+#include <algorithm>
+#include <chrono>
 W_OBJECT_IMPL(Scenario::ScenarioDocumentModel)
 namespace Process
 {
@@ -132,7 +135,6 @@ void ScenarioDocumentModel::finishLoading()
 
 ScenarioDocumentModel::~ScenarioDocumentModel()
 {
-
 }
 
 void ScenarioDocumentModel::initializeNewDocument(

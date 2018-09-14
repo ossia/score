@@ -1,13 +1,15 @@
 #pragma once
+#include <score/widgets/MarginLess.hpp>
+
 #include <QBoxLayout>
-#include <wobjectdefs.h>
 #include <QLineEdit>
 #include <QPushButton>
 #include <QString>
 #include <QToolButton>
 #include <QWidget>
-#include <score/widgets/MarginLess.hpp>
+
 #include <score_lib_inspector_export.h>
+#include <wobjectdefs.h>
 class QMenu;
 
 namespace Inspector
@@ -58,7 +60,8 @@ public:
   void showMenu(bool b);
 
 public:
-  void nameChanged(QString newName) E_SIGNAL(SCORE_LIB_INSPECTOR_EXPORT, nameChanged, newName);
+  void nameChanged(QString newName)
+      E_SIGNAL(SCORE_LIB_INSPECTOR_EXPORT, nameChanged, newName);
 
 private:
   score::MarginLess<QVBoxLayout> m_generalLayout; /*!< main layout */

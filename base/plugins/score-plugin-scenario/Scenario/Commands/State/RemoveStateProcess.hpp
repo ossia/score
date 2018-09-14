@@ -1,8 +1,10 @@
 #pragma once
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
+
 #include <score/command/Command.hpp>
 #include <score/model/Identifier.hpp>
 #include <score/model/path/Path.hpp>
+
 #include <score_plugin_scenario_export.h>
 namespace Process
 {
@@ -19,8 +21,7 @@ class SCORE_PLUGIN_SCENARIO_EXPORT RemoveStateProcess final
     : public score::Command
 {
   SCORE_COMMAND_DECL(
-      ScenarioCommandFactoryName(),
-      RemoveStateProcess,
+      ScenarioCommandFactoryName(), RemoveStateProcess,
       "Remove a state process")
 public:
   RemoveStateProcess(

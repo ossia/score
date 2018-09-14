@@ -1,7 +1,9 @@
 #pragma once
-#include <ossia/detail/config.hpp>
 #include <score/model/Identifier.hpp>
 #include <score/serialization/VisitorInterface.hpp>
+
+#include <ossia/detail/config.hpp>
+
 #include <wobjectdefs.h>
 
 /**

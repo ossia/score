@@ -4,6 +4,7 @@
 
 #include <Process/LayerPresenter.hpp>
 #include <Process/Process.hpp>
+
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Process::ProcessFocusManager)
 namespace Process

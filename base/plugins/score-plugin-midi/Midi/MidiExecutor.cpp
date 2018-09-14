@@ -2,10 +2,10 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "MidiExecutor.hpp"
 
-#include <ossia/dataflow/nodes/midi.hpp>
-
-#include <Scenario/Execution/score2OSSIA.hpp>
 #include <Midi/MidiProcess.hpp>
+#include <Scenario/Execution/score2OSSIA.hpp>
+
+#include <ossia/dataflow/nodes/midi.hpp>
 namespace Midi
 {
 namespace Executor
@@ -13,13 +13,10 @@ namespace Executor
 using midi_node = ossia::nodes::midi;
 using midi_node_process = ossia::nodes::midi_node_process;
 Component::Component(
-    Midi::ProcessModel& element,
-    const Execution::Context& ctx,
-    const Id<score::Component>& id,
-    QObject* parent)
-    : ::Execution::
-          ProcessComponent_T<Midi::ProcessModel, ossia::node_process>{
-              element, ctx, id, "MidiComponent", parent}
+    Midi::ProcessModel& element, const Execution::Context& ctx,
+    const Id<score::Component>& id, QObject* parent)
+    : ::Execution::ProcessComponent_T<Midi::ProcessModel, ossia::node_process>{
+          element, ctx, id, "MidiComponent", parent}
 {
   auto midi = std::make_shared<midi_node>();
   this->node = midi;
@@ -29,7 +26,7 @@ Component::Component(
   auto set_notes = [&, midi] {
     midi_node::note_set notes;
     notes.container.reserve(element.notes.size());
-    for(const auto& n : element.notes)
+    for (const auto& n : element.notes)
     {
       auto data = n.noteData();
       if (data.start() < 0 && data.end() > 0)

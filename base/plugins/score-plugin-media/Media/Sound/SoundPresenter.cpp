@@ -4,6 +4,7 @@
 
 #include <Media/Commands/ChangeAudioFile.hpp>
 #include <Media/Sound/Drop/SoundDrop.hpp>
+
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/document/DocumentContext.hpp>
 
@@ -12,10 +13,8 @@ namespace Media
 namespace Sound
 {
 LayerPresenter::LayerPresenter(
-    const ProcessModel& layer,
-    LayerView* view,
-    const Process::ProcessPresenterContext& ctx,
-    QObject* parent)
+    const ProcessModel& layer, LayerView* view,
+    const Process::ProcessPresenterContext& ctx, QObject* parent)
     : Process::LayerPresenter{ctx, parent}, m_layer{layer}, m_view{view}
 {
   connect(view, &LayerView::pressed, this, [&]() {

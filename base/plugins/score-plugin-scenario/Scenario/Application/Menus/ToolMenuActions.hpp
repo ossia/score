@@ -1,12 +1,16 @@
 #pragma once
 
-#include <QList>
-#include <QPoint>
 #include <score/actions/Action.hpp>
 #include <score/actions/Menu.hpp>
 #include <score/selection/Selection.hpp>
 
-namespace score { struct GUIElements; }
+#include <QList>
+#include <QPoint>
+
+namespace score
+{
+struct GUIElements;
+}
 class QAction;
 class QActionGroup;
 class QMenu;

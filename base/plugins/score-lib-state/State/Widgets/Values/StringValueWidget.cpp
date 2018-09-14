@@ -2,14 +2,16 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "StringValueWidget.hpp"
 
+#include <State/Widgets/Values/ValueWidget.hpp>
+
+#include <score/widgets/MarginLess.hpp>
+
 #include <QDialogButtonBox>
 #include <QGridLayout>
 #include <QHBoxLayout>
 #include <QLineEdit>
 #include <QPushButton>
 #include <QVBoxLayout>
-#include <State/Widgets/Values/ValueWidget.hpp>
-#include <score/widgets/MarginLess.hpp>
 
 class QWidget;
 

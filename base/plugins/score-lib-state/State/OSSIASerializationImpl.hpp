@@ -1,5 +1,14 @@
 #pragma once
 
+#include <State/Value.hpp>
+#include <State/ValueConversion.hpp>
+#include <State/ValueSerialization.hpp>
+
+#include <score/serialization/DataStreamVisitor.hpp>
+#include <score/serialization/VariantSerialization.hpp>
+#include <score/serialization/VisitorCommon.hpp>
+
+#include <ossia/detail/for_each.hpp>
 #include <ossia/network/base/node_attributes.hpp>
 #include <ossia/network/dataspace/dataspace.hpp>
 #include <ossia/network/domain/domain.hpp>
@@ -8,13 +17,7 @@
 #include <QJsonArray>
 #include <QJsonValue>
 #include <QtGlobal>
-#include <State/Value.hpp>
-#include <State/ValueConversion.hpp>
-#include <State/ValueSerialization.hpp>
-#include <ossia/detail/for_each.hpp>
-#include <score/serialization/DataStreamVisitor.hpp>
-#include <score/serialization/VariantSerialization.hpp>
-#include <score/serialization/VisitorCommon.hpp>
+
 #include <score_lib_state_export.h>
 JSON_METADATA(ossia::impulse, "Impulse")
 JSON_METADATA(int32_t, "Int")

@@ -1,8 +1,3 @@
-BreakBeforeInheritanceComma: true
-
-IndentPPDirectives: AfterHash
-IncludeBlocks: Regroup
-
 BasedOnStyle: WebKit
 AccessModifierOffset: -2
 AlignAfterOpenBracket: AlwaysBreak
@@ -33,7 +28,7 @@ BraceWrapping:
   IndentBraces:    false
   
 BinPackArguments: true
-BinPackParameters: false
+BinPackParameters: true
 BreakBeforeBinaryOperators: All
 BreakBeforeBraces: Allman
 BreakBeforeTernaryOperators: true
@@ -74,10 +69,28 @@ TabWidth: 2
 UseTab: Never
 
 SortIncludes: true
+IncludeBlocks: Regroup
 IncludeCategories:
   - Regex:           '^"'
     Priority:        1
-  - Regex:           '^<ossia/'
+  - Regex:           '^<(Scenario|Explorer|Protocols|Process|State|Device|Media|Midi|JS|Curve|Inspector|Automation|Dataflow|Fx|Library|Mapping|Loop|Recording|PluginSettings)'
     Priority:        2
-  - Regex:           '.\*'
+  - Regex:           '^<score/'
     Priority:        3
+  - Regex:           '^<core/'
+    Priority:        4
+  - Regex:           '^<ossia/detail/config'
+    Priority:        5
+  - Regex:           '^<ossia/'
+    Priority:        6
+  - Regex:           '^<ossia-qt/'
+    Priority:        6
+  - Regex:           '^<boost'
+    Priority:        7
+  - Regex:           '^<Q'
+    Priority:        8
+  - Regex:           '<([[:alnum:]_]+\/?)+.(h|hpp)>'
+    Priority:        9
+  - Regex:           '<[[:alnum:]]+>'
+    Priority:        800
+

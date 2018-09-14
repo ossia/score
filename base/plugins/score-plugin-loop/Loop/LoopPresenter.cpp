@@ -5,14 +5,10 @@
 
 #include "Loop/LoopViewUpdater.hpp"
 
-#include <ossia/detail/algorithms.hpp>
-
 #include <Loop/LoopProcessModel.hpp>
 #include <Loop/LoopView.hpp>
 #include <Process/LayerPresenter.hpp>
 #include <Process/TimeValue.hpp>
-#include <QGraphicsItem>
-#include <QMenu>
 #include <Scenario/Application/Menus/ObjectMenuActions.hpp>
 #include <Scenario/Application/Menus/ObjectsActions/EventActions.hpp>
 #include <Scenario/Application/Menus/ObjectsActions/IntervalActions.hpp>
@@ -28,14 +24,22 @@
 #include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
 #include <Scenario/Document/TimeSync/TimeSyncPresenter.hpp>
 #include <Scenario/Process/ScenarioGlobalCommandManager.hpp>
+
 #include <score/application/ApplicationContext.hpp>
 #include <score/document/DocumentContext.hpp>
 #include <score/tools/Todo.hpp>
 #include <score/widgets/GraphicsItem.hpp>
-#include <tuple>
-#include <type_traits>
+
+#include <ossia/detail/algorithms.hpp>
+
+#include <QGraphicsItem>
+#include <QMenu>
 
 #include <wobjectimpl.h>
+
+#include <tuple>
+
+#include <type_traits>
 W_OBJECT_IMPL(Loop::LayerPresenter)
 namespace Process
 {
@@ -50,14 +54,11 @@ struct VerticalExtent;
 namespace Loop
 {
 LayerPresenter::LayerPresenter(
-    const ProcessModel& layer,
-    LayerView* view,
-    const Process::ProcessPresenterContext& ctx,
-    QObject* parent)
+    const ProcessModel& layer, LayerView* view,
+    const Process::ProcessPresenterContext& ctx, QObject* parent)
     : Process::LayerPresenter{ctx, parent}
     , BaseScenarioPresenter<
-          Loop::ProcessModel,
-          Scenario::TemporalIntervalPresenter>{layer}
+          Loop::ProcessModel, Scenario::TemporalIntervalPresenter>{layer}
     , m_layer{layer}
     , m_view{view}
     , m_viewUpdater{*this}
@@ -106,12 +107,10 @@ LayerPresenter::LayerPresenter(
         m_viewUpdater.updateTimeSync(*m_endNodePresenter);
       });
 
+  m_model.interval().processes.added.connect<&LayerPresenter::on_addProcess>(
+      *this);
   m_model.interval()
-      .processes.added.connect<&LayerPresenter::on_addProcess>(
-          *this);
-  m_model.interval()
-      .processes.removed
-      .connect<&LayerPresenter::on_removeProcess>(*this);
+      .processes.removed.connect<&LayerPresenter::on_removeProcess>(*this);
   connect(
       m_view, &LayerView::askContextMenu, this,
       &LayerPresenter::contextMenuRequested);
@@ -170,7 +169,8 @@ void LayerPresenter::setHeight(qreal height)
   auto max_height = height - 85.;
   const auto N = c.smallView().size();
 
-  const auto slot_height = N > 0 ? std::max(20., max_height / double(N) - 30.) : 20.;
+  const auto slot_height
+      = N > 0 ? std::max(20., max_height / double(N) - 30.) : 20.;
   auto& itv = const_cast<Scenario::IntervalModel&>(c);
   for (std::size_t i = 0U; i < N; i++)
   {
@@ -223,9 +223,7 @@ void LayerPresenter::updateAllElements()
 }
 
 void LayerPresenter::fillContextMenu(
-    QMenu& menu,
-    QPoint pos,
-    QPointF scenepos,
+    QMenu& menu, QPoint pos, QPointF scenepos,
     const Process::LayerContextMenuManager&)
 {
   // TODO ACTIONS

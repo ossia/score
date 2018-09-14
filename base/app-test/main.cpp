@@ -4,6 +4,7 @@
 #include "TestObject.hpp"
 
 #include <QLocale>
+
 #include <clocale>
 static void init_plugins()
 {
@@ -12,9 +13,9 @@ static void init_plugins()
   Q_INIT_RESOURCE(score);
   Q_INIT_RESOURCE(ScenarioResources);
   Q_INIT_RESOURCE(DeviceExplorer);
-#  if defined(SCORE_PLUGIN_TEMPORALAUTOMATAS)
+#if defined(SCORE_PLUGIN_TEMPORALAUTOMATAS)
   Q_INIT_RESOURCE(TAResources);
-#  endif
+#endif
 #endif
 }
 

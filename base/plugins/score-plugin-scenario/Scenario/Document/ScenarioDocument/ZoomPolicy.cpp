@@ -3,6 +3,7 @@
 #include "ZoomPolicy.hpp"
 
 #include <Process/ZoomHelper.hpp>
+
 #include <algorithm>
 
 ZoomRatio ZoomPolicy::sliderPosToZoomRatio(

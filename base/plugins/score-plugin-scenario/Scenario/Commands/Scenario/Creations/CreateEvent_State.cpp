@@ -2,7 +2,6 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "CreateEvent_State.hpp"
 
-#include <QByteArray>
 #include <Scenario/Commands/Scenario/Creations/CreateState.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Process/Algorithms/StandardCreationPolicy.hpp>
@@ -13,6 +12,9 @@
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/tools/IdentifierGeneration.hpp>
 #include <score/tools/RandomNameProvider.hpp>
+
+#include <QByteArray>
+
 #include <vector>
 
 namespace Scenario
@@ -20,8 +22,7 @@ namespace Scenario
 namespace Command
 {
 CreateEvent_State::CreateEvent_State(
-    const Scenario::ProcessModel& scenario,
-    Id<TimeSyncModel> timeSync,
+    const Scenario::ProcessModel& scenario, Id<TimeSyncModel> timeSync,
     double stateY)
     : m_newEvent{getStrongId(scenario.events)}
     , m_createdName{RandomNameProvider::generateName<EventModel>()}

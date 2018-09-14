@@ -1,5 +1,6 @@
 #pragma once
 #include <score/model/EntityMap.hpp>
+
 #include <vector>
 
 template <typename T>

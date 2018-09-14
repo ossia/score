@@ -1,8 +1,10 @@
 #pragma once
 #include <Process/LayerView.hpp>
-#include <wobjectdefs.h>
+
 #include <QString>
+
 #include <score_lib_process_export.h>
+#include <wobjectdefs.h>
 
 class QGraphicsItem;
 class QPainter;
@@ -22,7 +24,8 @@ public:
   void setWidget(QWidget*);
 
 public:
-  void contextMenuRequested(QPoint arg_1) E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, contextMenuRequested, arg_1);
+  void contextMenuRequested(QPoint arg_1)
+      E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, contextMenuRequested, arg_1);
 
 private:
   void heightChanged(qreal h) override;

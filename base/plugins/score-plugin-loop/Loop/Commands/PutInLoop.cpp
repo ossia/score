@@ -1,9 +1,11 @@
 #include "PutInLoop.hpp"
+
 #include <Loop/LoopProcessModel.hpp>
-#include <Scenario/Process/Algorithms/Accessors.hpp>
-#include <Scenario/Process/ScenarioModel.hpp>
-#include <Scenario/Process/ScenarioGlobalCommandManager.hpp>
 #include <Scenario/Commands/CommandAPI.hpp>
+#include <Scenario/Process/Algorithms/Accessors.hpp>
+#include <Scenario/Process/ScenarioGlobalCommandManager.hpp>
+#include <Scenario/Process/ScenarioModel.hpp>
+
 #include <score/tools/MapCopy.hpp>
 namespace Loop
 {
@@ -26,9 +28,9 @@ void EncapsulateInLoop(
     auto itv_json = score::marshall<JSONObject>(source_itv);
 
     auto& loop = disp.createProcessInSlot<Loop::ProcessModel>(source_itv, {});
-    for(auto proc : shallow_copy(source_itv.processes))
+    for (auto proc : shallow_copy(source_itv.processes))
     {
-      if(proc != &loop)
+      if (proc != &loop)
       {
         disp.moveProcess(source_itv, loop.intervals()[0], proc->id());
       }
@@ -45,7 +47,8 @@ void EncapsulateInLoop(
 
     auto& loop_parent_itv = *e.interval;
 
-    auto& loop = disp.createProcessInSlot<Loop::ProcessModel>(loop_parent_itv, {});
+    auto& loop
+        = disp.createProcessInSlot<Loop::ProcessModel>(loop_parent_itv, {});
 
     auto& itv = loop.intervals()[0];
 
@@ -53,8 +56,7 @@ void EncapsulateInLoop(
       // Add a sub-scenario
       auto& sub_scenar = disp.createProcess<Scenario::ProcessModel>(itv, {});
 
-      disp.pasteElements(
-          sub_scenar, objects, Scenario::Point{{}, 0.1});
+      disp.pasteElements(sub_scenar, objects, Scenario::Point{{}, 0.1});
 
       // Merge inside
       for (TimeSyncModel& sync : sub_scenar.timeSyncs)

@@ -1,60 +1,66 @@
-//// This is an open source non-commercial project. Dear PVS-Studio, please check
-//// it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+//// This is an open source non-commercial project. Dear PVS-Studio, please
+/// check / it. PVS-Studio Static Code Analyzer for C, C++ and C#:
+/// http://www.viva64.com
 #include "ApplicationPlugin.hpp"
 
-#include <score/plugins/documentdelegate/plugin/DocumentPluginCreator.hpp>
-#include <ossia/audio/audio_protocol.hpp>
-#include <ossia/dataflow/execution_state.hpp>
-#include <ossia/editor/scenario/time_interval.hpp>
-#include <ossia/network/generic/generic_device.hpp>
-
-#include <Execution/BaseScenarioComponent.hpp>
-#include <Execution/Clock/ClockFactory.hpp>
-#include <Execution/DocumentPlugin.hpp>
-#include <Execution/ContextMenu/PlayContextMenu.hpp>
-#include <Process/ExecutionContext.hpp>
-#include <Execution/Settings/ExecutorModel.hpp>
-#include <Scenario/Document/Interval/IntervalExecution.hpp>
-#include <LocalTree/LocalTreeDocumentPlugin.hpp>
-#include <Protocols/Audio/AudioDevice.hpp>
-#include <Audio/Settings/Model.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <Explorer/Explorer/DeviceExplorerModel.hpp>
 #include <Explorer/Settings/ExplorerModel.hpp>
 #include <Loop/LoopProcessModel.hpp>
+#include <Process/ExecutionContext.hpp>
 #include <Process/TimeValue.hpp>
-#include <QAction>
-#include <QApplication>
-#include <QVariant>
-#include <QVector>
+#include <Protocols/Audio/AudioDevice.hpp>
 #include <Scenario/Application/ScenarioActions.hpp>
 #include <Scenario/Application/ScenarioApplicationPlugin.hpp>
 #include <Scenario/Document/BaseScenario/BaseScenario.hpp>
+#include <Scenario/Document/Interval/IntervalExecution.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentPresenter.hpp>
-#include <algorithm>
+#include <Scenario/Execution/score2OSSIA.hpp>
+#include <Scenario/Inspector/Interval/SpeedSlider.hpp>
+
+#include <score/actions/ActionManager.hpp>
+#include <score/application/ApplicationContext.hpp>
+#include <score/plugins/application/GUIApplicationPlugin.hpp>
+#include <score/plugins/documentdelegate/plugin/DocumentPluginCreator.hpp>
+#include <score/tools/IdentifierGeneration.hpp>
+#include <score/tools/Todo.hpp>
+#include <score/widgets/ControlWidgets.hpp>
+#include <score/widgets/DoubleSlider.hpp>
+#include <score/widgets/SetIcons.hpp>
+
 #include <core/application/ApplicationSettings.hpp>
 #include <core/document/Document.hpp>
 #include <core/document/DocumentModel.hpp>
 #include <core/document/DocumentPresenter.hpp>
 #include <core/presenter/DocumentManager.hpp>
 #include <core/presenter/Presenter.hpp>
+
 #include <ossia-qt/invoke.hpp>
-#include <score/actions/ActionManager.hpp>
-#include <score/application/ApplicationContext.hpp>
-#include <score/plugins/application/GUIApplicationPlugin.hpp>
-#include <score/tools/IdentifierGeneration.hpp>
-#include <score/tools/Todo.hpp>
-#include <score/widgets/ControlWidgets.hpp>
-#include <score/widgets/DoubleSlider.hpp>
-#include <score/widgets/SetIcons.hpp>
-#include <Scenario/Execution/score2OSSIA.hpp>
-#include <vector>
-#include <Scenario/Inspector/Interval/SpeedSlider.hpp>
-#include <Audio/AudioInterface.hpp>
-#include <QMessageBox>
+#include <ossia/audio/audio_protocol.hpp>
+#include <ossia/dataflow/execution_state.hpp>
+#include <ossia/editor/scenario/time_interval.hpp>
+#include <ossia/network/generic/generic_device.hpp>
+
+#include <QAction>
+#include <QApplication>
 #include <QLabel>
+#include <QMessageBox>
+#include <QVariant>
+#include <QVector>
+
+#include <Audio/AudioInterface.hpp>
+#include <Audio/Settings/Model.hpp>
+#include <Execution/BaseScenarioComponent.hpp>
+#include <Execution/Clock/ClockFactory.hpp>
+#include <Execution/ContextMenu/PlayContextMenu.hpp>
+#include <Execution/DocumentPlugin.hpp>
+#include <Execution/Settings/ExecutorModel.hpp>
+#include <LocalTree/LocalTreeDocumentPlugin.hpp>
 #include <wobjectimpl.h>
+
+#include <algorithm>
+#include <vector>
 SCORE_DECLARE_ACTION(
     RestartAudio, "Restart Audio", Common, QKeySequence::UnknownKey)
 
@@ -147,7 +153,7 @@ bool ApplicationPlugin::handleStartup()
 
 void ApplicationPlugin::restart_engine()
 {
-  if(m_updating_audio)
+  if (m_updating_audio)
     return;
 
   if (auto doc = this->currentDocument())
@@ -174,16 +180,22 @@ void ApplicationPlugin::setup_engine()
   auto& engines = score::GUIAppContext().interfaces<Audio::AudioFactoryList>();
 
   audio.reset();
-  if(auto dev = engines.get(set.getDriver()))
+  if (auto dev = engines.get(set.getDriver()))
   {
-    try {
+    try
+    {
       audio = dev->make_engine(set, ctx);
-    } catch (...) {
-      QMessageBox::warning(nullptr, tr("Audio error"), tr("The desired audio settings could not be applied.\nPlease change them."));
+    }
+    catch (...)
+    {
+      QMessageBox::warning(
+          nullptr, tr("Audio error"),
+          tr("The desired audio settings could not be applied.\nPlease change "
+             "them."));
     }
   }
 
-  if(m_audioEngineAct)
+  if (m_audioEngineAct)
     m_audioEngineAct->setChecked(bool(audio));
 }
 
@@ -191,13 +203,15 @@ void ApplicationPlugin::initialize()
 {
   auto& set = context.settings<Audio::Settings::Model>();
 
-  con(set, &Audio::Settings::Model::changed,
-      this, &ApplicationPlugin::restart_engine, Qt::QueuedConnection);
+  con(set, &Audio::Settings::Model::changed, this,
+      &ApplicationPlugin::restart_engine, Qt::QueuedConnection);
 
-  try {
+  try
+  {
     setup_engine();
-  } catch(...) {
-
+  }
+  catch (...)
+  {
   }
 }
 
@@ -218,9 +232,8 @@ score::GUIElements ApplicationPlugin::makeGUIElements()
     time_label->setText("00:00:00.000");
     bar->addWidget(time_label);
     auto timer = new QTimer{this};
-    connect(timer, &QTimer::timeout,
-            this, [=] {
-      if(m_clock)
+    connect(timer, &QTimer::timeout, this, [=] {
+      if (m_clock)
       {
         auto& itv = m_clock->scenario.baseInterval().scoreInterval().duration;
         auto time = (itv.defaultDuration() * itv.playPercentage()).toQTime();
@@ -232,13 +245,16 @@ score::GUIElements ApplicationPlugin::makeGUIElements()
       }
     });
     timer->start(1000 / 20);
-    toolbars.emplace_back(bar, StringKey<score::Toolbar>("Timing"), Qt::BottomToolBarArea, 100);
+    toolbars.emplace_back(
+        bar, StringKey<score::Toolbar>("Timing"), Qt::BottomToolBarArea, 100);
   }
 
   // The toolbar with the speed
   {
     m_speedToolbar = new QToolBar;
-    toolbars.emplace_back(m_speedToolbar, StringKey<score::Toolbar>("Speed"), Qt::BottomToolBarArea, 300);
+    toolbars.emplace_back(
+        m_speedToolbar, StringKey<score::Toolbar>("Speed"),
+        Qt::BottomToolBarArea, 300);
   }
 
   // The toolbar with the volume control
@@ -248,21 +264,23 @@ score::GUIElements ApplicationPlugin::makeGUIElements()
 
   setIcons(
       m_audioEngineAct, QStringLiteral(":/icons/engine_on.png"),
-      QStringLiteral(":/icons/engine_off.png"), QStringLiteral(":/icons/engine_disabled.png"), false);
+      QStringLiteral(":/icons/engine_off.png"),
+      QStringLiteral(":/icons/engine_disabled.png"), false);
   {
     auto bar = new QToolBar;
     bar->addAction(m_audioEngineAct);
     auto sl = new Control::VolumeSlider{bar};
     sl->setValue(0.5);
     bar->addWidget(sl);
-    connect(sl, &Control::VolumeSlider::valueChanged, this, [=] (double v) {
+    connect(sl, &Control::VolumeSlider::valueChanged, this, [=](double v) {
       if (m_clock)
       {
         if (auto& st = m_clock->context.execState)
         {
           for (auto& dev : st->edit_devices())
           {
-            if(auto protocol = dynamic_cast<ossia::audio_protocol*>(&dev->get_protocol()))
+            if (auto protocol
+                = dynamic_cast<ossia::audio_protocol*>(&dev->get_protocol()))
             {
               auto root
                   = ossia::net::find_node(dev->get_root_node(), "/out/main");
@@ -280,13 +298,14 @@ score::GUIElements ApplicationPlugin::makeGUIElements()
       }
     });
 
-    toolbars.emplace_back(bar, StringKey<score::Toolbar>("Audio"), Qt::BottomToolBarArea, 400);
+    toolbars.emplace_back(
+        bar, StringKey<score::Toolbar>("Audio"), Qt::BottomToolBarArea, 400);
   }
 
   e.actions.container.reserve(2);
   e.actions.add<Actions::RestartAudio>(m_audioEngineAct);
 
-  connect(m_audioEngineAct, &QAction::triggered, this, [=] (bool) {
+  connect(m_audioEngineAct, &QAction::triggered, this, [=](bool) {
     if (audio)
     {
       audio->stop();
@@ -311,10 +330,8 @@ score::GUIElements ApplicationPlugin::makeGUIElements()
     }
   });
 
-
   return e;
 }
-
 
 void ApplicationPlugin::on_initDocument(score::Document& doc)
 {
@@ -335,15 +352,14 @@ void ApplicationPlugin::on_createdDocument(score::Document& doc)
   score::addDocumentPlugin<Execution::DocumentPlugin>(doc);
 }
 
-
-
 void ApplicationPlugin::on_documentChanged(
     score::Document* olddoc, score::Document* newdoc)
 {
   if (context.applicationSettings.gui)
   {
-    auto cld = m_speedToolbar->findChildren<Scenario::SpeedWidget*>("SpeedSlider");
-    if(!cld.empty())
+    auto cld
+        = m_speedToolbar->findChildren<Scenario::SpeedWidget*>("SpeedSlider");
+    if (!cld.empty())
       cld[0]->deleteLater();
   }
 
@@ -367,11 +383,13 @@ void ApplicationPlugin::on_documentChanged(
     */
 
     // Setup speed toolbar
-    auto& root = score::IDocument::get<Scenario::ScenarioDocumentModel>(*newdoc);
+    auto& root
+        = score::IDocument::get<Scenario::ScenarioDocumentModel>(*newdoc);
 
     if (context.applicationSettings.gui)
     {
-      auto slider = new Scenario::SpeedWidget{root.baseInterval(), newdoc->context(), false, m_speedToolbar};
+      auto slider = new Scenario::SpeedWidget{
+          root.baseInterval(), newdoc->context(), false, m_speedToolbar};
       m_speedToolbar->addWidget(slider);
     }
 
@@ -460,14 +478,14 @@ void ApplicationPlugin::on_transport(TimeVal t)
 
   auto& settings = context.settings<Execution::Settings::Model>();
   auto& ctx = m_clock->context;
-  if(settings.getTransportValueCompilation())
+  if (settings.getTransportValueCompilation())
   {
     auto execState = m_clock->context.execState;
     ctx.executionQueue.enqueue(
         [execState, itv, time = m_clock->context.time(t)] {
-      itv->offset(time);
-      execState->commit();
-    });
+          itv->offset(time);
+          execState->commit();
+        });
   }
   else
   {
@@ -476,20 +494,14 @@ void ApplicationPlugin::on_transport(TimeVal t)
   }
 }
 
-
-
 void ApplicationPlugin::on_play(
-    Scenario::IntervalModel& cst,
-    bool b,
-    exec_setup_fun setup_fun,
-    TimeVal t)
+    Scenario::IntervalModel& cst, bool b, exec_setup_fun setup_fun, TimeVal t)
 {
   auto doc = currentDocument();
   if (!doc)
     return;
 
-  auto plugmodel
-      = doc->context().findPlugin<Execution::DocumentPlugin>();
+  auto plugmodel = doc->context().findPlugin<Execution::DocumentPlugin>();
   if (!plugmodel)
     return;
 
@@ -556,8 +568,7 @@ void ApplicationPlugin::on_record(::TimeVal t)
   // TODO have a on_exit handler to properly stop the scenario.
   if (auto doc = currentDocument())
   {
-    auto plugmodel
-        = doc->context().findPlugin<Execution::DocumentPlugin>();
+    auto plugmodel = doc->context().findPlugin<Execution::DocumentPlugin>();
     if (!plugmodel)
       return;
     auto scenar = dynamic_cast<Scenario::ScenarioDocumentModel*>(
@@ -594,8 +605,7 @@ void ApplicationPlugin::on_stop()
   if (auto doc = currentDocument())
   {
     doc->context().execTimer.stop();
-    auto plugmodel
-        = doc->context().findPlugin<Execution::DocumentPlugin>();
+    auto plugmodel = doc->context().findPlugin<Execution::DocumentPlugin>();
     if (!plugmodel)
       return;
     else
@@ -652,8 +662,7 @@ void ApplicationPlugin::on_init()
 {
   if (auto doc = currentDocument())
   {
-    auto plugmodel
-        = doc->context().findPlugin<Execution::DocumentPlugin>();
+    auto plugmodel = doc->context().findPlugin<Execution::DocumentPlugin>();
     if (!plugmodel)
       return;
 

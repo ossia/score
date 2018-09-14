@@ -6,6 +6,7 @@
 #include <Device/Node/DeviceNode.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <Explorer/DocumentPlugin/NodeUpdateProxy.hpp>
+
 #include <score/model/path/Path.hpp>
 #include <score/model/path/PathSerialization.hpp>
 #include <score/model/tree/TreeNode.hpp>
@@ -16,8 +17,7 @@ namespace Explorer
 namespace Command
 {
 UpdateAddressSettings::UpdateAddressSettings(
-    const DeviceDocumentPlugin& devplug,
-    const Device::NodePath& node,
+    const DeviceDocumentPlugin& devplug, const Device::NodePath& node,
     const Device::AddressSettings& parameters)
     : m_node(node), m_newParameters(parameters)
 {

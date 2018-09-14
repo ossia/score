@@ -2,22 +2,14 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "MetronomeModel.hpp"
 
-#include <ossia/editor/state/destination_qualifiers.hpp>
-#include <ossia/network/dataspace/dataspace_visitors.hpp>
-
-#include <Metronome/MetronomeProcessMetadata.hpp>
 #include <Curve/CurveModel.hpp>
 #include <Curve/Palette/CurvePoint.hpp>
 #include <Curve/Process/CurveProcessModel.hpp>
 #include <Curve/Segment/CurveSegmentModel.hpp>
 #include <Curve/Segment/Power/PowerSegment.hpp>
 #include <Process/Dataflow/Port.hpp>
-#include <QDebug>
-#include <QJsonObject>
-#include <QJsonValue>
-#include <QPoint>
 #include <State/Address.hpp>
-#include <algorithm>
+
 #include <score/document/DocumentInterface.hpp>
 #include <score/model/IdentifiedObjectMap.hpp>
 #include <score/model/Identifier.hpp>
@@ -29,7 +21,18 @@
 #include <score/tools/MapCopy.hpp>
 #include <score/tools/std/Optional.hpp>
 
+#include <ossia/editor/state/destination_qualifiers.hpp>
+#include <ossia/network/dataspace/dataspace_visitors.hpp>
+
+#include <QDebug>
+#include <QJsonObject>
+#include <QJsonValue>
+#include <QPoint>
+
+#include <Metronome/MetronomeProcessMetadata.hpp>
 #include <wobjectimpl.h>
+
+#include <algorithm>
 W_OBJECT_IMPL(Metronome::ProcessModel)
 namespace Process
 {
@@ -39,8 +42,7 @@ class QObject;
 namespace Metronome
 {
 ProcessModel::ProcessModel(
-    const TimeVal& duration,
-    const Id<Process::ProcessModel>& id,
+    const TimeVal& duration, const Id<Process::ProcessModel>& id,
     QObject* parent)
     : CurveProcessModel{duration, id,
                         Metadata<ObjectKey_k, ProcessModel>::get(), parent}

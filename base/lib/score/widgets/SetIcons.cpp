@@ -2,8 +2,10 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "SetIcons.hpp"
 
-#include <QHash>
 #include <score/widgets/Pixmap.hpp>
+
+#include <QHash>
+
 #include <hopscotch_map.h>
 
 namespace std
@@ -23,8 +25,9 @@ static auto& iconMap()
   return icons;
 }
 
-void setIcons(QAction* action, const QString& iconOn, const QString& iconOff,
-              const QString& iconDisable, bool enableHover)
+void setIcons(
+    QAction* action, const QString& iconOn, const QString& iconOff,
+    const QString& iconDisable, bool enableHover)
 {
   auto& map = iconMap();
   auto pair = std::make_pair(iconOn, iconOff);
@@ -40,10 +43,10 @@ void setIcons(QAction* action, const QString& iconOn, const QString& iconOff,
     QPixmap off = score::get_pixmap(iconOff);
     QPixmap disable = score::get_pixmap(iconDisable);
     icon.addPixmap(on, QIcon::Mode::Selected);
-    if(enableHover)
+    if (enableHover)
       icon.addPixmap(on, QIcon::Mode::Active);
     icon.addPixmap(on, QIcon::Mode::Normal, QIcon::State::On);
-    icon.addPixmap(disable,QIcon::Mode::Disabled);
+    icon.addPixmap(disable, QIcon::Mode::Disabled);
     icon.addPixmap(off, QIcon::Mode::Normal);
     action->setIcon(icon);
 
@@ -51,12 +54,14 @@ void setIcons(QAction* action, const QString& iconOn, const QString& iconOff,
   }
 }
 
-QIcon makeIcons(const QString& iconOn, const QString& iconOff, const QString& iconDisabled)
+QIcon makeIcons(
+    const QString& iconOn, const QString& iconOff, const QString& iconDisabled)
 {
   return genIconFromPixmaps(iconOn, iconOff, iconDisabled);
 }
 
-QIcon genIconFromPixmaps(const QString& iconOn, const QString& iconOff, const QString& iconDisabled)
+QIcon genIconFromPixmaps(
+    const QString& iconOn, const QString& iconOff, const QString& iconDisabled)
 {
   auto& map = iconMap();
   auto pair = std::make_pair(iconOn, iconOff);
@@ -97,7 +102,7 @@ QPixmap get_pixmap(QString str)
     {
       auto newstr = str;
       newstr.replace(".png", "@2x.png", Qt::CaseInsensitive);
-      if(QFile::exists(newstr))
+      if (QFile::exists(newstr))
       {
         str = newstr;
       }
@@ -120,7 +125,7 @@ QImage get_image(QString str)
     {
       auto newstr = str;
       newstr.replace(".png", "@2x.png", Qt::CaseInsensitive);
-      if(QFile::exists(newstr))
+      if (QFile::exists(newstr))
       {
         str = newstr;
       }
@@ -133,5 +138,4 @@ QImage get_image(QString str)
   img.load(str);
   return img;
 }
-
 }

@@ -3,6 +3,13 @@
 #include "MetadataWidget.hpp"
 
 #include <Inspector/InspectorSectionWidget.hpp>
+#include <Scenario/Inspector/CommentEdit.hpp>
+#include <Scenario/Inspector/ExtendedMetadataWidget.hpp>
+
+#include <score/command/Dispatchers/CommandDispatcher.hpp>
+#include <score/model/ModelMetadata.hpp>
+#include <score/widgets/MarginLess.hpp>
+
 #include <QBoxLayout>
 #include <QColorDialog>
 #include <QFormLayout>
@@ -15,11 +22,6 @@
 #include <QToolButton>
 #include <QWidgetAction>
 #include <QtColorWidgets/color_palette_widget.hpp>
-#include <Scenario/Inspector/CommentEdit.hpp>
-#include <Scenario/Inspector/ExtendedMetadataWidget.hpp>
-#include <score/command/Dispatchers/CommandDispatcher.hpp>
-#include <score/model/ModelMetadata.hpp>
-#include <score/widgets/MarginLess.hpp>
 
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Scenario::MetadataWidget)
@@ -46,10 +48,8 @@ auto colorPalette() -> color_widgets::ColorPaletteModel&
   return p;
 }
 MetadataWidget::MetadataWidget(
-    const score::ModelMetadata& metadata,
-    const score::CommandStackFacade& m,
-    const QObject* docObject,
-    QWidget* parent)
+    const score::ModelMetadata& metadata, const score::CommandStackFacade& m,
+    const QObject* docObject, QWidget* parent)
     : QWidget(parent)
     , m_metadata{metadata}
     , m_commandDispatcher{m}
@@ -60,7 +60,7 @@ MetadataWidget::MetadataWidget(
     , m_comments{metadata.getComment(), this}
     , m_colorButton{this}
     , m_cmtBtn{this}
-    // , m_meta{metadata.getExtendedMetadata(), this}
+// , m_meta{metadata.getExtendedMetadata(), this}
 {
   // main
   m_metadataLayout.setSizeConstraint(QLayout::SetMinimumSize);
@@ -70,8 +70,8 @@ MetadataWidget::MetadataWidget(
   // Name(s)
   m_descriptionLay.addRow(tr("Label"), &m_labelLine);
   m_descriptionWidget.setObjectName("Description");
-  con(metadata, &score::ModelMetadata::LabelChanged,
-      this, [=] (const auto& str) { m_labelLine.setText(str); });
+  con(metadata, &score::ModelMetadata::LabelChanged, this,
+      [=](const auto& str) { m_labelLine.setText(str); });
 
   // color
   m_colorButton.setArrowType(Qt::NoArrow);
@@ -87,23 +87,23 @@ MetadataWidget::MetadataWidget(
   m_cmtLabel = new TextLabel{tr("Comments"), this};
   m_cmtLay.addWidget(m_cmtLabel);
 
-  con(metadata, &score::ModelMetadata::CommentChanged,
-      this, [=] (const auto& str) { m_comments.setText(str); });
+  con(metadata, &score::ModelMetadata::CommentChanged, this,
+      [=](const auto& str) { m_comments.setText(str); });
 
-  //m_meta.setVisible(false);
+  // m_meta.setVisible(false);
 
   m_btnLay.addWidget(&m_colorButton);
   m_btnLay.addLayout(&m_cmtLay);
 
   m_headerLay.addWidget(&m_descriptionWidget);
 
-  //m_metadataLayout.addWidget(&m_meta);
+  // m_metadataLayout.addWidget(&m_meta);
   m_metadataLayout.addWidget(&m_comments);
 
   con(m_cmtBtn, &QToolButton::released, this, [&]() {
     m_cmtExpanded = !m_cmtExpanded;
     m_comments.setVisible(m_cmtExpanded);
-    //m_meta.setVisible(m_cmtExpanded);
+    // m_meta.setVisible(m_cmtExpanded);
     if (m_cmtExpanded)
       m_cmtBtn.setArrowType(Qt::DownArrow);
     else
@@ -144,7 +144,7 @@ MetadataWidget::MetadataWidget(
             if (col)
               colorChanged(*col);
           }
-    });
+        });
 
     auto colorMenu = new QMenu{this};
     auto act = new QWidgetAction(colorMenu);
@@ -159,10 +159,10 @@ MetadataWidget::MetadataWidget(
     m_colorButton.setIcon(QIcon(m_colorButtonPixmap));
     m_colorButton.setIconSize(QSize(m_colorIconSize, m_colorIconSize));
 
-    con(metadata, &score::ModelMetadata::ColorChanged,
-        this, [=] (const score::ColorRef& str) {
-      palette_widget->setCurrentColor(str.getBrush().color());
-    });
+    con(metadata, &score::ModelMetadata::ColorChanged, this,
+        [=](const score::ColorRef& str) {
+          palette_widget->setCurrentColor(str.getBrush().color());
+        });
   }
 
   con(metadata, &score::ModelMetadata::metadataChanged, this,

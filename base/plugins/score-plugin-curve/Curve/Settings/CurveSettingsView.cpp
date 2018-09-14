@@ -2,10 +2,11 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "CurveSettingsView.hpp"
 
+#include <score/widgets/SignalUtils.hpp>
+
 #include <QCheckBox>
 #include <QFormLayout>
 #include <QSpinBox>
-#include <score/widgets/SignalUtils.hpp>
 
 namespace Curve
 {

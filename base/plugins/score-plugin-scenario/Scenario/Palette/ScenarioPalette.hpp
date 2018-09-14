@@ -1,13 +1,15 @@
 #pragma once
 #include <Process/ProcessContext.hpp>
 #include <Process/Tools/ToolPalette.hpp>
-#include <QPoint>
 #include <Scenario/Palette/ScenarioPoint.hpp>
 #include <Scenario/Palette/Tool.hpp>
 #include <Scenario/Palette/Tools/CreationToolState.hpp>
 #include <Scenario/Palette/Tools/PlayToolState.hpp>
 #include <Scenario/Palette/Tools/SmartTool.hpp>
+
 #include <score/statemachine/GraphicsSceneToolPalette.hpp>
+
+#include <QPoint>
 
 namespace score
 {
@@ -64,9 +66,7 @@ private:
 
   CreationTool<ProcessModel, Scenario::ToolPalette> m_createTool;
   SmartTool<
-      ProcessModel,
-      Scenario::ToolPalette,
-      TemporalScenarioView,
+      ProcessModel, Scenario::ToolPalette, TemporalScenarioView,
       Scenario::MoveIntervalInScenario_StateWrapper,
       Scenario::MoveLeftBraceInScenario_StateWrapper,
       Scenario::MoveRightBraceInScenario_StateWrapper,
@@ -77,10 +77,7 @@ private:
   PlayToolState m_playTool;
 
   ToolPaletteInputDispatcher<
-      Scenario::Tool,
-      ToolPalette,
-      Process::LayerContext,
-      Process::LayerView>
+      Scenario::Tool, ToolPalette, Process::LayerContext, Process::LayerView>
       m_inputDisp;
 };
 }

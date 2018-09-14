@@ -1,7 +1,9 @@
 #pragma once
-#include <QJsonObject>
 #include <score/plugins/customfactory/UuidKey.hpp>
 #include <score/tools/Version.hpp>
+
+#include <QJsonObject>
+
 #include <score_lib_base_export.h>
 
 namespace score

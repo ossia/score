@@ -1,17 +1,19 @@
 #pragma once
 #include <Dataflow/Commands/CableHelpers.hpp>
-#include <QByteArray>
-#include <QPair>
-#include <QVector>
 #include <Scenario/Commands/Event/SplitEvent.hpp>
 #include <Scenario/Commands/Interval/SetRigidity.hpp>
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
 #include <Scenario/Commands/TimeSync/SplitTimeSync.hpp>
+
 #include <score/command/Command.hpp>
 #include <score/model/Identifier.hpp>
 #include <score/model/path/Path.hpp>
 #include <score/selection/Selection.hpp>
 #include <score/tools/std/Optional.hpp>
+
+#include <QByteArray>
+#include <QPair>
+#include <QVector>
 
 struct DataStreamInput;
 struct DataStreamOutput;
@@ -35,8 +37,7 @@ class SCORE_PLUGIN_SCENARIO_EXPORT RemoveSelection final
     : public score::Command
 {
   SCORE_COMMAND_DECL(
-      ScenarioCommandFactoryName(),
-      RemoveSelection,
+      ScenarioCommandFactoryName(), RemoveSelection,
       "Remove selected elements")
 public:
   RemoveSelection(const Scenario::ProcessModel&, Selection sel);

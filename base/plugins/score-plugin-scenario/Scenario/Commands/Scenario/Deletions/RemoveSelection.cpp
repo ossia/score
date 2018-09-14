@@ -2,12 +2,6 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "RemoveSelection.hpp"
 
-#include <QDataStream>
-#include <QList>
-#include <QPointer>
-#include <QSet>
-#include <QString>
-#include <QtGlobal>
 #include <Scenario/Document/CommentBlock/CommentBlockModel.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
@@ -18,10 +12,7 @@
 #include <Scenario/Process/Algorithms/StandardRemovalPolicy.hpp>
 #include <Scenario/Process/Algorithms/VerticalMovePolicy.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
-#include <algorithm>
 
-
-#include <iterator>
 #include <score/document/DocumentContext.hpp>
 #include <score/model/EntityMap.hpp>
 #include <score/model/IdentifiedObject.hpp>
@@ -33,6 +24,16 @@
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/tools/IdentifierGeneration.hpp>
 #include <score/tools/MapCopy.hpp>
+
+#include <QDataStream>
+#include <QList>
+#include <QPointer>
+#include <QSet>
+#include <QString>
+#include <QtGlobal>
+
+#include <algorithm>
+#include <iterator>
 
 namespace Scenario
 {
@@ -209,7 +210,6 @@ RemoveSelection::RemoveSelection(
       }
     }
   }
-
 
   auto purged = sel.toList().toSet().toList();
 
@@ -461,7 +461,6 @@ void RemoveSelection::redo(const score::DocumentContext& ctx) const
 
   // The other things
 
-
   for (const auto& cmt : m_removedComments)
   {
     auto it = scenar.comments.find(cmt.first);
@@ -483,7 +482,7 @@ void RemoveSelection::redo(const score::DocumentContext& ctx) const
   {
     auto e = scenar.findEvent(ev.first);
 
-    if(e->states().size() == 0)
+    if (e->states().size() == 0)
     {
       scenar.timeSyncs.at(e->timeSync()).removeEvent(e->id());
       scenar.events.remove(e);
@@ -501,7 +500,7 @@ void RemoveSelection::redo(const score::DocumentContext& ctx) const
   for (const auto& tsid : m_cleanedTimeSyncs)
   {
     auto ts = scenar.findTimeSync(tsid.first);
-    if(ts->events().size() == 0)
+    if (ts->events().size() == 0)
     {
       scenar.timeSyncs.remove(ts);
     }

@@ -3,6 +3,7 @@
 
 #include <Curve/Palette/CommandObjects/MovePointCommandObject.hpp>
 #include <Curve/Palette/CurvePoint.hpp>
+
 #include <QPoint>
 
 namespace Curve

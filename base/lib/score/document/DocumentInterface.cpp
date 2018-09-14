@@ -2,13 +2,16 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "DocumentInterface.hpp"
 
-#include <QObject>
-#include <QString>
+#include <score/model/path/ObjectPath.hpp>
+#include <score/plugins/documentdelegate/DocumentDelegateModel.hpp>
+
 #include <core/document/Document.hpp>
 #include <core/document/DocumentModel.hpp>
 #include <core/document/DocumentPresenter.hpp>
-#include <score/model/path/ObjectPath.hpp>
-#include <score/plugins/documentdelegate/DocumentDelegateModel.hpp>
+
+#include <QObject>
+#include <QString>
+
 #include <stdexcept>
 
 score::Document* score::IDocument::documentFromObject(const QObject* obj)

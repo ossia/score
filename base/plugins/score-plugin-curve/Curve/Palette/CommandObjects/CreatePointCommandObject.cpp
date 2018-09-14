@@ -10,11 +10,14 @@
 #include <Curve/Point/CurvePointModel.hpp>
 #include <Curve/Segment/CurveSegmentData.hpp>
 #include <Curve/Segment/Power/PowerSegment.hpp>
-#include <QPoint>
-#include <QVariant>
-#include <algorithm>
+
 #include <score/command/Dispatchers/SingleOngoingCommandDispatcher.hpp>
 #include <score/model/Identifier.hpp>
+
+#include <QPoint>
+#include <QVariant>
+
+#include <algorithm>
 
 namespace score
 {

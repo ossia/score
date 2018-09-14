@@ -1,14 +1,19 @@
 #pragma once
 #include <Process/Dataflow/Cable.hpp>
-#include <wobjectdefs.h>
 #include <Process/Dataflow/Port.hpp>
-#include <QPointer>
-#include <core/document/Document.hpp>
-#include <score/plugins/documentdelegate/DocumentDelegateModel.hpp>
 #include <Scenario/Instantiations.hpp>
+
+#include <score/plugins/documentdelegate/DocumentDelegateModel.hpp>
 #include <score/selection/Selection.hpp>
 #include <score/serialization/VisitorInterface.hpp>
+
+#include <core/document/Document.hpp>
+
+#include <QPointer>
+
 #include <score_plugin_scenario_export.h>
+#include <wobjectdefs.h>
+
 #include <unordered_set>
 
 class JSONObject;
@@ -25,8 +30,8 @@ class BaseScenario;
 class IntervalModel;
 class FullViewConstraintViewModel;
 class SCORE_PLUGIN_SCENARIO_EXPORT ScenarioDocumentModel final
-    : public score::DocumentDelegateModel
-    , public Nano::Observer
+    : public score::DocumentDelegateModel,
+      public Nano::Observer
 {
   W_OBJECT(ScenarioDocumentModel)
   SCORE_SERIALIZE_FRIENDS

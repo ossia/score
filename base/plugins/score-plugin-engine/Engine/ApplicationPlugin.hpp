@@ -1,15 +1,21 @@
 #pragma once
 
-#include <Execution/ContextMenu/PlayContextMenu.hpp>
 #include <Process/TimeValue.hpp>
+
 #include <score/plugins/application/GUIApplicationPlugin.hpp>
 #include <score/plugins/documentdelegate/plugin/DocumentPlugin.hpp>
-#include <score_plugin_engine_export.h>
+
 #include <QString>
+
+#include <Execution/ContextMenu/PlayContextMenu.hpp>
+#include <score_plugin_engine_export.h>
+
 #include <memory>
 
 namespace Scenario
-{ class IntervalModel; }
+{
+class IntervalModel;
+}
 namespace Execution
 {
 struct Context;
@@ -22,16 +28,18 @@ namespace LocalTree
 class DocumentPlugin;
 }
 
-
 namespace ossia
-{ class audio_engine; }
+{
+class audio_engine;
+}
 
 namespace Engine
 {
-using exec_setup_fun = std::function<void(const Execution::Context&, Execution::BaseScenarioElement&)>;
+using exec_setup_fun = std::function<void(
+    const Execution::Context&, Execution::BaseScenarioElement&)>;
 class SCORE_PLUGIN_ENGINE_EXPORT ApplicationPlugin final
-    : public QObject
-    , public score::GUIApplicationPlugin
+    : public QObject,
+      public score::GUIApplicationPlugin
 {
 public:
   ApplicationPlugin(const score::GUIApplicationContext& app);
@@ -50,9 +58,7 @@ public:
 
   void on_play(bool, ::TimeVal t = ::TimeVal::zero());
   void on_play(
-      Scenario::IntervalModel&,
-      bool,
-      exec_setup_fun setup = {},
+      Scenario::IntervalModel&, bool, exec_setup_fun setup = {},
       ::TimeVal t = ::TimeVal::zero());
 
   void on_record(::TimeVal t);
@@ -77,8 +83,7 @@ private:
   void on_transport(TimeVal t);
   void initLocalTreeNodes(LocalTree::DocumentPlugin&);
 
-  std::unique_ptr<Execution::Clock>
-  makeClock(const Execution::Context&);
+  std::unique_ptr<Execution::Clock> makeClock(const Execution::Context&);
 
   Execution::PlayContextMenu m_playActions;
 

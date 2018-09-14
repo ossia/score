@@ -1,37 +1,41 @@
-#include <Process/ExecutionSetup.hpp>
+#include <Process/Dataflow/Cable.hpp>
+#include <Process/Dataflow/Port.hpp>
 #include <Process/ExecutionContext.hpp>
 #include <Process/ExecutionFunctions.hpp>
+#include <Process/ExecutionSetup.hpp>
 #include <Process/Process.hpp>
-#include <Process/Dataflow/Port.hpp>
-#include <Process/Dataflow/Cable.hpp>
 #include <State/Address.hpp>
-#include <ossia/editor/state/destination_qualifiers.hpp>
-#include <ossia/dataflow/graph/graph_interface.hpp>
+
 #include <ossia/dataflow/execution_state.hpp>
+#include <ossia/dataflow/graph/graph_interface.hpp>
 #include <ossia/dataflow/graph_node.hpp>
+#include <ossia/editor/state/destination_qualifiers.hpp>
 
 namespace Execution
 {
-ossia::net::node_base* findNode(
-    const ossia::execution_state& st
-    , const State::Address& addr)
+ossia::net::node_base*
+findNode(const ossia::execution_state& st, const State::Address& addr)
 {
   auto& devs = st.edit_devices();
-  auto dev_p = ossia::find_if(devs, [d=addr.device.toStdString()] (auto& dev) { return dev->get_name() == d; });
+  auto dev_p
+      = ossia::find_if(devs, [d = addr.device.toStdString()](auto& dev) {
+          return dev->get_name() == d;
+        });
   if (dev_p == devs.end())
     return nullptr;
-  return ossia::net::find_node((*dev_p)->get_root_node(), addr.path.join("/").toStdString());
+  return ossia::net::find_node(
+      (*dev_p)->get_root_node(), addr.path.join("/").toStdString());
 }
 
 optional<ossia::destination> makeDestination(
     const ossia::execution_state& devices, const State::AddressAccessor& addr)
 {
   auto n = findNode(devices, addr.address);
-  if(!n)
+  if (!n)
     return {};
 
   auto p = n->get_parameter();
-  if(!p)
+  if (!p)
     return {};
 
   auto& qual = addr.qualifiers.get();
@@ -51,7 +55,9 @@ void SetupContext::on_cableRemoved(const Process::Cable& c)
   if (it != m_cables.end())
   {
     context.executionQueue.enqueue(
-        [cable = it->second, graph = context.execGraph] { graph->disconnect(cable); });
+        [cable = it->second, graph = context.execGraph] {
+          graph->disconnect(cable);
+        });
   }
 }
 
@@ -121,11 +127,11 @@ void SetupContext::connectCable(Process::Cable& cable)
     }
 
     m_cables[cable.id()] = edge;
-    context.executionQueue.enqueue(
-        [edge, graph = context.execGraph] { graph->connect(std::move(edge)); });
+    context.executionQueue.enqueue([edge, graph = context.execGraph] {
+      graph->connect(std::move(edge));
+    });
   }
 }
-
 
 void SetupContext::register_node(
     const Process::ProcessModel& proc,
@@ -143,8 +149,9 @@ void SetupContext::unregister_node(
   proc_map.erase(node.get());
 }
 
-template<typename T>
-void set_destination_impl(const Context& plug, const State::AddressAccessor& address, const T& port)
+template <typename T>
+void set_destination_impl(
+    const Context& plug, const State::AddressAccessor& address, const T& port)
 {
   if (address.address.device.isEmpty())
     return;
@@ -158,7 +165,8 @@ void set_destination_impl(const Context& plug, const State::AddressAccessor& add
     {
       equeue.enqueue([=, g = plug.execGraph] {
         port->address = p;
-        if (ossia::value_port* dat = port->data.template target<ossia::value_port>())
+        if (ossia::value_port* dat
+            = port->data.template target<ossia::value_port>())
         {
           if (qual.unit)
             dat->type = qual.unit;
@@ -180,11 +188,12 @@ void set_destination_impl(const Context& plug, const State::AddressAccessor& add
     // OPTIMIZEME
     QString ad = address.address.toString_unsafe();
     auto path = ossia::traversal::make_path(ad.toStdString());
-    if(path)
+    if (path)
     {
-      equeue.enqueue([=, g = plug.execGraph, p = *path] () mutable {
+      equeue.enqueue([=, g = plug.execGraph, p = *path]() mutable {
         port->address = std::move(p);
-        if (ossia::value_port* dat = port->data.template target<ossia::value_port>())
+        if (ossia::value_port* dat
+            = port->data.template target<ossia::value_port>())
         {
           dat->type = {};
           dat->index.clear();
@@ -196,7 +205,8 @@ void set_destination_impl(const Context& plug, const State::AddressAccessor& add
     {
       equeue.enqueue([=, g = plug.execGraph] {
         port->address = {};
-        if (ossia::value_port* dat = port->data.template target<ossia::value_port>())
+        if (ossia::value_port* dat
+            = port->data.template target<ossia::value_port>())
         {
           dat->type = {};
           dat->index.clear();
@@ -218,10 +228,8 @@ void SetupContext::set_destination(
   set_destination_impl(context, address, port);
 }
 
-
 void SetupContext::register_node(
-    const Process::Inlets& proc_inlets,
-    const Process::Outlets& proc_outlets,
+    const Process::Inlets& proc_inlets, const Process::Outlets& proc_outlets,
     const std::shared_ptr<ossia::graph_node>& node)
 {
   if (node)
@@ -276,8 +284,7 @@ void SetupContext::register_node(
 }
 
 void SetupContext::register_inlet(
-    Process::Inlet& proc_inlet,
-    const ossia::inlet_ptr& port,
+    Process::Inlet& proc_inlet, const ossia::inlet_ptr& port,
     const std::shared_ptr<ossia::graph_node>& node)
 {
   if (node)
@@ -305,8 +312,7 @@ void SetupContext::register_inlet(
 }
 
 void SetupContext::unregister_node(
-    const Process::Inlets& proc_inlets,
-    const Process::Outlets& proc_outlets,
+    const Process::Inlets& proc_inlets, const Process::Outlets& proc_outlets,
     const std::shared_ptr<ossia::graph_node>& node)
 {
   if (node)
@@ -334,8 +340,7 @@ void SetupContext::unregister_node(
 }
 
 void SetupContext::unregister_node_soft(
-    const Process::Inlets& proc_inlets,
-    const Process::Outlets& proc_outlets,
+    const Process::Inlets& proc_inlets, const Process::Outlets& proc_outlets,
     const std::shared_ptr<ossia::graph_node>& node)
 {
   if (node)
@@ -352,5 +357,4 @@ void SetupContext::unregister_node_soft(
   for (auto ptr : proc_outlets)
     outlets.erase(ptr);
 }
-
 }

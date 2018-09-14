@@ -5,13 +5,13 @@
 #include "CurvePointInspectorWidget.hpp"
 
 #include <Curve/Point/CurvePointModel.hpp>
+
 #include <QString>
 namespace Automation
 {
 QWidget* PointInspectorFactory::make(
     const QList<const QObject*>& sourceElements,
-    const score::DocumentContext& doc,
-    QWidget* parent) const
+    const score::DocumentContext& doc, QWidget* parent) const
 {
   return new PointInspectorWidget{
       safe_cast<const Curve::PointModel&>(*sourceElements.first()), doc,

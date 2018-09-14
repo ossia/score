@@ -1,12 +1,14 @@
 #pragma once
 #include <Process/Tools/ToolPalette.hpp>
-#include <QPoint>
 #include <Scenario/Document/BaseScenario/BaseElementContext.hpp>
 #include <Scenario/Palette/ScenarioPoint.hpp>
 #include <Scenario/Palette/Tool.hpp>
 #include <Scenario/Palette/Tools/SmartTool.hpp>
 #include <Scenario/Palette/Tools/States/ScenarioMoveStatesWrapper.hpp>
+
 #include <score/statemachine/GraphicsSceneToolPalette.hpp>
+
+#include <QPoint>
 class BaseGraphicsObject;
 namespace Scenario
 {
@@ -47,10 +49,8 @@ private:
   ScenarioDocumentPresenter& m_presenter;
   BaseElementContext m_context;
   Scenario::SmartTool<
-      BaseScenario,
-      BaseScenarioDisplayedElementsToolPalette,
-      BaseGraphicsObject,
-      MoveIntervalInBaseScenario_StateWrapper,
+      BaseScenario, BaseScenarioDisplayedElementsToolPalette,
+      BaseGraphicsObject, MoveIntervalInBaseScenario_StateWrapper,
       MoveLeftBraceInScenario_StateWrapper,
       MoveRightBraceInScenario_StateWrapper,
       MoveEventInBaseScenario_StateWrapper,
@@ -58,10 +58,8 @@ private:
       m_state;
 
   ToolPaletteInputDispatcher<
-      Scenario::Tool,
-      BaseScenarioDisplayedElementsToolPalette,
-      BaseElementContext,
-      ScenarioDocumentPresenter>
+      Scenario::Tool, BaseScenarioDisplayedElementsToolPalette,
+      BaseElementContext, ScenarioDocumentPresenter>
       m_inputDisp;
 };
 }

@@ -1,4 +1,5 @@
 #include "Process.hpp"
+
 #include <wobjectimpl.h>
 
 W_OBJECT_IMPL(Skeleton::Model)
@@ -6,8 +7,7 @@ namespace Skeleton
 {
 
 Model::Model(
-    const TimeVal& duration,
-    const Id<Process::ProcessModel>& id,
+    const TimeVal& duration, const Id<Process::ProcessModel>& id,
     QObject* parent)
     : Process::ProcessModel{duration, id, "SkeletonProcess", parent}
 {

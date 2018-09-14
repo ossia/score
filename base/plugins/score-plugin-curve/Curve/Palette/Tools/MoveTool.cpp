@@ -9,10 +9,12 @@
 #include <Curve/Palette/Tools/CurveTool.hpp>
 #include <Curve/Point/CurvePointView.hpp>
 #include <Curve/Segment/CurveSegmentView.hpp>
-#include <QState>
-#include <QStateMachine>
+
 #include <score/statemachine/StateMachineUtils.hpp>
 #include <score/tools/std/Optional.hpp>
+
+#include <QState>
+#include <QStateMachine>
 
 namespace Curve
 {

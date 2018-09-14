@@ -1,7 +1,4 @@
 #pragma once
-#include <QObject>
-#include <wobjectdefs.h>
-#include <QStringList>
 #include <score/command/Command.hpp>
 #include <score/command/CommandGeneratorMap.hpp>
 #include <score/plugins/application/GUIApplicationPlugin.hpp>
@@ -9,6 +6,12 @@
 #include <score/plugins/qt_interfaces/FactoryInterface_QtInterface.hpp>
 #include <score/plugins/qt_interfaces/GUIApplicationPlugin_QtInterface.hpp>
 #include <score/plugins/qt_interfaces/PluginRequirements_QtInterface.hpp>
+
+#include <QObject>
+#include <QStringList>
+
+#include <wobjectdefs.h>
+
 #include <utility>
 
 namespace score
@@ -26,10 +29,10 @@ namespace score
  *
  */
 class score_plugin_recording final
-    : public score::Plugin_QtInterface
-    , public score::ApplicationPlugin_QtInterface
-    , public score::CommandFactory_QtInterface
-    , public score::FactoryInterface_QtInterface
+    : public score::Plugin_QtInterface,
+      public score::ApplicationPlugin_QtInterface,
+      public score::CommandFactory_QtInterface,
+      public score::FactoryInterface_QtInterface
 {
   SCORE_PLUGIN_METADATA(1, "659ba25e-97e5-40d9-8db8-f7a8537035ad")
 public:

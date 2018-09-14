@@ -2,13 +2,15 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "ScenarioDisplayedElementsToolPaletteFactory.hpp"
 
-#include <QObject>
 #include <Scenario/Document/DisplayedElements/DisplayedElementsToolPalette/ScenarioDisplayedElementsToolPalette.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentPresenter.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
+
 #include <score/document/DocumentInterface.hpp>
 #include <score/statemachine/GraphicsSceneToolPalette.hpp>
+
+#include <QObject>
 
 namespace Scenario
 {

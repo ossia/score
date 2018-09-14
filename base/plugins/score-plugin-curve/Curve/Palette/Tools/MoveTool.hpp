@@ -4,6 +4,7 @@
 #include <Curve/Palette/CommandObjects/SetSegmentParametersCommandObject.hpp>
 #include <Curve/Palette/CurvePoint.hpp>
 #include <Curve/Palette/Tools/CurveTool.hpp>
+
 #include <QPoint>
 
 namespace Curve

@@ -1,21 +1,21 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "GradientExecution.hpp"
-#include <ossia/dataflow/nodes/gradient.hpp>
+
 #include <Process/ExecutionContext.hpp>
+
+#include <ossia/dataflow/nodes/gradient.hpp>
 namespace Gradient
 {
 namespace RecreateOnPlay
 {
 using gradient = ossia::nodes::gradient;
 Component::Component(
-    ::Gradient::ProcessModel& element,
-    const ::Execution::Context& ctx,
-    const Id<score::Component>& id,
-    QObject* parent)
-    : ::Execution::
-          ProcessComponent_T<Gradient::ProcessModel, ossia::node_process>{
-              element, ctx, id, "Executor::GradientComponent", parent}
+    ::Gradient::ProcessModel& element, const ::Execution::Context& ctx,
+    const Id<score::Component>& id, QObject* parent)
+    : ::Execution::ProcessComponent_T<
+          Gradient::ProcessModel, ossia::node_process>{
+          element, ctx, id, "Executor::GradientComponent", parent}
 {
   auto node = std::make_shared<gradient>();
   this->node = node;

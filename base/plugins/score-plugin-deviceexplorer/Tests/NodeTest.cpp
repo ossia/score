@@ -1,14 +1,18 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+#include <Device/Node/DeviceNode.hpp>
+
+#include <score/serialization/AnySerialization.hpp>
+
+#include <core/application/MockApplication.hpp>
+
 #include <ossia/network/base/node_attributes.hpp>
 
-#include <Device/Node/DeviceNode.hpp>
 #include <QObject>
 #include <QString>
 #include <QtTest/QtTest>
+
 #include <algorithm>
-#include <core/application/MockApplication.hpp>
-#include <score/serialization/AnySerialization.hpp>
 class NodeTest : public QObject
 {
   Q_OBJECT
@@ -243,13 +247,13 @@ private:
 
     score::testing::MockApplication app;
     Device::AddressSettings s;
-    for (auto val :
-         {ossia::value(State::impulse{}), ossia::value(int{}),
-          ossia::value(float{}), ossia::value(char{}),
-          ossia::value(std::string{}), ossia::value(std::vector<ossia::value>{}),
-          ossia::value(std::array<float, 2>{}),
-          ossia::value(std::array<float, 3>{}),
-          ossia::value(std::array<float, 4>{})})
+    for (auto val : {ossia::value(State::impulse{}), ossia::value(int{}),
+                     ossia::value(float{}), ossia::value(char{}),
+                     ossia::value(std::string{}),
+                     ossia::value(std::vector<ossia::value>{}),
+                     ossia::value(std::array<float, 2>{}),
+                     ossia::value(std::array<float, 3>{}),
+                     ossia::value(std::array<float, 4>{})})
     {
       s.value = val;
       auto out = DataStreamWriter::unmarshall<Device::AddressSettings>(
@@ -272,4 +276,5 @@ QTEST_MAIN(NodeTest)
 
 #include <Device/Address/AddressSettings.hpp>
 #include <Device/Protocol/DeviceSettings.hpp>
+
 #include <score/model/tree/TreeNode.hpp>

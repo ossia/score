@@ -1,6 +1,8 @@
 #pragma once
 #include <score/plugins/customfactory/FactoryFamily.hpp>
+
 #include <ossia/detail/for_each.hpp>
+
 #include <type_traits>
 
 /**
@@ -13,7 +15,7 @@ auto make_ptr_vector() noexcept
   std::vector<std::unique_ptr<Base_T>> vec;
 
   vec.reserve(sizeof...(Args));
-  ossia::for_each_type_tagged<Args...>([&] (auto tag) {
+  ossia::for_each_type_tagged<Args...>([&](auto tag) {
     vec.push_back(std::make_unique<typename decltype(tag)::type>());
   });
 
@@ -47,8 +49,10 @@ void fill_ptr_vector(
     std::vector<std::unique_ptr<Base_T>>& vec) noexcept
 {
   vec.reserve(sizeof...(Args));
-  ossia::for_each_type_tagged<Args...>([&] (auto tag) {
-    vec.push_back(FactoryBuilder<Context_T, typename decltype(tag)::type>::make(context));
+  ossia::for_each_type_tagged<Args...>([&](auto tag) {
+    vec.push_back(
+        FactoryBuilder<Context_T, typename decltype(tag)::type>::make(
+            context));
   });
 }
 
@@ -62,13 +66,12 @@ struct FW_T
 {
 #if !defined(_MSC_VER)
   static_assert(
-        (std::is_base_of<Factory_T, Types_T>::value && ...),
-        "A type is not child of the parent.");
+      (std::is_base_of<Factory_T, Types_T>::value && ...),
+      "A type is not child of the parent.");
 #endif
   template <typename Context_T>
   bool operator()(
-      const Context_T& ctx,
-      const score::InterfaceKey& fact,
+      const Context_T& ctx, const score::InterfaceKey& fact,
       std::vector<std::unique_ptr<score::InterfaceBase>>& vec) noexcept
   {
     if (fact == Factory_T::static_interfaceKey())
@@ -106,10 +109,11 @@ template <typename Context_T, typename... Args>
 auto instantiate_factories(
     const Context_T& ctx, const score::InterfaceKey& key) noexcept
 {
-  // TODO one day investigate whether doing it with frozen::unordered_map is better ?
+  // TODO one day investigate whether doing it with frozen::unordered_map is
+  // better ?
   std::vector<std::unique_ptr<score::InterfaceBase>> vec;
 
-  ossia::for_each_type_if_tagged<Args...>([&] (auto t){
+  ossia::for_each_type_if_tagged<Args...>([&](auto t) {
     using fw_t = typename decltype(t)::type;
     return fw_t{}(ctx, key, vec);
   });

@@ -2,20 +2,21 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "UnitWidget.hpp"
 
+#include <score/widgets/MarginLess.hpp>
+#include <score/widgets/SignalUtils.hpp>
+
+#include <ossia/detail/for_each.hpp>
 #include <ossia/network/dataspace/dataspace.hpp>
 #include <ossia/network/dataspace/dataspace_visitors.hpp>
 #include <ossia/network/dataspace/detail/dataspace_parse.hpp>
 
-#include <QComboBox>
-#include <QHBoxLayout>
-#include <ossia/detail/for_each.hpp>
-#include <score/widgets/MarginLess.hpp>
-#include <score/widgets/SignalUtils.hpp>
-
 #include <QApplication>
 #include <QColumnView>
-#include <QTreeView>
+#include <QComboBox>
+#include <QHBoxLayout>
 #include <QPushButton>
+#include <QTreeView>
+
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(State::UnitWidget)
 W_OBJECT_IMPL(State::DestinationQualifierWidget)
@@ -136,10 +137,10 @@ void UnitWidget::on_dataspaceChanged(const State::Unit& unit)
 class EmptyModel final : public QAbstractItemModel
 {
 public:
-
   // QAbstractItemModel interface
 public:
-  QModelIndex index(int row, int column, const QModelIndex& parent) const override
+  QModelIndex
+  index(int row, int column, const QModelIndex& parent) const override
   {
     return QModelIndex();
   }
@@ -163,33 +164,42 @@ public:
 class UnitModel final : public QAbstractItemModel
 {
 public:
-
   struct UnitDataModel;
   struct DataspaceModel;
 
   struct TreeNode
   {
     TreeNode* parent{};
-    virtual ~TreeNode() { }
+    virtual ~TreeNode()
+    {
+    }
   };
 
   struct AccessorModel : TreeNode
   {
-    AccessorModel(ossia::destination_qualifiers a): accessor{a} { }
-    virtual ~AccessorModel() { }
+    AccessorModel(ossia::destination_qualifiers a) : accessor{a}
+    {
+    }
+    virtual ~AccessorModel()
+    {
+    }
     ossia::destination_qualifiers accessor;
   };
 
   struct UnitDataModel : TreeNode
   {
-    virtual ~UnitDataModel() { }
+    virtual ~UnitDataModel()
+    {
+    }
     ossia::unit_t unit;
     std::vector<AccessorModel> accessors;
   };
 
   struct DataspaceModel : TreeNode
   {
-    virtual ~DataspaceModel() { }
+    virtual ~DataspaceModel()
+    {
+    }
     ossia::unit_t dataspace;
     std::vector<UnitDataModel> units;
   };
@@ -200,24 +210,26 @@ public:
   {
     m_data.push_back(DataspaceModel{});
 
-    ossia::for_each_tagged(ossia::dataspace_u_list{},
-                           [&] (auto d_t)
-    {
+    ossia::for_each_tagged(ossia::dataspace_u_list{}, [&](auto d_t) {
       using dataspace_type = typename decltype(d_t)::type;
 
-      DataspaceModel d; d.dataspace = typename ossia::matching_unit_u_list<dataspace_type>::type{};
-      ossia::for_each_tagged(dataspace_type{},
-                             [&] (auto u_t)
-      {
+      DataspaceModel d;
+      d.dataspace =
+          typename ossia::matching_unit_u_list<dataspace_type>::type{};
+      ossia::for_each_tagged(dataspace_type{}, [&](auto u_t) {
         using unit_type = typename decltype(u_t)::type;
 
-        UnitDataModel u; u.unit = unit_type{};
-        if constexpr(unit_type::is_multidimensional::value)
+        UnitDataModel u;
+        u.unit = unit_type{};
+        if constexpr (unit_type::is_multidimensional::value)
         {
-          u.accessors.emplace_back(ossia::destination_qualifiers{ossia::destination_index{}, unit_type{}});
-          for(std::size_t i = 0; i < unit_type::array_parameters().size(); i++)
+          u.accessors.emplace_back(ossia::destination_qualifiers{
+              ossia::destination_index{}, unit_type{}});
+          for (std::size_t i = 0; i < unit_type::array_parameters().size();
+               i++)
           {
-            u.accessors.emplace_back(ossia::destination_qualifiers{ossia::destination_index{(int32_t)i}, unit_type{}});
+            u.accessors.emplace_back(ossia::destination_qualifiers{
+                ossia::destination_index{(int32_t)i}, unit_type{}});
           }
         }
         d.units.push_back(std::move(u));
@@ -225,11 +237,11 @@ public:
       m_data.push_back(std::move(d));
     });
 
-    for(auto& d : m_data)
+    for (auto& d : m_data)
     {
-      for(auto& u : d.units)
+      for (auto& u : d.units)
       {
-        for(auto& a : u.accessors)
+        for (auto& a : u.accessors)
         {
           a.parent = &u;
         }
@@ -238,18 +250,18 @@ public:
     }
   }
 
-  std::tuple<int,int,int> from(const ossia::destination_qualifiers& dq)
+  std::tuple<int, int, int> from(const ossia::destination_qualifiers& dq)
   {
-    if(dq.unit)
+    if (dq.unit)
     {
-      for(std::size_t i = 0; i < m_data.size(); i++)
+      for (std::size_t i = 0; i < m_data.size(); i++)
       {
         auto& data = m_data[i];
-        for(std::size_t j = 0; j < data.units.size(); j++)
+        for (std::size_t j = 0; j < data.units.size(); j++)
         {
-          if(dq.unit == data.units[j].unit)
+          if (dq.unit == data.units[j].unit)
           {
-            if(dq.accessors.empty())
+            if (dq.accessors.empty())
             {
               return {i, j, -1};
             }
@@ -267,19 +279,19 @@ public:
 
   bool hasChildren(const QModelIndex& index) const override
   {
-    if(!index.isValid())
+    if (!index.isValid())
     {
       return true;
     }
-    else if(!index.parent().isValid())
+    else if (!index.parent().isValid())
     {
       // Dataspace
-      if(index.row() == 0)
+      if (index.row() == 0)
         return false;
       else
         return true;
     }
-    else if(!index.parent().parent().isValid())
+    else if (!index.parent().parent().isValid())
     {
       // Unit
       auto& units = m_data[index.parent().row()].units[index.row()];
@@ -288,22 +300,27 @@ public:
     return false;
   }
 
-  QModelIndex index(int row, int column, const QModelIndex& parent) const override
+  QModelIndex
+  index(int row, int column, const QModelIndex& parent) const override
   {
-    if(!hasIndex(row, column, parent))
+    if (!hasIndex(row, column, parent))
       return QModelIndex{};
 
-    if(!parent.isValid())
+    if (!parent.isValid())
     {
       return createIndex(row, column, (void*)&m_data[row]);
     }
-    else if(!parent.parent().isValid())
+    else if (!parent.parent().isValid())
     {
       return createIndex(row, column, (void*)&m_data[parent.row()].units[row]);
     }
-    else if(!parent.parent().parent().isValid())
+    else if (!parent.parent().parent().isValid())
     {
-      return createIndex(row, column, (void*)&m_data[parent.parent().row()].units[parent.row()].accessors[row]);
+      return createIndex(
+          row, column,
+          (void*)&m_data[parent.parent().row()]
+              .units[parent.row()]
+              .accessors[row]);
     }
     else
     {
@@ -311,13 +328,13 @@ public:
     }
   }
 
-  template<typename T, typename U>
+  template <typename T, typename U>
   static int ptr_distance(const T& container, U* ptr)
   {
     int i = 0;
-    for(auto& e : container)
+    for (auto& e : container)
     {
-      if(&e == ptr)
+      if (&e == ptr)
         return i;
       i++;
     }
@@ -330,28 +347,28 @@ public:
       return QModelIndex{};
 
     TreeNode* p = (TreeNode*)child.internalPointer();
-    if(!p)
+    if (!p)
       return QModelIndex{};
 
-    if(auto d = dynamic_cast<DataspaceModel*>(p))
+    if (auto d = dynamic_cast<DataspaceModel*>(p))
     {
       return QModelIndex{};
     }
-    else if(auto u = dynamic_cast<UnitDataModel*>(p))
+    else if (auto u = dynamic_cast<UnitDataModel*>(p))
     {
       auto i = ptr_distance(m_data, static_cast<DataspaceModel*>(u->parent));
-      if(i != -1)
+      if (i != -1)
         return createIndex(i, 0, (void*)u->parent);
       else
         return QModelIndex{};
     }
-    else if(auto a = dynamic_cast<AccessorModel*>(p))
+    else if (auto a = dynamic_cast<AccessorModel*>(p))
     {
       auto u = static_cast<UnitDataModel*>(a->parent);
       auto d = static_cast<DataspaceModel*>(u->parent);
 
       auto i = ptr_distance(d->units, u);
-      if(i != -1)
+      if (i != -1)
         return createIndex(i, 0, (void*)a->parent);
       else
         return QModelIndex{};
@@ -361,21 +378,21 @@ public:
 
   int rowCount(const QModelIndex& parent) const override
   {
-    if(parent == QModelIndex{})
+    if (parent == QModelIndex{})
     {
       return m_data.size();
     }
 
     TreeNode* p = (TreeNode*)parent.internalPointer();
-    if(!p)
+    if (!p)
     {
       return 0;
     }
-    else if(auto d = dynamic_cast<DataspaceModel*>(p))
+    else if (auto d = dynamic_cast<DataspaceModel*>(p))
     {
       return d->units.size();
     }
-    else if(auto u = dynamic_cast<UnitDataModel*>(p))
+    else if (auto u = dynamic_cast<UnitDataModel*>(p))
     {
       return u->accessors.size();
     }
@@ -383,7 +400,6 @@ public:
     {
       return 0;
     }
-
   }
 
   int columnCount(const QModelIndex& parent) const override
@@ -393,27 +409,29 @@ public:
 
   QVariant data(const QModelIndex& index, int role) const override
   {
-    if(role == Qt::DisplayRole)
+    if (role == Qt::DisplayRole)
     {
-      if(!index.internalPointer())
+      if (!index.internalPointer())
         return {};
 
-      auto p = (TreeNode*) index.internalPointer();
-      if(auto d = dynamic_cast<DataspaceModel*>(p))
+      auto p = (TreeNode*)index.internalPointer();
+      if (auto d = dynamic_cast<DataspaceModel*>(p))
       {
-        if(d->dataspace)
-          return QString::fromUtf8(ossia::get_dataspace_text(d->dataspace).data());
+        if (d->dataspace)
+          return QString::fromUtf8(
+              ossia::get_dataspace_text(d->dataspace).data());
         else
           return tr("None");
       }
-      else if(auto u = dynamic_cast<UnitDataModel*>(p))
+      else if (auto u = dynamic_cast<UnitDataModel*>(p))
       {
         return QString::fromUtf8(ossia::get_unit_text(u->unit).data());
       }
-      else if(auto a = dynamic_cast<AccessorModel*>(p))
+      else if (auto a = dynamic_cast<AccessorModel*>(p))
       {
-        if(!a->accessor.accessors.empty())
-          return QChar(get_unit_accessors(a->accessor.unit)[a->accessor.accessors[0]]);
+        if (!a->accessor.accessors.empty())
+          return QChar(
+              get_unit_accessors(a->accessor.unit)[a->accessor.accessors[0]]);
         else
           return QChar();
       }
@@ -421,7 +439,6 @@ public:
 
     return {};
   }
-
 };
 
 static EmptyModel& empty_model() noexcept
@@ -436,7 +453,7 @@ static UnitModel& unit_model() noexcept
 }
 
 DestinationQualifierWidget::DestinationQualifierWidget(QWidget* parent)
-  : QWidget{parent}
+    : QWidget{parent}
 {
   auto& empty = empty_model();
   auto& m = unit_model();
@@ -481,25 +498,25 @@ QComboBox::drop-down {
   m_ac->setMinimumWidth(45);
   m_ac->setMaximumWidth(45);
   lay->addWidget(m_ac);
-  connect(m_ds, qOverload<int>(&QComboBox::currentIndexChanged),
-          this, &DestinationQualifierWidget::on_dataspaceChanged);
+  connect(
+      m_ds, qOverload<int>(&QComboBox::currentIndexChanged), this,
+      &DestinationQualifierWidget::on_dataspaceChanged);
 
-  connect(m_unit, qOverload<int>(&QComboBox::currentIndexChanged),
-          this, &DestinationQualifierWidget::on_unitChanged);
+  connect(
+      m_unit, qOverload<int>(&QComboBox::currentIndexChanged), this,
+      &DestinationQualifierWidget::on_unitChanged);
 
-  connect(m_ac, qOverload<int>(&QComboBox::currentIndexChanged), this, [=] (int idx) {
-    qualifiersChanged(qualifiers());
-  });
+  connect(
+      m_ac, qOverload<int>(&QComboBox::currentIndexChanged), this,
+      [=](int idx) { qualifiersChanged(qualifiers()); });
 }
 
 DestinationQualifierWidget::DestinationQualifierWidget(
-      const State::DestinationQualifiers& u
-      , QWidget* parent)
+    const State::DestinationQualifiers& u, QWidget* parent)
     : DestinationQualifierWidget{parent}
 {
   setQualifiers(u);
 }
-
 
 void DestinationQualifierWidget::on_dataspaceChanged(int idx)
 {
@@ -510,7 +527,7 @@ void DestinationQualifierWidget::on_dataspaceChanged(int idx)
     QSignalBlocker b2{m_ac};
     m_unit->setModel(&e);
     m_ac->setModel(&e);
-    if(idx != 0)
+    if (idx != 0)
     {
       m_unit->setModel(&unit_model());
       m_unit->setRootModelIndex(m.index(idx, 0, QModelIndex()));
@@ -534,7 +551,7 @@ void DestinationQualifierWidget::on_unitChanged(int idx)
   {
     QSignalBlocker b{m_ac};
     m_ac->setModel(&e);
-    if(m.hasChildren(unit_idx) && idx != -1)
+    if (m.hasChildren(unit_idx) && idx != -1)
     {
       m_ac->setModel(&m);
       m_ac->setRootModelIndex(unit_idx);
@@ -551,39 +568,41 @@ void DestinationQualifierWidget::on_unitChanged(int idx)
 
 State::DestinationQualifiers DestinationQualifierWidget::qualifiers() const
 {
-  if(m_unit->model() == &empty_model())
+  if (m_unit->model() == &empty_model())
     return {};
-  if(m_unit->currentIndex() == -1)
+  if (m_unit->currentIndex() == -1)
     return {};
 
-  if(m_ac->model() == &empty_model())
+  if (m_ac->model() == &empty_model())
   {
     auto ds = m_unit->rootModelIndex();
     auto idx = unit_model().index(m_unit->currentIndex(), 0, ds);
-    if(auto unit = (UnitModel::UnitDataModel*) idx.internalPointer())
-      return State::DestinationQualifiers{ossia::destination_qualifiers{{}, unit->unit}};
+    if (auto unit = (UnitModel::UnitDataModel*)idx.internalPointer())
+      return State::DestinationQualifiers{
+          ossia::destination_qualifiers{{}, unit->unit}};
   }
   else
   {
-    if(m_ac->currentIndex() == -1)
+    if (m_ac->currentIndex() == -1)
       return {};
 
     auto unit = m_ac->rootModelIndex();
     auto idx = unit_model().index(m_ac->currentIndex(), 0, unit);
-    if(auto acc = (UnitModel::AccessorModel*) idx.internalPointer())
+    if (auto acc = (UnitModel::AccessorModel*)idx.internalPointer())
       return acc->accessor;
   }
 
   return {};
 }
 
-void DestinationQualifierWidget::setQualifiers(const State::DestinationQualifiers& unit)
+void DestinationQualifierWidget::setQualifiers(
+    const State::DestinationQualifiers& unit)
 {
   const auto& [ds, u, acc] = unit_model().from(unit);
   m_ds->setCurrentIndex(ds);
-  if(u != -1)
+  if (u != -1)
     m_unit->setCurrentIndex(u);
-  if(acc != -1)
+  if (acc != -1)
     m_ac->setCurrentIndex(acc);
 }
 }

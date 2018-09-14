@@ -1,10 +1,11 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
-#include <QtTest/QtTest>
 #include <Scenario/Commands/Scenario/Creations/CreateEvent.hpp>
 #include <Scenario/Document/Event/EventData.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
+
+#include <QtTest/QtTest>
 
 using namespace score;
 using namespace Scenario::Command;
@@ -14,7 +15,6 @@ class CreateEventTest : public QObject
   Q_OBJECT
 public:
 private:
-
   void CreateTest()
   {
     Scenario::ProcessModel* scenar = new ScenarioModel(

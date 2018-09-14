@@ -1,6 +1,8 @@
 #pragma once
 #include <Process/TimeValue.hpp>
+
 #include <QPointF>
+
 #include <wobjectdefs.h>
 // A coordinate : (t, y)
 namespace Scenario

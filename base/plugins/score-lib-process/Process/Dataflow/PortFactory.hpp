@@ -1,5 +1,6 @@
 #pragma once
 #include <Process/Dataflow/Port.hpp>
+
 #include <score/plugins/customfactory/FactoryFamily.hpp>
 #include <score/plugins/customfactory/FactoryInterface.hpp>
 class QGraphicsItem;
@@ -13,8 +14,7 @@ class PortItem;
 }
 namespace Process
 {
-class SCORE_LIB_PROCESS_EXPORT PortFactory
-    : public score::InterfaceBase
+class SCORE_LIB_PROCESS_EXPORT PortFactory : public score::InterfaceBase
 {
   SCORE_INTERFACE(Process::Port, "4d461658-5c27-4a12-ba97-3d9392561ece")
 public:
@@ -22,29 +22,18 @@ public:
 
   virtual Process::Port* load(const VisitorVariant&, QObject* parent) = 0;
   virtual Dataflow::PortItem* makeItem(
-      Process::Inlet& port,
-      const score::DocumentContext& ctx,
-      QGraphicsItem* parent,
-      QObject* context);
+      Process::Inlet& port, const score::DocumentContext& ctx,
+      QGraphicsItem* parent, QObject* context);
   virtual Dataflow::PortItem* makeItem(
-      Process::Outlet& port,
-      const score::DocumentContext& ctx,
-      QGraphicsItem* parent,
-      QObject* context);
+      Process::Outlet& port, const score::DocumentContext& ctx,
+      QGraphicsItem* parent, QObject* context);
 
   virtual void setupInspector(
-      Process::Inlet& port,
-      const score::DocumentContext& ctx,
-      QWidget* parent,
-      Inspector::Layout& lay,
-      QObject* context);
+      Process::Inlet& port, const score::DocumentContext& ctx, QWidget* parent,
+      Inspector::Layout& lay, QObject* context);
   virtual void setupInspector(
-      Process::Outlet& port,
-      const score::DocumentContext& ctx,
-      QWidget* parent,
-      Inspector::Layout& lay,
-      QObject* context);
-
+      Process::Outlet& port, const score::DocumentContext& ctx,
+      QWidget* parent, Inspector::Layout& lay, QObject* context);
 };
 
 class SCORE_LIB_PROCESS_EXPORT PortFactoryList final
@@ -57,10 +46,8 @@ public:
 };
 
 inline auto writeInlets(
-    DataStreamWriter& wr,
-    const Process::PortFactoryList& pl,
-    Process::Inlets& ports,
-    QObject* parent)
+    DataStreamWriter& wr, const Process::PortFactoryList& pl,
+    Process::Inlets& ports, QObject* parent)
 {
   int32_t count;
   wr.m_stream >> count;
@@ -79,10 +66,8 @@ inline auto writeInlets(
   }
 }
 inline auto writeOutlets(
-    DataStreamWriter& wr,
-    const Process::PortFactoryList& pl,
-    Process::Outlets& ports,
-    QObject* parent)
+    DataStreamWriter& wr, const Process::PortFactoryList& pl,
+    Process::Outlets& ports, QObject* parent)
 {
   int32_t count;
   wr.m_stream >> count;
@@ -101,10 +86,8 @@ inline auto writeOutlets(
   }
 }
 inline auto writeInlets(
-    const QJsonArray& wr,
-    const Process::PortFactoryList& pl,
-    Process::Inlets& ports,
-    QObject* parent)
+    const QJsonArray& wr, const Process::PortFactoryList& pl,
+    Process::Inlets& ports, QObject* parent)
 {
   for (const auto& json_vref : wr)
   {
@@ -121,10 +104,8 @@ inline auto writeInlets(
   }
 }
 inline auto writeOutlets(
-    const QJsonArray& wr,
-    const Process::PortFactoryList& pl,
-    Process::Outlets& ports,
-    QObject* parent)
+    const QJsonArray& wr, const Process::PortFactoryList& pl,
+    Process::Outlets& ports, QObject* parent)
 {
   for (const auto& json_vref : wr)
   {
@@ -141,8 +122,7 @@ inline auto writeOutlets(
   }
 }
 inline auto readPorts(
-    DataStreamReader& wr,
-    const Process::Inlets& ins,
+    DataStreamReader& wr, const Process::Inlets& ins,
     const Process::Outlets& outs)
 {
   wr.m_stream << (int32_t)ins.size();
@@ -153,11 +133,8 @@ inline auto readPorts(
     wr.readFrom(*v);
 }
 inline auto writePorts(
-    DataStreamWriter& wr,
-    const Process::PortFactoryList& pl,
-    Process::Inlets& ins,
-    Process::Outlets& outs,
-    QObject* parent)
+    DataStreamWriter& wr, const Process::PortFactoryList& pl,
+    Process::Inlets& ins, Process::Outlets& outs, QObject* parent)
 {
   writeInlets(wr, pl, ins, parent);
   writeOutlets(wr, pl, outs, parent);
@@ -169,11 +146,8 @@ inline auto readPorts(
   obj["Outlets"] = toJsonArray(outs);
 }
 inline auto writePorts(
-    const QJsonObject& obj,
-    const Process::PortFactoryList& pl,
-    Process::Inlets& ins,
-    Process::Outlets& outs,
-    QObject* parent)
+    const QJsonObject& obj, const Process::PortFactoryList& pl,
+    Process::Inlets& ins, Process::Outlets& outs, QObject* parent)
 {
   writeInlets(obj["Inlets"].toArray(), pl, ins, parent);
   writeOutlets(obj["Outlets"].toArray(), pl, outs, parent);

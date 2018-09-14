@@ -1,7 +1,9 @@
 #pragma once
 #include <QHashFunctions>
 #include <QString>
+
 #include <functional>
+
 #include <ossia-config.hpp>
 
 // TODO merge String.hpp here

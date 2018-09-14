@@ -32,16 +32,18 @@
  */
 
 #ifndef LV2_ATOM_HELPERS_H
-#  define LV2_ATOM_HELPERS_H
+#define LV2_ATOM_HELPERS_H
 
-#  include <assert.h>
-#  include <lv2/lv2plug.in/ns/ext/atom/atom.h>
-#  include <lv2/lv2plug.in/ns/ext/atom/util.h>
-#  include <memory>
-#  include <stdbool.h>
-#  include <stdint.h>
-#  include <stdlib.h>
-#  include <string.h>
+#include <assert.h>
+#include <stdbool.h>
+#include <stdint.h>
+#include <stdlib.h>
+#include <string.h>
+
+#include <memory>
+
+#include <lv2/lv2plug.in/ns/ext/atom/atom.h>
+#include <lv2/lv2plug.in/ns/ext/atom/util.h>
 
 // An abstract/opaque LV2 atom:Sequence buffer.
 //
@@ -171,10 +173,7 @@ struct Iterator
 
   // Write an event at a LV2 atom:Sequence buffer iterator.
   bool write(
-      uint32_t frames,
-      uint32_t /*subframes*/,
-      uint32_t type,
-      uint32_t size,
+      uint32_t frames, uint32_t /*subframes*/, uint32_t type, uint32_t size,
       const uint8_t* data)
   {
     LV2_Atom_Sequence* atoms = &buf->atoms;

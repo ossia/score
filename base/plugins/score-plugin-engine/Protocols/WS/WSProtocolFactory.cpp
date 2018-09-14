@@ -4,11 +4,12 @@
 
 #include "WSDevice.hpp"
 
-#include <ossia/network/base/device.hpp>
-
 #include <Device/Protocol/DeviceSettings.hpp>
 #include <Protocols/WS/WSProtocolSettingsWidget.hpp>
 #include <Protocols/WS/WSSpecificSettings.hpp>
+
+#include <ossia/network/base/device.hpp>
+
 #include <QObject>
 
 namespace Device

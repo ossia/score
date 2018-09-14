@@ -1,6 +1,7 @@
+#include <score/widgets/RectItem.hpp>
+
 #include <QGraphicsSceneEvent>
 #include <QPainter>
-#include <score/widgets/RectItem.hpp>
 
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(score::RectItem)

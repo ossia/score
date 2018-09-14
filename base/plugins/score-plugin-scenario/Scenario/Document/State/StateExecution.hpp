@@ -1,11 +1,13 @@
 #pragma once
-#include <Process/ExecutionComponent.hpp>
 #include <Process/Execution/ProcessComponent.hpp>
+#include <Process/ExecutionComponent.hpp>
 #include <Process/Process.hpp>
 #include <Scenario/Document/Components/IntervalComponent.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
-#include <ossia/dataflow/nodes/state.hpp>
+
 #include <score/model/ComponentHierarchy.hpp>
+
+#include <ossia/dataflow/nodes/state.hpp>
 
 namespace ossia
 {
@@ -29,17 +31,14 @@ public:
   using component_t = ProcessComponent;
   using component_factory_list_t = ProcessComponentFactoryList;
   StateComponentBase(
-      const Scenario::StateModel& element,
-      const Execution::Context& ctx,
-      const Id<score::Component>& id,
-      QObject* parent);
+      const Scenario::StateModel& element, const Execution::Context& ctx,
+      const Id<score::Component>& id, QObject* parent);
 
   //! To be called from the GUI thread
   void onDelete() const;
 
   ProcessComponent* make(
-      const Id<score::Component>& id,
-      ProcessComponentFactory& factory,
+      const Id<score::Component>& id, ProcessComponentFactory& factory,
       Process::ProcessModel& process);
   std::function<void()>
   removing(const Process::ProcessModel& e, ProcessComponent& c);
@@ -64,9 +63,9 @@ public:
     return m_model->stateProcesses;
   }
 
-  const score::
-      hash_map<Id<Process::ProcessModel>, std::shared_ptr<ProcessComponent>>&
-      processes() const
+  const score::hash_map<
+      Id<Process::ProcessModel>, std::shared_ptr<ProcessComponent>>&
+  processes() const
   {
     return m_processes;
   }

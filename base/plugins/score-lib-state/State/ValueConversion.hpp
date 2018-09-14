@@ -1,11 +1,13 @@
 #pragma once
+#include <State/Value.hpp>
+
 #include <score/tools/Todo.hpp>
+
 #include <QChar>
 #include <QDebug>
 #include <QJsonValue>
 #include <QString>
 #include <QVariant>
-#include <State/Value.hpp>
 
 class QStringList;
 
@@ -73,7 +75,7 @@ fromQJsonValue(const QJsonValue& val, const QString& type);
 SCORE_LIB_STATE_EXPORT QString
 prettyType(const ossia::value& val); // For display to the user, translated
 SCORE_LIB_STATE_EXPORT
-    QString prettyType(ossia::val_type); // For display to the user, translated
+QString prettyType(ossia::val_type); // For display to the user, translated
 SCORE_LIB_STATE_EXPORT const std::array<const QString, 11>&
 ValuePrettyTypesArray(); // For display to the user, translated
 SCORE_LIB_STATE_EXPORT const QStringList&

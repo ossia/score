@@ -1,8 +1,9 @@
 #pragma once
+#include <score/command/Command.hpp>
+
 #include <algorithm>
 #include <list>
 #include <memory>
-#include <score/command/Command.hpp>
 
 namespace score
 {

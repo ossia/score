@@ -14,6 +14,7 @@
 #include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
 #include <Scenario/Process/Temporal/TemporalScenarioView.hpp>
 #include <State/MessageListSerialization.hpp>
+
 #include <score/actions/ActionManager.hpp>
 
 #include <wobjectimpl.h>
@@ -23,10 +24,8 @@ namespace Scenario
 struct VerticalExtent;
 
 TemporalScenarioPresenter::TemporalScenarioPresenter(
-    Scenario::EditionSettings& e,
-    const Scenario::ProcessModel& scenario,
-    Process::LayerView* view,
-    const Process::ProcessPresenterContext& context,
+    Scenario::EditionSettings& e, const Scenario::ProcessModel& scenario,
+    Process::LayerView* view, const Process::ProcessPresenterContext& context,
     QObject* parent)
     : LayerPresenter{context, parent}
     , m_layer{scenario}
@@ -65,10 +64,10 @@ TemporalScenarioPresenter::TemporalScenarioPresenter(
   }
 
   /////// Connections
-  scenario.intervals.added.connect<
-      &TemporalScenarioPresenter::on_intervalCreated>(this);
-  scenario.intervals.removed.connect<
-      &TemporalScenarioPresenter::on_intervalRemoved>(this);
+  scenario.intervals.added
+      .connect<&TemporalScenarioPresenter::on_intervalCreated>(this);
+  scenario.intervals.removed
+      .connect<&TemporalScenarioPresenter::on_intervalRemoved>(this);
 
   scenario.states.added.connect<&TemporalScenarioPresenter::on_stateCreated>(
       this);
@@ -80,15 +79,15 @@ TemporalScenarioPresenter::TemporalScenarioPresenter(
   scenario.events.removed.connect<&TemporalScenarioPresenter::on_eventRemoved>(
       this);
 
-  scenario.timeSyncs.added.connect<
-      &TemporalScenarioPresenter::on_timeSyncCreated>(this);
-  scenario.timeSyncs.removed.connect<
-      &TemporalScenarioPresenter::on_timeSyncRemoved>(this);
+  scenario.timeSyncs.added
+      .connect<&TemporalScenarioPresenter::on_timeSyncCreated>(this);
+  scenario.timeSyncs.removed
+      .connect<&TemporalScenarioPresenter::on_timeSyncRemoved>(this);
 
-  scenario.comments.added.connect<
-      &TemporalScenarioPresenter::on_commentCreated>(this);
-  scenario.comments.removed.connect<
-      &TemporalScenarioPresenter::on_commentRemoved>(this);
+  scenario.comments.added
+      .connect<&TemporalScenarioPresenter::on_commentCreated>(this);
+  scenario.comments.removed
+      .connect<&TemporalScenarioPresenter::on_commentRemoved>(this);
 
   connect(
       m_view, &TemporalScenarioView::keyPressed, this,
@@ -285,9 +284,7 @@ TemporalScenarioPresenter::event(const Id<EventModel>& id) const
 }
 
 void TemporalScenarioPresenter::fillContextMenu(
-    QMenu& menu,
-    QPoint pos,
-    QPointF scenepos,
+    QMenu& menu, QPoint pos, QPointF scenepos,
     const Process::LayerContextMenuManager& cm)
 {
   auto& ctx = m_context.context;
@@ -407,7 +404,7 @@ void TemporalScenarioPresenter::on_intervalExecutionTimer()
 
 void TemporalScenarioPresenter::doubleClick(QPointF pt)
 {
-  if(m_editionSettings.tool() == Scenario::Tool::Play)
+  if (m_editionSettings.tool() == Scenario::Tool::Play)
     return;
 
   auto sp = toScenarioPoint(pt);

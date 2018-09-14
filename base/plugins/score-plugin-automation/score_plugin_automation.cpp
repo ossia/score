@@ -2,119 +2,109 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "score_plugin_automation.hpp"
 
-#include <Automation/Commands/AutomationCommandFactory.hpp>
-#include <Automation/Inspector/AutomationInspectorFactory.hpp>
-#include <Automation/Inspector/AutomationStateInspectorFactory.hpp>
-#include <Automation/Inspector/CurvePointInspectorFactory.hpp>
-
 #include <Automation/AutomationColors.hpp>
+#include <Automation/AutomationExecution.hpp>
 #include <Automation/AutomationModel.hpp>
 #include <Automation/AutomationPresenter.hpp>
 #include <Automation/AutomationProcessMetadata.hpp>
 #include <Automation/AutomationView.hpp>
-#include <Automation/AutomationExecution.hpp>
-#include <Color/GradientModel.hpp>
-#include <Color/GradientPresenter.hpp>
-#include <Color/GradientView.hpp>
-#include <Color/GradientExecution.hpp>
-#include <Metronome/MetronomeColors.hpp>
-#include <Metronome/MetronomeModel.hpp>
-#include <Metronome/MetronomePresenter.hpp>
-#include <Metronome/MetronomeExecution.hpp>
-#include <Metronome/MetronomeView.hpp>
-#include <Spline/SplineModel.hpp>
-#include <Spline/SplinePresenter.hpp>
-#include <Spline/SplineView.hpp>
-#include <Spline/SplineExecution.hpp>
-
+#include <Automation/Commands/AutomationCommandFactory.hpp>
+#include <Automation/Inspector/AutomationInspectorFactory.hpp>
+#include <Automation/Inspector/AutomationStateInspectorFactory.hpp>
+#include <Automation/Inspector/CurvePointInspectorFactory.hpp>
 #include <Curve/Process/CurveProcessFactory.hpp>
 #include <Inspector/InspectorWidgetFactoryInterface.hpp>
 #include <Process/GenericProcessFactory.hpp>
-#include <Process/Inspector/ProcessInspectorWidgetDelegate.hpp>
 #include <Process/HeaderDelegate.hpp>
+#include <Process/Inspector/ProcessInspectorWidgetDelegate.hpp>
 #include <Process/ProcessFactory.hpp>
+#include <Process/Style/ScenarioStyle.hpp>
+
 #include <score/plugins/customfactory/FactorySetup.hpp>
 #include <score/plugins/customfactory/StringFactoryKey.hpp>
 #include <score/tools/std/HashMap.hpp>
+
+#include <Color/GradientExecution.hpp>
+#include <Color/GradientModel.hpp>
+#include <Color/GradientPresenter.hpp>
+#include <Color/GradientView.hpp>
+#include <Metronome/MetronomeColors.hpp>
+#include <Metronome/MetronomeExecution.hpp>
+#include <Metronome/MetronomeModel.hpp>
+#include <Metronome/MetronomePresenter.hpp>
+#include <Metronome/MetronomeView.hpp>
+#include <Spline/SplineExecution.hpp>
+#include <Spline/SplineModel.hpp>
+#include <Spline/SplinePresenter.hpp>
+#include <Spline/SplineView.hpp>
 #include <score_plugin_automation_commands_files.hpp>
-#include <Process/Style/ScenarioStyle.hpp>
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Automation::LayerPresenter)
 W_OBJECT_IMPL(Metronome::LayerPresenter)
 namespace Automation
 {
-template<typename Layer_T>
-class MinMaxHeaderDelegate final :
-        public Process::DefaultHeaderDelegate
+template <typename Layer_T>
+class MinMaxHeaderDelegate final : public Process::DefaultHeaderDelegate
 {
-  public:
-    MinMaxHeaderDelegate(const Layer_T& layer)
+public:
+  MinMaxHeaderDelegate(const Layer_T& layer)
       : Process::DefaultHeaderDelegate{layer}
+  {
+    const auto& model = layer.model();
+    using model_t = std::remove_reference_t<decltype(model)>;
+
+    con(model, &model_t::minChanged, this, [=] { updateName(); });
+    con(model, &model_t::maxChanged, this, [=] { updateName(); });
+
+    updateName();
+  }
+
+  void updateName() override
+  {
+    if (presenter)
     {
-      const auto& model = layer.model();
-      using model_t = std::remove_reference_t<decltype(model)>;
+      const auto& style = ScenarioStyle::instance();
+      using model_t
+          = std::remove_reference_t<decltype(std::declval<Layer_T>().model())>;
+      auto& model = static_cast<const model_t&>(presenter->model());
 
-      con(model, &model_t::minChanged,
-          this, [=] { updateName(); });
-      con(model, &model_t::maxChanged,
-          this, [=] { updateName(); });
-
-      updateName();
+      QString txt = presenter->model().prettyName();
+      txt += "  Min: ";
+      txt += QString::number(model.min());
+      txt += "  Max: ";
+      txt += QString::number(model.max());
+      m_line = Process::makeGlyphs(
+          txt, m_sel ? style.IntervalHeaderTextPen : style.GrayTextPen);
+      update();
+      updatePorts();
     }
-
-    void updateName() override
-    {
-      if (presenter)
-      {
-        const auto& style = ScenarioStyle::instance();
-        using model_t = std::remove_reference_t<decltype(std::declval<Layer_T>().model())>;
-        auto& model = static_cast<const model_t&>(presenter->model());
-
-        QString txt = presenter->model().prettyName();
-        txt += "  Min: ";
-        txt += QString::number(model.min());
-        txt += "  Max: ";
-        txt += QString::number(model.max());
-        m_line = Process::makeGlyphs(
-            txt,
-            m_sel ? style.IntervalHeaderTextPen : style.GrayTextPen);
-        update();
-        updatePorts();
-      }
-    }
-
+  }
 };
 using AutomationFactory = Process::ProcessFactory_T<Automation::ProcessModel>;
 using AutomationLayerFactory = Curve::CurveLayerFactory_T<
-    Automation::ProcessModel,
-    Automation::LayerPresenter,
-    Automation::LayerView,
-    Automation::Colors,
+    Automation::ProcessModel, Automation::LayerPresenter,
+    Automation::LayerView, Automation::Colors,
     Automation::MinMaxHeaderDelegate<Automation::LayerPresenter>>;
 }
 namespace Gradient
 {
 using GradientFactory = Process::ProcessFactory_T<Gradient::ProcessModel>;
 using GradientLayerFactory = Process::LayerFactory_T<
-    Gradient::ProcessModel,
-    Gradient::Presenter,
-    Gradient::View>;
+    Gradient::ProcessModel, Gradient::Presenter, Gradient::View>;
 }
 
 namespace Spline
 {
 using SplineFactory = Process::ProcessFactory_T<Spline::ProcessModel>;
-using SplineLayerFactory = Process::
-    LayerFactory_T<Spline::ProcessModel, Spline::Presenter, Spline::View>;
+using SplineLayerFactory = Process::LayerFactory_T<
+    Spline::ProcessModel, Spline::Presenter, Spline::View>;
 }
 
 namespace Metronome
 {
 using MetronomeFactory = Process::ProcessFactory_T<Metronome::ProcessModel>;
 using MetronomeLayerFactory = Curve::CurveLayerFactory_T<
-    Metronome::ProcessModel,
-    Metronome::LayerPresenter,
-    Metronome::LayerView,
+    Metronome::ProcessModel, Metronome::LayerPresenter, Metronome::LayerView,
     Metronome::Colors,
     Automation::MinMaxHeaderDelegate<Metronome::LayerPresenter>>;
 }
@@ -145,8 +135,7 @@ score_plugin_automation::factories(
          Automation::RecreateOnPlay::ComponentFactory,
          Gradient::RecreateOnPlay::ComponentFactory,
          Spline::RecreateOnPlay::ComponentFactory,
-         Metronome::RecreateOnPlay::ComponentFactory>
-      >(ctx, key);
+         Metronome::RecreateOnPlay::ComponentFactory>>(ctx, key);
 }
 
 std::pair<const CommandGroupKey, CommandGeneratorMap>
@@ -160,11 +149,10 @@ score_plugin_automation::make_commands()
       CommandFactoryName(), CommandGeneratorMap{}};
 
   ossia::for_each_type<
-    #include <score_plugin_automation_commands.hpp>
+#include <score_plugin_automation_commands.hpp>
       >(score::commands::FactoryInserter{cmds.second});
 
   return cmds;
 }
 #include <score/plugins/PluginInstances.hpp>
 SCORE_EXPORT_PLUGIN(score_plugin_automation)
-

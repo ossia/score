@@ -5,6 +5,7 @@
 #include "ComponentSerialization.hpp"
 
 #include <score/document/DocumentContext.hpp>
+
 #include <wobjectimpl.h>
 
 template class SCORE_LIB_BASE_EXPORT score::EntityMap<score::Component>;
@@ -96,8 +97,7 @@ SerializableComponentFactoryList::~SerializableComponentFactoryList()
 }
 
 score::SerializableComponent* SerializableComponentFactoryList::loadMissing(
-    const VisitorVariant& vis,
-    const DocumentContext& ctx,
+    const VisitorVariant& vis, const DocumentContext& ctx,
     QObject* parent) const
 {
   SCORE_TODO;

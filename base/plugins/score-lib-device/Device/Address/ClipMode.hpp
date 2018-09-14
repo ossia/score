@@ -1,8 +1,9 @@
 #pragma once
 #include <ossia/network/common/parameter_properties.hpp>
 
-#include <cstdint>
 #include <score_lib_device_export.h>
+
+#include <cstdint>
 
 class QString;
 template <class Key, class T>

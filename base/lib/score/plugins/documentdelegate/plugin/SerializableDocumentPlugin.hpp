@@ -1,5 +1,6 @@
 #pragma once
 #include <score/plugins/documentdelegate/plugin/DocumentPluginBase.hpp>
+
 #include <wobjectdefs.h>
 
 namespace score
@@ -20,8 +21,8 @@ namespace score
  *   This happens after the object has been constructed.
  */
 class SCORE_LIB_BASE_EXPORT SerializableDocumentPlugin
-    : public DocumentPlugin
-    , public SerializableInterface<DocumentPluginFactory>
+    : public DocumentPlugin,
+      public SerializableInterface<DocumentPluginFactory>
 {
   W_OBJECT(SerializableDocumentPlugin)
 public:
@@ -38,10 +39,10 @@ protected:
 /**
  * @brief Reimplement to instantiate document plug-ins.
  */
-class SCORE_LIB_BASE_EXPORT DocumentPluginFactory
-    : public score::InterfaceBase
+class SCORE_LIB_BASE_EXPORT DocumentPluginFactory : public score::InterfaceBase
 {
-  SCORE_INTERFACE(DocumentPluginFactory, "570faa0b-f100-4039-a2f0-b60347c4e581")
+  SCORE_INTERFACE(
+      DocumentPluginFactory, "570faa0b-f100-4039-a2f0-b60347c4e581")
 public:
   virtual ~DocumentPluginFactory();
 
@@ -56,8 +57,7 @@ public:
   using object_type = DocumentPlugin;
   ~DocumentPluginFactoryList();
   object_type* loadMissing(
-      const VisitorVariant& vis,
-      score::DocumentContext& doc,
+      const VisitorVariant& vis, score::DocumentContext& doc,
       QObject* parent) const;
 };
 
@@ -66,8 +66,7 @@ class DocumentPluginFactory_T final : public score::DocumentPluginFactory
 {
 public:
   T* load(
-      const VisitorVariant& var,
-      score::DocumentContext& doc,
+      const VisitorVariant& var, score::DocumentContext& doc,
       QObject* parent) override
   {
     return deserialize_dyn(var, [&](auto&& deserializer) {

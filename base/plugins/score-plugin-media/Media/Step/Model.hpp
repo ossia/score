@@ -1,11 +1,14 @@
 #pragma once
 #include <Media/Step/Metadata.hpp>
-#include <wobjectdefs.h>
 #include <Process/Process.hpp>
+
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/serialization/JSONVisitor.hpp>
 #include <score/serialization/VisitorCommon.hpp>
+
 #include <ossia/detail/pod_vector.hpp>
+
+#include <wobjectdefs.h>
 
 Q_DECLARE_METATYPE(std::size_t)
 W_REGISTER_ARGTYPE(std::size_t)
@@ -20,13 +23,9 @@ class Model final : public Process::ProcessModel
 
   W_OBJECT(Model)
 
-
-
-
 public:
   explicit Model(
-      const TimeVal& duration,
-      const Id<Process::ProcessModel>& id,
+      const TimeVal& duration, const Id<Process::ProcessModel>& id,
       QObject* parent);
 
   ~Model() override;
@@ -60,11 +59,16 @@ public:
   void maxChanged(double arg_1) W_SIGNAL(maxChanged, arg_1);
 
 public:
-  void setStepCount(quint64 s); W_SLOT(setStepCount);
-  void setStepDuration(quint64 s); W_SLOT(setStepDuration);
-  void setSteps(ossia::float_vector v); W_SLOT(setSteps);
-  void setMin(double v); W_SLOT(setMin);
-  void setMax(double v); W_SLOT(setMax);
+  void setStepCount(quint64 s);
+  W_SLOT(setStepCount);
+  void setStepDuration(quint64 s);
+  W_SLOT(setStepDuration);
+  void setSteps(ossia::float_vector v);
+  W_SLOT(setSteps);
+  void setMin(double v);
+  W_SLOT(setMin);
+  void setMax(double v);
+  W_SLOT(setMax);
 
 private:
   ossia::float_vector m_steps;
@@ -72,13 +76,17 @@ private:
   quint64 m_stepDuration{22000};
   double m_min{}, m_max{};
 
-W_PROPERTY(double, max READ max WRITE setMax NOTIFY maxChanged)
+  W_PROPERTY(double, max READ max WRITE setMax NOTIFY maxChanged)
 
-W_PROPERTY(double, min READ min WRITE setMin NOTIFY minChanged)
+  W_PROPERTY(double, min READ min WRITE setMin NOTIFY minChanged)
 
-W_PROPERTY(quint64, stepDuration READ stepDuration WRITE setStepDuration NOTIFY stepDurationChanged)
+  W_PROPERTY(
+      quint64, stepDuration READ stepDuration WRITE setStepDuration NOTIFY
+                   stepDurationChanged)
 
-W_PROPERTY(quint64, stepCount READ stepCount WRITE setStepCount NOTIFY stepCountChanged)
+  W_PROPERTY(
+      quint64,
+      stepCount READ stepCount WRITE setStepCount NOTIFY stepCountChanged)
 };
 }
 }

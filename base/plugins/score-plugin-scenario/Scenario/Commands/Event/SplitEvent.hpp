@@ -1,13 +1,15 @@
 #pragma once
 
-#include <QString>
-#include <QVector>
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
+
 #include <score/command/AggregateCommand.hpp>
 #include <score/command/Command.hpp>
 #include <score/model/Identifier.hpp>
 #include <score/model/path/Path.hpp>
 #include <score/tools/std/Optional.hpp>
+
+#include <QString>
+#include <QVector>
 
 struct DataStreamInput;
 struct DataStreamOutput;
@@ -27,14 +29,11 @@ class SplitEvent final : public score::Command
 
 public:
   SplitEvent(
-      const Scenario::ProcessModel& scenario,
-      Id<EventModel> event,
+      const Scenario::ProcessModel& scenario, Id<EventModel> event,
       QVector<Id<StateModel>> movingstates);
   SplitEvent(
-      const Scenario::ProcessModel& scenario,
-      Id<EventModel> event,
-      Id<EventModel> new_event,
-      QVector<Id<StateModel>> movingstates);
+      const Scenario::ProcessModel& scenario, Id<EventModel> event,
+      Id<EventModel> new_event, QVector<Id<StateModel>> movingstates);
 
   void undo(const score::DocumentContext& ctx) const override;
   void redo(const score::DocumentContext& ctx) const override;

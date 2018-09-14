@@ -4,14 +4,15 @@
 #include <Process/Dataflow/PortItem.hpp>
 #include <Process/DocumentPlugin.hpp>
 #include <Process/Style/ScenarioStyle.hpp>
+
 #include <score/document/DocumentContext.hpp>
-#include <hopscotch_map.h>
+
 #include <QFormLayout>
 #include <QGraphicsSceneMoveEvent>
 #include <QMenu>
 #include <QPainter>
 
-
+#include <hopscotch_map.h>
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Dataflow::CableItem)
 namespace Dataflow
@@ -19,8 +20,7 @@ namespace Dataflow
 bool CableItem::g_cables_enabled = true;
 
 CableItem::CableItem(
-    Process::Cable& c,
-    const score::DocumentContext& ctx,
+    Process::Cable& c, const score::DocumentContext& ctx,
     QGraphicsItem* parent)
     : QGraphicsItem{parent}
     , m_cable{c}
@@ -176,7 +176,7 @@ void CableItem::check()
       setVisible(true);
     }
     m_type = m_p1->port().type;
-    if(auto c_o = m_p1->commonAncestorItem(m_p2))
+    if (auto c_o = m_p1->commonAncestorItem(m_p2))
       setParentItem(c_o);
     resize();
   }

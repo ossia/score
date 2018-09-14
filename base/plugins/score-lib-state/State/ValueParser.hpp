@@ -2,22 +2,23 @@
 #ifndef Q_MOC_RUN
 //#define BOOST_SPIRIT_DEBUG
 // see https://svn.boost.org/trac/boost/ticket/11875
-#  if defined(_GLIBCXX_DEBUG)
-#    define BOOST_PHOENIX_USING_LIBCPP
-#  endif
-#  include <ossia/network/base/name_validation.hpp>
-#  include <ossia/network/dataspace/dataspace_parse.hpp>
+#if defined(_GLIBCXX_DEBUG)
+#define BOOST_PHOENIX_USING_LIBCPP
+#endif
+#include <score/prefix.hpp>
 
-#  include <boost/fusion/adapted.hpp>
-#  include <boost/spirit/include/phoenix.hpp>
-#  include <boost/spirit/include/phoenix_operator.hpp>
-#  include <boost/spirit/include/qi.hpp>
-#  include <boost/spirit/include/qi_eoi.hpp>
-#  include <boost/spirit/include/qi_lit.hpp>
-#  include <boost/spirit/include/qi_real.hpp>
-#  include <boost/spirit/repository/include/qi_confix.hpp>
-#  include <boost/variant/recursive_wrapper.hpp>
-#  include <score/prefix.hpp>
+#include <ossia/network/base/name_validation.hpp>
+#include <ossia/network/dataspace/dataspace_parse.hpp>
+
+#include <boost/fusion/adapted.hpp>
+#include <boost/spirit/include/phoenix.hpp>
+#include <boost/spirit/include/phoenix_operator.hpp>
+#include <boost/spirit/include/qi.hpp>
+#include <boost/spirit/include/qi_eoi.hpp>
+#include <boost/spirit/include/qi_lit.hpp>
+#include <boost/spirit/include/qi_real.hpp>
+#include <boost/spirit/repository/include/qi_confix.hpp>
+#include <boost/variant/recursive_wrapper.hpp>
 #endif
 
 // Taken from boost doc, necessary to have support of QString
@@ -80,8 +81,6 @@ namespace qi = boost::spirit::qi;
 
 using boost::spirit::qi::rule;
 
-
-
 /// Value parsing
 struct BoolParse_map : qi::symbols<char, bool>
 {
@@ -118,7 +117,6 @@ struct Value_parser : qi::grammar<Iterator, ossia::value()>
   qi::rule<Iterator, std::string()> str_parser;
   qi::rule<Iterator, ossia::value()> start;
 };
-
 }
 
 ossia::optional<ossia::value> State::parseValue(const std::string& input)

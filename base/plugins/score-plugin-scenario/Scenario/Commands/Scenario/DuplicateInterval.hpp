@@ -2,10 +2,12 @@
 #include <Scenario/Commands/Scenario/Creations/CreateState.hpp>
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
+
 #include <score/command/Command.hpp>
 #include <score/model/Identifier.hpp>
 #include <score/model/path/Path.hpp>
 #include <score/tools/std/Optional.hpp>
+
 #include <score_plugin_scenario_export.h>
 namespace Scenario
 {
@@ -28,7 +30,9 @@ public:
 
   const Path<IntervalModel>& intervalPath() const;
   const Id<Scenario::IntervalModel>& createdId() const
-  { return m_createdId; }
+  {
+    return m_createdId;
+  }
 
 protected:
   void serializeImpl(DataStreamInput& s) const override;

@@ -1,16 +1,18 @@
 #pragma once
 #include <QDebug>
 #include <QObject>
+
 #include <score_compiler_detection.hpp>
 #include <score_lib_base_export.h>
+
 #include <stdexcept>
 
 #ifdef _WIN32
-#  include <Windows.h>
-#  define DEBUG_BREAK DebugBreak()
+#include <Windows.h>
+#define DEBUG_BREAK DebugBreak()
 #else
-#  include <csignal>
-#  define DEBUG_BREAK std::raise(SIGTRAP)
+#include <csignal>
+#define DEBUG_BREAK std::raise(SIGTRAP)
 #endif
 
 #define SCORE_TODO                    \
@@ -34,39 +36,39 @@
     }                                 \
   } while (0)
 #if defined(SCORE_DEBUG)
-#  define SCORE_BREAKPOINT \
-    do                     \
-    {                      \
-      DEBUG_BREAK;         \
-    } while (0)
+#define SCORE_BREAKPOINT \
+  do                     \
+  {                      \
+    DEBUG_BREAK;         \
+  } while (0)
 #else
-#  define SCORE_BREAKPOINT \
-    do                     \
-    {                      \
-    } while (0)
+#define SCORE_BREAKPOINT \
+  do                     \
+  {                      \
+  } while (0)
 #endif
 
 #ifdef SCORE_DEBUG
-#  define SCORE_ASSERT(arg)          \
-    do                               \
-    {                                \
-      bool score_assert_b = !!(arg); \
-      if (!score_assert_b)           \
-      {                              \
-        DEBUG_BREAK;                 \
-        Q_ASSERT(score_assert_b);    \
-      }                              \
-    } while (false)
+#define SCORE_ASSERT(arg)          \
+  do                               \
+  {                                \
+    bool score_assert_b = !!(arg); \
+    if (!score_assert_b)           \
+    {                              \
+      DEBUG_BREAK;                 \
+      Q_ASSERT(score_assert_b);    \
+    }                              \
+  } while (false)
 #else
-#  define SCORE_ASSERT(arg)                       \
-    do                                            \
-    {                                             \
-      bool score_assert_b = !!(arg);              \
-      if (!score_assert_b)                        \
-      {                                           \
-        throw std::runtime_error("Error: " #arg); \
-      }                                           \
-    } while (false)
+#define SCORE_ASSERT(arg)                       \
+  do                                            \
+  {                                             \
+    bool score_assert_b = !!(arg);              \
+    if (!score_assert_b)                        \
+    {                                           \
+      throw std::runtime_error("Error: " #arg); \
+    }                                           \
+  } while (false)
 #endif
 
 #define SCORE_ABORT   \
@@ -80,19 +82,19 @@
 #define SCORE_STR(s) #s
 
 #if SCORE_COMPILER_CXX_RELAXED_CONSTEXPR
-#  define SCORE_RELAXED_CONSTEXPR constexpr
+#define SCORE_RELAXED_CONSTEXPR constexpr
 #else
-#  define SCORE_RELAXED_CONSTEXPR
+#define SCORE_RELAXED_CONSTEXPR
 #endif
 
 #if defined(Q_CC_MSVC)
-  #define INLINE_EXPORT
+#define INLINE_EXPORT
 #else
-  #if defined(SCORE_STATIC_PLUGINS)
-    #define INLINE_EXPORT
-  #else
-    #define INLINE_EXPORT Q_DECL_EXPORT
-  #endif
+#if defined(SCORE_STATIC_PLUGINS)
+#define INLINE_EXPORT
+#else
+#define INLINE_EXPORT Q_DECL_EXPORT
+#endif
 #endif
 
 template <typename T>
@@ -126,7 +128,7 @@ catch (const std::exception& e)
   SCORE_ABORT;
 }
 #else
-#  define safe_cast static_cast
+#define safe_cast static_cast
 #endif
 
 /**
@@ -140,14 +142,17 @@ QMetaObject::Connection con(const T& t, Args&&... args)
   return QObject::connect(&t, std::forward<Args>(args)...);
 }
 
-template <typename T, typename Property, typename U, typename Slot, typename... Args>
-QMetaObject::Connection bind(T& t, const Property&, const U* tgt, Slot&& slt, Args&&... args)
+template <
+    typename T, typename Property, typename U, typename Slot, typename... Args>
+QMetaObject::Connection
+bind(T& t, const Property&, const U* tgt, Slot&& slt, Args&&... args)
 {
   slt((t.*(Property::get()))());
 
-  return QObject::connect(&t, Property::notify(), tgt, std::forward<Slot>(slt), std::forward<Args>(args)...);
+  return QObject::connect(
+      &t, Property::notify(), tgt, std::forward<Slot>(slt),
+      std::forward<Args>(args)...);
 }
-
 
 /**
  * Used since it seems that

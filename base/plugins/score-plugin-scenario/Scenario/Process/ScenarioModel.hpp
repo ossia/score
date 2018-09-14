@@ -1,35 +1,38 @@
 #pragma once
-#include <Scenario/Instantiations.hpp>
-#include <wobjectdefs.h>
 #include <Process/Process.hpp>
 #include <Process/TimeValue.hpp>
-#include <QByteArray>
-#include <QList>
-#include <QObject>
-#include <QPointer>
-#include <QString>
-#include <QVector>
 #include <Scenario/Document/CommentBlock/CommentBlockModel.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
 #include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
+#include <Scenario/Instantiations.hpp>
 #include <Scenario/Process/ScenarioInterface.hpp>
 #include <Scenario/Process/ScenarioProcessMetadata.hpp>
+
 #include <score/model/EntityMap.hpp>
 #include <score/model/IdentifiedObjectMap.hpp>
 #include <score/model/Identifier.hpp>
 #include <score/selection/Selection.hpp>
 #include <score/serialization/VisitorInterface.hpp>
 #include <score/tools/std/Optional.hpp>
+
+#include <QByteArray>
+#include <QList>
+#include <QObject>
+#include <QPointer>
+#include <QString>
+#include <QVector>
+
+#include <wobjectdefs.h>
 namespace Scenario
 {
 /**
  * @brief The core hierarchical and temporal process of score
  */
 class SCORE_PLUGIN_SCENARIO_EXPORT ProcessModel final
-    : public Process::ProcessModel
-    , public ScenarioInterface
+    : public Process::ProcessModel,
+      public ScenarioInterface
 {
   W_OBJECT(ProcessModel)
 
@@ -42,8 +45,7 @@ public:
   std::unique_ptr<Process::Outlet> outlet;
 
   ProcessModel(
-      const TimeVal& duration,
-      const Id<Process::ProcessModel>& id,
+      const TimeVal& duration, const Id<Process::ProcessModel>& id,
       QObject* parent);
   template <typename Impl>
   ProcessModel(Impl& vis, QObject* parent) : Process::ProcessModel{vis, parent}
@@ -136,10 +138,14 @@ public:
   score::EntityMap<CommentBlockModel> comments;
 
 public:
-  void stateMoved(const Scenario::StateModel& arg_1) E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, stateMoved, arg_1);
-  void eventMoved(const Scenario::EventModel& arg_1) E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, eventMoved, arg_1);
-  void intervalMoved(const Scenario::IntervalModel& arg_1) E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, intervalMoved, arg_1);
-  void commentMoved(const Scenario::CommentBlockModel& arg_1) E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, commentMoved, arg_1);
+  void stateMoved(const Scenario::StateModel& arg_1)
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, stateMoved, arg_1);
+  void eventMoved(const Scenario::EventModel& arg_1)
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, eventMoved, arg_1);
+  void intervalMoved(const Scenario::IntervalModel& arg_1)
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, intervalMoved, arg_1);
+  void commentMoved(const Scenario::CommentBlockModel& arg_1)
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, commentMoved, arg_1);
 
   void locked() E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, locked);
   void unlocked() E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, unlocked);
@@ -148,11 +154,13 @@ public:
   void lock()
   {
     locked();
-  }; W_SLOT(lock)
+  };
+  W_SLOT(lock)
   void unlock()
   {
     unlocked();
-  }; W_SLOT(unlock)
+  };
+  W_SLOT(unlock)
 
 private:
   //// ProcessModel specifics ////
@@ -171,11 +179,9 @@ public:
 
 private:
   void changeDuration(IntervalModel& itv, const TimeVal& v) override;
-  void changeDuration(const Scenario::IntervalModel& itv,
-                      OngoingCommandDispatcher& dispatcher,
-                      const TimeVal& v,
-                      ExpandMode expandmode,
-                      LockMode lockmode) override;
+  void changeDuration(
+      const Scenario::IntervalModel& itv, OngoingCommandDispatcher& dispatcher,
+      const TimeVal& v, ExpandMode expandmode, LockMode lockmode) override;
   void setSelection(const Selection& s) const override;
   bool event(QEvent* e) override
   {

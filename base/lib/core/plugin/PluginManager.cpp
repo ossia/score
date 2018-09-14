@@ -1,6 +1,18 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+#include <score/application/ApplicationComponents.hpp>
+#include <score/application/ApplicationContext.hpp>
+#include <score/application/GUIApplicationContext.hpp>
+#include <score/plugins/customfactory/StringFactoryKey.hpp>
+#include <score/plugins/qt_interfaces/PluginRequirements_QtInterface.hpp>
+
+#include <core/application/ApplicationRegistrar.hpp>
+#include <core/plugin/PluginManager.hpp>
+
 #include <ossia/detail/algorithms.hpp>
+
+#include <boost/concept/usage.hpp>
+#include <boost/range/algorithm/find_if.hpp>
 
 #include <QCoreApplication>
 #include <QDebug>
@@ -9,15 +21,6 @@
 #include <QSettings>
 #include <QStandardPaths>
 #include <QVariant>
-#include <boost/concept/usage.hpp>
-#include <boost/range/algorithm/find_if.hpp>
-#include <core/application/ApplicationRegistrar.hpp>
-#include <core/plugin/PluginManager.hpp>
-#include <score/application/ApplicationComponents.hpp>
-#include <score/application/ApplicationContext.hpp>
-#include <score/application/GUIApplicationContext.hpp>
-#include <score/plugins/customfactory/StringFactoryKey.hpp>
-#include <score/plugins/qt_interfaces/PluginRequirements_QtInterface.hpp>
 
 #include <utility>
 
@@ -33,9 +36,9 @@ public:
   explicit DLL(const char* const so) noexcept
   {
 #ifdef _WIN32
-    impl = (void*) LoadLibraryA(so);
+    impl = (void*)LoadLibraryA(so);
 #else
-    impl = dlopen(so, RTLD_LAZY|RTLD_LOCAL|RTLD_NODELETE);
+    impl = dlopen(so, RTLD_LAZY | RTLD_LOCAL | RTLD_NODELETE);
 #endif
   }
 
@@ -59,13 +62,13 @@ public:
 #ifdef _WIN32
     return {};
 #else
-      return QString::fromUtf8(dlerror());
+    return QString::fromUtf8(dlerror());
 #endif
   }
 
   ~DLL()
   {
-    if(impl)
+    if (impl)
     {
 #ifdef _WIN32
       FreeLibrary((HMODULE)impl);
@@ -75,17 +78,20 @@ public:
     }
   }
 
-  template<typename T>
+  template <typename T>
   T symbol(const char* const sym) const noexcept
   {
 #ifdef _WIN32
-    return (T) GetProcAddress((HMODULE)impl, sym);
+    return (T)GetProcAddress((HMODULE)impl, sym);
 #else
-    return (T) dlsym(impl, sym);
+    return (T)dlsym(impl, sym);
 #endif
   }
 
-  operator bool() const { return bool(impl); }
+  operator bool() const
+  {
+    return bool(impl);
+  }
 
 private:
   void* impl{};
@@ -152,8 +158,9 @@ std::pair<score::Plugin_QtInterface*, PluginLoadingError> loadPlugin(
 
   if (ptr)
   {
-    auto score_factory = ptr.symbol<decltype(&plugin_instance)>("plugin_instance");
-    if(!score_factory)
+    auto score_factory
+        = ptr.symbol<decltype(&plugin_instance)>("plugin_instance");
+    if (!score_factory)
     {
       qDebug() << "Warning: plugin" << fileName
                << "is not a correct score plugin.";
@@ -162,7 +169,7 @@ std::pair<score::Plugin_QtInterface*, PluginLoadingError> loadPlugin(
     }
 
     auto score_plugin = score_factory();
-    if(!score_plugin)
+    if (!score_plugin)
     {
       qDebug() << "Warning: plugin" << fileName
                << "is not a correct score plugin.";
@@ -178,8 +185,8 @@ std::pair<score::Plugin_QtInterface*, PluginLoadingError> loadPlugin(
 
     if (plug_it != availablePlugins.end())
     {
-      qDebug() << "Warning: plugin" << fileName
-               << "was already loaded (" << plug_it->path << "). Not reloading.";
+      qDebug() << "Warning: plugin" << fileName << "was already loaded ("
+               << plug_it->path << "). Not reloading.";
 
       return std::make_pair(nullptr, PluginLoadingError::AlreadyLoaded);
     }
@@ -234,8 +241,7 @@ void loadPluginsInAllFolders(
 }
 
 optional<score::Addon> makeAddon(
-    const QString& addon_path,
-    const QJsonObject& json_addon,
+    const QString& addon_path, const QJsonObject& json_addon,
     const std::vector<score::Addon>& availablePlugins)
 {
   using namespace score::PluginLoader;

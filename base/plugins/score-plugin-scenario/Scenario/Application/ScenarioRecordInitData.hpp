@@ -1,6 +1,7 @@
 #pragma once
 #include <QMetaType>
 #include <QPointF>
+
 #include <wobjectdefs.h>
 
 namespace Process

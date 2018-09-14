@@ -2,6 +2,10 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "Address.hpp"
 
+#include <score/serialization/DataStreamVisitor.hpp>
+#include <score/serialization/JSONVisitor.hpp>
+#include <score/serialization/VariantSerialization.hpp>
+
 #include <ossia/editor/state/destination_qualifiers.hpp>
 #include <ossia/network/dataspace/dataspace_visitors.hpp>
 
@@ -11,9 +15,6 @@
 #include <QString>
 #include <QStringList>
 #include <QtGlobal>
-#include <score/serialization/DataStreamVisitor.hpp>
-#include <score/serialization/JSONVisitor.hpp>
-#include <score/serialization/VariantSerialization.hpp>
 
 /// Address ///
 template <>

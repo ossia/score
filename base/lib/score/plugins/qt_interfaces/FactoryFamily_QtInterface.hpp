@@ -1,6 +1,7 @@
 #pragma once
-#include <memory>
 #include <score/plugins/customfactory/FactoryFamily.hpp>
+
+#include <memory>
 #include <vector>
 
 namespace score

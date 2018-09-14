@@ -2,17 +2,19 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "WSDevice.hpp"
 
+#include <Device/Protocol/DeviceSettings.hpp>
+#include <Explorer/DeviceList.hpp>
+#include <Explorer/DeviceLogging.hpp>
+#include <Protocols/WS/WSSpecificSettings.hpp>
+
+#include <ossia-qt/websocket-generic-client/ws_generic_client_protocol.hpp>
 #include <ossia/network/generic/generic_device.hpp>
 #include <ossia/network/generic/generic_parameter.hpp>
 
-#include <Device/Protocol/DeviceSettings.hpp>
-#include <Explorer/DeviceLogging.hpp>
-#include <Protocols/WS/WSSpecificSettings.hpp>
-#include <Explorer/DeviceList.hpp>
 #include <QString>
 #include <QVariant>
+
 #include <memory>
-#include <ossia-qt/websocket-generic-client/ws_generic_client_protocol.hpp>
 
 namespace Engine
 {

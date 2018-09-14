@@ -7,7 +7,7 @@ namespace Effect
 {
 using ProcessFactory = Process::ProcessFactory_T<Effect::ProcessModel>;
 
-using LayerFactory = Process::
-    LayerFactory_T<Effect::ProcessModel, Effect::Presenter, Effect::View>;
+using LayerFactory = Process::LayerFactory_T<
+    Effect::ProcessModel, Effect::Presenter, Effect::View>;
 }
 }

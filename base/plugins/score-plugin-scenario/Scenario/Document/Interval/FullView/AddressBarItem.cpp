@@ -4,19 +4,22 @@
 
 #include "ClickableLabelItem.hpp"
 
+#include <Scenario/Document/Interval/IntervalModel.hpp>
+#include <Scenario/Process/ScenarioModel.hpp>
+
+#include <score/model/ModelMetadata.hpp>
+#include <score/model/path/ObjectIdentifier.hpp>
+
 #include <QMap>
 #include <QObject>
 #include <QString>
 #include <QtAlgorithms>
-#include <Scenario/Document/Interval/IntervalModel.hpp>
-#include <Scenario/Process/ScenarioModel.hpp>
-#include <algorithm>
-#include <cstddef>
-#include <score/model/ModelMetadata.hpp>
-#include <score/model/path/ObjectIdentifier.hpp>
-#include <vector>
 
 #include <wobjectimpl.h>
+
+#include <algorithm>
+#include <cstddef>
+#include <vector>
 W_OBJECT_IMPL(Scenario::AddressBarItem)
 namespace Scenario
 {

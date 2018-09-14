@@ -3,10 +3,11 @@
 
 #include "GUIApplicationPlugin.hpp"
 
-#include <QApplication>
 #include <core/document/Document.hpp>
 #include <core/presenter/DocumentManager.hpp>
 #include <core/presenter/Presenter.hpp>
+
+#include <QApplication>
 
 class QAction;
 class QObject;

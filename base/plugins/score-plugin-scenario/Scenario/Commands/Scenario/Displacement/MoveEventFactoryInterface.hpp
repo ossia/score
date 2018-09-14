@@ -2,9 +2,11 @@
 
 #include <Process/ExpandMode.hpp>
 #include <Process/TimeValue.hpp>
+
 #include <score/model/Identifier.hpp>
 #include <score/plugins/customfactory/FactoryInterface.hpp>
 #include <score/plugins/customfactory/StringFactoryKey.hpp>
+
 #include <score_plugin_scenario_export.h>
 
 namespace score
@@ -25,7 +27,8 @@ class SerializableMoveEvent;
 class SCORE_PLUGIN_SCENARIO_EXPORT MoveEventFactoryInterface
     : public score::InterfaceBase
 {
-  SCORE_INTERFACE(MoveEventFactoryInterface, "69dc1f79-5cb9-4a36-b382-8c099f7abf57")
+  SCORE_INTERFACE(
+      MoveEventFactoryInterface, "69dc1f79-5cb9-4a36-b382-8c099f7abf57")
 
 public:
   enum Strategy
@@ -34,11 +37,8 @@ public:
     MOVE
   };
   virtual std::unique_ptr<SerializableMoveEvent> make(
-      const Scenario::ProcessModel&,
-      Id<EventModel> eventId,
-      TimeVal newDate,
-      ExpandMode mode,
-      LockMode lm)
+      const Scenario::ProcessModel&, Id<EventModel> eventId, TimeVal newDate,
+      ExpandMode mode, LockMode lm)
       = 0;
 
   virtual std::unique_ptr<SerializableMoveEvent> make(LockMode) = 0;

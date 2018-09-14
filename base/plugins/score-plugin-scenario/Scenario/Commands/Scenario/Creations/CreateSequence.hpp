@@ -5,6 +5,7 @@
 #include <Process/TimeValue.hpp>
 #include <Scenario/Commands/Cohesion/InterpolateMacro.hpp>
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
+
 #include <score/command/Command.hpp>
 #include <score/command/CommandStackFacade.hpp>
 #include <score/model/Identifier.hpp>
@@ -31,10 +32,8 @@ class CreateSequence final : public score::AggregateCommand
 public:
   static CreateSequence* make(
       const score::DocumentContext& ctx,
-      const Scenario::ProcessModel& scenario,
-      const Id<StateModel>& start,
-      const TimeVal& date,
-      double endStateY);
+      const Scenario::ProcessModel& scenario, const Id<StateModel>& start,
+      const TimeVal& date, double endStateY);
 
   void undo(const score::DocumentContext& ctx) const override
   {
@@ -71,8 +70,7 @@ private:
 class CreateSequenceProcesses final : public score::Command
 {
   SCORE_COMMAND_DECL(
-      ScenarioCommandFactoryName(),
-      CreateSequenceProcesses,
+      ScenarioCommandFactoryName(), CreateSequenceProcesses,
       "CreateSequenceData")
 
 public:

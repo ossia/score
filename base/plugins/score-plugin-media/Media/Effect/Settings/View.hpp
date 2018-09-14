@@ -1,7 +1,8 @@
 #pragma once
 #include <score/plugins/ProjectSettings/ProjectSettingsView.hpp>
-#include <wobjectdefs.h>
 #include <score/plugins/settingsdelegate/SettingsDelegateView.hpp>
+
+#include <wobjectdefs.h>
 class QCheckBox;
 namespace Media::Settings
 {
@@ -13,6 +14,7 @@ public:
 
 public:
   void setVstPaths(QStringList);
+
 public:
   void VstPathsChanged(QStringList arg_1) W_SIGNAL(VstPathsChanged, arg_1);
 

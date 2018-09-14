@@ -1,9 +1,11 @@
 #include "Encapsulate.hpp"
+
 #include "DuplicateInterval.hpp"
-#include <Scenario/Process/Algorithms/Accessors.hpp>
-#include <Scenario/Process/ScenarioModel.hpp>
-#include <Scenario/Process/ScenarioGlobalCommandManager.hpp>
+
 #include <Scenario/Commands/CommandAPI.hpp>
+#include <Scenario/Process/Algorithms/Accessors.hpp>
+#include <Scenario/Process/ScenarioGlobalCommandManager.hpp>
+#include <Scenario/Process/ScenarioModel.hpp>
 namespace Scenario
 {
 
@@ -11,11 +13,11 @@ void DecapsulateScenario(
     const ProcessModel& scenar, const score::CommandStackFacade& stack)
 {
   auto parent_itv = qobject_cast<Scenario::IntervalModel*>(scenar.parent());
-  if(!parent_itv)
+  if (!parent_itv)
     return;
 
   auto parent_s = qobject_cast<Scenario::ProcessModel*>(parent_itv->parent());
-  if(!parent_s)
+  if (!parent_s)
     return;
 
   using namespace Command;
@@ -23,7 +25,8 @@ void DecapsulateScenario(
 
   auto objects = copyWholeScenario(scenar);
 
-  disp.pasteElementsAfter(*parent_s, Scenario::startTimeSync(*parent_itv, *parent_s), objects);
+  disp.pasteElementsAfter(
+      *parent_s, Scenario::startTimeSync(*parent_itv, *parent_s), objects);
 
   disp.removeProcess(*parent_itv, scenar.id());
   disp.commit();
@@ -60,7 +63,8 @@ void EncapsulateInScenario(
   {
     if (&sync != &sub_scenar.startTimeSync() && sync.date() == TimeVal::zero())
     {
-      disp.mergeTimeSyncs(sub_scenar, sync.id(), sub_scenar.startTimeSync().id());
+      disp.mergeTimeSyncs(
+          sub_scenar, sync.id(), sub_scenar.startTimeSync().id());
       break;
     }
   }
@@ -83,9 +87,8 @@ void Duplicate(
 
 SCORE_PLUGIN_SCENARIO_EXPORT
 EncapsData EncapsulateElements(
-    Scenario::Command::Macro& m
-    , CategorisedScenario& cat
-    , const ProcessModel& scenar)
+    Scenario::Command::Macro& m, CategorisedScenario& cat,
+    const ProcessModel& scenar)
 {
   using namespace Scenario::Command;
 
@@ -234,5 +237,4 @@ EncapsData EncapsulateElements(
 
   return {topY, bottomY, model};
 }
-
 }

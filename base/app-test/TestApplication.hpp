@@ -11,9 +11,8 @@ class Presenter;
 
 class QApplication;
 
-class TestApplication final
-    : public QObject
-    , public score::GUIApplicationInterface
+class TestApplication final : public QObject,
+                              public score::GUIApplicationInterface
 {
 public:
   TestApplication(int& argc, char** argv);

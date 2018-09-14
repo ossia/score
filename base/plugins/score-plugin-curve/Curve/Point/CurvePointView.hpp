@@ -1,12 +1,13 @@
 #pragma once
-#include <score/model/Identifier.hpp>
-#include <wobjectdefs.h>
 #include <score/model/IdentifiedObjectMap.hpp>
+#include <score/model/Identifier.hpp>
 
 #include <QGraphicsItem>
 #include <QPoint>
 #include <QRect>
+
 #include <score_plugin_curve_export.h>
+#include <wobjectdefs.h>
 
 class QGraphicsSceneContextMenuEvent;
 class QPainter;
@@ -16,16 +17,14 @@ namespace Curve
 {
 class PointModel;
 struct Style;
-class SCORE_PLUGIN_CURVE_EXPORT PointView final
-    : public QObject
-    , public QGraphicsItem
+class SCORE_PLUGIN_CURVE_EXPORT PointView final : public QObject,
+                                                  public QGraphicsItem
 {
   W_OBJECT(PointView)
   Q_INTERFACES(QGraphicsItem)
 public:
   PointView(
-      const PointModel* model,
-      const Curve::Style& style,
+      const PointModel* model, const Curve::Style& style,
       QGraphicsItem* parent);
 
   const PointModel& model() const;
@@ -42,8 +41,7 @@ public:
 
   QRectF boundingRect() const override;
   void paint(
-      QPainter* painter,
-      const QStyleOptionGraphicsItem* option,
+      QPainter* painter, const QStyleOptionGraphicsItem* option,
       QWidget* widget) override;
 
   void setSelected(bool selected);
@@ -54,7 +52,8 @@ public:
   void setModel(const PointModel* model);
 
 public:
-  void contextMenuRequested(const QPoint& arg_1, const QPointF& arg_2) E_SIGNAL(, contextMenuRequested, arg_1, arg_2);
+  void contextMenuRequested(const QPoint& arg_1, const QPointF& arg_2)
+      E_SIGNAL(, contextMenuRequested, arg_1, arg_2);
 
 protected:
   void contextMenuEvent(QGraphicsSceneContextMenuEvent*) override;

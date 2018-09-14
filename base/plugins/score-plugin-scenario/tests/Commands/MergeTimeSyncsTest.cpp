@@ -1,13 +1,15 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
-#include <QtTest/QTest>
 #include <Scenario/Commands/Scenario/Creations/CreateEvent.hpp>
 #include <Scenario/Commands/TimeSync/MergeTimeSyncs.hpp>
 #include <Scenario/Document/Event/EventData.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
+
 #include <score/document/DocumentInterface.hpp>
+
+#include <QtTest/QTest>
 
 using namespace score;
 using namespace Scenario::Command;

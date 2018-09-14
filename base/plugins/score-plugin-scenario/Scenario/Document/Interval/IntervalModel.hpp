@@ -1,18 +1,13 @@
 #pragma once
 #include <Process/Dataflow/Port.hpp>
-#include <wobjectdefs.h>
+#include <Process/Instantiations.hpp>
 #include <Process/Process.hpp>
 #include <Process/TimeValue.hpp>
-#include <QObject>
-#include <QPointer>
-#include <QString>
-#include <QVector>
-#include <Process/Instantiations.hpp>
 #include <Scenario/Document/Interval/ExecutionState.hpp>
 #include <Scenario/Document/Interval/IntervalDurations.hpp>
 #include <Scenario/Document/Interval/Slot.hpp>
 #include <Scenario/Document/ModelConsistency.hpp>
-#include <nano_signal_slot.hpp>
+
 #include <score/model/Component.hpp>
 #include <score/model/EntityImpl.hpp>
 #include <score/model/EntityMap.hpp>
@@ -22,6 +17,14 @@
 #include <score/tools/Metadata.hpp>
 #include <score/tools/std/Optional.hpp>
 
+#include <QObject>
+#include <QPointer>
+#include <QString>
+#include <QVector>
+
+#include <nano_signal_slot.hpp>
+#include <wobjectdefs.h>
+
 class DataStream;
 class JSONObject;
 
@@ -30,8 +33,8 @@ namespace Scenario
 class StateModel;
 
 class SCORE_PLUGIN_SCENARIO_EXPORT IntervalModel final
-    : public score::Entity<IntervalModel>
-    , public Nano::Observer
+    : public score::Entity<IntervalModel>,
+      public Nano::Observer
 {
   W_OBJECT(IntervalModel)
 
@@ -141,33 +144,53 @@ public:
   void setMuted(bool m);
 
 public:
-  void heightPercentageChanged(double arg_1) E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, heightPercentageChanged, arg_1);
+  void heightPercentageChanged(double arg_1)
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, heightPercentageChanged, arg_1);
 
-  void dateChanged(const TimeVal& arg_1) E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, dateChanged, arg_1);
+  void dateChanged(const TimeVal& arg_1)
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, dateChanged, arg_1);
 
-  void focusChanged(bool arg_1) E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, focusChanged, arg_1);
-  void executionStateChanged(Scenario::IntervalExecutionState arg_1) E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, executionStateChanged, arg_1);
-  void executionStarted() E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, executionStarted);
-  void executionStopped() E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, executionStopped);
-  void executionFinished() E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, executionFinished);
+  void focusChanged(bool arg_1)
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, focusChanged, arg_1);
+  void executionStateChanged(Scenario::IntervalExecutionState arg_1)
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, executionStateChanged, arg_1);
+  void executionStarted()
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, executionStarted);
+  void executionStopped()
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, executionStopped);
+  void executionFinished()
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, executionFinished);
 
-  void smallViewVisibleChanged(bool fv) E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, smallViewVisibleChanged, fv);
+  void smallViewVisibleChanged(bool fv)
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, smallViewVisibleChanged, fv);
 
-  void rackChanged(Scenario::Slot::RackView fv) E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, rackChanged, fv);
-  void slotAdded(Scenario::SlotId arg_1) E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, slotAdded, arg_1);
-  void slotRemoved(Scenario::SlotId arg_1) E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, slotRemoved, arg_1);
-  void slotResized(Scenario::SlotId arg_1) E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, slotResized, arg_1);
-  void slotsSwapped(int slot1, int slot2, Slot::RackView fv) E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, slotsSwapped, slot1, slot2, fv);
-  void heightFinishedChanging() E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, heightFinishedChanging);
+  void rackChanged(Scenario::Slot::RackView fv)
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, rackChanged, fv);
+  void slotAdded(Scenario::SlotId arg_1)
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, slotAdded, arg_1);
+  void slotRemoved(Scenario::SlotId arg_1)
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, slotRemoved, arg_1);
+  void slotResized(Scenario::SlotId arg_1)
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, slotResized, arg_1);
+  void slotsSwapped(int slot1, int slot2, Slot::RackView fv)
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, slotsSwapped, slot1, slot2, fv);
+  void heightFinishedChanging()
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, heightFinishedChanging);
 
-  void layerAdded(Scenario::SlotId arg_1, Id<Process::ProcessModel> arg_2) E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, layerAdded, arg_1, arg_2);
-  void layerRemoved(Scenario::SlotId arg_1, Id<Process::ProcessModel> arg_2) E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, layerRemoved, arg_1, arg_2);
-  void frontLayerChanged(int arg_1, OptionalId<Process::ProcessModel> arg_2) E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, frontLayerChanged, arg_1, arg_2);
+  void layerAdded(Scenario::SlotId arg_1, Id<Process::ProcessModel> arg_2)
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, layerAdded, arg_1, arg_2);
+  void layerRemoved(Scenario::SlotId arg_1, Id<Process::ProcessModel> arg_2)
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, layerRemoved, arg_1, arg_2);
+  void frontLayerChanged(int arg_1, OptionalId<Process::ProcessModel> arg_2)
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, frontLayerChanged, arg_1, arg_2);
 
-  void mutedChanged(bool arg_1) E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, mutedChanged, arg_1);
+  void mutedChanged(bool arg_1)
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, mutedChanged, arg_1);
 
   PROPERTY(double, muted READ muted WRITE setMuted NOTIFY mutedChanged)
-  PROPERTY(double, heightPercentage READ heightPercentage WRITE setHeightPercentage NOTIFY heightPercentageChanged)
+  PROPERTY(
+      double, heightPercentage READ heightPercentage WRITE setHeightPercentage
+                  NOTIFY heightPercentageChanged)
 
 private:
   void on_addProcess(const Process::ProcessModel&);
@@ -191,7 +214,6 @@ private:
   IntervalExecutionState m_executionState{};
   bool m_smallViewShown{};
   bool m_muted{};
-
 };
 
 SCORE_PLUGIN_SCENARIO_EXPORT

@@ -2,19 +2,21 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "HTTPDevice.hpp"
 
+#include <Device/Protocol/DeviceSettings.hpp>
+#include <Explorer/DeviceList.hpp>
+#include <Explorer/DeviceLogging.hpp>
+#include <Protocols/HTTP/HTTPSpecificSettings.hpp>
+
+#include <ossia-qt/http/http_protocol.hpp>
 #include <ossia/network/generic/generic_device.hpp>
 #include <ossia/network/generic/generic_parameter.hpp>
-#include <Explorer/DeviceLogging.hpp>
 
-#include <Device/Protocol/DeviceSettings.hpp>
-#include <Protocols/HTTP/HTTPSpecificSettings.hpp>
-#include <Explorer/DeviceList.hpp>
 #include <QString>
 #include <QVariant>
-#include <memory>
-#include <ossia-qt/http/http_protocol.hpp>
 
 #include <wobjectimpl.h>
+
+#include <memory>
 namespace Engine
 {
 namespace Network

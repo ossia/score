@@ -3,6 +3,7 @@
 #include "IdentifiedObjectAbstract.hpp"
 
 #include <score/tools/std/HashMap.hpp>
+
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(IdentifiedObjectAbstract)
 IdentifiedObjectAbstract::~IdentifiedObjectAbstract()

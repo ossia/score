@@ -1,8 +1,9 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "Expression.hpp"
-#include <State/ValueParser.hpp>
+
 #include <State/AddressParser.hpp>
+#include <State/ValueParser.hpp>
 /*
 Here is the grammar used. The grammar itself is split in multiple classes where
 relevant.
@@ -55,7 +56,6 @@ Not				:= ('not', Simple) | Simple;
 Simple			:= ('{', Expr, '}') | Relation;
 */
 
-
 BOOST_FUSION_ADAPT_STRUCT(
     State::Relation,
     (State::RelationMember,
@@ -67,7 +67,6 @@ namespace
 namespace qi = boost::spirit::qi;
 
 using boost::spirit::qi::rule;
-
 
 //// RelMember parsing
 template <typename Iterator>
@@ -123,9 +122,12 @@ struct Pulse_parser : qi::grammar<Iterator, State::Pulse()>
     using boost::spirit::qi::lit;
     using boost::spirit::qi::skip;
     using boost::spirit::standard::string;
-    start %= skip(boost::spirit::standard::space)["%" >> addr >> "%" >> "impulse"]
-             | skip(boost::spirit::standard::space)
-                   [lit('{') >> lit("%") >> addr >> lit("%") >> lit("impulse") >> '}'];
+    start
+        %= skip(
+               boost::spirit::standard::space)["%" >> addr >> "%" >> "impulse"]
+           | skip(boost::spirit::standard::space)
+                 [lit('{') >> lit("%") >> addr >> lit("%") >> lit("impulse")
+                  >> '}'];
   }
 
   Address_parser<Iterator> addr;
@@ -157,9 +159,7 @@ template <typename tag>
 struct unop;
 
 using expr_raw = boost::variant<
-    State::Relation,
-    State::Pulse,
-    boost::recursive_wrapper<unop<op_not>>,
+    State::Relation, State::Pulse, boost::recursive_wrapper<unop<op_not>>,
     boost::recursive_wrapper<binop<op_and>>,
     boost::recursive_wrapper<binop<op_xor>>,
     boost::recursive_wrapper<binop<op_or>>>;

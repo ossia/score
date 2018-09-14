@@ -1,10 +1,13 @@
 #pragma once
 #include <score/plugins/customfactory/FactoryFamily.hpp>
-#include <wobjectdefs.h>
+
 #include <score_plugin_engine_export.h>
+#include <wobjectdefs.h>
 
 namespace ossia
-{ class audio_engine; }
+{
+class audio_engine;
+}
 namespace score
 {
 struct ApplicationContext;
@@ -13,10 +16,13 @@ class SettingsCommandDispatcher;
 
 namespace Audio
 {
-namespace Settings { class Model; class View; }
+namespace Settings
+{
+class Model;
+class View;
+}
 
-class SCORE_PLUGIN_ENGINE_EXPORT AudioFactory
-    : public score::InterfaceBase
+class SCORE_PLUGIN_ENGINE_EXPORT AudioFactory : public score::InterfaceBase
 {
   SCORE_INTERFACE(AudioFactory, "f08e5469-eb29-4c39-9115-1d110cee2369")
 public:
@@ -25,16 +31,15 @@ public:
   virtual QString prettyName() const = 0;
   virtual std::unique_ptr<ossia::audio_engine> make_engine(
       const Audio::Settings::Model& settings,
-      const score::ApplicationContext& ctx) = 0;
+      const score::ApplicationContext& ctx)
+      = 0;
   virtual QWidget* make_settings(
-      Audio::Settings::Model& m,
-      Audio::Settings::View& v,
-      score::SettingsCommandDispatcher& ,
-      QWidget* parent) = 0;
+      Audio::Settings::Model& m, Audio::Settings::View& v,
+      score::SettingsCommandDispatcher&, QWidget* parent)
+      = 0;
 };
 
-class AudioFactoryList final
-    : public score::InterfaceList<AudioFactory>
+class AudioFactoryList final : public score::InterfaceList<AudioFactory>
 {
 };
 }

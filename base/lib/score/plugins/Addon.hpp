@@ -1,8 +1,9 @@
 #pragma once
-#include <QImage>
-#include <QObject>
 #include <score/plugins/customfactory/UuidKey.hpp>
 #include <score/plugins/qt_interfaces/PluginRequirements_QtInterface.hpp>
+
+#include <QImage>
+#include <QObject>
 
 namespace score
 {

@@ -1,10 +1,13 @@
 #pragma once
-#include <QBrush>
-#include <QColor>
-#include <eggs/variant.hpp>
 #include <score/model/Skin.hpp>
 #include <score/tools/Todo.hpp>
 #include <score/tools/std/Optional.hpp>
+
+#include <QBrush>
+#include <QColor>
+
+#include <eggs/variant.hpp>
+
 #include <utility>
 
 namespace score

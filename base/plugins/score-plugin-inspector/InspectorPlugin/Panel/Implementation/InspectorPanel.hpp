@@ -1,16 +1,19 @@
 #pragma once
 
 #include <Inspector/InspectorWidgetBase.hpp>
-#include <wobjectdefs.h>
+
+#include <score/selection/Selection.hpp>
+#include <score/selection/SelectionDispatcher.hpp>
+
 #include <QList>
 #include <QWidget>
+
 #include <multi_index/hashed_index.hpp>
 #include <multi_index/identity_fwd.hpp>
 #include <multi_index/indexed_by.hpp>
 #include <multi_index/mem_fun.hpp>
 #include <multi_index_container.hpp>
-#include <score/selection/Selection.hpp>
-#include <score/selection/SelectionDispatcher.hpp>
+#include <wobjectdefs.h>
 
 class IdentifiedObjectAbstract;
 namespace Inspector
@@ -40,11 +43,8 @@ class InspectorPanelWidget final : public QObject
 
 public:
   explicit InspectorPanelWidget(
-      const Inspector::InspectorWidgetList& list,
-      score::SelectionStack& s,
-      QVBoxLayout* lay,
-      QWidget* parent,
-      QObject* parentObj);
+      const Inspector::InspectorWidgetList& list, score::SelectionStack& s,
+      QVBoxLayout* lay, QWidget* parent, QObject* parentObj);
 
 public:
   /*!
@@ -53,7 +53,8 @@ public:
    *  It's called when the user selects a new item
    * \param object The selected objet.
    */
-  void newItemsInspected(const Selection&); W_SLOT(newItemsInspected);
+  void newItemsInspected(const Selection&);
+  W_SLOT(newItemsInspected);
 
 private:
   QWidget* m_parent{};

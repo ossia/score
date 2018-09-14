@@ -4,21 +4,22 @@
 
 #include "StateMenuOverlay.hpp"
 #include "StatePresenter.hpp"
+
 #include <Process/ProcessMimeSerialization.hpp>
+#include <Process/Style/ScenarioStyle.hpp>
 #include <Scenario/Application/Menus/ScenarioCopy.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
-#include <QDrag>
-#include <QMimeData>
+#include <Scenario/Process/ScenarioInterface.hpp>
 
-#include <Process/Style/ScenarioStyle.hpp>
 #include <QApplication>
 #include <QBrush>
 #include <QCursor>
+#include <QDrag>
 #include <QGraphicsSceneEvent>
+#include <QMimeData>
 #include <QPainter>
 #include <QPen>
 #include <QScreen>
-#include <Scenario/Process/ScenarioInterface.hpp>
 #include <qnamespace.h>
 
 #include <wobjectimpl.h>
@@ -156,26 +157,32 @@ void StateView::mousePressEvent(QGraphicsSceneMouseEvent* event)
 
 void StateView::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 {
-  if(event->buttons() & Qt::MiddleButton)
+  if (event->buttons() & Qt::MiddleButton)
   {
-    if(auto si = dynamic_cast<Scenario::ScenarioInterface*>(presenter().model().parent()))
+    if (auto si = dynamic_cast<Scenario::ScenarioInterface*>(
+            presenter().model().parent()))
     {
       auto obj = copySelectedElementsToJson(
-            *const_cast<ScenarioInterface*>(si),
-            score::IDocument::documentContext(*m_presenter.model().parent()));
+          *const_cast<ScenarioInterface*>(si),
+          score::IDocument::documentContext(*m_presenter.model().parent()));
 
       if (!obj.empty())
       {
         QDrag d{this};
         auto m = new QMimeData;
-        QJsonDocument doc{obj};;
-        m->setData(score::mime::scenariodata(), doc.toJson(QJsonDocument::Indented));
+        QJsonDocument doc{obj};
+        ;
+        m->setData(
+            score::mime::scenariodata(), doc.toJson(QJsonDocument::Indented));
         d.setMimeData(m);
         d.exec();
       }
     }
   }
-  if(m_moving || (event->buttonDownScreenPos(Qt::LeftButton) - event->screenPos()).manhattanLength() > QApplication::startDragDistance())
+  if (m_moving
+      || (event->buttonDownScreenPos(Qt::LeftButton) - event->screenPos())
+                 .manhattanLength()
+             > QApplication::startDragDistance())
   {
     m_moving = true;
     m_presenter.moved(event->scenePos());

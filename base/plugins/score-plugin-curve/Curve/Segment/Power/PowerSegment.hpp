@@ -1,9 +1,11 @@
 #pragma once
 #include <Curve/Segment/CurveSegmentModel.hpp>
-#include <QVariant>
+
 #include <score/model/Identifier.hpp>
 #include <score/serialization/VisitorInterface.hpp>
 #include <score/tools/std/Optional.hpp>
+
+#include <QVariant>
 
 namespace Curve
 {
@@ -11,12 +13,8 @@ class PowerSegment;
 }
 
 CURVE_SEGMENT_METADATA(
-    SCORE_PLUGIN_CURVE_EXPORT,
-    Curve::PowerSegment,
-    "1e7cb83f-4e47-4b14-814d-2242a9c75991",
-    "Power",
-    "Power",
-    "")
+    SCORE_PLUGIN_CURVE_EXPORT, Curve::PowerSegment,
+    "1e7cb83f-4e47-4b14-814d-2242a9c75991", "Power", "Power", "")
 
 namespace Curve
 {

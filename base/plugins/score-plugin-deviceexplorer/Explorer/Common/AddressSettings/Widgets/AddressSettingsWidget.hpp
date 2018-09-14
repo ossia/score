@@ -1,12 +1,15 @@
 #pragma once
 
 #include <Device/Address/AddressSettings.hpp>
-#include <wobjectdefs.h>
+
+#include <score/widgets/TextLabel.hpp>
+
 #include <QComboBox>
 #include <QLabel>
 #include <QWidget>
-#include <score/widgets/TextLabel.hpp>
+
 #include <score_plugin_deviceexplorer_export.h>
+#include <wobjectdefs.h>
 class QComboBox;
 class QCheckBox;
 class QLineEdit;
@@ -63,7 +66,8 @@ public:
   void set(ossia::access_mode t);
 
 public:
-  void changed(ossia::access_mode arg_1) E_SIGNAL(SCORE_PLUGIN_DEVICEEXPLORER_EXPORT, changed, arg_1);
+  void changed(ossia::access_mode arg_1)
+      E_SIGNAL(SCORE_PLUGIN_DEVICEEXPLORER_EXPORT, changed, arg_1);
 };
 
 class BoundingModeComboBox final : public QComboBox
@@ -77,7 +81,8 @@ public:
   void set(ossia::bounding_mode t);
 
 public:
-  void changed(ossia::bounding_mode arg_1) E_SIGNAL(SCORE_PLUGIN_DEVICEEXPLORER_EXPORT, changed, arg_1);
+  void changed(ossia::bounding_mode arg_1)
+      E_SIGNAL(SCORE_PLUGIN_DEVICEEXPLORER_EXPORT, changed, arg_1);
 };
 
 inline QLabel* makeLabel(QString text, QWidget* parent)

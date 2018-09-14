@@ -3,6 +3,7 @@
 #include <Media/Commands/MediaCommandFactory.hpp>
 #include <Media/Effect/EffectProcessModel.hpp>
 #include <Process/ProcessList.hpp>
+
 #include <score/application/ApplicationContext.hpp>
 #include <score/command/Command.hpp>
 #include <score/document/DocumentContext.hpp>
@@ -30,8 +31,7 @@ class InsertEffect final : public score::Command
 public:
   InsertEffect(
       const Effect::ProcessModel& model,
-      const UuidKey<Process::ProcessModel>& effectKind,
-      QString d,
+      const UuidKey<Process::ProcessModel>& effectKind, QString d,
       std::size_t effectPos);
 
   void undo(const score::DocumentContext& ctx) const override;
@@ -51,12 +51,10 @@ private:
 
 class LoadEffect final : public score::Command
 {
-  SCORE_COMMAND_DECL(
-      Media::CommandFactoryName(), LoadEffect, "Load effect")
+  SCORE_COMMAND_DECL(Media::CommandFactoryName(), LoadEffect, "Load effect")
 public:
   LoadEffect(
-      const Effect::ProcessModel& model,
-      const QJsonObject& obj,
+      const Effect::ProcessModel& model, const QJsonObject& obj,
       std::size_t effectPos);
 
   void undo(const score::DocumentContext& ctx) const override;
@@ -101,8 +99,7 @@ public:
 
   InsertGenericEffect() = default;
   InsertGenericEffect(
-      const Effect::ProcessModel& model,
-      const QString& path,
+      const Effect::ProcessModel& model, const QString& path,
       std::size_t effectPos)
       : m_model{model}
       , m_id{getStrongId(model.effects())}
@@ -171,8 +168,7 @@ class MoveEffect final : public score::Command
   SCORE_COMMAND_DECL(Media::CommandFactoryName(), MoveEffect, "Move effect")
 public:
   MoveEffect(
-      const Effect::ProcessModel& model,
-      Id<Process::ProcessModel> id,
+      const Effect::ProcessModel& model, Id<Process::ProcessModel> id,
       int new_pos);
 
   void undo(const score::DocumentContext& ctx) const override;

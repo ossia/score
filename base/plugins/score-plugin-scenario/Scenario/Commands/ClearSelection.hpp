@@ -1,8 +1,10 @@
 #pragma once
 
-#include <QVector>
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
+
 #include <score/command/AggregateCommand.hpp>
+
+#include <QVector>
 
 namespace Scenario
 {

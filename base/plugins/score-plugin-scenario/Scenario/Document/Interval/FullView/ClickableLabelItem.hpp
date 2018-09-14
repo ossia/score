@@ -1,8 +1,11 @@
 #pragma once
-#include <QGraphicsItem>
-#include <wobjectdefs.h>
-#include <QString>
 #include <Scenario/Document/CommentBlock/TextItem.hpp>
+
+#include <QGraphicsItem>
+#include <QString>
+
+#include <wobjectdefs.h>
+
 #include <functional>
 
 namespace score
@@ -23,23 +26,18 @@ public:
 public:
   QRectF boundingRect() const override;
   void paint(
-      QPainter* painter,
-      const QStyleOptionGraphicsItem* option,
+      QPainter* painter, const QStyleOptionGraphicsItem* option,
       QWidget* widget) override;
 };
 
-class ClickableLabelItem final
-    : public QObject
-    , public SimpleTextItem
+class ClickableLabelItem final : public QObject, public SimpleTextItem
 {
   W_OBJECT(ClickableLabelItem)
 public:
   using ClickHandler = std::function<void(ClickableLabelItem*)>;
   ClickableLabelItem(
-      score::ModelMetadata& interval,
-      ClickHandler&& onClick,
-      const QString& text,
-      QGraphicsItem* parent);
+      score::ModelMetadata& interval, ClickHandler&& onClick,
+      const QString& text, QGraphicsItem* parent);
 
   int index() const;
   void setIndex(int index);

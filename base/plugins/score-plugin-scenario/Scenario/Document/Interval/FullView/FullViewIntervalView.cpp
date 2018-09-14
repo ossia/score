@@ -5,6 +5,8 @@
 #include "FullViewIntervalPresenter.hpp"
 
 #include <Process/Style/ScenarioStyle.hpp>
+#include <Scenario/Document/Interval/IntervalView.hpp>
+
 #include <QColor>
 #include <QCursor>
 #include <QGraphicsItem>
@@ -13,7 +15,6 @@
 #include <QPainter>
 #include <QPen>
 #include <QtGlobal>
-#include <Scenario/Document/Interval/IntervalView.hpp>
 #include <qnamespace.h>
 
 #include <wobjectimpl.h>

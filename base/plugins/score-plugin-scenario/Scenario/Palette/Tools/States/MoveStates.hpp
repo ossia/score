@@ -1,6 +1,4 @@
 #pragma once
-#include <QApplication>
-#include <QFinalState>
 #include <Scenario/Commands/Scenario/Displacement/MoveEventMeta.hpp>
 #include <Scenario/Palette/ScenarioPaletteBaseStates.hpp>
 #include <Scenario/Palette/Tools/ScenarioRollbackStrategy.hpp>
@@ -10,8 +8,12 @@
 #include <Scenario/Palette/Transitions/NothingTransitions.hpp>
 #include <Scenario/Palette/Transitions/TimeSyncTransitions.hpp>
 #include <Scenario/Process/Algorithms/Accessors.hpp>
+
 #include <score/command/Dispatchers/SingleOngoingCommandDispatcher.hpp>
 #include <score/locking/ObjectLocker.hpp>
+
+#include <QApplication>
+#include <QFinalState>
 namespace Scenario
 {
 template <typename T>
@@ -19,10 +21,8 @@ class MoveIntervalState final : public StateBase<Scenario::ProcessModel>
 {
 public:
   MoveIntervalState(
-      const T& stateMachine,
-      const Scenario::ProcessModel& scenario,
-      const score::CommandStackFacade& stack,
-      score::ObjectLocker& locker,
+      const T& stateMachine, const Scenario::ProcessModel& scenario,
+      const score::CommandStackFacade& stack, score::ObjectLocker& locker,
       QState* parent)
       : StateBase<Scenario::ProcessModel>{scenario, parent}
       , m_movingDispatcher{stack}
@@ -136,16 +136,13 @@ private:
 
 template <
     typename MoveBraceCommand_T, // SetMinDuration or setMaxDuration
-    typename Scenario_T,
-    typename ToolPalette_T>
+    typename Scenario_T, typename ToolPalette_T>
 class MoveIntervalBraceState final : public StateBase<Scenario_T>
 {
 public:
   MoveIntervalBraceState(
-      const ToolPalette_T& stateMachine,
-      const Scenario_T& scenarioPath,
-      const score::CommandStackFacade& stack,
-      score::ObjectLocker& locker,
+      const ToolPalette_T& stateMachine, const Scenario_T& scenarioPath,
+      const score::CommandStackFacade& stack, score::ObjectLocker& locker,
       QState* parent)
       : StateBase<Scenario_T>{scenarioPath, parent}, m_dispatcher{stack}
   {
@@ -218,16 +215,13 @@ private:
 
 template <
     typename MoveTimeSyncCommand_T, // MoveEventMeta
-    typename Scenario_T,
-    typename ToolPalette_T>
+    typename Scenario_T, typename ToolPalette_T>
 class MoveTimeSyncState final : public StateBase<Scenario_T>
 {
 public:
   MoveTimeSyncState(
-      const ToolPalette_T& stateMachine,
-      const Scenario_T& scenarioPath,
-      const score::CommandStackFacade& stack,
-      score::ObjectLocker& locker,
+      const ToolPalette_T& stateMachine, const Scenario_T& scenarioPath,
+      const score::CommandStackFacade& stack, score::ObjectLocker& locker,
       QState* parent)
       : StateBase<Scenario_T>{scenarioPath, parent}, m_dispatcher{stack}
   {

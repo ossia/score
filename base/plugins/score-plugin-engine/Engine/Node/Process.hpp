@@ -1,11 +1,11 @@
 #pragma once
-#include <ossia/dataflow/safe_nodes/node.hpp>
-
 #include <Process/Dataflow/Port.hpp>
 #include <Process/Dataflow/PortFactory.hpp>
 #include <Process/Process.hpp>
 #include <Process/ProcessFactory.hpp>
 #include <Process/ProcessMetadata.hpp>
+
+#include <ossia/dataflow/safe_nodes/node.hpp>
 
 ////////// METADATA ////////////
 namespace Control
@@ -66,7 +66,8 @@ struct Metadata<Process::Descriptor_k, Control::ControlProcess<Info>>
     {
       port.push_back(Process::PortType::Message);
     }
-    for(int i = 0; i < std::tuple_size_v<decltype(Info::Metadata::controls)>; i++)
+    for (int i = 0; i < std::tuple_size_v<decltype(Info::Metadata::controls)>;
+         i++)
       port.push_back(Process::PortType::Message);
     return port;
   }
@@ -89,17 +90,15 @@ struct Metadata<Process::Descriptor_k, Control::ControlProcess<Info>>
   }
   static Process::Descriptor get()
   {
-    static Process::Descriptor desc
-    {
-      Info::Metadata::prettyName,
-          Info::Metadata::kind,
-          Info::Metadata::category,
-          Info::Metadata::description,
-          Info::Metadata::author,
-          Metadata<Tags_k, Control::ControlProcess<Info>>::get(),
-          inletDescription(),
-          outletDescription()
-    };
+    static Process::Descriptor desc{
+        Info::Metadata::prettyName,
+        Info::Metadata::kind,
+        Info::Metadata::category,
+        Info::Metadata::description,
+        Info::Metadata::author,
+        Metadata<Tags_k, Control::ControlProcess<Info>>::get(),
+        inletDescription(),
+        outletDescription()};
     return desc;
   }
 };
@@ -233,8 +232,7 @@ public:
   }
 
   ControlProcess(
-      const TimeVal& duration,
-      const Id<Process::ProcessModel>& id,
+      const TimeVal& duration, const Id<Process::ProcessModel>& id,
       QObject* parent)
       : Process::ProcessModel{
             duration, id, Metadata<ObjectKey_k, ProcessModel>::get(), parent}

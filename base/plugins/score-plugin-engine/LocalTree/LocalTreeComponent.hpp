@@ -1,7 +1,8 @@
 #pragma once
+#include <score/model/Component.hpp>
+
 #include <LocalTree/LocalTreeDocumentPlugin.hpp>
 #include <LocalTree/NameProperty.hpp>
-#include <score/model/Component.hpp>
 
 namespace LocalTree
 {
@@ -11,8 +12,7 @@ class Component : public Component_T
 public:
   template <typename... Args>
   Component(ossia::net::node_base& n, score::ModelMetadata& m, Args&&... args)
-      : Component_T{std::forward<Args>(args)...}
-      , m_thisNode{n, m, this}
+      : Component_T{std::forward<Args>(args)...}, m_thisNode{n, m, this}
   {
     add<score::ModelMetadata::p_comment>(m);
     add<score::ModelMetadata::p_label>(m);
@@ -29,13 +29,13 @@ public:
   }
 
 protected:
-  template<typename Property, typename Object>
+  template <typename Property, typename Object>
   void add(Object& obj)
   {
     m_properties.push_back(add_property<Property>(node(), obj, this));
   }
 
-  template<typename Property, typename Object>
+  template <typename Property, typename Object>
   void add_get(Object& obj)
   {
     m_properties.push_back(add_getProperty<Property>(node(), obj, this));

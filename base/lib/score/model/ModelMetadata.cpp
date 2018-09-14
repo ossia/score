@@ -2,12 +2,14 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "ModelMetadata.hpp"
 
+#include <score/serialization/DataStreamVisitor.hpp>
+#include <score/serialization/JSONVisitor.hpp>
+
+#include <ossia-qt/js_utilities.hpp>
 #include <ossia/network/base/name_validation.hpp>
 
 #include <QJsonObject>
-#include <ossia-qt/js_utilities.hpp>
-#include <score/serialization/DataStreamVisitor.hpp>
-#include <score/serialization/JSONVisitor.hpp>
+
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(score::ModelMetadata)
 namespace score
@@ -61,19 +63,19 @@ void ModelMetadata::setName(const QString& arg)
     std::size_t cur_bros_idx = 0;
     std::size_t cur_bros_size = bros.size();
 
-    for(auto c : cld)
+    for (auto c : cld)
     {
-      if(auto bro = qobject_cast<IdentifiedObjectAbstract*>(c))
+      if (auto bro = qobject_cast<IdentifiedObjectAbstract*>(c))
       {
         cld2 = &bro->children();
         cld2_N = cld2->size();
-        for(int j = 0; j < cld2_N; j++)
+        for (int j = 0; j < cld2_N; j++)
         {
-          if(auto m = qobject_cast<ModelMetadata*>((*cld2)[j]))
+          if (auto m = qobject_cast<ModelMetadata*>((*cld2)[j]))
           {
             if (const auto& n = m->getName(); !n.isEmpty())
             {
-              if(cur_bros_idx < cur_bros_size)
+              if (cur_bros_idx < cur_bros_size)
               {
                 bros[cur_bros_idx] = n;
               }
@@ -92,27 +94,27 @@ void ModelMetadata::setName(const QString& arg)
 
     m_scriptingName = ossia::net::sanitize_name(arg, bros);
 
-    for(std::size_t i = 0; i < cur_bros_idx; i++)
+    for (std::size_t i = 0; i < cur_bros_idx; i++)
       bros[i].clear();
-/*
-    auto parent_bros
-        = parent()->parent()->findChildren<IdentifiedObjectAbstract*>(
-            QString{}, Qt::FindDirectChildrenOnly);
+    /*
+        auto parent_bros
+            = parent()->parent()->findChildren<IdentifiedObjectAbstract*>(
+                QString{}, Qt::FindDirectChildrenOnly);
 
-    bros.clear();
-    bros.reserve(parent_bros.size());
-    for (auto o : parent_bros)
-    {
-      auto objs = o->findChildren<ModelMetadata*>(
-          QString{}, Qt::FindDirectChildrenOnly);
-      if (!objs.empty())
-      {
-        auto n = objs[0]->getName();
-        if (!n.isEmpty())
-          bros.push_back(std::move(n));
-      }
-    }
-*/
+        bros.clear();
+        bros.reserve(parent_bros.size());
+        for (auto o : parent_bros)
+        {
+          auto objs = o->findChildren<ModelMetadata*>(
+              QString{}, Qt::FindDirectChildrenOnly);
+          if (!objs.empty())
+          {
+            auto n = objs[0]->getName();
+            if (!n.isEmpty())
+              bros.push_back(std::move(n));
+          }
+        }
+    */
   }
   else
   {

@@ -6,10 +6,7 @@ namespace score
 {
 
 PanelStatus::PanelStatus(
-    bool isShown,
-    Qt::DockWidgetArea d,
-    int prio,
-    QString name,
+    bool isShown, Qt::DockWidgetArea d, int prio, QString name,
     const QKeySequence& sc)
     : shown{isShown}
     , dock{d}

@@ -1,13 +1,15 @@
 #include "GraphicWidgets.hpp"
 
-#include <QDebug>
-#include <QWidget>
-#include <score/model/Skin.hpp>
-#include <QDoubleSpinBox>
-#include <QWindow>
-#include <QGraphicsScene>
-#include <QGraphicsProxyWidget>
 #include <score/actions/ActionManager.hpp>
+#include <score/model/Skin.hpp>
+
+#include <QDebug>
+#include <QDoubleSpinBox>
+#include <QGraphicsProxyWidget>
+#include <QGraphicsScene>
+#include <QWidget>
+#include <QWindow>
+
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(score::QGraphicsPixmapButton)
 W_OBJECT_IMPL(score::QGraphicsPixmapToggle)
@@ -133,10 +135,8 @@ void QGraphicsSlider::paint(
     QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
   DefaultGraphicsSliderImpl::paint(
-        *this,
-        score::Skin::instance(),
-        QString::number(min + value() * (max - min), 'f', 3),
-        painter, widget);
+      *this, score::Skin::instance(),
+      QString::number(min + value() * (max - min), 'f', 3), painter, widget);
 }
 
 bool QGraphicsSlider::isInHandle(QPointF p)
@@ -211,10 +211,9 @@ void QGraphicsLogSlider::paint(
     QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
   DefaultGraphicsSliderImpl::paint(
-        *this,
-        score::Skin::instance(),
-        QString::number(std::exp2(min + value() * (max - min)), 'f', 3),
-        painter, widget);
+      *this, score::Skin::instance(),
+      QString::number(std::exp2(min + value() * (max - min)), 'f', 3), painter,
+      widget);
 }
 
 bool QGraphicsLogSlider::isInHandle(QPointF p)
@@ -336,10 +335,8 @@ void QGraphicsIntSlider::paint(
     QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
   DefaultGraphicsSliderImpl::paint(
-        *this,
-        score::Skin::instance(),
-        QString::number(value()),
-        painter, widget);
+      *this, score::Skin::instance(), QString::number(value()), painter,
+      widget);
 }
 
 bool QGraphicsIntSlider::isInHandle(QPointF p)
@@ -456,10 +453,7 @@ void QGraphicsComboSlider::paint(
     QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
   DefaultGraphicsSliderImpl::paint(
-        *this,
-        score::Skin::instance(),
-        array[value()],
-        painter, widget);
+      *this, score::Skin::instance(), array[value()], painter, widget);
 }
 
 bool QGraphicsComboSlider::isInHandle(QPointF p)

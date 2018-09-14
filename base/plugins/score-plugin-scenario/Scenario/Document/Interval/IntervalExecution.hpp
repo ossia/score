@@ -1,15 +1,18 @@
 #pragma once
-#include <ossia/editor/scenario/time_value.hpp>
-#include <wobjectdefs.h>
-
-
 #include <Process/Execution/ProcessComponent.hpp>
 #include <Process/TimeValue.hpp>
-#include <QObject>
 #include <Scenario/Document/Components/IntervalComponent.hpp>
-#include <memory>
+
 #include <score/model/ComponentHierarchy.hpp>
 #include <score/model/Identifier.hpp>
+
+#include <ossia/editor/scenario/time_value.hpp>
+
+#include <QObject>
+
+#include <wobjectdefs.h>
+
+#include <memory>
 
 Q_DECLARE_METATYPE(ossia::time_value)
 W_REGISTER_ARGTYPE(ossia::time_value)
@@ -36,7 +39,6 @@ namespace Execution
 class IntervalComponentBase;
 class IntervalComponent;
 }
-
 
 namespace score
 {
@@ -78,10 +80,8 @@ public:
 
   static const constexpr bool is_unique = true;
   IntervalComponentBase(
-      Scenario::IntervalModel& score_cst,
-      const Context& ctx,
-      const Id<score::Component>& id,
-      QObject* parent);
+      Scenario::IntervalModel& score_cst, const Context& ctx,
+      const Id<score::Component>& id, QObject* parent);
   IntervalComponentBase(const IntervalComponentBase&) = delete;
   IntervalComponentBase(IntervalComponentBase&&) = delete;
   IntervalComponentBase& operator=(const IntervalComponentBase&) = delete;
@@ -106,8 +106,7 @@ public:
   void executionStopped();
 
   ProcessComponent* make(
-      const Id<score::Component>& id,
-      ProcessComponentFactory& factory,
+      const Id<score::Component>& id, ProcessComponentFactory& factory,
       Process::ProcessModel& process);
   std::function<void()>
   removing(const Process::ProcessModel& e, ProcessComponent& c);
@@ -174,9 +173,11 @@ public:
       interval_duration_data dur);
 
 public:
-  void sig_callback(double position, ossia::time_value date) W_SIGNAL(sig_callback, position, date);
+  void sig_callback(double position, ossia::time_value date)
+      W_SIGNAL(sig_callback, position, date);
+
 public:
-  void slot_callback(double position, ossia::time_value date); W_SLOT(slot_callback);
+  void slot_callback(double position, ossia::time_value date);
+  W_SLOT(slot_callback);
 };
 }
-

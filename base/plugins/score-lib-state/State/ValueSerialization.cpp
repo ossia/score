@@ -2,18 +2,21 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "Value.hpp"
 
-#include <QChar>
-#include <QJsonObject>
-#include <QJsonValue>
-#include <QString>
 #include <State/ValueConversion.hpp>
 #include <State/ValueSerialization.hpp>
-#include <boost/none_t.hpp>
+
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/serialization/JSONVisitor.hpp>
 #include <score/serialization/StringConstants.hpp>
 #include <score/serialization/VariantSerialization.hpp>
 #include <score/tools/std/Optional.hpp>
+
+#include <boost/none_t.hpp>
+
+#include <QChar>
+#include <QJsonObject>
+#include <QJsonValue>
+#include <QString>
 
 SCORE_LIB_STATE_EXPORT QJsonValue ValueToJson(const ossia::value& value)
 {
@@ -107,7 +110,6 @@ const QHash<QString, ossia::val_type> ValTypesMap{
     {QStringLiteral("List"), ossia::val_type::LIST},
     {QStringLiteral("Tuple"), ossia::val_type::LIST},
     {QStringLiteral("None"), ossia::val_type::NONE}};
-
 
 static ossia::val_type which(const QString& val)
 {
@@ -256,4 +258,4 @@ ossia::value fromQJsonValue(const QJsonValue& val, const QString& type)
 {
   return fromQJsonValue(val, which(type));
 }
- }
+}

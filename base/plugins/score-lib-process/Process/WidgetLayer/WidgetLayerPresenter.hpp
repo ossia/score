@@ -5,10 +5,13 @@
 #include <Process/WidgetLayer/WidgetLayerPresenter.hpp>
 #include <Process/WidgetLayer/WidgetLayerView.hpp>
 #include <Process/ZoomHelper.hpp>
-#include <QPoint>
+
 #include <score/document/DocumentContext.hpp>
 #include <score/document/DocumentInterface.hpp>
 #include <score/model/Identifier.hpp>
+
+#include <QPoint>
+
 #include <score_lib_process_export.h>
 
 namespace WidgetLayer
@@ -18,10 +21,8 @@ class Presenter final : public Process::LayerPresenter
 {
 public:
   explicit Presenter(
-      const Process::ProcessModel& model,
-      View* view,
-      const Process::ProcessPresenterContext& ctx,
-      QObject* parent)
+      const Process::ProcessModel& model, View* view,
+      const Process::ProcessPresenterContext& ctx, QObject* parent)
       : LayerPresenter{ctx, parent}, m_layer{model}, m_view{view}
   {
     putToFront();

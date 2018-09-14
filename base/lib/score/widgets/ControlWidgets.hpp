@@ -1,32 +1,25 @@
 #pragma once
+#include <score/widgets/DoubleSlider.hpp>
+
 #include <QCheckBox>
 #include <QPushButton>
-#include <array>
-#include <score/widgets/DoubleSlider.hpp>
+
 #include <score_lib_base_export.h>
+
+#include <array>
 namespace Control
 {
 struct SCORE_LIB_BASE_EXPORT ToggleButton : public QPushButton
 {
 public:
-    ToggleButton(std::array<QString, 2> alts, QWidget* parent)
-      : QPushButton{parent}
-      , alternatives{alts}
+  ToggleButton(std::array<QString, 2> alts, QWidget* parent)
+      : QPushButton{parent}, alternatives{alts}
 
-    {
-      setCheckable(true);
+  {
+    setCheckable(true);
 
-      connect(this, &QPushButton::toggled, this, [&](bool b) {
-        if (b)
-        {
-          setText(alternatives[1]);
-        }
-        else
-        {
-          setText(alternatives[0]);
-        }
-      });
-      if (isChecked())
+    connect(this, &QPushButton::toggled, this, [&](bool b) {
+      if (b)
       {
         setText(alternatives[1]);
       }
@@ -34,17 +27,26 @@ public:
       {
         setText(alternatives[0]);
       }
-    }
-
-    ToggleButton(std::array<const char*, 2> alt, QWidget* parent)
-        : ToggleButton{std::array<QString, 2>{alt[0], alt[1]}, parent}
+    });
+    if (isChecked())
     {
+      setText(alternatives[1]);
     }
+    else
+    {
+      setText(alternatives[0]);
+    }
+  }
 
-    ToggleButton(QStringList alt, QWidget* parent)
+  ToggleButton(std::array<const char*, 2> alt, QWidget* parent)
       : ToggleButton{std::array<QString, 2>{alt[0], alt[1]}, parent}
-    {
-    }
+  {
+  }
+
+  ToggleButton(QStringList alt, QWidget* parent)
+      : ToggleButton{std::array<QString, 2>{alt[0], alt[1]}, parent}
+  {
+  }
 
   std::array<QString, 2> alternatives;
 
@@ -82,9 +84,7 @@ protected:
   void paintEvent(QPaintEvent* event) override;
 };
 
-
-struct SCORE_LIB_BASE_EXPORT ValueDoubleSlider
-    : public score::DoubleSlider
+struct SCORE_LIB_BASE_EXPORT ValueDoubleSlider : public score::DoubleSlider
 {
 public:
   using score::DoubleSlider::DoubleSlider;
@@ -96,8 +96,7 @@ protected:
   void paintEvent(QPaintEvent* event) override;
 };
 
-struct SCORE_LIB_BASE_EXPORT ValueLogDoubleSlider
-    : public score::DoubleSlider
+struct SCORE_LIB_BASE_EXPORT ValueLogDoubleSlider : public score::DoubleSlider
 {
 public:
   using score::DoubleSlider::DoubleSlider;
@@ -136,5 +135,4 @@ static inline auto transparentStylesheet()
 {
   return QStringLiteral("QWidget { background-color:transparent }");
 }
-
 }

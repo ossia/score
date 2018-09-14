@@ -3,15 +3,15 @@
 
 #include <ossia/detail/config.hpp>
 #if defined(OSSIA_PROTOCOL_SERIAL)
-#include "SerialProtocolFactory.hpp"
-
 #include "SerialDevice.hpp"
-
-#include <ossia/network/base/device.hpp>
+#include "SerialProtocolFactory.hpp"
 
 #include <Device/Protocol/DeviceSettings.hpp>
 #include <Protocols/Serial/SerialProtocolSettingsWidget.hpp>
 #include <Protocols/Serial/SerialSpecificSettings.hpp>
+
+#include <ossia/network/base/device.hpp>
+
 #include <QObject>
 
 namespace Device

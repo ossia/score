@@ -1,15 +1,18 @@
 #pragma once
+#include <score/document/DocumentContext.hpp>
+#include <score/locking/ObjectLocker.hpp>
+#include <score/selection/FocusManager.hpp>
+#include <score/selection/SelectionStack.hpp>
+
+#include <core/command/CommandStack.hpp>
+#include <core/document/DocumentMetadata.hpp>
+
 #include <QByteArray>
 #include <QJsonObject>
 #include <QString>
 #include <QTimer>
 #include <QVariant>
-#include <core/command/CommandStack.hpp>
-#include <core/document/DocumentMetadata.hpp>
-#include <score/document/DocumentContext.hpp>
-#include <score/locking/ObjectLocker.hpp>
-#include <score/selection/FocusManager.hpp>
-#include <score/selection/SelectionStack.hpp>
+
 #include <wobjectdefs.h>
 
 class QObject;
@@ -19,6 +22,7 @@ namespace score
 class DocumentBackupManager;
 } // namespace score
 #include <score/model/Identifier.hpp>
+
 #include <score_lib_base_export.h>
 
 namespace score
@@ -121,26 +125,18 @@ public:
 
   // Load without creating presenter and view
   Document(
-      const QString& name,
-      const QVariant& data,
-      DocumentDelegateFactory& type,
+      const QString& name, const QVariant& data, DocumentDelegateFactory& type,
       QObject* parent);
 
 private:
   // These are to be constructed by DocumentBuilder.
   Document(
-      const QString& name,
-      const Id<DocumentModel>& id,
-      DocumentDelegateFactory& type,
-      QWidget* parentview,
-      QObject* parent);
+      const QString& name, const Id<DocumentModel>& id,
+      DocumentDelegateFactory& type, QWidget* parentview, QObject* parent);
 
   Document(
-      const QString& name,
-      const QVariant& data,
-      DocumentDelegateFactory& type,
-      QWidget* parentview,
-      QObject* parent);
+      const QString& name, const QVariant& data, DocumentDelegateFactory& type,
+      QWidget* parentview, QObject* parent);
 
   void init();
 

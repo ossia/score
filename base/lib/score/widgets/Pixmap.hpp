@@ -1,9 +1,10 @@
 #pragma once
 #include <QApplication>
-#include <QPixmap>
-#include <QFile>
-#include <QScreen>
 #include <QDebug>
+#include <QFile>
+#include <QPixmap>
+#include <QScreen>
+
 #include <score_lib_base_export.h>
 
 namespace score

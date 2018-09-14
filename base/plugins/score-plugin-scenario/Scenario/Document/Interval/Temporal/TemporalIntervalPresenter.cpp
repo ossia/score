@@ -10,9 +10,6 @@
 #include <Process/ProcessContext.hpp>
 #include <Process/ProcessList.hpp>
 #include <Process/Style/ScenarioStyle.hpp>
-#include <QApplication>
-#include <QGraphicsScene>
-#include <QList>
 #include <Scenario/Application/Drops/ScenarioDropHandler.hpp>
 #include <Scenario/Application/Menus/ScenarioContextMenuManager.hpp>
 #include <Scenario/Application/ScenarioApplicationPlugin.hpp>
@@ -36,17 +33,19 @@
 #include <score/selection/Selectable.hpp>
 #include <score/tools/Todo.hpp>
 #include <score/widgets/GraphicsItem.hpp>
+
+#include <QApplication>
+#include <QGraphicsScene>
+#include <QList>
+
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Scenario::TemporalIntervalPresenter)
 
 namespace Scenario
 {
 TemporalIntervalPresenter::TemporalIntervalPresenter(
-    const IntervalModel& interval,
-    const Process::ProcessPresenterContext& ctx,
-    bool handles,
-    QGraphicsItem* parentobject,
-    QObject* parent)
+    const IntervalModel& interval, const Process::ProcessPresenterContext& ctx,
+    bool handles, QGraphicsItem* parentobject, QObject* parent)
     : IntervalPresenter{interval,
                         new TemporalIntervalView{*this, parentobject},
                         new TemporalIntervalHeader{*this}, ctx, parent}
@@ -157,10 +156,10 @@ TemporalIntervalPresenter::TemporalIntervalPresenter(
   });
 
   con(m_model, &IntervalModel::slotsSwapped, this,
-      [=] (int i, int j, Slot::RackView v) {
+      [=](int i, int j, Slot::RackView v) {
         if (v == Slot::SmallView)
           on_rackChanged();
-  });
+      });
 
   con(m_model, &IntervalModel::slotRemoved, this, [=](const SlotId& s) {
     if (s.smallView())
@@ -202,8 +201,10 @@ TemporalIntervalPresenter::TemporalIntervalPresenter(
         }
       });
 
-  m_model.processes.added.connect<&TemporalIntervalPresenter::on_processesChanged>(this);
-  m_model.processes.removed.connect<&TemporalIntervalPresenter::on_processesChanged>(this);
+  m_model.processes.added
+      .connect<&TemporalIntervalPresenter::on_processesChanged>(this);
+  m_model.processes.removed
+      .connect<&TemporalIntervalPresenter::on_processesChanged>(this);
 
   on_defaultDurationChanged(m_model.duration.defaultDuration());
   on_rackVisibleChanged(m_model.smallViewVisible());
@@ -213,9 +214,9 @@ TemporalIntervalPresenter::~TemporalIntervalPresenter()
 {
   auto view = Scenario::view(this);
   auto sc = view->scene();
-  if(sc)
+  if (sc)
   {
-    for(auto& slt : m_slots)
+    for (auto& slt : m_slots)
     {
       if (slt.header)
       {
@@ -227,7 +228,7 @@ TemporalIntervalPresenter::~TemporalIntervalPresenter()
         sc->removeItem(slt.handle);
         delete slt.handle;
       }
-      for(auto& layer : slt.processes)
+      for (auto& layer : slt.processes)
       {
         // The presenter will delete their views
         delete layer.presenter;
@@ -238,7 +239,7 @@ TemporalIntervalPresenter::~TemporalIntervalPresenter()
   }
   else
   {
-    for(auto& slt : m_slots)
+    for (auto& slt : m_slots)
     {
       if (slt.header)
       {
@@ -248,7 +249,7 @@ TemporalIntervalPresenter::~TemporalIntervalPresenter()
       {
         delete slt.handle;
       }
-      for(auto& layer : slt.processes)
+      for (auto& layer : slt.processes)
       {
         // The presenter will delete their views
         delete layer.presenter;
@@ -273,7 +274,7 @@ void TemporalIntervalPresenter::on_requestOverlayMenu(QPointF)
     {
       Macro m{new AddProcessInNewSlot, m_context};
 
-      if(auto p = m.createProcess(this->model(), key, dat))
+      if (auto p = m.createProcess(this->model(), key, dat))
       {
         m.createSlot(this->model());
         m.addLayerToLastSlot(this->model(), *p);
@@ -326,37 +327,47 @@ void TemporalIntervalPresenter::startSlotDrag(int curslot, QPointF pos) const
 {
   // Create an overlay object
   temporal_slot_drag_overlay = new SlotDragOverlay{*this, Slot::SmallView};
-  connect(temporal_slot_drag_overlay, &SlotDragOverlay::dropBefore,
-          this, [=] (int slot) {
-    if(slot == curslot)
-      return;
-    CommandDispatcher<> disp{this->m_context.commandStack};
-    if(qApp->keyboardModifiers() & Qt::ALT || m_model.smallView()[curslot].processes.size() == 1)
-    {
-      disp.submitCommand<Command::ChangeSlotPosition>(this->m_model, Slot::RackView::SmallView, curslot, slot);
-    }
-    else
-    {
-      disp.submitCommand<Command::MoveLayerInNewSlot>(this->m_model, curslot, slot);
-    }
-  }, Qt::QueuedConnection); // needed because else SlotHeader is removed and stopSlotDrag can't be called
+  connect(
+      temporal_slot_drag_overlay, &SlotDragOverlay::dropBefore, this,
+      [=](int slot) {
+        if (slot == curslot)
+          return;
+        CommandDispatcher<> disp{this->m_context.commandStack};
+        if (qApp->keyboardModifiers() & Qt::ALT
+            || m_model.smallView()[curslot].processes.size() == 1)
+        {
+          disp.submitCommand<Command::ChangeSlotPosition>(
+              this->m_model, Slot::RackView::SmallView, curslot, slot);
+        }
+        else
+        {
+          disp.submitCommand<Command::MoveLayerInNewSlot>(
+              this->m_model, curslot, slot);
+        }
+      },
+      Qt::QueuedConnection); // needed because else SlotHeader is removed and
+                             // stopSlotDrag can't be called
 
-  connect(temporal_slot_drag_overlay, &SlotDragOverlay::dropIn,
-          this, [=] (int slot) {
-    if(slot == curslot)
-      return;
+  connect(
+      temporal_slot_drag_overlay, &SlotDragOverlay::dropIn, this,
+      [=](int slot) {
+        if (slot == curslot)
+          return;
 
-    CommandDispatcher<> disp{this->m_context.commandStack};
-    if(qApp->keyboardModifiers() & Qt::ALT || m_model.smallView()[curslot].processes.size() == 1)
-    {
-      disp.submitCommand<Command::MergeSlots>(this->m_model, curslot, slot);
-    }
-    else
-    {
-      disp.submitCommand<Command::MergeLayerInSlot>(this->m_model, curslot, slot);
-    }
-
-  }, Qt::QueuedConnection);
+        CommandDispatcher<> disp{this->m_context.commandStack};
+        if (qApp->keyboardModifiers() & Qt::ALT
+            || m_model.smallView()[curslot].processes.size() == 1)
+        {
+          disp.submitCommand<Command::MergeSlots>(
+              this->m_model, curslot, slot);
+        }
+        else
+        {
+          disp.submitCommand<Command::MergeLayerInSlot>(
+              this->m_model, curslot, slot);
+        }
+      },
+      Qt::QueuedConnection);
   temporal_slot_drag_overlay->setParentItem(view());
   temporal_slot_drag_overlay->onDrag(pos);
 }
@@ -602,7 +613,8 @@ void TemporalIntervalPresenter::on_layerModelPutToFront(
     {
       if (elt.model->id() == proc.id())
       {
-        auto factory = m_context.processList.findDefaultFactory(elt.model->concreteKey());
+        auto factory = m_context.processList.findDefaultFactory(
+            elt.model->concreteKey());
         elt.presenter->putToFront();
         slt.headerDelegate = factory->makeHeaderDelegate(*elt.presenter);
         slt.headerDelegate->setParentItem(slt.header);
@@ -800,7 +812,7 @@ void TemporalIntervalPresenter::requestProcessSelectorMenu(
         ScenarioContextMenuManager::createLayerContextMenuForProcess(
             *menu, pos, sp, reg, *p.presenter);
         menu->exec(pos);
-        //menu->close();
+        // menu->close();
         menu->deleteLater();
         break;
       }

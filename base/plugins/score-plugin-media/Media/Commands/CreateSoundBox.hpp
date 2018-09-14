@@ -11,8 +11,7 @@ class CreateSoundBoxMacro final : public score::AggregateCommand
 class CreateSoundBoxesMacro final : public score::AggregateCommand
 {
   SCORE_COMMAND_DECL(
-      Media::CommandFactoryName(),
-      CreateSoundBoxesMacro,
+      Media::CommandFactoryName(), CreateSoundBoxesMacro,
       "Add sounds in sequence")
 };
 }

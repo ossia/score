@@ -3,17 +3,12 @@
 #include "CreateInterval.hpp"
 
 #include <Process/Process.hpp>
-#include <QDataStream>
-#include <QList>
-#include <QVector>
-#include <QtGlobal>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
 #include <Scenario/Process/Algorithms/StandardCreationPolicy.hpp>
 #include <Scenario/Process/Algorithms/VerticalMovePolicy.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
-#include <algorithm>
 
 #include <score/model/EntityMap.hpp>
 #include <score/model/Identifier.hpp>
@@ -24,6 +19,13 @@
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/tools/IdentifierGeneration.hpp>
 #include <score/tools/RandomNameProvider.hpp>
+
+#include <QDataStream>
+#include <QList>
+#include <QVector>
+#include <QtGlobal>
+
+#include <algorithm>
 #include <vector>
 
 namespace Scenario
@@ -31,8 +33,7 @@ namespace Scenario
 namespace Command
 {
 CreateInterval::CreateInterval(
-    const Scenario::ProcessModel& scenar,
-    Id<StateModel> startState,
+    const Scenario::ProcessModel& scenar, Id<StateModel> startState,
     Id<StateModel> endState)
     : m_path{scenar}
     , m_createdName{RandomNameProvider::generateName<IntervalModel>()}

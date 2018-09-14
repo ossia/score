@@ -1,8 +1,10 @@
 #pragma once
 #include <Device/Node/DeviceNode.hpp>
-#include <QJsonDocument>
+
 #include <score/serialization/JSONVisitor.hpp>
 #include <score/serialization/MimeVisitor.hpp>
+
+#include <QJsonDocument>
 
 namespace score
 {

@@ -2,11 +2,13 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "MidiProcessInspector.hpp"
 
-#include <Midi/Commands/SetOutput.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
+#include <Midi/Commands/SetOutput.hpp>
+
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/widgets/MarginLess.hpp>
 #include <score/widgets/SignalUtils.hpp>
+
 #include <QComboBox>
 #include <QFormLayout>
 
@@ -14,8 +16,7 @@ namespace Midi
 {
 
 InspectorWidget::InspectorWidget(
-    const ProcessModel& model,
-    const score::DocumentContext& doc,
+    const ProcessModel& model, const score::DocumentContext& doc,
     QWidget* parent)
     : InspectorWidgetDelegate_T{model, parent}
 {

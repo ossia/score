@@ -4,11 +4,7 @@
 #include "ProtocolFactoryInterface.hpp"
 
 #include <Device/Protocol/ProtocolList.hpp>
-#include <QDebug>
-#include <QJsonObject>
-#include <QJsonValue>
-#include <QString>
-#include <QVariant>
+
 #include <score/application/ApplicationContext.hpp>
 #include <score/plugins/customfactory/FactoryFamily.hpp>
 #include <score/plugins/customfactory/StringFactoryKey.hpp>
@@ -16,6 +12,12 @@
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/serialization/JSONValueVisitor.hpp>
 #include <score/serialization/JSONVisitor.hpp>
+
+#include <QDebug>
+#include <QJsonObject>
+#include <QJsonValue>
+#include <QString>
+#include <QVariant>
 
 template <>
 SCORE_LIB_DEVICE_EXPORT void

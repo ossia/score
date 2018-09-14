@@ -1,42 +1,41 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
-#include <Scenario/Document/Interval/IntervalRawPtrExecution.hpp>
-
-#include <ossia/dataflow/graph/graph_interface.hpp>
-#include <ossia/editor/scenario/time_interval.hpp>
-#include <ossia/editor/scenario/time_value.hpp>
-
-
-#include <Process/ExecutionContext.hpp>
 #include <Process/Execution/ProcessComponent.hpp>
-#include <ossia/dataflow/graph_edge.hpp>
-#include <Scenario/Execution/score2OSSIA.hpp>
+#include <Process/ExecutionContext.hpp>
+#include <Process/ExecutionSetup.hpp>
 #include <Process/Process.hpp>
 #include <Process/TimeValue.hpp>
 #include <Scenario/Document/Interval/IntervalDurations.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
+#include <Scenario/Document/Interval/IntervalRawPtrExecution.hpp>
+#include <Scenario/Execution/score2OSSIA.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
-#include <Process/ExecutionSetup.hpp>
+
 #include <score/document/DocumentContext.hpp>
 #include <score/model/Identifier.hpp>
 #include <score/tools/IdentifierGeneration.hpp>
-#include <utility>
-#include <wobjectimpl.h>
+
+#include <ossia/dataflow/graph/graph_interface.hpp>
+#include <ossia/dataflow/graph_edge.hpp>
 #include <ossia/detail/pod_vector.hpp>
+#include <ossia/editor/scenario/time_interval.hpp>
+#include <ossia/editor/scenario/time_value.hpp>
+
+#include <wobjectimpl.h>
+
+#include <utility>
 W_OBJECT_IMPL(Execution::IntervalRawPtrComponent)
 
 namespace Execution
 {
 IntervalRawPtrComponentBase::IntervalRawPtrComponentBase(
-    Scenario::IntervalModel& score_cst,
-    const Context& ctx,
-    const Id<score::Component>& id,
-    QObject* parent)
+    Scenario::IntervalModel& score_cst, const Context& ctx,
+    const Id<score::Component>& id, QObject* parent)
     : Scenario::GenericIntervalComponent<const Context>{
           score_cst, ctx, id, "Executor::Interval", nullptr}
 {
-  con(interval().duration, &Scenario::IntervalDurations::speedChanged,
-      this, [&](double sp) {
+  con(interval().duration, &Scenario::IntervalDurations::speedChanged, this,
+      [&](double sp) {
         if (m_ossia_interval)
           in_exec([sp, cst = m_ossia_interval] { cst->set_speed(sp); });
       });
@@ -73,7 +72,7 @@ IntervalRawPtrComponent::~IntervalRawPtrComponent()
 
 void IntervalRawPtrComponent::init()
 {
-  if(m_interval)
+  if (m_interval)
   {
     init_hierarchy();
 
@@ -92,8 +91,8 @@ void IntervalRawPtrComponent::init()
         {
 
           edges_to_add.push_back(ossia::make_edge(
-                                   ossia::dependency_connection{}, ossia::outlet_ptr{},
-                                   ossia::inlet_ptr{}, prev_node, node));
+                                   ossia::dependency_connection{},
+    ossia::outlet_ptr{}, ossia::inlet_ptr{}, prev_node, node));
         }
         prev_node = node;
       }
@@ -101,8 +100,9 @@ void IntervalRawPtrComponent::init()
       if (prev_node)
       {
         edges_to_add.push_back(ossia::make_edge(
-                                 ossia::dependency_connection{}, ossia::outlet_ptr{},
-                                 ossia::inlet_ptr{}, prev_node, m_ossia_interval->node));
+                                 ossia::dependency_connection{},
+    ossia::outlet_ptr{}, ossia::inlet_ptr{}, prev_node,
+    m_ossia_interval->node));
 
         std::weak_ptr<ossia::graph_interface> g_weak
             = context().execGraph;
@@ -155,8 +155,7 @@ interval_duration_data IntervalRawPtrComponentBase::makeDurations() const
 
 void IntervalRawPtrComponent::onSetup(
     std::shared_ptr<IntervalRawPtrComponent> self,
-    ossia::time_interval* ossia_cst,
-    interval_duration_data dur)
+    ossia::time_interval* ossia_cst, interval_duration_data dur)
 {
   m_ossia_interval = ossia_cst;
 
@@ -255,8 +254,7 @@ void IntervalRawPtrComponentBase::executionStopped()
 }
 
 ProcessComponent* IntervalRawPtrComponentBase::make(
-    const Id<score::Component>& id,
-    ProcessComponentFactory& fac,
+    const Id<score::Component>& id, ProcessComponentFactory& fac,
     Process::ProcessModel& proc)
 {
   try
@@ -293,8 +291,7 @@ ProcessComponent* IntervalRawPtrComponentBase::make(
         oproc->node->set_logging(proc.selection.get());
 
       std::weak_ptr<ossia::time_process> oproc_weak = oproc;
-      std::weak_ptr<ossia::graph_interface> g_weak
-          = plug->system().execGraph;
+      std::weak_ptr<ossia::graph_interface> g_weak = plug->system().execGraph;
       std::weak_ptr<ossia::graph_node> cst_node_weak = cst->node;
 
       in_exec(
@@ -377,7 +374,7 @@ std::function<void()> IntervalRawPtrComponentBase::removing(
   if (it != m_processes.end())
   {
     auto c_ptr = c.shared_from_this();
-    if(m_ossia_interval)
+    if (m_ossia_interval)
     {
       in_exec([cstr = m_ossia_interval, c_ptr] {
         cstr->remove_time_process(c_ptr->OSSIAProcessPtr().get());

@@ -1,17 +1,16 @@
 #pragma once
-#include <core/command/CommandStack.hpp>
 #include <score/application/ApplicationComponents.hpp>
 #include <score/command/CommandData.hpp>
 #include <score/plugins/customfactory/StringFactoryKeySerialization.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
+
+#include <core/command/CommandStack.hpp>
 namespace score
 {
 template <typename RedoFun>
 void loadCommandStack(
-    const score::ApplicationComponents& components,
-    DataStreamWriter& writer,
-    score::CommandStack& stack,
-    RedoFun redo_fun)
+    const score::ApplicationComponents& components, DataStreamWriter& writer,
+    score::CommandStack& stack, RedoFun redo_fun)
 {
   std::vector<score::CommandData> undoStack, redoStack;
   writer.writeTo(undoStack);

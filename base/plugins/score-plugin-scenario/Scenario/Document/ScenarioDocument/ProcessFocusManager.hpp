@@ -1,9 +1,11 @@
 #pragma once
 #include <Process/Focus/FocusDispatcher.hpp>
-#include <score_lib_process_export.h>
-#include <wobjectdefs.h>
+
 #include <QObject>
 #include <QPointer>
+
+#include <score_lib_process_export.h>
+#include <wobjectdefs.h>
 namespace score
 {
 struct FocusManager;
@@ -44,11 +46,15 @@ public:
   void focusNothing();
 
 public:
-  void sig_focusedPresenter(LayerPresenter* arg_1) W_SIGNAL(sig_focusedPresenter, arg_1);
-  void sig_defocusedPresenter(LayerPresenter* arg_1) W_SIGNAL(sig_defocusedPresenter, arg_1);
+  void sig_focusedPresenter(LayerPresenter* arg_1)
+      W_SIGNAL(sig_focusedPresenter, arg_1);
+  void sig_defocusedPresenter(LayerPresenter* arg_1)
+      W_SIGNAL(sig_defocusedPresenter, arg_1);
 
-  void sig_defocusedViewModel(const ProcessModel* arg_1) W_SIGNAL(sig_defocusedViewModel, arg_1);
-  void sig_focusedViewModel(const ProcessModel* arg_1) W_SIGNAL(sig_focusedViewModel, arg_1);
+  void sig_defocusedViewModel(const ProcessModel* arg_1)
+      W_SIGNAL(sig_defocusedViewModel, arg_1);
+  void sig_focusedViewModel(const ProcessModel* arg_1)
+      W_SIGNAL(sig_focusedViewModel, arg_1);
 
   void sig_focusedRoot() W_SIGNAL(sig_focusedRoot);
 

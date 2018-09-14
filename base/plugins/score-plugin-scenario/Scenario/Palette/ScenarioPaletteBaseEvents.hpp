@@ -2,6 +2,7 @@
 #include "ScenarioPoint.hpp"
 
 #include <Scenario/Document/Interval/Slot.hpp>
+
 #include <score/statemachine/StateMachineUtils.hpp>
 #include <score/tools/Clamp.hpp>
 

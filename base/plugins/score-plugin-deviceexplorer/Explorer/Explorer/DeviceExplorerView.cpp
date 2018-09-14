@@ -10,7 +10,7 @@ class QPoint;
 class QWidget;
 
 #ifdef MODEL_TEST
-#  include "ModelTest/modeltest.h"
+#include "ModelTest/modeltest.h"
 #endif
 
 #include <QAbstractItemView>
@@ -27,9 +27,10 @@ class QWidget;
 #include <QSettings>
 #include <QString>
 #include <QVariant>
-#include <iostream> //DEBUG
 #include <qnamespace.h>
 #include <qtypetraits.h>
+
+#include <iostream> //DEBUG
 W_REGISTER_ARGTYPE(QItemSelection)
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Explorer::DeviceExplorerView)
@@ -42,7 +43,7 @@ const QString HeaderViewSetting("DeviceExplorerView/HeaderView");
 namespace Explorer
 {
 DeviceExplorerView::DeviceExplorerView(QWidget* parent)
-  : QTreeView(parent), m_hasProxy(false)
+    : QTreeView(parent), m_hasProxy(false)
 {
 
   setAllColumnsShowFocus(true);
@@ -53,11 +54,11 @@ DeviceExplorerView::DeviceExplorerView(QWidget* parent)
   // http://qt-project.org/doc/qt-5/QAbstractItemViewtml#SelectionBehavior-enum
 
   header()->setContextMenuPolicy(
-        Qt::CustomContextMenu); // header will emit the signal
+      Qt::CustomContextMenu); // header will emit the signal
   // customContextMenuRequested()
   connect(
-        header(), &QWidget::customContextMenuRequested, this,
-        &DeviceExplorerView::headerMenuRequested);
+      header(), &QWidget::customContextMenuRequested, this,
+      &DeviceExplorerView::headerMenuRequested);
 
   //- Drag'n Drop.
 
@@ -72,7 +73,7 @@ DeviceExplorerView::DeviceExplorerView(QWidget* parent)
   setDropIndicatorShown(true);
 
   setDefaultDropAction(
-        Qt::MoveAction); // default DefaultDropAction is CopyAction
+      Qt::MoveAction); // default DefaultDropAction is CopyAction
 
   setDragDropOverwriteMode(false);
 
@@ -104,15 +105,15 @@ DeviceExplorerView::~DeviceExplorerView()
 }
 QModelIndexList DeviceExplorerView::selectedDraggableIndexes() const
 {
-    QModelIndexList indexes = selectedIndexes();
-    auto m = QTreeView::model();
-    auto isNotDragEnabled = [m](const QModelIndex &index) {
-        return !(m->flags(index) & Qt::ItemIsDragEnabled);
-    };
-    indexes.erase(std::remove_if(indexes.begin(), indexes.end(),
-                                 isNotDragEnabled),
-                  indexes.end());
-    return indexes;
+  QModelIndexList indexes = selectedIndexes();
+  auto m = QTreeView::model();
+  auto isNotDragEnabled = [m](const QModelIndex& index) {
+    return !(m->flags(index) & Qt::ItemIsDragEnabled);
+  };
+  indexes.erase(
+      std::remove_if(indexes.begin(), indexes.end(), isNotDragEnabled),
+      indexes.end());
+  return indexes;
 }
 
 void DeviceExplorerView::startDrag(Qt::DropActions)
@@ -120,11 +121,11 @@ void DeviceExplorerView::startDrag(Qt::DropActions)
   QModelIndexList indexes = selectedDraggableIndexes();
   if (indexes.count() > 0)
   {
-    QMimeData *data = QTreeView::model()->mimeData(indexes);
+    QMimeData* data = QTreeView::model()->mimeData(indexes);
     if (!data)
       return;
 
-    QDrag *drag = new QDrag(this);
+    QDrag* drag = new QDrag(this);
     drag->setMimeData(data);
     drag->exec();
   }
@@ -199,7 +200,7 @@ DeviceExplorerModel* DeviceExplorerView::model()
   else
   {
     return static_cast<DeviceExplorerModel*>(
-          static_cast<QAbstractProxyModel*>(QTreeView::model())->sourceModel());
+        static_cast<QAbstractProxyModel*>(QTreeView::model())->sourceModel());
   }
 }
 
@@ -229,15 +230,15 @@ void DeviceExplorerView::initActions()
   for (int i = 0; i < n; ++i)
   {
     QAction* a = new QAction(
-                   model()->headerData(i, Qt::Horizontal, Qt::DisplayRole).toString(),
-                   this);
+        model()->headerData(i, Qt::Horizontal, Qt::DisplayRole).toString(),
+        this);
     a->setCheckable(true);
 
     a->setChecked(!isColumnHidden(i));
 
     connect(
-          a, &QAction::toggled, this,
-          &DeviceExplorerView::columnVisibilityChanged);
+        a, &QAction::toggled, this,
+        &DeviceExplorerView::columnVisibilityChanged);
     m_actions.append(a);
   }
 }
@@ -367,8 +368,8 @@ void DeviceExplorerView::setSelectedIndex(const QModelIndex& index)
   else
   {
     return setCurrentIndex(
-          static_cast<const QAbstractProxyModel*>(QTreeView::model())
-          ->mapFromSource(index));
+        static_cast<const QAbstractProxyModel*>(QTreeView::model())
+            ->mapFromSource(index));
   }
 }
 }

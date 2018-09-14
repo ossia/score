@@ -1,7 +1,9 @@
 #pragma once
 #include <Device/Node/DeviceNode.hpp>
-#include <QString>
 #include <State/Value.hpp>
+
+#include <QString>
+
 #include <score_plugin_deviceexplorer_export.h>
 
 namespace State
@@ -60,11 +62,9 @@ public:
    */
   void addAddress(
       const Device::NodePath& parentPath,
-      const Device::AddressSettings& settings,
-      int row);
+      const Device::AddressSettings& settings, int row);
 
-  void addAddress(
-      const Device::FullAddressSettings& settings);
+  void addAddress(const Device::FullAddressSettings& settings);
 
   /**
    * @brief addNode Adds a node hierarchy in the tree
@@ -92,8 +92,7 @@ public:
   void removeLocalNode(const State::Address&);
   void updateLocalValue(const State::AddressAccessor&, const ossia::value&);
   void updateLocalSettings(
-      const State::Address&,
-      const Device::AddressSettings&,
+      const State::Address&, const Device::AddressSettings&,
       Device::DeviceInterface& newdev);
 
   void updateRemoteValue(const State::Address&, const ossia::value&);

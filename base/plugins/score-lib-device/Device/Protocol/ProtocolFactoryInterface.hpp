@@ -1,8 +1,10 @@
 #pragma once
-#include <QString>
-#include <QVariant>
 #include <score/plugins/customfactory/FactoryInterface.hpp>
 #include <score/serialization/VisitorCommon.hpp>
+
+#include <QString>
+#include <QVariant>
+
 #include <score_lib_device_export.h>
 
 struct VisitorVariant;
@@ -14,8 +16,7 @@ struct AddressSettings;
 class DeviceInterface;
 class ProtocolSettingsWidget;
 class AddressDialog;
-class SCORE_LIB_DEVICE_EXPORT ProtocolFactory
-    : public score::InterfaceBase
+class SCORE_LIB_DEVICE_EXPORT ProtocolFactory : public score::InterfaceBase
 {
   SCORE_INTERFACE(ProtocolFactory, "3f69d72e-318d-42dc-b48c-a806036592f1")
 
@@ -36,15 +37,12 @@ public:
   virtual ProtocolSettingsWidget* makeSettingsWidget() = 0;
 
   virtual AddressDialog* makeAddAddressDialog(
-      const Device::DeviceInterface& dev,
-      const score::DocumentContext& ctx,
+      const Device::DeviceInterface& dev, const score::DocumentContext& ctx,
       QWidget*)
       = 0;
   virtual AddressDialog* makeEditAddressDialog(
-      const Device::AddressSettings&,
-      const Device::DeviceInterface& dev,
-      const score::DocumentContext& ctx,
-      QWidget*)
+      const Device::AddressSettings&, const Device::DeviceInterface& dev,
+      const score::DocumentContext& ctx, QWidget*)
       = 0;
 
   virtual const Device::DeviceSettings& defaultSettings() const = 0;

@@ -1,6 +1,7 @@
 #pragma once
 #include <Loop/Commands/LoopCommandFactory.hpp>
 #include <Scenario/Commands/Scenario/Encapsulate.hpp>
+
 #include <score/command/AggregateCommand.hpp>
 
 namespace Loop

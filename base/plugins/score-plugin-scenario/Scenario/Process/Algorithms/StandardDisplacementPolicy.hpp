@@ -11,6 +11,7 @@
 #include <Scenario/Process/Algorithms/VerticalMovePolicy.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
 #include <Scenario/Tools/dataStructures.hpp>
+
 #include <score/document/DocumentInterface.hpp>
 #include <score/model/Identifier.hpp>
 #include <score/tools/MapCopy.hpp>
@@ -26,8 +27,7 @@ class CommonDisplacementPolicy
 public:
   template <typename ProcessScaleMethod>
   static void updatePositions(
-      Scenario::ProcessModel& scenario,
-      ProcessScaleMethod&& scaleMethod,
+      Scenario::ProcessModel& scenario, ProcessScaleMethod&& scaleMethod,
       const ElementsProperties& propsToUpdate)
   {
     // update each affected timesyncs
@@ -92,8 +92,7 @@ public:
 
   template <typename ProcessScaleMethod>
   static void revertPositions(
-      const score::DocumentContext& ctx,
-      Scenario::ProcessModel& scenario,
+      const score::DocumentContext& ctx, Scenario::ProcessModel& scenario,
       ProcessScaleMethod&& scaleMethod,
       const ElementsProperties& propsToUpdate)
   {
@@ -162,7 +161,7 @@ public:
         auto processes = shallow_copy(curIntervalToUpdate.processes);
         for (auto process : processes)
         {
-          if(!(process->flags() & Process::ProcessFlags::TimeIndependent))
+          if (!(process->flags() & Process::ProcessFlags::TimeIndependent))
             RemoveProcess(curIntervalToUpdate, process->id());
         }
       }

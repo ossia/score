@@ -4,24 +4,24 @@
 
 #include <Process/Style/ScenarioStyle.hpp>
 #include <Process/TimeValue.hpp>
-#include <QtGlobal>
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/VerticalExtent.hpp>
 #include <Scenario/Process/ScenarioInterface.hpp>
+
 #include <score/document/DocumentInterface.hpp>
 #include <score/model/IdentifiedObject.hpp>
 #include <score/model/Identifier.hpp>
 #include <score/model/ModelMetadata.hpp>
+
+#include <QtGlobal>
 
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Scenario::TimeSyncModel)
 namespace Scenario
 {
 TimeSyncModel::TimeSyncModel(
-    const Id<TimeSyncModel>& id,
-    const VerticalExtent& extent,
-    const TimeVal& date,
-    QObject* parent)
+    const Id<TimeSyncModel>& id, const VerticalExtent& extent,
+    const TimeVal& date, QObject* parent)
     : Entity{id, Metadata<ObjectKey_k, TimeSyncModel>::get(), parent}
     , m_date{date}
     , m_extent{extent}

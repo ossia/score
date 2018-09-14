@@ -1,8 +1,10 @@
 #pragma once
-#include <QIcon>
-#include <wobjectdefs.h>
-#include <QString>
 #include <score/plugins/settingsdelegate/SettingsDelegatePresenter.hpp>
+
+#include <QIcon>
+#include <QString>
+
+#include <wobjectdefs.h>
 
 namespace PluginSettings
 {
@@ -14,8 +16,7 @@ class PluginSettingsPresenter : public score::GlobalSettingsPresenter
   W_OBJECT(PluginSettingsPresenter)
 public:
   PluginSettingsPresenter(
-      score::SettingsDelegateModel& model,
-      score::GlobalSettingsView& view,
+      score::SettingsDelegateModel& model, score::GlobalSettingsView& view,
       QObject* parent);
 
 private:

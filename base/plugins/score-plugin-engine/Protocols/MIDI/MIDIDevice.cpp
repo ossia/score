@@ -2,16 +2,20 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "MIDIDevice.hpp"
 
+#include <Device/Protocol/DeviceSettings.hpp>
+#include <Protocols/MIDI/MIDISpecificSettings.hpp>
+#include <State/MessageListSerialization.hpp>
+
+#include <score/serialization/MimeVisitor.hpp>
+
 #include <ossia/network/base/device.hpp>
 #include <ossia/network/midi/midi.hpp>
 
-#include <Device/Protocol/DeviceSettings.hpp>
-#include <Engine/OSSIA2score.hpp>
-#include <Protocols/MIDI/MIDISpecificSettings.hpp>
-#include <score/serialization/MimeVisitor.hpp>
-#include <State/MessageListSerialization.hpp>
 #include <QMimeData>
 #include <QString>
+
+#include <Engine/OSSIA2score.hpp>
+
 #include <memory>
 
 namespace Engine
@@ -98,8 +102,7 @@ Device::Node MIDIDevice::refresh()
     device_node.reserve(children.size());
     for (const auto& node : children)
     {
-      device_node.push_back(
-          Device::ToDeviceExplorer(*node.get()));
+      device_node.push_back(Device::ToDeviceExplorer(*node.get()));
     }
   }
 

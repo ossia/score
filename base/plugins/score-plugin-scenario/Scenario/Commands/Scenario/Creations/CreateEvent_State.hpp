@@ -1,12 +1,14 @@
 #pragma once
 #include "CreateState.hpp"
 
-#include <QString>
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
+
 #include <score/command/Command.hpp>
 #include <score/model/Identifier.hpp>
 #include <score/model/path/Path.hpp>
 #include <score/tools/std/Optional.hpp>
+
+#include <QString>
 
 struct DataStreamInput;
 struct DataStreamOutput;
@@ -23,13 +25,11 @@ class SCORE_PLUGIN_SCENARIO_EXPORT CreateEvent_State final
     : public score::Command
 {
   SCORE_COMMAND_DECL(
-      ScenarioCommandFactoryName(),
-      CreateEvent_State,
+      ScenarioCommandFactoryName(), CreateEvent_State,
       "Create an event and a state")
 public:
   CreateEvent_State(
-      const Scenario::ProcessModel& scenario,
-      Id<TimeSyncModel> timeSync,
+      const Scenario::ProcessModel& scenario, Id<TimeSyncModel> timeSync,
       double stateY);
 
   const Path<Scenario::ProcessModel>& scenarioPath() const

@@ -1,8 +1,9 @@
 #pragma once
-#include <ossia/network/value/value.hpp>
+#include <score/tools/std/Optional.hpp>
 
 #include <ossia-qt/value_metatypes.hpp>
-#include <score/tools/std/Optional.hpp>
+#include <ossia/network/value/value.hpp>
+
 #include <score_lib_state_export.h>
 
 class QDebug;

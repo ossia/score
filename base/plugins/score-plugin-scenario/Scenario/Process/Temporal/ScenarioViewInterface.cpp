@@ -5,9 +5,6 @@
 #include "TemporalScenarioPresenter.hpp"
 
 #include <Process/TimeValue.hpp>
-#include <QPoint>
-#include <QRect>
-#include <QtGlobal>
 #include <Scenario/Document/CommentBlock/CommentBlockModel.hpp>
 #include <Scenario/Document/CommentBlock/CommentBlockPresenter.hpp>
 #include <Scenario/Document/CommentBlock/CommentBlockView.hpp>
@@ -29,9 +26,12 @@
 #include <Scenario/Process/ScenarioModel.hpp>
 #include <Scenario/Process/Temporal/TemporalScenarioView.hpp>
 
-
 #include <score/model/IdentifiedObjectMap.hpp>
 #include <score/model/Identifier.hpp>
+
+#include <QPoint>
+#include <QRect>
+#include <QtGlobal>
 
 namespace Scenario
 {

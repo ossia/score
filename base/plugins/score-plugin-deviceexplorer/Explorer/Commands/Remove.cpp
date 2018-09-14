@@ -7,11 +7,14 @@
 
 #include <Device/Address/AddressSettings.hpp>
 #include <Device/Node/DeviceNode.hpp>
-#include <QByteArray>
-#include <algorithm>
+
 #include <score/command/Command.hpp>
 #include <score/model/path/Path.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
+
+#include <QByteArray>
+
+#include <algorithm>
 
 namespace Explorer
 {

@@ -1,5 +1,7 @@
 #include <Media/Sound/SoundModel.hpp>
+
 #include <QFile>
+
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Media::Sound::ProcessModel)
 namespace Media
@@ -7,8 +9,7 @@ namespace Media
 namespace Sound
 {
 ProcessModel::ProcessModel(
-    const TimeVal& duration,
-    const Id<Process::ProcessModel>& id,
+    const TimeVal& duration, const Id<Process::ProcessModel>& id,
     QObject* parent)
     : Process::ProcessModel{duration, id,
                             Metadata<ObjectKey_k, ProcessModel>::get(), parent}
@@ -46,7 +47,8 @@ const MediaFileHandle& ProcessModel::file() const
 
 QString ProcessModel::prettyName() const
 {
-  return m_file.empty() ? Process::ProcessModel::prettyName() : m_file.fileName();
+  return m_file.empty() ? Process::ProcessModel::prettyName()
+                        : m_file.fileName();
 }
 
 int ProcessModel::upmixChannels() const
@@ -108,7 +110,6 @@ void ProcessModel::init()
 }
 }
 
-
 template <>
 void DataStreamReader::read(const Media::Sound::ProcessModel& proc)
 {
@@ -126,8 +127,8 @@ void DataStreamWriter::write(Media::Sound::ProcessModel& proc)
   proc.setFile(s);
   proc.outlet = make_outlet(*this, &proc);
 
-  m_stream >> proc.m_upmixChannels >> proc.m_startChannel
-           >> proc.m_startOffset >> proc.m_endOffset;
+  m_stream >> proc.m_upmixChannels >> proc.m_startChannel >> proc.m_startOffset
+      >> proc.m_endOffset;
   checkDelimiter();
 }
 

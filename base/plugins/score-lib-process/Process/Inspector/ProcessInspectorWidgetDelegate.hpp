@@ -1,5 +1,6 @@
 #pragma once
 #include <QWidget>
+
 #include <score_lib_process_export.h>
 namespace Process
 {

@@ -1,57 +1,57 @@
 #pragma once
-#include <Engine/Node/Process.hpp>
-#include <Engine/Node/Widgets.hpp>
 #include <Inspector/InspectorLayout.hpp>
 #include <Inspector/InspectorWidgetBase.hpp>
 #include <Inspector/InspectorWidgetFactoryInterface.hpp>
+#include <Process/Dataflow/PortListWidget.hpp>
 #include <Process/Inspector/ProcessInspectorWidgetDelegate.hpp>
 #include <Process/Inspector/ProcessInspectorWidgetDelegateFactory.hpp>
-#include <Process/Dataflow/PortListWidget.hpp>
+
+#include <Engine/Node/Process.hpp>
+#include <Engine/Node/Widgets.hpp>
 
 namespace Control
 {
-template<typename Vis, typename Info>
+template <typename Vis, typename Info>
 void visit_ports(Vis&& visitor, const ControlProcess<Info>& proc)
 {
   {
     std::size_t i = 0;
 
-    for(auto& port : Info::Metadata::audio_ins)
+    for (auto& port : Info::Metadata::audio_ins)
     {
       visitor(i, port);
       i++;
     }
 
-    for(auto& port : Info::Metadata::midi_ins)
+    for (auto& port : Info::Metadata::midi_ins)
     {
       visitor(i, port);
       i++;
     }
 
-    for(auto& port : Info::Metadata::value_ins)
+    for (auto& port : Info::Metadata::value_ins)
     {
       visitor(i, port);
       i++;
     }
-
   }
 
   {
     std::size_t i = 0;
 
-    for(auto& port : Info::Metadata::audio_outs)
+    for (auto& port : Info::Metadata::audio_outs)
     {
       visitor(i, port);
       i++;
     }
 
-    for(auto& port : Info::Metadata::midi_outs)
+    for (auto& port : Info::Metadata::midi_outs)
     {
       visitor(i, port);
       i++;
     }
 
-    for(auto& port : Info::Metadata::value_outs)
+    for (auto& port : Info::Metadata::value_outs)
     {
       visitor(i, port);
       i++;
@@ -62,69 +62,67 @@ void visit_ports(Vis&& visitor, const ControlProcess<Info>& proc)
     {
       auto start = ossia::safe_nodes::info_functions<Info>::control_start;
       std::size_t i = 0;
-      ossia::for_each_in_tuple(Info::Metadata::controls, [&](const auto& ctrl) {
-        visitor(start + i, ctrl);
-        i++;
-      });
+      ossia::for_each_in_tuple(
+          Info::Metadata::controls, [&](const auto& ctrl) {
+            visitor(start + i, ctrl);
+            i++;
+          });
     }
   }
 }
 
-
-
-template<typename Proc>
+template <typename Proc>
 struct inlet_visitor
 {
-    const Proc& object;
-    const score::DocumentContext& doc;
-    Inspector::Layout& vlay;
-    QWidget* self{};
+  const Proc& object;
+  const score::DocumentContext& doc;
+  Inspector::Layout& vlay;
+  QWidget* self{};
 
-    void operator()(std::size_t i, const ossia::safe_nodes::audio_in& in)
-    {
-      auto& inlet = *object.inlets()[i];
-      Process::PortWidgetSetup::setupAlone(inlet, doc, vlay, self);
-    }
-    void operator()(std::size_t i, const ossia::safe_nodes::value_in& in)
-    {
-      auto& inlet = *object.inlets()[i];
-      Process::PortWidgetSetup::setupAlone(inlet, doc, vlay, self);
-    }
-    void operator()(std::size_t i, const ossia::safe_nodes::midi_in& in)
-    {
-      auto& inlet = *object.inlets()[i];
-      Process::PortWidgetSetup::setupAlone(inlet, doc, vlay, self);
-    }
-    void operator()(std::size_t i, const ossia::safe_nodes::address_in& in)
-    {
-      auto& inlet = *object.inlets()[i];
-      Process::PortWidgetSetup::setupAlone(inlet, doc, vlay, self);
-    }
-    template<typename Control_T>
-    void operator()(std::size_t i, const Control_T& ctrl)
-    {
-      auto& inlet = *static_cast<Process::ControlInlet*>(object.inlets()[i]);
-      Process::PortWidgetSetup::setupControl(
-            inlet,
-            ctrl.make_widget(ctrl, inlet, doc, self, self),
-            doc, vlay, self);
-    }
+  void operator()(std::size_t i, const ossia::safe_nodes::audio_in& in)
+  {
+    auto& inlet = *object.inlets()[i];
+    Process::PortWidgetSetup::setupAlone(inlet, doc, vlay, self);
+  }
+  void operator()(std::size_t i, const ossia::safe_nodes::value_in& in)
+  {
+    auto& inlet = *object.inlets()[i];
+    Process::PortWidgetSetup::setupAlone(inlet, doc, vlay, self);
+  }
+  void operator()(std::size_t i, const ossia::safe_nodes::midi_in& in)
+  {
+    auto& inlet = *object.inlets()[i];
+    Process::PortWidgetSetup::setupAlone(inlet, doc, vlay, self);
+  }
+  void operator()(std::size_t i, const ossia::safe_nodes::address_in& in)
+  {
+    auto& inlet = *object.inlets()[i];
+    Process::PortWidgetSetup::setupAlone(inlet, doc, vlay, self);
+  }
+  template <typename Control_T>
+  void operator()(std::size_t i, const Control_T& ctrl)
+  {
+    auto& inlet = *static_cast<Process::ControlInlet*>(object.inlets()[i]);
+    Process::PortWidgetSetup::setupControl(
+        inlet, ctrl.make_widget(ctrl, inlet, doc, self, self), doc, vlay,
+        self);
+  }
 
-    void operator()(std::size_t i, const ossia::safe_nodes::audio_out& out)
-    {
-      auto& inlet = *object.outlets()[i];
-      Process::PortWidgetSetup::setupAlone(inlet, doc, vlay, self);
-    }
-    void operator()(std::size_t i, const ossia::safe_nodes::value_out& out)
-    {
-      auto& inlet = *object.outlets()[i];
-      Process::PortWidgetSetup::setupAlone(inlet, doc, vlay, self);
-    }
-    void operator()(std::size_t i, const ossia::safe_nodes::midi_out& out)
-    {
-      auto& inlet = *object.outlets()[i];
-      Process::PortWidgetSetup::setupAlone(inlet, doc, vlay, self);
-    }
+  void operator()(std::size_t i, const ossia::safe_nodes::audio_out& out)
+  {
+    auto& inlet = *object.outlets()[i];
+    Process::PortWidgetSetup::setupAlone(inlet, doc, vlay, self);
+  }
+  void operator()(std::size_t i, const ossia::safe_nodes::value_out& out)
+  {
+    auto& inlet = *object.outlets()[i];
+    Process::PortWidgetSetup::setupAlone(inlet, doc, vlay, self);
+  }
+  void operator()(std::size_t i, const ossia::safe_nodes::midi_out& out)
+  {
+    auto& inlet = *object.outlets()[i];
+    Process::PortWidgetSetup::setupAlone(inlet, doc, vlay, self);
+  }
 };
 
 template <typename Info>
@@ -183,8 +181,7 @@ class InspectorWidget final
 {
 public:
   explicit InspectorWidget(
-      const ControlProcess<Info>& object,
-      const score::DocumentContext& doc,
+      const ControlProcess<Info>& object, const score::DocumentContext& doc,
       QWidget* parent)
       : Process::InspectorWidgetDelegate_T<ControlProcess<Info>>{object,
                                                                  parent}
@@ -193,7 +190,8 @@ public:
     using meta = typename Info::Metadata;
     auto vlay = new Inspector::Layout{this};
 
-    visit_ports(inlet_visitor<ControlProcess<Info>>{object, doc, *vlay, this}, object);
+    visit_ports(
+        inlet_visitor<ControlProcess<Info>>{object, doc, *vlay, this}, object);
   }
 
 private:
@@ -202,8 +200,7 @@ private:
 template <typename Info>
 class InspectorFactory final
     : public Process::InspectorWidgetDelegateFactory_T<
-          ControlProcess<Info>,
-          InspectorWidget<Info>>
+          ControlProcess<Info>, InspectorWidget<Info>>
 {
 public:
   static Q_DECL_RELAXED_CONSTEXPR

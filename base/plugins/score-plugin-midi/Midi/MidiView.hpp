@@ -1,8 +1,10 @@
 #pragma once
 #include <Midi/MidiProcess.hpp>
-#include <wobjectdefs.h>
 #include <Process/LayerView.hpp>
+
 #include <QPainterPath>
+
+#include <wobjectdefs.h>
 
 namespace Midi
 {
@@ -14,7 +16,10 @@ public:
   View(QGraphicsItem* parent);
 
   ~View() override;
-  double defaultWidth() const noexcept { return m_defaultW; }
+  double defaultWidth() const noexcept
+  {
+    return m_defaultW;
+  }
   void setDefaultWidth(double w);
 
   void setRange(int, int);

@@ -1,6 +1,8 @@
 #pragma once
-#include <QStringList>
 #include <score/tools/Version.hpp>
+
+#include <QStringList>
+
 #include <score_lib_base_export.h>
 namespace score
 {

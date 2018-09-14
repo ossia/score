@@ -2,23 +2,21 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "MetronomeExecution.hpp"
 
-#include <ossia/dataflow/nodes/metronome.hpp>
-
 #include <Curve/CurveConversion.hpp>
 #include <Process/ExecutionContext.hpp>
+
+#include <ossia/dataflow/nodes/metronome.hpp>
 namespace Metronome
 {
 namespace RecreateOnPlay
 {
 using metronome = ossia::nodes::metronome;
 Component::Component(
-    ::Metronome::ProcessModel& element,
-    const ::Execution::Context& ctx,
-    const Id<score::Component>& id,
-    QObject* parent)
-    : ::Execution::
-          ProcessComponent_T<Metronome::ProcessModel, ossia::node_process>{
-              element, ctx, id, "Executor::MetronomeComponent", parent}
+    ::Metronome::ProcessModel& element, const ::Execution::Context& ctx,
+    const Id<score::Component>& id, QObject* parent)
+    : ::Execution::ProcessComponent_T<
+          Metronome::ProcessModel, ossia::node_process>{
+          element, ctx, id, "Executor::MetronomeComponent", parent}
 {
   auto node = std::make_shared<metronome>();
   this->node = node;

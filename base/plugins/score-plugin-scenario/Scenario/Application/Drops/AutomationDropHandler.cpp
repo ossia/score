@@ -2,19 +2,22 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "AutomationDropHandler.hpp"
 
+#include <Dataflow/UI/PortItem.hpp>
 #include <Device/Node/NodeListMimeSerialization.hpp>
 #include <Process/ProcessMimeSerialization.hpp>
-#include <Scenario/Process/Temporal/TemporalScenarioPresenter.hpp>
-#include <Scenario/Process/ScenarioModel.hpp>
+#include <Scenario/Commands/Cohesion/CreateCurves.hpp>
 #include <Scenario/Commands/CommandAPI.hpp>
 #include <Scenario/Commands/Interval/AddProcessToInterval.hpp>
-#include <Dataflow/UI/PortItem.hpp>
-#include <score/document/DocumentContext.hpp>
-#include <ossia/network/value/value_traits.hpp>
-#include <Scenario/Commands/Cohesion/CreateCurves.hpp>
-#include <ossia/detail/thread.hpp>
-#include <QFileInfo>
 #include <Scenario/Commands/Scenario/ScenarioPasteElements.hpp>
+#include <Scenario/Process/ScenarioModel.hpp>
+#include <Scenario/Process/Temporal/TemporalScenarioPresenter.hpp>
+
+#include <score/document/DocumentContext.hpp>
+
+#include <ossia/detail/thread.hpp>
+#include <ossia/network/value/value_traits.hpp>
+
+#include <QFileInfo>
 namespace Scenario
 {
 
@@ -26,7 +29,8 @@ bool DropProcessInScenario::drop(
     Mime<Process::ProcessData>::Deserializer des{mime};
     Process::ProcessData p = des.deserialize();
 
-    Scenario::Command::Macro m{new Scenario::Command::AddProcessInNewBoxMacro, pres.context().context};
+    Scenario::Command::Macro m{new Scenario::Command::AddProcessInNewBoxMacro,
+                               pres.context().context};
 
     // Create a box.
     const Scenario::ProcessModel& scenar = pres.model();
@@ -71,7 +75,8 @@ bool DropPortInScenario::drop(
     if (!port)
       return false;
 
-    Scenario::Command::Macro m{new Scenario::Command::AddProcessInNewBoxMacro, pres.context().context};
+    Scenario::Command::Macro m{new Scenario::Command::AddProcessInNewBoxMacro,
+                               pres.context().context};
 
     // Create a box.
     const Scenario::ProcessModel& scenar = pres.model();
@@ -101,22 +106,21 @@ bool DropPortInScenario::drop(
   return false;
 }
 
-
 bool DropScenario::drop(
     const TemporalScenarioPresenter& pres, QPointF pos, const QMimeData& mime)
 {
-  if(mime.hasUrls())
+  if (mime.hasUrls())
   {
     const auto& doc = pres.context().context;
     auto& sm = pres.model();
     auto path = mime.urls().first().toLocalFile();
-    if(QFile f{path}; QFileInfo{f}.suffix() == "scenario" && f.open(QIODevice::ReadOnly))
+    if (QFile f{path};
+        QFileInfo{f}.suffix() == "scenario" && f.open(QIODevice::ReadOnly))
     {
       CommandDispatcher<> d{doc.commandStack};
       d.submitCommand(new Scenario::Command::ScenarioPasteElements(
-                         sm,
-                         QJsonDocument::fromJson(f.readAll()).object(),
-                         pres.toScenarioPoint(pos)));
+          sm, QJsonDocument::fromJson(f.readAll()).object(),
+          pres.toScenarioPoint(pos)));
       return true;
     }
   }
@@ -130,20 +134,23 @@ bool DropLayerInScenario::drop(
   QJsonObject json;
   if (mime.formats().contains(score::mime::layerdata()))
   {
-    json = QJsonDocument::fromJson(mime.data(score::mime::layerdata())).object();
+    json = QJsonDocument::fromJson(mime.data(score::mime::layerdata()))
+               .object();
   }
-  else if(mime.hasUrls())
+  else if (mime.hasUrls())
   {
-    if(QFile f{mime.urls()[0].toLocalFile()}; QFileInfo{f}.suffix() == "layer" && f.open(QIODevice::ReadOnly))
+    if (QFile f{mime.urls()[0].toLocalFile()};
+        QFileInfo{f}.suffix() == "layer" && f.open(QIODevice::ReadOnly))
     {
       json = QJsonDocument::fromJson(f.readAll()).object();
     }
   }
 
-  if(json.empty())
+  if (json.empty())
     return false;
 
-  Scenario::Command::Macro m{new Scenario::Command::AddProcessInNewBoxMacro, pres.context().context};
+  Scenario::Command::Macro m{new Scenario::Command::AddProcessInNewBoxMacro,
+                             pres.context().context};
 
   // Create a box.
   const Scenario::ProcessModel& scenar = pres.model();
@@ -159,28 +166,32 @@ bool DropLayerInScenario::drop(
 }
 
 void DropLayerInInterval::perform(
-    const IntervalModel& interval, const score::DocumentContext& doc, Scenario::Command::Macro& m, const QJsonObject& json)
+    const IntervalModel& interval, const score::DocumentContext& doc,
+    Scenario::Command::Macro& m, const QJsonObject& json)
 {
   const auto pid = ossia::get_pid();
-  const bool same_doc = (pid == json["PID"].toInt()) && (doc.document.id().val() == json["Document"] .toInt());
+  const bool same_doc
+      = (pid == json["PID"].toInt())
+        && (doc.document.id().val() == json["Document"].toInt());
   const bool small_view = json["View"].toString() == "Small";
   const int slot_index = json["SlotIndex"].toInt();
 
-  if(same_doc)
+  if (same_doc)
   {
-    const auto old_p = fromJsonObject<Path<Process::ProcessModel>>(json["Path"]);
-    if(auto obj = old_p.try_find(doc))
-    if(auto itv = qobject_cast<IntervalModel*>(obj->parent()))
-    {
-      if(small_view && (qApp->keyboardModifiers() & Qt::ALT))
+    const auto old_p
+        = fromJsonObject<Path<Process::ProcessModel>>(json["Path"]);
+    if (auto obj = old_p.try_find(doc))
+      if (auto itv = qobject_cast<IntervalModel*>(obj->parent()))
       {
-        m.moveSlot(*itv, interval, slot_index);
+        if (small_view && (qApp->keyboardModifiers() & Qt::ALT))
+        {
+          m.moveSlot(*itv, interval, slot_index);
+        }
+        else
+        {
+          m.moveProcess(*itv, interval, obj->id());
+        }
       }
-      else
-      {
-        m.moveProcess(*itv, interval, obj->id());
-      }
-    }
   }
   else
   {
@@ -198,32 +209,37 @@ bool DropLayerInInterval::drop(
   if (mime.formats().contains(score::mime::layerdata()))
   {
     const auto& doc = score::IDocument::documentContext(interval);
-    Scenario::Command::Macro m{new Scenario::Command::DropProcessInIntervalMacro, doc};
+    Scenario::Command::Macro m{
+        new Scenario::Command::DropProcessInIntervalMacro, doc};
 
-    const auto json = QJsonDocument::fromJson(mime.data(score::mime::layerdata())).object();
+    const auto json
+        = QJsonDocument::fromJson(mime.data(score::mime::layerdata()))
+              .object();
     perform(interval, doc, m, json);
     m.commit();
     return true;
   }
-  else if(mime.hasUrls())
+  else if (mime.hasUrls())
   {
     const auto& doc = score::IDocument::documentContext(interval);
-    Scenario::Command::Macro m{new Scenario::Command::DropProcessInIntervalMacro, doc};
+    Scenario::Command::Macro m{
+        new Scenario::Command::DropProcessInIntervalMacro, doc};
     bool ok = false;
-    for(const QUrl& u : mime.urls())
+    for (const QUrl& u : mime.urls())
     {
       auto path = u.toLocalFile();
-      if(QFile f{path}; QFileInfo{f}.suffix() == "layer" && f.open(QIODevice::ReadOnly))
+      if (QFile f{path};
+          QFileInfo{f}.suffix() == "layer" && f.open(QIODevice::ReadOnly))
       {
         ok = true;
         QJsonParseError e{};
         const auto json = QJsonDocument::fromJson(f.readAll(), &e).object();
-        if(e.error == QJsonParseError::NoError)
+        if (e.error == QJsonParseError::NoError)
           perform(interval, doc, m, json);
       }
     }
 
-    if(ok)
+    if (ok)
       m.commit();
     return true;
   }
@@ -254,8 +270,7 @@ bool DropProcessInInterval::drop(
 }
 
 static void getAddressesRecursively(
-    const Device::Node& node,
-    State::Address curAddr,
+    const Device::Node& node, State::Address curAddr,
     std::vector<Device::FullAddressSettings>& addresses)
 {
   // TODO refactor with CreateCurves and AddressAccessorEditWidget

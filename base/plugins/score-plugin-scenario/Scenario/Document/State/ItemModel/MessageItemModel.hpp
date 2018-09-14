@@ -1,12 +1,15 @@
 #pragma once
 #include <Process/State/MessageNode.hpp>
-#include <wobjectdefs.h>
+
+#include <score/model/tree/TreeNodeItemModel.hpp>
+
 #include <QAbstractItemModel>
 #include <QStringList>
 #include <QVariant>
 #include <qnamespace.h>
-#include <score/model/tree/TreeNodeItemModel.hpp>
+
 #include <score_plugin_scenario_export.h>
+#include <wobjectdefs.h>
 
 class QMimeData;
 class QObject;
@@ -44,9 +47,7 @@ public:
     Count
   };
 
-  MessageItemModel(
-      const StateModel&,
-      QObject* parent);
+  MessageItemModel(const StateModel&, QObject* parent);
   MessageItemModel& operator=(const MessageItemModel&);
   MessageItemModel& operator=(const node_type&);
   MessageItemModel& operator=(node_type&&);
@@ -71,24 +72,16 @@ public:
   QVariant headerData(
       int section, Qt::Orientation orientation, int role) const override;
   bool setHeaderData(
-      int section,
-      Qt::Orientation orientation,
-      const QVariant& value,
+      int section, Qt::Orientation orientation, const QVariant& value,
       int role) override;
 
   QStringList mimeTypes() const override;
   QMimeData* mimeData(const QModelIndexList& indexes) const override;
   bool canDropMimeData(
-      const QMimeData* data,
-      Qt::DropAction action,
-      int row,
-      int column,
+      const QMimeData* data, Qt::DropAction action, int row, int column,
       const QModelIndex& parent) const override;
   bool dropMimeData(
-      const QMimeData* data,
-      Qt::DropAction action,
-      int row,
-      int column,
+      const QMimeData* data, Qt::DropAction action, int row, int column,
       const QModelIndex& parent) override;
 
   Qt::DropActions supportedDragActions() const override;
@@ -99,7 +92,8 @@ public:
   const StateModel& stateModel;
 
 public:
-  void userMessage(const State::Message& arg_1) E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, userMessage, arg_1);
+  void userMessage(const State::Message& arg_1)
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, userMessage, arg_1);
 
 private:
   node_type m_rootNode;

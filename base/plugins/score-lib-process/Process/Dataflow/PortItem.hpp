@@ -1,10 +1,12 @@
 #pragma once
 #include <QGraphicsItem>
-#include <wobjectdefs.h>
 #include <QObject>
+
+#include <wobjectdefs.h>
+
 #include <functional>
 #if defined(_MSC_VER)
-#  include <Process/Dataflow/Port.hpp>
+#include <Process/Dataflow/Port.hpp>
 #endif
 #include <ossia/detail/ptr_set.hpp>
 
@@ -28,16 +30,13 @@ class PortItem;
 namespace Dataflow
 {
 class CableItem;
-class SCORE_LIB_PROCESS_EXPORT PortItem
-    : public QObject
-    , public QGraphicsItem
+class SCORE_LIB_PROCESS_EXPORT PortItem : public QObject, public QGraphicsItem
 {
   W_OBJECT(PortItem)
   Q_INTERFACES(QGraphicsItem)
 public:
   PortItem(
-      Process::Port& p,
-      const score::DocumentContext& ctx,
+      Process::Port& p, const score::DocumentContext& ctx,
       QGraphicsItem* parent);
   ~PortItem() override;
   Process::Port& port() const
@@ -52,14 +51,15 @@ public:
   void resetPortVisible();
 
 public:
-  void createCable(PortItem* src, PortItem* snk) E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, createCable, src, snk);
-  void contextMenuRequested(QPointF scenepos, QPoint pos) E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, contextMenuRequested, scenepos, pos);
+  void createCable(PortItem* src, PortItem* snk)
+      E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, createCable, src, snk);
+  void contextMenuRequested(QPointF scenepos, QPoint pos)
+      E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, contextMenuRequested, scenepos, pos);
 
 protected:
   QRectF boundingRect() const final override;
   void paint(
-      QPainter* painter,
-      const QStyleOptionGraphicsItem* option,
+      QPainter* painter, const QStyleOptionGraphicsItem* option,
       QWidget* widget) final override;
 
   void mousePressEvent(QGraphicsSceneMouseEvent* event) final override;

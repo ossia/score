@@ -9,9 +9,7 @@ W_OBJECT_IMPL(Scenario::CommentBlockModel)
 namespace Scenario
 {
 CommentBlockModel::CommentBlockModel(
-    const Id<CommentBlockModel>& id,
-    const TimeVal& date,
-    double yPos,
+    const Id<CommentBlockModel>& id, const TimeVal& date, double yPos,
     QObject* parent)
     : IdentifiedObject<CommentBlockModel>{id, "CommentBlockModel", parent}
     , m_date{date}

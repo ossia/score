@@ -7,8 +7,9 @@
 #include "CreateSequence.hpp"
 #include "CreateState.hpp"
 
-#include <boost/range/adaptor/reversed.hpp>
 #include <score/command/AggregateCommand.hpp>
+
+#include <boost/range/adaptor/reversed.hpp>
 namespace Scenario
 {
 namespace Command
@@ -16,8 +17,7 @@ namespace Command
 class CreationMetaCommand final : public score::AggregateCommand
 {
   SCORE_COMMAND_DECL(
-      ScenarioCommandFactoryName(),
-      CreationMetaCommand,
+      ScenarioCommandFactoryName(), CreationMetaCommand,
       "Create elements in scenario")
 public:
   void undo(const score::DocumentContext& ctx) const override

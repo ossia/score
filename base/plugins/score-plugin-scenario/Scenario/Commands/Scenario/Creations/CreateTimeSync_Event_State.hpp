@@ -2,12 +2,15 @@
 #include "CreateEvent_State.hpp"
 
 #include <Process/TimeValue.hpp>
-#include <QString>
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
+
 #include <score/command/Command.hpp>
 #include <score/model/Identifier.hpp>
 #include <score/model/path/Path.hpp>
 #include <score/tools/std/Optional.hpp>
+
+#include <QString>
+
 #include <score_plugin_scenario_export.h>
 struct DataStreamInput;
 struct DataStreamOutput;
@@ -23,8 +26,7 @@ class SCORE_PLUGIN_SCENARIO_EXPORT CreateTimeSync_Event_State final
     : public score::Command
 {
   SCORE_COMMAND_DECL(
-      ScenarioCommandFactoryName(),
-      CreateTimeSync_Event_State,
+      ScenarioCommandFactoryName(), CreateTimeSync_Event_State,
       "Create a timesync, an event and a state")
 public:
   CreateTimeSync_Event_State(

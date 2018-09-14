@@ -1,8 +1,9 @@
 #pragma once
-#include <QPoint>
 #include <score/actions/Action.hpp>
 #include <score/actions/Menu.hpp>
 #include <score/selection/Selection.hpp>
+
+#include <QPoint>
 class QAction;
 class QMenu;
 namespace Process
@@ -26,7 +27,8 @@ class PlayContextMenu final : public QObject
 {
 public:
   PlayContextMenu(
-      Engine::ApplicationPlugin& plug, const score::GUIApplicationContext& ctx);
+      Engine::ApplicationPlugin& plug,
+      const score::GUIApplicationContext& ctx);
   void setupContextMenu(Process::LayerContextMenuManager& ctxm);
 
   void setEnabled(bool);
@@ -44,4 +46,3 @@ private:
   QAction* m_playFromHere{};
 };
 }
-

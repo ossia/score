@@ -1,8 +1,10 @@
 #pragma once
 #include <QMetaType>
-#include <memory>
-#include <wobjectdefs.h>
+
 #include <score_lib_state_export.h>
+#include <wobjectdefs.h>
+
+#include <memory>
 
 namespace ossia
 {
@@ -13,7 +15,7 @@ namespace State
 {
 struct SCORE_LIB_STATE_EXPORT Domain
 {
-  //W_GADGET(Domain)
+  // W_GADGET(Domain)
 public:
   Domain() noexcept;
   Domain(const Domain& other) noexcept;

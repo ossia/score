@@ -2,6 +2,7 @@
 #include <Process/Focus/FocusDispatcher.hpp>
 #include <Process/LayerPresenter.hpp>
 #include <Process/ZoomHelper.hpp>
+
 #include <score/model/Identifier.hpp>
 
 namespace Skeleton
@@ -12,10 +13,8 @@ class Presenter final : public Process::LayerPresenter
 {
 public:
   explicit Presenter(
-      const Model& model,
-      View* view,
-      const Process::ProcessPresenterContext& ctx,
-      QObject* parent);
+      const Model& model, View* view,
+      const Process::ProcessPresenterContext& ctx, QObject* parent);
 
   void setWidth(qreal width) override;
   void setHeight(qreal height) override;

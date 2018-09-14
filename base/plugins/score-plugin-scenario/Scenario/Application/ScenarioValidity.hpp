@@ -1,9 +1,11 @@
 #pragma once
 #include <Scenario/Process/ScenarioModel.hpp>
-#include <core/document/Document.hpp>
-#include <core/document/DocumentModel.hpp>
+
 #include <score/command/Validity/ValidityChecker.hpp>
 #include <score/document/DocumentContext.hpp>
+
+#include <core/document/Document.hpp>
+#include <core/document/DocumentModel.hpp>
 
 namespace Scenario
 {

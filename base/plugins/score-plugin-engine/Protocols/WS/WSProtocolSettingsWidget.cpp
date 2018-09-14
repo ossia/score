@@ -5,6 +5,10 @@
 #include "WSSpecificSettings.hpp"
 
 #include <Device/Protocol/ProtocolSettingsWidget.hpp>
+#include <State/Widgets/AddressFragmentLineEdit.hpp>
+
+#include <score/widgets/JS/JSEdit.hpp>
+
 #include <QGridLayout>
 #include <QLabel>
 #include <QLineEdit>
@@ -14,8 +18,6 @@
 #include <QSpinBox>
 #include <QString>
 #include <QVariant>
-#include <State/Widgets/AddressFragmentLineEdit.hpp>
-#include <score/widgets/JS/JSEdit.hpp>
 class QWidget;
 
 namespace Engine
@@ -37,20 +39,19 @@ WSProtocolSettingsWidget::WSProtocolSettingsWidget(QWidget* parent)
       QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
   m_codeEdit->setMinimumHeight(300);
 
-  connect(m_codeEdit, &JSEdit::editingFinished,
-          this, [=] {
+  connect(m_codeEdit, &JSEdit::editingFinished, this, [=] {
     auto engine = new QQmlEngine;
     auto comp = new QQmlComponent{engine};
     connect(
         comp, &QQmlComponent::statusChanged, this,
-        [=](QQmlComponent::Status status)
-    {
+        [=](QQmlComponent::Status status) {
           switch (status)
           {
             case QQmlComponent::Status::Ready:
             {
               auto object = comp->create();
-              if(auto prop = object->property("host").toString(); !prop.isEmpty())
+              if (auto prop = object->property("host").toString();
+                  !prop.isEmpty())
               {
                 m_addressNameEdit->setText(prop);
               }
@@ -61,10 +62,9 @@ WSProtocolSettingsWidget::WSProtocolSettingsWidget(QWidget* parent)
           }
           comp->deleteLater();
           engine->deleteLater();
-    });
+        });
 
     comp->setData(m_codeEdit->document()->toPlainText().toUtf8(), QUrl{});
-
   });
 
   auto layout = new QGridLayout;

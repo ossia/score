@@ -1,24 +1,20 @@
 #include "Executor.hpp"
 
-#include <ossia/dataflow/nodes/step.hpp>
-#include <ossia/editor/scenario/time_value.hpp>
-
-#include <Scenario/Execution/score2OSSIA.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
-#include <ossia/detail/pod_vector.hpp>
-
 #include <Process/ExecutionContext.hpp>
+#include <Scenario/Execution/score2OSSIA.hpp>
+
+#include <ossia/dataflow/nodes/step.hpp>
+#include <ossia/detail/pod_vector.hpp>
+#include <ossia/editor/scenario/time_value.hpp>
 namespace Execution
 {
 
 StepComponent::StepComponent(
-    Media::Step::Model& element,
-    const Execution::Context& ctx,
-    const Id<score::Component>& id,
-    QObject* parent)
-    : Execution::
-          ProcessComponent_T<Media::Step::Model, ossia::node_process>{
-              element, ctx, id, "Executor::StepComponent", parent}
+    Media::Step::Model& element, const Execution::Context& ctx,
+    const Id<score::Component>& id, QObject* parent)
+    : Execution::ProcessComponent_T<Media::Step::Model, ossia::node_process>{
+          element, ctx, id, "Executor::StepComponent", parent}
 {
   auto node = std::make_shared<ossia::nodes::step>();
   this->node = node;
@@ -56,5 +52,4 @@ void StepComponent::recompute()
 StepComponent::~StepComponent()
 {
 }
-
 }

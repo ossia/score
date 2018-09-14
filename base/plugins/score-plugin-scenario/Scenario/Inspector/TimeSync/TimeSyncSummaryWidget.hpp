@@ -1,9 +1,11 @@
 #pragma once
-#include <QGridLayout>
-#include <QWidget>
-#include <memory>
 #include <score/selection/SelectionDispatcher.hpp>
 #include <score/widgets/MarginLess.hpp>
+
+#include <QGridLayout>
+#include <QWidget>
+
+#include <memory>
 
 namespace score
 {
@@ -19,8 +21,7 @@ class TimeSyncSummaryWidget final : public QWidget
 {
 public:
   explicit TimeSyncSummaryWidget(
-      const TimeSyncModel&,
-      const score::DocumentContext& doc,
+      const TimeSyncModel&, const score::DocumentContext& doc,
       QWidget* parent = nullptr);
   ~TimeSyncSummaryWidget() override;
 

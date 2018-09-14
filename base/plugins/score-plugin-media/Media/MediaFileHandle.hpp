@@ -1,11 +1,15 @@
 #pragma once
 #include <Media/AudioDecoder.hpp>
-#include <wobjectdefs.h>
-#include <QFile>
-#include <array>
-#include <nano_signal_slot.hpp>
+
 #include <ossia/detail/small_vector.hpp>
+
+#include <QFile>
+
+#include <nano_signal_slot.hpp>
 #include <score_plugin_media_export.h>
+#include <wobjectdefs.h>
+
+#include <array>
 namespace score
 {
 struct DocumentContext;
@@ -15,8 +19,7 @@ namespace Media
 // TODO store them in an application-wide cache to prevent loading / unloading
 // TODO memmap
 
-struct SCORE_PLUGIN_MEDIA_EXPORT MediaFileHandle final
-    : public QObject
+struct SCORE_PLUGIN_MEDIA_EXPORT MediaFileHandle final : public QObject
 {
 public:
   static bool isAudioFile(const QFile& f);
@@ -27,31 +30,45 @@ public:
   void load(const QString& path, const score::DocumentContext&);
 
   QString path() const
-  { return m_file; }
+  {
+    return m_file;
+  }
 
   QString fileName() const
-  { return m_fileName; }
+  {
+    return m_fileName;
+  }
 
   const AudioDecoder& decoder() const
-  { return m_decoder; }
+  {
+    return m_decoder;
+  }
 
   const audio_array& data() const
-  { return m_hdl->data; }
+  {
+    return m_hdl->data;
+  }
 
   audio_handle handle() const
-  { return m_hdl;}
+  {
+    return m_hdl;
+  }
 
   audio_sample** audioData() const;
 
   int sampleRate() const
-  { return m_sampleRate; }
+  {
+    return m_sampleRate;
+  }
 
   // Number of samples in a channel.
   int64_t samples() const;
   int64_t channels() const;
 
   bool empty() const
-  { return channels() == 0 || samples() == 0; }
+  {
+    return channels() == 0 || samples() == 0;
+  }
 
   Nano::Signal<void()> on_mediaChanged;
 

@@ -1,15 +1,18 @@
 #pragma once
 
 #include <Automation/AutomationProcessMetadata.hpp>
-#include <wobjectdefs.h>
 #include <Automation/State/AutomationState.hpp>
 #include <Curve/Process/CurveProcessModel.hpp>
 #include <Process/TimeValue.hpp>
-#include <QByteArray>
-#include <QString>
 #include <State/Address.hpp>
 #include <State/Unit.hpp>
+
 #include <score/serialization/VisitorInterface.hpp>
+
+#include <QByteArray>
+#include <QString>
+
+#include <wobjectdefs.h>
 
 class DataStream;
 class JSONObject;
@@ -21,6 +24,7 @@ class Outlet;
 }
 class QObject;
 #include <score/model/Identifier.hpp>
+
 #include <score_plugin_automation_export.h>
 
 namespace Automation
@@ -35,11 +39,9 @@ class SCORE_PLUGIN_AUTOMATION_EXPORT ProcessModel final
 
   // Min and max to scale the curve with at execution
 
-
 public:
   ProcessModel(
-      const TimeVal& duration,
-      const Id<Process::ProcessModel>& id,
+      const TimeVal& duration, const Id<Process::ProcessModel>& id,
       QObject* parent);
   ~ProcessModel() override;
 
@@ -73,18 +75,26 @@ public:
 
   QString prettyName() const override;
   std::unique_ptr<Process::Outlet> outlet;
+
 public:
-  void addressChanged(const ::State::AddressAccessor& arg_1) E_SIGNAL(SCORE_PLUGIN_AUTOMATION_EXPORT, addressChanged, arg_1);
-  void minChanged(double arg_1) E_SIGNAL(SCORE_PLUGIN_AUTOMATION_EXPORT, minChanged, arg_1);
-  void maxChanged(double arg_1) E_SIGNAL(SCORE_PLUGIN_AUTOMATION_EXPORT, maxChanged, arg_1);
-  void tweenChanged(bool tween) E_SIGNAL(SCORE_PLUGIN_AUTOMATION_EXPORT, tweenChanged, tween);
-  void unitChanged(const State::Unit& arg_1) E_SIGNAL(SCORE_PLUGIN_AUTOMATION_EXPORT, unitChanged, arg_1);
+  void addressChanged(const ::State::AddressAccessor& arg_1)
+      E_SIGNAL(SCORE_PLUGIN_AUTOMATION_EXPORT, addressChanged, arg_1);
+  void minChanged(double arg_1)
+      E_SIGNAL(SCORE_PLUGIN_AUTOMATION_EXPORT, minChanged, arg_1);
+  void maxChanged(double arg_1)
+      E_SIGNAL(SCORE_PLUGIN_AUTOMATION_EXPORT, maxChanged, arg_1);
+  void tweenChanged(bool tween)
+      E_SIGNAL(SCORE_PLUGIN_AUTOMATION_EXPORT, tweenChanged, tween);
+  void unitChanged(const State::Unit& arg_1)
+      E_SIGNAL(SCORE_PLUGIN_AUTOMATION_EXPORT, unitChanged, arg_1);
 
   PROPERTY(State::Unit, unit READ unit WRITE setUnit NOTIFY unitChanged)
   PROPERTY(bool, tween READ tween WRITE setTween NOTIFY tweenChanged)
   PROPERTY(double, max READ max WRITE setMax NOTIFY maxChanged)
   PROPERTY(double, min READ min WRITE setMin NOTIFY minChanged)
-  PROPERTY(::State::AddressAccessor, address READ address WRITE setAddress NOTIFY addressChanged)
+  PROPERTY(
+      ::State::AddressAccessor,
+      address READ address WRITE setAddress NOTIFY addressChanged)
 
 private:
   void init();

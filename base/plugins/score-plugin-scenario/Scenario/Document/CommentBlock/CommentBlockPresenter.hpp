@@ -1,11 +1,14 @@
 #pragma once
 
 #include <Process/TimeValue.hpp>
-#include <wobjectdefs.h>
-#include <QPoint>
+
 #include <score/model/Identifier.hpp>
 #include <score/widgets/GraphicsItem.hpp>
+
+#include <QPoint>
+
 #include <score_plugin_scenario_export.h>
+#include <wobjectdefs.h>
 
 class QGraphicsItem;
 class QTextDocument;
@@ -19,8 +22,7 @@ class SCORE_PLUGIN_SCENARIO_EXPORT CommentBlockPresenter final : public QObject
   W_OBJECT(CommentBlockPresenter)
 public:
   CommentBlockPresenter(
-      const CommentBlockModel& model,
-      QGraphicsItem* parentView,
+      const CommentBlockModel& model, QGraphicsItem* parentView,
       QObject* parent);
 
   ~CommentBlockPresenter();
@@ -44,6 +46,7 @@ public:
   const TimeVal& date() const;
 
   void on_zoomRatioChanged(ZoomRatio newRatio);
+
 public:
   void moved(const QPointF& arg_1) W_SIGNAL(moved, arg_1);
   void released(const QPointF& arg_1) W_SIGNAL(released, arg_1);

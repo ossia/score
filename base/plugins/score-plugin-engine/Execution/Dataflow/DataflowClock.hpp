@@ -9,9 +9,7 @@ class Cable;
 namespace Dataflow
 {
 class DocumentPlugin;
-class Clock final
-    : public Execution::Clock
-    , public Nano::Observer
+class Clock final : public Execution::Clock, public Nano::Observer
 {
 public:
   Clock(const Execution::Context& ctx);
@@ -20,8 +18,7 @@ public:
 
 private:
   // Clock interface
-  void play_impl(
-      const TimeVal& t, Execution::BaseScenarioElement&) override;
+  void play_impl(const TimeVal& t, Execution::BaseScenarioElement&) override;
   void pause_impl(Execution::BaseScenarioElement&) override;
   void resume_impl(Execution::BaseScenarioElement&) override;
   void stop_impl(Execution::BaseScenarioElement&) override;
@@ -37,7 +34,7 @@ class ClockFactory final : public Execution::ClockFactory
 {
   SCORE_CONCRETE("e9ae6dec-a10f-414f-9060-b21d15b5d58d")
 
-  public:
+public:
   QString prettyName() const override;
   std::unique_ptr<Execution::Clock>
   make(const Execution::Context& ctx) override;

@@ -3,20 +3,21 @@
 #include "MiniScenarioView.hpp"
 
 #include <Process/Style/ScenarioStyle.hpp>
-#include <QGraphicsScene>
-#include <QPainter>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
+
+#include <QGraphicsScene>
+#include <QPainter>
 namespace Scenario
 {
 
 MiniScenarioView::MiniScenarioView(const ProcessModel& sc, QGraphicsItem* p)
     : MiniLayer{p}, m_scenario{sc}
 {
-  m_scenario.intervals.added
-      .connect<&MiniScenarioView::on_elementChanged>(this);
-  m_scenario.intervals.removed
-      .connect<&MiniScenarioView::on_elementChanged>(this);
+  m_scenario.intervals.added.connect<&MiniScenarioView::on_elementChanged>(
+      this);
+  m_scenario.intervals.removed.connect<&MiniScenarioView::on_elementChanged>(
+      this);
 
   connect(&m_scenario, &Scenario::ProcessModel::intervalMoved, this, [=] {
     update();

@@ -1,9 +1,12 @@
 #pragma once
-#include <QMetaType>
-#include <memory>
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/serialization/JSONValueVisitor.hpp>
+
+#include <QMetaType>
+
 #include <score_lib_state_export.h>
+
+#include <memory>
 
 namespace ossia
 {

@@ -1,6 +1,7 @@
 #pragma once
-#include <QTreeView>
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
+
+#include <QTreeView>
 
 class QAction;
 class QContextMenuEvent;

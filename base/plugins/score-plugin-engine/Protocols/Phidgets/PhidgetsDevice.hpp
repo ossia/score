@@ -12,9 +12,10 @@ public:
   PhidgetDevice(const Device::DeviceSettings& settings);
 
   bool reconnect() override;
+
 public:
-  void sig_command()
-  W_SIGNAL(sig_command);
+  void sig_command() W_SIGNAL(sig_command);
+
 private:
   void slot_command();
   W_SLOT(slot_command);

@@ -5,6 +5,7 @@
 #include <Device/Protocol/ProtocolList.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <Explorer/Explorer/DeviceExplorerWidget.hpp>
+
 #include <score/application/GUIApplicationContext.hpp>
 
 namespace Explorer
@@ -38,13 +39,13 @@ void PanelDelegate::on_modelChanged(
   // DeviceExplorerModel ownership goes to document plugin
   if (oldm)
   {
-    if(auto plug = oldm->findPlugin<DeviceDocumentPlugin>())
+    if (auto plug = oldm->findPlugin<DeviceDocumentPlugin>())
       plug->explorer().setView(nullptr);
   }
 
   if (newm)
   {
-    if(auto plug = newm->findPlugin<DeviceDocumentPlugin>())
+    if (auto plug = newm->findPlugin<DeviceDocumentPlugin>())
     {
       plug->explorer().setView(m_widget->view());
       m_widget->setModel(&plug->explorer());

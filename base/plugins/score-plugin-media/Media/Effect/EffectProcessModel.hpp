@@ -1,12 +1,14 @@
 #pragma once
 #include <Media/Effect/EffectProcessMetadata.hpp>
-#include <wobjectdefs.h>
 #include <Process/Dataflow/Port.hpp>
 #include <Process/Process.hpp>
-#include <score/tools/std/IndirectContainer.hpp>
+
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/serialization/JSONVisitor.hpp>
 #include <score/serialization/VisitorCommon.hpp>
+#include <score/tools/std/IndirectContainer.hpp>
+
+#include <wobjectdefs.h>
 namespace Media
 {
 namespace Effect
@@ -195,8 +197,7 @@ class ProcessModel final : public Process::ProcessModel
 
 public:
   explicit ProcessModel(
-      const TimeVal& duration,
-      const Id<Process::ProcessModel>& id,
+      const TimeVal& duration, const Id<Process::ProcessModel>& id,
       QObject* parent);
 
   ~ProcessModel() override;
@@ -242,12 +243,14 @@ public:
 
     m_badChaining = badChaining;
     badChainingChanged(m_badChaining);
-  }; W_SLOT(setBadChaining)
+  };
+  W_SLOT(setBadChaining)
 
 public:
   void effectsChanged() W_SIGNAL(effectsChanged);
 
-  void badChainingChanged(bool badChaining) W_SIGNAL(badChainingChanged, badChaining);
+  void badChainingChanged(bool badChaining)
+      W_SIGNAL(badChainingChanged, badChaining);
 
 private:
   Selection selectableChildren() const override;
@@ -257,7 +260,9 @@ private:
   EntityList<Process::ProcessModel> m_effects;
   bool m_badChaining{false};
 
-W_PROPERTY(bool, badChaining READ badChaining WRITE setBadChaining NOTIFY badChainingChanged)
+  W_PROPERTY(
+      bool, badChaining READ badChaining WRITE setBadChaining NOTIFY
+                badChainingChanged)
 };
 }
 }

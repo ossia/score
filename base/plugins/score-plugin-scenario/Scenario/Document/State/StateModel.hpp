@@ -1,11 +1,9 @@
 #pragma once
-#include <Process/Process.hpp>
-#include <wobjectdefs.h>
 #include <Process/Instantiations.hpp>
+#include <Process/Process.hpp>
 #include <Scenario/Document/Event/ExecutionStatus.hpp>
 #include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
-#include <list>
-#include <nano_signal_slot.hpp>
+
 #include <score/model/Component.hpp>
 #include <score/model/EntityImpl.hpp>
 #include <score/model/IdentifiedObject.hpp>
@@ -15,7 +13,12 @@
 #include <score/tools/Metadata.hpp>
 #include <score/tools/Todo.hpp>
 #include <score/tools/std/Optional.hpp>
+
+#include <nano_signal_slot.hpp>
 #include <score_plugin_scenario_export.h>
+#include <wobjectdefs.h>
+
+#include <list>
 #include <set>
 #include <vector>
 class DataStream;
@@ -54,8 +57,8 @@ public:
 
 // Model for the graphical state in a scenario.
 class SCORE_PLUGIN_SCENARIO_EXPORT StateModel final
-    : public score::Entity<StateModel>
-    , public Nano::Observer
+    : public score::Entity<StateModel>,
+      public Nano::Observer
 {
   W_OBJECT(StateModel)
 
@@ -67,9 +70,7 @@ public:
   Selectable selection;
 
   StateModel(
-      const Id<StateModel>& id,
-      const Id<EventModel>& eventId,
-      double yPos,
+      const Id<StateModel>& id, const Id<EventModel>& eventId, double yPos,
       QObject* parent);
 
   ~StateModel() override;
@@ -78,10 +79,7 @@ public:
   template <
       typename DeserializerVisitor,
       enable_if_deserializer<DeserializerVisitor>* = nullptr>
-  StateModel(
-      DeserializerVisitor&& vis,
-      QObject* parent)
-      : Entity{vis, parent}
+  StateModel(DeserializerVisitor&& vis, QObject* parent) : Entity{vis, parent}
   {
     vis.writeTo(*this);
     init();
@@ -133,9 +131,12 @@ public:
   }
 
 public:
-  void sig_statesUpdated() E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, sig_statesUpdated);
-  void heightPercentageChanged() E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, heightPercentageChanged);
-  void statusChanged(Scenario::ExecutionStatus arg_1) E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, statusChanged, arg_1);
+  void sig_statesUpdated()
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, sig_statesUpdated);
+  void heightPercentageChanged()
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, heightPercentageChanged);
+  void statusChanged(Scenario::ExecutionStatus arg_1)
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, statusChanged, arg_1);
 
 private:
   void statesUpdated_slt();

@@ -2,17 +2,19 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "ExpressionEditorWidget.hpp"
 
+#include <Scenario/Inspector/Expression/ExpressionMenu.hpp>
+#include <Scenario/Inspector/Expression/SimpleExpressionEditorWidget.hpp>
+
+#include <score/tools/std/Optional.hpp>
+#include <score/widgets/MarginLess.hpp>
+#include <score/widgets/SetIcons.hpp>
+
 #include <QBoxLayout>
 #include <QDebug>
 #include <QPushButton>
 #include <QStringList>
 #include <QToolButton>
 #include <QtGlobal>
-#include <Scenario/Inspector/Expression/SimpleExpressionEditorWidget.hpp>
-#include <score/tools/std/Optional.hpp>
-#include <score/widgets/MarginLess.hpp>
-#include <score/widgets/SetIcons.hpp>
-#include <Scenario/Inspector/Expression/ExpressionMenu.hpp>
 
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Scenario::ExpressionEditorWidget)

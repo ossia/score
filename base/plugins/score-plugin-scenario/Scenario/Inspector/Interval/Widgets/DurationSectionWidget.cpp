@@ -4,13 +4,6 @@
 
 #include <Inspector/InspectorSectionWidget.hpp>
 #include <Process/TimeValue.hpp>
-#include <QCheckBox>
-#include <QDateTime>
-#include <QGridLayout>
-#include <QLabel>
-#include <QStackedLayout>
-#include <QString>
-#include <QWidget>
 #include <Scenario/Application/ScenarioEditionSettings.hpp>
 #include <Scenario/Commands/Interval/SetMaxDuration.hpp>
 #include <Scenario/Commands/Interval/SetMinDuration.hpp>
@@ -21,11 +14,7 @@
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentPresenter.hpp>
 #include <Scenario/Inspector/Interval/IntervalInspectorWidget.hpp>
 #include <Scenario/Process/ScenarioInterface.hpp>
-#include <chrono>
-#include <core/document/Document.hpp>
-#include <core/document/DocumentModel.hpp>
-#include <core/document/DocumentPresenter.hpp>
-#include <qnamespace.h>
+
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/command/Dispatchers/OngoingCommandDispatcher.hpp>
 #include <score/document/DocumentContext.hpp>
@@ -37,18 +26,31 @@
 #include <score/widgets/MarginLess.hpp>
 #include <score/widgets/SpinBoxes.hpp>
 #include <score/widgets/TextLabel.hpp>
+
+#include <core/document/Document.hpp>
+#include <core/document/DocumentModel.hpp>
+#include <core/document/DocumentPresenter.hpp>
+
+#include <QCheckBox>
+#include <QDateTime>
 #include <QFormLayout>
+#include <QGridLayout>
+#include <QLabel>
+#include <QStackedLayout>
 #include <QStackedWidget>
+#include <QString>
+#include <QWidget>
+#include <qnamespace.h>
+
+#include <chrono>
 namespace Scenario
 {
 class EditionGrid : public QWidget
 {
 public:
   EditionGrid(
-      const IntervalModel& m,
-      const score::DocumentContext& fac,
-      QFormLayout& lay,
-      const Scenario::EditionSettings& set)
+      const IntervalModel& m, const score::DocumentContext& fac,
+      QFormLayout& lay, const Scenario::EditionSettings& set)
       : m_model{m}
       , m_dur{m.duration}
       , m_editionSettings{set}
@@ -57,7 +59,7 @@ public:
   {
     using namespace score;
     auto editableGrid = &lay;
-    //auto editableGrid = new score::MarginLess<QGridLayout>{this};
+    // auto editableGrid = new score::MarginLess<QGridLayout>{this};
 
     // SPINBOXES
     m_minSpin = new TimeSpinBox{this};
@@ -93,7 +95,8 @@ public:
     m_minTitle = new TextLabel(tr("Min"));
     m_maxTitle = new TextLabel(tr("Max"));
     auto minstack = new QStackedWidget;
-    minstack->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
+    minstack->setSizePolicy(
+        QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
     minstack->addWidget(m_minNull);
     minstack->addWidget(m_minSpin);
     auto minboxwidg = new QWidget;
@@ -148,9 +151,11 @@ public:
   void defaultDurationSpinboxChanged(int val)
   {
     auto s = dynamic_cast<Scenario::ScenarioInterface*>(m_model.parent());
-    if(s)
+    if (s)
     {
-      s->changeDuration(m_model, m_dispatcher, TimeVal::fromMsecs(val), m_editionSettings.expandMode(), LockMode::Free);
+      s->changeDuration(
+          m_model, m_dispatcher, TimeVal::fromMsecs(val),
+          m_editionSettings.expandMode(), LockMode::Free);
     }
   }
 
@@ -276,7 +281,6 @@ public:
   const IntervalDurations& m_dur;
   const Scenario::EditionSettings& m_editionSettings;
 
-
   score::TimeSpinBox* m_valueSpin{};
 
   QCheckBox* m_minNonNullBox{};
@@ -288,7 +292,6 @@ public:
   QLabel* m_maxTitle{};
   QLabel* m_maxInfinity{};
   score::TimeSpinBox* m_maxSpin{};
-
 
   TimeVal m_max;
   TimeVal m_min;
@@ -365,8 +368,7 @@ private:
 };
 */
 DurationWidget::DurationWidget(
-    const Scenario::EditionSettings& set,
-    QFormLayout& lay,
+    const Scenario::EditionSettings& set, QFormLayout& lay,
     IntervalInspectorWidget* parent)
     : QWidget{parent}
     , m_editingWidget{

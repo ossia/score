@@ -2,16 +2,18 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "ScenarioTriggerCommandFactory.hpp"
 
-#include <QByteArray>
 #include <Scenario/Commands/TimeSync/AddTrigger.hpp>
 #include <Scenario/Commands/TimeSync/RemoveTrigger.hpp>
 #include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
 #include <Scenario/Process/ScenarioInterface.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
+
 #include <score/command/Command.hpp>
 #include <score/model/path/Path.hpp>
 #include <score/model/path/PathSerialization.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
+
+#include <QByteArray>
 namespace Scenario
 {
 namespace Command

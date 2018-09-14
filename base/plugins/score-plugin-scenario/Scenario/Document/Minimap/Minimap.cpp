@@ -1,14 +1,16 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+#include <Process/Style/ScenarioStyle.hpp>
+#include <Scenario/Document/Minimap/Minimap.hpp>
+
 #include <ossia/detail/math.hpp>
 
-#include <Process/Style/ScenarioStyle.hpp>
 #include <QApplication>
 #include <QGraphicsSceneMouseEvent>
 #include <QGraphicsView>
 #include <QPainter>
 #include <QWidget>
-#include <Scenario/Document/Minimap/Minimap.hpp>
+
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Scenario::Minimap)
 namespace Scenario
@@ -91,7 +93,8 @@ void Minimap::paint(
   painter->setRenderHint(QPainter::Antialiasing, false);
   painter->setPen(sk.MinimapPen);
   painter->setBrush(sk.MinimapBrush);
-  painter->drawRect(QRectF{m_leftHandle, 1., m_rightHandle - m_leftHandle, m_height - 2.});
+  painter->drawRect(
+      QRectF{m_leftHandle, 1., m_rightHandle - m_leftHandle, m_height - 2.});
 }
 
 #if defined(__APPLE__)

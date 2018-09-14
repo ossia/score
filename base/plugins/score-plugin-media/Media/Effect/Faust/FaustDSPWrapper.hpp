@@ -1,18 +1,20 @@
 #pragma once
-#include <ossia/dataflow/node_process.hpp>
-
-#include <Effect/EffectFactory.hpp>
-#include <Process/Execution/ProcessComponent.hpp>
 #include <Media/Effect/DefaultEffectItem.hpp>
 #include <Media/Effect/Faust/FaustUtils.hpp>
 #include <Process/Dataflow/PortFactory.hpp>
+#include <Process/Execution/ProcessComponent.hpp>
+#include <Process/ExecutionContext.hpp>
 #include <Process/GenericProcessFactory.hpp>
 #include <Process/Process.hpp>
-#include <Process/ExecutionContext.hpp>
 #include <Process/ProcessFactory.hpp>
-#include <faust/gui/GUI.h>
+
 #include <score/tools/IdentifierGeneration.hpp>
+
 #include <ossia/dataflow/execution_state.hpp>
+#include <ossia/dataflow/node_process.hpp>
+
+#include <Effect/EffectFactory.hpp>
+#include <faust/gui/GUI.h>
 namespace FaustDSP
 {
 template <typename DSP>
@@ -90,47 +92,31 @@ struct Wrap final : UI
     t.addCheckButton(label, zone);
   }
   void addVerticalSlider(
-      const char* label,
-      FAUSTFLOAT* zone,
-      FAUSTFLOAT init,
-      FAUSTFLOAT min,
-      FAUSTFLOAT max,
-      FAUSTFLOAT step) override
+      const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min,
+      FAUSTFLOAT max, FAUSTFLOAT step) override
   {
     t.addVerticalSlider(label, zone, init, min, max, step);
   }
   void addHorizontalSlider(
-      const char* label,
-      FAUSTFLOAT* zone,
-      FAUSTFLOAT init,
-      FAUSTFLOAT min,
-      FAUSTFLOAT max,
-      FAUSTFLOAT step) override
+      const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min,
+      FAUSTFLOAT max, FAUSTFLOAT step) override
   {
     t.addHorizontalSlider(label, zone, init, min, max, step);
   }
   void addNumEntry(
-      const char* label,
-      FAUSTFLOAT* zone,
-      FAUSTFLOAT init,
-      FAUSTFLOAT min,
-      FAUSTFLOAT max,
-      FAUSTFLOAT step) override
+      const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min,
+      FAUSTFLOAT max, FAUSTFLOAT step) override
   {
     t.addNumEntry(label, zone, init, min, max, step);
   }
   void addHorizontalBargraph(
-      const char* label,
-      FAUSTFLOAT* zone,
-      FAUSTFLOAT min,
+      const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min,
       FAUSTFLOAT max) override
   {
     t.addHorizontalBargraph(label, zone, min, max);
   }
   void addVerticalBargraph(
-      const char* label,
-      FAUSTFLOAT* zone,
-      FAUSTFLOAT min,
+      const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min,
       FAUSTFLOAT max) override
   {
     t.addVerticalBargraph(label, zone, min, max);
@@ -191,13 +177,15 @@ public:
     return m_outlets;
   }
 
-  bool hasExternalUI() const { return false; }
+  bool hasExternalUI() const
+  {
+    return false;
+  }
 };
 
 template <typename DSP>
 class Executor final
-    : public Execution::
-          ProcessComponent_T<Fx<DSP>, ossia::node_process>
+    : public Execution::ProcessComponent_T<Fx<DSP>, ossia::node_process>
 {
 
 public:
@@ -217,7 +205,8 @@ public:
       dsp.buildUserInterface(&ex);
     }
 
-    void run(ossia::token_request tk, ossia::exec_state_facade) noexcept override
+    void
+    run(ossia::token_request tk, ossia::exec_state_facade) noexcept override
     {
       ossia::nodes::faust_exec(*this, dsp, tk);
     }
@@ -249,10 +238,8 @@ public:
   }
 
   Executor(
-      Fx<DSP>& proc,
-      const Execution::Context& ctx,
-      const Id<score::Component>& id,
-      QObject* parent)
+      Fx<DSP>& proc, const Execution::Context& ctx,
+      const Id<score::Component>& id, QObject* parent)
       : Execution::ProcessComponent_T<Fx<DSP>, ossia::node_process>{
             proc, ctx, id, "FaustComponent", parent}
   {
@@ -340,6 +327,5 @@ using LayerFactory
     = Process::EffectLayerFactory_T<Fx<DSP>, Media::Effect::DefaultEffectItem>;
 
 template <typename DSP>
-using ExecutorFactory
-    = Execution::ProcessComponentFactory_T<Executor<DSP>>;
+using ExecutorFactory = Execution::ProcessComponentFactory_T<Executor<DSP>>;
 }

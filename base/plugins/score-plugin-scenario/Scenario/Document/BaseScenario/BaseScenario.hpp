@@ -1,11 +1,14 @@
 #pragma once
-#include <QVector>
-#include <wobjectdefs.h>
 #include <Scenario/Document/BaseScenario/BaseScenarioContainer.hpp>
+
 #include <score/model/IdentifiedObject.hpp>
 #include <score/selection/Selection.hpp>
 #include <score/serialization/VisitorInterface.hpp>
 #include <score/tools/Metadata.hpp>
+
+#include <QVector>
+
+#include <wobjectdefs.h>
 
 class DataStream;
 class JSONObject;
@@ -15,9 +18,8 @@ namespace Scenario
 {
 class IntervalModel;
 class TimeSyncModel;
-class BaseScenario final
-    : public IdentifiedObject<BaseScenario>
-    , public BaseScenarioContainer
+class BaseScenario final : public IdentifiedObject<BaseScenario>,
+                           public BaseScenarioContainer
 {
   W_OBJECT(BaseScenario)
   SCORE_SERIALIZE_FRIENDS
@@ -40,11 +42,9 @@ public:
   Selection selectedChildren() const;
   bool focused() const;
   void changeDuration(IntervalModel& itv, const TimeVal& v) override;
-  void changeDuration(const Scenario::IntervalModel& itv,
-                      OngoingCommandDispatcher& dispatcher,
-                      const TimeVal& val,
-                      ExpandMode expandmode,
-                      LockMode lockmode) override;
+  void changeDuration(
+      const Scenario::IntervalModel& itv, OngoingCommandDispatcher& dispatcher,
+      const TimeVal& val, ExpandMode expandmode, LockMode lockmode) override;
 
   using BaseScenarioContainer::event;
   using QObject::event;

@@ -1,12 +1,16 @@
 #pragma once
 #include <Process/ZoomHelper.hpp>
-#include <score/tools/std/Optional.hpp>
+
 #include <score/serialization/IsTemplate.hpp>
+#include <score/tools/std/Optional.hpp>
+
 #include <QMetaType>
 #include <QStringBuilder>
 #include <QTime>
-#include <chrono>
+
 #include <wobjectdefs.h>
+
+#include <chrono>
 #if defined(_MSC_VER)
 #define OPTIONAL_CONSTEXPR constexpr
 #else
@@ -37,7 +41,9 @@ struct TimeValue_T
   OPTIONAL_CONSTEXPR TimeValue_T(TimeValue_T&&) = default;
   OPTIONAL_CONSTEXPR TimeValue_T& operator=(const TimeValue_T&) = default;
   OPTIONAL_CONSTEXPR TimeValue_T& operator=(TimeValue_T&&) = default;
-  OPTIONAL_CONSTEXPR TimeValue_T(optional<T> t): m_impl{std::move(t)} { }
+  OPTIONAL_CONSTEXPR TimeValue_T(optional<T> t) : m_impl{std::move(t)}
+  {
+  }
 
   TimeValue_T(QTime t)
       : m_impl{
@@ -58,9 +64,8 @@ struct TimeValue_T
   }
 
   template <
-      typename Duration,
-      std::enable_if_t<
-          std::is_class<typename Duration::period>::value>* = nullptr>
+      typename Duration, std::enable_if_t<std::is_class<
+                             typename Duration::period>::value>* = nullptr>
   OPTIONAL_CONSTEXPR TimeValue_T(Duration&& dur)
       : m_impl{T(std::chrono::duration_cast<std::chrono::milliseconds>(dur)
                      .count())}

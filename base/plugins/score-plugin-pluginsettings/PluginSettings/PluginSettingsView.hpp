@@ -1,6 +1,8 @@
 #pragma once
 #include <PluginSettings/PluginItemModel.hpp>
-#include <wobjectdefs.h>
+
+#include <score/plugins/settingsdelegate/SettingsDelegateView.hpp>
+
 #include <QGridLayout>
 #include <QNetworkAccessManager>
 #include <QProgressBar>
@@ -8,7 +10,8 @@
 #include <QTabWidget>
 #include <QTableView>
 #include <QWidget>
-#include <score/plugins/settingsdelegate/SettingsDelegateView.hpp>
+
+#include <wobjectdefs.h>
 class QObject;
 
 namespace PluginSettings

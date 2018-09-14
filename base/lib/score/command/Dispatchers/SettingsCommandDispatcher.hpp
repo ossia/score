@@ -1,7 +1,8 @@
 #pragma once
-#include <memory>
 #include <score/command/SettingsCommand.hpp>
 #include <score/tools/std/HashMap.hpp>
+
+#include <memory>
 namespace score
 {
 class SettingsCommandDispatcher

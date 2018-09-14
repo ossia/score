@@ -1,12 +1,15 @@
 #include "MediaFileHandle.hpp"
 
 #include <Media/AudioDecoder.hpp>
-#include <QFileInfo>
-#include <core/document/Document.hpp>
+
 #include <score/document/DocumentContext.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/serialization/JSONVisitor.hpp>
 #include <score/tools/File.hpp>
+
+#include <core/document/Document.hpp>
+
+#include <QFileInfo>
 
 namespace Media
 {
@@ -17,7 +20,6 @@ MediaFileHandle::MediaFileHandle()
 
 MediaFileHandle::~MediaFileHandle()
 {
-
 }
 
 void MediaFileHandle::load(

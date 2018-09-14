@@ -4,28 +4,27 @@
 
 #include <Process/Style/ScenarioStyle.hpp>
 #include <Process/TimeValue.hpp>
-#include <QObject>
-#include <QPoint>
 #include <Scenario/Document/Event/ExecutionStatus.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
 #include <Scenario/Document/VerticalExtent.hpp>
 #include <Scenario/Process/ScenarioInterface.hpp>
 #include <State/Expression.hpp>
+
 #include <score/document/DocumentInterface.hpp>
 #include <score/model/IdentifiedObject.hpp>
 #include <score/model/Identifier.hpp>
 #include <score/model/ModelMetadata.hpp>
+
+#include <QObject>
+#include <QPoint>
 
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Scenario::EventModel)
 namespace Scenario
 {
 EventModel::EventModel(
-    const Id<EventModel>& id,
-    const Id<TimeSyncModel>& timesync,
-    const VerticalExtent& extent,
-    const TimeVal& date,
-    QObject* parent)
+    const Id<EventModel>& id, const Id<TimeSyncModel>& timesync,
+    const VerticalExtent& extent, const TimeVal& date, QObject* parent)
     : Entity{id, Metadata<ObjectKey_k, EventModel>::get(), parent}
     , m_timeSync{timesync}
     , m_condition{}

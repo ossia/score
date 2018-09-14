@@ -4,12 +4,14 @@
 
 #include <Process/Dataflow/Port.hpp>
 #include <Process/Dataflow/PortFactory.hpp>
-#include <QJsonObject>
-#include <QJsonValue>
-#include <QString>
+
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/serialization/JSONValueVisitor.hpp>
 #include <score/serialization/JSONVisitor.hpp>
+
+#include <QJsonObject>
+#include <QJsonValue>
+#include <QString>
 
 template <>
 void DataStreamReader::read(const JS::ProcessModel& proc)

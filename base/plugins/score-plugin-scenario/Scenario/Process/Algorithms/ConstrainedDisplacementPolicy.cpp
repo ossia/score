@@ -9,10 +9,8 @@ void ConstrainedDisplacementPolicy::init(
 }
 
 void ConstrainedDisplacementPolicy::computeDisplacement(
-    ProcessModel& scenario,
-    const QVector<Id<TimeSyncModel>>& draggedElements,
-    const TimeVal& deltaTime,
-    ElementsProperties& elementsProperties)
+    ProcessModel& scenario, const QVector<Id<TimeSyncModel>>& draggedElements,
+    const TimeVal& deltaTime, ElementsProperties& elementsProperties)
 {
   // Scale all the intervals before and after.
   if (draggedElements.empty())

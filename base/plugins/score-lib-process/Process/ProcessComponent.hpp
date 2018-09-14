@@ -1,5 +1,6 @@
 #pragma once
 #include <Process/Process.hpp>
+
 #include <score/model/Component.hpp>
 
 namespace Process

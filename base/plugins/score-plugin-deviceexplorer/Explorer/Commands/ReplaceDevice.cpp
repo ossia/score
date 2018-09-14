@@ -6,13 +6,16 @@
 #include <Device/Protocol/DeviceSettings.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <Explorer/Explorer/DeviceExplorerModel.hpp>
-#include <QAbstractItemModel>
-#include <QString>
-#include <algorithm>
+
 #include <score/model/path/Path.hpp>
 #include <score/model/path/PathSerialization.hpp>
 #include <score/model/tree/TreeNode.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
+
+#include <QAbstractItemModel>
+#include <QString>
+
+#include <algorithm>
 #include <vector>
 
 namespace Explorer
@@ -23,8 +26,7 @@ namespace Command
 // by
 // a LoadDevice() ?
 ReplaceDevice::ReplaceDevice(
-    const DeviceDocumentPlugin& device_tree,
-    int deviceIndex,
+    const DeviceDocumentPlugin& device_tree, int deviceIndex,
     Device::Node&& rootNode)
     : m_deviceIndex(deviceIndex), m_deviceNode{std::move(rootNode)}
 {
@@ -34,10 +36,8 @@ ReplaceDevice::ReplaceDevice(
 }
 
 ReplaceDevice::ReplaceDevice(
-    const DeviceDocumentPlugin& device_tree,
-    int deviceIndex,
-    Device::Node&& oldRootNode,
-    Device::Node&& newRootNode)
+    const DeviceDocumentPlugin& device_tree, int deviceIndex,
+    Device::Node&& oldRootNode, Device::Node&& newRootNode)
     : m_deviceIndex(deviceIndex)
     , m_deviceNode{std::move(newRootNode)}
     , m_savedNode{std::move(oldRootNode)}

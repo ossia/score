@@ -1,9 +1,12 @@
 #include <score/widgets/ControlWidgets.hpp>
+
+#include <ossia/network/dataspace/gain.hpp>
+
+#include <QPainter>
 #include <QStyle>
 #include <QStyleOptionButton>
 #include <QStyleOptionSlider>
-#include <QPainter>
-#include <ossia/network/dataspace/gain.hpp>
+
 #include <cmath>
 
 namespace Control
@@ -45,7 +48,9 @@ void SpeedSlider::paintEvent(QPaintEvent*)
 
 void VolumeSlider::paintEvent(QPaintEvent*)
 {
-  paintWithText(QString::number(ossia::detail::LinearGainToDecibels(value()), 'f', 1) + " dB");
+  paintWithText(
+      QString::number(ossia::detail::LinearGainToDecibels(value()), 'f', 1)
+      + " dB");
 }
 
 void ValueDoubleSlider::paintEvent(QPaintEvent* event)
@@ -55,7 +60,8 @@ void ValueDoubleSlider::paintEvent(QPaintEvent* event)
 
 void ValueLogDoubleSlider::paintEvent(QPaintEvent* event)
 {
-  paintWithText(QString::number(std::exp2(min + value() * (max - min)), 'f', 3));
+  paintWithText(
+      QString::number(std::exp2(min + value() * (max - min)), 'f', 3));
 }
 
 ComboSlider::ComboSlider(const QStringList& arr, QWidget* parent)

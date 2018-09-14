@@ -6,11 +6,8 @@
 namespace Skeleton
 {
 LocalTreeProcessComponent::LocalTreeProcessComponent(
-    const Id<score::Component>& id,
-    ossia::net::node_base& parent,
-    Skeleton::Model& proc,
-    LocalTree::DocumentPlugin& sys,
-    QObject* parent_obj)
+    const Id<score::Component>& id, ossia::net::node_base& parent,
+    Skeleton::Model& proc, LocalTree::DocumentPlugin& sys, QObject* parent_obj)
     : LocalTree::ProcessComponent_T<Skeleton::Model>{
           parent, proc, sys, id, "SkeletonComponent", parent_obj}
 {

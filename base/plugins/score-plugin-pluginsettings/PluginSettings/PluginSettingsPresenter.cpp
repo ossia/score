@@ -6,13 +6,15 @@
 #include "PluginSettingsView.hpp"
 
 #include <PluginSettings/FileDownloader.hpp>
+
+#include <score/command/Command.hpp>
+#include <score/plugins/settingsdelegate/SettingsDelegatePresenter.hpp>
+
 #include <QApplication>
 #include <QDebug>
 #include <QListView>
 #include <QStandardItemModel>
 #include <QStyle>
-#include <score/command/Command.hpp>
-#include <score/plugins/settingsdelegate/SettingsDelegatePresenter.hpp>
 
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(PluginSettings::PluginSettingsPresenter)
@@ -25,8 +27,7 @@ namespace PluginSettings
 {
 
 PluginSettingsPresenter::PluginSettingsPresenter(
-    score::SettingsDelegateModel& model,
-    score::GlobalSettingsView& view,
+    score::SettingsDelegateModel& model, score::GlobalSettingsView& view,
     QObject* parent)
     : score::GlobalSettingsPresenter{model, view, parent}
 {

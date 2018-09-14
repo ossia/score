@@ -1,13 +1,17 @@
 #pragma once
 #include <Process/State/MessageNode.hpp>
-#include <wobjectdefs.h>
-#include <QString>
 #include <State/Address.hpp>
 #include <State/Message.hpp>
+
 #include <score/model/IdentifiedObject.hpp>
 #include <score/model/Identifier.hpp>
 #include <score/tools/std/Optional.hpp>
+
+#include <QString>
+
 #include <score_lib_process_export.h>
+#include <wobjectdefs.h>
+
 #include <vector>
 
 namespace Process
@@ -69,7 +73,8 @@ public:
    * Sent whenever the messages in the process changed.
    *
    */
-  void messagesChanged(const State::MessageList& arg_1) E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, messagesChanged, arg_1);
+  void messagesChanged(const State::MessageList& arg_1)
+      E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, messagesChanged, arg_1);
 
 private:
   Process::ProcessModel& m_model;

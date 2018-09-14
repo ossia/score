@@ -11,8 +11,9 @@
 #include <Scenario/Process/Algorithms/Accessors.hpp>
 #include <Scenario/Process/Algorithms/ProcessPolicy.hpp>
 #include <Scenario/Process/ScenarioInterface.hpp>
-#include <algorithm>
+
 #include <score/application/ApplicationContext.hpp>
+#include <score/document/ChangeId.hpp>
 #include <score/document/DocumentContext.hpp>
 #include <score/model/EntityMap.hpp>
 #include <score/model/path/PathSerialization.hpp>
@@ -21,7 +22,8 @@
 #include <score/plugins/customfactory/StringFactoryKeySerialization.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/tools/IdentifierGeneration.hpp>
-#include <score/document/ChangeId.hpp>
+
+#include <algorithm>
 #include <vector>
 
 namespace Scenario
@@ -29,18 +31,15 @@ namespace Scenario
 namespace Command
 {
 AddOnlyProcessToInterval::AddOnlyProcessToInterval(
-    const IntervalModel& cst,
-    UuidKey<Process::ProcessModel> process,
+    const IntervalModel& cst, UuidKey<Process::ProcessModel> process,
     const QString& dat)
     : AddOnlyProcessToInterval{cst, getStrongId(cst.processes), process, dat}
 {
 }
 
 AddOnlyProcessToInterval::AddOnlyProcessToInterval(
-    const IntervalModel& cst,
-    Id<Process::ProcessModel> processId,
-    UuidKey<Process::ProcessModel> process,
-    const QString& dat)
+    const IntervalModel& cst, Id<Process::ProcessModel> processId,
+    UuidKey<Process::ProcessModel> process, const QString& dat)
     : m_path{cst}
     , m_processName{process}
     , m_data{dat}
@@ -88,18 +87,10 @@ void AddOnlyProcessToInterval::deserializeImpl(DataStreamOutput& s)
   s >> m_path >> m_processName >> m_data >> m_createdProcessId;
 }
 
-
-
-
-
-
 LoadOnlyProcessInInterval::LoadOnlyProcessInInterval(
-    const IntervalModel& cst,
-    Id<Process::ProcessModel> processId,
+    const IntervalModel& cst, Id<Process::ProcessModel> processId,
     const QJsonObject& dat)
-    : m_path{cst}
-    , m_createdProcessId{std::move(processId)}
-    , m_data{dat}
+    : m_path{cst}, m_createdProcessId{std::move(processId)}, m_data{dat}
 {
 }
 
@@ -124,16 +115,17 @@ Process::ProcessModel& LoadOnlyProcessInInterval::redo(
 
   // Create process model
   auto obj = m_data[score::StringConstant().Process].toObject();
-  auto key = fromJsonValue<UuidKey<Process::ProcessModel>>(obj[score::StringConstant().uuid]);
+  auto key = fromJsonValue<UuidKey<Process::ProcessModel>>(
+      obj[score::StringConstant().uuid]);
   auto fac = ctx.app.interfaces<Process::ProcessFactoryList>().get(key);
   SCORE_ASSERT(fac);
   // TODO handle missing process
   JSONObject::Deserializer des{obj};
   auto proc = fac->load(des.toVariant(), &interval);
   const auto ports = proc->findChildren<Process::Port*>();
-  for(Process::Port* port : ports)
+  for (Process::Port* port : ports)
   {
-    while(!port->cables().empty())
+    while (!port->cables().empty())
     {
       port->removeCable(port->cables().back());
     }
@@ -154,13 +146,6 @@ void LoadOnlyProcessInInterval::deserializeImpl(DataStreamOutput& s)
   s >> m_path >> m_data >> m_createdProcessId;
 }
 
-
-
-
-
-
-
-
 DuplicateOnlyProcessToInterval::DuplicateOnlyProcessToInterval(
     const IntervalModel& cst, const Process::ProcessModel& process)
     : DuplicateOnlyProcessToInterval{cst, getStrongId(cst.processes), process}
@@ -168,8 +153,7 @@ DuplicateOnlyProcessToInterval::DuplicateOnlyProcessToInterval(
 }
 
 DuplicateOnlyProcessToInterval::DuplicateOnlyProcessToInterval(
-    const IntervalModel& cst,
-    Id<Process::ProcessModel> processId,
+    const IntervalModel& cst, Id<Process::ProcessModel> processId,
     const Process::ProcessModel& process)
     : m_path{cst}
     , m_processData{score::marshall<DataStream>(process)}

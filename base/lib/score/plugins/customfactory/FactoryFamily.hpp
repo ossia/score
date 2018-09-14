@@ -1,15 +1,17 @@
 ﻿#ifndef FACTORY_FAMILY_HPP_2016_12_08_18_31
 #define FACTORY_FAMILY_HPP_2016_12_08_18_31
 
-#include <ossia/detail/algorithms.hpp>
-
-#include <QMetaType>
 #include <score/plugins/customfactory/FactoryInterface.hpp>
 #include <score/tools/ForEachType.hpp>
 #include <score/tools/Todo.hpp>
 #include <score/tools/std/HashMap.hpp>
 #include <score/tools/std/IndirectContainer.hpp>
 #include <score/tools/std/Pointer.hpp>
+
+#include <ossia/detail/algorithms.hpp>
+
+#include <QMetaType>
+
 #include <score_lib_base_export.h>
 
 namespace score
@@ -167,9 +169,9 @@ public:
   }
 
 protected:
-  score::
-      hash_map<typename FactoryType::ConcreteKey, std::unique_ptr<FactoryType>>
-          map;
+  score::hash_map<
+      typename FactoryType::ConcreteKey, std::unique_ptr<FactoryType>>
+      map;
 
 private:
   void optimize() noexcept final override

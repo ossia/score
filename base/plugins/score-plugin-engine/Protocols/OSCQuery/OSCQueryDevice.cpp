@@ -2,20 +2,22 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "OSCQueryDevice.hpp"
 
+#include <Device/Protocol/DeviceSettings.hpp>
+#include <Explorer/DeviceList.hpp>
+#include <Explorer/DeviceLogging.hpp>
+#include <Protocols/OSCQuery/OSCQuerySpecificSettings.hpp>
+
 #include <ossia/network/generic/generic_device.hpp>
 #include <ossia/network/generic/generic_parameter.hpp>
 #include <ossia/network/oscquery/oscquery_mirror.hpp>
 
-#include <Device/Protocol/DeviceSettings.hpp>
-#include <Explorer/DeviceLogging.hpp>
-#include <Protocols/OSCQuery/OSCQuerySpecificSettings.hpp>
-#include <Explorer/DeviceList.hpp>
 #include <QString>
 #include <QTimer>
 #include <QVariant>
-#include <memory>
 
 #include <wobjectimpl.h>
+
+#include <memory>
 W_OBJECT_IMPL(Engine::Network::OSCQueryDevice)
 namespace Engine
 {

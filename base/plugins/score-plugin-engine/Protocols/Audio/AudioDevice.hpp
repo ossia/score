@@ -1,11 +1,12 @@
 #pragma once
-#include <ossia/audio/audio_protocol.hpp>
-#include <wobjectdefs.h>
-
+#include <Device/Protocol/DeviceInterface.hpp>
 #include <Device/Protocol/DeviceSettings.hpp>
 #include <Device/Protocol/ProtocolFactoryInterface.hpp>
 #include <Device/Protocol/ProtocolSettingsWidget.hpp>
-#include <Device/Protocol/DeviceInterface.hpp>
+
+#include <ossia/audio/audio_protocol.hpp>
+
+#include <wobjectdefs.h>
 class QLineEdit;
 namespace Dataflow
 {
@@ -19,14 +20,11 @@ class AudioProtocolFactory final : public Device::ProtocolFactory
       const score::DocumentContext& ctx) override;
   const Device::DeviceSettings& defaultSettings() const override;
   Device::AddressDialog* makeAddAddressDialog(
-      const Device::DeviceInterface& dev,
-      const score::DocumentContext& ctx,
+      const Device::DeviceInterface& dev, const score::DocumentContext& ctx,
       QWidget* parent) override;
   Device::AddressDialog* makeEditAddressDialog(
-      const Device::AddressSettings&,
-      const Device::DeviceInterface& dev,
-      const score::DocumentContext& ctx,
-      QWidget*) override;
+      const Device::AddressSettings&, const Device::DeviceInterface& dev,
+      const score::DocumentContext& ctx, QWidget*) override;
 
   Device::ProtocolSettingsWidget* makeSettingsWidget() override;
 

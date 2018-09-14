@@ -4,11 +4,6 @@
 
 #include "ApplicationSettings.hpp"
 
-#include <core/document/Document.hpp>
-#include <core/presenter/DocumentManager.hpp>
-#include <core/presenter/Presenter.hpp>
-#include <core/settings/Settings.hpp>
-#include <core/view/Window.hpp>
 #include <score/application/ApplicationComponents.hpp>
 #include <score/application/ApplicationContext.hpp>
 #include <score/command/CommandGeneratorMap.hpp>
@@ -16,8 +11,16 @@
 #include <score/plugins/customfactory/FactoryFamily.hpp>
 #include <score/plugins/customfactory/StringFactoryKey.hpp>
 #include <score/plugins/panel/PanelDelegateFactory.hpp>
-#include <type_traits>
+
+#include <core/document/Document.hpp>
+#include <core/presenter/DocumentManager.hpp>
+#include <core/presenter/Presenter.hpp>
+#include <core/settings/Settings.hpp>
+#include <core/view/Window.hpp>
+
 #include <vector>
+
+#include <type_traits>
 
 namespace score
 {
@@ -73,11 +76,8 @@ void ApplicationRegistrar::registerFactory(
 }
 
 GUIApplicationRegistrar::GUIApplicationRegistrar(
-    ApplicationComponentsData& comp,
-    const score::GUIApplicationContext& ctx,
-    MenuManager& m,
-    ToolbarManager& t,
-    ActionManager& a)
+    ApplicationComponentsData& comp, const score::GUIApplicationContext& ctx,
+    MenuManager& m, ToolbarManager& t, ActionManager& a)
     : ApplicationRegistrar{comp}
     , m_context{ctx}
     , m_menuManager{m}

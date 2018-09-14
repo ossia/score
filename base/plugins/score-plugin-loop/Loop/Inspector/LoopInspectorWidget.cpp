@@ -5,15 +5,16 @@
 #include <Inspector/InspectorWidgetList.hpp>
 #include <Loop/LoopProcessModel.hpp>
 #include <Process/ProcessList.hpp>
-#include <QVBoxLayout>
 #include <Scenario/Inspector/Interval/IntervalInspectorWidget.hpp>
+
 #include <score/application/ApplicationContext.hpp>
 #include <score/document/DocumentContext.hpp>
+
+#include <QVBoxLayout>
 namespace Loop
 {
 InspectorWidget::InspectorWidget(
-    const Loop::ProcessModel& object,
-    const score::DocumentContext& doc,
+    const Loop::ProcessModel& object, const score::DocumentContext& doc,
     QWidget* parent)
     : InspectorWidgetDelegate_T{object, parent}
 {
@@ -26,12 +27,11 @@ InspectorWidget::InspectorWidget(
   auto lay = new QVBoxLayout;
   this->setLayout(lay);
   auto& widgetFact = appContext.interfaces<Inspector::InspectorWidgetList>();
-  lay->addWidget(new Scenario::IntervalInspectorWidget{
-                   widgetFact, interval, doc, this});
+  lay->addWidget(
+      new Scenario::IntervalInspectorWidget{widgetFact, interval, doc, this});
 }
 
 InspectorWidget::~InspectorWidget()
 {
-
 }
 }

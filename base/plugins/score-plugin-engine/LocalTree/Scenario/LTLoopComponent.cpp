@@ -6,11 +6,8 @@ namespace LocalTree
 {
 
 LoopComponentBase::LoopComponentBase(
-    const Id<score::Component>& id,
-    ossia::net::node_base& parent,
-    Loop::ProcessModel& loop,
-    DocumentPlugin& ctx,
-    QObject* parent_obj)
+    const Id<score::Component>& id, ossia::net::node_base& parent,
+    Loop::ProcessModel& loop, DocumentPlugin& ctx, QObject* parent_obj)
     : ProcessComponent_T<Loop::ProcessModel>{parent,
                                              loop,
                                              ctx,
@@ -51,5 +48,4 @@ State* LoopComponentBase::make<State, Scenario::StateModel>(
 {
   return new State{m_statesNode, id, elt, system(), this};
 }
-
 }

@@ -2,11 +2,12 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "player_qml_plugin.hpp"
 
+#include <ossia-qt/qml_plugin.hpp>
 #include <ossia/context.hpp>
 #include <ossia/detail/logger.hpp>
 
 #include <QQmlEngine>
-#include <ossia-qt/qml_plugin.hpp>
+
 #include <spdlog/sinks/android_sink.h>
 
 namespace score

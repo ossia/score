@@ -4,7 +4,6 @@
 
 #include <Process/TimeValue.hpp>
 #include <Process/TimeValueSerialization.hpp>
-#include <QByteArray>
 #include <Scenario/Commands/Scenario/Creations/CreateEvent_State.hpp>
 #include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
 #include <Scenario/Process/Algorithms/StandardCreationPolicy.hpp>
@@ -14,6 +13,9 @@
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/tools/IdentifierGeneration.hpp>
 #include <score/tools/RandomNameProvider.hpp>
+
+#include <QByteArray>
+
 #include <vector>
 
 namespace Scenario

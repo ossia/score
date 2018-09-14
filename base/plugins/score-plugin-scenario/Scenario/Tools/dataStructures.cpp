@@ -4,23 +4,27 @@
 
 #include <Process/ProcessList.hpp>
 #include <Process/TimeValueSerialization.hpp>
-#include <QDataStream>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
 #include <Scenario/Process/Algorithms/ProcessPolicy.hpp>
+
 #include <score/application/ApplicationContext.hpp>
 #include <score/model/Identifier.hpp>
 #include <score/model/path/PathSerialization.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
+
+#include <QDataStream>
+
 #include <score_plugin_scenario_export.h>
 
 namespace Scenario
 {
-IntervalSaveData::IntervalSaveData(const Scenario::IntervalModel& interval, bool saveIntemporal)
+IntervalSaveData::IntervalSaveData(
+    const Scenario::IntervalModel& interval, bool saveIntemporal)
     : intervalPath{interval}
 {
   processes.reserve(interval.processes.size());
-  if(saveIntemporal)
+  if (saveIntemporal)
   {
     for (const auto& process : interval.processes)
     {
@@ -34,7 +38,7 @@ IntervalSaveData::IntervalSaveData(const Scenario::IntervalModel& interval, bool
   {
     for (const auto& process : interval.processes)
     {
-      if(!(process.flags() & Process::ProcessFlags::TimeIndependent))
+      if (!(process.flags() & Process::ProcessFlags::TimeIndependent))
       {
         QByteArray arr;
         DataStream::Serializer s{&arr};

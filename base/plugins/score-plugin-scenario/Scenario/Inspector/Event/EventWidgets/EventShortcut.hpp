@@ -1,7 +1,8 @@
 #pragma once
 #include <QString>
-#include <wobjectdefs.h>
 #include <QWidget>
+
+#include <wobjectdefs.h>
 
 class QCheckBox;
 class QPushButton;

@@ -15,12 +15,14 @@
 #include <Scenario/Palette/Tools/SmartTool.hpp>
 #include <Scenario/Palette/Tools/States/ScenarioMoveStatesWrapper.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
-#include <algorithm>
+
 #include <score/application/ApplicationContext.hpp>
 #include <score/model/Identifier.hpp>
 #include <score/statemachine/GraphicsSceneToolPalette.hpp>
 #include <score/tools/std/Optional.hpp>
 #include <score/widgets/GraphicsProxyObject.hpp>
+
+#include <algorithm>
 
 namespace Scenario
 {
@@ -35,8 +37,7 @@ ScenarioDisplayedElementsToolPalette::ScenePointToScenarioPoint(QPointF point)
 }
 
 ScenarioDisplayedElementsToolPalette::ScenarioDisplayedElementsToolPalette(
-    const DisplayedElementsModel& model,
-    ScenarioDocumentPresenter& pres,
+    const DisplayedElementsModel& model, ScenarioDocumentPresenter& pres,
     QGraphicsItem* view)
     : GraphicsSceneToolPalette{*view->scene()}
     , m_model{model}

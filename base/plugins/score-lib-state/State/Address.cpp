@@ -1,17 +1,21 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+#include <State/Address.hpp>
+#include <State/Expression.hpp>
+
+#include <score/tools/Todo.hpp>
+
 #include <ossia/detail/algorithms.hpp>
+#include <ossia/detail/hash.hpp>
 #include <ossia/editor/state/destination_qualifiers.hpp>
 #include <ossia/network/base/name_validation.hpp>
 #include <ossia/network/dataspace/dataspace_visitors.hpp>
 
 #include <QStringBuilder>
-#include <State/Address.hpp>
-#include <State/Expression.hpp>
-#include <algorithm>
-#include <score/tools/Todo.hpp>
-#include <ossia/detail/hash.hpp>
+
 #include <wobjectimpl.h>
+
+#include <algorithm>
 W_GADGET_IMPL(State::DestinationQualifiers)
 namespace State
 {
@@ -348,7 +352,8 @@ QString toString(const ossia::destination_qualifiers& qualifiers)
         = QString::fromStdString(ossia::get_pretty_unit_text(qualifiers.unit));
     if (!qualifiers.accessors.empty())
     {
-      char c = ossia::get_unit_accessor(qualifiers.unit, qualifiers.accessors[0]);
+      char c
+          = ossia::get_unit_accessor(qualifiers.unit, qualifiers.accessors[0]);
       if (c != 0)
       {
         unit_text += '.';
@@ -422,11 +427,10 @@ operator()(const State::AddressAccessor& k) const
   std::size_t seed = 0;
   ossia::hash_combine(seed, k.address);
   auto& qual = k.qualifiers.get();
-  for(auto& q : qual.accessors)
+  for (auto& q : qual.accessors)
   {
     ossia::hash_combine(seed, q);
   }
   ossia::hash_combine(seed, qual.unit.v);
   return seed;
 }
-

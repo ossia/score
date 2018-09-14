@@ -1,11 +1,12 @@
 #pragma once
+#include <score/command/Command.hpp>
+#include <score/model/path/Path.hpp>
+#include <score/model/path/PathSerialization.hpp>
+
 #include <QByteArray>
 #include <QObject>
 #include <QString>
 #include <QVariant>
-#include <score/command/Command.hpp>
-#include <score/model/path/Path.hpp>
-#include <score/model/path/PathSerialization.hpp>
 
 namespace score
 {
@@ -61,23 +62,20 @@ public:
   using model_t = typename T::model_type;
   using param_t = typename T::param_type;
 
-  template<typename U>
+  template <typename U>
   struct command;
 
   using score::Command::Command;
   PropertyCommand_T() = default;
 
-  template<typename U>
+  template <typename U>
   PropertyCommand_T(const model_t& obj, U&& newval)
-      : m_path{obj}
-      , m_old{(obj.*T::get())()}
-      , m_new{std::forward<U>(newval)}
+      : m_path{obj}, m_old{(obj.*T::get())()}, m_new{std::forward<U>(newval)}
   {
   }
 
   ~PropertyCommand_T() override
   {
-
   }
 
   template <typename Path_T, typename U>
@@ -112,24 +110,23 @@ private:
 };
 }
 
-#define PROPERTY_COMMAND_T(NS, Name, Property, Description)    \
-namespace NS {                                                 \
-class Name final :                                             \
-    public score::PropertyCommand_T<Property>                  \
-{                                                              \
-  SCORE_COMMAND_DECL(NS::CommandFactoryName(), Name, Description)  \
-public:                                                        \
-  using PropertyCommand_T::PropertyCommand_T;                  \
-};                                                             \
-}                                                              \
-                                                               \
-namespace score {                                              \
-template<>                                                     \
-template<>                                                     \
-struct score::PropertyCommand_T<NS::Property>::command<void> {     \
-  using type = NS::Name;                                           \
-};                                                             \
-}
-
-
-
+#define PROPERTY_COMMAND_T(NS, Name, Property, Description)         \
+  namespace NS                                                      \
+  {                                                                 \
+  class Name final : public score::PropertyCommand_T<Property>      \
+  {                                                                 \
+    SCORE_COMMAND_DECL(NS::CommandFactoryName(), Name, Description) \
+  public:                                                           \
+    using PropertyCommand_T::PropertyCommand_T;                     \
+  };                                                                \
+  }                                                                 \
+                                                                    \
+  namespace score                                                   \
+  {                                                                 \
+  template <>                                                       \
+  template <>                                                       \
+  struct score::PropertyCommand_T<NS::Property>::command<void>      \
+  {                                                                 \
+    using type = NS::Name;                                          \
+  };                                                                \
+  }

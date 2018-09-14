@@ -2,18 +2,22 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "DeviceNode.hpp"
 
-#include <ossia/editor/state/destination_qualifiers.hpp>
-
 #include <Device/Address/AddressSettings.hpp>
 #include <Device/Address/IOType.hpp>
 #include <Device/Protocol/DeviceSettings.hpp>
-#include <QByteArray>
-#include <QDebug>
 #include <State/Message.hpp>
 #include <State/Value.hpp>
-#include <eggs/variant/variant.hpp>
+
 #include <score/model/tree/TreeNode.hpp>
 #include <score/tools/Todo.hpp>
+
+#include <ossia/editor/state/destination_qualifiers.hpp>
+
+#include <QByteArray>
+#include <QDebug>
+
+#include <eggs/variant/variant.hpp>
+
 #include <vector>
 
 template class SCORE_LIB_DEVICE_EXPORT TreeNode<Device::DeviceExplorerNode>;

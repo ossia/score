@@ -1,7 +1,8 @@
 #pragma once
 #include <Device/Protocol/DeviceSettings.hpp>
-#include <wobjectdefs.h>
 #include <Device/Protocol/ProtocolSettingsWidget.hpp>
+
+#include <wobjectdefs.h>
 
 class QLineEdit;
 class QSpinBox;
@@ -24,7 +25,8 @@ public:
   void setSettings(const Device::DeviceSettings& settings) override;
 
 protected:
-  void openFileDialog(); W_SLOT(openFileDialog);
+  void openFileDialog();
+  W_SLOT(openFileDialog);
 
 protected:
   void setDefaults();

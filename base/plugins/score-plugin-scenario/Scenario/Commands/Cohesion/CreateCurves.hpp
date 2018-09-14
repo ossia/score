@@ -1,6 +1,8 @@
 #pragma once
 #include <Device/Address/AddressSettings.hpp>
+
 #include <QList>
+
 #include <vector>
 namespace Process
 {
@@ -13,9 +15,11 @@ struct DocumentContext;
 }
 namespace Scenario
 {
-namespace Command { class Macro; }
+namespace Command
+{
+class Macro;
+}
 class IntervalModel;
-
 
 std::vector<Process::ProcessModel*> CreateCurvesFromAddress(
     const Scenario::IntervalModel& interval,

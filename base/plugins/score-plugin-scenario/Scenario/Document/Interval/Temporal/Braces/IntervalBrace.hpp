@@ -2,6 +2,7 @@
 #include <QBrush>
 #include <QGraphicsItem>
 #include <qnamespace.h>
+
 #include <score_plugin_scenario_export.h>
 
 class QGraphicsSceneMouseEvent;
@@ -18,8 +19,7 @@ public:
   QRectF boundingRect() const override;
 
   void paint(
-      QPainter* painter,
-      const QStyleOptionGraphicsItem* option,
+      QPainter* painter, const QStyleOptionGraphicsItem* option,
       QWidget* widget) override;
 
   void mousePressEvent(QGraphicsSceneMouseEvent* event) final override;

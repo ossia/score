@@ -1,18 +1,33 @@
 #include "PortItem.hpp"
 
-#include <ossia/editor/state/destination_qualifiers.hpp>
-#include <ossia/network/domain/domain.hpp>
-
 #include <Automation/AutomationModel.hpp>
 #include <Automation/Commands/SetAutomationMax.hpp>
 #include <Dataflow/Commands/CreateModulation.hpp>
 #include <Dataflow/Commands/EditConnection.hpp>
-#include <Process/Commands/EditPort.hpp>
 #include <Device/Node/NodeListMimeSerialization.hpp>
 #include <Device/Widgets/AddressAccessorEditWidget.hpp>
+#include <Inspector/InspectorLayout.hpp>
+#include <Process/Commands/EditPort.hpp>
+#include <Process/Dataflow/ControlWidgets.hpp>
 #include <Process/Dataflow/Port.hpp>
 #include <Process/Dataflow/PortListWidget.hpp>
 #include <Process/Style/ScenarioStyle.hpp>
+#include <Scenario/Commands/Interval/AddLayerInNewSlot.hpp>
+#include <Scenario/Commands/Interval/AddOnlyProcessToInterval.hpp>
+#include <Scenario/Document/Interval/IntervalModel.hpp>
+#include <State/MessageListSerialization.hpp>
+
+#include <score/command/Dispatchers/CommandDispatcher.hpp>
+#include <score/command/Dispatchers/MacroCommandDispatcher.hpp>
+#include <score/document/DocumentContext.hpp>
+#include <score/document/DocumentInterface.hpp>
+#include <score/tools/IdentifierGeneration.hpp>
+#include <score/widgets/ControlWidgets.hpp>
+#include <score/widgets/SignalUtils.hpp>
+
+#include <ossia/editor/state/destination_qualifiers.hpp>
+#include <ossia/network/domain/domain.hpp>
+
 #include <QApplication>
 #include <QCheckBox>
 #include <QCursor>
@@ -23,25 +38,11 @@
 #include <QGraphicsProxyWidget>
 #include <QGraphicsScene>
 #include <QGraphicsSceneMoveEvent>
+#include <QLineEdit>
 #include <QMenu>
 #include <QMimeData>
-#include <QPushButton>
-#include <QLineEdit>
 #include <QPainter>
-#include <Process/Dataflow/PortListWidget.hpp>
-#include <Scenario/Commands/Interval/AddLayerInNewSlot.hpp>
-#include <Scenario/Commands/Interval/AddOnlyProcessToInterval.hpp>
-#include <Scenario/Document/Interval/IntervalModel.hpp>
-#include <State/MessageListSerialization.hpp>
-#include <score/command/Dispatchers/CommandDispatcher.hpp>
-#include <score/command/Dispatchers/MacroCommandDispatcher.hpp>
-#include <score/document/DocumentContext.hpp>
-#include <score/document/DocumentInterface.hpp>
-#include <score/tools/IdentifierGeneration.hpp>
-#include <score/widgets/ControlWidgets.hpp>
-#include <score/widgets/SignalUtils.hpp>
-#include <Inspector/InspectorLayout.hpp>
-#include <Process/Dataflow/ControlWidgets.hpp>
+#include <QPushButton>
 namespace Dataflow
 {
 template <typename Vec>
@@ -78,8 +79,7 @@ private:
 };
 
 void onCreateCable(
-    const score::DocumentContext& ctx,
-    Dataflow::PortItem* p1,
+    const score::DocumentContext& ctx, Dataflow::PortItem* p1,
     Dataflow::PortItem* p2)
 {
   auto& plug = ctx.model<Scenario::ScenarioDocumentModel>();
@@ -161,8 +161,7 @@ void AutomatablePortItem::on_createAutomation(
 }
 
 bool AutomatablePortItem::on_createAutomation(
-    Scenario::IntervalModel& cst,
-    std::function<void(score::Command*)> macro,
+    Scenario::IntervalModel& cst, std::function<void(score::Command*)> macro,
     const score::DocumentContext& ctx)
 {
   if (m_port.type != Process::PortType::Message)
@@ -228,8 +227,8 @@ void AutomatablePortItem::dropEvent(QGraphicsSceneDragDropEvent* event)
     if (as.address.path.isEmpty())
       return;
 
-    disp.submitCommand(
-        new Process::ChangePortAddress{m_port, State::AddressAccessor{as.address}});
+    disp.submitCommand(new Process::ChangePortAddress{
+        m_port, State::AddressAccessor{as.address}});
   }
   else if (mime.formats().contains(score::mime::messagelist()))
   {
@@ -245,25 +244,23 @@ void AutomatablePortItem::dropEvent(QGraphicsSceneDragDropEvent* event)
     if (newAddr.address.device.isEmpty())
       return;
 
-    disp.submitCommand(new Process::ChangePortAddress{m_port, std::move(newAddr)});
+    disp.submitCommand(
+        new Process::ChangePortAddress{m_port, std::move(newAddr)});
   }
   event->accept();
 }
 
 PortItem* AutomatablePortFactory::makeItem(
-    Process::Inlet& port,
-    const score::DocumentContext& ctx,
-    QGraphicsItem* parent,
-    QObject* context)
+    Process::Inlet& port, const score::DocumentContext& ctx,
+    QGraphicsItem* parent, QObject* context)
 {
-  return new Dataflow::AutomatablePortItem{port, ctx, parent};;
+  return new Dataflow::AutomatablePortItem{port, ctx, parent};
+  ;
 }
 
 PortItem* AutomatablePortFactory::makeItem(
-    Process::Outlet& port,
-    const score::DocumentContext& ctx,
-    QGraphicsItem* parent,
-    QObject* context)
+    Process::Outlet& port, const score::DocumentContext& ctx,
+    QGraphicsItem* parent, QObject* context)
 {
   return new Dataflow::AutomatablePortItem{port, ctx, parent};
 }
@@ -277,68 +274,76 @@ PortTooltip::PortTooltip(
   Process::PortWidgetSetup::setupAlone(p, ctx, *lay, this);
 }
 
-template<typename T>
+template <typename T>
 struct minmax
 {
-    const ossia::domain& domain;
-    auto getMin() const { return domain.convert_min<T>(); }
-    auto getMax() const { return domain.convert_max<T>(); }
+  const ossia::domain& domain;
+  auto getMin() const
+  {
+    return domain.convert_min<T>();
+  }
+  auto getMax() const
+  {
+    return domain.convert_max<T>();
+  }
 };
 
 struct control_visitor
 {
-    Process::ControlInlet& inlet;
-    const score::DocumentContext& ctx;
-    QWidget* parent{};
-    QWidget* operator()(ossia::impulse) const noexcept
+  Process::ControlInlet& inlet;
+  const score::DocumentContext& ctx;
+  QWidget* parent{};
+  QWidget* operator()(ossia::impulse) const noexcept
+  {
+    return new QPushButton{QObject::tr("Bang"), parent};
+  }
+  QWidget* operator()(bool b) const noexcept
+  {
+    struct t
     {
-      return new QPushButton{QObject::tr("Bang"), parent};
-    }
-    QWidget* operator()(bool b) const noexcept
+    } tog;
+    return WidgetFactory::Toggle::make_widget(tog, inlet, ctx, parent, parent);
+  }
+  QWidget* operator()(int x) const noexcept
+  {
+    minmax<int> sl{inlet.domain().get()};
+    return WidgetFactory::IntSlider::make_widget(
+        sl, inlet, ctx, parent, parent);
+  }
+  QWidget* operator()(float x) const noexcept
+  {
+    minmax<float> sl{inlet.domain().get()};
+    return WidgetFactory::FloatSlider::make_widget(
+        sl, inlet, ctx, parent, parent);
+  }
+  QWidget* operator()(const std::string& c) const noexcept
+  {
+    struct le
     {
-      struct t { } tog ;
-      return WidgetFactory::Toggle::make_widget(tog, inlet, ctx, parent, parent);
-    }
-    QWidget* operator()(int x) const noexcept
-    {
-      minmax<int> sl{inlet.domain().get()};
-      return WidgetFactory::IntSlider::make_widget(sl, inlet, ctx, parent, parent);
-    }
-    QWidget* operator()(float x) const noexcept
-    {
-      minmax<float> sl{inlet.domain().get()};
-      return WidgetFactory::FloatSlider::make_widget(sl, inlet, ctx, parent, parent);
-    }
-    QWidget* operator()(const std::string& c) const noexcept
-    {
-      struct le { } l;
-      return WidgetFactory::LineEdit::make_widget(l, inlet, ctx, parent, parent);
-    }
-    template<typename T>
-    QWidget* operator()(const T&) const noexcept
-    {
-      SCORE_TODO;
-      return nullptr;
-    }
-    QWidget* operator()() const noexcept
-    {
-      SCORE_TODO;
-      return nullptr;
-    }
+    } l;
+    return WidgetFactory::LineEdit::make_widget(l, inlet, ctx, parent, parent);
+  }
+  template <typename T>
+  QWidget* operator()(const T&) const noexcept
+  {
+    SCORE_TODO;
+    return nullptr;
+  }
+  QWidget* operator()() const noexcept
+  {
+    SCORE_TODO;
+    return nullptr;
+  }
 };
 
-
 void ControlInletFactory::setupInspector(
-    Process::Inlet& port
-    , const score::DocumentContext& ctx
-    , QWidget* parent
-    , Inspector::Layout& lay
-    , QObject* context)
+    Process::Inlet& port, const score::DocumentContext& ctx, QWidget* parent,
+    Inspector::Layout& lay, QObject* context)
 {
   using namespace Process;
   auto& ctrl = static_cast<Process::ControlInlet&>(port);
   auto widg = ctrl.value().apply(control_visitor{ctrl, ctx, parent});
-  if(widg)
+  if (widg)
   {
     PortWidgetSetup::setupControl(ctrl, widg, ctx, lay, parent);
   }
@@ -347,5 +352,4 @@ void ControlInletFactory::setupInspector(
     PortWidgetSetup::setupInLayout(port, ctx, lay, parent);
   }
 }
-
 }

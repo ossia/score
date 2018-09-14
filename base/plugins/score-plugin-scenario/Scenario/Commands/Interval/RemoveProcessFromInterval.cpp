@@ -4,12 +4,9 @@
 
 #include <Process/Process.hpp>
 #include <Process/ProcessList.hpp>
-#include <QDataStream>
-#include <QtGlobal>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Process/Algorithms/ProcessPolicy.hpp>
-#include <algorithm>
-#include <boost/range/adaptor/reversed.hpp>
+
 #include <score/application/ApplicationContext.hpp>
 #include <score/document/DocumentContext.hpp>
 #include <score/model/EntityMap.hpp>
@@ -19,7 +16,15 @@
 #include <score/model/path/RelativePath.hpp>
 #include <score/plugins/customfactory/StringFactoryKey.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
+
 #include <ossia/detail/pod_vector.hpp>
+
+#include <boost/range/adaptor/reversed.hpp>
+
+#include <QDataStream>
+#include <QtGlobal>
+
+#include <algorithm>
 
 // MOVEME
 template <>

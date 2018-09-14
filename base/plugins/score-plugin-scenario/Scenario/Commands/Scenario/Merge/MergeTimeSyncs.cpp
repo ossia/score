@@ -8,8 +8,7 @@ namespace Command
 {
 
 MergeTimeSyncs::MergeTimeSyncs(
-    const ProcessModel& scenario,
-    Id<TimeSyncModel> clickedTn,
+    const ProcessModel& scenario, Id<TimeSyncModel> clickedTn,
     Id<TimeSyncModel> hoveredTn)
     : m_scenarioPath{scenario}
     , m_movingTnId{std::move(clickedTn)}
@@ -96,8 +95,7 @@ void MergeTimeSyncs::redo(const score::DocumentContext& ctx) const
 }
 
 void MergeTimeSyncs::update(
-    unused_t scenar,
-    const Id<TimeSyncModel>& clickedTn,
+    unused_t scenar, const Id<TimeSyncModel>& clickedTn,
     const Id<TimeSyncModel>& hoveredTn)
 {
 }

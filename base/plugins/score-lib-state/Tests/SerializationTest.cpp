@@ -1,13 +1,16 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+#include <State/Message.hpp>
+
+#include <score/serialization/VisitorCommon.hpp>
+
+#include <core/application/MockApplication.hpp>
+
 #include <ossia/network/domain/domain.hpp>
 
 #include <QMetaType>
 #include <QObject>
 #include <QtTest/QtTest>
-#include <State/Message.hpp>
-#include <core/application/MockApplication.hpp>
-#include <score/serialization/VisitorCommon.hpp>
 
 using namespace score;
 class SerializationTest : public QObject
@@ -17,7 +20,6 @@ class SerializationTest : public QObject
 
 public:
 private:
-
   void serializationTest()
   {
     using namespace score;

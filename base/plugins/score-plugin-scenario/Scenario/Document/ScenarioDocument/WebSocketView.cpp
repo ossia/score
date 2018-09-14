@@ -7,8 +7,7 @@
 WebSocketView::WebSocketView(QGraphicsScene* s, quint16 port, QObject* parent)
     : QObject(parent)
     , m_pWebSocketServer(new QWebSocketServer(
-          QStringLiteral("Echo Server"),
-          QWebSocketServer::NonSecureMode,
+          QStringLiteral("Echo Server"), QWebSocketServer::NonSecureMode,
           this))
     , m_scene{s}
 {

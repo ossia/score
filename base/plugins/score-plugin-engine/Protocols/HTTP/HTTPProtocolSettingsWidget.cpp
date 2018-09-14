@@ -5,6 +5,11 @@
 #include "HTTPSpecificSettings.hpp"
 
 #include <Device/Protocol/ProtocolSettingsWidget.hpp>
+#include <State/Widgets/AddressFragmentLineEdit.hpp>
+
+#include <score/widgets/JS/JSEdit.hpp>
+#include <score/widgets/TextLabel.hpp>
+
 #include <QGridLayout>
 #include <QLabel>
 #include <QLineEdit>
@@ -12,9 +17,6 @@
 #include <QSpinBox>
 #include <QString>
 #include <QVariant>
-#include <State/Widgets/AddressFragmentLineEdit.hpp>
-#include <score/widgets/JS/JSEdit.hpp>
-#include <score/widgets/TextLabel.hpp>
 class QWidget;
 
 namespace Engine

@@ -12,6 +12,7 @@
 #include <Scenario/Process/Algorithms/Accessors.hpp>
 #include <Scenario/Process/Algorithms/ProcessPolicy.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
+
 #include <score/document/DocumentContext.hpp>
 #include <score/model/EntityMap.hpp>
 #include <score/model/Identifier.hpp>
@@ -26,9 +27,7 @@ void ScenarioCreate<CommentBlockModel>::undo(
 }
 
 CommentBlockModel& ScenarioCreate<CommentBlockModel>::redo(
-    const Id<CommentBlockModel>& id,
-    const TimeVal& date,
-    double y,
+    const Id<CommentBlockModel>& id, const TimeVal& date, double y,
     Scenario::ProcessModel& s)
 {
   auto comment = new CommentBlockModel{id, date, y, &s};
@@ -44,10 +43,8 @@ void ScenarioCreate<TimeSyncModel>::undo(
 }
 
 TimeSyncModel& ScenarioCreate<TimeSyncModel>::redo(
-    const Id<TimeSyncModel>& id,
-    const VerticalExtent& extent,
-    const TimeVal& date,
-    Scenario::ProcessModel& s)
+    const Id<TimeSyncModel>& id, const VerticalExtent& extent,
+    const TimeVal& date, Scenario::ProcessModel& s)
 {
   auto timeSync = new TimeSyncModel{id, extent, date, &s};
   s.timeSyncs.add(timeSync);
@@ -64,10 +61,8 @@ void ScenarioCreate<EventModel>::undo(
 }
 
 EventModel& ScenarioCreate<EventModel>::redo(
-    const Id<EventModel>& id,
-    TimeSyncModel& timesync,
-    const VerticalExtent& extent,
-    Scenario::ProcessModel& s)
+    const Id<EventModel>& id, TimeSyncModel& timesync,
+    const VerticalExtent& extent, Scenario::ProcessModel& s)
 {
   auto ev = new EventModel{id, timesync.id(), extent, timesync.date(), &s};
 
@@ -89,9 +84,7 @@ void ScenarioCreate<StateModel>::undo(
 }
 
 StateModel& ScenarioCreate<StateModel>::redo(
-    const Id<StateModel>& id,
-    EventModel& ev,
-    double y,
+    const Id<StateModel>& id, EventModel& ev, double y,
     Scenario::ProcessModel& s)
 {
   auto state = new StateModel{id, ev.id(), y, &s};
@@ -114,10 +107,7 @@ void ScenarioCreate<IntervalModel>::undo(
 }
 
 IntervalModel& ScenarioCreate<IntervalModel>::redo(
-    const Id<IntervalModel>& id,
-    StateModel& sst,
-    StateModel& est,
-    double ypos,
+    const Id<IntervalModel>& id, StateModel& sst, StateModel& est, double ypos,
     Scenario::ProcessModel& s)
 {
   auto interval = new IntervalModel{id, ypos, &s};

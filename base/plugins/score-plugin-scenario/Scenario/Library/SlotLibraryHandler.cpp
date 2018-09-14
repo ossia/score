@@ -1,10 +1,11 @@
-#include <Scenario/Library/SlotLibraryHandler.hpp>
+#include <Library/JSONLibrary/FileSystemModel.hpp>
 #include <Process/ProcessMimeSerialization.hpp>
+#include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
+#include <Scenario/Library/SlotLibraryHandler.hpp>
 #include <State/MessageListSerialization.hpp>
 #include <State/StateMimeTypes.hpp>
+
 #include <QMimeData>
-#include <Library/JSONLibrary/FileSystemModel.hpp>
-#include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
 namespace Scenario
 {
 
@@ -14,10 +15,11 @@ namespace Scenario
 // files/directories, and both relative/absolute paths. The suffix is in the
 // form - "path/to/file.tar.gz", "path/to/file (1).tar.gz",
 // "path/to/file (2).tar.gz", etc.
-QString addUniqueSuffix(const QString &fileName)
+QString addUniqueSuffix(const QString& fileName)
 {
   // If the file doesn't exist return the same name.
-  if (!QFile::exists(fileName)) {
+  if (!QFile::exists(fileName))
+  {
     return fileName;
   }
 
@@ -29,47 +31,55 @@ QString addUniqueSuffix(const QString &fileName)
   // "path/file" (note lack of extension) becomes "path/file"+"".
   QString secondPart = fileInfo.completeSuffix();
   QString firstPart;
-  if (!secondPart.isEmpty()) {
+  if (!secondPart.isEmpty())
+  {
     secondPart = "." + secondPart;
     firstPart = fileName.left(fileName.size() - secondPart.size());
-  } else {
+  }
+  else
+  {
     firstPart = fileName;
   }
 
   // Try with an ever-increasing number suffix, until we've reached a file
   // that does not yet exist.
-  for (int ii = 1; ; ii++) {
+  for (int ii = 1;; ii++)
+  {
     // Construct the new file name by adding the unique number between the
     // first and second part.
     ret = QString("%1 (%2)%3").arg(firstPart).arg(ii).arg(secondPart);
     // If no file exists with the new name, return it.
-    if (!QFile::exists(ret)) {
+    if (!QFile::exists(ret))
+    {
       return ret;
     }
   }
 }
 
 bool SlotLibraryHandler::onDrop(
-    Library::FileSystemModel& model,
-    const QMimeData& mime,
-    int row, int column, const QModelIndex& parent)
+    Library::FileSystemModel& model, const QMimeData& mime, int row,
+    int column, const QModelIndex& parent)
 {
-  if(!mime.hasFormat(score::mime::layerdata()))
+  if (!mime.hasFormat(score::mime::layerdata()))
     return false;
 
   auto file = model.fileInfo(parent);
 
-  auto json = QJsonDocument::fromJson(mime.data(score::mime::layerdata())).object();
+  auto json
+      = QJsonDocument::fromJson(mime.data(score::mime::layerdata())).object();
 
   QString path = file.isDir() ? file.absoluteFilePath() : file.absolutePath();
 
-  auto basename = json["Process"].toObject()["Metadata"].toObject()["ScriptingName"].toString();
-  if(basename.isEmpty())
+  auto basename = json["Process"]
+                      .toObject()["Metadata"]
+                      .toObject()["ScriptingName"]
+                      .toString();
+  if (basename.isEmpty())
     basename = "Process";
 
   QString filename = addUniqueSuffix(path + "/" + basename + ".layer");
 
-  if(QFile f(filename); f.open(QIODevice::WriteOnly))
+  if (QFile f(filename); f.open(QIODevice::WriteOnly))
   {
     json.remove("PID");
     f.write(QJsonDocument{json}.toJson());
@@ -81,7 +91,6 @@ bool SlotLibraryHandler::onDrop(
 QStringList SlotLibraryHandler::acceptedMimeTypes() const
 {
   return {score::mime::layerdata()};
-
 }
 
 QStringList SlotLibraryHandler::acceptedFiles() const
@@ -89,31 +98,31 @@ QStringList SlotLibraryHandler::acceptedFiles() const
   return {"*.layer"};
 }
 
-
-
-
 bool ScenarioLibraryHandler::onDrop(
-    Library::FileSystemModel& model,
-    const QMimeData& mime,
-    int row, int column, const QModelIndex& parent)
+    Library::FileSystemModel& model, const QMimeData& mime, int row,
+    int column, const QModelIndex& parent)
 {
-  if(mime.hasFormat(score::mime::scenariodata()))
+  if (mime.hasFormat(score::mime::scenariodata()))
   {
     auto file = model.fileInfo(parent);
-    QString path = file.isDir() ? file.absoluteFilePath() : file.absolutePath();
+    QString path
+        = file.isDir() ? file.absoluteFilePath() : file.absolutePath();
 
-    auto obj = QJsonDocument::fromJson(mime.data(score::mime::scenariodata())).object();
+    auto obj = QJsonDocument::fromJson(mime.data(score::mime::scenariodata()))
+                   .object();
     const auto& states = obj["States"].toArray();
-    if(states.size() == 1 && obj["Intervals"].toArray().size() == 0)
+    if (states.size() == 1 && obj["Intervals"].toArray().size() == 0)
     {
       const auto& state = states.first().toObject();
 
       // Go from a tree to a list
-      auto msgs = toJsonObject(flatten(fromJsonObject<Process::MessageNode>(state["Messages"].toObject())))["Data"].toArray();
+      auto msgs = toJsonObject(flatten(fromJsonObject<Process::MessageNode>(
+          state["Messages"].toObject())))["Data"]
+                      .toArray();
 
       auto basename = state["Metadata"].toObject()["ScriptingName"].toString();
       QString filename = addUniqueSuffix(path + "/" + basename + ".cues");
-      if(QFile f(filename); f.open(QIODevice::WriteOnly))
+      if (QFile f(filename); f.open(QIODevice::WriteOnly))
       {
         f.write(QJsonDocument{msgs}.toJson());
       }
@@ -123,7 +132,7 @@ bool ScenarioLibraryHandler::onDrop(
       auto basename = "Scenario";
       QString filename = addUniqueSuffix(path + "/" + basename + ".scenario");
 
-      if(QFile f(filename); f.open(QIODevice::WriteOnly))
+      if (QFile f(filename); f.open(QIODevice::WriteOnly))
       {
         f.write(mime.data(score::mime::scenariodata()));
       }
@@ -131,13 +140,14 @@ bool ScenarioLibraryHandler::onDrop(
 
     return true;
   }
-  else if(mime.hasFormat(score::mime::messagelist()))
+  else if (mime.hasFormat(score::mime::messagelist()))
   {
     auto file = model.fileInfo(parent);
-    QString path = file.isDir() ? file.absoluteFilePath() : file.absolutePath();
+    QString path
+        = file.isDir() ? file.absoluteFilePath() : file.absolutePath();
 
     QString filename = addUniqueSuffix(path + "/Messages.cues");
-    if(QFile f(filename); f.open(QIODevice::WriteOnly))
+    if (QFile f(filename); f.open(QIODevice::WriteOnly))
     {
       f.write(mime.data(score::mime::messagelist()));
     }
@@ -149,11 +159,7 @@ bool ScenarioLibraryHandler::onDrop(
 
 QStringList ScenarioLibraryHandler::acceptedMimeTypes() const
 {
-  return {
-    score::mime::scenariodata(),
-    score::mime::messagelist()
-  };
-
+  return {score::mime::scenariodata(), score::mime::messagelist()};
 }
 
 QStringList ScenarioLibraryHandler::acceptedFiles() const

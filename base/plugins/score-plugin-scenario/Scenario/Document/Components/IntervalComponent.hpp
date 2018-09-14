@@ -1,5 +1,6 @@
 #pragma once
 #include <Scenario/Document/Interval/IntervalModel.hpp>
+
 #include <score/document/DocumentContext.hpp>
 #include <score/tools/IdentifierGeneration.hpp>
 

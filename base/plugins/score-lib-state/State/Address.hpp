@@ -1,12 +1,16 @@
 #pragma once
-#include <ossia/detail/destination_index.hpp>
 #include <score/tools/std/Optional.hpp>
+
+#include <ossia/detail/destination_index.hpp>
 #include <ossia/detail/optional.hpp>
-#include <wobjectdefs.h>
-#include <memory>
+
 #include <QString>
 #include <QStringList>
+
 #include <score_lib_state_export.h>
+#include <wobjectdefs.h>
+
+#include <memory>
 namespace ossia
 {
 struct destination_qualifiers;
@@ -105,8 +109,7 @@ struct SCORE_LIB_STATE_EXPORT AddressAccessor
   explicit AddressAccessor(State::Address a) noexcept;
   AddressAccessor(State::Address a, const AccessorVector& v) noexcept;
   AddressAccessor(
-      State::Address a,
-      const AccessorVector& v,
+      State::Address a, const AccessorVector& v,
       const ossia::unit_t&) noexcept;
 
   AddressAccessor& operator=(const Address& a);

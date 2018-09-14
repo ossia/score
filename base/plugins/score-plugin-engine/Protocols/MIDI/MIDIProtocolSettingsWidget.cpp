@@ -5,6 +5,7 @@
 #include "MIDISpecificSettings.hpp"
 
 #include <Device/Protocol/ProtocolSettingsWidget.hpp>
+
 #include <QCheckBox>
 #include <QComboBox>
 #include <QFormLayout>
@@ -15,6 +16,7 @@
 #include <QRadioButton>
 #include <QString>
 #include <QVariant>
+
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Engine::Network::MIDIProtocolSettingsWidget)
 class QWidget;

@@ -2,6 +2,8 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "ZeroconfBrowser.hpp"
 
+#include <score/widgets/MarginLess.hpp>
+
 #include <QAbstractItemModel>
 #include <QAbstractItemView>
 #include <QAction>
@@ -17,12 +19,12 @@
 #include <QListView>
 #include <QSpinBox>
 #include <QVariant>
-#include <score/widgets/MarginLess.hpp>
+
+#include <asio/io_service.hpp>
+#include <asio/ip/resolver_service.hpp>
+#include <asio/ip/tcp.hpp>
 #include <servus/qt/itemModel.h>
 #include <servus/servus.h>
-#include <asio/io_service.hpp>
-#include <asio/ip/tcp.hpp>
-#include <asio/ip/resolver_service.hpp>
 class QWidget;
 W_REGISTER_ARGTYPE(QMap<QString, QByteArray>)
 #include <wobjectimpl.h>
@@ -35,8 +37,10 @@ ZeroconfBrowser::ZeroconfBrowser(const QString& service, QWidget* parent)
   auto buttonBox
       = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
 
-  connect(buttonBox, &QDialogButtonBox::accepted, this, &ZeroconfBrowser::accept);
-  connect(buttonBox, &QDialogButtonBox::rejected, this, &ZeroconfBrowser::reject);
+  connect(
+      buttonBox, &QDialogButtonBox::accepted, this, &ZeroconfBrowser::accept);
+  connect(
+      buttonBox, &QDialogButtonBox::rejected, this, &ZeroconfBrowser::reject);
 
   lay->addWidget(buttonBox);
   m_dialog->setLayout(lay);
@@ -133,7 +137,7 @@ void ZeroconfBrowser::accept()
       if (str.startsWith("servus_host = "))
       {
         str.remove("servus_host = ");
-        if(ip.isEmpty())
+        if (ip.isEmpty())
           ip = std::move(str);
       }
       else if (str.startsWith("servus_port = "))
@@ -161,16 +165,16 @@ void ZeroconfBrowser::accept()
   {
     asio::io_service io_service;
     asio::ip::tcp::resolver resolver(io_service);
-    asio::ip::tcp::resolver::query query(ip.toStdString(), std::to_string(port));
+    asio::ip::tcp::resolver::query query(
+        ip.toStdString(), std::to_string(port));
     asio::ip::tcp::resolver::iterator iter = resolver.resolve(query);
-    if(iter->endpoint().address().is_loopback())
+    if (iter->endpoint().address().is_loopback())
     {
       ip = "localhost";
     }
   }
-  catch(...)
+  catch (...)
   {
-
   }
 
   if (!ip.isEmpty() && port > 0)

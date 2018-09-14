@@ -1,10 +1,11 @@
 #pragma once
+#include <Loop/LoopProcessModel.hpp>
+#include <Scenario/Document/Components/ScenarioComponent.hpp>
+
 #include <LocalTree/Scenario/EventComponent.hpp>
 #include <LocalTree/Scenario/IntervalComponent.hpp>
 #include <LocalTree/Scenario/StateComponent.hpp>
 #include <LocalTree/Scenario/TimeSyncComponent.hpp>
-#include <Loop/LoopProcessModel.hpp>
-#include <Scenario/Document/Components/ScenarioComponent.hpp>
 
 namespace LocalTree
 {
@@ -14,11 +15,8 @@ class LoopComponentBase : public ProcessComponent_T<Loop::ProcessModel>
 
 public:
   LoopComponentBase(
-      const Id<score::Component>& id,
-      ossia::net::node_base& parent,
-      Loop::ProcessModel& loop,
-      DocumentPlugin& sys,
-      QObject* parent_obj);
+      const Id<score::Component>& id, ossia::net::node_base& parent,
+      Loop::ProcessModel& loop, DocumentPlugin& sys, QObject* parent_obj);
 
   template <typename Component_T, typename Element>
   Component_T* make(const Id<score::Component>& id, Element& elt);
@@ -36,13 +34,7 @@ private:
 };
 
 using LoopComponent = HierarchicalBaseScenario<
-    LoopComponentBase,
-    Loop::ProcessModel,
-    Interval,
-    Event,
-    TimeSync,
-    State>;
+    LoopComponentBase, Loop::ProcessModel, Interval, Event, TimeSync, State>;
 
 using LoopComponentFactory = ProcessComponentFactory_T<LoopComponent>;
 }
-

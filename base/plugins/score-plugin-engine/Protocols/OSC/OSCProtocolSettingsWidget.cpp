@@ -5,6 +5,10 @@
 #include "OSCSpecificSettings.hpp"
 
 #include <Device/Protocol/ProtocolSettingsWidget.hpp>
+#include <State/Widgets/AddressFragmentLineEdit.hpp>
+
+#include <score/widgets/MarginLess.hpp>
+
 #include <QFileDialog>
 #include <QFormLayout>
 #include <QGridLayout>
@@ -13,8 +17,6 @@
 #include <QPushButton>
 #include <QSpinBox>
 #include <QVariant>
-#include <State/Widgets/AddressFragmentLineEdit.hpp>
-#include <score/widgets/MarginLess.hpp>
 
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Engine::Network::OSCProtocolSettingsWidget)

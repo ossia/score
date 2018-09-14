@@ -2,13 +2,13 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "ExecutorModel.hpp"
 
+#include <Scenario/Execution/score2OSSIA.hpp>
 
+#include <score/application/ApplicationContext.hpp>
 
+#include <Engine/OSSIA2score.hpp>
 #include <Execution/Clock/DefaultClock.hpp>
 #include <Execution/Dataflow/DataflowClock.hpp>
-#include <Engine/OSSIA2score.hpp>
-#include <Scenario/Execution/score2OSSIA.hpp>
-#include <score/application/ApplicationContext.hpp>
 
 namespace Execution
 {
@@ -17,9 +17,8 @@ namespace Settings
 
 namespace Parameters
 {
-SETTINGS_PARAMETER_IMPL(Clock){
-    QStringLiteral("score_plugin_engine/Clock"),
-    Dataflow::ClockFactory::static_concreteKey()};
+SETTINGS_PARAMETER_IMPL(Clock){QStringLiteral("score_plugin_engine/Clock"),
+                               Dataflow::ClockFactory::static_concreteKey()};
 SETTINGS_PARAMETER_IMPL(Rate){QStringLiteral("score_plugin_engine/Rate"), 50};
 SETTINGS_PARAMETER_IMPL(Scheduling){
     QStringLiteral("score_plugin_engine/Scheduling"),
@@ -27,22 +26,33 @@ SETTINGS_PARAMETER_IMPL(Scheduling){
 SETTINGS_PARAMETER_IMPL(Ordering){
     QStringLiteral("score_plugin_engine/Ordering"),
     OrderingPolicies{}.CreationOrder};
-SETTINGS_PARAMETER_IMPL(Merging){QStringLiteral("score_plugin_engine/Merging"), MergingPolicies{}.Merge};
-SETTINGS_PARAMETER_IMPL(Commit){QStringLiteral("score_plugin_engine/Commit"), CommitPolicies{}.Merged};
-SETTINGS_PARAMETER_IMPL(Tick){QStringLiteral("score_plugin_engine/Tick"), TickPolicies{}.Buffer};
-SETTINGS_PARAMETER_IMPL(Parallel){QStringLiteral("score_plugin_engine/Parallel"), true};
-SETTINGS_PARAMETER_IMPL(ExecutionListening){QStringLiteral("score_plugin_engine/ExecListening"), true};
-SETTINGS_PARAMETER_IMPL(Logging){QStringLiteral("score_plugin_engine/Logging"), true};
-SETTINGS_PARAMETER_IMPL(Bench){QStringLiteral("score_plugin_engine/Bench"), true};
-SETTINGS_PARAMETER_IMPL(ScoreOrder){QStringLiteral("score_plugin_engine/ScoreOrder"), false};
-SETTINGS_PARAMETER_IMPL(ValueCompilation){QStringLiteral("score_plugin_engine/ValueCompilation"), true};
-SETTINGS_PARAMETER_IMPL(TransportValueCompilation){QStringLiteral("score_plugin_engine/TransportValueCompilation"), false};
+SETTINGS_PARAMETER_IMPL(Merging){QStringLiteral("score_plugin_engine/Merging"),
+                                 MergingPolicies{}.Merge};
+SETTINGS_PARAMETER_IMPL(Commit){QStringLiteral("score_plugin_engine/Commit"),
+                                CommitPolicies{}.Merged};
+SETTINGS_PARAMETER_IMPL(Tick){QStringLiteral("score_plugin_engine/Tick"),
+                              TickPolicies{}.Buffer};
+SETTINGS_PARAMETER_IMPL(Parallel){
+    QStringLiteral("score_plugin_engine/Parallel"), true};
+SETTINGS_PARAMETER_IMPL(ExecutionListening){
+    QStringLiteral("score_plugin_engine/ExecListening"), true};
+SETTINGS_PARAMETER_IMPL(Logging){QStringLiteral("score_plugin_engine/Logging"),
+                                 true};
+SETTINGS_PARAMETER_IMPL(Bench){QStringLiteral("score_plugin_engine/Bench"),
+                               true};
+SETTINGS_PARAMETER_IMPL(ScoreOrder){
+    QStringLiteral("score_plugin_engine/ScoreOrder"), false};
+SETTINGS_PARAMETER_IMPL(ValueCompilation){
+    QStringLiteral("score_plugin_engine/ValueCompilation"), true};
+SETTINGS_PARAMETER_IMPL(TransportValueCompilation){
+    QStringLiteral("score_plugin_engine/TransportValueCompilation"), false};
 
 static auto list()
 {
   return std::tie(
       Clock, Rate, Scheduling, Ordering, Merging, Commit, Tick, Parallel,
-      ExecutionListening, Logging, Bench, ScoreOrder, ValueCompilation, TransportValueCompilation);
+      ExecutionListening, Logging, Bench, ScoreOrder, ValueCompilation,
+      TransportValueCompilation);
 }
 }
 
@@ -61,8 +71,7 @@ Model::Model(QSettings& set, const score::ApplicationContext& ctx)
   setScoreOrder(Parameters::ScoreOrder.def);
 }
 
-std::unique_ptr<Clock>
-Model::makeClock(const Execution::Context& ctx) const
+std::unique_ptr<Clock> Model::makeClock(const Execution::Context& ctx) const
 {
   auto it = m_clockFactories.find(m_Clock);
   return it != m_clockFactories.end() ? it->make(ctx)
@@ -72,16 +81,18 @@ Model::makeClock(const Execution::Context& ctx) const
 time_function Model::makeTimeFunction(const score::DocumentContext& ctx) const
 {
   auto it = m_clockFactories.find(m_Clock);
-  return it != m_clockFactories.end() ? it->makeTimeFunction(ctx)
-                                      : Dataflow::ClockFactory{}.makeTimeFunction(ctx);
+  return it != m_clockFactories.end()
+             ? it->makeTimeFunction(ctx)
+             : Dataflow::ClockFactory{}.makeTimeFunction(ctx);
 }
 
 reverse_time_function
 Model::makeReverseTimeFunction(const score::DocumentContext& ctx) const
 {
   auto it = m_clockFactories.find(m_Clock);
-  return it != m_clockFactories.end() ? it->makeReverseTimeFunction(ctx)
-                                      : Dataflow::ClockFactory{}.makeReverseTimeFunction(ctx);
+  return it != m_clockFactories.end()
+             ? it->makeReverseTimeFunction(ctx)
+             : Dataflow::ClockFactory{}.makeReverseTimeFunction(ctx);
 }
 
 SCORE_SETTINGS_PARAMETER_CPP(ClockFactory::ConcreteKey, Model, Clock)

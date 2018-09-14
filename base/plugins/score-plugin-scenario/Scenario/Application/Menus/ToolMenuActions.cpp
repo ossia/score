@@ -3,6 +3,18 @@
 #include "ToolMenuActions.hpp"
 
 #include <Process/ExpandMode.hpp>
+#include <Scenario/Application/ScenarioActions.hpp>
+#include <Scenario/Application/ScenarioApplicationPlugin.hpp>
+#include <Scenario/Application/ScenarioEditionSettings.hpp>
+#include <Scenario/Palette/Tool.hpp>
+
+#include <score/actions/ActionManager.hpp>
+#include <score/actions/Menu.hpp>
+#include <score/actions/MenuManager.hpp>
+#include <score/widgets/SetIcons.hpp>
+
+#include <core/application/ApplicationSettings.hpp>
+
 #include <QAction>
 #include <QActionGroup>
 #include <QMainWindow>
@@ -10,16 +22,7 @@
 #include <QString>
 #include <QToolBar>
 #include <QVariant>
-#include <Scenario/Application/ScenarioActions.hpp>
-#include <Scenario/Application/ScenarioApplicationPlugin.hpp>
-#include <Scenario/Application/ScenarioEditionSettings.hpp>
-#include <Scenario/Palette/Tool.hpp>
-#include <core/application/ApplicationSettings.hpp>
 #include <qnamespace.h>
-#include <score/actions/ActionManager.hpp>
-#include <score/actions/Menu.hpp>
-#include <score/actions/MenuManager.hpp>
-#include <score/widgets/SetIcons.hpp>
 
 class QObject;
 namespace Scenario
@@ -28,9 +31,7 @@ class TemporalScenarioPresenter;
 
 template <typename Data>
 QAction* makeToolbarAction(
-    const QString& name,
-    QObject* parent,
-    const Data& data,
+    const QString& name, QObject* parent, const Data& data,
     const QString& shortcut)
 {
   auto act = new QAction{name, parent};
@@ -293,7 +294,8 @@ void ToolMenuActions::makeGUIElements(score::GUIElements& ref)
     bar->addAction(m_playtool);
     bar->addAction(m_altAction);
 
-    ref.toolbars.emplace_back(bar, StringKey<score::Toolbar>("Tools"), Qt::TopToolBarArea, 800);
+    ref.toolbars.emplace_back(
+        bar, StringKey<score::Toolbar>("Tools"), Qt::TopToolBarArea, 800);
 
     menu.menu()->addSeparator();
     menu.menu()->addAction(m_selecttool);
@@ -319,7 +321,8 @@ void ToolMenuActions::makeGUIElements(score::GUIElements& ref)
     bar->addAction(m_scale);
     bar->addAction(m_grow);
 
-    ref.toolbars.emplace_back(bar, StringKey<score::Toolbar>("Modes"), Qt::TopToolBarArea, 900);
+    ref.toolbars.emplace_back(
+        bar, StringKey<score::Toolbar>("Modes"), Qt::TopToolBarArea, 900);
 
     menu.menu()->addSeparator();
     menu.menu()->addAction(m_scale);

@@ -3,17 +3,20 @@
 
 #include "JoystickSpecificSettings.hpp"
 
+#include <State/Widgets/AddressFragmentLineEdit.hpp>
+
 #include <ossia/network/joystick/joystick_protocol.hpp>
 
 #include <QComboBox>
 #include <QPushButton>
 #include <QVariant>
-#include <State/Widgets/AddressFragmentLineEdit.hpp>
+
 #include <wobjectimpl.h>
 
 W_OBJECT_IMPL(Engine::Network::JoystickProtocolSettingsWidget)
 
-namespace Engine::Network {
+namespace Engine::Network
+{
 
 JoystickProtocolSettingsWidget::JoystickProtocolSettingsWidget(QWidget* parent)
     : Device::ProtocolSettingsWidget(parent)
@@ -75,5 +78,4 @@ void JoystickProtocolSettingsWidget::update_device_list()
     m_deviceChoice->addItem(s);
   }
 }
-
 }

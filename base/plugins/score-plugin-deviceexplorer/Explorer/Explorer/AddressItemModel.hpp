@@ -1,11 +1,13 @@
 #pragma once
 #include <Device/Address/AddressSettings.hpp>
-#include <wobjectdefs.h>
 #include <Explorer/Explorer/DeviceExplorerModel.hpp>
+#include <State/Widgets/Values/TypeComboBox.hpp>
+
 #include <QAbstractItemModel>
 #include <QComboBox>
 #include <QStyledItemDelegate>
-#include <State/Widgets/Values/TypeComboBox.hpp>
+
+#include <wobjectdefs.h>
 
 namespace Explorer
 {
@@ -51,8 +53,7 @@ public:
   };
 
   void setState(
-      DeviceExplorerModel* model,
-      Device::NodePath nodepath,
+      DeviceExplorerModel* model, Device::NodePath nodepath,
       const Device::FullAddressSettings& s);
   void clear();
 
@@ -86,17 +87,14 @@ public:
 
 private:
   void paint(
-      QPainter* painter,
-      const QStyleOptionViewItem& option,
+      QPainter* painter, const QStyleOptionViewItem& option,
       const QModelIndex& index) const override;
   QWidget* createEditor(
-      QWidget* parent,
-      const QStyleOptionViewItem& option,
+      QWidget* parent, const QStyleOptionViewItem& option,
       const QModelIndex& index) const override;
   void setEditorData(QWidget* editor, const QModelIndex& index) const override;
   void setModelData(
-      QWidget* editor,
-      QAbstractItemModel* model,
+      QWidget* editor, QAbstractItemModel* model,
       const QModelIndex& index) const override;
 };
 

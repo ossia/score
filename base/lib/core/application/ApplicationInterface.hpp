@@ -1,5 +1,6 @@
 #pragma once
 #include <score/application/GUIApplicationContext.hpp>
+
 #include <score_lib_base_export.h>
 namespace score
 {
@@ -58,9 +59,7 @@ public:
    * all the base functions of the software will work correctly.
    */
   void loadPluginData(
-      const score::GUIApplicationContext& ctx,
-      score::GUIApplicationRegistrar&,
-      score::Settings& m_settings,
-      score::Presenter& m_presenter);
+      const score::GUIApplicationContext& ctx, score::GUIApplicationRegistrar&,
+      score::Settings& m_settings, score::Presenter& m_presenter);
 };
 }

@@ -8,11 +8,14 @@
 #include <Process/Focus/FocusDispatcher.hpp>
 #include <Process/LayerPresenter.hpp>
 #include <Process/LayerView.hpp>
-#include <QGraphicsScene>
-#include <QGraphicsSceneMouseEvent>
+
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/document/DocumentInterface.hpp>
 #include <score/widgets/GraphicsItem.hpp>
+
+#include <QGraphicsScene>
+#include <QGraphicsSceneMouseEvent>
+
 #include <score_plugin_curve_export.h>
 
 class CurvePresenter;
@@ -26,11 +29,8 @@ class CurveProcessPresenter : public Process::LayerPresenter
 {
 public:
   CurveProcessPresenter(
-      const Curve::Style& style,
-      const Model_T& lm,
-      LayerView_T* view,
-      const Process::ProcessPresenterContext& ctx,
-      QObject* parent)
+      const Curve::Style& style, const Model_T& lm, LayerView_T* view,
+      const Process::ProcessPresenterContext& ctx, QObject* parent)
       : LayerPresenter{ctx, parent}
       , m_layer{lm}
       , m_view{static_cast<LayerView_T*>(view)}
@@ -124,9 +124,7 @@ public:
   }
 
   void fillContextMenu(
-      QMenu& menu,
-      QPoint pos,
-      QPointF scenepos,
+      QMenu& menu, QPoint pos, QPointF scenepos,
       const Process::LayerContextMenuManager&) final override
   {
     m_curve.fillContextMenu(menu, pos, scenepos);

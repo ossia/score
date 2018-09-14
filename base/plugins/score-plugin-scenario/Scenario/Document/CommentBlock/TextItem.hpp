@@ -1,12 +1,14 @@
 #pragma once
+#include <score/model/ColorReference.hpp>
+
 #include <QColor>
-#include <wobjectdefs.h>
 #include <QGlyphRun>
 #include <QGraphicsSceneMouseEvent>
 #include <QGraphicsTextItem>
 #include <QPen>
-#include <score/model/ColorReference.hpp>
+
 #include <score_plugin_scenario_export.h>
+#include <wobjectdefs.h>
 namespace Scenario
 {
 class TextItem final : public QGraphicsTextItem
@@ -29,8 +31,7 @@ public:
 
   QRectF boundingRect() const final override;
   void paint(
-      QPainter* painter,
-      const QStyleOptionGraphicsItem* option,
+      QPainter* painter, const QStyleOptionGraphicsItem* option,
       QWidget* widget) final override;
 
   void setFont(QFont f);
@@ -47,9 +48,7 @@ private:
   QImage m_line;
 };
 
-class QGraphicsTextButton
-    : public QObject
-    , public Scenario::SimpleTextItem
+class QGraphicsTextButton : public QObject, public Scenario::SimpleTextItem
 {
   W_OBJECT(QGraphicsTextButton)
 public:

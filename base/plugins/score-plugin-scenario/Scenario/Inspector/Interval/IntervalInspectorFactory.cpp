@@ -6,11 +6,13 @@
 
 #include <Inspector/InspectorWidgetList.hpp>
 #include <Process/ProcessList.hpp>
-#include <QString>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
+
 #include <score/application/ApplicationContext.hpp>
 #include <score/document/DocumentContext.hpp>
 #include <score/plugins/customfactory/StringFactoryKey.hpp>
+
+#include <QString>
 
 class QObject;
 class QWidget;
@@ -19,8 +21,7 @@ namespace Scenario
 {
 QWidget* IntervalInspectorFactory::make(
     const QList<const QObject*>& sourceElements,
-    const score::DocumentContext& doc,
-    QWidget* parent) const
+    const score::DocumentContext& doc, QWidget* parent) const
 {
   auto& appContext = doc.app;
   auto& widgetFact = appContext.interfaces<Inspector::InspectorWidgetList>();

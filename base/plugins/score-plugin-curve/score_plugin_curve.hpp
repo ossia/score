@@ -1,6 +1,4 @@
 #pragma once
-#include <QObject>
-#include <wobjectdefs.h>
 #include <score/application/ApplicationContext.hpp>
 #include <score/command/Command.hpp>
 #include <score/command/CommandGeneratorMap.hpp>
@@ -10,6 +8,11 @@
 #include <score/plugins/qt_interfaces/FactoryInterface_QtInterface.hpp>
 #include <score/plugins/qt_interfaces/GUIApplicationPlugin_QtInterface.hpp>
 #include <score/plugins/qt_interfaces/PluginRequirements_QtInterface.hpp>
+
+#include <QObject>
+
+#include <wobjectdefs.h>
+
 #include <utility>
 #include <vector>
 /**
@@ -31,11 +34,10 @@
  * through Curve::Style.
  */
 
-class score_plugin_curve final
-    : public score::Plugin_QtInterface
-    , public score::FactoryInterface_QtInterface
-    , public score::CommandFactory_QtInterface
-    , public score::FactoryList_QtInterface
+class score_plugin_curve final : public score::Plugin_QtInterface,
+                                 public score::FactoryInterface_QtInterface,
+                                 public score::CommandFactory_QtInterface,
+                                 public score::FactoryList_QtInterface
 {
   SCORE_PLUGIN_METADATA(1, "49837ed7-dbc5-4330-9890-a130a2718b5e")
 public:

@@ -2,32 +2,36 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "ScenarioCopy.hpp"
 
-#include <ossia/detail/algorithms.hpp>
-#include <ossia/detail/ptr_set.hpp>
-
 #include <Process/Dataflow/Cable.hpp>
-#include <QJsonArray>
-#include <QJsonObject>
-#include <QJsonValue>
-#include <QList>
 #include <Scenario/Document/BaseScenario/BaseScenario.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
-#include <core/document/Document.hpp>
 #include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
 #include <Scenario/Process/Algorithms/ContainersAccessors.hpp>
 #include <Scenario/Process/Algorithms/ProcessPolicy.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
-#include <algorithm>
+
 #include <score/document/DocumentContext.hpp>
 #include <score/model/EntityMap.hpp>
 #include <score/model/Identifier.hpp>
 #include <score/serialization/VisitorCommon.hpp>
 #include <score/tools/std/Optional.hpp>
+
+#include <core/document/Document.hpp>
+
+#include <ossia/detail/algorithms.hpp>
+#include <ossia/detail/ptr_set.hpp>
 #include <ossia/detail/thread.hpp>
+
+#include <QJsonArray>
+#include <QJsonObject>
+#include <QJsonValue>
+#include <QList>
+
+#include <algorithm>
 #include <vector>
-#include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 namespace Scenario
 {
 template <typename Selected_T>
@@ -50,11 +54,11 @@ bool verifyAndUpdateIfChildOf(ObjectPath& path, const ObjectPath& parent)
 {
   auto parent_n = parent.vec().size();
   auto path_n = path.vec().size();
-  if(parent_n >= path_n)
+  if (parent_n >= path_n)
     return false;
-  for(std::size_t i = 0; i < parent_n; i++)
+  for (std::size_t i = 0; i < parent_n; i++)
   {
-    if(!(path.vec()[i] == parent.vec()[i]))
+    if (!(path.vec()[i] == parent.vec()[i]))
       return false;
   }
 
@@ -63,40 +67,40 @@ bool verifyAndUpdateIfChildOf(ObjectPath& path, const ObjectPath& parent)
   return true;
 }
 
-template<typename T>
+template <typename T>
 bool verifyAndUpdateIfChildOf(
-    Process::CableData& path,
-    const std::vector<Path<T>>& vec)
+    Process::CableData& path, const std::vector<Path<T>>& vec)
 {
   bool source_ok = false;
-  for(const auto& parent : vec)
+  for (const auto& parent : vec)
   {
-    if(verifyAndUpdateIfChildOf(path.source.unsafePath(), parent.unsafePath()))
+    if (verifyAndUpdateIfChildOf(
+            path.source.unsafePath(), parent.unsafePath()))
     {
       source_ok = true;
       break;
     }
   }
-  if(!source_ok)
+  if (!source_ok)
     return false;
 
-  for(const auto& parent : vec)
+  for (const auto& parent : vec)
   {
-    if(verifyAndUpdateIfChildOf(path.sink.unsafePath(), parent.unsafePath()))
+    if (verifyAndUpdateIfChildOf(path.sink.unsafePath(), parent.unsafePath()))
     {
       return true;
     }
   }
-  // must not happen: the sink is already guaranteed to be a child of an interval
-  // since we look for all the inlets
+  // must not happen: the sink is already guaranteed to be a child of an
+  // interval since we look for all the inlets
   SCORE_ABORT;
 }
 
-template<typename T>
+template <typename T>
 std::vector<Process::CableData> cablesToCopy(
-    const std::vector<T*>& array
-    , const std::vector<Path<std::remove_const_t<T>>>& siblings
-    , const score::DocumentContext& ctx)
+    const std::vector<T*>& array,
+    const std::vector<Path<std::remove_const_t<T>>>& siblings,
+    const score::DocumentContext& ctx)
 {
   // For every cable, if both ends are in one of the elements or child elements
   // currently selected, we copy them.
@@ -113,10 +117,10 @@ std::vector<Process::CableData> cablesToCopy(
   {
     for (const auto& c_inl : inl->cables())
     {
-      if(Process::Cable* cable = c_inl.try_find(ctx))
+      if (Process::Cable* cable = c_inl.try_find(ctx))
       {
         auto cd = cable->toCableData();
-        if(verifyAndUpdateIfChildOf(cd, siblings))
+        if (verifyAndUpdateIfChildOf(cd, siblings))
         {
           copiedCables.push_back(cd);
         }
@@ -249,7 +253,8 @@ copySelected(const Scenario_T& sm, CategorisedScenario& cs, QObject* parent)
   base["Events"] = arrayToJson(copiedEvents);
   base["TimeNodes"] = arrayToJson(copiedTimeSyncs);
   base["States"] = arrayToJson(copiedStates);
-  base["Cables"] = toJsonArray(cablesToCopy(cs.selectedIntervals, itv_paths, ctx));
+  base["Cables"]
+      = toJsonArray(cablesToCopy(cs.selectedIntervals, itv_paths, ctx));
 
   for (auto elt : copiedTimeSyncs)
     delete elt;
@@ -261,8 +266,7 @@ copySelected(const Scenario_T& sm, CategorisedScenario& cs, QObject* parent)
   return base;
 }
 
-QJsonObject copyProcess(
-    const Process::ProcessModel& proc)
+QJsonObject copyProcess(const Process::ProcessModel& proc)
 {
   const auto& ctx = score::IDocument::documentContext(proc);
   QJsonObject base;
@@ -285,15 +289,14 @@ QJsonObject copySelectedScenarioElements(
   return obj;
 }
 
-QJsonObject copyWholeScenario(
-    const Scenario::ProcessModel& sm)
+QJsonObject copyWholeScenario(const Scenario::ProcessModel& sm)
 {
   const auto& ctx = score::IDocument::documentContext(sm);
 
   auto itvs = sm.intervals.map().as_vec();
   std::vector<Path<Scenario::IntervalModel>> itv_paths;
   itv_paths.reserve(sm.intervals.size());
-  for(Scenario::IntervalModel& itv : sm.intervals)
+  for (Scenario::IntervalModel& itv : sm.intervals)
   {
     itv_paths.push_back(itv);
   }
@@ -357,29 +360,32 @@ CategorisedScenario::CategorisedScenario(const BaseScenarioContainer& sm)
   selectedStates = selectedElementsVec(getStates(sm));
 }
 
-QJsonObject copySelectedElementsToJson(ScenarioInterface& si, const score::DocumentContext& ctx)
+QJsonObject copySelectedElementsToJson(
+    ScenarioInterface& si, const score::DocumentContext& ctx)
 {
   auto si_obj = dynamic_cast<QObject*>(&si);
   if (auto sm = dynamic_cast<const Scenario::ProcessModel*>(&si))
   {
     return copySelectedScenarioElements(*sm);
   }
-  else if (auto bsm = dynamic_cast<const Scenario::BaseScenarioContainer*>(&si))
+  else if (
+      auto bsm = dynamic_cast<const Scenario::BaseScenarioContainer*>(&si))
   {
     return copySelectedScenarioElements(*bsm, si_obj);
   }
   else
   {
     // Full-view copy
-    auto& bem = score::IDocument::modelDelegate<Scenario::ScenarioDocumentModel>(ctx.document);
+    auto& bem
+        = score::IDocument::modelDelegate<Scenario::ScenarioDocumentModel>(
+            ctx.document);
     if (!bem.baseScenario().selectedChildren().empty())
     {
       return copySelectedScenarioElements(
-            bem.baseScenario(), &bem.baseScenario());
+          bem.baseScenario(), &bem.baseScenario());
     }
   }
 
   return {};
 }
-
 }

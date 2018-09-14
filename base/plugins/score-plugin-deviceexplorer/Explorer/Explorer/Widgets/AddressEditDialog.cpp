@@ -2,12 +2,22 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "AddressEditDialog.hpp"
 
-#include <ossia/network/domain/domain.hpp>
-
 #include <Device/Address/AddressSettings.hpp>
 #include <Device/Address/IOType.hpp>
 #include <Explorer/Common/AddressSettings/AddressSettingsFactory.hpp>
 #include <Explorer/Common/AddressSettings/Widgets/AddressSettingsWidget.hpp>
+#include <State/Domain.hpp>
+#include <State/Value.hpp>
+#include <State/ValueConversion.hpp>
+#include <State/Widgets/AddressFragmentLineEdit.hpp>
+#include <State/Widgets/AddressValidator.hpp>
+#include <State/Widgets/Values/TypeComboBox.hpp>
+
+#include <score/widgets/SignalUtils.hpp>
+#include <score/widgets/WidgetWrapper.hpp>
+
+#include <ossia/network/domain/domain.hpp>
+
 #include <QComboBox>
 #include <QDebug>
 #include <QDialogButtonBox>
@@ -15,15 +25,7 @@
 #include <QFormLayout>
 #include <QLineEdit>
 #include <QString>
-#include <State/Domain.hpp>
-#include <State/Value.hpp>
-#include <State/ValueConversion.hpp>
-#include <State/Widgets/AddressFragmentLineEdit.hpp>
-#include <State/Widgets/AddressValidator.hpp>
-#include <State/Widgets/Values/TypeComboBox.hpp>
 #include <qnamespace.h>
-#include <score/widgets/SignalUtils.hpp>
-#include <score/widgets/WidgetWrapper.hpp>
 
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Explorer::AddressEditDialog)

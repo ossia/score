@@ -6,20 +6,6 @@
 #include "TextDialog.hpp"
 
 #include <Process/ProcessList.hpp>
-#include <QAction>
-#include <QByteArray>
-#include <QClipboard>
-#include <QGraphicsView>
-#include <QJsonArray>
-#include <QJsonDocument>
-#include <QJsonValue>
-#include <QKeySequence>
-#include <QMainWindow>
-#include <QMenu>
-#include <QObject>
-#include <QRect>
-#include <QString>
-#include <QToolBar>
 #include <Scenario/Application/ScenarioActions.hpp>
 #include <Scenario/Application/ScenarioApplicationPlugin.hpp>
 #include <Scenario/Application/ScenarioEditionSettings.hpp>
@@ -39,10 +25,7 @@
 #include <Scenario/Process/ScenarioModel.hpp>
 #include <Scenario/Process/Temporal/TemporalScenarioPresenter.hpp>
 #include <Scenario/Process/Temporal/TemporalScenarioView.hpp>
-#include <algorithm>
-#include <core/application/ApplicationSettings.hpp>
-#include <core/document/Document.hpp>
-#include <qnamespace.h>
+
 #include <score/actions/ActionManager.hpp>
 #include <score/actions/Menu.hpp>
 #include <score/actions/MenuManager.hpp>
@@ -55,6 +38,27 @@
 #include <score/selection/Selectable.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/tools/std/Optional.hpp>
+
+#include <core/application/ApplicationSettings.hpp>
+#include <core/document/Document.hpp>
+
+#include <QAction>
+#include <QByteArray>
+#include <QClipboard>
+#include <QGraphicsView>
+#include <QJsonArray>
+#include <QJsonDocument>
+#include <QJsonValue>
+#include <QKeySequence>
+#include <QMainWindow>
+#include <QMenu>
+#include <QObject>
+#include <QRect>
+#include <QString>
+#include <QToolBar>
+#include <qnamespace.h>
+
+#include <algorithm>
 
 namespace Scenario
 {
@@ -229,7 +233,6 @@ ObjectMenuActions::ObjectMenuActions(ScenarioApplicationPlugin* parent)
         *sm, m_parent->currentDocument()->context().commandStack);
   });
 
-
   // Duplicate
   m_duplicate = new QAction{this};
   connect(m_duplicate, &QAction::triggered, [this]() {
@@ -267,9 +270,9 @@ ObjectMenuActions::ObjectMenuActions(ScenarioApplicationPlugin* parent)
     if (auto pres = getScenarioDocPresenter())
     {
       auto* cur = (QObject*)&pres->displayedInterval();
-      while((cur = cur->parent()))
+      while ((cur = cur->parent()))
       {
-        if(auto parent = qobject_cast<Scenario::IntervalModel*>(cur))
+        if (auto parent = qobject_cast<Scenario::IntervalModel*>(cur))
         {
           pres->setDisplayedInterval(*parent);
           break;
@@ -280,8 +283,9 @@ ObjectMenuActions::ObjectMenuActions(ScenarioApplicationPlugin* parent)
 
   if (parent->context.mainWindow)
   {
-    auto doc = parent->context.mainWindow->centralWidget()->findChild<QWidget*>(
-        "Documents", Qt::FindDirectChildrenOnly);
+    auto doc
+        = parent->context.mainWindow->centralWidget()->findChild<QWidget*>(
+            "Documents", Qt::FindDirectChildrenOnly);
     SCORE_ASSERT(doc);
     doc->addAction(m_removeElements);
     doc->addAction(m_pasteElements);
@@ -439,9 +443,10 @@ void ObjectMenuActions::setupContextMenu(
 QJsonObject ObjectMenuActions::copySelectedElementsToJson()
 {
   const auto& ctx = m_parent->currentDocument()->context();
-  if(auto si = focusedScenarioInterface(ctx))
+  if (auto si = focusedScenarioInterface(ctx))
   {
-    return Scenario::copySelectedElementsToJson(*const_cast<ScenarioInterface*>(si), ctx);
+    return Scenario::copySelectedElementsToJson(
+        *const_cast<ScenarioInterface*>(si), ctx);
   }
 
   return {};
@@ -484,8 +489,7 @@ void ObjectMenuActions::pasteElements(
 }
 
 void ObjectMenuActions::pasteElementsAfter(
-    const QJsonObject& obj,
-    const Scenario::Point& origin,
+    const QJsonObject& obj, const Scenario::Point& origin,
     const Selection& sel)
 {
   // TODO check for unnecessary uses of focusedProcessModel after
@@ -497,7 +501,7 @@ void ObjectMenuActions::pasteElementsAfter(
   auto& sm = static_cast<const Scenario::ProcessModel&>(pres->model());
 
   // TODO check json validity
-  if(auto ts = furthestHierarchicallySelectedTimeSync(sm))
+  if (auto ts = furthestHierarchicallySelectedTimeSync(sm))
   {
     auto cmd = new Command::ScenarioPasteElementsAfter{sm, *ts, obj};
     dispatcher().submitCommand(cmd);
@@ -506,8 +510,7 @@ void ObjectMenuActions::pasteElementsAfter(
 
 template <typename Scenario_T>
 static void writeJsonToScenario(
-    const Scenario_T& scen,
-    const ObjectMenuActions& self,
+    const Scenario_T& scen, const ObjectMenuActions& self,
     const QJsonObject& obj)
 {
   MacroCommandDispatcher<Command::ScenarioPasteContent> dispatcher{

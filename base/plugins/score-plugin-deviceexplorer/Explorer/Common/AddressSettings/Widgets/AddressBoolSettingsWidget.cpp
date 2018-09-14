@@ -3,12 +3,13 @@
 #include "AddressBoolSettingsWidget.hpp"
 
 #include <Explorer/Common/AddressSettings/Widgets/AddressSettingsWidget.hpp>
+#include <State/Value.hpp>
+#include <State/ValueConversion.hpp>
+
 #include <QComboBox>
 #include <QFormLayout>
 #include <QString>
 #include <QVariant>
-#include <State/Value.hpp>
-#include <State/ValueConversion.hpp>
 
 class QWidget;
 

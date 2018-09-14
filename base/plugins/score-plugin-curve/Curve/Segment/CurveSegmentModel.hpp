@@ -1,20 +1,25 @@
 #pragma once
-#include <ossia/editor/curve/curve_segment.hpp>
-#include <wobjectdefs.h>
-
 #include <Curve/Palette/CurvePoint.hpp>
 #include <Curve/Segment/CurveSegmentData.hpp>
-#include <QPoint>
-#include <QVariant>
-#include <boost/align/aligned_allocator_adaptor.hpp>
-#include <functional>
+
 #include <score/model/IdentifiedObject.hpp>
 #include <score/model/Identifier.hpp>
 #include <score/plugins/customfactory/SerializableInterface.hpp>
 #include <score/selection/Selectable.hpp>
 #include <score/serialization/VisitorInterface.hpp>
 #include <score/tools/std/Optional.hpp>
+
+#include <ossia/editor/curve/curve_segment.hpp>
+
+#include <boost/align/aligned_allocator_adaptor.hpp>
+
+#include <QPoint>
+#include <QVariant>
+
 #include <score_plugin_curve_export.h>
+#include <wobjectdefs.h>
+
+#include <functional>
 #include <vector>
 
 class QObject;
@@ -22,17 +27,16 @@ namespace Curve
 {
 // Gives the data.
 class SCORE_PLUGIN_CURVE_EXPORT SegmentModel
-    : public IdentifiedObject<SegmentModel>
-    , public score::SerializableInterface<SegmentFactory>
+    : public IdentifiedObject<SegmentModel>,
+      public score::SerializableInterface<SegmentFactory>
 {
   W_OBJECT(SegmentModel)
 
   SCORE_SERIALIZE_FRIENDS
 public:
   using data_vector = std::vector<
-      QPointF,
-      boost::alignment::
-          aligned_allocator_adaptor<std::allocator<QPointF>, 32>>;
+      QPointF, boost::alignment::aligned_allocator_adaptor<
+                   std::allocator<QPointF>, 32>>;
   Selectable selection;
   SegmentModel(const Id<SegmentModel>& id, QObject* parent);
   SegmentModel(const SegmentData& id, QObject* parent);
@@ -40,9 +44,7 @@ public:
   // Used for cloning :
   // Previous and following shall be set afterwards by the cloner.
   SegmentModel(
-      Curve::Point s,
-      Curve::Point e,
-      const Id<SegmentModel>& id,
+      Curve::Point s, Curve::Point e, const Id<SegmentModel>& id,
       QObject* parent);
 
   SegmentModel(DataStream::Deserializer& vis, QObject* parent);
@@ -105,7 +107,8 @@ public:
 public:
   void dataChanged() E_SIGNAL(SCORE_PLUGIN_CURVE_EXPORT, dataChanged);
   void previousChanged() E_SIGNAL(SCORE_PLUGIN_CURVE_EXPORT, previousChanged);
-  void followingChanged() E_SIGNAL(SCORE_PLUGIN_CURVE_EXPORT, followingChanged);
+  void followingChanged()
+      E_SIGNAL(SCORE_PLUGIN_CURVE_EXPORT, followingChanged);
   void startChanged() E_SIGNAL(SCORE_PLUGIN_CURVE_EXPORT, startChanged);
   void endChanged() E_SIGNAL(SCORE_PLUGIN_CURVE_EXPORT, endChanged);
 
@@ -135,7 +138,8 @@ using DefaultCurveSegmentData = PowerSegmentData;
 OBJECTKEY_METADATA(
     SCORE_PLUGIN_CURVE_EXPORT, Curve::SegmentModel, "CurveSegmentModel")
 
-//extern template class SCORE_PLUGIN_CURVE_EXPORT IdContainer<Curve::SegmentModel>;
+// extern template class SCORE_PLUGIN_CURVE_EXPORT
+// IdContainer<Curve::SegmentModel>;
 
 W_REGISTER_ARGTYPE(const Curve::SegmentModel&)
 W_REGISTER_ARGTYPE(Curve::SegmentModel)

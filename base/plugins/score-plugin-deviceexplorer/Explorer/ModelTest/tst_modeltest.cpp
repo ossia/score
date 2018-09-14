@@ -232,7 +232,6 @@ public:
   }
 
 public:
-
   void storePersistent(const QModelIndex& parent)
   {
     for (int row = 0; row < m_proxy->rowCount(parent); ++row)

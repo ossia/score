@@ -2,6 +2,7 @@
 #include "player_impl.hpp"
 
 #include <QQmlExtensionPlugin>
+
 #include <score_player_export.h>
 namespace score
 {

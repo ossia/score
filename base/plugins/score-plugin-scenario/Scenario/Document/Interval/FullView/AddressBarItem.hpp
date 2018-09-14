@@ -1,9 +1,11 @@
 #pragma once
+#include <score/model/path/ObjectPath.hpp>
+
 #include <QGraphicsItem>
-#include <wobjectdefs.h>
 #include <QList>
 #include <QRect>
-#include <score/model/path/ObjectPath.hpp>
+
+#include <wobjectdefs.h>
 
 class QPainter;
 class QStyleOptionGraphicsItem;
@@ -13,9 +15,7 @@ namespace Scenario
 {
 class IntervalModel;
 class ClickableLabelItem;
-class AddressBarItem final
-    : public QObject
-    , public QGraphicsItem
+class AddressBarItem final : public QObject, public QGraphicsItem
 {
   W_OBJECT(AddressBarItem)
   Q_INTERFACES(QGraphicsItem)
@@ -27,8 +27,7 @@ public:
 
   QRectF boundingRect() const override;
   void paint(
-      QPainter* painter,
-      const QStyleOptionGraphicsItem* option,
+      QPainter* painter, const QStyleOptionGraphicsItem* option,
       QWidget* widget) override;
 
 public:

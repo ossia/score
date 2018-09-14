@@ -1,6 +1,9 @@
 #include "EffectInspector.hpp"
 
 #include <Media/Commands/InsertEffect.hpp>
+
+#include <score/document/DocumentContext.hpp>
+
 #include <QDialog>
 #include <QDialogButtonBox>
 #include <QFileDialog>
@@ -9,22 +12,23 @@
 #include <QPlainTextEdit>
 #include <QPushButton>
 #include <QVBoxLayout>
-#include <score/document/DocumentContext.hpp>
 
 #if defined(HAS_FAUST)
-#  include <Media/Commands/EditFaustEffect.hpp>
-#  include <Media/Effect/Faust/FaustEffectModel.hpp>
+#include <Media/Commands/EditFaustEffect.hpp>
+#include <Media/Effect/Faust/FaustEffectModel.hpp>
 #endif
 
 #if defined(LILV_SHARED)
-#  include <Media/ApplicationPlugin.hpp>
-#  include <Media/Effect/LV2/LV2EffectModel.hpp>
-#  include <lilv/lilvmm.hpp>
-#  include <lv2/lv2plug.in/ns/extensions/ui/ui.h>
+#include <Media/ApplicationPlugin.hpp>
+#include <Media/Effect/LV2/LV2EffectModel.hpp>
+
+#include <lilv/lilvmm.hpp>
+
+#include <lv2/lv2plug.in/ns/extensions/ui/ui.h>
 #endif
 
 #if defined(HAS_VST2)
-#  include <Media/Effect/VST/VSTEffectModel.hpp>
+#include <Media/Effect/VST/VSTEffectModel.hpp>
 #endif
 
 #include <Process/ProcessList.hpp>
@@ -35,8 +39,7 @@ namespace Effect
 {
 
 InspectorWidget::InspectorWidget(
-    const Effect::ProcessModel& object,
-    const score::DocumentContext& doc,
+    const Effect::ProcessModel& object, const score::DocumentContext& doc,
     QWidget* parent)
     : InspectorWidgetDelegate_T{object, parent}
     , m_dispatcher{doc.commandStack}
@@ -53,7 +56,10 @@ InspectorWidget::InspectorWidget(
   connect(
       m_list, &QListWidget::itemDoubleClicked, &object,
       [&](QListWidgetItem* item) {
-        Process::setupExternalUI(object.effects().at(item->data(Qt::UserRole).value<Id<Process::ProcessModel>>()), doc, true);
+        Process::setupExternalUI(
+            object.effects().at(
+                item->data(Qt::UserRole).value<Id<Process::ProcessModel>>()),
+            doc, true);
       },
       Qt::QueuedConnection);
 
@@ -108,8 +114,7 @@ void InspectorWidget::add_score(std::size_t pos)
       base_fxs, Process::ProcessFlags::SupportsEffectChain, this);
 
   dialog->on_okPressed = [&](const auto& proc, const QString&) {
-    m_dispatcher.submitCommand(
-        new InsertEffect{process(), proc, {}, pos});
+    m_dispatcher.submitCommand(new InsertEffect{process(), proc, {}, pos});
   };
   dialog->launchWindow();
   dialog->deleteLater();
@@ -122,17 +127,15 @@ void InspectorWidget::add_lv2(std::size_t pos)
   if (!txt.isEmpty())
   {
     m_dispatcher.submitCommand(
-        new InsertGenericEffect<LV2::LV2EffectModel>{process(), txt,
-                                                               pos});
+        new InsertGenericEffect<LV2::LV2EffectModel>{process(), txt, pos});
   }
 #endif
 }
 void InspectorWidget::add_faust(std::size_t pos)
 {
 #if defined(HAS_FAUST)
-  m_dispatcher.submitCommand(
-      new InsertGenericEffect<Faust::FaustEffectModel>{
-          process(), "process = _;", pos});
+  m_dispatcher.submitCommand(new InsertGenericEffect<Faust::FaustEffectModel>{
+      process(), "process = _;", pos});
 #endif
 }
 
@@ -144,8 +147,7 @@ void InspectorWidget::add_vst2(std::size_t pos)
   if (!res.isEmpty())
   {
     m_dispatcher.submitCommand(
-        new InsertGenericEffect<VST::VSTEffectModel>{process(), res,
-                                                               pos});
+        new InsertGenericEffect<VST::VSTEffectModel>{process(), res, pos});
   }
 #endif
 }
@@ -160,9 +162,7 @@ int InspectorWidget::cur_pos()
     return m_list->currentRow();
   return process().effects().size();
 }
-struct ListWidgetItem
-    : public QObject
-    , public QListWidgetItem
+struct ListWidgetItem : public QObject, public QListWidgetItem
 {
 public:
   using QListWidgetItem::QListWidgetItem;

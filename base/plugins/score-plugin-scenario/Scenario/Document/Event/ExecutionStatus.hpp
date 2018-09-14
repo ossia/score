@@ -1,6 +1,8 @@
 #pragma once
-#include <QObject>
 #include <score/model/ColorReference.hpp>
+
+#include <QObject>
+
 #include <wobjectdefs.h>
 class QColor;
 

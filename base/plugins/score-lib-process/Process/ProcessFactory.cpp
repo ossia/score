@@ -2,14 +2,16 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "ProcessFactory.hpp"
 
-#include <Process/ProcessList.hpp>
 #include <Process/HeaderDelegate.hpp>
 #include <Process/LayerPresenter.hpp>
 #include <Process/LayerView.hpp>
 #include <Process/Process.hpp>
+#include <Process/ProcessList.hpp>
+
+#include <score/model/path/PathSerialization.hpp>
+
 #include <QPainter>
 #include <QTextOption>
-#include <score/model/path/PathSerialization.hpp>
 
 namespace Process
 {
@@ -52,10 +54,8 @@ class DefaultLayerPresenter final : public LayerPresenter
 
 public:
   DefaultLayerPresenter(
-      const Process::ProcessModel& model,
-      Process::LayerView* v,
-      const ProcessPresenterContext& ctx,
-      QObject* parent)
+      const Process::ProcessModel& model, Process::LayerView* v,
+      const ProcessPresenterContext& ctx, QObject* parent)
       : LayerPresenter{ctx, parent}, m_model{model}, m_view{v}
   {
     auto vi = dynamic_cast<DefaultLayerView*>(v);
@@ -107,10 +107,8 @@ public:
   }
 };
 LayerPresenter* LayerFactory::makeLayerPresenter(
-    const ProcessModel& m,
-    LayerView* v,
-    const ProcessPresenterContext& context,
-    QObject* parent) const
+    const ProcessModel& m, LayerView* v,
+    const ProcessPresenterContext& context, QObject* parent) const
 {
   return new DefaultLayerPresenter{m, v, context, parent};
 }
@@ -128,16 +126,14 @@ Process::MiniLayer* LayerFactory::makeMiniLayer(
 }
 
 QGraphicsItem* LayerFactory::makeItem(
-    const ProcessModel&,
-    const score::DocumentContext& ctx,
+    const ProcessModel&, const score::DocumentContext& ctx,
     score::RectItem* parent) const
 {
   return nullptr;
 }
 
 bool LayerFactory::hasExternalUI(
-    const ProcessModel&,
-    const score::DocumentContext& ctx) const
+    const ProcessModel&, const score::DocumentContext& ctx) const
 {
   return false;
 }
@@ -149,8 +145,7 @@ LayerFactory::makeHeaderDelegate(const LayerPresenter& pres) const
 }
 
 QWidget* LayerFactory::makeExternalUI(
-    const ProcessModel&,
-    const score::DocumentContext& ctx,
+    const ProcessModel&, const score::DocumentContext& ctx,
     QWidget* parent) const
 {
   return nullptr;

@@ -12,6 +12,7 @@
 #include <QKeyEventTransition>
 #include <qcoreevent.h>
 #include <qnamespace.h>
+
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(CommonSelectionState)
 

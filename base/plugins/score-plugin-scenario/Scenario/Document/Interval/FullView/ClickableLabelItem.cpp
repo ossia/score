@@ -4,15 +4,18 @@
 #include "ClickableLabelItem.hpp"
 
 #include <Process/Style/ScenarioStyle.hpp>
-#include <QBrush>
-#include <QFont>
-#include <QPainter>
-#include <algorithm>
-#include <qnamespace.h>
+
 #include <score/model/ModelMetadata.hpp>
 #include <score/model/Skin.hpp>
 
+#include <QBrush>
+#include <QFont>
+#include <QPainter>
+#include <qnamespace.h>
+
 #include <wobjectimpl.h>
+
+#include <algorithm>
 W_OBJECT_IMPL(Scenario::ClickableLabelItem)
 
 namespace Scenario
@@ -42,10 +45,8 @@ void SeparatorItem::paint(
 }
 
 ClickableLabelItem::ClickableLabelItem(
-    score::ModelMetadata& metadata,
-    ClickHandler&& onClick,
-    const QString& text,
-    QGraphicsItem* parent)
+    score::ModelMetadata& metadata, ClickHandler&& onClick,
+    const QString& text, QGraphicsItem* parent)
     : SimpleTextItem{parent}, m_onClick{std::move(onClick)}
 {
   setText(text);

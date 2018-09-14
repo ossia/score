@@ -1,8 +1,10 @@
 #pragma once
-#include <score/model/Identifier.hpp>
-#include <Process/TimeValue.hpp>
 #include <Process/ExpandMode.hpp>
+#include <Process/TimeValue.hpp>
+
+#include <score/model/Identifier.hpp>
 #include <score/tools/std/IndirectContainer.hpp>
+
 #include <score_plugin_scenario_export.h>
 #include <wobjectdefs.h>
 class OngoingCommandDispatcher;
@@ -39,12 +41,10 @@ public:
   virtual TimeSyncModel& startTimeSync() const = 0;
 
   virtual void changeDuration(IntervalModel& itv, const TimeVal& v) = 0;
-  virtual void changeDuration(const IntervalModel& itv,
-                              OngoingCommandDispatcher& dispatcher,
-                              const TimeVal& v,
-                              ExpandMode expandmode,
-                              LockMode lockmode
-                              ) = 0;
+  virtual void changeDuration(
+      const IntervalModel& itv, OngoingCommandDispatcher& dispatcher,
+      const TimeVal& v, ExpandMode expandmode, LockMode lockmode)
+      = 0;
 };
 
 static const constexpr auto startId_val = 0;

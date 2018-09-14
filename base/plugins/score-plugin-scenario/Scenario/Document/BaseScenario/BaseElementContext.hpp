@@ -1,5 +1,6 @@
 #pragma once
 #include <Process/ProcessContext.hpp>
+
 #include <score/document/DocumentContext.hpp>
 
 namespace Scenario

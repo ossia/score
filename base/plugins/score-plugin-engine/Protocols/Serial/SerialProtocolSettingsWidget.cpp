@@ -4,10 +4,13 @@
 #include <ossia/detail/config.hpp>
 #if defined(OSSIA_PROTOCOL_SERIAL)
 #include "SerialProtocolSettingsWidget.hpp"
-
 #include "SerialSpecificSettings.hpp"
 
 #include <Device/Protocol/ProtocolSettingsWidget.hpp>
+#include <State/Widgets/AddressFragmentLineEdit.hpp>
+
+#include <score/widgets/JS/JSEdit.hpp>
+
 #include <QComboBox>
 #include <QFormLayout>
 #include <QGridLayout>
@@ -17,8 +20,6 @@
 #include <QSpinBox>
 #include <QString>
 #include <QVariant>
-#include <State/Widgets/AddressFragmentLineEdit.hpp>
-#include <score/widgets/JS/JSEdit.hpp>
 class QWidget;
 
 namespace Engine

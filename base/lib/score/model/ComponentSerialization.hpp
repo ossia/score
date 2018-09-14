@@ -1,6 +1,7 @@
 #pragma once
 #include <score/model/Component.hpp>
 #include <score/plugins/customfactory/SerializableInterface.hpp>
+
 #include <type_traits>
 
 namespace score
@@ -19,8 +20,7 @@ class SCORE_LIB_BASE_EXPORT DataStreamSerializedComponents
 public:
   static const constexpr bool is_unique = true;
   DataStreamSerializedComponents(
-      const Id<score::Component>& id,
-      DataStreamComponents obj,
+      const Id<score::Component>& id, DataStreamComponents obj,
       QObject* parent);
   virtual ~DataStreamSerializedComponents();
 
@@ -57,8 +57,8 @@ public:
 };
 
 class SCORE_LIB_BASE_EXPORT SerializableComponent
-    : public score::Component
-    , public score::SerializableInterface<score::SerializableComponent>
+    : public score::Component,
+      public score::SerializableInterface<score::SerializableComponent>
 {
 public:
   using score::Component::Component;
@@ -75,18 +75,17 @@ public:
 struct SCORE_LIB_BASE_EXPORT SerializableComponentFactory
     : public score::InterfaceBase
 {
-  SCORE_INTERFACE(SerializableComponentFactory, "ffafadc2-0ce7-45d8-b673-d9238c37d018")
+  SCORE_INTERFACE(
+      SerializableComponentFactory, "ffafadc2-0ce7-45d8-b673-d9238c37d018")
 public:
   ~SerializableComponentFactory() override;
   virtual score::SerializableComponent* make(
-      const Id<score::Component>& id,
-      const score::DocumentContext& ctx,
+      const Id<score::Component>& id, const score::DocumentContext& ctx,
       QObject* parent)
       = 0;
 
   virtual score::SerializableComponent* load(
-      const VisitorVariant& vis,
-      const score::DocumentContext& ctx,
+      const VisitorVariant& vis, const score::DocumentContext& ctx,
       QObject* parent)
       = 0;
 };
@@ -97,8 +96,7 @@ struct SCORE_LIB_BASE_EXPORT SerializableComponentFactoryList
   using object_type = score::SerializableComponent;
   ~SerializableComponentFactoryList();
   score::SerializableComponent* loadMissing(
-      const VisitorVariant& vis,
-      const score::DocumentContext& ctx,
+      const VisitorVariant& vis, const score::DocumentContext& ctx,
       QObject* parent) const;
 };
 

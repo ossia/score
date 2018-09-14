@@ -2,9 +2,10 @@
 #include <Process/GenericProcessFactory.hpp>
 #include <Process/ProcessFactory.hpp>
 #include <Process/TimeValue.hpp>
+#include <Scenario/Process/ScenarioModel.hpp>
+
 #include <QByteArray>
 #include <QString>
-#include <Scenario/Process/ScenarioModel.hpp>
 namespace Process
 {
 class LayerPresenter;
@@ -27,8 +28,7 @@ public:
   ScenarioTemporalLayerFactory(Scenario::EditionSettings&);
 
   Process::LayerPresenter* makeLayerPresenter(
-      const Process::ProcessModel&,
-      Process::LayerView*,
+      const Process::ProcessModel&, Process::LayerView*,
       const Process::ProcessPresenterContext& context,
       QObject* parent) const override;
 

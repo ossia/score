@@ -2,8 +2,10 @@
 #include <Media/Effect/EffectProcessModel.hpp>
 #include <Process/Inspector/ProcessInspectorWidgetDelegate.hpp>
 #include <Process/Inspector/ProcessInspectorWidgetDelegateFactory.hpp>
-#include <QMenu>
+
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
+
+#include <QMenu>
 class QListWidget;
 class QPushButton;
 
@@ -16,8 +18,7 @@ class InspectorWidget final
 {
 public:
   explicit InspectorWidget(
-      const ProcessModel& object,
-      const score::DocumentContext& doc,
+      const ProcessModel& object, const score::DocumentContext& doc,
       QWidget* parent);
 
 private:
@@ -36,8 +37,8 @@ private:
 };
 
 class InspectorFactory final
-    : public Process::
-          InspectorWidgetDelegateFactory_T<ProcessModel, InspectorWidget>
+    : public Process::InspectorWidgetDelegateFactory_T<
+          ProcessModel, InspectorWidget>
 {
   SCORE_CONCRETE("cc8ceff3-ef93-4b73-865a-a9f870d6e898")
 };

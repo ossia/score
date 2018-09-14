@@ -6,6 +6,13 @@
 #include "TemporalIntervalPresenter.hpp"
 
 #include <Process/Style/ScenarioStyle.hpp>
+#include <Scenario/Document/Interval/IntervalHeader.hpp>
+#include <Scenario/Document/Interval/IntervalModel.hpp>
+
+#include <score/model/Skin.hpp>
+#include <score/widgets/GraphicsItem.hpp>
+#include <score/widgets/Pixmap.hpp>
+
 #include <QBrush>
 #include <QFont>
 #include <QFontMetrics>
@@ -16,15 +23,11 @@
 #include <QPainter>
 #include <QPen>
 #include <QPoint>
-#include <Scenario/Document/Interval/IntervalHeader.hpp>
-#include <Scenario/Document/Interval/IntervalModel.hpp>
-#include <algorithm>
-#include <cmath>
-#include <score/model/Skin.hpp>
-#include <score/widgets/GraphicsItem.hpp>
-#include <score/widgets/Pixmap.hpp>
 
+#include <cmath>
 #include <wobjectimpl.h>
+
+#include <algorithm>
 W_OBJECT_IMPL(Scenario::RackButton)
 W_OBJECT_IMPL(Scenario::TemporalIntervalHeader)
 
@@ -140,7 +143,8 @@ void TemporalIntervalHeader::enableOverlay(bool b)
       ((TemporalIntervalPresenter&)m_presenter).changeRackState();
     });
 
-    static const auto pix_unmuted = score::get_pixmap(":/icons/process_on.png");
+    static const auto pix_unmuted
+        = score::get_pixmap(":/icons/process_on.png");
     static const auto pix_muted = score::get_pixmap(":/icons/process_off.png");
 
     m_mute = new score::QGraphicsPixmapToggle{pix_muted, pix_unmuted, this};
@@ -274,7 +278,7 @@ static const QPainterPath arrowPath{[] {
   p.lineTo(QPointF(14, 13));
   p.lineTo(QPointF(5, 21));
 
-  p = QTransform().scale(0.55, 0.55).translate(0,6).map(p);
+  p = QTransform().scale(0.55, 0.55).translate(0, 6).map(p);
 
   return p;
 }()};

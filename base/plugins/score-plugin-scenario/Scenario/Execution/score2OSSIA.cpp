@@ -1,13 +1,9 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
-#include <Scenario/Execution/score2OSSIA.hpp>
 #include <Process/ExecutionContext.hpp>
 #include <Process/ExecutionFunctions.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
-
-#include <ossia/network/value/value.hpp>
-#include <ossia/editor/state/state.hpp>
-#include <ossia/editor/state/message.hpp>
+#include <Scenario/Execution/score2OSSIA.hpp>
 
 #include <ossia/dataflow/execution_state.hpp>
 #include <ossia/detail/apply.hpp>
@@ -16,6 +12,9 @@
 #include <ossia/editor/expression/expression_composition.hpp>
 #include <ossia/editor/expression/expression_not.hpp>
 #include <ossia/editor/expression/expression_pulse.hpp>
+#include <ossia/editor/state/message.hpp>
+#include <ossia/editor/state/state.hpp>
+#include <ossia/network/value/value.hpp>
 
 class NodeNotFoundException : public std::runtime_error
 {
@@ -38,7 +37,7 @@ address(const State::Address& addr, const ossia::execution_state& deviceList)
   // OPTIMIZEME by sorting by device prior
   // to this.
   auto n = Execution::findNode(deviceList, addr);
-  if(n)
+  if (n)
     return n->get_parameter();
   return nullptr;
 }
@@ -59,8 +58,7 @@ message(const State::Message& mess, const ossia::execution_state& deviceList)
 }
 
 void state(
-    ossia::state& parent,
-    const Scenario::StateModel& score_state,
+    ossia::state& parent, const Scenario::StateModel& score_state,
     const Execution::Context& ctx)
 {
   auto& elts = parent;
@@ -89,9 +87,8 @@ void state(
   */
 }
 
-ossia::state state(
-    const Scenario::StateModel& score_state,
-    const Execution::Context& ctx)
+ossia::state
+state(const Scenario::StateModel& score_state, const Execution::Context& ctx)
 {
   ossia::state s;
   Engine::score_to_ossia::state(s, score_state, ctx);
@@ -239,8 +236,8 @@ ossia::expression_ptr condition_expression(
   };
   return expression(e, list, def_cond{});
 }
-ossia::expression_ptr
-trigger_expression(const State::Expression& e, const ossia::execution_state& list)
+ossia::expression_ptr trigger_expression(
+    const State::Expression& e, const ossia::execution_state& list)
 {
   struct def_trig
   {
@@ -252,7 +249,5 @@ trigger_expression(const State::Expression& e, const ossia::execution_state& lis
 
   return expression(e, list, def_trig{});
 }
-
-
 }
 }

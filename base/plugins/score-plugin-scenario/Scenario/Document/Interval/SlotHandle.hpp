@@ -1,9 +1,11 @@
 #pragma once
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentViewConstants.hpp>
+
 #include <QGraphicsItem>
 #include <QPen>
 #include <QRect>
 #include <QtGlobal>
-#include <Scenario/Document/ScenarioDocument/ScenarioDocumentViewConstants.hpp>
+
 #include <score_plugin_scenario_export.h>
 class QPainter;
 class QStyleOptionGraphicsItem;
@@ -21,9 +23,7 @@ class SCORE_PLUGIN_SCENARIO_EXPORT SlotHandle final : public QGraphicsItem
 {
 public:
   SlotHandle(
-      const IntervalPresenter& slotView,
-      int slotIndex,
-      bool isstatic,
+      const IntervalPresenter& slotView, int slotIndex, bool isstatic,
       QGraphicsItem* parent);
 
   const IntervalPresenter& presenter() const
@@ -48,8 +48,7 @@ public:
 
   QRectF boundingRect() const override;
   void paint(
-      QPainter* painter,
-      const QStyleOptionGraphicsItem* option,
+      QPainter* painter, const QStyleOptionGraphicsItem* option,
       QWidget* widget) override;
 
   void setWidth(qreal width);

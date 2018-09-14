@@ -7,13 +7,14 @@
 #include <Loop/Inspector/LoopInspectorFactory.hpp>
 #include <Loop/Inspector/LoopTriggerCommandFactory.hpp>
 #include <Loop/LoopDisplayedElements.hpp>
-#include <Loop/LoopProcessFactory.hpp>
 #include <Loop/LoopExecution.hpp>
+#include <Loop/LoopProcessFactory.hpp>
 #include <Loop/Palette/LoopToolPalette.hpp>
 #include <Process/Process.hpp>
 #include <Process/ProcessFactory.hpp>
 #include <Scenario/Application/ScenarioActions.hpp>
 #include <Scenario/Commands/TimeSync/TriggerCommandFactory/TriggerCommandFactory.hpp>
+
 #include <score/actions/ActionManager.hpp>
 #include <score/actions/MenuManager.hpp>
 #include <score/model/Identifier.hpp>
@@ -22,6 +23,7 @@
 #include <score/plugins/customfactory/StringFactoryKey.hpp>
 #include <score/tools/std/HashMap.hpp>
 #include <score/tools/std/Optional.hpp>
+
 #include <score_plugin_loop_commands_files.hpp>
 #include <string.h>
 
@@ -30,9 +32,7 @@ SCORE_DECLARE_ACTION(
 
 namespace Loop
 {
-class ApplicationPlugin
-    : public QObject
-    , public score::GUIApplicationPlugin
+class ApplicationPlugin : public QObject, public score::GUIApplicationPlugin
 {
 public:
   ApplicationPlugin(const score::GUIApplicationContext& ctx);
@@ -41,14 +41,12 @@ public:
 };
 
 ApplicationPlugin::ApplicationPlugin(const score::GUIApplicationContext& ctx)
-  : GUIApplicationPlugin{ctx}
+    : GUIApplicationPlugin{ctx}
 {
 }
 
-
 ApplicationPlugin::~ApplicationPlugin()
 {
-
 }
 
 score::GUIElements ApplicationPlugin::makeGUIElements()
@@ -76,7 +74,6 @@ score::GUIElements ApplicationPlugin::makeGUIElements()
   object.menu()->addAction(putInLoop);
   return e;
 }
-
 }
 
 score_plugin_loop::score_plugin_loop() = default;
@@ -96,7 +93,8 @@ score_plugin_loop::factories(
   using namespace Scenario::Command;
   return instantiate_factories<
       score::ApplicationContext,
-      FW<Execution::ProcessComponentFactory, Loop::RecreateOnPlay::ComponentFactory>,
+      FW<Execution::ProcessComponentFactory,
+         Loop::RecreateOnPlay::ComponentFactory>,
       FW<Process::ProcessModelFactory, Loop::ProcessFactory>,
       FW<Process::LayerFactory, Loop::LayerFactory>,
       FW<Inspector::InspectorWidgetFactory, Loop::InspectorFactory>,
@@ -115,7 +113,7 @@ score_plugin_loop::make_commands()
       LoopCommandFactoryName(), CommandGeneratorMap{}};
 
   ossia::for_each_type<
-    #include <score_plugin_loop_commands.hpp>
+#include <score_plugin_loop_commands.hpp>
       >(score::commands::FactoryInserter{cmds.second});
 
   return cmds;

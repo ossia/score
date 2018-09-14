@@ -1,8 +1,11 @@
 #pragma once
 #include <ossia/editor/scenario/clock.hpp>
-#include <wobjectdefs.h>
+
 #include <QObject>
+
 #include <score_plugin_engine_export.h>
+#include <wobjectdefs.h>
+
 #include <memory>
 namespace ossia
 {
@@ -37,12 +40,9 @@ public:
       Scenario::IntervalModel& interval, Scenario::ScenarioInterface& s);
 
   BaseScenarioRefContainer(
-      Scenario::IntervalModel& interval,
-      Scenario::StateModel& startState,
-      Scenario::StateModel& endState,
-      Scenario::EventModel& startEvent,
-      Scenario::EventModel& endEvent,
-      Scenario::TimeSyncModel& startNode,
+      Scenario::IntervalModel& interval, Scenario::StateModel& startState,
+      Scenario::StateModel& endState, Scenario::EventModel& startEvent,
+      Scenario::EventModel& endEvent, Scenario::TimeSyncModel& startNode,
       Scenario::TimeSyncModel& endNode)
       : m_interval{interval}
       , m_startState{startState}
@@ -96,7 +96,6 @@ private:
   Scenario::TimeSyncModel& m_endNode;
 };
 
-
 namespace Execution
 {
 struct Context;
@@ -142,4 +141,3 @@ private:
   std::shared_ptr<StateComponent> m_ossia_endState;
 };
 }
-

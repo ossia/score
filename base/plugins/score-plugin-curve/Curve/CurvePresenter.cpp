@@ -16,18 +16,7 @@
 #include <Curve/Segment/CurveSegmentModel.hpp>
 #include <Curve/Segment/CurveSegmentView.hpp>
 #include <Curve/Segment/Power/PowerSegment.hpp>
-#include <QAction>
-#include <QActionGroup>
-#include <QApplication>
-#include <QMenu>
-#include <QPointer>
-#include <QSet>
-#include <QSize>
-#include <QString>
-#include <QVariant>
-#include <QtAlgorithms>
-#include <boost/operators.hpp>
-#include <qnamespace.h>
+
 #include <score/application/ApplicationContext.hpp>
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/model/IdentifiedObject.hpp>
@@ -40,11 +29,26 @@
 #include <score/tools/Todo.hpp>
 #include <score/tools/std/Optional.hpp>
 #include <score/widgets/GraphicsItem.hpp>
+
+#include <boost/operators.hpp>
+
+#include <QAction>
+#include <QActionGroup>
+#include <QApplication>
+#include <QMenu>
+#include <QPointer>
+#include <QSet>
+#include <QSize>
+#include <QString>
+#include <QVariant>
+#include <QtAlgorithms>
+#include <qnamespace.h>
+
+#include <wobjectimpl.h>
+
 #include <set>
 #include <utility>
 #include <vector>
-
-#include <wobjectimpl.h>
 W_OBJECT_IMPL(Curve::Presenter)
 namespace Curve
 {
@@ -56,11 +60,8 @@ static QPointF myscale(QPointF first, QSizeF second)
 }
 
 Presenter::Presenter(
-    const score::DocumentContext& context,
-    const Curve::Style& style,
-    const Model& model,
-    View* view,
-    QObject* parent)
+    const score::DocumentContext& context, const Curve::Style& style,
+    const Model& model, View* view, QObject* parent)
     : QObject{parent}
     , m_curveSegments{context.app.interfaces<SegmentList>()}
     , m_model{model}
@@ -126,13 +127,11 @@ void Presenter::setupSignals()
     addPoint(new PointView{&point, m_style, m_view});
   });
 
-  con(m_model, &Model::pointRemoved, this, [&](const Id<PointModel>& m) {
-    m_points.erase(m);
-  });
+  con(m_model, &Model::pointRemoved, this,
+      [&](const Id<PointModel>& m) { m_points.erase(m); });
 
-  con(m_model, &Model::segmentRemoved, this, [&](const Id<SegmentModel>& m) {
-    m_segments.erase(m);
-  });
+  con(m_model, &Model::segmentRemoved, this,
+      [&](const Id<SegmentModel>& m) { m_segments.erase(m); });
 
   con(m_model, &Model::cleared, this, [&]() {
     m_points.remove_all();
@@ -376,9 +375,9 @@ void Presenter::modelReset()
     }
     else if (diff_points < 0)
     {
-      if(points_n + diff_points < 0)
+      if (points_n + diff_points < 0)
       {
-        for(auto p : points)
+        for (auto p : points)
           deleteGraphicsItem(p);
         points.clear();
       }
@@ -412,9 +411,9 @@ void Presenter::modelReset()
     }
     else if (diff_segts < 0)
     {
-      if(segts_n + diff_segts < 0)
+      if (segts_n + diff_segts < 0)
       {
-        for(auto s : segments)
+        for (auto s : segments)
           deleteGraphicsItem(s);
         segments.clear();
       }
@@ -548,7 +547,7 @@ void Presenter::removeSelection()
   {
     // First look for the start and end segments
     {
-      for(auto& seg : newSegments)
+      for (auto& seg : newSegments)
       {
         if (ossia::contains(segmentsToDelete, seg.id))
         {

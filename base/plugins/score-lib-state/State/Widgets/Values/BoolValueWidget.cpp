@@ -2,11 +2,13 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "BoolValueWidget.hpp"
 
+#include <State/Widgets/Values/ValueWidget.hpp>
+
+#include <score/widgets/MarginLess.hpp>
+
 #include <QComboBox>
 #include <QGridLayout>
 #include <QString>
-#include <State/Widgets/Values/ValueWidget.hpp>
-#include <score/widgets/MarginLess.hpp>
 
 namespace State
 {

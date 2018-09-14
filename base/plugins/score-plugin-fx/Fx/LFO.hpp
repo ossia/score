@@ -1,6 +1,8 @@
 #pragma once
-#include <Engine/Node/PdNode.hpp>
 #include <ossia/detail/math.hpp>
+
+#include <Engine/Node/PdNode.hpp>
+
 #include <algorithm>
 #include <array>
 #include <bitset>
@@ -50,18 +52,10 @@ struct Node
   using control_policy = ossia::safe_nodes::precise_tick;
 
   static void
-  run(float freq,
-      float ampl,
-      float ampl_fine,
-      float offset,
-      float offset_fine,
-      float jitter,
-      float phase,
-      const std::string& type,
-      ossia::value_port& out,
-      ossia::token_request tk,
-      ossia::exec_state_facade st,
-      State& s)
+  run(float freq, float ampl, float ampl_fine, float offset, float offset_fine,
+      float jitter, float phase, const std::string& type,
+      ossia::value_port& out, ossia::token_request tk,
+      ossia::exec_state_facade st, State& s)
   {
     auto& waveform_map = Control::Widgets::waveformMap();
 
@@ -77,9 +71,12 @@ struct Node
       offset += offset_fine;
 
       using namespace Control::Widgets;
-      const auto phi = phase + (float(ossia::two_pi) * freq * ph) / st.sampleRate();
+      const auto phi
+          = phase + (float(ossia::two_pi) * freq * ph) / st.sampleRate();
 
-      auto add_val = [&] (auto new_val) { out.write_value(ampl * new_val + offset, tk.tick_start()); };
+      auto add_val = [&](auto new_val) {
+        out.write_value(ampl * new_val + offset, tk.tick_start());
+      };
       switch (it->second)
       {
         case Sin:
@@ -96,11 +93,16 @@ struct Node
           break;
         case SampleAndHold:
         {
-          auto start_phi = phase + (float(ossia::two_pi) * freq * s.phase) / st.sampleRate();
-          auto end_phi = phase + (float(ossia::two_pi) * freq * (s.phase + tk.date - tk.prev_date)) / st.sampleRate();
+          auto start_phi
+              = phase
+                + (float(ossia::two_pi) * freq * s.phase) / st.sampleRate();
+          auto end_phi = phase
+                         + (float(ossia::two_pi) * freq
+                            * (s.phase + tk.date - tk.prev_date))
+                               / st.sampleRate();
           auto start_s = std::sin(start_phi);
           auto end_s = std::sin(end_phi);
-          if((start_s > 0 && end_s <= 0) || (start_s <= 0 && end_s > 0))
+          if ((start_s > 0 && end_s <= 0) || (start_s <= 0 && end_s > 0))
           {
             add_val(std::uniform_real_distribution<float>(-1., 1.)(s.rd));
           }

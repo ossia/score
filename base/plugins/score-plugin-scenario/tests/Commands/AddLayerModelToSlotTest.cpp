@@ -3,7 +3,6 @@
 #include <Process/LayerModel.hpp>
 #include <Process/Process.hpp>
 #include <Process/ProcessList.hpp>
-#include <QtTest/QtTest>
 #include <Scenario/Commands/Interval/AddLayerModelToSlot.hpp>
 #include <Scenario/Commands/Interval/AddProcessToInterval.hpp>
 #include <Scenario/Commands/Interval/AddRackToInterval.hpp>
@@ -12,7 +11,10 @@
 #include <Scenario/Document/Interval/Rack/RackModel.hpp>
 #include <Scenario/Document/Interval/Slot.hpp>
 #include <Scenario/Process/ScenarioFactory.hpp>
+
 #include <core/command/CommandStack.hpp>
+
+#include <QtTest/QtTest>
 
 using namespace score;
 using namespace Scenario::Command;

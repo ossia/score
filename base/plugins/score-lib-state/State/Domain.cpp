@@ -2,13 +2,13 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "Domain.hpp"
 
-#include <ossia/network/domain/domain.hpp>
-
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/serialization/JSONVisitor.hpp>
 
+#include <ossia/network/domain/domain.hpp>
+
 #include <wobjectimpl.h>
-//W_GADGET_IMPL(State::Domain)
+// W_GADGET_IMPL(State::Domain)
 namespace State
 {
 

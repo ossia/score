@@ -1,6 +1,7 @@
 #pragma once
-#include <QValidator>
 #include <State/Expression.hpp>
+
+#include <QValidator>
 
 namespace State
 {

@@ -1,6 +1,8 @@
 #pragma once
 #include <Inspector/InspectorWidgetBase.hpp>
+
 #include <wobjectdefs.h>
+
 #include <list>
 #include <set>
 #include <vector>
@@ -28,8 +30,7 @@ public:
       const std::set<const TimeSyncModel*>& timesyncs,
       const std::set<const EventModel*>& events,
       const std::set<const StateModel*>& states,
-      const score::DocumentContext& context,
-      QWidget* parent = nullptr);
+      const score::DocumentContext& context, QWidget* parent = nullptr);
   ~SummaryInspectorWidget() override;
 
   void update(const QList<const IdentifiedObjectAbstract*>&);

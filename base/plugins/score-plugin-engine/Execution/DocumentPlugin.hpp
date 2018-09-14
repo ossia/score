@@ -1,18 +1,21 @@
 #pragma once
 #include "BaseScenarioComponent.hpp"
-#include <wobjectdefs.h>
+
+#include <Process/Dataflow/Port.hpp>
+#include <Process/ExecutionContext.hpp>
+#include <Process/ExecutionSetup.hpp>
+
+#include <score/plugins/documentdelegate/plugin/DocumentPlugin.hpp>
+#include <score/tools/Metadata.hpp>
 
 #include <ossia/dataflow/bench_map.hpp>
 #include <ossia/dataflow/dataflow_fwd.hpp>
 #include <ossia/network/generic/generic_device.hpp>
 #include <ossia/network/local/local.hpp>
 
-#include <Process/ExecutionContext.hpp>
-#include <Process/ExecutionSetup.hpp>
-#include <Process/Dataflow/Port.hpp>
+#include <wobjectdefs.h>
+
 #include <memory>
-#include <score/plugins/documentdelegate/plugin/DocumentPlugin.hpp>
-#include <score/tools/Metadata.hpp>
 
 namespace ossia
 {
@@ -44,8 +47,7 @@ class SCORE_PLUGIN_ENGINE_EXPORT DocumentPlugin final
   W_OBJECT(DocumentPlugin)
 public:
   DocumentPlugin(
-      const score::DocumentContext& ctx,
-      Id<score::DocumentPlugin>,
+      const score::DocumentContext& ctx, Id<score::DocumentPlugin>,
       QObject* parent);
 
   ~DocumentPlugin() override;
@@ -73,12 +75,14 @@ public:
 
   QPointer<Dataflow::AudioDevice> audio_device{};
 
-
 public:
   void finished() W_SIGNAL(finished);
-  void sig_bench(ossia::bench_map arg_1, int64_t ns) W_SIGNAL(sig_bench, arg_1, ns);
+  void sig_bench(ossia::bench_map arg_1, int64_t ns)
+      W_SIGNAL(sig_bench, arg_1, ns);
+
 public:
-  void slot_bench(ossia::bench_map, int64_t ns); W_SLOT(slot_bench);
+  void slot_bench(ossia::bench_map, int64_t ns);
+  W_SLOT(slot_bench);
 
 private:
   void registerDevice(ossia::net::device_base*);
@@ -96,5 +100,4 @@ private:
   int m_tid{};
   void makeGraph();
 };
-
 }

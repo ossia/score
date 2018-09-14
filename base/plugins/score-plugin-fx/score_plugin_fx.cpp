@@ -2,12 +2,13 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "score_plugin_fx.hpp"
 
-#include <Fx/Arpeggiator.hpp>
 #include <Fx/AngleNode.hpp>
+#include <Fx/Arpeggiator.hpp>
 #include <Fx/Chord.hpp>
 #include <Fx/ClassicalBeat.hpp>
 #include <Fx/EmptyMapping.hpp>
 #include <Fx/Envelope.hpp>
+#include <Fx/FactorOracle.hpp>
 #include <Fx/Gain.hpp>
 #include <Fx/LFO.hpp>
 #include <Fx/MathGenerator.hpp>
@@ -17,8 +18,9 @@
 #include <Fx/Quantifier.hpp>
 #include <Fx/TestNode.hpp>
 #include <Fx/VelToNote.hpp>
-#include <Fx/FactorOracle.hpp>
+
 #include <score/plugins/customfactory/FactorySetup.hpp>
+
 #include <score_plugin_engine.hpp>
 
 namespace Control
@@ -31,15 +33,14 @@ std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_fx::factories(
     const score::ApplicationContext& ctx, const score::InterfaceKey& key) const
 {
   return Control::instantiate_fx<
-      Nodes::Arpeggiator::Node, Nodes::PulseToNote::Node, Nodes::ClassicalBeat::Node, Nodes::LFO::Node,
-      Nodes::Chord::Node, Nodes::MidiUtil::Node, Nodes::Gain::Node,
-      Nodes::Metro::Node, Nodes::Envelope::Node, Nodes::Quantifier::Node,
+      Nodes::Arpeggiator::Node, Nodes::PulseToNote::Node,
+      Nodes::ClassicalBeat::Node, Nodes::LFO::Node, Nodes::Chord::Node,
+      Nodes::MidiUtil::Node, Nodes::Gain::Node, Nodes::Metro::Node,
+      Nodes::Envelope::Node, Nodes::Quantifier::Node,
       Nodes::MathGenerator::Node, Nodes::MathAudioGenerator::Node,
       Nodes::MathMapping::Node, Nodes::EmptyValueMapping::Node,
-      Nodes::EmptyMidiMapping::Node
-      , Nodes::EmptyAudioMapping::Node
-      , Nodes::FactorOracle::Node
-      >(ctx, key);
+      Nodes::EmptyMidiMapping::Node, Nodes::EmptyAudioMapping::Node,
+      Nodes::FactorOracle::Node>(ctx, key);
 }
 
 auto score_plugin_fx::required() const -> std::vector<score::PluginKey>

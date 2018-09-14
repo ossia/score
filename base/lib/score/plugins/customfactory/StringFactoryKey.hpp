@@ -1,7 +1,9 @@
 #pragma once
-#include <QDebug>
 #include <score/tools/opaque/OpaqueString.hpp>
 #include <score/tools/std/String.hpp>
+
+#include <QDebug>
+
 #include <score_lib_base_export.h>
 // TODO rename file.
 template <typename Tag>

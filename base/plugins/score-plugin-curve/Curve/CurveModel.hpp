@@ -1,17 +1,21 @@
 #pragma once
 #include <Curve/Segment/CurveSegmentModel.hpp>
-#include <wobjectdefs.h>
+
 #include <score/model/IdentifiedObject.hpp>
 #include <score/model/IdentifiedObjectMap.hpp>
 #include <score/selection/Selection.hpp>
 #include <score/serialization/VisitorInterface.hpp>
 #include <score/tools/std/Optional.hpp>
+
+#include <wobjectdefs.h>
+
 #include <vector>
 
 class DataStream;
 class JSONObject;
 class QObject;
 #include <score/model/Identifier.hpp>
+
 #include <score_plugin_curve_export.h>
 
 namespace ossia
@@ -73,16 +77,22 @@ public:
   double lastPointPos() const;
 
 public:
-  void segmentAdded(const SegmentModel& arg_1) E_SIGNAL(SCORE_PLUGIN_CURVE_EXPORT, segmentAdded, arg_1);
-  void segmentRemoved(const Id<SegmentModel>& arg_1) E_SIGNAL(SCORE_PLUGIN_CURVE_EXPORT, segmentRemoved, arg_1); // dangerous if async
-  void pointAdded(const PointModel& arg_1) E_SIGNAL(SCORE_PLUGIN_CURVE_EXPORT, pointAdded, arg_1);
-  void pointRemoved(const Id<PointModel>& arg_1) E_SIGNAL(SCORE_PLUGIN_CURVE_EXPORT, pointRemoved, arg_1); // dangerous if async
+  void segmentAdded(const SegmentModel& arg_1)
+      E_SIGNAL(SCORE_PLUGIN_CURVE_EXPORT, segmentAdded, arg_1);
+  void segmentRemoved(const Id<SegmentModel>& arg_1) E_SIGNAL(
+      SCORE_PLUGIN_CURVE_EXPORT, segmentRemoved, arg_1); // dangerous if async
+  void pointAdded(const PointModel& arg_1)
+      E_SIGNAL(SCORE_PLUGIN_CURVE_EXPORT, pointAdded, arg_1);
+  void pointRemoved(const Id<PointModel>& arg_1) E_SIGNAL(
+      SCORE_PLUGIN_CURVE_EXPORT, pointRemoved, arg_1); // dangerous if async
 
   // This signal has to be emitted after big modifications.
   // (it's an optimization to prevent updating the OSSIA API each time a
   // segment moves).
   void changed() E_SIGNAL(SCORE_PLUGIN_CURVE_EXPORT, changed);
-  void curveReset() E_SIGNAL(SCORE_PLUGIN_CURVE_EXPORT, curveReset); // like changed() but for the presenter
+  void curveReset() E_SIGNAL(
+      SCORE_PLUGIN_CURVE_EXPORT,
+      curveReset); // like changed() but for the presenter
   void cleared() E_SIGNAL(SCORE_PLUGIN_CURVE_EXPORT, cleared);
 
 private:
@@ -90,7 +100,7 @@ private:
   void removePoint(PointModel* pt);
 
   IdContainer<SegmentModel> m_segments;
-  std::vector<PointModel*> m_points;    // Each between 0, 1
+  std::vector<PointModel*> m_points; // Each between 0, 1
 };
 
 SCORE_PLUGIN_CURVE_EXPORT

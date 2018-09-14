@@ -1,18 +1,10 @@
 #pragma once
-#include <ossia/network/domain/domain.hpp>
-
-#include <Engine/Node/Port.hpp>
+#include <Process/Commands/SetControlValue.hpp>
+#include <Process/Dataflow/ControlWidgets.hpp>
 #include <Process/Dataflow/Port.hpp>
 #include <Process/Dataflow/WidgetInlets.hpp>
-#include <QApplication>
-#include <QCheckBox>
-#include <QFormLayout>
-#include <QGraphicsProxyWidget>
-#include <QLineEdit>
-#include <QPainter>
-#include <QPushButton>
-#include <Process/Commands/SetControlValue.hpp>
 #include <State/Value.hpp>
+
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/document/DocumentContext.hpp>
 #include <score/widgets/ControlWidgets.hpp>
@@ -21,13 +13,23 @@
 #include <score/widgets/MarginLess.hpp>
 #include <score/widgets/SignalUtils.hpp>
 #include <score/widgets/TextLabel.hpp>
+
+#include <ossia/network/domain/domain.hpp>
+
+#include <QApplication>
+#include <QCheckBox>
+#include <QFormLayout>
+#include <QGraphicsProxyWidget>
+#include <QLineEdit>
+#include <QPainter>
+#include <QPushButton>
+
+#include <Engine/Node/Port.hpp>
 #include <score_plugin_engine_export.h>
-#include <Process/Dataflow/ControlWidgets.hpp>
 namespace Control
 {
-struct FloatSlider final
-    : ossia::safe_nodes::control_in
-    , WidgetFactory::FloatSlider
+struct FloatSlider final : ossia::safe_nodes::control_in,
+                           WidgetFactory::FloatSlider
 {
   static const constexpr bool must_validate = false;
   using type = float;
@@ -52,7 +54,9 @@ struct FloatSlider final
 
   auto create_inlet(Id<Process::Port> id, QObject* parent) const
   {
-    return new Process::FloatSlider{min, max, init, QString::fromUtf8(name.data(), name.size()), id, parent};
+    return new Process::FloatSlider{
+        min, max,   init, QString::fromUtf8(name.data(), name.size()),
+        id,  parent};
   }
 
   float fromValue(const ossia::value& v) const
@@ -63,12 +67,10 @@ struct FloatSlider final
   {
     return v;
   }
-
 };
 
-struct LogFloatSlider final
-    : ossia::safe_nodes::control_in
-    , WidgetFactory::LogFloatSlider
+struct LogFloatSlider final : ossia::safe_nodes::control_in,
+                              WidgetFactory::LogFloatSlider
 {
   static const constexpr bool must_validate = false;
   using type = float;
@@ -93,7 +95,9 @@ struct LogFloatSlider final
 
   auto create_inlet(Id<Process::Port> id, QObject* parent) const
   {
-    return new Process::LogFloatSlider{min, max, init, QString::fromUtf8(name.data(), name.size()), id, parent};
+    return new Process::LogFloatSlider{
+        min, max,   init, QString::fromUtf8(name.data(), name.size()),
+        id,  parent};
   }
 
   float fromValue(const ossia::value& v) const
@@ -106,9 +110,8 @@ struct LogFloatSlider final
   }
 };
 
-struct IntSlider final
-    : ossia::safe_nodes::control_in
-    , WidgetFactory::IntSlider
+struct IntSlider final : ossia::safe_nodes::control_in,
+                         WidgetFactory::IntSlider
 {
   using type = int;
   const int min{};
@@ -142,13 +145,14 @@ struct IntSlider final
 
   auto create_inlet(Id<Process::Port> id, QObject* parent) const
   {
-    return new Process::IntSlider{min, max, init, QString::fromUtf8(name.data(), name.size()), id, parent};
+    return new Process::IntSlider{
+        min, max,   init, QString::fromUtf8(name.data(), name.size()),
+        id,  parent};
   }
 };
 
-struct IntSpinBox final
-    : ossia::safe_nodes::control_in
-    , WidgetFactory::IntSpinBox
+struct IntSpinBox final : ossia::safe_nodes::control_in,
+                          WidgetFactory::IntSpinBox
 {
   static const constexpr bool must_validate = false;
   using type = int;
@@ -182,13 +186,12 @@ struct IntSpinBox final
 
   auto create_inlet(Id<Process::Port> id, QObject* parent) const
   {
-    return new Process::IntSpinBox{min, max, init, QString::fromUtf8(name.data(), name.size()), id, parent};
+    return new Process::IntSpinBox{
+        min, max,   init, QString::fromUtf8(name.data(), name.size()),
+        id,  parent};
   }
-
 };
-struct Toggle final
-    : ossia::safe_nodes::control_in
-    , WidgetFactory::Toggle
+struct Toggle final : ossia::safe_nodes::control_in, WidgetFactory::Toggle
 {
   static const constexpr bool must_validate = false;
   template <std::size_t N>
@@ -201,7 +204,8 @@ struct Toggle final
   const bool init{};
   auto create_inlet(Id<Process::Port> id, QObject* parent) const
   {
-    return new Process::Toggle{init, QString::fromUtf8(name.data(), name.size()), id, parent};
+    return new Process::Toggle{
+        init, QString::fromUtf8(name.data(), name.size()), id, parent};
   }
 
   bool fromValue(const ossia::value& v) const
@@ -214,9 +218,8 @@ struct Toggle final
   }
 };
 
-struct ChooserToggle final
-    : ossia::safe_nodes::control_in
-    , WidgetFactory::ChooserToggle
+struct ChooserToggle final : ossia::safe_nodes::control_in,
+                             WidgetFactory::ChooserToggle
 {
   static const constexpr bool must_validate = false;
   template <std::size_t N>
@@ -241,16 +244,14 @@ struct ChooserToggle final
   auto create_inlet(Id<Process::Port> id, QObject* parent) const
   {
     return new Process::ChooserToggle{
-      {alternatives[0], alternatives[1]}
-      , init
-      , QString::fromUtf8(name.data(), name.size())
-      , id, parent};
+        {alternatives[0], alternatives[1]},
+        init,
+        QString::fromUtf8(name.data(), name.size()),
+        id,
+        parent};
   }
-
 };
-struct LineEdit final
-    : ossia::safe_nodes::control_in
-    , WidgetFactory::LineEdit
+struct LineEdit final : ossia::safe_nodes::control_in, WidgetFactory::LineEdit
 {
   static const constexpr bool must_validate = false;
   template <std::size_t N, std::size_t M>
@@ -272,21 +273,23 @@ struct LineEdit final
   const QLatin1Literal init{};
   auto create_inlet(Id<Process::Port> id, QObject* parent) const
   {
-    return new Process::LineEdit{init, QString::fromUtf8(name.data(), name.size()), id, parent};
+    return new Process::LineEdit{
+        init, QString::fromUtf8(name.data(), name.size()), id, parent};
   }
 };
 
 template <typename T, std::size_t N>
-struct ComboBox final
-    : ossia::safe_nodes::control_in
-    , WidgetFactory::ComboBox
+struct ComboBox final : ossia::safe_nodes::control_in, WidgetFactory::ComboBox
 {
   static const constexpr bool must_validate = false;
   using type = T;
   const std::size_t init{};
   const std::array<std::pair<const char*, T>, N> values;
 
-  static constexpr auto count() { return N; }
+  static constexpr auto count()
+  {
+    return N;
+  }
   template <std::size_t M, typename Arr>
   constexpr ComboBox(const char (&name)[M], std::size_t in, Arr arr)
       : ossia::safe_nodes::control_in{name}, init{in}, values{arr}
@@ -315,13 +318,10 @@ struct ComboBox final
   {
     return ossia::value{std::move(v)};
   }
-
 };
 
 template <typename ArrT>
-struct EnumBase
-    : ossia::safe_nodes::control_in
-    , WidgetFactory::Enum
+struct EnumBase : ossia::safe_nodes::control_in, WidgetFactory::Enum
 {
   using type = std::string;
   const std::size_t init{};
@@ -338,7 +338,6 @@ struct EnumBase
   {
   }
 
-
   ossia::value toValue(std::string v) const
   {
     return ossia::value{std::move(v)};
@@ -346,9 +345,10 @@ struct EnumBase
 
   auto create_inlet(Id<Process::Port> id, QObject* parent) const
   {
-    return new Process::Enum{ossia::flat_set<std::string>(values.begin(),values.end()), values[init], QString::fromUtf8(name.data(), name.size()), id, parent};
+    return new Process::Enum{
+        ossia::flat_set<std::string>(values.begin(), values.end()),
+        values[init], QString::fromUtf8(name.data(), name.size()), id, parent};
   }
-
 };
 
 template <typename ArrT>
@@ -384,9 +384,8 @@ struct UnvalidatedEnum final : EnumBase<ArrT>
   }
 };
 
-struct TimeSignatureChooser final
-    : ossia::safe_nodes::control_in
-    , WidgetFactory::TimeSignatureChooser
+struct TimeSignatureChooser final : ossia::safe_nodes::control_in,
+                                    WidgetFactory::TimeSignatureChooser
 {
   static const constexpr bool must_validate = true;
   using type = time_signature;
@@ -417,7 +416,8 @@ struct TimeSignatureChooser final
   }
   auto create_inlet(Id<Process::Port> id, QObject* parent) const
   {
-    return new Process::TimeSignatureChooser{init.data(), QString::fromUtf8(name.data(), name.size()), id, parent};
+    return new Process::TimeSignatureChooser{
+        init.data(), QString::fromUtf8(name.data(), name.size()), id, parent};
   }
 };
 
@@ -438,9 +438,7 @@ v) -> Enum<std::array<const char*, N2>>;
 */
 
 // TODO RGBAEdit
-struct RGBAEdit final
-    : ossia::safe_nodes::control_in
-    , WidgetFactory::RGBAEdit
+struct RGBAEdit final : ossia::safe_nodes::control_in, WidgetFactory::RGBAEdit
 {
   static const constexpr bool must_validate = false;
   using type = std::array<float, 4>;
@@ -448,9 +446,7 @@ struct RGBAEdit final
 };
 
 // TODO XYZEdit
-struct XYZEdit final
-    : ossia::safe_nodes::control_in
-    , WidgetFactory::XYZEdit
+struct XYZEdit final : ossia::safe_nodes::control_in, WidgetFactory::XYZEdit
 {
   static const constexpr bool must_validate = false;
   using type = std::array<float, 3>;

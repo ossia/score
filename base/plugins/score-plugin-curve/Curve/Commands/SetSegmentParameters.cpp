@@ -5,13 +5,16 @@
 
 #include <Curve/CurveModel.hpp>
 #include <Curve/Segment/CurveSegmentModel.hpp>
-#include <QDataStream>
-#include <QtGlobal>
-#include <algorithm>
+
 #include <score/model/IdentifiedObjectMap.hpp>
 #include <score/model/path/Path.hpp>
 #include <score/model/path/PathSerialization.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
+
+#include <QDataStream>
+#include <QtGlobal>
+
+#include <algorithm>
 
 namespace Curve
 {

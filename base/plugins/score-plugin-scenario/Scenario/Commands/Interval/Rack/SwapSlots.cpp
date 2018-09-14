@@ -3,12 +3,14 @@
 #include "SwapSlots.hpp"
 
 #include <Scenario/Document/Interval/IntervalModel.hpp>
-#include <algorithm>
+#include <Scenario/Settings/ScenarioSettingsModel.hpp>
+
+#include <score/application/ApplicationContext.hpp>
 #include <score/model/path/Path.hpp>
 #include <score/model/path/PathSerialization.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
-#include <score/application/ApplicationContext.hpp>
-#include <Scenario/Settings/ScenarioSettingsModel.hpp>
+
+#include <algorithm>
 namespace Scenario
 {
 namespace Command
@@ -43,12 +45,9 @@ void ChangeSlotPosition::deserializeImpl(DataStreamOutput& s)
   s >> m_path >> m_view >> m_first >> m_second;
 }
 
-SlotCommand::SlotCommand(const IntervalModel& c):
-  m_path{c}
-, m_old{c.smallView()}
-, m_new{m_old}
+SlotCommand::SlotCommand(const IntervalModel& c)
+    : m_path{c}, m_old{c.smallView()}, m_new{m_old}
 {
-
 }
 
 void SlotCommand::undo(const score::DocumentContext& ctx) const
@@ -73,40 +72,42 @@ void SlotCommand::deserializeImpl(DataStreamOutput& s)
   s >> m_path >> m_old >> m_new;
 }
 
-MergeSlots::MergeSlots(
-    const IntervalModel& rack, int first, int second)
+MergeSlots::MergeSlots(const IntervalModel& rack, int first, int second)
     : SlotCommand{rack}
 {
   auto& source = m_old[first];
   auto& target = m_new[second];
   target.frontProcess = source.frontProcess;
-  target.processes.insert(target.processes.end(), source.processes.begin(), source.processes.end());
+  target.processes.insert(
+      target.processes.end(), source.processes.begin(),
+      source.processes.end());
   m_new.erase(m_new.begin() + first);
 }
 
-
 MoveLayerInNewSlot::MoveLayerInNewSlot(
     const IntervalModel& rack, int first, int second)
-  : SlotCommand{rack}
+    : SlotCommand{rack}
 {
   auto source = m_old[first];
   Scenario::Slot newSlot;
   newSlot.processes.push_back(*source.frontProcess);
   newSlot.frontProcess = *source.frontProcess;
-  newSlot.height = score::AppContext().settings<Scenario::Settings::Model>().getSlotHeight();
+  newSlot.height = score::AppContext()
+                       .settings<Scenario::Settings::Model>()
+                       .getSlotHeight();
 
   auto it = ossia::find(source.processes, *source.frontProcess);
   SCORE_ASSERT(it != source.processes.end());
   source.processes.erase(it);
 
-  if(source.processes.empty())
+  if (source.processes.empty())
   {
     m_new.insert(m_new.begin() + second, newSlot);
-    if(first < second)
+    if (first < second)
     {
       m_new.erase(m_new.begin() + first);
     }
-    else if(first > second)
+    else if (first > second)
     {
       m_new.erase(m_new.begin() + first + 1);
     }
@@ -121,7 +122,7 @@ MoveLayerInNewSlot::MoveLayerInNewSlot(
 
 MergeLayerInSlot::MergeLayerInSlot(
     const IntervalModel& rack, int first, int second)
-  : SlotCommand{rack}
+    : SlotCommand{rack}
 {
   auto source = m_old[first];
   auto target = m_old[second];
@@ -133,7 +134,7 @@ MergeLayerInSlot::MergeLayerInSlot(
   SCORE_ASSERT(it != source.processes.end());
   source.processes.erase(it);
 
-  if(source.processes.empty())
+  if (source.processes.empty())
   {
     m_new[second] = target;
     m_new.erase(m_new.begin() + first);
@@ -145,6 +146,5 @@ MergeLayerInSlot::MergeLayerInSlot(
     m_new[second] = target;
   }
 }
-
 }
 }

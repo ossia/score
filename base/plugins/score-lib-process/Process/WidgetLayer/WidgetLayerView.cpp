@@ -7,6 +7,7 @@
 #include <QGraphicsSceneMouseEvent>
 #include <QPalette>
 #include <QWidget>
+
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(WidgetLayer::View)
 namespace WidgetLayer

@@ -1,7 +1,4 @@
 #pragma once
-#include <QObject>
-#include <wobjectdefs.h>
-#include <QStringList>
 #include <score/application/ApplicationContext.hpp>
 #include <score/plugins/application/GUIApplicationPlugin.hpp>
 #include <score/plugins/customfactory/FactoryInterface.hpp>
@@ -9,6 +6,12 @@
 #include <score/plugins/qt_interfaces/FactoryInterface_QtInterface.hpp>
 #include <score/plugins/qt_interfaces/GUIApplicationPlugin_QtInterface.hpp>
 #include <score/plugins/qt_interfaces/PluginRequirements_QtInterface.hpp>
+
+#include <QObject>
+#include <QStringList>
+
+#include <wobjectdefs.h>
+
 #include <vector>
 
 /**
@@ -158,11 +161,10 @@
  * various protocols: OSC, MIDI, Minuit, HTTP, WebSocket...
  */
 
-class score_plugin_engine final
-    : public score::ApplicationPlugin_QtInterface
-    , public score::FactoryList_QtInterface
-    , public score::FactoryInterface_QtInterface
-    , public score::Plugin_QtInterface
+class score_plugin_engine final : public score::ApplicationPlugin_QtInterface,
+                                  public score::FactoryList_QtInterface,
+                                  public score::FactoryInterface_QtInterface,
+                                  public score::Plugin_QtInterface
 {
   SCORE_PLUGIN_METADATA(1, "d4758f8d-64ac-41b4-8aaf-1cbd6f3feb91")
 public:

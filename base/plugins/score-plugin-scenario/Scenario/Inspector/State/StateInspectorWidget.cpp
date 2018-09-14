@@ -4,6 +4,32 @@
 
 #include <Inspector/InspectorSectionWidget.hpp>
 #include <Inspector/InspectorWidgetBase.hpp>
+#include <Scenario/Commands/Event/SplitEvent.hpp>
+#include <Scenario/Commands/State/AddStateProcess.hpp>
+#include <Scenario/Commands/State/RemoveStateProcess.hpp>
+#include <Scenario/Commands/TimeSync/SplitTimeSync.hpp>
+#include <Scenario/DialogWidget/MessageTreeView.hpp>
+#include <Scenario/Document/Event/EventModel.hpp>
+#include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
+#include <Scenario/Document/State/ItemModel/MessageItemModelAlgorithms.hpp>
+#include <Scenario/Document/State/StateModel.hpp>
+#include <Scenario/Inspector/MetadataWidget.hpp>
+#include <Scenario/Inspector/SelectionButton.hpp>
+#include <Scenario/Process/Algorithms/Accessors.hpp>
+#include <Scenario/Process/ScenarioModel.hpp>
+
+#include <score/command/Dispatchers/CommandDispatcher.hpp>
+#include <score/command/Dispatchers/MacroCommandDispatcher.hpp>
+#include <score/document/DocumentContext.hpp>
+#include <score/model/EntityMap.hpp>
+#include <score/model/Identifier.hpp>
+#include <score/model/path/Path.hpp>
+#include <score/selection/SelectionDispatcher.hpp>
+#include <score/tools/std/Optional.hpp>
+#include <score/widgets/MarginLess.hpp>
+#include <score/widgets/Separator.hpp>
+#include <score/widgets/TextLabel.hpp>
+
 #include <QAbstractProxyModel>
 #include <QApplication>
 #include <QFormLayout>
@@ -21,31 +47,8 @@
 #include <QVector>
 #include <QWidget>
 #include <QtAlgorithms>
-#include <Scenario/Commands/Event/SplitEvent.hpp>
-#include <Scenario/Commands/State/AddStateProcess.hpp>
-#include <Scenario/Commands/State/RemoveStateProcess.hpp>
-#include <Scenario/Commands/TimeSync/SplitTimeSync.hpp>
-#include <Scenario/DialogWidget/MessageTreeView.hpp>
-#include <Scenario/Document/Event/EventModel.hpp>
-#include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
-#include <Scenario/Document/State/ItemModel/MessageItemModelAlgorithms.hpp>
-#include <Scenario/Document/State/StateModel.hpp>
-#include <Scenario/Inspector/MetadataWidget.hpp>
-#include <Scenario/Inspector/SelectionButton.hpp>
-#include <Scenario/Process/Algorithms/Accessors.hpp>
-#include <Scenario/Process/ScenarioModel.hpp>
+
 #include <algorithm>
-#include <score/command/Dispatchers/CommandDispatcher.hpp>
-#include <score/command/Dispatchers/MacroCommandDispatcher.hpp>
-#include <score/document/DocumentContext.hpp>
-#include <score/model/EntityMap.hpp>
-#include <score/model/Identifier.hpp>
-#include <score/model/path/Path.hpp>
-#include <score/selection/SelectionDispatcher.hpp>
-#include <score/tools/std/Optional.hpp>
-#include <score/widgets/MarginLess.hpp>
-#include <score/widgets/Separator.hpp>
-#include <score/widgets/TextLabel.hpp>
 namespace Scenario
 {
 class MessageListProxy final : public QAbstractProxyModel
@@ -164,10 +167,11 @@ public:
 };
 
 StateInspectorWidget::StateInspectorWidget(
-    const StateModel& object,
-    const score::DocumentContext& doc,
+    const StateModel& object, const score::DocumentContext& doc,
     QWidget* parent)
-    : Inspector::InspectorWidgetBase{object, doc, parent, tr("State (%1)").arg(object.metadata().getName())}
+    : Inspector::InspectorWidgetBase{object, doc, parent,
+                                     tr("State (%1)")
+                                         .arg(object.metadata().getName())}
     , m_model{object}
     , m_context{doc}
     , m_commandDispatcher{m_context.commandStack}

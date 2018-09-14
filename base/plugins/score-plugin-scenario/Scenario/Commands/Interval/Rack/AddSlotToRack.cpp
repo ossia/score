@@ -12,6 +12,7 @@
 #include <score/model/path/PathSerialization.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/tools/IdentifierGeneration.hpp>
+
 #include <vector>
 
 namespace Scenario
@@ -21,17 +22,16 @@ namespace Command
 
 AddSlotToRack::AddSlotToRack(const Path<IntervalModel>& rackPath)
     : m_path{rackPath}
-    , m_slot{{}
-             , Id<Process::ProcessModel>{}
-             , score::AppContext()
-               .settings<Scenario::Settings::Model>()
-               .getSlotHeight()}
+    , m_slot{{},
+             Id<Process::ProcessModel>{},
+             score::AppContext()
+                 .settings<Scenario::Settings::Model>()
+                 .getSlotHeight()}
 {
 }
 
 AddSlotToRack::AddSlotToRack(const Path<IntervalModel>& rackPath, Slot&& slt)
-    : m_path{rackPath}
-    , m_slot{std::move(slt)}
+    : m_path{rackPath}, m_slot{std::move(slt)}
 {
 }
 

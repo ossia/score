@@ -4,24 +4,28 @@
 
 #include "JS/Commands/EditScript.hpp"
 
-#include <Process/Dataflow/ControlWidgets.hpp>
 #include <Inspector/InspectorWidgetBase.hpp>
 #include <JS/JSProcessModel.hpp>
 #include <JS/Qml/QmlObjects.hpp>
+#include <Process/Dataflow/ControlWidgets.hpp>
 #include <Process/Dataflow/Port.hpp>
+
+#include <score/command/Dispatchers/CommandDispatcher.hpp>
+#include <score/document/DocumentContext.hpp>
+#include <score/model/path/Path.hpp>
+#include <score/widgets/JS/JSEdit.hpp>
+#include <score/widgets/MarginLess.hpp>
+
 #include <QFormLayout>
 #include <QHeaderView>
 #include <QLabel>
 #include <QTableWidget>
 #include <QTableWidgetItem>
 #include <QVBoxLayout>
-#include <algorithm>
-#include <score/command/Dispatchers/CommandDispatcher.hpp>
-#include <score/document/DocumentContext.hpp>
-#include <score/model/path/Path.hpp>
-#include <score/widgets/JS/JSEdit.hpp>
-#include <score/widgets/MarginLess.hpp>
+
 #include <wobjectimpl.h>
+
+#include <algorithm>
 W_OBJECT_IMPL(JS::InspectorWidget)
 class QVBoxLayout;
 namespace JS
@@ -71,8 +75,7 @@ void JSWidgetBase::on_modelChanged(const QString& script)
 }
 
 InspectorWidget::InspectorWidget(
-    const JS::ProcessModel& JSModel,
-    const score::DocumentContext& doc,
+    const JS::ProcessModel& JSModel, const score::DocumentContext& doc,
     QWidget* parent)
     : InspectorWidgetDelegate_T{JSModel, parent}
     , JSWidgetBase{doc.commandStack}

@@ -6,6 +6,7 @@
 
 #include <Automation/State/AutomationState.hpp>
 #include <Inspector/InspectorWidgetFactoryInterface.hpp>
+
 #include <QString>
 
 namespace Automation
@@ -16,8 +17,7 @@ StateInspectorFactory::StateInspectorFactory() : InspectorWidgetFactory{}
 
 QWidget* StateInspectorFactory::make(
     const QList<const QObject*>& sourceElements,
-    const score::DocumentContext& doc,
-    QWidget* parent) const
+    const score::DocumentContext& doc, QWidget* parent) const
 {
   return new StateInspectorWidget{
       safe_cast<const ProcessState&>(*sourceElements.first()), doc, parent};

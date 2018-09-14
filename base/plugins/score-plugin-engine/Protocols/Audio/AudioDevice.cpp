@@ -1,14 +1,16 @@
 ﻿#include "AudioDevice.hpp"
+#include <Explorer/DeviceList.hpp>
+#include <Explorer/DeviceLogging.hpp>
+#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
+#include <Scenario/Execution/score2OSSIA.hpp>
+#include <State/Widgets/AddressFragmentLineEdit.hpp>
+
+#include <score/widgets/SignalUtils.hpp>
+
 #include <ossia/audio/audio_parameter.hpp>
 #include <ossia/network/generic/generic_device.hpp>
 #include <ossia/network/generic/generic_parameter.hpp>
 
-#include <Engine/ApplicationPlugin.hpp>
-#include <Execution/DocumentPlugin.hpp>
-#include <Audio/Settings/Model.hpp>
-#include <Scenario/Execution/score2OSSIA.hpp>
-#include <Explorer/DeviceList.hpp>
-#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <QButtonGroup>
 #include <QCheckBox>
 #include <QComboBox>
@@ -19,10 +21,10 @@
 #include <QLineEdit>
 #include <QRadioButton>
 #include <QTableWidget>
-#include <State/Widgets/AddressFragmentLineEdit.hpp>
-#include <Explorer/DeviceLogging.hpp>
-#include <score/widgets/SignalUtils.hpp>
 
+#include <Audio/Settings/Model.hpp>
+#include <Engine/ApplicationPlugin.hpp>
+#include <Execution/DocumentPlugin.hpp>
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Dataflow::AudioDevice)
 namespace Dataflow
@@ -53,8 +55,8 @@ void AudioDevice::addAddress(const Device::FullAddressSettings& settings)
   if (auto dev = getDevice())
   {
     // Create the node. It is added into the device.
-    ossia::net::node_base* node = Device::createNodeFromPath(
-        settings.address.path, *dev);
+    ossia::net::node_base* node
+        = Device::createNodeFromPath(settings.address.path, *dev);
     SCORE_ASSERT(node);
 
     auto kind_it = settings.extendedAttributes.find("audio-kind");
@@ -229,8 +231,7 @@ public:
     updateType(m_type.currentIndex());
   }
   AudioAddressDialog(
-      const Device::DeviceSettings& dev,
-      const score::DocumentContext& ctx,
+      const Device::DeviceSettings& dev, const score::DocumentContext& ctx,
       QWidget* parent)
       : Device::AddressDialog{parent}
       , m_device{*ctx.plugin<Execution::DocumentPlugin>().audio_device}
@@ -247,10 +248,8 @@ public:
   }
 
   AudioAddressDialog(
-      const Device::AddressSettings& addr,
-      const Device::DeviceSettings& dev,
-      const score::DocumentContext& ctx,
-      QWidget* parent)
+      const Device::AddressSettings& addr, const Device::DeviceSettings& dev,
+      const score::DocumentContext& ctx, QWidget* parent)
       : AudioAddressDialog{dev, ctx, parent}
   {
     m_nameEdit.setText(addr.name);
@@ -427,18 +426,15 @@ public:
 };
 
 Device::AddressDialog* AudioProtocolFactory::makeAddAddressDialog(
-    const Device::DeviceInterface& dev,
-    const score::DocumentContext& ctx,
+    const Device::DeviceInterface& dev, const score::DocumentContext& ctx,
     QWidget* parent)
 {
   return new AudioAddressDialog{dev.settings(), ctx, parent};
 }
 
 Device::AddressDialog* AudioProtocolFactory::makeEditAddressDialog(
-    const Device::AddressSettings& set,
-    const Device::DeviceInterface& dev,
-    const score::DocumentContext& ctx,
-    QWidget* parent)
+    const Device::AddressSettings& set, const Device::DeviceInterface& dev,
+    const score::DocumentContext& ctx, QWidget* parent)
 {
 
   return new AudioAddressDialog{set, dev.settings(), ctx, parent};

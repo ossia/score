@@ -1,7 +1,8 @@
 #pragma once
 
-#include <QValidator>
 #include <State/Expression.hpp>
+
+#include <QValidator>
 
 // TODO move in state plugin
 template <typename T>

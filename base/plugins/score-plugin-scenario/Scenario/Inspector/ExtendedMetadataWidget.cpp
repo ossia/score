@@ -2,16 +2,17 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "ExtendedMetadataWidget.hpp"
 
+#include <score/tools/QMapHelper.hpp>
+#include <score/widgets/ClearLayout.hpp>
+#include <score/widgets/MarginLess.hpp>
+#include <score/widgets/TextLabel.hpp>
+
 #include <QAction>
 #include <QFormLayout>
 #include <QInputDialog>
 #include <QLabel>
 #include <QLineEdit>
 #include <QPushButton>
-#include <score/tools/QMapHelper.hpp>
-#include <score/widgets/ClearLayout.hpp>
-#include <score/widgets/MarginLess.hpp>
-#include <score/widgets/TextLabel.hpp>
 
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Scenario::ExtendedMetadataWidget)

@@ -1,5 +1,6 @@
 #pragma once
 #include <QObject>
+
 #include <score_lib_base_export.h>
 class QWidget;
 

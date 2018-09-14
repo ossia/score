@@ -1,9 +1,10 @@
 #pragma once
-#include <QList>
-#include <QModelIndex>
 #include <score/model/tree/InvisibleRootNode.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/serialization/JSONVisitor.hpp>
+
+#include <QList>
+#include <QModelIndex>
 template <typename T>
 using ref = T&;
 template <typename T>

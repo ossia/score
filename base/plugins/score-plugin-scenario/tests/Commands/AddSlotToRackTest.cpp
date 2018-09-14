@@ -1,9 +1,10 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
-#include <QtTest/QtTest>
 #include <Scenario/Commands/Interval/Rack/AddSlotToRack.hpp>
 #include <Scenario/Document/Interval/Rack/RackModel.hpp>
 #include <Scenario/Document/Interval/Slot.hpp>
+
+#include <QtTest/QtTest>
 
 using namespace score;
 using namespace Scenario::Command;

@@ -226,6 +226,6 @@ void ScenarioStyle::update(const score::Skin& skin)
   GrayTextPen.setBrush(TimenodeDefault.getBrush());
   GrayTextPen.setCosmetic(true);
 
-  SlotHeaderPen = QPen{IntervalHeaderSideBorder.getBrush(), 1,
-                                 Qt::SolidLine, Qt::FlatCap, Qt::MiterJoin};
+  SlotHeaderPen = QPen{IntervalHeaderSideBorder.getBrush(), 1, Qt::SolidLine,
+                       Qt::FlatCap, Qt::MiterJoin};
 }

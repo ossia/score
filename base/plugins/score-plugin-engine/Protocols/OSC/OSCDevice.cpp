@@ -2,17 +2,19 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "OSCDevice.hpp"
 
+#include <Device/Protocol/DeviceSettings.hpp>
+#include <Explorer/DeviceList.hpp>
+#include <Explorer/DeviceLogging.hpp>
+#include <Protocols/OSC/OSCSpecificSettings.hpp>
+
 #include <ossia/network/generic/generic_device.hpp>
 #include <ossia/network/generic/generic_parameter.hpp>
 #include <ossia/network/osc/osc.hpp>
 
-#include <Explorer/DeviceLogging.hpp>
-#include <Device/Protocol/DeviceSettings.hpp>
-#include <Protocols/OSC/OSCSpecificSettings.hpp>
-#include <Explorer/DeviceList.hpp>
 #include <QDebug>
 #include <QString>
 #include <QVariant>
+
 #include <memory>
 namespace Engine
 {
@@ -77,12 +79,10 @@ void OSCDevice::setLearning(bool b)
         (DeviceInterface*)this);
     dev.on_node_renamed.connect<&DeviceInterface::nodeRenamed>(
         (DeviceInterface*)this);
-    dev.on_parameter_created
-        .connect<&DeviceInterface::addressCreated>(
-            (DeviceInterface*)this);
-    dev.on_attribute_modified
-        .connect<&DeviceInterface::addressUpdated>(
-            (DeviceInterface*)this);
+    dev.on_parameter_created.connect<&DeviceInterface::addressCreated>(
+        (DeviceInterface*)this);
+    dev.on_attribute_modified.connect<&DeviceInterface::addressUpdated>(
+        (DeviceInterface*)this);
   }
   else
   {
@@ -92,12 +92,10 @@ void OSCDevice::setLearning(bool b)
         (DeviceInterface*)this);
     dev.on_node_renamed.disconnect<&DeviceInterface::nodeRenamed>(
         (DeviceInterface*)this);
-    dev.on_parameter_created
-        .disconnect<&DeviceInterface::addressCreated>(
-            (DeviceInterface*)this);
-    dev.on_attribute_modified
-        .disconnect<&DeviceInterface::addressUpdated>(
-            (DeviceInterface*)this);
+    dev.on_parameter_created.disconnect<&DeviceInterface::addressCreated>(
+        (DeviceInterface*)this);
+    dev.on_attribute_modified.disconnect<&DeviceInterface::addressUpdated>(
+        (DeviceInterface*)this);
   }
 
   proto.set_learning(b);

@@ -1,10 +1,13 @@
 #pragma once
 #include <Device/Address/AddressSettings.hpp>
-#include <wobjectdefs.h>
 #include <Device/Protocol/ProtocolSettingsWidget.hpp>
-#include <QDialog>
+
 #include <score/widgets/WidgetWrapper.hpp>
+
+#include <QDialog>
+
 #include <score_plugin_deviceexplorer_export.h>
+#include <wobjectdefs.h>
 class QComboBox;
 class QFormLayout;
 class QLineEdit;

@@ -8,6 +8,7 @@
 #include <Curve/Palette/CurvePaletteBaseStates.hpp>
 #include <Curve/Palette/CurvePoint.hpp>
 #include <Curve/Segment/CurveSegmentModel.hpp>
+
 #include <score/command/Dispatchers/SingleOngoingCommandDispatcher.hpp>
 #include <score/model/IdentifiedObjectMap.hpp>
 #include <score/model/path/Path.hpp>
@@ -254,9 +255,7 @@ void PenCommandObject::release_n(seg_tuple&& segts_tpl)
 }
 
 std::tuple<
-    optional<SegmentData>,
-    optional<SegmentData>,
-    std::vector<SegmentData>>
+    optional<SegmentData>, optional<SegmentData>, std::vector<SegmentData>>
 PenCommandObject::filterSegments()
 {
   auto x = m_state->currentPoint.x();

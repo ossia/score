@@ -4,7 +4,6 @@
 
 #include <Process/TimeValue.hpp>
 #include <Process/TimeValueSerialization.hpp>
-#include <QByteArray>
 #include <Scenario/Commands/Scenario/Creations/CreateInterval_State_Event.hpp>
 #include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
 #include <Scenario/Process/Algorithms/StandardCreationPolicy.hpp>
@@ -15,6 +14,9 @@
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/tools/IdentifierGeneration.hpp>
 #include <score/tools/RandomNameProvider.hpp>
+
+#include <QByteArray>
+
 #include <vector>
 
 namespace Scenario
@@ -22,10 +24,8 @@ namespace Scenario
 namespace Command
 {
 CreateInterval_State_Event_TimeSync::CreateInterval_State_Event_TimeSync(
-    const Scenario::ProcessModel& scenario,
-    Id<StateModel> startState,
-    TimeVal date,
-    double endStateY)
+    const Scenario::ProcessModel& scenario, Id<StateModel> startState,
+    TimeVal date, double endStateY)
     : m_newTimeSync{getStrongId(scenario.timeSyncs)}
     , m_createdName{RandomNameProvider::generateName<TimeSyncModel>()}
     , m_command{scenario, std::move(startState), m_newTimeSync, endStateY}

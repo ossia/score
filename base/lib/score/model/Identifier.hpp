@@ -1,8 +1,9 @@
 #pragma once
-#include <QDebug>
-#include <QPointer>
 #include <score/tools/Todo.hpp>
 #include <score/tools/std/Optional.hpp>
+
+#include <QDebug>
+#include <QPointer>
 
 namespace score
 {
@@ -64,7 +65,9 @@ class id_base_t
 
 public:
   using value_type = impl;
-  explicit id_base_t() noexcept { }
+  explicit id_base_t() noexcept
+  {
+  }
 
   id_base_t(const id_base_t& other) noexcept : m_id{other.m_id}
   {
@@ -76,15 +79,16 @@ public:
   template <typename other>
   id_base_t(
       const id_base_t<other, impl>& oid,
-      typename std::enable_if<std::is_base_of_v<tag, other>>::type* = 0) noexcept
+      typename std::enable_if<
+          std::is_base_of_v<tag, other>>::type* = 0) noexcept
       : m_id{oid.val()}
   {
   }
 
   template <typename other>
   id_base_t(
-      id_base_t&& oid,
-      typename std::enable_if<std::is_base_of_v<tag, other>>::type* = 0) noexcept
+      id_base_t&& oid, typename std::enable_if<
+                           std::is_base_of_v<tag, other>>::type* = 0) noexcept
       : m_id{oid.val()}
   {
   }
@@ -109,7 +113,8 @@ public:
   {
   }
 
-  explicit id_base_t(tag& element) noexcept : m_ptr{&element}, m_id{element.id()}
+  explicit id_base_t(tag& element) noexcept
+      : m_ptr{&element}, m_id{element.id()}
   {
   }
 

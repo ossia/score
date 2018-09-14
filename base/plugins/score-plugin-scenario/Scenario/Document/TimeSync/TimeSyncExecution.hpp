@@ -1,6 +1,8 @@
 #pragma once
-#include <ossia/editor/expression/expression.hpp>
 #include <Process/ExecutionComponent.hpp>
+
+#include <ossia/editor/expression/expression.hpp>
+
 #include <score_plugin_scenario_export.h>
 namespace ossia
 {
@@ -21,10 +23,8 @@ class SCORE_PLUGIN_SCENARIO_EXPORT TimeSyncComponent final
 public:
   static const constexpr bool is_unique = true;
   TimeSyncComponent(
-      const Scenario::TimeSyncModel& element,
-      const Execution::Context& ctx,
-      const Id<score::Component>& id,
-      QObject* parent);
+      const Scenario::TimeSyncModel& element, const Execution::Context& ctx,
+      const Id<score::Component>& id, QObject* parent);
 
   void cleanup();
 

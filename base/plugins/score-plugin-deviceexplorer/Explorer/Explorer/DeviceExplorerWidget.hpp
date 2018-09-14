@@ -1,14 +1,18 @@
 #pragma once
 
 #include <Device/Node/DeviceNode.hpp>
-#include <wobjectdefs.h>
 #include <Explorer/Explorer/ListeningManager.hpp>
+
+#include <score/command/Dispatchers/CommandDispatcher.hpp>
+#include <score/model/tree/TreePath.hpp>
+
 #include <QAbstractItemModel>
 #include <QGroupBox>
 #include <QWidget>
+
+#include <wobjectdefs.h>
+
 #include <memory>
-#include <score/command/Dispatchers/CommandDispatcher.hpp>
-#include <score/model/tree/TreePath.hpp>
 
 class QAction;
 class QContextMenuEvent;
@@ -126,6 +130,7 @@ private:
   QMetaObject::Connection m_addressCon;
 
 public:
-  void findAddresses(QStringList strlst) E_SIGNAL(SCORE_PLUGIN_DEVICEEXPLORER_EXPORT, findAddresses, strlst);
+  void findAddresses(QStringList strlst)
+      E_SIGNAL(SCORE_PLUGIN_DEVICEEXPLORER_EXPORT, findAddresses, strlst);
 };
 }

@@ -1,9 +1,10 @@
 #pragma once
+#include <Media/Effect/VST/VSTEffectModel.hpp>
+#include <Process/Dataflow/TimeSignature.hpp>
+
 #include <ossia/dataflow/fx_node.hpp>
 #include <ossia/dataflow/graph_node.hpp>
-
-#include <Process/Dataflow/TimeSignature.hpp>
-#include <Media/Effect/VST/VSTEffectModel.hpp>
+#include <ossia/dataflow/port.hpp>
 #include <ossia/detail/pod_vector.hpp>
 
 namespace Media
@@ -20,11 +21,8 @@ private:
   time_signature m_sig{4, 4};
 
   void dispatch(
-      int32_t opcode,
-      int32_t index = 0,
-      intptr_t value = 0,
-      void* ptr = nullptr,
-      float opt = 0.0f)
+      int32_t opcode, int32_t index = 0, intptr_t value = 0,
+      void* ptr = nullptr, float opt = 0.0f)
   {
     fx->dispatch(opcode, index, value, ptr, opt);
   }
@@ -142,7 +140,8 @@ public:
         continue;
       if (auto t = last(vec).template target<float>())
       {
-        fx->fx->setParameter(fx->fx, p.first, ossia::clamp<float>(*t, 0.f, 1.f));
+        fx->fx->setParameter(
+            fx->fx, p.first, ossia::clamp<float>(*t, 0.f, 1.f));
       }
     }
   }
@@ -238,7 +237,8 @@ public:
     time_info.flags = kVstTransportPlaying & kVstNanosValid & kVstPpqPosValid
                       & kVstTempoValid & kVstTimeSigValid & kVstClockValid;
   }
-  void run(ossia::token_request tk, ossia::exec_state_facade st) noexcept override
+  void
+  run(ossia::token_request tk, ossia::exec_state_facade st) noexcept override
   {
     if (!muted() && tk.date > tk.prev_date)
     {
@@ -252,9 +252,10 @@ public:
         {
           dispatchMidi([=] {
             auto& op = prepareOutput(samples);
-            const auto max_io = std::max(this->fx->fx->numOutputs, this->fx->fx->numInputs);
-            double** output = (double**)alloca(
-                sizeof(double*) * std::max(2, max_io));
+            const auto max_io
+                = std::max(this->fx->fx->numOutputs, this->fx->fx->numInputs);
+            double** output
+                = (double**)alloca(sizeof(double*) * std::max(2, max_io));
             output[0] = op[0].data();
             output[1] = op[1].data();
             double* dummy = (double*)alloca(sizeof(double) * samples);
@@ -301,9 +302,10 @@ public:
             for (auto& vec : float_v)
               vec.resize(samples);
 
-            const auto max_io = std::max(this->fx->fx->numOutputs, this->fx->fx->numInputs);
-            float** output = (float**)alloca(
-                sizeof(float*) * std::max(2, max_io));
+            const auto max_io
+                = std::max(this->fx->fx->numOutputs, this->fx->fx->numInputs);
+            float** output
+                = (float**)alloca(sizeof(float*) * std::max(2, max_io));
             output[0] = float_v[0].data();
             output[1] = float_v[1].data();
             for (int i = 2; i < max_io; i++)
@@ -336,8 +338,10 @@ public:
 
           float* dummy = (float*)alloca(sizeof(float) * samples);
 
-          const auto max_io = std::max(this->fx->fx->numOutputs, this->fx->fx->numInputs);
-          float** output = (float**)alloca(sizeof(float*) * std::max(2, max_io));
+          const auto max_io
+              = std::max(this->fx->fx->numOutputs, this->fx->fx->numInputs);
+          float** output
+              = (float**)alloca(sizeof(float*) * std::max(2, max_io));
           output[0] = float_v[0].data();
           output[1] = float_v[1].data();
           for (int i = 2; i < max_io; i++)

@@ -1,12 +1,14 @@
 #pragma once
 #include <Device/Protocol/DeviceSettings.hpp>
 #include <Device/Protocol/ProtocolSettingsWidget.hpp>
+
 #include <wobjectdefs.h>
 
 class QLineEdit;
 class QComboBox;
 
-namespace Engine::Network {
+namespace Engine::Network
+{
 
 class JoystickProtocolSettingsWidget final
     : public Device::ProtocolSettingsWidget
@@ -26,5 +28,4 @@ protected:
   QLineEdit* m_deviceNameEdit{};
   QComboBox* m_deviceChoice{};
 };
-
 }

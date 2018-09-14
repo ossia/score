@@ -1,14 +1,17 @@
 #pragma once
+#include <score/model/IdentifiedObject.hpp>
+#include <score/selection/Selection.hpp>
+
 #include <QByteArray>
 #include <QJsonObject>
 #include <QString>
 #include <QVariant>
+
+#include <wobjectdefs.h>
+
 #include <algorithm>
 #include <iterator>
-#include <score/model/IdentifiedObject.hpp>
-#include <score/selection/Selection.hpp>
 #include <vector>
-#include <wobjectdefs.h>
 class QObject;
 #include <score/model/Identifier.hpp>
 
@@ -31,15 +34,11 @@ class SCORE_LIB_BASE_EXPORT DocumentModel final
   W_OBJECT(DocumentModel)
 public:
   DocumentModel(
-      const Id<DocumentModel>& id,
-      const score::DocumentContext& ctx,
-      DocumentDelegateFactory& fact,
-      QObject* parent);
+      const Id<DocumentModel>& id, const score::DocumentContext& ctx,
+      DocumentDelegateFactory& fact, QObject* parent);
   DocumentModel(
-      score::DocumentContext& ctx,
-      const QVariant& data,
-      DocumentDelegateFactory& fact,
-      QObject* parent);
+      score::DocumentContext& ctx, const QVariant& data,
+      DocumentDelegateFactory& fact, QObject* parent);
   ~DocumentModel();
 
   DocumentDelegateModel& modelDelegate() const
@@ -54,16 +53,14 @@ public:
     return m_pluginModels;
   }
 
-  void pluginModelsChanged() E_SIGNAL(SCORE_LIB_BASE_EXPORT, pluginModelsChanged)
+  void pluginModelsChanged()
+      E_SIGNAL(SCORE_LIB_BASE_EXPORT, pluginModelsChanged)
 
-      private
-      : void loadDocumentAsJson(
-            score::DocumentContext& ctx,
-            const QJsonObject&,
-            DocumentDelegateFactory& fact);
+          private : void loadDocumentAsJson(
+                        score::DocumentContext& ctx, const QJsonObject&,
+                        DocumentDelegateFactory& fact);
   void loadDocumentAsByteArray(
-      score::DocumentContext& ctx,
-      const QByteArray&,
+      score::DocumentContext& ctx, const QByteArray&,
       DocumentDelegateFactory& fact);
 
   std::vector<DocumentPlugin*> m_pluginModels;

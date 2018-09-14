@@ -2,7 +2,6 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "ScenarioGlobalCommandManager.hpp"
 
-#include <QDebug>
 #include <Scenario/Commands/ClearSelection.hpp>
 #include <Scenario/Commands/Interval/RemoveProcessFromInterval.hpp>
 #include <Scenario/Commands/Scenario/Deletions/ClearInterval.hpp>
@@ -17,7 +16,7 @@
 #include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
 #include <Scenario/Process/Algorithms/Accessors.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
-#include <algorithm>
+
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/command/Dispatchers/MacroCommandDispatcher.hpp>
 #include <score/document/DocumentContext.hpp>
@@ -27,6 +26,10 @@
 #include <score/selection/SelectionDispatcher.hpp>
 #include <score/selection/SelectionStack.hpp>
 #include <score/tools/std/Optional.hpp>
+
+#include <QDebug>
+
+#include <algorithm>
 
 namespace score
 {
@@ -83,8 +86,7 @@ void erase_if(Range& r, Fun f)
 }
 
 void removeSelection(
-    const Scenario::ProcessModel& scenario,
-    const score::DocumentContext& ctx)
+    const Scenario::ProcessModel& scenario, const score::DocumentContext& ctx)
 {
   auto& stack = ctx.commandStack;
   MacroCommandDispatcher<ClearSelection> cleaner{stack};
@@ -148,8 +150,7 @@ void removeSelection(const BaseScenario&, const score::DocumentContext&)
 }
 
 void clearContentFromSelection(
-    const BaseScenarioContainer& scenario,
-    const score::DocumentContext& ctx)
+    const BaseScenarioContainer& scenario, const score::DocumentContext& ctx)
 {
   QList<const Scenario::IntervalModel*> itv;
   QList<const Scenario::StateModel*> states;

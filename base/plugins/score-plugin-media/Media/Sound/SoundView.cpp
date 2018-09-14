@@ -1,18 +1,21 @@
 #include "SoundView.hpp"
 
+#include <score/widgets/GraphicsItem.hpp>
+
+#include <ossia/detail/pod_vector.hpp>
+
 #include <QGraphicsSceneContextMenuEvent>
 #include <QGraphicsView>
 #include <QPainter>
 #include <QScrollBar>
 #include <QTimer>
+
 #include <cmath>
-#include <score/widgets/GraphicsItem.hpp>
-#include <ossia/detail/pod_vector.hpp>
 
 #if defined(__AVX2__) && __has_include(<immintrin.h>)
-#  include <immintrin.h>
+#include <immintrin.h>
 #elif defined(__SSE2__) && __has_include(<xmmintrin.h>)
-#  include <xmmintrin.h>
+#include <xmmintrin.h>
 #endif
 #include <wobjectimpl.h>
 W_REGISTER_ARGTYPE(const Media::MediaFileHandle*)
@@ -208,12 +211,10 @@ WaveformComputer::action WaveformComputer::compareDensity(const double density)
 }
 
 void WaveformComputer::computeDataSet(
-    const MediaFileHandle& data,
-    ZoomRatio ratio,
-    double* densityptr,
+    const MediaFileHandle& data, ZoomRatio ratio, double* densityptr,
     std::vector<ossia::float_vector>& dataset)
 {
-  if(!data.handle())
+  if (!data.handle())
     return;
 
   auto& arr = data.data();
@@ -354,14 +355,14 @@ void WaveformComputer::drawWaveForms(
 void WaveformComputer::on_recompute(
     const MediaFileHandle* pdata, ZoomRatio ratio)
 {
-  if(!pdata)
+  if (!pdata)
     return;
 
   auto& data = *pdata;
   QPointer<const MediaFileHandle> data_qp{pdata};
   m_zoom = ratio;
 
-  if(!data.handle())
+  if (!data.handle())
     return;
   if (data.channels() == 0)
     return;
@@ -380,7 +381,7 @@ void WaveformComputer::on_recompute(
       m_density = m_nextdensity;
 
       QTimer::singleShot(0, [this, data_qp, ratio, density] {
-        if(!data_qp)
+        if (!data_qp)
           return;
         if (density > 1)
           computeDataSet(*data_qp, ratio / 2., &m_nextdensity, m_nextdata);
@@ -394,7 +395,7 @@ void WaveformComputer::on_recompute(
       m_nextdensity = m_density;
       m_density = m_prevdensity;
       QTimer::singleShot(0, [this, data_qp, ratio] {
-        if(!data_qp)
+        if (!data_qp)
           return;
         computeDataSet(*data_qp, 2. * ratio, &m_prevdensity, m_prevdata);
       });
@@ -402,7 +403,7 @@ void WaveformComputer::on_recompute(
     case RECOMPUTE_ALL:
       computeDataSet(data, ratio, &m_density, m_curdata);
       QTimer::singleShot(0, [this, data_qp, ratio] {
-        if(!data_qp)
+        if (!data_qp)
           return;
         computeDataSet(*data_qp, 2. * ratio, &m_prevdensity, m_prevdata);
         computeDataSet(*data_qp, ratio / 2., &m_nextdensity, m_nextdata);

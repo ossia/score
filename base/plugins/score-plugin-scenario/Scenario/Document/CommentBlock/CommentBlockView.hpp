@@ -1,16 +1,15 @@
 #pragma once
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentViewConstants.hpp>
+
 #include <QGraphicsItem>
 #include <QObject>
 #include <QPointF>
-#include <Scenario/Document/ScenarioDocument/ScenarioDocumentViewConstants.hpp>
 namespace Scenario
 {
 class TextItem;
 
 class CommentBlockPresenter;
-class CommentBlockView final
-    : public QObject
-    , public QGraphicsItem
+class CommentBlockView final : public QObject, public QGraphicsItem
 {
 public:
   CommentBlockView(CommentBlockPresenter& presenter, QGraphicsItem* parent);
@@ -32,8 +31,7 @@ public:
   }
 
   void paint(
-      QPainter* painter,
-      const QStyleOptionGraphicsItem* option,
+      QPainter* painter, const QStyleOptionGraphicsItem* option,
       QWidget* widget) override;
 
   QRectF boundingRect() const override;

@@ -2,25 +2,27 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "BaseScenario.hpp"
 
-#include <ossia/detail/algorithms.hpp>
-
-#include <QString>
+#include <Process/TimeValueSerialization.hpp>
 #include <Scenario/Commands/MoveBaseEvent.hpp>
 #include <Scenario/Document/BaseScenario/BaseScenarioContainer.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
 #include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
+
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/document/DocumentInterface.hpp>
 #include <score/model/Identifier.hpp>
 #include <score/selection/Selection.hpp>
 #include <score/tools/std/Optional.hpp>
-#include <Process/TimeValueSerialization.hpp>
-#include <Scenario/Commands/MoveBaseEvent.hpp>
-#include <tuple>
+
+#include <ossia/detail/algorithms.hpp>
+
+#include <QString>
 
 #include <wobjectimpl.h>
+
+#include <tuple>
 W_OBJECT_IMPL(Scenario::BaseScenario)
 namespace Scenario
 {
@@ -58,18 +60,16 @@ bool BaseScenario::focused() const
   return res;
 }
 
-void BaseScenario::changeDuration(IntervalModel& , const TimeVal& v)
+void BaseScenario::changeDuration(IntervalModel&, const TimeVal& v)
 {
   Command::MoveBaseEvent<BaseScenario> cmd(
       *this, endEvent().id(), v, 0., ExpandMode::GrowShrink, LockMode::Free);
   cmd.redo(score::IDocument::documentContext(*this));
 }
 
-void BaseScenario::changeDuration(const Scenario::IntervalModel& itv,
-                                  OngoingCommandDispatcher& dispatcher,
-                                  const TimeVal& val,
-                                  ExpandMode expandmode,
-                                  LockMode lockmode)
+void BaseScenario::changeDuration(
+    const Scenario::IntervalModel& itv, OngoingCommandDispatcher& dispatcher,
+    const TimeVal& val, ExpandMode expandmode, LockMode lockmode)
 {
   auto& scenario = *this;
   dispatcher.submitCommand<Command::MoveBaseEvent<BaseScenario>>(

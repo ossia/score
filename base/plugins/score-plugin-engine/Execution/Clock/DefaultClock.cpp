@@ -2,30 +2,30 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "DefaultClock.hpp"
 
-#include <ossia/dataflow/graph/graph_interface.hpp>
-#include <ossia/dataflow/execution_state.hpp>
 #include <Process/ExecutionContext.hpp>
-#include <Execution/BaseScenarioComponent.hpp>
-#include <Scenario/Document/Interval/IntervalExecution.hpp>
 #include <Scenario/Document/Event/EventExecution.hpp>
-#include <Execution/Settings/ExecutorModel.hpp>
-#include <Engine/OSSIA2score.hpp>
+#include <Scenario/Document/Interval/IntervalExecution.hpp>
 #include <Scenario/Execution/score2OSSIA.hpp>
+
+#include <ossia/dataflow/execution_state.hpp>
+#include <ossia/dataflow/graph/graph_interface.hpp>
+
+#include <Engine/OSSIA2score.hpp>
+#include <Execution/BaseScenarioComponent.hpp>
+#include <Execution/Settings/ExecutorModel.hpp>
 
 namespace Execution
 {
 DefaultClock::~DefaultClock() = default;
-DefaultClock::DefaultClock(const Context& ctx)
-    : Clock{ctx}
+DefaultClock::DefaultClock(const Context& ctx) : Clock{ctx}
 {
 }
 
-void DefaultClock::prepareExecution(
-    const TimeVal& t, BaseScenarioElement& bs)
+void DefaultClock::prepareExecution(const TimeVal& t, BaseScenarioElement& bs)
 {
   auto& settings = context.doc.app.settings<Execution::Settings::Model>();
   IntervalComponentBase& comp = bs.baseInterval();
-  if(settings.getValueCompilation())
+  if (settings.getValueCompilation())
   {
     comp.interval().duration.setPlayPercentage(0);
 
@@ -84,8 +84,7 @@ ControlClock::ControlClock(const Execution::Context& ctx)
   m_clock.set_exec_status_callback([=](ossia::clock::exec_status c) {
     if (c == ossia::clock::exec_status::STOPPED)
     {
-      scenario.endEvent().OSSIAEvent()->tick(
-          ossia::Zero, 0., ossia::Zero);
+      scenario.endEvent().OSSIAEvent()->tick(ossia::Zero, 0., ossia::Zero);
       context.execGraph->state(*context.execState);
       context.execState->commit();
 
@@ -137,8 +136,7 @@ QString ControlClockFactory::prettyName() const
   return QObject::tr("Default");
 }
 
-std::unique_ptr<Clock>
-ControlClockFactory::make(const Execution::Context& ctx)
+std::unique_ptr<Clock> ControlClockFactory::make(const Execution::Context& ctx)
 {
   return std::make_unique<ControlClock>(ctx);
 }
@@ -149,11 +147,9 @@ ControlClockFactory::makeTimeFunction(const score::DocumentContext& ctx) const
   return &Engine::score_to_ossia::defaultTime;
 }
 
-Execution::reverse_time_function
-ControlClockFactory::makeReverseTimeFunction(
+Execution::reverse_time_function ControlClockFactory::makeReverseTimeFunction(
     const score::DocumentContext& ctx) const
 {
   return &Engine::ossia_to_score::defaultTime;
 }
 }
-

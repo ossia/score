@@ -30,17 +30,14 @@ class DropHandler final : public Scenario::DropHandler
   SCORE_CONCRETE("bc57983b-c29e-4b12-8afe-9d6ffbcb7a94")
 
   bool drop(
-      const Scenario::TemporalScenarioPresenter&,
-      QPointF pos,
+      const Scenario::TemporalScenarioPresenter&, QPointF pos,
       const QMimeData& mime) override;
 
   bool createInSequence(
-      const Scenario::TemporalScenarioPresenter&,
-      QPointF pos,
+      const Scenario::TemporalScenarioPresenter&, QPointF pos,
       DroppedAudioFiles&& audio);
   bool createInParallel(
-      const Scenario::TemporalScenarioPresenter&,
-      QPointF pos,
+      const Scenario::TemporalScenarioPresenter&, QPointF pos,
       DroppedAudioFiles&& audio);
 };
 

@@ -1,11 +1,14 @@
 #pragma once
-#include <QByteArray>
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
+
 #include <score/command/Command.hpp>
 #include <score/model/Identifier.hpp>
 #include <score/model/path/Path.hpp>
 #include <score/tools/std/Optional.hpp>
+
+#include <QByteArray>
+
 #include <score_plugin_scenario_export.h>
 struct DataStreamInput;
 struct DataStreamOutput;
@@ -27,8 +30,7 @@ class SCORE_PLUGIN_SCENARIO_EXPORT AddLayerModelToSlot final
     : public score::Command
 {
   SCORE_COMMAND_DECL(
-      ScenarioCommandFactoryName(),
-      AddLayerModelToSlot,
+      ScenarioCommandFactoryName(), AddLayerModelToSlot,
       "Add a layer to a slot")
 public:
   AddLayerModelToSlot(const SlotPath& slot, Id<Process::ProcessModel> process);

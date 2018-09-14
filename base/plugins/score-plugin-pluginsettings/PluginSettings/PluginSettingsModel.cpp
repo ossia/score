@@ -2,6 +2,9 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "PluginSettingsModel.hpp"
 
+#include <score/application/ApplicationContext.hpp>
+#include <score/plugins/settingsdelegate/SettingsDelegateModel.hpp>
+
 #include <ossia/detail/algorithms.hpp>
 
 #include <QApplication>
@@ -12,8 +15,6 @@
 #include <QStringList>
 #include <QVariant>
 #include <qnamespace.h>
-#include <score/application/ApplicationContext.hpp>
-#include <score/plugins/settingsdelegate/SettingsDelegateModel.hpp>
 namespace PluginSettings
 {
 PluginSettingsModel::PluginSettingsModel(

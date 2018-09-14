@@ -1,11 +1,14 @@
 #pragma once
 #include <Process/LayerView.hpp>
-#include <wobjectdefs.h>
-#include <QPoint>
-#include <QRect>
+
 #include <score/tools/std/Optional.hpp>
 #include <score/widgets/MimeData.hpp>
+
+#include <QPoint>
+#include <QRect>
+
 #include <score_plugin_scenario_export.h>
+#include <wobjectdefs.h>
 class QGraphicsItem;
 class QGraphicsSceneContextMenuEvent;
 class QGraphicsSceneDragDropEvent;

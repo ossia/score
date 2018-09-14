@@ -1,8 +1,11 @@
 #pragma once
-#include <ossia/editor/scenario/time_value.hpp>
-#include <wobjectdefs.h>
-
 #include <Process/TimeValue.hpp>
+#include <Scenario/Document/TimeRuler/TimeRuler.hpp>
+
+#include <score/model/ColorReference.hpp>
+
+#include <ossia/editor/scenario/time_value.hpp>
+
 #include <QCache>
 #include <QColor>
 #include <QDateTime>
@@ -14,11 +17,12 @@
 #include <QString>
 #include <QTextLayout>
 #include <QtGlobal>
-#include <Scenario/Document/TimeRuler/TimeRuler.hpp>
+
+#include <score_plugin_scenario_export.h>
+#include <wobjectdefs.h>
+
 #include <chrono>
 #include <deque>
-#include <score/model/ColorReference.hpp>
-#include <score_plugin_scenario_export.h>
 class QGraphicsSceneMouseEvent;
 class QPainter;
 class QStyleOptionGraphicsItem;
@@ -27,9 +31,8 @@ class QGraphicsView;
 
 namespace Scenario
 {
-class SCORE_PLUGIN_SCENARIO_EXPORT TimeRuler final
-    : public QObject
-    , public QGraphicsItem
+class SCORE_PLUGIN_SCENARIO_EXPORT TimeRuler final : public QObject,
+                                                     public QGraphicsItem
 {
   W_OBJECT(TimeRuler)
   Q_INTERFACES(QGraphicsItem)
@@ -43,8 +46,7 @@ public:
 
   TimeRuler(QGraphicsView*);
   void paint(
-      QPainter* painter,
-      const QStyleOptionGraphicsItem* option,
+      QPainter* painter, const QStyleOptionGraphicsItem* option,
       QWidget* widget) override;
 
   void setWidth(qreal newWidth);
@@ -63,7 +65,7 @@ public:
   void setPixelPerMillis(double factor);
 
 public:
-  void drag(QPointF arg_1, QPointF  arg_2) W_SIGNAL(drag, arg_1, arg_2);
+  void drag(QPointF arg_1, QPointF arg_2) W_SIGNAL(drag, arg_1, arg_2);
   void rescale() W_SIGNAL(rescale);
 
 private:

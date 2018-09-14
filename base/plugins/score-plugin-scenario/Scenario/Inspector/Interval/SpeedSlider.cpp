@@ -1,25 +1,23 @@
+#include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Inspector/Interval/SpeedSlider.hpp>
 
-#include <Scenario/Document/Interval/IntervalModel.hpp>
+#include <score/widgets/ControlWidgets.hpp>
 #include <score/widgets/MarginLess.hpp>
 #include <score/widgets/TextLabel.hpp>
-#include <score/widgets/ControlWidgets.hpp>
-#include <QWidget>
+
+#include <QGridLayout>
 #include <QPushButton>
 #include <QSlider>
 #include <QVBoxLayout>
-#include <QGridLayout>
+#include <QWidget>
 
 namespace Scenario
 {
 
 SpeedWidget::SpeedWidget(
-    const Scenario::IntervalModel& model
-    , const score::DocumentContext&
-    , bool withButtons
-    , QWidget* parent)
-  : QWidget{parent}
-  , m_model{model}
+    const Scenario::IntervalModel& model, const score::DocumentContext&,
+    bool withButtons, QWidget* parent)
+    : QWidget{parent}, m_model{model}
 {
   setObjectName("SpeedSlider");
   auto lay = new score::MarginLess<QGridLayout>{this};
@@ -32,20 +30,19 @@ SpeedWidget::SpeedWidget(
     }
   };
 
-  if(withButtons)
+  if (withButtons)
   {
     // Buttons
     int btn_col = 0;
     for (double factor : {0., 50., 100., 200., 500.})
     {
-      auto pb
-          = new QPushButton{"x " + QString::number(factor * 0.01), this};
+      auto pb = new QPushButton{"x " + QString::number(factor * 0.01), this};
       pb->setMinimumWidth(35);
       pb->setMaximumWidth(45);
       pb->setFlat(true);
       pb->setContentsMargins(0, 0, 0, 0);
-      pb->setStyleSheet(
-            QStringLiteral("QPushButton { margin: 0px; padding: 0px; border: none; }"));
+      pb->setStyleSheet(QStringLiteral(
+          "QPushButton { margin: 0px; padding: 0px; border: none; }"));
 
       connect(pb, &QPushButton::clicked, this, [=] { setSpeedFun(factor); });
       lay->addWidget(pb, 1, btn_col++, 1, 1);
@@ -58,8 +55,7 @@ SpeedWidget::SpeedWidget(
   speedSlider->setMinimum(-100);
   speedSlider->setMaximum(500);
   speedSlider->setValue(m_model.duration.speed() * 100.);
-  con(model.duration, &IntervalDurations::speedChanged, this,
-      [=](double s) {
+  con(model.duration, &IntervalDurations::speedChanged, this, [=](double s) {
     double r = s * 100;
     if (r != speedSlider->value())
       speedSlider->setValue(r);
@@ -75,7 +71,5 @@ SpeedWidget::SpeedWidget(
 
 SpeedWidget::~SpeedWidget()
 {
-
 }
-
 }

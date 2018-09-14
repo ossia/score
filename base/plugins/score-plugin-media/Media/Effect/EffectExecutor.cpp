@@ -1,31 +1,27 @@
 #include "EffectExecutor.hpp"
 
-#include <ossia/dataflow/graph/graph_interface.hpp>
-#include <ossia/dataflow/port.hpp>
-#include <ossia/dataflow/graph_edge.hpp>
-#include <Process/ExecutionSetup.hpp>
 #include <Process/ExecutionContext.hpp>
+#include <Process/ExecutionSetup.hpp>
+
+#include <ossia/dataflow/graph/graph_interface.hpp>
+#include <ossia/dataflow/graph_edge.hpp>
+#include <ossia/dataflow/port.hpp>
 namespace Media
 {
 
 EffectProcessComponentBase::EffectProcessComponentBase(
-    Media::Effect::ProcessModel& element,
-    const Execution::Context& ctx,
-    const Id<score::Component>& id,
-    QObject* parent)
+    Media::Effect::ProcessModel& element, const Execution::Context& ctx,
+    const Id<score::Component>& id, QObject* parent)
     : Execution::ProcessComponent_T<
-          Media::Effect::ProcessModel,
-          ossia::node_chain_process>{element, ctx, id,
-                                     "Executor::EffectComponent", parent}
+          Media::Effect::ProcessModel, ossia::node_chain_process>{
+          element, ctx, id, "Executor::EffectComponent", parent}
 {
   m_ossia_process = std::make_shared<ossia::node_chain_process>();
 }
 
 static auto move_edges(
-    ossia::inlet& old_in,
-    ossia::inlet_ptr new_in,
-    std::shared_ptr<ossia::graph_node> new_node,
-    ossia::graph_interface& g)
+    ossia::inlet& old_in, ossia::inlet_ptr new_in,
+    std::shared_ptr<ossia::graph_node> new_node, ossia::graph_interface& g)
 {
   auto old_sources = old_in.sources;
   for (auto e : old_sources)
@@ -35,10 +31,8 @@ static auto move_edges(
   }
 }
 static auto move_edges(
-    ossia::outlet& old_out,
-    ossia::outlet_ptr new_out,
-    std::shared_ptr<ossia::graph_node> new_node,
-    ossia::graph_interface& g)
+    ossia::outlet& old_out, ossia::outlet_ptr new_out,
+    std::shared_ptr<ossia::graph_node> new_node, ossia::graph_interface& g)
 {
   auto old_targets = old_out.targets;
   for (auto e : old_targets)
@@ -50,8 +44,7 @@ static auto move_edges(
 
 Execution::ProcessComponent* EffectProcessComponentBase::make(
     const Id<score::Component>& id,
-    Execution::ProcessComponentFactory& factory,
-    Process::ProcessModel& effect)
+    Execution::ProcessComponentFactory& factory, Process::ProcessModel& effect)
 {
   if (process().badChaining())
     return nullptr;
@@ -111,15 +104,15 @@ Execution::ProcessComponent* EffectProcessComponentBase::make(
       {
         // there's an effect after
         reg(this_fx);
-        in_exec([g = ctx.execGraph, n1 = fx->node,
-                 n2 = m_fxes[1].second.node()] {
-          move_edges(*n2->inputs()[0], n1->inputs()[0], n1, *g);
+        in_exec(
+            [g = ctx.execGraph, n1 = fx->node, n2 = m_fxes[1].second.node()] {
+              move_edges(*n2->inputs()[0], n1->inputs()[0], n1, *g);
 
-          auto edge = ossia::make_edge(
-              ossia::immediate_strict_connection{}, n1->outputs()[0],
-              n2->inputs()[0], n1, n2);
-          g->connect(std::move(edge));
-        });
+              auto edge = ossia::make_edge(
+                  ossia::immediate_strict_connection{}, n1->outputs()[0],
+                  n2->inputs()[0], n1, n2);
+              g->connect(std::move(edge));
+            });
       }
       else
       {
@@ -192,20 +185,20 @@ Execution::ProcessComponent* EffectProcessComponentBase::make(
       auto& prev = m_fxes[idx - 1];
       if (prev.second)
       {
-        in_exec([g = ctx.execGraph, n1 = prev.second.node(),
-                 n2 = this_fx.node()] {
-          auto& o_prev = n1->outputs()[0];
-          if (!o_prev->targets.empty())
-          {
-            auto cbl = o_prev->targets[0];
-            g->disconnect(cbl);
-          }
+        in_exec(
+            [g = ctx.execGraph, n1 = prev.second.node(), n2 = this_fx.node()] {
+              auto& o_prev = n1->outputs()[0];
+              if (!o_prev->targets.empty())
+              {
+                auto cbl = o_prev->targets[0];
+                g->disconnect(cbl);
+              }
 
-          auto edge = ossia::make_edge(
-              ossia::immediate_strict_connection{}, n1->outputs()[0],
-              n2->inputs()[0], n1, n2);
-          g->connect(std::move(edge));
-        });
+              auto edge = ossia::make_edge(
+                  ossia::immediate_strict_connection{}, n1->outputs()[0],
+                  n2->inputs()[0], n1, n2);
+              g->connect(std::move(edge));
+            });
       }
 
       if (m_fxes.size() > (idx + 1))

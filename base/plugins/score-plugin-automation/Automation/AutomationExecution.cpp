@@ -2,13 +2,13 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "AutomationExecution.hpp"
 
-#include <ossia/dataflow/nodes/automation.hpp>
-#include <ossia/network/dataspace/dataspace_visitors.hpp> // temporary
-
 #include <Curve/CurveConversion.hpp>
 #include <Device/Protocol/DeviceInterface.hpp>
 #include <Process/ExecutionContext.hpp>
 #include <Process/ExecutionFunctions.hpp>
+
+#include <ossia/dataflow/nodes/automation.hpp>
+#include <ossia/network/dataspace/dataspace_visitors.hpp> // temporary
 namespace Automation
 {
 namespace RecreateOnPlay
@@ -76,10 +76,8 @@ struct range_position
 };
 
 Component::Component(
-    ::Automation::ProcessModel& element,
-    const ::Execution::Context& ctx,
-    const Id<score::Component>& id,
-    QObject* parent)
+    ::Automation::ProcessModel& element, const ::Execution::Context& ctx,
+    const Id<score::Component>& id, QObject* parent)
     : ProcessComponent_T{element, ctx, id, "Executor::AutomationComponent",
                          parent}
 {
@@ -107,8 +105,8 @@ Component::~Component()
 
 void Component::recompute()
 {
-  auto dest = Execution::makeDestination(
-      *system().execState, process().address());
+  auto dest
+      = Execution::makeDestination(*system().execState, process().address());
 
   if (dest)
   {

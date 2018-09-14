@@ -10,21 +10,12 @@ class ProcessModel;
 }
 
 PROCESS_METADATA(
-    ,
-    Media::Effect::ProcessModel,
-    "d27bc0ed-a93e-434c-913d-ccab0b22b4e8",
-    "Effects",
-    "Effect chain",
-    Process::ProcessCategory::Structure,
-    "Structure",
-    "Puts processes one after the other",
-    "ossia score",
-    {},
-    {},
+    , Media::Effect::ProcessModel, "d27bc0ed-a93e-434c-913d-ccab0b22b4e8",
+    "Effects", "Effect chain", Process::ProcessCategory::Structure,
+    "Structure", "Puts processes one after the other", "ossia score", {}, {},
     {},
     Process::ProcessFlags::SupportsTemporal
-  | Process::ProcessFlags::PutInNewSlot
-  | Process::ProcessFlags::TimeIndependent
- )
+        | Process::ProcessFlags::PutInNewSlot
+        | Process::ProcessFlags::TimeIndependent)
 
 UNDO_NAME_METADATA(EMPTY_MACRO, Media::Effect::ProcessModel, "Effects")

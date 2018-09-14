@@ -3,7 +3,6 @@
 #include "SummaryInspectorWidget.hpp"
 
 #include <Inspector/InspectorSectionWidget.hpp>
-#include <QLabel>
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
@@ -12,6 +11,8 @@
 #include <Scenario/Inspector/Interval/IntervalSummaryWidget.hpp>
 #include <Scenario/Inspector/TimeSync/TimeSyncSummaryWidget.hpp>
 #include <Scenario/Process/ScenarioInterface.hpp>
+
+#include <QLabel>
 
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Scenario::SummaryInspectorWidget)
@@ -23,8 +24,7 @@ SummaryInspectorWidget::SummaryInspectorWidget(
     const std::set<const TimeSyncModel*>& timesyncs,
     const std::set<const EventModel*>& events,
     const std::set<const StateModel*>& states,
-    const score::DocumentContext& context,
-    QWidget* parent)
+    const score::DocumentContext& context, QWidget* parent)
     : InspectorWidgetBase{*obj, context, parent, tr("Summary")}
 {
   setObjectName("SummaryInspectorWidget");

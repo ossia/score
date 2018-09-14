@@ -1,19 +1,19 @@
 #pragma once
-#include <ossia/dataflow/fx_node.hpp>
-#include <ossia/dataflow/node_chain_process.hpp>
-
-#include <Process/Execution/ProcessComponent.hpp>
 #include <Media/Effect/EffectProcessModel.hpp>
+#include <Process/Execution/ProcessComponent.hpp>
+
 #include <score/model/ComponentFactory.hpp>
 #include <score/model/ComponentHierarchy.hpp>
 #include <score/plugins/customfactory/ModelFactory.hpp>
+
+#include <ossia/dataflow/fx_node.hpp>
+#include <ossia/dataflow/node_chain_process.hpp>
 namespace Media
 {
 
 class EffectProcessComponentBase
     : public ::Execution::ProcessComponent_T<
-          Media::Effect::ProcessModel,
-          ossia::node_chain_process>
+          Media::Effect::ProcessModel, ossia::node_chain_process>
 {
   COMPONENT_METADATA("d638adb3-64da-4b6e-b84d-7c32684fa79d")
 public:
@@ -22,10 +22,8 @@ public:
   using component_t = ProcessComponent;
   using component_factory_list_t = Execution::ProcessComponentFactoryList;
   EffectProcessComponentBase(
-      Media::Effect::ProcessModel& element,
-      const ::Execution::Context& ctx,
-      const Id<score::Component>& id,
-      QObject* parent);
+      Media::Effect::ProcessModel& element, const ::Execution::Context& ctx,
+      const Id<score::Component>& id, QObject* parent);
 
   void recompute();
 
@@ -80,18 +78,16 @@ private:
 };
 
 class EffectProcessComponent final
-    : public score::
-          PolymorphicComponentHierarchy<EffectProcessComponentBase, false>
+    : public score::PolymorphicComponentHierarchy<
+          EffectProcessComponentBase, false>
 {
 public:
   EffectProcessComponent(
-      Media::Effect::ProcessModel& element,
-      const ::Execution::Context& ctx,
-      const Id<score::Component>& id,
-      QObject* parent)
-      : score::
-            PolymorphicComponentHierarchy<EffectProcessComponentBase, false>{
-                score::lazy_init_t{}, element, ctx, id, parent}
+      Media::Effect::ProcessModel& element, const ::Execution::Context& ctx,
+      const Id<score::Component>& id, QObject* parent)
+      : score::PolymorphicComponentHierarchy<
+            EffectProcessComponentBase, false>{score::lazy_init_t{}, element,
+                                               ctx, id, parent}
   {
     if (!element.badChaining())
       init_hierarchy();
@@ -124,5 +120,4 @@ using EffectProcessComponentFactory
 }
 
 SCORE_CONCRETE_COMPONENT_FACTORY(
-    Execution::ProcessComponentFactory,
-    Execution::EffectComponentFactory)
+    Execution::ProcessComponentFactory, Execution::EffectComponentFactory)

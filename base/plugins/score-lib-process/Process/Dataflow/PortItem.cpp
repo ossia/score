@@ -2,6 +2,12 @@
 #include <Process/Dataflow/PortItem.hpp>
 #include <Process/DocumentPlugin.hpp>
 #include <Process/Style/ScenarioStyle.hpp>
+
+#include <score/document/DocumentContext.hpp>
+#include <score/document/DocumentInterface.hpp>
+#include <score/model/path/PathSerialization.hpp>
+#include <score/selection/SelectionDispatcher.hpp>
+
 #include <QApplication>
 #include <QCursor>
 #include <QDrag>
@@ -9,28 +15,21 @@
 #include <QMenu>
 #include <QMimeData>
 #include <QPainter>
-#include <score/document/DocumentContext.hpp>
-#include <score/document/DocumentInterface.hpp>
-#include <score/model/path/PathSerialization.hpp>
-#include <score/selection/SelectionDispatcher.hpp>
+
 #include <hopscotch_map.h>
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Dataflow::PortItem)
 
-
 namespace Dataflow
 {
 void onCreateCable(
-    const score::DocumentContext& ctx,
-    Dataflow::PortItem* p1,
+    const score::DocumentContext& ctx, Dataflow::PortItem* p1,
     Dataflow::PortItem* p2);
 
 PortItem* PortItem::clickedPort;
 PortItem::PortItem(
     Process::Port& p, const score::DocumentContext& ctx, QGraphicsItem* parent)
-  : QGraphicsItem{parent}
-  , m_context{ctx}
-  , m_port{p}
+    : QGraphicsItem{parent}, m_context{ctx}, m_port{p}
 {
   this->setCursor(QCursor());
   this->setAcceptDrops(true);
@@ -97,10 +96,9 @@ void PortItem::setPortVisible(bool b)
 void PortItem::resetPortVisible()
 {
   bool v = m_visible && CableItem::g_cables_enabled;
-  if(v != isVisible())
+  if (v != isVisible())
     setVisible(v);
 }
-
 
 QRectF PortItem::boundingRect() const
 {

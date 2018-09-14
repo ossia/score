@@ -4,41 +4,44 @@
 
 #include "StateModel.hpp"
 
-#include <QApplication>
-#include <QMimeData>
-#include <QUrl>
-#include <QFile>
-#include <QFileInfo>
-#include <QStringList>
+#include <Scenario/Application/Drops/AutomationDropHandler.hpp>
 #include <Scenario/Application/ScenarioApplicationPlugin.hpp>
+#include <Scenario/Commands/CommandAPI.hpp>
+#include <Scenario/Commands/Interval/AddProcessToInterval.hpp>
 #include <Scenario/Commands/State/AddMessagesToState.hpp>
 #include <Scenario/Document/Event/ExecutionStatus.hpp>
 #include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
-#include <Scenario/Application/Drops/AutomationDropHandler.hpp>
+#include <Scenario/Process/Temporal/TemporalScenarioPresenter.hpp>
 #include <State/Message.hpp>
 #include <State/MessageListSerialization.hpp>
+
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/document/DocumentContext.hpp>
 #include <score/document/DocumentInterface.hpp>
 #include <score/model/IdentifiedObject.hpp>
+#include <score/model/Identifier.hpp>
 #include <score/model/ModelMetadata.hpp>
 #include <score/selection/Selectable.hpp>
 #include <score/serialization/MimeVisitor.hpp>
 #include <score/tools/Todo.hpp>
 #include <score/widgets/GraphicsItem.hpp>
-#include <score/model/Identifier.hpp>
-#include <Scenario/Commands/CommandAPI.hpp>
-#include <Scenario/Commands/Interval/AddProcessToInterval.hpp>
-#include <Scenario/Process/Temporal/TemporalScenarioPresenter.hpp>
 
+#include <QApplication>
+#include <QFile>
+#include <QFileInfo>
 #include <QJsonDocument>
+#include <QMimeData>
+#include <QStringList>
+#include <QUrl>
+
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Scenario::StatePresenter)
 namespace Scenario
 {
 StatePresenter::StatePresenter(
-    const StateModel& model, const score::DocumentContext& ctx, QGraphicsItem* parentview, QObject* parent)
+    const StateModel& model, const score::DocumentContext& ctx,
+    QGraphicsItem* parentview, QObject* parent)
     : QObject{parent}
     , m_model{model}
     , m_view{new StateView{*this, parentview}}
@@ -101,45 +104,50 @@ void StatePresenter::handleDrop(const QMimeData& mime)
 
     CommandDispatcher<>{m_ctx.commandStack}.submitCommand(cmd);
   }
-  else if(mime.hasUrls())
+  else if (mime.hasUrls())
   {
     auto scenario = dynamic_cast<TemporalScenarioPresenter*>(parent());
-    if(ossia::all_of(mime.urls(), [] (const QUrl& u) { return QFileInfo{u.toLocalFile()}.suffix() == "cues"; }))
+    if (ossia::all_of(mime.urls(), [](const QUrl& u) {
+          return QFileInfo{u.toLocalFile()}.suffix() == "cues";
+        }))
     {
       State::MessageList ml;
-      for(const auto& u : mime.urls())
+      for (const auto& u : mime.urls())
       {
         auto path = u.toLocalFile();
-        if(QFile f{path}; f.open(QIODevice::ReadOnly))
+        if (QFile f{path}; f.open(QIODevice::ReadOnly))
         {
           State::MessageList sub;
-          fromJsonArray(
-              QJsonDocument::fromJson(f.readAll()).array(),
-              sub);
+          fromJsonArray(QJsonDocument::fromJson(f.readAll()).array(), sub);
           ml += sub;
         }
       }
-      if(!ml.empty())
+      if (!ml.empty())
       {
         auto cmd = new Command::AddMessagesToState{m_model, ml};
         CommandDispatcher<>{m_ctx.commandStack}.submitCommand(cmd);
       }
     }
-    else if(scenario && ossia::all_of(mime.urls(), [] (const QUrl& u) { return QFileInfo{u.toLocalFile()}.suffix() == "layer"; }))
+    else if (scenario && ossia::all_of(mime.urls(), [](const QUrl& u) {
+               return QFileInfo{u.toLocalFile()}.suffix() == "layer";
+             }))
     {
       auto path = mime.urls().first().toLocalFile();
-      if(QFile f{path}; f.open(QIODevice::ReadOnly))
+      if (QFile f{path}; f.open(QIODevice::ReadOnly))
       {
         const auto& ctx = scenario->context().context;
         auto json = QJsonDocument::fromJson(f.readAll()).object();
-        Scenario::Command::Macro m{new Scenario::Command::AddProcessInNewBoxMacro, ctx};
+        Scenario::Command::Macro m{
+            new Scenario::Command::AddProcessInNewBoxMacro, ctx};
 
         // Create a box.
         const Scenario::ProcessModel& scenar = scenario->model();
 
         const TimeVal t = TimeVal::fromMsecs(json["Duration"].toDouble());
 
-        auto& interval = m.createIntervalAfter(scenar, m_model.id(), Scenario::Point{t, m_model.heightPercentage()});
+        auto& interval = m.createIntervalAfter(
+            scenar, m_model.id(),
+            Scenario::Point{t, m_model.heightPercentage()});
 
         DropLayerInInterval::perform(interval, ctx, m, json);
         m.commit();

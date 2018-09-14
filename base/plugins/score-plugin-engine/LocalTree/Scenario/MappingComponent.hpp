@@ -1,6 +1,7 @@
 #pragma once
-#include <LocalTree/Scenario/ProcessComponent.hpp>
 #include <Mapping/MappingModel.hpp>
+
+#include <LocalTree/Scenario/ProcessComponent.hpp>
 
 namespace LocalTree
 {
@@ -10,11 +11,8 @@ class MappingComponent final : public ProcessComponent_T<Mapping::ProcessModel>
 
 public:
   MappingComponent(
-      const Id<score::Component>& id,
-      ossia::net::node_base& parent,
-      Mapping::ProcessModel& proc,
-      DocumentPlugin& ctx,
-      QObject* parent_obj)
+      const Id<score::Component>& id, ossia::net::node_base& parent,
+      Mapping::ProcessModel& proc, DocumentPlugin& ctx, QObject* parent_obj)
       : ProcessComponent_T<Mapping::ProcessModel>{
             parent, proc, ctx, id, "MappingComponent", parent_obj}
   {
@@ -27,4 +25,3 @@ public:
 
 using MappingComponentFactory = ProcessComponentFactory_T<MappingComponent>;
 }
-

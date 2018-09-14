@@ -1,9 +1,11 @@
 #pragma once
 #include <Process/State/MessageNode.hpp>
-#include <QList>
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
+
 #include <score/command/Command.hpp>
 #include <score/model/path/Path.hpp>
+
+#include <QList>
 
 struct DataStreamInput;
 struct DataStreamOutput;

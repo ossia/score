@@ -1,6 +1,4 @@
 #pragma once
-#include <QObject>
-#include <wobjectdefs.h>
 #include <score/command/Command.hpp>
 #include <score/command/CommandGeneratorMap.hpp>
 #include <score/plugins/application/GUIApplicationPlugin.hpp>
@@ -9,6 +7,11 @@
 #include <score/plugins/qt_interfaces/FactoryInterface_QtInterface.hpp>
 #include <score/plugins/qt_interfaces/GUIApplicationPlugin_QtInterface.hpp>
 #include <score/plugins/qt_interfaces/PluginRequirements_QtInterface.hpp>
+
+#include <QObject>
+
+#include <wobjectdefs.h>
+
 #include <utility>
 #include <vector>
 
@@ -20,11 +23,11 @@ class PanelFactory;
 } // namespace score
 
 class score_plugin_deviceexplorer final
-    : public score::Plugin_QtInterface
-    , public score::FactoryList_QtInterface
-    , public score::FactoryInterface_QtInterface
-    , public score::ApplicationPlugin_QtInterface
-    , public score::CommandFactory_QtInterface
+    : public score::Plugin_QtInterface,
+      public score::FactoryList_QtInterface,
+      public score::FactoryInterface_QtInterface,
+      public score::ApplicationPlugin_QtInterface,
+      public score::CommandFactory_QtInterface
 {
   SCORE_PLUGIN_METADATA(1, "3c2a0e25-ab14-4c06-a1ba-033d721a520f")
 public:

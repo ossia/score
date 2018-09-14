@@ -1,6 +1,7 @@
 #pragma once
-#include <QMimeData>
 #include <score/serialization/VisitorCommon.hpp>
+
+#include <QMimeData>
 
 template <typename T>
 struct Mime;

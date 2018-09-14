@@ -31,5 +31,5 @@ auto safe_unique_ptr_cast(std::unique_ptr<U> other)
 }
 
 #else
-#  define safe_unique_ptr_cast static_unique_ptr_cast
+#define safe_unique_ptr_cast static_unique_ptr_cast
 #endif

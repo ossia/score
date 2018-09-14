@@ -4,26 +4,27 @@
 
 #include <Inspector/InspectorWidgetBase.hpp>
 #include <Inspector/InspectorWidgetList.hpp>
-#include <QPointer>
-#include <QTabWidget>
-#include <QVBoxLayout>
-#include <algorithm>
-#include <boost/operators.hpp>
+
 #include <score/document/DocumentInterface.hpp>
 #include <score/model/IdentifiedObjectAbstract.hpp>
 #include <score/selection/SelectionDispatcher.hpp>
 #include <score/widgets/MarginLess.hpp>
 
+#include <boost/operators.hpp>
+
+#include <QPointer>
+#include <QTabWidget>
+#include <QVBoxLayout>
+
 #include <wobjectimpl.h>
+
+#include <algorithm>
 W_OBJECT_IMPL(InspectorPanel::InspectorPanelWidget)
 namespace InspectorPanel
 {
 InspectorPanelWidget::InspectorPanelWidget(
-    const Inspector::InspectorWidgetList& list,
-    score::SelectionStack& s,
-    QVBoxLayout* lay,
-    QWidget* parent,
-    QObject* parentObj)
+    const Inspector::InspectorWidgetList& list, score::SelectionStack& s,
+    QVBoxLayout* lay, QWidget* parent, QObject* parentObj)
     : QObject{parentObj}
     , m_parent{parent}
     , m_layout{lay}

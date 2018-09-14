@@ -3,8 +3,6 @@
 #include "EventActions.hpp"
 
 #include <Process/ProcessContext.hpp>
-#include <QAction>
-#include <QMenu>
 #include <Scenario/Application/ScenarioActions.hpp>
 #include <Scenario/Application/ScenarioApplicationPlugin.hpp>
 #include <Scenario/Commands/Event/SetCondition.hpp>
@@ -15,13 +13,18 @@
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 #include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
 #include <Scenario/Process/Algorithms/Accessors.hpp>
-#include <core/application/ApplicationSettings.hpp>
-#include <core/document/Document.hpp>
+
 #include <score/actions/ActionManager.hpp>
 #include <score/actions/MenuManager.hpp>
 #include <score/model/path/PathSerialization.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/widgets/SetIcons.hpp>
+
+#include <core/application/ApplicationSettings.hpp>
+#include <core/document/Document.hpp>
+
+#include <QAction>
+#include <QMenu>
 namespace Scenario
 {
 EventActions::EventActions(ScenarioApplicationPlugin* parent)
@@ -41,9 +44,10 @@ EventActions::EventActions(ScenarioApplicationPlugin* parent)
   m_addTrigger->setEnabled(false);
 
   m_addTrigger->setToolTip(tr("Enable trigger"));
-  setIcons(m_addTrigger, QStringLiteral(":/icons/trigger_on.png"),
-           QStringLiteral(":/icons/trigger_off.png"),
-           QStringLiteral(":/icons/trigger_disabled.png"));
+  setIcons(
+      m_addTrigger, QStringLiteral(":/icons/trigger_on.png"),
+      QStringLiteral(":/icons/trigger_off.png"),
+      QStringLiteral(":/icons/trigger_disabled.png"));
 
   /// Remove Trigger ///
   m_removeTrigger = new QAction{tr("Disable trigger"), this};
@@ -59,9 +63,10 @@ EventActions::EventActions(ScenarioApplicationPlugin* parent)
   m_addCondition->setEnabled(false);
 
   m_addCondition->setToolTip(tr("Add Condition"));
-  setIcons(m_addCondition, QStringLiteral(":/icons/condition_on.png"),
-           QStringLiteral(":/icons/condition_off.png"),
-           QStringLiteral(":/icons/condition_disabled.png"));
+  setIcons(
+      m_addCondition, QStringLiteral(":/icons/condition_on.png"),
+      QStringLiteral(":/icons/condition_off.png"),
+      QStringLiteral(":/icons/condition_disabled.png"));
 
   /// Remove Condition ///
   m_removeCondition = new QAction{tr("Remove Condition"), this};
@@ -84,7 +89,8 @@ void EventActions::makeGUIElements(score::GUIElements& ref)
   auto bar = new QToolBar{tr("Event")};
   bar->addAction(m_addTrigger);
   bar->addAction(m_addCondition);
-  ref.toolbars.emplace_back(bar, StringKey<score::Toolbar>("Event"), Qt::TopToolBarArea, 600);
+  ref.toolbars.emplace_back(
+      bar, StringKey<score::Toolbar>("Event"), Qt::TopToolBarArea, 600);
 
   ref.actions.add<Actions::AddTrigger>(m_addTrigger);
   ref.actions.add<Actions::RemoveTrigger>(m_removeTrigger);

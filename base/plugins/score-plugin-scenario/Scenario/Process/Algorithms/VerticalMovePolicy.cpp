@@ -8,11 +8,14 @@
 #include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
 #include <Scenario/Document/VerticalExtent.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
-#include <ossia/detail/flat_set.hpp>
-#include <limits>
+
 #include <score/model/EntityMap.hpp>
 #include <score/model/Identifier.hpp>
 #include <score/tools/std/Optional.hpp>
+
+#include <ossia/detail/flat_set.hpp>
+
+#include <limits>
 
 namespace Scenario
 {

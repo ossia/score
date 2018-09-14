@@ -4,21 +4,23 @@
 #include <ossia/detail/config.hpp>
 #if defined(OSSIA_PROTOCOL_PHIDGETS)
 #include "PhidgetsDevice.hpp"
+
+#include <Device/Protocol/DeviceSettings.hpp>
+#include <Explorer/DeviceList.hpp>
 #include <Explorer/DeviceLogging.hpp>
+#include <Protocols/Phidgets/PhidgetsSpecificSettings.hpp>
 
 #include <ossia/network/generic/generic_device.hpp>
 #include <ossia/network/generic/generic_parameter.hpp>
 #include <ossia/network/phidgets/phidgets_protocol.hpp>
 
-#include <Device/Protocol/DeviceSettings.hpp>
-#include <Protocols/Phidgets/PhidgetsSpecificSettings.hpp>
-#include <Explorer/DeviceList.hpp>
 #include <QString>
 #include <QTimer>
 #include <QVariant>
-#include <memory>
 
 #include <wobjectimpl.h>
+
+#include <memory>
 W_OBJECT_IMPL(Engine::Network::PhidgetDevice)
 namespace Engine
 {

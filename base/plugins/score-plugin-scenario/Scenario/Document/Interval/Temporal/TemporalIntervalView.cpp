@@ -6,6 +6,14 @@
 #include "TemporalIntervalPresenter.hpp"
 
 #include <Process/Style/ScenarioStyle.hpp>
+#include <Scenario/Document/Interval/IntervalMenuOverlay.hpp>
+#include <Scenario/Document/Interval/IntervalModel.hpp>
+#include <Scenario/Document/Interval/IntervalPresenter.hpp>
+#include <Scenario/Document/Interval/IntervalView.hpp>
+#include <Scenario/Document/Interval/SlotHandle.hpp>
+
+#include <score/model/Skin.hpp>
+
 #include <QBrush>
 #include <QCursor>
 #include <QFont>
@@ -14,13 +22,7 @@
 #include <QPainter>
 #include <QPainterPath>
 #include <QPen>
-#include <Scenario/Document/Interval/IntervalMenuOverlay.hpp>
-#include <Scenario/Document/Interval/IntervalModel.hpp>
-#include <Scenario/Document/Interval/IntervalPresenter.hpp>
-#include <Scenario/Document/Interval/IntervalView.hpp>
-#include <Scenario/Document/Interval/SlotHandle.hpp>
 #include <qnamespace.h>
-#include <score/model/Skin.hpp>
 
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Scenario::TemporalIntervalView)

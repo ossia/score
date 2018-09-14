@@ -2,11 +2,6 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "IntervalActions.hpp"
 
-#include <QAction>
-#include <QApplication>
-#include <QMainWindow>
-#include <QMenu>
-#include <QToolBar>
 #include <Scenario/Application/ScenarioActions.hpp>
 #include <Scenario/Application/ScenarioApplicationPlugin.hpp>
 #include <Scenario/Commands/Cohesion/CreateCurves.hpp>
@@ -20,9 +15,7 @@
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 #include <Scenario/Process/Temporal/TemporalScenarioPresenter.hpp>
 #include <Scenario/Process/Temporal/TemporalScenarioView.hpp>
-#include <core/application/ApplicationSettings.hpp>
-#include <core/document/Document.hpp>
-#include <core/presenter/DocumentManager.hpp>
+
 #include <score/actions/ActionManager.hpp>
 #include <score/actions/MenuManager.hpp>
 #include <score/application/ApplicationContext.hpp>
@@ -32,6 +25,16 @@
 #include <score/selection/Selectable.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/widgets/SetIcons.hpp>
+
+#include <core/application/ApplicationSettings.hpp>
+#include <core/document/Document.hpp>
+#include <core/presenter/DocumentManager.hpp>
+
+#include <QAction>
+#include <QApplication>
+#include <QMainWindow>
+#include <QMenu>
+#include <QToolBar>
 namespace Scenario
 {
 // TODO you're better than this
@@ -87,7 +90,7 @@ IntervalActions::IntervalActions(ScenarioApplicationPlugin* parent)
       QStringLiteral(":/icons/interpolate_off.png"),
       QStringLiteral(":/icons/interpolate_disabled.png"));
   connect(m_interp, &QAction::triggered, this, [&]() {
-    if(auto doc = m_parent->currentDocument())
+    if (auto doc = m_parent->currentDocument())
     {
       DoForSelectedIntervals(doc->context(), Command::InterpolateStates);
     }

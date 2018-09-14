@@ -3,12 +3,14 @@
 #include <Process/Dataflow/PortItem.hpp>
 #include <Process/HeaderDelegate.hpp>
 #include <Process/Process.hpp>
-#include <Effect/EffectLayer.hpp>
 #include <Process/Style/ScenarioStyle.hpp>
+
 #include <QApplication>
 #include <QPainter>
 #include <QTextLayout>
 #include <QTextLine>
+
+#include <Effect/EffectLayer.hpp>
 namespace Process
 {
 QImage makeGlyphs(const QString& glyph, const QPen& pen)
@@ -92,7 +94,8 @@ static const QImage& toGlyphWhite() noexcept
 DefaultHeaderDelegate::DefaultHeaderDelegate(const Process::LayerPresenter& p)
     : HeaderDelegate{p}
 {
-  if(auto ui_btn = Process::makeExternalUIButton(p.model(), p.context().context, this, this))
+  if (auto ui_btn = Process::makeExternalUIButton(
+          p.model(), p.context().context, this, this))
     ui_btn->setPos({0, 2});
 
   con(p.model(), &Process::ProcessModel::prettyNameChanged, this, [=] {
@@ -108,12 +111,13 @@ DefaultHeaderDelegate::DefaultHeaderDelegate(const Process::LayerPresenter& p)
   con(p.model(), &Process::ProcessModel::benchmark, this,
       [=](double d) { updateBench(d); });
   con(p.model().selection, &Selectable::changed, this,
-      [=] (bool b) {
-    m_sel = b;
-    updateName();
-    updatePorts();
-    update();
-  }, Qt::QueuedConnection);
+      [=](bool b) {
+        m_sel = b;
+        updateName();
+        updatePorts();
+        update();
+      },
+      Qt::QueuedConnection);
 
   updateName();
   updatePorts();

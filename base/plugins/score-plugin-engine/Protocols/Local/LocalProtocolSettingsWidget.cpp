@@ -6,12 +6,14 @@
 #include "LocalSpecificSettings.hpp"
 
 #include <Device/Protocol/ProtocolSettingsWidget.hpp>
+
+#include <score/widgets/TextLabel.hpp>
+
 #include <QFormLayout>
 #include <QLabel>
 #include <QLineEdit>
 #include <QSpinBox>
 #include <QVBoxLayout>
-#include <score/widgets/TextLabel.hpp>
 
 class QWidget;
 

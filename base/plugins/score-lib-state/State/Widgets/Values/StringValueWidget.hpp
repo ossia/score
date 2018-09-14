@@ -1,11 +1,12 @@
 #pragma once
 #include "ValueWidget.hpp"
 
+#include <State/Value.hpp>
+
 #include <ossia/network/domain/domain.hpp>
 
 #include <QDialog>
 #include <QString>
-#include <State/Value.hpp>
 
 class QLineEdit;
 class QWidget;

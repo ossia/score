@@ -8,11 +8,11 @@
 #include <Curve/Segment/Power/PowerSegment.hpp>
 #include <Process/Process.hpp>
 #include <Process/ProcessFactory.hpp>
-#include <QByteArray>
 #include <Scenario/Commands/Interval/AddOnlyProcessToInterval.hpp>
 #include <Scenario/Commands/Interval/Rack/Slot/AddLayerModelToSlot.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <State/ValueSerialization.hpp>
+
 #include <score/application/ApplicationContext.hpp>
 #include <score/model/EntityMap.hpp>
 #include <score/model/Identifier.hpp>
@@ -23,18 +23,20 @@
 #include <score/tools/IdentifierGeneration.hpp>
 #include <score/tools/std/Optional.hpp>
 
+#include <QByteArray>
+
 namespace Scenario
 {
 namespace Command
 {
 CreateAutomationFromStates::CreateAutomationFromStates(
-    const IntervalModel& interval,
-    const std::vector<SlotPath>& slotList,
-    Id<Process::ProcessModel> curveId,
-    State::AddressAccessor address,
-    const Curve::CurveDomain& dom,
-    bool tween)
-    : CreateProcessAndLayers{interval, slotList, std::move(curveId), Metadata<ConcreteKey_k, Automation::ProcessModel>::get()}
+    const IntervalModel& interval, const std::vector<SlotPath>& slotList,
+    Id<Process::ProcessModel> curveId, State::AddressAccessor address,
+    const Curve::CurveDomain& dom, bool tween)
+    : CreateProcessAndLayers{interval, slotList, std::move(curveId),
+                             Metadata<
+                                 ConcreteKey_k,
+                                 Automation::ProcessModel>::get()}
     , m_address{std::move(address)}
     , m_dom{dom}
     , m_tween(tween)
@@ -83,19 +85,14 @@ void CreateAutomationFromStates::deserializeImpl(DataStreamOutput& s)
   s >> m_address >> m_dom >> m_tween;
 }
 
-
-
-
-
 CreateInterpolationFromStates::CreateInterpolationFromStates(
-    const IntervalModel& interval,
-    const std::vector<SlotPath>& slotList,
-    Id<Process::ProcessModel> curveId,
-    State::AddressAccessor address,
-    ossia::value start,
-    ossia::value end,
-    bool tween)
-    : CreateProcessAndLayers{interval, slotList, std::move(curveId), Metadata<ConcreteKey_k, Automation::ProcessModel>::get()}
+    const IntervalModel& interval, const std::vector<SlotPath>& slotList,
+    Id<Process::ProcessModel> curveId, State::AddressAccessor address,
+    ossia::value start, ossia::value end, bool tween)
+    : CreateProcessAndLayers{interval, slotList, std::move(curveId),
+                             Metadata<
+                                 ConcreteKey_k,
+                                 Automation::ProcessModel>::get()}
     , m_address{std::move(address)}
     , m_start{std::move(start)}
     , m_end{std::move(end)}
@@ -131,19 +128,11 @@ void CreateInterpolationFromStates::deserializeImpl(DataStreamOutput& s)
   s >> m_address >> m_start >> m_end >> m_tween;
 }
 
-
-
-
-
-
 CreateProcessAndLayers::CreateProcessAndLayers(
-    const IntervalModel& interval
-    , const std::vector<SlotPath>& slotList
-    , Id<Process::ProcessModel> procId
-    , UuidKey<Process::ProcessModel> key)
-  : m_addProcessCmd{std::move(interval), std::move(procId),
-                    std::move(key),
-                    QString{}}
+    const IntervalModel& interval, const std::vector<SlotPath>& slotList,
+    Id<Process::ProcessModel> procId, UuidKey<Process::ProcessModel> key)
+    : m_addProcessCmd{std::move(interval), std::move(procId), std::move(key),
+                      QString{}}
 {
   m_slotsCmd.reserve(slotList.size());
   for (const auto& elt : slotList)
@@ -159,7 +148,6 @@ void CreateProcessAndLayers::undo(const score::DocumentContext& ctx) const
   m_addProcessCmd.undo(ctx);
 }
 
-
 void CreateProcessAndLayers::serializeImpl(DataStreamInput& s) const
 {
   s << m_addProcessCmd.serialize();
@@ -169,7 +157,6 @@ void CreateProcessAndLayers::serializeImpl(DataStreamInput& s) const
     s << elt.serialize();
   }
 }
-
 
 void CreateProcessAndLayers::deserializeImpl(DataStreamOutput& s)
 {
@@ -187,6 +174,5 @@ void CreateProcessAndLayers::deserializeImpl(DataStreamOutput& s)
     m_slotsCmd.at(i).deserialize(b);
   }
 }
-
 }
 }

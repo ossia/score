@@ -1,9 +1,10 @@
 #pragma once
 
 #include <QAbstractItemModel>
-#include <wobjectdefs.h>
 #include <QList>
 #include <QTreeView>
+
+#include <wobjectdefs.h>
 class QAction;
 class QItemSelection;
 class QPoint;
@@ -36,15 +37,19 @@ public:
 
 public:
   void selectionChanged() W_SIGNAL(selectionChanged, ());
-  void created(QModelIndex parent, int start, int end) W_SIGNAL(created, parent, start, end);
+  void created(QModelIndex parent, int start, int end)
+      W_SIGNAL(created, parent, start, end);
 
 private:
   void selectionChanged(
       const QItemSelection& selected,
-      const QItemSelection& deselected) override; W_SLOT(selectionChanged, (const QItemSelection&, const QItemSelection&));
+      const QItemSelection& deselected) override;
+  W_SLOT(selectionChanged, (const QItemSelection&, const QItemSelection&));
 
-  void headerMenuRequested(const QPoint& pos); W_SLOT(headerMenuRequested);
-  void columnVisibilityChanged(bool shown); W_SLOT(columnVisibilityChanged);
+  void headerMenuRequested(const QPoint& pos);
+  W_SLOT(headerMenuRequested);
+  void columnVisibilityChanged(bool shown);
+  W_SLOT(columnVisibilityChanged);
 
 private:
   QModelIndexList selectedDraggableIndexes() const;

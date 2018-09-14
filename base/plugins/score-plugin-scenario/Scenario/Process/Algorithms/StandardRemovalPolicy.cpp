@@ -2,8 +2,6 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "StandardRemovalPolicy.hpp"
 
-#include <QDebug>
-#include <QVector>
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
@@ -14,11 +12,13 @@
 #include <Scenario/Process/Algorithms/VerticalMovePolicy.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
 
-
 #include <score/model/EntityMap.hpp>
 #include <score/model/Identifier.hpp>
 #include <score/tools/MapCopy.hpp>
 #include <score/tools/std/Optional.hpp>
+
+#include <QDebug>
+#include <QVector>
 
 namespace Scenario
 {

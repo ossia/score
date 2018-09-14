@@ -14,10 +14,8 @@ class LayerPresenter final : public Process::LayerPresenter
 public:
   using model_type = const Media::Sound::ProcessModel;
   explicit LayerPresenter(
-      const ProcessModel& model,
-      LayerView* view,
-      const Process::ProcessPresenterContext& ctx,
-      QObject* parent);
+      const ProcessModel& model, LayerView* view,
+      const Process::ProcessPresenterContext& ctx, QObject* parent);
 
   void setWidth(qreal width) override;
   void setHeight(qreal height) override;

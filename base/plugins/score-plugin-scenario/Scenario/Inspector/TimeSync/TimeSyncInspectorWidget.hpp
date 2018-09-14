@@ -2,6 +2,7 @@
 
 #include <Inspector/InspectorWidgetBase.hpp>
 #include <Process/TimeValue.hpp>
+
 #include <vector>
 
 namespace Inspector
@@ -24,8 +25,7 @@ class TimeSyncInspectorWidget final : public Inspector::InspectorWidgetBase
 {
 public:
   explicit TimeSyncInspectorWidget(
-      const TimeSyncModel& object,
-      const score::DocumentContext& context,
+      const TimeSyncModel& object, const score::DocumentContext& context,
       QWidget* parent);
 
 private:

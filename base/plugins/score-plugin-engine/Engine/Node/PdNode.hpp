@@ -1,5 +1,8 @@
 #pragma once
+#include <Process/GenericProcessFactory.hpp>
+
 #include <ossia/dataflow/safe_nodes/node.hpp>
+#include <ossia/detail/for_each.hpp>
 
 #include <Engine/Node/CommonWidgets.hpp>
 #include <Engine/Node/Executor.hpp>
@@ -7,8 +10,6 @@
 #include <Engine/Node/Layer.hpp>
 #include <Engine/Node/Process.hpp>
 #include <Engine/Node/Widgets.hpp>
-#include <Process/GenericProcessFactory.hpp>
-#include <ossia/detail/for_each.hpp>
 #define make_uuid(text) score::uuids::string_generator::compute((text))
 
 namespace Control

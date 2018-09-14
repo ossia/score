@@ -2,6 +2,7 @@
 
 #include <QDialog>
 #include <QString>
+
 #include <score_plugin_scenario_export.h>
 
 class QWidget;

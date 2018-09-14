@@ -1,5 +1,6 @@
 #pragma once
 #include <QString>
+
 #include <score_lib_base_export.h>
 namespace score
 {

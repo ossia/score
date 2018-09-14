@@ -1,14 +1,17 @@
 #pragma once
+#include <score/command/Dispatchers/CommandDispatcher.hpp>
+
 #include <QColor>
-#include <wobjectdefs.h>
 #include <QLabel>
 #include <QString>
 #include <QWidget>
+#include <qnamespace.h>
+
+#include <score_lib_inspector_export.h>
+#include <wobjectdefs.h>
+
 #include <list>
 #include <memory>
-#include <qnamespace.h>
-#include <score/command/Dispatchers/CommandDispatcher.hpp>
-#include <score_lib_inspector_export.h>
 
 class IdentifiedObjectAbstract;
 class QVBoxLayout;
@@ -39,9 +42,7 @@ public:
    */
   explicit InspectorWidgetBase(
       const IdentifiedObjectAbstract& inspectedObj,
-      const score::DocumentContext& context,
-      QWidget* parent,
-      QString name);
+      const score::DocumentContext& context, QWidget* parent, QString name);
   ~InspectorWidgetBase();
 
   const score::DocumentContext& context() const

@@ -3,19 +3,21 @@
 #include "ScenarioFactory.hpp"
 
 #include <Process/Process.hpp>
-#include <QDataStream>
-#include <QIODevice>
-#include <QMap>
 #include <Scenario/Process/ScenarioModel.hpp>
 #include <Scenario/Process/ScenarioProcessMetadata.hpp>
 #include <Scenario/Process/Temporal/MiniScenarioView.hpp>
 #include <Scenario/Process/Temporal/TemporalScenarioPresenter.hpp>
 #include <Scenario/Process/Temporal/TemporalScenarioView.hpp>
+
 #include <score/document/DocumentInterface.hpp>
 #include <score/model/Identifier.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/serialization/VisitorCommon.hpp>
 #include <score/tools/std/Optional.hpp>
+
+#include <QDataStream>
+#include <QIODevice>
+#include <QMap>
 
 namespace Process
 {
@@ -68,10 +70,8 @@ ScenarioTemporalLayerFactory::concreteKey() const noexcept
 }
 
 Process::LayerPresenter* ScenarioTemporalLayerFactory::makeLayerPresenter(
-    const Process::ProcessModel& lm,
-    Process::LayerView* view,
-    const Process::ProcessPresenterContext& context,
-    QObject* parent) const
+    const Process::ProcessModel& lm, Process::LayerView* view,
+    const Process::ProcessPresenterContext& context, QObject* parent) const
 {
   if (auto vm = dynamic_cast<const Scenario::ProcessModel*>(&lm))
   {

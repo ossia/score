@@ -1,5 +1,6 @@
 #pragma once
 #include <Engine/Node/PdNode.hpp>
+
 #include <numeric>
 namespace Nodes
 {
@@ -14,7 +15,8 @@ struct Node
     static const constexpr auto category = "Audio";
     static const constexpr auto author = "ossia score";
     static const constexpr auto kind = Process::ProcessCategory::Analyzer;
-    static const constexpr auto description = "Converts an audio signal into RMS and peak values";
+    static const constexpr auto description
+        = "Converts an audio signal into RMS and peak values";
     static const constexpr auto tags = std::array<const char*, 0>{};
     static const constexpr auto uuid
         = make_uuid("95F44151-13EF-4537-8189-0CC243341269");
@@ -48,10 +50,8 @@ struct Node
   }
 
   static void
-  run(const ossia::audio_port& audio,
-      ossia::value_port& rms_port,
-      ossia::value_port& peak_port,
-      ossia::token_request tk,
+  run(const ossia::audio_port& audio, ossia::value_port& rms_port,
+      ossia::value_port& peak_port, ossia::token_request tk,
       ossia::exec_state_facade)
   {
     switch (audio.samples.size())

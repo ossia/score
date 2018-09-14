@@ -5,18 +5,20 @@
 #include <Automation/State/AutomationState.hpp>
 #include <Inspector/InspectorWidgetBase.hpp>
 #include <Process/State/ProcessStateDataInterface.hpp>
-#include <QLabel>
-#include <QVBoxLayout>
 #include <State/Message.hpp>
-#include <list>
+
 #include <score/tools/Todo.hpp>
 #include <score/widgets/TextLabel.hpp>
+
+#include <QLabel>
+#include <QVBoxLayout>
+
+#include <list>
 
 namespace Automation
 {
 StateInspectorWidget::StateInspectorWidget(
-    const ProcessState& object,
-    const score::DocumentContext& doc,
+    const ProcessState& object, const score::DocumentContext& doc,
     QWidget* parent)
     : InspectorWidgetBase{object, doc, parent, tr("State")}
     , m_state{object}
@@ -37,5 +39,4 @@ void StateInspectorWidget::on_stateChanged()
 {
   m_label->setText(m_state.message().toString());
 }
-
 }

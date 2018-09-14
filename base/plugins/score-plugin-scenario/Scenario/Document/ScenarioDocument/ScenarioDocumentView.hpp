@@ -1,15 +1,18 @@
 #pragma once
-#include <QGraphicsView>
 #include <Scenario/Document/Minimap/Minimap.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioScene.hpp>
 #include <Scenario/Document/ScenarioDocument/TimeBar.hpp>
 #include <Scenario/Document/TimeRuler/TimeRuler.hpp>
 #include <Scenario/Document/TimeRuler/TimeRulerGraphicsView.hpp>
+
 #include <score/plugins/documentdelegate/DocumentDelegateView.hpp>
 #include <score/widgets/GraphicsProxyObject.hpp>
+
+#include <QGraphicsView>
 #include <QPoint>
-#include <wobjectdefs.h>
+
 #include <score_lib_process_export.h>
+#include <wobjectdefs.h>
 
 class QGraphicsView;
 class QObject;
@@ -44,12 +47,16 @@ public:
   ~ProcessGraphicsView() override;
 
   void scrollHorizontal(double dx);
+
 public:
-  void sizeChanged(const QSize& arg_1) E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, sizeChanged, arg_1);
+  void sizeChanged(const QSize& arg_1)
+      E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, sizeChanged, arg_1);
   void scrolled(int arg_1) E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, scrolled, arg_1);
   void focusedOut() E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, focusedOut);
-  void horizontalZoom(QPointF pixDelta, QPointF pos) E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, horizontalZoom, pixDelta, pos);
-  void verticalZoom(QPointF pixDelta, QPointF pos) E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, verticalZoom, pixDelta, pos);
+  void horizontalZoom(QPointF pixDelta, QPointF pos)
+      E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, horizontalZoom, pixDelta, pos);
+  void verticalZoom(QPointF pixDelta, QPointF pos)
+      E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, verticalZoom, pixDelta, pos);
 
 private:
   void resizeEvent(QResizeEvent* ev) override;
@@ -67,14 +74,13 @@ private:
   std::chrono::steady_clock::time_point m_lastwheel;
 };
 
-
-class SCORE_PLUGIN_SCENARIO_EXPORT ScenarioDocumentView final : public score::DocumentDelegateView
+class SCORE_PLUGIN_SCENARIO_EXPORT ScenarioDocumentView final
+    : public score::DocumentDelegateView
 {
   W_OBJECT(ScenarioDocumentView)
 
 public:
-  ScenarioDocumentView(
-      const score::DocumentContext& ctx, QObject* parent);
+  ScenarioDocumentView(const score::DocumentContext& ctx, QObject* parent);
   ~ScenarioDocumentView() override;
 
   QWidget* getWidget() override;
@@ -120,7 +126,8 @@ public:
   QRectF visibleSceneRect() const;
 
 public:
-  void elementsScaleChanged(double arg_1) W_SIGNAL(elementsScaleChanged, arg_1);
+  void elementsScaleChanged(double arg_1)
+      W_SIGNAL(elementsScaleChanged, arg_1);
   void setLargeView() W_SIGNAL(setLargeView);
 
 private:

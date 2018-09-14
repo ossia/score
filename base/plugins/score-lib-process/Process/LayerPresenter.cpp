@@ -1,7 +1,9 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "LayerPresenter.hpp"
+
 #include <Process/Focus/FocusDispatcher.hpp>
+
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Process::LayerPresenter)
 W_OBJECT_IMPL(FocusDispatcher)

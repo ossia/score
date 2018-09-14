@@ -14,11 +14,13 @@
 #include <Scenario/Palette/ScenarioPoint.hpp>
 #include <Scenario/Palette/Tools/SmartTool.hpp>
 #include <Scenario/Palette/Tools/States/ScenarioMoveStatesWrapper.hpp>
-#include <algorithm>
+
 #include <score/application/ApplicationContext.hpp>
 #include <score/model/Identifier.hpp>
 #include <score/statemachine/GraphicsSceneToolPalette.hpp>
 #include <score/tools/std/Optional.hpp>
+
+#include <algorithm>
 
 namespace Scenario
 {
@@ -27,10 +29,8 @@ class EditionSettings;
 namespace Loop
 {
 ToolPalette::ToolPalette(
-    const Loop::ProcessModel& model,
-    LayerPresenter& presenter,
-    Process::LayerContext& ctx,
-    LayerView& view)
+    const Loop::ProcessModel& model, LayerPresenter& presenter,
+    Process::LayerContext& ctx, LayerView& view)
     : GraphicsSceneToolPalette{*view.scene()}
     , m_model{model}
     , m_presenter{presenter}
@@ -117,8 +117,7 @@ DisplayedElementsToolPalette::ScenePointToScenarioPoint(QPointF point)
 
 DisplayedElementsToolPalette::DisplayedElementsToolPalette(
     const Scenario::DisplayedElementsModel& model,
-    Scenario::ScenarioDocumentPresenter& pres,
-    QGraphicsItem* view)
+    Scenario::ScenarioDocumentPresenter& pres, QGraphicsItem* view)
     : GraphicsSceneToolPalette{*view->scene()}
     , m_model{model}
     , m_scenarioModel{*safe_cast<Loop::ProcessModel*>(
@@ -198,9 +197,8 @@ void DisplayedElementsToolPalette::on_cancel()
 }
 std::unique_ptr<GraphicsSceneToolPalette>
 DisplayedElementsToolPaletteFactory::make(
-    Scenario::ScenarioDocumentPresenter& pres
-    , const Scenario::IntervalModel& interval
-    , QGraphicsItem* parent)
+    Scenario::ScenarioDocumentPresenter& pres,
+    const Scenario::IntervalModel& interval, QGraphicsItem* parent)
 {
   return std::make_unique<DisplayedElementsToolPalette>(
       pres.displayedElements, pres, parent);

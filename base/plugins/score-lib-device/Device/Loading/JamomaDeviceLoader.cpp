@@ -2,12 +2,13 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "JamomaDeviceLoader.hpp"
 
+#include <score/tools/std/StringHash.hpp>
+
 #include <ossia/network/domain/domain.hpp>
 
 #include <QFile>
 #include <QJsonDocument>
 #include <qdom.h>
-#include <score/tools/std/StringHash.hpp>
 
 namespace Device
 {

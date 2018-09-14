@@ -1,17 +1,15 @@
-#include <QFileInfo>
-#include <QUrl>
-#include <set>
-#include <iostream>
-#include <QJsonObject>
-#include <QJsonDocument>
 #include <Media/Effect/VST/VSTLoader.hpp>
 
+#include <QFileInfo>
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QUrl>
+
+#include <iostream>
+#include <set>
+
 intptr_t vst_host_callback(
-    AEffect* effect,
-    int32_t opcode,
-    int32_t index,
-    intptr_t value,
-    void* ptr,
+    AEffect* effect, int32_t opcode, int32_t index, intptr_t value, void* ptr,
     float opt)
 {
   intptr_t result = 0;
@@ -104,7 +102,6 @@ static QString getString(AEffect* fx, AEffectOpcodes op, int param)
   return QString::fromUtf8(paramName);
 }
 
-
 bool load_vst(const QString& path)
 {
   try
@@ -141,10 +138,9 @@ bool load_vst(const QString& path)
   return 1;
 }
 
-
 int main(int argc, char** argv)
 {
-  if(argc > 1)
+  if (argc > 1)
   {
     return load_vst(argv[1]);
   }

@@ -1,9 +1,10 @@
 #pragma once
+#include <Scenario/Document/Components/ScenarioComponent.hpp>
+
 #include <LocalTree/Scenario/EventComponent.hpp>
 #include <LocalTree/Scenario/IntervalComponent.hpp>
 #include <LocalTree/Scenario/StateComponent.hpp>
 #include <LocalTree/Scenario/TimeSyncComponent.hpp>
-#include <Scenario/Document/Components/ScenarioComponent.hpp>
 
 namespace LocalTree
 {
@@ -13,10 +14,8 @@ class ScenarioComponentBase : public ProcessComponent_T<Scenario::ProcessModel>
 
 public:
   ScenarioComponentBase(
-      const Id<score::Component>& id,
-      ossia::net::node_base& parent,
-      Scenario::ProcessModel& scenario,
-      DocumentPlugin& doc,
+      const Id<score::Component>& id, ossia::net::node_base& parent,
+      Scenario::ProcessModel& scenario, DocumentPlugin& doc,
       QObject* parent_obj);
 
   template <typename Component_T, typename Element>
@@ -40,14 +39,9 @@ private:
 };
 
 using ScenarioComponent = HierarchicalScenarioComponent<
-    ScenarioComponentBase,
-    Scenario::ProcessModel,
-    Interval,
-    Event,
-    TimeSync,
+    ScenarioComponentBase, Scenario::ProcessModel, Interval, Event, TimeSync,
     State>;
 
 using ScenarioComponentFactory
     = LocalTree::ProcessComponentFactory_T<ScenarioComponent>;
 }
-

@@ -1,14 +1,16 @@
 #pragma once
-#include <QJsonObject>
-#include <QMap>
-#include <QVector>
+#include <Process/Dataflow/Cable.hpp>
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
+
 #include <score/command/Command.hpp>
 #include <score/model/Identifier.hpp>
 #include <score/model/path/Path.hpp>
 #include <score/selection/Selection.hpp>
 #include <score/tools/std/Optional.hpp>
-#include <Process/Dataflow/Cable.hpp>
+
+#include <QJsonObject>
+#include <QMap>
+#include <QVector>
 namespace Scenario
 {
 struct Point;
@@ -23,13 +25,11 @@ class SCORE_PLUGIN_SCENARIO_EXPORT ScenarioPasteElements final
     : public score::Command
 {
   SCORE_COMMAND_DECL(
-      ScenarioCommandFactoryName(),
-      ScenarioPasteElements,
+      ScenarioCommandFactoryName(), ScenarioPasteElements,
       "Paste elements in scenario")
 public:
   ScenarioPasteElements(
-      const Scenario::ProcessModel& path,
-      const QJsonObject& obj,
+      const Scenario::ProcessModel& path, const QJsonObject& obj,
       const Scenario::Point& pt);
 
   void undo(const score::DocumentContext& ctx) const override;
@@ -55,6 +55,5 @@ private:
 
   QMap<Id<Process::Cable>, Process::CableData> m_cables;
 };
-
 }
 }

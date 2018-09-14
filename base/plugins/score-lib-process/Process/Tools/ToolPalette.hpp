@@ -1,16 +1,16 @@
 #pragma once
 #include <Process/Focus/FocusDispatcher.hpp>
 #include <Process/ProcessContext.hpp>
+
 #include <QApplication>
 #include <QDebug>
 #include <QPointF>
 #include <QScreen>
 #include <QTimer>
+
 #include <chrono>
 template <
-    typename Tool_T,
-    typename ToolPalette_T,
-    typename Context_T,
+    typename Tool_T, typename ToolPalette_T, typename Context_T,
     typename Input_T>
 class ToolPaletteInputDispatcher : public QObject
 {

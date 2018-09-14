@@ -1,12 +1,12 @@
 #include "InsertEffect.hpp"
+
 #include <score/document/ChangeId.hpp>
 
 namespace Media
 {
 InsertEffect::InsertEffect(
     const Effect::ProcessModel& model,
-    const UuidKey<Process::ProcessModel>& effectKind,
-    QString data,
+    const UuidKey<Process::ProcessModel>& effectKind, QString data,
     std::size_t effectPos)
     : m_model{model}
     , m_id{getStrongId(model.effects())}
@@ -50,12 +50,8 @@ void InsertEffect::deserializeImpl(DataStreamOutput& s)
   s >> m_model >> m_id >> m_effectKind >> m_data >> m_pos;
 }
 
-
-
-
 LoadEffect::LoadEffect(
-    const Effect::ProcessModel& model,
-    const QJsonObject& data,
+    const Effect::ProcessModel& model, const QJsonObject& data,
     std::size_t effectPos)
     : m_path{model}
     , m_id{getStrongId(model.effects())}
@@ -77,16 +73,17 @@ void LoadEffect::redo(const score::DocumentContext& ctx) const
 
   // Create process model
   auto obj = m_data[score::StringConstant().Process].toObject();
-  auto key = fromJsonValue<UuidKey<Process::ProcessModel>>(obj[score::StringConstant().uuid]);
+  auto key = fromJsonValue<UuidKey<Process::ProcessModel>>(
+      obj[score::StringConstant().uuid]);
   auto fac = ctx.app.interfaces<Process::ProcessFactoryList>().get(key);
   SCORE_ASSERT(fac);
   // TODO handle missing effect
   JSONObject::Deserializer des{obj};
   auto fx = fac->load(des.toVariant(), &echain);
   const auto ports = fx->findChildren<Process::Port*>();
-  for(Process::Port* port : ports)
+  for (Process::Port* port : ports)
   {
-    while(!port->cables().empty())
+    while (!port->cables().empty())
     {
       port->removeCable(port->cables().back());
     }
@@ -106,8 +103,6 @@ void LoadEffect::deserializeImpl(DataStreamOutput& s)
 {
   s >> m_path >> m_id >> m_data >> m_pos;
 }
-
-
 
 RemoveEffect::RemoveEffect(
     const Effect::ProcessModel& model, const Process::ProcessModel& effect)
@@ -158,8 +153,7 @@ void RemoveEffect::deserializeImpl(DataStreamOutput& s)
 }
 
 MoveEffect::MoveEffect(
-    const Effect::ProcessModel& effect,
-    Id<Process::ProcessModel> id,
+    const Effect::ProcessModel& effect, Id<Process::ProcessModel> id,
     int new_pos)
     : m_model{effect}, m_id{id}, m_newPos{new_pos}
 {

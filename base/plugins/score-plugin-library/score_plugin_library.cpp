@@ -2,11 +2,11 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "score_plugin_library.hpp"
 
-#include <Library/Panel/LibraryPanelFactory.hpp>
 #include <Library/LibraryInterface.hpp>
 #include <Library/LibrarySettings.hpp>
-#include <score/plugins/customfactory/FactorySetup.hpp>
+#include <Library/Panel/LibraryPanelFactory.hpp>
 
+#include <score/plugins/customfactory/FactorySetup.hpp>
 
 score_plugin_library::score_plugin_library()
 {
@@ -19,7 +19,8 @@ score_plugin_library::~score_plugin_library()
 std::vector<std::unique_ptr<score::InterfaceListBase>>
 score_plugin_library::factoryFamilies()
 {
-  return make_ptr_vector<score::InterfaceListBase, Library::LibraryInterfaceList>();
+  return make_ptr_vector<
+      score::InterfaceListBase, Library::LibraryInterfaceList>();
 }
 std::vector<std::unique_ptr<score::InterfaceBase>>
 score_plugin_library::guiFactories(
@@ -28,9 +29,9 @@ score_plugin_library::guiFactories(
 {
   return instantiate_factories<
       score::ApplicationContext,
-        FW<score::PanelDelegateFactory, Library::PanelDelegateFactory>
-      , FW<score::SettingsDelegateFactory, Library::Settings::Factory>
-      >(ctx, key);
+      FW<score::PanelDelegateFactory, Library::PanelDelegateFactory>,
+      FW<score::SettingsDelegateFactory, Library::Settings::Factory>>(
+      ctx, key);
 }
 
 #include <score/plugins/PluginInstances.hpp>

@@ -3,36 +3,37 @@
 
 #include "BaseScenarioComponent.hpp"
 
+#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
+#include <Process/ExecutionContext.hpp>
+#include <Scenario/Document/BaseScenario/BaseScenario.hpp>
+#include <Scenario/Document/Event/EventExecution.hpp>
+#include <Scenario/Document/Event/EventModel.hpp>
+#include <Scenario/Document/Interval/IntervalDurations.hpp>
+#include <Scenario/Document/Interval/IntervalExecution.hpp>
+#include <Scenario/Document/Interval/IntervalModel.hpp>
+#include <Scenario/Document/State/StateExecution.hpp>
+#include <Scenario/Document/State/StateModel.hpp>
+#include <Scenario/Document/TimeSync/TimeSyncExecution.hpp>
+#include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
+#include <Scenario/Execution/score2OSSIA.hpp>
+
+#include <score/document/DocumentInterface.hpp>
+#include <score/tools/IdentifierGeneration.hpp>
+
+#include <ossia/audio/audio_protocol.hpp>
+#include <ossia/dataflow/execution_state.hpp>
+#include <ossia/dataflow/nodes/forward_node.hpp>
 #include <ossia/editor/scenario/time_event.hpp>
 #include <ossia/editor/scenario/time_interval.hpp>
 #include <ossia/editor/scenario/time_sync.hpp>
 #include <ossia/editor/scenario/time_value.hpp>
 #include <ossia/editor/state/state.hpp>
-#include <ossia/dataflow/execution_state.hpp>
-
-#include <Process/ExecutionContext.hpp>
-
-#include <Scenario/Document/Event/EventExecution.hpp>
-#include <Scenario/Document/Interval/IntervalExecution.hpp>
-#include <Scenario/Document/State/StateExecution.hpp>
-#include <Scenario/Document/TimeSync/TimeSyncExecution.hpp>
 
 #include <Engine/OSSIA2score.hpp>
-#include <Scenario/Execution/score2OSSIA.hpp>
-#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
-#include <Scenario/Document/BaseScenario/BaseScenario.hpp>
-#include <Scenario/Document/Event/EventModel.hpp>
-#include <Scenario/Document/Interval/IntervalDurations.hpp>
-#include <Scenario/Document/Interval/IntervalModel.hpp>
-#include <Scenario/Document/State/StateModel.hpp>
-#include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
-#include <algorithm>
-#include <score/document/DocumentInterface.hpp>
-#include <score/tools/IdentifierGeneration.hpp>
-#include <ossia/dataflow/nodes/forward_node.hpp>
-#include <vector>
 #include <wobjectimpl.h>
-#include <ossia/audio/audio_protocol.hpp>
+
+#include <algorithm>
+#include <vector>
 W_OBJECT_IMPL(Execution::BaseScenarioElement)
 
 namespace Execution
@@ -100,16 +101,19 @@ void BaseScenarioElement::init(BaseScenarioRefContainer element)
   m_ossia_interval->onSetup(
       m_ossia_interval, main_interval, m_ossia_interval->makeDurations());
 
-  for(auto dev : m_ctx.execState->edit_devices())
+  for (auto dev : m_ctx.execState->edit_devices())
   {
-    if(dynamic_cast<ossia::audio_protocol*>(&dev->get_protocol()))
+    if (dynamic_cast<ossia::audio_protocol*>(&dev->get_protocol()))
     {
-      if(auto n = ossia::net::find_node(dev->get_root_node(), "/out/main"))
+      if (auto n = ossia::net::find_node(dev->get_root_node(), "/out/main"))
       {
-        if(auto param = n->get_parameter())
+        if (auto param = n->get_parameter())
         {
           auto node = main_interval->node;
-          m_ctx.executionQueue.enqueue([=] { static_cast<ossia::nodes::interval*>(node.get())->audio_out.address = param; });
+          m_ctx.executionQueue.enqueue([=] {
+            static_cast<ossia::nodes::interval*>(node.get())->audio_out.address
+                = param;
+          });
           break;
         }
       }
@@ -177,7 +181,6 @@ StateComponent& BaseScenarioElement::endState() const
   return *m_ossia_endState;
 }
 }
-
 
 BaseScenarioRefContainer::BaseScenarioRefContainer(
     Scenario::IntervalModel& interval, Scenario::ScenarioInterface& s)

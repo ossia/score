@@ -22,8 +22,7 @@ struct DocumentList;
 struct SCORE_LIB_BASE_EXPORT ApplicationContext
 {
   explicit ApplicationContext(
-      const score::ApplicationSettings&,
-      const ApplicationComponents&,
+      const score::ApplicationSettings&, const ApplicationComponents&,
       DocumentList& l,
       const std::vector<std::unique_ptr<score::SettingsDelegateModel>>&);
   ApplicationContext(const ApplicationContext&) = delete;

@@ -1,13 +1,14 @@
 #pragma once
+#include <score/application/ApplicationComponents.hpp>
+#include <score/model/IdentifiedObject.hpp>
+#include <score/serialization/JSONValueVisitor.hpp>
+#include <score/serialization/StringConstants.hpp>
+
 #include <ossia/detail/small_vector.hpp>
 
 #include <QJsonArray>
 #include <QJsonObject>
 #include <QMap>
-#include <score/application/ApplicationComponents.hpp>
-#include <score/model/IdentifiedObject.hpp>
-#include <score/serialization/JSONValueVisitor.hpp>
-#include <score/serialization/StringConstants.hpp>
 
 /**
  * This file contains facilities
@@ -92,9 +93,11 @@ private:
   template <typename T>
   void readFrom_impl(const T& obj, visitor_template_tag)
   {
-    if constexpr(base_kind<T>::value)
+    if constexpr (base_kind<T>::value)
     {
-      readFrom_impl((const typename T::base_type&) obj, typename serialization_tag<T>::type{});
+      readFrom_impl(
+          (const typename T::base_type&)obj,
+          typename serialization_tag<T>::type{});
     }
     TSerializer<JSONObject, T>::readFrom(*this, obj);
   }
@@ -102,37 +105,41 @@ private:
   template <typename T>
   void readFrom_impl(const T& obj, visitor_object_tag)
   {
-    if constexpr(base_kind<T>::value)
+    if constexpr (base_kind<T>::value)
     {
-      readFrom_impl((const typename T::base_type&) obj, typename serialization_tag<T>::type{});
+      readFrom_impl(
+          (const typename T::base_type&)obj,
+          typename serialization_tag<T>::type{});
     }
     else
     {
       TSerializer<JSONObject, IdentifiedObject<T>>::readFrom(*this, obj);
     }
 
-    if constexpr(is_custom_serialized<T>::value || is_template<T>::value)
-        TSerializer<JSONObject, T>::readFrom(*this, obj);
+    if constexpr (is_custom_serialized<T>::value || is_template<T>::value)
+      TSerializer<JSONObject, T>::readFrom(*this, obj);
     else
-        read(obj);
+      read(obj);
   }
 
   template <typename T>
   void readFrom_impl(const T& obj, visitor_entity_tag)
   {
-    if constexpr(base_kind<T>::value)
+    if constexpr (base_kind<T>::value)
     {
-      readFrom_impl((const typename T::base_type&) obj, typename serialization_tag<T>::type{});
+      readFrom_impl(
+          (const typename T::base_type&)obj,
+          typename serialization_tag<T>::type{});
     }
     else
     {
       TSerializer<JSONObject, score::Entity<T>>::readFrom(*this, obj);
     }
 
-    if constexpr(is_custom_serialized<T>::value || is_template<T>::value)
-        TSerializer<JSONObject, T>::readFrom(*this, obj);
+    if constexpr (is_custom_serialized<T>::value || is_template<T>::value)
+      TSerializer<JSONObject, T>::readFrom(*this, obj);
     else
-        read(obj);
+      read(obj);
   }
 
   template <typename T, typename Fun>
@@ -428,7 +435,8 @@ QJsonArray toJsonArray(const T<Id<V>>& array)
   return arr;
 }
 
-template <template <typename U, typename W> class T, typename V, typename Alloc>
+template <
+    template <typename U, typename W> class T, typename V, typename Alloc>
 QJsonArray toJsonArray(const T<Id<V>, Alloc>& array)
 {
   QJsonArray arr;
@@ -442,9 +450,7 @@ QJsonArray toJsonArray(const T<Id<V>, Alloc>& array)
 }
 
 template <
-    template <typename U, std::size_t> class T,
-    typename V,
-    std::size_t N>
+    template <typename U, std::size_t> class T, typename V, std::size_t N>
 QJsonArray toJsonArray(const T<Id<V>, N>& array)
 {
   QJsonArray arr;
@@ -492,8 +498,7 @@ QJsonArray toJsonMap(const QMap<Key, Value>& map)
 }
 
 template <
-    typename Key,
-    typename Value,
+    typename Key, typename Value,
     std::enable_if_t<std::is_same<bool, Value>::value>* = nullptr>
 QMap<Key, Value> fromJsonMap(const QJsonArray& array)
 {
@@ -585,10 +590,8 @@ void fromJsonArray(QJsonArray&& json_arr, Container<T>& arr)
 }
 
 template <
-    template <typename U, typename V> class Container,
-    typename T1,
-    typename T2,
-    std::enable_if_t<!std::is_arithmetic<T1>::value>* = nullptr>
+    template <typename U, typename V> class Container, typename T1,
+    typename T2, std::enable_if_t<!std::is_arithmetic<T1>::value>* = nullptr>
 void fromJsonArray(QJsonArray&& json_arr, Container<T1, T2>& arr)
 {
   arr.clear();
@@ -601,10 +604,8 @@ void fromJsonArray(QJsonArray&& json_arr, Container<T1, T2>& arr)
 }
 
 template <
-    template <typename U, typename V> class Container,
-    typename T1,
-    typename T2,
-    std::enable_if_t<std::is_integral<T1>::value>* = nullptr>
+    template <typename U, typename V> class Container, typename T1,
+    typename T2, std::enable_if_t<std::is_integral<T1>::value>* = nullptr>
 void fromJsonArray(QJsonArray&& json_arr, Container<T1, T2>& arr)
 {
   int n = json_arr.size();
@@ -616,8 +617,7 @@ void fromJsonArray(QJsonArray&& json_arr, Container<T1, T2>& arr)
 }
 
 template <
-    template <typename U, typename V> class Container,
-    typename T1,
+    template <typename U, typename V> class Container, typename T1,
     typename T2,
     std::enable_if_t<std::is_floating_point<T1>::value>* = nullptr>
 void fromJsonArray(QJsonArray&& json_arr, Container<T1, T2>& arr)
@@ -676,4 +676,3 @@ Q_DECLARE_METATYPE(JSONObjectReader*)
 Q_DECLARE_METATYPE(JSONObjectWriter*)
 W_REGISTER_ARGTYPE(JSONObjectReader*)
 W_REGISTER_ARGTYPE(JSONObjectWriter*)
-

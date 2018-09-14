@@ -6,20 +6,20 @@
 #include <Media/Commands/CreateSoundBox.hpp>
 #include <Media/Sound/SoundModel.hpp>
 #include <Process/TimeValueSerialization.hpp>
-#include <QApplication>
-#include <QMimeData>
-#include <QUrl>
+#include <Scenario/Commands/CommandAPI.hpp>
 #include <Scenario/Commands/MoveBaseEvent.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
 #include <Scenario/Process/Temporal/TemporalScenarioPresenter.hpp>
-#include <Scenario/Commands/CommandAPI.hpp>
+
+#include <QApplication>
+#include <QMimeData>
+#include <QUrl>
 namespace Media
 {
 namespace Sound
 {
 static void createSoundProcesses(
-    Scenario::Command::Macro& m,
-    const Scenario::IntervalModel& interval,
+    Scenario::Command::Macro& m, const Scenario::IntervalModel& interval,
     DroppedAudioFiles& drop)
 {
   for (auto&& file : drop.files)
@@ -61,8 +61,7 @@ TimeVal DroppedAudioFiles::dropMaxDuration() const
 }
 
 bool DropHandler::drop(
-    const Scenario::TemporalScenarioPresenter& pres,
-    QPointF pos,
+    const Scenario::TemporalScenarioPresenter& pres, QPointF pos,
     const QMimeData& mime)
 {
   DroppedAudioFiles drop{mime};
@@ -84,8 +83,7 @@ bool DropHandler::drop(
 }
 
 bool DropHandler::createInSequence(
-    const Scenario::TemporalScenarioPresenter& pres,
-    QPointF pos,
+    const Scenario::TemporalScenarioPresenter& pres, QPointF pos,
     DroppedAudioFiles&& audio)
 {
   SCORE_TODO;
@@ -93,13 +91,11 @@ bool DropHandler::createInSequence(
 }
 
 bool DropHandler::createInParallel(
-    const Scenario::TemporalScenarioPresenter& pres,
-    QPointF pos,
+    const Scenario::TemporalScenarioPresenter& pres, QPointF pos,
     DroppedAudioFiles&& drop)
 {
-  Scenario::Command::Macro m{
-    new Media::CreateSoundBoxMacro,
-    pres.context().context};
+  Scenario::Command::Macro m{new Media::CreateSoundBoxMacro,
+                             pres.context().context};
 
   // Create a box.
   const Scenario::ProcessModel& scenar = pres.model();

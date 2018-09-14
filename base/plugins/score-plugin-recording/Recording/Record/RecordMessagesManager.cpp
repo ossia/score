@@ -14,8 +14,6 @@
 #include <Process/ExpandMode.hpp>
 #include <Process/Process.hpp>
 #include <Process/TimeValue.hpp>
-#include <QApplication>
-#include <QString>
 #include <Recording/Commands/Record.hpp>
 #include <Scenario/Commands/Interval/AddOnlyProcessToInterval.hpp>
 #include <Scenario/Commands/Interval/Rack/Slot/AddLayerModelToSlot.hpp>
@@ -29,9 +27,7 @@
 #include <Scenario/Process/ScenarioModel.hpp>
 #include <State/Value.hpp>
 #include <State/ValueConversion.hpp>
-#include <algorithm>
-#include <core/document/Document.hpp>
-#include <qnamespace.h>
+
 #include <score/command/Dispatchers/MacroCommandDispatcher.hpp>
 #include <score/document/DocumentInterface.hpp>
 #include <score/model/EntityMap.hpp>
@@ -39,10 +35,19 @@
 #include <score/model/path/Path.hpp>
 #include <score/model/tree/TreeNode.hpp>
 #include <score/tools/std/Optional.hpp>
-#include <type_traits>
-#include <utility>
+
+#include <core/document/Document.hpp>
+
+#include <QApplication>
+#include <QString>
+#include <qnamespace.h>
 
 #include <wobjectimpl.h>
+
+#include <algorithm>
+#include <utility>
+
+#include <type_traits>
 W_OBJECT_IMPL(Recording::MessageRecorder)
 namespace Recording
 {
@@ -56,10 +61,7 @@ void MessageRecorder::stop()
   for (const auto& dev : m_recordCallbackConnections)
   {
     if (dev)
-      (*dev)
-          .valueUpdated
-          .disconnect<&MessageRecorder::on_valueUpdated>(
-              *this);
+      (*dev).valueUpdated.disconnect<&MessageRecorder::on_valueUpdated>(*this);
   }
   m_recordCallbackConnections.clear();
 
@@ -171,8 +173,7 @@ bool MessageRecorder::setup(
     dev.addToListening(addr_vec);
 
     // Add a custom callback.
-    dev.valueUpdated
-        .connect<&MessageRecorder::on_valueUpdated>(*this);
+    dev.valueUpdated.connect<&MessageRecorder::on_valueUpdated>(*this);
 
     m_recordCallbackConnections.push_back(&dev);
   }

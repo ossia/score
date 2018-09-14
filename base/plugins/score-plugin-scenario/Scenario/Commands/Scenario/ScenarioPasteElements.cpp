@@ -2,56 +2,62 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "ScenarioPasteElements.hpp"
 
-#include <ossia/detail/algorithms.hpp>
-#include <Scenario/Commands/Scenario/ScenarioPaste.hpp>
 #include <Process/Process.hpp>
 #include <Process/TimeValue.hpp>
-#include <QDataStream>
-#include <QHash>
-#include <QJsonArray>
-#include <QJsonValue>
-#include <QtGlobal>
+#include <Scenario/Commands/Scenario/ScenarioPaste.hpp>
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 #include <Scenario/Palette/ScenarioPoint.hpp>
 #include <Scenario/Process/Algorithms/Accessors.hpp>
 #include <Scenario/Process/Algorithms/ProcessPolicy.hpp>
 #include <Scenario/Process/Algorithms/StandardCreationPolicy.hpp>
 #include <Scenario/Process/Algorithms/VerticalMovePolicy.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
-#include <core/document/DocumentModel.hpp>
-#include <score/plugins/documentdelegate/DocumentDelegateModel.hpp>
-#include <algorithm>
 
-#include <core/document/Document.hpp>
-#include <cstddef>
-#include <iterator>
-#include <limits>
-#include <unordered_map>
 #include <score/document/DocumentContext.hpp>
 #include <score/document/DocumentInterface.hpp>
 #include <score/model/EntityMap.hpp>
 #include <score/model/path/ObjectPath.hpp>
 #include <score/model/path/PathSerialization.hpp>
+#include <score/plugins/documentdelegate/DocumentDelegateModel.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/serialization/JSONVisitor.hpp>
 #include <score/serialization/VisitorCommon.hpp>
 #include <score/tools/Clamp.hpp>
 #include <score/tools/IdentifierGeneration.hpp>
+
+#include <core/document/Document.hpp>
+#include <core/document/DocumentModel.hpp>
+
+#include <ossia/detail/algorithms.hpp>
+
+#include <QDataStream>
+#include <QHash>
+#include <QJsonArray>
+#include <QJsonValue>
+#include <QtGlobal>
+
+#include <algorithm>
+#include <cstddef>
+#include <iterator>
+#include <limits>
 #include <vector>
-#include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
+
+#include <unordered_map>
 namespace Scenario
 {
 namespace Command
 {
 ScenarioPasteElements::ScenarioPasteElements(
-    const Scenario::ProcessModel& scenario,
-    const QJsonObject& obj,
+    const Scenario::ProcessModel& scenario, const QJsonObject& obj,
     const Scenario::Point& pt)
-  : m_ts{scenario}
+    : m_ts{scenario}
 {
   auto& ctx = score::IDocument::documentContext(scenario);
 
-  auto [timesyncs, intervals, events, states, cables,
-       interval_ids, timesync_ids, event_ids, state_ids] = ScenarioBeingCopied{obj, scenario, ctx};
+  auto
+      [timesyncs, intervals, events, states, cables, interval_ids,
+       timesync_ids, event_ids, state_ids]
+      = ScenarioBeingCopied{obj, scenario, ctx};
 
   // We set the new ids everywhere
   {
@@ -77,8 +83,8 @@ ScenarioPasteElements::ScenarioPasteElements(
     {
       {
         auto it = std::find_if(
-              timesyncs.begin(), timesyncs.end(),
-              [&](TimeSyncModel* tn) { return tn->id() == event->timeSync(); });
+            timesyncs.begin(), timesyncs.end(),
+            [&](TimeSyncModel* tn) { return tn->id() == event->timeSync(); });
         SCORE_ASSERT(it != timesyncs.end());
         auto timesync = *it;
         timesync->removeEvent(event->id());
@@ -104,9 +110,9 @@ ScenarioPasteElements::ScenarioPasteElements(
     {
       {
         auto it = std::find_if(
-              events.begin(), events.end(), [&](EventModel* event) {
-            return event->id() == state->eventId();
-      });
+            events.begin(), events.end(), [&](EventModel* event) {
+              return event->id() == state->eventId();
+            });
         SCORE_ASSERT(it != events.end());
         auto event = *it;
         event->removeState(state->id());
@@ -138,12 +144,14 @@ ScenarioPasteElements::ScenarioPasteElements(
       }
     }
 
-    auto& doc = score::IDocument::modelDelegate<ScenarioDocumentModel>(ctx.document);
-    auto cable_ids = getStrongIdRange<Process::Cable>(cables.size(), doc.cables);
+    auto& doc
+        = score::IDocument::modelDelegate<ScenarioDocumentModel>(ctx.document);
+    auto cable_ids
+        = getStrongIdRange<Process::Cable>(cables.size(), doc.cables);
 
     int i = 0;
     Path<Process::ProcessModel> p{scenario};
-    for(Process::CableData& cd : cables)
+    for (Process::CableData& cd : cables)
     {
       auto& source_vec = cd.source.unsafePath().vec();
       auto& sink_vec = cd.sink.unsafePath().vec();
@@ -158,11 +166,17 @@ ScenarioPasteElements::ScenarioPasteElements(
         if (id == sink_itv_id)
           sink_itv_id = id_map.at(interval->id()).val();
       }
-      source_vec.front() = ObjectIdentifier{source_vec.front().objectName(), source_itv_id};
-      sink_vec.front() = ObjectIdentifier{sink_vec.front().objectName(), sink_itv_id};
+      source_vec.front()
+          = ObjectIdentifier{source_vec.front().objectName(), source_itv_id};
+      sink_vec.front()
+          = ObjectIdentifier{sink_vec.front().objectName(), sink_itv_id};
 
-      source_vec.insert(source_vec.begin(), p.unsafePath().vec().begin(), p.unsafePath().vec().end());
-      sink_vec.insert(sink_vec.begin(), p.unsafePath().vec().begin(), p.unsafePath().vec().end());
+      source_vec.insert(
+          source_vec.begin(), p.unsafePath().vec().begin(),
+          p.unsafePath().vec().end());
+      sink_vec.insert(
+          sink_vec.begin(), p.unsafePath().vec().begin(),
+          p.unsafePath().vec().end());
 
       m_cables.insert(cable_ids[i], std::move(cd));
       i++;
@@ -174,9 +188,9 @@ ScenarioPasteElements::ScenarioPasteElements(
     for (IntervalModel* interval : intervals)
     {
       const auto ports = interval->findChildren<Process::Port*>();
-      for(Process::Port* port : ports)
+      for (Process::Port* port : ports)
       {
-        while(!port->cables().empty())
+        while (!port->cables().empty())
         {
           port->removeCable(port->cables().back());
         }
@@ -274,7 +288,7 @@ ScenarioPasteElements::ScenarioPasteElements(
   for (StateModel* state : states)
   {
     state->setHeightPercentage(
-          clamp(state->heightPercentage() + delta_y, 0., 1.));
+        clamp(state->heightPercentage() + delta_y, 0., 1.));
   }
 
   // We reserialize here in order to not have dangling pointers and bad cache
@@ -324,8 +338,9 @@ void ScenarioPasteElements::undo(const score::DocumentContext& ctx) const
 {
   auto& scenario = m_ts.find(ctx);
 
-  ScenarioDocumentModel& model = score::IDocument::modelDelegate<ScenarioDocumentModel>(ctx.document);
-  for(const auto& cable_id : m_cables.keys())
+  ScenarioDocumentModel& model
+      = score::IDocument::modelDelegate<ScenarioDocumentModel>(ctx.document);
+  for (const auto& cable_id : m_cables.keys())
   {
     auto& c = model.cables.at(cable_id);
     c.source().find(ctx).removeCable(c);
@@ -375,7 +390,7 @@ void ScenarioPasteElements::redo(const score::DocumentContext& ctx) const
   for (const auto& state : m_json_states)
   {
     scenario.states.add(
-          new StateModel(JSONObject::Deserializer{state}, &scenario));
+        new StateModel(JSONObject::Deserializer{state}, &scenario));
   }
 
   for (const auto& interval : m_json_intervals)
@@ -394,8 +409,9 @@ void ScenarioPasteElements::redo(const score::DocumentContext& ctx) const
     updateTimeSyncExtent(timesync->id(), scenario);
   }
 
-  ScenarioDocumentModel& model = score::IDocument::modelDelegate<ScenarioDocumentModel>(ctx.document);
-  for(const auto& cable_id : m_cables.keys())
+  ScenarioDocumentModel& model
+      = score::IDocument::modelDelegate<ScenarioDocumentModel>(ctx.document);
+  for (const auto& cable_id : m_cables.keys())
   {
     const auto& dat = m_cables[cable_id];
     auto c = new Process::Cable{cable_id, dat, &model};
@@ -422,6 +438,5 @@ void ScenarioPasteElements::deserializeImpl(DataStreamOutput& s)
       >> m_ids_intervals >> m_json_timesyncs >> m_json_events >> m_json_states
       >> m_json_intervals >> m_cables;
 }
-
 }
 }

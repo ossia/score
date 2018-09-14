@@ -4,6 +4,7 @@
 #include <QString>
 #include <QUrl>
 #include <QWidget>
+
 #include <score_lib_base_export.h>
 
 class QVBoxLayout;

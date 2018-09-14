@@ -3,12 +3,14 @@
 
 #include "PowerSegment.hpp"
 
-#include <ossia/editor/curve/curve_segment/linear.hpp>
 #include <Curve/Palette/CurvePoint.hpp>
 #include <Curve/Segment/CurveSegmentData.hpp>
-#include <score/serialization/VisitorCommon.hpp>
+
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/serialization/JSONVisitor.hpp>
+#include <score/serialization/VisitorCommon.hpp>
+
+#include <ossia/editor/curve/curve_segment/linear.hpp>
 
 namespace Curve
 {
@@ -20,8 +22,7 @@ PowerSegment::PowerSegment(const SegmentData& dat, QObject* parent)
 }
 
 PowerSegment::PowerSegment(
-    const PowerSegment& other,
-    const IdentifiedObject::id_type& id,
+    const PowerSegment& other, const IdentifiedObject::id_type& id,
     QObject* parent)
     : SegmentModel{other.start(), other.end(), id, parent}, gamma{other.gamma}
 {

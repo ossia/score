@@ -5,16 +5,19 @@ int main()
 {
 }
 /*
-#include <ossia/editor/state/message.hpp>
-
 #include <Process/Dataflow/Port.hpp>
 #include <Process/Dataflow/PortFactory.hpp>
+#include <State/Message.hpp>
+
+#include <score/serialization/VisitorCommon.hpp>
+
+#include <core/application/MockApplication.hpp>
+
+#include <ossia/editor/state/message.hpp>
+
 #include <QMetaType>
 #include <QObject>
 #include <QtTest/QtTest>
-#include <State/Message.hpp>
-#include <core/application/MockApplication.hpp>
-#include <score/serialization/VisitorCommon.hpp>
 
 using namespace score;
 class PortSerializationTest : public QObject

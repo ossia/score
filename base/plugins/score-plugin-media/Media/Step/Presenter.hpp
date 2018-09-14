@@ -1,11 +1,12 @@
 #pragma once
-#include <ossia/detail/math.hpp>
-
 #include <Media/Step/Commands.hpp>
 #include <Media/Step/View.hpp>
 #include <Process/Focus/FocusDispatcher.hpp>
 #include <Process/LayerPresenter.hpp>
+
 #include <score/command/Dispatchers/SingleOngoingCommandDispatcher.hpp>
+
+#include <ossia/detail/math.hpp>
 
 namespace Media
 {
@@ -16,10 +17,8 @@ class Presenter final : public Process::LayerPresenter
 {
 public:
   explicit Presenter(
-      const Process::ProcessModel& model,
-      View* view,
-      const Process::ProcessPresenterContext& ctx,
-      QObject* parent)
+      const Process::ProcessModel& model, View* view,
+      const Process::ProcessPresenterContext& ctx, QObject* parent)
       : LayerPresenter{ctx, parent}
       , m_layer{model}
       , m_view{view}

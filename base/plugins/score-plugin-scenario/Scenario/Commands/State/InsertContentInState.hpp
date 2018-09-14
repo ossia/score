@@ -1,9 +1,11 @@
 #pragma once
 #include <Process/State/MessageNode.hpp>
-#include <QJsonObject>
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
+
 #include <score/command/Command.hpp>
 #include <score/model/path/Path.hpp>
+
+#include <QJsonObject>
 
 struct DataStreamInput;
 struct DataStreamOutput;
@@ -17,8 +19,7 @@ namespace Command
 class InsertContentInState final : public score::Command
 {
   SCORE_COMMAND_DECL(
-      ScenarioCommandFactoryName(),
-      InsertContentInState,
+      ScenarioCommandFactoryName(), InsertContentInState,
       "Insert content in a state")
 
 public:

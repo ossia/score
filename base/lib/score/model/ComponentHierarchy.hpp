@@ -1,9 +1,11 @@
 #pragma once
+#include <score/model/ComponentSerialization.hpp>
+#include <score/tools/IdentifierGeneration.hpp>
+
 #include <ossia/detail/algorithms.hpp>
 
 #include <nano_observer.hpp>
-#include <score/model/ComponentSerialization.hpp>
-#include <score/tools/IdentifierGeneration.hpp>
+
 #include <vector>
 
 namespace score
@@ -20,12 +22,10 @@ namespace score
  * to store them in a single hierarchy manager part of the original element.
  */
 template <
-    typename ParentComponent_T,
-    typename ChildModel_T,
+    typename ParentComponent_T, typename ChildModel_T,
     typename ChildComponent_T>
-class ComponentHierarchyManager
-    : public ParentComponent_T
-    , public Nano::Observer
+class ComponentHierarchyManager : public ParentComponent_T,
+                                  public Nano::Observer
 {
 public:
   using hierarchy_t = ComponentHierarchyManager;
@@ -60,11 +60,9 @@ public:
       add(child_model);
     }
 
-    child_models.mutable_added
-        .template connect<&hierarchy_t::add>(this);
+    child_models.mutable_added.template connect<&hierarchy_t::add>(this);
 
-    child_models.removing.template connect<&hierarchy_t::remove>(
-        this);
+    child_models.removing.template connect<&hierarchy_t::remove>(this);
   }
 
   const auto& children() const
@@ -163,14 +161,11 @@ private:
  * source them from a factory somehow.
  */
 template <
-    typename ParentComponent_T,
-    typename ChildModel_T,
-    typename ChildComponent_T,
-    typename ChildComponentFactoryList_T,
+    typename ParentComponent_T, typename ChildModel_T,
+    typename ChildComponent_T, typename ChildComponentFactoryList_T,
     bool HasOwnership = true>
-class PolymorphicComponentHierarchyManager
-    : public ParentComponent_T
-    , public Nano::Observer
+class PolymorphicComponentHierarchyManager : public ParentComponent_T,
+                                             public Nano::Observer
 {
 public:
   using hierarchy_t = PolymorphicComponentHierarchyManager;
@@ -211,11 +206,9 @@ public:
       add(child_model);
     }
 
-    child_models.mutable_added
-        .template connect<&hierarchy_t::add>(this);
+    child_models.mutable_added.template connect<&hierarchy_t::add>(this);
 
-    child_models.removing.template connect<&hierarchy_t::remove>(
-        this);
+    child_models.removing.template connect<&hierarchy_t::remove>(this);
   }
   const auto& children() const
   {
@@ -330,15 +323,10 @@ private:
 
 template <typename Component>
 using ComponentHierarchy = ComponentHierarchyManager<
-    Component,
-    typename Component::model_t,
-    typename Component::component_t>;
+    Component, typename Component::model_t, typename Component::component_t>;
 
 template <typename Component, bool HasOwnership = true>
 using PolymorphicComponentHierarchy = PolymorphicComponentHierarchyManager<
-    Component,
-    typename Component::model_t,
-    typename Component::component_t,
-    typename Component::component_factory_list_t,
-    HasOwnership>;
+    Component, typename Component::model_t, typename Component::component_t,
+    typename Component::component_factory_list_t, HasOwnership>;
 }

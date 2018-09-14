@@ -2,17 +2,20 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "BaseScenarioContainer.hpp"
 
-#include <QJsonObject>
-#include <QJsonValue>
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
 #include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
 #include <Scenario/Process/Algorithms/ProcessPolicy.hpp>
-#include <algorithm>
+
 #include <score/document/DocumentContext.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/serialization/JSONVisitor.hpp>
+
+#include <QJsonObject>
+#include <QJsonValue>
+
+#include <algorithm>
 
 template <typename T>
 class Reader;
@@ -48,10 +51,8 @@ DataStreamWriter::write(Scenario::BaseScenarioContainer& base_scenario)
   base_scenario.m_startEvent = new EventModel{*this, base_scenario.m_parent};
   base_scenario.m_endEvent = new EventModel{*this, base_scenario.m_parent};
 
-  base_scenario.m_startState
-      = new StateModel{*this, base_scenario.m_parent};
-  base_scenario.m_endState
-      = new StateModel{*this, base_scenario.m_parent};
+  base_scenario.m_startState = new StateModel{*this, base_scenario.m_parent};
+  base_scenario.m_endState = new StateModel{*this, base_scenario.m_parent};
 
   Scenario::SetPreviousInterval(
       *base_scenario.m_endState, *base_scenario.m_interval);

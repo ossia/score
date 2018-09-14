@@ -2,9 +2,11 @@
 #include <Curve/Commands/UpdateCurve.hpp>
 #include <Curve/Palette/CommandObjects/CurveCommandObjectBase.hpp>
 #include <Curve/Segment/PointArray/PointArraySegment.hpp>
-#include <QPoint>
+
 #include <score/command/Dispatchers/SingleOngoingCommandDispatcher.hpp>
 #include <score/tools/std/Optional.hpp>
+
+#include <QPoint>
 
 namespace Curve
 {
@@ -32,9 +34,7 @@ public:
 
 private:
   using seg_tuple = std::tuple<
-      optional<SegmentData>,
-      optional<SegmentData>,
-      std::vector<SegmentData>>;
+      optional<SegmentData>, optional<SegmentData>, std::vector<SegmentData>>;
   void release_n(seg_tuple&&);
   seg_tuple filterSegments();
   PointArraySegment m_segment;

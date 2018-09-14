@@ -1,19 +1,22 @@
 #pragma once
 #include <Curve/Palette/CurveEditionSettings.hpp>
-#include <wobjectdefs.h>
 #include <Curve/Point/CurvePointModel.hpp>
 #include <Curve/Point/CurvePointView.hpp>
 #include <Curve/Segment/CurveSegmentModel.hpp>
 #include <Curve/Segment/CurveSegmentView.hpp>
-#include <QObject>
-#include <QPoint>
-#include <QRect>
+
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/document/DocumentContext.hpp>
 #include <score/model/IdentifiedObjectMap.hpp>
 #include <score/selection/SelectionDispatcher.hpp>
 #include <score/widgets/GraphicsItem.hpp>
+
+#include <QObject>
+#include <QPoint>
+#include <QRect>
+
 #include <score_plugin_curve_export.h>
+#include <wobjectdefs.h>
 
 class QActionGroup;
 class QMenu;
@@ -29,11 +32,8 @@ class SCORE_PLUGIN_CURVE_EXPORT Presenter final : public QObject
   W_OBJECT(Presenter)
 public:
   Presenter(
-      const score::DocumentContext& lst,
-      const Curve::Style&,
-      const Model&,
-      View*,
-      QObject* parent);
+      const score::DocumentContext& lst, const Curve::Style&, const Model&,
+      View*, QObject* parent);
   virtual ~Presenter();
 
   const auto& points() const
@@ -94,7 +94,8 @@ public:
   }
 
 public:
-  void contextMenuRequested(const QPoint& arg_1, const QPointF& arg_2) E_SIGNAL(SCORE_PLUGIN_CURVE_EXPORT, contextMenuRequested, arg_1, arg_2);
+  void contextMenuRequested(const QPoint& arg_1, const QPointF& arg_2)
+      E_SIGNAL(SCORE_PLUGIN_CURVE_EXPORT, contextMenuRequested, arg_1, arg_2);
 
 private:
   // Context menu actions

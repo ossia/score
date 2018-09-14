@@ -2,6 +2,10 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "DocumentBackups.hpp"
 
+#include <score/tools/QMapHelper.hpp>
+
+#include <core/application/OpenDocumentsFile.hpp>
+
 #include <QApplication>
 #include <QByteArray>
 #include <QFile>
@@ -12,8 +16,6 @@
 #include <QSettings>
 #include <QString>
 #include <QVariant>
-#include <core/application/OpenDocumentsFile.hpp>
-#include <score/tools/QMapHelper.hpp>
 
 bool score::DocumentBackups::canRestoreDocuments()
 {
@@ -42,8 +44,7 @@ bool score::DocumentBackups::canRestoreDocuments()
 template <typename T>
 static void loadRestorableDocumentData(
     const QString& date_filename,
-    const QPair<QString, QString>& command_filename,
-    T& arr)
+    const QPair<QString, QString>& command_filename, T& arr)
 {
   QFile data_file{date_filename};
   QFile command_file{command_filename.second};

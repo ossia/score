@@ -1,6 +1,7 @@
 #pragma once
 #include <Device/Node/DeviceNode.hpp>
 #include <Explorer/Commands/DeviceExplorerCommandFactory.hpp>
+
 #include <score/command/Command.hpp>
 #include <score/model/path/Path.hpp>
 
@@ -19,14 +20,11 @@ class ReplaceDevice final : public score::Command
       DeviceExplorerCommandFactoryName(), ReplaceDevice, "Replace a device")
 public:
   ReplaceDevice(
-      const DeviceDocumentPlugin& device_tree,
-      int deviceIndex,
+      const DeviceDocumentPlugin& device_tree, int deviceIndex,
       Device::Node&& rootNode);
   ReplaceDevice(
-      const DeviceDocumentPlugin& device_tree,
-      int deviceIndex,
-      Device::Node&& oldDevice,
-      Device::Node&& newDevice);
+      const DeviceDocumentPlugin& device_tree, int deviceIndex,
+      Device::Node&& oldDevice, Device::Node&& newDevice);
 
   void undo(const score::DocumentContext& ctx) const override;
   void redo(const score::DocumentContext& ctx) const override;

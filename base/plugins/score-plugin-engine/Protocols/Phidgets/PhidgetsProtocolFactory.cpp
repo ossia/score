@@ -3,15 +3,15 @@
 
 #include <ossia/detail/config.hpp>
 #if defined(OSSIA_PROTOCOL_PHIDGETS)
-#include "PhidgetsProtocolFactory.hpp"
-
 #include "PhidgetsDevice.hpp"
-
-#include <ossia/network/base/device.hpp>
+#include "PhidgetsProtocolFactory.hpp"
 
 #include <Device/Protocol/DeviceSettings.hpp>
 #include <Protocols/Phidgets/PhidgetsProtocolSettingsWidget.hpp>
 #include <Protocols/Phidgets/PhidgetsSpecificSettings.hpp>
+
+#include <ossia/network/base/device.hpp>
+
 #include <QObject>
 
 namespace Device
@@ -74,17 +74,14 @@ bool PhidgetProtocolFactory::checkCompatibility(
 }
 
 Device::AddressDialog* PhidgetProtocolFactory::makeEditAddressDialog(
-    const Device::AddressSettings&,
-    const Device::DeviceInterface& dev,
-    const score::DocumentContext& ctx,
-    QWidget*)
+    const Device::AddressSettings&, const Device::DeviceInterface& dev,
+    const score::DocumentContext& ctx, QWidget*)
 {
   return nullptr;
 }
 
 Device::AddressDialog* PhidgetProtocolFactory::makeAddAddressDialog(
-    const Device::DeviceInterface& dev,
-    const score::DocumentContext& ctx,
+    const Device::DeviceInterface& dev, const score::DocumentContext& ctx,
     QWidget*)
 {
   return nullptr;

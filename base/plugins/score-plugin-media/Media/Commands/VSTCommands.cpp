@@ -2,6 +2,7 @@
 
 #include <Media/Effect/VST/VSTControl.hpp>
 #include <Media/Effect/VST/VSTEffectModel.hpp>
+
 #include <score/model/path/PathSerialization.hpp>
 namespace Media::VST
 {

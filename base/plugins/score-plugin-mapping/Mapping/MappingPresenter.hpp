@@ -1,10 +1,11 @@
 #pragma once
 #include <Curve/CurveStyle.hpp>
-#include <wobjectdefs.h>
 #include <Curve/Process/CurveProcessPresenter.hpp>
 #include <Mapping/MappingModel.hpp>
 #include <Mapping/MappingView.hpp>
 #include <Process/ProcessContext.hpp>
+
+#include <wobjectdefs.h>
 
 namespace Mapping
 {
@@ -14,11 +15,8 @@ class LayerPresenter final
   W_OBJECT(LayerPresenter)
 public:
   LayerPresenter(
-      const Curve::Style& style,
-      const ProcessModel& layer,
-      LayerView* view,
-      const Process::ProcessPresenterContext& context,
-      QObject* parent)
+      const Curve::Style& style, const ProcessModel& layer, LayerView* view,
+      const Process::ProcessPresenterContext& context, QObject* parent)
       : CurveProcessPresenter{style, layer, view, context, parent}
   {
   }

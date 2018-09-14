@@ -2,8 +2,9 @@
 #include "Record/RecordManager.hpp"
 #include "Record/RecordMessagesManager.hpp"
 
-#include <memory>
 #include <score/plugins/application/GUIApplicationPlugin.hpp>
+
+#include <memory>
 #include <vector>
 namespace Engine
 {
@@ -17,9 +18,8 @@ struct Point;
 } // namespace Scenario
 namespace Recording
 {
-class ApplicationPlugin final
-    : public QObject
-    , public score::GUIApplicationPlugin
+class ApplicationPlugin final : public QObject,
+                                public score::GUIApplicationPlugin
 {
 public:
   ApplicationPlugin(const score::GUIApplicationContext& app);

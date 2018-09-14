@@ -5,6 +5,9 @@
 #include "PluginSettingsPresenter.hpp"
 
 #include <PluginSettings/FileDownloader.hpp>
+
+#include <score/plugins/settingsdelegate/SettingsDelegateView.hpp>
+
 #include <QBuffer>
 #include <QDir>
 #include <QFile>
@@ -16,9 +19,10 @@
 #include <QNetworkRequest>
 #include <QStandardPaths>
 #include <QTemporaryFile>
-#include <miniz.c>
-#include <score/plugins/settingsdelegate/SettingsDelegateView.hpp>
+
 #include <wobjectimpl.h>
+
+#include <miniz.c>
 W_OBJECT_IMPL(PluginSettings::PluginSettingsView)
 namespace PluginSettings
 {
@@ -216,14 +220,14 @@ PluginSettingsView::PluginSettingsView()
 
           QFileInfo fi{f};
 
-#  if defined(SCORE_DEPLOYMENT_BUILD)
+#if defined(SCORE_DEPLOYMENT_BUILD)
           auto docs = QStandardPaths::standardLocations(
                           QStandardPaths::DocumentsLocation)
                           .first();
           auto dirname = docs + "/score/plugins/";
-#  else
+#else
             auto dirname = "addons";
-#  endif
+#endif
 
           auto res = zip_helper::unzip(fi.absoluteFilePath(), dirname);
 

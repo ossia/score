@@ -1,10 +1,12 @@
 #pragma once
 #include <Automation/AutomationColors.hpp>
-#include <wobjectdefs.h>
 #include <Media/Step/Model.hpp>
 #include <Process/LayerView.hpp>
+
 #include <QGraphicsSceneMouseEvent>
 #include <QPainter>
+
+#include <wobjectdefs.h>
 
 namespace Media
 {

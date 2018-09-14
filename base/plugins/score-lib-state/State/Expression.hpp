@@ -1,14 +1,17 @@
 #pragma once
-#include <ossia/editor/expression/operators.hpp>
-
-#include <QString>
 #include <State/Relation.hpp>
-#include <algorithm>
-#include <cstddef>
+
 #include <score/model/tree/InvisibleRootNode.hpp>
 #include <score/model/tree/TreeNode.hpp>
 #include <score/model/tree/VariantBasedNode.hpp>
 #include <score/tools/std/Optional.hpp>
+
+#include <ossia/editor/expression/operators.hpp>
+
+#include <QString>
+
+#include <algorithm>
+#include <cstddef>
 #include <vector>
 
 class DataStream;
@@ -26,8 +29,8 @@ enum class UnaryOperator
 };
 
 struct SCORE_LIB_STATE_EXPORT ExprData
-    : public score::
-          VariantBasedNode<Relation, Pulse, BinaryOperator, UnaryOperator>
+    : public score::VariantBasedNode<
+          Relation, Pulse, BinaryOperator, UnaryOperator>
 {
   SCORE_SERIALIZE_FRIENDS
 
@@ -76,10 +79,8 @@ public:
   QString toString() const;
   QString toPrettyString() const;
 
-  using iterator =
-      typename std::list<TreeNode>::iterator;
-  using const_iterator =
-      typename std::list<TreeNode>::const_iterator;
+  using iterator = typename std::list<TreeNode>::iterator;
+  using const_iterator = typename std::list<TreeNode>::const_iterator;
 
   iterator begin();
   const_iterator begin() const;
@@ -178,4 +179,3 @@ JSON_METADATA(State::BinaryOperator, "BinOp")
 
 Q_DECLARE_METATYPE(State::Expression)
 W_REGISTER_ARGTYPE(State::Expression)
-

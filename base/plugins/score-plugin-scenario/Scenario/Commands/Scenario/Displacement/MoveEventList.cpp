@@ -4,8 +4,10 @@
 
 #include <Scenario/Commands/Scenario/Displacement/MoveEventFactoryInterface.hpp>
 #include <Scenario/Commands/Scenario/Displacement/SerializableMoveEvent.hpp>
-#include <algorithm>
+
 #include <qiterator.h>
+
+#include <algorithm>
 #include <stdexcept>
 
 namespace Scenario

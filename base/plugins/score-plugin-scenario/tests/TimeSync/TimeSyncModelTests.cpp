@@ -1,12 +1,15 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include <Process/TimeValue.hpp>
-#include <QtTest/QtTest>
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
-#include <chrono>
+
 #include <score/model/path/Path.hpp>
+
+#include <QtTest/QtTest>
+
+#include <chrono>
 
 class TimeSyncModelTests : public QObject
 {

@@ -1,6 +1,7 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "NodeBasedItemModel.hpp"
+
 #include <ossia/network/domain/domain.hpp>
 #include <ossia/network/domain/domain_functions.hpp>
 namespace Device
@@ -9,8 +10,7 @@ NodeBasedItemModel::~NodeBasedItemModel() = default;
 
 Device::FullAddressAccessorSettings makeFullAddressAccessorSettings(
     const State::AddressAccessor& addr,
-    const Device::NodeBasedItemModel& deviceexplorer,
-    ossia::value min,
+    const Device::NodeBasedItemModel& deviceexplorer, ossia::value min,
     ossia::value max)
 {
   auto& newval = addr.address;
@@ -40,8 +40,8 @@ Device::FullAddressAccessorSettings makeFullAddressAccessorSettings(
   return s;
 }
 
-Device::FullAddressAccessorSettings makeFullAddressAccessorSettings(
-    const Device::Node& mess)
+Device::FullAddressAccessorSettings
+makeFullAddressAccessorSettings(const Device::Node& mess)
 {
   if (auto as_ptr = mess.target<Device::AddressSettings>())
   {

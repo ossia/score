@@ -5,8 +5,7 @@
 #include <Process/ProcessList.hpp>
 #include <Process/TimeValue.hpp>
 #include <Process/TimeValueSerialization.hpp>
-#include <QJsonObject>
-#include <QJsonValue>
+
 #include <score/model/ModelMetadata.hpp>
 #include <score/plugins/customfactory/FactoryFamily.hpp>
 #include <score/plugins/customfactory/StringFactoryKey.hpp>
@@ -14,6 +13,9 @@
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/serialization/JSONValueVisitor.hpp>
 #include <score/serialization/JSONVisitor.hpp>
+
+#include <QJsonObject>
+#include <QJsonValue>
 
 template <>
 SCORE_LIB_PROCESS_EXPORT void

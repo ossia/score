@@ -7,9 +7,6 @@
 #include <Loop/LoopProcessModel.hpp>
 #include <Loop/LoopView.hpp>
 #include <Process/TimeValue.hpp>
-#include <QPoint>
-#include <QRect>
-#include <QtGlobal>
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/Event/EventPresenter.hpp>
 #include <Scenario/Document/Event/EventView.hpp>
@@ -25,6 +22,10 @@
 #include <Scenario/Document/TimeSync/TimeSyncPresenter.hpp>
 #include <Scenario/Document/TimeSync/TimeSyncView.hpp>
 #include <Scenario/Document/VerticalExtent.hpp>
+
+#include <QPoint>
+#include <QRect>
+#include <QtGlobal>
 
 namespace Loop
 {

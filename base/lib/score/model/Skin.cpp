@@ -2,22 +2,28 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "Skin.hpp"
 
-#include <QJsonArray>
-#include <QJsonObject>
 #include <boost/assign/list_of.hpp>
 #include <boost/bimap.hpp>
+
+#include <QJsonArray>
+#include <QJsonObject>
+
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(score::Skin)
 namespace score
 {
-  struct Skin::color_map
+struct Skin::color_map
+{
+  color_map(
+      std::initializer_list<boost::bimap<QString, QBrush*>::value_type> list)
+      : the_map(list.begin(), list.end())
   {
-      color_map(std::initializer_list<boost::bimap<QString, QBrush*>::value_type> list): the_map(list.begin(), list.end()) { }
+  }
 
-      boost::bimap<QString, QBrush*> the_map;
-      decltype(boost::bimap<QString, QBrush*>{}.left)& left{the_map.left};
-      decltype(boost::bimap<QString, QBrush*>{}.right)& right{the_map.right};
-  };
+  boost::bimap<QString, QBrush*> the_map;
+  decltype(boost::bimap<QString, QBrush*>{}.left)& left{the_map.left};
+  decltype(boost::bimap<QString, QBrush*>{}.right)& right{the_map.right};
+};
 
 Skin::~Skin()
 {
@@ -25,7 +31,7 @@ Skin::~Skin()
 }
 #define SCORE_INSERT_COLOR(Col) \
   {                             \
-#    Col, &Col                  \
+#Col, &Col                  \
   }
 Skin::Skin() noexcept
     : SansFont{"Ubuntu"}
@@ -36,21 +42,21 @@ Skin::Skin() noexcept
     , NoPen{Qt::NoPen}
     , NoBrush{Qt::NoBrush}
     , TextBrush{QColor("#1f2a30")}
-    , m_colorMap(new color_map
-          {SCORE_INSERT_COLOR(Dark),         SCORE_INSERT_COLOR(HalfDark),
-           SCORE_INSERT_COLOR(Gray),         SCORE_INSERT_COLOR(HalfLight),
-           SCORE_INSERT_COLOR(Light),        SCORE_INSERT_COLOR(Emphasis1),
-           SCORE_INSERT_COLOR(Emphasis2),    SCORE_INSERT_COLOR(Emphasis3),
-           SCORE_INSERT_COLOR(Emphasis4),    SCORE_INSERT_COLOR(Base1),
-           SCORE_INSERT_COLOR(Base2),        SCORE_INSERT_COLOR(Base3),
-           SCORE_INSERT_COLOR(Base4),        SCORE_INSERT_COLOR(Warn1),
-           SCORE_INSERT_COLOR(Warn2),        SCORE_INSERT_COLOR(Warn3),
-           SCORE_INSERT_COLOR(Background1),  SCORE_INSERT_COLOR(Transparent1),
-           SCORE_INSERT_COLOR(Transparent2), SCORE_INSERT_COLOR(Transparent3),
-           SCORE_INSERT_COLOR(Smooth1),      SCORE_INSERT_COLOR(Smooth2),
-           SCORE_INSERT_COLOR(Smooth3),      SCORE_INSERT_COLOR(Tender1),
-           SCORE_INSERT_COLOR(Tender2),      SCORE_INSERT_COLOR(Tender3),
-           SCORE_INSERT_COLOR(Pulse1),       SCORE_INSERT_COLOR(Pulse2)})
+    , m_colorMap(new color_map{
+          SCORE_INSERT_COLOR(Dark),         SCORE_INSERT_COLOR(HalfDark),
+          SCORE_INSERT_COLOR(Gray),         SCORE_INSERT_COLOR(HalfLight),
+          SCORE_INSERT_COLOR(Light),        SCORE_INSERT_COLOR(Emphasis1),
+          SCORE_INSERT_COLOR(Emphasis2),    SCORE_INSERT_COLOR(Emphasis3),
+          SCORE_INSERT_COLOR(Emphasis4),    SCORE_INSERT_COLOR(Base1),
+          SCORE_INSERT_COLOR(Base2),        SCORE_INSERT_COLOR(Base3),
+          SCORE_INSERT_COLOR(Base4),        SCORE_INSERT_COLOR(Warn1),
+          SCORE_INSERT_COLOR(Warn2),        SCORE_INSERT_COLOR(Warn3),
+          SCORE_INSERT_COLOR(Background1),  SCORE_INSERT_COLOR(Transparent1),
+          SCORE_INSERT_COLOR(Transparent2), SCORE_INSERT_COLOR(Transparent3),
+          SCORE_INSERT_COLOR(Smooth1),      SCORE_INSERT_COLOR(Smooth2),
+          SCORE_INSERT_COLOR(Smooth3),      SCORE_INSERT_COLOR(Tender1),
+          SCORE_INSERT_COLOR(Tender2),      SCORE_INSERT_COLOR(Tender3),
+          SCORE_INSERT_COLOR(Pulse1),       SCORE_INSERT_COLOR(Pulse2)})
 {
   this->startTimer(32, Qt::CoarseTimer);
 #if QT_VERSION >= QT_VERSION_CHECK(5, 10, 0)

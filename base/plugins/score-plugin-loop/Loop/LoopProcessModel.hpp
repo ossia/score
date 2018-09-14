@@ -1,16 +1,19 @@
 #pragma once
 #include <Loop/LoopProcessMetadata.hpp>
-#include <wobjectdefs.h>
 #include <Process/Process.hpp>
 #include <Process/TimeValue.hpp>
-#include <QByteArray>
-#include <QString>
-#include <QVector>
 #include <Scenario/Document/BaseScenario/BaseScenarioContainer.hpp>
+
 #include <score/model/Identifier.hpp>
 #include <score/selection/Selection.hpp>
 #include <score/serialization/VisitorInterface.hpp>
+
+#include <QByteArray>
+#include <QString>
+#include <QVector>
+
 #include <score_plugin_loop_export.h>
+#include <wobjectdefs.h>
 
 class DataStream;
 class JSONObject;
@@ -24,8 +27,8 @@ class IntervalModel;
 namespace Loop
 {
 class SCORE_PLUGIN_LOOP_EXPORT ProcessModel final
-    : public Process::ProcessModel
-    , public Scenario::BaseScenarioContainer
+    : public Process::ProcessModel,
+      public Scenario::BaseScenarioContainer
 {
   W_OBJECT(ProcessModel)
   SCORE_SERIALIZE_FRIENDS
@@ -36,8 +39,7 @@ public:
   std::unique_ptr<Process::Outlet> outlet;
 
   explicit ProcessModel(
-      const TimeVal& duration,
-      const Id<Process::ProcessModel>& id,
+      const TimeVal& duration, const Id<Process::ProcessModel>& id,
       QObject* parentObject);
 
   template <typename Impl>
@@ -68,11 +70,9 @@ public:
   void setSelection(const Selection& s) const override;
 
   void changeDuration(Scenario::IntervalModel& itv, const TimeVal& v) override;
-  void changeDuration(const Scenario::IntervalModel& itv,
-                      OngoingCommandDispatcher& dispatcher,
-                      const TimeVal& v,
-                      ExpandMode expandmode,
-                      LockMode lockmode) override;
+  void changeDuration(
+      const Scenario::IntervalModel& itv, OngoingCommandDispatcher& dispatcher,
+      const TimeVal& v, ExpandMode expandmode, LockMode lockmode) override;
   ~ProcessModel() override;
 };
 

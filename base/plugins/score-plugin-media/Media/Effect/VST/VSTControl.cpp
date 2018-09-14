@@ -3,11 +3,14 @@
 #include <Dataflow/Commands/EditConnection.hpp>
 #include <Media/Commands/VSTCommands.hpp>
 #include <Media/Effect/VST/VSTControl.hpp>
-#include <QMenu>
 #include <Scenario/Commands/Interval/AddLayerInNewSlot.hpp>
 #include <Scenario/Commands/Interval/AddOnlyProcessToInterval.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
+
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
+
+#include <QMenu>
+
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Media::VST::VSTControlInlet)
 namespace Media::VST
@@ -27,8 +30,7 @@ void VSTControlPortItem::setupMenu(
 }
 
 bool VSTControlPortItem::on_createAutomation(
-    Scenario::IntervalModel& cst,
-    std::function<void(score::Command*)> macro,
+    Scenario::IntervalModel& cst, std::function<void(score::Command*)> macro,
     const score::DocumentContext& ctx)
 {
   auto make_cmd = new Scenario::Command::AddOnlyProcessToInterval{
@@ -73,10 +75,8 @@ VSTControlPortFactory::load(const VisitorVariant& vis, QObject* parent)
 }
 
 Dataflow::PortItem* VSTControlPortFactory::makeItem(
-    Process::Inlet& port,
-    const score::DocumentContext& ctx,
-    QGraphicsItem* parent,
-    QObject* context)
+    Process::Inlet& port, const score::DocumentContext& ctx,
+    QGraphicsItem* parent, QObject* context)
 {
   auto port_item = new VSTControlPortItem{port, ctx, parent};
   // Dataflow::setupSimpleInlet(port_item, port, ctx, parent, context);
@@ -84,10 +84,8 @@ Dataflow::PortItem* VSTControlPortFactory::makeItem(
 }
 
 Dataflow::PortItem* VSTControlPortFactory::makeItem(
-    Process::Outlet& port,
-    const score::DocumentContext& ctx,
-    QGraphicsItem* parent,
-    QObject* context)
+    Process::Outlet& port, const score::DocumentContext& ctx,
+    QGraphicsItem* parent, QObject* context)
 {
   return nullptr;
 }

@@ -1,5 +1,6 @@
 #pragma once
 #include "CurveCommandObjectBase.hpp"
+
 #include <Curve/Segment/CurveSegmentData.hpp>
 
 namespace Curve

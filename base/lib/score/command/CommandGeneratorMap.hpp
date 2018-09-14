@@ -1,9 +1,12 @@
 #pragma once
-#include <QByteArray>
-#include <memory>
 #include <score/command/CommandFactoryKey.hpp>
 #include <score/tools/std/HashMap.hpp>
+
+#include <QByteArray>
+
 #include <score_lib_base_export.h>
+
+#include <memory>
 #include <utility>
 
 namespace score

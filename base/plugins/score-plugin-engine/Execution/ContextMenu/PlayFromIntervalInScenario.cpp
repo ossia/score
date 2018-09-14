@@ -1,20 +1,21 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+#include <Process/Execution/ProcessComponent.hpp>
+#include <Process/Process.hpp>
+#include <Scenario/Document/Interval/IntervalExecution.hpp>
+#include <Scenario/Process/Algorithms/Accessors.hpp>
+#include <Scenario/Process/ScenarioExecution.hpp>
+#include <Scenario/Process/ScenarioInterface.hpp>
+
 #include <ossia/editor/scenario/scenario.hpp>
 #include <ossia/editor/scenario/time_event.hpp>
 #include <ossia/editor/scenario/time_interval.hpp>
 #include <ossia/editor/scenario/time_sync.hpp>
 
-#include <Scenario/Process/ScenarioExecution.hpp>
-#include <Scenario/Document/Interval/IntervalExecution.hpp>
+#include <boost/graph/depth_first_search.hpp>
 
 #include <Execution/BaseScenarioComponent.hpp>
 #include <Execution/ContextMenu/PlayFromIntervalInScenario.hpp>
-#include <Process/Execution/ProcessComponent.hpp>
-#include <Process/Process.hpp>
-#include <Scenario/Process/Algorithms/Accessors.hpp>
-#include <Scenario/Process/ScenarioInterface.hpp>
-#include <boost/graph/depth_first_search.hpp>
 
 namespace Execution
 {
@@ -83,9 +84,8 @@ bool PlayFromIntervalScenarioPruner::toRemove(
   return (toKeep.find(c_addr) == toKeep.end()) && (c_addr != &interval);
 }
 
-void PlayFromIntervalScenarioPruner::operator()(
-    const Context& exec_ctx
-    , const BaseScenarioElement& bs)
+void PlayFromIntervalScenarioPruner::
+operator()(const Context& exec_ctx, const BaseScenarioElement& bs)
 {
   auto process_ptr = dynamic_cast<const Process::ProcessModel*>(&scenar);
   if (!process_ptr)
@@ -146,5 +146,4 @@ void PlayFromIntervalScenarioPruner::operator()(
   // TODO how to remove also the states ? for instance if there is a state on
   // the first timesync ?
 }
-
 }

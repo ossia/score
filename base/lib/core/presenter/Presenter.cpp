@@ -3,25 +3,6 @@
 
 #include "score_git_info.hpp"
 
-#include <QAction>
-#include <QApplication>
-#include <QKeySequence>
-#include <QMenu>
-#include <QMenuBar>
-#include <QMessageBox>
-#include <QObject>
-#include <QString>
-#include <algorithm>
-#include <core/view/QRecentFilesMenu.h>
-#include <core/document/Document.hpp>
-#include <core/presenter/DocumentManager.hpp>
-#include <core/presenter/Presenter.hpp>
-#include <core/settings/Settings.hpp>
-#include <core/settings/SettingsView.hpp>
-#include <core/view/Window.hpp>
-#include <cstdint>
-#include <functional>
-#include <qnamespace.h>
 #include <score/actions/Menu.hpp>
 #include <score/application/ApplicationComponents.hpp>
 #include <score/model/Identifier.hpp>
@@ -30,32 +11,52 @@
 #include <score/plugins/documentdelegate/DocumentDelegateFactory.hpp>
 #include <score/tools/IdentifierGeneration.hpp>
 #include <score/tools/std/Optional.hpp>
-#include <sys/types.h>
-#include <utility>
-#include <vector>
-#include <unordered_map>
 #include <score/widgets/MarginLess.hpp>
 
+#include <core/document/Document.hpp>
+#include <core/presenter/DocumentManager.hpp>
+#include <core/presenter/Presenter.hpp>
+#include <core/settings/Settings.hpp>
+#include <core/settings/SettingsView.hpp>
+#include <core/view/QRecentFilesMenu.h>
+#include <core/view/Window.hpp>
+
+#include <QAction>
+#include <QApplication>
+#include <QKeySequence>
 #include <QLabel>
+#include <QMenu>
+#include <QMenuBar>
+#include <QMessageBox>
+#include <QObject>
+#include <QString>
+#include <qnamespace.h>
+
+#include <sys/types.h>
 #include <wobjectimpl.h>
+
+#include <algorithm>
+#include <cstdint>
+#include <functional>
+#include <utility>
+#include <vector>
+
+#include <unordered_map>
 W_OBJECT_IMPL(score::Presenter)
 namespace score
 {
 
-  static auto get_menubar(View* view)
-  {
+static auto get_menubar(View* view)
+{
 #ifdef __APPLE__
-    return view ? new QMenuBar : (QMenuBar*)nullptr;
+  return view ? new QMenuBar : (QMenuBar*)nullptr;
 #else
-    return view ? view->menuBar() : (QMenuBar*)nullptr;
+  return view ? view->menuBar() : (QMenuBar*)nullptr;
 #endif
-  }
+}
 Presenter::Presenter(
-    const score::ApplicationSettings& app,
-    const score::Settings& set,
-    score::ProjectSettings& pset,
-    View* view,
-    QObject* arg_parent)
+    const score::ApplicationSettings& app, const score::Settings& set,
+    score::ProjectSettings& pset, View* view, QObject* arg_parent)
     : QObject{arg_parent}
     , m_view{view}
     , m_settings{set}
@@ -65,8 +66,8 @@ Presenter::Presenter(
     , m_components_readonly{m_components}
     , m_menubar{get_menubar(view)}
     , m_context{
-        app,       m_components_readonly, m_docManager, m_menus, m_toolbars,
-        m_actions, m_settings.settings(), m_view}
+          app,       m_components_readonly, m_docManager, m_menus, m_toolbars,
+          m_actions, m_settings.settings(), m_view}
 {
   m_docManager.init(m_context); // It is necessary to break
   // this dependency cycle.
@@ -127,7 +128,7 @@ void Presenter::setupGUI()
     if (!view())
       return;
 
-    for(auto& tb : toolbars)
+    for (auto& tb : toolbars)
     {
       ossia::sort(tb.second, [](auto& lhs, auto& rhs) {
         return lhs.column() < rhs.column();
@@ -145,11 +146,11 @@ void Presenter::setupGUI()
 
     {
       auto bw = new QWidget;
-      bw->setContentsMargins(0,0,0,0);
+      bw->setContentsMargins(0, 0, 0, 0);
       auto bl = new score::MarginLess<QGridLayout>{bw};
       auto dummy1 = new QWidget;
       dummy1->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-      bl->addWidget(dummy1,0,0,2,1);
+      bl->addWidget(dummy1, 0, 0, 2, 1);
       bl->setColumnStretch(0, 10);
 
       view()->centralWidget()->layout()->addWidget(bw);
@@ -157,7 +158,7 @@ void Presenter::setupGUI()
       struct ToolbarLabel final : public QLabel
       {
         ToolbarLabel(const Toolbar& tb)
-          : QLabel{QString::fromStdString(tb.key().toString())}
+            : QLabel{QString::fromStdString(tb.key().toString())}
         {
           setFont(QFont("Ubuntu", 8));
         }
@@ -166,7 +167,7 @@ void Presenter::setupGUI()
       int i = 1;
       for (const Toolbar& tb : toolbars[Qt::BottomToolBarArea])
       {
-        tb.toolbar()->setIconSize({32,32});
+        tb.toolbar()->setIconSize({32, 32});
         tb.toolbar()->setStyleSheet("QToolBar { border: none; }");
         bl->addWidget(tb.toolbar(), 0, i, Qt::AlignCenter);
         bl->addWidget(new ToolbarLabel{tb}, 1, i, Qt::AlignCenter);
@@ -183,7 +184,7 @@ void Presenter::setupGUI()
 
       auto dummy2 = new QWidget;
       dummy2->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-      bl->addWidget(dummy2,0,i,2,1);
+      bl->addWidget(dummy2, 0, i, 2, 1);
       bl->setColumnStretch(i, 10);
     }
   }

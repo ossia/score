@@ -1,12 +1,13 @@
 #pragma once
-#include <ossia/dataflow/nodes/spline.hpp>
-#include <wobjectdefs.h>
-
-#include <Spline/SplineMetadata.hpp>
 #include <Process/Process.hpp>
 #include <State/Address.hpp>
 #include <State/Unit.hpp>
+
+#include <ossia/dataflow/nodes/spline.hpp>
+
+#include <Spline/SplineMetadata.hpp>
 #include <score_plugin_automation_export.h>
+#include <wobjectdefs.h>
 
 namespace Spline
 {
@@ -19,13 +20,9 @@ class SCORE_PLUGIN_AUTOMATION_EXPORT ProcessModel final
 
   W_OBJECT(ProcessModel)
 
-
-
-
 public:
   ProcessModel(
-      const TimeVal& duration,
-      const Id<Process::ProcessModel>& id,
+      const TimeVal& duration, const Id<Process::ProcessModel>& id,
       QObject* parent);
   ~ProcessModel() override;
 
@@ -73,9 +70,12 @@ public:
   std::unique_ptr<Process::Outlet> outlet;
 
 public:
-  void addressChanged(const ::State::AddressAccessor& arg_1) E_SIGNAL(SCORE_PLUGIN_AUTOMATION_EXPORT, addressChanged, arg_1);
-  void tweenChanged(bool tween) E_SIGNAL(SCORE_PLUGIN_AUTOMATION_EXPORT, tweenChanged, tween);
-  void unitChanged(const State::Unit& arg_1) E_SIGNAL(SCORE_PLUGIN_AUTOMATION_EXPORT, unitChanged, arg_1);
+  void addressChanged(const ::State::AddressAccessor& arg_1)
+      E_SIGNAL(SCORE_PLUGIN_AUTOMATION_EXPORT, addressChanged, arg_1);
+  void tweenChanged(bool tween)
+      E_SIGNAL(SCORE_PLUGIN_AUTOMATION_EXPORT, tweenChanged, tween);
+  void unitChanged(const State::Unit& arg_1)
+      E_SIGNAL(SCORE_PLUGIN_AUTOMATION_EXPORT, unitChanged, arg_1);
   void splineChanged() E_SIGNAL(SCORE_PLUGIN_AUTOMATION_EXPORT, splineChanged);
 
 private:
@@ -91,10 +91,12 @@ private:
 
   bool m_tween = false;
 
-W_PROPERTY(State::Unit, unit READ unit WRITE setUnit NOTIFY unitChanged)
+  W_PROPERTY(State::Unit, unit READ unit WRITE setUnit NOTIFY unitChanged)
 
-W_PROPERTY(bool, tween READ tween WRITE setTween NOTIFY tweenChanged)
+  W_PROPERTY(bool, tween READ tween WRITE setTween NOTIFY tweenChanged)
 
-W_PROPERTY(State::AddressAccessor, address READ address WRITE setAddress NOTIFY addressChanged)
+  W_PROPERTY(
+      State::AddressAccessor,
+      address READ address WRITE setAddress NOTIFY addressChanged)
 };
 }

@@ -9,6 +9,7 @@
 #include <Scenario/Palette/Transitions/StateTransitions.hpp>
 #include <Scenario/Palette/Transitions/TimeSyncTransitions.hpp>
 #include <Scenario/Process/Algorithms/Accessors.hpp>
+
 #include <score/command/Dispatchers/SingleOngoingCommandDispatcher.hpp>
 //#include <Scenario/Application/ScenarioValidity.hpp>
 #include <QFinalState>
@@ -76,16 +77,13 @@ private:
 */
 template <
     typename MoveEventCommand_T, // MoveEventMeta
-    typename Scenario_T,
-    typename ToolPalette_T>
+    typename Scenario_T, typename ToolPalette_T>
 class MoveEventState final : public StateBase<Scenario_T>
 {
 public:
   MoveEventState(
-      const ToolPalette_T& stateMachine,
-      const Scenario_T& scenarioPath,
-      const score::CommandStackFacade& stack,
-      score::ObjectLocker& locker,
+      const ToolPalette_T& stateMachine, const Scenario_T& scenarioPath,
+      const score::CommandStackFacade& stack, score::ObjectLocker& locker,
       QState* parent)
       : StateBase<Scenario_T>{scenarioPath, parent}, m_movingDispatcher{stack}
   {
@@ -124,7 +122,7 @@ public:
       // ********************************************
       // What happens in each state.
 
-      QObject::connect(pressed, &QState::entered, [&] () {
+      QObject::connect(pressed, &QState::entered, [&]() {
         auto& scenar = stateMachine.model();
         auto evId{this->clickedEvent};
         if (!bool(evId) && bool(this->clickedState))
@@ -176,16 +174,17 @@ public:
         if (!evId)
           return;
 
-        TimeVal adjDate = this->m_origPos.date + (this->currentPoint.date - this->m_pressPos.date);
-        TimeVal date
-            = this->m_pressedPrevious
-                  ? std::max(adjDate, *this->m_pressedPrevious)
-                  : adjDate;
+        TimeVal adjDate = this->m_origPos.date
+                          + (this->currentPoint.date - this->m_pressPos.date);
+        TimeVal date = this->m_pressedPrevious
+                           ? std::max(adjDate, *this->m_pressedPrevious)
+                           : adjDate;
         date = std::max(date, TimeVal{});
 
         if (this->clickedState)
         {
-          auto new_y = m_origPos.y + (this->currentPoint.y - this->m_pressPos.y);
+          auto new_y
+              = m_origPos.y + (this->currentPoint.y - this->m_pressPos.y);
           this->m_movingDispatcher.submitCommand(
               this->m_scenario, *evId, date, new_y,
               stateMachine.editionSettings().expandMode(),
@@ -221,7 +220,7 @@ public:
 
   SingleOngoingCommandDispatcher<MoveEventCommand_T> m_movingDispatcher;
   Scenario::Point m_pressPos{}; // where the click landed in the scenario
-  Scenario::Point m_origPos{}; // original position of the object being moved
+  Scenario::Point m_origPos{};  // original position of the object being moved
   optional<TimeVal> m_pressedPrevious;
 };
 

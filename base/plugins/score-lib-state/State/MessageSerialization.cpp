@@ -4,14 +4,16 @@
 #include "ValueConversion.hpp"
 #include "ValueSerialization.hpp"
 
+#include <State/Address.hpp>
+#include <State/Value.hpp>
+
+#include <score/serialization/DataStreamVisitor.hpp>
+
 #include <QDataStream>
 #include <QJsonArray>
 #include <QJsonObject>
 #include <QJsonValue>
 #include <QtGlobal>
-#include <State/Address.hpp>
-#include <State/Value.hpp>
-#include <score/serialization/DataStreamVisitor.hpp>
 
 template <>
 SCORE_LIB_STATE_EXPORT void DataStreamReader::read(const State::Message& mess)

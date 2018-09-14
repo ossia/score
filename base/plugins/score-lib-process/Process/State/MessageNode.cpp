@@ -3,12 +3,15 @@
 #include "MessageNode.hpp"
 
 #include <Process/Process.hpp>
-#include <QStringBuilder>
 #include <State/Message.hpp>
 #include <State/ValueConversion.hpp>
-#include <algorithm>
+
 #include <score/model/tree/TreeNode.hpp>
 #include <score/serialization/JSONVisitor.hpp>
+
+#include <QStringBuilder>
+
+#include <algorithm>
 namespace Process
 {
 

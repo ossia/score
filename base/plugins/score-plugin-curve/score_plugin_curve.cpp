@@ -5,16 +5,18 @@
 #include <Curve/Commands/CurveCommandFactory.hpp>
 #include <Curve/Segment/CurveSegmentFactory.hpp>
 #include <Curve/Segment/CurveSegmentList.hpp>
+#include <Curve/Segment/EasingSegment.hpp>
 #include <Curve/Segment/Linear/LinearSegment.hpp>
 #include <Curve/Segment/Noise/NoiseSegment.hpp>
 #include <Curve/Segment/PointArray/PointArraySegment.hpp>
 #include <Curve/Segment/Power/PowerSegment.hpp>
 #include <Curve/Segment/Sin/SinSegment.hpp>
-#include <Curve/Segment/EasingSegment.hpp>
 #include <Curve/Settings/CurveSettingsFactory.hpp>
+
 #include <score/plugins/customfactory/FactorySetup.hpp>
 #include <score/plugins/customfactory/StringFactoryKey.hpp>
 #include <score/tools/std/HashMap.hpp>
+
 #include <score_plugin_curve_commands_files.hpp>
 
 score_plugin_curve::score_plugin_curve()
@@ -34,10 +36,8 @@ score_plugin_curve::factories(
   return instantiate_factories<
       score::ApplicationContext,
       FW<SegmentFactory, SegmentFactory_T<LinearSegment>,
-         SegmentFactory_T<PowerSegment>,
-         SegmentFactory_T<PointArraySegment>,
-         SegmentFactory_T<Segment_backIn>,
-         SegmentFactory_T<Segment_backOut>,
+         SegmentFactory_T<PowerSegment>, SegmentFactory_T<PointArraySegment>,
+         SegmentFactory_T<Segment_backIn>, SegmentFactory_T<Segment_backOut>,
          SegmentFactory_T<Segment_backInOut>,
          SegmentFactory_T<Segment_bounceIn>,
          SegmentFactory_T<Segment_bounceOut>,
@@ -45,8 +45,7 @@ score_plugin_curve::factories(
          SegmentFactory_T<Segment_quadraticIn>,
          SegmentFactory_T<Segment_quadraticOut>,
          SegmentFactory_T<Segment_quadraticInOut>,
-         SegmentFactory_T<Segment_cubicIn>,
-         SegmentFactory_T<Segment_cubicOut>,
+         SegmentFactory_T<Segment_cubicIn>, SegmentFactory_T<Segment_cubicOut>,
          SegmentFactory_T<Segment_cubicInOut>,
          SegmentFactory_T<Segment_quarticIn>,
          SegmentFactory_T<Segment_quarticOut>,
@@ -54,8 +53,7 @@ score_plugin_curve::factories(
          SegmentFactory_T<Segment_quinticIn>,
          SegmentFactory_T<Segment_quinticOut>,
          SegmentFactory_T<Segment_quinticInOut>,
-         SegmentFactory_T<Segment_sineIn>,
-         SegmentFactory_T<Segment_sineOut>,
+         SegmentFactory_T<Segment_sineIn>, SegmentFactory_T<Segment_sineOut>,
          SegmentFactory_T<Segment_sineInOut>,
          SegmentFactory_T<Segment_circularIn>,
          SegmentFactory_T<Segment_circularOut>,
@@ -66,10 +64,8 @@ score_plugin_curve::factories(
          SegmentFactory_T<Segment_elasticIn>,
          SegmentFactory_T<Segment_elasticOut>,
          SegmentFactory_T<Segment_elasticInOut>,
-         SegmentFactory_T<Segment_perlinInOut>
-         >,
-      FW<score::SettingsDelegateFactory, Settings::Factory>>(
-      ctx, factoryName);
+         SegmentFactory_T<Segment_perlinInOut>>,
+      FW<score::SettingsDelegateFactory, Settings::Factory>>(ctx, factoryName);
 }
 
 std::vector<std::unique_ptr<score::InterfaceListBase>>
@@ -86,7 +82,7 @@ score_plugin_curve::make_commands()
       Curve::CommandFactoryName(), CommandGeneratorMap{}};
 
   ossia::for_each_type<
-    #include <score_plugin_curve_commands.hpp>
+#include <score_plugin_curve_commands.hpp>
       >(score::commands::FactoryInserter{cmds.second});
 
   return cmds;

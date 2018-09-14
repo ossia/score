@@ -1,15 +1,16 @@
 #include "DataflowClock.hpp"
 
+#include <Device/Protocol/DeviceInterface.hpp>
+#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
+#include <Scenario/Document/Interval/IntervalExecution.hpp>
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
+
 #include <ossia/audio/audio_parameter.hpp>
 #include <ossia/audio/audio_protocol.hpp>
 #include <ossia/dataflow/graph/graph_interface.hpp>
 
-#include <Scenario/Document/Interval/IntervalExecution.hpp>
-#include <Execution/Settings/ExecutorModel.hpp>
-#include <Device/Protocol/DeviceInterface.hpp>
 #include <Audio/Settings/Model.hpp>
-#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
-#include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
+#include <Execution/Settings/ExecutorModel.hpp>
 namespace Dataflow
 {
 Clock::Clock(const Execution::Context& ctx)
@@ -23,8 +24,7 @@ Clock::~Clock()
 {
 }
 
-void Clock::play_impl(
-    const TimeVal& t, Execution::BaseScenarioElement& bs)
+void Clock::play_impl(const TimeVal& t, Execution::BaseScenarioElement& bs)
 {
   m_paused = false;
 
@@ -155,9 +155,9 @@ ClockFactory::makeTimeFunction(const score::DocumentContext& ctx) const
     // Go from milliseconds to samples
     // 1000 ms = sr samples
     // x ms    = k samples
-    return v.isInfinite()
-               ? ossia::Infinite
-               : ossia::time_value{int64_t(std::llround(rate * v.msec() / 1000.))};
+    return v.isInfinite() ? ossia::Infinite
+                          : ossia::time_value{int64_t(
+                                std::llround(rate * v.msec() / 1000.))};
   };
 }
 

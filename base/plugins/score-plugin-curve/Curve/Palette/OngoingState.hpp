@@ -1,10 +1,12 @@
 #pragma once
 #include <Curve/Palette/CurvePaletteBaseTransitions.hpp>
 #include <Curve/Palette/CurvePoint.hpp>
-#include <QFinalState>
-#include <QState>
+
 #include <score/statemachine/StateMachineTools.hpp>
 #include <score/statemachine/StateMachineUtils.hpp>
+
+#include <QFinalState>
+#include <QState>
 
 namespace Curve
 {

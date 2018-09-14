@@ -1,7 +1,8 @@
 #pragma once
 #include <Device/Widgets/DeviceModelProvider.hpp>
-#include <score/document/DocumentContext.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
+
+#include <score/document/DocumentContext.hpp>
 
 namespace Explorer
 {
@@ -11,10 +12,11 @@ class ModelProvider final : public Device::DeviceModelProvider
 public:
   ~ModelProvider() override = default;
 
-  Device::NodeBasedItemModel* getNodeModel(const score::DocumentContext& ctx) const noexcept override
+  Device::NodeBasedItemModel*
+  getNodeModel(const score::DocumentContext& ctx) const noexcept override
   {
     auto plug = ctx.findPlugin<DeviceDocumentPlugin>();
-    if(plug)
+    if (plug)
     {
       return &plug->explorer();
     }

@@ -1,7 +1,9 @@
 #pragma once
-#include <QRect>
-#include <wobjectdefs.h>
 #include <Scenario/Document/Interval/IntervalView.hpp>
+
+#include <QRect>
+
+#include <wobjectdefs.h>
 
 class QGraphicsItem;
 class QPainter;
@@ -27,8 +29,7 @@ public:
 
   QRectF boundingRect() const override;
   void paint(
-      QPainter* painter,
-      const QStyleOptionGraphicsItem* option,
+      QPainter* painter, const QStyleOptionGraphicsItem* option,
       QWidget* widget) override;
 
   void setGuiWidth(double);

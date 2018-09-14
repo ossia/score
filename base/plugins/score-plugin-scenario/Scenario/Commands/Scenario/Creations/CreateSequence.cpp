@@ -2,20 +2,12 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "CreateSequence.hpp"
 
-#include <ossia/network/domain/domain.hpp>
-#include <ossia/editor/state/destination_qualifiers.hpp>
-#include <ossia/network/value/value_conversion.hpp>
-
 #include <Device/Address/AddressSettings.hpp>
 #include <Device/Node/DeviceNode.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <Explorer/DocumentPlugin/NodeUpdateProxy.hpp>
 #include <Process/State/MessageNode.hpp>
 #include <Process/TimeValue.hpp>
-#include <QByteArray>
-#include <QList>
-#include <QString>
-#include <QtGlobal>
 #include <Scenario/Commands/Cohesion/CreateCurveFromStates.hpp>
 #include <Scenario/Commands/Cohesion/InterpolateMacro.hpp>
 #include <Scenario/Commands/Cohesion/InterpolateStates.hpp>
@@ -32,9 +24,7 @@
 #include <State/Message.hpp>
 #include <State/Value.hpp>
 #include <State/ValueConversion.hpp>
-#include <algorithm>
-#include <iterator>
-#include <list>
+
 #include <score/command/Dispatchers/MacroCommandDispatcher.hpp>
 #include <score/document/DocumentInterface.hpp>
 #include <score/model/Identifier.hpp>
@@ -44,6 +34,19 @@
 #include <score/tools/IdentifierGeneration.hpp>
 #include <score/tools/Todo.hpp>
 #include <score/tools/std/Optional.hpp>
+
+#include <ossia/editor/state/destination_qualifiers.hpp>
+#include <ossia/network/domain/domain.hpp>
+#include <ossia/network/value/value_conversion.hpp>
+
+#include <QByteArray>
+#include <QList>
+#include <QString>
+#include <QtGlobal>
+
+#include <algorithm>
+#include <iterator>
+#include <list>
 #include <utility>
 #include <vector>
 namespace Scenario
@@ -104,7 +107,8 @@ CreateSequenceProcesses::CreateSequenceProcesses(
   endMessages.reserve(endAddresses.size());
   ossia::transform(
       endAddresses, std::back_inserter(endMessages), [](const auto& addr) {
-        auto m = State::Message{State::AddressAccessor{addr.address}, addr.value};
+        auto m
+            = State::Message{State::AddressAccessor{addr.address}, addr.value};
         m.address.qualifiers.get().unit = addr.unit;
         return m;
       });
@@ -112,8 +116,10 @@ CreateSequenceProcesses::CreateSequenceProcesses(
   updateTreeWithMessageList(m_stateData, endMessages);
 
   // We also create relevant curves.
-  std::vector<std::pair<State::Message, Device::FullAddressSettings>> matchingNumericMessages;
-  std::vector<std::pair<State::Message, Device::FullAddressSettings>> matchingListMessages;
+  std::vector<std::pair<State::Message, Device::FullAddressSettings>>
+      matchingNumericMessages;
+  std::vector<std::pair<State::Message, Device::FullAddressSettings>>
+      matchingListMessages;
   // First we filter the messages
   for (auto& message : startMessages)
   {
@@ -142,7 +148,7 @@ CreateSequenceProcesses::CreateSequenceProcesses(
       {
         // TODO handle sub-vecs
         auto sz = message.value.apply(value_size{});
-        for(std::size_t i = 0; i < sz; i++)
+        for (std::size_t i = 0; i < sz; i++)
         {
           auto m = message;
           auto& acc = m.address.qualifiers.get().accessors;
@@ -189,13 +195,12 @@ CreateSequenceProcesses::CreateSequenceProcesses(
   {
     const auto& idx = elt.first.address.qualifiers.get().accessors;
     Curve::CurveDomain d = ossia::apply(
-          get_curve_domain{elt.first.address, idx, rootNode},
-          elt.first.value.v,
-          elt.second.value.v);
+        get_curve_domain{elt.first.address, idx, rootNode}, elt.first.value.v,
+        elt.second.value.v);
 
     qDebug() << elt.first.address.toString();
     qDebug() << "   start/end: " << d.start << d.end;
-    qDebug() << "   min/max: " << d.min<< d.max;
+    qDebug() << "   min/max: " << d.min << d.max;
     m_interpolations.addCommand(new CreateAutomationFromStates{
         interval, m_interpolations.slotsToUse, process_ids[cur_proc],
         elt.first.address, d});
@@ -235,11 +240,8 @@ void CreateSequenceProcesses::deserializeImpl(DataStreamOutput& s)
 }
 
 CreateSequence* CreateSequence::make(
-    const score::DocumentContext& ctx,
-    const ProcessModel& scenario,
-    const Id<StateModel>& start,
-    const TimeVal& date,
-    double endStateY)
+    const score::DocumentContext& ctx, const ProcessModel& scenario,
+    const Id<StateModel>& start, const TimeVal& date, double endStateY)
 {
   auto cmd = new CreateSequence;
 

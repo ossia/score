@@ -1,10 +1,12 @@
 #pragma once
 
-#include <QString>
-#include <QVariant>
 #include <score/model/Identifier.hpp>
 #include <score/plugins/customfactory/FactoryInterface.hpp>
 #include <score/serialization/VisitorCommon.hpp>
+
+#include <QString>
+#include <QVariant>
+
 #include <score_plugin_curve_export.h>
 
 class QObject;
@@ -15,8 +17,7 @@ namespace Curve
 class Category_k;
 class SegmentModel;
 struct SegmentData;
-class SCORE_PLUGIN_CURVE_EXPORT SegmentFactory
-    : public score::InterfaceBase
+class SCORE_PLUGIN_CURVE_EXPORT SegmentFactory : public score::InterfaceBase
 {
   SCORE_INTERFACE(SegmentFactory, "608ecec9-d8bc-4b6b-8e9e-31867a310f1e")
 public:

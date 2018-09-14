@@ -1,9 +1,9 @@
 #pragma once
-#include <ossia/detail/any_map.hpp>
-
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/serialization/JSONVisitor.hpp>
 #include <score/tools/std/String.hpp>
+
+#include <ossia/detail/any_map.hpp>
 
 /**
  * \file AnySerialization.hpp

@@ -3,10 +3,12 @@
 #include <Process/Focus/FocusDispatcher.hpp>
 #include <Process/Process.hpp>
 #include <Process/Style/Pixmaps.hpp>
+
+#include <score/widgets/GraphicWidgets.hpp>
+
 #include <QGraphicsSceneEvent>
 #include <QMenu>
 #include <QWindow>
-#include <score/widgets/GraphicWidgets.hpp>
 
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Process::EffectLayerPresenter)
@@ -56,10 +58,8 @@ void EffectLayerView::contextMenuEvent(QGraphicsSceneContextMenuEvent* ev)
 }
 
 EffectLayerPresenter::EffectLayerPresenter(
-    const ProcessModel& model,
-    EffectLayerView* view,
-    const ProcessPresenterContext& ctx,
-    QObject* parent)
+    const ProcessModel& model, EffectLayerView* view,
+    const ProcessPresenterContext& ctx, QObject* parent)
     : LayerPresenter{ctx, parent}, m_layer{model}, m_view{view}
 {
   putToFront();
@@ -113,22 +113,18 @@ const Id<ProcessModel>& EffectLayerPresenter::modelId() const
 }
 
 void EffectLayerPresenter::fillContextMenu(
-    QMenu& menu,
-    QPoint pos,
-    QPointF scenepos,
+    QMenu& menu, QPoint pos, QPointF scenepos,
     const LayerContextMenuManager& mgr)
 {
 }
 
 void setupExternalUI(
-      const Process::ProcessModel& proc
-      , const Process::LayerFactory& fact
-      , const score::DocumentContext& ctx
-      , bool show)
+    const Process::ProcessModel& proc, const Process::LayerFactory& fact,
+    const score::DocumentContext& ctx, bool show)
 {
-  if(show)
+  if (show)
   {
-    if(proc.externalUI)
+    if (proc.externalUI)
       return;
 
     if (auto win = fact.makeExternalUI(proc, ctx, nullptr))
@@ -139,7 +135,7 @@ void setupExternalUI(
   }
   else
   {
-    if(auto win = proc.externalUI)
+    if (auto win = proc.externalUI)
     {
       win->close();
       delete win;
@@ -149,12 +145,10 @@ void setupExternalUI(
 }
 
 void setupExternalUI(
-      const Process::ProcessModel& proc
-      , const score::DocumentContext& ctx
-      , bool show)
+    const Process::ProcessModel& proc, const score::DocumentContext& ctx,
+    bool show)
 {
-  auto& facts
-      = ctx.app.interfaces<Process::LayerFactoryList>();
+  auto& facts = ctx.app.interfaces<Process::LayerFactoryList>();
 
   auto fact = facts.findDefaultFactory(proc);
   if (!fact || !fact->hasExternalUI(proc, ctx))
@@ -163,36 +157,30 @@ void setupExternalUI(
   setupExternalUI(proc, *fact, ctx, show);
 }
 
-QGraphicsItem*
-    makeExternalUIButton(
-      const ProcessModel& effect
-      , const score::DocumentContext& context
-      , QObject* self
-      , QGraphicsItem* root)
+QGraphicsItem* makeExternalUIButton(
+    const ProcessModel& effect, const score::DocumentContext& context,
+    QObject* self, QGraphicsItem* root)
 {
   auto& pixmaps = Process::Pixmaps::instance();
-  auto& facts
-      = context.app.interfaces<Process::LayerFactoryList>();
+  auto& facts = context.app.interfaces<Process::LayerFactoryList>();
   auto fact = facts.findDefaultFactory(effect);
   if (fact && fact->hasExternalUI(effect, context))
   {
-    auto ui_btn
-        = new score::QGraphicsPixmapToggle{pixmaps.show_ui_on, pixmaps.show_ui_off, root};
+    auto ui_btn = new score::QGraphicsPixmapToggle{pixmaps.show_ui_on,
+                                                   pixmaps.show_ui_off, root};
     QObject::connect(
         ui_btn, &score::QGraphicsPixmapToggle::toggled, self,
         [=, &effect, &context](bool b) {
           Process::setupExternalUI(effect, *fact, context, b);
-    });
+        });
 
-    if(effect.externalUI)
+    if (effect.externalUI)
       ui_btn->setState(true);
-    QObject::connect(&effect, &Process::ProcessModel::externalUIVisible,
-            ui_btn, [=] (bool v) {
-      ui_btn->setState(v);
-    });
+    QObject::connect(
+        &effect, &Process::ProcessModel::externalUIVisible, ui_btn,
+        [=](bool v) { ui_btn->setState(v); });
     return ui_btn;
   }
   return nullptr;
 }
-
 }

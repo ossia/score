@@ -7,17 +7,19 @@
 #include <Mapping/Commands/MappingCommandFactory.hpp>
 #include <Mapping/Inspector/MappingInspectorFactory.hpp>
 #include <Mapping/MappingColors.hpp>
+#include <Mapping/MappingExecution.hpp>
 #include <Mapping/MappingModel.hpp>
 #include <Mapping/MappingPresenter.hpp>
 #include <Mapping/MappingProcessMetadata.hpp>
 #include <Mapping/MappingView.hpp>
-#include <Mapping/MappingExecution.hpp>
 #include <Process/GenericProcessFactory.hpp>
 #include <Process/HeaderDelegate.hpp>
 #include <Process/ProcessFactory.hpp>
+
 #include <score/plugins/customfactory/FactorySetup.hpp>
 #include <score/plugins/customfactory/StringFactoryKey.hpp>
 #include <score/tools/std/HashMap.hpp>
+
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Mapping::LayerPresenter)
 namespace Mapping
@@ -25,11 +27,8 @@ namespace Mapping
 
 using MappingFactory = Process::ProcessFactory_T<Mapping::ProcessModel>;
 using MappingLayerFactory = Curve::CurveLayerFactory_T<
-    Mapping::ProcessModel,
-    Mapping::LayerPresenter,
-    Mapping::LayerView,
-    Mapping::Colors,
-    Process::DefaultHeaderDelegate>;
+    Mapping::ProcessModel, Mapping::LayerPresenter, Mapping::LayerView,
+    Mapping::Colors, Process::DefaultHeaderDelegate>;
 }
 
 #include <score_plugin_mapping_commands_files.hpp>
@@ -47,8 +46,8 @@ score_plugin_mapping::factories(
       FW<Process::ProcessModelFactory, Mapping::MappingFactory>,
       FW<Process::LayerFactory, Mapping::MappingLayerFactory>,
       FW<Inspector::InspectorWidgetFactory, MappingInspectorFactory>,
-      FW<Execution::ProcessComponentFactory, Mapping::RecreateOnPlay::ComponentFactory>>(
-      ctx, key);
+      FW<Execution::ProcessComponentFactory,
+         Mapping::RecreateOnPlay::ComponentFactory>>(ctx, key);
 }
 
 std::pair<const CommandGroupKey, CommandGeneratorMap>
@@ -59,7 +58,7 @@ score_plugin_mapping::make_commands()
       MappingCommandFactoryName(), CommandGeneratorMap{}};
 
   ossia::for_each_type<
-    #include <score_plugin_mapping_commands.hpp>
+#include <score_plugin_mapping_commands.hpp>
       >(score::commands::FactoryInserter{cmds.second});
 
   return cmds;

@@ -1,10 +1,12 @@
 #pragma once
-#include <QString>
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
+
 #include <score/command/Command.hpp>
 #include <score/model/Identifier.hpp>
 #include <score/model/path/Path.hpp>
 #include <score/tools/std/Optional.hpp>
+
+#include <QString>
 
 struct DataStreamInput;
 struct DataStreamOutput;
@@ -22,14 +24,11 @@ class SCORE_PLUGIN_SCENARIO_EXPORT CreateState final : public score::Command
       ScenarioCommandFactoryName(), CreateState, "Create a state")
 public:
   CreateState(
-      const Scenario::ProcessModel& scenario,
-      Id<EventModel> event,
+      const Scenario::ProcessModel& scenario, Id<EventModel> event,
       double stateY);
   CreateState(
-      const Scenario::ProcessModel& scenario,
-      Id<StateModel> newId,
-      Id<EventModel> event,
-      double stateY);
+      const Scenario::ProcessModel& scenario, Id<StateModel> newId,
+      Id<EventModel> event, double stateY);
 
   const Path<Scenario::ProcessModel>& scenarioPath() const
   {

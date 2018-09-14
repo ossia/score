@@ -1,17 +1,18 @@
 #pragma once
-#include <QObject>
-#include <wobjectdefs.h>
 #include <score/plugins/qt_interfaces/CommandFactory_QtInterface.hpp>
 #include <score/plugins/qt_interfaces/FactoryFamily_QtInterface.hpp>
 #include <score/plugins/qt_interfaces/FactoryInterface_QtInterface.hpp>
 #include <score/plugins/qt_interfaces/GUIApplicationPlugin_QtInterface.hpp>
 #include <score/plugins/qt_interfaces/PluginRequirements_QtInterface.hpp>
 
-class score_plugin_media final
-    : public score::Plugin_QtInterface
-    , public score::FactoryInterface_QtInterface
-    , public score::ApplicationPlugin_QtInterface
-    , public score::CommandFactory_QtInterface
+#include <QObject>
+
+#include <wobjectdefs.h>
+
+class score_plugin_media final : public score::Plugin_QtInterface,
+                                 public score::FactoryInterface_QtInterface,
+                                 public score::ApplicationPlugin_QtInterface,
+                                 public score::CommandFactory_QtInterface
 {
   SCORE_PLUGIN_METADATA(1, "142f926e-b2d9-41ce-aff3-a1dab33d3de2")
 

@@ -3,18 +3,21 @@
 #include "TriggerInspectorWidget.hpp"
 
 #include <Inspector/InspectorWidgetBase.hpp>
-#include <QBoxLayout>
-#include <QInputDialog>
-#include <QMenu>
-#include <QPushButton>
 #include <Scenario/Commands/TimeSync/SetTrigger.hpp>
 #include <Scenario/Commands/TimeSync/TriggerCommandFactory/TriggerCommandFactoryList.hpp>
 #include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
 #include <Scenario/Inspector/Expression/ExpressionEditorWidget.hpp>
-#include <algorithm>
+
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/model/path/Path.hpp>
 #include <score/widgets/MarginLess.hpp>
+
+#include <QBoxLayout>
+#include <QInputDialog>
+#include <QMenu>
+#include <QPushButton>
+
+#include <algorithm>
 
 namespace Scenario
 {
@@ -22,8 +25,7 @@ namespace Scenario
 TriggerInspectorWidget::TriggerInspectorWidget(
     const score::DocumentContext& doc,
     const Command::TriggerCommandFactoryList& fact,
-    const TimeSyncModel& object,
-    Inspector::InspectorWidgetBase* parent)
+    const TimeSyncModel& object, Inspector::InspectorWidgetBase* parent)
     : QWidget{parent}
     , m_triggerCommandFactory{fact}
     , m_model{object}

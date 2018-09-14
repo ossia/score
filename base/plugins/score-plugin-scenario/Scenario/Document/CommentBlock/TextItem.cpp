@@ -3,11 +3,14 @@
 #include "TextItem.hpp"
 
 #include <Process/Style/ScenarioStyle.hpp>
+
+#include <score/widgets/GraphicsItem.hpp>
+
 #include <QGraphicsSceneMouseEvent>
 #include <QGraphicsView>
 #include <QPainter>
 #include <QTextLayout>
-#include <score/widgets/GraphicsItem.hpp>
+
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Scenario::TextItem)
 W_OBJECT_IMPL(Scenario::QGraphicsTextButton)

@@ -1,8 +1,6 @@
 #pragma once
 #include "ScenarioCreationState.hpp"
 
-#include <QApplication>
-#include <QFinalState>
 #include <Scenario/Application/ScenarioEditionSettings.hpp>
 #include <Scenario/Commands/Scenario/Creations/CreateInterval.hpp>
 #include <Scenario/Commands/Scenario/Creations/CreateState.hpp>
@@ -18,6 +16,9 @@
 #include <Scenario/Palette/Transitions/TimeSyncTransitions.hpp>
 #include <Scenario/Process/Algorithms/Accessors.hpp>
 
+#include <QApplication>
+#include <QFinalState>
+
 namespace Scenario
 {
 template <typename Scenario_T, typename ToolPalette_T>
@@ -26,10 +27,8 @@ class Creation_FromState final
 {
 public:
   Creation_FromState(
-      const ToolPalette_T& stateMachine,
-      const Scenario_T& scenarioPath,
-      const score::CommandStackFacade& stack,
-      QState* parent)
+      const ToolPalette_T& stateMachine, const Scenario_T& scenarioPath,
+      const score::CommandStackFacade& stack, QState* parent)
       : CreationState<Scenario_T, ToolPalette_T>{
             stateMachine, stack, std::move(scenarioPath), parent}
   {

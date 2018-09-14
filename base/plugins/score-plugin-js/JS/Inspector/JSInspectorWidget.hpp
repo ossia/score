@@ -1,9 +1,12 @@
 #pragma once
 #include <JS/JSProcessModel.hpp>
-#include <wobjectdefs.h>
 #include <Process/Inspector/ProcessInspectorWidgetDelegate.hpp>
-#include <QString>
+
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
+
+#include <QString>
+
+#include <wobjectdefs.h>
 
 class JSEdit;
 class QWidget;
@@ -29,16 +32,15 @@ struct JSWidgetBase
 };
 
 class InspectorWidget final
-    : public Process::InspectorWidgetDelegate_T<JS::ProcessModel>
-    , public JSWidgetBase
+    : public Process::InspectorWidgetDelegate_T<JS::ProcessModel>,
+      public JSWidgetBase
 {
   W_OBJECT(InspectorWidget)
   friend struct JSWidgetBase;
 
 public:
   explicit InspectorWidget(
-      const JS::ProcessModel& object,
-      const score::DocumentContext& context,
+      const JS::ProcessModel& object, const score::DocumentContext& context,
       QWidget* parent);
 
 public:

@@ -1,7 +1,7 @@
 #pragma once
 #include <Engine/Node/PdNode.hpp>
 #if defined(__AVX2__) && __has_include(<immintrin.h>)
-#  include <immintrin.h>
+#include <immintrin.h>
 #endif
 namespace Nodes::Gain
 {
@@ -27,11 +27,8 @@ struct Node
 
   using control_policy = ossia::safe_nodes::last_tick;
   static void
-  run(const ossia::audio_port& p1,
-      float g,
-      ossia::audio_port& p2,
-      ossia::token_request,
-      ossia::exec_state_facade)
+  run(const ossia::audio_port& p1, float g, ossia::audio_port& p2,
+      ossia::token_request, ossia::exec_state_facade)
   {
     const auto chans = p1.samples.size();
     p2.samples.resize(chans);

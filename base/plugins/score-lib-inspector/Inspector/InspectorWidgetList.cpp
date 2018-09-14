@@ -5,6 +5,7 @@
 #include "InspectorWidgetBase.hpp"
 
 #include <Inspector/InspectorWidgetFactoryInterface.hpp>
+
 #include <score/document/DocumentInterface.hpp>
 #include <score/model/IdentifiedObjectAbstract.hpp>
 

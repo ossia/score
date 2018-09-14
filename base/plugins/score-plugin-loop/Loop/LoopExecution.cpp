@@ -2,33 +2,31 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "LoopExecution.hpp"
 
+#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
+#include <Process/ExecutionContext.hpp>
+#include <Scenario/Document/Event/EventExecution.hpp>
+#include <Scenario/Document/Event/EventModel.hpp>
+#include <Scenario/Document/Interval/IntervalModel.hpp>
+#include <Scenario/Document/Interval/IntervalRawPtrExecution.hpp>
+#include <Scenario/Document/State/StateExecution.hpp>
+#include <Scenario/Document/State/StateModel.hpp>
+#include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
+#include <Scenario/Document/TimeSync/TimeSyncRawPtrExecution.hpp>
+
 #include <ossia/dataflow/graph/graph_interface.hpp>
+#include <ossia/dataflow/graph_edge.hpp>
 #include <ossia/editor/loop/loop.hpp>
 #include <ossia/editor/scenario/time_event.hpp>
 #include <ossia/editor/scenario/time_sync.hpp>
 #include <ossia/network/base/device.hpp>
-
-#include <Scenario/Document/Event/EventExecution.hpp>
-#include <Scenario/Document/Interval/IntervalRawPtrExecution.hpp>
-#include <Scenario/Document/State/StateExecution.hpp>
-#include <Scenario/Document/TimeSync/TimeSyncRawPtrExecution.hpp>
-#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
-#include <Scenario/Document/Event/EventModel.hpp>
-#include <Scenario/Document/Interval/IntervalModel.hpp>
-#include <Scenario/Document/State/StateModel.hpp>
-#include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
-#include <Process/ExecutionContext.hpp>
-#include <ossia/dataflow/graph_edge.hpp>
 
 namespace Loop
 {
 namespace RecreateOnPlay
 {
 Component::Component(
-    ::Loop::ProcessModel& element,
-    const ::Execution::Context& ctx,
-    const Id<score::Component>& id,
-    QObject* parent)
+    ::Loop::ProcessModel& element, const ::Execution::Context& ctx,
+    const Id<score::Component>& id, QObject* parent)
     : ::Execution::ProcessComponent_T<Loop::ProcessModel, ossia::loop>{
           element, ctx, id, "LoopComponent", parent}
 {

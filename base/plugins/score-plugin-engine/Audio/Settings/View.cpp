@@ -1,11 +1,13 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
-#include <Audio/Settings/Model.hpp>
-#include <Audio/Settings/View.hpp>
 #include <score/widgets/SignalUtils.hpp>
-#include <QSpinBox>
+
 #include <QComboBox>
 #include <QFormLayout>
+#include <QSpinBox>
+
+#include <Audio/Settings/Model.hpp>
+#include <Audio/Settings/View.hpp>
 namespace Audio::Settings
 {
 View::View() : m_widg{new QWidget}
@@ -18,16 +20,17 @@ View::View() : m_widg{new QWidget}
   lay->addRow(tr("Driver"), m_Driver);
   connect(
       m_Driver, SignalUtils::QComboBox_currentIndexChanged_int(), this,
-      [this] (int i) {
-    DriverChanged(m_Driver->itemData(i).value<AudioFactory::ConcreteKey>());
-    m_sw->setCurrentIndex(i);
-  });
+      [this](int i) {
+        DriverChanged(
+            m_Driver->itemData(i).value<AudioFactory::ConcreteKey>());
+        m_sw->setCurrentIndex(i);
+      });
 
   SETTINGS_UI_NUM_COMBOBOX_SETUP(
       "Rate", Rate, (std::vector<int>{44100, 48000, 88200, 96000, 192000}));
   SETTINGS_UI_NUM_COMBOBOX_SETUP(
-      "BufferSize", BufferSize, (std::vector<int>{32, 64, 128, 256, 512, 1024, 2048}));
-
+      "BufferSize", BufferSize,
+      (std::vector<int>{32, 64, 128, 256, 512, 1024, 2048}));
 
   lay->addWidget(m_sw);
 }
@@ -35,7 +38,7 @@ View::View() : m_widg{new QWidget}
 void View::addDriver(QString txt, QVariant data, QWidget* widg)
 {
   m_Driver->addItem(txt, data);
-  if(widg)
+  if (widg)
   {
     m_sw->addWidget(widg);
   }
@@ -57,8 +60,6 @@ void View::setDriver(AudioFactory::ConcreteKey k)
     m_Driver->setCurrentIndex(idx);
 }
 
-
 SETTINGS_UI_NUM_COMBOBOX_IMPL(Rate)
 SETTINGS_UI_NUM_COMBOBOX_IMPL(BufferSize)
-
 }

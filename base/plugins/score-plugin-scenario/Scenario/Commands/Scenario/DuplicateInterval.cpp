@@ -2,9 +2,10 @@
 
 #include <Scenario/Process/Algorithms/Accessors.hpp>
 #include <Scenario/Process/Algorithms/ProcessPolicy.hpp>
+
+#include <score/document/ChangeId.hpp>
 #include <score/model/path/PathSerialization.hpp>
 #include <score/tools/IdentifierGeneration.hpp>
-#include <score/document/ChangeId.hpp>
 namespace Scenario::Command
 {
 

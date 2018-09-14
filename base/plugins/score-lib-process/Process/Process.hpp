@@ -1,10 +1,8 @@
 #pragma once
-#include <ossia/detail/small_vector.hpp>
-#include <wobjectdefs.h>
-
 #include <Process/ExpandMode.hpp>
 #include <Process/ProcessFlags.hpp>
 #include <Process/TimeValue.hpp>
+
 #include <score/model/Component.hpp>
 #include <score/model/EntityImpl.hpp>
 #include <score/model/Identifier.hpp>
@@ -17,10 +15,14 @@
 #include <score/serialization/VisitorCommon.hpp>
 #include <score/serialization/VisitorInterface.hpp>
 #include <score/tools/Metadata.hpp>
-#include <score_lib_process_export.h>
+
+#include <ossia/detail/small_vector.hpp>
 
 #include <QByteArray>
 #include <QString>
+
+#include <score_lib_process_export.h>
+#include <wobjectdefs.h>
 
 #include <vector>
 
@@ -44,17 +46,15 @@ using Outlets = ossia::small_vector<Process::Outlet*, 4>;
  * Interface to implement to make a process.
  */
 class SCORE_LIB_PROCESS_EXPORT ProcessModel
-    : public score::Entity<ProcessModel>
-    , public score::SerializableInterface<ProcessModel>
+    : public score::Entity<ProcessModel>,
+      public score::SerializableInterface<ProcessModel>
 {
   W_OBJECT(ProcessModel)
   SCORE_SERIALIZE_FRIENDS
 public:
   Selectable selection;
   ProcessModel(
-      TimeVal duration,
-      const Id<ProcessModel>& id,
-      const QString& name,
+      TimeVal duration, const Id<ProcessModel>& id, const QString& name,
       QObject* parent);
 
   ProcessModel(DataStream::Deserializer& vis, QObject* parent);
@@ -114,21 +114,30 @@ public:
   QWidget* externalUI{};
 
   // True if the execution is running.
-  void execution(bool arg_1) E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, execution, arg_1);
-  void durationChanged(const TimeVal& arg_1) E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, durationChanged, arg_1);
-  void useParentDurationChanged(bool arg_1) E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, useParentDurationChanged, arg_1);
+  void execution(bool arg_1)
+      E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, execution, arg_1);
+  void durationChanged(const TimeVal& arg_1)
+      E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, durationChanged, arg_1);
+  void useParentDurationChanged(bool arg_1)
+      E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, useParentDurationChanged, arg_1);
 
-  void slotHeightChanged(double arg_1) E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, slotHeightChanged, arg_1);
-  void prettyNameChanged() E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, prettyNameChanged);
+  void slotHeightChanged(double arg_1)
+      E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, slotHeightChanged, arg_1);
+  void prettyNameChanged()
+      E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, prettyNameChanged);
 
   void inletsChanged() E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, inletsChanged);
   void outletsChanged() E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, outletsChanged);
 
-  void controlAdded(const Id<Process::Port>& arg_1) E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, controlAdded, arg_1);
-  void controlRemoved(const Process::Port& arg_1) E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, controlRemoved, arg_1);
+  void controlAdded(const Id<Process::Port>& arg_1)
+      E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, controlAdded, arg_1);
+  void controlRemoved(const Process::Port& arg_1)
+      E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, controlRemoved, arg_1);
 
-  void benchmark(double arg_1) E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, benchmark, arg_1);
-  void externalUIVisible(bool v) const E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, externalUIVisible, v);
+  void benchmark(double arg_1)
+      E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, benchmark, arg_1);
+  void externalUIVisible(bool v) const
+      E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, externalUIVisible, v);
 
 protected:
   // Used to scale the process.

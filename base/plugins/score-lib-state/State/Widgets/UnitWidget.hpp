@@ -1,10 +1,11 @@
 #pragma once
-#include <QWidget>
-#include <wobjectdefs.h>
 #include <State/Address.hpp>
 #include <State/Unit.hpp>
 
+#include <QWidget>
+
 #include <score_lib_state_export.h>
+#include <wobjectdefs.h>
 
 class QPushButton;
 class QColumnView;
@@ -23,7 +24,8 @@ public:
   void setUnit(const State::Unit&);
 
 public:
-  void unitChanged(const State::Unit& arg_1) E_SIGNAL(SCORE_LIB_STATE_EXPORT, unitChanged, arg_1);
+  void unitChanged(const State::Unit& arg_1)
+      E_SIGNAL(SCORE_LIB_STATE_EXPORT, unitChanged, arg_1);
 
 private:
   void on_dataspaceChanged(const State::Unit&);
@@ -38,13 +40,15 @@ class SCORE_LIB_STATE_EXPORT DestinationQualifierWidget : public QWidget
   W_OBJECT(DestinationQualifierWidget)
 public:
   DestinationQualifierWidget(QWidget* parent);
-  DestinationQualifierWidget(const State::DestinationQualifiers& u, QWidget* parent);
+  DestinationQualifierWidget(
+      const State::DestinationQualifiers& u, QWidget* parent);
 
   State::DestinationQualifiers qualifiers() const;
   void setQualifiers(const State::DestinationQualifiers&);
 
 public:
-  void qualifiersChanged(const State::DestinationQualifiers& arg_1) E_SIGNAL(SCORE_LIB_STATE_EXPORT, qualifiersChanged, arg_1);
+  void qualifiersChanged(const State::DestinationQualifiers& arg_1)
+      E_SIGNAL(SCORE_LIB_STATE_EXPORT, qualifiersChanged, arg_1);
 
 private:
   void on_dataspaceChanged(int idx);
@@ -52,6 +56,5 @@ private:
   QComboBox* m_ds{};
   QComboBox* m_unit{};
   QComboBox* m_ac{};
-
 };
 }

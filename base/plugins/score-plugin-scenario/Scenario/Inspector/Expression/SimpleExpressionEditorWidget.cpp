@@ -4,6 +4,16 @@
 
 #include <Device/Widgets/AddressAccessorEditWidget.hpp>
 #include <Inspector/InspectorSectionWidget.hpp>
+#include <Scenario/Inspector/ExpressionValidator.hpp>
+#include <State/Expression.hpp>
+#include <State/Relation.hpp>
+
+#include <score/tools/std/Optional.hpp>
+#include <score/widgets/MarginLess.hpp>
+#include <score/widgets/SetIcons.hpp>
+#include <score/widgets/SignalUtils.hpp>
+#include <score/widgets/TextLabel.hpp>
+
 #include <QBoxLayout>
 #include <QComboBox>
 #include <QLabel>
@@ -11,14 +21,6 @@
 #include <QPushButton>
 #include <QStringList>
 #include <QToolButton>
-#include <Scenario/Inspector/ExpressionValidator.hpp>
-#include <State/Expression.hpp>
-#include <State/Relation.hpp>
-#include <score/tools/std/Optional.hpp>
-#include <score/widgets/MarginLess.hpp>
-#include <score/widgets/SetIcons.hpp>
-#include <score/widgets/SignalUtils.hpp>
-#include <score/widgets/TextLabel.hpp>
 
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Scenario::SimpleExpressionEditorWidget)

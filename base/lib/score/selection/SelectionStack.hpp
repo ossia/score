@@ -1,7 +1,9 @@
 #pragma once
+#include <score/selection/Selection.hpp>
+
 #include <QObject>
 #include <QStack>
-#include <score/selection/Selection.hpp>
+
 #include <wobjectdefs.h>
 
 class IdentifiedObjectAbstract;
@@ -38,8 +40,9 @@ public:
 
   Selection currentSelection() const;
 
-  void pushNewSelection(const Selection& s) E_SIGNAL(SCORE_LIB_BASE_EXPORT,
-      pushNewSelection, s) void currentSelectionChanged(const Selection& s)
+  void pushNewSelection(const Selection& s) E_SIGNAL(
+      SCORE_LIB_BASE_EXPORT, pushNewSelection,
+      s) void currentSelectionChanged(const Selection& s)
       E_SIGNAL(SCORE_LIB_BASE_EXPORT, currentSelectionChanged, s)
 
           void prune(IdentifiedObjectAbstract* p);

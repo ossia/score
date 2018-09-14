@@ -9,6 +9,7 @@
 #include <Mapping/MappingProcessMetadata.hpp>
 #include <Process/Dataflow/Port.hpp>
 #include <State/Address.hpp>
+
 #include <score/document/DocumentInterface.hpp>
 #include <score/model/Identifier.hpp>
 #include <score/model/ModelMetadata.hpp>
@@ -19,8 +20,7 @@ W_OBJECT_IMPL(Mapping::ProcessModel)
 namespace Mapping
 {
 ProcessModel::ProcessModel(
-    const TimeVal& duration,
-    const Id<Process::ProcessModel>& id,
+    const TimeVal& duration, const Id<Process::ProcessModel>& id,
     QObject* parent)
     : Curve::CurveProcessModel{duration, id,
                                Metadata<ObjectKey_k, ProcessModel>::get(),
@@ -92,8 +92,9 @@ void ProcessModel::init()
 
 QString ProcessModel::prettyName() const
 {
-  auto str = sourceAddress().toString_unsafe() + " -> " + targetAddress().toString_unsafe();
-  if(str != " -> ")
+  auto str = sourceAddress().toString_unsafe() + " -> "
+             + targetAddress().toString_unsafe();
+  if (str != " -> ")
     return str;
   return tr("Mapping");
 }

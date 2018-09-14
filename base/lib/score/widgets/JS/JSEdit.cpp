@@ -33,9 +33,10 @@
 #include "JSEdit.hpp"
 
 #include <QtGui>
-#include <array>
 
 #include <wobjectimpl.h>
+
+#include <array>
 
 W_OBJECT_IMPL(JSEdit)
 const std::array<QColor, 16> colors{
@@ -88,182 +89,188 @@ JSHighlighter::JSHighlighter(QTextDocument* parent)
   m_colors[JSEdit::Marker] = colors[0x02];     // base16 - 02
 
   // https://developer.mozilla.org/en/JavaScript/Reference/Reserved_Words
-  m_keywords = {
-     "break"
-    , "case"
-    , "catch"
-    , "continue"
-    , "default"
-    , "delete"
-    , "do"
-    , "else"
-    , "finally"
-    , "for"
-    , "function"
-    , "if"
-    , "in"
-    , "instanceof"
-    , "new"
-    , "return"
-    , "switch"
-    , "this"
-    , "throw"
-    , "try"
-    , "typeof"
-    , "var"
-    , "void"
-    , "while"
-    , "with"
+  m_keywords = {"break",
+                "case",
+                "catch",
+                "continue",
+                "default",
+                "delete",
+                "do",
+                "else",
+                "finally",
+                "for",
+                "function",
+                "if",
+                "in",
+                "instanceof",
+                "new",
+                "return",
+                "switch",
+                "this",
+                "throw",
+                "try",
+                "typeof",
+                "var",
+                "void",
+                "while",
+                "with"
 
-    , "true"
-    , "false"
-    , "null"
-  };
+                ,
+                "true",
+                "false",
+                "null"};
 
   // built-in and other popular objects + properties
-  m_knownIds = {
-    "Object"
-  , "prototype"
-  , "create"
-  , "defineProperty"
-  , "defineProperties"
-  , "getOwnPropertyDescriptor"
-  , "keys"
-  , "getOwnPropertyNames"
-  , "constructor"
-  , "__parent__"
-  , "__proto__"
-  , "__defineGetter__"
-  , "__defineSetter__"
-  , "eval"
-  , "hasOwnProperty"
-  , "isPrototypeOf"
-  , "__lookupGetter__"
-  , "__lookupSetter__"
-  , "__noSuchMethod__"
-  , "propertyIsEnumerable"
-  , "toSource"
-  , "toLocaleString"
-  , "toString"
-  , "unwatch"
-  , "valueOf"
-  , "watch"
+  m_knownIds = {"Object",
+                "prototype",
+                "create",
+                "defineProperty",
+                "defineProperties",
+                "getOwnPropertyDescriptor",
+                "keys",
+                "getOwnPropertyNames",
+                "constructor",
+                "__parent__",
+                "__proto__",
+                "__defineGetter__",
+                "__defineSetter__",
+                "eval",
+                "hasOwnProperty",
+                "isPrototypeOf",
+                "__lookupGetter__",
+                "__lookupSetter__",
+                "__noSuchMethod__",
+                "propertyIsEnumerable",
+                "toSource",
+                "toLocaleString",
+                "toString",
+                "unwatch",
+                "valueOf",
+                "watch"
 
-  , "Function"
-  , "arguments"
-  , "arity"
-  , "caller"
-  , "constructor"
-  , "length"
-  , "name"
-  , "apply"
-  , "bind"
-  , "call"
+                ,
+                "Function",
+                "arguments",
+                "arity",
+                "caller",
+                "constructor",
+                "length",
+                "name",
+                "apply",
+                "bind",
+                "call"
 
-  , "String"
-  , "fromCharCode"
-  , "length"
-  , "charAt"
-  , "charCodeAt"
-  , "concat"
-  , "indexOf"
-  , "lastIndexOf"
-  , "localCompare"
-  , "match"
-  , "quote"
-  , "replace"
-  , "search"
-  , "slice"
-  , "split"
-  , "substr"
-  , "substring"
-  , "toLocaleLowerCase"
-  , "toLocaleUpperCase"
-  , "toLowerCase"
-  , "toUpperCase"
-  , "trim"
-  , "trimLeft"
-  , "trimRight"
+                ,
+                "String",
+                "fromCharCode",
+                "length",
+                "charAt",
+                "charCodeAt",
+                "concat",
+                "indexOf",
+                "lastIndexOf",
+                "localCompare",
+                "match",
+                "quote",
+                "replace",
+                "search",
+                "slice",
+                "split",
+                "substr",
+                "substring",
+                "toLocaleLowerCase",
+                "toLocaleUpperCase",
+                "toLowerCase",
+                "toUpperCase",
+                "trim",
+                "trimLeft",
+                "trimRight"
 
-  , "Array"
-  , "isArray"
-  , "index"
-  , "input"
-  , "pop"
-  , "push"
-  , "reverse"
-  , "shift"
-  , "sort"
-  , "splice"
-  , "unshift"
-  , "concat"
-  , "join"
-  , "filter"
-  , "forEach"
-  , "every"
-  , "map"
-  , "some"
-  , "reduce"
-  , "reduceRight"
+                ,
+                "Array",
+                "isArray",
+                "index",
+                "input",
+                "pop",
+                "push",
+                "reverse",
+                "shift",
+                "sort",
+                "splice",
+                "unshift",
+                "concat",
+                "join",
+                "filter",
+                "forEach",
+                "every",
+                "map",
+                "some",
+                "reduce",
+                "reduceRight"
 
-  , "RegExp"
-  , "global"
-  , "ignoreCase"
-  , "lastIndex"
-  , "multiline"
-  , "source"
-  , "exec"
-  , "test"
+                ,
+                "RegExp",
+                "global",
+                "ignoreCase",
+                "lastIndex",
+                "multiline",
+                "source",
+                "exec",
+                "test"
 
-  , "JSON"
-  , "parse"
-  , "stringify"
+                ,
+                "JSON",
+                "parse",
+                "stringify"
 
-  , "decodeURI"
-  , "decodeURIComponent"
-  , "encodeURI"
-  , "encodeURIComponent"
-  , "eval"
-  , "isFinite"
-  , "isNaN"
-  , "parseFloat"
-  , "parseInt"
-  , "Infinity"
-  , "NaN"
-  , "undefined"
+                ,
+                "decodeURI",
+                "decodeURIComponent",
+                "encodeURI",
+                "encodeURIComponent",
+                "eval",
+                "isFinite",
+                "isNaN",
+                "parseFloat",
+                "parseInt",
+                "Infinity",
+                "NaN",
+                "undefined"
 
-  , "Math"
-  , "E"
-  , "LN2"
-  , "LN10"
-  , "LOG2E"
-  , "LOG10E"
-  , "PI"
-  , "SQRT1_2"
-  , "SQRT2"
-  , "abs"
-  , "acos"
-  , "asin"
-  , "atan"
-  , "atan2"
-  , "ceil"
-  , "cos"
-  , "exp"
-  , "floor"
-  , "log"
-  , "max"
-  , "min"
-  , "pow"
-  , "random"
-  , "round"
-  , "sin"
-  , "sqrt"
-  , "tan"
+                ,
+                "Math",
+                "E",
+                "LN2",
+                "LN10",
+                "LOG2E",
+                "LOG10E",
+                "PI",
+                "SQRT1_2",
+                "SQRT2",
+                "abs",
+                "acos",
+                "asin",
+                "atan",
+                "atan2",
+                "ceil",
+                "cos",
+                "exp",
+                "floor",
+                "log",
+                "max",
+                "min",
+                "pow",
+                "random",
+                "round",
+                "sin",
+                "sqrt",
+                "tan"
 
-  , "document"
-  , "window"
-  , "navigator"
-  , "userAgent"};
+                ,
+                "document",
+                "window",
+                "navigator",
+                "userAgent"};
 }
 
 void JSHighlighter::setColor(

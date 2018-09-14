@@ -3,13 +3,23 @@
 
 #include "AutomationInspectorWidget.hpp"
 
-#include <ossia/network/dataspace/dataspace_visitors.hpp>
-#include <score/document/DocumentContext.hpp>
 #include <Automation/AutomationModel.hpp>
 #include <Automation/Commands/ChangeAddress.hpp>
 #include <Automation/Commands/SetAutomationMax.hpp>
 #include <Device/Widgets/AddressAccessorEditWidget.hpp>
 #include <Inspector/InspectorWidgetBase.hpp>
+#include <State/Address.hpp>
+
+#include <score/command/Dispatchers/CommandDispatcher.hpp>
+#include <score/document/DocumentContext.hpp>
+#include <score/document/DocumentInterface.hpp>
+#include <score/model/path/Path.hpp>
+#include <score/tools/Todo.hpp>
+#include <score/widgets/SpinBoxes.hpp>
+#include <score/widgets/TextLabel.hpp>
+
+#include <ossia/network/dataspace/dataspace_visitors.hpp>
+
 #include <QBoxLayout>
 #include <QCheckBox>
 #include <QFormLayout>
@@ -18,22 +28,15 @@
 #include <QSpinBox>
 #include <QStringList>
 #include <QWidget>
-#include <State/Address.hpp>
+
 #include <algorithm>
 #include <list>
-#include <score/command/Dispatchers/CommandDispatcher.hpp>
-#include <score/document/DocumentInterface.hpp>
-#include <score/model/path/Path.hpp>
-#include <score/tools/Todo.hpp>
-#include <score/widgets/SpinBoxes.hpp>
-#include <score/widgets/TextLabel.hpp>
 #include <vector>
 
 namespace Automation
 {
 InspectorWidget::InspectorWidget(
-    const ProcessModel& automationModel,
-    const score::DocumentContext& doc,
+    const ProcessModel& automationModel, const score::DocumentContext& doc,
     QWidget* parent)
     : InspectorWidgetDelegate_T{automationModel, parent}
     , m_dispatcher{doc.commandStack}
@@ -49,8 +52,7 @@ InspectorWidget::InspectorWidget(
   vlay->setContentsMargins(0, 0, 0, 0);
 
   // Address
-  m_lineEdit = new AddressAccessorEditWidget{
-      doc, this};
+  m_lineEdit = new AddressAccessorEditWidget{doc, this};
 
   m_lineEdit->setAddress(process().address());
   con(process(), &ProcessModel::addressChanged, m_lineEdit,
@@ -145,8 +147,7 @@ void InspectorWidget::on_tweenChanged()
 namespace Gradient
 {
 InspectorWidget::InspectorWidget(
-    const ProcessModel& proc,
-    const score::DocumentContext& doc,
+    const ProcessModel& proc, const score::DocumentContext& doc,
     QWidget* parent)
     : InspectorWidgetDelegate_T{proc, parent}, m_dispatcher{doc.commandStack}
 {
@@ -206,8 +207,7 @@ void InspectorWidget::on_tweenChanged()
 namespace Spline
 {
 InspectorWidget::InspectorWidget(
-    const ProcessModel& automationModel,
-    const score::DocumentContext& doc,
+    const ProcessModel& automationModel, const score::DocumentContext& doc,
     QWidget* parent)
     : InspectorWidgetDelegate_T{automationModel, parent}
     , m_dispatcher{doc.commandStack}
@@ -278,8 +278,7 @@ void InspectorWidget::on_tweenChanged()
 namespace Metronome
 {
 InspectorWidget::InspectorWidget(
-    const ProcessModel& automationModel,
-    const score::DocumentContext& doc,
+    const ProcessModel& automationModel, const score::DocumentContext& doc,
     QWidget* parent)
     : InspectorWidgetDelegate_T{automationModel, parent}
     , m_dispatcher{doc.commandStack}

@@ -1,9 +1,12 @@
 #pragma once
-#include <ossia/editor/scenario/time_value.hpp>
 #include <Process/TimeValue.hpp>
+
+#include <ossia/editor/scenario/time_value.hpp>
+
 #include <readerwriterqueue.h>
 #include <score_lib_process_export.h>
 #include <smallfun.hpp>
+
 #include <functional>
 #include <memory>
 
@@ -86,8 +89,6 @@ struct SCORE_LIB_PROCESS_EXPORT Context
     return *this;
   }
 };
-
-
 }
 
 #define in_exec system().executionQueue.enqueue

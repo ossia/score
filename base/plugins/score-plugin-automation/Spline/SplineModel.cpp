@@ -1,18 +1,19 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+#include <Process/Dataflow/Port.hpp>
+
 #include <ossia/editor/state/destination_qualifiers.hpp>
+
+#include <QColor>
 
 #include <Spline/SplineModel.hpp>
 #include <Spline/SplinePresenter.hpp>
-#include <Process/Dataflow/Port.hpp>
-#include <QColor>
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Spline::ProcessModel)
 namespace Spline
 {
 ProcessModel::ProcessModel(
-    const TimeVal& duration,
-    const Id<Process::ProcessModel>& id,
+    const TimeVal& duration, const Id<Process::ProcessModel>& id,
     QObject* parent)
     : Process::ProcessModel{duration, id,
                             Metadata<ObjectKey_k, ProcessModel>::get(), parent}

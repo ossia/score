@@ -1,6 +1,7 @@
 #pragma once
-#include <boost/call_traits.hpp>
 #include <score/command/Command.hpp>
+
+#include <boost/call_traits.hpp>
 namespace score
 {
 /**

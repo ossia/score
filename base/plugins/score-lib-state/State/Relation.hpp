@@ -1,10 +1,12 @@
 #pragma once
 
+#include <State/Address.hpp>
+#include <State/Value.hpp>
+
 #include <ossia/editor/expression/operators.hpp>
 
 #include <QString>
-#include <State/Address.hpp>
-#include <State/Value.hpp>
+
 #include <eggs/variant.hpp>
 
 namespace State

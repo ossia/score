@@ -1,6 +1,7 @@
 #pragma once
 
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
+
 #include <score_plugin_scenario_export.h>
 class QAction;
 namespace score

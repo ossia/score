@@ -1,8 +1,10 @@
 #pragma once
-#include <QString>
 #include <score/document/DocumentContext.hpp>
 #include <score/plugins/customfactory/SerializableInterface.hpp>
 #include <score/serialization/VisitorCommon.hpp>
+
+#include <QString>
+
 #include <vector>
 
 class QWidget;
@@ -23,10 +25,8 @@ class SCORE_LIB_BASE_EXPORT DocumentPlugin
   W_OBJECT(DocumentPlugin)
 public:
   DocumentPlugin(
-      const score::DocumentContext&,
-      Id<DocumentPlugin> id,
-      const QString& name,
-      QObject* parent);
+      const score::DocumentContext&, Id<DocumentPlugin> id,
+      const QString& name, QObject* parent);
 
   virtual ~DocumentPlugin();
 

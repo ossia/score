@@ -1,11 +1,14 @@
 #pragma once
 #include <Process/State/MessageNode.hpp>
-#include <QMap>
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
 #include <State/Message.hpp>
+
 #include <score/command/Command.hpp>
 #include <score/model/Identifier.hpp>
 #include <score/model/path/Path.hpp>
+
+#include <QMap>
+
 #include <score_plugin_scenario_export.h>
 struct DataStreamInput;
 struct DataStreamOutput;
@@ -23,8 +26,7 @@ class SCORE_PLUGIN_SCENARIO_EXPORT AddMessagesToState final
     : public score::Command
 {
   SCORE_COMMAND_DECL(
-      ScenarioCommandFactoryName(),
-      AddMessagesToState,
+      ScenarioCommandFactoryName(), AddMessagesToState,
       "Add messages to state")
 public:
   AddMessagesToState(

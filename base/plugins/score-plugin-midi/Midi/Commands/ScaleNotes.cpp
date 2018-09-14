@@ -3,13 +3,13 @@
 #include "ScaleNotes.hpp"
 
 #include <Midi/MidiProcess.hpp>
+
 #include <score/model/path/PathSerialization.hpp>
 
 namespace Midi
 {
 ScaleNotes::ScaleNotes(
-    const ProcessModel& model,
-    const std::vector<Id<Note>>& to_move,
+    const ProcessModel& model, const std::vector<Id<Note>>& to_move,
     double delta)
     : m_model{model}, m_toScale{to_move}, m_delta{delta}
 {

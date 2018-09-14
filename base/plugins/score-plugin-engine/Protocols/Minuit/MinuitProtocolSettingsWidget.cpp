@@ -5,6 +5,8 @@
 #include "MinuitSpecificSettings.hpp"
 
 #include <Device/Protocol/ProtocolSettingsWidget.hpp>
+#include <State/Widgets/AddressFragmentLineEdit.hpp>
+
 #include <QAction>
 #include <QFormLayout>
 #include <QLabel>
@@ -13,10 +15,9 @@
 #include <QSpinBox>
 #include <QString>
 #include <QVariant>
-#include <State/Widgets/AddressFragmentLineEdit.hpp>
 
 #if defined(OSSIA_DNSSD)
-#  include <Explorer/Widgets/ZeroConf/ZeroconfBrowser.hpp>
+#include <Explorer/Widgets/ZeroConf/ZeroconfBrowser.hpp>
 #endif
 
 class QWidget;

@@ -13,6 +13,7 @@
 #include <Scenario/Palette/Tools/ScenarioRollbackStrategy.hpp>
 #include <Scenario/Settings/ScenarioSettingsModel.hpp>
 #include <Scenario/Tools/elementFindingHelper.hpp>
+
 #include <score/command/Dispatchers/MultiOngoingCommandDispatcher.hpp>
 #include <score/document/DocumentInterface.hpp>
 #include <score/selection/SelectionDispatcher.hpp>
@@ -61,10 +62,8 @@ class CreationState : public CreationStateBase<Scenario_T>
 {
 public:
   CreationState(
-      const ToolPalette_T& sm,
-      const score::CommandStackFacade& stack,
-      const Scenario_T& scenarioPath,
-      QState* parent)
+      const ToolPalette_T& sm, const score::CommandStackFacade& stack,
+      const Scenario_T& scenarioPath, QState* parent)
       : CreationStateBase<Scenario_T>{scenarioPath, parent}
       , m_parentSM{sm}
       , m_dispatcher{stack}

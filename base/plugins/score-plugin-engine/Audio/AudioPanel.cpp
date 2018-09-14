@@ -1,21 +1,21 @@
 #include "AudioPanel.hpp"
 
+#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
+#include <Protocols/Audio/AudioDevice.hpp>
+
+#include <score/widgets/DoubleSlider.hpp>
+#include <score/widgets/MarginLess.hpp>
+
 #include <ossia/audio/audio_parameter.hpp>
 #include <ossia/network/base/node.hpp>
 #include <ossia/network/base/parameter.hpp>
 
-#include <Protocols/Audio/AudioDevice.hpp>
-#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <QHBoxLayout>
 #include <QScrollArea>
 #include <qlabel.h>
-#include <score/widgets/DoubleSlider.hpp>
-#include <score/widgets/MarginLess.hpp>
 namespace Audio
 {
-class AudioSlider
-    : public QWidget
-    , public Nano::Observer
+class AudioSlider : public QWidget, public Nano::Observer
 {
 public:
   score::MarginLess<QVBoxLayout> lay;
@@ -41,9 +41,8 @@ public:
     idx = param.add_callback([=](const ossia::value& v) {
       slider.setValue(ossia::convert<float>(v));
     });
-    param.get_node()
-        .about_to_be_deleted
-        .connect<&AudioSlider::onParamRemoved>(*this);
+    param.get_node().about_to_be_deleted.connect<&AudioSlider::onParamRemoved>(
+        *this);
   }
 
   void onParamRemoved(const ossia::net::node_base& n)

@@ -1,7 +1,8 @@
 #pragma once
 #include <Curve/Process/CurveProcessModel.hpp>
-#include <State/Message.hpp>
 #include <Process/ProcessMetadata.hpp>
+#include <State/Message.hpp>
+
 #include <score_plugin_scenario_export.h>
 namespace InterpState
 {
@@ -9,17 +10,10 @@ class ProcessModel;
 }
 
 PROCESS_METADATA(
-    ,
-    InterpState::ProcessModel,
-    "09fa6f72-55d5-4fee-8bc7-6f983c2e62d8",
-    "InterpState",
-    "State interpolation",
-    Process::ProcessCategory::Automation,
-    "Automations",
-    "Interpolate between two states",
-    "ossia score",
-    (QStringList{"Curve", "Automation"}),
-    {},
+    , InterpState::ProcessModel, "09fa6f72-55d5-4fee-8bc7-6f983c2e62d8",
+    "InterpState", "State interpolation", Process::ProcessCategory::Automation,
+    "Automations", "Interpolate between two states", "ossia score",
+    (QStringList{"Curve", "Automation"}), {},
     {std::vector<Process::PortType>{Process::PortType::Message}},
     Process::ProcessFlags::SupportsTemporal)
 namespace InterpState
@@ -34,15 +28,13 @@ class SCORE_PLUGIN_SCENARIO_EXPORT ProcessModel final
 
 public:
   ProcessModel(
-      const TimeVal& duration,
-      const Id<Process::ProcessModel>& id,
+      const TimeVal& duration, const Id<Process::ProcessModel>& id,
       QObject* parent);
 
   ~ProcessModel() override;
 
   template <typename Impl>
-  ProcessModel(Impl& vis, QObject* parent)
-      : CurveProcessModel{vis, parent}
+  ProcessModel(Impl& vis, QObject* parent) : CurveProcessModel{vis, parent}
   {
     vis.writeTo(*this);
   }

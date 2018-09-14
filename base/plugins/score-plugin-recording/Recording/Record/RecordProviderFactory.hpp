@@ -1,13 +1,15 @@
 #pragma once
 #include <Device/Node/DeviceNode.hpp>
-#include <wobjectdefs.h>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <Explorer/Explorer/DeviceExplorerModel.hpp>
 #include <Recording/Record/RecordTools.hpp>
 #include <Scenario/Palette/ScenarioPoint.hpp>
+
 #include <score/plugins/customfactory/FactoryInterface.hpp>
 #include <score/serialization/VisitorCommon.hpp>
+
 #include <score_plugin_recording_export.h>
+#include <wobjectdefs.h>
 
 namespace Scenario
 {
@@ -62,11 +64,13 @@ public:
 
 public:
   void startTimer() W_SIGNAL(startTimer);
+
 public:
   void on_startTimer()
   {
     timer.start();
-  }; W_SLOT(on_startTimer)
+  };
+  W_SLOT(on_startTimer)
 };
 
 struct RecordProvider

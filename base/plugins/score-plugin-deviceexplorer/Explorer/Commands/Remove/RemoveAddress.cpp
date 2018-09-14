@@ -6,14 +6,17 @@
 #include <Device/Node/DeviceNode.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <Explorer/DocumentPlugin/NodeUpdateProxy.hpp>
-#include <QDataStream>
-#include <QtGlobal>
-#include <algorithm>
+
 #include <score/model/path/Path.hpp>
 #include <score/model/path/PathSerialization.hpp>
 #include <score/model/tree/TreeNode.hpp>
 #include <score/model/tree/TreePath.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
+
+#include <QDataStream>
+#include <QtGlobal>
+
+#include <algorithm>
 
 namespace Explorer
 {

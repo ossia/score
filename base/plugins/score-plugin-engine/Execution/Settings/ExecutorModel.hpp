@@ -1,11 +1,13 @@
 #pragma once
+#include <Process/TimeValue.hpp>
+
+#include <score/plugins/settingsdelegate/SettingsDelegateModel.hpp>
+
 #include <ossia/editor/scenario/time_value.hpp>
-#include <wobjectdefs.h>
 
 #include <Execution/Clock/ClockFactory.hpp>
-#include <Process/TimeValue.hpp>
-#include <score/plugins/settingsdelegate/SettingsDelegateModel.hpp>
 #include <score_plugin_engine_export.h>
+#include <wobjectdefs.h>
 
 namespace Execution
 {
@@ -93,13 +95,13 @@ public:
     return m_clockFactories;
   }
 
-  std::unique_ptr<Clock>
-  makeClock(const Execution::Context& ctx) const;
+  std::unique_ptr<Clock> makeClock(const Execution::Context& ctx) const;
   time_function makeTimeFunction(const score::DocumentContext&) const;
   reverse_time_function
   makeReverseTimeFunction(const score::DocumentContext&) const;
 
-  SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_ENGINE_EXPORT, ClockFactory::ConcreteKey, Clock)
+  SCORE_SETTINGS_PARAMETER_HPP(
+      SCORE_PLUGIN_ENGINE_EXPORT, ClockFactory::ConcreteKey, Clock)
   SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_ENGINE_EXPORT, QString, Scheduling)
   SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_ENGINE_EXPORT, QString, Ordering)
   SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_ENGINE_EXPORT, QString, Merging)
@@ -107,12 +109,15 @@ public:
   SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_ENGINE_EXPORT, QString, Tick)
   SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_ENGINE_EXPORT, int, Rate)
   SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_ENGINE_EXPORT, bool, Parallel)
-  SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_ENGINE_EXPORT, bool, ExecutionListening)
+  SCORE_SETTINGS_PARAMETER_HPP(
+      SCORE_PLUGIN_ENGINE_EXPORT, bool, ExecutionListening)
   SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_ENGINE_EXPORT, bool, Logging)
   SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_ENGINE_EXPORT, bool, Bench)
   SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_ENGINE_EXPORT, bool, ScoreOrder)
-  SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_ENGINE_EXPORT, bool, ValueCompilation)
-  SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_ENGINE_EXPORT, bool, TransportValueCompilation)
+  SCORE_SETTINGS_PARAMETER_HPP(
+      SCORE_PLUGIN_ENGINE_EXPORT, bool, ValueCompilation)
+  SCORE_SETTINGS_PARAMETER_HPP(
+      SCORE_PLUGIN_ENGINE_EXPORT, bool, TransportValueCompilation)
 };
 
 SCORE_SETTINGS_PARAMETER(Model, Clock)

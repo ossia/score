@@ -1,10 +1,13 @@
 #pragma once
 #include <Process/ProcessContext.hpp>
-#include <wobjectdefs.h>
 #include <Process/ZoomHelper.hpp>
-#include <QGraphicsItem>
+
 #include <score/model/Identifier.hpp>
+
+#include <QGraphicsItem>
+
 #include <score_lib_process_export.h>
+#include <wobjectdefs.h>
 class QMenu;
 class QPoint;
 class QPointF;
@@ -66,7 +69,8 @@ public:
   virtual GraphicsShapeItem* makeSlotHeaderDelegate();
 
 public:
-  void contextMenuRequested(const QPoint& arg_1, const QPointF& arg_2) E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, contextMenuRequested, arg_1, arg_2);
+  void contextMenuRequested(const QPoint& arg_1, const QPointF& arg_2)
+      E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, contextMenuRequested, arg_1, arg_2);
 
 protected:
   Process::LayerContext m_context;

@@ -1,8 +1,9 @@
 #pragma once
-#include <QGridLayout>
-#include <QWidget>
 #include <score/selection/SelectionDispatcher.hpp>
 #include <score/widgets/MarginLess.hpp>
+
+#include <QGridLayout>
+#include <QWidget>
 
 namespace score
 {
@@ -17,8 +18,7 @@ class IntervalSummaryWidget final : public QWidget
 {
 public:
   explicit IntervalSummaryWidget(
-      const IntervalModel& object,
-      const score::DocumentContext& doc,
+      const IntervalModel& object, const score::DocumentContext& doc,
       QWidget* parent = nullptr);
   ~IntervalSummaryWidget();
 

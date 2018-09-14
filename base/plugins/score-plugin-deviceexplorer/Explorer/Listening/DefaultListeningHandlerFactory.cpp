@@ -5,6 +5,7 @@
 #include "DefaultListeningHandler.hpp"
 
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
+
 #include <score/document/DocumentContext.hpp>
 namespace Explorer
 {

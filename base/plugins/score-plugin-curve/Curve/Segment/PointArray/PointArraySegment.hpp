@@ -1,12 +1,17 @@
 #pragma once
 #include <Curve/Segment/CurveSegmentModel.hpp>
-#include <wobjectdefs.h>
+
+#include <score/serialization/VisitorInterface.hpp>
+
+#include <ossia/detail/flat_map.hpp>
+
 #include <QPoint>
 #include <QVariant>
 #include <QVector>
-#include <ossia/detail/flat_map.hpp>
+
+#include <wobjectdefs.h>
+
 #include <memory>
-#include <score/serialization/VisitorInterface.hpp>
 #include <utility>
 #include <vector>
 
@@ -19,11 +24,8 @@ class PointArraySegment;
 }
 
 CURVE_SEGMENT_METADATA(
-    SCORE_PLUGIN_CURVE_EXPORT,
-    Curve::PointArraySegment,
-    "c598b840-db67-4c8f-937a-46cfac87cb59",
-    "PointArray",
-    "PointArray",
+    SCORE_PLUGIN_CURVE_EXPORT, Curve::PointArraySegment,
+    "c598b840-db67-4c8f-937a-46cfac87cb59", "PointArray", "PointArray",
     "hidden")
 
 namespace Curve
@@ -131,8 +133,10 @@ public:
   void reset();
 
 public:
-  void minChanged(double arg_1) E_SIGNAL(SCORE_PLUGIN_CURVE_EXPORT, minChanged, arg_1);
-  void maxChanged(double arg_1) E_SIGNAL(SCORE_PLUGIN_CURVE_EXPORT, maxChanged, arg_1);
+  void minChanged(double arg_1)
+      E_SIGNAL(SCORE_PLUGIN_CURVE_EXPORT, minChanged, arg_1);
+  void maxChanged(double arg_1)
+      E_SIGNAL(SCORE_PLUGIN_CURVE_EXPORT, maxChanged, arg_1);
 
 private:
   // Coordinates in {x, y}.

@@ -3,13 +3,14 @@
 #include "AddressCharSettingsWidget.hpp"
 
 #include <Explorer/Common/AddressSettings/Widgets/AddressSettingsWidget.hpp>
+#include <State/Value.hpp>
+#include <State/ValueConversion.hpp>
+#include <State/Widgets/Values/CharValueWidget.hpp>
+
 #include <QChar>
 #include <QFormLayout>
 #include <QLineEdit>
 #include <QString>
-#include <State/Value.hpp>
-#include <State/ValueConversion.hpp>
-#include <State/Widgets/Values/CharValueWidget.hpp>
 class QWidget;
 
 namespace Explorer

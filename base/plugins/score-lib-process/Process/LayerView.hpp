@@ -1,11 +1,13 @@
 #pragma once
+#include <score/widgets/MimeData.hpp>
+
 #include <QGraphicsItem>
-#include <wobjectdefs.h>
 #include <QGraphicsSceneDragDropEvent>
 #include <QRect>
 #include <QtGlobal>
-#include <score/widgets/MimeData.hpp>
+
 #include <score_lib_process_export.h>
+#include <wobjectdefs.h>
 
 class QPainter;
 class QStyleOptionGraphicsItem;
@@ -13,9 +15,7 @@ class QWidget;
 class QMimeData;
 namespace Process
 {
-class SCORE_LIB_PROCESS_EXPORT LayerView
-    : public QObject
-    , public QGraphicsItem
+class SCORE_LIB_PROCESS_EXPORT LayerView : public QObject, public QGraphicsItem
 {
   W_OBJECT(LayerView)
   Q_INTERFACES(QGraphicsItem)
@@ -26,8 +26,7 @@ public:
 
   QRectF boundingRect() const final override;
   void paint(
-      QPainter* painter,
-      const QStyleOptionGraphicsItem* option,
+      QPainter* painter, const QStyleOptionGraphicsItem* option,
       QWidget* widget) final override;
 
   void setHeight(qreal height) noexcept;
@@ -49,22 +48,30 @@ public:
   void clearPressed() W_SIGNAL(clearPressed);
   void escPressed() W_SIGNAL(escPressed);
 
-  void pressed(QPointF arg_1) E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, pressed, arg_1);
-  void released(QPointF arg_1) E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, released, arg_1);
+  void pressed(QPointF arg_1)
+      E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, pressed, arg_1);
+  void released(QPointF arg_1)
+      E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, released, arg_1);
   void moved(QPointF arg_1) E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, moved, arg_1);
-  void doubleClicked(QPointF arg_1) E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, doubleClicked, arg_1);
+  void doubleClicked(QPointF arg_1)
+      E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, doubleClicked, arg_1);
 
   // Screen pos, scene pos
-  void askContextMenu(const QPoint& arg_1, const QPointF& arg_2) E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, askContextMenu, arg_1, arg_2);
-  void dropReceived(const QPointF& pos, const QMimeData& arg_2) E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, dropReceived, pos, arg_2);
+  void askContextMenu(const QPoint& arg_1, const QPointF& arg_2)
+      E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, askContextMenu, arg_1, arg_2);
+  void dropReceived(const QPointF& pos, const QMimeData& arg_2)
+      E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, dropReceived, pos, arg_2);
 
   void keyPressed(int arg_1) W_SIGNAL(keyPressed, arg_1);
   void keyReleased(int arg_1) W_SIGNAL(keyReleased, arg_1);
 
   // Screen pos, scene pos
-  void dragEnter(const QPointF& pos, const QMimeData& arg_2) W_SIGNAL(dragEnter, pos, arg_2);
-  void dragMove(const QPointF& pos, const QMimeData& arg_2) W_SIGNAL(dragMove, pos, arg_2);
-  void dragLeave(const QPointF& pos, const QMimeData& arg_2) W_SIGNAL(dragLeave, pos, arg_2);
+  void dragEnter(const QPointF& pos, const QMimeData& arg_2)
+      W_SIGNAL(dragEnter, pos, arg_2);
+  void dragMove(const QPointF& pos, const QMimeData& arg_2)
+      W_SIGNAL(dragMove, pos, arg_2);
+  void dragLeave(const QPointF& pos, const QMimeData& arg_2)
+      W_SIGNAL(dragLeave, pos, arg_2);
 
 protected:
   virtual void paint_impl(QPainter*) const = 0;
@@ -89,8 +96,7 @@ public:
 
   QRectF boundingRect() const final override;
   void paint(
-      QPainter* painter,
-      const QStyleOptionGraphicsItem* option,
+      QPainter* painter, const QStyleOptionGraphicsItem* option,
       QWidget* widget) final override;
 
   void setHeight(qreal height);

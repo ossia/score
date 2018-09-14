@@ -4,9 +4,11 @@
 
 #include "PlayListeningHandler.hpp"
 
-#include <Execution/DocumentPlugin.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
+
 #include <score/document/DocumentContext.hpp>
+
+#include <Execution/DocumentPlugin.hpp>
 namespace Execution
 {
 std::unique_ptr<Explorer::ListeningHandler> PlayListeningHandlerFactory::make(

@@ -8,18 +8,22 @@
 #include <Curve/Segment/CurveSegmentData.hpp>
 #include <Curve/Segment/Linear/LinearSegment.hpp>
 #include <Curve/Segment/Power/PowerSegment.hpp>
+
+#include <score/model/Identifier.hpp>
+#include <score/serialization/DataStreamVisitor.hpp>
+#include <score/serialization/JSONVisitor.hpp>
+#include <score/serialization/VisitorCommon.hpp>
+#include <score/tools/std/Optional.hpp>
+
+#include <ossia/detail/pod_vector.hpp>
+
 #include <QDebug>
+
+#include <wobjectimpl.h>
+
 #include <cstddef>
 #include <functional>
 #include <iterator>
-#include <score/model/Identifier.hpp>
-#include <score/serialization/VisitorCommon.hpp>
-#include <score/tools/std/Optional.hpp>
-#include <ossia/detail/pod_vector.hpp>
-#include <score/serialization/DataStreamVisitor.hpp>
-#include <score/serialization/JSONVisitor.hpp>
-
-#include <wobjectimpl.h>
 W_OBJECT_IMPL(Curve::PointArraySegment)
 namespace Curve
 {
@@ -139,9 +143,9 @@ void PointArraySegment::addPointUnscaled(double x, double y)
       if (it1 != end && it2 != end)
       {
         std::advance(it1, 1);
-        if(it1 != end)
+        if (it1 != end)
         {
-          if(it1 == it2)
+          if (it1 == it2)
             m_points.erase(it2);
           else
             m_points.erase(it1, it2);
@@ -156,9 +160,9 @@ void PointArraySegment::addPointUnscaled(double x, double y)
       if (it1 != end && it2 != end)
       {
         std::advance(it1, 1);
-        if(it1 != end)
+        if (it1 != end)
         {
-          if(it1 == it2)
+          if (it1 == it2)
             m_points.erase(it2);
           else
             m_points.erase(it1, it2);
@@ -193,7 +197,7 @@ void PointArraySegment::simplify(double ratio)
   SCORE_ASSERT(result.size() % 2 == 0);
 
   m_points.clear();
-  //m_points.container.reserve(result.size() / 2);
+  // m_points.container.reserve(result.size() / 2);
   for (auto i = 0u; i < result.size(); i += 2)
   {
     m_points.insert(std::make_pair(result[i], result[i + 1]));
@@ -317,4 +321,3 @@ void JSONObjectWriter::write(Curve::PointArraySegmentData& segmt)
 {
   SCORE_TODO;
 }
-

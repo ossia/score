@@ -3,6 +3,7 @@
 //  https://github.com/Meach/ofxVstHost
 
 #include <Media/Effect/VST/vst-compat.hpp>
+
 #include <string>
 
 namespace Media::VST
@@ -18,7 +19,6 @@ struct VSTModule
   ~VSTModule();
   PluginEntryProc getMain();
 };
-
 
 #if defined(__APPLE__)
 static const constexpr auto default_path = "/Library/Audio/Plug-Ins/VST";

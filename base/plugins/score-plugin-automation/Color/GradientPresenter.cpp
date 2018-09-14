@@ -1,22 +1,22 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+#include <Process/Focus/FocusDispatcher.hpp>
+
+#include <score/command/Dispatchers/CommandDispatcher.hpp>
+#include <score/document/DocumentContext.hpp>
+#include <score/document/DocumentInterface.hpp>
+
 #include <ossia/detail/math.hpp>
 
 #include <Color/GradientModel.hpp>
 #include <Color/GradientPresenter.hpp>
 #include <Color/GradientView.hpp>
-#include <Process/Focus/FocusDispatcher.hpp>
-#include <score/command/Dispatchers/CommandDispatcher.hpp>
-#include <score/document/DocumentContext.hpp>
-#include <score/document/DocumentInterface.hpp>
 #include <wobjectimpl.h>
 namespace Gradient
 {
 Presenter::Presenter(
-    const Gradient::ProcessModel& layer,
-    View* view,
-    const Process::ProcessPresenterContext& ctx,
-    QObject* parent)
+    const Gradient::ProcessModel& layer, View* view,
+    const Process::ProcessPresenterContext& ctx, QObject* parent)
     : LayerPresenter{ctx, parent}, m_layer{layer}, m_view{view}
 {
   putToFront();

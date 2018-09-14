@@ -3,18 +3,19 @@
 #include "TimeSyncPresenter.hpp"
 
 #include <Scenario/Commands/TimeSync/SetTrigger.hpp>
-#include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
+#include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
 #include <Scenario/Document/TimeSync/TimeSyncView.hpp>
 #include <Scenario/Document/TimeSync/TriggerView.hpp>
 #include <State/MessageListSerialization.hpp>
+
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/document/DocumentContext.hpp>
+#include <score/model/Identifier.hpp>
 #include <score/model/ModelMetadata.hpp>
 #include <score/selection/Selectable.hpp>
 #include <score/tools/Todo.hpp>
 #include <score/widgets/GraphicsItem.hpp>
-#include <score/model/Identifier.hpp>
 
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Scenario::TimeSyncPresenter)

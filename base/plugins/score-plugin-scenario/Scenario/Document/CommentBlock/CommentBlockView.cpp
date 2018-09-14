@@ -5,13 +5,15 @@
 #include "TextItem.hpp"
 
 #include <Process/Style/ScenarioStyle.hpp>
+#include <Scenario/Document/CommentBlock/CommentBlockPresenter.hpp>
+
 #include <QFont>
 #include <QGraphicsSceneMouseEvent>
 #include <QPainter>
 #include <QTextCursor>
 #include <QTextDocument>
 #include <QWidget>
-#include <Scenario/Document/CommentBlock/CommentBlockPresenter.hpp>
+
 #include <cmath>
 namespace Scenario
 {

@@ -1,7 +1,10 @@
 #pragma once
-#include <QWidget>
 #include <State/Value.hpp>
+
 #include <score/widgets/WidgetWrapper.hpp>
+
+#include <QWidget>
+
 #include <score_lib_state_export.h>
 namespace State
 {

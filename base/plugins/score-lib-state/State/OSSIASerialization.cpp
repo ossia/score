@@ -1,9 +1,10 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
-#include <State/DomainSerializationImpl.hpp>
-#include <State/ValueSerializationImpl.hpp>
 #include <State/Domain.hpp>
+#include <State/DomainSerializationImpl.hpp>
 #include <State/Unit.hpp>
+#include <State/ValueSerializationImpl.hpp>
+
 #include <ossia/network/dataspace/dataspace_visitors.hpp>
 void TSerializer<DataStream, ossia::unit_t>::readFrom(
     DataStream::Serializer& s, const ossia::unit_t& var)
@@ -58,9 +59,6 @@ SCORE_LIB_STATE_EXPORT void DataStreamWriter::write(ossia::unit_t& var)
   TSerializer<DataStream, ossia::unit_t>::writeTo(*this, var);
 }
 
-
-
-
 template <>
 SCORE_LIB_STATE_EXPORT void DataStreamReader::read(const State::Domain& var)
 {
@@ -84,9 +82,6 @@ SCORE_LIB_STATE_EXPORT void JSONObjectWriter::write(State::Domain& var)
 {
   writeTo(var.get());
 }
-
-
-
 
 template <>
 SCORE_LIB_STATE_EXPORT void DataStreamReader::read(const ossia::domain& n)

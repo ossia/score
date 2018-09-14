@@ -1,5 +1,6 @@
 #pragma once
 #include <Curve/Segment/CurveSegmentFactory.hpp>
+
 #include <score/plugins/customfactory/FactoryFamily.hpp>
 namespace Curve
 {

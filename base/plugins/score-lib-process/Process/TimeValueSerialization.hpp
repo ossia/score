@@ -1,8 +1,10 @@
 #pragma once
 #include <Process/TimeValue.hpp>
-#include <QDebug>
+
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/serialization/JSONValueVisitor.hpp>
+
+#include <QDebug>
 
 inline QDebug operator<<(QDebug d, const TimeVal& tv)
 {

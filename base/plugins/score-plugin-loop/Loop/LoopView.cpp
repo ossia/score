@@ -3,6 +3,7 @@
 #include "LoopView.hpp"
 
 #include <Process/Style/ScenarioStyle.hpp>
+
 #include <QGraphicsSceneContextMenuEvent>
 #include <QGraphicsSceneMouseEvent>
 #include <QPainter>

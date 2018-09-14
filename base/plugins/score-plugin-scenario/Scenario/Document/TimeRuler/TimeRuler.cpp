@@ -1,58 +1,61 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 
-#include <ossia/detail/algorithms.hpp>
-#include <ossia/detail/config.hpp>
-
 #include <Process/Style/ScenarioStyle.hpp>
 #include <Process/TimeValue.hpp>
+#include <Scenario/Document/TimeRuler/TimeRuler.hpp>
+
+#include <score/model/Skin.hpp>
+
+#include <ossia/detail/config.hpp>
+
+#include <ossia/detail/algorithms.hpp>
+
 #include <QBrush>
 #include <QGraphicsSceneEvent>
 #include <QGraphicsView>
 #include <QPainter>
 #include <QPen>
 #include <QTextLayout>
-#include <Scenario/Document/TimeRuler/TimeRuler.hpp>
+#include <qnamespace.h>
+
 #include <cmath>
 #include <fmt/format.h>
-#include <qnamespace.h>
-#include <score/model/Skin.hpp>
-
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Scenario::TimeRuler)
 namespace Scenario
 {
 
-static const constexpr std::
-    array<std::pair<double, std::chrono::microseconds>, 22>
-        graduations{{{0.1, std::chrono::seconds(120)},
-                     {0.2, std::chrono::seconds(60)},
-                     {0.5, std::chrono::seconds(30)},
+static const constexpr std::array<
+    std::pair<double, std::chrono::microseconds>, 22>
+    graduations{{{0.1, std::chrono::seconds(120)},
+                 {0.2, std::chrono::seconds(60)},
+                 {0.5, std::chrono::seconds(30)},
 
-                     {1, std::chrono::seconds(10)},
-                     {2, std::chrono::seconds(5)},
-                     {5, std::chrono::seconds(2)},
+                 {1, std::chrono::seconds(10)},
+                 {2, std::chrono::seconds(5)},
+                 {5, std::chrono::seconds(2)},
 
-                     {10, std::chrono::milliseconds(1000)},
-                     {20, std::chrono::milliseconds(500)},
-                     {40, std::chrono::milliseconds(250)},
-                     {80, std::chrono::milliseconds(150)},
+                 {10, std::chrono::milliseconds(1000)},
+                 {20, std::chrono::milliseconds(500)},
+                 {40, std::chrono::milliseconds(250)},
+                 {80, std::chrono::milliseconds(150)},
 
-                     {100, std::chrono::milliseconds(100)},
-                     {200, std::chrono::milliseconds(50)},
-                     {500, std::chrono::milliseconds(20)},
+                 {100, std::chrono::milliseconds(100)},
+                 {200, std::chrono::milliseconds(50)},
+                 {500, std::chrono::milliseconds(20)},
 
-                     {1000, std::chrono::milliseconds(10)},
-                     {2000, std::chrono::milliseconds(5)},
-                     {5000, std::chrono::milliseconds(2)},
+                 {1000, std::chrono::milliseconds(10)},
+                 {2000, std::chrono::milliseconds(5)},
+                 {5000, std::chrono::milliseconds(2)},
 
-                     {10000, std::chrono::microseconds(1000)},
-                     {20000, std::chrono::microseconds(500)},
-                     {50000, std::chrono::microseconds(200)},
+                 {10000, std::chrono::microseconds(1000)},
+                 {20000, std::chrono::microseconds(500)},
+                 {50000, std::chrono::microseconds(200)},
 
-                     {100000, std::chrono::microseconds(100)},
-                     {200000, std::chrono::microseconds(50)},
-                     {500000, std::chrono::microseconds(20)}}};
+                 {100000, std::chrono::microseconds(100)},
+                 {200000, std::chrono::microseconds(50)},
+                 {500000, std::chrono::microseconds(20)}}};
 
 TimeRuler::TimeRuler(QGraphicsView* v)
     : m_width{800}

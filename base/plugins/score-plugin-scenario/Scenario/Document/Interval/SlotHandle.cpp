@@ -3,6 +3,12 @@
 #include "SlotHandle.hpp"
 
 #include <Process/Style/ScenarioStyle.hpp>
+#include <Scenario/Document/Interval/IntervalPresenter.hpp>
+#include <Scenario/Document/Interval/IntervalView.hpp>
+#include <Scenario/Document/Interval/Temporal/TemporalIntervalPresenter.hpp>
+
+#include <score/widgets/GraphicsItem.hpp>
+
 #include <QApplication>
 #include <QCursor>
 #include <QDrag>
@@ -12,18 +18,12 @@
 #include <QMimeData>
 #include <QPainter>
 #include <QPoint>
-#include <Scenario/Document/Interval/IntervalPresenter.hpp>
-#include <Scenario/Document/Interval/IntervalView.hpp>
-#include <Scenario/Document/Interval/Temporal/TemporalIntervalPresenter.hpp>
 #include <qnamespace.h>
-#include <score/widgets/GraphicsItem.hpp>
 
 namespace Scenario
 {
 SlotHandle::SlotHandle(
-    const IntervalPresenter& slotView,
-    int slotIndex,
-    bool isstatic,
+    const IntervalPresenter& slotView, int slotIndex, bool isstatic,
     QGraphicsItem* parent)
     : QGraphicsItem{parent}
     , m_presenter{slotView}

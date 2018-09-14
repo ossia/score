@@ -3,15 +3,15 @@
 #include "get_library_path.hpp"
 
 #if defined(__linux__)
-#  include <dlfcn.h>
-#  include <link.h>
+#include <dlfcn.h>
+#include <link.h>
 #elif defined(__APPLE__)
-#  include <mach-o/dyld.h>
+#include <mach-o/dyld.h>
 #elif defined(_MSC_VER)
-#  include <psapi.h>
-#  include <stdio.h>
-#  include <tchar.h>
-#  include <windows.h>
+#include <psapi.h>
+#include <stdio.h>
+#include <tchar.h>
+#include <windows.h>
 #endif
 namespace score
 {

@@ -3,11 +3,13 @@
 #include "LoopProcessModel.hpp"
 
 #include <Process/Dataflow/Port.hpp>
-#include <QJsonObject>
-#include <QJsonValue>
+
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/serialization/JSONValueVisitor.hpp>
 #include <score/serialization/JSONVisitor.hpp>
+
+#include <QJsonObject>
+#include <QJsonValue>
 
 template <>
 void DataStreamReader::read(const Loop::ProcessModel& proc)

@@ -1,5 +1,6 @@
 #pragma once
 #include <score/plugins/customfactory/StringFactoryKey.hpp>
+
 #include <score_lib_base_export.h>
 class QMenu;
 namespace score
@@ -16,9 +17,7 @@ public:
   Menu(QMenu* menu, StringKey<Menu> m);
 
   Menu(
-      QMenu* menu,
-      StringKey<Menu> m,
-      is_toplevel,
+      QMenu* menu, StringKey<Menu> m, is_toplevel,
       int c = std::numeric_limits<int>::max() - 1);
 
   StringKey<Menu> key() const;

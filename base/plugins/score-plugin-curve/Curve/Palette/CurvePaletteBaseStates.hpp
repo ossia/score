@@ -1,8 +1,9 @@
 #pragma once
 #include "CurvePoint.hpp"
 
-#include <QState>
 #include <score/model/Identifier.hpp>
+
+#include <QState>
 class QGraphicsItem;
 
 namespace Curve

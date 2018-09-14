@@ -8,6 +8,7 @@
 #include <Curve/Palette/CurveEditionSettings.hpp>
 #include <Curve/Palette/CurvePaletteBaseStates.hpp>
 #include <Curve/Palette/CurvePoint.hpp>
+
 #include <score/command/Dispatchers/SingleOngoingCommandDispatcher.hpp>
 
 namespace score

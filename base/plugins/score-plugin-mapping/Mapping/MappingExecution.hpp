@@ -1,11 +1,12 @@
 #pragma once
+#include <Mapping/MappingModel.hpp>
+#include <Process/Execution/ProcessComponent.hpp>
+#include <State/Address.hpp>
+
 #include <ossia/dataflow/node_process.hpp>
 #include <ossia/network/value/value.hpp>
 
-#include <Process/Execution/ProcessComponent.hpp>
-#include <Mapping/MappingModel.hpp>
 #include <QPointer>
-#include <State/Address.hpp>
 namespace ossia
 {
 class curve_abstract;
@@ -19,17 +20,14 @@ namespace Mapping
 {
 namespace RecreateOnPlay
 {
-class Component final
-    : public ::Execution::
-          ProcessComponent_T<Mapping::ProcessModel, ossia::node_process>
+class Component final : public ::Execution::ProcessComponent_T<
+                            Mapping::ProcessModel, ossia::node_process>
 {
   COMPONENT_METADATA("da360b58-9885-4106-be54-8e272ed45dbe")
 public:
   Component(
-      ::Mapping::ProcessModel& element,
-      const ::Execution::Context& ctx,
-      const Id<score::Component>& id,
-      QObject* parent);
+      ::Mapping::ProcessModel& element, const ::Execution::Context& ctx,
+      const Id<score::Component>& id, QObject* parent);
 
   ~Component();
 
@@ -46,8 +44,7 @@ private:
   std::shared_ptr<ossia::curve_abstract> on_curveChanged_impl2();
 };
 
-using ComponentFactory
-    = ::Execution::ProcessComponentFactory_T<Component>;
+using ComponentFactory = ::Execution::ProcessComponentFactory_T<Component>;
 }
 }
 

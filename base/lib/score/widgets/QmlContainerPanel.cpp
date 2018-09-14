@@ -2,6 +2,8 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "QmlContainerPanel.hpp"
 
+#include <score/widgets/SetIcons.hpp>
+
 #include <QAction>
 #include <QDebug>
 #include <QDockWidget>
@@ -15,7 +17,6 @@
 #include <QVBoxLayout>
 #include <QWidget>
 #include <QtQuickWidgets/QQuickWidget>
-#include <score/widgets/SetIcons.hpp>
 
 QMLContainerPanel::QMLContainerPanel(QWidget* parent)
     : QWidget{parent}

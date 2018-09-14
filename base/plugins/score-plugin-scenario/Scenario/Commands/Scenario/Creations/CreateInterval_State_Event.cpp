@@ -2,7 +2,6 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "CreateInterval_State_Event.hpp"
 
-#include <QByteArray>
 #include <Scenario/Commands/Scenario/Creations/CreateInterval_State.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Process/Algorithms/StandardCreationPolicy.hpp>
@@ -13,6 +12,9 @@
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/tools/IdentifierGeneration.hpp>
 #include <score/tools/RandomNameProvider.hpp>
+
+#include <QByteArray>
+
 #include <vector>
 
 namespace Scenario
@@ -20,10 +22,8 @@ namespace Scenario
 namespace Command
 {
 CreateInterval_State_Event::CreateInterval_State_Event(
-    const Scenario::ProcessModel& scenario,
-    Id<StateModel> startState,
-    Id<TimeSyncModel> endTimeSync,
-    double endStateY)
+    const Scenario::ProcessModel& scenario, Id<StateModel> startState,
+    Id<TimeSyncModel> endTimeSync, double endStateY)
     : m_newEvent{getStrongId(scenario.events)}
     , m_createdName{RandomNameProvider::generateName<EventModel>()}
     , m_command{scenario, std::move(startState), m_newEvent, endStateY}

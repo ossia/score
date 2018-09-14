@@ -1,6 +1,8 @@
 #pragma once
 #include <score/tools/Todo.hpp>
+
 #include <score_lib_base_export.h>
+
 #include <array>
 
 class JSONObject;
@@ -343,8 +345,8 @@ class UuidKey : score::uuid_t
   using this_type = UuidKey<Tag>;
 
   friend struct std::hash<this_type>;
-  //friend struct boost::hash<this_type>;
-  //friend struct boost::hash<const this_type>;
+  // friend struct boost::hash<this_type>;
+  // friend struct boost::hash<const this_type>;
   friend constexpr bool operator==(const this_type& lhs, const this_type& rhs)
   {
     return static_cast<const score::uuid_t&>(lhs)

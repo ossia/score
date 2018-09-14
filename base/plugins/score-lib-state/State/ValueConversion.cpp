@@ -1,11 +1,17 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "ValueConversion.hpp"
+
+#include <State/Value.hpp>
+
 #include <score/serialization/StringConstants.hpp>
+
+#include <ossia-qt/js_utilities.hpp>
 #include <ossia/detail/apply.hpp>
 #include <ossia/network/value/value.hpp>
-#include <boost/tokenizer.hpp>
+
 #include <boost/lexical_cast.hpp>
+#include <boost/tokenizer.hpp>
 
 #include <QJsonArray>
 #include <QList>
@@ -16,11 +22,10 @@
 #include <QVector2D>
 #include <QVector3D>
 #include <QVector4D>
-#include <State/Value.hpp>
+
 #include <algorithm>
 #include <array>
 #include <iterator>
-#include <ossia-qt/js_utilities.hpp>
 
 namespace State
 {
@@ -112,7 +117,6 @@ QVariant value(const ossia::value& val)
 
   return ossia::apply(vis{}, val.v);
 }
-
 
 QString textualType(const ossia::value& val)
 {
@@ -485,13 +489,13 @@ QString value(const ossia::value& val)
   return ossia::apply(visitor, val.v);
 }
 
-template<std::size_t N>
+template <std::size_t N>
 auto string_to_vec(std::string_view s0)
 {
   std::array<float, N> o;
-  if(!s0.empty() && s0.front() == '[')
+  if (!s0.empty() && s0.front() == '[')
     s0.remove_prefix(1);
-  if(!s0.empty() && s0.back() == ']')
+  if (!s0.empty() && s0.back() == ']')
     s0.remove_suffix(1);
 
   // todo check when boost updates
@@ -501,15 +505,15 @@ auto string_to_vec(std::string_view s0)
 
   tok_t tok(s);
   std::size_t i = 0;
-  for(std::string_view f : tok)
+  for (std::string_view f : tok)
   {
     f.remove_prefix(std::min(f.find_first_not_of(" "), f.size()));
 
-    if(auto trim_pos = f.find(' '); trim_pos != f.npos)
+    if (auto trim_pos = f.find(' '); trim_pos != f.npos)
       f.remove_suffix(f.size() - trim_pos);
 
     o[i++] = boost::lexical_cast<float>(f);
-    if(i >= N)
+    if (i >= N)
       break;
   }
   return o;

@@ -2,18 +2,19 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "IScoreDeviceLoader.hpp"
 
-#include <ossia/network/domain/domain.hpp>
-
 #include <Device/Address/AddressSettings.hpp>
 #include <Device/Address/ClipMode.hpp>
 #include <Device/Address/IOType.hpp>
 #include <Device/Node/DeviceNode.hpp>
+#include <State/Domain.hpp>
+#include <State/Value.hpp>
+
+#include <ossia/network/domain/domain.hpp>
+
 #include <QDebug>
 #include <QFile>
 #include <QIODevice>
 #include <QJsonDocument>
-#include <State/Domain.hpp>
-#include <State/Value.hpp>
 
 namespace Device
 {

@@ -4,17 +4,6 @@
 
 #include <Inspector/InspectorSectionWidget.hpp>
 #include <Inspector/InspectorWidgetBase.hpp>
-#include <QApplication>
-#include <QBoxLayout>
-#include <QColor>
-#include <QFormLayout>
-#include <QLabel>
-#include <QMenu>
-#include <QPushButton>
-#include <QString>
-#include <QTimer>
-#include <QVector>
-#include <QWidget>
 #include <Scenario/Commands/TimeSync/SplitTimeSync.hpp>
 #include <Scenario/Commands/TimeSync/TriggerCommandFactory/TriggerCommandFactoryList.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
@@ -23,7 +12,7 @@
 #include <Scenario/Inspector/MetadataWidget.hpp>
 #include <Scenario/Inspector/TimeSync/TriggerInspectorWidget.hpp>
 #include <Scenario/Process/ScenarioInterface.hpp>
-#include <algorithm>
+
 #include <score/application/ApplicationContext.hpp>
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/document/DocumentContext.hpp>
@@ -40,13 +29,28 @@
 #include <score/widgets/Separator.hpp>
 #include <score/widgets/TextLabel.hpp>
 
+#include <QApplication>
+#include <QBoxLayout>
+#include <QColor>
+#include <QFormLayout>
+#include <QLabel>
+#include <QMenu>
+#include <QPushButton>
+#include <QString>
+#include <QTimer>
+#include <QVector>
+#include <QWidget>
+
+#include <algorithm>
+
 namespace Scenario
 {
 TimeSyncInspectorWidget::TimeSyncInspectorWidget(
-    const TimeSyncModel& object,
-    const score::DocumentContext& ctx,
+    const TimeSyncModel& object, const score::DocumentContext& ctx,
     QWidget* parent)
-    : InspectorWidgetBase{object, ctx, parent, tr("Sync (%1)").arg(object.metadata().getName())}, m_model{object}
+    : InspectorWidgetBase{object, ctx, parent,
+                          tr("Sync (%1)").arg(object.metadata().getName())}
+    , m_model{object}
 {
   setObjectName("TimeSyncInspectorWidget");
   setParent(parent);

@@ -2,13 +2,6 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "DeviceExplorerModel.hpp"
 
-#include <Explorer/Explorer/DeviceExplorerMimeTypes.hpp>
-#include <Explorer/Explorer/DeviceExplorerView.hpp>
-#include <Explorer/Explorer/Widgets/DeviceEditDialog.hpp> // TODO why here??!!
-
-#include <ossia/editor/state/destination_qualifiers.hpp>
-#include <ossia/network/domain/domain.hpp>
-
 #include <Device/Address/AddressSettings.hpp>
 #include <Device/ItemModels/NodeBasedItemModel.hpp>
 #include <Device/ItemModels/NodeDisplayMethods.hpp>
@@ -22,6 +15,26 @@
 #include <Explorer/DeviceList.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <Explorer/DocumentPlugin/NodeUpdateProxy.hpp>
+#include <Explorer/Explorer/DeviceExplorerMimeTypes.hpp>
+#include <Explorer/Explorer/DeviceExplorerView.hpp>
+#include <Explorer/Explorer/Widgets/DeviceEditDialog.hpp> // TODO why here??!!
+#include <State/MessageListSerialization.hpp>
+#include <State/ValueConversion.hpp>
+
+#include <score/application/ApplicationContext.hpp>
+#include <score/command/CommandStackFacade.hpp>
+#include <score/document/DocumentContext.hpp>
+#include <score/document/DocumentInterface.hpp>
+#include <score/model/path/Path.hpp>
+#include <score/model/tree/TreeNode.hpp>
+#include <score/plugins/customfactory/FactoryFamily.hpp>
+#include <score/plugins/customfactory/StringFactoryKey.hpp>
+#include <score/serialization/JSONVisitor.hpp>
+#include <score/serialization/MimeVisitor.hpp>
+
+#include <ossia/editor/state/destination_qualifiers.hpp>
+#include <ossia/network/domain/domain.hpp>
+
 #include <QAbstractProxyModel>
 #include <QApplication>
 #include <QDebug>
@@ -33,26 +46,15 @@
 #include <QSet>
 #include <QTreeView>
 #include <QVector>
-#include <State/MessageListSerialization.hpp>
-#include <State/ValueConversion.hpp>
-#include <algorithm>
+#include <qtypetraits.h>
 
+#include <wobjectimpl.h>
+
+#include <algorithm>
 #include <iostream>
 #include <iterator>
-#include <qtypetraits.h>
-#include <score/application/ApplicationContext.hpp>
-#include <score/command/CommandStackFacade.hpp>
-#include <score/document/DocumentContext.hpp>
-#include <score/document/DocumentInterface.hpp>
-#include <score/model/path/Path.hpp>
-#include <score/model/tree/TreeNode.hpp>
-#include <score/plugins/customfactory/FactoryFamily.hpp>
-#include <score/plugins/customfactory/StringFactoryKey.hpp>
-#include <score/serialization/JSONVisitor.hpp>
-#include <score/serialization/MimeVisitor.hpp>
 #include <string>
 #include <vector>
-#include <wobjectimpl.h>
 W_OBJECT_IMPL(Explorer::DeviceExplorerModel)
 namespace Explorer
 {
@@ -157,8 +159,7 @@ void DeviceExplorerModel::updateDevice(
 }
 
 void DeviceExplorerModel::addAddress(
-    Device::Node* parentNode,
-    const Device::AddressSettings& addressSettings,
+    Device::Node* parentNode, const Device::AddressSettings& addressSettings,
     int row)
 {
   SCORE_ASSERT(parentNode);
@@ -291,8 +292,7 @@ bool DeviceExplorerModel::checkAddressInstantiatable(
 }
 
 bool DeviceExplorerModel::checkAddressEditable(
-    Device::Node& parent,
-    const Device::AddressSettings& before,
+    Device::Node& parent, const Device::AddressSettings& before,
     const Device::AddressSettings& after)
 {
   SCORE_ASSERT(!parent.is<InvisibleRootNode>());
@@ -471,7 +471,8 @@ bool DeviceExplorerModel::setData(
 
       // Note : if we want to disable remote updating, we have to do it
       // here (e.g. if this becomes a settings)
-      m_devicePlugin.updateProxy.updateRemoteValue(Device::address(n).address, copy);
+      m_devicePlugin.updateProxy.updateRemoteValue(
+          Device::address(n).address, copy);
 
       return true;
     }
@@ -514,10 +515,8 @@ bool DeviceExplorerModel::setHeaderData(
  * that edit the columns.
  */
 void DeviceExplorerModel::editData(
-    const Device::NodePath& path,
-    Explorer::Column column,
-    const ossia::value& value,
-    int role)
+    const Device::NodePath& path, Explorer::Column column,
+    const ossia::value& value, int role)
 {
   Device::Node* node = path.toNode(&rootNode());
   editData(*node, column, value, role);
@@ -663,13 +662,15 @@ QMimeData* DeviceExplorerModel::mimeData(const QModelIndexList& indexes) const
   auto uniqueNodes = uniqueSelectedNodes(indexes);
 
   // Handle case of a single device which can have custom mimeData
-  if(uniqueNodes.parents.size() == 1 && uniqueNodes.parents[0]->is<Device::DeviceSettings>())
+  if (uniqueNodes.parents.size() == 1
+      && uniqueNodes.parents[0]->is<Device::DeviceSettings>())
   {
     auto node = uniqueNodes.parents[0];
-    if(node->is<Device::DeviceSettings>())
+    if (node->is<Device::DeviceSettings>())
     {
-      auto& dev = deviceModel().list().device(node->get<Device::DeviceSettings>().name);
-      if(auto d = dev.mimeData())
+      auto& dev = deviceModel().list().device(
+          node->get<Device::DeviceSettings>().name);
+      if (auto d = dev.mimeData())
         return d;
     }
   }
@@ -720,11 +721,8 @@ QMimeData* DeviceExplorerModel::mimeData(const QModelIndexList& indexes) const
 }
 
 bool DeviceExplorerModel::canDropMimeData(
-    const QMimeData* mimeData,
-    Qt::DropAction action,
-    int /*row*/,
-    int /*column*/,
-    const QModelIndex& parent) const
+    const QMimeData* mimeData, Qt::DropAction action, int /*row*/,
+    int /*column*/, const QModelIndex& parent) const
 {
   if (action == Qt::IgnoreAction)
   {
@@ -771,10 +769,7 @@ bool DeviceExplorerModel::canDropMimeData(
 // if dropMimeData returns true && action==Qt::MoveAction, removeRows is called
 // immediately after
 bool DeviceExplorerModel::dropMimeData(
-    const QMimeData* mimeData,
-    Qt::DropAction action,
-    int row,
-    int column,
+    const QMimeData* mimeData, Qt::DropAction action, int row, int column,
     const QModelIndex& parent)
 {
   if (action == Qt::IgnoreAction)
@@ -969,17 +964,16 @@ deviceExplorerFromContext(const score::DocumentContext& ctx)
 }
 
 Device::FullAddressAccessorSettings makeFullAddressAccessorSettings(
-    const State::AddressAccessor& addr,
-    const score::DocumentContext& ctx,
-    ossia::value min,
-    ossia::value max)
+    const State::AddressAccessor& addr, const score::DocumentContext& ctx,
+    ossia::value min, ossia::value max)
 {
   // First try to find if there is a matching address
   // in the device explorer
   auto deviceexplorer = Explorer::try_deviceExplorerFromContext(ctx);
   if (deviceexplorer)
   {
-    return Device::makeFullAddressAccessorSettings(addr, *deviceexplorer, std::move(min), std::move(max));
+    return Device::makeFullAddressAccessorSettings(
+        addr, *deviceexplorer, std::move(min), std::move(max));
   }
 
   // If there is none, build with some default settings
@@ -988,5 +982,4 @@ Device::FullAddressAccessorSettings makeFullAddressAccessorSettings(
   s.domain = ossia::make_domain(std::move(min), std::move(max));
   return s;
 }
-
 }

@@ -1,6 +1,7 @@
 #pragma once
 #include <QDebug>
 #include <QPointF>
+
 #include <wobjectdefs.h>
 
 namespace Scenario

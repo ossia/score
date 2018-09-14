@@ -2,12 +2,14 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "ObjectIdentifier.hpp"
 
-#include <QJsonObject>
-#include <QJsonValue>
-#include <QString>
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/serialization/JSONVisitor.hpp>
 #include <score/tools/std/Optional.hpp>
+
+#include <QJsonObject>
+#include <QJsonValue>
+#include <QString>
+
 #include <sys/types.h>
 
 template <>

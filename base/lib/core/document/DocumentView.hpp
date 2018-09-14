@@ -1,6 +1,7 @@
 #pragma once
 
 #include <QWidget>
+
 #include <wobjectdefs.h>
 
 namespace score
@@ -21,8 +22,7 @@ class DocumentView final : public QObject
   W_OBJECT(DocumentView)
 public:
   DocumentView(
-      DocumentDelegateFactory& viewDelegate,
-      const Document& doc,
+      DocumentDelegateFactory& viewDelegate, const Document& doc,
       QObject* parent);
 
   DocumentDelegateView& viewDelegate() const

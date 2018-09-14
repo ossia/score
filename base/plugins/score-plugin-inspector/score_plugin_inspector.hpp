@@ -1,9 +1,12 @@
 #pragma once
-#include <QObject>
-#include <wobjectdefs.h>
 #include <score/plugins/qt_interfaces/FactoryFamily_QtInterface.hpp>
 #include <score/plugins/qt_interfaces/FactoryInterface_QtInterface.hpp>
 #include <score/plugins/qt_interfaces/PluginRequirements_QtInterface.hpp>
+
+#include <QObject>
+
+#include <wobjectdefs.h>
+
 #include <vector>
 
 namespace score
@@ -13,10 +16,9 @@ class PanelFactory;
 } // namespace score
 
 // RENAMEME
-class score_plugin_inspector
-    : public score::Plugin_QtInterface
-    , public score::FactoryInterface_QtInterface
-    , public score::FactoryList_QtInterface
+class score_plugin_inspector : public score::Plugin_QtInterface,
+                               public score::FactoryInterface_QtInterface,
+                               public score::FactoryList_QtInterface
 {
   SCORE_PLUGIN_METADATA(1, "0ed1520f-e120-458e-a5a8-b3f05f3b6b6c")
 public:

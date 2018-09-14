@@ -1,11 +1,13 @@
 #pragma once
-#include <ossia/detail/ptr_set.hpp>
-#include <wobjectdefs.h>
-
 #include <Process/Dataflow/Cable.hpp>
 #include <Process/Dataflow/Port.hpp>
+
+#include <ossia/detail/ptr_set.hpp>
+
 #include <QGraphicsItem>
 #include <QObject>
+
+#include <wobjectdefs.h>
 namespace Dataflow
 {
 class CableItem;
@@ -14,9 +16,8 @@ class CableItem;
 namespace Dataflow
 {
 class PortItem;
-class SCORE_LIB_PROCESS_EXPORT CableItem final
-    : public QObject
-    , public QGraphicsItem
+class SCORE_LIB_PROCESS_EXPORT CableItem final : public QObject,
+                                                 public QGraphicsItem
 {
   W_OBJECT(CableItem)
   Q_INTERFACES(QGraphicsItem)
@@ -24,8 +25,7 @@ class SCORE_LIB_PROCESS_EXPORT CableItem final
 public:
   static bool g_cables_enabled;
   CableItem(
-      Process::Cable& c,
-      const score::DocumentContext& ctx,
+      Process::Cable& c, const score::DocumentContext& ctx,
       QGraphicsItem* parent = nullptr);
   ~CableItem() override;
   const Id<Process::Cable>& id() const
@@ -56,8 +56,7 @@ public:
 private:
   QRectF boundingRect() const override;
   void paint(
-      QPainter* painter,
-      const QStyleOptionGraphicsItem* option,
+      QPainter* painter, const QStyleOptionGraphicsItem* option,
       QWidget* widget) override;
   QPainterPath shape() const override;
   void mousePressEvent(QGraphicsSceneMouseEvent* event) override;

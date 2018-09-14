@@ -2,24 +2,27 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "DocumentBuilder.hpp"
 
-#include <QByteArray>
-#include <QMessageBox>
-#include <QObject>
-#include <QString>
-#include <QVariant>
+#include <score/application/ApplicationComponents.hpp>
+#include <score/model/Identifier.hpp>
+#include <score/plugins/ProjectSettings/ProjectSettingsFactory.hpp>
+#include <score/plugins/application/GUIApplicationPlugin.hpp>
+#include <score/plugins/documentdelegate/plugin/DocumentPluginCreator.hpp>
+#include <score/serialization/DataStreamVisitor.hpp>
+#include <score/tools/RandomNameProvider.hpp>
+
 #include <core/command/CommandStackSerialization.hpp>
 #include <core/document/Document.hpp>
 #include <core/document/DocumentBackupManager.hpp>
 #include <core/document/DocumentModel.hpp>
 #include <core/presenter/Presenter.hpp>
 #include <core/view/Window.hpp>
-#include <score/application/ApplicationComponents.hpp>
-#include <score/model/Identifier.hpp>
-#include <score/plugins/ProjectSettings/ProjectSettingsFactory.hpp>
-#include <score/plugins/application/GUIApplicationPlugin.hpp>
-#include <score/serialization/DataStreamVisitor.hpp>
-#include <score/tools/RandomNameProvider.hpp>
-#include <score/plugins/documentdelegate/plugin/DocumentPluginCreator.hpp>
+
+#include <QByteArray>
+#include <QMessageBox>
+#include <QObject>
+#include <QString>
+#include <QVariant>
+
 #include <stdexcept>
 
 namespace score
@@ -31,8 +34,7 @@ DocumentBuilder::DocumentBuilder(QObject* parentPresenter, QWidget* parentView)
 
 SCORE_LIB_BASE_EXPORT
 Document* DocumentBuilder::newDocument(
-    const score::GUIApplicationContext& ctx,
-    const Id<DocumentModel>& id,
+    const score::GUIApplicationContext& ctx, const Id<DocumentModel>& id,
     DocumentDelegateFactory& doctype)
 {
   QString docName
@@ -68,10 +70,8 @@ Document* DocumentBuilder::newDocument(
 
 SCORE_LIB_BASE_EXPORT
 Document* DocumentBuilder::loadDocument(
-    const score::GUIApplicationContext& ctx,
-    QString filename,
-    const QVariant& docData,
-    DocumentDelegateFactory& doctype)
+    const score::GUIApplicationContext& ctx, QString filename,
+    const QVariant& docData, DocumentDelegateFactory& doctype)
 {
   Document* doc = nullptr;
   auto& doclist = ctx.documents.documents();
@@ -113,10 +113,8 @@ Document* DocumentBuilder::loadDocument(
 }
 SCORE_LIB_BASE_EXPORT
 Document* DocumentBuilder::restoreDocument(
-    const score::GUIApplicationContext& ctx,
-    QString filename,
-    const QByteArray& docData,
-    const QByteArray& cmdData,
+    const score::GUIApplicationContext& ctx, QString filename,
+    const QByteArray& docData, const QByteArray& cmdData,
     DocumentDelegateFactory& doctype)
 {
   Document* doc = nullptr;

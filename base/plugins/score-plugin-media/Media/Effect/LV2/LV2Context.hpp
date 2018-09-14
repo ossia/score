@@ -1,13 +1,20 @@
 #pragma once
+#include <score/tools/Todo.hpp>
+
 #include <ossia/detail/hash_map.hpp>
 #include <ossia/detail/small_vector.hpp>
 
-#include <atomic>
 #include <boost/bimap.hpp>
+
+#include <lilv/lilvmm.hpp>
+#include <readerwriterqueue.h>
+
+#include <atomic>
 #include <cstdarg>
 #include <cstdio>
 #include <functional>
-#include <lilv/lilvmm.hpp>
+#include <vector>
+
 #include <lv2/lv2plug.in/ns/ext/atom/atom.h>
 #include <lv2/lv2plug.in/ns/ext/atom/forge.h>
 #include <lv2/lv2plug.in/ns/ext/buf-size/buf-size.h>
@@ -31,9 +38,6 @@
 #include <lv2/lv2plug.in/ns/ext/urid/urid.h>
 #include <lv2/lv2plug.in/ns/ext/worker/worker.h>
 #include <lv2/lv2plug.in/ns/extensions/ui/ui.h>
-#include <readerwriterqueue.h>
-#include <score/tools/Todo.hpp>
-#include <vector>
 #include <suil-0/suil/suil.h>
 
 namespace Media::LV2
@@ -77,7 +81,6 @@ struct HostContext
   LV2_URID atom_sequence_id{};
   LV2_URID null_id{};
   LV2_URID atom_eventTransfer{};
-
 };
 
 struct EffectContext
@@ -173,10 +176,10 @@ struct LV2Data
       cv_ports;
 };
 
-struct Message {
+struct Message
+{
   uint32_t index;
   uint32_t protocol;
   ossia::small_vector<uint8_t, 8> body;
 };
-
 }

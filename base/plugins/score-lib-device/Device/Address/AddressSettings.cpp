@@ -2,14 +2,15 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "AddressSettings.hpp"
 
-#include <ossia/editor/state/destination_qualifiers.hpp>
-#include <ossia/network/domain/domain.hpp>
-
 #include <Device/Node/DeviceNode.hpp>
-#include <QStringList>
 #include <State/Address.hpp>
 #include <State/Message.hpp>
 #include <State/Value.hpp>
+
+#include <ossia/editor/state/destination_qualifiers.hpp>
+#include <ossia/network/domain/domain.hpp>
+
+#include <QStringList>
 namespace Device
 {
 
@@ -207,8 +208,7 @@ FullAddressAccessorSettings::FullAddressAccessorSettings(
 }
 
 FullAddressAccessorSettings::FullAddressAccessorSettings(
-    const State::AddressAccessor& addr,
-    const ossia::value& min,
+    const State::AddressAccessor& addr, const ossia::value& min,
     const ossia::value& max) noexcept
     : domain{ossia::make_domain(min, max)}, address{addr}
 {

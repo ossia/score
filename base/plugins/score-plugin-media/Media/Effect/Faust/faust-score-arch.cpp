@@ -1,17 +1,21 @@
 #include <Media/Effect/Faust/FaustDSPWrapper.hpp>
-#include <QObject>
-#include <cmath>
-#include <faust/dsp/dsp.h>
-#include <faust/gui/GUI.h>
-#include <faust/gui/JSONUI.h>
-#include <faust/gui/meta.h>
+
 #include <score/application/ApplicationContext.hpp>
 #include <score/plugins/customfactory/FactoryFamily.hpp>
 #include <score/plugins/customfactory/FactorySetup.hpp>
 #include <score/plugins/qt_interfaces/CommandFactory_QtInterface.hpp>
 #include <score/plugins/qt_interfaces/FactoryInterface_QtInterface.hpp>
 #include <score/plugins/qt_interfaces/PluginRequirements_QtInterface.hpp>
+
+#include <QObject>
+
+#include <cmath>
+#include <faust/dsp/dsp.h>
+#include <faust/gui/GUI.h>
+#include <faust/gui/JSONUI.h>
+#include <faust/gui/meta.h>
 #include <string.h>
+
 #include <utility>
 #include <vector>
 
@@ -64,9 +68,8 @@ struct Metadata<ConcreteKey_k, FaustDSP::Fx<mydsp>>
   }
 };
 
-class score_faust_ == FAUST_NAME == final
-    : public score::Plugin_QtInterface
-    , public score::FactoryInterface_QtInterface
+class score_faust_ == FAUST_NAME == final : public score::Plugin_QtInterface,
+    public score::FactoryInterface_QtInterface
 {
   SCORE_PLUGIN_METADATA(1, "==UUID==")
 

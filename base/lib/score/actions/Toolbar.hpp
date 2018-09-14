@@ -1,5 +1,6 @@
 #pragma once
 #include <score/plugins/customfactory/StringFactoryKey.hpp>
+
 #include <score_lib_base_export.h>
 
 class QToolBar;

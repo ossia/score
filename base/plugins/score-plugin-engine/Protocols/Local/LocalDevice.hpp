@@ -1,8 +1,9 @@
 #pragma once
+#include <Device/Protocol/DeviceInterface.hpp>
+
 #include <ossia/network/base/device.hpp>
 #include <ossia/network/base/node.hpp>
 
-#include <Device/Protocol/DeviceInterface.hpp>
 #include <nano_observer.hpp>
 
 namespace ossia
@@ -17,13 +18,11 @@ namespace Engine
 {
 namespace Network
 {
-class LocalDevice final
-    : public Device::DeviceInterface
+class LocalDevice final : public Device::DeviceInterface
 {
 public:
   LocalDevice(
-      ossia::net::device_base& dev,
-      const score::DocumentContext& ctx,
+      ossia::net::device_base& dev, const score::DocumentContext& ctx,
       const Device::DeviceSettings& settings);
 
   ~LocalDevice() override;

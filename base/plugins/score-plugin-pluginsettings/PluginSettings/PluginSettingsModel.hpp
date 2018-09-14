@@ -1,7 +1,9 @@
 #pragma once
 #include <PluginSettings/PluginItemModel.hpp>
-#include <QItemSelectionModel>
+
 #include <score/plugins/settingsdelegate/SettingsDelegateModel.hpp>
+
+#include <QItemSelectionModel>
 
 class QAbstractItemModel;
 

@@ -3,6 +3,7 @@
 #include <Process/Layer/LayerContextMenu.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
+
 #include <score/actions/Action.hpp>
 
 namespace Scenario
@@ -72,9 +73,7 @@ SCORE_DECLARE_ACTION(
 SCORE_DECLARE_ACTION(
     DeselectAll, "&Deselect All", Scenario, QKeySequence::Deselect)
 SCORE_DECLARE_ACTION(
-    SelectTop,
-    "Select &Top",
-    Scenario,
+    SelectTop, "Select &Top", Scenario,
     QKeySequence{QObject::tr("Ctrl+Shift+T")})
 
 // Transport
@@ -91,10 +90,7 @@ SCORE_DECLARE_ACTION(Record, "&Record", Scenario, QKeySequence::UnknownKey)
 // Edit
 SCORE_DECLARE_ACTION(SelectTool, "Tool &Select", Scenario, Qt::Key_S)
 SCORE_DECLARE_ACTION_2S(
-    CreateTool,
-    "Tool &Create",
-    Scenario,
-    QKeySequence{QObject::tr("C")},
+    CreateTool, "Tool &Create", Scenario, QKeySequence{QObject::tr("C")},
     QKeySequence{QObject::tr("Shift+C")})
 SCORE_DECLARE_ACTION(PlayTool, "Tool &Play", Scenario, Qt::Key_P)
 SCORE_DECLARE_ACTION(SequenceMode, "Se&quence", Scenario, Qt::Key_Shift)
@@ -135,9 +131,7 @@ SCORE_DECLARE_ACTION(
 SCORE_DECLARE_ACTION(
     RefreshStates, "Refresh St&ates", Scenario, Qt::CTRL + Qt::Key_U)
 SCORE_DECLARE_ACTION(
-    Snapshot,
-    "Snapshot in Event",
-    Scenario,
+    Snapshot, "Snapshot in Event", Scenario,
     QKeySequence(QObject::tr("Ctrl+L")))
 
 // Interval
@@ -146,9 +140,7 @@ SCORE_DECLARE_ACTION(
 SCORE_DECLARE_ACTION(
     InterpolateStates, "&Interpolate states", Scenario, Qt::CTRL + Qt::Key_K)
 SCORE_DECLARE_ACTION(
-    CreateCurves,
-    "Create Curves",
-    Scenario,
+    CreateCurves, "Create Curves", Scenario,
     QKeySequence(QObject::tr("Ctrl+J")))
 SCORE_DECLARE_ACTION(
     MergeTimeSyncs, "&Synchronize", Scenario, Qt::SHIFT + Qt::Key_M)
@@ -168,7 +160,8 @@ SCORE_DECLARE_ACTION(MoveUp, "&Move up", Scenario, Qt::UpArrow)
 SCORE_DECLARE_ACTION(MoveDown, "&Move down", Scenario, Qt::DownArrow)
 SCORE_DECLARE_ACTION(MoveLeft, "&Move left", Scenario, Qt::LeftArrow)
 SCORE_DECLARE_ACTION(MoveRight, "&Move right", Scenario, Qt::RightArrow)
-SCORE_DECLARE_ACTION(GoToParent, "&Go to parent", Scenario, Qt::CTRL + Qt::Key_Up)
+SCORE_DECLARE_ACTION(
+    GoToParent, "&Go to parent", Scenario, Qt::CTRL + Qt::Key_Up)
 
 /// Context menus
 SCORE_PROCESS_DECLARE_CONTEXT_MENU(
