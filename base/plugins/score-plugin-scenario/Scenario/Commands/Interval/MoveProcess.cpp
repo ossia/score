@@ -117,6 +117,7 @@ void MoveProcess::undo(const score::DocumentContext& ctx) const
 
   src.replaceSmallView(m_oldSmall);
   src.replaceFullView(m_oldFull);
+  src.setSmallViewVisible(true);
 
   // slot will be removed if it is empty
 }
