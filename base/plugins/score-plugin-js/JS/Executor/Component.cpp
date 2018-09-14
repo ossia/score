@@ -289,13 +289,15 @@ void js_node::run(ossia::token_request tk, ossia::exec_state_facade) noexcept
         // Use control or same method as before
       }
     }
-
-    for (auto& val : dat)
+    else
     {
-      auto qvar = val.value.apply(ossia::qt::ossia_to_qvariant{});
-      m_valInlets[i].first->setValue(qvar);
-      m_valInlets[i].first->addValue(QVariant::fromValue(
-          ValueMessage{(double)val.timestamp, std::move(qvar)}));
+      for (auto& val : dat)
+      {
+        auto qvar = val.value.apply(ossia::qt::ossia_to_qvariant{});
+        m_valInlets[i].first->setValue(qvar);
+        m_valInlets[i].first->addValue(QVariant::fromValue(
+            ValueMessage{(double)val.timestamp, std::move(qvar)}));
+      }
     }
   }
 

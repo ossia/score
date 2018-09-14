@@ -18,6 +18,7 @@
 #include <score/model/Identifier.hpp>
 #include <score/serialization/VisitorCommon.hpp>
 #include <score/tools/File.hpp>
+#include <score/tools/DeleteAll.hpp>
 #include <vector>
 
 #include <wobjectimpl.h>
@@ -55,7 +56,8 @@ ProcessModel::~ProcessModel()
 void ProcessModel::setScript(const QString& script)
 {
   m_watch.reset();
-  m_dummyObject->deleteLater();
+  if(m_dummyObject)
+    m_dummyObject->deleteLater();
   m_dummyObject = nullptr;
   m_dummyComponent.reset();
   m_dummyComponent = std::make_unique<QQmlComponent>(&m_dummyEngine);
@@ -101,7 +103,8 @@ void ProcessModel::setQmlData(const QByteArray& data, bool isFile)
     return;
 
   m_qmlData = data;
-  m_dummyObject->deleteLater();
+  if(m_dummyObject)
+    m_dummyObject->deleteLater();
   m_dummyObject = nullptr;
   m_dummyComponent.reset();
   if (isFile)
@@ -137,10 +140,8 @@ void ProcessModel::setQmlData(const QByteArray& data, bool isFile)
     oldOutletCable.push_back(in->cables());
   }
 
-  qDeleteAll(m_inlets);
-  m_inlets.clear();
-  qDeleteAll(m_outlets);
-  m_outlets.clear();
+  score::deleteAndClear(m_inlets);
+  score::deleteAndClear(m_outlets);
 
   m_dummyObject = m_dummyComponent->create();
 

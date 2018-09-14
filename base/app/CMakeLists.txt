@@ -86,10 +86,17 @@ endif()
 
 setup_score_common_exe_features(${APPNAME})
 
-install(
-  TARGETS ${APPNAME}
-  BUNDLE DESTINATION .
-  RUNTIME DESTINATION bin)
+if(WIN32)
+  install(
+    TARGETS ${APPNAME}
+    BUNDLE DESTINATION .
+    RUNTIME DESTINATION .)
+else()
+  install(
+    TARGETS ${APPNAME}
+    BUNDLE DESTINATION .
+    RUNTIME DESTINATION bin)
+endif()
 
 include(UnityApp.cmake)
 include(IScoreDeployment)

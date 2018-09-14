@@ -25,6 +25,7 @@
 #include <ossia-qt/invoke.hpp>
 #include <score/tools/IdentifierGeneration.hpp>
 #include <score/tools/Todo.hpp>
+#include <score/tools/DeleteAll.hpp>
 #include <set>
 #include <websocketpp/base64/base64.hpp>
 
@@ -439,10 +440,8 @@ void VSTEffectModel::closePlugin()
     }
     fx = nullptr;
   }
-  qDeleteAll(m_inlets);
-  qDeleteAll(m_outlets);
-  m_inlets.clear();
-  m_outlets.clear();
+  score::deleteAndClear(m_inlets);
+  score::deleteAndClear(m_outlets);
   metadata().setLabel("Dead VST");
 }
 
