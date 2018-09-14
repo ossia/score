@@ -132,6 +132,9 @@ void StatePresenter::handleDrop(const QMimeData& mime)
                return QFileInfo{u.toLocalFile()}.suffix() == "layer";
              }))
     {
+      if(m_model.nextInterval())
+        return;
+
       auto path = mime.urls().first().toLocalFile();
       if (QFile f{path}; f.open(QIODevice::ReadOnly))
       {
