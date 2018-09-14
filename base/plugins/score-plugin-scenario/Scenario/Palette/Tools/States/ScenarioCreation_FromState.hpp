@@ -181,17 +181,17 @@ public:
         // Magnetism handling :
         // If we press "sequence"... we're always in sequence.
         //
-        // Else, if we're < 0.005, we switch to "sequence"
+        // Else, if we're < 10 pixels, we switch to "sequence"
         // Else, we keep the normal state.
         Scenario::EditionSettings& settings
             = this->m_parentSM.editionSettings();
         bool manual_sequence = qApp->keyboardModifiers() & Qt::ShiftModifier;
         if (!manual_sequence)
         {
+          double h = stateMachine.presenter().view().height();
           auto sequence = settings.sequence();
           auto magnetism_distance
-              = (std::abs(this->currentPoint.y - this->m_clickedPoint.y)
-                 < 0.02);
+              = h * std::abs(this->currentPoint.y - this->m_parentSM.model().state(*this->clickedState).heightPercentage()) < 10.;
           if (!sequence && magnetism_distance)
           {
             settings.setSequence(true);
