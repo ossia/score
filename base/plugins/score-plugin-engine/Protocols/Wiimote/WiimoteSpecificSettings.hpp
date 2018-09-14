@@ -7,7 +7,7 @@ namespace Engine::Network {
 
 struct WiimoteSpecificSettings
 {
-  int32_t dummy;
+  int dummy;
 };
 
 }

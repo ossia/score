@@ -19,9 +19,6 @@ public:
   Device::DeviceSettings getSettings() const override;
   void setSettings(const Device::DeviceSettings& settings) override;
 
-public:
-  void update_device_list();
-
 protected:
   QLineEdit* m_deviceNameEdit{};
 };

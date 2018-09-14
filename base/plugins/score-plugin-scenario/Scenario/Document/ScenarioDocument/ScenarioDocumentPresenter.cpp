@@ -16,6 +16,7 @@
 #include <Process/TimeValue.hpp>
 #include <Process/Tools/ProcessGraphicsView.hpp>
 #include <QMainWindow>
+#include <QScrollBar>
 #include <QPolygon>
 #include <QSize>
 #include <QString>
@@ -660,6 +661,7 @@ void ScenarioDocumentPresenter::setDisplayedInterval(IntervalModel& interval)
 
   on_viewReady();
   updateMinimap();
+  view().view().verticalScrollBar()->setValue(0);
 }
 
 void ScenarioDocumentPresenter::on_viewModelDefocused(

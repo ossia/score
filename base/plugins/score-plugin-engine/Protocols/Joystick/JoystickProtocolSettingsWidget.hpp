@@ -16,10 +16,10 @@ class JoystickProtocolSettingsWidget final
 public:
   JoystickProtocolSettingsWidget(QWidget* parent = nullptr);
   virtual ~JoystickProtocolSettingsWidget();
+
   Device::DeviceSettings getSettings() const override;
   void setSettings(const Device::DeviceSettings& settings) override;
 
-public:
   void update_device_list();
 
 protected:
