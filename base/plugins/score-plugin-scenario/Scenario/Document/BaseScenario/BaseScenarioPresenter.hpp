@@ -1,13 +1,10 @@
 #pragma once
 
 #include <Scenario/Document/Event/EventPresenter.hpp>
-#include <Scenario/Document/Event/EventView.hpp>
-#include <Scenario/Document/Interval/FullView/FullViewIntervalPresenter.hpp>
-#include <Scenario/Document/Interval/FullView/FullViewIntervalView.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
+#include <Scenario/Document/Interval/FullView/FullViewIntervalPresenter.hpp>
 #include <Scenario/Document/State/StatePresenter.hpp>
 #include <Scenario/Document/TimeSync/TimeSyncPresenter.hpp>
-#include <Scenario/Document/TimeSync/TimeSyncView.hpp>
 
 #include <score/tools/std/IndirectContainer.hpp>
 
