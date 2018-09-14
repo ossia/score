@@ -1,8 +1,8 @@
 #pragma once
 #include <Device/Protocol/DeviceInterface.hpp>
 
-namespace Engine::Network {
-
+namespace Engine::Network
+{
 
 class WiimoteDevice final : public Device::OwningDeviceInterface
 {
@@ -15,5 +15,4 @@ public:
   bool reconnect() override;
   void disconnect() override;
 };
-
 }

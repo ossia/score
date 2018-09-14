@@ -6,7 +6,8 @@
 class QLineEdit;
 class QComboBox;
 
-namespace Engine::Network {
+namespace Engine::Network
+{
 
 class WiimoteProtocolSettingsWidget final
     : public Device::ProtocolSettingsWidget
@@ -22,5 +23,4 @@ public:
 protected:
   QLineEdit* m_deviceNameEdit{};
 };
-
 }

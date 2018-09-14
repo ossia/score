@@ -1,15 +1,18 @@
 
 #include "WiimoteDevice.hpp"
+
 #include "WiimoteSpecificSettings.hpp"
+
 #include <ossia/network/wiimote/wiimote_protocol.hpp>
 
-#include <QProgressDialog>
 #include <QLabel>
+#include <QProgressDialog>
 #include <thread>
 
 W_OBJECT_IMPL(Engine::Network::WiimoteDevice)
 
-namespace Engine::Network {
+namespace Engine::Network
+{
 
 WiimoteDevice::WiimoteDevice(const Device::DeviceSettings& settings)
     : OwningDeviceInterface{settings}
@@ -37,26 +40,22 @@ bool WiimoteDevice::reconnect()
   dialog.setCancelButton(nullptr);
   dialog.setWindowFlags(Qt::FramelessWindowHint);
 
-  std::thread task{
-      [&dialog, this]()
-      {
-          try
-          {
-              auto addr =
-                  std::make_unique<ossia::net::generic_device>(
-                      std::make_unique<ossia::net::wiimote_protocol>(false),
-                      settings().name.toStdString());
+  std::thread task{[&dialog, this]() {
+    try
+    {
+      auto addr = std::make_unique<ossia::net::generic_device>(
+          std::make_unique<ossia::net::wiimote_protocol>(false),
+          settings().name.toStdString());
 
-              m_dev = std::move(addr);
-              deviceChanged(nullptr, m_dev.get());
-          }
-          catch (...)
-          {
-            SCORE_TODO;
-          }
-          dialog.cancel();
-      }};
-
+      m_dev = std::move(addr);
+      deviceChanged(nullptr, m_dev.get());
+    }
+    catch (...)
+    {
+      SCORE_TODO;
+    }
+    dialog.cancel();
+  }};
 
   dialog.exec();
   task.join();
@@ -68,6 +67,4 @@ void WiimoteDevice::disconnect()
 {
   OwningDeviceInterface::disconnect();
 }
-
-
 }

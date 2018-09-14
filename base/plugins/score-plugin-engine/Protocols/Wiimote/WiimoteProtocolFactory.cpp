@@ -7,7 +7,8 @@
 
 #include <QObject>
 
-namespace Engine::Network {
+namespace Engine::Network
+{
 
 QString WiimoteProtocolFactory::prettyName() const
 {
@@ -56,5 +57,4 @@ bool WiimoteProtocolFactory::checkCompatibility(
 {
   return false;
 }
-
 }

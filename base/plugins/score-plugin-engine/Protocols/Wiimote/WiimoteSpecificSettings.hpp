@@ -3,13 +3,13 @@
 #include <QMetaType>
 #include <wobjectdefs.h>
 
-namespace Engine::Network {
+namespace Engine::Network
+{
 
 struct WiimoteSpecificSettings
 {
   int dummy;
 };
-
 }
 
 Q_DECLARE_METATYPE(Engine::Network::WiimoteSpecificSettings)

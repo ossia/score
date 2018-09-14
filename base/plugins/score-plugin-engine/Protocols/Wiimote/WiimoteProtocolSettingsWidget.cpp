@@ -1,16 +1,17 @@
 
 #include "WiimoteProtocolSettingsWidget.hpp"
+
 #include "WiimoteSpecificSettings.hpp"
-#include <QVariant>
+
 #include <QLabel>
+#include <QVariant>
 #include <State/Widgets/AddressFragmentLineEdit.hpp>
 #include <wobjectimpl.h>
 
-
-
 W_OBJECT_IMPL(Engine::Network::WiimoteProtocolSettingsWidget)
 
-namespace Engine::Network {
+namespace Engine::Network
+{
 
 WiimoteProtocolSettingsWidget::WiimoteProtocolSettingsWidget(QWidget* parent)
     : Device::ProtocolSettingsWidget(parent)
@@ -36,7 +37,7 @@ Device::DeviceSettings WiimoteProtocolSettingsWidget::getSettings() const
 
   WiimoteSpecificSettings settings{};
   s.deviceSpecificSettings = QVariant::fromValue(settings);
-  
+
   return s;
 }
 
@@ -45,5 +46,4 @@ void WiimoteProtocolSettingsWidget::setSettings(
 {
   m_deviceNameEdit->setText(settings.name);
 }
-
 }
