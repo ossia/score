@@ -18,6 +18,20 @@
 W_OBJECT_IMPL(Scenario::ConditionView)
 namespace Scenario
 {
+static const QPainterPath conditionTrianglePath{[] {
+  QPainterPath p;
+  QPainterPathStroker s;
+  s.setCapStyle(Qt::RoundCap);
+  s.setJoinStyle(Qt::RoundJoin);
+  s.setWidth(2);
+
+  p.addPolygon(
+      QVector<QPointF>{QPointF(25, 5), QPointF(25, 21), QPointF(32, 14)});
+  p.closeSubpath();
+
+  return p + s.createStroke(p);
+}()};
+
 ConditionView::ConditionView(score::ColorRef color, QGraphicsItem* parent)
     : QGraphicsItem{parent}, m_color{color}
 {
@@ -49,20 +63,7 @@ void ConditionView::paint(
   painter->setPen(style.ConditionTrianglePen);
   painter->setBrush(col);
 
-  static const QPainterPath trianglePath{[] {
-    QPainterPath p;
-    QPainterPathStroker s;
-    s.setCapStyle(Qt::RoundCap);
-    s.setJoinStyle(Qt::RoundJoin);
-    s.setWidth(2);
-
-    p.addPolygon(
-        QVector<QPointF>{QPointF(25, 5), QPointF(25, 21), QPointF(32, 14)});
-    p.closeSubpath();
-
-    return p + s.createStroke(p);
-  }()};
-  painter->fillPath(trianglePath, col);
+  painter->fillPath(conditionTrianglePath, col);
 #endif
 
   painter->setRenderHint(QPainter::Antialiasing, false);
@@ -86,12 +87,44 @@ void ConditionView::changeHeight(qreal newH)
   m_Cpath.arcTo(rect, 60, 120);
   m_Cpath.lineTo(0, m_height + m_CHeight / 2);
   m_Cpath.arcTo(bottomRect, -180, 120);
+
+  auto& style = ScenarioStyle::instance();
+  QPainterPathStroker stk;
+  stk.setWidth(style.ConditionPen.widthF());
+  stk.setCapStyle(style.ConditionPen.capStyle());
+  stk.setJoinStyle(style.ConditionPen.joinStyle());
+  m_strokedCpath = stk.createStroke(m_Cpath) + conditionTrianglePath;
+
   this->update();
 }
 
 void ConditionView::mousePressEvent(QGraphicsSceneMouseEvent* event)
 {
-  if (event->button() == Qt::MouseButton::LeftButton)
+  if (event->button() == Qt::MouseButton::LeftButton && contains(event->pos()))
+  {
+    event->accept();
     pressed(event->scenePos());
+  }
+  else
+  {
+    event->ignore();
+  }
 }
+}
+
+
+QPainterPath Scenario::ConditionView::shape() const
+{
+  return m_strokedCpath;
+}
+
+
+bool Scenario::ConditionView::contains(const QPointF& point) const
+{
+  return m_strokedCpath.contains(point);
+}
+
+QPainterPath Scenario::ConditionView::opaqueArea() const
+{
+  return m_strokedCpath;
 }

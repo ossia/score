@@ -46,12 +46,17 @@ public:
   void pressed(QPointF arg_1) W_SIGNAL(pressed, arg_1);
 
 private:
+  QPainterPath shape() const override;
+  bool contains(const QPointF& point) const override;
+  QPainterPath opaqueArea() const override;
   void mousePressEvent(QGraphicsSceneMouseEvent*) override;
 
   score::ColorRef m_color;
   QPainterPath m_Cpath;
+  QPainterPath m_strokedCpath;
   qreal m_height{0};
   qreal m_width{40};
   qreal m_CHeight{27};
+
 };
 }
