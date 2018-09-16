@@ -82,7 +82,6 @@ public:
 
 private:
     void menuTriggered(QAction*);
-    W_SLOT(menuTriggered);
     void updateRecentFileActions();
 
     int m_maxCount{};
