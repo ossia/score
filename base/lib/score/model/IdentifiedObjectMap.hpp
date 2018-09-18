@@ -2,7 +2,7 @@
 #include <score/model/IdentifiedObject.hpp>
 #include <score/tools/std/IndirectContainer.hpp>
 
-#include <hopscotch_map.h>
+#include <tsl/hopscotch_map.h>
 
 #include <list>
 #include <vector>

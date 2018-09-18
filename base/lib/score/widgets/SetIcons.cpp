@@ -6,7 +6,7 @@
 
 #include <QHash>
 
-#include <hopscotch_map.h>
+#include <tsl/hopscotch_map.h>
 
 namespace std
 {

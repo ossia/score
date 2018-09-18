@@ -3,7 +3,7 @@
 
 #include <ossia/detail/config.hpp>
 
-#include <hopscotch_map.h>
+#include <tsl/hopscotch_map.h>
 namespace score
 {
 template <typename... Args>

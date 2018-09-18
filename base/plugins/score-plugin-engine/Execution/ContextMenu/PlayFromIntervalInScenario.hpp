@@ -2,7 +2,7 @@
 #include <Process/TimeValue.hpp>
 #include <Scenario/Document/Graph.hpp>
 
-#include <hopscotch_set.h>
+#include <tsl/hopscotch_set.h>
 
 namespace Execution
 {
