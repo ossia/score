@@ -47,6 +47,7 @@
 #include <qnamespace.h>
 
 #include <spdlog/spdlog.h>
+#include <spdlog/sinks/stdout_sinks.h>
 
 #include <algorithm>
 #include <vector>
@@ -196,7 +197,7 @@ void Application::init()
   score_init_static_plugins();
 #endif
 
-  std::vector<spdlog::sink_ptr> v{spdlog::sinks::stderr_sink_mt::instance(),
+  std::vector<spdlog::sink_ptr> v{std::make_shared<spdlog::sinks::stderr_sink_mt>(),
                                   std::make_shared<ossia::qt::log_sink>()};
 
   ossia::context context{v};

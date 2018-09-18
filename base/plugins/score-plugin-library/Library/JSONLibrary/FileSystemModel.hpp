@@ -7,8 +7,8 @@
 #include <QFileSystemModel>
 #include <QMimeData>
 
-#include <hopscotch_map.h>
-#include <hopscotch_set.h>
+#include <tsl/hopscotch_map.h>
+#include <tsl/hopscotch_set.h>
 
 namespace Library
 {

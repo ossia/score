@@ -16,7 +16,7 @@
 #include <QMimeData>
 #include <QPainter>
 
-#include <hopscotch_map.h>
+#include <tsl/hopscotch_map.h>
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Dataflow::PortItem)
 

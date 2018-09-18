@@ -6,6 +6,7 @@
 #define BOOST_PHOENIX_USING_LIBCPP
 #endif
 
+#include <State/Value.hpp>
 #include <ossia/network/base/name_validation.hpp>
 #include <ossia/network/dataspace/dataspace_parse.hpp>
 

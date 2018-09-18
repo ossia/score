@@ -543,12 +543,15 @@ struct in_sink final : public spdlog::sinks::sink
   void log(const spdlog::details::log_msg& msg) override
   {
     m_dev.logInbound(
-        QString::fromLatin1(msg.formatted.data(), msg.formatted.size()));
+        QString::fromLatin1(msg.raw.data(), msg.raw.size()));
   }
 
   void flush() override
   {
   }
+  void set_pattern(const std::string &pattern) override { }
+  void set_formatter(std::unique_ptr<spdlog::formatter> sink_formatter) override { }
+
 };
 struct out_sink final : public spdlog::sinks::sink
 {
@@ -559,12 +562,14 @@ struct out_sink final : public spdlog::sinks::sink
   void log(const spdlog::details::log_msg& msg) override
   {
     m_dev.logOutbound(
-        QString::fromLatin1(msg.formatted.data(), msg.formatted.size()));
+        QString::fromLatin1(msg.raw.data(), msg.raw.size()));
   }
 
   void flush() override
   {
   }
+  void set_pattern(const std::string &pattern) override  { }
+  void set_formatter(std::unique_ptr<spdlog::formatter> sink_formatter) override  { }
 };
 }
 void DeviceInterface::setLogging_impl(DeviceLogging b) const

@@ -12,7 +12,7 @@
 #include <QMenu>
 #include <QPainter>
 
-#include <hopscotch_map.h>
+#include <tsl/hopscotch_map.h>
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Dataflow::CableItem)
 namespace Dataflow
