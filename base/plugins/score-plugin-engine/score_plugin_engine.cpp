@@ -66,6 +66,9 @@
 #if defined(OSSIA_PROTOCOL_WIIMOTE)
 #  include <Protocols/Wiimote/WiimoteProtocolFactory.hpp>
 #endif
+#if defined(OSSIA_PROTOCOL_ARTNET)
+#  include <Protocols/Wiimote/ArtnetProtocolFactory.hpp>
+#endif
 
 #include <Protocols/Audio/AudioDevice.hpp>
 
@@ -160,6 +163,10 @@ score_plugin_engine::factories(
 #if defined(OSSIA_PROTOCOL_WIIMOTE)
         ,
         Network::WiimoteProtocolFactory
+#endif
+#if defined(OSSIA_PROTOCOL_ARTNET)
+        ,
+        Network::ArtnetProtocolFactory
 #endif
          >,
 

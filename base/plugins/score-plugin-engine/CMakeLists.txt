@@ -273,6 +273,20 @@ set(WIIMOTE_SRCS
   "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Wiimote/WiimoteSpecificSettingsSerialization.cpp"
 )
 
+set(ARTNET_HDRS
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Artnet/ArtnetDevice.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Artnet/ArtnetProtocolFactory.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Artnet/ArtnetProtocolSettingsWidget.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Artnet/ArtnetSpecificSettings.hpp"
+)
+
+set(ARTNET_SRCS
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Artnet/ArtnetDevice.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Artnet/ArtnetProtocolFactory.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Artnet/ArtnetProtocolSettingsWidget.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Artnet/ArtnetSpecificSettingsSerialization.cpp"
+)
+
 add_library(${PROJECT_NAME} ${SRCS} ${HDRS})
 
 if(OSSIA_PROTOCOL_OSC)
@@ -317,6 +331,11 @@ endif()
 
 if(OSSIA_PROTOCOL_WIIMOTE)
     target_sources(${PROJECT_NAME} PRIVATE ${WIIMOTE_HDRS} ${WIIMOTE_SRCS})
+endif()
+
+
+if(OSSIA_PROTOCOL_ARTNET)
+    target_sources(${PROJECT_NAME} PRIVATE ${ARTNET_HDRS} ${ARTNET_SRCS})
 endif()
 
 if(OSSIA_PROTOCOL_AUDIO)
