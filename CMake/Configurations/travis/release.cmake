@@ -1,4 +1,4 @@
-set(CMAKE_BUILD_TYPE Release)
+set(CMAKE_BUILD_TYPE Release CACHE INTERNAL "")
 set(SCORE_COTIRE True)
 set(DEPLOYMENT_BUILD True)
 

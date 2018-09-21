@@ -1,4 +1,4 @@
-set(CMAKE_BUILD_TYPE Release)
+set(CMAKE_BUILD_TYPE Release CACHE INTERNAL "")
 set(SCORE_STATIC_PLUGINS True)
 #set(CMAKE_CXX_COMPILER /usr/bin/clazy)
 set(SCORE_COTIRE False)
