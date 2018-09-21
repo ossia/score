@@ -15,7 +15,7 @@ public:
   explicit InspectorWidget(
       const Skeleton::Model& object, const score::DocumentContext& context,
       QWidget* parent);
-  ~InspectorWidget();
+  ~InspectorWidget() override;
 
 private:
   CommandDispatcher<> m_dispatcher;
