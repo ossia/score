@@ -23,7 +23,7 @@ public:
     vis.writeTo(*this);
   }
 
-  ~Model();
+  ~Model() override;
 
 private:
   QString prettyName() const override;

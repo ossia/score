@@ -16,7 +16,7 @@ public:
       Skeleton::Model& scenario, LocalTree::DocumentPlugin& doc,
       QObject* parent_obj);
 
-  ~LocalTreeProcessComponent();
+  ~LocalTreeProcessComponent() override;
 };
 
 using LocalTreeProcessComponentFactory
