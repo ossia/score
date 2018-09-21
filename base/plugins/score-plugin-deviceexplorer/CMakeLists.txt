@@ -58,6 +58,7 @@ set(HDRS
     "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Settings/ExplorerFactory.hpp"
 
     "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/DeviceList.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/DeviceLogging.hpp"
 
     "${CMAKE_CURRENT_SOURCE_DIR}/DeviceExplorerApplicationPlugin.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score_plugin_deviceexplorer.hpp"

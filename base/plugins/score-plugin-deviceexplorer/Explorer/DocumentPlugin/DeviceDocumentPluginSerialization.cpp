@@ -6,6 +6,7 @@
 #include <Explorer/Explorer/DeviceExplorerModel.hpp>
 
 #include <score/serialization/VariantSerialization.hpp>
+#include <score/model/tree/TreeNodeSerialization.hpp>
 
 template <>
 void DataStreamReader::read(const Explorer::DeviceDocumentPlugin& dev)

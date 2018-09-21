@@ -59,7 +59,6 @@ public:
 private:
   QWidget* m_parent{};
   QVBoxLayout* m_layout{};
-  QWidget* m_curWidget{};
 
   QWidget* m_currentInspector{};
 

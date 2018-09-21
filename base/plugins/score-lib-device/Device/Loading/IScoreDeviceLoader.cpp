@@ -9,6 +9,7 @@
 #include <State/Domain.hpp>
 #include <State/Value.hpp>
 
+#include <score/model/tree/TreeNodeSerialization.hpp>
 #include <ossia/network/domain/domain.hpp>
 
 #include <QDebug>

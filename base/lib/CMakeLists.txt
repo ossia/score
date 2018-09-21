@@ -99,6 +99,7 @@ set(HEADERS
     "${CMAKE_CURRENT_SOURCE_DIR}/score/model/tree/InvisibleRootNode.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/model/tree/TreeNode.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/model/tree/TreeNodeItemModel.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/score/model/tree/TreeNodeSerialization.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/model/tree/TreePath.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/model/tree/VariantBasedNode.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/plugins/Addon.hpp"

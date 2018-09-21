@@ -37,6 +37,7 @@
 #include <score/model/path/Path.hpp>
 #include <score/model/tree/InvisibleRootNode.hpp>
 #include <score/model/tree/TreeNode.hpp>
+#include <score/model/tree/TreeNodeSerialization.hpp>
 #include <score/plugins/application/GUIApplicationPlugin.hpp>
 #include <score/tools/std/Optional.hpp>
 #include <score/widgets/SetIcons.hpp>

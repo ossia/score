@@ -4,6 +4,7 @@
 #include <score/serialization/JSONVisitor.hpp>
 #include <score/serialization/MimeVisitor.hpp>
 
+#include <score/model/tree/TreeNodeSerialization.hpp>
 #include <QJsonDocument>
 
 namespace score
