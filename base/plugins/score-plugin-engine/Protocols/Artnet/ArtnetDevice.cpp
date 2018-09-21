@@ -31,7 +31,7 @@ bool ArtnetDevice::reconnect()
     {
         auto addr =
             std::make_unique<ossia::net::generic_device>(
-                std::make_unique<ossia::net::artnet_protocol>(false),
+                std::make_unique<ossia::net::artnet_protocol>(40),  //  40 Hz update rate
                 settings().name.toStdString());
         m_dev = std::move(addr);
         deviceChanged(nullptr, m_dev.get());
