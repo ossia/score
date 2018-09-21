@@ -4,6 +4,7 @@
 #include <Scenario/Library/SlotLibraryHandler.hpp>
 #include <State/MessageListSerialization.hpp>
 #include <State/StateMimeTypes.hpp>
+#include <score/model/tree/TreeNodeSerialization.hpp>
 
 #include <QMimeData>
 namespace Scenario

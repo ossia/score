@@ -11,6 +11,7 @@
 #include <score/model/Identifier.hpp>
 #include <score/model/ModelMetadata.hpp>
 #include <score/model/tree/TreeNode.hpp>
+#include <score/model/tree/TreeNodeSerialization.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/serialization/JSONValueVisitor.hpp>
 #include <score/serialization/JSONVisitor.hpp>

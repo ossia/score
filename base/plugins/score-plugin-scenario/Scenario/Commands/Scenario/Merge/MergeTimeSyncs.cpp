@@ -1,6 +1,7 @@
 #include "MergeTimeSyncs.hpp"
 
 #include <Process/TimeValueSerialization.hpp>
+#include <score/model/tree/TreeNodeSerialization.hpp>
 
 namespace Scenario
 {

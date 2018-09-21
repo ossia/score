@@ -20,7 +20,6 @@ private:
 
   QTabWidget* m_widget{};
 
-  FileSystemModel* m_projectModel{};
   ProjectLibraryWidget* m_projectView{};
 };
 }

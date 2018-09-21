@@ -455,7 +455,7 @@ static UnitModel& unit_model() noexcept
 DestinationQualifierWidget::DestinationQualifierWidget(QWidget* parent)
     : QWidget{parent}
 {
-  auto& empty = empty_model();
+  //auto& empty = empty_model();
   auto& m = unit_model();
   auto lay = new score::MarginLess<QHBoxLayout>{this};
 

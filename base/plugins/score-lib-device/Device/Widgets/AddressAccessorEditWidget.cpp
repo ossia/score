@@ -10,6 +10,7 @@
 #include <State/Widgets/AddressLineEdit.hpp>
 #include <State/Widgets/UnitWidget.hpp>
 
+#include <score/model/tree/TreeNodeSerialization.hpp>
 #include <score/document/DocumentContext.hpp>
 #include <score/widgets/MarginLess.hpp>
 

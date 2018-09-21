@@ -11,6 +11,7 @@
 #include <score/model/path/PathSerialization.hpp>
 #include <score/model/tree/TreeNode.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
+#include <score/model/tree/TreeNodeSerialization.hpp>
 
 #include <algorithm>
 

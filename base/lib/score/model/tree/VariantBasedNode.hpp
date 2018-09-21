@@ -1,7 +1,5 @@
 #pragma once
 #include <score/model/tree/InvisibleRootNode.hpp>
-#include <score/serialization/DataStreamVisitor.hpp>
-#include <score/serialization/JSONVisitor.hpp>
 
 #include <eggs/variant.hpp>
 

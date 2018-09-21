@@ -27,6 +27,7 @@
 #include <score/document/DocumentInterface.hpp>
 #include <score/model/path/Path.hpp>
 #include <score/model/tree/TreeNode.hpp>
+#include <score/model/tree/TreeNodeSerialization.hpp>
 #include <score/plugins/customfactory/FactoryFamily.hpp>
 #include <score/plugins/customfactory/StringFactoryKey.hpp>
 #include <score/serialization/JSONVisitor.hpp>

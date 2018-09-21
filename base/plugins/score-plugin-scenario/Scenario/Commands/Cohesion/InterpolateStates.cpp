@@ -25,6 +25,7 @@
 #include <score/model/Identifier.hpp>
 #include <score/model/path/Path.hpp>
 #include <score/model/tree/TreeNode.hpp>
+#include <score/model/tree/TreeNodeSerialization.hpp>
 #include <score/selection/SelectionStack.hpp>
 #include <score/tools/IdentifierGeneration.hpp>
 
