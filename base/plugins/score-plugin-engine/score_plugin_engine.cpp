@@ -67,7 +67,7 @@
 #  include <Protocols/Wiimote/WiimoteProtocolFactory.hpp>
 #endif
 #if defined(OSSIA_PROTOCOL_ARTNET)
-#  include <Protocols/Wiimote/ArtnetProtocolFactory.hpp>
+#  include <Protocols/Artnet/ArtnetProtocolFactory.hpp>
 #endif
 
 #include <Protocols/Audio/AudioDevice.hpp>
