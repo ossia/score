@@ -1,4 +1,5 @@
 #pragma once
+#include <Process/ExecutionContext.hpp>
 #include <Process/Dataflow/Cable.hpp>
 
 #include <score/tools/std/HashMap.hpp>
@@ -56,6 +57,11 @@ struct SCORE_LIB_PROCESS_EXPORT SetupContext final : public QObject
   void set_destination(
       const State::AddressAccessor& address, const ossia::outlet_ptr&);
 
+  // Deferred versions, stored in a vec
+  void register_node(
+      const Process::Inlets& inlets, const Process::Outlets& outlets,
+      const std::shared_ptr<ossia::graph_node>& node, std::vector<ExecutionCommand>& vec);
+
   void on_cableCreated(Process::Cable& c);
   void on_cableRemoved(const Process::Cable& c);
   void connectCable(Process::Cable& cable);
@@ -74,5 +80,11 @@ struct SCORE_LIB_PROCESS_EXPORT SetupContext final : public QObject
       runtime_connections;
   score::hash_map<const ossia::graph_node*, const Process::ProcessModel*>
       proc_map;
+
+private:
+  template<typename Impl>
+  void register_node_impl(
+      const Process::Inlets& inlets, const Process::Outlets& outlets,
+      const std::shared_ptr<ossia::graph_node>& node, Impl&&);
 };
 }

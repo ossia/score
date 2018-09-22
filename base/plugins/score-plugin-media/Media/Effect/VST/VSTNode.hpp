@@ -352,6 +352,8 @@ public:
           op.clear();
           op.emplace_back(float_v[0].begin(), float_v[0].end());
           op.emplace_back(float_v[1].begin(), float_v[1].end());
+          float_v[0].clear();
+          float_v[1].clear();
         }
       }
     }

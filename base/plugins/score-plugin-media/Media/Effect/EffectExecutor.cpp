@@ -17,6 +17,7 @@ EffectProcessComponentBase::EffectProcessComponentBase(
           element, ctx, id, "Executor::EffectComponent", parent}
 {
   m_ossia_process = std::make_shared<ossia::node_chain_process>();
+  element.effects().orderChanged.connect<&EffectProcessComponentBase::on_orderChanged>(*this);
 }
 
 static auto move_edges(
@@ -49,6 +50,8 @@ Execution::ProcessComponent* EffectProcessComponentBase::make(
   if (process().badChaining())
     return nullptr;
   const Execution::Context& ctx = system();
+  std::vector<Execution::ExecutionCommand> commands;
+  commands.reserve(4);
 
   std::shared_ptr<ProcessComponent> fx
       = factory.make(effect, system(), id, this);
@@ -61,12 +64,19 @@ Execution::ProcessComponent* EffectProcessComponentBase::make(
           in_exec([=] { n->set_logging(ok); });
         });
 
-    auto idx_ = process().effectPosition(effect.id());
+    const auto idx_ = process().effectPosition(effect.id());
     SCORE_ASSERT(idx_ != -1);
-    std::size_t idx = idx_;
+    const std::size_t idx = idx_;
     if (m_fxes.size() < (idx + 1))
+    {
       m_fxes.resize(idx + 1);
-    m_fxes[idx] = std::make_pair(effect.id(), RegisteredEffect{fx, {}, {}});
+      m_fxes[idx] = std::make_pair(effect.id(), RegisteredEffect{fx, {}, {}});
+    }
+    else
+    {
+      m_fxes.insert(m_fxes.begin() + idx, std::make_pair(effect.id(), RegisteredEffect{fx, {}, {}}));
+    }
+
     static_cast<ossia::node_chain_process*>(m_ossia_process.get())
         ->add_node(fx->node);
 
@@ -91,7 +101,7 @@ Execution::ProcessComponent* EffectProcessComponentBase::make(
           // Take all the incoming cables and keep them
           old_first.second.registeredInlets
               = process().effects().at(old_first.first).inlets();
-          reg(old_first.second);
+          reg(old_first.second, commands);
         }
       }
 
@@ -103,8 +113,8 @@ Execution::ProcessComponent* EffectProcessComponentBase::make(
       if (m_fxes.size() > 1)
       {
         // there's an effect after
-        reg(this_fx);
-        in_exec(
+        reg(this_fx, commands);
+        commands.push_back(
             [g = ctx.execGraph, n1 = fx->node, n2 = m_fxes[1].second.node()] {
               move_edges(*n2->inputs()[0], n1->inputs()[0], n1, *g);
 
@@ -118,7 +128,7 @@ Execution::ProcessComponent* EffectProcessComponentBase::make(
       {
         // only effect, goes to end of process
         this_fx.registeredOutlets[0] = process().outlet.get();
-        reg(this_fx);
+        reg(this_fx, commands);
 
         // set as process node
         auto old = m_ossia_process->node;
@@ -137,7 +147,7 @@ Execution::ProcessComponent* EffectProcessComponentBase::make(
           unreg(old_last.second);
           old_last.second.registeredOutlets
               = process().effects().at(old_last.first).outlets();
-          reg(old_last.second);
+          reg(old_last.second, commands);
         }
       }
 
@@ -147,13 +157,13 @@ Execution::ProcessComponent* EffectProcessComponentBase::make(
       // connect in to prev out
       if (m_fxes.size() > 1)
       {
-        reg(this_fx);
+        reg(this_fx, commands);
 
         // there's an effect before
         auto& old_last_comp = m_fxes[idx - 1];
         if (old_last_comp.second)
         {
-          in_exec([g = ctx.execGraph, n1 = old_last_comp.second.node(),
+          commands.push_back([g = ctx.execGraph, n1 = old_last_comp.second.node(),
                    n2 = this_fx.node()] {
             move_edges(*n1->outputs()[0], n2->outputs()[0], n2, *g);
             auto edge = ossia::make_edge(
@@ -167,25 +177,25 @@ Execution::ProcessComponent* EffectProcessComponentBase::make(
       {
         // only effect
         this_fx.registeredInlets[0] = process().inlet.get();
-        reg(this_fx);
+        reg(this_fx, commands);
       }
 
       // set as process node
       auto old = m_ossia_process->node;
-      in_exec(
+      commands.push_back(
           [proc = m_ossia_process, node = fx->node] { proc->node = node; });
       nodeChanged(old, fx->node);
     }
     else
     {
       // register node with effect's inlets
-      reg(this_fx);
+      reg(this_fx, commands);
 
       // unlink before and after and link this one in-between
       auto& prev = m_fxes[idx - 1];
       if (prev.second)
       {
-        in_exec(
+        commands.push_back(
             [g = ctx.execGraph, n1 = prev.second.node(), n2 = this_fx.node()] {
               auto& o_prev = n1->outputs()[0];
               if (!o_prev->targets.empty())
@@ -207,7 +217,7 @@ Execution::ProcessComponent* EffectProcessComponentBase::make(
 
         if (next.second)
         {
-          in_exec([g = ctx.execGraph, n2 = this_fx.node(),
+          commands.push_back([g = ctx.execGraph, n2 = this_fx.node(),
                    n3 = next.second.node()] {
             auto& i_next = n3->inputs()[0];
             if (!i_next->sources.empty())
@@ -225,6 +235,10 @@ Execution::ProcessComponent* EffectProcessComponentBase::make(
     }
   }
 
+  if(!commands.empty())
+  {
+    in_exec([f=std::move(commands)] { for(auto& cmd : f) { cmd(); } });
+  }
   return fx.get();
 }
 
@@ -238,6 +252,7 @@ std::function<void()> EffectProcessComponentBase::removing(
   if (process().badChaining())
     return {};
 
+  std::vector<Execution::ExecutionCommand> commands;
   auto echain
       = std::dynamic_pointer_cast<ossia::node_chain_process>(m_ossia_process);
 
@@ -249,7 +264,7 @@ std::function<void()> EffectProcessComponentBase::removing(
   auto& this_fx = it->second;
 
   // Remove all the chaining
-  in_exec([g = system().execGraph, n = this_fx.node(), echain] {
+  commands.push_back([g = system().execGraph, n = this_fx.node(), echain] {
     ossia::remove_one(echain->nodes, n);
     n->clear();
     g->remove_node(n);
@@ -271,7 +286,7 @@ std::function<void()> EffectProcessComponentBase::removing(
           new_first.second.registeredInlets
               = process().effects().at(new_first.first).inlets();
           new_first.second.registeredInlets[0] = process().inlet.get();
-          reg(new_first.second);
+          reg(new_first.second, commands);
         }
       }
     }
@@ -289,10 +304,10 @@ std::function<void()> EffectProcessComponentBase::removing(
           new_last.second.registeredOutlets
               = process().effects().at(new_last.first).outlets();
           new_last.second.registeredOutlets[0] = process().outlet.get();
-          reg(new_last.second);
+          reg(new_last.second, commands);
 
           auto old = m_ossia_process->node;
-          in_exec([proc = m_ossia_process, node = new_last.second.node()] {
+          commands.push_back([proc = m_ossia_process, node = new_last.second.node()] {
             proc->node = node;
           });
           nodeChanged(old, new_last.second.node());
@@ -308,7 +323,7 @@ std::function<void()> EffectProcessComponentBase::removing(
       auto& next = m_fxes[idx + 1];
       if (prev.second && next.second)
       {
-        in_exec([g = system().execGraph, n1 = prev.second.node(),
+        commands.push_back([g = system().execGraph, n1 = prev.second.node(),
                  n2 = next.second.node()] {
           auto edge = ossia::make_edge(
               ossia::immediate_strict_connection{}, n1->outputs()[0],
@@ -318,23 +333,35 @@ std::function<void()> EffectProcessComponentBase::removing(
       }
     }
   }
+
+  if(!commands.empty())
+  {
+    in_exec([f=std::move(commands)] { for(auto& cmd : f) { cmd(); } });
+  }
+
   this_fx.comp->node.reset();
   return [=] { m_fxes.erase(it); };
+}
+
+void EffectProcessComponentBase::on_orderChanged()
+{
+
 }
 
 void EffectProcessComponentBase::unreg(
     const EffectProcessComponentBase::RegisteredEffect& fx)
 {
   system().setup.unregister_node_soft(
-      fx.registeredInlets, fx.registeredOutlets, fx.node());
+        fx.registeredInlets, fx.registeredOutlets, fx.node());
 }
 
 void EffectProcessComponentBase::reg(
-    const EffectProcessComponentBase::RegisteredEffect& fx)
+    const RegisteredEffect& fx, std::vector<Execution::ExecutionCommand>& vec)
 {
   system().setup.register_node(
-      fx.registeredInlets, fx.registeredOutlets, fx.node());
+      fx.registeredInlets, fx.registeredOutlets, fx.node(), vec);
 }
+
 void EffectProcessComponent::cleanup()
 {
   clear();
