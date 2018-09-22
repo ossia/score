@@ -74,7 +74,7 @@ class VSTGraphicsSlider final : public QObject, public QGraphicsItem
   int num{};
 
 private:
-  bool m_grab;
+  bool m_grab{};
 
 public:
   static const constexpr double min = 0.;

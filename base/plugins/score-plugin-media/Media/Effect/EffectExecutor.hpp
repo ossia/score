@@ -1,5 +1,6 @@
 #pragma once
 #include <Media/Effect/EffectProcessModel.hpp>
+#include <Process/ExecutionContext.hpp>
 #include <Process/Execution/ProcessComponent.hpp>
 
 #include <score/model/ComponentFactory.hpp>
@@ -25,8 +26,6 @@ public:
       Media::Effect::ProcessModel& element, const ::Execution::Context& ctx,
       const Id<score::Component>& id, QObject* parent);
 
-  void recompute();
-
   ~EffectProcessComponentBase() override;
 
   ProcessComponent* make(
@@ -43,6 +42,7 @@ public:
     if (f)
       f();
   }
+  void on_orderChanged();
 
   template <typename Models>
   auto& models() const
@@ -74,7 +74,7 @@ private:
   std::vector<std::pair<Id<Process::ProcessModel>, RegisteredEffect>> m_fxes;
 
   void unreg(const RegisteredEffect& fx);
-  void reg(const RegisteredEffect& fx);
+  void reg(const RegisteredEffect& fx, std::vector<Execution::ExecutionCommand>&);
 };
 
 class EffectProcessComponent final

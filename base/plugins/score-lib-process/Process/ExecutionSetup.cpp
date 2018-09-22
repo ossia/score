@@ -149,21 +149,20 @@ void SetupContext::unregister_node(
   proc_map.erase(node.get());
 }
 
-template <typename T>
+template <typename T, typename Impl>
 void set_destination_impl(
-    const Context& plug, const State::AddressAccessor& address, const T& port)
+    const Context& plug, const State::AddressAccessor& address, const T& port, Impl&& append)
 {
   if (address.address.device.isEmpty())
     return;
 
   auto& qual = address.qualifiers.get();
-  auto& equeue = plug.executionQueue;
   if (auto n = findNode(*plug.execState, address.address))
   {
     auto p = n->get_parameter();
     if (p)
     {
-      equeue.enqueue([=, g = plug.execGraph] {
+      append([=, g = plug.execGraph] {
         port->address = p;
         if (ossia::value_port* dat
             = port->data.template target<ossia::value_port>())
@@ -177,7 +176,7 @@ void set_destination_impl(
     }
     else
     {
-      equeue.enqueue([=, g = plug.execGraph] {
+      append([=, g = plug.execGraph] {
         port->address = n;
         g->mark_dirty();
       });
@@ -190,7 +189,7 @@ void set_destination_impl(
     auto path = ossia::traversal::make_path(ad.toStdString());
     if (path)
     {
-      equeue.enqueue([=, g = plug.execGraph, p = *path]() mutable {
+      append([=, g = plug.execGraph, p = *path]() mutable {
         port->address = std::move(p);
         if (ossia::value_port* dat
             = port->data.template target<ossia::value_port>())
@@ -203,7 +202,7 @@ void set_destination_impl(
     }
     else
     {
-      equeue.enqueue([=, g = plug.execGraph] {
+      append([=, g = plug.execGraph] {
         port->address = {};
         if (ossia::value_port* dat
             = port->data.template target<ossia::value_port>())
@@ -219,18 +218,19 @@ void set_destination_impl(
 void SetupContext::set_destination(
     const State::AddressAccessor& address, const ossia::inlet_ptr& port)
 {
-  set_destination_impl(context, address, port);
+  set_destination_impl(context, address, port, [this] (auto&& f) { context.executionQueue.enqueue(std::move(f)); });
 }
 
 void SetupContext::set_destination(
     const State::AddressAccessor& address, const ossia::outlet_ptr& port)
 {
-  set_destination_impl(context, address, port);
+  set_destination_impl(context, address, port, [this] (auto&& f) { context.executionQueue.enqueue(std::move(f)); });
 }
 
-void SetupContext::register_node(
+template<typename Impl>
+void SetupContext::register_node_impl(
     const Process::Inlets& proc_inlets, const Process::Outlets& proc_outlets,
-    const std::shared_ptr<ossia::graph_node>& node)
+    const std::shared_ptr<ossia::graph_node>& node, Impl&& exec)
 {
   if (node)
   {
@@ -251,11 +251,11 @@ void SetupContext::register_node(
             set_destination(address, port);
           }));
       SCORE_ASSERT(node->inputs()[i]);
-      set_destination(proc_inlets[i]->address(), node->inputs()[i]);
+      set_destination_impl(context, proc_inlets[i]->address(), node->inputs()[i], exec);
 
       inlets.insert({proc_inlets[i], std::make_pair(node, node->inputs()[i])});
 
-      context.executionQueue.enqueue([this, port = node->inputs()[i]] {
+      exec([this, port = node->inputs()[i]] {
         context.execState->register_inlet(*port);
       });
     }
@@ -269,19 +269,34 @@ void SetupContext::register_node(
             set_destination(address, port);
           }));
       SCORE_ASSERT(node->outputs()[i]);
-      set_destination(proc_outlets[i]->address(), node->outputs()[i]);
+      set_destination_impl(context, proc_outlets[i]->address(), node->outputs()[i], exec);
 
       outlets.insert(
           {proc_outlets[i], std::make_pair(node, node->outputs()[i])});
     }
 
     std::weak_ptr<ossia::graph_interface> wg = context.execGraph;
-    context.executionQueue.enqueue([wg, node = std::move(node)]() mutable {
+    exec([wg, node = std::move(node)]() mutable {
       if (auto g = wg.lock())
         g->add_node(std::move(node));
     });
   }
 }
+
+void SetupContext::register_node(
+    const Process::Inlets& proc_inlets, const Process::Outlets& proc_outlets,
+    const std::shared_ptr<ossia::graph_node>& node)
+{
+  register_node_impl(proc_inlets, proc_outlets, node, [this] (auto&& f) { context.executionQueue.enqueue(std::move(f)); });
+}
+
+void SetupContext::register_node(
+    const Process::Inlets& proc_inlets, const Process::Outlets& proc_outlets,
+    const std::shared_ptr<ossia::graph_node>& node, std::vector<ExecutionCommand>& vec)
+{
+  register_node_impl(proc_inlets, proc_outlets, node, [&] (auto&& f) { vec.push_back(std::move(f)); });
+}
+
 
 void SetupContext::register_inlet(
     Process::Inlet& proc_inlet, const ossia::inlet_ptr& port,
