@@ -9,7 +9,7 @@
 
 #include <QFileDialog>
 #include <QJsonDocument>
-
+#include <QTimer>
 #include <Effect/EffectFactory.hpp>
 #include <wobjectdefs.h>
 namespace Media::VST
@@ -59,7 +59,9 @@ struct AEffectWrapper
     {
       fx->dispatcher(fx, effStopProcess, 0, 0, nullptr, 0.f);
       fx->dispatcher(fx, effMainsChanged, 0, 0, nullptr, 0.f);
-      fx->dispatcher(fx, effClose, 0, 0, nullptr, 0.f);
+      QTimer::singleShot(0, [fx=fx] {
+        fx->dispatcher(fx, effClose, 0, 0, nullptr, 0.f);
+      });
     }
   }
 };
