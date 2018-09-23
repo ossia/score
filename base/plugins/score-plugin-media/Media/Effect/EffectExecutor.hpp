@@ -15,6 +15,7 @@ namespace Media
 class EffectProcessComponentBase
     : public ::Execution::ProcessComponent_T<
           Media::Effect::ProcessModel, ossia::node_chain_process>
+
 {
   COMPONENT_METADATA("d638adb3-64da-4b6e-b84d-7c32684fa79d")
 public:
@@ -54,7 +55,6 @@ public:
     return process().effects();
   }
 
-private:
   struct RegisteredEffect
   {
     std::shared_ptr<ProcessComponent> comp;
@@ -71,10 +71,17 @@ private:
       return bool(comp);
     }
   };
+private:
   std::vector<std::pair<Id<Process::ProcessModel>, RegisteredEffect>> m_fxes;
 
   void unreg(const RegisteredEffect& fx);
   void reg(const RegisteredEffect& fx, std::vector<Execution::ExecutionCommand>&);
+  void unregister_old_first_node(std::pair<Id<Process::ProcessModel>, EffectProcessComponentBase::RegisteredEffect>& new_first, std::vector<Execution::ExecutionCommand>& commands);
+  void register_new_first_node(std::pair<Id<Process::ProcessModel>, EffectProcessComponentBase::RegisteredEffect>& new_first, std::vector<Execution::ExecutionCommand>& commands);
+  void unregister_old_last_node(std::pair<Id<Process::ProcessModel>, EffectProcessComponentBase::RegisteredEffect>& new_first, std::vector<Execution::ExecutionCommand>& commands);
+  void register_new_last_node(std::pair<Id<Process::ProcessModel>, EffectProcessComponentBase::RegisteredEffect>& new_first, std::vector<Execution::ExecutionCommand>& commands);
+
+  void register_node_again(std::pair<Id<Process::ProcessModel>, EffectProcessComponentBase::RegisteredEffect>& new_first, std::vector<Execution::ExecutionCommand>& commands);
 };
 
 class EffectProcessComponent final
