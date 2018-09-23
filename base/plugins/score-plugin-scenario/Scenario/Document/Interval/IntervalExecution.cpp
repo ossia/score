@@ -369,8 +369,7 @@ ProcessComponent* IntervalComponentBase::make(
 
       connect(
           plug.get(), &ProcessComponent::nodeChanged, this,
-          [this, cst_node_weak, g_weak, oproc_weak,
-           &proc](auto old_node, auto new_node) {
+          [this, cst_node_weak, g_weak, oproc_weak, &proc] (const auto& old_node, const auto& new_node, auto& commands) {
             const auto& outlets = proc.outlets();
             ossia::int_vector propagated_outlets;
             for (std::size_t i = 0; i < outlets.size(); i++)
@@ -379,26 +378,48 @@ ProcessComponent* IntervalComponentBase::make(
                 propagated_outlets.push_back(i);
             }
 
-            in_exec([cst_node_weak, g_weak, oproc_weak, propagated_outlets] {
-              if (auto cst_node = cst_node_weak.lock())
-                if (auto g = g_weak.lock())
-                  if (auto oproc = oproc_weak.lock())
-                    if (oproc->node)
+            commands.push_back([cst_node_weak, g_weak, propagated_outlets, old_node, new_node] {
+              auto cst_node = cst_node_weak.lock();
+              if(!cst_node)
+                return;
+              auto g = g_weak.lock();
+              if(!g)
+                return;
+
+              // Remove edges from the old node
+              if(old_node)
+              {
+                ossia::graph_node& n = *old_node;
+                for(auto& outlet : n.outputs())
+                {
+                  auto targets = outlet->targets;
+                  for(auto e : targets)
+                  {
+                    if(e->in_node.get() == cst_node.get())
                     {
-                      ossia::graph_node& n = *oproc->node;
-                      for (int propagated : propagated_outlets)
-                      {
-                        const auto& outlet = n.outputs()[propagated]->data;
-                        if (outlet.target<ossia::audio_port>())
-                        {
-                          auto cable = ossia::make_edge(
-                              ossia::immediate_glutton_connection{},
-                              n.outputs()[propagated], cst_node->inputs()[0],
-                              oproc->node, cst_node);
-                          g->connect(cable);
-                        }
-                      }
+                      g->disconnect(e);
                     }
+                  }
+                }
+              }
+
+              // Add edges to the new node
+              if(new_node)
+              {
+                ossia::graph_node& n = *new_node;
+                for (int propagated : propagated_outlets)
+                {
+                  const auto& outlet = n.outputs()[propagated]->data;
+                  if (outlet.target<ossia::audio_port>())
+                  {
+                    auto cable = ossia::make_edge(
+                          ossia::immediate_glutton_connection{},
+                          n.outputs()[propagated], cst_node->inputs()[0],
+                        new_node, cst_node);
+                    g->connect(cable);
+                  }
+                }
+              }
             });
           });
       return plug.get();

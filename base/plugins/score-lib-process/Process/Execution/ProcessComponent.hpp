@@ -1,5 +1,6 @@
 #pragma once
 #include <Process/ExecutionComponent.hpp>
+#include <Process/ExecutionContext.hpp>
 #include <Process/Process.hpp>
 #include <Process/ProcessComponent.hpp>
 
@@ -74,8 +75,11 @@ public:
   std::shared_ptr<ossia::graph_node> node;
 
 public:
-  void nodeChanged(ossia::node_ptr old_node, ossia::node_ptr new_node)
-      E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, nodeChanged, old_node, new_node);
+  void nodeChanged(
+      const ossia::node_ptr& old_node
+      , const ossia::node_ptr& new_node
+      , std::vector<Execution::ExecutionCommand>& commands)
+      E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, nodeChanged, old_node, new_node, commands);
 
 protected:
   std::shared_ptr<ossia::time_process> m_ossia_process;
@@ -145,3 +149,5 @@ public:
 W_REGISTER_ARGTYPE(ossia::node_ptr)
 Q_DECLARE_METATYPE(std::shared_ptr<Execution::ProcessComponent>)
 W_REGISTER_ARGTYPE(std::shared_ptr<Execution::ProcessComponent>)
+W_REGISTER_ARGTYPE(const std::shared_ptr<Execution::ProcessComponent>&)
+W_REGISTER_ARGTYPE(std::vector<Execution::ExecutionCommand>&)
