@@ -66,6 +66,8 @@ class LibraryHandler final : public Library::LibraryInterface
     auto& parent
         = *reinterpret_cast<Library::ProcessNode*>(node.internalPointer());
 
+    auto& fx = parent.emplace_back(Library::ProcessData{"Effects", QIcon{}, {}, {}}, &parent);
+    auto& inst = parent.emplace_back(Library::ProcessData{"Instruments", QIcon{}, {}, {}}, &parent);
     auto& plug = ctx.applicationPlugin<Media::ApplicationPlugin>();
     for (const auto& vst : plug.vst_infos)
     {
@@ -75,8 +77,17 @@ class LibraryHandler final : public Library::LibraryInterface
         obj["Type"] = "Process";
         obj["uuid"] = toJsonValue(key.impl());
         obj["Data"] = QString::number(vst.uniqueID);
-        parent.emplace_back(
-            Library::ProcessData{vst.prettyName, QIcon{}, obj, key}, &parent);
+
+        if(vst.isSynth)
+        {
+          inst.emplace_back(
+              Library::ProcessData{vst.displayName, QIcon{}, obj, key}, &inst);
+        }
+        else
+        {
+          fx.emplace_back(
+              Library::ProcessData{vst.displayName, QIcon{}, obj, key}, &fx);
+        }
       }
     }
   }

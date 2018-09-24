@@ -46,8 +46,8 @@ public:
 
     m_outlets.push_back(ossia::make_outlet<ossia::audio_port>());
 
-    dispatch(effSetSampleRate, 0, 0, 0, sampleRate);
-    dispatch(effSetBlockSize, 0, 0, 0, 4096); // Generalize what's in pd
+    dispatch(effSetSampleRate, 0, sampleRate, nullptr, sampleRate);
+    dispatch(effSetBlockSize, 0, 4096, nullptr, 4096); // Generalize what's in pd
     dispatch(
         effSetProcessPrecision, 0,
         UseDouble ? kVstProcessPrecision64 : kVstProcessPrecision32);
