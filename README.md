@@ -22,7 +22,7 @@ Releases are available for [Windows, Linux (via AppImage) and Mac OS X](https://
 ## Build status
 * Linux, OS X : [![Travis Status](https://travis-ci.org/OSSIA/score.svg?branch=master)](https://travis-ci.org/OSSIA/score)
 * Windows : [![Appveyor Status](https://ci.appveyor.com/api/projects/status/github/OSSIA/score?branch=master&svg=true)](https://ci.appveyor.com/project/JeanMichalCelerier/i-score)
-* [![OpenHub](https://www.openhub.net/p/i-score/widgets/project_thin_badge.gif)](https://www.openhub.net/p/i-score)
+* [![OpenHub](https://www.openhub.net/p/score/widgets/project_thin_badge.gif)](https://www.openhub.net/p/score)
 * ossia score uses [CppDepend](https://www.cppdepend.com/) to ensure consistent code quality improvements ; please check it out !  
 
 In order to build score, follow the [instructions](https://github.com/OSSIA/score/wiki/Build-and-install).
