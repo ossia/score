@@ -190,7 +190,6 @@ public:
     }
 
     using Model = Audio::Settings::Model;
-    using View = Audio::Settings::View;
 
     {
       lay->addRow(QObject::tr("Input device"), card_in);

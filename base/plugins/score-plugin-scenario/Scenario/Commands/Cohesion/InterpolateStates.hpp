@@ -84,7 +84,7 @@ struct get_curve_domain
       const std::vector<ossia::value>& end)
   {
     SCORE_ASSERT(!idx.empty());
-    const auto i = idx[0];
+    const auto i = (std::size_t)idx[0];
     Curve::CurveDomain d{ossia::convert<double>(start[i]),
                          ossia::convert<double>(end[i])};
 
