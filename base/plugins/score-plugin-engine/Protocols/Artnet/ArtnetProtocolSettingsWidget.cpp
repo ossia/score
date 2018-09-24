@@ -1,10 +1,8 @@
-
 #include "ArtnetProtocolSettingsWidget.hpp"
-
 #include "ArtnetSpecificSettings.hpp"
 
 #include <State/Widgets/AddressFragmentLineEdit.hpp>
-
+#include <QFormLayout>
 #include <QVariant>
 
 #include <wobjectimpl.h>

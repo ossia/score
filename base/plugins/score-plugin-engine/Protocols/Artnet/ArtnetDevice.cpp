@@ -5,7 +5,7 @@
 
 #include <ossia/network/artnet/artnet_protocol.hpp>
 #include <ossia/network/generic/generic_device.hpp>
-
+#include <wobjectimpl.h>
 W_OBJECT_IMPL(Engine::Network::ArtnetDevice)
 
 namespace Engine::Network
