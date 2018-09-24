@@ -7,7 +7,8 @@
 
 #include <QObject>
 
-namespace Engine::Network {
+namespace Engine::Network
+{
 
 QString ArtnetProtocolFactory::prettyName() const
 {
@@ -56,5 +57,4 @@ bool ArtnetProtocolFactory::checkCompatibility(
 {
   return false; //  TODO
 }
-
 }
