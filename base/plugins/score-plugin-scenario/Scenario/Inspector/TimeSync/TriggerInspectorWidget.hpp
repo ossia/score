@@ -5,6 +5,10 @@
 
 #include <QWidget>
 
+namespace score
+{
+struct DocumentContext;
+}
 namespace Inspector
 {
 class InspectorWidgetBase;
