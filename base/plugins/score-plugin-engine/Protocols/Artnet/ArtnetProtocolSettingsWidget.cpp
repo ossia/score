@@ -1,17 +1,18 @@
 
 #include "ArtnetProtocolSettingsWidget.hpp"
+
 #include "ArtnetSpecificSettings.hpp"
+
+#include <State/Widgets/AddressFragmentLineEdit.hpp>
 
 #include <QVariant>
 
-#include <State/Widgets/AddressFragmentLineEdit.hpp>
 #include <wobjectimpl.h>
-
-
 
 W_OBJECT_IMPL(Engine::Network::ArtnetProtocolSettingsWidget)
 
-namespace Engine::Network {
+namespace Engine::Network
+{
 
 ArtnetProtocolSettingsWidget::ArtnetProtocolSettingsWidget(QWidget* parent)
     : Device::ProtocolSettingsWidget(parent)
@@ -36,7 +37,7 @@ Device::DeviceSettings ArtnetProtocolSettingsWidget::getSettings() const
 
   ArtnetSpecificSettings settings{};
   s.deviceSpecificSettings = QVariant::fromValue(settings);
-  
+
   return s;
 }
 
@@ -45,5 +46,4 @@ void ArtnetProtocolSettingsWidget::setSettings(
 {
   m_deviceNameEdit->setText(settings.name);
 }
-
 }
