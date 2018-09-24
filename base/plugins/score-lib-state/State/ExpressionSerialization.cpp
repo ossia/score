@@ -77,25 +77,25 @@ void JSONObjectWriter::write(State::Relation& rel)
 template <>
 SCORE_LIB_STATE_EXPORT void DataStreamReader::read(const State::ExprData& expr)
 {
-  readFrom(expr.m_data);
+  readFrom(expr.impl());
   insertDelimiter();
 }
 
 template <>
 SCORE_LIB_STATE_EXPORT void JSONObjectReader::read(const State::ExprData& expr)
 {
-  readFrom(expr.m_data);
+  readFrom(expr.impl());
 }
 
 template <>
 SCORE_LIB_STATE_EXPORT void DataStreamWriter::write(State::ExprData& expr)
 {
-  writeTo(expr.m_data);
+  writeTo(expr.impl());
   checkDelimiter();
 }
 
 template <>
 SCORE_LIB_STATE_EXPORT void JSONObjectWriter::write(State::ExprData& expr)
 {
-  writeTo(expr.m_data);
+  writeTo(expr.impl());
 }

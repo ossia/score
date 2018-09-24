@@ -5,6 +5,7 @@
 
 #include <score/model/Identifier.hpp>
 #include <score/model/tree/TreeNode.hpp>
+#include <score/model/tree/TreePath.hpp>
 #include <score/tools/std/Optional.hpp>
 
 #include <QString>

@@ -8,6 +8,10 @@
 
 #include <wobjectdefs.h>
 
+namespace score
+{
+struct DocumentContext;
+}
 class QComboBox;
 class QLabel;
 class QLineEdit;

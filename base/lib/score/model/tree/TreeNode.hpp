@@ -1,6 +1,7 @@
 #pragma once
 #include <list>
 #include <vector>
+#include <ossia/detail/algorithms.hpp>
 
 /**
  * @brief Base type for a tree data structure.

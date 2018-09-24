@@ -46,3 +46,6 @@ score_addon_skeleton::make_commands()
 
   return cmds;
 }
+
+#include <score/plugins/PluginInstances.hpp>
+SCORE_EXPORT_PLUGIN(score_addon_skeleton)

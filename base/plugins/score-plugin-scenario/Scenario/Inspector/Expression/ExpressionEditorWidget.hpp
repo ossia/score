@@ -8,6 +8,10 @@
 
 #include <wobjectdefs.h>
 
+namespace score
+{
+struct DocumentContext;
+}
 /* ****************************************************************
  * This class contain an aggregation of simples expressions.
  *
