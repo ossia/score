@@ -187,7 +187,6 @@ public:
                                                                  parent}
   {
     using namespace ossia::safe_nodes;
-    using meta = typename Info::Metadata;
     auto vlay = new Inspector::Layout{this};
 
     visit_ports(

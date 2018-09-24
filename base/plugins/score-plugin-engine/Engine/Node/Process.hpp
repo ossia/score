@@ -50,23 +50,23 @@ struct Metadata<Process::Descriptor_k, Control::ControlProcess<Info>>
   static std::vector<Process::PortType> inletDescription()
   {
     std::vector<Process::PortType> port;
-    for (const auto& in : Info::Metadata::audio_ins)
+    for (std::size_t i = 0; i < std::size(Info::Metadata::audio_ins); i++)
     {
       port.push_back(Process::PortType::Audio);
     }
-    for (const auto& in : Info::Metadata::midi_ins)
+    for (std::size_t i = 0; i < std::size(Info::Metadata::midi_ins); i++)
     {
       port.push_back(Process::PortType::Midi);
     }
-    for (const auto& in : Info::Metadata::value_ins)
+    for (std::size_t i = 0; i < std::size(Info::Metadata::value_ins); i++)
     {
       port.push_back(Process::PortType::Message);
     }
-    for (const auto& in : Info::Metadata::address_ins)
+    for (std::size_t i = 0; i < std::size(Info::Metadata::address_ins); i++)
     {
       port.push_back(Process::PortType::Message);
     }
-    for (int i = 0; i < std::tuple_size_v<decltype(Info::Metadata::controls)>;
+    for (std::size_t i = 0; i < std::tuple_size_v<decltype(Info::Metadata::controls)>;
          i++)
       port.push_back(Process::PortType::Message);
     return port;
@@ -74,15 +74,15 @@ struct Metadata<Process::Descriptor_k, Control::ControlProcess<Info>>
   static std::vector<Process::PortType> outletDescription()
   {
     std::vector<Process::PortType> port;
-    for (const auto& in : Info::Metadata::audio_outs)
+    for (std::size_t i = 0; i < std::size(Info::Metadata::audio_outs); i++)
     {
       port.push_back(Process::PortType::Audio);
     }
-    for (const auto& in : Info::Metadata::midi_outs)
+    for (std::size_t i = 0; i < std::size(Info::Metadata::midi_outs); i++)
     {
       port.push_back(Process::PortType::Midi);
     }
-    for (const auto& in : Info::Metadata::value_outs)
+    for (std::size_t i = 0; i < std::size(Info::Metadata::value_outs); i++)
     {
       port.push_back(Process::PortType::Message);
     }
