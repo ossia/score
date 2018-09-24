@@ -547,10 +547,13 @@ void VSTEffectModel::initFx()
 
   fx->fx->resvd1 = reinterpret_cast<intptr_t>(this);
 
+  auto& ctx = score::GUIAppContext();
+  auto& media = ctx.settings<Audio::Settings::Model>();
+  dispatch(effSetSampleRate, 0, media.getRate(), nullptr, media.getRate());
+  dispatch(effSetBlockSize, 0, 4096, nullptr, 4096);
   dispatch(effOpen);
 
-  auto& app
-      = score::GUIAppContext().applicationPlugin<Media::ApplicationPlugin>();
+  auto& app = ctx.applicationPlugin<Media::ApplicationPlugin>();
   auto it = ossia::find_if(
       app.vst_infos, [=](auto& i) { return i.uniqueID == fx->fx->uniqueID; });
   SCORE_ASSERT(it != app.vst_infos.end());
