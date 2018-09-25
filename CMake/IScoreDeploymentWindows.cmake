@@ -5,22 +5,10 @@ endif()
 set(SCORE_BIN_INSTALL_DIR ".")
 
 # Compiler Runtime DLLs
-if (MSVC)
-   # Visual Studio
-    set(CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS_SKIP true)
-    include(InstallRequiredSystemLibraries)
-    install(FILES ${CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS}
-            DESTINATION ${SCORE_BIN_INSTALL_DIR})
-else()
-   # MinGW
-    get_filename_component(MINGW_DLL_DIR ${CMAKE_CXX_COMPILER} PATH)
-    install(FILES
-            "${MINGW_DLL_DIR}/libgcc_s_dw2-1.dll"
-            "${MINGW_DLL_DIR}/libstdc++-6.dll"
-            "${MINGW_DLL_DIR}/libwinpthread-1.dll"
-            DESTINATION ${SCORE_BIN_INSTALL_DIR})
-endif()
-
+set(CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS_SKIP true)
+include(InstallRequiredSystemLibraries)
+install(FILES ${CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS}
+        DESTINATION ${SCORE_BIN_INSTALL_DIR})
 
 # Qt Libraries
 set(DEBUG_CHAR "$<$<CONFIG:Debug>:d>")
@@ -103,7 +91,7 @@ set(CPACK_PACKAGE_EXECUTABLES "score.exe;score")
 set(CPACK_COMPONENTS_ALL score)
 
 set(CPACK_MONOLITHIC_INSTALL TRUE)
-set(CPACK_NSIS_PACKAGE_NAME "Score")
+set(CPACK_NSIS_PACKAGE_NAME "ossia score")
 set(CPACK_PACKAGE_ICON "${SCORE_ROOT_SOURCE_DIR}\\\\base\\\\lib\\\\resources\\\\score.ico")
 set(CPACK_NSIS_MUI_ICON "${CPACK_PACKAGE_ICON}")
 set(CPACK_NSIS_MUI_UNIICON "${CPACK_PACKAGE_ICON}")
@@ -115,24 +103,26 @@ set(CPACK_NSIS_CONTACT "https:\\\\\\\\gitter.im\\\\OSSIA\\\\score")
 set(CPACK_NSIS_COMPRESSOR "/SOLID lzma")
 
 set(CPACK_NSIS_MENU_LINKS
-    "bin/score.exe" "Score"
+    "score.exe" "Score"
     "https://ossia.io" "Score website"
     )
 
 
 set(CPACK_NSIS_DEFINES "!include ${CMAKE_CURRENT_LIST_DIR}\\\\Deployment\\\\Windows\\\\FileAssociation.nsh")
 set(CPACK_NSIS_EXTRA_INSTALL_COMMANDS "
-\\\${registerExtension} '\\\$INSTDIR\\\\bin\\\\score.exe' '.scorejson' 'score score'
+\\\${registerExtension} '\\\$INSTDIR\\\\score.exe' '.scorejson' 'score file'
+\\\${registerExtension} '\\\$INSTDIR\\\\score.exe' '.score' 'score file'
 
-SetOutPath '\\\$INSTDIR\\\\bin'
-CreateShortcut '\\\$DESKTOP\\\\score.lnk' '\\\$INSTDIR\\\\bin\\\\score.exe' '' '\\\$INSTDIR\\\\bin\\\\score.ico'
+SetOutPath '\\\$INSTDIR'
+CreateShortcut '\\\$DESKTOP\\\\score.lnk' '\\\$INSTDIR\\\\score.exe' '' '\\\$INSTDIR\\\\score.ico'
 SetRegView 64
-WriteRegStr HKEY_LOCAL_MACHINE 'SOFTWARE\\\\Microsoft\\\\Windows\\\\CurrentVersion\\\\App Paths\\\\score.exe' '' '$INSTDIR\\\\bin\\\\score.exe'
-WriteRegStr HKEY_LOCAL_MACHINE 'SOFTWARE\\\\Microsoft\\\\Windows\\\\CurrentVersion\\\\App Paths\\\\score.exe' 'Path' '$INSTDIR\\\\bin\\\\;$INSTDIR\\\\bin\\\\plugins\\\\;'
+WriteRegStr HKEY_LOCAL_MACHINE 'SOFTWARE\\\\Microsoft\\\\Windows\\\\CurrentVersion\\\\App Paths\\\\score.exe' '' '$INSTDIR\\\\score.exe'
+WriteRegStr HKEY_LOCAL_MACHINE 'SOFTWARE\\\\Microsoft\\\\Windows\\\\CurrentVersion\\\\App Paths\\\\score.exe' 'Path' '$INSTDIR;$INSTDIR\\\\plugins\\\\;'
 ")
 set(CPACK_NSIS_EXTRA_UNINSTALL_COMMANDS "
 Delete '$DESKTOP\\\\score.lnk'
 DeleteRegKey HKLM 'Software\\\\Microsoft\\\\Windows\\\\CurrentVersion\\\\App Paths\\\\score.exe'
 \\\${unregisterExtension} '.scorejson' 'score score'
+\\\${unregisterExtension} '.score' 'score score'
 ")
 
