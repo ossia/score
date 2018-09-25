@@ -78,8 +78,7 @@ public:
   int cur_alphabet_size = 0;
   debug_vector_t<std::pair<int, ossia::value>> value_map;
   FactorOracle(int sz = 0)
-      : m_oracleSize{sz}
-      , m_forwardLink(m_oracleSize + 1, debug_vector_t<int>{-1})
+      : m_forwardLink(sz + 1, debug_vector_t<int>{-1})
       , m_rand_engine{std::random_device{}()}
   {
     m_sp.impl.resize(1000);
@@ -102,17 +101,20 @@ public:
 
   void add_char(ossia::value c)
   {
-    m_sequence.push_back(std::move(c));
-    auto it = ossia::find_if(value_map, [&] (const auto& pair) { return pair.second == c; });
-    if(it != value_map.end())
+    if(n < m_forwardLink.size() - 1)
     {
-      add_state(it->first);
-    }
-    else
-    {
-      value_map.push_back({cur_alphabet_size, m_sequence.back()});
-      add_state(cur_alphabet_size);
-      cur_alphabet_size++;
+      m_sequence.push_back(std::move(c));
+      auto it = ossia::find_if(value_map, [&] (const auto& pair) { return pair.second == c; });
+      if(it != value_map.end())
+      {
+        add_state(it->first);
+      }
+      else
+      {
+        value_map.push_back({cur_alphabet_size, m_sequence.back()});
+        add_state(cur_alphabet_size);
+        cur_alphabet_size++;
+      }
     }
   }
 
@@ -203,7 +205,6 @@ public:
 
 private:
   int n{};
-  int m_oracleSize{};
   safe_vector<int, 0> m_sp;
   safe_vector<int, 0> m_lrs;
   safe_vector_simple<safe_vector<int, -1>> m_trans;
