@@ -78,15 +78,16 @@ class LibraryHandler final : public Library::LibraryInterface
         obj["uuid"] = toJsonValue(key.impl());
         obj["Data"] = QString::number(vst.uniqueID);
 
+        const auto& name = vst.displayName.isEmpty() ? vst.prettyName : vst.displayName;
         if(vst.isSynth)
         {
           inst.emplace_back(
-              Library::ProcessData{vst.displayName, QIcon{}, obj, key}, &inst);
+              Library::ProcessData{name, QIcon{}, obj, key}, &inst);
         }
         else
         {
           fx.emplace_back(
-              Library::ProcessData{vst.displayName, QIcon{}, obj, key}, &fx);
+              Library::ProcessData{name, QIcon{}, obj, key}, &fx);
         }
       }
     }
