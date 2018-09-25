@@ -67,8 +67,6 @@ function(score_set_msvc_compile_options theTarget)
 
     target_compile_definitions(${theTarget} PUBLIC
         "NOMINMAX"
-#        "__cpp_constexpr=201304"
-#        "__cpp_variable_templates=201304"
         )
 endfunction()
 
