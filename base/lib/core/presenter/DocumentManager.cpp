@@ -432,8 +432,7 @@ Document* DocumentManager::loadFile(const score::GUIApplicationContext& ctx)
     return nullptr;
 
   QString loadname = QFileDialog::getOpenFileName(
-      m_view, tr("Open"), lastOpenFileName(),
-      "*.scorebin *.score *.scorejson");
+      m_view, tr("Open"), lastOpenFileName(), "Scores (*.scorebin *.score *.scorejson)");
   QSettings s;
   s.setValue("score/last_open_doc", QFileInfo(loadname).absoluteDir().path());
   return loadFile(ctx, loadname);
