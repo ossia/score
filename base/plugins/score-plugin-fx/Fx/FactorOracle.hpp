@@ -7,6 +7,51 @@
 namespace Nodes::FactorOracle
 {
 
+template<typename T, T default_value>
+struct safe_vector
+{
+public:
+  std::vector<T> impl;
+
+  T& operator[](int i_)
+  {
+    return (*this)[static_cast<std::size_t>(i_)];
+  }
+  T& operator[](std::size_t i_)
+  {
+    auto i = static_cast<std::size_t>(i_);
+    if(i < impl.size() && impl.size() != 0)
+    {
+      return impl[i];
+    }
+    impl.resize((i+1) * 2, default_value);
+    qDebug() << "resizing to size..." << (i+1)*2;
+    return impl[i];
+  }
+};
+template<typename T>
+struct safe_vector_simple
+{
+public:
+  std::vector<T> impl;
+
+  T& operator[](int i_)
+  {
+    return (*this)[static_cast<std::size_t>(i_)];
+  }
+  T& operator[](std::size_t i_)
+  {
+    auto i = static_cast<std::size_t>(i_);
+    if(i < impl.size() && impl.size() != 0)
+    {
+      return impl[i];
+    }
+    impl.resize((i+1) * 2);
+    qDebug() << "resizing to size..." << (i+1)*2;
+    return impl[i];
+  }
+};
+
 class FactorOracle
 {
 public:
@@ -15,24 +60,10 @@ public:
       , m_forwardLink(m_oracleSize + 1, std::vector<int>{-1})
       , m_rand_engine{std::random_device{}()}
   {
+    m_sp.impl.resize(1000);
+    m_lrs.impl.resize(1000);
     m_sp[0] = -1;
     m_lrs[0] = 0;
-
-    memset(m_trans, -1, sizeof(m_trans));
-  }
-
-  explicit FactorOracle(std::string seq) : FactorOracle{(int)seq.size()}
-  {
-    m_sequence = std::move(seq);
-
-    for (int i = 0; i < m_oracleSize; i++)
-    {
-      int c = m_sequence[i] - 'a';
-      if (c < sym_count && c >= 0)
-        add_state(c);
-      else
-        add_sep();
-    }
   }
 
   /// Fonction LCS (longest commun suffix)
@@ -92,9 +123,9 @@ public:
   }
 
   std::string
-  make_sequence(float continuity, unsigned int curSate, int seqSize)
+  make_sequence(float continuity, std::size_t curState, std::size_t seqSize)
   {
-    if (curSate > m_sequence.size())
+    if (curState > m_sequence.size())
     {
       qDebug() << "Le point initial de l'improvisation doit être comprise "
                   "dans la séquence";
@@ -103,37 +134,37 @@ public:
 
     std::string v;
     v.reserve(seqSize);
-    for (int i = 0; i < seqSize; i++)
+    for (std::size_t i = 0; i < seqSize; i++)
     {
       auto f = std::uniform_real_distribution<float>{}(m_rand_engine);
-      if (f <= continuity && curSate < m_sequence.size() - 1)
+      if (f <= continuity && curState < m_sequence.size() - 1)
       {
-        curSate++;
-        v += m_sequence[curSate];
+        curState++;
+        v += m_sequence[curState];
       }
       else
       {
-        int links = (curSate == 0 ? 0 : 1);
-        if (m_forwardLink[curSate][0] != -1)
+        int links = (curState == 0 ? 0 : 1);
+        if (m_forwardLink[curState][0] != -1)
         {
-          links += m_forwardLink[curSate].size();
+          links += m_forwardLink[curState].size();
         }
 
         auto linkToFollow
             = std::uniform_int_distribution<int>{0, links - 1}(m_rand_engine);
         if (linkToFollow == links - 1)
         {
-          if (curSate != 0)
+          if (curState != 0)
           {
-            curSate = m_sp[curSate];
+            curState = m_sp[curState];
           }
         }
         else
         {
-          curSate = m_forwardLink[curSate][linkToFollow];
+          curState = m_forwardLink[curState][linkToFollow];
         }
 
-        v += m_sequence[curSate];
+        v += m_sequence[curState];
       }
     }
     return v;
@@ -145,9 +176,9 @@ private:
 
   int n{};
   int m_oracleSize{};
-  int m_sp[max_size];
-  int m_lrs[max_size];
-  int m_trans[max_size][sym_count];
+  safe_vector<int, 0> m_sp;
+  safe_vector<int, 0> m_lrs;
+  safe_vector_simple<safe_vector<int, -1>> m_trans;
   std::string m_sequence;
   std::vector<std::vector<int>> m_forwardLink;
 
