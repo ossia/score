@@ -4,14 +4,21 @@
 #include <Engine/Node/PdNode.hpp>
 
 #include <random>
+#include <ossia/detail/hash_map.hpp>
+#include 	<debug/vector>
 namespace Nodes::FactorOracle
 {
+#if !defined(NDEBUG) && !defined(_MSC_VER) && !defined(__clang__)
+#define debug_vector_t __gnu_debug::vector
+#else
+#define debug_vector_t std::vector
+#endif
 
 template<typename T, T default_value>
 struct safe_vector
 {
 public:
-  std::vector<T> impl;
+  debug_vector_t<T> impl;
 
   T& operator[](int i_)
   {
@@ -25,15 +32,29 @@ public:
       return impl[i];
     }
     impl.resize((i+1) * 2, default_value);
-    qDebug() << "resizing to size..." << (i+1)*2;
     return impl[i];
+  }
+
+  const T& operator[](int i_) const
+  {
+    return (*this)[static_cast<std::size_t>(i_)];
+  }
+  const T& operator[](std::size_t i_) const
+  {
+    auto i = static_cast<std::size_t>(i_);
+    if(i < impl.size() && impl.size() != 0)
+    {
+      return impl[i];
+    }
+    static constexpr auto dval = default_value;
+    return dval;
   }
 };
 template<typename T>
 struct safe_vector_simple
 {
 public:
-  std::vector<T> impl;
+  debug_vector_t<T> impl;
 
   T& operator[](int i_)
   {
@@ -47,7 +68,6 @@ public:
       return impl[i];
     }
     impl.resize((i+1) * 2);
-    qDebug() << "resizing to size..." << (i+1)*2;
     return impl[i];
   }
 };
@@ -55,9 +75,11 @@ public:
 class FactorOracle
 {
 public:
+  int cur_alphabet_size = 0;
+  debug_vector_t<std::pair<int, ossia::value>> value_map;
   FactorOracle(int sz = 0)
       : m_oracleSize{sz}
-      , m_forwardLink(m_oracleSize + 1, std::vector<int>{-1})
+      , m_forwardLink(m_oracleSize + 1, debug_vector_t<int>{-1})
       , m_rand_engine{std::random_device{}()}
   {
     m_sp.impl.resize(1000);
@@ -78,10 +100,20 @@ public:
     return std::min(m_lrs[p1], m_lrs[p2]);
   }
 
-  void add_char(char c)
+  void add_char(ossia::value c)
   {
-    m_sequence += c;
-    add_state(c);
+    m_sequence.push_back(std::move(c));
+    auto it = ossia::find_if(value_map, [&] (const auto& pair) { return pair.second == c; });
+    if(it != value_map.end())
+    {
+      add_state(it->first);
+    }
+    else
+    {
+      value_map.push_back({cur_alphabet_size, m_sequence.back()});
+      add_state(cur_alphabet_size);
+      cur_alphabet_size++;
+    }
   }
 
   void add_state(int c)
@@ -92,47 +124,43 @@ public:
     ++n;
     while (j != -1 && m_trans[j][c] == -1)
     {
-      m_trans[j][c] = n;
+      int& m_trans_j_c = m_trans[j][c];
+      m_trans_j_c = n;
       if (m_forwardLink[j][0] == -1)
       {
-        m_forwardLink[j][0] = m_trans[j][c];
+        m_forwardLink[j][0] = m_trans_j_c;
       }
       else
       {
-        m_forwardLink[j].push_back(m_trans[j][c]);
+        m_forwardLink[j].push_back(m_trans_j_c);
       }
       p1 = j;
       j = m_sp[p1];
     }
-    m_sp[n] = (j == -1 ? 0 : m_trans[j][c]);
-    m_lrs[n] = (m_sp[n] == 0 ? 0 : LCS(p1, m_sp[n] - 1) + 1);
+    int& m_sp_n = m_sp[n];
+    m_sp_n = (j == -1 ? 0 : m_trans[j][c]);
+    m_lrs[n] = (m_sp_n == 0 ? 0 : LCS(p1, m_sp_n - 1) + 1);
   }
 
-  void add_sep()
-  {
-    n++;
-    m_sp[n] = 0;
-    m_lrs[n] = 0;
-  }
-
-  std::string make_rand_sequence(float continuity, int seqSize)
+  debug_vector_t<ossia::value>
+  make_rand_sequence(float continuity, int seqSize) const
   {
     auto start = std::uniform_int_distribution<std::size_t>{
         0, m_sequence.size()}(m_rand_engine);
     return make_sequence(continuity, start, seqSize);
   }
 
-  std::string
-  make_sequence(float continuity, std::size_t curState, std::size_t seqSize)
+  debug_vector_t<ossia::value>
+  make_sequence(float continuity, std::size_t curState, std::size_t seqSize) const
   {
     if (curState > m_sequence.size())
     {
       qDebug() << "Le point initial de l'improvisation doit être comprise "
                   "dans la séquence";
-      return "-1";
+      return {};
     }
 
-    std::string v;
+    debug_vector_t<ossia::value> v;
     v.reserve(seqSize);
     for (std::size_t i = 0; i < seqSize; i++)
     {
@@ -140,49 +168,49 @@ public:
       if (f <= continuity && curState < m_sequence.size() - 1)
       {
         curState++;
-        v += m_sequence[curState];
+        v.push_back(m_sequence[curState]);
       }
       else
       {
-        int links = (curState == 0 ? 0 : 1);
-        if (m_forwardLink[curState][0] != -1)
+        do
         {
-          links += m_forwardLink[curState].size();
-        }
-
-        auto linkToFollow
-            = std::uniform_int_distribution<int>{0, links - 1}(m_rand_engine);
-        if (linkToFollow == links - 1)
-        {
-          if (curState != 0)
+          int links = (curState == 0 ? 0 : 1);
+          if (m_forwardLink[curState][0] != -1)
           {
-            curState = m_sp[curState];
+            links += m_forwardLink[curState].size();
           }
-        }
-        else
-        {
-          curState = m_forwardLink[curState][linkToFollow];
-        }
 
-        v += m_sequence[curState];
+          auto linkToFollow
+              = std::uniform_int_distribution<int>{0, links - 1}(m_rand_engine);
+          if (linkToFollow == links - 1)
+          {
+            if (curState != 0)
+            {
+              curState = m_sp[curState];
+            }
+          }
+          else
+          {
+            curState = m_forwardLink[curState][linkToFollow];
+          }
+        } while(curState >= m_sequence.size());
+
+        v.push_back(m_sequence[curState]);
       }
     }
     return v;
   }
 
 private:
-  static const constexpr auto max_size = 200000;
-  static const constexpr auto sym_count = 26;
-
   int n{};
   int m_oracleSize{};
   safe_vector<int, 0> m_sp;
   safe_vector<int, 0> m_lrs;
   safe_vector_simple<safe_vector<int, -1>> m_trans;
-  std::string m_sequence;
-  std::vector<std::vector<int>> m_forwardLink;
+  debug_vector_t<ossia::value> m_sequence;
+  debug_vector_t<debug_vector_t<int>> m_forwardLink;
 
-  std::minstd_rand m_rand_engine;
+  mutable std::minstd_rand m_rand_engine;
 };
 
 struct Node
@@ -202,7 +230,10 @@ struct Node
         = make_uuid("d90284c0-4196-47e0-802d-7e07342029ec");
 
     static const constexpr auto controls
-        = std::make_tuple(Control::IntSlider{"Sequence length", 1, 64, 8});
+        = std::make_tuple(
+          Control::IntSlider{"Sequence length", 1, 64, 8}
+
+          );
     static const constexpr value_in value_ins[]{"in", "regen", "bang"};
     static const constexpr value_out value_outs[]{"out"};
   };
@@ -210,7 +241,7 @@ struct Node
   struct State
   {
     FactorOracle oracle{64};
-    std::string sequence;
+    debug_vector_t<ossia::value> sequence;
     std::size_t sequence_idx{};
   };
 
@@ -223,9 +254,7 @@ struct Node
     // Entrées sont dans p1
     for (auto val : in.get_data())
     {
-      char c = ossia::convert<char>(val.value);
-      c = ossia::clamp(c, 'a', 'z');
-      self.oracle.add_char(c - 'a');
+      self.oracle.add_char(val.value);
     }
 
     if (!regen.get_data().empty())
@@ -237,13 +266,13 @@ struct Node
     {
       for (auto& bang : bangs.get_data())
       {
-        self.sequence_idx = ossia::clamp<std::size_t>(
-            self.sequence_idx, 0, self.sequence.length() - 1);
-        out.write_value(
-            'a' + self.sequence[self.sequence_idx], bang.timestamp);
-        self.sequence_idx = (self.sequence_idx + 1) % self.sequence.length();
+        self.sequence_idx = ossia::clamp<int64_t>(
+            (int64_t)self.sequence_idx, 0, (int64_t)self.sequence.size() - 1);
+        out.write_value(self.sequence[self.sequence_idx], bang.timestamp);
+        self.sequence_idx = (self.sequence_idx + 1) % self.sequence.size();
       }
     }
   }
 };
+#undef debug_vector_t
 }
