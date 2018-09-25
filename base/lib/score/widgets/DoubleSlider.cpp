@@ -54,6 +54,10 @@ double DoubleSlider::value() const
   return QSlider::value() / max;
 }
 
+static QBrush slider_brush{QColor("#12171a")};
+static QBrush slider_ext_brush{QColor("#666")};
+static QPen slider_text_pen{QColor("silver")};
+static QFont slider_font{"Ubuntu", 8};
 Slider::Slider(Qt::Orientation ort, QWidget* widg) : QSlider{ort, widg}
 {
   setStyle(AbsoluteSliderStyle::instance());
@@ -68,7 +72,6 @@ void Slider::paintEvent(QPaintEvent*)
   QPainter p{this};
   paint(p);
 }
-
 void Slider::paint(QPainter& p)
 {
   double min = minimum();
@@ -79,10 +82,10 @@ void Slider::paint(QPainter& p)
 
   static constexpr auto round = 1.5;
   p.setPen(Qt::transparent);
-  p.setBrush(QColor("#12171a"));
+  p.setBrush(slider_brush);
   p.drawRoundedRect(rect().adjusted(2, 2, -2, -2), round, round);
 
-  p.setBrush(QColor("#666"));
+  p.setBrush(slider_ext_brush);
   p.drawRoundedRect(
       QRect{3, 3, int(ratio * (width() - 6)), height() - 6}, round, round);
 }
@@ -92,8 +95,8 @@ void Slider::paintWithText(const QString& s)
   QPainter p{this};
   paint(p);
 
-  p.setPen(QColor("silver"));
-  p.setFont(QFont("Ubuntu", 8));
+  p.setPen(slider_text_pen);
+  p.setFont(slider_font);
   p.drawText(QRect{13, 3, (width() - 16), height() - 6}, s);
 }
 }
