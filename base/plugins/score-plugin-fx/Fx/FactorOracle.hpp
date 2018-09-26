@@ -5,14 +5,14 @@
 
 #include <random>
 #include <ossia/detail/hash_map.hpp>
-#include 	<debug/vector>
-namespace Nodes::FactorOracle
-{
 #if !defined(NDEBUG) && !defined(_MSC_VER) && !defined(__clang__)
+#include <debug/vector>
 #define debug_vector_t __gnu_debug::vector
 #else
 #define debug_vector_t std::vector
 #endif
+namespace Nodes::FactorOracle
+{
 
 template<typename T, T default_value>
 struct safe_vector
