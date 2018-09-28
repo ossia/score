@@ -233,8 +233,8 @@ struct Node
     static const constexpr auto controls
         = std::make_tuple(
           Control::IntSlider{"Sequence length", 1, 64, 8}
-
           );
+
     static const constexpr value_in value_ins[]{"in", "regen", "bang"};
     static const constexpr value_out value_outs[]{"out"};
   };
