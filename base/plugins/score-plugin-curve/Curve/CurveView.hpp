@@ -22,7 +22,7 @@ class SCORE_PLUGIN_CURVE_EXPORT View final : public QObject,
   W_OBJECT(View)
   Q_INTERFACES(QGraphicsItem)
 public:
-  explicit View(QGraphicsItem* parent);
+  explicit View(QGraphicsItem* parent) noexcept;
   ~View() override;
 
   void setRect(const QRectF& theRect);
@@ -32,8 +32,10 @@ public:
       QPainter* painter, const QStyleOptionGraphicsItem* option,
       QWidget* widget) override;
 
-  void setSelectionArea(const QRectF&);
-  QPixmap pixmap();
+  void setSelectionArea(const QRectF&) noexcept;
+  QPixmap pixmap() noexcept;
+
+  void setValueTooltip(QPointF pos, const QString&) noexcept;
 
 public:
   void pressed(QPointF arg_1)
@@ -67,5 +69,7 @@ private:
 
   QRectF m_rect; // The rect in which the whole curve must fit.
   QRectF m_selectArea;
+  QPointF m_tooltipPos;
+  QString m_tooltip;
 };
 }

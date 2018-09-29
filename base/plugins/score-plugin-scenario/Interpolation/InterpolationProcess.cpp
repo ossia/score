@@ -80,6 +80,12 @@ State::MessageList ProcessState::messages() const
   return {};
 }
 
+QString ProcessModel::prettyValue(double x, double y) const noexcept
+{
+  return QString::number(y, 'f', 3);
+}
+
+
 State::MessageList ProcessState::setMessages(
     const State::MessageList& received, const Process::MessageNode&)
 {

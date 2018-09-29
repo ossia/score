@@ -62,6 +62,8 @@ public:
     m_curve->setSelection(s);
   }
 
+  virtual QString prettyValue(double x, double y) const noexcept = 0;
+
 public:
   void curveChanged() E_SIGNAL(SCORE_PLUGIN_CURVE_EXPORT, curveChanged);
 

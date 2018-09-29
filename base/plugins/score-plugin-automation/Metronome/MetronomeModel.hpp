@@ -49,6 +49,7 @@ public:
   void setMax(double arg);
 
   QString prettyName() const override;
+  QString prettyValue(double x, double y) const noexcept override;
 
   std::unique_ptr<Process::Outlet> outlet;
 

@@ -103,6 +103,11 @@ QString ProcessModel::prettyName() const
   return "Automation";
 }
 
+QString ProcessModel::prettyValue(double x, double y) const noexcept
+{
+  return QString::number((y * (max() - min()) - min()), 'f', 3);
+}
+
 void ProcessModel::setDurationAndScale(const TimeVal& newDuration)
 {
   // We only need to change the duration.
