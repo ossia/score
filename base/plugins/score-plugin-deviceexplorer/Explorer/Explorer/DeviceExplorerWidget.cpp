@@ -550,6 +550,23 @@ void DeviceExplorerWidget::populateColumnCBox()
   m_columnCBox->addItems(columns);
 }
 
+// The bool indicates if the passed node was a device
+std::pair<Device::DeviceCapas, bool> getCapas(Device::Node* p, const Device::DeviceList& lst)
+{
+  if(p->is<Device::DeviceSettings>())
+  {
+    return {lst.device(p->get<Device::DeviceSettings>().name).capabilities(), true};
+  }
+  while(p && !p->is<Device::DeviceSettings>())
+  {
+    p = p->parent();
+  }
+  if(!p)
+    throw std::runtime_error("Cannot get capabilities of no device");
+
+  return {lst.device(p->get<Device::DeviceSettings>().name).capabilities(), false};
+}
+
 void DeviceExplorerWidget::updateActions()
 {
   auto m = model();
@@ -584,30 +601,31 @@ void DeviceExplorerWidget::updateActions()
     }
     else
     {
-      m_refreshAction->setEnabled(true);
-      m_refreshValueAction->setEnabled(true);
       m_findUsageAction->setEnabled(true);
     }
 
     if (selection.size() == 1)
     {
-      const bool aDeviceIsSelected
-          = model()->isDevice(m_ntView->selectedIndex());
+      const auto [capas, aDeviceIsSelected] = getCapas(&m->nodeFromModelIndex(m_ntView->selectedIndex()), m->deviceModel().list());
 
       if (!aDeviceIsSelected)
       {
-        m_addSiblingAction->setEnabled(true);
+        m_refreshValueAction->setEnabled(capas.canRefreshValue);
+        m_addSiblingAction->setEnabled(capas.canAddNode);
+        m_addChildAction->setEnabled(capas.canAddNode);
+        m_removeNodeAction->setEnabled(capas.canRemoveNode);
       }
       else
       {
-        m_reconnect->setEnabled(true);
-        m_disconnect->setEnabled(true);
+        m_refreshAction->setEnabled(capas.canRefreshTree);
+        m_reconnect->setEnabled(capas.canDisconnect);
+        m_disconnect->setEnabled(capas.canDisconnect);
         m_exportDeviceAction->setEnabled(true);
         m_addSiblingAction->setEnabled(false);
+        m_addChildAction->setEnabled(capas.canAddNode);
         m_removeNodeAction->setEnabled(false);
-        m_learnAction->setEnabled(true);
+        m_learnAction->setEnabled(capas.canLearn);
       }
-      m_removeNodeAction->setEnabled(true);
       m_editAction->setEnabled(true);
       m_addChildAction->setEnabled(true);
     }
