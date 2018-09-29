@@ -89,6 +89,13 @@ void AudioDevice::addAddress(const Device::FullAddressSettings& settings)
         node->set_parameter(
             std::make_unique<ossia::virtual_audio_parameter>(chans, *node));
     }
+
+    auto x = node->get_extended_attributes();
+    for(auto& e : settings.extendedAttributes)
+    {
+      x[e.first] = e.second;
+    }
+    node->set_extended_attributes(x);
   }
 }
 
