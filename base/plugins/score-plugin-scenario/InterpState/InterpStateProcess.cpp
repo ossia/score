@@ -48,6 +48,11 @@ QString ProcessModel::prettyName() const
   return tr("State interpolation");
 }
 
+QString ProcessModel::prettyValue(double x, double y) const noexcept
+{
+  return QString::number(y, 'f', 3);
+}
+
 State::MessageList ProcessModel::startMessages() const
 {
   return {};
