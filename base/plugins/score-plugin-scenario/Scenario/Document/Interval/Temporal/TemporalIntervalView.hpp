@@ -1,6 +1,6 @@
 #pragma once
 #include <Process/TimeValue.hpp>
-#include <Scenario/Document/CommentBlock/TextItem.hpp>
+#include <score/graphics/TextItem.hpp>
 #include <Scenario/Document/Interval/ExecutionState.hpp>
 #include <Scenario/Document/Interval/IntervalView.hpp>
 

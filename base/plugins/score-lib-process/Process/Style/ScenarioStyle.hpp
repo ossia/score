@@ -14,7 +14,7 @@ class Skin;
 
 struct SCORE_LIB_PROCESS_EXPORT ScenarioStyle
 {
-  ScenarioStyle(const score::Skin&) noexcept;
+  ScenarioStyle(score::Skin&) noexcept;
 
   ScenarioStyle(const ScenarioStyle&) = delete;
   ScenarioStyle(ScenarioStyle&&) = delete;
@@ -24,6 +24,7 @@ struct SCORE_LIB_PROCESS_EXPORT ScenarioStyle
   void setIntervalWidth(double w);
 
   static ScenarioStyle& instance() noexcept;
+  score::Skin& skin;
 
   score::ColorRef IntervalBase;
   score::ColorRef IntervalSelected;
@@ -115,15 +116,6 @@ struct SCORE_LIB_PROCESS_EXPORT ScenarioStyle
   QPen TimeRulerLargePen, TimeRulerSmallPen;
 
   QPen SlotHandlePen;
-
-  QPen TextItemPen;
-
-  QFont Bold10Pt;
-  QFont Bold12Pt;
-  QFont Medium7Pt;
-  QFont Medium8Pt;
-  QFont Medium10Pt;
-  QFont Medium12Pt;
 
   QPen CommentBlockPen;
   QPen MiniScenarioPen;

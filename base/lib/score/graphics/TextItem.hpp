@@ -7,11 +7,11 @@
 #include <QGraphicsTextItem>
 #include <QPen>
 
-#include <score_plugin_scenario_export.h>
+#include <score_lib_base_export.h>
 #include <wobjectdefs.h>
-namespace Scenario
+namespace score
 {
-class TextItem final : public QGraphicsTextItem
+class SCORE_LIB_BASE_EXPORT TextItem final : public QGraphicsTextItem
 {
   W_OBJECT(TextItem)
 public:
@@ -24,10 +24,11 @@ protected:
   void focusOutEvent(QFocusEvent* event) override;
 };
 
-class SCORE_PLUGIN_SCENARIO_EXPORT SimpleTextItem : public QGraphicsItem
+class SCORE_LIB_BASE_EXPORT SimpleTextItem
+    : public QGraphicsItem
 {
 public:
-  SimpleTextItem(QGraphicsItem*);
+  SimpleTextItem(const score::ColorRef& col, QGraphicsItem*);
 
   QRectF boundingRect() const final override;
   void paint(
@@ -48,32 +49,20 @@ private:
   QImage m_line;
 };
 
-class QGraphicsTextButton : public QObject, public Scenario::SimpleTextItem
+class SCORE_LIB_BASE_EXPORT QGraphicsTextButton
+    : public QObject
+    , public score::SimpleTextItem
 {
   W_OBJECT(QGraphicsTextButton)
 public:
-  QGraphicsTextButton(QString text, QGraphicsItem* parent)
-      : SimpleTextItem{parent}
-  {
-    setText(std::move(text));
-  }
+  QGraphicsTextButton(QString text, QGraphicsItem* parent);
 
 public:
   void pressed() W_SIGNAL(pressed);
 
 protected:
-  void mousePressEvent(QGraphicsSceneMouseEvent* event) override
-  {
-    pressed();
-    event->accept();
-  }
-  void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override
-  {
-    event->accept();
-  }
-  void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override
-  {
-    event->accept();
-  }
+  void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
+  void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override;
+  void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override;
 };
 }

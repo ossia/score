@@ -26,7 +26,9 @@ class QWidget;
 namespace Scenario
 {
 TimeSyncView::TimeSyncView(TimeSyncPresenter& presenter, QGraphicsItem* parent)
-    : QGraphicsItem{parent}, m_presenter{presenter}, m_text{this}
+    : QGraphicsItem{parent}, m_presenter{presenter}
+    , m_color{presenter.model().metadata().getColor()}
+    , m_text{m_color, this}
 {
   this->setCacheMode(QGraphicsItem::NoCache);
   this->setParentItem(parent);
@@ -34,10 +36,7 @@ TimeSyncView::TimeSyncView(TimeSyncPresenter& presenter, QGraphicsItem* parent)
   this->setAcceptHoverEvents(true);
   this->setCursor(Qt::CrossCursor);
 
-  m_color = presenter.model().metadata().getColor();
-
-  m_text.setFont(ScenarioStyle::instance().Bold10Pt);
-  m_text.setColor(m_color);
+  m_text.setFont(score::Skin::instance().Bold10Pt);
 }
 
 TimeSyncView::~TimeSyncView()

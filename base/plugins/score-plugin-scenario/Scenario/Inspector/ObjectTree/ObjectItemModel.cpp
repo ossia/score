@@ -473,7 +473,7 @@ QVariant ObjectItemModel::data(const QModelIndex& index, int role) const
   }
   if (role == Qt::FontRole)
   {
-    return ScenarioStyle::instance().Medium10Pt;
+    return score::Skin::instance().Medium10Pt;
   }
 
   if (index.column() == 0)
@@ -601,7 +601,7 @@ Qt::ItemFlags ObjectItemModel::flags(const QModelIndex& index) const
   f |= Qt::ItemIsDropEnabled;
 
   auto p = (QObject*)index.internalPointer();
-  if (auto q = qobject_cast<Process::ProcessModel*>(p))
+  if (qobject_cast<Process::ProcessModel*>(p))
   {
     f |= Qt::ItemIsDragEnabled;
   }
@@ -702,12 +702,15 @@ QMimeData* ObjectItemModel::mimeData(const QModelIndexList& indexes) const
 }
 
 bool ObjectItemModel::canDropMimeData(
-    const QMimeData* data, Qt::DropAction action, int row, int column,
+    const QMimeData* data, Qt::DropAction action, int r, int column,
     const QModelIndex& parent) const
 {
   if (!parent.isValid())
     return false;
+  if(r <= 0)
+    return false;
 
+  auto row = std::size_t(r);
   auto obj = score::unmarshall<Path<Process::ProcessModel>>(
       data->data("score/object-item-model-index"));
   auto other = obj.try_find(m_ctx);
@@ -774,13 +777,16 @@ bool ObjectItemModel::canDropMimeData(
 }
 
 bool ObjectItemModel::dropMimeData(
-    const QMimeData* data, Qt::DropAction action, int row, int column,
+    const QMimeData* data, Qt::DropAction action, int r, int column,
     const QModelIndex& parent)
 {
   using namespace Scenario::Command;
   if (!parent.isValid())
     return false;
+  if(r <= 0)
+    return false;
 
+  auto row = std::size_t(r);
   auto obj = score::unmarshall<Path<Process::ProcessModel>>(
       data->data("score/object-item-model-index"));
   auto other = obj.try_find(m_ctx);
@@ -789,7 +795,7 @@ bool ObjectItemModel::dropMimeData(
 
   auto p = (QObject*)parent.internalPointer();
 
-  auto move_in_itv = [=](auto itv, int row) {
+  auto move_in_itv = [=](auto itv, std::size_t row) {
     if (other->parent() != itv)
       return false;
 
@@ -817,7 +823,7 @@ bool ObjectItemModel::dropMimeData(
     return true;
   };
 
-  auto move_in_state = [=](auto sta, int row) {
+  auto move_in_state = [=](auto sta, std::size_t row) {
     if (other->parent() != sta)
       return false;
 

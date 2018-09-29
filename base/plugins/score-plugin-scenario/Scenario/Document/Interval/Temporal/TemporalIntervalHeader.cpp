@@ -10,7 +10,7 @@
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 
 #include <score/model/Skin.hpp>
-#include <score/widgets/GraphicsItem.hpp>
+#include <score/graphics/GraphicsItem.hpp>
 #include <score/widgets/Pixmap.hpp>
 
 #include <QBrush>
@@ -175,7 +175,7 @@ void TemporalIntervalHeader::mouseDoubleClickEvent(
 
 void TemporalIntervalHeader::on_textChange()
 {
-  const auto& font = ScenarioStyle::instance().Bold12Pt;
+  const auto& font = score::Skin::instance().Bold12Pt;
   if (m_text.isEmpty())
   {
     m_textRectCache = {};

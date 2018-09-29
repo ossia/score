@@ -2,7 +2,7 @@
 
 #include <Dataflow/UI/PortItem.hpp>
 #include <Process/Style/ScenarioStyle.hpp>
-#include <Scenario/Document/CommentBlock/TextItem.hpp>
+#include <score/graphics/TextItem.hpp>
 
 #include <QGraphicsScene>
 
@@ -65,8 +65,7 @@ void DefaultEffectItem::setupInlet(
   Process::PortFactory* fact = portFactory.get(inlet.concreteKey());
   auto port = fact->makeItem(inlet, doc, item, this);
 
-  auto lab = new Scenario::SimpleTextItem{item};
-  lab->setColor(ScenarioStyle::instance().EventDefault);
+  auto lab = new score::SimpleTextItem{ScenarioStyle::instance().EventDefault, item};
   if (inlet.customData().isEmpty())
     lab->setText(tr("Control"));
   else

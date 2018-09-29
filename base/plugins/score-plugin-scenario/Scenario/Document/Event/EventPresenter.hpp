@@ -1,6 +1,6 @@
 #pragma once
 #include <score/command/Dispatchers/MacroCommandDispatcher.hpp>
-#include <score/widgets/GraphicsItem.hpp>
+#include <score/graphics/GraphicsItem.hpp>
 
 #include <QPoint>
 #include <QString>

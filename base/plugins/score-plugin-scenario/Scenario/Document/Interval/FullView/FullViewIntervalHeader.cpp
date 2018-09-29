@@ -5,7 +5,7 @@
 #include <Process/Style/ScenarioStyle.hpp>
 #include <Scenario/Document/Interval/IntervalHeader.hpp>
 
-#include <score/widgets/GraphicsItem.hpp>
+#include <score/graphics/GraphicsItem.hpp>
 #include <score/widgets/WidgetWrapper.hpp>
 
 #include <QGraphicsScene>

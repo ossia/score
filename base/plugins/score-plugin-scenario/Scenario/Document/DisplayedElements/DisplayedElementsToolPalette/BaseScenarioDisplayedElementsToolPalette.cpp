@@ -19,7 +19,7 @@
 #include <score/model/Identifier.hpp>
 #include <score/statemachine/GraphicsSceneToolPalette.hpp>
 #include <score/tools/std/Optional.hpp>
-#include <score/widgets/GraphicsProxyObject.hpp>
+#include <score/graphics/GraphicsProxyObject.hpp>
 
 #include <algorithm>
 

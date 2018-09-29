@@ -22,6 +22,41 @@ const QPalette& transparentPalette()
   return p;
 }
 
+ToggleButton::ToggleButton(std::array<QString, 2> alts, QWidget* parent)
+  : QPushButton{parent}, alternatives{alts}
+{
+  setCheckable(true);
+
+  connect(this, &QPushButton::toggled, this, [&](bool b) {
+    if (b)
+    {
+      setText(alternatives[1]);
+    }
+    else
+    {
+      setText(alternatives[0]);
+    }
+  });
+  if (isChecked())
+  {
+    setText(alternatives[1]);
+  }
+  else
+  {
+    setText(alternatives[0]);
+  }
+}
+
+ToggleButton::ToggleButton(std::array<const char*, 2> alt, QWidget* parent)
+  : ToggleButton{std::array<QString, 2>{alt[0], alt[1]}, parent}
+{
+}
+
+ToggleButton::ToggleButton(QStringList alt, QWidget* parent)
+  : ToggleButton{std::array<QString, 2>{alt[0], alt[1]}, parent}
+{
+}
+
 void ToggleButton::paintEvent(QPaintEvent* event)
 {
   return QPushButton::paintEvent(event);

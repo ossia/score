@@ -182,19 +182,22 @@ set(HEADERS
     "${CMAKE_CURRENT_SOURCE_DIR}/score/tools/std/Pointer.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/tools/std/String.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/tools/std/StringHash.hpp"
+
+    "${CMAKE_CURRENT_SOURCE_DIR}/score/graphics/GraphicWidgets.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/score/graphics/GraphicsItem.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/score/graphics/GraphicsProxyObject.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/score/graphics/RectItem.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/score/graphics/TextItem.hpp"
+
     "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/ClearLayout.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/ControlWidgets.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/CommandSpinBox.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/DoubleSlider.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/GraphicWidgets.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/GraphicsItem.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/GraphicsProxyObject.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/JS/JSEdit.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/MarginLess.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/MimeData.hpp"
 #    "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/QmlContainerPanel.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/Pixmap.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/RectItem.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/ReactiveLabel.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/Separator.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/SetIcons.hpp"
@@ -302,15 +305,17 @@ set(SRCS
 
 "${CMAKE_CURRENT_SOURCE_DIR}/score/tools/std/String.cpp"
 
-"${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/GraphicsItem.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/score/graphics/GraphicsItem.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/score/graphics/GraphicWidgets.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/score/graphics/RectItem.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/score/graphics/TextItem.cpp"
+
 "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/ClearLayout.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/ControlWidgets.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/DoubleSlider.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/RectItem.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/SetIcons.cpp"
 # "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/QmlContainerPanel.cpp" # TODO MOVEME
 "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/Separator.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/GraphicWidgets.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/JS/JSEdit.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/core/application/SafeQApplication.cpp"

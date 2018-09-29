@@ -1,5 +1,5 @@
 #pragma once
-#include <Scenario/Document/CommentBlock/TextItem.hpp>
+#include <score/graphics/TextItem.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentViewConstants.hpp>
 #include <Scenario/Document/VerticalExtent.hpp>
 
@@ -80,6 +80,6 @@ private:
   score::ColorRef m_color;
   bool m_selected{};
 
-  SimpleTextItem m_text;
+  score::SimpleTextItem m_text;
 };
 }

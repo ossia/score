@@ -9,7 +9,7 @@
 #include <score/document/DocumentContext.hpp>
 #include <score/model/IdentifiedObjectMap.hpp>
 #include <score/selection/SelectionDispatcher.hpp>
-#include <score/widgets/GraphicsItem.hpp>
+#include <score/graphics/GraphicsItem.hpp>
 
 #include <QObject>
 #include <QPoint>

@@ -47,7 +47,8 @@ void SeparatorItem::paint(
 ClickableLabelItem::ClickableLabelItem(
     score::ModelMetadata& metadata, ClickHandler&& onClick,
     const QString& text, QGraphicsItem* parent)
-    : SimpleTextItem{parent}, m_onClick{std::move(onClick)}
+  : score::SimpleTextItem{ScenarioStyle::instance().StateOutline, parent}
+    , m_onClick{std::move(onClick)}
 {
   setText(text);
   connect(
@@ -57,9 +58,7 @@ ClickableLabelItem::ClickableLabelItem(
         textChanged();
       });
 
-  this->setFont(ScenarioStyle::instance().Bold12Pt);
-  this->setColor(ScenarioStyle::instance().StateOutline);
-
+  this->setFont(score::Skin::instance().Bold12Pt);
   this->setAcceptHoverEvents(true);
 }
 

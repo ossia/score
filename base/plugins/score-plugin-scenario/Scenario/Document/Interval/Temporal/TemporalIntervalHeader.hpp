@@ -1,7 +1,7 @@
 #pragma once
 #include <Scenario/Document/Interval/IntervalHeader.hpp>
 
-#include <score/widgets/GraphicWidgets.hpp>
+#include <score/graphics/GraphicWidgets.hpp>
 #include <score/widgets/MimeData.hpp>
 
 #include <ossia/detail/optional.hpp>

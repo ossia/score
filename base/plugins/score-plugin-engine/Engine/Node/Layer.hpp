@@ -4,9 +4,9 @@
 #include <Process/LayerPresenter.hpp>
 #include <Process/LayerView.hpp>
 #include <Process/Style/ScenarioStyle.hpp>
-#include <Scenario/Document/CommentBlock/TextItem.hpp>
+#include <score/graphics/TextItem.hpp>
 
-#include <score/widgets/RectItem.hpp>
+#include <score/graphics/RectItem.hpp>
 
 #include <QGraphicsProxyWidget>
 #include <QGraphicsSceneMouseEvent>
@@ -43,8 +43,8 @@ struct UISetup
             Process::PortFactory* fact = portFactory.get(inlet->concreteKey());
             auto port = fact->makeItem(*inlet, doc, item, &self);
 
-            auto lab = new Scenario::SimpleTextItem{item};
-            lab->setColor(ScenarioStyle::instance().EventWaiting);
+            const auto& style = ScenarioStyle::instance();
+            auto lab = new score::SimpleTextItem{style.EventWaiting, item};
             lab->setText(ctrl.name);
             lab->setPos(15, 2);
 

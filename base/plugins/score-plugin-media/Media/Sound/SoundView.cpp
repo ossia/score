@@ -1,6 +1,6 @@
 #include "SoundView.hpp"
 
-#include <score/widgets/GraphicsItem.hpp>
+#include <score/graphics/GraphicsItem.hpp>
 
 #include <ossia/detail/pod_vector.hpp>
 

@@ -13,12 +13,12 @@
 #include <Process/Style/ScenarioStyle.hpp>
 #include <Process/WidgetLayer/WidgetProcessFactory.hpp>
 #include <Scenario/Application/Menus/ScenarioCopy.hpp>
-#include <Scenario/Document/CommentBlock/TextItem.hpp>
+#include <score/graphics/TextItem.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 
 #include <score/selection/SelectionDispatcher.hpp>
-#include <score/widgets/GraphicWidgets.hpp>
-#include <score/widgets/RectItem.hpp>
+#include <score/graphics/GraphicWidgets.hpp>
+#include <score/graphics/RectItem.hpp>
 
 #include <core/document/Document.hpp>
 
@@ -150,11 +150,10 @@ public:
 
     rm_btn->setPos({20, 4});
 
-    auto label = new Scenario::SimpleTextItem{this};
+    auto label = new score::SimpleTextItem{skin.IntervalBase, this};
     label->setText(effect.prettyName());
-    label->setFont(skin.Bold10Pt);
+    label->setFont(skin.skin.Bold10Pt);
     label->setPos({35, 4});
-    label->setColor(skin.IntervalBase);
 
     resetInlets(effect, ctx, this, parent, ui);
     resetOutlets(effect, ctx, this, parent, ui);

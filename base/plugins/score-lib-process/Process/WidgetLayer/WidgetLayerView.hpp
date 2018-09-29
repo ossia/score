@@ -14,7 +14,6 @@ class QQuickItem;
 
 namespace WidgetLayer
 {
-class WidgetTextItem;
 class SCORE_LIB_PROCESS_EXPORT View final : public Process::LayerView
 {
   W_OBJECT(View)

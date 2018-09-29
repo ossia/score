@@ -173,8 +173,7 @@ void VSTEffectItem::setupInlet(
   static const auto close_off = score::get_pixmap(":/icons/close_off.png");
   static const auto close_on = score::get_pixmap(":/icons/close_on.png");
 
-  auto lab = new Scenario::SimpleTextItem{rect};
-  lab->setColor(ScenarioStyle::instance().EventDefault);
+  auto lab = new score::SimpleTextItem{ScenarioStyle::instance().EventDefault, rect};
   lab->setText(inlet.customData());
   lab->setPos(15, 2);
 

@@ -1,4 +1,4 @@
-#include <score/widgets/RectItem.hpp>
+#include <score/graphics/RectItem.hpp>
 
 #include <QGraphicsSceneEvent>
 #include <QPainter>

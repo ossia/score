@@ -11,7 +11,7 @@
 
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/document/DocumentInterface.hpp>
-#include <score/widgets/GraphicsItem.hpp>
+#include <score/graphics/GraphicsItem.hpp>
 
 #include <QGraphicsScene>
 #include <QGraphicsSceneMouseEvent>

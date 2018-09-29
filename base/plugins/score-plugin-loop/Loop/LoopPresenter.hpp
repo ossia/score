@@ -9,7 +9,7 @@
 #include <Scenario/Document/BaseScenario/BaseScenarioPresenter.hpp>
 
 #include <score/model/Identifier.hpp>
-#include <score/widgets/GraphicsItem.hpp>
+#include <score/graphics/GraphicsItem.hpp>
 
 #include <QDebug>
 #include <QPoint>

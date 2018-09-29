@@ -2,9 +2,7 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "TextItem.hpp"
 
-#include <Process/Style/ScenarioStyle.hpp>
-
-#include <score/widgets/GraphicsItem.hpp>
+#include <score/graphics/GraphicsItem.hpp>
 
 #include <QGraphicsSceneMouseEvent>
 #include <QGraphicsView>
@@ -12,9 +10,9 @@
 #include <QTextLayout>
 
 #include <wobjectimpl.h>
-W_OBJECT_IMPL(Scenario::TextItem)
-W_OBJECT_IMPL(Scenario::QGraphicsTextButton)
-namespace Scenario
+W_OBJECT_IMPL(score::TextItem)
+W_OBJECT_IMPL(score::QGraphicsTextButton)
+namespace score
 {
 
 TextItem::TextItem(QString text, QGraphicsItem* parent)
@@ -29,9 +27,10 @@ void TextItem::focusOutEvent(QFocusEvent* event)
   focusOut();
 }
 
-SimpleTextItem::SimpleTextItem(QGraphicsItem* p) : QGraphicsItem{p}
+SimpleTextItem::SimpleTextItem(const score::ColorRef& col, QGraphicsItem* p)
+  : QGraphicsItem{p}
+  , m_color{col}
 {
-  m_color = ScenarioStyle::instance().ConditionWaiting;
 }
 
 QRectF SimpleTextItem::boundingRect() const
@@ -104,7 +103,7 @@ void SimpleTextItem::updateImpl()
       m_line.fill(Qt::transparent);
 
       QPainter p{&m_line};
-      auto& skin = ScenarioStyle::instance();
+      auto& skin = score::Skin::instance();
       skin.TextItemPen.setBrush(m_color.getBrush());
 
       p.setPen(skin.TextItemPen);
@@ -115,4 +114,30 @@ void SimpleTextItem::updateImpl()
 
   update();
 }
+
+QGraphicsTextButton::QGraphicsTextButton(QString text, QGraphicsItem* parent)
+  : SimpleTextItem{score::ColorRef(&score::Skin::instance().Base1), parent}
+{
+  setText(std::move(text));
+}
+
+
+void QGraphicsTextButton::mousePressEvent(QGraphicsSceneMouseEvent* event)
+{
+  pressed();
+  event->accept();
+}
+
+
+void QGraphicsTextButton::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
+{
+  event->accept();
+}
+
+
+void QGraphicsTextButton::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
+{
+  event->accept();
+}
+
 }

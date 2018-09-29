@@ -58,6 +58,7 @@ Skin::Skin() noexcept
           SCORE_INSERT_COLOR(Tender2),      SCORE_INSERT_COLOR(Tender3),
           SCORE_INSERT_COLOR(Pulse1),       SCORE_INSERT_COLOR(Pulse2)})
 {
+
   this->startTimer(32, Qt::CoarseTimer);
 #if QT_VERSION >= QT_VERSION_CHECK(5, 10, 0)
   // SansFont.setStyleHint(QFont::SansSerif, QFont::PreferNoShaping);
@@ -66,6 +67,36 @@ Skin::Skin() noexcept
   // (QFont::StyleStrategy)(QFont::PreferBitmap | QFont::NoSubpixelAntialias |
   // QFont::ForceIntegerMetrics));
   // MonoFont.setHintingPreference(QFont::PreferVerticalHinting);
+
+
+  Bold10Pt = SansFont;
+  Bold10Pt.setPointSize(10);
+  Bold10Pt.setBold(true);
+
+  Bold12Pt = Bold10Pt;
+  Bold12Pt.setPointSize(12);
+
+  Medium7Pt = SansFont;
+  Medium7Pt.setPointSize(7);
+  // Medium7Pt.setStyleStrategy(QFont::NoAntialias);
+  // Medium7Pt.setHintingPreference(QFont::HintingPreference::PreferFullHinting);
+  Medium7Pt.setKerning(false);
+
+  Medium8Pt = SansFont;
+  Medium8Pt.setPointSize(8);
+  // Medium8Pt.setStyleStrategy(QFont::PreferBitmap);
+  Medium8Pt.setKerning(false);
+
+  Medium10Pt = SansFont;
+  Medium10Pt.setPointSize(10);
+  // Medium7Pt.setStyleStrategy(QFont::NoAntialias);
+  // Medium7Pt.setHintingPreference(QFont::HintingPreference::PreferFullHinting);
+  Medium10Pt.setKerning(false);
+
+  Medium12Pt = SansFont;
+  Medium12Pt.setPointSize(12);
+  // Medium12Pt.setStyleStrategy(QFont::NoAntialias);
+  Medium12Pt.setKerning(false);
 }
 
 Skin& score::Skin::instance() noexcept

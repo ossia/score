@@ -2,7 +2,7 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "CommentBlockView.hpp"
 
-#include "TextItem.hpp"
+#include <score/graphics/TextItem.hpp>
 
 #include <Process/Style/ScenarioStyle.hpp>
 #include <Scenario/Document/CommentBlock/CommentBlockPresenter.hpp>
@@ -25,12 +25,12 @@ CommentBlockView::CommentBlockView(
   this->setZValue(ZPos::Comment);
   this->setAcceptHoverEvents(true);
 
-  m_textItem = new TextItem{"", this};
+  m_textItem = new score::TextItem{"", this};
 
   connect(
       m_textItem->document(), &QTextDocument::contentsChanged, this,
       [&]() { this->prepareGeometryChange(); });
-  connect(m_textItem, &TextItem::focusOut, this, &CommentBlockView::focusOut);
+  connect(m_textItem, &score::TextItem::focusOut, this, &CommentBlockView::focusOut);
   focusOut();
 }
 
