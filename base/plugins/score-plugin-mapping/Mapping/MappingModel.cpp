@@ -99,6 +99,14 @@ QString ProcessModel::prettyName() const
   return tr("Mapping");
 }
 
+QString ProcessModel::prettyValue(double x, double y) const noexcept
+{
+  return
+      QString::number((x * (sourceMax() - sourceMin()) - sourceMin()), 'f', 3) +
+      " -> " +
+      QString::number((y * (targetMax() - targetMin()) - targetMin()), 'f', 3);
+}
+
 void ProcessModel::setDurationAndScale(const TimeVal& newDuration)
 {
   // Whatever happens we want to keep the same curve.

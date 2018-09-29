@@ -53,6 +53,7 @@ public:
   void setTargetMax(double arg);
 
   QString prettyName() const override;
+  QString prettyValue(double x, double y) const noexcept override;
 
   ~ProcessModel() override;
 

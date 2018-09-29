@@ -5,6 +5,8 @@
 #include <Curve/Commands/UpdateCurve.hpp>
 #include <Curve/CurveModel.hpp>
 #include <Curve/CurvePresenter.hpp>
+#include <Curve/CurveView.hpp>
+#include <Curve/Process/CurveProcessModel.hpp>
 #include <Curve/Palette/CommandObjects/CurveCommandObjectBase.hpp>
 #include <Curve/Palette/CurveEditionSettings.hpp>
 #include <Curve/Palette/CurvePaletteBaseStates.hpp>
@@ -55,6 +57,10 @@ MovePointCommandObject::~MovePointCommandObject()
 {
 }
 
+static QString getPrettyText(QPointF pt, Curve::Presenter& p) noexcept
+{
+  return static_cast<Curve::CurveProcessModel*>(p.model().parent())->prettyValue(pt.x(), pt.y());
+}
 void MovePointCommandObject::on_press()
 {
   // Save the start data.
@@ -91,6 +97,8 @@ void MovePointCommandObject::on_press()
       m_xLastPoint = pt_x;
     }
   }
+
+  m_presenter->view().setValueTooltip(m_originalPress, getPrettyText(m_originalPress, *m_presenter));
 }
 
 void MovePointCommandObject::move()
@@ -116,16 +124,19 @@ void MovePointCommandObject::move()
 
   // Rewirte and make a command
   submit(std::vector<SegmentData>(segments.begin(), segments.end()));
+  m_presenter->view().setValueTooltip(m_state->currentPoint, getPrettyText(m_state->currentPoint, *m_presenter));
 }
 
 void MovePointCommandObject::release()
 {
   m_dispatcher.commit();
+  m_presenter->view().setValueTooltip({}, QString{});
 }
 
 void MovePointCommandObject::cancel()
 {
   m_dispatcher.rollback();
+  m_presenter->view().setValueTooltip({}, QString{});
 }
 
 void MovePointCommandObject::handlePointOverlap(CurveSegmentMap& segments)

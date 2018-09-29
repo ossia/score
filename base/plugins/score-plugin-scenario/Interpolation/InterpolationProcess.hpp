@@ -91,6 +91,7 @@ public:
   void setEnd(ossia::value arg);
 
   QString prettyName() const override;
+  QString prettyValue(double x, double y) const noexcept override;
 
   bool tween() const
   {

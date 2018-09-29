@@ -72,6 +72,11 @@ QString ProcessModel::prettyName() const
   return address().toString();
 }
 
+QString ProcessModel::prettyValue(double x, double y) const noexcept
+{
+  return QString::number((y * (max() - min()) - min()), 'f', 3);
+}
+
 void ProcessModel::init()
 {
   outlet->setCustomData("Out");
