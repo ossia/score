@@ -18,7 +18,7 @@ static
 QRectF getTextRect(const QString& txt)
 {
   static auto& lay{[] () -> QFontMetricsF& {
-      const auto& style = ScenarioStyle::instance();
+      const auto& style = score::Skin::instance();
       static QFontMetricsF lay(style.Bold10Pt);
       return lay;
   }()};
@@ -137,7 +137,7 @@ void View::setValueTooltip(QPointF pos, const QString& s) noexcept
       tooltip = new QGraphicsSimpleTextItem{this};
       tooltip->setZValue(100);
       const auto& style = ScenarioStyle::instance();
-      tooltip->setFont(style.Bold10Pt);
+      tooltip->setFont(score::Skin::instance().Bold10Pt);
       tooltip->setBrush(style.IntervalBase.getBrush());
     }
 

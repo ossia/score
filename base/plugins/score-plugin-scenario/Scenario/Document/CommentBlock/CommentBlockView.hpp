@@ -4,10 +4,12 @@
 #include <QGraphicsItem>
 #include <QObject>
 #include <QPointF>
+namespace score {
+class TextItem;
+}
+
 namespace Scenario
 {
-class TextItem;
-
 class CommentBlockPresenter;
 class CommentBlockView final : public QObject, public QGraphicsItem
 {
@@ -51,7 +53,7 @@ private:
 
   CommentBlockPresenter& m_presenter;
 
-  TextItem* m_textItem{};
+  score::TextItem* m_textItem{};
   bool m_selected{false};
 
   QPointF m_clickedPoint{};

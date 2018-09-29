@@ -3,7 +3,7 @@
 
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/model/Identifier.hpp>
-#include <score/widgets/GraphicsItem.hpp>
+#include <score/graphics/GraphicsItem.hpp>
 
 #include <score_plugin_scenario_export.h>
 #include <wobjectdefs.h>

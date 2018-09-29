@@ -101,7 +101,7 @@ public:
 
   void add_char(ossia::value c)
   {
-    if(n < m_forwardLink.size() - 1)
+    if(n < (int)m_forwardLink.size() - 1)
     {
       m_sequence.push_back(std::move(c));
       auto it = ossia::find_if(value_map, [&] (const auto& pair) { return pair.second == c; });

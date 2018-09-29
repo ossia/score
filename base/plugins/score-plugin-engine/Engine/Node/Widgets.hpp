@@ -9,7 +9,7 @@
 #include <score/document/DocumentContext.hpp>
 #include <score/widgets/ControlWidgets.hpp>
 #include <score/widgets/DoubleSlider.hpp>
-#include <score/widgets/GraphicWidgets.hpp>
+#include <score/graphics/GraphicWidgets.hpp>
 #include <score/widgets/MarginLess.hpp>
 #include <score/widgets/SignalUtils.hpp>
 #include <score/widgets/TextLabel.hpp>

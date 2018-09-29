@@ -45,8 +45,8 @@ public:
 
   void dragEnterEvent(QGraphicsSceneDragDropEvent* event) override;
 
-  void clearPressed() W_SIGNAL(clearPressed);
-  void escPressed() W_SIGNAL(escPressed);
+  void clearPressed() E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, clearPressed);
+  void escPressed() E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, escPressed);
 
   void pressed(QPointF arg_1)
       E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, pressed, arg_1);
@@ -62,16 +62,16 @@ public:
   void dropReceived(const QPointF& pos, const QMimeData& arg_2)
       E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, dropReceived, pos, arg_2);
 
-  void keyPressed(int arg_1) W_SIGNAL(keyPressed, arg_1);
-  void keyReleased(int arg_1) W_SIGNAL(keyReleased, arg_1);
+  void keyPressed(int arg_1) E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, keyPressed, arg_1);
+  void keyReleased(int arg_1) E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, keyReleased, arg_1);
 
   // Screen pos, scene pos
   void dragEnter(const QPointF& pos, const QMimeData& arg_2)
-      W_SIGNAL(dragEnter, pos, arg_2);
+      E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, dragEnter, pos, arg_2);
   void dragMove(const QPointF& pos, const QMimeData& arg_2)
-      W_SIGNAL(dragMove, pos, arg_2);
+      E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, dragMove, pos, arg_2);
   void dragLeave(const QPointF& pos, const QMimeData& arg_2)
-      W_SIGNAL(dragLeave, pos, arg_2);
+      E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, dragLeave, pos, arg_2);
 
 protected:
   virtual void paint_impl(QPainter*) const = 0;
@@ -86,13 +86,14 @@ private:
   qreal m_width{};
 };
 
-class SCORE_LIB_PROCESS_EXPORT MiniLayer : public QGraphicsItem
+class SCORE_LIB_PROCESS_EXPORT MiniLayer
+    : public QGraphicsItem
 {
   Q_INTERFACES(QGraphicsItem)
 public:
   MiniLayer(QGraphicsItem* parent);
 
-  virtual ~MiniLayer();
+  ~MiniLayer() override;
 
   QRectF boundingRect() const final override;
   void paint(

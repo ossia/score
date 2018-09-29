@@ -23,7 +23,7 @@
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentPresenter.hpp>
 
 #include <score/document/DocumentInterface.hpp>
-#include <score/widgets/GraphicsItem.hpp>
+#include <score/graphics/GraphicsItem.hpp>
 
 #include <QGraphicsScene>
 #include <QList>

@@ -3,7 +3,7 @@
 #include <Process/TimeValue.hpp>
 
 #include <score/model/Identifier.hpp>
-#include <score/widgets/GraphicsItem.hpp>
+#include <score/graphics/GraphicsItem.hpp>
 
 #include <QPoint>
 

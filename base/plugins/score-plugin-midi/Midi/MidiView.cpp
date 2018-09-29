@@ -4,7 +4,7 @@
 
 #include <Midi/MidiStyle.hpp>
 
-#include <score/widgets/GraphicsItem.hpp>
+#include <score/graphics/GraphicsItem.hpp>
 
 #include <QGraphicsScene>
 #include <QGraphicsSceneContextMenuEvent>

@@ -4,7 +4,7 @@
 #include <Process/Process.hpp>
 #include <Process/Style/Pixmaps.hpp>
 
-#include <score/widgets/GraphicWidgets.hpp>
+#include <score/graphics/GraphicWidgets.hpp>
 
 #include <QGraphicsSceneEvent>
 #include <QMenu>

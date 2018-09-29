@@ -5,8 +5,8 @@
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/document/DocumentContext.hpp>
 #include <score/widgets/ControlWidgets.hpp>
-#include <score/widgets/GraphicWidgets.hpp>
-#include <score/widgets/GraphicsItem.hpp>
+#include <score/graphics/GraphicWidgets.hpp>
+#include <score/graphics/GraphicsItem.hpp>
 
 #include <ossia/network/value/value_conversion.hpp>
 

@@ -7,7 +7,7 @@
 #include <Scenario/Document/Interval/IntervalView.hpp>
 #include <Scenario/Document/Interval/Temporal/TemporalIntervalPresenter.hpp>
 
-#include <score/widgets/GraphicsItem.hpp>
+#include <score/graphics/GraphicsItem.hpp>
 
 #include <QApplication>
 #include <QCursor>

@@ -26,8 +26,8 @@ IntervalView::IntervalView(IntervalPresenter& presenter, QGraphicsItem* parent)
     : QGraphicsItem{parent}
     , m_leftBrace{*this, this}
     , m_rightBrace{*this, this}
-    , m_labelItem{this}
-    , m_counterItem{this}
+    , m_labelItem{ScenarioStyle::instance().ConditionWaiting, this}
+    , m_counterItem{score::ColorRef(&score::Skin::Light), this}
     , m_presenter{presenter}
 {
   setAcceptHoverEvents(true);
@@ -37,13 +37,13 @@ IntervalView::IntervalView(IntervalPresenter& presenter, QGraphicsItem* parent)
   m_rightBrace.setX(maxWidth());
   m_rightBrace.hide();
 
-  m_labelItem.setFont(ScenarioStyle::instance().Medium12Pt);
+  const auto& skin = score::Skin::instance();
+  m_labelItem.setFont(skin.Medium12Pt);
   m_labelItem.setPos(0, -16);
   m_labelItem.setAcceptedMouseButtons(Qt::MouseButton::NoButton);
   m_labelItem.setAcceptHoverEvents(false);
 
-  m_counterItem.setFont(ScenarioStyle::instance().Medium7Pt);
-  m_counterItem.setColor(score::ColorRef(&score::Skin::Light));
+  m_counterItem.setFont(skin.Medium7Pt);
   m_counterItem.setAcceptedMouseButtons(Qt::MouseButton::NoButton);
   m_counterItem.setAcceptHoverEvents(false);
 }

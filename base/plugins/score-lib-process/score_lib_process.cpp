@@ -52,7 +52,7 @@ score::GUIApplicationPlugin* score_lib_process::make_guiApplicationPlugin(
   {
     using score::GUIApplicationPlugin::GUIApplicationPlugin;
 
-    void on_initDocument(score::Document& doc)
+    void on_initDocument(score::Document& doc) override
     {
       score::addDocumentPlugin<Process::DocumentPlugin>(doc);
     }

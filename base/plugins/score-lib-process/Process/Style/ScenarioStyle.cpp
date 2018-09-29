@@ -4,10 +4,10 @@
 
 #include <score/model/Skin.hpp>
 // TODO namespace
-ScenarioStyle::ScenarioStyle(const score::Skin& s) noexcept
-    :
+ScenarioStyle::ScenarioStyle(score::Skin& s) noexcept
+    : skin{s}
 
-    IntervalBase{&s.Base1}
+    , IntervalBase{&s.Base1}
     , IntervalSelected{&s.Base2}
     , IntervalPlayFill{&s.Base3}
     , IntervalPlayDashFill{&s.Pulse1}
@@ -87,11 +87,11 @@ ScenarioStyle::ScenarioStyle(const score::Skin& s) noexcept
 
 void ScenarioStyle::setIntervalWidth(double w)
 {
-  IntervalSolidPen.setWidthF(3 * w);
-  IntervalDashPen.setWidthF(3 * w);
-  IntervalPlayPen.setWidthF(3 * w);
-  IntervalPlayDashPen.setWidthF(3 * w);
-  IntervalWaitingDashPen.setWidthF(3 * w);
+  IntervalSolidPen.setWidthF(3. * w);
+  IntervalDashPen.setWidthF(3. * w);
+  IntervalPlayPen.setWidthF(3. * w);
+  IntervalPlayDashPen.setWidthF(3. * w);
+  IntervalWaitingDashPen.setWidthF(3. * w);
 }
 
 ScenarioStyle& ScenarioStyle::instance() noexcept
@@ -101,8 +101,9 @@ ScenarioStyle& ScenarioStyle::instance() noexcept
 }
 
 ScenarioStyle::ScenarioStyle() noexcept
+  : skin{score::Skin::instance()}
 {
-  update(score::Skin::instance());
+  update(skin);
 }
 
 void ScenarioStyle::update(const score::Skin& skin)
@@ -172,35 +173,6 @@ void ScenarioStyle::update(const score::Skin& skin)
   SlotHandlePen.setBrush(ProcessViewBorder.getBrush());
 
   MiniScenarioPen.setCosmetic(true);
-
-  Bold10Pt = skin.SansFont;
-  Bold10Pt.setPointSize(10);
-  Bold10Pt.setBold(true);
-
-  Bold12Pt = Bold10Pt;
-  Bold12Pt.setPointSize(12);
-
-  Medium7Pt = skin.SansFont;
-  Medium7Pt.setPointSize(7);
-  // Medium7Pt.setStyleStrategy(QFont::NoAntialias);
-  // Medium7Pt.setHintingPreference(QFont::HintingPreference::PreferFullHinting);
-  Medium7Pt.setKerning(false);
-
-  Medium8Pt = skin.SansFont;
-  Medium8Pt.setPointSize(8);
-  // Medium8Pt.setStyleStrategy(QFont::PreferBitmap);
-  Medium8Pt.setKerning(false);
-
-  Medium10Pt = skin.SansFont;
-  Medium10Pt.setPointSize(10);
-  // Medium7Pt.setStyleStrategy(QFont::NoAntialias);
-  // Medium7Pt.setHintingPreference(QFont::HintingPreference::PreferFullHinting);
-  Medium10Pt.setKerning(false);
-
-  Medium12Pt = skin.SansFont;
-  Medium12Pt.setPointSize(12);
-  // Medium12Pt.setStyleStrategy(QFont::NoAntialias);
-  Medium12Pt.setKerning(false);
 
   AudioCablePen = QPen{QBrush{QColor("#88996666")}, 3., Qt::SolidLine,
                        Qt::RoundCap, Qt::RoundJoin};

@@ -1,5 +1,5 @@
 #pragma once
-#include <Scenario/Document/CommentBlock/TextItem.hpp>
+#include <score/graphics/TextItem.hpp>
 #include <Scenario/Document/Interval/ExecutionState.hpp>
 #include <Scenario/Document/Interval/Temporal/Braces/LeftBrace.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentViewConstants.hpp>
@@ -14,12 +14,15 @@
 class QGraphicsSceneMouseEvent;
 
 struct ScenarioStyle;
+namespace score
+{
+class SimpleTextItem;
+}
 namespace Scenario
 {
 class IntervalPresenter;
 class LeftBraceView;
 class RightBraceView;
-class SimpleTextItem;
 class IntervalMenuOverlay;
 class SCORE_PLUGIN_SCENARIO_EXPORT IntervalView : public QObject,
                                                   public QGraphicsItem
@@ -141,8 +144,8 @@ protected:
 
   LeftBraceView m_leftBrace;
   RightBraceView m_rightBrace;
-  SimpleTextItem m_labelItem;
-  SimpleTextItem m_counterItem;
+  score::SimpleTextItem m_labelItem;
+  score::SimpleTextItem m_counterItem;
 
   IntervalMenuOverlay* m_overlay{};
 

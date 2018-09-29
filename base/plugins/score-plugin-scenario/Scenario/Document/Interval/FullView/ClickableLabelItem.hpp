@@ -1,5 +1,5 @@
 #pragma once
-#include <Scenario/Document/CommentBlock/TextItem.hpp>
+#include <score/graphics/TextItem.hpp>
 
 #include <QGraphicsItem>
 #include <QString>
@@ -30,7 +30,7 @@ public:
       QWidget* widget) override;
 };
 
-class ClickableLabelItem final : public QObject, public SimpleTextItem
+class ClickableLabelItem final : public QObject, public score::SimpleTextItem
 {
   W_OBJECT(ClickableLabelItem)
 public:

@@ -56,6 +56,7 @@ WSProtocolSettingsWidget::WSProtocolSettingsWidget(QWidget* parent)
                 m_addressNameEdit->setText(prop);
               }
               object->deleteLater();
+              break;
             }
             default:
               qDebug() << status << comp->errorString();

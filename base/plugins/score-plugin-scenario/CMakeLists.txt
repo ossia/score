@@ -127,7 +127,6 @@ set(HDRS
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/CommentBlock/CommentBlockModel.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/CommentBlock/CommentBlockPresenter.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/CommentBlock/CommentBlockView.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/CommentBlock/TextItem.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/Components/IntervalComponent.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/Components/ScenarioComponent.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/Interval/IntervalDurations.hpp"
@@ -515,7 +514,6 @@ set(SRCS ${SRCS}
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/CommentBlock/CommentBlockModel.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/CommentBlock/CommentBlockPresenter.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/CommentBlock/CommentBlockView.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/CommentBlock/TextItem.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Process/Algorithms/StandardCreationPolicy.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Process/Algorithms/GoodOldDisplacementPolicy.cpp"

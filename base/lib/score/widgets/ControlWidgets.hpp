@@ -12,41 +12,11 @@ namespace Control
 struct SCORE_LIB_BASE_EXPORT ToggleButton : public QPushButton
 {
 public:
-  ToggleButton(std::array<QString, 2> alts, QWidget* parent)
-      : QPushButton{parent}, alternatives{alts}
+  ToggleButton(std::array<QString, 2> alts, QWidget* parent);
 
-  {
-    setCheckable(true);
+  ToggleButton(std::array<const char*, 2> alt, QWidget* parent);
 
-    connect(this, &QPushButton::toggled, this, [&](bool b) {
-      if (b)
-      {
-        setText(alternatives[1]);
-      }
-      else
-      {
-        setText(alternatives[0]);
-      }
-    });
-    if (isChecked())
-    {
-      setText(alternatives[1]);
-    }
-    else
-    {
-      setText(alternatives[0]);
-    }
-  }
-
-  ToggleButton(std::array<const char*, 2> alt, QWidget* parent)
-      : ToggleButton{std::array<QString, 2>{alt[0], alt[1]}, parent}
-  {
-  }
-
-  ToggleButton(QStringList alt, QWidget* parent)
-      : ToggleButton{std::array<QString, 2>{alt[0], alt[1]}, parent}
-  {
-  }
+  ToggleButton(QStringList alt, QWidget* parent);
 
   std::array<QString, 2> alternatives;
 

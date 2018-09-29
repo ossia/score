@@ -24,6 +24,13 @@ public:
   QFont MonoFont;
   QFont SansFontSmall;
 
+  QFont Bold10Pt;
+  QFont Bold12Pt;
+  QFont Medium7Pt;
+  QFont Medium8Pt;
+  QFont Medium10Pt;
+  QFont Medium12Pt;
+
   QBrush Dark;
   QBrush HalfDark;
   QBrush Gray;
@@ -66,6 +73,8 @@ public:
   const QPen NoPen;
   const QBrush NoBrush;
   QBrush TextBrush;
+
+  QPen TextItemPen;
 
   const QBrush* fromString(const QString& s) const;
   QBrush* fromString(const QString& s);

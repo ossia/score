@@ -6,7 +6,7 @@
 #include <Scenario/Document/TimeRuler/TimeRulerGraphicsView.hpp>
 
 #include <score/plugins/documentdelegate/DocumentDelegateView.hpp>
-#include <score/widgets/GraphicsProxyObject.hpp>
+#include <score/graphics/GraphicsProxyObject.hpp>
 
 #include <QGraphicsView>
 #include <QPoint>

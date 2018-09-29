@@ -12,7 +12,7 @@
 #include <score/model/Skin.hpp>
 #include <score/plugins/documentdelegate/DocumentDelegateView.hpp>
 #include <score/widgets/DoubleSlider.hpp>
-#include <score/widgets/GraphicsProxyObject.hpp>
+#include <score/graphics/GraphicsProxyObject.hpp>
 #include <score/widgets/MarginLess.hpp>
 #include <score/widgets/TextLabel.hpp>
 

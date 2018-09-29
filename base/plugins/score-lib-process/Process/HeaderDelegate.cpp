@@ -18,7 +18,7 @@ QImage makeGlyphs(const QString& glyph, const QPen& pen)
   QImage path;
 
   QTextLayout lay;
-  lay.setFont(ScenarioStyle::instance().Medium8Pt);
+  lay.setFont(score::Skin::instance().Medium8Pt);
   lay.setText(glyph);
   lay.beginLayout();
   QTextLine line = lay.createLine();

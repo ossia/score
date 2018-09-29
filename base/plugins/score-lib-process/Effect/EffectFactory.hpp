@@ -3,7 +3,7 @@
 #include <Process/Process.hpp>
 #include <Process/ProcessFactory.hpp>
 
-#include <score/widgets/RectItem.hpp>
+#include <score/graphics/RectItem.hpp>
 
 #include <Effect/EffectLayer.hpp>
 

@@ -31,7 +31,7 @@
 #include <score/model/Identifier.hpp>
 #include <score/tools/Todo.hpp>
 #include <score/tools/std/Optional.hpp>
-#include <score/widgets/GraphicsProxyObject.hpp>
+#include <score/graphics/GraphicsProxyObject.hpp>
 
 #include <ossia/detail/algorithms.hpp>
 

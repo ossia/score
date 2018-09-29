@@ -10,7 +10,7 @@
 #include <Scenario/Palette/Tools/States/ScenarioMoveStatesWrapper.hpp>
 
 #include <score/statemachine/GraphicsSceneToolPalette.hpp>
-#include <score/widgets/GraphicsProxyObject.hpp>
+#include <score/graphics/GraphicsProxyObject.hpp>
 
 #include <QPoint>
 

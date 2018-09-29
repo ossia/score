@@ -2,7 +2,7 @@
 #include <Process/Dataflow/Port.hpp>
 #include <Process/Process.hpp>
 
-#include <score/widgets/RectItem.hpp>
+#include <score/graphics/RectItem.hpp>
 
 namespace Media::Effect
 {
