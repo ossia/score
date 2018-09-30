@@ -13,14 +13,16 @@ DefaultEffectItem::DefaultEffectItem(
     const Process::ProcessModel& effect, const score::DocumentContext& doc,
     score::RectItem* root)
     : score::RectItem{root}
+    , m_effect{effect}
+    , m_ctx{doc}
 {
   QObject::connect(
-      &effect, &Process::ProcessModel::controlAdded, this,
-      [&](const Id<Process::Port>& id) {
-        auto inlet = safe_cast<Process::ControlInlet*>(effect.inlet(id));
-        setupInlet(*inlet, doc);
-        this->setRect(this->childrenBoundingRect());
-      });
+      &effect, &Process::ProcessModel::controlAdded,
+      this, &DefaultEffectItem::on_controlAdded);
+
+  QObject::connect(
+      &effect, &Process::ProcessModel::controlRemoved,
+      this, &DefaultEffectItem::on_controlRemoved);
 
   for (auto& e : effect.inlets())
   {
@@ -31,39 +33,28 @@ DefaultEffectItem::DefaultEffectItem(
     setupInlet(*inlet, doc);
   }
 
-  QObject::connect(&effect, &Process::ProcessModel::inletsChanged, this, [&] {
-    const auto& c = this->childItems();
-    for (auto child : c)
-    {
-      this->scene()->removeItem(child);
-      delete child;
-    }
-
-    for (auto& e : effect.inlets())
-    {
-      auto inlet = qobject_cast<Process::ControlInlet*>(e);
-      if (!inlet)
-        continue;
-
-      setupInlet(*inlet, doc);
-    }
-    this->setRect(this->childrenBoundingRect());
-  });
-
+  QObject::connect(&effect, &Process::ProcessModel::inletsChanged,
+                   this, &DefaultEffectItem::reset);
   // TODO same for outlets if we have control outlets one day
 }
 
 void DefaultEffectItem::setupInlet(
     Process::ControlInlet& inlet, const score::DocumentContext& doc)
 {
+  con(inlet, &Process::ControlInlet::domainChanged,
+          this, [this,&inlet] {
+    on_controlRemoved(inlet);
+    on_controlAdded(inlet.id());
+  });
+  // TODO put them in the correct order
   auto item = new score::EmptyRectItem{this};
-
   double pos_y = this->childrenBoundingRect().height();
 
   auto& portFactory
       = score::AppContext().interfaces<Process::PortFactoryList>();
   Process::PortFactory* fact = portFactory.get(inlet.concreteKey());
   auto port = fact->makeItem(inlet, doc, item, this);
+  m_ports.push_back({item, port});
 
   auto lab = new score::SimpleTextItem{ScenarioStyle::instance().EventDefault, item};
   if (inlet.customData().isEmpty())
@@ -124,5 +115,54 @@ void DefaultEffectItem::setupInlet(
 
   item->setPos(0, pos_y);
   item->setRect(QRectF{0., 0, 170., h});
+}
+
+void DefaultEffectItem::on_controlAdded(const Id<Process::Port>& id) noexcept
+{
+  auto inlet = safe_cast<Process::ControlInlet*>(m_effect.inlet(id));
+  setupInlet(*inlet, m_ctx);
+  this->setRect(this->childrenBoundingRect());
+}
+
+void DefaultEffectItem::on_controlRemoved(const Process::Port& port) noexcept
+{
+  for(auto it = m_ports.begin(); it != m_ports.end(); ++it)
+  {
+    auto ptr = it->second;
+    if(&ptr->port() == &port)
+    {
+      auto parent_item = it->first;
+      auto h = parent_item->boundingRect().height();
+      delete parent_item;
+      m_ports.erase(it);
+
+      for(; it != m_ports.end(); ++it)
+      {
+        auto item = it->first;
+        item->moveBy(0., -h);
+      }
+      this->setRect(this->childrenBoundingRect());
+      return;
+    }
+  }
+}
+
+void DefaultEffectItem::reset() noexcept
+{
+  const auto& c = this->childItems();
+  for (auto child : c)
+  {
+    this->scene()->removeItem(child);
+    delete child;
+  }
+  this->setRect(this->childrenBoundingRect());
+  m_ports.clear();
+
+  for (auto& e : m_effect.inlets())
+  {
+    if (auto inlet = qobject_cast<Process::ControlInlet*>(e))
+      setupInlet(*inlet, m_ctx);
+  }
+  this->setRect(this->childrenBoundingRect());
 }
 }

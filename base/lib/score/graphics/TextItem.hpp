@@ -18,7 +18,7 @@ public:
   TextItem(QString text, QGraphicsItem* parent);
 
 public:
-  void focusOut() W_SIGNAL(focusOut);
+  void focusOut() E_SIGNAL(SCORE_LIB_BASE_EXPORT, focusOut);
 
 protected:
   void focusOutEvent(QFocusEvent* event) override;
@@ -58,7 +58,7 @@ public:
   QGraphicsTextButton(QString text, QGraphicsItem* parent);
 
 public:
-  void pressed() W_SIGNAL(pressed);
+  void pressed() E_SIGNAL(SCORE_LIB_BASE_EXPORT, pressed);
 
 protected:
   void mousePressEvent(QGraphicsSceneMouseEvent* event) override;

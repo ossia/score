@@ -174,7 +174,7 @@ public:
 
 public:
   void sig_callback(double position, ossia::time_value date)
-      W_SIGNAL(sig_callback, position, date);
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, sig_callback, position, date);
 
 public:
   void slot_callback(double position, ossia::time_value date);

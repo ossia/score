@@ -119,7 +119,7 @@ public:
 public:
   void sig_eventCallback(
       std::shared_ptr<EventComponent> arg_1, ossia::time_event::status st)
-      W_SIGNAL(sig_eventCallback, arg_1, st);
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, sig_eventCallback, arg_1, st);
 
 protected:
   void startIntervalExecution(const Id<Scenario::IntervalModel>&);
