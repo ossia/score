@@ -135,7 +135,9 @@ struct UpdateUI
       else
       {
         auto id = fx.inlets()[i]->id();
+        fx.controlRemoved(*fx.inlets()[i]);
         delete fx.inlets()[i];
+
         auto inl = new Process::Button{label, id, &fx};
         fx.inlets()[i] = inl;
         // TODO REUSE ADDRESS ?
@@ -162,7 +164,9 @@ struct UpdateUI
       else
       {
         auto id = fx.inlets()[i]->id();
+        fx.controlRemoved(*fx.inlets()[i]);
         delete fx.inlets()[i];
+
         auto inl = new Process::Toggle{bool(*zone), label, id, &fx};
         fx.inlets()[i] = inl;
         // TODO REUSE ADDRESS ?
@@ -193,7 +197,9 @@ struct UpdateUI
       else
       {
         auto id = fx.inlets()[i]->id();
+        fx.controlRemoved(*fx.inlets()[i]);
         delete fx.inlets()[i];
+
         auto inl = new Process::FloatSlider{min, max, init, label, id, &fx};
         fx.inlets()[i] = inl;
       }
