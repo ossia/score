@@ -366,4 +366,39 @@ struct Node
     self.transpose = new_transpose;
   }
 };
+
+
+namespace MidiToValue
+{
+struct Node
+{
+  struct Metadata : Control::Meta_base
+  {
+    static const constexpr auto prettyName = "MIDI Pitch";
+    static const constexpr auto objectKey = "NoteToValue";
+    static const constexpr auto category = "MIDI";
+    static const constexpr auto author = "ossia score";
+    static const constexpr auto kind = Process::ProcessCategory::MidiEffect;
+    static const constexpr auto description
+        = "Extract a MIDI pitch";
+    static const constexpr auto tags = std::array<const char*, 0>{};
+    static const constexpr auto uuid
+        = make_uuid("29ce484f-cb56-4501-af79-88768fa261c3");
+
+    static const constexpr midi_in midi_ins[]{"in"};
+    static const constexpr value_out value_outs[]{"out"};
+  };
+
+  using control_policy = ossia::safe_nodes::default_tick;
+  static void
+  run(const ossia::midi_port& in, ossia::value_port& res,
+      ossia::token_request tk, ossia::exec_state_facade st)
+  {
+      for(auto& note : in.messages)
+      {
+
+      }
+  }
+};
+}
 }
