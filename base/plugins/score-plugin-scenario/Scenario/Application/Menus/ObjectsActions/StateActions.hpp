@@ -15,7 +15,7 @@ struct GUIElements;
 namespace Scenario
 {
 class ScenarioApplicationPlugin;
-class TemporalScenarioPresenter;
+class ScenarioPresenter;
 class SCORE_PLUGIN_SCENARIO_EXPORT StateActions final : public QObject
 {
 public:

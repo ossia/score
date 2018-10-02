@@ -22,8 +22,8 @@
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/Interval/Slot.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
-#include <Scenario/Process/Temporal/TemporalScenarioPresenter.hpp>
-#include <Scenario/Process/Temporal/TemporalScenarioView.hpp>
+#include <Scenario/Process/ScenarioPresenter.hpp>
+#include <Scenario/Process/ScenarioView.hpp>
 #include <Scenario/ViewCommands/PutLayerModelToFront.hpp>
 
 #include <score/application/ApplicationContext.hpp>

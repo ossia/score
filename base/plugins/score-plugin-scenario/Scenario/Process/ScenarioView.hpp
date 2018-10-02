@@ -20,13 +20,13 @@ class QPainter;
 namespace Scenario
 {
 class ProcessModel;
-class TemporalScenarioPresenter;
+class ScenarioPresenter;
 
-class TemporalScenarioView final : public Process::LayerView
+class ScenarioView final : public Process::LayerView
 {
 public:
-  TemporalScenarioView(const ProcessModel& m, QGraphicsItem* parent);
-  ~TemporalScenarioView();
+  ScenarioView(const ProcessModel& m, QGraphicsItem* parent);
+  ~ScenarioView();
 
   void paint_impl(QPainter* painter) const override;
 

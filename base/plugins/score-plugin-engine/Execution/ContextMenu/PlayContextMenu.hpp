@@ -14,7 +14,7 @@ class LayerContextMenuManager;
 namespace Scenario
 {
 class ScenarioApplicationPlugin;
-class TemporalScenarioPresenter;
+class ScenarioPresenter;
 }
 namespace Engine
 {

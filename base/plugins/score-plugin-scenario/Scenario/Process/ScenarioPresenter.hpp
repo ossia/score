@@ -16,7 +16,7 @@
 #include <Scenario/Instantiations.hpp>
 #include <Scenario/Palette/ScenarioPalette.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
-#include <Scenario/Process/Temporal/ScenarioViewInterface.hpp>
+#include <Scenario/Process/ScenarioViewInterface.hpp>
 
 #include <score/command/Dispatchers/OngoingCommandDispatcher.hpp>
 #include <score/model/IdentifiedObjectMap.hpp>
@@ -30,24 +30,24 @@ namespace Scenario
 {
 
 class EditionSettings;
-class TemporalScenarioView;
+class ScenarioView;
 
-class SCORE_PLUGIN_SCENARIO_EXPORT TemporalScenarioPresenter final
+class SCORE_PLUGIN_SCENARIO_EXPORT ScenarioPresenter final
     : public Process::LayerPresenter,
       public Nano::Observer
 {
-  W_OBJECT(TemporalScenarioPresenter)
+  W_OBJECT(ScenarioPresenter)
 
   friend class Scenario::ToolPalette;
   friend class ScenarioViewInterface;
   friend class ScenarioSelectionManager;
 
 public:
-  TemporalScenarioPresenter(
+  ScenarioPresenter(
       Scenario::EditionSettings&, const Scenario::ProcessModel& model,
       Process::LayerView* view,
       const Process::ProcessPresenterContext& context, QObject* parent);
-  ~TemporalScenarioPresenter();
+  ~ScenarioPresenter();
 
   const Scenario::ProcessModel& model() const override;
   const Id<Process::ProcessModel>& modelId() const override;
@@ -98,7 +98,7 @@ public:
     return m_comments;
   }
 
-  TemporalScenarioView& view() const
+  ScenarioView& view() const
   {
     return *m_view;
   }
@@ -178,7 +178,7 @@ private:
 
   // The order of deletion matters!
   // m_view has to be deleted after the other elements.
-  graphics_item_ptr<TemporalScenarioView> m_view;
+  graphics_item_ptr<ScenarioView> m_view;
 
   IdContainer<StatePresenter, StateModel> m_states;
   IdContainer<EventPresenter, EventModel> m_events;

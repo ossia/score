@@ -31,7 +31,7 @@ namespace Scenario
 {
 class ObjectMenuActions;
 class ScenarioActions;
-class TemporalScenarioPresenter;
+class ScenarioPresenter;
 class ToolMenuActions;
 class ProcessModel;
 class ScenarioInterface;
@@ -50,7 +50,7 @@ public:
 
   GUIElements makeGUIElements() override;
 
-  TemporalScenarioPresenter* focusedPresenter() const;
+  ScenarioPresenter* focusedPresenter() const;
 
   void reinit_tools();
 

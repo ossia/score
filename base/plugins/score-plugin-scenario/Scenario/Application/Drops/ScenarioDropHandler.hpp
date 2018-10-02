@@ -9,7 +9,7 @@
 
 namespace Scenario
 {
-class TemporalScenarioPresenter;
+class ScenarioPresenter;
 class SCORE_PLUGIN_SCENARIO_EXPORT DropHandler : public score::InterfaceBase
 {
   SCORE_INTERFACE(DropHandler, "ce1c5b6c-fe4c-416f-877c-eae642a1413a")
@@ -18,25 +18,25 @@ public:
 
   // Returns false if not handled.
   virtual bool dragEnter(
-      const Scenario::TemporalScenarioPresenter&, QPointF pos,
+      const Scenario::ScenarioPresenter&, QPointF pos,
       const QMimeData& mime)
   {
     return false;
   }
   virtual bool dragMove(
-      const Scenario::TemporalScenarioPresenter&, QPointF pos,
+      const Scenario::ScenarioPresenter&, QPointF pos,
       const QMimeData& mime)
   {
     return false;
   }
   virtual bool dragLeave(
-      const Scenario::TemporalScenarioPresenter&, QPointF pos,
+      const Scenario::ScenarioPresenter&, QPointF pos,
       const QMimeData& mime)
   {
     return false;
   }
   virtual bool drop(
-      const Scenario::TemporalScenarioPresenter&, QPointF pos,
+      const Scenario::ScenarioPresenter&, QPointF pos,
       const QMimeData& mime)
       = 0;
 };
@@ -47,16 +47,16 @@ public:
   ~DropHandlerList() override;
 
   bool dragEnter(
-      const TemporalScenarioPresenter& scen, QPointF pos,
+      const ScenarioPresenter& scen, QPointF pos,
       const QMimeData& mime) const;
   bool dragMove(
-      const TemporalScenarioPresenter& scen, QPointF pos,
+      const ScenarioPresenter& scen, QPointF pos,
       const QMimeData& mime) const;
   bool dragLeave(
-      const TemporalScenarioPresenter&, QPointF pos,
+      const ScenarioPresenter&, QPointF pos,
       const QMimeData& mime) const;
   bool drop(
-      const TemporalScenarioPresenter& scen, QPointF pos,
+      const ScenarioPresenter& scen, QPointF pos,
       const QMimeData& mime) const;
 };
 

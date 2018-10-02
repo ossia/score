@@ -10,8 +10,8 @@
 #include <Scenario/Process/Algorithms/Accessors.hpp>
 #include <Scenario/Process/Algorithms/ContainersAccessors.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
-#include <Scenario/Process/Temporal/TemporalScenarioPresenter.hpp>
-#include <Scenario/Process/Temporal/TemporalScenarioView.hpp>
+#include <Scenario/Process/ScenarioPresenter.hpp>
+#include <Scenario/Process/ScenarioView.hpp>
 #include <State/MessageListSerialization.hpp>
 
 #include <score/command/Dispatchers/MacroCommandDispatcher.hpp>
@@ -74,14 +74,14 @@ std::abs(cur_st->heightPercentage() - pt.y))
 */
 
 bool MessageDropHandler::dragEnter(
-    const Scenario::TemporalScenarioPresenter& pres, QPointF pos,
+    const Scenario::ScenarioPresenter& pres, QPointF pos,
     const QMimeData& mime)
 {
   return dragMove(pres, pos, mime);
 }
 
 bool MessageDropHandler::dragMove(
-    const Scenario::TemporalScenarioPresenter& pres, QPointF pos,
+    const Scenario::ScenarioPresenter& pres, QPointF pos,
     const QMimeData& mime)
 {
   if (!mime.formats().contains(score::mime::messagelist()) && !mime.hasUrls())
@@ -105,7 +105,7 @@ bool MessageDropHandler::dragMove(
 }
 
 bool MessageDropHandler::dragLeave(
-    const Scenario::TemporalScenarioPresenter& pres, QPointF pos,
+    const Scenario::ScenarioPresenter& pres, QPointF pos,
     const QMimeData& mime)
 {
   pres.stopDrawDragLine();
@@ -113,7 +113,7 @@ bool MessageDropHandler::dragLeave(
 }
 
 bool MessageDropHandler::drop(
-    const Scenario::TemporalScenarioPresenter& pres, QPointF pos,
+    const Scenario::ScenarioPresenter& pres, QPointF pos,
     const QMimeData& mime)
 {
   using namespace Scenario::Command;

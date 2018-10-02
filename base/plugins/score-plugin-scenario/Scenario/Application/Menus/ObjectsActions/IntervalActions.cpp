@@ -13,8 +13,8 @@
 #include <Scenario/DialogWidget/AddProcessDialog.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
-#include <Scenario/Process/Temporal/TemporalScenarioPresenter.hpp>
-#include <Scenario/Process/Temporal/TemporalScenarioView.hpp>
+#include <Scenario/Process/ScenarioPresenter.hpp>
+#include <Scenario/Process/ScenarioView.hpp>
 
 #include <score/actions/ActionManager.hpp>
 #include <score/actions/MenuManager.hpp>

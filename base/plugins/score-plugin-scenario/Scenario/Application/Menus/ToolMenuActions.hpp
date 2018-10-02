@@ -18,7 +18,7 @@ class QToolBar;
 namespace Scenario
 {
 class ScenarioApplicationPlugin;
-class TemporalScenarioPresenter;
+class ScenarioPresenter;
 class ToolMenuActions final : public QObject
 {
 public:

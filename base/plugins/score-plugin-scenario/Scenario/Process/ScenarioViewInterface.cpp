@@ -2,7 +2,7 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "ScenarioViewInterface.hpp"
 
-#include "TemporalScenarioPresenter.hpp"
+#include "ScenarioPresenter.hpp"
 
 #include <Process/TimeValue.hpp>
 #include <Scenario/Document/CommentBlock/CommentBlockModel.hpp>
@@ -24,7 +24,7 @@
 #include <Scenario/Document/TimeSync/TimeSyncView.hpp>
 #include <Scenario/Document/VerticalExtent.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
-#include <Scenario/Process/Temporal/TemporalScenarioView.hpp>
+#include <Scenario/Process/ScenarioView.hpp>
 
 #include <score/model/IdentifiedObjectMap.hpp>
 #include <score/model/Identifier.hpp>
@@ -36,7 +36,7 @@
 namespace Scenario
 {
 ScenarioViewInterface::ScenarioViewInterface(
-    const TemporalScenarioPresenter& presenter)
+    const ScenarioPresenter& presenter)
     : m_presenter{presenter}
 {
 }

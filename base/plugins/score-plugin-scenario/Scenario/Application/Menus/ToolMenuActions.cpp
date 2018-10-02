@@ -27,7 +27,7 @@
 class QObject;
 namespace Scenario
 {
-class TemporalScenarioPresenter;
+class ScenarioPresenter;
 
 template <typename Data>
 QAction* makeToolbarAction(

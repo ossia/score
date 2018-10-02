@@ -21,7 +21,7 @@ struct Point;
 class ScenarioApplicationPlugin;
 class ScenarioDocumentModel;
 class ScenarioDocumentPresenter;
-class TemporalScenarioPresenter;
+class ScenarioPresenter;
 class SCORE_PLUGIN_SCENARIO_EXPORT ObjectMenuActions final : public QObject
 {
 public:

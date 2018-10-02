@@ -10,7 +10,7 @@
 #include <Scenario/Commands/Interval/AddProcessToInterval.hpp>
 #include <Scenario/Commands/Scenario/ScenarioPasteElements.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
-#include <Scenario/Process/Temporal/TemporalScenarioPresenter.hpp>
+#include <Scenario/Process/ScenarioPresenter.hpp>
 
 #include <score/document/DocumentContext.hpp>
 
@@ -22,7 +22,7 @@ namespace Scenario
 {
 
 bool DropProcessInScenario::drop(
-    const TemporalScenarioPresenter& pres, QPointF pos, const QMimeData& mime)
+    const ScenarioPresenter& pres, QPointF pos, const QMimeData& mime)
 {
   if (mime.formats().contains(score::mime::processdata()))
   {
@@ -62,7 +62,7 @@ bool DropProcessInScenario::drop(
 }
 
 bool DropPortInScenario::drop(
-    const TemporalScenarioPresenter& pres, QPointF pos, const QMimeData& mime)
+    const ScenarioPresenter& pres, QPointF pos, const QMimeData& mime)
 {
   if (mime.formats().contains(score::mime::port()))
   {
@@ -107,7 +107,7 @@ bool DropPortInScenario::drop(
 }
 
 bool DropScenario::drop(
-    const TemporalScenarioPresenter& pres, QPointF pos, const QMimeData& mime)
+    const ScenarioPresenter& pres, QPointF pos, const QMimeData& mime)
 {
   if (mime.hasUrls())
   {
@@ -129,7 +129,7 @@ bool DropScenario::drop(
 }
 
 bool DropLayerInScenario::drop(
-    const TemporalScenarioPresenter& pres, QPointF pos, const QMimeData& mime)
+    const ScenarioPresenter& pres, QPointF pos, const QMimeData& mime)
 {
   QJsonObject json;
   if (mime.formats().contains(score::mime::layerdata()))

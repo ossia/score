@@ -9,7 +9,7 @@
 #include <Scenario/Commands/CommandAPI.hpp>
 #include <Scenario/Commands/MoveBaseEvent.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
-#include <Scenario/Process/Temporal/TemporalScenarioPresenter.hpp>
+#include <Scenario/Process/ScenarioPresenter.hpp>
 
 #include <QApplication>
 #include <QMimeData>
@@ -61,7 +61,7 @@ TimeVal DroppedAudioFiles::dropMaxDuration() const
 }
 
 bool DropHandler::drop(
-    const Scenario::TemporalScenarioPresenter& pres, QPointF pos,
+    const Scenario::ScenarioPresenter& pres, QPointF pos,
     const QMimeData& mime)
 {
   DroppedAudioFiles drop{mime};
@@ -83,7 +83,7 @@ bool DropHandler::drop(
 }
 
 bool DropHandler::createInSequence(
-    const Scenario::TemporalScenarioPresenter& pres, QPointF pos,
+    const Scenario::ScenarioPresenter& pres, QPointF pos,
     DroppedAudioFiles&& audio)
 {
   SCORE_TODO;
@@ -91,7 +91,7 @@ bool DropHandler::createInSequence(
 }
 
 bool DropHandler::createInParallel(
-    const Scenario::TemporalScenarioPresenter& pres, QPointF pos,
+    const Scenario::ScenarioPresenter& pres, QPointF pos,
     DroppedAudioFiles&& drop)
 {
   Scenario::Command::Macro m{new Media::CreateSoundBoxMacro,

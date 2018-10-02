@@ -12,7 +12,7 @@
 #include <Scenario/Document/Event/ExecutionStatus.hpp>
 #include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
-#include <Scenario/Process/Temporal/TemporalScenarioPresenter.hpp>
+#include <Scenario/Process/ScenarioPresenter.hpp>
 #include <State/Message.hpp>
 #include <State/MessageListSerialization.hpp>
 
@@ -106,7 +106,7 @@ void StatePresenter::handleDrop(const QMimeData& mime)
   }
   else if (mime.hasUrls())
   {
-    auto scenario = dynamic_cast<TemporalScenarioPresenter*>(parent());
+    auto scenario = dynamic_cast<ScenarioPresenter*>(parent());
     if (ossia::all_of(mime.urls(), [](const QUrl& u) {
           return QFileInfo{u.toLocalFile()}.suffix() == "cues";
         }))
