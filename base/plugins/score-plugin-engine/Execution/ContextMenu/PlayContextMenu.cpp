@@ -8,8 +8,8 @@
 #include <Scenario/Document/State/StateModel.hpp>
 #include <Scenario/Execution/score2OSSIA.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
-#include <Scenario/Process/Temporal/TemporalScenarioPresenter.hpp>
-#include <Scenario/Process/Temporal/TemporalScenarioView.hpp>
+#include <Scenario/Process/ScenarioPresenter.hpp>
+#include <Scenario/Process/ScenarioView.hpp>
 
 #include <core/presenter/DocumentManager.hpp>
 
@@ -126,7 +126,7 @@ PlayContextMenu::PlayContextMenu(
       return;
 
     auto& pres
-        = *safe_cast<const TemporalScenarioPresenter*>(recdata.presenter);
+        = *safe_cast<const ScenarioPresenter*>(recdata.presenter);
     auto proc = safe_cast<const Scenario::ProcessModel*>(&pres.model());
     auto p = const_cast<Scenario::ProcessModel*>(proc);
 
@@ -146,7 +146,7 @@ PlayContextMenu::PlayContextMenu(
       return;
 
     auto& pres
-        = *safe_cast<const TemporalScenarioPresenter*>(recdata.presenter);
+        = *safe_cast<const ScenarioPresenter*>(recdata.presenter);
     auto proc = safe_cast<const Scenario::ProcessModel*>(&pres.model());
     auto p = const_cast<Scenario::ProcessModel*>(proc);
 
@@ -211,7 +211,7 @@ void PlayContextMenu::setupContextMenu(Process::LayerContextMenuManager& ctxm)
                                       QMenu& menu, QPoint, QPointF scenept,
                                       const Process::LayerContext& ctx) {
     auto& pres
-        = safe_cast<Scenario::TemporalScenarioPresenter&>(ctx.presenter);
+        = safe_cast<Scenario::ScenarioPresenter&>(ctx.presenter);
     auto scenPoint = Scenario::ConvertToScenarioPoint(
         scenept, pres.zoomRatio(), pres.view().height());
     m_playFromHere->setData(QVariant::fromValue(scenPoint.date));

@@ -23,8 +23,8 @@
 #include <Scenario/Process/Algorithms/ContainersAccessors.hpp>
 #include <Scenario/Process/ScenarioGlobalCommandManager.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
-#include <Scenario/Process/Temporal/TemporalScenarioPresenter.hpp>
-#include <Scenario/Process/Temporal/TemporalScenarioView.hpp>
+#include <Scenario/Process/ScenarioPresenter.hpp>
+#include <Scenario/Process/ScenarioView.hpp>
 
 #include <score/actions/ActionManager.hpp>
 #include <score/actions/Menu.hpp>
@@ -143,7 +143,7 @@ ObjectMenuActions::ObjectMenuActions(ScenarioApplicationPlugin* parent)
     QPoint pos = QCursor::pos();
 
     auto scene_pt = view->mapToScene(view->mapFromGlobal(pos));
-    TemporalScenarioView& sv = pres->view();
+    ScenarioView& sv = pres->view();
     auto sv_pt = sv.mapFromScene(scene_pt);
     if (!sv.contains(sv_pt))
     {
@@ -170,7 +170,7 @@ ObjectMenuActions::ObjectMenuActions(ScenarioApplicationPlugin* parent)
     QPoint pos = QCursor::pos();
 
     auto scene_pt = view->mapToScene(view->mapFromGlobal(pos));
-    TemporalScenarioView& sv = pres->view();
+    ScenarioView& sv = pres->view();
     auto sv_pt = sv.mapFromScene(scene_pt);
     if (!sv.contains(sv_pt))
     {
@@ -385,7 +385,7 @@ void ObjectMenuActions::setupContextMenu(
                                          QPointF scenePoint,
                                          const LayerContext& ctx) {
     auto& scenario
-        = *safe_cast<const TemporalScenarioPresenter*>(&ctx.presenter);
+        = *safe_cast<const ScenarioPresenter*>(&ctx.presenter);
     auto sel = ctx.context.selectionStack.currentSelection();
     if (!sel.empty())
     {

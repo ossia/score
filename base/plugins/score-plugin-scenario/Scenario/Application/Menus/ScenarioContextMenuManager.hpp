@@ -20,7 +20,7 @@ struct DocumentContext;
 namespace Scenario
 {
 struct SlotPresenter;
-class TemporalScenarioPresenter;
+class ScenarioPresenter;
 class TemporalIntervalPresenter;
 class FullViewIntervalPresenter;
 class ScenarioContextMenuManager final : public QObject

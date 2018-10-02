@@ -20,8 +20,8 @@ class ObjectLocker;
 namespace Scenario
 {
 class EditionSettings;
-class TemporalScenarioPresenter;
-class TemporalScenarioView;
+class ScenarioPresenter;
+class ScenarioView;
 class MoveIntervalInScenario_StateWrapper;
 class MoveLeftBraceInScenario_StateWrapper;
 class MoveRightBraceInScenario_StateWrapper;
@@ -31,9 +31,9 @@ class ProcessModel;
 class ToolPalette final : public GraphicsSceneToolPalette
 {
 public:
-  ToolPalette(Process::LayerContext&, TemporalScenarioPresenter& presenter);
+  ToolPalette(Process::LayerContext&, ScenarioPresenter& presenter);
 
-  const TemporalScenarioPresenter& presenter() const
+  const ScenarioPresenter& presenter() const
   {
     return m_presenter;
   }
@@ -60,13 +60,13 @@ public:
 private:
   Scenario::Point ScenePointToScenarioPoint(QPointF point);
 
-  TemporalScenarioPresenter& m_presenter;
+  ScenarioPresenter& m_presenter;
   const Scenario::ProcessModel& m_model;
   Process::LayerContext& m_context;
 
   CreationTool<ProcessModel, Scenario::ToolPalette> m_createTool;
   SmartTool<
-      ProcessModel, Scenario::ToolPalette, TemporalScenarioView,
+      ProcessModel, Scenario::ToolPalette, ScenarioView,
       Scenario::MoveIntervalInScenario_StateWrapper,
       Scenario::MoveLeftBraceInScenario_StateWrapper,
       Scenario::MoveRightBraceInScenario_StateWrapper,

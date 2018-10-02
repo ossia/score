@@ -10,8 +10,8 @@
 #include <Scenario/Palette/Tools/SmartTool.hpp>
 #include <Scenario/Palette/Tools/States/ScenarioMoveStatesWrapper.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
-#include <Scenario/Process/Temporal/TemporalScenarioPresenter.hpp>
-#include <Scenario/Process/Temporal/TemporalScenarioView.hpp>
+#include <Scenario/Process/ScenarioPresenter.hpp>
+#include <Scenario/Process/ScenarioView.hpp>
 
 #include <score/command/Command.hpp>
 #include <score/model/Identifier.hpp>
@@ -31,7 +31,7 @@ SlotState::~SlotState()
 {
 }
 ToolPalette::ToolPalette(
-    Process::LayerContext& lay, TemporalScenarioPresenter& presenter)
+    Process::LayerContext& lay, ScenarioPresenter& presenter)
     : GraphicsSceneToolPalette{*presenter.view().scene()}
     , m_presenter{presenter}
     , m_model{static_cast<const Scenario::ProcessModel&>(m_presenter.model())}

@@ -8,13 +8,13 @@ class EventModel;
 class EventPresenter;
 class StatePresenter;
 class TemporalIntervalPresenter;
-class TemporalScenarioPresenter;
+class ScenarioPresenter;
 class TimeSyncPresenter;
 class CommentBlockPresenter;
 class ScenarioViewInterface
 {
 public:
-  ScenarioViewInterface(const TemporalScenarioPresenter& presenter);
+  ScenarioViewInterface(const ScenarioPresenter& presenter);
 
   void on_eventMoved(const EventPresenter& event);
   void on_intervalMoved(const TemporalIntervalPresenter& interval);
@@ -28,6 +28,6 @@ public:
   void on_graphicalScaleChanged(double scale);
 
 private:
-  const TemporalScenarioPresenter& m_presenter;
+  const ScenarioPresenter& m_presenter;
 };
 }

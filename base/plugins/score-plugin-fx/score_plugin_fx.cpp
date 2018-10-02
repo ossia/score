@@ -40,7 +40,7 @@ std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_fx::factories(
       Nodes::MathGenerator::Node, Nodes::MathAudioGenerator::Node,
       Nodes::MathMapping::Node, Nodes::EmptyValueMapping::Node,
       Nodes::EmptyMidiMapping::Node, Nodes::EmptyAudioMapping::Node,
-      Nodes::FactorOracle::Node>(ctx, key);
+      Nodes::FactorOracle::Node, Nodes::PitchToValue::Node>(ctx, key);
 }
 
 auto score_plugin_fx::required() const -> std::vector<score::PluginKey>

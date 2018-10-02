@@ -5,9 +5,9 @@
 #include <Process/Process.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
 #include <Scenario/Process/ScenarioProcessMetadata.hpp>
-#include <Scenario/Process/Temporal/MiniScenarioView.hpp>
-#include <Scenario/Process/Temporal/TemporalScenarioPresenter.hpp>
-#include <Scenario/Process/Temporal/TemporalScenarioView.hpp>
+#include <Scenario/Process/MiniScenarioView.hpp>
+#include <Scenario/Process/ScenarioPresenter.hpp>
+#include <Scenario/Process/ScenarioView.hpp>
 
 #include <score/document/DocumentInterface.hpp>
 #include <score/model/Identifier.hpp>
@@ -43,7 +43,7 @@ Process::LayerView* ScenarioTemporalLayerFactory::makeLayerView(
     const Process::ProcessModel& p, QGraphicsItem* parent) const
 {
   if (auto s = dynamic_cast<const Scenario::ProcessModel*>(&p))
-    return new TemporalScenarioView{*s, parent};
+    return new ScenarioView{*s, parent};
 
   return nullptr;
 }
@@ -75,7 +75,7 @@ Process::LayerPresenter* ScenarioTemporalLayerFactory::makeLayerPresenter(
 {
   if (auto vm = dynamic_cast<const Scenario::ProcessModel*>(&lm))
   {
-    auto pres = new TemporalScenarioPresenter{m_editionSettings, *vm, view,
+    auto pres = new ScenarioPresenter{m_editionSettings, *vm, view,
                                               context, parent};
     return pres;
   }

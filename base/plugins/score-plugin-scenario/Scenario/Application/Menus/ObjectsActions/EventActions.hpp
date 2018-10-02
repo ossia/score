@@ -15,7 +15,7 @@ struct GUIElements;
 namespace Scenario
 {
 class ScenarioApplicationPlugin;
-class TemporalScenarioPresenter;
+class ScenarioPresenter;
 namespace Command
 {
 class TriggerCommandFactoryList;

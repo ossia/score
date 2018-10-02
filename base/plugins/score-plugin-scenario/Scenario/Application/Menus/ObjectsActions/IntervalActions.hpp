@@ -18,7 +18,7 @@ class LayerFactory;
 namespace Scenario
 {
 class ScenarioApplicationPlugin;
-class TemporalScenarioPresenter;
+class ScenarioPresenter;
 class SCORE_PLUGIN_SCENARIO_EXPORT IntervalActions final : public QObject
 {
 public:

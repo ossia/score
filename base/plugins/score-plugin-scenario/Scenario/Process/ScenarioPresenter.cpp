@@ -1,6 +1,6 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
-#include "TemporalScenarioPresenter.hpp"
+#include "ScenarioPresenter.hpp"
 
 #include <Scenario/Application/Drops/ScenarioDropHandler.hpp>
 #include <Scenario/Application/Menus/ScenarioContextMenuManager.hpp>
@@ -12,24 +12,24 @@
 #include <Scenario/Commands/Scenario/Creations/CreateTimeSync_Event_State.hpp>
 #include <Scenario/Commands/Scenario/Displacement/MoveCommentBlock.hpp>
 #include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
-#include <Scenario/Process/Temporal/TemporalScenarioView.hpp>
+#include <Scenario/Process/ScenarioView.hpp>
 #include <State/MessageListSerialization.hpp>
 
 #include <score/actions/ActionManager.hpp>
 
 #include <wobjectimpl.h>
-W_OBJECT_IMPL(Scenario::TemporalScenarioPresenter)
+W_OBJECT_IMPL(Scenario::ScenarioPresenter)
 namespace Scenario
 {
 struct VerticalExtent;
 
-TemporalScenarioPresenter::TemporalScenarioPresenter(
+ScenarioPresenter::ScenarioPresenter(
     Scenario::EditionSettings& e, const Scenario::ProcessModel& scenario,
     Process::LayerView* view, const Process::ProcessPresenterContext& context,
     QObject* parent)
     : LayerPresenter{context, parent}
     , m_layer{scenario}
-    , m_view{static_cast<TemporalScenarioView*>(view)}
+    , m_view{static_cast<ScenarioView*>(view)}
     , m_viewInterface{*this}
     , m_editionSettings{e}
     , m_ongoingDispatcher{context.commandStack}
@@ -65,46 +65,46 @@ TemporalScenarioPresenter::TemporalScenarioPresenter(
 
   /////// Connections
   scenario.intervals.added
-      .connect<&TemporalScenarioPresenter::on_intervalCreated>(this);
+      .connect<&ScenarioPresenter::on_intervalCreated>(this);
   scenario.intervals.removed
-      .connect<&TemporalScenarioPresenter::on_intervalRemoved>(this);
+      .connect<&ScenarioPresenter::on_intervalRemoved>(this);
 
-  scenario.states.added.connect<&TemporalScenarioPresenter::on_stateCreated>(
+  scenario.states.added.connect<&ScenarioPresenter::on_stateCreated>(
       this);
-  scenario.states.removed.connect<&TemporalScenarioPresenter::on_stateRemoved>(
+  scenario.states.removed.connect<&ScenarioPresenter::on_stateRemoved>(
       this);
 
-  scenario.events.added.connect<&TemporalScenarioPresenter::on_eventCreated>(
+  scenario.events.added.connect<&ScenarioPresenter::on_eventCreated>(
       this);
-  scenario.events.removed.connect<&TemporalScenarioPresenter::on_eventRemoved>(
+  scenario.events.removed.connect<&ScenarioPresenter::on_eventRemoved>(
       this);
 
   scenario.timeSyncs.added
-      .connect<&TemporalScenarioPresenter::on_timeSyncCreated>(this);
+      .connect<&ScenarioPresenter::on_timeSyncCreated>(this);
   scenario.timeSyncs.removed
-      .connect<&TemporalScenarioPresenter::on_timeSyncRemoved>(this);
+      .connect<&ScenarioPresenter::on_timeSyncRemoved>(this);
 
   scenario.comments.added
-      .connect<&TemporalScenarioPresenter::on_commentCreated>(this);
+      .connect<&ScenarioPresenter::on_commentCreated>(this);
   scenario.comments.removed
-      .connect<&TemporalScenarioPresenter::on_commentRemoved>(this);
+      .connect<&ScenarioPresenter::on_commentRemoved>(this);
 
   connect(
-      m_view, &TemporalScenarioView::keyPressed, this,
-      &TemporalScenarioPresenter::on_keyPressed);
+      m_view, &ScenarioView::keyPressed, this,
+      &ScenarioPresenter::on_keyPressed);
   connect(
-      m_view, &TemporalScenarioView::keyReleased, this,
-      &TemporalScenarioPresenter::on_keyReleased);
+      m_view, &ScenarioView::keyReleased, this,
+      &ScenarioPresenter::on_keyReleased);
 
   connect(
-      m_view, &TemporalScenarioView::doubleClicked, this,
-      &TemporalScenarioPresenter::doubleClick);
+      m_view, &ScenarioView::doubleClicked, this,
+      &ScenarioPresenter::doubleClick);
 
   connect(
-      m_view, &TemporalScenarioView::askContextMenu, this,
-      &TemporalScenarioPresenter::contextMenuRequested);
+      m_view, &ScenarioView::askContextMenu, this,
+      &ScenarioPresenter::contextMenuRequested);
   connect(
-      m_view, &TemporalScenarioView::dragEnter, this,
+      m_view, &ScenarioView::dragEnter, this,
       [=](const QPointF& pos, const QMimeData& mime) {
         try
         {
@@ -117,7 +117,7 @@ TemporalScenarioPresenter::TemporalScenarioPresenter(
         }
       });
   connect(
-      m_view, &TemporalScenarioView::dragMove, this,
+      m_view, &ScenarioView::dragMove, this,
       [=](const QPointF& pos, const QMimeData& mime) {
         try
         {
@@ -130,7 +130,7 @@ TemporalScenarioPresenter::TemporalScenarioPresenter(
         }
       });
   connect(
-      m_view, &TemporalScenarioView::dragLeave, this,
+      m_view, &ScenarioView::dragLeave, this,
       [=](const QPointF& pos, const QMimeData& mime) {
         try
         {
@@ -144,7 +144,7 @@ TemporalScenarioPresenter::TemporalScenarioPresenter(
         }
       });
   connect(
-      m_view, &TemporalScenarioView::dropReceived, this,
+      m_view, &ScenarioView::dropReceived, this,
       [=](const QPointF& pos, const QMimeData& mime) {
         try
         {
@@ -169,7 +169,7 @@ TemporalScenarioPresenter::TemporalScenarioPresenter(
 
   m_con = con(
       context.execTimer, &QTimer::timeout, this,
-      &TemporalScenarioPresenter::on_intervalExecutionTimer);
+      &ScenarioPresenter::on_intervalExecutionTimer);
 
   auto& es = context.app.guiApplicationPlugin<ScenarioApplicationPlugin>()
                  .editionSettings();
@@ -192,7 +192,7 @@ TemporalScenarioPresenter::TemporalScenarioPresenter(
   });
 }
 
-TemporalScenarioPresenter::~TemporalScenarioPresenter()
+ScenarioPresenter::~ScenarioPresenter()
 {
   disconnect(m_con);
   m_intervals.remove_all();
@@ -202,50 +202,50 @@ TemporalScenarioPresenter::~TemporalScenarioPresenter()
   m_comments.remove_all();
 }
 
-const Scenario::ProcessModel& TemporalScenarioPresenter::model() const
+const Scenario::ProcessModel& ScenarioPresenter::model() const
 {
   return m_layer;
 }
 
-const Id<Process::ProcessModel>& TemporalScenarioPresenter::modelId() const
+const Id<Process::ProcessModel>& ScenarioPresenter::modelId() const
 {
   return m_layer.id();
 }
 
-Point TemporalScenarioPresenter::toScenarioPoint(QPointF pt) const
+Point ScenarioPresenter::toScenarioPoint(QPointF pt) const
 {
   return ConvertToScenarioPoint(pt, zoomRatio(), view().height());
 }
 
-void TemporalScenarioPresenter::setWidth(qreal width)
+void ScenarioPresenter::setWidth(qreal width)
 {
   m_view->setWidth(width);
 }
 
-void TemporalScenarioPresenter::setHeight(qreal height)
+void ScenarioPresenter::setHeight(qreal height)
 {
   m_view->setHeight(height);
 }
 
-void TemporalScenarioPresenter::putToFront()
+void ScenarioPresenter::putToFront()
 {
   m_view->setFlag(QGraphicsItem::ItemStacksBehindParent, false);
   m_view->setOpacity(1);
 }
 
-void TemporalScenarioPresenter::putBehind()
+void ScenarioPresenter::putBehind()
 {
   m_view->setFlag(QGraphicsItem::ItemStacksBehindParent, true);
   m_view->setOpacity(0.1);
 }
 
-void TemporalScenarioPresenter::parentGeometryChanged()
+void ScenarioPresenter::parentGeometryChanged()
 {
   updateAllElements();
   m_view->update();
 }
 
-void TemporalScenarioPresenter::on_zoomRatioChanged(ZoomRatio val)
+void ScenarioPresenter::on_zoomRatioChanged(ZoomRatio val)
 {
   m_zoomRatio = val;
 
@@ -260,30 +260,30 @@ void TemporalScenarioPresenter::on_zoomRatioChanged(ZoomRatio val)
 }
 
 TimeSyncPresenter&
-TemporalScenarioPresenter::timeSync(const Id<TimeSyncModel>& id) const
+ScenarioPresenter::timeSync(const Id<TimeSyncModel>& id) const
 {
   return m_timeSyncs.at(id);
 }
 
 IntervalPresenter&
-TemporalScenarioPresenter::interval(const Id<IntervalModel>& id) const
+ScenarioPresenter::interval(const Id<IntervalModel>& id) const
 {
   return m_intervals.at(id);
 }
 
 StatePresenter&
-TemporalScenarioPresenter::state(const Id<StateModel>& id) const
+ScenarioPresenter::state(const Id<StateModel>& id) const
 {
   return m_states.at(id);
 }
 
 EventPresenter&
-TemporalScenarioPresenter::event(const Id<EventModel>& id) const
+ScenarioPresenter::event(const Id<EventModel>& id) const
 {
   return m_events.at(id);
 }
 
-void TemporalScenarioPresenter::fillContextMenu(
+void ScenarioPresenter::fillContextMenu(
     QMenu& menu, QPoint pos, QPointF scenepos,
     const Process::LayerContextMenuManager& cm)
 {
@@ -319,7 +319,7 @@ void TemporalScenarioPresenter::fillContextMenu(
   menu.addAction(createCommentAct);
 }
 
-void TemporalScenarioPresenter::drawDragLine(
+void ScenarioPresenter::drawDragLine(
     const StateModel& st, Point pt) const
 {
   auto& real_st = m_states.at(st.id());
@@ -328,62 +328,62 @@ void TemporalScenarioPresenter::drawDragLine(
       {pt.date.toPixels(m_zoomRatio), pt.y * m_view->height()});
 }
 
-void TemporalScenarioPresenter::stopDrawDragLine() const
+void ScenarioPresenter::stopDrawDragLine() const
 {
   m_view->stopDrawDragLine();
 }
 
 template <typename Map, typename Id>
-void TemporalScenarioPresenter::removeElement(Map& map, const Id& id)
+void ScenarioPresenter::removeElement(Map& map, const Id& id)
 {
   map.erase(id);
   m_view->update();
 }
 
-void TemporalScenarioPresenter::on_stateRemoved(const StateModel& state)
+void ScenarioPresenter::on_stateRemoved(const StateModel& state)
 {
   removeElement(m_states, state.id());
 }
 
-void TemporalScenarioPresenter::on_eventRemoved(const EventModel& event)
+void ScenarioPresenter::on_eventRemoved(const EventModel& event)
 {
   removeElement(m_events, event.id());
 }
 
-void TemporalScenarioPresenter::on_timeSyncRemoved(
+void ScenarioPresenter::on_timeSyncRemoved(
     const TimeSyncModel& timeSync)
 {
   removeElement(m_timeSyncs, timeSync.id());
 }
 
-void TemporalScenarioPresenter::on_intervalRemoved(const IntervalModel& cvm)
+void ScenarioPresenter::on_intervalRemoved(const IntervalModel& cvm)
 {
   removeElement(m_intervals, cvm.id());
 }
 
-void TemporalScenarioPresenter::on_commentRemoved(const CommentBlockModel& cmt)
+void ScenarioPresenter::on_commentRemoved(const CommentBlockModel& cmt)
 {
   removeElement(m_comments, cmt.id());
 }
 
 /////////////////////////////////////////////////////////////////////
 // USER INTERACTIONS
-void TemporalScenarioPresenter::on_askUpdate()
+void ScenarioPresenter::on_askUpdate()
 {
   m_view->update();
 }
 
-void TemporalScenarioPresenter::on_keyPressed(int k)
+void ScenarioPresenter::on_keyPressed(int k)
 {
   keyPressed(k);
 }
 
-void TemporalScenarioPresenter::on_keyReleased(int k)
+void ScenarioPresenter::on_keyReleased(int k)
 {
   keyReleased(k);
 }
 
-void TemporalScenarioPresenter::on_intervalExecutionTimer()
+void ScenarioPresenter::on_intervalExecutionTimer()
 {
   for (TemporalIntervalPresenter& cst : m_intervals)
   {
@@ -402,7 +402,7 @@ void TemporalScenarioPresenter::on_intervalExecutionTimer()
   }
 }
 
-void TemporalScenarioPresenter::doubleClick(QPointF pt)
+void ScenarioPresenter::doubleClick(QPointF pt)
 {
   if (m_editionSettings.tool() == Scenario::Tool::Play)
     return;
@@ -414,7 +414,7 @@ void TemporalScenarioPresenter::doubleClick(QPointF pt)
   CommandDispatcher<>{m_context.context.commandStack}.submitCommand(cmd);
 }
 
-void TemporalScenarioPresenter::on_focusChanged()
+void ScenarioPresenter::on_focusChanged()
 {
   if (focused())
   {
@@ -427,7 +427,7 @@ void TemporalScenarioPresenter::on_focusChanged()
 
 /////////////////////////////////////////////////////////////////////
 // ELEMENTS CREATED
-void TemporalScenarioPresenter::on_eventCreated(const EventModel& event_model)
+void ScenarioPresenter::on_eventCreated(const EventModel& event_model)
 {
   auto ev_pres = new EventPresenter{event_model, m_view, this};
   m_events.insert(ev_pres);
@@ -450,16 +450,16 @@ void TemporalScenarioPresenter::on_eventCreated(const EventModel& event_model)
   // For the state machine
   connect(
       ev_pres, &EventPresenter::pressed, m_view,
-      &TemporalScenarioView::pressedAsked);
+      &ScenarioView::pressedAsked);
   connect(
       ev_pres, &EventPresenter::moved, m_view,
-      &TemporalScenarioView::movedAsked);
+      &ScenarioView::movedAsked);
   connect(
       ev_pres, &EventPresenter::released, m_view,
-      &TemporalScenarioView::released);
+      &ScenarioView::released);
 }
 
-void TemporalScenarioPresenter::on_timeSyncCreated(
+void ScenarioPresenter::on_timeSyncCreated(
     const TimeSyncModel& timeSync_model)
 {
   auto tn_pres = new TimeSyncPresenter{timeSync_model, m_view, this};
@@ -477,16 +477,16 @@ void TemporalScenarioPresenter::on_timeSyncCreated(
   // For the state machine
   connect(
       tn_pres, &TimeSyncPresenter::pressed, m_view,
-      &TemporalScenarioView::pressedAsked);
+      &ScenarioView::pressedAsked);
   connect(
       tn_pres, &TimeSyncPresenter::moved, m_view,
-      &TemporalScenarioView::movedAsked);
+      &ScenarioView::movedAsked);
   connect(
       tn_pres, &TimeSyncPresenter::released, m_view,
-      &TemporalScenarioView::released);
+      &ScenarioView::released);
 }
 
-void TemporalScenarioPresenter::on_stateCreated(const StateModel& state)
+void ScenarioPresenter::on_stateCreated(const StateModel& state)
 {
   auto st_pres = new StatePresenter{state, m_context.context, m_view, this};
   m_states.insert(st_pres);
@@ -500,20 +500,20 @@ void TemporalScenarioPresenter::on_stateCreated(const StateModel& state)
   // For the state machine
   connect(
       st_pres, &StatePresenter::pressed, m_view,
-      &TemporalScenarioView::pressedAsked);
+      &ScenarioView::pressedAsked);
   connect(
       st_pres, &StatePresenter::moved, m_view,
-      &TemporalScenarioView::movedAsked);
+      &ScenarioView::movedAsked);
   connect(
       st_pres, &StatePresenter::released, m_view,
-      &TemporalScenarioView::released);
+      &ScenarioView::released);
 
   connect(
       st_pres, &StatePresenter::askUpdate, this,
-      &TemporalScenarioPresenter::on_askUpdate);
+      &ScenarioPresenter::on_askUpdate);
 }
 
-void TemporalScenarioPresenter::on_intervalCreated(
+void ScenarioPresenter::on_intervalCreated(
     const IntervalModel& interval)
 {
   auto cst_pres = new TemporalIntervalPresenter{interval, m_context.context,
@@ -530,7 +530,7 @@ void TemporalScenarioPresenter::on_intervalCreated(
       [=](const TimeVal&) { m_viewInterface.on_intervalMoved(*cst_pres); });
   connect(
       cst_pres, &TemporalIntervalPresenter::askUpdate, this,
-      &TemporalScenarioPresenter::on_askUpdate);
+      &ScenarioPresenter::on_askUpdate);
 
   connect(cst_pres, &TemporalIntervalPresenter::intervalHoverEnter, [=]() {
     m_viewInterface.on_hoverOnInterval(cst_pres->model().id(), true);
@@ -542,16 +542,16 @@ void TemporalScenarioPresenter::on_intervalCreated(
   // For the state machine
   connect(
       cst_pres, &TemporalIntervalPresenter::pressed, m_view,
-      &TemporalScenarioView::pressedAsked);
+      &ScenarioView::pressedAsked);
   connect(
       cst_pres, &TemporalIntervalPresenter::moved, m_view,
-      &TemporalScenarioView::movedAsked);
+      &ScenarioView::movedAsked);
   connect(
       cst_pres, &TemporalIntervalPresenter::released, m_view,
-      &TemporalScenarioView::released);
+      &ScenarioView::released);
 }
 
-void TemporalScenarioPresenter::on_commentCreated(
+void ScenarioPresenter::on_commentCreated(
     const CommentBlockModel& comment_block_model)
 {
   using namespace Scenario::Command;
@@ -592,7 +592,7 @@ void TemporalScenarioPresenter::on_commentCreated(
       });
 }
 
-void TemporalScenarioPresenter::updateAllElements()
+void ScenarioPresenter::updateAllElements()
 {
   for (auto& interval : m_intervals)
   {

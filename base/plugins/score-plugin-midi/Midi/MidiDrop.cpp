@@ -8,7 +8,7 @@
 #include <Scenario/Commands/Interval/AddProcessToInterval.hpp>
 #include <Scenario/Commands/Interval/Rack/Slot/AddLayerModelToSlot.hpp>
 #include <Scenario/Commands/Scenario/Creations/CreateTimeSync_Event_State.hpp>
-#include <Scenario/Process/Temporal/TemporalScenarioPresenter.hpp>
+#include <Scenario/Process/ScenarioPresenter.hpp>
 
 #include <score/command/Dispatchers/MacroCommandDispatcher.hpp>
 
@@ -24,7 +24,7 @@ namespace Midi
 {
 
 bool DropMidiInSenario::drop(
-    const Scenario::TemporalScenarioPresenter& pres, QPointF pos,
+    const Scenario::ScenarioPresenter& pres, QPointF pos,
     const QMimeData& mime)
 {
   auto song = MidiTrack::parse(mime, pres.context().context);

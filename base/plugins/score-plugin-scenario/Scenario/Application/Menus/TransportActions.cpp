@@ -23,7 +23,7 @@ class QMenu;
 
 namespace Scenario
 {
-class TemporalScenarioPresenter;
+class ScenarioPresenter;
 
 TransportActions::TransportActions(const score::GUIApplicationContext& context)
     : m_context{context}

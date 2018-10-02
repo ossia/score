@@ -7,7 +7,7 @@
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentPresenter.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentView.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
-#include <Scenario/Process/Temporal/TemporalScenarioPresenter.hpp>
+#include <Scenario/Process/ScenarioPresenter.hpp>
 
 #include <score/plugins/documentdelegate/DocumentDelegateView.hpp>
 #include <score/tools/std/Optional.hpp>
@@ -214,15 +214,15 @@ void ScenarioApplicationPlugin::on_presenterFocused(
     return;
   }
 
-  auto s_pres = dynamic_cast<TemporalScenarioPresenter*>(pres);
+  auto s_pres = dynamic_cast<ScenarioPresenter*>(pres);
   if (s_pres)
   {
     connect(
-        s_pres, &TemporalScenarioPresenter::keyPressed, this,
+        s_pres, &ScenarioPresenter::keyPressed, this,
         &ScenarioApplicationPlugin::keyPressed);
 
     connect(
-        s_pres, &TemporalScenarioPresenter::keyReleased, this,
+        s_pres, &ScenarioPresenter::keyReleased, this,
         &ScenarioApplicationPlugin::keyReleased);
 
     auto& select_act = context.actions.action<Actions::SelectTool>();
@@ -306,11 +306,11 @@ void ScenarioApplicationPlugin::on_activeWindowChanged()
   editionSettings().setDefault(); // NOTE maybe useless now ?
 }
 
-TemporalScenarioPresenter* ScenarioApplicationPlugin::focusedPresenter() const
+ScenarioPresenter* ScenarioApplicationPlugin::focusedPresenter() const
 {
   if (auto focusManager = processFocusManager())
   {
-    return dynamic_cast<TemporalScenarioPresenter*>(
+    return dynamic_cast<ScenarioPresenter*>(
         focusManager->focusedPresenter());
   }
   return nullptr;

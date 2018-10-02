@@ -1,6 +1,6 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
-#include "TemporalScenarioView.hpp"
+#include "ScenarioView.hpp"
 
 #include <Process/LayerView.hpp>
 #include <Process/ProcessMimeSerialization.hpp>
@@ -25,7 +25,7 @@
 
 namespace Scenario
 {
-TemporalScenarioView::TemporalScenarioView(
+ScenarioView::ScenarioView(
     const ProcessModel& m, QGraphicsItem* parent)
     : LayerView{parent}, m_scenario{m}
 {
@@ -36,9 +36,9 @@ TemporalScenarioView::TemporalScenarioView(
   this->setZValue(1);
 }
 
-TemporalScenarioView::~TemporalScenarioView() = default;
+ScenarioView::~ScenarioView() = default;
 
-void TemporalScenarioView::paint_impl(QPainter* painter) const
+void ScenarioView::paint_impl(QPainter* painter) const
 {
   painter->setRenderHint(QPainter::Antialiasing, false);
   if (m_lock)
@@ -70,19 +70,19 @@ void TemporalScenarioView::paint_impl(QPainter* painter) const
   }
 }
 
-void TemporalScenarioView::drawDragLine(QPointF left, QPointF right)
+void ScenarioView::drawDragLine(QPointF left, QPointF right)
 {
   m_dragLine = QRectF(left, right);
   update();
 }
 
-void TemporalScenarioView::stopDrawDragLine()
+void ScenarioView::stopDrawDragLine()
 {
   m_dragLine = ossia::none;
   update();
 }
 
-void TemporalScenarioView::movedAsked(const QPointF& p)
+void ScenarioView::movedAsked(const QPointF& p)
 {
   QRectF r{m_previousPoint.x(), m_previousPoint.y(), 1, 1};
   ensureVisible(mapRectFromScene(r), 30, 30);
@@ -92,7 +92,7 @@ void TemporalScenarioView::movedAsked(const QPointF& p)
   m_previousPoint = p;
 }
 
-void TemporalScenarioView::mousePressEvent(QGraphicsSceneMouseEvent* event)
+void ScenarioView::mousePressEvent(QGraphicsSceneMouseEvent* event)
 {
   m_moving = false;
   if (event->button() == Qt::LeftButton)
@@ -101,7 +101,7 @@ void TemporalScenarioView::mousePressEvent(QGraphicsSceneMouseEvent* event)
   event->accept();
 }
 
-void TemporalScenarioView::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
+void ScenarioView::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 {
   if (event->buttons() & Qt::MiddleButton)
   {
@@ -132,7 +132,7 @@ void TemporalScenarioView::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
   event->accept();
 }
 
-void TemporalScenarioView::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
+void ScenarioView::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 {
   m_moving = false;
   released(event->scenePos());
@@ -140,7 +140,7 @@ void TemporalScenarioView::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
   event->accept();
 }
 
-void TemporalScenarioView::mouseDoubleClickEvent(
+void ScenarioView::mouseDoubleClickEvent(
     QGraphicsSceneMouseEvent* event)
 {
   doubleClicked(event->pos());
@@ -148,7 +148,7 @@ void TemporalScenarioView::mouseDoubleClickEvent(
   event->accept();
 }
 
-void TemporalScenarioView::contextMenuEvent(
+void ScenarioView::contextMenuEvent(
     QGraphicsSceneContextMenuEvent* event)
 {
   askContextMenu(event->screenPos(), event->scenePos());
@@ -156,7 +156,7 @@ void TemporalScenarioView::contextMenuEvent(
   event->accept();
 }
 
-void TemporalScenarioView::keyPressEvent(QKeyEvent* event)
+void ScenarioView::keyPressEvent(QKeyEvent* event)
 {
   QGraphicsItem::keyPressEvent(event);
   if (event->key() == Qt::Key_Escape)
@@ -173,7 +173,7 @@ void TemporalScenarioView::keyPressEvent(QKeyEvent* event)
   event->accept();
 }
 
-void TemporalScenarioView::keyReleaseEvent(QKeyEvent* event)
+void ScenarioView::keyReleaseEvent(QKeyEvent* event)
 {
   QGraphicsItem::keyReleaseEvent(event);
   if (event->key() == Qt::Key_Shift || event->key() == Qt::Key_Control
@@ -193,28 +193,28 @@ void TemporalScenarioView::keyReleaseEvent(QKeyEvent* event)
   event->accept();
 }
 
-void TemporalScenarioView::dragEnterEvent(QGraphicsSceneDragDropEvent* event)
+void ScenarioView::dragEnterEvent(QGraphicsSceneDragDropEvent* event)
 {
   dragEnter(event->pos(), *event->mimeData());
 
   event->accept();
 }
 
-void TemporalScenarioView::dragMoveEvent(QGraphicsSceneDragDropEvent* event)
+void ScenarioView::dragMoveEvent(QGraphicsSceneDragDropEvent* event)
 {
   dragMove(event->pos(), *event->mimeData());
 
   event->accept();
 }
 
-void TemporalScenarioView::dragLeaveEvent(QGraphicsSceneDragDropEvent* event)
+void ScenarioView::dragLeaveEvent(QGraphicsSceneDragDropEvent* event)
 {
   dragLeave(event->pos(), *event->mimeData());
 
   event->accept();
 }
 
-void TemporalScenarioView::dropEvent(QGraphicsSceneDragDropEvent* event)
+void ScenarioView::dropEvent(QGraphicsSceneDragDropEvent* event)
 {
   dropReceived(event->pos(), *event->mimeData());
 
