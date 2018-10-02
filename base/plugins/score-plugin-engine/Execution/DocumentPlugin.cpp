@@ -211,9 +211,11 @@ void DocumentPlugin::makeGraph()
   if (settings.getLogging())
     opt.log = ossia::logger_ptr();
   if (settings.getBench())
-    opt.bench = ossia::bench_ptr();
-
-  ossia::bench_ptr()->clear();
+  {
+    bench = std::make_shared<bench_map>();
+    opt.bench = bench;
+    opt.bench->clear();
+  }
 
   if (sched == sched_t.StaticFixed)
     opt.scheduling = ossia::graph_setup_options::StaticFixed;
@@ -329,7 +331,7 @@ void DocumentPlugin::runAllCommands() const
 
 void DocumentPlugin::slot_bench(ossia::bench_map b, int64_t ns)
 {
-  for (auto p : b)
+  for (const auto& p : b)
   {
     if (p.second)
     {

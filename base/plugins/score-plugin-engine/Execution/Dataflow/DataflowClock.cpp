@@ -66,7 +66,7 @@ void Clock::resume_impl(Execution::BaseScenarioElement& bs)
   else if (commit == Execution::Settings::CommitPolicies{}.Merged)
     opt.commit = ossia::tick_setup_options::Merged;
 
-  if (m_plug.settings.getBench())
+  if (m_plug.settings.getBench() && m_plug.bench)
   {
     auto tick = ossia::make_tick(
         opt, *m_plug.execState, *m_plug.execGraph,
@@ -80,10 +80,11 @@ void Clock::resume_impl(Execution::BaseScenarioElement& bs)
         c();
       }
 
+      auto& bench = *plug->bench;
       static int i = 0;
       if (i % 50 == 0)
       {
-        ossia::bench_ptr()->measure = true;
+        bench.measure = true;
         auto t0 = std::chrono::steady_clock::now();
         tick(args...);
         auto t1 = std::chrono::steady_clock::now();
@@ -91,15 +92,15 @@ void Clock::resume_impl(Execution::BaseScenarioElement& bs)
             = std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0)
                   .count();
 
-        plug->slot_bench(*ossia::bench_ptr(), total);
-        for (auto& p : *ossia::bench_ptr())
+        plug->slot_bench(bench, total);
+        for (auto& p : bench)
         {
           p.second = {};
         }
       }
       else
       {
-        ossia::bench_ptr()->measure = false;
+        bench.measure = false;
         tick(args...);
       }
 
