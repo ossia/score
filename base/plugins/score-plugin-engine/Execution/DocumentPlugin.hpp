@@ -72,6 +72,7 @@ public:
 
   std::shared_ptr<ossia::graph_interface> execGraph;
   std::shared_ptr<ossia::execution_state> execState;
+  std::shared_ptr<ossia::bench_map> bench;
 
   QPointer<Dataflow::AudioDevice> audio_device{};
 
