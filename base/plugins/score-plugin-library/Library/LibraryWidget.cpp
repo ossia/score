@@ -2,7 +2,7 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "LibraryWidget.hpp"
 
-#include <Library/JSONLibrary/FileSystemModel.hpp>
+#include <Library/FileSystemModel.hpp>
 #include <Library/LibrarySettings.hpp>
 
 #include <score/widgets/MarginLess.hpp>

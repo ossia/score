@@ -1,5 +1,5 @@
 #pragma once
-#include <Library/JSONLibrary/ProcessesItemModel.hpp>
+#include <Library/ProcessesItemModel.hpp>
 
 #include <score/tools/std/Optional.hpp>
 

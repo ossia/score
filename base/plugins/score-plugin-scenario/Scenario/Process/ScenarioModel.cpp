@@ -218,7 +218,7 @@ Selection ProcessModel::selectedChildren() const
   apply([&](const auto& m) { copySelected(this->*m, objects); });
   return objects;
 }
-
+/*
 void ProcessModel::changeDuration(IntervalModel& itv, const TimeVal& v)
 {
   Command::MoveEventMeta cmd(
@@ -235,7 +235,7 @@ void ProcessModel::changeDuration(
   dispatcher.submitCommand<Command::MoveEventMeta>(
       scenario, scenario.state(itv.endState()).eventId(), itv.date() + val,
       itv.heightPercentage(), expandmode, lockmode);
-}
+}*/
 
 void ProcessModel::setSelection(const Selection& s) const
 {

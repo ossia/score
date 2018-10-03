@@ -17,7 +17,7 @@ struct DroppedAudioFiles
 
   TimeVal dropMaxDuration() const;
   int64_t maxDuration = 0;
-  std::vector<QString> files;
+  std::vector<std::pair<QString, int64_t>> files;
 };
 
 /**
@@ -32,13 +32,6 @@ class DropHandler final : public Scenario::DropHandler
   bool drop(
       const Scenario::ScenarioPresenter&, QPointF pos,
       const QMimeData& mime) override;
-
-  bool createInSequence(
-      const Scenario::ScenarioPresenter&, QPointF pos,
-      DroppedAudioFiles&& audio);
-  bool createInParallel(
-      const Scenario::ScenarioPresenter&, QPointF pos,
-      DroppedAudioFiles&& audio);
 };
 
 class IntervalDropHandler final : public Scenario::IntervalDropHandler
