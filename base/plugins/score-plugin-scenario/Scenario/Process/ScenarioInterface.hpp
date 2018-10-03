@@ -39,12 +39,6 @@ public:
   virtual score::IndirectContainer<TimeSyncModel> getTimeSyncs() const = 0;
 
   virtual TimeSyncModel& startTimeSync() const = 0;
-
-  virtual void changeDuration(IntervalModel& itv, const TimeVal& v) = 0;
-  virtual void changeDuration(
-      const IntervalModel& itv, OngoingCommandDispatcher& dispatcher,
-      const TimeVal& v, ExpandMode expandmode, LockMode lockmode)
-      = 0;
 };
 
 static const constexpr auto startId_val = 0;

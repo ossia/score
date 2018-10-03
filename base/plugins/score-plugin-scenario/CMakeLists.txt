@@ -17,6 +17,7 @@ set(HDRS
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Application/Drops/AutomationDropHandler.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Application/Drops/MessageDropHandler.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Application/Drops/ScenarioDropHandler.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Application/Drops/DropHelpers.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Application/Menus/ObjectMenuActions.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Application/Menus/ObjectsActions/IntervalActions.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Application/Menus/ObjectsActions/EventActions.hpp"
@@ -58,6 +59,7 @@ set(HDRS
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/Interval/SetMaxDuration.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/Interval/SetMinDuration.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/Interval/SetProcessPosition.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/Interval/ResizeInterval.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/Interval/SetRigidity.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/Event/SetCondition.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/Event/SplitEvent.hpp"
@@ -356,6 +358,7 @@ set(SRCS ${SRCS}
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/Interval/InsertContentInInterval.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/Interval/RemoveProcessFromInterval.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/Interval/MoveProcess.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/Interval/ResizeInterval.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/Interval/SetRigidity.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/Event/SetCondition.cpp"

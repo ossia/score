@@ -60,6 +60,7 @@ bool BaseScenario::focused() const
   return res;
 }
 
+/*
 void BaseScenario::changeDuration(IntervalModel&, const TimeVal& v)
 {
   Command::MoveBaseEvent<BaseScenario> cmd(
@@ -75,7 +76,7 @@ void BaseScenario::changeDuration(
   dispatcher.submitCommand<Command::MoveBaseEvent<BaseScenario>>(
       scenario, scenario.endEvent().id(), val, 0., expandmode, lockmode);
 }
-
+*/
 const QVector<Id<IntervalModel>> intervalsBeforeTimeSync(
     const BaseScenario& scen, const Id<TimeSyncModel>& timeSyncId)
 {

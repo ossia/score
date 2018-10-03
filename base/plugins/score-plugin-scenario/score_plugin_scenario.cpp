@@ -15,6 +15,7 @@
 #include <Scenario/Commands/Scenario/Displacement/MoveEventClassicFactory.hpp>
 #include <Scenario/Commands/Scenario/Displacement/MoveEventList.hpp>
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
+#include <Scenario/Commands/Interval/ResizeInterval.hpp>
 #include <Scenario/Commands/TimeSync/TriggerCommandFactory/BaseScenarioTriggerCommandFactory.hpp>
 #include <Scenario/Commands/TimeSync/TriggerCommandFactory/ScenarioTriggerCommandFactory.hpp>
 #include <Scenario/Commands/TimeSync/TriggerCommandFactory/TriggerCommandFactory.hpp>
@@ -161,7 +162,7 @@ score_plugin_scenario::factoryFamilies()
       score::InterfaceListBase, MoveEventList, CSPCoherencyCheckerList,
       DisplayedElementsToolPaletteFactoryList, TriggerCommandFactoryList,
       DisplayedElementsProviderList, DropHandlerList,
-      IntervalDropHandlerList>();
+      IntervalDropHandlerList, IntervalResizerList>();
 }
 
 template <>
@@ -228,7 +229,9 @@ score_plugin_scenario::factories(
       FW<Execution::ProcessComponentFactory,
          Execution::ScenarioComponentFactory>,
       FW<Library::LibraryInterface, Scenario::SlotLibraryHandler,
-         Scenario::ScenarioLibraryHandler>>(ctx, key);
+         Scenario::ScenarioLibraryHandler>,
+      FW<Scenario::IntervalResizer, Scenario::ScenarioIntervalResizer,
+         Scenario::BaseScenarioIntervalResizer>>(ctx, key);
 }
 
 std::pair<const CommandGroupKey, CommandGeneratorMap>

@@ -102,7 +102,8 @@ score_plugin_loop::factories(
       FW<Scenario::DisplayedElementsToolPaletteFactory,
          Loop::DisplayedElementsToolPaletteFactory>,
       FW<Scenario::DisplayedElementsProvider,
-         Loop::DisplayedElementsProvider>>(ctx, key);
+         Loop::DisplayedElementsProvider>,
+      FW<Scenario::IntervalResizer, Loop::LoopIntervalResizer>>(ctx, key);
 }
 
 std::pair<const CommandGroupKey, CommandGeneratorMap>

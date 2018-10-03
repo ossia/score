@@ -15,6 +15,7 @@
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
 #include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
+#include <Scenario/Process/Algorithms/Accessors.hpp>
 
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/document/DocumentContext.hpp>
@@ -118,6 +119,7 @@ void ProcessModel::setSelection(const Selection& s) const
   });
 }
 
+/*
 void ProcessModel::changeDuration(
     Scenario::IntervalModel& itv, const TimeVal& v)
 {
@@ -136,6 +138,7 @@ void ProcessModel::changeDuration(
           loop, loop.state(itv.endState()).eventId(), itv.date() + val, 0,
           expandmode, lockmode);
 }
+*/
 
 const QVector<Id<Scenario::IntervalModel>> intervalsBeforeTimeSync(
     const ProcessModel& scen, const Id<Scenario::TimeSyncModel>& timeSyncId)
@@ -146,4 +149,39 @@ const QVector<Id<Scenario::IntervalModel>> intervalsBeforeTimeSync(
   }
   return {};
 }
+
+
+bool LoopIntervalResizer::matches(const Scenario::IntervalModel& interval) const noexcept
+{
+  return dynamic_cast<Loop::ProcessModel*>(interval.parent());
+}
+
+score::Command* LoopIntervalResizer::make(
+    const Scenario::IntervalModel& interval, TimeVal new_duration, ExpandMode e, LockMode l) const noexcept
+{
+  auto scenar = dynamic_cast<Loop::ProcessModel*>(interval.parent());
+  if(!scenar)
+    return nullptr;
+
+  return new Scenario::Command::MoveBaseEvent<Loop::ProcessModel>{
+          *scenar,
+          scenar->endEvent().id(),
+          new_duration,
+          interval.heightPercentage(),
+        e, l};
+}
+
+void LoopIntervalResizer::update(
+      score::Command& cmd, const Scenario::IntervalModel& interval,
+      TimeVal new_duration, ExpandMode e, LockMode l) const noexcept
+{
+  auto c = dynamic_cast<Scenario::Command::MoveBaseEvent<Loop::ProcessModel>*>(&cmd);
+  if(c)
+  {
+    auto scenar = dynamic_cast<Loop::ProcessModel*>(interval.parent());
+    auto& ev = Scenario::endState(interval, *scenar).eventId();
+    c->update(*scenar, ev, interval.date() + new_duration, interval.heightPercentage(), e, l);
+  }
+}
+
 }

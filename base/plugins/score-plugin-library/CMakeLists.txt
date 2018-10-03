@@ -7,13 +7,9 @@ find_package(Qt5 5.3 REQUIRED COMPONENTS Core Widgets)
 
 set(HDRS
     "${CMAKE_CURRENT_SOURCE_DIR}/score_plugin_library.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Library/JSONLibrary/JSONLibrary.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Library/JSONLibrary/LibraryElement.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Library/JSONLibrary/LibraryWidget.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Library/JSONLibrary/ProcessesItemModel.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Library/JSONLibrary/SystemLibraryModel.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Library/JSONLibrary/ProjectLibraryModel.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Library/JSONLibrary/FileSystemModel.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Library/LibraryWidget.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Library/ProcessesItemModel.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Library/FileSystemModel.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Library/Panel/LibraryPanelDelegate.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Library/Panel/LibraryPanelFactory.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Library/LibrarySettings.hpp"
@@ -21,12 +17,10 @@ set(HDRS
 )
 set(SRCS
     "${CMAKE_CURRENT_SOURCE_DIR}/score_plugin_library.cpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Library/JSONLibrary/JSONLibrary.cpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Library/JSONLibrary/LibraryElement.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Library/LibraryInterface.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Library/Panel/LibraryPanelDelegate.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Library/Panel/LibraryPanelFactory.cpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Library/JSONLibrary/LibraryWidget.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Library/LibraryWidget.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Library/LibrarySettings.cpp"
 )
 

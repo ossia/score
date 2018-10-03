@@ -178,10 +178,6 @@ public:
   Selection selectedChildren() const override;
 
 private:
-  void changeDuration(IntervalModel& itv, const TimeVal& v) override;
-  void changeDuration(
-      const Scenario::IntervalModel& itv, OngoingCommandDispatcher& dispatcher,
-      const TimeVal& v, ExpandMode expandmode, LockMode lockmode) override;
   void setSelection(const Selection& s) const override;
   bool event(QEvent* e) override
   {

@@ -5,6 +5,7 @@
 #include <Inspector/InspectorSectionWidget.hpp>
 #include <Process/TimeValue.hpp>
 #include <Scenario/Application/ScenarioEditionSettings.hpp>
+#include <Scenario/Commands/Interval/ResizeInterval.hpp>
 #include <Scenario/Commands/Interval/SetMaxDuration.hpp>
 #include <Scenario/Commands/Interval/SetMinDuration.hpp>
 #include <Scenario/Document/DisplayedElements/DisplayedElementsPresenter.hpp>
@@ -45,6 +46,60 @@
 #include <chrono>
 namespace Scenario
 {
+/* TODO improve this
+template<typename Create, typename Update>
+class OngoingAbstractCommandDispatcher final : public ICommandDispatcher
+{
+public:
+  OngoingAbstractCommandDispatcher(Create&& create, Update&& update, const score::CommandStackFacade& stack)
+      : ICommandDispatcher{stack}
+      , m_create{create}
+      , m_update{update}
+  {
+  }
+
+  template<typename... Args>
+  void submitCommand(Args&&... args)
+  {
+    if (!m_cmd)
+    {
+      stack().disableActions();
+      m_cmd.reset(m_create(args...));
+      m_cmd->redo(stack().context());
+    }
+    else
+    {
+      update(*m_cmd);
+      m_update(*m_cmd, std::forward<Args>(args)...);
+      m_cmd->redo(stack().context());
+    }
+  }
+
+  void commit()
+  {
+    if (m_cmd)
+    {
+      SendStrategy::Quiet::send(stack(), m_cmd.release());
+      stack().enableActions();
+    }
+  }
+
+  void rollback()
+  {
+    if (m_cmd)
+    {
+      m_cmd->undo(stack().context());
+      stack().enableActions();
+    }
+    m_cmd.reset();
+  }
+
+private:
+  Create m_create;
+  Update m_update;
+  std::unique_ptr<score::Command> m_cmd;
+};
+*/
 class EditionGrid : public QWidget
 {
 public:
@@ -54,6 +109,7 @@ public:
       : m_model{m}
       , m_dur{m.duration}
       , m_editionSettings{set}
+      , m_moveFactory{fac.app.interfaces<IntervalResizerList>().find(m)}
       , m_dispatcher{fac.commandStack}
       , m_simpleDispatcher{fac.commandStack}
   {
@@ -148,14 +204,27 @@ public:
     }
   }
 
+  ~EditionGrid()
+  {
+    if(m_resizeCommand)
+      delete m_resizeCommand;
+  }
   void defaultDurationSpinboxChanged(int val)
   {
-    auto s = dynamic_cast<Scenario::ScenarioInterface*>(m_model.parent());
-    if (s)
+    if(m_moveFactory)
     {
-      s->changeDuration(
-          m_model, m_dispatcher, TimeVal::fromMsecs(val),
-          m_editionSettings.expandMode(), LockMode::Free);
+      if(m_resizeCommand)
+      {
+        m_moveFactory->update(*m_resizeCommand, m_model, TimeVal::fromMsecs(val));
+        m_resizeCommand->redo(m_dispatcher.stack().context());
+      }
+      else
+      {
+        m_resizeCommand = m_moveFactory->make(
+              m_model, TimeVal::fromMsecs(val), m_editionSettings.expandMode(), LockMode::Free);
+        if(m_resizeCommand)
+          m_resizeCommand->redo(m_dispatcher.stack().context());
+      }
     }
   }
 
@@ -222,7 +291,9 @@ public:
     {
       defaultDurationSpinboxChanged(
           m_valueSpin->time().msecsSinceStartOfDay());
-      m_dispatcher.commit();
+      if(m_resizeCommand)
+        m_dispatcher.stack().push(m_resizeCommand);
+      m_resizeCommand = nullptr;
     }
 
     if (m_dur.minDuration().toQTime() != m_minSpin->time())
@@ -280,6 +351,8 @@ public:
   const IntervalModel& m_model;
   const IntervalDurations& m_dur;
   const Scenario::EditionSettings& m_editionSettings;
+  IntervalResizer* m_moveFactory{};
+  score::Command* m_resizeCommand{};
 
   score::TimeSpinBox* m_valueSpin{};
 

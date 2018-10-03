@@ -1,0 +1,51 @@
+#pragma once
+#include <Library/LibraryInterface.hpp>
+#include <Library/ProcessesItemModel.hpp>
+#include <Media/Effect/VST/VSTEffectModel.hpp>
+
+namespace Media::VST
+{
+class LibraryHandler final : public Library::LibraryInterface
+{
+  SCORE_CONCRETE("6a13c3cc-bca7-44d6-a0ef-644e99204460")
+  void setup(
+      Library::ProcessesItemModel& model,
+      const score::GUIApplicationContext& ctx) override
+  {
+    const auto& key = VSTEffectFactory{}.concreteKey();
+    QModelIndex node = model.find(key);
+    if (node == QModelIndex{})
+    {
+      return;
+    }
+    auto& parent
+        = *reinterpret_cast<Library::ProcessNode*>(node.internalPointer());
+
+    auto& fx = parent.emplace_back(Library::ProcessData{"Effects", QIcon{}, {}, {}}, &parent);
+    auto& inst = parent.emplace_back(Library::ProcessData{"Instruments", QIcon{}, {}, {}}, &parent);
+    auto& plug = ctx.applicationPlugin<Media::ApplicationPlugin>();
+    for (const auto& vst : plug.vst_infos)
+    {
+      if (vst.isValid)
+      {
+        QJsonObject obj;
+        obj["Type"] = "Process";
+        obj["uuid"] = toJsonValue(key.impl());
+        obj["Data"] = QString::number(vst.uniqueID);
+
+        const auto& name = vst.displayName.isEmpty() ? vst.prettyName : vst.displayName;
+        if(vst.isSynth)
+        {
+          inst.emplace_back(
+              Library::ProcessData{name, QIcon{}, obj, key}, &inst);
+        }
+        else
+        {
+          fx.emplace_back(
+              Library::ProcessData{name, QIcon{}, obj, key}, &fx);
+        }
+      }
+    }
+  }
+};
+}

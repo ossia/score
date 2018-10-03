@@ -88,7 +88,7 @@ void LayerPresenter::onDrop(const QPointF& p, const QMimeData& mime)
   }
   CommandDispatcher<> disp{context().context.commandStack};
   disp.submitCommand<Media::ChangeAudioFile>(
-      model(), std::move(drops.files.front()));
+      model(), std::move(drops.files.front().first));
 }
 }
 }

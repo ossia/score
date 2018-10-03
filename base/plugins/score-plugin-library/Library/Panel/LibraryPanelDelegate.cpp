@@ -2,11 +2,9 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "LibraryPanelDelegate.hpp"
 
-#include <Library/JSONLibrary/FileSystemModel.hpp>
-#include <Library/JSONLibrary/LibraryWidget.hpp>
-#include <Library/JSONLibrary/ProcessesItemModel.hpp>
-#include <Library/JSONLibrary/ProjectLibraryModel.hpp>
-#include <Library/JSONLibrary/SystemLibraryModel.hpp>
+#include <Library/FileSystemModel.hpp>
+#include <Library/LibraryWidget.hpp>
+#include <Library/ProcessesItemModel.hpp>
 #include <Library/LibrarySettings.hpp>
 #include <Process/ProcessList.hpp>
 

@@ -5,8 +5,9 @@
 #include <Scenario/Commands/Scenario/Displacement/MoveEventMeta.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Process/ScenarioInterface.hpp>
-
+#include <Scenario/Commands/Interval/ResizeInterval.hpp>
 #include <score/model/path/PathSerialization.hpp>
+#include <score/document/DocumentContext.hpp>
 namespace Media
 {
 ChangeAudioFile::ChangeAudioFile(
@@ -26,8 +27,12 @@ void ChangeAudioFile::undo(const score::DocumentContext& ctx) const
   snd.setFile(m_old);
   if (auto itv = qobject_cast<Scenario::IntervalModel*>(snd.parent()))
   {
-    auto& s = *dynamic_cast<Scenario::ScenarioInterface*>(itv->parent());
-    s.changeDuration(*itv, m_olddur);
+    if(auto fact = ctx.app.interfaces<Scenario::IntervalResizerList>().find(*itv))
+    {
+      auto cmd = fact->make(*itv, m_olddur);
+      cmd->redo(ctx);
+      delete cmd;
+    }
   }
 }
 
@@ -39,12 +44,14 @@ void ChangeAudioFile::redo(const score::DocumentContext& ctx) const
   {
     auto& info = AudioDecoder::database()[m_new];
 
-    auto& s = *dynamic_cast<Scenario::ScenarioInterface*>(itv->parent());
     if (info.length != 0)
     {
-      s.changeDuration(
-          *itv,
-          TimeVal::fromMsecs(1000. * double(info.length) / double(info.rate)));
+      if(auto fact = ctx.app.interfaces<Scenario::IntervalResizerList>().find(*itv))
+      {
+        auto cmd = fact->make(*itv, TimeVal::fromMsecs(1000. * double(info.length) / double(info.rate)));
+        cmd->redo(ctx);
+        delete cmd;
+      }
     }
   }
 }
