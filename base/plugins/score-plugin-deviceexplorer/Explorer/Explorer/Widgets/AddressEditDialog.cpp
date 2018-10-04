@@ -83,8 +83,7 @@ AddressEditDialog::~AddressEditDialog()
 
 void AddressEditDialog::updateType(ossia::val_type valueType)
 {
-  auto widg
-      = AddressSettingsFactory::instance().get_value_typeWidget(valueType);
+  auto widg = AddressSettingsFactory{}(valueType);
 
   m_addressWidget->setWidget(widg);
 

@@ -8,6 +8,8 @@
 #include <score/selection/Selection.hpp>
 #include <score/tools/Todo.hpp>
 
+#include <ossia/detail/flat_set.hpp>
+
 #include <QList>
 #include <QPointer>
 #include <QVector>
@@ -43,6 +45,7 @@ void SelectionStack::clear()
   m_unselectable.clear();
   m_reselectable.clear();
   m_unselectable.push(Selection{});
+  pruneConnections();
   currentSelectionChanged(m_unselectable.top());
 }
 
@@ -56,6 +59,7 @@ void SelectionStack::clearAllButLast()
   m_reselectable.clear();
   m_unselectable.push(Selection{});
   m_unselectable.push(std::move(last));
+  pruneConnections();
 }
 
 void SelectionStack::push(const Selection& selection)
@@ -76,9 +80,13 @@ void SelectionStack::push(const Selection& selection)
     Foreach(s, [&](auto obj) {
       // TODO we should erase connections once the selected objects aren't in
       // the stack anymore.
-      connect(
-          obj, &IdentifiedObjectAbstract::identified_object_destroyed, this,
-          &SelectionStack::prune, Qt::UniqueConnection);
+      if(m_connections.find(obj) == m_connections.end())
+      {
+        QMetaObject::Connection con = connect(
+              obj, &IdentifiedObjectAbstract::identified_object_destroyed, this,
+              &SelectionStack::prune, Qt::UniqueConnection);
+        m_connections.insert({obj, con});
+      }
     });
 
     m_unselectable.push(s);
@@ -89,6 +97,7 @@ void SelectionStack::push(const Selection& selection)
     }
     m_reselectable.clear();
 
+    pruneConnections();
     currentSelectionChanged(s);
   }
 }
@@ -183,6 +192,40 @@ void SelectionStack::prune(IdentifiedObjectAbstract* p)
   if (m_unselectable.size() == 0)
     m_unselectable.push(Selection{});
 
+  pruneConnections();
   currentSelectionChanged(m_unselectable.top());
+}
+
+void SelectionStack::pruneConnections()
+{
+  ossia::flat_set<const IdentifiedObjectAbstract*> present;
+  for(auto& sel : m_unselectable)
+  {
+    for(auto& obj : sel)
+    {
+      present.insert(obj.data());
+    }
+  }
+  for(auto& sel : m_reselectable)
+  {
+    for(auto& obj : sel)
+    {
+      present.insert(obj.data());
+    }
+  }
+
+  std::vector<const IdentifiedObjectAbstract*> to_remove;
+  for(auto& e : m_connections)
+  {
+    if(present.find(e.first) == present.end())
+      to_remove.push_back(e.first);
+  }
+
+  for(auto ptr : to_remove)
+  {
+    auto it = m_connections.find(ptr);
+    QObject::disconnect(it->second);
+    m_connections.erase(it);
+  }
 }
 }
