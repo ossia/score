@@ -142,7 +142,7 @@ QWidget* PortWidgetSetup::makeAddressWidget(
         if (newAddr.address.address.path.isEmpty())
           return;
 
-        CommandDispatcher<>{ctx.dispatcher}.submitCommand(
+        CommandDispatcher<>{ctx.dispatcher}.submit(
             new Process::ChangePortAddress{port, newAddr.address});
       });
 
@@ -188,7 +188,7 @@ void PortWidgetSetup::setupImpl(
             if (ok != out.propagate())
             {
               CommandDispatcher<> d{ctx.commandStack};
-              d.submitCommand<Process::SetPortPropagate>(out, ok);
+              d.submit<Process::SetPortPropagate>(out, ok);
             }
           });
       con(*outlet, &Process::Outlet::propagateChanged, cb, [=](bool p) {

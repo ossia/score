@@ -141,7 +141,7 @@ bool MessageDropHandler::drop(
   }
 
   if (ml.empty())
-    return true;
+    return false;
 
   Scenario::Command::Macro m{new Scenario::Command::CreateStateMacro,
                              pres.context().context};

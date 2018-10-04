@@ -284,7 +284,7 @@ void TemporalIntervalPresenter::on_requestOverlayMenu(QPointF)
     else
     {
       CommandDispatcher<> d{m_context.commandStack};
-      d.submitCommand<AddProcessToInterval>(this->model(), key, dat);
+      d.submit<AddProcessToInterval>(this->model(), key, dat);
     }
   };
 
@@ -336,12 +336,12 @@ void TemporalIntervalPresenter::startSlotDrag(int curslot, QPointF pos) const
         if (qApp->keyboardModifiers() & Qt::ALT
             || m_model.smallView()[curslot].processes.size() == 1)
         {
-          disp.submitCommand<Command::ChangeSlotPosition>(
+          disp.submit<Command::ChangeSlotPosition>(
               this->m_model, Slot::RackView::SmallView, curslot, slot);
         }
         else
         {
-          disp.submitCommand<Command::MoveLayerInNewSlot>(
+          disp.submit<Command::MoveLayerInNewSlot>(
               this->m_model, curslot, slot);
         }
       },
@@ -358,12 +358,12 @@ void TemporalIntervalPresenter::startSlotDrag(int curslot, QPointF pos) const
         if (qApp->keyboardModifiers() & Qt::ALT
             || m_model.smallView()[curslot].processes.size() == 1)
         {
-          disp.submitCommand<Command::MergeSlots>(
+          disp.submit<Command::MergeSlots>(
               this->m_model, curslot, slot);
         }
         else
         {
-          disp.submitCommand<Command::MergeLayerInSlot>(
+          disp.submit<Command::MergeLayerInSlot>(
               this->m_model, curslot, slot);
         }
       },

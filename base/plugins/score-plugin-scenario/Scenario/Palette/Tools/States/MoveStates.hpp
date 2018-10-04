@@ -100,7 +100,7 @@ public:
           date = std::max(date, *this->m_pressedPrevious);
         date = std::max(date, TimeVal{});
 
-        this->m_movingDispatcher.submitCommand(
+        this->m_movingDispatcher.submit(
             this->m_scenario, sev.id(), date,
             m_intervalInitialPoint.y
                 + (this->currentPoint.y - m_initialClick.y),
@@ -190,7 +190,7 @@ public:
           auto& cstr = scenar.interval(*this->clickedInterval);
           auto date
               = this->currentPoint.date - *m_initialDate + *m_initialDuration;
-          this->m_dispatcher.submitCommand(cstr, date, false);
+          this->m_dispatcher.submit(cstr, date, false);
         }
       });
 
@@ -296,7 +296,7 @@ public:
           date = max(date, *this->m_pressedPrevious);
         }
 
-        m_dispatcher.submitCommand(
+        m_dispatcher.submit(
             this->m_scenario, ev_id, date, this->currentPoint.y,
             stateMachine.editionSettings().expandMode(),
             stateMachine.editionSettings().lockMode());

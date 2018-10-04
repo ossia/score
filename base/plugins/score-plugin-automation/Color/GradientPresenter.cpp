@@ -38,7 +38,7 @@ Presenter::Presenter(
 
     new_grad.insert(std::make_pair(np, prev->second));
     CommandDispatcher<>{context().context.commandStack}
-        .submitCommand<ChangeGradient>(layer, new_grad);
+        .submit<ChangeGradient>(layer, new_grad);
   });
 
   connect(m_view, &View::movePoint, this, [&](double orig, double cur) {
@@ -51,7 +51,7 @@ Presenter::Presenter(
     new_grad.erase(it);
     new_grad.insert(std::make_pair(cur, col));
     CommandDispatcher<>{context().context.commandStack}
-        .submitCommand<ChangeGradient>(layer, new_grad);
+        .submit<ChangeGradient>(layer, new_grad);
   });
 
   connect(m_view, &View::removePoint, this, [&](double orig) {
@@ -62,7 +62,7 @@ Presenter::Presenter(
 
     new_grad.erase(it);
     CommandDispatcher<>{context().context.commandStack}
-        .submitCommand<ChangeGradient>(layer, new_grad);
+        .submit<ChangeGradient>(layer, new_grad);
   });
 
   connect(m_view, &View::setColor, this, [&](double pos, QColor col) {
@@ -73,7 +73,7 @@ Presenter::Presenter(
 
     *it = col;
     CommandDispatcher<>{context().context.commandStack}
-        .submitCommand<ChangeGradient>(layer, new_grad);
+        .submit<ChangeGradient>(layer, new_grad);
   });
 
   connect(m_view, &View::pressed, this, [&] {

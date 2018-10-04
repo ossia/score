@@ -201,6 +201,7 @@ score_plugin_scenario::factories(
       FW<score::SettingsDelegateFactory, Scenario::Settings::Factory>,
       FW<score::PanelDelegateFactory, Scenario::ObjectPanelDelegateFactory>,
       //      FW<score::PanelDelegateFactory, Scenario::PanelDelegateFactory>,
+      FW<Process::ProcessDropHandler, Scenario::ProcessDataDropHandler>,
       FW<Scenario::DropHandler, Scenario::MessageDropHandler,
          Scenario::DropScenario, Scenario::DropProcessInScenario,
          Scenario::DropPortInScenario, Scenario::DropLayerInScenario>,

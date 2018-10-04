@@ -3,6 +3,7 @@
 #include <Process/LayerPresenter.hpp>
 #include <Process/ProcessFactory.hpp>
 #include <Process/ProcessList.hpp>
+#include <Process/Drop/ProcessDropHandler.hpp>
 
 #include <score/plugins/application/GUIApplicationPlugin.hpp>
 #include <score/plugins/customfactory/FactorySetup.hpp>
@@ -28,7 +29,7 @@ score_lib_process::factoryFamilies()
   return make_ptr_vector<
       score::InterfaceListBase, Process::ProcessFactoryList,
       Process::PortFactoryList, Process::LayerFactoryList,
-      Process::ProcessFactoryList>();
+      Process::ProcessFactoryList, Process::ProcessDropHandlerList>();
 }
 
 std::pair<const CommandGroupKey, CommandGeneratorMap>

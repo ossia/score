@@ -47,7 +47,7 @@ Presenter::Presenter(Model& m, View& v, QObject* parent)
   con(v, &View::ClockChanged, this, [&](auto val) {
     if (val.impl().data != m.getClock().impl().data)
     {
-      m_disp.submitCommand<SetModelClock>(this->model(this), val);
+      m_disp.submit<SetModelClock>(this->model(this), val);
     }
   });
 
@@ -57,7 +57,7 @@ Presenter::Presenter(Model& m, View& v, QObject* parent)
   con(v, &View::ExecutionListeningChanged, this, [&](auto val) {
     if (val != m.getExecutionListening())
     {
-      m_disp.submitCommand<SetModelExecutionListening>(this->model(this), val);
+      m_disp.submit<SetModelExecutionListening>(this->model(this), val);
     }
   });
 

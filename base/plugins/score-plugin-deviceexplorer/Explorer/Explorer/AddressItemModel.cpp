@@ -207,7 +207,7 @@ bool AddressItemModel::setData(
     return false;
 
   CommandDispatcher<> disp{m_model->commandStack()};
-  disp.submitCommand(new Explorer::Command::UpdateAddressSettings{
+  disp.submit(new Explorer::Command::UpdateAddressSettings{
       m_model->deviceModel(), m_path, after});
 
   return true;

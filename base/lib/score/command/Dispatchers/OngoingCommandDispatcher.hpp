@@ -31,7 +31,7 @@ public:
   //! Call this repeatedly to make the command, for instance on click and when
   //! the mouse moves.
   template <typename TheCommand, typename... Args>
-  void submitCommand(Args&&... args)
+  void submit(Args&&... args)
   {
     if (!m_cmd)
     {

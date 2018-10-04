@@ -117,7 +117,7 @@ void PointInspectorWidget::on_pointChanged(double d)
 {
   Curve::Point pos{m_XBox->value() / m_xFactor,
                    (m_YBox->value() - m_Ymin) / m_yFactor};
-  m_dispatcher.submitCommand<Curve::MovePoint>(
+  m_dispatcher.submit<Curve::MovePoint>(
       *safe_cast<Curve::Model*>(m_model.parent()), m_model.id(), pos);
 }
 

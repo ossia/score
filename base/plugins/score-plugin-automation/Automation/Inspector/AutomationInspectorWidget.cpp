@@ -108,7 +108,7 @@ void InspectorWidget::on_addressChange(
 
   auto cmd = new ChangeAddress{process(), newAddr};
 
-  m_dispatcher.submitCommand(cmd);
+  m_dispatcher.submit(cmd);
 }
 
 void InspectorWidget::on_minValueChanged()
@@ -118,7 +118,7 @@ void InspectorWidget::on_minValueChanged()
   {
     auto cmd = new SetMin{process(), newVal};
 
-    m_dispatcher.submitCommand(cmd);
+    m_dispatcher.submit(cmd);
   }
 }
 
@@ -129,7 +129,7 @@ void InspectorWidget::on_maxValueChanged()
   {
     auto cmd = new SetMax{process(), newVal};
 
-    m_dispatcher.submitCommand(cmd);
+    m_dispatcher.submit(cmd);
   }
 }
 void InspectorWidget::on_tweenChanged()
@@ -139,7 +139,7 @@ void InspectorWidget::on_tweenChanged()
   {
     auto cmd = new SetTween{process(), newVal};
 
-    m_dispatcher.submitCommand(cmd);
+    m_dispatcher.submit(cmd);
   }
 }
 }
@@ -199,7 +199,7 @@ void InspectorWidget::on_tweenChanged()
   {
     auto cmd = new Gradient::SetGradientTween(process(), newVal);
 
-    m_dispatcher.submitCommand(cmd);
+    m_dispatcher.submit(cmd);
   }
 }
 }
@@ -260,7 +260,7 @@ void InspectorWidget::on_addressChange(
 
   auto cmd = new ChangeSplineAddress{process(), newAddr.address};
 
-  m_dispatcher.submitCommand(cmd);
+  m_dispatcher.submit(cmd);
 }
 
 void InspectorWidget::on_tweenChanged()
@@ -270,7 +270,7 @@ void InspectorWidget::on_tweenChanged()
   {
     // auto cmd = new SetTween{process(), newVal};
 
-    // m_dispatcher.submitCommand(cmd);
+    // m_dispatcher.submit(cmd);
   }
 }
 }
@@ -323,6 +323,6 @@ void InspectorWidget::on_addressChange(
 
   auto cmd = new ChangeMetronomeAddress{process(), newAddr.address.address};
 
-  m_dispatcher.submitCommand(cmd);
+  m_dispatcher.submit(cmd);
 }
 }

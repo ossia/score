@@ -172,7 +172,7 @@ void EventActions::addTriggerToTimeSync()
       **selectedTimeSyncs.begin());
 
   if (cmd)
-    dispatcher().submitCommand(cmd);
+    dispatcher().submit(cmd);
 }
 
 void EventActions::addCondition()
@@ -201,7 +201,7 @@ void EventActions::addCondition()
   {
     auto cmd = new Scenario::Command::SetCondition{
         ev, State::defaultTrueExpression()};
-    dispatcher().submitCommand(cmd);
+    dispatcher().submit(cmd);
   }
 }
 
@@ -230,7 +230,7 @@ void EventActions::removeCondition()
   if (ev.condition() != State::Expression{})
   {
     auto cmd = new Scenario::Command::SetCondition{ev, State::Expression{}};
-    dispatcher().submitCommand(cmd);
+    dispatcher().submit(cmd);
   }
 }
 
@@ -254,7 +254,7 @@ void EventActions::removeTriggerFromTimeSync()
       **selectedTimeSyncs.begin());
 
   if (cmd)
-    dispatcher().submitCommand(cmd);
+    dispatcher().submit(cmd);
 }
 
 CommandDispatcher<> EventActions::dispatcher()

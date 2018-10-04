@@ -395,7 +395,7 @@
  *
  * \code
  * CommandDispatcher<> dispatcher{ctx.commandStack};
- * dispatcher.submitCommand<TheCommand>(commandArg1, commandArg1, ...);
+ * dispatcher.submit<TheCommand>(commandArg1, commandArg1, ...);
  * \endcode
  *
  * See for instance Scenario::EventPresenter : a dispatcher is stored as a
@@ -426,7 +426,7 @@
  * the same argument as the constructor of the command.
  *
  * The dispatchers are able to selectively create a new command the first time,
- * and update it when `submitCommand` is called again.
+ * and update it when `submit` is called again.
  * The command is then pushed in the command stack with `commit()`, or
  * abandoned with `rollback()`.
  *
@@ -440,12 +440,12 @@
  *
  * \code
  * MultiOngoingCommandDispatcher disp{stack};
- * disp.submitCommand<Command1>(obj1, 0);
- * disp.submitCommand<Command1>(obj1, 1);
- * disp.submitCommand<Command1>(obj1, 2);
- * disp.submitCommand<Command2>(obj2, obj3, obj4);
- * disp.submitCommand<Command3>(obj1, 10);
- * disp.submitCommand<Command3>(obj1, 20);
+ * disp.submit<Command1>(obj1, 0);
+ * disp.submit<Command1>(obj1, 1);
+ * disp.submit<Command1>(obj1, 2);
+ * disp.submit<Command2>(obj2, obj3, obj4);
+ * disp.submit<Command3>(obj1, 10);
+ * disp.submit<Command3>(obj1, 20);
  * disp.commit<MacroCommand>();
  * \endcode
  *

@@ -79,7 +79,7 @@ void ChangeInterpolationAddress(
 
   if (addr == State::AddressAccessor{})
   {
-    disp.submitCommand(new ChangeAddress{proc, {}, {}, {}, {}});
+    disp.submit(new ChangeAddress{proc, {}, {}, {}, {}});
   }
   else
   {
@@ -126,7 +126,7 @@ void ChangeInterpolationAddress(
       }
     }
 
-    disp.submitCommand(new ChangeAddress{proc, addr, sv, ev, source_u});
+    disp.submit(new ChangeAddress{proc, addr, sv, ev, source_u});
   }
 }
 }

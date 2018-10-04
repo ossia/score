@@ -82,7 +82,7 @@ void Duplicate(
 
   auto cmd = new DuplicateInterval{scenar, *cat.selectedIntervals.front()};
   CommandDispatcher<> d{stack};
-  d.submitCommand(cmd);
+  d.submit(cmd);
 }
 
 SCORE_PLUGIN_SCENARIO_EXPORT

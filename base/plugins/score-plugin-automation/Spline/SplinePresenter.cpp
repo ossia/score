@@ -27,7 +27,7 @@ Presenter::Presenter(
   m_view->setSpline(m_layer.spline());
   connect(m_view, &View::changed, this, [&] {
     CommandDispatcher<>{context().context.commandStack}
-        .submitCommand<ChangeSpline>(layer, m_view->spline());
+        .submit<ChangeSpline>(layer, m_view->spline());
   });
 
   connect(m_view, &View::pressed, this, [&] {

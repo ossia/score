@@ -27,7 +27,7 @@ struct Simple
  *
  * Used for complex real-time editing.
  * This dispatcher has an array of commands :
- * as long as the commands sent through submitCommand
+ * as long as the commands sent through submit
  * are mergeable, they will be merged with the latest command on the array.
  *
  * When a new command is encountered, it is put in a new place in the array.
@@ -45,21 +45,21 @@ public:
     cleanup();
   }
 
-  void submitCommand(score::Command* cmd)
+  void submit(score::Command* cmd)
   {
     stack().disableActions();
     cmd->redo(stack().context());
     m_cmds.push_back(cmd);
   }
 
-  void submitCommandQuiet(score::Command* cmd)
+  void submitQuiet(score::Command* cmd)
   {
     stack().disableActions();
     m_cmds.push_back(cmd);
   }
 
   template <typename TheCommand, typename... Args>
-  void submitCommand(Args&&... args)
+  void submit(Args&&... args)
   {
     if (m_cmds.empty())
     {

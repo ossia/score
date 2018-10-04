@@ -112,8 +112,8 @@ void EventPresenter::handleDrop(const QPointF& pos, const QMimeData& mime)
     auto cmd = new Command::CreateState{
         *scenar, m_model.id(),
         pos.y() / m_view->parentItem()->boundingRect().size().height()};
-    dispatcher.submitCommand(cmd);
-    dispatcher.submitCommand(new Command::AddMessagesToState{
+    dispatcher.submit(cmd);
+    dispatcher.submit(new Command::AddMessagesToState{
         scenar->states.at(cmd->createdState()), std::move(ml)});
 
     dispatcher.commit();

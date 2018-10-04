@@ -56,13 +56,13 @@ struct FloatSlider
         sl, &score::DoubleSlider::sliderMoved, context,
         [=, &inlet, &ctx](int v) {
           sl->moving = true;
-          ctx.dispatcher.submitCommand<SetControlValue>(
+          ctx.dispatcher.submit<SetControlValue>(
               inlet, min + (v / score::DoubleSlider::max) * (max - min));
         });
     QObject::connect(
         sl, &score::DoubleSlider::sliderReleased, context,
         [=, &inlet, &ctx]() {
-          ctx.dispatcher.submitCommand<SetControlValue>(
+          ctx.dispatcher.submit<SetControlValue>(
               inlet, min
                          + (((QSlider*)sl)->value() / score::DoubleSlider::max)
                                * (max - min));
@@ -98,7 +98,7 @@ struct FloatSlider
     QObject::connect(
         sl, &score::QGraphicsSlider::sliderMoved, context, [=, &inlet, &ctx] {
           sl->moving = true;
-          ctx.dispatcher.submitCommand<SetControlValue>(
+          ctx.dispatcher.submit<SetControlValue>(
               inlet, min + sl->value() * (max - min));
         });
     QObject::connect(
@@ -149,12 +149,12 @@ struct LogFloatSlider
         sl, &score::DoubleSlider::sliderMoved, context,
         [=, &inlet, &ctx](int v) {
           sl->moving = true;
-          ctx.dispatcher.submitCommand<SetControlValue>(
+          ctx.dispatcher.submit<SetControlValue>(
               inlet, from01(min, max, v / score::DoubleSlider::max));
         });
     QObject::connect(
         sl, &score::DoubleSlider::sliderReleased, context, [=, &inlet, &ctx] {
-          ctx.dispatcher.submitCommand<SetControlValue>(
+          ctx.dispatcher.submit<SetControlValue>(
               inlet, from01(
                          min, max,
                          ((QSlider*)sl)->value() / score::DoubleSlider::max));
@@ -191,7 +191,7 @@ struct LogFloatSlider
         sl, &score::QGraphicsLogSlider::sliderMoved, context,
         [=, &inlet, &ctx] {
           sl->moving = true;
-          ctx.dispatcher.submitCommand<SetControlValue>(
+          ctx.dispatcher.submit<SetControlValue>(
               inlet, from01(min, max, sl->value()));
         });
     QObject::connect(
@@ -232,11 +232,11 @@ struct IntSlider
     QObject::connect(
         sl, &QSlider::sliderMoved, context, [sl, &inlet, &ctx](int p) {
           sl->moving = true;
-          ctx.dispatcher.submitCommand<SetControlValue>(inlet, p);
+          ctx.dispatcher.submit<SetControlValue>(inlet, p);
         });
     QObject::connect(
         sl, &QSlider::sliderReleased, context, [sl, &inlet, &ctx] {
-          ctx.dispatcher.submitCommand<SetControlValue>(inlet, sl->value());
+          ctx.dispatcher.submit<SetControlValue>(inlet, sl->value());
           ctx.dispatcher.commit();
           sl->moving = false;
         });
@@ -270,7 +270,7 @@ struct IntSlider
         sl, &score::QGraphicsIntSlider::sliderMoved, context,
         [=, &inlet, &ctx] {
           sl->moving = true;
-          ctx.dispatcher.submitCommand<SetControlValue>(inlet, sl->value());
+          ctx.dispatcher.submit<SetControlValue>(inlet, sl->value());
         });
     QObject::connect(
         sl, &score::QGraphicsIntSlider::sliderReleased, context, [&ctx, sl]() {
@@ -310,7 +310,7 @@ struct IntSpinBox
     QObject::connect(
         sl, SignalUtils::QSpinBox_valueChanged_int(), context,
         [&inlet, &ctx](int val) {
-          CommandDispatcher<>{ctx.commandStack}.submitCommand<SetControlValue>(
+          CommandDispatcher<>{ctx.commandStack}.submit<SetControlValue>(
               inlet, val);
         });
 
@@ -340,7 +340,7 @@ struct IntSpinBox
         sl, &score::QGraphicsIntSlider::sliderMoved, context,
         [=, &inlet, &ctx] {
           sl->moving = true;
-          ctx.dispatcher.submitCommand<SetControlValue>(inlet, sl->value());
+          ctx.dispatcher.submit<SetControlValue>(inlet, sl->value());
         });
     QObject::connect(
         sl, &score::QGraphicsIntSlider::sliderReleased, context, [&ctx, sl]() {
@@ -372,7 +372,7 @@ struct Toggle
 
     QObject::connect(
         sl, &QCheckBox::toggled, context, [&inlet, &ctx](bool val) {
-          CommandDispatcher<>{ctx.commandStack}.submitCommand<SetControlValue>(
+          CommandDispatcher<>{ctx.commandStack}.submit<SetControlValue>(
               inlet, val);
         });
 
@@ -437,7 +437,7 @@ struct ChooserToggle
 
     QObject::connect(
         sl, &QCheckBox::toggled, context, [&inlet, &ctx](bool val) {
-          CommandDispatcher<>{ctx.commandStack}.submitCommand<SetControlValue>(
+          CommandDispatcher<>{ctx.commandStack}.submit<SetControlValue>(
               inlet, val);
         });
 
@@ -477,7 +477,7 @@ struct LineEdit
 
     QObject::connect(
         sl, &QLineEdit::editingFinished, context, [sl, &inlet, &ctx]() {
-          CommandDispatcher<>{ctx.commandStack}.submitCommand<SetControlValue>(
+          CommandDispatcher<>{ctx.commandStack}.submit<SetControlValue>(
               inlet, sl->text().toStdString());
         });
 
@@ -549,7 +549,7 @@ struct Enum
     QObject::connect(
         sl, SignalUtils::QComboBox_currentIndexChanged_int(), context,
         [values, &inlet, &ctx](int idx) {
-          CommandDispatcher<>{ctx.commandStack}.submitCommand<SetControlValue>(
+          CommandDispatcher<>{ctx.commandStack}.submit<SetControlValue>(
               inlet, toStd(values[idx]));
         });
 
@@ -585,7 +585,7 @@ struct Enum
         sl, &score::QGraphicsComboSlider::sliderMoved, context,
         [values, sl, &inlet, &ctx] {
           sl->moving = true;
-          ctx.dispatcher.submitCommand<SetControlValue>(
+          ctx.dispatcher.submit<SetControlValue>(
               inlet, toStd(values[sl->value()]));
         });
     QObject::connect(
@@ -635,7 +635,7 @@ struct ComboBox
     QObject::connect(
         sl, SignalUtils::QComboBox_currentIndexChanged_int(), context,
         [values, &inlet, &ctx](int idx) {
-          CommandDispatcher<>{ctx.commandStack}.submitCommand<SetControlValue>(
+          CommandDispatcher<>{ctx.commandStack}.submit<SetControlValue>(
               inlet, values[idx].second);
         });
 
@@ -676,7 +676,7 @@ struct ComboBox
         sl, &score::QGraphicsComboSlider::sliderMoved, context,
         [values, sl, &inlet, &ctx] {
           sl->moving = true;
-          ctx.dispatcher.submitCommand<SetControlValue>(
+          ctx.dispatcher.submit<SetControlValue>(
               inlet, values[sl->value()].second);
         });
     QObject::connect(
@@ -736,7 +736,7 @@ struct TimeSignatureChooser
 
     QObject::connect(
         sl, &QLineEdit::editingFinished, context, [sl, &inlet, &ctx] {
-          CommandDispatcher<>{ctx.commandStack}.submitCommand<SetControlValue>(
+          CommandDispatcher<>{ctx.commandStack}.submit<SetControlValue>(
               inlet, sl->text().toStdString());
         });
 

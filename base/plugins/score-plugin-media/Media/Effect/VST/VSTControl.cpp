@@ -23,7 +23,7 @@ void VSTControlPortItem::setupMenu(
   connect(rm_act, &QAction::triggered, this, [this, &ctx] {
     QTimer::singleShot(0, [&ctx, parent = port().parent(), id = port().id()] {
       CommandDispatcher<> disp{ctx.commandStack};
-      disp.submitCommand<RemoveVSTControl>(
+      disp.submit<RemoveVSTControl>(
           *static_cast<VSTEffectModel*>(parent), id);
     });
   });

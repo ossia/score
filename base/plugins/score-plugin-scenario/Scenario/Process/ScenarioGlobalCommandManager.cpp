@@ -54,13 +54,13 @@ void clearContentFromSelection(
   {
     if (state->messages().rootNode().hasChildren())
     {
-      cleaner.submitCommand(new ClearState(*state));
+      cleaner.submit(new ClearState(*state));
     }
   }
 
   for (auto& interval : intervalsToRemove)
   {
-    cleaner.submitCommand(new ClearInterval(*interval));
+    cleaner.submit(new ClearInterval(*interval));
     // if a state and an interval are selected then remove event too
   }
 
@@ -100,7 +100,7 @@ void removeSelection(
   {
     if (state->messages().rootNode().hasChildren())
     {
-      cleaner.submitCommand(new ClearState(*state));
+      cleaner.submit(new ClearState(*state));
     }
   }
 
@@ -125,7 +125,7 @@ void removeSelection(
       }
 
       if (remove_it)
-        cleaner.submitCommand(new Scenario::Command::RemoveProcessFromInterval(
+        cleaner.submit(new Scenario::Command::RemoveProcessFromInterval(
             *(IntervalModel*)proc->parent(), proc->id()));
     }
   }
@@ -138,7 +138,7 @@ void removeSelection(
 
   if (!sel.empty())
   {
-    cleaner.submitCommand(new RemoveSelection(scenario, sel));
+    cleaner.submit(new RemoveSelection(scenario, sel));
   }
 
   cleaner.commit();
@@ -260,7 +260,7 @@ void mergeEvents(
         auto cmd
             = new Command::MergeEvents(scenario, first_ev->id(), (*it)->id());
         // f.redoAndPush(cmd);
-        merger.submitCommand(cmd);
+        merger.submit(cmd);
         it = sel.erase(it);
       }
       else

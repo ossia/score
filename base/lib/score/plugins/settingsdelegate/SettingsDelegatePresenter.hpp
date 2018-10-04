@@ -80,7 +80,7 @@ using GlobalSettingsView = SettingsDelegateView<SettingsDelegateModel>;
     con(v, &View::Control##Changed, this, [&](auto val) {                \
       if (val != m.get##Control())                                       \
       {                                                                  \
-        m_disp.submitCommand<SetModel##Control>(this->model(this), val); \
+        m_disp.submit<SetModel##Control>(this->model(this), val); \
       }                                                                  \
     });                                                                  \
                                                                          \

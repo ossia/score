@@ -102,7 +102,7 @@ void StatePresenter::handleDrop(const QMimeData& mime)
 
     auto cmd = new Command::AddMessagesToState{m_model, ml};
 
-    CommandDispatcher<>{m_ctx.commandStack}.submitCommand(cmd);
+    CommandDispatcher<>{m_ctx.commandStack}.submit(cmd);
   }
   else if (mime.hasUrls())
   {
@@ -125,7 +125,7 @@ void StatePresenter::handleDrop(const QMimeData& mime)
       if (!ml.empty())
       {
         auto cmd = new Command::AddMessagesToState{m_model, ml};
-        CommandDispatcher<>{m_ctx.commandStack}.submitCommand(cmd);
+        CommandDispatcher<>{m_ctx.commandStack}.submit(cmd);
       }
     }
     else if (scenario && ossia::all_of(mime.urls(), [](const QUrl& u) {

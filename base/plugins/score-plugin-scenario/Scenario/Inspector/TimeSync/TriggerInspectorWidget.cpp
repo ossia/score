@@ -69,7 +69,7 @@ TriggerInspectorWidget::TriggerInspectorWidget(
         {
           auto cmd
               = new Scenario::Command::SetTrigger{m_model, std::move(*trig)};
-          m_parent->commandDispatcher()->submitCommand(cmd);
+          m_parent->commandDispatcher()->submit(cmd);
         }
       });
   con(m_model, &TimeSyncModel::activeChanged, this,
@@ -83,7 +83,7 @@ void TriggerInspectorWidget::on_triggerChanged()
   if (trig != m_model.expression())
   {
     auto cmd = new Scenario::Command::SetTrigger{m_model, std::move(trig)};
-    m_parent->commandDispatcher()->submitCommand(cmd);
+    m_parent->commandDispatcher()->submit(cmd);
   }
 }
 
@@ -96,7 +96,7 @@ void TriggerInspectorWidget::createTrigger()
       &Scenario::Command::TriggerCommandFactory::make_addTriggerCommand,
       m_model);
   if (cmd)
-    m_parent->commandDispatcher()->submitCommand(cmd);
+    m_parent->commandDispatcher()->submit(cmd);
 }
 
 void TriggerInspectorWidget::removeTrigger()
@@ -108,7 +108,7 @@ void TriggerInspectorWidget::removeTrigger()
       &Scenario::Command::TriggerCommandFactory::make_removeTriggerCommand,
       m_model);
   if (cmd)
-    m_parent->commandDispatcher()->submitCommand(cmd);
+    m_parent->commandDispatcher()->submit(cmd);
 }
 
 void TriggerInspectorWidget::on_triggerActiveChanged()

@@ -73,7 +73,7 @@ Presenter::Presenter(
   model.notes.removing.connect<&Presenter::on_noteRemoving>(this);
 
   connect(m_view, &View::doubleClicked, this, [&](QPointF pos) {
-    CommandDispatcher<>{context().context.commandStack}.submitCommand(
+    CommandDispatcher<>{context().context.commandStack}.submit(
         new AddNote{layer, m_view->noteAtPos(pos)});
   });
 
@@ -83,7 +83,7 @@ Presenter::Presenter(
   connect(m_view, &View::dropReceived, this, &Presenter::on_drop);
 
   connect(m_view, &View::deleteRequested, this, [&] {
-    CommandDispatcher<>{context().context.commandStack}.submitCommand(
+    CommandDispatcher<>{context().context.commandStack}.submit(
         new RemoveNotes{m_layer, selectedNotes()});
   });
 
@@ -120,7 +120,7 @@ void Presenter::fillContextMenu(
       return;
 
     CommandDispatcher<> c{context().context.commandStack};
-    c.submitCommand<RescaleMidi>(m_layer, val);
+    c.submit<RescaleMidi>(m_layer, val);
   });
 
   auto act2 = menu.addAction(tr("Rescale all midi"));
@@ -138,7 +138,7 @@ void Presenter::fillContextMenu(
     auto midi = doc.findChildren<Midi::ProcessModel*>();
     for (auto ptr : midi)
     {
-      disp.submitCommand(new RescaleMidi{*ptr, val});
+      disp.submit(new RescaleMidi{*ptr, val});
     }
     disp.commit();
   });
@@ -215,7 +215,7 @@ void Presenter::setupNote(NoteView& v)
       notes = {v.note.id()};
     }
 
-    m_ongoing.submitCommand(
+    m_ongoing.submit(
         m_layer, notes, note - v.note.pitch(),
         newPos.x() / m_view->defaultWidth() - v.note.start());
     m_ongoing.commit();
@@ -230,7 +230,7 @@ void Presenter::setupNote(NoteView& v)
     }
 
     auto dt = newScale - v.note.duration();
-    CommandDispatcher<>{context().context.commandStack}.submitCommand(
+    CommandDispatcher<>{context().context.commandStack}.submit(
         new ScaleNotes{m_layer, notes, dt});
   });
 }
@@ -267,7 +267,10 @@ void Presenter::on_noteRemoving(const Note& n)
 
 void Presenter::on_drop(const QPointF& pos, const QMimeData& md)
 {
-  auto song = Midi::MidiTrack::parse(md, context().context);
+  auto songs = Midi::MidiTrack::parse(md, context().context);
+  if(songs.empty())
+    return;
+  auto& song = songs.front();
   if (song.tracks.empty())
     return;
 
@@ -283,7 +286,7 @@ void Presenter::on_drop(const QPointF& pos, const QMimeData& md)
     note.setDuration(
         song.durationInMs * note.duration() / m_layer.duration().msec());
   }
-  disp.submitCommand<Midi::ReplaceNotes>(
+  disp.submit<Midi::ReplaceNotes>(
       m_layer, track.notes, track.min, track.max, m_layer.duration());
 }
 

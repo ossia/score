@@ -485,7 +485,7 @@ void ObjectMenuActions::pasteElements(
   // TODO check json validity
   auto cmd = new Command::ScenarioPasteElements(sm, obj, origin);
 
-  dispatcher().submitCommand(cmd);
+  dispatcher().submit(cmd);
 }
 
 void ObjectMenuActions::pasteElementsAfter(
@@ -504,7 +504,7 @@ void ObjectMenuActions::pasteElementsAfter(
   if (auto ts = furthestHierarchicallySelectedTimeSync(sm))
   {
     auto cmd = new Command::ScenarioPasteElementsAfter{sm, *ts, obj};
-    dispatcher().submitCommand(cmd);
+    dispatcher().submit(cmd);
   }
 }
 
@@ -524,7 +524,7 @@ static void writeJsonToScenario(
       auto cmd = new Scenario::Command::InsertContentInInterval{
           json_vref.toObject(), *interval, expandMode};
 
-      dispatcher.submitCommand(cmd);
+      dispatcher.submit(cmd);
     }
   }
 
@@ -536,7 +536,7 @@ static void writeJsonToScenario(
       auto cmd
           = new Command::InsertContentInState{json_vref.toObject(), *state};
 
-      dispatcher.submitCommand(cmd);
+      dispatcher.submit(cmd);
     }
   }
 

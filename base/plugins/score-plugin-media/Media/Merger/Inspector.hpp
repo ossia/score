@@ -35,7 +35,7 @@ public:
         [&] { m_count.setValue(obj.inCount()); });
 
     con(m_count, &QSpinBox::editingFinished, this, [&]() {
-      m_dispatcher.submitCommand<SetMergeInCount>(obj, m_count.value());
+      m_dispatcher.submit<SetMergeInCount>(obj, m_count.value());
       m_dispatcher.commit();
     });
 

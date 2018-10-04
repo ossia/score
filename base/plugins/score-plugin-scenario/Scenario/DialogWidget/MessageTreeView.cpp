@@ -98,7 +98,7 @@ void MessageTreeView::removeNodes()
 
   CommandDispatcher<> dispatcher{
       score::IDocument::documentContext(m_model).commandStack};
-  dispatcher.submitCommand(cmd);
+  dispatcher.submit(cmd);
 }
 
 void MessageTreeView::resizeEvent(QResizeEvent* ev)

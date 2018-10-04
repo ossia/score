@@ -207,7 +207,7 @@ void IntervalActions::addProcessInInterval(
   auto cmd = new Scenario::Command::AddProcessToInterval(
       **selectedIntervals.begin(), processName, data);
 
-  dispatcher().submitCommand(cmd);
+  dispatcher().submit(cmd);
 }
 
 void IntervalActions::on_showRacks()

@@ -80,12 +80,12 @@ void MessageRecorder::stop()
   auto setStateCmd = new Scenario::Command::AddMessagesToState(
       m_createdProcess->state(startState), {m_records[0].m});
   setStateCmd->redo(context.context);
-  context.dispatcher.submitCommand(setStateCmd);
+  context.dispatcher.submit(setStateCmd);
 
   auto movecmd = new Scenario::Command::MoveNewState{*m_createdProcess,
                                                      startState, 0.5};
   movecmd->redo(context.context);
-  context.dispatcher.submitCommand(movecmd);
+  context.dispatcher.submit(movecmd);
 
   for (std::size_t i = 1; i < m_records.size(); i++)
   {
@@ -97,13 +97,13 @@ void MessageRecorder::stop()
         0.5};
     cmd->redo(context.context);
     startState = cmd->createdState();
-    context.dispatcher.submitCommand(cmd);
+    context.dispatcher.submit(cmd);
 
     // Add messages to it
     auto setStateCmd = new Scenario::Command::AddMessagesToState(
         m_createdProcess->state(startState), {val.m});
     setStateCmd->redo(context.context);
-    context.dispatcher.submitCommand(setStateCmd);
+    context.dispatcher.submit(setStateCmd);
   }
 }
 
@@ -145,7 +145,7 @@ bool MessageRecorder::setup(
       {}};
 
   cmd_proc->redo(context.context);
-  context.dispatcher.submitCommand(cmd_proc);
+  context.dispatcher.submit(cmd_proc);
 
   auto& proc = box.interval.processes.at(cmd_proc->processId());
   auto& record_proc = static_cast<Scenario::ProcessModel&>(proc);
@@ -155,7 +155,7 @@ bool MessageRecorder::setup(
   auto cmd_layer
       = new Scenario::Command::AddLayerModelToSlot{{box.interval, 0}, proc};
   cmd_layer->redo(context.context);
-  context.dispatcher.submitCommand(cmd_layer);
+  context.dispatcher.submit(cmd_layer);
 
   const auto& devicelist = context.explorer.deviceModel().list();
   //// Setup listening on the curves ////

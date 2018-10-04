@@ -313,7 +313,7 @@ void ScenarioPresenter::fillContextMenu(
 
     auto cmd = new Scenario::Command::CreateCommentBlock{
         m_layer, scenPoint.date, scenPoint.y};
-    CommandDispatcher<>{ctx.commandStack}.submitCommand(cmd);
+    CommandDispatcher<>{ctx.commandStack}.submit(cmd);
   });
 
   menu.addAction(createCommentAct);
@@ -411,7 +411,7 @@ void ScenarioPresenter::doubleClick(QPointF pt)
 
   // Just create a dot
   auto cmd = new Command::CreateTimeSync_Event_State{m_layer, sp.date, sp.y};
-  CommandDispatcher<>{m_context.context.commandStack}.submitCommand(cmd);
+  CommandDispatcher<>{m_context.context.commandStack}.submit(cmd);
 }
 
 void ScenarioPresenter::on_focusChanged()
@@ -574,7 +574,7 @@ void ScenarioPresenter::on_commentCreated(
   connect(cmt_pres, &CommentBlockPresenter::moved, this, [&](QPointF scenPos) {
     auto pos = Scenario::ConvertToScenarioPoint(
         scenPos, m_zoomRatio, m_view->height());
-    m_ongoingDispatcher.submitCommand<MoveCommentBlock>(
+    m_ongoingDispatcher.submit<MoveCommentBlock>(
         m_layer, comment_block_model.id(), pos.date, pos.y);
   });
   connect(
@@ -587,7 +587,7 @@ void ScenarioPresenter::on_commentCreated(
         if (focused() && doc != comment_block_model.content())
         {
           CommandDispatcher<> c{m_context.context.commandStack};
-          c.submitCommand(new SetCommentText{{comment_block_model}, doc});
+          c.submit(new SetCommentText{{comment_block_model}, doc});
         }
       });
 }

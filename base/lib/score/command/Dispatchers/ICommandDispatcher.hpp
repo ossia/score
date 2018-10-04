@@ -13,7 +13,7 @@ class CommandStackFacade;
  * way.
  *
  * The general interface is :
- *   - submitCommand(cmd) to send a new command or update an existing one
+ *   - submit(cmd) to send a new command or update an existing one
  *   - commit() when editing is done.
  */
 class ICommandDispatcher

@@ -151,7 +151,7 @@ Box CreateBox(RecordContext& context)
   auto cmd_start = new Scenario::Command::CreateTimeSync_Event_State{
       context.scenario, default_end_date, context.point.y};
   cmd_start->redo(context.context);
-  context.dispatcher.submitCommand(cmd_start);
+  context.dispatcher.submit(cmd_start);
 
   // TODO what happens if we go past the end of our scenario ? Stop recording
   // ??
@@ -159,22 +159,22 @@ Box CreateBox(RecordContext& context)
       context.scenario, cmd_start->createdState(), default_end_date,
       context.point.y};
   cmd_end->redo(context.context);
-  context.dispatcher.submitCommand(cmd_end);
+  context.dispatcher.submit(cmd_end);
 
   auto& cstr = context.scenario.intervals.at(cmd_end->createdInterval());
 
   auto cmd_move = new Scenario::Command::MoveNewEvent(
       context.scenario, cstr.id(), cmd_end->createdEvent(), default_end_date,
       0, true, ExpandMode::CannotExpand);
-  context.dispatcher.submitCommand(cmd_move);
+  context.dispatcher.submit(cmd_move);
 
   auto cmd_slot = new Scenario::Command::AddSlotToRack{cstr};
   cmd_slot->redo(context.context);
-  context.dispatcher.submitCommand(cmd_slot);
+  context.dispatcher.submit(cmd_slot);
 
   auto cmd_showrack = new Scenario::Command::ShowRack{cstr};
   cmd_showrack->redo(context.context);
-  context.dispatcher.submitCommand(cmd_showrack);
+  context.dispatcher.submit(cmd_showrack);
 
   return {cstr, *cmd_move, cmd_end->createdEvent()};
 }

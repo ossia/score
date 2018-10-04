@@ -59,7 +59,7 @@ public:
   }
 
   template<typename... Args>
-  void submitCommand(Args&&... args)
+  void submit(Args&&... args)
   {
     if (!m_cmd)
     {
@@ -317,7 +317,7 @@ public:
 
     auto cmd = new Scenario::Command::SetMinDuration(m_model, m_min, !val);
 
-    m_simpleDispatcher.submitCommand(cmd);
+    m_simpleDispatcher.submit(cmd);
   }
 
   void on_maxFiniteToggled(bool val)
@@ -329,13 +329,13 @@ public:
 
     auto cmd = new Scenario::Command::SetMaxDuration(m_model, m_max, !val);
 
-    m_simpleDispatcher.submitCommand(cmd);
+    m_simpleDispatcher.submit(cmd);
   }
 
   void minDurationSpinboxChanged(int val)
   {
     using namespace Scenario::Command;
-    m_dispatcher.submitCommand<SetMinDuration>(
+    m_dispatcher.submit<SetMinDuration>(
         m_model, TimeVal{std::chrono::milliseconds{val}},
         !m_minNonNullBox->isChecked());
   }
@@ -343,7 +343,7 @@ public:
   void maxDurationSpinboxChanged(int val)
   {
     using namespace Scenario::Command;
-    m_dispatcher.submitCommand<SetMaxDuration>(
+    m_dispatcher.submit<SetMaxDuration>(
         m_model, TimeVal{std::chrono::milliseconds{val}},
         !m_maxFiniteBox->isChecked());
   }

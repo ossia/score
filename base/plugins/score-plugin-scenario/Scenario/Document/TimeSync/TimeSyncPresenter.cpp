@@ -111,7 +111,7 @@ void TimeSyncPresenter::handleDrop(const QPointF& pos, const QMimeData& mime)
         CommandDispatcher<> dispatcher{
             score::IDocument::documentContext(m_model).commandStack};
         auto cmd = new Command::SetTrigger{m_model, std::move(*trig)};
-        dispatcher.submitCommand(cmd);
+        dispatcher.submit(cmd);
       }
     }
   }

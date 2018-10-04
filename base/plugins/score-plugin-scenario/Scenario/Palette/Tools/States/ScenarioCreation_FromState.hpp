@@ -219,7 +219,7 @@ public:
           }
         }
 
-        this->m_dispatcher.template submitCommand<MoveNewEvent>(
+        this->m_dispatcher.template submit<MoveNewEvent>(
             this->m_scenario, this->createdIntervals.last(),
             this->createdEvents.last(), this->currentPoint.date,
             this->currentPoint.y, sequence);
@@ -237,7 +237,7 @@ public:
           return;
         }
 
-        this->m_dispatcher.template submitCommand<MoveNewState>(
+        this->m_dispatcher.template submit<MoveNewState>(
             this->m_scenario, this->createdStates.last(),
             this->currentPoint.y);
       });
@@ -254,7 +254,7 @@ public:
           return;
         }
 
-        this->m_dispatcher.template submitCommand<MoveNewState>(
+        this->m_dispatcher.template submit<MoveNewState>(
             this->m_scenario, this->createdStates.last(),
             this->currentPoint.y);
       });
@@ -288,7 +288,7 @@ private:
       auto tn = Scenario::parentEvent(st, scenar).timeSync();
       auto cmd = new Scenario::Command::CreateEvent_State{
           this->m_scenario, tn, this->currentPoint.y};
-      this->m_dispatcher.submitCommand(cmd);
+      this->m_dispatcher.submit(cmd);
 
       this->createdEvents.append(cmd->createdEvent());
       this->createdStates.append(cmd->createdState());
@@ -301,7 +301,7 @@ private:
         // Create new state on the event
         auto cmd = new Scenario::Command::CreateState{
             this->m_scenario, st.eventId(), this->currentPoint.y};
-        this->m_dispatcher.submitCommand(cmd);
+        this->m_dispatcher.submit(cmd);
 
         this->createdStates.append(cmd->createdState());
         fun(this->createdStates.first());
@@ -318,7 +318,7 @@ private:
           // Create new state on the event
           auto cmd = new Scenario::Command::CreateState{
               this->m_scenario, st.eventId(), this->currentPoint.y};
-          this->m_dispatcher.submitCommand(cmd);
+          this->m_dispatcher.submit(cmd);
 
           this->createdStates.append(cmd->createdState());
           fun(this->createdStates.first());

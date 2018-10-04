@@ -232,7 +232,7 @@ void ProcessModel::changeDuration(
     const TimeVal& val, ExpandMode expandmode, LockMode lockmode)
 {
   auto& scenario = *this;
-  dispatcher.submitCommand<Command::MoveEventMeta>(
+  dispatcher.submit<Command::MoveEventMeta>(
       scenario, scenario.state(itv.endState()).eventId(), itv.date() + val,
       itv.heightPercentage(), expandmode, lockmode);
 }*/

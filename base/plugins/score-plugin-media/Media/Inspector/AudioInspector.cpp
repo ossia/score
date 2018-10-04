@@ -41,16 +41,16 @@ InspectorWidget::InspectorWidget(
       [&] { m_edit.setText(object.file().path()); });
 
   con(m_edit, &QLineEdit::editingFinished, this, [&]() {
-    m_dispatcher.submitCommand(new ChangeAudioFile(object, m_edit.text()));
+    m_dispatcher.submit(new ChangeAudioFile(object, m_edit.text()));
   });
   con(m_start, &QSpinBox::editingFinished, this, [&]() {
-    m_dispatcher.submitCommand(new ChangeStart(object, m_start.value()));
+    m_dispatcher.submit(new ChangeStart(object, m_start.value()));
   });
   con(m_upmix, &QSpinBox::editingFinished, this, [&]() {
-    m_dispatcher.submitCommand(new ChangeUpmix(object, m_upmix.value()));
+    m_dispatcher.submit(new ChangeUpmix(object, m_upmix.value()));
   });
   con(m_startOffset, &QSpinBox::editingFinished, this, [&]() {
-    m_dispatcher.submitCommand(
+    m_dispatcher.submit(
         new ChangeStartOffset(object, m_startOffset.value()));
   });
 

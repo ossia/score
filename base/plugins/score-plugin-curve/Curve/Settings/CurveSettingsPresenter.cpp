@@ -28,7 +28,7 @@ Presenter::Presenter(Model& m, View& v, QObject* parent)
         [&](auto simplificationRatio) {
           if (simplificationRatio != m.getSimplificationRatio())
           {
-            m_disp.submitCommand<SetModelSimplificationRatio>(
+            m_disp.submit<SetModelSimplificationRatio>(
                 this->model(this), simplificationRatio);
           }
         });
@@ -46,7 +46,7 @@ Presenter::Presenter(Model& m, View& v, QObject* parent)
     con(v, &View::simplifyChanged, this, [&](auto simplify) {
       if (simplify != m.getSimplify())
       {
-        m_disp.submitCommand<SetModelSimplify>(this->model(this), simplify);
+        m_disp.submit<SetModelSimplify>(this->model(this), simplify);
       }
     });
 
@@ -62,7 +62,7 @@ Presenter::Presenter(Model& m, View& v, QObject* parent)
     con(v, &View::modeChanged, this, [&](auto val) {
       if (val != m.getCurveMode())
       {
-        m_disp.submitCommand<SetModelCurveMode>(this->model(this), val);
+        m_disp.submit<SetModelCurveMode>(this->model(this), val);
       }
     });
 
@@ -78,7 +78,7 @@ Presenter::Presenter(Model& m, View& v, QObject* parent)
     con(v, &View::playWhileRecordingChanged, this, [&](auto val) {
       if (val != m.getPlayWhileRecording())
       {
-        m_disp.submitCommand<SetModelPlayWhileRecording>(
+        m_disp.submit<SetModelPlayWhileRecording>(
             this->model(this), val);
       }
     });

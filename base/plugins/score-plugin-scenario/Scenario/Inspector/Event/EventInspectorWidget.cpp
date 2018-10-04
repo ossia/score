@@ -134,7 +134,7 @@ EventInspectorWidget::EventInspectorWidget(
           {
             auto cmd = new Scenario::Command::SetCondition{*m_model,
                                                            std::move(*cond)};
-            m_commandDispatcher.submitCommand(cmd);
+            m_commandDispatcher.submit(cmd);
           }
         });
 
@@ -165,7 +165,7 @@ EventInspectorWidget::EventInspectorWidget(
           if (idx != (int)m_model->offsetBehavior())
           {
             CommandDispatcher<> c{this->m_context.commandStack};
-            c.submitCommand(
+            c.submit(
                 new Command::SetOffsetBehavior{*m_model, (OffsetBehavior)idx});
           }
         });
@@ -205,7 +205,7 @@ void EventInspectorWidget::on_conditionChanged()
   if (cond != m_model->condition())
   {
     auto cmd = new Scenario::Command::SetCondition{*m_model, std::move(cond)};
-    m_commandDispatcher.submitCommand(cmd);
+    m_commandDispatcher.submit(cmd);
   }
 }
 void EventInspectorWidget::on_conditionReset()
@@ -214,6 +214,6 @@ void EventInspectorWidget::on_conditionReset()
     return;
   auto cmd
       = new Scenario::Command::SetCondition{*m_model, State::Expression{}};
-  m_commandDispatcher.submitCommand(cmd);
+  m_commandDispatcher.submit(cmd);
 }
 }

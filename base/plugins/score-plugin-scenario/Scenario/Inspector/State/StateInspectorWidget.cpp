@@ -270,7 +270,7 @@ void StateInspectorWidget::splitFromEvent()
       auto cmd = new Scenario::Command::SplitEvent{
           *scenar, m_model.eventId(), {m_model.id()}};
 
-      m_commandDispatcher.submitCommand(cmd);
+      m_commandDispatcher.submit(cmd);
     }
   }
 }
@@ -289,9 +289,9 @@ void StateInspectorWidget::splitFromNode()
 
       auto cmd = new Scenario::Command::SplitEvent{
           *scenar, m_model.eventId(), {m_model.id()}};
-      disp.submitCommand(cmd);
+      disp.submit(cmd);
       auto cmd2 = new Scenario::Command::SplitTimeSync{tn, {cmd->newEvent()}};
-      disp.submitCommand(cmd2);
+      disp.submit(cmd2);
       disp.commit();
     }
     else if (ev.states().size() == 1)
@@ -300,7 +300,7 @@ void StateInspectorWidget::splitFromNode()
       {
         auto cmd
             = new Scenario::Command::SplitTimeSync{tn, {m_model.eventId()}};
-        m_commandDispatcher.submitCommand(cmd);
+        m_commandDispatcher.submit(cmd);
       }
     }
   }

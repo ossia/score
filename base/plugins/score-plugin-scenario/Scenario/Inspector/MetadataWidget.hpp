@@ -63,7 +63,7 @@ public:
     using namespace score::IDocument;
     connect(this, &MetadataWidget::labelChanged, [&](const QString& newLabel) {
       if (newLabel != model.metadata().getLabel())
-        m_commandDispatcher.submitCommand(
+        m_commandDispatcher.submit(
             new ChangeElementLabel<T>{model, newLabel});
     });
 
@@ -71,14 +71,14 @@ public:
         this, &MetadataWidget::commentsChanged,
         [&](const QString& newComments) {
           if (newComments != model.metadata().getComment())
-            m_commandDispatcher.submitCommand(
+            m_commandDispatcher.submit(
                 new ChangeElementComments<T>{model, newComments});
         });
 
     connect(
         this, &MetadataWidget::colorChanged, [&](score::ColorRef newColor) {
           if (newColor != model.metadata().getColor())
-            m_commandDispatcher.submitCommand(
+            m_commandDispatcher.submit(
                 new ChangeElementColor<T>{model, newColor});
         });
 
@@ -87,7 +87,7 @@ public:
         this, &MetadataWidget::extendedMetadataChanged,
         [&](const QVariantMap& newM) {
           if (newM != model.metadata().getExtendedMetadata())
-            m_commandDispatcher.submitCommand(
+            m_commandDispatcher.submit(
                 new SetExtendedMetadata<T>{model, newM});
         });
     */

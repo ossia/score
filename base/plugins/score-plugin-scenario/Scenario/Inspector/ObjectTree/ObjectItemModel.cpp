@@ -635,7 +635,7 @@ bool ObjectItemModel::setData(
       if (!sanitize(cst))
         return false;
 
-      disp.submitCommand<Command::ChangeElementName<Scenario::IntervalModel>>(
+      disp.submit<Command::ChangeElementName<Scenario::IntervalModel>>(
           *cst, new_name);
       return true;
     }
@@ -644,7 +644,7 @@ bool ObjectItemModel::setData(
       if (!sanitize(ev))
         return false;
 
-      disp.submitCommand<Command::ChangeElementName<Scenario::EventModel>>(
+      disp.submit<Command::ChangeElementName<Scenario::EventModel>>(
           *ev, new_name);
       return true;
     }
@@ -653,7 +653,7 @@ bool ObjectItemModel::setData(
       if (!sanitize(tn))
         return false;
 
-      disp.submitCommand<Command::ChangeElementName<Scenario::TimeSyncModel>>(
+      disp.submit<Command::ChangeElementName<Scenario::TimeSyncModel>>(
           *tn, new_name);
       return true;
     }
@@ -662,7 +662,7 @@ bool ObjectItemModel::setData(
       if (!sanitize(st))
         return false;
 
-      disp.submitCommand<Command::ChangeElementName<Scenario::StateModel>>(
+      disp.submit<Command::ChangeElementName<Scenario::StateModel>>(
           *st, new_name);
       return true;
     }
@@ -673,7 +673,7 @@ bool ObjectItemModel::setData(
       if (new_name.isEmpty())
         new_name = QString("%1.0").arg(p->objectName());
 
-      disp.submitCommand<Command::ChangeElementName<Process::ProcessModel>>(
+      disp.submit<Command::ChangeElementName<Process::ProcessModel>>(
           *p, new_name);
       return true;
     }
@@ -811,14 +811,14 @@ bool ObjectItemModel::dropMimeData(
 
       // put before row: row == 0 -> begin
       CommandDispatcher<> disp{m_ctx.dispatcher};
-      disp.submitCommand(
+      disp.submit(
           new PutProcessBefore{*itv, the_proc->id(), other->id()});
     }
     else if (row >= itv->processes.size())
     {
       // put at end
       CommandDispatcher<> disp{m_ctx.dispatcher};
-      disp.submitCommand(new PutProcessBefore{*itv, {}, other->id()});
+      disp.submit(new PutProcessBefore{*itv, {}, other->id()});
     }
     return true;
   };
@@ -839,14 +839,14 @@ bool ObjectItemModel::dropMimeData(
 
       // put before row: row == 0 -> begin
       CommandDispatcher<> disp{m_ctx.dispatcher};
-      disp.submitCommand(
+      disp.submit(
           new PutStateProcessBefore{*sta, the_proc->id(), other->id()});
     }
     else if (row >= sta->stateProcesses.size())
     {
       // put at end
       CommandDispatcher<> disp{m_ctx.dispatcher};
-      disp.submitCommand(new PutStateProcessBefore{*sta, {}, other->id()});
+      disp.submit(new PutStateProcessBefore{*sta, {}, other->id()});
     }
     return true;
   };
@@ -873,14 +873,14 @@ bool ObjectItemModel::dropMimeData(
     if (auto itv = qobject_cast<Scenario::IntervalModel*>(the_proc->parent()))
     {
       CommandDispatcher<> disp{m_ctx.dispatcher};
-      disp.submitCommand(
+      disp.submit(
           new PutProcessBefore{*itv, the_proc->id(), other->id()});
     }
     else if (
         auto sta = qobject_cast<Scenario::StateModel*>(the_proc->parent()))
     {
       CommandDispatcher<> disp{m_ctx.dispatcher};
-      disp.submitCommand(
+      disp.submit(
           new PutStateProcessBefore{*sta, the_proc->id(), other->id()});
     }
     return true;
@@ -1136,7 +1136,7 @@ void ObjectWidget::contextMenuEvent(QContextMenuEvent* ev)
 
         dialog->on_okPressed = [&](const auto& proc, QString dat) {
           CommandDispatcher<> disp{m_ctx.commandStack};
-          disp.submitCommand<Scenario::Command::AddStateProcessToState>(
+          disp.submit<Scenario::Command::AddStateProcessToState>(
               *state, proc);
         };
 
@@ -1152,7 +1152,7 @@ void ObjectWidget::contextMenuEvent(QContextMenuEvent* ev)
         m->addAction(deleteact);
         connect(deleteact, &QAction::triggered, this, [=] {
           CommandDispatcher<> c{m_ctx.commandStack};
-          c.submitCommand<Scenario::Command::RemoveStateProcess>(
+          c.submit<Scenario::Command::RemoveStateProcess>(
               *state, proc->id());
         });
       }
@@ -1163,14 +1163,14 @@ void ObjectWidget::contextMenuEvent(QContextMenuEvent* ev)
         m->addAction(deleteact);
         connect(deleteact, &QAction::triggered, this, [=] {
           CommandDispatcher<> c{m_ctx.commandStack};
-          c.submitCommand<Scenario::Command::RemoveProcessFromInterval>(
+          c.submit<Scenario::Command::RemoveProcessFromInterval>(
               *itv, proc->id());
         });
         auto duplicate = new QAction{tr("Duplicate"), m};
         m->addAction(duplicate);
         connect(duplicate, &QAction::triggered, this, [=] {
           CommandDispatcher<> c{m_ctx.commandStack};
-          c.submitCommand<Scenario::Command::DuplicateOnlyProcessToInterval>(
+          c.submit<Scenario::Command::DuplicateOnlyProcessToInterval>(
               *itv, *proc);
         });
       }

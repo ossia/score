@@ -23,7 +23,7 @@ StateModel& Macro::createState(
     const ProcessModel& scenar, const Id<EventModel>& ev, double y)
 {
   auto cmd = new Scenario::Command::CreateState{scenar, ev, y};
-  m.submitCommand(cmd);
+  m.submit(cmd);
   return scenar.states.at(cmd->createdState());
 }
 
@@ -31,7 +31,7 @@ std::tuple<TimeSyncModel&, EventModel&, StateModel&>
 Macro::createDot(const ProcessModel& scenar, Point pt)
 {
   auto cmd = new CreateTimeSync_Event_State{scenar, pt.date, pt.y};
-  m.submitCommand(cmd);
+  m.submit(cmd);
   return std::tie(
       scenar.timeSyncs.at(cmd->createdTimeSync()),
       scenar.events.at(cmd->createdEvent()),
@@ -42,11 +42,11 @@ IntervalModel& Macro::createBox(
     const ProcessModel& scenar, TimeVal start, TimeVal end, double y)
 {
   auto c_st = new CreateTimeSync_Event_State{scenar, start, y};
-  m.submitCommand(c_st);
+  m.submit(c_st);
 
   auto c_itv = new CreateInterval_State_Event_TimeSync{
       scenar, c_st->createdState(), end, y};
-  m.submitCommand(c_itv);
+  m.submit(c_itv);
 
   return scenar.intervals.at(c_itv->createdInterval());
 }
@@ -56,7 +56,7 @@ IntervalModel& Macro::createIntervalAfter(
 {
   auto cmd
       = new CreateInterval_State_Event_TimeSync{scenar, state, pt.date, pt.y};
-  m.submitCommand(cmd);
+  m.submit(cmd);
   return scenar.intervals.at(cmd->createdInterval());
 }
 
@@ -65,7 +65,7 @@ IntervalModel& Macro::createInterval(
     const Id<StateModel>& end)
 {
   auto cmd = new CreateInterval{scenar, start, end};
-  m.submitCommand(cmd);
+  m.submit(cmd);
   return scenar.intervals.at(cmd->createdInterval());
 }
 
@@ -74,7 +74,7 @@ Process::ProcessModel* Macro::createProcess(
     const QString& data)
 {
   auto process_cmd = new AddOnlyProcessToInterval{interval, key, data};
-  m.submitCommand(process_cmd);
+  m.submit(process_cmd);
   auto it = interval.processes.find(process_cmd->processId());
   if (it != interval.processes.end())
     return &(*it);
@@ -86,10 +86,22 @@ Process::ProcessModel* Macro::createProcessInSlot(
     const QString& data)
 {
   auto process_cmd = new AddProcessToInterval{interval, key, data};
-  m.submitCommand(process_cmd);
+  m.submit(process_cmd);
   auto it = interval.processes.find(process_cmd->processId());
   if (it != interval.processes.end())
     return &(*it);
+  return nullptr;
+}
+
+Process::ProcessModel* Macro::createProcessInNewSlot(
+    const IntervalModel& interval, const UuidKey<Process::ProcessModel>& key,
+    const QString& data)
+{
+  if(auto proc = createProcess(interval, key, data))
+  {
+    addLayerInNewSlot(interval, *proc);
+    return proc;
+  }
   return nullptr;
 }
 
@@ -97,7 +109,7 @@ Process::ProcessModel* Macro::loadProcessInSlot(
     const IntervalModel& interval, const QJsonObject& procdata)
 {
   auto process_cmd = new LoadProcessInInterval{interval, procdata};
-  m.submitCommand(process_cmd);
+  m.submit(process_cmd);
   auto it = interval.processes.find(process_cmd->processId());
   if (it != interval.processes.end())
     return &(*it);
@@ -106,7 +118,7 @@ Process::ProcessModel* Macro::loadProcessInSlot(
 
 void Macro::createSlot(const IntervalModel& interval)
 {
-  m.submitCommand(new AddSlotToRack{interval});
+  m.submit(new AddSlotToRack{interval});
 }
 
 void Macro::addLayer(
@@ -125,39 +137,39 @@ void Macro::addLayerToLastSlot(
 void Macro::addLayerInNewSlot(
     const IntervalModel& interval, const Process::ProcessModel& proc)
 {
-  m.submitCommand(new AddLayerInNewSlot{interval, proc.id()});
+  m.submit(new AddLayerInNewSlot{interval, proc.id()});
 }
 
 void Macro::addLayer(
     const SlotPath& slotpath, const Process::ProcessModel& proc)
 {
-  m.submitCommand(new AddLayerModelToSlot{slotpath, proc});
+  m.submit(new AddLayerModelToSlot{slotpath, proc});
 }
 
 void Macro::showRack(const IntervalModel& interval)
 {
-  m.submitCommand(new ShowRack{interval});
+  m.submit(new ShowRack{interval});
 }
 
 void Macro::resizeSlot(
     const IntervalModel& interval, const SlotPath& slotPath, double newSize)
 {
   auto cmd = new ResizeSlotVertically{interval, slotPath, newSize};
-  m.submitCommand(cmd);
+  m.submit(cmd);
 }
 
 void Macro::resizeSlot(
     const IntervalModel& interval, SlotPath&& slotPath, double newSize)
 {
   auto cmd = new ResizeSlotVertically{interval, std::move(slotPath), newSize};
-  m.submitCommand(cmd);
+  m.submit(cmd);
 }
 
 Scenario::IntervalModel& Macro::duplicate(
     const Scenario::ProcessModel& scenario, const IntervalModel& itv)
 {
   auto cmd = new DuplicateInterval{scenario, itv};
-  m.submitCommand(cmd);
+  m.submit(cmd);
   return scenario.intervals.at(cmd->createdId());
 }
 
@@ -165,7 +177,7 @@ Process::ProcessModel& Macro::duplicateProcess(
     const IntervalModel& itv, const Process::ProcessModel& process)
 {
   auto cmd = new DuplicateOnlyProcessToInterval{itv, process};
-  m.submitCommand(cmd);
+  m.submit(cmd);
   return itv.processes.at(cmd->processId());
 }
 
@@ -173,7 +185,7 @@ void Macro::pasteElements(
     const ProcessModel& scenario, const QJsonObject& objs, Point pos)
 {
   auto cmd = new ScenarioPasteElements(scenario, objs, pos);
-  m.submitCommand(cmd);
+  m.submit(cmd);
 }
 
 void Macro::pasteElementsAfter(
@@ -181,7 +193,7 @@ void Macro::pasteElementsAfter(
     const QJsonObject& objs)
 {
   auto cmd = new ScenarioPasteElementsAfter(scenario, sync, objs);
-  m.submitCommand(cmd);
+  m.submit(cmd);
 }
 
 void Macro::mergeTimeSyncs(
@@ -189,7 +201,7 @@ void Macro::mergeTimeSyncs(
     const Id<TimeSyncModel>& b)
 {
   auto cmd = new Command::MergeTimeSyncs(scenario, a, b);
-  m.submitCommand(cmd);
+  m.submit(cmd);
 }
 
 void Macro::moveProcess(
@@ -197,7 +209,7 @@ void Macro::moveProcess(
     const Id<Process::ProcessModel>& proc)
 {
   auto cmd = new Command::MoveProcess(old_interval, new_interval, proc);
-  m.submitCommand(cmd);
+  m.submit(cmd);
 }
 
 void Macro::moveSlot(
@@ -217,7 +229,7 @@ void Macro::moveSlot(
   {
     auto cmd
         = new Command::MoveProcess(old_interval, new_interval, proc, false);
-    m.submitCommand(cmd);
+    m.submit(cmd);
     const auto& old_id = cmd->oldProcessId();
     const auto& new_id = cmd->newProcessId();
 
@@ -230,24 +242,24 @@ void Macro::moveSlot(
   }
 
   auto cmd = new Command::AddSlotToRack{new_interval, std::move(new_slot)};
-  m.submitCommand(cmd);
+  m.submit(cmd);
 }
 
 void Macro::removeProcess(
     const IntervalModel& interval, const Id<Process::ProcessModel>& proc)
 {
-  m.submitCommand(new RemoveProcessFromInterval{interval, proc});
+  m.submit(new RemoveProcessFromInterval{interval, proc});
 }
 
 void Macro::removeElements(
     const Scenario::ProcessModel& scenario, const Selection& sel)
 {
-  m.submitCommand(new RemoveSelection{scenario, sel});
+  m.submit(new RemoveSelection{scenario, sel});
 }
 
 void Macro::addMessages(const StateModel& state, State::MessageList msgs)
 {
-  m.submitCommand(new AddMessagesToState{state, std::move(msgs)});
+  m.submit(new AddMessagesToState{state, std::move(msgs)});
 }
 
 std::vector<Process::ProcessModel*>
@@ -273,24 +285,24 @@ Process::ProcessModel& Macro::automate(
 {
   auto c = new CreateAutomationFromStates{interval, slotList, curveId,
                                           address,  dom,      tween};
-  m.submitCommand(c);
+  m.submit(c);
   return interval.processes.at(c->processId());
 }
 
 void Macro::clearInterval(const IntervalModel& itv)
 {
-  m.submitCommand(new ClearInterval{itv});
+  m.submit(new ClearInterval{itv});
 }
 
 void Macro::insertInInterval(
     QJsonObject&& json, const IntervalModel& itv, ExpandMode mode)
 {
-  m.submitCommand(new InsertContentInInterval{std::move(json), itv, mode});
+  m.submit(new InsertContentInInterval{std::move(json), itv, mode});
 }
 
 void Macro::submit(score::Command* cmd)
 {
-  m.submitCommand(cmd);
+  m.submit(cmd);
 }
 
 void Macro::commit()
