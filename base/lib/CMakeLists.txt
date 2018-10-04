@@ -65,6 +65,7 @@ set(HEADERS
     "${CMAKE_CURRENT_SOURCE_DIR}/score/command/Dispatchers/MacroCommandDispatcher.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/command/Dispatchers/MultiOngoingCommandDispatcher.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/command/Dispatchers/OngoingCommandDispatcher.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/score/command/Dispatchers/RuntimeDispatcher.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/command/Dispatchers/SendStrategy.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/command/Dispatchers/SettingsCommandDispatcher.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/command/Dispatchers/SingleOngoingCommandDispatcher.hpp"

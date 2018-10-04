@@ -45,7 +45,7 @@ DropHandler::drop(
           Process::ProcessDropHandler::ProcessDrop p;
           p.creation.key = Metadata<ConcreteKey_k, Midi::ProcessModel>::get();
           p.duration = TimeVal::fromMsecs(song.durationInMs);
-          p.setup = [track=std::move(t),song_t=*p.duration] (Process::ProcessModel& m, Process::Dispatcher& disp) {
+          p.setup = [track=std::move(t),song_t=*p.duration] (Process::ProcessModel& m, score::Dispatcher& disp) {
             auto& midi = static_cast<Midi::ProcessModel&>(m);
             disp.submit(new Midi::ReplaceNotes{midi, track.notes, track.min, track.max, song_t});
           };

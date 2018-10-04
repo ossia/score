@@ -559,7 +559,7 @@ public:
         if(auto res = handlers.getDrop(mime, ctx); !res.empty())
         {
           MacroCommandDispatcher<Media::DropEffectMacro> cmd{ctx.commandStack};
-          Process::Dispatcher_T disp{cmd};
+          score::Dispatcher_T disp{cmd};
           for(const auto& proc : res)
           {
             auto& p = proc.creation;

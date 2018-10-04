@@ -95,11 +95,6 @@ ProcessDropHandler::drop(const std::vector<QByteArray>& data, const score::Docum
   return {};
 }
 
-Dispatcher::~Dispatcher()
-{
-
-}
-
 ProcessDropHandlerList::~ProcessDropHandlerList()
 {
 
