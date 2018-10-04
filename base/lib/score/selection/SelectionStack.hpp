@@ -6,6 +6,8 @@
 
 #include <wobjectdefs.h>
 
+#include <tsl/hopscotch_map.h>
+
 class IdentifiedObjectAbstract;
 
 namespace score
@@ -40,20 +42,24 @@ public:
 
   Selection currentSelection() const;
 
-  void pushNewSelection(const Selection& s) E_SIGNAL(
-      SCORE_LIB_BASE_EXPORT, pushNewSelection,
-      s) void currentSelectionChanged(const Selection& s)
-      E_SIGNAL(SCORE_LIB_BASE_EXPORT, currentSelectionChanged, s)
+  void pushNewSelection(const Selection& s)
+  E_SIGNAL(SCORE_LIB_BASE_EXPORT, pushNewSelection, s);
 
-          void prune(IdentifiedObjectAbstract* p);
+  void currentSelectionChanged(const Selection& s)
+  E_SIGNAL(SCORE_LIB_BASE_EXPORT, currentSelectionChanged, s);
+
+  void prune(IdentifiedObjectAbstract* p);
   W_INVOKABLE(prune)
 
 private:
   // Select new objects
   void push(const Selection& s);
+  void pruneConnections();
 
   // m_unselectable always contains the empty set at the beginning
   QStack<Selection> m_unselectable;
   QStack<Selection> m_reselectable;
+
+  tsl::hopscotch_map<const IdentifiedObjectAbstract*, QMetaObject::Connection> m_connections;
 };
 }
