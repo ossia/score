@@ -5,6 +5,7 @@
 #include <score/plugins/customfactory/FactoryInterface.hpp>
 #include <score/plugins/customfactory/FactoryFamily.hpp>
 #include <score/command/AggregateCommand.hpp>
+#include <score/command/Dispatchers/RuntimeDispatcher.hpp>
 
 #include <QByteArray>
 #include <QStringList>
@@ -15,19 +16,6 @@
 namespace Process
 {
 class ProcessModel;
-struct Dispatcher
-{
-  virtual ~Dispatcher();
-  virtual void submit(score::Command*) = 0;
-};
-
-template<typename T>
-struct Dispatcher_T final : Dispatcher
-{
-  explicit Dispatcher_T(T& t): impl{t} { }
-  T& impl;
-  void submit(score::Command* c) { impl.submit(c); }
-};
 
 class SCORE_LIB_PROCESS_EXPORT ProcessDropHandler
     : public score::InterfaceBase
@@ -40,7 +28,7 @@ public:
   {
     ProcessData creation;
     optional<TimeVal> duration;
-    std::function<void(Process::ProcessModel&, Dispatcher&)> setup;
+    std::function<void(Process::ProcessModel&, score::Dispatcher&)> setup;
   };
 
 public:

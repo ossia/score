@@ -134,7 +134,7 @@ bool DropProcessInScenario::drop(
 
     DropProcessInScenarioHelper dropper(pres, pos, t);
 
-    Process::Dispatcher_T disp{dropper.macro()};
+    score::Dispatcher_T disp{dropper.macro()};
     for(const auto& proc : res)
     {
       auto p = dropper.addProcess(
@@ -163,7 +163,7 @@ bool DropProcessInInterval::drop(
     auto t = handlers.getMaxDuration(res);
     DropProcessInIntervalHelper dropper(cst, t);
 
-    Process::Dispatcher_T disp{dropper.macro()};
+    score::Dispatcher_T disp{dropper.macro()};
     for(const auto& proc : res)
     {
       auto p = dropper.addProcess(

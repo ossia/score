@@ -6,41 +6,24 @@
 
 #include <score/application/ApplicationContext.hpp>
 #include <score/command/Command.hpp>
+#include <score/command/Dispatchers/RuntimeDispatcher.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
 
 #include <QDataStream>
-#include <QIODevice>
-#include <QtGlobal>
 namespace score
 {
-Command::Command() /*:
-    m_timestamp{
-        std::chrono::duration_cast<std::chrono::milliseconds>(
-            std::chrono::high_resolution_clock::now().time_since_epoch())}*/
-{
-}
-
+Dispatcher::~Dispatcher() = default;
+Command::Command() = default;
 Command::~Command() = default;
 SettingsCommandBase::~SettingsCommandBase() = default;
-/*
-quint32 Command::timestamp() const
-{
-  return static_cast<quint32>(m_timestamp.count());
-}
-
-void Command::setTimestamp(quint32 stmp)
-{
-  m_timestamp = std::chrono::duration<quint32>(stmp);
-}*/
 
 QByteArray Command::serialize() const
 {
   QByteArray arr;
   {
     QDataStream s(&arr, QIODevice::Append);
-    s.setVersion(QDataStream::Qt_5_7);
+    s.setVersion(QDataStream::Qt_5_6);
 
-    // s << timestamp();
     DataStreamInput inp{s};
     serializeImpl(inp);
   }
@@ -51,13 +34,7 @@ QByteArray Command::serialize() const
 void Command::deserialize(const QByteArray& arr)
 {
   QDataStream s(arr);
-  s.setVersion(QDataStream::Qt_5_7);
-
-  // quint32 stmp;
-  // s >> stmp;
-
-  // setTimestamp(stmp);
-
+  s.setVersion(QDataStream::Qt_5_6);
   DataStreamOutput outp{s};
   deserializeImpl(outp);
 }

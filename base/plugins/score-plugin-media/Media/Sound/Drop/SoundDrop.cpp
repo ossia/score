@@ -65,7 +65,7 @@ std::vector<Process::ProcessDropHandler::ProcessDrop> DropHandler::drop(
     Process::ProcessDropHandler::ProcessDrop p;
     p.creation.key = Metadata<ConcreteKey_k, Sound::ProcessModel>::get();
     p.duration = TimeVal{file.second};
-    p.setup = [f=std::move(file.first),song_t=*p.duration] (Process::ProcessModel& m, Process::Dispatcher& disp) {
+    p.setup = [f=std::move(file.first),song_t=*p.duration] (Process::ProcessModel& m, score::Dispatcher& disp) {
       auto& proc = static_cast<Sound::ProcessModel&>(m);
       disp.submit(new Media::ChangeAudioFile{proc, std::move(f)});
     };
