@@ -34,7 +34,7 @@ Presenter::Presenter(Model& m, View& v, QObject* parent)
   con(v, &View::DriverChanged, this, [&](auto val) {
     if (val != m.getDriver())
     {
-      m_disp.submitCommand<SetModelDriver>(this->model(this), val);
+      m_disp.submit<SetModelDriver>(this->model(this), val);
     }
   });
 

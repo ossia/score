@@ -70,7 +70,7 @@ void ScenarioContextMenuManager::createSlotContextMenu(
     QAction* procAct = new QAction{name, new_processes_submenu};
     QObject::connect(procAct, &QAction::triggered, [&]() {
       auto cmd = new AddLayerInNewSlot{interval, p.id()};
-      CommandDispatcher<>{ctx.commandStack}.submitCommand(cmd);
+      CommandDispatcher<>{ctx.commandStack}.submit(cmd);
     });
     new_processes_submenu->addAction(procAct);
   }
@@ -79,7 +79,7 @@ void ScenarioContextMenuManager::createSlotContextMenu(
   auto removeSlotAct = menu.addAction(tr("Remove this slot"));
   QObject::connect(removeSlotAct, &QAction::triggered, [&, slot_path]() {
     auto cmd = new RemoveSlotFromRack{slot_path, slot_path.find(ctx)};
-    CommandDispatcher<>{ctx.commandStack}.submitCommand(cmd);
+    CommandDispatcher<>{ctx.commandStack}.submit(cmd);
   });
 
   menu.addSeparator();
@@ -101,7 +101,7 @@ void ScenarioContextMenuManager::createSlotContextMenu(
       QAction* procAct = new QAction{name, existing_processes_submenu};
       QObject::connect(procAct, &QAction::triggered, [&, slot_path]() mutable {
         auto cmd2 = new AddLayerModelToSlot{std::move(slot_path), p};
-        CommandDispatcher<>{ctx.commandStack}.submitCommand(cmd2);
+        CommandDispatcher<>{ctx.commandStack}.submit(cmd2);
       });
       existing_processes_submenu->addAction(procAct);
     }
@@ -123,13 +123,13 @@ void ScenarioContextMenuManager::createSlotContextMenu(
 
                 auto cmd1 = new AddOnlyProcessToInterval(interval, proc, data);
                 cmd1->redo(ctx);
-                disp.submitCommand(cmd1);
+                disp.submit(cmd1);
 
                 auto cmd2 = new AddLayerModelToSlot(
                     std::move(slot_path),
                     interval.processes.at(cmd1->processId()));
                 cmd2->redo(ctx);
-                disp.submitCommand(cmd2);
+                disp.submit(cmd2);
 
                 disp.commit();
               };

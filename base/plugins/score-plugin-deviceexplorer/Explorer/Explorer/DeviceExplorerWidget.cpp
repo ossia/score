@@ -710,7 +710,7 @@ void DeviceExplorerWidget::edit()
       auto cmd = new Explorer::Command::UpdateDeviceSettings{
           model()->deviceModel(), set.name, m_deviceDialog->getSettings()};
 
-      m_cmdDispatcher->submitCommand(cmd);
+      m_cmdDispatcher->submit(cmd);
     }
 
     updateActions();
@@ -750,7 +750,7 @@ void DeviceExplorerWidget::edit()
       auto cmd = new Explorer::Command::UpdateAddressSettings{
           model()->deviceModel(), Device::NodePath(select), stgs};
 
-      m_cmdDispatcher->submitCommand(cmd);
+      m_cmdDispatcher->submit(cmd);
     }
 
     updateActions();
@@ -781,7 +781,7 @@ void DeviceExplorerWidget::refresh()
               m->deviceModel(), m_ntView->selectedIndex().row(),
               std::move(node)};
 
-          m_cmdDispatcher->submitCommand(cmd);
+          m_cmdDispatcher->submit(cmd);
         },
         *this, dev);
 
@@ -887,7 +887,7 @@ void DeviceExplorerWidget::addDevice()
     auto& devplug = model()->deviceModel();
     if (path.isEmpty())
     {
-      m_cmdDispatcher->submitCommand(
+      m_cmdDispatcher->submit(
           new Command::AddDevice{devplug, deviceSettings});
     }
     else
@@ -896,7 +896,7 @@ void DeviceExplorerWidget::addDevice()
       {
         Device::Node n{deviceSettings, nullptr};
         if (Device::loadDeviceFromXML(path, n))
-          m_cmdDispatcher->submitCommand(
+          m_cmdDispatcher->submit(
               new Command::LoadDevice{devplug, std::move(n)});
       }
       else if (path.contains(".device"))
@@ -905,7 +905,7 @@ void DeviceExplorerWidget::addDevice()
         if (Device::loadDeviceFromIScoreJSON(path, n))
         {
           n.get<Device::DeviceSettings>() = deviceSettings;
-          m_cmdDispatcher->submitCommand(
+          m_cmdDispatcher->submit(
               new Command::LoadDevice{devplug, std::move(n)});
         }
       }
@@ -915,7 +915,7 @@ void DeviceExplorerWidget::addDevice()
         if (Device::loadDeviceFromJamomaJSON(path, n))
         {
           n.get<Device::DeviceSettings>() = deviceSettings;
-          m_cmdDispatcher->submitCommand(
+          m_cmdDispatcher->submit(
               new Command::LoadDevice{devplug, std::move(n)});
         }
       }
@@ -1058,7 +1058,7 @@ void DeviceExplorerWidget::removeNodes()
         new Explorer::Command::Remove{dev_model, Device::NodePath{*it}});
   }
 
-  m_cmdDispatcher->submitCommand(cmd);
+  m_cmdDispatcher->submit(cmd);
 }
 
 void DeviceExplorerWidget::learn()
@@ -1103,7 +1103,7 @@ void DeviceExplorerWidget::learn()
 
     // Push it without redoing it since the device already has the nodes
     CommandDispatcher<SendStrategy::Quiet> disp{m_cmdDispatcher->stack()};
-    disp.submitCommand(cmd);
+    disp.submit(cmd);
 
     // This way we're able to undo the learn operation
   }
@@ -1182,7 +1182,7 @@ void DeviceExplorerWidget::addAddress(InsertMode insert)
     bool parent_is_expanded = m_ntView->isExpanded(
         proxyIndex(m_ntView->model()->modelIndexFromNode(*parent, 0)));
 
-    m_cmdDispatcher->submitCommand(new Explorer::Command::AddAddress{
+    m_cmdDispatcher->submit(new Explorer::Command::AddAddress{
         model()->deviceModel(), Device::NodePath{index}, insert, stgs});
 
     // If the node is going to be visible, we have to start listening to it.

@@ -40,7 +40,7 @@ public:
       v = ossia::clamp(v, 0.f, 1.f);
       vec[num] = v;
 
-      m_disp.submitCommand(m, std::move(vec));
+      m_disp.submit(m, std::move(vec));
     });
 
     connect(view, &View::released, this, [&] { m_disp.commit(); });

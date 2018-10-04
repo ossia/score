@@ -36,7 +36,7 @@ void SetSegmentParametersCommandObject::press()
 
   m_originalPress = m_state->currentPoint;
 
-  m_dispatcher.submitCommand(
+  m_dispatcher.submit(
       m_model,
       SegmentParameterMap{{m_state->clickedSegmentId,
                            {m_verticalOrig ? *m_verticalOrig : 0.,
@@ -63,7 +63,7 @@ void SetSegmentParametersCommandObject::move()
                                    -1., 1.)
                              : 0;
 
-  m_dispatcher.submitCommand(
+  m_dispatcher.submit(
       m_model, SegmentParameterMap{
                    {m_state->clickedSegmentId, {newVertical, newHorizontal}}});
 }

@@ -46,7 +46,7 @@ private:
         return;
 
       CommandDispatcher<> disp{context().context.commandStack};
-      disp.submitCommand(
+      disp.submit(
           new ChangeMetronomeAddress{autom, std::move(as.address)});
     }
     else if (mime.formats().contains(score::mime::messagelist()))
@@ -64,7 +64,7 @@ private:
         return;
 
       CommandDispatcher<> disp{context().context.commandStack};
-      disp.submitCommand(new ChangeMetronomeAddress{autom, newAddr.address});
+      disp.submit(new ChangeMetronomeAddress{autom, newAddr.address});
     }
   }
 };

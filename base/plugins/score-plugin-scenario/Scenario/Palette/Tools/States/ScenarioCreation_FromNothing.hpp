@@ -181,7 +181,7 @@ public:
           this->currentPoint.date = TimeVal::fromMsecs(10);
         }
 
-        this->m_dispatcher.template submitCommand<MoveNewEvent>(
+        this->m_dispatcher.template submit<MoveNewEvent>(
             this->m_scenario, this->createdIntervals.last(),
             this->createdEvents.last(), this->currentPoint.date,
             this->currentPoint.y, stateMachine.editionSettings().sequence());
@@ -199,7 +199,7 @@ public:
           return;
         }
 
-        this->m_dispatcher.template submitCommand<MoveNewState>(
+        this->m_dispatcher.template submit<MoveNewState>(
             this->m_scenario, this->createdStates.last(),
             this->currentPoint.y);
       });
@@ -216,7 +216,7 @@ public:
           return;
         }
 
-        this->m_dispatcher.template submitCommand<MoveNewState>(
+        this->m_dispatcher.template submit<MoveNewState>(
             this->m_scenario, this->createdStates.last(),
             this->currentPoint.y);
       });
@@ -244,7 +244,7 @@ private:
     {
       auto cmd = new Scenario::Command::CreateState{
           this->m_scenario, *this->clickedEvent, this->currentPoint.y};
-      this->m_dispatcher.submitCommand(cmd);
+      this->m_dispatcher.submit(cmd);
 
       this->createdStates.append(cmd->createdState());
     }

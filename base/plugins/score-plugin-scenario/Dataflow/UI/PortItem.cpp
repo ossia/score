@@ -120,7 +120,7 @@ void onCreateCable(
     }
   }
 
-  disp.submitCommand<Dataflow::CreateCable>(
+  disp.submit<Dataflow::CreateCable>(
       plug, getStrongId(plug.cables), cd);
 }
 
@@ -149,7 +149,7 @@ void AutomatablePortItem::on_createAutomation(
       RedoMacroCommandDispatcher<Dataflow::CreateModulation> macro{
           ctx.commandStack};
       on_createAutomation(
-          *cst, [&](auto cmd) { macro.submitCommand(cmd); }, ctx);
+          *cst, [&](auto cmd) { macro.submit(cmd); }, ctx);
       macro.commit();
       return;
     }
@@ -227,7 +227,7 @@ void AutomatablePortItem::dropEvent(QGraphicsSceneDragDropEvent* event)
     if (as.address.path.isEmpty())
       return;
 
-    disp.submitCommand(new Process::ChangePortAddress{
+    disp.submit(new Process::ChangePortAddress{
         m_port, State::AddressAccessor{as.address}});
   }
   else if (mime.formats().contains(score::mime::messagelist()))
@@ -244,7 +244,7 @@ void AutomatablePortItem::dropEvent(QGraphicsSceneDragDropEvent* event)
     if (newAddr.address.device.isEmpty())
       return;
 
-    disp.submitCommand(
+    disp.submit(
         new Process::ChangePortAddress{m_port, std::move(newAddr)});
   }
   event->accept();

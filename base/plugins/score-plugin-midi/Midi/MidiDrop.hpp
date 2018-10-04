@@ -1,17 +1,19 @@
 #pragma once
 #include <Midi/MidiNote.hpp>
 #include <Process/TimeValue.hpp>
-#include <Scenario/Application/Drops/ScenarioDropHandler.hpp>
+#include <Process/Drop/ProcessDropHandler.hpp>
 namespace Midi
 {
 
-class DropMidiInSenario final : public Scenario::DropHandler
+class DropHandler final
+    : public Process::ProcessDropHandler
 {
   SCORE_CONCRETE("8F162598-9E4E-4865-A861-81DF01D2CDF0")
 
-  bool drop(
-      const Scenario::ScenarioPresenter&, QPointF pos,
-      const QMimeData& mime) override;
+public:
+  QSet<QString> mimeTypes() const noexcept override;
+  QSet<QString> fileExtensions() const noexcept override;
+  std::vector<ProcessDrop> drop(const std::vector<QByteArray>& data, const score::DocumentContext& ctx) const noexcept override;
 };
 
 struct MidiTrack
@@ -28,7 +30,9 @@ struct MidiTrack
 
     double durationInMs{};
   };
-  static MidiSong
+  static std::vector<MidiTrack::MidiSong>
   parse(const QMimeData& dat, const score::DocumentContext& ctx);
+  static MidiSong
+  parse(const QByteArray& dat, const score::DocumentContext& ctx);
 };
 }

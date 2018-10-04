@@ -477,7 +477,7 @@ void ScenarioDocumentPresenter::on_cableAdded(Process::Cable& c)
   });
   connect(it, &Dataflow::CableItem::removeRequested, this, [&] {
     CommandDispatcher<> d{context().commandStack};
-    d.submitCommand<Dataflow::RemoveCable>(model(), c);
+    d.submit<Dataflow::RemoveCable>(model(), c);
   });
 }
 

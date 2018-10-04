@@ -195,7 +195,7 @@ public:
         }
 
         // Move the timesync
-        this->m_dispatcher.template submitCommand<MoveNewEvent>(
+        this->m_dispatcher.template submit<MoveNewEvent>(
             this->m_scenario, this->createdIntervals.last(),
             this->createdEvents.last(), this->currentPoint.date,
             this->currentPoint.y, stateMachine.editionSettings().sequence());
@@ -213,7 +213,7 @@ public:
           return;
         }
 
-        this->m_dispatcher.template submitCommand<MoveEventMeta>(
+        this->m_dispatcher.template submit<MoveEventMeta>(
             this->m_scenario, this->createdEvents.last(), TimeVal::zero(), 0.,
             stateMachine.editionSettings().expandMode(), LockMode::Free);
       });
@@ -239,7 +239,7 @@ private:
     {
       auto cmd = new Command::CreateEvent_State{
           this->m_scenario, *this->clickedTimeSync, this->currentPoint.y};
-      this->m_dispatcher.submitCommand(cmd);
+      this->m_dispatcher.submit(cmd);
 
       this->createdStates.append(cmd->createdState());
       this->createdEvents.append(cmd->createdEvent());

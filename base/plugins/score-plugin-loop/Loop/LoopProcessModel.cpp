@@ -134,7 +134,7 @@ void ProcessModel::changeDuration(
 {
   auto& loop = *this;
   dispatcher
-      .submitCommand<Scenario::Command::MoveBaseEvent<Loop::ProcessModel>>(
+      .submit<Scenario::Command::MoveBaseEvent<Loop::ProcessModel>>(
           loop, loop.state(itv.endState()).eventId(), itv.date() + val, 0,
           expandmode, lockmode);
 }

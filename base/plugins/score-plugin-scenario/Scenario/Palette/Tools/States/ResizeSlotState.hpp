@@ -104,7 +104,7 @@ public:
 
       const IntervalModel& cst
           = this->currentSlot.interval.find(stack.context());
-      m_ongoingDispatcher.submitCommand(cst, this->currentSlot, val);
+      m_ongoingDispatcher.submit(cst, this->currentSlot, val);
     });
 
     connect(release, &QAbstractState::entered, [=]() {

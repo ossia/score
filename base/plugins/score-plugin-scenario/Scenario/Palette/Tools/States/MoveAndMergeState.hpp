@@ -30,7 +30,7 @@ public:
   }
 
   template <typename... Args>
-  void submitCommand(Args&&... args)
+  void submit(Args&&... args)
   {
     if (!m_cmd)
     {
@@ -185,14 +185,14 @@ public:
         {
           auto new_y
               = m_origPos.y + (this->currentPoint.y - this->m_pressPos.y);
-          this->m_movingDispatcher.submitCommand(
+          this->m_movingDispatcher.submit(
               this->m_scenario, *evId, date, new_y,
               stateMachine.editionSettings().expandMode(),
               stateMachine.editionSettings().lockMode(), *this->clickedState);
         }
         else
         {
-          this->m_movingDispatcher.submitCommand(
+          this->m_movingDispatcher.submit(
               this->m_scenario, *evId, date, this->currentPoint.y,
               stateMachine.editionSettings().expandMode(),
               stateMachine.editionSettings().lockMode());
@@ -352,7 +352,7 @@ public:
 //          this->m_movingDispatcher.rollback();
 //          this->m_mergingEventDispatcher.rollback();
 
-//          this->m_mergingTnDispatcher.submitCommand(
+//          this->m_mergingTnDispatcher.submit(
 //              this->m_scenario,
 //              tnId,
 //              *this->hoveredTimeSync);
@@ -413,7 +413,7 @@ public:
 //          m_movingDispatcher.rollback();
 //          m_mergingTnDispatcher.rollback();
 
-//          m_mergingEventDispatcher.submitCommand(
+//          m_mergingEventDispatcher.submit(
 //              m_scenario,
 //              *clickedEvId,
 //              *destinationEvId);
@@ -430,7 +430,7 @@ public:
 
 //          if(this->clickedState)
 //          {
-//              this->m_movingDispatcher.submitCommand(
+//              this->m_movingDispatcher.submit(
 //                  m_scenario,
 //                  *clickedEvId,
 //                  date,
@@ -440,7 +440,7 @@ public:
 //          }
 //          else
 //          {
-//              this->m_movingDispatcher.submitCommand(
+//              this->m_movingDispatcher.submit(
 //                  m_scenario,
 //                  *clickedEvId,
 //                  date,
@@ -474,7 +474,7 @@ public:
 //        date = std::max(date, TimeVal{});
 //        if(this->clickedState)
 //        {
-//            this->m_movingDispatcher.submitCommand(
+//            this->m_movingDispatcher.submit(
 //                m_scenario,
 //                *evId,
 //                date,
@@ -484,7 +484,7 @@ public:
 //        }
 //        else
 //        {
-//            this->m_movingDispatcher.submitCommand(
+//            this->m_movingDispatcher.submit(
 //                m_scenario,
 //                *evId,
 //                date,

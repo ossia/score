@@ -22,7 +22,7 @@ public:
   }
 
   template <typename... Args>
-  void submitCommand(Args&&... args)
+  void submit(Args&&... args)
   {
     if (!m_cmd)
     {

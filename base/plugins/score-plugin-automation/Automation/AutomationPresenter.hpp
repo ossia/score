@@ -70,7 +70,7 @@ private:
         return;
 
       CommandDispatcher<> disp{context().context.commandStack};
-      disp.submitCommand(new ChangeAddress{autom, std::move(as)});
+      disp.submit(new ChangeAddress{autom, std::move(as)});
     }
     else if (mime.formats().contains(score::mime::messagelist()))
     {
@@ -87,7 +87,7 @@ private:
         return;
 
       CommandDispatcher<> disp{context().context.commandStack};
-      disp.submitCommand(new ChangeAddress{autom, newAddr});
+      disp.submit(new ChangeAddress{autom, newAddr});
     }
     else if (mime.formats().contains(score::mime::layerdata()))
     {

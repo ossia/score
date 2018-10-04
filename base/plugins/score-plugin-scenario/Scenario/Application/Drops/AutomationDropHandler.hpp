@@ -1,5 +1,6 @@
 #pragma once
 #include <Scenario/Application/Drops/ScenarioDropHandler.hpp>
+#include <Process/Drop/ProcessDropHandler.hpp>
 namespace score
 {
 struct DocumentContext;
@@ -10,6 +11,27 @@ namespace Command
 {
 class Macro;
 }
+
+class ProcessDataDropHandler final
+    : public Process::ProcessDropHandler
+{
+  SCORE_CONCRETE("c2829c8c-e1e7-4f90-b67a-d75d77d297f2")
+public:
+  QSet<QString> mimeTypes() const noexcept override
+  {
+    return {score::mime::processdata()};
+  }
+
+  std::vector<ProcessDrop> drop(const QMimeData& mime, const score::DocumentContext& ctx) const noexcept override
+  {
+    Mime<Process::ProcessData>::Deserializer des{mime};
+
+    ProcessDrop p;
+    p.creation = des.deserialize();
+    return {p};
+  }
+
+};
 
 class DropProcessInScenario final : public DropHandler
 {

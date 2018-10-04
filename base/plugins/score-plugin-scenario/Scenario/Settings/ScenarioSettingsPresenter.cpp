@@ -32,7 +32,7 @@ Presenter::Presenter(Model& m, View& v, QObject* parent)
   con(v, &View::zoomChanged, this, [&](auto val) {
     if (val != m.getGraphicZoom())
     {
-      m_disp.submitCommand<SetModelGraphicZoom>(
+      m_disp.submit<SetModelGraphicZoom>(
           this->model(this), 0.01 * double(val));
     }
   });

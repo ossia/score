@@ -160,6 +160,6 @@ void InspectorWidget::on_textChange(const QString& newTxt)
 
   auto cmd = new JS::EditScript{process(), newTxt};
 
-  m_dispatcher.submitCommand(cmd);
+  m_dispatcher.submit(cmd);
 }
 }

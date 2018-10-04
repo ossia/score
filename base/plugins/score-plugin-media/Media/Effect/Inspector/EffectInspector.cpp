@@ -114,7 +114,7 @@ void InspectorWidget::add_score(std::size_t pos)
       base_fxs, Process::ProcessFlags::SupportsEffectChain, this);
 
   dialog->on_okPressed = [&](const auto& proc, const QString&) {
-    m_dispatcher.submitCommand(new InsertEffect{process(), proc, {}, pos});
+    m_dispatcher.submit(new InsertEffect{process(), proc, {}, pos});
   };
   dialog->launchWindow();
   dialog->deleteLater();
@@ -126,7 +126,7 @@ void InspectorWidget::add_lv2(std::size_t pos)
   auto txt = LV2::LV2EffectFactory{}.customConstructionData();
   if (!txt.isEmpty())
   {
-    m_dispatcher.submitCommand(
+    m_dispatcher.submit(
         new InsertGenericEffect<LV2::LV2EffectModel>{process(), txt, pos});
   }
 #endif
@@ -134,7 +134,7 @@ void InspectorWidget::add_lv2(std::size_t pos)
 void InspectorWidget::add_faust(std::size_t pos)
 {
 #if defined(HAS_FAUST)
-  m_dispatcher.submitCommand(new InsertGenericEffect<Faust::FaustEffectModel>{
+  m_dispatcher.submit(new InsertGenericEffect<Faust::FaustEffectModel>{
       process(), "process = _;", pos});
 #endif
 }
@@ -146,7 +146,7 @@ void InspectorWidget::add_vst2(std::size_t pos)
 
   if (!res.isEmpty())
   {
-    m_dispatcher.submitCommand(
+    m_dispatcher.submit(
         new InsertGenericEffect<VST::VSTEffectModel>{process(), res, pos});
   }
 #endif

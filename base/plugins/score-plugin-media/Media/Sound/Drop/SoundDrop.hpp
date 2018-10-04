@@ -1,10 +1,9 @@
 #pragma once
 #include <Media/MediaFileHandle.hpp>
 #include <Process/TimeValue.hpp>
-#include <Scenario/Application/Drops/ScenarioDropHandler.hpp>
-namespace Media
-{
-namespace Sound
+#include <Process/Drop/ProcessDropHandler.hpp>
+
+namespace Media::Sound
 {
 struct DroppedAudioFiles
 {
@@ -25,22 +24,14 @@ struct DroppedAudioFiles
  * If something with audio mime type is dropped,
  * then we create a box with an audio file loaded.
  */
-class DropHandler final : public Scenario::DropHandler
+class DropHandler final
+    : public Process::ProcessDropHandler
 {
   SCORE_CONCRETE("bc57983b-c29e-4b12-8afe-9d6ffbcb7a94")
 
-  bool drop(
-      const Scenario::ScenarioPresenter&, QPointF pos,
-      const QMimeData& mime) override;
+  QSet<QString> mimeTypes() const noexcept override;
+  QSet<QString> fileExtensions() const noexcept override;
+  std::vector<ProcessDrop> drop(const QMimeData& data, const score::DocumentContext& ctx) const noexcept override;
 };
 
-class IntervalDropHandler final : public Scenario::IntervalDropHandler
-{
-  SCORE_CONCRETE("edbc884b-96cc-4b59-998c-2f48941a7b6a")
-
-  bool drop(const Scenario::IntervalModel&, const QMimeData& mime) override;
-};
-
-// TODO drop in slots, drop in rack ?
-}
 }

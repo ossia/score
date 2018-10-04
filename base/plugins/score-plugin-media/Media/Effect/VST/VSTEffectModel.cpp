@@ -322,7 +322,7 @@ intptr_t vst_host_callback(
             ossia::qt::run_async(vst, [=] {
               auto& ctx = score::IDocument::documentContext(*vst);
               CommandDispatcher<>{ctx.commandStack}
-                  .submitCommand<CreateVSTControl>(*vst, index, opt);
+                  .submit<CreateVSTControl>(*vst, index, opt);
             });
           }
         }

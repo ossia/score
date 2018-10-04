@@ -36,7 +36,7 @@ public:
     SCORE_ASSERT(m_aggregateCommand);
   }
 
-  void submitCommand(score::Command* cmd)
+  void submit(score::Command* cmd)
   {
     RedoStrategy_T::redo(stack().context(), *cmd);
     m_aggregateCommand->addCommand(cmd);

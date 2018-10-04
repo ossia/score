@@ -75,7 +75,7 @@ void InspectorWidget::on_tweenChanged()
   {
     auto cmd = new SetTween{process(), newVal};
 
-    m_dispatcher.submitCommand(cmd);
+    m_dispatcher.submit(cmd);
   }
 }
 

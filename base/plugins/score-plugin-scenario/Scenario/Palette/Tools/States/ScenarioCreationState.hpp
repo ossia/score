@@ -83,7 +83,7 @@ protected:
         auto cmd = new Scenario::Command::CreateInterval{
             this->m_scenario, originalState, *this->hoveredState};
 
-        m_dispatcher.submitCommand(cmd);
+        m_dispatcher.submit(cmd);
 
         this->createdIntervals.append(cmd->createdInterval());
       } // else do nothing
@@ -103,7 +103,7 @@ protected:
             this->m_scenario, originalState, *this->hoveredEvent,
             this->currentPoint.y};
 
-        m_dispatcher.submitCommand(cmd);
+        m_dispatcher.submit(cmd);
 
         this->createdIntervals.append(cmd->createdInterval());
         this->createdStates.append(cmd->createdState());
@@ -124,7 +124,7 @@ protected:
             this->m_scenario, originalState, *this->hoveredTimeSync,
             this->currentPoint.y};
 
-        m_dispatcher.submitCommand(cmd);
+        m_dispatcher.submit(cmd);
 
         this->createdStates.append(cmd->createdState());
         this->createdEvents.append(cmd->createdEvent());
@@ -142,7 +142,7 @@ protected:
           originalState, // Put there in createInitialState
           this->currentPoint.date, this->currentPoint.y};
 
-      m_dispatcher.submitCommand(cmd);
+      m_dispatcher.submit(cmd);
 
       this->createdStates.append(cmd->createdState());
       this->createdEvents.append(cmd->createdEvent());
@@ -158,7 +158,7 @@ protected:
           originalState, // Put there in createInitialState
           this->currentPoint.date, this->currentPoint.y);
 
-      m_dispatcher.submitCommandQuiet(cmd);
+      m_dispatcher.submitQuiet(cmd);
 
       this->createdStates.append(cmd->createdState());
       this->createdEvents.append(cmd->createdEvent());
@@ -200,7 +200,7 @@ protected:
     if (messages.empty())
       return;
 
-    m_dispatcher.submitCommand(new AddMessagesToState{
+    m_dispatcher.submit(new AddMessagesToState{
         m_parentSM.model().states.at(this->createdStates.last()), messages});
   }
 

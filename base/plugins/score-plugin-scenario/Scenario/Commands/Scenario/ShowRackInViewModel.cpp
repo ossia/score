@@ -14,14 +14,16 @@ namespace Scenario
 {
 namespace Command
 {
-ShowRack::ShowRack(const IntervalModel& vm) : m_intervalViewPath{vm}
+ShowRack::ShowRack(const IntervalModel& vm)
+  : m_intervalViewPath{vm}
+  , m_old{vm.smallViewVisible()}
 {
 }
 
 void ShowRack::undo(const score::DocumentContext& ctx) const
 {
   auto& vm = m_intervalViewPath.find(ctx);
-  vm.setSmallViewVisible(false);
+  vm.setSmallViewVisible(m_old);
 }
 
 void ShowRack::redo(const score::DocumentContext& ctx) const
@@ -32,12 +34,12 @@ void ShowRack::redo(const score::DocumentContext& ctx) const
 
 void ShowRack::serializeImpl(DataStreamInput& s) const
 {
-  s << m_intervalViewPath;
+  s << m_intervalViewPath << m_old;
 }
 
 void ShowRack::deserializeImpl(DataStreamOutput& s)
 {
-  s >> m_intervalViewPath;
+  s >> m_intervalViewPath >> m_old;
 }
 }
 }

@@ -69,6 +69,18 @@ public:
         interval, Metadata<ConcreteKey_k, T>::get(), data));
   }
 
+  Process::ProcessModel* createProcessInNewSlot(
+      const Scenario::IntervalModel& interval,
+      const UuidKey<Process::ProcessModel>& key, const QString& data);
+
+  template <typename T>
+  T& createProcessInNewSlot(
+      const Scenario::IntervalModel& interval, const QString& data)
+  {
+    return *safe_cast<T*>(this->createProcessInNewSlot(
+        interval, Metadata<ConcreteKey_k, T>::get(), data));
+  }
+
   Process::ProcessModel* loadProcessInSlot(
       const Scenario::IntervalModel& interval, const QJsonObject& procdata);
 
@@ -156,7 +168,7 @@ public:
   {
     auto cmd = new score::PropertyCommand_T<Property>{object,
                                                       std::forward<U>(value)};
-    m.submitCommand(cmd);
+    m.submit(cmd);
   }
 
   void submit(score::Command* cmd);

@@ -17,18 +17,18 @@ public:
   {
   }
 
-  void submitCommand(score::Command* cmd) const
+  void submit(score::Command* cmd) const
   {
     SendStrategy::send(stack(), cmd);
   }
 
   template <typename T, typename... Args>
-  void submitCommand(Args&&... args) const
+  void submit(Args&&... args) const
   {
     SendStrategy::send(stack(), new T{std::forward<Args>(args)...});
   }
 
-  void submitCommand(std::unique_ptr<score::Command> cmd) const
+  void submit(std::unique_ptr<score::Command> cmd) const
   {
     SendStrategy::send(stack(), cmd.release());
   }

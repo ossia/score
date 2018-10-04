@@ -149,7 +149,7 @@ void InspectorWidget::on_sourceAddressChange(
 
   auto cmd = new ChangeSourceAddress{process(), newAddr};
 
-  m_dispatcher.submitCommand(cmd);
+  m_dispatcher.submit(cmd);
 }
 
 void InspectorWidget::on_sourceMinValueChanged()
@@ -159,7 +159,7 @@ void InspectorWidget::on_sourceMinValueChanged()
   {
     auto cmd = new SetMappingSourceMin{process(), newVal};
 
-    m_dispatcher.submitCommand(cmd);
+    m_dispatcher.submit(cmd);
   }
 }
 
@@ -170,7 +170,7 @@ void InspectorWidget::on_sourceMaxValueChanged()
   {
     auto cmd = new SetMappingSourceMax{process(), newVal};
 
-    m_dispatcher.submitCommand(cmd);
+    m_dispatcher.submit(cmd);
   }
 }
 
@@ -186,7 +186,7 @@ void InspectorWidget::on_targetAddressChange(
 
   auto cmd = new ChangeTargetAddress{process(), newAddr};
 
-  m_dispatcher.submitCommand(cmd);
+  m_dispatcher.submit(cmd);
 }
 
 void InspectorWidget::on_targetMinValueChanged()
@@ -196,7 +196,7 @@ void InspectorWidget::on_targetMinValueChanged()
   {
     auto cmd = new SetMappingTargetMin{process(), newVal};
 
-    m_dispatcher.submitCommand(cmd);
+    m_dispatcher.submit(cmd);
   }
 }
 
@@ -207,7 +207,7 @@ void InspectorWidget::on_targetMaxValueChanged()
   {
     auto cmd = new SetMappingTargetMax{process(), newVal};
 
-    m_dispatcher.submitCommand(cmd);
+    m_dispatcher.submit(cmd);
   }
 }
 }

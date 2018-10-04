@@ -5,6 +5,7 @@
 #include <Process/ProcessList.hpp>
 
 #include <score/application/ApplicationContext.hpp>
+#include <score/command/AggregateCommand.hpp>
 #include <score/command/Command.hpp>
 #include <score/document/DocumentContext.hpp>
 #include <score/model/path/Path.hpp>
@@ -36,6 +37,8 @@ public:
 
   void undo(const score::DocumentContext& ctx) const override;
   void redo(const score::DocumentContext& ctx) const override;
+
+  const Id<Process::ProcessModel>& processId() const noexcept { return m_id; }
 
 protected:
   void serializeImpl(DataStreamInput& s) const override;
@@ -183,4 +186,11 @@ private:
   Id<Process::ProcessModel> m_id;
   int m_oldPos, m_newPos{};
 };
+
+class DropEffectMacro final : public score::AggregateCommand
+{
+  SCORE_COMMAND_DECL(
+      Media::CommandFactoryName(), DropEffectMacro, "Drop an effect")
+};
+
 }

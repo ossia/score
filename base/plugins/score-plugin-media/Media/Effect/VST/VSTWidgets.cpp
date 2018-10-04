@@ -199,7 +199,7 @@ void VSTEffectItem::setupInlet(
           [&doc, &fx, id = inlet.id()] {
             QTimer::singleShot(0, [&doc, &fx, id] {
               CommandDispatcher<> disp{doc.commandStack};
-              disp.submitCommand<RemoveVSTControl>(fx, id);
+              disp.submit<RemoveVSTControl>(fx, id);
             });
           });
 
@@ -306,7 +306,7 @@ QGraphicsItem* VSTFloatSlider::make_item(
   QObject::connect(
       sl, &VSTGraphicsSlider::sliderMoved, context, [=, &inlet, &ctx] {
         sl->moving = true;
-        ctx.dispatcher.submitCommand<SetVSTControl>(inlet, sl->value());
+        ctx.dispatcher.submit<SetVSTControl>(inlet, sl->value());
       });
   QObject::connect(
       sl, &VSTGraphicsSlider::sliderReleased, context, [&ctx, sl]() {

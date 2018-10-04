@@ -38,7 +38,7 @@ InspectorWidget::InspectorWidget(
           if (model.channel() != n)
           {
             CommandDispatcher<> d{doc.commandStack};
-            d.submitCommand(new SetChannel{model, n});
+            d.submit(new SetChannel{model, n});
           }
         });
   }
@@ -67,7 +67,7 @@ InspectorWidget::InspectorWidget(
       if (model.range().first != n)
       {
         CommandDispatcher<> d{doc.commandStack};
-        d.submitCommand(new SetRange{model, n, m_max->value()});
+        d.submit(new SetRange{model, n, m_max->value()});
       }
     });
     connect(m_max, &QSpinBox::editingFinished, this, [=, &model, &doc] {
@@ -75,7 +75,7 @@ InspectorWidget::InspectorWidget(
       if (model.range().second != n)
       {
         CommandDispatcher<> d{doc.commandStack};
-        d.submitCommand(new SetRange{model, m_min->value(), n});
+        d.submit(new SetRange{model, m_min->value(), n});
       }
     });
   }

@@ -25,7 +25,7 @@ struct CommandSpinbox : public QObject
         m_sb, SignalUtils::SpinBox_valueChanged<SpinBox>(), this, [&](int h) {
           if (h != (model.*Property::get())())
           {
-            m_slotDisp.submitCommand(model, h);
+            m_slotDisp.submit(model, h);
           }
         });
     connect(

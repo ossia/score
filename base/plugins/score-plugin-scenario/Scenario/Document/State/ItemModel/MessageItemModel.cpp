@@ -247,7 +247,7 @@ bool MessageItemModel::dropMimeData(
     CommandDispatcher<> disp(
         score::IDocument::documentContext(stateModel).commandStack);
     beginResetModel();
-    disp.submitCommand(cmd);
+    disp.submit(cmd);
     endResetModel();
   }
   else if (data->hasUrls())
@@ -270,7 +270,7 @@ bool MessageItemModel::dropMimeData(
       auto cmd = new Command::AddMessagesToState{stateModel, ml};
       CommandDispatcher<>{
           score::IDocument::documentContext(stateModel).commandStack}
-          .submitCommand(cmd);
+          .submit(cmd);
     }
   }
   return false;
@@ -336,7 +336,7 @@ bool MessageItemModel::setData(
       CommandDispatcher<> disp(
           score::IDocument::documentContext(stateModel).commandStack);
       beginResetModel();
-      disp.submitCommand(cmd);
+      disp.submit(cmd);
       endResetModel();
       return true;
     }

@@ -68,7 +68,7 @@ void DataflowWidget::reinit()
        &Device::AddressAccessorEditWidget::addressChanged, this, [=] (const
        Device::FullAddressAccessorSettings& as) { auto cur =
        m_proc.inlets()[i]; cur->setAddress(as.address); auto cmd = new
-       EditPort{m_proc, std::move(cur), i, true}; m_disp.submitCommand(cmd);
+       EditPort{m_proc, std::move(cur), i, true}; m_disp.submit(cmd);
         }, Qt::QueuedConnection);
 
         con(widg->localName, &QLineEdit::editingFinished,
@@ -76,11 +76,11 @@ void DataflowWidget::reinit()
           auto cur = m_proc.inlets()[i];
           cur.customData = widg->localName.text();
           auto cmd = new EditPort{m_proc, std::move(cur), i, true};
-          m_disp.submitCommand(cmd);
+          m_disp.submit(cmd);
         }, Qt::QueuedConnection);
 
         connect(widg, &PortWidget::removeMe, this, [=] {
-          m_disp.submitCommand<RemovePort>(m_proc, i, true);
+          m_disp.submit<RemovePort>(m_proc, i, true);
         }, Qt::QueuedConnection);
 
         */
@@ -89,7 +89,7 @@ void DataflowWidget::reinit()
   /*
     m_addInlet = new QPushButton{tr("Add inlet"), this};
     connect(m_addInlet, &QPushButton::clicked, this, [&] {
-      m_disp.submitCommand<AddPort>(m_proc, true);
+      m_disp.submit<AddPort>(m_proc, true);
     }, Qt::QueuedConnection);
     m_lay.addWidget(m_addInlet);
   */
@@ -109,7 +109,7 @@ void DataflowWidget::reinit()
        &Device::AddressAccessorEditWidget::addressChanged, this, [=] (const
        Device::FullAddressAccessorSettings& as) { auto cur =
        m_proc.outlets()[i]; cur.address = as.address; auto cmd = new
-       EditPort{m_proc, std::move(cur), i, false}; m_disp.submitCommand(cmd);
+       EditPort{m_proc, std::move(cur), i, false}; m_disp.submit(cmd);
         }, Qt::QueuedConnection);
 
         con(widg->localName, &QLineEdit::editingFinished,
@@ -117,11 +117,11 @@ void DataflowWidget::reinit()
           auto cur = m_proc.outlets()[i];
           cur.customData = widg->localName.text();
           auto cmd = new EditPort{m_proc, std::move(cur), i, false};
-          m_disp.submitCommand(cmd);
+          m_disp.submit(cmd);
         }, Qt::QueuedConnection);
 
         connect(widg, &PortWidget::removeMe, this, [=] {
-          m_disp.submitCommand<RemovePort>(m_proc, i, false);
+          m_disp.submit<RemovePort>(m_proc, i, false);
         }, Qt::QueuedConnection);
     */
     i++;
@@ -129,7 +129,7 @@ void DataflowWidget::reinit()
   /*
     m_addOutlet = new QPushButton{tr("Add outlet"), this};
     connect(m_addOutlet, &QPushButton::clicked, this, [&] {
-      m_disp.submitCommand<AddPort>(m_proc, false);
+      m_disp.submit<AddPort>(m_proc, false);
     }, Qt::QueuedConnection);
     m_lay.addWidget(m_addOutlet);*/
 }
@@ -146,7 +146,7 @@ CableWidget::CableWidget(
   con(m_cabletype, SignalUtils::QComboBox_currentIndexChanged_int(), this,
       [&](int idx) {
         CommandDispatcher<> c{ctx.commandStack};
-        c.submitCommand<Dataflow::UpdateCable>(cable, (Process::CableType)idx);
+        c.submit<Dataflow::UpdateCable>(cable, (Process::CableType)idx);
       });
 
   this->updateAreaLayout({&m_cabletype});

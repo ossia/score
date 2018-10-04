@@ -700,7 +700,7 @@ void Presenter::removeSelection()
   }
 
   // Apply the changes.
-  m_commandDispatcher.submitCommand(
+  m_commandDispatcher.submit(
       new UpdateCurve{m_model, std::move(newSegments)});
 }
 
@@ -721,7 +721,7 @@ void Presenter::updateSegmentsType(
     }
   }
 
-  m_commandDispatcher.submitCommand(
+  m_commandDispatcher.submit(
       new UpdateCurve{m_model, std::move(newSegments)});
 }
 

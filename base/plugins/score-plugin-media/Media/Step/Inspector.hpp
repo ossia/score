@@ -50,19 +50,19 @@ public:
         [&] { m_max.setValue(obj.max()); });
 
     con(m_count, &QSpinBox::editingFinished, this, [&]() {
-      m_dispatcher.submitCommand<SetStepCount>(obj, m_count.value());
+      m_dispatcher.submit<SetStepCount>(obj, m_count.value());
       m_dispatcher.commit();
     });
     con(m_dur, &QSpinBox::editingFinished, this, [&]() {
-      m_dispatcher.submitCommand<SetStepDuration>(obj, m_dur.value());
+      m_dispatcher.submit<SetStepDuration>(obj, m_dur.value());
       m_dispatcher.commit();
     });
     con(m_min, &QDoubleSpinBox::editingFinished, this, [&]() {
-      m_dispatcher.submitCommand<SetMin>(obj, m_min.value());
+      m_dispatcher.submit<SetMin>(obj, m_min.value());
       m_dispatcher.commit();
     });
     con(m_max, &QDoubleSpinBox::editingFinished, this, [&]() {
-      m_dispatcher.submitCommand<SetMax>(obj, m_max.value());
+      m_dispatcher.submit<SetMax>(obj, m_max.value());
       m_dispatcher.commit();
     });
 

@@ -73,7 +73,7 @@ void BaseScenario::changeDuration(
     const TimeVal& val, ExpandMode expandmode, LockMode lockmode)
 {
   auto& scenario = *this;
-  dispatcher.submitCommand<Command::MoveBaseEvent<BaseScenario>>(
+  dispatcher.submit<Command::MoveBaseEvent<BaseScenario>>(
       scenario, scenario.endEvent().id(), val, 0., expandmode, lockmode);
 }
 */

@@ -9,7 +9,7 @@ class SettingsCommandDispatcher
 {
 public:
   template <typename TheCommand, typename... Args>
-  void submitCommand(Args&&... args)
+  void submit(Args&&... args)
   {
     static_assert(!TheCommand::is_deferred, "Don't use a deferred command");
     auto it = commands.find(TheCommand::static_key());

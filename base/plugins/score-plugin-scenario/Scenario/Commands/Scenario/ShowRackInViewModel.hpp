@@ -33,6 +33,7 @@ protected:
 
 private:
   Path<IntervalModel> m_intervalViewPath;
+  bool m_old{};
 };
 }
 }

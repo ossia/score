@@ -283,9 +283,9 @@ bool AutomationRecorder::finish(
       recorded.segment.max(), recorded.segment.toPowerSegments()};
 
   // This one shall not be redone
-  context.dispatcher.submitCommand(recorded.addProcCmd);
-  context.dispatcher.submitCommand(recorded.addLayCmd);
-  context.dispatcher.submitCommand(initCurveCmd);
+  context.dispatcher.submit(recorded.addProcCmd);
+  context.dispatcher.submit(recorded.addLayCmd);
+  context.dispatcher.submit(initCurveCmd);
 
   return true;
 }

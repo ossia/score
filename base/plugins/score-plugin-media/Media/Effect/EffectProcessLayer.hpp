@@ -13,13 +13,15 @@
 #include <Process/Style/ScenarioStyle.hpp>
 #include <Process/WidgetLayer/WidgetProcessFactory.hpp>
 #include <Scenario/Application/Menus/ScenarioCopy.hpp>
-#include <score/graphics/TextItem.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
+
+#include <Process/Drop/ProcessDropHandler.hpp>
 
 #include <score/selection/SelectionDispatcher.hpp>
 #include <score/graphics/GraphicWidgets.hpp>
 #include <score/graphics/RectItem.hpp>
-
+#include <score/graphics/TextItem.hpp>
+#include <score/command/Dispatchers/MacroCommandDispatcher.hpp>
 #include <core/document/Document.hpp>
 
 #include <ossia/detail/thread.hpp>
@@ -144,7 +146,7 @@ public:
         [&]() {
           auto cmd = new RemoveEffect{object, effect};
           CommandDispatcher<> disp{doc.commandStack};
-          disp.submitCommand(cmd);
+          disp.submit(cmd);
         },
         Qt::QueuedConnection);
 
@@ -487,7 +489,7 @@ public:
 
       auto cmd = new InsertEffect(m_layer, p.key, p.customData, pos);
       CommandDispatcher<> d{ctx.commandStack};
-      d.submitCommand(cmd);
+      d.submit(cmd);
       return;
     }
     else if (mime.hasFormat(score::mime::effect()))
@@ -508,7 +510,7 @@ public:
           if (obj->parent() == &m_layer)
           {
             QTimer::singleShot(0, [this, &ctx, id = obj->id(), pos] {
-              CommandDispatcher<>{ctx.commandStack}.submitCommand(
+              CommandDispatcher<>{ctx.commandStack}.submit(
                   new MoveEffect(m_layer, id, pos));
             });
             return;
@@ -521,62 +523,60 @@ public:
         }
       }
     }
-    else
+    else if (mime.hasFormat(score::mime::layerdata()))
+    {
+      QJsonObject json = QJsonDocument::fromJson(mime.data(score::mime::layerdata())).object();
+
+      if(json.isEmpty())
+        return;
+      auto cmd = new LoadEffect(m_layer, json, pos);
+      CommandDispatcher<> d{ctx.commandStack};
+      d.submit(cmd);
+    }
+    else if (mime.hasUrls())
     {
       bool all_layers = ossia::all_of(mime.urls(), [](const QUrl& u) {
         return QFileInfo{u.toLocalFile()}.suffix() == "layer";
       });
-
-      QJsonObject json;
-      if (mime.hasFormat(score::mime::layerdata()))
-      {
-        json = QJsonDocument::fromJson(mime.data(score::mime::layerdata()))
-                   .object();
-      }
-      else if (mime.hasUrls() && all_layers)
+      if(all_layers)
       {
         auto path = mime.urls().first().toLocalFile();
         if (QFile f{path}; f.open(QIODevice::ReadOnly))
         {
-          json = QJsonDocument::fromJson(f.readAll()).object();
-        }
-      }
+          auto json = QJsonDocument::fromJson(f.readAll()).object();
+          if(json.isEmpty())
+            return;
 
-      auto cmd = new LoadEffect(m_layer, json, pos);
-      CommandDispatcher<> d{ctx.commandStack};
-      d.submitCommand(cmd);
-
-      // TODO refactor in some way with DropLayerInInterval ?
-      /*
-      const auto pid = ossia::get_pid();
-      const bool same_doc = (pid == json["PID"].toInt()) &&
-      (ctx.document.id().val() == json["Document"] .toInt()); const bool
-      small_view = json["View"].toString() == "Small"; const int slot_index =
-      json["SlotIndex"].toInt();
-
-      if(same_doc)
-      {
-        const auto old_p =
-      fromJsonObject<Path<Process::ProcessModel>>(json["Path"]); if(auto obj =
-      old_p.try_find(ctx)) if(auto itv =
-      qobject_cast<Scenario::IntervalModel*>(obj->parent()))
-        {
-          if(small_view && (qApp->keyboardModifiers() & Qt::ALT))
-          {
-            m.moveSlot(*itv, interval, slot_index);
-          }
-          else
-          {
-            m.moveProcess(*itv, interval, obj->id());
-          }
+          auto cmd = new LoadEffect(m_layer, json, pos);
+          CommandDispatcher<> d{ctx.commandStack};
+          d.submit(cmd);
         }
       }
       else
       {
-        // Just create a new process
-        m.loadProcessInSlot(interval, json);
+        const auto& handlers = ctx.app.interfaces<Process::ProcessDropHandlerList>();
+
+        if(auto res = handlers.getDrop(mime, ctx); !res.empty())
+        {
+          MacroCommandDispatcher<Media::DropEffectMacro> cmd{ctx.commandStack};
+          Process::Dispatcher_T disp{cmd};
+          for(const auto& proc : res)
+          {
+            auto& p = proc.creation;
+            auto create = new InsertEffect(m_layer, p.key, p.customData, pos);
+            cmd.submit(create);
+            if(auto fx = m_layer.effects().find(create->processId()); fx != m_layer.effects().list().end())
+            {
+              if(proc.setup)
+              {
+                proc.setup(**fx, disp);
+              }
+            }
+          }
+
+          cmd.commit();
+        }
       }
-      */
     }
   }
 

@@ -213,7 +213,7 @@ void InterpolateStates(
   if (!big_macro->commands().empty())
   {
     CommandDispatcher<> disp{stack};
-    disp.submitCommand(big_macro.release());
+    disp.submit(big_macro.release());
   }
 }
 }

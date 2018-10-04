@@ -63,7 +63,7 @@ void RefreshStates(
   }
 
   CommandDispatcher<> disp{stack};
-  disp.submitCommand(macro);
+  disp.submit(macro);
 }
 }
 }
