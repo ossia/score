@@ -226,7 +226,7 @@ void TemporalIntervalView::paint(
 {
   auto& painter = *p;
   painter.setRenderHint(QPainter::Antialiasing, false);
-  auto& skin = ScenarioStyle::instance();
+  auto& skin = Process::Style::instance();
 
   const qreal def_w = defaultWidth();
 

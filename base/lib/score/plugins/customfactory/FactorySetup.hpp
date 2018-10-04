@@ -109,8 +109,6 @@ template <typename Context_T, typename... Args>
 auto instantiate_factories(
     const Context_T& ctx, const score::InterfaceKey& key) noexcept
 {
-  // TODO one day investigate whether doing it with frozen::unordered_map is
-  // better ?
   std::vector<std::unique_ptr<score::InterfaceBase>> vec;
 
   ossia::for_each_type_if_tagged<Args...>([&](auto t) {

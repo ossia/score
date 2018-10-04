@@ -106,7 +106,7 @@ ProcessModel::~ProcessModel()
   identified_object_destroying(this);
 }
 
-void ProcessModel::setDurationAndScale(const TimeVal& newDuration)
+void ProcessModel::setDurationAndScale(const TimeVal& newDuration) noexcept
 {
   double scale = newDuration / duration();
 
@@ -146,12 +146,12 @@ void ProcessModel::setDurationAndScale(const TimeVal& newDuration)
   this->setDuration(newDuration);
 }
 
-void ProcessModel::setDurationAndGrow(const TimeVal& newDuration)
+void ProcessModel::setDurationAndGrow(const TimeVal& newDuration) noexcept
 {
   this->setDuration(newDuration);
 }
 
-void ProcessModel::setDurationAndShrink(const TimeVal& newDuration)
+void ProcessModel::setDurationAndShrink(const TimeVal& newDuration) noexcept
 {
   this->setDuration(newDuration);
   return; // Disabled by Asana
@@ -192,7 +192,7 @@ void ProcessModel::reset()
   }
 }
 
-Selection ProcessModel::selectableChildren() const
+Selection ProcessModel::selectableChildren() const noexcept
 {
   Selection objects;
   apply([&](const auto& m) {
@@ -212,32 +212,14 @@ static void copySelected(const InputVec& in, OutputVec& out)
   }
 }
 
-Selection ProcessModel::selectedChildren() const
+Selection ProcessModel::selectedChildren() const noexcept
 {
   Selection objects;
   apply([&](const auto& m) { copySelected(this->*m, objects); });
   return objects;
 }
-/*
-void ProcessModel::changeDuration(IntervalModel& itv, const TimeVal& v)
-{
-  Command::MoveEventMeta cmd(
-      *this, this->states.at(itv.endState()).eventId(), itv.date() + v,
-      itv.heightPercentage(), ExpandMode::GrowShrink, LockMode::Free);
-  cmd.redo(score::IDocument::documentContext(*this));
-}
 
-void ProcessModel::changeDuration(
-    const Scenario::IntervalModel& itv, OngoingCommandDispatcher& dispatcher,
-    const TimeVal& val, ExpandMode expandmode, LockMode lockmode)
-{
-  auto& scenario = *this;
-  dispatcher.submit<Command::MoveEventMeta>(
-      scenario, scenario.state(itv.endState()).eventId(), itv.date() + val,
-      itv.heightPercentage(), expandmode, lockmode);
-}*/
-
-void ProcessModel::setSelection(const Selection& s) const
+void ProcessModel::setSelection(const Selection& s) const noexcept
 {
   // OPTIMIZEME
   apply([&](auto&& m) {
@@ -452,12 +434,12 @@ const StateModel* furthestSelectedStateWithoutFollowingInterval(
   return nullptr;
 }
 
-bool ProcessModel::contentHasDuration() const
+bool ProcessModel::contentHasDuration() const noexcept
 {
   return true;
 }
 
-TimeVal ProcessModel::contentDuration() const
+TimeVal ProcessModel::contentDuration() const noexcept
 {
   TimeVal max_tn_pos = TimeVal::zero();
   for (TimeSyncModel& t : timeSyncs)

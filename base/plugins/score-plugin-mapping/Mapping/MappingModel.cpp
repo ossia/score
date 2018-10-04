@@ -90,7 +90,7 @@ void ProcessModel::init()
       });
 }
 
-QString ProcessModel::prettyName() const
+QString ProcessModel::prettyName() const noexcept
 {
   auto str = sourceAddress().toString_unsafe() + " -> "
              + targetAddress().toString_unsafe();
@@ -107,36 +107,36 @@ QString ProcessModel::prettyValue(double x, double y) const noexcept
       QString::number((y * (targetMax() - targetMin()) - targetMin()), 'f', 3);
 }
 
-void ProcessModel::setDurationAndScale(const TimeVal& newDuration)
+void ProcessModel::setDurationAndScale(const TimeVal& newDuration) noexcept
 {
   // Whatever happens we want to keep the same curve.
   setDuration(newDuration);
   m_curve->changed();
 }
 
-void ProcessModel::setDurationAndGrow(const TimeVal& newDuration)
+void ProcessModel::setDurationAndGrow(const TimeVal& newDuration) noexcept
 {
   setDuration(newDuration);
   m_curve->changed();
 }
 
-void ProcessModel::setDurationAndShrink(const TimeVal& newDuration)
+void ProcessModel::setDurationAndShrink(const TimeVal& newDuration) noexcept
 {
   setDuration(newDuration);
   m_curve->changed();
 }
 
-State::AddressAccessor ProcessModel::sourceAddress() const
+State::AddressAccessor ProcessModel::sourceAddress() const noexcept
 {
   return inlet->address();
 }
 
-double ProcessModel::sourceMin() const
+double ProcessModel::sourceMin() const noexcept
 {
   return m_sourceMin;
 }
 
-double ProcessModel::sourceMax() const
+double ProcessModel::sourceMax() const noexcept
 {
   return m_sourceMax;
 }
@@ -166,17 +166,17 @@ void ProcessModel::setSourceMax(double arg)
   m_curve->changed();
 }
 
-State::AddressAccessor ProcessModel::targetAddress() const
+State::AddressAccessor ProcessModel::targetAddress() const noexcept
 {
   return outlet->address();
 }
 
-double ProcessModel::targetMin() const
+double ProcessModel::targetMin() const noexcept
 {
   return m_targetMin;
 }
 
-double ProcessModel::targetMax() const
+double ProcessModel::targetMax() const noexcept
 {
   return m_targetMax;
 }

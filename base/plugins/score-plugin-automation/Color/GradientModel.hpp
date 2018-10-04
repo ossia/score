@@ -40,7 +40,7 @@ public:
   bool tween() const;
   void setTween(bool tween);
 
-  QString prettyName() const override;
+  QString prettyName() const noexcept override;
 
   using gradient_colors = ossia::flat_map<double, QColor>;
   const gradient_colors& gradient() const;
@@ -57,12 +57,12 @@ public:
   PROPERTY(bool, tween READ tween WRITE setTween NOTIFY tweenChanged)
 private:
   //// ProcessModel ////
-  void setDurationAndScale(const TimeVal& newDuration) override;
-  void setDurationAndGrow(const TimeVal& newDuration) override;
-  void setDurationAndShrink(const TimeVal& newDuration) override;
+  void setDurationAndScale(const TimeVal& newDuration) noexcept override;
+  void setDurationAndGrow(const TimeVal& newDuration) noexcept override;
+  void setDurationAndShrink(const TimeVal& newDuration) noexcept override;
 
-  bool contentHasDuration() const override;
-  TimeVal contentDuration() const override;
+  bool contentHasDuration() const noexcept override;
+  TimeVal contentDuration() const noexcept override;
 
   ossia::flat_map<double, QColor> m_colors;
 

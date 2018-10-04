@@ -34,9 +34,9 @@ public:
   }
 
   QWidget* make(
-      const QList<const QObject*>& objects, const score::DocumentContext& doc,
+      const InspectedObjects& objects, const score::DocumentContext& doc,
       QWidget* parent) const final override;
-  bool matches(const QList<const QObject*>& objects) const final override;
+  bool matches(const InspectedObjects& objects) const final override;
 
 protected:
   static QWidget* wrap(

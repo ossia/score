@@ -14,12 +14,12 @@ namespace InterpState
 {
 ProcessModel::~ProcessModel() = default;
 
-bool ProcessModel::contentHasDuration() const
+bool ProcessModel::contentHasDuration() const noexcept
 {
   return true;
 }
 
-TimeVal ProcessModel::contentDuration() const
+TimeVal ProcessModel::contentDuration() const noexcept
 {
   return duration() * std::min(1., m_curve->lastPointPos());
 }
@@ -43,7 +43,7 @@ ProcessModel::ProcessModel(
   metadata().setInstanceName(*this);
 }
 
-QString ProcessModel::prettyName() const
+QString ProcessModel::prettyName() const noexcept
 {
   return tr("State interpolation");
 }
@@ -63,21 +63,21 @@ State::MessageList ProcessModel::endMessages() const
   return {};
 }
 
-void ProcessModel::setDurationAndScale(const TimeVal& newDuration)
+void ProcessModel::setDurationAndScale(const TimeVal& newDuration) noexcept
 {
   // We only need to change the duration.
   setDuration(newDuration);
   m_curve->changed();
 }
 
-void ProcessModel::setDurationAndGrow(const TimeVal& newDuration)
+void ProcessModel::setDurationAndGrow(const TimeVal& newDuration) noexcept
 {
   // We only need to change the duration.
   setDuration(newDuration);
   m_curve->changed();
 }
 
-void ProcessModel::setDurationAndShrink(const TimeVal& newDuration)
+void ProcessModel::setDurationAndShrink(const TimeVal& newDuration) noexcept
 {
   // We only need to change the duration.
   setDuration(newDuration);

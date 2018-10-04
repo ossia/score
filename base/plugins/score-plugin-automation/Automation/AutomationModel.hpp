@@ -73,7 +73,7 @@ public:
     tweenChanged(tween);
   }
 
-  QString prettyName() const override;
+  QString prettyName() const noexcept override;
   QString prettyValue(double x, double y) const noexcept override;
   std::unique_ptr<Process::Outlet> outlet;
 
@@ -101,16 +101,16 @@ private:
   void init();
 
   //// ProcessModel ////
-  void setDurationAndScale(const TimeVal& newDuration) override;
-  void setDurationAndGrow(const TimeVal& newDuration) override;
-  void setDurationAndShrink(const TimeVal& newDuration) override;
+  void setDurationAndScale(const TimeVal& newDuration) noexcept override;
+  void setDurationAndGrow(const TimeVal& newDuration) noexcept override;
+  void setDurationAndShrink(const TimeVal& newDuration) noexcept override;
 
-  bool contentHasDuration() const override;
-  TimeVal contentDuration() const override;
+  bool contentHasDuration() const noexcept override;
+  TimeVal contentDuration() const noexcept override;
 
   /// States
-  ProcessState* startStateData() const override;
-  ProcessState* endStateData() const override;
+  ProcessState* startStateData() const noexcept override;
+  ProcessState* endStateData() const noexcept override;
 
   void setCurve_impl() override;
 

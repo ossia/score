@@ -219,7 +219,7 @@ void FullViewIntervalView::paint(
     QPainter* p, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
   auto& painter = *p;
-  auto& skin = ScenarioStyle::instance();
+  auto& skin = Process::Style::instance();
   painter.setRenderHint(QPainter::Antialiasing, false);
 
   const auto& defaultColor = this->intervalColor(skin);

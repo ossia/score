@@ -31,7 +31,6 @@ InspectorWidgetBase::InspectorWidgetBase(
   m_layout->setSpacing(0);
 
   m_label = new TextLabel{name, this};
-  // TODO use a style for that
   m_label->setStyleSheet("font-weight: bold; font-size: 18");
   m_sections.push_back(m_label);
 

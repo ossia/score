@@ -51,33 +51,33 @@ void ProcessModel::init()
       });
 }
 
-QString ProcessModel::prettyName() const
+QString ProcessModel::prettyName() const noexcept
 {
   return address().toString();
 }
 
-void ProcessModel::setDurationAndScale(const TimeVal& newDuration)
+void ProcessModel::setDurationAndScale(const TimeVal& newDuration) noexcept
 {
   // We only need to change the duration.
   setDuration(newDuration);
 }
 
-void ProcessModel::setDurationAndGrow(const TimeVal& newDuration)
+void ProcessModel::setDurationAndGrow(const TimeVal& newDuration) noexcept
 {
   setDuration(newDuration);
 }
 
-void ProcessModel::setDurationAndShrink(const TimeVal& newDuration)
+void ProcessModel::setDurationAndShrink(const TimeVal& newDuration) noexcept
 {
   setDuration(newDuration);
 }
 
-bool ProcessModel::contentHasDuration() const
+bool ProcessModel::contentHasDuration() const noexcept
 {
   return true;
 }
 
-TimeVal ProcessModel::contentDuration() const
+TimeVal ProcessModel::contentDuration() const noexcept
 {
   return duration();
 }

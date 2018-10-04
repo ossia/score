@@ -24,7 +24,7 @@ void ProcessPanelGraphicsProxy::paint(
 {
   painter->setRenderHint(QPainter::Antialiasing, false);
   painter->setBrush(
-      ScenarioStyle::instance().ProcessPanelBackground.getBrush());
+      Process::Style::instance().ProcessPanelBackground.getBrush());
   auto rect = boundingRect();
   painter->setPen(Qt::DashLine);
   painter->drawLine(rect.width(), 0, rect.width(), rect.height());

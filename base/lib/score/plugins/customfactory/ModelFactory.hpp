@@ -3,43 +3,6 @@
 
 namespace score
 {
-
-template <typename... Types>
-struct MakeArgs
-{
-};
-template <typename... Types>
-struct LoadArgs
-{
-};
-template <typename Model_T, typename MakeTuple, typename LoadTuple>
-class GenericModelFactory;
-
-template <typename Model_T, typename... MakeArgs_T, typename... LoadArgs_T>
-class GenericModelFactory<
-    Model_T, MakeArgs<MakeArgs_T...>, LoadArgs<LoadArgs_T...>>
-{
-public:
-  virtual ~GenericModelFactory() = default;
-  virtual QString prettyName() const = 0;
-  virtual Model_T* make(MakeArgs_T...) = 0;
-  virtual Model_T* load(LoadArgs_T...) = 0;
-};
-
-// TODO try to find how to use me.
-template <typename Model_T, typename MakeTuple>
-class GenericComponentFactory_Make;
-
-template <typename Model_T, typename... MakeArgs_T>
-class GenericComponentFactory_Make<Model_T, MakeArgs<MakeArgs_T...>>
-{
-public:
-  using Args = MakeArgs<MakeArgs_T...>;
-
-  virtual ~GenericComponentFactory_Make() = default;
-  virtual Model_T* make(MakeArgs_T...) const = 0;
-};
-
 template <typename Component_T, typename ComponentFactoryBase_T>
 class GenericComponentFactoryImpl : public ComponentFactoryBase_T
 {

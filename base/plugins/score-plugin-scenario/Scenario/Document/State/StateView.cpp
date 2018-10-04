@@ -72,7 +72,7 @@ void StateView::paint(
     QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
   painter->setRenderHint(QPainter::Antialiasing, true);
-  auto& skin = ScenarioStyle::instance();
+  auto& skin = Process::Style::instance();
   painter->setPen(skin.NoPen);
   skin.StateTemporalPointBrush
       = m_selected ? skin.StateSelected.getBrush() : skin.StateDot.getBrush();

@@ -26,7 +26,7 @@ MiniScenarioView::MiniScenarioView(const ProcessModel& sc, QGraphicsItem* p)
 
 void MiniScenarioView::paint_impl(QPainter* p) const
 {
-  auto& skin = ScenarioStyle::instance();
+  auto& skin = Process::Style::instance();
   const auto h = height() - 8;
 
   auto& pen = skin.MiniScenarioPen;

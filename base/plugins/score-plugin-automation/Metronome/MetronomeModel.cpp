@@ -67,7 +67,7 @@ ProcessModel::~ProcessModel()
 {
 }
 
-QString ProcessModel::prettyName() const
+QString ProcessModel::prettyName() const noexcept
 {
   return address().toString();
 }
@@ -90,14 +90,14 @@ void ProcessModel::init()
       });
 }
 
-void ProcessModel::setDurationAndScale(const TimeVal& newDuration)
+void ProcessModel::setDurationAndScale(const TimeVal& newDuration) noexcept
 {
   // We only need to change the duration.
   setDuration(newDuration);
   m_curve->changed();
 }
 
-void ProcessModel::setDurationAndGrow(const TimeVal& newDuration)
+void ProcessModel::setDurationAndGrow(const TimeVal& newDuration) noexcept
 {
   // If there are no segments, nothing changes
   if (m_curve->segments().size() == 0)
@@ -123,7 +123,7 @@ void ProcessModel::setDurationAndGrow(const TimeVal& newDuration)
   m_curve->changed();
 }
 
-void ProcessModel::setDurationAndShrink(const TimeVal& newDuration)
+void ProcessModel::setDurationAndShrink(const TimeVal& newDuration) noexcept
 {
   // If there are no segments, nothing changes
   if (m_curve->segments().size() == 0)
@@ -168,12 +168,12 @@ void ProcessModel::setDurationAndShrink(const TimeVal& newDuration)
   m_curve->changed();
 }
 
-bool ProcessModel::contentHasDuration() const
+bool ProcessModel::contentHasDuration() const noexcept
 {
   return true;
 }
 
-TimeVal ProcessModel::contentDuration() const
+TimeVal ProcessModel::contentDuration() const noexcept
 {
   return duration() * std::min(1., m_curve->lastPointPos());
 }

@@ -53,7 +53,7 @@ public:
     m_effectPath = s;
   }
 
-  QString prettyName() const override;
+  QString prettyName() const noexcept override;
 
   bool hasExternalUI() const;
 

@@ -27,7 +27,7 @@ public:
 
   SerializableInterface() = default;
   virtual ~SerializableInterface() = default;
-  virtual UuidKey<T> concreteKey() const = 0;
+  virtual UuidKey<T> concreteKey() const noexcept = 0;
 
   virtual void serialize_impl(const VisitorVariant& vis) const
   {
@@ -199,16 +199,16 @@ auto deserialize_interface(
  * @macro MODEL_METADATA_IMPL Provides default implementations of methods of
  * SerializableInterface.
  */
-#define MODEL_METADATA_IMPL(Model_T)                            \
-  static key_type static_concreteKey()                          \
-  {                                                             \
-    return Metadata<ConcreteKey_k, Model_T>::get();             \
-  }                                                             \
-  key_type concreteKey() const override                         \
-  {                                                             \
-    return static_concreteKey();                                \
-  }                                                             \
-  void serialize_impl(const VisitorVariant& vis) const override \
-  {                                                             \
-    score::serialize_dyn(vis, *this);                           \
+#define MODEL_METADATA_IMPL(Model_T)                                     \
+  static key_type static_concreteKey() noexcept                          \
+  {                                                                      \
+    return Metadata<ConcreteKey_k, Model_T>::get();                      \
+  }                                                                      \
+  key_type concreteKey() const noexcept override                         \
+  {                                                                      \
+    return static_concreteKey();                                         \
+  }                                                                      \
+  void serialize_impl(const VisitorVariant& vis) const noexcept override \
+  {                                                                      \
+    score::serialize_dyn(vis, *this);                                    \
   }

@@ -69,25 +69,25 @@ static double minPortWidth()
 static const QImage& fromGlyphGray() noexcept
 {
   static const QImage gl{
-      makeGlyphs("I:", ScenarioStyle::instance().GrayTextPen)};
+      makeGlyphs("I:", Process::Style::instance().GrayTextPen)};
   return gl;
 }
 static const QImage& toGlyphGray() noexcept
 {
   static const QImage gl{
-      makeGlyphs("O:", ScenarioStyle::instance().GrayTextPen)};
+      makeGlyphs("O:", Process::Style::instance().GrayTextPen)};
   return gl;
 }
 static const QImage& fromGlyphWhite() noexcept
 {
   static const QImage gl{
-      makeGlyphs("I:", ScenarioStyle::instance().IntervalHeaderTextPen)};
+      makeGlyphs("I:", Process::Style::instance().IntervalHeaderTextPen)};
   return gl;
 }
 static const QImage& toGlyphWhite() noexcept
 {
   static const QImage gl{
-      makeGlyphs("O:", ScenarioStyle::instance().IntervalHeaderTextPen)};
+      makeGlyphs("O:", Process::Style::instance().IntervalHeaderTextPen)};
   return gl;
 }
 
@@ -129,7 +129,7 @@ DefaultHeaderDelegate::~DefaultHeaderDelegate()
 
 void DefaultHeaderDelegate::updateBench(double d)
 {
-  const auto& style = ScenarioStyle::instance();
+  const auto& style = Process::Style::instance();
   m_bench = makeGlyphs(
       QString::number(d, 'g', 3),
       m_sel ? style.IntervalHeaderTextPen : style.GrayTextPen);
@@ -140,7 +140,7 @@ void DefaultHeaderDelegate::updateName()
 {
   if (presenter)
   {
-    const auto& style = ScenarioStyle::instance();
+    const auto& style = Process::Style::instance();
     m_line = makeGlyphs(
         presenter->model().prettyName(),
         m_sel ? style.IntervalHeaderTextPen : style.GrayTextPen);

@@ -34,6 +34,7 @@ class SCORE_LIB_INSPECTOR_EXPORT InspectorWidgetFactory
   SCORE_INTERFACE(
       InspectorWidgetFactory, "e7098592-7e2f-400d-9b71-2628d7276f99")
 public:
+  using InspectedObjects = QList<const IdentifiedObjectAbstract*>;
   virtual ~InspectorWidgetFactory();
 
   /**
@@ -42,12 +43,11 @@ public:
    * @return An inspector widget corresponding to the object.
    */
   virtual QWidget* make(
-      const QList<const QObject*>& sourceElement,
+      const InspectedObjects& sourceElement,
       const score::DocumentContext& doc, QWidget* parent) const = 0;
 
-  virtual bool update(
-      QWidget* cur, const QList<const IdentifiedObjectAbstract*>& obj) const;
+  virtual bool update(QWidget* cur, const InspectedObjects& obj) const;
 
-  virtual bool matches(const QList<const QObject*>& objects) const = 0;
+  virtual bool matches(const InspectedObjects& objects) const = 0;
 };
 }

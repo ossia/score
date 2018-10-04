@@ -35,7 +35,7 @@ void View::paint_impl(QPainter* p) const
   if (m_spline.points.empty())
     return;
 
-  auto& skin = ScenarioStyle::instance();
+  auto& skin = Process::Style::instance();
   QPainter& painter = *p;
 
   painter.setRenderHint(QPainter::Antialiasing);

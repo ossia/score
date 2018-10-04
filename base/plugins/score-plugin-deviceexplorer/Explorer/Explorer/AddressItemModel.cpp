@@ -799,7 +799,7 @@ QWidget* AddressItemDelegate::createEditor(
     }
     case AddressItemModel::Rows::Unit:
     {
-      auto t = new State::UnitWidget{parent};
+      auto t = new State::UnitWidget{Qt::Horizontal, parent};
       t->setUnit(index.data(Qt::EditRole).value<State::Unit>());
       return t;
     }

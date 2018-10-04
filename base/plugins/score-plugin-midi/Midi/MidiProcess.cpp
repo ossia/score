@@ -19,18 +19,6 @@ ProcessModel::ProcessModel(
   outlet->type = Process::PortType::Midi;
 
   metadata().setInstanceName(*this);
-
-  /*
-    for (int i = 0; i < 12; i++)
-    {
-      auto n = new Note{Id<Note>(i), this};
-      n->setPitch(i);
-      n->setStart(i * 0.07);
-      n->setDuration(0.1);
-      n->setVelocity(i * 127. / 9.);
-      notes.add(n);
-    }
-    */
   init();
 }
 
@@ -83,13 +71,13 @@ void ProcessModel::setRange(int min, int max)
   }
 }
 
-void ProcessModel::setDurationAndScale(const TimeVal& newDuration)
+void ProcessModel::setDurationAndScale(const TimeVal& newDuration) noexcept
 {
   setDuration(newDuration);
   notesChanged();
 }
 
-void ProcessModel::setDurationAndGrow(const TimeVal& newDuration)
+void ProcessModel::setDurationAndGrow(const TimeVal& newDuration) noexcept
 {
   auto ratio = duration() / newDuration;
 
@@ -100,7 +88,7 @@ void ProcessModel::setDurationAndGrow(const TimeVal& newDuration)
   notesChanged();
 }
 
-void ProcessModel::setDurationAndShrink(const TimeVal& newDuration)
+void ProcessModel::setDurationAndShrink(const TimeVal& newDuration) noexcept
 {
   auto ratio = duration() / newDuration;
   auto inv_ratio = newDuration / duration();

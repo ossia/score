@@ -39,7 +39,7 @@ public:
     Process::PortFactory* fact = portFactory.get(inlet.concreteKey());
     auto port = fact->makeItem(inlet, doc, item, this);
 
-    auto lab = new score::SimpleTextItem{ScenarioStyle::instance().EventDefault, item};
+    auto lab = new score::SimpleTextItem{Process::Style::instance().EventDefault, item};
     lab->setText(inlet.customData());
     lab->setPos(15, 2);
 

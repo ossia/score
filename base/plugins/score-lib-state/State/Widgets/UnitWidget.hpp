@@ -17,8 +17,8 @@ class SCORE_LIB_STATE_EXPORT UnitWidget : public QWidget
 {
   W_OBJECT(UnitWidget)
 public:
-  UnitWidget(QWidget* parent);
-  UnitWidget(const State::Unit& u, QWidget* parent);
+  UnitWidget(Qt::Orientation, QWidget* parent);
+  UnitWidget(const State::Unit& u, Qt::Orientation, QWidget* parent);
 
   State::Unit unit() const;
   void setUnit(const State::Unit&);

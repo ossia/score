@@ -127,7 +127,7 @@ void PortItem::paint(
 
   painter->setRenderHint(QPainter::Antialiasing, true);
 
-  auto& style = ScenarioStyle::instance();
+  auto& style = Process::Style::instance();
   switch (m_port.type)
   {
     case Process::PortType::Audio:

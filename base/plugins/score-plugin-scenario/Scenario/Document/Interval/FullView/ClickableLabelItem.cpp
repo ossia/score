@@ -33,7 +33,7 @@ QRectF SeparatorItem::boundingRect() const
 void SeparatorItem::paint(
     QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
-  auto& skin = ScenarioStyle::instance();
+  auto& skin = Process::Style::instance();
   const Q_DECL_RELAXED_CONSTEXPR QRectF rect{1., 1., 4., 9.};
 
   painter->setRenderHint(QPainter::Antialiasing, true);
@@ -47,7 +47,7 @@ void SeparatorItem::paint(
 ClickableLabelItem::ClickableLabelItem(
     score::ModelMetadata& metadata, ClickHandler&& onClick,
     const QString& text, QGraphicsItem* parent)
-  : score::SimpleTextItem{ScenarioStyle::instance().StateOutline, parent}
+  : score::SimpleTextItem{Process::Style::instance().StateOutline, parent}
     , m_onClick{std::move(onClick)}
 {
   setText(text);
@@ -69,12 +69,12 @@ void ClickableLabelItem::mousePressEvent(QGraphicsSceneMouseEvent* event)
 
 void ClickableLabelItem::hoverEnterEvent(QGraphicsSceneHoverEvent* event)
 {
-  this->setColor(ScenarioStyle::instance().IntervalSelected);
+  this->setColor(Process::Style::instance().IntervalSelected);
 }
 
 void ClickableLabelItem::hoverLeaveEvent(QGraphicsSceneHoverEvent* event)
 {
-  this->setColor(ScenarioStyle::instance().StateOutline);
+  this->setColor(Process::Style::instance().StateOutline);
 }
 
 int ClickableLabelItem::index() const

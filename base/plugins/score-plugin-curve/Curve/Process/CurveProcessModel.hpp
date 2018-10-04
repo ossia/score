@@ -42,7 +42,7 @@ public:
 
   ~CurveProcessModel() override;
 
-  Selection selectableChildren() const final override
+  Selection selectableChildren() const noexcept final override
   {
     Selection s;
     for (auto& segment : m_curve->segments())
@@ -52,12 +52,12 @@ public:
     return s;
   }
 
-  Selection selectedChildren() const final override
+  Selection selectedChildren() const noexcept final override
   {
     return m_curve->selectedChildren();
   }
 
-  void setSelection(const Selection& s) const final override
+  void setSelection(const Selection& s) const noexcept final override
   {
     m_curve->setSelection(s);
   }

@@ -421,7 +421,6 @@ public:
   DataStreamOutput m_stream{m_stream_impl};
 };
 
-// TODO instead why not add a score_serializable tag to our classes ?
 template <
     typename T, std::enable_if_t<
                     !std::is_arithmetic<T>::value

@@ -281,7 +281,7 @@ LV2EffectModel::~LV2EffectModel()
     delete w;
   }
 }
-QString LV2EffectModel::prettyName() const
+QString LV2EffectModel::prettyName() const noexcept
 {
   return metadata().getLabel();
 }

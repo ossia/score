@@ -157,14 +157,14 @@ CableInspectorFactory::CableInspectorFactory() : InspectorWidgetFactory{}
 }
 
 QWidget* CableInspectorFactory::make(
-    const QList<const QObject*>& sourceElements,
+    const InspectedObjects& sourceElements,
     const score::DocumentContext& doc, QWidget* parent) const
 {
   return new CableWidget{
       safe_cast<const Process::Cable&>(*sourceElements.first()), doc, parent};
 }
 
-bool CableInspectorFactory::matches(const QList<const QObject*>& objects) const
+bool CableInspectorFactory::matches(const InspectedObjects& objects) const
 {
   return dynamic_cast<const Process::Cable*>(objects.first());
 }

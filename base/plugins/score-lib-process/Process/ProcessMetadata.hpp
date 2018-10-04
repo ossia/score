@@ -68,19 +68,19 @@ class Descriptor_k;
 
 #define PROCESS_METADATA_IMPL(Model)                        \
   MODEL_METADATA_IMPL(Model)                                \
-  QString prettyShortName() const override                  \
+  QString prettyShortName() const noexcept override         \
   {                                                         \
     return Metadata<PrettyName_k, Model>::get();            \
   }                                                         \
-  QString category() const override                         \
+  QString category() const noexcept override                \
   {                                                         \
     return Metadata<Category_k, Model>::get();              \
   }                                                         \
-  QStringList tags() const override                         \
+  QStringList tags() const noexcept override                \
   {                                                         \
     return Metadata<Tags_k, Model>::get();                  \
   }                                                         \
-  Process::ProcessFlags flags() const override              \
+  Process::ProcessFlags flags() const noexcept override     \
   {                                                         \
     return Metadata<Process::ProcessFlags_k, Model>::get(); \
   }

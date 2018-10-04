@@ -66,9 +66,9 @@ public:
   void stopExecution() override;
   void reset() override;
 
-  Selection selectableChildren() const override;
-  Selection selectedChildren() const override;
-  void setSelection(const Selection& s) const override;
+  Selection selectableChildren() const noexcept override;
+  Selection selectedChildren() const noexcept override;
+  void setSelection(const Selection& s) const noexcept override;
 
   ~ProcessModel() override;
 };

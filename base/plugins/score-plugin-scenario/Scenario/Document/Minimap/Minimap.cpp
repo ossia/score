@@ -89,7 +89,7 @@ QRectF Minimap::boundingRect() const
 void Minimap::paint(
     QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
-  auto& sk = ScenarioStyle::instance();
+  auto& sk = Process::Style::instance();
   painter->setRenderHint(QPainter::Antialiasing, false);
   painter->setPen(sk.MinimapPen);
   painter->setBrush(sk.MinimapBrush);

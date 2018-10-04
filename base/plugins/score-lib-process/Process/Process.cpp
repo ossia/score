@@ -40,17 +40,17 @@ ProcessModel::~ProcessModel()
   identified_object_destroying(this);
 }
 
-void ProcessModel::setDurationAndScale(const TimeVal& newDuration)
+void ProcessModel::setDurationAndScale(const TimeVal& newDuration) noexcept
 {
   setDuration(newDuration);
 }
 
-void ProcessModel::setDurationAndGrow(const TimeVal& newDuration)
+void ProcessModel::setDurationAndGrow(const TimeVal& newDuration) noexcept
 {
   setDuration(newDuration);
 }
 
-void ProcessModel::setDurationAndShrink(const TimeVal& newDuration)
+void ProcessModel::setDurationAndShrink(const TimeVal& newDuration) noexcept
 {
   setDuration(newDuration);
 }
@@ -71,12 +71,12 @@ ProcessModel::ProcessModel(JSONObject::Deserializer& vis, QObject* parent)
       [=] { prettyNameChanged(); });
 }
 
-QString ProcessModel::prettyName() const
+QString ProcessModel::prettyName() const noexcept
 {
   return metadata().getName();
 }
 
-void ProcessModel::setParentDuration(ExpandMode mode, const TimeVal& t)
+void ProcessModel::setParentDuration(ExpandMode mode, const TimeVal& t) noexcept
 {
   switch (mode)
   {
@@ -103,23 +103,23 @@ void ProcessModel::setParentDuration(ExpandMode mode, const TimeVal& t)
   }
 }
 
-bool ProcessModel::contentHasDuration() const
+bool ProcessModel::contentHasDuration() const noexcept
 {
   return false;
 }
 
-TimeVal ProcessModel::contentDuration() const
+TimeVal ProcessModel::contentDuration() const noexcept
 {
   return TimeVal::zero();
 }
 
-void ProcessModel::setDuration(const TimeVal& other)
+void ProcessModel::setDuration(const TimeVal& other) noexcept
 {
   m_duration = other;
   durationChanged(m_duration);
 }
 
-const TimeVal& ProcessModel::duration() const
+const TimeVal& ProcessModel::duration() const noexcept
 {
   return m_duration;
 }
@@ -136,31 +136,31 @@ void ProcessModel::reset()
 {
 }
 
-ProcessStateDataInterface* ProcessModel::startStateData() const
+ProcessStateDataInterface* ProcessModel::startStateData() const noexcept
 {
   return nullptr;
 }
 
-ProcessStateDataInterface* ProcessModel::endStateData() const
+ProcessStateDataInterface* ProcessModel::endStateData() const noexcept
 {
   return nullptr;
 }
 
-Selection ProcessModel::selectableChildren() const
+Selection ProcessModel::selectableChildren() const noexcept
 {
   return {};
 }
 
-Selection ProcessModel::selectedChildren() const
+Selection ProcessModel::selectedChildren() const noexcept
 {
   return {};
 }
 
-void ProcessModel::setSelection(const Selection& s) const
+void ProcessModel::setSelection(const Selection& s) const noexcept
 {
 }
 
-Process::Inlet* ProcessModel::inlet(const Id<Process::Port>& p) const
+Process::Inlet* ProcessModel::inlet(const Id<Process::Port>& p) const noexcept
 {
   for (auto e : m_inlets)
     if (e->id() == p)
@@ -168,7 +168,7 @@ Process::Inlet* ProcessModel::inlet(const Id<Process::Port>& p) const
   return nullptr;
 }
 
-Process::Outlet* ProcessModel::outlet(const Id<Process::Port>& p) const
+Process::Outlet* ProcessModel::outlet(const Id<Process::Port>& p) const noexcept
 {
   for (auto e : m_outlets)
     if (e->id() == p)
@@ -176,18 +176,18 @@ Process::Outlet* ProcessModel::outlet(const Id<Process::Port>& p) const
   return nullptr;
 }
 
-double ProcessModel::getSlotHeight() const
+double ProcessModel::getSlotHeight() const noexcept
 {
   return m_slotHeight;
 }
 
-void ProcessModel::setSlotHeight(double v)
+void ProcessModel::setSlotHeight(double v) noexcept
 {
   m_slotHeight = v;
   slotHeightChanged(v);
 }
 
-ProcessModel* parentProcess(QObject* obj)
+ProcessModel* parentProcess(QObject* obj) noexcept
 {
   while (obj && !qobject_cast<ProcessModel*>(obj))
   {
@@ -199,7 +199,7 @@ ProcessModel* parentProcess(QObject* obj)
   return nullptr;
 }
 
-const ProcessModel* parentProcess(const QObject* obj)
+const ProcessModel* parentProcess(const QObject* obj) noexcept
 {
   while (obj && !qobject_cast<const ProcessModel*>(obj))
   {

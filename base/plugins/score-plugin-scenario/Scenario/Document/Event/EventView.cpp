@@ -29,7 +29,7 @@ namespace Scenario
 EventView::EventView(EventPresenter& presenter, QGraphicsItem* parent)
     : QGraphicsItem{parent}
     , m_presenter{presenter}
-    , m_conditionItem{ScenarioStyle::instance().ConditionDefault, this}
+    , m_conditionItem{Process::Style::instance().ConditionDefault, this}
 {
   this->setCacheMode(QGraphicsItem::NoCache);
   setAcceptDrops(true);
@@ -71,7 +71,7 @@ bool EventView::hasCondition() const
 void EventView::paint(
     QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
-  auto& skin = ScenarioStyle::instance();
+  auto& skin = Process::Style::instance();
   painter->setRenderHint(QPainter::Antialiasing, false);
 
   if (m_status.get() == ExecutionStatus::Editing)
@@ -119,7 +119,7 @@ void EventView::setStatus(ExecutionStatus s)
   if (s != ExecutionStatus::Editing)
     m_conditionItem.setColor(m_status.eventStatusColor());
   else
-    m_conditionItem.setColor(ScenarioStyle::instance().ConditionDefault);
+    m_conditionItem.setColor(Process::Style::instance().ConditionDefault);
 
   update();
 }

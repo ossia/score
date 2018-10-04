@@ -56,12 +56,12 @@ std::vector<State::AddressAccessor> ProcessState::matchingAddresses()
   return {};
 }
 
-bool ProcessModel::contentHasDuration() const
+bool ProcessModel::contentHasDuration() const noexcept
 {
   return true;
 }
 
-TimeVal ProcessModel::contentDuration() const
+TimeVal ProcessModel::contentDuration() const noexcept
 {
   return duration() * std::min(1., m_curve->lastPointPos());
 }
@@ -191,38 +191,38 @@ void ProcessModel::setEnd(ossia::value arg)
   m_curve->changed();
 }
 
-QString ProcessModel::prettyName() const
+QString ProcessModel::prettyName() const noexcept
 {
   return address().toString();
 }
 
-void ProcessModel::setDurationAndScale(const TimeVal& newDuration)
+void ProcessModel::setDurationAndScale(const TimeVal& newDuration) noexcept
 {
   // We only need to change the duration.
   setDuration(newDuration);
   m_curve->changed();
 }
 
-void ProcessModel::setDurationAndGrow(const TimeVal& newDuration)
+void ProcessModel::setDurationAndGrow(const TimeVal& newDuration) noexcept
 {
   // We only need to change the duration.
   setDuration(newDuration);
   m_curve->changed();
 }
 
-void ProcessModel::setDurationAndShrink(const TimeVal& newDuration)
+void ProcessModel::setDurationAndShrink(const TimeVal& newDuration) noexcept
 {
   // We only need to change the duration.
   setDuration(newDuration);
   m_curve->changed();
 }
 
-ProcessState* ProcessModel::startStateData() const
+ProcessState* ProcessModel::startStateData() const noexcept
 {
   return m_startState;
 }
 
-ProcessState* ProcessModel::endStateData() const
+ProcessState* ProcessModel::endStateData() const noexcept
 {
   return m_endState;
 }

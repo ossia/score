@@ -11,19 +11,20 @@ namespace score
 {
 class Skin;
 }
-
-struct SCORE_LIB_PROCESS_EXPORT ScenarioStyle
+namespace Process
 {
-  ScenarioStyle(score::Skin&) noexcept;
+struct SCORE_LIB_PROCESS_EXPORT Style
+{
+  Style(score::Skin&) noexcept;
 
-  ScenarioStyle(const ScenarioStyle&) = delete;
-  ScenarioStyle(ScenarioStyle&&) = delete;
-  ScenarioStyle& operator=(const ScenarioStyle&) = delete;
-  ScenarioStyle& operator=(ScenarioStyle&&) = delete;
+  Style(const Style&) = delete;
+  Style(Style&&) = delete;
+  Style& operator=(const Style&) = delete;
+  Style& operator=(Style&&) = delete;
 
   void setIntervalWidth(double w);
 
-  static ScenarioStyle& instance() noexcept;
+  static Style& instance() noexcept;
   score::Skin& skin;
 
   score::ColorRef IntervalBase;
@@ -147,6 +148,7 @@ struct SCORE_LIB_PROCESS_EXPORT ScenarioStyle
   const QBrush NoBrush;
 
 private:
-  ScenarioStyle() noexcept;
+  Style() noexcept;
   void update(const score::Skin& skin);
 };
+}

@@ -29,7 +29,7 @@ public:
 
   ~ProcessModel() override;
 
-  QString prettyName() const override;
+  QString prettyName() const noexcept override;
 
   template <typename Impl>
   explicit ProcessModel(Impl& vis, QObject* parent)

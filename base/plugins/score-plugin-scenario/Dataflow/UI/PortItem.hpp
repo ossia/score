@@ -107,14 +107,14 @@ public:
   }
 
   QWidget* make(
-      const QList<const QObject*>& sourceElements,
+      const InspectedObjects& sourceElements,
       const score::DocumentContext& doc, QWidget* parent) const override
   {
     return new PortTooltip{
         doc, safe_cast<const Process::Port&>(*sourceElements.first()), parent};
   }
 
-  bool matches(const QList<const QObject*>& objects) const override
+  bool matches(const InspectedObjects& objects) const override
   {
     return dynamic_cast<const Process::Port*>(objects.first());
   }

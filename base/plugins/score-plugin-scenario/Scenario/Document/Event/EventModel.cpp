@@ -33,7 +33,7 @@ EventModel::EventModel(
     , m_offset{OffsetBehavior::True}
 {
   metadata().setInstanceName(*this);
-  metadata().setColor(ScenarioStyle::instance().EventDefault);
+  metadata().setColor(Process::Style::instance().EventDefault);
 }
 
 VerticalExtent EventModel::extent() const

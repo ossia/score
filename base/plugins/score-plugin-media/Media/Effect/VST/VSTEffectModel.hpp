@@ -89,7 +89,7 @@ public:
   }
 
   VSTControlInlet* getControl(const Id<Process::Port>& p);
-  QString prettyName() const override;
+  QString prettyName() const noexcept override;
   bool hasExternalUI() const;
 
   std::shared_ptr<AEffectWrapper> fx{};

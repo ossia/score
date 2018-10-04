@@ -36,23 +36,23 @@ public:
   ProcessModel(JSONObject::Deserializer& vis, QObject* parent);
 
   //// MappingModel specifics ////
-  State::AddressAccessor sourceAddress() const;
-  double sourceMin() const;
-  double sourceMax() const;
+  State::AddressAccessor sourceAddress() const noexcept;
+  double sourceMin() const noexcept;
+  double sourceMax() const noexcept;
 
   void setSourceAddress(const State::AddressAccessor& arg);
   void setSourceMin(double arg);
   void setSourceMax(double arg);
 
-  State::AddressAccessor targetAddress() const;
-  double targetMin() const;
-  double targetMax() const;
+  State::AddressAccessor targetAddress() const noexcept;
+  double targetMin() const noexcept;
+  double targetMax() const noexcept;
 
   void setTargetAddress(const State::AddressAccessor& arg);
   void setTargetMin(double arg);
   void setTargetMax(double arg);
 
-  QString prettyName() const override;
+  QString prettyName() const noexcept override;
   QString prettyValue(double x, double y) const noexcept override;
 
   ~ProcessModel() override;
@@ -97,9 +97,9 @@ public:
 private:
   void init();
   //// ProcessModel ////
-  void setDurationAndScale(const TimeVal& newDuration) override;
-  void setDurationAndGrow(const TimeVal& newDuration) override;
-  void setDurationAndShrink(const TimeVal& newDuration) override;
+  void setDurationAndScale(const TimeVal& newDuration) noexcept override;
+  void setDurationAndGrow(const TimeVal& newDuration) noexcept override;
+  void setDurationAndShrink(const TimeVal& newDuration) noexcept override;
 
   double m_sourceMin{};
   double m_sourceMax{};

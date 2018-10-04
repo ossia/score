@@ -26,7 +26,7 @@ IntervalView::IntervalView(IntervalPresenter& presenter, QGraphicsItem* parent)
     : QGraphicsItem{parent}
     , m_leftBrace{*this, this}
     , m_rightBrace{*this, this}
-    , m_labelItem{ScenarioStyle::instance().ConditionWaiting, this}
+    , m_labelItem{Process::Style::instance().ConditionWaiting, this}
     , m_counterItem{score::ColorRef(&score::Skin::Light), this}
     , m_presenter{presenter}
 {
@@ -215,7 +215,7 @@ void IntervalView::setWarning(bool warning)
   m_warning = warning;
 }
 
-const QBrush& IntervalView::intervalColor(const ScenarioStyle& skin) const
+const QBrush& IntervalView::intervalColor(const Process::Style& skin) const
 {
   if (isSelected())
   {

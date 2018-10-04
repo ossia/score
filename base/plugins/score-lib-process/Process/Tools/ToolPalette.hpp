@@ -54,7 +54,10 @@ public:
 
   void on_pressed(QPointF p)
   {
-    m_context.context.focusDispatcher.focus(&m_context.presenter);
+    if constexpr(std::is_same_v<decltype(m_context.presenter), Process::LayerPresenter&>)
+    {
+      m_context.context.focusDispatcher.focus(&m_context.presenter);
+    }
     m_currentPoint = p;
     m_prev = std::chrono::steady_clock::now();
     m_palette.on_pressed(p);
