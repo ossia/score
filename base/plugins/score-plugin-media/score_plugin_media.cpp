@@ -164,7 +164,12 @@ score_plugin_media::factories(
          Execution::FaustEffectComponentFactory
 #endif
          >,
-      FW<Process::ProcessDropHandler, Media::Sound::DropHandler, Media::Faust::DropHandler>,
+      FW<Process::ProcessDropHandler
+        , Media::Sound::DropHandler
+#if defined(HAS_FAUST)
+        , Media::Faust::DropHandler
+#endif
+      >,
       FW<score::SettingsDelegateFactory, Media::Settings::Factory>>(ctx, key);
 }
 
