@@ -50,7 +50,7 @@ void TimeSyncView::paint(
   if (height < 1)
     return;
 
-  auto& skin = ScenarioStyle::instance();
+  auto& skin = Process::Style::instance();
   painter->setRenderHint(QPainter::Antialiasing, false);
 
   if (isSelected())

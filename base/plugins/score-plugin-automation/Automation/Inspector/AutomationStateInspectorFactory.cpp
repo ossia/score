@@ -16,14 +16,14 @@ StateInspectorFactory::StateInspectorFactory() : InspectorWidgetFactory{}
 }
 
 QWidget* StateInspectorFactory::make(
-    const QList<const QObject*>& sourceElements,
+    const InspectedObjects& sourceElements,
     const score::DocumentContext& doc, QWidget* parent) const
 {
   return new StateInspectorWidget{
       safe_cast<const ProcessState&>(*sourceElements.first()), doc, parent};
 }
 
-bool StateInspectorFactory::matches(const QList<const QObject*>& objects) const
+bool StateInspectorFactory::matches(const InspectedObjects& objects) const
 {
   return dynamic_cast<const ProcessState*>(objects.first());
 }

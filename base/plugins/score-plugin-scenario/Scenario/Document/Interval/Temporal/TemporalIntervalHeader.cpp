@@ -53,7 +53,7 @@ QRectF TemporalIntervalHeader::boundingRect() const
 void TemporalIntervalHeader::paint(
     QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
-  const auto& skin = ScenarioStyle::instance();
+  const auto& skin = Process::Style::instance();
   painter->setRenderHint(QPainter::Antialiasing, false);
   if (m_state == State::RackHidden)
   {
@@ -204,7 +204,7 @@ void TemporalIntervalHeader::on_textChange()
       m_line.fill(Qt::transparent);
 
       QPainter p{&m_line};
-      p.setPen(ScenarioStyle::instance().IntervalHeaderTextPen);
+      p.setPen(Process::Style::instance().IntervalHeaderTextPen);
       p.drawGlyphRun(QPointF{0, 0}, r[0]);
     }
   }

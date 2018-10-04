@@ -52,9 +52,9 @@ public:
     tweenChanged(tween);
   }
 
-  QString prettyName() const override;
+  QString prettyName() const noexcept override;
 
-  const ossia::nodes::spline_data& spline() const
+  const ossia::nodes::spline_data& spline() const noexcept
   {
     return m_spline;
   }
@@ -80,12 +80,12 @@ public:
 
 private:
   //// ProcessModel ////
-  void setDurationAndScale(const TimeVal& newDuration) override;
-  void setDurationAndGrow(const TimeVal& newDuration) override;
-  void setDurationAndShrink(const TimeVal& newDuration) override;
+  void setDurationAndScale(const TimeVal& newDuration) noexcept override;
+  void setDurationAndGrow(const TimeVal& newDuration) noexcept override;
+  void setDurationAndShrink(const TimeVal& newDuration) noexcept override;
 
-  bool contentHasDuration() const override;
-  TimeVal contentDuration() const override;
+  bool contentHasDuration() const noexcept override;
+  TimeVal contentDuration() const noexcept override;
 
   ossia::nodes::spline_data m_spline;
 

@@ -57,7 +57,7 @@ void SlotHeader::paint(
     QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
   painter->setRenderHint(QPainter::Antialiasing, false);
-  const auto& style = ScenarioStyle::instance();
+  const auto& style = Process::Style::instance();
   painter->setPen(style.SlotHeaderPen);
   painter->setBrush(style.NoBrush);
 
@@ -268,7 +268,7 @@ QRectF SlotDragOverlay::boundingRect() const
 void SlotDragOverlay::paint(
     QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
-  const auto& style = ScenarioStyle::instance();
+  const auto& style = Process::Style::instance();
   auto c = style.IntervalBase.getBrush().color();
   c.setAlphaF(0.2);
   painter->fillRect(interval.view()->boundingRect(), c);

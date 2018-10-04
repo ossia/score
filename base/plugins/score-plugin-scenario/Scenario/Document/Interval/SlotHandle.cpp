@@ -54,7 +54,7 @@ QRectF SlotHandle::boundingRect() const
 void SlotHandle::paint(
     QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
-  const auto& style = ScenarioStyle::instance();
+  const auto& style = Process::Style::instance();
 
   painter->fillRect(boundingRect(), style.ProcessViewBorder.getBrush());
 }

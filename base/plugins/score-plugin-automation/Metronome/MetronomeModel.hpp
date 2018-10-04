@@ -48,7 +48,7 @@ public:
   void setMin(double arg);
   void setMax(double arg);
 
-  QString prettyName() const override;
+  QString prettyName() const noexcept override;
   QString prettyValue(double x, double y) const noexcept override;
 
   std::unique_ptr<Process::Outlet> outlet;
@@ -65,12 +65,12 @@ public:
 
 private:
   //// ProcessModel ////
-  void setDurationAndScale(const TimeVal& newDuration) override;
-  void setDurationAndGrow(const TimeVal& newDuration) override;
-  void setDurationAndShrink(const TimeVal& newDuration) override;
+  void setDurationAndScale(const TimeVal& newDuration) noexcept override;
+  void setDurationAndGrow(const TimeVal& newDuration) noexcept override;
+  void setDurationAndShrink(const TimeVal& newDuration) noexcept override;
 
-  bool contentHasDuration() const override;
-  TimeVal contentDuration() const override;
+  bool contentHasDuration() const noexcept override;
+  TimeVal contentDuration() const noexcept override;
 
   void setCurve_impl() override;
 

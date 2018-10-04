@@ -137,7 +137,7 @@ ScenarioDocumentPresenter::ScenarioDocumentPresenter(
 
   auto& set = ctx.app.settings<Settings::Model>();
   con(set, &Settings::Model::GraphicZoomChanged, this, [&](double d) {
-    auto& skin = ScenarioStyle::instance();
+    auto& skin = Process::Style::instance();
     skin.setIntervalWidth(d);
   });
   con(set, &Settings::Model::TimeBarChanged, this,

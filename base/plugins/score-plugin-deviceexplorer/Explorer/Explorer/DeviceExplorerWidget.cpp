@@ -892,6 +892,7 @@ void DeviceExplorerWidget::addDevice()
     }
     else
     {
+      // TODO refactor this and link with the library & the other processes
       if (path.contains(".xml"))
       {
         Device::Node n{deviceSettings, nullptr};

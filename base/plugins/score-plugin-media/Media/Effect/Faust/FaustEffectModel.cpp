@@ -79,7 +79,7 @@ void FaustEffectModel::init()
 {
 }
 
-QString FaustEffectModel::prettyName() const
+QString FaustEffectModel::prettyName() const noexcept
 {
   return m_declareName.isEmpty() ? "Faust" : m_declareName;
 }

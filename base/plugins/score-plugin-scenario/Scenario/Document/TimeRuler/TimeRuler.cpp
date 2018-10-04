@@ -82,7 +82,7 @@ void TimeRuler::paint(
   if (m_width > 0.)
   {
     auto& painter = *p;
-    auto& style = ScenarioStyle::instance();
+    auto& style = Process::Style::instance();
     painter.setRenderHint(QPainter::Antialiasing, false);
     painter.setPen(style.TimeRulerLargePen);
     painter.drawLine(QPointF{0., 0.}, QPointF{m_width, 0.});

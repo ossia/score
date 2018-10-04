@@ -36,17 +36,9 @@ QList<QWidget*> InspectorWidgetList::make(
   QList<QWidget*> widgs;
   for (const InspectorWidgetFactory& factory : *this)
   {
-    // TODO QVector or better, array_view
-    QList<const QObject*> objects;
-    objects.reserve(models.size());
-    for (auto elt : models)
+    if (factory.matches(models))
     {
-      objects.push_back(elt);
-    }
-
-    if (factory.matches(objects))
-    {
-      auto widg = factory.make(objects, doc, parent);
+      auto widg = factory.make(models, doc, parent);
       if (widg)
         widgs.push_back(widg);
     }

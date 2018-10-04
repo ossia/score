@@ -11,7 +11,7 @@ namespace Scenario
 {
 score::ColorRef ExecutionStatusProperty::eventStatusColor()
 {
-  const auto& col = ScenarioStyle::instance();
+  const auto& col = Process::Style::instance();
   switch (m_status)
   {
     case ExecutionStatus::Editing:
@@ -31,7 +31,7 @@ score::ColorRef ExecutionStatusProperty::eventStatusColor()
 
 score::ColorRef ExecutionStatusProperty::stateStatusColor()
 {
-  const auto& col = ScenarioStyle::instance();
+  const auto& col = Process::Style::instance();
   switch (m_status)
   {
     case ExecutionStatus::Editing:

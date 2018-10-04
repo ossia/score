@@ -43,7 +43,7 @@ struct UISetup
             Process::PortFactory* fact = portFactory.get(inlet->concreteKey());
             auto port = fact->makeItem(*inlet, doc, item, &self);
 
-            const auto& style = ScenarioStyle::instance();
+            const auto& style = Process::Style::instance();
             auto lab = new score::SimpleTextItem{style.EventWaiting, item};
             lab->setText(ctrl.name);
             lab->setPos(15, 2);

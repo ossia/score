@@ -133,7 +133,7 @@ public:
   {
     const auto& doc = ctx.context;
     const auto& pixmaps = Process::Pixmaps::instance();
-    const auto& skin = ScenarioStyle::instance();
+    const auto& skin = Process::Style::instance();
 
     if (auto ui_btn
         = Process::makeExternalUIButton(effect, ctx.context, this, this))
@@ -339,7 +339,7 @@ private:
   {
     if (m_invalid)
     {
-      p->fillRect(boundingRect(), ScenarioStyle::instance().AudioPortBrush);
+      p->fillRect(boundingRect(), Process::Style::instance().AudioPortBrush);
     }
 
     if (m_lit)
@@ -347,8 +347,8 @@ private:
       int idx = *m_lit;
 
       p->setRenderHint(QPainter::Antialiasing, false);
-      p->setPen(ScenarioStyle::instance().TransparentPen);
-      p->setBrush(ScenarioStyle::instance().StateDot.getBrush());
+      p->setPen(Process::Style::instance().TransparentPen);
+      p->setBrush(Process::Style::instance().StateDot.getBrush());
       p->drawRoundedRect(
           QRectF(2.5 + idx * 180, 15, 5, boundingRect().height() - 30), 4, 4);
       p->setRenderHint(QPainter::Antialiasing, false);

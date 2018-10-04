@@ -42,7 +42,7 @@ QRectF IntervalBrace::boundingRect() const
 void IntervalBrace::paint(
     QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
-  auto& skin = ScenarioStyle::instance();
+  auto& skin = Process::Style::instance();
   painter->setRenderHint(QPainter::Antialiasing, true);
   painter->setBrush(skin.DefaultBrush);
 

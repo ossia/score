@@ -20,7 +20,7 @@ class QWidget;
 namespace Scenario
 {
 QWidget* IntervalInspectorFactory::make(
-    const QList<const QObject*>& sourceElements,
+    const InspectedObjects& sourceElements,
     const score::DocumentContext& doc, QWidget* parent) const
 {
   auto& appContext = doc.app;
@@ -33,7 +33,7 @@ QWidget* IntervalInspectorFactory::make(
 }
 
 bool IntervalInspectorFactory::matches(
-    const QList<const QObject*>& objects) const
+    const InspectedObjects& objects) const
 {
   return dynamic_cast<const IntervalModel*>(objects.first());
 }

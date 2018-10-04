@@ -89,7 +89,7 @@ void CableItem::paint(
   if (m_p1 && m_p2)
   {
     painter->setRenderHint(QPainter::Antialiasing, true);
-    auto& style = ScenarioStyle::instance();
+    auto& style = Process::Style::instance();
     if (!m_cable.selection.get())
     {
       switch (m_type)

@@ -28,7 +28,7 @@ public:
       QPainter* painter, const QStyleOptionGraphicsItem* option,
       QWidget* widget) override
   {
-    auto& skin = ScenarioStyle::instance();
+    auto& skin = Process::Style::instance();
 
     painter->setRenderHint(QPainter::Antialiasing, true);
 

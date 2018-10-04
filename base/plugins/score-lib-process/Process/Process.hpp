@@ -63,23 +63,21 @@ public:
   virtual ~ProcessModel();
 
   // A user-friendly text to show to the users
-  virtual QString prettyName() const;
-  virtual QString prettyShortName() const = 0;
-  virtual QString category() const = 0;
-  virtual QStringList tags() const = 0;
-  virtual ProcessFlags flags() const = 0;
+  virtual QString prettyName() const noexcept;
+  virtual QString prettyShortName() const noexcept = 0;
+  virtual QString category() const noexcept = 0;
+  virtual QStringList tags() const noexcept = 0;
+  virtual ProcessFlags flags() const noexcept = 0;
 
   //// Features of a process
   /// Duration
-  void setParentDuration(ExpandMode mode, const TimeVal& t);
+  void setParentDuration(ExpandMode mode, const TimeVal& t) noexcept;
 
-  virtual bool contentHasDuration() const;
-  virtual TimeVal contentDuration() const;
+  virtual bool contentHasDuration() const noexcept;
+  virtual TimeVal contentDuration() const noexcept;
 
-  // TODO might not be useful... put in protected ?
-  // Constructor needs it, too.
-  void setDuration(const TimeVal& other);
-  const TimeVal& duration() const;
+  void setDuration(const TimeVal& other) noexcept;
+  const TimeVal& duration() const noexcept;
 
   /// Execution
   virtual void startExecution();
@@ -87,28 +85,28 @@ public:
   virtual void reset();
 
   /// States. The process has ownership.
-  virtual ProcessStateDataInterface* startStateData() const;
-  virtual ProcessStateDataInterface* endStateData() const;
+  virtual ProcessStateDataInterface* startStateData() const noexcept;
+  virtual ProcessStateDataInterface* endStateData() const noexcept;
 
   /// Selection
-  virtual Selection selectableChildren() const;
-  virtual Selection selectedChildren() const;
-  virtual void setSelection(const Selection& s) const;
+  virtual Selection selectableChildren() const noexcept;
+  virtual Selection selectedChildren() const noexcept;
+  virtual void setSelection(const Selection& s) const noexcept;
 
-  double getSlotHeight() const;
-  void setSlotHeight(double);
+  double getSlotHeight() const noexcept;
+  void setSlotHeight(double) noexcept;
 
-  const Process::Inlets& inlets() const
+  const Process::Inlets& inlets() const noexcept
   {
     return m_inlets;
   }
-  const Process::Outlets& outlets() const
+  const Process::Outlets& outlets() const noexcept
   {
     return m_outlets;
   }
 
-  Process::Inlet* inlet(const Id<Process::Port>&) const;
-  Process::Outlet* outlet(const Id<Process::Port>&) const;
+  Process::Inlet* inlet(const Id<Process::Port>&) const noexcept;
+  Process::Outlet* outlet(const Id<Process::Port>&) const noexcept;
 
   // FIXME ugh
   QWidget* externalUI{};
@@ -140,18 +138,19 @@ public:
       E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, externalUIVisible, v);
 
 protected:
+
   // Used to scale the process.
   // This should be commutative :
   //   setDurationWithScale(2); setDurationWithScale(3);
   // yields the same result as :
   //   setDurationWithScale(3); setDurationWithScale(2);
-  virtual void setDurationAndScale(const TimeVal& newDuration);
+  virtual void setDurationAndScale(const TimeVal& newDuration) noexcept;
 
   // Does nothing if newDuration < currentDuration
-  virtual void setDurationAndGrow(const TimeVal& newDuration);
+  virtual void setDurationAndGrow(const TimeVal& newDuration) noexcept;
 
   // Does nothing if newDuration > currentDuration
-  virtual void setDurationAndShrink(const TimeVal& newDuration);
+  virtual void setDurationAndShrink(const TimeVal& newDuration) noexcept;
 
   Process::Inlets m_inlets;
   Process::Outlets m_outlets;
@@ -161,8 +160,10 @@ private:
   double m_slotHeight{}; //! Height in full view
 };
 
-SCORE_LIB_PROCESS_EXPORT ProcessModel* parentProcess(QObject* obj);
-SCORE_LIB_PROCESS_EXPORT const ProcessModel* parentProcess(const QObject* obj);
+SCORE_LIB_PROCESS_EXPORT
+ProcessModel* parentProcess(QObject* obj) noexcept;
+SCORE_LIB_PROCESS_EXPORT
+const ProcessModel* parentProcess(const QObject* obj) noexcept;
 }
 DEFAULT_MODEL_METADATA(Process::ProcessModel, "Process")
 

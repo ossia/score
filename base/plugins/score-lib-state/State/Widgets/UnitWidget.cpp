@@ -23,9 +23,13 @@ W_OBJECT_IMPL(State::DestinationQualifierWidget)
 
 namespace State
 {
-UnitWidget::UnitWidget(QWidget* parent) : QWidget{parent}
+UnitWidget::UnitWidget(Qt::Orientation orient, QWidget* parent)
+  : QWidget{parent}
 {
-  m_layout = new score::MarginLess<QVBoxLayout>{this};
+  if(orient == Qt::Horizontal)
+    m_layout = new score::MarginLess<QHBoxLayout>{this};
+  else
+    m_layout = new score::MarginLess<QVBoxLayout>{this};
 
   m_dataspace = new QComboBox{this};
   m_unit = new QComboBox{this};
@@ -58,8 +62,8 @@ UnitWidget::UnitWidget(QWidget* parent) : QWidget{parent}
       [=](int i) { unitChanged(m_unit->itemData(i).value<State::Unit>()); });
 }
 
-UnitWidget::UnitWidget(const State::Unit& u, QWidget* parent)
-    : UnitWidget{parent}
+UnitWidget::UnitWidget(const State::Unit& u, Qt::Orientation orient, QWidget* parent)
+    : UnitWidget{orient, parent}
 {
   setUnit(u);
 }

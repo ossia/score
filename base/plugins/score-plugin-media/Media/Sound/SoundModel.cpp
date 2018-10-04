@@ -45,7 +45,7 @@ const MediaFileHandle& ProcessModel::file() const
   return m_file;
 }
 
-QString ProcessModel::prettyName() const
+QString ProcessModel::prettyName() const noexcept
 {
   return m_file.empty() ? Process::ProcessModel::prettyName()
                         : m_file.fileName();

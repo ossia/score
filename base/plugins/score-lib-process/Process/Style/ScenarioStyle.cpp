@@ -3,8 +3,9 @@
 #include "ScenarioStyle.hpp"
 
 #include <score/model/Skin.hpp>
-// TODO namespace
-ScenarioStyle::ScenarioStyle(score::Skin& s) noexcept
+namespace Process
+{
+Style::Style(score::Skin& s) noexcept
     : skin{s}
 
     , IntervalBase{&s.Base1}
@@ -85,7 +86,7 @@ ScenarioStyle::ScenarioStyle(score::Skin& s) noexcept
   QObject::connect(&s, &score::Skin::changed, [&] { this->update(s); });
 }
 
-void ScenarioStyle::setIntervalWidth(double w)
+void Style::setIntervalWidth(double w)
 {
   IntervalSolidPen.setWidthF(3. * w);
   IntervalDashPen.setWidthF(3. * w);
@@ -94,19 +95,19 @@ void ScenarioStyle::setIntervalWidth(double w)
   IntervalWaitingDashPen.setWidthF(3. * w);
 }
 
-ScenarioStyle& ScenarioStyle::instance() noexcept
+Style& Style::instance() noexcept
 {
-  static ScenarioStyle s(score::Skin::instance());
+  static Style s(score::Skin::instance());
   return s;
 }
 
-ScenarioStyle::ScenarioStyle() noexcept
+Style::Style() noexcept
   : skin{score::Skin::instance()}
 {
   update(skin);
 }
 
-void ScenarioStyle::update(const score::Skin& skin)
+void Style::update(const score::Skin&)
 {
   IntervalSolidPen
       = QPen{QBrush{Qt::black}, 3, Qt::SolidLine, Qt::FlatCap, Qt::MiterJoin};
@@ -200,4 +201,5 @@ void ScenarioStyle::update(const score::Skin& skin)
 
   SlotHeaderPen = QPen{IntervalHeaderSideBorder.getBrush(), 1, Qt::SolidLine,
                        Qt::FlatCap, Qt::MiterJoin};
+}
 }

@@ -136,7 +136,7 @@ void View::setValueTooltip(QPointF pos, const QString& s) noexcept
     {
       tooltip = new QGraphicsSimpleTextItem{this};
       tooltip->setZValue(100);
-      const auto& style = ScenarioStyle::instance();
+      const auto& style = Process::Style::instance();
       tooltip->setFont(score::Skin::instance().Bold10Pt);
       tooltip->setBrush(style.IntervalBase.getBrush());
     }

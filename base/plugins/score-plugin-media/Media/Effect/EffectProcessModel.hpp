@@ -253,9 +253,9 @@ public:
       W_SIGNAL(badChainingChanged, badChaining);
 
 private:
-  Selection selectableChildren() const override;
-  Selection selectedChildren() const override;
-  void setSelection(const Selection& s) const override;
+  Selection selectableChildren() const noexcept override;
+  Selection selectedChildren() const noexcept override;
+  void setSelection(const Selection& s) const noexcept override;
   // The actual effect instances
   EntityList<Process::ProcessModel> m_effects;
   bool m_badChaining{false};

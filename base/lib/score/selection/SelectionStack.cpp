@@ -64,7 +64,6 @@ void SelectionStack::clearAllButLast()
 
 void SelectionStack::push(const Selection& selection)
 {
-  // TODO don't push "empty" selections, just add a "deselected" mode.
   if (selection != m_unselectable.top())
   {
     auto s = selection;
@@ -78,8 +77,6 @@ void SelectionStack::push(const Selection& selection)
     }
 
     Foreach(s, [&](auto obj) {
-      // TODO we should erase connections once the selected objects aren't in
-      // the stack anymore.
       if(m_connections.find(obj) == m_connections.end())
       {
         QMetaObject::Connection con = connect(

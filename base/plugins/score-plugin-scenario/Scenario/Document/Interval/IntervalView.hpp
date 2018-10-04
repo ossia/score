@@ -13,7 +13,7 @@
 #include <wobjectdefs.h>
 class QGraphicsSceneMouseEvent;
 
-struct ScenarioStyle;
+namespace Process { struct Style; }
 namespace score
 {
 class SimpleTextItem;
@@ -114,7 +114,7 @@ public:
   void setWarning(bool warning);
 
   void setExecutionState(IntervalExecutionState);
-  const QBrush& intervalColor(const ScenarioStyle& skin) const;
+  const QBrush& intervalColor(const Process::Style& skin) const;
 
   void updateLabelPos();
   void updateCounterPos();

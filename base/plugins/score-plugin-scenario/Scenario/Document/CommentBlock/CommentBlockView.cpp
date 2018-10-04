@@ -37,7 +37,7 @@ CommentBlockView::CommentBlockView(
 void CommentBlockView::paint(
     QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
-  auto& skin = ScenarioStyle::instance();
+  auto& skin = Process::Style::instance();
 
   painter->setPen(skin.CommentBlockPen);
   painter->setBrush(skin.TransparentBrush);

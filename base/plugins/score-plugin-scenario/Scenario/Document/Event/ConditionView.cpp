@@ -49,7 +49,7 @@ QRectF ConditionView::boundingRect() const
 void ConditionView::paint(
     QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
-  auto& style = ScenarioStyle::instance();
+  auto& style = Process::Style::instance();
   painter->setRenderHint(QPainter::Antialiasing, true);
   const QBrush& col = m_color.getBrush();
   style.ConditionPen.setBrush(col);
@@ -88,7 +88,7 @@ void ConditionView::changeHeight(qreal newH)
   m_Cpath.lineTo(0, m_height + m_CHeight / 2);
   m_Cpath.arcTo(bottomRect, -180, 120);
 
-  auto& style = ScenarioStyle::instance();
+  auto& style = Process::Style::instance();
   QPainterPathStroker stk;
   stk.setWidth(style.ConditionPen.widthF());
   stk.setCapStyle(style.ConditionPen.capStyle());

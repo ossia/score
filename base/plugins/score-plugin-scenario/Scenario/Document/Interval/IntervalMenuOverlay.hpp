@@ -28,7 +28,7 @@ public:
       QPainter* painter, const QStyleOptionGraphicsItem* option,
       QWidget* widget) override
   {
-    auto& skin = ScenarioStyle::instance();
+    auto& skin = Process::Style::instance();
     auto cst = static_cast<IntervalView*>(parentItem());
     const auto& col = cst->intervalColor(skin);
     painter->setPen(col.color());

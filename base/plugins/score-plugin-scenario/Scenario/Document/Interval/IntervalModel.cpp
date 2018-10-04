@@ -41,7 +41,7 @@ IntervalModel::IntervalModel(
 {
   initConnections();
   metadata().setInstanceName(*this);
-  metadata().setColor(ScenarioStyle::instance().IntervalDefaultBackground);
+  metadata().setColor(Process::Style::instance().IntervalDefaultBackground);
   setHeightPercentage(yPos);
 
   inlet->type = Process::PortType::Audio;

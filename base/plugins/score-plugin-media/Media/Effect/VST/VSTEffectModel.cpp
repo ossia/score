@@ -129,7 +129,7 @@ VSTEffectModel::~VSTEffectModel()
   closePlugin();
 }
 
-QString VSTEffectModel::prettyName() const
+QString VSTEffectModel::prettyName() const noexcept
 {
   return metadata().getLabel();
 }

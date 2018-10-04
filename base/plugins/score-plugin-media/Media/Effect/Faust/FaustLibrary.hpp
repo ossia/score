@@ -30,7 +30,7 @@ class DropHandler final : public Process::ProcessDropHandler
 
   std::vector<Process::ProcessDropHandler::ProcessDrop> drop(
       const std::vector<QByteArray>& data
-      , const score::DocumentContext& ctx) const noexcept
+      , const score::DocumentContext& ctx) const noexcept override
   {
     std::vector<Process::ProcessDropHandler::ProcessDrop> vec;
 

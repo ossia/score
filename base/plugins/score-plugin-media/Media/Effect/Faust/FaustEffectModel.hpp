@@ -56,7 +56,7 @@ public:
     return m_text;
   }
 
-  QString prettyName() const override;
+  QString prettyName() const noexcept override;
   void setText(const QString& txt);
 
   Process::Inlets& inlets()

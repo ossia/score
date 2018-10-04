@@ -20,7 +20,7 @@ ScenarioInspectorWidgetFactoryWrapper::~ScenarioInspectorWidgetFactoryWrapper()
 }
 
 QWidget* ScenarioInspectorWidgetFactoryWrapper::make(
-    const QList<const QObject*>& sourceElements,
+    const InspectedObjects& sourceElements,
     const score::DocumentContext& doc, QWidget* parent) const
 {
   std::set<const IntervalModel*> intervals;
@@ -105,7 +105,7 @@ bool ScenarioInspectorWidgetFactoryWrapper::update(
 }
 
 bool ScenarioInspectorWidgetFactoryWrapper::matches(
-    const QList<const QObject*>& objects) const
+    const InspectedObjects& objects) const
 {
   return std::any_of(objects.begin(), objects.end(), [](const QObject* obj) {
     return dynamic_cast<const StateModel*>(obj)

@@ -96,25 +96,6 @@ void ModelMetadata::setName(const QString& arg)
 
     for (std::size_t i = 0; i < cur_bros_idx; i++)
       bros[i].clear();
-    /*
-        auto parent_bros
-            = parent()->parent()->findChildren<IdentifiedObjectAbstract*>(
-                QString{}, Qt::FindDirectChildrenOnly);
-
-        bros.clear();
-        bros.reserve(parent_bros.size());
-        for (auto o : parent_bros)
-        {
-          auto objs = o->findChildren<ModelMetadata*>(
-              QString{}, Qt::FindDirectChildrenOnly);
-          if (!objs.empty())
-          {
-            auto n = objs[0]->getName();
-            if (!n.isEmpty())
-              bros.push_back(std::move(n));
-          }
-        }
-    */
   }
   else
   {

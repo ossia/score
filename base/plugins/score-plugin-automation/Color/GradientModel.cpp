@@ -38,7 +38,7 @@ void ProcessModel::init()
   m_outlets.push_back(outlet.get());
 }
 
-QString ProcessModel::prettyName() const
+QString ProcessModel::prettyName() const noexcept
 {
   auto res = address().toString();
   if (!res.isEmpty())
@@ -79,28 +79,28 @@ void ProcessModel::setTween(bool tween)
   tweenChanged(tween);
 }
 
-void ProcessModel::setDurationAndScale(const TimeVal& newDuration)
+void ProcessModel::setDurationAndScale(const TimeVal& newDuration) noexcept
 {
   // We only need to change the duration.
   setDuration(newDuration);
 }
 
-void ProcessModel::setDurationAndGrow(const TimeVal& newDuration)
+void ProcessModel::setDurationAndGrow(const TimeVal& newDuration) noexcept
 {
   setDuration(newDuration);
 }
 
-void ProcessModel::setDurationAndShrink(const TimeVal& newDuration)
+void ProcessModel::setDurationAndShrink(const TimeVal& newDuration) noexcept
 {
   setDuration(newDuration);
 }
 
-bool ProcessModel::contentHasDuration() const
+bool ProcessModel::contentHasDuration() const noexcept
 {
   return true;
 }
 
-TimeVal ProcessModel::contentDuration() const
+TimeVal ProcessModel::contentDuration() const noexcept
 {
   auto lastPoint = 1.;
   if (!m_colors.empty())

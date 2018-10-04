@@ -164,28 +164,28 @@ public:
 
 private:
   //// ProcessModel specifics ////
-  void setDurationAndScale(const TimeVal& newDuration) override;
-  void setDurationAndGrow(const TimeVal& newDuration) override;
-  void setDurationAndShrink(const TimeVal& newDuration) override;
+  void setDurationAndScale(const TimeVal& newDuration) noexcept override;
+  void setDurationAndGrow(const TimeVal& newDuration) noexcept override;
+  void setDurationAndShrink(const TimeVal& newDuration) noexcept override;
 
   void startExecution() override;
   void stopExecution() override;
   void reset() override;
 
-  Selection selectableChildren() const override;
+  Selection selectableChildren() const noexcept override;
 
 public:
-  Selection selectedChildren() const override;
+  Selection selectedChildren() const noexcept override;
 
 private:
-  void setSelection(const Selection& s) const override;
+  void setSelection(const Selection& s) const noexcept override;
   bool event(QEvent* e) override
   {
     return QObject::event(e);
   }
 
-  bool contentHasDuration() const override;
-  TimeVal contentDuration() const override;
+  bool contentHasDuration() const noexcept override;
+  TimeVal contentDuration() const noexcept override;
 
   template <typename Fun>
   void apply(Fun fun) const

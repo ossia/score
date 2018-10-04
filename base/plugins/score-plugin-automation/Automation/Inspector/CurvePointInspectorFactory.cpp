@@ -10,7 +10,7 @@
 namespace Automation
 {
 QWidget* PointInspectorFactory::make(
-    const QList<const QObject*>& sourceElements,
+    const InspectedObjects& sourceElements,
     const score::DocumentContext& doc, QWidget* parent) const
 {
   return new PointInspectorWidget{
@@ -18,7 +18,7 @@ QWidget* PointInspectorFactory::make(
       parent};
 }
 
-bool PointInspectorFactory::matches(const QList<const QObject*>& objects) const
+bool PointInspectorFactory::matches(const InspectedObjects& objects) const
 {
   return dynamic_cast<const Curve::PointModel*>(objects.first());
 }

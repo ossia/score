@@ -63,7 +63,7 @@ public:
   {
     if (presenter)
     {
-      const auto& style = ScenarioStyle::instance();
+      const auto& style = Process::Style::instance();
       using model_t
           = std::remove_reference_t<decltype(std::declval<Layer_T>().model())>;
       auto& model = static_cast<const model_t&>(presenter->model());

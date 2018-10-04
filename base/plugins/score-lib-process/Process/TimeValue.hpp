@@ -254,7 +254,9 @@ struct TimeValue_T
     return *this;
   }
 
-  optional<T> m_impl{T(0.)}; // TODO std::isinf instead.
+  // We could use std::isinf instead but this would break
+  // -Ofast...
+  optional<T> m_impl{T(0.)};
 };
 
 using TimeVal = TimeValue_T;

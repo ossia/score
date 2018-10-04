@@ -92,7 +92,7 @@ ProcessModel::ProcessModel(DataStream::Deserializer& vis, QObject* parent)
   init();
 }
 
-QString ProcessModel::prettyName() const
+QString ProcessModel::prettyName() const noexcept
 {
   auto res = address().toString_unsafe();
   if (!res.isEmpty())
@@ -108,14 +108,14 @@ QString ProcessModel::prettyValue(double x, double y) const noexcept
   return QString::number((y * (max() - min()) - min()), 'f', 3);
 }
 
-void ProcessModel::setDurationAndScale(const TimeVal& newDuration)
+void ProcessModel::setDurationAndScale(const TimeVal& newDuration) noexcept
 {
   // We only need to change the duration.
   setDuration(newDuration);
   m_curve->changed();
 }
 
-void ProcessModel::setDurationAndGrow(const TimeVal& newDuration)
+void ProcessModel::setDurationAndGrow(const TimeVal& newDuration) noexcept
 {
   // If there are no segments, nothing changes
   if (m_curve->segments().size() == 0)
@@ -141,7 +141,7 @@ void ProcessModel::setDurationAndGrow(const TimeVal& newDuration)
   m_curve->changed();
 }
 
-void ProcessModel::setDurationAndShrink(const TimeVal& newDuration)
+void ProcessModel::setDurationAndShrink(const TimeVal& newDuration) noexcept
 {
   // If there are no segments, nothing changes
   if (m_curve->segments().size() == 0)
@@ -186,12 +186,12 @@ void ProcessModel::setDurationAndShrink(const TimeVal& newDuration)
   m_curve->changed();
 }
 
-bool ProcessModel::contentHasDuration() const
+bool ProcessModel::contentHasDuration() const noexcept
 {
   return true;
 }
 
-TimeVal ProcessModel::contentDuration() const
+TimeVal ProcessModel::contentDuration() const noexcept
 {
   return duration() * std::min(1., m_curve->lastPointPos());
 }
@@ -204,12 +204,12 @@ void ProcessModel::setCurve_impl()
   });
 }
 
-ProcessState* ProcessModel::startStateData() const
+ProcessState* ProcessModel::startStateData() const noexcept
 {
   return m_startState;
 }
 
-ProcessState* ProcessModel::endStateData() const
+ProcessState* ProcessModel::endStateData() const noexcept
 {
   return m_endState;
 }

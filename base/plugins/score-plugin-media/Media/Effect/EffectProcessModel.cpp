@@ -288,7 +288,7 @@ void JSONObjectWriter::write(Media::Effect::ProcessModel& proc)
   }
 }
 
-Selection Media::Effect::ProcessModel::selectableChildren() const
+Selection Media::Effect::ProcessModel::selectableChildren() const noexcept
 {
   Selection s;
   for (auto& c : effects())
@@ -296,7 +296,7 @@ Selection Media::Effect::ProcessModel::selectableChildren() const
   return s;
 }
 
-Selection Media::Effect::ProcessModel::selectedChildren() const
+Selection Media::Effect::ProcessModel::selectedChildren() const noexcept
 {
   Selection s;
   for (auto& c : effects())
@@ -305,7 +305,7 @@ Selection Media::Effect::ProcessModel::selectedChildren() const
   return s;
 }
 
-void Media::Effect::ProcessModel::setSelection(const Selection& s) const
+void Media::Effect::ProcessModel::setSelection(const Selection& s) const noexcept
 {
   for (auto& c : effects())
   {

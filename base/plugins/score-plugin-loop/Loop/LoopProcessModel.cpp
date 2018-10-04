@@ -91,7 +91,7 @@ void ProcessModel::reset()
   endEvent().setStatus(Scenario::ExecutionStatus::Editing, *this);
 }
 
-Selection ProcessModel::selectableChildren() const
+Selection ProcessModel::selectableChildren() const noexcept
 {
   Selection s;
 
@@ -100,7 +100,7 @@ Selection ProcessModel::selectableChildren() const
   return s;
 }
 
-Selection ProcessModel::selectedChildren() const
+Selection ProcessModel::selectedChildren() const noexcept
 {
   Selection s;
 
@@ -112,33 +112,12 @@ Selection ProcessModel::selectedChildren() const
   return s;
 }
 
-void ProcessModel::setSelection(const Selection& s) const
+void ProcessModel::setSelection(const Selection& s) const noexcept
 {
   ossia::for_each_in_tuple(elements(), [&](auto elt) {
     elt->selection.set(s.contains(elt)); // OPTIMIZEME
   });
 }
-
-/*
-void ProcessModel::changeDuration(
-    Scenario::IntervalModel& itv, const TimeVal& v)
-{
-  Scenario::Command::MoveBaseEvent<Loop::ProcessModel> cmd(
-      *this, endEvent().id(), v, 0., ExpandMode::GrowShrink, LockMode::Free);
-  cmd.redo(score::IDocument::documentContext(*this));
-}
-
-void ProcessModel::changeDuration(
-    const Scenario::IntervalModel& itv, OngoingCommandDispatcher& dispatcher,
-    const TimeVal& val, ExpandMode expandmode, LockMode lockmode)
-{
-  auto& loop = *this;
-  dispatcher
-      .submit<Scenario::Command::MoveBaseEvent<Loop::ProcessModel>>(
-          loop, loop.state(itv.endState()).eventId(), itv.date() + val, 0,
-          expandmode, lockmode);
-}
-*/
 
 const QVector<Id<Scenario::IntervalModel>> intervalsBeforeTimeSync(
     const ProcessModel& scen, const Id<Scenario::TimeSyncModel>& timeSyncId)

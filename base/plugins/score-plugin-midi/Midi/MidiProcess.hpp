@@ -51,6 +51,7 @@ public:
 
   std::unique_ptr<Process::Outlet> outlet;
 
+  using Process::ProcessModel::setDuration;
 public:
   void notesChanged() W_SIGNAL(notesChanged);
   void channelChanged(int arg_1) W_SIGNAL(channelChanged, arg_1);
@@ -58,9 +59,9 @@ public:
   void rangeChanged(int arg_1, int arg_2) W_SIGNAL(rangeChanged, arg_1, arg_2);
 
 private:
-  void setDurationAndScale(const TimeVal& newDuration) override;
-  void setDurationAndGrow(const TimeVal& newDuration) override;
-  void setDurationAndShrink(const TimeVal& newDuration) override;
+  void setDurationAndScale(const TimeVal& newDuration) noexcept override;
+  void setDurationAndGrow(const TimeVal& newDuration) noexcept override;
+  void setDurationAndShrink(const TimeVal& newDuration) noexcept override;
 
   int m_channel{1};
   std::pair<int, int> m_range{0, 127};

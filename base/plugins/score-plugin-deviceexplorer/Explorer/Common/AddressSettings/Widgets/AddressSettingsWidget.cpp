@@ -60,7 +60,7 @@ AddressSettingsWidget::AddressSettingsWidget(QWidget* parent)
   tagLayout->addWidget(m_tagsEdit);
   tagLayout->addWidget(m_addTagButton);
 
-  m_unit = new State::UnitWidget({}, this);
+  m_unit = new State::UnitWidget({}, Qt::Vertical, this);
   m_unit->setToolTip("Set the dataspace and unit of the parameter.");
 
   m_description = new QLineEdit{this};
