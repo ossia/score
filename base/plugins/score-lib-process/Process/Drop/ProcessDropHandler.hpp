@@ -41,7 +41,7 @@ protected:
   virtual std::vector<ProcessDrop> drop(const std::vector<QByteArray>& data, const score::DocumentContext& ctx) const noexcept;
 };
 
-class ProcessDropHandlerList final
+class SCORE_LIB_PROCESS_EXPORT ProcessDropHandlerList final
     : public score::InterfaceList<ProcessDropHandler>
 {
 public:
