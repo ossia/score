@@ -75,9 +75,13 @@ public:
 
   Qt::ItemFlags flags(const QModelIndex& index) const override
   {
-    Qt::ItemFlags f = Qt::ItemIsEnabled | Qt::ItemIsEditable
+    Qt::ItemFlags f = Qt::ItemIsEnabled
                       | Qt::ItemIsSelectable | Qt::ItemIsDragEnabled
                       | Qt::ItemIsDropEnabled;
+
+    if(!isDir(index))
+      f |= Qt::ItemIsEditable;
+
     return f;
   }
 
