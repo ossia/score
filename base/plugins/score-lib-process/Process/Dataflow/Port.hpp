@@ -91,6 +91,8 @@ public:
   void addressChanged(const State::AddressAccessor& address)
       E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, addressChanged, address);
 
+  PROPERTY(State::AddressAccessor, address READ address WRITE setAddress NOTIFY addressChanged)
+  PROPERTY(QString, customData READ customData WRITE setCustomData NOTIFY customDataChanged)
 protected:
   Port() = delete;
   ~Port() override;
@@ -109,14 +111,6 @@ private:
   QString m_description;
   State::AddressAccessor m_address;
   score::Components m_components;
-
-  W_PROPERTY(
-      State::AddressAccessor,
-      address READ address WRITE setAddress NOTIFY addressChanged)
-
-  W_PROPERTY(
-      QString,
-      customData READ customData WRITE setCustomData NOTIFY customDataChanged)
 };
 
 class SCORE_LIB_PROCESS_EXPORT Inlet : public Port
@@ -134,7 +128,6 @@ public:
   Inlet(DataStream::Deserializer&& vis, QObject* parent);
   Inlet(JSONObject::Deserializer&& vis, QObject* parent);
 
-private:
 };
 
 class SCORE_LIB_PROCESS_EXPORT ControlInlet : public Inlet
@@ -188,14 +181,11 @@ public:
   };
   W_SLOT(setDomain)
 
+  PROPERTY(State::Domain, domain READ domain WRITE setDomain NOTIFY domainChanged)
+  PROPERTY(ossia::value, value READ value WRITE setValue NOTIFY valueChanged)
 private:
   ossia::value m_value;
   State::Domain m_domain;
-
-  W_PROPERTY(
-      State::Domain, domain READ domain WRITE setDomain NOTIFY domainChanged)
-
-  W_PROPERTY(ossia::value, value READ value WRITE setValue NOTIFY valueChanged)
 };
 
 class SCORE_LIB_PROCESS_EXPORT Outlet : public Port
@@ -284,14 +274,12 @@ public:
   };
   W_SLOT(setDomain)
 
+
+  PROPERTY(State::Domain, domain READ domain WRITE setDomain NOTIFY domainChanged)
+  PROPERTY(ossia::value, value READ value WRITE setValue NOTIFY valueChanged)
 private:
   ossia::value m_value;
   State::Domain m_domain;
-
-  W_PROPERTY(
-      State::Domain, domain READ domain WRITE setDomain NOTIFY domainChanged)
-
-  W_PROPERTY(ossia::value, value READ value WRITE setValue NOTIFY valueChanged)
 };
 
 inline std::unique_ptr<Inlet>
