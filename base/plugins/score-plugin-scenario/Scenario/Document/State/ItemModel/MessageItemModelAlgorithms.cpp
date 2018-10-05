@@ -38,6 +38,57 @@ static QStringList toStringList(const State::AddressAccessor& addr)
 
 namespace Scenario
 {
+static
+Process::MessageNode* try_getNodeFromString_impl(
+    Process::MessageNode& n
+    , QStringList::const_iterator begin
+    , QStringList::const_iterator end
+    , const State::DestinationQualifiers& qual)
+{
+  if(begin == end)
+  {
+    return &n;
+  }
+  else
+  {
+    auto next = begin + 1;
+    if(next == end)
+    {
+      for (auto& child : n)
+      {
+        if (child.name.name == *begin && child.name.qualifiers == qual)
+        {
+          return &child;
+        }
+      }
+    }
+    else
+    {
+      for (auto& child : n)
+      {
+        if (child.name.name == *begin)
+        {
+          return try_getNodeFromString_impl(child, next, end, qual);
+        }
+      }
+    }
+  }
+  return nullptr;
+}
+
+static
+Process::MessageNode* try_getNodeFromString(Process::MessageNode& n, const State::AddressAccessor& addr)
+{
+  for (auto& child : n)
+  {
+    if (child.displayName() == addr.address.device)
+    {
+      return try_getNodeFromString_impl(child, addr.address.path.begin(), addr.address.path.end(), addr.qualifiers);
+    }
+  }
+  return nullptr;
+}
+
 static bool removable(const Process::MessageNode& node)
 {
   return node.values.empty() && !node.hasChildren();
@@ -473,11 +524,10 @@ void updateTreeWithRemovedInterval(
 }
 
 void updateTreeWithRemovedUserMessage(
-    Process::MessageNode& rootNode, const State::Address& addr)
+    Process::MessageNode& rootNode, const State::AddressAccessor& addr)
 {
   // Find the message node
-  Process::MessageNode* node
-      = Device::try_getNodeFromString(rootNode, State::stringList(addr));
+  Process::MessageNode* node = try_getNodeFromString(rootNode, addr);
 
   if (node)
   {
@@ -526,12 +576,14 @@ static bool rec_cleanup(Process::MessageNode& node)
          && node.childCount() == 0;
 }
 
+
+
+
 void updateTreeWithRemovedNode(
-    Process::MessageNode& rootNode, const State::Address& addr)
+    Process::MessageNode& rootNode, const State::AddressAccessor& addr)
 {
   // Find the message node
-  Process::MessageNode* node_ptr
-      = Device::try_getNodeFromString(rootNode, State::stringList(addr));
+  Process::MessageNode* node_ptr = try_getNodeFromString(rootNode, addr);
 
   if (node_ptr)
   {
