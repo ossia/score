@@ -34,6 +34,8 @@ static void AddProcessBeforeState(
     {
       next_proc.process().setMessages(ml, messages.rootNode());
     }
+
+    updateTreeWithMessageList(messages.rootNode(), ml, proc.id(), ProcessPosition::Previous);
   };
 
   statemodel.previousProcesses().emplace_back(state);
@@ -61,6 +63,8 @@ AddProcessAfterState(StateModel& statemodel, const Process::ProcessModel& proc)
     {
       prev_proc.process().setMessages(ml, messages.rootNode());
     }
+
+    updateTreeWithMessageList(messages.rootNode(), ml, proc.id(), ProcessPosition::Following);
   };
 
   statemodel.followingProcesses().emplace_back(state);
@@ -86,6 +90,8 @@ static void RemoveProcessBeforeState(
           return state == &elt.process();
         });
 
+  updateTreeWithRemovedProcess(statemodel.messages().rootNode(), proc.id(), ProcessPosition::Previous);
+
   // TODO debug the need for this check
   if (it != statemodel.previousProcesses().end())
     statemodel.previousProcesses().erase(it);
@@ -102,6 +108,8 @@ static void RemoveProcessAfterState(
       = ossia::find_if(statemodel.followingProcesses(), [&](const auto& elt) {
           return state == &elt.process();
         });
+
+  updateTreeWithRemovedProcess(statemodel.messages().rootNode(), proc.id(), ProcessPosition::Following);
 
   // TODO debug the need for this check
   if (it != statemodel.followingProcesses().end())
