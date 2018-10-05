@@ -5,6 +5,8 @@
 #include <LocalTree/BaseCallbackWrapper.hpp>
 #include <LocalTree/TypeConversion.hpp>
 
+#include <ossia/network/base/node.hpp>
+
 namespace LocalTree
 {
 template <typename T>
@@ -56,6 +58,21 @@ auto add_property(ossia::net::node_base& n, Object& obj, QObject* context)
   constexpr const auto t
       = ossia::qt_property_converter<typename Property::param_type>::val;
   auto node = n.create_child(Property::name);
+  SCORE_ASSERT(node);
+
+  auto addr = node->create_parameter(t);
+  SCORE_ASSERT(addr);
+
+  addr->set_access(ossia::access_mode::BI);
+  return std::make_unique<PropertyWrapper<Property>>(*addr, obj, context);
+}
+
+template <typename Property, typename Object>
+auto add_property(ossia::net::node_base& n, Object& obj, const std::string& name, QObject* context)
+{
+  constexpr const auto t
+      = ossia::qt_property_converter<typename Property::param_type>::val;
+  auto node = n.create_child(name);
   SCORE_ASSERT(node);
 
   auto addr = node->create_parameter(t);

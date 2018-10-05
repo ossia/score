@@ -51,6 +51,7 @@ DocumentPlugin::DocumentPlugin(
 {
   makeGraph();
   auto& devs = ctx.plugin<Explorer::DeviceDocumentPlugin>();
+  local_device = devs.list().localDevice();
   if (auto dev = devs.list().audioDevice())
   {
     audio_device = static_cast<Dataflow::AudioDevice*>(dev);
@@ -59,8 +60,7 @@ DocumentPlugin::DocumentPlugin(
   {
     audio_device = new Dataflow::AudioDevice(
         {Dataflow::AudioProtocolFactory::static_concreteKey(), "audio", {}});
-    ctx.plugin<Explorer::DeviceDocumentPlugin>().list().setAudioDevice(
-        audio_device);
+    ctx.plugin<Explorer::DeviceDocumentPlugin>().list().setAudioDevice(audio_device);
   }
 
   con(devs.list(), &Device::DeviceList::deviceAdded, this, [=](auto& dev) {
@@ -136,6 +136,8 @@ void DocumentPlugin::on_finished()
                       .devices();
   if (audio_device)
     execState->register_device(audio_device->getDevice());
+  if (local_device)
+    execState->register_device(local_device->getDevice());
   for (auto dev : devlist)
   {
     registerDevice(dev->getDevice());
@@ -200,6 +202,8 @@ void DocumentPlugin::makeGraph()
   execState->cur_date = execState->start_date;
   if (audio_device)
     execState->register_device(audio_device->getDevice());
+  if (local_device)
+    execState->register_device(local_device->getDevice());
   for (auto dev : devlist)
   {
     registerDevice(dev->getDevice());

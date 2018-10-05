@@ -285,12 +285,22 @@ private:
   void add_impl(TheChild& model, score::not_serializable_tag)
   {
     // Will return a factory for the given process if available
+    auto id = getStrongId(model.components());
     if (auto factory = m_componentFactory.factory(model))
     {
       // The subclass should provide this function to construct
       // the correct component relative to this process.
-      auto comp = ParentComponent_T::make(
-          getStrongId(model.components()), *factory, model);
+      auto comp = ParentComponent_T::make(id, *factory, model);
+      if (comp)
+      {
+        model.components().add(comp);
+        m_children.emplace_back(ChildPair{&model, comp});
+        ParentComponent_T::added(*comp);
+      }
+    }
+    else
+    {
+      auto comp = ParentComponent_T::make(id, model);
       if (comp)
       {
         model.components().add(comp);

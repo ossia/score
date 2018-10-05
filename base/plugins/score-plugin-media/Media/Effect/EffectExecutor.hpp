@@ -33,6 +33,12 @@ public:
       const Id<score::Component>& id,
       Execution::ProcessComponentFactory& factory,
       Process::ProcessModel& process);
+
+  ProcessComponent* make(
+      const Id<score::Component>& id, Process::ProcessModel& process)
+  {
+    return nullptr;
+  }
   void added(ProcessComponent& e);
 
   std::function<void()>

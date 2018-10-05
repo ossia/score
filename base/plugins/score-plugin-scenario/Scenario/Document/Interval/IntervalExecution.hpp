@@ -108,6 +108,11 @@ public:
   ProcessComponent* make(
       const Id<score::Component>& id, ProcessComponentFactory& factory,
       Process::ProcessModel& process);
+  ProcessComponent* make(
+      const Id<score::Component>& id, Process::ProcessModel& process)
+  {
+    return nullptr;
+  }
   std::function<void()>
   removing(const Process::ProcessModel& e, ProcessComponent& c);
 

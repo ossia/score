@@ -75,6 +75,7 @@ public:
   std::shared_ptr<ossia::bench_map> bench;
 
   QPointer<Dataflow::AudioDevice> audio_device{};
+  QPointer<Device::DeviceInterface> local_device{};
 
 public:
   void finished()

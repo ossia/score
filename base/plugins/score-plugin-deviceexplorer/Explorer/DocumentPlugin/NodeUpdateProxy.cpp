@@ -350,11 +350,11 @@ void NodeUpdateProxy::refreshRemoteValues(const Device::NodeList& nodes)
 
 void NodeUpdateProxy::addLocalNode(Device::Node& parent, Device::Node&& node)
 {
-  SCORE_ASSERT(node.template is<Device::AddressSettings>());
-
-  int row = parent.childCount();
-
-  devModel.explorer().addNode(&parent, std::move(node), row);
+  if(node.is<Device::AddressSettings>())
+  {
+    int row = parent.childCount();
+    devModel.explorer().addNode(&parent, std::move(node), row);
+  }
 }
 
 void NodeUpdateProxy::removeLocalNode(const State::Address& addr)
