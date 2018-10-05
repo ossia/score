@@ -6,7 +6,7 @@
 #include <LocalTree/TypeConversion.hpp>
 
 #include <ossia/network/base/node.hpp>
-
+#include <QTimer>
 namespace LocalTree
 {
 template <typename T>
@@ -26,7 +26,7 @@ struct PropertyWrapper final : public BaseCallbackWrapper
       : BaseCallbackWrapper{param_addr}, m_model{obj}
   {
     callbackIt = addr.add_callback([=](const ossia::value& v) {
-      (m_model.*Property::set())(::State::convert::value<param_t>(v));
+      QTimer::singleShot(0, [this, v] { (m_model.*Property::set())(::State::convert::value<param_t>(v)); });
     });
 
     QObject::connect(
