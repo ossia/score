@@ -97,8 +97,8 @@ public:
     // If the interval has no processes and nothing after, we will resize it
     if (interval.processes.empty())
     {
-      auto resizer = m_context.app.interfaces<Scenario::IntervalResizerList>().make(m_itv, maxdur);
-      m_macro.submit(resizer);
+      if(auto resizer = m_context.app.interfaces<Scenario::IntervalResizerList>().make(m_itv, maxdur))
+        m_macro.submit(resizer);
     }
   }
 

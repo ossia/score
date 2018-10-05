@@ -115,12 +115,12 @@ public:
   {
     using namespace score;
     auto editableGrid = &lay;
-    // auto editableGrid = new score::MarginLess<QGridLayout>{this};
 
     // SPINBOXES
     m_minSpin = new TimeSpinBox{this};
     m_maxSpin = new TimeSpinBox{this};
     m_valueSpin = new TimeSpinBox{this};
+    m_valueSpin->setEnabled(bool(m_moveFactory));
     m_maxSpin->setTime(m_dur.maxDuration().toQTime());
     m_minSpin->setTime(m_dur.minDuration().toQTime());
     m_valueSpin->setTime(m_dur.defaultDuration().toQTime());
