@@ -34,10 +34,10 @@ void updateTreeWithRemovedInterval(
     Process::MessageNode& rootNode, ProcessPosition pos);
 
 void updateTreeWithRemovedUserMessage(
-    Process::MessageNode& rootNode, const State::Address&);
+    Process::MessageNode& rootNode, const State::AddressAccessor&);
 
 void updateTreeWithRemovedNode(
-    Process::MessageNode& rootNode, const State::Address& addr);
+    Process::MessageNode& rootNode, const State::AddressAccessor& addr);
 
 void removeAllUserMessages(Process::MessageNode& rootNode);
 
