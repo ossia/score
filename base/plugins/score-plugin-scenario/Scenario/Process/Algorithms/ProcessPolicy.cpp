@@ -36,6 +36,7 @@ static void AddProcessBeforeState(
     }
 
     updateTreeWithMessageList(messages.rootNode(), ml, proc.id(), ProcessPosition::Previous);
+    statemodel.sig_statesUpdated();
   };
 
   statemodel.previousProcesses().emplace_back(state);
@@ -45,8 +46,6 @@ static void AddProcessBeforeState(
       prev_proc_fun);
 
   prev_proc_fun(state->messages());
-
-  statemodel.sig_statesUpdated();
 }
 
 static void
@@ -65,6 +64,7 @@ AddProcessAfterState(StateModel& statemodel, const Process::ProcessModel& proc)
     }
 
     updateTreeWithMessageList(messages.rootNode(), ml, proc.id(), ProcessPosition::Following);
+    statemodel.sig_statesUpdated();
   };
 
   statemodel.followingProcesses().emplace_back(state);
@@ -74,8 +74,6 @@ AddProcessAfterState(StateModel& statemodel, const Process::ProcessModel& proc)
       next_proc_fun);
 
   next_proc_fun(state->messages());
-
-  statemodel.sig_statesUpdated();
 }
 
 static void RemoveProcessBeforeState(
@@ -91,6 +89,7 @@ static void RemoveProcessBeforeState(
         });
 
   updateTreeWithRemovedProcess(statemodel.messages().rootNode(), proc.id(), ProcessPosition::Previous);
+  statemodel.sig_statesUpdated();
 
   // TODO debug the need for this check
   if (it != statemodel.previousProcesses().end())
@@ -110,6 +109,7 @@ static void RemoveProcessAfterState(
         });
 
   updateTreeWithRemovedProcess(statemodel.messages().rootNode(), proc.id(), ProcessPosition::Following);
+  statemodel.sig_statesUpdated();
 
   // TODO debug the need for this check
   if (it != statemodel.followingProcesses().end())
