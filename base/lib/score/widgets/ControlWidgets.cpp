@@ -78,13 +78,13 @@ void ValueSlider::paintEvent(QPaintEvent* event)
 
 void SpeedSlider::paintEvent(QPaintEvent*)
 {
-  paintWithText(QString{" x " + QString::number(double(value()) * 0.01)});
+  paintWithText(QString{" speed: x " + QString::number(double(value()) * 0.01)});
 }
 
 void VolumeSlider::paintEvent(QPaintEvent*)
 {
   paintWithText(
-      QString::number(ossia::detail::LinearGainToDecibels(value()), 'f', 1)
+      "volume: " + QString::number(ossia::detail::LinearGainToDecibels(value()), 'f', 1)
       + " dB");
 }
 

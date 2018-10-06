@@ -166,11 +166,11 @@ void Presenter::setupGUI()
       for (const Toolbar& tb : toolbars[Qt::BottomToolBarArea])
       {
 
-        if (i==2 || i== (toolbars[Qt::BottomToolBarArea].size())*2){
-          auto dummy2 = new QWidget;
-          dummy2->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Minimum);
-          bl->addWidget(dummy2, 0, i, 1, 1);
-          bl->setColumnStretch(i, 10);
+        if (i==2 || i== (toolbars[Qt::BottomToolBarArea].size())*2){ // for 2nd and penultimate
+          auto dummy = new QWidget;
+          dummy->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Minimum);
+          bl->addWidget(dummy, 0, i, 1, 1);
+          //bl->setColumnStretch(i, 10);
           i++; i++;
         }
 
