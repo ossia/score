@@ -160,6 +160,7 @@ RemoveSelection::RemoveSelection(
     {
       m_cmds_split_event.emplace_back(
           scenar, e.orig, vec[i], std::move(e.states));
+      i++;
     }
   }
 
