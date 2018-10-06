@@ -148,13 +148,11 @@ void Presenter::setupGUI()
       auto bw = new QWidget;
       bw->setContentsMargins(0, 0, 0, 0);
       auto bl = new score::MarginLess<QGridLayout>{bw};
-      auto dummy1 = new QWidget;
-      dummy1->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-      bl->addWidget(dummy1, 0, 0, 2, 1);
-      bl->setColumnStretch(0, 10);
+
 
       view()->centralWidget()->layout()->addWidget(bw);
 
+      /* // This was for adding labels below - not using it anymore
       struct ToolbarLabel final : public QLabel
       {
         ToolbarLabel(const Toolbar& tb)
@@ -162,15 +160,24 @@ void Presenter::setupGUI()
         {
           setFont(QFont("Ubuntu", 8));
         }
-      };
+      };*/
 
-      int i = 1;
+      int i = 0;
       for (const Toolbar& tb : toolbars[Qt::BottomToolBarArea])
       {
+
+        if (i==2 || i== (toolbars[Qt::BottomToolBarArea].size())*2){ // for 2nd and penultimate
+          auto dummy = new QWidget;
+          dummy->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Minimum);
+          bl->addWidget(dummy, 0, i, 1, 1);
+          //bl->setColumnStretch(i, 10);
+          i++; i++;
+        }
+
         tb.toolbar()->setIconSize({32, 32});
         tb.toolbar()->setStyleSheet("QToolBar { border: none; }");
         bl->addWidget(tb.toolbar(), 0, i, Qt::AlignCenter);
-        bl->addWidget(new ToolbarLabel{tb}, 1, i, Qt::AlignCenter);
+        //bl->addWidget(new ToolbarLabel{tb}, 1, i, Qt::AlignCenter); //Label below
         tb.toolbar()->setFloatable(false);
         tb.toolbar()->setMovable(false);
 
@@ -182,10 +189,7 @@ void Presenter::setupGUI()
         i++;
       }
 
-      auto dummy2 = new QWidget;
-      dummy2->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-      bl->addWidget(dummy2, 0, i, 2, 1);
-      bl->setColumnStretch(i, 10);
+
     }
   }
 }
