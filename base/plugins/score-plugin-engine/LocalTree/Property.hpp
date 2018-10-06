@@ -25,8 +25,10 @@ struct PropertyWrapper final : public BaseCallbackWrapper
       ossia::net::parameter_base& param_addr, model_t& obj, QObject* context)
       : BaseCallbackWrapper{param_addr}, m_model{obj}
   {
-    callbackIt = addr.add_callback([=](const ossia::value& v) {
-      QTimer::singleShot(0, [this, v] { (m_model.*Property::set())(::State::convert::value<param_t>(v)); });
+    callbackIt = addr.add_callback([=,m=QPointer<model_t>{&m_model}](const ossia::value& v) {
+        QTimer::singleShot(0, [m, v] {
+          if(m) ((*m).*Property::set())(::State::convert::value<param_t>(v));
+      });
     });
 
     QObject::connect(
