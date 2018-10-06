@@ -13,7 +13,10 @@ TimeSync::TimeSync(
     : CommonComponent{parent, timeSync.metadata(), doc,
                       id,     "TimeSyncComponent", parent_comp}
 {
-  m_properties.push_back(add_setProperty<::State::impulse>(
-      node(), "trigger", [&](auto) { timeSync.triggeredByGui(); }));
+  m_properties.push_back(
+              add_setProperty<::State::impulse>(
+                  node(), "trigger", [t=QPointer<Scenario::TimeSyncModel>{&timeSync}] (auto) {
+      if(t) t->triggeredByGui();
+  }));
 }
 }

@@ -18,14 +18,17 @@ State::State(
                       id,     "StateComponent", parent_comp}
 {
   m_properties.push_back(
-      add_setProperty<::State::impulse>(node(), "trigger", [&](auto) {
-        auto plug = doc.context()
-                        .app.findGuiApplicationPlugin<
-                            Scenario::ScenarioApplicationPlugin>();
-        if (plug)
+      add_setProperty<::State::impulse>(node(), "trigger", [&doc,s=QPointer<Scenario::StateModel>(&state)](auto) {
+        if(s)
         {
-          plug->execution().playState(
-              Scenario::parentScenario(state), state.id());
+          auto plug = doc.context()
+                          .app.findGuiApplicationPlugin<
+                              Scenario::ScenarioApplicationPlugin>();
+          if (plug)
+          {
+            plug->execution().playState(
+                Scenario::parentScenario(*s), s->id());
+          }
         }
       }));
 }
