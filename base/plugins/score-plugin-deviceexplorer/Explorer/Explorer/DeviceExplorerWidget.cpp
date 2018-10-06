@@ -623,7 +623,7 @@ void DeviceExplorerWidget::updateActions()
         m_exportDeviceAction->setEnabled(true);
         m_addSiblingAction->setEnabled(false);
         m_addChildAction->setEnabled(capas.canAddNode);
-        m_removeNodeAction->setEnabled(false);
+        m_removeNodeAction->setEnabled(true);
         m_learnAction->setEnabled(capas.canLearn);
       }
       m_editAction->setEnabled(true);
