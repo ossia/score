@@ -246,7 +246,7 @@ score::GUIElements ApplicationPlugin::makeGUIElements()
     });
     timer->start(1000 / 20);
     toolbars.emplace_back(
-        bar, StringKey<score::Toolbar>("Timing"), Qt::BottomToolBarArea, 100);
+        bar, StringKey<score::Toolbar>("Timing"), Qt::BottomToolBarArea, 60);
   }
 
   // The toolbar with the speed
@@ -268,10 +268,11 @@ score::GUIElements ApplicationPlugin::makeGUIElements()
       QStringLiteral(":/icons/engine_disabled.png"), false);
   {
     auto bar = new QToolBar;
-    bar->addAction(m_audioEngineAct);
     auto sl = new Control::VolumeSlider{bar};
+    sl->setMaximumSize(100, 20);
     sl->setValue(0.5);
     bar->addWidget(sl);
+    bar->addAction(m_audioEngineAct);
     connect(sl, &Control::VolumeSlider::valueChanged, this, [=](double v) {
       if (m_clock)
       {
