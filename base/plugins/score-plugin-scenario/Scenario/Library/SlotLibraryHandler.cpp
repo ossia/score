@@ -89,14 +89,14 @@ bool SlotLibraryHandler::onDrop(
   return true;
 }
 
-QStringList SlotLibraryHandler::acceptedMimeTypes() const
+QSet<QString> SlotLibraryHandler::acceptedMimeTypes() const noexcept
 {
   return {score::mime::layerdata()};
 }
 
-QStringList SlotLibraryHandler::acceptedFiles() const
+QSet<QString> SlotLibraryHandler::acceptedFiles() const noexcept
 {
-  return {"*.layer"};
+  return {"layer"};
 }
 
 bool ScenarioLibraryHandler::onDrop(
@@ -158,13 +158,13 @@ bool ScenarioLibraryHandler::onDrop(
   return false;
 }
 
-QStringList ScenarioLibraryHandler::acceptedMimeTypes() const
+QSet<QString> ScenarioLibraryHandler::acceptedMimeTypes() const noexcept
 {
   return {score::mime::scenariodata(), score::mime::messagelist()};
 }
 
-QStringList ScenarioLibraryHandler::acceptedFiles() const
+QSet<QString> ScenarioLibraryHandler::acceptedFiles() const noexcept
 {
-  return {"*.scenario", "*.cues"};
+  return {"scenario", "cues"};
 }
 }

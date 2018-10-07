@@ -34,13 +34,14 @@
 #include <LocalTree/Scenario/ScenarioComponent.hpp>
 
 #include <ossia-config.hpp>
+
+#include <Protocols/ProtocolLibrary.hpp>
 #if defined(OSSIA_PROTOCOL_MINUIT)
 #include <Protocols/Minuit/MinuitProtocolFactory.hpp>
 #endif
 #if defined(OSSIA_PROTOCOL_OSC)
 #include <Protocols/OSC/OSCProtocolFactory.hpp>
 #endif
-
 #if defined(OSSIA_PROTOCOL_OSCQUERY)
 #include <Protocols/OSCQuery/OSCQueryProtocolFactory.hpp>
 #endif
@@ -194,6 +195,7 @@ score_plugin_engine::factories(
          LocalTree::AutomationComponentFactory,
          LocalTree::MappingComponentFactory>,
       FW<score::PanelDelegateFactory, Audio::PanelDelegateFactory>,
+      FW<Library::LibraryInterface, Protocols::OSCLibraryHandler, Protocols::QMLLibraryHandler>,
       FW<Execution::ClockFactory
          // , Execution::ControlClockFactory
          ,

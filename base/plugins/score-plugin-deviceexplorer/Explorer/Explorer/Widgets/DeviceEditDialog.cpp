@@ -163,23 +163,15 @@ QString DeviceEditDialog::getPath() const
 
 void DeviceEditDialog::setSettings(const Device::DeviceSettings& settings)
 {
-  // auto proto = SingletonProtocolList::instance().get(settings.protocol);
-  // if(proto)
-  {
-    const int index
-        = m_protocolCBox->findData(QVariant::fromValue(settings.protocol));
-    SCORE_ASSERT(index != -1);
-    SCORE_ASSERT(index < m_protocolCBox->count());
+  const int index
+      = m_protocolCBox->findData(QVariant::fromValue(settings.protocol));
+  SCORE_ASSERT(index != -1);
+  SCORE_ASSERT(index < m_protocolCBox->count());
 
-    m_protocolCBox->setCurrentIndex(
-        index); // will emit currentIndexChanged(int) & call slot
+  // will emit currentIndexChanged(int) & call slot
+  m_protocolCBox->setCurrentIndex(index);
 
-    m_protocolWidget->setSettings(settings);
-  }
-  // else
-  {
-    //    SCORE_TODO; // Make a default widget.
-  }
+  m_protocolWidget->setSettings(settings);
 }
 
 void DeviceEditDialog::setEditingInvalidState(bool st)
