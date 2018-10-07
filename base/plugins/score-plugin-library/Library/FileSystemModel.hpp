@@ -21,45 +21,44 @@ public:
   {
     auto& lib_setup = ctx.interfaces<Library::LibraryInterfaceList>();
     // TODO refactor
-    tsl::hopscotch_set<QString> types{// Media
-                                      "*.wav",
-                                      "*.mp3",
-                                      "*.mp4",
-                                      "*.ogg",
-                                      "*.flac",
-                                      "*.aif",
-                                      "*.aiff"
+    QSet<QString> types{// Media
+        "*.wav",
+        "*.mp3",
+        "*.mp4",
+        "*.ogg",
+        "*.flac",
+        "*.aif",
+        "*.aiff"
 
-                                      // score-specific
-                                      ,
-                                      "*.score",
-                                      "*.cue",
-                                      "*.device",
-                                      "*.oscquery",
-                                      "*.json"
+        // score-specific
+        ,
+        "*.score",
+        "*.cue",
+        "*.device",
+        "*.oscquery",
+        "*.json"
 
-                                      // JS scripts
-                                      ,
-                                      "*.js",
-                                      "*.qml",
-                                      "*.script"
+        // JS scripts
+        ,
+        "*.js",
+        "*.qml",
+        "*.script"
 
-                                      // Faust, other audio stuff
-                                      ,
-                                      "*.dsp",
-                                      "*.mid"};
+        // Faust, other audio stuff
+        ,
+        "*.dsp",
+        "*.mid"};
 
-    for (auto& lib : lib_setup)
+    for (const LibraryInterface& lib : lib_setup)
     {
       auto lst = lib.acceptedFiles();
-      types.insert(lst.begin(), lst.end());
+      for(const auto& ext : lib.acceptedFiles())
+      {
+        types.insert("*." + ext);
+      }
     }
 
-    QStringList lst;
-    for (const auto& s : types)
-      lst.append(s);
-    setNameFilters(lst);
-
+    setNameFilters(types.toList());
     setNameFilterDisables(false);
     setFilter(QDir::AllDirs | QDir::Files | QDir::NoDotAndDotDot);
 

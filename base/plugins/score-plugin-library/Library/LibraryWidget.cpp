@@ -5,8 +5,10 @@
 #include <Library/FileSystemModel.hpp>
 #include <Library/LibrarySettings.hpp>
 
+#include <core/presenter/DocumentManager.hpp>
 #include <score/widgets/MarginLess.hpp>
 #include <score/widgets/SearchLineEdit.hpp>
+#include <score/tools/std/StringHash.hpp>
 
 #include <QFormLayout>
 #include <QLabel>
@@ -15,6 +17,7 @@
 #include <QStandardItemModel>
 #include <QVBoxLayout>
 
+#include <unordered_map>
 #include <wobjectimpl.h>
 
 W_OBJECT_IMPL(Library::ProcessTreeView)
@@ -250,6 +253,31 @@ ProcessWidget::~ProcessWidget()
 {
 }
 
+std::vector<LibraryInterface*> libraryInterface(const QString& path)
+{
+  static auto matches = [] {
+      std::unordered_multimap<QString, LibraryInterface*> exp;
+      const auto& libs = score::GUIAppContext().interfaces<LibraryInterfaceList>();
+      for(auto& lib : libs)
+      {
+        for(const auto& ext : lib.acceptedFiles())
+        {
+          exp.insert({ext, &lib});
+        }
+      }
+      return exp;
+    }();
+
+    std::vector<LibraryInterface*> libs;
+    auto [begin, end] = matches.equal_range(QFileInfo(path).suffix());
+
+    for(auto it = begin; it != end; ++it)
+    {
+      libs.push_back(it->second);
+    }
+    return libs;
+}
+
 SystemLibraryWidget::SystemLibraryWidget(
     const score::GUIApplicationContext& ctx, QWidget* parent)
     : QWidget{parent}
@@ -267,6 +295,19 @@ SystemLibraryWidget::SystemLibraryWidget(
   lay->addWidget(&m_tv);
   m_tv.setModel(m_proxy);
   setup_treeview(m_tv);
+  connect(&m_tv, &QTreeView::doubleClicked,
+          this, [&] (const QModelIndex& idx) {
+    auto doc = ctx.docManager.currentDocument();
+    if(!doc)
+      return;
+
+    auto path = m_model->filePath(m_proxy->mapToSource(idx));
+    for(auto lib : libraryInterface(path))
+    {
+      if(lib->onDoubleClick(path, doc->context()))
+        return;
+    }
+  });
   m_tv.setAcceptDrops(true);
 
   setRoot(ctx.settings<Library::Settings::Model>().getPath());
@@ -300,6 +341,19 @@ ProjectLibraryWidget::ProjectLibraryWidget(
   lay->addWidget(&m_tv);
   m_tv.setModel(m_proxy);
   setup_treeview(m_tv);
+  connect(&m_tv, &QTreeView::doubleClicked,
+          this, [&] (const QModelIndex& idx) {
+    auto doc = ctx.docManager.currentDocument();
+    if(!doc)
+      return;
+
+    auto path = m_model->filePath(m_proxy->mapToSource(idx));
+    for(auto lib : libraryInterface(path))
+    {
+      if(lib->onDoubleClick(path, doc->context()))
+        return;
+    }
+  });
   m_tv.setAcceptDrops(true);
 }
 

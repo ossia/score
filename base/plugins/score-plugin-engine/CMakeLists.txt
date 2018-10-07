@@ -9,6 +9,7 @@ find_package(Qt5 5.3 REQUIRED COMPONENTS Core Widgets)
 set(HDRS
     "${CMAKE_CURRENT_SOURCE_DIR}/Engine/OSSIA2score.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/OSSIADevice.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/ProtocolLibrary.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/DefaultProtocolFactory.hpp"
 
     "${CMAKE_CURRENT_SOURCE_DIR}/Audio/Settings/Model.hpp"
@@ -349,6 +350,7 @@ target_link_libraries(${PROJECT_NAME}
           score_plugin_scenario score_plugin_curve score_plugin_automation score_plugin_deviceexplorer
           score_plugin_mapping
           score_plugin_loop
+          score_plugin_library
           ossia
 )
 

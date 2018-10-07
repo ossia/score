@@ -18,14 +18,15 @@ class SCORE_PLUGIN_LIBRARY_EXPORT LibraryInterface
 public:
   ~LibraryInterface() override;
 
-  virtual QStringList acceptedFiles() const;
-  virtual QStringList acceptedMimeTypes() const;
+  virtual QSet<QString> acceptedFiles() const noexcept;
+  virtual QSet<QString> acceptedMimeTypes() const noexcept;
 
-  virtual void
-  setup(ProcessesItemModel& model, const score::GUIApplicationContext& ctx);
+  virtual void setup(ProcessesItemModel& model, const score::GUIApplicationContext& ctx);
   virtual bool onDrop(
       FileSystemModel& model, const QMimeData& mime, int row, int column,
       const QModelIndex& parent);
+
+  virtual bool onDoubleClick(const QString& path, const score::DocumentContext& ctx);
 };
 
 class SCORE_PLUGIN_LIBRARY_EXPORT LibraryInterfaceList final

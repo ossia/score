@@ -11,9 +11,9 @@ class SlotLibraryHandler final : public Library::LibraryInterface
       Library::FileSystemModel& model, const QMimeData& mime, int row,
       int column, const QModelIndex& parent) override;
 
-  QStringList acceptedMimeTypes() const override;
+  QSet<QString> acceptedMimeTypes() const noexcept override;
 
-  QStringList acceptedFiles() const override;
+  QSet<QString> acceptedFiles() const noexcept override;
 };
 
 class ScenarioLibraryHandler final : public Library::LibraryInterface
@@ -24,8 +24,8 @@ class ScenarioLibraryHandler final : public Library::LibraryInterface
       Library::FileSystemModel& model, const QMimeData& mime, int row,
       int column, const QModelIndex& parent) override;
 
-  QStringList acceptedMimeTypes() const override;
+  QSet<QString> acceptedMimeTypes() const noexcept override;
 
-  QStringList acceptedFiles() const override;
+  QSet<QString> acceptedFiles() const noexcept override;
 };
 }

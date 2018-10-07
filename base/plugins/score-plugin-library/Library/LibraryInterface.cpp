@@ -12,12 +12,12 @@ void LibraryInterface::setup(
 {
 }
 
-QStringList LibraryInterface::acceptedFiles() const
+QSet<QString> LibraryInterface::acceptedFiles() const noexcept
 {
   return {};
 }
 
-QStringList LibraryInterface::acceptedMimeTypes() const
+QSet<QString> LibraryInterface::acceptedMimeTypes() const noexcept
 {
   return {};
 }
@@ -25,6 +25,11 @@ QStringList LibraryInterface::acceptedMimeTypes() const
 bool LibraryInterface::onDrop(
     FileSystemModel& model, const QMimeData& mime, int row, int column,
     const QModelIndex& parent)
+{
+  return false;
+}
+
+bool LibraryInterface::onDoubleClick(const QString& path, const score::DocumentContext& ctx)
 {
   return false;
 }
