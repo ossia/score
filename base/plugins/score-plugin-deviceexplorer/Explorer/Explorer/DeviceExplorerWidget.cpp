@@ -881,46 +881,10 @@ void DeviceExplorerWidget::addDevice()
     }
     ossia::net::sanitize_device_name(deviceSettings.name);
 
-    auto path = m_deviceDialog->getPath();
     blockGUI(true);
 
     auto& devplug = model()->deviceModel();
-    if (path.isEmpty())
-    {
-      m_cmdDispatcher->submit(
-          new Command::AddDevice{devplug, deviceSettings});
-    }
-    else
-    {
-      // TODO refactor this and link with the library & the other processes
-      if (path.contains(".xml"))
-      {
-        Device::Node n{deviceSettings, nullptr};
-        if (Device::loadDeviceFromXML(path, n))
-          m_cmdDispatcher->submit(
-              new Command::LoadDevice{devplug, std::move(n)});
-      }
-      else if (path.contains(".device"))
-      {
-        Device::Node n{deviceSettings, nullptr};
-        if (Device::loadDeviceFromIScoreJSON(path, n))
-        {
-          n.get<Device::DeviceSettings>() = deviceSettings;
-          m_cmdDispatcher->submit(
-              new Command::LoadDevice{devplug, std::move(n)});
-        }
-      }
-      else if (path.contains(".json"))
-      {
-        Device::Node n{deviceSettings, nullptr};
-        if (Device::loadDeviceFromJamomaJSON(path, n))
-        {
-          n.get<Device::DeviceSettings>() = deviceSettings;
-          m_cmdDispatcher->submit(
-              new Command::LoadDevice{devplug, std::move(n)});
-        }
-      }
-    }
+    m_cmdDispatcher->submit(new Command::AddDevice{devplug, deviceSettings});
 
     blockGUI(false);
   }

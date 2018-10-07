@@ -20,10 +20,6 @@ public:
 
   virtual ~ProtocolSettingsWidget();
   virtual Device::DeviceSettings getSettings() const = 0;
-  virtual QString getPath() const // TODO berk, remove me
-  {
-    return QString("");
-  }
   virtual void setSettings(const Device::DeviceSettings& settings) = 0;
 };
 

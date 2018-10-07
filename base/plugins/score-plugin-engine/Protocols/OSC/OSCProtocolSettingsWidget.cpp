@@ -38,30 +38,11 @@ OSCProtocolSettingsWidget::OSCProtocolSettingsWidget(QWidget* parent)
 
   m_localHostEdit = new QLineEdit(this);
 
-  QPushButton* loadNamespaceButton = new QPushButton(tr("Load..."), this);
-  loadNamespaceButton->setAutoDefault(false);
-  loadNamespaceButton->setToolTip(tr("Load namespace file"));
-  m_namespaceFilePathEdit = new QLineEdit(this);
-
-  auto layout = new QFormLayout;
-  auto sublay = new score::MarginLess<QHBoxLayout>;
-  sublay->addWidget(loadNamespaceButton);
-  sublay->addWidget(m_namespaceFilePathEdit);
-  auto load_label = new QLabel{tr("Namespace file"), this};
-  load_label->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-
+  auto layout = new QFormLayout{this};
   layout->addRow(tr("Device name"), m_deviceNameEdit);
   layout->addRow(tr("Device listening port"), m_portInputSBox);
   layout->addRow(tr("score listening port"), m_portOutputSBox);
   layout->addRow(tr("Device host"), m_localHostEdit);
-  layout->addRow(load_label, sublay);
-
-  connect(
-      loadNamespaceButton, &QAbstractButton::clicked, this,
-      &OSCProtocolSettingsWidget::openFileDialog);
-
-  setLayout(layout);
-
   setDefaults();
 }
 
@@ -89,19 +70,9 @@ Device::DeviceSettings OSCProtocolSettingsWidget::getSettings() const
   return s;
 }
 
-QString OSCProtocolSettingsWidget::getPath() const
-{
-  return m_namespaceFilePathEdit->text();
-}
-
 void OSCProtocolSettingsWidget::setSettings(
     const Device::DeviceSettings& settings)
 {
-  /*
-      SCORE_ASSERT(settings.size() == 5);
-
-      m_namespaceFilePathEdit->setText(settings.at(4));
-  */
   m_deviceNameEdit->setText(settings.name);
   Network::OSCSpecificSettings osc;
   if (settings.deviceSpecificSettings
@@ -112,18 +83,6 @@ void OSCProtocolSettingsWidget::setSettings(
     m_portInputSBox->setValue(osc.inputPort);
     m_portOutputSBox->setValue(osc.outputPort);
     m_localHostEdit->setText(osc.host);
-  }
-}
-
-void OSCProtocolSettingsWidget::openFileDialog()
-{
-  const QString fileName = QFileDialog::getOpenFileName(
-      this, tr("Open Device file"), QString{},
-      tr("Device file (*.xml *.device *.json)"));
-
-  if (!fileName.isEmpty())
-  {
-    m_namespaceFilePathEdit->setText(fileName);
   }
 }
 }

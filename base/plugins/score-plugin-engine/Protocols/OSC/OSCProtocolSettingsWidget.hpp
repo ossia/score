@@ -20,13 +20,7 @@ public:
   OSCProtocolSettingsWidget(QWidget* parent = nullptr);
 
   Device::DeviceSettings getSettings() const override;
-  QString getPath() const override;
-
   void setSettings(const Device::DeviceSettings& settings) override;
-
-protected:
-  void openFileDialog();
-  W_SLOT(openFileDialog);
 
 protected:
   void setDefaults();
@@ -36,7 +30,6 @@ protected:
   QSpinBox* m_portOutputSBox;
   QSpinBox* m_portInputSBox;
   QLineEdit* m_localHostEdit;
-  QLineEdit* m_namespaceFilePathEdit;
 };
 }
 }
