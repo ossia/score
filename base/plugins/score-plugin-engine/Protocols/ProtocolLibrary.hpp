@@ -70,7 +70,11 @@ class OSCLibraryHandler final
     fact.insert(std::make_unique<Engine::Network::OSCQueryProtocolFactory>());
 #endif
 
+    Device::DeviceSettings set;
+    set.name = QFileInfo(path).baseName();
+    set.protocol = Engine::Network::OSCProtocolFactory::static_concreteKey();
     auto dialog = std::make_unique<Explorer::DeviceEditDialog>(fact, nullptr);
+    dialog->setSettings(set);
     auto code = static_cast<QDialog::DialogCode>(dialog->exec());
     if (code == QDialog::Accepted)
     {

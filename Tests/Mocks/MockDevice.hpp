@@ -69,11 +69,6 @@ class MockDeviceSettings : public ProtocolSettingsWidget
             return {};
         }
 
-        QString getPath() const override
-        {
-            return {};
-        }
-
         void setSettings(const score::DeviceSettings& settings) override
         {
         }

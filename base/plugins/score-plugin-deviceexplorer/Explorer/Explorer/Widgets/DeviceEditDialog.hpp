@@ -29,7 +29,6 @@ public:
   ~DeviceEditDialog();
 
   Device::DeviceSettings getSettings() const;
-  QString getPath() const;
 
   void setSettings(const Device::DeviceSettings& settings);
 

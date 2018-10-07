@@ -155,12 +155,6 @@ Device::DeviceSettings DeviceEditDialog::getSettings() const
   return settings;
 }
 
-QString DeviceEditDialog::getPath() const
-{
-  // TODO do this properly please
-  return m_protocolWidget->getPath();
-}
-
 void DeviceEditDialog::setSettings(const Device::DeviceSettings& settings)
 {
   const int index
