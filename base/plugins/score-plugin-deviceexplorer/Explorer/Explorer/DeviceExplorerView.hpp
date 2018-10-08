@@ -52,6 +52,9 @@ private:
   W_SLOT(columnVisibilityChanged);
 
 private:
+  void keyPressEvent(QKeyEvent*) override;
+  void mousePressEvent(QMouseEvent *event) override;
+
   QModelIndexList selectedDraggableIndexes() const;
   void startDrag(Qt::DropActions supportedActions) override;
   void rowsInserted(const QModelIndex& parent, int start, int end) override;

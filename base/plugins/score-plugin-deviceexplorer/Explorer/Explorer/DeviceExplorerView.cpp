@@ -5,14 +5,6 @@
 #include "DeviceExplorerFilterProxyModel.hpp"
 #include "DeviceExplorerModel.hpp"
 
-class QItemSelection;
-class QPoint;
-class QWidget;
-
-#ifdef MODEL_TEST
-#include "ModelTest/modeltest.h"
-#endif
-
 #include <QAbstractItemView>
 #include <QAbstractProxyModel>
 #include <QAction>
@@ -32,6 +24,7 @@ class QWidget;
 
 #include <iostream> //DEBUG
 W_REGISTER_ARGTYPE(QItemSelection)
+#include <QMouseEvent>
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Explorer::DeviceExplorerView)
 namespace
@@ -45,17 +38,12 @@ namespace Explorer
 DeviceExplorerView::DeviceExplorerView(QWidget* parent)
     : QTreeView(parent), m_hasProxy(false)
 {
-
   setAllColumnsShowFocus(true);
 
   setSelectionBehavior(QAbstractItemView::SelectRows);
   setSelectionMode(QAbstractItemView::ExtendedSelection);
-  // cf
-  // http://qt-project.org/doc/qt-5/QAbstractItemViewtml#SelectionBehavior-enum
 
-  header()->setContextMenuPolicy(
-      Qt::CustomContextMenu); // header will emit the signal
-  // customContextMenuRequested()
+  header()->setContextMenuPolicy(Qt::CustomContextMenu);
   connect(
       header(), &QWidget::customContextMenuRequested, this,
       &DeviceExplorerView::headerMenuRequested);
@@ -66,33 +54,12 @@ DeviceExplorerView::DeviceExplorerView(QWidget* parent)
   setAcceptDrops(true);
   setUniformRowHeights(true);
 
-  // setDragDropMode(QAbstractItemView::InternalMove); //The view accepts move
-  // (not copy) operations only from itself.
   setDragDropMode(QAbstractItemView::DragDrop);
-
   setDropIndicatorShown(true);
 
-  setDefaultDropAction(
-      Qt::MoveAction); // default DefaultDropAction is CopyAction
+  setDefaultDropAction(Qt::MoveAction);
 
   setDragDropOverwriteMode(false);
-
-  /*
-    - if setDragDropMode(QAbstractItemView::InternalMove); : it is impossible
-    to have copyAction in model::dropMimeData().
-         -- if model::supportedDragActions & supportedDropActions() return only
-    Copy, it is visually forbidden to drop (model::dropMimeData() is never
-    called)
-         -- if model::supportedDragActions & supportedDropActions() return
-    Move|Copy, Action in model::dropMimeData() will always be a Move.
-
-    - if setDragDropMode(QAbstractItemView::DragDrop); : we only have
-    copyAction in model::dropMimeData(). [even if model::supportedDragActions &
-    supportedDropActions() return Move|Copy ; even if
-    setDragDropOverwriteMode(false or true) ]
-         ==> setDefaultDropAction(Qt::MoveAction); is needed to have CopyAction
-
-   */
 
   QFile f(":/DeviceExplorer.qss");
   if (f.open(QFile::ReadOnly))
@@ -158,11 +125,6 @@ void DeviceExplorerView::setModel(QAbstractItemModel* model)
 {
   m_hasProxy = false;
   QTreeView::setModel(model);
-#ifdef MODEL_TEST
-  qDebug() << "*** ADD MODEL_TEST\n";
-  (void)new ModelTest(model, this);
-#endif
-
   // TODO review the save/restore system
   if (model)
   {
@@ -177,10 +139,6 @@ void DeviceExplorerView::setModel(DeviceExplorerFilterProxyModel* model)
 {
   QTreeView::setModel(static_cast<QAbstractItemModel*>(model));
   m_hasProxy = true;
-#ifdef MODEL_TEST
-  qDebug() << "*** ADD MODEL_TEST\n";
-  (void)new ModelTest(model->sourceModel(), this);
-#endif
 
   if (model)
   {
@@ -256,6 +214,28 @@ void DeviceExplorerView::columnVisibilityChanged(bool shown)
   setColumnHidden(ind, !shown);
 }
 
+void DeviceExplorerView::keyPressEvent(QKeyEvent* k)
+{
+  if(k->key() == Qt::Key_Escape)
+  {
+    clearSelection();
+    k->accept();
+  }
+  else
+  {
+    QTreeView::keyPressEvent(k);
+  }
+}
+
+void DeviceExplorerView::mousePressEvent(QMouseEvent* event)
+{
+  QModelIndex item = indexAt(event->pos());
+  bool selected = selectionModel()->isSelected(item);
+  QTreeView::mousePressEvent(event);
+  if (selected)
+    selectionModel()->select(item, QItemSelectionModel::Deselect);
+}
+
 void DeviceExplorerView::rowsInserted(
     const QModelIndex& parent, int start, int end)
 {
@@ -280,30 +260,6 @@ void DeviceExplorerView::selectionChanged(
     const QItemSelection& selected, const QItemSelection& deselected)
 {
   QTreeView::selectionChanged(selected, deselected);
-
-  /*
-  {//DEBUG
-
-    QModelIndexList l = selectedIndexes();
-    QModelIndexList l0;
-    Q_FOREACH (const QModelIndex &index, l) {
-    if (index.column() == (int)Explorer::Column::Name) {
-
-      if (!index.isValid())
-        std::cerr<<" !!! invalid index in selection !!!\n";
-
-      if (! m_hasProxy)
-  l0.append(index);
-      else
-  l0.append(static_cast<const QAbstractProxyModel
-  *>(QTreeView::model())->mapToSource(index));
-    }
-  }
-    model()->debug_printIndexes(l0);
-
-  }
-  */
-
   selectionChanged();
 }
 
@@ -327,12 +283,7 @@ QModelIndexList DeviceExplorerView::selectedIndexes() const
         std::cerr << " !!! invalid index in selection !!!\n";
       }
 
-      // if (! m_hasProxy)
       l0.append(index);
-      // else
-      //    l0.append(static_cast<const QAbstractProxyModel
-      //    *>(QTreeView::model())->mapToSource(index));
-
       // REM: we append index in ProxyModel if m_hasProxy
       // it is necesary because drag'n drop will automatically call
       // selectedIndexes() & mapToSource().
