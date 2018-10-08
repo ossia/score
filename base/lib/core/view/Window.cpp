@@ -11,6 +11,7 @@
 #include <core/document/DocumentView.hpp>
 #include <core/presenter/Presenter.hpp>
 #include <core/view/Window.hpp>
+#include <QApplication>
 
 #include <ossia/detail/algorithms.hpp>
 
@@ -28,7 +29,6 @@
 #include <qcoreevent.h>
 #include <qnamespace.h>
 
-#include <score_git_info.hpp>
 #include <wobjectimpl.h>
 
 #include <algorithm>
@@ -54,13 +54,7 @@ View::View(QObject* parent) : QMainWindow{}, m_tabWidget{new QTabWidget}
 {
   setObjectName("View");
   this->setWindowIcon(QIcon("://ossia-score.png"));
-
-  QString version = QString{"%1.%2.%3-%4"}
-                        .arg(SCORE_VERSION_MAJOR)
-                        .arg(SCORE_VERSION_MINOR)
-                        .arg(SCORE_VERSION_PATCH)
-                        .arg(SCORE_VERSION_EXTRA);
-  auto title = tr("score - %1").arg(version);
+  auto title = tr("score - %1").arg(qApp->applicationVersion());
   this->setWindowIconText(title);
   this->setWindowTitle(title);
   m_tabWidget->setObjectName("Documents");

@@ -17,8 +17,6 @@
 #include <QMessageBox>
 #include <QUrl>
 
-#include <score_git_info.hpp>
-
 SCORE_DECLARE_ACTION(
     Documentation, "&Documentation", Common, QKeySequence::UnknownKey)
 SCORE_DECLARE_ACTION(

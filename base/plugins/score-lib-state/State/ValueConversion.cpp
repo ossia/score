@@ -492,7 +492,7 @@ QString value(const ossia::value& val)
 template <std::size_t N>
 auto string_to_vec(std::string_view s0)
 {
-  std::array<float, N> o;
+  std::array<float, N> o{};
   if (!s0.empty() && s0.front() == '[')
     s0.remove_prefix(1);
   if (!s0.empty() && s0.back() == ']')
@@ -512,7 +512,10 @@ auto string_to_vec(std::string_view s0)
     if (auto trim_pos = f.find(' '); trim_pos != f.npos)
       f.remove_suffix(f.size() - trim_pos);
 
-    o[i++] = boost::lexical_cast<float>(f);
+    if(!boost::conversion::detail::try_lexical_convert(f, o[i]))
+      o[i] = 0.f;
+
+    i++;
     if (i >= N)
       break;
   }
