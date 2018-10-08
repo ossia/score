@@ -61,6 +61,7 @@ struct StringConstants
   const QString Color;
   const QString Label;
   const QString Extended;
+  const QString Touched;
   const QString uuid;
   const QString Description;
   const QString Components;

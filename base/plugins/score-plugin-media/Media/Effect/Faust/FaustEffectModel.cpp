@@ -190,7 +190,7 @@ void FaustEffectModel::reload()
         auto e = lines[i].indexOf('"', s + 1);
         if (e > s)
         {
-          m_declareName = "Faust: " + lines[i].mid(s + 1, e - s - 1);
+          m_declareName = lines[i].mid(s + 1, e - s - 1);
           prettyNameChanged();
         }
       }

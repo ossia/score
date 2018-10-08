@@ -61,6 +61,7 @@ SCORE_LIB_BASE_EXPORT const StringConstants& StringConstant()
                                        QStringLiteral("Color"),
                                        QStringLiteral("Label"),
                                        QStringLiteral("Extended"),
+                                       QStringLiteral("Touched"),
                                        QStringLiteral("uuid"),
                                        QStringLiteral("Description"),
                                        QStringLiteral("Components"),

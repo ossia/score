@@ -19,32 +19,37 @@ ModelMetadata::ModelMetadata()
   m_color = &score::Skin::Base1;
 }
 
-const QString& ModelMetadata::getName() const
+const QString& ModelMetadata::getName() const noexcept
 {
   return m_scriptingName;
 }
 
-const QString& ModelMetadata::getComment() const
+const QString& ModelMetadata::getComment() const noexcept
 {
   return m_comment;
 }
 
-ColorRef ModelMetadata::getColor() const
+ColorRef ModelMetadata::getColor() const noexcept
 {
   return m_color;
 }
 
-const QString& ModelMetadata::getLabel() const
+const QString& ModelMetadata::getLabel() const noexcept
 {
   return m_label;
 }
 
-const QVariantMap& ModelMetadata::getExtendedMetadata() const
+const QVariantMap& ModelMetadata::getExtendedMetadata() const noexcept
 {
   return m_extendedMetadata;
 }
 
-void ModelMetadata::setName(const QString& arg)
+bool ModelMetadata::touchedName() const noexcept
+{
+  return m_touchedName;
+}
+
+void ModelMetadata::setName(const QString& arg) noexcept
 {
   if (m_scriptingName == arg)
   {
@@ -103,11 +108,12 @@ void ModelMetadata::setName(const QString& arg)
     ossia::net::sanitize_name(m_scriptingName);
   }
 
+  m_touchedName = true;
   NameChanged(m_scriptingName);
   metadataChanged();
 }
 
-void ModelMetadata::setComment(const QString& arg)
+void ModelMetadata::setComment(const QString& arg) noexcept
 {
   if (m_comment == arg)
   {
@@ -119,7 +125,7 @@ void ModelMetadata::setComment(const QString& arg)
   metadataChanged();
 }
 
-void ModelMetadata::setColor(ColorRef arg)
+void ModelMetadata::setColor(ColorRef arg) noexcept
 {
   if (m_color == arg)
   {
@@ -131,7 +137,7 @@ void ModelMetadata::setColor(ColorRef arg)
   metadataChanged();
 }
 
-void ModelMetadata::setLabel(const QString& arg)
+void ModelMetadata::setLabel(const QString& arg) noexcept
 {
   if (m_label == arg)
   {
@@ -143,7 +149,7 @@ void ModelMetadata::setLabel(const QString& arg)
   metadataChanged();
 }
 
-void ModelMetadata::setExtendedMetadata(const QVariantMap& arg)
+void ModelMetadata::setExtendedMetadata(const QVariantMap& arg) noexcept
 {
   if (m_extendedMetadata == arg)
   {
@@ -179,7 +185,7 @@ SCORE_LIB_BASE_EXPORT void
 DataStreamReader::read(const score::ModelMetadata& md)
 {
   m_stream << md.m_scriptingName << md.m_comment << md.m_color << md.m_label
-           << md.m_extendedMetadata;
+           << md.m_extendedMetadata << md.m_touchedName;
 
   insertDelimiter();
 }
@@ -188,7 +194,7 @@ template <>
 SCORE_LIB_BASE_EXPORT void DataStreamWriter::write(score::ModelMetadata& md)
 {
   m_stream >> md.m_scriptingName >> md.m_comment >> md.m_color >> md.m_label
-      >> md.m_extendedMetadata;
+      >> md.m_extendedMetadata >> md.m_touchedName;
 
   checkDelimiter();
 }
@@ -201,6 +207,7 @@ JSONObjectReader::read(const score::ModelMetadata& md)
   obj[strings.Comment] = md.m_comment;
   obj[strings.Color] = md.m_color.name();
   obj[strings.Label] = md.m_label;
+  obj[strings.Touched] = md.m_touchedName;
   if (!md.m_extendedMetadata.empty())
   {
     obj.insert(
@@ -251,4 +258,6 @@ SCORE_LIB_BASE_EXPORT void JSONObjectWriter::write(score::ModelMetadata& md)
       md.m_extendedMetadata = it->toObject().toVariantMap();
     }
   }
+
+  md.m_touchedName = obj[strings.Touched].toBool();
 }
