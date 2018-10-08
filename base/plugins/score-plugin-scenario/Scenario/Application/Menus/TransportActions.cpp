@@ -94,22 +94,22 @@ TransportActions::TransportActions(const score::GUIApplicationContext& context)
                         // false for "play" state (i.e. currently paused)
     setIcons(
         m_play,
-        b ? QStringLiteral(":/icons/pause_on.png")
+        b ? QStringLiteral(":/icons/play_on.png")
           : QStringLiteral(":/icons/play_on.png"),
-        b ? QStringLiteral(":/icons/pause_off.png")
+        b ? QStringLiteral(":/icons/play_off.png")
           : QStringLiteral(":/icons/play_off.png"),
-        b ? QStringLiteral(":/icons/pause_disabled.png")
+        b ? QStringLiteral(":/icons/play_disabled.png")
           : QStringLiteral(":/icons/play_disabled.png"));
 
     m_playGlobal->setText(b ? tr("Pause") : tr("Play (global)"));
     m_playGlobal->setData(b);
     setIcons(
         m_playGlobal,
-        b ? QStringLiteral(":/icons/pause_on.png")
+        b ? QStringLiteral(":/icons/play_glob_on.png")
           : QStringLiteral(":/icons/play_glob_on.png"),
-        b ? QStringLiteral(":/icons/pause_off.png")
+        b ? QStringLiteral(":/icons/play_glob_off.png")
           : QStringLiteral(":/icons/play_glob_off.png"),
-        b ? QStringLiteral(":/icons/pause_disabled.png")
+        b ? QStringLiteral(":/icons/play_glob_disabled.png")
           : QStringLiteral(":/icons/play_glob_disabled.png"));
   };
   connect(m_play, &QAction::toggled, this, [=](bool b) {
