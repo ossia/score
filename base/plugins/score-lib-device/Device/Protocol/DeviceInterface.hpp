@@ -83,7 +83,7 @@ public:
   std::vector<State::Address> listening() const;
 
   virtual void addAddress(const Device::FullAddressSettings&);
-  void updateAddress(
+  virtual void updateAddress(
       const State::Address& currentAddr,
       const Device::FullAddressSettings& newAddr);
   void removeNode(const State::Address&);
@@ -186,6 +186,9 @@ protected:
   std::unique_ptr<ossia::net::device_base> m_dev;
   bool m_owned{true};
 };
+
+SCORE_LIB_DEVICE_EXPORT ossia::net::node_base*
+getNodeFromPath(const QStringList& path, ossia::net::device_base& dev);
 
 SCORE_LIB_DEVICE_EXPORT ossia::net::node_base*
 createNodeFromPath(const QStringList& path, ossia::net::device_base& dev);
