@@ -63,7 +63,7 @@ DocumentPlugin::DocumentPlugin(
     ctx.plugin<Explorer::DeviceDocumentPlugin>().list().setAudioDevice(audio_device);
   }
 
-  con(devs.list(), &Device::DeviceList::deviceAdded, this, [=](auto& dev) {
+  auto on_deviceAdded = [=](auto& dev) {
     if (auto d = dev.getDevice())
     {
       connect(
@@ -77,7 +77,10 @@ DocumentPlugin::DocumentPlugin(
           });
       registerDevice(d);
     }
-  });
+  };
+
+  devs.list().apply(on_deviceAdded);
+  con(devs.list(), &Device::DeviceList::deviceAdded, this, on_deviceAdded);
   con(devs.list(), &Device::DeviceList::deviceRemoved, this, [=](auto& dev) {
     if (auto d = dev.getDevice())
       unregisterDevice(d);
