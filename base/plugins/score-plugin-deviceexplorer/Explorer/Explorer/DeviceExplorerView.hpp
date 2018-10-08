@@ -53,7 +53,6 @@ private:
 
 private:
   void keyPressEvent(QKeyEvent*) override;
-  void mousePressEvent(QMouseEvent *event) override;
 
   QModelIndexList selectedDraggableIndexes() const;
   void startDrag(Qt::DropActions supportedActions) override;

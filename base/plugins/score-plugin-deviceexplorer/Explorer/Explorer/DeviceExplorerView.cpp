@@ -227,15 +227,6 @@ void DeviceExplorerView::keyPressEvent(QKeyEvent* k)
   }
 }
 
-void DeviceExplorerView::mousePressEvent(QMouseEvent* event)
-{
-  QModelIndex item = indexAt(event->pos());
-  bool selected = selectionModel()->isSelected(item);
-  QTreeView::mousePressEvent(event);
-  if (selected)
-    selectionModel()->select(item, QItemSelectionModel::Deselect);
-}
-
 void DeviceExplorerView::rowsInserted(
     const QModelIndex& parent, int start, int end)
 {
