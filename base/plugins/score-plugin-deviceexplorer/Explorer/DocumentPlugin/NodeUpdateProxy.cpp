@@ -57,8 +57,6 @@ void NodeUpdateProxy::updateDevice(
 
 void NodeUpdateProxy::removeDevice(const Device::DeviceSettings& dev)
 {
-  devModel.list().removeDevice(dev.name);
-
   const auto& rootNode = devModel.rootNode();
   auto it = ossia::find_if(rootNode, [&](const Device::Node& val) {
     return val.is<Device::DeviceSettings>()
@@ -66,6 +64,8 @@ void NodeUpdateProxy::removeDevice(const Device::DeviceSettings& dev)
   });
   SCORE_ASSERT(it != rootNode.end());
   devModel.explorer().removeNode(it);
+
+  devModel.list().removeDevice(dev.name);
 }
 
 void NodeUpdateProxy::addAddress(
