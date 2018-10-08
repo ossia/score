@@ -8,6 +8,7 @@
 #include <score/widgets/SignalUtils.hpp>
 
 #include <ossia/audio/audio_parameter.hpp>
+#include <ossia-qt/js_utilities.hpp>
 #include <ossia/network/generic/generic_device.hpp>
 #include <ossia/network/generic/generic_parameter.hpp>
 
@@ -58,44 +59,27 @@ void AudioDevice::addAddress(const Device::FullAddressSettings& settings)
     ossia::net::node_base* node
         = Device::createNodeFromPath(settings.address.path, *dev);
     SCORE_ASSERT(node);
+    setupNode(*node, settings.extendedAttributes);
+  }
+}
 
-    auto kind_it = settings.extendedAttributes.find("audio-kind");
-    if (kind_it == settings.extendedAttributes.end())
-      return; // it will be added automatically
-    auto kind = ossia::any_cast<std::string>(kind_it.value());
-    if (kind == "in")
+void AudioDevice::updateAddress(
+      const State::Address& currentAddr
+      , const Device::FullAddressSettings& settings)
+{
+  if (auto dev = getDevice())
+  {
+    if(auto node = Device::getNodeFromPath(currentAddr.path, *dev))
     {
-      auto chans = ossia::any_cast<ossia::audio_mapping>(
-          settings.extendedAttributes.at("audio-mapping"));
-      if (!node->get_parameter())
-        node->set_parameter(std::make_unique<ossia::mapped_audio_parameter>(
-            false, chans, *node));
+      setupNode(*node, settings.extendedAttributes);
 
-      // TODO update
+      auto newName = settings.address.path.last();
+      if (!latin_compare(newName, node->get_name()))
+      {
+        renameListening_impl(currentAddr, newName);
+        node->set_name(newName.toStdString());
+      }
     }
-    else if (kind == "out")
-    {
-      auto chans = ossia::any_cast<ossia::audio_mapping>(
-          settings.extendedAttributes.at("audio-mapping"));
-      if (!node->get_parameter())
-        node->set_parameter(std::make_unique<ossia::mapped_audio_parameter>(
-            true, chans, *node));
-    }
-    else if (kind == "virtual")
-    {
-      auto chans = ossia::any_cast<int>(
-          settings.extendedAttributes.at("audio-channels"));
-      if (!node->get_parameter())
-        node->set_parameter(
-            std::make_unique<ossia::virtual_audio_parameter>(chans, *node));
-    }
-
-    auto x = node->get_extended_attributes();
-    for(auto& e : settings.extendedAttributes)
-    {
-      x[e.first] = e.second;
-    }
-    node->set_extended_attributes(x);
   }
 }
 
@@ -140,6 +124,48 @@ void AudioDevice::recreate(const Device::Node& n)
   {
     addNode(child);
   }
+}
+
+void AudioDevice::setupNode(ossia::net::node_base& node, const ossia::extended_attributes& attr)
+{
+  auto kind_it = attr.find("audio-kind");
+  if (kind_it == attr.end())
+    return; // it will be added automatically
+
+  auto kind = ossia::any_cast<std::string>(kind_it.value());
+  if (kind == "in")
+  {
+    auto chans = ossia::any_cast<ossia::audio_mapping>(
+        attr.at("audio-mapping"));
+    if (!node.get_parameter())
+      node.set_parameter(std::make_unique<ossia::mapped_audio_parameter>(
+          false, chans, node));
+
+    // TODO update
+  }
+  else if (kind == "out")
+  {
+    auto chans = ossia::any_cast<ossia::audio_mapping>(
+        attr.at("audio-mapping"));
+    if (!node.get_parameter())
+      node.set_parameter(std::make_unique<ossia::mapped_audio_parameter>(
+          true, chans, node));
+  }
+  else if (kind == "virtual")
+  {
+    auto chans = ossia::any_cast<int>(
+        attr.at("audio-channels"));
+    if (!node.get_parameter())
+      node.set_parameter(
+          std::make_unique<ossia::virtual_audio_parameter>(chans, node));
+  }
+
+  auto x = node.get_extended_attributes();
+  for(auto& e : attr)
+  {
+    x[e.first] = e.second;
+  }
+  node.set_extended_attributes(x);
 }
 
 Device::Node AudioDevice::refresh()

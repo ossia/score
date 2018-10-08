@@ -47,6 +47,10 @@ public:
   ~AudioDevice();
 
   void addAddress(const Device::FullAddressSettings& settings) override;
+
+  void updateAddress(
+      const State::Address& currentAddr,
+      const Device::FullAddressSettings& settings) override;
   bool reconnect() override;
   void recreate(const Device::Node& n) override;
   ossia::net::device_base* getDevice() const override
@@ -56,6 +60,7 @@ public:
 
 private:
   using Device::DeviceInterface::refresh;
+  void setupNode(ossia::net::node_base&, const ossia::extended_attributes& attr);
   Device::Node refresh() override;
   void disconnect() override;
   ossia::audio_protocol* m_protocol{};

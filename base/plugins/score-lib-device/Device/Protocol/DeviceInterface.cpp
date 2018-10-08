@@ -45,7 +45,7 @@ static State::Address ToAddress(const ossia::net::node_base& node)
   return addr;
 }
 
-static ossia::net::node_base*
+ossia::net::node_base*
 getNodeFromPath(const QStringList& path, ossia::net::device_base& dev)
 {
   using namespace ossia;
@@ -408,41 +408,42 @@ void DeviceInterface::updateAddress(
 {
   if (auto dev = getDevice())
   {
-    ossia::net::node_base* node = getNodeFromPath(currentAddr.path, *dev);
-    bool is_listening = m_callbacks.find(currentAddr) != m_callbacks.end();
-
-    if (!settings.value.valid())
+    if(auto node = getNodeFromPath(currentAddr.path, *dev))
     {
-      if (is_listening)
+      bool is_listening = m_callbacks.find(currentAddr) != m_callbacks.end();
+
+      if (!settings.value.valid())
       {
-        // Remove callbacks
-        auto it = m_callbacks.find(currentAddr);
-        if (it != m_callbacks.end())
+        if (is_listening)
         {
-          it->second.first->remove_callback(it->second.second);
-          m_callbacks.erase(it);
+          // Remove callbacks
+          auto it = m_callbacks.find(currentAddr);
+          if (it != m_callbacks.end())
+          {
+            it->second.first->remove_callback(it->second.second);
+            m_callbacks.erase(it);
+          }
+
+          is_listening = false;
         }
 
-        is_listening = false;
+        // Remove param
+        node->remove_parameter();
+      }
+      else
+      {
+        if (auto p = node->get_parameter())
+          updateOSSIAAddress(settings, *p);
+        else
+          createOSSIAAddress(settings, *node);
       }
 
-      // Remove param
-      node->remove_parameter();
-    }
-    else
-    {
-      auto currentAddr = node->get_parameter();
-      if (currentAddr)
-        updateOSSIAAddress(settings, *currentAddr);
-      else
-        createOSSIAAddress(settings, *node);
-    }
-
-    auto newName = settings.address.path.last();
-    if (!latin_compare(newName, node->get_name()))
-    {
-      renameListening_impl(currentAddr, newName);
-      node->set_name(newName.toStdString());
+      auto newName = settings.address.path.last();
+      if (!latin_compare(newName, node->get_name()))
+      {
+        renameListening_impl(currentAddr, newName);
+        node->set_name(newName.toStdString());
+      }
     }
   }
 }
