@@ -45,58 +45,45 @@ endfunction()
 # Usage:
 #   bin2h(SOURCE_FILE "Logo.png" HEADER_FILE "Logo.h" VARIABLE_NAME "LOGO_PNG")
 function(BIN2H)
-    set(options APPEND NULL_TERMINATE)
-    set(oneValueArgs SOURCE_FILE VARIABLE_NAME HEADER_FILE)
-    cmake_parse_arguments(BIN2H "${options}" "${oneValueArgs}" "" ${ARGN})
+  set(options APPEND NULL_TERMINATE)
+  set(oneValueArgs SOURCE_FILE VARIABLE_NAME HEADER_FILE)
+  cmake_parse_arguments(BIN2H "${options}" "${oneValueArgs}" "" ${ARGN})
 
-    # reads source file contents as hex string
-    file(READ ${BIN2H_SOURCE_FILE} hexString HEX)
-    string(LENGTH ${hexString} hexStringLength)
+  # reads source file contents as hex string
+  file(READ ${BIN2H_SOURCE_FILE} hexString HEX)
+  string(LENGTH ${hexString} hexStringLength)
 
-    # appends null byte if asked
-    if(BIN2H_NULL_TERMINATE)
-        set(hexString "${hexString}00")
-    endif()
+  # appends null byte if asked
+  if(BIN2H_NULL_TERMINATE)
+      set(hexString "${hexString}00")
+  endif()
 
-    # wraps the hex string into multiple lines at column 32(i.e. 16 bytes per line)
-    wrap_string(VARIABLE hexString AT_COLUMN 32)
-    math(EXPR arraySize "${hexStringLength} / 2")
+  # wraps the hex string into multiple lines at column 32(i.e. 16 bytes per line)
+  wrap_string(VARIABLE hexString AT_COLUMN 32)
+  math(EXPR arraySize "${hexStringLength} / 2")
 
-    # adds '0x' prefix and comma suffix before and after every byte respectively
-    string(REGEX REPLACE "([0-9a-f][0-9a-f])" "0x\\1, " arrayValues ${hexString})
-    # removes trailing comma
-    string(REGEX REPLACE ", $" "" arrayValues ${arrayValues})
+  # adds '0x' prefix and comma suffix before and after every byte respectively
+  string(REGEX REPLACE "([0-9a-f][0-9a-f])" "0x\\1, " arrayValues ${hexString})
+  # removes trailing comma
+  string(REGEX REPLACE ", $" "" arrayValues ${arrayValues})
 
-    # converts the variable name into proper C identifier
-    string(MAKE_C_IDENTIFIER "${BIN2H_VARIABLE_NAME}" BIN2H_VARIABLE_NAME)
-    #string(TOUPPER "${BIN2H_VARIABLE_NAME}" BIN2H_VARIABLE_NAME)
+  # converts the variable name into proper C identifier
+  string(MAKE_C_IDENTIFIER "${BIN2H_VARIABLE_NAME}" BIN2H_VARIABLE_NAME)
 
-    # declares byte array and the length variables
-    set(arrayDefinition "const unsigned char ${BIN2H_VARIABLE_NAME}[] = { ${arrayValues} };")
-    set(arraySizeDefinition "const size_t ${BIN2H_VARIABLE_NAME}_SIZE = ${arraySize};")
+  # declares byte array and the length variables
+  set(arrayDefinition "const unsigned char ${BIN2H_VARIABLE_NAME}[] = { ${arrayValues} }\;")
+  set(arraySizeDefinition "const size_t ${BIN2H_VARIABLE_NAME}_SIZE = ${arraySize}\;")
 
-    set(declarations "${arrayDefinition}\n\n${arraySizeDefinition}\n\n")
+  set(declarations "${arrayDefinition}\n\n${arraySizeDefinition}\n\n")
 
-    if(BIN2H_APPEND)
-        file(APPEND ${BIN2H_HEADER_FILE} "${declarations}")
-    else()
-        file(WRITE ${BIN2H_HEADER_FILE} "${declarations}")
-    endif()
-
+  set("${BIN2H_HEADER_FILE}" "${${BIN2H_HEADER_FILE}}\n${declarations}" PARENT_SCOPE)
 endfunction()
 
-function(AddLicenseFile _text _name _file)
-
-  bin2h(SOURCE_FILE "${_file}" HEADER_FILE "${CMAKE_BINARY_DIR}/score_licenses.hpp" VARIABLE_NAME "${_name}_LICENSE" APPEND NULL_TERMINATE)
-  # file(READ "${_file}" _fileText)
-  # set(txt "\n\nstatic const char ${_name}_LICENSE[] = { ")
-  #
-  # foreach(char ${_fileText})
-  #
-  # endforeach()
-  # set(txt "${txt} };")
-  # set("${_text}" "${${_text}}\n\nstatic const char ${_name}_LICENSE[] = { QStringLiteral(R\"___(${_fileText})___\")\;" PARENT_SCOPE)
-endfunction()
-
-function(AddLicenseStub _text _name _file _startLine _endLine)
-endfunction()
+macro(AddLicenseFile _text _name _file)
+  bin2h(
+    SOURCE_FILE "${_file}"
+    HEADER_FILE "${_text}"
+    VARIABLE_NAME "${_name}_LICENSE"
+    APPEND
+    NULL_TERMINATE)
+endmacro()
