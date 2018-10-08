@@ -1,4 +1,5 @@
 #pragma once
+#include <score/tools/std/Invoke.hpp>
 #include <Media/Effect/DefaultEffectItem.hpp>
 #include <Media/Effect/VST/VSTLoader.hpp>
 #include <Process/Dataflow/PortFactory.hpp>
@@ -59,7 +60,7 @@ struct AEffectWrapper
     {
       fx->dispatcher(fx, effStopProcess, 0, 0, nullptr, 0.f);
       fx->dispatcher(fx, effMainsChanged, 0, 0, nullptr, 0.f);
-      QTimer::singleShot(0, [fx=fx] {
+      score::invoke([fx=fx] {
         fx->dispatcher(fx, effClose, 0, 0, nullptr, 0.f);
       });
     }
