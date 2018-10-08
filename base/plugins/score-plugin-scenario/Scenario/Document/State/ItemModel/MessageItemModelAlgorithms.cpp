@@ -425,7 +425,7 @@ void updateTreeWithMessageList(
   // Handle the remaining messages
   for (const auto& mess : lst)
   {
-    merge_impl(rootNode, mess.address, [&](auto& nodeValues) {
+    merge_impl(rootNode, mess.address, [&](Process::StateNodeValues& nodeValues) {
       switch (pos)
       {
         case ProcessPosition::Previous:
