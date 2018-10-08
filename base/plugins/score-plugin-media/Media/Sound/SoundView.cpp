@@ -1,6 +1,7 @@
 #include "SoundView.hpp"
 
 #include <score/graphics/GraphicsItem.hpp>
+#include <score/tools/std/Invoke.hpp>
 
 #include <ossia/detail/pod_vector.hpp>
 
@@ -380,13 +381,13 @@ void WaveformComputer::on_recompute(
       m_prevdensity = m_density;
       m_density = m_nextdensity;
 
-      QTimer::singleShot(0, [this, data_qp, ratio, density] {
-        if (!data_qp)
+     score::invoke([p=QPointer{this}, data_qp, ratio, density] {
+       if (!data_qp || !p)
           return;
         if (density > 1)
-          computeDataSet(*data_qp, ratio / 2., &m_nextdensity, m_nextdata);
+          p->computeDataSet(*data_qp, ratio / 2., &p->m_nextdensity, p->m_nextdata);
         else
-          m_nextdata = m_curdata;
+          p->m_nextdata = p->m_curdata;
       });
       break;
     case USE_PREV:
@@ -394,19 +395,19 @@ void WaveformComputer::on_recompute(
       std::swap(m_curdata, m_prevdata);
       m_nextdensity = m_density;
       m_density = m_prevdensity;
-      QTimer::singleShot(0, [this, data_qp, ratio] {
-        if (!data_qp)
+      score::invoke([p=QPointer{this}, data_qp, ratio] {
+        if (!data_qp || !p)
           return;
-        computeDataSet(*data_qp, 2. * ratio, &m_prevdensity, m_prevdata);
+        p->computeDataSet(*data_qp, 2. * ratio, &p->m_prevdensity, p->m_prevdata);
       });
       break;
     case RECOMPUTE_ALL:
       computeDataSet(data, ratio, &m_density, m_curdata);
-      QTimer::singleShot(0, [this, data_qp, ratio] {
-        if (!data_qp)
+      score::invoke([p=QPointer{this}, data_qp, ratio] {
+        if (!data_qp || !p)
           return;
-        computeDataSet(*data_qp, 2. * ratio, &m_prevdensity, m_prevdata);
-        computeDataSet(*data_qp, ratio / 2., &m_nextdensity, m_nextdata);
+        p->computeDataSet(*data_qp, 2. * ratio, &p->m_prevdensity, p->m_prevdata);
+        p->computeDataSet(*data_qp, ratio / 2., &p->m_nextdensity, p->m_nextdata);
       });
       break;
     default:
