@@ -24,25 +24,28 @@ class SCORE_LIB_BASE_EXPORT ModelMetadata : public QObject
 public:
   ModelMetadata();
 
-  const QString& getName() const;
-  const QString& getComment() const;
-  ColorRef getColor() const;
-  const QString& getLabel() const;
-  const QVariantMap& getExtendedMetadata() const;
+  const QString& getName() const noexcept;
+  const QString& getComment() const noexcept;
+  ColorRef getColor() const noexcept;
+  const QString& getLabel() const noexcept;
+  const QVariantMap& getExtendedMetadata() const noexcept;
 
   template <typename T>
-  void setInstanceName(const T& t)
+  void setInstanceName(const T& t) noexcept
   {
     setName(QString("%1.%2")
                 .arg(Metadata<PrettyName_k, T>::get())
                 .arg(t.id().val()));
+    m_touchedName = false;
   }
 
-  void setName(const QString&);
-  void setComment(const QString&);
-  void setColor(ColorRef);
-  void setLabel(const QString&);
-  void setExtendedMetadata(const QVariantMap&);
+
+  bool touchedName() const noexcept;
+  void setName(const QString&) noexcept;
+  void setComment(const QString&) noexcept;
+  void setColor(ColorRef) noexcept;
+  void setLabel(const QString&) noexcept;
+  void setExtendedMetadata(const QVariantMap&) noexcept;
 
   void NameChanged(const QString& arg)
       E_SIGNAL(SCORE_LIB_BASE_EXPORT, NameChanged, arg);
@@ -56,21 +59,11 @@ public:
       E_SIGNAL(SCORE_LIB_BASE_EXPORT, ExtendedMetadataChanged, arg);
   void metadataChanged() E_SIGNAL(SCORE_LIB_BASE_EXPORT, metadataChanged);
 
-  PROPERTY(
-      QString, name READ getName WRITE setName NOTIFY NameChanged, W_Final)
-  PROPERTY(
-      QString, comment READ getComment WRITE setComment NOTIFY CommentChanged,
-      W_Final)
-  PROPERTY(
-      ColorRef, color READ getColor WRITE setColor NOTIFY ColorChanged,
-      W_Final)
-  PROPERTY(
-      QString, label READ getLabel WRITE setLabel NOTIFY LabelChanged, W_Final)
-  PROPERTY(
-      QVariantMap,
-      extendedMetadata READ getExtendedMetadata WRITE setExtendedMetadata
-          NOTIFY ExtendedMetadataChanged,
-      W_Final)
+  PROPERTY(QString, name READ getName WRITE setName NOTIFY NameChanged)
+  PROPERTY(QString, comment READ getComment WRITE setComment NOTIFY CommentChanged)
+  PROPERTY(ColorRef, color READ getColor WRITE setColor NOTIFY ColorChanged)
+  PROPERTY(QString, label READ getLabel WRITE setLabel NOTIFY LabelChanged)
+  PROPERTY(QVariantMap, extendedMetadata READ getExtendedMetadata WRITE setExtendedMetadata NOTIFY ExtendedMetadataChanged)
 
 private:
   QString m_scriptingName;
@@ -78,6 +71,7 @@ private:
   ColorRef m_color;
   QString m_label;
   QVariantMap m_extendedMetadata;
+  bool m_touchedName{};
 };
 }
 Q_DECLARE_METATYPE(score::ModelMetadata*)

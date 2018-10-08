@@ -498,16 +498,17 @@ QVariant ObjectItemModel::data(const QModelIndex& index, int role) const
       }
       else if (auto stp = qobject_cast<Process::ProcessModel*>(sel))
       {
+        if(stp->metadata().touchedName())
+          return stp->metadata().getName();
+
         auto name = stp->prettyName();
         if (name.isEmpty())
           name = stp->prettyShortName();
-        return name;
-      }
-      else if (auto p = qobject_cast<Process::ProcessModel*>(sel))
-      {
-        auto name = p->prettyName();
         if (name.isEmpty())
-          name = p->prettyShortName();
+          name = stp->metadata().getName();
+        if (name.isEmpty())
+          name = "Process";
+
         return name;
       }
     }
