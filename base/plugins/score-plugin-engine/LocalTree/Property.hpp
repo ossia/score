@@ -4,7 +4,7 @@
 
 #include <LocalTree/BaseCallbackWrapper.hpp>
 #include <LocalTree/TypeConversion.hpp>
-
+#include <score/tools/std/Invoke.hpp>
 #include <ossia/network/base/node.hpp>
 #include <QTimer>
 namespace LocalTree
@@ -26,7 +26,7 @@ struct PropertyWrapper final : public BaseCallbackWrapper
       : BaseCallbackWrapper{param_addr}, m_model{obj}
   {
     callbackIt = addr.add_callback([=,m=QPointer<model_t>{&m_model}](const ossia::value& v) {
-        QTimer::singleShot(0, [m, v] {
+        score::invoke([m, v] {
           if(m) ((*m).*Property::set())(::State::convert::value<param_t>(v));
       });
     });

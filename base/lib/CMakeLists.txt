@@ -178,6 +178,7 @@ set(HEADERS
     "${CMAKE_CURRENT_SOURCE_DIR}/score/tools/std/HashMap.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/tools/std/HashMapSerialization.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/tools/std/IndirectContainer.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/score/tools/std/Invoke.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/tools/std/Optional.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/tools/std/OwningVector.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/tools/std/Pointer.hpp"

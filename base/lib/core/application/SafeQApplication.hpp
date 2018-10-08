@@ -130,9 +130,7 @@ public:
   }
 #endif
 
-#ifdef __APPLE__
   bool event(QEvent* ev) override;
-#endif
 
   void fileOpened(const QString& opened)
       E_SIGNAL(SCORE_LIB_BASE_EXPORT, fileOpened, opened)
