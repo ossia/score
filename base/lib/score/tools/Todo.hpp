@@ -8,7 +8,7 @@
 #include <stdexcept>
 
 #ifdef _WIN32
-#include <Windows.h>
+#include <windows.h>
 #define DEBUG_BREAK DebugBreak()
 #else
 #include <csignal>
