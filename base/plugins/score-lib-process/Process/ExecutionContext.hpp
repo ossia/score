@@ -48,7 +48,7 @@ class Model;
 using time_function = smallfun::function<ossia::time_value(const TimeVal&)>;
 using reverse_time_function
     = smallfun::function<TimeVal(const ossia::time_value&)>;
-#if defined(__APPLE__) || defined(__EMSCRIPTEN__)
+#if defined(__APPLE__) || defined(__EMSCRIPTEN__) || (defined(_WIN32) && defined(_LIBCPP_VERSION))
 using ExecutionCommand = smallfun::function<void(), 128, 2 * sizeof(intptr_t)>;
 #else
 using ExecutionCommand = smallfun::function<void(), 128, sizeof(intptr_t)>;
