@@ -22,10 +22,29 @@
 #include <QStringList>
 #include <QToolButton>
 
+#include <ossia/detail/hash_map.hpp>
+
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Scenario::SimpleExpressionEditorWidget)
 namespace Scenario
 {
+static const auto&
+ExpressionEditorComparators()
+{
+  static const std::vector<std::pair<ExpressionEditorComparator, QString>> map{
+      {ExpressionEditorComparator::Equal, "="},
+      {ExpressionEditorComparator::Different, QString::fromUtf8("≠")},
+      {ExpressionEditorComparator::Greater, ">"},
+      {ExpressionEditorComparator::Lower, "<"},
+      {ExpressionEditorComparator::GreaterEqual, QString::fromUtf8("≥")},
+      {ExpressionEditorComparator::LowerEqual, QString::fromUtf8("≤")},
+      {ExpressionEditorComparator::Pulse, "Pulse"},
+      {ExpressionEditorComparator::AlwaysTrue, "Always"},
+      {ExpressionEditorComparator::AlwaysFalse, "Never"}};
+
+  return map;
+}
+
 SimpleExpressionEditorWidget::SimpleExpressionEditorWidget(
     const score::DocumentContext& doc, int index, QWidget* parent, QMenu* menu)
     : QWidget(parent), id{index}
@@ -131,7 +150,8 @@ SimpleExpressionEditorWidget::SimpleExpressionEditorWidget(
     m_comparator->addItem(c.second, QVariant::fromValue(c.first));
   }
 
-  m_comparator->setCurrentText(lst.at(ExpressionEditorComparator::AlwaysTrue));
+  // By default: always true
+  m_comparator->setCurrentIndex(lst.size() - 2);
 
   QSizePolicy sp_retain = m_binOperator->sizePolicy();
   sp_retain.setRetainSizeWhenHidden(true);
@@ -171,7 +191,7 @@ optional<State::BinaryOperator> SimpleExpressionEditorWidget::binOperator()
   }
 }
 
-void SimpleExpressionEditorWidget::setRelation(State::Relation r)
+void SimpleExpressionEditorWidget::setRelation(const State::Relation& r)
 {
   auto lptr = r.lhs.target<ossia::value>();
   auto rptr = r.rhs.target<ossia::value>();
@@ -215,7 +235,7 @@ void SimpleExpressionEditorWidget::setRelation(State::Relation r)
   }
 }
 
-void SimpleExpressionEditorWidget::setPulse(State::Pulse p)
+void SimpleExpressionEditorWidget::setPulse(const State::Pulse& p)
 {
   m_address->setAddress(State::AddressAccessor{p.address});
   m_value->clear();
@@ -317,20 +337,14 @@ void SimpleExpressionEditorWidget::on_comparatorChanged(int i)
 
 QString SimpleExpressionEditorWidget::currentRelation()
 {
-  QString addr = m_address->addressString();
+  QString addr = "%" + m_address->addressString() + "%";
 
   switch (m_comparator->currentIndex())
   {
     case ExpressionEditorComparator::Greater:
+      return addr + " > " + m_value->text();
     case ExpressionEditorComparator::Lower:
-    {
-      QString expr = "%" + m_address->addressString();
-      expr += "% ";
-      expr += m_comparator->currentText();
-      expr += " ";
-      expr += m_value->text();
-      return expr;
-    }
+      return addr + " < " + m_value->text();
     case ExpressionEditorComparator::Equal:
       return addr + " == " + m_value->text();
     case ExpressionEditorComparator::GreaterEqual:
@@ -341,18 +355,11 @@ QString SimpleExpressionEditorWidget::currentRelation()
       return addr + " != " + m_value->text();
 
     case ExpressionEditorComparator::Pulse:
-    {
-      QString expr = "%" + m_address->addressString() + "% impulse";
-      return expr;
-    }
+      return addr + " impulse";
     case ExpressionEditorComparator::AlwaysTrue:
-    {
       return State::defaultTrueExpression().toString();
-    }
     case ExpressionEditorComparator::AlwaysFalse:
-    {
       return State::defaultFalseExpression().toString();
-    }
   }
 
   return "";
@@ -382,20 +389,4 @@ void SimpleExpressionEditorWidget::enableMenuButton(bool b)
   m_menuBtn->setVisible(b);
 }
 
-const std::map<ExpressionEditorComparator, QString>&
-ExpressionEditorComparators()
-{
-  static const std::map<ExpressionEditorComparator, QString> map{
-      {ExpressionEditorComparator::Equal, "="},
-      {ExpressionEditorComparator::Different, QString::fromUtf8("≠")},
-      {ExpressionEditorComparator::Greater, ">"},
-      {ExpressionEditorComparator::Lower, "<"},
-      {ExpressionEditorComparator::GreaterEqual, QString::fromUtf8("≥")},
-      {ExpressionEditorComparator::LowerEqual, QString::fromUtf8("≤")},
-      {ExpressionEditorComparator::Pulse, "Pulse"},
-      {ExpressionEditorComparator::AlwaysTrue, "True"},
-      {ExpressionEditorComparator::AlwaysFalse, "False"}};
-
-  return map;
-}
 }
