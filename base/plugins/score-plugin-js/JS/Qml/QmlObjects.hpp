@@ -223,9 +223,9 @@ public:
   W_SLOT(setInit)
 
 private:
-  qreal m_min{};
-  qreal m_max{};
-  qreal m_init{};
+  qreal m_min{0.};
+  qreal m_max{1.};
+  qreal m_init{0.5};
 
   W_PROPERTY(qreal, init READ init WRITE setInit NOTIFY initChanged)
   W_PROPERTY(qreal, max READ getMax WRITE setMax NOTIFY maxChanged)
@@ -299,9 +299,9 @@ public:
   W_SLOT(setInit)
 
 private:
-  int m_min{};
-  int m_max{};
-  int m_init{};
+  int m_min{0};
+  int m_max{127};
+  int m_init{0};
 
   W_PROPERTY(int, init READ init WRITE setInit NOTIFY initChanged)
   W_PROPERTY(int, max READ getMax WRITE setMax NOTIFY maxChanged)
