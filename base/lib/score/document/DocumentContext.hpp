@@ -15,7 +15,6 @@ class DocumentPlugin;
 struct SCORE_LIB_BASE_EXPORT DocumentContext
 {
   friend class score::Document;
-  static DocumentContext fromDocument(score::Document& d);
 
   const score::GUIApplicationContext& app;
   score::Document& document;

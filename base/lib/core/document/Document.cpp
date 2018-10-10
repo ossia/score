@@ -58,7 +58,7 @@ Document::Document(
     , m_commandStack{*this}
     , m_objectLocker{this}
     , m_backupMgr{new DocumentBackupManager{*this}}
-    , m_context{DocumentContext::fromDocument(*this)}
+    , m_context{*this}
     , m_virgin{true}
 {
   /// Construction of the document model
