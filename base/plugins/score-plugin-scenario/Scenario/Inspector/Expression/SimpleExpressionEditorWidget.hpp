@@ -42,10 +42,7 @@ enum ExpressionEditorComparator
   AlwaysFalse
 };
 
-inline const std::map<ExpressionEditorComparator, QString>&
-ExpressionEditorComparators();
 
-// TODO move in plugin state
 class SimpleExpressionEditorWidget final : public QWidget
 {
   W_OBJECT(SimpleExpressionEditorWidget)
@@ -59,8 +56,8 @@ public:
 
   int id = -1;
 
-  void setRelation(State::Relation r);
-  void setPulse(State::Pulse r);
+  void setRelation(const State::Relation& r);
+  void setPulse(const State::Pulse& r);
   void setOperator(State::BinaryOperator o);
   void setOperator(State::UnaryOperator u);
 
