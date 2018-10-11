@@ -36,7 +36,9 @@ MIDIDevice::MIDIDevice(const Device::DeviceSettings& settings)
 bool MIDIDevice::reconnect()
 {
   disconnect();
+  auto old = m_dev.get();
   m_dev.reset();
+  deviceChanged(old, nullptr);
 
   MIDISpecificSettings set
       = settings().deviceSpecificSettings.value<MIDISpecificSettings>();
@@ -73,7 +75,9 @@ void MIDIDevice::disconnect()
   }
 
   m_callbacks.clear();
+  auto old = m_dev.get();
   m_dev.reset();
+  deviceChanged(old, nullptr);
 }
 
 QMimeData* MIDIDevice::mimeData() const

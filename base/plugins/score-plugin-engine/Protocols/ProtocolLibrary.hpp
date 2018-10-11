@@ -14,6 +14,8 @@
 #include <QQmlEngine>
 #include <QFileInfo>
 #include <QQmlProperty>
+
+#include <Protocols/Mapper/MapperDevice.hpp>
 #if defined(OSSIA_PROTOCOL_OSC)
 #include <Protocols/OSC/OSCProtocolFactory.hpp>
 #endif
@@ -129,8 +131,11 @@ class QMLLibraryHandler final
     Device::ProtocolFactoryList fact;
     Device::DeviceSettings set;
     set.name = QFileInfo(f).baseName();
-    if (false)
+    if (dynamic_cast<Protocols::Mapper*>(obj.get()))
     {
+      fact.insert(std::make_unique<Protocols::MapperProtocolFactory>());
+      set.protocol = Protocols::MapperProtocolFactory::static_concreteKey();
+      set.deviceSpecificSettings = QVariant::fromValue(Protocols::MapperSpecificSettings{content});
     }
 #if defined(OSSIA_PROTOCOL_SERIAL)
     else if(dynamic_cast<ossia::net::Serial*>(obj.get()))

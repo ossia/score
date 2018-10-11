@@ -23,6 +23,8 @@ ExecStateWrapper::~ExecStateWrapper()
 
 const ossia::destination_t& ExecStateWrapper::find_address(const QString& str)
 {
+  // OPTIMIZEME this function can be optimized a lot
+  // c.f. MapperDevice.cpp:find_parameter
   auto it = m_address_cache.find(str);
   if (it != m_address_cache.end())
   {
@@ -48,7 +50,7 @@ const ossia::destination_t& ExecStateWrapper::find_address(const QString& str)
   // Split in devices
   auto dev = ossia::find_if(
       devices.exec_devices(),
-      [=, devname = str.mid(0, d).toStdString()](const auto& dev) {
+      [devname = str.mid(0, d).toStdString()](const auto& dev) {
         return dev->get_name() == devname;
       });
 

@@ -175,6 +175,9 @@ Document* DocumentManager::setupDocument(
 void DocumentManager::setCurrentDocument(
     const score::GUIApplicationContext& ctx, Document* doc)
 {
+  if(doc == m_currentDocument)
+    return;
+
   auto old = m_currentDocument;
   m_currentDocument = doc;
 

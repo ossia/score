@@ -72,6 +72,7 @@
 #endif
 
 #include <Protocols/Audio/AudioDevice.hpp>
+#include <Protocols/Mapper/MapperDevice.hpp>
 
 #include <Execution/Dataflow/DataflowClock.hpp>
 #include <Execution/Dataflow/ManualClock.hpp>
@@ -82,6 +83,7 @@ W_OBJECT_IMPL(Execution::ManualClock::TimeWidget)
 
 score_plugin_engine::score_plugin_engine()
 {
+  qmlRegisterType<Protocols::Mapper>("Ossia", 1, 0, "Mapper");
   qRegisterMetaType<Execution::ClockFactory::ConcreteKey>("ClockKey");
   qRegisterMetaTypeStreamOperators<Execution::ClockFactory::ConcreteKey>(
       "ClockKey");
@@ -119,7 +121,9 @@ score_plugin_engine::factories(
   using namespace Execution;
   return instantiate_factories<
       score::ApplicationContext,
-      FW<Device::ProtocolFactory, Network::LocalProtocolFactory
+      FW<Device::ProtocolFactory
+      , Network::LocalProtocolFactory
+      , Protocols::MapperProtocolFactory
 
 #if defined(OSSIA_PROTOCOL_OSC)
          ,
