@@ -288,7 +288,12 @@ set(ARTNET_SRCS
   "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Artnet/ArtnetSpecificSettingsSerialization.cpp"
 )
 
-add_library(${PROJECT_NAME} ${SRCS} ${HDRS})
+set(MAPPER_SRCS
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Mapper/MapperDevice.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Mapper/MapperDevice.cpp"
+)
+
+add_library(${PROJECT_NAME} ${SRCS} ${HDRS} ${MAPPER_SRCS})
 
 if(OSSIA_PROTOCOL_OSC)
     target_sources(${PROJECT_NAME} PRIVATE ${OSC_HDRS} ${OSC_SRCS})

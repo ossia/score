@@ -26,7 +26,6 @@ class Selection;
 W_OBJECT_IMPL(score::Document)
 namespace score
 {
-
 DocumentContext::DocumentContext(Document& d)
     : app{score::GUIAppContext()}
     , document{d}
