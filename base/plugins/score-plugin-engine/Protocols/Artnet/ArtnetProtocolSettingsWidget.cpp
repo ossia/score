@@ -7,9 +7,9 @@
 
 #include <wobjectimpl.h>
 
-W_OBJECT_IMPL(Engine::Network::ArtnetProtocolSettingsWidget)
+W_OBJECT_IMPL(Protocols::ArtnetProtocolSettingsWidget)
 
-namespace Engine::Network
+namespace Protocols
 {
 
 ArtnetProtocolSettingsWidget::ArtnetProtocolSettingsWidget(QWidget* parent)

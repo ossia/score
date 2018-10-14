@@ -10,27 +10,27 @@
 #include <QString>
 
 template <>
-void DataStreamReader::read(const Engine::Network::OSCQuerySpecificSettings& n)
+void DataStreamReader::read(const Protocols::OSCQuerySpecificSettings& n)
 {
   m_stream << n.host;
   insertDelimiter();
 }
 
 template <>
-void DataStreamWriter::write(Engine::Network::OSCQuerySpecificSettings& n)
+void DataStreamWriter::write(Protocols::OSCQuerySpecificSettings& n)
 {
   m_stream >> n.host;
   checkDelimiter();
 }
 
 template <>
-void JSONObjectReader::read(const Engine::Network::OSCQuerySpecificSettings& n)
+void JSONObjectReader::read(const Protocols::OSCQuerySpecificSettings& n)
 {
   obj["Host"] = n.host;
 }
 
 template <>
-void JSONObjectWriter::write(Engine::Network::OSCQuerySpecificSettings& n)
+void JSONObjectWriter::write(Protocols::OSCQuerySpecificSettings& n)
 {
   n.host = obj["Host"].toString();
 }

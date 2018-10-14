@@ -7,7 +7,7 @@
 
 #include <QObject>
 
-namespace Engine::Network {
+namespace Protocols {
 
 QString WiimoteProtocolFactory::prettyName() const
 {

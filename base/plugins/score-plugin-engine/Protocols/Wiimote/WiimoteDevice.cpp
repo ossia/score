@@ -7,9 +7,9 @@
 #include <QLabel>
 #include <thread>
 
-W_OBJECT_IMPL(Engine::Network::WiimoteDevice)
+W_OBJECT_IMPL(Protocols::WiimoteDevice)
 
-namespace Engine::Network {
+namespace Protocols {
 
 WiimoteDevice::WiimoteDevice(const Device::DeviceSettings& settings)
     : OwningDeviceInterface{settings}

@@ -4,9 +4,8 @@
 
 #include <wobjectdefs.h>
 
-namespace Engine
-{
-namespace Network
+
+namespace Protocols
 {
 struct MinuitSpecificSettings
 {
@@ -16,6 +15,5 @@ struct MinuitSpecificSettings
   QString localName;
 };
 }
-}
-Q_DECLARE_METATYPE(Engine::Network::MinuitSpecificSettings)
-W_REGISTER_ARGTYPE(Engine::Network::MinuitSpecificSettings)
+Q_DECLARE_METATYPE(Protocols::MinuitSpecificSettings)
+W_REGISTER_ARGTYPE(Protocols::MinuitSpecificSettings)

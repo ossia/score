@@ -13,9 +13,9 @@
 
 #include <wobjectimpl.h>
 
-W_OBJECT_IMPL(Engine::Network::JoystickProtocolSettingsWidget)
+W_OBJECT_IMPL(Protocols::JoystickProtocolSettingsWidget)
 
-namespace Engine::Network
+namespace Protocols
 {
 
 JoystickProtocolSettingsWidget::JoystickProtocolSettingsWidget(QWidget* parent)

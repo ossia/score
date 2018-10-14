@@ -13,24 +13,24 @@
 #include <QString>
 
 template <>
-void DataStreamReader::read(const Engine::Network::PhidgetSpecificSettings& n)
+void DataStreamReader::read(const Protocols::PhidgetSpecificSettings& n)
 {
   insertDelimiter();
 }
 
 template <>
-void DataStreamWriter::write(Engine::Network::PhidgetSpecificSettings& n)
+void DataStreamWriter::write(Protocols::PhidgetSpecificSettings& n)
 {
   checkDelimiter();
 }
 
 template <>
-void JSONObjectReader::read(const Engine::Network::PhidgetSpecificSettings& n)
+void JSONObjectReader::read(const Protocols::PhidgetSpecificSettings& n)
 {
 }
 
 template <>
-void JSONObjectWriter::write(Engine::Network::PhidgetSpecificSettings& n)
+void JSONObjectWriter::write(Protocols::PhidgetSpecificSettings& n)
 {
 }
 #endif

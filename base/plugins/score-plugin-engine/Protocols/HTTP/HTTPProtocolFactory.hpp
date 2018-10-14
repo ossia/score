@@ -1,9 +1,8 @@
 #pragma once
 #include <Protocols/DefaultProtocolFactory.hpp>
 
-namespace Engine
-{
-namespace Network
+
+namespace Protocols
 {
 class HTTPProtocolFactory final : public DefaultProtocolFactory
 {
@@ -28,5 +27,4 @@ class HTTPProtocolFactory final : public DefaultProtocolFactory
       const Device::DeviceSettings& a,
       const Device::DeviceSettings& b) const override;
 };
-}
 }

@@ -5,9 +5,9 @@
 
 #include <ossia/network/joystick/joystick_protocol.hpp>
 
-W_OBJECT_IMPL(Engine::Network::JoystickDevice)
+W_OBJECT_IMPL(Protocols::JoystickDevice)
 
-namespace Engine::Network
+namespace Protocols
 {
 
 JoystickDevice::JoystickDevice(const Device::DeviceSettings& settings)

@@ -16,9 +16,7 @@
 #include <QVariant>
 
 #include <memory>
-namespace Engine
-{
-namespace Network
+namespace Protocols
 {
 OSCDevice::OSCDevice(const Device::DeviceSettings& settings)
     : OwningDeviceInterface{settings}
@@ -99,6 +97,5 @@ void OSCDevice::setLearning(bool b)
   }
 
   proto.set_learning(b);
-}
 }
 }

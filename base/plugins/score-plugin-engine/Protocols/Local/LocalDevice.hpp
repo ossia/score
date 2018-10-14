@@ -14,9 +14,8 @@ class device_base;
 class multiplex_protocol;
 }
 }
-namespace Engine
-{
-namespace Network
+
+namespace Protocols
 {
 class LocalDevice final : public Device::DeviceInterface
 {
@@ -44,5 +43,4 @@ private:
   ossia::net::multiplex_protocol* m_proto{};
   using DeviceInterface::refresh;
 };
-}
 }

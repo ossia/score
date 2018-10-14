@@ -18,11 +18,8 @@
 #include <QSpinBox>
 #include <QString>
 #include <QVariant>
-class QWidget;
 
-namespace Engine
-{
-namespace Network
+namespace Protocols
 {
 WSProtocolSettingsWidget::WSProtocolSettingsWidget(QWidget* parent)
     : ProtocolSettingsWidget(parent)
@@ -100,7 +97,7 @@ Device::DeviceSettings WSProtocolSettingsWidget::getSettings() const
   Device::DeviceSettings s;
   s.name = m_deviceNameEdit->text();
 
-  Network::WSSpecificSettings specific;
+  WSSpecificSettings specific;
   specific.address = m_addressNameEdit->text();
   specific.text = m_codeEdit->toPlainText();
 
@@ -112,16 +109,15 @@ void WSProtocolSettingsWidget::setSettings(
     const Device::DeviceSettings& settings)
 {
   m_deviceNameEdit->setText(settings.name);
-  Network::WSSpecificSettings specific;
+  WSSpecificSettings specific;
   if (settings.deviceSpecificSettings
-          .canConvert<Network::WSSpecificSettings>())
+          .canConvert<WSSpecificSettings>())
   {
     specific
-        = settings.deviceSpecificSettings.value<Network::WSSpecificSettings>();
+        = settings.deviceSpecificSettings.value<WSSpecificSettings>();
 
     m_addressNameEdit->setText(specific.address);
     m_codeEdit->setPlainText(specific.text);
   }
-}
 }
 }

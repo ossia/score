@@ -4,7 +4,7 @@
 
 #include <wobjectdefs.h>
 
-namespace Engine::Network
+namespace Protocols
 {
 
 struct JoystickSpecificSettings
@@ -14,5 +14,5 @@ struct JoystickSpecificSettings
 };
 }
 
-Q_DECLARE_METATYPE(Engine::Network::JoystickSpecificSettings)
-W_REGISTER_ARGTYPE(Engine::Network::JoystickSpecificSettings)
+Q_DECLARE_METATYPE(Protocols::JoystickSpecificSettings)
+W_REGISTER_ARGTYPE(Protocols::JoystickSpecificSettings)

@@ -1,9 +1,7 @@
 #pragma once
 #include <Device/Protocol/ProtocolFactoryInterface.hpp>
 
-namespace Engine
-{
-namespace Network
+namespace Protocols
 {
 class PhidgetProtocolFactory final : public Device::ProtocolFactory
 {
@@ -35,5 +33,4 @@ class PhidgetProtocolFactory final : public Device::ProtocolFactory
       const Device::AddressSettings&, const Device::DeviceInterface& dev,
       const score::DocumentContext& ctx, QWidget*) override;
 };
-}
 }

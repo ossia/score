@@ -18,9 +18,7 @@
 
 #include <memory>
 
-namespace Engine
-{
-namespace Network
+namespace Protocols
 {
 MIDIDevice::MIDIDevice(const Device::DeviceSettings& settings)
     : OwningDeviceInterface{settings}
@@ -112,6 +110,5 @@ Device::Node MIDIDevice::refresh()
 
   device_node.get<Device::DeviceSettings>().name = settings().name;
   return device_node;
-}
 }
 }

@@ -17,9 +17,8 @@
 #include <QVariant>
 
 #include <memory>
-namespace Engine
-{
-namespace Network
+
+namespace Protocols
 {
 SerialDevice::SerialDevice(const Device::DeviceSettings& settings)
     : OwningDeviceInterface{settings}
@@ -62,7 +61,6 @@ bool SerialDevice::reconnect()
   }
 
   return connected();
-}
 }
 }
 #endif

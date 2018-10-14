@@ -27,7 +27,7 @@ LocalTree::DocumentPlugin::DocumentPlugin(
           std::make_unique<ossia::net::multiplex_protocol>(), "score")}
     , m_localDeviceWrapper{
           *m_localDevice, ctx,
-          Engine::Network::LocalProtocolFactory::static_defaultSettings()}
+          Protocols::LocalProtocolFactory::static_defaultSettings()}
 {
 }
 

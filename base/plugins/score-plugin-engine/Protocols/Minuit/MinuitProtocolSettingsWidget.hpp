@@ -8,9 +8,7 @@ class QLineEdit;
 class QSpinBox;
 class QWidget;
 
-namespace Engine
-{
-namespace Network
+namespace Protocols
 {
 class MinuitProtocolSettingsWidget final
     : public Device::ProtocolSettingsWidget
@@ -34,5 +32,4 @@ protected:
 
   ZeroconfBrowser* m_browser{};
 };
-}
 }

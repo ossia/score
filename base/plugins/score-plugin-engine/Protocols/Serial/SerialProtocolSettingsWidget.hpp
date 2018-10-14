@@ -11,9 +11,7 @@ class QSpinBox;
 class QWidget;
 class QComboBox;
 
-namespace Engine
-{
-namespace Network
+namespace Protocols
 {
 class SerialProtocolSettingsWidget : public Device::ProtocolSettingsWidget
 {
@@ -33,5 +31,5 @@ protected:
   JSEdit* m_codeEdit{};
 };
 }
-}
+
 #endif

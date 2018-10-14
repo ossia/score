@@ -10,9 +10,8 @@ class QLineEdit;
 class QSpinBox;
 class QWidget;
 
-namespace Engine
-{
-namespace Network
+
+namespace Protocols
 {
 class OSCQueryProtocolSettingsWidget final
     : public Device::ProtocolSettingsWidget
@@ -35,5 +34,4 @@ protected:
   QNetworkAccessManager m_http_client;
   QNetworkReply* m_cur_reply{};
 };
-}
 }

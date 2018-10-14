@@ -10,28 +10,28 @@
 #include <QString>
 
 template <>
-void DataStreamReader::read(const Engine::Network::LocalSpecificSettings& n)
+void DataStreamReader::read(const Protocols::LocalSpecificSettings& n)
 {
   m_stream << n.wsPort << n.oscPort;
   insertDelimiter();
 }
 
 template <>
-void DataStreamWriter::write(Engine::Network::LocalSpecificSettings& n)
+void DataStreamWriter::write(Protocols::LocalSpecificSettings& n)
 {
   m_stream >> n.wsPort >> n.oscPort;
   checkDelimiter();
 }
 
 template <>
-void JSONObjectReader::read(const Engine::Network::LocalSpecificSettings& n)
+void JSONObjectReader::read(const Protocols::LocalSpecificSettings& n)
 {
   obj["WSPort"] = n.wsPort;
   obj["OSCPort"] = n.oscPort;
 }
 
 template <>
-void JSONObjectWriter::write(Engine::Network::LocalSpecificSettings& n)
+void JSONObjectWriter::write(Protocols::LocalSpecificSettings& n)
 {
   n.wsPort = obj["WSPort"].toInt();
   n.oscPort = obj["OSCPort"].toInt();

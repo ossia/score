@@ -19,9 +19,8 @@ class ProtocolSettingsWidget;
 }
 struct VisitorVariant;
 
-namespace Engine
-{
-namespace Network
+
+namespace Protocols
 {
 QString LocalProtocolFactory::prettyName() const
 {
@@ -48,7 +47,7 @@ const Device::DeviceSettings& LocalProtocolFactory::static_defaultSettings()
     Device::DeviceSettings s;
     s.protocol = static_concreteKey(); // Todo check for un-set protocol.
     s.name = "score";
-    Network::LocalSpecificSettings specif;
+    LocalSpecificSettings specif;
     specif.oscPort = 6666;
     specif.wsPort = 9999;
     s.deviceSpecificSettings = QVariant::fromValue(specif);
@@ -71,14 +70,14 @@ Device::ProtocolSettingsWidget* LocalProtocolFactory::makeSettingsWidget()
 QVariant LocalProtocolFactory::makeProtocolSpecificSettings(
     const VisitorVariant& visitor) const
 {
-  return makeProtocolSpecificSettings_T<Network::LocalSpecificSettings>(
+  return makeProtocolSpecificSettings_T<LocalSpecificSettings>(
       visitor);
 }
 
 void LocalProtocolFactory::serializeProtocolSpecificSettings(
     const QVariant& data, const VisitorVariant& visitor) const
 {
-  serializeProtocolSpecificSettings_T<Network::LocalSpecificSettings>(
+  serializeProtocolSpecificSettings_T<LocalSpecificSettings>(
       data, visitor);
 }
 
@@ -87,5 +86,5 @@ bool LocalProtocolFactory::checkCompatibility(
 {
   return a.name != b.name;
 }
-}
+
 }

@@ -14,17 +14,7 @@
 
 #include <QObject>
 
-namespace Device
-{
-class DeviceInterface;
-class ProtocolSettingsWidget;
-}
-
-struct VisitorVariant;
-
-namespace Engine
-{
-namespace Network
+namespace Protocols
 {
 QString PhidgetProtocolFactory::prettyName() const
 {
@@ -85,7 +75,6 @@ Device::AddressDialog* PhidgetProtocolFactory::makeAddAddressDialog(
     QWidget*)
 {
   return nullptr;
-}
 }
 }
 #endif

@@ -12,17 +12,7 @@
 
 #include <QObject>
 
-namespace Device
-{
-class DeviceInterface;
-class ProtocolSettingsWidget;
-}
-
-struct VisitorVariant;
-
-namespace Engine
-{
-namespace Network
+namespace Protocols
 {
 QString MinuitProtocolFactory::prettyName() const
 {
@@ -79,6 +69,5 @@ bool MinuitProtocolFactory::checkCompatibility(
   auto a_p = a.deviceSpecificSettings.value<MinuitSpecificSettings>();
   auto b_p = b.deviceSpecificSettings.value<MinuitSpecificSettings>();
   return a.name != b.name && a_p.inputPort != b_p.inputPort;
-}
 }
 }

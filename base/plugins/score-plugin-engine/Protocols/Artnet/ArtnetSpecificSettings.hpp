@@ -4,7 +4,7 @@
 
 #include <wobjectdefs.h>
 
-namespace Engine::Network
+namespace Protocols
 {
 
 struct ArtnetSpecificSettings
@@ -13,5 +13,5 @@ struct ArtnetSpecificSettings
 };
 }
 
-Q_DECLARE_METATYPE(Engine::Network::ArtnetSpecificSettings)
-W_REGISTER_ARGTYPE(Engine::Network::ArtnetSpecificSettings)
+Q_DECLARE_METATYPE(Protocols::ArtnetSpecificSettings)
+W_REGISTER_ARGTYPE(Protocols::ArtnetSpecificSettings)

@@ -4,15 +4,12 @@
 
 #include <wobjectdefs.h>
 
-namespace Engine
-{
-namespace Network
+namespace Protocols
 {
 struct OSCQuerySpecificSettings
 {
   QString host;
 };
 }
-}
-Q_DECLARE_METATYPE(Engine::Network::OSCQuerySpecificSettings)
-W_REGISTER_ARGTYPE(Engine::Network::OSCQuerySpecificSettings)
+Q_DECLARE_METATYPE(Protocols::OSCQuerySpecificSettings)
+W_REGISTER_ARGTYPE(Protocols::OSCQuerySpecificSettings)

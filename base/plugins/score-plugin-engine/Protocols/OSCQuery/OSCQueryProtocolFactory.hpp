@@ -1,9 +1,8 @@
 #pragma once
 #include <Protocols/DefaultProtocolFactory.hpp>
 
-namespace Engine
-{
-namespace Network
+
+namespace Protocols
 {
 class OSCQueryProtocolFactory final : public DefaultProtocolFactory
 {
@@ -29,5 +28,4 @@ class OSCQueryProtocolFactory final : public DefaultProtocolFactory
       const Device::DeviceSettings& a,
       const Device::DeviceSettings& b) const override;
 };
-}
 }

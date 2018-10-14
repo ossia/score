@@ -18,10 +18,9 @@
 #include <wobjectimpl.h>
 
 #include <memory>
-W_OBJECT_IMPL(Engine::Network::OSCQueryDevice)
-namespace Engine
-{
-namespace Network
+W_OBJECT_IMPL(Protocols::OSCQueryDevice)
+
+namespace Protocols
 {
 OSCQueryDevice::OSCQueryDevice(const Device::DeviceSettings& settings)
     : OwningDeviceInterface{settings}
@@ -108,6 +107,5 @@ void OSCQueryDevice::slot_command()
         &m_dev->get_protocol());
     proto->run_commands();
   }
-}
 }
 }

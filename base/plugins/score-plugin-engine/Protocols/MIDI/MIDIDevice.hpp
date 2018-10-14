@@ -1,14 +1,7 @@
 #pragma once
 #include <Device/Protocol/DeviceInterface.hpp>
 
-namespace score
-{
-struct DeviceSettings;
-} // namespace score
-
-namespace Engine
-{
-namespace Network
+namespace Protocols
 {
 class MIDIDevice final : public Device::OwningDeviceInterface
 {
@@ -24,5 +17,4 @@ public:
   using OwningDeviceInterface::refresh;
   Device::Node refresh() override;
 };
-}
 }

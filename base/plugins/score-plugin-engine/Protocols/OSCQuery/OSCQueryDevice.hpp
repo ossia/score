@@ -5,9 +5,8 @@
 
 #include <wobjectdefs.h>
 
-namespace Engine
-{
-namespace Network
+
+namespace Protocols
 {
 class OSCQueryDevice final : public Device::OwningDeviceInterface
 {
@@ -27,5 +26,4 @@ private:
   void slot_command();
   W_SLOT(slot_command);
 };
-}
 }

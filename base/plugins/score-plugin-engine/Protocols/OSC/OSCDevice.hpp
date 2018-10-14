@@ -1,9 +1,7 @@
 #pragma once
 #include <Device/Protocol/DeviceInterface.hpp>
 
-namespace Engine
-{
-namespace Network
+namespace Protocols
 {
 class OSCDevice final : public Device::OwningDeviceInterface
 {
@@ -16,5 +14,4 @@ public:
   bool isLearning() const final override;
   void setLearning(bool) final override;
 };
-}
 }

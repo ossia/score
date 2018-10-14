@@ -17,9 +17,8 @@
 
 class QWidget;
 
-namespace Engine
-{
-namespace Network
+
+namespace Protocols
 {
 LocalProtocolSettingsWidget::LocalProtocolSettingsWidget(QWidget* parent)
     : ProtocolSettingsWidget(parent)
@@ -44,7 +43,7 @@ Device::DeviceSettings LocalProtocolSettingsWidget::getSettings() const
   Device::DeviceSettings s = LocalProtocolFactory::static_defaultSettings();
   // TODO *** protocol was never being set here. Check everywhere.! ***
   s.name = "score";
-  Network::LocalSpecificSettings local;
+  LocalSpecificSettings local;
   local.oscPort = m_oscPort->value();
   local.wsPort = m_wsPort->value();
   s.deviceSpecificSettings = QVariant::fromValue(local);
@@ -55,13 +54,12 @@ void LocalProtocolSettingsWidget::setSettings(
     const Device::DeviceSettings& settings)
 {
   if (settings.deviceSpecificSettings
-          .canConvert<Network::LocalSpecificSettings>())
+          .canConvert<LocalSpecificSettings>())
   {
     auto set = settings.deviceSpecificSettings
-                   .value<Network::LocalSpecificSettings>();
+                   .value<LocalSpecificSettings>();
     m_oscPort->setValue(set.oscPort);
     m_wsPort->setValue(set.wsPort);
   }
-}
 }
 }

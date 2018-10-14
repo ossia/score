@@ -11,21 +11,21 @@
 #include <QString>
 
 template <>
-void DataStreamReader::read(const Engine::Network::MIDISpecificSettings& n)
+void DataStreamReader::read(const Protocols::MIDISpecificSettings& n)
 {
   m_stream << n.io << n.endpoint << n.port;
   insertDelimiter();
 }
 
 template <>
-void DataStreamWriter::write(Engine::Network::MIDISpecificSettings& n)
+void DataStreamWriter::write(Protocols::MIDISpecificSettings& n)
 {
   m_stream >> n.io >> n.endpoint >> n.port;
   checkDelimiter();
 }
 
 template <>
-void JSONObjectReader::read(const Engine::Network::MIDISpecificSettings& n)
+void JSONObjectReader::read(const Protocols::MIDISpecificSettings& n)
 {
   obj["IO"] = toJsonValue(n.io);
   obj["Endpoint"] = n.endpoint;
@@ -33,7 +33,7 @@ void JSONObjectReader::read(const Engine::Network::MIDISpecificSettings& n)
 }
 
 template <>
-void JSONObjectWriter::write(Engine::Network::MIDISpecificSettings& n)
+void JSONObjectWriter::write(Protocols::MIDISpecificSettings& n)
 {
   fromJsonValue(obj["IO"], n.io);
   n.endpoint = obj["Endpoint"].toString();

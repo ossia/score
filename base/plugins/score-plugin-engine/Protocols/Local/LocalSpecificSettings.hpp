@@ -4,9 +4,8 @@
 
 #include <wobjectdefs.h>
 
-namespace Engine
-{
-namespace Network
+
+namespace Protocols
 {
 struct LocalSpecificSettings
 {
@@ -14,6 +13,5 @@ struct LocalSpecificSettings
   int oscPort{};
 };
 }
-}
-Q_DECLARE_METATYPE(Engine::Network::LocalSpecificSettings)
-W_REGISTER_ARGTYPE(Engine::Network::LocalSpecificSettings)
+Q_DECLARE_METATYPE(Protocols::LocalSpecificSettings)
+W_REGISTER_ARGTYPE(Protocols::LocalSpecificSettings)

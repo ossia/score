@@ -10,28 +10,28 @@
 #include <QString>
 
 template <>
-void DataStreamReader::read(const Engine::Network::WSSpecificSettings& n)
+void DataStreamReader::read(const Protocols::WSSpecificSettings& n)
 {
   m_stream << n.address << n.text;
   insertDelimiter();
 }
 
 template <>
-void DataStreamWriter::write(Engine::Network::WSSpecificSettings& n)
+void DataStreamWriter::write(Protocols::WSSpecificSettings& n)
 {
   m_stream >> n.address >> n.text;
   checkDelimiter();
 }
 
 template <>
-void JSONObjectReader::read(const Engine::Network::WSSpecificSettings& n)
+void JSONObjectReader::read(const Protocols::WSSpecificSettings& n)
 {
   obj[strings.Address] = n.address;
   obj["Text"] = n.text;
 }
 
 template <>
-void JSONObjectWriter::write(Engine::Network::WSSpecificSettings& n)
+void JSONObjectWriter::write(Protocols::WSSpecificSettings& n)
 {
   n.address = obj[strings.Address].toString();
   n.text = obj["Text"].toString();

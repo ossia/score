@@ -12,17 +12,7 @@
 
 #include <QObject>
 
-namespace Device
-{
-class DeviceInterface;
-class ProtocolSettingsWidget;
-}
-
-struct VisitorVariant;
-
-namespace Engine
-{
-namespace Network
+namespace Protocols
 {
 QString OSCQueryProtocolFactory::prettyName() const
 {
@@ -74,6 +64,5 @@ bool OSCQueryProtocolFactory::checkCompatibility(
     const Device::DeviceSettings& a, const Device::DeviceSettings& b) const
 {
   return a.name != b.name;
-}
 }
 }

@@ -18,9 +18,7 @@
 
 #include <memory>
 
-namespace Engine
-{
-namespace Network
+namespace Protocols
 {
 MinuitDevice::MinuitDevice(const Device::DeviceSettings& settings)
     : OwningDeviceInterface{settings}
@@ -69,6 +67,5 @@ void MinuitDevice::recreate(const Device::Node& n)
   {
     addNode(child);
   }
-}
 }
 }

@@ -7,9 +7,8 @@ class QLineEdit;
 class QSpinBox;
 class QWidget;
 
-namespace Engine
-{
-namespace Network
+
+namespace Protocols
 {
 class LocalProtocolSettingsWidget final : public Device::ProtocolSettingsWidget
 {
@@ -23,5 +22,4 @@ private:
   QSpinBox* m_oscPort{};
   QSpinBox* m_wsPort{};
 };
-}
 }

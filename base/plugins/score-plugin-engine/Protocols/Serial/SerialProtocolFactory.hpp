@@ -4,9 +4,7 @@
 #if defined(OSSIA_PROTOCOL_SERIAL)
 #include <Protocols/DefaultProtocolFactory.hpp>
 
-namespace Engine
-{
-namespace Network
+namespace Protocols
 {
 class SerialProtocolFactory final : public DefaultProtocolFactory
 {
@@ -31,6 +29,5 @@ class SerialProtocolFactory final : public DefaultProtocolFactory
       const Device::DeviceSettings& a,
       const Device::DeviceSettings& b) const override;
 };
-}
 }
 #endif

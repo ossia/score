@@ -54,8 +54,8 @@ public:
     Device::DeviceSettings set;
     set.name = name;
     set.deviceSpecificSettings = QVariant::fromValue(
-        Engine::Network::OSCSpecificSettings{in, out, host});
-    set.protocol = Engine::Network::OSCProtocolFactory::static_concreteKey();
+        Protocols::OSCSpecificSettings{in, out, host});
+    set.protocol = Protocols::OSCProtocolFactory::static_concreteKey();
 
     Scenario::Command::Macro m{new ScriptMacro, ctx()};
     m.submit(new Explorer::Command::AddDevice{plug, std::move(set)});

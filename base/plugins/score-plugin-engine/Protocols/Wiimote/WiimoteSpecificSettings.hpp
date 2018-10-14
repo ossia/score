@@ -3,7 +3,7 @@
 #include <QMetaType>
 #include <wobjectdefs.h>
 
-namespace Engine::Network {
+namespace Protocols {
 
 struct WiimoteSpecificSettings
 {
@@ -12,5 +12,5 @@ struct WiimoteSpecificSettings
 
 }
 
-Q_DECLARE_METATYPE(Engine::Network::WiimoteSpecificSettings)
-W_REGISTER_ARGTYPE(Engine::Network::WiimoteSpecificSettings)
+Q_DECLARE_METATYPE(Protocols::WiimoteSpecificSettings)
+W_REGISTER_ARGTYPE(Protocols::WiimoteSpecificSettings)

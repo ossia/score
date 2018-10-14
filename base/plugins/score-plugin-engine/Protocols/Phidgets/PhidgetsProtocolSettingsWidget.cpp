@@ -22,9 +22,7 @@
 #include <QVariant>
 class QWidget;
 
-namespace Engine
-{
-namespace Network
+namespace Protocols
 {
 PhidgetProtocolSettingsWidget::PhidgetProtocolSettingsWidget(QWidget* parent)
     : ProtocolSettingsWidget(parent)
@@ -47,7 +45,7 @@ Device::DeviceSettings PhidgetProtocolSettingsWidget::getSettings() const
 {
   Device::DeviceSettings s;
   s.name = m_name->text();
-  Network::PhidgetSpecificSettings specific;
+  PhidgetSpecificSettings specific;
   s.deviceSpecificSettings = QVariant::fromValue(specific);
   return s;
 }
@@ -56,7 +54,6 @@ void PhidgetProtocolSettingsWidget::setSettings(
     const Device::DeviceSettings& settings)
 {
   m_name->setText(settings.name);
-}
 }
 }
 #endif

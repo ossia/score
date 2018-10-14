@@ -60,7 +60,7 @@ set(HDRS
     "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/DeviceList.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/DeviceLogging.hpp"
 
-    "${CMAKE_CURRENT_SOURCE_DIR}/DeviceExplorerApplicationPlugin.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/ApplicationPlugin.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score_plugin_deviceexplorer.hpp"
 
 )
@@ -118,7 +118,7 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/DeviceList.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/score_plugin_deviceexplorer.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/DeviceExplorerApplicationPlugin.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Explorer/ApplicationPlugin.cpp"
 
 #"${CMAKE_CURRENT_SOURCE_DIR}/Explorer/ModelTest/dynamictreemodel.cpp"
 #"${CMAKE_CURRENT_SOURCE_DIR}/Explorer/ModelTest/modeltest.cpp"
