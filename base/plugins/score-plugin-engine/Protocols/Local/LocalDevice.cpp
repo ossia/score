@@ -14,9 +14,7 @@
 
 #include <ossia-config.hpp>
 
-namespace Engine
-{
-namespace Network
+namespace Protocols
 {
 LocalDevice::LocalDevice(
     ossia::net::device_base& dev, const score::DocumentContext& ctx,
@@ -97,4 +95,4 @@ Device::Node LocalDevice::refresh()
   return simple_refresh();
 }
 }
-}
+

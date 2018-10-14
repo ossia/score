@@ -21,12 +21,7 @@
 #if defined(OSSIA_DNSSD)
 #include <Explorer/Widgets/ZeroConf/ZeroconfBrowser.hpp>
 #endif
-
-class QWidget;
-
-namespace Engine
-{
-namespace Network
+namespace Protocols
 {
 OSCQueryProtocolSettingsWidget::OSCQueryProtocolSettingsWidget(QWidget* parent)
     : ProtocolSettingsWidget(parent)
@@ -107,7 +102,7 @@ Device::DeviceSettings OSCQueryProtocolSettingsWidget::getSettings() const
   Device::DeviceSettings s;
   s.name = m_deviceNameEdit->text();
 
-  Network::OSCQuerySpecificSettings OSCQuery;
+  OSCQuerySpecificSettings OSCQuery;
   OSCQuery.host = m_localHostEdit->text();
 
   s.deviceSpecificSettings = QVariant::fromValue(OSCQuery);
@@ -118,14 +113,13 @@ void OSCQueryProtocolSettingsWidget::setSettings(
     const Device::DeviceSettings& settings)
 {
   m_deviceNameEdit->setText(settings.name);
-  Network::OSCQuerySpecificSettings OSCQuery;
+  OSCQuerySpecificSettings OSCQuery;
   if (settings.deviceSpecificSettings
-          .canConvert<Network::OSCQuerySpecificSettings>())
+          .canConvert<OSCQuerySpecificSettings>())
   {
     OSCQuery = settings.deviceSpecificSettings
-                   .value<Network::OSCQuerySpecificSettings>();
+                   .value<OSCQuerySpecificSettings>();
     m_localHostEdit->setText(OSCQuery.host);
   }
-}
 }
 }

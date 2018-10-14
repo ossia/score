@@ -7,23 +7,23 @@
 #include <score/serialization/JSONVisitor.hpp>
 
 template <>
-void DataStreamReader::read(const Engine::Network::WiimoteSpecificSettings& n)
+void DataStreamReader::read(const Protocols::WiimoteSpecificSettings& n)
 {
   insertDelimiter();
 }
 
 template <>
-void DataStreamWriter::write(Engine::Network::WiimoteSpecificSettings& n)
+void DataStreamWriter::write(Protocols::WiimoteSpecificSettings& n)
 {
   checkDelimiter();
 }
 
 template <>
-void JSONObjectReader::read(const Engine::Network::WiimoteSpecificSettings& n)
+void JSONObjectReader::read(const Protocols::WiimoteSpecificSettings& n)
 {
 }
 
 template <>
-void JSONObjectWriter::write(Engine::Network::WiimoteSpecificSettings& n)
+void JSONObjectWriter::write(Protocols::WiimoteSpecificSettings& n)
 {
 }

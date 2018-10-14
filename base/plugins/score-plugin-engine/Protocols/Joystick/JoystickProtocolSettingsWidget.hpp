@@ -7,7 +7,7 @@
 class QLineEdit;
 class QComboBox;
 
-namespace Engine::Network
+namespace Protocols
 {
 
 class JoystickProtocolSettingsWidget final

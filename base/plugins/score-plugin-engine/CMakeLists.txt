@@ -238,12 +238,12 @@ set(PHIDGETS_SRCS
 
 set(AUDIO_HDRS
   "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Audio/AudioDevice.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/Execution/Dataflow/DataflowClock.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/Execution/Dataflow/ManualClock.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Execution/Clock/DataflowClock.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Execution/Clock/ManualClock.hpp"
 )
 set(AUDIO_SRCS
   "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Audio/AudioDevice.cpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/Execution/Dataflow/DataflowClock.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Execution/Clock/DataflowClock.cpp"
 )
 
 set(JOYSTICK_HDRS

@@ -4,9 +4,7 @@
 
 #include <wobjectdefs.h>
 
-namespace Engine
-{
-namespace Network
+namespace Protocols
 {
 struct OSCSpecificSettings
 {
@@ -15,6 +13,5 @@ struct OSCSpecificSettings
   QString host;
 };
 }
-}
-Q_DECLARE_METATYPE(Engine::Network::OSCSpecificSettings)
-W_REGISTER_ARGTYPE(Engine::Network::OSCSpecificSettings)
+Q_DECLARE_METATYPE(Protocols::OSCSpecificSettings)
+W_REGISTER_ARGTYPE(Protocols::OSCSpecificSettings)

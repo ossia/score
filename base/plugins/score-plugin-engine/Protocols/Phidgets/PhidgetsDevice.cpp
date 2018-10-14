@@ -21,10 +21,9 @@
 #include <wobjectimpl.h>
 
 #include <memory>
-W_OBJECT_IMPL(Engine::Network::PhidgetDevice)
-namespace Engine
-{
-namespace Network
+W_OBJECT_IMPL(Protocols::PhidgetDevice)
+
+namespace Protocols
 {
 PhidgetDevice::PhidgetDevice(const Device::DeviceSettings& settings)
     : OwningDeviceInterface{settings}
@@ -110,7 +109,6 @@ void PhidgetDevice::timerEvent(QTimerEvent* event)
         = dynamic_cast<ossia::phidget_protocol*>(&m_dev->get_protocol());
     proto->run_command();
   }
-}
 }
 }
 #endif

@@ -20,9 +20,8 @@ class ProtocolSettingsWidget;
 
 struct VisitorVariant;
 
-namespace Engine
-{
-namespace Network
+
+namespace Protocols
 {
 QString HTTPProtocolFactory::prettyName() const
 {
@@ -69,6 +68,5 @@ bool HTTPProtocolFactory::checkCompatibility(
     const Device::DeviceSettings& a, const Device::DeviceSettings& b) const
 {
   return a.name != b.name;
-}
 }
 }

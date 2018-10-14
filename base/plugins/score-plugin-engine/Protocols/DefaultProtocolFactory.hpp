@@ -3,9 +3,7 @@
 #include <Device/Protocol/ProtocolFactoryInterface.hpp>
 #include <Explorer/Explorer/Widgets/AddressEditDialog.hpp>
 
-namespace Engine
-{
-namespace Network
+namespace Protocols
 {
 class DefaultProtocolFactory : public Device::ProtocolFactory
 {
@@ -35,5 +33,4 @@ public:
     return ptr;
   }
 };
-}
 }

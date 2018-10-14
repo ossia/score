@@ -1,9 +1,8 @@
 #pragma once
 #include <Device/Protocol/DeviceInterface.hpp>
 
-namespace Engine
-{
-namespace Network
+
+namespace Protocols
 {
 class WSDevice final : public Device::OwningDeviceInterface
 {
@@ -12,5 +11,4 @@ public:
 
   bool reconnect() override;
 };
-}
 }

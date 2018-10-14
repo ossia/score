@@ -13,14 +13,14 @@
 #include <QString>
 
 template <>
-void DataStreamReader::read(const Engine::Network::SerialSpecificSettings& n)
+void DataStreamReader::read(const Protocols::SerialSpecificSettings& n)
 {
   m_stream << n.port.serialNumber() << n.text;
   insertDelimiter();
 }
 
 template <>
-void DataStreamWriter::write(Engine::Network::SerialSpecificSettings& n)
+void DataStreamWriter::write(Protocols::SerialSpecificSettings& n)
 {
   QString sn;
   m_stream >> sn >> n.text;
@@ -38,14 +38,14 @@ void DataStreamWriter::write(Engine::Network::SerialSpecificSettings& n)
 }
 
 template <>
-void JSONObjectReader::read(const Engine::Network::SerialSpecificSettings& n)
+void JSONObjectReader::read(const Protocols::SerialSpecificSettings& n)
 {
   obj["Port"] = n.port.serialNumber();
   obj["Text"] = n.text;
 }
 
 template <>
-void JSONObjectWriter::write(Engine::Network::SerialSpecificSettings& n)
+void JSONObjectWriter::write(Protocols::SerialSpecificSettings& n)
 {
   auto sn = obj["Port"].toString();
   for (const auto& port : QSerialPortInfo::availablePorts())

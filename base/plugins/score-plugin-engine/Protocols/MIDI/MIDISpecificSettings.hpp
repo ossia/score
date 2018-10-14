@@ -4,9 +4,8 @@
 
 #include <wobjectdefs.h>
 
-namespace Engine
-{
-namespace Network
+
+namespace Protocols
 {
 struct MIDISpecificSettings
 {
@@ -19,6 +18,5 @@ struct MIDISpecificSettings
   int port{};
 };
 }
-}
-Q_DECLARE_METATYPE(Engine::Network::MIDISpecificSettings)
-W_REGISTER_ARGTYPE(Engine::Network::MIDISpecificSettings)
+Q_DECLARE_METATYPE(Protocols::MIDISpecificSettings)
+W_REGISTER_ARGTYPE(Protocols::MIDISpecificSettings)

@@ -2,7 +2,7 @@
 
 #include <Protocols/DefaultProtocolFactory.hpp>
 
-namespace Engine::Network {
+namespace Protocols {
 
 class WiimoteProtocolFactory final : public DefaultProtocolFactory
 {

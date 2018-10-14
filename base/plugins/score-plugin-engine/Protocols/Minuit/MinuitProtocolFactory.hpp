@@ -1,9 +1,7 @@
 #pragma once
 #include <Protocols/DefaultProtocolFactory.hpp>
 
-namespace Engine
-{
-namespace Network
+namespace Protocols
 {
 class MinuitProtocolFactory final : public DefaultProtocolFactory
 {
@@ -29,5 +27,4 @@ class MinuitProtocolFactory final : public DefaultProtocolFactory
       const Device::DeviceSettings& a,
       const Device::DeviceSettings& b) const override;
 };
-}
 }

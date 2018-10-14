@@ -12,9 +12,8 @@ class QRadioButton;
 class QWidget;
 class QLineEdit;
 
-namespace Engine
-{
-namespace Network
+
+namespace Protocols
 {
 class MIDIProtocolSettingsWidget final : public Device::ProtocolSettingsWidget
 {
@@ -38,4 +37,4 @@ private:
   QComboBox* m_deviceCBox;
 };
 }
-}
+

@@ -1,9 +1,8 @@
 #pragma once
 #include <Device/Protocol/DeviceInterface.hpp>
 
-namespace Engine
-{
-namespace Network
+
+namespace Protocols
 {
 class HTTPDevice final : public Device::OwningDeviceInterface
 {
@@ -12,5 +11,4 @@ public:
 
   bool reconnect() override;
 };
-}
 }

@@ -1,9 +1,7 @@
 #pragma once
 #include <Device/Protocol/DeviceInterface.hpp>
 
-namespace Engine
-{
-namespace Network
+namespace Protocols
 {
 class MinuitDevice final : public Device::OwningDeviceInterface
 {
@@ -13,5 +11,4 @@ public:
   bool reconnect() override;
   void recreate(const Device::Node& n) override;
 };
-}
 }

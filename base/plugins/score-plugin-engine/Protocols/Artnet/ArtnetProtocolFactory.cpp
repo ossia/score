@@ -7,7 +7,7 @@
 
 #include <QObject>
 
-namespace Engine::Network
+namespace Protocols
 {
 
 QString ArtnetProtocolFactory::prettyName() const

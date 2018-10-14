@@ -21,7 +21,7 @@ struct MapperSpecificSettings
 };
 
 class MapperProtocolFactory final
-    : public Engine::Network::DefaultProtocolFactory
+    : public Protocols::DefaultProtocolFactory
 {
   SCORE_CONCRETE("910e2d87-a087-430d-b725-c988fe2bea01")
 

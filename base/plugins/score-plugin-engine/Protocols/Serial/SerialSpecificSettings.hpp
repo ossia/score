@@ -8,9 +8,7 @@
 
 #include <wobjectdefs.h>
 
-namespace Engine
-{
-namespace Network
+namespace Protocols
 {
 struct SerialSpecificSettings
 {
@@ -18,8 +16,7 @@ struct SerialSpecificSettings
   QString text;
 };
 }
-}
-Q_DECLARE_METATYPE(Engine::Network::SerialSpecificSettings)
-W_REGISTER_ARGTYPE(Engine::Network::SerialSpecificSettings)
+Q_DECLARE_METATYPE(Protocols::SerialSpecificSettings)
+W_REGISTER_ARGTYPE(Protocols::SerialSpecificSettings)
 
 #endif

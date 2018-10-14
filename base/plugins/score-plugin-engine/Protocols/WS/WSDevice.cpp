@@ -16,9 +16,7 @@
 
 #include <memory>
 
-namespace Engine
-{
-namespace Network
+namespace Protocols
 {
 WSDevice::WSDevice(const Device::DeviceSettings& settings)
     : OwningDeviceInterface{settings}
@@ -60,6 +58,5 @@ bool WSDevice::reconnect()
   }
 
   return connected();
-}
 }
 }

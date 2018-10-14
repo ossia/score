@@ -19,11 +19,9 @@
 #include <QVariant>
 
 #include <wobjectimpl.h>
-W_OBJECT_IMPL(Engine::Network::OSCProtocolSettingsWidget)
+W_OBJECT_IMPL(Protocols::OSCProtocolSettingsWidget)
 
-namespace Engine
-{
-namespace Network
+namespace Protocols
 {
 OSCProtocolSettingsWidget::OSCProtocolSettingsWidget(QWidget* parent)
     : ProtocolSettingsWidget(parent)
@@ -59,7 +57,7 @@ Device::DeviceSettings OSCProtocolSettingsWidget::getSettings() const
   Device::DeviceSettings s;
   s.name = m_deviceNameEdit->text();
 
-  Network::OSCSpecificSettings osc;
+  OSCSpecificSettings osc;
   osc.host = m_localHostEdit->text();
   osc.inputPort = m_portInputSBox->value();
   osc.outputPort = m_portOutputSBox->value();
@@ -74,16 +72,13 @@ void OSCProtocolSettingsWidget::setSettings(
     const Device::DeviceSettings& settings)
 {
   m_deviceNameEdit->setText(settings.name);
-  Network::OSCSpecificSettings osc;
-  if (settings.deviceSpecificSettings
-          .canConvert<Network::OSCSpecificSettings>())
+  OSCSpecificSettings osc;
+  if (settings.deviceSpecificSettings.canConvert<OSCSpecificSettings>())
   {
-    osc = settings.deviceSpecificSettings
-              .value<Network::OSCSpecificSettings>();
+    osc = settings.deviceSpecificSettings.value<OSCSpecificSettings>();
     m_portInputSBox->setValue(osc.inputPort);
     m_portOutputSBox->setValue(osc.outputPort);
     m_localHostEdit->setText(osc.host);
   }
-}
 }
 }

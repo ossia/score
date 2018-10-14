@@ -19,9 +19,8 @@ class ProtocolSettingsWidget;
 }
 struct VisitorVariant;
 
-namespace Engine
-{
-namespace Network
+
+namespace Protocols
 {
 QString OSCProtocolFactory::prettyName() const
 {
@@ -71,6 +70,5 @@ bool OSCProtocolFactory::checkCompatibility(
   auto b_p = b.deviceSpecificSettings.value<OSCSpecificSettings>();
   return a.name != b.name && a_p.inputPort != b_p.inputPort
          && a_p.outputPort != b_p.outputPort;
-}
 }
 }

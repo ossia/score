@@ -63,18 +63,18 @@ class OSCLibraryHandler final
 
     Device::ProtocolFactoryList fact;
 #if defined(OSSIA_PROTOCOL_OSC)
-    fact.insert(std::make_unique<Engine::Network::OSCProtocolFactory>());
+    fact.insert(std::make_unique<Protocols::OSCProtocolFactory>());
 #endif
 #if defined(OSSIA_PROTOCOL_MINUIT)
-    fact.insert(std::make_unique<Engine::Network::MinuitProtocolFactory>());
+    fact.insert(std::make_unique<Protocols::MinuitProtocolFactory>());
 #endif
 #if defined(OSSIA_PROTOCOL_OSCQUERY)
-    fact.insert(std::make_unique<Engine::Network::OSCQueryProtocolFactory>());
+    fact.insert(std::make_unique<Protocols::OSCQueryProtocolFactory>());
 #endif
 
     Device::DeviceSettings set;
     set.name = QFileInfo(path).baseName();
-    set.protocol = Engine::Network::OSCProtocolFactory::static_concreteKey();
+    set.protocol = Protocols::OSCProtocolFactory::static_concreteKey();
     auto dialog = std::make_unique<Explorer::DeviceEditDialog>(fact, nullptr);
     dialog->setSettings(set);
     auto code = static_cast<QDialog::DialogCode>(dialog->exec());
@@ -140,25 +140,25 @@ class QMLLibraryHandler final
 #if defined(OSSIA_PROTOCOL_SERIAL)
     else if(dynamic_cast<ossia::net::Serial*>(obj.get()))
     {
-      fact.insert(std::make_unique<Engine::Network::SerialProtocolFactory>());
-      set.protocol = Engine::Network::SerialProtocolFactory::static_concreteKey();
-      set.deviceSpecificSettings = QVariant::fromValue(Engine::Network::SerialSpecificSettings{{}, content});
+      fact.insert(std::make_unique<Protocols::SerialProtocolFactory>());
+      set.protocol = Protocols::SerialProtocolFactory::static_concreteKey();
+      set.deviceSpecificSettings = QVariant::fromValue(Protocols::SerialSpecificSettings{{}, content});
     }
 #endif
 #if defined(OSSIA_PROTOCOL_HTTP)
     else if(dynamic_cast<ossia::net::HTTP*>(obj.get()))
     {
-      fact.insert(std::make_unique<Engine::Network::HTTPProtocolFactory>());
-      set.protocol = Engine::Network::HTTPProtocolFactory::static_concreteKey();
-      set.deviceSpecificSettings = QVariant::fromValue(Engine::Network::HTTPSpecificSettings{content});
+      fact.insert(std::make_unique<Protocols::HTTPProtocolFactory>());
+      set.protocol = Protocols::HTTPProtocolFactory::static_concreteKey();
+      set.deviceSpecificSettings = QVariant::fromValue(Protocols::HTTPSpecificSettings{content});
     }
 #endif
 #if defined(OSSIA_PROTOCOL_WEBSOCKETS)
     else if(dynamic_cast<ossia::net::WS*>(obj.get()))
     {
-      fact.insert(std::make_unique<Engine::Network::WSProtocolFactory>());
-      set.protocol = Engine::Network::WSProtocolFactory::static_concreteKey();
-      set.deviceSpecificSettings = QVariant::fromValue(Engine::Network::WSSpecificSettings{QQmlProperty(obj.get(), "host").read().toString(), content});
+      fact.insert(std::make_unique<Protocols::WSProtocolFactory>());
+      set.protocol = Protocols::WSProtocolFactory::static_concreteKey();
+      set.deviceSpecificSettings = QVariant::fromValue(Protocols::WSSpecificSettings{QQmlProperty(obj.get(), "host").read().toString(), content});
     }
 #endif
 

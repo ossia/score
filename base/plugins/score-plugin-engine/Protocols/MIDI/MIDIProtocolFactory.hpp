@@ -15,9 +15,8 @@ struct DeviceSettings;
 } // namespace score
 struct VisitorVariant;
 
-namespace Engine
-{
-namespace Network
+
+namespace Protocols
 {
 class MIDIProtocolFactory final : public Device::ProtocolFactory
 {
@@ -50,5 +49,4 @@ class MIDIProtocolFactory final : public Device::ProtocolFactory
       const Device::DeviceSettings& a,
       const Device::DeviceSettings& b) const override;
 };
-}
 }

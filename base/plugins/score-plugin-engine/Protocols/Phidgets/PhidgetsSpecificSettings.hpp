@@ -2,13 +2,10 @@
 #include <QMetaType>
 #include <QString>
 
-namespace Engine
-{
-namespace Network
+namespace Protocols
 {
 struct PhidgetSpecificSettings
 {
 };
 }
-}
-Q_DECLARE_METATYPE(Engine::Network::PhidgetSpecificSettings)
+Q_DECLARE_METATYPE(Protocols::PhidgetSpecificSettings)

@@ -18,9 +18,8 @@ class ProtocolSettingsWidget;
 
 struct VisitorVariant;
 
-namespace Engine
-{
-namespace Network
+
+namespace Protocols
 {
 QString MIDIProtocolFactory::prettyName() const
 {
@@ -81,6 +80,5 @@ bool MIDIProtocolFactory::checkCompatibility(
     const Device::DeviceSettings& a, const Device::DeviceSettings& b) const
 {
   return a.name != b.name;
-}
 }
 }

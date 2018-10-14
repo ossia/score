@@ -20,11 +20,7 @@
 #include <QSpinBox>
 #include <QString>
 #include <QVariant>
-class QWidget;
-
-namespace Engine
-{
-namespace Network
+namespace Protocols
 {
 SerialProtocolSettingsWidget::SerialProtocolSettingsWidget(QWidget* parent)
     : ProtocolSettingsWidget(parent)
@@ -66,7 +62,7 @@ Device::DeviceSettings SerialProtocolSettingsWidget::getSettings() const
   Device::DeviceSettings s;
   s.name = m_name->text();
 
-  Network::SerialSpecificSettings specific;
+  SerialSpecificSettings specific;
   for (auto port : QSerialPortInfo::availablePorts())
   {
     if (port.portName() == m_port->currentText())
@@ -85,17 +81,16 @@ void SerialProtocolSettingsWidget::setSettings(
     const Device::DeviceSettings& settings)
 {
   m_name->setText(settings.name);
-  Network::SerialSpecificSettings specific;
+  SerialSpecificSettings specific;
   if (settings.deviceSpecificSettings
-          .canConvert<Network::SerialSpecificSettings>())
+          .canConvert<SerialSpecificSettings>())
   {
     specific = settings.deviceSpecificSettings
-                   .value<Network::SerialSpecificSettings>();
+                   .value<SerialSpecificSettings>();
 
     m_port->setCurrentText(specific.port.portName());
     m_codeEdit->setPlainText(specific.text);
   }
-}
 }
 }
 #endif

@@ -8,9 +8,7 @@ class QSpinBox;
 class QWidget;
 class QComboBox;
 
-namespace Engine
-{
-namespace Network
+namespace Protocols
 {
 class PhidgetProtocolSettingsWidget : public Device::ProtocolSettingsWidget
 {
@@ -27,5 +25,4 @@ protected:
 protected:
   QLineEdit* m_name{};
 };
-}
 }

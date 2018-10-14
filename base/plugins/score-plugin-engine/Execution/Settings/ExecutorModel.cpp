@@ -8,7 +8,7 @@
 
 #include <Engine/OSSIA2score.hpp>
 #include <Execution/Clock/DefaultClock.hpp>
-#include <Execution/Dataflow/DataflowClock.hpp>
+#include <Execution/Clock/DataflowClock.hpp>
 
 namespace Execution
 {

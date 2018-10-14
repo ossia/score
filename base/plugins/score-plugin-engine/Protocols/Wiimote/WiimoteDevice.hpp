@@ -1,7 +1,7 @@
 #pragma once
 #include <Device/Protocol/DeviceInterface.hpp>
 
-namespace Engine::Network {
+namespace Protocols {
 
 
 class WiimoteDevice final : public Device::OwningDeviceInterface

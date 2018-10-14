@@ -19,9 +19,8 @@
 #include <QVariant>
 class QWidget;
 
-namespace Engine
-{
-namespace Network
+
+namespace Protocols
 {
 HTTPProtocolSettingsWidget::HTTPProtocolSettingsWidget(QWidget* parent)
     : ProtocolSettingsWidget(parent)
@@ -61,7 +60,7 @@ Device::DeviceSettings HTTPProtocolSettingsWidget::getSettings() const
   Device::DeviceSettings s;
   s.name = m_deviceNameEdit->text();
 
-  Network::HTTPSpecificSettings specific;
+  HTTPSpecificSettings specific;
   specific.text = m_codeEdit->toPlainText();
 
   s.deviceSpecificSettings = QVariant::fromValue(specific);
@@ -72,14 +71,13 @@ void HTTPProtocolSettingsWidget::setSettings(
     const Device::DeviceSettings& settings)
 {
   m_deviceNameEdit->setText(settings.name);
-  Network::HTTPSpecificSettings specific;
+  HTTPSpecificSettings specific;
   if (settings.deviceSpecificSettings
-          .canConvert<Network::HTTPSpecificSettings>())
+          .canConvert<HTTPSpecificSettings>())
   {
     specific = settings.deviceSpecificSettings
-                   .value<Network::HTTPSpecificSettings>();
+                   .value<HTTPSpecificSettings>();
     m_codeEdit->setPlainText(specific.text);
   }
-}
 }
 }

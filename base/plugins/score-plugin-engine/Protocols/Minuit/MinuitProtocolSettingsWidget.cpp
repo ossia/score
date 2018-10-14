@@ -20,11 +20,7 @@
 #include <Explorer/Widgets/ZeroConf/ZeroconfBrowser.hpp>
 #endif
 
-class QWidget;
-
-namespace Engine
-{
-namespace Network
+namespace Protocols
 {
 MinuitProtocolSettingsWidget::MinuitProtocolSettingsWidget(QWidget* parent)
     : ProtocolSettingsWidget(parent)
@@ -89,7 +85,7 @@ Device::DeviceSettings MinuitProtocolSettingsWidget::getSettings() const
   Device::DeviceSettings s;
   s.name = m_deviceNameEdit->text();
 
-  Network::MinuitSpecificSettings minuit;
+  MinuitSpecificSettings minuit;
   minuit.host = m_localHostEdit->text();
   minuit.localName = m_localNameEdit->text();
   minuit.inputPort = m_portInputSBox->value();
@@ -103,17 +99,16 @@ void MinuitProtocolSettingsWidget::setSettings(
     const Device::DeviceSettings& settings)
 {
   m_deviceNameEdit->setText(settings.name);
-  Network::MinuitSpecificSettings minuit;
+  MinuitSpecificSettings minuit;
   if (settings.deviceSpecificSettings
-          .canConvert<Network::MinuitSpecificSettings>())
+          .canConvert<MinuitSpecificSettings>())
   {
     minuit = settings.deviceSpecificSettings
-                 .value<Network::MinuitSpecificSettings>();
+                 .value<MinuitSpecificSettings>();
     m_portInputSBox->setValue(minuit.inputPort);
     m_portOutputSBox->setValue(minuit.outputPort);
     m_localHostEdit->setText(minuit.host);
     m_localNameEdit->setText(minuit.localName);
   }
-}
 }
 }

@@ -2,7 +2,7 @@
 
 #include <Protocols/DefaultProtocolFactory.hpp>
 
-namespace Engine::Network
+namespace Protocols
 {
 
 class ArtnetProtocolFactory final : public DefaultProtocolFactory

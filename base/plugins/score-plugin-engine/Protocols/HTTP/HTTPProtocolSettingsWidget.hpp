@@ -7,9 +7,8 @@ class JSEdit;
 class QSpinBox;
 class QWidget;
 
-namespace Engine
-{
-namespace Network
+
+namespace Protocols
 {
 class HTTPProtocolSettingsWidget : public Device::ProtocolSettingsWidget
 {
@@ -27,5 +26,4 @@ protected:
   QLineEdit* m_deviceNameEdit{};
   JSEdit* m_codeEdit{};
 };
-}
 }

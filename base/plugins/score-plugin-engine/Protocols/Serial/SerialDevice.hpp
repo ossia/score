@@ -3,9 +3,8 @@
 #if defined(OSSIA_PROTOCOL_SERIAL)
 #include <Device/Protocol/DeviceInterface.hpp>
 
-namespace Engine
-{
-namespace Network
+
+namespace Protocols
 {
 class SerialDevice final : public Device::OwningDeviceInterface
 {
@@ -14,6 +13,5 @@ public:
 
   bool reconnect() override;
 };
-}
 }
 #endif

@@ -1,9 +1,8 @@
 #pragma once
 #include <Device/Protocol/DeviceInterface.hpp>
 
-namespace Engine
-{
-namespace Network
+
+namespace Protocols
 {
 class PhidgetDevice final : public Device::OwningDeviceInterface
 {
@@ -25,4 +24,4 @@ private:
   int m_timer{-1};
 };
 }
-}
+

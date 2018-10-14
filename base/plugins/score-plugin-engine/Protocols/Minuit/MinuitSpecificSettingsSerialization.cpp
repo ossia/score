@@ -10,21 +10,21 @@
 #include <QString>
 
 template <>
-void DataStreamReader::read(const Engine::Network::MinuitSpecificSettings& n)
+void DataStreamReader::read(const Protocols::MinuitSpecificSettings& n)
 {
   m_stream << n.inputPort << n.outputPort << n.host << n.localName;
   insertDelimiter();
 }
 
 template <>
-void DataStreamWriter::write(Engine::Network::MinuitSpecificSettings& n)
+void DataStreamWriter::write(Protocols::MinuitSpecificSettings& n)
 {
   m_stream >> n.inputPort >> n.outputPort >> n.host >> n.localName;
   checkDelimiter();
 }
 
 template <>
-void JSONObjectReader::read(const Engine::Network::MinuitSpecificSettings& n)
+void JSONObjectReader::read(const Protocols::MinuitSpecificSettings& n)
 {
   obj["InPort"] = n.inputPort;
   obj["OutPort"] = n.outputPort;
@@ -33,7 +33,7 @@ void JSONObjectReader::read(const Engine::Network::MinuitSpecificSettings& n)
 }
 
 template <>
-void JSONObjectWriter::write(Engine::Network::MinuitSpecificSettings& n)
+void JSONObjectWriter::write(Protocols::MinuitSpecificSettings& n)
 {
   n.inputPort = obj["InPort"].toInt();
   n.outputPort = obj["OutPort"].toInt();

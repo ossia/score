@@ -18,12 +18,11 @@
 #include <QVariant>
 
 #include <wobjectimpl.h>
-W_OBJECT_IMPL(Engine::Network::MIDIProtocolSettingsWidget)
+W_OBJECT_IMPL(Protocols::MIDIProtocolSettingsWidget)
 class QWidget;
 
-namespace Engine
-{
-namespace Network
+
+namespace Protocols
 {
 MIDIProtocolSettingsWidget::MIDIProtocolSettingsWidget(QWidget* parent)
     : ProtocolSettingsWidget(parent)
@@ -74,11 +73,11 @@ Device::DeviceSettings MIDIProtocolSettingsWidget::getSettings() const
 
   // TODO *** Initialize with ProtocolFactory.defaultSettings().
   Device::DeviceSettings s;
-  Network::MIDISpecificSettings midi;
+  MIDISpecificSettings midi;
   s.name = m_name->text();
 
-  midi.io = m_inButton->isChecked() ? Network::MIDISpecificSettings::IO::In
-                                    : Network::MIDISpecificSettings::IO::Out;
+  midi.io = m_inButton->isChecked() ? MIDISpecificSettings::IO::In
+                                    : MIDISpecificSettings::IO::Out;
   midi.endpoint = m_deviceCBox->currentText();
   midi.port = m_deviceCBox->currentData().toInt();
 
@@ -99,12 +98,12 @@ void MIDIProtocolSettingsWidget::setSettings(
   }
 
   if (settings.deviceSpecificSettings
-          .canConvert<Network::MIDISpecificSettings>())
+          .canConvert<MIDISpecificSettings>())
   {
-    Network::MIDISpecificSettings midi
+    MIDISpecificSettings midi
         = settings.deviceSpecificSettings
-              .value<Network::MIDISpecificSettings>();
-    if (midi.io == Network::MIDISpecificSettings::IO::In)
+              .value<MIDISpecificSettings>();
+    if (midi.io == MIDISpecificSettings::IO::In)
     {
       m_inButton->setChecked(true);
     }
@@ -153,6 +152,5 @@ void MIDIProtocolSettingsWidget::updateInputDevices()
 void MIDIProtocolSettingsWidget::updateOutputDevices()
 {
   updateDevices(ossia::net::midi::midi_info::Type::RemoteOutput);
-}
 }
 }

@@ -6,9 +6,9 @@
 #include <ossia/network/artnet/artnet_protocol.hpp>
 #include <ossia/network/generic/generic_device.hpp>
 #include <wobjectimpl.h>
-W_OBJECT_IMPL(Engine::Network::ArtnetDevice)
+W_OBJECT_IMPL(Protocols::ArtnetDevice)
 
-namespace Engine::Network
+namespace Protocols
 {
 
 ArtnetDevice::ArtnetDevice(const Device::DeviceSettings& settings)

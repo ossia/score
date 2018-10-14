@@ -17,9 +17,7 @@
 #include <wobjectimpl.h>
 
 #include <memory>
-namespace Engine
-{
-namespace Network
+namespace Protocols
 {
 HTTPDevice::HTTPDevice(const Device::DeviceSettings& settings)
     : OwningDeviceInterface{settings}
@@ -61,4 +59,4 @@ bool HTTPDevice::reconnect()
   return connected();
 }
 }
-}
+

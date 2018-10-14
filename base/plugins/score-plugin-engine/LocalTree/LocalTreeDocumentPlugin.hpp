@@ -48,7 +48,7 @@ public:
     return *m_localDevice;
   }
 
-  Engine::Network::LocalDevice& localDevice()
+  Protocols::LocalDevice& localDevice()
   {
     return m_localDeviceWrapper;
   }
@@ -59,6 +59,6 @@ private:
 
   Interval* m_root{};
   std::unique_ptr<ossia::net::device_base> m_localDevice;
-  Engine::Network::LocalDevice m_localDeviceWrapper;
+  Protocols::LocalDevice m_localDeviceWrapper;
 };
 }

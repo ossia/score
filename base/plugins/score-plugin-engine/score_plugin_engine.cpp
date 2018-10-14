@@ -74,8 +74,8 @@
 #include <Protocols/Audio/AudioDevice.hpp>
 #include <Protocols/Mapper/MapperDevice.hpp>
 
-#include <Execution/Dataflow/DataflowClock.hpp>
-#include <Execution/Dataflow/ManualClock.hpp>
+#include <Execution/Clock/DataflowClock.hpp>
+#include <Execution/Clock/ManualClock.hpp>
 #include <score_plugin_deviceexplorer.hpp>
 #include <score_plugin_scenario.hpp>
 #include <wobjectimpl.h>
@@ -122,40 +122,40 @@ score_plugin_engine::factories(
   return instantiate_factories<
       score::ApplicationContext,
       FW<Device::ProtocolFactory
-      , Network::LocalProtocolFactory
+      , Protocols::LocalProtocolFactory
       , Protocols::MapperProtocolFactory
 
 #if defined(OSSIA_PROTOCOL_OSC)
          ,
-         Network::OSCProtocolFactory
+         Protocols::OSCProtocolFactory
 #endif
 #if defined(OSSIA_PROTOCOL_MINUIT)
          ,
-         Network::MinuitProtocolFactory
+         Protocols::MinuitProtocolFactory
 #endif
 #if defined(OSSIA_PROTOCOL_OSCQUERY)
          ,
-         Network::OSCQueryProtocolFactory
+         Protocols::OSCQueryProtocolFactory
 #endif
 #if defined(OSSIA_PROTOCOL_MIDI)
          ,
-         Network::MIDIProtocolFactory
+         Protocols::MIDIProtocolFactory
 #endif
 #if defined(OSSIA_PROTOCOL_HTTP)
          ,
-         Network::HTTPProtocolFactory
+         Protocols::HTTPProtocolFactory
 #endif
 #if defined(OSSIA_PROTOCOL_WEBSOCKETS)
          ,
-         Network::WSProtocolFactory
+         Protocols::WSProtocolFactory
 #endif
 #if defined(OSSIA_PROTOCOL_SERIAL)
          ,
-         Network::SerialProtocolFactory
+         Protocols::SerialProtocolFactory
 #endif
 #if defined(OSSIA_PROTOCOL_PHIDGETS)
          ,
-         Network::PhidgetProtocolFactory
+         Protocols::PhidgetProtocolFactory
 #endif
 #if defined(OSSIA_PROTOCOL_AUDIO)
          ,
@@ -163,15 +163,15 @@ score_plugin_engine::factories(
 #endif
 #if defined(OSSIA_PROTOCOL_JOYSTICK)
          ,
-         Network::JoystickProtocolFactory
+         Protocols::JoystickProtocolFactory
 #endif
 #if defined(OSSIA_PROTOCOL_WIIMOTE)
         ,
-        Network::WiimoteProtocolFactory
+        Protocols::WiimoteProtocolFactory
 #endif
 #if defined(OSSIA_PROTOCOL_ARTNET)
         ,
-        Network::ArtnetProtocolFactory
+        Protocols::ArtnetProtocolFactory
 #endif
          >,
 

@@ -8,23 +8,23 @@
 #include <QString>
 
 template <>
-void DataStreamReader::read(const Engine::Network::JoystickSpecificSettings& n)
+void DataStreamReader::read(const Protocols::JoystickSpecificSettings& n)
 {
   insertDelimiter();
 }
 
 template <>
-void DataStreamWriter::write(Engine::Network::JoystickSpecificSettings& n)
+void DataStreamWriter::write(Protocols::JoystickSpecificSettings& n)
 {
   checkDelimiter();
 }
 
 template <>
-void JSONObjectReader::read(const Engine::Network::JoystickSpecificSettings& n)
+void JSONObjectReader::read(const Protocols::JoystickSpecificSettings& n)
 {
 }
 
 template <>
-void JSONObjectWriter::write(Engine::Network::JoystickSpecificSettings& n)
+void JSONObjectWriter::write(Protocols::JoystickSpecificSettings& n)
 {
 }

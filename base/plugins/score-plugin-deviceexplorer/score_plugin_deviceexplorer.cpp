@@ -2,9 +2,9 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "score_plugin_deviceexplorer.hpp"
 
-#include "DeviceExplorerApplicationPlugin.hpp"
 
 #include <Device/Protocol/ProtocolList.hpp>
+#include <Explorer/ApplicationPlugin.hpp>
 #include <Explorer/Commands/DeviceExplorerCommandFactory.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPluginFactory.hpp>
