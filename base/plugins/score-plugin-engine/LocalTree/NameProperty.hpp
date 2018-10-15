@@ -2,6 +2,9 @@
 #include <score/model/ModelMetadata.hpp>
 
 #include <LocalTree/BaseProperty.hpp>
+#include <ossia/network/base/node.hpp>
+namespace LocalTree
+{
 
 class MetadataNamePropertyWrapper
 {
@@ -60,3 +63,5 @@ public:
       par->remove_child(node);
   }
 };
+
+}

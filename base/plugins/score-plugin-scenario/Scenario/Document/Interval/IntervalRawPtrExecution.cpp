@@ -74,7 +74,13 @@ void IntervalRawPtrComponent::init()
 {
   if (m_interval)
   {
+    if (interval().muted())
+      OSSIAInterval()->mute(true);
     init_hierarchy();
+
+    con(interval(), &Scenario::IntervalModel::mutedChanged, this, [=](bool b) {
+      in_exec([b, itv = OSSIAInterval()] { itv->mute(b); });
+    });
 
     /* TODO put the include at the right place
     if (context().doc.app.settings<Settings::Model>().getScoreOrder())
@@ -89,7 +95,6 @@ void IntervalRawPtrComponent::init()
         SCORE_ASSERT(node);
         if (prev_node)
         {
-
           edges_to_add.push_back(ossia::make_edge(
                                    ossia::dependency_connection{},
     ossia::outlet_ptr{}, ossia::inlet_ptr{}, prev_node, node));
