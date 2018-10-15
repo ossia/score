@@ -73,54 +73,16 @@ IntervalComponent::~IntervalComponent()
 {
 }
 
-// REFACTORME
-struct mute_rec
-{
-  bool muted{};
-  void operator()(ossia::time_interval& itv)
-  {
-    itv.node->set_mute(muted);
-    for (auto& proc : itv.get_time_processes())
-    {
-      (*this)(*proc);
-    }
-  }
-
-  void operator()(ossia::time_process& proc)
-  {
-    proc.mute(muted);
-
-    if (auto scenar = dynamic_cast<ossia::scenario*>(&proc))
-      (*this)(*scenar);
-
-    else if (auto loop = dynamic_cast<ossia::loop*>(&proc))
-      (*this)(*loop);
-  }
-
-  void operator()(ossia::scenario& proc)
-  {
-    proc.mute(muted);
-    for (auto& itv : proc.get_time_intervals())
-    {
-      (*this)(*itv);
-    }
-  }
-  void operator()(ossia::loop& proc)
-  {
-    proc.mute(muted);
-    (*this)(proc.get_time_interval());
-  }
-};
 void IntervalComponent::init()
 {
   if (m_interval)
   {
     if (interval().muted())
-      mute_rec{true}(*OSSIAInterval());
+      OSSIAInterval()->mute(true);
     init_hierarchy();
 
     con(interval(), &Scenario::IntervalModel::mutedChanged, this, [=](bool b) {
-      in_exec([b, itv = OSSIAInterval()] { mute_rec{b}(*itv); });
+      in_exec([b, itv = OSSIAInterval()] { itv->mute(b); });
     });
 
     /* TODO put the include at the right place
@@ -321,9 +283,6 @@ ProcessComponent* IntervalComponentBase::make(
 
       if (auto& onode = plug->node)
         ctx.setup.register_node(proc, onode);
-
-      if (interval().muted())
-        mute_rec{true}(*oproc);
 
       auto cst = m_ossia_interval;
 
