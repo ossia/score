@@ -106,7 +106,7 @@ function(score_set_gcc_compile_options theTarget)
                   "$<$<CONFIG:Debug>:-fvar-tracking-assignments>"
         )
 
-      if(LINKER_IS_GOLD OR LINKER_IS_LLD)
+      if(GDB_INDEX_SUPPORTED)
         if(NOT OSSIA_SANITIZE)
           target_link_libraries(${theTarget} PUBLIC
             "$<$<CONFIG:Debug>:-Wl,--gdb-index>"
@@ -142,7 +142,6 @@ function(score_set_gcc_compile_options theTarget)
             #          "$<$<CONFIG:Debug>:-Wa,--compress-debug-sections>"
             #          "$<$<CONFIG:Debug>:-Wl,--compress-debug-sections=zlib>"
           "$<$<CONFIG:Debug>:-gsplit-dwarf>"
-          "$<$<CONFIG:Debug>:-Wl,--gdb-index>"
           "$<$<CONFIG:Debug>:-fdebug-types-section>"
           "$<$<CONFIG:Debug>:-ggnu-pubnames>"
           )
