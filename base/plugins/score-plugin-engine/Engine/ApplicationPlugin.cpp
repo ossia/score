@@ -590,6 +590,7 @@ void ApplicationPlugin::on_record(::TimeVal t)
 
 void ApplicationPlugin::on_stop()
 {
+  bool wasplaying = m_playing;
   if (audio)
   {
     audio->reload(nullptr);
@@ -611,6 +612,7 @@ void ApplicationPlugin::on_stop()
       return;
     else
     {
+      // TODO why is this commented
       // plugmodel->clear();
     }
     // If we can we resume listening
@@ -619,6 +621,17 @@ void ApplicationPlugin::on_stop()
       auto explorer = Explorer::try_deviceExplorerFromObject(*doc);
       if (explorer)
         explorer->deviceModel().listening().restore();
+    }
+
+    if(wasplaying)
+    {
+      if(auto scenar = dynamic_cast<Scenario::ScenarioDocumentModel*>(
+          &doc->model().modelDelegate()))
+      {
+        auto state = Engine::score_to_ossia::state(
+            scenar->baseScenario().endState(), plugmodel->context());
+        state.launch();
+      }
     }
 
     QTimer::singleShot(50, this, [this] {
