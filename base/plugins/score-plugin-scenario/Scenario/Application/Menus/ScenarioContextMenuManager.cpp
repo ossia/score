@@ -33,7 +33,7 @@
 #include <score/document/DocumentInterface.hpp>
 #include <score/model/EntityMap.hpp>
 #include <score/model/Identifier.hpp>
-#include <score/plugins/customfactory/StringFactoryKey.hpp>
+#include <score/plugins/StringFactoryKey.hpp>
 #include <score/selection/Selection.hpp>
 #include <score/selection/SelectionStack.hpp>
 #include <score/tools/std/Optional.hpp>

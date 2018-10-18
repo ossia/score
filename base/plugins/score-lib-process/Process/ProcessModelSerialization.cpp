@@ -7,9 +7,9 @@
 #include <Process/TimeValueSerialization.hpp>
 
 #include <score/model/ModelMetadata.hpp>
-#include <score/plugins/customfactory/FactoryFamily.hpp>
-#include <score/plugins/customfactory/StringFactoryKey.hpp>
-#include <score/plugins/customfactory/StringFactoryKeySerialization.hpp>
+#include <score/plugins/InterfaceList.hpp>
+#include <score/plugins/StringFactoryKey.hpp>
+#include <score/plugins/StringFactoryKeySerialization.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/serialization/JSONValueVisitor.hpp>
 #include <score/serialization/JSONVisitor.hpp>

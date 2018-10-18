@@ -1,5 +1,5 @@
 #pragma once
-#include <score/plugins/customfactory/StringFactoryKey.hpp>
+#include <score/plugins/StringFactoryKey.hpp>
 class CommandTag
 {
 };

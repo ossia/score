@@ -14,7 +14,7 @@
 #include <Explorer/Settings/ExplorerFactory.hpp>
 #include <State/ValueSerialization.hpp>
 
-#include <score/plugins/customfactory/FactorySetup.hpp>
+#include <score/plugins/FactorySetup.hpp>
 #include <score/serialization/AnySerialization.hpp>
 #include <score/tools/std/HashMap.hpp>
 

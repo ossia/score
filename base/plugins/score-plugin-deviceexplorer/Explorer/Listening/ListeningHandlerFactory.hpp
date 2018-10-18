@@ -1,7 +1,7 @@
 #pragma once
 #include <Explorer/Listening/ListeningHandler.hpp>
 
-#include <score/plugins/customfactory/FactoryInterface.hpp>
+#include <score/plugins/Interface.hpp>
 
 #include <score_plugin_deviceexplorer_export.h>
 namespace score

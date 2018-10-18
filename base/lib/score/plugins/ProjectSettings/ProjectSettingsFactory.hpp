@@ -1,6 +1,6 @@
 #pragma once
 #include <score/plugins/ProjectSettings/ProjectSettingsModel.hpp>
-#include <score/plugins/customfactory/FactoryFamily.hpp>
+#include <score/plugins/InterfaceList.hpp>
 #include <score/plugins/documentdelegate/plugin/SerializableDocumentPlugin.hpp>
 
 #include <score_lib_base_export.h>

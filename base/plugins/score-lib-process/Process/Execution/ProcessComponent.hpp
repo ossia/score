@@ -5,7 +5,7 @@
 #include <Process/ProcessComponent.hpp>
 
 #include <score/model/ComponentFactory.hpp>
-#include <score/plugins/customfactory/ModelFactory.hpp>
+#include <score/plugins/ModelFactory.hpp>
 
 #include <ossia/dataflow/graph_node.hpp>
 #include <ossia/editor/scenario/time_process.hpp>

@@ -19,8 +19,8 @@
 #include <score/actions/MenuManager.hpp>
 #include <score/model/Identifier.hpp>
 #include <score/plugins/application/GUIApplicationPlugin.hpp>
-#include <score/plugins/customfactory/FactorySetup.hpp>
-#include <score/plugins/customfactory/StringFactoryKey.hpp>
+#include <score/plugins/FactorySetup.hpp>
+#include <score/plugins/StringFactoryKey.hpp>
 #include <score/tools/std/HashMap.hpp>
 #include <score/tools/std/Optional.hpp>
 

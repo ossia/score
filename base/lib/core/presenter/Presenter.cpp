@@ -5,7 +5,7 @@
 #include <score/application/ApplicationComponents.hpp>
 #include <score/model/Identifier.hpp>
 #include <score/plugins/application/GUIApplicationPlugin.hpp>
-#include <score/plugins/customfactory/StringFactoryKey.hpp>
+#include <score/plugins/StringFactoryKey.hpp>
 #include <score/plugins/documentdelegate/DocumentDelegateFactory.hpp>
 #include <score/tools/IdentifierGeneration.hpp>
 #include <score/tools/std/Optional.hpp>

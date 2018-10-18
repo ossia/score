@@ -48,9 +48,9 @@
 
 #include <score/command/Command.hpp>
 #include <score/command/CommandGeneratorMap.hpp>
-#include <score/plugins/customfactory/FactorySetup.hpp>
-#include <score/plugins/customfactory/StringFactoryKey.hpp>
-#include <score/plugins/customfactory/StringFactoryKeySerialization.hpp>
+#include <score/plugins/FactorySetup.hpp>
+#include <score/plugins/StringFactoryKey.hpp>
+#include <score/plugins/StringFactoryKeySerialization.hpp>
 #include <score/plugins/qt_interfaces/FactoryFamily_QtInterface.hpp>
 #include <score/plugins/qt_interfaces/FactoryInterface_QtInterface.hpp>
 #include <score/plugins/qt_interfaces/GUIApplicationPlugin_QtInterface.hpp>

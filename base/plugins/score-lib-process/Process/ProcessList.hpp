@@ -1,7 +1,7 @@
 #pragma once
 #include <Process/ProcessFactory.hpp>
 
-#include <score/plugins/customfactory/FactoryFamily.hpp>
+#include <score/plugins/InterfaceList.hpp>
 
 namespace Process
 {

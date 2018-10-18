@@ -1,7 +1,7 @@
 #pragma once
 #include <score/application/GUIApplicationContext.hpp>
-#include <score/plugins/customfactory/FactoryFamily.hpp>
-#include <score/plugins/customfactory/FactoryInterface.hpp>
+#include <score/plugins/InterfaceList.hpp>
+#include <score/plugins/Interface.hpp>
 
 #include <score_plugin_library_export.h>
 class QAbstractItemModel;

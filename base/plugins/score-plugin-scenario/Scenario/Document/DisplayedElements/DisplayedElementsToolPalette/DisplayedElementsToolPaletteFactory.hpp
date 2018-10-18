@@ -1,5 +1,5 @@
 #pragma once
-#include <score/plugins/customfactory/FactoryInterface.hpp>
+#include <score/plugins/Interface.hpp>
 #include <score/statemachine/GraphicsSceneToolPalette.hpp>
 
 #include <score_plugin_scenario_export.h>

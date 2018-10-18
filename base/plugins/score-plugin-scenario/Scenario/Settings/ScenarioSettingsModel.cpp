@@ -3,7 +3,7 @@
 #include "ScenarioSettingsModel.hpp"
 
 #include <score/model/Skin.hpp>
-#include <score/plugins/customfactory/FactoryFamily.hpp>
+#include <score/plugins/InterfaceList.hpp>
 
 #include <QFile>
 #include <QFileInfo>

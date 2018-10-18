@@ -3,7 +3,7 @@
 
 #include <score/model/Component.hpp>
 #include <score/model/ComponentFactory.hpp>
-#include <score/plugins/customfactory/ModelFactory.hpp>
+#include <score/plugins/ModelFactory.hpp>
 
 #include <LocalTree/LocalTreeComponent.hpp>
 #include <LocalTree/LocalTreeDocumentPlugin.hpp>

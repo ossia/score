@@ -5,7 +5,7 @@
 
 #include <score/model/ComponentFactory.hpp>
 #include <score/model/ComponentHierarchy.hpp>
-#include <score/plugins/customfactory/ModelFactory.hpp>
+#include <score/plugins/ModelFactory.hpp>
 
 #include <ossia/dataflow/fx_node.hpp>
 #include <ossia/dataflow/node_chain_process.hpp>

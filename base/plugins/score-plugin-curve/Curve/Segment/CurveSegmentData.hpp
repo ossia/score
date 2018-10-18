@@ -2,7 +2,7 @@
 #include <Curve/Palette/CurvePoint.hpp>
 
 #include <score/model/IdentifiedObject.hpp>
-#include <score/plugins/customfactory/UuidKey.hpp>
+#include <score/plugins/UuidKey.hpp>
 #include <score/tools/IdentifierGeneration.hpp>
 
 namespace Curve

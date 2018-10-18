@@ -2,8 +2,8 @@
 #include <Process/TimeValue.hpp>
 #include <Process/ProcessMimeSerialization.hpp>
 
-#include <score/plugins/customfactory/FactoryInterface.hpp>
-#include <score/plugins/customfactory/FactoryFamily.hpp>
+#include <score/plugins/Interface.hpp>
+#include <score/plugins/InterfaceList.hpp>
 #include <score/command/AggregateCommand.hpp>
 #include <score/command/Dispatchers/RuntimeDispatcher.hpp>
 

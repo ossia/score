@@ -6,7 +6,7 @@
 #include <Library/LibrarySettings.hpp>
 #include <Library/Panel/LibraryPanelFactory.hpp>
 
-#include <score/plugins/customfactory/FactorySetup.hpp>
+#include <score/plugins/FactorySetup.hpp>
 
 score_plugin_library::score_plugin_library()
 {

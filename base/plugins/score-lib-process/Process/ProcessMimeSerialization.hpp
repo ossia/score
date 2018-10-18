@@ -1,7 +1,7 @@
 #pragma once
 #include <Process/ProcessFactory.hpp>
 
-#include <score/plugins/customfactory/SerializableInterface.hpp>
+#include <score/plugins/SerializableInterface.hpp>
 #include <score/serialization/JSONVisitor.hpp>
 #include <score/serialization/MimeVisitor.hpp>
 

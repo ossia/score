@@ -6,8 +6,8 @@
 #include <Device/Protocol/ProtocolList.hpp>
 #include <Device/Protocol/ProtocolSettingsWidget.hpp>
 
-#include <score/plugins/customfactory/FactoryFamily.hpp>
-#include <score/plugins/customfactory/StringFactoryKey.hpp>
+#include <score/plugins/InterfaceList.hpp>
+#include <score/plugins/StringFactoryKey.hpp>
 #include <score/widgets/SignalUtils.hpp>
 #include <score/widgets/TextLabel.hpp>
 

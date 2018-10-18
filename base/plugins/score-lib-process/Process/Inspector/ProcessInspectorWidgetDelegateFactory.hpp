@@ -1,7 +1,7 @@
 #pragma once
 #include <Inspector/InspectorWidgetFactoryInterface.hpp>
 
-#include <score/plugins/customfactory/FactoryInterface.hpp>
+#include <score/plugins/Interface.hpp>
 
 #include <score_lib_process_export.h>
 namespace Process

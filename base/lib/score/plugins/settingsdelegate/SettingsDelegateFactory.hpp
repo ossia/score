@@ -1,5 +1,5 @@
 #pragma once
-#include <score/plugins/customfactory/FactoryFamily.hpp>
+#include <score/plugins/InterfaceList.hpp>
 #include <score/plugins/settingsdelegate/SettingsDelegateModel.hpp>
 #include <score/plugins/settingsdelegate/SettingsDelegatePresenter.hpp>
 #include <score/plugins/settingsdelegate/SettingsDelegateView.hpp>

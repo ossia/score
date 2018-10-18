@@ -1,7 +1,7 @@
 #pragma once
 #include <Scenario/Document/DisplayedElements/DisplayedElementsProvider.hpp>
 
-#include <score/plugins/customfactory/FactoryFamily.hpp>
+#include <score/plugins/InterfaceList.hpp>
 
 #include <ossia/detail/algorithms.hpp>
 

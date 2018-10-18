@@ -1,7 +1,7 @@
 #pragma once
 #include <Curve/Segment/CurveSegmentFactory.hpp>
 
-#include <score/plugins/customfactory/FactoryFamily.hpp>
+#include <score/plugins/InterfaceList.hpp>
 namespace Curve
 {
 class SegmentList final : public score::InterfaceList<SegmentFactory>

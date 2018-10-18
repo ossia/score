@@ -8,8 +8,8 @@
 #include <score/application/ApplicationContext.hpp>
 #include <score/command/CommandGeneratorMap.hpp>
 #include <score/plugins/application/GUIApplicationPlugin.hpp>
-#include <score/plugins/customfactory/FactoryFamily.hpp>
-#include <score/plugins/customfactory/StringFactoryKey.hpp>
+#include <score/plugins/InterfaceList.hpp>
+#include <score/plugins/StringFactoryKey.hpp>
 #include <score/plugins/panel/PanelDelegateFactory.hpp>
 
 #include <core/document/Document.hpp>

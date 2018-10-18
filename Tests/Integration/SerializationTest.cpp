@@ -3,7 +3,7 @@
 
 #include <score/model/path/ObjectPath.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
-#include <score/plugins/customfactory/SerializableInterface.hpp>
+#include <score/plugins/SerializableInterface.hpp>
 #include <score/serialization/JSONVisitor.hpp>
 #include <score/serialization/VisitorCommon.hpp>
 #include <score/model/Entity.hpp>

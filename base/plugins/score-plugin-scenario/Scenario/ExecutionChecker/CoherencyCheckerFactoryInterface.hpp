@@ -2,8 +2,8 @@
 
 #include "CSPCoherencyCheckerInterface.hpp"
 
-#include <score/plugins/customfactory/FactoryInterface.hpp>
-#include <score/plugins/customfactory/StringFactoryKey.hpp>
+#include <score/plugins/Interface.hpp>
+#include <score/plugins/StringFactoryKey.hpp>
 
 #include <score_plugin_scenario_export.h>
 namespace score

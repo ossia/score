@@ -20,8 +20,8 @@
 #include <Process/ProcessFactory.hpp>
 #include <Process/Style/ScenarioStyle.hpp>
 
-#include <score/plugins/customfactory/FactorySetup.hpp>
-#include <score/plugins/customfactory/StringFactoryKey.hpp>
+#include <score/plugins/FactorySetup.hpp>
+#include <score/plugins/StringFactoryKey.hpp>
 #include <score/tools/std/HashMap.hpp>
 
 #include <Color/GradientExecution.hpp>

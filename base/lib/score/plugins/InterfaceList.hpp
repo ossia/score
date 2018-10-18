@@ -1,7 +1,6 @@
-﻿#ifndef FACTORY_FAMILY_HPP_2016_12_08_18_31
-#define FACTORY_FAMILY_HPP_2016_12_08_18_31
+﻿#pragma once
 
-#include <score/plugins/customfactory/FactoryInterface.hpp>
+#include <score/plugins/Interface.hpp>
 #include <score/tools/ForEachType.hpp>
 #include <score/tools/Todo.hpp>
 #include <score/tools/std/HashMap.hpp>
@@ -217,4 +216,3 @@ public:
   }
 };
 }
-#endif

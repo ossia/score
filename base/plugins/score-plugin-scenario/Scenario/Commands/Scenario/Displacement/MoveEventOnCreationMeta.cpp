@@ -9,7 +9,7 @@
 
 #include <score/application/ApplicationContext.hpp>
 #include <score/model/Identifier.hpp>
-#include <score/plugins/customfactory/StringFactoryKey.hpp>
+#include <score/plugins/StringFactoryKey.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
 
 #include <QByteArray>

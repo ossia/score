@@ -1,5 +1,5 @@
 #pragma once
-#include <score/plugins/customfactory/FactoryInterface.hpp>
+#include <score/plugins/Interface.hpp>
 
 #include <score_lib_base_export.h>
 

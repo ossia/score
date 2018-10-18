@@ -1,7 +1,7 @@
 #pragma once
 #include <Scenario/Document/DisplayedElements/DisplayedElementsContainer.hpp>
 
-#include <score/plugins/customfactory/FactoryInterface.hpp>
+#include <score/plugins/Interface.hpp>
 
 class QGraphicsItem;
 namespace Process
