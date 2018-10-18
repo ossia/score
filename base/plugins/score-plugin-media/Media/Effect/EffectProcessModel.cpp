@@ -8,6 +8,8 @@
 #include <QFile>
 
 #include <Effect/EffectFactory.hpp>
+#include <Media/Commands/InsertEffect.hpp>
+#include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Media::Effect::ProcessModel)
 namespace Media
@@ -192,6 +194,24 @@ void ProcessModel::checkChaining()
 
   setBadChaining(bad_effect);
 }
+
+bool EffectRemover::remove(const Selection& s, const score::DocumentContext& ctx)
+{
+  if(s.size() == 1)
+  {
+    auto first = s.begin()->data();
+    if(auto proc = qobject_cast<const Process::ProcessModel*>(first))
+    {
+      auto p = proc->parent();
+      if(auto fxc = qobject_cast<ProcessModel*>(p))
+      {
+        CommandDispatcher<>{ctx.commandStack}.submit<RemoveEffect>(*fxc, *proc);
+      }
+    }
+  }
+  return false;
+}
+
 }
 }
 

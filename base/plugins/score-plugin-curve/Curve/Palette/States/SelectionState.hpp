@@ -1,4 +1,5 @@
 #pragma once
+#include <Curve/CurveModel.hpp>
 #include <Curve/CurvePresenter.hpp>
 #include <Curve/CurveView.hpp>
 #include <Curve/Palette/CurvePalette.hpp>
@@ -61,16 +62,6 @@ public:
   {
     dispatcher.setAndCommit(Selection{});
     m_view.setSelectionArea(QRectF{});
-  }
-
-  void on_delete() override
-  {
-    m_parentSM.presenter().removeSelection();
-  }
-
-  void on_deleteContent() override
-  {
-    m_parentSM.presenter().removeSelection();
   }
 
 private:

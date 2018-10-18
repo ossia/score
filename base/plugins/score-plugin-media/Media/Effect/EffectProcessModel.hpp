@@ -3,6 +3,7 @@
 #include <Process/Dataflow/Port.hpp>
 #include <Process/Process.hpp>
 
+#include <score/model/ObjectRemover.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/serialization/JSONVisitor.hpp>
 #include <score/serialization/VisitorCommon.hpp>
@@ -263,6 +264,13 @@ private:
   W_PROPERTY(
       bool, badChaining READ badChaining WRITE setBadChaining NOTIFY
                 badChainingChanged)
+};
+
+class EffectRemover
+    : public score::ObjectRemover
+{
+  SCORE_CONCRETE("d26887f9-f17c-4a8f-957c-77645144c8af")
+  bool remove(const Selection& s, const score::DocumentContext& ctx) override;
 };
 }
 }

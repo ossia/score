@@ -8,6 +8,7 @@
 #include <score/plugins/documentdelegate/DocumentDelegateFactory.hpp>
 #include <score/plugins/documentdelegate/plugin/DocumentPlugin.hpp>
 #include <score/plugins/settingsdelegate/SettingsDelegateFactory.hpp>
+#include <score/model/ObjectRemover.hpp>
 
 #include <core/application/ApplicationRegistrar.hpp>
 #include <core/messages/MessagesPanel.hpp>
@@ -56,8 +57,8 @@ void GUIApplicationInterface::loadPluginData(
 {
   registrar.registerFactory(std::make_unique<score::DocumentDelegateList>());
   registrar.registerFactory(std::make_unique<score::ValidityCheckerList>());
-  registrar.registerFactory(
-      std::make_unique<score::SerializableComponentFactoryList>());
+  registrar.registerFactory(std::make_unique<score::SerializableComponentFactoryList>());
+  registrar.registerFactory(std::make_unique<score::ObjectRemoverList>());
   auto panels = std::make_unique<score::PanelDelegateFactoryList>();
   panels->insert(std::make_unique<score::UndoPanelDelegateFactory>());
   panels->insert(std::make_unique<score::MessagesPanelDelegateFactory>());

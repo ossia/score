@@ -67,15 +67,6 @@ void clearContentFromSelection(
   cleaner.commit();
 }
 
-void clearContentFromSelection(
-    const Scenario::ProcessModel& scenario,
-    const score::DocumentContext& stack)
-{
-  clearContentFromSelection(
-      selectedElements(scenario.intervals), selectedElements(scenario.states),
-      stack);
-}
-
 template <typename Range, typename Fun>
 void erase_if(Range& r, Fun f)
 {
@@ -142,42 +133,6 @@ void removeSelection(
   }
 
   cleaner.commit();
-}
-
-void removeSelection(const BaseScenario&, const score::DocumentContext&)
-{
-  // Shall do nothing
-}
-
-void clearContentFromSelection(
-    const BaseScenarioContainer& scenario, const score::DocumentContext& ctx)
-{
-  QList<const Scenario::IntervalModel*> itv;
-  QList<const Scenario::StateModel*> states;
-  if (scenario.interval().selection.get())
-    itv.push_back(&scenario.interval());
-  if (scenario.startState().selection.get())
-    states.push_back(&scenario.startState());
-  if (scenario.endState().selection.get())
-    states.push_back(&scenario.endState());
-
-  clearContentFromSelection(itv, states, ctx);
-}
-
-void clearContentFromSelection(
-    const BaseScenario& scenario, const score::DocumentContext& ctx)
-{
-  clearContentFromSelection(
-      static_cast<const BaseScenarioContainer&>(scenario), ctx);
-}
-
-void clearContentFromSelection(
-    const Scenario::ScenarioInterface& scenario,
-    const score::DocumentContext& stack)
-{
-  clearContentFromSelection(
-      selectedElements(scenario.getIntervals()),
-      selectedElements(scenario.getStates()), stack);
 }
 
 template <typename T>

@@ -170,7 +170,9 @@ score_plugin_media::factories(
         , Media::Faust::DropHandler
 #endif
       >,
-      FW<score::SettingsDelegateFactory, Media::Settings::Factory>>(ctx, key);
+      FW<score::SettingsDelegateFactory, Media::Settings::Factory>,
+      FW<score::ObjectRemover, Media::Effect::EffectRemover>
+      >(ctx, key);
 }
 
 #include <score/plugins/PluginInstances.hpp>

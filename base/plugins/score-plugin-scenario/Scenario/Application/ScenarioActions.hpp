@@ -106,8 +106,6 @@ SCORE_DECLARE_ACTION(
 SCORE_DECLARE_ACTION(CopyContent, "C&opy", Scenario, QKeySequence::Copy)
 SCORE_DECLARE_ACTION(CutContent, "C&ut", Scenario, QKeySequence::Cut)
 SCORE_DECLARE_ACTION(
-    PasteContent, "&Paste (content)", Scenario, QKeySequence::Print)
-SCORE_DECLARE_ACTION(
     PasteElements, "&Paste (elements)", Scenario, QKeySequence::Paste)
 SCORE_DECLARE_ACTION(
     PasteElementsAfter, "&Paste (after)", Scenario, QKeySequence::UnknownKey)

@@ -475,10 +475,6 @@ void ScenarioDocumentPresenter::on_cableAdded(Process::Cable& c)
   connect(it, &Dataflow::CableItem::clicked, this, [&] {
     m_selectionDispatcher.setAndCommit({&c});
   });
-  connect(it, &Dataflow::CableItem::removeRequested, this, [&] {
-    CommandDispatcher<> d{context().commandStack};
-    d.submit<Dataflow::RemoveCable>(model(), c);
-  });
 }
 
 void ScenarioDocumentPresenter::on_cableRemoving(const Process::Cable& c)

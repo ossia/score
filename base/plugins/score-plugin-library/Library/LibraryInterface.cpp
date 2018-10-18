@@ -6,6 +6,9 @@ namespace Library
 LibraryInterface::~LibraryInterface()
 {
 }
+LibraryInterfaceList::~LibraryInterfaceList()
+{
+}
 
 void LibraryInterface::setup(
     ProcessesItemModel& model, const score::GUIApplicationContext& ctx)
