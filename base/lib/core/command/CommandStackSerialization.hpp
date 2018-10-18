@@ -1,7 +1,7 @@
 #pragma once
 #include <score/application/ApplicationComponents.hpp>
 #include <score/command/CommandData.hpp>
-#include <score/plugins/customfactory/StringFactoryKeySerialization.hpp>
+#include <score/plugins/StringFactoryKeySerialization.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
 
 #include <core/command/CommandStack.hpp>

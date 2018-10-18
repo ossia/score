@@ -1,7 +1,7 @@
 #pragma once
 
 #include <score/model/Identifier.hpp>
-#include <score/plugins/customfactory/FactoryInterface.hpp>
+#include <score/plugins/Interface.hpp>
 #include <score/serialization/VisitorCommon.hpp>
 
 #include <QString>

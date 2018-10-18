@@ -1,6 +1,6 @@
 #pragma once
 #include <score/model/EntityMap.hpp>
-#include <score/plugins/customfactory/UuidKey.hpp>
+#include <score/plugins/UuidKey.hpp>
 #include <score/tools/std/HashMap.hpp>
 
 #include <ossia/detail/algorithms.hpp>

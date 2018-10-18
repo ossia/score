@@ -1,6 +1,6 @@
 #pragma once
 #include <score/application/ApplicationContext.hpp>
-#include <score/plugins/customfactory/FactoryInterface.hpp>
+#include <score/plugins/Interface.hpp>
 #include <score/plugins/qt_interfaces/FactoryInterface_QtInterface.hpp>
 #include <score/plugins/qt_interfaces/PluginRequirements_QtInterface.hpp>
 

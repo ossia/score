@@ -1,6 +1,6 @@
 #pragma once
-#include <score/plugins/customfactory/FactoryFamily.hpp>
-#include <score/plugins/customfactory/FactoryInterface.hpp>
+#include <score/plugins/InterfaceList.hpp>
+#include <score/plugins/Interface.hpp>
 
 #include <score_lib_device_export.h>
 namespace score

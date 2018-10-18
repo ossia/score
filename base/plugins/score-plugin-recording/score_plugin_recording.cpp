@@ -5,7 +5,7 @@
 #include <Recording/ApplicationPlugin.hpp>
 #include <Recording/Commands/RecordingCommandFactory.hpp>
 
-#include <score/plugins/customfactory/FactorySetup.hpp>
+#include <score/plugins/FactorySetup.hpp>
 #include <score/tools/ForEachType.hpp>
 #include <score/tools/std/HashMap.hpp>
 

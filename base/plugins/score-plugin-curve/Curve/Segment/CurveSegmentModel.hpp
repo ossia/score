@@ -4,7 +4,7 @@
 
 #include <score/model/IdentifiedObject.hpp>
 #include <score/model/Identifier.hpp>
-#include <score/plugins/customfactory/SerializableInterface.hpp>
+#include <score/plugins/SerializableInterface.hpp>
 #include <score/selection/Selectable.hpp>
 #include <score/serialization/VisitorInterface.hpp>
 #include <score/tools/std/Optional.hpp>

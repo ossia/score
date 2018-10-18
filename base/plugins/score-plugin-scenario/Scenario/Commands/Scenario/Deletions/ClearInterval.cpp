@@ -12,7 +12,7 @@
 #include <score/model/IdentifiedObject.hpp>
 #include <score/model/path/Path.hpp>
 #include <score/model/path/PathSerialization.hpp>
-#include <score/plugins/customfactory/StringFactoryKey.hpp>
+#include <score/plugins/StringFactoryKey.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/tools/MapCopy.hpp>
 

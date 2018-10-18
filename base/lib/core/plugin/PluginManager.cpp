@@ -3,7 +3,7 @@
 #include <score/application/ApplicationComponents.hpp>
 #include <score/application/ApplicationContext.hpp>
 #include <score/application/GUIApplicationContext.hpp>
-#include <score/plugins/customfactory/StringFactoryKey.hpp>
+#include <score/plugins/StringFactoryKey.hpp>
 #include <score/plugins/qt_interfaces/PluginRequirements_QtInterface.hpp>
 
 #include <core/application/ApplicationRegistrar.hpp>

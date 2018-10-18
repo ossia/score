@@ -23,8 +23,8 @@
 #include <score/model/IdentifiedObjectAbstract.hpp>
 #include <score/model/IdentifiedObjectMap.hpp>
 #include <score/model/Identifier.hpp>
-#include <score/plugins/customfactory/FactoryFamily.hpp>
-#include <score/plugins/customfactory/StringFactoryKey.hpp>
+#include <score/plugins/InterfaceList.hpp>
+#include <score/plugins/StringFactoryKey.hpp>
 #include <score/selection/Selectable.hpp>
 #include <score/tools/Todo.hpp>
 #include <score/tools/std/Optional.hpp>

@@ -11,7 +11,7 @@
 #include <Scenario/Commands/Scenario/Creations/CreateState.hpp>
 
 #include <score/command/Command.hpp>
-#include <score/plugins/customfactory/StringFactoryKey.hpp>
+#include <score/plugins/StringFactoryKey.hpp>
 
 void ScenarioRollbackStrategy::rollback(
     const score::DocumentContext& ctx,

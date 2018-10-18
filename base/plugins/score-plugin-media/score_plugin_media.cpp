@@ -36,8 +36,8 @@
 #include <Media/Effect/Faust/FaustLibrary.hpp>
 #endif
 #include <score/plugins/application/GUIApplicationPlugin.hpp>
-#include <score/plugins/customfactory/FactoryFamily.hpp>
-#include <score/plugins/customfactory/FactorySetup.hpp>
+#include <score/plugins/InterfaceList.hpp>
+#include <score/plugins/FactorySetup.hpp>
 #include <score/plugins/settingsdelegate/SettingsDelegateFactory.hpp>
 
 #include <core/document/Document.hpp>

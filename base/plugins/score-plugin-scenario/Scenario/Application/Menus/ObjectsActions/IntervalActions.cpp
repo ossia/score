@@ -21,7 +21,7 @@
 #include <score/application/ApplicationContext.hpp>
 #include <score/document/DocumentInterface.hpp>
 #include <score/model/path/PathSerialization.hpp>
-#include <score/plugins/customfactory/StringFactoryKeySerialization.hpp>
+#include <score/plugins/StringFactoryKeySerialization.hpp>
 #include <score/selection/Selectable.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/widgets/SetIcons.hpp>

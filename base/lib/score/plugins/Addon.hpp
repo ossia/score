@@ -1,5 +1,5 @@
 #pragma once
-#include <score/plugins/customfactory/UuidKey.hpp>
+#include <score/plugins/UuidKey.hpp>
 #include <score/plugins/qt_interfaces/PluginRequirements_QtInterface.hpp>
 
 #include <QImage>

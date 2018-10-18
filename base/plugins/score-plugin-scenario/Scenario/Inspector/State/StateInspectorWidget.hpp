@@ -2,7 +2,7 @@
 #include <Inspector/InspectorSectionWidget.hpp>
 #include <Inspector/InspectorWidgetBase.hpp>
 
-#include <score/plugins/customfactory/UuidKey.hpp>
+#include <score/plugins/UuidKey.hpp>
 #include <score/selection/SelectionDispatcher.hpp>
 
 #include <list>

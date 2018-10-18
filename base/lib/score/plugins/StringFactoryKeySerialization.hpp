@@ -1,5 +1,5 @@
 #pragma once
-#include <score/plugins/customfactory/StringFactoryKey.hpp>
+#include <score/plugins/StringFactoryKey.hpp>
 
 template <typename U>
 struct TSerializer<JSONValue, StringKey<U>>

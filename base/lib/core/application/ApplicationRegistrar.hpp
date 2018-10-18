@@ -3,7 +3,7 @@
 #include <score/command/Command.hpp>
 #include <score/command/CommandGeneratorMap.hpp>
 #include <score/plugins/Addon.hpp>
-#include <score/plugins/customfactory/FactoryInterface.hpp>
+#include <score/plugins/Interface.hpp>
 #include <score/tools/std/HashMap.hpp>
 
 #include <QObject>

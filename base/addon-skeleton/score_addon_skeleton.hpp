@@ -2,7 +2,7 @@
 #include <score/application/ApplicationContext.hpp>
 #include <score/command/Command.hpp>
 #include <score/command/CommandGeneratorMap.hpp>
-#include <score/plugins/customfactory/FactoryFamily.hpp>
+#include <score/plugins/InterfaceList.hpp>
 #include <score/plugins/qt_interfaces/CommandFactory_QtInterface.hpp>
 #include <score/plugins/qt_interfaces/FactoryFamily_QtInterface.hpp>
 #include <score/plugins/qt_interfaces/FactoryInterface_QtInterface.hpp>

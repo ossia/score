@@ -1,6 +1,6 @@
 #pragma once
 #include <score/model/Component.hpp>
-#include <score/plugins/customfactory/SerializableInterface.hpp>
+#include <score/plugins/SerializableInterface.hpp>
 
 #include <type_traits>
 

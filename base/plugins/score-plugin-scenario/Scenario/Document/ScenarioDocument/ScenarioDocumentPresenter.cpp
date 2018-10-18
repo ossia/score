@@ -35,7 +35,7 @@
 #include <score/document/DocumentInterface.hpp>
 #include <score/model/path/ObjectIdentifier.hpp>
 #include <score/model/path/ObjectPath.hpp>
-#include <score/plugins/customfactory/StringFactoryKey.hpp>
+#include <score/plugins/StringFactoryKey.hpp>
 #include <score/plugins/documentdelegate/DocumentDelegatePresenter.hpp>
 #include <score/selection/SelectionDispatcher.hpp>
 #include <score/selection/SelectionStack.hpp>

@@ -3,7 +3,7 @@
 #include <Process/TimeValue.hpp>
 
 #include <score/model/Identifier.hpp>
-#include <score/plugins/customfactory/FactoryInterface.hpp>
+#include <score/plugins/Interface.hpp>
 
 #include <score_lib_process_export.h>
 

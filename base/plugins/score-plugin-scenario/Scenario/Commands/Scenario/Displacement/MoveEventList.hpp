@@ -1,8 +1,8 @@
 #pragma once
 #include <Scenario/Commands/Scenario/Displacement/MoveEventFactoryInterface.hpp>
 
-#include <score/plugins/customfactory/FactoryFamily.hpp>
-#include <score/plugins/customfactory/FactoryInterface.hpp>
+#include <score/plugins/InterfaceList.hpp>
+#include <score/plugins/Interface.hpp>
 
 #include <QVector>
 

@@ -19,7 +19,7 @@
 #include <Fx/TestNode.hpp>
 #include <Fx/VelToNote.hpp>
 
-#include <score/plugins/customfactory/FactorySetup.hpp>
+#include <score/plugins/FactorySetup.hpp>
 
 #include <score_plugin_engine.hpp>
 

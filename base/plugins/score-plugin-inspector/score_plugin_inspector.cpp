@@ -4,7 +4,7 @@
 
 #include <InspectorPlugin/Panel/InspectorPanelFactory.hpp>
 
-#include <score/plugins/customfactory/FactorySetup.hpp>
+#include <score/plugins/FactorySetup.hpp>
 #include <score/tools/ForEachType.hpp>
 
 namespace score

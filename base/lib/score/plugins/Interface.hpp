@@ -1,11 +1,9 @@
 #pragma once
-#include <score/plugins/customfactory/UuidKey.hpp>
-
+#include <score/plugins/UuidKey.hpp>
 #include <score_lib_base_export.h>
 
 namespace score
 {
-
 class InterfaceBase;
 using InterfaceKey = UuidKey<InterfaceBase>;
 /**
@@ -43,9 +41,9 @@ using InterfaceKey = UuidKey<InterfaceBase>;
  * The actual hierarchy looks like :
  *
  * @code
- * InterfaceBase <- Interface<T> <- MyInterface <- MyImplementation
- *                               <- OtherInterface <- OtherImplementation1
- *                                                 <- OtherImplementation2
+ * InterfaceBase <- MyInterface    <- MyImplementation
+ *               <- OtherInterface <- OtherImplementation1
+ *                                 <- OtherImplementation2
  * @endcode
  *
  */

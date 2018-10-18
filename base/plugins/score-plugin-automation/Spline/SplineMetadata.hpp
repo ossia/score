@@ -1,7 +1,7 @@
 #pragma once
 #include <Process/ProcessMetadata.hpp>
 
-#include <score/plugins/customfactory/UuidKey.hpp>
+#include <score/plugins/UuidKey.hpp>
 
 #include <QString>
 

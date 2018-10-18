@@ -6,7 +6,7 @@
 #include <Process/Drop/ProcessDropHandler.hpp>
 
 #include <score/plugins/application/GUIApplicationPlugin.hpp>
-#include <score/plugins/customfactory/FactorySetup.hpp>
+#include <score/plugins/FactorySetup.hpp>
 #include <score/plugins/documentdelegate/plugin/DocumentPluginCreator.hpp>
 
 #include <score_lib_process.hpp>

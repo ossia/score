@@ -5,7 +5,7 @@
 #include <Recording/Record/RecordTools.hpp>
 #include <Scenario/Palette/ScenarioPoint.hpp>
 
-#include <score/plugins/customfactory/FactoryInterface.hpp>
+#include <score/plugins/Interface.hpp>
 #include <score/serialization/VisitorCommon.hpp>
 
 #include <score_plugin_recording_export.h>

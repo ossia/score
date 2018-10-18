@@ -1,6 +1,6 @@
 #include "score_addon_skeleton.hpp"
 
-#include <score/plugins/customfactory/FactorySetup.hpp>
+#include <score/plugins/FactorySetup.hpp>
 
 #include <Skeleton/CommandFactory.hpp>
 #include <Skeleton/Executor.hpp>

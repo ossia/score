@@ -1,5 +1,5 @@
 #pragma once
-#include <score/plugins/customfactory/UuidKey.hpp>
+#include <score/plugins/UuidKey.hpp>
 #include <score/tools/Version.hpp>
 
 #include <QJsonObject>

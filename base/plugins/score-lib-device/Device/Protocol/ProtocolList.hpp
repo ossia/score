@@ -1,7 +1,7 @@
 #pragma once
 #include <Device/Protocol/ProtocolFactoryInterface.hpp>
 
-#include <score/plugins/customfactory/FactoryFamily.hpp>
+#include <score/plugins/InterfaceList.hpp>
 
 namespace Device
 {

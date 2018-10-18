@@ -15,7 +15,7 @@
 
 #include <score/command/Command.hpp>
 #include <score/model/Identifier.hpp>
-#include <score/plugins/customfactory/StringFactoryKey.hpp>
+#include <score/plugins/StringFactoryKey.hpp>
 #include <score/statemachine/GraphicsSceneToolPalette.hpp>
 #include <score/tools/std/Optional.hpp>
 

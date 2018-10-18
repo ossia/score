@@ -2,7 +2,7 @@
 #include <Process/Dataflow/PortType.hpp>
 #include <Process/ProcessFlags.hpp>
 
-#include <score/plugins/customfactory/SerializableInterface.hpp>
+#include <score/plugins/SerializableInterface.hpp>
 #include <score/tools/Metadata.hpp>
 #include <score/tools/std/Optional.hpp>
 

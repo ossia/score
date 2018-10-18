@@ -15,7 +15,7 @@
 #include <score/model/IdentifiedObject.hpp>
 #include <score/model/IdentifiedObjectMap.hpp>
 #include <score/model/Identifier.hpp>
-#include <score/plugins/customfactory/StringFactoryKey.hpp>
+#include <score/plugins/StringFactoryKey.hpp>
 #include <score/selection/Selectable.hpp>
 #include <score/selection/Selection.hpp>
 #include <score/tools/IdentifierGeneration.hpp>

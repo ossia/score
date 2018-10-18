@@ -7,9 +7,9 @@
 #include <Process/Execution/ProcessComponent.hpp>
 #include <Protocols/Local/LocalProtocolFactory.hpp>
 
-#include <score/plugins/customfactory/FactoryFamily.hpp>
-#include <score/plugins/customfactory/FactorySetup.hpp>
-#include <score/plugins/customfactory/StringFactoryKey.hpp>
+#include <score/plugins/InterfaceList.hpp>
+#include <score/plugins/FactorySetup.hpp>
+#include <score/plugins/StringFactoryKey.hpp>
 
 #include <ossia/editor/scenario/time_event.hpp>
 #include <ossia/network/base/device.hpp>

@@ -1,5 +1,5 @@
 #pragma once
-#include <score/plugins/customfactory/FactoryFamily.hpp>
+#include <score/plugins/InterfaceList.hpp>
 
 #include <ossia/detail/for_each.hpp>
 
