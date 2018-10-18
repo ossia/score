@@ -177,13 +177,16 @@ void Presenter::setupView()
   m_actions->setEnabled(true);
 
   connect(altact, &QAction::toggled, this, [&](bool b) {
-    if (b)
+    if(editionSettings().tool() != Curve::Tool::SetSegment)
     {
-      editionSettings().setTool(Curve::Tool::CreatePen);
-    }
-    else
-    {
-      editionSettings().setTool(Curve::Tool::Select);
+      if (b)
+      {
+        editionSettings().setTool(Curve::Tool::CreatePen);
+      }
+      else
+      {
+        editionSettings().setTool(Curve::Tool::Select);
+      }
     }
   });
   connect(shiftact, &QAction::toggled, this, [&](bool b) {

@@ -41,6 +41,6 @@ private:
 
   Curve::StateBase* m_state{};
   QPointF m_originalPress;
-  optional<double> m_verticalOrig, m_horizontalOrig;
+  QMap<Id<Curve::SegmentModel>, std::pair<optional<double>, optional<double>>> m_orig;
 };
 }
