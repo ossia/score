@@ -16,37 +16,6 @@
 
 #include <wobjectdefs.h>
 
-namespace Process
-{
-class ProcessModel;
-}
-class QMenu;
-class QObject;
-namespace Scenario
-{
-class TemporalIntervalPresenter;
-}
-namespace Loop
-{
-class LayerView;
-class ProcessModel;
-} // namespace Loop
-namespace score
-{
-class CommandStackFacade;
-struct DocumentContext;
-} // namespace score
-
-namespace Loop
-{
-inline void
-removeSelection(const Loop::ProcessModel& model, const score::DocumentContext&)
-{
-}
-void clearContentFromSelection(
-    const Loop::ProcessModel& model, const score::DocumentContext&);
-}
-
 namespace Loop
 {
 class LayerPresenter final

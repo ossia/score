@@ -30,17 +30,7 @@ void removeSelection(const BaseScenario&, const score::DocumentContext& ctx);
 SCORE_PLUGIN_SCENARIO_EXPORT void clearContentFromSelection(
     const QList<const IntervalModel*>& intervalsToRemove,
     const QList<const StateModel*>& statesToRemove,
-    const score::CommandStackFacade& stack);
-
-SCORE_PLUGIN_SCENARIO_EXPORT void clearContentFromSelection(
-    const BaseScenarioContainer&, const score::DocumentContext&);
-
-void clearContentFromSelection(
-    const Scenario::ScenarioInterface&, const score::DocumentContext&);
-void clearContentFromSelection(
-    const Scenario::ProcessModel&, const score::DocumentContext&);
-void clearContentFromSelection(
-    const BaseScenario&, const score::DocumentContext&);
+    const score::DocumentContext& stack);
 
 void mergeTimeSyncs(
     const Scenario::ProcessModel&, const score::CommandStackFacade&);

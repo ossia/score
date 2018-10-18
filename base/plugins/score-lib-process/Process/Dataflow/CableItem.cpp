@@ -239,12 +239,4 @@ void CableItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
   event->accept();
 }
 
-void CableItem::contextMenuEvent(QGraphicsSceneContextMenuEvent* event)
-{
-  QMenu* m = new QMenu;
-  auto act = m->addAction(tr("Remove"));
-  connect(act, &QAction::triggered, this, [=] { removeRequested(); });
-  m->exec(event->screenPos());
-  m->deleteLater();
-}
 }

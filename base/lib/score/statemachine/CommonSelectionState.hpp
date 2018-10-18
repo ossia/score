@@ -35,8 +35,6 @@ public:
   virtual void on_moveAreaSelection() = 0;
   virtual void on_releaseAreaSelection() = 0;
   virtual void on_deselect() = 0;
-  virtual void on_delete() = 0;
-  virtual void on_deleteContent() = 0;
 
   bool multiSelection() const;
 

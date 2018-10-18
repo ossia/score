@@ -180,15 +180,7 @@ void ScenarioView::keyReleaseEvent(QKeyEvent* event)
       || event->key() == Qt::Key_Alt)
   {
     keyReleased(event->key());
-  } /*
-   else if( !event->isAutoRepeat())
-   {
-       if(event->key() == Qt::Key_C)
-       {
-           keyReleased(event->key());
-       }
-   }
-   */
+  }
 
   event->accept();
 }

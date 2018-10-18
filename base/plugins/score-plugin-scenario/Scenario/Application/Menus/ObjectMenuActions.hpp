@@ -57,7 +57,6 @@ private:
   QAction* m_removeElements{};
   QAction* m_copyContent{};
   QAction* m_cutContent{};
-  QAction* m_pasteContent{};
   QAction* m_pasteElements{};
   QAction* m_pasteElementsAfter{};
   QAction* m_elementsToJson{};

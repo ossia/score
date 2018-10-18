@@ -65,17 +65,6 @@ public:
     m_scenarioView.setSelectionArea(QRectF{});
   }
 
-  void on_delete() override
-  {
-    removeSelection(m_parentSM.model(), m_parentSM.context().context);
-  }
-
-  void on_deleteContent() override
-  {
-    clearContentFromSelection(
-        m_parentSM.model(), m_parentSM.context().context);
-  }
-
   void setSelectionArea(const QRectF& area)
   {
     using namespace std;

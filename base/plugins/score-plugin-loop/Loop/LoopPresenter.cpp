@@ -246,10 +246,4 @@ void LayerPresenter::fillContextMenu(
   */
 }
 
-void clearContentFromSelection(
-    const ProcessModel& model, const score::DocumentContext& ctx)
-{
-  clearContentFromSelection(
-      static_cast<const Scenario::BaseScenarioContainer&>(model), ctx);
-}
 }

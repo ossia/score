@@ -32,5 +32,7 @@ public:
 class SCORE_PLUGIN_LIBRARY_EXPORT LibraryInterfaceList final
     : public score::InterfaceList<LibraryInterface>
 {
+public:
+  ~LibraryInterfaceList() override;
 };
 }

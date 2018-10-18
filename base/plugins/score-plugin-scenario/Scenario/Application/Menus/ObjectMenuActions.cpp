@@ -19,6 +19,7 @@
 #include <Scenario/Document/BaseScenario/BaseScenario.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentPresenter.hpp>
+#include <Scenario/Document/ScenarioRemover.hpp>
 #include <Scenario/Palette/ScenarioPoint.hpp>
 #include <Scenario/Process/Algorithms/ContainersAccessors.hpp>
 #include <Scenario/Process/ScenarioGlobalCommandManager.hpp>
@@ -62,6 +63,7 @@
 
 namespace Scenario
 {
+
 ObjectMenuActions::ObjectMenuActions(ScenarioApplicationPlugin* parent)
     : m_parent{parent}
     , m_eventActions{parent}
@@ -72,7 +74,7 @@ ObjectMenuActions::ObjectMenuActions(ScenarioApplicationPlugin* parent)
     return;
   using namespace score;
 
-  // REMOVE
+  // REMOVE - todo, put me in "core application plugin" instead
   m_removeElements = new QAction{tr("Remove selected elements"), this};
   m_removeElements->setShortcut(Qt::Key_Backspace); // NOTE : the effective
                                                     // shortcut is in
@@ -80,17 +82,13 @@ ObjectMenuActions::ObjectMenuActions(ScenarioApplicationPlugin* parent)
   m_removeElements->setShortcutContext(Qt::WidgetWithChildrenShortcut);
   connect(m_removeElements, &QAction::triggered, [this]() {
     auto& ctx = m_parent->currentDocument()->context();
+    const auto& cur_sel = ctx.selectionStack.currentSelection();
 
-    auto sm = focusedScenarioModel(ctx);
-    auto si = focusedScenarioInterface(ctx);
-
-    if (sm)
+    auto& rm = ctx.app.interfaces<score::ObjectRemoverList>();
+    for(auto& iface : rm)
     {
-      Scenario::removeSelection(*sm, ctx);
-    }
-    else if (si && !selectedElements(si->getStates()).empty())
-    {
-      Scenario::clearContentFromSelection(*si, ctx);
+      if(iface.remove(cur_sel, ctx))
+        break;
     }
   });
 
@@ -117,14 +115,6 @@ ObjectMenuActions::ObjectMenuActions(ScenarioApplicationPlugin* parent)
     QJsonDocument doc{obj};
     auto clippy = QApplication::clipboard();
     clippy->setText(doc.toJson(QJsonDocument::Indented));
-  });
-
-  m_pasteContent = new QAction{tr("Paste content"), this};
-  m_pasteContent->setShortcutContext(Qt::WidgetWithChildrenShortcut);
-  connect(m_pasteContent, &QAction::triggered, [this] {
-    writeJsonToSelectedElements(
-        QJsonDocument::fromJson(QApplication::clipboard()->text().toUtf8())
-            .object());
   });
 
   m_pasteElements = new QAction{tr("Paste elements"), this};
@@ -313,7 +303,6 @@ void ObjectMenuActions::makeGUIElements(score::GUIElements& e)
   actions.add<Actions::RemoveElements>(m_removeElements);
   actions.add<Actions::CopyContent>(m_copyContent);
   actions.add<Actions::CutContent>(m_cutContent);
-  actions.add<Actions::PasteContent>(m_pasteContent);
   actions.add<Actions::PasteElements>(m_pasteElements);
   actions.add<Actions::PasteElementsAfter>(m_pasteElementsAfter);
   actions.add<Actions::ElementsToJson>(m_elementsToJson);
@@ -323,7 +312,6 @@ void ObjectMenuActions::makeGUIElements(score::GUIElements& e)
   actions.add<Actions::Decapsulate>(m_decapsulate);
   actions.add<Actions::Duplicate>(m_duplicate);
 
-  scenariomodel_cond.add<Actions::RemoveElements>();
   scenariomodel_cond.add<Actions::MergeTimeSyncs>();
   scenariomodel_cond.add<Actions::Encapsulate>();
   scenariomodel_cond.add<Actions::Decapsulate>();
@@ -331,7 +319,6 @@ void ObjectMenuActions::makeGUIElements(score::GUIElements& e)
 
   scenarioiface_cond.add<Actions::CopyContent>();
   scenarioiface_cond.add<Actions::CutContent>();
-  scenarioiface_cond.add<Actions::PasteContent>();
   scenarioiface_cond.add<Actions::ElementsToJson>();
 
   Menu& object = base_menus.at(Menus::Object());
@@ -340,7 +327,6 @@ void ObjectMenuActions::makeGUIElements(score::GUIElements& e)
   object.menu()->addSeparator();
   object.menu()->addAction(m_copyContent);
   object.menu()->addAction(m_cutContent);
-  object.menu()->addAction(m_pasteContent);
   object.menu()->addAction(m_pasteElements);
   object.menu()->addAction(m_pasteElementsAfter);
   object.menu()->addSeparator();
@@ -397,7 +383,6 @@ void ObjectMenuActions::setupContextMenu(
 
       objectMenu->addAction(m_copyContent);
       objectMenu->addAction(m_cutContent);
-      objectMenu->addAction(m_pasteContent);
       objectMenu->addAction(m_encapsulate);
       objectMenu->addAction(m_decapsulate);
       objectMenu->addAction(m_duplicate);
@@ -429,7 +414,6 @@ void ObjectMenuActions::setupContextMenu(
           objectMenu->addSeparator();
 
           objectMenu->addAction(m_copyContent);
-          objectMenu->addAction(m_pasteContent);
         }
       });
   m_eventActions.setupContextMenu(ctxm);
@@ -466,7 +450,9 @@ QJsonObject ObjectMenuActions::cutSelectedElementsToJson()
   }
   else if (auto si = focusedScenarioInterface(ctx))
   {
-    Scenario::clearContentFromSelection(*si, ctx);
+    Scenario::clearContentFromSelection(
+        selectedElements(si->getIntervals()),
+        selectedElements(si->getStates()), ctx);
   }
 
   return obj;
