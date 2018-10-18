@@ -228,8 +228,9 @@ void FullViewIntervalPresenter::requestSlotMenu(
   auto& reg = score::GUIAppContext()
                   .guiApplicationPlugin<ScenarioApplicationPlugin>()
                   .layerContextMenuRegistrar();
-  ScenarioContextMenuManager::createLayerContextMenu(
-      *menu, pos, sp, reg, *m_slots[slot].processes.front().presenter);
+
+  m_slots[slot].processes.front().presenter->fillContextMenu(
+      *menu, pos, sp, reg);
   menu->exec(pos);
   menu->close();
   menu->deleteLater();
