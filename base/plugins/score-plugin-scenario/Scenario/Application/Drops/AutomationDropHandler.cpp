@@ -7,6 +7,7 @@
 #include <Process/ProcessMimeSerialization.hpp>
 #include <Scenario/Commands/Cohesion/CreateCurves.hpp>
 #include <Scenario/Commands/CommandAPI.hpp>
+#include <Scenario/Commands/Interval/AddLayerInNewSlot.hpp>
 #include <Scenario/Commands/Interval/AddProcessToInterval.hpp>
 #include <Scenario/Commands/Interval/ResizeInterval.hpp>
 #include <Scenario/Commands/Scenario/ScenarioPasteElements.hpp>
@@ -156,6 +157,17 @@ bool DropProcessInInterval::drop(
     const IntervalModel& cst, const QMimeData& mime)
 {
   const auto& ctx = score::IDocument::documentContext(cst);
+  if(mime.hasFormat("score/object-item-model-index"))
+  {
+    auto dat = score::unmarshall<Path<Process::ProcessModel>>(mime.data("score/object-item-model-index"));
+    auto proc = dat.try_find(ctx);
+    if(proc->parent() == &cst)
+    {
+      CommandDispatcher<>{ctx.commandStack}.submit(new Scenario::Command::AddLayerInNewSlot{cst, proc->id()});
+    }
+    return true;
+  }
+
   const auto& handlers = ctx.app.interfaces<Process::ProcessDropHandlerList>();
 
   if(auto res = handlers.getDrop(mime, ctx); !res.empty())
