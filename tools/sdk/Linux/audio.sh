@@ -2,6 +2,7 @@
 
 ## Faust
 export PATH=/cmake/bin:$PATH
+(
 git clone --depth=1 https://github.com/grame-cncm/faust
 cd faust/build
 echo '
@@ -23,17 +24,21 @@ cmake -C ../backends/llvm.cmake  .. -DINCLUDE_OSC=0 -DINCLUDE_HTTP=0 -DINCLUDE_E
 BACKENDS=llvm.cmake make configstatic
 make -j$(nproc)
 make install
+)
 
+(
 ## FFMPEG
 yum install -y nasm
-wget -nv https://ffmpeg.org/releases/ffmpeg-4.0.tar.bz2
-tar -xaf ffmpeg-4.0.tar.bz2
-cd ffmpeg-4.0
+wget -nv https://ffmpeg.org/releases/ffmpeg-4.0.2.tar.bz2
+tar -xaf ffmpeg-4.0.2.tar.bz2
+cd ffmpeg-4.0.2
 ./configure --disable-doc --disable-ffmpeg --disable-ffplay --disable-debug --prefix=/usr/local --pkg-config-flags="--static" --enable-gpl --enable-version3 --disable-openssl --disable-securetransport --disable-videotoolbox --disable-network --disable-iconv --disable-lzma
 make -j$(nproc)
 make install
 cd ..
+)
 
+(
 ## PortAudio
 yum -y install alsa-lib-devel
 wget -nv http://www.portaudio.com/archives/pa_snapshot.tgz
@@ -44,3 +49,4 @@ make -j$(nproc)
 make install
 cp libportaudio_static.a /usr/local/lib
 cd ../..
+)
