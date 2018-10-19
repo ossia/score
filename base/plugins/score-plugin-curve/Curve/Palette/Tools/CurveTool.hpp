@@ -2,7 +2,10 @@
 #include <Curve/Palette/CurvePoint.hpp>
 #include <Curve/Point/CurvePointView.hpp>
 #include <Curve/Segment/CurveSegmentView.hpp>
+#include <score/selection/SelectionDispatcher.hpp>
+#include <score/document/DocumentContext.hpp>
 
+#include <score/statemachine/CommonSelectionState.hpp>
 #include <score/statemachine/GraphicsSceneTool.hpp>
 
 #include <QGraphicsItem>
@@ -57,6 +60,14 @@ protected:
     }
   }
 
+  template<typename Model>
+  void select(const Model& model, const Selection& selected, bool multi = CommonSelectionState::multiSelection())
+  {
+    score::SelectionDispatcher{context().selectionStack}
+    .setAndCommit(filterSelections(&model, selected, multi));
+  }
+
   const Curve::ToolPalette& m_parentSM;
+  const score::DocumentContext& context() const noexcept;
 };
 }

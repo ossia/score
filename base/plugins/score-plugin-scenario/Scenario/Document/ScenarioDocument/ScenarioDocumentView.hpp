@@ -38,12 +38,14 @@ namespace Scenario
 class Minimap;
 class ScenarioScene;
 class TimeRuler;
-// TODO namespace !!!
 class ProcessGraphicsView final : public QGraphicsView
 {
   W_OBJECT(ProcessGraphicsView)
 public:
-  ProcessGraphicsView(QGraphicsScene* scene, QWidget* parent);
+  ProcessGraphicsView(
+      const score::GUIApplicationContext& ctx
+      , QGraphicsScene* scene
+      , QWidget* parent);
   ~ProcessGraphicsView() override;
 
   void scrollHorizontal(double dx);
@@ -68,10 +70,11 @@ private:
   void leaveEvent(QEvent* event) override;
   void drawBackground(QPainter* painter, const QRectF& rect) override;
 
-  bool m_hZoom{false};
-  bool m_vZoom{false};
+  const score::GUIApplicationContext& m_app;
 
   std::chrono::steady_clock::time_point m_lastwheel;
+  bool m_hZoom{false};
+  bool m_vZoom{false};
 };
 
 class SCORE_PLUGIN_SCENARIO_EXPORT ScenarioDocumentView final

@@ -32,7 +32,10 @@ SCORE_DECLARE_ACTION(
 
 namespace Loop
 {
-class ApplicationPlugin : public QObject, public score::GUIApplicationPlugin
+  // TODO put in its own file
+class ApplicationPlugin final
+    : public QObject
+    , public score::GUIApplicationPlugin
 {
 public:
   ApplicationPlugin(const score::GUIApplicationContext& ctx);

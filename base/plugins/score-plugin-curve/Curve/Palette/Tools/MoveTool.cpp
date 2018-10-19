@@ -9,6 +9,7 @@
 #include <Curve/Palette/Tools/CurveTool.hpp>
 #include <Curve/Point/CurvePointView.hpp>
 #include <Curve/Segment/CurveSegmentView.hpp>
+#include <Curve/CurveModel.hpp>
 
 #include <score/statemachine/StateMachineUtils.hpp>
 #include <score/tools/std/Optional.hpp>
@@ -29,9 +30,17 @@ void EditionToolForCreate::on_pressed(
   mapTopItem(
       scenePoint, itemUnderMouse(scenePoint),
       [&](const PointView* point) {
+        if(m_parentSM.editionSettings().tool() != Tool::SetSegment)
+          select(point->model(), m_parentSM.model().selectedChildren(), true);
+        else
+          select(point->model(), m_parentSM.model().selectedChildren());
         localSM().postEvent(new ClickOnPoint_Event(curvePoint, point));
       },
       [&](const SegmentView* segment) {
+        if(m_parentSM.editionSettings().tool() != Tool::SetSegment)
+          select(segment->model(), m_parentSM.model().selectedChildren(), true);
+        else
+          select(segment->model(), m_parentSM.model().selectedChildren());
         localSM().postEvent(new ClickOnSegment_Event(curvePoint, segment));
       },
       [&]() {

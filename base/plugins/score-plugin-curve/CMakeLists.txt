@@ -55,6 +55,8 @@ set(HDRS
   "${CMAKE_CURRENT_SOURCE_DIR}/Curve/Settings/CurveSettingsModel.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Curve/Settings/CurveSettingsPresenter.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Curve/Settings/CurveSettingsView.hpp"
+
+  "${CMAKE_CURRENT_SOURCE_DIR}/Curve/ApplicationPlugin.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/score_plugin_curve.hpp"
 
   )
@@ -102,6 +104,7 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Curve/CurvePresenter.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Curve/CurveView.cpp"
 
+"${CMAKE_CURRENT_SOURCE_DIR}/Curve/ApplicationPlugin.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/score_plugin_curve.cpp"
 )
 

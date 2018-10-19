@@ -178,5 +178,15 @@ public:
    * window.
    */
   virtual void on_activeWindowChanged();
+
+  /**
+   * @brief on_keyPressEvent Called with key events in the main document view.
+   */
+  virtual void on_keyPressEvent(QKeyEvent& event);
+
+  /**
+   * @brief on_keyPressEvent Called with key events in the main document view.
+   */
+  virtual void on_keyReleaseEvent(QKeyEvent& event);
 };
 }

@@ -36,7 +36,7 @@ public:
   virtual void on_releaseAreaSelection() = 0;
   virtual void on_deselect() = 0;
 
-  bool multiSelection() const;
+  static bool multiSelection() noexcept;
 
 protected:
   CommonSelectionState(

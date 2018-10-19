@@ -36,11 +36,16 @@ public:
       View*, QObject* parent);
   virtual ~Presenter();
 
-  const auto& points() const
+  const score::DocumentContext& context() const noexcept
+  {
+    return m_commandDispatcher.stack().context();
+  }
+
+  const auto& points() const noexcept
   {
     return m_points;
   }
-  const auto& segments() const
+  const auto& segments() const noexcept
   {
     return m_segments;
   }
@@ -48,11 +53,11 @@ public:
   // Removes all the points & segments
   void clear();
 
-  const Model& model() const
+  const Model& model() const noexcept
   {
     return m_model;
   }
-  View& view() const
+  View& view() const noexcept
   {
     return *m_view;
   }
@@ -65,7 +70,7 @@ public:
   void enable();
   void disable();
 
-  Curve::EditionSettings& editionSettings()
+  Curve::EditionSettings& editionSettings() noexcept
   {
     return m_editionSettings;
   }
@@ -73,22 +78,18 @@ public:
   void fillContextMenu(QMenu&, const QPoint&, const QPointF&);
 
   void removeSelection();
-  QActionGroup& actions() const
-  {
-    return *m_actions;
-  }
 
   // Used to allow moving outside [0; 1] when in the panel view.
-  bool boundedMove() const
+  bool boundedMove() const noexcept
   {
     return m_boundedMove;
   }
-  void setBoundedMove(bool b)
+  void setBoundedMove(bool b) noexcept
   {
     m_boundedMove = b;
   }
 
-  QRectF rect() const
+  QRectF rect() const noexcept
   {
     return m_localRect;
   }
@@ -120,7 +121,6 @@ private:
   void modelReset();
 
   const SegmentList& m_curveSegments;
-  Curve::EditionSettings m_editionSettings;
   QRectF m_localRect;
 
   const Model& m_model;
@@ -133,9 +133,9 @@ private:
   CommandDispatcher<> m_commandDispatcher;
 
   const Curve::Style& m_style;
+  Curve::EditionSettings& m_editionSettings;
 
   QMenu* m_contextMenu{};
-  QActionGroup* m_actions{};
 
   bool m_enabled = true;
   bool m_boundedMove = true;

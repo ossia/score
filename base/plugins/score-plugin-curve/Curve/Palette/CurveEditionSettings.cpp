@@ -1,7 +1,7 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "CurveEditionSettings.hpp"
-
+#include <QDebug>
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Curve::EditionSettings)
 namespace Curve
@@ -66,6 +66,16 @@ void EditionSettings::setAddPointBehaviour(
 
 void EditionSettings::setTool(Tool tool)
 {
+  switch(tool)
+  {
+    case Tool::Disabled   : qDebug() << "Tool Disabled"; break;
+    case Tool::Select     : qDebug() << "Tool Select"; break;
+    case Tool::Create     : qDebug() << "Tool Create"; break;
+    case Tool::SetSegment : qDebug() << "Tool SetSegment"; break;
+    case Tool::CreatePen  : qDebug() << "Tool CreatePen"; break;
+    case Tool::RemovePen  : qDebug() << "Tool RemovePen"; break;
+    case Tool::Playing    : qDebug() << "Tool Playing"; break;
+  }
   if (m_tool == tool)
     return;
 

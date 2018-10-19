@@ -69,7 +69,6 @@ public:
     // TODO Same for Scenario please.
     m_curve.enableActions(b);
 
-    // TODO if playing() ?
     m_curve.editionSettings().setTool(Curve::Tool::Select);
   }
 
