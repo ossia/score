@@ -16,6 +16,7 @@
 #include <Curve/Segment/CurveSegmentModel.hpp>
 #include <Curve/Segment/CurveSegmentView.hpp>
 #include <Curve/Segment/Power/PowerSegment.hpp>
+#include <Curve/ApplicationPlugin.hpp>
 
 #include <score/application/ApplicationContext.hpp>
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
@@ -29,8 +30,6 @@
 #include <score/tools/Todo.hpp>
 #include <score/tools/std/Optional.hpp>
 #include <score/graphics/GraphicsItem.hpp>
-
-#include <boost/operators.hpp>
 
 #include <QAction>
 #include <QActionGroup>
@@ -68,6 +67,7 @@ Presenter::Presenter(
     , m_view{view}
     , m_commandDispatcher{context.commandStack}
     , m_style{style}
+    , m_editionSettings{context.app.guiApplicationPlugin<Curve::ApplicationPlugin>().editionSettings()}
 {
   // For each segment in the model, create a segment and relevant points in the
   // view.
@@ -154,75 +154,7 @@ void Presenter::setupView()
     addPoint(new PointView{pt, m_style, m_view});
   }
 
-  // Setup the actions
-  m_actions = new QActionGroup{this};
-  m_actions->setExclusive(true);
-
-  auto shiftact = new QAction{m_actions};
-  shiftact->setCheckable(true);
-  shiftact->setShortcutContext(Qt::WidgetWithChildrenShortcut);
-  m_actions->addAction(shiftact);
-
-  auto ctrlact = new QAction{m_actions};
-  ctrlact->setCheckable(true);
-  ctrlact->setShortcutContext(Qt::WidgetWithChildrenShortcut);
-  m_actions->addAction(ctrlact);
-
-  auto altact = new QAction{m_actions};
-  altact->setCheckable(true);
-  altact->setChecked(false);
-  altact->setShortcutContext(Qt::WidgetWithChildrenShortcut);
-  m_actions->addAction(altact);
-
-  m_actions->setEnabled(true);
-
-  connect(altact, &QAction::toggled, this, [&](bool b) {
-    if(editionSettings().tool() != Curve::Tool::SetSegment)
-    {
-      if (b)
-      {
-        editionSettings().setTool(Curve::Tool::CreatePen);
-      }
-      else
-      {
-        editionSettings().setTool(Curve::Tool::Select);
-      }
-    }
-  });
-  connect(shiftact, &QAction::toggled, this, [&](bool b) {
-    if (b)
-    {
-      editionSettings().setTool(Curve::Tool::SetSegment);
-    }
-    else
-    {
-      editionSettings().setTool(Curve::Tool::Select);
-    }
-  });
-  connect(ctrlact, &QAction::toggled, this, [&](bool b) {
-    if (b)
-    {
-      editionSettings().setTool(Curve::Tool::Create);
-    }
-    else
-    {
-      editionSettings().setTool(Curve::Tool::Select);
-    }
-  });
-
   connect(m_view, &View::keyPressed, this, [=](int key) {
-    if (key == Qt::Key_Shift)
-    {
-      shiftact->setChecked(true);
-    }
-    if (key == Qt::Key_Control)
-    {
-      ctrlact->setChecked(true);
-    }
-    if (key == Qt::Key_Alt)
-    {
-      altact->setChecked(!altact->isChecked());
-    }
     if (key == Qt::Key_Backspace)
     {
       removeSelection();
@@ -230,18 +162,7 @@ void Presenter::setupView()
   });
 
   connect(m_view, &View::keyReleased, this, [=](int key) {
-    if (key == Qt::Key_Shift)
-    {
-      shiftact->setChecked(false);
-    }
-    if (key == Qt::Key_Control)
-    {
-      ctrlact->setChecked(false);
-    }
-    if (key == Qt::Key_Alt)
-    {
-      altact->setChecked(!altact->isChecked());
-    }
+
   });
 }
 
@@ -437,7 +358,7 @@ void Presenter::modelReset()
 
   // 3. We set the data
   { // Points
-    int i = 0;
+    std::size_t i = 0;
     for (auto point : m_model.points())
     {
       points[i]->setModel(point);
@@ -445,7 +366,7 @@ void Presenter::modelReset()
     }
   }
   { // Segments
-    int i = 0;
+    std::size_t i = 0;
     for (const auto& segment : m_model.segments())
     {
       segments[i]->setModel(&segment);
@@ -475,7 +396,6 @@ void Presenter::modelReset()
 
 void Presenter::enableActions(bool b)
 {
-  m_actions->setEnabled(b);
   m_view->setFocus();
 }
 

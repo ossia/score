@@ -16,7 +16,7 @@
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(CommonSelectionState)
 
-bool CommonSelectionState::multiSelection() const
+bool CommonSelectionState::multiSelection() noexcept
 {
   return qApp->queryKeyboardModifiers().testFlag(
       Qt::KeyboardModifier::ControlModifier);

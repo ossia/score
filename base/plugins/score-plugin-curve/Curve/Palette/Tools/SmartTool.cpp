@@ -104,17 +104,11 @@ void SmartTool::on_released(QPointF scenePoint, Curve::Point curvePoint)
   mapTopItem(
       scenePoint, itemUnderMouse(scenePoint),
       [&](const PointView* point) {
-        m_state->dispatcher.setAndCommit(filterSelections(
-            &point->model(), m_parentSM.model().selectedChildren(),
-            m_state->multiSelection()));
-
+        select(point->model(), m_parentSM.model().selectedChildren());
         localSM().postEvent(new ReleaseOnPoint_Event(curvePoint, point));
       },
       [&](const SegmentView* segment) {
-        m_state->dispatcher.setAndCommit(filterSelections(
-            &segment->model(), m_parentSM.model().selectedChildren(),
-            m_state->multiSelection()));
-
+        select(segment->model(), m_parentSM.model().selectedChildren());
         localSM().postEvent(new ReleaseOnSegment_Event(curvePoint, segment));
       },
       [&]() {

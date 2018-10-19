@@ -46,8 +46,11 @@ W_OBJECT_IMPL(Scenario::ProcessGraphicsView)
 namespace Scenario
 {
 ProcessGraphicsView::ProcessGraphicsView(
-    QGraphicsScene* scene, QWidget* parent)
+      const score::GUIApplicationContext& ctx
+      , QGraphicsScene* scene
+      , QWidget* parent)
     : QGraphicsView{scene, parent}
+    , m_app{ctx}
 {
   m_lastwheel = std::chrono::steady_clock::now();
   setAlignment(Qt::AlignTop | Qt::AlignLeft);
@@ -148,6 +151,8 @@ void ProcessGraphicsView::keyPressEvent(QKeyEvent* event)
   else if (event->key() == Qt::Key_Shift)
     m_vZoom = true;
 
+  for(auto& plug : m_app.guiApplicationPlugins())
+    plug->on_keyPressEvent(*event);
   event->ignore();
 
   QGraphicsView::keyPressEvent(event);
@@ -160,6 +165,8 @@ void ProcessGraphicsView::keyReleaseEvent(QKeyEvent* event)
   else if (event->key() == Qt::Key_Shift)
     m_vZoom = false;
 
+  for(auto& plug : m_app.guiApplicationPlugins())
+    plug->on_keyReleaseEvent(*event);
   event->ignore();
 
   QGraphicsView::keyReleaseEvent(event);
@@ -188,7 +195,7 @@ ScenarioDocumentView::ScenarioDocumentView(
     : score::DocumentDelegateView{parent}
     , m_widget{new QWidget}
     , m_scene{m_widget}
-    , m_view{&m_scene, m_widget}
+    , m_view{ctx.app, &m_scene, m_widget}
     , m_timeRulerView{&m_timeRulerScene}
     , m_timeRuler{&m_timeRulerView}
     , m_minimapScene{m_widget}

@@ -12,4 +12,9 @@ CurveTool::CurveTool(const Curve::ToolPalette& csm)
     : GraphicsSceneTool<Curve::Point>{csm.scene()}, m_parentSM{csm}
 {
 }
+
+const score::DocumentContext&CurveTool::context() const noexcept
+{
+  return m_parentSM.presenter().context();
+}
 }

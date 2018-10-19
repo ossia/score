@@ -71,6 +71,14 @@ void GUIApplicationPlugin::on_activeWindowChanged()
 {
 }
 
+void GUIApplicationPlugin::on_keyPressEvent(QKeyEvent& event)
+{
+}
+
+void GUIApplicationPlugin::on_keyReleaseEvent(QKeyEvent& event)
+{
+}
+
 void GUIApplicationPlugin::on_initDocument(score::Document& doc)
 {
 }

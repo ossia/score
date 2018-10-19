@@ -12,6 +12,7 @@
 #include <Curve/Segment/Power/PowerSegment.hpp>
 #include <Curve/Segment/Sin/SinSegment.hpp>
 #include <Curve/Settings/CurveSettingsFactory.hpp>
+#include <Curve/ApplicationPlugin.hpp>
 
 #include <score/plugins/FactorySetup.hpp>
 #include <score/plugins/StringFactoryKey.hpp>
@@ -72,6 +73,12 @@ std::vector<std::unique_ptr<score::InterfaceListBase>>
 score_plugin_curve::factoryFamilies()
 {
   return make_ptr_vector<score::InterfaceListBase, Curve::SegmentList>();
+}
+
+score::GUIApplicationPlugin*
+score_plugin_curve::make_guiApplicationPlugin(const score::GUIApplicationContext& ctx)
+{
+  return new Curve::ApplicationPlugin{ctx};
 }
 
 std::pair<const CommandGroupKey, CommandGeneratorMap>

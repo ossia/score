@@ -37,7 +37,8 @@
 class score_plugin_curve final : public score::Plugin_QtInterface,
                                  public score::FactoryInterface_QtInterface,
                                  public score::CommandFactory_QtInterface,
-                                 public score::FactoryList_QtInterface
+                                 public score::FactoryList_QtInterface,
+                                 public score::ApplicationPlugin_QtInterface
 {
   SCORE_PLUGIN_METADATA(1, "49837ed7-dbc5-4330-9890-a130a2718b5e")
 public:
@@ -54,4 +55,6 @@ private:
 
   std::pair<const CommandGroupKey, CommandGeneratorMap>
   make_commands() override;
+
+  score::GUIApplicationPlugin* make_guiApplicationPlugin(const score::GUIApplicationContext& app) override;
 };

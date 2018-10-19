@@ -6,6 +6,7 @@
 namespace score
 {
 struct DocumentContext;
+// TODO do it for curve, c.f. CurvePresenter::removeSelection
 struct SCORE_LIB_BASE_EXPORT ObjectRemover
     : public score::InterfaceBase
 {
