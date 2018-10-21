@@ -66,16 +66,6 @@ void EditionSettings::setAddPointBehaviour(
 
 void EditionSettings::setTool(Tool tool)
 {
-  switch(tool)
-  {
-    case Tool::Disabled   : qDebug() << "Tool Disabled"; break;
-    case Tool::Select     : qDebug() << "Tool Select"; break;
-    case Tool::Create     : qDebug() << "Tool Create"; break;
-    case Tool::SetSegment : qDebug() << "Tool SetSegment"; break;
-    case Tool::CreatePen  : qDebug() << "Tool CreatePen"; break;
-    case Tool::RemovePen  : qDebug() << "Tool RemovePen"; break;
-    case Tool::Playing    : qDebug() << "Tool Playing"; break;
-  }
   if (m_tool == tool)
     return;
 
