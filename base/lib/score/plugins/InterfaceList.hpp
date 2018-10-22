@@ -1,5 +1,6 @@
-﻿#pragma once
-
+﻿#ifndef SCORE_INTERFACELIST_2018_10_22
+#define SCORE_INTERFACELIST_2018_10_22
+#pragma once
 #include <score/plugins/Interface.hpp>
 #include <score/tools/ForEachType.hpp>
 #include <score/tools/Todo.hpp>
@@ -216,3 +217,4 @@ public:
   }
 };
 }
+#endif

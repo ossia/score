@@ -2,7 +2,6 @@
 #include <score/command/CommandData.hpp>
 #include <score/command/CommandGeneratorMap.hpp>
 #include <score/plugins/Addon.hpp>
-#include <score/plugins/InterfaceList.hpp>
 #include <score/plugins/Interface.hpp>
 #include <score/plugins/StringFactoryKey.hpp>
 #include <score/tools/Todo.hpp>
