@@ -5,7 +5,7 @@ set(CMAKE_MODULE_PATH
   "${CMAKE_CURRENT_SOURCE_DIR}/CMake/modules"
   "${CMAKE_CURRENT_SOURCE_DIR}/CMake/Configurations"
   "${CMAKE_CURRENT_SOURCE_DIR}/CMake/Configurations/travis"
-  "${CMAKE_CURRENT_SOURCE_DIR}/CMake/modules/cmake-modules"
+  "${CMAKE_CURRENT_SOURCE_DIR}/API/CMake"
   "${CMAKE_CURRENT_SOURCE_DIR}/API/CMake/cmake-modules"
   )
 
@@ -32,7 +32,7 @@ set(SCORE_VERSION "${SCORE_VERSION_MAJOR}.${SCORE_VERSION_MINOR}.${SCORE_VERSION
 
 # OSSIA API-specific configuration
 if(SCORE_SANITIZE)
-    set(OSSIA_SANITIZE True CACHE INTERNAL "" FORCE)
+  set(OSSIA_SANITIZE True CACHE INTERNAL "" FORCE)
 endif()
 if(SCORE_SPLIT_DEBUG)
   set(OSSIA_SPLIT_DEBUG True CACHE INTERNAL "" FORCE)
@@ -45,10 +45,10 @@ else()
   set(OSSIA_DISABLE_COTIRE True CACHE INTERNAL "" FORCE)
 endif()
 if(SCORE_STATIC_PLUGINS)
-    set(OSSIA_STATIC ON CACHE INTERNAL "" FORCE)
+  set(OSSIA_STATIC ON CACHE INTERNAL "" FORCE)
 endif()
 if(SCORE_ENABLE_LTO)
-    set(OSSIA_LTO ON CACHE INTERNAL "" FORCE)
+  set(OSSIA_LTO ON CACHE INTERNAL "" FORCE)
 endif()
 set(OSSIA_NO_INSTALL ON CACHE INTERNAL "" FORCE)
 set(OSSIA_PD OFF CACHE INTERNAL "" FORCE)
@@ -97,11 +97,10 @@ include_directories(SYSTEM "${3RDPARTY_FOLDER}/miniz")
 
 set(SCORE_PLUGINS_LIST CACHE INTERNAL "List of plugins") # todo libraries, components ?
 set(SCORE_GLOBAL_COMPONENTS_LIST CACHE INTERNAL "List of components") # todo libraries, components ?
-
 add_subdirectory(base)
 set(SCORE_TESTBED OFF)
 if(SCORE_TESTBED)
-add_subdirectory(Tests/testbed)
+  add_subdirectory(Tests/testbed)
 endif()
 
 add_custom_target(Docs SOURCES Documentation/Models/score.qmodel)
