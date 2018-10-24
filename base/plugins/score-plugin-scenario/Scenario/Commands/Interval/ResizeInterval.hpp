@@ -67,7 +67,7 @@ public:
                       , LockMode = LockMode::Free) const noexcept = 0;
 };
 
-class IntervalResizerList final
+class SCORE_PLUGIN_SCENARIO_EXPORT IntervalResizerList final
     : public score::InterfaceList<IntervalResizer>
 {
 public:

@@ -50,36 +50,42 @@ GUIApplicationInterface& GUIApplicationInterface::instance()
 GUIApplicationInterface::~GUIApplicationInterface()
 {
 }
+
+static void loadDefaultPlugins(
+    const score::GUIApplicationContext& ctx,
+    score::GUIApplicationRegistrar& r, score::Settings& settings,
+    score::Presenter& presenter)
+{
+  using namespace score;
+  r.registerFactory(std::make_unique<DocumentDelegateList>());
+  r.registerFactory(std::make_unique<ValidityCheckerList>());
+  r.registerFactory(std::make_unique<SerializableComponentFactoryList>());
+  r.registerFactory(std::make_unique<ObjectRemoverList>());
+  auto panels = std::make_unique<PanelDelegateFactoryList>();
+  panels->insert(std::make_unique<UndoPanelDelegateFactory>());
+  panels->insert(std::make_unique<MessagesPanelDelegateFactory>());
+  r.registerFactory(std::move(panels));
+  r.registerFactory(std::make_unique<DocumentPluginFactoryList>());
+  r.registerFactory(std::make_unique<SettingsDelegateFactoryList>());
+
+  r.registerGUIApplicationPlugin(new CoreApplicationPlugin{ctx, presenter});
+
+  if (bool(presenter.view()))
+    r.registerGUIApplicationPlugin(new UndoApplicationPlugin{ctx});
+}
+
 void GUIApplicationInterface::loadPluginData(
     const score::GUIApplicationContext& ctx,
     score::GUIApplicationRegistrar& registrar, score::Settings& settings,
     score::Presenter& presenter)
 {
-  registrar.registerFactory(std::make_unique<score::DocumentDelegateList>());
-  registrar.registerFactory(std::make_unique<score::ValidityCheckerList>());
-  registrar.registerFactory(std::make_unique<score::SerializableComponentFactoryList>());
-  registrar.registerFactory(std::make_unique<score::ObjectRemoverList>());
-  auto panels = std::make_unique<score::PanelDelegateFactoryList>();
-  panels->insert(std::make_unique<score::UndoPanelDelegateFactory>());
-  panels->insert(std::make_unique<score::MessagesPanelDelegateFactory>());
-  registrar.registerFactory(std::move(panels));
-  registrar.registerFactory(
-      std::make_unique<score::DocumentPluginFactoryList>());
-  registrar.registerFactory(
-      std::make_unique<score::SettingsDelegateFactoryList>());
+  loadDefaultPlugins(ctx, registrar, settings, presenter);
 
-  registrar.registerGUIApplicationPlugin(
-      new score::CoreApplicationPlugin{ctx, presenter});
-
-  if (presenter.view())
-  {
-    registrar.registerGUIApplicationPlugin(
-        new score::UndoApplicationPlugin{ctx});
-  }
   score::PluginLoader::loadPlugins(registrar, ctx);
 
   // Now rehash our various hash tables
   presenter.optimize();
+
   // Load the settings
   QSettings s;
   for (auto& elt : ctx.interfaces<score::SettingsDelegateFactoryList>())

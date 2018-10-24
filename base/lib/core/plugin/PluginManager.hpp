@@ -1,5 +1,6 @@
 #pragma once
 #include <score/application/ApplicationContext.hpp>
+#include <score/application/GUIApplicationContext.hpp>
 #include <score/plugins/PluginInstances.hpp>
 #include <score/plugins/InterfaceList.hpp>
 #include <score/plugins/qt_interfaces/CommandFactory_QtInterface.hpp>

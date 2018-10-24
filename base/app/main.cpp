@@ -11,7 +11,7 @@
 #include <qnamespace.h>
 
 #if defined(__linux__)
-#include <X11/Xlib.h>
+#include <dlfcn.h>
 #endif
 
 #if defined(__SSE3__)
@@ -45,9 +45,13 @@ Q_IMPORT_PLUGIN(QXcbIntegrationPlugin)
 static void setup_x11()
 {
 #if defined(__linux__)
-  if (!XInitThreads())
+  if(auto x11 = dlopen("libX11.so", RTLD_LAZY | RTLD_LOCAL))
+  if(auto sym = reinterpret_cast<int(*)()>(dlsym(x11, "XInitThreads")))
   {
-    qDebug() << "Failed to initialise xlib thread support.";
+    if(!sym())
+    {
+      qDebug() << "Failed to initialise xlib thread support.";
+    }
   }
 #endif
 }

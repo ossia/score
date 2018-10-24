@@ -18,6 +18,9 @@ if(SCORE_STATIC_PLUGINS)
   target_link_libraries(${APPNAME} PUBLIC ${SCORE_PLUGINS_LIST})
 endif()
 
+if(TARGET score_addon_jit)
+  set_target_properties(${APPNAME} PROPERTIES ENABLE_EXPORTS 1)
+endif()
 find_package(Qt5 5.7 COMPONENTS QuickControls2)
 if(TARGET Qt5::QuickControls2)
   target_link_libraries(${APPNAME} PUBLIC score_lib_base Qt5::QuickControls2)
@@ -36,8 +39,6 @@ if(UNIX AND NOT APPLE)
   set_target_properties(${APPNAME}
     PROPERTIES
       OUTPUT_NAME ossia-score)
-
-  target_link_libraries(${APPNAME} PUBLIC X11)
 endif()
 
 if(APPLE)

@@ -90,6 +90,8 @@ View* Presenter::view() const
 
 void Presenter::setupGUI()
 {
+  // TODO remove current menus / toolbars.
+
   // 1. Show the menus
   // If the menu has no parent menu, we add it to the main menu bar.
   {
@@ -146,25 +148,14 @@ void Presenter::setupGUI()
       auto bw = new QWidget;
       bw->setContentsMargins(0, 0, 0, 0);
       auto bl = new score::MarginLess<QGridLayout>{bw};
-
-
       view()->centralWidget()->layout()->addWidget(bw);
-
-      /* // This was for adding labels below - not using it anymore
-      struct ToolbarLabel final : public QLabel
-      {
-        ToolbarLabel(const Toolbar& tb)
-            : QLabel{QString::fromStdString(tb.key().toString())}
-        {
-          setFont(QFont("Ubuntu", 8));
-        }
-      };*/
 
       int i = 0;
       for (const Toolbar& tb : toolbars[Qt::BottomToolBarArea])
       {
 
-        if (i==2 || i== (toolbars[Qt::BottomToolBarArea].size())*2){ // for 2nd and penultimate
+        if (i==2 || i == (toolbars[Qt::BottomToolBarArea].size())*2)
+        { // for 2nd and penultimate
           auto dummy = new QWidget;
           dummy->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Minimum);
           bl->addWidget(dummy, 0, i, 1, 1);
@@ -186,8 +177,6 @@ void Presenter::setupGUI()
         bl->addWidget(sp, 0, i, Qt::AlignCenter);
         i++;
       }
-
-
     }
   }
 }
