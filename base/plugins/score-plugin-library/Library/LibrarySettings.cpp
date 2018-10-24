@@ -41,6 +41,7 @@ static void initSystemLibrary(QDir& lib_folder)
   lib_folder.mkpath("./Presets");
   lib_folder.mkpath("./Devices");
   lib_folder.mkpath("./Cues");
+  lib_folder.mkpath("./Addons");
 }
 
 Model::Model(QSettings& set, const score::ApplicationContext& ctx)
