@@ -379,7 +379,7 @@ struct Node
   {
     static const constexpr auto prettyName = "MIDI Pitch";
     static const constexpr auto objectKey = "PitchToValue";
-    static const constexpr auto category = "MIDI";
+    static const constexpr auto category = "Midi";
     static const constexpr auto author = "ossia score";
     static const constexpr auto kind = Process::ProcessCategory::MidiEffect;
     static const constexpr auto description = "Extract a MIDI pitch";
