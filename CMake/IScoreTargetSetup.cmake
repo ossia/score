@@ -301,28 +301,46 @@ endfunction()
 
 ### Initialization of common stuff ###
 function(setup_score_common_exe_features TheTarget)
-  setup_score_common_features("${TheTarget}")
-  score_cotire_post("${TheTarget}")
+  setup_score_common_features(${TheTarget})
+  score_cotire_post(${TheTarget})
 endfunction()
 
 function(setup_score_common_test_features TheTarget)
-  setup_score_common_features("${TheTarget}")
+  setup_score_common_features(${TheTarget})
 endfunction()
 
 function(setup_score_common_lib_features TheTarget)
-  setup_score_common_features("${TheTarget}")
+  setup_score_common_features(${TheTarget})
 
   if(NOT SCORE_STATIC_PLUGINS)
     set_target_properties(${TheTarget} PROPERTIES CXX_VISIBILITY_PRESET hidden)
     set_target_properties(${TheTarget} PROPERTIES VISIBILITY_INLINES_HIDDEN 1)
   endif()
+
   generate_export_header(${TheTarget})
 
+  get_target_property(_srcDir ${TheTarget} SOURCE_DIR)
+  get_target_property(_binDir ${TheTarget} BINARY_DIR)
+  install(DIRECTORY "${_srcDir}/"
+          DESTINATION include/score
+          COMPONENT Devel
+          FILES_MATCHING
+          PATTERN "*.hpp"
+          PATTERN ".git" EXCLUDE
+          PATTERN "tests" EXCLUDE
+          PATTERN "Tests" EXCLUDE
+  )
+  install(FILES
+        ${_binDir}/${TheTarget}_export.h
+        ${_binDir}/${TheTarget}_commands.hpp
+        ${_binDir}/${TheTarget}_commands_files.hpp
+        DESTINATION include/score
+        COMPONENT Devel
+        OPTIONAL)
+
   string(TOUPPER "${TheTarget}" UPPERCASE_PLUGIN_NAME)
-  set_property(TARGET ${TheTarget} APPEND
-               PROPERTY INTERFACE_INCLUDE_DIRECTORIES "${CMAKE_CURRENT_SOURCE_DIR}")
-  set_property(TARGET ${TheTarget} APPEND
-               PROPERTY INTERFACE_COMPILE_DEFINITIONS "${UPPERCASE_PLUGIN_NAME}")
+  target_include_directories(${TheTarget} INTERFACE "${CMAKE_CURRENT_SOURCE_DIR}")
+  target_compile_definitions(${TheTarget} INTERFACE "${UPPERCASE_PLUGIN_NAME}")
 endfunction()
 
 
@@ -344,7 +362,8 @@ function(setup_score_library PluginName)
       install(TARGETS "${PluginName}"
         LIBRARY DESTINATION .
         ARCHIVE DESTINATION static_lib
-        RUNTIME DESTINATION bin)
+        RUNTIME DESTINATION bin
+        )
     endif()
   endif()
 

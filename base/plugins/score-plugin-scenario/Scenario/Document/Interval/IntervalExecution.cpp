@@ -270,8 +270,10 @@ ProcessComponent* IntervalComponentBase::make(
     auto plug = fac.make(proc, ctx, id, nullptr);
     if (plug && plug->OSSIAProcessPtr())
     {
-      auto oproc = plug->OSSIAProcessPtr();
+      const auto& oproc = plug->OSSIAProcessPtr();
+      SCORE_ASSERT(m_processes.find(proc.id()) == m_processes.end());
       m_processes.emplace(proc.id(), plug);
+      SCORE_ASSERT(m_processes[proc.id()] == plug);
 
       const auto& outlets = proc.outlets();
       ossia::pod_vector<std::size_t> propagated_outlets;

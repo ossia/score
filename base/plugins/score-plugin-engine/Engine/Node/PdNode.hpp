@@ -10,6 +10,10 @@
 #include <Engine/Node/Layer.hpp>
 #include <Engine/Node/Process.hpp>
 #include <Engine/Node/Widgets.hpp>
+
+#include <score/plugins/qt_interfaces/FactoryInterface_QtInterface.hpp>
+#include <score/plugins/qt_interfaces/PluginRequirements_QtInterface.hpp>
+
 #define make_uuid(text) score::uuids::string_generator::compute((text))
 
 namespace Control
@@ -75,5 +79,38 @@ struct Note
   uint8_t pitch{};
   uint8_t vel{};
   uint8_t chan{};
+};
+
+template<typename T>
+struct score_generic_plugin final
+    : public score::FactoryInterface_QtInterface
+    , public score::Plugin_QtInterface
+{
+  static Q_DECL_RELAXED_CONSTEXPR score::PluginKey static_key()
+  {
+    return T::Metadata::uuid;
+  }
+
+  score::PluginKey key() const final override
+  {
+    return static_key();
+  }
+
+  score::Version version() const override
+  {
+    return score::Version{1};
+  }
+
+  score_generic_plugin() = default;
+  ~score_generic_plugin() override = default;
+
+  std::vector<std::unique_ptr<score::InterfaceBase>> factories(
+      const score::ApplicationContext& ctx,
+      const score::InterfaceKey& key) const override
+  {
+    return Control::instantiate_fx<T>(ctx, key);
+  }
+
+  std::vector<score::PluginKey> required() const override { return {}; }
 };
 }

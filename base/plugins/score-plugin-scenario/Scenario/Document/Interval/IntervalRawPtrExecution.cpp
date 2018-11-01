@@ -268,7 +268,7 @@ ProcessComponent* IntervalRawPtrComponentBase::make(
     auto plug = fac.make(proc, ctx, id, nullptr);
     if (plug && plug->OSSIAProcessPtr())
     {
-      auto oproc = plug->OSSIAProcessPtr();
+      const auto& oproc = plug->OSSIAProcessPtr();
       m_processes.emplace(proc.id(), plug);
 
       const auto& outlets = proc.outlets();
