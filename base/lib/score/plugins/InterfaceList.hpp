@@ -8,6 +8,7 @@
 #include <score/tools/std/IndirectContainer.hpp>
 #include <score/tools/std/Pointer.hpp>
 
+#include <ossia/detail/hash_map.hpp>
 #include <ossia/detail/algorithms.hpp>
 
 #include <QMetaType>
@@ -103,9 +104,15 @@ public:
 
       auto k = pf->concreteKey();
       auto it = this->map.find(k);
-      SCORE_ASSERT(it == this->map.end());
-
-      this->map.emplace(std::make_pair(k, std::move(pf)));
+      if(it == this->map.end())
+      {
+        this->map.emplace(std::make_pair(k, std::move(pf)));
+      }
+      else
+      {
+        qDebug() << "Warning: replacing" << typeid(*it->second).name() << "with" << typeid(result).name();
+        it->second = std::move(pf);
+      }
     }
   }
 
@@ -169,9 +176,7 @@ public:
   }
 
 protected:
-  score::hash_map<
-      typename FactoryType::ConcreteKey, std::unique_ptr<FactoryType>>
-      map;
+  ossia::fast_hash_map<typename FactoryType::ConcreteKey, std::unique_ptr<FactoryType>> map;
 
 private:
   void optimize() noexcept final override
