@@ -14,6 +14,11 @@ git clone https://code.qt.io/qt/qt5.git
   cd qt5
   git checkout 5.12
   git submodule update --init --recursive qtbase qtdeclarative qtquickcontrols2 qtserialport qtimageformats qtgraphicaleffects qtsvg qtwebsockets
+  
+  sed -i 's/fuse-ld=gold/fuse-ld=lld/g' \
+    qtbase/mkspecs/common/gcc-base-unix.conf \
+    qtbase/mkspecs/features/qt_configure.prf \
+    qtbase/configure.json     
 )
 
 # cp /usr/local/bin/* /usr/bin/
