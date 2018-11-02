@@ -21,7 +21,7 @@ QString OSCQueryProtocolFactory::prettyName() const
 
 int OSCQueryProtocolFactory::visualPriority() const
 {
-  return 1;
+  return 2;
 }
 
 Device::DeviceInterface* OSCQueryProtocolFactory::makeDevice(
