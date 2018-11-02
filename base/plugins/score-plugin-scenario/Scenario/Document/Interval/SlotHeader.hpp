@@ -62,7 +62,7 @@ private:
 
   const IntervalPresenter& m_presenter;
   qreal m_width{};
-  double m_menupos{};
+  //double m_menupos{};
   int m_slotIndex{};
 };
 

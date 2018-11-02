@@ -78,6 +78,7 @@ void SlotHeader::paint(
     // Frame
     painter->drawRect(QRectF{0., 0., m_width, headerHeight() - 1});
 
+    /*
     // Menu
     {
       auto view = getView(*this);
@@ -112,6 +113,7 @@ void SlotHeader::paint(
       painter->drawLine(centerX - r, centerY + 3, centerX + r, centerY + 3);
       m_menupos = centerX;
     }
+    */
   }
   else
   {
@@ -139,12 +141,12 @@ void SlotHeader::mousePressEvent(QGraphicsSceneMouseEvent* event)
   {
     slot_header_drag.reset(new QDrag(event->widget()));
   }
-  else if (xpos >= m_menupos - 4 && xpos < m_menupos + 4)
+  /*else if (xpos >= m_menupos - 4 && xpos < m_menupos + 4)
   {
     // menu
     m_presenter.requestSlotMenu(
         m_slotIndex, event->screenPos(), event->scenePos());
-  }
+  }*/
   else if (
       boundingRect().contains(event->pos())
       && m_presenter.getSlots()[m_slotIndex].processes.size() > 1)
