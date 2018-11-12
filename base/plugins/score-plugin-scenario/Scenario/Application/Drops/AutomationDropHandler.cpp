@@ -154,9 +154,10 @@ bool DropProcessInScenario::drop(
 }
 
 bool DropProcessInInterval::drop(
-    const IntervalModel& cst, const QMimeData& mime)
+    const score::DocumentContext& ctx
+    , const IntervalModel& cst
+    , const QMimeData& mime)
 {
-  const auto& ctx = score::IDocument::documentContext(cst);
   if(mime.hasFormat("score/object-item-model-index"))
   {
     auto dat = score::unmarshall<Path<Process::ProcessModel>>(mime.data("score/object-item-model-index"));
@@ -337,26 +338,26 @@ void DropLayerInInterval::perform(
 }
 
 bool DropLayerInInterval::drop(
-    const IntervalModel& interval, const QMimeData& mime)
+    const score::DocumentContext& ctx
+    , const IntervalModel& interval
+    , const QMimeData& mime)
 {
   if (mime.formats().contains(score::mime::layerdata()))
   {
-    const auto& doc = score::IDocument::documentContext(interval);
     Scenario::Command::Macro m{
-        new Scenario::Command::DropProcessInIntervalMacro, doc};
+        new Scenario::Command::DropProcessInIntervalMacro, ctx};
 
     const auto json
         = QJsonDocument::fromJson(mime.data(score::mime::layerdata()))
               .object();
-    perform(interval, doc, m, json);
+    perform(interval, ctx, m, json);
     m.commit();
     return true;
   }
   else if (mime.hasUrls())
   {
-    const auto& doc = score::IDocument::documentContext(interval);
     Scenario::Command::Macro m{
-        new Scenario::Command::DropProcessInIntervalMacro, doc};
+        new Scenario::Command::DropProcessInIntervalMacro, ctx};
     bool ok = false;
     for (const QUrl& u : mime.urls())
     {
@@ -368,7 +369,7 @@ bool DropLayerInInterval::drop(
         QJsonParseError e{};
         const auto json = QJsonDocument::fromJson(f.readAll(), &e).object();
         if (e.error == QJsonParseError::NoError)
-          perform(interval, doc, m, json);
+          perform(interval, ctx, m, json);
       }
     }
 
@@ -411,7 +412,9 @@ static void getAddressesRecursively(
 }
 
 bool AutomationDropHandler::drop(
-    const IntervalModel& cst, const QMimeData& mime)
+    const score::DocumentContext& ctx
+    , const IntervalModel& cst
+    , const QMimeData& mime)
 {
   // TODO refactor with AddressEditWidget
   if (mime.formats().contains(score::mime::nodelist()))
@@ -430,17 +433,15 @@ bool AutomationDropHandler::drop(
     if (addresses.empty())
       return false;
 
-    auto& doc = score::IDocument::documentContext(cst);
-    CreateCurvesFromAddresses({&cst}, addresses, doc.commandStack);
+    CreateCurvesFromAddresses({&cst}, addresses, ctx.commandStack);
 
     return true;
   }
   else if (mime.formats().contains(score::mime::addressettings()))
   {
     Mime<Device::FullAddressSettings>::Deserializer des{mime};
-    auto& doc = score::IDocument::documentContext(cst);
 
-    CreateCurvesFromAddresses({&cst}, {des.deserialize()}, doc.commandStack);
+    CreateCurvesFromAddresses({&cst}, {des.deserialize()}, ctx.commandStack);
     return true;
   }
   else

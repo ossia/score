@@ -25,12 +25,6 @@ struct PropertyWrapper final : public BaseCallbackWrapper
       ossia::net::parameter_base& param_addr, model_t& obj, QObject* context)
       : BaseCallbackWrapper{param_addr}, m_model{obj}
   {
-    callbackIt = addr.add_callback([=,m=QPointer<model_t>{&m_model}](const ossia::value& v) {
-        score::invoke([m, v] {
-          if(m) ((*m).*Property::set())(::State::convert::value<param_t>(v));
-      });
-    });
-
     QObject::connect(
         &m_model, Property::notify(), context,
         [=] {
@@ -51,6 +45,11 @@ struct PropertyWrapper final : public BaseCallbackWrapper
         Qt::QueuedConnection);
 
     addr.set_value(converter_t::convert((m_model.*Property::get())()));
+    callbackIt = addr.add_callback([=,m=QPointer<model_t>{&m_model}](const ossia::value& v) {
+        score::invoke([m, v] {
+          if(m) ((*m).*Property::set())(::State::convert::value<param_t>(v));
+      });
+    });
   }
 };
 
