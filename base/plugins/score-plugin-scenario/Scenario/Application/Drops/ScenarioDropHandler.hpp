@@ -7,6 +7,7 @@
 
 #include <score_plugin_scenario_export.h>
 
+namespace score { struct DocumentContext; }
 namespace Scenario
 {
 class ScenarioPresenter;
@@ -69,7 +70,7 @@ public:
   ~IntervalDropHandler() override;
 
   // Returns false if not handled.
-  virtual bool drop(const Scenario::IntervalModel&, const QMimeData& mime) = 0;
+  virtual bool drop(const score::DocumentContext& ctx, const Scenario::IntervalModel&, const QMimeData& mime) = 0;
 };
 
 class IntervalDropHandlerList final
@@ -78,6 +79,6 @@ class IntervalDropHandlerList final
 public:
   ~IntervalDropHandlerList() override;
 
-  bool drop(const Scenario::IntervalModel&, const QMimeData& mime) const;
+  bool drop(const score::DocumentContext& ctx, const Scenario::IntervalModel&, const QMimeData& mime) const;
 };
 }

@@ -101,7 +101,7 @@ TemporalIntervalPresenter::TemporalIntervalPresenter(
   con(v, &TemporalIntervalView::dropReceived, this,
       [=](const QPointF& pos, const QMimeData& mime) {
         m_context.app.interfaces<Scenario::IntervalDropHandlerList>().drop(
-            m_model, mime);
+            m_context, m_model, mime);
       });
 
   // Time
@@ -124,7 +124,7 @@ TemporalIntervalPresenter::TemporalIntervalPresenter(
       head, &TemporalIntervalHeader::dropReceived, this,
       [=](const QPointF& pos, const QMimeData& mime) {
         m_context.app.interfaces<Scenario::IntervalDropHandlerList>().drop(
-            m_model, mime);
+            m_context, m_model, mime);
       });
 
   // Go to full-view on double click
