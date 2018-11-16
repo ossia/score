@@ -65,55 +65,20 @@ void SlotHeader::paint(
   {
 
     // Grip
-    static const std::array<QRectF, 6> rects{[] {
-      std::array<QRectF, 6> rects;
-      for (int i = 0; i < 3; i++)
-        rects[i] = {6., 4 + 3. * i, 1, 1};
-      return rects;
-    }()};
-    painter->drawRects(rects.data(), 6);
+    double r = 4.5;
+    double centerX = 9.;
+    const double centerY = 7.5;
+
+    painter->setRenderHint(QPainter::Antialiasing, false);
+    painter->drawLine(centerX - r, centerY + 0, centerX + r, centerY + 0);
+    painter->drawLine(centerX - r, centerY - 3, centerX + r, centerY - 3);
+    painter->drawLine(centerX - r, centerY + 3, centerX + r, centerY + 3);
 
     painter->setRenderHint(QPainter::Antialiasing, true);
 
     // Frame
     painter->drawRect(QRectF{0., 0., m_width, headerHeight() - 1});
 
-    /*
-    // Menu
-    {
-      auto view = getView(*this);
-      if (!view)
-        return;
-
-      double r = 4.5;
-
-      const double leftXinView
-          = view->mapFromScene(mapToScene(QPointF{(m_width - 8.) - r, 0.}))
-                .x();
-      const double rightXinView = leftXinView + 2. * r;
-
-      double centerX = m_width - 8.;
-      const double centerY = 7.5;
-
-      const constexpr double min_x = 10.;
-      const double max_x = view->width() - 30.;
-      if (leftXinView <= min_x)
-      {
-        centerX += (-leftXinView + min_x);
-      }
-      else if (rightXinView >= max_x)
-      {
-        centerX += (-rightXinView + max_x);
-      }
-      centerX = std::max(centerX, 5.);
-
-      painter->setRenderHint(QPainter::Antialiasing, false);
-      painter->drawLine(centerX - r, centerY + 0, centerX + r, centerY + 0);
-      painter->drawLine(centerX - r, centerY - 3, centerX + r, centerY - 3);
-      painter->drawLine(centerX - r, centerY + 3, centerX + r, centerY + 3);
-      m_menupos = centerX;
-    }
-    */
   }
   else
   {
