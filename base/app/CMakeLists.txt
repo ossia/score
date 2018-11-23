@@ -57,7 +57,7 @@ if(APPLE)
     endif()
 endif()
 
-include(StaticApp.cmake)
+static_link_qt(${APPNAME})
 
 if(IOS)
   find_library(COREFOUNDATION_LIBRARY CoreFoundation)

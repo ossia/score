@@ -13,8 +13,10 @@
 #include <Scenario/Commands/Scenario/ScenarioPasteElements.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
 #include <Scenario/Process/ScenarioPresenter.hpp>
+#include <Dataflow/Commands/CableHelpers.hpp>
 #include <score/document/DocumentContext.hpp>
 
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 #include <ossia/detail/thread.hpp>
 #include <ossia/network/value/value_traits.hpp>
 
@@ -300,13 +302,13 @@ bool DropLayerInScenario::drop(
 }
 
 void DropLayerInInterval::perform(
-    const IntervalModel& interval, const score::DocumentContext& doc,
+    const IntervalModel& interval, const score::DocumentContext& ctx,
     Scenario::Command::Macro& m, const QJsonObject& json)
 {
   const auto pid = ossia::get_pid();
   const bool same_doc
       = (pid == json["PID"].toInt())
-        && (doc.document.id().val() == json["Document"].toInt());
+        && (ctx.document.id().val() == json["Document"].toInt());
   const bool small_view = json["View"].toString() == "Small";
   const int slot_index = json["SlotIndex"].toInt();
 
@@ -314,7 +316,7 @@ void DropLayerInInterval::perform(
   {
     const auto old_p
         = fromJsonObject<Path<Process::ProcessModel>>(json["Path"]);
-    if (auto obj = old_p.try_find(doc))
+    if (auto obj = old_p.try_find(ctx))
       if (auto itv = qobject_cast<IntervalModel*>(obj->parent()))
       {
         if (small_view && (qApp->keyboardModifiers() & Qt::ALT))
@@ -333,6 +335,20 @@ void DropLayerInInterval::perform(
     m.loadProcessInSlot(interval, json);
   }
 
+  // Reload cables
+  {
+    // TODO put this in a command
+    auto new_path = score::IDocument::path(interval).unsafePath();
+    auto cables = fromJsonValueArray<Dataflow::SerializedCables>(json["Cables"].toArray());
+
+    auto& document = score::IDocument::get<Scenario::ScenarioDocumentModel>(ctx.document);
+
+    for(auto& c : cables)
+    {
+      c.first = getStrongId(document.cables);
+    }
+    m.loadCables(new_path, cables);
+  }
   // Finally we show the newly created rack
   m.showRack(interval);
 }

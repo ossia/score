@@ -12,6 +12,7 @@
 #include <Scenario/Process/Algorithms/ContainersAccessors.hpp>
 #include <Scenario/Process/Algorithms/ProcessPolicy.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
+#include <Dataflow/Commands/CableHelpers.hpp>
 
 #include <score/document/DocumentContext.hpp>
 #include <score/model/EntityMap.hpp>
@@ -97,7 +98,7 @@ bool verifyAndUpdateIfChildOf(
 }
 
 template <typename T>
-std::vector<Process::CableData> cablesToCopy(
+Dataflow::SerializedCables cablesToCopy(
     const std::vector<T*>& array,
     const std::vector<Path<std::remove_const_t<T>>>& siblings,
     const score::DocumentContext& ctx)
@@ -105,7 +106,7 @@ std::vector<Process::CableData> cablesToCopy(
   // For every cable, if both ends are in one of the elements or child elements
   // currently selected, we copy them.
   // Note: ids / cable paths have to be updated of course.
-  std::vector<Process::CableData> copiedCables;
+  Dataflow::SerializedCables copiedCables;
   ossia::ptr_set<Process::Inlet*> ins;
   for (auto itv : array)
   {
@@ -122,7 +123,7 @@ std::vector<Process::CableData> cablesToCopy(
         auto cd = cable->toCableData();
         if (verifyAndUpdateIfChildOf(cd, siblings))
         {
-          copiedCables.push_back(cd);
+          copiedCables.push_back({cable->id(), cd});
         }
       }
     }
@@ -254,7 +255,7 @@ copySelected(const Scenario_T& sm, CategorisedScenario& cs, QObject* parent)
   base["TimeNodes"] = arrayToJson(copiedTimeSyncs);
   base["States"] = arrayToJson(copiedStates);
   base["Cables"]
-      = toJsonArray(cablesToCopy(cs.selectedIntervals, itv_paths, ctx));
+      = toJsonValueArray(cablesToCopy(cs.selectedIntervals, itv_paths, ctx));
 
   for (auto elt : copiedTimeSyncs)
     delete elt;
@@ -275,7 +276,7 @@ QJsonObject copyProcess(const Process::ProcessModel& proc)
   base["PID"] = ossia::get_pid();
   base["Document"] = toJsonValue(ctx.document.id());
   base["Process"] = toJsonObject(proc);
-  base["Cables"] = toJsonArray(cablesToCopy(vp, vpath, ctx));
+  base["Cables"] = toJsonValueArray(cablesToCopy(vp, vpath, ctx));
   return base;
 }
 
@@ -307,7 +308,7 @@ QJsonObject copyWholeScenario(const Scenario::ProcessModel& sm)
   base["Events"] = toJsonArray(sm.events);
   base["TimeNodes"] = toJsonArray(sm.timeSyncs);
   base["States"] = toJsonArray(sm.states);
-  base["Cables"] = toJsonArray(cablesToCopy(itvs, itv_paths, ctx));
+  base["Cables"] = toJsonValueArray(cablesToCopy(itvs, itv_paths, ctx));
   base["Comments"] = toJsonArray(sm.comments);
 
   return base;

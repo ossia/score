@@ -33,6 +33,8 @@ else()
     RUNTIME DESTINATION bin)
 endif()
 
+static_link_qt(ossia-score-vstpuppet)
+
 if(SCORE_COTIRE)
   cotire(ossia-score-vstpuppet)
 endif()

@@ -251,6 +251,11 @@ void Macro::removeProcess(
   m.submit(new RemoveProcessFromInterval{interval, proc});
 }
 
+void Macro::loadCables(const ObjectPath& parent, const Dataflow::SerializedCables& c)
+{
+  m.submit(new Dataflow::LoadCables{parent, c});
+}
+
 void Macro::removeElements(
     const Scenario::ProcessModel& scenario, const Selection& sel)
 {

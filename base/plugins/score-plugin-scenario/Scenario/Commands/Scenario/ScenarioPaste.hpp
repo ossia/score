@@ -61,7 +61,7 @@ struct ScenarioBeingCopied
       for (const auto& element : json_arr)
       {
         cables.emplace_back(
-            score::unmarshall<Process::CableData>(element.toObject()));
+            fromJsonValue<std::pair<Id<Process::Cable>, Process::CableData>>(element.toObject()).second);
       }
     }
 

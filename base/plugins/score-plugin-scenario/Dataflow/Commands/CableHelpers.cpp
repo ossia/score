@@ -95,6 +95,20 @@ void removeCables(
   }
 }
 
+static bool startsWith(const ObjectPath& object, const ObjectPath& parent)
+{
+  if (object.vec().size() < parent.vec().size())
+    return false;
+
+  for (std::size_t i = 0; i < parent.vec().size(); i++)
+  {
+    if (!(object.vec()[i] == parent.vec()[i]))
+      return false;
+  }
+
+  return true;
+}
+
 void restoreCables(
     const SerializedCables& cables, const score::DocumentContext& ctx)
 {
@@ -107,13 +121,41 @@ void restoreCables(
     {
       auto cbl = new Process::Cable{cid.first, cid.second, &doc};
       doc.cables.add(cbl);
-      cbl->source().find(ctx).addCable(*cbl);
-      cbl->sink().find(ctx).addCable(*cbl);
+      Path<Process::Cable> path = *cbl;
+      cbl->source().find(ctx).addCable(path);
+      cbl->sink().find(ctx).addCable(path);
     }
     else
     {
       qDebug() << "Warning: trying to add existing cable " << cid.first;
     }
   }
+}
+
+// TODO keep a single way of doing
+void loadCables(
+    const ObjectPath& old_path
+    , const ObjectPath& new_path
+    , Dataflow::SerializedCables& cables
+    , const score::DocumentContext& ctx)
+{
+  for (auto& c : cables)
+  {
+    if (auto& p = c.second.source.unsafePath(); startsWith(p, old_path))
+      replacePathPart(old_path, new_path, p);
+
+    if (auto& p = c.second.sink.unsafePath(); startsWith(p, old_path))
+      replacePathPart(old_path, new_path, p);
+  }
+
+  Dataflow::restoreCables(cables, ctx);
+}
+
+void loadRelativeCables(
+      const ObjectPath& new_path
+    , Dataflow::SerializedCables& cables
+    , const score::DocumentContext& ctx)
+{
+  Dataflow::restoreCables(cables, ctx);
 }
 }

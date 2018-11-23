@@ -1,6 +1,7 @@
 #pragma once
 #include <Scenario/Palette/ScenarioPoint.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
+#include <Dataflow/Commands/CableHelpers.hpp>
 
 #include <score/command/AggregateCommand.hpp>
 #include <score/command/Dispatchers/MacroCommandDispatcher.hpp>
@@ -150,6 +151,9 @@ public:
       const Scenario::IntervalModel& interval,
       const Id<Process::ProcessModel>& proc);
 
+  void loadCables(
+      const ObjectPath& parent
+      , const Dataflow::SerializedCables& c);
   void
   removeElements(const Scenario::ProcessModel& scenario, const Selection& sel);
 
