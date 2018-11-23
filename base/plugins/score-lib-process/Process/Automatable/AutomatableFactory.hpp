@@ -40,7 +40,7 @@ public:
   //! Number of processes that should be created
   virtual int count(const State::AddressAccessor& address
                     , const ossia::value& start
-                    , const ossia::value& end) const noexcept;
+                    , const ossia::value& end) const noexcept = 0;
 
   //! Instantiate the actual processes
   virtual std::vector<Process::ProcessModel*> make(
