@@ -69,6 +69,7 @@ macro(find_component _component _pkgconfig _library _header)
       ${PC_${_component}_INCLUDE_DIRS}
       c:/ffmpeg/include
       /opt/ffmpeg/include
+      "${OSSIA_SDK}/ffmpeg/include"
     PATH_SUFFIXES
       ffmpeg
   )
@@ -79,6 +80,7 @@ macro(find_component _component _pkgconfig _library _header)
       ${PC_${_component}_LIBRARY_DIRS}
       c:/ffmpeg/lib
       /opt/ffmpeg/lib
+      "${OSSIA_SDK}/ffmpeg/lib"
   )
 
   set(${_component}_DEFINITIONS  ${PC_${_component}_CFLAGS_OTHER} CACHE STRING "The ${_component} CFLAGS.")
