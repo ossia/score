@@ -41,20 +41,6 @@ MoveProcess::MoveProcess(
   }
 }
 
-static bool startsWith(const ObjectPath& object, const ObjectPath& parent)
-{
-  if (object.vec().size() < parent.vec().size())
-    return false;
-
-  for (std::size_t i = 0; i < parent.vec().size(); i++)
-  {
-    if (!(object.vec()[i] == parent.vec()[i]))
-      return false;
-  }
-
-  return true;
-}
-
 static void moveProcess(
     Scenario::IntervalModel& src, Scenario::IntervalModel& tgt,
     const Id<Process::ProcessModel>& old_id,
@@ -96,16 +82,7 @@ static void moveProcess(
   {
     const auto new_path = score::IDocument::path(proc).unsafePath();
 
-    for (auto& c : cables)
-    {
-      if (auto& p = c.second.source.unsafePath(); startsWith(p, old_path))
-        replacePathPart(old_path, new_path, p);
-
-      if (auto& p = c.second.sink.unsafePath(); startsWith(p, old_path))
-        replacePathPart(old_path, new_path, p);
-    }
-
-    Dataflow::restoreCables(cables, ctx);
+    Dataflow::loadCables(old_path, new_path, cables, ctx);
   }
 }
 

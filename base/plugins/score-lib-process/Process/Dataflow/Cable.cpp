@@ -108,6 +108,20 @@ JSONObjectWriter::write<Process::CableData>(Process::CableData& p)
 
 template <>
 SCORE_LIB_PROCESS_EXPORT void
+JSONValueReader::read<Process::CableData>(const Process::CableData& p)
+{
+  this->val = toJsonObject(p);
+}
+template <>
+SCORE_LIB_PROCESS_EXPORT void
+JSONValueWriter::write<Process::CableData>(Process::CableData& p)
+{
+  p = fromJsonObject<Process::CableData>(this->val);
+}
+
+
+template <>
+SCORE_LIB_PROCESS_EXPORT void
 DataStreamReader::read<Process::Cable>(const Process::Cable& p)
 {
   m_stream << p.toCableData();
