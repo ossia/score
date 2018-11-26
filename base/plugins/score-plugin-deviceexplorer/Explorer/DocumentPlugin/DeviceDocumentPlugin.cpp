@@ -149,7 +149,8 @@ void DeviceDocumentPlugin::setConnection(bool b)
   if (b)
   {
     // Reconnect all devices
-    m_list.apply([&](Device::DeviceInterface& dev) {
+    m_list.apply([&](Device::DeviceInterface& dev)
+    {
       if (!dev.connected())
         dev.reconnect();
       if (dev.capabilities().canSerialize)
@@ -172,12 +173,17 @@ void DeviceDocumentPlugin::setConnection(bool b)
           qDebug() << "Could not save device";
         }
       }
+
+      setupConnections(dev, true);
     });
   }
   else
   {
     // Disconnect all devices
-    m_list.apply([&](Device::DeviceInterface& dev) { dev.disconnect(); });
+    m_list.apply([&](Device::DeviceInterface& dev) {
+      setupConnections(dev, false);
+      dev.disconnect();
+    });
   }
 }
 
@@ -196,46 +202,65 @@ void DeviceDocumentPlugin::initDevice(Device::DeviceInterface& newdev)
   newdev.reconnect();
   newdev.valueUpdated.connect<&DeviceDocumentPlugin::on_valueUpdated>(*this);
 
-  con(newdev, &Device::DeviceInterface::pathAdded, this,
-      [&](const State::Address& addr) {
-        // FIXME A subtle bug is introduced if we want to add the root node...
-        if (addr.path.size() > 0)
-        {
-          auto parentAddr = addr;
-          parentAddr.path.removeLast();
-
-          Device::Node* parent
-              = Device::try_getNodeFromAddress(m_rootNode, parentAddr);
-          if (parent)
-          {
-            const auto& last = addr.path[addr.path.size() - 1];
-            auto it = ossia::find_if(*parent, [&](const auto& n) {
-              return n.displayName() == last;
-            });
-            if (it == parent->cend())
-            {
-              updateProxy.addLocalNode(
-                  *parent, newdev.getNodeWithoutChildren(addr));
-            }
-            else
-            {
-              // TODO update the node with the new information
-            }
-          }
-        }
-      });
-
-  con(newdev, &Device::DeviceInterface::pathRemoved, this,
-      [&](const State::Address& addr) { updateProxy.removeLocalNode(addr); }
-  , Qt::QueuedConnection);
-
-  con(newdev, &Device::DeviceInterface::pathUpdated, this,
-      [&](const State::Address& addr, const Device::AddressSettings& set) {
-        updateProxy.updateLocalSettings(addr, set, newdev);
-      }, Qt::QueuedConnection);
+  setupConnections(newdev, true);
 
   m_list.addDevice(&newdev);
   newdev.setParent(this);
+}
+
+void DeviceDocumentPlugin::setupConnections(Device::DeviceInterface& device, bool enabled)
+{
+  auto& vec = m_connections[&device];
+  if(enabled)
+  {
+    vec.push_back(con(device, &Device::DeviceInterface::pathAdded, this,
+        [&](const State::Address& addr) {
+          // FIXME A subtle bug is introduced if we want to add the root node...
+          if (addr.path.size() > 0)
+          {
+            auto parentAddr = addr;
+            parentAddr.path.removeLast();
+
+            Device::Node* parent
+                = Device::try_getNodeFromAddress(m_rootNode, parentAddr);
+            if (parent)
+            {
+              const auto& last = addr.path[addr.path.size() - 1];
+              auto it = ossia::find_if(*parent, [&](const auto& n) {
+                return n.displayName() == last;
+              });
+              if (it == parent->cend())
+              {
+                updateProxy.addLocalNode(
+                    *parent, device.getNodeWithoutChildren(addr));
+              }
+              else
+              {
+                // TODO update the node with the new information
+              }
+            }
+          }
+        }));
+
+    vec.push_back(con(device, &Device::DeviceInterface::pathRemoved, this,
+        [&](const State::Address& addr) {
+      updateProxy.removeLocalNode(addr);
+    }
+    , Qt::QueuedConnection));
+    vec.push_back(con(device, &Device::DeviceInterface::pathUpdated, this,
+        [&](const State::Address& addr, const Device::AddressSettings& set) {
+          updateProxy.updateLocalSettings(addr, set, device);
+        }, Qt::QueuedConnection));
+  }
+  else
+  {
+    for(auto& q : vec)
+    {
+      QObject::disconnect(q);
+    }
+    vec.clear();
+  }
+
 }
 
 void DeviceDocumentPlugin::on_valueUpdated(
