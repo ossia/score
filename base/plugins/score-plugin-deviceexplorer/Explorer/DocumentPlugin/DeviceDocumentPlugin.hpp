@@ -76,9 +76,9 @@ public:
     return *m_explorer;
   }
 
+  void setupConnections(Device::DeviceInterface&, bool enabled);
 private:
   void initDevice(Device::DeviceInterface&);
-  void setupConnections(Device::DeviceInterface&, bool enabled);
   void on_valueUpdated(const State::Address& addr, const ossia::value& v);
 
   Device::Node m_rootNode;

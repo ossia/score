@@ -63,6 +63,10 @@ void NodeUpdateProxy::removeDevice(const Device::DeviceSettings& dev)
            && val.get<Device::DeviceSettings>().name == dev.name;
   });
   SCORE_ASSERT(it != rootNode.end());
+  auto dev_i = devModel.list().findDevice(dev.name);
+  SCORE_ASSERT(dev_i);
+  devModel.setupConnections(*dev_i, false);
+
   devModel.explorer().removeNode(it);
 
   devModel.list().removeDevice(dev.name);
