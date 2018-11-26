@@ -258,9 +258,8 @@ void DeviceDocumentPlugin::setupConnections(Device::DeviceInterface& device, boo
     {
       QObject::disconnect(q);
     }
-    vec.clear();
+    m_connections.erase(&device);
   }
-
 }
 
 void DeviceDocumentPlugin::on_valueUpdated(
