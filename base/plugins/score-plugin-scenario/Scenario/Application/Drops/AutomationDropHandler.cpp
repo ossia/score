@@ -92,15 +92,15 @@ private:
 class DropProcessInIntervalHelper
 {
 public:
-  DropProcessInIntervalHelper(const Scenario::IntervalModel& interval, TimeVal maxdur)
+  DropProcessInIntervalHelper(const Scenario::IntervalModel& interval, optional<TimeVal> maxdur)
     : m_context{score::IDocument::documentContext(interval)}
     , m_macro{new Command::AddProcessInNewBoxMacro, m_context}
     , m_itv{interval}
   {
     // If the interval has no processes and nothing after, we will resize it
-    if (interval.processes.empty())
+    if (interval.processes.empty() && maxdur)
     {
-      if(auto resizer = m_context.app.interfaces<Scenario::IntervalResizerList>().make(m_itv, maxdur))
+      if(auto resizer = m_context.app.interfaces<Scenario::IntervalResizerList>().make(m_itv, *maxdur))
         m_macro.submit(resizer);
     }
   }
@@ -133,7 +133,7 @@ bool DropProcessInScenario::drop(
 
   if(auto res = handlers.getDrop(mime, ctx); !res.empty())
   {
-    auto t = handlers.getMaxDuration(res);
+    auto t = handlers.getMaxDuration(res).value_or(TimeVal{10000});
 
     DropProcessInScenarioHelper dropper(pres, pos, t);
 

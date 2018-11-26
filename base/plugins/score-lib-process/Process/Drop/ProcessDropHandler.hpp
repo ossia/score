@@ -51,6 +51,6 @@ public:
        const QMimeData& mime
        , const score::DocumentContext& ctx) const noexcept;
 
-   static TimeVal getMaxDuration(const std::vector<ProcessDropHandler::ProcessDrop>&) noexcept;
+   static optional<TimeVal> getMaxDuration(const std::vector<ProcessDropHandler::ProcessDrop>&) noexcept;
 };
 }

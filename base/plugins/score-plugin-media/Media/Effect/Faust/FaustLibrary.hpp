@@ -28,7 +28,7 @@ class DropHandler final : public Process::ProcessDropHandler
     return {"dsp"};
   }
 
-  std::vector<Process::ProcessDropHandler::ProcessDrop> drop(
+  std::vector<Process::ProcessDropHandler::ProcessDrop> dropData(
       const std::vector<QByteArray>& data
       , const score::DocumentContext& ctx) const noexcept override
   {
