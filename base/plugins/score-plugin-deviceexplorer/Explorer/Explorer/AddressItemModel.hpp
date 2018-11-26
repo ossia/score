@@ -47,8 +47,6 @@ public:
     Access,
     Bounding,
     Repetition,
-    Description,
-    Tags,
     Count
   };
 
@@ -74,6 +72,7 @@ public:
   QVariant data(const QModelIndex& index, int role) const override;
 
 private:
+  int extendedCount() const noexcept;
   QPointer<DeviceExplorerModel> m_model;
   Device::NodePath m_path;
   Device::FullAddressSettings m_settings;
