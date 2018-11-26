@@ -112,23 +112,18 @@ std::vector<ProcessDropHandler::ProcessDrop> ProcessDropHandlerList::getDrop(
   return res;
 }
 
-TimeVal ProcessDropHandlerList::getMaxDuration(
+optional<TimeVal> ProcessDropHandlerList::getMaxDuration(
     const std::vector<ProcessDropHandler::ProcessDrop>& res) noexcept
 {
   using drop_t = Process::ProcessDropHandler::ProcessDrop;
+  SCORE_ASSERT(!res.empty());
+
   auto max_t = std::max_element(
         res.begin(), res.end(),
         [] (const drop_t& l, const drop_t& r) {
     return l.duration < r.duration;
   });
 
-  if(max_t->duration)
-  {
-    return *max_t->duration;
-  }
-  else
-  {
-    return TimeVal::fromMsecs(10000);
-  }
+  return max_t->duration;
 }
 }
