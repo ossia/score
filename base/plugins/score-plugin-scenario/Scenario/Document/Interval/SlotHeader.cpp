@@ -129,9 +129,6 @@ void SlotHeader::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
         = (event->screenPos() - event->buttonDownScreenPos(Qt::LeftButton)).manhattanLength()
           >= QApplication::startDragDistance();
 
-    qDebug() << event->screenPos()
-             << event->buttonDownScreenPos(Qt::LeftButton)
-             << (event->screenPos() - event->buttonDownScreenPos(Qt::LeftButton)).manhattanLength();
     if (min_dist)
     {
       slot_drag_moving = true;
