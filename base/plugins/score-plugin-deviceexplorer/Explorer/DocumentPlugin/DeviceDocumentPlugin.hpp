@@ -78,6 +78,7 @@ public:
 
 private:
   void initDevice(Device::DeviceInterface&);
+  void setupConnections(Device::DeviceInterface&, bool enabled);
   void on_valueUpdated(const State::Address& addr, const ossia::value& v);
 
   Device::Node m_rootNode;
@@ -85,6 +86,7 @@ private:
 
   mutable std::unique_ptr<Explorer::ListeningHandler> m_listening;
   DeviceExplorerModel* m_explorer{};
+  ossia::fast_hash_map<Device::DeviceInterface*, std::vector<QMetaObject::Connection>> m_connections;
 
 public:
   NodeUpdateProxy updateProxy{*this};
