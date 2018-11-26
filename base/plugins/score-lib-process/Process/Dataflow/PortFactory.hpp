@@ -28,10 +28,10 @@ public:
       Process::Outlet& port, const score::DocumentContext& ctx,
       QGraphicsItem* parent, QObject* context);
 
-  virtual void setupInspector(
+  virtual void setupInletInspector(
       Process::Inlet& port, const score::DocumentContext& ctx, QWidget* parent,
       Inspector::Layout& lay, QObject* context);
-  virtual void setupInspector(
+  virtual void setupOutletInspector(
       Process::Outlet& port, const score::DocumentContext& ctx,
       QWidget* parent, Inspector::Layout& lay, QObject* context);
 };

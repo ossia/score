@@ -45,7 +45,7 @@ void PortListWidget::reload()
       auto fact = pf.get(port->concreteKey());
       if (fact)
       {
-        fact->setupInspector(*port, m_ctx, this, lay, this);
+        fact->setupInletInspector(*port, m_ctx, this, lay, this);
       }
       else
       {
@@ -62,7 +62,7 @@ void PortListWidget::reload()
       auto fact = pf.get(port->concreteKey());
       if (fact)
       {
-        fact->setupInspector(*port, m_ctx, this, lay, this);
+        fact->setupOutletInspector(*port, m_ctx, this, lay, this);
       }
       else
       {

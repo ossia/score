@@ -15,14 +15,6 @@
 score_lib_process::score_lib_process() = default;
 score_lib_process::~score_lib_process() = default;
 
-std::vector<std::unique_ptr<score::InterfaceBase>>
-score_lib_process::factories(
-    const score::ApplicationContext& ctx, const score::InterfaceKey& key) const
-{
-  using namespace Process;
-  return instantiate_factories<score::ApplicationContext>(ctx, key);
-}
-
 std::vector<std::unique_ptr<score::InterfaceListBase>>
 score_lib_process::factoryFamilies()
 {

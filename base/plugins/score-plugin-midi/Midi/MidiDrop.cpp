@@ -29,7 +29,7 @@ QSet<QString> DropHandler::fileExtensions() const noexcept
 }
 
 std::vector<Process::ProcessDropHandler::ProcessDrop>
-DropHandler::drop(
+DropHandler::dropData(
     const std::vector<QByteArray>& data
     , const score::DocumentContext& ctx) const noexcept
 {

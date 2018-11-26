@@ -336,7 +336,7 @@ struct control_visitor
   }
 };
 
-void ControlInletFactory::setupInspector(
+void ControlInletFactory::setupInletInspector(
     Process::Inlet& port, const score::DocumentContext& ctx, QWidget* parent,
     Inspector::Layout& lay, QObject* context)
 {

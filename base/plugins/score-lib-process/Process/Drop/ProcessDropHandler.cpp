@@ -29,7 +29,7 @@ std::vector<ProcessDropHandler::ProcessDrop> ProcessDropHandler::getDrops(
     {
       data.push_back(mime.data(format));
     }
-    res = drop(data, ctx);
+    res = dropData(data, ctx);
     if(!res.empty())
       return res;
   }
@@ -65,7 +65,7 @@ std::vector<ProcessDropHandler::ProcessDrop> ProcessDropHandler::getDrops(
         data.push_back(file.readAll());
       }
     }
-    res = drop(data, ctx);
+    res = dropData(data, ctx);
     if(!res.empty())
       return res;
   }
@@ -90,7 +90,7 @@ ProcessDropHandler::drop(const QMimeData& data, const score::DocumentContext& ct
 }
 
 std::vector<ProcessDropHandler::ProcessDrop>
-ProcessDropHandler::drop(const std::vector<QByteArray>& data, const score::DocumentContext& ctx) const noexcept
+ProcessDropHandler::dropData(const std::vector<QByteArray>& data, const score::DocumentContext& ctx) const noexcept
 {
   return {};
 }

@@ -354,7 +354,7 @@ public:
     if (!p)
       return QModelIndex{};
 
-    if (auto d = dynamic_cast<DataspaceModel*>(p))
+    if (dynamic_cast<DataspaceModel*>(p))
     {
       return QModelIndex{};
     }
