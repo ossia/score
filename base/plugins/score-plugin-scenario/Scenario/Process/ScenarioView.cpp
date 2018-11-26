@@ -96,7 +96,9 @@ void ScenarioView::mousePressEvent(QGraphicsSceneMouseEvent* event)
 {
   m_moving = false;
   if (event->button() == Qt::LeftButton)
+  {
     pressed(event->scenePos());
+  }
 
   event->accept();
 }
@@ -136,14 +138,18 @@ void ScenarioView::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 {
   m_moving = false;
   released(event->scenePos());
-
+  if(event->button() == Qt::RightButton)
+  {
+    askContextMenu(event->screenPos(), event->scenePos());
+  }
   event->accept();
 }
 
 void ScenarioView::mouseDoubleClickEvent(
     QGraphicsSceneMouseEvent* event)
 {
-  doubleClicked(event->pos());
+  if (event->button() == Qt::LeftButton)
+    doubleClicked(event->pos());
 
   event->accept();
 }
@@ -151,6 +157,8 @@ void ScenarioView::mouseDoubleClickEvent(
 void ScenarioView::contextMenuEvent(
     QGraphicsSceneContextMenuEvent* event)
 {
+  pressed(event->scenePos());
+  released(event->scenePos());
   askContextMenu(event->screenPos(), event->scenePos());
 
   event->accept();
