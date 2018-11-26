@@ -14,6 +14,6 @@ struct Dispatcher_T final : Dispatcher
 {
   explicit Dispatcher_T(T& t): impl{t} { }
   T& impl;
-  void submit(score::Command* c) { impl.submit(c); }
+  void submit(score::Command* c) override { impl.submit(c); }
 };
 }

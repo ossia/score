@@ -85,7 +85,7 @@ struct ControlInletFactory final : public AutomatablePortFactory
     });
   }
 
-  void setupInspector(
+  void setupInletInspector(
       Process::Inlet& port, const score::DocumentContext& ctx, QWidget* parent,
       Inspector::Layout& lay, QObject* context) override;
 };

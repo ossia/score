@@ -349,7 +349,6 @@ void DropLayerInInterval::perform(
 
   // Reload cables
   {
-    // TODO put this in a command
     auto new_path = score::IDocument::path(interval).unsafePath();
     auto cables = fromJsonValueArray<Dataflow::SerializedCables>(json["Cables"].toArray());
 
@@ -361,6 +360,7 @@ void DropLayerInInterval::perform(
     }
     m.loadCables(new_path, cables);
   }
+
   // Finally we show the newly created rack
   m.showRack(interval);
 }

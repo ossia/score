@@ -13,7 +13,7 @@ class DropHandler final
 public:
   QSet<QString> mimeTypes() const noexcept override;
   QSet<QString> fileExtensions() const noexcept override;
-  std::vector<ProcessDrop> drop(const std::vector<QByteArray>& data, const score::DocumentContext& ctx) const noexcept override;
+  std::vector<ProcessDrop> dropData(const std::vector<QByteArray>& data, const score::DocumentContext& ctx) const noexcept override;
 };
 
 struct MidiTrack

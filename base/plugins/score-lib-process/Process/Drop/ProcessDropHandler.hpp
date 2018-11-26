@@ -38,7 +38,7 @@ protected:
   virtual QSet<QString> mimeTypes() const noexcept;
   virtual QSet<QString> fileExtensions() const noexcept;
   virtual std::vector<ProcessDrop> drop(const QMimeData& mime, const score::DocumentContext& ctx) const noexcept;
-  virtual std::vector<ProcessDrop> drop(const std::vector<QByteArray>& data, const score::DocumentContext& ctx) const noexcept;
+  virtual std::vector<ProcessDrop> dropData(const std::vector<QByteArray>& data, const score::DocumentContext& ctx) const noexcept;
 };
 
 class SCORE_LIB_PROCESS_EXPORT ProcessDropHandlerList final

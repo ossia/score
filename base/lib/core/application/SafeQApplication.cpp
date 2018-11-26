@@ -16,7 +16,7 @@ SafeQApplication::~SafeQApplication()
 
 bool SafeQApplication::event(QEvent* ev)
 {
-  switch (ev->type())
+  switch ((int)ev->type())
   {
 #ifdef __APPLE__
     case QEvent::FileOpen:

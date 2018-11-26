@@ -270,14 +270,14 @@ Dataflow::PortItem* PortFactory::makeItem(
   return new Dataflow::PortItem{port, ctx, parent};
 }
 
-void PortFactory::setupInspector(
+void PortFactory::setupInletInspector(
     Inlet& port, const score::DocumentContext& ctx, QWidget* parent,
     Inspector::Layout& lay, QObject* context)
 {
   PortWidgetSetup::setupInLayout(port, ctx, lay, parent);
 }
 
-void PortFactory::setupInspector(
+void PortFactory::setupOutletInspector(
     Outlet& port, const score::DocumentContext& ctx, QWidget* parent,
     Inspector::Layout& lay, QObject* context)
 {

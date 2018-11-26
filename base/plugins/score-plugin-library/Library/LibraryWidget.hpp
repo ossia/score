@@ -22,7 +22,7 @@ public:
   void selected(optional<ProcessData> p) W_SIGNAL(selected, p);
 
   void selectionChanged(
-      const QItemSelection& selected, const QItemSelection& deselected);
+      const QItemSelection& selected, const QItemSelection& deselected) override;
 };
 
 class ProcessWidget : public QWidget
