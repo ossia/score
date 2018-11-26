@@ -327,6 +327,18 @@ void DropLayerInInterval::perform(
         {
           m.moveProcess(*itv, interval, obj->id());
         }
+
+        if(itv->processes.empty())
+        {
+          if(auto sm = dynamic_cast<Scenario::ProcessModel*>(itv->parent()))
+          {
+            auto& es = Scenario::endState(*itv, *sm);
+            if(es.empty() && !es.nextInterval())
+            {
+              m.removeElements(*sm, Selection{itv, &es});
+            }
+          }
+        }
       }
   }
   else
