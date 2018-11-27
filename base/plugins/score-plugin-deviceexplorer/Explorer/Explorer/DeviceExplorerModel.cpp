@@ -688,9 +688,10 @@ QMimeData* DeviceExplorerModel::mimeData(const QModelIndexList& indexes) const
     Device::parametersList(*node, messages);
   }
 
+  messages.reserve(uniqueNodes.messages.size());
   for (const auto& node : uniqueNodes.messages)
   {
-    messages += Device::message(*node);
+    messages.push_back(Device::message(*node));
   }
 
   if (!messages.empty())
@@ -923,9 +924,10 @@ State::MessageList getSelectionSnapshot(DeviceExplorerModel& model)
   {
     Device::parametersList(*node, messages);
   }
+  messages.reserve(uniqueNodes.messages.size());
   for (const auto& node : uniqueNodes.messages)
   {
-    messages += Device::message(*node);
+    messages.push_back(Device::message(*node));
   }
 
   return messages;

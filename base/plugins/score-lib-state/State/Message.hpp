@@ -37,7 +37,7 @@ struct SCORE_LIB_STATE_EXPORT Message
 SCORE_LIB_STATE_EXPORT
 QDebug operator<<(QDebug s, const Message& mess);
 
-using MessageList = QList<Message>;
+using MessageList = std::vector<Message>;
 inline bool operator<(const State::MessageList&, const State::MessageList&)
 {
   return false;

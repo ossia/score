@@ -175,7 +175,7 @@ flatten_rec(State::MessageList& ml, const Process::MessageNode& node)
 {
   if (node.hasValue())
   {
-    ml.append(Process::message(node));
+    ml.push_back(Process::message(node));
   }
 
   for (const auto& child : node)

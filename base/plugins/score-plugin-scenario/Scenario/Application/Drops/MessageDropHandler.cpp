@@ -135,7 +135,9 @@ bool MessageDropHandler::drop(
       {
         State::MessageList sub;
         fromJsonArray(QJsonDocument::fromJson(f.readAll()).array(), sub);
-        ml += sub;
+        ml.insert(ml.end()
+                  , std::make_move_iterator(sub.begin())
+                  , std::make_move_iterator(sub.end()));
       }
     }
   }

@@ -104,7 +104,7 @@ CreateSequenceProcesses::CreateSequenceProcesses(
     }
   }
 
-  QList<State::Message> endMessages;
+  State::MessageList endMessages;
   endMessages.reserve(endAddresses.size());
   ossia::transform(
       endAddresses, std::back_inserter(endMessages), [](const auto& addr) {
