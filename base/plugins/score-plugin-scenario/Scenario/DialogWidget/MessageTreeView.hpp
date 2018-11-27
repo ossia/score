@@ -13,7 +13,6 @@ class MessageView final
 public:
   MessageView(const StateModel& model, QWidget* parent);
 
-  MessageItemModel& model() const;
   void removeNodes();
 
 private:

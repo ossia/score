@@ -26,6 +26,7 @@
 #include <QMenu>
 #include <QResizeEvent>
 #include <QSet>
+#include <QSortFilterProxyModel>
 #include <QString>
 #include <qnamespace.h>
 
@@ -83,23 +84,20 @@ MessageView::MessageView(const StateModel& model, QWidget* parent)
   this->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::MinimumExpanding);
 }
 
-MessageItemModel& MessageView::model() const
-{
-  return *static_cast<MessageItemModel*>(QTableView::model());
-}
-
 void MessageView::removeNodes()
 {
+  auto proxy = (QSortFilterProxyModel*)this->model();
   auto indexes = selectedIndexes();
 
   ::State::MessageList nodes;
   nodes.reserve(indexes.size());
   for (const auto& index : indexes)
   {
-    nodes.push_back(m_model.messages().rootNode()[index.row()]);
+    auto model_idx = proxy->mapToSource(index);
+    nodes.push_back(m_model.messages().rootNode()[model_idx.row()]);
   }
 
-  auto cmd = new Command::RemoveMessageNodes{model().stateModel, nodes};
+  auto cmd = new Command::RemoveMessageNodes{m_model, nodes};
 
   CommandDispatcher<> dispatcher{
       score::IDocument::documentContext(m_model).commandStack};
