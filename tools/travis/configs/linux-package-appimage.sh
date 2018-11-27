@@ -1,7 +1,10 @@
 #!/bin/sh
 
 docker pull ossia/score-package-linux
-docker run --name buildvm -v "$(pwd)"/../CMake/Deployment/Linux/AppImage/Recipe:/Recipe ossia/score-package-linux /bin/bash /Recipe
+docker run --name buildvm \
+           -v "$(pwd)"/../CMake/Deployment/Linux/AppImage/Recipe:/Recipe \
+           -e TRAVIS_COMMIT \
+           ossia/score-package-linux /bin/bash /Recipe
 #docker run --name buildvm ossia/score-package-linux /bin/bash Recipe
 docker cp buildvm:/score.AppDir.txz .
 

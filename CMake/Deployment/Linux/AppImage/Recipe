@@ -6,13 +6,6 @@ export CMAKE_PATH=$(find /cmake-*/ -type d | head -n 1)bin
 export LD_LIBRARY_PATH=/usr/local/lib64
 export PATH=/usr/local/bin:$CMAKE_PATH:$PATH
 
-git_pull_rebase_helper()
-{
-    git reset --hard HEAD
-    git pull
-    git submodule update --init --recursive
-}
-
 export NPROC=$(nproc)
 export CC=/usr/local/bin/gcc
 export CXX=/usr/local/bin/g++
@@ -25,14 +18,11 @@ cd ./$BUILD_DIR
 
 # Get score from git
 (
-    if [ ! -d score ] ; then
-        git clone https://github.com/OSSIA/score
-    fi
-
-    cd score/
-    git_pull_rebase_helper
+  git clone https://github.com/OSSIA/score
+  cd score/
+  git checkout $TRAVIS_COMMIT
+  git submodule update --init --recursive
 )
-
 # Build score in the AppDir
 mkdir -p $APP.AppDir/usr
 
@@ -42,7 +32,14 @@ export SOURCE_DIR=$PWD/score
     mkdir -p build
 
     cd build
-    cmake $SOURCE_DIR -DSCORE_CONFIGURATION=static-release -DCMAKE_INSTALL_PREFIX=$INSTALL_ROOT -DCMAKE_PREFIX_PATH="$(dirname $(find /usr/local -name 'Qt5Config.cmake'))" -DBOOST_ROOT=$BOOST_ROOT -DCMAKE_SKIP_RPATH=ON -DOSSIA_PYTHON=0 -DOSSIA_JAVA=0 -DOSSIA_PD=0
+    cmake $SOURCE_DIR \
+      -DSCORE_CONFIGURATION=static-release \
+      -DCMAKE_INSTALL_PREFIX=$INSTALL_ROOT \
+      -DCMAKE_PREFIX_PATH="$(dirname $(find /usr/local -name 'Qt5Config.cmake'))" \
+      -DBOOST_ROOT=$BOOST_ROOT \
+      -DCMAKE_SKIP_RPATH=ON -DOSSIA_PYTHON=0 -DOSSIA_JAVA=0 -DOSSIA_PD=0 \
+      -DOSSIA_USE_FAST_LINKER=1
+
 
     cmake --build . --target all_unity -- -j$NPROC
     cmake --build . --target install
@@ -58,15 +55,22 @@ export QTDIR=$(find /usr/local -type d -name 'Qt-5.*')
     cd $APP.AppDir
     mkdir -p ./usr/lib/qt5/
     mkdir -p ./usr/lib/qt5/plugins/platforms
+    mkdir -p ./usr/lib/qt5/plugins/platformthemes
     mkdir -p ./usr/lib/qt5/plugins/imageformats
     mkdir -p ./usr/lib/qt5/plugins/iconengines
     mkdir -p ./usr/lib/qt5/plugins/quick
     mkdir -p ./usr/lib/qt5/qml
-    cp -rf "$QTDIR/plugins/platforms/libqxcb.so"  ./usr/lib/qt5/plugins/platforms
-    cp -rf "$QTDIR/plugins/imageformats/libqsvg.so"  ./usr/lib/qt5/plugins/imageformats
-    cp -rf "$QTDIR/plugins/iconengines/libqsvgicon.so"  ./usr/lib/qt5/plugins/iconengines
-    cp -rf "$QTDIR/qml/QtQuick.2/libqtquick2plugin.so"  ./usr/lib/qt5/plugins/quick
-    cp -rf "$QTDIR/qml/QtQuick.2"  ./usr/lib/qt5/qml
+    cp -rf "$QTDIR/plugins/platforms/libqxcb.so"  ./usr/lib/qt5/plugins/platforms || true
+    cp -rf "$QTDIR/plugins/platforms/libqwayland-generic.so"  ./usr/lib/qt5/plugins/platforms || true
+    cp -rf "$QTDIR/plugins/platformthemes/libqgtk3.so"  ./usr/lib/qt5/plugins/platformthemes || true
+    cp -rf "$QTDIR/plugins/imageformats/libqsvg.so"  ./usr/lib/qt5/plugins/imageformats || true
+    cp -rf "$QTDIR/plugins/imageformats/libqgif.so"  ./usr/lib/qt5/plugins/imageformats || true
+    cp -rf "$QTDIR/plugins/imageformats/libqjpeg.so"  ./usr/lib/qt5/plugins/imageformats || true
+    cp -rf "$QTDIR/plugins/imageformats/libqtga.so"  ./usr/lib/qt5/plugins/imageformats || true
+    cp -rf "$QTDIR/plugins/imageformats/libqtiff.so"  ./usr/lib/qt5/plugins/imageformats || true
+    cp -rf "$QTDIR/plugins/iconengines/libqsvgicon.so"  ./usr/lib/qt5/plugins/iconengines || true
+    cp -rf "$QTDIR/qml/QtQuick.2/libqtquick2plugin.so"  ./usr/lib/qt5/plugins/quick || true
+    cp -rf "$QTDIR/qml/QtQuick.2"  ./usr/lib/qt5/qml || true
 
     # Fonts
     mkdir -p ./usr/bin/lib/fonts
@@ -145,14 +149,14 @@ export QTDIR=$(find /usr/local -type d -name 'Qt-5.*')
     rm -f usr/lib/libwind.so.0 || true
     rm -f usr/lib/libz.so.1 || true
 
-    # Let's copy openssl stuff since more recent systems will only have 
+    # Let's copy openssl stuff since more recent systems will only have
     # an incompatible version
-    
+
 
     # Delete potentially dangerous libraries
     rm -f usr/lib/libgobject* usr/lib/libc.so.* || true
 
-    strip usr/bin/score usr/lib/*.* usr/lib/qt5/plugins/*/*.* usr/lib/score/*.* || true
+    strip usr/bin/ossia-score usr/bin/ossia-score-vstpuppet usr/lib/*.* usr/lib/qt5/plugins/*/*.* usr/lib/score/*.* || true
 
     cd usr/ ; find . -type f -exec sed -i -e 's|/usr/lib|././/lib|g' {} \; ; cd ..
     cd usr/ ; find . -type f -exec sed -i -e "s|$QTDIR/lib|././/lib|g" {} \; ; cd ..

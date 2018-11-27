@@ -53,14 +53,6 @@ set(QT_PLUGINS_DIR "${QT_DLL_DIR}/../plugins")
 set(QT_QML_PLUGINS_DIR "${QT_DLL_DIR}/../qml")
 set(plugin_dest_dir "${SCORE_BIN_INSTALL_DIR}/plugins")
 
-if(EXISTS "c:/faust/faust.dll")
-  install(FILES "c:/faust/faust.dll" DESTINATION "${SCORE_BIN_INSTALL_DIR}")
-endif()
-
-if(EXISTS "c:/tbb/bin/tbb.dll")
-  install(FILES "c:/tbb/bin/tbb.dll" DESTINATION "${SCORE_BIN_INSTALL_DIR}")
-endif()
-
 install(FILES "${QT_PLUGINS_DIR}/platforms/qwindows${DEBUG_CHAR}.dll" DESTINATION "${plugin_dest_dir}/platforms")
 install(FILES "${QT_PLUGINS_DIR}/imageformats/qsvg${DEBUG_CHAR}.dll" DESTINATION "${plugin_dest_dir}/imageformats")
 install(FILES "${QT_PLUGINS_DIR}/iconengines/qsvgicon${DEBUG_CHAR}.dll" DESTINATION "${plugin_dest_dir}/iconengines")
