@@ -53,122 +53,6 @@
 #include <algorithm>
 namespace Scenario
 {
-/*
-class MessageListProxy final : public QAbstractProxyModel
-{
-
-public:
-  using QAbstractProxyModel::QAbstractProxyModel;
-  MessageItemModel* source() const
-  {
-    return static_cast<MessageItemModel*>(sourceModel());
-  }
-  QModelIndex
-  index(int row, int column, const QModelIndex& parent) const override
-  {
-    if (parent == QModelIndex{})
-    {
-      if (row >= (int)rowCount({}) || row < 0)
-        return {};
-
-      if (column >= 2 || column < 0)
-        return {};
-
-      if (!source())
-        return {};
-
-      const auto& obj = source()->rootNode()[row];
-      return createIndex(row, column, (void*)&obj);
-    }
-    return {};
-  }
-
-  QModelIndex parent(const QModelIndex& child) const override
-  {
-    return {};
-  }
-
-  QVariant data(
-      const QModelIndex& proxyIndex, int role = Qt::DisplayRole) const override
-  {
-    auto ptr = proxyIndex.internalPointer();
-    if (!ptr)
-      return {};
-    Process::MessageNode& msg = *static_cast<Process::MessageNode*>(ptr);
-
-    if (proxyIndex.column() == 0)
-    {
-      if (role == Qt::DisplayRole)
-      {
-        return Process::address(msg).toString();
-      }
-    }
-    else if (proxyIndex.column() == 1)
-    {
-      auto val = msg.value();
-      if (val)
-      {
-        return valueColumnData(msg, role);
-      }
-    }
-    return {};
-  }
-  int rowCount(const QModelIndex& parent) const override
-  {
-    if (parent == QModelIndex() && source())
-    {
-      return countNodes(source()->rootNode());
-    }
-    return 0;
-  }
-  int columnCount(const QModelIndex& parent) const override
-  {
-    return 2;
-  }
-  QModelIndex mapToSource(const QModelIndex& proxyIndex) const override
-  {
-    auto idx = proxyIndex.internalPointer();
-    if (!idx)
-      return {};
-
-    auto ptr = static_cast<Process::MessageNode*>(idx);
-    auto parent = ptr->parent();
-    if (!parent)
-      return {};
-
-    return createIndex(parent->indexOfChild(ptr), proxyIndex.column(), ptr);
-  }
-  QModelIndex mapFromSource(const QModelIndex& sourceIndex) const override
-  {
-    auto idx = sourceIndex.internalPointer();
-    if (!idx)
-      return {};
-
-    auto ptr = static_cast<Process::MessageNode*>(idx);
-    auto parent = ptr->parent();
-    if (!parent)
-      return {};
-
-    if (!source())
-      return {};
-
-    auto row = getChildIndex(source()->rootNode(), ptr);
-    return createIndex(row, sourceIndex.column(), idx);
-  }
-
-  QVariant
-  headerData(int section, Qt::Orientation orientation, int role) const override
-  {
-    if (orientation == Qt::Vertical)
-      return {};
-
-    if (role == Qt::DisplayRole)
-      return (section == 0) ? tr("Address") : tr("Value");
-    else
-      return QAbstractProxyModel::headerData(section, orientation, role);
-  }
-};
-*/
 
 StateInspectorWidget::StateInspectorWidget(
     const StateModel& object, const score::DocumentContext& doc,
@@ -221,51 +105,11 @@ void StateInspectorWidget::updateDisplayedValues()
         &StateInspectorWidget::splitFromNode);
     m_properties.push_back(splitNode);
   }
+
   {
-
-    // list view
-
-    auto lv = new QTableView{this};
-    lv->verticalHeader()->hide();
-    lv->horizontalHeader()->setCascadingSectionResizes(true);
-    lv->horizontalHeader()->setSectionResizeMode(
-        QHeaderView::ResizeToContents);
-    lv->horizontalHeader()->setStretchLastSection(true);
-    lv->setAlternatingRowColors(true);
-    lv->setHorizontalScrollMode(QAbstractItemView::ScrollPerPixel);
-    lv->setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
-    lv->setSizeAdjustPolicy(QAbstractScrollArea::AdjustToContents);
-    lv->verticalHeader()->setDefaultSectionSize(14);
+    auto lv = new Scenario::MessageView{m_model, this};
     lv->setModel(&m_model.messages());
-/*
-    auto proxy = new MessageListProxy{this};
-    proxy->setSourceModel(&m_model.messages());
-    lv->setModel(proxy);
-
-    // tree view
-    auto tv = new MessageTreeView{m_model, this};
-    tv->header()->setCascadingSectionResizes(true);
-    tv->header()->setSectionResizeMode(QHeaderView::ResizeToContents);
-    tv->header()->setStretchLastSection(true);
-    tv->setAlternatingRowColors(true);
-    tv->setHorizontalScrollMode(QAbstractItemView::ScrollPerPixel);
-    tv->setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
-    tv->setSizeAdjustPolicy(QAbstractScrollArea::AdjustToContents);
-
-    auto tab = new QTabWidget;
-
-    tab->addTab(tv, tr("Tree"));
-    tab->addTab(lv, tr("List"));
-
-    tab->setDocumentMode(true);
-*/
     m_properties.push_back(lv);
-  }
-
-  {
-    auto text = new QTextEdit;
-    text->setText(QJsonDocument{toJsonArray(m_model.messages().rootNode())}.toJson());
-    m_properties.push_back(text);
   }
 
   updateAreaLayout(m_properties);

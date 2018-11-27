@@ -32,13 +32,12 @@
 class QWidget;
 namespace Scenario
 {
-MessageTreeView::MessageTreeView(const StateModel& model, QWidget* parent)
-    : QTreeView{parent}/*
+MessageView::MessageView(const StateModel& model, QWidget* parent)
+    : QTableView{parent}
     , m_model{model}
-    , m_dispatcher{score::IDocument::documentContext(model).commandStack}*/
+    , m_dispatcher{score::IDocument::documentContext(model).commandStack}
 {
-  /*
-  setAllColumnsShowFocus(true);
+  //setAllColumnsShowFocus(true);
   setSelectionBehavior(QAbstractItemView::SelectRows);
   setSelectionMode(QAbstractItemView::ExtendedSelection);
   setEditTriggers(
@@ -50,7 +49,11 @@ MessageTreeView::MessageTreeView(const StateModel& model, QWidget* parent)
   setDropIndicatorShown(true);
   setDefaultDropAction(Qt::CopyAction);
   setDragDropOverwriteMode(false);
-  setUniformRowHeights(true);
+  //setUniformRowHeights(true);
+  setAlternatingRowColors(true);
+  setHorizontalScrollMode(QAbstractItemView::ScrollPerPixel);
+  setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
+  setSizeAdjustPolicy(QAbstractScrollArea::AdjustToContents);
 
   this->setModel(&m_model.messages());
 
@@ -60,70 +63,64 @@ MessageTreeView::MessageTreeView(const StateModel& model, QWidget* parent)
   m_removeNodesAction->setEnabled(true);
   connect(
       m_removeNodesAction, &QAction::triggered, this,
-      &MessageTreeView::removeNodes);
+      &MessageView::removeNodes);
   addAction(m_removeNodesAction);
 
-  expandAll();
-  con(m_model.messages(), &MessageItemModel::modelReset, this,
-      &QTreeView::expandAll);
+  verticalHeader()->hide();
+  verticalHeader()->setDefaultSectionSize(14);
 
-  header()->resizeSection(
+  horizontalHeader()->resizeSection(
       (int)MessageItemModel::Column::Name,
       (1 - m_valueColumnSize - 0.1) * this->width());
-  header()->resizeSection(
+  horizontalHeader()->resizeSection(
       (int)MessageItemModel::Column::Value, m_valueColumnSize * this->width());
+
+  horizontalHeader()->setCascadingSectionResizes(true);
+  horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
+  horizontalHeader()->setStretchLastSection(true);
 
   this->setSizeAdjustPolicy(QAbstractScrollArea::AdjustToContents);
   this->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::MinimumExpanding);
-  */
 }
 
-MessageItemModel& MessageTreeView::model() const
+MessageItemModel& MessageView::model() const
 {
-  return *static_cast<MessageItemModel*>(QTreeView::model());
+  return *static_cast<MessageItemModel*>(QTableView::model());
 }
 
-void MessageTreeView::removeNodes()
+void MessageView::removeNodes()
 {
-  /*
   auto indexes = selectedIndexes();
 
-  std::vector<const Process::MessageNode*> nodes;
-  for (auto index : indexes)
+  ::State::MessageList nodes;
+  nodes.reserve(indexes.size());
+  for (const auto& index : indexes)
   {
-    auto& n = model().nodeFromModelIndex(index);
-    if (n.parent())
-      nodes.push_back(&n);
+    nodes.push_back(m_model.messages().rootNode()[index.row()]);
   }
 
-  auto cmd = new Command::RemoveMessageNodes(
-      model().stateModel, filterUniqueParents(nodes));
+  auto cmd = new Command::RemoveMessageNodes{model().stateModel, nodes};
 
   CommandDispatcher<> dispatcher{
       score::IDocument::documentContext(m_model).commandStack};
   dispatcher.submit(cmd);
-  */
 }
 
-void MessageTreeView::resizeEvent(QResizeEvent* ev)
+void MessageView::resizeEvent(QResizeEvent* ev)
 {
-  /*
   ev->ignore();
-  header()->resizeSection(
+  horizontalHeader()->resizeSection(
       (int)MessageItemModel::Column::Name,
       (1 - m_valueColumnSize - 0.1) * this->width());
-  header()->resizeSection(
+  horizontalHeader()->resizeSection(
       (int)MessageItemModel::Column::Value, m_valueColumnSize * this->width());
-      */
 }
 
-void MessageTreeView::contextMenuEvent(QContextMenuEvent* event)
+void MessageView::contextMenuEvent(QContextMenuEvent* event)
 {
-  /*
   QMenu contextMenu{this};
 
   contextMenu.addAction(m_removeNodesAction);
   contextMenu.exec(event->globalPos());
-  */
 }
 }
