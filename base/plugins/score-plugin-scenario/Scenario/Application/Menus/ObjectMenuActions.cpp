@@ -15,7 +15,6 @@
 #include <Scenario/Commands/Scenario/ScenarioPasteContent.hpp>
 #include <Scenario/Commands/Scenario/ScenarioPasteElements.hpp>
 #include <Scenario/Commands/Scenario/ScenarioPasteElementsAfter.hpp>
-#include <Scenario/Commands/State/InsertContentInState.hpp>
 #include <Scenario/Document/BaseScenario/BaseScenario.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentPresenter.hpp>
