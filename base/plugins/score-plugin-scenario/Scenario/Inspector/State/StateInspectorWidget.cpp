@@ -27,6 +27,7 @@
 #include <score/selection/SelectionDispatcher.hpp>
 #include <score/tools/std/Optional.hpp>
 #include <score/widgets/MarginLess.hpp>
+#include <score/widgets/SearchLineEdit.hpp>
 #include <score/widgets/Separator.hpp>
 #include <score/widgets/TextLabel.hpp>
 #include <score/model/tree/TreeNodeSerialization.hpp>
@@ -43,6 +44,7 @@
 #include <QObject>
 #include <QPushButton>
 #include <QSizePolicy>
+#include <QSortFilterProxyModel>
 #include <QString>
 #include <QTableView>
 #include <QTimer>
@@ -53,6 +55,64 @@
 #include <algorithm>
 namespace Scenario
 {
+class MessageFilterProxy final : public QSortFilterProxyModel
+{
+public:
+  using QSortFilterProxyModel::QSortFilterProxyModel;
+
+private:
+  bool
+  filterAcceptsRow(int srcRow, const QModelIndex& srcParent) const override
+  {
+    QModelIndex index = sourceModel()->index(srcRow, 0, srcParent);
+    auto ptr = static_cast<State::Message*>(index.internalPointer());
+    if(!ptr)
+      return false;
+
+    auto addr = ptr->address.toString_unsafe();
+    const auto& regex = filterRegExp();
+    if(addr.contains(regex))
+      return true;
+
+    return false;
+  }
+};
+
+struct MessagesFilterLineEdit final : public score::SearchLineEdit
+{
+public:
+  MessagesFilterLineEdit(
+      QSortFilterProxyModel& proxy, QTableView& tv, QWidget* p)
+      : score::SearchLineEdit{p}, m_proxy{proxy}, m_view{tv}
+  {
+    connect(this, &QLineEdit::textEdited, this, [=] { search(); });
+
+    setStyleSheet(R"_(
+QScrollArea
+{
+    border: 1px solid #3A3939;
+    border-radius: 2px;
+    padding: 0;
+    background-color: #12171A;
+}
+QScrollArea QLabel
+{
+    background-color: #12171A;
+}
+)_");
+  }
+
+  void search() override
+  {
+    if (text() != m_proxy.filterRegExp().pattern())
+    {
+      m_proxy.setFilterRegExp(QRegExp(text(), Qt::CaseInsensitive, QRegExp::FixedString));
+    }
+  }
+
+  QSortFilterProxyModel& m_proxy;
+  QTableView& m_view;
+};
 
 StateInspectorWidget::StateInspectorWidget(
     const StateModel& object, const score::DocumentContext& doc,
@@ -108,7 +168,11 @@ void StateInspectorWidget::updateDisplayedValues()
 
   {
     auto lv = new Scenario::MessageView{m_model, this};
-    lv->setModel(&m_model.messages());
+    auto proxy = new MessageFilterProxy;
+    proxy->setSourceModel(&m_model.messages());
+    proxy->setFilterKeyColumn(0);
+    lv->setModel(proxy);
+    m_properties.push_back(new MessagesFilterLineEdit{*proxy, *lv, this});
     m_properties.push_back(lv);
   }
 
