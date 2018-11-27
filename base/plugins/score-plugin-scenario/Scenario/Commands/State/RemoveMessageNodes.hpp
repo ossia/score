@@ -24,7 +24,7 @@ class RemoveMessageNodes final : public score::Command
 public:
   RemoveMessageNodes(
       const Scenario::StateModel& model,
-      const std::vector<const Process::MessageNode*>&);
+      const State::MessageList&);
 
   void undo(const score::DocumentContext& ctx) const override;
   void redo(const score::DocumentContext& ctx) const override;
@@ -35,8 +35,8 @@ protected:
 
 private:
   Path<StateModel> m_path;
-  Process::MessageNode m_oldState;
-  Process::MessageNode m_newState;
+  State::MessageList m_oldState;
+  State::MessageList m_newState;
 };
 }
 }

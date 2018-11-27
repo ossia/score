@@ -5,11 +5,6 @@
 #include <score/command/Command.hpp>
 #include <score/model/path/Path.hpp>
 
-#include <QJsonObject>
-
-struct DataStreamInput;
-struct DataStreamOutput;
-
 namespace Scenario
 {
 class StateModel;
@@ -27,17 +22,13 @@ public:
       const QJsonObject& stateData, const Scenario::StateModel& state);
 
   void undo(const score::DocumentContext& ctx) const override;
-
   void redo(const score::DocumentContext& ctx) const override;
 
-protected:
-  void serializeImpl(DataStreamInput& s) const override;
-
-  void deserializeImpl(DataStreamOutput& s) override;
-
 private:
-  Process::MessageNode m_oldNode;
-  Process::MessageNode m_newNode;
+  void serializeImpl(DataStreamInput& s) const override;
+  void deserializeImpl(DataStreamOutput& s) override;
+  State::MessageList m_oldNode;
+  State::MessageList m_newNode;
   Path<StateModel> m_state;
 };
 }

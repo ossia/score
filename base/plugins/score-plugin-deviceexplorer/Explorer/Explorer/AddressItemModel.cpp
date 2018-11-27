@@ -273,7 +273,7 @@ int AddressItemModel::columnCount(const QModelIndex&) const
 }
 
 QVariant
-AddressItemModel::valueColumnData(const State::Value& val, int role) const
+AddressItemModel::valueColumnData(const ossia::value& val, int role) const
 {
   if (role == Qt::DisplayRole || role == Qt::EditRole)
   {

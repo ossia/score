@@ -26,11 +26,12 @@ protected:
 private:
   // void mouseDoubleClickEvent(QMouseEvent* ev) override;
   void contextMenuEvent(QContextMenuEvent*) override;
-
+/*
   QAction* m_removeNodesAction{};
   const StateModel& m_model;
 
   CommandDispatcher<> m_dispatcher;
   float m_valueColumnSize{0.15f};
+  */
 };
 }

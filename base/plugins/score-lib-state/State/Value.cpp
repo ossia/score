@@ -19,7 +19,7 @@
 
 namespace State
 {
-SCORE_LIB_STATE_EXPORT QDebug& operator<<(QDebug& s, const Value& m)
+SCORE_LIB_STATE_EXPORT QDebug& operator<<(QDebug& s, const ossia::value& m)
 {
   s << convert::textualType(m) << convert::toPrettyString(m);
   return s;

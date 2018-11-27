@@ -70,6 +70,10 @@ SCORE_LIB_PROCESS_EXPORT std::vector<Process::MessageNode*>
 try_getNodesFromAddress(
     Process::MessageNode& root, const State::AddressAccessor& addr);
 SCORE_LIB_PROCESS_EXPORT State::MessageList flatten(const MessageNode&);
+
+SCORE_LIB_PROCESS_EXPORT
+std::vector<const State::Message*> try_getNodesFromAddress(
+    const State::MessageList& root, const State::AddressAccessor& addr);
 }
 
 extern template class SCORE_LIB_PROCESS_EXPORT

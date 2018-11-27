@@ -42,7 +42,7 @@ protected:
 private:
   Path<StateModel> m_path;
 
-  Process::MessageNode m_oldState, m_newState;
+  State::MessageList m_oldState, m_newState;
 };
 }
 }

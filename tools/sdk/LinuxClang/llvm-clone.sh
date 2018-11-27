@@ -1,7 +1,7 @@
 #!/bin/bash -eux
 ## CMake
 CMAKE_EXE=cmake-3.12.3-Linux-x86_64.sh
-LLVM_VER="RELEASE_700"
+LLVM_VER="RELEASE_701/rc2"
 
 wget https://cmake.org/files/v3.12/$CMAKE_EXE
 chmod +x $CMAKE_EXE
@@ -13,41 +13,41 @@ yum install -y svn perl-Data-Dump perl-Data-Dumper
 
 cd /image
 (
-svn co http://llvm.org/svn/llvm-project/llvm/tags/$LLVM_VER/final llvm
+svn co http://llvm.org/svn/llvm-project/llvm/tags/$LLVM_VER llvm
 cd llvm/tools
-svn co http://llvm.org/svn/llvm-project/cfe/tags/$LLVM_VER/final clang
+svn co http://llvm.org/svn/llvm-project/cfe/tags/$LLVM_VER clang
 cd ../..
 
 #~ cd llvm/tools/clang/tools
-#~ svn co http://llvm.org/svn/llvm-project/clang-tools-extra/tags/$LLVM_VER/final extra
+#~ svn co http://llvm.org/svn/llvm-project/clang-tools-extra/tags/$LLVM_VER extra
 #~ cd ../../../..
 
 cd llvm/tools
-svn co http://llvm.org/svn/llvm-project/lld/tags/$LLVM_VER/final lld
+svn co http://llvm.org/svn/llvm-project/lld/tags/$LLVM_VER lld
 cd ../..
 
 cd llvm/tools
-svn co http://llvm.org/svn/llvm-project/polly/tags/$LLVM_VER/final polly
+svn co http://llvm.org/svn/llvm-project/polly/tags/$LLVM_VER polly
 cd ../..
 
 #~ cd llvm/tools
-#~ svn co http://llvm.org/svn/llvm-project/lldb/tags/$LLVM_VER/final lldb
+#~ svn co http://llvm.org/svn/llvm-project/lldb/tags/$LLVM_VER lldb
 #~ cd ../..
 
 cd llvm/projects
-svn co http://llvm.org/svn/llvm-project/compiler-rt/tags/$LLVM_VER/final compiler-rt
+svn co http://llvm.org/svn/llvm-project/compiler-rt/tags/$LLVM_VER compiler-rt
 cd ../..
 
 cd llvm/projects
-svn co http://llvm.org/svn/llvm-project/openmp/tags/$LLVM_VER/final openmp
+svn co http://llvm.org/svn/llvm-project/openmp/tags/$LLVM_VER openmp
 cd ../..
 
 cd llvm/projects
-svn co http://llvm.org/svn/llvm-project/libcxx/tags/$LLVM_VER/final libcxx
+svn co http://llvm.org/svn/llvm-project/libcxx/tags/$LLVM_VER libcxx
 cd ../..
 
 cd llvm/projects
-svn co http://llvm.org/svn/llvm-project/libcxxabi/tags/$LLVM_VER/final libcxxabi
+svn co http://llvm.org/svn/llvm-project/libcxxabi/tags/$LLVM_VER libcxxabi
 cd ../..
 
 mkdir /llvm-bootstrap

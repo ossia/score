@@ -38,7 +38,7 @@ namespace Scenario
 {
 class StateModel;
 MessageItemModel::MessageItemModel(const StateModel& sm, QObject* parent)
-    : TreeNodeBasedItemModel<Process::MessageNode>{parent}
+    : QAbstractItemModel{parent}
     , stateModel{sm}
     , m_rootNode{}
 {
@@ -53,7 +53,7 @@ MessageItemModel& MessageItemModel::operator=(const MessageItemModel& other)
   return *this;
 }
 
-MessageItemModel& MessageItemModel::operator=(const node_type& n)
+MessageItemModel& MessageItemModel::operator=(const State::MessageList& n)
 {
   beginResetModel();
   m_rootNode = n;
@@ -61,7 +61,7 @@ MessageItemModel& MessageItemModel::operator=(const node_type& n)
   return *this;
 }
 
-MessageItemModel& MessageItemModel::operator=(node_type&& n)
+MessageItemModel& MessageItemModel::operator=(State::MessageList&& n)
 {
   beginResetModel();
   m_rootNode = std::move(n);
@@ -75,35 +75,30 @@ int MessageItemModel::columnCount(const QModelIndex& parent) const
 }
 
 static QVariant
-nameColumnData(const MessageItemModel::node_type& node, int role)
+nameColumnData(const State::Message& node, int role)
 {
   if (role == Qt::DisplayRole || role == Qt::EditRole)
   {
-    return node.displayName();
+    return node.address.toString();
   }
 
   return {};
 }
 
-QVariant valueColumnData(const MessageItemModel::node_type& node, int role)
+QVariant valueColumnData(const State::Message& node, int role)
 {
   if (role == Qt::DisplayRole || role == Qt::EditRole)
   {
-    const auto& opt_val = node.value();
-    if (opt_val)
+    const auto& val = node.value;
+    if (ossia::is_array(val))
     {
-      auto& val = *opt_val;
-      if (ossia::is_array(val))
-      {
-        // TODO a nice editor for lists.
-        return State::convert::toPrettyString(val);
-      }
-      else
-      {
-        return State::convert::value<QVariant>(val);
-      }
+      // TODO a nice editor for lists.
+      return State::convert::toPrettyString(val);
     }
-    return QVariant{};
+    else
+    {
+      return State::convert::value<QVariant>(val);
+    }
   }
 
   return {};
@@ -116,7 +111,7 @@ QVariant MessageItemModel::data(const QModelIndex& index, int role) const
   if (col < 0 || col >= (int)Column::Count)
     return {};
 
-  auto& node = nodeFromModelIndex(index);
+  auto& node = m_rootNode[index.row()];
 
   switch ((Column)col)
   {
@@ -175,19 +170,10 @@ struct SelectedNodes
 
 QMimeData* MessageItemModel::mimeData(const QModelIndexList& indexes) const
 {
-  SelectedNodes nodes;
-  ossia::transform(
-      indexes, std::back_inserter(nodes.parents),
-      [&](const QModelIndex& idx) { return &nodeFromModelIndex(idx); });
-  nodes.parents = filterUniqueParents(nodes.parents);
-
   State::MessageList messages;
-  for (auto* node : nodes.parents)
+  for(const auto& idx : indexes)
   {
-    auto vec = flatten(*node);
-    messages.insert(
-          messages.end()
-          , std::make_move_iterator(vec.begin()), std::make_move_iterator(vec.end()));
+    messages.push_back(m_rootNode[idx.row()]);
   }
 
   if (!messages.empty())
@@ -315,13 +301,7 @@ bool MessageItemModel::setData(
   if (!index.isValid())
     return false;
 
-  auto& n = nodeFromModelIndex(index);
-
-  if (!n.parent() || !n.parent()->parent())
-    return false;
-
-  if (!n.hasValue())
-    return false;
+  auto& n = m_rootNode[index.row()];
 
   auto col = Column(index.column());
 
@@ -330,13 +310,10 @@ bool MessageItemModel::setData(
     if (col == Column::Value)
     {
       auto value = State::convert::fromQVariant(value_received);
-      auto current_val = n.value();
-      if (current_val)
-      {
-        State::convert::convert(*current_val, value);
-      }
+      auto current_val = n.value;
+      State::convert::convert(current_val, value);
       auto cmd = new Command::AddMessagesToState{
-          stateModel, State::MessageList{{address(n), value}}};
+          stateModel, State::MessageList{{n.address, value}}};
 
       CommandDispatcher<> disp(
           score::IDocument::documentContext(stateModel).commandStack);
@@ -349,4 +326,20 @@ bool MessageItemModel::setData(
 
   return false;
 }
+}
+
+
+QModelIndex Scenario::MessageItemModel::index(int row, int column, const QModelIndex& parent) const
+{
+  return createIndex(row, column, (void*) &m_rootNode[row]);
+}
+
+QModelIndex Scenario::MessageItemModel::parent(const QModelIndex& child) const
+{
+  return QModelIndex();
+}
+
+int Scenario::MessageItemModel::rowCount(const QModelIndex& parent) const
+{
+  return m_rootNode.size();
 }

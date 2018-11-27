@@ -51,7 +51,7 @@ DataStreamWriter::write(Scenario::StateModel& s)
       >> s.m_heightPercentage;
 
   // Message tree
-  Process::MessageNode n;
+  State::MessageList n;
   m_stream >> n;
   s.m_messageItemModel = new Scenario::MessageItemModel{s, &s};
   s.messages() = n;
@@ -82,7 +82,7 @@ JSONObjectReader::read(const Scenario::StateModel& s)
   obj[strings.HeightPercentage] = s.m_heightPercentage;
 
   // Message tree
-  obj[strings.Messages] = toJsonObject(s.m_messageItemModel->rootNode());
+  obj[strings.Messages] = toJsonArray(s.m_messageItemModel->rootNode());
 
   // Processes plugins
   obj[strings.StateProcesses] = toJsonArray(s.stateProcesses);
@@ -101,7 +101,16 @@ JSONObjectWriter::write(Scenario::StateModel& s)
 
   // Message tree
   s.m_messageItemModel = new Scenario::MessageItemModel{s, &s};
-  s.messages() = fromJsonObject<Process::MessageNode>(obj[strings.Messages]);
+  const auto& messages = obj[strings.Messages];
+  if(messages.isObject())
+  {
+    // Restore old format
+    s.messages() = flatten(fromJsonObject<Process::MessageNode>(obj[strings.Messages]));
+  }
+  else if(messages.isArray())
+  {
+    fromJsonArray(obj[strings.Messages].toArray(), s.messages().rootNode());
+  }
 
   // Processes plugins
   auto& pl = components.interfaces<Process::ProcessFactoryList>();

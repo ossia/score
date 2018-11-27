@@ -68,7 +68,7 @@ public:
   QModelIndex parent(const QModelIndex& child) const override;
   int rowCount(const QModelIndex& parent) const override;
   int columnCount(const QModelIndex& parent) const override;
-  QVariant valueColumnData(const State::Value& val, int role) const;
+  QVariant valueColumnData(const ossia::value& val, int role) const;
   QVariant data(const QModelIndex& index, int role) const override;
 
 private:

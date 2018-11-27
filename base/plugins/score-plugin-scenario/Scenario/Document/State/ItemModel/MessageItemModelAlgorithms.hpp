@@ -19,15 +19,5 @@ enum class ProcessPosition
 
 // User messages
 void updateTreeWithMessageList(
-    Process::MessageNode& rootNode, State::MessageList lst);
-
-void updateTreeWithRemovedUserMessage(
-    Process::MessageNode& rootNode, const State::AddressAccessor&);
-
-void updateTreeWithRemovedNode(
-    Process::MessageNode& rootNode, const State::AddressAccessor& addr);
-
-int countNodes(Process::MessageNode& rootNode);
-Process::MessageNode* getNthChild(Process::MessageNode& rootNode, int n);
-int getChildIndex(Process::MessageNode& rootNode, Process::MessageNode* n);
+    State::MessageList& rootNode, const State::MessageList& lst);
 }

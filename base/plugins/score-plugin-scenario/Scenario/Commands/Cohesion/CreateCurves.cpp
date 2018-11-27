@@ -182,32 +182,24 @@ struct AddressAccessorCurveCreator
     bool tween = false;
 
     // start value / end value
-    Process::MessageNode* s_node = Device::try_getNodeFromString(
-        ss.messages().rootNode(), stringList(addr.address));
+    State::Message* s_node = ossia::ptr_find_if(ss.messages().rootNode(), [&] (auto& m) { return m.address.address == addr.address; });
     if (s_node)
     {
-      if (auto val = s_node->value())
-      {
-        dom.start = State::convert::value<int>(*val);
-        dom.min = std::min(dom.start, dom.min);
-        dom.max = std::max(dom.start, dom.max);
-      }
+      dom.start = State::convert::value<int>(s_node->value);
+      dom.min = std::min(dom.start, dom.min);
+      dom.max = std::max(dom.start, dom.max);
     }
     else
     {
       tween = true;
     }
 
-    Process::MessageNode* e_node = Device::try_getNodeFromString(
-        es.messages().rootNode(), stringList(addr.address));
+    State::Message* e_node = ossia::ptr_find_if(es.messages().rootNode(), [&] (auto& m) { return m.address.address == addr.address; });
     if (e_node)
     {
-      if (auto val = e_node->value())
-      {
-        dom.end = State::convert::value<int>(*val);
-        dom.min = std::min(dom.end, dom.min);
-        dom.max = std::max(dom.end, dom.max);
-      }
+      dom.end = State::convert::value<int>(e_node->value);
+      dom.min = std::min(dom.end, dom.min);
+      dom.max = std::max(dom.end, dom.max);
     }
 
     // Send the command.
@@ -225,32 +217,24 @@ struct AddressAccessorCurveCreator
     bool tween = false;
 
     // start value / end value
-    Process::MessageNode* s_node = Device::try_getNodeFromString(
-        ss.messages().rootNode(), stringList(addr.address));
+    State::Message* s_node = ossia::ptr_find_if(ss.messages().rootNode(), [&] (auto& m) { return m.address.address == addr.address; });
     if (s_node)
     {
-      if (auto val = s_node->value())
-      {
-        dom.start = State::convert::value<double>(*val);
-        dom.min = std::min(dom.start, dom.min);
-        dom.max = std::max(dom.start, dom.max);
-      }
+      dom.start = State::convert::value<double>(s_node->value);
+      dom.min = std::min(dom.start, dom.min);
+      dom.max = std::max(dom.start, dom.max);
     }
     else
     {
       tween = true;
     }
 
-    Process::MessageNode* e_node = Device::try_getNodeFromString(
-        es.messages().rootNode(), stringList(addr.address));
+    State::Message* e_node = ossia::ptr_find_if(es.messages().rootNode(), [&] (auto& m) { return m.address.address == addr.address; });
     if (e_node)
     {
-      if (auto val = e_node->value())
-      {
-        dom.end = State::convert::value<double>(*val);
-        dom.min = std::min(dom.end, dom.min);
-        dom.max = std::max(dom.end, dom.max);
-      }
+      dom.end = State::convert::value<double>(e_node->value);
+      dom.min = std::min(dom.end, dom.min);
+      dom.max = std::max(dom.end, dom.max);
     }
 
     // Send the command.
@@ -508,32 +492,24 @@ struct CurveCreator
     bool tween = false;
 
     // start value / end value
-    Process::MessageNode* s_node = Device::try_getNodeFromString(
-        ss.messages().rootNode(), stringList(as.address));
+    State::Message* s_node = ossia::ptr_find_if(ss.messages().rootNode(), [&] (auto& m) { return m.address.address == addr.address; });
     if (s_node)
     {
-      if (auto val = s_node->value())
-      {
-        dom.start = State::convert::value<int>(*val);
-        dom.min = std::min(dom.start, dom.min);
-        dom.max = std::max(dom.start, dom.max);
-      }
+      dom.start = State::convert::value<int>(s_node->value);
+      dom.min = std::min(dom.start, dom.min);
+      dom.max = std::max(dom.start, dom.max);
     }
     else
     {
       tween = true;
     }
 
-    Process::MessageNode* e_node = Device::try_getNodeFromString(
-        es.messages().rootNode(), stringList(as.address));
+    State::Message* e_node = ossia::ptr_find_if(es.messages().rootNode(), [&] (auto& m) { return m.address.address == addr.address; });
     if (e_node)
     {
-      if (auto val = e_node->value())
-      {
-        dom.end = State::convert::value<int>(*val);
-        dom.min = std::min(dom.end, dom.min);
-        dom.max = std::max(dom.end, dom.max);
-      }
+      dom.end = State::convert::value<int>(e_node->value);
+      dom.min = std::min(dom.end, dom.min);
+      dom.max = std::max(dom.end, dom.max);
     }
 
     // Send the command.
@@ -551,33 +527,26 @@ struct CurveCreator
     bool tween = false;
 
     // start value / end value
-    Process::MessageNode* s_node = Device::try_getNodeFromString(
-        ss.messages().rootNode(), stringList(as.address));
+    State::Message* s_node = ossia::ptr_find_if(ss.messages().rootNode(), [&] (auto& m) { return m.address.address == addr.address; });
     if (s_node)
     {
-      if (auto val = s_node->value())
-      {
-        dom.start = State::convert::value<double>(*val);
-        dom.min = std::min(dom.start, dom.min);
-        dom.max = std::max(dom.start, dom.max);
-      }
+      dom.start = State::convert::value<double>(s_node->value);
+      dom.min = std::min(dom.start, dom.min);
+      dom.max = std::max(dom.start, dom.max);
     }
     else
     {
       tween = true;
     }
 
-    Process::MessageNode* e_node = Device::try_getNodeFromString(
-        es.messages().rootNode(), stringList(as.address));
+    State::Message* e_node = ossia::ptr_find_if(es.messages().rootNode(), [&] (auto& m) { return m.address.address == addr.address; });
     if (e_node)
     {
-      if (auto val = e_node->value())
-      {
-        dom.end = State::convert::value<double>(*val);
-        dom.min = std::min(dom.end, dom.min);
-        dom.max = std::max(dom.end, dom.max);
-      }
+      dom.end = State::convert::value<double>(e_node->value);
+      dom.min = std::min(dom.end, dom.min);
+      dom.max = std::max(dom.end, dom.max);
     }
+
 
     // Send the command.
     auto& p = macro.automate(

@@ -48,12 +48,9 @@ struct MessagePairs
   MessagePairs(
       const Scenario::IntervalModel& interval,
       const Scenario::ScenarioInterface& scenar)
-      : MessagePairs{
-            Process::flatten(
-                Scenario::startState(interval, scenar).messages().rootNode()),
-            Process::flatten(
-                Scenario::endState(interval, scenar).messages().rootNode()),
-            interval}
+      : MessagePairs{Scenario::startState(interval, scenar).messages().rootNode(),
+                     Scenario::endState(interval, scenar).messages().rootNode(),
+                     interval}
   {
   }
 

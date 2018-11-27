@@ -7,11 +7,11 @@
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <State/Address.hpp>
 
+#include <Curve/CurveModel.hpp>
 #include <score/application/ApplicationContext.hpp>
 #include <score/command/Command.hpp>
 #include <score/model/Identifier.hpp>
 
-#include <Interpolation/InterpolationProcess.hpp>
 
 #include <utility>
 #include <vector>
@@ -82,28 +82,5 @@ private:
   bool m_tween;
 };
 
-class SCORE_PLUGIN_SCENARIO_EXPORT CreateInterpolationFromStates final
-    : public CreateProcessAndLayers
-{
-  SCORE_COMMAND_DECL(
-      ScenarioCommandFactoryName(), CreateInterpolationFromStates,
-      "CreateInterpolationFromStates")
-public:
-  CreateInterpolationFromStates(
-      const IntervalModel& interval, const std::vector<SlotPath>& slotList,
-      Id<Process::ProcessModel> curveId, State::AddressAccessor address,
-      ossia::value start, ossia::value end, bool tween = false);
-
-  void redo(const score::DocumentContext& ctx) const override;
-
-protected:
-  void serializeImpl(DataStreamInput& s) const override;
-  void deserializeImpl(DataStreamOutput&) override;
-
-private:
-  State::AddressAccessor m_address;
-  ossia::value m_start{}, m_end{};
-  bool m_tween{};
-};
 }
 }

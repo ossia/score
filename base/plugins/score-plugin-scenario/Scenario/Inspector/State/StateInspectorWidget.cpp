@@ -53,6 +53,7 @@
 #include <algorithm>
 namespace Scenario
 {
+/*
 class MessageListProxy final : public QAbstractProxyModel
 {
 
@@ -76,8 +77,8 @@ public:
       if (!source())
         return {};
 
-      if (auto obj = getNthChild(source()->rootNode(), row))
-        return createIndex(row, column, obj);
+      const auto& obj = source()->rootNode()[row];
+      return createIndex(row, column, (void*)&obj);
     }
     return {};
   }
@@ -167,6 +168,7 @@ public:
       return QAbstractProxyModel::headerData(section, orientation, role);
   }
 };
+*/
 
 StateInspectorWidget::StateInspectorWidget(
     const StateModel& object, const score::DocumentContext& doc,
@@ -220,7 +222,6 @@ void StateInspectorWidget::updateDisplayedValues()
     m_properties.push_back(splitNode);
   }
   {
-    auto tab = new QTabWidget;
 
     // list view
 
@@ -235,7 +236,8 @@ void StateInspectorWidget::updateDisplayedValues()
     lv->setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
     lv->setSizeAdjustPolicy(QAbstractScrollArea::AdjustToContents);
     lv->verticalHeader()->setDefaultSectionSize(14);
-
+    lv->setModel(&m_model.messages());
+/*
     auto proxy = new MessageListProxy{this};
     proxy->setSourceModel(&m_model.messages());
     lv->setModel(proxy);
@@ -250,17 +252,19 @@ void StateInspectorWidget::updateDisplayedValues()
     tv->setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
     tv->setSizeAdjustPolicy(QAbstractScrollArea::AdjustToContents);
 
+    auto tab = new QTabWidget;
+
     tab->addTab(tv, tr("Tree"));
     tab->addTab(lv, tr("List"));
 
     tab->setDocumentMode(true);
-
-    m_properties.push_back(tab);
+*/
+    m_properties.push_back(lv);
   }
 
   {
     auto text = new QTextEdit;
-    text->setText(QJsonDocument{toJsonObject(m_model.messages().rootNode())}.toJson());
+    text->setText(QJsonDocument{toJsonArray(m_model.messages().rootNode())}.toJson());
     m_properties.push_back(text);
   }
 

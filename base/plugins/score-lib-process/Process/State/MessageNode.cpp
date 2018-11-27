@@ -31,6 +31,20 @@ bool operator==(
   return lhs.name == rhs.name
          && lhs.values == rhs.values;
 }
+
+std::vector<const State::Message*> try_getNodesFromAddress(const State::MessageList& root, const State::AddressAccessor& addr)
+{
+  std::vector<const State::Message*> res;
+  for(auto& m : root)
+  {
+    if(m.address.address == addr.address)
+    {
+      res.push_back(&m);
+    }
+  }
+  return res;
+}
+
 }
 
 template class SCORE_LIB_PROCESS_EXPORT TreeNode<Process::StateNodeData>;

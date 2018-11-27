@@ -547,7 +547,7 @@ QVariant ObjectItemModel::data(const QModelIndex& index, int role) const
       }
       else if (auto st = qobject_cast<Scenario::StateModel*>(sel))
       {
-        if (st->messages().rootNode().hasChildren())
+        if (!st->messages().rootNode().empty())
         {
           static const QIcon icon(":/images/state.svg");
           return icon;
@@ -1417,13 +1417,11 @@ void SearchWidget::search()
             = false; // used to break loop at several point to avoid adding
                      // the same object severals time and to sped-up main loop
 
-        State::MessageList list
-            = Process::flatten(state->messages().rootNode());
+        auto& list = state->messages().rootNode();
 
         for (const auto& addr : addresses)
         {
-          auto nodes = Process::try_getNodesFromAddress(
-              state->messages().rootNode(), addr);
+          auto nodes = Process::try_getNodesFromAddress(list, addr);
 
           if (!nodes.empty())
           {
@@ -1432,10 +1430,9 @@ void SearchWidget::search()
             continue;
           }
 
-          for (auto mess : list)
+          for (const auto& mess : list)
           {
-            if (mess.address.address.toString().contains(
-                    addr.address.toString()))
+            if (mess.address.address.toString().contains(addr.address.toString()))
             {
               sel.append(state);
               flag = true;

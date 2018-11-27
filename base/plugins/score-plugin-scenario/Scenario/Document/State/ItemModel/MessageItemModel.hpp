@@ -33,13 +33,11 @@ class StateModel;
  *
  */
 class SCORE_PLUGIN_SCENARIO_EXPORT MessageItemModel final
-    : public TreeNodeBasedItemModel<Process::MessageNode>
+    : public QAbstractItemModel
 {
   W_OBJECT(MessageItemModel)
 
 public:
-  using node_type = TreeNodeBasedItemModel<Process::MessageNode>::node_type;
-
   enum class Column : int
   {
     Name = 0,
@@ -47,23 +45,19 @@ public:
     Count
   };
 
+  const State::MessageList& rootNode() const noexcept { return m_rootNode; }
+  State::MessageList& rootNode() noexcept { return m_rootNode; }
+
   MessageItemModel(const StateModel&, QObject* parent);
   MessageItemModel& operator=(const MessageItemModel&);
-  MessageItemModel& operator=(const node_type&);
-  MessageItemModel& operator=(node_type&&);
-
-  const Process::MessageNode& rootNode() const override
-  {
-    return m_rootNode;
-  }
-
-  Process::MessageNode& rootNode() override
-  {
-    return m_rootNode;
-  }
+  MessageItemModel& operator=(const State::MessageList&);
+  MessageItemModel& operator=(State::MessageList&&);
 
   // AbstractItemModel interface
+  int rowCount(const QModelIndex& parent) const override;
   int columnCount(const QModelIndex& parent) const override;
+  QModelIndex index(int row, int column, const QModelIndex& parent) const override;
+  QModelIndex parent(const QModelIndex& child) const override;
 
   QVariant data(const QModelIndex& index, int role) const override;
   bool
@@ -91,15 +85,12 @@ public:
 
   const StateModel& stateModel;
 
-public:
-  void userMessage(const State::Message& arg_1)
-      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, userMessage, arg_1);
-
 private:
-  node_type m_rootNode;
+  State::MessageList m_rootNode;
+
 };
 
-QVariant valueColumnData(const MessageItemModel::node_type& node, int role);
+QVariant valueColumnData(const State::Message& node, int role);
 }
 
 DEFAULT_MODEL_METADATA(Scenario::MessageItemModel, "Message item model")

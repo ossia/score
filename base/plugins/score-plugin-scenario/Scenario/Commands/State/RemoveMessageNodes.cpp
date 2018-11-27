@@ -20,15 +20,16 @@ namespace Command
 
 RemoveMessageNodes::RemoveMessageNodes(
     const Scenario::StateModel& model,
-    const std::vector<const Process::MessageNode*>& nodes)
+    const State::MessageList& nodes)
     : m_path{model}
 {
   m_oldState = model.messages().rootNode();
   m_newState = m_oldState;
-  for (const auto& node : nodes)
-  {
-    updateTreeWithRemovedNode(m_newState, address(*node));
-  }
+
+  // TODO this is n², not sure we can do much about it since we want
+  // to preserve order... maybe iterate from the back to cause less reallocations ?
+  for(auto& n : nodes)
+    ossia::remove_erase(m_newState, n);
 }
 
 void RemoveMessageNodes::undo(const score::DocumentContext& ctx) const

@@ -92,7 +92,7 @@ public:
 
   bool empty() const
   {
-    return !messages().rootNode().hasChild(0);
+    return messages().rootNode().empty();
   }
 
 public:

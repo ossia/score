@@ -67,13 +67,10 @@ void state(
   // we add the elements to the state.
 
   auto& dl = *ctx.execState;
-  score_state.messages().rootNode().visit([&](const auto& n) {
-    const auto& val = n.value();
-    if (val)
-    {
-      elts.add(message(State::Message{Process::address(n), *val}, dl));
-    }
-  });
+  for(auto& m : score_state.messages().rootNode())
+  {
+    elts.add(message(m, dl));
+  }
 
   /* TODO
   for (auto& proc : score_state.stateProcesses)

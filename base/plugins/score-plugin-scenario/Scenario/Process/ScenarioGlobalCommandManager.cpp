@@ -52,7 +52,7 @@ void clearContentFromSelection(
 
   for (auto& state : statesToRemove)
   {
-    if (state->messages().rootNode().hasChildren())
+    if (!state->messages().rootNode().empty())
     {
       cleaner.submit(new ClearState(*state));
     }
@@ -89,7 +89,7 @@ void removeSelection(
 
   for (auto& state : states)
   {
-    if (state->messages().rootNode().hasChildren())
+    if (!state->messages().rootNode().empty())
     {
       cleaner.submit(new ClearState(*state));
     }

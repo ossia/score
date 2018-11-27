@@ -33,10 +33,11 @@ class QWidget;
 namespace Scenario
 {
 MessageTreeView::MessageTreeView(const StateModel& model, QWidget* parent)
-    : QTreeView{parent}
+    : QTreeView{parent}/*
     , m_model{model}
-    , m_dispatcher{score::IDocument::documentContext(model).commandStack}
+    , m_dispatcher{score::IDocument::documentContext(model).commandStack}*/
 {
+  /*
   setAllColumnsShowFocus(true);
   setSelectionBehavior(QAbstractItemView::SelectRows);
   setSelectionMode(QAbstractItemView::ExtendedSelection);
@@ -74,6 +75,7 @@ MessageTreeView::MessageTreeView(const StateModel& model, QWidget* parent)
 
   this->setSizeAdjustPolicy(QAbstractScrollArea::AdjustToContents);
   this->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::MinimumExpanding);
+  */
 }
 
 MessageItemModel& MessageTreeView::model() const
@@ -83,6 +85,7 @@ MessageItemModel& MessageTreeView::model() const
 
 void MessageTreeView::removeNodes()
 {
+  /*
   auto indexes = selectedIndexes();
 
   std::vector<const Process::MessageNode*> nodes;
@@ -99,23 +102,28 @@ void MessageTreeView::removeNodes()
   CommandDispatcher<> dispatcher{
       score::IDocument::documentContext(m_model).commandStack};
   dispatcher.submit(cmd);
+  */
 }
 
 void MessageTreeView::resizeEvent(QResizeEvent* ev)
 {
+  /*
   ev->ignore();
   header()->resizeSection(
       (int)MessageItemModel::Column::Name,
       (1 - m_valueColumnSize - 0.1) * this->width());
   header()->resizeSection(
       (int)MessageItemModel::Column::Value, m_valueColumnSize * this->width());
+      */
 }
 
 void MessageTreeView::contextMenuEvent(QContextMenuEvent* event)
 {
+  /*
   QMenu contextMenu{this};
 
   contextMenu.addAction(m_removeNodesAction);
   contextMenu.exec(event->globalPos());
+  */
 }
 }

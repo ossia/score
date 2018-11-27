@@ -33,7 +33,6 @@
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentFactory.hpp>
 #include <Scenario/Document/ScenarioRemover.hpp>
 #include <Scenario/ExecutionChecker/CSPCoherencyCheckerList.hpp>
-#include <Scenario/Inspector/Interpolation/InterpolationInspectorWidget.hpp>
 #include <Scenario/Inspector/Interval/IntervalInspectorFactory.hpp>
 #include <Scenario/Inspector/ObjectTree/ObjectItemModel.hpp>
 #include <Scenario/Inspector/Scenario/ScenarioInspectorFactory.hpp>
@@ -48,6 +47,7 @@
 #include <State/ValueSerialization.hpp>
 
 #include <score/command/Command.hpp>
+#include <score/model/tree/TreeNodeSerialization.hpp>
 #include <score/command/CommandGeneratorMap.hpp>
 #include <score/plugins/FactorySetup.hpp>
 #include <score/plugins/StringFactoryKey.hpp>
@@ -63,7 +63,6 @@
 #include <QPainterPath>
 #include <QString>
 
-#include <Interpolation/InterpolationFactory.hpp>
 #include <score_plugin_scenario.hpp>
 #include <score_plugin_scenario_commands_files.hpp>
 #include <wobjectimpl.h>
@@ -72,6 +71,7 @@
 
 namespace Dataflow
 {
+// MOVEME
 template <typename T>
 struct WidgetInletFactory final : public AutomatablePortFactory
 {
@@ -100,7 +100,6 @@ struct WidgetInletFactory final : public AutomatablePortFactory
 };
 }
 
-W_OBJECT_IMPL(Interpolation::Presenter)
 score_plugin_scenario::score_plugin_scenario()
 {
 #if defined(SCORE_STATIC_PLUGINS)
@@ -187,9 +186,7 @@ score_plugin_scenario::factories(
   using namespace Scenario::Command;
   return instantiate_factories<
       score::ApplicationContext,
-      FW<Process::ProcessModelFactory, ScenarioFactory,
-         Interpolation::InterpolationFactory>,
-      FW<Process::LayerFactory, Interpolation::InterpolationLayerFactory>,
+      FW<Process::ProcessModelFactory, ScenarioFactory>,
       FW<MoveEventFactoryInterface, MoveEventClassicFactory>,
       FW<DisplayedElementsToolPaletteFactory,
          BaseScenarioDisplayedElementsToolPaletteFactory,
@@ -210,8 +207,7 @@ score_plugin_scenario::factories(
          Scenario::DropLayerInInterval, Scenario::AutomationDropHandler>,
       FW<Inspector::InspectorWidgetFactory,
          ScenarioInspectorWidgetFactoryWrapper,
-         ScenarioInspectorFactory,
-         Interpolation::InspectorFactory, Dataflow::CableInspectorFactory,
+         ScenarioInspectorFactory, Dataflow::CableInspectorFactory,
          Dataflow::PortInspectorFactory>,
       FW<score::ValidityChecker, ScenarioValidityChecker>,
       FW<Process::PortFactory, Dataflow::InletFactory,
@@ -243,7 +239,6 @@ score_plugin_scenario::make_commands()
   using namespace Scenario;
   using namespace Dataflow;
   using namespace Scenario::Command;
-  using namespace Interpolation;
   std::pair<const CommandGroupKey, CommandGeneratorMap> cmds{
       ScenarioCommandFactoryName(), CommandGeneratorMap{}};
 

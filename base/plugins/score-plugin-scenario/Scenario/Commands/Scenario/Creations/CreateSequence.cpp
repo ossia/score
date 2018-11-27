@@ -69,8 +69,7 @@ CreateSequenceProcesses::CreateSequenceProcesses(
     return;
 
   // We get the device explorer, and we fetch the new states.
-  const auto& startMessages = Process::flatten(
-      Scenario::startState(interval, scenario).messages().rootNode());
+  const auto& startMessages = Scenario::startState(interval, scenario).messages().rootNode();
 
   std::vector<Device::FullAddressSettings> endAddresses;
   endAddresses.reserve(startMessages.size());

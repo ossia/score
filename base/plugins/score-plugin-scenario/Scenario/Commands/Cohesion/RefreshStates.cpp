@@ -52,7 +52,7 @@ void RefreshStates(
   for (auto st : states)
   {
     const auto& state = *st;
-    auto messages = flatten(state.messages().rootNode());
+    auto messages = state.messages().rootNode();
     for (auto& elt : messages)
     {
       auto val = proxy.refreshRemoteValue(elt.address.address);

@@ -31,7 +31,7 @@ struct SCORE_LIB_STATE_EXPORT Message
   QString toString() const;
 
   AddressAccessor address;
-  Value value;
+  ossia::value value;
 };
 
 SCORE_LIB_STATE_EXPORT

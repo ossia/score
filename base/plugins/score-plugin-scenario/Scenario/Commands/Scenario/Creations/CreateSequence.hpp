@@ -93,7 +93,7 @@ protected:
 private:
   Path<Scenario::ProcessModel> m_scenario;
   AddMultipleProcessesToIntervalMacro m_interpolations;
-  Process::MessageNode m_stateData;
+  State::MessageList m_stateData;
   Id<StateModel> m_endState;
   int m_addedProcessCount{};
 };

@@ -29,7 +29,7 @@ CharValueWidget::CharValueWidget(QChar value, QWidget* parent)
   m_value->setText(value);
 }
 
-void CharValueWidget::setValue(Value v) const
+void CharValueWidget::setValue(ossia::value v) const
 {
   m_value->clear();
   if (auto c_ptr = v.v.target<char>()) // BERK
