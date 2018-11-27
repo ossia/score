@@ -44,7 +44,6 @@ private:
   void pasteElementsAfter(
       const QJsonObject& obj, const Scenario::Point& origin,
       const Selection& sel);
-  void writeJsonToSelectedElements(const QJsonObject& obj);
 
   ScenarioDocumentModel* getScenarioDocModel() const;
   ScenarioDocumentPresenter* getScenarioDocPresenter() const;

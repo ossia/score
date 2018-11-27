@@ -494,66 +494,6 @@ void ObjectMenuActions::pasteElementsAfter(
   }
 }
 
-template <typename Scenario_T>
-static void writeJsonToScenario(
-    const Scenario_T& scen, const ObjectMenuActions& self,
-    const QJsonObject& obj)
-{
-  MacroCommandDispatcher<Command::ScenarioPasteContent> dispatcher{
-      self.dispatcher().stack()};
-  auto selectedIntervals = selectedElements(getIntervals(scen));
-  auto expandMode = self.appPlugin()->editionSettings().expandMode();
-  for (const auto& json_vref : obj["Intervals"].toArray())
-  {
-    for (const auto& interval : selectedIntervals)
-    {
-      auto cmd = new Scenario::Command::InsertContentInInterval{
-          json_vref.toObject(), *interval, expandMode};
-
-      dispatcher.submit(cmd);
-    }
-  }
-
-  auto selectedStates = selectedElements(getStates(scen));
-  for (const auto& json_vref : obj["States"].toArray())
-  {
-    for (const auto& state : selectedStates)
-    {
-      auto cmd
-          = new Command::InsertContentInState{json_vref.toObject(), *state};
-
-      dispatcher.submit(cmd);
-    }
-  }
-
-  dispatcher.commit();
-}
-
-void ObjectMenuActions::writeJsonToSelectedElements(const QJsonObject& obj)
-{
-  auto si = focusedScenarioInterface(m_parent->currentDocument()->context());
-  if (auto sm = dynamic_cast<const Scenario::ProcessModel*>(si))
-  {
-    writeJsonToScenario(*sm, *this, obj);
-  }
-  else if (auto bsm = dynamic_cast<const Scenario::BaseScenarioContainer*>(si))
-  {
-    writeJsonToScenario(*bsm, *this, obj);
-  }
-  else
-  {
-    SCORE_TODO;
-    /*
-    // Full-view paste
-    auto& bem =
-    score::IDocument::modelDelegate<ScenarioDocumentModel>(*m_parent->currentDocument());
-    if(bem.baseInterval().selection.get())
-    {
-        return copySelectedScenarioElements(bem.baseScenario());
-    }*/
-  }
-}
-
 ScenarioDocumentModel* ObjectMenuActions::getScenarioDocModel() const
 {
   if (auto doc = m_parent->currentDocument())

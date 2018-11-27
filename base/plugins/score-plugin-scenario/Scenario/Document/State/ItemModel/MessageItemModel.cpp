@@ -155,19 +155,6 @@ QStringList MessageItemModel::mimeTypes() const
   return {score::mime::messagelist()};
 }
 
-struct SelectedNodes
-{
-  /**
-   * @brief parents The topmost parents of the selected parameters
-   */
-  std::vector<Process::MessageNode*> parents;
-
-  /**
-   * @brief messages The selected messages
-   */
-  std::vector<Process::MessageNode*> messages;
-};
-
 QMimeData* MessageItemModel::mimeData(const QModelIndexList& indexes) const
 {
   State::MessageList messages;
