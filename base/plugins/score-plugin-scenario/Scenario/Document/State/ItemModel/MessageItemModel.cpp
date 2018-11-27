@@ -30,6 +30,7 @@
 #include <QString>
 #include <QUrl>
 
+#include <unordered_set>
 #include <wobjectimpl.h>
 
 #include <algorithm>
@@ -155,12 +156,28 @@ QStringList MessageItemModel::mimeTypes() const
   return {score::mime::messagelist()};
 }
 
+QByteArray serialize_pointer(const void* p)
+{
+  QByteArray arr;
+  arr.resize(sizeof(p));
+  for(auto i = 0; i < sizeof(p); i++)
+  {
+    arr[i] = ((const char*) &p)[i];
+  }
+  return arr;
+}
+
 QMimeData* MessageItemModel::mimeData(const QModelIndexList& indexes) const
 {
   State::MessageList messages;
+  ossia::flat_set<int> rows;
   for(const auto& idx : indexes)
   {
-    messages.push_back(m_rootNode[idx.row()]);
+    auto [it, ok] = rows.insert(idx.row());
+    if(ok)
+    {
+      messages.push_back(m_rootNode[idx.row()]);
+    }
   }
 
   if (!messages.empty())
@@ -168,6 +185,8 @@ QMimeData* MessageItemModel::mimeData(const QModelIndexList& indexes) const
     auto mimeData = new QMimeData;
     Mime<State::MessageList>::Serializer s{*mimeData};
     s.serialize(messages);
+    mimeData->setData("application/x-score-messagesitemmodel", serialize_pointer(this));
+    mimeData->setData("application/x-score-messagesitemmodel-rows", score::marshall<DataStream>(rows.container));
     return mimeData;
   }
 
@@ -210,6 +229,42 @@ bool MessageItemModel::dropMimeData(
     return false;
   }
 
+  if(data->hasFormat("application/x-score-messagesitemmodel"))
+  {
+    auto res = data->data("application/x-score-messagesitemmodel");
+    if(res == serialize_pointer(this))
+    {
+      int target_row = row >= 0 ? row : parent.row();
+      if(target_row < 0)
+        target_row = 0;
+
+      // We're in the same object : move the addresses
+      auto rows = score::unmarshall<std::vector<int>>(data->data("application/x-score-messagesitemmodel-rows"));
+
+      auto copy = m_rootNode;
+
+      int left_move = 0;
+      State::MessageList toInsert;
+      toInsert.reserve(rows.size());
+      for(auto it = rows.rbegin(); it != rows.rend(); ++it)
+      {
+        int moved_row = *it;
+        if(moved_row < target_row)
+          left_move ++;
+
+        toInsert.push_back(std::move(*(copy.begin() + moved_row)));
+        copy.erase(copy.begin() + moved_row);
+      }
+      copy.insert(copy.begin() + target_row - left_move, toInsert.begin(), toInsert.end());
+      CommandDispatcher<> disp(
+          score::IDocument::documentContext(stateModel).commandStack);
+      beginResetModel();
+      disp.submit(new Command::ReplaceMessagesInState{stateModel, std::move(copy)});
+      endResetModel();
+      return true;
+    }
+  }
+
   if (data->hasFormat(score::mime::messagelist()))
   {
     State::MessageList ml;
@@ -225,6 +280,7 @@ bool MessageItemModel::dropMimeData(
     beginResetModel();
     disp.submit(cmd);
     endResetModel();
+    return true;
   }
   else if (data->hasUrls())
   {
@@ -249,6 +305,7 @@ bool MessageItemModel::dropMimeData(
       CommandDispatcher<>{
           score::IDocument::documentContext(stateModel).commandStack}
           .submit(cmd);
+      return true;
     }
   }
   return false;

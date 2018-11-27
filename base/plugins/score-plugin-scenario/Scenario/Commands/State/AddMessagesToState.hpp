@@ -44,5 +44,28 @@ private:
 
   State::MessageList m_oldState, m_newState;
 };
+
+class SCORE_PLUGIN_SCENARIO_EXPORT ReplaceMessagesInState final
+    : public score::Command
+{
+  SCORE_COMMAND_DECL(
+      ScenarioCommandFactoryName(), ReplaceMessagesInState,
+      "Replace messages in a state")
+public:
+  ReplaceMessagesInState(
+      const Scenario::StateModel& state, State::MessageList&& messages);
+
+  void undo(const score::DocumentContext& ctx) const override;
+  void redo(const score::DocumentContext& ctx) const override;
+
+protected:
+  void serializeImpl(DataStreamInput&) const override;
+  void deserializeImpl(DataStreamOutput&) override;
+
+private:
+  Path<StateModel> m_path;
+
+  State::MessageList m_oldState, m_newState;
+};
 }
 }

@@ -61,5 +61,35 @@ void AddMessagesToState::deserializeImpl(DataStreamOutput& d)
 {
   d >> m_path >> m_oldState >> m_newState;
 }
+
+ReplaceMessagesInState::ReplaceMessagesInState(
+    const Scenario::StateModel& state, State::MessageList&& messages)
+    : m_path{state}
+    , m_oldState{state.messages().rootNode()}
+    , m_newState{std::move(messages)}
+{
+}
+
+void ReplaceMessagesInState::undo(const score::DocumentContext& ctx) const
+{
+  auto& model = m_path.find(ctx).messages();
+  model = m_oldState;
+}
+
+void ReplaceMessagesInState::redo(const score::DocumentContext& ctx) const
+{
+  auto& model = m_path.find(ctx).messages();
+  model = m_newState;
+}
+
+void ReplaceMessagesInState::serializeImpl(DataStreamInput& d) const
+{
+  d << m_path << m_oldState << m_newState;
+}
+
+void ReplaceMessagesInState::deserializeImpl(DataStreamOutput& d)
+{
+  d >> m_path >> m_oldState >> m_newState;
+}
 }
 }
