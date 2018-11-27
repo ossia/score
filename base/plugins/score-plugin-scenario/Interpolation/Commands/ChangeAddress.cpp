@@ -107,20 +107,17 @@ void ChangeInterpolationAddress(
     {
       if (!lhs->hasValue())
         continue;
-      if (lhs->name.qualifiers.get().accessors
-          != addr.qualifiers.get().accessors)
-        continue;
 
       auto it = ossia::find_if(enodes, [&](auto rhs) {
-        return (lhs->name.qualifiers == rhs->name.qualifiers)
-               && rhs->hasValue();
+        return rhs->hasValue();
       });
 
       if (it != enodes.end())
       {
         sv = *lhs->value();
         ev = *(*it)->value();
-        source_u = lhs->name.qualifiers.get().unit;
+        // TODO this may not work since this could just reuse the current process address's unit
+        source_u = lhs->values.unit();
 
         break; // or maybe not break ? the latest should replace maybe ?
       }

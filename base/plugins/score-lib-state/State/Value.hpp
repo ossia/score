@@ -6,8 +6,6 @@
 
 #include <score_lib_state_export.h>
 
-class QDebug;
-
 namespace State
 {
 using impulse = ossia::impulse;
@@ -18,7 +16,6 @@ using vec4f = ossia::vec4f;
 using list_t = std::vector<ossia::value>;
 
 using Value = ossia::value;
-using OptionalValue = optional<ossia::value>;
 
 SCORE_LIB_STATE_EXPORT optional<ossia::value>
 parseValue(const std::string& str);

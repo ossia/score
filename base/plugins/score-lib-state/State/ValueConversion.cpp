@@ -790,7 +790,7 @@ QString toPrettyString(const ossia::value& val)
   {
     QString operator()() const
     {
-      return {};
+      return "_";
     }
     QString operator()(const State::impulse&) const
     {

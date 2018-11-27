@@ -4,8 +4,6 @@
 
 #include "ItemModel/MessageItemModelAlgorithms.hpp"
 
-#include <Process/Process.hpp>
-#include <Process/State/ProcessStateDataInterface.hpp>
 #include <Scenario/Document/Event/ExecutionStatus.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
@@ -118,7 +116,4 @@ void StateModel::setStatus(ExecutionStatus status)
   statusChanged(status);
 }
 
-ProcessStateWrapper::~ProcessStateWrapper()
-{
-}
 }

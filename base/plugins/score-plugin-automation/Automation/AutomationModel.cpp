@@ -51,8 +51,6 @@ ProcessModel::ProcessModel(
     , outlet{Process::make_outlet(Id<Process::Port>(0), this)}
     , m_min{0.}
     , m_max{1.}
-    , m_startState{new ProcessState{*this, 0., this}}
-    , m_endState{new ProcessState{*this, 1., this}}
 {
   outlet->type = Process::PortType::Message;
 
@@ -76,8 +74,6 @@ ProcessModel::~ProcessModel()
 
 ProcessModel::ProcessModel(JSONObject::Deserializer& vis, QObject* parent)
     : CurveProcessModel{vis, parent}
-    , m_startState{new ProcessState{*this, 0., this}}
-    , m_endState{new ProcessState{*this, 1., this}}
 {
   vis.writeTo(*this);
   init();
@@ -85,8 +81,6 @@ ProcessModel::ProcessModel(JSONObject::Deserializer& vis, QObject* parent)
 
 ProcessModel::ProcessModel(DataStream::Deserializer& vis, QObject* parent)
     : CurveProcessModel{vis, parent}
-    , m_startState{new ProcessState{*this, 0., this}}
-    , m_endState{new ProcessState{*this, 1., this}}
 {
   vis.writeTo(*this);
   init();
@@ -198,20 +192,6 @@ TimeVal ProcessModel::contentDuration() const noexcept
 
 void ProcessModel::setCurve_impl()
 {
-  connect(m_curve, &Curve::Model::changed, this, [&]() {
-    m_startState->messagesChanged(m_startState->messages());
-    m_endState->messagesChanged(m_endState->messages());
-  });
-}
-
-ProcessState* ProcessModel::startStateData() const noexcept
-{
-  return m_startState;
-}
-
-ProcessState* ProcessModel::endStateData() const noexcept
-{
-  return m_endState;
 }
 
 const ::State::AddressAccessor& ProcessModel::address() const

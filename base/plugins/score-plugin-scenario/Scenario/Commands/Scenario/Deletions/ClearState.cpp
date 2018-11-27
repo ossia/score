@@ -10,6 +10,7 @@
 #include <score/model/path/PathSerialization.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/serialization/VisitorCommon.hpp>
+#include <score/model/tree/TreeNodeSerialization.hpp>
 
 #include <QDebug>
 
@@ -22,26 +23,20 @@ namespace Command
 
 ClearState::ClearState(const StateModel& state) : m_path{state}
 {
-  m_oldState = Process::getUserMessages(state.messages().rootNode());
+  m_oldState = state.messages().rootNode();
 }
 
 void ClearState::undo(const score::DocumentContext& ctx) const
 {
   auto& state = m_path.find(ctx);
 
-  Process::MessageNode n = state.messages().rootNode();
-  updateTreeWithMessageList(n, m_oldState);
-
-  state.messages() = std::move(n);
+  state.messages() = m_oldState;
 }
 
 void ClearState::redo(const score::DocumentContext& ctx) const
 {
   auto& state = m_path.find(ctx);
-
-  Process::MessageNode n = state.messages().rootNode();
-  removeAllUserMessages(n);
-  state.messages() = std::move(n);
+  state.messages() = {};
 }
 
 void ClearState::serializeImpl(DataStreamInput& s) const

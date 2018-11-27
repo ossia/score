@@ -23,18 +23,6 @@
 
 #include <algorithm>
 
-namespace Scenario
-{
-class IntervalModel;
-class EventModel;
-}
-template <typename T>
-class Reader;
-template <typename T>
-class Writer;
-template <typename model>
-class IdentifiedObject;
-
 template <>
 SCORE_PLUGIN_SCENARIO_EXPORT void
 DataStreamReader::read(const Scenario::StateModel& s)

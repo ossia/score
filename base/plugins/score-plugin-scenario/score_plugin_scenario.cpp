@@ -210,7 +210,7 @@ score_plugin_scenario::factories(
          Scenario::DropLayerInInterval, Scenario::AutomationDropHandler>,
       FW<Inspector::InspectorWidgetFactory,
          ScenarioInspectorWidgetFactoryWrapper,
-         Interpolation::StateInspectorFactory, ScenarioInspectorFactory,
+         ScenarioInspectorFactory,
          Interpolation::InspectorFactory, Dataflow::CableInspectorFactory,
          Dataflow::PortInspectorFactory>,
       FW<score::ValidityChecker, ScenarioValidityChecker>,

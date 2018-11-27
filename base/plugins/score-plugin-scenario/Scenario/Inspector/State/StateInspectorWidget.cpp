@@ -29,12 +29,14 @@
 #include <score/widgets/MarginLess.hpp>
 #include <score/widgets/Separator.hpp>
 #include <score/widgets/TextLabel.hpp>
+#include <score/model/tree/TreeNodeSerialization.hpp>
 
 #include <QAbstractProxyModel>
 #include <QApplication>
 #include <QFormLayout>
 #include <QHBoxLayout>
 #include <QHeaderView>
+#include <QJsonDocument>
 #include <QLabel>
 #include <QLineEdit>
 #include <QMenu>
@@ -254,6 +256,12 @@ void StateInspectorWidget::updateDisplayedValues()
     tab->setDocumentMode(true);
 
     m_properties.push_back(tab);
+  }
+
+  {
+    auto text = new QTextEdit;
+    text->setText(QJsonDocument{toJsonObject(m_model.messages().rootNode())}.toJson());
+    m_properties.push_back(text);
   }
 
   updateAreaLayout(m_properties);

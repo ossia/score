@@ -81,75 +81,28 @@ void fromJsonValue(
 }
 
 template <>
-void DataStreamReader::read(const std::array<Process::PriorityPolicy, 3>& val)
-{
-  for (int i = 0; i < 3; i++)
-    m_stream << val.at(i);
-}
-
-template <>
-void DataStreamWriter::write(std::array<Process::PriorityPolicy, 3>& val)
-{
-  for (int i = 0; i < 3; i++)
-    m_stream >> val.at(i);
-}
-
-template <>
-void DataStreamReader::read(const Process::ProcessStateData& val)
-{
-  m_stream << val.process << val.value;
-}
-
-template <>
-void DataStreamWriter::write(Process::ProcessStateData& val)
-{
-  m_stream >> val.process >> val.value;
-}
-
-template <>
-void JSONObjectReader::read(const Process::ProcessStateData& val)
-{
-  obj[strings.Process] = toJsonValue(val.process);
-  toJsonValue(obj, strings.Value, val.value);
-}
-
-template <>
-void JSONObjectWriter::write(Process::ProcessStateData& val)
-{
-  val.process = fromJsonValue<Id<Process::ProcessModel>>(obj[strings.Process]);
-  fromJsonValue(obj, strings.Value, val.value);
-}
-
-template <>
 void DataStreamReader::read(const Process::StateNodeValues& val)
 {
-  m_stream << val.previousProcessValues << val.followingProcessValues
-           << val.userValue << val.priorities;
+  // TODO also serialize the index in the process
+  // m_stream << val.userValue ;
 }
 
 template <>
 void DataStreamWriter::write(Process::StateNodeValues& val)
 {
-  m_stream >> val.previousProcessValues >> val.followingProcessValues
-      >> val.userValue >> val.priorities;
+  // m_stream >> val.userValue ;
 }
 
 template <>
 void JSONObjectReader::read(const Process::StateNodeValues& val)
 {
-  obj[strings.Previous] = toJsonArray(val.previousProcessValues);
-  obj[strings.Following] = toJsonArray(val.followingProcessValues);
-  toJsonValue(obj, strings.User, val.userValue);
-  obj[strings.Priorities] = toJsonArray(val.priorities);
+  //toJsonValue(obj, strings.User, val.userValue);
 }
 
 template <>
 void JSONObjectWriter::write(Process::StateNodeValues& val)
 {
-  fromJsonArray(obj[strings.Previous].toArray(), val.previousProcessValues);
-  fromJsonArray(obj[strings.Following].toArray(), val.followingProcessValues);
-  fromJsonValue(obj, strings.User, val.userValue);
-  fromJsonArray(obj[strings.Priorities].toArray(), val.priorities);
+  //fromJsonValue(obj, strings.User, val.userValue);
 }
 
 template <>
@@ -172,7 +125,7 @@ template <>
 SCORE_LIB_PROCESS_EXPORT void
 JSONObjectReader::read(const Process::StateNodeData& node)
 {
-  readFrom(node.name);
+  obj[strings.Name] = node.name;
   readFrom(node.values);
 }
 
@@ -180,6 +133,6 @@ template <>
 SCORE_LIB_PROCESS_EXPORT void
 JSONObjectWriter::write(Process::StateNodeData& node)
 {
-  writeTo(node.name);
+  node.name = obj[strings.Name].toString();
   writeTo(node.values);
 }

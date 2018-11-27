@@ -108,17 +108,11 @@ private:
   bool contentHasDuration() const noexcept override;
   TimeVal contentDuration() const noexcept override;
 
-  /// States
-  ProcessState* startStateData() const noexcept override;
-  ProcessState* endStateData() const noexcept override;
-
   void setCurve_impl() override;
 
   double m_min{};
   double m_max{};
 
-  ProcessState* m_startState{};
-  ProcessState* m_endState{};
   bool m_tween = false;
 };
 }

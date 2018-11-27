@@ -136,16 +136,6 @@ void ProcessModel::reset()
 {
 }
 
-ProcessStateDataInterface* ProcessModel::startStateData() const noexcept
-{
-  return nullptr;
-}
-
-ProcessStateDataInterface* ProcessModel::endStateData() const noexcept
-{
-  return nullptr;
-}
-
 Selection ProcessModel::selectableChildren() const noexcept
 {
   return {};

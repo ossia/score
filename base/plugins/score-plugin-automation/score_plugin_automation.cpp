@@ -10,7 +10,6 @@
 #include <Automation/AutomationView.hpp>
 #include <Automation/Commands/AutomationCommandFactory.hpp>
 #include <Automation/Inspector/AutomationInspectorFactory.hpp>
-#include <Automation/Inspector/AutomationStateInspectorFactory.hpp>
 #include <Automation/Inspector/CurvePointInspectorFactory.hpp>
 #include <Curve/Process/CurveProcessFactory.hpp>
 #include <Inspector/InspectorWidgetFactoryInterface.hpp>
@@ -124,7 +123,7 @@ score_plugin_automation::factories(
       FW<Process::LayerFactory, Automation::AutomationLayerFactory,
          Gradient::GradientLayerFactory, Spline::SplineLayerFactory,
          Metronome::MetronomeLayerFactory>,
-      FW<Inspector::InspectorWidgetFactory, Automation::StateInspectorFactory,
+      FW<Inspector::InspectorWidgetFactory,
          Automation::PointInspectorFactory, Automation::InspectorFactory,
          Gradient::InspectorFactory, Spline::InspectorFactory,
          Metronome::InspectorFactory>,

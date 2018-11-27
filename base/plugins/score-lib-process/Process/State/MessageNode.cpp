@@ -9,38 +9,102 @@
 #include <score/model/tree/TreeNode.hpp>
 #include <score/serialization/JSONVisitor.hpp>
 
+#include <ossia/editor/state/destination_qualifiers.hpp>
+#include <ossia/network/dataspace/dataspace_visitors.hpp>
+
 #include <QStringBuilder>
 
 #include <algorithm>
+
 namespace Process
 {
 
-bool operator==(
-    const Process::ProcessStateData& lhs, const Process::ProcessStateData& rhs)
+
+bool operator==(const StateNodeValues& lhs, const StateNodeValues& rhs) noexcept
 {
-  return lhs.process == rhs.process && lhs.value == rhs.value;
+  return lhs.userValue == rhs.userValue;
 }
 
 bool operator==(
-    const Process::StateNodeData& lhs, const Process::StateNodeData& rhs)
+    const Process::StateNodeData& lhs, const Process::StateNodeData& rhs) noexcept
 {
-  return lhs.name.name == rhs.name.name
-         && lhs.name.qualifiers == rhs.name.qualifiers
-         && lhs.values.previousProcessValues
-                == rhs.values.previousProcessValues
-         && lhs.values.followingProcessValues
-                == rhs.values.followingProcessValues
-         && lhs.values.priorities == rhs.values.priorities
-         && lhs.values.userValue == rhs.values.userValue;
+  return lhs.name == rhs.name
+         && lhs.values == rhs.values;
 }
 }
+
 template class SCORE_LIB_PROCESS_EXPORT TreeNode<Process::StateNodeData>;
 namespace Process
 {
 
+bool StateNodeValues::empty() const noexcept
+{
+  return userValue.empty();
+}
+
+ossia::unit_t StateNodeValues::unit() const noexcept
+{
+  // Find a unit somewhere...
+  for(const auto& v : userValue)
+  {
+    if(const auto& u = v.qualifiers.get().unit)
+      return u;
+  }
+
+  return {};
+}
+
+bool StateNodeValues::hasValue() const noexcept
+{
+  return !userValue.empty();
+}
+
+optional<ossia::value> StateNodeValues::value() const noexcept
+{
+  if (!userValue.empty())
+    return userValue.front().value;
+
+  return {};
+}
+
+static bool emptyAccessors(const State::DestinationQualifiers& q) noexcept
+{
+  return q.get().accessors.empty();
+}
+
+ossia::value StateNodeValues::filledValue(int n) const noexcept
+{
+  // TODO convert according to the unit
+  if (!userValue.empty() && emptyAccessors(userValue.front().qualifiers))
+    return userValue.front().value;
+
+  // Create an array
+  std::vector<ossia::value> out;
+  out.resize(n);
+
+  for(auto& v : userValue)
+  {
+    auto& acc = v.qualifiers.get().accessors;
+    if(!acc.empty() && acc[0] >= 0 && acc[0] < n)
+    {
+      out[acc[0]] = v.value;
+    }
+  }
+
+  return out;
+}
+
+
 QString StateNodeData::displayName() const
 {
-  return name.toString();
+  if(auto u = values.unit())
+  {
+    return name + "@[" % QString::fromStdString(ossia::get_pretty_unit_text(u)) % "]";
+  }
+  else
+  {
+    return name;
+  }
 }
 
 bool StateNodeData::hasValue() const
@@ -48,96 +112,36 @@ bool StateNodeData::hasValue() const
   return values.hasValue();
 }
 
-State::OptionalValue StateNodeData::value() const
+optional<ossia::value> StateNodeData::value() const
 {
-  return values.value();
-}
-
-bool StateNodeValues::empty() const
-{
-  return previousProcessValues.isEmpty() && followingProcessValues.isEmpty()
-         && !userValue;
-}
-
-bool StateNodeValues::hasValue(const QVector<ProcessStateData>& vec)
-{
-  return std::any_of(
-      vec.cbegin(), vec.cend(), [](const auto& pv) { return bool(pv.value); });
-}
-
-bool StateNodeValues::hasValue() const
-{
-  return hasValue(previousProcessValues) || hasValue(followingProcessValues)
-         || bool(userValue);
-}
-
-QVector<ProcessStateData>::const_iterator
-StateNodeValues::value(const QVector<ProcessStateData>& vec)
-{
-  return std::find_if(
-      vec.cbegin(), vec.cend(), [](const auto& pv) { return bool(pv.value); });
-}
-
-State::OptionalValue StateNodeValues::value() const
-{
-  for (auto prio : priorities)
+  auto acc = ossia::get_unit_accessors(values.unit());
+  if(acc.empty())
   {
-    switch (prio)
-    {
-      case PriorityPolicy::User:
-      {
-        if (userValue)
-          return *userValue;
-        break;
-      }
-
-      case PriorityPolicy::Previous:
-      {
-        // OPTIMIZEME  by computing them only once
-        auto it = value(previousProcessValues);
-        if (it != previousProcessValues.cend())
-          return *it->value;
-        break;
-      }
-
-      case PriorityPolicy::Following:
-      {
-        auto it = value(followingProcessValues);
-        if (it != followingProcessValues.cend())
-          return *it->value;
-        break;
-      }
-
-      default:
-        break;
-    }
+    return values.value();
   }
-
-  return {};
+  else
+  {
+    return values.filledValue(acc.size());
+  }
 }
 
-QString StateNodeValues::displayValue() const
-{
-  auto val = value();
-  if (val)
-    return State::convert::value<QString>(*val);
-  return {};
-}
 
 State::AddressAccessor address(const Process::MessageNode& treeNode)
 {
   State::AddressAccessor addr;
-  addr.qualifiers = treeNode.name.qualifiers;
+  addr.qualifiers = State::DestinationQualifiers{
+                      ossia::destination_qualifiers{{}, treeNode.values.unit()}
+  };
 
   const Process::MessageNode* n = &treeNode;
   while (n->parent() && n->parent()->parent())
   {
-    addr.address.path.prepend(n->name.name);
+    addr.address.path.prepend(n->name);
     n = n->parent();
   }
 
   SCORE_ASSERT(n);
-  addr.address.device = n->name.name;
+  addr.address.device = n->name;
 
   return addr;
 }
@@ -147,8 +151,8 @@ State::Message userMessage(const Process::MessageNode& node)
   State::Message mess;
   mess.address = Process::address(node);
 
-  SCORE_ASSERT(bool(node.values.userValue));
-  mess.value = *node.values.userValue;
+  SCORE_ASSERT(!node.values.userValue.empty());
+  mess.value = node.values.userValue.front().value;
 
   return mess;
 }
@@ -187,27 +191,6 @@ State::MessageList flatten(const Process::MessageNode& n)
   return ml;
 }
 
-static void
-getUserMessages_rec(State::MessageList& ml, const Process::MessageNode& node)
-{
-  if (node.hasValue() && node.values.userValue)
-  {
-    ml.append(Process::userMessage(node));
-  }
-
-  for (const auto& child : node)
-  {
-    getUserMessages_rec(ml, child);
-  }
-}
-
-State::MessageList getUserMessages(const MessageNode& n)
-{
-  State::MessageList ml;
-  getUserMessages_rec(ml, n);
-  return ml;
-}
-
 std::vector<Process::MessageNode*> try_getNodesFromAddress(
     Process::MessageNode& root, const State::AddressAccessor& addr)
 {
@@ -232,7 +215,7 @@ std::vector<Process::MessageNode*> try_getNodesFromAddress(
 
     auto& nd = *node;
     auto child_it = ossia::find_if(nd, [&](const Process::MessageNode& cld) {
-      return cld.name.name == node_name;
+      return cld.name == node_name;
     });
 
     if (child_it != nd.end())
@@ -252,7 +235,7 @@ std::vector<Process::MessageNode*> try_getNodesFromAddress(
     auto& n = *node;
     for (Process::MessageNode& cld : n)
     {
-      if (cld.name.name == node_name)
+      if (cld.name == node_name)
       {
         vec.push_back(&cld);
       }
@@ -285,7 +268,7 @@ Process::MessageNode* try_getNodeFromAddress(
 
     auto& nd = *node;
     auto child_it = ossia::find_if(nd, [&](const Process::MessageNode& cld) {
-      return cld.name.name == node_name;
+      return cld.name == node_name;
     });
 
     if (child_it != nd.end())
@@ -304,8 +287,7 @@ Process::MessageNode* try_getNodeFromAddress(
 
     auto& n = *node;
     auto child_it = ossia::find_if(n, [&](const Process::MessageNode& cld) {
-      return cld.name.name == node_name
-             && cld.name.qualifiers == addr.qualifiers;
+      return cld.name == node_name;
     });
 
     return child_it != n.end() ? &*child_it : nullptr;
@@ -314,22 +296,15 @@ Process::MessageNode* try_getNodeFromAddress(
   return node;
 }
 
-QDebug operator<<(QDebug d, const ProcessStateData& mess)
-{
-  d << "{" << mess.process << State::convert::toPrettyString(*mess.value)
-    << "}";
-  return d;
-}
 
 QDebug operator<<(QDebug d, const StateNodeData& mess)
 {
-  if (mess.values.userValue)
-    d << mess.name << mess.values.previousProcessValues
-      << State::convert::toPrettyString(*mess.values.userValue)
-      << mess.values.followingProcessValues;
+  if (!mess.values.userValue.empty())
+    d << mess.name
+      << State::convert::toPrettyString(mess.values.userValue.front().value);
   else
-    d << mess.name << mess.values.previousProcessValues
-      << "-- no user value --" << mess.values.followingProcessValues;
+    d << mess.name
+      << "-- no user value --" ;
   return d;
 }
 }

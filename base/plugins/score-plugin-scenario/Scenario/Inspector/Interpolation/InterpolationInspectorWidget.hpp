@@ -38,30 +38,4 @@ class InspectorFactory final
   SCORE_CONCRETE("5159eabc-cd5c-4a00-a790-bd58936aace0")
 };
 
-class StateInspectorWidget final : public Inspector::InspectorWidgetBase
-{
-public:
-  explicit StateInspectorWidget(
-      const ProcessState& object, const score::DocumentContext& context,
-      QWidget* parent = nullptr);
-
-private:
-  void on_stateChanged();
-
-  const ProcessState& m_state;
-  QLabel* m_label{};
-};
-
-class StateInspectorFactory final : public Inspector::InspectorWidgetFactory
-{
-  SCORE_CONCRETE("ea035d49-1897-4413-94e4-e5d6c90b21e6")
-public:
-  StateInspectorFactory();
-
-  QWidget* make(
-      const InspectedObjects& sourceElements,
-      const score::DocumentContext& doc, QWidget* parent) const override;
-
-  bool matches(const InspectedObjects& objects) const override;
-};
 }

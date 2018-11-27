@@ -27,34 +27,6 @@ PROCESS_METADATA(
     Process::ProcessFlags::SupportsTemporal)
 namespace Interpolation
 {
-class ProcessState final : public ProcessStateDataInterface
-{
-  W_OBJECT(ProcessState)
-public:
-  enum Point
-  {
-    Start,
-    End
-  };
-  // watchedPoint : something between 0 and 1
-  ProcessState(ProcessModel& process, Point watchedPoint, QObject* parent);
-
-  ProcessModel& process() const;
-
-  State::Message message() const;
-  Point point() const;
-
-  std::vector<State::AddressAccessor> matchingAddresses() override;
-
-  ::State::MessageList messages() const override;
-
-  ::State::MessageList setMessages(
-      const ::State::MessageList&, const Process::MessageNode&) override;
-
-private:
-  Point m_point{};
-};
-
 class SCORE_PLUGIN_SCENARIO_EXPORT ProcessModel final
     : public Curve::CurveProcessModel
 {
@@ -73,8 +45,6 @@ public:
   template <typename Impl>
   ProcessModel(Impl& vis, QObject* parent)
       : CurveProcessModel{vis, parent}
-      , m_startState{new ProcessState{*this, ProcessState::Start, this}}
-      , m_endState{new ProcessState{*this, ProcessState::End, this}}
   {
     vis.writeTo(*this);
   }
@@ -124,18 +94,12 @@ private:
   bool contentHasDuration() const noexcept override;
   TimeVal contentDuration() const noexcept override;
 
-  /// States
-  ProcessState* startStateData() const noexcept override;
-  ProcessState* endStateData() const noexcept override;
-
   ::State::AddressAccessor m_address;
   State::Unit m_sourceUnit;
 
   ossia::value m_start{};
   ossia::value m_end{};
 
-  ProcessState* m_startState{};
-  ProcessState* m_endState{};
   bool m_tween = false;
 
   W_PROPERTY(bool, tween READ tween WRITE setTween NOTIFY tweenChanged)

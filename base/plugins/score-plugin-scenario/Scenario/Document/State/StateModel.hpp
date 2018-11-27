@@ -38,22 +38,6 @@ namespace Scenario
 class EventModel;
 class IntervalModel;
 class MessageItemModel;
-class ProcessStateWrapper final : public QObject
-{
-private:
-  ProcessStateDataInterface* m_proc;
-
-public:
-  ProcessStateWrapper(ProcessStateDataInterface* proc) : m_proc{proc}
-  {
-  }
-  ~ProcessStateWrapper() override;
-
-  ProcessStateDataInterface& process() const
-  {
-    return *m_proc;
-  }
-};
 
 // Model for the graphical state in a scenario.
 class SCORE_PLUGIN_SCENARIO_EXPORT StateModel final
@@ -64,8 +48,6 @@ class SCORE_PLUGIN_SCENARIO_EXPORT StateModel final
 
   SCORE_SERIALIZE_FRIENDS
 public:
-  using ProcessVector = std::list<ProcessStateWrapper>;
-
   score::EntityMap<Process::ProcessModel> stateProcesses;
   Selectable selection;
 
@@ -100,23 +82,6 @@ public:
   void setNextInterval(const OptionalId<IntervalModel>&);
   void setPreviousInterval(const OptionalId<IntervalModel>&);
 
-  ProcessVector& previousProcesses()
-  {
-    return m_previousProcesses;
-  }
-  ProcessVector& followingProcesses()
-  {
-    return m_nextProcesses;
-  }
-  const ProcessVector& previousProcesses() const
-  {
-    return m_previousProcesses;
-  }
-  const ProcessVector& followingProcesses() const
-  {
-    return m_nextProcesses;
-  }
-
   void setStatus(ExecutionStatus);
   ExecutionStatus status() const
   {
@@ -142,8 +107,6 @@ private:
   void statesUpdated_slt();
   void init(); // TODO check if other model elements need an init method too.
 
-  ProcessVector m_previousProcesses;
-  ProcessVector m_nextProcesses;
   Id<EventModel> m_eventId;
 
   // OPTIMIZEME if we shift to Id = int, put this Optional

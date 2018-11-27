@@ -84,10 +84,6 @@ public:
   virtual void stopExecution();
   virtual void reset();
 
-  /// States. The process has ownership.
-  virtual ProcessStateDataInterface* startStateData() const noexcept;
-  virtual ProcessStateDataInterface* endStateData() const noexcept;
-
   /// Selection
   virtual Selection selectableChildren() const noexcept;
   virtual Selection selectedChildren() const noexcept;

@@ -1,6 +1,7 @@
 #pragma once
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
 #include <State/Message.hpp>
+#include <Process/State/MessageNode.hpp>
 
 #include <score/command/Command.hpp>
 #include <score/model/path/Path.hpp>
@@ -28,7 +29,7 @@ protected:
 private:
   Path<StateModel> m_path;
 
-  State::MessageList m_oldState;
+  Process::MessageNode m_oldState;
 };
 }
 }

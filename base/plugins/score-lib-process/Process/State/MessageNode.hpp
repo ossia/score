@@ -10,7 +10,6 @@
 
 #include <QString>
 #include <QStringList>
-#include <QVector>
 
 #include <score_lib_process_export.h>
 
@@ -19,58 +18,41 @@
 namespace Process
 {
 class ProcessModel;
-
-struct ProcessStateData
-{
-  Id<Process::ProcessModel> process;
-  State::OptionalValue value;
-};
-
-enum class PriorityPolicy
-{
-  User,
-  Previous,
-  Following
-};
-
 struct SCORE_LIB_PROCESS_EXPORT StateNodeValues
 {
-  bool empty() const;
-
   // TODO use lists or queues instead to manage the priorities
-  QVector<ProcessStateData> previousProcessValues;
-  QVector<ProcessStateData> followingProcessValues;
-  State::OptionalValue userValue;
+  struct QualifiedValue
+  {
+    State::DestinationQualifiers qualifiers;
+    ossia::value value;
+    friend bool operator==(const QualifiedValue& lhs, const QualifiedValue& rhs) noexcept
+    { return lhs.qualifiers == rhs.qualifiers && lhs.value == rhs.value; }
+  };
 
-  std::array<PriorityPolicy, 3> priorities{{PriorityPolicy::Previous,
-                                            PriorityPolicy::Following,
-                                            PriorityPolicy::User}};
+  std::vector<QualifiedValue> userValue;
 
-  bool hasValue() const;
-
-  static bool hasValue(const QVector<ProcessStateData>& vec);
-  static QVector<ProcessStateData>::const_iterator
-  value(const QVector<ProcessStateData>& vec);
-
+  bool hasValue() const noexcept;
   // TODO here we have to choose a policy
   // if we have both previous and following processes ?
-  State::OptionalValue value() const;
+  optional<ossia::value> value() const noexcept;
+  ossia::value filledValue(int n) const noexcept;
 
-  QString displayValue() const;
+  friend bool operator==(const StateNodeValues& lhs, const StateNodeValues& rhs) noexcept;
+  bool empty() const noexcept;
+
+  ossia::unit_t unit() const noexcept;
 };
 
 struct SCORE_LIB_PROCESS_EXPORT StateNodeData
 {
-  State::AddressAccessorHead name;
+  QString name;
   StateNodeValues values;
 
   QString displayName() const;
   bool hasValue() const;
-  State::OptionalValue value() const;
+  optional<ossia::value> value() const;
 };
 
-SCORE_LIB_PROCESS_EXPORT QDebug
-operator<<(QDebug d, const ProcessStateData& mess);
 SCORE_LIB_PROCESS_EXPORT QDebug
 operator<<(QDebug d, const StateNodeData& mess);
 
@@ -88,8 +70,6 @@ SCORE_LIB_PROCESS_EXPORT std::vector<Process::MessageNode*>
 try_getNodesFromAddress(
     Process::MessageNode& root, const State::AddressAccessor& addr);
 SCORE_LIB_PROCESS_EXPORT State::MessageList flatten(const MessageNode&);
-SCORE_LIB_PROCESS_EXPORT State::MessageList
-getUserMessages(const MessageNode&);
 }
 
 extern template class SCORE_LIB_PROCESS_EXPORT
