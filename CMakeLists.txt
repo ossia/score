@@ -22,6 +22,7 @@ set(CMAKE_MODULE_PATH
 set(CMAKE_PREFIX_PATH
   "${OSSIA_SDK}/SDL2/cmake"
   "${OSSIA_SDK}/portaudio/lib/cmake"
+  "${OSSIA_SDK}/portaudio/lib/cmake/portaudio"
   "${CMAKE_PREFIX_PATH}"
 )
 if(NOT SCORE_CONFIGURATION)
