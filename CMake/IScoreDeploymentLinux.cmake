@@ -57,6 +57,15 @@ if(EXISTS "${CMAKE_BINARY_DIR}/base/plugins/score-plugin-media/faustlibs-prefix/
       "${CMAKE_BINARY_DIR}/base/plugins/score-plugin-media/faustlibs-prefix/src/faustlibs/"
     DESTINATION
       "share/faust"
+     PATTERN ".git" EXCLUDE
+     PATTERN "doc" EXCLUDE
+     PATTERN "*.html" EXCLUDE
+     PATTERN "*.svg" EXCLUDE
+     PATTERN "*.scad" EXCLUDE
+     PATTERN "*.obj" EXCLUDE
+     PATTERN "build" EXCLUDE
+     PATTERN ".gitignore" EXCLUDE
+     PATTERN "modalmodels" EXCLUDE
    )
 endif()
 
