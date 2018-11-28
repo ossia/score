@@ -91,6 +91,7 @@ score_plugin_engine::score_plugin_engine()
   qRegisterMetaType<Audio::AudioFactory::ConcreteKey>("AudioKey");
   qRegisterMetaTypeStreamOperators<Audio::AudioFactory::ConcreteKey>(
       "AudioKey");
+  qRegisterMetaType<std::vector<ossia::net::node_base*>>("std::vector<ossia::net::node_base*>");
 }
 
 score_plugin_engine::~score_plugin_engine()

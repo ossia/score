@@ -710,8 +710,6 @@ void JSONObjectWriter::write(Protocols::MapperSpecificSettings& n)
   n.text = obj["Text"].toString();
 }
 
-Q_DECLARE_METATYPE(std::vector<ossia::net::node_base*>)
-W_REGISTER_ARGTYPE(std::vector<ossia::net::node_base*>)
 Q_DECLARE_METATYPE(ossia::net::mapper_parameter*)
 W_REGISTER_ARGTYPE(ossia::net::mapper_parameter*)
 W_OBJECT_IMPL(Protocols::MapperDevice)

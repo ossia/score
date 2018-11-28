@@ -7,6 +7,8 @@
 
 #include <wobjectdefs.h>
 
+Q_DECLARE_METATYPE(std::vector<ossia::net::node_base*>)
+W_REGISTER_ARGTYPE(std::vector<ossia::net::node_base*>)
 class JSEdit;
 namespace Protocols
 {
