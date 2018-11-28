@@ -133,6 +133,27 @@ if (NOT FFMPEG_LIBRARIES)
     list(REMOVE_DUPLICATES FFMPEG_INCLUDE_DIRS)
   endif ()
 
+  if(WIN32)
+    #find_library(CRYPTO_LIBRARIES
+    #    NAMES
+    #      crypto
+    #    HINTS
+    #      "${OSSIA_SDK}/openssl/win64/lib"
+    #)
+    #if(CRYPTO_LIBRARIES)
+    #    set(FFMPEG_LIBRARIES ${FFMPEG_LIBRARIES} ${CRYPTO_LIBRARIES})
+    #endif()
+    #find_library(SSL_LIBRARIES
+    #    NAMES
+    #      ssl
+    #    HINTS
+    #      "${OSSIA_SDK}/openssl/win64/lib"
+    #)
+    #if(SSL_LIBRARIES)
+    #    set(FFMPEG_LIBRARIES ${FFMPEG_LIBRARIES} ${SSL_LIBRARIES})
+    #endif()
+    set(FFMPEG_LIBRARIES ${FFMPEG_LIBRARIES} Bcrypt.lib)
+  endif()
   # cache the vars.
   set(FFMPEG_INCLUDE_DIRS ${FFMPEG_INCLUDE_DIRS} CACHE STRING "The FFmpeg include directories." FORCE)
   set(FFMPEG_LIBRARIES    ${FFMPEG_LIBRARIES}    CACHE STRING "The FFmpeg libraries." FORCE)

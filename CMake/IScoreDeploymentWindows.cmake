@@ -69,13 +69,23 @@ install(
 install(CODE "
     file(GLOB_RECURSE DLLS_TO_REMOVE \"*.dll\")
     list(FILTER DLLS_TO_REMOVE INCLUDE REGEX \"qml/.*/*dll\")
-    file(REMOVE \${DLLS_TO_REMOVE})
+    if(NOT \"\${DLLS_TO_REMOVE}\" STREQUAL \"\")
+      file(REMOVE \${DLLS_TO_REMOVE})
+    endif()
 
     file(GLOB_RECURSE PDB_TO_REMOVE \"*.pdb\")
-    file(REMOVE \${PDB_TO_REMOVE})
-    ")
+    if(NOT \"\${PDB_TO_REMOVE}\" STREQUAL \"\")
+      file(REMOVE \${PDB_TO_REMOVE})
+    endif()
+
+    file(REMOVE_RECURSE
+        \"\${CMAKE_INSTALL_PREFIX}/include\"
+        \"\${CMAKE_INSTALL_PREFIX}/lib\"
+    )
+")
 
 install(FILES "${QT_QML_PLUGINS_DIR}/QtQuick.2/qtquick2plugin${DEBUG_CHAR}.dll" DESTINATION "${SCORE_BIN_INSTALL_DIR}/qml/QtQuick.2")
+
 # NSIS metadata
 set(CPACK_GENERATOR "NSIS")
 set(CPACK_PACKAGE_EXECUTABLES "score.exe;score")
