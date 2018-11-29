@@ -244,6 +244,13 @@ void Application::init()
   m_presenter = new score::Presenter{m_applicationSettings, m_settings,
                                      m_projectSettings, m_view, this};
 
+#if defined(SCORE_SPLASH_SCREEN)
+    if (splash)
+    {
+      splash->finish(m_view);
+      splash->deleteLater();
+    }
+#endif
   // Plugins
   loadPluginData();
 
@@ -257,13 +264,6 @@ void Application::init()
     m_view->showFullScreen();
 #endif
 
-#if defined(SCORE_SPLASH_SCREEN)
-    if (splash)
-    {
-      splash->finish(m_view);
-      splash->deleteLater();
-    }
-#endif
   }
 
   initDocuments();
