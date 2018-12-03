@@ -96,7 +96,6 @@ macro(find_component _component _pkgconfig _library _header)
 
 endmacro()
 
-
 # Check for cached results. If there are skip the costly part.
 if (NOT FFMPEG_LIBRARIES)
 
@@ -121,10 +120,12 @@ if (NOT FFMPEG_LIBRARIES)
     endif ()
   endforeach ()
 
-  if(UNIX AND NOT APPLE)
-    find_package(ZLIB)
-    if(TARGET ZLIB::ZLIB)
-      set(FFMPEG_LIBRARIES  "-Wl,--start-group" ${FFMPEG_LIBRARIES} ZLIB::ZLIB "-Wl,--end-group")
+  if(UNIX OR MSYS OR MINGW)
+    if(NOT APPLE)
+      find_package(ZLIB)
+      if(TARGET ZLIB::ZLIB)
+        set(FFMPEG_LIBRARIES  "-Wl,--start-group" ${FFMPEG_LIBRARIES} ZLIB::ZLIB "-Wl,--end-group")
+      endif()
     endif()
   endif()
 
