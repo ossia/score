@@ -6,6 +6,20 @@ set(SCORE_BIN_INSTALL_DIR ".")
 
 # Compiler Runtime DLLs
 set(CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS_SKIP true)
+
+if(MINGW)
+  get_target_property(ZLIB_LOCATION ZLIB::ZLIB IMPORTED_LOCATION_RELEASE)
+  get_filename_component(MINGW64_LIB ${ZLIB_LOCATION} DIRECTORY)  
+  
+  get_filename_component(cxx_path ${CMAKE_CXX_COMPILER} PATH)
+  set(CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS 
+        ${CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS} 
+        ${cxx_path}/libc++.dll 
+        ${cxx_path}/libunwind.dll
+        ${MINGW64_LIB}/../bin/zlib1.dll
+  )  
+endif()
+
 include(InstallRequiredSystemLibraries)
 install(FILES ${CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS}
         DESTINATION ${SCORE_BIN_INSTALL_DIR})
@@ -15,8 +29,6 @@ set(DEBUG_CHAR "$<$<CONFIG:Debug>:d>")
 
 get_target_property(QtCore_LOCATION Qt5::Core LOCATION)
 get_filename_component(QT_DLL_DIR ${QtCore_LOCATION} PATH)
-file(GLOB ICU_DLLS "${QT_DLL_DIR}/icu*.dll")
-# TODO instead register them somewhere like the plug-ins.
 
 if(NOT OSSIA_STATIC)
 install(FILES "$<TARGET_FILE:ossia>"
@@ -24,7 +36,6 @@ install(FILES "$<TARGET_FILE:ossia>"
 endif()
 
 install(FILES
-  ${ICU_DLLS}
   "${QT_DLL_DIR}/Qt5Core${DEBUG_CHAR}.dll"
   "${QT_DLL_DIR}/Qt5Gui${DEBUG_CHAR}.dll"
   "${QT_DLL_DIR}/Qt5Widgets${DEBUG_CHAR}.dll"
