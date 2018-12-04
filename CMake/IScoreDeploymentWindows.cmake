@@ -76,6 +76,25 @@ install(
   PATTERN
     "*.qmlc" EXCLUDE
  )
+ 
+# Faust stuff
+if(EXISTS "${CMAKE_BINARY_DIR}/base/plugins/score-plugin-media/faustlibs-prefix/src/faustlibs")
+  install(
+    DIRECTORY
+      "${CMAKE_BINARY_DIR}/base/plugins/score-plugin-media/faustlibs-prefix/src/faustlibs/"
+    DESTINATION
+      "${SCORE_BIN_INSTALL_DIR}/faust"
+      PATTERN ".git" EXCLUDE
+      PATTERN "doc" EXCLUDE
+      PATTERN "*.html" EXCLUDE
+      PATTERN "*.svg" EXCLUDE
+      PATTERN "*.scad" EXCLUDE
+      PATTERN "*.obj" EXCLUDE
+      PATTERN "build" EXCLUDE
+      PATTERN ".gitignore" EXCLUDE
+      PATTERN "modalmodels" EXCLUDE
+   )
+endif()
 
 install(CODE "
     file(GLOB_RECURSE DLLS_TO_REMOVE \"*.dll\")
