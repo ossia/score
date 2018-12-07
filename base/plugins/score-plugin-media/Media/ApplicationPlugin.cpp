@@ -265,7 +265,12 @@ void ApplicationPlugin::rescanVSTs(const QStringList& paths)
               "Effect/KnownVST2", QVariant::fromValue(vst_infos));
         });
     m_processes.back().second->start(
-        "ossia-score-vstpuppet", {path}, QProcess::ReadOnly);
+#if defined(__APPLE__)
+        qApp->applicationDirPath() + "/ossia-score-vstpuppet"
+#else
+        "ossia-score-vstpuppet"
+#endif
+        ,{path}, QProcess::ReadOnly);
     i++;
   }
 }
