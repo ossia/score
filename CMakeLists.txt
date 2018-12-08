@@ -85,7 +85,7 @@ else()
 endif()
 
 if(MSYS OR MINGW)
-  find_package(ZLIB)
+  find_package(ZLIB REQUIRED)
 endif()
 
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/API" )
