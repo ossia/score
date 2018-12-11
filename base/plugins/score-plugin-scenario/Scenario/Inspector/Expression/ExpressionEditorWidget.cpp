@@ -73,20 +73,29 @@ State::Expression ExpressionEditorWidget::expression()
       {
         auto p = lastRel->parent();
         // remove link between parent and current
-        auto oldC = p->back();
-        auto last_it = (++p->children().rbegin()).base();
-        p->removeChild(last_it);
+        if(p && !p->hasChildren())
+        {
+          auto oldC = p->back();
+          auto last_it = (++p->children().rbegin()).base();
+          p->removeChild(last_it);
 
-        // insert operator
-        p->emplace_back(*op, p);
-        auto& nOp = p->front();
+          // insert operator
+          p->emplace_back(*op, p);
+          auto& nOp = p->front();
 
-        // recreate link
-        oldC.setParent(&nOp);
-        nOp.push_back(oldC);
+          // recreate link
+          oldC.setParent(&nOp);
+          nOp.push_back(oldC);
 
-        // add the relation as child of the inserted operator
-        nOp.emplace_back(r->relation(), &nOp);
+          // add the relation as child of the inserted operator
+          nOp.emplace_back(r->relation(), &nOp);
+        }
+        else
+        {
+          // TODO investigate with scan-build.
+          qDebug() << "We shouldn't be in this case";
+          continue;
+        }
       }
     }
   }
@@ -225,8 +234,11 @@ void ExpressionEditorWidget::addNewTerm()
 
 void ExpressionEditorWidget::addNewTermAndFinish()
 {
-  addNewTerm();
-  on_editFinished();
+  if(m_relations.size() < 2)
+  {
+    addNewTerm();
+    on_editFinished();
+  }
 }
 
 void ExpressionEditorWidget::removeTermAndFinish(int index)
