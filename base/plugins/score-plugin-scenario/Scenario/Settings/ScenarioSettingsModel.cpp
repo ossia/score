@@ -26,7 +26,7 @@ SETTINGS_PARAMETER_IMPL(DefaultDuration){
 SETTINGS_PARAMETER_IMPL(SnapshotOnCreate){
     QStringLiteral("Scenario/SnapshotOnCreate"), false};
 SETTINGS_PARAMETER_IMPL(AutoSequence){QStringLiteral("Scenario/AutoSequence"),
-                                      true};
+                                      false};
 SETTINGS_PARAMETER_IMPL(TimeBar){QStringLiteral("Scenario/TimeBar"), true};
 
 static auto list()
