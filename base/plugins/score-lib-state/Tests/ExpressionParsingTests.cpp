@@ -488,6 +488,50 @@ private Q_SLOTS:
     // return 0;
   }
 
+  void test_parse_expr_multi()
+  {
+    for (auto& input : std::list<std::string>{
+         "{ %a:/b% != 1 };",
+         "{ { %a:/b% != 1 } and { %a:/b% != 2 } };",
+         "{ { %a:/b% != 1 } and { %a:/b% != 2 } and { %a:/b% != 3 } };",
+         "{ { %a:/b% != 1 } and { %a:/b% != 2 } and { %a:/b% != 3 } and { %a:/b% != 4 } };"
+        })
+    {
+      auto f(std::begin(input)), l(std::end(input));
+      Expression_parser<decltype(f)> p;
+
+      try
+      {
+        expr_raw result;
+        bool ok = qi::phrase_parse(f, l, p > ';', qi::space, result);
+
+        if (!ok)
+        {
+          qDebug() << "invalid input\n";
+          continue;
+        }
+
+        State::Expression e;
+
+        Expression_builder bldr{&e};
+        boost::apply_visitor(bldr, result);
+        qDebug() << e;
+
+        std::cout << std::flush;
+      }
+      catch (const qi::expectation_failure<decltype(f)>& e)
+      {
+        using namespace std::literals;
+        std::cerr << input << std::string(" : expectation_failure at '")
+                  << std::string(e.first, e.last) << std::string("'\n");
+        QVERIFY(false);
+      }
+
+      // if (f!=l) std::cerr << "unparsed: '" << std::string(f,l) << "'\n";
+    }
+
+    // return 0;
+  }
   void test_address_dot_in_instances()
   {
     debug_path(
@@ -525,19 +569,19 @@ private Q_SLOTS:
         "{ { %A:/B% > %c:/D% } and { %e:/f% > %g:/h% } }"s)));
   }
 
-  void test_parse_patternmatch()
-  {
-    using namespace std::literals;
-
-    QVERIFY(bool(State::TraversalPath::make_path("myapp:/score")));
-    QVERIFY(bool(State::TraversalPath::make_path("myapp:/score.")));
-    QVERIFY(bool(State::TraversalPath::make_path("myapp:/score.*")));
-    QVERIFY(bool(State::TraversalPath::make_path("../score/blop")));
-    QVERIFY(bool(
-        State::TraversalPath::make_path("myapp:/score.*/[a-z]*/{blurg}")));
-    QVERIFY(bool(State::TraversalPath::make_path("//score")));
-    QVERIFY(bool(State::TraversalPath::make_path("//score/blop")));
-  }
+  //void test_parse_patternmatch()
+  //{
+  //  using namespace std::literals;
+  //
+  //  QVERIFY(bool(State::TraversalPath::make_path("myapp:/score")));
+  //  QVERIFY(bool(State::TraversalPath::make_path("myapp:/score.")));
+  //  QVERIFY(bool(State::TraversalPath::make_path("myapp:/score.*")));
+  //  QVERIFY(bool(State::TraversalPath::make_path("../score/blop")));
+  //  QVERIFY(bool(
+  //      State::TraversalPath::make_path("myapp:/score.*/[a-z]*/{blurg}")));
+  //  QVERIFY(bool(State::TraversalPath::make_path("//score")));
+  //  QVERIFY(bool(State::TraversalPath::make_path("//score/blop")));
+  //}
 };
 
 QTEST_APPLESS_MAIN(ExpressionParsingTests)
