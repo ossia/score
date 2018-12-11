@@ -59,6 +59,8 @@ private:
       QPainter* painter, const QStyleOptionGraphicsItem* option,
       QWidget* widget) override;
   QPainterPath shape() const override;
+  QPainterPath opaqueArea() const override;
+  bool contains(const QPointF &point) const override;
   void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
   void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override;
   void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override;
