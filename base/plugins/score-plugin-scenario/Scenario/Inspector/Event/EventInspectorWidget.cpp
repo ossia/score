@@ -115,9 +115,6 @@ EventInspectorWidget::EventInspectorWidget(
     con(object, &EventModel::conditionChanged, m_exprEditor,
         &ExpressionEditorWidget::setExpression);
 
-    m_menu.menu->removeAction(m_menu.deleteAction);
-    delete m_menu.deleteAction; // Blergh
-
     m_exprEditor->setMenu(m_menu.menu);
 
     con(m_menu, &ExpressionMenu::expressionChanged, this,
@@ -138,6 +135,10 @@ EventInspectorWidget::EventInspectorWidget(
           }
         });
 
+    connect(m_menu.deleteAction, &QAction::triggered, this, [=] {
+      auto cmd = new Scenario::Command::SetCondition{*m_model, State::Expression{}};
+      m_commandDispatcher.submit(cmd);
+    });
     expr_lay->addWidget(m_exprEditor);
     m_properties.push_back(expr_widg);
   }
