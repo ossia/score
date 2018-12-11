@@ -32,6 +32,7 @@ CableItem::CableItem(
 {
   auto& plug = ctx.plugin<Process::DocumentPlugin>();
   this->setCursor(Qt::CrossCursor);
+  this->setFlag(QGraphicsItem::ItemClipsToShape);
   plug.cables().insert({&c, this});
 
   con(c.selection, &Selectable::changed, this, [=](bool b) { update(); });
@@ -83,6 +84,12 @@ QRectF CableItem::boundingRect() const
   return m_path.boundingRect();
 }
 
+bool CableItem::contains(const QPointF &point) const
+{
+  qDebug() << m_path;
+  return m_path.contains(point);
+}
+
 void CableItem::paint(
     QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
@@ -131,6 +138,7 @@ void CableItem::resize()
 {
   prepareGeometryChange();
 
+  m_path = QPainterPath{};
   if (m_p1 && m_p2)
   {
     auto p1 = m_p1->scenePos();
@@ -146,16 +154,11 @@ void CableItem::resize()
 
     auto first = p1.x() < p2.x() ? p1 : p2;
     auto last = p1.x() >= p2.x() ? p1 : p2;
-    QPainterPath p;
-    p.moveTo(first.x(), first.y());
-    p.cubicTo(
+
+    m_path.moveTo(first.x(), first.y());
+    m_path.cubicTo(
         first.x() + a1, last.y() + a2, first.x() + a3, last.y() + a4, last.x(),
         last.y());
-    m_path = std::move(p);
-  }
-  else
-  {
-    m_path = QPainterPath{};
   }
 
   update();
@@ -221,6 +224,11 @@ QPainterPath CableItem::shape() const
   }()};
 
   return cable_stroker.createStroke(m_path);
+}
+
+QPainterPath CableItem::opaqueArea() const
+{
+  return m_path;
 }
 
 void CableItem::mousePressEvent(QGraphicsSceneMouseEvent* event)
