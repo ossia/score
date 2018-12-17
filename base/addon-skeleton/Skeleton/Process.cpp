@@ -18,7 +18,7 @@ Model::~Model()
 {
 }
 
-QString Model::prettyName() const
+QString Model::prettyName() const noexcept
 {
   return tr("Skeleton Process");
 }
@@ -35,15 +35,15 @@ void Model::reset()
 {
 }
 
-void Model::setDurationAndScale(const TimeVal& newDuration)
+void Model::setDurationAndScale(const TimeVal& newDuration) noexcept
 {
 }
 
-void Model::setDurationAndGrow(const TimeVal& newDuration)
+void Model::setDurationAndGrow(const TimeVal& newDuration) noexcept
 {
 }
 
-void Model::setDurationAndShrink(const TimeVal& newDuration)
+void Model::setDurationAndShrink(const TimeVal& newDuration) noexcept
 {
 }
 }
