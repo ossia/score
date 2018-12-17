@@ -20,9 +20,9 @@ target_include_directories(
     "${SCORE_ROOT_SOURCE_DIR}/base/plugins/score-plugin-media")
 
 if(APPLE AND DEPLOYMENT_BUILD)
-  set_target_property(
+  set_target_properties(
       ossia-score-vstpuppet
-      PROPERTY
+      PROPERTIES
         RUNTIME_OUTPUT_DIRECTORY score.app/Contents/MacOS)
   install(
     TARGETS ossia-score-vstpuppet
