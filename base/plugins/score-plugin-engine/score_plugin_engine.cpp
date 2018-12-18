@@ -182,8 +182,21 @@ score_plugin_engine::factories(
          Audio::JackFactory
 #endif
 #if defined(OSSIA_AUDIO_PORTAUDIO)
-         ,
-         Audio::PortAudioFactory
+    #if !defined(_WIN32)
+         , Audio::PortAudioFactory
+    #endif
+    #if __has_include(<pa_asio.h>)
+         , Audio::ASIOFactory
+    #endif
+    #if __has_include(<pa_win_wdmks.h>)
+         , Audio::WDMKSFactory
+    #endif
+    #if __has_include(<pa_win_wasapi.h>)
+         , Audio::WASAPIFactory
+    #endif
+    #if __has_include(<pa_win_wmme.h>)
+         , Audio::MMEFactory
+    #endif
 #endif
 #if defined(OSSIA_AUDIO_SDL)
          ,
