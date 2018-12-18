@@ -1212,3 +1212,17 @@ void JSEdit::mark(const QString& str, Qt::CaseSensitivity sens)
 {
   d_ptr->highlighter->mark(str, sens);
 }
+
+void JSEdit::dropEvent(QDropEvent *event)
+{
+  if(auto urls = event->mimeData()->urls(); !urls.isEmpty())
+  {
+    QFile f{urls.first().toLocalFile()};
+    if(f.open(QIODevice::ReadOnly))
+    {
+      auto txt = f.readAll();
+      document()->setPlainText(txt);
+      editingFinished(txt);
+    }
+  }
+}
