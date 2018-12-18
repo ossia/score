@@ -1189,8 +1189,8 @@ public:
     }
 
     {
-        lay->addRow(QObject::tr("Informations"), informations);
-        set_informations(devices[card_list->itemData(card_list->currentIndex()).toInt()]);
+      lay->addWidget(informations);
+      set_informations(devices[card_list->itemData(card_list->currentIndex()).toInt()]);
     }
     con(m, &Model::changed, &v, [=, &m] {
       setCard(card_list, m.getCardOut());
