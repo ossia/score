@@ -19,6 +19,7 @@
 
 #include <Execution/DocumentPlugin.hpp>
 #include <Library/LibraryInterface.hpp>
+#include <Process/Drop/ProcessDropHandler.hpp>
 #include <score_plugin_js_commands_files.hpp>
 
 namespace JS
@@ -31,6 +32,35 @@ class LibraryHandler final
   QSet<QString> acceptedFiles() const noexcept override
   {
     return {"js", "qml"};
+  }
+};
+
+class DropHandler final
+        : public Process::ProcessDropHandler
+{
+  SCORE_CONCRETE("ad3a575a-f4a8-4a89-bb7e-bfd85f3430fe")
+
+  QSet<QString> fileExtensions() const noexcept override
+  {
+    return {"js", "qml"};
+  }
+
+  std::vector<Process::ProcessDropHandler::ProcessDrop> dropData(
+      const std::vector<QByteArray>& data
+      , const score::DocumentContext& ctx) const noexcept override
+  {
+    std::vector<Process::ProcessDropHandler::ProcessDrop> vec;
+
+    for (auto&& file : data)
+    {
+      Process::ProcessDropHandler::ProcessDrop p;
+      p.creation.key = Metadata<ConcreteKey_k, ProcessModel>::get();
+      p.creation.customData = std::move(file);
+
+      vec.push_back(std::move(p));
+    }
+
+    return vec;
   }
 };
 }
@@ -65,6 +95,7 @@ std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_js::factories(
       FW<Inspector::InspectorWidgetFactory, JS::InspectorFactory>,
       FW<score::PanelDelegateFactory, JS::PanelDelegateFactory>,
       FW<Library::LibraryInterface, JS::LibraryHandler>,
+      FW<Process::ProcessDropHandler, JS::DropHandler>,
       FW<Execution::ProcessComponentFactory, JS::Executor::ComponentFactory>
           >(ctx, key);
 }
