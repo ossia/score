@@ -86,8 +86,9 @@ public:
 
 public:
   void editingFinished(QString arg_1)
-      E_SIGNAL(SCORE_LIB_BASE_EXPORT, editingFinished, arg_1);
-  void focused() E_SIGNAL(SCORE_LIB_BASE_EXPORT, focused);
+  E_SIGNAL(SCORE_LIB_BASE_EXPORT, editingFinished, arg_1);
+  void focused()
+  E_SIGNAL(SCORE_LIB_BASE_EXPORT, focused);
 
 public:
   void updateSidebar();
@@ -128,6 +129,7 @@ private:
   W_SLOT(do_updateSidebar);
 
 private:
+  void dropEvent(QDropEvent *event) override;
   void focusInEvent(QFocusEvent* event) override;
   QScopedPointer<JSEditPrivate> d_ptr;
   Q_DECLARE_PRIVATE(JSEdit)

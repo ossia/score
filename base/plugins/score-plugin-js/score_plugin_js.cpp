@@ -18,7 +18,22 @@
 #include <score/tools/std/HashMap.hpp>
 
 #include <Execution/DocumentPlugin.hpp>
+#include <Library/LibraryInterface.hpp>
 #include <score_plugin_js_commands_files.hpp>
+
+namespace JS
+{
+class LibraryHandler final
+    : public Library::LibraryInterface
+{
+  SCORE_CONCRETE("5231ea8b-da66-4c6f-9e34-d9a79cbc494a")
+
+  QSet<QString> acceptedFiles() const noexcept override
+  {
+    return {"js", "qml"};
+  }
+};
+}
 
 score_plugin_js::score_plugin_js()
 {
@@ -49,8 +64,9 @@ std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_js::factories(
       FW<Process::LayerFactory, JS::LayerFactory>,
       FW<Inspector::InspectorWidgetFactory, JS::InspectorFactory>,
       FW<score::PanelDelegateFactory, JS::PanelDelegateFactory>,
-      FW<Execution::ProcessComponentFactory, JS::Executor::ComponentFactory>>(
-      ctx, key);
+      FW<Library::LibraryInterface, JS::LibraryHandler>,
+      FW<Execution::ProcessComponentFactory, JS::Executor::ComponentFactory>
+          >(ctx, key);
 }
 
 std::pair<const CommandGroupKey, CommandGeneratorMap>
