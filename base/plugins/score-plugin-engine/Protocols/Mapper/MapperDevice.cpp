@@ -16,6 +16,7 @@
 #include <ossia/network/base/protocol.hpp>
 #include <ossia/network/common/node_visitor.hpp>
 #include <ossia/network/generic/wrapped_parameter.hpp>
+#include <score/widgets/Layout.hpp>
 
 #include <QDebug>
 #include <QFormLayout>
@@ -25,6 +26,7 @@
 #include <QQmlContext>
 #include <QQmlEngine>
 #include <QThread>
+#include <QLabel>
 
 #include <wobjectdefs.h>
 #include <wobjectimpl.h>
@@ -644,8 +646,9 @@ MapperProtocolSettingsWidget::MapperProtocolSettingsWidget(QWidget* parent)
   m_codeEdit->setSizePolicy(
         QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
   m_codeEdit->setMinimumHeight(300);
+  m_codeEdit->setMaximumHeight(16777215);
 
-  auto lay = new QFormLayout;
+  auto lay = new score::FormLayout;
   lay->addRow(tr("Name"), m_name);
   lay->addRow(tr("Code"), m_codeEdit);
 
