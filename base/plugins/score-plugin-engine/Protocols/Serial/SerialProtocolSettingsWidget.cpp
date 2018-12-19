@@ -10,6 +10,7 @@
 #include <State/Widgets/AddressFragmentLineEdit.hpp>
 
 #include <score/widgets/JS/JSEdit.hpp>
+#include <score/widgets/Layout.hpp>
 
 #include <QComboBox>
 #include <QFormLayout>
@@ -38,7 +39,7 @@ SerialProtocolSettingsWidget::SerialProtocolSettingsWidget(QWidget* parent)
     m_port->addItem(port.portName());
   }
 
-  auto lay = new QFormLayout;
+  auto lay = new score::FormLayout;
   lay->addRow(tr("Name"), m_name);
   lay->addRow(tr("Port"), m_port);
   lay->addRow(tr("Code"), m_codeEdit);
