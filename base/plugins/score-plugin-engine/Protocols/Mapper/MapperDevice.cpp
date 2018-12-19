@@ -189,6 +189,7 @@ ossia::small_vector<ossia::value, 4> apply_reply(const QJSValue& arr)
   }
   return res;
 }
+
 struct mapper_parameter_data_base
 {
   mapper_parameter_data_base() = default;
@@ -239,8 +240,9 @@ struct mapper_parameter_data final : public parameter_data,
 };
 
 class mapper_protocol;
-struct mapper_parameter final : wrapped_parameter<mapper_parameter_data>,
-    Nano::Observer
+struct mapper_parameter final
+    : wrapped_parameter<mapper_parameter_data>
+    , Nano::Observer
 {
 public:
   using wrapped_parameter<mapper_parameter_data>::wrapped_parameter;
@@ -282,7 +284,7 @@ public:
   callback_stopper stop_callbacks() { return *this; }
   std::atomic_bool m_stop_callbacks = false;
   ossia::fast_hash_map<
-    const ossia::net::node_base*
+  const ossia::net::node_base*
   , ossia::net::parameter_base::iterator> callbacks;
 };
 using mapper_node
@@ -535,59 +537,77 @@ class MapperDevice final : public Device::OwningDeviceInterface
 {
   W_OBJECT(MapperDevice)
 
-  public:
-    MapperDevice(
+public:
+
+  MapperDevice(
       const Device::DeviceSettings& settings,
       const score::DocumentContext& ctx)
-  : OwningDeviceInterface {settings}
-  , m_list {ctx.plugin<Explorer::DeviceDocumentPlugin>().list()}
-{
-  m_capas.canRefreshTree = true;
-  m_capas.canAddNode = false;
-  m_capas.canRemoveNode = false;
-  m_capas.canSerialize = false;
-  m_capas.canRenameNode = false;
-  m_capas.canSetProperties = false;
-}
-
-bool reconnect() override
-{
-  disconnect();
-
-  try
+    : OwningDeviceInterface {settings}
+    , context{ctx}
+    , m_list {}
   {
-    const auto& stgs
-        = settings().deviceSpecificSettings.value<MapperSpecificSettings>();
-
-    m_dev = std::make_unique<ossia::net::mapper_device>(
-          std::make_unique<ossia::net::mapper_protocol>(
-            stgs.text.toUtf8(), m_list),
-          settings().name.toStdString());
-
-    deviceChanged(nullptr, m_dev.get());
-
-    enableCallbacks();
-
-    setLogging_impl(Device::get_cur_logging(isLogging()));
-  }
-  catch (std::exception& e)
-  {
-    qDebug() << "Could not connect: " << e.what();
-  }
-  catch (...)
-  {
-    // TODO save the reason of the non-connection.
+    m_capas.canRefreshTree = true;
+    m_capas.canAddNode = false;
+    m_capas.canRemoveNode = false;
+    m_capas.canSerialize = false;
+    m_capas.canRenameNode = false;
+    m_capas.canSetProperties = false;
   }
 
-  return connected();
-}
+  bool reconnect() override
+  {
+    disconnect();
 
-~MapperDevice()
-{
-}
+    auto devlist = devices();
+    if(!devlist)
+      return false;
+
+    try
+    {
+      const auto& stgs
+          = settings().deviceSpecificSettings.value<MapperSpecificSettings>();
+
+      m_dev = std::make_unique<ossia::net::mapper_device>(
+            std::make_unique<ossia::net::mapper_protocol>(
+              stgs.text.toUtf8(), *devlist),
+            settings().name.toStdString());
+
+      deviceChanged(nullptr, m_dev.get());
+
+      enableCallbacks();
+
+      setLogging_impl(Device::get_cur_logging(isLogging()));
+    }
+    catch (std::exception& e)
+    {
+      qDebug() << "Could not connect: " << e.what();
+    }
+    catch (...)
+    {
+      // TODO save the reason of the non-connection.
+    }
+
+    return connected();
+  }
+
+  ~MapperDevice() override
+  {
+  }
 
 private:
-Device::DeviceList& m_list;
+  Device::DeviceList* devices()
+  {
+    if(m_list)
+      return m_list;
+
+    auto plug = context.findPlugin<Explorer::DeviceDocumentPlugin>();//list()
+    if(plug)
+      m_list = &plug->list();
+
+    return m_list;
+  }
+  const score::DocumentContext& context;
+  Device::DeviceList* m_list{};
 };
 
 QString MapperProtocolFactory::prettyName() const
