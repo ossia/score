@@ -469,9 +469,9 @@ private:
     return false;
   }
 
-  bool push(const ossia::net::parameter_base& parameter_base) override
+  bool push(const ossia::net::parameter_base& parameter_base, const ossia::value& v) override
   {
-    sig_push((mapper_parameter*)&parameter_base, parameter_base.value());
+    sig_push((mapper_parameter*)&parameter_base, v);
     return true;
   }
 

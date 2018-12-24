@@ -7,8 +7,10 @@
 #include <Device/Protocol/ProtocolSettingsWidget.hpp>
 #include <State/Widgets/AddressFragmentLineEdit.hpp>
 
+#include <Protocols/RateWidget.hpp>
 #include <score/widgets/MarginLess.hpp>
 
+#include <QCheckBox>
 #include <QFileDialog>
 #include <QFormLayout>
 #include <QGridLayout>
@@ -17,10 +19,9 @@
 #include <QPushButton>
 #include <QSpinBox>
 #include <QVariant>
-
 #include <wobjectimpl.h>
-W_OBJECT_IMPL(Protocols::OSCProtocolSettingsWidget)
 
+W_OBJECT_IMPL(Protocols::RateWidget)
 namespace Protocols
 {
 OSCProtocolSettingsWidget::OSCProtocolSettingsWidget(QWidget* parent)
@@ -36,11 +37,14 @@ OSCProtocolSettingsWidget::OSCProtocolSettingsWidget(QWidget* parent)
 
   m_localHostEdit = new QLineEdit(this);
 
+  m_rate = new RateWidget{this};
+
   auto layout = new QFormLayout{this};
   layout->addRow(tr("Device name"), m_deviceNameEdit);
   layout->addRow(tr("Device listening port"), m_portInputSBox);
   layout->addRow(tr("score listening port"), m_portOutputSBox);
   layout->addRow(tr("Device host"), m_localHostEdit);
+  layout->addRow(tr("Rate"), m_rate);
   setDefaults();
 }
 
@@ -50,6 +54,7 @@ void OSCProtocolSettingsWidget::setDefaults()
   m_portOutputSBox->setValue(9997);
   m_portInputSBox->setValue(9996);
   m_localHostEdit->setText("127.0.0.1");
+  m_rate->setRate({});
 }
 
 Device::DeviceSettings OSCProtocolSettingsWidget::getSettings() const
@@ -61,6 +66,7 @@ Device::DeviceSettings OSCProtocolSettingsWidget::getSettings() const
   osc.host = m_localHostEdit->text();
   osc.inputPort = m_portInputSBox->value();
   osc.outputPort = m_portOutputSBox->value();
+  osc.rate = m_rate->rate();
 
   // TODO list.append(m_namespaceFilePathEdit->text());
   s.deviceSpecificSettings = QVariant::fromValue(osc);
@@ -79,6 +85,7 @@ void OSCProtocolSettingsWidget::setSettings(
     m_portInputSBox->setValue(osc.inputPort);
     m_portOutputSBox->setValue(osc.outputPort);
     m_localHostEdit->setText(osc.host);
+    m_rate->setRate(osc.rate);
   }
 }
 }

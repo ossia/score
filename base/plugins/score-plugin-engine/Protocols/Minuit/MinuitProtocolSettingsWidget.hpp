@@ -10,6 +10,7 @@ class QWidget;
 
 namespace Protocols
 {
+class RateWidget;
 class MinuitProtocolSettingsWidget final
     : public Device::ProtocolSettingsWidget
 {
@@ -29,6 +30,7 @@ protected:
   QSpinBox* m_portOutputSBox{};
   QLineEdit* m_localHostEdit{};
   QLineEdit* m_localNameEdit{};
+  RateWidget* m_rate{};
 
   ZeroconfBrowser* m_browser{};
 };
