@@ -6,6 +6,7 @@
 #include <Explorer/DeviceList.hpp>
 #include <Explorer/DeviceLogging.hpp>
 #include <Protocols/OSC/OSCSpecificSettings.hpp>
+#include <score/application/ApplicationContext.hpp>
 
 #include <ossia/network/generic/generic_device.hpp>
 #include <ossia/network/generic/generic_parameter.hpp>
@@ -16,8 +17,10 @@
 #include <QVariant>
 
 #include <memory>
+
 namespace Protocols
 {
+
 OSCDevice::OSCDevice(const Device::DeviceSettings& settings)
     : OwningDeviceInterface{settings}
 {

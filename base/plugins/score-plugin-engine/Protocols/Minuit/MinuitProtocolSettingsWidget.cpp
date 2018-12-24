@@ -6,6 +6,7 @@
 
 #include <Device/Protocol/ProtocolSettingsWidget.hpp>
 #include <State/Widgets/AddressFragmentLineEdit.hpp>
+#include <Protocols/RateWidget.hpp>
 
 #include <QAction>
 #include <QFormLayout>
@@ -36,6 +37,8 @@ MinuitProtocolSettingsWidget::MinuitProtocolSettingsWidget(QWidget* parent)
   m_localHostEdit = new QLineEdit(this);
   m_localNameEdit = new QLineEdit(this);
 
+  m_rate = new RateWidget{this};
+
   QFormLayout* layout = new QFormLayout;
 
 #if defined(OSSIA_DNSSD)
@@ -59,6 +62,7 @@ MinuitProtocolSettingsWidget::MinuitProtocolSettingsWidget(QWidget* parent)
   layout->addRow(tr("score listening port"), m_portOutputSBox);
   layout->addRow(tr("Host"), m_localHostEdit);
   layout->addRow(tr("Local Name"), m_localNameEdit);
+  layout->addRow(tr("Rate"), m_rate);
 
   setLayout(layout);
 
@@ -76,6 +80,7 @@ void MinuitProtocolSettingsWidget::setDefaults()
   m_portOutputSBox->setValue(13579);
   m_localHostEdit->setText("127.0.0.1");
   m_localNameEdit->setText("score");
+  m_rate->setRate({});
 }
 
 Device::DeviceSettings MinuitProtocolSettingsWidget::getSettings() const
@@ -90,6 +95,7 @@ Device::DeviceSettings MinuitProtocolSettingsWidget::getSettings() const
   minuit.localName = m_localNameEdit->text();
   minuit.inputPort = m_portInputSBox->value();
   minuit.outputPort = m_portOutputSBox->value();
+  minuit.rate = m_rate->rate();
 
   s.deviceSpecificSettings = QVariant::fromValue(minuit);
   return s;
@@ -109,6 +115,7 @@ void MinuitProtocolSettingsWidget::setSettings(
     m_portOutputSBox->setValue(minuit.outputPort);
     m_localHostEdit->setText(minuit.host);
     m_localNameEdit->setText(minuit.localName);
+    m_rate->setRate(minuit.rate);
   }
 }
 }

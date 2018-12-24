@@ -1,7 +1,6 @@
 #pragma once
 #include <Device/Protocol/DeviceSettings.hpp>
 #include <Device/Protocol/ProtocolSettingsWidget.hpp>
-
 #include <QNetworkAccessManager>
 #include <QNetworkRequest>
 
@@ -13,6 +12,7 @@ class QWidget;
 
 namespace Protocols
 {
+class RateWidget;
 class OSCQueryProtocolSettingsWidget final
     : public Device::ProtocolSettingsWidget
 {
@@ -33,5 +33,6 @@ protected:
   ZeroconfBrowser* m_browser{};
   QNetworkAccessManager m_http_client;
   QNetworkReply* m_cur_reply{};
+  RateWidget* m_rate{};
 };
 }
