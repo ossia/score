@@ -10,6 +10,7 @@
 #include <ossia/network/generic/generic_device.hpp>
 #include <ossia/network/generic/generic_parameter.hpp>
 #include <ossia/network/minuit/minuit.hpp>
+#include <ossia/network/rate_limiting_protocol.hpp>
 
 #include <QString>
 #include <QVariant>
@@ -42,6 +43,13 @@ bool MinuitDevice::reconnect()
         = std::make_unique<ossia::net::minuit_protocol>(
             stgs.localName.toStdString(), stgs.host.toStdString(),
             stgs.inputPort, stgs.outputPort);
+
+    if(stgs.rate)
+    {
+      ossia_settings = std::make_unique<ossia::net::rate_limiting_protocol>(
+            std::chrono::milliseconds{*stgs.rate},
+            std::move(ossia_settings));
+    }
 
     m_dev = std::make_unique<ossia::net::generic_device>(
         std::move(ossia_settings), settings().name.toStdString());
