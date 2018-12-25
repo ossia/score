@@ -4,24 +4,29 @@
 #include <QHBoxLayout>
 #include <ossia/detail/optional.hpp>
 #include <wobjectdefs.h>
+#include <score/widgets/MarginLess.hpp>
 
 namespace Protocols
 {
 class RateWidget final : public QWidget
 {
-  QCheckBox* m_check{};
-  QSpinBox* m_spin{};
-
   W_OBJECT(RateWidget)
 
-  public:
-  RateWidget(QWidget* parent = nullptr)
+public:
+  RateWidget(QWidget* parent = nullptr) noexcept
     : QWidget{parent}
+  , m_check{new QCheckBox{this}}
+  , m_spin{new QSpinBox{this}}
   {
-    auto lay = new QHBoxLayout;
+    auto lay = new score::MarginLess<QHBoxLayout>;
 
     lay->addWidget(m_check);
     lay->addWidget(m_spin);
+    m_spin->setSizePolicy(QSizePolicy::MinimumExpanding, {});
+    m_spin->setSuffix("ms");
+    m_spin->setRange(1, 5000);
+    lay->setStretch(0, 1);
+    lay->setStretch(1, 20);
 
     connect(m_check, &QCheckBox::toggled,
             this, [=] (bool t) {
@@ -62,6 +67,10 @@ class RateWidget final : public QWidget
 
   void rateChanged(ossia::optional<int> v)
   W_SIGNAL(rateChanged, v);
+
+private:
+  QCheckBox* m_check{};
+  QSpinBox* m_spin{};
 };
 
 

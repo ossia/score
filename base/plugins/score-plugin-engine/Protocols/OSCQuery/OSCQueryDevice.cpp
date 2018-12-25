@@ -10,6 +10,7 @@
 #include <ossia/network/generic/generic_device.hpp>
 #include <ossia/network/generic/generic_parameter.hpp>
 #include <ossia/network/oscquery/oscquery_mirror.hpp>
+#include <ossia/network/rate_limiting_protocol.hpp>
 
 #include <QString>
 #include <QTimer>
@@ -58,11 +59,18 @@ bool OSCQueryDevice::reconnect()
     auto stgs
         = settings().deviceSpecificSettings.value<OSCQuerySpecificSettings>();
 
-    auto ossia_settings
+    std::unique_ptr<ossia::net::protocol_base> ossia_settings
         = std::make_unique<ossia::oscquery::oscquery_mirror_protocol>(
             stgs.host.toStdString());
-    auto& p = *ossia_settings;
 
+    auto& p = static_cast<ossia::oscquery::oscquery_mirror_protocol&>(*ossia_settings);
+
+    if(stgs.rate)
+    {
+      ossia_settings = std::make_unique<ossia::net::rate_limiting_protocol>(
+            std::chrono::milliseconds{*stgs.rate},
+            std::move(ossia_settings));
+    }
     // run the commands in the Qt event loop
     // FIXME they should be disabled upon manual disconnection
 
