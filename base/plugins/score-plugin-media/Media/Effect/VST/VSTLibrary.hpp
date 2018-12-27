@@ -1,11 +1,14 @@
 #pragma once
 #include <Library/LibraryInterface.hpp>
 #include <Library/ProcessesItemModel.hpp>
+#include <Media/ApplicationPlugin.hpp>
 #include <Media/Effect/VST/VSTEffectModel.hpp>
 
 namespace Media::VST
 {
-class LibraryHandler final : public Library::LibraryInterface
+class LibraryHandler final
+    : public QObject
+    , public Library::LibraryInterface
 {
   SCORE_CONCRETE("6a13c3cc-bca7-44d6-a0ef-644e99204460")
   void setup(
@@ -24,28 +27,41 @@ class LibraryHandler final : public Library::LibraryInterface
     auto& fx = parent.emplace_back(Library::ProcessData{"Effects", QIcon{}, {}, {}}, &parent);
     auto& inst = parent.emplace_back(Library::ProcessData{"Instruments", QIcon{}, {}, {}}, &parent);
     auto& plug = ctx.applicationPlugin<Media::ApplicationPlugin>();
-    for (const auto& vst : plug.vst_infos)
-    {
-      if (vst.isValid)
-      {
-        QJsonObject obj;
-        obj["Type"] = "Process";
-        obj["uuid"] = toJsonValue(key.impl());
-        obj["Data"] = QString::number(vst.uniqueID);
 
-        const auto& name = vst.displayName.isEmpty() ? vst.prettyName : vst.displayName;
-        if(vst.isSynth)
+    auto reset_plugs = [&] {
+      for (const auto& vst : plug.vst_infos)
+      {
+        if (vst.isValid)
         {
-          inst.emplace_back(
-              Library::ProcessData{name, QIcon{}, obj, key}, &inst);
-        }
-        else
-        {
-          fx.emplace_back(
-              Library::ProcessData{name, QIcon{}, obj, key}, &fx);
+          QJsonObject obj;
+          obj["Type"] = "Process";
+          obj["uuid"] = toJsonValue(key.impl());
+          obj["Data"] = QString::number(vst.uniqueID);
+
+          const auto& name = vst.displayName.isEmpty() ? vst.prettyName : vst.displayName;
+          if(vst.isSynth)
+          {
+            inst.emplace_back(
+                  Library::ProcessData{name, QIcon{}, obj, key}, &inst);
+          }
+          else
+          {
+            fx.emplace_back(
+                  Library::ProcessData{name, QIcon{}, obj, key}, &fx);
+          }
         }
       }
-    }
+    };
+
+    reset_plugs();
+
+    con(plug, &Media::ApplicationPlugin::vstChanged, this, [=,&model,&fx,&inst] {
+      model.beginResetModel();
+      fx.resize(0);
+      inst.resize(0);
+      reset_plugs();
+      model.endResetModel();
+    });
   }
 };
 }
