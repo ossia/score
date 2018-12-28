@@ -61,19 +61,6 @@ if(SCORE_STATIC_QT)
        )
   endfunction()
 
-  # Needed because Qt still finds stuff in /usr/lib first
-  function(cleanup_library_list the_list)
-    set(ok_list)
-    foreach(_lib ${${the_list}})
-        if("${_lib}" MATCHES ".*Qt5([a-zA-Z0-9]*)${CMAKE_DYNAMIC_LIBRARY_SUFFIX}")
-          list(APPEND ok_list "${QT_LIB_FOLDER}/${CMAKE_STATIC_LIBRARY_PREFIX}Qt5${CMAKE_MATCH_1}${CMAKE_STATIC_LIBRARY_SUFFIX}")
-        else()
-          list(APPEND ok_list "${_lib}")
-        endif()
-    endforeach()
-    set("${the_list}" "${ok_list}" PARENT_SCOPE)
-  endfunction()
-
   # First we generate _FOO_STATIC_RELEASE_LIB_DEPENDENCIES variables by parsing the .prl files
   process_qt_plugin("plugins/imageformats/${CMAKE_STATIC_LIBRARY_PREFIX}qsvg.prl" qsvg_plugin)
   process_qt_plugin("plugins/imageformats/${CMAKE_STATIC_LIBRARY_PREFIX}qjpeg.prl" qjpeg_plugin)
@@ -115,25 +102,33 @@ if(SCORE_STATIC_QT)
   # Then we generate the actual list of linked libraries
   set(QT_LIBS_DEPS)
   foreach(var ${QT_LIBS_VARIABLES})
-      cleanup_library_list(_${var}_STATIC_RELEASE_LIB_DEPENDENCIES)
       set(QT_LIBS_DEPS "${QT_LIBS_DEPS}" "${_${var}_STATIC_RELEASE_LIB_DEPENDENCIES}")
   endforeach()
 endif()
+
 
 function(static_link_qt _target)
   if(SCORE_STATIC_QT)
     target_link_libraries(
         ${_target} PRIVATE
-        Qt5::Core Qt5::Gui Qt5::Widgets Qt5::DBus Qt5::Network Qt5::Svg Qt5::Xml
-        Qt5::Qml Qt5::Quick Qt5::QuickControls2
-        Qt5::WebSockets
-        Qt5::QXcbIntegrationPlugin
-        Qt5::QXcbGlxIntegrationPlugin
-        Qt5::QSvgPlugin
-        Qt5::QJpegPlugin
-        Qt5::QSvgIconPlugin
+
+        ${QT_ROOT_FOLDER}/plugins/imageformats/${CMAKE_STATIC_LIBRARY_PREFIX}qjpeg${CMAKE_STATIC_LIBRARY_SUFFIX}
+        ${QT_ROOT_FOLDER}/plugins/imageformats/${CMAKE_STATIC_LIBRARY_PREFIX}qsvg${CMAKE_STATIC_LIBRARY_SUFFIX}
+        ${QT_ROOT_FOLDER}/plugins/iconengines/${CMAKE_STATIC_LIBRARY_PREFIX}qsvgicon${CMAKE_STATIC_LIBRARY_SUFFIX}
         ${QT_ROOT_FOLDER}/qml/QtQuick.2/${CMAKE_STATIC_LIBRARY_PREFIX}qtquick2plugin${CMAKE_STATIC_LIBRARY_SUFFIX}
-        ${QT_LIBS_DEPS}
     )
+
+    if(APPLE)
+    elseif(WIN32)
+    else()
+      target_link_libraries(
+        ${_target} PRIVATE
+          ${QT_ROOT_FOLDER}/plugins/platforms/${CMAKE_STATIC_LIBRARY_PREFIX}qxcb${CMAKE_STATIC_LIBRARY_SUFFIX}
+          ${QT_ROOT_FOLDER}/plugins/xcbglintegrations/${CMAKE_STATIC_LIBRARY_PREFIX}qxcb-glx-integration${CMAKE_STATIC_LIBRARY_SUFFIX}
+      )
+    endif()
+
+    # Link order is important, this must stay at the end
+    target_link_libraries(${_target} PRIVATE ${QT_LIBS_DEPS})
   endif()
 endfunction()
