@@ -4,6 +4,8 @@ if(SCORE_STATIC_QT)
   get_filename_component(QT_ROOT_FOLDER "${_qt5_root_dir}/../.." ABSOLUTE)
   set(QT_LIB_FOLDER "${QT_ROOT_FOLDER}/lib")
 
+  get_filename_component(_qt5_install_libs "${_qt5_root_dir}/../../lib" ABSOLUTE)
+
   # Taken and modified from what's in the Qt CMake config files
   macro(process_prl_file prl_file_location Library Configuration lib_deps link_flags)
       set(_lib_deps)
@@ -34,9 +36,16 @@ if(SCORE_STATIC_QT)
                         message(FATAL_ERROR "Library not found: ${_lib}")
                     endif()
                   endif()
+              elseif(_flag MATCHES "^\\$\\$\\[QT_INSTALL_LIBS\\]/(.*)$")
+                  # The Qt builds of some libraries are present as e.g. \$\$[QT_INSTALL_LIBS]/libqtharfbuzz.a
+                  # so we replace with their install path
+                  list(APPEND _lib_deps "${_qt5_install_libs}/${CMAKE_MATCH_1}")
+              elseif(EXISTS "${_flag}")
+                  # The flag is an absolute path to an existing library
+                  list(APPEND _lib_deps "${_flag}")
               elseif(_flag MATCHES "^-L(.*)$")
                   if("${CMAKE_MATCH_1}" STREQUAL "\$\$[QT_INSTALL_LIBS]")
-                    list(APPEND _search_paths "${QT_LIB_FOLDER}")
+                    list(APPEND _search_paths "${_qt5_install_libs}")
                   else()
                     list(APPEND _search_paths "${CMAKE_MATCH_1}")
                   endif()
