@@ -70,19 +70,23 @@ if(EXISTS "${CMAKE_BINARY_DIR}/base/plugins/score-plugin-media/faustlibs-prefix/
 endif()
 
 install(FILES "${PROJECT_BINARY_DIR}/ossia-score.desktop"
-        DESTINATION share/applications)
+        DESTINATION share/applications
+        COMPONENT OssiaScore)
 install(FILES "${CMAKE_SOURCE_DIR}/base/lib/resources/ossia-score.png"
-        DESTINATION share/pixmaps)
+        DESTINATION share/pixmaps
+        COMPONENT OssiaScore)
 # Score-v2.0.0-a17-Ubuntu-18.04-amd64.deb
 set(CPACK_PACKAGE_FILE_NAME "score-${CPACK_PACKAGE_VERSION}-${CPACK_SYSTEM_NAME}")
 set(CPACK_PACKAGING_INSTALL_PREFIX "")
 set(CPACK_DEBIAN_PACKAGE_MAINTAINER "ossia devs <ossia.collective@gmail.com>")
+set(CPACK_DEBIAN_PACKAGE_HOMEPAGE "https://ossia.io")
+set(CPACK_DEBIAN_PACKAGE_PROVIDES "ossia-score")
 if(SCORE_STATIC_QT)
   set(CPACK_DEBIAN_PACKAGE_DEPENDS "")
 else()
   set(CPACK_DEBIAN_PACKAGE_DEPENDS "libqt5core5a, libqt5gui5, libqt5svg5, libqt5xml5, libqt5network5, libqt5serialport5, libqt5quickcontrols2-5, libtbb2, libportaudio2, libjack0, libavahi-client3, libavcodec57, libavdevice57, libavfilter6, libavformat57, libswresample2, libqt5websockets5, liblilv-0-0, libsuil-0-0")
 endif()
 set(CPACK_DEBIAN_PACKAGE_SECTION "sound")
-
-
+set(CPACK_DEB_COMPONENT_INSTALL ON)
+set(CPACK_COMPONENTS_ALL OssiaScore)
 endif()
