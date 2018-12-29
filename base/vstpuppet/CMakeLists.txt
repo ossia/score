@@ -26,15 +26,18 @@ if(APPLE AND DEPLOYMENT_BUILD)
         RUNTIME_OUTPUT_DIRECTORY score.app/Contents/MacOS)
   install(
     TARGETS ossia-score-vstpuppet
-    RUNTIME DESTINATION score.app/Contents/MacOS)
+    RUNTIME DESTINATION score.app/Contents/MacOS
+    COMPONENT OssiaScore)
 elseif(WIN32)
   install(
     TARGETS ossia-score-vstpuppet
-    RUNTIME DESTINATION .)
+    RUNTIME DESTINATION .
+    COMPONENT OssiaScore)
 else()
   install(
     TARGETS ossia-score-vstpuppet
-    RUNTIME DESTINATION bin)
+    RUNTIME DESTINATION bin
+    COMPONENT OssiaScore)
 endif()
 
 static_link_qt(ossia-score-vstpuppet)
