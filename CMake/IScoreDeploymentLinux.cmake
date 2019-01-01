@@ -76,7 +76,18 @@ install(FILES "${CMAKE_SOURCE_DIR}/base/lib/resources/ossia-score.png"
         DESTINATION share/pixmaps
         COMPONENT OssiaScore)
 
-# Score-v2.0.0-a17-Ubuntu-18.04-amd64.deb
+
+execute_process(
+    COMMAND
+        dpkg --print-architecture
+    OUTPUT_VARIABLE CPACK_DEBIAN_PACKAGE_ARCHITECTURE
+    RESULT_VARIABLE dpkg_ok
+)
+string(STRIP "${CPACK_DEBIAN_PACKAGE_ARCHITECTURE}" CPACK_DEBIAN_PACKAGE_ARCHITECTURE)
+if(NOT (dpkg_ok EQUAL 0))
+    set(CPACK_DEBIAN_PACKAGE_ARCHITECTURE amd64)
+endif()
+
 set(CPACK_PACKAGING_INSTALL_PREFIX "")
 
 set(CPACK_DEBIAN_PACKAGE_NAME "ossia-score")
