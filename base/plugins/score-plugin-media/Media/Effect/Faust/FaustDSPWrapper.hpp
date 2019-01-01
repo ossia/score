@@ -177,7 +177,7 @@ public:
     return m_outlets;
   }
 
-  bool hasExternalUI() const
+  bool hasExternalUI() const noexcept
   {
     return false;
   }
