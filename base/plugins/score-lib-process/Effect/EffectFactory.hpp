@@ -101,7 +101,7 @@ private:
 
   bool hasExternalUI(
       const Process::ProcessModel& proc,
-      const score::DocumentContext& ctx) const override
+      const score::DocumentContext& ctx) const noexcept override
   {
     return ((Model_T&)proc).hasExternalUI();
   }

@@ -133,7 +133,7 @@ QGraphicsItem* LayerFactory::makeItem(
 }
 
 bool LayerFactory::hasExternalUI(
-    const ProcessModel&, const score::DocumentContext& ctx) const
+    const ProcessModel&, const score::DocumentContext& ctx) const noexcept
 {
   return false;
 }

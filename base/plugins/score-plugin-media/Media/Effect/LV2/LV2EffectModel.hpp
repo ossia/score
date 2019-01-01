@@ -55,7 +55,7 @@ public:
 
   QString prettyName() const noexcept override;
 
-  bool hasExternalUI() const;
+  bool hasExternalUI() const noexcept;
 
   const LilvPlugin* plugin{};
   mutable LV2::EffectContext effectContext;
