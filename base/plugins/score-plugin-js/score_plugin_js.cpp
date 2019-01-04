@@ -18,7 +18,52 @@
 #include <score/tools/std/HashMap.hpp>
 
 #include <Execution/DocumentPlugin.hpp>
+#include <Library/LibraryInterface.hpp>
+#include <Process/Drop/ProcessDropHandler.hpp>
 #include <score_plugin_js_commands_files.hpp>
+
+namespace JS
+{
+class LibraryHandler final
+    : public Library::LibraryInterface
+{
+  SCORE_CONCRETE("5231ea8b-da66-4c6f-9e34-d9a79cbc494a")
+
+  QSet<QString> acceptedFiles() const noexcept override
+  {
+    return {"js", "qml"};
+  }
+};
+
+class DropHandler final
+        : public Process::ProcessDropHandler
+{
+  SCORE_CONCRETE("ad3a575a-f4a8-4a89-bb7e-bfd85f3430fe")
+
+  QSet<QString> fileExtensions() const noexcept override
+  {
+    return {"js", "qml"};
+  }
+
+  std::vector<Process::ProcessDropHandler::ProcessDrop> dropData(
+      const std::vector<QByteArray>& data
+      , const score::DocumentContext& ctx) const noexcept override
+  {
+    std::vector<Process::ProcessDropHandler::ProcessDrop> vec;
+
+    for (auto&& file : data)
+    {
+      Process::ProcessDropHandler::ProcessDrop p;
+      p.creation.key = Metadata<ConcreteKey_k, ProcessModel>::get();
+      p.creation.customData = std::move(file);
+
+      vec.push_back(std::move(p));
+    }
+
+    return vec;
+  }
+};
+}
 
 score_plugin_js::score_plugin_js()
 {
@@ -49,8 +94,10 @@ std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_js::factories(
       FW<Process::LayerFactory, JS::LayerFactory>,
       FW<Inspector::InspectorWidgetFactory, JS::InspectorFactory>,
       FW<score::PanelDelegateFactory, JS::PanelDelegateFactory>,
-      FW<Execution::ProcessComponentFactory, JS::Executor::ComponentFactory>>(
-      ctx, key);
+      FW<Library::LibraryInterface, JS::LibraryHandler>,
+      FW<Process::ProcessDropHandler, JS::DropHandler>,
+      FW<Execution::ProcessComponentFactory, JS::Executor::ComponentFactory>
+          >(ctx, key);
 }
 
 std::pair<const CommandGroupKey, CommandGeneratorMap>

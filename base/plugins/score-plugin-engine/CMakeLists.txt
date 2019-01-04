@@ -11,6 +11,7 @@ set(HDRS
     "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/OSSIADevice.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/ProtocolLibrary.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/DefaultProtocolFactory.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/RateWidget.hpp"
 
     "${CMAKE_CURRENT_SOURCE_DIR}/Audio/Settings/Model.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Audio/Settings/Presenter.hpp"

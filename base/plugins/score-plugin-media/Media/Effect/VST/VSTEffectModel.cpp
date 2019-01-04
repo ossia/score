@@ -134,7 +134,7 @@ QString VSTEffectModel::prettyName() const noexcept
   return metadata().getLabel();
 }
 
-bool VSTEffectModel::hasExternalUI() const
+bool VSTEffectModel::hasExternalUI() const noexcept
 {
   if (!fx)
     return false;

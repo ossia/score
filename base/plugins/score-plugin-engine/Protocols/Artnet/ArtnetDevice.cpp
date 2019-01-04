@@ -39,9 +39,13 @@ bool ArtnetDevice::reconnect()
     m_dev = std::move(addr);
     deviceChanged(nullptr, m_dev.get());
   }
+  catch (const std::runtime_error& e)
+  {
+    qDebug() << "ArtNet error: " << e.what();
+  }
   catch (...)
   {
-    SCORE_TODO;
+    qDebug() << "ArtNet error";
   }
 
   return connected();

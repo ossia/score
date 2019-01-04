@@ -286,7 +286,7 @@ QString LV2EffectModel::prettyName() const noexcept
   return metadata().getLabel();
 }
 
-bool LV2EffectModel::hasExternalUI() const
+bool LV2EffectModel::hasExternalUI() const noexcept
 {
   if (!plugin)
     return false;

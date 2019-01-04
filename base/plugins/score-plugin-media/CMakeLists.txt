@@ -248,9 +248,13 @@ endif()
 
 if(${Faust_FOUND})
   target_compile_definitions(${PROJECT_NAME} PRIVATE HAS_FAUST)
-  target_link_libraries(${PROJECT_NAME}  PUBLIC ${FAUST_LIBRARIES})
-  target_include_directories(${PROJECT_NAME}  PRIVATE ${FAUST_INCLUDE_DIR})
+  target_link_libraries(${PROJECT_NAME} PUBLIC ${FAUST_LIBRARIES})
+  target_include_directories(${PROJECT_NAME} PRIVATE ${FAUST_INCLUDE_DIR})
+endif()
 
+setup_score_plugin(${PROJECT_NAME})
+
+if(${Faust_FOUND})
   message("Downloading Faust libs...")
   ExternalProject_Add(
       faustlibs
@@ -260,8 +264,9 @@ if(${Faust_FOUND})
       BUILD_COMMAND "ls"
       INSTALL_COMMAND ""
   )
+
   add_dependencies(${PROJECT_NAME} faustlibs)
-
+  if(TARGET ${PROJECT_NAME}_unity)
+    add_dependencies(${PROJECT_NAME}_unity faustlibs)
+  endif()
 endif()
-
-setup_score_plugin(${PROJECT_NAME})

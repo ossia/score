@@ -54,7 +54,7 @@ void EncapsulateInLoop(
 
     {
       // Add a sub-scenario
-      auto& sub_scenar = disp.createProcess<Scenario::ProcessModel>(itv, {});
+      auto& sub_scenar = disp.createProcessInSlot<Scenario::ProcessModel>(itv, {});
 
       disp.pasteElements(sub_scenar, objects, Scenario::Point{{}, 0.1});
 

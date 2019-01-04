@@ -1,7 +1,7 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "Application.hpp"
-
+#include <QtConfig>
 #include <ossia/detail/thread.hpp>
 
 #include <QApplication>
@@ -34,11 +34,16 @@ void disableAppRestore()
 }
 #endif
 
-#if defined(SCORE_STATIC_QT)
-#if defined(__linux__)
+#if defined(QT_STATIC)
 #include <QtPlugin>
+Q_IMPORT_PLUGIN(QSvgPlugin)
+Q_IMPORT_PLUGIN(QJpegPlugin)
+Q_IMPORT_PLUGIN(QSvgIconPlugin)
+Q_IMPORT_PLUGIN(QtQuick2Plugin)
 
+#if defined(__linux__)
 Q_IMPORT_PLUGIN(QXcbIntegrationPlugin)
+Q_IMPORT_PLUGIN(QXcbGlxIntegrationPlugin)
 #endif
 #endif
 
@@ -78,21 +83,22 @@ static void disable_denormals()
 
 static void setup_faust_path()
 {
-#if defined(__APPLE__)
   auto path = ossia::get_exe_path();
+#if defined(__APPLE__)
   auto last_slash = path.find_last_of('/');
   path = path.substr(0, last_slash);
   path += "/../Frameworks/Faust";
-  qputenv("FAUST_LIB_PATH", path.c_str());
 #elif defined(__linux__)
-  auto path = ossia::get_exe_path();
   auto last_slash = path.find_last_of('/');
   path = path.substr(0, last_slash);
   path += "/../share/faust";
-  qputenv("FAUST_LIB_PATH", path.c_str());
+#elif defined(_WIN32)
+  auto last_slash = path.find_last_of('\\');
+  path = path.substr(0, last_slash);
+  path += "/faust";
 #endif
 
-  // TODO windows
+  qputenv("FAUST_LIB_PATH", path.c_str());
 }
 
 static void setup_opengl()

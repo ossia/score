@@ -1,7 +1,7 @@
 #pragma once
 #include <QMetaType>
 #include <QString>
-
+#include <ossia/detail/optional.hpp>
 #include <wobjectdefs.h>
 
 
@@ -13,6 +13,7 @@ struct MinuitSpecificSettings
   int outputPort{};
   QString host;
   QString localName;
+  ossia::optional<int> rate{};
 };
 }
 Q_DECLARE_METATYPE(Protocols::MinuitSpecificSettings)

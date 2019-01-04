@@ -54,21 +54,19 @@ endmacro()
 #
 macro(find_component _component _pkgconfig _library _header)
 
-  if (NOT WIN32)
+  if(NOT WIN32)
      # use pkg-config to get the directories and then use these values
      # in the FIND_PATH() and FIND_LIBRARY() calls
      find_package(PkgConfig)
      if (PKG_CONFIG_FOUND)
        pkg_check_modules(PC_${_component} ${_pkgconfig})
      endif ()
-  endif (NOT WIN32)
+  endif()
 
   find_path(${_component}_INCLUDE_DIRS ${_header}
     HINTS
       ${PC_${_component}_INCLUDEDIR}
       ${PC_${_component}_INCLUDE_DIRS}
-      c:/ffmpeg/include
-      /opt/ffmpeg/include
       "${OSSIA_SDK}/ffmpeg/include"
     PATH_SUFFIXES
       ffmpeg
@@ -78,8 +76,6 @@ macro(find_component _component _pkgconfig _library _header)
       HINTS
       ${PC_${_component}_LIBDIR}
       ${PC_${_component}_LIBRARY_DIRS}
-      c:/ffmpeg/lib
-      /opt/ffmpeg/lib
       "${OSSIA_SDK}/ffmpeg/lib"
   )
 
@@ -95,7 +91,6 @@ macro(find_component _component _pkgconfig _library _header)
     ${_component}_VERSION)
 
 endmacro()
-
 
 # Check for cached results. If there are skip the costly part.
 if (NOT FFMPEG_LIBRARIES)
@@ -121,10 +116,12 @@ if (NOT FFMPEG_LIBRARIES)
     endif ()
   endforeach ()
 
-  if(UNIX AND NOT APPLE)
-    find_package(ZLIB)
-    if(TARGET ZLIB::ZLIB)
-      set(FFMPEG_LIBRARIES  "-Wl,--start-group" ${FFMPEG_LIBRARIES} ZLIB::ZLIB "-Wl,--end-group")
+  if(UNIX OR MSYS OR MINGW)
+    if(NOT APPLE)
+      find_package(ZLIB)
+      if(TARGET ZLIB::ZLIB)
+        set(FFMPEG_LIBRARIES  "-Wl,--start-group" ${FFMPEG_LIBRARIES} ZLIB::ZLIB "-Wl,--end-group")
+      endif()
     endif()
   endif()
 
@@ -133,6 +130,27 @@ if (NOT FFMPEG_LIBRARIES)
     list(REMOVE_DUPLICATES FFMPEG_INCLUDE_DIRS)
   endif ()
 
+  if(WIN32)
+    #find_library(CRYPTO_LIBRARIES
+    #    NAMES
+    #      crypto
+    #    HINTS
+    #      "${OSSIA_SDK}/openssl/win64/lib"
+    #)
+    #if(CRYPTO_LIBRARIES)
+    #    set(FFMPEG_LIBRARIES ${FFMPEG_LIBRARIES} ${CRYPTO_LIBRARIES})
+    #endif()
+    #find_library(SSL_LIBRARIES
+    #    NAMES
+    #      ssl
+    #    HINTS
+    #      "${OSSIA_SDK}/openssl/win64/lib"
+    #)
+    #if(SSL_LIBRARIES)
+    #    set(FFMPEG_LIBRARIES ${FFMPEG_LIBRARIES} ${SSL_LIBRARIES})
+    #endif()
+    set(FFMPEG_LIBRARIES ${FFMPEG_LIBRARIES} Bcrypt.lib)
+  endif()
   # cache the vars.
   set(FFMPEG_INCLUDE_DIRS ${FFMPEG_INCLUDE_DIRS} CACHE STRING "The FFmpeg include directories." FORCE)
   set(FFMPEG_LIBRARIES    ${FFMPEG_LIBRARIES}    CACHE STRING "The FFmpeg libraries." FORCE)

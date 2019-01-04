@@ -22,6 +22,7 @@ set(CMAKE_MODULE_PATH
 set(CMAKE_PREFIX_PATH
   "${OSSIA_SDK}/SDL2/cmake"
   "${OSSIA_SDK}/portaudio/lib/cmake"
+  "${OSSIA_SDK}/portaudio/lib/cmake/portaudio"
   "${CMAKE_PREFIX_PATH}"
 )
 if(NOT SCORE_CONFIGURATION)
@@ -81,6 +82,10 @@ if(MSVC)
 else()
   set(CMAKE_CXX_STANDARD 17)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++1z -fno-stack-protector")
+endif()
+
+if(MSYS OR MINGW)
+  find_package(ZLIB REQUIRED)
 endif()
 
 add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/API" )

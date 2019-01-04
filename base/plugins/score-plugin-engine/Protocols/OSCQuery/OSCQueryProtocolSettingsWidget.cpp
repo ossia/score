@@ -4,6 +4,7 @@
 
 #include "OSCQuerySpecificSettings.hpp"
 
+#include <Protocols/RateWidget.hpp>
 #include <Device/Protocol/ProtocolSettingsWidget.hpp>
 #include <State/Widgets/AddressFragmentLineEdit.hpp>
 
@@ -29,6 +30,7 @@ OSCQueryProtocolSettingsWidget::OSCQueryProtocolSettingsWidget(QWidget* parent)
   m_deviceNameEdit = new State::AddressFragmentLineEdit{this};
 
   m_localHostEdit = new QLineEdit(this);
+  m_rate = new RateWidget{this};
 
   connect(
       &m_http_client, &QNetworkAccessManager::finished, this,
@@ -80,6 +82,7 @@ OSCQueryProtocolSettingsWidget::OSCQueryProtocolSettingsWidget(QWidget* parent)
 
   layout->addRow(tr("Device Name"), m_deviceNameEdit);
   layout->addRow(tr("Host"), m_localHostEdit);
+  layout->addRow(tr("Rate"), m_rate);
 
   setLayout(layout);
 
@@ -93,6 +96,7 @@ void OSCQueryProtocolSettingsWidget::setDefaults()
 
   m_deviceNameEdit->setText("newDevice");
   m_localHostEdit->setText("ws://127.0.0.1:5678");
+  m_rate->setRate({});
 }
 
 Device::DeviceSettings OSCQueryProtocolSettingsWidget::getSettings() const
@@ -104,6 +108,8 @@ Device::DeviceSettings OSCQueryProtocolSettingsWidget::getSettings() const
 
   OSCQuerySpecificSettings OSCQuery;
   OSCQuery.host = m_localHostEdit->text();
+
+  OSCQuery.rate = m_rate->rate();
 
   s.deviceSpecificSettings = QVariant::fromValue(OSCQuery);
   return s;
@@ -120,6 +126,7 @@ void OSCQueryProtocolSettingsWidget::setSettings(
     OSCQuery = settings.deviceSpecificSettings
                    .value<OSCQuerySpecificSettings>();
     m_localHostEdit->setText(OSCQuery.host);
+    m_rate->setRate(OSCQuery.rate);
   }
 }
 }

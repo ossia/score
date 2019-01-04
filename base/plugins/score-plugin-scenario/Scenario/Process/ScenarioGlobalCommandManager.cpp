@@ -230,7 +230,7 @@ bool EndDateComparator::
 operator()(const IntervalModel* lhs, const IntervalModel* rhs) const
 {
   return (Scenario::date(*lhs, *scenario) + lhs->duration.defaultDuration())
-         <= (Scenario::date(*rhs, *scenario)
+         < (Scenario::date(*rhs, *scenario)
              + rhs->duration.defaultDuration());
 }
 }

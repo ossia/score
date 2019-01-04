@@ -91,12 +91,14 @@ if(WIN32)
   install(
     TARGETS ${APPNAME}
     BUNDLE DESTINATION .
-    RUNTIME DESTINATION .)
+    RUNTIME DESTINATION .
+    COMPONENT OssiaScore)
 else()
   install(
     TARGETS ${APPNAME}
     BUNDLE DESTINATION .
-    RUNTIME DESTINATION bin)
+    RUNTIME DESTINATION bin
+    COMPONENT OssiaScore)
 endif()
 
 include(UnityApp.cmake)

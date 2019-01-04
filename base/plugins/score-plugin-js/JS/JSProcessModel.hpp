@@ -18,8 +18,10 @@ class ProcessModel final : public Process::ProcessModel
   W_OBJECT(ProcessModel)
 public:
   explicit ProcessModel(
-      const TimeVal& duration, const Id<Process::ProcessModel>& id,
-      QObject* parent);
+      const TimeVal& duration
+    , const QString& data
+    , const Id<Process::ProcessModel>& id
+    , QObject* parent);
 
   template <typename Impl>
   explicit ProcessModel(Impl& vis, QObject* parent)

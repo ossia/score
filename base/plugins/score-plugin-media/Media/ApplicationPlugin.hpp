@@ -44,6 +44,8 @@ public:
 #if defined(HAS_VST2)
 public:
   void rescanVSTs(const QStringList&);
+  void vstChanged() W_SIGNAL(vstChanged)
+
   struct vst_info
   {
     QString path;

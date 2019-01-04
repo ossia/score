@@ -14,14 +14,14 @@ void DataStreamReader::read(const Protocols::OSCSpecificSettings& n)
 {
   // TODO put it in the right order before 1.0 final.
   // TODO same for minuit, etc..
-  m_stream << n.outputPort << n.inputPort << n.host;
+  m_stream << n.outputPort << n.inputPort << n.host << n.rate;
   insertDelimiter();
 }
 
 template <>
 void DataStreamWriter::write(Protocols::OSCSpecificSettings& n)
 {
-  m_stream >> n.outputPort >> n.inputPort >> n.host;
+  m_stream >> n.outputPort >> n.inputPort >> n.host >> n.rate;
   checkDelimiter();
 }
 
@@ -31,6 +31,8 @@ void JSONObjectReader::read(const Protocols::OSCSpecificSettings& n)
   obj["OutputPort"] = n.outputPort;
   obj["InputPort"] = n.inputPort;
   obj["Host"] = n.host;
+  if(n.rate)
+    obj["Rate"] = *n.rate;
 }
 
 template <>
@@ -39,4 +41,6 @@ void JSONObjectWriter::write(Protocols::OSCSpecificSettings& n)
   n.outputPort = obj["OutputPort"].toInt();
   n.inputPort = obj["InputPort"].toInt();
   n.host = obj["Host"].toString();
+  if(obj.contains("Rate"))
+    n.rate = obj["Rate"].toInt();
 }

@@ -1,6 +1,5 @@
 set(SCORE_PLUGINS_TO_BUILD
 
-score-plugin-pluginsettings
 score-lib-inspector
 score-lib-state
 score-lib-device

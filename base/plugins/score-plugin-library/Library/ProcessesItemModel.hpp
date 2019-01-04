@@ -33,6 +33,9 @@ class ProcessesItemModel : public TreeNodeBasedItemModel<ProcessNode>
   ProcessNode m_root;
 
 public:
+  using QAbstractItemModel::beginResetModel;
+  using QAbstractItemModel::endResetModel;
+
   ProcessesItemModel(const score::GUIApplicationContext& ctx, QObject* parent)
       : TreeNodeBasedItemModel<ProcessNode>{parent}
   {

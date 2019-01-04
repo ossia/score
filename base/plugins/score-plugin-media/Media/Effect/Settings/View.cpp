@@ -4,9 +4,12 @@
 #include <Media/Effect/Settings/View.hpp>
 
 #include <score/widgets/SignalUtils.hpp>
+#include <score/application/GUIApplicationContext.hpp>
+#include <Media/ApplicationPlugin.hpp>
 
 #include <QFileDialog>
 #include <QFormLayout>
+#include <QLabel>
 #include <QListWidget>
 #include <QMenu>
 #include <QPushButton>
@@ -19,6 +22,18 @@ View::View() : m_widg{new QWidget}
   m_widg->setLayout(lay);
 
   m_VstPaths = new QListWidget;
+
+  auto button_lay = new QHBoxLayout;
+
+  auto pb = new QPushButton{"Add path"};
+  auto rescan = new QPushButton{"Rescan"};
+  button_lay->addWidget(pb);
+  button_lay->addWidget(rescan);
+
+  auto vst_lay = new QGridLayout;
+  auto vst_ok = new QListWidget;
+  auto vst_bad = new QListWidget;
+
   m_VstPaths->setContextMenuPolicy(Qt::ContextMenuPolicy::CustomContextMenu);
   connect(
       m_VstPaths, &QListWidget::customContextMenuRequested, this,
@@ -41,8 +56,8 @@ View::View() : m_widg{new QWidget}
       });
 
   lay->addRow(tr("VST paths"), m_VstPaths);
-  auto pb = new QPushButton{"Add path"};
-  lay->addWidget(pb);
+  lay->addRow(button_lay);
+
   connect(pb, &QPushButton::clicked, this, [=] {
     auto path = QFileDialog::getExistingDirectory(m_widg, tr("VST Path"));
     if (!path.isEmpty())
@@ -52,6 +67,38 @@ View::View() : m_widg{new QWidget}
       VstPathsChanged(m_curitems);
     }
   });
+
+  auto& app_plug = score::GUIAppContext().applicationPlugin<Media::ApplicationPlugin>();
+
+  connect(rescan, &QPushButton::clicked, this, [&] {
+    app_plug.rescanVSTs(m_curitems);
+  });
+
+  auto reloadVSTs = [=,&app_plug] {
+    vst_ok->clear();
+    vst_bad->clear();
+    for(auto& plug : app_plug.vst_infos)
+    {
+      if(plug.isValid)
+      {
+        vst_ok->addItem(QString{"%1 - %2\t(%3)"}.arg(plug.prettyName).arg(plug.displayName).arg(plug.path));
+      }
+      else
+      {
+        vst_bad->addItem(QString{"%1 - %2\t(%3)"}.arg(plug.prettyName).arg(plug.displayName).arg(plug.path));
+      }
+    }
+  };
+
+  reloadVSTs();
+
+  con(app_plug, &Media::ApplicationPlugin::vstChanged,
+      this, reloadVSTs);
+  lay->addRow(vst_lay);
+  vst_lay->addWidget(new QLabel("Working plug-ins"), 0, 0, 1, 1);
+  vst_lay->addWidget(new QLabel("Bad plug-ins"), 0, 1, 1, 1);
+  vst_lay->addWidget(vst_ok, 1, 0, 1, 1);
+  vst_lay->addWidget(vst_bad, 1, 1, 1, 1);
 }
 
 void View::setVstPaths(QStringList val)

@@ -10,23 +10,21 @@ class QWidget;
 
 namespace Protocols
 {
+class RateWidget;
 class OSCProtocolSettingsWidget final : public Device::ProtocolSettingsWidget
 {
-  W_OBJECT(OSCProtocolSettingsWidget)
-
 public:
   OSCProtocolSettingsWidget(QWidget* parent = nullptr);
 
   Device::DeviceSettings getSettings() const override;
   void setSettings(const Device::DeviceSettings& settings) override;
 
-protected:
+private:
   void setDefaults();
-
-protected:
-  QLineEdit* m_deviceNameEdit;
-  QSpinBox* m_portOutputSBox;
-  QSpinBox* m_portInputSBox;
-  QLineEdit* m_localHostEdit;
+  QLineEdit* m_deviceNameEdit{};
+  QSpinBox* m_portOutputSBox{};
+  QSpinBox* m_portInputSBox{};
+  QLineEdit* m_localHostEdit{};
+  RateWidget* m_rate{};
 };
 }

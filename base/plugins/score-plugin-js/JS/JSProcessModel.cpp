@@ -30,13 +30,17 @@ W_OBJECT_IMPL(JS::ProcessModel)
 namespace JS
 {
 ProcessModel::ProcessModel(
-    const TimeVal& duration, const Id<Process::ProcessModel>& id,
-    QObject* parent)
+    const TimeVal& duration
+    , const QString& data
+    , const Id<Process::ProcessModel>& id
+    , QObject* parent)
     : Process::ProcessModel{duration, id,
                             Metadata<ObjectKey_k, ProcessModel>::get(), parent}
 {
-  setScript(
-      R"_(import QtQuick 2.0
+  if(data.isEmpty())
+  {
+    setScript(
+        R"_(import QtQuick 2.0
 import Score 1.0
 Item {
   ValueInlet { id: in1 }
@@ -46,7 +50,13 @@ Item {
   function onTick(oldtime, time, position, offset) {
     out1.value = in1.value + sl.value * Math.random();
   }
-})_");
+})_"
+    );
+  }
+  else
+  {
+    setScript(data);
+  }
   metadata().setInstanceName(*this);
 }
 

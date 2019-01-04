@@ -18,9 +18,10 @@ namespace Scenario
 namespace Command
 {
 SetCondition::SetCondition(const EventModel& event, State::Expression&& cond)
-    : m_path{event}, m_condition(std::move(cond))
+    : m_path{event}
+    , m_condition(std::move(cond))
+    , m_previousCondition{event.condition()}
 {
-  m_previousCondition = event.condition();
 }
 
 void SetCondition::undo(const score::DocumentContext& ctx) const

@@ -6,6 +6,20 @@ set(SCORE_BIN_INSTALL_DIR ".")
 
 # Compiler Runtime DLLs
 set(CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS_SKIP true)
+
+if(MINGW)
+  get_target_property(ZLIB_LOCATION ZLIB::ZLIB IMPORTED_LOCATION_RELEASE)
+  get_filename_component(MINGW64_LIB ${ZLIB_LOCATION} DIRECTORY)  
+  
+  get_filename_component(cxx_path ${CMAKE_CXX_COMPILER} PATH)
+  set(CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS 
+        ${CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS} 
+        ${cxx_path}/libc++.dll 
+        ${cxx_path}/libunwind.dll
+        ${MINGW64_LIB}/../bin/zlib1.dll
+  )  
+endif()
+
 include(InstallRequiredSystemLibraries)
 install(FILES ${CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS}
         DESTINATION ${SCORE_BIN_INSTALL_DIR})
@@ -15,8 +29,6 @@ set(DEBUG_CHAR "$<$<CONFIG:Debug>:d>")
 
 get_target_property(QtCore_LOCATION Qt5::Core LOCATION)
 get_filename_component(QT_DLL_DIR ${QtCore_LOCATION} PATH)
-file(GLOB ICU_DLLS "${QT_DLL_DIR}/icu*.dll")
-# TODO instead register them somewhere like the plug-ins.
 
 if(NOT OSSIA_STATIC)
 install(FILES "$<TARGET_FILE:ossia>"
@@ -24,7 +36,6 @@ install(FILES "$<TARGET_FILE:ossia>"
 endif()
 
 install(FILES
-  ${ICU_DLLS}
   "${QT_DLL_DIR}/Qt5Core${DEBUG_CHAR}.dll"
   "${QT_DLL_DIR}/Qt5Gui${DEBUG_CHAR}.dll"
   "${QT_DLL_DIR}/Qt5Widgets${DEBUG_CHAR}.dll"
@@ -65,17 +76,46 @@ install(
   PATTERN
     "*.qmlc" EXCLUDE
  )
+ 
+# Faust stuff
+if(EXISTS "${CMAKE_BINARY_DIR}/base/plugins/score-plugin-media/faustlibs-prefix/src/faustlibs")
+  install(
+    DIRECTORY
+      "${CMAKE_BINARY_DIR}/base/plugins/score-plugin-media/faustlibs-prefix/src/faustlibs/"
+    DESTINATION
+      "${SCORE_BIN_INSTALL_DIR}/faust"
+      PATTERN ".git" EXCLUDE
+      PATTERN "doc" EXCLUDE
+      PATTERN "*.html" EXCLUDE
+      PATTERN "*.svg" EXCLUDE
+      PATTERN "*.scad" EXCLUDE
+      PATTERN "*.obj" EXCLUDE
+      PATTERN "build" EXCLUDE
+      PATTERN ".gitignore" EXCLUDE
+      PATTERN "modalmodels" EXCLUDE
+   )
+endif()
 
 install(CODE "
     file(GLOB_RECURSE DLLS_TO_REMOVE \"*.dll\")
     list(FILTER DLLS_TO_REMOVE INCLUDE REGEX \"qml/.*/*dll\")
-    file(REMOVE \${DLLS_TO_REMOVE})
+    if(NOT \"\${DLLS_TO_REMOVE}\" STREQUAL \"\")
+      file(REMOVE \${DLLS_TO_REMOVE})
+    endif()
 
     file(GLOB_RECURSE PDB_TO_REMOVE \"*.pdb\")
-    file(REMOVE \${PDB_TO_REMOVE})
-    ")
+    if(NOT \"\${PDB_TO_REMOVE}\" STREQUAL \"\")
+      file(REMOVE \${PDB_TO_REMOVE})
+    endif()
+
+    file(REMOVE_RECURSE
+        \"\${CMAKE_INSTALL_PREFIX}/include\"
+        \"\${CMAKE_INSTALL_PREFIX}/lib\"
+    )
+")
 
 install(FILES "${QT_QML_PLUGINS_DIR}/QtQuick.2/qtquick2plugin${DEBUG_CHAR}.dll" DESTINATION "${SCORE_BIN_INSTALL_DIR}/qml/QtQuick.2")
+
 # NSIS metadata
 set(CPACK_GENERATOR "NSIS")
 set(CPACK_PACKAGE_EXECUTABLES "score.exe;score")

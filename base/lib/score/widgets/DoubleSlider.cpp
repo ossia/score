@@ -34,7 +34,7 @@ int AbsoluteSliderStyle::styleHint(
 DoubleSlider::DoubleSlider(QWidget* parent) : Slider{Qt::Horizontal, parent}
 {
   setMinimum(0);
-  setMaximum(max + 1);
+  setMaximum(max + 1.);
 
   connect(this, &QSlider::valueChanged, this, [&](int val) {
     valueChanged(double(val) / max);
@@ -54,13 +54,22 @@ double DoubleSlider::value() const
   return QSlider::value() / max;
 }
 
-static QBrush slider_brush{QColor("#12171a")};
-static QBrush slider_ext_brush{QColor("#666")};
-static QPen slider_text_pen{QColor("silver")};
-static QFont slider_font{"Ubuntu", 8};
+static const QBrush slider_brush{QColor("#12171a")};
+static const QBrush slider_ext_brush{QColor("#666")};
+static const QPen slider_text_pen{QColor("silver")};
+static const QFont slider_font{"Ubuntu", 8};
 Slider::Slider(Qt::Orientation ort, QWidget* widg) : QSlider{ort, widg}
 {
   setStyle(AbsoluteSliderStyle::instance());
+  switch(ort)
+  {
+    case Qt::Vertical:
+      setMinimumSize(20, 30);
+      break;
+    case Qt::Horizontal:
+      setMinimumSize(30, 20);
+      break;
+  }
 }
 
 Slider::Slider(QWidget* widg) : Slider{Qt::Horizontal, widg}

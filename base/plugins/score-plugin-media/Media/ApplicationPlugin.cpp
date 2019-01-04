@@ -143,11 +143,14 @@ void ApplicationPlugin::initialize()
     vst_infos = val.value<std::vector<vst_info>>();
   }
 
+
   if (vst_invalid_format)
   {
     vst_infos.clear();
     vst_invalid_format = false;
   }
+
+  vstChanged();
 
   auto& set = context.settings<Media::Settings::Model>();
   con(set, &Media::Settings::Model::VstPathsChanged, this,
@@ -208,6 +211,8 @@ void ApplicationPlugin::rescanVSTs(const QStringList& paths)
     }
   }
 
+  vstChanged();
+
   // 3. Add remaining plug-ins
   auto add_invalid = [this](const QString& path) {
     vst_info i;
@@ -217,6 +222,8 @@ void ApplicationPlugin::rescanVSTs(const QStringList& paths)
     i.isSynth = false;
     i.isValid = false;
     vst_infos.push_back(i);
+
+    vstChanged();
   };
 
   m_processes.clear();
@@ -254,6 +261,8 @@ void ApplicationPlugin::rescanVSTs(const QStringList& paths)
 
             vst_modules.insert({i.uniqueID, nullptr});
             vst_infos.push_back(std::move(i));
+
+            vstChanged();
           }
           else
           {
@@ -265,7 +274,12 @@ void ApplicationPlugin::rescanVSTs(const QStringList& paths)
               "Effect/KnownVST2", QVariant::fromValue(vst_infos));
         });
     m_processes.back().second->start(
-        "ossia-score-vstpuppet", {path}, QProcess::ReadOnly);
+#if defined(__APPLE__)
+        qApp->applicationDirPath() + "/ossia-score-vstpuppet"
+#else
+        "ossia-score-vstpuppet"
+#endif
+        ,{path}, QProcess::ReadOnly);
     i++;
   }
 }

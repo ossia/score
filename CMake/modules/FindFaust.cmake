@@ -1,21 +1,17 @@
 # Find Faust2
 
-find_path(
-    FAUST_INCLUDE_DIR faust/dsp/llvm-dsp.h
+find_path(FAUST_INCLUDE_DIR faust/dsp/llvm-dsp.h
     HINTS
-      /opt/lib/faust/architecture/
-      /usr/lib/faust/architecture/
-      /usr/local/lib/faust/architecture/
-      c:/faust/architecture
-      "${FAUST_INCLUDE_DIR_HINT}"
+      "${OSSIA_SDK}/faust/include"
+      /usr/local/include
     )
 
 set(FAUST_NAMES ${FAUST_NAMES} libfaust.so libfaust.dylib faust.dll faust libfaust)
 find_library(FAUST_LIBRARY
     NAMES ${FAUST_NAMES}
     HINTS
-      c:/faust
-      "${FAUST_LIB_DIR_HINT}"
+      "${OSSIA_SDK}/faust/lib"
+      /usr/local/lib
 )
 
 if(FAUST_INCLUDE_DIR AND FAUST_LIBRARY)
@@ -35,7 +31,10 @@ if(FAUST_FOUND)
         # This is a static build of faust, hence
         # we have to add all the LLVM flags...
 
-        find_program(LLVM_CONFIG llvm-config HINTS /usr/bin /usr/local/bin /usr/local/opt/llvm/bin /opt/llvm-release/bin c:/llvm/bin)
+        find_program(LLVM_CONFIG llvm-config
+          HINTS
+            "${OSSIA_SDK}/llvm/bin")
+
         if(NOT LLVM_CONFIG)
             message("Using a static Faust library requires LLVM tooling to be present in the path")
             unset(FAUST_LIBRARIES)
@@ -43,14 +42,21 @@ if(FAUST_FOUND)
             return()
         endif()
 
-        exec_program(${LLVM_CONFIG} ARGS --includedir OUTPUT_VARIABLE LLVM_DIR)
-        exec_program(${LLVM_CONFIG} ARGS --libs OUTPUT_VARIABLE LLVM_LIBS)
-        exec_program(${LLVM_CONFIG} ARGS --version OUTPUT_VARIABLE LLVM_VERSION)
-        exec_program(${LLVM_CONFIG} ARGS --ldflags OUTPUT_VARIABLE LLVM_LDFLAGS)
+        exec_program(${LLVM_CONFIG} ARGS "--includedir" OUTPUT_VARIABLE LLVM_DIR)
+        exec_program(${LLVM_CONFIG} ARGS "--libs" OUTPUT_VARIABLE LLVM_LIBS)
+        exec_program(${LLVM_CONFIG} ARGS "--version" OUTPUT_VARIABLE LLVM_VERSION)
+        exec_program(${LLVM_CONFIG} ARGS "--ldflags" OUTPUT_VARIABLE LLVM_LDFLAGS)
 
+        if(MSYS)
+          string(REGEX REPLACE "([a-zA-Z]):" "/\\1" LLVM_LDFLAGS "${LLVM_LDFLAGS}")
+          string(REPLACE "\\" "/" LLVM_LDFLAGS "${LLVM_LDFLAGS}")
+        endif()
+        
         set(LLVM_VERSION LLVM_${LLVM_VERSION_MAJOR}${LLVM_VERSION_MINOR})
 
-        if(NOT MSVC AND NOT APPLE)
+        if(MINGW)
+          set(FAUST_LIBRARIES ${FAUST_LIBRARIES} ${CMAKE_DL_LIBS} ZLIB::ZLIB ${LLVM_LDFLAGS} ${LLVM_LIBS} )
+        elseif(NOT MSVC AND NOT APPLE)
           set(FAUST_LIBRARIES ${FAUST_LIBRARIES} ${CMAKE_DL_LIBS} curses z ${LLVM_LDFLAGS} ${LLVM_LIBS} )
         elseif(APPLE)
           string(REGEX REPLACE " " ";" LLVM_LIBS ${LLVM_LIBS})
