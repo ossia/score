@@ -590,9 +590,25 @@ set(SRCS ${SRCS}
 "${CMAKE_CURRENT_SOURCE_DIR}/Dataflow/UI/PortItem.cpp"
 )
 
-add_library(score_plugin_scenario ${SRCS} ${HDRS} ${QRCS})
+set(SEQUENCE_HDRS
+    Sequence/SequenceModel.hpp
+    Sequence/SequencePresenter.hpp
+    Sequence/SequenceView.hpp
+    Sequence/SequenceFactory.hpp
+    Sequence/SequenceMetadata.hpp
+    )
+set(SEQUENCE_SRCS
+    Sequence/SequenceModel.cpp
+    Sequence/SequencePresenter.cpp
+    Sequence/SequenceView.cpp
+    Sequence/SequenceFactory.cpp
+    )
+add_library(score_plugin_scenario
+    ${SRCS} ${HDRS}
+    ${QRCS}
+    ${SEQUENCE_HDRS} ${SEQUENCE_SRCS})
 
-score_generate_command_list_file(score_plugin_scenario "${HDRS}")
+score_generate_command_list_file(score_plugin_scenario "${HDRS};${SEQUENCE_HDRS}")
 
 target_link_libraries(score_plugin_scenario
   PUBLIC
