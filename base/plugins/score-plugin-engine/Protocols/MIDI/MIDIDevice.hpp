@@ -16,5 +16,8 @@ public:
 
   using OwningDeviceInterface::refresh;
   Device::Node refresh() override;
+
+  bool isLearning() const final override;
+  void setLearning(bool) final override;
 };
 }

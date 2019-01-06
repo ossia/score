@@ -16,6 +16,7 @@ struct MIDISpecificSettings
   } io{};
   QString endpoint;
   int port{};
+  bool createWholeTree{};
 };
 }
 Q_DECLARE_METATYPE(Protocols::MIDISpecificSettings)
