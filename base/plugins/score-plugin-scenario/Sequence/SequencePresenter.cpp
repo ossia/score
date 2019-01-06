@@ -77,17 +77,6 @@ SequencePresenter::SequencePresenter(
       .connect<&SequencePresenter::on_timeSyncRemoved>(this);
 
   connect(
-      m_view, &SequenceView::keyPressed, this,
-      &SequencePresenter::on_keyPressed);
-  connect(
-      m_view, &SequenceView::keyReleased, this,
-      &SequencePresenter::on_keyReleased);
-
-  connect(
-      m_view, &SequenceView::doubleClicked, this,
-      &SequencePresenter::doubleClick);
-
-  connect(
       m_view, &SequenceView::askContextMenu, this,
       &SequencePresenter::contextMenuRequested);
 
@@ -422,5 +411,129 @@ void SequencePresenter::updateAllElements()
   {
     m_viewInterface.on_timeSyncMoved(timesync);
   }
+}
+
+
+
+
+
+
+
+ViewUpdater::ViewUpdater(
+    const SequencePresenter& presenter)
+    : m_presenter{presenter}
+{
+}
+
+void ViewUpdater::on_eventMoved(const EventPresenter& ev)
+{
+  auto h = m_presenter.m_view->boundingRect().height();
+
+  ev.view()->setExtent(ev.model().extent() * h);
+
+  ev.view()->setPos({ev.model().date().toPixels(m_presenter.m_zoomRatio),
+                     ev.model().extent().top() * h});
+
+  // We also have to move all the relevant states
+  for (const auto& state : ev.model().states())
+  {
+    auto state_it = m_presenter.m_states.find(state);
+    if (state_it != m_presenter.m_states.end())
+    {
+      on_stateMoved(*state_it);
+    }
+  }
+  m_presenter.m_view->update();
+}
+
+void ViewUpdater::on_intervalMoved(
+    const TemporalIntervalPresenter& pres)
+{
+  auto rect = m_presenter.m_view->boundingRect();
+  auto msPerPixel = m_presenter.m_zoomRatio;
+
+  const auto& cstr_model = pres.model();
+  auto& cstr_view = view(pres);
+
+  double startPos = cstr_model.date().toPixels(msPerPixel);
+  // double delta = cstr_view.x() - startPos;
+  bool dateChanged = true; // Disabled because it does a whacky movement when
+                           // there are processes. (delta * delta > 1); //
+                           // Magnetism
+
+  if (dateChanged)
+  {
+    cstr_view.setPos(startPos, rect.height() * cstr_model.heightPercentage());
+  }
+  else
+  {
+    cstr_view.setY(qreal(rect.height() * cstr_model.heightPercentage()));
+  }
+
+  cstr_view.setDefaultWidth(
+      cstr_model.duration.defaultDuration().toPixels(msPerPixel));
+  cstr_view.setMinWidth(
+      cstr_model.duration.minDuration().toPixels(msPerPixel));
+  cstr_view.setMaxWidth(
+      cstr_model.duration.maxDuration().isInfinite(),
+      cstr_model.duration.maxDuration().isInfinite()
+          ? -1
+          : cstr_model.duration.maxDuration().toPixels(msPerPixel));
+
+  m_presenter.m_view->update();
+}
+
+void ViewUpdater::on_timeSyncMoved(const TimeSyncPresenter& timesync)
+{
+  auto h = m_presenter.m_view->boundingRect().height();
+  timesync.view()->setExtent(timesync.model().extent() * h);
+
+  timesync.view()->setPos(
+      {timesync.model().date().toPixels(m_presenter.m_zoomRatio),
+       timesync.model().extent().top() * h});
+
+  m_presenter.m_view->update();
+}
+
+void ViewUpdater::on_stateMoved(const StatePresenter& state)
+{
+  auto rect = m_presenter.m_view->boundingRect();
+  const auto& ev = m_presenter.model().event(state.model().eventId());
+
+  state.view()->setPos({ev.date().toPixels(m_presenter.m_zoomRatio),
+                        rect.height() * state.model().heightPercentage()});
+
+  m_presenter.m_view->update();
+}
+
+template <typename T>
+void update_min_max(const T& val, T& min, T& max)
+{
+  min = val < min ? val : min;
+  max = val > max ? val : max;
+}
+
+void ViewUpdater::on_hoverOnInterval(
+    const Id<IntervalModel>& intervalId, bool enter)
+{
+}
+
+void ViewUpdater::on_hoverOnEvent(
+    const Id<EventModel>& eventId, bool enter)
+{
+}
+
+void ViewUpdater::on_graphicalScaleChanged(double scale)
+{
+  for (auto& e : m_presenter.getEvents())
+  {
+    e.view()->setWidthScale(scale);
+  }
+  for (auto& s : m_presenter.getStates())
+  {
+    s.view()->setScale(scale);
+  }
+
+  m_presenter.m_view->update();
 }
 }

@@ -44,7 +44,7 @@ using  TimeSyncView              = Scenario::TimeSyncView;
 
 PROCESS_METADATA(
     SCORE_PLUGIN_SCENARIO_EXPORT, Sequence::ProcessModel,
-    "de035912-5b03-49a8-bc4d-b2cba68e21d9", "Scenario", "Scenario",
+    "43420fd3-f12a-4866-9690-5795a4f28be9", "Sequence", "Sequence",
     Process::ProcessCategory::Structure, "Structure", "Temporal structure",
     "ossia score", {}, {}, {},
     Process::ProcessFlags::SupportsTemporal

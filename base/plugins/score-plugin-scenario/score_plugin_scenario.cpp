@@ -46,6 +46,8 @@
 #include <State/Value.hpp>
 #include <State/ValueSerialization.hpp>
 
+#include <Sequence/SequenceFactory.hpp>
+
 #include <score/command/Command.hpp>
 #include <score/model/tree/TreeNodeSerialization.hpp>
 #include <score/command/CommandGeneratorMap.hpp>
@@ -178,6 +180,19 @@ struct FactoryBuilder<
   }
 };
 
+template <>
+struct FactoryBuilder<
+    score::GUIApplicationContext, Sequence::LayerFactory>
+{
+  static auto make(const score::GUIApplicationContext& ctx)
+  {
+    using namespace Scenario;
+    auto& appPlugin = ctx.guiApplicationPlugin<ScenarioApplicationPlugin>();
+    return std::make_unique<Sequence::LayerFactory>(
+        appPlugin.editionSettings());
+  }
+};
+
 std::vector<std::unique_ptr<score::InterfaceBase>>
 score_plugin_scenario::factories(
     const score::ApplicationContext& ctx, const score::InterfaceKey& key) const
@@ -186,7 +201,7 @@ score_plugin_scenario::factories(
   using namespace Scenario::Command;
   return instantiate_factories<
       score::ApplicationContext,
-      FW<Process::ProcessModelFactory, ScenarioFactory>,
+      FW<Process::ProcessModelFactory, ScenarioFactory, Sequence::SequenceFactory>,
       FW<MoveEventFactoryInterface, MoveEventClassicFactory>,
       FW<DisplayedElementsToolPaletteFactory,
          BaseScenarioDisplayedElementsToolPaletteFactory,
@@ -258,7 +273,7 @@ score_plugin_scenario::guiFactories(
   using namespace Scenario::Command;
   return instantiate_factories<
       score::GUIApplicationContext,
-      FW<Process::LayerFactory, ScenarioTemporalLayerFactory>>(ctx, key);
+      FW<Process::LayerFactory, ScenarioTemporalLayerFactory, Sequence::LayerFactory>>(ctx, key);
 }
 
 #include <score/plugins/PluginInstances.hpp>
