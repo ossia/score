@@ -33,6 +33,7 @@ MIDIProtocolSettingsWidget::MIDIProtocolSettingsWidget(QWidget* parent)
   m_outButton = new QCheckBox(tr("Receive"), this);
   m_outButton->setAutoExclusive(true);
   m_deviceCBox = new QComboBox(this);
+  m_createWhole = new QCheckBox(this);
 
   auto gb_lay = new QHBoxLayout;
   gb_lay->setContentsMargins(0, 0, 0, 0);
@@ -43,6 +44,7 @@ MIDIProtocolSettingsWidget::MIDIProtocolSettingsWidget(QWidget* parent)
   lay->addRow(tr("Name"), m_name);
   lay->addRow(tr("Type"), gb_lay);
   lay->addRow(tr("Device"), m_deviceCBox);
+  lay->addRow(tr("Create whole tree"), m_createWhole);
 
   setLayout(lay);
 
@@ -53,25 +55,25 @@ MIDIProtocolSettingsWidget::MIDIProtocolSettingsWidget(QWidget* parent)
     if (b)
     {
       updateDevices(ossia::net::midi::midi_info::Type::RemoteInput);
+      m_createWhole->setChecked(true);
+      m_createWhole->setEnabled(false);
     }
   });
   connect(m_outButton, &QAbstractButton::toggled, this, [this](bool b) {
     if (b)
     {
       updateDevices(ossia::net::midi::midi_info::Type::RemoteOutput);
+      m_createWhole->setChecked(false);
+      m_createWhole->setEnabled(true);
     }
   });
 
-  m_inButton->setChecked(true); // TODO: QSettings
+  m_inButton->setChecked(true);
   updateInputDevices();
 }
 
 Device::DeviceSettings MIDIProtocolSettingsWidget::getSettings() const
 {
-  SCORE_ASSERT(m_deviceCBox);
-  SCORE_ASSERT(m_inButton);
-
-  // TODO *** Initialize with ProtocolFactory.defaultSettings().
   Device::DeviceSettings s;
   MIDISpecificSettings midi;
   s.name = m_name->text();
@@ -80,6 +82,7 @@ Device::DeviceSettings MIDIProtocolSettingsWidget::getSettings() const
                                     : MIDISpecificSettings::IO::Out;
   midi.endpoint = m_deviceCBox->currentText();
   midi.port = m_deviceCBox->currentData().toInt();
+  midi.createWholeTree = m_createWhole->isChecked();
 
   s.deviceSpecificSettings = QVariant::fromValue(midi);
 
@@ -112,6 +115,8 @@ void MIDIProtocolSettingsWidget::setSettings(
       m_outButton->setChecked(true);
     }
 
+
+    m_createWhole->setChecked(midi.createWholeTree);
     m_deviceCBox->setCurrentText(midi.endpoint);
     // TODO <!> setData <!> (midi.port)
   }

@@ -86,8 +86,7 @@ void OSCDevice::setLearning(bool b)
         (DeviceInterface*)this);
     dev.on_node_removing.connect<&DeviceInterface::nodeRemoving>(
         (DeviceInterface*)this);
-    dev.on_node_renamed.connect<&DeviceInterface::nodeRenamed>(
-        (DeviceInterface*)this);
+    dev.on_node_renamed.connect<&DeviceInterface::nodeRenamed>( (DeviceInterface*)this);
     dev.on_parameter_created.connect<&DeviceInterface::addressCreated>(
         (DeviceInterface*)this);
     dev.on_attribute_modified.connect<&DeviceInterface::addressUpdated>(
