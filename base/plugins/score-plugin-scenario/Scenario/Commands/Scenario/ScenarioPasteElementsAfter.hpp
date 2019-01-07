@@ -29,7 +29,9 @@ class SCORE_PLUGIN_SCENARIO_EXPORT ScenarioPasteElementsAfter final
 public:
   ScenarioPasteElementsAfter(
       const Scenario::ProcessModel& path,
-      const Scenario::TimeSyncModel& attach_sync, const QJsonObject& obj);
+      const Scenario::TimeSyncModel& attach_sync,
+      const QJsonObject& obj,
+      double scale);
 
   void undo(const score::DocumentContext& ctx) const override;
   void redo(const score::DocumentContext& ctx) const override;

@@ -489,7 +489,8 @@ void ObjectMenuActions::pasteElementsAfter(
   // TODO check json validity
   if (auto ts = furthestHierarchicallySelectedTimeSync(sm))
   {
-    auto cmd = new Command::ScenarioPasteElementsAfter{sm, *ts, obj};
+    // TODO is there a way to compute the actual scale ?
+    auto cmd = new Command::ScenarioPasteElementsAfter{sm, *ts, obj, 1.0};
     dispatcher().submit(cmd);
   }
 }

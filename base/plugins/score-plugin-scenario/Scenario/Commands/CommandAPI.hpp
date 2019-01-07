@@ -132,7 +132,7 @@ public:
 
   void pasteElementsAfter(
       const ProcessModel& scenario, const TimeSyncModel& sync,
-      const QJsonObject& objs);
+      const QJsonObject& objs, double scale);
 
   void mergeTimeSyncs(
       const Scenario::ProcessModel& scenario, const Id<TimeSyncModel>& a,
