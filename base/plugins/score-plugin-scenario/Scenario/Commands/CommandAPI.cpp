@@ -190,9 +190,9 @@ void Macro::pasteElements(
 
 void Macro::pasteElementsAfter(
     const ProcessModel& scenario, const TimeSyncModel& sync,
-    const QJsonObject& objs)
+    const QJsonObject& objs, double scale)
 {
-  auto cmd = new ScenarioPasteElementsAfter(scenario, sync, objs);
+  auto cmd = new ScenarioPasteElementsAfter(scenario, sync, objs, scale);
   m.submit(cmd);
 }
 

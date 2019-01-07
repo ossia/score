@@ -49,7 +49,9 @@ namespace Command
 {
 ScenarioPasteElementsAfter::ScenarioPasteElementsAfter(
     const Scenario::ProcessModel& scenario,
-    const Scenario::TimeSyncModel& attach_sync, const QJsonObject& obj)
+    const Scenario::TimeSyncModel& attach_sync,
+    const QJsonObject& obj,
+    double ratio)
     : m_ts{scenario}
 {
   m_attachSync = attach_sync.id();
@@ -60,8 +62,21 @@ ScenarioPasteElementsAfter::ScenarioPasteElementsAfter(
        timesync_ids, event_ids, state_ids]
       = ScenarioBeingCopied{obj, scenario, ctx};
 
+  SCORE_ASSERT(!timesyncs.empty());
+
   // We set the new ids everywhere
   {
+    auto earliest_it = timesyncs.begin();
+    auto min_date = (*earliest_it)->date();
+    for (auto it = earliest_it; it != timesyncs.end(); ++it)
+    {
+      if((*earliest_it)->date() < min_date)
+      {
+        min_date = (*earliest_it)->date();
+        earliest_it = it;
+      }
+    }
+
     int i = 0;
     for (auto it = timesyncs.begin(); it != timesyncs.end();)
     {
@@ -90,7 +105,7 @@ ScenarioPasteElementsAfter::ScenarioPasteElementsAfter(
         }
       }
 
-      if (no_prev)
+      if (no_prev && it == earliest_it)
       {
         // no previous intervals: we attach to the selected timesync
         for (EventModel* event : events)
@@ -319,28 +334,16 @@ ScenarioPasteElementsAfter::ScenarioPasteElementsAfter(
   }
 
   // Same for y.
-  // Note : due to the coordinates system, the highest y is the one closest to
-  // 0.
-  auto highest_y = std::numeric_limits<double>::max();
-  for (const StateModel* state : states)
-  {
-    auto y = state->heightPercentage();
-    if (y < highest_y)
-    {
-      highest_y = y;
-    }
-  }
-
-  auto delta_y = attach_sync.extent().bottom() - highest_y;
+  auto delta_y = attach_sync.extent().bottom();
 
   for (IntervalModel* cst : intervals)
   {
-    cst->setHeightPercentage(clamp(cst->heightPercentage() + delta_y, 0., 1.));
+    cst->setHeightPercentage(clamp(cst->heightPercentage() * ratio + delta_y, 0., 1.));
   }
   for (StateModel* state : states)
   {
     state->setHeightPercentage(
-        clamp(state->heightPercentage() + delta_y, 0., 1.));
+        clamp(state->heightPercentage() * ratio + delta_y, 0., 1.));
   }
 
   // We reserialize here in order to not have dangling pointers and bad cache

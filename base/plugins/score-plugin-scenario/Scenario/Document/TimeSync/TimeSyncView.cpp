@@ -46,7 +46,21 @@ TimeSyncView::~TimeSyncView()
 void TimeSyncView::paint(
     QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
-  auto height = m_extent.bottom() - m_extent.top();
+  const auto height = m_extent.bottom() - m_extent.top();
+#if !defined(NDEBUG)
+  if(m_presenter.model().events().empty())
+  {
+    QPen ugh(Qt::red, 15);
+    QBrush ughb(Qt::red);
+    painter->setPen(ugh);
+    painter->setBrush(ughb);
+    painter->fillRect(QRectF{0, 0, 5, 5}, ughb);
+    painter->fillRect(QRectF{0, height, 5, 5}, ughb);
+    painter->drawLine(QPointF(0., 0.), QPointF(0., height));
+    return;
+  }
+#endif
+
   if (height < 1)
     return;
 

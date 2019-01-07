@@ -9,6 +9,17 @@
 namespace Scenario
 {
 
+double findSlotHeightByProcess(const IntervalModel& itv, const Process::ProcessModel& proc)
+{
+  for(auto& slot : itv.smallView())
+  {
+    if(ossia::contains(slot.processes, proc.id()))
+      return slot.height;
+  }
+
+  return proc.getSlotHeight();
+}
+
 void DecapsulateScenario(
     const ProcessModel& scenar, const score::CommandStackFacade& stack)
 {
@@ -20,13 +31,22 @@ void DecapsulateScenario(
   if (!parent_s)
     return;
 
+  auto parent_s_itv = qobject_cast<Scenario::IntervalModel*>(parent_s->parent());
+  if (!parent_s_itv)
+    return;
+
+  auto scenar_slot_height = findSlotHeightByProcess(*parent_itv, scenar);
+  auto parent_scenar_slot_height = findSlotHeightByProcess(*parent_s_itv, *parent_s);
+
+  double ratio = scenar_slot_height / parent_scenar_slot_height;
+
   using namespace Command;
   Scenario::Command::Macro disp{new Decapsulate, stack.context()};
 
   auto objects = copyWholeScenario(scenar);
 
   disp.pasteElementsAfter(
-      *parent_s, Scenario::startTimeSync(*parent_itv, *parent_s), objects);
+      *parent_s, Scenario::startTimeSync(*parent_itv, *parent_s), objects, ratio);
 
   disp.removeProcess(*parent_itv, scenar.id());
   disp.commit();
