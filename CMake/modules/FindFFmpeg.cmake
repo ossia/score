@@ -84,6 +84,19 @@ macro(find_component _component _pkgconfig _library _header)
 
   set_component_found(${_component})
 
+  if (${_component}_LIBRARIES AND ${_component}_INCLUDE_DIRS)
+    if("${${_component}_LIBRARIES}" MATCHES ".*\.so.*$")
+      add_library(${_library} SHARED IMPORTED)
+    else()
+      add_library(${_library} STATIC IMPORTED)
+    endif()
+    set_target_properties(${_library} PROPERTIES
+      IMPORTED_LOCATION "${${_component}_LIBRARIES}"
+      INTERFACE_INCLUDE_DIRECTORIES "${${_component}_INCLUDE_DIRS}"
+      INTERFACE_COMPILE_DEFINITIONS "${${_component}_DEFINITIONS}"
+    )
+  endif()
+
   mark_as_advanced(
     ${_component}_INCLUDE_DIRS
     ${_component}_LIBRARIES
@@ -94,12 +107,17 @@ endmacro()
 
 # Check for cached results. If there are skip the costly part.
 if (NOT FFMPEG_LIBRARIES)
+  unset(FFMPEG_LIBRARIES)
+  unset(FFMPEG_DEFINITIONS)
+  unset(FFMPEG_INCLUDE_DIRS)
+  unset(FFMPEG_TARGETS)
 
   # Check for all possible component.
   find_component(AVCODEC     libavcodec     avcodec     libavcodec/avcodec.h)
   find_component(AVFORMAT    libavformat    avformat    libavformat/avformat.h)
   find_component(AVDEVICE    libavdevice    avdevice    libavdevice/avdevice.h)
   find_component(AVUTIL      libavutil      avutil      libavutil/avutil.h)
+  find_component(AVFILTER    libavfilter    avfilter    libavfilter/avfilter.h)
   find_component(SWSCALE     libswscale     swscale     libswscale/swscale.h)
   find_component(SWRESAMPLE  libswresample  swresample  libswresample/swresample.h)
   find_component(POSTPROC    libpostproc    postproc    libpostproc/postprocess.h)
@@ -116,12 +134,49 @@ if (NOT FFMPEG_LIBRARIES)
     endif ()
   endforeach ()
 
+  foreach(_lib avcodec avformat avdevice avutil swscale swresample postproc)
+    if(TARGET ${_lib})
+      set(FFMPEG_TARGETS ${FFMPEG_TARGETS} ${_lib})
+    endif()
+  endforeach()
+
+  # Set-up minimal dependencies
+  if(TARGET avcodec)
+    target_link_libraries(avcodec INTERFACE avutil)
+  endif()
+  if(TARGET avformat)
+    target_link_libraries(avformat INTERFACE avcodec avutil)
+  endif()
+  if(TARGET avfilter)
+    target_link_libraries(avfilter INTERFACE avformat avcodec avutil)
+  endif()
+  if(TARGET avdevice)
+    target_link_libraries(avdevice INTERFACE avfilter avformat avcodec avutil)
+  endif()
+  if(TARGET swscale)
+    target_link_libraries(swscale INTERFACE avutil)
+  endif()
+  if(TARGET swresample)
+    target_link_libraries(swresample INTERFACE avutil)
+  endif()
+  if(TARGET postproc)
+    target_link_libraries(postproc INTERFACE avutil)
+  endif()
+
   if(UNIX OR MSYS OR MINGW)
     if(NOT APPLE)
       find_package(ZLIB)
       if(TARGET ZLIB::ZLIB)
-        set(FFMPEG_LIBRARIES  "-Wl,--start-group" ${FFMPEG_LIBRARIES} ZLIB::ZLIB "-Wl,--end-group")
+        if(TARGET avutil)
+          target_link_libraries(avutil INTERFACE ZLIB::ZLIB)
+        endif()
       endif()
+    endif()
+  endif()
+
+  if(WIN32)
+    if(TARGET avutil)
+      target_link_libraries(avutil INTERFACE Bcrypt.lib)
     endif()
   endif()
 
@@ -130,35 +185,16 @@ if (NOT FFMPEG_LIBRARIES)
     list(REMOVE_DUPLICATES FFMPEG_INCLUDE_DIRS)
   endif ()
 
-  if(WIN32)
-    #find_library(CRYPTO_LIBRARIES
-    #    NAMES
-    #      crypto
-    #    HINTS
-    #      "${OSSIA_SDK}/openssl/win64/lib"
-    #)
-    #if(CRYPTO_LIBRARIES)
-    #    set(FFMPEG_LIBRARIES ${FFMPEG_LIBRARIES} ${CRYPTO_LIBRARIES})
-    #endif()
-    #find_library(SSL_LIBRARIES
-    #    NAMES
-    #      ssl
-    #    HINTS
-    #      "${OSSIA_SDK}/openssl/win64/lib"
-    #)
-    #if(SSL_LIBRARIES)
-    #    set(FFMPEG_LIBRARIES ${FFMPEG_LIBRARIES} ${SSL_LIBRARIES})
-    #endif()
-    set(FFMPEG_LIBRARIES ${FFMPEG_LIBRARIES} Bcrypt.lib)
-  endif()
   # cache the vars.
   set(FFMPEG_INCLUDE_DIRS ${FFMPEG_INCLUDE_DIRS} CACHE STRING "The FFmpeg include directories." FORCE)
   set(FFMPEG_LIBRARIES    ${FFMPEG_LIBRARIES}    CACHE STRING "The FFmpeg libraries." FORCE)
   set(FFMPEG_DEFINITIONS  ${FFMPEG_DEFINITIONS}  CACHE STRING "The FFmpeg cflags." FORCE)
+  set(FFMPEG_TARGETS      ${FFMPEG_TARGETS}  CACHE STRING "The FFmpeg targets." FORCE)
 
   mark_as_advanced(FFMPEG_INCLUDE_DIRS
                    FFMPEG_LIBRARIES
-                   FFMPEG_DEFINITIONS)
+                   FFMPEG_DEFINITIONS
+                   FFMPEG_TARGETS)
 
 endif ()
 
