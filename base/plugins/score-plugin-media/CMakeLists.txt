@@ -199,8 +199,7 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
 )
 
 ### FFMPEG ###
-target_include_directories(${PROJECT_NAME} PRIVATE ${FFMPEG_INCLUDE_DIRS})
-target_link_libraries(${PROJECT_NAME} PRIVATE ${FFMPEG_LIBRARIES})
+target_link_libraries(${PROJECT_NAME} PRIVATE ${FFMPEG_TARGETS})
 
 if(APPLE)
     find_library(QuartzCore_FK QuartzCore)
