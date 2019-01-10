@@ -199,7 +199,7 @@ target_link_libraries(${PROJECT_NAME} PUBLIC
 )
 
 ### FFMPEG ###
-target_link_libraries(${PROJECT_NAME} PRIVATE avcodec avformat avdevice swresample)
+target_link_libraries(${PROJECT_NAME} PRIVATE avcodec avformat swresample)
 
 if(APPLE)
     find_library(QuartzCore_FK QuartzCore)
