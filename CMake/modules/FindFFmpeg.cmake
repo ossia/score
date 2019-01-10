@@ -30,6 +30,32 @@
 
 include(FindPackageHandleStandardArgs)
 
+# Taken from https://stackoverflow.com/a/32751261/1495627
+# _combine_targets_property(VAR PROP target1 target2 ...)
+# Helper function: Collects @PROP properties (as lists) from @target1, @target2 ..,
+# combines these lists into one and store into variable @VAR.
+function(_combine_targets_property VAR PROP)
+    set(values) # Resulted list
+    foreach(t ${ARGN})
+        get_property(v TARGET ${t} PROPERTY ${PROP})
+        list(APPEND values ${v})
+    endforeach()
+    set(${VAR} ${values} PARENT_SCOPE)
+endfunction()
+
+# imported_link_libraries(t_dest target1 target2 ...)
+# Make imported library target @t_dest effectively linked with @target1, @target2 ...
+function(imported_link_libraries t_dest)
+    # IMPORTED_LOCATION's and INTERFACE_LINK_LIBRARIES's from dependencies
+    # should be appended to target's INTERFACE_LINK_LIBRARIES.
+    get_property(v1 TARGET ${t_dest} PROPERTY INTERFACE_LINK_LIBRARIES)
+    _combine_targets_property(v2 IMPORTED_LOCATION ${ARGN})
+    _combine_targets_property(v3 INTERFACE_LINK_LIBRARIES ${ARGN})
+    set(v ${v1} ${v2} ${v3})
+    list(REMOVE_DUPLICATES v)
+    set_property(TARGET ${t_dest} PROPERTY INTERFACE_LINK_LIBRARIES ${v})
+endfunction()
+
 # The default components were taken from a survey over other FindFFMPEG.cmake files
 if (NOT FFmpeg_FIND_COMPONENTS)
   set(FFmpeg_FIND_COMPONENTS AVCODEC AVFORMAT AVUTIL)
@@ -105,98 +131,95 @@ macro(find_component _component _pkgconfig _library _header)
 
 endmacro()
 
-# Check for cached results. If there are skip the costly part.
-if (NOT FFMPEG_TARGETS)
-  unset(FFMPEG_LIBRARIES)
-  unset(FFMPEG_DEFINITIONS)
-  unset(FFMPEG_INCLUDE_DIRS)
-  unset(FFMPEG_TARGETS)
+unset(FFMPEG_LIBRARIES)
+unset(FFMPEG_DEFINITIONS)
+unset(FFMPEG_INCLUDE_DIRS)
+unset(FFMPEG_TARGETS)
 
-  # Check for all possible component.
-  find_component(AVCODEC     libavcodec     avcodec     libavcodec/avcodec.h)
-  find_component(AVFORMAT    libavformat    avformat    libavformat/avformat.h)
-  find_component(AVDEVICE    libavdevice    avdevice    libavdevice/avdevice.h)
-  find_component(AVUTIL      libavutil      avutil      libavutil/avutil.h)
-  find_component(AVFILTER    libavfilter    avfilter    libavfilter/avfilter.h)
-  find_component(SWSCALE     libswscale     swscale     libswscale/swscale.h)
-  find_component(SWRESAMPLE  libswresample  swresample  libswresample/swresample.h)
-  find_component(POSTPROC    libpostproc    postproc    libpostproc/postprocess.h)
+# Check for all possible component.
+find_component(AVCODEC     libavcodec     avcodec     libavcodec/avcodec.h)
+find_component(AVFORMAT    libavformat    avformat    libavformat/avformat.h)
+find_component(AVDEVICE    libavdevice    avdevice    libavdevice/avdevice.h)
+find_component(AVUTIL      libavutil      avutil      libavutil/avutil.h)
+find_component(AVFILTER    libavfilter    avfilter    libavfilter/avfilter.h)
+find_component(SWSCALE     libswscale     swscale     libswscale/swscale.h)
+find_component(SWRESAMPLE  libswresample  swresample  libswresample/swresample.h)
+find_component(POSTPROC    libpostproc    postproc    libpostproc/postprocess.h)
 
-  # Check if the required components were found and add their stuff to the FFMPEG_* vars.
-  foreach (_component ${FFmpeg_FIND_COMPONENTS})
-    if (${_component}_FOUND)
-      # message(STATUS "Required component ${_component} present.")
-      set(FFMPEG_LIBRARIES   ${FFMPEG_LIBRARIES}   ${${_component}_LIBRARIES})
-      set(FFMPEG_DEFINITIONS ${FFMPEG_DEFINITIONS} ${${_component}_DEFINITIONS})
-      list(APPEND FFMPEG_INCLUDE_DIRS ${${_component}_INCLUDE_DIRS})
-    else ()
-      # message(STATUS "Required component ${_component} missing.")
-    endif ()
-  endforeach ()
+# Check if the required components were found and add their stuff to the FFMPEG_* vars.
+foreach (_component ${FFmpeg_FIND_COMPONENTS})
+  if (${_component}_FOUND)
+    # message(STATUS "Required component ${_component} present.")
+    set(FFMPEG_LIBRARIES   ${FFMPEG_LIBRARIES}   ${${_component}_LIBRARIES})
+    set(FFMPEG_DEFINITIONS ${FFMPEG_DEFINITIONS} ${${_component}_DEFINITIONS})
+    list(APPEND FFMPEG_INCLUDE_DIRS ${${_component}_INCLUDE_DIRS})
+  else ()
+    # message(STATUS "Required component ${_component} missing.")
+  endif ()
+endforeach ()
 
-  foreach(_lib avcodec avformat avdevice avutil swscale swresample postproc)
-    if(TARGET ${_lib})
-      set(FFMPEG_TARGETS ${FFMPEG_TARGETS} ${_lib})
-    endif()
-  endforeach()
+foreach(_lib avcodec avformat avdevice avutil swscale swresample postproc)
+  if(TARGET ${_lib})
+    set(FFMPEG_TARGETS ${FFMPEG_TARGETS} ${_lib})
+  endif()
+endforeach()
 
-  # Set-up minimal dependencies
-  if(TARGET avcodec)
-    set_target_properties(avcodec PROPERTIES INTERFACE_LINK_LIBRARIES avutil)
-  endif()
-  if(TARGET avformat)
-    set_target_properties(avformat PROPERTIES INTERFACE_LINK_LIBRARIES "avcodec;avutil")
-  endif()
-  if(TARGET avfilter)
-    set_target_properties(avfilter PROPERTIES INTERFACE_LINK_LIBRARIES "avformat;avcodec;avutil")
-  endif()
-  if(TARGET avdevice)
-    set_target_properties(avdevice PROPERTIES INTERFACE_LINK_LIBRARIES "avfilter;avformat;avcodec;avutil")
-  endif()
-  if(TARGET swscale)
-    set_target_properties(swscale PROPERTIES INTERFACE_LINK_LIBRARIES avutil)
-  endif()
-  if(TARGET swresample)
-    set_target_properties(swresample PROPERTIES INTERFACE_LINK_LIBRARIES avutil)
-  endif()
-  if(TARGET postproc)
-    set_target_properties(postproc PROPERTIES INTERFACE_LINK_LIBRARIES avutil)
-  endif()
+# Set-up minimal dependencies
+if(TARGET avcodec)
+  imported_link_libraries(avcodec avutil)
+endif()
+if(TARGET avformat)
+  imported_link_libraries(avformat avcodec avutil)
+endif()
+if(TARGET avfilter)
+  imported_link_libraries(avfilter avformat avcodec avutil)
+endif()
+if(TARGET avdevice)
+  imported_link_libraries(avdevice avfilter avformat avcodec avutil)
+endif()
+if(TARGET swscale)
+  imported_link_libraries(swscale avutil)
+endif()
+if(TARGET swresample)
+  imported_link_libraries(swresample avutil)
+endif()
+if(TARGET postproc)
+  imported_link_libraries(postproc avutil)
+endif()
 
-  if(UNIX OR MSYS OR MINGW)
-    if(NOT APPLE)
-      find_package(ZLIB)
-      if(TARGET ZLIB::ZLIB)
-        if(TARGET avutil)
-          set_target_properties(avutil PROPERTIES INTERFACE_LINK_LIBRARIES ZLIB::ZLIB)
-        endif()
+if(UNIX OR MSYS OR MINGW)
+  if(NOT APPLE)
+    find_package(ZLIB)
+    if(TARGET ZLIB::ZLIB)
+      if(TARGET avutil)
+        set_target_properties(avutil PROPERTIES INTERFACE_LINK_LIBRARIES ZLIB::ZLIB)
       endif()
     endif()
   endif()
+endif()
 
-  if(WIN32)
-    if(TARGET avutil)
-      set_property(TARGET avutil APPEND PROPERTY INTERFACE_LINK_LIBRARIES Bcrypt.lib)
-    endif()
+if(WIN32)
+  if(TARGET avutil)
+    set_property(TARGET avutil APPEND PROPERTY INTERFACE_LINK_LIBRARIES Bcrypt.lib)
   endif()
+endif()
 
-  # Build the include path with duplicates removed.
-  if (FFMPEG_INCLUDE_DIRS)
-    list(REMOVE_DUPLICATES FFMPEG_INCLUDE_DIRS)
-  endif ()
-
-  # cache the vars.
-  set(FFMPEG_INCLUDE_DIRS ${FFMPEG_INCLUDE_DIRS} CACHE STRING "The FFmpeg include directories." FORCE)
-  set(FFMPEG_LIBRARIES    ${FFMPEG_LIBRARIES}    CACHE STRING "The FFmpeg libraries." FORCE)
-  set(FFMPEG_DEFINITIONS  ${FFMPEG_DEFINITIONS}  CACHE STRING "The FFmpeg cflags." FORCE)
-  set(FFMPEG_TARGETS      ${FFMPEG_TARGETS}  CACHE STRING "The FFmpeg targets." FORCE)
-
-  mark_as_advanced(FFMPEG_INCLUDE_DIRS
-                   FFMPEG_LIBRARIES
-                   FFMPEG_DEFINITIONS
-                   FFMPEG_TARGETS)
-
+# Build the include path with duplicates removed.
+if (FFMPEG_INCLUDE_DIRS)
+  list(REMOVE_DUPLICATES FFMPEG_INCLUDE_DIRS)
 endif ()
+
+# cache the vars.
+set(FFMPEG_INCLUDE_DIRS ${FFMPEG_INCLUDE_DIRS} CACHE STRING "The FFmpeg include directories." FORCE)
+set(FFMPEG_LIBRARIES    ${FFMPEG_LIBRARIES}    CACHE STRING "The FFmpeg libraries." FORCE)
+set(FFMPEG_DEFINITIONS  ${FFMPEG_DEFINITIONS}  CACHE STRING "The FFmpeg cflags." FORCE)
+set(FFMPEG_TARGETS      ${FFMPEG_TARGETS}  CACHE STRING "The FFmpeg targets." FORCE)
+
+mark_as_advanced(FFMPEG_INCLUDE_DIRS
+                 FFMPEG_LIBRARIES
+                 FFMPEG_DEFINITIONS
+                 FFMPEG_TARGETS)
+
 
 # Now set the noncached _FOUND vars for the components.
 foreach (_component AVCODEC AVDEVICE AVFORMAT AVUTIL POSTPROCESS SWSCALE SWRESAMPLE)
