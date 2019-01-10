@@ -106,7 +106,7 @@ macro(find_component _component _pkgconfig _library _header)
 endmacro()
 
 # Check for cached results. If there are skip the costly part.
-if (NOT FFMPEG_LIBRARIES)
+if (NOT FFMPEG_TARGETS)
   unset(FFMPEG_LIBRARIES)
   unset(FFMPEG_DEFINITIONS)
   unset(FFMPEG_INCLUDE_DIRS)

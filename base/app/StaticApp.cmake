@@ -1,5 +1,5 @@
 if(SCORE_STATIC_QT)
-  find_package(Qt5 5.3 REQUIRED COMPONENTS Core Network Svg Xml DBus Qml Quick QuickControls2 Gui Widgets WebSockets)
+  find_package(Qt5 5.3 REQUIRED COMPONENTS Core Network Svg Xml Qml Quick QuickControls2 Gui Widgets WebSockets)
 
   get_filename_component(QT_ROOT_FOLDER "${_qt5_root_dir}/../.." ABSOLUTE)
   set(QT_LIB_FOLDER "${QT_ROOT_FOLDER}/lib")
@@ -90,7 +90,6 @@ if(SCORE_STATIC_QT)
       Qt5Widgets
       Qt5Gui
       Qt5WebSockets
-      Qt5DBus
       Qt5Svg
       Qt5Xml
       Qt5Core
