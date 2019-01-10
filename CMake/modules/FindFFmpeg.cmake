@@ -86,9 +86,9 @@ macro(find_component _component _pkgconfig _library _header)
 
   if (${_component}_LIBRARIES AND ${_component}_INCLUDE_DIRS)
     if("${${_component}_LIBRARIES}" MATCHES ".*\.so.*$")
-      add_library(${_library} SHARED IMPORTED)
+      add_library(${_library} SHARED IMPORTED GLOBAL)
     else()
-      add_library(${_library} STATIC IMPORTED)
+      add_library(${_library} STATIC IMPORTED GLOBAL)
     endif()
     set_target_properties(${_library} PROPERTIES
       IMPORTED_LOCATION "${${_component}_LIBRARIES}"
