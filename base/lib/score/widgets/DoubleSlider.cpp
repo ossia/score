@@ -54,10 +54,6 @@ double DoubleSlider::value() const
   return QSlider::value() / max;
 }
 
-static const QBrush slider_brush{QColor("#12171a")};
-static const QBrush slider_ext_brush{QColor("#666")};
-static const QPen slider_text_pen{QColor("silver")};
-static const QFont slider_font{"Ubuntu", 8};
 Slider::Slider(Qt::Orientation ort, QWidget* widg) : QSlider{ort, widg}
 {
   setStyle(AbsoluteSliderStyle::instance());
@@ -83,6 +79,8 @@ void Slider::paintEvent(QPaintEvent*)
 }
 void Slider::paint(QPainter& p)
 {
+  static const QBrush slider_brush{QColor("#12171a")};
+  static const QBrush slider_ext_brush{QColor("#666")};
   double min = minimum();
   double max = maximum();
   double val = value();
@@ -101,6 +99,9 @@ void Slider::paint(QPainter& p)
 
 void Slider::paintWithText(const QString& s)
 {
+  static const QPen slider_text_pen{QColor("silver")};
+  static const QFont slider_font{"Ubuntu", 8};
+
   QPainter p{this};
   paint(p);
 
