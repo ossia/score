@@ -117,14 +117,14 @@ void DefaultEffectItem::setupInlet(
   item->setRect(QRectF{0., 0, 170., h});
 }
 
-void DefaultEffectItem::on_controlAdded(const Id<Process::Port>& id) noexcept
+void DefaultEffectItem::on_controlAdded(const Id<Process::Port>& id)
 {
   auto inlet = safe_cast<Process::ControlInlet*>(m_effect.inlet(id));
   setupInlet(*inlet, m_ctx);
   this->setRect(this->childrenBoundingRect());
 }
 
-void DefaultEffectItem::on_controlRemoved(const Process::Port& port) noexcept
+void DefaultEffectItem::on_controlRemoved(const Process::Port& port)
 {
   for(auto it = m_ports.begin(); it != m_ports.end(); ++it)
   {
@@ -147,7 +147,7 @@ void DefaultEffectItem::on_controlRemoved(const Process::Port& port) noexcept
   }
 }
 
-void DefaultEffectItem::reset() noexcept
+void DefaultEffectItem::reset() 
 {
   const auto& c = this->childItems();
   for (auto child : c)
