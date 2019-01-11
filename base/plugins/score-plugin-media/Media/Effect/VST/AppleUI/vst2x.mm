@@ -57,8 +57,8 @@ VSTWindow::VSTWindow(const VSTEffectModel& e, const score::DocumentContext& ctx)
 
 
   setWindowFlags(Qt::Window | Qt::WindowCloseButtonHint);
-  setWindowFlag(Qt::WindowMinimizeButtonHint, false);
-  setWindowFlag(Qt::WindowMaximizeButtonHint, false);
+  //setWindowFlag(Qt::WindowMinimizeButtonHint, false);
+  //setWindowFlag(Qt::WindowMaximizeButtonHint, false);
   id superview = [[::NSView alloc] initWithFrame: NSMakeRect(rect.top, rect.left, rect.right, rect.bottom)];
 
   eff->fx->dispatcher(eff->fx, effEditOpen, 0, 0, (void*)superview, 0);

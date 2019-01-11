@@ -30,7 +30,7 @@ AboutDialog::AboutDialog(QWidget* parent)
     , m_mouseAreaScrime(21, 275, 114, 40)
     , m_mouseAreaBlueYeti(33, 321, 85, 84)
 {
-  setWindowFlag(Qt::FramelessWindowHint);
+  setWindowFlags(windowFlags() | Qt::FramelessWindowHint);
   resize(m_windowSize.width(), m_windowSize.height());
   setMouseTracking(true);
 

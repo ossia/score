@@ -18,9 +18,9 @@ public:
   setupInlet(Process::ControlInlet& inlet, const score::DocumentContext& doc);
 
 private:
-  void on_controlAdded(const Id<Process::Port>& p) noexcept;
-  void on_controlRemoved(const Process::Port& p) noexcept;
-  void reset() noexcept;
+  void on_controlAdded(const Id<Process::Port>& p);
+  void on_controlRemoved(const Process::Port& p);
+  void reset();
   const Process::ProcessModel& m_effect;
   const score::DocumentContext& m_ctx;
 

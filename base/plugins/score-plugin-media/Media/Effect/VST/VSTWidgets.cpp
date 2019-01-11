@@ -264,7 +264,7 @@ VSTWindow::VSTWindow(
   bool ontop = ctx.app.settings<Media::Settings::Model>().getVstAlwaysOnTop();
   if (ontop)
   {
-    setWindowFlag(Qt::WindowStaysOnTopHint, true);
+    setWindowFlags(windowFlags() | Qt::WindowStaysOnTopHint);
   }
   e.externalUIVisible(true);
 }

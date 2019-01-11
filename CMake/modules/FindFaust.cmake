@@ -33,8 +33,10 @@ if(FAUST_FOUND)
 
         find_program(LLVM_CONFIG llvm-config
           HINTS
-            "${OSSIA_SDK}/llvm/bin")
-
+            "${OSSIA_SDK}/llvm-libs/bin"
+            "${OSSIA_SDK}/llvm/bin"
+        )
+        
         if(NOT LLVM_CONFIG)
             message("Using a static Faust library requires LLVM tooling to be present in the path")
             unset(FAUST_LIBRARIES)
