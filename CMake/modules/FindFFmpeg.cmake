@@ -49,11 +49,15 @@ function(imported_link_libraries t_dest)
     # IMPORTED_LOCATION's and INTERFACE_LINK_LIBRARIES's from dependencies
     # should be appended to target's INTERFACE_LINK_LIBRARIES.
     get_property(v1 TARGET ${t_dest} PROPERTY INTERFACE_LINK_LIBRARIES)
-    _combine_targets_property(v2 IMPORTED_LOCATION ${ARGN})
-    _combine_targets_property(v3 INTERFACE_LINK_LIBRARIES ${ARGN})
-    set(v ${v1} ${v2} ${v3})
+    _combine_targets_property(v2 IMPORTED_LOCATION_DEBUG ${ARGN})
+    _combine_targets_property(v3 IMPORTED_LOCATION_RELEASE ${ARGN})
+    _combine_targets_property(v4 IMPORTED_LOCATION ${ARGN})
+    _combine_targets_property(v5 INTERFACE_LINK_LIBRARIES ${ARGN})
+    
+    set(v ${v1} ${v2} ${v3} ${v4} ${v5})
     list(REMOVE_DUPLICATES v)
-    set_property(TARGET ${t_dest} PROPERTY INTERFACE_LINK_LIBRARIES ${v})
+    
+    set_property(TARGET ${t_dest} PROPERTY INTERFACE_LINK_LIBRARIES "${v}")
 endfunction()
 
 # The default components were taken from a survey over other FindFFMPEG.cmake files
@@ -131,10 +135,10 @@ macro(find_component _component _pkgconfig _library _header)
 
 endmacro()
 
-unset(FFMPEG_LIBRARIES)
-unset(FFMPEG_DEFINITIONS)
-unset(FFMPEG_INCLUDE_DIRS)
-unset(FFMPEG_TARGETS)
+unset(FFMPEG_LIBRARIES CACHE)
+unset(FFMPEG_DEFINITIONS CACHE)
+unset(FFMPEG_INCLUDE_DIRS CACHE)
+unset(FFMPEG_TARGETS CACHE)
 
 # Check for all possible component.
 find_component(AVCODEC     libavcodec     avcodec     libavcodec/avcodec.h)
@@ -187,23 +191,26 @@ if(TARGET postproc)
   imported_link_libraries(postproc avutil)
 endif()
 
-if(UNIX OR MSYS OR MINGW)
-  if(NOT APPLE)
-    find_package(ZLIB)
-    if(TARGET ZLIB::ZLIB)
-      if(TARGET avutil)
-        set_target_properties(avutil PROPERTIES INTERFACE_LINK_LIBRARIES ZLIB::ZLIB)
+if(TARGET avutil)
+  if(UNIX OR MSYS OR MINGW)
+    if(NOT APPLE)
+      find_package(ZLIB)
+      if(TARGET ZLIB::ZLIB)
+        imported_link_libraries(avutil "ZLIB::ZLIB")
       endif()
     endif()
   endif()
-endif()
 
-if(WIN32)
-  if(TARGET avutil)
-    set_property(TARGET avutil APPEND PROPERTY INTERFACE_LINK_LIBRARIES Bcrypt.lib)
+  if(WIN32)
+    add_library(winbcrypt STATIC IMPORTED GLOBAL)
+    find_library(BCRYPT_LIBRARY libbcrypt.a HINTS ${OSSIA_SDK}/llvm/x86_64-w64-mingw32/lib)
+    set_target_properties(winbcrypt PROPERTIES
+      IMPORTED_LOCATION "${BCRYPT_LIBRARY}"
+      INTERFACE_LINK_LIBRARIES "${BCRYPT_LIBRARY}"
+    )
+    imported_link_libraries(avutil winbcrypt)
   endif()
 endif()
-
 # Build the include path with duplicates removed.
 if (FFMPEG_INCLUDE_DIRS)
   list(REMOVE_DUPLICATES FFMPEG_INCLUDE_DIRS)
