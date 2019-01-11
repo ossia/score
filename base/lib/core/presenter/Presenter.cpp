@@ -53,7 +53,7 @@ static auto get_menubar(View* view)
 #endif
 }
 Presenter::Presenter(
-    const score::ApplicationSettings& app, const score::Settings& set,
+    const score::ApplicationSettings& app, score::Settings& set,
     score::ProjectSettings& pset, View* view, QObject* arg_parent)
     : QObject{arg_parent}
     , m_view{view}

@@ -39,7 +39,7 @@ class SCORE_LIB_BASE_EXPORT Presenter final : public QObject
 
 public:
   Presenter(
-      const score::ApplicationSettings& app, const score::Settings& set,
+      const score::ApplicationSettings& app, score::Settings& set,
       score::ProjectSettings& pset, score::View* view, QObject* parent);
 
   // Exit score
@@ -81,13 +81,17 @@ public:
   {
     return m_components;
   }
+  auto& settings()
+  {
+    return m_settings;
+  }
 
   void optimize();
 
 private:
   void setupMenus();
   View* m_view{};
-  const Settings& m_settings;
+  Settings& m_settings;
   ProjectSettings& m_projectSettings;
 
   DocumentManager m_docManager;
