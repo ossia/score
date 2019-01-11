@@ -48,11 +48,6 @@ public:
 
   int exec();
 
-  const score::Settings& settings() const
-  {
-    return m_settings;
-  }
-
   const score::GUIApplicationContext& context() const override;
   const score::ApplicationComponents& components() const override;
   void init(); // m_applicationSettings has to be set.
