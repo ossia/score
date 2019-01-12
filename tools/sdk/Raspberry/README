@@ -1,9 +1,0 @@
-## Building for the Raspberry
-
-* First follow the first steps of this guide : 
-
-https://gist.github.com/Manu343726/ca0ceb224ea789415387
-
-* Copy /usr/bin/qemu-arm-static in this folder
-
-* Launch `sudo docker build -t my-docker-image-name .`
