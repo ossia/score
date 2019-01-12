@@ -66,73 +66,47 @@ ScenarioPasteElementsAfter::ScenarioPasteElementsAfter(
 
   // We set the new ids everywhere
   {
+    // Find the earliest timesync (will serve of attach point)
     auto earliest_it = timesyncs.begin();
     auto min_date = (*earliest_it)->date();
     for (auto it = earliest_it; it != timesyncs.end(); ++it)
     {
-      if((*earliest_it)->date() < min_date)
+      if((*it)->date() < min_date)
       {
-        min_date = (*earliest_it)->date();
+        min_date = (*it)->date();
         earliest_it = it;
       }
     }
 
-    int i = 0;
-    for (auto it = timesyncs.begin(); it != timesyncs.end();)
+    // Remove it and set its events to the relevant sync in the parent scenario
+    std::vector<EventModel*> event_in_start;
     {
-      auto timesync = *it;
-      bool no_prev = true;
+      auto timesync = *earliest_it;
       for (EventModel* event : events)
       {
         if (event->timeSync() == timesync->id())
         {
-          for (StateModel* st : states)
-          {
-            if (st->eventId() == event->id())
-            {
-              // Note: we do not use the previous / next interval methds
-              // of StateModel since they are set to none (see
-              // ScenarioCopy.cpp: copySelected)
-              for (IntervalModel* itv : intervals)
-              {
-                if (itv->endState() == st->id())
-                {
-                  no_prev = false;
-                }
-              }
-            }
-          }
+          event->changeTimeSync(m_attachSync);
+          event_in_start.push_back(event);
         }
       }
+      delete timesync;
+      timesyncs.erase(earliest_it);
+    }
 
-      if (no_prev && it == earliest_it)
+    // Set new ids for all the timesyncs
+    int i = 0;
+    for (auto it = timesyncs.begin(); it != timesyncs.end(); ++i, ++it)
+    {
+      auto timesync = *it;
+      for (EventModel* event : events)
       {
-        // no previous intervals: we attach to the selected timesync
-        for (EventModel* event : events)
+        if (event->timeSync() == timesync->id() && !ossia::contains(event_in_start, event))
         {
-          if (event->timeSync() == timesync->id())
-          {
-            event->changeTimeSync(m_attachSync);
-          }
+          event->changeTimeSync(timesync_ids[i]);
         }
-        delete timesync;
-        it = timesyncs.erase(it);
       }
-      else
-      {
-        // previous intervals: we don't touch it
-        for (EventModel* event : events)
-        {
-          if (event->timeSync() == timesync->id())
-          {
-            event->changeTimeSync(timesync_ids[i]);
-          }
-        }
-        timesync->setId(timesync_ids[i]);
-        ++it;
-      }
-
-      i++;
+      timesync->setId(timesync_ids[i]);
     }
   }
 
@@ -451,8 +425,8 @@ void ScenarioPasteElementsAfter::redo(const score::DocumentContext& ctx) const
 
   for (const auto& state : m_json_states)
   {
-    scenario.states.add(
-        new StateModel(JSONObject::Deserializer{state}, &scenario));
+    auto st = new StateModel(JSONObject::Deserializer{state}, &scenario);
+    scenario.states.add(st);
   }
 
   for (const auto& interval : m_json_intervals)
