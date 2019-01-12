@@ -33,7 +33,7 @@ public:
   using parameter_t = T;
   using parameter_pass_t =
       typename boost::call_traits<typename T::param_type>::param_type;
-  SettingsCommand() = default;
+  SettingsCommand() = delete;
   SettingsCommand(model_t& obj, parameter_pass_t newval)
       : m_model{obj}, m_new{newval}
   {
@@ -70,7 +70,7 @@ private:
 #define SCORE_SETTINGS_COMMAND_DECL(name)                     \
 public:                                                       \
   using score::SettingsCommand<parameter_t>::SettingsCommand; \
-  name() = default;                                           \
+  name() = delete;                                            \
   static const CommandKey& static_key()                       \
   {                                                           \
     static const CommandKey var{#name};                       \
