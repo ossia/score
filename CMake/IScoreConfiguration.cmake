@@ -181,3 +181,14 @@ score_write_file("${CMAKE_CURRENT_BINARY_DIR}/score_git_info.hpp"
 
 set(COTIRE_UNITY_MAXIMUM_NUMBER_OF_INCLUDES "-j2")
 include(cotire)
+
+
+install(
+  FILES
+    score_compiler_detection.hpp
+    score_git_info.hpp
+    score_licenses.hpp
+    score_static_plugins.hpp
+  DESTINATION include/score
+  COMPONENT Devel
+  OPTIONAL)
