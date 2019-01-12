@@ -5,7 +5,6 @@ score_write_static_plugins_header()
 enable_testing()
 set(APPNAME "score")
 set(CMAKE_POSITION_INDEPENDENT_CODE 1)
-# TODO strip symbols after deployment build
 
 add_executable(${APPNAME} WIN32
   "${CMAKE_CURRENT_SOURCE_DIR}/Application.hpp"
