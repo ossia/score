@@ -185,10 +185,10 @@ include(cotire)
 
 install(
   FILES
-    score_compiler_detection.hpp
-    score_git_info.hpp
-    score_licenses.hpp
-    score_static_plugins.hpp
+    "${CMAKE_CURRENT_BINARY_DIR}/score_compiler_detection.hpp"
+    "${CMAKE_CURRENT_BINARY_DIR}/score_git_info.hpp"
+    "${CMAKE_CURRENT_BINARY_DIR}/score_licenses.hpp"
+    "${CMAKE_CURRENT_BINARY_DIR}/score_static_plugins.hpp"
   DESTINATION include/score
   COMPONENT Devel
   OPTIONAL)

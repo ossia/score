@@ -204,14 +204,13 @@ function(score_set_unix_compile_options theTarget)
     -Woverloaded-virtual
     -pipe
     -Wno-missing-declarations
-    -Werror=redundant-decls
+    -Wredundant-decls
     -Werror=return-type
     -Werror=trigraphs
     # -std=c++17
     # Release options
-    "$<$<AND:$<CONFIG:Release>,$<BOOL:${NACL}>>:-O3>"
-    "$<$<AND:$<CONFIG:Release>,$<NOT:$<BOOL:${NACL}>>>:-Ofast>"
-    "$<$<AND:$<CONFIG:Release>,$<NOT:$<BOOL:${NACL}>>>:-fno-finite-math-only>"
+    "$<$<CONFIG:Release>:-Ofast>"
+    "$<$<CONFIG:Release>:-fno-finite-math-only>"
     "$<$<AND:$<CONFIG:Release>,$<BOOL:${SCORE_ENABLE_OPTIMIZE_CUSTOM}>>:-march=native>"
     )
 
