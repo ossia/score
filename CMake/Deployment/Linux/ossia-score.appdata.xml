@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+	<id>ossia-score</id>
+	<metadata_license>CC0-1.0</metadata_license>
+	<project_license>CECILL-2.1</project_license>
+	<name>ossia score</name>
+	<summary>Interactive intermedia sequencer</summary>
+	<description>
+		<p>With ossia score you can sequence OSC, MIDI, etc. parameters between multiple software and hardware, to create interactive and intermedia scores.</p>
+	</description>
+	<launchable type="desktop-id">ossia-score.desktop</launchable>
+	<url type="homepage">http://ossia.io/</url>
+	<screenshots>
+		<screenshot type="default">
+			<image>https://raw.githubusercontent.com/OSSIA/score/master/Documentation/score.png</image>
+		</screenshot>
+	</screenshots>
+	<provides>
+		<id>ossia-score.desktop</id>
+	</provides>
+</component>
