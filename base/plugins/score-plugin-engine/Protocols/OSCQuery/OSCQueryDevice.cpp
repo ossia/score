@@ -40,12 +40,11 @@ OSCQueryDevice::OSCQueryDevice(const Device::DeviceSettings& settings)
 
 void OSCQueryDevice::disconnect()
 {
-  if (m_dev)
+  if (m_mirror)
   {
-    auto proto = static_cast<ossia::oscquery::oscquery_mirror_protocol*>(
-        &m_dev->get_protocol());
-    proto->set_disconnect_callback([=] {});
-    proto->set_fail_callback([=] {});
+    m_mirror->set_disconnect_callback([=] {});
+    m_mirror->set_fail_callback([=] {});
+    m_mirror  = nullptr;
   }
 
   OwningDeviceInterface::disconnect();
@@ -64,6 +63,7 @@ bool OSCQueryDevice::reconnect()
             stgs.host.toStdString());
 
     auto& p = static_cast<ossia::oscquery::oscquery_mirror_protocol&>(*ossia_settings);
+    m_mirror = &p;
 
     if(stgs.rate)
     {
@@ -90,10 +90,12 @@ bool OSCQueryDevice::reconnect()
   catch (std::exception& e)
   {
     qDebug() << "Could not connect: " << e.what();
+    m_mirror = nullptr;
   }
   catch (...)
   {
     // TODO save the reason of the non-connection.
+    m_mirror = nullptr;
   }
 
   return connected();
@@ -109,11 +111,9 @@ void OSCQueryDevice::recreate(const Device::Node& n)
 
 void OSCQueryDevice::slot_command()
 {
-  if (m_dev)
+  if (m_mirror)
   {
-    auto proto = static_cast<ossia::oscquery::oscquery_mirror_protocol*>(
-        &m_dev->get_protocol());
-    proto->run_commands();
+    m_mirror->run_commands();
   }
 }
 }
