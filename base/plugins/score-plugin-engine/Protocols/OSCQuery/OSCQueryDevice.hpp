@@ -5,7 +5,10 @@
 
 #include <wobjectdefs.h>
 
-
+namespace ossia::oscquery
+{
+class oscquery_mirror_protocol;
+}
 namespace Protocols
 {
 class OSCQueryDevice final : public Device::OwningDeviceInterface
@@ -25,5 +28,7 @@ public:
 private:
   void slot_command();
   W_SLOT(slot_command);
+
+  ossia::oscquery::oscquery_mirror_protocol* m_mirror{};
 };
 }
