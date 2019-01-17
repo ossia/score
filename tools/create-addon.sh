@@ -34,7 +34,7 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
   SED=/usr/bin/gsed
 fi
 
-DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && cd ../base && pwd )"
 if [[ -x "$DIR/addons/score-addon-$ADDON" ]]; then
     echo "Addon score-addon-$ADDON already exists, choose another name"
     exit 1
