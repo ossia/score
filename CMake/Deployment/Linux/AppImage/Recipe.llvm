@@ -44,7 +44,7 @@ export SOURCE_DIR=$PWD/score
 
     cd build
     $CMAKE $SOURCE_DIR \
-      -DSCORE_CONFIGURATION=static-release \
+      -DSCORE_CONFIGURATION=static-debug \
       -DCMAKE_INSTALL_PREFIX=$INSTALL_ROOT \
       -DCMAKE_PREFIX_PATH=$QT_DIR/lib/cmake/Qt5 \
       -DOSSIA_SDK=$OSSIA_SDK \
@@ -54,7 +54,8 @@ export SOURCE_DIR=$PWD/score
 
 
     $CMAKE --build . --target all_unity -- -j$NPROC
-    $CMAKE --build . --target install/strip/fast
+    #$CMAKE --build . --target install/strip/fast
+    $CMAKE --build . --target install/fast
 )
 
 # Copy pixmaps
@@ -160,7 +161,7 @@ cp $APP.AppDir/usr/share/pixmaps/ossia-score.png $APP.AppDir/
     rsync -a $OSSIA_SDK/llvm/lib/clang/7.0.1/include/ $PWD/usr/lib/clang/7.0.1/include/
     
     # Strip binaries
-    strip usr/bin/ossia-score usr/bin/ossia-score-vstpuppet || true
+    # strip usr/bin/ossia-score usr/bin/ossia-score-vstpuppet || true
 )
 
 cp score/CMake/Deployment/Linux/AppImage/qt.conf $APP.AppDir/usr/bin/

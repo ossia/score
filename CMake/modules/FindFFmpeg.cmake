@@ -53,10 +53,10 @@ function(imported_link_libraries t_dest)
     _combine_targets_property(v3 IMPORTED_LOCATION_RELEASE ${ARGN})
     _combine_targets_property(v4 IMPORTED_LOCATION ${ARGN})
     _combine_targets_property(v5 INTERFACE_LINK_LIBRARIES ${ARGN})
-    
+
     set(v ${v1} ${v2} ${v3} ${v4} ${v5})
     list(REMOVE_DUPLICATES v)
-    
+
     set_property(TARGET ${t_dest} PROPERTY INTERFACE_LINK_LIBRARIES "${v}")
 endfunction()
 
@@ -203,7 +203,11 @@ if(TARGET avutil)
 
   if(WIN32)
     add_library(winbcrypt STATIC IMPORTED GLOBAL)
-    find_library(BCRYPT_LIBRARY libbcrypt.a HINTS ${OSSIA_SDK}/llvm/x86_64-w64-mingw32/lib)
+    if(MSVC)
+      find_library(BCRYPT_LIBRARY bcrypt)
+    else()
+      find_library(BCRYPT_LIBRARY libbcrypt.a HINTS ${OSSIA_SDK}/llvm/x86_64-w64-mingw32/lib)
+    endif()
     set_target_properties(winbcrypt PROPERTIES
       IMPORTED_LOCATION "${BCRYPT_LIBRARY}"
       INTERFACE_LINK_LIBRARIES "${BCRYPT_LIBRARY}"
