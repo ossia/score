@@ -233,11 +233,11 @@ if(APPLE)
         )
 endif()
 
-target_compile_definitions(${PROJECT_NAME} PRIVATE HAS_VST2)
+target_compile_definitions(${PROJECT_NAME} PUBLIC HAS_VST2)
 target_link_libraries(${PROJECT_NAME} PRIVATE ${CMAKE_DL_LIBS})
 
 if(TARGET Lilv)
-    target_link_libraries(${PROJECT_NAME} PRIVATE Lilv)
+    target_link_libraries(${PROJECT_NAME} PUBLIC Lilv)
     target_include_directories(${PROJECT_NAME} PRIVATE 3rdparty/readerwriterqueue)
 
     if(TARGET Suil)
@@ -246,7 +246,7 @@ if(TARGET Lilv)
 endif()
 
 if(${Faust_FOUND})
-  target_compile_definitions(${PROJECT_NAME} PRIVATE HAS_FAUST)
+  target_compile_definitions(${PROJECT_NAME} PUBLIC HAS_FAUST)
   target_link_libraries(${PROJECT_NAME} PUBLIC ${FAUST_LIBRARIES})
   target_include_directories(${PROJECT_NAME} PRIVATE ${FAUST_INCLUDE_DIR})
 endif()

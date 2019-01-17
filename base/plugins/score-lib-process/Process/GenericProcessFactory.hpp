@@ -49,7 +49,10 @@ Model_T* ProcessFactory_T<Model_T>::make(
     const TimeVal& duration, const QString& data,
     const Id<Process::ProcessModel>& id, QObject* parent)
 {
-  return new Model_T{duration, id, parent};
+  if constexpr(std::is_constructible_v<Model_T, TimeVal, QString, Id<Process::ProcessModel>, QObject*>)
+      return new Model_T{duration, data, id, parent};
+  else
+      return new Model_T{duration, id, parent};
 }
 
 template <typename Model_T>
@@ -79,7 +82,10 @@ private:
       const Process::ProcessModel& viewmodel,
       QGraphicsItem* parent) const final override
   {
-    return new LayerView_T{parent};
+    if constexpr(std::is_constructible_v<LayerView_T, const Model_T&, QGraphicsItem*>)
+        return new LayerView_T{safe_cast<const Model_T&>(viewmodel), parent};
+    else
+        return new LayerView_T{parent};
   }
 
   LayerPresenter_T* makeLayerPresenter(

@@ -16,6 +16,7 @@ struct CurveDomain;
 }
 namespace Scenario
 {
+class ScenarioDocumentModel;
 namespace Command
 {
 class SCORE_PLUGIN_SCENARIO_EXPORT Macro
@@ -150,6 +151,14 @@ public:
   void removeProcess(
       const Scenario::IntervalModel& interval,
       const Id<Process::ProcessModel>& proc);
+
+  Process::Cable& createCable(
+      const Scenario::ScenarioDocumentModel& dp,
+      Process::CableData dat);
+
+  void removeCable(
+      const Scenario::ScenarioDocumentModel& dp,
+      Process::Cable& theCable);
 
   void loadCables(
       const ObjectPath& parent

@@ -1,3 +1,4 @@
+#include <Dataflow/Commands/EditConnection.hpp>
 #include <Explorer/Explorer/DeviceExplorerModel.hpp>
 #include <Scenario/Commands/Cohesion/CreateCurves.hpp>
 #include <Scenario/Commands/CommandAPI.hpp>
@@ -249,6 +250,22 @@ void Macro::removeProcess(
     const IntervalModel& interval, const Id<Process::ProcessModel>& proc)
 {
   m.submit(new RemoveProcessFromInterval{interval, proc});
+}
+
+Process::Cable&Macro::createCable(
+    const ScenarioDocumentModel& dp
+    , Process::CableData dat)
+{
+  auto id = getStrongId(dp.cables);
+  m.submit(new Dataflow::CreateCable(dp, id, std::move(dat)));
+  return dp.cables.at(id);
+}
+
+void Macro::removeCable(
+    const ScenarioDocumentModel& dp
+    , Process::Cable& theCable)
+{
+  m.submit(new Dataflow::RemoveCable(dp, theCable));
 }
 
 void Macro::loadCables(const ObjectPath& parent, const Dataflow::SerializedCables& c)
