@@ -86,7 +86,7 @@ void QGraphicsPixmapToggle::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 
 QGraphicsSlider::QGraphicsSlider(QGraphicsItem* parent) : QGraphicsItem{parent}
 {
-  this->setAcceptedMouseButtons(Qt::LeftButton);
+  this->setAcceptedMouseButtons(Qt::LeftButton | Qt::RightButton);
 }
 
 void QGraphicsSlider::setRect(const QRectF& r)
@@ -162,7 +162,7 @@ QRectF QGraphicsSlider::handleRect() const
 QGraphicsLogSlider::QGraphicsLogSlider(QGraphicsItem* parent)
     : QGraphicsItem{parent}
 {
-  this->setAcceptedMouseButtons(Qt::LeftButton);
+  this->setAcceptedMouseButtons(Qt::LeftButton | Qt::RightButton);
 }
 
 void QGraphicsLogSlider::setRect(const QRectF& r)

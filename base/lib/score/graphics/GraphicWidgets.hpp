@@ -7,7 +7,9 @@
 #include <QGraphicsPixmapItem>
 #include <QGraphicsSceneEvent>
 #include <QKeyEvent>
+#include <QDebug>
 #include <QPainter>
+#include <QTimer>
 
 #include <score_lib_base_export.h>
 #include <wobjectdefs.h>
@@ -122,20 +124,51 @@ struct DefaultGraphicsSliderImpl
   template <typename T>
   static void mousePressEvent(T& self, QGraphicsSceneMouseEvent* event)
   {
-    if (self.isInHandle(event->pos()))
+    if(event->button() == Qt::LeftButton)
     {
-      self.m_grab = true;
-    }
+      if (self.isInHandle(event->pos()))
+      {
+        self.m_grab = true;
+      }
 
-    const auto srect = self.sliderRect();
-    double curPos
-        = ossia::clamp(event->pos().x(), 0., srect.width()) / srect.width();
-    if (curPos != self.m_value)
+      const auto srect = self.sliderRect();
+      double curPos
+          = ossia::clamp(event->pos().x(), 0., srect.width()) / srect.width();
+      if (curPos != self.m_value)
+      {
+        self.m_value = curPos;
+        self.valueChanged(self.m_value);
+        self.sliderMoved();
+        self.update();
+      }
+    }
+    else if(event->button() == Qt::RightButton)
     {
-      self.m_value = curPos;
-      self.valueChanged(self.m_value);
-      self.sliderMoved();
-      self.update();
+      QTimer::singleShot(0, [&,pos=event->scenePos()] {
+      auto w = new DoubleSpinboxWithEnter;
+      w->setRange(self.map(self.min), self.map(self.max));
+
+      w->setDecimals(6);
+      w->setValue(self.map(self.m_value * (self.max - self.min) + self.min));
+      auto obj = self.scene()->addWidget(
+          w, Qt::WindowStaysOnTopHint | Qt::FramelessWindowHint);
+      obj->setPos(pos);
+      w->setFocus();
+
+      QObject::connect(
+          w, SignalUtils::QDoubleSpinBox_valueChanged_double(), &self,
+          [=, &self](double v) {
+            self.m_value = (self.unmap(v) - self.min) / (self.max - self.min);
+            self.valueChanged(self.m_value);
+            self.sliderMoved();
+            self.update();
+          });
+      QObject::connect(w, &QDoubleSpinBox::editingFinished, &self, [=, &self] {
+        self.sliderReleased();
+        self.scene()->removeItem(obj);
+        obj->deleteLater();
+      });
+      });
     }
 
     event->accept();
@@ -144,7 +177,7 @@ struct DefaultGraphicsSliderImpl
   template <typename T>
   static void mouseMoveEvent(T& self, QGraphicsSceneMouseEvent* event)
   {
-    if (self.m_grab)
+    if ((event->buttons() & Qt::LeftButton) && self.m_grab)
     {
       const auto srect = self.sliderRect();
       double curPos
@@ -163,47 +196,28 @@ struct DefaultGraphicsSliderImpl
   template <typename T>
   static void mouseReleaseEvent(T& self, QGraphicsSceneMouseEvent* event)
   {
-    if (self.m_grab)
+    if (event->button() == Qt::LeftButton)
     {
-      double curPos
-          = ossia::clamp(event->pos().x() / self.sliderRect().width(), 0., 1.);
-      if (curPos != self.m_value)
+      if (self.m_grab)
       {
-        self.m_value = curPos;
-        self.valueChanged(self.m_value);
-        self.update();
+        double curPos
+            = ossia::clamp(event->pos().x() / self.sliderRect().width(), 0., 1.);
+        if (curPos != self.m_value)
+        {
+          self.m_value = curPos;
+          self.valueChanged(self.m_value);
+          self.update();
+        }
+        self.m_grab = false;
       }
-      self.m_grab = false;
+      self.sliderReleased();
     }
-    self.sliderReleased();
     event->accept();
   }
 
   template <typename T>
   static void mouseDoubleClickEvent(T& self, QGraphicsSceneMouseEvent* event)
   {
-    auto w = new DoubleSpinboxWithEnter;
-    w->setRange(self.map(self.min), self.map(self.max));
-
-    w->setDecimals(6);
-    w->setValue(self.map(self.m_value * (self.max - self.min) + self.min));
-    auto obj = self.scene()->addWidget(
-        w, Qt::WindowStaysOnTopHint | Qt::FramelessWindowHint);
-    obj->setPos(event->scenePos());
-    w->setFocus();
-
-    QObject::connect(
-        w, SignalUtils::QDoubleSpinBox_valueChanged_double(), &self,
-        [=, &self](double v) {
-          self.m_value = (self.unmap(v) - self.min) / (self.max - self.min);
-          self.valueChanged(self.m_value);
-          self.sliderMoved();
-          self.update();
-        });
-    QObject::connect(w, &QDoubleSpinBox::editingFinished, &self, [=, &self] {
-      self.scene()->removeItem(obj);
-      obj->deleteLater();
-    });
   }
 };
 
@@ -226,11 +240,11 @@ private:
 public:
   QGraphicsSlider(QGraphicsItem* parent);
 
-  static double map(double v)
+  static constexpr double map(double v)
   {
     return v;
   }
-  static double unmap(double v)
+  static constexpr double unmap(double v)
   {
     return v;
   }
