@@ -24,7 +24,7 @@ class ProcessModel final : public Process::ProcessModel, public Nano::Observer
 
 public:
   explicit ProcessModel(
-      const TimeVal& duration, const Id<Process::ProcessModel>& id,
+      const TimeVal& duration, const QString& data, const Id<Process::ProcessModel>& id,
       QObject* parent);
 
   ~ProcessModel() override;

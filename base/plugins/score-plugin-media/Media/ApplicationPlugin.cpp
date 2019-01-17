@@ -231,7 +231,6 @@ void ApplicationPlugin::rescanVSTs(const QStringList& paths)
   int i = 0;
   for (const QString& path : newPlugins)
   {
-    qDebug() << "Loading VST " << path;
     m_processes.emplace_back(path, std::make_unique<QProcess>());
     auto& p = *m_processes.back().second;
     connect(
@@ -262,10 +261,12 @@ void ApplicationPlugin::rescanVSTs(const QStringList& paths)
             vst_modules.insert({i.uniqueID, nullptr});
             vst_infos.push_back(std::move(i));
 
+            qDebug() << "Loaded VST " << path << "successfully";
             vstChanged();
           }
           else
           {
+            qDebug() << "Loading VST " << path << "failed";
             add_invalid(path);
           }
 
