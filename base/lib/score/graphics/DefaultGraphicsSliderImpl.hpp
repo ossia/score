@@ -167,12 +167,16 @@ struct DefaultGraphicsSliderImpl
           });
 
         QObject::connect(
-          w, &DoubleSpinboxWithEnter::editingFinished, &self, [=, &self] {
-            self.sliderReleased();
-            QTimer::singleShot(0, obj, [scene = self.scene(), obj] {
-              scene->removeItem(obj);
-              delete obj;
-            });
+          w, &DoubleSpinboxWithEnter::editingFinished, &self, [obj, &self] () mutable {
+            if(obj != nullptr)
+            {
+              self.sliderReleased();
+              QTimer::singleShot(0, obj, [scene = self.scene(), obj] {
+                scene->removeItem(obj);
+                delete obj;
+              });
+            }
+            obj = nullptr;
         });
       });
     }
