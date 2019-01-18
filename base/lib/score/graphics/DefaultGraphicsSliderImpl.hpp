@@ -99,7 +99,7 @@ struct DefaultGraphicsSliderImpl
         self.update();
       }
     }
-    
+
 
     event->accept();
   }
@@ -169,9 +169,9 @@ struct DefaultGraphicsSliderImpl
         QObject::connect(
           w, &DoubleSpinboxWithEnter::editingFinished, &self, [=, &self] {
             self.sliderReleased();
-            QTimer::singleShot(0, [scene = self.scene(), obj] {
+            QTimer::singleShot(0, obj, [scene = self.scene(), obj] {
               scene->removeItem(obj);
-              obj->deleteLater();
+              delete obj;
             });
         });
       });
