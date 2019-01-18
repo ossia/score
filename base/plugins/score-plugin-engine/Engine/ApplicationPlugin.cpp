@@ -228,7 +228,7 @@ score::GUIElements ApplicationPlugin::makeGUIElements()
     auto bar = new QToolBar;
     auto time_label = new QLabel;
     QFont time_font("Ubuntu", 18, QFont::Weight::DemiBold);
-    time_label->setFont(time_font);
+    time_label->setFont(time_font); time_label->setStyleSheet("QLabel { font: 18pt \"Ubuntu\"; font-weight: 600; }");
     time_label->setText("00:00:00.000");
     bar->addWidget(time_label);
     auto timer = new QTimer{this};

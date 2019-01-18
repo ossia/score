@@ -53,17 +53,6 @@ QWidget
     outline: 0;
 }
 
-QMenu {
-    font: 10pt "Ubuntu";
-}
-
-QMenuBar {
-    font: 10pt "Ubuntu";
-    font-weight: bold;
-}
-
-
-
 QWidget:item:hover
 {
     background-color: #78879b;
