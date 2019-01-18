@@ -85,13 +85,23 @@ static void setQApplicationSettings(QApplication& m_app)
       ":/Catamaran-Regular.ttf"); // Catamaran Regular
   QFontDatabase::addApplicationFont(":/Montserrat-Regular.ttf"); // Montserrat
 
-  QFile stylesheet_file{
-      ":/qsimpledarkstyle.qss"}; //":/qdarkstyle/qdarkstyle.qss"};
-  stylesheet_file.open(QFile::ReadOnly);
-  QString stylesheet = QLatin1String(stylesheet_file.readAll());
+  auto readFile = [] (QString s) {
+    QFile f{s};
+    SCORE_ASSERT(f.open(QFile::ReadOnly));
+    return f.readAll();
+  };
+  QByteArray ss;
+#if defined(_WIN32)
+  ss += readFile(":/style-windows.qss");
+#elif defined(__APPLE__)
+  ss += readFile(":/style-macos.qss");
+#else
+  ss += readFile(":/style-linux.qss");
+#endif
+  ss += readFile(":/qsimpledarkstyle.qss");
 
   m_app.setStyle(QStyleFactory::create("Fusion"));
-  m_app.setStyleSheet(stylesheet);
+  m_app.setStyleSheet(QLatin1String(ss));
 
   auto pal = qApp->palette();
   pal.setBrush(QPalette::Background, QColor("#001A2024"));
@@ -108,7 +118,12 @@ static void setQApplicationSettings(QApplication& m_app)
   pal.setBrush(QPalette::Dark, QColor("#666666"));
   pal.setBrush(QPalette::Shadow, QColor("#666666"));
 
-  QFont f("Ubuntu", 10);
+#if defined(_WIN32)
+  constexpr const int defaultFontSize = 8;
+#else
+  constexpr const int defaultFontSize = 10;
+#endif
+  QFont f("Ubuntu", defaultFontSize);
   qApp->setFont(f);
 
   qApp->setPalette(pal);

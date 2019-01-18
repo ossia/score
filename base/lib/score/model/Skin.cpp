@@ -36,7 +36,11 @@ Skin::~Skin()
 Skin::Skin() noexcept
     : SansFont{"Ubuntu"}
     , MonoFont{"APCCourier-Bold", 10, QFont::Black}
+#if defined(_WIN32)
+    , SansFontSmall{"Ubuntu", 6}
+#else
     , SansFontSmall{"Ubuntu", 7}
+#endif
     , TransparentPen{Qt::transparent}
     , TransparentBrush{Qt::transparent}
     , NoPen{Qt::NoPen}

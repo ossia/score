@@ -1,0 +1,11 @@
+QWidget {
+    font: 10pt "Ubuntu";
+}
+QMenu {
+    font: 10pt "Ubuntu";
+}
+
+QMenuBar {
+    font: 10pt "Ubuntu";
+    font-weight: bold;
+}

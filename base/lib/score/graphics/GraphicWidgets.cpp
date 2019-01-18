@@ -2,6 +2,7 @@
 
 #include <score/actions/ActionManager.hpp>
 #include <score/model/Skin.hpp>
+#include <score/graphics/DefaultGraphicsSliderImpl.hpp>
 
 #include <QDebug>
 #include <QDoubleSpinBox>
@@ -17,6 +18,7 @@ W_OBJECT_IMPL(score::QGraphicsSlider)
 W_OBJECT_IMPL(score::QGraphicsLogSlider)
 W_OBJECT_IMPL(score::QGraphicsIntSlider)
 W_OBJECT_IMPL(score::QGraphicsComboSlider)
+W_OBJECT_IMPL(score::DoubleSpinboxWithEnter)
 namespace score
 {
 
