@@ -9,7 +9,7 @@
 
 #include <score/model/ModelMetadata.hpp>
 #include <score/model/path/ObjectIdentifier.hpp>
-
+#include <score/graphics/YPos.hpp>
 #include <QMap>
 #include <QObject>
 #include <QString>
@@ -21,6 +21,7 @@
 #include <cstddef>
 #include <vector>
 W_OBJECT_IMPL(Scenario::AddressBarItem)
+
 namespace Scenario
 {
 AddressBarItem::AddressBarItem(
@@ -63,11 +64,11 @@ void AddressBarItem::setTargetObject(ObjectPath&& path)
         lab, &ClickableLabelItem::textChanged, this, &AddressBarItem::redraw);
 
     m_items.append(lab);
-    lab->setPos(currentWidth, 0.);
+    lab->setPos(currentWidth, SCORE_YPOS(0., -4.));
     currentWidth += 5. + lab->boundingRect().width();
 
     auto sep = new SeparatorItem{this};
-    sep->setPos(currentWidth, 0.);
+    sep->setPos(currentWidth, SCORE_YPOS(0., 4.));
     currentWidth += 5. + sep->boundingRect().width();
     m_items.append(sep);
   }

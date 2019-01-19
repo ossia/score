@@ -144,7 +144,6 @@ struct DefaultGraphicsSliderImpl
     }
     else if (event->button() == Qt::RightButton)
     {
-      const auto pos = event->scenePos();
       QTimer::singleShot(0, [&,pos=event->scenePos()] {
         auto w = new DoubleSpinboxWithEnter;
         w->setRange(self.map(self.min), self.map(self.max));

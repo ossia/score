@@ -192,6 +192,7 @@ set(HEADERS
     "${CMAKE_CURRENT_SOURCE_DIR}/score/graphics/GraphicsProxyObject.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/graphics/RectItem.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/graphics/TextItem.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/score/graphics/YPos.hpp"
 
     "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/ClearLayout.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/ControlWidgets.hpp"

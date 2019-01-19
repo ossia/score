@@ -46,6 +46,8 @@
 #include <QApplication>
 #include <QLabel>
 #include <QMessageBox>
+#include <QTabWidget>
+#include <QMainWindow>
 #include <QVariant>
 #include <QVector>
 
@@ -920,6 +922,27 @@ void ApplicationPlugin::initLocalTreeNodes(LocalTree::DocumentPlugin& lt)
           pres->exit();
           QTimer::singleShot(500, [] { QCoreApplication::quit(); });
         });
+      });
+    });
+  }
+
+
+  {
+    auto node = root.create_child("document");
+    auto address = node->create_parameter(ossia::val_type::INT);
+    address->set_value(0);
+    address->set_access(ossia::access_mode::BI);
+    address->add_callback([&](const ossia::value& v) {
+      int val = v.get<int>();
+      ossia::qt::run_async(this, [=] {
+        if (context.applicationSettings.gui)
+        {
+          QTabWidget* docs = context.mainWindow->centralWidget()->findChild<QTabWidget*>("Documents", Qt::FindDirectChildrenOnly);
+          SCORE_ASSERT(docs);
+          if(docs) {
+            docs->setCurrentIndex(std::clamp(val, 0, docs->count() - 1));
+          }
+        }
       });
     });
   }
