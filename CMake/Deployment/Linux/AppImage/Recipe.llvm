@@ -44,7 +44,7 @@ export SOURCE_DIR=$PWD/score
 
     cd build
     $CMAKE $SOURCE_DIR \
-      -DSCORE_CONFIGURATION=static-debug \
+      -DSCORE_CONFIGURATION=static-release \
       -DCMAKE_INSTALL_PREFIX=$INSTALL_ROOT \
       -DCMAKE_PREFIX_PATH=$QT_DIR/lib/cmake/Qt5 \
       -DOSSIA_SDK=$OSSIA_SDK \
