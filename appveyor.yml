@@ -13,7 +13,6 @@ install:
   - appveyor DownloadFile "https://github.com/OSSIA/score-sdk/releases/download/sdk9/win-audio-sdk.zip" -FileName win-audio-sdk.zip
   - 7z x win-audio-sdk.zip
   - move portaudio c:\portaudio
-  - move tbb c:\tbb
   - move ffmpeg c:\ffmpeg
 
 build_script:
