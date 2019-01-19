@@ -16,7 +16,7 @@
 #include <QDialogButtonBox>
 #include <QPlainTextEdit>
 #include <QVBoxLayout>
-
+#include <QTimer>
 #include <wobjectimpl.h>
 
 #include <iostream>
@@ -307,6 +307,18 @@ Execution::FaustEffectComponent::FaustEffectComponent(
             });
           });
     }
+
+    std::weak_ptr<ossia::nodes::faust> weak_node = node;
+    con(ctx.doc.coarseUpdateTimer, &QTimer::timeout, this, [weak_node, &proc] {
+      if(auto node = weak_node.lock())
+      {
+        for (std::size_t i = 1; i < proc.inlets().size(); i++)
+        {
+          auto inlet = static_cast<Process::ControlInlet*>(proc.inlets()[i]);
+          inlet->setValue(*node->controls[i - 1].second);
+        }
+      }
+    });
   }
 }
 }
