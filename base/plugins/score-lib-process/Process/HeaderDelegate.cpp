@@ -10,6 +10,7 @@
 #include <QTextLayout>
 #include <QTextLine>
 
+#include <score/graphics/YPos.hpp>
 #include <Effect/EffectLayer.hpp>
 namespace Process
 {
@@ -54,7 +55,7 @@ static double portY()
   //    s->show();
   //    return d;
   //  }();
-  return 7.;
+  return SCORE_YPOS(7., 8.);
 }
 
 static double textY()
@@ -233,35 +234,35 @@ void DefaultHeaderDelegate::paint(
   {
     if (m_inPorts.empty())
     {
-      painter->drawImage(QPointF{start, 1.}, m_line);
-      painter->drawImage(QPointF{w - 32., 1.}, m_bench);
+      painter->drawImage(QPointF{start, SCORE_YPOS(1., -1.)}, m_line);
+      painter->drawImage(QPointF{w - 32., SCORE_YPOS(1., -1.)}, m_bench);
       if (m_sel)
       {
         painter->drawImage(
-            QPointF{start + 8. + m_line.width(), textY()}, toGlyphWhite());
+            QPointF{start + 8. + m_line.width(), textY() + SCORE_YPOS(0., -2.)}, toGlyphWhite());
       }
       else
       {
         painter->drawImage(
-            QPointF{start + 8. + m_line.width(), textY()}, toGlyphGray());
+            QPointF{start + 8. + m_line.width(), textY() + SCORE_YPOS(0., -2.)}, toGlyphGray());
       }
     }
     else
     {
       double startText = start + 16. + m_inPorts.size() * 10.;
-      painter->drawImage(QPointF{startText, 1.}, m_line);
-      painter->drawImage(QPointF{w - 32., 1.}, m_bench);
+      painter->drawImage(QPointF{startText, SCORE_YPOS(1., -1.)}, m_line);
+      painter->drawImage(QPointF{w - 32., SCORE_YPOS(1., -1.)}, m_bench);
       if (m_sel)
       {
-        painter->drawImage(QPointF{start + 4., textY()}, fromGlyphWhite());
+        painter->drawImage(QPointF{start + 4., textY() + SCORE_YPOS(0., -2.)}, fromGlyphWhite());
         painter->drawImage(
-            QPointF{startText + 8. + m_line.width(), textY()}, toGlyphWhite());
+            QPointF{startText + 8. + m_line.width(), textY() + SCORE_YPOS(0., -2.)}, toGlyphWhite());
       }
       else
       {
-        painter->drawImage(QPointF{start + 4., textY()}, fromGlyphGray());
+        painter->drawImage(QPointF{start + 4., textY() + SCORE_YPOS(0., -2.)}, fromGlyphGray());
         painter->drawImage(
-            QPointF{startText + 8. + m_line.width(), textY()}, toGlyphGray());
+            QPointF{startText + 8. + m_line.width(), textY() + SCORE_YPOS(0., -2.)}, toGlyphGray());
       }
     }
   }

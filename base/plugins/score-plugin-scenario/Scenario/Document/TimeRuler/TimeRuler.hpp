@@ -105,9 +105,5 @@ private:
   QGlyphRun getGlyphs(std::chrono::microseconds);
   QTextLayout m_layout;
   std::deque<std::pair<std::chrono::microseconds, QGlyphRun>> m_stringCache;
-
-  static const constexpr qreal graduationHeight = -15.;
-  static const constexpr qreal timeRulerHeight = -2. * graduationHeight;
-  static const constexpr qreal textPosition = 1.65 * graduationHeight;
 };
 }
