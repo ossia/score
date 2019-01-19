@@ -50,14 +50,37 @@ struct PanelComparator
 View::~View()
 {
 }
+
+static void setTitle(View& view, const score::Document* document, bool save_state) noexcept
+{
+  QString title;
+
+  if(document)
+  {
+    if(save_state)
+    {
+      title = " * ";
+    }
+    title += QStringLiteral("score %1 - %2")
+        .arg(qApp->applicationVersion())
+        .arg(document->metadata().fileName());
+  }
+  else
+  {
+    title = QStringLiteral("score %1").arg(qApp->applicationVersion());
+  }
+
+  view.setWindowIconText(title);
+  view.setWindowTitle(title);
+}
+
 View::View(QObject* parent) : QMainWindow{}, m_tabWidget{new QTabWidget}
 {
   setObjectName("View");
   this->setWindowIcon(QIcon("://ossia-score.png"));
-  auto title = tr("score - %1").arg(qApp->applicationVersion());
-  this->setWindowIconText(title);
-  this->setWindowTitle(title);
   m_tabWidget->setObjectName("Documents");
+
+  setTitle(*this, nullptr, false);
 
   // setUnifiedTitleAndToolBarOnMac(true);
 
@@ -83,12 +106,24 @@ View::View(QObject* parent) : QMainWindow{}, m_tabWidget{new QTabWidget}
   connect(
       m_tabWidget, &QTabWidget::currentChanged, this,
       [&](int index) {
+        static QMetaObject::Connection saved_connection;
+        QObject::disconnect(saved_connection);
         auto widg = m_tabWidget->widget(index);
         auto doc = m_documents.find(widg);
         if (doc == m_documents.end())
+        {
+          setTitle(*this, nullptr, false);
           return;
+        }
 
-        activeDocumentChanged(doc->second->document().model().id());
+        auto& document = const_cast<score::Document&>(doc->second->document());
+        activeDocumentChanged(document.model().id());
+
+        setTitle(*this, &document, !document.commandStack().isAtSavedIndex());
+        saved_connection = connect(&document.commandStack(), &score::CommandStack::saveIndexChanged,
+                                   this, [this, doc=&document] (bool state) {
+          setTitle(*this, doc, !state);
+        });
       },
       Qt::QueuedConnection);
 
