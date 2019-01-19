@@ -1,7 +1,12 @@
 #pragma once
-#include <core/command/CommandStack.hpp>
+#include <score/tools/Todo.hpp>
+
 namespace score
 {
+class Command;
+class CommandStack;
+struct DocumentContext;
+
 /**
  * @brief A small abstraction layer over the score::CommandStack
  *
@@ -17,33 +22,14 @@ private:
   score::CommandStack& m_stack;
 
 public:
-  CommandStackFacade(score::CommandStack& stack) : m_stack{stack}
-  {
-  }
+  CommandStackFacade(score::CommandStack& stack);
 
-  const score::DocumentContext& context() const
-  {
-    return m_stack.context();
-  }
+  const score::DocumentContext& context() const;
 
-  void push(score::Command* cmd) const
-  {
-    m_stack.push(cmd);
-  }
+  void push(score::Command* cmd) const;
+  void redoAndPush(score::Command* cmd) const;
 
-  void redoAndPush(score::Command* cmd) const
-  {
-    m_stack.redoAndPush(cmd);
-  }
-
-  void disableActions() const
-  {
-    m_stack.disableActions();
-  }
-
-  void enableActions() const
-  {
-    m_stack.enableActions();
-  }
+  void disableActions() const;
+  void enableActions() const;
 };
 }

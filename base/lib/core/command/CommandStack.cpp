@@ -106,6 +106,7 @@ void CommandStack::setIndexQuiet(int index)
       redoQuiet();
   }
 
+  saveIndexChanged(m_savedIndex == this->currentIndex());
   sig_indexChanged();
 }
 
@@ -125,6 +126,7 @@ void CommandStack::undoQuiet()
     cmd->undo(m_ctx);
     m_redoable.push(cmd);
 
+    saveIndexChanged(m_savedIndex == this->currentIndex());
     sig_undo();
   });
 }
@@ -137,6 +139,7 @@ void CommandStack::redoQuiet()
 
     m_undoable.push(cmd);
 
+    saveIndexChanged(m_savedIndex == this->currentIndex());
     sig_redo();
   });
 }
@@ -157,6 +160,7 @@ void CommandStack::push(Command* cmd)
 
     // Push operation
     m_undoable.push(cmd);
+    saveIndexChanged(m_savedIndex == this->currentIndex());
 
     if (!m_redoable.empty())
     {
@@ -183,6 +187,7 @@ void CommandStack::pushQuiet(Command* cmd)
 
     // Push operation
     m_undoable.push(cmd);
+    saveIndexChanged(m_savedIndex == this->currentIndex());
 
     if (!m_redoable.empty())
     {
@@ -196,6 +201,45 @@ void CommandStack::pushQuiet(Command* cmd)
 
 void CommandStack::setSavedIndex(int index)
 {
-  m_savedIndex = index;
+  if(index != m_savedIndex) {
+    m_savedIndex = index;
+    saveIndexChanged(m_savedIndex == this->currentIndex());
+  }
 }
+
+
+CommandStackFacade::CommandStackFacade(CommandStack& stack) : m_stack{stack}
+{
+}
+
+
+const DocumentContext&CommandStackFacade::context() const
+{
+  return m_stack.context();
+}
+
+
+void CommandStackFacade::push(Command* cmd) const
+{
+  m_stack.push(cmd);
+}
+
+
+void CommandStackFacade::redoAndPush(Command* cmd) const
+{
+  m_stack.redoAndPush(cmd);
+}
+
+
+void CommandStackFacade::disableActions() const
+{
+  m_stack.disableActions();
+}
+
+
+void CommandStackFacade::enableActions() const
+{
+  m_stack.enableActions();
+}
+
 }

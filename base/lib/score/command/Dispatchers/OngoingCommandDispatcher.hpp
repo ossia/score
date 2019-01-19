@@ -2,8 +2,6 @@
 #include <score/command/Dispatchers/ICommandDispatcher.hpp>
 #include <score/command/Dispatchers/SendStrategy.hpp>
 
-#include <core/command/CommandStack.hpp>
-
 /**
  * @brief The OngoingCommandDispatcher class
  *
