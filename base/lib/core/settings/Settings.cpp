@@ -5,6 +5,7 @@
 #include <score/plugins/ProjectSettings/ProjectSettingsPresenter.hpp>
 #include <score/plugins/ProjectSettings/ProjectSettingsView.hpp>
 #include <score/plugins/documentdelegate/plugin/DocumentPlugin.hpp>
+#include <score/plugins/documentdelegate/plugin/DocumentPluginCreator.hpp>
 #include <score/plugins/settingsdelegate/SettingsDelegateFactory.hpp>
 #include <score/plugins/settingsdelegate/SettingsDelegateModel.hpp>
 #include <score/plugins/settingsdelegate/SettingsDelegateView.hpp>

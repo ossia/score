@@ -12,6 +12,7 @@
 #include <score/plugins/documentdelegate/DocumentDelegateFactory.hpp>
 #include <score/plugins/documentdelegate/DocumentDelegateModel.hpp>
 #include <score/plugins/documentdelegate/plugin/DocumentPlugin.hpp>
+#include <score/plugins/documentdelegate/plugin/DocumentPluginCreator.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/serialization/JSONValueVisitor.hpp>
 #include <score/serialization/JSONVisitor.hpp>
