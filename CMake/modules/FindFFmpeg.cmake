@@ -205,13 +205,18 @@ if(TARGET avutil)
     add_library(winbcrypt STATIC IMPORTED GLOBAL)
     if(MSVC)
       find_library(BCRYPT_LIBRARY bcrypt)
+      set_target_properties(winbcrypt PROPERTIES
+        IMPORTED_NO_SONAME 1
+        IMPORTED_LOCATION bcrypt
+      )
     else()
       find_library(BCRYPT_LIBRARY libbcrypt.a HINTS ${OSSIA_SDK}/llvm/x86_64-w64-mingw32/lib)
+      
+      set_target_properties(winbcrypt PROPERTIES
+        IMPORTED_LOCATION "${BCRYPT_LIBRARY}"
+        INTERFACE_LINK_LIBRARIES "${BCRYPT_LIBRARY}"
+      )
     endif()
-    set_target_properties(winbcrypt PROPERTIES
-      IMPORTED_LOCATION "${BCRYPT_LIBRARY}"
-      INTERFACE_LINK_LIBRARIES "${BCRYPT_LIBRARY}"
-    )
     imported_link_libraries(avutil winbcrypt)
   endif()
 endif()
