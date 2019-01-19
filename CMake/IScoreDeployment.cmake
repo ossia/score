@@ -2,7 +2,7 @@ if(NOT DEPLOYMENT_BUILD)
     return()
 endif()
 
-set(CPACK_PACKAGE_NAME "ossia-score")
+set(CPACK_PACKAGE_NAME "ossia score")
 set(CPACK_PACKAGE_VENDOR "ossia")
 set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "An intermedia sequencer for the precise and flexible scripting of interactive scenarios.")
 set(CPACK_PACKAGE_VERSION "${SCORE_VERSION}")

@@ -1,4 +1,5 @@
 if(UNIX)
+set(CPACK_PACKAGE_NAME "ossia-score")
 
 #use the LSB stuff if possible :)
 set(LSB_ID "")
