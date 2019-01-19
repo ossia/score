@@ -24,7 +24,7 @@ build_script:
 
 artifacts:
   - name: Installer
-    path: 'build/score-*.exe'
+    path: 'build/ossia score-*.exe'
 
 deploy:
   release: $(APPVEYOR_REPO_TAG_NAME)
