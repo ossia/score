@@ -1,5 +1,6 @@
 #pragma once
 #include <score/tools/Todo.hpp>
+#include <score_lib_base_export.h>
 
 namespace score
 {
@@ -16,7 +17,7 @@ struct DocumentContext;
  *
  * It is meant to be used by plug-ins authors.
  */
-class CommandStackFacade
+class SCORE_LIB_BASE_EXPORT CommandStackFacade
 {
 private:
   score::CommandStack& m_stack;
