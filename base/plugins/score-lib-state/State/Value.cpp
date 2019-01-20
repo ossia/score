@@ -95,4 +95,10 @@ Unit::operator ossia::unit_t&() noexcept
 {
   return *unit;
 }
+
+QLatin1String prettyUnitText(const ossia::unit_t& u)
+{
+  auto unit = ossia::get_pretty_unit_text(u);
+  return QLatin1String(unit.data(), unit.size());
+}
 }

@@ -45,8 +45,7 @@ void JSONObjectReader::read(const Device::AddressSettingsCommon& n)
   if (n.ioType)
     obj[strings.ioType] = Device::AccessModeText()[*n.ioType];
   obj[strings.ClipMode] = Device::ClipModeStringMap()[n.clipMode];
-  obj[strings.Unit]
-      = QString::fromStdString(ossia::get_pretty_unit_text(n.unit));
+  obj[strings.Unit] = State::prettyUnitText(n.unit);
 
   obj[strings.RepetitionFilter] = static_cast<bool>(n.repetitionFilter);
 

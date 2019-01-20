@@ -416,8 +416,7 @@ QVariant AddressItemModel::data(const QModelIndex& index, int role) const
           }
           case Rows::Unit:
           {
-            return QString::fromStdString(
-                ossia::get_pretty_unit_text(m_settings.unit.get()));
+            return State::prettyUnitText(m_settings.unit.get());
           }
           case Rows::Access:
           {

@@ -6,6 +6,7 @@
 #include <score_lib_state_export.h>
 #include <wobjectdefs.h>
 
+#include <QString>
 #include <memory>
 
 namespace ossia
@@ -40,6 +41,10 @@ public:
 private:
   std::unique_ptr<ossia::unit_t> unit;
 };
+
+
+SCORE_LIB_STATE_EXPORT
+QLatin1String prettyUnitText(const ossia::unit_t&);
 }
 
 template <>

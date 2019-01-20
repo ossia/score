@@ -2,6 +2,7 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include <State/Address.hpp>
 #include <State/Expression.hpp>
+#include <State/Unit.hpp>
 
 #include <score/tools/Todo.hpp>
 
@@ -317,7 +318,7 @@ QDebug operator<<(QDebug d, const State::DestinationQualifiers& val)
   auto& a = val.get();
   d.noquote().nospace() << a.accessors;
   if (a.unit)
-    d << QString::fromStdString(ossia::get_pretty_unit_text(a.unit));
+    d << QString::fromStdString(std::string(ossia::get_pretty_unit_text(a.unit)));
 
   return d;
 }
@@ -348,8 +349,8 @@ QString toString(const ossia::destination_qualifiers& qualifiers)
   QString str;
   if (qualifiers.unit)
   {
-    auto unit_text
-        = QString::fromStdString(ossia::get_pretty_unit_text(qualifiers.unit));
+    QString unit_text = State::prettyUnitText(qualifiers.unit);
+      //  = QString::fromStdString(ossia::get_pretty_unit_text(qualifiers.unit));
     if (!qualifiers.accessors.empty())
     {
       char c

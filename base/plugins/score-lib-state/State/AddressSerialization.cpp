@@ -9,6 +9,7 @@
 #include <ossia/editor/state/destination_qualifiers.hpp>
 #include <ossia/network/dataspace/dataspace_visitors.hpp>
 
+#include <State/Unit.hpp>
 #include <QDataStream>
 #include <QJsonObject>
 #include <QJsonValue>
@@ -62,8 +63,7 @@ SCORE_LIB_STATE_EXPORT void
 JSONObjectReader::read(const ossia::destination_qualifiers& a)
 {
   obj[strings.Accessors] = toJsonValueArray(a.accessors);
-  obj[strings.Unit]
-      = QString::fromStdString(ossia::get_pretty_unit_text(a.unit));
+  obj[strings.Unit] = State::prettyUnitText(a.unit);
 }
 
 template <>
