@@ -103,7 +103,7 @@ void StateInspectorWidget::on_stateChanged()
   auto unit = m_state.process().sourceUnit();
   if (auto& u = unit.get())
   {
-    txt += " " + QString::fromStdString(ossia::get_pretty_unit_text(u));
+    txt += " " + State::prettyUnitText(u);
   }
 
   m_label->setText(txt);

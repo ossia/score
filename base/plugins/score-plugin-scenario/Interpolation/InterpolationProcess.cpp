@@ -265,8 +265,7 @@ void JSONObjectReader::read(const Interpolation::ProcessModel& interp)
 {
   obj["Curve"] = toJsonObject(interp.curve());
   obj[strings.Address] = toJsonObject(interp.address());
-  obj[strings.Unit] = QString::fromStdString(
-      ossia::get_pretty_unit_text(interp.sourceUnit()));
+  obj[strings.Unit] = State::prettyUnitText(interp.sourceUnit());
   obj[strings.Start] = toJsonObject(interp.start());
   obj[strings.End] = toJsonObject(interp.end());
   obj["Tween"] = interp.tween();
