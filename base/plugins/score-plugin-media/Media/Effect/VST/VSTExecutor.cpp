@@ -82,7 +82,8 @@ VSTEffectComponent::VSTEffectComponent(
           }
         });
 
-    std::weak_ptr weak_node = node;
+    using ptr_t = std::remove_reference_t<decltype(node)>;
+    typename ptr_t::weak_type weak_node = node;
     con(ctx.doc.coarseUpdateTimer, &QTimer::timeout, this, [weak_node, &proc] {
       if(auto node = weak_node.lock())
       {
