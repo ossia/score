@@ -25,15 +25,15 @@ VSTEffectComponent::VSTEffectComponent(
 
   AEffect& fx = *proc.fx->fx;
   auto setup_controls = [&](auto& node) {
-    node->ctrl_ptrs.reserve(proc.controls.size());
+    node->controls.reserve(proc.controls.size());
     const auto& inlets = proc.inlets();
     for (std::size_t i = 3; i < inlets.size(); i++)
     {
       auto ctrl = safe_cast<Media::VST::VSTControlInlet*>(inlets[i]);
       auto inlet = ossia::make_inlet<ossia::value_port>();
 
-      node->ctrl_ptrs.push_back(
-          {ctrl->fxNum, inlet->data.target<ossia::value_port>()});
+      node->controls.push_back(
+          {ctrl->fxNum, ctrl->value(), inlet->data.target<ossia::value_port>()});
       node->inputs().push_back(std::move(inlet));
     }
 
@@ -41,16 +41,16 @@ VSTEffectComponent::VSTEffectComponent(
     connect(
         &proc, &Media::VST::VSTEffectModel::controlAdded, this,
         [this, &proc, wp](const Id<Process::Port>& id) {
-          auto port = proc.getControl(id);
-          if (!port)
+          auto ctrl = proc.getControl(id);
+          if (!ctrl)
             return;
           if (auto n = wp.lock())
           {
-            in_exec([n, num = port->fxNum] {
+            in_exec([n, val = ctrl->value(), num = ctrl->fxNum] {
               auto inlet = ossia::make_inlet<ossia::value_port>();
 
-              n->ctrl_ptrs.push_back(
-                  {num, inlet->data.target<ossia::value_port>()});
+              n->controls.push_back(
+                  {num, val, inlet->data.target<ossia::value_port>()});
               n->inputs().push_back(inlet);
             });
           }
@@ -64,11 +64,11 @@ VSTEffectComponent::VSTEffectComponent(
                 [n, num = static_cast<const Media::VST::VSTControlInlet&>(port)
                               .fxNum] {
                   auto it = ossia::find_if(
-                      n->ctrl_ptrs, [&](auto& c) { return c.first == num; });
-                  if (it != n->ctrl_ptrs.end())
+                      n->controls, [&](auto& c) { return c.idx == num; });
+                  if (it != n->controls.end())
                   {
-                    auto port = it->second;
-                    n->ctrl_ptrs.erase(it);
+                    auto port = it->port;
+                    n->controls.erase(it);
                     auto port_it = ossia::find_if(n->inputs(), [&](auto& p) {
                       return p->data.target() == port;
                     });
@@ -81,6 +81,18 @@ VSTEffectComponent::VSTEffectComponent(
                 });
           }
         });
+
+    std::weak_ptr weak_node = node;
+    con(ctx.doc.coarseUpdateTimer, &QTimer::timeout, this, [weak_node, &proc] {
+      if(auto node = weak_node.lock())
+      {
+        for (std::size_t i = 3; i < proc.inlets().size(); i++)
+        {
+          auto inlet = static_cast<Media::VST::VSTControlInlet*>(proc.inlets()[i]);
+          inlet->setValue(node->controls[i - 3].value);
+        }
+      }
+    });
   };
 
   if (fx.flags & effFlagsCanDoubleReplacing)

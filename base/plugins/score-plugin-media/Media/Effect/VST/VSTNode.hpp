@@ -28,13 +28,18 @@ private:
   }
 
 public:
-  ossia::small_vector<std::pair<int, ossia::value_port*>, 10> ctrl_ptrs;
+  struct vst_control {
+    int idx{};
+    float value{};
+    ossia::value_port* port{};
+  };
+  ossia::small_vector<vst_control, 16> controls;
 
   vst_node(std::shared_ptr<AEffectWrapper> dat, int sampleRate)
       : fx{std::move(dat)}
   {
     m_inlets.reserve(10);
-    ctrl_ptrs.reserve(10);
+    controls.reserve(10);
     if constexpr (IsSynth)
       m_inlets.push_back(ossia::make_inlet<ossia::midi_port>());
     else
@@ -133,15 +138,15 @@ public:
           m_sig = *sig;
       }
     }
-    for (auto p : ctrl_ptrs)
+    for (vst_control& p : controls)
     {
-      auto& vec = p.second->get_data();
+      const auto& vec = p.port->get_data();
       if (vec.empty())
         continue;
       if (auto t = last(vec).template target<float>())
       {
-        fx->fx->setParameter(
-            fx->fx, p.first, ossia::clamp<float>(*t, 0.f, 1.f));
+        p.value = ossia::clamp<float>(*t, 0.f, 1.f);
+        fx->fx->setParameter(fx->fx, p.idx, p.value);
       }
     }
   }
