@@ -28,7 +28,7 @@ namespace Scenario
 {
 static const constexpr qreal graduationHeight = -15.;
 static const constexpr qreal timeRulerHeight = 30.;
-static const constexpr qreal textPosition = SCORE_YPOS(-22.75, -15.35);
+static const constexpr qreal textPosition = SCORE_YPOS(-22.75, -27.75);
 
 static const constexpr std::array<
     std::pair<double, std::chrono::microseconds>, 22>
