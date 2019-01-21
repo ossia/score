@@ -38,6 +38,8 @@ Skin::Skin() noexcept
     , MonoFont{"APCCourier-Bold", 10, QFont::Black}
 #if defined(_WIN32)
     , SansFontSmall{"Ubuntu", 6}
+#elif defined(__APPLE__)
+    , SansFontSmall{"Ubuntu", 8}
 #else
     , SansFontSmall{"Ubuntu", 7}
 #endif
