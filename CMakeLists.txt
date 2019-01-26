@@ -78,6 +78,11 @@ set(OSSIA_PROTOCOL_JOYSTICK OFF CACHE INTERNAL "" FORCE)
 set(OSSIA_PROTOCOL_WIIMOTE OFF CACHE INTERNAL "" FORCE)
 set(RTMIDI17_NO_WINUWP ON CACHE INTERNAL "" FORCE)
 
+if(NOT EXISTS ".git")
+  set(OSSIA_SUBMODULE_AUTOUPDATE OFF CACHE INTERNAL "" FORCE)
+endif()
+
+
 if(MSVC)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /EHsc /std:c++latest")
   add_definitions(/D_HAS_AUTO_PTR_ETC=1 /D_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS=1)
@@ -119,14 +124,15 @@ include_directories(SYSTEM "${3RDPARTY_FOLDER}/miniz")
 set(SCORE_PLUGINS_LIST CACHE INTERNAL "List of plugins") # todo libraries, components ?
 set(SCORE_GLOBAL_COMPONENTS_LIST CACHE INTERNAL "List of components") # todo libraries, components ?
 add_subdirectory(base)
-set(SCORE_TESTBED OFF)
+
 if(SCORE_TESTBED)
   add_subdirectory(Tests/testbed)
 endif()
 
-add_custom_target(Docs SOURCES Documentation/Models/score.qmodel)
+if(EXISTS Documentation/Models/score.qmodel)
+  add_custom_target(Docs SOURCES Documentation/Models/score.qmodel)
+endif()
 
-set(INTEGRATION_TESTING 0)
 if(INTEGRATION_TESTING)
   include_directories("${CMAKE_CURRENT_SOURCE_DIR}/Tests")
   file(GLOB_RECURSE TESTS_HDRS "${CMAKE_CURRENT_SOURCE_DIR}/Tests/*.hpp")

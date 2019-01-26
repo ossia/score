@@ -14,6 +14,20 @@ set(CPACK_RESOURCE_FILE_LICENSE "${SCORE_ROOT_SOURCE_DIR}/LICENSE.txt")
 set(CPACK_SOURCE_GENERATOR TGZ)
 set(CPACK_SOURCE_PACKAGE_FILE_NAME "ossia-score")
 
+set(CPACK_SOURCE_IGNORE_FILES
+  "\\\\.#;/#;.*~"
+  "\\\\.git"
+  "/\\\\.idea"
+  ".*\\\\.user"
+  "max-sdk"
+  "pure-data"
+  "/base/addons/score.*"
+  "/base/disabled_addons"
+  "/base/disabled-addons"
+  "/Documentation"
+  "/API/3rdparty/concurrentqueue/benchmarks"
+)
+
 set(CPACK_INSTALL_CMAKE_PROJECTS)
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")

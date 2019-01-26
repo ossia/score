@@ -22,3 +22,4 @@ score-plugin-js
 score-plugin-midi
 score-plugin-recording
 )
+set(SCORE_PLUGINS_TO_BUILD)
