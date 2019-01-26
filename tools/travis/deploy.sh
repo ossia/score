@@ -18,3 +18,4 @@ case "$CONF" in
   tarball)
     mv "ossia-score.tar.xz" "Score-$TRAVIS_TAG-src.tar.xz"
   ;;
+esac
