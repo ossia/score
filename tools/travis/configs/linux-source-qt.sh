@@ -2,7 +2,6 @@
 set +eux
 export CC=/usr/bin/clang-7
 export CXX=/usr/bin/clang++-7
-export BOOST_ROOT=/opt/boost
 export CMAKE_COMMON_FLAGS="-GNinja -DPORTAUDIO_ONLY_DYNAMIC=1 -DOSSIA_USE_FAST_LINKER=1"
 QT_ENV_SCRIPT=$(find /opt -name 'qt*-env.sh')
 source $QT_ENV_SCRIPT

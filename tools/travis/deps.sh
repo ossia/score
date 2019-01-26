@@ -10,9 +10,8 @@ fi
 case "$TRAVIS_OS_NAME" in
   linux)
     sudo chmod -R a+rwx /opt
-    wget https://github.com/OSSIA/score-sdk/releases/download/sdk8/boost.tar.bz2 -O /opt/boost.tar.bz2 &
 
-    wget -nv https://cmake.org/files/v3.13/cmake-3.13.0-Linux-x86_64.tar.gz -O cmake-linux.tgz &
+    wget -nv https://cmake.org/files/v3.13/cmake-3.13.3-Linux-x86_64.tar.gz -O cmake-linux.tgz &
 
     echo 'deb http://apt.llvm.org/trusty/ llvm-toolchain-trusty-7 main' | sudo tee /etc/apt/sources.list.d/llvm.list
     sudo apt-key adv --recv-keys --keyserver keyserver.ubuntu.com 1397BC53640DB551
@@ -36,7 +35,6 @@ case "$TRAVIS_OS_NAME" in
         libavahi-compat-libdnssd-dev
 
     wait wget || true
-    (cd /opt; tar xaf boost.tar.bz2; mv boost_* boost ; chmod -R a+rwx boost)
 
     tar xaf cmake-linux.tgz
     mv cmake-*-x86_64 cmake
