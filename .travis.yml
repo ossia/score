@@ -37,6 +37,8 @@ matrix:
       env: CONF=osx-package CAN_DEPLOY=True
     - os: linux
       env: CONF=linux-package-appimage CAN_DEPLOY=True
+    - os: linux
+      env: CONF=tarball CAN_DEPLOY=True
 
 #    - os: osx
 #      env: CONF=osx-debug CAN_DEPLOY=False
@@ -51,6 +53,7 @@ matrix:
 #      env: CONF=linux-static-debug CAN_DEPLOY=False
     - os: linux
       env: CONF=linux-release CAN_DEPLOY=False
+      
 
 # Coverity
 #    - os: linux
@@ -69,7 +72,7 @@ deploy:
   - provider: releases
     api_key:
       secure: "hk56wIhJMippWajLTGtO44szXtBCzhCNHAET9fKZ7dXcfEVG22YHuUDMo1ROn6ZhthB5m8SLgctuTf4GtuvGxhdQzjeBSsvYCs6QAAUtMjBb4/lafcBZfr3Amf5TT8MfznGESQDMGjMUjnwQlUoWCVE0XoqNq6DbFlyoZPpscSE="
-    file: build/Score-$TRAVIS_TAG-OSX.zip
+    file: build/Score-$TRAVIS_TAG-macOS.zip
     skip_cleanup: true
     on:
       tags: true
@@ -82,3 +85,11 @@ deploy:
     on:
       tags: true
       condition: $CAN_DEPLOY = True && $TRAVIS_OS_NAME = linux
+  - provider: releases
+    api_key:
+      secure: "hk56wIhJMippWajLTGtO44szXtBCzhCNHAET9fKZ7dXcfEVG22YHuUDMo1ROn6ZhthB5m8SLgctuTf4GtuvGxhdQzjeBSsvYCs6QAAUtMjBb4/lafcBZfr3Amf5TT8MfznGESQDMGjMUjnwQlUoWCVE0XoqNq6DbFlyoZPpscSE="
+    file: build/Score-$TRAVIS_TAG-src.tar.xz
+    skip_cleanup: true
+    on:
+      tags: true
+      condition: $CAN_DEPLOY = True && $CONF = tarball
