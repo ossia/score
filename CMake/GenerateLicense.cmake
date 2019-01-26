@@ -80,10 +80,12 @@ function(BIN2H)
 endfunction()
 
 macro(AddLicenseFile _text _name _file)
-  bin2h(
-    SOURCE_FILE "${_file}"
-    HEADER_FILE "${_text}"
-    VARIABLE_NAME "${_name}_LICENSE"
-    APPEND
-    NULL_TERMINATE)
+  if(EXISTS "${_file}")
+    bin2h(
+      SOURCE_FILE "${_file}"
+      HEADER_FILE "${_text}"
+      VARIABLE_NAME "${_name}_LICENSE"
+      APPEND
+      NULL_TERMINATE)
+  endif()
 endmacro()

@@ -48,7 +48,7 @@ export SOURCE_DIR=$PWD/score
       -DCMAKE_INSTALL_PREFIX=$INSTALL_ROOT \
       -DCMAKE_PREFIX_PATH=$QT_DIR/lib/cmake/Qt5 \
       -DOSSIA_SDK=$OSSIA_SDK \
-      -DCMAKE_SKIP_RPATH=ON -DOSSIA_PYTHON=0 -DOSSIA_JAVA=0 -DOSSIA_PD=0 \
+      -DCMAKE_SKIP_RPATH=ON \
       -DOSSIA_USE_FAST_LINKER=1 #\
     # -DCMAKE_EXE_LINKER_FLAGS="-static-libgcc -static-libstdc++ -pthread"
 
