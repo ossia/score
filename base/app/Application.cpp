@@ -281,13 +281,13 @@ void Application::init()
 
   }
 
-  initDocuments();
-
   if (m_applicationSettings.gui)
   {
     m_view->sizeChanged(m_view->size());
     m_view->ready();
   }
+
+  QTimer::singleShot(10, [&] { initDocuments(); });
 }
 
 void Application::initDocuments()
