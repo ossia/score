@@ -620,7 +620,9 @@ void EffectProcessComponentBase::reg(
 
 void EffectProcessComponent::cleanup()
 {
+#if !defined(NDEBUG)
   m_clearing = true;
+#endif
   clear();
   ProcessComponent::cleanup();
 }
