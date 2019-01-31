@@ -46,6 +46,36 @@ struct Metadata<Process::ProcessFlags_k, FaustDSP::Fx<DSP>>
     return Process::ProcessFlags::SupportsAll;
   }
 };
+template <typename DSP>
+struct Metadata<Process::Descriptor_k, FaustDSP::Fx<DSP>>
+{
+  static std::vector<Process::PortType> inletDescription()
+  {
+    std::vector<Process::PortType> port;
+    port.push_back(Process::PortType::Audio);
+    return port;
+  }
+  static std::vector<Process::PortType> outletDescription()
+  {
+    std::vector<Process::PortType> port;
+    port.push_back(Process::PortType::Audio);
+    return port;
+  }
+  static Process::Descriptor get()
+  {
+    static Process::Descriptor desc{
+        Metadata<PrettyName_k, FaustDSP::Fx<DSP>>::get(),
+        Process::ProcessCategory::AudioEffect,
+        Metadata<Category_k, FaustDSP::Fx<DSP>>::get(),
+        "Faust effect",
+        "Faust",
+        Metadata<Tags_k, FaustDSP::Fx<DSP>>::get(),
+        inletDescription(),
+        outletDescription()};
+    return desc;
+  }
+};
+
 
 namespace FaustDSP
 {
@@ -155,7 +185,7 @@ public:
     vis.writeTo(*this);
   }
 
-  QString prettyName() const override
+  QString prettyName() const noexcept override
   {
     return Metadata<PrettyName_k, Fx>::get();
   }
