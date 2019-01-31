@@ -475,12 +475,15 @@ std::function<void()> EffectProcessComponentBase::removing(
 #if !defined(NDEBUG)
     auto test_fx=get_nodes(m_fxes);
     ossia::remove_erase(test_fx, this_fx.node());
-    in_exec([f=std::move(commands),g=ctx.execGraph,proc=echain, test_fx] {
+    in_exec([f=std::move(commands),g=ctx.execGraph,proc=echain, test_fx,clearing=m_clearing] {
       for(auto& cmd : f)
         cmd();
-      check_exec_validity(*g, *proc);
-      check_last_validity(*g, *proc);
-      check_exec_order(test_fx,*proc);
+      if(!clearing)
+      {
+        check_exec_validity(*g, *proc);
+        check_last_validity(*g, *proc);
+        check_exec_order(test_fx,*proc);
+      }
     });
 #else
     in_exec([f=std::move(commands),g=ctx.execGraph,proc=echain] {
@@ -617,6 +620,7 @@ void EffectProcessComponentBase::reg(
 
 void EffectProcessComponent::cleanup()
 {
+  m_clearing = true;
   clear();
   ProcessComponent::cleanup();
 }

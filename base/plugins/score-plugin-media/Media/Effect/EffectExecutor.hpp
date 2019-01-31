@@ -80,6 +80,11 @@ public:
 private:
   std::vector<std::pair<Id<Process::ProcessModel>, RegisteredEffect>> m_fxes;
 
+#if !defined(NDEBUG)
+protected: bool m_clearing = false;
+private:
+#endif
+
   void unreg(const RegisteredEffect& fx);
   void reg(const RegisteredEffect& fx, std::vector<Execution::ExecutionCommand>&);
   void unregister_old_first_node(std::pair<Id<Process::ProcessModel>, EffectProcessComponentBase::RegisteredEffect>& new_first, std::vector<Execution::ExecutionCommand>& commands);
