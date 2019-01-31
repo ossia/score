@@ -53,7 +53,8 @@ bool MIDIDevice::reconnect()
     auto dev
         = std::make_unique<ossia::net::midi::midi_device>(std::move(proto));
     dev->set_name(settings().name.toStdString());
-    //dev->create_full_tree();
+    if(set.createWholeTree)
+      dev->create_full_tree();
     m_dev = std::move(dev);
     deviceChanged(nullptr, m_dev.get());
   }
