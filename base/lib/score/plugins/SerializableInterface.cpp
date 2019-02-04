@@ -25,7 +25,7 @@ static Q_RELAXED_CONSTEXPR char to_char(size_t i)
   }
 }
 
-static QByteArray toByteArray(uuid const& u)
+QByteArray toByteArray(uuid const& u)
 {
   QByteArray result;
   result.reserve(36);

@@ -143,7 +143,6 @@ void ApplicationPlugin::initialize()
     vst_infos = val.value<std::vector<vst_info>>();
   }
 
-
   if (vst_invalid_format)
   {
     vst_infos.clear();
@@ -237,8 +236,13 @@ void ApplicationPlugin::rescanVSTs(const QStringList& paths)
         m_processes.back().second.get(),
         qOverload<int, QProcess::ExitStatus>(&QProcess::finished),
         [=, &p](int code, QProcess::ExitStatus e) {
+          auto the_json = p.readAllStandardOutput();
+          auto first_brace = the_json.indexOf('{');
+          auto last_brace = the_json.indexOf('}', first_brace);
+          the_json = the_json.mid(first_brace, 1 + last_brace - first_brace);
+
           QJsonDocument doc
-              = QJsonDocument::fromJson(p.readAllStandardOutput());
+              = QJsonDocument::fromJson(the_json);
           bool valid = e == QProcess::ExitStatus::NormalExit && code == 0
                        && doc.isObject();
 

@@ -328,6 +328,9 @@ private:
     return c.toLatin1() == '-';
   }
 };
+
+SCORE_LIB_BASE_EXPORT QByteArray toByteArray(score::uuids::uuid const& u);
+
 }
 using uuid_t = uuids::uuid;
 }
