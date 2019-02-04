@@ -15,7 +15,8 @@ class LibraryHandler final
       Library::ProcessesItemModel& model,
       const score::GUIApplicationContext& ctx) override
   {
-    const auto& key = VSTEffectFactory{}.concreteKey();
+    Q_DECL_CONSTEXPR static const auto key = Metadata<ConcreteKey_k, VSTEffectModel>::get();
+
     QModelIndex node = model.find(key);
     if (node == QModelIndex{})
     {
@@ -28,7 +29,7 @@ class LibraryHandler final
     auto& inst = parent.emplace_back(Library::ProcessData{"Instruments", QIcon{}, {}, {}}, &parent);
     auto& plug = ctx.applicationPlugin<Media::ApplicationPlugin>();
 
-    auto reset_plugs = [&] {
+    auto reset_plugs = [=,&plug,&inst,&fx] {
       for (const auto& vst : plug.vst_infos)
       {
         if (vst.isValid)

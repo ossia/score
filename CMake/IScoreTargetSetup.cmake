@@ -137,15 +137,6 @@ function(score_set_gcc_compile_options theTarget)
 #          "$<$<BOOL:${SCORE_ENABLE_LTO}>:-fuse-linker-plugin>"
 #          "$<$<BOOL:${SCORE_ENABLE_LTO}>:-fno-fat-lto-objects>"
           )
-        if(SCORE_SPLIT_DEBUG)
-          target_link_libraries(${theTarget} PUBLIC
-            #          "$<$<CONFIG:Debug>:-Wa,--compress-debug-sections>"
-            #          "$<$<CONFIG:Debug>:-Wl,--compress-debug-sections=zlib>"
-          "$<$<CONFIG:Debug>:-gsplit-dwarf>"
-          "$<$<CONFIG:Debug>:-fdebug-types-section>"
-          "$<$<CONFIG:Debug>:-ggnu-pubnames>"
-          )
-        endif()
 
       endif()
       # -Wcast-qual is nice but requires more work...
@@ -172,10 +163,15 @@ endfunction()
 function(score_set_linux_compile_options theTarget)
     use_gold(${theTarget})
 
-    if(NOT SCORE_SANITIZE AND LINKER_IS_GOLD AND SCORE_SPLIT_DEBUG)
+    if(NOT SCORE_SANITIZE AND (LINKER_IS_GOLD OR LINKER_IS_LLD) AND SCORE_SPLIT_DEBUG)
         target_compile_options(${theTarget} PUBLIC
             # Debug options
-            "$<$<CONFIG:Debug>:-gsplit-dwarf>")
+          #          "$<$<CONFIG:Debug>:-Wa,--compress-debug-sections>"
+          #          "$<$<CONFIG:Debug>:-Wl,--compress-debug-sections=zlib>"
+          "$<$<CONFIG:Debug>:-gsplit-dwarf>"
+          "$<$<CONFIG:Debug>:-fdebug-types-section>"
+          "$<$<CONFIG:Debug>:-ggnu-pubnames>"
+        )
     endif()
     target_compile_options(${theTarget} PUBLIC
         # Debug options
