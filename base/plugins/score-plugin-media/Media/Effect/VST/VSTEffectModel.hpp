@@ -1,6 +1,6 @@
 #pragma once
 #include <score/tools/std/Invoke.hpp>
-#include <Media/Effect/DefaultEffectItem.hpp>
+#include <Engine/Node/DefaultEffectItem.hpp>
 #include <Media/Effect/VST/VSTLoader.hpp>
 #include <Process/Dataflow/PortFactory.hpp>
 #include <Process/GenericProcessFactory.hpp>

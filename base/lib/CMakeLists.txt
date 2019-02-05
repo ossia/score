@@ -15,6 +15,7 @@ set(HEADERS
     "${CMAKE_CURRENT_SOURCE_DIR}/core/application/MockApplication.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/core/application/OpenDocumentsFile.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/core/application/SafeQApplication.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/core/application/MinimalApplication.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/core/command/CommandStack.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/core/command/CommandStackSerialization.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/core/document/Document.hpp"

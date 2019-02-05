@@ -54,7 +54,6 @@ public:
 
 private:
   void initDocuments();
-  void loadPluginData();
 
   // Base stuff.
   QCoreApplication* m_app;

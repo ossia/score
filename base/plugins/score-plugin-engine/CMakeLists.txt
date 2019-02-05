@@ -72,6 +72,7 @@ set(HDRS
     "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Node/CommonWidgets.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Node/Port.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Node/TickPolicy.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Node/DefaultEffectItem.hpp"
 
     "${CMAKE_CURRENT_SOURCE_DIR}/Audio/AudioPanel.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score_plugin_engine.hpp"
@@ -114,6 +115,7 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/LocalTree/Scenario/LTStateComponent.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Node/Widgets.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Engine/Node/DefaultEffectItem.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Audio/AudioPanel.cpp"
 
