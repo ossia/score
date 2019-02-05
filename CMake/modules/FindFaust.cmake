@@ -36,7 +36,7 @@ if(FAUST_FOUND)
             "${OSSIA_SDK}/llvm-libs/bin"
             "${OSSIA_SDK}/llvm/bin"
         )
-        
+
         if(NOT LLVM_CONFIG)
             message("Using a static Faust library requires LLVM tooling to be present in the path")
             unset(FAUST_LIBRARIES)
@@ -49,11 +49,14 @@ if(FAUST_FOUND)
         exec_program(${LLVM_CONFIG} ARGS "--version" OUTPUT_VARIABLE LLVM_VERSION)
         exec_program(${LLVM_CONFIG} ARGS "--ldflags" OUTPUT_VARIABLE LLVM_LDFLAGS)
 
+        file(TO_CMAKE_PATH "${LLVM_DIR}" LLVM_DIR)
+        file(TO_CMAKE_PATH "${LLVM_LDFLAGS}" LLVM_LDFLAGS)
+
         if(MSYS)
           string(REGEX REPLACE "([a-zA-Z]):" "/\\1" LLVM_LDFLAGS "${LLVM_LDFLAGS}")
           string(REPLACE "\\" "/" LLVM_LDFLAGS "${LLVM_LDFLAGS}")
         endif()
-        
+
         set(LLVM_VERSION LLVM_${LLVM_VERSION_MAJOR}${LLVM_VERSION_MINOR})
 
         if(MINGW)
