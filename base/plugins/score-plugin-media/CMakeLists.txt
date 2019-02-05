@@ -259,8 +259,8 @@ if(${Faust_FOUND})
       faustlibs
       PREFIX ""
       GIT_REPOSITORY https://github.com/grame-cncm/faustlibraries
-      CONFIGURE_COMMAND "pwd"
-      BUILD_COMMAND "ls"
+      CONFIGURE_COMMAND ""
+      BUILD_COMMAND ""
       INSTALL_COMMAND ""
   )
 
