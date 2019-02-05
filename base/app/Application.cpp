@@ -267,7 +267,7 @@ void Application::init()
     }
 #endif
   // Plugins
-  loadPluginData();
+  GUIApplicationInterface::loadPluginData(m_settings, *m_presenter);
 
   // View
   if (m_applicationSettings.gui)
@@ -339,17 +339,6 @@ void Application::initDocuments()
                .begin());
     }
   }
-}
-
-void Application::loadPluginData()
-{
-  auto& ctx = m_presenter->applicationContext();
-  score::GUIApplicationRegistrar registrar{
-      m_presenter->components(), ctx, m_presenter->menuManager(),
-      m_presenter->toolbarManager(), m_presenter->actionManager()};
-
-  GUIApplicationInterface::loadPluginData(
-      ctx, registrar, m_settings, *m_presenter);
 }
 
 int Application::exec()

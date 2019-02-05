@@ -34,7 +34,7 @@
 #include <core/document/DocumentModel.hpp>
 #include <core/document/DocumentPresenter.hpp>
 #include <core/presenter/DocumentManager.hpp>
-#include <core/presenter/Presenter.hpp>
+#include <core/application/ApplicationInterface.hpp>
 
 #include <ossia-qt/invoke.hpp>
 #include <ossia/audio/audio_protocol.hpp>
@@ -918,9 +918,7 @@ void ApplicationPlugin::initLocalTreeNodes(LocalTree::DocumentPlugin& lt)
         }
 
         QTimer::singleShot(500, [] {
-          auto pres = qApp->findChild<score::Presenter*>();
-          pres->exit();
-          QTimer::singleShot(500, [] { QCoreApplication::quit(); });
+          score::GUIApplicationInterface::instance().forceExit();
         });
       });
     });

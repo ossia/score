@@ -59,7 +59,13 @@ public:
    * all the base functions of the software will work correctly.
    */
   void loadPluginData(
-      const score::GUIApplicationContext& ctx, score::GUIApplicationRegistrar&,
-      score::Settings& m_settings, score::Presenter& m_presenter);
+      score::Settings& settings,
+      score::Presenter& presenter);
+
+
+  void registerPlugin(score::Plugin_QtInterface&);
+
+  void requestExit();
+  void forceExit();
 };
 }

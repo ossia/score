@@ -27,7 +27,7 @@ if(FAUST_FOUND)
     set(FAUST_LIBRARIES ${FAUST_LIBRARY})
     set(FAUST_INCLUDE_DIRS ${FAUST_INCLUDE_DIR})
 
-    if("${FAUST_LIBRARY}" MATCHES ".*\.a")
+    if("${FAUST_LIBRARY}" MATCHES ".*\.a$")
         # This is a static build of faust, hence
         # we have to add all the LLVM flags...
 
@@ -75,3 +75,4 @@ else()
     set(FAUST_LIBRARIES)
     set(FAUST_INCLUDE_DIRS)
 endif()
+

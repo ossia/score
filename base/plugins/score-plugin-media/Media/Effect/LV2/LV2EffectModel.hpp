@@ -1,5 +1,5 @@
 #pragma once
-#include <Media/Effect/DefaultEffectItem.hpp>
+#include <Engine/Node/DefaultEffectItem.hpp>
 #include <Media/Effect/LV2/LV2Context.hpp>
 #include <Process/Execution/ProcessComponent.hpp>
 #include <Process/GenericProcessFactory.hpp>
