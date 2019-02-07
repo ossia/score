@@ -9,7 +9,7 @@
 #include <QDialog>
 #include <QTimer>
 
-#include <Engine/Node/Widgets.hpp>
+#include <Control/Widgets.hpp>
 #include <wobjectdefs.h>
 
 namespace Media::VST

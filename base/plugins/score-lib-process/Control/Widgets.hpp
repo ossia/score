@@ -15,6 +15,7 @@
 #include <score/widgets/TextLabel.hpp>
 
 #include <ossia/network/domain/domain.hpp>
+#include <ossia/dataflow/safe_nodes/port.hpp>
 
 #include <QApplication>
 #include <QCheckBox>
@@ -24,8 +25,7 @@
 #include <QPainter>
 #include <QPushButton>
 
-#include <Engine/Node/Port.hpp>
-#include <score_plugin_engine_export.h>
+#include <score_lib_process_export.h>
 namespace Control
 {
 struct FloatSlider final : ossia::safe_nodes::control_in,

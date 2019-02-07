@@ -1,6 +1,6 @@
 #pragma once
 #if defined(HAS_FAUST)
-#include <Engine/Node/DefaultEffectItem.hpp>
+#include <Control/DefaultEffectItem.hpp>
 #include <Process/Execution/ProcessComponent.hpp>
 #include <Process/GenericProcessFactory.hpp>
 #include <Process/Inspector/ProcessInspectorWidgetDelegate.hpp>
