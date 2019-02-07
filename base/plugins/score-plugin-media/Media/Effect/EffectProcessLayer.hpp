@@ -2,7 +2,7 @@
 
 #include <Dataflow/UI/PortItem.hpp>
 #include <Media/Commands/InsertEffect.hpp>
-#include <Engine/Node/DefaultEffectItem.hpp>
+#include <Control/DefaultEffectItem.hpp>
 #include <Media/Effect/EffectProcessMetadata.hpp>
 #include <Media/Effect/EffectProcessModel.hpp>
 #include <Process/Focus/FocusDispatcher.hpp>

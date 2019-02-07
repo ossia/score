@@ -64,7 +64,6 @@ set(HDRS
     "${CMAKE_CURRENT_SOURCE_DIR}/LocalTree/Scenario/StateComponent.hpp"
 
     "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Node/PdNode.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Node/Widgets.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Node/Process.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Node/Inspector.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Node/Layer.hpp"
@@ -72,7 +71,6 @@ set(HDRS
     "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Node/CommonWidgets.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Node/Port.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Node/TickPolicy.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Engine/Node/DefaultEffectItem.hpp"
 
     "${CMAKE_CURRENT_SOURCE_DIR}/Audio/AudioPanel.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score_plugin_engine.hpp"
@@ -113,9 +111,6 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/LocalTree/Scenario/LTEventComponent.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/LocalTree/Scenario/LTTimeSyncComponent.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/LocalTree/Scenario/LTStateComponent.cpp"
-
-"${CMAKE_CURRENT_SOURCE_DIR}/Engine/Node/Widgets.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Engine/Node/DefaultEffectItem.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Audio/AudioPanel.cpp"
 

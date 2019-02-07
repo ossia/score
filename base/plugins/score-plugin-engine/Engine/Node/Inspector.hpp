@@ -7,7 +7,7 @@
 #include <Process/Inspector/ProcessInspectorWidgetDelegateFactory.hpp>
 
 #include <Engine/Node/Process.hpp>
-#include <Engine/Node/Widgets.hpp>
+#include <Control/Widgets.hpp>
 
 namespace Control
 {

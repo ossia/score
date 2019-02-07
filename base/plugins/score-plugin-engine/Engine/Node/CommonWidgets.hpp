@@ -1,7 +1,7 @@
 #pragma once
 #include <ossia/detail/string_map.hpp>
 
-#include <Engine/Node/Widgets.hpp>
+#include <Control/Widgets.hpp>
 
 #include <array>
 namespace Control

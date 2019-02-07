@@ -1,5 +1,5 @@
 #pragma once
-#include <Engine/Node/DefaultEffectItem.hpp>
+#include <Control/DefaultEffectItem.hpp>
 #include <Media/Effect/Faust/FaustUtils.hpp>
 #include <Process/Dataflow/PortFactory.hpp>
 #include <Process/Execution/ProcessComponent.hpp>

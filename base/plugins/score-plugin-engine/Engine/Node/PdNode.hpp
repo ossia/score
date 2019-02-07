@@ -9,7 +9,7 @@
 #include <Engine/Node/Inspector.hpp>
 #include <Engine/Node/Layer.hpp>
 #include <Engine/Node/Process.hpp>
-#include <Engine/Node/Widgets.hpp>
+#include <Control/Widgets.hpp>
 
 #include <score/plugins/qt_interfaces/FactoryInterface_QtInterface.hpp>
 #include <score/plugins/qt_interfaces/PluginRequirements_QtInterface.hpp>

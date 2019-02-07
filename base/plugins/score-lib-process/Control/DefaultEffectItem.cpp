@@ -1,12 +1,15 @@
 #include "DefaultEffectItem.hpp"
 
-#include <Dataflow/UI/PortItem.hpp>
+#include <Process/Dataflow/PortFactory.hpp>
+#include <Process/Dataflow/PortItem.hpp>
 #include <Process/Style/ScenarioStyle.hpp>
+
+#include <Control/Widgets.hpp>
+
 #include <score/graphics/TextItem.hpp>
 
 #include <QGraphicsScene>
 
-#include <Engine/Node/Widgets.hpp>
 namespace Media::Effect
 {
 DefaultEffectItem::DefaultEffectItem(
@@ -147,7 +150,7 @@ void DefaultEffectItem::on_controlRemoved(const Process::Port& port)
   }
 }
 
-void DefaultEffectItem::reset() 
+void DefaultEffectItem::reset()
 {
   const auto& c = this->childItems();
   for (auto child : c)
