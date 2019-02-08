@@ -48,6 +48,9 @@ if(FAUST_FOUND)
         exec_program(${LLVM_CONFIG} ARGS "--libs" OUTPUT_VARIABLE LLVM_LIBS)
         exec_program(${LLVM_CONFIG} ARGS "--version" OUTPUT_VARIABLE LLVM_VERSION)
         exec_program(${LLVM_CONFIG} ARGS "--ldflags" OUTPUT_VARIABLE LLVM_LDFLAGS)
+        
+        file(TO_CMAKE_PATH "${LLVM_LDFLAGS}" LLVM_LDFLAGS)
+        file(TO_CMAKE_PATH "${LLVM_DIR}" LLVM_DIR)
 
         file(TO_CMAKE_PATH "${LLVM_DIR}" LLVM_DIR)
         file(TO_CMAKE_PATH "${LLVM_LDFLAGS}" LLVM_LDFLAGS)
