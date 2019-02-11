@@ -123,7 +123,6 @@ struct SCORE_LIB_STATE_EXPORT AddressAccessor
   QString toString() const;
   QString toShortString() const;
 
-  static ossia::optional<AddressAccessor> fromString(const QString& str);
   bool operator==(const AddressAccessor& other) const;
   bool operator!=(const AddressAccessor& a) const;
 };

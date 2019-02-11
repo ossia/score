@@ -7,6 +7,7 @@
 #endif
 
 #include <State/Value.hpp>
+#include <QString>
 #include <ossia/network/base/name_validation.hpp>
 #include <ossia/network/dataspace/dataspace_parse.hpp>
 
@@ -119,30 +120,3 @@ struct Value_parser : qi::grammar<Iterator, ossia::value()>
 };
 }
 
-ossia::optional<ossia::value> State::parseValue(const std::string& input)
-{
-  auto f(std::begin(input)), l(std::end(input));
-  Value_parser<decltype(f)> p;
-  try
-  {
-    ossia::value result;
-    bool ok = qi::phrase_parse(f, l, p, qi::standard::space, result);
-
-    if (!ok)
-    {
-      return {};
-    }
-
-    return result;
-  }
-  catch (const qi::expectation_failure<decltype(f)>& e)
-  {
-    // SCORE_BREAKPOINT;
-    return {};
-  }
-  catch (...)
-  {
-    // SCORE_BREAKPOINT;
-    return {};
-  }
-}

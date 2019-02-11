@@ -1,6 +1,7 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "Value.hpp"
+#include "ValueParser.hpp"
 
 #include "Unit.hpp"
 
@@ -100,5 +101,33 @@ QLatin1String prettyUnitText(const ossia::unit_t& u)
 {
   auto unit = ossia::get_pretty_unit_text(u);
   return QLatin1String(unit.data(), unit.size());
+}
+
+ossia::optional<ossia::value> parseValue(const std::string& input)
+{
+  auto f(std::begin(input)), l(std::end(input));
+  Value_parser<decltype(f)> p;
+  try
+  {
+    ossia::value result;
+    bool ok = qi::phrase_parse(f, l, p, qi::standard::space, result);
+
+    if (!ok)
+    {
+      return {};
+    }
+
+    return result;
+  }
+  catch (const qi::expectation_failure<decltype(f)>& e)
+  {
+    // SCORE_BREAKPOINT;
+    return {};
+  }
+  catch (...)
+  {
+    // SCORE_BREAKPOINT;
+    return {};
+  }
 }
 }
