@@ -3,6 +3,8 @@
 #include <State/Address.hpp>
 #include <State/Expression.hpp>
 #include <State/Unit.hpp>
+#include <State/Relation.hpp>
+#include <State/AddressParser.hpp>
 
 #include <score/tools/Todo.hpp>
 
@@ -434,4 +436,78 @@ operator()(const State::AddressAccessor& k) const
   }
   ossia::hash_combine(seed, qual.unit.v);
   return seed;
+}
+
+
+ossia::optional<State::Address> State::parseAddress(const QString& str)
+{
+  auto input = str.toStdString();
+  auto f(std::begin(input)), l(std::end(input));
+  auto p = std::make_unique<Address_parser<decltype(f)>>();
+  try
+  {
+    State::Address result;
+    bool ok = qi::phrase_parse(f, l, *p, qi::standard::space, result);
+
+    if (!ok)
+    {
+      return {};
+    }
+
+    return result;
+  }
+  catch (const qi::expectation_failure<decltype(f)>& e)
+  {
+    // SCORE_BREAKPOINT;
+    return {};
+  }
+  catch (...)
+  {
+    // SCORE_BREAKPOINT;
+    return {};
+  }
+}
+
+ossia::optional<State::AddressAccessor>
+State::parseAddressAccessor(const QString& str)
+{
+  auto input = str.toStdString();
+  auto f(std::begin(input)), l(std::end(input));
+  auto p = std::make_unique<AddressAccessor_parser<decltype(f)>>();
+  try
+  {
+    State::AddressAccessor result;
+    bool ok = qi::phrase_parse(f, l, *p, qi::standard::space, result);
+
+    if (ok)
+    {
+      return result;
+    }
+    else
+    {
+      // We try to get an address instead.
+      ossia::optional<State::Address> res = State::parseAddress(str);
+      if (res)
+      {
+        result.address = (*res);
+        result.qualifiers.get().accessors.clear();
+
+        return result;
+      }
+      else
+      {
+        return {};
+      }
+    }
+  }
+  catch (const qi::expectation_failure<decltype(f)>& e)
+  {
+    // SCORE_BREAKPOINT;
+    return {};
+  }
+  catch (...)
+  {
+    // SCORE_BREAKPOINT;
+    return {};
+  }
 }
