@@ -25,6 +25,8 @@ View::View(QGraphicsItem* parent) : Process::LayerView{parent}
   this->setAcceptDrops(true);
   this->setFlag(QGraphicsItem::ItemIsFocusable, true);
   this->setFlag(QGraphicsItem::ItemClipsToShape, true);
+
+  m_fragmentCache.reserve(20);
 }
 
 View::~View()
@@ -33,7 +35,8 @@ View::~View()
 
 void View::heightChanged(qreal h)
 {
-  QImage bg(1920, h, QImage::Format_ARGB32_Premultiplied);
+  QPixmap  bg(100, h);
+  bg.fill(Qt::transparent);
   QPainter painter(&bg);
   auto p = &painter;
 
@@ -130,7 +133,7 @@ void View::heightChanged(qreal h)
     }
   }
 
-  m_bgCache = QPixmap::fromImage(bg);
+  m_bgCache = bg;
 }
 
 void View::widthChanged(qreal w)
@@ -163,10 +166,27 @@ void View::paint_impl(QPainter* p) const
 {
   if (auto v = getView(*this))
   {
-    const auto view_left = v->mapToScene(0, 0);
-    const auto left = std::max(0., this->mapFromScene(view_left).x());
+    if(canEdit())
+    {
+      const auto view_left = v->mapToScene(0, 0);
+      const auto left = std::max(0., this->mapFromScene(view_left).x());
 
-    p->drawPixmap(left, 0, m_bgCache);
+      double x = left + 50.;
+      m_fragmentCache.clear();
+      m_fragmentCache.push_back(QPainter::PixmapFragment{left + 50., m_bgCache.height() / 2., 0., 0., (double)m_bgCache.width(), (double)m_bgCache.height(), 1., 1., 0., 1.});
+      constexpr double text_w = 20.;
+      const double next_w = m_bgCache.width() - text_w;
+
+      x += m_bgCache.width() - text_w / 2.;
+      for(int i = 0; i < 20; i++)
+      {
+        m_fragmentCache.push_back(QPainter::PixmapFragment{x, m_bgCache.height() / 2., text_w, 0., next_w, (double)m_bgCache.height(), 1., 1., 0., 1.});
+        x += next_w;
+      }
+
+      p->drawPixmapFragments(m_fragmentCache.data(), m_fragmentCache.size(), m_bgCache, QPainter::PixmapFragmentHint::OpaqueHint);
+      //p->drawPixmap(left, 0, m_bgCache);
+    }
   }
   if (!m_selectArea.isEmpty())
   {

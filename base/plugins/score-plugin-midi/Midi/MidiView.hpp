@@ -2,6 +2,7 @@
 #include <Midi/MidiProcess.hpp>
 #include <Process/LayerView.hpp>
 
+#include <QPainter>
 #include <QPainterPath>
 
 #include <wobjectdefs.h>
@@ -51,5 +52,7 @@ private:
   int m_min{0}, m_max{127};
 
   QPixmap m_bgCache;
+
+  mutable std::vector<QPainter::PixmapFragment> m_fragmentCache;
 };
 }
