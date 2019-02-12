@@ -36,7 +36,6 @@ View::~View()
 void View::heightChanged(qreal h)
 {
   QPixmap  bg(100, h);
-  bg.fill(Qt::transparent);
   QPainter painter(&bg);
   auto p = &painter;
 
