@@ -43,7 +43,7 @@ Component::~Component()
 {
 }
 
-static ossia::hunter_lab to_ossia_color(const QColor& c)
+static ossia::hunter_lab to_ossia_color(QColor c)
 {
   switch (c.spec())
   {

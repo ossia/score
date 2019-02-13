@@ -34,8 +34,16 @@ OSCQueryDevice::OSCQueryDevice(const Device::DeviceSettings& settings)
       this, &OSCQueryDevice::sig_command, this, &OSCQueryDevice::slot_command,
       Qt::QueuedConnection);
   connect(
-      this, &OSCQueryDevice::sig_disconnect, this, &OSCQueryDevice::disconnect,
+        this, &OSCQueryDevice::sig_disconnect, this, [=] {
+    // TODO how to notify the GUI ?
+    m_connected = false;
+  },
       Qt::QueuedConnection);
+}
+
+bool OSCQueryDevice::connected() const
+{
+  return m_dev && m_connected;
 }
 
 void OSCQueryDevice::disconnect()
@@ -49,15 +57,38 @@ void OSCQueryDevice::disconnect()
 
   OwningDeviceInterface::disconnect();
 }
+
 bool OSCQueryDevice::reconnect()
 {
+  const auto& cur_settings = settings();
+  const auto& stgs = cur_settings.deviceSpecificSettings.value<OSCQuerySpecificSettings>();
+
+  if(m_dev && m_mirror && m_oldSettings == cur_settings)
+  {
+    // TODO update settings
+    try {
+      m_mirror->reconnect();
+      m_connected = true;
+    }
+    catch (std::exception& e)
+    {
+      qDebug() << "Could not connect: " << e.what();
+      m_connected = false;
+    }
+    catch (...)
+    {
+      // TODO save the reason of the non-connection.
+      m_connected = false;
+    }
+    m_mirror->reconnect();
+    m_connected = true;
+    return connected();
+  }
+
   disconnect();
 
   try
   {
-    auto stgs
-        = settings().deviceSpecificSettings.value<OSCQuerySpecificSettings>();
-
     std::unique_ptr<ossia::net::protocol_base> ossia_settings
         = std::make_unique<ossia::oscquery::oscquery_mirror_protocol>(
             stgs.host.toStdString());
@@ -86,16 +117,17 @@ bool OSCQueryDevice::reconnect()
     setLogging_impl(Device::get_cur_logging(isLogging()));
 
     enableCallbacks();
+    m_connected = true;
   }
   catch (std::exception& e)
   {
     qDebug() << "Could not connect: " << e.what();
-    m_mirror = nullptr;
+    m_connected = false;
   }
   catch (...)
   {
     // TODO save the reason of the non-connection.
-    m_mirror = nullptr;
+    m_connected = false;
   }
 
   return connected();
