@@ -20,6 +20,7 @@ public:
   bool reconnect() override;
   void disconnect() override;
   void recreate(const Device::Node& n) override;
+  bool connected() const override;
 
 public:
   void sig_command() W_SIGNAL(sig_command);
@@ -30,5 +31,7 @@ private:
   W_SLOT(slot_command);
 
   ossia::oscquery::oscquery_mirror_protocol* m_mirror{};
+  bool m_connected{};
+  Device::DeviceSettings m_oldSettings;
 };
 }
