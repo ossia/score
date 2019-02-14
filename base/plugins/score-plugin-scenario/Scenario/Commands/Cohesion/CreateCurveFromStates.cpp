@@ -12,6 +12,7 @@
 #include <Scenario/Commands/Interval/Rack/Slot/AddLayerModelToSlot.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <State/ValueSerialization.hpp>
+#include <ossia/editor/state/destination_qualifiers.hpp>
 
 #include <Color/GradientModel.hpp>
 #include <score/application/ApplicationContext.hpp>

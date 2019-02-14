@@ -35,15 +35,17 @@ ProcessModel::~ProcessModel()
 void ProcessModel::init()
 {
   outlet->setCustomData("Out");
-  con(*outlet, &Process::Outlet::addressChanged,
-      this, [=] (const State::AddressAccessor& addr) {
+  auto update_invalid_address = [=] (const State::AddressAccessor& addr) {
     if(addr.qualifiers.get() != ossia::destination_qualifiers{{}, ossia::argb_u{}})
     {
       State::AddressAccessor copy = addr;
       copy.qualifiers = ossia::destination_qualifiers{{}, ossia::argb_u{}};
       outlet->setAddress(std::move(copy));
     }
-  });
+  };
+  con(*outlet, &Process::Outlet::addressChanged,
+      this, update_invalid_address);
+  update_invalid_address(outlet->address());
   m_outlets.push_back(outlet.get());
 }
 

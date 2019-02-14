@@ -63,7 +63,6 @@ struct color_converter
   {
     auto rgba = ossia::rgba{ossia::strong_value<Color>{value}};
     auto& col = rgba.dataspace_value;
-    qDebug() << col[0] << col[1] << col[2] << col[3];
     return QColor::fromRgbF((qreal)col[0], (qreal)col[1], (qreal)col[2], (qreal)col[3]);
   }
 
@@ -228,9 +227,6 @@ CreateSequenceProcesses::CreateSequenceProcesses(
         get_curve_domain{elt.first.address, idx, rootNode}, elt.first.value.v,
         elt.second.value.v);
 
-    qDebug() << elt.first.address.toString();
-    qDebug() << "   start/end: " << d.start << d.end;
-    qDebug() << "   min/max: " << d.min << d.max;
     m_interpolations.addCommand(new CreateAutomationFromStates{
         interval, m_interpolations.slotsToUse, process_ids[cur_proc],
         elt.first.address, d});
