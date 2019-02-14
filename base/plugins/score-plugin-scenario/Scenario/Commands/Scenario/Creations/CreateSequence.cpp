@@ -39,6 +39,7 @@
 #include <ossia/editor/state/destination_qualifiers.hpp>
 #include <ossia/network/domain/domain.hpp>
 #include <ossia/network/value/value_conversion.hpp>
+#include <ossia/network/dataspace/dataspace_variant_visitors.hpp>
 
 #include <QByteArray>
 #include <QList>
@@ -55,6 +56,23 @@ namespace Scenario
 namespace Command
 {
 
+struct color_converter
+{
+  template<typename Color>
+  QColor operator()(const typename Color::value_type& value, const Color&)
+  {
+    auto rgba = ossia::rgba{ossia::strong_value<Color>{value}};
+    auto& col = rgba.dataspace_value;
+    qDebug() << col[0] << col[1] << col[2] << col[3];
+    return QColor::fromRgbF((qreal)col[0], (qreal)col[1], (qreal)col[2], (qreal)col[3]);
+  }
+
+  template<typename... Args>
+  QColor operator()(Args&&...)
+  {
+    return QColor{};
+  }
+};
 CreateSequenceProcesses::CreateSequenceProcesses(
     const Scenario::ProcessModel& scenario,
     const Scenario::IntervalModel& interval)
@@ -121,6 +139,8 @@ CreateSequenceProcesses::CreateSequenceProcesses(
       matchingNumericMessages;
   std::vector<std::pair<State::Message, Device::FullAddressSettings>>
       matchingListMessages;
+  std::vector<std::pair<State::Message, Device::FullAddressSettings>>
+      matchingColorMessages;
   // First we filter the messages
   for (auto& message : startMessages)
   {
@@ -147,15 +167,24 @@ CreateSequenceProcesses::CreateSequenceProcesses(
 
       if (addr_it != std::end(endAddresses))
       {
-        // TODO handle sub-vecs
-        auto sz = message.value.apply(value_size{});
-        for (std::size_t i = 0; i < sz; i++)
+        const auto& unit = message.address.qualifiers.get().unit;
+        if(message.address.qualifiers.get().unit.v.target<ossia::color_u>())
         {
-          auto m = message;
-          auto& acc = m.address.qualifiers.get().accessors;
-          acc.clear();
-          acc.push_back(sz - i - 1);
-          matchingListMessages.emplace_back(m, *addr_it);
+          matchingColorMessages.emplace_back(message, *addr_it);
+        }
+        else if(unit.which() == ossia::unit_variant::npos)
+        {
+          // Due to bugs we disable autosequences with array units
+          // TODO handle sub-vecs
+          auto sz = message.value.apply(value_size{});
+          for (std::size_t i = 0; i < sz; i++)
+          {
+            auto m = message;
+            auto& acc = m.address.qualifiers.get().accessors;
+            acc.clear();
+            acc.push_back(sz - i - 1);
+            matchingListMessages.emplace_back(m, *addr_it);
+          }
         }
       }
     }
@@ -163,7 +192,7 @@ CreateSequenceProcesses::CreateSequenceProcesses(
 
   // Then, if there are correct messages we can actually do our interpolation.
   m_addedProcessCount
-      = matchingNumericMessages.size() + matchingListMessages.size();
+      = matchingNumericMessages.size() + matchingListMessages.size() + matchingColorMessages.size();
   if (m_addedProcessCount == 0)
     return;
 
@@ -205,6 +234,25 @@ CreateSequenceProcesses::CreateSequenceProcesses(
     m_interpolations.addCommand(new CreateAutomationFromStates{
         interval, m_interpolations.slotsToUse, process_ids[cur_proc],
         elt.first.address, d});
+    cur_proc++;
+  }
+
+  for (const auto& elt : matchingColorMessages)
+  {
+    const auto& start_qual = elt.first.address.qualifiers.get();
+    auto start_color = start_qual.unit.v.target<ossia::color_u>();
+    if(!start_color)
+      continue;
+    auto end_color = elt.second.unit.get().v.target<ossia::color_u>();
+    if(!end_color)
+      continue;
+
+    QColor start = ossia::apply(color_converter{}, elt.first.value.v, *start_color);
+    QColor end = ossia::apply(color_converter{}, elt.second.value.v, *end_color);
+
+    m_interpolations.addCommand(new CreateGradient{
+        interval, m_interpolations.slotsToUse, process_ids[cur_proc],
+        elt.first.address, start, end});
     cur_proc++;
   }
 }

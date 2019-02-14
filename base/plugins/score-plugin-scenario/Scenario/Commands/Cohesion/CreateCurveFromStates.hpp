@@ -62,7 +62,7 @@ class SCORE_PLUGIN_SCENARIO_EXPORT CreateAutomationFromStates final
 {
   SCORE_COMMAND_DECL(
       ScenarioCommandFactoryName(), CreateAutomationFromStates,
-      "CreateCurveFromStates")
+      "CreateAutomationFromStates")
 public:
   CreateAutomationFromStates(
       const IntervalModel& interval, const std::vector<SlotPath>& slotList,
@@ -78,8 +78,33 @@ protected:
 private:
   State::AddressAccessor m_address;
 
-  Curve::CurveDomain m_dom;
-  bool m_tween;
+  Curve::CurveDomain m_dom{};
+  bool m_tween{};
+};
+
+class SCORE_PLUGIN_SCENARIO_EXPORT CreateGradient final
+    : public CreateProcessAndLayers
+{
+  SCORE_COMMAND_DECL(
+      ScenarioCommandFactoryName(), CreateGradient,
+      "CreateGradientFromStates")
+public:
+  CreateGradient(
+      const IntervalModel& interval, const std::vector<SlotPath>& slotList,
+      Id<Process::ProcessModel> curveId, State::AddressAccessor address,
+      QColor start, QColor end,
+      bool tween = false);
+
+  void redo(const score::DocumentContext& ctx) const override;
+
+protected:
+  void serializeImpl(DataStreamInput& s) const override;
+  void deserializeImpl(DataStreamOutput&) override;
+
+private:
+  State::AddressAccessor m_address;
+  QColor m_start{}, m_end{};
+  bool m_tween{};
 };
 
 class SCORE_PLUGIN_SCENARIO_EXPORT CreateInterpolationFromStates final
