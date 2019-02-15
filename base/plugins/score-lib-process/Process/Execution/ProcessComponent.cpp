@@ -28,7 +28,7 @@ ProcessComponent::ProcessComponent(
 
 void ProcessComponent::cleanup()
 {
-  if (auto proc = OSSIAProcessPtr())
+  if (const auto& proc = m_ossia_process)
   {
     this->system().setup.unregister_node(process(), proc->node);
     in_exec([proc] { proc->node.reset(); });
