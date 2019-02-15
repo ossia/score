@@ -81,19 +81,6 @@ VSTEffectComponent::VSTEffectComponent(
                 });
           }
         });
-
-    using ptr_t = std::remove_reference_t<decltype(node)>;
-    typename ptr_t::weak_type weak_node = node;
-    con(ctx.doc.coarseUpdateTimer, &QTimer::timeout, this, [weak_node, &proc] {
-      if(auto node = weak_node.lock())
-      {
-        for (std::size_t i = 3; i < proc.inlets().size(); i++)
-        {
-          auto inlet = static_cast<Media::VST::VSTControlInlet*>(proc.inlets()[i]);
-          inlet->setValue(node->controls[i - 3].value);
-        }
-      }
-    });
   };
 
   if (fx.flags & effFlagsCanDoubleReplacing)
