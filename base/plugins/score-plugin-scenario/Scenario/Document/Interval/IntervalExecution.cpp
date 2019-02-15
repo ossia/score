@@ -403,11 +403,10 @@ std::function<void()> IntervalComponentBase::removing(
   auto it = m_processes.find(e.id());
   if (it != m_processes.end())
   {
-    auto c_ptr = c.shared_from_this();
     if (m_ossia_interval)
     {
-      in_exec([cstr = m_ossia_interval, c_ptr] {
-        cstr->remove_time_process(c_ptr->OSSIAProcessPtr().get());
+      in_exec([cstr = m_ossia_interval, proc=c.OSSIAProcessPtr()] {
+        cstr->remove_time_process(proc.get());
       });
     }
     c.cleanup();
