@@ -35,6 +35,7 @@ struct SCORE_LIB_DEVICE_EXPORT DeviceCapas
   bool canDisconnect{true};
   bool canRefreshValue{true};
   bool canRefreshTree{false};
+  bool asyncRefresh{false};
   bool canListen{true};
   bool canSerialize{true};
   bool canLearn{false};
@@ -139,6 +140,8 @@ public:
   void logOutbound(const QString& arg_1) const
       E_SIGNAL(SCORE_LIB_DEVICE_EXPORT, logOutbound, arg_1);
 
+  void connectionChanged(bool arg_1) const
+  E_SIGNAL(SCORE_LIB_DEVICE_EXPORT, connectionChanged, arg_1);
 protected:
   Device::DeviceSettings m_settings;
   DeviceCapas m_capas;

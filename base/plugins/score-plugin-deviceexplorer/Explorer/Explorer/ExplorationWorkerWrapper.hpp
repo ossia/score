@@ -2,6 +2,7 @@
 #include "ExplorationWorker.hpp"
 
 #include <Device/Protocol/DeviceInterface.hpp>
+#include <Explorer/Explorer/DeviceExplorerWidget.hpp>
 
 #include <QApplication>
 #include <QMessageBox>

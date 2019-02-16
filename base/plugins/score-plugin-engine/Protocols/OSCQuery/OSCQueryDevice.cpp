@@ -15,24 +15,67 @@
 #include <QString>
 #include <QTimer>
 #include <QVariant>
+#include <asio/io_service.hpp>
+#include <asio/ip/resolver_service.hpp>
+#include <asio/ip/tcp.hpp>
 
+#include <boost/algorithm/string.hpp>
 #include <wobjectimpl.h>
 
 #include <memory>
 W_OBJECT_IMPL(Protocols::OSCQueryDevice)
 
+bool resolve_ip(std::string host)
+{
+  try
+  {
+    std::string m_queryPort;
+    auto m_queryHost = host;
+    auto port_idx = m_queryHost.find_last_of(':');
+    if (port_idx != std::string::npos)
+    {
+      m_queryPort = m_queryHost.substr(port_idx + 1);
+      m_queryHost = m_queryHost.substr(0, port_idx);
+    }
+    else
+      m_queryPort = "80";
+
+    if (boost::starts_with(m_queryHost, "http://"))
+      m_queryHost.erase(m_queryHost.begin(), m_queryHost.begin() + 7);
+    else if (boost::starts_with(m_queryHost, "ws://"))
+      m_queryHost.erase(m_queryHost.begin(), m_queryHost.begin() + 5);
+
+    asio::io_service io_service;
+    asio::ip::tcp::resolver resolver(io_service);
+    asio::ip::tcp::resolver::query query(
+          m_queryHost, m_queryPort);
+    asio::ip::tcp::resolver::iterator iter = resolver.resolve(query);
+    return true;
+  }
+  catch (const std::exception& e)
+  {
+  }
+  catch (...)
+  {
+  }
+  return false;
+}
 namespace Protocols
 {
 OSCQueryDevice::OSCQueryDevice(const Device::DeviceSettings& settings)
     : OwningDeviceInterface{settings}
 {
   m_capas.canRefreshTree = true;
+  m_capas.asyncRefresh = true;
   m_capas.canRenameNode = false;
   m_capas.canSetProperties = false;
 
   connect(
       this, &OSCQueryDevice::sig_command, this, &OSCQueryDevice::slot_command,
       Qt::QueuedConnection);
+  connect(
+        this, &OSCQueryDevice::sig_createDevice, this, &OSCQueryDevice::slot_createDevice,
+        Qt::QueuedConnection);
   connect(
         this, &OSCQueryDevice::sig_disconnect, this, [=] {
     // TODO how to notify the GUI ?
@@ -80,12 +123,49 @@ bool OSCQueryDevice::reconnect()
       // TODO save the reason of the non-connection.
       m_connected = false;
     }
-    m_mirror->reconnect();
-    m_connected = true;
+
+    connectionChanged(m_connected);
     return connected();
   }
 
   disconnect();
+
+  std::thread resolver([this,host=stgs.host.toStdString()] {
+    bool ok = resolve_ip(host);
+    if(ok)
+    {
+      sig_createDevice();
+    }
+
+    m_connected = false;
+    connectionChanged(m_connected);
+  });
+
+  resolver.detach();
+
+  return connected();
+}
+
+void OSCQueryDevice::recreate(const Device::Node& n)
+{
+  for (auto& child : n)
+  {
+    addNode(child);
+  }
+}
+
+void OSCQueryDevice::slot_command()
+{
+  if (m_mirror)
+  {
+    m_mirror->run_commands();
+  }
+}
+
+void OSCQueryDevice::slot_createDevice()
+{
+  const auto& cur_settings = settings();
+  const auto& stgs = cur_settings.deviceSpecificSettings.value<OSCQuerySpecificSettings>();
 
   try
   {
@@ -130,22 +210,6 @@ bool OSCQueryDevice::reconnect()
     m_connected = false;
   }
 
-  return connected();
-}
-
-void OSCQueryDevice::recreate(const Device::Node& n)
-{
-  for (auto& child : n)
-  {
-    addNode(child);
-  }
-}
-
-void OSCQueryDevice::slot_command()
-{
-  if (m_mirror)
-  {
-    m_mirror->run_commands();
-  }
+  connectionChanged(m_connected);
 }
 }
