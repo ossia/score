@@ -66,7 +66,7 @@ OSCQueryDevice::OSCQueryDevice(const Device::DeviceSettings& settings)
     : OwningDeviceInterface{settings}
 {
   m_capas.canRefreshTree = true;
-  m_capas.asyncRefresh = true;
+  m_capas.asyncConnect = true;
   m_capas.canRenameNode = false;
   m_capas.canSetProperties = false;
 

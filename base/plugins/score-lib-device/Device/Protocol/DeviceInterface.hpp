@@ -35,7 +35,7 @@ struct SCORE_LIB_DEVICE_EXPORT DeviceCapas
   bool canDisconnect{true};
   bool canRefreshValue{true};
   bool canRefreshTree{false};
-  bool asyncRefresh{false};
+  bool asyncConnect{false};
   bool canListen{true};
   bool canSerialize{true};
   bool canLearn{false};

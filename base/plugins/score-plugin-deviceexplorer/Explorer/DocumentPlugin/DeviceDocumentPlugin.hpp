@@ -88,7 +88,7 @@ private:
   DeviceExplorerModel* m_explorer{};
   ossia::fast_hash_map<Device::DeviceInterface*, std::vector<QMetaObject::Connection>> m_connections;
 
-  void asyncRefresh(Device::DeviceInterface& newdev);
+  void asyncConnect(Device::DeviceInterface& newdev);
 public:
   NodeUpdateProxy updateProxy{*this};
 };
