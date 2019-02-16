@@ -25,10 +25,13 @@ public:
 public:
   void sig_command() W_SIGNAL(sig_command);
   void sig_disconnect() W_SIGNAL(sig_disconnect);
+  void sig_createDevice() W_SIGNAL(sig_createDevice);
 
 private:
   void slot_command();
   W_SLOT(slot_command);
+  void slot_createDevice();
+  W_SLOT(slot_createDevice);
 
   ossia::oscquery::oscquery_mirror_protocol* m_mirror{};
   bool m_connected{};

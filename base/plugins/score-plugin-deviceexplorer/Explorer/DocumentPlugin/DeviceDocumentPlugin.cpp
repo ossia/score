@@ -25,6 +25,7 @@
 #include <QJsonArray>
 #include <QJsonObject>
 #include <QMessageBox>
+#include <QMainWindow>
 #include <QObject>
 #include <QString>
 
@@ -62,6 +63,32 @@ struct print_node_rec
   }
 };
 
+void DeviceDocumentPlugin::asyncRefresh(Device::DeviceInterface& newdev)
+{
+  if(newdev.capabilities().asyncRefresh)
+  {
+    score::GUIAppContext().mainWindow->setEnabled(false);
+
+    QMessageBox b(QMessageBox::Icon{},
+                  QString{"Waiting"},
+                  QString{"Waiting for a device: " + newdev.settings().name},
+                  QMessageBox::StandardButton::NoButton,
+                  nullptr,
+                  Qt::WindowFlags{});
+
+    auto con = new QMetaObject::Connection;
+    *con = connect(&newdev, &Device::DeviceInterface::connectionChanged,
+                   this, [con,&b] {
+      QObject::disconnect(*con);
+      delete con;
+
+      b.accept();
+    });
+    b.exec();
+    score::GUIAppContext().mainWindow->setEnabled(true);
+  }
+}
+
 Device::Node
 DeviceDocumentPlugin::createDeviceFromNode(const Device::Node& node)
 {
@@ -81,6 +108,7 @@ DeviceDocumentPlugin::createDeviceFromNode(const Device::Node& node)
 
     if (newdev->capabilities().canRefreshTree)
     {
+      asyncRefresh(*newdev);
       return newdev->refresh();
     }
     else
@@ -130,6 +158,8 @@ DeviceDocumentPlugin::loadDeviceFromNode(const Device::Node& node)
     {
       // In this case we instead explore the actual
       // device node.
+
+      asyncRefresh(*newdev);
       return newdev->refresh();
     }
   }

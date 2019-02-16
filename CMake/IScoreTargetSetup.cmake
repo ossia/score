@@ -168,7 +168,7 @@ function(score_set_linux_compile_options theTarget)
             # Debug options
           #          "$<$<CONFIG:Debug>:-Wa,--compress-debug-sections>"
           #          "$<$<CONFIG:Debug>:-Wl,--compress-debug-sections=zlib>"
-          "$<$<CONFIG:Debug>:-gsplit-dwarf>"
+          # "$<$<CONFIG:Debug>:-gsplit-dwarf>"
           "$<$<CONFIG:Debug>:-fdebug-types-section>"
           "$<$<CONFIG:Debug>:-ggnu-pubnames>"
         )
