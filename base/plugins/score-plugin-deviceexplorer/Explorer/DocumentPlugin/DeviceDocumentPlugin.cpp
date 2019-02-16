@@ -63,9 +63,9 @@ struct print_node_rec
   }
 };
 
-void DeviceDocumentPlugin::asyncRefresh(Device::DeviceInterface& newdev)
+void DeviceDocumentPlugin::asyncConnect(Device::DeviceInterface& newdev)
 {
-  if(newdev.capabilities().asyncRefresh)
+  if(newdev.capabilities().asyncConnect)
   {
     score::GUIAppContext().mainWindow->setEnabled(false);
 
@@ -74,18 +74,19 @@ void DeviceDocumentPlugin::asyncRefresh(Device::DeviceInterface& newdev)
                   QString{"Waiting for a device: " + newdev.settings().name},
                   QMessageBox::StandardButton::NoButton,
                   nullptr,
-                  Qt::WindowFlags{});
+                  Qt::CustomizeWindowHint | Qt::WindowTitleHint);
+    b.setStandardButtons(QMessageBox::StandardButton::NoButton);
 
-    auto con = new QMetaObject::Connection;
-    *con = connect(&newdev, &Device::DeviceInterface::connectionChanged,
-                   this, [con,&b] {
-      QObject::disconnect(*con);
-      delete con;
-
+    connect(&newdev, &Device::DeviceInterface::connectionChanged,
+                   &b, [&b] {
       b.accept();
     });
+    newdev.reconnect();
     b.exec();
     score::GUIAppContext().mainWindow->setEnabled(true);
+  }
+  else {
+    newdev.reconnect();
   }
 }
 
@@ -108,7 +109,6 @@ DeviceDocumentPlugin::createDeviceFromNode(const Device::Node& node)
 
     if (newdev->capabilities().canRefreshTree)
     {
-      asyncRefresh(*newdev);
       return newdev->refresh();
     }
     else
@@ -158,8 +158,6 @@ DeviceDocumentPlugin::loadDeviceFromNode(const Device::Node& node)
     {
       // In this case we instead explore the actual
       // device node.
-
-      asyncRefresh(*newdev);
       return newdev->refresh();
     }
   }
@@ -182,7 +180,7 @@ void DeviceDocumentPlugin::setConnection(bool b)
     m_list.apply([&](Device::DeviceInterface& dev)
     {
       if (!dev.connected())
-        dev.reconnect();
+        asyncConnect(dev);
       if (dev.capabilities().canSerialize)
       {
         auto it
@@ -229,7 +227,7 @@ ListeningHandler& DeviceDocumentPlugin::listening() const
 
 void DeviceDocumentPlugin::initDevice(Device::DeviceInterface& newdev)
 {
-  newdev.reconnect();
+  asyncConnect(newdev);
   newdev.valueUpdated.connect<&DeviceDocumentPlugin::on_valueUpdated>(*this);
 
   setupConnections(newdev, true);
