@@ -14,7 +14,9 @@
 #include <QSize>
 
 #include <score_git_info.hpp>
+#if __has_include(<score_licenses.hpp>)
 #include <score_licenses.hpp>
+#endif
 
 #include <map>
 namespace score
@@ -73,6 +75,7 @@ AboutDialog::AboutDialog(QWidget* parent)
     QString license;
   };
 
+#if __has_include(<score_licenses.hpp>)
   std::map<QString, License> map;
   map["Score"] = License{"https://ossia.io", score_LICENSE};
 
@@ -230,7 +233,6 @@ AboutDialog::AboutDialog(QWidget* parent)
   {
     softwareList->item(i)->setTextAlignment(Qt::AlignHCenter);
   }
-
   // license
   auto license = new QPlainTextEdit{this};
   license->move(280, 230);
@@ -245,6 +247,7 @@ AboutDialog::AboutDialog(QWidget* parent)
         auto& lic = map.at(currentText);
         license->setPlainText(lic.url + "\n\n" + lic.license);
       });
+#endif
 }
 
 void AboutDialog::mousePressEvent(QMouseEvent* event)
