@@ -14,7 +14,7 @@ ChangeAudioFile::ChangeAudioFile(
     const Sound::ProcessModel& model, const QString& text)
     : m_model{model}, m_new{text}
 {
-  m_old = model.file().path();
+  m_old = model.file()->path();
   if (auto p = qobject_cast<Scenario::IntervalModel*>(model.parent()))
   {
     m_olddur = p->duration.defaultDuration();

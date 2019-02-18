@@ -42,8 +42,8 @@ public:
   void setFile(const QString& file);
   void setFile(const MediaFileHandle& file);
 
-  MediaFileHandle& file();
-  const MediaFileHandle& file() const;
+  std::shared_ptr<MediaFileHandle>& file();
+  const std::shared_ptr<MediaFileHandle>& file() const;
 
   int upmixChannels() const;
   int startChannel() const;
@@ -85,7 +85,7 @@ public:
 private:
   void init();
 
-  MediaFileHandle m_file;
+  std::shared_ptr<MediaFileHandle> m_file{std::make_shared<MediaFileHandle>()};
   int m_upmixChannels{};
   int m_startChannel{};
   qint32 m_startOffset{};

@@ -28,28 +28,28 @@ ProcessModel::~ProcessModel()
 
 void ProcessModel::setFile(const QString& file)
 {
-  if (file != m_file.path())
+  if (file != m_file->path())
   {
-    m_file.load(file, score::IDocument::documentContext(*this));
+    m_file->load(file, score::IDocument::documentContext(*this));
     fileChanged();
     prettyNameChanged();
   }
 }
 
-MediaFileHandle& ProcessModel::file()
+std::shared_ptr<MediaFileHandle>& ProcessModel::file()
 {
   return m_file;
 }
 
-const MediaFileHandle& ProcessModel::file() const
+const std::shared_ptr<MediaFileHandle>& ProcessModel::file() const
 {
   return m_file;
 }
 
 QString ProcessModel::prettyName() const noexcept
 {
-  return m_file.empty() ? Process::ProcessModel::prettyName()
-                        : m_file.fileName();
+  return m_file->empty() ? Process::ProcessModel::prettyName()
+                        : m_file->fileName();
 }
 
 int ProcessModel::upmixChannels() const
@@ -96,7 +96,7 @@ void ProcessModel::setStartOffset(qint32 startOffset)
 
 void ProcessModel::on_mediaChanged()
 {
-  if (m_file.channels() == 1)
+  if (m_file->channels() == 1)
   {
     setUpmixChannels(2);
   }
@@ -106,7 +106,7 @@ void ProcessModel::on_mediaChanged()
 void ProcessModel::init()
 {
   m_outlets.push_back(outlet.get());
-  m_file.on_mediaChanged.connect<&ProcessModel::on_mediaChanged>(*this);
+  m_file->on_mediaChanged.connect<&ProcessModel::on_mediaChanged>(*this);
 }
 }
 }
@@ -114,7 +114,7 @@ void ProcessModel::init()
 template <>
 void DataStreamReader::read(const Media::Sound::ProcessModel& proc)
 {
-  m_stream << proc.m_file.path() << *proc.outlet << proc.m_upmixChannels
+  m_stream << proc.m_file->path() << *proc.outlet << proc.m_upmixChannels
            << proc.m_startChannel << proc.m_startOffset << proc.m_endOffset;
 
   insertDelimiter();
@@ -136,7 +136,7 @@ void DataStreamWriter::write(Media::Sound::ProcessModel& proc)
 template <>
 void JSONObjectReader::read(const Media::Sound::ProcessModel& proc)
 {
-  obj["File"] = proc.file().path();
+  obj["File"] = proc.m_file->path();
   obj["Outlet"] = toJsonObject(*proc.outlet);
   obj["Upmix"] = proc.m_upmixChannels;
   obj["Start"] = proc.m_startChannel;

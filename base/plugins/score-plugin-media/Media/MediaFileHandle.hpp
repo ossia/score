@@ -81,3 +81,6 @@ private:
   int m_sampleRate{};
 };
 }
+
+Q_DECLARE_METATYPE(std::shared_ptr<Media::MediaFileHandle>)
+W_REGISTER_ARGTYPE(std::shared_ptr<Media::MediaFileHandle>)

@@ -10,13 +10,22 @@
 #include <ossia/detail/pod_vector.hpp>
 
 #include <QPointer>
-
+//#include <QFuture>
+//#include <QFutureWatcher>
 #include <wobjectdefs.h>
 namespace Media
 {
 namespace Sound
 {
 class LayerView;
+struct ComputedWaveform
+{
+  QList<QPainterPath> arg_1;
+  QPainterPath arg_2;
+  double zoom;
+  QImage img;
+};
+
 struct WaveformComputer : public QObject
 {
   W_OBJECT(WaveformComputer)
@@ -45,13 +54,13 @@ public:
   }
 
 public:
-  void recompute(const MediaFileHandle* arg_1, double arg_2)
+  void recompute(std::shared_ptr<MediaFileHandle> arg_1, double arg_2)
       W_SIGNAL(recompute, arg_1, arg_2);
-  void ready(QList<QPainterPath> arg_1, QPainterPath arg_2, double z)
-      W_SIGNAL(ready, arg_1, arg_2, z);
+  void ready(QList<QPainterPath> arg_1, QPainterPath arg_2, double z, QImage img)
+      W_SIGNAL(ready, arg_1, arg_2, z, img);
 
 private:
-  void on_recompute(const MediaFileHandle* data, double ratio);
+  void on_recompute(std::shared_ptr<MediaFileHandle> data, double ratio);
   W_SLOT(on_recompute);
 
 private:
@@ -85,7 +94,7 @@ public:
   explicit LayerView(QGraphicsItem* parent);
   ~LayerView();
 
-  void setData(const MediaFileHandle& data);
+  void setData(const std::shared_ptr<MediaFileHandle>& data);
   void recompute(ZoomRatio ratio);
 
 private:
@@ -102,7 +111,7 @@ private:
   void on_finishedDecoding();
   void on_newData();
 
-  QPointer<const MediaFileHandle> m_data;
+  std::shared_ptr<MediaFileHandle> m_data;
   QList<QPainterPath> m_paths;
   QPainterPath m_channels{};
   int m_numChan{};
@@ -112,6 +121,7 @@ private:
   ZoomRatio m_zoom{};
   void printAction(long);
 
+  //QPixmap m_pixmap;
   WaveformComputer* m_cpt{};
 };
 }

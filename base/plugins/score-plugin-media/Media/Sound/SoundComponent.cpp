@@ -24,7 +24,7 @@ SoundComponent::SoundComponent(
 
   con(element, &Media::Sound::ProcessModel::fileChanged, this,
       [this] { this->recompute(); });
-  con(element.file().decoder(), &Media::AudioDecoder::finishedDecoding, this,
+  con(element.file()->decoder(), &Media::AudioDecoder::finishedDecoding, this,
       [this] { this->recompute(); });
   con(element, &Media::Sound::ProcessModel::startChannelChanged, this, [=] {
     in_exec(
@@ -58,7 +58,7 @@ void SoundComponent::recompute()
     in_exec(
         [n
          = std::dynamic_pointer_cast<ossia::nodes::sound>(OSSIAProcess().node),
-         data = to_double(process().file().data()),
+         data = to_double(process().file()->data()),
          upmix = process().upmixChannels(), start = process().startChannel(),
          startOff = process().startOffset()]() mutable {
           n->set_sound(std::move(data));
@@ -71,7 +71,7 @@ void SoundComponent::recompute()
   {
     in_exec([n = std::dynamic_pointer_cast<ossia::nodes::sound_ref>(
                  OSSIAProcess().node),
-             data = process().file().handle(),
+             data = process().file()->handle(),
              upmix = process().upmixChannels(),
              start = process().startChannel(),
              startOff = process().startOffset()] {
