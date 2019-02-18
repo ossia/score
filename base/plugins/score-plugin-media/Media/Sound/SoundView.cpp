@@ -2,6 +2,7 @@
 
 #include <score/graphics/GraphicsItem.hpp>
 #include <score/tools/std/Invoke.hpp>
+#include <score/tools/Todo.hpp>
 
 #include <ossia/detail/pod_vector.hpp>
 
@@ -10,7 +11,6 @@
 #include <QPainter>
 #include <QScrollBar>
 #include <QTimer>
-
 #include <cmath>
 
 #if defined(__AVX2__) && __has_include(<immintrin.h>)
@@ -26,6 +26,50 @@ namespace Media
 {
 namespace Sound
 {
+/*
+QImage render(const QList<QPainterPath>& paths, const QPainterPath& m_channels, QRectF rect, double height, double zoom)
+{
+  auto image = QImage(rect.width(), rect.height(), QImage::Format_ARGB32_Premultiplied);
+  image.fill(Qt::transparent);
+
+  {
+    auto painter = std::make_unique<QPainter>(&image);
+    painter->setRenderHint(QPainter::Antialiasing, false);
+    const int nchannels = paths.size();
+    if (nchannels == 0)
+      return {};
+
+    painter->setBrush(Qt::darkCyan);
+    painter->setPen(Qt::darkBlue);
+
+    painter->save();
+
+    painter->scale(zoom, 1.);
+
+    for (const auto& path : paths)
+      painter->drawPath(path);
+
+    const auto h = -height / nchannels;
+    const auto dblh = 2. * h;
+
+    painter->scale(1., -1);
+    painter->translate(0, h + 1);
+
+    for (const auto& path : paths)
+    {
+      painter->drawPath(path);
+      painter->translate(0., dblh + 1);
+    }
+
+    painter->restore();
+
+    painter->setPen(Qt::lightGray);
+    painter->drawPath(m_channels);
+  }
+
+  return image;
+}
+*/
 LayerView::LayerView(QGraphicsItem* parent)
     : Process::LayerView{parent}, m_cpt{new WaveformComputer{*this}}
 {
@@ -37,10 +81,11 @@ LayerView::LayerView(QGraphicsItem* parent)
         &Media::Sound::LayerView::scrollValueChanged);
   connect(
       m_cpt, &WaveformComputer::ready, this,
-      [=](QList<QPainterPath> p, QPainterPath c, double z) {
+      [=](QList<QPainterPath> p, QPainterPath c, double z, QImage img) {
         m_paths = std::move(p);
         m_channels = std::move(c);
         m_pathZoom = z;
+
         update();
       });
 }
@@ -52,7 +97,7 @@ LayerView::~LayerView()
   delete m_cpt;
 }
 
-void LayerView::setData(const MediaFileHandle& data)
+void LayerView::setData(const std::shared_ptr<MediaFileHandle>& data)
 {
   if (m_data)
   {
@@ -63,8 +108,11 @@ void LayerView::setData(const MediaFileHandle& data)
         &m_data->decoder(), &AudioDecoder::newData, this,
         &LayerView::on_newData);
   }
-  m_data = &data;
-  m_numChan = data.data().size();
+
+  SCORE_ASSERT(data);
+
+  m_data = data;
+  m_numChan = data->data().size();
   if (m_data)
   {
     QObject::connect(
@@ -74,7 +122,7 @@ void LayerView::setData(const MediaFileHandle& data)
         &m_data->decoder(), &AudioDecoder::newData, this,
         &LayerView::on_newData, Qt::QueuedConnection);
   }
-  m_sampleRate = data.sampleRate();
+  m_sampleRate = data->sampleRate();
   m_cpt->dirty = true;
 }
 
@@ -83,7 +131,7 @@ void LayerView::recompute(ZoomRatio ratio)
   m_zoom = ratio;
   if (m_data)
   {
-    m_cpt->recompute(m_data.data(), ratio);
+    m_cpt->recompute(m_data, ratio);
   }
 }
 
@@ -96,6 +144,7 @@ void LayerView::contextMenuEvent(QGraphicsSceneContextMenuEvent* event)
 
 void LayerView::paint_impl(QPainter* painter) const
 {
+//  painter->drawPixmap(0, 0, m_pixmap);
   painter->setRenderHint(QPainter::Antialiasing, false);
   const int nchannels = m_numChan;
   if (nchannels == 0)
@@ -106,13 +155,15 @@ void LayerView::paint_impl(QPainter* painter) const
 
   painter->save();
 
+  painter->scale(m_pathZoom / m_zoom, 1.);
+
   for (const auto& path : m_paths)
     painter->drawPath(path);
 
   const auto h = -height() / nchannels;
   const auto dblh = 2. * h;
 
-  painter->scale(1, -1);
+  painter->scale(1., -1);
   painter->translate(0, h + 1);
 
   for (const auto& path : m_paths)
@@ -360,17 +411,16 @@ void WaveformComputer::drawWaveForms(
     paths.push_back(std::move(path));
   }
 
-  ready(std::move(paths), std::move(channels), ratio);
+  ready(std::move(paths), std::move(channels), ratio, QImage());
 }
 
 void WaveformComputer::on_recompute(
-    const MediaFileHandle* pdata, ZoomRatio ratio)
+    std::shared_ptr<MediaFileHandle> data_qp, ZoomRatio ratio)
 {
-  if (!pdata)
+  if (!data_qp)
     return;
 
-  auto& data = *pdata;
-  QPointer<const MediaFileHandle> data_qp{pdata};
+  auto& data = *data_qp;
   m_zoom = ratio;
 
   if (!data.handle())
@@ -378,7 +428,7 @@ void WaveformComputer::on_recompute(
   if (data.channels() == 0)
     return;
 
-  const int64_t density = std::max((int)(ratio * data.sampleRate() / 1000), 1);
+  const int64_t density = std::max((int64_t)(ratio * data.sampleRate() / 1000ll), (int64_t)1);
   long action = compareDensity(density);
 
   switch (action)
