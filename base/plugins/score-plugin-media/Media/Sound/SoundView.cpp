@@ -220,59 +220,68 @@ void WaveformComputer::computeDataSet(
 
   auto& arr = data.data();
 
-  const int nchannels = data.channels();
-  const int density = std::max((data.sampleRate() * ratio) / 1000., 1.);
+  if(ratio < 0.)
+    ratio = 0.;
+  const std::size_t nchannels = data.channels();
+  const std::size_t density = std::max((data.sampleRate() * ratio) / 1000., 1.);
 
   if (densityptr != nullptr)
     *densityptr = density;
 
   dataset.resize(nchannels);
-  for (int c = 0; c < nchannels; ++c)
+  for (std::size_t c = 0; c < nchannels; ++c)
   {
     const auto& chan = arr[c];
-    const int chan_n = std::min(data.decoder().decoded, chan.size());
+    const std::size_t chan_n = std::min(data.decoder().decoded, chan.size());
 
     const double length
         = double(1000ll * chan_n) / data.sampleRate(); // duration of the track
-    const double size
+    const std::size_t npoints
         = ratio > 0
               ? length / ratio
-              : 0; // number of pixels the track will occupy in its entirety
+              : 0ul; // number of pixels the track will occupy in its entirety
 
-    const int npoints = size;
     ossia::float_vector& rmsv = dataset[c];
     rmsv.resize(npoints);
 
-    const float one_over_dens = 1. / density;
-    for (int i = 0; i < npoints; ++i)
+    const float one_over_dens = 1.f / density;
+    for (std::size_t i = 0; i < npoints; ++i)
     {
       rmsv[i] = 0;
-      for (int j = 0; (j < density) && ((i * density + j) < chan_n); ++j)
+      const std::size_t i_dense = i * density;
+      const std::size_t max_a = density - 1;
+      const std::size_t max_b = chan_n - i_dense - 1;
+      const std::size_t limit = std::min(max_a, max_b);
+      const double* chan_start = &chan[i_dense];
+      for (std::size_t j = 0; j < limit; ++j)
       {
-        auto s = chan[i * density + j];
+        float s = *(chan_start + j);
         rmsv[i] += s * s;
       }
     }
 
-    int i = 0;
+    std::size_t i = 0;
 #if defined(__AVX512__)
     if (npoints > 8)
     {
       for (; i < npoints - 8; i += 8)
       {
+        const auto one_over_dens_avx = _mm256_set1_ps(one_over_dens);
         __m256 X = _mm256_mul_ps(
-            _mm256_load_ps(&rmsv[i]), _mm256_set1_ps(one_over_dens));
+            _mm256_load_ps(&rmsv[i]), one_over_dens_avx);
         _mm256_store_ps(&rmsv[i], _mm256_mul_ps(_mm256_rsqrt14_ps(X), X));
       }
     }
 #elif defined(__SSE2__)
-    if (npoints > 4)
+    if (npoints >= 4)
     {
+      const auto one_over_dens_sse = _mm_set1_ps(one_over_dens);
       for (; i < npoints - 4; i += 4)
       {
+        float* addr = &rmsv[i];
         __m128 X
-            = _mm_mul_ps(_mm_load_ps(&rmsv[i]), _mm_set1_ps(one_over_dens));
-        _mm_store_ps(&rmsv[i], _mm_mul_ps(X, _mm_rsqrt_ps(X)));
+            = _mm_mul_ps(_mm_load_ps(addr), one_over_dens_sse);
+        _mm_store_ps(addr, _mm_mul_ps(X, _mm_rsqrt_ps(X)));
       }
     }
 #endif
@@ -295,6 +304,8 @@ void WaveformComputer::drawWaveForms(
 
   int nchannels = arr.size();
   if (nchannels == 0)
+    return;
+  if(m_curdata.size() < nchannels)
     return;
 
   // Height of each channel
@@ -324,6 +335,7 @@ void WaveformComputer::drawWaveForms(
 
   auto xf = m_layer.mapFromScene(view->mapToScene(view->width(), 0)).x();
 
+  const float half_h = h / 2.f;
   for (int64_t c = 0; c < nchannels; ++c)
   {
     const int64_t current_height = c * h;
@@ -333,19 +345,17 @@ void WaveformComputer::drawWaveForms(
     path.setFillRule(Qt::WindingFill);
 
     // Draw path for current channel
-
-    const float half_h = h / 2.f;
-    const float height_adjustemnt = current_height + half_h;
+    const float height_adj = current_height + half_h;
     if (n > i0)
     {
-      path.moveTo(x0, double(dataset[i0] + height_adjustemnt));
+      path.moveTo(x0, double(dataset[i0] + height_adj));
       double x = x0;
       for (int64_t i = i0; (i < n) && (x <= xf); ++i)
       {
         x = i * densityratio;
-        path.lineTo(x, double(dataset[i] * half_h + height_adjustemnt));
+        path.lineTo(x, double(dataset[i] * half_h + height_adj));
       }
-      path.lineTo(x, height_adjustemnt);
+      path.lineTo(x, height_adj);
     }
     paths.push_back(std::move(path));
   }
