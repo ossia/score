@@ -203,11 +203,15 @@ void OSCQueryDevice::slot_createDevice()
   {
     qDebug() << "Could not connect: " << e.what();
     m_connected = false;
+    if(!m_dev)
+      m_mirror = nullptr;
   }
   catch (...)
   {
     // TODO save the reason of the non-connection.
     m_connected = false;
+    if(!m_dev)
+      m_mirror = nullptr;
   }
 
   connectionChanged(m_connected);
