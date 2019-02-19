@@ -24,8 +24,10 @@ MIDIDevice::MIDIDevice(const Device::DeviceSettings& settings)
     : OwningDeviceInterface{settings}
 {
   using namespace ossia;
+
+  const auto set = settings.deviceSpecificSettings.value<MIDISpecificSettings>();
   m_capas.canRefreshTree = true;
-  m_capas.canSerialize = false;
+  m_capas.canSerialize = !set.createWholeTree;
   m_capas.hasCallbacks = false;
   m_capas.canRenameNode = false;
   m_capas.canSetProperties = false;
@@ -41,6 +43,8 @@ bool MIDIDevice::reconnect()
 
   MIDISpecificSettings set
       = settings().deviceSpecificSettings.value<MIDISpecificSettings>();
+
+  m_capas.canSerialize = !set.createWholeTree;
   try
   {
     auto proto = std::make_unique<ossia::net::midi::midi_protocol>();
