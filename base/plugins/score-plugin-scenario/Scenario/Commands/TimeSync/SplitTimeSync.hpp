@@ -39,5 +39,29 @@ private:
   Id<TimeSyncModel> m_originalTimeSyncId;
   Id<TimeSyncModel> m_newTimeSyncId;
 };
+
+class SplitWholeSync final : public score::Command
+{
+  SCORE_COMMAND_DECL(
+      ScenarioCommandFactoryName(), SplitWholeSync, "Desynchronize")
+public:
+  SplitWholeSync(
+      const TimeSyncModel& path);
+  SplitWholeSync(
+      const TimeSyncModel& path,
+      std::vector<Id<TimeSyncModel>> new_ids);
+  void undo(const score::DocumentContext& ctx) const override;
+  void redo(const score::DocumentContext& ctx) const override;
+
+protected:
+  void serializeImpl(DataStreamInput&) const override;
+  void deserializeImpl(DataStreamOutput&) override;
+
+private:
+  Path<TimeSyncModel> m_path;
+
+  Id<TimeSyncModel> m_originalTimeSync;
+  std::vector<Id<TimeSyncModel>> m_newTimeSyncs;
+};
 }
 }

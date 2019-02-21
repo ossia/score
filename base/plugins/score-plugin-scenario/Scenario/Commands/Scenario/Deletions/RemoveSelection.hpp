@@ -58,8 +58,6 @@ private:
   QVector<QPair<Id<TimeSyncModel>, QByteArray>> m_cleanedTimeSyncs;
   QVector<QPair<Id<IntervalModel>, QByteArray>> m_removedIntervals;
   std::vector<SetRigidity> m_cmds_set_rigidity;
-  std::vector<SplitEvent> m_cmds_split_event;
-  std::vector<SplitTimeSync> m_cmds_split_timesync;
   Dataflow::SerializedCables m_cables;
 };
 }

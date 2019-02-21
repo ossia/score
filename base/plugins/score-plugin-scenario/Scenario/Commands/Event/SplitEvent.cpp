@@ -98,5 +98,85 @@ void SplitEvent::deserializeImpl(DataStreamOutput& s)
   s >> m_scenarioPath >> m_originalEvent >> m_newEvent >> m_createdName
       >> m_movingStates;
 }
+
+
+
+SplitWholeEvent::SplitWholeEvent(
+    const EventModel& path)
+    : m_path{path}
+{
+  SCORE_ASSERT(path.states().size() > 1);
+  m_originalEvent = path.id();
+  auto scenar = static_cast<Scenario::ProcessModel*>(path.parent());
+  m_newEvents = getStrongIdRange<Scenario::EventModel>(path.states().size() - 1, scenar->events);
+}
+
+void SplitWholeEvent::undo(const score::DocumentContext& ctx) const
+{
+  auto& scenar
+      = static_cast<Scenario::ProcessModel&>(*m_path.find(ctx).parent());
+
+  auto& orignalEv = scenar.event(m_originalEvent);
+  for(const auto& id : m_newEvents)
+  {
+    auto& newEv = scenar.event(id);
+
+    SCORE_ASSERT(newEv.states().size() == 1);
+    const auto& stateId = newEv.states().front();
+    {
+      auto& st = scenar.state(stateId);
+      newEv.removeState(stateId);
+      orignalEv.addState(stateId);
+      st.setEventId(m_originalEvent);
+    }
+
+    ScenarioCreate<EventModel>::undo(id, scenar);
+  }
+
+  updateEventExtent(m_originalEvent, scenar);
+}
+
+void SplitWholeEvent::redo(const score::DocumentContext& ctx) const
+{
+  auto& scenar
+      = static_cast<Scenario::ProcessModel&>(*m_path.find(ctx).parent());
+  auto& originalEv = scenar.event(m_originalEvent);
+  auto& originalTS = scenar.timeSyncs.at(originalEv.timeSync());
+  auto originalStates = originalEv.states();
+
+  std::size_t k = 1;
+  for(const auto& id : m_newEvents)
+  {
+    // TODO set the correct position here.
+    auto& tn = ScenarioCreate<EventModel>::redo(
+        id, originalTS,
+        originalEv.extent(), scenar);
+
+    tn.setCondition(originalEv.condition());
+
+    const auto& stateId = originalStates[k];
+    auto& st = scenar.state(stateId);
+    originalEv.removeState(stateId);
+
+    tn.addState(stateId);
+
+    st.setEventId(id);
+
+    updateEventExtent(id, scenar);
+    k++;
+  }
+
+  updateEventExtent(m_originalEvent, scenar);
+}
+
+void SplitWholeEvent::serializeImpl(DataStreamInput& s) const
+{
+  s << m_path << m_originalEvent << m_newEvents;
+}
+
+void SplitWholeEvent::deserializeImpl(DataStreamOutput& s)
+{
+  s >> m_path >> m_originalEvent >> m_newEvents;
+}
 }
 }

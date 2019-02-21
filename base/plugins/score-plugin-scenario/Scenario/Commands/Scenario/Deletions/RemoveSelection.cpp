@@ -75,95 +75,6 @@ RemoveSelection::RemoveSelection(
     }
   }
 
-  // If we select a TimeSync for deletion, put its events into new separate
-  // TimeSync
-  {
-    cp = sel;
-    for (const auto& obj : cp)
-    {
-      if (auto ts = dynamic_cast<const TimeSyncModel*>(obj.data()))
-      {
-        if (ts->events().size() > 1)
-        {
-          bool split = false;
-          for (auto child : ts->events())
-          {
-            auto& ev = scenar.events.at(child);
-            if (!sel.contains(&ev))
-            {
-              split = true;
-              break;
-            }
-          }
-
-          if (split)
-          {
-            for (std::size_t i = 1; i < ts->events().size(); i++)
-            {
-              QVector<Id<EventModel>> move_me{ts->events()[i]};
-              m_cmds_split_timesync.emplace_back(*ts, move_me);
-            }
-
-            // if we split the timesync, then we won't remove it
-            sel.removeAll(obj);
-          }
-        }
-      }
-    }
-  }
-
-  // If we select an Event for deletion, put its states into new separate
-  // events
-  {
-    cp = sel;
-    /// FIXME do the same thing for timesyncs above
-    struct EventToSplit
-    {
-      Id<EventModel> orig;
-      QVector<Id<StateModel>> states;
-    };
-    std::vector<EventToSplit> to_split;
-    for (const auto& obj : cp)
-    {
-      if (auto ev = dynamic_cast<const EventModel*>(obj.data()))
-      {
-        if (ev->states().size() > 1)
-        {
-          bool split = false;
-          for (auto child : ev->states())
-          {
-            auto& st = scenar.states.at(child);
-            if (!sel.contains(&st))
-            {
-              split = true;
-              break;
-            }
-          }
-          if (split)
-          {
-            for (std::size_t i = 1; i < ev->states().size(); i++)
-            {
-              to_split.push_back(EventToSplit{
-                  ev->id(), QVector<Id<StateModel>>{ev->states()[i]}});
-            }
-
-            // if we split the event, then we won't remove it
-            sel.removeAll(obj);
-          }
-        }
-      }
-    }
-
-    auto vec = getStrongIdRange<EventModel>(to_split.size(), scenar.events);
-    int i = 0;
-    for (auto& e : to_split)
-    {
-      m_cmds_split_event.emplace_back(
-          scenar, e.orig, vec[i], std::move(e.states));
-      i++;
-    }
-  }
-
   // Then add Event to selection if we select all its States
 
   cp = sel;
@@ -412,16 +323,6 @@ void RemoveSelection::undo(const score::DocumentContext& ctx) const
     cmd.undo(ctx);
   }
 
-  // Split Event and TimeSync
-  for (const auto& cmd : m_cmds_split_event)
-  {
-    cmd.undo(ctx);
-  }
-  for (const auto& cmd : m_cmds_split_timesync)
-  {
-    cmd.undo(ctx);
-  }
-
   for (auto& tn : scenar.timeSyncs)
   {
     updateTimeSyncExtent(tn.id(), scenar);
@@ -448,16 +349,6 @@ void RemoveSelection::redo(const score::DocumentContext& ctx) const
   for (const auto& itv : m_removedIntervals)
   {
     StandardRemovalPolicy::removeInterval(scenar, itv.first);
-  }
-
-  // Split Event and TimeSync
-  for (const auto& cmd : m_cmds_split_event)
-  {
-    cmd.redo(ctx);
-  }
-  for (const auto& cmd : m_cmds_split_timesync)
-  {
-    cmd.redo(ctx);
   }
 
   // The other things
@@ -532,16 +423,6 @@ void RemoveSelection::serializeImpl(DataStreamInput& s) const
     s << cmd.serialize();
   }
 
-  s << (int32_t)m_cmds_split_event.size();
-  for (const auto& cmd : m_cmds_split_event)
-  {
-    s << cmd.serialize();
-  }
-  s << (int32_t)m_cmds_split_timesync.size();
-  for (const auto& cmd : m_cmds_split_timesync)
-  {
-    s << cmd.serialize();
-  }
   s << m_cables;
 }
 
@@ -559,23 +440,6 @@ void RemoveSelection::deserializeImpl(DataStreamOutput& s)
     m_cmds_set_rigidity[i].deserialize(a);
   }
 
-  s >> n;
-  m_cmds_split_event.resize(n);
-  for (int i = 0; i < n; i++)
-  {
-    QByteArray a;
-    s >> a;
-    m_cmds_split_event[i].deserialize(a);
-  }
-
-  s >> n;
-  m_cmds_split_timesync.resize(n);
-  for (int i = 0; i < n; i++)
-  {
-    QByteArray a;
-    s >> a;
-    m_cmds_split_timesync[i].deserialize(a);
-  }
   s >> m_cables;
 }
 }

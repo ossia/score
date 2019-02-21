@@ -133,7 +133,10 @@ if(EXISTS Documentation/Models/score.qmodel)
   add_custom_target(Docs SOURCES Documentation/Models/score.qmodel)
 endif()
 
+set(INTEGRATION_TESTING 1)
 if(INTEGRATION_TESTING)
+  file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/Tests/testdata" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/Tests/Integration/")
+
   include_directories("${CMAKE_CURRENT_SOURCE_DIR}/Tests")
   file(GLOB_RECURSE TESTS_HDRS "${CMAKE_CURRENT_SOURCE_DIR}/Tests/*.hpp")
   add_custom_target(MocksHeaders SOURCES ${TESTS_HDRS})

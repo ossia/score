@@ -3,17 +3,12 @@ project(IntegrationTests)
 enable_testing()
 include(CTest)
 
-add_library(score_integration_lib STATIC IscoreIntegrationTests.cpp)
-target_link_libraries(score_integration_lib score_lib_base)
 function(add_integration_test TESTNAME TESTSRCS)
-    add_executable(Integration_${TESTNAME} ${TESTSRCS} IscoreIntegrationTests.hpp)
-    target_link_libraries(Integration_${TESTNAME} PRIVATE score_lib_base Qt5::Core Qt5::Widgets Qt5::Test score_integration_lib)
+    add_executable(Integration_${TESTNAME} ${TESTSRCS} score_integration.hpp)
+    target_link_libraries(Integration_${TESTNAME} PRIVATE ${SCORE_PLUGINS_LIST} Qt5::Test)
     target_include_directories(Integration_${TESTNAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
     add_test(Integration_${TESTNAME}_target Integration_${TESTNAME})
 endFunction()
-
-
-file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/TestData" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}")
 
 add_integration_test(SerializationTest "${CMAKE_CURRENT_SOURCE_DIR}/SerializationTest.cpp")
 # Commands
@@ -27,3 +22,31 @@ add_integration_test(SerializationTest "${CMAKE_CURRENT_SOURCE_DIR}/Serializatio
 # addIntegrationTest(TestStatesDragDrop
 # 			 "${CMAKE_CURRENT_SOURCE_DIR}/States/TestStatesDragDrop.cpp")
 
+
+function(add_score_test _name _file)
+  add_executable(${_name} ${_file})
+
+  target_link_libraries(${_name} PRIVATE score_lib_base ${SCORE_PLUGINS_LIST}
+      Qt5::Core Qt5::Widgets Qt5::Gui Qt5::Network Qt5::Xml Qt5::Svg Qt5::Test)
+
+  target_include_directories(${_name} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+  setup_score_common_exe_features(${_name})
+
+  if(SCORE_COVERAGE)
+    setup_target_for_coverage(
+        score_test_coverage
+        score_testapp
+        coverage_out)
+
+    if(TARGET score_testapp_unity)
+        setup_target_for_coverage(
+            score_test_coverage_unity
+            score_testapp_unity
+            coverage)
+    endif()
+  endif()
+endfunction()
+
+add_score_test(score_test_stacks "${CMAKE_CURRENT_SOURCE_DIR}/test-stacks.cpp")
+add_score_test(score_test_selection "${CMAKE_CURRENT_SOURCE_DIR}/test-selection.cpp")
+add_score_test(score_test_removal "${CMAKE_CURRENT_SOURCE_DIR}/test-removal.cpp")

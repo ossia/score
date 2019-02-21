@@ -56,6 +56,27 @@ private:
   QVector<Id<StateModel>> m_movingStates;
 };
 
+class SplitWholeEvent final : public score::Command
+{
+  SCORE_COMMAND_DECL(
+      ScenarioCommandFactoryName(), SplitWholeEvent, "Split an event")
+public:
+  SplitWholeEvent(
+      const EventModel& path);
+  void undo(const score::DocumentContext& ctx) const override;
+  void redo(const score::DocumentContext& ctx) const override;
+
+protected:
+  void serializeImpl(DataStreamInput&) const override;
+  void deserializeImpl(DataStreamOutput&) override;
+
+private:
+  Path<EventModel> m_path;
+
+  Id<EventModel> m_originalEvent;
+  std::vector<Id<EventModel>> m_newEvents;
+};
+
 class SplitStateMacro final : public score::AggregateCommand
 {
   SCORE_COMMAND_DECL(
