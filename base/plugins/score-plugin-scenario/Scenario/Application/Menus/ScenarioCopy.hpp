@@ -4,7 +4,7 @@
 #include <vector>
 class QJsonObject;
 class QObject;
-
+class Selection;
 namespace score
 {
 struct DocumentContext;
@@ -31,6 +31,7 @@ struct SCORE_PLUGIN_SCENARIO_EXPORT CategorisedScenario
   CategorisedScenario();
   CategorisedScenario(const Scenario::ProcessModel& sm);
   CategorisedScenario(const BaseScenarioContainer& sm);
+  CategorisedScenario(const Selection& sm);
 
   std::vector<const IntervalModel*> selectedIntervals;
   std::vector<const EventModel*> selectedEvents;

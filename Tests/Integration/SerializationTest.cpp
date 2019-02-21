@@ -8,7 +8,8 @@
 #include <score/serialization/VisitorCommon.hpp>
 #include <score/model/Entity.hpp>
 #include <wobjectimpl.h>
-#include <IscoreIntegrationTests.hpp>
+#include <QtTest/QTest>
+#include <score_integration.hpp>
 
 //////// Test basic objects ////////
 struct foo : public IdentifiedObject<foo>
@@ -472,17 +473,18 @@ void JSONObjectWriter::write(crtp2& pt)
 }
 
 
-class SerializationTest : public TestBase
+class SerializationTest : public QObject
 {
   W_OBJECT(SerializationTest)
 
+  score::MinimalApplication m_app;
 public:
-  SerializationTest(int& argc, char** argv): TestBase(argc, argv)
+  SerializationTest(int& argc, char** argv): m_app(argc, argv)
   {
     auto l = std::make_unique<base_factories>();
     l->insert(std::make_unique<derived_factory>());
     l->insert(std::make_unique<derived2_factory>());
-    componentsData().factories.insert({l->interfaceKey(), std::move(l)});
+    m_app.componentsData().factories.insert({l->interfaceKey(), std::move(l)});
   }
 
 private:
@@ -563,7 +565,7 @@ private:
       QVERIFY(json["Components"].isArray());
       QCOMPARE(json["uuid"].toString(), QString("8ea20ba2-4002-4dc2-a31c-ccf10b41fe0b"));
 
-      auto& pl = components().interfaces<base_factories>();
+      auto& pl = m_app.components().interfaces<base_factories>();
 
       JSONObject::Deserializer deserializer{json};
       auto proc = deserialize_interface(pl, deserializer);
@@ -578,7 +580,7 @@ private:
     }
 
     {
-      auto& pl = components().interfaces<base_factories>();
+      auto& pl = m_app.components().interfaces<base_factories>();
 
       DataStreamWriter deserializer{score::marshall<DataStream>((base&)f)};
       auto proc = deserialize_interface(pl, deserializer);
@@ -613,7 +615,7 @@ private:
       QVERIFY(json["Components"].isArray());
       QCOMPARE(json["uuid"].toString(), QString("3f77dcba-f1eb-420b-ad76-994cfc439304"));
 
-      auto& pl = components().interfaces<base_factories>();
+      auto& pl = m_app.components().interfaces<base_factories>();
 
       JSONObject::Deserializer deserializer{json};
       auto proc = deserialize_interface(pl, deserializer);
@@ -628,7 +630,7 @@ private:
       delete proc;
     }
     {
-      auto& pl = components().interfaces<base_factories>();
+      auto& pl = m_app.components().interfaces<base_factories>();
 
       DataStreamWriter deserializer{score::marshall<DataStream>((base&)f)};
       auto proc = deserialize_interface(pl, deserializer);
@@ -755,4 +757,4 @@ private:
 };
 
 W_OBJECT_IMPL(SerializationTest)
-SCORE_INTEGRATION_TEST(SerializationTest)
+SCORE_INTEGRATION_TEST_OBJECT(SerializationTest)

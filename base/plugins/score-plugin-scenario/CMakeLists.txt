@@ -85,6 +85,7 @@ set(HDRS
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/Scenario/Deletions/ClearInterval.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/Scenario/Deletions/ClearState.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/Scenario/Deletions/RemoveSelection.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/Scenario/Deletions/RemoveMacro.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/Scenario/Displacement/MoveCommentBlock.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/Scenario/Displacement/MoveInterval.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/Scenario/Displacement/MoveEventClassicFactory.hpp"

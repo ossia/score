@@ -361,6 +361,21 @@ CategorisedScenario::CategorisedScenario(const BaseScenarioContainer& sm)
   selectedStates = selectedElementsVec(getStates(sm));
 }
 
+CategorisedScenario::CategorisedScenario(const Selection& sm)
+{
+  for(auto elt : sm)
+  {
+    if(auto st = dynamic_cast<const Scenario::StateModel*>(elt.data()))
+      selectedStates.push_back(st);
+    else if(auto itv = dynamic_cast<const Scenario::IntervalModel*>(elt.data()))
+      selectedIntervals.push_back(itv);
+    else if(auto ev = dynamic_cast<const Scenario::EventModel*>(elt.data()))
+      selectedEvents.push_back(ev);
+    else if(auto ts = dynamic_cast<const Scenario::TimeSyncModel*>(elt.data()))
+      selectedTimeSyncs.push_back(ts);
+  }
+}
+
 QJsonObject copySelectedElementsToJson(
     ScenarioInterface& si, const score::DocumentContext& ctx)
 {

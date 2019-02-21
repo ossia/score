@@ -238,6 +238,7 @@ createNodeFromPath(const QStringList& path, ossia::net::device_base& dev)
       {
         auto path_k = path[k].toStdString();
         auto newNode = parentnode->create_child(path_k);
+        SCORE_ASSERT(newNode);
         if (path_k != newNode->get_name())
         {
           qDebug() << path[k] << newNode->get_name().c_str();

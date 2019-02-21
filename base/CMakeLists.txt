@@ -24,7 +24,3 @@ add_subdirectory(app)
 if(SCORE_PLAYER)
   add_subdirectory(player)
 endif()
-
-if(SCORE_COVERAGE)
-    add_subdirectory(app-test)
-endif()

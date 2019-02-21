@@ -7,8 +7,10 @@
 #include <Scenario/Commands/Scenario/Deletions/ClearInterval.hpp>
 #include <Scenario/Commands/Scenario/Deletions/ClearState.hpp>
 #include <Scenario/Commands/Scenario/Deletions/RemoveSelection.hpp>
+#include <Scenario/Commands/Scenario/Deletions/RemoveMacro.hpp>
 #include <Scenario/Commands/Scenario/Merge/MergeEvents.hpp>
 #include <Scenario/Commands/Scenario/Merge/MergeTimeSyncs.hpp>
+#include <Scenario/Commands/Scenario/Deletions/RemoveMacro.hpp>
 #include <Scenario/Document/BaseScenario/BaseScenario.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
@@ -67,25 +69,17 @@ void clearContentFromSelection(
   cleaner.commit();
 }
 
-template <typename Range, typename Fun>
-void erase_if(Range& r, Fun f)
-{
-  for (auto it = std::begin(r); it != std::end(r);)
-  {
-    it = f(*it) ? r.erase(it) : ++it;
-  }
-}
-
 void removeSelection(
     const Scenario::ProcessModel& scenario, const score::DocumentContext& ctx)
 {
   auto& stack = ctx.commandStack;
-  MacroCommandDispatcher<ClearSelection> cleaner{stack};
+  RedoMacroCommandDispatcher<ClearSelection> cleaner{stack};
 
   const QList<const StateModel*>& states
       = selectedElements(scenario.getStates());
 
   // Create a Clear command for each.
+  // TODO why ? except the first one, they are going to be removed anyways...
 
   for (auto& state : states)
   {
@@ -125,11 +119,12 @@ void removeSelection(
   s.setAndCommit({});
   ctx.selectionStack.clear();
   // We have to remove the first / last timesyncs / events from the selection.
-  erase_if(sel, [&](auto&& elt) { return elt->id_val() == startId_val; });
+  ossia::erase_if(sel, [&](auto&& elt) { return elt->id_val() == startId_val; });
 
   if (!sel.empty())
   {
-    cleaner.submit(new RemoveSelection(scenario, sel));
+    Command::setupRemoveMacro(scenario, sel, cleaner);
+    //cleaner.submit(new RemoveSelection(scenario, sel));
   }
 
   cleaner.commit();
