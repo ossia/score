@@ -25,10 +25,12 @@ set(CMAKE_PREFIX_PATH
   "${OSSIA_SDK}/portaudio/lib/cmake/portaudio"
   "${CMAKE_PREFIX_PATH}"
 )
+
 if(NOT SCORE_CONFIGURATION)
   set(SCORE_CONFIGURATION developer)
 endif()
 include("${SCORE_CONFIGURATION}")
+
 project(score LANGUAGES C CXX)
 
 cmake_policy(VERSION 3.9)
@@ -82,7 +84,6 @@ if(NOT EXISTS ".git")
   set(OSSIA_SUBMODULE_AUTOUPDATE OFF CACHE INTERNAL "" FORCE)
 endif()
 
-
 if(MSVC)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /EHsc /std:c++latest")
   add_definitions(/D_HAS_AUTO_PTR_ETC=1 /D_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS=1)
@@ -101,7 +102,6 @@ enable_testing()
 include("${CMAKE_CURRENT_SOURCE_DIR}/CMake/IScoreFunctions.cmake")
 include("${CMAKE_CURRENT_SOURCE_DIR}/CMake/IScoreConfiguration.cmake")
 
-#set(COTIRE_DEBUG 1)
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
@@ -122,7 +122,7 @@ include_directories(SYSTEM "${OSSIA_3RDPARTY_FOLDER}/multi_index/include")
 include_directories(SYSTEM "${3RDPARTY_FOLDER}/miniz")
 
 set(SCORE_PLUGINS_LIST CACHE INTERNAL "List of plugins") # todo libraries, components ?
-set(SCORE_GLOBAL_COMPONENTS_LIST CACHE INTERNAL "List of components") # todo libraries, components ?
+
 add_subdirectory(base)
 
 if(SCORE_TESTBED)
@@ -133,7 +133,6 @@ if(EXISTS Documentation/Models/score.qmodel)
   add_custom_target(Docs SOURCES Documentation/Models/score.qmodel)
 endif()
 
-set(INTEGRATION_TESTING 1)
 if(INTEGRATION_TESTING)
   file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/Tests/testdata" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/Tests/Integration/")
 
