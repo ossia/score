@@ -87,6 +87,7 @@ struct FactoryInserter
   template <typename TheCommand>
   void operator()() const
   {
+    SCORE_ASSERT(bool(fact.find(TheCommand::static_key()) == fact.end()));
     auto res = fact.insert(std::pair<const CommandKey, CommandFactory*>{
         TheCommand::static_key(), new GenericCommandFactory<TheCommand>});
     SCORE_ASSERT(res.second);
