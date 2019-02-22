@@ -545,7 +545,7 @@ struct in_sink final : public spdlog::sinks::sink
   void log(const spdlog::details::log_msg& msg) override
   {
     m_dev.logInbound(
-        QString::fromLatin1(msg.raw.data(), msg.raw.size()));
+        QString::fromLatin1(msg.payload.data(), msg.payload.size()));
   }
 
   void flush() override
@@ -564,7 +564,7 @@ struct out_sink final : public spdlog::sinks::sink
   void log(const spdlog::details::log_msg& msg) override
   {
     m_dev.logOutbound(
-        QString::fromLatin1(msg.raw.data(), msg.raw.size()));
+        QString::fromLatin1(msg.payload.data(), msg.payload.size()));
   }
 
   void flush() override
