@@ -9,15 +9,15 @@ set(CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS_SKIP true)
 
 if(MINGW)
   get_target_property(ZLIB_LOCATION ZLIB::ZLIB IMPORTED_LOCATION_RELEASE)
-  get_filename_component(MINGW64_LIB ${ZLIB_LOCATION} DIRECTORY)  
-  
+  get_filename_component(MINGW64_LIB ${ZLIB_LOCATION} DIRECTORY)
+
   get_filename_component(cxx_path ${CMAKE_CXX_COMPILER} PATH)
-  set(CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS 
-        ${CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS} 
-        ${cxx_path}/libc++.dll 
+  set(CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS
+        ${CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS}
+        ${cxx_path}/libc++.dll
         ${cxx_path}/libunwind.dll
         ${MINGW64_LIB}/../bin/zlib1.dll
-  )  
+  )
 endif()
 
 include(InstallRequiredSystemLibraries)
@@ -55,7 +55,7 @@ install(FILES
 install(
   FILES
     "${SCORE_ROOT_SOURCE_DIR}/CMake/Deployment/Windows/qt.conf"
-    "${SCORE_ROOT_SOURCE_DIR}/base/lib/resources/score.ico"
+    "${SCORE_ROOT_SOURCE_DIR}/src/lib/resources/score.ico"
   DESTINATION
     ${SCORE_BIN_INSTALL_DIR})
 
@@ -76,12 +76,12 @@ install(
   PATTERN
     "*.qmlc" EXCLUDE
  )
- 
+
 # Faust stuff
-if(EXISTS "${CMAKE_BINARY_DIR}/base/plugins/score-plugin-media/faustlibs-prefix/src/faustlibs")
+if(EXISTS "${CMAKE_BINARY_DIR}/src/plugins/score-plugin-media/faustlibs-prefix/src/faustlibs")
   install(
     DIRECTORY
-      "${CMAKE_BINARY_DIR}/base/plugins/score-plugin-media/faustlibs-prefix/src/faustlibs/"
+      "${CMAKE_BINARY_DIR}/src/plugins/score-plugin-media/faustlibs-prefix/src/faustlibs/"
     DESTINATION
       "${SCORE_BIN_INSTALL_DIR}/faust"
       PATTERN ".git" EXCLUDE

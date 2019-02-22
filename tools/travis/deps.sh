@@ -5,6 +5,10 @@ if [[ "$CONF" == "linux-package-appimage" ]];
 then
     exit 0
 fi
+if [[ "$CONF" == "tarball" ]];
+then
+  exit 0
+fi
 
 # Install the deps
 case "$TRAVIS_OS_NAME" in

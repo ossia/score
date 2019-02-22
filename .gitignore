@@ -13,7 +13,7 @@ Tests/testdata/stacks2
 .idea
 CMake/common
 CMakeFiles*
-base/disabled_addons
+src/disabled_addons
 build-*
 sonar-project.properties
 nohup.out
@@ -42,7 +42,7 @@ Makefile
 *kde*
 cppcheck-html
 
-base/addons/*
+src/addons/*
 i-score*.pri
 tools/sdk/Raspberry/qemu-arm-static
 

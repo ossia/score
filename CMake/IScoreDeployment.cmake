@@ -21,9 +21,9 @@ set(CPACK_SOURCE_IGNORE_FILES
   ".*\\\\.user"
   "max-sdk"
   "pure-data"
-  "/base/addons/score.*"
-  "/base/disabled_addons"
-  "/base/disabled-addons"
+  "/src/addons/score.*"
+  "/src/disabled_addons"
+  "/src/disabled-addons"
   "/Documentation"
   "/API/3rdparty/concurrentqueue/benchmarks"
 )

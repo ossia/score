@@ -45,7 +45,7 @@ install(FILES
 
 # Qt helper script
 
-install(PROGRAMS "${CMAKE_SOURCE_DIR}/base/app/score.sh"
+install(PROGRAMS "${SCORE_SRC}/app/score.sh"
         DESTINATION ".")
 
 endif()

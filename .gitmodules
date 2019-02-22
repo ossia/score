@@ -1,15 +1,15 @@
 [submodule "API"]
-	path = API
+	path = 3rdparty/libossia
 	url = https://github.com/OSSIA/API
 [submodule "3rdparty/QProgressIndicator"]
-	path = base/lib/3rdparty/QProgressIndicator
+	path = src/lib/3rdparty/QProgressIndicator
 	url = https://github.com/jcelerier/QProgressIndicator
 [submodule "3rdparty/Qt-Color-Widgets"]
-	path = base/lib/3rdparty/Qt-Color-Widgets
+	path = src/lib/3rdparty/Qt-Color-Widgets
 	url = https://github.com/jcelerier/Qt-Color-Widgets.git
 [submodule "Documentation/Doxygen/doxygen-bootstrapped"]
 	path = Documentation/Doxygen/doxygen-bootstrapped
 	url = https://github.com/Velron/doxygen-bootstrapped
 [submodule "3rdparty/desktopqqc2style"]
-	path = base/lib/resources/desktopqqc2style
+	path = src/lib/resources/desktopqqc2style
 	url = https://github.com/KDE/qqc2-desktop-style
