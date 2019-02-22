@@ -22,7 +22,6 @@ env:
    - COVERITY_SCAN_BUILD_URL="https://scan.coverity.com/scripts/travisci_build_coverity_scan.sh"
    - COVERITY_SCAN_BUILD="curl -s $COVERITY_SCAN_BUILD_URL | bash"
 
-# TODO : DEPLOYMENT=False & Release ?
 matrix:
   exclude:
     - os: linux
@@ -53,7 +52,7 @@ matrix:
 #      env: CONF=linux-static-debug CAN_DEPLOY=False
     - os: linux
       env: CONF=linux-release CAN_DEPLOY=False
-      
+
 
 # Coverity
 #    - os: linux

@@ -5,8 +5,8 @@ RUN yum -y install devtoolset-7-gcc devtoolset-7-make devtoolset-7 \
            wget xz rh-git29 cmake3 
 
 RUN mkdir -p /opt/score-sdk 
-WORKDIR /opt/score-sdk
-RUN wget https://github.com/OSSIA/sdk/releases/download/sdk11/score-sdk-linux-llvm.tar.xz && \
+# WORKDIR /opt/score-sdk
+RUN wget https://github.com/OSSIA/sdk/releases/download/sdk12/score-sdk-linux-llvm.tar.xz && \
     tar xaf score-sdk-linux-llvm.tar.xz && \
     rm -rf score-sdk-linux-llvm.tar.xz
     

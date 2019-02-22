@@ -30,7 +30,6 @@ $$PWD/API/3rdparty/SmallFunction/smallfun/include \
 $$PWD/base/lib/3rdparty/QProgressIndicator \
 $$PWD/base/lib/3rdparty/Qt-Color-Widgets \
 $$PWD/base/lib/3rdparty/Qt-Color-Widgets/QtColorWidgets \
-$$PWD/3rdparty/miniz \
 $$PWD/API/OSSIA \
 $$PWD/API/3rdparty/spdlog/include \
 $$PWD/API/3rdparty/oscpack \
@@ -68,7 +67,6 @@ SOURCES += \
     $$PWD/base/app/Application.cpp
 
 HEADERS += \
-    $$PWD/base/app/Application.hpp \
-    $$PWD/3rdparty/miniz/miniz.h
+    $$PWD/base/app/Application.hpp
 
 INCLUDEPATH += /opt/boost_1_67_0

@@ -75,9 +75,9 @@ install(FILES "${QT_PLUGINS_DIR}/imageformats/libqsvg.dylib" DESTINATION "${plug
 install(FILES "${QT_PLUGINS_DIR}/iconengines/libqsvgicon.dylib" DESTINATION "${plugin_dest_dir}/iconengines")
 install(FILES "${QT_QML_PLUGINS_DIR}/QtQuick.2/libqtquick2plugin.dylib" DESTINATION "${plugin_dest_dir}/quick")
 install(
-  DIRECTORY 
-    "${QT_QML_PLUGINS_DIR}/QtQuick"  
-    "${QT_QML_PLUGINS_DIR}/QtQuick.2" 
+  DIRECTORY
+    "${QT_QML_PLUGINS_DIR}/QtQuick"
+    "${QT_QML_PLUGINS_DIR}/QtQuick.2"
   DESTINATION "${qml_dest_dir}"
   PATTERN "*/Scene3d" EXCLUDE)
 
@@ -89,10 +89,10 @@ Qml2Imports = Resources/qml
 " )
 
 # set-up Faust stuff
-if(EXISTS "${CMAKE_BINARY_DIR}/base/plugins/score-plugin-media/faustlibs-prefix/src/faustlibs")
+if(EXISTS "${CMAKE_BINARY_DIR}/src/plugins/score-plugin-media/faustlibs-prefix/src/faustlibs")
   install(
     DIRECTORY
-      "${CMAKE_BINARY_DIR}/base/plugins/score-plugin-media/faustlibs-prefix/src/faustlibs/"
+      "${CMAKE_BINARY_DIR}/src/plugins/score-plugin-media/faustlibs-prefix/src/faustlibs/"
     DESTINATION
       "${APPNAME}.app/Contents/Frameworks/Faust.framework"
       PATTERN ".git" EXCLUDE
@@ -140,7 +140,7 @@ else()
         fixup_bundle(
            \"${CMAKE_INSTALL_PREFIX}/score.app\"
            \"\${QTPLUGINS};\${QMLPLUGINS};${SCORE_BUNDLE_INSTALLED_PLUGINS}\"
-       \"${QT_LIBRARY_DIR};${CMAKE_BINARY_DIR}/plugins;${CMAKE_INSTALL_PREFIX}/plugins;${CMAKE_BINARY_DIR}/API/OSSIA;${CMAKE_BINARY_DIR}/base/lib;${CMAKE_INSTALL_PREFIX}/${APPNAME}.app/Contents/MacOS/plugins/\"
+       \"${QT_LIBRARY_DIR};${CMAKE_BINARY_DIR}/plugins;${CMAKE_INSTALL_PREFIX}/plugins;${CMAKE_BINARY_DIR}/API/OSSIA;${CMAKE_BINARY_DIR}/src/lib;${CMAKE_INSTALL_PREFIX}/${APPNAME}.app/Contents/MacOS/plugins/\"
         )
 message(\"${SCORE_ROOT_SOURCE_DIR}/CMake/Deployment/OSX/set_rpath.sh\"
           \"${CMAKE_INSTALL_PREFIX}/score.app/Contents\")

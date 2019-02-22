@@ -52,10 +52,10 @@ configure_file (
   "${PROJECT_BINARY_DIR}/ossia-score.desktop"
   )
 
-if(EXISTS "${CMAKE_BINARY_DIR}/base/plugins/score-plugin-media/faustlibs-prefix/src/faustlibs")
+if(EXISTS "${CMAKE_BINARY_DIR}/src/plugins/score-plugin-media/faustlibs-prefix/src/faustlibs")
   install(
     DIRECTORY
-      "${CMAKE_BINARY_DIR}/base/plugins/score-plugin-media/faustlibs-prefix/src/faustlibs/"
+      "${CMAKE_BINARY_DIR}/src/plugins/score-plugin-media/faustlibs-prefix/src/faustlibs/"
     DESTINATION
       "share/faust"
      PATTERN ".git" EXCLUDE
@@ -73,7 +73,7 @@ endif()
 install(FILES "${PROJECT_BINARY_DIR}/ossia-score.desktop"
         DESTINATION share/applications
         COMPONENT OssiaScore)
-install(FILES "${CMAKE_SOURCE_DIR}/base/lib/resources/ossia-score.png"
+install(FILES "${CMAKE_SOURCE_DIR}/src/lib/resources/ossia-score.png"
         DESTINATION share/pixmaps
         COMPONENT OssiaScore)
 
