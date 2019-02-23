@@ -28,7 +28,7 @@
 #include <QMainWindow>
 #include <QObject>
 #include <QString>
-
+#include <QPushButton>
 #include <wobjectimpl.h>
 
 #include <algorithm>
@@ -75,8 +75,12 @@ void DeviceDocumentPlugin::asyncConnect(Device::DeviceInterface& newdev)
                   QMessageBox::StandardButton::NoButton,
                   nullptr,
                   Qt::CustomizeWindowHint | Qt::WindowTitleHint);
-    b.setStandardButtons(QMessageBox::StandardButton::NoButton);
+    b.setStandardButtons(QMessageBox::StandardButton::Cancel);
 
+    connect(b.button(QMessageBox::StandardButton::Cancel), &QPushButton::clicked,
+            &b, [&b] {
+      b.reject();
+    });
     connect(&newdev, &Device::DeviceInterface::connectionChanged,
                    &b, [&b] {
       b.accept();

@@ -245,6 +245,11 @@ void JSONObjectWriter::write(Scenario::IntervalDurations& durs)
     durs.m_minDuration = durs.m_defaultDuration;
   if(durs.m_maxDuration.msec() < 0)
     durs.m_maxDuration = durs.m_defaultDuration;
+  if(durs.isRigid())
+  {
+    durs.m_minDuration = durs.m_defaultDuration;
+    durs.m_maxDuration = durs.m_defaultDuration;
+  }
 
   auto guidur = obj.find(strings.GuiDuration);
   if (guidur != obj.end())

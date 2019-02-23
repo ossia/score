@@ -19,6 +19,7 @@
 #include <score/serialization/JSONVisitor.hpp>
 #include <score/serialization/VisitorCommon.hpp>
 #include <score/tools/std/Optional.hpp>
+#include <score/tools/MapCopy.hpp>
 
 #include <QJsonArray>
 #include <QJsonObject>
@@ -239,8 +240,21 @@ void JSONObjectWriter::write(Scenario::ProcessModel& scenario)
   {
     auto evmodel = new Scenario::EventModel{
         JSONObject::Deserializer{json_vref.toObject()}, &scenario};
+    if(!evmodel->states().empty())
+    {
+      scenario.events.add(evmodel);
+    }
+    else
+    {
+      auto& ts = scenario.timeSyncs.at(evmodel->timeSync());
+      ts.removeEvent(evmodel->id());
+      delete evmodel;
 
-    scenario.events.add(evmodel);
+      if(ts.events().empty())
+      {
+        scenario.timeSyncs.remove(&ts);
+      }
+    }
   }
 
   const auto& comments = obj["Comments"].toArray();
@@ -270,5 +284,6 @@ void JSONObjectWriter::write(Scenario::ProcessModel& scenario)
         scenario.states.at(interval.startState()), interval);
   }
 
-  // Scenario::ScenarioValidityChecker::checkValidity(scenario);
+  Scenario::ScenarioValidityChecker::checkValidity(scenario);
+
 }
