@@ -32,6 +32,30 @@ void ScenarioValidityChecker::checkValidity(const ProcessModel& scenar)
 
     SCORE_ASSERT(ss->nextInterval() == interval.id());
     SCORE_ASSERT(es->previousInterval() == interval.id());
+
+    auto& dur = interval.duration;
+    SCORE_ASSERT(dur.defaultDuration() > TimeVal{0});
+
+    SCORE_ASSERT(!dur.minDuration().isInfinite());
+    SCORE_ASSERT(dur.minDuration() >= TimeVal{0});
+    SCORE_ASSERT(dur.minDuration() <= dur.maxDuration());
+    SCORE_ASSERT(dur.maxDuration() >= TimeVal{0}|| dur.maxDuration().isInfinite());
+    if(dur.isRigid())
+    {
+      SCORE_ASSERT(dur.minDuration() == dur.defaultDuration());
+      SCORE_ASSERT(dur.maxDuration() == dur.defaultDuration());
+    }
+    else
+    {
+      if(dur.isMinNull())
+      {
+
+      }
+      if(dur.isMaxInfinite())
+      {
+
+      }
+    }
   }
 
   for (const StateModel& state : scenar.states)
@@ -66,7 +90,7 @@ void ScenarioValidityChecker::checkValidity(const ProcessModel& scenar)
     SCORE_ASSERT(tn);
     SCORE_ASSERT(ossia::contains(tn->events(), event.id()));
 
-    // SCORE_ASSERT(!event.states().empty());
+    SCORE_ASSERT(!event.states().empty());
     for (auto& state : event.states())
     {
       auto st = scenar.findState(state);
