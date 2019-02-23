@@ -11,7 +11,10 @@ LayerContextMenu::LayerContextMenu(StringKey<LayerContextMenu> k)
 }
 
 void LayerContextMenu::build(
-    QMenu& m, QPoint pt, QPointF ptf, const LayerContext& proc) const
+    QMenu& m,
+    QPoint pt,
+    QPointF ptf,
+    const LayerContext& proc) const
 {
   for (auto& fun : functions)
   {

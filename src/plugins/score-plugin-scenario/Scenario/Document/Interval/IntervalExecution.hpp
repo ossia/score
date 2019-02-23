@@ -80,8 +80,10 @@ public:
 
   static const constexpr bool is_unique = true;
   IntervalComponentBase(
-      Scenario::IntervalModel& score_cst, const Context& ctx,
-      const Id<score::Component>& id, QObject* parent);
+      Scenario::IntervalModel& score_cst,
+      const Context& ctx,
+      const Id<score::Component>& id,
+      QObject* parent);
   IntervalComponentBase(const IntervalComponentBase&) = delete;
   IntervalComponentBase(IntervalComponentBase&&) = delete;
   IntervalComponentBase& operator=(const IntervalComponentBase&) = delete;
@@ -93,10 +95,7 @@ public:
   const std::shared_ptr<ossia::time_interval>& OSSIAInterval() const;
   Scenario::IntervalModel& scoreInterval() const;
 
-  const auto& processes() const
-  {
-    return m_processes;
-  }
+  const auto& processes() const { return m_processes; }
 
   void pause();
   void resume();
@@ -106,10 +105,11 @@ public:
   void executionStopped();
 
   ProcessComponent* make(
-      const Id<score::Component>& id, ProcessComponentFactory& factory,
+      const Id<score::Component>& id,
+      ProcessComponentFactory& factory,
       Process::ProcessModel& process);
-  ProcessComponent* make(
-      const Id<score::Component>& id, Process::ProcessModel& process)
+  ProcessComponent*
+  make(const Id<score::Component>& id, Process::ProcessModel& process)
   {
     return nullptr;
   }
@@ -127,10 +127,7 @@ public:
       f();
   }
 
-  const Context& context() const
-  {
-    return system();
-  }
+  const Context& context() const { return system(); }
 
 protected:
   void on_processAdded(Process::ProcessModel& score_proc);
@@ -152,8 +149,11 @@ public:
                                              std::forward<Args>(args)...}
   {
     connect(
-        this, &IntervalComponent::sig_callback, this,
-        &IntervalComponent::slot_callback, Qt::QueuedConnection);
+        this,
+        &IntervalComponent::sig_callback,
+        this,
+        &IntervalComponent::slot_callback,
+        Qt::QueuedConnection);
   }
 
   IntervalComponent(const IntervalComponent&) = delete;

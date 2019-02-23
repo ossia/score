@@ -45,7 +45,8 @@ public:
   std::unique_ptr<Process::Outlet> outlet;
 
   ProcessModel(
-      const TimeVal& duration, const Id<Process::ProcessModel>& id,
+      const TimeVal& duration,
+      const Id<Process::ProcessModel>& id,
       QObject* parent);
   template <typename Impl>
   ProcessModel(Impl& vis, QObject* parent) : Process::ProcessModel{vis, parent}
@@ -126,10 +127,7 @@ public:
     return timeSyncs.at(m_startTimeSyncId);
   }
 
-  EventModel& startEvent() const
-  {
-    return events.at(m_startEventId);
-  }
+  EventModel& startEvent() const { return events.at(m_startEventId); }
 
   score::EntityMap<IntervalModel> intervals;
   score::EntityMap<EventModel> events;
@@ -151,15 +149,9 @@ public:
   void unlocked() E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, unlocked);
 
 public:
-  void lock()
-  {
-    locked();
-  };
+  void lock() { locked(); };
   W_SLOT(lock)
-  void unlock()
-  {
-    unlocked();
-  };
+  void unlock() { unlocked(); };
   W_SLOT(unlock)
 
 private:
@@ -179,10 +171,7 @@ public:
 
 private:
   void setSelection(const Selection& s) const noexcept override;
-  bool event(QEvent* e) override
-  {
-    return QObject::event(e);
-  }
+  bool event(QEvent* e) override { return QObject::event(e); }
 
   bool contentHasDuration() const noexcept override;
   TimeVal contentDuration() const noexcept override;
@@ -241,7 +230,8 @@ namespace Scenario
 {
 SCORE_PLUGIN_SCENARIO_EXPORT const QVector<Id<IntervalModel>>
 intervalsBeforeTimeSync(
-    const Scenario::ProcessModel&, const Id<TimeSyncModel>& timeSyncId);
+    const Scenario::ProcessModel&,
+    const Id<TimeSyncModel>& timeSyncId);
 
 const StateModel*
 furthestSelectedState(const Scenario::ProcessModel& scenario);
@@ -302,7 +292,9 @@ struct ElementTraits<Scenario::ProcessModel, StateModel>
 };
 }
 DESCRIPTION_METADATA(
-    SCORE_PLUGIN_SCENARIO_EXPORT, Scenario::ProcessModel, "Scenario")
+    SCORE_PLUGIN_SCENARIO_EXPORT,
+    Scenario::ProcessModel,
+    "Scenario")
 
 W_REGISTER_ARGTYPE(const Scenario::ProcessModel&)
 W_REGISTER_ARGTYPE(Scenario::ProcessModel&)

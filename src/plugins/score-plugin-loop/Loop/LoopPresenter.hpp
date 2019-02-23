@@ -8,8 +8,8 @@
 #include <Process/ZoomHelper.hpp>
 #include <Scenario/Document/BaseScenario/BaseScenarioPresenter.hpp>
 
-#include <score/model/Identifier.hpp>
 #include <score/graphics/GraphicsItem.hpp>
+#include <score/model/Identifier.hpp>
 
 #include <QDebug>
 #include <QPoint>
@@ -18,28 +18,28 @@
 
 namespace Loop
 {
-class LayerPresenter final
-    : public Process::LayerPresenter,
-      public BaseScenarioPresenter<
-          Loop::ProcessModel, Scenario::TemporalIntervalPresenter>,
-      public Nano::Observer
+class LayerPresenter final : public Process::LayerPresenter,
+                             public BaseScenarioPresenter<
+                                 Loop::ProcessModel,
+                                 Scenario::TemporalIntervalPresenter>,
+                             public Nano::Observer
 {
   W_OBJECT(LayerPresenter)
   friend class ViewUpdater;
 
 public:
   LayerPresenter(
-      const Loop::ProcessModel&, LayerView* view,
-      const Process::ProcessPresenterContext& ctx, QObject* parent);
+      const Loop::ProcessModel&,
+      LayerView* view,
+      const Process::ProcessPresenterContext& ctx,
+      QObject* parent);
 
   ~LayerPresenter();
-  LayerView& view() const
-  {
-    return *m_view;
-  }
+  LayerView& view() const { return *m_view; }
 
   using BaseScenarioPresenter<
-      Loop::ProcessModel, Scenario::TemporalIntervalPresenter>::event;
+      Loop::ProcessModel,
+      Scenario::TemporalIntervalPresenter>::event;
   using QObject::event;
 
   void setWidth(qreal width) override;
@@ -56,13 +56,12 @@ public:
   const Loop::ProcessModel& model() const override;
   const Id<Process::ProcessModel>& modelId() const override;
 
-  ZoomRatio zoomRatio() const
-  {
-    return m_zoomRatio;
-  }
+  ZoomRatio zoomRatio() const { return m_zoomRatio; }
 
   void fillContextMenu(
-      QMenu&, QPoint pos, QPointF scenepos,
+      QMenu&,
+      QPoint pos,
+      QPointF scenepos,
       const Process::LayerContextMenuManager&) override;
 
 public:

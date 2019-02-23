@@ -15,7 +15,8 @@
 namespace Scenario
 {
 score::DocumentDelegateView* ScenarioDocumentFactory::makeView(
-    const score::DocumentContext& ctx, QObject* parent)
+    const score::DocumentContext& ctx,
+    QObject* parent)
 {
   return new ScenarioDocumentView{ctx, parent};
 }
@@ -30,7 +31,8 @@ score::DocumentDelegatePresenter* ScenarioDocumentFactory::makePresenter(
 }
 
 void ScenarioDocumentFactory::make(
-    const score::DocumentContext& ctx, score::DocumentDelegateModel*& ptr,
+    const score::DocumentContext& ctx,
+    score::DocumentDelegateModel*& ptr,
     score::DocumentModel* parent)
 {
   std::allocator<ScenarioDocumentModel> alloc;
@@ -40,8 +42,10 @@ void ScenarioDocumentFactory::make(
 }
 
 void ScenarioDocumentFactory::load(
-    const VisitorVariant& vis, const score::DocumentContext& ctx,
-    score::DocumentDelegateModel*& ptr, score::DocumentModel* parent)
+    const VisitorVariant& vis,
+    const score::DocumentContext& ctx,
+    score::DocumentDelegateModel*& ptr,
+    score::DocumentModel* parent)
 {
   std::allocator<ScenarioDocumentModel> alloc;
   auto res = alloc.allocate(1);

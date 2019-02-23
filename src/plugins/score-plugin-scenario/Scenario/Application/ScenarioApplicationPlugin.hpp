@@ -54,10 +54,7 @@ public:
 
   void reinit_tools();
 
-  Scenario::EditionSettings& editionSettings()
-  {
-    return m_editionSettings;
-  }
+  Scenario::EditionSettings& editionSettings() { return m_editionSettings; }
 
   Process::ProcessFocusManager* processFocusManager() const;
   Process::LayerContextMenuManager& layerContextMenuRegistrar()
@@ -69,10 +66,7 @@ public:
     return m_layerCtxMenuManager;
   }
 
-  Scenario::ScenarioExecution& execution()
-  {
-    return m_execution;
-  }
+  Scenario::ScenarioExecution& execution() { return m_execution; }
 
 public:
   void keyPressed(int arg_1)
@@ -85,8 +79,8 @@ private:
   void on_initDocument(score::Document& doc) override;
   void on_createdDocument(score::Document& doc) override;
 
-  void on_documentChanged(
-      score::Document* olddoc, score::Document* newdoc) override;
+  void on_documentChanged(score::Document* olddoc, score::Document* newdoc)
+      override;
 
   void on_activeWindowChanged() override;
 

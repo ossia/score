@@ -19,7 +19,9 @@ namespace Inspector
 {
 InspectorWidgetBase::InspectorWidgetBase(
     const IdentifiedObjectAbstract& inspectedObj,
-    const score::DocumentContext& ctx, QWidget* parent, QString name)
+    const score::DocumentContext& ctx,
+    QWidget* parent,
+    QString name)
     : QWidget(parent)
     , m_inspectedObject{inspectedObj}
     , m_context{ctx}
@@ -57,7 +59,8 @@ InspectorWidgetBase::~InspectorWidgetBase()
 }
 
 void InspectorWidgetBase::updateSectionsView(
-    QVBoxLayout* layout, const std::vector<QWidget*>& contents)
+    QVBoxLayout* layout,
+    const std::vector<QWidget*>& contents)
 {
   while (!layout->isEmpty())
   {

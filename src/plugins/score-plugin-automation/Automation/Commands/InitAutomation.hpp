@@ -24,15 +24,22 @@ class SCORE_PLUGIN_AUTOMATION_EXPORT InitAutomation final
 public:
   // Note : the segments shall be sorted from start to end.
   InitAutomation(
-      const ProcessModel& obj, const State::AddressAccessor& newaddr,
-      double newmin, double newmax,
+      const ProcessModel& obj,
+      const State::AddressAccessor& newaddr,
+      double newmin,
+      double newmax,
       std::vector<Curve::SegmentData>&& segments);
   InitAutomation(
-      const ProcessModel& obj, State::AddressAccessor&& newaddr, double newmin,
-      double newmax, std::vector<Curve::SegmentData>&& segments);
+      const ProcessModel& obj,
+      State::AddressAccessor&& newaddr,
+      double newmin,
+      double newmax,
+      std::vector<Curve::SegmentData>&& segments);
   InitAutomation(
-      const ProcessModel& obj, const State::AddressAccessor& newaddr,
-      double newmin, double newmax);
+      const ProcessModel& obj,
+      const State::AddressAccessor& newaddr,
+      double newmin,
+      double newmax);
 
 public:
   void undo(const score::DocumentContext& ctx) const override;

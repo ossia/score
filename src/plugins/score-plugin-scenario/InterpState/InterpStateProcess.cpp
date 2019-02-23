@@ -25,10 +25,13 @@ TimeVal ProcessModel::contentDuration() const noexcept
 }
 
 ProcessModel::ProcessModel(
-    const TimeVal& duration, const Id<Process::ProcessModel>& id,
+    const TimeVal& duration,
+    const Id<Process::ProcessModel>& id,
     QObject* parent)
-    : CurveProcessModel{duration, id,
-                        Metadata<ObjectKey_k, ProcessModel>::get(), parent}
+    : CurveProcessModel{duration,
+                        id,
+                        Metadata<ObjectKey_k, ProcessModel>::get(),
+                        parent}
 {
   // Named shall be enough ?
   setCurve(new Curve::Model{Id<Curve::Model>(45345), this});

@@ -33,11 +33,12 @@ TimenodeGraph::TimenodeGraph(const Scenario::ProcessModel& scenar)
 
   for (auto& cst : scenar.getIntervals())
   {
-    m_edges[&cst]
-        = boost::add_edge(
-              m_vertices[&Scenario::startTimeSync(cst, scenar)],
-              m_vertices[&Scenario::endTimeSync(cst, scenar)], &cst, m_graph)
-              .first;
+    m_edges[&cst] = boost::add_edge(
+                        m_vertices[&Scenario::startTimeSync(cst, scenar)],
+                        m_vertices[&Scenario::endTimeSync(cst, scenar)],
+                        &cst,
+                        m_graph)
+                        .first;
   }
 }
 
@@ -48,7 +49,8 @@ void TimenodeGraph::writeGraphviz()
 
   std::stringstream s;
   boost::write_graphviz(
-      s, m_graph,
+      s,
+      m_graph,
       [&](auto& out, const auto& v) {
         out << "[label=\"" << get_name(this->m_graph[v]) << "\"]";
       },

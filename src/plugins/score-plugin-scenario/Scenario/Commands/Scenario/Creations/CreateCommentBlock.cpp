@@ -15,7 +15,9 @@ namespace Scenario
 namespace Command
 {
 CreateCommentBlock::CreateCommentBlock(
-    const Scenario::ProcessModel& scenar, TimeVal date, double yPosition)
+    const Scenario::ProcessModel& scenar,
+    TimeVal date,
+    double yPosition)
     : m_path{scenar}, m_date{std::move(date)}, m_y{yPosition}
 {
   m_id = getStrongId(scenar.comments);

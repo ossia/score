@@ -52,7 +52,8 @@ private:
         {
             {"ScenarioModel", {0}},
         },
-        firstEvent_id, lastEvent_id);
+        firstEvent_id,
+        lastEvent_id);
 
     cstrCmd.redo(ctx);
 

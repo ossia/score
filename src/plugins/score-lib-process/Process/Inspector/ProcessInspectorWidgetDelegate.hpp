@@ -24,10 +24,7 @@ public:
 
   ~InspectorWidgetDelegate_T() = default;
 
-  const Process_T& process() const final override
-  {
-    return m_process;
-  }
+  const Process_T& process() const final override { return m_process; }
 
 private:
   const Process_T& m_process;

@@ -2,7 +2,8 @@
 
 #include <Protocols/DefaultProtocolFactory.hpp>
 
-namespace Protocols {
+namespace Protocols
+{
 
 class WiimoteProtocolFactory final : public DefaultProtocolFactory
 {
@@ -22,7 +23,8 @@ class WiimoteProtocolFactory final : public DefaultProtocolFactory
   makeProtocolSpecificSettings(const VisitorVariant& visitor) const override;
 
   void serializeProtocolSpecificSettings(
-      const QVariant& data, const VisitorVariant& visitor) const override;
+      const QVariant& data,
+      const VisitorVariant& visitor) const override;
 
   bool checkCompatibility(
       const Device::DeviceSettings& a,

@@ -44,15 +44,10 @@ private:
   ProcessStateDataInterface* m_proc;
 
 public:
-  ProcessStateWrapper(ProcessStateDataInterface* proc) : m_proc{proc}
-  {
-  }
+  ProcessStateWrapper(ProcessStateDataInterface* proc) : m_proc{proc} {}
   ~ProcessStateWrapper() override;
 
-  ProcessStateDataInterface& process() const
-  {
-    return *m_proc;
-  }
+  ProcessStateDataInterface& process() const { return *m_proc; }
 };
 
 // Model for the graphical state in a scenario.
@@ -70,7 +65,9 @@ public:
   Selectable selection;
 
   StateModel(
-      const Id<StateModel>& id, const Id<EventModel>& eventId, double yPos,
+      const Id<StateModel>& id,
+      const Id<EventModel>& eventId,
+      double yPos,
       QObject* parent);
 
   ~StateModel() override;
@@ -100,35 +97,20 @@ public:
   void setNextInterval(const OptionalId<IntervalModel>&);
   void setPreviousInterval(const OptionalId<IntervalModel>&);
 
-  ProcessVector& previousProcesses()
-  {
-    return m_previousProcesses;
-  }
-  ProcessVector& followingProcesses()
-  {
-    return m_nextProcesses;
-  }
+  ProcessVector& previousProcesses() { return m_previousProcesses; }
+  ProcessVector& followingProcesses() { return m_nextProcesses; }
   const ProcessVector& previousProcesses() const
   {
     return m_previousProcesses;
   }
-  const ProcessVector& followingProcesses() const
-  {
-    return m_nextProcesses;
-  }
+  const ProcessVector& followingProcesses() const { return m_nextProcesses; }
 
   void setStatus(ExecutionStatus);
-  ExecutionStatus status() const
-  {
-    return m_status.get();
-  }
+  ExecutionStatus status() const { return m_status.get(); }
 
   void setHeightPercentage(double y);
 
-  bool empty() const
-  {
-    return !messages().rootNode().hasChild(0);
-  }
+  bool empty() const { return !messages().rootNode().hasChild(0); }
 
 public:
   void sig_statesUpdated()

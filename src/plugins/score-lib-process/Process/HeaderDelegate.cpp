@@ -5,12 +5,13 @@
 #include <Process/Process.hpp>
 #include <Process/Style/ScenarioStyle.hpp>
 
+#include <score/graphics/YPos.hpp>
+
 #include <QApplication>
 #include <QPainter>
 #include <QTextLayout>
 #include <QTextLine>
 
-#include <score/graphics/YPos.hpp>
 #include <Effect/EffectLayer.hpp>
 namespace Process
 {
@@ -32,7 +33,8 @@ QImage makeGlyphs(const QString& glyph, const QPen& pen)
     auto rect = line.naturalTextRect();
     double ratio = qApp->devicePixelRatio();
     path = QImage(
-        rect.width() * ratio, rect.height() * ratio,
+        rect.width() * ratio,
+        rect.height() * ratio,
         QImage::Format_ARGB32_Premultiplied);
     path.setDevicePixelRatio(ratio);
     path.fill(Qt::transparent);
@@ -105,13 +107,18 @@ DefaultHeaderDelegate::DefaultHeaderDelegate(const Process::LayerPresenter& p)
     update();
   });
 
-  con(p.model(), &Process::ProcessModel::inletsChanged, this,
-      [=] { updatePorts(); });
-  con(p.model(), &Process::ProcessModel::outletsChanged, this,
-      [=] { updatePorts(); });
-  con(p.model(), &Process::ProcessModel::benchmark, this,
-      [=](double d) { updateBench(d); });
-  con(p.model().selection, &Selectable::changed, this,
+  con(p.model(), &Process::ProcessModel::inletsChanged, this, [=] {
+    updatePorts();
+  });
+  con(p.model(), &Process::ProcessModel::outletsChanged, this, [=] {
+    updatePorts();
+  });
+  con(p.model(), &Process::ProcessModel::benchmark, this, [=](double d) {
+    updateBench(d);
+  });
+  con(p.model().selection,
+      &Selectable::changed,
+      this,
       [=](bool b) {
         m_sel = b;
         updateName();
@@ -124,9 +131,7 @@ DefaultHeaderDelegate::DefaultHeaderDelegate(const Process::LayerPresenter& p)
   updatePorts();
 }
 
-DefaultHeaderDelegate::~DefaultHeaderDelegate()
-{
-}
+DefaultHeaderDelegate::~DefaultHeaderDelegate() {}
 
 void DefaultHeaderDelegate::updateBench(double d)
 {
@@ -226,7 +231,9 @@ void DefaultHeaderDelegate::updatePorts()
 }
 
 void DefaultHeaderDelegate::paint(
-    QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+    QPainter* painter,
+    const QStyleOptionGraphicsItem* option,
+    QWidget* widget)
 {
   constexpr auto start = 10.;
   const auto w = boundingRect().width();
@@ -239,12 +246,16 @@ void DefaultHeaderDelegate::paint(
       if (m_sel)
       {
         painter->drawImage(
-            QPointF{start + 8. + m_line.width(), textY() + SCORE_YPOS(0., -2.)}, toGlyphWhite());
+            QPointF{start + 8. + m_line.width(),
+                    textY() + SCORE_YPOS(0., -2.)},
+            toGlyphWhite());
       }
       else
       {
         painter->drawImage(
-            QPointF{start + 8. + m_line.width(), textY() + SCORE_YPOS(0., -2.)}, toGlyphGray());
+            QPointF{start + 8. + m_line.width(),
+                    textY() + SCORE_YPOS(0., -2.)},
+            toGlyphGray());
       }
     }
     else
@@ -254,15 +265,23 @@ void DefaultHeaderDelegate::paint(
       painter->drawImage(QPointF{w - 32., SCORE_YPOS(1., -1.)}, m_bench);
       if (m_sel)
       {
-        painter->drawImage(QPointF{start + 4., textY() + SCORE_YPOS(0., -2.)}, fromGlyphWhite());
         painter->drawImage(
-            QPointF{startText + 8. + m_line.width(), textY() + SCORE_YPOS(0., -2.)}, toGlyphWhite());
+            QPointF{start + 4., textY() + SCORE_YPOS(0., -2.)},
+            fromGlyphWhite());
+        painter->drawImage(
+            QPointF{startText + 8. + m_line.width(),
+                    textY() + SCORE_YPOS(0., -2.)},
+            toGlyphWhite());
       }
       else
       {
-        painter->drawImage(QPointF{start + 4., textY() + SCORE_YPOS(0., -2.)}, fromGlyphGray());
         painter->drawImage(
-            QPointF{startText + 8. + m_line.width(), textY() + SCORE_YPOS(0., -2.)}, toGlyphGray());
+            QPointF{start + 4., textY() + SCORE_YPOS(0., -2.)},
+            fromGlyphGray());
+        painter->drawImage(
+            QPointF{startText + 8. + m_line.width(),
+                    textY() + SCORE_YPOS(0., -2.)},
+            toGlyphGray());
       }
     }
   }

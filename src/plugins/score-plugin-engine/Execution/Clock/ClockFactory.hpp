@@ -1,8 +1,8 @@
 #pragma once
 #include <Process/TimeValue.hpp>
 
-#include <score/plugins/InterfaceList.hpp>
 #include <score/plugins/Interface.hpp>
+#include <score/plugins/InterfaceList.hpp>
 
 #include <ossia/editor/scenario/time_value.hpp>
 

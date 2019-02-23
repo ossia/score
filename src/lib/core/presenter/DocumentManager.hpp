@@ -27,25 +27,13 @@ namespace score
 struct DocumentList
 {
 public:
-  const std::vector<Document*>& documents() const
-  {
-    return m_documents;
-  }
+  const std::vector<Document*>& documents() const { return m_documents; }
 
-  std::vector<Document*>& documents()
-  {
-    return m_documents;
-  }
+  std::vector<Document*>& documents() { return m_documents; }
 
-  Document* currentDocument() const
-  {
-    return m_currentDocument;
-  }
+  Document* currentDocument() const { return m_currentDocument; }
 
-  void setCurrentDocument(Document* d)
-  {
-    m_currentDocument = d;
-  }
+  void setCurrentDocument(Document* d) { m_currentDocument = d; }
 
 protected:
   std::vector<Document*> m_documents;
@@ -66,10 +54,7 @@ public:
 
   ~DocumentManager();
 
-  auto recentFiles() const
-  {
-    return m_recentFiles;
-  }
+  auto recentFiles() const { return m_recentFiles; }
 
   // Document management
   Document*
@@ -146,7 +131,9 @@ private:
   checkAndUpdateJson(QJsonDocument&, const score::GUIApplicationContext& ctx);
 
   bool updateJson(
-      QJsonObject& object, score::Version json_ver, score::Version score_ver);
+      QJsonObject& object,
+      score::Version json_ver,
+      score::Version score_ver);
 
   void saveRecentFilesState();
 

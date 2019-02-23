@@ -4,7 +4,6 @@
 
 #include <wobjectdefs.h>
 
-
 namespace Protocols
 {
 struct LocalSpecificSettings

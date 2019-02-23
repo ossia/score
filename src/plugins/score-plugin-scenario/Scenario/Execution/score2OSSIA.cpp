@@ -58,7 +58,8 @@ message(const State::Message& mess, const ossia::execution_state& deviceList)
 }
 
 void state(
-    ossia::state& parent, const Scenario::StateModel& score_state,
+    ossia::state& parent,
+    const Scenario::StateModel& score_state,
     const Execution::Context& ctx)
 {
   auto& elts = parent;
@@ -96,7 +97,8 @@ state(const Scenario::StateModel& score_state, const Execution::Context& ctx)
 }
 
 static ossia::destination expressionAddress(
-    const State::Address& addr, const ossia::execution_state& devlist)
+    const State::Address& addr,
+    const ossia::execution_state& devlist)
 {
   auto n = Execution::findNode(devlist, addr);
   if (n)
@@ -114,7 +116,8 @@ static ossia::destination expressionAddress(
 }
 
 static ossia::expressions::expression_atom::val_t expressionOperand(
-    const State::RelationMember& relm, const ossia::execution_state& list)
+    const State::RelationMember& relm,
+    const ossia::execution_state& list)
 {
   using namespace eggs::variants;
 
@@ -128,10 +131,7 @@ static ossia::expressions::expression_atom::val_t expressionOperand(
       return expressionAddress(addr, devlist);
     }
 
-    return_type operator()(const ossia::value& val) const
-    {
-      return val;
-    }
+    return_type operator()(const ossia::value& val) const { return val; }
 
     return_type operator()(const State::AddressAccessor& acc) const
     {
@@ -152,7 +152,8 @@ expressionAtom(const State::Relation& rel, const ossia::execution_state& dev)
   using namespace eggs::variants;
 
   return ossia::expressions::make_expression_atom(
-      expressionOperand(rel.lhs, dev), rel.op,
+      expressionOperand(rel.lhs, dev),
+      rel.op,
       expressionOperand(rel.rhs, dev));
 }
 
@@ -167,7 +168,9 @@ expressionPulse(const State::Pulse& rel, const ossia::execution_state& dev)
 
 template <typename T>
 ossia::expression_ptr expression(
-    const State::Expression& e, const ossia::execution_state& list, const T&)
+    const State::Expression& e,
+    const ossia::execution_state& list,
+    const T&)
 {
   const struct
   {
@@ -175,10 +178,7 @@ ossia::expression_ptr expression(
     const ossia::execution_state& devlist;
     using return_type = ossia::expression_ptr;
 
-    return_type operator()() const
-    {
-      return T::default_expression();
-    }
+    return_type operator()() const { return T::default_expression(); }
 
     return_type operator()(const State::Relation& rel) const
     {
@@ -194,7 +194,8 @@ ossia::expression_ptr expression(
       const auto& lhs = expr.childAt(0);
       const auto& rhs = expr.childAt(1);
       return ossia::expressions::make_expression_composition(
-          condition_expression(lhs, devlist), rel,
+          condition_expression(lhs, devlist),
+          rel,
           condition_expression(rhs, devlist));
     }
     return_type operator()(const State::UnaryOperator) const
@@ -225,7 +226,8 @@ ossia::expression_ptr expression(
 }
 
 ossia::expression_ptr condition_expression(
-    const State::Expression& e, const ossia::execution_state& list)
+    const State::Expression& e,
+    const ossia::execution_state& list)
 {
   struct def_cond
   {
@@ -237,7 +239,8 @@ ossia::expression_ptr condition_expression(
   return expression(e, list, def_cond{});
 }
 ossia::expression_ptr trigger_expression(
-    const State::Expression& e, const ossia::execution_state& list)
+    const State::Expression& e,
+    const ossia::execution_state& list)
 {
   struct def_trig
   {

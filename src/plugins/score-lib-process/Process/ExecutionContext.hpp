@@ -48,7 +48,8 @@ class Model;
 using time_function = smallfun::function<ossia::time_value(const TimeVal&)>;
 using reverse_time_function
     = smallfun::function<TimeVal(const ossia::time_value&)>;
-using ExecutionCommand = smallfun::function<void(), 128, alignof(std::function<void()>)>;
+using ExecutionCommand
+    = smallfun::function<void(), 128, alignof(std::function<void()>)>;
 using ExecutionCommandQueue
     = moodycamel::ReaderWriterQueue<ExecutionCommand, 1024>;
 
@@ -80,10 +81,7 @@ struct SCORE_LIB_PROCESS_EXPORT Context
   const std::shared_ptr<ossia::graph_interface>& execGraph;
   const std::shared_ptr<ossia::execution_state>& execState;
 
-  auto& context() const
-  {
-    return *this;
-  }
+  auto& context() const { return *this; }
 };
 }
 

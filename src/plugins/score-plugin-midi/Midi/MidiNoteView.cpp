@@ -24,7 +24,9 @@ NoteView::NoteView(const Note& n, View* parent)
 }
 
 void NoteView::paint(
-    QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+    QPainter* painter,
+    const QStyleOptionGraphicsItem* option,
+    QWidget* widget)
 {
   static MidiStyle s;
 
@@ -85,13 +87,15 @@ QRectF NoteView::computeRect() const noexcept
   const auto note_height = h / view.visibleCount();
   const QRectF rect{note.start() * w,
                     h - std::ceil((note.pitch() - min + 1) * note_height),
-                    note.duration() * w, note_height};
+                    note.duration() * w,
+                    note_height};
 
   return rect;
 }
 
 QVariant NoteView::itemChange(
-    QGraphicsItem::GraphicsItemChange change, const QVariant& value)
+    QGraphicsItem::GraphicsItemChange change,
+    const QVariant& value)
 {
   switch (change)
   {
@@ -147,7 +151,7 @@ bool NoteView::canEdit() const
   return boundingRect().height() > 5;
 }
 
-QPointF noteview_origpoint;
+static QPointF noteview_origpoint;
 void NoteView::mousePressEvent(QGraphicsSceneMouseEvent* event)
 {
   if (canEdit())

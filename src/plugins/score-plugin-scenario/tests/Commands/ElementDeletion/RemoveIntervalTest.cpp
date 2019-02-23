@@ -90,7 +90,9 @@ private:
         {
             {"ScenarioModel", {0}},
         },
-        startEv_id, TimeValue::fromMsecs(30), 0.5);
+        startEv_id,
+        TimeValue::fromMsecs(30),
+        0.5);
     event2Cmd.redo(ctx);
 
     auto endEvent_id = event2Cmd.createdEvent();

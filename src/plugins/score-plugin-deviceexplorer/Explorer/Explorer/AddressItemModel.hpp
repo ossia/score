@@ -51,14 +51,12 @@ public:
   };
 
   void setState(
-      DeviceExplorerModel* model, Device::NodePath nodepath,
+      DeviceExplorerModel* model,
+      Device::NodePath nodepath,
       const Device::FullAddressSettings& s);
   void clear();
 
-  const Device::FullAddressSettings& settings() const
-  {
-    return m_settings;
-  }
+  const Device::FullAddressSettings& settings() const { return m_settings; }
 
   bool
   setData(const QModelIndex& index, const QVariant& value, int role) override;
@@ -86,14 +84,17 @@ public:
 
 private:
   void paint(
-      QPainter* painter, const QStyleOptionViewItem& option,
+      QPainter* painter,
+      const QStyleOptionViewItem& option,
       const QModelIndex& index) const override;
   QWidget* createEditor(
-      QWidget* parent, const QStyleOptionViewItem& option,
+      QWidget* parent,
+      const QStyleOptionViewItem& option,
       const QModelIndex& index) const override;
   void setEditorData(QWidget* editor, const QModelIndex& index) const override;
   void setModelData(
-      QWidget* editor, QAbstractItemModel* model,
+      QWidget* editor,
+      QAbstractItemModel* model,
       const QModelIndex& index) const override;
 };
 

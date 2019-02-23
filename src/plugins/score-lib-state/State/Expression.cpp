@@ -59,10 +59,7 @@ QString State::ExprData::toString() const
     {
       return unopMap[rel];
     }
-    return_type operator()(const InvisibleRootNode rel) const
-    {
-      return "";
-    }
+    return_type operator()(const InvisibleRootNode rel) const { return ""; }
   };
 
   return eggs::variants::apply(vis{}, m_data);
@@ -196,7 +193,8 @@ bool State::isEmptyExpression(const QString& cond)
 
 SCORE_LIB_STATE_EXPORT
 bool operator==(
-    const TreeNode<State::ExprData>& lhs, const TreeNode<State::ExprData>& rhs)
+    const TreeNode<State::ExprData>& lhs,
+    const TreeNode<State::ExprData>& rhs)
 {
   const auto& ltd = static_cast<const State::ExprData&>(lhs);
   const auto& rtd = static_cast<const State::ExprData&>(rhs);
@@ -221,7 +219,8 @@ bool operator==(
 
 SCORE_LIB_STATE_EXPORT
 bool operator!=(
-    const TreeNode<State::ExprData>& lhs, const TreeNode<State::ExprData>& rhs)
+    const TreeNode<State::ExprData>& lhs,
+    const TreeNode<State::ExprData>& rhs)
 {
   return !(lhs == rhs);
 }
@@ -270,9 +269,7 @@ TreeNode<State::ExprData>& TreeNode<State::ExprData>::back()
   return m_children.back();
 }
 
-TreeNode<State::ExprData>::TreeNode()
-{
-}
+TreeNode<State::ExprData>::TreeNode() {}
 
 TreeNode<State::ExprData>::TreeNode(const TreeNode& other)
     : State::ExprData{static_cast<const State::ExprData&>(other)}

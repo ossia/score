@@ -19,8 +19,12 @@ struct DisplayedElementsContainer
   DisplayedElementsContainer() = default;
 
   DisplayedElementsContainer(
-      IntervalModel& cst, const StateModel& sst, const StateModel& est,
-      const EventModel& sev, const EventModel& eev, const TimeSyncModel& stn,
+      IntervalModel& cst,
+      const StateModel& sst,
+      const StateModel& est,
+      const EventModel& sev,
+      const EventModel& eev,
+      const TimeSyncModel& stn,
       const TimeSyncModel& etn)
       : interval{&cst}
       , startState{&sst}
@@ -47,8 +51,12 @@ struct DisplayedElementsPresenterContainer
   DisplayedElementsPresenterContainer() = default;
 
   DisplayedElementsPresenterContainer(
-      FullViewIntervalPresenter* cp, StatePresenter* s1, StatePresenter* s2,
-      EventPresenter* e1, EventPresenter* e2, TimeSyncPresenter* t1,
+      FullViewIntervalPresenter* cp,
+      StatePresenter* s1,
+      StatePresenter* s2,
+      EventPresenter* e1,
+      EventPresenter* e2,
+      TimeSyncPresenter* t1,
       TimeSyncPresenter* t2)
       : interval{cp}
       , startState{s1}

@@ -43,7 +43,7 @@ void View::paint_impl(QPainter* p) const
   if (m_colors.size() < 2)
     return;
   QLinearGradient g{QPointF{0, 0}, QPointF{m_dataWidth, 0.}};
-  for (auto col : m_colors)
+  for (const auto& col : m_colors)
   {
     g.setColorAt(col.first, col.second);
   }
@@ -53,7 +53,7 @@ void View::paint_impl(QPainter* p) const
   QBrush br(Qt::gray);
   p->setPen(pen);
   p->setBrush(br);
-  for (auto col : m_colors)
+  for (const auto& col : m_colors)
   {
     p->save();
     p->translate(col.first * m_dataWidth - side / 2., 0);

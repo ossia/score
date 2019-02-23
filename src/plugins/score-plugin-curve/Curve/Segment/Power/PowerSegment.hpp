@@ -13,8 +13,12 @@ class PowerSegment;
 }
 
 CURVE_SEGMENT_METADATA(
-    SCORE_PLUGIN_CURVE_EXPORT, Curve::PowerSegment,
-    "1e7cb83f-4e47-4b14-814d-2242a9c75991", "Power", "Power", "")
+    SCORE_PLUGIN_CURVE_EXPORT,
+    Curve::PowerSegment,
+    "1e7cb83f-4e47-4b14-814d-2242a9c75991",
+    "Power",
+    "Power",
+    "")
 
 namespace Curve
 {
@@ -22,9 +26,7 @@ struct SegmentData;
 struct SCORE_PLUGIN_CURVE_EXPORT PowerSegmentData
 {
   PowerSegmentData() = default;
-  PowerSegmentData(double d) : gamma{d}
-  {
-  }
+  PowerSegmentData(double d) : gamma{d} {}
 
   // Value of gamma for which the pow will be == 1.
   static const constexpr double linearGamma = 11.05;

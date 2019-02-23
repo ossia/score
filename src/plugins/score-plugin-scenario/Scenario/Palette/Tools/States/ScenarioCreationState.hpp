@@ -25,10 +25,7 @@ template <int Value>
 class StrongQState : public QState
 {
 public:
-  static constexpr auto value()
-  {
-    return Value;
-  }
+  static constexpr auto value() { return Value; }
   StrongQState(QState* parent) : QState{parent}
   {
     this->setObjectName(debug_StateMachineIDs<Value>());
@@ -62,8 +59,10 @@ class CreationState : public CreationStateBase<Scenario_T>
 {
 public:
   CreationState(
-      const ToolPalette_T& sm, const score::CommandStackFacade& stack,
-      const Scenario_T& scenarioPath, QState* parent)
+      const ToolPalette_T& sm,
+      const score::CommandStackFacade& stack,
+      const Scenario_T& scenarioPath,
+      QState* parent)
       : CreationStateBase<Scenario_T>{scenarioPath, parent}
       , m_parentSM{sm}
       , m_dispatcher{stack}
@@ -100,7 +99,9 @@ protected:
           < getDate(m_parentSM.model(), *this->hoveredEvent))
       {
         auto cmd = new Scenario::Command::CreateInterval_State{
-            this->m_scenario, originalState, *this->hoveredEvent,
+            this->m_scenario,
+            originalState,
+            *this->hoveredEvent,
             this->currentPoint.y};
 
         m_dispatcher.submit(cmd);
@@ -121,7 +122,9 @@ protected:
           < getDate(m_parentSM.model(), *this->hoveredTimeSync))
       {
         auto cmd = new Scenario::Command::CreateInterval_State_Event{
-            this->m_scenario, originalState, *this->hoveredTimeSync,
+            this->m_scenario,
+            originalState,
+            *this->hoveredTimeSync,
             this->currentPoint.y};
 
         m_dispatcher.submit(cmd);
@@ -140,7 +143,8 @@ protected:
       auto cmd = new Scenario::Command::CreateInterval_State_Event_TimeSync{
           this->m_scenario,
           originalState, // Put there in createInitialState
-          this->currentPoint.date, this->currentPoint.y};
+          this->currentPoint.date,
+          this->currentPoint.y};
 
       m_dispatcher.submit(cmd);
 
@@ -154,9 +158,11 @@ protected:
 
       // This
       auto cmd = Scenario::Command::CreateSequence::make(
-          this->m_parentSM.context().context, this->m_parentSM.model(),
+          this->m_parentSM.context().context,
+          this->m_parentSM.model(),
           originalState, // Put there in createInitialState
-          this->currentPoint.date, this->currentPoint.y);
+          this->currentPoint.date,
+          this->currentPoint.y);
 
       m_dispatcher.submitQuiet(cmd);
 

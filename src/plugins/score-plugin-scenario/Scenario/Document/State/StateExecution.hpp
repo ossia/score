@@ -31,17 +31,20 @@ public:
   using component_t = ProcessComponent;
   using component_factory_list_t = ProcessComponentFactoryList;
   StateComponentBase(
-      const Scenario::StateModel& element, const Execution::Context& ctx,
-      const Id<score::Component>& id, QObject* parent);
+      const Scenario::StateModel& element,
+      const Execution::Context& ctx,
+      const Id<score::Component>& id,
+      QObject* parent);
 
   //! To be called from the GUI thread
   void onDelete() const;
 
   ProcessComponent* make(
-      const Id<score::Component>& id, ProcessComponentFactory& factory,
+      const Id<score::Component>& id,
+      ProcessComponentFactory& factory,
       Process::ProcessModel& process);
-  ProcessComponent* make(
-      const Id<score::Component>& id, Process::ProcessModel& process)
+  ProcessComponent*
+  make(const Id<score::Component>& id, Process::ProcessModel& process)
   {
     return nullptr;
   }
@@ -68,9 +71,9 @@ public:
     return m_model->stateProcesses;
   }
 
-  const score::hash_map<
-      Id<Process::ProcessModel>, std::shared_ptr<ProcessComponent>>&
-  processes() const
+  const score::
+      hash_map<Id<Process::ProcessModel>, std::shared_ptr<ProcessComponent>>&
+      processes() const
   {
     return m_processes;
   }

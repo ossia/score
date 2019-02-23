@@ -17,7 +17,8 @@
 namespace Scenario
 {
 EventSummaryWidget::EventSummaryWidget(
-    const EventModel& object, const score::DocumentContext& doc,
+    const EventModel& object,
+    const score::DocumentContext& doc,
     QWidget* parent)
     : QWidget{parent}
     , event{object}
@@ -40,7 +41,5 @@ EventSummaryWidget::EventSummaryWidget(
   }
 }
 
-EventSummaryWidget::~EventSummaryWidget()
-{
-}
+EventSummaryWidget::~EventSummaryWidget() {}
 }

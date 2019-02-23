@@ -19,7 +19,6 @@
 #include <QVariant>
 class QWidget;
 
-
 namespace Protocols
 {
 HTTPProtocolSettingsWidget::HTTPProtocolSettingsWidget(QWidget* parent)
@@ -72,11 +71,9 @@ void HTTPProtocolSettingsWidget::setSettings(
 {
   m_deviceNameEdit->setText(settings.name);
   HTTPSpecificSettings specific;
-  if (settings.deviceSpecificSettings
-          .canConvert<HTTPSpecificSettings>())
+  if (settings.deviceSpecificSettings.canConvert<HTTPSpecificSettings>())
   {
-    specific = settings.deviceSpecificSettings
-                   .value<HTTPSpecificSettings>();
+    specific = settings.deviceSpecificSettings.value<HTTPSpecificSettings>();
     m_codeEdit->setPlainText(specific.text);
   }
 }

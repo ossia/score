@@ -20,13 +20,13 @@ class DocumentPresenter final : public QObject
   W_OBJECT(DocumentPresenter)
 public:
   DocumentPresenter(
-      const score::DocumentContext& ctx, DocumentDelegateFactory&,
-      const DocumentModel&, DocumentView&, QObject* parent);
+      const score::DocumentContext& ctx,
+      DocumentDelegateFactory&,
+      const DocumentModel&,
+      DocumentView&,
+      QObject* parent);
 
-  DocumentDelegatePresenter* presenterDelegate() const
-  {
-    return m_presenter;
-  }
+  DocumentDelegatePresenter* presenterDelegate() const { return m_presenter; }
 
   void setNewSelection(const Selection& s);
 

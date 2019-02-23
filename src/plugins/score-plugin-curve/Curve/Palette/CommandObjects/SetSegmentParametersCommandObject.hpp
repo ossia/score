@@ -20,12 +20,10 @@ class SetSegmentParametersCommandObject
 {
 public:
   SetSegmentParametersCommandObject(
-      const Model&, const score::CommandStackFacade&);
+      const Model&,
+      const score::CommandStackFacade&);
 
-  void setCurveState(Curve::StateBase* stateBase)
-  {
-    m_state = stateBase;
-  }
+  void setCurveState(Curve::StateBase* stateBase) { m_state = stateBase; }
 
   void press();
 
@@ -41,6 +39,7 @@ private:
 
   Curve::StateBase* m_state{};
   QPointF m_originalPress;
-  QMap<Id<Curve::SegmentModel>, std::pair<optional<double>, optional<double>>> m_orig;
+  QMap<Id<Curve::SegmentModel>, std::pair<optional<double>, optional<double>>>
+      m_orig;
 };
 }

@@ -27,8 +27,11 @@ template <>
 void DataStreamWriter::write(JS::ProcessModel& proc)
 {
   writePorts(
-      *this, components.interfaces<Process::PortFactoryList>(), proc.m_inlets,
-      proc.m_outlets, &proc);
+      *this,
+      components.interfaces<Process::PortFactoryList>(),
+      proc.m_inlets,
+      proc.m_outlets,
+      &proc);
 
   QString str;
   m_stream >> str;
@@ -48,7 +51,10 @@ template <>
 void JSONObjectWriter::write(JS::ProcessModel& proc)
 {
   writePorts(
-      obj, components.interfaces<Process::PortFactoryList>(), proc.m_inlets,
-      proc.m_outlets, &proc);
+      obj,
+      components.interfaces<Process::PortFactoryList>(),
+      proc.m_inlets,
+      proc.m_outlets,
+      &proc);
   proc.setScript(obj["Script"].toString());
 }

@@ -36,7 +36,9 @@ class optional;
 
 template <typename T>
 void toJsonValue(
-    QJsonObject& object, const QString& name, const optional<T>& value)
+    QJsonObject& object,
+    const QString& name,
+    const optional<T>& value)
 {
   if (value)
   {
@@ -67,7 +69,9 @@ void fromJsonArray(const QJsonArray& array, std::array<T, N>& res)
 
 template <typename T>
 void fromJsonValue(
-    const QJsonObject& object, const QString& name, optional<T>& value)
+    const QJsonObject& object,
+    const QString& name,
+    optional<T>& value)
 {
   auto it = object.find(name);
   if (it != object.end())

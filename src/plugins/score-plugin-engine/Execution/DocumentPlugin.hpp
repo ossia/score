@@ -47,7 +47,8 @@ class SCORE_PLUGIN_ENGINE_EXPORT DocumentPlugin final
   W_OBJECT(DocumentPlugin)
 public:
   DocumentPlugin(
-      const score::DocumentContext& ctx, Id<score::DocumentPlugin>,
+      const score::DocumentContext& ctx,
+      Id<score::DocumentPlugin>,
       QObject* parent);
 
   ~DocumentPlugin() override;
@@ -60,10 +61,7 @@ public:
 
   bool isPlaying() const;
 
-  const Context& context() const
-  {
-    return m_ctx;
-  }
+  const Context& context() const { return m_ctx; }
   ossia::audio_protocol& audioProto();
 
   void runAllCommands() const;
@@ -78,8 +76,7 @@ public:
   QPointer<Device::DeviceInterface> local_device{};
 
 public:
-  void finished()
-      E_SIGNAL(SCORE_PLUGIN_ENGINE_EXPORT, finished);
+  void finished() E_SIGNAL(SCORE_PLUGIN_ENGINE_EXPORT, finished);
   void sig_bench(ossia::bench_map arg_1, int64_t ns)
       E_SIGNAL(SCORE_PLUGIN_ENGINE_EXPORT, sig_bench, arg_1, ns);
 

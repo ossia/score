@@ -1,10 +1,10 @@
 #pragma once
+#include <ossia/detail/hash_map.hpp>
 #include <ossia/detail/math.hpp>
 
 #include <Engine/Node/PdNode.hpp>
 
 #include <random>
-#include <ossia/detail/hash_map.hpp>
 #if !defined(NDEBUG) && !defined(_MSC_VER) && !defined(__clang__)
 #include <debug/vector>
 #define debug_vector_t __gnu_debug::vector
@@ -14,24 +14,21 @@
 namespace Nodes::FactorOracle
 {
 
-template<typename T, T default_value>
+template <typename T, T default_value>
 struct safe_vector
 {
 public:
   debug_vector_t<T> impl;
 
-  T& operator[](int i_)
-  {
-    return (*this)[static_cast<std::size_t>(i_)];
-  }
+  T& operator[](int i_) { return (*this)[static_cast<std::size_t>(i_)]; }
   T& operator[](std::size_t i_)
   {
     auto i = static_cast<std::size_t>(i_);
-    if(i < impl.size() && impl.size() != 0)
+    if (i < impl.size() && impl.size() != 0)
     {
       return impl[i];
     }
-    impl.resize((i+1) * 2, default_value);
+    impl.resize((i + 1) * 2, default_value);
     return impl[i];
   }
 
@@ -42,7 +39,7 @@ public:
   const T& operator[](std::size_t i_) const
   {
     auto i = static_cast<std::size_t>(i_);
-    if(i < impl.size() && impl.size() != 0)
+    if (i < impl.size() && impl.size() != 0)
     {
       return impl[i];
     }
@@ -50,24 +47,21 @@ public:
     return dval;
   }
 };
-template<typename T>
+template <typename T>
 struct safe_vector_simple
 {
 public:
   debug_vector_t<T> impl;
 
-  T& operator[](int i_)
-  {
-    return (*this)[static_cast<std::size_t>(i_)];
-  }
+  T& operator[](int i_) { return (*this)[static_cast<std::size_t>(i_)]; }
   T& operator[](std::size_t i_)
   {
     auto i = static_cast<std::size_t>(i_);
-    if(i < impl.size() && impl.size() != 0)
+    if (i < impl.size() && impl.size() != 0)
     {
       return impl[i];
     }
-    impl.resize((i+1) * 2);
+    impl.resize((i + 1) * 2);
     return impl[i];
   }
 };
@@ -101,11 +95,12 @@ public:
 
   void add_char(ossia::value c)
   {
-    if(n < (int)m_forwardLink.size() - 1)
+    if (n < (int)m_forwardLink.size() - 1)
     {
       m_sequence.push_back(std::move(c));
-      auto it = ossia::find_if(value_map, [&] (const auto& pair) { return pair.second == c; });
-      if(it != value_map.end())
+      auto it = ossia::find_if(
+          value_map, [&](const auto& pair) { return pair.second == c; });
+      if (it != value_map.end())
       {
         add_state(it->first);
       }
@@ -152,8 +147,10 @@ public:
     return make_sequence(continuity, start, seqSize);
   }
 
-  debug_vector_t<ossia::value>
-  make_sequence(float continuity, std::size_t curState, std::size_t seqSize) const
+  debug_vector_t<ossia::value> make_sequence(
+      float continuity,
+      std::size_t curState,
+      std::size_t seqSize) const
   {
     if (curState > m_sequence.size())
     {
@@ -182,8 +179,8 @@ public:
             links += m_forwardLink[curState].size();
           }
 
-          auto linkToFollow
-              = std::uniform_int_distribution<int>{0, links - 1}(m_rand_engine);
+          auto linkToFollow = std::uniform_int_distribution<int>{0, links - 1}(
+              m_rand_engine);
           if (linkToFollow == links - 1)
           {
             if (curState != 0)
@@ -195,7 +192,7 @@ public:
           {
             curState = m_forwardLink[curState][linkToFollow];
           }
-        } while(curState >= m_sequence.size());
+        } while (curState >= m_sequence.size());
 
         v.push_back(m_sequence[curState]);
       }
@@ -231,9 +228,7 @@ struct Node
         = make_uuid("d90284c0-4196-47e0-802d-7e07342029ec");
 
     static const constexpr auto controls
-        = std::make_tuple(
-          Control::IntSlider{"Sequence length", 1, 64, 8}
-          );
+        = std::make_tuple(Control::IntSlider{"Sequence length", 1, 64, 8});
 
     static const constexpr value_in value_ins[]{"in", "regen", "bang"};
     static const constexpr value_out value_outs[]{"out"};
@@ -248,9 +243,14 @@ struct Node
 
   using control_policy = ossia::safe_nodes::last_tick;
   static void
-  run(const ossia::value_port& in, const ossia::value_port& regen,
-      const ossia::value_port& bangs, int seq_len, ossia::value_port& out,
-      ossia::token_request, ossia::exec_state_facade, State& self)
+  run(const ossia::value_port& in,
+      const ossia::value_port& regen,
+      const ossia::value_port& bangs,
+      int seq_len,
+      ossia::value_port& out,
+      ossia::token_request,
+      ossia::exec_state_facade,
+      State& self)
   {
     // Entrées sont dans p1
     for (auto val : in.get_data())

@@ -16,7 +16,8 @@ namespace Scenario
 {
 std::unique_ptr<GraphicsSceneToolPalette>
 ScenarioDisplayedElementsToolPaletteFactory::make(
-    ScenarioDocumentPresenter& pres, const IntervalModel& interval,
+    ScenarioDocumentPresenter& pres,
+    const IntervalModel& interval,
     QGraphicsItem* parent)
 {
   return std::make_unique<ScenarioDisplayedElementsToolPalette>(

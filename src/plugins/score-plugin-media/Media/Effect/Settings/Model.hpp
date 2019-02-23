@@ -17,7 +17,9 @@ public:
   Model(QSettings& set, const score::ApplicationContext& ctx);
 
   SCORE_SETTINGS_PARAMETER_HPP(
-      SCORE_PLUGIN_MEDIA_EXPORT, QStringList, VstPaths)
+      SCORE_PLUGIN_MEDIA_EXPORT,
+      QStringList,
+      VstPaths)
   SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_MEDIA_EXPORT, bool, VstAlwaysOnTop)
 };
 

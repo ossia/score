@@ -2,8 +2,8 @@
 
 #include <Process/TimeValue.hpp>
 
-#include <score/model/Identifier.hpp>
 #include <score/graphics/GraphicsItem.hpp>
+#include <score/model/Identifier.hpp>
 
 #include <QPoint>
 
@@ -22,26 +22,18 @@ class SCORE_PLUGIN_SCENARIO_EXPORT CommentBlockPresenter final : public QObject
   W_OBJECT(CommentBlockPresenter)
 public:
   CommentBlockPresenter(
-      const CommentBlockModel& model, QGraphicsItem* parentView,
+      const CommentBlockModel& model,
+      QGraphicsItem* parentView,
       QObject* parent);
 
   ~CommentBlockPresenter();
 
   const Id<CommentBlockModel>& id() const;
-  int32_t id_val() const
-  {
-    return id().val();
-  }
+  int32_t id_val() const { return id().val(); }
 
-  const CommentBlockModel& model() const
-  {
-    return m_model;
-  }
+  const CommentBlockModel& model() const { return m_model; }
 
-  CommentBlockView* view() const
-  {
-    return m_view;
-  }
+  CommentBlockView* view() const { return m_view; }
 
   const TimeVal& date() const;
 

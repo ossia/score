@@ -22,7 +22,8 @@ PlayToolState::PlayToolState(const Scenario::ToolPalette& sm)
 }
 
 void PlayToolState::on_pressed(
-    QPointF scenePoint, Scenario::Point scenarioPoint)
+    QPointF scenePoint,
+    Scenario::Point scenarioPoint)
 {
   auto item = m_sm.scene().itemAt(scenePoint, QTransform());
   if (!item)
@@ -77,11 +78,7 @@ void PlayToolState::on_pressed(
   }
 }
 
-void PlayToolState::on_moved()
-{
-}
+void PlayToolState::on_moved() {}
 
-void PlayToolState::on_released()
-{
-}
+void PlayToolState::on_released() {}
 }

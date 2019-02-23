@@ -15,7 +15,9 @@ namespace Sound
 {
 class ProcessModel;
 
-class SCORE_PLUGIN_MEDIA_EXPORT ProcessModel final : public Process::ProcessModel, public Nano::Observer
+class SCORE_PLUGIN_MEDIA_EXPORT ProcessModel final
+    : public Process::ProcessModel,
+      public Nano::Observer
 {
   SCORE_SERIALIZE_FRIENDS
   PROCESS_METADATA_IMPL(Media::Sound::ProcessModel)
@@ -24,7 +26,9 @@ class SCORE_PLUGIN_MEDIA_EXPORT ProcessModel final : public Process::ProcessMode
 
 public:
   explicit ProcessModel(
-      const TimeVal& duration, const QString& data, const Id<Process::ProcessModel>& id,
+      const TimeVal& duration,
+      const QString& data,
+      const Id<Process::ProcessModel>& id,
       QObject* parent);
 
   ~ProcessModel() override;

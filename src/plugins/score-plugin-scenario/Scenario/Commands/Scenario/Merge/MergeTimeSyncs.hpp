@@ -25,10 +25,13 @@ namespace Command
 class SCORE_PLUGIN_SCENARIO_EXPORT MergeTimeSyncs final : public score::Command
 {
   SCORE_COMMAND_DECL(
-      ScenarioCommandFactoryName(), MergeTimeSyncs, "Synchronize")
+      ScenarioCommandFactoryName(),
+      MergeTimeSyncs,
+      "Synchronize")
 public:
   MergeTimeSyncs(
-      const ProcessModel& scenario, Id<TimeSyncModel> clickedTn,
+      const ProcessModel& scenario,
+      Id<TimeSyncModel> clickedTn,
       Id<TimeSyncModel> hoveredTn);
   ~MergeTimeSyncs() override;
 
@@ -36,7 +39,8 @@ public:
   void redo(const score::DocumentContext& ctx) const override;
 
   void update(
-      unused_t scenar, const Id<TimeSyncModel>& clickedTn,
+      unused_t scenar,
+      const Id<TimeSyncModel>& clickedTn,
       const Id<TimeSyncModel>& hoveredTn);
 
 protected:

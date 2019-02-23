@@ -38,21 +38,20 @@ static QStringList toStringList(const State::AddressAccessor& addr)
 
 namespace Scenario
 {
-static
-Process::MessageNode* try_getNodeFromString_impl(
-    Process::MessageNode& n
-    , QStringList::const_iterator begin
-    , QStringList::const_iterator end
-    , const State::DestinationQualifiers& qual)
+static Process::MessageNode* try_getNodeFromString_impl(
+    Process::MessageNode& n,
+    QStringList::const_iterator begin,
+    QStringList::const_iterator end,
+    const State::DestinationQualifiers& qual)
 {
-  if(begin == end)
+  if (begin == end)
   {
     return &n;
   }
   else
   {
     auto next = begin + 1;
-    if(next == end)
+    if (next == end)
     {
       for (auto& child : n)
       {
@@ -76,14 +75,19 @@ Process::MessageNode* try_getNodeFromString_impl(
   return nullptr;
 }
 
-static
-Process::MessageNode* try_getNodeFromString(Process::MessageNode& n, const State::AddressAccessor& addr)
+static Process::MessageNode* try_getNodeFromString(
+    Process::MessageNode& n,
+    const State::AddressAccessor& addr)
 {
   for (auto& child : n)
   {
     if (child.displayName() == addr.address.device)
     {
-      return try_getNodeFromString_impl(child, addr.address.path.begin(), addr.address.path.end(), addr.qualifiers);
+      return try_getNodeFromString_impl(
+          child,
+          addr.address.path.begin(),
+          addr.address.path.end(),
+          addr.qualifiers);
     }
   }
   return nullptr;
@@ -140,7 +144,8 @@ static bool match(Process::MessageNode& node, const State::Message& mess)
 }
 
 static void updateNode(
-    QVector<Process::ProcessStateData>& vec, const ossia::value& val,
+    QVector<Process::ProcessStateData>& vec,
+    const ossia::value& val,
     const Id<Process::ProcessModel>& proc)
 {
   auto it
@@ -164,8 +169,9 @@ static void rec_delete(Process::MessageNode& node)
     if (parent)
     {
       auto it = std::find_if(
-          parent->begin(), parent->end(),
-          [&](const auto& other) { return &node == &other; });
+          parent->begin(), parent->end(), [&](const auto& other) {
+            return &node == &other;
+          });
       if (it != parent->end())
       {
         parent->erase(it);
@@ -177,7 +183,8 @@ static void rec_delete(Process::MessageNode& node)
 
 // Returns true if this node is to be deleted.
 static bool nodePruneAction_impl(
-    Process::MessageNode& node, const Id<Process::ProcessModel>& proc,
+    Process::MessageNode& node,
+    const Id<Process::ProcessModel>& proc,
     QVector<Process::ProcessStateData>& vec,
     const QVector<Process::ProcessStateData>& other_vec)
 {
@@ -208,7 +215,8 @@ static bool nodePruneAction_impl(
 }
 
 static void nodePruneAction(
-    Process::MessageNode& node, const Id<Process::ProcessModel>& proc,
+    Process::MessageNode& node,
+    const Id<Process::ProcessModel>& proc,
     ProcessPosition pos)
 {
   // If there is no corresponding message in our list,
@@ -220,14 +228,18 @@ static void nodePruneAction(
     case ProcessPosition::Previous:
     {
       deleteMe &= nodePruneAction_impl(
-          node, proc, node.values.previousProcessValues,
+          node,
+          proc,
+          node.values.previousProcessValues,
           node.values.followingProcessValues);
       break;
     }
     case ProcessPosition::Following:
     {
       deleteMe &= nodePruneAction_impl(
-          node, proc, node.values.followingProcessValues,
+          node,
+          proc,
+          node.values.followingProcessValues,
           node.values.previousProcessValues);
       break;
     }
@@ -243,8 +255,10 @@ static void nodePruneAction(
 }
 
 static void nodeInsertAction(
-    Process::MessageNode& node, State::MessageList& msg,
-    const Id<Process::ProcessModel>& proc, ProcessPosition pos)
+    Process::MessageNode& node,
+    State::MessageList& msg,
+    const Id<Process::ProcessModel>& proc,
+    ProcessPosition pos)
 {
   auto it = msg.begin();
   auto end = msg.end();
@@ -280,8 +294,10 @@ static void nodeInsertAction(
 }
 
 static void rec_updateTree(
-    Process::MessageNode& node, State::MessageList& lst,
-    const Id<Process::ProcessModel>& proc, ProcessPosition pos)
+    Process::MessageNode& node,
+    State::MessageList& lst,
+    const Id<Process::ProcessModel>& proc,
+    ProcessPosition pos)
 {
   // If the message is in the tree, we add the process value.
   int n = lst.size();
@@ -301,7 +317,8 @@ static void rec_updateTree(
 
 static bool match(
     const State::AddressAccessorHead& cur_node,
-    const State::AddressAccessor& mess, int i)
+    const State::AddressAccessor& mess,
+    int i)
 {
   if (i == 0)
   {
@@ -339,7 +356,8 @@ get_at(const State::AddressAccessor& mess, int i)
 // MergeFun takes a state node value and modifies it.
 template <typename MergeFun>
 static void merge_impl(
-    Process::MessageNode& base, const State::AddressAccessor& addr,
+    Process::MessageNode& base,
+    const State::AddressAccessor& addr,
     MergeFun merge)
 {
   const auto path_n = addr.address.path.size() + 1;
@@ -390,7 +408,8 @@ static void merge_impl(
 }
 
 void updateTreeWithMessageList(
-    Process::MessageNode& rootNode, State::MessageList lst)
+    Process::MessageNode& rootNode,
+    State::MessageList lst)
 {
   for (const auto& mess : lst)
   {
@@ -401,8 +420,10 @@ void updateTreeWithMessageList(
 }
 
 void updateTreeWithMessageList(
-    Process::MessageNode& rootNode, State::MessageList lst,
-    const Id<Process::ProcessModel>& proc, ProcessPosition pos)
+    Process::MessageNode& rootNode,
+    State::MessageList lst,
+    const Id<Process::ProcessModel>& proc,
+    ProcessPosition pos)
 {
   // We go through the tree.
   // For each node :
@@ -425,25 +446,27 @@ void updateTreeWithMessageList(
   // Handle the remaining messages
   for (const auto& mess : lst)
   {
-    merge_impl(rootNode, mess.address, [&](Process::StateNodeValues& nodeValues) {
-      switch (pos)
-      {
-        case ProcessPosition::Previous:
-          nodeValues.previousProcessValues.push_back({proc, mess.value});
-          break;
-        case ProcessPosition::Following:
-          nodeValues.followingProcessValues.push_back({proc, mess.value});
-          break;
-        default:
-          SCORE_ABORT;
-          break;
-      }
-    });
+    merge_impl(
+        rootNode, mess.address, [&](Process::StateNodeValues& nodeValues) {
+          switch (pos)
+          {
+            case ProcessPosition::Previous:
+              nodeValues.previousProcessValues.push_back({proc, mess.value});
+              break;
+            case ProcessPosition::Following:
+              nodeValues.followingProcessValues.push_back({proc, mess.value});
+              break;
+            default:
+              SCORE_ABORT;
+              break;
+          }
+        });
   }
 }
 
 static void rec_pruneTree(
-    Process::MessageNode& node, const Id<Process::ProcessModel>& proc,
+    Process::MessageNode& node,
+    const Id<Process::ProcessModel>& proc,
     ProcessPosition pos)
 {
   // If the message is in the tree, we remove the process value.
@@ -458,7 +481,8 @@ static void rec_pruneTree(
 }
 
 void updateTreeWithRemovedProcess(
-    Process::MessageNode& rootNode, const Id<Process::ProcessModel>& proc,
+    Process::MessageNode& rootNode,
+    const Id<Process::ProcessModel>& proc,
     ProcessPosition pos)
 {
   for (auto& child : rootNode)
@@ -515,7 +539,8 @@ static void rec_pruneTree(Process::MessageNode& node, ProcessPosition pos)
 }
 
 void updateTreeWithRemovedInterval(
-    Process::MessageNode& rootNode, ProcessPosition pos)
+    Process::MessageNode& rootNode,
+    ProcessPosition pos)
 {
   for (auto& child : rootNode)
   {
@@ -524,7 +549,8 @@ void updateTreeWithRemovedInterval(
 }
 
 void updateTreeWithRemovedUserMessage(
-    Process::MessageNode& rootNode, const State::AddressAccessor& addr)
+    Process::MessageNode& rootNode,
+    const State::AddressAccessor& addr)
 {
   // Find the message node
   Process::MessageNode* node = try_getNodeFromString(rootNode, addr);
@@ -576,11 +602,9 @@ static bool rec_cleanup(Process::MessageNode& node)
          && node.childCount() == 0;
 }
 
-
-
-
 void updateTreeWithRemovedNode(
-    Process::MessageNode& rootNode, const State::AddressAccessor& addr)
+    Process::MessageNode& rootNode,
+    const State::AddressAccessor& addr)
 {
   // Find the message node
   Process::MessageNode* node_ptr = try_getNodeFromString(rootNode, addr);
@@ -668,7 +692,9 @@ Process::MessageNode* getNthChild(Process::MessageNode& rootNode, int n)
 }
 
 static void rec_getChildIndex(
-    Process::MessageNode& rootNode, Process::MessageNode* n, int& idx)
+    Process::MessageNode& rootNode,
+    Process::MessageNode* n,
+    int& idx)
 {
   for (auto& child : rootNode)
   {

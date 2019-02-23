@@ -23,7 +23,9 @@ namespace Scenario
 namespace Command
 {
 CreateTimeSync_Event_State::CreateTimeSync_Event_State(
-    const Scenario::ProcessModel& scenario, TimeVal date, double stateY)
+    const Scenario::ProcessModel& scenario,
+    TimeVal date,
+    double stateY)
     : m_newTimeSync{getStrongId(scenario.timeSyncs)}
     , m_createdName{RandomNameProvider::generateName<TimeSyncModel>()}
     , m_date{std::move(date)}

@@ -31,7 +31,8 @@ class InspectorWidget : public Process::InspectorWidgetDelegate_T<ProcessModel>
 {
 public:
   explicit InspectorWidget(
-      const ProcessModel& object, const score::DocumentContext& context,
+      const ProcessModel& object,
+      const score::DocumentContext& context,
       QWidget* parent);
 
 private:

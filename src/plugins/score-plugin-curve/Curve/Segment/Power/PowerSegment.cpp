@@ -22,7 +22,8 @@ PowerSegment::PowerSegment(const SegmentData& dat, QObject* parent)
 }
 
 PowerSegment::PowerSegment(
-    const PowerSegment& other, const IdentifiedObject::id_type& id,
+    const PowerSegment& other,
+    const IdentifiedObject::id_type& id,
     QObject* parent)
     : SegmentModel{other.start(), other.end(), id, parent}, gamma{other.gamma}
 {

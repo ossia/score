@@ -8,7 +8,8 @@ namespace Media
 {
 
 EditFaustEffect::EditFaustEffect(
-    const Faust::FaustEffectModel& model, const QString& text)
+    const Faust::FaustEffectModel& model,
+    const QString& text)
     : m_model{model}
     ,
 #if defined(HAS_FAUST)

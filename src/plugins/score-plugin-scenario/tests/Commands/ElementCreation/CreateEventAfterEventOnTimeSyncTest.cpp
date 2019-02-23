@@ -42,8 +42,10 @@ private:
         {
             {"ScenarioModel", {0}},
         },
-        scenar->startEvent()->id(), eventCmd.createdTimeSync(),
-        TimeValue::fromMsecs(10), 0.4);
+        scenar->startEvent()->id(),
+        eventCmd.createdTimeSync(),
+        TimeValue::fromMsecs(10),
+        0.4);
 
     cmd.redo(ctx);
     QCOMPARE((int)scenar->events().size(), 3);

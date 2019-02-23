@@ -1,6 +1,7 @@
 #pragma once
 #include <Device/Protocol/DeviceSettings.hpp>
 #include <Device/Protocol/ProtocolSettingsWidget.hpp>
+
 #include <QNetworkAccessManager>
 #include <QNetworkRequest>
 
@@ -8,7 +9,6 @@ class ZeroconfBrowser;
 class QLineEdit;
 class QSpinBox;
 class QWidget;
-
 
 namespace Protocols
 {

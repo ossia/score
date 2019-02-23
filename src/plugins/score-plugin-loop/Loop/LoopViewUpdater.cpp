@@ -29,9 +29,7 @@
 
 namespace Loop
 {
-ViewUpdater::ViewUpdater(LayerPresenter& presenter) : m_presenter{presenter}
-{
-}
+ViewUpdater::ViewUpdater(LayerPresenter& presenter) : m_presenter{presenter} {}
 
 void ViewUpdater::updateEvent(const Scenario::EventPresenter& event)
 {

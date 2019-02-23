@@ -21,17 +21,15 @@ class LocalDevice final : public Device::DeviceInterface
 {
 public:
   LocalDevice(
-      ossia::net::device_base& dev, const score::DocumentContext& ctx,
+      ossia::net::device_base& dev,
+      const score::DocumentContext& ctx,
       const Device::DeviceSettings& settings);
 
   ~LocalDevice() override;
 
   void setRemoteSettings(const Device::DeviceSettings&);
 
-  ossia::net::device_base* getDevice() const override
-  {
-    return &m_dev;
-  }
+  ossia::net::device_base* getDevice() const override { return &m_dev; }
 
 private:
   void disconnect() override;

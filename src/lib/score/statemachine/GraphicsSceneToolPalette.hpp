@@ -17,10 +17,7 @@ public:
 
   QPointF scenePoint;
 
-  const QGraphicsScene& scene() const
-  {
-    return m_scene;
-  }
+  const QGraphicsScene& scene() const { return m_scene; }
 
 private:
   const QGraphicsScene& m_scene;

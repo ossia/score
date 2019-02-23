@@ -25,23 +25,25 @@ namespace Command
 class SplitEvent final : public score::Command
 {
   SCORE_COMMAND_DECL(
-      ScenarioCommandFactoryName(), SplitEvent, "Split an event")
+      ScenarioCommandFactoryName(),
+      SplitEvent,
+      "Split an event")
 
 public:
   SplitEvent(
-      const Scenario::ProcessModel& scenario, Id<EventModel> event,
+      const Scenario::ProcessModel& scenario,
+      Id<EventModel> event,
       QVector<Id<StateModel>> movingstates);
   SplitEvent(
-      const Scenario::ProcessModel& scenario, Id<EventModel> event,
-      Id<EventModel> new_event, QVector<Id<StateModel>> movingstates);
+      const Scenario::ProcessModel& scenario,
+      Id<EventModel> event,
+      Id<EventModel> new_event,
+      QVector<Id<StateModel>> movingstates);
 
   void undo(const score::DocumentContext& ctx) const override;
   void redo(const score::DocumentContext& ctx) const override;
 
-  const Id<EventModel>& newEvent() const
-  {
-    return m_newEvent;
-  }
+  const Id<EventModel>& newEvent() const { return m_newEvent; }
 
 protected:
   void serializeImpl(DataStreamInput&) const override;
@@ -59,10 +61,11 @@ private:
 class SplitWholeEvent final : public score::Command
 {
   SCORE_COMMAND_DECL(
-      ScenarioCommandFactoryName(), SplitWholeEvent, "Split an event")
+      ScenarioCommandFactoryName(),
+      SplitWholeEvent,
+      "Split an event")
 public:
-  SplitWholeEvent(
-      const EventModel& path);
+  SplitWholeEvent(const EventModel& path);
   void undo(const score::DocumentContext& ctx) const override;
   void redo(const score::DocumentContext& ctx) const override;
 
@@ -80,7 +83,9 @@ private:
 class SplitStateMacro final : public score::AggregateCommand
 {
   SCORE_COMMAND_DECL(
-      ScenarioCommandFactoryName(), SplitStateMacro, "Split state from node")
+      ScenarioCommandFactoryName(),
+      SplitStateMacro,
+      "Split state from node")
 };
 }
 }

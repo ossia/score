@@ -11,7 +11,9 @@
 #include <QIcon>
 
 SelectionButton::SelectionButton(
-    const QString& text, Selection target, score::SelectionDispatcher& disp,
+    const QString& text,
+    Selection target,
+    score::SelectionDispatcher& disp,
     QWidget* parent)
     : QPushButton{text, parent}, m_dispatcher{disp}
 {

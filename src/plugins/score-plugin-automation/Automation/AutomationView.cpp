@@ -28,13 +28,9 @@ LayerView::LayerView(QGraphicsItem* parent) : Process::LayerView{parent}
   setAcceptDrops(true);
 }
 
-LayerView::~LayerView()
-{
-}
+LayerView::~LayerView() {}
 
-void LayerView::paint_impl(QPainter* painter) const
-{
-}
+void LayerView::paint_impl(QPainter* painter) const {}
 
 void LayerView::dropEvent(QGraphicsSceneDragDropEvent* event)
 {

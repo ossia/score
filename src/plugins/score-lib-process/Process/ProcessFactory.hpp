@@ -44,7 +44,9 @@ public:
   virtual QString customConstructionData() const;
 
   virtual Process::ProcessModel* make(
-      const TimeVal& duration, const QString& data, const Id<ProcessModel>& id,
+      const TimeVal& duration,
+      const QString& data,
+      const Id<ProcessModel>& id,
       QObject* parent)
       = 0;
 
@@ -59,8 +61,10 @@ public:
   ~LayerFactory() override;
 
   virtual Process::LayerPresenter* makeLayerPresenter(
-      const Process::ProcessModel&, Process::LayerView*,
-      const Process::ProcessPresenterContext& context, QObject* parent) const;
+      const Process::ProcessModel&,
+      Process::LayerView*,
+      const Process::ProcessPresenterContext& context,
+      QObject* parent) const;
 
   virtual Process::LayerView*
   makeLayerView(const Process::ProcessModel&, QGraphicsItem* parent) const;
@@ -69,14 +73,16 @@ public:
   makeMiniLayer(const Process::ProcessModel&, QGraphicsItem* parent) const;
 
   virtual QGraphicsItem* makeItem(
-      const Process::ProcessModel&, const score::DocumentContext& ctx,
+      const Process::ProcessModel&,
+      const score::DocumentContext& ctx,
       score::RectItem* parent) const;
 
   virtual bool hasExternalUI(
       const Process::ProcessModel& proc,
       const score::DocumentContext& ctx) const noexcept;
   virtual QWidget* makeExternalUI(
-      const Process::ProcessModel&, const score::DocumentContext& ctx,
+      const Process::ProcessModel&,
+      const score::DocumentContext& ctx,
       QWidget* parent) const;
 
   virtual HeaderDelegate*

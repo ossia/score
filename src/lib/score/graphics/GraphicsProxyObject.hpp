@@ -12,22 +12,16 @@ public:
     this->setFlag(QGraphicsItem::ItemHasNoContents, true);
   }
 
-  ~BaseGraphicsObject() override
-  {
-  }
+  ~BaseGraphicsObject() override {}
 
-  QRectF boundingRect() const override
-  {
-    return {};
-  }
+  QRectF boundingRect() const override { return {}; }
 
   void paint(
-      QPainter* painter, const QStyleOptionGraphicsItem* option,
+      QPainter* painter,
+      const QStyleOptionGraphicsItem* option,
       QWidget* widget) override
   {
   }
 
-  void setSelectionArea(const QRectF&)
-  {
-  }
+  void setSelectionArea(const QRectF&) {}
 };

@@ -23,7 +23,8 @@ public:
   using QGraphicsItem::QGraphicsItem;
   QRectF boundingRect() const override;
   void paint(
-      QPainter* painter, const QStyleOptionGraphicsItem* option,
+      QPainter* painter,
+      const QStyleOptionGraphicsItem* option,
       QWidget* widget) override;
   void changeHeight(qreal newH);
 
@@ -37,10 +38,7 @@ public:
   {
     return QGraphicsItem::UserType + ItemType::Condition;
   }
-  int type() const override
-  {
-    return static_type();
-  }
+  int type() const override { return static_type(); }
 
 public:
   void pressed(QPointF arg_1) W_SIGNAL(pressed, arg_1);
@@ -57,6 +55,5 @@ private:
   qreal m_height{0};
   qreal m_width{40};
   qreal m_CHeight{27};
-
 };
 }

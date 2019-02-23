@@ -24,7 +24,9 @@ private:
         {
             {"ScenarioModel", {0}},
         },
-        scenar->startEvent()->id(), TimeValue::fromMsecs(10), 0.5);
+        scenar->startEvent()->id(),
+        TimeValue::fromMsecs(10),
+        0.5);
 
     cmd.redo(ctx);
     QCOMPARE((int)scenar->events().size(), 2);

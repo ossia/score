@@ -74,7 +74,8 @@ AutomationRecorder::AutomationRecorder(RecordContext& ctx)
 }
 
 bool AutomationRecorder::setup(
-    const Box& box, const RecordListening& recordListening)
+    const Box& box,
+    const RecordListening& recordListening)
 {
   std::vector<std::vector<State::Address>> addresses;
   //// Creation of the curves ////
@@ -161,7 +162,8 @@ void AutomationRecorder::stop()
   // Create commands for the state of each automation to send on
   // the network, and push them silently.
 
-  auto make_address = [](State::Address a, uint8_t i,
+  auto make_address = [](State::Address a,
+                         uint8_t i,
                          ossia::unit_t u) -> State::AddressAccessor {
     return State::AddressAccessor{std::move(a), {i}, u};
   };
@@ -173,7 +175,10 @@ void AutomationRecorder::stop()
   {
     if (finish(
             State::AddressAccessor{recorded.first, {}, recorded.second.unit},
-            recorded.second, msecs, simplify, simplifyRatio))
+            recorded.second,
+            msecs,
+            simplify,
+            simplifyRatio))
       N++;
   }
 
@@ -182,7 +187,10 @@ void AutomationRecorder::stop()
     for (int i = 0; i < 2; i++)
       if (finish(
               make_address(recorded.first, i, recorded.second[i].unit),
-              recorded.second[i], msecs, simplify, simplifyRatio))
+              recorded.second[i],
+              msecs,
+              simplify,
+              simplifyRatio))
         N++;
   }
 
@@ -191,7 +199,10 @@ void AutomationRecorder::stop()
     for (int i = 0; i < 3; i++)
       if (finish(
               make_address(recorded.first, i, recorded.second[i].unit),
-              recorded.second[i], msecs, simplify, simplifyRatio))
+              recorded.second[i],
+              msecs,
+              simplify,
+              simplifyRatio))
         N++;
   }
 
@@ -200,7 +211,10 @@ void AutomationRecorder::stop()
     for (int i = 0; i < 4; i++)
       if (finish(
               make_address(recorded.first, i, recorded.second[i].unit),
-              recorded.second[i], msecs, simplify, simplifyRatio))
+              recorded.second[i],
+              msecs,
+              simplify,
+              simplifyRatio))
         N++;
   }
 
@@ -211,7 +225,8 @@ void AutomationRecorder::stop()
 }
 
 void AutomationRecorder::messageCallback(
-    const State::Address& addr, const ossia::value& val)
+    const State::Address& addr,
+    const ossia::value& val)
 {
   using namespace std::chrono;
   if (context.started())
@@ -228,7 +243,8 @@ void AutomationRecorder::messageCallback(
 }
 
 void AutomationRecorder::parameterCallback(
-    const State::Address& addr, const ossia::value& val)
+    const State::Address& addr,
+    const ossia::value& val)
 {
   using namespace std::chrono;
   if (context.started())
@@ -245,8 +261,11 @@ void AutomationRecorder::parameterCallback(
 }
 
 bool AutomationRecorder::finish(
-    State::AddressAccessor addr, const RecordData& recorded,
-    const TimeVal& msecs, bool simplify, int simplifyRatio)
+    State::AddressAccessor addr,
+    const RecordData& recorded,
+    const TimeVal& msecs,
+    bool simplify,
+    int simplifyRatio)
 {
   Curve::PointArraySegment& segt = recorded.segment;
   if (segt.points().empty()
@@ -278,9 +297,12 @@ bool AutomationRecorder::finish(
   // TODO if there is no remaining segment or an invalid segment, don't add it.
 
   // Add a point with the last state.
-  auto initCurveCmd = new Automation::InitAutomation{
-      automation, std::move(addr), recorded.segment.min(),
-      recorded.segment.max(), recorded.segment.toPowerSegments()};
+  auto initCurveCmd
+      = new Automation::InitAutomation{automation,
+                                       std::move(addr),
+                                       recorded.segment.min(),
+                                       recorded.segment.max(),
+                                       recorded.segment.toPowerSegments()};
 
   // This one shall not be redone
   context.dispatcher.submit(recorded.addProcCmd);

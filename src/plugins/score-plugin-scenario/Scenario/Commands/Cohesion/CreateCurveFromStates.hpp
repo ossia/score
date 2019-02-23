@@ -40,8 +40,10 @@ public:
   CreateProcessAndLayers() = default;
 
   CreateProcessAndLayers(
-      const IntervalModel& interval, const std::vector<SlotPath>& slotList,
-      Id<Process::ProcessModel> procId, UuidKey<Process::ProcessModel> key);
+      const IntervalModel& interval,
+      const std::vector<SlotPath>& slotList,
+      Id<Process::ProcessModel> procId,
+      UuidKey<Process::ProcessModel> key);
 
   void undo(const score::DocumentContext& ctx) const final override;
   const Id<Process::ProcessModel>& processId() const
@@ -61,13 +63,17 @@ class SCORE_PLUGIN_SCENARIO_EXPORT CreateAutomationFromStates final
     : public CreateProcessAndLayers
 {
   SCORE_COMMAND_DECL(
-      ScenarioCommandFactoryName(), CreateAutomationFromStates,
+      ScenarioCommandFactoryName(),
+      CreateAutomationFromStates,
       "CreateAutomationFromStates")
 public:
   CreateAutomationFromStates(
-      const IntervalModel& interval, const std::vector<SlotPath>& slotList,
-      Id<Process::ProcessModel> curveId, State::AddressAccessor address,
-      const Curve::CurveDomain&, bool tween = false);
+      const IntervalModel& interval,
+      const std::vector<SlotPath>& slotList,
+      Id<Process::ProcessModel> curveId,
+      State::AddressAccessor address,
+      const Curve::CurveDomain&,
+      bool tween = false);
 
   void redo(const score::DocumentContext& ctx) const override;
 
@@ -86,13 +92,17 @@ class SCORE_PLUGIN_SCENARIO_EXPORT CreateGradient final
     : public CreateProcessAndLayers
 {
   SCORE_COMMAND_DECL(
-      ScenarioCommandFactoryName(), CreateGradient,
+      ScenarioCommandFactoryName(),
+      CreateGradient,
       "CreateGradientFromStates")
 public:
   CreateGradient(
-      const IntervalModel& interval, const std::vector<SlotPath>& slotList,
-      Id<Process::ProcessModel> curveId, State::AddressAccessor address,
-      QColor start, QColor end,
+      const IntervalModel& interval,
+      const std::vector<SlotPath>& slotList,
+      Id<Process::ProcessModel> curveId,
+      State::AddressAccessor address,
+      QColor start,
+      QColor end,
       bool tween = false);
 
   void redo(const score::DocumentContext& ctx) const override;
@@ -111,13 +121,18 @@ class SCORE_PLUGIN_SCENARIO_EXPORT CreateInterpolationFromStates final
     : public CreateProcessAndLayers
 {
   SCORE_COMMAND_DECL(
-      ScenarioCommandFactoryName(), CreateInterpolationFromStates,
+      ScenarioCommandFactoryName(),
+      CreateInterpolationFromStates,
       "CreateInterpolationFromStates")
 public:
   CreateInterpolationFromStates(
-      const IntervalModel& interval, const std::vector<SlotPath>& slotList,
-      Id<Process::ProcessModel> curveId, State::AddressAccessor address,
-      ossia::value start, ossia::value end, bool tween = false);
+      const IntervalModel& interval,
+      const std::vector<SlotPath>& slotList,
+      Id<Process::ProcessModel> curveId,
+      State::AddressAccessor address,
+      ossia::value start,
+      ossia::value end,
+      bool tween = false);
 
   void redo(const score::DocumentContext& ctx) const override;
 

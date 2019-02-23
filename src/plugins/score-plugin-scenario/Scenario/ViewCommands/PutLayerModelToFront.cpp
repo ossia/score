@@ -11,7 +11,8 @@
 namespace Scenario
 {
 PutLayerModelToFront::PutLayerModelToFront(
-    SlotPath&& slotPath, const Id<Process::ProcessModel>& pid)
+    SlotPath&& slotPath,
+    const Id<Process::ProcessModel>& pid)
     : m_slotPath{std::move(slotPath)}, m_pid{pid}
 {
   // FIXME this assert crashes if there is only one process in the slot

@@ -66,7 +66,8 @@ struct Metadata<Process::Descriptor_k, Control::ControlProcess<Info>>
     {
       port.push_back(Process::PortType::Message);
     }
-    for (std::size_t i = 0; i < std::tuple_size_v<decltype(Info::Metadata::controls)>;
+    for (std::size_t i = 0;
+         i < std::tuple_size_v<decltype(Info::Metadata::controls)>;
          i++)
       port.push_back(Process::PortType::Message);
     return port;
@@ -232,10 +233,13 @@ public:
   }
 
   ControlProcess(
-      const TimeVal& duration, const Id<Process::ProcessModel>& id,
+      const TimeVal& duration,
+      const Id<Process::ProcessModel>& id,
       QObject* parent)
-      : Process::ProcessModel{
-            duration, id, Metadata<ObjectKey_k, ProcessModel>::get(), parent}
+      : Process::ProcessModel{duration,
+                              id,
+                              Metadata<ObjectKey_k, ProcessModel>::get(),
+                              parent}
   {
     metadata().setInstanceName(*this);
 
@@ -249,9 +253,7 @@ public:
     vis.writeTo(*this);
   }
 
-  ~ControlProcess() override
-  {
-  }
+  ~ControlProcess() override {}
 };
 }
 
@@ -285,14 +287,16 @@ struct TSerializer<DataStream, Model<Info, Control::is_control>>
 
     auto& pl = s.components.template interfaces<Process::PortFactoryList>();
     for (std::size_t i = 0;
-         i < ossia::safe_nodes::info_functions<Info>::inlet_size; i++)
+         i < ossia::safe_nodes::info_functions<Info>::inlet_size;
+         i++)
     {
       obj.m_inlets.push_back(
           (Process::Inlet*)deserialize_interface(pl, s, &obj));
     }
 
     for (std::size_t i = 0;
-         i < ossia::safe_nodes::info_functions<Info>::outlet_size; i++)
+         i < ossia::safe_nodes::info_functions<Info>::outlet_size;
+         i++)
     {
       obj.m_outlets.push_back(
           (Process::Outlet*)deserialize_interface(pl, s, &obj));
@@ -321,14 +325,16 @@ struct TSerializer<JSONObject, Model<Info, Control::is_control>>
     auto outlets = s.obj["Outlets"].toArray();
 
     for (std::size_t i = 0;
-         i < ossia::safe_nodes::info_functions<Info>::inlet_size; i++)
+         i < ossia::safe_nodes::info_functions<Info>::inlet_size;
+         i++)
     {
       obj.m_inlets.push_back((Process::Inlet*)deserialize_interface(
           pl, JSONObjectWriter{inlets[i].toObject()}, &obj));
     }
 
     for (std::size_t i = 0;
-         i < ossia::safe_nodes::info_functions<Info>::outlet_size; i++)
+         i < ossia::safe_nodes::info_functions<Info>::outlet_size;
+         i++)
     {
       obj.m_outlets.push_back((Process::Outlet*)deserialize_interface(
           pl, JSONObjectWriter{outlets[i].toObject()}, &obj));

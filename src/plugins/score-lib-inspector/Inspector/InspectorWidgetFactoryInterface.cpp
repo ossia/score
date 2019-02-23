@@ -6,8 +6,8 @@ namespace Inspector
 {
 InspectorWidgetFactory::~InspectorWidgetFactory() = default;
 
-bool InspectorWidgetFactory::update(
-    QWidget*, const InspectedObjects& obj) const
+bool InspectorWidgetFactory::update(QWidget*, const InspectedObjects& obj)
+    const
 {
   return false;
 }

@@ -56,5 +56,6 @@ private:
   std::pair<const CommandGroupKey, CommandGeneratorMap>
   make_commands() override;
 
-  score::GUIApplicationPlugin* make_guiApplicationPlugin(const score::GUIApplicationContext& app) override;
+  score::GUIApplicationPlugin*
+  make_guiApplicationPlugin(const score::GUIApplicationContext& app) override;
 };

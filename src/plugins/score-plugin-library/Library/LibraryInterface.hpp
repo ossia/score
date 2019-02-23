@@ -1,7 +1,7 @@
 #pragma once
 #include <score/application/GUIApplicationContext.hpp>
-#include <score/plugins/InterfaceList.hpp>
 #include <score/plugins/Interface.hpp>
+#include <score/plugins/InterfaceList.hpp>
 
 #include <score_plugin_library_export.h>
 class QAbstractItemModel;
@@ -21,12 +21,17 @@ public:
   virtual QSet<QString> acceptedFiles() const noexcept;
   virtual QSet<QString> acceptedMimeTypes() const noexcept;
 
-  virtual void setup(ProcessesItemModel& model, const score::GUIApplicationContext& ctx);
+  virtual void
+  setup(ProcessesItemModel& model, const score::GUIApplicationContext& ctx);
   virtual bool onDrop(
-      FileSystemModel& model, const QMimeData& mime, int row, int column,
+      FileSystemModel& model,
+      const QMimeData& mime,
+      int row,
+      int column,
       const QModelIndex& parent);
 
-  virtual bool onDoubleClick(const QString& path, const score::DocumentContext& ctx);
+  virtual bool
+  onDoubleClick(const QString& path, const score::DocumentContext& ctx);
 };
 
 class SCORE_PLUGIN_LIBRARY_EXPORT LibraryInterfaceList final

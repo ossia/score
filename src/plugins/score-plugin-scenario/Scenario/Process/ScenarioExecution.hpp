@@ -69,28 +69,22 @@ class SCORE_PLUGIN_SCENARIO_EXPORT ScenarioComponentBase
 
 public:
   ScenarioComponentBase(
-      Scenario::ProcessModel& proc, const Context& ctx,
-      const Id<score::Component>& id, QObject* parent);
+      Scenario::ProcessModel& proc,
+      const Context& ctx,
+      const Id<score::Component>& id,
+      QObject* parent);
   ~ScenarioComponentBase() override;
 
-  const auto& states() const
-  {
-    return m_ossia_states;
-  }
+  const auto& states() const { return m_ossia_states; }
   const score::hash_map<
-      Id<Scenario::IntervalModel>, std::shared_ptr<IntervalComponent>>&
+      Id<Scenario::IntervalModel>,
+      std::shared_ptr<IntervalComponent>>&
   intervals() const
   {
     return m_ossia_intervals;
   }
-  const auto& events() const
-  {
-    return m_ossia_timeevents;
-  }
-  const auto& timeSyncs() const
-  {
-    return m_ossia_timesyncs;
-  }
+  const auto& events() const { return m_ossia_timeevents; }
+  const auto& timeSyncs() const { return m_ossia_timesyncs; }
 
   void stop() override;
 
@@ -118,7 +112,8 @@ public:
 
 public:
   void sig_eventCallback(
-      std::shared_ptr<EventComponent> arg_1, ossia::time_event::status st)
+      std::shared_ptr<EventComponent> arg_1,
+      ossia::time_event::status st)
       E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, sig_eventCallback, arg_1, st);
 
 protected:
@@ -127,19 +122,20 @@ protected:
   void disableIntervalExecution(const Id<Scenario::IntervalModel>& id);
 
   void eventCallback(
-      std::shared_ptr<EventComponent> ev, ossia::time_event::status newStatus);
+      std::shared_ptr<EventComponent> ev,
+      ossia::time_event::status newStatus);
 
   void
   timeSyncCallback(Execution::TimeSyncComponent* tn, ossia::time_value date);
 
-  score::hash_map<
-      Id<Scenario::IntervalModel>, std::shared_ptr<IntervalComponent>>
-      m_ossia_intervals;
+  score::
+      hash_map<Id<Scenario::IntervalModel>, std::shared_ptr<IntervalComponent>>
+          m_ossia_intervals;
   score::hash_map<Id<Scenario::StateModel>, std::shared_ptr<StateComponent>>
       m_ossia_states;
-  score::hash_map<
-      Id<Scenario::TimeSyncModel>, std::shared_ptr<TimeSyncComponent>>
-      m_ossia_timesyncs;
+  score::
+      hash_map<Id<Scenario::TimeSyncModel>, std::shared_ptr<TimeSyncComponent>>
+          m_ossia_timesyncs;
   score::hash_map<Id<Scenario::EventModel>, std::shared_ptr<EventComponent>>
       m_ossia_timeevents;
 
@@ -154,15 +150,22 @@ protected:
 };
 
 using ScenarioComponentHierarchy = HierarchicalScenarioComponent<
-    ScenarioComponentBase, Scenario::ProcessModel, IntervalComponent,
-    EventComponent, TimeSyncComponent, StateComponent, false>;
+    ScenarioComponentBase,
+    Scenario::ProcessModel,
+    IntervalComponent,
+    EventComponent,
+    TimeSyncComponent,
+    StateComponent,
+    false>;
 
 struct SCORE_PLUGIN_SCENARIO_EXPORT ScenarioComponent final
     : public ScenarioComponentHierarchy
 {
   ScenarioComponent(
-      Scenario::ProcessModel& proc, const Context& ctx,
-      const Id<score::Component>& id, QObject* parent);
+      Scenario::ProcessModel& proc,
+      const Context& ctx,
+      const Id<score::Component>& id,
+      QObject* parent);
 
   void lazy_init() override;
 

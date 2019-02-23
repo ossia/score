@@ -12,19 +12,28 @@ namespace Execution
 using sound_proc_type = ossia::nodes::sound_ref;
 
 SoundComponent::SoundComponent(
-    Media::Sound::ProcessModel& element, const Execution::Context& ctx,
-    const Id<score::Component>& id, QObject* parent)
-    : Execution::ProcessComponent_T<
-          Media::Sound::ProcessModel, ossia::node_process>{
-          element, ctx, id, "Executor::SoundComponent", parent}
+    Media::Sound::ProcessModel& element,
+    const Execution::Context& ctx,
+    const Id<score::Component>& id,
+    QObject* parent)
+    : Execution::
+          ProcessComponent_T<Media::Sound::ProcessModel, ossia::node_process>{
+              element,
+              ctx,
+              id,
+              "Executor::SoundComponent",
+              parent}
 {
   auto node = std::make_shared<sound_proc_type>();
   this->node = node;
   m_ossia_process = std::make_shared<ossia::node_process>(node);
 
-  con(element, &Media::Sound::ProcessModel::fileChanged, this,
-      [this] { this->recompute(); });
-  con(element.file()->decoder(), &Media::AudioDecoder::finishedDecoding, this,
+  con(element, &Media::Sound::ProcessModel::fileChanged, this, [this] {
+    this->recompute();
+  });
+  con(element.file()->decoder(),
+      &Media::AudioDecoder::finishedDecoding,
+      this,
       [this] { this->recompute(); });
   con(element, &Media::Sound::ProcessModel::startChannelChanged, this, [=] {
     in_exec(
@@ -55,17 +64,17 @@ void SoundComponent::recompute()
       }
       return v;
     };
-    in_exec(
-        [n
-         = std::dynamic_pointer_cast<ossia::nodes::sound>(OSSIAProcess().node),
-         data = to_double(process().file()->data()),
-         upmix = process().upmixChannels(), start = process().startChannel(),
-         startOff = process().startOffset()]() mutable {
-          n->set_sound(std::move(data));
-          n->set_start(start);
-          n->set_start_offset(startOff);
-          n->set_upmix(upmix);
-        });
+    in_exec([n = std::dynamic_pointer_cast<ossia::nodes::sound>(
+                 OSSIAProcess().node),
+             data = to_double(process().file()->data()),
+             upmix = process().upmixChannels(),
+             start = process().startChannel(),
+             startOff = process().startOffset()]() mutable {
+      n->set_sound(std::move(data));
+      n->set_start(start);
+      n->set_start_offset(startOff);
+      n->set_upmix(upmix);
+    });
   }
   else
   {
@@ -83,7 +92,5 @@ void SoundComponent::recompute()
   }
 }
 
-SoundComponent::~SoundComponent()
-{
-}
+SoundComponent::~SoundComponent() {}
 }

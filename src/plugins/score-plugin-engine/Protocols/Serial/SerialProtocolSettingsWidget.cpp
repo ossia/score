@@ -83,11 +83,9 @@ void SerialProtocolSettingsWidget::setSettings(
 {
   m_name->setText(settings.name);
   SerialSpecificSettings specific;
-  if (settings.deviceSpecificSettings
-          .canConvert<SerialSpecificSettings>())
+  if (settings.deviceSpecificSettings.canConvert<SerialSpecificSettings>())
   {
-    specific = settings.deviceSpecificSettings
-                   .value<SerialSpecificSettings>();
+    specific = settings.deviceSpecificSettings.value<SerialSpecificSettings>();
 
     m_port->setCurrentText(specific.port.portName());
     m_codeEdit->setPlainText(specific.text);

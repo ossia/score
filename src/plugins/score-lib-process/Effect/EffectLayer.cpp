@@ -20,13 +20,9 @@ EffectLayerView::EffectLayerView(QGraphicsItem* parent)
 {
 }
 
-EffectLayerView::~EffectLayerView()
-{
-}
+EffectLayerView::~EffectLayerView() {}
 
-void EffectLayerView::paint_impl(QPainter*) const
-{
-}
+void EffectLayerView::paint_impl(QPainter*) const {}
 
 void EffectLayerView::mousePressEvent(QGraphicsSceneMouseEvent* ev)
 {
@@ -58,8 +54,10 @@ void EffectLayerView::contextMenuEvent(QGraphicsSceneContextMenuEvent* ev)
 }
 
 EffectLayerPresenter::EffectLayerPresenter(
-    const ProcessModel& model, EffectLayerView* view,
-    const ProcessPresenterContext& ctx, QObject* parent)
+    const ProcessModel& model,
+    EffectLayerView* view,
+    const ProcessPresenterContext& ctx,
+    QObject* parent)
     : LayerPresenter{ctx, parent}, m_layer{model}, m_view{view}
 {
   putToFront();
@@ -67,12 +65,12 @@ EffectLayerPresenter::EffectLayerPresenter(
     m_context.context.focusDispatcher.focus(this);
   });
   connect(
-      m_view, &Process::LayerView::askContextMenu, this,
+      m_view,
+      &Process::LayerView::askContextMenu,
+      this,
       &Process::LayerPresenter::contextMenuRequested);
 }
-EffectLayerPresenter::~EffectLayerPresenter()
-{
-}
+EffectLayerPresenter::~EffectLayerPresenter() {}
 
 void EffectLayerPresenter::setWidth(qreal val)
 {
@@ -94,13 +92,9 @@ void EffectLayerPresenter::putBehind()
   m_view->setVisible(false);
 }
 
-void EffectLayerPresenter::on_zoomRatioChanged(ZoomRatio)
-{
-}
+void EffectLayerPresenter::on_zoomRatioChanged(ZoomRatio) {}
 
-void EffectLayerPresenter::parentGeometryChanged()
-{
-}
+void EffectLayerPresenter::parentGeometryChanged() {}
 
 const ProcessModel& EffectLayerPresenter::model() const
 {
@@ -113,14 +107,18 @@ const Id<ProcessModel>& EffectLayerPresenter::modelId() const
 }
 
 void EffectLayerPresenter::fillContextMenu(
-    QMenu& menu, QPoint pos, QPointF scenepos,
+    QMenu& menu,
+    QPoint pos,
+    QPointF scenepos,
     const LayerContextMenuManager& mgr)
 {
 }
 
 void setupExternalUI(
-    const Process::ProcessModel& proc, const Process::LayerFactory& fact,
-    const score::DocumentContext& ctx, bool show)
+    const Process::ProcessModel& proc,
+    const Process::LayerFactory& fact,
+    const score::DocumentContext& ctx,
+    bool show)
 {
   if (show)
   {
@@ -145,7 +143,8 @@ void setupExternalUI(
 }
 
 void setupExternalUI(
-    const Process::ProcessModel& proc, const score::DocumentContext& ctx,
+    const Process::ProcessModel& proc,
+    const score::DocumentContext& ctx,
     bool show)
 {
   auto& facts = ctx.app.interfaces<Process::LayerFactoryList>();
@@ -158,18 +157,22 @@ void setupExternalUI(
 }
 
 QGraphicsItem* makeExternalUIButton(
-    const ProcessModel& effect, const score::DocumentContext& context,
-    QObject* self, QGraphicsItem* root)
+    const ProcessModel& effect,
+    const score::DocumentContext& context,
+    QObject* self,
+    QGraphicsItem* root)
 {
   auto& pixmaps = Process::Pixmaps::instance();
   auto& facts = context.app.interfaces<Process::LayerFactoryList>();
   auto fact = facts.findDefaultFactory(effect);
   if (fact && fact->hasExternalUI(effect, context))
   {
-    auto ui_btn = new score::QGraphicsPixmapToggle{pixmaps.show_ui_on,
-                                                   pixmaps.show_ui_off, root};
+    auto ui_btn = new score::QGraphicsPixmapToggle{
+        pixmaps.show_ui_on, pixmaps.show_ui_off, root};
     QObject::connect(
-        ui_btn, &score::QGraphicsPixmapToggle::toggled, self,
+        ui_btn,
+        &score::QGraphicsPixmapToggle::toggled,
+        self,
         [=, &effect, &context](bool b) {
           Process::setupExternalUI(effect, *fact, context, b);
         });
@@ -177,7 +180,9 @@ QGraphicsItem* makeExternalUIButton(
     if (effect.externalUI)
       ui_btn->setState(true);
     QObject::connect(
-        &effect, &Process::ProcessModel::externalUIVisible, ui_btn,
+        &effect,
+        &Process::ProcessModel::externalUIVisible,
+        ui_btn,
         [=](bool v) { ui_btn->setState(v); });
     return ui_btn;
   }

@@ -31,32 +31,43 @@ namespace Command
 class SCORE_PLUGIN_SCENARIO_EXPORT MoveNewEvent final : public score::Command
 {
   SCORE_COMMAND_DECL(
-      ScenarioCommandFactoryName(), MoveNewEvent, "Move a new event")
+      ScenarioCommandFactoryName(),
+      MoveNewEvent,
+      "Move a new event")
 public:
   MoveNewEvent(
-      const Scenario::ProcessModel& scenarioPath, Id<IntervalModel> intervalId,
-      Id<EventModel> eventId, TimeVal date, const double y, bool yLocked);
+      const Scenario::ProcessModel& scenarioPath,
+      Id<IntervalModel> intervalId,
+      Id<EventModel> eventId,
+      TimeVal date,
+      const double y,
+      bool yLocked);
   MoveNewEvent(
-      const Scenario::ProcessModel& scenarioPath, Id<IntervalModel> intervalId,
-      Id<EventModel> eventId, TimeVal date, const double y, bool yLocked,
+      const Scenario::ProcessModel& scenarioPath,
+      Id<IntervalModel> intervalId,
+      Id<EventModel> eventId,
+      TimeVal date,
+      const double y,
+      bool yLocked,
       ExpandMode);
 
   void undo(const score::DocumentContext& ctx) const override;
   void redo(const score::DocumentContext& ctx) const override;
 
   void update(
-      Scenario::ProcessModel& s, unused_t, const Id<EventModel>& id,
-      const TimeVal& date, const double y, bool yLocked)
+      Scenario::ProcessModel& s,
+      unused_t,
+      const Id<EventModel>& id,
+      const TimeVal& date,
+      const double y,
+      bool yLocked)
   {
     m_cmd.update(s, id, date, y, ExpandMode::Scale, LockMode::Free);
     m_y = y;
     m_yLocked = yLocked;
   }
 
-  const Path<Scenario::ProcessModel>& path() const
-  {
-    return m_path;
-  }
+  const Path<Scenario::ProcessModel>& path() const { return m_path; }
 
 protected:
   void serializeImpl(DataStreamInput&) const override;

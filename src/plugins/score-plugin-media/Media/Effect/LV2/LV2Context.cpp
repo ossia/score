@@ -94,7 +94,8 @@ do_worker(LV2_Worker_Schedule_Handle ptr, uint32_t s, const void* data)
     {
       w.work(
           cur->instance->lv2_handle,
-          [](LV2_Worker_Respond_Handle sub_h, uint32_t sub_s,
+          [](LV2_Worker_Respond_Handle sub_h,
+             uint32_t sub_s,
              const void* sub_d) {
             return LV2_WORKER_ERR_UNKNOWN;
             auto sub_c = static_cast<LV2::EffectContext*>(sub_h);
@@ -104,7 +105,9 @@ do_worker(LV2_Worker_Schedule_Handle ptr, uint32_t s, const void* data)
             sub_c->worker_response = true;
             return LV2_WORKER_SUCCESS;
           },
-          cur, s, data);
+          cur,
+          s,
+          data);
       return LV2_WORKER_SUCCESS;
     }
   }
@@ -163,7 +166,8 @@ GlobalContext::GlobalContext(int buffer_size, LV2::HostContext& host)
     , event{this, do_event_ref, do_event_unref}
     , worker{this, do_worker}
     , worker_state{this, do_worker_state}
-    , logger{this, lv2_printf,
+    , logger{this,
+             lv2_printf,
              [](auto h, auto t, auto fmt, auto lst) {
                return std::vprintf(fmt, lst);
              }}
@@ -174,21 +178,34 @@ GlobalContext::GlobalContext(int buffer_size, LV2::HostContext& host)
 
   static const int min = 0;
   static const int max = 4096;
-  options.push_back(LV2_Options_Option{
-      LV2_OPTIONS_INSTANCE, 0,
-      map.map(map.handle, LV2_BUF_SIZE__minBlockLength), sizeof(min),
-      map.map(map.handle, LV2_ATOM__Int), &min});
-  options.push_back(LV2_Options_Option{
-      LV2_OPTIONS_INSTANCE, 0,
-      map.map(map.handle, LV2_BUF_SIZE__maxBlockLength), sizeof(max),
-      map.map(map.handle, LV2_ATOM__Int), &max});
-  options.push_back(LV2_Options_Option{
-      LV2_OPTIONS_INSTANCE, 0, map.map(map.handle, LV2_CORE__sampleRate),
-      sizeof(sampleRate), map.map(map.handle, LV2_ATOM__Double), &sampleRate});
-  options.push_back(LV2_Options_Option{
-      LV2_OPTIONS_INSTANCE, 0, map.map(map.handle, LV2_BUF_SIZE__sequenceSize),
-      sizeof(host.midi_buffer_size), map.map(map.handle, LV2_ATOM__Int),
-      &host.midi_buffer_size});
+  options.push_back(
+      LV2_Options_Option{LV2_OPTIONS_INSTANCE,
+                         0,
+                         map.map(map.handle, LV2_BUF_SIZE__minBlockLength),
+                         sizeof(min),
+                         map.map(map.handle, LV2_ATOM__Int),
+                         &min});
+  options.push_back(
+      LV2_Options_Option{LV2_OPTIONS_INSTANCE,
+                         0,
+                         map.map(map.handle, LV2_BUF_SIZE__maxBlockLength),
+                         sizeof(max),
+                         map.map(map.handle, LV2_ATOM__Int),
+                         &max});
+  options.push_back(
+      LV2_Options_Option{LV2_OPTIONS_INSTANCE,
+                         0,
+                         map.map(map.handle, LV2_CORE__sampleRate),
+                         sizeof(sampleRate),
+                         map.map(map.handle, LV2_ATOM__Double),
+                         &sampleRate});
+  options.push_back(
+      LV2_Options_Option{LV2_OPTIONS_INSTANCE,
+                         0,
+                         map.map(map.handle, LV2_BUF_SIZE__sequenceSize),
+                         sizeof(host.midi_buffer_size),
+                         map.map(map.handle, LV2_ATOM__Int),
+                         &host.midi_buffer_size});
 
   options.push_back(
       LV2_Options_Option{LV2_OPTIONS_INSTANCE, 0, 0, 0, 0, nullptr});

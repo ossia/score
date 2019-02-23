@@ -24,15 +24,9 @@ public:
   virtual ~Inlet() override;
   virtual Process::Inlet* make(Id<Process::Port>&& id, QObject*) = 0;
 
-  QString address() const
-  {
-    return m_address;
-  }
+  QString address() const { return m_address; }
 
-  virtual bool is_control() const
-  {
-    return false;
-  }
+  virtual bool is_control() const { return false; }
 
 public:
   void setAddress(QString address)
@@ -48,7 +42,8 @@ public:
   void addressChanged(QString address) W_SIGNAL(addressChanged, address);
 
   W_PROPERTY(
-      QString, address READ address WRITE setAddress NOTIFY addressChanged)
+      QString,
+      address READ address WRITE setAddress NOTIFY addressChanged)
 };
 class Outlet : public QObject
 {
@@ -61,10 +56,7 @@ public:
   virtual ~Outlet() override;
   virtual Process::Outlet* make(Id<Process::Port>&& id, QObject*) = 0;
 
-  QString address() const
-  {
-    return m_address;
-  }
+  QString address() const { return m_address; }
 
 public:
   void setAddress(QString address)
@@ -80,7 +72,8 @@ public:
   void addressChanged(QString address) W_SIGNAL(addressChanged, address);
 
   W_PROPERTY(
-      QString, address READ address WRITE setAddress NOTIFY addressChanged)
+      QString,
+      address READ address WRITE setAddress NOTIFY addressChanged)
 };
 struct ValueMessage
 {
@@ -103,10 +96,7 @@ public:
   ValueInlet(QObject* parent = nullptr);
   virtual ~ValueInlet() override;
   QVariant value() const;
-  QVariantList values() const
-  {
-    return m_values;
-  }
+  QVariantList values() const { return m_values; }
 
   Process::Inlet* make(Id<Process::Port>&& id, QObject* parent) override
   {
@@ -115,15 +105,9 @@ public:
     return p;
   }
 
-  void clear()
-  {
-    m_values.clear();
-  }
+  void clear() { m_values.clear(); }
   void setValue(QVariant value);
-  void addValue(QVariant&& val)
-  {
-    m_values.append(std::move(val));
-  }
+  void addValue(QVariant&& val) { m_values.append(std::move(val)); }
 
   W_PROPERTY(QVariantList, values READ values)
   W_PROPERTY(QVariant, value READ value)
@@ -147,10 +131,7 @@ public:
     return p;
   }
 
-  void clear()
-  {
-    m_value = QVariant{};
-  }
+  void clear() { m_value = QVariant{}; }
   void setValue(QVariant value);
 
   W_PROPERTY(QVariant, value READ value)
@@ -163,27 +144,15 @@ class FloatSlider : public ValueInlet
 public:
   using ValueInlet::ValueInlet;
   virtual ~FloatSlider() override;
-  qreal getMin() const
-  {
-    return m_min;
-  }
-  qreal getMax() const
-  {
-    return m_max;
-  }
-  qreal init() const
-  {
-    return m_init;
-  }
-  bool is_control() const override
-  {
-    return true;
-  }
+  qreal getMin() const { return m_min; }
+  qreal getMax() const { return m_max; }
+  qreal init() const { return m_init; }
+  bool is_control() const override { return true; }
 
   Process::Inlet* make(Id<Process::Port>&& id, QObject* parent) override
   {
-    return new Process::FloatSlider{(float)m_min, (float)m_max, (float)m_init,
-                                    objectName(), id,           parent};
+    return new Process::FloatSlider{
+        (float)m_min, (float)m_max, (float)m_init, objectName(), id, parent};
   }
 
 public:
@@ -239,27 +208,15 @@ class IntSlider : public ValueInlet
 public:
   using ValueInlet::ValueInlet;
   virtual ~IntSlider() override;
-  int getMin() const
-  {
-    return m_min;
-  }
-  int getMax() const
-  {
-    return m_max;
-  }
-  int init() const
-  {
-    return m_init;
-  }
-  bool is_control() const override
-  {
-    return true;
-  }
+  int getMin() const { return m_min; }
+  int getMax() const { return m_max; }
+  int init() const { return m_init; }
+  bool is_control() const override { return true; }
 
   Process::Inlet* make(Id<Process::Port>&& id, QObject* parent) override
   {
-    return new Process::IntSlider{m_min,        m_max, m_init,
-                                  objectName(), id,    parent};
+    return new Process::IntSlider{
+        m_min, m_max, m_init, objectName(), id, parent};
   }
 
 public:
@@ -315,28 +272,16 @@ class Enum : public ValueInlet
 public:
   using ValueInlet::ValueInlet;
   virtual ~Enum() override;
-  int index() const
-  {
-    return m_index;
-  }
-  QStringList choices() const
-  {
-    return m_choices;
-  }
-  bool is_control() const override
-  {
-    return true;
-  }
+  int index() const { return m_index; }
+  QStringList choices() const { return m_choices; }
+  bool is_control() const override { return true; }
 
   Process::Inlet* make(Id<Process::Port>&& id, QObject* parent) override
   {
     return new Process::Enum{m_choices, current(), objectName(), id, parent};
   }
 
-  auto getValues() const
-  {
-    return choices();
-  }
+  auto getValues() const { return choices(); }
 
   std::string current() const
   {
@@ -378,7 +323,8 @@ private:
 
   W_PROPERTY(int, index READ index WRITE setIndex NOTIFY indexChanged)
   W_PROPERTY(
-      QStringList, choices READ choices WRITE setChoices NOTIFY choicesChanged)
+      QStringList,
+      choices READ choices WRITE setChoices NOTIFY choicesChanged)
 };
 
 class Toggle : public ValueInlet
@@ -388,14 +334,8 @@ class Toggle : public ValueInlet
 public:
   using ValueInlet::ValueInlet;
   virtual ~Toggle() override;
-  bool checked() const
-  {
-    return m_checked;
-  }
-  bool is_control() const override
-  {
-    return true;
-  }
+  bool checked() const { return m_checked; }
+  bool is_control() const override { return true; }
   Process::Inlet* make(Id<Process::Port>&& id, QObject* parent) override
   {
     return new Process::Toggle{m_checked, objectName(), id, parent};
@@ -428,14 +368,8 @@ class LineEdit : public ValueInlet
 public:
   using ValueInlet::ValueInlet;
   virtual ~LineEdit() override;
-  QString text() const
-  {
-    return m_text;
-  }
-  bool is_control() const override
-  {
-    return true;
-  }
+  QString text() const { return m_text; }
+  bool is_control() const override { return true; }
   Process::Inlet* make(Id<Process::Port>&& id, QObject* parent) override
   {
     return new Process::LineEdit{m_text, objectName(), id, parent};
@@ -586,10 +520,7 @@ public:
     }
   }
 
-  QVariantList messages() const
-  {
-    return m_midi;
-  }
+  QVariantList messages() const { return m_midi; }
   W_INVOKABLE(messages);
 
   Process::Inlet* make(Id<Process::Port>&& id, QObject* parent) override
@@ -631,10 +562,7 @@ public:
   }
   W_INVOKABLE(setMessages);
 
-  void add(QVector<int> m)
-  {
-    m_midi.push_back(std::move(m));
-  }
+  void add(QVector<int> m) { m_midi.push_back(std::move(m)); }
   W_INVOKABLE(add);
 
 private:

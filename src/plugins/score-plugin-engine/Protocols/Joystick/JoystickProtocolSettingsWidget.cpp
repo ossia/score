@@ -36,15 +36,15 @@ JoystickProtocolSettingsWidget::JoystickProtocolSettingsWidget(QWidget* parent)
   setLayout(layout);
 
   connect(
-      update_button, &QAbstractButton::released, this,
+      update_button,
+      &QAbstractButton::released,
+      this,
       &JoystickProtocolSettingsWidget::update_device_list);
 
   update_device_list();
 }
 
-JoystickProtocolSettingsWidget::~JoystickProtocolSettingsWidget()
-{
-}
+JoystickProtocolSettingsWidget::~JoystickProtocolSettingsWidget() {}
 
 Device::DeviceSettings JoystickProtocolSettingsWidget::getSettings() const
 {

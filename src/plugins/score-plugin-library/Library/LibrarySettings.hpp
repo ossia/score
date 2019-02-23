@@ -7,6 +7,7 @@
 #include <score/plugins/settingsdelegate/SettingsDelegatePresenter.hpp>
 #include <score/plugins/settingsdelegate/SettingsDelegateView.hpp>
 #include <score/widgets/SpinBoxes.hpp>
+
 #include <score_plugin_library_export.h>
 #include <wobjectdefs.h>
 
@@ -38,7 +39,8 @@ class QSpinBox;
 class QCheckBox;
 namespace Library::Settings
 {
-class SCORE_PLUGIN_LIBRARY_EXPORT Model final : public score::SettingsDelegateModel
+class SCORE_PLUGIN_LIBRARY_EXPORT Model final
+    : public score::SettingsDelegateModel
 {
   W_OBJECT(Model)
   QString m_Path;
@@ -77,5 +79,9 @@ private:
 };
 
 SCORE_DECLARE_SETTINGS_FACTORY(
-    Factory, Model, Presenter, View, "d6966670-f69f-48d0-96f6-72a5e2190cbc")
+    Factory,
+    Model,
+    Presenter,
+    View,
+    "d6966670-f69f-48d0-96f6-72a5e2190cbc")
 }

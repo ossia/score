@@ -29,7 +29,8 @@ namespace Scenario
 void GoodOldDisplacementPolicy::computeDisplacement(
     Scenario::ProcessModel& scenario,
     const QVector<Id<TimeSyncModel>>& draggedElements,
-    const TimeVal& deltaTime, ElementsProperties& elementsProperties)
+    const TimeVal& deltaTime,
+    ElementsProperties& elementsProperties)
 {
   // this old behavior supports only the move of one timesync
   if (draggedElements.length() != 1)
@@ -156,7 +157,8 @@ void GoodOldDisplacementPolicy::getRelatedTimeSyncs(
     return;
 
   auto it = std::find(
-      translatedTimeSyncs.begin(), translatedTimeSyncs.end(),
+      translatedTimeSyncs.begin(),
+      translatedTimeSyncs.end(),
       firstTimeSyncMovedId);
   if (it == translatedTimeSyncs.end())
   {

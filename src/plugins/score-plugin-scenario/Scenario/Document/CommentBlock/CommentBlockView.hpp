@@ -4,7 +4,8 @@
 #include <QGraphicsItem>
 #include <QObject>
 #include <QPointF>
-namespace score {
+namespace score
+{
 class TextItem;
 }
 
@@ -22,18 +23,13 @@ public:
   {
     return QGraphicsItem::UserType + ItemType::Comment;
   }
-  int type() const override
-  {
-    return static_type();
-  }
+  int type() const override { return static_type(); }
 
-  const CommentBlockPresenter& presenter() const
-  {
-    return m_presenter;
-  }
+  const CommentBlockPresenter& presenter() const { return m_presenter; }
 
   void paint(
-      QPainter* painter, const QStyleOptionGraphicsItem* option,
+      QPainter* painter,
+      const QStyleOptionGraphicsItem* option,
       QWidget* widget) override;
 
   QRectF boundingRect() const override;

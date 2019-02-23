@@ -4,6 +4,7 @@
 #include <Process/TimeValue.hpp>
 
 #include <score/model/path/Path.hpp>
+
 #include <score_plugin_midi_export.h>
 namespace Midi
 {
@@ -33,8 +34,11 @@ class SCORE_PLUGIN_MIDI_EXPORT ReplaceNotes final : public score::Command
   SCORE_COMMAND_DECL(Midi::CommandFactoryName(), ReplaceNotes, "Set notes")
 public:
   ReplaceNotes(
-      const ProcessModel& model, const std::vector<NoteData>& note, int min,
-      int max, TimeVal dur);
+      const ProcessModel& model,
+      const std::vector<NoteData>& note,
+      int min,
+      int max,
+      TimeVal dur);
 
   void undo(const score::DocumentContext& ctx) const override;
   void redo(const score::DocumentContext& ctx) const override;

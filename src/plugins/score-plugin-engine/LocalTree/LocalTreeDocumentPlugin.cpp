@@ -19,14 +19,19 @@
 #include <LocalTree/Scenario/IntervalComponent.hpp>
 
 LocalTree::DocumentPlugin::DocumentPlugin(
-    const score::DocumentContext& ctx, Id<score::DocumentPlugin> id,
+    const score::DocumentContext& ctx,
+    Id<score::DocumentPlugin> id,
     QObject* parent)
-    : score::DocumentPlugin{ctx, std::move(id), "LocalTree::DocumentPlugin",
+    : score::DocumentPlugin{ctx,
+                            std::move(id),
+                            "LocalTree::DocumentPlugin",
                             parent}
     , m_localDevice{std::make_unique<ossia::net::generic_device>(
-          std::make_unique<ossia::net::multiplex_protocol>(), "score")}
+          std::make_unique<ossia::net::multiplex_protocol>(),
+          "score")}
     , m_localDeviceWrapper{
-          *m_localDevice, ctx,
+          *m_localDevice,
+          ctx,
           Protocols::LocalProtocolFactory::static_defaultSettings()}
 {
 }
@@ -48,7 +53,9 @@ void LocalTree::DocumentPlugin::init()
     create();
   }
 
-  con(set, &Explorer::Settings::Model::LocalTreeChanged, this,
+  con(set,
+      &Explorer::Settings::Model::LocalTreeChanged,
+      this,
       [=](bool b) {
         if (b)
           create();
@@ -79,8 +86,11 @@ void LocalTree::DocumentPlugin::create()
 
   auto& cstr = scenar->baseInterval();
   m_root = new Interval(
-      m_localDevice->get_root_node(), getStrongId(cstr.components()), cstr,
-      *this, this);
+      m_localDevice->get_root_node(),
+      getStrongId(cstr.components()),
+      cstr,
+      *this,
+      this);
   cstr.components().add(m_root);
 }
 

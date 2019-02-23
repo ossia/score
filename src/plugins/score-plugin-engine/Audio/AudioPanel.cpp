@@ -36,8 +36,9 @@ public:
     label.setText(addr);
 
     slider.setValue(*param.value().target<float>());
-    con(slider, &score::DoubleSlider::valueChanged, this,
-        [&](double d) { param.push_value(d); });
+    con(slider, &score::DoubleSlider::valueChanged, this, [&](double d) {
+      param.push_value(d);
+    });
     idx = param.add_callback([=](const ossia::value& v) {
       slider.setValue(ossia::convert<float>(v));
     });
@@ -45,10 +46,7 @@ public:
         *this);
   }
 
-  void onParamRemoved(const ossia::net::node_base& n)
-  {
-    p = nullptr;
-  }
+  void onParamRemoved(const ossia::net::node_base& n) { p = nullptr; }
 
   ~AudioSlider() override
   {
@@ -110,7 +108,9 @@ QWidget* PanelDelegate::widget()
 
 const score::PanelStatus& PanelDelegate::defaultPanelStatus() const
 {
-  static const score::PanelStatus status{false, Qt::BottomDockWidgetArea, 10,
+  static const score::PanelStatus status{false,
+                                         Qt::BottomDockWidgetArea,
+                                         10,
                                          QObject::tr("Audio"),
                                          QObject::tr("Ctrl+Shift+A")};
 
@@ -118,7 +118,8 @@ const score::PanelStatus& PanelDelegate::defaultPanelStatus() const
 }
 
 void PanelDelegate::on_modelChanged(
-    score::MaybeDocument oldm, score::MaybeDocument newm)
+    score::MaybeDocument oldm,
+    score::MaybeDocument newm)
 {
   delete m_cur;
   m_cur = nullptr;

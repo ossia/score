@@ -19,17 +19,25 @@
 namespace Execution
 {
 TimeSyncComponent::TimeSyncComponent(
-    const Scenario::TimeSyncModel& element, const Execution::Context& ctx,
-    const Id<score::Component>& id, QObject* parent)
+    const Scenario::TimeSyncModel& element,
+    const Execution::Context& ctx,
+    const Id<score::Component>& id,
+    QObject* parent)
     : Execution::Component{ctx, id, "Executor::TimeSync", nullptr}
     , m_score_node{&element}
 {
-  con(element, &Scenario::TimeSyncModel::triggeredByGui, this,
+  con(element,
+      &Scenario::TimeSyncModel::triggeredByGui,
+      this,
       &TimeSyncComponent::on_GUITrigger);
 
-  con(element, &Scenario::TimeSyncModel::activeChanged, this,
+  con(element,
+      &Scenario::TimeSyncModel::activeChanged,
+      this,
       &TimeSyncComponent::updateTrigger);
-  con(element, &Scenario::TimeSyncModel::triggerChanged, this,
+  con(element,
+      &Scenario::TimeSyncModel::triggerChanged,
+      this,
       [this](const State::Expression& expr) { this->updateTrigger(); });
 }
 
@@ -61,7 +69,8 @@ ossia::expression_ptr TimeSyncComponent::makeTrigger() const
 }
 
 void TimeSyncComponent::onSetup(
-    std::shared_ptr<ossia::time_sync> ptr, ossia::expression_ptr exp)
+    std::shared_ptr<ossia::time_sync> ptr,
+    ossia::expression_ptr exp)
 {
   m_ossia_node = ptr;
   m_ossia_node->set_expression(std::move(exp));

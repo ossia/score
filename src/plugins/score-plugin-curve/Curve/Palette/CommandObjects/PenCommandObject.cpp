@@ -51,7 +51,8 @@ QString::number(prev->following->val()) : QString("none"))
 }
 */
 PenCommandObject::PenCommandObject(
-    Presenter* presenter, const score::CommandStackFacade& stack)
+    Presenter* presenter,
+    const score::CommandStackFacade& stack)
     : CommandObjectBase{presenter, stack}
     , m_segment{Id<SegmentModel>{}, nullptr}
 {
@@ -255,7 +256,9 @@ void PenCommandObject::release_n(seg_tuple&& segts_tpl)
 }
 
 std::tuple<
-    optional<SegmentData>, optional<SegmentData>, std::vector<SegmentData>>
+    optional<SegmentData>,
+    optional<SegmentData>,
+    std::vector<SegmentData>>
 PenCommandObject::filterSegments()
 {
   auto x = m_state->currentPoint.x();

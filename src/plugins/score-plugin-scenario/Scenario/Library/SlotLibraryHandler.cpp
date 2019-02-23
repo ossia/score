@@ -4,6 +4,7 @@
 #include <Scenario/Library/SlotLibraryHandler.hpp>
 #include <State/MessageListSerialization.hpp>
 #include <State/StateMimeTypes.hpp>
+
 #include <score/model/tree/TreeNodeSerialization.hpp>
 
 #include <QMimeData>
@@ -58,8 +59,11 @@ QString addUniqueSuffix(const QString& fileName)
 }
 
 bool SlotLibraryHandler::onDrop(
-    Library::FileSystemModel& model, const QMimeData& mime, int row,
-    int column, const QModelIndex& parent)
+    Library::FileSystemModel& model,
+    const QMimeData& mime,
+    int row,
+    int column,
+    const QModelIndex& parent)
 {
   if (!mime.hasFormat(score::mime::layerdata()))
     return false;
@@ -100,8 +104,11 @@ QSet<QString> SlotLibraryHandler::acceptedFiles() const noexcept
 }
 
 bool ScenarioLibraryHandler::onDrop(
-    Library::FileSystemModel& model, const QMimeData& mime, int row,
-    int column, const QModelIndex& parent)
+    Library::FileSystemModel& model,
+    const QMimeData& mime,
+    int row,
+    int column,
+    const QModelIndex& parent)
 {
   if (mime.hasFormat(score::mime::scenariodata()))
   {

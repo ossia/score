@@ -42,13 +42,14 @@ enum ExpressionEditorComparator
   AlwaysFalse
 };
 
-
 class SimpleExpressionEditorWidget final : public QWidget
 {
   W_OBJECT(SimpleExpressionEditorWidget)
 public:
   SimpleExpressionEditorWidget(
-      const score::DocumentContext&, int index, QWidget* parent = nullptr,
+      const score::DocumentContext&,
+      int index,
+      QWidget* parent = nullptr,
       QMenu* menu = nullptr);
 
   State::Expression relation();

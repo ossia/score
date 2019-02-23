@@ -21,23 +21,23 @@
 
 #if defined(LILV_SHARED)
 #include <Media/Effect/LV2/LV2EffectModel.hpp>
-#include <Media/Effect/LV2/LV2Window.hpp>
 #include <Media/Effect/LV2/LV2Library.hpp>
+#include <Media/Effect/LV2/LV2Window.hpp>
 #endif
 #if defined(HAS_VST2)
 #include <Media/Effect/VST/VSTControl.hpp>
-#include <Media/Effect/VST/VSTLibrary.hpp>
 #include <Media/Effect/VST/VSTEffectModel.hpp>
 #include <Media/Effect/VST/VSTExecutor.hpp>
+#include <Media/Effect/VST/VSTLibrary.hpp>
 #include <Media/Effect/VST/VSTWidgets.hpp>
 #endif
 #if defined(HAS_FAUST)
 #include <Media/Effect/Faust/FaustEffectModel.hpp>
 #include <Media/Effect/Faust/FaustLibrary.hpp>
 #endif
-#include <score/plugins/application/GUIApplicationPlugin.hpp>
-#include <score/plugins/InterfaceList.hpp>
 #include <score/plugins/FactorySetup.hpp>
+#include <score/plugins/InterfaceList.hpp>
+#include <score/plugins/application/GUIApplicationPlugin.hpp>
 #include <score/plugins/settingsdelegate/SettingsDelegateFactory.hpp>
 
 #include <core/document/Document.hpp>
@@ -48,13 +48,9 @@
 W_OBJECT_IMPL(Media::Step::View)
 W_OBJECT_IMPL(Media::Effect::EffectTitleItem)
 
-score_plugin_media::score_plugin_media()
-{
-}
+score_plugin_media::score_plugin_media() {}
 
-score_plugin_media::~score_plugin_media()
-{
-}
+score_plugin_media::~score_plugin_media() {}
 
 std::pair<const CommandGroupKey, CommandGeneratorMap>
 score_plugin_media::make_commands()
@@ -85,12 +81,15 @@ score::GUIApplicationPlugin* score_plugin_media::make_guiApplicationPlugin(
 
 std::vector<std::unique_ptr<score::InterfaceBase>>
 score_plugin_media::factories(
-    const score::ApplicationContext& ctx, const score::InterfaceKey& key) const
+    const score::ApplicationContext& ctx,
+    const score::InterfaceKey& key) const
 {
   return instantiate_factories<
       score::ApplicationContext,
-      FW<Process::ProcessModelFactory, Media::Sound::ProcessFactory,
-         Media::Effect::ProcessFactory, Media::Step::ProcessFactory,
+      FW<Process::ProcessModelFactory,
+         Media::Sound::ProcessFactory,
+         Media::Effect::ProcessFactory,
+         Media::Step::ProcessFactory,
          Media::Merger::ProcessFactory
 #if defined(HAS_FAUST)
          ,
@@ -105,16 +104,20 @@ score_plugin_media::factories(
          Media::VST::VSTEffectFactory
 #endif
          >,
-      FW<Inspector::InspectorWidgetFactory, Media::Sound::InspectorFactory,
+      FW<Inspector::InspectorWidgetFactory,
+         Media::Sound::InspectorFactory,
          Media::Effect::InspectorFactory
 #if defined(HAS_FAUST)
          ,
          Media::Faust::InspectorFactory
 #endif
          ,
-         Media::Step::InspectorFactory, Media::Merger::InspectorFactory>,
-      FW<Process::LayerFactory, Media::Sound::LayerFactory,
-         Media::Effect::LayerFactory, Media::Step::LayerFactory,
+         Media::Step::InspectorFactory,
+         Media::Merger::InspectorFactory>,
+      FW<Process::LayerFactory,
+         Media::Sound::LayerFactory,
+         Media::Effect::LayerFactory,
+         Media::Step::LayerFactory,
          Media::Merger::LayerFactory
 #if defined(HAS_VST2)
          ,
@@ -148,8 +151,10 @@ score_plugin_media::factories(
       FW<Process::PortFactory, Media::VST::VSTControlPortFactory>,
 #endif
 
-      FW<Execution::ProcessComponentFactory, Execution::SoundComponentFactory,
-         Media::EffectProcessComponentFactory, Execution::StepComponentFactory,
+      FW<Execution::ProcessComponentFactory,
+         Execution::SoundComponentFactory,
+         Media::EffectProcessComponentFactory,
+         Execution::StepComponentFactory,
          Execution::MergerComponentFactory
 #if defined(HAS_VST2)
          ,
@@ -164,15 +169,15 @@ score_plugin_media::factories(
          Execution::FaustEffectComponentFactory
 #endif
          >,
-      FW<Process::ProcessDropHandler
-        , Media::Sound::DropHandler
+      FW<Process::ProcessDropHandler,
+         Media::Sound::DropHandler
 #if defined(HAS_FAUST)
-        , Media::Faust::DropHandler
+         ,
+         Media::Faust::DropHandler
 #endif
-      >,
+         >,
       FW<score::SettingsDelegateFactory, Media::Settings::Factory>,
-      FW<score::ObjectRemover, Media::Effect::EffectRemover>
-      >(ctx, key);
+      FW<score::ObjectRemover, Media::Effect::EffectRemover>>(ctx, key);
 }
 
 #include <score/plugins/PluginInstances.hpp>

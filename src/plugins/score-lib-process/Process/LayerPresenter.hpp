@@ -40,10 +40,7 @@ public:
 
   ~LayerPresenter() override;
 
-  const Process::LayerContext& context() const
-  {
-    return m_context;
-  }
+  const Process::LayerContext& context() const { return m_context; }
 
   bool focused() const;
   void setFocus(bool focus);
@@ -64,7 +61,10 @@ public:
   virtual const Id<ProcessModel>& modelId() const = 0;
 
   virtual void fillContextMenu(
-      QMenu&, QPoint pos, QPointF scenepos, const LayerContextMenuManager&);
+      QMenu&,
+      QPoint pos,
+      QPointF scenepos,
+      const LayerContextMenuManager&);
 
   virtual GraphicsShapeItem* makeSlotHeaderDelegate();
 

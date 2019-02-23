@@ -12,7 +12,6 @@ class QRadioButton;
 class QWidget;
 class QLineEdit;
 
-
 namespace Protocols
 {
 class MIDIProtocolSettingsWidget final : public Device::ProtocolSettingsWidget
@@ -38,4 +37,3 @@ private:
   QCheckBox* m_createWhole{};
 };
 }
-

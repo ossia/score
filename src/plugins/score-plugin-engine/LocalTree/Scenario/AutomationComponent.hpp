@@ -12,10 +12,17 @@ class AutomationComponent final
 
 public:
   AutomationComponent(
-      const Id<score::Component>& id, ossia::net::node_base& parent,
-      Automation::ProcessModel& proc, DocumentPlugin& ctx, QObject* parent_obj)
-      : ProcessComponent_T<Automation::ProcessModel>{
-            parent, proc, ctx, id, "AutomationComponent", parent_obj}
+      const Id<score::Component>& id,
+      ossia::net::node_base& parent,
+      Automation::ProcessModel& proc,
+      DocumentPlugin& ctx,
+      QObject* parent_obj)
+      : ProcessComponent_T<Automation::ProcessModel>{parent,
+                                                     proc,
+                                                     ctx,
+                                                     id,
+                                                     "AutomationComponent",
+                                                     parent_obj}
   {
     add<Automation::ProcessModel::p_min>(proc);
     add<Automation::ProcessModel::p_max>(proc);

@@ -24,8 +24,10 @@ class SCORE_PLUGIN_SCENARIO_EXPORT TimeSyncRawPtrComponent final
 public:
   static const constexpr bool is_unique = true;
   TimeSyncRawPtrComponent(
-      const Scenario::TimeSyncModel& element, const Execution::Context& ctx,
-      const Id<score::Component>& id, QObject* parent);
+      const Scenario::TimeSyncModel& element,
+      const Execution::Context& ctx,
+      const Id<score::Component>& id,
+      QObject* parent);
 
   void cleanup();
 

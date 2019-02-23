@@ -1,8 +1,8 @@
 #pragma once
-#include <Library/ProcessesItemModel.hpp>
 #include <Library/LibraryInterface.hpp>
-#include <Media/Effect/LV2/LV2EffectModel.hpp>
+#include <Library/ProcessesItemModel.hpp>
 #include <Media/ApplicationPlugin.hpp>
+#include <Media/Effect/LV2/LV2EffectModel.hpp>
 
 namespace Media::LV2
 {

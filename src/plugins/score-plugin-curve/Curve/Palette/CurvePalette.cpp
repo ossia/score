@@ -15,9 +15,7 @@ ToolPalette::ToolPalette(const score::DocumentContext& ctx, Presenter& pres)
 {
 }
 
-ToolPalette::~ToolPalette()
-{
-}
+ToolPalette::~ToolPalette() {}
 
 Presenter& ToolPalette::presenter() const
 {
@@ -114,12 +112,8 @@ void ToolPalette::on_cancel()
   m_createPenTool.on_cancel();
 }
 
-void ToolPalette::activate(Curve::Tool)
-{
-}
-void ToolPalette::desactivate(Curve::Tool)
-{
-}
+void ToolPalette::activate(Curve::Tool) {}
+void ToolPalette::desactivate(Curve::Tool) {}
 
 void ToolPalette::createPoint(QPointF point)
 {

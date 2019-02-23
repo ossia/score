@@ -26,7 +26,8 @@ class SCORE_LIB_BASE_EXPORT DocumentDelegateFactory
     : public score::InterfaceBase
 {
   SCORE_INTERFACE(
-      DocumentDelegateFactory, "127ea824-f623-4f68-8deb-7c8c930a262b")
+      DocumentDelegateFactory,
+      "127ea824-f623-4f68-8deb-7c8c930a262b")
 public:
   ~DocumentDelegateFactory() override;
 
@@ -35,17 +36,22 @@ public:
       = 0;
 
   virtual DocumentDelegatePresenter* makePresenter(
-      const score::DocumentContext& ctx, DocumentPresenter* parent_presenter,
-      const DocumentDelegateModel& model, DocumentDelegateView& view)
+      const score::DocumentContext& ctx,
+      DocumentPresenter* parent_presenter,
+      const DocumentDelegateModel& model,
+      DocumentDelegateView& view)
       = 0;
 
   virtual void make(
-      const score::DocumentContext& ctx, DocumentDelegateModel*& ptr,
+      const score::DocumentContext& ctx,
+      DocumentDelegateModel*& ptr,
       DocumentModel* parent)
       = 0;
   virtual void load(
-      const VisitorVariant&, const score::DocumentContext& ctx,
-      DocumentDelegateModel*& ptr, DocumentModel* parent)
+      const VisitorVariant&,
+      const score::DocumentContext& ctx,
+      DocumentDelegateModel*& ptr,
+      DocumentModel* parent)
       = 0;
 };
 

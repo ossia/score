@@ -1,7 +1,7 @@
 #pragma once
+#include <Dataflow/Commands/CableHelpers.hpp>
 #include <Scenario/Palette/ScenarioPoint.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
-#include <Dataflow/Commands/CableHelpers.hpp>
 
 #include <score/command/AggregateCommand.hpp>
 #include <score/command/Dispatchers/MacroCommandDispatcher.hpp>
@@ -28,19 +28,23 @@ public:
   ~Macro();
 
   StateModel& createState(
-      const Scenario::ProcessModel& scenar, const Id<EventModel>& ev,
+      const Scenario::ProcessModel& scenar,
+      const Id<EventModel>& ev,
       double y);
 
   std::tuple<TimeSyncModel&, EventModel&, StateModel&>
   createDot(const Scenario::ProcessModel& scenar, Scenario::Point pt);
 
   IntervalModel& createBox(
-      const Scenario::ProcessModel& scenar, TimeVal start, TimeVal end,
+      const Scenario::ProcessModel& scenar,
+      TimeVal start,
+      TimeVal end,
       double y);
 
   IntervalModel& createIntervalAfter(
       const Scenario::ProcessModel& scenar,
-      const Id<Scenario::StateModel>& state, Scenario::Point pt);
+      const Id<Scenario::StateModel>& state,
+      Scenario::Point pt);
 
   IntervalModel& createInterval(
       const Scenario::ProcessModel& scenar,
@@ -49,11 +53,13 @@ public:
 
   Process::ProcessModel* createProcess(
       const Scenario::IntervalModel& interval,
-      const UuidKey<Process::ProcessModel>& key, const QString& data);
+      const UuidKey<Process::ProcessModel>& key,
+      const QString& data);
 
   template <typename T>
   T& createProcess(
-      const Scenario::IntervalModel& interval, const QString& data)
+      const Scenario::IntervalModel& interval,
+      const QString& data)
   {
     return *safe_cast<T*>(this->createProcess(
         interval, Metadata<ConcreteKey_k, T>::get(), data));
@@ -61,11 +67,13 @@ public:
 
   Process::ProcessModel* createProcessInSlot(
       const Scenario::IntervalModel& interval,
-      const UuidKey<Process::ProcessModel>& key, const QString& data);
+      const UuidKey<Process::ProcessModel>& key,
+      const QString& data);
 
   template <typename T>
   T& createProcessInSlot(
-      const Scenario::IntervalModel& interval, const QString& data)
+      const Scenario::IntervalModel& interval,
+      const QString& data)
   {
     return *safe_cast<T*>(this->createProcessInSlot(
         interval, Metadata<ConcreteKey_k, T>::get(), data));
@@ -73,29 +81,34 @@ public:
 
   Process::ProcessModel* createProcessInNewSlot(
       const Scenario::IntervalModel& interval,
-      const UuidKey<Process::ProcessModel>& key, const QString& data);
+      const UuidKey<Process::ProcessModel>& key,
+      const QString& data);
 
   template <typename T>
   T& createProcessInNewSlot(
-      const Scenario::IntervalModel& interval, const QString& data)
+      const Scenario::IntervalModel& interval,
+      const QString& data)
   {
     return *safe_cast<T*>(this->createProcessInNewSlot(
         interval, Metadata<ConcreteKey_k, T>::get(), data));
   }
 
   Process::ProcessModel* loadProcessInSlot(
-      const Scenario::IntervalModel& interval, const QJsonObject& procdata);
+      const Scenario::IntervalModel& interval,
+      const QJsonObject& procdata);
 
   void clearInterval(const Scenario::IntervalModel&);
 
   void insertInInterval(
-      QJsonObject&& sourceInterval, const IntervalModel& targetInterval,
+      QJsonObject&& sourceInterval,
+      const IntervalModel& targetInterval,
       ExpandMode mode);
 
   void createSlot(const Scenario::IntervalModel& interval);
 
   void addLayer(
-      const Scenario::IntervalModel& interval, int slot_index,
+      const Scenario::IntervalModel& interval,
+      int slot_index,
       const Process::ProcessModel& proc);
 
   void addLayerToLastSlot(
@@ -107,16 +120,19 @@ public:
       const Process::ProcessModel& proc);
 
   void addLayer(
-      const Scenario::SlotPath& slotpath, const Process::ProcessModel& proc);
+      const Scenario::SlotPath& slotpath,
+      const Process::ProcessModel& proc);
 
   void showRack(const Scenario::IntervalModel& interval);
 
   void resizeSlot(
-      const Scenario::IntervalModel& interval, const SlotPath& slotPath,
+      const Scenario::IntervalModel& interval,
+      const SlotPath& slotPath,
       double newSize);
 
   void resizeSlot(
-      const Scenario::IntervalModel& interval, SlotPath&& slotPath,
+      const Scenario::IntervalModel& interval,
+      SlotPath&& slotPath,
       double newSize);
 
   IntervalModel& duplicate(
@@ -128,15 +144,19 @@ public:
       const Process::ProcessModel& process);
 
   void pasteElements(
-      const Scenario::ProcessModel& scenario, const QJsonObject& objs,
+      const Scenario::ProcessModel& scenario,
+      const QJsonObject& objs,
       Scenario::Point pos);
 
   void pasteElementsAfter(
-      const ProcessModel& scenario, const TimeSyncModel& sync,
-      const QJsonObject& objs, double scale);
+      const ProcessModel& scenario,
+      const TimeSyncModel& sync,
+      const QJsonObject& objs,
+      double scale);
 
   void mergeTimeSyncs(
-      const Scenario::ProcessModel& scenario, const Id<TimeSyncModel>& a,
+      const Scenario::ProcessModel& scenario,
+      const Id<TimeSyncModel>& a,
       const Id<TimeSyncModel>& b);
 
   void moveProcess(
@@ -145,7 +165,8 @@ public:
       const Id<Process::ProcessModel>& proc);
 
   void moveSlot(
-      const IntervalModel& old_interval, const IntervalModel& new_interval,
+      const IntervalModel& old_interval,
+      const IntervalModel& new_interval,
       int slot_idx);
 
   void removeProcess(
@@ -160,9 +181,8 @@ public:
       const Scenario::ScenarioDocumentModel& dp,
       Process::Cable& theCable);
 
-  void loadCables(
-      const ObjectPath& parent
-      , const Dataflow::SerializedCables& c);
+  void
+  loadCables(const ObjectPath& parent, const Dataflow::SerializedCables& c);
   void
   removeElements(const Scenario::ProcessModel& scenario, const Selection& sel);
 
@@ -172,9 +192,12 @@ public:
   automate(const Scenario::IntervalModel& scenar, const QString& addr);
 
   Process::ProcessModel& automate(
-      const IntervalModel& interval, const std::vector<SlotPath>& slotList,
-      Id<Process::ProcessModel> curveId, State::AddressAccessor address,
-      const Curve::CurveDomain& dom, bool tween);
+      const IntervalModel& interval,
+      const std::vector<SlotPath>& slotList,
+      Id<Process::ProcessModel> curveId,
+      State::AddressAccessor address,
+      const Curve::CurveDomain& dom,
+      bool tween);
 
   template <typename Property, typename T, typename U>
   void setProperty(const T& object, U&& value)

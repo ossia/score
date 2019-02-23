@@ -23,10 +23,7 @@ struct dereference_visitor
     return impl(*std::forward<Arg>(arg));
   }
 
-  auto operator()() const
-  {
-    return impl();
-  }
+  auto operator()() const { return impl(); }
 };
 
 template <typename Variant, typename Base>

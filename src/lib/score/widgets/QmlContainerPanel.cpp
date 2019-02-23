@@ -44,7 +44,8 @@ QMLContainerPanel::QMLContainerPanel(QWidget* parent)
 }
 
 QMLContainerPanel::QMLContainerPanel(
-    QMLContainerPanel* container, QWidget* parent)
+    QMLContainerPanel* container,
+    QWidget* parent)
     : QMLContainerPanel(parent)
 {
   setSource(container->source());

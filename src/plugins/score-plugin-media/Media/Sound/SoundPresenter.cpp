@@ -13,8 +13,10 @@ namespace Media
 namespace Sound
 {
 LayerPresenter::LayerPresenter(
-    const ProcessModel& layer, LayerView* view,
-    const Process::ProcessPresenterContext& ctx, QObject* parent)
+    const ProcessModel& layer,
+    LayerView* view,
+    const Process::ProcessPresenterContext& ctx,
+    QObject* parent)
     : Process::LayerPresenter{ctx, parent}, m_layer{layer}, m_view{view}
 {
   connect(view, &LayerView::pressed, this, [&]() {
@@ -30,7 +32,9 @@ LayerPresenter::LayerPresenter(
   m_view->recompute(m_ratio);
 
   connect(
-      m_view, &LayerView::askContextMenu, this,
+      m_view,
+      &LayerView::askContextMenu,
+      this,
       &LayerPresenter::contextMenuRequested);
   connect(m_view, &LayerView::dropReceived, this, &LayerPresenter::onDrop);
 }

@@ -65,10 +65,7 @@ struct js_control_updater
 struct js_process final : public ossia::node_process
 {
   using node_process::node_process;
-  js_node& js() const
-  {
-    return static_cast<js_node&>(*node);
-  }
+  js_node& js() const { return static_cast<js_node&>(*node); }
   void start() override
   {
     QMetaObject::invokeMethod(js().m_object, "start", Qt::DirectConnection);
@@ -88,21 +85,33 @@ struct js_process final : public ossia::node_process
   void transport(ossia::time_value date, double pos) override
   {
     QMetaObject::invokeMethod(
-        js().m_object, "transport", Qt::DirectConnection,
-        Q_ARG(QVariant, double(date)), Q_ARG(QVariant, pos));
+        js().m_object,
+        "transport",
+        Qt::DirectConnection,
+        Q_ARG(QVariant, double(date)),
+        Q_ARG(QVariant, pos));
   }
   void offset(ossia::time_value date, double pos) override
   {
     QMetaObject::invokeMethod(
-        js().m_object, "offset", Qt::DirectConnection,
-        Q_ARG(QVariant, double(date)), Q_ARG(QVariant, pos));
+        js().m_object,
+        "offset",
+        Qt::DirectConnection,
+        Q_ARG(QVariant, double(date)),
+        Q_ARG(QVariant, pos));
   }
 };
 Component::Component(
-    JS::ProcessModel& element, const ::Execution::Context& ctx,
-    const Id<score::Component>& id, QObject* parent)
+    JS::ProcessModel& element,
+    const ::Execution::Context& ctx,
+    const Id<score::Component>& id,
+    QObject* parent)
     : ::Execution::ProcessComponent_T<JS::ProcessModel, ossia::node_process>{
-          element, ctx, id, "JSComponent", parent}
+          element,
+          ctx,
+          id,
+          "JSComponent",
+          parent}
 {
   std::shared_ptr<js_node> node = std::make_shared<js_node>(*ctx.execState);
   this->node = node;
@@ -128,7 +137,9 @@ Component::Component(
         auto ctrl = qobject_cast<Process::ControlInlet*>(port);
         SCORE_ASSERT(ctrl);
         connect(
-            ctrl, &Process::ControlInlet::valueChanged, this,
+            ctrl,
+            &Process::ControlInlet::valueChanged,
+            this,
             [=](const ossia::value& val) {
               this->in_exec(js_control_updater{*val_inlet, val});
             });
@@ -138,7 +149,9 @@ Component::Component(
     }
   }
 
-  con(element, &JS::ProcessModel::qmlDataChanged, this,
+  con(element,
+      &JS::ProcessModel::qmlDataChanged,
+      this,
       [=](const QString& str) {
         in_exec([proc = std::dynamic_pointer_cast<js_node>(node), str] {
           proc->setScript(std::move(str));
@@ -146,9 +159,7 @@ Component::Component(
       });
 }
 
-Component::~Component()
-{
-}
+Component::~Component() {}
 
 js_node::js_node(ossia::execution_state& st)
 {
@@ -221,7 +232,8 @@ void js_node::setScript(const QString& val)
     if (!errs.empty())
     {
       ossia::logger().error(
-          "Uncaught exception at line {} : {}", errs[0].line(),
+          "Uncaught exception at line {} : {}",
+          errs[0].line(),
           errs[0].toString().toStdString());
     }
     else
@@ -237,7 +249,8 @@ void js_node::setScript(const QString& val)
     if (!errs.empty())
     {
       ossia::logger().error(
-          "Uncaught exception at line {} : {}", errs[0].line(),
+          "Uncaught exception at line {} : {}",
+          errs[0].line(),
           errs[0].toString().toStdString());
     }
     else
@@ -324,9 +337,13 @@ void js_node::run(ossia::token_request tk, ossia::exec_state_facade) noexcept
   }
 
   QMetaObject::invokeMethod(
-      m_object, "onTick", Qt::DirectConnection,
-      Q_ARG(QVariant, double(tk.prev_date)), Q_ARG(QVariant, double(tk.date)),
-      Q_ARG(QVariant, tk.position), Q_ARG(QVariant, double(tk.offset)));
+      m_object,
+      "onTick",
+      Qt::DirectConnection,
+      Q_ARG(QVariant, double(tk.prev_date)),
+      Q_ARG(QVariant, double(tk.date)),
+      Q_ARG(QVariant, tk.position),
+      Q_ARG(QVariant, double(tk.offset)));
 
   for (int i = 0; i < m_valOutlets.size(); i++)
   {

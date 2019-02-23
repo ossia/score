@@ -27,12 +27,14 @@ class CommonDisplacementPolicy
 public:
   template <typename ProcessScaleMethod>
   static void updatePositions(
-      Scenario::ProcessModel& scenario, ProcessScaleMethod&& scaleMethod,
+      Scenario::ProcessModel& scenario,
+      ProcessScaleMethod&& scaleMethod,
       const ElementsProperties& propsToUpdate)
   {
     // update each affected timesyncs
     for (auto it = propsToUpdate.timesyncs.cbegin();
-         it != propsToUpdate.timesyncs.cend(); ++it)
+         it != propsToUpdate.timesyncs.cend();
+         ++it)
     {
       auto& curTimenodeToUpdate = scenario.timeSync(it.key());
       auto& curTimenodePropertiesToUpdate = it.value();
@@ -92,13 +94,15 @@ public:
 
   template <typename ProcessScaleMethod>
   static void revertPositions(
-      const score::DocumentContext& ctx, Scenario::ProcessModel& scenario,
+      const score::DocumentContext& ctx,
+      Scenario::ProcessModel& scenario,
       ProcessScaleMethod&& scaleMethod,
       const ElementsProperties& propsToUpdate)
   {
     // update each affected timesyncs with old values
     for (auto it = propsToUpdate.timesyncs.cbegin();
-         it != propsToUpdate.timesyncs.cend(); ++it)
+         it != propsToUpdate.timesyncs.cend();
+         ++it)
     {
       auto& curTimenodeToUpdate = scenario.timeSync(it.key());
       auto& curTimenodePropertiesToUpdate = it.value();

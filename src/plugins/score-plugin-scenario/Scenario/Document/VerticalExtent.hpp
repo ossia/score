@@ -20,14 +20,10 @@ namespace Scenario
 struct VerticalExtent final : public QPointF
 {
   Q_DECL_CONSTEXPR VerticalExtent() = default;
-  Q_DECL_CONSTEXPR VerticalExtent(qreal x, qreal y) : QPointF{x, y}
-  {
-  }
+  Q_DECL_CONSTEXPR VerticalExtent(qreal x, qreal y) : QPointF{x, y} {}
   Q_DECL_CONSTEXPR VerticalExtent(const VerticalExtent&) = default;
   Q_DECL_CONSTEXPR VerticalExtent(VerticalExtent&&) noexcept = default;
-  Q_DECL_CONSTEXPR VerticalExtent(QPointF other) : QPointF{other}
-  {
-  }
+  Q_DECL_CONSTEXPR VerticalExtent(QPointF other) : QPointF{other} {}
   VerticalExtent& operator=(VerticalExtent other)
   {
     static_cast<QPointF&>(*this) = other;
@@ -44,14 +40,8 @@ struct VerticalExtent final : public QPointF
     return VerticalExtent{top() * other, bottom() * other};
   }
 
-  Q_DECL_CONSTEXPR double top() const
-  {
-    return QPointF::x();
-  }
-  Q_DECL_CONSTEXPR double bottom() const
-  {
-    return QPointF::y();
-  }
+  Q_DECL_CONSTEXPR double top() const { return QPointF::x(); }
+  Q_DECL_CONSTEXPR double bottom() const { return QPointF::y(); }
 };
 
 inline QDebug operator<<(const QDebug& d, const VerticalExtent& ve)

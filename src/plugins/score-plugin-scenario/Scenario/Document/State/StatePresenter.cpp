@@ -19,13 +19,13 @@
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/document/DocumentContext.hpp>
 #include <score/document/DocumentInterface.hpp>
+#include <score/graphics/GraphicsItem.hpp>
 #include <score/model/IdentifiedObject.hpp>
 #include <score/model/Identifier.hpp>
 #include <score/model/ModelMetadata.hpp>
 #include <score/selection/Selectable.hpp>
 #include <score/serialization/MimeVisitor.hpp>
 #include <score/tools/Todo.hpp>
-#include <score/graphics/GraphicsItem.hpp>
 
 #include <QApplication>
 #include <QFile>
@@ -40,18 +40,24 @@ W_OBJECT_IMPL(Scenario::StatePresenter)
 namespace Scenario
 {
 StatePresenter::StatePresenter(
-    const StateModel& model, const score::DocumentContext& ctx,
-    QGraphicsItem* parentview, QObject* parent)
+    const StateModel& model,
+    const score::DocumentContext& ctx,
+    QGraphicsItem* parentview,
+    QObject* parent)
     : QObject{parent}
     , m_model{model}
     , m_view{new StateView{*this, parentview}}
     , m_ctx{ctx}
 {
   // The scenario catches this :
-  con(m_model.selection, &Selectable::changed, m_view,
+  con(m_model.selection,
+      &Selectable::changed,
+      m_view,
       &StateView::setSelected);
 
-  con(m_model, &StateModel::sig_statesUpdated, this,
+  con(m_model,
+      &StateModel::sig_statesUpdated,
+      this,
       &StatePresenter::updateStateView);
 
   con(m_model, &StateModel::statusChanged, m_view, &StateView::setStatus);
@@ -68,9 +74,7 @@ StatePresenter::StatePresenter(
   updateStateView();
 }
 
-StatePresenter::~StatePresenter()
-{
-}
+StatePresenter::~StatePresenter() {}
 
 const Id<StateModel>& StatePresenter::id() const
 {
@@ -132,7 +136,7 @@ void StatePresenter::handleDrop(const QMimeData& mime)
                return QFileInfo{u.toLocalFile()}.suffix() == "layer";
              }))
     {
-      if(m_model.nextInterval())
+      if (m_model.nextInterval())
         return;
 
       auto path = mime.urls().first().toLocalFile();
@@ -149,7 +153,8 @@ void StatePresenter::handleDrop(const QMimeData& mime)
         const TimeVal t = TimeVal::fromMsecs(json["Duration"].toDouble());
 
         auto& interval = m.createIntervalAfter(
-            scenar, m_model.id(),
+            scenar,
+            m_model.id(),
             Scenario::Point{t, m_model.heightPercentage()});
 
         DropLayerInInterval::perform(interval, ctx, m, json);

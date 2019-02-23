@@ -4,16 +4,33 @@ namespace Audio::Settings
 namespace Parameters
 {
 // portaudio is the default
-SETTINGS_PARAMETER_IMPL(Driver){
-    QStringLiteral("Audio/Driver"),
+SETTINGS_PARAMETER_IMPL(Driver)
+{
+  QStringLiteral("Audio/Driver"),
 #if defined(_WIN32)
-    Audio::AudioFactory::ConcreteKey{score::uuids::string_generator::compute("afcd9c64-0367-4fa1-b2bb-ee65b1c5e5a7")} // WASAPI
+      Audio::AudioFactory::ConcreteKey
+  {
+    score::uuids::string_generator::compute(
+        "afcd9c64-0367-4fa1-b2bb-ee65b1c5e5a7")
+  } // WASAPI
 #elif defined(__APPLE__)
-    Audio::AudioFactory::ConcreteKey{score::uuids::string_generator::compute("e7543875-3b22-457c-bf41-75504637686f")}
+      Audio::AudioFactory::ConcreteKey
+  {
+    score::uuids::string_generator::compute(
+        "e7543875-3b22-457c-bf41-75504637686f")
+  }
 #elif defined(__linux__)
-    Audio::AudioFactory::ConcreteKey{score::uuids::string_generator::compute("3533ee88-9a8d-486c-b20b-6c966cf4eaa0")} // ALSA
+      Audio::AudioFactory::ConcreteKey
+  {
+    score::uuids::string_generator::compute(
+        "3533ee88-9a8d-486c-b20b-6c966cf4eaa0")
+  } // ALSA
 #else
-    Audio::AudioFactory::ConcreteKey{score::uuids::string_generator::compute("e7543875-3b22-457c-bf41-75504637686f")}
+      Audio::AudioFactory::ConcreteKey
+  {
+    score::uuids::string_generator::compute(
+        "e7543875-3b22-457c-bf41-75504637686f")
+  }
 #endif
 };
 SETTINGS_PARAMETER_IMPL(CardIn){QStringLiteral("Audio/CardIn"), ""};
@@ -38,10 +55,7 @@ Model::Model(QSettings& set, const score::ApplicationContext& ctx)
 // For the audio settings, we only want to send a "changed" signal when
 // everything has been updated
 #define AUDIO_PARAMETER_CPP(Type, ModelType, Name)                   \
-  Type ModelType::get##Name() const                                  \
-  {                                                                  \
-    return m_##Name;                                                 \
-  }                                                                  \
+  Type ModelType::get##Name() const { return m_##Name; }             \
                                                                      \
   void ModelType::set##Name(Type val)                                \
   {                                                                  \
@@ -63,7 +77,7 @@ void Model::setDriver(Audio::AudioFactory::ConcreteKey val)
 {
   // Reset to default in case of invalid parameters.
   auto& factories = score::AppContext().interfaces<AudioFactoryList>();
-  if(factories.find(val) == factories.end())
+  if (factories.find(val) == factories.end())
   {
     val = Parameters::Driver.def;
   }

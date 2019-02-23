@@ -6,7 +6,10 @@ namespace score
 {
 
 PanelStatus::PanelStatus(
-    bool isShown, Qt::DockWidgetArea d, int prio, QString name,
+    bool isShown,
+    Qt::DockWidgetArea d,
+    int prio,
+    QString name,
     const QKeySequence& sc)
     : shown{isShown}
     , dock{d}
@@ -46,11 +49,7 @@ const GUIApplicationContext& PanelDelegate::context() const
   return m_context;
 }
 
-void PanelDelegate::setNewSelection(const Selection& s)
-{
-}
+void PanelDelegate::setNewSelection(const Selection& s) {}
 
-void PanelDelegate::on_modelChanged(MaybeDocument oldm, MaybeDocument newm)
-{
-}
+void PanelDelegate::on_modelChanged(MaybeDocument oldm, MaybeDocument newm) {}
 }

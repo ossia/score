@@ -20,7 +20,8 @@ namespace Dataflow
 bool CableItem::g_cables_enabled = true;
 
 CableItem::CableItem(
-    Process::Cable& c, const score::DocumentContext& ctx,
+    Process::Cable& c,
+    const score::DocumentContext& ctx,
     QGraphicsItem* parent)
     : QGraphicsItem{parent}
     , m_cable{c}
@@ -84,14 +85,16 @@ QRectF CableItem::boundingRect() const
   return m_path.boundingRect();
 }
 
-bool CableItem::contains(const QPointF &point) const
+bool CableItem::contains(const QPointF& point) const
 {
   qDebug() << m_path;
   return m_path.contains(point);
 }
 
 void CableItem::paint(
-    QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+    QPainter* painter,
+    const QStyleOptionGraphicsItem* option,
+    QWidget* widget)
 {
   if (m_p1 && m_p2)
   {
@@ -157,7 +160,11 @@ void CableItem::resize()
 
     m_path.moveTo(first.x(), first.y());
     m_path.cubicTo(
-        first.x() + a1, last.y() + a2, first.x() + a3, last.y() + a4, last.x(),
+        first.x() + a1,
+        last.y() + a2,
+        first.x() + a3,
+        last.y() + a4,
+        last.x(),
         last.y());
   }
 

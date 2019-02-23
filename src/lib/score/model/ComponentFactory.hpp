@@ -1,6 +1,6 @@
 #pragma once
-#include <score/plugins/InterfaceList.hpp>
 #include <score/plugins/Interface.hpp>
+#include <score/plugins/InterfaceList.hpp>
 
 #define SCORE_CONCRETE_COMPONENT_FACTORY(AbstractFactory, ConcreteFactory)
 

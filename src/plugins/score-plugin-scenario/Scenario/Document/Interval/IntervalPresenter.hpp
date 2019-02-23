@@ -35,7 +35,8 @@ struct LayerData
   LayerData& operator=(const LayerData&) = default;
   LayerData& operator=(LayerData&&) = default;
   LayerData(
-      const Process::ProcessModel* m, Process::LayerPresenter* p,
+      const Process::ProcessModel* m,
+      Process::LayerPresenter* p,
       Process::LayerView* v)
       : model(m), presenter(p), view(v)
   {
@@ -53,8 +54,11 @@ class SCORE_PLUGIN_SCENARIO_EXPORT IntervalPresenter : public QObject,
 
 public:
   IntervalPresenter(
-      const IntervalModel& model, IntervalView* view, IntervalHeader* header,
-      const Process::ProcessPresenterContext& ctx, QObject* parent);
+      const IntervalModel& model,
+      IntervalView* view,
+      IntervalHeader* header,
+      const Process::ProcessPresenterContext& ctx,
+      QObject* parent);
   virtual ~IntervalPresenter();
   virtual void updateScaling();
 
@@ -63,28 +67,16 @@ public:
   const IntervalModel& model() const;
 
   IntervalView* view() const;
-  IntervalHeader* header() const
-  {
-    return m_header;
-  }
+  IntervalHeader* header() const { return m_header; }
 
   virtual void on_zoomRatioChanged(ZoomRatio val);
-  ZoomRatio zoomRatio() const
-  {
-    return m_zoomRatio;
-  }
+  ZoomRatio zoomRatio() const { return m_zoomRatio; }
 
-  const std::vector<SlotPresenter>& getSlots() const
-  {
-    return m_slots;
-  }
+  const std::vector<SlotPresenter>& getSlots() const { return m_slots; }
 
   const Id<IntervalModel>& id() const;
 
-  const Process::ProcessPresenterContext& context() const
-  {
-    return m_context;
-  }
+  const Process::ProcessPresenterContext& context() const { return m_context; }
 
   void on_minDurationChanged(const TimeVal&);
   void on_maxDurationChanged(const TimeVal&);
@@ -107,7 +99,8 @@ public:
 
   void askUpdate() E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, askUpdate);
   void heightChanged() E_SIGNAL(
-      SCORE_PLUGIN_SCENARIO_EXPORT, heightChanged); // The vertical size
+      SCORE_PLUGIN_SCENARIO_EXPORT,
+      heightChanged); // The vertical size
   void heightPercentageChanged() E_SIGNAL(
       SCORE_PLUGIN_SCENARIO_EXPORT,
       heightPercentageChanged); // The vertical position

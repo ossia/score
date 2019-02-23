@@ -52,9 +52,7 @@ public:
   {
   }
 
-  ~Clock() override
-  {
-  }
+  ~Clock() override {}
 
 private:
   TimeWidget* m_widg{};
@@ -81,21 +79,14 @@ private:
 
     resume_impl(bs);
   }
-  void pause_impl(Execution::BaseScenarioElement&) override
-  {
-  }
-  void resume_impl(Execution::BaseScenarioElement&) override
-  {
-  }
+  void pause_impl(Execution::BaseScenarioElement&) override {}
+  void resume_impl(Execution::BaseScenarioElement&) override {}
   void stop_impl(Execution::BaseScenarioElement&) override
   {
     delete m_widg;
     context.doc.plugin<DocumentPlugin>().finished();
   }
-  bool paused() const override
-  {
-    return m_paused;
-  }
+  bool paused() const override { return m_paused; }
 
   Execution::DefaultClock m_default;
   bool m_paused{};
@@ -105,10 +96,7 @@ class ClockFactory final : public Execution::ClockFactory
 {
   SCORE_CONCRETE("5e8d0f1b-752f-4e29-8c8c-ecd65bd69806")
 
-  QString prettyName() const override
-  {
-    return QObject::tr("Manual");
-  }
+  QString prettyName() const override { return QObject::tr("Manual"); }
 
   std::unique_ptr<Execution::Clock>
   make(const Execution::Context& ctx) override

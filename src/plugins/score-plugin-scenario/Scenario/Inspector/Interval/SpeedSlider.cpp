@@ -15,8 +15,10 @@ namespace Scenario
 {
 
 SpeedWidget::SpeedWidget(
-    const Scenario::IntervalModel& model, const score::DocumentContext&,
-    bool withButtons, QWidget* parent)
+    const Scenario::IntervalModel& model,
+    const score::DocumentContext&,
+    bool withButtons,
+    QWidget* parent)
     : QWidget{parent}, m_model{model}
 {
   setObjectName("SpeedSlider");
@@ -69,7 +71,5 @@ SpeedWidget::SpeedWidget(
   connect(speedSlider, &QSlider::valueChanged, this, setSpeedFun);
 }
 
-SpeedWidget::~SpeedWidget()
-{
-}
+SpeedWidget::~SpeedWidget() {}
 }

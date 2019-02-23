@@ -7,7 +7,8 @@
 
 #include <QObject>
 
-namespace Protocols {
+namespace Protocols
+{
 
 QString WiimoteProtocolFactory::prettyName() const
 {
@@ -15,7 +16,8 @@ QString WiimoteProtocolFactory::prettyName() const
 }
 
 Device::DeviceInterface* WiimoteProtocolFactory::makeDevice(
-    const Device::DeviceSettings& settings, const score::DocumentContext& ctx)
+    const Device::DeviceSettings& settings,
+    const score::DocumentContext& ctx)
 {
   return new WiimoteDevice{settings};
 }
@@ -46,13 +48,15 @@ QVariant WiimoteProtocolFactory::makeProtocolSpecificSettings(
 }
 
 void WiimoteProtocolFactory::serializeProtocolSpecificSettings(
-    const QVariant& data, const VisitorVariant& visitor) const
+    const QVariant& data,
+    const VisitorVariant& visitor) const
 {
   serializeProtocolSpecificSettings_T<WiimoteSpecificSettings>(data, visitor);
 }
 
 bool WiimoteProtocolFactory::checkCompatibility(
-    const Device::DeviceSettings& a, const Device::DeviceSettings& b) const
+    const Device::DeviceSettings& a,
+    const Device::DeviceSettings& b) const
 {
   return false;
 }

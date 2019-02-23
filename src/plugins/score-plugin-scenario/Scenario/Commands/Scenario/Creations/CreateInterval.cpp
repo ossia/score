@@ -33,7 +33,8 @@ namespace Scenario
 namespace Command
 {
 CreateInterval::CreateInterval(
-    const Scenario::ProcessModel& scenar, Id<StateModel> startState,
+    const Scenario::ProcessModel& scenar,
+    Id<StateModel> startState,
     Id<StateModel> endState)
     : m_path{scenar}
     , m_createdName{RandomNameProvider::generateName<IntervalModel>()}

@@ -2,9 +2,9 @@
 
 #include <Dataflow/UI/PortItem.hpp>
 #include <Media/Commands/InsertEffect.hpp>
-#include <Control/DefaultEffectItem.hpp>
 #include <Media/Effect/EffectProcessMetadata.hpp>
 #include <Media/Effect/EffectProcessModel.hpp>
+#include <Process/Drop/ProcessDropHandler.hpp>
 #include <Process/Focus/FocusDispatcher.hpp>
 #include <Process/LayerPresenter.hpp>
 #include <Process/LayerView.hpp>
@@ -15,13 +15,12 @@
 #include <Scenario/Application/Menus/ScenarioCopy.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 
-#include <Process/Drop/ProcessDropHandler.hpp>
-
-#include <score/selection/SelectionDispatcher.hpp>
+#include <score/command/Dispatchers/MacroCommandDispatcher.hpp>
 #include <score/graphics/GraphicWidgets.hpp>
 #include <score/graphics/RectItem.hpp>
 #include <score/graphics/TextItem.hpp>
-#include <score/command/Dispatchers/MacroCommandDispatcher.hpp>
+#include <score/selection/SelectionDispatcher.hpp>
+
 #include <core/document/Document.hpp>
 
 #include <ossia/detail/thread.hpp>
@@ -37,6 +36,7 @@
 #include <QPainter>
 #include <QWindow>
 
+#include <Control/DefaultEffectItem.hpp>
 #include <Effect/EffectLayer.hpp>
 
 namespace score
@@ -80,8 +80,11 @@ struct EffectUi
 };
 
 static void resetInlets(
-    Process::ProcessModel& effect, const Process::LayerContext& ctx,
-    QGraphicsItem* root, QObject* parent, EffectUi& ui)
+    Process::ProcessModel& effect,
+    const Process::LayerContext& ctx,
+    QGraphicsItem* root,
+    QObject* parent,
+    EffectUi& ui)
 {
   qDeleteAll(ui.inlets);
   ui.inlets.clear();
@@ -102,8 +105,11 @@ static void resetInlets(
 }
 
 static void resetOutlets(
-    Process::ProcessModel& effect, const Process::LayerContext& ctx,
-    QGraphicsItem* root, QObject* parent, EffectUi& ui)
+    Process::ProcessModel& effect,
+    const Process::LayerContext& ctx,
+    QGraphicsItem* root,
+    QObject* parent,
+    EffectUi& ui)
 {
   qDeleteAll(ui.outlets);
   ui.outlets.clear();
@@ -127,8 +133,11 @@ class EffectTitleItem final : public QObject, public QGraphicsItem
   W_OBJECT(EffectTitleItem)
 public:
   EffectTitleItem(
-      Process::ProcessModel& effect, const Effect::ProcessModel& object,
-      const Process::LayerContext& ctx, QObject* parent, EffectUi& ui)
+      Process::ProcessModel& effect,
+      const Effect::ProcessModel& object,
+      const Process::LayerContext& ctx,
+      QObject* parent,
+      EffectUi& ui)
       : QObject{parent}, m_effect{effect}
   {
     const auto& doc = ctx.context;
@@ -142,7 +151,9 @@ public:
     auto rm_btn = new score::QGraphicsPixmapButton{
         pixmaps.rm_process_on, pixmaps.rm_process_off, this};
     connect(
-        rm_btn, &score::QGraphicsPixmapButton::clicked, this,
+        rm_btn,
+        &score::QGraphicsPixmapButton::clicked,
+        this,
         [&]() {
           auto cmd = new RemoveEffect{object, effect};
           CommandDispatcher<> disp{doc.commandStack};
@@ -160,12 +171,16 @@ public:
     resetInlets(effect, ctx, this, parent, ui);
     resetOutlets(effect, ctx, this, parent, ui);
     ui.cons.push_back(
-        con(effect, &Process::ProcessModel::inletsChanged, this,
+        con(effect,
+            &Process::ProcessModel::inletsChanged,
+            this,
             [=, &effect, &ctx, &ui] {
               resetInlets(effect, ctx, this, parent, ui);
             }));
     ui.cons.push_back(
-        con(effect, &Process::ProcessModel::outletsChanged, this,
+        con(effect,
+            &Process::ProcessModel::outletsChanged,
+            this,
             [=, &effect, &ctx, &ui] {
               resetOutlets(effect, ctx, this, parent, ui);
             }));
@@ -175,12 +190,10 @@ public:
       score::SelectionDispatcher{doc.selectionStack}.setAndCommit({&effect});
     });
   }
-  QRectF boundingRect() const override
-  {
-    return {0, 0, 170, 40};
-  }
+  QRectF boundingRect() const override { return {0, 0, 170, 40}; }
   void paint(
-      QPainter* painter, const QStyleOptionGraphicsItem* option,
+      QPainter* painter,
+      const QStyleOptionGraphicsItem* option,
       QWidget* widget) override
   {
     static const auto pen = QPen{Qt::transparent};
@@ -193,9 +206,7 @@ public:
     painter->setRenderHint(QPainter::Antialiasing, false);
   }
 
-  void setHighlight(bool b)
-  {
-  }
+  void setHighlight(bool b) {}
   void clicked() E_SIGNAL(, clicked);
 
 private:
@@ -246,9 +257,7 @@ private:
 class View final : public Process::LayerView
 {
 public:
-  explicit View(QGraphicsItem* parent) : Process::LayerView{parent}
-  {
-  }
+  explicit View(QGraphicsItem* parent) : Process::LayerView{parent} {}
 
   void
   setup(const Effect::ProcessModel& object, const Process::LayerContext& ctx)
@@ -293,7 +302,9 @@ public:
       m_effects.push_back(fx_ui_);
 
       fx_ui.root_item->setRect(
-          {0., 0., 170.,
+          {0.,
+           0.,
+           170.,
            fx_ui.root_item->childrenBoundingRect().height() + 10.});
       fx_ui.root_item->setPos(pos_x, 0);
       pos_x += 10 + fx_ui.root_item->boundingRect().width();
@@ -367,10 +378,7 @@ private:
     ev->accept();
   }
 
-  void mouseMoveEvent(QGraphicsSceneMouseEvent* ev) override
-  {
-    ev->accept();
-  }
+  void mouseMoveEvent(QGraphicsSceneMouseEvent* ev) override { ev->accept(); }
 
   void mouseReleaseEvent(QGraphicsSceneMouseEvent* ev) override
   {
@@ -414,8 +422,10 @@ class Presenter final : public Process::LayerPresenter
 {
 public:
   explicit Presenter(
-      const Effect::ProcessModel& model, View* view,
-      const Process::ProcessPresenterContext& ctx, QObject* parent)
+      const Effect::ProcessModel& model,
+      View* view,
+      const Process::ProcessPresenterContext& ctx,
+      QObject* parent)
       : LayerPresenter{ctx, parent}, m_layer{model}, m_view{view}
   {
     putToFront();
@@ -426,7 +436,9 @@ public:
     connect(
         m_view, &View::askContextMenu, this, &Presenter::contextMenuRequested);
     connect(
-        m_view, &View::dropReceived, this,
+        m_view,
+        &View::dropReceived,
+        this,
         [=](const QPointF& pos, const QMimeData& m) {
           int idx = view->findDropPosition(pos);
           on_drop(m, idx);
@@ -437,43 +449,25 @@ public:
       m_view->setup(
           static_cast<const Effect::ProcessModel&>(model), m_context);
     });
-    con(m, &Effect::ProcessModel::badChainingChanged, this,
-        [&](bool b) { m_view->setInvalid(b); });
+    con(m, &Effect::ProcessModel::badChainingChanged, this, [&](bool b) {
+      m_view->setInvalid(b);
+    });
 
     m_view->setup(static_cast<const Effect::ProcessModel&>(model), m_context);
   }
 
-  void setWidth(qreal val) override
-  {
-    m_view->setWidth(val);
-  }
-  void setHeight(qreal val) override
-  {
-    m_view->setHeight(val);
-  }
+  void setWidth(qreal val) override { m_view->setWidth(val); }
+  void setHeight(qreal val) override { m_view->setHeight(val); }
 
-  void putToFront() override
-  {
-    m_view->setVisible(true);
-  }
+  void putToFront() override { m_view->setVisible(true); }
 
-  void putBehind() override
-  {
-    m_view->setVisible(false);
-  }
+  void putBehind() override { m_view->setVisible(false); }
 
-  void on_zoomRatioChanged(ZoomRatio) override
-  {
-  }
+  void on_zoomRatioChanged(ZoomRatio) override {}
 
-  void parentGeometryChanged() override
-  {
-  }
+  void parentGeometryChanged() override {}
 
-  const Process::ProcessModel& model() const override
-  {
-    return m_layer;
-  }
+  const Process::ProcessModel& model() const override { return m_layer; }
   const Id<Process::ProcessModel>& modelId() const override
   {
     return m_layer.id();
@@ -525,9 +519,11 @@ public:
     }
     else if (mime.hasFormat(score::mime::layerdata()))
     {
-      QJsonObject json = QJsonDocument::fromJson(mime.data(score::mime::layerdata())).object();
+      QJsonObject json
+          = QJsonDocument::fromJson(mime.data(score::mime::layerdata()))
+                .object();
 
-      if(json.isEmpty())
+      if (json.isEmpty())
         return;
       auto cmd = new LoadEffect(m_layer, json, pos);
       CommandDispatcher<> d{ctx.commandStack};
@@ -538,13 +534,13 @@ public:
       bool all_layers = ossia::all_of(mime.urls(), [](const QUrl& u) {
         return QFileInfo{u.toLocalFile()}.suffix() == "layer";
       });
-      if(all_layers)
+      if (all_layers)
       {
         auto path = mime.urls().first().toLocalFile();
         if (QFile f{path}; f.open(QIODevice::ReadOnly))
         {
           auto json = QJsonDocument::fromJson(f.readAll()).object();
-          if(json.isEmpty())
+          if (json.isEmpty())
             return;
 
           auto cmd = new LoadEffect(m_layer, json, pos);
@@ -554,20 +550,22 @@ public:
       }
       else
       {
-        const auto& handlers = ctx.app.interfaces<Process::ProcessDropHandlerList>();
+        const auto& handlers
+            = ctx.app.interfaces<Process::ProcessDropHandlerList>();
 
-        if(auto res = handlers.getDrop(mime, ctx); !res.empty())
+        if (auto res = handlers.getDrop(mime, ctx); !res.empty())
         {
           MacroCommandDispatcher<Media::DropEffectMacro> cmd{ctx.commandStack};
           score::Dispatcher_T disp{cmd};
-          for(const auto& proc : res)
+          for (const auto& proc : res)
           {
             auto& p = proc.creation;
             auto create = new InsertEffect(m_layer, p.key, p.customData, pos);
             cmd.submit(create);
-            if(auto fx = m_layer.effects().find(create->processId()); fx != m_layer.effects().list().end())
+            if (auto fx = m_layer.effects().find(create->processId());
+                fx != m_layer.effects().list().end())
             {
-              if(proc.setup)
+              if (proc.setup)
               {
                 proc.setup(**fx, disp);
               }

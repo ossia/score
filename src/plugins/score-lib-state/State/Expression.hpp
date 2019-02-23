@@ -29,10 +29,10 @@ enum class UnaryOperator
 };
 
 struct SCORE_LIB_STATE_EXPORT ExprData
-    : public score::VariantBasedNode<
-          Relation, Pulse, BinaryOperator, UnaryOperator>
+    : public score::
+          VariantBasedNode<Relation, Pulse, BinaryOperator, UnaryOperator>
 {
-  //SCORE_SERIALIZE_FRIENDS
+  // SCORE_SERIALIZE_FRIENDS
 
   ExprData() = default;
   template <typename T>
@@ -62,8 +62,8 @@ template <>
 class SCORE_LIB_STATE_EXPORT TreeNode<State::ExprData> final
     : public State::ExprData
 {
-//  friend struct TSerializer<DataStream, TreeNode<State::ExprData>>;
-//  friend struct TSerializer<JSONObject, void, TreeNode<State::ExprData>>;
+  //  friend struct TSerializer<DataStream, TreeNode<State::ExprData>>;
+  //  friend struct TSerializer<JSONObject, void, TreeNode<State::ExprData>>;
 
   SCORE_LIB_STATE_EXPORT
   friend bool operator!=(

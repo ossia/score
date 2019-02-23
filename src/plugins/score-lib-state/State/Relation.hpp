@@ -45,7 +45,9 @@ struct SCORE_LIB_STATE_EXPORT Relation
   }
 
   Relation(
-      RelationMember l, ossia::expressions::comparator o, RelationMember r)
+      RelationMember l,
+      ossia::expressions::comparator o,
+      RelationMember r)
       : lhs{std::move(l)}, op{o}, rhs{std::move(r)}
   {
   }

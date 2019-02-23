@@ -52,10 +52,18 @@ struct Node
   using control_policy = ossia::safe_nodes::precise_tick;
 
   static void
-  run(float freq, float ampl, float ampl_fine, float offset, float offset_fine,
-      float jitter, float phase, const std::string& type,
-      ossia::value_port& out, ossia::token_request tk,
-      ossia::exec_state_facade st, State& s)
+  run(float freq,
+      float ampl,
+      float ampl_fine,
+      float offset,
+      float offset_fine,
+      float jitter,
+      float phase,
+      const std::string& type,
+      ossia::value_port& out,
+      ossia::token_request tk,
+      ossia::exec_state_facade st,
+      State& s)
   {
     auto& waveform_map = Control::Widgets::waveformMap();
 

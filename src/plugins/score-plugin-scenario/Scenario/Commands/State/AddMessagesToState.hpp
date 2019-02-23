@@ -26,11 +26,13 @@ class SCORE_PLUGIN_SCENARIO_EXPORT AddMessagesToState final
     : public score::Command
 {
   SCORE_COMMAND_DECL(
-      ScenarioCommandFactoryName(), AddMessagesToState,
+      ScenarioCommandFactoryName(),
+      AddMessagesToState,
       "Add messages to state")
 public:
   AddMessagesToState(
-      const Scenario::StateModel& state, const State::MessageList& messages);
+      const Scenario::StateModel& state,
+      const State::MessageList& messages);
 
   void undo(const score::DocumentContext& ctx) const override;
   void redo(const score::DocumentContext& ctx) const override;

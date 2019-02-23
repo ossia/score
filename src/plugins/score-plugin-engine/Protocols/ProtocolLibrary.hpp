@@ -1,21 +1,23 @@
 #pragma once
-#include <Library/LibraryInterface.hpp>
 #include <Device/Loading/IScoreDeviceLoader.hpp>
 #include <Device/Loading/JamomaDeviceLoader.hpp>
-#include <Explorer/Explorer/Widgets/DeviceEditDialog.hpp>
 #include <Device/Protocol/ProtocolList.hpp>
-#include <score/document/DocumentContext.hpp>
-#include <ossia-qt/js_utilities.hpp>
-#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
-#include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <Explorer/Commands/Add/AddDevice.hpp>
 #include <Explorer/Commands/Add/LoadDevice.hpp>
+#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
+#include <Explorer/Explorer/Widgets/DeviceEditDialog.hpp>
+#include <Library/LibraryInterface.hpp>
+#include <Protocols/Mapper/MapperDevice.hpp>
+
+#include <score/command/Dispatchers/CommandDispatcher.hpp>
+#include <score/document/DocumentContext.hpp>
+
+#include <ossia-qt/js_utilities.hpp>
+
+#include <QFileInfo>
 #include <QQmlComponent>
 #include <QQmlEngine>
-#include <QFileInfo>
 #include <QQmlProperty>
-
-#include <Protocols/Mapper/MapperDevice.hpp>
 #if defined(OSSIA_PROTOCOL_OSC)
 #include <Protocols/OSC/OSCProtocolFactory.hpp>
 #endif
@@ -28,22 +30,24 @@
 #if defined(OSSIA_PROTOCOL_HTTP)
 #include <Protocols/HTTP/HTTPProtocolFactory.hpp>
 #include <Protocols/HTTP/HTTPSpecificSettings.hpp>
+
 #include <ossia-qt/http/http_protocol.hpp>
 #endif
 #if defined(OSSIA_PROTOCOL_WEBSOCKETS)
 #include <Protocols/WS/WSProtocolFactory.hpp>
 #include <Protocols/WS/WSSpecificSettings.hpp>
+
 #include <ossia-qt/websocket-generic-client/ws_generic_client_protocol.hpp>
 #endif
 #if defined(OSSIA_PROTOCOL_SERIAL)
 #include <Protocols/Serial/SerialProtocolFactory.hpp>
 #include <Protocols/Serial/SerialSpecificSettings.hpp>
+
 #include <ossia-qt/serial/serial_protocol.hpp>
 #endif
 namespace Protocols
 {
-class OSCLibraryHandler final
-    : public Library::LibraryInterface
+class OSCLibraryHandler final : public Library::LibraryInterface
 {
   SCORE_CONCRETE("8d4c06e2-851b-4d5f-82f2-68056a50c370")
 
@@ -52,13 +56,16 @@ class OSCLibraryHandler final
     return {"json", "xml", "device"};
   }
 
-  bool onDoubleClick(const QString& path, const score::DocumentContext& ctx) override
+  bool onDoubleClick(const QString& path, const score::DocumentContext& ctx)
+      override
   {
     Device::Node n{Device::DeviceSettings{}, nullptr};
-    bool ok = (path.endsWith(".json") && Device::loadDeviceFromIScoreJSON(path, n)) ||
-              (path.endsWith(".xml") && Device::loadDeviceFromXML(path, n)) ||
-              (path.endsWith(".device") && Device::loadDeviceFromJamomaJSON(path, n));
-    if(!ok)
+    bool ok
+        = (path.endsWith(".json") && Device::loadDeviceFromIScoreJSON(path, n))
+          || (path.endsWith(".xml") && Device::loadDeviceFromXML(path, n))
+          || (path.endsWith(".device")
+              && Device::loadDeviceFromJamomaJSON(path, n));
+    if (!ok)
       return false;
 
     Device::ProtocolFactoryList fact;
@@ -101,21 +108,17 @@ class OSCLibraryHandler final
   }
 };
 
-
-class QMLLibraryHandler final
-    : public Library::LibraryInterface
+class QMLLibraryHandler final : public Library::LibraryInterface
 {
   SCORE_CONCRETE("fee42cea-ff1a-48ef-a0da-922773081779")
 
-  QSet<QString> acceptedFiles() const noexcept override
-  {
-    return {"qml"};
-  }
+  QSet<QString> acceptedFiles() const noexcept override { return {"qml"}; }
 
-  bool onDoubleClick(const QString& path, const score::DocumentContext& ctx) override
+  bool onDoubleClick(const QString& path, const score::DocumentContext& ctx)
+      override
   {
     QFile f(path);
-    if(!f.open(QIODevice::ReadOnly))
+    if (!f.open(QIODevice::ReadOnly))
       return true;
     auto content = f.readAll();
 
@@ -125,7 +128,7 @@ class QMLLibraryHandler final
 
     std::unique_ptr<QObject> obj{c.create()};
 
-    if(!obj)
+    if (!obj)
       return true;
 
     Device::ProtocolFactoryList fact;
@@ -135,34 +138,39 @@ class QMLLibraryHandler final
     {
       fact.insert(std::make_unique<Protocols::MapperProtocolFactory>());
       set.protocol = Protocols::MapperProtocolFactory::static_concreteKey();
-      set.deviceSpecificSettings = QVariant::fromValue(Protocols::MapperSpecificSettings{content});
+      set.deviceSpecificSettings
+          = QVariant::fromValue(Protocols::MapperSpecificSettings{content});
     }
 #if defined(OSSIA_PROTOCOL_SERIAL)
-    else if(dynamic_cast<ossia::net::Serial*>(obj.get()))
+    else if (dynamic_cast<ossia::net::Serial*>(obj.get()))
     {
       fact.insert(std::make_unique<Protocols::SerialProtocolFactory>());
       set.protocol = Protocols::SerialProtocolFactory::static_concreteKey();
-      set.deviceSpecificSettings = QVariant::fromValue(Protocols::SerialSpecificSettings{{}, content});
+      set.deviceSpecificSettings = QVariant::fromValue(
+          Protocols::SerialSpecificSettings{{}, content});
     }
 #endif
 #if defined(OSSIA_PROTOCOL_HTTP)
-    else if(dynamic_cast<ossia::net::HTTP*>(obj.get()))
+    else if (dynamic_cast<ossia::net::HTTP*>(obj.get()))
     {
       fact.insert(std::make_unique<Protocols::HTTPProtocolFactory>());
       set.protocol = Protocols::HTTPProtocolFactory::static_concreteKey();
-      set.deviceSpecificSettings = QVariant::fromValue(Protocols::HTTPSpecificSettings{content});
+      set.deviceSpecificSettings
+          = QVariant::fromValue(Protocols::HTTPSpecificSettings{content});
     }
 #endif
 #if defined(OSSIA_PROTOCOL_WEBSOCKETS)
-    else if(dynamic_cast<ossia::net::WS*>(obj.get()))
+    else if (dynamic_cast<ossia::net::WS*>(obj.get()))
     {
       fact.insert(std::make_unique<Protocols::WSProtocolFactory>());
       set.protocol = Protocols::WSProtocolFactory::static_concreteKey();
-      set.deviceSpecificSettings = QVariant::fromValue(Protocols::WSSpecificSettings{QQmlProperty(obj.get(), "host").read().toString(), content});
+      set.deviceSpecificSettings
+          = QVariant::fromValue(Protocols::WSSpecificSettings{
+              QQmlProperty(obj.get(), "host").read().toString(), content});
     }
 #endif
 
-    if(set.protocol == UuidKey<Device::ProtocolFactory>{})
+    if (set.protocol == UuidKey<Device::ProtocolFactory>{})
       return false;
 
     auto dialog = std::make_unique<Explorer::DeviceEditDialog>(fact, nullptr);

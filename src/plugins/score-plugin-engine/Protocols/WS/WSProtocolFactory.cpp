@@ -20,7 +20,6 @@ class ProtocolSettingsWidget;
 
 struct VisitorVariant;
 
-
 namespace Protocols
 {
 QString WSProtocolFactory::prettyName() const
@@ -29,7 +28,8 @@ QString WSProtocolFactory::prettyName() const
 }
 
 Device::DeviceInterface* WSProtocolFactory::makeDevice(
-    const Device::DeviceSettings& settings, const score::DocumentContext& ctx)
+    const Device::DeviceSettings& settings,
+    const score::DocumentContext& ctx)
 {
   return new WSDevice{settings};
 }
@@ -59,13 +59,15 @@ QVariant WSProtocolFactory::makeProtocolSpecificSettings(
 }
 
 void WSProtocolFactory::serializeProtocolSpecificSettings(
-    const QVariant& data, const VisitorVariant& visitor) const
+    const QVariant& data,
+    const VisitorVariant& visitor) const
 {
   serializeProtocolSpecificSettings_T<WSSpecificSettings>(data, visitor);
 }
 
 bool WSProtocolFactory::checkCompatibility(
-    const Device::DeviceSettings& a, const Device::DeviceSettings& b) const
+    const Device::DeviceSettings& a,
+    const Device::DeviceSettings& b) const
 {
   return a.name != b.name;
 }

@@ -10,7 +10,8 @@ class LayerPresenter;
 struct ProcessPresenterContext : public score::DocumentContext
 {
   ProcessPresenterContext(
-      const score::DocumentContext& doc, FocusDispatcher& d)
+      const score::DocumentContext& doc,
+      FocusDispatcher& d)
       : score::DocumentContext{doc}
       , focusDispatcher{d}
       , processList{doc.app.interfaces<Process::LayerFactoryList>()}

@@ -35,8 +35,9 @@ class SCORE_PLUGIN_CURVE_EXPORT SegmentModel
   SCORE_SERIALIZE_FRIENDS
 public:
   using data_vector = std::vector<
-      QPointF, boost::alignment::aligned_allocator_adaptor<
-                   std::allocator<QPointF>, 32>>;
+      QPointF,
+      boost::alignment::
+          aligned_allocator_adaptor<std::allocator<QPointF>, 32>>;
   Selectable selection;
   SegmentModel(const Id<SegmentModel>& id, QObject* parent);
   SegmentModel(const SegmentData& id, QObject* parent);
@@ -44,7 +45,9 @@ public:
   // Used for cloning :
   // Previous and following shall be set afterwards by the cloner.
   SegmentModel(
-      Curve::Point s, Curve::Point e, const Id<SegmentModel>& id,
+      Curve::Point s,
+      Curve::Point e,
+      const Id<SegmentModel>& id,
       QObject* parent);
 
   SegmentModel(DataStream::Deserializer& vis, QObject* parent);
@@ -55,34 +58,19 @@ public:
   virtual void updateData(int numInterp) const = 0; // Will interpolate.
   virtual double valueAt(double x) const = 0;
 
-  const data_vector& data() const
-  {
-    return m_data;
-  }
+  const data_vector& data() const { return m_data; }
 
   void setStart(const Curve::Point& pt);
-  Curve::Point start() const
-  {
-    return m_start;
-  }
+  Curve::Point start() const { return m_start; }
 
   void setEnd(const Curve::Point& pt);
-  Curve::Point end() const
-  {
-    return m_end;
-  }
+  Curve::Point end() const { return m_end; }
 
   void setPrevious(const OptionalId<SegmentModel>& previous);
-  const OptionalId<SegmentModel>& previous() const
-  {
-    return m_previous;
-  }
+  const OptionalId<SegmentModel>& previous() const { return m_previous; }
 
   void setFollowing(const OptionalId<SegmentModel>& following);
-  const OptionalId<SegmentModel>& following() const
-  {
-    return m_following;
-  }
+  const OptionalId<SegmentModel>& following() const { return m_following; }
 
   // Between -1 and 1, to map to the real parameter.
   virtual void setVerticalParameter(double p);
@@ -136,7 +124,9 @@ using DefaultCurveSegmentData = PowerSegmentData;
 }
 
 OBJECTKEY_METADATA(
-    SCORE_PLUGIN_CURVE_EXPORT, Curve::SegmentModel, "CurveSegmentModel")
+    SCORE_PLUGIN_CURVE_EXPORT,
+    Curve::SegmentModel,
+    "CurveSegmentModel")
 
 // extern template class SCORE_PLUGIN_CURVE_EXPORT
 // IdContainer<Curve::SegmentModel>;

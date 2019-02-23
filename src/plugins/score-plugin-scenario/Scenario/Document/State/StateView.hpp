@@ -43,15 +43,9 @@ public:
   {
     return QGraphicsItem::UserType + ItemType::State;
   }
-  int type() const override
-  {
-    return static_type();
-  }
+  int type() const override { return static_type(); }
 
-  const StatePresenter& presenter() const
-  {
-    return m_presenter;
-  }
+  const StatePresenter& presenter() const { return m_presenter; }
 
   QRectF boundingRect() const override
   {
@@ -60,7 +54,8 @@ public:
   }
 
   void paint(
-      QPainter* painter, const QStyleOptionGraphicsItem* option,
+      QPainter* painter,
+      const QStyleOptionGraphicsItem* option,
       QWidget* widget) override;
 
   void setContainMessage(bool);

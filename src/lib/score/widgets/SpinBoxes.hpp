@@ -53,10 +53,7 @@ public:
     this->setMaximum(std::numeric_limits<typename SpinBox::value_type>::max());
   }
 
-  void wheelEvent(QWheelEvent* event) override
-  {
-    event->ignore();
-  }
+  void wheelEvent(QWheelEvent* event) override { event->ignore(); }
 };
 
 /**
@@ -105,9 +102,6 @@ public:
     setDisplayFormat(QStringLiteral("h.mm.ss.zzz"));
   }
 
-  void wheelEvent(QWheelEvent* event) override
-  {
-    event->ignore();
-  }
+  void wheelEvent(QWheelEvent* event) override { event->ignore(); }
 };
 }

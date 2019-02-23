@@ -15,7 +15,9 @@ PlayListeningHandler::PlayListeningHandler(
 }
 
 void PlayListeningHandler::setListening(
-    Device::DeviceInterface& dev, const State::Address& addr, bool b)
+    Device::DeviceInterface& dev,
+    const State::Address& addr,
+    bool b)
 {
   if (!m_executor.isPlaying())
   {
@@ -24,7 +26,9 @@ void PlayListeningHandler::setListening(
 }
 
 void PlayListeningHandler::setListening(
-    Device::DeviceInterface& dev, const Device::Node& addr, bool b)
+    Device::DeviceInterface& dev,
+    const Device::Node& addr,
+    bool b)
 {
   if (!m_executor.isPlaying())
   {
@@ -33,7 +37,8 @@ void PlayListeningHandler::setListening(
 }
 
 void PlayListeningHandler::addToListening(
-    Device::DeviceInterface& dev, const std::vector<State::Address>& v)
+    Device::DeviceInterface& dev,
+    const std::vector<State::Address>& v)
 {
   if (!m_executor.isPlaying())
   {

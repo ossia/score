@@ -39,14 +39,16 @@ static const QPainterPath fullNonDilated{[] {
 static const QPainterPath smallDilated{[] {
   QPainterPath p;
   p.addEllipse(
-      {0, 0}, StateView::pointRadius * StateView::dilated,
+      {0, 0},
+      StateView::pointRadius * StateView::dilated,
       StateView::pointRadius * StateView::dilated);
   return p; // return p.simplified().toFillPolygon();
 }()};
 static const QPainterPath fullDilated{[] {
   QPainterPath p;
   p.addEllipse(
-      {0, 0}, StateView::fullRadius * StateView::dilated,
+      {0, 0},
+      StateView::fullRadius * StateView::dilated,
       StateView::fullRadius * StateView::dilated);
   return p; // return p.simplified().toFillPolygon();
 }()};
@@ -69,7 +71,9 @@ StateView::StateView(StatePresenter& pres, QGraphicsItem* parent)
 }
 
 void StateView::paint(
-    QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+    QPainter* painter,
+    const QStyleOptionGraphicsItem* option,
+    QWidget* widget)
 {
   painter->setRenderHint(QPainter::Antialiasing, true);
   auto& skin = Process::Style::instance();
@@ -197,13 +201,9 @@ void StateView::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
   event->accept();
 }
 
-void StateView::hoverEnterEvent(QGraphicsSceneHoverEvent* event)
-{
-}
+void StateView::hoverEnterEvent(QGraphicsSceneHoverEvent* event) {}
 
-void StateView::hoverLeaveEvent(QGraphicsSceneHoverEvent* event)
-{
-}
+void StateView::hoverLeaveEvent(QGraphicsSceneHoverEvent* event) {}
 void StateView::dragEnterEvent(QGraphicsSceneDragDropEvent* event)
 {
   setDilatation(true);

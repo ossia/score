@@ -140,7 +140,8 @@ void update_min_max(const T& val, T& min, T& max)
 }
 
 void ScenarioViewInterface::on_hoverOnInterval(
-    const Id<IntervalModel>& intervalId, bool enter)
+    const Id<IntervalModel>& intervalId,
+    bool enter)
 {
   /*
   const auto& interval = m_presenter.m_intervals.at(intervalId)->model();
@@ -152,7 +153,8 @@ void ScenarioViewInterface::on_hoverOnInterval(
 }
 
 void ScenarioViewInterface::on_hoverOnEvent(
-    const Id<EventModel>& eventId, bool enter)
+    const Id<EventModel>& eventId,
+    bool enter)
 {
   /*
   const auto& event = m_presenter.m_events.at(eventId)->model();

@@ -22,7 +22,9 @@ namespace Command
 class SetMinDuration final : public score::Command
 {
   SCORE_COMMAND_DECL(
-      ScenarioCommandFactoryName(), SetMinDuration, "Set interval minimum")
+      ScenarioCommandFactoryName(),
+      SetMinDuration,
+      "Set interval minimum")
 public:
   static const constexpr auto corresponding_member
       = &IntervalDurations::minDuration;

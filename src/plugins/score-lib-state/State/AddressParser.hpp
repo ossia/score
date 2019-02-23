@@ -1,6 +1,7 @@
 #pragma once
 #include <State/Address.hpp>
 #include <State/ValueParser.hpp>
+#include <State/Relation.hpp>
 BOOST_FUSION_ADAPT_STRUCT(State::Address, (QString, device)(QStringList, path))
 
 BOOST_FUSION_ADAPT_STRUCT(

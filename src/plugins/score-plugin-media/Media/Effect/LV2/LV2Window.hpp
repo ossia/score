@@ -13,7 +13,8 @@ class Window final : public QDialog
   W_OBJECT(Window)
 public:
   Window(
-      const LV2EffectModel& e, const score::DocumentContext& ctx,
+      const LV2EffectModel& e,
+      const score::DocumentContext& ctx,
       QWidget* parent);
 
   ~Window() override;
@@ -29,5 +30,7 @@ private:
 };
 
 using LayerFactory = Process::EffectLayerFactory_T<
-    LV2EffectModel, Media::Effect::DefaultEffectItem, Window>;
+    LV2EffectModel,
+    Media::Effect::DefaultEffectItem,
+    Window>;
 }

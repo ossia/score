@@ -35,7 +35,10 @@ PhidgetDevice::PhidgetDevice(const Device::DeviceSettings& settings)
   m_capas.canRenameNode = false;
   m_capas.canSetProperties = false;
   connect(
-      this, &PhidgetDevice::sig_command, this, &PhidgetDevice::slot_command,
+      this,
+      &PhidgetDevice::sig_command,
+      this,
+      &PhidgetDevice::slot_command,
       Qt::QueuedConnection);
 
   reconnect();

@@ -32,17 +32,15 @@ public:
 
   CommandDispatcher<> dispatcher() const;
 
-  auto appPlugin() const
-  {
-    return m_parent;
-  }
+  auto appPlugin() const { return m_parent; }
 
 private:
   QJsonObject copySelectedElementsToJson();
   QJsonObject cutSelectedElementsToJson();
   void pasteElements(const QJsonObject& obj, const Scenario::Point& origin);
   void pasteElementsAfter(
-      const QJsonObject& obj, const Scenario::Point& origin,
+      const QJsonObject& obj,
+      const Scenario::Point& origin,
       const Selection& sel);
   void writeJsonToSelectedElements(const QJsonObject& obj);
 

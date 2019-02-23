@@ -50,8 +50,10 @@ struct Node
   }
 
   static void
-  run(const ossia::audio_port& audio, ossia::value_port& rms_port,
-      ossia::value_port& peak_port, ossia::token_request tk,
+  run(const ossia::audio_port& audio,
+      ossia::value_port& rms_port,
+      ossia::value_port& peak_port,
+      ossia::token_request tk,
       ossia::exec_state_facade)
   {
     switch (audio.samples.size())

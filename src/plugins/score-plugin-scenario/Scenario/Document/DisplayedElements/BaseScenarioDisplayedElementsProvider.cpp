@@ -40,8 +40,10 @@ BaseScenarioDisplayedElementsProvider::make(IntervalModel& cst) const
 
 DisplayedElementsPresenterContainer
 BaseScenarioDisplayedElementsProvider::make_presenters(
-    const IntervalModel& m, const Process::ProcessPresenterContext& ctx,
-    QGraphicsItem* view_parent, QObject* parent) const
+    const IntervalModel& m,
+    const Process::ProcessPresenterContext& ctx,
+    QGraphicsItem* view_parent,
+    QObject* parent) const
 {
   if (auto bs = dynamic_cast<BaseScenario*>(m.parent()))
   {

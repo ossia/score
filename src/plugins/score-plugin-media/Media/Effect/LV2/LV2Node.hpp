@@ -178,7 +178,10 @@ struct lv2_node final : public ossia::graph_node
       for (const rtmidi::message& msg : ossia_port.messages)
       {
         it.write(
-            msg.timestamp, 0, data.host.midi_event_id, msg.bytes.size(),
+            msg.timestamp,
+            0,
+            data.host.midi_event_id,
+            msg.bytes.size(),
             msg.bytes.data());
       }
     }
@@ -206,7 +209,8 @@ struct lv2_node final : public ossia::graph_node
         && data.effect.worker->work_response)
     {
       data.effect.worker->work_response(
-          data.effect.instance->lv2_handle, data.effect.worker_data.size(),
+          data.effect.instance->lv2_handle,
+          data.effect.worker_data.size(),
           data.effect.worker_data.data());
       data.effect.worker_response = false;
     }
@@ -269,10 +273,7 @@ struct lv2_node final : public ossia::graph_node
     }
   }
 
-  ~lv2_node() override
-  {
-    lilv_instance_deactivate(fInstance);
-  }
+  ~lv2_node() override { lilv_instance_deactivate(fInstance); }
 
   void run(ossia::token_request tk, ossia::exec_state_facade) noexcept override
   {
@@ -299,7 +300,8 @@ struct lv2_node final : public ossia::graph_node
           if (audio_in.samples.size() > i)
           {
             for (std::size_t j = 0;
-                 j < std::min(samples, audio_in.samples[i].size()); j++)
+                 j < std::min(samples, audio_in.samples[i].size());
+                 j++)
             {
               in_vec[i][j] = (float)audio_in.samples[i][j];
             }

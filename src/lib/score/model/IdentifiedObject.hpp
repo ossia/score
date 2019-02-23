@@ -39,15 +39,9 @@ public:
 
   ~IdentifiedObject() override = default;
 
-  const id_type& id() const noexcept
-  {
-    return m_id;
-  }
+  const id_type& id() const noexcept { return m_id; }
 
-  int32_t id_val() const noexcept final override
-  {
-    return m_id.val();
-  }
+  int32_t id_val() const noexcept final override { return m_id.val(); }
 
   void setId(const id_type& id) noexcept
   {
@@ -63,10 +57,7 @@ public:
     m_id.m_ptr = this;
   }
 
-  void resetCache() final override
-  {
-    m_path_cache.unsafePath().vec().clear();
-  }
+  void resetCache() final override { m_path_cache.unsafePath().vec().clear(); }
 
   mutable Path<model> m_path_cache;
   // TODO see

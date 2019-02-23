@@ -20,7 +20,8 @@
 namespace Interpolation
 {
 InspectorWidget::InspectorWidget(
-    const ProcessModel& automationModel, const score::DocumentContext& doc,
+    const ProcessModel& automationModel,
+    const score::DocumentContext& doc,
     QWidget* parent)
     : InspectorWidgetDelegate_T{automationModel, parent}
     , m_dispatcher{doc.commandStack}
@@ -43,11 +44,15 @@ InspectorWidget::InspectorWidget(
   m_lineEdit = new AddressAccessorEditWidget{doc, this};
 
   m_lineEdit->setAddress(process().address());
-  con(process(), &ProcessModel::addressChanged, m_lineEdit,
+  con(process(),
+      &ProcessModel::addressChanged,
+      m_lineEdit,
       &AddressAccessorEditWidget::setAddress);
 
   connect(
-      m_lineEdit, &AddressAccessorEditWidget::addressChanged, this,
+      m_lineEdit,
+      &AddressAccessorEditWidget::addressChanged,
+      this,
       [this](const auto& addr) { this->on_addressChange(addr.address); });
 
   vlay->addRow(tr("Address"), m_lineEdit);
@@ -80,7 +85,8 @@ void InspectorWidget::on_tweenChanged()
 }
 
 StateInspectorWidget::StateInspectorWidget(
-    const ProcessState& object, const score::DocumentContext& doc,
+    const ProcessState& object,
+    const score::DocumentContext& doc,
     QWidget* parent)
     : InspectorWidgetBase{object, doc, parent, tr("State")}
     , m_state{object}
@@ -89,7 +95,9 @@ StateInspectorWidget::StateInspectorWidget(
   std::vector<QWidget*> vec;
   vec.push_back(m_label);
 
-  con(m_state, &ProcessStateDataInterface::stateChanged, this,
+  con(m_state,
+      &ProcessStateDataInterface::stateChanged,
+      this,
       &StateInspectorWidget::on_stateChanged);
 
   on_stateChanged();
@@ -109,13 +117,12 @@ void StateInspectorWidget::on_stateChanged()
   m_label->setText(txt);
 }
 
-StateInspectorFactory::StateInspectorFactory() : InspectorWidgetFactory{}
-{
-}
+StateInspectorFactory::StateInspectorFactory() : InspectorWidgetFactory{} {}
 
 QWidget* StateInspectorFactory::make(
     const InspectedObjects& sourceElements,
-    const score::DocumentContext& doc, QWidget* parent) const
+    const score::DocumentContext& doc,
+    QWidget* parent) const
 {
   return new StateInspectorWidget{
       safe_cast<const ProcessState&>(*sourceElements.first()), doc, parent};

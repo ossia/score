@@ -1,5 +1,4 @@
 #pragma once
-#include <Control/DefaultEffectItem.hpp>
 #include <Media/Effect/LV2/LV2Context.hpp>
 #include <Process/Execution/ProcessComponent.hpp>
 #include <Process/GenericProcessFactory.hpp>
@@ -10,6 +9,7 @@
 #include <QInputDialog>
 #include <QJsonDocument>
 
+#include <Control/DefaultEffectItem.hpp>
 #include <Effect/EffectFactory.hpp>
 #include <lilv/lilvmm.hpp>
 #include <wobjectdefs.h>
@@ -19,9 +19,19 @@ namespace Media::LV2
 class LV2EffectModel;
 }
 PROCESS_METADATA(
-    , Media::LV2::LV2EffectModel, "fd5243ba-70b5-4164-b44a-ecb0dcdc0494",
-    "LV2", "LV2", Process::ProcessCategory::Other, "Audio", "LV2 plug-in",
-    "ossia score", {}, {}, {}, Process::ProcessFlags::ExternalEffect)
+    ,
+    Media::LV2::LV2EffectModel,
+    "fd5243ba-70b5-4164-b44a-ecb0dcdc0494",
+    "LV2",
+    "LV2",
+    Process::ProcessCategory::Other,
+    "Audio",
+    "LV2 plug-in",
+    "ossia score",
+    {},
+    {},
+    {},
+    Process::ProcessFlags::ExternalEffect)
 DESCRIPTION_METADATA(, Media::LV2::LV2EffectModel, "LV2")
 namespace Media::LV2
 {
@@ -32,7 +42,9 @@ class LV2EffectModel : public Process::ProcessModel
 public:
   PROCESS_METADATA_IMPL(LV2EffectModel)
   LV2EffectModel(
-      TimeVal t, const QString& name, const Id<Process::ProcessModel>&,
+      TimeVal t,
+      const QString& name,
+      const Id<Process::ProcessModel>&,
       QObject* parent);
 
   ~LV2EffectModel() override;
@@ -43,15 +55,9 @@ public:
     reload();
   }
 
-  const QString& effect() const
-  {
-    return m_effectPath;
-  }
+  const QString& effect() const { return m_effectPath; }
 
-  void setEffect(const QString& s)
-  {
-    m_effectPath = s;
-  }
+  void setEffect(const QString& s) { m_effectPath = s; }
 
   QString prettyName() const noexcept override;
 
@@ -76,8 +82,8 @@ private:
 };
 
 class LV2EffectComponent final
-    : public Execution::ProcessComponent_T<
-          Media::LV2::LV2EffectModel, ossia::node_process>
+    : public Execution::
+          ProcessComponent_T<Media::LV2::LV2EffectModel, ossia::node_process>
 {
   W_OBJECT(LV2EffectComponent)
   COMPONENT_METADATA("57f50003-a179-424a-80b1-b9394d73a84a")
@@ -86,13 +92,18 @@ public:
   static constexpr bool is_unique = true;
 
   LV2EffectComponent(
-      Media::LV2::LV2EffectModel& proc, const Execution::Context& ctx,
-      const Id<score::Component>& id, QObject* parent);
+      Media::LV2::LV2EffectModel& proc,
+      const Execution::Context& ctx,
+      const Id<score::Component>& id,
+      QObject* parent);
 
   void lazy_init() override;
 
   void writeAtomToUi(
-      uint32_t port_index, uint32_t type, uint32_t size, const void* body);
+      uint32_t port_index,
+      uint32_t type,
+      uint32_t size,
+      const void* body);
 };
 }
 

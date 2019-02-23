@@ -14,10 +14,7 @@ class View final : public Process::LayerView
 public:
   explicit View(QGraphicsItem* parent);
   ~View() override;
-  void setCurveView(Curve::View* view)
-  {
-    m_curveView = view;
-  }
+  void setCurveView(Curve::View* view) { m_curveView = view; }
 
 private:
   QPixmap pixmap() noexcept override;

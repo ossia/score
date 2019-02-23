@@ -11,8 +11,11 @@ namespace Curve
 {
 class EditionSettings;
 template <
-    typename Model_T, typename LayerPresenter_T, typename LayerView_T,
-    typename CurveColors_T, typename HeaderDelegate_T>
+    typename Model_T,
+    typename LayerPresenter_T,
+    typename LayerView_T,
+    typename CurveColors_T,
+    typename HeaderDelegate_T>
 class CurveLayerFactory_T final : public Process::LayerFactory,
                                   public StyleInterface
 {
@@ -27,13 +30,16 @@ public:
   }
 
   LayerPresenter_T* makeLayerPresenter(
-      const Process::ProcessModel& lm, Process::LayerView* v,
+      const Process::ProcessModel& lm,
+      Process::LayerView* v,
       const Process::ProcessPresenterContext& context,
       QObject* parent) const final override
   {
     return new LayerPresenter_T{m_colors.style(),
                                 safe_cast<const Model_T&>(lm),
-                                safe_cast<LayerView_T*>(v), context, parent};
+                                safe_cast<LayerView_T*>(v),
+                                context,
+                                parent};
   }
 
   UuidKey<Process::ProcessModel> concreteKey() const noexcept override
@@ -46,10 +52,7 @@ public:
     return p == Metadata<ConcreteKey_k, Model_T>::get();
   }
 
-  const Curve::Style& style() const override
-  {
-    return m_colors.style();
-  }
+  const Curve::Style& style() const override { return m_colors.style(); }
 
   Process::HeaderDelegate*
   makeHeaderDelegate(const Process::LayerPresenter& pres) const override

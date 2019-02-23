@@ -4,8 +4,8 @@
 
 #include "OSCQuerySpecificSettings.hpp"
 
-#include <Protocols/RateWidget.hpp>
 #include <Device/Protocol/ProtocolSettingsWidget.hpp>
+#include <Protocols/RateWidget.hpp>
 #include <State/Widgets/AddressFragmentLineEdit.hpp>
 
 #include <QAction>
@@ -33,7 +33,9 @@ OSCQueryProtocolSettingsWidget::OSCQueryProtocolSettingsWidget(QWidget* parent)
   m_rate = new RateWidget{this};
 
   connect(
-      &m_http_client, &QNetworkAccessManager::finished, this,
+      &m_http_client,
+      &QNetworkAccessManager::finished,
+      this,
       [&](QNetworkReply* ret) {
         if (ret != m_cur_reply)
         {
@@ -60,7 +62,9 @@ OSCQueryProtocolSettingsWidget::OSCQueryProtocolSettingsWidget(QWidget* parent)
   connect(
       pb, &QPushButton::clicked, m_browser->makeAction(), &QAction::trigger);
   connect(
-      m_browser, &ZeroconfBrowser::sessionSelected, this,
+      m_browser,
+      &ZeroconfBrowser::sessionSelected,
+      this,
       [=](QString name, QString ip, int port, QMap<QString, QByteArray> txt) {
         m_deviceNameEdit->setText(name);
 
@@ -120,11 +124,10 @@ void OSCQueryProtocolSettingsWidget::setSettings(
 {
   m_deviceNameEdit->setText(settings.name);
   OSCQuerySpecificSettings OSCQuery;
-  if (settings.deviceSpecificSettings
-          .canConvert<OSCQuerySpecificSettings>())
+  if (settings.deviceSpecificSettings.canConvert<OSCQuerySpecificSettings>())
   {
-    OSCQuery = settings.deviceSpecificSettings
-                   .value<OSCQuerySpecificSettings>();
+    OSCQuery
+        = settings.deviceSpecificSettings.value<OSCQuerySpecificSettings>();
     m_localHostEdit->setText(OSCQuery.host);
     m_rate->setRate(OSCQuery.rate);
   }

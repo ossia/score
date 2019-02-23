@@ -37,12 +37,16 @@ class BaseScenarioRefContainer
 {
 public:
   BaseScenarioRefContainer(
-      Scenario::IntervalModel& interval, Scenario::ScenarioInterface& s);
+      Scenario::IntervalModel& interval,
+      Scenario::ScenarioInterface& s);
 
   BaseScenarioRefContainer(
-      Scenario::IntervalModel& interval, Scenario::StateModel& startState,
-      Scenario::StateModel& endState, Scenario::EventModel& startEvent,
-      Scenario::EventModel& endEvent, Scenario::TimeSyncModel& startNode,
+      Scenario::IntervalModel& interval,
+      Scenario::StateModel& startState,
+      Scenario::StateModel& endState,
+      Scenario::EventModel& startEvent,
+      Scenario::EventModel& endEvent,
+      Scenario::TimeSyncModel& startNode,
       Scenario::TimeSyncModel& endNode)
       : m_interval{interval}
       , m_startState{startState}
@@ -54,37 +58,16 @@ public:
   {
   }
 
-  Scenario::IntervalModel& interval() const
-  {
-    return m_interval;
-  }
+  Scenario::IntervalModel& interval() const { return m_interval; }
 
-  Scenario::TimeSyncModel& startTimeSync() const
-  {
-    return m_startNode;
-  }
-  Scenario::TimeSyncModel& endTimeSync() const
-  {
-    return m_endNode;
-  }
+  Scenario::TimeSyncModel& startTimeSync() const { return m_startNode; }
+  Scenario::TimeSyncModel& endTimeSync() const { return m_endNode; }
 
-  Scenario::EventModel& startEvent() const
-  {
-    return m_startEvent;
-  }
-  Scenario::EventModel& endEvent() const
-  {
-    return m_endEvent;
-  }
+  Scenario::EventModel& startEvent() const { return m_startEvent; }
+  Scenario::EventModel& endEvent() const { return m_endEvent; }
 
-  Scenario::StateModel& startState() const
-  {
-    return m_startState;
-  }
-  Scenario::StateModel& endState() const
-  {
-    return m_endState;
-  }
+  Scenario::StateModel& startState() const { return m_startState; }
+  Scenario::StateModel& endState() const { return m_endState; }
 
 private:
   Scenario::IntervalModel& m_interval;
@@ -108,10 +91,7 @@ public:
 
   void init(BaseScenarioRefContainer);
   void cleanup();
-  bool active() const
-  {
-    return bool(m_ossia_interval);
-  }
+  bool active() const { return bool(m_ossia_interval); }
 
   IntervalComponent& baseInterval() const;
 

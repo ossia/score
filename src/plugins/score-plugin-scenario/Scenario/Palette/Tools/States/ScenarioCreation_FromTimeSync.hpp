@@ -23,10 +23,14 @@ class Creation_FromTimeSync final
 {
 public:
   Creation_FromTimeSync(
-      const ToolPalette_T& stateMachine, const Scenario_T& scenarioPath,
-      const score::CommandStackFacade& stack, QState* parent)
-      : CreationState<Scenario_T, ToolPalette_T>{
-            stateMachine, stack, std::move(scenarioPath), parent}
+      const ToolPalette_T& stateMachine,
+      const Scenario_T& scenarioPath,
+      const score::CommandStackFacade& stack,
+      QState* parent)
+      : CreationState<Scenario_T, ToolPalette_T>{stateMachine,
+                                                 stack,
+                                                 std::move(scenarioPath),
+                                                 parent}
   {
     using namespace Scenario::Command;
     auto finalState = new QFinalState{this};
@@ -196,9 +200,12 @@ public:
 
         // Move the timesync
         this->m_dispatcher.template submit<MoveNewEvent>(
-            this->m_scenario, this->createdIntervals.last(),
-            this->createdEvents.last(), this->currentPoint.date,
-            this->currentPoint.y, stateMachine.editionSettings().sequence());
+            this->m_scenario,
+            this->createdIntervals.last(),
+            this->createdEvents.last(),
+            this->currentPoint.date,
+            this->currentPoint.y,
+            stateMachine.editionSettings().sequence());
       });
 
       QObject::connect(move_timesync, &QState::entered, [&]() {
@@ -214,8 +221,12 @@ public:
         }
 
         this->m_dispatcher.template submit<MoveEventMeta>(
-            this->m_scenario, this->createdEvents.last(), TimeVal::zero(), 0.,
-            stateMachine.editionSettings().expandMode(), LockMode::Free);
+            this->m_scenario,
+            this->createdEvents.last(),
+            TimeVal::zero(),
+            0.,
+            stateMachine.editionSettings().expandMode(),
+            LockMode::Free);
       });
 
       QObject::connect(
@@ -226,7 +237,9 @@ public:
     score::make_transition<score::Cancel_Transition>(mainState, rollbackState);
     rollbackState->addTransition(finalState);
     QObject::connect(
-        rollbackState, &QState::entered, this,
+        rollbackState,
+        &QState::entered,
+        this,
         &Creation_FromTimeSync::rollback);
 
     this->setInitialState(mainState);

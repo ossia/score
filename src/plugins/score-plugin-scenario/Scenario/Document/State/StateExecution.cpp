@@ -13,8 +13,10 @@
 namespace Execution
 {
 StateComponentBase::StateComponentBase(
-    const Scenario::StateModel& element, const Execution::Context& ctx,
-    const Id<score::Component>& id, QObject* parent)
+    const Scenario::StateModel& element,
+    const Execution::Context& ctx,
+    const Id<score::Component>& id,
+    QObject* parent)
     : Execution::Component{ctx, id, "Executor::State", nullptr}
     , m_model{&element}
     , m_node{std::make_shared<ossia::nodes::state_writer>(
@@ -46,7 +48,8 @@ void StateComponentBase::onDelete() const
 }
 
 ProcessComponent* StateComponentBase::make(
-    const Id<score::Component>& id, ProcessComponentFactory& fac,
+    const Id<score::Component>& id,
+    ProcessComponentFactory& fac,
     Process::ProcessModel& proc)
 {
   try
@@ -72,7 +75,9 @@ ProcessComponent* StateComponentBase::make(
       auto cst = m_ev;
 
       QObject::connect(
-          &proc.selection, &Selectable::changed, plug.get(),
+          &proc.selection,
+          &Selectable::changed,
+          plug.get(),
           [this, n = oproc->node](bool ok) {
             in_exec([=] {
               if (n)
@@ -108,7 +113,8 @@ ProcessComponent* StateComponentBase::make(
 }
 
 std::function<void()> StateComponentBase::removing(
-    const Process::ProcessModel& e, ProcessComponent& c)
+    const Process::ProcessModel& e,
+    ProcessComponent& c)
 {
   auto it = m_processes.find(e.id());
   if (it != m_processes.end())
@@ -125,9 +131,7 @@ std::function<void()> StateComponentBase::removing(
   return {};
 }
 
-StateComponent::~StateComponent()
-{
-}
+StateComponent::~StateComponent() {}
 
 void StateComponent::onSetup(const std::shared_ptr<ossia::time_event>& root)
 {

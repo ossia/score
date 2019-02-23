@@ -17,9 +17,7 @@
 W_OBJECT_IMPL(Scenario::IntervalDurations)
 namespace Scenario
 {
-IntervalDurations::~IntervalDurations()
-{
-}
+IntervalDurations::~IntervalDurations() {}
 
 IntervalDurations& IntervalDurations::operator=(const IntervalDurations& other)
 {
@@ -146,7 +144,8 @@ void IntervalDurations::setMaxInfinite(bool isMaxInfinite)
 
 SCORE_PLUGIN_SCENARIO_EXPORT void
 IntervalDurations::Algorithms::setDurationInBounds(
-    IntervalModel& cstr, const TimeVal& time)
+    IntervalModel& cstr,
+    const TimeVal& time)
 {
   if (cstr.duration.defaultDuration() != time)
   {
@@ -169,7 +168,8 @@ IntervalDurations::Algorithms::setDurationInBounds(
 
 SCORE_PLUGIN_SCENARIO_EXPORT void
 IntervalDurations::Algorithms::changeAllDurations(
-    IntervalModel& cstr, const TimeVal& time)
+    IntervalModel& cstr,
+    const TimeVal& time)
 {
   if (cstr.duration.defaultDuration() != time)
   {
@@ -185,7 +185,8 @@ IntervalDurations::Algorithms::changeAllDurations(
 
 SCORE_PLUGIN_SCENARIO_EXPORT void
 IntervalDurations::Algorithms::scaleAllDurations(
-    IntervalModel& cstr, const TimeVal& time)
+    IntervalModel& cstr,
+    const TimeVal& time)
 {
   if (cstr.duration.defaultDuration() != time)
   {
@@ -241,11 +242,11 @@ void JSONObjectWriter::write(Scenario::IntervalDurations& durs)
   durs.m_isMaxInfinite = obj[strings.MaxInf].toBool();
 
   using namespace std::chrono;
-  if(durs.m_minDuration.msec() < 0)
+  if (durs.m_minDuration.msec() < 0)
     durs.m_minDuration = durs.m_defaultDuration;
-  if(durs.m_maxDuration.msec() < 0)
+  if (durs.m_maxDuration.msec() < 0)
     durs.m_maxDuration = durs.m_defaultDuration;
-  if(durs.isRigid())
+  if (durs.isRigid())
   {
     durs.m_minDuration = durs.m_defaultDuration;
     durs.m_maxDuration = durs.m_defaultDuration;

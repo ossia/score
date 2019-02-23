@@ -10,11 +10,14 @@ namespace Scenario::Command
 {
 
 DuplicateInterval::DuplicateInterval(
-    const Scenario::ProcessModel& parent, const IntervalModel& cst)
-    : m_cmdStart{parent, getStrongId(parent.states),
+    const Scenario::ProcessModel& parent,
+    const IntervalModel& cst)
+    : m_cmdStart{parent,
+                 getStrongId(parent.states),
                  Scenario::startState(cst, parent).eventId(),
                  cst.heightPercentage() + 0.1}
-    , m_cmdEnd{parent, Id<StateModel>{(int)getStrongId(parent.states) + 1},
+    , m_cmdEnd{parent,
+               Id<StateModel>{(int)getStrongId(parent.states) + 1},
                Scenario::endState(cst, parent).eventId(),
                cst.heightPercentage() + 0.1}
     , m_path{cst}
@@ -22,9 +25,7 @@ DuplicateInterval::DuplicateInterval(
 {
 }
 
-DuplicateInterval::~DuplicateInterval()
-{
-}
+DuplicateInterval::~DuplicateInterval() {}
 
 void DuplicateInterval::undo(const score::DocumentContext& ctx) const
 {

@@ -21,16 +21,18 @@ public:
   using component_factory_list_t = LocalTree::ProcessComponentFactoryList;
 
   IntervalBase(
-      ossia::net::node_base& parent, const Id<score::Component>& id,
-      Scenario::IntervalModel& interval, DocumentPlugin& sys,
+      ossia::net::node_base& parent,
+      const Id<score::Component>& id,
+      Scenario::IntervalModel& interval,
+      DocumentPlugin& sys,
       QObject* parent_comp);
 
   ProcessComponent* make(
-      const Id<score::Component>& id, ProcessComponentFactory& factory,
-      Process::ProcessModel& process);
-  ProcessComponent* make(
       const Id<score::Component>& id,
+      ProcessComponentFactory& factory,
       Process::ProcessModel& process);
+  ProcessComponent*
+  make(const Id<score::Component>& id, Process::ProcessModel& process);
 
   bool
   removing(const Process::ProcessModel& cst, const ProcessComponent& comp);

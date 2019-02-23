@@ -23,8 +23,11 @@ class MoveEventClassicFactory final : public MoveEventFactoryInterface
   SCORE_CONCRETE("644a6f8d-de63-4951-b28b-33b5e2c71ac8")
 
   std::unique_ptr<SerializableMoveEvent> make(
-      const Scenario::ProcessModel&, Id<EventModel> eventId, TimeVal newDate,
-      ExpandMode mode, LockMode lck) override;
+      const Scenario::ProcessModel&,
+      Id<EventModel> eventId,
+      TimeVal newDate,
+      ExpandMode mode,
+      LockMode lck) override;
 
   std::unique_ptr<SerializableMoveEvent> make(LockMode) override;
 

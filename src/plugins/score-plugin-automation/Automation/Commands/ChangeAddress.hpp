@@ -21,11 +21,14 @@ class ChangeAddress final : public score::Command
   SCORE_COMMAND_DECL(CommandFactoryName(), ChangeAddress, "ChangeAddress")
 public:
   ChangeAddress(
-      const ProcessModel& autom, const State::AddressAccessor& newval);
+      const ProcessModel& autom,
+      const State::AddressAccessor& newval);
   ChangeAddress(
-      const ProcessModel& autom, Device::FullAddressAccessorSettings newval);
+      const ProcessModel& autom,
+      Device::FullAddressAccessorSettings newval);
   ChangeAddress(
-      const ProcessModel& autom, const Device::FullAddressSettings& newval);
+      const ProcessModel& autom,
+      const Device::FullAddressSettings& newval);
 
 public:
   void undo(const score::DocumentContext& ctx) const override;
@@ -47,11 +50,13 @@ class ProcessModel;
 class ChangeSplineAddress final : public score::Command
 {
   SCORE_COMMAND_DECL(
-      Automation::CommandFactoryName(), ChangeSplineAddress,
+      Automation::CommandFactoryName(),
+      ChangeSplineAddress,
       "ChangeSplineAddress")
 public:
   ChangeSplineAddress(
-      const ProcessModel& autom, const State::AddressAccessor& newval);
+      const ProcessModel& autom,
+      const State::AddressAccessor& newval);
 
 public:
   void undo(const score::DocumentContext& ctx) const override;
@@ -73,11 +78,13 @@ class ProcessModel;
 class ChangeMetronomeAddress final : public score::Command
 {
   SCORE_COMMAND_DECL(
-      Automation::CommandFactoryName(), ChangeMetronomeAddress,
+      Automation::CommandFactoryName(),
+      ChangeMetronomeAddress,
       "ChangeMetronomeAddress")
 public:
   ChangeMetronomeAddress(
-      const ProcessModel& autom, const State::Address& newval);
+      const ProcessModel& autom,
+      const State::Address& newval);
 
 public:
   void undo(const score::DocumentContext& ctx) const override;

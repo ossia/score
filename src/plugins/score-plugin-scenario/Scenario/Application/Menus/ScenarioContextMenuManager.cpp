@@ -49,8 +49,10 @@
 namespace Scenario
 {
 void ScenarioContextMenuManager::createProcessSelectorContextMenu(
-    const score::DocumentContext& ctx, QMenu& menu,
-    const TemporalIntervalPresenter& pres, int slot_index)
+    const score::DocumentContext& ctx,
+    QMenu& menu,
+    const TemporalIntervalPresenter& pres,
+    int slot_index)
 {
   using namespace Scenario::Command;
   // TODO see
@@ -75,7 +77,9 @@ void ScenarioContextMenuManager::createProcessSelectorContextMenu(
 }
 
 void ScenarioContextMenuManager::createLayerContextMenuForProcess(
-    QMenu& menu, QPoint pos, QPointF scenepos,
+    QMenu& menu,
+    QPoint pos,
+    QPointF scenepos,
     const Process::LayerContextMenuManager& lcmmgr,
     Process::LayerPresenter& pres)
 {

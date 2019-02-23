@@ -58,9 +58,15 @@ struct Node
 
   using control_policy = ossia::safe_nodes::last_tick;
   static void
-  run(const ossia::value_port& input, const std::string& expr, float a,
-      float b, float c, ossia::value_port& output, ossia::token_request tk,
-      ossia::exec_state_facade st, State& self)
+  run(const ossia::value_port& input,
+      const std::string& expr,
+      float a,
+      float b,
+      float c,
+      ossia::value_port& output,
+      ossia::token_request tk,
+      ossia::exec_state_facade st,
+      State& self)
   {
     if (!updateExpr(self, expr))
       return;
@@ -137,9 +143,15 @@ struct Node
 
   using control_policy = ossia::safe_nodes::last_tick;
   static void
-  run(const ossia::audio_port& input, const std::string& expr, float a,
-      float b, float c, ossia::audio_port& output, ossia::token_request tk,
-      ossia::exec_state_facade st, State& self)
+  run(const ossia::audio_port& input,
+      const std::string& expr,
+      float a,
+      float b,
+      float c,
+      ossia::audio_port& output,
+      ossia::token_request tk,
+      ossia::exec_state_facade st,
+      State& self)
   {
     if (tk.date > tk.prev_date)
     {

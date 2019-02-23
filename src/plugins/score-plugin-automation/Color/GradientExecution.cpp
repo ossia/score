@@ -11,11 +11,17 @@ namespace RecreateOnPlay
 {
 using gradient = ossia::nodes::gradient;
 Component::Component(
-    ::Gradient::ProcessModel& element, const ::Execution::Context& ctx,
-    const Id<score::Component>& id, QObject* parent)
-    : ::Execution::ProcessComponent_T<
-          Gradient::ProcessModel, ossia::node_process>{
-          element, ctx, id, "Executor::GradientComponent", parent}
+    ::Gradient::ProcessModel& element,
+    const ::Execution::Context& ctx,
+    const Id<score::Component>& id,
+    QObject* parent)
+    : ::Execution::
+          ProcessComponent_T<Gradient::ProcessModel, ossia::node_process>{
+              element,
+              ctx,
+              id,
+              "Executor::GradientComponent",
+              parent}
 {
   auto node = std::make_shared<gradient>();
   this->node = node;
@@ -33,15 +39,14 @@ Component::Component(
       node->mustTween = b;
     });
   });
-  con(element, &Gradient::ProcessModel::gradientChanged, this,
-      [this] { this->recompute(); });
+  con(element, &Gradient::ProcessModel::gradientChanged, this, [this] {
+    this->recompute();
+  });
 
   recompute();
 }
 
-Component::~Component()
-{
-}
+Component::~Component() {}
 
 static ossia::hunter_lab to_ossia_color(QColor c)
 {

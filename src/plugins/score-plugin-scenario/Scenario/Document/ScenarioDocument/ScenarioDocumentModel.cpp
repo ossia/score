@@ -60,10 +60,12 @@ class LayerPresenter;
 namespace Scenario
 {
 ScenarioDocumentModel::ScenarioDocumentModel(
-    const score::DocumentContext& ctx, QObject* parent)
+    const score::DocumentContext& ctx,
+    QObject* parent)
     : score::DocumentDelegateModel{Id<score::DocumentDelegateModel>(
                                        score::id_generator::getFirstId()),
-                                   "Scenario::ScenarioDocumentModel", parent}
+                                   "Scenario::ScenarioDocumentModel",
+                                   parent}
     , m_context{ctx}
     , m_baseScenario{new BaseScenario{Id<BaseScenario>{0}, this}}
 {
@@ -84,7 +86,9 @@ ScenarioDocumentModel::ScenarioDocumentModel(
   m_baseScenario->interval().metadata().setName(doc_metadata.fileName());
 
   connect(
-      &doc_metadata, &score::DocumentMetadata::fileNameChanged, this,
+      &doc_metadata,
+      &score::DocumentMetadata::fileNameChanged,
+      this,
       [&](const QString& newName) {
         QFileInfo info(newName);
 
@@ -95,7 +99,8 @@ ScenarioDocumentModel::ScenarioDocumentModel(
 
   AddOnlyProcessToInterval cmd1{
       m_baseScenario->interval(),
-      Metadata<ConcreteKey_k, Scenario::ProcessModel>::get(), QString{}};
+      Metadata<ConcreteKey_k, Scenario::ProcessModel>::get(),
+      QString{}};
   cmd1.redo(ctx);
   m_baseScenario->interval().processes.begin()->setSlotHeight(1500);
 
@@ -133,9 +138,7 @@ void ScenarioDocumentModel::finishLoading()
   m_savedCables = QJsonArray{};
 }
 
-ScenarioDocumentModel::~ScenarioDocumentModel()
-{
-}
+ScenarioDocumentModel::~ScenarioDocumentModel() {}
 
 void ScenarioDocumentModel::initializeNewDocument(
     const IntervalModel& Interval_model)

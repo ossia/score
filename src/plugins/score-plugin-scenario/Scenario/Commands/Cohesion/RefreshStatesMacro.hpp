@@ -10,7 +10,9 @@ namespace Command
 class RefreshStatesMacro final : public score::AggregateCommand
 {
   SCORE_COMMAND_DECL(
-      ScenarioCommandFactoryName(), RefreshStatesMacro, "Refresh states")
+      ScenarioCommandFactoryName(),
+      RefreshStatesMacro,
+      "Refresh states")
 };
 }
 }

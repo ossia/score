@@ -48,12 +48,13 @@ W_OBJECT_IMPL(Execution::ScenarioComponentBase)
 namespace Execution
 {
 ScenarioComponentBase::ScenarioComponentBase(
-    Scenario::ProcessModel& element, const Context& ctx,
-    const Id<score::Component>& id, QObject* parent)
+    Scenario::ProcessModel& element,
+    const Context& ctx,
+    const Id<score::Component>& id,
+    QObject* parent)
     : ProcessComponent_T<
-          Scenario::ProcessModel, ossia::scenario>{element, ctx, id,
-                                                   "ScenarioComponent",
-                                                   nullptr}
+          Scenario::ProcessModel,
+          ossia::scenario>{element, ctx, id, "ScenarioComponent", nullptr}
     , m_ctx{ctx}
 {
   this->setObjectName("OSSIAScenarioElement");
@@ -62,17 +63,20 @@ ScenarioComponentBase::ScenarioComponentBase(
   m_ossia_process = std::make_shared<ossia::scenario>();
   node = m_ossia_process->node;
   connect(
-      this, &ScenarioComponentBase::sig_eventCallback, this,
-      &ScenarioComponentBase::eventCallback, Qt::QueuedConnection);
+      this,
+      &ScenarioComponentBase::sig_eventCallback,
+      this,
+      &ScenarioComponentBase::eventCallback,
+      Qt::QueuedConnection);
 }
 
-ScenarioComponentBase::~ScenarioComponentBase()
-{
-}
+ScenarioComponentBase::~ScenarioComponentBase() {}
 
 ScenarioComponent::ScenarioComponent(
-    Scenario::ProcessModel& proc, const Context& ctx,
-    const Id<score::Component>& id, QObject* parent)
+    Scenario::ProcessModel& proc,
+    const Context& ctx,
+    const Id<score::Component>& id,
+    QObject* parent)
     : ScenarioComponentHierarchy{score::lazy_init_t{}, proc, ctx, id, parent}
 {
 }
@@ -210,7 +214,8 @@ void ScenarioComponentBase::stop()
 }
 
 std::function<void()> ScenarioComponentBase::removing(
-    const Scenario::IntervalModel& e, IntervalComponent& c)
+    const Scenario::IntervalModel& e,
+    IntervalComponent& c)
 {
   auto it = m_ossia_intervals.find(e.id());
   if (it != m_ossia_intervals.end())
@@ -242,7 +247,8 @@ std::function<void()> ScenarioComponentBase::removing(
 }
 
 std::function<void()> ScenarioComponentBase::removing(
-    const Scenario::TimeSyncModel& e, TimeSyncComponent& c)
+    const Scenario::TimeSyncModel& e,
+    TimeSyncComponent& c)
 {
   // FIXME this will certainly break stuff WRT member variables, coherency
   // checker, etc.
@@ -264,7 +270,8 @@ std::function<void()> ScenarioComponentBase::removing(
 }
 
 std::function<void()> ScenarioComponentBase::removing(
-    const Scenario::EventModel& e, EventComponent& c)
+    const Scenario::EventModel& e,
+    EventComponent& c)
 {
   auto it = m_ossia_timeevents.find(e.id());
   if (it != m_ossia_timeevents.end())
@@ -282,7 +289,8 @@ std::function<void()> ScenarioComponentBase::removing(
 }
 
 std::function<void()> ScenarioComponentBase::removing(
-    const Scenario::StateModel& e, StateComponent& c)
+    const Scenario::StateModel& e,
+    StateComponent& c)
 {
   auto it = m_ossia_states.find(e.id());
   if (it != m_ossia_states.end())
@@ -293,14 +301,13 @@ std::function<void()> ScenarioComponentBase::removing(
   return {};
 }
 
-static void ScenarioIntervalCallback(double, ossia::time_value)
-{
-}
+static void ScenarioIntervalCallback(double, ossia::time_value) {}
 
 template <>
 IntervalComponent*
 ScenarioComponentBase::make<IntervalComponent, Scenario::IntervalModel>(
-    const Id<score::Component>& id, Scenario::IntervalModel& cst)
+    const Id<score::Component>& id,
+    Scenario::IntervalModel& cst)
 {
   // Create the mapping object
   std::shared_ptr<IntervalComponent> elt
@@ -321,8 +328,11 @@ ScenarioComponentBase::make<IntervalComponent, Scenario::IntervalModel>(
   auto ossia_cst = std::make_shared<ossia::time_interval>(
       smallfun::function<void(double, ossia::time_value), 32>{
           &ScenarioIntervalCallback},
-      *ossia_sev->OSSIAEvent(), *ossia_eev->OSSIAEvent(), dur.defaultDuration,
-      dur.minDuration, dur.maxDuration);
+      *ossia_sev->OSSIAEvent(),
+      *ossia_eev->OSSIAEvent(),
+      dur.defaultDuration,
+      dur.minDuration,
+      dur.maxDuration);
 
   elt->onSetup(elt, ossia_cst, dur);
 
@@ -330,27 +340,31 @@ ScenarioComponentBase::make<IntervalComponent, Scenario::IntervalModel>(
   std::shared_ptr<ossia::scenario> proc
       = std::dynamic_pointer_cast<ossia::scenario>(m_ossia_process);
 
-  m_ctx.executionQueue.enqueue([g = system().execGraph, proc, ossia_sev,
-                                ossia_eev, ossia_cst] {
-    if (auto sev = ossia_sev->OSSIAEvent())
-      sev->next_time_intervals().push_back(ossia_cst);
-    if (auto eev = ossia_eev->OSSIAEvent())
-      eev->previous_time_intervals().push_back(ossia_cst);
+  m_ctx.executionQueue.enqueue(
+      [g = system().execGraph, proc, ossia_sev, ossia_eev, ossia_cst] {
+        if (auto sev = ossia_sev->OSSIAEvent())
+          sev->next_time_intervals().push_back(ossia_cst);
+        if (auto eev = ossia_eev->OSSIAEvent())
+          eev->previous_time_intervals().push_back(ossia_cst);
 
-    proc->add_time_interval(ossia_cst);
+        proc->add_time_interval(ossia_cst);
 
-    auto cable = ossia::make_edge(
-        ossia::immediate_glutton_connection{}, ossia_cst->node->outputs()[0],
-        proc->node->inputs()[0], ossia_cst->node, proc->node);
-    g->connect(cable);
-  });
+        auto cable = ossia::make_edge(
+            ossia::immediate_glutton_connection{},
+            ossia_cst->node->outputs()[0],
+            proc->node->inputs()[0],
+            ossia_cst->node,
+            proc->node);
+        g->connect(cable);
+      });
   return elt.get();
 }
 
 template <>
 StateComponent*
 ScenarioComponentBase::make<StateComponent, Scenario::StateModel>(
-    const Id<score::Component>& id, Scenario::StateModel& st)
+    const Id<score::Component>& id,
+    Scenario::StateModel& st)
 {
   auto elt = std::make_shared<StateComponent>(st, m_ctx, id, this);
 
@@ -372,7 +386,8 @@ ScenarioComponentBase::make<StateComponent, Scenario::StateModel>(
 template <>
 EventComponent*
 ScenarioComponentBase::make<EventComponent, Scenario::EventModel>(
-    const Id<score::Component>& id, Scenario::EventModel& ev)
+    const Id<score::Component>& id,
+    Scenario::EventModel& ev)
 {
   // Create the component
   auto elt = std::make_shared<EventComponent>(ev, m_ctx, id, this);
@@ -401,7 +416,8 @@ ScenarioComponentBase::make<EventComponent, Scenario::EventModel>(
       std::move(ev_cb), *tn->OSSIATimeSync(), ossia::expression_ptr{});
 
   elt->onSetup(
-      ossia_ev, elt->makeExpression(),
+      ossia_ev,
+      elt->makeExpression(),
       (ossia::time_event::offset_behavior)(ev.offsetBehavior()));
 
   // The event is inserted in the API edition thread
@@ -418,7 +434,8 @@ ScenarioComponentBase::make<EventComponent, Scenario::EventModel>(
 template <>
 TimeSyncComponent*
 ScenarioComponentBase::make<TimeSyncComponent, Scenario::TimeSyncModel>(
-    const Id<score::Component>& id, Scenario::TimeSyncModel& tn)
+    const Id<score::Component>& id,
+    Scenario::TimeSyncModel& tn)
 {
   // Create the object
   auto elt = std::make_shared<TimeSyncComponent>(tn, m_ctx, id, this);
@@ -493,7 +510,8 @@ void ScenarioComponentBase::stopIntervalExecution(
 }
 
 void ScenarioComponentBase::eventCallback(
-    std::shared_ptr<EventComponent> ev, ossia::time_event::status newStatus)
+    std::shared_ptr<EventComponent> ev,
+    ossia::time_event::status newStatus)
 {
   auto the_event = const_cast<Scenario::EventModel*>(&ev->scoreEvent());
   the_event->setStatus(
@@ -548,7 +566,8 @@ void ScenarioComponentBase::eventCallback(
 }
 
 void ScenarioComponentBase::timeSyncCallback(
-    TimeSyncComponent* tn, ossia::time_value date)
+    TimeSyncComponent* tn,
+    ossia::time_value date)
 {
   if (m_checker)
   {

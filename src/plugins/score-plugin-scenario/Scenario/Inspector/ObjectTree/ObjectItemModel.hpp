@@ -35,8 +35,8 @@ public:
   QModelIndex
   index(int row, int column, const QModelIndex& parent) const override;
   QModelIndex parent(const QModelIndex& child) const override;
-  QVariant headerData(
-      int section, Qt::Orientation orientation, int role) const override;
+  QVariant headerData(int section, Qt::Orientation orientation, int role)
+      const override;
 
   int rowCount(const QModelIndex& parent) const override;
   int columnCount(const QModelIndex& parent) const override;
@@ -49,10 +49,16 @@ public:
 
   QMimeData* mimeData(const QModelIndexList& indexes) const override;
   bool canDropMimeData(
-      const QMimeData* data, Qt::DropAction action, int row, int column,
+      const QMimeData* data,
+      Qt::DropAction action,
+      int row,
+      int column,
       const QModelIndex& parent) const override;
   bool dropMimeData(
-      const QMimeData* data, Qt::DropAction action, int row, int column,
+      const QMimeData* data,
+      Qt::DropAction action,
+      int row,
+      int column,
       const QModelIndex& parent) override;
   Qt::DropActions supportedDropActions() const override;
   Qt::DropActions supportedDragActions() const override;
@@ -108,14 +114,8 @@ class SizePolicyWidget final : public QWidget
 public:
   using QWidget::QWidget;
 
-  QSize sizeHint() const override
-  {
-    return m_sizePolicy;
-  }
-  void setSizeHint(QSize s)
-  {
-    m_sizePolicy = s;
-  }
+  QSize sizeHint() const override { return m_sizePolicy; }
+  void setSizeHint(QSize s) { m_sizePolicy = s; }
 
 private:
   QSize m_sizePolicy;
@@ -148,10 +148,7 @@ class SearchWidget final : public score::SearchLineEdit
 public:
   SearchWidget(const score::GUIApplicationContext& ctx);
 
-  void toggle()
-  {
-    this->isHidden() ? this->show() : this->hide();
-  }
+  void toggle() { this->isHidden() ? this->show() : this->hide(); }
 
 private:
   void search() override;
@@ -167,7 +164,9 @@ class SelectionStackWidget final : public QWidget
 {
 public:
   SelectionStackWidget(
-      score::SelectionStack& s, QWidget* parent, ObjectWidget* objects);
+      score::SelectionStack& s,
+      QWidget* parent,
+      ObjectWidget* objects);
 
 private:
   QToolButton* m_prev{};
@@ -190,8 +189,8 @@ private:
   QWidget* widget() override;
   const score::PanelStatus& defaultPanelStatus() const override;
 
-  void on_modelChanged(
-      score::MaybeDocument oldm, score::MaybeDocument newm) override;
+  void on_modelChanged(score::MaybeDocument oldm, score::MaybeDocument newm)
+      override;
   void setNewSelection(const Selection& sel) override;
 
   SizePolicyWidget* m_widget{};

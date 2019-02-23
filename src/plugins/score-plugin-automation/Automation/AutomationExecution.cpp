@@ -18,20 +18,14 @@ namespace RecreateOnPlay
 struct modvalue
 {
 public:
-  modvalue() : modvalue(ossia::value{})
-  {
-  }
+  modvalue() : modvalue(ossia::value{}) {}
   explicit modvalue(ossia::value v)
       : m_offset{std::make_unique<ossia::value>()}
   {
     set_offset(std::move(v));
   }
-  modvalue(const modvalue& other) : modvalue(other.offset())
-  {
-  }
-  modvalue(modvalue&& other) : modvalue(std::move(other.offset()))
-  {
-  }
+  modvalue(const modvalue& other) : modvalue(other.offset()) {}
+  modvalue(modvalue&& other) : modvalue(std::move(other.offset())) {}
 
   modvalue& operator=(const modvalue& other)
   {
@@ -45,23 +39,14 @@ public:
     return *this;
   }
 
-  const ossia::value& offset() const
-  {
-    return *m_offset;
-  }
-  ossia::value& offset()
-  {
-    return *m_offset;
-  }
+  const ossia::value& offset() const { return *m_offset; }
+  ossia::value& offset() { return *m_offset; }
   void set_offset(const ossia::value& v)
   {
     // if(v.target<delta>()) ... unpack it and store the inner value
     *m_offset = v;
   }
-  void set_offset(ossia::value&& v)
-  {
-    *m_offset = std::move(v);
-  }
+  void set_offset(ossia::value&& v) { *m_offset = std::move(v); }
 
 private:
   std::unique_ptr<ossia::value> m_offset;
@@ -76,32 +61,42 @@ struct range_position
 };
 
 Component::Component(
-    ::Automation::ProcessModel& element, const ::Execution::Context& ctx,
-    const Id<score::Component>& id, QObject* parent)
-    : ProcessComponent_T{element, ctx, id, "Executor::AutomationComponent",
+    ::Automation::ProcessModel& element,
+    const ::Execution::Context& ctx,
+    const Id<score::Component>& id,
+    QObject* parent)
+    : ProcessComponent_T{element,
+                         ctx,
+                         id,
+                         "Executor::AutomationComponent",
                          parent}
 {
   node = std::make_shared<ossia::nodes::automation>();
   m_ossia_process = std::make_shared<ossia::nodes::automation_process>(node);
 
-  con(element, &Automation::ProcessModel::minChanged, this,
+  con(element,
+      &Automation::ProcessModel::minChanged,
+      this,
       [this](const auto&) { this->recompute(); });
-  con(element, &Automation::ProcessModel::maxChanged, this,
+  con(element,
+      &Automation::ProcessModel::maxChanged,
+      this,
       [this](const auto&) { this->recompute(); });
 
   // TODO the tween case will reset the "running" value,
   // so it may not work perfectly.
-  con(element, &Automation::ProcessModel::tweenChanged, this,
+  con(element,
+      &Automation::ProcessModel::tweenChanged,
+      this,
       [this](const auto&) { this->recompute(); });
-  con(element, &Automation::ProcessModel::curveChanged, this,
-      [this]() { this->recompute(); });
+  con(element, &Automation::ProcessModel::curveChanged, this, [this]() {
+    this->recompute();
+  });
 
   recompute();
 }
 
-Component::~Component()
-{
-}
+Component::~Component() {}
 
 void Component::recompute()
 {
@@ -120,7 +115,8 @@ void Component::recompute()
     {
       in_exec([proc = std::dynamic_pointer_cast<ossia::nodes::automation>(
                    OSSIAProcess().node),
-               curve, d_ = d] { proc->set_behavior(curve); });
+               curve,
+               d_ = d] { proc->set_behavior(curve); });
       return;
     }
   }
@@ -163,7 +159,8 @@ Component::on_curveChanged_impl(const optional<ossia::destination>& d)
 }
 
 std::shared_ptr<ossia::curve_abstract> Component::on_curveChanged(
-    ossia::val_type type, const optional<ossia::destination>& d)
+    ossia::val_type type,
+    const optional<ossia::destination>& d)
 {
   switch (type)
   {

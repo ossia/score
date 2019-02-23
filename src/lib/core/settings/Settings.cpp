@@ -18,9 +18,7 @@
 
 namespace score
 {
-Settings::Settings()
-{
-}
+Settings::Settings() {}
 
 Settings::~Settings()
 {
@@ -41,7 +39,8 @@ void Settings::setupView()
 }
 
 void Settings::setupSettingsPlugin(
-    QSettings& s, const score::ApplicationContext& ctx,
+    QSettings& s,
+    const score::ApplicationContext& ctx,
     SettingsDelegateFactory& plugin)
 {
   auto model = plugin.makeModel(s, ctx);
@@ -71,9 +70,7 @@ void Settings::setupSettingsPlugin(
   }
 }
 
-ProjectSettings::ProjectSettings()
-{
-}
+ProjectSettings::ProjectSettings() {}
 
 ProjectSettings::~ProjectSettings()
 {

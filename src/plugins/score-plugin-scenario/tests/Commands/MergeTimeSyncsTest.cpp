@@ -61,7 +61,8 @@ private:
         {
             {"ScenarioModel", {0}},
         },
-        tn1_id, tn2_id);
+        tn1_id,
+        tn2_id);
 
     cmd.redo(ctx);
     QCOMPARE((int)scenar->timeSyncs().size(), 3);

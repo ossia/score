@@ -12,9 +12,7 @@ ActionManager::ActionManager()
   onDocumentChange(std::make_unique<EnableActionIfDocument>());
 }
 
-ActionManager::~ActionManager()
-{
-}
+ActionManager::~ActionManager() {}
 
 void ActionManager::insert(Action val)
 {
@@ -47,7 +45,9 @@ void ActionManager::reset(score::Document* doc)
             focusChanged(mdoc);
           });
     selectionConnection = con(
-        doc->selectionStack(), &SelectionStack::currentSelectionChanged, this,
+        doc->selectionStack(),
+        &SelectionStack::currentSelectionChanged,
+        this,
         [=](const auto&) { this->selectionChanged(mdoc); },
         Qt::QueuedConnection);
   }

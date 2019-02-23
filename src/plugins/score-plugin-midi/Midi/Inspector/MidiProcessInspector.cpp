@@ -16,7 +16,8 @@ namespace Midi
 {
 
 InspectorWidget::InspectorWidget(
-    const ProcessModel& model, const score::DocumentContext& doc,
+    const ProcessModel& model,
+    const score::DocumentContext& doc,
     QWidget* parent)
     : InspectorWidgetDelegate_T{model, parent}
 {

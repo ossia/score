@@ -51,8 +51,10 @@ class MetadataWidget final : public QWidget
 
 public:
   explicit MetadataWidget(
-      const score::ModelMetadata& metadata, const score::CommandStackFacade& m,
-      const QObject* docObject, QWidget* parent = nullptr);
+      const score::ModelMetadata& metadata,
+      const score::CommandStackFacade& m,
+      const QObject* docObject,
+      QWidget* parent = nullptr);
 
   ~MetadataWidget();
 
@@ -63,12 +65,12 @@ public:
     using namespace score::IDocument;
     connect(this, &MetadataWidget::labelChanged, [&](const QString& newLabel) {
       if (newLabel != model.metadata().getLabel())
-        m_commandDispatcher.submit(
-            new ChangeElementLabel<T>{model, newLabel});
+        m_commandDispatcher.submit(new ChangeElementLabel<T>{model, newLabel});
     });
 
     connect(
-        this, &MetadataWidget::commentsChanged,
+        this,
+        &MetadataWidget::commentsChanged,
         [&](const QString& newComments) {
           if (newComments != model.metadata().getComment())
             m_commandDispatcher.submit(

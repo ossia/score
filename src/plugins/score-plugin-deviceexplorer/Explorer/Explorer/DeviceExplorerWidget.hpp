@@ -43,7 +43,8 @@ class SCORE_PLUGIN_DEVICEEXPLORER_EXPORT DeviceExplorerWidget final
 
 public:
   explicit DeviceExplorerWidget(
-      const Device::ProtocolFactoryList&, QWidget* parent);
+      const Device::ProtocolFactoryList&,
+      QWidget* parent);
 
   void setModel(DeviceExplorerModel* model);
   DeviceExplorerModel* model() const;
@@ -55,10 +56,7 @@ public:
   QModelIndex sourceIndex(QModelIndex) const;
   QModelIndex proxyIndex(QModelIndex) const;
 
-  ListeningManager& listeningManager() const
-  {
-    return *m_listeningManager;
-  }
+  ListeningManager& listeningManager() const { return *m_listeningManager; }
 
 private:
   // User commands

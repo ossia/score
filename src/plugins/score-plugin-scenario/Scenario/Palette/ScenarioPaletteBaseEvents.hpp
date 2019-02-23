@@ -49,7 +49,8 @@ template <typename Element, int N>
 struct PositionedWithId_ScenarioEvent final : public PositionedScenarioEvent<N>
 {
   PositionedWithId_ScenarioEvent(
-      const Id<Element>& tn_id, const Scenario::Point& sp)
+      const Id<Element>& tn_id,
+      const Scenario::Point& sp)
       : PositionedScenarioEvent<N>{sp}, id{tn_id}
   {
   }

@@ -18,6 +18,7 @@ class ScenarioInspectorWidget final
 {
 public:
   explicit ScenarioInspectorWidget(
-      const Scenario::ProcessModel& object, const score::DocumentContext& doc,
+      const Scenario::ProcessModel& object,
+      const score::DocumentContext& doc,
       QWidget* parent);
 };

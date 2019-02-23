@@ -17,9 +17,7 @@
 namespace Execution
 {
 DefaultClock::~DefaultClock() = default;
-DefaultClock::DefaultClock(const Context& ctx) : Clock{ctx}
-{
-}
+DefaultClock::DefaultClock(const Context& ctx) : Clock{ctx} {}
 
 void DefaultClock::prepareExecution(const TimeVal& t, BaseScenarioElement& bs)
 {
@@ -94,7 +92,8 @@ ControlClock::ControlClock(const Execution::Context& ctx)
 }
 
 void ControlClock::play_impl(
-    const TimeVal& t, Execution::BaseScenarioElement& bs)
+    const TimeVal& t,
+    Execution::BaseScenarioElement& bs)
 {
   m_default.prepareExecution(t, bs);
   try

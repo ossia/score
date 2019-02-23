@@ -43,10 +43,7 @@ public:
   /**
    * @brief messages The current messages in this point of the process.
    */
-  virtual State::MessageList messages() const
-  {
-    return {};
-  }
+  virtual State::MessageList messages() const { return {}; }
 
   /**
    * @brief setMessages Request a message change on behalf of the process.
@@ -61,10 +58,7 @@ public:
     return messages();
   }
 
-  Process::ProcessModel& process() const
-  {
-    return m_model;
-  }
+  Process::ProcessModel& process() const { return m_model; }
 
 public:
   void stateChanged() E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, stateChanged);

@@ -14,8 +14,10 @@ class SCORE_PLUGIN_SCENARIO_EXPORT SpeedWidget final : public QWidget
 {
 public:
   SpeedWidget(
-      const IntervalModel& model, const score::DocumentContext&,
-      bool withButtons, QWidget* parent);
+      const IntervalModel& model,
+      const score::DocumentContext&,
+      bool withButtons,
+      QWidget* parent);
   ~SpeedWidget() override;
 
 private:

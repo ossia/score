@@ -50,7 +50,9 @@ public:
 
   void changed() E_SIGNAL(SCORE_PLUGIN_ENGINE_EXPORT, changed);
   AUDIO_PARAMETER_HPP(
-      SCORE_PLUGIN_ENGINE_EXPORT, Audio::AudioFactory::ConcreteKey, Driver)
+      SCORE_PLUGIN_ENGINE_EXPORT,
+      Audio::AudioFactory::ConcreteKey,
+      Driver)
   AUDIO_PARAMETER_HPP(SCORE_PLUGIN_ENGINE_EXPORT, QString, CardIn)
   AUDIO_PARAMETER_HPP(SCORE_PLUGIN_ENGINE_EXPORT, QString, CardOut)
   AUDIO_PARAMETER_HPP(SCORE_PLUGIN_ENGINE_EXPORT, int, BufferSize)

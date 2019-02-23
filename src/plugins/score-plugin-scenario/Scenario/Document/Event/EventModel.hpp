@@ -40,8 +40,11 @@ public:
 
   /** The class **/
   EventModel(
-      const Id<EventModel>&, const Id<TimeSyncModel>& timesync,
-      const VerticalExtent& extent, const TimeVal& date, QObject* parent);
+      const Id<EventModel>&,
+      const Id<TimeSyncModel>& timesync,
+      const VerticalExtent& extent,
+      const TimeVal& date,
+      QObject* parent);
 
   template <typename DeserializerVisitor>
   EventModel(DeserializerVisitor&& vis, QObject* parent) : Entity{vis, parent}
@@ -50,14 +53,8 @@ public:
   }
 
   // Timenode
-  void changeTimeSync(const Id<TimeSyncModel>& elt)
-  {
-    m_timeSync = elt;
-  }
-  const auto& timeSync() const
-  {
-    return m_timeSync;
-  }
+  void changeTimeSync(const Id<TimeSyncModel>& elt) { m_timeSync = elt; }
+  const auto& timeSync() const { return m_timeSync; }
 
   // States
   void addState(const Id<StateModel>& ds);
@@ -78,7 +75,8 @@ public:
   void setExtent(const Scenario::VerticalExtent& extent);
   void setDate(const TimeVal& date);
   void setStatus(
-      Scenario::ExecutionStatus status, const Scenario::ScenarioInterface&);
+      Scenario::ExecutionStatus status,
+      const Scenario::ScenarioInterface&);
   void setOffsetBehavior(Scenario::OffsetBehavior);
 
 public:

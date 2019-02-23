@@ -14,7 +14,8 @@
 namespace Scenario
 {
 TimeSyncSummaryWidget::TimeSyncSummaryWidget(
-    const TimeSyncModel& object, const score::DocumentContext& doc,
+    const TimeSyncModel& object,
+    const score::DocumentContext& doc,
     QWidget* parent)
     : QWidget(parent)
     , sync{object}
@@ -36,7 +37,5 @@ TimeSyncSummaryWidget::TimeSyncSummaryWidget(
   }
 }
 
-TimeSyncSummaryWidget::~TimeSyncSummaryWidget()
-{
-}
+TimeSyncSummaryWidget::~TimeSyncSummaryWidget() {}
 }

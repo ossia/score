@@ -14,7 +14,8 @@
 namespace Loop
 {
 InspectorWidget::InspectorWidget(
-    const Loop::ProcessModel& object, const score::DocumentContext& doc,
+    const Loop::ProcessModel& object,
+    const score::DocumentContext& doc,
     QWidget* parent)
     : InspectorWidgetDelegate_T{object, parent}
 {
@@ -31,7 +32,5 @@ InspectorWidget::InspectorWidget(
       new Scenario::IntervalInspectorWidget{widgetFact, interval, doc, this});
 }
 
-InspectorWidget::~InspectorWidget()
-{
-}
+InspectorWidget::~InspectorWidget() {}
 }

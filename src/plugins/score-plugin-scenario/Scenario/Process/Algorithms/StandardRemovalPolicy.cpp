@@ -23,7 +23,8 @@
 namespace Scenario
 {
 static void removeEventFromTimeSync(
-    Scenario::ProcessModel& scenario, const Id<EventModel>& eventId)
+    Scenario::ProcessModel& scenario,
+    const Id<EventModel>& eventId)
 {
   // We have to make a copy else the iterator explodes.
   auto timesyncs = shallow_copy(scenario.timeSyncs.map());
@@ -45,7 +46,8 @@ static void removeEventFromTimeSync(
 }
 
 void StandardRemovalPolicy::removeInterval(
-    Scenario::ProcessModel& scenario, const Id<IntervalModel>& intervalId)
+    Scenario::ProcessModel& scenario,
+    const Id<IntervalModel>& intervalId)
 {
   auto cstr_it = scenario.intervals.find(intervalId);
   if (cstr_it != scenario.intervals.end())
@@ -64,7 +66,8 @@ void StandardRemovalPolicy::removeInterval(
 }
 
 void StandardRemovalPolicy::removeState(
-    Scenario::ProcessModel& scenario, StateModel& state)
+    Scenario::ProcessModel& scenario,
+    StateModel& state)
 {
   if (!state.previousInterval() && !state.nextInterval())
   {
@@ -78,7 +81,8 @@ void StandardRemovalPolicy::removeState(
 }
 
 void StandardRemovalPolicy::removeEventStatesAndIntervals(
-    Scenario::ProcessModel& scenario, const Id<EventModel>& eventId)
+    Scenario::ProcessModel& scenario,
+    const Id<EventModel>& eventId)
 {
   auto& ev = scenario.event(eventId);
 
@@ -94,7 +98,8 @@ void StandardRemovalPolicy::removeEventStatesAndIntervals(
 }
 
 void StandardRemovalPolicy::removeComment(
-    Scenario::ProcessModel& scenario, CommentBlockModel& cmt)
+    Scenario::ProcessModel& scenario,
+    CommentBlockModel& cmt)
 {
   scenario.comments.remove(&cmt);
 }

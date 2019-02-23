@@ -13,9 +13,13 @@ class ToolPalette;
 
 // TODO Generic smart tool with variadic...
 template <
-    typename Scenario_T, typename ToolPalette_T, typename View_T,
-    typename MoveIntervalWrapper_T, typename MoveLeftBraceWrapper_T,
-    typename MoveRightBraceWrapper_T, typename MoveEventWrapper_T,
+    typename Scenario_T,
+    typename ToolPalette_T,
+    typename View_T,
+    typename MoveIntervalWrapper_T,
+    typename MoveLeftBraceWrapper_T,
+    typename MoveRightBraceWrapper_T,
+    typename MoveEventWrapper_T,
     typename MoveTimeSyncWrapper_T>
 class SmartTool final : public ToolBase<ToolPalette_T>
 {
@@ -24,8 +28,10 @@ public:
   {
     // Selection
     m_state = new SelectionState<ToolPalette_T, View_T>{
-        this->m_palette.context().context.selectionStack, this->m_palette,
-        this->m_palette.presenter().view(), &this->localSM()};
+        this->m_palette.context().context.selectionStack,
+        this->m_palette,
+        this->m_palette.presenter().view(),
+        &this->localSM()};
 
     // this->localSM().setInitialState(m_state);
 
@@ -48,7 +54,8 @@ public:
 
       /// Slot resize
       auto resizeSlot = new ResizeSlotState<Scenario_T, ToolPalette_T>{
-          this->m_palette.context().context.commandStack, this->m_palette,
+          this->m_palette.context().context.commandStack,
+          this->m_palette,
           actionsState};
 
       score::make_transition<ClickOnSlotHandle_Transition>(
@@ -72,7 +79,8 @@ public:
           const auto& elt = this->m_palette.presenter().state(id);
 
           m_state->dispatcher.setAndCommit(filterSelections(
-              &elt.model(), this->m_palette.model().selectedChildren(),
+              &elt.model(),
+              this->m_palette.model().selectedChildren(),
               m_state->multiSelection()));
 
           this->localSM().postEvent(new ClickOnState_Event{id, sp});
@@ -83,7 +91,8 @@ public:
           const auto& elt = this->m_palette.presenter().event(id);
 
           m_state->dispatcher.setAndCommit(filterSelections(
-              &elt.model(), this->m_palette.model().selectedChildren(),
+              &elt.model(),
+              this->m_palette.model().selectedChildren(),
               m_state->multiSelection()));
 
           this->localSM().postEvent(new ClickOnEvent_Event{id, sp});
@@ -94,7 +103,8 @@ public:
           const auto& elt = this->m_palette.presenter().timeSync(id);
 
           m_state->dispatcher.setAndCommit(filterSelections(
-              &elt.model(), this->m_palette.model().selectedChildren(),
+              &elt.model(),
+              this->m_palette.model().selectedChildren(),
               m_state->multiSelection()));
           this->localSM().postEvent(new ClickOnTimeSync_Event{id, sp});
           m_nothingPressed = false;
@@ -105,7 +115,8 @@ public:
           if (!elt.isSelected())
           {
             m_state->dispatcher.setAndCommit(filterSelections(
-                &elt.model(), this->m_palette.model().selectedChildren(),
+                &elt.model(),
+                this->m_palette.model().selectedChildren(),
                 m_state->multiSelection()));
           }
           this->localSM().postEvent(new ClickOnInterval_Event{id, sp});
@@ -118,7 +129,8 @@ public:
           if (!elt.isSelected())
           {
             m_state->dispatcher.setAndCommit(filterSelections(
-                &elt.model(), this->m_palette.model().selectedChildren(),
+                &elt.model(),
+                this->m_palette.model().selectedChildren(),
                 m_state->multiSelection()));
           }
 
@@ -132,7 +144,8 @@ public:
           if (!elt.isSelected())
           {
             m_state->dispatcher.setAndCommit(filterSelections(
-                &elt.model(), this->m_palette.model().selectedChildren(),
+                &elt.model(),
+                this->m_palette.model().selectedChildren(),
                 m_state->multiSelection()));
           }
 
@@ -239,15 +252,9 @@ public:
         });
   }
 
-  void on_cancel() override
-  {
-    GraphicsSceneTool<Point>::on_cancel();
-  }
+  void on_cancel() override { GraphicsSceneTool<Point>::on_cancel(); }
 
-  auto& selectionState() const
-  {
-    return *m_state;
-  }
+  auto& selectionState() const { return *m_state; }
 
 private:
   SelectionState<ToolPalette_T, View_T>* m_state{};

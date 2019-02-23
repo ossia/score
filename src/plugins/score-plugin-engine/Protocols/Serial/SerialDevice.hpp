@@ -3,7 +3,6 @@
 #if defined(OSSIA_PROTOCOL_SERIAL)
 #include <Device/Protocol/DeviceInterface.hpp>
 
-
 namespace Protocols
 {
 class SerialDevice final : public Device::OwningDeviceInterface

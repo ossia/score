@@ -25,11 +25,13 @@ class SCORE_PLUGIN_SCENARIO_EXPORT InsertContentInInterval final
     : public score::Command
 {
   SCORE_COMMAND_DECL(
-      ScenarioCommandFactoryName(), InsertContentInInterval,
+      ScenarioCommandFactoryName(),
+      InsertContentInInterval,
       "Insert content in a interval")
 public:
   InsertContentInInterval(
-      QJsonObject&& sourceInterval, const IntervalModel& targetInterval,
+      QJsonObject&& sourceInterval,
+      const IntervalModel& targetInterval,
       ExpandMode mode);
 
   void undo(const score::DocumentContext& ctx) const override;

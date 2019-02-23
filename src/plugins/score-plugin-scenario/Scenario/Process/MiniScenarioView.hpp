@@ -16,10 +16,7 @@ public:
   MiniScenarioView(const Scenario::ProcessModel& sc, QGraphicsItem* p);
 
 private:
-  void on_elementChanged(const IntervalModel&)
-  {
-    update();
-  }
+  void on_elementChanged(const IntervalModel&) { update(); }
 
   void paint_impl(QPainter*) const override;
   const Scenario::ProcessModel& m_scenario;

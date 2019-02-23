@@ -7,7 +7,9 @@
 #include <algorithm>
 
 ZoomRatio ZoomPolicy::sliderPosToZoomRatio(
-    double sliderPos, double cstrMaxTime, int cstrMaxWidth)
+    double sliderPos,
+    double cstrMaxTime,
+    int cstrMaxWidth)
 {
   // sliderPos is in [0;1] : 0 is zoom max, 1 zoom min.
   /*    auto zMax = std::max(
@@ -26,7 +28,9 @@ ZoomRatio ZoomPolicy::sliderPosToZoomRatio(
 }
 
 double ZoomPolicy::zoomRatioToSliderPos(
-    ZoomRatio& z, double cstrMaxTime, int cstrMaxWidth)
+    ZoomRatio& z,
+    double cstrMaxTime,
+    int cstrMaxWidth)
 {
   ZoomRatio zMax = cstrMaxTime / cstrMaxWidth * 1.1;
   if (z == 0)

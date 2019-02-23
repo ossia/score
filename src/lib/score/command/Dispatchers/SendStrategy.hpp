@@ -43,8 +43,6 @@ struct Redo
 
 struct Quiet
 {
-  static void redo(const score::DocumentContext& ctx, score::Command& cmd)
-  {
-  }
+  static void redo(const score::DocumentContext& ctx, score::Command& cmd) {}
 };
 }

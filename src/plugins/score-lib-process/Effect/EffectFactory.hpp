@@ -38,8 +38,10 @@ public:
   QString customConstructionData() const override;
 
   Model_T* make(
-      const TimeVal& duration, const QString& data,
-      const Id<Process::ProcessModel>& id, QObject* parent) override
+      const TimeVal& duration,
+      const QString& data,
+      const Id<Process::ProcessModel>& id,
+      QObject* parent) override
   {
     return new Model_T{duration, data, id, parent};
   }
@@ -71,20 +73,22 @@ private:
     return Metadata<ConcreteKey_k, Model_T>::get();
   }
 
-  LayerView* makeLayerView(
-      const Process::ProcessModel&, QGraphicsItem* parent) const final override
+  LayerView* makeLayerView(const Process::ProcessModel&, QGraphicsItem* parent)
+      const final override
   {
     return new EffectLayerView{parent};
   }
 
   LayerPresenter* makeLayerPresenter(
-      const Process::ProcessModel& lm, Process::LayerView* v,
+      const Process::ProcessModel& lm,
+      Process::LayerView* v,
       const Process::ProcessPresenterContext& context,
       QObject* parent) const final override
   {
     auto pres = new EffectLayerPresenter{safe_cast<const Model_T&>(lm),
                                          safe_cast<EffectLayerView*>(v),
-                                         context, parent};
+                                         context,
+                                         parent};
 
     auto rect = new score::RectItem{v};
     auto item = makeItem(lm, context, rect);
@@ -93,7 +97,8 @@ private:
   }
 
   QGraphicsItem* makeItem(
-      const Process::ProcessModel& proc, const score::DocumentContext& ctx,
+      const Process::ProcessModel& proc,
+      const score::DocumentContext& ctx,
       score::RectItem* parent) const override
   {
     return new Item_T{safe_cast<const Model_T&>(proc), ctx, parent};
@@ -107,7 +112,8 @@ private:
   }
 
   QWidget* makeExternalUI(
-      const Process::ProcessModel& proc, const score::DocumentContext& ctx,
+      const Process::ProcessModel& proc,
+      const score::DocumentContext& ctx,
       QWidget* parent) const final override
   {
     (void)parent;

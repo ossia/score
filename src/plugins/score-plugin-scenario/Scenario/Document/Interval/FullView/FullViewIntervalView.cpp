@@ -23,7 +23,8 @@ W_OBJECT_IMPL(Scenario::FullViewIntervalView)
 namespace Scenario
 {
 FullViewIntervalView::FullViewIntervalView(
-    FullViewIntervalPresenter& presenter, QGraphicsItem* parent)
+    FullViewIntervalPresenter& presenter,
+    QGraphicsItem* parent)
     : IntervalView{presenter, parent}
 {
   this->setCacheMode(QGraphicsItem::NoCache);
@@ -33,9 +34,7 @@ FullViewIntervalView::FullViewIntervalView(
   this->setZValue(1);
 }
 
-FullViewIntervalView::~FullViewIntervalView()
-{
-}
+FullViewIntervalView::~FullViewIntervalView() {}
 
 void FullViewIntervalView::updatePaths()
 {
@@ -199,9 +198,7 @@ void FullViewIntervalView::updatePlayPaths()
   }
 }
 
-void FullViewIntervalView::updateOverlayPos()
-{
-}
+void FullViewIntervalView::updateOverlayPos() {}
 
 void FullViewIntervalView::setSelected(bool selected)
 {
@@ -211,12 +208,16 @@ void FullViewIntervalView::setSelected(bool selected)
 }
 QRectF FullViewIntervalView::boundingRect() const
 {
-  return {0, -3, qreal(std::max(defaultWidth(), m_guiWidth)) + 3,
+  return {0,
+          -3,
+          qreal(std::max(defaultWidth(), m_guiWidth)) + 3,
           qreal(intervalAndRackHeight()) + 6};
 }
 
 void FullViewIntervalView::paint(
-    QPainter* p, const QStyleOptionGraphicsItem* option, QWidget* widget)
+    QPainter* p,
+    const QStyleOptionGraphicsItem* option,
+    QWidget* widget)
 {
   auto& painter = *p;
   auto& skin = Process::Style::instance();

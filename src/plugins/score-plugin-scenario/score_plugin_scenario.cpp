@@ -12,10 +12,10 @@
 #include <Scenario/Application/Drops/ScenarioDropHandler.hpp>
 #include <Scenario/Application/ScenarioApplicationPlugin.hpp>
 #include <Scenario/Application/ScenarioValidity.hpp>
+#include <Scenario/Commands/Interval/ResizeInterval.hpp>
 #include <Scenario/Commands/Scenario/Displacement/MoveEventClassicFactory.hpp>
 #include <Scenario/Commands/Scenario/Displacement/MoveEventList.hpp>
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
-#include <Scenario/Commands/Interval/ResizeInterval.hpp>
 #include <Scenario/Commands/TimeSync/TriggerCommandFactory/BaseScenarioTriggerCommandFactory.hpp>
 #include <Scenario/Commands/TimeSync/TriggerCommandFactory/ScenarioTriggerCommandFactory.hpp>
 #include <Scenario/Commands/TimeSync/TriggerCommandFactory/TriggerCommandFactory.hpp>
@@ -49,6 +49,7 @@
 
 #include <score/command/Command.hpp>
 #include <score/command/CommandGeneratorMap.hpp>
+#include <score/graphics/GraphicsItem.hpp>
 #include <score/plugins/FactorySetup.hpp>
 #include <score/plugins/StringFactoryKey.hpp>
 #include <score/plugins/StringFactoryKeySerialization.hpp>
@@ -56,7 +57,6 @@
 #include <score/plugins/qt_interfaces/FactoryInterface_QtInterface.hpp>
 #include <score/plugins/qt_interfaces/GUIApplicationPlugin_QtInterface.hpp>
 #include <score/tools/std/HashMap.hpp>
-#include <score/graphics/GraphicsItem.hpp>
 
 #include <QList>
 #include <QMetaType>
@@ -89,8 +89,11 @@ struct WidgetInletFactory final : public AutomatablePortFactory
   }
 
   void setupInletInspector(
-      Process::Inlet& port, const score::DocumentContext& ctx, QWidget* parent,
-      Inspector::Layout& lay, QObject* context) override
+      Process::Inlet& port,
+      const score::DocumentContext& ctx,
+      QWidget* parent,
+      Inspector::Layout& lay,
+      QObject* context) override
   {
     using factory = typename Model_T::control_type;
     auto& ctrl = static_cast<Model_T&>(port);
@@ -160,15 +163,21 @@ score_plugin_scenario::factoryFamilies()
   using namespace Scenario;
   using namespace Scenario::Command;
   return make_ptr_vector<
-      score::InterfaceListBase, MoveEventList, CSPCoherencyCheckerList,
-      DisplayedElementsToolPaletteFactoryList, TriggerCommandFactoryList,
-      DisplayedElementsProviderList, DropHandlerList,
-      IntervalDropHandlerList, IntervalResizerList>();
+      score::InterfaceListBase,
+      MoveEventList,
+      CSPCoherencyCheckerList,
+      DisplayedElementsToolPaletteFactoryList,
+      TriggerCommandFactoryList,
+      DisplayedElementsProviderList,
+      DropHandlerList,
+      IntervalDropHandlerList,
+      IntervalResizerList>();
 }
 
 template <>
 struct FactoryBuilder<
-    score::GUIApplicationContext, Scenario::ScenarioTemporalLayerFactory>
+    score::GUIApplicationContext,
+    Scenario::ScenarioTemporalLayerFactory>
 {
   static auto make(const score::GUIApplicationContext& ctx)
   {
@@ -181,41 +190,54 @@ struct FactoryBuilder<
 
 std::vector<std::unique_ptr<score::InterfaceBase>>
 score_plugin_scenario::factories(
-    const score::ApplicationContext& ctx, const score::InterfaceKey& key) const
+    const score::ApplicationContext& ctx,
+    const score::InterfaceKey& key) const
 {
   using namespace Scenario;
   using namespace Scenario::Command;
   return instantiate_factories<
       score::ApplicationContext,
-      FW<Process::ProcessModelFactory, ScenarioFactory,
+      FW<Process::ProcessModelFactory,
+         ScenarioFactory,
          Interpolation::InterpolationFactory>,
       FW<Process::LayerFactory, Interpolation::InterpolationLayerFactory>,
       FW<MoveEventFactoryInterface, MoveEventClassicFactory>,
       FW<DisplayedElementsToolPaletteFactory,
          BaseScenarioDisplayedElementsToolPaletteFactory,
          ScenarioDisplayedElementsToolPaletteFactory>,
-      FW<TriggerCommandFactory, ScenarioTriggerCommandFactory,
+      FW<TriggerCommandFactory,
+         ScenarioTriggerCommandFactory,
          BaseScenarioTriggerCommandFactory>,
-      FW<DisplayedElementsProvider, ScenarioDisplayedElementsProvider,
+      FW<DisplayedElementsProvider,
+         ScenarioDisplayedElementsProvider,
          BaseScenarioDisplayedElementsProvider>,
       FW<score::DocumentDelegateFactory, Scenario::ScenarioDocumentFactory>,
       FW<score::SettingsDelegateFactory, Scenario::Settings::Factory>,
       FW<score::PanelDelegateFactory, Scenario::ObjectPanelDelegateFactory>,
       //      FW<score::PanelDelegateFactory, Scenario::PanelDelegateFactory>,
       FW<Process::ProcessDropHandler, Scenario::ProcessDataDropHandler>,
-      FW<Scenario::DropHandler, Scenario::MessageDropHandler,
-         Scenario::DropScenario, Scenario::DropProcessInScenario,
-         Scenario::DropPortInScenario, Scenario::DropLayerInScenario>,
-      FW<Scenario::IntervalDropHandler, Scenario::DropProcessInInterval,
-         Scenario::DropLayerInInterval, Scenario::AutomationDropHandler>,
+      FW<Scenario::DropHandler,
+         Scenario::MessageDropHandler,
+         Scenario::DropScenario,
+         Scenario::DropProcessInScenario,
+         Scenario::DropPortInScenario,
+         Scenario::DropLayerInScenario>,
+      FW<Scenario::IntervalDropHandler,
+         Scenario::DropProcessInInterval,
+         Scenario::DropLayerInInterval,
+         Scenario::AutomationDropHandler>,
       FW<Inspector::InspectorWidgetFactory,
          ScenarioInspectorWidgetFactoryWrapper,
-         Interpolation::StateInspectorFactory, ScenarioInspectorFactory,
-         Interpolation::InspectorFactory, Dataflow::CableInspectorFactory,
+         Interpolation::StateInspectorFactory,
+         ScenarioInspectorFactory,
+         Interpolation::InspectorFactory,
+         Dataflow::CableInspectorFactory,
          Dataflow::PortInspectorFactory>,
       FW<score::ValidityChecker, ScenarioValidityChecker>,
-      FW<Process::PortFactory, Dataflow::InletFactory,
-         Dataflow::ControlInletFactory, Dataflow::OutletFactory,
+      FW<Process::PortFactory,
+         Dataflow::InletFactory,
+         Dataflow::ControlInletFactory,
+         Dataflow::OutletFactory,
          Dataflow::ControlOutletFactory,
          Dataflow::WidgetInletFactory<Process::FloatSlider>,
          Dataflow::WidgetInletFactory<Process::LogFloatSlider>,
@@ -230,9 +252,11 @@ score_plugin_scenario::factories(
          Dataflow::WidgetInletFactory<Process::TimeSignatureChooser>>,
       FW<Execution::ProcessComponentFactory,
          Execution::ScenarioComponentFactory>,
-      FW<Library::LibraryInterface, Scenario::SlotLibraryHandler,
+      FW<Library::LibraryInterface,
+         Scenario::SlotLibraryHandler,
          Scenario::ScenarioLibraryHandler>,
-      FW<Scenario::IntervalResizer, Scenario::ScenarioIntervalResizer,
+      FW<Scenario::IntervalResizer,
+         Scenario::ScenarioIntervalResizer,
          Scenario::BaseScenarioIntervalResizer>,
       FW<score::ObjectRemover, Scenario::ScenarioRemover>>(ctx, key);
 }

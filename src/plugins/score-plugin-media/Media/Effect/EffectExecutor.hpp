@@ -1,7 +1,7 @@
 #pragma once
 #include <Media/Effect/EffectProcessModel.hpp>
-#include <Process/ExecutionContext.hpp>
 #include <Process/Execution/ProcessComponent.hpp>
+#include <Process/ExecutionContext.hpp>
 
 #include <score/model/ComponentFactory.hpp>
 #include <score/model/ComponentHierarchy.hpp>
@@ -12,9 +12,9 @@
 namespace Media
 {
 
-class EffectProcessComponentBase
-    : public ::Execution::ProcessComponent_T<
-          Media::Effect::ProcessModel, ossia::node_chain_process>
+class EffectProcessComponentBase : public ::Execution::ProcessComponent_T<
+                                       Media::Effect::ProcessModel,
+                                       ossia::node_chain_process>
 
 {
   COMPONENT_METADATA("d638adb3-64da-4b6e-b84d-7c32684fa79d")
@@ -24,8 +24,10 @@ public:
   using component_t = ProcessComponent;
   using component_factory_list_t = Execution::ProcessComponentFactoryList;
   EffectProcessComponentBase(
-      Media::Effect::ProcessModel& element, const ::Execution::Context& ctx,
-      const Id<score::Component>& id, QObject* parent);
+      Media::Effect::ProcessModel& element,
+      const ::Execution::Context& ctx,
+      const Id<score::Component>& id,
+      QObject* parent);
 
   ~EffectProcessComponentBase() override;
 
@@ -34,8 +36,8 @@ public:
       Execution::ProcessComponentFactory& factory,
       Process::ProcessModel& process);
 
-  ProcessComponent* make(
-      const Id<score::Component>& id, Process::ProcessModel& process)
+  ProcessComponent*
+  make(const Id<score::Component>& id, Process::ProcessModel& process)
   {
     return nullptr;
   }
@@ -68,50 +70,72 @@ public:
     Process::Inlets registeredInlets;
     Process::Outlets registeredOutlets;
 
-    const auto& node() const
-    {
-      return comp->node;
-    }
-    operator bool() const
-    {
-      return bool(comp);
-    }
+    const auto& node() const { return comp->node; }
+    operator bool() const { return bool(comp); }
   };
+
 private:
   std::vector<std::pair<Id<Process::ProcessModel>, RegisteredEffect>> m_fxes;
 
 #if !defined(NDEBUG)
-protected: bool m_clearing = false;
+protected:
+  bool m_clearing = false;
+
 private:
 #endif
 
   void unreg(const RegisteredEffect& fx);
-  void reg(const RegisteredEffect& fx, std::vector<Execution::ExecutionCommand>&);
-  void unregister_old_first_node(std::pair<Id<Process::ProcessModel>, EffectProcessComponentBase::RegisteredEffect>& new_first, std::vector<Execution::ExecutionCommand>& commands);
-  void register_new_first_node(std::pair<Id<Process::ProcessModel>, EffectProcessComponentBase::RegisteredEffect>& new_first, std::vector<Execution::ExecutionCommand>& commands);
-  void unregister_old_last_node(std::pair<Id<Process::ProcessModel>, EffectProcessComponentBase::RegisteredEffect>& new_first, std::vector<Execution::ExecutionCommand>& commands);
-  void register_new_last_node(std::pair<Id<Process::ProcessModel>, EffectProcessComponentBase::RegisteredEffect>& new_first, std::vector<Execution::ExecutionCommand>& commands);
+  void
+  reg(const RegisteredEffect& fx, std::vector<Execution::ExecutionCommand>&);
+  void unregister_old_first_node(
+      std::pair<
+          Id<Process::ProcessModel>,
+          EffectProcessComponentBase::RegisteredEffect>& new_first,
+      std::vector<Execution::ExecutionCommand>& commands);
+  void register_new_first_node(
+      std::pair<
+          Id<Process::ProcessModel>,
+          EffectProcessComponentBase::RegisteredEffect>& new_first,
+      std::vector<Execution::ExecutionCommand>& commands);
+  void unregister_old_last_node(
+      std::pair<
+          Id<Process::ProcessModel>,
+          EffectProcessComponentBase::RegisteredEffect>& new_first,
+      std::vector<Execution::ExecutionCommand>& commands);
+  void register_new_last_node(
+      std::pair<
+          Id<Process::ProcessModel>,
+          EffectProcessComponentBase::RegisteredEffect>& new_first,
+      std::vector<Execution::ExecutionCommand>& commands);
 
-  void register_node_again(std::pair<Id<Process::ProcessModel>, EffectProcessComponentBase::RegisteredEffect>& new_first, std::vector<Execution::ExecutionCommand>& commands);
+  void register_node_again(
+      std::pair<
+          Id<Process::ProcessModel>,
+          EffectProcessComponentBase::RegisteredEffect>& new_first,
+      std::vector<Execution::ExecutionCommand>& commands);
 };
 
 class EffectProcessComponent final
-    : public score::PolymorphicComponentHierarchy<
-          EffectProcessComponentBase, false>
+    : public score::
+          PolymorphicComponentHierarchy<EffectProcessComponentBase, false>
 {
 public:
   EffectProcessComponent(
-      Media::Effect::ProcessModel& element, const ::Execution::Context& ctx,
-      const Id<score::Component>& id, QObject* parent)
+      Media::Effect::ProcessModel& element,
+      const ::Execution::Context& ctx,
+      const Id<score::Component>& id,
+      QObject* parent)
       : score::PolymorphicComponentHierarchy<
-            EffectProcessComponentBase, false>{score::lazy_init_t{}, element,
-                                               ctx, id, parent}
+            EffectProcessComponentBase,
+            false>{score::lazy_init_t{}, element, ctx, id, parent}
   {
     if (!element.badChaining())
       init_hierarchy();
 
     connect(
-        &element, &Media::Effect::ProcessModel::badChainingChanged, this,
+        &element,
+        &Media::Effect::ProcessModel::badChainingChanged,
+        this,
         [&](bool b) {
           if (b)
           {
@@ -138,4 +162,5 @@ using EffectProcessComponentFactory
 }
 
 SCORE_CONCRETE_COMPONENT_FACTORY(
-    Execution::ProcessComponentFactory, Execution::EffectComponentFactory)
+    Execution::ProcessComponentFactory,
+    Execution::EffectComponentFactory)

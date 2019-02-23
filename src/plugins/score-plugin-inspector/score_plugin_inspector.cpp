@@ -15,17 +15,14 @@ class PanelFactory;
 
 #include <Inspector/InspectorWidgetList.hpp>
 
-score_plugin_inspector::score_plugin_inspector()
-{
-}
+score_plugin_inspector::score_plugin_inspector() {}
 
-score_plugin_inspector::~score_plugin_inspector()
-{
-}
+score_plugin_inspector::~score_plugin_inspector() {}
 
 std::vector<std::unique_ptr<score::InterfaceBase>>
 score_plugin_inspector::factories(
-    const score::ApplicationContext& ctx, const score::InterfaceKey& key) const
+    const score::ApplicationContext& ctx,
+    const score::InterfaceKey& key) const
 {
   return instantiate_factories<
       score::ApplicationContext,
@@ -37,7 +34,8 @@ std::vector<std::unique_ptr<score::InterfaceListBase>>
 score_plugin_inspector::factoryFamilies()
 {
   return make_ptr_vector<
-      score::InterfaceListBase, Inspector::InspectorWidgetList>();
+      score::InterfaceListBase,
+      Inspector::InspectorWidgetList>();
 }
 
 #include <score/plugins/PluginInstances.hpp>

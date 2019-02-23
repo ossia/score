@@ -19,13 +19,12 @@ public:
 
   AddressBarItem& bar();
 
-  void setState(State s) override
-  {
-  }
+  void setState(State s) override {}
 
   QRectF boundingRect() const override;
   void paint(
-      QPainter* painter, const QStyleOptionGraphicsItem* option,
+      QPainter* painter,
+      const QStyleOptionGraphicsItem* option,
       QWidget* widget) override;
 
 private:

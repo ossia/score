@@ -18,10 +18,13 @@ class ProcessModel;
 class ChangeSourceAddress final : public score::Command
 {
   SCORE_COMMAND_DECL(
-      MappingCommandFactoryName(), ChangeSourceAddress, "ChangeSourceAddress")
+      MappingCommandFactoryName(),
+      ChangeSourceAddress,
+      "ChangeSourceAddress")
 public:
   ChangeSourceAddress(
-      const ProcessModel&, Device::FullAddressAccessorSettings newval);
+      const ProcessModel&,
+      Device::FullAddressAccessorSettings newval);
 
 public:
   void undo(const score::DocumentContext& ctx) const override;
@@ -39,10 +42,13 @@ private:
 class ChangeTargetAddress final : public score::Command
 {
   SCORE_COMMAND_DECL(
-      MappingCommandFactoryName(), ChangeTargetAddress, "ChangeTargetAddress")
+      MappingCommandFactoryName(),
+      ChangeTargetAddress,
+      "ChangeTargetAddress")
 public:
   ChangeTargetAddress(
-      const ProcessModel&, Device::FullAddressAccessorSettings);
+      const ProcessModel&,
+      Device::FullAddressAccessorSettings);
 
 public:
   void undo(const score::DocumentContext& ctx) const override;

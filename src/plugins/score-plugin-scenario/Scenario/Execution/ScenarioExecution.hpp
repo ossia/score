@@ -40,10 +40,14 @@ public:
    * IntervalModel that aren't originating from this one.
    */
   void playFromIntervalAtDate(
-      const ScenarioInterface& arg_1, Id<IntervalModel> arg_2,
+      const ScenarioInterface& arg_1,
+      Id<IntervalModel> arg_2,
       const TimeVal& arg_3)
       E_SIGNAL(
-          SCORE_PLUGIN_SCENARIO_EXPORT, playFromIntervalAtDate, arg_1, arg_2,
+          SCORE_PLUGIN_SCENARIO_EXPORT,
+          playFromIntervalAtDate,
+          arg_1,
+          arg_2,
           arg_3);
 
   //! "Play from here" algorithm.
@@ -59,7 +63,10 @@ public:
 
   //! Request a message recording from a given point.
   void startRecordingMessages(ProcessModel& arg_1, Point arg_2) E_SIGNAL(
-      SCORE_PLUGIN_SCENARIO_EXPORT, startRecordingMessages, arg_1, arg_2);
+      SCORE_PLUGIN_SCENARIO_EXPORT,
+      startRecordingMessages,
+      arg_1,
+      arg_2);
 
   void stopRecording() E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, stopRecording);
 };

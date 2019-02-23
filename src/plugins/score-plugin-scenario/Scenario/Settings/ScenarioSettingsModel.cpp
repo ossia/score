@@ -22,9 +22,11 @@ SETTINGS_PARAMETER_IMPL(DefaultEditor){QStringLiteral("Skin/DefaultEditor"),
 SETTINGS_PARAMETER_IMPL(GraphicZoom){QStringLiteral("Skin/Zoom"), 1};
 SETTINGS_PARAMETER_IMPL(SlotHeight){QStringLiteral("Skin/slotHeight"), 200};
 SETTINGS_PARAMETER_IMPL(DefaultDuration){
-    QStringLiteral("Skin/defaultDuration"), TimeVal::fromMsecs(15000)};
+    QStringLiteral("Skin/defaultDuration"),
+    TimeVal::fromMsecs(15000)};
 SETTINGS_PARAMETER_IMPL(SnapshotOnCreate){
-    QStringLiteral("Scenario/SnapshotOnCreate"), false};
+    QStringLiteral("Scenario/SnapshotOnCreate"),
+    false};
 SETTINGS_PARAMETER_IMPL(AutoSequence){QStringLiteral("Scenario/AutoSequence"),
                                       false};
 SETTINGS_PARAMETER_IMPL(TimeBar){QStringLiteral("Scenario/TimeBar"), true};
@@ -32,8 +34,14 @@ SETTINGS_PARAMETER_IMPL(TimeBar){QStringLiteral("Scenario/TimeBar"), true};
 static auto list()
 {
   return std::tie(
-      Skin, DefaultEditor, GraphicZoom, SlotHeight, DefaultDuration,
-      SnapshotOnCreate, AutoSequence, TimeBar);
+      Skin,
+      DefaultEditor,
+      GraphicZoom,
+      SlotHeight,
+      DefaultDuration,
+      SnapshotOnCreate,
+      AutoSequence,
+      TimeBar);
 }
 }
 

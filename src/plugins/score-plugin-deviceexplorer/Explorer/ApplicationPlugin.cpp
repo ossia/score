@@ -29,17 +29,22 @@ ApplicationPlugin::ApplicationPlugin(const score::GUIApplicationContext& app)
 }
 
 void ApplicationPlugin::setupConnections(
-    score::MessagesPanelDelegate& messages, Device::DeviceList& devices)
+    score::MessagesPanelDelegate& messages,
+    Device::DeviceList& devices)
 {
   m_inbound = QObject::connect(
-      &devices, &Device::DeviceList::logInbound, &messages,
+      &devices,
+      &Device::DeviceList::logInbound,
+      &messages,
       [&messages](const QString& str) {
         messages.push(str, score::log::dark1);
       },
       Qt::QueuedConnection);
 
   m_outbound = QObject::connect(
-      &devices, &Device::DeviceList::logOutbound, &messages,
+      &devices,
+      &Device::DeviceList::logOutbound,
+      &messages,
       [&messages](const QString& str) {
         messages.push(str, score::log::dark2);
       },
@@ -50,7 +55,9 @@ void ApplicationPlugin::setupConnections(
   if (qt_sink)
   {
     m_error = QObject::connect(
-        qt_sink, &ossia::qt::log_sink::l, &messages,
+        qt_sink,
+        &ossia::qt::log_sink::l,
+        &messages,
         [&messages](spdlog::level::level_enum l, const QString& m) {
           messages.push(m, score::log::dark3);
         },
@@ -64,7 +71,8 @@ void ApplicationPlugin::on_newDocument(score::Document& doc)
 }
 
 void ApplicationPlugin::on_documentChanged(
-    score::Document* olddoc, score::Document* newdoc)
+    score::Document* olddoc,
+    score::Document* newdoc)
 {
   disableConnections();
   QObject::disconnect(m_visible);

@@ -23,32 +23,26 @@ class SCORE_PLUGIN_SCENARIO_EXPORT SlotHandle final : public QGraphicsItem
 {
 public:
   SlotHandle(
-      const IntervalPresenter& slotView, int slotIndex, bool isstatic,
+      const IntervalPresenter& slotView,
+      int slotIndex,
+      bool isstatic,
       QGraphicsItem* parent);
 
-  const IntervalPresenter& presenter() const
-  {
-    return m_presenter;
-  }
+  const IntervalPresenter& presenter() const { return m_presenter; }
   static constexpr int static_type()
   {
     return QGraphicsItem::UserType + ItemType::SlotHandle;
   }
-  int type() const override
-  {
-    return static_type();
-  }
+  int type() const override { return static_type(); }
 
   int slotIndex() const;
   void setSlotIndex(int);
-  static constexpr double handleHeight()
-  {
-    return 4.;
-  }
+  static constexpr double handleHeight() { return 4.; }
 
   QRectF boundingRect() const override;
   void paint(
-      QPainter* painter, const QStyleOptionGraphicsItem* option,
+      QPainter* painter,
+      const QStyleOptionGraphicsItem* option,
       QWidget* widget) override;
 
   void setWidth(qreal width);

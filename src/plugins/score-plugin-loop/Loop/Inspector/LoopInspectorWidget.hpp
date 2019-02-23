@@ -11,7 +11,8 @@ class InspectorWidget final
 {
 public:
   explicit InspectorWidget(
-      const Loop::ProcessModel& object, const score::DocumentContext& context,
+      const Loop::ProcessModel& object,
+      const score::DocumentContext& context,
       QWidget* parent);
   ~InspectorWidget() override;
 };

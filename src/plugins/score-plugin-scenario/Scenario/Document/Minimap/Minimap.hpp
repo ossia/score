@@ -17,18 +17,9 @@ class SCORE_PLUGIN_SCENARIO_EXPORT Minimap final : public QObject,
 public:
   Minimap(QGraphicsView* vp);
   void setWidth(double);
-  double width() const
-  {
-    return m_width;
-  }
-  double leftHandle() const
-  {
-    return m_leftHandle;
-  }
-  double rightHandle() const
-  {
-    return m_rightHandle;
-  }
+  double width() const { return m_width; }
+  double leftHandle() const { return m_leftHandle; }
+  double rightHandle() const { return m_rightHandle; }
 
   // These do not send notification
   void setMinDistance(double);
@@ -52,7 +43,8 @@ public:
 private:
   QRectF boundingRect() const override;
   void paint(
-      QPainter* painter, const QStyleOptionGraphicsItem* option,
+      QPainter* painter,
+      const QStyleOptionGraphicsItem* option,
       QWidget* widget) override;
 
   void mousePressEvent(QGraphicsSceneMouseEvent*) override;

@@ -14,7 +14,8 @@ class MissingCommandException : public std::runtime_error
 {
 public:
   MissingCommandException(
-      const CommandGroupKey& parent, const CommandKey& command)
+      const CommandGroupKey& parent,
+      const CommandKey& command)
       : std::runtime_error{
             ("Could not find " + command.toString() + " in "
              + parent.toString())}

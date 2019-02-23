@@ -14,7 +14,9 @@ namespace Media
 class ChangeAudioFile final : public score::Command
 {
   SCORE_COMMAND_DECL(
-      Media::CommandFactoryName(), ChangeAudioFile, "Change audio file")
+      Media::CommandFactoryName(),
+      ChangeAudioFile,
+      "Change audio file")
 public:
   ChangeAudioFile(const Sound::ProcessModel&, const QString& text);
 
@@ -33,13 +35,19 @@ private:
 }
 
 PROPERTY_COMMAND_T(
-    Media, ChangeStart, Sound::ProcessModel::p_startChannel,
+    Media,
+    ChangeStart,
+    Sound::ProcessModel::p_startChannel,
     "Change start channel")
 PROPERTY_COMMAND_T(
-    Media, ChangeUpmix, Sound::ProcessModel::p_upmixChannels,
+    Media,
+    ChangeUpmix,
+    Sound::ProcessModel::p_upmixChannels,
     "Change upmix channels")
 PROPERTY_COMMAND_T(
-    Media, ChangeStartOffset, Sound::ProcessModel::p_startOffset,
+    Media,
+    ChangeStartOffset,
+    Sound::ProcessModel::p_startOffset,
     "Change start offset")
 SCORE_COMMAND_DECL_T(Media::ChangeStart)
 SCORE_COMMAND_DECL_T(Media::ChangeUpmix)

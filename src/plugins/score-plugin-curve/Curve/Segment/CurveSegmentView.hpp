@@ -26,19 +26,14 @@ class SCORE_PLUGIN_CURVE_EXPORT SegmentView final : public QObject,
   Q_INTERFACES(QGraphicsItem)
 public:
   SegmentView(
-      const SegmentModel* model, const Curve::Style& style,
+      const SegmentModel* model,
+      const Curve::Style& style,
       QGraphicsItem* parent);
 
   const Id<SegmentModel>& id() const;
 
-  static constexpr int static_type()
-  {
-    return QGraphicsItem::UserType + 101;
-  }
-  int type() const override
-  {
-    return static_type();
-  }
+  static constexpr int static_type() { return QGraphicsItem::UserType + 101; }
+  int type() const override { return static_type(); }
 
   QRectF boundingRect() const override;
   QPainterPath shape() const override;
@@ -46,14 +41,12 @@ public:
   bool contains(const QPointF& pt) const override;
 
   void paint(
-      QPainter* painter, const QStyleOptionGraphicsItem* option,
+      QPainter* painter,
+      const QStyleOptionGraphicsItem* option,
       QWidget* widget) override;
 
   void setModel(const SegmentModel*);
-  const SegmentModel& model() const
-  {
-    return *m_model;
-  }
+  const SegmentModel& model() const { return *m_model; }
 
   void setRect(const QRectF& theRect);
 

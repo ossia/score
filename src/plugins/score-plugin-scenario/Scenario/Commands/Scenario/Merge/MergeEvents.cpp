@@ -6,7 +6,8 @@ namespace Command
 {
 
 MergeEvents::MergeEvents(
-    const ProcessModel& scenario, Id<EventModel> clickedEv,
+    const ProcessModel& scenario,
+    Id<EventModel> clickedEv,
     Id<EventModel> hoveredEv)
     : m_scenarioPath{scenario}
     , m_movingEventId{std::move(clickedEv)}
@@ -20,8 +21,8 @@ MergeEvents::MergeEvents(
   s.readFrom(event);
   m_serializedEvent = arr;
 
-  m_mergeTimeSyncsCommand = new MergeTimeSyncs{scenario, event.timeSync(),
-                                               destinantionEvent.timeSync()};
+  m_mergeTimeSyncsCommand = new MergeTimeSyncs{
+      scenario, event.timeSync(), destinantionEvent.timeSync()};
 }
 
 void MergeEvents::undo(const score::DocumentContext& ctx) const
@@ -100,7 +101,9 @@ void MergeEvents::redo(const score::DocumentContext& ctx) const
 }
 
 void MergeEvents::update(
-    unused_t, const Id<EventModel>&, const Id<EventModel>&)
+    unused_t,
+    const Id<EventModel>&,
+    const Id<EventModel>&)
 {
 }
 

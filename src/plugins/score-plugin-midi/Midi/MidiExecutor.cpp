@@ -13,10 +13,16 @@ namespace Executor
 using midi_node = ossia::nodes::midi;
 using midi_node_process = ossia::nodes::midi_node_process;
 Component::Component(
-    Midi::ProcessModel& element, const Execution::Context& ctx,
-    const Id<score::Component>& id, QObject* parent)
+    Midi::ProcessModel& element,
+    const Execution::Context& ctx,
+    const Id<score::Component>& id,
+    QObject* parent)
     : ::Execution::ProcessComponent_T<Midi::ProcessModel, ossia::node_process>{
-          element, ctx, id, "MidiComponent", parent}
+          element,
+          ctx,
+          id,
+          "MidiComponent",
+          parent}
 {
   auto midi = std::make_shared<midi_node>();
   this->node = midi;
@@ -49,7 +55,9 @@ Component::Component(
   for (auto& note : element.notes)
   {
     QObject::connect(
-        &note, &Note::noteChanged, this,
+        &note,
+        &Note::noteChanged,
+        this,
         [&, midi, cur = to_note(note.noteData())]() mutable {
           auto old = cur;
           cur = to_note(note.noteData());
@@ -60,9 +68,7 @@ Component::Component(
       &element, &Midi::ProcessModel::notesChanged, this, set_notes);
 }
 
-Component::~Component()
-{
-}
+Component::~Component() {}
 
 void Component::on_noteAdded(const Note& n)
 {
@@ -70,7 +76,9 @@ void Component::on_noteAdded(const Note& n)
   in_exec([nd = to_note(n.noteData()), midi] { midi->add_note(nd); });
 
   QObject::connect(
-      &n, &Note::noteChanged, this,
+      &n,
+      &Note::noteChanged,
+      this,
       [&, midi, cur = to_note(n.noteData())]() mutable {
         auto old = cur;
         cur = to_note(n.noteData());
@@ -88,7 +96,8 @@ ossia::nodes::note_data Component::to_note(const NoteData& n)
 {
   auto& cv_time = system().time;
   return {cv_time(process().duration() * n.start()),
-          cv_time(process().duration() * n.duration()), n.pitch(),
+          cv_time(process().duration() * n.duration()),
+          n.pitch(),
           n.velocity()};
 }
 }

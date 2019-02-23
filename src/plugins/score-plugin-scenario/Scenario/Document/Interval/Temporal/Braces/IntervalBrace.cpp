@@ -13,15 +13,12 @@
 
 namespace Scenario
 {
-LeftBraceView::~LeftBraceView()
-{
-}
+LeftBraceView::~LeftBraceView() {}
 
-RightBraceView::~RightBraceView()
-{
-}
+RightBraceView::~RightBraceView() {}
 IntervalBrace::IntervalBrace(
-    const IntervalView& parentCstr, QGraphicsItem* parent)
+    const IntervalView& parentCstr,
+    QGraphicsItem* parent)
     : QGraphicsItem(), m_parent{parentCstr}
 {
   this->setCacheMode(QGraphicsItem::NoCache);
@@ -40,7 +37,9 @@ QRectF IntervalBrace::boundingRect() const
 }
 
 void IntervalBrace::paint(
-    QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+    QPainter* painter,
+    const QStyleOptionGraphicsItem* option,
+    QWidget* widget)
 {
   auto& skin = Process::Style::instance();
   painter->setRenderHint(QPainter::Antialiasing, true);

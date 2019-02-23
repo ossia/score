@@ -22,7 +22,8 @@ namespace score
  * to store them in a single hierarchy manager part of the original element.
  */
 template <
-    typename ParentComponent_T, typename ChildModel_T,
+    typename ParentComponent_T,
+    typename ChildModel_T,
     typename ChildComponent_T>
 class ComponentHierarchyManager : public ParentComponent_T,
                                   public Nano::Observer
@@ -32,9 +33,7 @@ public:
 
   struct ChildPair
   {
-    ChildPair(ChildModel_T* m, ChildComponent_T* c) : model{m}, component{c}
-    {
-    }
+    ChildPair(ChildModel_T* m, ChildComponent_T* c) : model{m}, component{c} {}
     ChildModel_T* model{};
     ChildComponent_T* component{};
   };
@@ -65,10 +64,7 @@ public:
     child_models.removing.template connect<&hierarchy_t::remove>(this);
   }
 
-  const auto& children() const
-  {
-    return m_children;
-  }
+  const auto& children() const { return m_children; }
 
   void add(ChildModel_T& element)
   {
@@ -141,10 +137,7 @@ public:
     m_children.clear();
   }
 
-  ~ComponentHierarchyManager()
-  {
-    clear();
-  }
+  ~ComponentHierarchyManager() { clear(); }
 
 private:
   std::vector<ChildPair> m_children; // todo map ? multi_index with both index
@@ -161,8 +154,10 @@ private:
  * source them from a factory somehow.
  */
 template <
-    typename ParentComponent_T, typename ChildModel_T,
-    typename ChildComponent_T, typename ChildComponentFactoryList_T,
+    typename ParentComponent_T,
+    typename ChildModel_T,
+    typename ChildComponent_T,
+    typename ChildComponentFactoryList_T,
     bool HasOwnership = true>
 class PolymorphicComponentHierarchyManager : public ParentComponent_T,
                                              public Nano::Observer
@@ -172,9 +167,7 @@ public:
 
   struct ChildPair
   {
-    ChildPair(ChildModel_T* m, ChildComponent_T* c) : model{m}, component{c}
-    {
-    }
+    ChildPair(ChildModel_T* m, ChildComponent_T* c) : model{m}, component{c} {}
     ChildModel_T* model{};
     ChildComponent_T* component{};
   };
@@ -210,10 +203,7 @@ public:
 
     child_models.removing.template connect<&hierarchy_t::remove>(this);
   }
-  const auto& children() const
-  {
-    return m_children;
-  }
+  const auto& children() const { return m_children; }
 
   void add(ChildModel_T& element)
   {
@@ -243,10 +233,7 @@ public:
     m_children.clear();
   }
 
-  ~PolymorphicComponentHierarchyManager()
-  {
-    clear();
-  }
+  ~PolymorphicComponentHierarchyManager() { clear(); }
 
 private:
   // TODO remove these useless templates when MSVC grows some brains
@@ -333,10 +320,15 @@ private:
 
 template <typename Component>
 using ComponentHierarchy = ComponentHierarchyManager<
-    Component, typename Component::model_t, typename Component::component_t>;
+    Component,
+    typename Component::model_t,
+    typename Component::component_t>;
 
 template <typename Component, bool HasOwnership = true>
 using PolymorphicComponentHierarchy = PolymorphicComponentHierarchyManager<
-    Component, typename Component::model_t, typename Component::component_t,
-    typename Component::component_factory_list_t, HasOwnership>;
+    Component,
+    typename Component::model_t,
+    typename Component::component_t,
+    typename Component::component_factory_list_t,
+    HasOwnership>;
 }

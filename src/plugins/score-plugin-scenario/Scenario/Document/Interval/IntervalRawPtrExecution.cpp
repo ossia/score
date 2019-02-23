@@ -29,19 +29,27 @@ W_OBJECT_IMPL(Execution::IntervalRawPtrComponent)
 namespace Execution
 {
 IntervalRawPtrComponentBase::IntervalRawPtrComponentBase(
-    Scenario::IntervalModel& score_cst, const Context& ctx,
-    const Id<score::Component>& id, QObject* parent)
-    : Scenario::GenericIntervalComponent<const Context>{
-          score_cst, ctx, id, "Executor::Interval", nullptr}
+    Scenario::IntervalModel& score_cst,
+    const Context& ctx,
+    const Id<score::Component>& id,
+    QObject* parent)
+    : Scenario::GenericIntervalComponent<const Context>{score_cst,
+                                                        ctx,
+                                                        id,
+                                                        "Executor::Interval",
+                                                        nullptr}
 {
-  con(interval().duration, &Scenario::IntervalDurations::speedChanged, this,
+  con(interval().duration,
+      &Scenario::IntervalDurations::speedChanged,
+      this,
       [&](double sp) {
         if (m_ossia_interval)
           in_exec([sp, cst = m_ossia_interval] { cst->set_speed(sp); });
       });
 
   con(interval().duration,
-      &Scenario::IntervalDurations::defaultDurationChanged, this,
+      &Scenario::IntervalDurations::defaultDurationChanged,
+      this,
       [&](TimeVal sp) {
         if (m_ossia_interval)
           in_exec([t = ctx.time(sp), cst = m_ossia_interval] {
@@ -49,16 +57,20 @@ IntervalRawPtrComponentBase::IntervalRawPtrComponentBase(
           });
       });
 
-  con(interval().duration, &Scenario::IntervalDurations::minDurationChanged,
-      this, [&](TimeVal sp) {
+  con(interval().duration,
+      &Scenario::IntervalDurations::minDurationChanged,
+      this,
+      [&](TimeVal sp) {
         if (m_ossia_interval)
           in_exec([t = ctx.time(sp), cst = m_ossia_interval] {
             cst->set_min_duration(t);
           });
       });
 
-  con(interval().duration, &Scenario::IntervalDurations::maxDurationChanged,
-      this, [&](TimeVal sp) {
+  con(interval().duration,
+      &Scenario::IntervalDurations::maxDurationChanged,
+      this,
+      [&](TimeVal sp) {
         if (m_ossia_interval)
           in_exec([t = ctx.time(sp), cst = m_ossia_interval] {
             cst->set_max_duration(t);
@@ -66,9 +78,7 @@ IntervalRawPtrComponentBase::IntervalRawPtrComponentBase(
       });
 }
 
-IntervalRawPtrComponent::~IntervalRawPtrComponent()
-{
-}
+IntervalRawPtrComponent::~IntervalRawPtrComponent() {}
 
 void IntervalRawPtrComponent::init()
 {
@@ -137,7 +147,8 @@ void IntervalRawPtrComponent::cleanup(
       itv->cleanup();
     });
     system().setup.unregister_node(
-        {interval().inlet.get()}, {interval().outlet.get()},
+        {interval().inlet.get()},
+        {interval().outlet.get()},
         m_ossia_interval->node);
   }
   for (auto& proc : m_processes)
@@ -160,7 +171,8 @@ interval_duration_data IntervalRawPtrComponentBase::makeDurations() const
 
 void IntervalRawPtrComponent::onSetup(
     std::shared_ptr<IntervalRawPtrComponent> self,
-    ossia::time_interval* ossia_cst, interval_duration_data dur)
+    ossia::time_interval* ossia_cst,
+    interval_duration_data dur)
 {
   m_ossia_interval = ossia_cst;
 
@@ -182,14 +194,16 @@ void IntervalRawPtrComponent::onSetup(
 
   // set-up the interval ports
   system().setup.register_node(
-      {interval().inlet.get()}, {interval().outlet.get()},
+      {interval().inlet.get()},
+      {interval().outlet.get()},
       m_ossia_interval->node);
 
   init();
 }
 
 void IntervalRawPtrComponent::slot_callback(
-    double position, ossia::time_value date)
+    double position,
+    ossia::time_value date)
 {
   if (m_ossia_interval)
   {
@@ -259,7 +273,8 @@ void IntervalRawPtrComponentBase::executionStopped()
 }
 
 ProcessComponent* IntervalRawPtrComponentBase::make(
-    const Id<score::Component>& id, ProcessComponentFactory& fac,
+    const Id<score::Component>& id,
+    ProcessComponentFactory& fac,
     Process::ProcessModel& proc)
 {
   try
@@ -285,7 +300,9 @@ ProcessComponent* IntervalRawPtrComponentBase::make(
       auto cst = m_ossia_interval;
 
       QObject::connect(
-          &proc.selection, &Selectable::changed, plug.get(),
+          &proc.selection,
+          &Selectable::changed,
+          plug.get(),
           [this, n = oproc->node](bool ok) {
             in_exec([=] {
               if (n)
@@ -315,8 +332,10 @@ ProcessComponent* IntervalRawPtrComponentBase::make(
                     {
                       auto cable = ossia::make_edge(
                           ossia::immediate_glutton_connection{},
-                          n.outputs()[propagated], cst->node->inputs()[0],
-                          oproc->node, cst->node);
+                          n.outputs()[propagated],
+                          cst->node->inputs()[0],
+                          oproc->node,
+                          cst->node);
                       g->connect(cable);
                     }
                   }
@@ -325,8 +344,11 @@ ProcessComponent* IntervalRawPtrComponentBase::make(
           });
 
       connect(
-          plug.get(), &ProcessComponent::nodeChanged, this,
-            [cst_node_weak, g_weak, oproc_weak, &proc] (const auto& old_node, const auto& new_node, auto& commands) {
+          plug.get(),
+          &ProcessComponent::nodeChanged,
+          this,
+          [cst_node_weak, g_weak, oproc_weak, &proc](
+              const auto& old_node, const auto& new_node, auto& commands) {
             const auto& outlets = proc.outlets();
             ossia::int_vector propagated_outlets;
             for (std::size_t i = 0; i < outlets.size(); i++)
@@ -335,24 +357,28 @@ ProcessComponent* IntervalRawPtrComponentBase::make(
                 propagated_outlets.push_back(i);
             }
 
-            commands.push_back([cst_node_weak, g_weak, propagated_outlets, old_node, new_node] {
+            commands.push_back([cst_node_weak,
+                                g_weak,
+                                propagated_outlets,
+                                old_node,
+                                new_node] {
               auto cst_node = cst_node_weak.lock();
-              if(!cst_node)
+              if (!cst_node)
                 return;
               auto g = g_weak.lock();
-              if(!g)
+              if (!g)
                 return;
 
               // Remove edges from the old node
-              if(old_node)
+              if (old_node)
               {
                 ossia::graph_node& n = *old_node;
-                for(auto& outlet : n.outputs())
+                for (auto& outlet : n.outputs())
                 {
                   auto targets = outlet->targets;
-                  for(auto e : targets)
+                  for (auto e : targets)
                   {
-                    if(e->in_node.get() == cst_node.get())
+                    if (e->in_node.get() == cst_node.get())
                     {
                       g->disconnect(e);
                     }
@@ -361,7 +387,7 @@ ProcessComponent* IntervalRawPtrComponentBase::make(
               }
 
               // Add edges to the new node
-              if(new_node)
+              if (new_node)
               {
                 ossia::graph_node& n = *new_node;
                 for (int propagated : propagated_outlets)
@@ -370,9 +396,11 @@ ProcessComponent* IntervalRawPtrComponentBase::make(
                   if (outlet.target<ossia::audio_port>())
                   {
                     auto cable = ossia::make_edge(
-                          ossia::immediate_glutton_connection{},
-                          n.outputs()[propagated], cst_node->inputs()[0],
-                        new_node, cst_node);
+                        ossia::immediate_glutton_connection{},
+                        n.outputs()[propagated],
+                        cst_node->inputs()[0],
+                        new_node,
+                        cst_node);
                     g->connect(cable);
                   }
                 }
@@ -394,7 +422,8 @@ ProcessComponent* IntervalRawPtrComponentBase::make(
 }
 
 std::function<void()> IntervalRawPtrComponentBase::removing(
-    const Process::ProcessModel& e, ProcessComponent& c)
+    const Process::ProcessModel& e,
+    ProcessComponent& c)
 {
   auto it = m_processes.find(e.id());
   if (it != m_processes.end())

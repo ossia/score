@@ -28,17 +28,15 @@ public:
   static void computeDisplacement(
       Scenario::ProcessModel& scenario,
       const QVector<Id<TimeSyncModel>>& draggedElements,
-      const TimeVal& deltaTime, ElementsProperties& elementsProperties);
+      const TimeVal& deltaTime,
+      ElementsProperties& elementsProperties);
 
   static void getRelatedTimeSyncs(
       Scenario::ProcessModel& scenario,
       const Id<TimeSyncModel>& firstTimeSyncMovedId,
       std::vector<Id<TimeSyncModel>>& translatedTimeSyncs);
 
-  static QString name()
-  {
-    return QString{"Old way"};
-  }
+  static QString name() { return QString{"Old way"}; }
 
   template <typename... Args>
   static void updatePositions(Args&&... args)

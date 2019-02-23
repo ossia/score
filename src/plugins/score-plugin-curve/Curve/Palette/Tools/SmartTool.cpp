@@ -26,12 +26,14 @@
 namespace Curve
 {
 SmartTool::SmartTool(
-    Curve::ToolPalette& sm, const score::DocumentContext& context)
+    Curve::ToolPalette& sm,
+    const score::DocumentContext& context)
     : CurveTool{sm}, m_co{&sm.presenter(), context.commandStack}
 {
-  m_state
-      = new Curve::SelectionState{context.selectionStack, m_parentSM,
-                                  m_parentSM.presenter().view(), &localSM()};
+  m_state = new Curve::SelectionState{context.selectionStack,
+                                      m_parentSM,
+                                      m_parentSM.presenter().view(),
+                                      &localSM()};
 
   localSM().setInitialState(m_state);
 
@@ -54,7 +56,8 @@ SmartTool::SmartTool(
 void SmartTool::on_pressed(QPointF scenePoint, Curve::Point curvePoint)
 {
   mapTopItem(
-      scenePoint, itemUnderMouse(scenePoint),
+      scenePoint,
+      itemUnderMouse(scenePoint),
       [&](const PointView* point) {
         localSM().postEvent(new ClickOnPoint_Event(curvePoint, point));
         m_nothingPressed = false;
@@ -78,7 +81,8 @@ void SmartTool::on_moved(QPointF scenePoint, Curve::Point curvePoint)
   else
   {
     mapTopItem(
-        scenePoint, itemUnderMouse(scenePoint),
+        scenePoint,
+        itemUnderMouse(scenePoint),
         [&](const PointView* point) {
           localSM().postEvent(new MoveOnPoint_Event(curvePoint, point));
         },
@@ -102,7 +106,8 @@ void SmartTool::on_released(QPointF scenePoint, Curve::Point curvePoint)
   }
 
   mapTopItem(
-      scenePoint, itemUnderMouse(scenePoint),
+      scenePoint,
+      itemUnderMouse(scenePoint),
       [&](const PointView* point) {
         select(point->model(), m_parentSM.model().selectedChildren());
         localSM().postEvent(new ReleaseOnPoint_Event(curvePoint, point));

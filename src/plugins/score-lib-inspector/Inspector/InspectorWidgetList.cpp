@@ -13,12 +13,11 @@ class QWidget;
 
 namespace Inspector
 {
-InspectorWidgetList::~InspectorWidgetList()
-{
-}
+InspectorWidgetList::~InspectorWidgetList() {}
 
 bool InspectorWidgetList::update(
-    QWidget* cur, const QList<const IdentifiedObjectAbstract*>& models) const
+    QWidget* cur,
+    const QList<const IdentifiedObjectAbstract*>& models) const
 {
   for (const InspectorWidgetFactory& factory : *this)
   {

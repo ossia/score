@@ -16,13 +16,15 @@ namespace Process
 {
 
 bool operator==(
-    const Process::ProcessStateData& lhs, const Process::ProcessStateData& rhs)
+    const Process::ProcessStateData& lhs,
+    const Process::ProcessStateData& rhs)
 {
   return lhs.process == rhs.process && lhs.value == rhs.value;
 }
 
 bool operator==(
-    const Process::StateNodeData& lhs, const Process::StateNodeData& rhs)
+    const Process::StateNodeData& lhs,
+    const Process::StateNodeData& rhs)
 {
   return lhs.name.name == rhs.name.name
          && lhs.name.qualifiers == rhs.name.qualifiers
@@ -209,7 +211,8 @@ State::MessageList getUserMessages(const MessageNode& n)
 }
 
 std::vector<Process::MessageNode*> try_getNodesFromAddress(
-    Process::MessageNode& root, const State::AddressAccessor& addr)
+    Process::MessageNode& root,
+    const State::AddressAccessor& addr)
 {
   std::vector<Process::MessageNode*> vec;
   if (addr.address.device.isEmpty())
@@ -263,7 +266,8 @@ std::vector<Process::MessageNode*> try_getNodesFromAddress(
 }
 
 Process::MessageNode* try_getNodeFromAddress(
-    Process::MessageNode& root, const State::AddressAccessor& addr)
+    Process::MessageNode& root,
+    const State::AddressAccessor& addr)
 {
   if (addr.address.device.isEmpty())
     return nullptr;

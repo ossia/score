@@ -14,6 +14,8 @@
 #include <score/widgets/SignalUtils.hpp>
 #include <score/widgets/TextLabel.hpp>
 
+#include <ossia/detail/hash_map.hpp>
+
 #include <QBoxLayout>
 #include <QComboBox>
 #include <QLabel>
@@ -22,14 +24,11 @@
 #include <QStringList>
 #include <QToolButton>
 
-#include <ossia/detail/hash_map.hpp>
-
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Scenario::SimpleExpressionEditorWidget)
 namespace Scenario
 {
-static const auto&
-ExpressionEditorComparators()
+static const auto& ExpressionEditorComparators()
 {
   static const std::vector<std::pair<ExpressionEditorComparator, QString>> map{
       {ExpressionEditorComparator::Equal, "="},
@@ -46,7 +45,10 @@ ExpressionEditorComparators()
 }
 
 SimpleExpressionEditorWidget::SimpleExpressionEditorWidget(
-    const score::DocumentContext& doc, int index, QWidget* parent, QMenu* menu)
+    const score::DocumentContext& doc,
+    int index,
+    QWidget* parent,
+    QMenu* menu)
     : QWidget(parent), id{index}
 {
   auto mainLay = new score::MarginLess<QHBoxLayout>{this};
@@ -114,13 +116,17 @@ SimpleExpressionEditorWidget::SimpleExpressionEditorWidget(
 
   /// EDIT FINSHED
   connect(
-      m_address, &Device::AddressAccessorEditWidget::addressChanged, this,
+      m_address,
+      &Device::AddressAccessorEditWidget::addressChanged,
+      this,
       [&]() { on_editFinished(); });
   connect(m_comparator, &QComboBox::currentTextChanged, this, [&] {
     on_editFinished();
   });
   connect(
-      m_value, &QLineEdit::editingFinished, this,
+      m_value,
+      &QLineEdit::editingFinished,
+      this,
       &SimpleExpressionEditorWidget::on_editFinished);
   connect(m_binOperator, &QComboBox::currentTextChanged, this, [&] {
     on_editFinished();
@@ -128,7 +134,9 @@ SimpleExpressionEditorWidget::SimpleExpressionEditorWidget(
 
   // enable value field
   connect(
-      m_comparator, SignalUtils::QComboBox_currentIndexChanged_int(), this,
+      m_comparator,
+      SignalUtils::QComboBox_currentIndexChanged_int(),
+      this,
       &SimpleExpressionEditorWidget::on_comparatorChanged);
 
   m_ok->setVisible(false);

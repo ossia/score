@@ -19,9 +19,8 @@ struct EnableWhenFocusedProcessIs;
       return score::ActionConditionKey{"FocusedProcessIs" #Type};             \
     }                                                                         \
                                                                               \
-    EnableWhenFocusedProcessIs() : score::FocusActionCondition{static_key()}  \
-    {                                                                         \
-    }                                                                         \
+    EnableWhenFocusedProcessIs()                                              \
+        : score::FocusActionCondition{static_key()} {}                        \
                                                                               \
   private:                                                                    \
     void action(score::ActionManager& mgr, score::MaybeDocument doc) override \

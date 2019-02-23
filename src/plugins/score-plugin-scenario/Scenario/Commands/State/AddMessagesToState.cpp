@@ -24,7 +24,8 @@ namespace Scenario
 namespace Command
 {
 AddMessagesToState::AddMessagesToState(
-    const Scenario::StateModel& state, const State::MessageList& messages)
+    const Scenario::StateModel& state,
+    const State::MessageList& messages)
     : m_path{state}
 {
   m_oldState = state.messages().rootNode();

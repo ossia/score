@@ -17,7 +17,8 @@ class PointInspectorWidget final : public Inspector::InspectorWidgetBase
 {
 public:
   explicit PointInspectorWidget(
-      const Curve::PointModel& model, const score::DocumentContext& context,
+      const Curve::PointModel& model,
+      const score::DocumentContext& context,
       QWidget* parent);
 
 private:

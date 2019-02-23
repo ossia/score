@@ -11,10 +11,12 @@ namespace Automation
 {
 QWidget* PointInspectorFactory::make(
     const InspectedObjects& sourceElements,
-    const score::DocumentContext& doc, QWidget* parent) const
+    const score::DocumentContext& doc,
+    QWidget* parent) const
 {
   return new PointInspectorWidget{
-      safe_cast<const Curve::PointModel&>(*sourceElements.first()), doc,
+      safe_cast<const Curve::PointModel&>(*sourceElements.first()),
+      doc,
       parent};
 }
 

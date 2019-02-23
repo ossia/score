@@ -83,10 +83,12 @@ SCORE_LIB_PROCESS_EXPORT State::Message message(const MessageNode& node);
 SCORE_LIB_PROCESS_EXPORT State::Message userMessage(const MessageNode& node);
 
 SCORE_LIB_PROCESS_EXPORT Process::MessageNode* try_getNodeFromAddress(
-    Process::MessageNode& root, const State::AddressAccessor& addr);
+    Process::MessageNode& root,
+    const State::AddressAccessor& addr);
 SCORE_LIB_PROCESS_EXPORT std::vector<Process::MessageNode*>
 try_getNodesFromAddress(
-    Process::MessageNode& root, const State::AddressAccessor& addr);
+    Process::MessageNode& root,
+    const State::AddressAccessor& addr);
 SCORE_LIB_PROCESS_EXPORT State::MessageList flatten(const MessageNode&);
 SCORE_LIB_PROCESS_EXPORT State::MessageList
 getUserMessages(const MessageNode&);

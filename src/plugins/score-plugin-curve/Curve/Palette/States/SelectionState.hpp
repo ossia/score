@@ -20,22 +20,18 @@ private:
 
 public:
   SelectionState(
-      score::SelectionStack& stack, const Curve::ToolPalette& parentSM,
-      View& view, QState* parent)
+      score::SelectionStack& stack,
+      const Curve::ToolPalette& parentSM,
+      View& view,
+      QState* parent)
       : CommonSelectionState{stack, &view, parent}
       , m_parentSM{parentSM}
       , m_view{view}
   {
   }
 
-  const QPointF& initialPoint() const
-  {
-    return m_initialPoint;
-  }
-  const QPointF& movePoint() const
-  {
-    return m_movePoint;
-  }
+  const QPointF& initialPoint() const { return m_initialPoint; }
+  const QPointF& movePoint() const { return m_movePoint; }
 
   void on_pressAreaSelection() override
   {

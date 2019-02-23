@@ -24,24 +24,20 @@ class SCORE_PLUGIN_CURVE_EXPORT PointView final : public QObject,
   Q_INTERFACES(QGraphicsItem)
 public:
   PointView(
-      const PointModel* model, const Curve::Style& style,
+      const PointModel* model,
+      const Curve::Style& style,
       QGraphicsItem* parent);
 
   const PointModel& model() const;
   const Id<PointModel>& id() const;
 
-  static constexpr int static_type()
-  {
-    return QGraphicsItem::UserType + 100;
-  }
-  int type() const override
-  {
-    return static_type();
-  }
+  static constexpr int static_type() { return QGraphicsItem::UserType + 100; }
+  int type() const override { return static_type(); }
 
   QRectF boundingRect() const override;
   void paint(
-      QPainter* painter, const QStyleOptionGraphicsItem* option,
+      QPainter* painter,
+      const QStyleOptionGraphicsItem* option,
       QWidget* widget) override;
 
   void setSelected(bool selected);

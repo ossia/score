@@ -33,14 +33,8 @@ class StringKey : OpaqueString
 public:
   using OpaqueString::OpaqueString;
 
-  auto& toString()
-  {
-    return impl;
-  }
-  auto& toString() const
-  {
-    return impl;
-  }
+  auto& toString() { return impl; }
+  auto& toString() const { return impl; }
 };
 
 namespace std

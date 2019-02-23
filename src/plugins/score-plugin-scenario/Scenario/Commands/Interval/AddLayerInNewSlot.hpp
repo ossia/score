@@ -27,18 +27,18 @@ class SCORE_PLUGIN_SCENARIO_EXPORT AddLayerInNewSlot final
     : public score::Command
 {
   SCORE_COMMAND_DECL(
-      ScenarioCommandFactoryName(), AddLayerInNewSlot, "Add a new layer")
+      ScenarioCommandFactoryName(),
+      AddLayerInNewSlot,
+      "Add a new layer")
 public:
   AddLayerInNewSlot(
-      Path<IntervalModel>&& intervalPath, Id<Process::ProcessModel> process);
+      Path<IntervalModel>&& intervalPath,
+      Id<Process::ProcessModel> process);
 
   void undo(const score::DocumentContext& ctx) const override;
   void redo(const score::DocumentContext& ctx) const override;
 
-  Id<Process::ProcessModel> processId() const
-  {
-    return m_processId;
-  }
+  Id<Process::ProcessModel> processId() const { return m_processId; }
 
 protected:
   void serializeImpl(DataStreamInput&) const override;

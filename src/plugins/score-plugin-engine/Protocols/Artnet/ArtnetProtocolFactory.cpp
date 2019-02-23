@@ -16,7 +16,8 @@ QString ArtnetProtocolFactory::prettyName() const
 }
 
 Device::DeviceInterface* ArtnetProtocolFactory::makeDevice(
-    const Device::DeviceSettings& settings, const score::DocumentContext& ctx)
+    const Device::DeviceSettings& settings,
+    const score::DocumentContext& ctx)
 {
   return new ArtnetDevice{settings};
 }
@@ -47,13 +48,15 @@ QVariant ArtnetProtocolFactory::makeProtocolSpecificSettings(
 }
 
 void ArtnetProtocolFactory::serializeProtocolSpecificSettings(
-    const QVariant& data, const VisitorVariant& visitor) const
+    const QVariant& data,
+    const VisitorVariant& visitor) const
 {
   serializeProtocolSpecificSettings_T<ArtnetSpecificSettings>(data, visitor);
 }
 
 bool ArtnetProtocolFactory::checkCompatibility(
-    const Device::DeviceSettings& a, const Device::DeviceSettings& b) const
+    const Device::DeviceSettings& a,
+    const Device::DeviceSettings& b) const
 {
   return false; //  TODO
 }

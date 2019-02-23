@@ -23,8 +23,11 @@ W_OBJECT_IMPL(InspectorPanel::InspectorPanelWidget)
 namespace InspectorPanel
 {
 InspectorPanelWidget::InspectorPanelWidget(
-    const Inspector::InspectorWidgetList& list, score::SelectionStack& s,
-    QVBoxLayout* lay, QWidget* parent, QObject* parentObj)
+    const Inspector::InspectorWidgetList& list,
+    score::SelectionStack& s,
+    QVBoxLayout* lay,
+    QWidget* parent,
+    QObject* parentObj)
     : QObject{parentObj}
     , m_parent{parent}
     , m_layout{lay}

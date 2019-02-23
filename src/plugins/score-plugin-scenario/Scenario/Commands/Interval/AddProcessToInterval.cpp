@@ -6,8 +6,11 @@ namespace Command
 {
 AddProcessToInterval::AddProcessToInterval(
     const Scenario::IntervalModel& interval,
-    const UuidKey<Process::ProcessModel>& process, const QString& dat)
-    : m_addProcessCommand{interval, getStrongId(interval.processes), process,
+    const UuidKey<Process::ProcessModel>& process,
+    const QString& dat)
+    : m_addProcessCommand{interval,
+                          getStrongId(interval.processes),
+                          process,
                           dat}
     , m_addedSlot{interval.smallView().empty()}
 {
@@ -75,12 +78,11 @@ void AddProcessToInterval::deserializeImpl(DataStreamOutput& s)
   m_addProcessCommand.deserialize(b);
 }
 
-AddProcessToInterval::~AddProcessToInterval()
-{
-}
+AddProcessToInterval::~AddProcessToInterval() {}
 
 LoadProcessInInterval::LoadProcessInInterval(
-    const Scenario::IntervalModel& interval, const QJsonObject& dat)
+    const Scenario::IntervalModel& interval,
+    const QJsonObject& dat)
     : m_addProcessCommand{interval, getStrongId(interval.processes), dat}
     , m_addedSlot{interval.smallView().empty()}
 {
@@ -144,12 +146,8 @@ void LoadProcessInInterval::deserializeImpl(DataStreamOutput& s)
   m_addProcessCommand.deserialize(b);
 }
 
-LoadProcessInInterval::~LoadProcessInInterval()
-{
-}
+LoadProcessInInterval::~LoadProcessInInterval() {}
 
-AddProcessInNewBoxMacro::~AddProcessInNewBoxMacro()
-{
-}
+AddProcessInNewBoxMacro::~AddProcessInNewBoxMacro() {}
 }
 }

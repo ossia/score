@@ -15,8 +15,11 @@
 namespace Automation
 {
 InitAutomation::InitAutomation(
-    const ProcessModel& path, const ::State::AddressAccessor& newaddr,
-    double newmin, double newmax, std::vector<Curve::SegmentData>&& segments)
+    const ProcessModel& path,
+    const ::State::AddressAccessor& newaddr,
+    double newmin,
+    double newmax,
+    std::vector<Curve::SegmentData>&& segments)
     : m_path{path}
     , m_addr(newaddr)
     , m_newMin{newmin}
@@ -26,8 +29,11 @@ InitAutomation::InitAutomation(
 }
 
 InitAutomation::InitAutomation(
-    const ProcessModel& path, State::AddressAccessor&& newaddr, double newmin,
-    double newmax, std::vector<Curve::SegmentData>&& segments)
+    const ProcessModel& path,
+    State::AddressAccessor&& newaddr,
+    double newmin,
+    double newmax,
+    std::vector<Curve::SegmentData>&& segments)
     : m_path{path}
     , m_addr(std::move(newaddr))
     , m_newMin{newmin}
@@ -37,14 +43,14 @@ InitAutomation::InitAutomation(
 }
 
 InitAutomation::InitAutomation(
-    const ProcessModel& path, const ::State::AddressAccessor& newaddr,
-    double newmin, double newmax)
+    const ProcessModel& path,
+    const ::State::AddressAccessor& newaddr,
+    double newmin,
+    double newmax)
     : InitAutomation(path, newaddr, newmin, newmax, {})
 {
 }
-void InitAutomation::undo(const score::DocumentContext& ctx) const
-{
-}
+void InitAutomation::undo(const score::DocumentContext& ctx) const {}
 
 void InitAutomation::redo(const score::DocumentContext& ctx) const
 {

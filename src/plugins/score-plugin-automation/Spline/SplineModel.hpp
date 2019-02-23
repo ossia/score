@@ -22,7 +22,8 @@ class SCORE_PLUGIN_AUTOMATION_EXPORT ProcessModel final
 
 public:
   ProcessModel(
-      const TimeVal& duration, const Id<Process::ProcessModel>& id,
+      const TimeVal& duration,
+      const Id<Process::ProcessModel>& id,
       QObject* parent);
   ~ProcessModel() override;
 
@@ -39,10 +40,7 @@ public:
   State::Unit unit() const;
   void setUnit(const State::Unit&);
 
-  bool tween() const
-  {
-    return m_tween;
-  }
+  bool tween() const { return m_tween; }
   void setTween(bool tween)
   {
     if (m_tween == tween)
@@ -54,10 +52,7 @@ public:
 
   QString prettyName() const noexcept override;
 
-  const ossia::nodes::spline_data& spline() const noexcept
-  {
-    return m_spline;
-  }
+  const ossia::nodes::spline_data& spline() const noexcept { return m_spline; }
   void setSpline(const ossia::nodes::spline_data& c)
   {
     if (m_spline != c)

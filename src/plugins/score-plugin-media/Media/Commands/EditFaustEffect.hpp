@@ -14,7 +14,9 @@ namespace Media
 class EditFaustEffect final : public score::Command
 {
   SCORE_COMMAND_DECL(
-      Media::CommandFactoryName(), EditFaustEffect, "Edit Faust effect")
+      Media::CommandFactoryName(),
+      EditFaustEffect,
+      "Edit Faust effect")
 public:
   EditFaustEffect(const Faust::FaustEffectModel& model, const QString& text);
 

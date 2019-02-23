@@ -22,18 +22,13 @@ class DocumentView final : public QObject
   W_OBJECT(DocumentView)
 public:
   DocumentView(
-      DocumentDelegateFactory& viewDelegate, const Document& doc,
+      DocumentDelegateFactory& viewDelegate,
+      const Document& doc,
       QObject* parent);
 
-  DocumentDelegateView& viewDelegate() const
-  {
-    return *m_view;
-  }
+  DocumentDelegateView& viewDelegate() const { return *m_view; }
 
-  const Document& document() const
-  {
-    return m_document;
-  }
+  const Document& document() const { return m_document; }
 
 private:
   const Document& m_document;

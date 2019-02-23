@@ -73,7 +73,8 @@ saveCables(QObjectList objs, const score::DocumentContext& ctx)
 }
 
 void removeCables(
-    const SerializedCables& cables, const score::DocumentContext& ctx)
+    const SerializedCables& cables,
+    const score::DocumentContext& ctx)
 {
   Scenario::ScenarioDocumentModel& doc
       = score::IDocument::get<Scenario::ScenarioDocumentModel>(ctx.document);
@@ -110,7 +111,8 @@ static bool startsWith(const ObjectPath& object, const ObjectPath& parent)
 }
 
 void restoreCables(
-    const SerializedCables& cables, const score::DocumentContext& ctx)
+    const SerializedCables& cables,
+    const score::DocumentContext& ctx)
 {
   Scenario::ScenarioDocumentModel& doc
       = score::IDocument::get<Scenario::ScenarioDocumentModel>(ctx.document);
@@ -134,10 +136,10 @@ void restoreCables(
 
 // TODO keep a single way of doing
 void loadCables(
-    const ObjectPath& old_path
-    , const ObjectPath& new_path
-    , Dataflow::SerializedCables& cables
-    , const score::DocumentContext& ctx)
+    const ObjectPath& old_path,
+    const ObjectPath& new_path,
+    Dataflow::SerializedCables& cables,
+    const score::DocumentContext& ctx)
 {
   for (auto& c : cables)
   {
@@ -152,9 +154,9 @@ void loadCables(
 }
 
 void loadRelativeCables(
-      const ObjectPath& new_path
-    , Dataflow::SerializedCables& cables
-    , const score::DocumentContext& ctx)
+    const ObjectPath& new_path,
+    Dataflow::SerializedCables& cables,
+    const score::DocumentContext& ctx)
 {
   Dataflow::restoreCables(cables, ctx);
 }

@@ -19,7 +19,6 @@ class ProtocolSettingsWidget;
 }
 struct VisitorVariant;
 
-
 namespace Protocols
 {
 QString OSCProtocolFactory::prettyName() const
@@ -28,7 +27,8 @@ QString OSCProtocolFactory::prettyName() const
 }
 
 Device::DeviceInterface* OSCProtocolFactory::makeDevice(
-    const Device::DeviceSettings& settings, const score::DocumentContext& ctx)
+    const Device::DeviceSettings& settings,
+    const score::DocumentContext& ctx)
 {
   return new OSCDevice{settings};
 }
@@ -58,13 +58,15 @@ QVariant OSCProtocolFactory::makeProtocolSpecificSettings(
 }
 
 void OSCProtocolFactory::serializeProtocolSpecificSettings(
-    const QVariant& data, const VisitorVariant& visitor) const
+    const QVariant& data,
+    const VisitorVariant& visitor) const
 {
   serializeProtocolSpecificSettings_T<OSCSpecificSettings>(data, visitor);
 }
 
 bool OSCProtocolFactory::checkCompatibility(
-    const Device::DeviceSettings& a, const Device::DeviceSettings& b) const
+    const Device::DeviceSettings& a,
+    const Device::DeviceSettings& b) const
 {
   auto a_p = a.deviceSpecificSettings.value<OSCSpecificSettings>();
   auto b_p = b.deviceSpecificSettings.value<OSCSpecificSettings>();

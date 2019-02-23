@@ -6,7 +6,8 @@
 #include <Scenario/Process/ScenarioModel.hpp>
 
 ScenarioInspectorWidget::ScenarioInspectorWidget(
-    const Scenario::ProcessModel& object, const score::DocumentContext& doc,
+    const Scenario::ProcessModel& object,
+    const score::DocumentContext& doc,
     QWidget* parent)
     : InspectorWidgetDelegate_T{object, parent}
 {

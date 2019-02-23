@@ -36,7 +36,8 @@ namespace Command
 {
 
 InsertContentInInterval::InsertContentInInterval(
-    QJsonObject&& sourceInterval, const IntervalModel& targetInterval,
+    QJsonObject&& sourceInterval,
+    const IntervalModel& targetInterval,
     ExpandMode mode)
     : m_source{std::move(sourceInterval)}
     , m_target{std::move(targetInterval)}
@@ -47,8 +48,10 @@ InsertContentInInterval::InsertContentInInterval(
   std::vector<Id<Process::ProcessModel>> curIds;
   m_processIds.reserve(target_processes.size());
   std::transform(
-      target_processes.begin(), target_processes.end(),
-      std::back_inserter(curIds), [](const auto& proc) { return proc.id(); });
+      target_processes.begin(),
+      target_processes.end(),
+      std::back_inserter(curIds),
+      [](const auto& proc) { return proc.id(); });
 
   auto processes = m_source["Processes"].toArray();
   for (int i = 0; i < processes.size(); i++)

@@ -12,10 +12,13 @@ namespace Step
 {
 
 Model::Model(
-    const TimeVal& duration, const Id<Process::ProcessModel>& id,
+    const TimeVal& duration,
+    const Id<Process::ProcessModel>& id,
     QObject* parent)
-    : Process::ProcessModel{duration, id,
-                            Metadata<ObjectKey_k, ProcessModel>::get(), parent}
+    : Process::ProcessModel{duration,
+                            id,
+                            Metadata<ObjectKey_k, ProcessModel>::get(),
+                            parent}
     , outlet{Process::make_outlet(Id<Process::Port>(0), this)}
 {
   outlet->type = Process::PortType::Message;
@@ -28,9 +31,7 @@ Model::Model(
   init();
 }
 
-Model::~Model()
-{
-}
+Model::~Model() {}
 
 quint64 Model::stepCount() const
 {

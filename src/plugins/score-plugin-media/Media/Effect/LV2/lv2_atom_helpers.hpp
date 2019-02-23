@@ -55,7 +55,10 @@ struct LV2_Atom_Buffer
   uint32_t capacity;
   LV2_Atom_Sequence atoms;
   LV2_Atom_Buffer(
-      uint32_t capacity, uint32_t ct, uint32_t seq_type, bool input)
+      uint32_t capacity,
+      uint32_t ct,
+      uint32_t seq_type,
+      bool input)
       : capacity{capacity}
   {
     chunk_type = ct;
@@ -89,28 +92,20 @@ struct LV2_Atom_Buffer
   }
 
   // Return the actual LV2 atom:Sequence implementation.
-  LV2_Atom_Sequence* get_sequence(LV2_Atom_Buffer* buf)
-  {
-    return &buf->atoms;
-  }
+  LV2_Atom_Sequence* get_sequence(LV2_Atom_Buffer* buf) { return &buf->atoms; }
 };
 
 // An iterator over an atom:Sequence buffer.
 //
 struct Iterator
 {
-  Iterator(LV2_Atom_Buffer* b) : buf{b}
-  {
-  }
+  Iterator(LV2_Atom_Buffer* b) : buf{b} {}
 
   LV2_Atom_Buffer* buf{};
   uint32_t offset{};
 
   // Pad a size to 64 bits (for LV2 atom:Sequence event sizes).
-  static uint32_t pad_size(uint32_t size)
-  {
-    return (size + 7) & (~7);
-  }
+  static uint32_t pad_size(uint32_t size) { return (size + 7) & (~7); }
 
   // Reset an iterator to point to the start of an LV2 atom:Sequence buffer.
   //
@@ -134,10 +129,7 @@ struct Iterator
 
   // Check if a LV2 atom:Sequenece buffer iterator is valid.
   //
-  bool is_valid()
-  {
-    return offset < buf->get_size();
-  }
+  bool is_valid() { return offset < buf->get_size(); }
 
   // Advance a LV2 atom:Sequenece buffer iterator forward one event.
   //
@@ -173,7 +165,10 @@ struct Iterator
 
   // Write an event at a LV2 atom:Sequence buffer iterator.
   bool write(
-      uint32_t frames, uint32_t /*subframes*/, uint32_t type, uint32_t size,
+      uint32_t frames,
+      uint32_t /*subframes*/,
+      uint32_t type,
+      uint32_t size,
       const uint8_t* data)
   {
     LV2_Atom_Sequence* atoms = &buf->atoms;
@@ -202,7 +197,10 @@ struct AtomBuffer
 {
   LV2_Atom_Buffer* buf{};
   AtomBuffer(
-      uint32_t capacity, uint32_t chunk_type, uint32_t seq_type, bool input)
+      uint32_t capacity,
+      uint32_t chunk_type,
+      uint32_t seq_type,
+      bool input)
   {
     // Note : isn't the second sizeof redundant ?
     buf = (LV2_Atom_Buffer*)::operator new(
@@ -215,10 +213,7 @@ struct AtomBuffer
   AtomBuffer(AtomBuffer&&) = default;
   AtomBuffer& operator=(const AtomBuffer&) = default;
   AtomBuffer& operator=(AtomBuffer&&) = default;
-  ~AtomBuffer()
-  {
-    ::operator delete(buf);
-  }
+  ~AtomBuffer() { ::operator delete(buf); }
 };
 
 #endif // LV2_ATOM_HELPERS_H

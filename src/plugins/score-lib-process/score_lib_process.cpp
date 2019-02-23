@@ -1,12 +1,12 @@
 #include <Process/Dataflow/PortFactory.hpp>
 #include <Process/DocumentPlugin.hpp>
+#include <Process/Drop/ProcessDropHandler.hpp>
 #include <Process/LayerPresenter.hpp>
 #include <Process/ProcessFactory.hpp>
 #include <Process/ProcessList.hpp>
-#include <Process/Drop/ProcessDropHandler.hpp>
 
-#include <score/plugins/application/GUIApplicationPlugin.hpp>
 #include <score/plugins/FactorySetup.hpp>
+#include <score/plugins/application/GUIApplicationPlugin.hpp>
 #include <score/plugins/documentdelegate/plugin/DocumentPluginCreator.hpp>
 
 #include <score_lib_process.hpp>
@@ -19,9 +19,12 @@ std::vector<std::unique_ptr<score::InterfaceListBase>>
 score_lib_process::factoryFamilies()
 {
   return make_ptr_vector<
-      score::InterfaceListBase, Process::ProcessFactoryList,
-      Process::PortFactoryList, Process::LayerFactoryList,
-      Process::ProcessFactoryList, Process::ProcessDropHandlerList>();
+      score::InterfaceListBase,
+      Process::ProcessFactoryList,
+      Process::PortFactoryList,
+      Process::LayerFactoryList,
+      Process::ProcessFactoryList,
+      Process::ProcessDropHandlerList>();
 }
 
 std::pair<const CommandGroupKey, CommandGeneratorMap>

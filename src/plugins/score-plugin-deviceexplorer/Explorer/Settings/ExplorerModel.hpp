@@ -29,9 +29,13 @@ public:
   Model(QSettings& set, const score::ApplicationContext& ctx);
 
   SCORE_SETTINGS_PARAMETER_HPP(
-      SCORE_PLUGIN_DEVICEEXPLORER_EXPORT, bool, LocalTree)
+      SCORE_PLUGIN_DEVICEEXPLORER_EXPORT,
+      bool,
+      LocalTree)
   SCORE_SETTINGS_PARAMETER_HPP(
-      SCORE_PLUGIN_DEVICEEXPLORER_EXPORT, QString, LogLevel)
+      SCORE_PLUGIN_DEVICEEXPLORER_EXPORT,
+      QString,
+      LogLevel)
 };
 
 SCORE_SETTINGS_PARAMETER(Model, LogLevel)
@@ -44,7 +48,9 @@ class Model;
 }
 
 UUID_METADATA(
-    , score::DocumentPluginFactory, Explorer::ProjectSettings::Model,
+    ,
+    score::DocumentPluginFactory,
+    Explorer::ProjectSettings::Model,
     "1f923578-08c3-49be-9ba9-69c144ee2e32")
 
 namespace Explorer::ProjectSettings
@@ -72,11 +78,17 @@ public:
   }
 
   SCORE_SETTINGS_PARAMETER_HPP(
-      SCORE_PLUGIN_DEVICEEXPLORER_EXPORT, qreal, MidiImportRatio)
+      SCORE_PLUGIN_DEVICEEXPLORER_EXPORT,
+      qreal,
+      MidiImportRatio)
   SCORE_SETTINGS_PARAMETER_HPP(
-      SCORE_PLUGIN_DEVICEEXPLORER_EXPORT, bool, RefreshOnStart)
+      SCORE_PLUGIN_DEVICEEXPLORER_EXPORT,
+      bool,
+      RefreshOnStart)
   SCORE_SETTINGS_PARAMETER_HPP(
-      SCORE_PLUGIN_DEVICEEXPLORER_EXPORT, bool, ReconnectOnStart)
+      SCORE_PLUGIN_DEVICEEXPLORER_EXPORT,
+      bool,
+      ReconnectOnStart)
 };
 
 SCORE_SETTINGS_PARAMETER(Model, MidiImportRatio)

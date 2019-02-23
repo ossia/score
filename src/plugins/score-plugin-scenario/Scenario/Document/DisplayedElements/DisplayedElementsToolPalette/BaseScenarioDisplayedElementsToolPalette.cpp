@@ -16,10 +16,10 @@
 
 #include <score/application/ApplicationContext.hpp>
 #include <score/document/DocumentInterface.hpp>
+#include <score/graphics/GraphicsProxyObject.hpp>
 #include <score/model/Identifier.hpp>
 #include <score/statemachine/GraphicsSceneToolPalette.hpp>
 #include <score/tools/std/Optional.hpp>
-#include <score/graphics/GraphicsProxyObject.hpp>
 
 #include <algorithm>
 
@@ -77,36 +77,35 @@ BaseScenarioDisplayedElementsToolPalette::editionSettings() const
       .editionSettings(); // OPTIMIZEME
 }
 
-void BaseScenarioDisplayedElementsToolPalette::activate(Scenario::Tool)
-{
-}
+void BaseScenarioDisplayedElementsToolPalette::activate(Scenario::Tool) {}
 
-void BaseScenarioDisplayedElementsToolPalette::desactivate(Scenario::Tool)
-{
-}
+void BaseScenarioDisplayedElementsToolPalette::desactivate(Scenario::Tool) {}
 
 void BaseScenarioDisplayedElementsToolPalette::on_pressed(QPointF point)
 {
   scenePoint = point;
   m_state.on_pressed(
-      point, ScenePointToScenarioPoint(
-                 m_presenter.view().baseItem().mapFromScene(point)));
+      point,
+      ScenePointToScenarioPoint(
+          m_presenter.view().baseItem().mapFromScene(point)));
 }
 
 void BaseScenarioDisplayedElementsToolPalette::on_moved(QPointF point)
 {
   scenePoint = point;
   m_state.on_moved(
-      point, ScenePointToScenarioPoint(
-                 m_presenter.view().baseItem().mapFromScene(point)));
+      point,
+      ScenePointToScenarioPoint(
+          m_presenter.view().baseItem().mapFromScene(point)));
 }
 
 void BaseScenarioDisplayedElementsToolPalette::on_released(QPointF point)
 {
   scenePoint = point;
   m_state.on_released(
-      point, ScenePointToScenarioPoint(
-                 m_presenter.view().baseItem().mapFromScene(point)));
+      point,
+      ScenePointToScenarioPoint(
+          m_presenter.view().baseItem().mapFromScene(point)));
 }
 
 void BaseScenarioDisplayedElementsToolPalette::on_cancel()

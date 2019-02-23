@@ -12,17 +12,11 @@
 W_OBJECT_IMPL(Loop::LayerView)
 namespace Loop
 {
-LayerView::LayerView(QGraphicsItem* parent) : Process::LayerView{parent}
-{
-}
+LayerView::LayerView(QGraphicsItem* parent) : Process::LayerView{parent} {}
 
-LayerView::~LayerView()
-{
-}
+LayerView::~LayerView() {}
 
-void LayerView::setSelectionArea(QRectF)
-{
-}
+void LayerView::setSelectionArea(QRectF) {}
 
 void LayerView::paint_impl(QPainter* p) const
 {

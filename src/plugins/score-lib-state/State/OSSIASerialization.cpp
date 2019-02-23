@@ -7,7 +7,8 @@
 
 #include <ossia/network/dataspace/dataspace_visitors.hpp>
 void TSerializer<DataStream, ossia::unit_t>::readFrom(
-    DataStream::Serializer& s, const ossia::unit_t& var)
+    DataStream::Serializer& s,
+    const ossia::unit_t& var)
 {
   s.stream() << (quint64)var.which();
 
@@ -21,7 +22,8 @@ void TSerializer<DataStream, ossia::unit_t>::readFrom(
 }
 
 void TSerializer<DataStream, ossia::unit_t>::writeTo(
-    DataStream::Deserializer& s, ossia::unit_t& var)
+    DataStream::Deserializer& s,
+    ossia::unit_t& var)
 {
   quint64 ds_which;
   s.stream() >> ds_which;

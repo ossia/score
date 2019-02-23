@@ -17,10 +17,10 @@
 #include <Scenario/Process/ScenarioModel.hpp>
 
 #include <score/application/ApplicationContext.hpp>
+#include <score/graphics/GraphicsProxyObject.hpp>
 #include <score/model/Identifier.hpp>
 #include <score/statemachine/GraphicsSceneToolPalette.hpp>
 #include <score/tools/std/Optional.hpp>
-#include <score/graphics/GraphicsProxyObject.hpp>
 
 #include <algorithm>
 
@@ -37,7 +37,8 @@ ScenarioDisplayedElementsToolPalette::ScenePointToScenarioPoint(QPointF point)
 }
 
 ScenarioDisplayedElementsToolPalette::ScenarioDisplayedElementsToolPalette(
-    const DisplayedElementsModel& model, ScenarioDocumentPresenter& pres,
+    const DisplayedElementsModel& model,
+    ScenarioDocumentPresenter& pres,
     QGraphicsItem* view)
     : GraphicsSceneToolPalette{*view->scene()}
     , m_model{model}
@@ -82,13 +83,9 @@ ScenarioDisplayedElementsToolPalette::editionSettings() const
   return m_editionSettings;
 }
 
-void ScenarioDisplayedElementsToolPalette::activate(Scenario::Tool)
-{
-}
+void ScenarioDisplayedElementsToolPalette::activate(Scenario::Tool) {}
 
-void ScenarioDisplayedElementsToolPalette::desactivate(Scenario::Tool)
-{
-}
+void ScenarioDisplayedElementsToolPalette::desactivate(Scenario::Tool) {}
 
 void ScenarioDisplayedElementsToolPalette::on_pressed(QPointF point)
 {

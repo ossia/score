@@ -12,22 +12,30 @@ namespace LocalTree
 {
 
 State::State(
-    ossia::net::node_base& parent, const Id<score::Component>& id,
-    Scenario::StateModel& state, DocumentPlugin& doc, QObject* parent_comp)
-    : CommonComponent{parent, state.metadata(), doc,
-                      id,     "StateComponent", parent_comp}
+    ossia::net::node_base& parent,
+    const Id<score::Component>& id,
+    Scenario::StateModel& state,
+    DocumentPlugin& doc,
+    QObject* parent_comp)
+    : CommonComponent{parent,
+                      state.metadata(),
+                      doc,
+                      id,
+                      "StateComponent",
+                      parent_comp}
 {
-  m_properties.push_back(
-      add_setProperty<::State::impulse>(node(), "trigger", [&doc,s=QPointer<Scenario::StateModel>(&state)](auto) {
-        if(s)
+  m_properties.push_back(add_setProperty<::State::impulse>(
+      node(),
+      "trigger",
+      [&doc, s = QPointer<Scenario::StateModel>(&state)](auto) {
+        if (s)
         {
           auto plug = doc.context()
                           .app.findGuiApplicationPlugin<
                               Scenario::ScenarioApplicationPlugin>();
           if (plug)
           {
-            plug->execution().playState(
-                Scenario::parentScenario(*s), s->id());
+            plug->execution().playState(Scenario::parentScenario(*s), s->id());
           }
         }
       }));

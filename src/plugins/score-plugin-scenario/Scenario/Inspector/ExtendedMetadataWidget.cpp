@@ -20,17 +20,21 @@ namespace Scenario
 {
 
 ExtendedMetadataWidget::ExtendedMetadataWidget(
-    const QVariantMap& map, QWidget* parent)
+    const QVariantMap& map,
+    QWidget* parent)
     : QWidget{parent}
 {
   m_layout = new score::MarginLess<QFormLayout>(this);
 
   m_addButton = new QPushButton{tr("Add metadata")};
   connect(
-      m_addButton, &QPushButton::clicked, this,
+      m_addButton,
+      &QPushButton::clicked,
+      this,
       [=]() {
         QString txt = QInputDialog::getText(
-            this, tr("Property name?"),
+            this,
+            tr("Property name?"),
             tr("Enter a name for the new property:"));
         if (!txt.isEmpty())
         {
@@ -78,13 +82,19 @@ ExtendedMetadataWidget::makeRow(const QString& l, const QString& r, int row)
   left->setContextMenuPolicy(Qt::ActionsContextMenu);
   auto remove_act = new QAction{tr("Remove"), left};
   connect(
-      remove_act, &QAction::triggered, this, [=] { on_rowRemoved(row); },
+      remove_act,
+      &QAction::triggered,
+      this,
+      [=] { on_rowRemoved(row); },
       Qt::QueuedConnection);
   left->addAction(remove_act);
 
   auto right = new QLineEdit{r};
   connect(
-      right, &QLineEdit::editingFinished, this, [=] { on_rowChanged(row); },
+      right,
+      &QLineEdit::editingFinished,
+      this,
+      [=] { on_rowChanged(row); },
       Qt::QueuedConnection);
 
   return std::make_pair(left, right);

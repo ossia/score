@@ -6,12 +6,12 @@
 #include <Curve/CurveModel.hpp>
 #include <Curve/CurvePresenter.hpp>
 #include <Curve/CurveView.hpp>
-#include <Curve/Process/CurveProcessModel.hpp>
 #include <Curve/Palette/CommandObjects/CurveCommandObjectBase.hpp>
 #include <Curve/Palette/CurveEditionSettings.hpp>
 #include <Curve/Palette/CurvePaletteBaseStates.hpp>
 #include <Curve/Palette/CurvePoint.hpp>
 #include <Curve/Point/CurvePointModel.hpp>
+#include <Curve/Process/CurveProcessModel.hpp>
 
 #include <score/command/Dispatchers/SingleOngoingCommandDispatcher.hpp>
 #include <score/model/Identifier.hpp>
@@ -48,18 +48,18 @@ struct CurveSegmentMap
 };
 class SegmentModel;
 MovePointCommandObject::MovePointCommandObject(
-    Presenter* presenter, const score::CommandStackFacade& stack)
+    Presenter* presenter,
+    const score::CommandStackFacade& stack)
     : CommandObjectBase{presenter, stack}
 {
 }
 
-MovePointCommandObject::~MovePointCommandObject()
-{
-}
+MovePointCommandObject::~MovePointCommandObject() {}
 
 static QString getPrettyText(QPointF pt, Curve::Presenter& p) noexcept
 {
-  return static_cast<Curve::CurveProcessModel*>(p.model().parent())->prettyValue(pt.x(), pt.y());
+  return static_cast<Curve::CurveProcessModel*>(p.model().parent())
+      ->prettyValue(pt.x(), pt.y());
 }
 void MovePointCommandObject::on_press()
 {
@@ -67,7 +67,8 @@ void MovePointCommandObject::on_press()
   // Firts we take the exact position of the point we clicked.
   auto clickedCurvePoint_it = std::find_if(
       m_presenter->model().points().begin(),
-      m_presenter->model().points().end(), [&](PointModel* pt) {
+      m_presenter->model().points().end(),
+      [&](PointModel* pt) {
         return pt->previous() == m_state->clickedPointId.previous
                && pt->following() == m_state->clickedPointId.following;
       });
@@ -98,7 +99,8 @@ void MovePointCommandObject::on_press()
     }
   }
 
-  m_presenter->view().setValueTooltip(m_originalPress, getPrettyText(m_originalPress, *m_presenter));
+  m_presenter->view().setValueTooltip(
+      m_originalPress, getPrettyText(m_originalPress, *m_presenter));
 }
 
 void MovePointCommandObject::move()
@@ -124,7 +126,9 @@ void MovePointCommandObject::move()
 
   // Rewirte and make a command
   submit(std::vector<SegmentData>(segments.begin(), segments.end()));
-  m_presenter->view().setValueTooltip(m_state->currentPoint, getPrettyText(m_state->currentPoint, *m_presenter));
+  m_presenter->view().setValueTooltip(
+      m_state->currentPoint,
+      getPrettyText(m_state->currentPoint, *m_presenter));
 }
 
 void MovePointCommandObject::release()
@@ -303,7 +307,8 @@ void MovePointCommandObject::handleCrossOnOverlap(CurveSegmentMap& segments)
   {
     // Get the segment we're in, if there's any
     auto middleSegmentIt = std::find_if(
-        segments_by_id.begin(), segments_by_id.end(),
+        segments_by_id.begin(),
+        segments_by_id.end(),
         [&](const SegmentData& segment) { // Going to the right
           return segment.start.x() > m_originalPress.x()
                  && segment.start.x() < current_x
@@ -473,7 +478,8 @@ void MovePointCommandObject::handleCrossOnOverlap(CurveSegmentMap& segments)
   {
     // Get the segment we're in, if there's any
     auto middleSegmentIt = std::find_if(
-        segments_by_id.begin(), segments_by_id.end(),
+        segments_by_id.begin(),
+        segments_by_id.end(),
         [&](const auto& segment) { // Going to the left
           return segment.end.x() < m_originalPress.x()
                  && segment.start.x() < current_x

@@ -2,11 +2,14 @@
 #include <State/Value.hpp>
 #include <State/ValueConversion.hpp>
 
+#include <score/tools/std/Invoke.hpp>
+
+#include <ossia/network/base/node.hpp>
+
+#include <QTimer>
+
 #include <LocalTree/BaseCallbackWrapper.hpp>
 #include <LocalTree/TypeConversion.hpp>
-#include <score/tools/std/Invoke.hpp>
-#include <ossia/network/base/node.hpp>
-#include <QTimer>
 namespace LocalTree
 {
 template <typename T>
@@ -22,11 +25,15 @@ struct PropertyWrapper final : public BaseCallbackWrapper
   using converter_t
       = ossia::qt_property_converter<typename Property::param_type>;
   PropertyWrapper(
-      ossia::net::parameter_base& param_addr, model_t& obj, QObject* context)
+      ossia::net::parameter_base& param_addr,
+      model_t& obj,
+      QObject* context)
       : BaseCallbackWrapper{param_addr}, m_model{obj}
   {
     QObject::connect(
-        &m_model, Property::notify(), context,
+        &m_model,
+        Property::notify(),
+        context,
         [=] {
           auto newVal = converter_t::convert((m_model.*Property::get())());
           try
@@ -45,11 +52,13 @@ struct PropertyWrapper final : public BaseCallbackWrapper
         Qt::QueuedConnection);
 
     addr.set_value(converter_t::convert((m_model.*Property::get())()));
-    callbackIt = addr.add_callback([=,m=QPointer<model_t>{&m_model}](const ossia::value& v) {
-        score::invoke([m, v] {
-          if(m) ((*m).*Property::set())(::State::convert::value<param_t>(v));
-      });
-    });
+    callbackIt = addr.add_callback(
+        [=, m = QPointer<model_t>{&m_model}](const ossia::value& v) {
+          score::invoke([m, v] {
+            if (m)
+              ((*m).*Property::set())(::State::convert::value<param_t>(v));
+          });
+        });
   }
 };
 
@@ -69,7 +78,11 @@ auto add_property(ossia::net::node_base& n, Object& obj, QObject* context)
 }
 
 template <typename Property, typename Object>
-auto add_property(ossia::net::node_base& n, Object& obj, const std::string& name, QObject* context)
+auto add_property(
+    ossia::net::node_base& n,
+    Object& obj,
+    const std::string& name,
+    QObject* context)
 {
   constexpr const auto t
       = ossia::qt_property_converter<typename Property::param_type>::val;

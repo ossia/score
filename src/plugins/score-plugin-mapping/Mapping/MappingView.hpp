@@ -19,10 +19,7 @@ class LayerView final : public Process::LayerView
 public:
   explicit LayerView(QGraphicsItem* parent);
   QPixmap pixmap() noexcept override;
-  void setCurveView(Curve::View* view)
-  {
-    m_curveView = view;
-  }
+  void setCurveView(Curve::View* view) { m_curveView = view; }
 
 private:
   void paint_impl(QPainter* painter) const override;

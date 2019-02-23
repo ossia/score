@@ -30,7 +30,8 @@ public:
   TriggerInspectorWidget(
       const score::DocumentContext&,
       const Command::TriggerCommandFactoryList& fact,
-      const TimeSyncModel& object, Inspector::InspectorWidgetBase* parent);
+      const TimeSyncModel& object,
+      Inspector::InspectorWidgetBase* parent);
 
   void on_triggerChanged();
 

@@ -39,7 +39,8 @@ void updateEventExtent(const Id<EventModel>& id, Scenario::ProcessModel& s)
 }
 
 void updateTimeSyncExtent(
-    const Id<TimeSyncModel>& id, Scenario::ProcessModel& s)
+    const Id<TimeSyncModel>& id,
+    Scenario::ProcessModel& s)
 {
   auto& tn = s.timeSyncs.at(id);
   double min = std::numeric_limits<double>::max();
@@ -57,7 +58,9 @@ void updateTimeSyncExtent(
 }
 
 void updateIntervalVerticalPos(
-    double y, const Id<IntervalModel>& id, Scenario::ProcessModel& s)
+    double y,
+    const Id<IntervalModel>& id,
+    Scenario::ProcessModel& s)
 {
   auto& cst = s.intervals.at(id);
 

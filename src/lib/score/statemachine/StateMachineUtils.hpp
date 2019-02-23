@@ -18,9 +18,7 @@ template <int N>
 struct NumberedEvent : public QEvent
 {
   static constexpr const int user_type = N;
-  NumberedEvent() : QEvent{QEvent::Type(QEvent::User + N)}
-  {
-  }
+  NumberedEvent() : QEvent{QEvent::Type(QEvent::User + N)} {}
 };
 
 template <typename Element, int N>
@@ -65,30 +63,25 @@ protected:
     return e->type() == QEvent::Type(QEvent::User + Event::user_type);
   }
 
-  void onTransition(QEvent* event) override
-  {
-  }
+  void onTransition(QEvent* event) override {}
 };
 
 template <typename State, typename T>
 class StateAwareTransition : public T
 {
 public:
-  explicit StateAwareTransition(State& state) : m_state{state}
-  {
-  }
+  explicit StateAwareTransition(State& state) : m_state{state} {}
 
-  State& state() const
-  {
-    return m_state;
-  }
+  State& state() const { return m_state; }
 
 private:
   State& m_state;
 };
 
 template <
-    typename Transition, typename SourceState, typename TargetState,
+    typename Transition,
+    typename SourceState,
+    typename TargetState,
     typename... Args>
 Transition*
 make_transition(SourceState source, TargetState dest, Args&&... args)

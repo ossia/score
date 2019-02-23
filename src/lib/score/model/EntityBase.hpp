@@ -43,22 +43,10 @@ public:
     TSerializer<vis_type, Entity<T>>::writeTo(vis, *this);
   }
 
-  const score::Components& components() const noexcept
-  {
-    return m_components;
-  }
-  score::Components& components() noexcept
-  {
-    return m_components;
-  }
-  const score::ModelMetadata& metadata() const noexcept
-  {
-    return m_metadata;
-  }
-  score::ModelMetadata& metadata() noexcept
-  {
-    return m_metadata;
-  }
+  const score::Components& components() const noexcept { return m_components; }
+  score::Components& components() noexcept { return m_components; }
+  const score::ModelMetadata& metadata() const noexcept { return m_metadata; }
+  score::ModelMetadata& metadata() noexcept { return m_metadata; }
 
 private:
   score::Components m_components;

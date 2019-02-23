@@ -9,10 +9,13 @@ W_OBJECT_IMPL(Midi::ProcessModel)
 namespace Midi
 {
 ProcessModel::ProcessModel(
-    const TimeVal& duration, const Id<Process::ProcessModel>& id,
+    const TimeVal& duration,
+    const Id<Process::ProcessModel>& id,
     QObject* parent)
-    : Process::ProcessModel{duration, id,
-                            Metadata<ObjectKey_k, ProcessModel>::get(), parent}
+    : Process::ProcessModel{duration,
+                            id,
+                            Metadata<ObjectKey_k, ProcessModel>::get(),
+                            parent}
     , outlet{Process::make_outlet(Id<Process::Port>(0), this)}
 {
   m_range = {60, 71};
@@ -22,9 +25,7 @@ ProcessModel::ProcessModel(
   init();
 }
 
-ProcessModel::~ProcessModel()
-{
-}
+ProcessModel::~ProcessModel() {}
 
 void ProcessModel::setChannel(int n)
 {

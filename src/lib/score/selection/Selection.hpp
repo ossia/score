@@ -118,7 +118,8 @@ Selection filterSelections(T* pressedModel, Selection sel, bool cumulation)
  * with ctrl pressed.
  */
 inline Selection filterSelections(
-    Selection& newSelection, const Selection& currentSelection,
+    Selection& newSelection,
+    const Selection& currentSelection,
     bool cumulation)
 {
   if (cumulation)

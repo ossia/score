@@ -102,10 +102,7 @@ struct GlobalContext
 public:
   GlobalContext(int buffer_size, LV2::HostContext& host);
   void loadPlugins();
-  LV2_Feature const* const* features() const
-  {
-    return lv2_features.data();
-  }
+  LV2_Feature const* const* features() const { return lv2_features.data(); }
 
   using urid_map_t = boost::bimap<std::string, LV2_URID>;
   LV2::HostContext& host;
@@ -163,9 +160,7 @@ struct LV2Data
 {
   LV2Data(LV2::HostContext& h, LV2::EffectContext& ctx);
 
-  ~LV2Data()
-  {
-  }
+  ~LV2Data() {}
 
   LV2::HostContext& host;
   LV2::EffectContext& effect;

@@ -19,7 +19,9 @@
 namespace Curve
 {
 MovePoint::MovePoint(
-    const Model& curve, const Id<PointModel>& pointId, Curve::Point newPoint)
+    const Model& curve,
+    const Id<PointModel>& pointId,
+    Curve::Point newPoint)
     : m_model{curve}, m_pointId{pointId}, m_newPoint{newPoint}
 {
   for (auto& p : curve.points())
@@ -69,7 +71,8 @@ void MovePoint::redo(const score::DocumentContext& ctx) const
 }
 
 void MovePoint::update(
-    const Model& obj, const Id<PointModel>& pointId,
+    const Model& obj,
+    const Id<PointModel>& pointId,
     const Curve::Point& newPoint)
 {
   m_newPoint = newPoint;

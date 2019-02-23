@@ -53,17 +53,12 @@ public:
   Settings& operator=(Settings&&) = delete;
 
   void setupSettingsPlugin(
-      QSettings& s, const score::ApplicationContext& ctx,
+      QSettings& s,
+      const score::ApplicationContext& ctx,
       SettingsDelegateFactory& plugin);
-  SettingsView<SettingsDelegateModel>& view() const
-  {
-    return *m_settingsView;
-  }
+  SettingsView<SettingsDelegateModel>& view() const { return *m_settingsView; }
 
-  auto& settings() const
-  {
-    return m_settings;
-  }
+  auto& settings() const { return m_settings; }
 
 private:
   SettingsView<SettingsDelegateModel>* m_settingsView{};
@@ -85,15 +80,9 @@ public:
   ProjectSettings& operator=(const ProjectSettings&) = delete;
   ProjectSettings& operator=(ProjectSettings&&) = delete;
 
-  SettingsView<ProjectSettingsModel>& view() const
-  {
-    return *m_settingsView;
-  }
+  SettingsView<ProjectSettingsModel>& view() const { return *m_settingsView; }
 
-  auto& settings() const
-  {
-    return m_settings;
-  }
+  auto& settings() const { return m_settings; }
 
   void setup(const score::DocumentContext& ctx);
 

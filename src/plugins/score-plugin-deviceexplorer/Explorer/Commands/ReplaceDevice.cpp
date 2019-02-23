@@ -9,8 +9,8 @@
 
 #include <score/model/path/Path.hpp>
 #include <score/model/path/PathSerialization.hpp>
-#include <score/model/tree/TreeNodeSerialization.hpp>
 #include <score/model/tree/TreeNode.hpp>
+#include <score/model/tree/TreeNodeSerialization.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
 
 #include <QAbstractItemModel>
@@ -27,7 +27,8 @@ namespace Command
 // by
 // a LoadDevice() ?
 ReplaceDevice::ReplaceDevice(
-    const DeviceDocumentPlugin& device_tree, int deviceIndex,
+    const DeviceDocumentPlugin& device_tree,
+    int deviceIndex,
     Device::Node&& rootNode)
     : m_deviceIndex(deviceIndex), m_deviceNode{std::move(rootNode)}
 {
@@ -37,17 +38,18 @@ ReplaceDevice::ReplaceDevice(
 }
 
 ReplaceDevice::ReplaceDevice(
-    const DeviceDocumentPlugin& device_tree, int deviceIndex,
-    Device::Node&& oldRootNode, Device::Node&& newRootNode)
+    const DeviceDocumentPlugin& device_tree,
+    int deviceIndex,
+    Device::Node&& oldRootNode,
+    Device::Node&& newRootNode)
     : m_deviceIndex(deviceIndex)
     , m_deviceNode{std::move(newRootNode)}
     , m_savedNode{std::move(oldRootNode)}
 {
 }
 
-static void replaceDevice(
-      const Device::Node& new_d
-    , const score::DocumentContext& ctx)
+static void
+replaceDevice(const Device::Node& new_d, const score::DocumentContext& ctx)
 {
   auto& explorer = ctx.plugin<DeviceDocumentPlugin>().explorer();
 
@@ -63,7 +65,6 @@ static void replaceDevice(
   }
 
   explorer.addDevice(new_d);
-
 }
 void ReplaceDevice::undo(const score::DocumentContext& ctx) const
 {

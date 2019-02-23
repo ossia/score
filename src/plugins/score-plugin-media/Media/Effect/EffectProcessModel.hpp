@@ -23,42 +23,18 @@ class EntityList
 public:
   // The real interface starts here
   using value_type = T;
-  auto begin() const
-  {
-    return score::make_indirect_iterator(m_list.begin());
-  }
+  auto begin() const { return score::make_indirect_iterator(m_list.begin()); }
   auto cbegin() const
   {
     return score::make_indirect_iterator(m_list.cbegin());
   }
-  auto end() const
-  {
-    return score::make_indirect_iterator(m_list.end());
-  }
-  auto cend() const
-  {
-    return score::make_indirect_iterator(m_list.cend());
-  }
-  auto size() const
-  {
-    return m_list.size();
-  }
-  bool empty() const
-  {
-    return m_list.empty();
-  }
-  auto& unsafe_list()
-  {
-    return m_list;
-  }
-  const auto& list() const
-  {
-    return m_list;
-  }
-  const auto& get() const
-  {
-    return m_list.get();
-  }
+  auto end() const { return score::make_indirect_iterator(m_list.end()); }
+  auto cend() const { return score::make_indirect_iterator(m_list.cend()); }
+  auto size() const { return m_list.size(); }
+  bool empty() const { return m_list.empty(); }
+  auto& unsafe_list() { return m_list; }
+  const auto& list() const { return m_list; }
+  const auto& get() const { return m_list.get(); }
   T& at(const Id<T>& id)
   {
     auto it = find(id);
@@ -128,10 +104,7 @@ public:
     delete &elt;
   }
 
-  void remove(T* elt)
-  {
-    remove(*elt);
-  }
+  void remove(T* elt) { remove(*elt); }
 
   void remove(const Id<T>& id)
   {
@@ -190,7 +163,8 @@ private:
  * MakeEffectSound(MakeEffectSound(Original sound, A, 0, 0), B, 0, 0)
  *
  */
-class SCORE_PLUGIN_MEDIA_EXPORT ProcessModel final : public Process::ProcessModel
+class SCORE_PLUGIN_MEDIA_EXPORT ProcessModel final
+    : public Process::ProcessModel
 {
   SCORE_SERIALIZE_FRIENDS
   PROCESS_METADATA_IMPL(Media::Effect::ProcessModel)
@@ -199,7 +173,8 @@ class SCORE_PLUGIN_MEDIA_EXPORT ProcessModel final : public Process::ProcessMode
 
 public:
   explicit ProcessModel(
-      const TimeVal& duration, const Id<Process::ProcessModel>& id,
+      const TimeVal& duration,
+      const Id<Process::ProcessModel>& id,
       QObject* parent);
 
   ~ProcessModel() override;
@@ -232,10 +207,7 @@ public:
   std::unique_ptr<Process::Outlet> outlet{};
 
   void checkChaining();
-  bool badChaining() const
-  {
-    return m_badChaining;
-  }
+  bool badChaining() const { return m_badChaining; }
 
 public:
   void setBadChaining(bool badChaining)
@@ -263,12 +235,12 @@ private:
   bool m_badChaining{false};
 
   W_PROPERTY(
-      bool, badChaining READ badChaining WRITE setBadChaining NOTIFY
-                badChainingChanged)
+      bool,
+      badChaining READ badChaining WRITE setBadChaining NOTIFY
+          badChainingChanged)
 };
 
-class EffectRemover
-    : public score::ObjectRemover
+class EffectRemover : public score::ObjectRemover
 {
   SCORE_CONCRETE("d26887f9-f17c-4a8f-957c-77645144c8af")
   bool remove(const Selection& s, const score::DocumentContext& ctx) override;

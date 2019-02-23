@@ -88,10 +88,7 @@ public:
 #endif
   }
 
-  operator bool() const
-  {
-    return bool(impl);
-  }
+  operator bool() const { return bool(impl); }
 
 private:
   void* impl{};
@@ -141,7 +138,8 @@ QStringList addonsDir()
 }
 
 std::pair<score::Plugin_QtInterface*, PluginLoadingError> loadPlugin(
-    const QString& fileName, const std::vector<score::Addon>& availablePlugins)
+    const QString& fileName,
+    const std::vector<score::Addon>& availablePlugins)
 {
   using namespace score::PluginLoader;
 #if !defined(QT_STATIC) && QT_CONFIG(library)
@@ -206,7 +204,8 @@ std::pair<score::Plugin_QtInterface*, PluginLoadingError> loadPlugin(
 }
 
 void loadPluginsInAllFolders(
-    std::vector<score::Addon>& availablePlugins, QStringList additional)
+    std::vector<score::Addon>& availablePlugins,
+    QStringList additional)
 {
   using namespace score::PluginLoader;
 
@@ -241,7 +240,8 @@ void loadPluginsInAllFolders(
 }
 
 optional<score::Addon> makeAddon(
-    const QString& addon_path, const QJsonObject& json_addon,
+    const QString& addon_path,
+    const QJsonObject& json_addon,
     const std::vector<score::Addon>& availablePlugins)
 {
   using namespace score::PluginLoader;
@@ -320,7 +320,8 @@ void loadAddonsInAllFolders(std::vector<score::Addon>& availablePlugins)
       addonFile.open(QFile::ReadOnly);
 
       auto addon = makeAddon(
-          folder, QJsonDocument::fromJson(addonFile.readAll()).object(),
+          folder,
+          QJsonDocument::fromJson(addonFile.readAll()).object(),
           availablePlugins);
 
       if (addon)

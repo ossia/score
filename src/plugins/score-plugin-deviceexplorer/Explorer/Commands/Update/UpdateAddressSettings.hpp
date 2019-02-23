@@ -17,11 +17,13 @@ namespace Command
 class UpdateAddressSettings final : public score::Command
 {
   SCORE_COMMAND_DECL(
-      DeviceExplorerCommandFactoryName(), UpdateAddressSettings,
+      DeviceExplorerCommandFactoryName(),
+      UpdateAddressSettings,
       "Update an address")
 public:
   UpdateAddressSettings(
-      const DeviceDocumentPlugin& devplug, const Device::NodePath& node,
+      const DeviceDocumentPlugin& devplug,
+      const Device::NodePath& node,
       const Device::AddressSettings& parameters);
 
   void undo(const score::DocumentContext& ctx) const override;

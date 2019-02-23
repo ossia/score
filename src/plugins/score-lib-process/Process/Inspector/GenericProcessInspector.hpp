@@ -11,7 +11,9 @@ class GenericInspectorWidget final : public Process::InspectorWidgetDelegate
 {
 public:
   explicit GenericInspectorWidget(
-      const P& object, const score::DocumentContext& doc, QWidget* parent)
+      const P& object,
+      const score::DocumentContext& doc,
+      QWidget* parent)
       : InspectorWidgetDelegate_T<P>{object, parent}
   {
     auto lay = new score::MarginLess<QVBoxLayout>{this};
@@ -20,10 +22,7 @@ public:
 
   ~GenericInspectorWidget() = default;
 
-  const P& process() const final override
-  {
-    return m_process;
-  }
+  const P& process() const final override { return m_process; }
 
 private:
   const P& m_process;

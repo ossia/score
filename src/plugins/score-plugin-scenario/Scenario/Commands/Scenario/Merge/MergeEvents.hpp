@@ -27,7 +27,8 @@ class SCORE_PLUGIN_SCENARIO_EXPORT MergeEvents final : public score::Command
   SCORE_COMMAND_DECL(ScenarioCommandFactoryName(), MergeEvents, "Merge events")
 public:
   MergeEvents(
-      const ProcessModel& scenario, Id<EventModel> clickedEv,
+      const ProcessModel& scenario,
+      Id<EventModel> clickedEv,
       Id<EventModel> hoveredEv);
 
   void undo(const score::DocumentContext& ctx) const override;
@@ -50,7 +51,9 @@ private:
 class MergeEventMacro final : public score::AggregateCommand
 {
   SCORE_COMMAND_DECL(
-      ScenarioCommandFactoryName(), MergeEventMacro, "Merge events")
+      ScenarioCommandFactoryName(),
+      MergeEventMacro,
+      "Merge events")
 };
 }
 }

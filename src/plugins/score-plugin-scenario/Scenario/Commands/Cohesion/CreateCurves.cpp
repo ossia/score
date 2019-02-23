@@ -108,12 +108,14 @@ struct CategorizedAddress
     count += 1;
   }
   void operator()(
-      const std::string&, const Device::FullAddressAccessorSettings& addr)
+      const std::string&,
+      const Device::FullAddressAccessorSettings& addr)
   {
     count += 1;
   }
   void operator()(
-      const ossia::vec2f&, const Device::FullAddressAccessorSettings& addr)
+      const ossia::vec2f&,
+      const Device::FullAddressAccessorSettings& addr)
   {
     if (addr.address.qualifiers.get().accessors.empty())
       count += 2;
@@ -121,7 +123,8 @@ struct CategorizedAddress
       count += 1;
   }
   void operator()(
-      const ossia::vec3f&, const Device::FullAddressAccessorSettings& addr)
+      const ossia::vec3f&,
+      const Device::FullAddressAccessorSettings& addr)
   {
     if (addr.address.qualifiers.get().accessors.empty())
       count += 3;
@@ -129,7 +132,8 @@ struct CategorizedAddress
       count += 1;
   }
   void operator()(
-      const ossia::vec4f&, const Device::FullAddressAccessorSettings& addr)
+      const ossia::vec4f&,
+      const Device::FullAddressAccessorSettings& addr)
   {
     if (addr.address.qualifiers.get().accessors.empty())
       count += 4;
@@ -148,10 +152,7 @@ struct CategorizedAddress
   }
 
   int count = 0;
-  int automCount()
-  {
-    return count;
-  }
+  int automCount() { return count; }
 };
 
 struct AddressAccessorCurveCreator
@@ -165,13 +166,9 @@ struct AddressAccessorCurveCreator
   const std::vector<SlotPath>& slotsToUse;
   std::vector<Process::ProcessModel*>& created;
 
-  void operator()(ossia::impulse)
-  {
-  }
+  void operator()(ossia::impulse) {}
 
-  void operator()(bool b)
-  {
-  }
+  void operator()(bool b) {}
 
   void operator()(int v)
   {
@@ -259,13 +256,9 @@ struct AddressAccessorCurveCreator
     created.push_back(&p);
   }
 
-  void operator()(char v)
-  {
-  }
+  void operator()(char v) {}
 
-  void operator()(const std::string& v)
-  {
-  }
+  void operator()(const std::string& v) {}
 
   template <std::size_t N>
   void operator()(const std::array<float, N>& v)
@@ -287,7 +280,11 @@ struct AddressAccessorCurveCreator
           acc[0] = (int)c;
           // Send the command.
           auto& p = macro.automate(
-              interval, slotsToUse, process_ids[created.size()], addr, dom,
+              interval,
+              slotsToUse,
+              process_ids[created.size()],
+              addr,
+              dom,
               tween);
           created.push_back(&p);
         }
@@ -297,7 +294,11 @@ struct AddressAccessorCurveCreator
       default:
       {
         auto& p = macro.automate(
-            interval, slotsToUse, process_ids[created.size()], addr, dom,
+            interval,
+            slotsToUse,
+            process_ids[created.size()],
+            addr,
+            dom,
             tween);
         created.push_back(&p);
         break;
@@ -327,7 +328,11 @@ struct AddressAccessorCurveCreator
           acc[0] = (int)c;
           // Send the command.
           auto& p = macro.automate(
-              interval, slotsToUse, process_ids[created.size()], addr, dom,
+              interval,
+              slotsToUse,
+              process_ids[created.size()],
+              addr,
+              dom,
               tween);
           created.push_back(&p);
         }
@@ -341,14 +346,13 @@ struct AddressAccessorCurveCreator
     }
   }
 
-  void operator()()
-  {
-  }
+  void operator()() {}
 };
 
 std::vector<Process::ProcessModel*> CreateCurvesFromAddress(
     const Scenario::IntervalModel& interval,
-    const Device::FullAddressAccessorSettings& as, Scenario::Command::Macro& m)
+    const Device::FullAddressAccessorSettings& as,
+    Scenario::Command::Macro& m)
 {
   std::vector<Process::ProcessModel*> created;
   auto scenar = dynamic_cast<Scenario::ScenarioInterface*>(interval.parent());
@@ -372,8 +376,8 @@ std::vector<Process::ProcessModel*> CreateCurvesFromAddress(
   const auto& es = endState(interval, *scenar);
 
   // TODO check existing automations
-  as.value.apply(AddressAccessorCurveCreator{as, ss, es, interval, process_ids,
-                                             m, slotsToUse, created});
+  as.value.apply(AddressAccessorCurveCreator{
+      as, ss, es, interval, process_ids, m, slotsToUse, created});
 
   if (created.size() > 0)
   {
@@ -491,13 +495,9 @@ struct CurveCreator
   const std::vector<SlotPath>& slotsToUse;
   std::vector<Process::ProcessModel*>& created;
 
-  void operator()(ossia::impulse)
-  {
-  }
+  void operator()(ossia::impulse) {}
 
-  void operator()(bool b)
-  {
-  }
+  void operator()(bool b) {}
 
   void operator()(int v)
   {
@@ -585,13 +585,9 @@ struct CurveCreator
     created.push_back(&p);
   }
 
-  void operator()(char v)
-  {
-  }
+  void operator()(char v) {}
 
-  void operator()(const std::string& v)
-  {
-  }
+  void operator()(const std::string& v) {}
 
   template <std::size_t N>
   void operator()(const std::array<float, N>& v)
@@ -634,22 +630,26 @@ struct CurveCreator
         acc[0] = (int)c;
         // Send the command.
         auto& p = macro.automate(
-            interval, slotsToUse, process_ids[created.size()], addr, dom,
+            interval,
+            slotsToUse,
+            process_ids[created.size()],
+            addr,
+            dom,
             tween);
         created.push_back(&p);
       }
     }
   }
 
-  void operator()()
-  {
-  }
+  void operator()() {}
 };
 
 int CreateCurvesFromAddresses(
     const Scenario::IntervalModel& interval,
     const Scenario::ScenarioInterface& scenar,
-    const CategorizedAddresses& addresses, int N, Scenario::Command::Macro& m,
+    const CategorizedAddresses& addresses,
+    int N,
+    Scenario::Command::Macro& m,
     std::vector<Process::ProcessModel*>& created)
 {
   // Generate brand new ids for the processes

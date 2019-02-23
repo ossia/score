@@ -33,16 +33,21 @@ Device::Node& ListeningManager::nodeFromModelIndex(const QModelIndex& idx)
 }
 
 ListeningManager::ListeningManager(
-    DeviceExplorerModel& model, const DeviceExplorerWidget& widg)
+    DeviceExplorerModel& model,
+    const DeviceExplorerWidget& widg)
     : m_model{model}
     , m_widget{widg}
     , m_handler{m_model.deviceModel().listening()}
 {
   connect(
-      &m_handler, &ListeningHandler::stop, this,
+      &m_handler,
+      &ListeningHandler::stop,
+      this,
       &ListeningManager::stopListening);
   connect(
-      &m_handler, &ListeningHandler::restore, this,
+      &m_handler,
+      &ListeningHandler::restore,
+      this,
       &ListeningManager::setDeviceWidgetListening);
 }
 
@@ -55,7 +60,8 @@ void ListeningManager::enableListening(Device::Node& node)
 }
 
 void ListeningManager::disableListening_rec(
-    const Device::Node& node, Device::DeviceInterface& dev,
+    const Device::Node& node,
+    Device::DeviceInterface& dev,
     ListeningHandler& lm)
 {
   if (node.is<Device::AddressSettings>())
@@ -70,7 +76,8 @@ void ListeningManager::disableListening_rec(
 }
 
 void ListeningManager::enableListening_rec(
-    const QModelIndex& proxy_index, Device::DeviceInterface& dev,
+    const QModelIndex& proxy_index,
+    Device::DeviceInterface& dev,
     ListeningHandler& lm)
 {
   int i = 0;

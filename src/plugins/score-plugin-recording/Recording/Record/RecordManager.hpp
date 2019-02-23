@@ -47,8 +47,11 @@ private:
   void parameterCallback(const State::Address& addr, const ossia::value& val);
 
   bool finish(
-      State::AddressAccessor addr, const RecordData& dat, const TimeVal& msecs,
-      bool, int);
+      State::AddressAccessor addr,
+      const RecordData& dat,
+      const TimeVal& msecs,
+      bool,
+      int);
   const Curve::Settings::Model& m_settings;
   Curve::Settings::Mode m_recordingMode{};
   std::vector<QPointer<Device::DeviceInterface>> m_recordCallbackConnections;

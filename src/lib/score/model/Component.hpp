@@ -51,10 +51,7 @@ public:
   {
   }
 
-  System_T& system() const noexcept
-  {
-    return m_system;
-  }
+  System_T& system() const noexcept { return m_system; }
 
 private:
   System_T& m_system;
@@ -147,44 +144,38 @@ private:
 /**
  * \macro COMPONENT_METADATA
  */
-#define COMPONENT_METADATA(Uuid)                                       \
-public:                                                                \
-  static Q_DECL_RELAXED_CONSTEXPR Component::Key static_key() noexcept \
-  {                                                                    \
-    return_uuid(Uuid);                                                 \
-  }                                                                    \
-                                                                       \
-  Component::Key key() const noexcept final override                   \
-  {                                                                    \
-    return static_key();                                               \
-  }                                                                    \
-                                                                       \
-  bool key_match(Component::Key other) const noexcept final override   \
-  {                                                                    \
-    return static_key() == other                                       \
-           || base_component_type::base_key_match(other);              \
-  }                                                                    \
-                                                                       \
+#define COMPONENT_METADATA(Uuid)                                              \
+public:                                                                       \
+  static Q_DECL_RELAXED_CONSTEXPR Component::Key static_key() noexcept        \
+  {                                                                           \
+    return_uuid(Uuid);                                                        \
+  }                                                                           \
+                                                                              \
+  Component::Key key() const noexcept final override { return static_key(); } \
+                                                                              \
+  bool key_match(Component::Key other) const noexcept final override          \
+  {                                                                           \
+    return static_key() == other                                              \
+           || base_component_type::base_key_match(other);                     \
+  }                                                                           \
+                                                                              \
 private:
 
 /**
  * \macro COMMON_COMPONENT_METADATA
  */
-#define COMMON_COMPONENT_METADATA(Uuid)                                \
-public:                                                                \
-  static Q_DECL_RELAXED_CONSTEXPR Component::Key static_key() noexcept \
-  {                                                                    \
-    return_uuid(Uuid);                                                 \
-  }                                                                    \
-                                                                       \
-  Component::Key key() const noexcept final override                   \
-  {                                                                    \
-    return static_key();                                               \
-  }                                                                    \
-                                                                       \
-  bool key_match(Component::Key other) const noexcept final override   \
-  {                                                                    \
-    return static_key() == other;                                      \
-  }                                                                    \
-                                                                       \
+#define COMMON_COMPONENT_METADATA(Uuid)                                       \
+public:                                                                       \
+  static Q_DECL_RELAXED_CONSTEXPR Component::Key static_key() noexcept        \
+  {                                                                           \
+    return_uuid(Uuid);                                                        \
+  }                                                                           \
+                                                                              \
+  Component::Key key() const noexcept final override { return static_key(); } \
+                                                                              \
+  bool key_match(Component::Key other) const noexcept final override          \
+  {                                                                           \
+    return static_key() == other;                                             \
+  }                                                                           \
+                                                                              \
 private:

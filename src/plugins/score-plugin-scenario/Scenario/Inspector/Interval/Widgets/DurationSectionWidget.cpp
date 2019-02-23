@@ -51,10 +51,9 @@ template<typename Create, typename Update>
 class OngoingAbstractCommandDispatcher final : public ICommandDispatcher
 {
 public:
-  OngoingAbstractCommandDispatcher(Create&& create, Update&& update, const score::CommandStackFacade& stack)
-      : ICommandDispatcher{stack}
-      , m_create{create}
-      , m_update{update}
+  OngoingAbstractCommandDispatcher(Create&& create, Update&& update, const
+score::CommandStackFacade& stack) : ICommandDispatcher{stack} ,
+m_create{create} , m_update{update}
   {
   }
 
@@ -104,8 +103,10 @@ class EditionGrid : public QWidget
 {
 public:
   EditionGrid(
-      const IntervalModel& m, const score::DocumentContext& fac,
-      QFormLayout& lay, const Scenario::EditionSettings& set)
+      const IntervalModel& m,
+      const score::DocumentContext& fac,
+      QFormLayout& lay,
+      const Scenario::EditionSettings& set)
       : m_model{m}
       , m_dur{m.duration}
       , m_editionSettings{set}
@@ -133,11 +134,15 @@ public:
     m_maxFiniteBox->setChecked(!m_dur.isMaxInfinite());
 
     connect(
-        m_minNonNullBox, &QCheckBox::toggled, this,
+        m_minNonNullBox,
+        &QCheckBox::toggled,
+        this,
         &EditionGrid::on_minNonNullToggled);
 
     connect(
-        m_maxFiniteBox, &QCheckBox::toggled, this,
+        m_maxFiniteBox,
+        &QCheckBox::toggled,
+        this,
         &EditionGrid::on_maxFiniteToggled);
 
     // DISPLAY
@@ -171,21 +176,31 @@ public:
     editableGrid->addRow(maxboxwidg, maxstack);
 
     connect(
-        m_valueSpin, &TimeSpinBox::editingFinished, this,
+        m_valueSpin,
+        &TimeSpinBox::editingFinished,
+        this,
         &EditionGrid::on_durationsChanged);
     connect(
-        m_minSpin, &TimeSpinBox::editingFinished, this,
+        m_minSpin,
+        &TimeSpinBox::editingFinished,
+        this,
         &EditionGrid::on_durationsChanged);
     connect(
-        m_maxSpin, &TimeSpinBox::editingFinished, this,
+        m_maxSpin,
+        &TimeSpinBox::editingFinished,
+        this,
         &EditionGrid::on_durationsChanged);
 
     m_min = m_model.duration.minDuration();
     m_max = m_model.duration.maxDuration();
 
-    con(m_dur, &IntervalDurations::minNullChanged, this,
+    con(m_dur,
+        &IntervalDurations::minNullChanged,
+        this,
         &EditionGrid::on_modelMinNullChanged);
-    con(m_dur, &IntervalDurations::maxInfiniteChanged, this,
+    con(m_dur,
+        &IntervalDurations::maxInfiniteChanged,
+        this,
         &EditionGrid::on_modelMaxInfiniteChanged);
 
     minstack->setCurrentIndex(m_model.duration.isMinNull() ? 0 : 1);
@@ -206,23 +221,27 @@ public:
 
   ~EditionGrid()
   {
-    if(m_resizeCommand)
+    if (m_resizeCommand)
       delete m_resizeCommand;
   }
   void defaultDurationSpinboxChanged(int val)
   {
-    if(m_moveFactory)
+    if (m_moveFactory)
     {
-      if(m_resizeCommand)
+      if (m_resizeCommand)
       {
-        m_moveFactory->update(*m_resizeCommand, m_model, TimeVal::fromMsecs(val));
+        m_moveFactory->update(
+            *m_resizeCommand, m_model, TimeVal::fromMsecs(val));
         m_resizeCommand->redo(m_dispatcher.stack().context());
       }
       else
       {
         m_resizeCommand = m_moveFactory->make(
-              m_model, TimeVal::fromMsecs(val), m_editionSettings.expandMode(), LockMode::Free);
-        if(m_resizeCommand)
+            m_model,
+            TimeVal::fromMsecs(val),
+            m_editionSettings.expandMode(),
+            LockMode::Free);
+        if (m_resizeCommand)
           m_resizeCommand->redo(m_dispatcher.stack().context());
       }
     }
@@ -291,7 +310,7 @@ public:
     {
       defaultDurationSpinboxChanged(
           m_valueSpin->time().msecsSinceStartOfDay());
-      if(m_resizeCommand)
+      if (m_resizeCommand)
         m_dispatcher.stack().push(m_resizeCommand);
       m_resizeCommand = nullptr;
     }
@@ -336,7 +355,8 @@ public:
   {
     using namespace Scenario::Command;
     m_dispatcher.submit<SetMinDuration>(
-        m_model, TimeVal{std::chrono::milliseconds{val}},
+        m_model,
+        TimeVal{std::chrono::milliseconds{val}},
         !m_minNonNullBox->isChecked());
   }
 
@@ -344,7 +364,8 @@ public:
   {
     using namespace Scenario::Command;
     m_dispatcher.submit<SetMaxDuration>(
-        m_model, TimeVal{std::chrono::milliseconds{val}},
+        m_model,
+        TimeVal{std::chrono::milliseconds{val}},
         !m_maxFiniteBox->isChecked());
   }
 
@@ -441,7 +462,8 @@ private:
 };
 */
 DurationWidget::DurationWidget(
-    const Scenario::EditionSettings& set, QFormLayout& lay,
+    const Scenario::EditionSettings& set,
+    QFormLayout& lay,
     IntervalInspectorWidget* parent)
     : QWidget{parent}
     , m_editingWidget{
@@ -456,7 +478,9 @@ DurationWidget::DurationWidget(
 
   // CONNECTIONS FROM MODEL
   // TODO these need to be updated when the default duration changes
-  con(dur, &IntervalDurations::defaultDurationChanged, this,
+  con(dur,
+      &IntervalDurations::defaultDurationChanged,
+      this,
       [](const TimeVal& t) {
 
       });

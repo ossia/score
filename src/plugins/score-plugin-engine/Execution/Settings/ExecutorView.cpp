@@ -40,7 +40,9 @@ View::View() : m_widg{new QWidget}
   lay->addRow(tr("Clock source"), m_Clock);
 
   connect(
-      m_Clock, SignalUtils::QComboBox_currentIndexChanged_int(), this,
+      m_Clock,
+      SignalUtils::QComboBox_currentIndexChanged_int(),
+      this,
       [this](int i) {
         ClockChanged(m_Clock->itemData(i).value<ClockFactory::ConcreteKey>());
       });

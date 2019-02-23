@@ -15,8 +15,8 @@ private:
   QWidget* widget() override;
 
   const score::PanelStatus& defaultPanelStatus() const override;
-  void on_modelChanged(
-      score::MaybeDocument oldm, score::MaybeDocument newm) override;
+  void on_modelChanged(score::MaybeDocument oldm, score::MaybeDocument newm)
+      override;
 
   QTabWidget* m_widget{};
 

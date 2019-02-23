@@ -29,46 +29,25 @@ public:
 
   void load(const QString& path, const score::DocumentContext&);
 
-  QString path() const
-  {
-    return m_file;
-  }
+  QString path() const { return m_file; }
 
-  QString fileName() const
-  {
-    return m_fileName;
-  }
+  QString fileName() const { return m_fileName; }
 
-  const AudioDecoder& decoder() const
-  {
-    return m_decoder;
-  }
+  const AudioDecoder& decoder() const { return m_decoder; }
 
-  const audio_array& data() const
-  {
-    return m_hdl->data;
-  }
+  const audio_array& data() const { return m_hdl->data; }
 
-  audio_handle handle() const
-  {
-    return m_hdl;
-  }
+  audio_handle handle() const { return m_hdl; }
 
   audio_sample** audioData() const;
 
-  int sampleRate() const
-  {
-    return m_sampleRate;
-  }
+  int sampleRate() const { return m_sampleRate; }
 
   // Number of samples in a channel.
   int64_t samples() const;
   int64_t channels() const;
 
-  bool empty() const
-  {
-    return channels() == 0 || samples() == 0;
-  }
+  bool empty() const { return channels() == 0 || samples() == 0; }
 
   Nano::Signal<void()> on_mediaChanged;
 

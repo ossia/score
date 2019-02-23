@@ -22,7 +22,8 @@ namespace Scenario
 namespace Command
 {
 CreateEvent_State::CreateEvent_State(
-    const Scenario::ProcessModel& scenario, Id<TimeSyncModel> timeSync,
+    const Scenario::ProcessModel& scenario,
+    Id<TimeSyncModel> timeSync,
     double stateY)
     : m_newEvent{getStrongId(scenario.events)}
     , m_createdName{RandomNameProvider::generateName<EventModel>()}
@@ -45,8 +46,10 @@ void CreateEvent_State::redo(const score::DocumentContext& ctx) const
 
   // Create the event
   ScenarioCreate<EventModel>::redo(
-      m_newEvent, scenar.timeSync(m_timeSync),
-      {m_command.endStateY() - 0.1, m_command.endStateY() + 0.1}, scenar);
+      m_newEvent,
+      scenar.timeSync(m_timeSync),
+      {m_command.endStateY() - 0.1, m_command.endStateY() + 0.1},
+      scenar);
 
   scenar.events.at(m_newEvent).metadata().setName(m_createdName);
   // scenar.events.at(m_newEvent).setCondition(State::defaultFalseExpression());

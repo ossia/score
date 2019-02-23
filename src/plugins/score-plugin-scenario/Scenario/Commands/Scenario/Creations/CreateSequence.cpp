@@ -37,9 +37,9 @@
 #include <score/tools/std/Optional.hpp>
 
 #include <ossia/editor/state/destination_qualifiers.hpp>
+#include <ossia/network/dataspace/dataspace_variant_visitors.hpp>
 #include <ossia/network/domain/domain.hpp>
 #include <ossia/network/value/value_conversion.hpp>
-#include <ossia/network/dataspace/dataspace_variant_visitors.hpp>
 
 #include <QByteArray>
 #include <QList>
@@ -58,15 +58,16 @@ namespace Command
 
 struct color_converter
 {
-  template<typename Color>
+  template <typename Color>
   QColor operator()(const typename Color::value_type& value, const Color&)
   {
     auto rgba = ossia::rgba{ossia::strong_value<Color>{value}};
     auto& col = rgba.dataspace_value;
-    return QColor::fromRgbF((qreal)col[0], (qreal)col[1], (qreal)col[2], (qreal)col[3]);
+    return QColor::fromRgbF(
+        (qreal)col[0], (qreal)col[1], (qreal)col[2], (qreal)col[3]);
   }
 
-  template<typename... Args>
+  template <typename... Args>
   QColor operator()(Args&&...)
   {
     return QColor{};
@@ -167,11 +168,11 @@ CreateSequenceProcesses::CreateSequenceProcesses(
       if (addr_it != std::end(endAddresses))
       {
         const auto& unit = message.address.qualifiers.get().unit;
-        if(message.address.qualifiers.get().unit.v.target<ossia::color_u>())
+        if (message.address.qualifiers.get().unit.v.target<ossia::color_u>())
         {
           matchingColorMessages.emplace_back(message, *addr_it);
         }
-        else if(unit.which() == ossia::unit_variant::npos)
+        else if (unit.which() == ossia::unit_variant::npos)
         {
           // Due to bugs we disable autosequences with array units
           // TODO handle sub-vecs
@@ -190,8 +191,9 @@ CreateSequenceProcesses::CreateSequenceProcesses(
   }
 
   // Then, if there are correct messages we can actually do our interpolation.
-  m_addedProcessCount
-      = matchingNumericMessages.size() + matchingListMessages.size() + matchingColorMessages.size();
+  m_addedProcessCount = matchingNumericMessages.size()
+                        + matchingListMessages.size()
+                        + matchingColorMessages.size();
   if (m_addedProcessCount == 0)
     return;
 
@@ -213,9 +215,11 @@ CreateSequenceProcesses::CreateSequenceProcesses(
     auto start = State::convert::value<double>(elt.first.value);
     auto end = State::convert::value<double>(elt.second.value);
     Curve::CurveDomain d{elt.second.domain.get(), start, end};
-    auto cmd = new CreateAutomationFromStates{
-        interval, m_interpolations.slotsToUse, process_ids[cur_proc],
-        elt.first.address, d};
+    auto cmd = new CreateAutomationFromStates{interval,
+                                              m_interpolations.slotsToUse,
+                                              process_ids[cur_proc],
+                                              elt.first.address,
+                                              d};
     m_interpolations.addCommand(cmd);
     cur_proc++;
   }
@@ -224,12 +228,16 @@ CreateSequenceProcesses::CreateSequenceProcesses(
   {
     const auto& idx = elt.first.address.qualifiers.get().accessors;
     Curve::CurveDomain d = ossia::apply(
-        get_curve_domain{elt.first.address, idx, rootNode}, elt.first.value.v,
+        get_curve_domain{elt.first.address, idx, rootNode},
+        elt.first.value.v,
         elt.second.value.v);
 
-    m_interpolations.addCommand(new CreateAutomationFromStates{
-        interval, m_interpolations.slotsToUse, process_ids[cur_proc],
-        elt.first.address, d});
+    m_interpolations.addCommand(
+        new CreateAutomationFromStates{interval,
+                                       m_interpolations.slotsToUse,
+                                       process_ids[cur_proc],
+                                       elt.first.address,
+                                       d});
     cur_proc++;
   }
 
@@ -237,18 +245,23 @@ CreateSequenceProcesses::CreateSequenceProcesses(
   {
     const auto& start_qual = elt.first.address.qualifiers.get();
     auto start_color = start_qual.unit.v.target<ossia::color_u>();
-    if(!start_color)
+    if (!start_color)
       continue;
     auto end_color = elt.second.unit.get().v.target<ossia::color_u>();
-    if(!end_color)
+    if (!end_color)
       continue;
 
-    QColor start = ossia::apply(color_converter{}, elt.first.value.v, *start_color);
-    QColor end = ossia::apply(color_converter{}, elt.second.value.v, *end_color);
+    QColor start
+        = ossia::apply(color_converter{}, elt.first.value.v, *start_color);
+    QColor end
+        = ossia::apply(color_converter{}, elt.second.value.v, *end_color);
 
-    m_interpolations.addCommand(new CreateGradient{
-        interval, m_interpolations.slotsToUse, process_ids[cur_proc],
-        elt.first.address, start, end});
+    m_interpolations.addCommand(new CreateGradient{interval,
+                                                   m_interpolations.slotsToUse,
+                                                   process_ids[cur_proc],
+                                                   elt.first.address,
+                                                   start,
+                                                   end});
     cur_proc++;
   }
 }
@@ -285,8 +298,11 @@ void CreateSequenceProcesses::deserializeImpl(DataStreamOutput& s)
 }
 
 CreateSequence* CreateSequence::make(
-    const score::DocumentContext& ctx, const ProcessModel& scenario,
-    const Id<StateModel>& start, const TimeVal& date, double endStateY)
+    const score::DocumentContext& ctx,
+    const ProcessModel& scenario,
+    const Id<StateModel>& start,
+    const TimeVal& date,
+    double endStateY)
 {
   auto cmd = new CreateSequence;
 

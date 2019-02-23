@@ -12,9 +12,7 @@ W_OBJECT_IMPL(score::CustomActionCondition)
 namespace score
 {
 
-EnableActionIfDocument::~EnableActionIfDocument()
-{
-}
+EnableActionIfDocument::~EnableActionIfDocument() {}
 
 void EnableActionIfDocument::action(ActionManager& mgr, MaybeDocument doc)
 {
@@ -26,13 +24,9 @@ ActionCondition::ActionCondition(StringKey<ActionCondition> k)
 {
 }
 
-ActionCondition::~ActionCondition()
-{
-}
+ActionCondition::~ActionCondition() {}
 
-void ActionCondition::action(ActionManager& mgr, MaybeDocument)
-{
-}
+void ActionCondition::action(ActionManager& mgr, MaybeDocument) {}
 
 StringKey<ActionCondition> ActionCondition::key() const
 {
@@ -64,7 +58,10 @@ ActionGroupKey ActionGroup::key() const
 }
 
 Action::Action(
-    QAction* act, QString text, ActionKey key, ActionGroupKey k,
+    QAction* act,
+    QString text,
+    ActionKey key,
+    ActionGroupKey k,
     const QKeySequence& defaultShortcut)
     : m_impl{act}
     , m_text{std::move(text)}
@@ -77,8 +74,12 @@ Action::Action(
   updateTexts();
 }
 Action::Action(
-    QAction* act, QString text, ActionKey key, ActionGroupKey k,
-    const QKeySequence& defaultShortcut, const QKeySequence& defaultShortcut2)
+    QAction* act,
+    QString text,
+    ActionKey key,
+    ActionGroupKey k,
+    const QKeySequence& defaultShortcut,
+    const QKeySequence& defaultShortcut2)
     : m_impl{act}
     , m_text{std::move(text)}
     , m_key{std::move(key)}
@@ -91,7 +92,10 @@ Action::Action(
 }
 
 Action::Action(
-    QAction* act, QString text, const char* key, const char* group_key,
+    QAction* act,
+    QString text,
+    const char* key,
+    const char* group_key,
     const QKeySequence& defaultShortcut)
     : m_impl{act}
     , m_text{std::move(text)}
@@ -143,19 +147,11 @@ void Action::updateTexts()
   m_impl->setStatusTip(clearText);
 }
 
-DocumentActionCondition::~DocumentActionCondition()
-{
-}
+DocumentActionCondition::~DocumentActionCondition() {}
 
-FocusActionCondition::~FocusActionCondition()
-{
-}
+FocusActionCondition::~FocusActionCondition() {}
 
-SelectionActionCondition::~SelectionActionCondition()
-{
-}
+SelectionActionCondition::~SelectionActionCondition() {}
 
-CustomActionCondition::~CustomActionCondition()
-{
-}
+CustomActionCondition::~CustomActionCondition() {}
 }

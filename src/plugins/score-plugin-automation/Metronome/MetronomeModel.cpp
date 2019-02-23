@@ -42,10 +42,13 @@ class QObject;
 namespace Metronome
 {
 ProcessModel::ProcessModel(
-    const TimeVal& duration, const Id<Process::ProcessModel>& id,
+    const TimeVal& duration,
+    const Id<Process::ProcessModel>& id,
     QObject* parent)
-    : CurveProcessModel{duration, id,
-                        Metadata<ObjectKey_k, ProcessModel>::get(), parent}
+    : CurveProcessModel{duration,
+                        id,
+                        Metadata<ObjectKey_k, ProcessModel>::get(),
+                        parent}
     , outlet{Process::make_outlet(Id<Process::Port>(0), this)}
 {
   outlet->type = Process::PortType::Message;
@@ -63,9 +66,7 @@ ProcessModel::ProcessModel(
   metadata().setInstanceName(*this);
 }
 
-ProcessModel::~ProcessModel()
-{
-}
+ProcessModel::~ProcessModel() {}
 
 QString ProcessModel::prettyName() const noexcept
 {
@@ -82,7 +83,9 @@ void ProcessModel::init()
   outlet->setCustomData("Out");
   m_outlets.push_back(outlet.get());
   connect(
-      outlet.get(), &Process::Port::addressChanged, this,
+      outlet.get(),
+      &Process::Port::addressChanged,
+      this,
       [=](const State::AddressAccessor& arg) {
         addressChanged(arg.address);
         prettyNameChanged();
@@ -178,9 +181,7 @@ TimeVal ProcessModel::contentDuration() const noexcept
   return duration() * std::min(1., m_curve->lastPointPos());
 }
 
-void ProcessModel::setCurve_impl()
-{
-}
+void ProcessModel::setCurve_impl() {}
 
 State::Address ProcessModel::address() const
 {

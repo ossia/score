@@ -6,11 +6,10 @@
 #include <Scenario/Commands/Interval/RemoveProcessFromInterval.hpp>
 #include <Scenario/Commands/Scenario/Deletions/ClearInterval.hpp>
 #include <Scenario/Commands/Scenario/Deletions/ClearState.hpp>
-#include <Scenario/Commands/Scenario/Deletions/RemoveSelection.hpp>
 #include <Scenario/Commands/Scenario/Deletions/RemoveMacro.hpp>
+#include <Scenario/Commands/Scenario/Deletions/RemoveSelection.hpp>
 #include <Scenario/Commands/Scenario/Merge/MergeEvents.hpp>
 #include <Scenario/Commands/Scenario/Merge/MergeTimeSyncs.hpp>
-#include <Scenario/Commands/Scenario/Deletions/RemoveMacro.hpp>
 #include <Scenario/Document/BaseScenario/BaseScenario.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
@@ -70,7 +69,8 @@ void clearContentFromSelection(
 }
 
 void removeSelection(
-    const Scenario::ProcessModel& scenario, const score::DocumentContext& ctx)
+    const Scenario::ProcessModel& scenario,
+    const score::DocumentContext& ctx)
 {
   auto& stack = ctx.commandStack;
   RedoMacroCommandDispatcher<ClearSelection> cleaner{stack};
@@ -119,12 +119,13 @@ void removeSelection(
   s.setAndCommit({});
   ctx.selectionStack.clear();
   // We have to remove the first / last timesyncs / events from the selection.
-  ossia::erase_if(sel, [&](auto&& elt) { return elt->id_val() == startId_val; });
+  ossia::erase_if(
+      sel, [&](auto&& elt) { return elt->id_val() == startId_val; });
 
   if (!sel.empty())
   {
     Command::setupRemoveMacro(scenario, sel, cleaner);
-    //cleaner.submit(new RemoveSelection(scenario, sel));
+    // cleaner.submit(new RemoveSelection(scenario, sel));
   }
 
   cleaner.commit();
@@ -147,7 +148,8 @@ auto make_ordered(const Scenario::ProcessModel& scenario)
 }
 
 void mergeTimeSyncs(
-    const Scenario::ProcessModel& scenario, const score::CommandStackFacade& f)
+    const Scenario::ProcessModel& scenario,
+    const score::CommandStackFacade& f)
 {
   // We merge all the furthest timesyncs to the first one.
   auto timesyncs = make_ordered<TimeSyncModel>(scenario);
@@ -179,7 +181,8 @@ void mergeTimeSyncs(
 }
 
 void mergeEvents(
-    const Scenario::ProcessModel& scenario, const score::CommandStackFacade& f)
+    const Scenario::ProcessModel& scenario,
+    const score::CommandStackFacade& f)
 {
   // We merge all the furthest events to the first one.
   const QList<const StateModel*>& states
@@ -225,7 +228,6 @@ bool EndDateComparator::
 operator()(const IntervalModel* lhs, const IntervalModel* rhs) const
 {
   return (Scenario::date(*lhs, *scenario) + lhs->duration.defaultDuration())
-         < (Scenario::date(*rhs, *scenario)
-             + rhs->duration.defaultDuration());
+         < (Scenario::date(*rhs, *scenario) + rhs->duration.defaultDuration());
 }
 }

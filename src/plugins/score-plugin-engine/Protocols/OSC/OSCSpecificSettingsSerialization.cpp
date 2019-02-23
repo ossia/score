@@ -31,7 +31,7 @@ void JSONObjectReader::read(const Protocols::OSCSpecificSettings& n)
   obj["OutputPort"] = n.outputPort;
   obj["InputPort"] = n.inputPort;
   obj["Host"] = n.host;
-  if(n.rate)
+  if (n.rate)
     obj["Rate"] = *n.rate;
 }
 
@@ -41,6 +41,6 @@ void JSONObjectWriter::write(Protocols::OSCSpecificSettings& n)
   n.outputPort = obj["OutputPort"].toInt();
   n.inputPort = obj["InputPort"].toInt();
   n.host = obj["Host"].toString();
-  if(obj.contains("Rate"))
+  if (obj.contains("Rate"))
     n.rate = obj["Rate"].toInt();
 }

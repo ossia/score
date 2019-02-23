@@ -5,8 +5,8 @@
 #include "MinuitSpecificSettings.hpp"
 
 #include <Device/Protocol/ProtocolSettingsWidget.hpp>
-#include <State/Widgets/AddressFragmentLineEdit.hpp>
 #include <Protocols/RateWidget.hpp>
+#include <State/Widgets/AddressFragmentLineEdit.hpp>
 
 #include <QAction>
 #include <QFormLayout>
@@ -47,7 +47,9 @@ MinuitProtocolSettingsWidget::MinuitProtocolSettingsWidget(QWidget* parent)
   connect(
       pb, &QPushButton::clicked, m_browser->makeAction(), &QAction::trigger);
   connect(
-      m_browser, &ZeroconfBrowser::sessionSelected, this,
+      m_browser,
+      &ZeroconfBrowser::sessionSelected,
+      this,
       [=](QString name, QString ip, int port, QMap<QString, QByteArray> txt) {
         m_deviceNameEdit->setText(name);
         m_portInputSBox->setValue(port);
@@ -106,11 +108,9 @@ void MinuitProtocolSettingsWidget::setSettings(
 {
   m_deviceNameEdit->setText(settings.name);
   MinuitSpecificSettings minuit;
-  if (settings.deviceSpecificSettings
-          .canConvert<MinuitSpecificSettings>())
+  if (settings.deviceSpecificSettings.canConvert<MinuitSpecificSettings>())
   {
-    minuit = settings.deviceSpecificSettings
-                 .value<MinuitSpecificSettings>();
+    minuit = settings.deviceSpecificSettings.value<MinuitSpecificSettings>();
     m_portInputSBox->setValue(minuit.inputPort);
     m_portOutputSBox->setValue(minuit.outputPort);
     m_localHostEdit->setText(minuit.host);

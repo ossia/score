@@ -1,9 +1,8 @@
 #pragma once
 #include <Device/Protocol/DeviceInterface.hpp>
-
-#include <Protocols/DefaultProtocolFactory.hpp>
 #include <Device/Protocol/DeviceSettings.hpp>
 #include <Device/Protocol/ProtocolSettingsWidget.hpp>
+#include <Protocols/DefaultProtocolFactory.hpp>
 
 #include <wobjectdefs.h>
 
@@ -12,8 +11,7 @@ W_REGISTER_ARGTYPE(std::vector<ossia::net::node_base*>)
 class JSEdit;
 namespace Protocols
 {
-class Mapper
-    : public QObject
+class Mapper : public QObject
 {
 };
 
@@ -22,8 +20,7 @@ struct MapperSpecificSettings
   QString text;
 };
 
-class MapperProtocolFactory final
-    : public Protocols::DefaultProtocolFactory
+class MapperProtocolFactory final : public Protocols::DefaultProtocolFactory
 {
   SCORE_CONCRETE("910e2d87-a087-430d-b725-c988fe2bea01")
 
@@ -41,15 +38,15 @@ class MapperProtocolFactory final
   makeProtocolSpecificSettings(const VisitorVariant& visitor) const override;
 
   void serializeProtocolSpecificSettings(
-      const QVariant& data, const VisitorVariant& visitor) const override;
+      const QVariant& data,
+      const VisitorVariant& visitor) const override;
 
   bool checkCompatibility(
       const Device::DeviceSettings& a,
       const Device::DeviceSettings& b) const override;
 };
 
-class MapperProtocolSettingsWidget
-    : public Device::ProtocolSettingsWidget
+class MapperProtocolSettingsWidget : public Device::ProtocolSettingsWidget
 {
 public:
   MapperProtocolSettingsWidget(QWidget* parent = nullptr);
@@ -69,4 +66,3 @@ protected:
 
 Q_DECLARE_METATYPE(Protocols::MapperSpecificSettings)
 W_REGISTER_ARGTYPE(Protocols::MapperSpecificSettings)
-

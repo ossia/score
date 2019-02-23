@@ -23,7 +23,7 @@ const QPalette& transparentPalette()
 }
 
 ToggleButton::ToggleButton(std::array<QString, 2> alts, QWidget* parent)
-  : QPushButton{parent}, alternatives{alts}
+    : QPushButton{parent}, alternatives{alts}
 {
   setCheckable(true);
 
@@ -48,12 +48,12 @@ ToggleButton::ToggleButton(std::array<QString, 2> alts, QWidget* parent)
 }
 
 ToggleButton::ToggleButton(std::array<const char*, 2> alt, QWidget* parent)
-  : ToggleButton{std::array<QString, 2>{alt[0], alt[1]}, parent}
+    : ToggleButton{std::array<QString, 2>{alt[0], alt[1]}, parent}
 {
 }
 
 ToggleButton::ToggleButton(QStringList alt, QWidget* parent)
-  : ToggleButton{std::array<QString, 2>{alt[0], alt[1]}, parent}
+    : ToggleButton{std::array<QString, 2>{alt[0], alt[1]}, parent}
 {
 }
 
@@ -78,13 +78,15 @@ void ValueSlider::paintEvent(QPaintEvent* event)
 
 void SpeedSlider::paintEvent(QPaintEvent*)
 {
-  paintWithText(QString{" speed: x " + QString::number(double(value()) * 0.01)});
+  paintWithText(
+      QString{" speed: x " + QString::number(double(value()) * 0.01)});
 }
 
 void VolumeSlider::paintEvent(QPaintEvent*)
 {
   paintWithText(
-      "volume: " + QString::number(ossia::detail::LinearGainToDecibels(value()), 'f', 1)
+      "volume: "
+      + QString::number(ossia::detail::LinearGainToDecibels(value()), 'f', 1)
       + " dB");
 }
 

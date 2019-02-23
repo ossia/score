@@ -2,6 +2,7 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "ScenarioCopy.hpp"
 
+#include <Dataflow/Commands/CableHelpers.hpp>
 #include <Process/Dataflow/Cable.hpp>
 #include <Scenario/Document/BaseScenario/BaseScenario.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
@@ -12,7 +13,6 @@
 #include <Scenario/Process/Algorithms/ContainersAccessors.hpp>
 #include <Scenario/Process/Algorithms/ProcessPolicy.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
-#include <Dataflow/Commands/CableHelpers.hpp>
 
 #include <score/document/DocumentContext.hpp>
 #include <score/model/EntityMap.hpp>
@@ -70,7 +70,8 @@ bool verifyAndUpdateIfChildOf(ObjectPath& path, const ObjectPath& parent)
 
 template <typename T>
 bool verifyAndUpdateIfChildOf(
-    Process::CableData& path, const std::vector<Path<T>>& vec)
+    Process::CableData& path,
+    const std::vector<Path<T>>& vec)
 {
   bool source_ok = false;
   for (const auto& parent : vec)
@@ -281,7 +282,8 @@ QJsonObject copyProcess(const Process::ProcessModel& proc)
 }
 
 QJsonObject copySelectedScenarioElements(
-    const Scenario::ProcessModel& sm, CategorisedScenario& cat)
+    const Scenario::ProcessModel& sm,
+    CategorisedScenario& cat)
 {
   auto obj = copySelected(sm, cat, const_cast<Scenario::ProcessModel*>(&sm));
 
@@ -327,9 +329,7 @@ copySelectedScenarioElements(const BaseScenarioContainer& sm, QObject* parent)
   return copySelected(sm, cat, parent);
 }
 
-CategorisedScenario::CategorisedScenario()
-{
-}
+CategorisedScenario::CategorisedScenario() {}
 
 template <typename Vector>
 std::vector<const typename Vector::value_type*>
@@ -363,21 +363,24 @@ CategorisedScenario::CategorisedScenario(const BaseScenarioContainer& sm)
 
 CategorisedScenario::CategorisedScenario(const Selection& sm)
 {
-  for(auto elt : sm)
+  for (auto elt : sm)
   {
-    if(auto st = dynamic_cast<const Scenario::StateModel*>(elt.data()))
+    if (auto st = dynamic_cast<const Scenario::StateModel*>(elt.data()))
       selectedStates.push_back(st);
-    else if(auto itv = dynamic_cast<const Scenario::IntervalModel*>(elt.data()))
+    else if (
+        auto itv = dynamic_cast<const Scenario::IntervalModel*>(elt.data()))
       selectedIntervals.push_back(itv);
-    else if(auto ev = dynamic_cast<const Scenario::EventModel*>(elt.data()))
+    else if (auto ev = dynamic_cast<const Scenario::EventModel*>(elt.data()))
       selectedEvents.push_back(ev);
-    else if(auto ts = dynamic_cast<const Scenario::TimeSyncModel*>(elt.data()))
+    else if (
+        auto ts = dynamic_cast<const Scenario::TimeSyncModel*>(elt.data()))
       selectedTimeSyncs.push_back(ts);
   }
 }
 
 QJsonObject copySelectedElementsToJson(
-    ScenarioInterface& si, const score::DocumentContext& ctx)
+    ScenarioInterface& si,
+    const score::DocumentContext& ctx)
 {
   auto si_obj = dynamic_cast<QObject*>(&si);
   if (auto sm = dynamic_cast<const Scenario::ProcessModel*>(&si))

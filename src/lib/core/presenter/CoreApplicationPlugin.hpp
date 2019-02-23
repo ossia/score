@@ -16,7 +16,8 @@ class SCORE_LIB_BASE_EXPORT CoreApplicationPlugin final
 {
 public:
   CoreApplicationPlugin(
-      const score::GUIApplicationContext& app, Presenter& pres);
+      const score::GUIApplicationContext& app,
+      Presenter& pres);
 
 private:
   Presenter& m_presenter;

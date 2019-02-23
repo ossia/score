@@ -19,12 +19,14 @@ namespace Command
 class InsertContentInState final : public score::Command
 {
   SCORE_COMMAND_DECL(
-      ScenarioCommandFactoryName(), InsertContentInState,
+      ScenarioCommandFactoryName(),
+      InsertContentInState,
       "Insert content in a state")
 
 public:
   InsertContentInState(
-      const QJsonObject& stateData, const Scenario::StateModel& state);
+      const QJsonObject& stateData,
+      const Scenario::StateModel& state);
 
   void undo(const score::DocumentContext& ctx) const override;
 

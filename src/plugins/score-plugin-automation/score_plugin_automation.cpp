@@ -82,29 +82,35 @@ public:
 };
 using AutomationFactory = Process::ProcessFactory_T<Automation::ProcessModel>;
 using AutomationLayerFactory = Curve::CurveLayerFactory_T<
-    Automation::ProcessModel, Automation::LayerPresenter,
-    Automation::LayerView, Automation::Colors,
+    Automation::ProcessModel,
+    Automation::LayerPresenter,
+    Automation::LayerView,
+    Automation::Colors,
     Automation::MinMaxHeaderDelegate<Automation::LayerPresenter>>;
 }
 namespace Gradient
 {
 using GradientFactory = Process::ProcessFactory_T<Gradient::ProcessModel>;
 using GradientLayerFactory = Process::LayerFactory_T<
-    Gradient::ProcessModel, Gradient::Presenter, Gradient::View>;
+    Gradient::ProcessModel,
+    Gradient::Presenter,
+    Gradient::View>;
 }
 
 namespace Spline
 {
 using SplineFactory = Process::ProcessFactory_T<Spline::ProcessModel>;
-using SplineLayerFactory = Process::LayerFactory_T<
-    Spline::ProcessModel, Spline::Presenter, Spline::View>;
+using SplineLayerFactory = Process::
+    LayerFactory_T<Spline::ProcessModel, Spline::Presenter, Spline::View>;
 }
 
 namespace Metronome
 {
 using MetronomeFactory = Process::ProcessFactory_T<Metronome::ProcessModel>;
 using MetronomeLayerFactory = Curve::CurveLayerFactory_T<
-    Metronome::ProcessModel, Metronome::LayerPresenter, Metronome::LayerView,
+    Metronome::ProcessModel,
+    Metronome::LayerPresenter,
+    Metronome::LayerView,
     Metronome::Colors,
     Automation::MinMaxHeaderDelegate<Metronome::LayerPresenter>>;
 }
@@ -114,19 +120,27 @@ score_plugin_automation::~score_plugin_automation() = default;
 
 std::vector<std::unique_ptr<score::InterfaceBase>>
 score_plugin_automation::factories(
-    const score::ApplicationContext& ctx, const score::InterfaceKey& key) const
+    const score::ApplicationContext& ctx,
+    const score::InterfaceKey& key) const
 {
   return instantiate_factories<
       score::ApplicationContext,
-      FW<Process::ProcessModelFactory, Automation::AutomationFactory,
-         Gradient::GradientFactory, Spline::SplineFactory,
+      FW<Process::ProcessModelFactory,
+         Automation::AutomationFactory,
+         Gradient::GradientFactory,
+         Spline::SplineFactory,
          Metronome::MetronomeFactory>,
-      FW<Process::LayerFactory, Automation::AutomationLayerFactory,
-         Gradient::GradientLayerFactory, Spline::SplineLayerFactory,
+      FW<Process::LayerFactory,
+         Automation::AutomationLayerFactory,
+         Gradient::GradientLayerFactory,
+         Spline::SplineLayerFactory,
          Metronome::MetronomeLayerFactory>,
-      FW<Inspector::InspectorWidgetFactory, Automation::StateInspectorFactory,
-         Automation::PointInspectorFactory, Automation::InspectorFactory,
-         Gradient::InspectorFactory, Spline::InspectorFactory,
+      FW<Inspector::InspectorWidgetFactory,
+         Automation::StateInspectorFactory,
+         Automation::PointInspectorFactory,
+         Automation::InspectorFactory,
+         Gradient::InspectorFactory,
+         Spline::InspectorFactory,
          Metronome::InspectorFactory>,
 
       FW<Execution::ProcessComponentFactory,

@@ -7,9 +7,9 @@
 
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/document/DocumentContext.hpp>
+#include <score/graphics/GraphicsItem.hpp>
 #include <score/model/IdentifiedObjectMap.hpp>
 #include <score/selection/SelectionDispatcher.hpp>
-#include <score/graphics/GraphicsItem.hpp>
 
 #include <QObject>
 #include <QPoint>
@@ -32,8 +32,11 @@ class SCORE_PLUGIN_CURVE_EXPORT Presenter final : public QObject
   W_OBJECT(Presenter)
 public:
   Presenter(
-      const score::DocumentContext& lst, const Curve::Style&, const Model&,
-      View*, QObject* parent);
+      const score::DocumentContext& lst,
+      const Curve::Style&,
+      const Model&,
+      View*,
+      QObject* parent);
   virtual ~Presenter();
 
   const score::DocumentContext& context() const noexcept
@@ -41,26 +44,14 @@ public:
     return m_commandDispatcher.stack().context();
   }
 
-  const auto& points() const noexcept
-  {
-    return m_points;
-  }
-  const auto& segments() const noexcept
-  {
-    return m_segments;
-  }
+  const auto& points() const noexcept { return m_points; }
+  const auto& segments() const noexcept { return m_segments; }
 
   // Removes all the points & segments
   void clear();
 
-  const Model& model() const noexcept
-  {
-    return m_model;
-  }
-  View& view() const noexcept
-  {
-    return *m_view;
-  }
+  const Model& model() const noexcept { return m_model; }
+  View& view() const noexcept { return *m_view; }
 
   void setRect(const QRectF& rect);
 
@@ -80,19 +71,10 @@ public:
   void removeSelection();
 
   // Used to allow moving outside [0; 1] when in the panel view.
-  bool boundedMove() const noexcept
-  {
-    return m_boundedMove;
-  }
-  void setBoundedMove(bool b) noexcept
-  {
-    m_boundedMove = b;
-  }
+  bool boundedMove() const noexcept { return m_boundedMove; }
+  void setBoundedMove(bool b) noexcept { m_boundedMove = b; }
 
-  QRectF rect() const noexcept
-  {
-    return m_localRect;
-  }
+  QRectF rect() const noexcept { return m_localRect; }
 
 public:
   void contextMenuRequested(const QPoint& arg_1, const QPointF& arg_2)

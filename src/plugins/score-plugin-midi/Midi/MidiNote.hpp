@@ -15,44 +15,17 @@ struct NoteData
   {
   }
 
-  double start() const
-  {
-    return m_start;
-  }
-  double duration() const
-  {
-    return m_duration;
-  }
-  double end() const
-  {
-    return m_start + m_duration;
-  }
+  double start() const { return m_start; }
+  double duration() const { return m_duration; }
+  double end() const { return m_start + m_duration; }
 
-  midi_size_t pitch() const
-  {
-    return m_pitch;
-  }
-  midi_size_t velocity() const
-  {
-    return m_velocity;
-  }
+  midi_size_t pitch() const { return m_pitch; }
+  midi_size_t velocity() const { return m_velocity; }
 
-  void setStart(double s)
-  {
-    m_start = s;
-  }
-  void setDuration(double s)
-  {
-    m_duration = s;
-  }
-  void setPitch(midi_size_t s)
-  {
-    m_pitch = s;
-  }
-  void setVelocity(midi_size_t s)
-  {
-    m_velocity = s;
-  }
+  void setStart(double s) { m_start = s; }
+  void setDuration(double s) { m_duration = s; }
+  void setPitch(midi_size_t s) { m_pitch = s; }
+  void setVelocity(midi_size_t s) { m_velocity = s; }
 
   double m_start{};
   double m_duration{};
@@ -103,30 +76,15 @@ public:
 
   // Both are between 0 - 1, 1 being the process duration.
 
-  double start() const noexcept
-  {
-    return m_start;
-  }
+  double start() const noexcept { return m_start; }
 
-  double duration() const noexcept
-  {
-    return m_duration;
-  }
+  double duration() const noexcept { return m_duration; }
 
-  double end() const noexcept
-  {
-    return m_start + m_duration;
-  }
+  double end() const noexcept { return m_start + m_duration; }
 
-  midi_size_t pitch() const noexcept
-  {
-    return m_pitch;
-  }
+  midi_size_t pitch() const noexcept { return m_pitch; }
 
-  midi_size_t velocity() const noexcept
-  {
-    return m_velocity;
-  }
+  midi_size_t velocity() const noexcept { return m_velocity; }
 
   void scale(double s) noexcept;
 

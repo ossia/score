@@ -146,8 +146,11 @@ QByteArray Document::saveAsByteArray()
 
 // Load document
 Document::Document(
-    const QString& name, const QVariant& data,
-    DocumentDelegateFactory& factory, QWidget* parentview, QObject* parent)
+    const QString& name,
+    const QVariant& data,
+    DocumentDelegateFactory& factory,
+    QWidget* parentview,
+    QObject* parent)
     : QObject{parent}
     , m_metadata{name}
     , m_commandStack{*this}
@@ -176,8 +179,10 @@ Document::Document(
 }
 
 Document::Document(
-    const QString& name, const QVariant& data,
-    DocumentDelegateFactory& factory, QObject* parent)
+    const QString& name,
+    const QVariant& data,
+    DocumentDelegateFactory& factory,
+    QObject* parent)
     : QObject{parent}
     , m_metadata{name}
     , m_commandStack{*this}
@@ -198,7 +203,8 @@ Document::Document(
 }
 
 void DocumentModel::loadDocumentAsByteArray(
-    score::DocumentContext& ctx, const QByteArray& data,
+    score::DocumentContext& ctx,
+    const QByteArray& data,
     DocumentDelegateFactory& fact)
 {
   // Deserialize the first parts
@@ -269,7 +275,8 @@ void DocumentModel::loadDocumentAsByteArray(
 }
 
 void DocumentModel::loadDocumentAsJson(
-    score::DocumentContext& ctx, const QJsonObject& json,
+    score::DocumentContext& ctx,
+    const QJsonObject& json,
     DocumentDelegateFactory& fact)
 {
   const auto& doc_obj = json.find("Document");
@@ -320,10 +327,13 @@ void DocumentModel::loadDocumentAsJson(
 
 // Load document model
 DocumentModel::DocumentModel(
-    score::DocumentContext& ctx, const QVariant& data,
-    DocumentDelegateFactory& fact, QObject* parent)
+    score::DocumentContext& ctx,
+    const QVariant& data,
+    DocumentDelegateFactory& fact,
+    QObject* parent)
     : IdentifiedObject{Id<DocumentModel>(score::id_generator::getFirstId()),
-                       "DocumentModel", parent}
+                       "DocumentModel",
+                       parent}
 {
   using namespace std;
 

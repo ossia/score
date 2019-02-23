@@ -48,15 +48,23 @@ namespace Scenario
 namespace Command
 {
 ScenarioPasteElements::ScenarioPasteElements(
-    const Scenario::ProcessModel& scenario, const QJsonObject& obj,
+    const Scenario::ProcessModel& scenario,
+    const QJsonObject& obj,
     const Scenario::Point& pt)
     : m_ts{scenario}
 {
   auto& ctx = score::IDocument::documentContext(scenario);
 
   auto
-      [timesyncs, intervals, events, states, cables, interval_ids,
-       timesync_ids, event_ids, state_ids]
+      [timesyncs,
+       intervals,
+       events,
+       states,
+       cables,
+       interval_ids,
+       timesync_ids,
+       event_ids,
+       state_ids]
       = ScenarioBeingCopied{obj, scenario, ctx};
 
   // We set the new ids everywhere
@@ -83,8 +91,9 @@ ScenarioPasteElements::ScenarioPasteElements(
     {
       {
         auto it = std::find_if(
-            timesyncs.begin(), timesyncs.end(),
-            [&](TimeSyncModel* tn) { return tn->id() == event->timeSync(); });
+            timesyncs.begin(), timesyncs.end(), [&](TimeSyncModel* tn) {
+              return tn->id() == event->timeSync();
+            });
         SCORE_ASSERT(it != timesyncs.end());
         auto timesync = *it;
         timesync->removeEvent(event->id());
@@ -172,10 +181,12 @@ ScenarioPasteElements::ScenarioPasteElements(
           = ObjectIdentifier{sink_vec.front().objectName(), sink_itv_id};
 
       source_vec.insert(
-          source_vec.begin(), p.unsafePath().vec().begin(),
+          source_vec.begin(),
+          p.unsafePath().vec().begin(),
           p.unsafePath().vec().end());
       sink_vec.insert(
-          sink_vec.begin(), p.unsafePath().vec().begin(),
+          sink_vec.begin(),
+          p.unsafePath().vec().begin(),
           p.unsafePath().vec().end());
 
       m_cables.insert(cable_ids[i], std::move(cd));

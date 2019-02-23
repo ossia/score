@@ -33,7 +33,8 @@ class QWidget;
 namespace Scenario
 {
 TemporalIntervalView::TemporalIntervalView(
-    TemporalIntervalPresenter& presenter, QGraphicsItem* parent)
+    TemporalIntervalPresenter& presenter,
+    QGraphicsItem* parent)
     : IntervalView{presenter, parent}
 {
   this->setCacheMode(QGraphicsItem::NoCache);
@@ -43,9 +44,7 @@ TemporalIntervalView::TemporalIntervalView(
   this->setZValue(ZPos::Interval);
 }
 
-TemporalIntervalView::~TemporalIntervalView()
-{
-}
+TemporalIntervalView::~TemporalIntervalView() {}
 
 QRectF TemporalIntervalView::boundingRect() const
 {
@@ -222,7 +221,9 @@ void TemporalIntervalView::updatePlayPaths()
 }
 
 void TemporalIntervalView::paint(
-    QPainter* p, const QStyleOptionGraphicsItem*, QWidget*)
+    QPainter* p,
+    const QStyleOptionGraphicsItem*,
+    QWidget*)
 {
   auto& painter = *p;
   painter.setRenderHint(QPainter::Antialiasing, false);

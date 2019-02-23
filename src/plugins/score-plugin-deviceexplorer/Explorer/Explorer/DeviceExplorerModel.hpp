@@ -73,20 +73,11 @@ public:
 
   ~DeviceExplorerModel();
 
-  Device::Node& rootNode() override
-  {
-    return m_rootNode;
-  }
+  Device::Node& rootNode() override { return m_rootNode; }
 
-  const Device::Node& rootNode() const override
-  {
-    return m_rootNode;
-  }
+  const Device::Node& rootNode() const override { return m_rootNode; }
 
-  void setView(DeviceExplorerView* v)
-  {
-    m_view = v;
-  }
+  void setView(DeviceExplorerView* v) { m_view = v; }
 
   // The class that does the link with the low-level implementation of the
   // devices. This is here so that commands don't need to save
@@ -94,10 +85,7 @@ public:
   DeviceDocumentPlugin& deviceModel() const;
   QModelIndexList selectedIndexes() const;
 
-  const score::CommandStackFacade& commandStack() const
-  {
-    return m_cmdQ;
-  }
+  const score::CommandStackFacade& commandStack() const { return m_cmdQ; }
 
   // Returns the row (useful for undo)
   int addDevice(Device::Node&& deviceNode);
@@ -105,15 +93,18 @@ public:
   void updateDevice(const QString& name, const Device::DeviceSettings& dev);
 
   void addAddress(
-      Device::Node* parentNode, const Device::AddressSettings& addressSettings,
+      Device::Node* parentNode,
+      const Device::AddressSettings& addressSettings,
       int row);
   void updateAddress(
-      Device::Node* node, const Device::AddressSettings& addressSettings);
+      Device::Node* node,
+      const Device::AddressSettings& addressSettings);
 
   void addNode(Device::Node* parentNode, Device::Node&& child, int row);
 
   void updateValue(
-      Device::Node* n, const State::AddressAccessor& addr,
+      Device::Node* n,
+      const State::AddressAccessor& addr,
       const ossia::value& v);
 
   // Checks if the settings can be added; if not,
@@ -124,10 +115,12 @@ public:
   bool tryDeviceInstantiation(Device::DeviceSettings&, DeviceEditDialog&);
 
   bool checkAddressInstantiatable(
-      Device::Node& parent, const Device::AddressSettings& addr);
+      Device::Node& parent,
+      const Device::AddressSettings& addr);
 
   bool checkAddressEditable(
-      Device::Node& parent, const Device::AddressSettings& before,
+      Device::Node& parent,
+      const Device::AddressSettings& before,
       const Device::AddressSettings& after);
 
   int columnCount() const;
@@ -141,31 +134,42 @@ public:
   int columnCount(const QModelIndex& parent) const override;
 
   QVariant data(const QModelIndex& index, int role) const override;
-  QVariant headerData(
-      int section, Qt::Orientation orientation, int role) const override;
+  QVariant headerData(int section, Qt::Orientation orientation, int role)
+      const override;
 
   Qt::ItemFlags flags(const QModelIndex& index) const override;
 
   bool
   setData(const QModelIndex& index, const QVariant& value, int role) override;
-  bool setHeaderData(
-      int, Qt::Orientation, const QVariant&, int = Qt::EditRole) override;
+  bool setHeaderData(int, Qt::Orientation, const QVariant&, int = Qt::EditRole)
+      override;
 
   void editData(
-      const Device::NodePath& path, Column column, const ossia::value& value,
+      const Device::NodePath& path,
+      Column column,
+      const ossia::value& value,
       int role);
   void editData(
-      Device::Node& n, Column column, const ossia::value& value, int role);
+      Device::Node& n,
+      Column column,
+      const ossia::value& value,
+      int role);
 
   Qt::DropActions supportedDropActions() const override;
   Qt::DropActions supportedDragActions() const override;
   QStringList mimeTypes() const override;
   QMimeData* mimeData(const QModelIndexList& indexes) const override;
   bool canDropMimeData(
-      const QMimeData* data, Qt::DropAction action, int row, int column,
+      const QMimeData* data,
+      Qt::DropAction action,
+      int row,
+      int column,
       const QModelIndex& parent) const override;
   bool dropMimeData(
-      const QMimeData* mimeData, Qt::DropAction action, int row, int column,
+      const QMimeData* mimeData,
+      Qt::DropAction action,
+      int row,
+      int column,
       const QModelIndex& parent) override;
 
   QModelIndex convertPathToIndex(const Device::NodePath& path);
@@ -209,6 +213,8 @@ deviceExplorerFromContext(const score::DocumentContext& ctx);
 // Will try to find a node and fill the structure with it.
 SCORE_PLUGIN_DEVICEEXPLORER_EXPORT Device::FullAddressAccessorSettings
 makeFullAddressAccessorSettings(
-    const State::AddressAccessor& mess, const score::DocumentContext& ctx,
-    ossia::value min, ossia::value max);
+    const State::AddressAccessor& mess,
+    const score::DocumentContext& ctx,
+    ossia::value min,
+    ossia::value max);
 }

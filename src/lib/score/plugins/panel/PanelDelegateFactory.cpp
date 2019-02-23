@@ -6,7 +6,5 @@ namespace score
 {
 PanelDelegateFactory::~PanelDelegateFactory() = default;
 
-PanelDelegateFactoryList::~PanelDelegateFactoryList()
-{
-}
+PanelDelegateFactoryList::~PanelDelegateFactoryList() {}
 }

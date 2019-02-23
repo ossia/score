@@ -11,7 +11,8 @@ W_OBJECT_IMPL(score::DocumentDelegatePresenter)
 namespace score
 {
 DocumentDelegatePresenter::DocumentDelegatePresenter(
-    DocumentPresenter* parent_presenter, const DocumentDelegateModel& model,
+    DocumentPresenter* parent_presenter,
+    const DocumentDelegateModel& model,
     DocumentDelegateView& view)
     : QObject{parent_presenter}
     , m_model{model}

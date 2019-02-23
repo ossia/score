@@ -9,8 +9,10 @@ namespace score
 {
 template <typename RedoFun>
 void loadCommandStack(
-    const score::ApplicationComponents& components, DataStreamWriter& writer,
-    score::CommandStack& stack, RedoFun redo_fun)
+    const score::ApplicationComponents& components,
+    DataStreamWriter& writer,
+    score::CommandStack& stack,
+    RedoFun redo_fun)
 {
   std::vector<score::CommandData> undoStack, redoStack;
   writer.writeTo(undoStack);

@@ -19,7 +19,8 @@ class SCORE_PLUGIN_MIDI_EXPORT ProcessModel final
 public:
   PROCESS_METADATA_IMPL(Midi::ProcessModel)
   explicit ProcessModel(
-      const TimeVal& duration, const Id<Process::ProcessModel>& id,
+      const TimeVal& duration,
+      const Id<Process::ProcessModel>& id,
       QObject* parent);
 
   template <typename Impl>
@@ -30,10 +31,7 @@ public:
     init();
   }
 
-  void init()
-  {
-    m_outlets.push_back(outlet.get());
-  }
+  void init() { m_outlets.push_back(outlet.get()); }
 
   ~ProcessModel() override;
 
@@ -42,16 +40,14 @@ public:
   void setChannel(int n);
   int channel() const;
 
-  std::pair<int, int> range() const
-  {
-    return m_range;
-  }
+  std::pair<int, int> range() const { return m_range; }
 
   void setRange(int min, int max);
 
   std::unique_ptr<Process::Outlet> outlet;
 
   using Process::ProcessModel::setDuration;
+
 public:
   void notesChanged() W_SIGNAL(notesChanged);
   void channelChanged(int arg_1) W_SIGNAL(channelChanged, arg_1);

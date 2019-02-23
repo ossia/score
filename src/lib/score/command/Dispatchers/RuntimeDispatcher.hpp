@@ -9,10 +9,10 @@ struct SCORE_LIB_BASE_EXPORT Dispatcher
   virtual void submit(score::Command*) = 0;
 };
 
-template<typename T>
+template <typename T>
 struct Dispatcher_T final : Dispatcher
 {
-  explicit Dispatcher_T(T& t): impl{t} { }
+  explicit Dispatcher_T(T& t) : impl{t} {}
   T& impl;
   void submit(score::Command* c) override { impl.submit(c); }
 };

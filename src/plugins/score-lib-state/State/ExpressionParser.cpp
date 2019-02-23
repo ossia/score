@@ -163,7 +163,9 @@ template <typename tag>
 struct unop;
 
 using expr_raw = boost::variant<
-    State::Relation, State::Pulse, boost::recursive_wrapper<unop<op_not>>,
+    State::Relation,
+    State::Pulse,
+    boost::recursive_wrapper<unop<op_not>>,
     boost::recursive_wrapper<binop<op_and>>,
     boost::recursive_wrapper<binop<op_xor>>,
     boost::recursive_wrapper<binop<op_or>>>;
@@ -181,9 +183,7 @@ struct binop
 template <typename tag>
 struct unop
 {
-  explicit unop(expr_raw o) : oper1(std::move(o))
-  {
-  }
+  explicit unop(expr_raw o) : oper1(std::move(o)) {}
   expr_raw oper1;
 };
 
@@ -220,9 +220,7 @@ private:
 
 struct Expression_builder : boost::static_visitor<void>
 {
-  Expression_builder(State::Expression* e) : m_current{e}
-  {
-  }
+  Expression_builder(State::Expression* e) : m_current{e} {}
   State::Expression* m_current{};
 
   void operator()(const State::Relation& rel)

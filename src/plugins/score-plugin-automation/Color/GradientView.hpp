@@ -14,10 +14,7 @@ public:
   using gradient_colors = ossia::flat_map<double, QColor>;
   void setGradient(const gradient_colors& c);
   void setDataWidth(double);
-  double dataWidth() const
-  {
-    return m_dataWidth;
-  }
+  double dataWidth() const { return m_dataWidth; }
 
 public:
   void setColor(double pos, QColor arg_2)

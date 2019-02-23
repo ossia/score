@@ -121,7 +121,8 @@ JSONObjectWriter::write(Curve::SegmentModel& segmt)
 namespace Curve
 {
 Curve::SegmentModel* createCurveSegment(
-    const Curve::SegmentList& csl, const Curve::SegmentData& dat,
+    const Curve::SegmentList& csl,
+    const Curve::SegmentData& dat,
     QObject* parent)
 {
   auto fact = csl.get(dat.type);

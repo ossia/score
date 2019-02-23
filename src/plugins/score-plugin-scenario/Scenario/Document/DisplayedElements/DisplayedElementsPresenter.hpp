@@ -22,7 +22,8 @@ class IntervalModel;
 class SCORE_PLUGIN_SCENARIO_EXPORT DisplayedElementsPresenter final
     : public QObject,
       public BaseScenarioPresenter<
-          DisplayedElementsModel, FullViewIntervalPresenter>
+          DisplayedElementsModel,
+          FullViewIntervalPresenter>
 {
   W_OBJECT(DisplayedElementsPresenter)
 public:
@@ -30,7 +31,8 @@ public:
   ~DisplayedElementsPresenter();
   using QObject::event;
   using BaseScenarioPresenter<
-      DisplayedElementsModel, FullViewIntervalPresenter>::event;
+      DisplayedElementsModel,
+      FullViewIntervalPresenter>::event;
 
   BaseGraphicsObject& view() const;
 
@@ -44,7 +46,9 @@ public:
 
 public:
   void requestFocusedPresenterChange(Process::LayerPresenter* arg_1) E_SIGNAL(
-      SCORE_PLUGIN_SCENARIO_EXPORT, requestFocusedPresenterChange, arg_1);
+      SCORE_PLUGIN_SCENARIO_EXPORT,
+      requestFocusedPresenterChange,
+      arg_1);
 
 private:
   void on_intervalExecutionTimer();

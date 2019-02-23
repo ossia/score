@@ -28,26 +28,27 @@ QSet<QString> DropHandler::fileExtensions() const noexcept
   return {"mid", "midi", "MID", "MIDI", "gm"};
 }
 
-std::vector<Process::ProcessDropHandler::ProcessDrop>
-DropHandler::dropData(
-    const std::vector<QByteArray>& data
-    , const score::DocumentContext& ctx) const noexcept
+std::vector<Process::ProcessDropHandler::ProcessDrop> DropHandler::dropData(
+    const std::vector<QByteArray>& data,
+    const score::DocumentContext& ctx) const noexcept
 {
   std::vector<Process::ProcessDropHandler::ProcessDrop> vec;
   {
     std::vector<MidiTrack::MidiSong> songs;
-    for(const auto& file : data)
+    for (const auto& file : data)
     {
-      if(auto song = MidiTrack::parse(file, ctx); !song.tracks.empty())
+      if (auto song = MidiTrack::parse(file, ctx); !song.tracks.empty())
       {
         for (MidiTrack& t : song.tracks)
         {
           Process::ProcessDropHandler::ProcessDrop p;
           p.creation.key = Metadata<ConcreteKey_k, Midi::ProcessModel>::get();
           p.duration = TimeVal::fromMsecs(song.durationInMs);
-          p.setup = [track=std::move(t),song_t=*p.duration] (Process::ProcessModel& m, score::Dispatcher& disp) {
+          p.setup = [track = std::move(t), song_t = *p.duration](
+                        Process::ProcessModel& m, score::Dispatcher& disp) {
             auto& midi = static_cast<Midi::ProcessModel&>(m);
-            disp.submit(new Midi::ReplaceNotes{midi, track.notes, track.min, track.max, song_t});
+            disp.submit(new Midi::ReplaceNotes{
+                midi, track.notes, track.min, track.max, song_t});
           };
           vec.push_back(std::move(p));
         }
@@ -63,19 +64,19 @@ MidiTrack::parse(const QMimeData& mime, const score::DocumentContext& ctx)
   if (mime.formats().contains("audio/midi"))
   {
     auto res = parse(mime.data("audio/midi"), ctx);
-    if(!res.tracks.empty())
+    if (!res.tracks.empty())
       return {std::move(res)};
   }
-  else if(mime.formats().contains("audio/x-midi"))
+  else if (mime.formats().contains("audio/x-midi"))
   {
     auto res = parse(mime.data("audio/x-midi"), ctx);
-    if(!res.tracks.empty())
+    if (!res.tracks.empty())
       return {std::move(res)};
   }
   else if (mime.hasUrls())
   {
     std::vector<MidiTrack::MidiSong> vec;
-    for(auto& url : mime.urls())
+    for (auto& url : mime.urls())
     {
       QFile f(url.toLocalFile());
       if (!QFileInfo{f}.suffix().toLower().contains("mid"))
@@ -85,7 +86,7 @@ MidiTrack::parse(const QMimeData& mime, const score::DocumentContext& ctx)
         continue;
 
       auto res = parse(f.readAll(), ctx);
-      if(!res.tracks.empty())
+      if (!res.tracks.empty())
         vec.push_back(std::move(res));
     }
     return vec;
@@ -94,7 +95,8 @@ MidiTrack::parse(const QMimeData& mime, const score::DocumentContext& ctx)
   return {};
 }
 
-MidiTrack::MidiSong MidiTrack::parse(const QByteArray& dat, const score::DocumentContext& ctx)
+MidiTrack::MidiSong
+MidiTrack::parse(const QByteArray& dat, const score::DocumentContext& ctx)
 {
   MidiSong m;
 
@@ -188,6 +190,7 @@ MidiTrack::MidiSong MidiTrack::parse(const QByteArray& dat, const score::Documen
               case rtmidi::meta_event_type::TEMPO_CHANGE:
               {
                 qDebug() << "TEMPO_CHANGE" << ev.m.bytes[0];
+                break;
               }
               default:
                 break;

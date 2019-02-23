@@ -247,8 +247,10 @@ private:
 
     score::testing::MockApplication app;
     Device::AddressSettings s;
-    for (auto val : {ossia::value(State::impulse{}), ossia::value(int{}),
-                     ossia::value(float{}), ossia::value(char{}),
+    for (auto val : {ossia::value(State::impulse{}),
+                     ossia::value(int{}),
+                     ossia::value(float{}),
+                     ossia::value(char{}),
                      ossia::value(std::string{}),
                      ossia::value(std::vector<ossia::value>{}),
                      ossia::value(std::array<float, 2>{}),

@@ -28,12 +28,15 @@ class SCORE_PLUGIN_SCENARIO_EXPORT CreateInterval_State_Event_TimeSync final
     : public score::Command
 {
   SCORE_COMMAND_DECL(
-      ScenarioCommandFactoryName(), CreateInterval_State_Event_TimeSync,
+      ScenarioCommandFactoryName(),
+      CreateInterval_State_Event_TimeSync,
       "Create an interval, a state, an event and a sync")
 public:
   CreateInterval_State_Event_TimeSync(
-      const Scenario::ProcessModel& scenario, Id<StateModel> startState,
-      TimeVal date, double endStateY);
+      const Scenario::ProcessModel& scenario,
+      Id<StateModel> startState,
+      TimeVal date,
+      double endStateY);
 
   const Path<Scenario::ProcessModel>& scenarioPath() const
   {
@@ -45,10 +48,7 @@ public:
     return m_command.createdInterval();
   }
 
-  const Id<StateModel>& startState() const
-  {
-    return m_command.startState();
-  }
+  const Id<StateModel>& startState() const { return m_command.startState(); }
 
   const Id<StateModel>& createdState() const
   {
@@ -60,10 +60,7 @@ public:
     return m_command.createdEvent();
   }
 
-  const Id<TimeSyncModel>& createdTimeSync() const
-  {
-    return m_newTimeSync;
-  }
+  const Id<TimeSyncModel>& createdTimeSync() const { return m_newTimeSync; }
 
   void undo(const score::DocumentContext& ctx) const override;
   void redo(const score::DocumentContext& ctx) const override;

@@ -14,7 +14,8 @@ struct CommandSpinbox : public QObject
 {
   using model_type = typename Property::model_type;
   CommandSpinbox(
-      const model_type& model, const score::CommandStackFacade& stck,
+      const model_type& model,
+      const score::CommandStackFacade& stck,
       QWidget* parent)
       : m_sb{new SpinBox{parent}}, m_slotDisp{stck}
   {
@@ -41,10 +42,7 @@ struct CommandSpinbox : public QObject
     m_sb->setValue((model.*Property::get())());
   }
 
-  auto widget() const
-  {
-    return m_sb;
-  }
+  auto widget() const { return m_sb; }
 
 private:
   SpinBox* m_sb{};

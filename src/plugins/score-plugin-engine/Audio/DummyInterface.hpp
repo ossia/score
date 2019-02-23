@@ -10,9 +10,7 @@ class DummyFactory final : public AudioFactory
 {
   SCORE_CONCRETE("13dabcc3-9cda-422f-a8c7-5fef5c220677")
 public:
-  ~DummyFactory() override
-  {
-  }
+  ~DummyFactory() override {}
 
   QString prettyName() const override
   {
@@ -27,8 +25,10 @@ public:
   }
 
   QWidget* make_settings(
-      Audio::Settings::Model& m, Audio::Settings::View& v,
-      score::SettingsCommandDispatcher& m_disp, QWidget* parent) override
+      Audio::Settings::Model& m,
+      Audio::Settings::View& v,
+      score::SettingsCommandDispatcher& m_disp,
+      QWidget* parent) override
   {
     return nullptr;
   }

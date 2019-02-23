@@ -17,11 +17,15 @@ struct GetPropertyWrapper final : public BaseProperty
       = ossia::qt_property_converter<typename Property::param_type>;
 
   GetPropertyWrapper(
-      ossia::net::parameter_base& param_addr, model_t& obj, QObject* context)
+      ossia::net::parameter_base& param_addr,
+      model_t& obj,
+      QObject* context)
       : BaseProperty{param_addr}, m_model{obj}
   {
     QObject::connect(
-        &m_model, Property::notify(), context,
+        &m_model,
+        Property::notify(),
+        context,
         [=] {
           auto newVal = converter_t::convert((m_model.*Property::get())());
           try

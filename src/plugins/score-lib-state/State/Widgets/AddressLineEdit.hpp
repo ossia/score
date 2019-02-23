@@ -62,7 +62,7 @@ class AddressAccessorLineEdit final
     : public AddressLineEditBase<AddressAccessorValidator, Parent_T>
 {
 public:
-  using AddressLineEditBase<
-      AddressAccessorValidator, Parent_T>::AddressLineEditBase;
+  using AddressLineEditBase<AddressAccessorValidator, Parent_T>::
+      AddressLineEditBase;
 };
 }

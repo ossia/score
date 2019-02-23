@@ -15,7 +15,8 @@ namespace Process
 InspectorWidgetDelegateFactory::~InspectorWidgetDelegateFactory() = default;
 
 QWidget* InspectorWidgetDelegateFactory::make(
-    const InspectedObjects& objects, const score::DocumentContext& doc,
+    const InspectedObjects& objects,
+    const score::DocumentContext& doc,
     QWidget* parent) const
 {
   if (objects.empty())
@@ -44,7 +45,9 @@ bool InspectorWidgetDelegateFactory::matches(
 }
 
 QWidget* InspectorWidgetDelegateFactory::wrap(
-    const ProcessModel& process, const score::DocumentContext& doc, QWidget* w,
+    const ProcessModel& process,
+    const score::DocumentContext& doc,
+    QWidget* w,
     QWidget* parent)
 {
   auto widg = new QWidget{parent};

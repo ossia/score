@@ -29,7 +29,8 @@ class SCORE_PLUGIN_MAPPING_EXPORT ProcessModel final
 
 public:
   ProcessModel(
-      const TimeVal& duration, const Id<Process::ProcessModel>& id,
+      const TimeVal& duration,
+      const Id<Process::ProcessModel>& id,
       QObject* parent);
 
   ProcessModel(DataStream::Deserializer& vis, QObject* parent);
@@ -82,8 +83,9 @@ public:
       double,
       targetMin READ targetMin WRITE setTargetMin NOTIFY targetMinChanged)
   PROPERTY(
-      State::AddressAccessor, targetAddress READ targetAddress WRITE
-                                  setTargetAddress NOTIFY targetAddressChanged)
+      State::AddressAccessor,
+      targetAddress READ targetAddress WRITE setTargetAddress NOTIFY
+          targetAddressChanged)
   PROPERTY(
       double,
       sourceMax READ sourceMax WRITE setSourceMax NOTIFY sourceMaxChanged)
@@ -91,8 +93,9 @@ public:
       double,
       sourceMin READ sourceMin WRITE setSourceMin NOTIFY sourceMinChanged)
   PROPERTY(
-      State::AddressAccessor, sourceAddress READ sourceAddress WRITE
-                                  setSourceAddress NOTIFY sourceAddressChanged)
+      State::AddressAccessor,
+      sourceAddress READ sourceAddress WRITE setSourceAddress NOTIFY
+          sourceAddressChanged)
 
 private:
   void init();

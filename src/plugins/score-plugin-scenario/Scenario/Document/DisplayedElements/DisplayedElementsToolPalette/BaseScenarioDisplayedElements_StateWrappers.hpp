@@ -29,9 +29,13 @@ public:
   {
     /// Event
     auto moveEvent = new Scenario::MoveEventState<
-        Command::MoveBaseEvent<Scenario_T>, Scenario_T, ToolPalette_T>{
-        palette, palette.model(), palette.context().context.commandStack,
-        palette.context().context.objectLocker, &sm};
+        Command::MoveBaseEvent<Scenario_T>,
+        Scenario_T,
+        ToolPalette_T>{palette,
+                       palette.model(),
+                       palette.context().context.commandStack,
+                       palette.context().context.objectLocker,
+                       &sm};
 
     score::make_transition<Scenario::ClickOnEndState_Transition<Scenario_T>>(
         waitState, moveEvent, *moveEvent);
@@ -50,9 +54,13 @@ public:
   {
     /// TimeSync
     auto moveTimeSync = new Scenario::MoveTimeSyncState<
-        Command::MoveBaseEvent<Scenario_T>, Scenario_T, ToolPalette_T>{
-        palette, palette.model(), palette.context().context.commandStack,
-        palette.context().context.objectLocker, &sm};
+        Command::MoveBaseEvent<Scenario_T>,
+        Scenario_T,
+        ToolPalette_T>{palette,
+                       palette.model(),
+                       palette.context().context.commandStack,
+                       palette.context().context.objectLocker,
+                       &sm};
 
     score::make_transition<
         Scenario::ClickOnEndTimeSync_Transition<Scenario_T>>(

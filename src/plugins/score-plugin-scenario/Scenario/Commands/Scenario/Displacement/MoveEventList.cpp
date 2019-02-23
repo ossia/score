@@ -15,9 +15,7 @@ namespace Scenario
 namespace Command
 {
 
-SerializableMoveEvent::~SerializableMoveEvent()
-{
-}
+SerializableMoveEvent::~SerializableMoveEvent() {}
 
 MoveEventFactoryInterface& MoveEventList::get(
     const score::ApplicationContext& ctx,

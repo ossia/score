@@ -7,9 +7,9 @@
 #include <score/application/ApplicationComponents.hpp>
 #include <score/application/ApplicationContext.hpp>
 #include <score/command/CommandGeneratorMap.hpp>
-#include <score/plugins/application/GUIApplicationPlugin.hpp>
 #include <score/plugins/InterfaceList.hpp>
 #include <score/plugins/StringFactoryKey.hpp>
+#include <score/plugins/application/GUIApplicationPlugin.hpp>
 #include <score/plugins/panel/PanelDelegateFactory.hpp>
 
 #include <core/document/Document.hpp>
@@ -30,9 +30,7 @@ ApplicationRegistrar::ApplicationRegistrar(ApplicationComponentsData& comp)
 {
 }
 
-ApplicationRegistrar::~ApplicationRegistrar()
-{
-}
+ApplicationRegistrar::~ApplicationRegistrar() {}
 
 SCORE_LIB_BASE_EXPORT
 void ApplicationRegistrar::registerAddons(std::vector<score::Addon> vec)
@@ -76,8 +74,11 @@ void ApplicationRegistrar::registerFactory(
 }
 
 GUIApplicationRegistrar::GUIApplicationRegistrar(
-    ApplicationComponentsData& comp, const score::GUIApplicationContext& ctx,
-    MenuManager& m, ToolbarManager& t, ActionManager& a)
+    ApplicationComponentsData& comp,
+    const score::GUIApplicationContext& ctx,
+    MenuManager& m,
+    ToolbarManager& t,
+    ActionManager& a)
     : ApplicationRegistrar{comp}
     , m_context{ctx}
     , m_menuManager{m}
@@ -86,9 +87,7 @@ GUIApplicationRegistrar::GUIApplicationRegistrar(
 {
 }
 
-GUIApplicationRegistrar::~GUIApplicationRegistrar()
-{
-}
+GUIApplicationRegistrar::~GUIApplicationRegistrar() {}
 
 SCORE_LIB_BASE_EXPORT
 void GUIApplicationRegistrar::registerGUIApplicationPlugin(

@@ -30,12 +30,14 @@ class SCORE_PLUGIN_SCENARIO_EXPORT AddLayerModelToSlot final
     : public score::Command
 {
   SCORE_COMMAND_DECL(
-      ScenarioCommandFactoryName(), AddLayerModelToSlot,
+      ScenarioCommandFactoryName(),
+      AddLayerModelToSlot,
       "Add a layer to a slot")
 public:
   AddLayerModelToSlot(const SlotPath& slot, Id<Process::ProcessModel> process);
   AddLayerModelToSlot(
-      const SlotPath& slot, const Process::ProcessModel& process);
+      const SlotPath& slot,
+      const Process::ProcessModel& process);
 
   void undo(const score::DocumentContext& ctx) const override;
   void redo(const score::DocumentContext& ctx) const override;

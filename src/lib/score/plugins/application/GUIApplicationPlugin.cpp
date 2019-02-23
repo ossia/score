@@ -27,9 +27,7 @@ ApplicationPlugin::ApplicationPlugin(const ApplicationContext& ctx)
 {
 }
 
-void ApplicationPlugin::initialize()
-{
-}
+void ApplicationPlugin::initialize() {}
 
 GUIApplicationPlugin::GUIApplicationPlugin(
     const score::GUIApplicationContext& app)
@@ -44,9 +42,7 @@ GUIElements GUIApplicationPlugin::makeGUIElements()
   return {};
 }
 
-void GUIApplicationPlugin::initialize()
-{
-}
+void GUIApplicationPlugin::initialize() {}
 
 Document* GUIApplicationPlugin::currentDocument() const
 {
@@ -58,40 +54,25 @@ bool GUIApplicationPlugin::handleStartup()
   return false;
 }
 
-void GUIApplicationPlugin::prepareNewDocument()
-{
-}
+void GUIApplicationPlugin::prepareNewDocument() {}
 
 void GUIApplicationPlugin::on_documentChanged(
-    score::Document* olddoc, score::Document* newdoc)
+    score::Document* olddoc,
+    score::Document* newdoc)
 {
 }
 
-void GUIApplicationPlugin::on_activeWindowChanged()
-{
-}
+void GUIApplicationPlugin::on_activeWindowChanged() {}
 
-void GUIApplicationPlugin::on_keyPressEvent(QKeyEvent& event)
-{
-}
+void GUIApplicationPlugin::on_keyPressEvent(QKeyEvent& event) {}
 
-void GUIApplicationPlugin::on_keyReleaseEvent(QKeyEvent& event)
-{
-}
+void GUIApplicationPlugin::on_keyReleaseEvent(QKeyEvent& event) {}
 
-void GUIApplicationPlugin::on_initDocument(score::Document& doc)
-{
-}
+void GUIApplicationPlugin::on_initDocument(score::Document& doc) {}
 
-void GUIApplicationPlugin::on_newDocument(score::Document& doc)
-{
-}
+void GUIApplicationPlugin::on_newDocument(score::Document& doc) {}
 
-void GUIApplicationPlugin::on_loadedDocument(score::Document& doc)
-{
-}
+void GUIApplicationPlugin::on_loadedDocument(score::Document& doc) {}
 
-void GUIApplicationPlugin::on_createdDocument(score::Document& doc)
-{
-}
+void GUIApplicationPlugin::on_createdDocument(score::Document& doc) {}
 }

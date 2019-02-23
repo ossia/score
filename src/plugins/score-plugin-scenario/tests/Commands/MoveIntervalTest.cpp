@@ -29,8 +29,13 @@ private:
     auto fv_0_id = Id<IntervalViewModel>{234};
     auto tb_0_id = getStrongId(scenar->timeSyncs());
     StandardCreationPolicy::createIntervalAndEndEventFromEvent(
-        *scenar, scenar->startEvent()->id(), std::chrono::milliseconds{34},
-        0.5, int_0_id, fv_0_id, ev_0_id);
+        *scenar,
+        scenar->startEvent()->id(),
+        std::chrono::milliseconds{34},
+        0.5,
+        int_0_id,
+        fv_0_id,
+        ev_0_id);
 
     IntervalData data{};
     data.id = int_0_id;

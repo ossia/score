@@ -29,7 +29,8 @@ class MoveBaseEvent final : public score::Command
 private:
   template <typename ScaleFun>
   static void updateDuration(
-      SimpleScenario_T& scenar, const TimeVal& newDuration,
+      SimpleScenario_T& scenar,
+      const TimeVal& newDuration,
       ScaleFun&& scaleMethod)
   {
     scenar.endEvent().setDate(newDuration);
@@ -48,10 +49,7 @@ public:
   {
     return CommandFactoryName<SimpleScenario_T>();
   }
-  const CommandKey& key() const noexcept override
-  {
-    return static_key();
-  }
+  const CommandKey& key() const noexcept override { return static_key(); }
   QString description() const override
   {
     return QObject::tr("Move a %1 event")
@@ -68,8 +66,12 @@ public:
   MoveBaseEvent() = default;
 
   MoveBaseEvent(
-      const SimpleScenario_T& scenar, const Id<EventModel>& event,
-      const TimeVal& date, double y, ExpandMode mode, LockMode)
+      const SimpleScenario_T& scenar,
+      const Id<EventModel>& event,
+      const TimeVal& date,
+      double y,
+      ExpandMode mode,
+      LockMode)
       : m_path{scenar}, m_newDate{date}, m_mode{mode}
   {
     const Scenario::IntervalModel& interval = scenar.interval();
@@ -79,8 +81,12 @@ public:
   }
 
   MoveBaseEvent(
-      const SimpleScenario_T& scenar, const Id<EventModel>& event,
-      const TimeVal& date, double y, ExpandMode mode, LockMode lm,
+      const SimpleScenario_T& scenar,
+      const Id<EventModel>& event,
+      const TimeVal& date,
+      double y,
+      ExpandMode mode,
+      LockMode lm,
       Id<StateModel>)
       : MoveBaseEvent{scenar, event, date, y, mode, lm}
   {
@@ -126,16 +132,18 @@ public:
     m_newDate = date;
   }
   void update(
-      unused_t, unused_t, const TimeVal& date, double, ExpandMode, LockMode,
+      unused_t,
+      unused_t,
+      const TimeVal& date,
+      double,
+      ExpandMode,
+      LockMode,
       unused_t)
   {
     m_newDate = date;
   }
 
-  const Path<SimpleScenario_T>& path() const
-  {
-    return m_path;
-  }
+  const Path<SimpleScenario_T>& path() const { return m_path; }
 
 protected:
   void serializeImpl(DataStreamInput& s) const override

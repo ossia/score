@@ -20,11 +20,14 @@ class AudioProtocolFactory final : public Device::ProtocolFactory
       const score::DocumentContext& ctx) override;
   const Device::DeviceSettings& defaultSettings() const override;
   Device::AddressDialog* makeAddAddressDialog(
-      const Device::DeviceInterface& dev, const score::DocumentContext& ctx,
+      const Device::DeviceInterface& dev,
+      const score::DocumentContext& ctx,
       QWidget* parent) override;
   Device::AddressDialog* makeEditAddressDialog(
-      const Device::AddressSettings&, const Device::DeviceInterface& dev,
-      const score::DocumentContext& ctx, QWidget*) override;
+      const Device::AddressSettings&,
+      const Device::DeviceInterface& dev,
+      const score::DocumentContext& ctx,
+      QWidget*) override;
 
   Device::ProtocolSettingsWidget* makeSettingsWidget() override;
 
@@ -32,7 +35,8 @@ class AudioProtocolFactory final : public Device::ProtocolFactory
   makeProtocolSpecificSettings(const VisitorVariant& visitor) const override;
 
   void serializeProtocolSpecificSettings(
-      const QVariant& data, const VisitorVariant& visitor) const override;
+      const QVariant& data,
+      const VisitorVariant& visitor) const override;
 
   bool checkCompatibility(
       const Device::DeviceSettings& a,
@@ -53,14 +57,12 @@ public:
       const Device::FullAddressSettings& settings) override;
   bool reconnect() override;
   void recreate(const Device::Node& n) override;
-  ossia::net::device_base* getDevice() const override
-  {
-    return &m_dev;
-  }
+  ossia::net::device_base* getDevice() const override { return &m_dev; }
 
 private:
   using Device::DeviceInterface::refresh;
-  void setupNode(ossia::net::node_base&, const ossia::extended_attributes& attr);
+  void
+  setupNode(ossia::net::node_base&, const ossia::extended_attributes& attr);
   Device::Node refresh() override;
   void disconnect() override;
   ossia::audio_protocol* m_protocol{};

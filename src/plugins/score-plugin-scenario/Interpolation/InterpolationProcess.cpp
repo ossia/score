@@ -16,7 +16,9 @@ namespace Interpolation
 ProcessModel::~ProcessModel() = default;
 
 ProcessState::ProcessState(
-    ProcessModel& model, Point watchedPoint, QObject* parent)
+    ProcessModel& model,
+    Point watchedPoint,
+    QObject* parent)
     : ProcessStateDataInterface{model, parent}, m_point{watchedPoint}
 {
 }
@@ -85,9 +87,9 @@ QString ProcessModel::prettyValue(double x, double y) const noexcept
   return QString::number(y, 'f', 3);
 }
 
-
 State::MessageList ProcessState::setMessages(
-    const State::MessageList& received, const Process::MessageNode&)
+    const State::MessageList& received,
+    const Process::MessageNode&)
 {
   auto& proc = process();
   State::AddressAccessor cur_address = proc.address();
@@ -113,10 +115,13 @@ State::MessageList ProcessState::setMessages(
 }
 
 ProcessModel::ProcessModel(
-    const TimeVal& duration, const Id<Process::ProcessModel>& id,
+    const TimeVal& duration,
+    const Id<Process::ProcessModel>& id,
     QObject* parent)
-    : CurveProcessModel{duration, id,
-                        Metadata<ObjectKey_k, ProcessModel>::get(), parent}
+    : CurveProcessModel{duration,
+                        id,
+                        Metadata<ObjectKey_k, ProcessModel>::get(),
+                        parent}
     , m_startState{new ProcessState{*this, ProcessState::Start, this}}
     , m_endState{new ProcessState{*this, ProcessState::End, this}}
 {

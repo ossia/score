@@ -1,19 +1,20 @@
 #pragma once
 #include <Midi/MidiNote.hpp>
-#include <Process/TimeValue.hpp>
 #include <Process/Drop/ProcessDropHandler.hpp>
+#include <Process/TimeValue.hpp>
 namespace Midi
 {
 
-class DropHandler final
-    : public Process::ProcessDropHandler
+class DropHandler final : public Process::ProcessDropHandler
 {
   SCORE_CONCRETE("8F162598-9E4E-4865-A861-81DF01D2CDF0")
 
 public:
   QSet<QString> mimeTypes() const noexcept override;
   QSet<QString> fileExtensions() const noexcept override;
-  std::vector<ProcessDrop> dropData(const std::vector<QByteArray>& data, const score::DocumentContext& ctx) const noexcept override;
+  std::vector<ProcessDrop> dropData(
+      const std::vector<QByteArray>& data,
+      const score::DocumentContext& ctx) const noexcept override;
 };
 
 struct MidiTrack

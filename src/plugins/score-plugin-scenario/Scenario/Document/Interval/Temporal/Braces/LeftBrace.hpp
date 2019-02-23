@@ -21,10 +21,7 @@ public:
   {
     return QGraphicsItem::UserType + ItemType::LeftBrace;
   }
-  int type() const override
-  {
-    return static_type();
-  }
+  int type() const override { return static_type(); }
 };
 
 class SCORE_PLUGIN_SCENARIO_EXPORT RightBraceView final : public IntervalBrace
@@ -41,9 +38,6 @@ public:
   {
     return QGraphicsItem::UserType + ItemType::RightBrace;
   }
-  int type() const override
-  {
-    return static_type();
-  }
+  int type() const override { return static_type(); }
 };
 }

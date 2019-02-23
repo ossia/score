@@ -32,26 +32,11 @@ struct indirect_iterator
     return i;
   }
 
-  value_type& operator*()
-  {
-    return **it;
-  }
-  value_type* operator->()
-  {
-    return *it;
-  }
-  bool operator==(const self_type& rhs) const
-  {
-    return it == rhs.it;
-  }
-  bool operator!=(const self_type& rhs) const
-  {
-    return it != rhs.it;
-  }
-  bool operator<(const self_type& rhs) const
-  {
-    return it < rhs.it;
-  }
+  value_type& operator*() { return **it; }
+  value_type* operator->() { return *it; }
+  bool operator==(const self_type& rhs) const { return it == rhs.it; }
+  bool operator!=(const self_type& rhs) const { return it != rhs.it; }
+  bool operator<(const self_type& rhs) const { return it < rhs.it; }
 };
 
 template <typename T>
@@ -87,26 +72,11 @@ struct indirect_ptr_iterator
     return i;
   }
 
-  auto& operator*()
-  {
-    return **it;
-  }
-  auto operator-> ()
-  {
-    return it;
-  }
-  bool operator==(const self_type& rhs) const
-  {
-    return it == rhs.it;
-  }
-  bool operator!=(const self_type& rhs) const
-  {
-    return it != rhs.it;
-  }
-  bool operator<(const self_type& rhs) const
-  {
-    return it < rhs.it;
-  }
+  auto& operator*() { return **it; }
+  auto operator-> () { return it; }
+  bool operator==(const self_type& rhs) const { return it == rhs.it; }
+  bool operator!=(const self_type& rhs) const { return it != rhs.it; }
+  bool operator<(const self_type& rhs) const { return it < rhs.it; }
 };
 
 template <typename T>
@@ -142,26 +112,11 @@ struct indirect_map_iterator
     return i;
   }
 
-  auto& operator*()
-  {
-    return *it->second;
-  }
-  auto operator-> ()
-  {
-    return it->second.get();
-  }
-  bool operator==(const self_type& rhs) const
-  {
-    return it == rhs.it;
-  }
-  bool operator!=(const self_type& rhs) const
-  {
-    return it != rhs.it;
-  }
-  bool operator<(const self_type& rhs) const
-  {
-    return it < rhs.it;
-  }
+  auto& operator*() { return *it->second; }
+  auto operator-> () { return it->second.get(); }
+  bool operator==(const self_type& rhs) const { return it == rhs.it; }
+  bool operator!=(const self_type& rhs) const { return it != rhs.it; }
+  bool operator<(const self_type& rhs) const { return it < rhs.it; }
 };
 
 template <typename T>
@@ -178,34 +133,13 @@ public:
   using ctnr_t::ctnr_t;
   using value_type = T;
 
-  auto begin()
-  {
-    return make_indirect_ptr_iterator(ctnr_t::begin());
-  }
-  auto end()
-  {
-    return make_indirect_ptr_iterator(ctnr_t::end());
-  }
-  auto begin() const
-  {
-    return make_indirect_ptr_iterator(ctnr_t::begin());
-  }
-  auto end() const
-  {
-    return make_indirect_ptr_iterator(ctnr_t::end());
-  }
-  auto cbegin() const
-  {
-    return make_indirect_ptr_iterator(ctnr_t::cbegin());
-  }
-  auto cend() const
-  {
-    return make_indirect_ptr_iterator(ctnr_t::cend());
-  }
-  auto size() const
-  {
-    return ctnr_t::size();
-  }
+  auto begin() { return make_indirect_ptr_iterator(ctnr_t::begin()); }
+  auto end() { return make_indirect_ptr_iterator(ctnr_t::end()); }
+  auto begin() const { return make_indirect_ptr_iterator(ctnr_t::begin()); }
+  auto end() const { return make_indirect_ptr_iterator(ctnr_t::end()); }
+  auto cbegin() const { return make_indirect_ptr_iterator(ctnr_t::cbegin()); }
+  auto cend() const { return make_indirect_ptr_iterator(ctnr_t::cend()); }
+  auto size() const { return ctnr_t::size(); }
 };
 
 template <class Container>
@@ -214,30 +148,12 @@ class IndirectContainerWrapper
 public:
   Container& container;
 
-  auto begin()
-  {
-    return make_indirect_iterator(container.begin());
-  }
-  auto end()
-  {
-    return make_indirect_iterator(container.end());
-  }
-  auto begin() const
-  {
-    return make_indirect_iterator(container.begin());
-  }
-  auto end() const
-  {
-    return make_indirect_iterator(container.end());
-  }
-  auto cbegin() const
-  {
-    return make_indirect_iterator(container.cbegin());
-  }
-  auto cend() const
-  {
-    return make_indirect_iterator(container.cend());
-  }
+  auto begin() { return make_indirect_iterator(container.begin()); }
+  auto end() { return make_indirect_iterator(container.end()); }
+  auto begin() const { return make_indirect_iterator(container.begin()); }
+  auto end() const { return make_indirect_iterator(container.end()); }
+  auto cbegin() const { return make_indirect_iterator(container.cbegin()); }
+  auto cend() const { return make_indirect_iterator(container.cend()); }
 };
 
 template <typename T>
@@ -258,85 +174,34 @@ public:
   {
   }
 
-  auto begin()
-  {
-    return make_indirect_ptr_iterator(array.begin());
-  }
-  auto end()
-  {
-    return make_indirect_ptr_iterator(array.end());
-  }
-  auto begin() const
-  {
-    return make_indirect_ptr_iterator(array.begin());
-  }
-  auto end() const
-  {
-    return make_indirect_ptr_iterator(array.end());
-  }
-  auto cbegin() const
-  {
-    return make_indirect_ptr_iterator(array.cbegin());
-  }
-  auto cend() const
-  {
-    return make_indirect_ptr_iterator(array.cend());
-  }
+  auto begin() { return make_indirect_ptr_iterator(array.begin()); }
+  auto end() { return make_indirect_ptr_iterator(array.end()); }
+  auto begin() const { return make_indirect_ptr_iterator(array.begin()); }
+  auto end() const { return make_indirect_ptr_iterator(array.end()); }
+  auto cbegin() const { return make_indirect_ptr_iterator(array.cbegin()); }
+  auto cend() const { return make_indirect_ptr_iterator(array.cend()); }
 
-  auto& operator[](int pos)
-  {
-    return *array[pos];
-  }
-  auto& operator[](int pos) const
-  {
-    return *array[pos];
-  }
+  auto& operator[](int pos) { return *array[pos]; }
+  auto& operator[](int pos) const { return *array[pos]; }
 };
 
 template <typename Map_T>
 class IndirectMap
 {
 public:
-  auto begin()
-  {
-    return make_indirect_iterator(map.begin());
-  }
-  auto begin() const
-  {
-    return make_indirect_iterator(map.begin());
-  }
+  auto begin() { return make_indirect_iterator(map.begin()); }
+  auto begin() const { return make_indirect_iterator(map.begin()); }
 
-  auto cbegin()
-  {
-    return make_indirect_iterator(map.cbegin());
-  }
-  auto cbegin() const
-  {
-    return make_indirect_iterator(map.cbegin());
-  }
+  auto cbegin() { return make_indirect_iterator(map.cbegin()); }
+  auto cbegin() const { return make_indirect_iterator(map.cbegin()); }
 
-  auto end()
-  {
-    return make_indirect_iterator(map.end());
-  }
-  auto end() const
-  {
-    return make_indirect_iterator(map.end());
-  }
+  auto end() { return make_indirect_iterator(map.end()); }
+  auto end() const { return make_indirect_iterator(map.end()); }
 
-  auto cend()
-  {
-    return make_indirect_iterator(map.cend());
-  }
-  auto cend() const
-  {
-    return make_indirect_iterator(map.cend());
-  }
+  auto cend() { return make_indirect_iterator(map.cend()); }
+  auto cend() const { return make_indirect_iterator(map.cend()); }
 
-  auto empty() const
-  {
-    return map.empty();
-  }
+  auto empty() const { return map.empty(); }
 
   template <typename K>
   auto find(K&& key)
@@ -362,50 +227,21 @@ class IndirectUnorderedMap
 
 public:
   using value_type = typename base_iterator_t::value_type;
-  IndirectUnorderedMap()
-  {
-  }
+  IndirectUnorderedMap() {}
 
-  auto begin()
-  {
-    return make_indirect_map_iterator(map.begin());
-  }
-  auto begin() const
-  {
-    return make_indirect_map_iterator(map.begin());
-  }
+  auto begin() { return make_indirect_map_iterator(map.begin()); }
+  auto begin() const { return make_indirect_map_iterator(map.begin()); }
 
-  auto cbegin()
-  {
-    return make_indirect_map_iterator(map.cbegin());
-  }
-  auto cbegin() const
-  {
-    return make_indirect_map_iterator(map.cbegin());
-  }
+  auto cbegin() { return make_indirect_map_iterator(map.cbegin()); }
+  auto cbegin() const { return make_indirect_map_iterator(map.cbegin()); }
 
-  auto end()
-  {
-    return make_indirect_map_iterator(map.end());
-  }
-  auto end() const
-  {
-    return make_indirect_map_iterator(map.end());
-  }
+  auto end() { return make_indirect_map_iterator(map.end()); }
+  auto end() const { return make_indirect_map_iterator(map.end()); }
 
-  auto cend()
-  {
-    return make_indirect_map_iterator(map.cend());
-  }
-  auto cend() const
-  {
-    return make_indirect_map_iterator(map.cend());
-  }
+  auto cend() { return make_indirect_map_iterator(map.cend()); }
+  auto cend() const { return make_indirect_map_iterator(map.cend()); }
 
-  auto empty() const
-  {
-    return map.empty();
-  }
+  auto empty() const { return map.empty(); }
 
   template <typename K>
   auto find(K&& key) const

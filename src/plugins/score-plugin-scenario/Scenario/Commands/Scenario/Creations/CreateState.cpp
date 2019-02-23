@@ -23,7 +23,8 @@ namespace Scenario
 namespace Command
 {
 CreateState::CreateState(
-    const Scenario::ProcessModel& scenario, Id<EventModel> event,
+    const Scenario::ProcessModel& scenario,
+    Id<EventModel> event,
     double stateY)
     : m_path{scenario}
     , m_createdName{RandomNameProvider::generateName<StateModel>()}
@@ -33,8 +34,10 @@ CreateState::CreateState(
 {
 }
 CreateState::CreateState(
-    const Scenario::ProcessModel& scenario, Id<StateModel> newId,
-    Id<EventModel> event, double stateY)
+    const Scenario::ProcessModel& scenario,
+    Id<StateModel> newId,
+    Id<EventModel> event,
+    double stateY)
     : m_path{scenario}
     , m_createdName{RandomNameProvider::generateName<StateModel>()}
     , m_newState{newId}

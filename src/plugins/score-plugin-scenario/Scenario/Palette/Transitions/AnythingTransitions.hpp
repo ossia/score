@@ -137,8 +137,6 @@ protected:
 
     return find(begin(types), end(types), e->type()) != end(types);
   }
-  void onTransition(QEvent* event) override
-  {
-  }
+  void onTransition(QEvent* event) override {}
 };
 }

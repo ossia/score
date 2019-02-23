@@ -63,9 +63,13 @@ struct SegmentData
   SegmentData& operator=(SegmentData&&) = default;
 
   SegmentData(
-      Id<SegmentModel> i, Curve::Point s, Curve::Point e,
-      OptionalId<SegmentModel> prev, OptionalId<SegmentModel> foll,
-      const UuidKey<Curve::SegmentFactory>& t, QVariant data)
+      Id<SegmentModel> i,
+      Curve::Point s,
+      Curve::Point e,
+      OptionalId<SegmentModel> prev,
+      OptionalId<SegmentModel> foll,
+      const UuidKey<Curve::SegmentFactory>& t,
+      QVariant data)
       : id(std::move(i))
       , start(s)
       , end(e)
@@ -84,10 +88,7 @@ struct SegmentData
   UuidKey<Curve::SegmentFactory> type;
   QVariant specificSegmentData;
 
-  double x() const
-  {
-    return start.x();
-  }
+  double x() const { return start.x(); }
 };
 
 inline bool operator<(const SegmentData& lhs, const SegmentData& rhs)
@@ -147,10 +148,7 @@ inline Id<SegmentModel> getSegmentId(const std::vector<Id<SegmentModel>>& ids)
 class CurveDataHash
 {
 public:
-  std::size_t operator()(const Id<SegmentModel>& id) const
-  {
-    return id.val();
-  }
+  std::size_t operator()(const Id<SegmentModel>& id) const { return id.val(); }
 };
 
 /*
@@ -203,16 +201,10 @@ W_REGISTER_ARGTYPE(Curve::SegmentData)
   template <>                                             \
   struct Export Metadata<PrettyName_k, Model>             \
   {                                                       \
-    static auto get()                                     \
-    {                                                     \
-      return QObject::tr(PrettyName);                     \
-    }                                                     \
+    static auto get() { return QObject::tr(PrettyName); } \
   };                                                      \
   template <>                                             \
   struct Export Metadata<Curve::Category_k, Model>        \
   {                                                       \
-    static auto get()                                     \
-    {                                                     \
-      return QObject::tr(Category);                       \
-    }                                                     \
+    static auto get() { return QObject::tr(Category); }   \
   };

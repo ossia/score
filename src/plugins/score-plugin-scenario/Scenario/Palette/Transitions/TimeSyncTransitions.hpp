@@ -8,8 +8,8 @@ class Transition_T<Scenario_T, ClickOnTimeSync> final
     : public MatchedTransition<Scenario_T, ClickOnTimeSync_Event>
 {
 public:
-  using MatchedTransition<
-      Scenario_T, ClickOnTimeSync_Event>::MatchedTransition;
+  using MatchedTransition<Scenario_T, ClickOnTimeSync_Event>::
+      MatchedTransition;
 
 protected:
   void onTransition(QEvent* ev) override
@@ -29,8 +29,8 @@ class ClickOnEndTimeSync_Transition final
     : public MatchedTransition<Scenario_T, ClickOnTimeSync_Event>
 {
 public:
-  using MatchedTransition<
-      Scenario_T, ClickOnTimeSync_Event>::MatchedTransition;
+  using MatchedTransition<Scenario_T, ClickOnTimeSync_Event>::
+      MatchedTransition;
 
 protected:
   bool eventTest(QEvent* e) override
@@ -78,8 +78,8 @@ class Transition_T<Scenario_T, ReleaseOnTimeSync> final
     : public MatchedTransition<Scenario_T, ReleaseOnTimeSync_Event>
 {
 public:
-  using MatchedTransition<
-      Scenario_T, ReleaseOnTimeSync_Event>::MatchedTransition;
+  using MatchedTransition<Scenario_T, ReleaseOnTimeSync_Event>::
+      MatchedTransition;
 
 protected:
   void onTransition(QEvent* ev) override

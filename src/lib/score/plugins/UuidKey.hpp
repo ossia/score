@@ -22,49 +22,40 @@ public:
   typedef std::size_t size_type;
   typedef std::ptrdiff_t difference_type;
 
-  static constexpr size_type static_size() noexcept
-  {
-    return 16;
-  }
+  static constexpr size_type static_size() noexcept { return 16; }
 
 public:
-  constexpr uuid() noexcept : data{{}}
-  {
-  }
+  constexpr uuid() noexcept : data{{}} {}
 
-  constexpr uuid(const uuid& other) noexcept : data{other.data}
-  {
-  }
+  constexpr uuid(const uuid& other) noexcept : data{other.data} {}
 
   constexpr uuid(uint8_t* other) noexcept
-      : data{other[0],  other[1],  other[2],  other[3], other[4],  other[5],
-             other[6],  other[7],  other[8],  other[9], other[10], other[11],
-             other[12], other[13], other[14], other[15]}
+      : data{other[0],
+             other[1],
+             other[2],
+             other[3],
+             other[4],
+             other[5],
+             other[6],
+             other[7],
+             other[8],
+             other[9],
+             other[10],
+             other[11],
+             other[12],
+             other[13],
+             other[14],
+             other[15]}
   {
   }
 
-  constexpr auto begin() noexcept
-  {
-    return data.data();
-  }
-  constexpr auto end() noexcept
-  {
-    return data.data() + data.size();
-  }
+  constexpr auto begin() noexcept { return data.data(); }
+  constexpr auto end() noexcept { return data.data() + data.size(); }
 
-  constexpr auto begin() const noexcept
-  {
-    return data.data();
-  }
-  constexpr auto end() const noexcept
-  {
-    return data.data() + data.size();
-  }
+  constexpr auto begin() const noexcept { return data.data(); }
+  constexpr auto end() const noexcept { return data.data() + data.size(); }
 
-  constexpr size_type size() const noexcept
-  {
-    return static_size();
-  }
+  constexpr size_type size() const noexcept { return static_size(); }
 
   constexpr bool is_nil() const noexcept
   {
@@ -319,14 +310,8 @@ private:
     return get_value(c.toLatin1());
   }
 
-  static constexpr bool is_dash(char c)
-  {
-    return c == '-';
-  }
-  static constexpr bool is_dash(QChar c)
-  {
-    return c.toLatin1() == '-';
-  }
+  static constexpr bool is_dash(char c) { return c == '-'; }
+  static constexpr bool is_dash(QChar c) { return c.toLatin1() == '-'; }
 };
 
 SCORE_LIB_BASE_EXPORT QByteArray toByteArray(score::uuids::uuid const& u);
@@ -373,9 +358,7 @@ public:
   constexpr UuidKey& operator=(const UuidKey& other) noexcept = default;
   constexpr UuidKey& operator=(UuidKey&& other) noexcept = default;
 
-  constexpr UuidKey(score::uuid_t other) noexcept : score::uuid_t(other)
-  {
-  }
+  constexpr UuidKey(score::uuid_t other) noexcept : score::uuid_t(other) {}
 
   template <int N>
   explicit constexpr UuidKey(const char (&txt)[N])
@@ -399,14 +382,8 @@ public:
     return UuidKey{str.begin(), str.end()};
   }
 
-  constexpr const score::uuid_t& impl() const
-  {
-    return *this;
-  }
-  constexpr score::uuid_t& impl()
-  {
-    return *this;
-  }
+  constexpr const score::uuid_t& impl() const { return *this; }
+  constexpr score::uuid_t& impl() { return *this; }
 };
 
 namespace std

@@ -14,7 +14,9 @@ namespace Process
 class SCORE_LIB_PROCESS_EXPORT ChangePortAddress final : public score::Command
 {
   SCORE_COMMAND_DECL(
-      Process::CommandFactoryName(), ChangePortAddress, "Edit a node port")
+      Process::CommandFactoryName(),
+      ChangePortAddress,
+      "Edit a node port")
 public:
   ChangePortAddress(const Process::Port& p, State::AddressAccessor addr);
 
@@ -35,7 +37,9 @@ class SCORE_LIB_PROCESS_EXPORT SetPortPropagate final
     : public score::PropertyCommand
 {
   SCORE_COMMAND_DECL(
-      Process::CommandFactoryName(), SetPortPropagate, "Set port propagation")
+      Process::CommandFactoryName(),
+      SetPortPropagate,
+      "Set port propagation")
 public:
   SetPortPropagate(const Process::Port& p, bool newval)
       : score::PropertyCommand{p, "propagate", newval}

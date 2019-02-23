@@ -9,7 +9,8 @@ namespace Scenario
 struct ScenarioBeingCopied
 {
   ScenarioBeingCopied(
-      const QJsonObject& obj, const Scenario::ProcessModel& scenario,
+      const QJsonObject& obj,
+      const Scenario::ProcessModel& scenario,
       const score::DocumentContext& ctx)
   {
     // TODO this is really a bad idea... either they should be properly added,
@@ -61,7 +62,9 @@ struct ScenarioBeingCopied
       for (const auto& element : json_arr)
       {
         cables.emplace_back(
-            fromJsonValue<std::pair<Id<Process::Cable>, Process::CableData>>(element.toObject()).second);
+            fromJsonValue<std::pair<Id<Process::Cable>, Process::CableData>>(
+                element.toObject())
+                .second);
       }
     }
 

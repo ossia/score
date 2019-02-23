@@ -55,18 +55,9 @@ public:
   }
 
   // Getters for plugin-registered things
-  const auto& applicationPlugins() const
-  {
-    return m_data.appPlugins;
-  }
-  const auto& guiApplicationPlugins() const
-  {
-    return m_data.guiAppPlugins;
-  }
-  const auto& addons() const
-  {
-    return m_data.addons;
-  }
+  const auto& applicationPlugins() const { return m_data.appPlugins; }
+  const auto& guiApplicationPlugins() const { return m_data.guiAppPlugins; }
+  const auto& addons() const { return m_data.addons; }
 
   template <typename T>
   T& applicationPlugin() const
@@ -126,10 +117,7 @@ public:
     return nullptr;
   }
 
-  auto panels() const
-  {
-    return wrap_indirect(m_data.panels);
-  }
+  auto panels() const { return wrap_indirect(m_data.panels); }
 
   template <typename T>
   T& panel() const

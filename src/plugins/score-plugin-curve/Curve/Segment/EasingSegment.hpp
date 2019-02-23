@@ -19,9 +19,7 @@ public:
     return Metadata<ConcreteKey_k, EasingSegment>::get();
   }
 
-  void serialize_impl(const VisitorVariant& vis) const override
-  {
-  }
+  void serialize_impl(const VisitorVariant& vis) const override {}
 
   using data_type = EasingData;
   EasingSegment(const Id<SegmentModel>& id, QObject* parent)
@@ -34,7 +32,8 @@ public:
   }
 
   EasingSegment(
-      const EasingSegment& other, const Curve::SegmentModel::id_type& id,
+      const EasingSegment& other,
+      const Curve::SegmentModel::id_type& id,
       QObject* parent)
       : Curve::SegmentModel{other.start(), other.end(), id, parent}
   {
@@ -49,14 +48,8 @@ public:
   {
   }
 
-  void on_startChanged() override
-  {
-    dataChanged();
-  }
-  void on_endChanged() override
-  {
-    dataChanged();
-  }
+  void on_startChanged() override { dataChanged(); }
+  void on_endChanged() override { dataChanged(); }
 
   void updateData(int numInterp) const override
   {
@@ -88,20 +81,10 @@ public:
                  / (end().x() - start().x());
   }
 
-  optional<double> verticalParameter() const override
-  {
-    return {};
-  }
-  optional<double> horizontalParameter() const override
-  {
-    return {};
-  }
-  void setVerticalParameter(double p) override
-  {
-  }
-  void setHorizontalParameter(double p) override
-  {
-  }
+  optional<double> verticalParameter() const override { return {}; }
+  optional<double> horizontalParameter() const override { return {}; }
+  void setVerticalParameter(double p) override {}
+  void setHorizontalParameter(double p) override {}
 
   QVariant toSegmentSpecificData() const override
   {
@@ -187,95 +170,219 @@ W_REGISTER_ARGTYPE(Curve::EasingData)
 // '
 
 CURVE_SEGMENT_METADATA(
-    , Curve::Segment_backIn, "fb5cb6c1-47fd-497c-9d69-7a87adbaf3b3", "backIn",
-    "backIn", "Easing")
+    ,
+    Curve::Segment_backIn,
+    "fb5cb6c1-47fd-497c-9d69-7a87adbaf3b3",
+    "backIn",
+    "backIn",
+    "Easing")
 CURVE_SEGMENT_METADATA(
-    , Curve::Segment_backOut, "0edbd8f5-67c2-41f2-ae80-f014e5c24aa6",
-    "backOut", "backOut", "Easing")
+    ,
+    Curve::Segment_backOut,
+    "0edbd8f5-67c2-41f2-ae80-f014e5c24aa6",
+    "backOut",
+    "backOut",
+    "Easing")
 CURVE_SEGMENT_METADATA(
-    , Curve::Segment_backInOut, "3825c351-698d-4930-9862-28c5f7f51c61",
-    "backInOut", "backInOut", "Easing")
+    ,
+    Curve::Segment_backInOut,
+    "3825c351-698d-4930-9862-28c5f7f51c61",
+    "backInOut",
+    "backInOut",
+    "Easing")
 CURVE_SEGMENT_METADATA(
-    , Curve::Segment_bounceIn, "51fafa98-aa8e-48f0-adae-c21c3eeb63ca",
-    "bounceIn", "bounceIn", "Easing")
+    ,
+    Curve::Segment_bounceIn,
+    "51fafa98-aa8e-48f0-adae-c21c3eeb63ca",
+    "bounceIn",
+    "bounceIn",
+    "Easing")
 CURVE_SEGMENT_METADATA(
-    , Curve::Segment_bounceOut, "75ce6961-22b3-4a9e-b989-3131098bd092",
-    "bounceOut", "bounceOut", "Easing")
+    ,
+    Curve::Segment_bounceOut,
+    "75ce6961-22b3-4a9e-b989-3131098bd092",
+    "bounceOut",
+    "bounceOut",
+    "Easing")
 CURVE_SEGMENT_METADATA(
-    , Curve::Segment_bounceInOut, "30d5c3dc-5a8c-44a8-95b4-67ca3ff5088b",
-    "bounceInOut", "bounceInOut", "Easing")
+    ,
+    Curve::Segment_bounceInOut,
+    "30d5c3dc-5a8c-44a8-95b4-67ca3ff5088b",
+    "bounceInOut",
+    "bounceInOut",
+    "Easing")
 CURVE_SEGMENT_METADATA(
-    , Curve::Segment_quadraticIn, "a2f38b24-f2c9-42d7-bb5e-a51a821d2ffd",
-    "quadraticIn", "quadraticIn", "Easing")
+    ,
+    Curve::Segment_quadraticIn,
+    "a2f38b24-f2c9-42d7-bb5e-a51a821d2ffd",
+    "quadraticIn",
+    "quadraticIn",
+    "Easing")
 CURVE_SEGMENT_METADATA(
-    , Curve::Segment_quadraticOut, "9717560b-fae1-4035-afbf-031f3581d132",
-    "quadraticOut", "quadraticOut", "Easing")
+    ,
+    Curve::Segment_quadraticOut,
+    "9717560b-fae1-4035-afbf-031f3581d132",
+    "quadraticOut",
+    "quadraticOut",
+    "Easing")
 CURVE_SEGMENT_METADATA(
-    , Curve::Segment_quadraticInOut, "fc333d55-064a-4af8-b4a8-23fe16e80ecc",
-    "quadraticInOut", "quadraticInOut", "Easing")
+    ,
+    Curve::Segment_quadraticInOut,
+    "fc333d55-064a-4af8-b4a8-23fe16e80ecc",
+    "quadraticInOut",
+    "quadraticInOut",
+    "Easing")
 CURVE_SEGMENT_METADATA(
-    , Curve::Segment_cubicIn, "b6bddf8b-b2cb-46d6-8d90-31b3029317e8",
-    "cubicIn", "cubicIn", "Easing")
+    ,
+    Curve::Segment_cubicIn,
+    "b6bddf8b-b2cb-46d6-8d90-31b3029317e8",
+    "cubicIn",
+    "cubicIn",
+    "Easing")
 CURVE_SEGMENT_METADATA(
-    , Curve::Segment_cubicOut, "ff9a7726-2d8f-43f2-a95c-e395fdbd5aa9",
-    "cubicOut", "cubicOut", "Easing")
+    ,
+    Curve::Segment_cubicOut,
+    "ff9a7726-2d8f-43f2-a95c-e395fdbd5aa9",
+    "cubicOut",
+    "cubicOut",
+    "Easing")
 CURVE_SEGMENT_METADATA(
-    , Curve::Segment_cubicInOut, "21556d2a-ac8a-4acf-bf42-5eca9795047c",
-    "cubicInOut", "cubicInOut", "Easing")
+    ,
+    Curve::Segment_cubicInOut,
+    "21556d2a-ac8a-4acf-bf42-5eca9795047c",
+    "cubicInOut",
+    "cubicInOut",
+    "Easing")
 CURVE_SEGMENT_METADATA(
-    , Curve::Segment_quarticIn, "72678775-535f-438e-b4bb-1077af3fab99",
-    "quarticIn", "quarticIn", "Easing")
+    ,
+    Curve::Segment_quarticIn,
+    "72678775-535f-438e-b4bb-1077af3fab99",
+    "quarticIn",
+    "quarticIn",
+    "Easing")
 CURVE_SEGMENT_METADATA(
-    , Curve::Segment_quarticOut, "bd6f4867-2c30-4267-aa97-0ed767883d22",
-    "quarticOut", "quarticOut", "Easing")
+    ,
+    Curve::Segment_quarticOut,
+    "bd6f4867-2c30-4267-aa97-0ed767883d22",
+    "quarticOut",
+    "quarticOut",
+    "Easing")
 CURVE_SEGMENT_METADATA(
-    , Curve::Segment_quarticInOut, "93cac01a-dedc-4cb4-ad2d-d81b31e6187c",
-    "quarticInOut", "quarticInOut", "Easing")
+    ,
+    Curve::Segment_quarticInOut,
+    "93cac01a-dedc-4cb4-ad2d-d81b31e6187c",
+    "quarticInOut",
+    "quarticInOut",
+    "Easing")
 CURVE_SEGMENT_METADATA(
-    , Curve::Segment_quinticIn, "cd08eabe-51a4-429e-8740-c097c1b34b83",
-    "quinticIn", "quinticIn", "Easing")
+    ,
+    Curve::Segment_quinticIn,
+    "cd08eabe-51a4-429e-8740-c097c1b34b83",
+    "quinticIn",
+    "quinticIn",
+    "Easing")
 CURVE_SEGMENT_METADATA(
-    , Curve::Segment_quinticOut, "cb6e340b-faee-440c-8ef5-05ec6f7f4791",
-    "quinticOut", "quinticOut", "Easing")
+    ,
+    Curve::Segment_quinticOut,
+    "cb6e340b-faee-440c-8ef5-05ec6f7f4791",
+    "quinticOut",
+    "quinticOut",
+    "Easing")
 CURVE_SEGMENT_METADATA(
-    , Curve::Segment_quinticInOut, "b2cce6a7-c651-429f-ae46-d322991e92d4",
-    "quinticInOut", "quinticInOut", "Easing")
+    ,
+    Curve::Segment_quinticInOut,
+    "b2cce6a7-c651-429f-ae46-d322991e92d4",
+    "quinticInOut",
+    "quinticInOut",
+    "Easing")
 CURVE_SEGMENT_METADATA(
-    , Curve::Segment_sineIn, "e8a44b49-4d91-4066-8e25-7669d8927792", "sineIn",
-    "sineIn", "Easing")
+    ,
+    Curve::Segment_sineIn,
+    "e8a44b49-4d91-4066-8e25-7669d8927792",
+    "sineIn",
+    "sineIn",
+    "Easing")
 CURVE_SEGMENT_METADATA(
-    , Curve::Segment_sineOut, "e5d2dea4-061e-4139-8da2-1d21b0414273",
-    "sineOut", "sineOut", "Easing")
+    ,
+    Curve::Segment_sineOut,
+    "e5d2dea4-061e-4139-8da2-1d21b0414273",
+    "sineOut",
+    "sineOut",
+    "Easing")
 CURVE_SEGMENT_METADATA(
-    , Curve::Segment_sineInOut, "61bd1bb4-353b-435f-8b4c-ed61ed43bcf9",
-    "sineInOut", "sineInOut", "Easing")
+    ,
+    Curve::Segment_sineInOut,
+    "61bd1bb4-353b-435f-8b4c-ed61ed43bcf9",
+    "sineInOut",
+    "sineInOut",
+    "Easing")
 CURVE_SEGMENT_METADATA(
-    , Curve::Segment_circularIn, "45b06858-2e16-4cdc-82cc-70f8545bab03",
-    "circularIn", "circularIn", "Easing")
+    ,
+    Curve::Segment_circularIn,
+    "45b06858-2e16-4cdc-82cc-70f8545bab03",
+    "circularIn",
+    "circularIn",
+    "Easing")
 CURVE_SEGMENT_METADATA(
-    , Curve::Segment_circularOut, "32a67b2a-61f5-49cd-b1c4-37419350fca8",
-    "circularOut", "circularOut", "Easing")
+    ,
+    Curve::Segment_circularOut,
+    "32a67b2a-61f5-49cd-b1c4-37419350fca8",
+    "circularOut",
+    "circularOut",
+    "Easing")
 CURVE_SEGMENT_METADATA(
-    , Curve::Segment_circularInOut, "b70a58f2-2fff-4fda-b1fa-cad6c7c11b88",
-    "circularInOut", "circularInOut", "Easing")
+    ,
+    Curve::Segment_circularInOut,
+    "b70a58f2-2fff-4fda-b1fa-cad6c7c11b88",
+    "circularInOut",
+    "circularInOut",
+    "Easing")
 CURVE_SEGMENT_METADATA(
-    , Curve::Segment_exponentialIn, "8db88491-bed5-4a0d-bcb6-45811c5a7722",
-    "exponentialIn", "exponentialIn", "Easing")
+    ,
+    Curve::Segment_exponentialIn,
+    "8db88491-bed5-4a0d-bcb6-45811c5a7722",
+    "exponentialIn",
+    "exponentialIn",
+    "Easing")
 CURVE_SEGMENT_METADATA(
-    , Curve::Segment_exponentialOut, "40f17c1a-9611-4468-b114-c6338fb0fbb7",
-    "exponentialOut", "exponentialOut", "Easing")
+    ,
+    Curve::Segment_exponentialOut,
+    "40f17c1a-9611-4468-b114-c6338fb0fbb7",
+    "exponentialOut",
+    "exponentialOut",
+    "Easing")
 CURVE_SEGMENT_METADATA(
-    , Curve::Segment_exponentialInOut, "46224c2f-f60d-4f60-93b8-a0ebe6931d00",
-    "exponentialInOut", "exponentialInOut", "Easing")
+    ,
+    Curve::Segment_exponentialInOut,
+    "46224c2f-f60d-4f60-93b8-a0ebe6931d00",
+    "exponentialInOut",
+    "exponentialInOut",
+    "Easing")
 CURVE_SEGMENT_METADATA(
-    , Curve::Segment_elasticIn, "6e301164-e079-466b-a518-12fe89048283",
-    "elasticIn", "elasticIn", "Easing")
+    ,
+    Curve::Segment_elasticIn,
+    "6e301164-e079-466b-a518-12fe89048283",
+    "elasticIn",
+    "elasticIn",
+    "Easing")
 CURVE_SEGMENT_METADATA(
-    , Curve::Segment_elasticOut, "1f1fddd4-7a23-4c15-a3ec-6e88e9787a97",
-    "elasticOut", "elasticOut", "Easing")
+    ,
+    Curve::Segment_elasticOut,
+    "1f1fddd4-7a23-4c15-a3ec-6e88e9787a97",
+    "elasticOut",
+    "elasticOut",
+    "Easing")
 CURVE_SEGMENT_METADATA(
-    , Curve::Segment_elasticInOut, "8bad1486-b616-4ebe-aa5e-844162545f8b",
-    "elasticInOut", "elasticInOut", "Easing")
+    ,
+    Curve::Segment_elasticInOut,
+    "8bad1486-b616-4ebe-aa5e-844162545f8b",
+    "elasticInOut",
+    "elasticInOut",
+    "Easing")
 CURVE_SEGMENT_METADATA(
-    , Curve::Segment_perlinInOut, "66cf32a5-86c5-4747-89d4-523e26dcc1fc",
-    "perlinInOut", "perlinInOut", "Easing")
+    ,
+    Curve::Segment_perlinInOut,
+    "66cf32a5-86c5-4747-89d4-523e26dcc1fc",
+    "perlinInOut",
+    "perlinInOut",
+    "Easing")

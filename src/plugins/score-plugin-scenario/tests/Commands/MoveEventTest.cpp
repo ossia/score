@@ -36,7 +36,9 @@ private:
         {
             {"ScenarioModel", {}},
         },
-        eventid, data.dDate, data.relativeY);
+        eventid,
+        data.dDate,
+        data.relativeY);
 
     cmd.redo(ctx);
     QCOMPARE(scenar->event(eventid)->heightPercentage(), 0.1);

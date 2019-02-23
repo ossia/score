@@ -19,8 +19,10 @@ namespace Scenario::Command
 {
 
 MoveProcess::MoveProcess(
-    const IntervalModel& src, const IntervalModel& tgt,
-    Id<Process::ProcessModel> processId, bool addSlot)
+    const IntervalModel& src,
+    const IntervalModel& tgt,
+    Id<Process::ProcessModel> processId,
+    bool addSlot)
     : m_src{src}
     , m_tgt{tgt}
     , m_oldId{processId}
@@ -42,9 +44,11 @@ MoveProcess::MoveProcess(
 }
 
 static void moveProcess(
-    Scenario::IntervalModel& src, Scenario::IntervalModel& tgt,
+    Scenario::IntervalModel& src,
+    Scenario::IntervalModel& tgt,
     const Id<Process::ProcessModel>& old_id,
-    const Id<Process::ProcessModel>& new_id, const score::DocumentContext& ctx)
+    const Id<Process::ProcessModel>& new_id,
+    const score::DocumentContext& ctx)
 {
   Process::ProcessModel& proc = src.processes.at(old_id);
   auto cables = Dataflow::saveCables({&proc}, ctx);

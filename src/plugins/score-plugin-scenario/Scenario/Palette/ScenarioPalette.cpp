@@ -27,11 +27,10 @@
 
 namespace Scenario
 {
-SlotState::~SlotState()
-{
-}
+SlotState::~SlotState() {}
 ToolPalette::ToolPalette(
-    Process::LayerContext& lay, ScenarioPresenter& presenter)
+    Process::LayerContext& lay,
+    ScenarioPresenter& presenter)
     : GraphicsSceneToolPalette{*presenter.view().scene()}
     , m_presenter{presenter}
     , m_model{static_cast<const Scenario::ProcessModel&>(m_presenter.model())}
@@ -119,18 +118,15 @@ void ToolPalette::on_cancel()
   m_presenter.editionSettings().setTool(Scenario::Tool::Select);
 }
 
-void ToolPalette::activate(Tool t)
-{
-}
+void ToolPalette::activate(Tool t) {}
 
-void ToolPalette::desactivate(Tool t)
-{
-}
+void ToolPalette::desactivate(Tool t) {}
 
 Scenario::Point ToolPalette::ScenePointToScenarioPoint(QPointF point)
 {
   return ConvertToScenarioPoint(
-      point, m_presenter.zoomRatio(),
+      point,
+      m_presenter.zoomRatio(),
       m_presenter.view().boundingRect().height());
 }
 }

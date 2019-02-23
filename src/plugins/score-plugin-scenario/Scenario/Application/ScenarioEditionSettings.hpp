@@ -50,7 +50,8 @@ public:
       E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, lockModeChanged, lockMode);
 
   W_PROPERTY(
-      bool, sequence READ sequence WRITE setSequence NOTIFY sequenceChanged)
+      bool,
+      sequence READ sequence WRITE setSequence NOTIFY sequenceChanged)
 
   W_PROPERTY(Scenario::Tool, tool READ tool WRITE setTool NOTIFY toolChanged)
 

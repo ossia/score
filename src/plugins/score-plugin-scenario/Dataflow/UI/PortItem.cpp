@@ -63,7 +63,9 @@ class PortDialog final : public QDialog
 {
 public:
   PortDialog(
-      const score::DocumentContext& ctx, Process::Port& p, QWidget* parent)
+      const score::DocumentContext& ctx,
+      Process::Port& p,
+      QWidget* parent)
       : QDialog{parent}, m_pw{ctx, p, parent}, m_bb{QDialogButtonBox::Ok}
   {
     this->setLayout(&m_lay);
@@ -79,7 +81,8 @@ private:
 };
 
 void onCreateCable(
-    const score::DocumentContext& ctx, Dataflow::PortItem* p1,
+    const score::DocumentContext& ctx,
+    Dataflow::PortItem* p1,
     Dataflow::PortItem* p2)
 {
   auto& plug = ctx.model<Scenario::ScenarioDocumentModel>();
@@ -120,21 +123,22 @@ void onCreateCable(
     }
   }
 
-  disp.submit<Dataflow::CreateCable>(
-      plug, getStrongId(plug.cables), cd);
+  disp.submit<Dataflow::CreateCable>(plug, getStrongId(plug.cables), cd);
 }
 
-AutomatablePortItem::~AutomatablePortItem()
-{
-}
+AutomatablePortItem::~AutomatablePortItem() {}
 
 void AutomatablePortItem::setupMenu(
-    QMenu& menu, const score::DocumentContext& ctx)
+    QMenu& menu,
+    const score::DocumentContext& ctx)
 {
   auto act = menu.addAction(QObject::tr("Create automation"));
   QObject::connect(
-      act, &QAction::triggered, this,
-      [this, &ctx] { on_createAutomation(ctx); }, Qt::QueuedConnection);
+      act,
+      &QAction::triggered,
+      this,
+      [this, &ctx] { on_createAutomation(ctx); },
+      Qt::QueuedConnection);
 }
 
 void AutomatablePortItem::on_createAutomation(
@@ -148,8 +152,7 @@ void AutomatablePortItem::on_createAutomation(
     {
       RedoMacroCommandDispatcher<Dataflow::CreateModulation> macro{
           ctx.commandStack};
-      on_createAutomation(
-          *cst, [&](auto cmd) { macro.submit(cmd); }, ctx);
+      on_createAutomation(*cst, [&](auto cmd) { macro.submit(cmd); }, ctx);
       macro.commit();
       return;
     }
@@ -161,7 +164,8 @@ void AutomatablePortItem::on_createAutomation(
 }
 
 bool AutomatablePortItem::on_createAutomation(
-    Scenario::IntervalModel& cst, std::function<void(score::Command*)> macro,
+    Scenario::IntervalModel& cst,
+    std::function<void(score::Command*)> macro,
     const score::DocumentContext& ctx)
 {
   if (m_port.type != Process::PortType::Message)
@@ -171,7 +175,8 @@ bool AutomatablePortItem::on_createAutomation(
     return false;
 
   auto make_cmd = new Scenario::Command::AddOnlyProcessToInterval{
-      cst, Metadata<ConcreteKey_k, Automation::ProcessModel>::get(),
+      cst,
+      Metadata<ConcreteKey_k, Automation::ProcessModel>::get(),
       QString{}};
   macro(make_cmd);
 
@@ -196,8 +201,8 @@ bool AutomatablePortItem::on_createAutomation(
   cd.source = *autom.outlet;
   cd.sink = m_port;
 
-  macro(new Dataflow::CreateCable{plug, getStrongId(plug.cables),
-                                  std::move(cd)});
+  macro(new Dataflow::CreateCable{
+      plug, getStrongId(plug.cables), std::move(cd)});
   return true;
 }
 
@@ -244,29 +249,34 @@ void AutomatablePortItem::dropEvent(QGraphicsSceneDragDropEvent* event)
     if (newAddr.address.device.isEmpty())
       return;
 
-    disp.submit(
-        new Process::ChangePortAddress{m_port, std::move(newAddr)});
+    disp.submit(new Process::ChangePortAddress{m_port, std::move(newAddr)});
   }
   event->accept();
 }
 
 PortItem* AutomatablePortFactory::makeItem(
-    Process::Inlet& port, const score::DocumentContext& ctx,
-    QGraphicsItem* parent, QObject* context)
+    Process::Inlet& port,
+    const score::DocumentContext& ctx,
+    QGraphicsItem* parent,
+    QObject* context)
 {
   return new Dataflow::AutomatablePortItem{port, ctx, parent};
   ;
 }
 
 PortItem* AutomatablePortFactory::makeItem(
-    Process::Outlet& port, const score::DocumentContext& ctx,
-    QGraphicsItem* parent, QObject* context)
+    Process::Outlet& port,
+    const score::DocumentContext& ctx,
+    QGraphicsItem* parent,
+    QObject* context)
 {
   return new Dataflow::AutomatablePortItem{port, ctx, parent};
 }
 
 PortTooltip::PortTooltip(
-    const score::DocumentContext& ctx, const Process::Port& p, QWidget* parent)
+    const score::DocumentContext& ctx,
+    const Process::Port& p,
+    QWidget* parent)
     : QWidget{parent}
 {
   auto lay = new Inspector::Layout{this};
@@ -278,14 +288,8 @@ template <typename T>
 struct minmax
 {
   const ossia::domain& domain;
-  auto getMin() const
-  {
-    return domain.convert_min<T>();
-  }
-  auto getMax() const
-  {
-    return domain.convert_max<T>();
-  }
+  auto getMin() const { return domain.convert_min<T>(); }
+  auto getMax() const { return domain.convert_max<T>(); }
 };
 
 struct control_visitor
@@ -337,8 +341,11 @@ struct control_visitor
 };
 
 void ControlInletFactory::setupInletInspector(
-    Process::Inlet& port, const score::DocumentContext& ctx, QWidget* parent,
-    Inspector::Layout& lay, QObject* context)
+    Process::Inlet& port,
+    const score::DocumentContext& ctx,
+    QWidget* parent,
+    Inspector::Layout& lay,
+    QObject* context)
 {
   using namespace Process;
   auto& ctrl = static_cast<Process::ControlInlet&>(port);

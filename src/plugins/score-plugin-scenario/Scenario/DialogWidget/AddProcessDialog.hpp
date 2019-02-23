@@ -14,7 +14,8 @@ public:
 
   AddProcessDialog(
       const Process::ProcessFactoryList& plist,
-      Process::ProcessFlags acceptable, QWidget* parent);
+      Process::ProcessFlags acceptable,
+      QWidget* parent);
   ~AddProcessDialog();
 
   void launchWindow();

@@ -5,10 +5,11 @@
 #include <Library/FileSystemModel.hpp>
 #include <Library/LibrarySettings.hpp>
 
-#include <core/presenter/DocumentManager.hpp>
+#include <score/tools/std/StringHash.hpp>
 #include <score/widgets/MarginLess.hpp>
 #include <score/widgets/SearchLineEdit.hpp>
-#include <score/tools/std/StringHash.hpp>
+
+#include <core/presenter/DocumentManager.hpp>
 
 #include <QFormLayout>
 #include <QLabel>
@@ -17,8 +18,9 @@
 #include <QStandardItemModel>
 #include <QVBoxLayout>
 
-#include <unordered_map>
 #include <wobjectimpl.h>
+
+#include <unordered_map>
 
 W_OBJECT_IMPL(Library::ProcessTreeView)
 namespace Library
@@ -85,7 +87,9 @@ struct ItemModelFilterLineEdit final : public score::SearchLineEdit
 {
 public:
   ItemModelFilterLineEdit(
-      QSortFilterProxyModel& proxy, QTreeView& tv, QWidget* p)
+      QSortFilterProxyModel& proxy,
+      QTreeView& tv,
+      QWidget* p)
       : score::SearchLineEdit{p}, m_proxy{proxy}, m_view{tv}
   {
     connect(this, &QLineEdit::textEdited, this, [=] { search(); });
@@ -124,7 +128,8 @@ QScrollArea QLabel
 };
 
 void ProcessTreeView::selectionChanged(
-    const QItemSelection& sel, const QItemSelection& desel)
+    const QItemSelection& sel,
+    const QItemSelection& desel)
 {
   if (sel.size() > 0)
   {
@@ -227,7 +232,8 @@ static void setup_treeview(QTreeView& tv)
 }
 
 ProcessWidget::ProcessWidget(
-    const score::GUIApplicationContext& ctx, QWidget* parent)
+    const score::GUIApplicationContext& ctx,
+    QWidget* parent)
     : QWidget{parent}, m_model{new ProcessesItemModel{ctx, this}}
 {
   auto lay = new score::MarginLess<QVBoxLayout>;
@@ -245,41 +251,42 @@ ProcessWidget::ProcessWidget(
   auto widg = new InfoWidget{this};
   lay->addWidget(widg);
 
-  con(m_tv, &ProcessTreeView::selected, this,
-      [=](const auto& pdata) { widg->setData(pdata); });
+  con(m_tv, &ProcessTreeView::selected, this, [=](const auto& pdata) {
+    widg->setData(pdata);
+  });
 }
 
-ProcessWidget::~ProcessWidget()
-{
-}
+ProcessWidget::~ProcessWidget() {}
 
 std::vector<LibraryInterface*> libraryInterface(const QString& path)
 {
   static auto matches = [] {
-      std::unordered_multimap<QString, LibraryInterface*> exp;
-      const auto& libs = score::GUIAppContext().interfaces<LibraryInterfaceList>();
-      for(auto& lib : libs)
-      {
-        for(const auto& ext : lib.acceptedFiles())
-        {
-          exp.insert({ext, &lib});
-        }
-      }
-      return exp;
-    }();
-
-    std::vector<LibraryInterface*> libs;
-    auto [begin, end] = matches.equal_range(QFileInfo(path).suffix());
-
-    for(auto it = begin; it != end; ++it)
+    std::unordered_multimap<QString, LibraryInterface*> exp;
+    const auto& libs
+        = score::GUIAppContext().interfaces<LibraryInterfaceList>();
+    for (auto& lib : libs)
     {
-      libs.push_back(it->second);
+      for (const auto& ext : lib.acceptedFiles())
+      {
+        exp.insert({ext, &lib});
+      }
     }
-    return libs;
+    return exp;
+  }();
+
+  std::vector<LibraryInterface*> libs;
+  auto [begin, end] = matches.equal_range(QFileInfo(path).suffix());
+
+  for (auto it = begin; it != end; ++it)
+  {
+    libs.push_back(it->second);
+  }
+  return libs;
 }
 
 SystemLibraryWidget::SystemLibraryWidget(
-    const score::GUIApplicationContext& ctx, QWidget* parent)
+    const score::GUIApplicationContext& ctx,
+    QWidget* parent)
     : QWidget{parent}
     , m_model{new FileSystemModel{ctx, this}}
     , m_proxy{new RecursiveFilterProxy{this}}
@@ -295,16 +302,15 @@ SystemLibraryWidget::SystemLibraryWidget(
   lay->addWidget(&m_tv);
   m_tv.setModel(m_proxy);
   setup_treeview(m_tv);
-  connect(&m_tv, &QTreeView::doubleClicked,
-          this, [&] (const QModelIndex& idx) {
+  connect(&m_tv, &QTreeView::doubleClicked, this, [&](const QModelIndex& idx) {
     auto doc = ctx.docManager.currentDocument();
-    if(!doc)
+    if (!doc)
       return;
 
     auto path = m_model->filePath(m_proxy->mapToSource(idx));
-    for(auto lib : libraryInterface(path))
+    for (auto lib : libraryInterface(path))
     {
-      if(lib->onDoubleClick(path, doc->context()))
+      if (lib->onDoubleClick(path, doc->context()))
         return;
     }
   });
@@ -313,9 +319,7 @@ SystemLibraryWidget::SystemLibraryWidget(
   setRoot(ctx.settings<Library::Settings::Model>().getPath());
 }
 
-SystemLibraryWidget::~SystemLibraryWidget()
-{
-}
+SystemLibraryWidget::~SystemLibraryWidget() {}
 
 void SystemLibraryWidget::setRoot(QString path)
 {
@@ -326,7 +330,8 @@ void SystemLibraryWidget::setRoot(QString path)
 }
 
 ProjectLibraryWidget::ProjectLibraryWidget(
-    const score::GUIApplicationContext& ctx, QWidget* parent)
+    const score::GUIApplicationContext& ctx,
+    QWidget* parent)
     : QWidget{parent}
     , m_model{new FileSystemModel{ctx, this}}
     , m_proxy{new RecursiveFilterProxy{this}}
@@ -341,25 +346,22 @@ ProjectLibraryWidget::ProjectLibraryWidget(
   lay->addWidget(&m_tv);
   m_tv.setModel(m_proxy);
   setup_treeview(m_tv);
-  connect(&m_tv, &QTreeView::doubleClicked,
-          this, [&] (const QModelIndex& idx) {
+  connect(&m_tv, &QTreeView::doubleClicked, this, [&](const QModelIndex& idx) {
     auto doc = ctx.docManager.currentDocument();
-    if(!doc)
+    if (!doc)
       return;
 
     auto path = m_model->filePath(m_proxy->mapToSource(idx));
-    for(auto lib : libraryInterface(path))
+    for (auto lib : libraryInterface(path))
     {
-      if(lib->onDoubleClick(path, doc->context()))
+      if (lib->onDoubleClick(path, doc->context()))
         return;
     }
   });
   m_tv.setAcceptDrops(true);
 }
 
-ProjectLibraryWidget::~ProjectLibraryWidget()
-{
-}
+ProjectLibraryWidget::~ProjectLibraryWidget() {}
 
 void ProjectLibraryWidget::setRoot(QString path)
 {

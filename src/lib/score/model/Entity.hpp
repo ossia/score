@@ -23,7 +23,9 @@ class EntityMapInserter<score::Entity<T>>
     std::vector<QString> bros_names;
     bros_names.reserve(map.size());
     std::transform(
-        map.begin(), map.end(), std::back_inserter(bros_names),
+        map.begin(),
+        map.end(),
+        std::back_inserter(bros_names),
         [&](const auto& res) {
           bros_names.push_back(res.metadata().getName());
         });
@@ -130,8 +132,8 @@ struct TSerializer<JSONObject, score::Entity<T>>
       }
       // TODO we use id -1, there should be a better way... for now it will
       // work since id's begin at 1.
-      auto comp = new score::JSONSerializedComponents{Id<score::Component>{-1},
-                                                      std::move(vec), &obj};
+      auto comp = new score::JSONSerializedComponents{
+          Id<score::Component>{-1}, std::move(vec), &obj};
       obj.components().add(comp);
     }
   }

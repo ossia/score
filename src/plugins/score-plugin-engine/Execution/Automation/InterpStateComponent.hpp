@@ -20,14 +20,17 @@ class DeviceList;
 
 namespace InterpState
 {
-class ExecComponent final : public ::Execution::ProcessComponent_T<
-                                InterpState::ProcessModel, ossia::node_process>
+class ExecComponent final
+    : public ::Execution::
+          ProcessComponent_T<InterpState::ProcessModel, ossia::node_process>
 {
   COMPONENT_METADATA("66327ccc-1478-4bef-9ce7-3c9765bd76a7")
 public:
   ExecComponent(
-      InterpState::ProcessModel& element, const Execution::Context& ctx,
-      const Id<score::Component>& id, QObject* parent);
+      InterpState::ProcessModel& element,
+      const Execution::Context& ctx,
+      const Id<score::Component>& id,
+      QObject* parent);
 
   ~ExecComponent() override;
 
@@ -46,4 +49,5 @@ using ExecComponentFactory
 }
 
 SCORE_CONCRETE_COMPONENT_FACTORY(
-    Execution::ProcessComponentFactory, InterpState::ExecComponentFactory)
+    Execution::ProcessComponentFactory,
+    InterpState::ExecComponentFactory)

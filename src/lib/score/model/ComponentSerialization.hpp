@@ -21,17 +21,15 @@ class SCORE_LIB_BASE_EXPORT DataStreamSerializedComponents
 public:
   static const constexpr bool is_unique = true;
   DataStreamSerializedComponents(
-      const Id<score::Component>& id, DataStreamComponents obj,
+      const Id<score::Component>& id,
+      DataStreamComponents obj,
       QObject* parent);
   virtual ~DataStreamSerializedComponents();
 
   //! Returns true if all components could be loaded
   bool deserializeRemaining(score::Components& comps, QObject* entity);
 
-  bool finished() const
-  {
-    return data.empty();
-  }
+  bool finished() const { return data.empty(); }
 
   DataStreamComponents data;
 };
@@ -42,17 +40,16 @@ class SCORE_LIB_BASE_EXPORT JSONSerializedComponents : public score::Component
 public:
   static const constexpr bool is_unique = true;
   JSONSerializedComponents(
-      const Id<score::Component>& id, JSONComponents obj, QObject* parent);
+      const Id<score::Component>& id,
+      JSONComponents obj,
+      QObject* parent);
 
   virtual ~JSONSerializedComponents();
 
   //! Returns true if all components could be loaded
   bool deserializeRemaining(score::Components& comps, QObject* entity);
 
-  bool finished() const
-  {
-    return data.empty();
-  }
+  bool finished() const { return data.empty(); }
 
   JSONComponents data;
 };
@@ -77,16 +74,19 @@ struct SCORE_LIB_BASE_EXPORT SerializableComponentFactory
     : public score::InterfaceBase
 {
   SCORE_INTERFACE(
-      SerializableComponentFactory, "ffafadc2-0ce7-45d8-b673-d9238c37d018")
+      SerializableComponentFactory,
+      "ffafadc2-0ce7-45d8-b673-d9238c37d018")
 public:
   ~SerializableComponentFactory() override;
   virtual score::SerializableComponent* make(
-      const Id<score::Component>& id, const score::DocumentContext& ctx,
+      const Id<score::Component>& id,
+      const score::DocumentContext& ctx,
       QObject* parent)
       = 0;
 
   virtual score::SerializableComponent* load(
-      const VisitorVariant& vis, const score::DocumentContext& ctx,
+      const VisitorVariant& vis,
+      const score::DocumentContext& ctx,
       QObject* parent)
       = 0;
 };
@@ -97,7 +97,8 @@ struct SCORE_LIB_BASE_EXPORT SerializableComponentFactoryList
   using object_type = score::SerializableComponent;
   ~SerializableComponentFactoryList();
   score::SerializableComponent* loadMissing(
-      const VisitorVariant& vis, const score::DocumentContext& ctx,
+      const VisitorVariant& vis,
+      const score::DocumentContext& ctx,
       QObject* parent) const;
 };
 
@@ -112,10 +113,7 @@ public:
   {
   }
 
-  System_T& system() const
-  {
-    return m_system;
-  }
+  System_T& system() const { return m_system; }
 
 private:
   System_T& m_system;

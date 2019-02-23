@@ -1,10 +1,13 @@
 #pragma once
-#include <QCheckBox>
-#include <QSpinBox>
-#include <QHBoxLayout>
-#include <ossia/detail/optional.hpp>
-#include <wobjectdefs.h>
 #include <score/widgets/MarginLess.hpp>
+
+#include <ossia/detail/optional.hpp>
+
+#include <QCheckBox>
+#include <QHBoxLayout>
+#include <QSpinBox>
+
+#include <wobjectdefs.h>
 
 namespace Protocols
 {
@@ -14,9 +17,9 @@ class RateWidget final : public QWidget
 
 public:
   RateWidget(QWidget* parent = nullptr) noexcept
-    : QWidget{parent}
-  , m_check{new QCheckBox{this}}
-  , m_spin{new QSpinBox{this}}
+      : QWidget{parent}
+      , m_check{new QCheckBox{this}}
+      , m_spin{new QSpinBox{this}}
   {
     auto lay = new score::MarginLess<QHBoxLayout>;
 
@@ -28,8 +31,7 @@ public:
     lay->setStretch(0, 1);
     lay->setStretch(1, 20);
 
-    connect(m_check, &QCheckBox::toggled,
-            this, [=] (bool t) {
+    connect(m_check, &QCheckBox::toggled, this, [=](bool t) {
       rateChanged(ossia::optional<int>{});
       m_spin->setEnabled(t);
     });
@@ -42,7 +44,7 @@ public:
 
   ossia::optional<int> rate() const noexcept
   {
-    if(!m_check->isChecked())
+    if (!m_check->isChecked())
     {
       return ossia::optional<int>{};
     }
@@ -54,7 +56,7 @@ public:
 
   void setRate(ossia::optional<int> r) noexcept
   {
-    if(r)
+    if (r)
     {
       m_check->setChecked(true);
       m_spin->setValue(*r);
@@ -65,14 +67,12 @@ public:
     }
   }
 
-  void rateChanged(ossia::optional<int> v)
-  W_SIGNAL(rateChanged, v);
+  void rateChanged(ossia::optional<int> v) W_SIGNAL(rateChanged, v);
 
 private:
   QCheckBox* m_check{};
   QSpinBox* m_spin{};
 };
-
 
 }
 

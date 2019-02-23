@@ -11,10 +11,13 @@ namespace Merger
 {
 
 Model::Model(
-    const TimeVal& duration, const Id<Process::ProcessModel>& id,
+    const TimeVal& duration,
+    const Id<Process::ProcessModel>& id,
     QObject* parent)
-    : Process::ProcessModel{duration, id,
-                            Metadata<ObjectKey_k, ProcessModel>::get(), parent}
+    : Process::ProcessModel{duration,
+                            id,
+                            Metadata<ObjectKey_k, ProcessModel>::get(),
+                            parent}
 {
   m_outlets.push_back(
       Process::make_outlet(
@@ -25,9 +28,7 @@ Model::Model(
   metadata().setInstanceName(*this);
 }
 
-Model::~Model()
-{
-}
+Model::~Model() {}
 
 quint64 Model::inCount() const
 {
@@ -78,8 +79,11 @@ template <>
 void DataStreamWriter::write(Media::Merger::Model& proc)
 {
   writePorts(
-      *this, components.interfaces<Process::PortFactoryList>(), proc.m_inlets,
-      proc.m_outlets, &proc);
+      *this,
+      components.interfaces<Process::PortFactoryList>(),
+      proc.m_inlets,
+      proc.m_outlets,
+      &proc);
 
   m_stream >> proc.m_inCount;
   checkDelimiter();
@@ -96,7 +100,10 @@ template <>
 void JSONObjectWriter::write(Media::Merger::Model& proc)
 {
   writePorts(
-      obj, components.interfaces<Process::PortFactoryList>(), proc.m_inlets,
-      proc.m_outlets, &proc);
+      obj,
+      components.interfaces<Process::PortFactoryList>(),
+      proc.m_inlets,
+      proc.m_outlets,
+      &proc);
   proc.m_inCount = obj["InCount"].toInt();
 }

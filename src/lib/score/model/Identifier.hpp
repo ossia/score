@@ -65,17 +65,11 @@ class id_base_t
 
 public:
   using value_type = impl;
-  explicit id_base_t() noexcept
-  {
-  }
+  explicit id_base_t() noexcept {}
 
-  id_base_t(const id_base_t& other) noexcept : m_id{other.m_id}
-  {
-  }
+  id_base_t(const id_base_t& other) noexcept : m_id{other.m_id} {}
 
-  id_base_t(id_base_t&& other) noexcept : m_id{std::move(other.m_id)}
-  {
-  }
+  id_base_t(id_base_t&& other) noexcept : m_id{std::move(other.m_id)} {}
   template <typename other>
   id_base_t(
       const id_base_t<other, impl>& oid,
@@ -87,8 +81,9 @@ public:
 
   template <typename other>
   id_base_t(
-      id_base_t&& oid, typename std::enable_if<
-                           std::is_base_of_v<tag, other>>::type* = 0) noexcept
+      id_base_t&& oid,
+      typename std::enable_if<
+          std::is_base_of_v<tag, other>>::type* = 0) noexcept
       : m_id{oid.val()}
   {
   }
@@ -109,9 +104,7 @@ public:
 
   // TODO check if when an id is returned by value,
   // the pointer gets copied correctly
-  explicit id_base_t(value_type val) noexcept : m_id{std::move(val)}
-  {
-  }
+  explicit id_base_t(value_type val) noexcept : m_id{std::move(val)} {}
 
   explicit id_base_t(tag& element) noexcept
       : m_ptr{&element}, m_id{element.id()}
@@ -141,20 +134,11 @@ public:
     return lhs.val() < rhs.val();
   }
 
-  explicit operator value_type() const noexcept
-  {
-    return m_id;
-  }
+  explicit operator value_type() const noexcept { return m_id; }
 
-  const value_type& val() const noexcept
-  {
-    return m_id;
-  }
+  const value_type& val() const noexcept { return m_id; }
 
-  void setVal(value_type val) noexcept
-  {
-    m_id = val;
-  }
+  void setVal(value_type val) noexcept { m_id = val; }
 
 private:
   mutable QPointer<QObject> m_ptr;

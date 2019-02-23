@@ -34,7 +34,9 @@ void ProcessModel::init()
   outlet->setCustomData("Out");
   m_outlets.push_back(outlet.get());
   connect(
-      outlet.get(), &Process::Port::addressChanged, this,
+      outlet.get(),
+      &Process::Port::addressChanged,
+      this,
       [=](const State::AddressAccessor& arg) {
         addressChanged(arg);
         prettyNameChanged();
@@ -44,10 +46,13 @@ void ProcessModel::init()
 }
 
 ProcessModel::ProcessModel(
-    const TimeVal& duration, const Id<Process::ProcessModel>& id,
+    const TimeVal& duration,
+    const Id<Process::ProcessModel>& id,
     QObject* parent)
-    : CurveProcessModel{duration, id,
-                        Metadata<ObjectKey_k, ProcessModel>::get(), parent}
+    : CurveProcessModel{duration,
+                        id,
+                        Metadata<ObjectKey_k, ProcessModel>::get(),
+                        parent}
     , outlet{Process::make_outlet(Id<Process::Port>(0), this)}
     , m_min{0.}
     , m_max{1.}
@@ -70,9 +75,7 @@ ProcessModel::ProcessModel(
   init();
 }
 
-ProcessModel::~ProcessModel()
-{
-}
+ProcessModel::~ProcessModel() {}
 
 ProcessModel::ProcessModel(JSONObject::Deserializer& vis, QObject* parent)
     : CurveProcessModel{vis, parent}

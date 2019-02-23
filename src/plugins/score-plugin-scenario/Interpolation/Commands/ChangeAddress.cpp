@@ -16,8 +16,11 @@
 namespace Interpolation
 {
 ChangeAddress::ChangeAddress(
-    const ProcessModel& proc, const State::AddressAccessor& addr,
-    const ossia::value& start, const ossia::value& end, const State::Unit& u)
+    const ProcessModel& proc,
+    const State::AddressAccessor& addr,
+    const ossia::value& start,
+    const ossia::value& end,
+    const State::Unit& u)
     : m_path{proc}
     , m_oldAddr{proc.address()}
     , m_newAddr{addr}
@@ -67,7 +70,8 @@ void ChangeAddress::deserializeImpl(DataStreamOutput& s)
 }
 
 void ChangeInterpolationAddress(
-    const ProcessModel& proc, const State::AddressAccessor& addr,
+    const ProcessModel& proc,
+    const State::AddressAccessor& addr,
     CommandDispatcher<>& disp)
 {
   // Various checks

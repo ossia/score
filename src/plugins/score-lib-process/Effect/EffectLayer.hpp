@@ -29,8 +29,10 @@ class SCORE_LIB_PROCESS_EXPORT EffectLayerPresenter final
   W_OBJECT(EffectLayerPresenter)
 public:
   EffectLayerPresenter(
-      const Process::ProcessModel& model, EffectLayerView* view,
-      const Process::ProcessPresenterContext& ctx, QObject* parent);
+      const Process::ProcessModel& model,
+      EffectLayerView* view,
+      const Process::ProcessPresenterContext& ctx,
+      QObject* parent);
   ~EffectLayerPresenter() override;
 
   void setWidth(qreal val) override;
@@ -42,7 +44,9 @@ public:
   const Process::ProcessModel& model() const override;
   const Id<Process::ProcessModel>& modelId() const override;
   void fillContextMenu(
-      QMenu& menu, QPoint pos, QPointF scenepos,
+      QMenu& menu,
+      QPoint pos,
+      QPointF scenepos,
       const Process::LayerContextMenuManager&) final override;
 
 private:
@@ -52,16 +56,21 @@ private:
 
 SCORE_LIB_PROCESS_EXPORT
 void setupExternalUI(
-    const Process::ProcessModel& proc, const Process::LayerFactory& factory,
-    const score::DocumentContext& ctx, bool show);
+    const Process::ProcessModel& proc,
+    const Process::LayerFactory& factory,
+    const score::DocumentContext& ctx,
+    bool show);
 
 SCORE_LIB_PROCESS_EXPORT
 void setupExternalUI(
-    const Process::ProcessModel& proc, const score::DocumentContext& ctx,
+    const Process::ProcessModel& proc,
+    const score::DocumentContext& ctx,
     bool show);
 
 SCORE_LIB_PROCESS_EXPORT
 QGraphicsItem* makeExternalUIButton(
-    const Process::ProcessModel& proc, const score::DocumentContext& ctx,
-    QObject* self, QGraphicsItem* parent);
+    const Process::ProcessModel& proc,
+    const score::DocumentContext& ctx,
+    QObject* self,
+    QGraphicsItem* parent);
 }

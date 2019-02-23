@@ -7,7 +7,8 @@
 WebSocketView::WebSocketView(QGraphicsScene* s, quint16 port, QObject* parent)
     : QObject(parent)
     , m_pWebSocketServer(new QWebSocketServer(
-          QStringLiteral("Echo Server"), QWebSocketServer::NonSecureMode,
+          QStringLiteral("Echo Server"),
+          QWebSocketServer::NonSecureMode,
           this))
     , m_scene{s}
 {
@@ -16,10 +17,14 @@ WebSocketView::WebSocketView(QGraphicsScene* s, quint16 port, QObject* parent)
     if (m_debug)
       qDebug() << "WebSocketView listening on port" << port;
     connect(
-        m_pWebSocketServer, &QWebSocketServer::newConnection, this,
+        m_pWebSocketServer,
+        &QWebSocketServer::newConnection,
+        this,
         &WebSocketView::onNewConnection);
     connect(
-        m_pWebSocketServer, &QWebSocketServer::closed, this,
+        m_pWebSocketServer,
+        &QWebSocketServer::closed,
+        this,
         &WebSocketView::closed);
   }
 }
@@ -35,13 +40,19 @@ void WebSocketView::onNewConnection()
   QWebSocket* pSocket = m_pWebSocketServer->nextPendingConnection();
 
   connect(
-      pSocket, &QWebSocket::textMessageReceived, this,
+      pSocket,
+      &QWebSocket::textMessageReceived,
+      this,
       &WebSocketView::processTextMessage);
   connect(
-      pSocket, &QWebSocket::binaryMessageReceived, this,
+      pSocket,
+      &QWebSocket::binaryMessageReceived,
+      this,
       &WebSocketView::processBinaryMessage);
   connect(
-      pSocket, &QWebSocket::disconnected, this,
+      pSocket,
+      &QWebSocket::disconnected,
+      this,
       &WebSocketView::socketDisconnected);
 
   m_clients << pSocket;

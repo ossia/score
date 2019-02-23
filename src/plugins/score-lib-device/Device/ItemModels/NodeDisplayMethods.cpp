@@ -33,18 +33,9 @@ QVariant convert(const ossia::value& val)
     {
       return QVariant::fromValue(v);
     }
-    return_type operator()(int i) const
-    {
-      return QVariant::fromValue(i);
-    }
-    return_type operator()(float f) const
-    {
-      return QVariant::fromValue(f);
-    }
-    return_type operator()(bool b) const
-    {
-      return QVariant::fromValue(b);
-    }
+    return_type operator()(int i) const { return QVariant::fromValue(i); }
+    return_type operator()(float f) const { return QVariant::fromValue(f); }
+    return_type operator()(bool b) const { return QVariant::fromValue(b); }
     return_type operator()(const std::string& s) const
     {
       return QString::fromStdString(s);
@@ -78,10 +69,7 @@ QVariant convert(const ossia::value& val)
 
       return arr;
     }
-    return_type operator()() const
-    {
-      return {};
-    }
+    return_type operator()() const { return {}; }
   };
 
   return val.apply(vis{});

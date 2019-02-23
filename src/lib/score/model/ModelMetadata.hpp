@@ -39,7 +39,6 @@ public:
     m_touchedName = false;
   }
 
-
   bool touchedName() const noexcept;
   void setName(const QString&) noexcept;
   void setComment(const QString&) noexcept;
@@ -60,10 +59,15 @@ public:
   void metadataChanged() E_SIGNAL(SCORE_LIB_BASE_EXPORT, metadataChanged);
 
   PROPERTY(QString, name READ getName WRITE setName NOTIFY NameChanged)
-  PROPERTY(QString, comment READ getComment WRITE setComment NOTIFY CommentChanged)
+  PROPERTY(
+      QString,
+      comment READ getComment WRITE setComment NOTIFY CommentChanged)
   PROPERTY(ColorRef, color READ getColor WRITE setColor NOTIFY ColorChanged)
   PROPERTY(QString, label READ getLabel WRITE setLabel NOTIFY LabelChanged)
-  PROPERTY(QVariantMap, extendedMetadata READ getExtendedMetadata WRITE setExtendedMetadata NOTIFY ExtendedMetadataChanged)
+  PROPERTY(
+      QVariantMap,
+      extendedMetadata READ getExtendedMetadata WRITE setExtendedMetadata
+          NOTIFY ExtendedMetadataChanged)
 
 private:
   QString m_scriptingName;

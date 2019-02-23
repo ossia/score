@@ -7,15 +7,15 @@
 
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/document/DocumentContext.hpp>
+#include <score/graphics/GraphicWidgets.hpp>
 #include <score/widgets/ControlWidgets.hpp>
 #include <score/widgets/DoubleSlider.hpp>
-#include <score/graphics/GraphicWidgets.hpp>
 #include <score/widgets/MarginLess.hpp>
 #include <score/widgets/SignalUtils.hpp>
 #include <score/widgets/TextLabel.hpp>
 
-#include <ossia/network/domain/domain.hpp>
 #include <ossia/dataflow/safe_nodes/port.hpp>
+#include <ossia/network/domain/domain.hpp>
 
 #include <QApplication>
 #include <QCheckBox>
@@ -43,30 +43,25 @@ struct FloatSlider final : ossia::safe_nodes::control_in,
   {
   }
 
-  auto getMin() const
-  {
-    return min;
-  }
-  auto getMax() const
-  {
-    return max;
-  }
+  auto getMin() const { return min; }
+  auto getMax() const { return max; }
 
   auto create_inlet(Id<Process::Port> id, QObject* parent) const
   {
     return new Process::FloatSlider{
-        min, max,   init, QString::fromUtf8(name.data(), name.size()),
-        id,  parent};
+        min,
+        max,
+        init,
+        QString::fromUtf8(name.data(), name.size()),
+        id,
+        parent};
   }
 
   float fromValue(const ossia::value& v) const
   {
     return ossia::convert<float>(v);
   }
-  ossia::value toValue(float v) const
-  {
-    return v;
-  }
+  ossia::value toValue(float v) const { return v; }
 };
 
 struct LogFloatSlider final : ossia::safe_nodes::control_in,
@@ -84,30 +79,25 @@ struct LogFloatSlider final : ossia::safe_nodes::control_in,
   {
   }
 
-  auto getMin() const
-  {
-    return min;
-  }
-  auto getMax() const
-  {
-    return max;
-  }
+  auto getMin() const { return min; }
+  auto getMax() const { return max; }
 
   auto create_inlet(Id<Process::Port> id, QObject* parent) const
   {
     return new Process::LogFloatSlider{
-        min, max,   init, QString::fromUtf8(name.data(), name.size()),
-        id,  parent};
+        min,
+        max,
+        init,
+        QString::fromUtf8(name.data(), name.size()),
+        id,
+        parent};
   }
 
   float fromValue(const ossia::value& v) const
   {
     return ossia::convert<float>(v);
   }
-  ossia::value toValue(float v) const
-  {
-    return v;
-  }
+  ossia::value toValue(float v) const { return v; }
 };
 
 struct IntSlider final : ossia::safe_nodes::control_in,
@@ -125,29 +115,20 @@ struct IntSlider final : ossia::safe_nodes::control_in,
   {
   }
 
-  int fromValue(const ossia::value& v) const
-  {
-    return ossia::convert<int>(v);
-  }
-  ossia::value toValue(int v) const
-  {
-    return v;
-  }
+  int fromValue(const ossia::value& v) const { return ossia::convert<int>(v); }
+  ossia::value toValue(int v) const { return v; }
 
-  auto getMin() const
-  {
-    return min;
-  }
-  auto getMax() const
-  {
-    return max;
-  }
+  auto getMin() const { return min; }
+  auto getMax() const { return max; }
 
   auto create_inlet(Id<Process::Port> id, QObject* parent) const
   {
-    return new Process::IntSlider{
-        min, max,   init, QString::fromUtf8(name.data(), name.size()),
-        id,  parent};
+    return new Process::IntSlider{min,
+                                  max,
+                                  init,
+                                  QString::fromUtf8(name.data(), name.size()),
+                                  id,
+                                  parent};
   }
 };
 
@@ -160,14 +141,8 @@ struct IntSpinBox final : ossia::safe_nodes::control_in,
   const int max{};
   const int init{};
 
-  int fromValue(const ossia::value& v) const
-  {
-    return ossia::convert<int>(v);
-  }
-  ossia::value toValue(int v) const
-  {
-    return v;
-  }
+  int fromValue(const ossia::value& v) const { return ossia::convert<int>(v); }
+  ossia::value toValue(int v) const { return v; }
 
   template <std::size_t N>
   constexpr IntSpinBox(const char (&name)[N], int v1, int v2, int v3)
@@ -175,20 +150,17 @@ struct IntSpinBox final : ossia::safe_nodes::control_in,
   {
   }
 
-  auto getMin() const
-  {
-    return min;
-  }
-  auto getMax() const
-  {
-    return max;
-  }
+  auto getMin() const { return min; }
+  auto getMax() const { return max; }
 
   auto create_inlet(Id<Process::Port> id, QObject* parent) const
   {
-    return new Process::IntSpinBox{
-        min, max,   init, QString::fromUtf8(name.data(), name.size()),
-        id,  parent};
+    return new Process::IntSpinBox{min,
+                                   max,
+                                   init,
+                                   QString::fromUtf8(name.data(), name.size()),
+                                   id,
+                                   parent};
   }
 };
 struct Toggle final : ossia::safe_nodes::control_in, WidgetFactory::Toggle
@@ -212,10 +184,7 @@ struct Toggle final : ossia::safe_nodes::control_in, WidgetFactory::Toggle
   {
     return ossia::convert<bool>(v);
   }
-  ossia::value toValue(bool v) const
-  {
-    return v;
-  }
+  ossia::value toValue(bool v) const { return v; }
 };
 
 struct ChooserToggle final : ossia::safe_nodes::control_in,
@@ -224,7 +193,9 @@ struct ChooserToggle final : ossia::safe_nodes::control_in,
   static const constexpr bool must_validate = false;
   template <std::size_t N>
   constexpr ChooserToggle(
-      const char (&name)[N], std::array<const char*, 2> alt, bool v1)
+      const char (&name)[N],
+      std::array<const char*, 2> alt,
+      bool v1)
       : ossia::safe_nodes::control_in{name}, alternatives{alt}, init{v1}
   {
   }
@@ -236,10 +207,7 @@ struct ChooserToggle final : ossia::safe_nodes::control_in,
   {
     return ossia::convert<bool>(v);
   }
-  ossia::value toValue(bool v) const
-  {
-    return v;
-  }
+  ossia::value toValue(bool v) const { return v; }
 
   auto create_inlet(Id<Process::Port> id, QObject* parent) const
   {
@@ -286,20 +254,14 @@ struct ComboBox final : ossia::safe_nodes::control_in, WidgetFactory::ComboBox
   const std::size_t init{};
   const std::array<std::pair<const char*, T>, N> values;
 
-  static constexpr auto count()
-  {
-    return N;
-  }
+  static constexpr auto count() { return N; }
   template <std::size_t M, typename Arr>
   constexpr ComboBox(const char (&name)[M], std::size_t in, Arr arr)
       : ossia::safe_nodes::control_in{name}, init{in}, values{arr}
   {
   }
 
-  const auto& getValues() const
-  {
-    return values;
-  }
+  const auto& getValues() const { return values; }
 
   auto create_inlet(Id<Process::Port> id, QObject* parent) const
   {
@@ -310,14 +272,8 @@ struct ComboBox final : ossia::safe_nodes::control_in, WidgetFactory::ComboBox
     return p;
   }
 
-  T fromValue(const ossia::value& v) const
-  {
-    return ossia::convert<T>(v);
-  }
-  ossia::value toValue(T v) const
-  {
-    return ossia::value{std::move(v)};
-  }
+  T fromValue(const ossia::value& v) const { return ossia::convert<T>(v); }
+  ossia::value toValue(T v) const { return ossia::value{std::move(v)}; }
 };
 
 template <typename ArrT>
@@ -327,10 +283,7 @@ struct EnumBase : ossia::safe_nodes::control_in, WidgetFactory::Enum
   const std::size_t init{};
   const ArrT values;
 
-  const auto& getValues() const
-  {
-    return values;
-  }
+  const auto& getValues() const { return values; }
 
   template <std::size_t N1>
   constexpr EnumBase(const char (&name)[N1], std::size_t i, const ArrT& v)
@@ -347,7 +300,10 @@ struct EnumBase : ossia::safe_nodes::control_in, WidgetFactory::Enum
   {
     return new Process::Enum{
         ossia::flat_set<std::string>(values.begin(), values.end()),
-        values[init], QString::fromUtf8(name.data(), name.size()), id, parent};
+        values[init],
+        QString::fromUtf8(name.data(), name.size()),
+        id,
+        parent};
   }
 };
 

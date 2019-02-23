@@ -20,16 +20,19 @@ namespace Midi
 class ProcessModel;
 namespace Executor
 {
-class Component final : public ::Execution::ProcessComponent_T<
-                            Midi::ProcessModel, ossia::node_process>,
-                        public Nano::Observer
+class Component final
+    : public ::Execution::
+          ProcessComponent_T<Midi::ProcessModel, ossia::node_process>,
+      public Nano::Observer
 {
   COMPONENT_METADATA("6d5334a5-7b8c-45df-9805-11d1b4472cdf")
 public:
   static const constexpr bool is_unique = true;
   Component(
-      Midi::ProcessModel& element, const Execution::Context& ctx,
-      const Id<score::Component>& id, QObject* parent);
+      Midi::ProcessModel& element,
+      const Execution::Context& ctx,
+      const Id<score::Component>& id,
+      QObject* parent);
   ~Component() override;
 
 private:

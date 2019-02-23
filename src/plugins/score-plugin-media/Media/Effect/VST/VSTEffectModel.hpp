@@ -1,16 +1,18 @@
 #pragma once
-#include <score/tools/std/Invoke.hpp>
-#include <Control/DefaultEffectItem.hpp>
 #include <Media/Effect/VST/VSTLoader.hpp>
 #include <Process/Dataflow/PortFactory.hpp>
 #include <Process/GenericProcessFactory.hpp>
 #include <Process/Process.hpp>
+
+#include <score/tools/std/Invoke.hpp>
 
 #include <ossia/detail/hash_map.hpp>
 
 #include <QFileDialog>
 #include <QJsonDocument>
 #include <QTimer>
+
+#include <Control/DefaultEffectItem.hpp>
 #include <Effect/EffectFactory.hpp>
 #include <score_plugin_media_export.h>
 #include <wobjectdefs.h>
@@ -20,11 +22,23 @@ class VSTEffectModel;
 class VSTControlInlet;
 }
 PROCESS_METADATA(
-    , Media::VST::VSTEffectModel, "BE8E6BD3-75F2-4102-8895-8A4EB4EA545A",
-    "VST", "VST", Process::ProcessCategory::Other, "Audio", "VST plug-in",
-    "ossia score", {}, {}, {}, Process::ProcessFlags::ExternalEffect)
+    ,
+    Media::VST::VSTEffectModel,
+    "BE8E6BD3-75F2-4102-8895-8A4EB4EA545A",
+    "VST",
+    "VST",
+    Process::ProcessCategory::Other,
+    "Audio",
+    "VST plug-in",
+    "ossia score",
+    {},
+    {},
+    {},
+    Process::ProcessFlags::ExternalEffect)
 UUID_METADATA(
-    , Process::Port, Media::VST::VSTControlInlet,
+    ,
+    Process::Port,
+    Media::VST::VSTControlInlet,
     "e523bc44-8599-4a04-94c1-04ce0d1a692a")
 DESCRIPTION_METADATA(, Media::VST::VSTEffectModel, "VST")
 namespace Media::VST
@@ -35,9 +49,7 @@ struct AEffectWrapper
   AEffect* fx{};
   VstTimeInfo info;
 
-  AEffectWrapper(AEffect* f) noexcept : fx{f}
-  {
-  }
+  AEffectWrapper(AEffect* f) noexcept : fx{f} {}
 
   auto getParameter(int32_t index) const noexcept
   {
@@ -49,8 +61,11 @@ struct AEffectWrapper
   }
 
   auto dispatch(
-      int32_t opcode, int32_t index = 0, intptr_t value = 0,
-      void* ptr = nullptr, float opt = 0.0f) const noexcept
+      int32_t opcode,
+      int32_t index = 0,
+      intptr_t value = 0,
+      void* ptr = nullptr,
+      float opt = 0.0f) const noexcept
   {
     return fx->dispatcher(fx, opcode, index, value, ptr, opt);
   }
@@ -61,16 +76,16 @@ struct AEffectWrapper
     {
       fx->dispatcher(fx, effStopProcess, 0, 0, nullptr, 0.f);
       fx->dispatcher(fx, effMainsChanged, 0, 0, nullptr, 0.f);
-      score::invoke([fx=fx] {
-        fx->dispatcher(fx, effClose, 0, 0, nullptr, 0.f);
-      });
+      score::invoke(
+          [fx = fx] { fx->dispatcher(fx, effClose, 0, 0, nullptr, 0.f); });
     }
   }
 };
 
 class CreateVSTControl;
 class VSTControlInlet;
-class SCORE_PLUGIN_MEDIA_EXPORT VSTEffectModel final : public Process::ProcessModel
+class SCORE_PLUGIN_MEDIA_EXPORT VSTEffectModel final
+    : public Process::ProcessModel
 {
   W_OBJECT(VSTEffectModel)
   SCORE_SERIALIZE_FRIENDS
@@ -79,7 +94,9 @@ class SCORE_PLUGIN_MEDIA_EXPORT VSTEffectModel final : public Process::ProcessMo
 public:
   PROCESS_METADATA_IMPL(VSTEffectModel)
   VSTEffectModel(
-      TimeVal t, const QString& name, const Id<Process::ProcessModel>&,
+      TimeVal t,
+      const QString& name,
+      const Id<Process::ProcessModel>&,
       QObject* parent);
 
   ~VSTEffectModel() override;
@@ -116,8 +133,11 @@ private:
   int32_t m_effectId{};
 
   auto dispatch(
-      int32_t opcode, int32_t index = 0, intptr_t value = 0,
-      void* ptr = nullptr, float opt = 0.0f)
+      int32_t opcode,
+      int32_t index = 0,
+      intptr_t value = 0,
+      void* ptr = nullptr,
+      float opt = 0.0f)
   {
     return fx->dispatch(opcode, index, value, ptr, opt);
   }
@@ -129,7 +149,11 @@ private:
 // VSTModule* getPlugin(QString path);
 AEffect* getPluginInstance(int32_t id);
 intptr_t vst_host_callback(
-    AEffect* effect, int32_t opcode, int32_t index, intptr_t value, void* ptr,
+    AEffect* effect,
+    int32_t opcode,
+    int32_t index,
+    intptr_t value,
+    void* ptr,
     float opt);
 }
 

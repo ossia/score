@@ -10,8 +10,8 @@
 #include <score/model/path/Path.hpp>
 #include <score/model/path/PathSerialization.hpp>
 #include <score/model/tree/TreeNode.hpp>
-#include <score/serialization/DataStreamVisitor.hpp>
 #include <score/model/tree/TreeNodeSerialization.hpp>
+#include <score/serialization/DataStreamVisitor.hpp>
 
 #include <algorithm>
 
@@ -20,7 +20,8 @@ namespace Explorer
 namespace Command
 {
 LoadDevice::LoadDevice(
-    const DeviceDocumentPlugin& devplug, Device::Node&& node)
+    const DeviceDocumentPlugin& devplug,
+    Device::Node&& node)
     : m_deviceNode(std::move(node))
 {
 }
@@ -48,7 +49,8 @@ void LoadDevice::deserializeImpl(DataStreamOutput& d)
 }
 
 ReloadWholeDevice::ReloadWholeDevice(
-    const DeviceDocumentPlugin& devplug, Device::Node&& oldNode,
+    const DeviceDocumentPlugin& devplug,
+    Device::Node&& oldNode,
     Device::Node&& newNode)
     : m_oldNode(std::move(oldNode)), m_newNode(std::move(newNode))
 {

@@ -18,7 +18,8 @@
 namespace Curve
 {
 LinearSegment::LinearSegment(
-    const LinearSegment& other, const IdentifiedObject::id_type& id,
+    const LinearSegment& other,
+    const IdentifiedObject::id_type& id,
     QObject* parent)
     : SegmentModel{other.start(), other.end(), id, parent}
 {

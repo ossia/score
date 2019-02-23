@@ -2,8 +2,8 @@
 
 #include "CoherencyCheckerFactoryInterface.hpp"
 
-#include <score/plugins/InterfaceList.hpp>
 #include <score/plugins/Interface.hpp>
+#include <score/plugins/InterfaceList.hpp>
 
 namespace Scenario
 {

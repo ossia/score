@@ -7,7 +7,7 @@
 #endif
 
 #include <State/Value.hpp>
-#include <QString>
+
 #include <ossia/network/base/name_validation.hpp>
 #include <ossia/network/dataspace/dataspace_parse.hpp>
 
@@ -20,6 +20,8 @@
 #include <boost/spirit/include/qi_real.hpp>
 #include <boost/spirit/repository/include/qi_confix.hpp>
 #include <boost/variant/recursive_wrapper.hpp>
+
+#include <QString>
 #endif
 
 // Taken from boost doc, necessary to have support of QString
@@ -56,20 +58,14 @@ struct push_back_container<QString, QChar>
 template <>
 struct is_empty_container<QString>
 {
-  static bool call(QString const& c)
-  {
-    return c.isEmpty();
-  }
+  static bool call(QString const& c) { return c.isEmpty(); }
 };
 
 // Define how to stream a QString (required for debug)
 template <typename Out, typename Enable>
 struct print_attribute_debug<Out, QString, Enable>
 {
-  static void call(Out& out, QString const& val)
-  {
-    out << val.toStdString();
-  }
+  static void call(Out& out, QString const& val) { out << val.toStdString(); }
 };
 }
 }
@@ -85,10 +81,7 @@ using boost::spirit::qi::rule;
 /// Value parsing
 struct BoolParse_map : qi::symbols<char, bool>
 {
-  BoolParse_map()
-  {
-    add("true", true)("false", false);
-  }
+  BoolParse_map() { add("true", true)("false", false); }
 };
 template <typename Iterator>
 struct Value_parser : qi::grammar<Iterator, ossia::value()>
@@ -119,4 +112,3 @@ struct Value_parser : qi::grammar<Iterator, ossia::value()>
   qi::rule<Iterator, ossia::value()> start;
 };
 }
-

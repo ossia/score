@@ -21,9 +21,7 @@ JoystickDevice::JoystickDevice(const Device::DeviceSettings& settings)
   m_capas.canSerialize = false;
 }
 
-JoystickDevice::~JoystickDevice()
-{
-}
+JoystickDevice::~JoystickDevice() {}
 
 bool JoystickDevice::reconnect()
 {

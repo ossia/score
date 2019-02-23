@@ -22,14 +22,8 @@ public:
   {
     return CommandFactoryName<Scenario_T>();
   }
-  const CommandKey& key() const noexcept override
-  {
-    return static_key();
-  }
-  QString description() const override
-  {
-    return QObject::tr("Add a trigger");
-  }
+  const CommandKey& key() const noexcept override { return static_key(); }
+  QString description() const override { return QObject::tr("Add a trigger"); }
   static const CommandKey& static_key() noexcept
   {
     static const CommandKey kagi{QString("AddTrigger_")

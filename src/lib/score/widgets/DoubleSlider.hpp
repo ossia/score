@@ -21,8 +21,10 @@ public:
   static AbsoluteSliderStyle* instance() noexcept;
 
   int styleHint(
-      QStyle::StyleHint hint, const QStyleOption* option,
-      const QWidget* widget, QStyleHintReturn* returnData) const override;
+      QStyle::StyleHint hint,
+      const QStyleOption* option,
+      const QWidget* widget,
+      QStyleHintReturn* returnData) const override;
 };
 
 class SCORE_LIB_BASE_EXPORT Slider : public QSlider

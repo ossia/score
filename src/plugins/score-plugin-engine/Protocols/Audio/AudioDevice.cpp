@@ -7,8 +7,8 @@
 
 #include <score/widgets/SignalUtils.hpp>
 
-#include <ossia/audio/audio_parameter.hpp>
 #include <ossia-qt/js_utilities.hpp>
+#include <ossia/audio/audio_parameter.hpp>
 #include <ossia/network/generic/generic_device.hpp>
 #include <ossia/network/generic/generic_parameter.hpp>
 
@@ -46,9 +46,7 @@ AudioDevice::AudioDevice(const Device::DeviceSettings& settings)
   m_capas.canSerialize = true;
 }
 
-AudioDevice::~AudioDevice()
-{
-}
+AudioDevice::~AudioDevice() {}
 
 void AudioDevice::addAddress(const Device::FullAddressSettings& settings)
 {
@@ -64,12 +62,12 @@ void AudioDevice::addAddress(const Device::FullAddressSettings& settings)
 }
 
 void AudioDevice::updateAddress(
-      const State::Address& currentAddr
-      , const Device::FullAddressSettings& settings)
+    const State::Address& currentAddr,
+    const Device::FullAddressSettings& settings)
 {
   if (auto dev = getDevice())
   {
-    if(auto node = Device::getNodeFromPath(currentAddr.path, *dev))
+    if (auto node = Device::getNodeFromPath(currentAddr.path, *dev))
     {
       setupNode(*node, settings.extendedAttributes);
 
@@ -126,7 +124,9 @@ void AudioDevice::recreate(const Device::Node& n)
   }
 }
 
-void AudioDevice::setupNode(ossia::net::node_base& node, const ossia::extended_attributes& attr)
+void AudioDevice::setupNode(
+    ossia::net::node_base& node,
+    const ossia::extended_attributes& attr)
 {
   auto kind_it = attr.find("audio-kind");
   if (kind_it == attr.end())
@@ -135,33 +135,32 @@ void AudioDevice::setupNode(ossia::net::node_base& node, const ossia::extended_a
   auto kind = ossia::any_cast<std::string>(kind_it.value());
   if (kind == "in")
   {
-    auto chans = ossia::any_cast<ossia::audio_mapping>(
-        attr.at("audio-mapping"));
+    auto chans
+        = ossia::any_cast<ossia::audio_mapping>(attr.at("audio-mapping"));
     if (!node.get_parameter())
-      node.set_parameter(std::make_unique<ossia::mapped_audio_parameter>(
-          false, chans, node));
+      node.set_parameter(
+          std::make_unique<ossia::mapped_audio_parameter>(false, chans, node));
 
     // TODO update
   }
   else if (kind == "out")
   {
-    auto chans = ossia::any_cast<ossia::audio_mapping>(
-        attr.at("audio-mapping"));
+    auto chans
+        = ossia::any_cast<ossia::audio_mapping>(attr.at("audio-mapping"));
     if (!node.get_parameter())
-      node.set_parameter(std::make_unique<ossia::mapped_audio_parameter>(
-          true, chans, node));
+      node.set_parameter(
+          std::make_unique<ossia::mapped_audio_parameter>(true, chans, node));
   }
   else if (kind == "virtual")
   {
-    auto chans = ossia::any_cast<int>(
-        attr.at("audio-channels"));
+    auto chans = ossia::any_cast<int>(attr.at("audio-channels"));
     if (!node.get_parameter())
       node.set_parameter(
           std::make_unique<ossia::virtual_audio_parameter>(chans, node));
   }
 
   auto x = node.get_extended_attributes();
-  for(auto& e : attr)
+  for (auto& e : attr)
   {
     x[e.first] = e.second;
   }
@@ -179,7 +178,8 @@ QString AudioProtocolFactory::prettyName() const
 }
 
 Device::DeviceInterface* AudioProtocolFactory::makeDevice(
-    const Device::DeviceSettings& settings, const score::DocumentContext& ctx)
+    const Device::DeviceSettings& settings,
+    const score::DocumentContext& ctx)
 {
   auto doc = ctx.findPlugin<Explorer::DeviceDocumentPlugin>();
   if (doc)
@@ -234,10 +234,14 @@ public:
     m_layout.addWidget(&m_buttons);
 
     connect(
-        &m_buttons, &QDialogButtonBox::accepted, this,
+        &m_buttons,
+        &QDialogButtonBox::accepted,
+        this,
         &AudioAddressDialog::accept);
     connect(
-        &m_buttons, &QDialogButtonBox::rejected, this,
+        &m_buttons,
+        &QDialogButtonBox::rejected,
+        this,
         &AudioAddressDialog::reject);
 
     m_type.addItems({tr("In"), tr("Out"), tr("Virtual")});
@@ -245,10 +249,16 @@ public:
     m_channels.setValue(2);
     m_type.setCurrentIndex(0);
 
-    con(m_type, SignalUtils::QComboBox_currentIndexChanged_int(), this,
-        [=] { updateType(m_type.currentIndex()); }, Qt::QueuedConnection);
-    con(m_channels, &QSpinBox::editingFinished, this,
-        [=] { updateType(m_type.currentIndex()); }, Qt::QueuedConnection);
+    con(m_type,
+        SignalUtils::QComboBox_currentIndexChanged_int(),
+        this,
+        [=] { updateType(m_type.currentIndex()); },
+        Qt::QueuedConnection);
+    con(m_channels,
+        &QSpinBox::editingFinished,
+        this,
+        [=] { updateType(m_type.currentIndex()); },
+        Qt::QueuedConnection);
 
     m_mapping.setAlternatingRowColors(true);
     m_mapping.setCornerButtonEnabled(false);
@@ -264,7 +274,8 @@ public:
     updateType(m_type.currentIndex());
   }
   AudioAddressDialog(
-      const Device::DeviceSettings& dev, const score::DocumentContext& ctx,
+      const Device::DeviceSettings& dev,
+      const score::DocumentContext& ctx,
       QWidget* parent)
       : Device::AddressDialog{parent}
       , m_device{*ctx.plugin<Execution::DocumentPlugin>().audio_device}
@@ -281,8 +292,10 @@ public:
   }
 
   AudioAddressDialog(
-      const Device::AddressSettings& addr, const Device::DeviceSettings& dev,
-      const score::DocumentContext& ctx, QWidget* parent)
+      const Device::AddressSettings& addr,
+      const Device::DeviceSettings& dev,
+      const score::DocumentContext& ctx,
+      QWidget* parent)
       : AudioAddressDialog{dev, ctx, parent}
   {
     m_nameEdit.setText(addr.name);
@@ -459,15 +472,18 @@ public:
 };
 
 Device::AddressDialog* AudioProtocolFactory::makeAddAddressDialog(
-    const Device::DeviceInterface& dev, const score::DocumentContext& ctx,
+    const Device::DeviceInterface& dev,
+    const score::DocumentContext& ctx,
     QWidget* parent)
 {
   return new AudioAddressDialog{dev.settings(), ctx, parent};
 }
 
 Device::AddressDialog* AudioProtocolFactory::makeEditAddressDialog(
-    const Device::AddressSettings& set, const Device::DeviceInterface& dev,
-    const score::DocumentContext& ctx, QWidget* parent)
+    const Device::AddressSettings& set,
+    const Device::DeviceInterface& dev,
+    const score::DocumentContext& ctx,
+    QWidget* parent)
 {
 
   return new AudioAddressDialog{set, dev.settings(), ctx, parent};
@@ -485,12 +501,14 @@ QVariant AudioProtocolFactory::makeProtocolSpecificSettings(
 }
 
 void AudioProtocolFactory::serializeProtocolSpecificSettings(
-    const QVariant& data, const VisitorVariant& visitor) const
+    const QVariant& data,
+    const VisitorVariant& visitor) const
 {
 }
 
 bool AudioProtocolFactory::checkCompatibility(
-    const Device::DeviceSettings& a, const Device::DeviceSettings& b) const
+    const Device::DeviceSettings& a,
+    const Device::DeviceSettings& b) const
 {
   return a.name != b.name;
 }

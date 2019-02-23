@@ -22,7 +22,9 @@ QRectF TimeBar::boundingRect() const
 }
 
 void TimeBar::paint(
-    QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+    QPainter* painter,
+    const QStyleOptionGraphicsItem* option,
+    QWidget* widget)
 {
   static const QPen pen(QBrush(Qt::gray), 0);
 

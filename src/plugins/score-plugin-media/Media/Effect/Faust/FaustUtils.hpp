@@ -18,22 +18,12 @@ struct UI
   Proc& fx;
   ossia::nodes::faust_setup_ui<UI> glue{*this};
 
-  UI(Proc& sfx) : fx{sfx}
-  {
-  }
+  UI(Proc& sfx) : fx{sfx} {}
 
-  void openTabBox(const char* label)
-  {
-  }
-  void openHorizontalBox(const char* label)
-  {
-  }
-  void openVerticalBox(const char* label)
-  {
-  }
-  void closeBox()
-  {
-  }
+  void openTabBox(const char* label) {}
+  void openHorizontalBox(const char* label) {}
+  void openVerticalBox(const char* label) {}
+  void closeBox() {}
   void declare(FAUSTFLOAT* zone, const char* key, const char* val)
   {
     qDebug() << "UI: " << key << val;
@@ -51,14 +41,18 @@ struct UI
 
   void addCheckButton(const char* label, FAUSTFLOAT* zone)
   {
-    auto inl = new Process::Toggle{bool(*zone), label,
-                                   getStrongId(fx.inlets()), &fx};
+    auto inl = new Process::Toggle{
+        bool(*zone), label, getStrongId(fx.inlets()), &fx};
     fx.inlets().push_back(inl);
   }
 
   void addVerticalSlider(
-      const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min,
-      FAUSTFLOAT max, FAUSTFLOAT step)
+      const char* label,
+      FAUSTFLOAT* zone,
+      FAUSTFLOAT init,
+      FAUSTFLOAT min,
+      FAUSTFLOAT max,
+      FAUSTFLOAT step)
   {
     auto inl = new Process::FloatSlider{
         min, max, init, label, getStrongId(fx.inlets()), &fx};
@@ -66,27 +60,41 @@ struct UI
   }
 
   void addHorizontalSlider(
-      const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min,
-      FAUSTFLOAT max, FAUSTFLOAT step)
+      const char* label,
+      FAUSTFLOAT* zone,
+      FAUSTFLOAT init,
+      FAUSTFLOAT min,
+      FAUSTFLOAT max,
+      FAUSTFLOAT step)
   {
     addVerticalSlider(label, zone, init, min, max, step);
   }
 
   void addNumEntry(
-      const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min,
-      FAUSTFLOAT max, FAUSTFLOAT step)
+      const char* label,
+      FAUSTFLOAT* zone,
+      FAUSTFLOAT init,
+      FAUSTFLOAT min,
+      FAUSTFLOAT max,
+      FAUSTFLOAT step)
   {
     // TODO spinbox ?
     addVerticalSlider(label, zone, init, min, max, step);
   }
 
   void addHorizontalBargraph(
-      const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
+      const char* label,
+      FAUSTFLOAT* zone,
+      FAUSTFLOAT min,
+      FAUSTFLOAT max)
   {
   }
 
   void addVerticalBargraph(
-      const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
+      const char* label,
+      FAUSTFLOAT* zone,
+      FAUSTFLOAT min,
+      FAUSTFLOAT max)
   {
     addHorizontalBargraph(label, zone, min, max);
   }
@@ -99,22 +107,12 @@ struct UpdateUI
   std::size_t i = 1;
   ossia::nodes::faust_setup_ui<UpdateUI> glue{*this};
 
-  UpdateUI(Proc& sfx) : fx{sfx}
-  {
-  }
+  UpdateUI(Proc& sfx) : fx{sfx} {}
 
-  void openTabBox(const char* label)
-  {
-  }
-  void openHorizontalBox(const char* label)
-  {
-  }
-  void openVerticalBox(const char* label)
-  {
-  }
-  void closeBox()
-  {
-  }
+  void openTabBox(const char* label) {}
+  void openHorizontalBox(const char* label) {}
+  void openVerticalBox(const char* label) {}
+  void closeBox() {}
   void declare(FAUSTFLOAT* zone, const char* key, const char* val)
   {
     qDebug() << "UpdateUI: " << key << val;
@@ -174,8 +172,8 @@ struct UpdateUI
     }
     else
     {
-      auto inl = new Process::Toggle{bool(*zone), label,
-                                     getStrongId(fx.inlets()), &fx};
+      auto inl = new Process::Toggle{
+          bool(*zone), label, getStrongId(fx.inlets()), &fx};
       fx.inlets().push_back(inl);
       fx.controlAdded(inl->id());
     }
@@ -183,8 +181,12 @@ struct UpdateUI
   }
 
   void addVerticalSlider(
-      const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min,
-      FAUSTFLOAT max, FAUSTFLOAT step)
+      const char* label,
+      FAUSTFLOAT* zone,
+      FAUSTFLOAT init,
+      FAUSTFLOAT min,
+      FAUSTFLOAT max,
+      FAUSTFLOAT step)
   {
     if (i < fx.inlets().size())
     {
@@ -215,26 +217,40 @@ struct UpdateUI
   }
 
   void addHorizontalSlider(
-      const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min,
-      FAUSTFLOAT max, FAUSTFLOAT step)
+      const char* label,
+      FAUSTFLOAT* zone,
+      FAUSTFLOAT init,
+      FAUSTFLOAT min,
+      FAUSTFLOAT max,
+      FAUSTFLOAT step)
   {
     addVerticalSlider(label, zone, init, min, max, step);
   }
 
   void addNumEntry(
-      const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min,
-      FAUSTFLOAT max, FAUSTFLOAT step)
+      const char* label,
+      FAUSTFLOAT* zone,
+      FAUSTFLOAT init,
+      FAUSTFLOAT min,
+      FAUSTFLOAT max,
+      FAUSTFLOAT step)
   {
     addVerticalSlider(label, zone, init, min, max, step);
   }
 
   void addHorizontalBargraph(
-      const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
+      const char* label,
+      FAUSTFLOAT* zone,
+      FAUSTFLOAT min,
+      FAUSTFLOAT max)
   {
   }
 
   void addVerticalBargraph(
-      const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
+      const char* label,
+      FAUSTFLOAT* zone,
+      FAUSTFLOAT min,
+      FAUSTFLOAT max)
   {
     addHorizontalBargraph(label, zone, min, max);
   }

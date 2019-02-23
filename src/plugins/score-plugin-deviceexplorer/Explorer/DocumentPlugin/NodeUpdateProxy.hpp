@@ -62,7 +62,8 @@ public:
    */
   void addAddress(
       const Device::NodePath& parentPath,
-      const Device::AddressSettings& settings, int row);
+      const Device::AddressSettings& settings,
+      int row);
 
   void addAddress(const Device::FullAddressSettings& settings);
 
@@ -72,7 +73,9 @@ public:
    * @param node The node to insert.
    */
   void addNode(
-      const Device::NodePath& parentPath, const Device::Node& node, int row);
+      const Device::NodePath& parentPath,
+      const Device::Node& node,
+      int row);
 
   void updateAddress(
       const Device::NodePath& nodePath,
@@ -85,14 +88,17 @@ public:
   // Local : the Device::Node structure
   // Remote : what's behind a DeviceInterface
   void addLocalAddress(
-      Device::Node& parent, const Device::AddressSettings& data, int row);
+      Device::Node& parent,
+      const Device::AddressSettings& data,
+      int row);
 
   void addLocalNode(Device::Node& parent, Device::Node&& node);
 
   void removeLocalNode(const State::Address&);
   void updateLocalValue(const State::AddressAccessor&, const ossia::value&);
   void updateLocalSettings(
-      const State::Address&, const Device::AddressSettings&,
+      const State::Address&,
+      const Device::AddressSettings&,
       Device::DeviceInterface& newdev);
 
   void updateRemoteValue(const State::Address&, const ossia::value&);

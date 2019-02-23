@@ -19,7 +19,8 @@
 namespace Curve
 {
 SetSegmentParameters::SetSegmentParameters(
-    const Model& curve, SegmentParameterMap&& parameters)
+    const Model& curve,
+    SegmentParameterMap&& parameters)
     : m_model{curve}, m_new{std::move(parameters)}
 {
   for (auto it = m_new.cbegin(); it != m_new.cend(); ++it)

@@ -21,7 +21,9 @@ class InspectorWidget final : public Process::InspectorWidgetDelegate_T<Model>
 {
 public:
   explicit InspectorWidget(
-      const Model& obj, const score::DocumentContext& doc, QWidget* parent)
+      const Model& obj,
+      const score::DocumentContext& doc,
+      QWidget* parent)
       : InspectorWidgetDelegate_T{obj, parent}
       , m_dispatcher{doc.commandStack}
       , m_count{this}
@@ -31,8 +33,9 @@ public:
 
     auto lay = new QFormLayout{this};
 
-    con(process(), &Model::inCountChanged, this,
-        [&] { m_count.setValue(obj.inCount()); });
+    con(process(), &Model::inCountChanged, this, [&] {
+      m_count.setValue(obj.inCount());
+    });
 
     con(m_count, &QSpinBox::editingFinished, this, [&]() {
       m_dispatcher.submit<SetMergeInCount>(obj, m_count.value());

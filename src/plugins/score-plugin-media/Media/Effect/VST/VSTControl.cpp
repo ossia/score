@@ -17,20 +17,21 @@ namespace Media::VST
 {
 
 void VSTControlPortItem::setupMenu(
-    QMenu& menu, const score::DocumentContext& ctx)
+    QMenu& menu,
+    const score::DocumentContext& ctx)
 {
   auto rm_act = menu.addAction(QObject::tr("Remove port"));
   connect(rm_act, &QAction::triggered, this, [this, &ctx] {
     QTimer::singleShot(0, [&ctx, parent = port().parent(), id = port().id()] {
       CommandDispatcher<> disp{ctx.commandStack};
-      disp.submit<RemoveVSTControl>(
-          *static_cast<VSTEffectModel*>(parent), id);
+      disp.submit<RemoveVSTControl>(*static_cast<VSTEffectModel*>(parent), id);
     });
   });
 }
 
 bool VSTControlPortItem::on_createAutomation(
-    Scenario::IntervalModel& cst, std::function<void(score::Command*)> macro,
+    Scenario::IntervalModel& cst,
+    std::function<void(score::Command*)> macro,
     const score::DocumentContext& ctx)
 {
   auto make_cmd = new Scenario::Command::AddOnlyProcessToInterval{
@@ -52,14 +53,12 @@ bool VSTControlPortItem::on_createAutomation(
   cd.source = *autom.outlet;
   cd.sink = port();
 
-  macro(new Dataflow::CreateCable{plug, getStrongId(plug.cables),
-                                  std::move(cd)});
+  macro(new Dataflow::CreateCable{
+      plug, getStrongId(plug.cables), std::move(cd)});
   return true;
 }
 
-VSTControlPortFactory::~VSTControlPortFactory()
-{
-}
+VSTControlPortFactory::~VSTControlPortFactory() {}
 
 UuidKey<Process::Port> VSTControlPortFactory::concreteKey() const noexcept
 {
@@ -75,8 +74,10 @@ VSTControlPortFactory::load(const VisitorVariant& vis, QObject* parent)
 }
 
 Dataflow::PortItem* VSTControlPortFactory::makeItem(
-    Process::Inlet& port, const score::DocumentContext& ctx,
-    QGraphicsItem* parent, QObject* context)
+    Process::Inlet& port,
+    const score::DocumentContext& ctx,
+    QGraphicsItem* parent,
+    QObject* context)
 {
   auto port_item = new VSTControlPortItem{port, ctx, parent};
   // Dataflow::setupSimpleInlet(port_item, port, ctx, parent, context);
@@ -84,8 +85,10 @@ Dataflow::PortItem* VSTControlPortFactory::makeItem(
 }
 
 Dataflow::PortItem* VSTControlPortFactory::makeItem(
-    Process::Outlet& port, const score::DocumentContext& ctx,
-    QGraphicsItem* parent, QObject* context)
+    Process::Outlet& port,
+    const score::DocumentContext& ctx,
+    QGraphicsItem* parent,
+    QObject* context)
 {
   return nullptr;
 }

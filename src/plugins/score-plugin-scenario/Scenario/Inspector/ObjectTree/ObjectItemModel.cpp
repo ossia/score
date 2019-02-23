@@ -50,7 +50,8 @@ namespace Scenario
 {
 
 ObjectItemModel::ObjectItemModel(
-    const score::DocumentContext& ctx, QObject* parent)
+    const score::DocumentContext& ctx,
+    QObject* parent)
     : QAbstractItemModel{parent}, m_ctx{ctx}
 {
 }
@@ -405,7 +406,9 @@ QModelIndex ObjectItemModel::parent(const QModelIndex& child) const
 }
 
 QVariant ObjectItemModel::headerData(
-    int section, Qt::Orientation orientation, int role) const
+    int section,
+    Qt::Orientation orientation,
+    int role) const
 {
   if (role == Qt::DisplayRole)
   {
@@ -498,7 +501,7 @@ QVariant ObjectItemModel::data(const QModelIndex& index, int role) const
       }
       else if (auto stp = qobject_cast<Process::ProcessModel*>(sel))
       {
-        if(stp->metadata().touchedName())
+        if (stp->metadata().touchedName())
           return stp->metadata().getName();
 
         auto name = stp->prettyName();
@@ -611,7 +614,9 @@ Qt::ItemFlags ObjectItemModel::flags(const QModelIndex& index) const
 }
 
 bool ObjectItemModel::setData(
-    const QModelIndex& index, const QVariant& value, int role)
+    const QModelIndex& index,
+    const QVariant& value,
+    int role)
 {
   if (index.column() == 0)
   {
@@ -703,12 +708,15 @@ QMimeData* ObjectItemModel::mimeData(const QModelIndexList& indexes) const
 }
 
 bool ObjectItemModel::canDropMimeData(
-    const QMimeData* data, Qt::DropAction action, int r, int column,
+    const QMimeData* data,
+    Qt::DropAction action,
+    int r,
+    int column,
     const QModelIndex& parent) const
 {
   if (!parent.isValid())
     return false;
-  if(r <= 0)
+  if (r <= 0)
     return false;
 
   auto row = std::size_t(r);
@@ -778,13 +786,16 @@ bool ObjectItemModel::canDropMimeData(
 }
 
 bool ObjectItemModel::dropMimeData(
-    const QMimeData* data, Qt::DropAction action, int r, int column,
+    const QMimeData* data,
+    Qt::DropAction action,
+    int r,
+    int column,
     const QModelIndex& parent)
 {
   using namespace Scenario::Command;
   if (!parent.isValid())
     return false;
-  if(r <= 0)
+  if (r <= 0)
     return false;
 
   auto row = std::size_t(r);
@@ -812,8 +823,7 @@ bool ObjectItemModel::dropMimeData(
 
       // put before row: row == 0 -> begin
       CommandDispatcher<> disp{m_ctx.dispatcher};
-      disp.submit(
-          new PutProcessBefore{*itv, the_proc->id(), other->id()});
+      disp.submit(new PutProcessBefore{*itv, the_proc->id(), other->id()});
     }
     else if (row >= itv->processes.size())
     {
@@ -874,8 +884,7 @@ bool ObjectItemModel::dropMimeData(
     if (auto itv = qobject_cast<Scenario::IntervalModel*>(the_proc->parent()))
     {
       CommandDispatcher<> disp{m_ctx.dispatcher};
-      disp.submit(
-          new PutProcessBefore{*itv, the_proc->id(), other->id()});
+      disp.submit(new PutProcessBefore{*itv, the_proc->id(), other->id()});
     }
     else if (
         auto sta = qobject_cast<Scenario::StateModel*>(the_proc->parent()))
@@ -900,7 +909,9 @@ Qt::DropActions ObjectItemModel::supportedDragActions() const
 }
 
 SelectionStackWidget::SelectionStackWidget(
-    score::SelectionStack& s, QWidget* parent, ObjectWidget* objects)
+    score::SelectionStack& s,
+    QWidget* parent,
+    ObjectWidget* objects)
     : QWidget{parent}, m_stack{s}, m_selector{s, objects}
 {
   m_prev = new QToolButton{this};
@@ -979,7 +990,9 @@ QWidget* ObjectPanelDelegate::widget()
 
 const score::PanelStatus& ObjectPanelDelegate::defaultPanelStatus() const
 {
-  static const score::PanelStatus status{true, Qt::RightDockWidgetArea, 12,
+  static const score::PanelStatus status{true,
+                                         Qt::RightDockWidgetArea,
+                                         12,
                                          QObject::tr("Objects"),
                                          QObject::tr("Ctrl+Shift+O")};
 
@@ -987,7 +1000,8 @@ const score::PanelStatus& ObjectPanelDelegate::defaultPanelStatus() const
 }
 
 void ObjectPanelDelegate::on_modelChanged(
-    score::MaybeDocument oldm, score::MaybeDocument newm)
+    score::MaybeDocument oldm,
+    score::MaybeDocument newm)
 {
   using namespace score;
   delete m_objects;
@@ -1072,7 +1086,8 @@ ObjectWidget::ObjectWidget(const score::DocumentContext& ctx, QWidget* par)
 }
 
 void ObjectWidget::selectionChanged(
-    const QItemSelection& selected, const QItemSelection& deselected)
+    const QItemSelection& selected,
+    const QItemSelection& deselected)
 {
   if ((selected.size() > 0 || deselected.size() > 0) && !updatingSelection)
   {
@@ -1137,8 +1152,7 @@ void ObjectWidget::contextMenuEvent(QContextMenuEvent* ev)
 
         dialog->on_okPressed = [&](const auto& proc, QString dat) {
           CommandDispatcher<> disp{m_ctx.commandStack};
-          disp.submit<Scenario::Command::AddStateProcessToState>(
-              *state, proc);
+          disp.submit<Scenario::Command::AddStateProcessToState>(*state, proc);
         };
 
         dialog->launchWindow();
@@ -1153,8 +1167,7 @@ void ObjectWidget::contextMenuEvent(QContextMenuEvent* ev)
         m->addAction(deleteact);
         connect(deleteact, &QAction::triggered, this, [=] {
           CommandDispatcher<> c{m_ctx.commandStack};
-          c.submit<Scenario::Command::RemoveStateProcess>(
-              *state, proc->id());
+          c.submit<Scenario::Command::RemoveStateProcess>(*state, proc->id());
         });
       }
       else if (
@@ -1183,7 +1196,8 @@ void ObjectWidget::contextMenuEvent(QContextMenuEvent* ev)
 }
 
 NeighbourSelector::NeighbourSelector(
-    score::SelectionStack& s, ObjectWidget* objects)
+    score::SelectionStack& s,
+    ObjectWidget* objects)
     : m_stack{s}, m_objects{objects}, m_selectionDispatcher{s}
 {
 }
@@ -1332,7 +1346,9 @@ SearchWidget::SearchWidget(const score::GUIApplicationContext& ctx)
       Explorer::DeviceExplorerWidget* widget
           = static_cast<Explorer::DeviceExplorerWidget*>(panel->widget());
       connect(
-          widget, &Explorer::DeviceExplorerWidget::findAddresses, this,
+          widget,
+          &Explorer::DeviceExplorerWidget::findAddresses,
+          this,
           &SearchWidget::on_findAddresses);
     }
   }

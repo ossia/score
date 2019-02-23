@@ -189,7 +189,8 @@ static void updateOSSIAAddress(
 }
 
 static void createOSSIAAddress(
-    const Device::FullAddressSettings& settings, ossia::net::node_base& node)
+    const Device::FullAddressSettings& settings,
+    ossia::net::node_base& node)
 {
   if (!settings.value.v)
     return;
@@ -297,9 +298,7 @@ bool DeviceInterface::isLearning() const
   return false;
 }
 
-void DeviceInterface::setLearning(bool)
-{
-}
+void DeviceInterface::setLearning(bool) {}
 
 QMimeData* DeviceInterface::mimeData() const
 {
@@ -311,9 +310,7 @@ DeviceInterface::DeviceInterface(Device::DeviceSettings s)
 {
 }
 
-DeviceInterface::~DeviceInterface()
-{
-}
+DeviceInterface::~DeviceInterface() {}
 
 const Device::DeviceSettings& DeviceInterface::settings() const
 {
@@ -358,9 +355,7 @@ void DeviceInterface::disconnect()
   }
 }
 
-void DeviceInterface::recreate(const Device::Node&)
-{
-}
+void DeviceInterface::recreate(const Device::Node&) {}
 
 void DeviceInterface::updateSettings(const Device::DeviceSettings& newsettings)
 {
@@ -409,7 +404,7 @@ void DeviceInterface::updateAddress(
 {
   if (auto dev = getDevice())
   {
-    if(auto node = getNodeFromPath(currentAddr.path, *dev))
+    if (auto node = getNodeFromPath(currentAddr.path, *dev))
     {
       bool is_listening = m_callbacks.find(currentAddr) != m_callbacks.end();
 
@@ -450,7 +445,8 @@ void DeviceInterface::updateAddress(
 }
 
 void DeviceInterface::removeListening_impl(
-    ossia::net::node_base& node, State::Address addr)
+    ossia::net::node_base& node,
+    State::Address addr)
 {
   // Find & remove our callback
   auto it = m_callbacks.find(addr);
@@ -470,7 +466,8 @@ void DeviceInterface::removeListening_impl(
 }
 
 void DeviceInterface::removeListening_impl(
-    ossia::net::node_base& node, State::Address addr,
+    ossia::net::node_base& node,
+    State::Address addr,
     std::vector<State::Address>& vec)
 {
   // Find & remove our callback
@@ -504,7 +501,8 @@ bool is_parent(const State::Address& parent, const State::Address& child)
 }
 
 void DeviceInterface::renameListening_impl(
-    const State::Address& parent, const QString& newName)
+    const State::Address& parent,
+    const QString& newName)
 {
   // Store the elements that are renamed
   std::vector<std::pair<State::Address, callback_pair>> saved_elts;
@@ -539,39 +537,36 @@ namespace
 struct in_sink final : public spdlog::sinks::sink
 {
   const DeviceInterface& m_dev;
-  in_sink(const DeviceInterface& dev) : m_dev{dev}
-  {
-  }
+  in_sink(const DeviceInterface& dev) : m_dev{dev} {}
   void log(const spdlog::details::log_msg& msg) override
   {
     m_dev.logInbound(
         QString::fromLatin1(msg.payload.data(), msg.payload.size()));
   }
 
-  void flush() override
+  void flush() override {}
+  void set_pattern(const std::string& pattern) override {}
+  void
+  set_formatter(std::unique_ptr<spdlog::formatter> sink_formatter) override
   {
   }
-  void set_pattern(const std::string &pattern) override { }
-  void set_formatter(std::unique_ptr<spdlog::formatter> sink_formatter) override { }
-
 };
 struct out_sink final : public spdlog::sinks::sink
 {
   const DeviceInterface& m_dev;
-  out_sink(const DeviceInterface& dev) : m_dev{dev}
-  {
-  }
+  out_sink(const DeviceInterface& dev) : m_dev{dev} {}
   void log(const spdlog::details::log_msg& msg) override
   {
     m_dev.logOutbound(
         QString::fromLatin1(msg.payload.data(), msg.payload.size()));
   }
 
-  void flush() override
+  void flush() override {}
+  void set_pattern(const std::string& pattern) override {}
+  void
+  set_formatter(std::unique_ptr<spdlog::formatter> sink_formatter) override
   {
   }
-  void set_pattern(const std::string &pattern) override  { }
-  void set_formatter(std::unique_ptr<spdlog::formatter> sink_formatter) override  { }
 };
 }
 void DeviceInterface::setLogging_impl(DeviceLogging b) const
@@ -834,11 +829,12 @@ void DeviceInterface::setListening(const State::Address& addr, bool b)
     {
       if (cb_it == m_callbacks.end())
       {
-        m_callbacks.insert({addr,
-                            {ossia_addr, ossia_addr->add_callback(
-                                             [=](const ossia::value& val) {
-                                               valueUpdated(addr, val);
-                                             })}});
+        m_callbacks.insert(
+            {addr,
+             {ossia_addr,
+              ossia_addr->add_callback([=](const ossia::value& val) {
+                valueUpdated(addr, val);
+              })}});
       }
 
       valueUpdated(addr, ossia_addr->value());
@@ -885,7 +881,8 @@ void DeviceInterface::addToListening(
 }
 
 void DeviceInterface::sendMessage(
-    const State::Address& addr, const ossia::value& v)
+    const State::Address& addr,
+    const ossia::value& v)
 {
   if (auto dev = getDevice())
   {
@@ -919,9 +916,7 @@ void DeviceInterface::setLogging(DeviceLogging b)
   setLogging_impl(m_logging);
 }
 
-OwningDeviceInterface::~OwningDeviceInterface()
-{
-}
+OwningDeviceInterface::~OwningDeviceInterface() {}
 
 void OwningDeviceInterface::replaceDevice(ossia::net::device_base* d)
 {
@@ -959,7 +954,8 @@ void DeviceInterface::nodeRemoving(const ossia::net::node_base& n)
 }
 
 void DeviceInterface::nodeRenamed(
-    const ossia::net::node_base& node, std::string old_name)
+    const ossia::net::node_base& node,
+    std::string old_name)
 {
   if (!node.get_parent())
     return;
@@ -983,7 +979,8 @@ void DeviceInterface::addressCreated(const ossia::net::parameter_base& addr)
 }
 
 void DeviceInterface::addressUpdated(
-    const ossia::net::node_base& node, ossia::string_view key)
+    const ossia::net::node_base& node,
+    ossia::string_view key)
 {
   const bool hidden
       = (ossia::net::get_zombie(node) || ossia::net::get_hidden(node));

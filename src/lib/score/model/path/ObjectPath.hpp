@@ -58,9 +58,7 @@ class SCORE_LIB_BASE_EXPORT ObjectPath
   }
 
 public:
-  ObjectPath() noexcept
-  {
-  }
+  ObjectPath() noexcept {}
   ~ObjectPath() noexcept = default;
   QString toString() const noexcept;
 
@@ -99,7 +97,8 @@ public:
   }
 
   static ObjectPath pathBetweenObjects(
-      const QObject* const parent_obj, const QObject* target_object);
+      const QObject* const parent_obj,
+      const QObject* target_object);
 
   /**
    * @brief find the object described by the ObjectPath
@@ -160,10 +159,7 @@ public:
     return m_objectIdentifiers;
   }
 
-  ObjectIdentifierVector& vec() noexcept
-  {
-    return m_objectIdentifiers;
-  }
+  ObjectIdentifierVector& vec() noexcept { return m_objectIdentifiers; }
 
 private:
   // Throws
@@ -177,7 +173,9 @@ private:
 };
 
 SCORE_LIB_BASE_EXPORT void replacePathPart(
-    const ObjectPath& src, const ObjectPath& target, ObjectPath& toChange);
+    const ObjectPath& src,
+    const ObjectPath& target,
+    ObjectPath& toChange);
 inline uint qHash(const ObjectPath& obj, uint seed)
 {
   return qHash(obj.toString(), seed);

@@ -53,10 +53,13 @@ private:
 class SetStepCount final : public score::PropertyCommand
 {
   SCORE_COMMAND_DECL(
-      Media::CommandFactoryName(), SetStepCount, "Set step count")
+      Media::CommandFactoryName(),
+      SetStepCount,
+      "Set step count")
 public:
   SetStepCount(const Step::Model& path, std::size_t newval)
-      : score::PropertyCommand{std::move(path), "stepCount",
+      : score::PropertyCommand{std::move(path),
+                               "stepCount",
                                QVariant::fromValue(newval)}
   {
   }
@@ -64,10 +67,13 @@ public:
 class SetStepDuration final : public score::PropertyCommand
 {
   SCORE_COMMAND_DECL(
-      Media::CommandFactoryName(), SetStepDuration, "Set step duration")
+      Media::CommandFactoryName(),
+      SetStepDuration,
+      "Set step duration")
 public:
   SetStepDuration(const Step::Model& path, std::size_t newval)
-      : score::PropertyCommand{std::move(path), "stepDuration",
+      : score::PropertyCommand{std::move(path),
+                               "stepDuration",
                                QVariant::fromValue(newval)}
   {
   }

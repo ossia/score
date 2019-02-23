@@ -18,9 +18,9 @@
 #include <score/actions/ActionManager.hpp>
 #include <score/actions/MenuManager.hpp>
 #include <score/model/Identifier.hpp>
-#include <score/plugins/application/GUIApplicationPlugin.hpp>
 #include <score/plugins/FactorySetup.hpp>
 #include <score/plugins/StringFactoryKey.hpp>
+#include <score/plugins/application/GUIApplicationPlugin.hpp>
 #include <score/tools/std/HashMap.hpp>
 #include <score/tools/std/Optional.hpp>
 
@@ -28,14 +28,16 @@
 #include <string.h>
 
 SCORE_DECLARE_ACTION(
-    PutInLoop, "&Put in Loop", Loop, Qt::SHIFT + Qt::CTRL + Qt::Key_L)
+    PutInLoop,
+    "&Put in Loop",
+    Loop,
+    Qt::SHIFT + Qt::CTRL + Qt::Key_L)
 
 namespace Loop
 {
-  // TODO put in its own file
-class ApplicationPlugin final
-    : public QObject
-    , public score::GUIApplicationPlugin
+// TODO put in its own file
+class ApplicationPlugin final : public QObject,
+                                public score::GUIApplicationPlugin
 {
 public:
   ApplicationPlugin(const score::GUIApplicationContext& ctx);
@@ -48,9 +50,7 @@ ApplicationPlugin::ApplicationPlugin(const score::GUIApplicationContext& ctx)
 {
 }
 
-ApplicationPlugin::~ApplicationPlugin()
-{
-}
+ApplicationPlugin::~ApplicationPlugin() {}
 
 score::GUIElements ApplicationPlugin::makeGUIElements()
 {
@@ -90,7 +90,8 @@ score::GUIApplicationPlugin* score_plugin_loop::make_guiApplicationPlugin(
 
 std::vector<std::unique_ptr<score::InterfaceBase>>
 score_plugin_loop::factories(
-    const score::ApplicationContext& ctx, const score::InterfaceKey& key) const
+    const score::ApplicationContext& ctx,
+    const score::InterfaceKey& key) const
 {
   using namespace Scenario;
   using namespace Scenario::Command;
@@ -104,8 +105,7 @@ score_plugin_loop::factories(
       FW<TriggerCommandFactory, LoopTriggerCommandFactory>,
       FW<Scenario::DisplayedElementsToolPaletteFactory,
          Loop::DisplayedElementsToolPaletteFactory>,
-      FW<Scenario::DisplayedElementsProvider,
-         Loop::DisplayedElementsProvider>,
+      FW<Scenario::DisplayedElementsProvider, Loop::DisplayedElementsProvider>,
       FW<Scenario::IntervalResizer, Loop::LoopIntervalResizer>>(ctx, key);
 }
 

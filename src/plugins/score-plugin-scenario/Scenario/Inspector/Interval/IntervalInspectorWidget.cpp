@@ -21,9 +21,13 @@
 namespace Scenario
 {
 IntervalInspectorWidget::IntervalInspectorWidget(
-    const Inspector::InspectorWidgetList& widg, const IntervalModel& object,
-    const score::DocumentContext& ctx, QWidget* parent)
-    : InspectorWidgetBase{object, ctx, parent,
+    const Inspector::InspectorWidgetList& widg,
+    const IntervalModel& object,
+    const score::DocumentContext& ctx,
+    QWidget* parent)
+    : InspectorWidgetBase{object,
+                          ctx,
+                          parent,
                           tr("Interval (%1)").arg(object.metadata().getName())}
     , m_model{object}
 {
@@ -34,8 +38,8 @@ IntervalInspectorWidget::IntervalInspectorWidget(
   std::vector<QWidget*> parts;
   ////// HEADER
   // metadata
-  auto meta = new MetadataWidget{m_model.metadata(), ctx.commandStack,
-                                 &m_model, this};
+  auto meta = new MetadataWidget{
+      m_model.metadata(), ctx.commandStack, &m_model, this};
 
   meta->setupConnections(m_model);
   addHeader(meta);

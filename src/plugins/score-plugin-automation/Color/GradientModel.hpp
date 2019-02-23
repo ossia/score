@@ -22,7 +22,8 @@ class SCORE_PLUGIN_AUTOMATION_EXPORT ProcessModel final
 
 public:
   ProcessModel(
-      const TimeVal& duration, const Id<Process::ProcessModel>& id,
+      const TimeVal& duration,
+      const Id<Process::ProcessModel>& id,
       QObject* parent);
   ~ProcessModel() override;
 

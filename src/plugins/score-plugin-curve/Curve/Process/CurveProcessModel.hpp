@@ -19,7 +19,9 @@ class SCORE_PLUGIN_CURVE_EXPORT CurveProcessModel
   W_OBJECT(CurveProcessModel)
 public:
   CurveProcessModel(
-      TimeVal duration, const Id<ProcessModel>& id, const QString& name,
+      TimeVal duration,
+      const Id<ProcessModel>& id,
+      const QString& name,
       QObject* parent)
       : Process::ProcessModel(duration, id, name, parent)
   {
@@ -35,10 +37,7 @@ public:
   {
   }
 
-  Model& curve() const
-  {
-    return *m_curve;
-  }
+  Model& curve() const { return *m_curve; }
 
   ~CurveProcessModel() override;
 
@@ -76,14 +75,14 @@ protected:
     setCurve_impl();
 
     connect(
-        m_curve, &Curve::Model::changed, this,
+        m_curve,
+        &Curve::Model::changed,
+        this,
         &CurveProcessModel::curveChanged);
     m_curve->changed();
   }
 
-  virtual void setCurve_impl()
-  {
-  }
+  virtual void setCurve_impl() {}
 
   Model* m_curve{};
 };

@@ -21,8 +21,11 @@ public:
     /// Interval
     /// //TODO remove useless arguments to ctor
     auto moveInterval = new MoveIntervalState<ToolPalette_T>{
-        palette, palette.model(), palette.context().context.commandStack,
-        palette.context().context.objectLocker, &parent};
+        palette,
+        palette.model(),
+        palette.context().context.commandStack,
+        palette.context().context.objectLocker,
+        &parent};
 
     score::make_transition<ClickOnInterval_Transition<Scenario_T>>(
         waitState, moveInterval, *moveInterval);
@@ -38,9 +41,13 @@ public:
   make(const ToolPalette_T& palette, QState* waitState, QState& parent)
   {
     auto moveBrace = new MoveIntervalBraceState<
-        Scenario::Command::SetMinDuration, Scenario_T, ToolPalette_T>{
-        palette, palette.model(), palette.context().context.commandStack,
-        palette.context().context.objectLocker, &parent};
+        Scenario::Command::SetMinDuration,
+        Scenario_T,
+        ToolPalette_T>{palette,
+                       palette.model(),
+                       palette.context().context.commandStack,
+                       palette.context().context.objectLocker,
+                       &parent};
     score::make_transition<ClickOnLeftBrace_Transition<Scenario_T>>(
         waitState, moveBrace, *moveBrace);
     moveBrace->addTransition(moveBrace, finishedState(), waitState);
@@ -55,9 +62,13 @@ public:
   make(const ToolPalette_T& palette, QState* waitState, QState& parent)
   {
     auto moveBrace = new MoveIntervalBraceState<
-        Scenario::Command::SetMaxDuration, Scenario_T, ToolPalette_T>{
-        palette, palette.model(), palette.context().context.commandStack,
-        palette.context().context.objectLocker, &parent};
+        Scenario::Command::SetMaxDuration,
+        Scenario_T,
+        ToolPalette_T>{palette,
+                       palette.model(),
+                       palette.context().context.commandStack,
+                       palette.context().context.objectLocker,
+                       &parent};
     score::make_transition<ClickOnRightBrace_Transition<Scenario_T>>(
         waitState, moveBrace, *moveBrace);
     moveBrace->addTransition(moveBrace, finishedState(), waitState);
@@ -73,9 +84,13 @@ public:
   {
     /// Event
     auto moveEvent = new MoveEventState<
-        Scenario::Command::MoveEventMeta, Scenario_T, ToolPalette_T>{
-        palette, palette.model(), palette.context().context.commandStack,
-        palette.context().context.objectLocker, &parent};
+        Scenario::Command::MoveEventMeta,
+        Scenario_T,
+        ToolPalette_T>{palette,
+                       palette.model(),
+                       palette.context().context.commandStack,
+                       palette.context().context.objectLocker,
+                       &parent};
 
     score::make_transition<ClickOnState_Transition<Scenario_T>>(
         waitState, moveEvent, *moveEvent);
@@ -95,9 +110,13 @@ public:
   {
     /// TimeSync
     auto moveTimeSync = new MoveTimeSyncState<
-        Scenario::Command::MoveEventMeta, Scenario_T, ToolPalette_T>{
-        palette, palette.model(), palette.context().context.commandStack,
-        palette.context().context.objectLocker, &parent};
+        Scenario::Command::MoveEventMeta,
+        Scenario_T,
+        ToolPalette_T>{palette,
+                       palette.model(),
+                       palette.context().context.commandStack,
+                       palette.context().context.objectLocker,
+                       &parent};
 
     score::make_transition<ClickOnTimeSync_Transition<Scenario_T>>(
         waitState, moveTimeSync, *moveTimeSync);
@@ -114,9 +133,13 @@ public:
   {
     /// Event
     auto moveEvent = new MoveEventState<
-        Scenario::Command::MoveTopEventMeta, Scenario_T, ToolPalette_T>{
-        palette, palette.model(), palette.context().context.commandStack,
-        palette.context().context.objectLocker, &parent};
+        Scenario::Command::MoveTopEventMeta,
+        Scenario_T,
+        ToolPalette_T>{palette,
+                       palette.model(),
+                       palette.context().context.commandStack,
+                       palette.context().context.objectLocker,
+                       &parent};
 
     score::make_transition<ClickOnState_Transition<Scenario_T>>(
         waitState, moveEvent, *moveEvent);
@@ -136,9 +159,13 @@ public:
   {
     /// TimeSync
     auto moveTimeSync = new MoveTimeSyncState<
-        Scenario::Command::MoveTopEventMeta, Scenario_T, ToolPalette_T>{
-        palette, palette.model(), palette.context().context.commandStack,
-        palette.context().context.objectLocker, &parent};
+        Scenario::Command::MoveTopEventMeta,
+        Scenario_T,
+        ToolPalette_T>{palette,
+                       palette.model(),
+                       palette.context().context.commandStack,
+                       palette.context().context.objectLocker,
+                       &parent};
 
     score::make_transition<ClickOnTimeSync_Transition<Scenario_T>>(
         waitState, moveTimeSync, *moveTimeSync);

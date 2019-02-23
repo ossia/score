@@ -41,14 +41,15 @@ bool MinuitDevice::reconnect()
 
     std::unique_ptr<ossia::net::protocol_base> ossia_settings
         = std::make_unique<ossia::net::minuit_protocol>(
-            stgs.localName.toStdString(), stgs.host.toStdString(),
-            stgs.inputPort, stgs.outputPort);
+            stgs.localName.toStdString(),
+            stgs.host.toStdString(),
+            stgs.inputPort,
+            stgs.outputPort);
 
-    if(stgs.rate)
+    if (stgs.rate)
     {
       ossia_settings = std::make_unique<ossia::net::rate_limiting_protocol>(
-            std::chrono::milliseconds{*stgs.rate},
-            std::move(ossia_settings));
+          std::chrono::milliseconds{*stgs.rate}, std::move(ossia_settings));
     }
 
     m_dev = std::make_unique<ossia::net::generic_device>(

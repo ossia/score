@@ -21,10 +21,13 @@ namespace Command
 class SplitTimeSync final : public score::Command
 {
   SCORE_COMMAND_DECL(
-      ScenarioCommandFactoryName(), SplitTimeSync, "Desynchronize")
+      ScenarioCommandFactoryName(),
+      SplitTimeSync,
+      "Desynchronize")
 public:
   SplitTimeSync(
-      const TimeSyncModel& path, QVector<Id<EventModel>> eventsInNewTimeSync);
+      const TimeSyncModel& path,
+      QVector<Id<EventModel>> eventsInNewTimeSync);
   void undo(const score::DocumentContext& ctx) const override;
   void redo(const score::DocumentContext& ctx) const override;
 
@@ -43,10 +46,11 @@ private:
 class SplitWholeSync final : public score::Command
 {
   SCORE_COMMAND_DECL(
-      ScenarioCommandFactoryName(), SplitWholeSync, "Desynchronize")
+      ScenarioCommandFactoryName(),
+      SplitWholeSync,
+      "Desynchronize")
 public:
-  SplitWholeSync(
-      const TimeSyncModel& path);
+  SplitWholeSync(const TimeSyncModel& path);
   SplitWholeSync(
       const TimeSyncModel& path,
       std::vector<Id<TimeSyncModel>> new_ids);

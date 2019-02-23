@@ -34,13 +34,13 @@ SCORE_SETTINGS_PARAMETER_CPP(QString, Model, LogLevel)
 namespace Explorer::ProjectSettings
 {
 Model::Model(
-    const score::DocumentContext& ctx, Id<DocumentPlugin> id, QObject* parent)
+    const score::DocumentContext& ctx,
+    Id<DocumentPlugin> id,
+    QObject* parent)
     : ProjectSettingsModel{ctx, id, "ExplorerSettings", parent}
 {
 }
-Model::~Model()
-{
-}
+Model::~Model() {}
 
 SCORE_PROJECTSETTINGS_PARAMETER_CPP(qreal, Model, MidiImportRatio)
 SCORE_PROJECTSETTINGS_PARAMETER_CPP(bool, Model, RefreshOnStart)

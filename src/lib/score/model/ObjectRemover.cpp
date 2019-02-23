@@ -2,12 +2,6 @@
 
 namespace score
 {
-ObjectRemover::~ObjectRemover()
-{
-
-}
-ObjectRemoverList::~ObjectRemoverList()
-{
-
-}
+ObjectRemover::~ObjectRemover() {}
+ObjectRemoverList::~ObjectRemoverList() {}
 }

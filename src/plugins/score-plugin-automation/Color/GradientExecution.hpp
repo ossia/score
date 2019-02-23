@@ -16,14 +16,17 @@ namespace Gradient
 {
 namespace RecreateOnPlay
 {
-class Component final : public ::Execution::ProcessComponent_T<
-                            Gradient::ProcessModel, ossia::node_process>
+class Component final
+    : public ::Execution::
+          ProcessComponent_T<Gradient::ProcessModel, ossia::node_process>
 {
   COMPONENT_METADATA("45467316-6c07-47f9-9d68-9a9de0360402")
 public:
   Component(
-      Gradient::ProcessModel& element, const ::Execution::Context& ctx,
-      const Id<score::Component>& id, QObject* parent);
+      Gradient::ProcessModel& element,
+      const ::Execution::Context& ctx,
+      const Id<score::Component>& id,
+      QObject* parent);
   ~Component() override;
 
 private:

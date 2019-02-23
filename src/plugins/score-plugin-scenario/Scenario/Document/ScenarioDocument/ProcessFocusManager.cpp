@@ -44,7 +44,9 @@ void ProcessFocusManager::focus(QPointer<Process::LayerPresenter> p)
 
     m_deathConnection = connect(
         m_currentModel,
-        &IdentifiedObjectAbstract::identified_object_destroying, this, [=]() {
+        &IdentifiedObjectAbstract::identified_object_destroying,
+        this,
+        [=]() {
           sig_defocusedViewModel(nullptr);
           sig_defocusedPresenter(nullptr);
           focusNothing();

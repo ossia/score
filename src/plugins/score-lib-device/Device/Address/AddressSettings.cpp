@@ -14,9 +14,7 @@
 namespace Device
 {
 
-AddressSettingsCommon::AddressSettingsCommon() noexcept
-{
-}
+AddressSettingsCommon::AddressSettingsCommon() noexcept {}
 
 AddressSettingsCommon::AddressSettingsCommon(
     const AddressSettingsCommon& other) noexcept
@@ -68,9 +66,7 @@ operator=(AddressSettingsCommon&& other) noexcept
   return *this;
 }
 
-AddressSettingsCommon::~AddressSettingsCommon() noexcept
-{
-}
+AddressSettingsCommon::~AddressSettingsCommon() noexcept {}
 
 AddressSettings::AddressSettings() noexcept = default;
 AddressSettings::AddressSettings(const AddressSettings&) noexcept = default;
@@ -94,9 +90,7 @@ operator=(FullAddressSettings&&) noexcept
     = default;
 FullAddressSettings::~FullAddressSettings() noexcept = default;
 
-FullAddressAccessorSettings::FullAddressAccessorSettings() noexcept
-{
-}
+FullAddressAccessorSettings::FullAddressAccessorSettings() noexcept {}
 
 FullAddressAccessorSettings::FullAddressAccessorSettings(
     const FullAddressAccessorSettings& other) noexcept
@@ -148,14 +142,13 @@ operator=(FullAddressAccessorSettings&& other) noexcept
   return *this;
 }
 
-FullAddressAccessorSettings::~FullAddressAccessorSettings() noexcept
-{
-}
+FullAddressAccessorSettings::~FullAddressAccessorSettings() noexcept {}
 // Second argument should be the address of the parent.
 template <>
 SCORE_LIB_DEVICE_EXPORT FullAddressSettings
 FullAddressSettings::make<FullAddressSettings::as_parent>(
-    const Device::AddressSettings& other, const State::Address& addr) noexcept
+    const Device::AddressSettings& other,
+    const State::Address& addr) noexcept
 {
   FullAddressSettings as;
   static_cast<AddressSettingsCommon&>(as) = other;
@@ -170,7 +163,8 @@ FullAddressSettings::make<FullAddressSettings::as_parent>(
 template <>
 SCORE_LIB_DEVICE_EXPORT FullAddressSettings
 FullAddressSettings::make<FullAddressSettings::as_child>(
-    const Device::AddressSettings& other, const State::Address& addr) noexcept
+    const Device::AddressSettings& other,
+    const State::Address& addr) noexcept
 {
   FullAddressSettings as;
   static_cast<AddressSettingsCommon&>(as) = other;
@@ -208,14 +202,16 @@ FullAddressAccessorSettings::FullAddressAccessorSettings(
 }
 
 FullAddressAccessorSettings::FullAddressAccessorSettings(
-    const State::AddressAccessor& addr, const ossia::value& min,
+    const State::AddressAccessor& addr,
+    const ossia::value& min,
     const ossia::value& max) noexcept
     : domain{ossia::make_domain(min, max)}, address{addr}
 {
 }
 
 FullAddressAccessorSettings::FullAddressAccessorSettings(
-    State::AddressAccessor&& addr, AddressSettingsCommon&& f) noexcept
+    State::AddressAccessor&& addr,
+    AddressSettingsCommon&& f) noexcept
     : value{std::move(f.value)}
     , domain{std::move(f.domain)}
     , ioType{f.ioType}

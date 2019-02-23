@@ -5,8 +5,8 @@
 #include <Scenario/Document/TimeRuler/TimeRuler.hpp>
 #include <Scenario/Document/TimeRuler/TimeRulerGraphicsView.hpp>
 
-#include <score/plugins/documentdelegate/DocumentDelegateView.hpp>
 #include <score/graphics/GraphicsProxyObject.hpp>
+#include <score/plugins/documentdelegate/DocumentDelegateView.hpp>
 
 #include <QGraphicsView>
 #include <QPoint>
@@ -43,9 +43,9 @@ class ProcessGraphicsView final : public QGraphicsView
   W_OBJECT(ProcessGraphicsView)
 public:
   ProcessGraphicsView(
-      const score::GUIApplicationContext& ctx
-      , QGraphicsScene* scene
-      , QWidget* parent);
+      const score::GUIApplicationContext& ctx,
+      QGraphicsScene* scene,
+      QWidget* parent);
   ~ProcessGraphicsView() override;
 
   void scrollHorizontal(double dx);
@@ -88,42 +88,21 @@ public:
 
   QWidget* getWidget() override;
 
-  BaseGraphicsObject& baseItem()
-  {
-    return m_baseObject;
-  }
+  BaseGraphicsObject& baseItem() { return m_baseObject; }
 
-  ScenarioScene& scene()
-  {
-    return m_scene;
-  }
+  ScenarioScene& scene() { return m_scene; }
 
-  ProcessGraphicsView& view()
-  {
-    return m_view;
-  }
+  ProcessGraphicsView& view() { return m_view; }
 
   qreal viewWidth() const;
 
-  QGraphicsView& rulerView()
-  {
-    return m_timeRulerView;
-  }
+  QGraphicsView& rulerView() { return m_timeRulerView; }
 
-  TimeRuler& timeRuler()
-  {
-    return m_timeRuler;
-  }
+  TimeRuler& timeRuler() { return m_timeRuler; }
 
-  Minimap& minimap()
-  {
-    return m_minimap;
-  }
+  Minimap& minimap() { return m_minimap; }
 
-  TimeBar& timeBar()
-  {
-    return m_bar;
-  }
+  TimeBar& timeBar() { return m_bar; }
 
   QRectF viewportRect() const;
   QRectF visibleSceneRect() const;

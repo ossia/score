@@ -22,7 +22,8 @@ QString SerialProtocolFactory::prettyName() const
 }
 
 Device::DeviceInterface* SerialProtocolFactory::makeDevice(
-    const Device::DeviceSettings& settings, const score::DocumentContext& ctx)
+    const Device::DeviceSettings& settings,
+    const score::DocumentContext& ctx)
 {
   return new SerialDevice{settings};
 }
@@ -52,13 +53,15 @@ QVariant SerialProtocolFactory::makeProtocolSpecificSettings(
 }
 
 void SerialProtocolFactory::serializeProtocolSpecificSettings(
-    const QVariant& data, const VisitorVariant& visitor) const
+    const QVariant& data,
+    const VisitorVariant& visitor) const
 {
   serializeProtocolSpecificSettings_T<SerialSpecificSettings>(data, visitor);
 }
 
 bool SerialProtocolFactory::checkCompatibility(
-    const Device::DeviceSettings& a, const Device::DeviceSettings& b) const
+    const Device::DeviceSettings& a,
+    const Device::DeviceSettings& b) const
 {
   return a.name != b.name;
 }

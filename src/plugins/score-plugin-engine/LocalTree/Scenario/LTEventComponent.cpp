@@ -5,10 +5,17 @@
 namespace LocalTree
 {
 Event::Event(
-    ossia::net::node_base& parent, const Id<score::Component>& id,
-    Scenario::EventModel& event, DocumentPlugin& doc, QObject* parent_comp)
-    : CommonComponent{parent, event.metadata(), doc,
-                      id,     "EventComponent", parent_comp}
+    ossia::net::node_base& parent,
+    const Id<score::Component>& id,
+    Scenario::EventModel& event,
+    DocumentPlugin& doc,
+    QObject* parent_comp)
+    : CommonComponent{parent,
+                      event.metadata(),
+                      doc,
+                      id,
+                      "EventComponent",
+                      parent_comp}
 {
   auto exp_n = node().create_child("expression");
   auto exp_a = exp_n->create_parameter(ossia::val_type::STRING);
@@ -28,7 +35,9 @@ Event::Event(
   });
 
   QObject::connect(
-      &event, &Scenario::EventModel::conditionChanged, this,
+      &event,
+      &Scenario::EventModel::conditionChanged,
+      this,
       [=](const ::State::Expression& cond) {
         m_setting = true;
         // TODO try to simplify the other get / set properties like this

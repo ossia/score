@@ -22,8 +22,10 @@ namespace Scenario
 namespace Command
 {
 CreateInterval_State_Event::CreateInterval_State_Event(
-    const Scenario::ProcessModel& scenario, Id<StateModel> startState,
-    Id<TimeSyncModel> endTimeSync, double endStateY)
+    const Scenario::ProcessModel& scenario,
+    Id<StateModel> startState,
+    Id<TimeSyncModel> endTimeSync,
+    double endStateY)
     : m_newEvent{getStrongId(scenario.events)}
     , m_createdName{RandomNameProvider::generateName<EventModel>()}
     , m_command{scenario, std::move(startState), m_newEvent, endStateY}
@@ -45,8 +47,10 @@ void CreateInterval_State_Event::redo(const score::DocumentContext& ctx) const
 
   // Create the end event
   ScenarioCreate<EventModel>::redo(
-      m_newEvent, scenar.timeSync(m_endTimeSync),
-      {m_command.endStateY(), m_command.endStateY()}, scenar);
+      m_newEvent,
+      scenar.timeSync(m_endTimeSync),
+      {m_command.endStateY(), m_command.endStateY()},
+      scenar);
 
   scenar.events.at(m_newEvent).metadata().setName(m_createdName);
 

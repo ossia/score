@@ -20,7 +20,6 @@ class ProtocolSettingsWidget;
 
 struct VisitorVariant;
 
-
 namespace Protocols
 {
 QString HTTPProtocolFactory::prettyName() const
@@ -29,7 +28,8 @@ QString HTTPProtocolFactory::prettyName() const
 }
 
 Device::DeviceInterface* HTTPProtocolFactory::makeDevice(
-    const Device::DeviceSettings& settings, const score::DocumentContext& ctx)
+    const Device::DeviceSettings& settings,
+    const score::DocumentContext& ctx)
 {
   return new HTTPDevice{settings};
 }
@@ -59,13 +59,15 @@ QVariant HTTPProtocolFactory::makeProtocolSpecificSettings(
 }
 
 void HTTPProtocolFactory::serializeProtocolSpecificSettings(
-    const QVariant& data, const VisitorVariant& visitor) const
+    const QVariant& data,
+    const VisitorVariant& visitor) const
 {
   serializeProtocolSpecificSettings_T<HTTPSpecificSettings>(data, visitor);
 }
 
 bool HTTPProtocolFactory::checkCompatibility(
-    const Device::DeviceSettings& a, const Device::DeviceSettings& b) const
+    const Device::DeviceSettings& a,
+    const Device::DeviceSettings& b) const
 {
   return a.name != b.name;
 }

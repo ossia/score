@@ -25,6 +25,7 @@
 #include <iostream> //DEBUG
 W_REGISTER_ARGTYPE(QItemSelection)
 #include <QMouseEvent>
+
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Explorer::DeviceExplorerView)
 namespace
@@ -45,7 +46,9 @@ DeviceExplorerView::DeviceExplorerView(QWidget* parent)
 
   header()->setContextMenuPolicy(Qt::CustomContextMenu);
   connect(
-      header(), &QWidget::customContextMenuRequested, this,
+      header(),
+      &QWidget::customContextMenuRequested,
+      this,
       &DeviceExplorerView::headerMenuRequested);
 
   //- Drag'n Drop.
@@ -195,7 +198,9 @@ void DeviceExplorerView::initActions()
     a->setChecked(!isColumnHidden(i));
 
     connect(
-        a, &QAction::toggled, this,
+        a,
+        &QAction::toggled,
+        this,
         &DeviceExplorerView::columnVisibilityChanged);
     m_actions.append(a);
   }
@@ -216,7 +221,7 @@ void DeviceExplorerView::columnVisibilityChanged(bool shown)
 
 void DeviceExplorerView::keyPressEvent(QKeyEvent* k)
 {
-  if(k->key() == Qt::Key_Escape)
+  if (k->key() == Qt::Key_Escape)
   {
     clearSelection();
     k->accept();
@@ -228,7 +233,9 @@ void DeviceExplorerView::keyPressEvent(QKeyEvent* k)
 }
 
 void DeviceExplorerView::rowsInserted(
-    const QModelIndex& parent, int start, int end)
+    const QModelIndex& parent,
+    int start,
+    int end)
 {
   QTreeView::rowsInserted(parent, start, end);
   created(parent, start, end);
@@ -248,7 +255,8 @@ void DeviceExplorerView::headerMenuRequested(const QPoint& pos)
 }
 
 void DeviceExplorerView::selectionChanged(
-    const QItemSelection& selected, const QItemSelection& deselected)
+    const QItemSelection& selected,
+    const QItemSelection& deselected)
 {
   QTreeView::selectionChanged(selected, deselected);
   selectionChanged();

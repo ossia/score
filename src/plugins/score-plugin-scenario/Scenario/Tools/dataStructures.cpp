@@ -20,7 +20,8 @@
 namespace Scenario
 {
 IntervalSaveData::IntervalSaveData(
-    const Scenario::IntervalModel& interval, bool saveIntemporal)
+    const Scenario::IntervalModel& interval,
+    bool saveIntemporal)
     : intervalPath{interval}
 {
   processes.reserve(interval.processes.size());

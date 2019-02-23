@@ -3,8 +3,8 @@
 
 #include <QGraphicsPixmapItem>
 #include <QGraphicsSceneEvent>
-#include <cmath>
 
+#include <cmath>
 #include <score_lib_base_export.h>
 #include <wobjectdefs.h>
 
@@ -20,7 +20,9 @@ class SCORE_LIB_BASE_EXPORT QGraphicsPixmapButton final
 
 public:
   QGraphicsPixmapButton(
-      QPixmap pressed, QPixmap released, QGraphicsItem* parent);
+      QPixmap pressed,
+      QPixmap released,
+      QGraphicsItem* parent);
 
 public:
   void clicked() E_SIGNAL(SCORE_LIB_BASE_EXPORT, clicked);
@@ -43,7 +45,9 @@ class SCORE_LIB_BASE_EXPORT QGraphicsPixmapToggle final
 
 public:
   QGraphicsPixmapToggle(
-      QPixmap pressed, QPixmap released, QGraphicsItem* parent);
+      QPixmap pressed,
+      QPixmap released,
+      QGraphicsItem* parent);
 
   void toggle();
   void setState(bool toggled);
@@ -76,14 +80,8 @@ private:
 public:
   QGraphicsSlider(QGraphicsItem* parent);
 
-  static constexpr double map(double v)
-  {
-    return v;
-  }
-  static constexpr double unmap(double v)
-  {
-    return v;
-  }
+  static constexpr double map(double v) { return v; }
+  static constexpr double unmap(double v) { return v; }
 
   void setRect(const QRectF& r);
   void setValue(double v);
@@ -105,7 +103,8 @@ private:
 
   QRectF boundingRect() const override;
   void paint(
-      QPainter* painter, const QStyleOptionGraphicsItem* option,
+      QPainter* painter,
+      const QStyleOptionGraphicsItem* option,
       QWidget* widget) override;
   bool isInHandle(QPointF p);
   double getHandleX() const;
@@ -136,14 +135,8 @@ public:
   void setValue(double v);
   double value() const;
 
-  static double map(double v)
-  {
-    return std::exp2(v);
-  }
-  static double unmap(double v)
-  {
-    return std::log2(v);
-  }
+  static double map(double v) { return std::exp2(v); }
+  static double unmap(double v) { return std::log2(v); }
 
   bool moving = false;
 
@@ -160,7 +153,8 @@ private:
   void mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event) override;
   QRectF boundingRect() const override;
   void paint(
-      QPainter* painter, const QStyleOptionGraphicsItem* option,
+      QPainter* painter,
+      const QStyleOptionGraphicsItem* option,
       QWidget* widget) override;
   bool isInHandle(QPointF p);
   double getHandleX() const;
@@ -200,7 +194,8 @@ private:
   void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override;
   QRectF boundingRect() const override;
   void paint(
-      QPainter* painter, const QStyleOptionGraphicsItem* option,
+      QPainter* painter,
+      const QStyleOptionGraphicsItem* option,
       QWidget* widget) override;
   bool isInHandle(QPointF p);
   double getHandleX() const;
@@ -226,7 +221,8 @@ private:
 public:
   template <std::size_t N>
   QGraphicsComboSlider(
-      const std::array<const char*, N>& arr, QGraphicsItem* parent)
+      const std::array<const char*, N>& arr,
+      QGraphicsItem* parent)
       : QGraphicsItem{parent}
   {
     array.reserve(N);
@@ -262,7 +258,8 @@ private:
   void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override;
   QRectF boundingRect() const override;
   void paint(
-      QPainter* painter, const QStyleOptionGraphicsItem* option,
+      QPainter* painter,
+      const QStyleOptionGraphicsItem* option,
       QWidget* widget) override;
   bool isInHandle(QPointF p);
   double getHandleX() const;

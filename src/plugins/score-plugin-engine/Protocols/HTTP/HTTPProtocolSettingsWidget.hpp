@@ -7,7 +7,6 @@ class JSEdit;
 class QSpinBox;
 class QWidget;
 
-
 namespace Protocols
 {
 class HTTPProtocolSettingsWidget : public Device::ProtocolSettingsWidget

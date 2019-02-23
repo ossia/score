@@ -5,6 +5,7 @@
 #include "CurveModel.hpp"
 #include "CurveView.hpp"
 
+#include <Curve/ApplicationPlugin.hpp>
 #include <Curve/Commands/UpdateCurve.hpp>
 #include <Curve/Palette/CurveEditionSettings.hpp>
 #include <Curve/Palette/CurvePoint.hpp>
@@ -16,10 +17,10 @@
 #include <Curve/Segment/CurveSegmentModel.hpp>
 #include <Curve/Segment/CurveSegmentView.hpp>
 #include <Curve/Segment/Power/PowerSegment.hpp>
-#include <Curve/ApplicationPlugin.hpp>
 
 #include <score/application/ApplicationContext.hpp>
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
+#include <score/graphics/GraphicsItem.hpp>
 #include <score/model/IdentifiedObject.hpp>
 #include <score/model/IdentifiedObjectAbstract.hpp>
 #include <score/model/IdentifiedObjectMap.hpp>
@@ -29,7 +30,6 @@
 #include <score/selection/Selectable.hpp>
 #include <score/tools/Todo.hpp>
 #include <score/tools/std/Optional.hpp>
-#include <score/graphics/GraphicsItem.hpp>
 
 #include <QAction>
 #include <QActionGroup>
@@ -59,15 +59,20 @@ static QPointF myscale(QPointF first, QSizeF second)
 }
 
 Presenter::Presenter(
-    const score::DocumentContext& context, const Curve::Style& style,
-    const Model& model, View* view, QObject* parent)
+    const score::DocumentContext& context,
+    const Curve::Style& style,
+    const Model& model,
+    View* view,
+    QObject* parent)
     : QObject{parent}
     , m_curveSegments{context.app.interfaces<SegmentList>()}
     , m_model{model}
     , m_view{view}
     , m_commandDispatcher{context.commandStack}
     , m_style{style}
-    , m_editionSettings{context.app.guiApplicationPlugin<Curve::ApplicationPlugin>().editionSettings()}
+    , m_editionSettings{
+          context.app.guiApplicationPlugin<Curve::ApplicationPlugin>()
+              .editionSettings()}
 {
   // For each segment in the model, create a segment and relevant points in the
   // view.
@@ -76,13 +81,13 @@ Presenter::Presenter(
   setupSignals();
 
   connect(
-      m_view, &View::contextMenuRequested, this,
+      m_view,
+      &View::contextMenuRequested,
+      this,
       &Presenter::contextMenuRequested);
 }
 
-Presenter::~Presenter()
-{
-}
+Presenter::~Presenter() {}
 
 void Presenter::setRect(const QRectF& rect)
 {
@@ -127,11 +132,13 @@ void Presenter::setupSignals()
     addPoint(new PointView{&point, m_style, m_view});
   });
 
-  con(m_model, &Model::pointRemoved, this,
-      [&](const Id<PointModel>& m) { m_points.erase(m); });
+  con(m_model, &Model::pointRemoved, this, [&](const Id<PointModel>& m) {
+    m_points.erase(m);
+  });
 
-  con(m_model, &Model::segmentRemoved, this,
-      [&](const Id<SegmentModel>& m) { m_segments.erase(m); });
+  con(m_model, &Model::segmentRemoved, this, [&](const Id<SegmentModel>& m) {
+    m_segments.erase(m);
+  });
 
   con(m_model, &Model::cleared, this, [&]() {
     m_points.remove_all();
@@ -167,7 +174,9 @@ void Presenter::setupView()
 }
 
 void Presenter::fillContextMenu(
-    QMenu& menu, const QPoint& pos, const QPointF& scenepos)
+    QMenu& menu,
+    const QPoint& pos,
+    const QPointF& scenepos)
 {
   menu.addSeparator();
 
@@ -259,16 +268,21 @@ void Presenter::addSegment_impl(SegmentView* seg_view)
 void Presenter::setupPointConnections(PointView* pt_view)
 {
   connect(
-      pt_view, &PointView::contextMenuRequested, m_view,
+      pt_view,
+      &PointView::contextMenuRequested,
+      m_view,
       &View::contextMenuRequested);
-  con(pt_view->model(), &PointModel::posChanged, this,
-      [=]() { setPos(*pt_view); });
+  con(pt_view->model(), &PointModel::posChanged, this, [=]() {
+    setPos(*pt_view);
+  });
 }
 
 void Presenter::setupSegmentConnections(SegmentView* seg_view)
 {
   connect(
-      seg_view, &SegmentView::contextMenuRequested, m_view,
+      seg_view,
+      &SegmentView::contextMenuRequested,
+      m_view,
       &View::contextMenuRequested);
 }
 
@@ -623,8 +637,7 @@ void Presenter::removeSelection()
   }
 
   // Apply the changes.
-  m_commandDispatcher.submit(
-      new UpdateCurve{m_model, std::move(newSegments)});
+  m_commandDispatcher.submit(new UpdateCurve{m_model, std::move(newSegments)});
 }
 
 void Presenter::updateSegmentsType(
@@ -644,8 +657,7 @@ void Presenter::updateSegmentsType(
     }
   }
 
-  m_commandDispatcher.submit(
-      new UpdateCurve{m_model, std::move(newSegments)});
+  m_commandDispatcher.submit(new UpdateCurve{m_model, std::move(newSegments)});
 }
 
 } // namespace Curve

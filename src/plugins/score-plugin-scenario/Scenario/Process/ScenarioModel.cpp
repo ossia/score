@@ -46,12 +46,14 @@ namespace Scenario
 {
 
 ProcessModel::ProcessModel(
-    const TimeVal& duration, const Id<Process::ProcessModel>& id,
+    const TimeVal& duration,
+    const Id<Process::ProcessModel>& id,
     QObject* parent)
-    : Process::ProcessModel{duration, id,
-                            Metadata<
-                                ObjectKey_k, Scenario::ProcessModel>::get(),
-                            parent}
+    : Process::
+          ProcessModel{duration,
+                       id,
+                       Metadata<ObjectKey_k, Scenario::ProcessModel>::get(),
+                       parent}
     , inlet{Process::make_inlet(Id<Process::Port>(0), this)}
     , outlet{Process::make_outlet(Id<Process::Port>(0), this)}
     , m_startTimeSyncId{Scenario::startId<TimeSyncModel>()}
@@ -229,7 +231,8 @@ void ProcessModel::setSelection(const Selection& s) const noexcept
 }
 
 const QVector<Id<IntervalModel>> intervalsBeforeTimeSync(
-    const Scenario::ProcessModel& scenar, const Id<TimeSyncModel>& timeSyncId)
+    const Scenario::ProcessModel& scenar,
+    const Id<TimeSyncModel>& timeSyncId)
 {
   QVector<Id<IntervalModel>> cstrs;
   const auto& tn = scenar.timeSyncs.at(timeSyncId);

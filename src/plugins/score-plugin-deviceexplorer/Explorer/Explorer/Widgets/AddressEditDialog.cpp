@@ -38,7 +38,8 @@ AddressEditDialog::AddressEditDialog(QWidget* parent)
 }
 
 AddressEditDialog::AddressEditDialog(
-    const Device::AddressSettings& addr, QWidget* parent)
+    const Device::AddressSettings& addr,
+    QWidget* parent)
     : Device::AddressDialog{parent}, m_originalSettings{addr}
 {
   this->setMinimumWidth(500);
@@ -55,8 +56,11 @@ AddressEditDialog::AddressEditDialog(
   auto typeCb = new State::TypeComboBox{this};
 
   connect(
-      typeCb, &State::TypeComboBox::changed, this,
-      &AddressEditDialog::updateType, Qt::QueuedConnection);
+      typeCb,
+      &State::TypeComboBox::changed,
+      this,
+      &AddressEditDialog::updateType,
+      Qt::QueuedConnection);
 
   m_valueTypeCBox = typeCb;
 
@@ -77,9 +81,7 @@ AddressEditDialog::AddressEditDialog(
   m_layout->addWidget(buttonBox);
 }
 
-AddressEditDialog::~AddressEditDialog()
-{
-}
+AddressEditDialog::~AddressEditDialog() {}
 
 void AddressEditDialog::updateType(ossia::val_type valueType)
 {

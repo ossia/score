@@ -11,13 +11,12 @@
 
 namespace Automation
 {
-StateInspectorFactory::StateInspectorFactory() : InspectorWidgetFactory{}
-{
-}
+StateInspectorFactory::StateInspectorFactory() : InspectorWidgetFactory{} {}
 
 QWidget* StateInspectorFactory::make(
     const InspectedObjects& sourceElements,
-    const score::DocumentContext& doc, QWidget* parent) const
+    const score::DocumentContext& doc,
+    QWidget* parent) const
 {
   return new StateInspectorWidget{
       safe_cast<const ProcessState&>(*sourceElements.first()), doc, parent};

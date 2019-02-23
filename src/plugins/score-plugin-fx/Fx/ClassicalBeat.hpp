@@ -24,7 +24,8 @@ struct Node
     static const constexpr value_out value_outs[]{"out"};
 
     static const constexpr auto controls = std::make_tuple(
-        Control::Widgets::TempoChooser(), Control::Widgets::TimeSigChooser());
+        Control::Widgets::TempoChooser(),
+        Control::Widgets::TimeSigChooser());
   };
 
   static constexpr int64_t get_period(double quantif, double tempo, int sr)
@@ -42,8 +43,11 @@ struct Node
 
   using control_policy = ossia::safe_nodes::last_tick;
   static void
-  run(float tempo, const Control::time_signature& sig, ossia::value_port& res,
-      ossia::token_request tk, ossia::exec_state_facade st)
+  run(float tempo,
+      const Control::time_signature& sig,
+      ossia::value_port& res,
+      ossia::token_request tk,
+      ossia::exec_state_facade st)
   {
     if (tk.date > tk.prev_date)
     {

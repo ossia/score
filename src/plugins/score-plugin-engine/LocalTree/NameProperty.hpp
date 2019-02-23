@@ -1,8 +1,9 @@
 #pragma once
 #include <score/model/ModelMetadata.hpp>
 
-#include <LocalTree/BaseProperty.hpp>
 #include <ossia/network/base/node.hpp>
+
+#include <LocalTree/BaseProperty.hpp>
 namespace LocalTree
 {
 
@@ -14,7 +15,8 @@ public:
   ossia::net::node_base& node;
 
   MetadataNamePropertyWrapper(
-      ossia::net::node_base& parent, score::ModelMetadata& arg_metadata,
+      ossia::net::node_base& parent,
+      score::ModelMetadata& arg_metadata,
       QObject* context)
       : metadata{arg_metadata}
       , node{*parent.create_child(arg_metadata.getName().toStdString())}

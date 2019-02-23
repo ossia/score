@@ -23,8 +23,11 @@ W_OBJECT_IMPL(Scenario::EventModel)
 namespace Scenario
 {
 EventModel::EventModel(
-    const Id<EventModel>& id, const Id<TimeSyncModel>& timesync,
-    const VerticalExtent& extent, const TimeVal& date, QObject* parent)
+    const Id<EventModel>& id,
+    const Id<TimeSyncModel>& timesync,
+    const VerticalExtent& extent,
+    const TimeVal& date,
+    QObject* parent)
     : Entity{id, Metadata<ObjectKey_k, EventModel>::get(), parent}
     , m_timeSync{timesync}
     , m_condition{}
@@ -65,7 +68,8 @@ void EventModel::setDate(const TimeVal& date)
 }
 
 void EventModel::setStatus(
-    ExecutionStatus status, const ScenarioInterface& scenar)
+    ExecutionStatus status,
+    const ScenarioInterface& scenar)
 {
   if (m_status.get() == status)
     return;

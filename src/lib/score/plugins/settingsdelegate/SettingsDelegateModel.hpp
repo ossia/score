@@ -91,10 +91,7 @@ public:                                                                    \
 private:
 
 #define SCORE_SETTINGS_PARAMETER_CPP(Type, ModelType, Name)          \
-  Type ModelType::get##Name() const                                  \
-  {                                                                  \
-    return m_##Name;                                                 \
-  }                                                                  \
+  Type ModelType::get##Name() const { return m_##Name; }             \
                                                                      \
   void ModelType::set##Name(Type val)                                \
   {                                                                  \
@@ -109,10 +106,7 @@ private:
   }
 
 #define SCORE_PROJECTSETTINGS_PARAMETER_CPP(Type, ModelType, Name) \
-  Type ModelType::get##Name() const                                \
-  {                                                                \
-    return m_##Name;                                               \
-  }                                                                \
+  Type ModelType::get##Name() const { return m_##Name; }           \
                                                                    \
   void ModelType::set##Name(Type val)                              \
   {                                                                \

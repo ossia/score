@@ -22,7 +22,8 @@ namespace Execution
 {
 
 PlayContextMenu::PlayContextMenu(
-    Engine::ApplicationPlugin& plug, const score::GUIApplicationContext& ctx)
+    Engine::ApplicationPlugin& plug,
+    const score::GUIApplicationContext& ctx)
     : m_ctx{ctx}
 {
   auto& exec_signals
@@ -81,7 +82,9 @@ PlayContextMenu::PlayContextMenu(
   });
 
   /// Play tool ///
-  con(exec_signals, &Scenario::ScenarioExecution::playState, this,
+  con(exec_signals,
+      &Scenario::ScenarioExecution::playState,
+      this,
       [=](const Scenario::ScenarioInterface& scenar,
           const Id<StateModel>& id) {
         const auto& ctx = m_ctx.documents.currentDocument()->context();
@@ -92,15 +95,20 @@ PlayContextMenu::PlayContextMenu(
         ossia_state.launch();
       });
 
-  con(exec_signals, &Scenario::ScenarioExecution::playInterval, this,
+  con(exec_signals,
+      &Scenario::ScenarioExecution::playInterval,
+      this,
       [&](const Scenario::ScenarioInterface& scenar,
           const Id<IntervalModel>& id) {
         plug.on_play(scenar.interval(id), true);
       });
 
-  con(exec_signals, &Scenario::ScenarioExecution::playFromIntervalAtDate, this,
+  con(exec_signals,
+      &Scenario::ScenarioExecution::playFromIntervalAtDate,
+      this,
       [&](const Scenario::ScenarioInterface& scenar,
-          Id<Scenario::IntervalModel> id, const TimeVal& t) {
+          Id<Scenario::IntervalModel> id,
+          const TimeVal& t) {
         // First we select the parent scenario of the interval,
         auto& cst_to_play = scenar.interval(id);
 
@@ -113,8 +121,10 @@ PlayContextMenu::PlayContextMenu(
         // TODO: this also plays the other processes of the interval? Maybe
         // remove them, too ?
         plug.on_play(
-            *parent_interval, true,
-            PlayFromIntervalScenarioPruner{scenar, cst_to_play, t}, t);
+            *parent_interval,
+            true,
+            PlayFromIntervalScenarioPruner{scenar, cst_to_play, t},
+            t);
       });
 
   /// Record signals ///
@@ -125,15 +135,16 @@ PlayContextMenu::PlayContextMenu(
     if (!recdata.presenter)
       return;
 
-    auto& pres
-        = *safe_cast<const ScenarioPresenter*>(recdata.presenter);
+    auto& pres = *safe_cast<const ScenarioPresenter*>(recdata.presenter);
     auto proc = safe_cast<const Scenario::ProcessModel*>(&pres.model());
     auto p = const_cast<Scenario::ProcessModel*>(proc);
 
     exec_signals.startRecording(
-        *p, Scenario::ConvertToScenarioPoint(
-                pres.view().mapFromScene(recdata.point), pres.zoomRatio(),
-                pres.view().boundingRect().height()));
+        *p,
+        Scenario::ConvertToScenarioPoint(
+            pres.view().mapFromScene(recdata.point),
+            pres.zoomRatio(),
+            pres.view().boundingRect().height()));
 
     m_recordAutomations->setData({});
   });
@@ -145,15 +156,16 @@ PlayContextMenu::PlayContextMenu(
     if (!recdata.presenter)
       return;
 
-    auto& pres
-        = *safe_cast<const ScenarioPresenter*>(recdata.presenter);
+    auto& pres = *safe_cast<const ScenarioPresenter*>(recdata.presenter);
     auto proc = safe_cast<const Scenario::ProcessModel*>(&pres.model());
     auto p = const_cast<Scenario::ProcessModel*>(proc);
 
     exec_signals.startRecordingMessages(
-        *p, Scenario::ConvertToScenarioPoint(
-                pres.view().mapFromScene(recdata.point), pres.zoomRatio(),
-                pres.view().boundingRect().height()));
+        *p,
+        Scenario::ConvertToScenarioPoint(
+            pres.view().mapFromScene(recdata.point),
+            pres.zoomRatio(),
+            pres.view().boundingRect().height()));
 
     m_recordAutomations->setData({});
   });
@@ -208,10 +220,11 @@ void PlayContextMenu::setupContextMenu(Process::LayerContextMenuManager& ctxm)
       });
 
   scenario_cm.functions.push_back([this](
-                                      QMenu& menu, QPoint, QPointF scenept,
+                                      QMenu& menu,
+                                      QPoint,
+                                      QPointF scenept,
                                       const Process::LayerContext& ctx) {
-    auto& pres
-        = safe_cast<Scenario::ScenarioPresenter&>(ctx.presenter);
+    auto& pres = safe_cast<Scenario::ScenarioPresenter&>(ctx.presenter);
     auto scenPoint = Scenario::ConvertToScenarioPoint(
         scenept, pres.zoomRatio(), pres.view().height());
     m_playFromHere->setData(QVariant::fromValue(scenPoint.date));

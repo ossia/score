@@ -2,9 +2,9 @@
 #include <Loop/LoopProcessMetadata.hpp>
 #include <Process/Process.hpp>
 #include <Process/TimeValue.hpp>
+#include <Scenario/Commands/Interval/ResizeInterval.hpp>
 #include <Scenario/Document/BaseScenario/BaseScenarioContainer.hpp>
 
-#include <Scenario/Commands/Interval/ResizeInterval.hpp>
 #include <score/model/Identifier.hpp>
 #include <score/selection/Selection.hpp>
 #include <score/serialization/VisitorInterface.hpp>
@@ -40,7 +40,8 @@ public:
   std::unique_ptr<Process::Outlet> outlet;
 
   explicit ProcessModel(
-      const TimeVal& duration, const Id<Process::ProcessModel>& id,
+      const TimeVal& duration,
+      const Id<Process::ProcessModel>& id,
       QObject* parentObject);
 
   template <typename Impl>
@@ -78,15 +79,22 @@ intervalsBeforeTimeSync(
     const Loop::ProcessModel& scen,
     const Id<Scenario::TimeSyncModel>& timeSyncId);
 
-
-class LoopIntervalResizer final
-    : public Scenario::IntervalResizer
+class LoopIntervalResizer final : public Scenario::IntervalResizer
 {
   SCORE_CONCRETE("e4144527-970f-447a-9d6c-fb05c7aebca8")
 
   bool matches(const Scenario::IntervalModel& m) const noexcept override;
-  score::Command* make(const Scenario::IntervalModel& itv, TimeVal new_duration, ExpandMode, LockMode) const noexcept override;
-  void update(score::Command& cmd, const Scenario::IntervalModel& interval, TimeVal new_duration, ExpandMode, LockMode) const noexcept override;
+  score::Command* make(
+      const Scenario::IntervalModel& itv,
+      TimeVal new_duration,
+      ExpandMode,
+      LockMode) const noexcept override;
+  void update(
+      score::Command& cmd,
+      const Scenario::IntervalModel& interval,
+      TimeVal new_duration,
+      ExpandMode,
+      LockMode) const noexcept override;
 };
 }
 namespace Scenario

@@ -6,8 +6,9 @@
 #include <QQmlComponent>
 #include <QQmlEngine>
 
-#include <wobjectdefs.h>
 #include <score_plugin_js_export.h>
+#include <wobjectdefs.h>
+
 #include <memory>
 namespace JS
 {
@@ -18,10 +19,10 @@ class SCORE_PLUGIN_JS_EXPORT ProcessModel final : public Process::ProcessModel
   W_OBJECT(ProcessModel)
 public:
   explicit ProcessModel(
-      const TimeVal& duration
-    , const QString& data
-    , const Id<Process::ProcessModel>& id
-    , QObject* parent);
+      const TimeVal& duration,
+      const QString& data,
+      const Id<Process::ProcessModel>& id,
+      QObject* parent);
 
   template <typename Impl>
   explicit ProcessModel(Impl& vis, QObject* parent)
@@ -32,14 +33,8 @@ public:
 
   void setScript(const QString& script);
   void setQmlData(const QByteArray&, bool isFile);
-  const QString& script() const
-  {
-    return m_script;
-  }
-  const QString& qmlData() const
-  {
-    return m_qmlData;
-  }
+  const QString& script() const { return m_script; }
+  const QString& qmlData() const { return m_qmlData; }
 
   ~ProcessModel() override;
 

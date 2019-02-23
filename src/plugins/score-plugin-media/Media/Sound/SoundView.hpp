@@ -43,10 +43,7 @@ public:
   WaveformComputer(LayerView& layer);
   std::atomic_bool dirty{};
 
-  ~WaveformComputer()
-  {
-    m_drawThread.quit();
-  }
+  ~WaveformComputer() { m_drawThread.quit(); }
   void stop()
   {
     m_drawThread.quit();
@@ -56,7 +53,8 @@ public:
 public:
   void recompute(std::shared_ptr<MediaFileHandle> arg_1, double arg_2)
       W_SIGNAL(recompute, arg_1, arg_2);
-  void ready(QList<QPainterPath> arg_1, QPainterPath arg_2, double z, QImage img)
+  void
+  ready(QList<QPainterPath> arg_1, QPainterPath arg_2, double z, QImage img)
       W_SIGNAL(ready, arg_1, arg_2, z, img);
 
 private:
@@ -69,7 +67,9 @@ private:
 
   // Computes a data set for the given ZoomRatio
   void computeDataSet(
-      const MediaFileHandle& m_data, ZoomRatio ratio, double* densityptr,
+      const MediaFileHandle& m_data,
+      ZoomRatio ratio,
+      double* densityptr,
       std::vector<ossia::float_vector>& dataset);
 
   void drawWaveForms(const MediaFileHandle& data, ZoomRatio ratio);
@@ -121,7 +121,7 @@ private:
   ZoomRatio m_zoom{};
   void printAction(long);
 
-  //QPixmap m_pixmap;
+  // QPixmap m_pixmap;
   WaveformComputer* m_cpt{};
 };
 }

@@ -86,7 +86,8 @@ IntervalActions::IntervalActions(ScenarioApplicationPlugin* parent)
   m_interp->setShortcutContext(Qt::ApplicationShortcut);
   m_interp->setToolTip(tr("Interpolate states (Ctrl+K)"));
   setIcons(
-      m_interp, QStringLiteral(":/icons/interpolate_on.png"),
+      m_interp,
+      QStringLiteral(":/icons/interpolate_on.png"),
       QStringLiteral(":/icons/interpolate_off.png"),
       QStringLiteral(":/icons/interpolate_disabled.png"));
   connect(m_interp, &QAction::triggered, this, [&]() {
@@ -115,7 +116,8 @@ IntervalActions::IntervalActions(ScenarioApplicationPlugin* parent)
     parent->context.mainWindow->addAction(m_curves);
 
   setIcons(
-      m_curves, QStringLiteral(":/icons/create_curve_on.png"),
+      m_curves,
+      QStringLiteral(":/icons/create_curve_on.png"),
       QStringLiteral(":/icons/create_curve_off.png"),
       QStringLiteral(":/icons/create_curve_disabled.png"));
 
@@ -126,9 +128,7 @@ IntervalActions::IntervalActions(ScenarioApplicationPlugin* parent)
   m_curves->setEnabled(false);
 }
 
-IntervalActions::~IntervalActions()
-{
-}
+IntervalActions::~IntervalActions() {}
 
 void IntervalActions::makeGUIElements(score::GUIElements& ref)
 {
@@ -197,7 +197,8 @@ void IntervalActions::setupContextMenu(Process::LayerContextMenuManager& ctxm)
 }
 
 void IntervalActions::addProcessInInterval(
-    const UuidKey<Process::ProcessModel>& processName, const QString& data)
+    const UuidKey<Process::ProcessModel>& processName,
+    const QString& data)
 {
   auto selectedIntervals
       = selectedIntervalsInCurrentDocument(m_parent->context);

@@ -1,9 +1,11 @@
 #pragma once
 
 #include <QMetaType>
+
 #include <wobjectdefs.h>
 
-namespace Protocols {
+namespace Protocols
+{
 
 struct WiimoteSpecificSettings
 {

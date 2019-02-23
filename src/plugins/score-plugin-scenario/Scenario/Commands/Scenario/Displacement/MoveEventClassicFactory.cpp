@@ -26,19 +26,28 @@ namespace Command
 class SerializableMoveEvent;
 
 std::unique_ptr<SerializableMoveEvent> MoveEventClassicFactory::make(
-    const Scenario::ProcessModel& scenarioPath, Id<EventModel> eventId,
-    TimeVal newDate, ExpandMode mode, LockMode lck)
+    const Scenario::ProcessModel& scenarioPath,
+    Id<EventModel> eventId,
+    TimeVal newDate,
+    ExpandMode mode,
+    LockMode lck)
 {
   if (lck == LockMode::Free)
   {
     return std::make_unique<MoveEvent<GoodOldDisplacementPolicy>>(
-        std::move(scenarioPath), std::move(eventId), std::move(newDate), mode,
+        std::move(scenarioPath),
+        std::move(eventId),
+        std::move(newDate),
+        mode,
         lck);
   }
   else
   {
     return std::make_unique<MoveEvent<ConstrainedDisplacementPolicy>>(
-        std::move(scenarioPath), std::move(eventId), std::move(newDate), mode,
+        std::move(scenarioPath),
+        std::move(eventId),
+        std::move(newDate),
+        mode,
         lck);
   }
 }

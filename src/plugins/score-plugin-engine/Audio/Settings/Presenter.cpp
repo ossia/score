@@ -23,7 +23,8 @@ Presenter::Presenter(Model& m, View& v, QObject* parent)
   for (auto& drv : ctx)
   {
     v.addDriver(
-        drv.prettyName(), QVariant::fromValue(drv.concreteKey()),
+        drv.prettyName(),
+        QVariant::fromValue(drv.concreteKey()),
         drv.make_settings(m, v, m_disp, nullptr));
   }
 

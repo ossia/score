@@ -11,9 +11,7 @@ class Reader;
 template <typename T>
 class Writer;
 
-DataStreamReader::DataStreamReader() : components{score::AppComponents()}
-{
-}
+DataStreamReader::DataStreamReader() : components{score::AppComponents()} {}
 
 DataStreamReader::DataStreamReader(QByteArray* array)
     : m_stream_impl{array, QIODevice::WriteOnly}
@@ -27,9 +25,7 @@ DataStreamReader::DataStreamReader(QIODevice* dev)
 {
 }
 
-DataStreamWriter::DataStreamWriter() : components{score::AppComponents()}
-{
-}
+DataStreamWriter::DataStreamWriter() : components{score::AppComponents()} {}
 
 DataStreamWriter::DataStreamWriter(const QByteArray& array)
     : m_stream_impl{array}, components{score::AppComponents()}

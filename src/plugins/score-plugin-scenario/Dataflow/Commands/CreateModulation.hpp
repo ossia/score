@@ -8,7 +8,8 @@ namespace Dataflow
 class CreateModulation final : public score::AggregateCommand
 {
   SCORE_COMMAND_DECL(
-      Scenario::Command::ScenarioCommandFactoryName(), CreateModulation,
+      Scenario::Command::ScenarioCommandFactoryName(),
+      CreateModulation,
       "Create modulation")
 };
 }

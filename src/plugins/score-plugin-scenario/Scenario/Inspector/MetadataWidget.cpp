@@ -48,8 +48,10 @@ auto colorPalette() -> color_widgets::ColorPaletteModel&
   return p;
 }
 MetadataWidget::MetadataWidget(
-    const score::ModelMetadata& metadata, const score::CommandStackFacade& m,
-    const QObject* docObject, QWidget* parent)
+    const score::ModelMetadata& metadata,
+    const score::CommandStackFacade& m,
+    const QObject* docObject,
+    QWidget* parent)
     : QWidget(parent)
     , m_metadata{metadata}
     , m_commandDispatcher{m}
@@ -70,7 +72,9 @@ MetadataWidget::MetadataWidget(
   // Name(s)
   m_descriptionLay.addRow(tr("Label"), &m_labelLine);
   m_descriptionWidget.setObjectName("Description");
-  con(metadata, &score::ModelMetadata::LabelChanged, this,
+  con(metadata,
+      &score::ModelMetadata::LabelChanged,
+      this,
       [=](const auto& str) { m_labelLine.setText(str); });
 
   // color
@@ -87,7 +91,9 @@ MetadataWidget::MetadataWidget(
   m_cmtLabel = new TextLabel{tr("Comments"), this};
   m_cmtLay.addWidget(m_cmtLabel);
 
-  con(metadata, &score::ModelMetadata::CommentChanged, this,
+  con(metadata,
+      &score::ModelMetadata::CommentChanged,
+      this,
       [=](const auto& str) { m_comments.setText(str); });
 
   // m_meta.setVisible(false);
@@ -110,11 +116,13 @@ MetadataWidget::MetadataWidget(
       m_cmtBtn.setArrowType(Qt::RightArrow);
   });
 
-  con(m_labelLine, &QLineEdit::editingFinished,
-      [=]() { labelChanged(m_labelLine.text()); });
+  con(m_labelLine, &QLineEdit::editingFinished, [=]() {
+    labelChanged(m_labelLine.text());
+  });
 
-  con(m_comments, &CommentEdit::editingFinished,
-      [=]() { commentsChanged(m_comments.toPlainText()); });
+  con(m_comments, &CommentEdit::editingFinished, [=]() {
+    commentsChanged(m_comments.toPlainText());
+  });
 
   /*
   con(m_meta, &ExtendedMetadataWidget::dataChanged, this,
@@ -134,7 +142,8 @@ MetadataWidget::MetadataWidget(
         palette_widget,
         static_cast<void (ColorPaletteWidget::*)(int)>(
             &ColorPaletteWidget::selectedChanged),
-        this, [=](int idx) {
+        this,
+        [=](int idx) {
           auto colors = palette.palette(0).colors();
 
           if (idx >= 0 && idx < colors.size())
@@ -159,20 +168,22 @@ MetadataWidget::MetadataWidget(
     m_colorButton.setIcon(QIcon(m_colorButtonPixmap));
     m_colorButton.setIconSize(QSize(m_colorIconSize, m_colorIconSize));
 
-    con(metadata, &score::ModelMetadata::ColorChanged, this,
+    con(metadata,
+        &score::ModelMetadata::ColorChanged,
+        this,
         [=](const score::ColorRef& str) {
           palette_widget->setCurrentColor(str.getBrush().color());
         });
   }
 
-  con(metadata, &score::ModelMetadata::metadataChanged, this,
+  con(metadata,
+      &score::ModelMetadata::metadataChanged,
+      this,
       &MetadataWidget::updateAsked);
   updateAsked();
 }
 
-MetadataWidget::~MetadataWidget()
-{
-}
+MetadataWidget::~MetadataWidget() {}
 
 void MetadataWidget::updateAsked()
 {

@@ -1,6 +1,7 @@
 #include "MergeTimeSyncs.hpp"
 
 #include <Process/TimeValueSerialization.hpp>
+
 #include <score/model/tree/TreeNodeSerialization.hpp>
 
 namespace Scenario
@@ -9,7 +10,8 @@ namespace Command
 {
 
 MergeTimeSyncs::MergeTimeSyncs(
-    const ProcessModel& scenario, Id<TimeSyncModel> clickedTn,
+    const ProcessModel& scenario,
+    Id<TimeSyncModel> clickedTn,
     Id<TimeSyncModel> hoveredTn)
     : m_scenarioPath{scenario}
     , m_movingTnId{std::move(clickedTn)}
@@ -23,9 +25,12 @@ MergeTimeSyncs::MergeTimeSyncs(
   s.readFrom(tn);
   m_serializedTimeSync = arr;
 
-  m_moveCommand = new MoveEvent<GoodOldDisplacementPolicy>{
-      scenario, tn.events().front(), destinantionTn.date(), ExpandMode::Scale,
-      LockMode::Free};
+  m_moveCommand
+      = new MoveEvent<GoodOldDisplacementPolicy>{scenario,
+                                                 tn.events().front(),
+                                                 destinantionTn.date(),
+                                                 ExpandMode::Scale,
+                                                 LockMode::Free};
 
   m_targetTrigger = destinantionTn.expression();
   m_targetTriggerActive = destinantionTn.active();
@@ -96,7 +101,8 @@ void MergeTimeSyncs::redo(const score::DocumentContext& ctx) const
 }
 
 void MergeTimeSyncs::update(
-    unused_t scenar, const Id<TimeSyncModel>& clickedTn,
+    unused_t scenar,
+    const Id<TimeSyncModel>& clickedTn,
     const Id<TimeSyncModel>& hoveredTn)
 {
 }

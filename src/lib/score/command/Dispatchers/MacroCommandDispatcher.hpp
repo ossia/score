@@ -29,7 +29,8 @@ public:
 
   template <typename... Args>
   GenericMacroCommandDispatcher(
-      std::unique_ptr<score::AggregateCommand> cmd, Args&&... args)
+      std::unique_ptr<score::AggregateCommand> cmd,
+      Args&&... args)
       : ICommandDispatcher{std::forward<Args&&>(args)...}
       , m_aggregateCommand{std::move(cmd)}
   {
@@ -64,10 +65,7 @@ public:
     }
   }
 
-  auto command() const
-  {
-    return m_aggregateCommand.get();
-  }
+  auto command() const { return m_aggregateCommand.get(); }
 
 protected:
   std::unique_ptr<Command_T> m_aggregateCommand;
@@ -76,14 +74,20 @@ protected:
 // Don't redo the individual commands, and redo() the aggregate command.
 template <typename Command_T>
 using MacroCommandDispatcher = GenericMacroCommandDispatcher<
-    Command_T, RedoStrategy::Quiet, SendStrategy::Simple>;
+    Command_T,
+    RedoStrategy::Quiet,
+    SendStrategy::Simple>;
 
 // Redo the individual commands, don't redo the aggregate command
 template <typename Command_T>
 using RedoMacroCommandDispatcher = GenericMacroCommandDispatcher<
-    Command_T, RedoStrategy::Redo, SendStrategy::Quiet>;
+    Command_T,
+    RedoStrategy::Redo,
+    SendStrategy::Quiet>;
 
 // Don't redo anything, just push
 template <typename Command_T>
 using QuietMacroCommandDispatcher = GenericMacroCommandDispatcher<
-    Command_T, RedoStrategy::Quiet, SendStrategy::Quiet>;
+    Command_T,
+    RedoStrategy::Quiet,
+    SendStrategy::Quiet>;

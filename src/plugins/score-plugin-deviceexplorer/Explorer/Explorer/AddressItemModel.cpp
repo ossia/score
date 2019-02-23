@@ -38,7 +38,8 @@ AddressItemModel::AddressItemModel(QObject* parent)
 }
 
 void AddressItemModel::setState(
-    DeviceExplorerModel* model, Device::NodePath nodepath,
+    DeviceExplorerModel* model,
+    Device::NodePath nodepath,
     const Device::FullAddressSettings& s)
 {
   beginResetModel();
@@ -59,7 +60,9 @@ void AddressItemModel::clear()
 }
 
 bool AddressItemModel::setData(
-    const QModelIndex& index, const QVariant& value, int role)
+    const QModelIndex& index,
+    const QVariant& value,
+    int role)
 {
   namespace onet = ossia::net;
   if (index.column() != 1)
@@ -195,30 +198,30 @@ bool AddressItemModel::setData(
       {
         auto it = after.extendedAttributes.begin();
         std::advance(it, idx);
-        if(it.key() == onet::text_description())
+        if (it.key() == onet::text_description())
         {
           it.value() = value.toString().toStdString();
         }
-        else if(it.key() == onet::text_tags())
+        else if (it.key() == onet::text_tags())
         {
           // TODO
         }
-        else if(it->first == onet::text_default_value())
+        else if (it->first == onet::text_default_value())
         {
           if (value.canConvert<ossia::value>())
           {
             it.value() = value.value<ossia::value>();
           }
         }
-        else if(it->first == onet::text_refresh_rate())
+        else if (it->first == onet::text_refresh_rate())
         {
           it.value() = value.toInt();
         }
-        else if(it->first == onet::text_value_step_size())
+        else if (it->first == onet::text_value_step_size())
         {
           it.value() = value.toDouble();
         }
-        else if(it->first == onet::text_priority())
+        else if (it->first == onet::text_priority())
         {
           it.value() = value.toInt();
         }
@@ -368,11 +371,11 @@ QVariant AddressItemModel::data(const QModelIndex& index, int role) const
               auto it = m_settings.extendedAttributes.begin();
               std::advance(it, idx);
               auto str = QString::fromStdString(it.key());
-              if(!str.isEmpty())
+              if (!str.isEmpty())
                 str[0] = str[0].toUpper();
-              for(int i = 1; i < str.size(); i++)
+              for (int i = 1; i < str.size(); i++)
               {
-                if(str[i].isUpper())
+                if (str[i].isUpper())
                 {
                   str.insert(i, ' ');
                   i++;
@@ -397,7 +400,8 @@ QVariant AddressItemModel::data(const QModelIndex& index, int role) const
             return valueColumnData(m_settings.value, role);
           case Rows::Type:
           {
-            return State::convert::ValuePrettyTypesArray()[(int)m_settings.value.get_type()];
+            return State::convert::ValuePrettyTypesArray()
+                [(int)m_settings.value.get_type()];
           }
           case Rows::Min:
           {
@@ -441,11 +445,12 @@ QVariant AddressItemModel::data(const QModelIndex& index, int role) const
             {
               auto it = m_settings.extendedAttributes.begin();
               std::advance(it, idx);
-              if(it->first == onet::text_description())
+              if (it->first == onet::text_description())
               {
-                return QString::fromStdString(ossia::any_cast<onet::description>(it->second));
+                return QString::fromStdString(
+                    ossia::any_cast<onet::description>(it->second));
               }
-              else if(it->first == onet::text_tags())
+              else if (it->first == onet::text_tags())
               {
                 const auto& tags = ossia::any_cast<onet::tags>(it->second);
 
@@ -454,22 +459,27 @@ QVariant AddressItemModel::data(const QModelIndex& index, int role) const
                   l += QString::fromStdString(s);
                 return l.join(", ");
               }
-              else if(it->first == onet::text_default_value())
+              else if (it->first == onet::text_default_value())
               {
-                const auto& v = ossia::any_cast<onet::default_value_attribute::type>(it->second);
+                const auto& v
+                    = ossia::any_cast<onet::default_value_attribute::type>(
+                        it->second);
                 return valueColumnData(v, role);
               }
-              else if(it->first == onet::text_refresh_rate())
+              else if (it->first == onet::text_refresh_rate())
               {
-                return ossia::any_cast<onet::refresh_rate_attribute::type>(it->second);
+                return ossia::any_cast<onet::refresh_rate_attribute::type>(
+                    it->second);
               }
-              else if(it->first == onet::text_value_step_size())
+              else if (it->first == onet::text_value_step_size())
               {
-                return ossia::any_cast<onet::value_step_size_attribute::type>(it->second);
+                return ossia::any_cast<onet::value_step_size_attribute::type>(
+                    it->second);
               }
-              else if(it->first == onet::text_priority())
+              else if (it->first == onet::text_priority())
               {
-                return ossia::any_cast<onet::priority_attribute::type>(it->second);
+                return ossia::any_cast<onet::priority_attribute::type>(
+                    it->second);
               }
             }
             return {};
@@ -512,29 +522,36 @@ QVariant AddressItemModel::data(const QModelIndex& index, int role) const
           {
             auto it = m_settings.extendedAttributes.begin();
             std::advance(it, idx);
-            if(it->first == onet::text_description())
+            if (it->first == onet::text_description())
             {
-              return QString::fromStdString(ossia::any_cast<onet::description>(it->second));
+              return QString::fromStdString(
+                  ossia::any_cast<onet::description>(it->second));
             }
-            else if(it->first == onet::text_tags())
+            else if (it->first == onet::text_tags())
             {
-              return QVariant::fromValue(ossia::any_cast<onet::tags>(it->second));
+              return QVariant::fromValue(
+                  ossia::any_cast<onet::tags>(it->second));
             }
-            else if(it->first == onet::text_default_value())
+            else if (it->first == onet::text_default_value())
             {
-              return QVariant::fromValue(ossia::any_cast<onet::default_value_attribute::type>(it->second));
+              return QVariant::fromValue(
+                  ossia::any_cast<onet::default_value_attribute::type>(
+                      it->second));
             }
-            else if(it->first == onet::text_refresh_rate())
+            else if (it->first == onet::text_refresh_rate())
             {
-              return ossia::any_cast<onet::refresh_rate_attribute::type>(it->second);
+              return ossia::any_cast<onet::refresh_rate_attribute::type>(
+                  it->second);
             }
-            else if(it->first == onet::text_value_step_size())
+            else if (it->first == onet::text_value_step_size())
             {
-              return ossia::any_cast<onet::value_step_size_attribute::type>(it->second);
+              return ossia::any_cast<onet::value_step_size_attribute::type>(
+                  it->second);
             }
-            else if(it->first == onet::text_priority())
+            else if (it->first == onet::text_priority())
             {
-              return ossia::any_cast<onet::priority_attribute::type>(it->second);
+              return ossia::any_cast<onet::priority_attribute::type>(
+                  it->second);
             }
           }
           return {};
@@ -629,12 +646,11 @@ AddressItemDelegate::AddressItemDelegate(QObject* parent)
 {
 }
 
-AddressItemDelegate::~AddressItemDelegate()
-{
-}
+AddressItemDelegate::~AddressItemDelegate() {}
 
 void AddressItemDelegate::paint(
-    QPainter* painter, const QStyleOptionViewItem& option,
+    QPainter* painter,
+    const QStyleOptionViewItem& option,
     const QModelIndex& index) const
 {
   QStyledItemDelegate::paint(painter, option, index);
@@ -659,17 +675,15 @@ public:
     });
 
     connect(
-        &m_edit, SignalUtils::QSpinBox_valueChanged_int(), this,
-        [=](int v) { m_slider.setValue(v); });
+        &m_edit, SignalUtils::QSpinBox_valueChanged_int(), this, [=](int v) {
+          m_slider.setValue(v);
+        });
 
     m_lay.addWidget(&m_slider);
     m_lay.addWidget(&m_edit);
   }
 
-  ossia::value get() const override
-  {
-    return m_slider.value();
-  }
+  ossia::value get() const override { return m_slider.value(); }
 
   void set(ossia::value t) override
   {
@@ -696,21 +710,21 @@ public:
     this->setFocusProxy(&m_edit);
 
     connect(
-        &m_slider, &score::DoubleSlider::valueChanged, this,
-        [=](double v) { m_edit.setValue(min + v * (max - min)); });
+        &m_slider, &score::DoubleSlider::valueChanged, this, [=](double v) {
+          m_edit.setValue(min + v * (max - min));
+        });
 
     connect(
-        &m_edit, SignalUtils::QDoubleSpinBox_valueChanged_double(), this,
+        &m_edit,
+        SignalUtils::QDoubleSpinBox_valueChanged_double(),
+        this,
         [=](double v) { m_slider.setValue((v - min) / (max - min)); });
 
     m_lay.addWidget(&m_slider);
     m_lay.addWidget(&m_edit);
   }
 
-  ossia::value get() const override
-  {
-    return m_edit.value();
-  }
+  ossia::value get() const override { return m_edit.value(); }
 
   void set(ossia::value t) override
   {
@@ -759,10 +773,7 @@ struct make_unit
     return nullptr;
   }
 
-  AddressValueWidget* operator()()
-  {
-    return nullptr;
-  }
+  AddressValueWidget* operator()() { return nullptr; }
 };
 struct make_dataspace
 {
@@ -786,10 +797,7 @@ struct make_dataspace
     return res;
   }
 
-  AddressValueWidget* operator()()
-  {
-    return nullptr;
-  }
+  AddressValueWidget* operator()() { return nullptr; }
 };
 
 AddressValueWidget*
@@ -805,11 +813,11 @@ make_value_widget(Device::FullAddressSettings addr, QWidget* parent)
     switch (addr.value.get_type())
     {
       case ossia::val_type::FLOAT:
-        return new DoubleSliderValueWidget{ossia::convert<float>(min),
-                                           ossia::convert<float>(max), parent};
+        return new DoubleSliderValueWidget{
+            ossia::convert<float>(min), ossia::convert<float>(max), parent};
       case ossia::val_type::INT:
-        return new SliderValueWidget{ossia::convert<int>(min),
-                                     ossia::convert<int>(max), parent};
+        return new SliderValueWidget{
+            ossia::convert<int>(min), ossia::convert<int>(max), parent};
       default:
         break;
     }
@@ -819,6 +827,8 @@ make_value_widget(Device::FullAddressSettings addr, QWidget* parent)
   {
     case ossia::val_type::LIST:
       return new ListValueWidget{parent};
+    default:
+      break;
   }
 
   return nullptr;
@@ -831,6 +841,8 @@ make_min_widget(Device::FullAddressSettings addr, QWidget* parent)
   {
     case ossia::val_type::LIST:
       return new ListValueWidget{parent};
+    default:
+      break;
   }
 
   return nullptr;
@@ -843,13 +855,16 @@ make_max_widget(Device::FullAddressSettings addr, QWidget* parent)
   {
     case ossia::val_type::LIST:
       return new ListValueWidget{parent};
+    default:
+      break;
   }
 
   return nullptr;
 }
 
 QWidget* AddressItemDelegate::createEditor(
-    QWidget* parent, const QStyleOptionViewItem& option,
+    QWidget* parent,
+    const QStyleOptionViewItem& option,
     const QModelIndex& index) const
 {
   auto model = qobject_cast<const AddressItemModel*>(index.model());
@@ -912,7 +927,8 @@ QWidget* AddressItemDelegate::createEditor(
 }
 
 void AddressItemDelegate::setEditorData(
-    QWidget* editor, const QModelIndex& index) const
+    QWidget* editor,
+    const QModelIndex& index) const
 {
   if (index.column() == 0)
   {
@@ -983,7 +999,9 @@ void AddressItemDelegate::setEditorData(
 }
 
 void AddressItemDelegate::setModelData(
-    QWidget* editor, QAbstractItemModel* model, const QModelIndex& index) const
+    QWidget* editor,
+    QAbstractItemModel* model,
+    const QModelIndex& index) const
 {
   if (index.column() == 0)
   {

@@ -10,22 +10,21 @@
 #include <JS/Inspector/JSInspectorFactory.hpp>
 #include <JS/JSProcessFactory.hpp>
 #include <JS/Qml/QmlObjects.hpp>
+#include <Library/LibraryInterface.hpp>
+#include <Process/Drop/ProcessDropHandler.hpp>
 #include <Process/ProcessFactory.hpp>
 
-#include <score/plugins/InterfaceList.hpp>
 #include <score/plugins/FactorySetup.hpp>
+#include <score/plugins/InterfaceList.hpp>
 #include <score/plugins/StringFactoryKey.hpp>
 #include <score/tools/std/HashMap.hpp>
 
 #include <Execution/DocumentPlugin.hpp>
-#include <Library/LibraryInterface.hpp>
-#include <Process/Drop/ProcessDropHandler.hpp>
 #include <score_plugin_js_commands_files.hpp>
 
 namespace JS
 {
-class LibraryHandler final
-    : public Library::LibraryInterface
+class LibraryHandler final : public Library::LibraryInterface
 {
   SCORE_CONCRETE("5231ea8b-da66-4c6f-9e34-d9a79cbc494a")
 
@@ -35,8 +34,7 @@ class LibraryHandler final
   }
 };
 
-class DropHandler final
-        : public Process::ProcessDropHandler
+class DropHandler final : public Process::ProcessDropHandler
 {
   SCORE_CONCRETE("ad3a575a-f4a8-4a89-bb7e-bfd85f3430fe")
 
@@ -46,8 +44,8 @@ class DropHandler final
   }
 
   std::vector<Process::ProcessDropHandler::ProcessDrop> dropData(
-      const std::vector<QByteArray>& data
-      , const score::DocumentContext& ctx) const noexcept override
+      const std::vector<QByteArray>& data,
+      const score::DocumentContext& ctx) const noexcept override
   {
     std::vector<Process::ProcessDropHandler::ProcessDrop> vec;
 
@@ -86,7 +84,8 @@ score_plugin_js::score_plugin_js()
 score_plugin_js::~score_plugin_js() = default;
 
 std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_js::factories(
-    const score::ApplicationContext& ctx, const score::InterfaceKey& key) const
+    const score::ApplicationContext& ctx,
+    const score::InterfaceKey& key) const
 {
   return instantiate_factories<
       score::ApplicationContext,
@@ -96,8 +95,8 @@ std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_js::factories(
       FW<score::PanelDelegateFactory, JS::PanelDelegateFactory>,
       FW<Library::LibraryInterface, JS::LibraryHandler>,
       FW<Process::ProcessDropHandler, JS::DropHandler>,
-      FW<Execution::ProcessComponentFactory, JS::Executor::ComponentFactory>
-          >(ctx, key);
+      FW<Execution::ProcessComponentFactory, JS::Executor::ComponentFactory>>(
+      ctx, key);
 }
 
 std::pair<const CommandGroupKey, CommandGeneratorMap>

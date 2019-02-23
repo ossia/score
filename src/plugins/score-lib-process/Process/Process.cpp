@@ -24,14 +24,17 @@ template class score::SerializableInterface<Process::ProcessModelFactory>;
 namespace Process
 {
 ProcessModel::ProcessModel(
-    TimeVal duration, const Id<ProcessModel>& id, const QString& name,
+    TimeVal duration,
+    const Id<ProcessModel>& id,
+    const QString& name,
     QObject* parent)
     : Entity{id, name, parent}
     , m_duration{std::move(duration)}
     , m_slotHeight{300}
 {
-  con(metadata(), &score::ModelMetadata::NameChanged, this,
-      [=] { prettyNameChanged(); });
+  con(metadata(), &score::ModelMetadata::NameChanged, this, [=] {
+    prettyNameChanged();
+  });
   // metadata().setInstanceName(*this);
 }
 
@@ -59,16 +62,18 @@ ProcessModel::ProcessModel(DataStream::Deserializer& vis, QObject* parent)
     : Entity(vis, parent)
 {
   vis.writeTo(*this);
-  con(metadata(), &score::ModelMetadata::NameChanged, this,
-      [=] { prettyNameChanged(); });
+  con(metadata(), &score::ModelMetadata::NameChanged, this, [=] {
+    prettyNameChanged();
+  });
 }
 
 ProcessModel::ProcessModel(JSONObject::Deserializer& vis, QObject* parent)
     : Entity(vis, parent)
 {
   vis.writeTo(*this);
-  con(metadata(), &score::ModelMetadata::NameChanged, this,
-      [=] { prettyNameChanged(); });
+  con(metadata(), &score::ModelMetadata::NameChanged, this, [=] {
+    prettyNameChanged();
+  });
 }
 
 QString ProcessModel::prettyName() const noexcept
@@ -76,7 +81,9 @@ QString ProcessModel::prettyName() const noexcept
   return metadata().getName();
 }
 
-void ProcessModel::setParentDuration(ExpandMode mode, const TimeVal& t) noexcept
+void ProcessModel::setParentDuration(
+    ExpandMode mode,
+    const TimeVal& t) noexcept
 {
   switch (mode)
   {
@@ -124,17 +131,11 @@ const TimeVal& ProcessModel::duration() const noexcept
   return m_duration;
 }
 
-void ProcessModel::startExecution()
-{
-}
+void ProcessModel::startExecution() {}
 
-void ProcessModel::stopExecution()
-{
-}
+void ProcessModel::stopExecution() {}
 
-void ProcessModel::reset()
-{
-}
+void ProcessModel::reset() {}
 
 ProcessStateDataInterface* ProcessModel::startStateData() const noexcept
 {
@@ -156,9 +157,7 @@ Selection ProcessModel::selectedChildren() const noexcept
   return {};
 }
 
-void ProcessModel::setSelection(const Selection& s) const noexcept
-{
-}
+void ProcessModel::setSelection(const Selection& s) const noexcept {}
 
 Process::Inlet* ProcessModel::inlet(const Id<Process::Port>& p) const noexcept
 {
@@ -168,7 +167,8 @@ Process::Inlet* ProcessModel::inlet(const Id<Process::Port>& p) const noexcept
   return nullptr;
 }
 
-Process::Outlet* ProcessModel::outlet(const Id<Process::Port>& p) const noexcept
+Process::Outlet* ProcessModel::outlet(const Id<Process::Port>& p) const
+    noexcept
 {
   for (auto e : m_outlets)
     if (e->id() == p)

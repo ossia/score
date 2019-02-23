@@ -74,14 +74,16 @@ std::abs(cur_st->heightPercentage() - pt.y))
 */
 
 bool MessageDropHandler::dragEnter(
-    const Scenario::ScenarioPresenter& pres, QPointF pos,
+    const Scenario::ScenarioPresenter& pres,
+    QPointF pos,
     const QMimeData& mime)
 {
   return dragMove(pres, pos, mime);
 }
 
 bool MessageDropHandler::dragMove(
-    const Scenario::ScenarioPresenter& pres, QPointF pos,
+    const Scenario::ScenarioPresenter& pres,
+    QPointF pos,
     const QMimeData& mime)
 {
   if (!mime.formats().contains(score::mime::messagelist()) && !mime.hasUrls())
@@ -105,7 +107,8 @@ bool MessageDropHandler::dragMove(
 }
 
 bool MessageDropHandler::dragLeave(
-    const Scenario::ScenarioPresenter& pres, QPointF pos,
+    const Scenario::ScenarioPresenter& pres,
+    QPointF pos,
     const QMimeData& mime)
 {
   pres.stopDrawDragLine();
@@ -113,7 +116,8 @@ bool MessageDropHandler::dragLeave(
 }
 
 bool MessageDropHandler::drop(
-    const Scenario::ScenarioPresenter& pres, QPointF pos,
+    const Scenario::ScenarioPresenter& pres,
+    QPointF pos,
     const QMimeData& mime)
 {
   using namespace Scenario::Command;

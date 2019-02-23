@@ -52,7 +52,8 @@ score::ActionConditionKey EnableWhenScenarioModelObject::static_key()
 }
 
 void EnableWhenScenarioModelObject::action(
-    score::ActionManager& mgr, score::MaybeDocument doc)
+    score::ActionManager& mgr,
+    score::MaybeDocument doc)
 {
   if (!doc)
   {
@@ -101,7 +102,8 @@ EnableWhenScenarioInterfaceInstantObject::static_key()
 }
 
 void EnableWhenScenarioInterfaceInstantObject::action(
-    score::ActionManager& mgr, score::MaybeDocument doc)
+    score::ActionManager& mgr,
+    score::MaybeDocument doc)
 {
   if (!doc)
   {
@@ -131,7 +133,8 @@ score::ActionConditionKey EnableWhenScenarioInterfaceObject::static_key()
 }
 
 void EnableWhenScenarioInterfaceObject::action(
-    score::ActionManager& mgr, score::MaybeDocument doc)
+    score::ActionManager& mgr,
+    score::MaybeDocument doc)
 {
   if (!doc)
   {

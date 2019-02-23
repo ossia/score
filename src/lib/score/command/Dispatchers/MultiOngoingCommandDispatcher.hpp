@@ -38,10 +38,7 @@ public:
   {
   }
 
-  ~MultiOngoingCommandDispatcher()
-  {
-    cleanup();
-  }
+  ~MultiOngoingCommandDispatcher() { cleanup(); }
 
   void submit(score::Command* cmd)
   {

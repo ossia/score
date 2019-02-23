@@ -26,36 +26,27 @@ class SCORE_PLUGIN_DEVICEEXPLORER_EXPORT DeviceDocumentPlugin final
   MODEL_METADATA_IMPL(DeviceDocumentPlugin)
 public:
   explicit DeviceDocumentPlugin(
-      const score::DocumentContext& ctx, Id<DocumentPlugin> id,
+      const score::DocumentContext& ctx,
+      Id<DocumentPlugin> id,
       QObject* parent);
 
   virtual ~DeviceDocumentPlugin();
   template <typename Impl>
   DeviceDocumentPlugin(
-      const score::DocumentContext& ctx, Impl& vis, QObject* parent)
+      const score::DocumentContext& ctx,
+      Impl& vis,
+      QObject* parent)
       : score::SerializableDocumentPlugin{ctx, vis, parent}
   {
     vis.writeTo(*this);
   }
 
-  Device::Node& rootNode()
-  {
-    return m_rootNode;
-  }
-  const Device::Node& rootNode() const
-  {
-    return m_rootNode;
-  }
+  Device::Node& rootNode() { return m_rootNode; }
+  const Device::Node& rootNode() const { return m_rootNode; }
 
-  Device::DeviceList& list()
-  {
-    return m_list;
-  }
+  Device::DeviceList& list() { return m_list; }
 
-  const Device::DeviceList& list() const
-  {
-    return m_list;
-  }
+  const Device::DeviceList& list() const { return m_list; }
 
   // TODO make functions that take a parameter and call
   // list().device(...).TheRelevantMethod
@@ -71,12 +62,10 @@ public:
 
   Explorer::ListeningHandler& listening() const;
 
-  DeviceExplorerModel& explorer() const
-  {
-    return *m_explorer;
-  }
+  DeviceExplorerModel& explorer() const { return *m_explorer; }
 
   void setupConnections(Device::DeviceInterface&, bool enabled);
+
 private:
   void initDevice(Device::DeviceInterface&);
   void on_valueUpdated(const State::Address& addr, const ossia::value& v);
@@ -86,9 +75,13 @@ private:
 
   mutable std::unique_ptr<Explorer::ListeningHandler> m_listening;
   DeviceExplorerModel* m_explorer{};
-  ossia::fast_hash_map<Device::DeviceInterface*, std::vector<QMetaObject::Connection>> m_connections;
+  ossia::fast_hash_map<
+      Device::DeviceInterface*,
+      std::vector<QMetaObject::Connection>>
+      m_connections;
 
   void asyncConnect(Device::DeviceInterface& newdev);
+
 public:
   NodeUpdateProxy updateProxy{*this};
 };

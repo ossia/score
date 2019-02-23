@@ -381,9 +381,16 @@ private Q_SLOTS:
 
   void test_parse_value()
   {
-    std::vector<std::string> str_list{
-        "[1,2,3]", "[1]",  "[ 1 ]", "[ 1, 2, 3 ]", "[ 1, 2.3, 3, 'c' ]",
-        "1",       "1.23", "'c'",   "\"lala\"",    "\"lala lala\""};
+    std::vector<std::string> str_list{"[1,2,3]",
+                                      "[1]",
+                                      "[ 1 ]",
+                                      "[ 1, 2, 3 ]",
+                                      "[ 1, 2.3, 3, 'c' ]",
+                                      "1",
+                                      "1.23",
+                                      "'c'",
+                                      "\"lala\"",
+                                      "\"lala lala\""};
 
     for (const auto& str : str_list)
     {
@@ -446,7 +453,8 @@ private Q_SLOTS:
     for (auto& input : std::list<std::string>{
              "%dev:/minuit% != [1, 2, 3.12, 'c'];",
              "{ %dev:/minuit% != [1, 2, 3.12, 'c'] };",
-             "%a:/b% >= %c:/d/e/f%;", "{ %a:/b% >= %c:/d/e/f% };",
+             "%a:/b% >= %c:/d/e/f%;",
+             "{ %a:/b% >= %c:/d/e/f% };",
              "{ %dev:/minuit% != [1, 2, 3.12, 'c']} and not "
              "{ %a:/b% >= %c:/d/e/f% };",
              "{ { %dev:/minuit% != [1, 2, 3.12, 'c'] } and "
@@ -491,11 +499,11 @@ private Q_SLOTS:
   void test_parse_expr_multi()
   {
     for (auto& input : std::list<std::string>{
-         "{ %a:/b% != 1 };",
-         "{ { %a:/b% != 1 } and { %a:/b% != 2 } };",
-         "{ { %a:/b% != 1 } and { %a:/b% != 2 } and { %a:/b% != 3 } };",
-         "{ { %a:/b% != 1 } and { %a:/b% != 2 } and { %a:/b% != 3 } and { %a:/b% != 4 } };"
-        })
+             "{ %a:/b% != 1 };",
+             "{ { %a:/b% != 1 } and { %a:/b% != 2 } };",
+             "{ { %a:/b% != 1 } and { %a:/b% != 2 } and { %a:/b% != 3 } };",
+             "{ { %a:/b% != 1 } and { %a:/b% != 2 } and { %a:/b% != 3 } and { "
+             "%a:/b% != 4 } };"})
     {
       auto f(std::begin(input)), l(std::end(input));
       Expression_parser<decltype(f)> p;
@@ -569,7 +577,7 @@ private Q_SLOTS:
         "{ { %A:/B% > %c:/D% } and { %e:/f% > %g:/h% } }"s)));
   }
 
-  //void test_parse_patternmatch()
+  // void test_parse_patternmatch()
   //{
   //  using namespace std::literals;
   //

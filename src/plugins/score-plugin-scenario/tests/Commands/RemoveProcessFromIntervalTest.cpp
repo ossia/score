@@ -48,8 +48,13 @@ private:
     auto fv_0_id = Id<IntervalViewModel>{234};
     auto tb_0_id = getStrongId(s0->timeSyncs());
     StandardCreationPolicy::createIntervalAndEndEventFromEvent(
-        *s0, s0->startEvent()->id(), std::chrono::milliseconds{34}, 10,
-        int_0_id, fv_0_id, ev_0_id);
+        *s0,
+        s0->startEvent()->id(),
+        std::chrono::milliseconds{34},
+        10,
+        int_0_id,
+        fv_0_id,
+        ev_0_id);
     s0->interval(int_0_id)->createRack(Id<RackModel>{5676});
     QCOMPARE((int)s0->intervals().size(), 1);
     QCOMPARE((int)s0->events().size(), 3);

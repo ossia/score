@@ -16,7 +16,8 @@ class ScenarioDocumentPresenter;
 
 std::unique_ptr<GraphicsSceneToolPalette>
 BaseScenarioDisplayedElementsToolPaletteFactory::make(
-    ScenarioDocumentPresenter& pres, const IntervalModel& interval,
+    ScenarioDocumentPresenter& pres,
+    const IntervalModel& interval,
     QGraphicsItem* parent)
 {
   return std::make_unique<BaseScenarioDisplayedElementsToolPalette>(pres);

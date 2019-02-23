@@ -5,6 +5,7 @@
 
 #include <ossia/network/artnet/artnet_protocol.hpp>
 #include <ossia/network/generic/generic_device.hpp>
+
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Protocols::ArtnetDevice)
 
@@ -22,9 +23,7 @@ ArtnetDevice::ArtnetDevice(const Device::DeviceSettings& settings)
   m_capas.canSerialize = false;
 }
 
-ArtnetDevice::~ArtnetDevice()
-{
-}
+ArtnetDevice::~ArtnetDevice() {}
 
 bool ArtnetDevice::reconnect()
 {

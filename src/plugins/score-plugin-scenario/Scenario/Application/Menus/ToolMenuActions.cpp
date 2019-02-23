@@ -31,7 +31,9 @@ class ScenarioPresenter;
 
 template <typename Data>
 QAction* makeToolbarAction(
-    const QString& name, QObject* parent, const Data& data,
+    const QString& name,
+    QObject* parent,
+    const Data& data,
     const QString& shortcut)
 {
   auto act = new QAction{name, parent};
@@ -56,7 +58,9 @@ ToolMenuActions::ToolMenuActions(ScenarioApplicationPlugin* parent)
 
   // SELECT AND MOVE
   m_selecttool = makeToolbarAction(
-      tr("Select and Move"), m_scenarioToolActionGroup, Scenario::Tool::Select,
+      tr("Select and Move"),
+      m_scenarioToolActionGroup,
+      Scenario::Tool::Select,
       tr("S"));
   m_selecttool->setShortcuts({Qt::Key_S, Qt::Key_M});
   m_selecttool->setToolTip({"Select and Move (S, M)"});
@@ -64,7 +68,8 @@ ToolMenuActions::ToolMenuActions(ScenarioApplicationPlugin* parent)
   m_selecttool->setChecked(true);
 
   setIcons(
-      m_selecttool, QStringLiteral(":/icons/select_and_move_on.png"),
+      m_selecttool,
+      QStringLiteral(":/icons/select_and_move_on.png"),
       QStringLiteral(":/icons/select_and_move_off.png"),
       QStringLiteral(":/icons/select_and_move_disabled.png"));
 
@@ -78,7 +83,8 @@ ToolMenuActions::ToolMenuActions(ScenarioApplicationPlugin* parent)
       tr("Create"), m_scenarioToolActionGroup, Scenario::Tool::Create, tr(""));
 
   setIcons(
-      m_createtool, QStringLiteral(":/icons/create_on.png"),
+      m_createtool,
+      QStringLiteral(":/icons/create_on.png"),
       QStringLiteral(":/icons/create_off.png"),
       QStringLiteral(":/icons/create_disabled.png"));
 
@@ -91,7 +97,8 @@ ToolMenuActions::ToolMenuActions(ScenarioApplicationPlugin* parent)
   m_playtool = makeToolbarAction(
       tr("Play"), m_scenarioToolActionGroup, Scenario::Tool::Play, tr("P"));
   setIcons(
-      m_playtool, QStringLiteral(":/icons/play_on.png"),
+      m_playtool,
+      QStringLiteral(":/icons/play_on.png"),
       QStringLiteral(":/icons/play_off.png"),
       QStringLiteral(":/icons/play_disabled.png"));
 
@@ -102,10 +109,13 @@ ToolMenuActions::ToolMenuActions(ScenarioApplicationPlugin* parent)
 
   // MOVESLOT
   auto slotmovetool = makeToolbarAction(
-      tr("Move Slot"), m_scenarioToolActionGroup, Scenario::Tool::MoveSlot,
+      tr("Move Slot"),
+      m_scenarioToolActionGroup,
+      Scenario::Tool::MoveSlot,
       tr("Alt+b"));
   setIcons(
-      slotmovetool, QStringLiteral(":/icons/move_on.png"),
+      slotmovetool,
+      QStringLiteral(":/icons/move_on.png"),
       QStringLiteral(":/icons/move_off.png"),
       QStringLiteral(":/icons/move_disabled.png"));
   connect(slotmovetool, &QAction::triggered, this, [=]() {
@@ -116,7 +126,8 @@ ToolMenuActions::ToolMenuActions(ScenarioApplicationPlugin* parent)
   m_shiftAction = makeToolbarAction(
       tr("Sequence"), this, ExpandMode::CannotExpand, tr(""));
   setIcons(
-      m_shiftAction, QStringLiteral(":/icons/sequence_on.png"),
+      m_shiftAction,
+      QStringLiteral(":/icons/sequence_on.png"),
       QStringLiteral(":/icons/sequence_off.png"),
       QStringLiteral(":/icons/sequence_disabled.png"));
 
@@ -128,7 +139,8 @@ ToolMenuActions::ToolMenuActions(ScenarioApplicationPlugin* parent)
   m_altAction = makeToolbarAction(
       tr("Lock"), this, ExpandMode::CannotExpand, tr("Alt"));
   setIcons(
-      m_altAction, QStringLiteral(":/icons/clip_duration_on.png"),
+      m_altAction,
+      QStringLiteral(":/icons/clip_duration_on.png"),
       QStringLiteral(":/icons/clip_duration_off.png"),
       QStringLiteral(":/icons/clip_duration_disabled.png"));
 
@@ -143,12 +155,15 @@ ToolMenuActions::ToolMenuActions(ScenarioApplicationPlugin* parent)
   m_scenarioScaleModeActionGroup = new QActionGroup{this};
 
   m_scale = makeToolbarAction(
-      tr("Scale"), m_scenarioScaleModeActionGroup, ExpandMode::Scale,
+      tr("Scale"),
+      m_scenarioScaleModeActionGroup,
+      ExpandMode::Scale,
       tr("Alt+S"));
   m_scale->setChecked(true);
 
   setIcons(
-      m_scale, QStringLiteral(":/icons/scale_on.png"),
+      m_scale,
+      QStringLiteral(":/icons/scale_on.png"),
       QStringLiteral(":/icons/scale_off.png"),
       QStringLiteral(":/icons/scale_disabled.png"));
 
@@ -157,10 +172,13 @@ ToolMenuActions::ToolMenuActions(ScenarioApplicationPlugin* parent)
   });
 
   m_grow = makeToolbarAction(
-      tr("Grow/Shrink"), m_scenarioScaleModeActionGroup,
-      ExpandMode::GrowShrink, tr("Alt+D"));
+      tr("Grow/Shrink"),
+      m_scenarioScaleModeActionGroup,
+      ExpandMode::GrowShrink,
+      tr("Alt+D"));
   setIcons(
-      m_grow, QStringLiteral(":/icons/grow_shrink_on.png"),
+      m_grow,
+      QStringLiteral(":/icons/grow_shrink_on.png"),
       QStringLiteral(":/icons/grow_shrink_off.png"),
       QStringLiteral(":/icons/grow_shrink_disabled.png"));
 
@@ -181,14 +199,20 @@ ToolMenuActions::ToolMenuActions(ScenarioApplicationPlugin* parent)
   */
 
   connect(
-      parent, &ScenarioApplicationPlugin::keyPressed, this,
+      parent,
+      &ScenarioApplicationPlugin::keyPressed,
+      this,
       &ToolMenuActions::keyPressed);
 
   connect(
-      parent, &ScenarioApplicationPlugin::keyReleased, this,
+      parent,
+      &ScenarioApplicationPlugin::keyReleased,
+      this,
       &ToolMenuActions::keyReleased);
 
-  con(parent->editionSettings(), &Scenario::EditionSettings::toolChanged, this,
+  con(parent->editionSettings(),
+      &Scenario::EditionSettings::toolChanged,
+      this,
       [=](Scenario::Tool t) {
         switch (t)
         {
@@ -221,8 +245,10 @@ ToolMenuActions::ToolMenuActions(ScenarioApplicationPlugin* parent)
         }
       });
 
-  con(parent->editionSettings(), &Scenario::EditionSettings::sequenceChanged,
-      this, [=](bool sequence) {
+  con(parent->editionSettings(),
+      &Scenario::EditionSettings::sequenceChanged,
+      this,
+      [=](bool sequence) {
         if (sequence)
         {
           if (!m_shiftAction->isChecked())
@@ -235,8 +261,10 @@ ToolMenuActions::ToolMenuActions(ScenarioApplicationPlugin* parent)
         }
       });
 
-  con(parent->editionSettings(), &Scenario::EditionSettings::lockModeChanged,
-      this, [=](LockMode lm) {
+  con(parent->editionSettings(),
+      &Scenario::EditionSettings::lockModeChanged,
+      this,
+      [=](LockMode lm) {
         if (lm)
         {
           if (!m_altAction->isChecked())
@@ -249,8 +277,10 @@ ToolMenuActions::ToolMenuActions(ScenarioApplicationPlugin* parent)
         }
       });
 
-  con(parent->editionSettings(), &Scenario::EditionSettings::expandModeChanged,
-      this, [=](ExpandMode mode) {
+  con(parent->editionSettings(),
+      &Scenario::EditionSettings::expandModeChanged,
+      this,
+      [=](ExpandMode mode) {
         switch (mode)
         {
           case ExpandMode::Scale:

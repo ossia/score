@@ -70,7 +70,8 @@ public:
   void
   removePointBehaviourChanged(Curve::RemovePointBehaviour removePointBehaviour)
       E_SIGNAL(
-          SCORE_PLUGIN_CURVE_EXPORT, removePointBehaviourChanged,
+          SCORE_PLUGIN_CURVE_EXPORT,
+          removePointBehaviourChanged,
           removePointBehaviour);
   void toolChanged(Curve::Tool tool)
       E_SIGNAL(SCORE_PLUGIN_CURVE_EXPORT, toolChanged, tool);
@@ -88,16 +89,19 @@ public:
           NOTIFY addPointBehaviourChanged)
 
   W_PROPERTY(
-      bool, stretchBothBounds READ stretchBothBounds WRITE setStretchBothBounds
-                NOTIFY stretchBothBoundsChanged)
+      bool,
+      stretchBothBounds READ stretchBothBounds WRITE setStretchBothBounds
+          NOTIFY stretchBothBoundsChanged)
 
   W_PROPERTY(
-      bool, suppressOnOverlap READ suppressOnOverlap WRITE setSuppressOnOverlap
-                NOTIFY suppressOnOverlapChanged)
+      bool,
+      suppressOnOverlap READ suppressOnOverlap WRITE setSuppressOnOverlap
+          NOTIFY suppressOnOverlapChanged)
 
   W_PROPERTY(
-      bool, lockBetweenPoints READ lockBetweenPoints WRITE setLockBetweenPoints
-                NOTIFY lockBetweenPointsChanged)
+      bool,
+      lockBetweenPoints READ lockBetweenPoints WRITE setLockBetweenPoints
+          NOTIFY lockBetweenPointsChanged)
 };
 }
 

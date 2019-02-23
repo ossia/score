@@ -26,20 +26,11 @@ public:
   {
     return QGraphicsItem::UserType + ItemType::IntervalHeader;
   }
-  int type() const override
-  {
-    return static_type();
-  }
+  int type() const override { return static_type(); }
 
-  void setIntervalView(IntervalView* view)
-  {
-    m_view = view;
-  }
+  void setIntervalView(IntervalView* view) { m_view = view; }
 
-  static constexpr double headerHeight()
-  {
-    return IntervalHeaderHeight;
-  }
+  static constexpr double headerHeight() { return IntervalHeaderHeight; }
 
   void setWidth(double width);
   void setText(const QString& text);
@@ -64,9 +55,7 @@ protected:
   void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) final override;
 
 protected:
-  virtual void on_textChange()
-  {
-  }
+  virtual void on_textChange() {}
   IntervalView* m_view{};
   State m_state{};
   double m_width{};

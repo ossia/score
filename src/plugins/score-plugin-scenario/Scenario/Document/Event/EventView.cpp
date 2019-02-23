@@ -40,7 +40,9 @@ EventView::EventView(EventPresenter& presenter, QGraphicsItem* parent)
   m_conditionItem.setPos(-13.5, -13.5);
 
   connect(
-      &m_conditionItem, &ConditionView::pressed, &m_presenter,
+      &m_conditionItem,
+      &ConditionView::pressed,
+      &m_presenter,
       &EventPresenter::pressed);
 
   this->setParentItem(parent);
@@ -50,9 +52,7 @@ EventView::EventView(EventPresenter& presenter, QGraphicsItem* parent)
   this->setAcceptHoverEvents(true);
 }
 
-EventView::~EventView()
-{
-}
+EventView::~EventView() {}
 
 void EventView::setCondition(const QString& cond)
 {
@@ -69,7 +69,9 @@ bool EventView::hasCondition() const
 }
 
 void EventView::paint(
-    QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+    QPainter* painter,
+    const QStyleOptionGraphicsItem* option,
+    QWidget* widget)
 {
   auto& skin = Process::Style::instance();
   painter->setRenderHint(QPainter::Antialiasing, false);

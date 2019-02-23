@@ -15,7 +15,8 @@
 namespace Scenario
 {
 IntervalSummaryWidget::IntervalSummaryWidget(
-    const IntervalModel& object, const score::DocumentContext& doc,
+    const IntervalModel& object,
+    const score::DocumentContext& doc,
     QWidget* parent)
     : QWidget(parent)
     , interval{object}
@@ -64,7 +65,5 @@ IntervalSummaryWidget::IntervalSummaryWidget(
   this->setLayout(&m_lay);
 }
 
-IntervalSummaryWidget::~IntervalSummaryWidget()
-{
-}
+IntervalSummaryWidget::~IntervalSummaryWidget() {}
 }

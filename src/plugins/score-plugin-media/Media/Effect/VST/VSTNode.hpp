@@ -21,14 +21,18 @@ private:
   time_signature m_sig{4, 4};
 
   void dispatch(
-      int32_t opcode, int32_t index = 0, intptr_t value = 0,
-      void* ptr = nullptr, float opt = 0.0f)
+      int32_t opcode,
+      int32_t index = 0,
+      intptr_t value = 0,
+      void* ptr = nullptr,
+      float opt = 0.0f)
   {
     fx->dispatch(opcode, index, value, ptr, opt);
   }
 
 public:
-  struct vst_control {
+  struct vst_control
+  {
     int idx{};
     float value{};
     ossia::value_port* port{};
@@ -52,9 +56,11 @@ public:
     m_outlets.push_back(ossia::make_outlet<ossia::audio_port>());
 
     dispatch(effSetSampleRate, 0, sampleRate, nullptr, sampleRate);
-    dispatch(effSetBlockSize, 0, 4096, nullptr, 4096); // Generalize what's in pd
     dispatch(
-        effSetProcessPrecision, 0,
+        effSetBlockSize, 0, 4096, nullptr, 4096); // Generalize what's in pd
+    dispatch(
+        effSetProcessPrecision,
+        0,
         UseDouble ? kVstProcessPrecision64 : kVstProcessPrecision32);
     dispatch(effMainsChanged, 0, 1);
     dispatch(effStartProcess);
@@ -69,10 +75,7 @@ public:
     dispatch(effMainsChanged, 0, 0);
   }
 
-  std::string label() const noexcept override
-  {
-    return "VST";
-  }
+  std::string label() const noexcept override { return "VST"; }
 
   void all_notes_off() noexcept override
   {

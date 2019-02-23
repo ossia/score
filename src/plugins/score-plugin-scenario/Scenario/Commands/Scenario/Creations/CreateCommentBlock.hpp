@@ -17,11 +17,13 @@ namespace Command
 class CreateCommentBlock final : public score::Command
 {
   SCORE_COMMAND_DECL(
-      ScenarioCommandFactoryName(), CreateCommentBlock,
+      ScenarioCommandFactoryName(),
+      CreateCommentBlock,
       "Create a comment block")
 public:
   CreateCommentBlock(
-      const Scenario::ProcessModel& scenarioPath, TimeVal date,
+      const Scenario::ProcessModel& scenarioPath,
+      TimeVal date,
       double yPosition);
 
   void undo(const score::DocumentContext& ctx) const override;

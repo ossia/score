@@ -28,8 +28,7 @@ void TextItem::focusOutEvent(QFocusEvent* event)
 }
 
 SimpleTextItem::SimpleTextItem(const score::ColorRef& col, QGraphicsItem* p)
-  : QGraphicsItem{p}
-  , m_color{col}
+    : QGraphicsItem{p}, m_color{col}
 {
 }
 
@@ -39,7 +38,9 @@ QRectF SimpleTextItem::boundingRect() const
 }
 
 void SimpleTextItem::paint(
-    QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+    QPainter* painter,
+    const QStyleOptionGraphicsItem* option,
+    QWidget* widget)
 {
   if (!m_string.isEmpty())
   {
@@ -97,7 +98,8 @@ void SimpleTextItem::updateImpl()
       if (auto v = getView(*this))
         ratio = v->devicePixelRatioF();
       m_line = QImage(
-          m_rect.width() * ratio, m_rect.height() * ratio,
+          m_rect.width() * ratio,
+          m_rect.height() * ratio,
           QImage::Format_ARGB32_Premultiplied);
       m_line.setDevicePixelRatio(ratio);
       m_line.fill(Qt::transparent);
@@ -116,11 +118,10 @@ void SimpleTextItem::updateImpl()
 }
 
 QGraphicsTextButton::QGraphicsTextButton(QString text, QGraphicsItem* parent)
-  : SimpleTextItem{score::ColorRef(&score::Skin::instance().Base1), parent}
+    : SimpleTextItem{score::ColorRef(&score::Skin::instance().Base1), parent}
 {
   setText(std::move(text));
 }
-
 
 void QGraphicsTextButton::mousePressEvent(QGraphicsSceneMouseEvent* event)
 {
@@ -128,12 +129,10 @@ void QGraphicsTextButton::mousePressEvent(QGraphicsSceneMouseEvent* event)
   event->accept();
 }
 
-
 void QGraphicsTextButton::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 {
   event->accept();
 }
-
 
 void QGraphicsTextButton::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 {

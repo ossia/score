@@ -58,12 +58,16 @@ MessageTreeView::MessageTreeView(const StateModel& model, QWidget* parent)
   m_removeNodesAction->setShortcutContext(Qt::WidgetWithChildrenShortcut);
   m_removeNodesAction->setEnabled(true);
   connect(
-      m_removeNodesAction, &QAction::triggered, this,
+      m_removeNodesAction,
+      &QAction::triggered,
+      this,
       &MessageTreeView::removeNodes);
   addAction(m_removeNodesAction);
 
   expandAll();
-  con(m_model.messages(), &MessageItemModel::modelReset, this,
+  con(m_model.messages(),
+      &MessageItemModel::modelReset,
+      this,
       &QTreeView::expandAll);
 
   header()->resizeSection(

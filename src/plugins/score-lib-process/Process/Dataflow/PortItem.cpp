@@ -23,12 +23,15 @@ W_OBJECT_IMPL(Dataflow::PortItem)
 namespace Dataflow
 {
 void onCreateCable(
-    const score::DocumentContext& ctx, Dataflow::PortItem* p1,
+    const score::DocumentContext& ctx,
+    Dataflow::PortItem* p1,
     Dataflow::PortItem* p2);
 
 PortItem* PortItem::clickedPort;
 PortItem::PortItem(
-    Process::Port& p, const score::DocumentContext& ctx, QGraphicsItem* parent)
+    Process::Port& p,
+    const score::DocumentContext& ctx,
+    QGraphicsItem* parent)
     : QGraphicsItem{parent}, m_context{ctx}, m_port{p}
 {
   this->setCursor(QCursor());
@@ -56,7 +59,9 @@ PortItem::PortItem(
   }
 
   QObject::connect(
-      this, &Dataflow::PortItem::contextMenuRequested, this,
+      this,
+      &Dataflow::PortItem::contextMenuRequested,
+      this,
       [&](QPointF sp, QPoint p) {
         auto menu = new QMenu{};
         setupMenu(*menu, ctx);
@@ -84,9 +89,7 @@ PortItem::~PortItem()
     p.erase(it);
 }
 
-void PortItem::setupMenu(QMenu&, const score::DocumentContext& ctx)
-{
-}
+void PortItem::setupMenu(QMenu&, const score::DocumentContext& ctx) {}
 
 void PortItem::setPortVisible(bool b)
 {
@@ -106,19 +109,21 @@ QRectF PortItem::boundingRect() const
 }
 
 void PortItem::paint(
-    QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+    QPainter* painter,
+    const QStyleOptionGraphicsItem* option,
+    QWidget* widget)
 {
   static const qreal smallRadius = 3.;
   static const qreal largeRadius = 4.;
-  static const QRectF smallEllipse{-smallRadius, -smallRadius,
-                                   2. * smallRadius, 2. * smallRadius};
+  static const QRectF smallEllipse{
+      -smallRadius, -smallRadius, 2. * smallRadius, 2. * smallRadius};
   static const QPolygonF smallEllipsePath{[] {
     QPainterPath p;
     p.addEllipse(smallEllipse);
     return p.simplified().toFillPolygon();
   }()};
-  static const QRectF largeEllipse{-largeRadius, -largeRadius,
-                                   2. * largeRadius, 2. * largeRadius};
+  static const QRectF largeEllipse{
+      -largeRadius, -largeRadius, 2. * largeRadius, 2. * largeRadius};
   static const QPolygonF largeEllipsePath{[] {
     QPainterPath p;
     p.addEllipse(largeEllipse);
@@ -240,7 +245,8 @@ void PortItem::dragLeaveEvent(QGraphicsSceneDragDropEvent* event)
 }
 
 QVariant PortItem::itemChange(
-    QGraphicsItem::GraphicsItemChange change, const QVariant& value)
+    QGraphicsItem::GraphicsItemChange change,
+    const QVariant& value)
 {
   switch (change)
   {

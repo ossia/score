@@ -21,13 +21,16 @@
 namespace Scenario
 {
 void ScenarioCreate<CommentBlockModel>::undo(
-    const Id<CommentBlockModel>& id, Scenario::ProcessModel& s)
+    const Id<CommentBlockModel>& id,
+    Scenario::ProcessModel& s)
 {
   s.comments.remove(id);
 }
 
 CommentBlockModel& ScenarioCreate<CommentBlockModel>::redo(
-    const Id<CommentBlockModel>& id, const TimeVal& date, double y,
+    const Id<CommentBlockModel>& id,
+    const TimeVal& date,
+    double y,
     Scenario::ProcessModel& s)
 {
   auto comment = new CommentBlockModel{id, date, y, &s};
@@ -37,14 +40,17 @@ CommentBlockModel& ScenarioCreate<CommentBlockModel>::redo(
 }
 
 void ScenarioCreate<TimeSyncModel>::undo(
-    const Id<TimeSyncModel>& id, Scenario::ProcessModel& s)
+    const Id<TimeSyncModel>& id,
+    Scenario::ProcessModel& s)
 {
   s.timeSyncs.remove(id);
 }
 
 TimeSyncModel& ScenarioCreate<TimeSyncModel>::redo(
-    const Id<TimeSyncModel>& id, const VerticalExtent& extent,
-    const TimeVal& date, Scenario::ProcessModel& s)
+    const Id<TimeSyncModel>& id,
+    const VerticalExtent& extent,
+    const TimeVal& date,
+    Scenario::ProcessModel& s)
 {
   auto timeSync = new TimeSyncModel{id, extent, date, &s};
   s.timeSyncs.add(timeSync);
@@ -53,7 +59,8 @@ TimeSyncModel& ScenarioCreate<TimeSyncModel>::redo(
 }
 
 void ScenarioCreate<EventModel>::undo(
-    const Id<EventModel>& id, Scenario::ProcessModel& s)
+    const Id<EventModel>& id,
+    Scenario::ProcessModel& s)
 {
   auto& ev = s.event(id);
   s.timeSync(ev.timeSync()).removeEvent(id);
@@ -61,8 +68,10 @@ void ScenarioCreate<EventModel>::undo(
 }
 
 EventModel& ScenarioCreate<EventModel>::redo(
-    const Id<EventModel>& id, TimeSyncModel& timesync,
-    const VerticalExtent& extent, Scenario::ProcessModel& s)
+    const Id<EventModel>& id,
+    TimeSyncModel& timesync,
+    const VerticalExtent& extent,
+    Scenario::ProcessModel& s)
 {
   auto ev = new EventModel{id, timesync.id(), extent, timesync.date(), &s};
 
@@ -73,7 +82,8 @@ EventModel& ScenarioCreate<EventModel>::redo(
 }
 
 void ScenarioCreate<StateModel>::undo(
-    const Id<StateModel>& id, Scenario::ProcessModel& s)
+    const Id<StateModel>& id,
+    Scenario::ProcessModel& s)
 {
   auto& state = s.state(id);
   auto& ev = s.event(state.eventId());
@@ -84,7 +94,9 @@ void ScenarioCreate<StateModel>::undo(
 }
 
 StateModel& ScenarioCreate<StateModel>::redo(
-    const Id<StateModel>& id, EventModel& ev, double y,
+    const Id<StateModel>& id,
+    EventModel& ev,
+    double y,
     Scenario::ProcessModel& s)
 {
   auto state = new StateModel{id, ev.id(), y, &s};
@@ -96,7 +108,8 @@ StateModel& ScenarioCreate<StateModel>::redo(
 }
 
 void ScenarioCreate<IntervalModel>::undo(
-    const Id<IntervalModel>& id, Scenario::ProcessModel& s)
+    const Id<IntervalModel>& id,
+    Scenario::ProcessModel& s)
 {
   auto& cst = s.intervals.at(id);
 
@@ -107,7 +120,10 @@ void ScenarioCreate<IntervalModel>::undo(
 }
 
 IntervalModel& ScenarioCreate<IntervalModel>::redo(
-    const Id<IntervalModel>& id, StateModel& sst, StateModel& est, double ypos,
+    const Id<IntervalModel>& id,
+    StateModel& sst,
+    StateModel& est,
+    double ypos,
     Scenario::ProcessModel& s)
 {
   auto interval = new IntervalModel{id, ypos, &s};

@@ -16,13 +16,12 @@
 W_OBJECT_IMPL(Process::LayerView)
 namespace Process
 {
-HeaderDelegate::~HeaderDelegate()
-{
-}
+HeaderDelegate::~HeaderDelegate() {}
 
 LayerView::~LayerView()
 {
-  for (auto item : childItems())
+  const auto& items = childItems();
+  for (auto item : items)
   {
     if (item->type() == Dataflow::CableItem::static_type())
     {
@@ -30,12 +29,8 @@ LayerView::~LayerView()
     }
   }
 }
-void LayerView::heightChanged(qreal)
-{
-}
-void LayerView::widthChanged(qreal)
-{
-}
+void LayerView::heightChanged(qreal) {}
+void LayerView::widthChanged(qreal) {}
 
 MiniLayer::~MiniLayer() = default;
 
@@ -64,7 +59,9 @@ QRectF LayerView::boundingRect() const
 }
 
 void LayerView::paint(
-    QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+    QPainter* painter,
+    const QStyleOptionGraphicsItem* option,
+    QWidget* widget)
 {
   paint_impl(painter);
 #if defined(SCORE_SCENARIO_DEBUG_RECTS)
@@ -114,7 +111,8 @@ QPixmap LayerView::pixmap() noexcept
   painter.setRenderHint(QPainter::TextAntialiasing, true);
   painter.translate(-rect.topLeft());
   paint(&painter, &item, nullptr);
-  for (QGraphicsItem* child : childItems())
+  const auto& items = childItems();
+  for (QGraphicsItem* child : items)
   {
     painter.save();
     painter.translate(child->mapToParent(pos()));
@@ -148,7 +146,9 @@ QRectF MiniLayer::boundingRect() const
 }
 
 void MiniLayer::paint(
-    QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+    QPainter* painter,
+    const QStyleOptionGraphicsItem* option,
+    QWidget* widget)
 {
   paint_impl(painter);
 }

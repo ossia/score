@@ -16,7 +16,8 @@ public:
 };
 
 AddProcessDialog::AddProcessDialog(
-    const Process::ProcessFactoryList& plist, Process::ProcessFlags acceptable,
+    const Process::ProcessFactoryList& plist,
+    Process::ProcessFlags acceptable,
     QWidget* parent)
     : QDialog{parent}, m_factoryList{plist}, m_flags{acceptable}
 {
@@ -34,7 +35,9 @@ AddProcessDialog::AddProcessDialog(
   lay->addWidget(buttonBox);
 
   connect(
-      m_categories, &QListWidget::currentTextChanged, this,
+      m_categories,
+      &QListWidget::currentTextChanged,
+      this,
       &AddProcessDialog::updateProcesses);
 
   auto accept_item = [&](auto item) {
@@ -70,9 +73,7 @@ AddProcessDialog::AddProcessDialog(
   hide();
 }
 
-AddProcessDialog::~AddProcessDialog()
-{
-}
+AddProcessDialog::~AddProcessDialog() {}
 
 void AddProcessDialog::launchWindow()
 {

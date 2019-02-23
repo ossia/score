@@ -21,7 +21,8 @@ class Model final : public Process::ProcessModel
 
 public:
   explicit Model(
-      const TimeVal& duration, const Id<Process::ProcessModel>& id,
+      const TimeVal& duration,
+      const Id<Process::ProcessModel>& id,
       QObject* parent);
 
   ~Model() override;
@@ -46,7 +47,8 @@ private:
   quint64 m_inCount{};
 
   W_PROPERTY(
-      quint64, inCount READ inCount WRITE setInCount NOTIFY inCountChanged)
+      quint64,
+      inCount READ inCount WRITE setInCount NOTIFY inCountChanged)
 };
 }
 }

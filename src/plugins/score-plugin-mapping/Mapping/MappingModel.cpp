@@ -20,9 +20,11 @@ W_OBJECT_IMPL(Mapping::ProcessModel)
 namespace Mapping
 {
 ProcessModel::ProcessModel(
-    const TimeVal& duration, const Id<Process::ProcessModel>& id,
+    const TimeVal& duration,
+    const Id<Process::ProcessModel>& id,
     QObject* parent)
-    : Curve::CurveProcessModel{duration, id,
+    : Curve::CurveProcessModel{duration,
+                               id,
                                Metadata<ObjectKey_k, ProcessModel>::get(),
                                parent}
     , inlet{Process::make_inlet(Id<Process::Port>(0), this)}
@@ -63,9 +65,7 @@ ProcessModel::ProcessModel(DataStream::Deserializer& vis, QObject* parent)
   init();
 }
 
-ProcessModel::~ProcessModel()
-{
-}
+ProcessModel::~ProcessModel() {}
 
 void ProcessModel::init()
 {
@@ -75,14 +75,18 @@ void ProcessModel::init()
   m_outlets.push_back(outlet.get());
 
   connect(
-      inlet.get(), &Process::Port::addressChanged, this,
+      inlet.get(),
+      &Process::Port::addressChanged,
+      this,
       [=](const State::AddressAccessor& arg) {
         sourceAddressChanged(arg);
         prettyNameChanged();
         m_curve->changed();
       });
   connect(
-      outlet.get(), &Process::Port::addressChanged, this,
+      outlet.get(),
+      &Process::Port::addressChanged,
+      this,
       [=](const State::AddressAccessor& arg) {
         targetAddressChanged(arg);
         prettyNameChanged();
@@ -101,10 +105,11 @@ QString ProcessModel::prettyName() const noexcept
 
 QString ProcessModel::prettyValue(double x, double y) const noexcept
 {
-  return
-      QString::number((x * (sourceMax() - sourceMin()) - sourceMin()), 'f', 3) +
-      " -> " +
-      QString::number((y * (targetMax() - targetMin()) - targetMin()), 'f', 3);
+  return QString::number(
+             (x * (sourceMax() - sourceMin()) - sourceMin()), 'f', 3)
+         + " -> "
+         + QString::number(
+               (y * (targetMax() - targetMin()) - targetMin()), 'f', 3);
 }
 
 void ProcessModel::setDurationAndScale(const TimeVal& newDuration) noexcept

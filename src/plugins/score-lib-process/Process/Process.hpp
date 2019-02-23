@@ -54,7 +54,9 @@ class SCORE_LIB_PROCESS_EXPORT ProcessModel
 public:
   Selectable selection;
   ProcessModel(
-      TimeVal duration, const Id<ProcessModel>& id, const QString& name,
+      TimeVal duration,
+      const Id<ProcessModel>& id,
+      const QString& name,
       QObject* parent);
 
   ProcessModel(DataStream::Deserializer& vis, QObject* parent);
@@ -96,14 +98,8 @@ public:
   double getSlotHeight() const noexcept;
   void setSlotHeight(double) noexcept;
 
-  const Process::Inlets& inlets() const noexcept
-  {
-    return m_inlets;
-  }
-  const Process::Outlets& outlets() const noexcept
-  {
-    return m_outlets;
-  }
+  const Process::Inlets& inlets() const noexcept { return m_inlets; }
+  const Process::Outlets& outlets() const noexcept { return m_outlets; }
 
   Process::Inlet* inlet(const Id<Process::Port>&) const noexcept;
   Process::Outlet* outlet(const Id<Process::Port>&) const noexcept;
@@ -138,7 +134,6 @@ public:
       E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, externalUIVisible, v);
 
 protected:
-
   // Used to scale the process.
   // This should be commutative :
   //   setDurationWithScale(2); setDurationWithScale(3);

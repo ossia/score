@@ -59,4 +59,3 @@ bool HTTPDevice::reconnect()
   return connected();
 }
 }
-

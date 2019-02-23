@@ -2,16 +2,18 @@
 
 #include <Media/Sound/SoundModel.hpp>
 #include <Process/TimeValueSerialization.hpp>
+#include <Scenario/Commands/Interval/ResizeInterval.hpp>
 #include <Scenario/Commands/Scenario/Displacement/MoveEventMeta.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Process/ScenarioInterface.hpp>
-#include <Scenario/Commands/Interval/ResizeInterval.hpp>
-#include <score/model/path/PathSerialization.hpp>
+
 #include <score/document/DocumentContext.hpp>
+#include <score/model/path/PathSerialization.hpp>
 namespace Media
 {
 ChangeAudioFile::ChangeAudioFile(
-    const Sound::ProcessModel& model, const QString& text)
+    const Sound::ProcessModel& model,
+    const QString& text)
     : m_model{model}, m_new{text}
 {
   m_old = model.file()->path();
@@ -27,7 +29,8 @@ void ChangeAudioFile::undo(const score::DocumentContext& ctx) const
   snd.setFile(m_old);
   if (auto itv = qobject_cast<Scenario::IntervalModel*>(snd.parent()))
   {
-    if(auto fact = ctx.app.interfaces<Scenario::IntervalResizerList>().find(*itv))
+    if (auto fact
+        = ctx.app.interfaces<Scenario::IntervalResizerList>().find(*itv))
     {
       auto cmd = fact->make(*itv, m_olddur);
       cmd->redo(ctx);
@@ -46,9 +49,13 @@ void ChangeAudioFile::redo(const score::DocumentContext& ctx) const
 
     if (info.length != 0)
     {
-      if(auto fact = ctx.app.interfaces<Scenario::IntervalResizerList>().find(*itv))
+      if (auto fact
+          = ctx.app.interfaces<Scenario::IntervalResizerList>().find(*itv))
       {
-        auto cmd = fact->make(*itv, TimeVal::fromMsecs(1000. * double(info.length) / double(info.rate)));
+        auto cmd = fact->make(
+            *itv,
+            TimeVal::fromMsecs(
+                1000. * double(info.length) / double(info.rate)));
         cmd->redo(ctx);
         delete cmd;
       }

@@ -20,8 +20,10 @@ W_OBJECT_IMPL(Scenario::TimeSyncModel)
 namespace Scenario
 {
 TimeSyncModel::TimeSyncModel(
-    const Id<TimeSyncModel>& id, const VerticalExtent& extent,
-    const TimeVal& date, QObject* parent)
+    const Id<TimeSyncModel>& id,
+    const VerticalExtent& extent,
+    const TimeVal& date,
+    QObject* parent)
     : Entity{id, Metadata<ObjectKey_k, TimeSyncModel>::get(), parent}
     , m_date{date}
     , m_extent{extent}

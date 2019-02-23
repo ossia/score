@@ -16,7 +16,8 @@ QString JoystickProtocolFactory::prettyName() const
 }
 
 Device::DeviceInterface* JoystickProtocolFactory::makeDevice(
-    const Device::DeviceSettings& settings, const score::DocumentContext& ctx)
+    const Device::DeviceSettings& settings,
+    const score::DocumentContext& ctx)
 {
   return new JoystickDevice{settings};
 }
@@ -47,13 +48,15 @@ QVariant JoystickProtocolFactory::makeProtocolSpecificSettings(
 }
 
 void JoystickProtocolFactory::serializeProtocolSpecificSettings(
-    const QVariant& data, const VisitorVariant& visitor) const
+    const QVariant& data,
+    const VisitorVariant& visitor) const
 {
   serializeProtocolSpecificSettings_T<JoystickSpecificSettings>(data, visitor);
 }
 
 bool JoystickProtocolFactory::checkCompatibility(
-    const Device::DeviceSettings& a, const Device::DeviceSettings& b) const
+    const Device::DeviceSettings& a,
+    const Device::DeviceSettings& b) const
 {
   auto a_ = a.deviceSpecificSettings.value<JoystickSpecificSettings>();
   auto b_ = b.deviceSpecificSettings.value<JoystickSpecificSettings>();

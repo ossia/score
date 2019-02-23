@@ -18,7 +18,11 @@ using GraphVertex = Scenario::TimeSyncModel*;
 using GraphEdge = Scenario::IntervalModel*;
 
 using Graph = boost::adjacency_list<
-    boost::vecS, boost::vecS, boost::directedS, GraphVertex, GraphEdge>;
+    boost::vecS,
+    boost::vecS,
+    boost::directedS,
+    GraphVertex,
+    GraphEdge>;
 
 /**
  * @brief A directed graph of all the TimeSync%s in a ScenarioInterface.
@@ -51,18 +55,9 @@ struct SCORE_PLUGIN_SCENARIO_EXPORT TimenodeGraph
 {
   TimenodeGraph(const Scenario::ProcessModel& scenar);
 
-  const Graph& graph() const
-  {
-    return m_graph;
-  }
-  const auto& edges() const
-  {
-    return m_edges;
-  }
-  const auto& vertices() const
-  {
-    return m_vertices;
-  }
+  const Graph& graph() const { return m_graph; }
+  const auto& edges() const { return m_edges; }
+  const auto& vertices() const { return m_vertices; }
 
   //! Writes graphviz output on stdout
   void writeGraphviz();

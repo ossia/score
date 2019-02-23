@@ -14,7 +14,8 @@
 namespace Curve
 {
 UpdateCurve::UpdateCurve(
-    const Model& model, std::vector<SegmentData>&& segments)
+    const Model& model,
+    std::vector<SegmentData>&& segments)
     : m_model{std::move(model)}
     , m_oldCurveData{model.toCurveData()}
     , m_newCurveData{std::move(segments)}

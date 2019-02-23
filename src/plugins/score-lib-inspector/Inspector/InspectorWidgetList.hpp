@@ -1,8 +1,8 @@
 #pragma once
 #include <Inspector/InspectorWidgetFactoryInterface.hpp>
 
-#include <score/plugins/InterfaceList.hpp>
 #include <score/plugins/Interface.hpp>
+#include <score/plugins/InterfaceList.hpp>
 #include <score/tools/std/OwningVector.hpp>
 #include <score/tools/std/Pointer.hpp>
 

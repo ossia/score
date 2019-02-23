@@ -18,7 +18,8 @@
 namespace Automation
 {
 StateInspectorWidget::StateInspectorWidget(
-    const ProcessState& object, const score::DocumentContext& doc,
+    const ProcessState& object,
+    const score::DocumentContext& doc,
     QWidget* parent)
     : InspectorWidgetBase{object, doc, parent, tr("State")}
     , m_state{object}
@@ -27,7 +28,9 @@ StateInspectorWidget::StateInspectorWidget(
   std::vector<QWidget*> vec;
   vec.push_back(m_label);
 
-  con(m_state, &ProcessStateDataInterface::stateChanged, this,
+  con(m_state,
+      &ProcessStateDataInterface::stateChanged,
+      this,
       &StateInspectorWidget::on_stateChanged);
 
   on_stateChanged();

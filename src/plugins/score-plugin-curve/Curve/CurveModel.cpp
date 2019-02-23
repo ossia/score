@@ -100,8 +100,9 @@ void Model::addSegment(SegmentModel* m)
   if (m->previous())
   {
     auto previousSegment = std::find_if(
-        m_segments.begin(), m_segments.end(),
-        [&](const auto& seg) { return seg.following() == m->id(); });
+        m_segments.begin(), m_segments.end(), [&](const auto& seg) {
+          return seg.following() == m->id();
+        });
     if (previousSegment != m_segments.end())
     {
       auto thePt = std::find_if(
@@ -136,8 +137,9 @@ void Model::addSegment(SegmentModel* m)
   if (m->following())
   {
     auto followingSegment = std::find_if(
-        m_segments.begin(), m_segments.end(),
-        [&](const auto& seg) { return seg.previous() == m->id(); });
+        m_segments.begin(), m_segments.end(), [&](const auto& seg) {
+          return seg.previous() == m->id();
+        });
     if (followingSegment != m_segments.end())
     {
       auto thePt = std::find_if(

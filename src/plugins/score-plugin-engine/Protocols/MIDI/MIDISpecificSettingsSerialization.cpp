@@ -39,7 +39,7 @@ void JSONObjectWriter::write(Protocols::MIDISpecificSettings& n)
   fromJsonValue(obj["IO"], n.io);
   n.endpoint = obj["Endpoint"].toString();
   n.port = obj["Port"].toInt();
-  if(obj.contains("CreateWholeTree"))
+  if (obj.contains("CreateWholeTree"))
     n.createWholeTree = obj["CreateWholeTree"].toBool();
   else
     n.createWholeTree = true;

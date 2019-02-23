@@ -29,7 +29,9 @@ public:
       : QAbstractItemModel{parent}, m_buffer{}
   {
     m_updateScheduler.setInterval(100);
-    con(m_updateScheduler, &QTimer::timeout, this,
+    con(m_updateScheduler,
+        &QTimer::timeout,
+        this,
         &LogMessagesItemModel::update);
     m_updateScheduler.start();
   }
@@ -55,10 +57,7 @@ public:
     }
   }
 
-  void push(LogMessage m)
-  {
-    m_buffer.push_back(std::move(m));
-  }
+  void push(LogMessage m) { m_buffer.push_back(std::move(m)); }
 
   void clear()
   {
@@ -73,18 +72,12 @@ public:
   {
     return createIndex(row, column, nullptr);
   }
-  QModelIndex parent(const QModelIndex& child) const override
-  {
-    return {};
-  }
+  QModelIndex parent(const QModelIndex& child) const override { return {}; }
   int rowCount(const QModelIndex& parent) const override
   {
     return m_lastCount;
   }
-  int columnCount(const QModelIndex& parent) const override
-  {
-    return 1;
-  }
+  int columnCount(const QModelIndex& parent) const override { return 1; }
 
   QVariant data(const QModelIndex& index, int role) const override
   {
@@ -110,7 +103,9 @@ public:
 static MessagesPanelDelegate* g_messagesPanel{};
 
 static void LogToMessagePanel(
-    QtMsgType type, const QMessageLogContext& context, const QString& msg)
+    QtMsgType type,
+    const QMessageLogContext& context,
+    const QString& msg)
 {
   if (!g_messagesPanel)
     return;
@@ -135,7 +130,9 @@ static void LogToMessagePanel(
       break;
     case QtCriticalMsg:
       g_messagesPanel->qtLog(fmt::format(
-          "Critical: {} ({}:{})", localMsg.constData(), filename,
+          "Critical: {} ({}:{})",
+          localMsg.constData(),
+          filename,
           context.line));
       break;
     case QtFatalMsg:
@@ -156,7 +153,9 @@ MessagesPanelDelegate::MessagesPanelDelegate(
   m_widget->setModel(m_itemModel);
   m_widget->setContextMenuPolicy(Qt::ContextMenuPolicy::CustomContextMenu);
   connect(
-      m_widget, &QListView::customContextMenuRequested, this,
+      m_widget,
+      &QListView::customContextMenuRequested,
+      this,
       [=](const QPoint& pos) {
         QMenu m{};
         auto act = m.addAction(QObject::tr("Clear"));
@@ -175,7 +174,9 @@ QWidget* MessagesPanelDelegate::widget()
 
 const score::PanelStatus& MessagesPanelDelegate::defaultPanelStatus() const
 {
-  static const score::PanelStatus status{false, Qt::BottomDockWidgetArea, 0,
+  static const score::PanelStatus status{false,
+                                         Qt::BottomDockWidgetArea,
+                                         0,
                                          QObject::tr("Messages"),
                                          QObject::tr("Ctrl+Shift+M")};
 

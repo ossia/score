@@ -52,9 +52,12 @@ W_OBJECT_IMPL(Scenario::EventInspectorWidget)
 namespace Scenario
 {
 EventInspectorWidget::EventInspectorWidget(
-    const EventModel& object, const score::DocumentContext& doc,
+    const EventModel& object,
+    const score::DocumentContext& doc,
     QWidget* parent)
-    : Inspector::InspectorWidgetBase{object, doc, parent,
+    : Inspector::InspectorWidgetBase{object,
+                                     doc,
+                                     parent,
                                      tr("Event (%1)")
                                          .arg(object.metadata().getName())}
     , m_model{&object}
@@ -69,8 +72,11 @@ EventInspectorWidget::EventInspectorWidget(
   auto scenar = dynamic_cast<ScenarioInterface*>(object.parent());
   SCORE_ASSERT(scenar);
 
-  con(object, &EventModel::statesChanged, this,
-      &EventInspectorWidget::updateDisplayedValues, Qt::QueuedConnection);
+  con(object,
+      &EventModel::statesChanged,
+      this,
+      &EventInspectorWidget::updateDisplayedValues,
+      Qt::QueuedConnection);
 
   ////// HEADER
   // metadata
@@ -88,7 +94,9 @@ EventInspectorWidget::EventInspectorWidget(
   // timeSync
   auto timeSync = object.timeSync();
   auto tnBtn = SelectionButton::make(
-      tr("Parent Sync"), &scenar->timeSync(timeSync), m_selectionDispatcher,
+      tr("Parent Sync"),
+      &scenar->timeSync(timeSync),
+      m_selectionDispatcher,
       infoWidg);
 
   infoLay->addWidget(tnBtn);
@@ -107,17 +115,25 @@ EventInspectorWidget::EventInspectorWidget(
 
     m_exprEditor = new ExpressionEditorWidget{m_context, expr_widg};
     connect(
-        m_exprEditor, &ExpressionEditorWidget::editingFinished, this,
+        m_exprEditor,
+        &ExpressionEditorWidget::editingFinished,
+        this,
         &EventInspectorWidget::on_conditionChanged);
     connect(
-        m_exprEditor, &ExpressionEditorWidget::resetExpression, this,
+        m_exprEditor,
+        &ExpressionEditorWidget::resetExpression,
+        this,
         &EventInspectorWidget::on_conditionReset);
-    con(object, &EventModel::conditionChanged, m_exprEditor,
+    con(object,
+        &EventModel::conditionChanged,
+        m_exprEditor,
         &ExpressionEditorWidget::setExpression);
 
     m_exprEditor->setMenu(m_menu.menu);
 
-    con(m_menu, &ExpressionMenu::expressionChanged, this,
+    con(m_menu,
+        &ExpressionMenu::expressionChanged,
+        this,
         [=](const QString& str) {
           if (!m_model)
             return;
@@ -136,7 +152,8 @@ EventInspectorWidget::EventInspectorWidget(
         });
 
     connect(m_menu.deleteAction, &QAction::triggered, this, [=] {
-      auto cmd = new Scenario::Command::SetCondition{*m_model, State::Expression{}};
+      auto cmd
+          = new Scenario::Command::SetCondition{*m_model, State::Expression{}};
       m_commandDispatcher.submit(cmd);
     });
     expr_lay->addWidget(m_exprEditor);
@@ -156,11 +173,15 @@ EventInspectorWidget::EventInspectorWidget(
         tr("Expression"), QVariant::fromValue(OffsetBehavior::Expression));
 
     m_offsetBehavior->setCurrentIndex((int)object.offsetBehavior());
-    con(object, &EventModel::offsetBehaviorChanged, this,
+    con(object,
+        &EventModel::offsetBehaviorChanged,
+        this,
         [=](OffsetBehavior b) { m_offsetBehavior->setCurrentIndex((int)b); });
     connect(
-        m_offsetBehavior, SignalUtils::QComboBox_currentIndexChanged_int(),
-        this, [=](int idx) {
+        m_offsetBehavior,
+        SignalUtils::QComboBox_currentIndexChanged_int(),
+        this,
+        [=](int idx) {
           if (!m_model)
             return;
           if (idx != (int)m_model->offsetBehavior())

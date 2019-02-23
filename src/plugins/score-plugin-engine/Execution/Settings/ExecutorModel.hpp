@@ -30,20 +30,14 @@ struct OrderingPolicies
   const QString XY{"XY"};
   const QString YX{"YX"};
   const QString Temporal{"Temporal"};
-  operator QStringList() const
-  {
-    return {CreationOrder, XY, YX, Temporal};
-  }
+  operator QStringList() const { return {CreationOrder, XY, YX, Temporal}; }
 };
 struct MergingPolicies
 {
   const QString Merge{"Merge"};
   const QString Append{"Append"};
   const QString Replace{"Replace"};
-  operator QStringList() const
-  {
-    return {Merge, Append, Replace};
-  }
+  operator QStringList() const { return {Merge, Append, Replace}; }
 };
 struct CommitPolicies
 {
@@ -61,10 +55,7 @@ struct TickPolicies
   const QString Buffer{"Buffer-accurate"};
   const QString ScoreAccurate{"Score-accurate"};
   const QString Precise{"Precise"};
-  operator QStringList() const
-  {
-    return {Buffer, ScoreAccurate, Precise};
-  }
+  operator QStringList() const { return {Buffer, ScoreAccurate, Precise}; }
 };
 class SCORE_PLUGIN_ENGINE_EXPORT Model : public score::SettingsDelegateModel
 {
@@ -90,10 +81,7 @@ class SCORE_PLUGIN_ENGINE_EXPORT Model : public score::SettingsDelegateModel
 public:
   Model(QSettings& set, const score::ApplicationContext& ctx);
 
-  const ClockFactoryList& clockFactories() const
-  {
-    return m_clockFactories;
-  }
+  const ClockFactoryList& clockFactories() const { return m_clockFactories; }
 
   std::unique_ptr<Clock> makeClock(const Execution::Context& ctx) const;
   time_function makeTimeFunction(const score::DocumentContext&) const;
@@ -101,7 +89,9 @@ public:
   makeReverseTimeFunction(const score::DocumentContext&) const;
 
   SCORE_SETTINGS_PARAMETER_HPP(
-      SCORE_PLUGIN_ENGINE_EXPORT, ClockFactory::ConcreteKey, Clock)
+      SCORE_PLUGIN_ENGINE_EXPORT,
+      ClockFactory::ConcreteKey,
+      Clock)
   SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_ENGINE_EXPORT, QString, Scheduling)
   SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_ENGINE_EXPORT, QString, Ordering)
   SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_ENGINE_EXPORT, QString, Merging)
@@ -110,14 +100,20 @@ public:
   SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_ENGINE_EXPORT, int, Rate)
   SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_ENGINE_EXPORT, bool, Parallel)
   SCORE_SETTINGS_PARAMETER_HPP(
-      SCORE_PLUGIN_ENGINE_EXPORT, bool, ExecutionListening)
+      SCORE_PLUGIN_ENGINE_EXPORT,
+      bool,
+      ExecutionListening)
   SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_ENGINE_EXPORT, bool, Logging)
   SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_ENGINE_EXPORT, bool, Bench)
   SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_ENGINE_EXPORT, bool, ScoreOrder)
   SCORE_SETTINGS_PARAMETER_HPP(
-      SCORE_PLUGIN_ENGINE_EXPORT, bool, ValueCompilation)
+      SCORE_PLUGIN_ENGINE_EXPORT,
+      bool,
+      ValueCompilation)
   SCORE_SETTINGS_PARAMETER_HPP(
-      SCORE_PLUGIN_ENGINE_EXPORT, bool, TransportValueCompilation)
+      SCORE_PLUGIN_ENGINE_EXPORT,
+      bool,
+      TransportValueCompilation)
 };
 
 SCORE_SETTINGS_PARAMETER(Model, Clock)

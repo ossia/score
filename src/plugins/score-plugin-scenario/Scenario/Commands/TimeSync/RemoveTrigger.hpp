@@ -21,10 +21,7 @@ public:
   {
     return CommandFactoryName<Scenario_T>();
   }
-  const CommandKey& key() const noexcept override
-  {
-    return static_key();
-  }
+  const CommandKey& key() const noexcept override { return static_key(); }
   QString description() const override
   {
     return QObject::tr("Remove a trigger");

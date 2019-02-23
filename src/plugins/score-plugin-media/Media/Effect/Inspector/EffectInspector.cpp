@@ -39,7 +39,8 @@ namespace Effect
 {
 
 InspectorWidget::InspectorWidget(
-    const Effect::ProcessModel& object, const score::DocumentContext& doc,
+    const Effect::ProcessModel& object,
+    const score::DocumentContext& doc,
     QWidget* parent)
     : InspectorWidgetDelegate_T{object, parent}
     , m_dispatcher{doc.commandStack}
@@ -50,16 +51,21 @@ InspectorWidget::InspectorWidget(
   auto lay = new QVBoxLayout;
   m_list = new QListWidget;
   lay->addWidget(m_list);
-  con(process(), &Effect::ProcessModel::effectsChanged, this,
+  con(process(),
+      &Effect::ProcessModel::effectsChanged,
+      this,
       &InspectorWidget::recreate);
 
   connect(
-      m_list, &QListWidget::itemDoubleClicked, &object,
+      m_list,
+      &QListWidget::itemDoubleClicked,
+      &object,
       [&](QListWidgetItem* item) {
         Process::setupExternalUI(
             object.effects().at(
                 item->data(Qt::UserRole).value<Id<Process::ProcessModel>>()),
-            doc, true);
+            doc,
+            true);
       },
       Qt::QueuedConnection);
 
@@ -152,9 +158,7 @@ void InspectorWidget::add_vst2(std::size_t pos)
 #endif
 }
 
-void InspectorWidget::addRequested(int pos)
-{
-}
+void InspectorWidget::addRequested(int pos) {}
 
 int InspectorWidget::cur_pos()
 {
@@ -176,7 +180,9 @@ void InspectorWidget::recreate()
   {
     auto item = new ListWidgetItem(fx.prettyName(), m_list);
 
-    con(fx.metadata(), &score::ModelMetadata::LabelChanged, item,
+    con(fx.metadata(),
+        &score::ModelMetadata::LabelChanged,
+        item,
         [=](const auto& txt) { item->setText(txt); });
     item->setData(Qt::UserRole, QVariant::fromValue(fx.id()));
     m_list->addItem(item);

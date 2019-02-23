@@ -11,7 +11,9 @@ namespace Process
 class SCORE_LIB_PROCESS_EXPORT SetControlValue final : public score::Command
 {
   SCORE_COMMAND_DECL(
-      Process::CommandFactoryName(), SetControlValue, "Set a control")
+      Process::CommandFactoryName(),
+      SetControlValue,
+      "Set a control")
 
 public:
   SetControlValue(const Process::ControlInlet& obj, ossia::value newval)
@@ -19,9 +21,7 @@ public:
   {
   }
 
-  virtual ~SetControlValue()
-  {
-  }
+  virtual ~SetControlValue() {}
 
   void undo(const score::DocumentContext& ctx) const final override
   {

@@ -20,15 +20,9 @@ public:
   using Presenter = SettingsDelegatePresenter<Model>;
   using QObject::QObject;
   ~SettingsDelegateView() = default;
-  virtual void setPresenter(Presenter* presenter)
-  {
-    m_presenter = presenter;
-  }
+  virtual void setPresenter(Presenter* presenter) { m_presenter = presenter; }
 
-  Presenter* getPresenter()
-  {
-    return m_presenter;
-  }
+  Presenter* getPresenter() { return m_presenter; }
 
   virtual QWidget* getWidget()
       = 0; // QML? ownership transfer ? ? ? what about "this" case ?
@@ -81,35 +75,43 @@ public:                                                              \
 private:                                                             \
   QDoubleSpinBox* m_##Control{};
 
-#define SETTINGS_UI_COMBOBOX_SETUP(Text, Control, Values)                  \
-  m_##Control = new QComboBox{m_widg};                                     \
-  m_##Control->addItems(Values);                                           \
-  lay->addRow(tr(Text), m_##Control);                                      \
-  connect(                                                                 \
-      m_##Control, SignalUtils::QComboBox_currentIndexChanged_int(), this, \
+#define SETTINGS_UI_COMBOBOX_SETUP(Text, Control, Values) \
+  m_##Control = new QComboBox{m_widg};                    \
+  m_##Control->addItems(Values);                          \
+  lay->addRow(tr(Text), m_##Control);                     \
+  connect(                                                \
+      m_##Control,                                        \
+      SignalUtils::QComboBox_currentIndexChanged_int(),   \
+      this,                                               \
       [this](int i) { Control##Changed(m_##Control->itemText(i)); });
 
-#define SETTINGS_UI_NUM_COMBOBOX_SETUP(Text, Control, Values)              \
-  m_##Control = new QComboBox{m_widg};                                     \
-  for (auto v : Values)                                                    \
-    m_##Control->addItem(QString::number(v));                              \
-  lay->addRow(tr(Text), m_##Control);                                      \
-  connect(                                                                 \
-      m_##Control, SignalUtils::QComboBox_currentIndexChanged_int(), this, \
+#define SETTINGS_UI_NUM_COMBOBOX_SETUP(Text, Control, Values) \
+  m_##Control = new QComboBox{m_widg};                        \
+  for (auto v : Values)                                       \
+    m_##Control->addItem(QString::number(v));                 \
+  lay->addRow(tr(Text), m_##Control);                         \
+  connect(                                                    \
+      m_##Control,                                            \
+      SignalUtils::QComboBox_currentIndexChanged_int(),       \
+      this,                                                   \
       [this](int i) { Control##Changed(m_##Control->itemText(i).toInt()); });
 
-#define SETTINGS_UI_SPINBOX_SETUP(Text, Control)                   \
-  m_##Control = new QSpinBox{m_widg};                              \
-  lay->addRow(tr(Text), m_##Control);                              \
-  connect(                                                         \
-      m_##Control, SignalUtils::QSpinBox_valueChanged_int(), this, \
+#define SETTINGS_UI_SPINBOX_SETUP(Text, Control) \
+  m_##Control = new QSpinBox{m_widg};            \
+  lay->addRow(tr(Text), m_##Control);            \
+  connect(                                       \
+      m_##Control,                               \
+      SignalUtils::QSpinBox_valueChanged_int(),  \
+      this,                                      \
       &View::Control##Changed);
 
-#define SETTINGS_UI_DOUBLE_SPINBOX_SETUP(Text, Control)                     \
-  m_##Control = new QDoubleSpinBox{m_widg};                                 \
-  lay->addRow(tr(Text), m_##Control);                                       \
-  connect(                                                                  \
-      m_##Control, SignalUtils::QDoubleSpinBox_valueChanged_double(), this, \
+#define SETTINGS_UI_DOUBLE_SPINBOX_SETUP(Text, Control)  \
+  m_##Control = new QDoubleSpinBox{m_widg};              \
+  lay->addRow(tr(Text), m_##Control);                    \
+  connect(                                               \
+      m_##Control,                                       \
+      SignalUtils::QDoubleSpinBox_valueChanged_double(), \
+      this,                                              \
       &View::Control##Changed);
 
 #define SETTINGS_UI_TOGGLE_SETUP(Text, Control) \

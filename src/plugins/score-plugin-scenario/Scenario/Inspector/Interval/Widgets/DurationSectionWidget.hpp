@@ -26,7 +26,8 @@ class DurationWidget final : public QWidget
 {
 public:
   DurationWidget(
-      const Scenario::EditionSettings& set, QFormLayout& lay,
+      const Scenario::EditionSettings& set,
+      QFormLayout& lay,
       IntervalInspectorWidget* parent);
 
 private:

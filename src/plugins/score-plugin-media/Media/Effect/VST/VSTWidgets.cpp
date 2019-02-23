@@ -12,9 +12,9 @@
 #include <Scenario/Commands/Interval/AddOnlyProcessToInterval.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 
-#include <score/graphics/DefaultGraphicsSliderImpl.hpp>
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/command/Dispatchers/MacroCommandDispatcher.hpp>
+#include <score/graphics/DefaultGraphicsSliderImpl.hpp>
 #include <score/widgets/Pixmap.hpp>
 
 #include <QAction>
@@ -30,7 +30,9 @@ namespace Media::VST
 {
 
 VSTGraphicsSlider::VSTGraphicsSlider(
-    AEffect* fx, int num, QGraphicsItem* parent)
+    AEffect* fx,
+    int num,
+    QGraphicsItem* parent)
     : QGraphicsItem{parent}
 {
   this->fx = fx;
@@ -82,7 +84,9 @@ QRectF VSTGraphicsSlider::boundingRect() const
 }
 
 void VSTGraphicsSlider::paint(
-    QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+    QPainter* painter,
+    const QStyleOptionGraphicsItem* option,
+    QWidget* widget)
 {
   char str[256]{};
   fx->dispatcher(fx, effGetParamDisplay, num, 0, str, m_value);
@@ -111,14 +115,17 @@ QRectF VSTGraphicsSlider::handleRect() const
 }
 
 VSTEffectItem::VSTEffectItem(
-    const VSTEffectModel& effect, const score::DocumentContext& doc,
+    const VSTEffectModel& effect,
+    const score::DocumentContext& doc,
     score::RectItem* root)
     : score::EmptyRectItem{root}
 {
   rootItem = root;
   using namespace Control::Widgets;
   QObject::connect(
-      &effect, &Process::ProcessModel::controlAdded, this,
+      &effect,
+      &Process::ProcessModel::controlAdded,
+      this,
       [&](const Id<Process::Port>& id) {
         auto inlet = safe_cast<VSTControlInlet*>(effect.inlet(id));
         setupInlet(effect, *inlet, doc);
@@ -126,7 +133,9 @@ VSTEffectItem::VSTEffectItem(
       });
 
   QObject::connect(
-      &effect, &Process::ProcessModel::controlRemoved, this,
+      &effect,
+      &Process::ProcessModel::controlRemoved,
+      this,
       [&](const Process::Port& port) {
         auto inlet = qobject_cast<const VSTControlInlet*>(&port);
         SCORE_ASSERT(inlet);
@@ -163,7 +172,8 @@ VSTEffectItem::VSTEffectItem(
 }
 
 void VSTEffectItem::setupInlet(
-    const VSTEffectModel& fx, VSTControlInlet& inlet,
+    const VSTEffectModel& fx,
+    VSTControlInlet& inlet,
     const score::DocumentContext& doc)
 {
   auto rect = new score::EmptyRectItem{this};
@@ -174,7 +184,8 @@ void VSTEffectItem::setupInlet(
   static const auto close_off = score::get_pixmap(":/icons/close_off.png");
   static const auto close_on = score::get_pixmap(":/icons/close_on.png");
 
-  auto lab = new score::SimpleTextItem{Process::Style::instance().EventDefault, rect};
+  auto lab = new score::SimpleTextItem{Process::Style::instance().EventDefault,
+                                       rect};
   lab->setText(inlet.customData());
   lab->setPos(15, 2);
 
@@ -187,16 +198,19 @@ void VSTEffectItem::setupInlet(
     widg->setPos(15, lab->boundingRect().height());
 
     h = std::max(
-        20., (qreal)(
-                 widg->boundingRect().height() + lab->boundingRect().height()
-                 + 2.));
+        20.,
+        (qreal)(
+            widg->boundingRect().height() + lab->boundingRect().height()
+            + 2.));
 
     if (fx.fx->fx->numParams >= 10)
     {
       auto rm_item
           = new score::QGraphicsPixmapButton{close_on, close_off, rect};
       connect(
-          rm_item, &score::QGraphicsPixmapButton::clicked, this,
+          rm_item,
+          &score::QGraphicsPixmapButton::clicked,
+          this,
           [&doc, &fx, id = inlet.id()] {
             QTimer::singleShot(0, [&doc, &fx, id] {
               CommandDispatcher<> disp{doc.commandStack};
@@ -246,7 +260,8 @@ bool VSTWindow::hasUI(AEffect& e)
 }
 
 VSTWindow::VSTWindow(
-    const VSTEffectModel& e, const score::DocumentContext& ctx,
+    const VSTEffectModel& e,
+    const score::DocumentContext& ctx,
     QWidget* parent)
     : VSTWindow{e, ctx}
 {
@@ -254,7 +269,9 @@ VSTWindow::VSTWindow(
   if (!m_defaultWidg)
   {
     connect(
-        &ctx.coarseUpdateTimer, &QTimer::timeout, this,
+        &ctx.coarseUpdateTimer,
+        &QTimer::timeout,
+        this,
         [=] {
           if (auto eff = effect.lock())
             eff->fx->dispatcher(eff->fx, effEditIdle, 0, 0, nullptr, 0);
@@ -270,9 +287,7 @@ VSTWindow::VSTWindow(
   e.externalUIVisible(true);
 }
 
-VSTWindow::~VSTWindow()
-{
-}
+VSTWindow::~VSTWindow() {}
 
 void VSTWindow::closeEvent(QCloseEvent* event)
 {
@@ -297,8 +312,11 @@ void VSTWindow::resize(int w, int h)
 }
 
 QGraphicsItem* VSTFloatSlider::make_item(
-    AEffect* fx, VSTControlInlet& inlet, const score::DocumentContext& ctx,
-    QWidget* parent, QObject* context)
+    AEffect* fx,
+    VSTControlInlet& inlet,
+    const score::DocumentContext& ctx,
+    QWidget* parent,
+    QObject* context)
 {
   auto sl = new VSTGraphicsSlider{fx, inlet.fxNum, nullptr};
   sl->setRect({0., 0., 150., 15.});

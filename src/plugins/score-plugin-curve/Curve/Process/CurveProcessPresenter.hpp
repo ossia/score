@@ -29,8 +29,11 @@ class CurveProcessPresenter : public Process::LayerPresenter
 {
 public:
   CurveProcessPresenter(
-      const Curve::Style& style, const Model_T& lm, LayerView_T* view,
-      const Process::ProcessPresenterContext& ctx, QObject* parent)
+      const Curve::Style& style,
+      const Model_T& lm,
+      LayerView_T* view,
+      const Process::ProcessPresenterContext& ctx,
+      QObject* parent)
       : LayerPresenter{ctx, parent}
       , m_layer{lm}
       , m_view{static_cast<LayerView_T*>(view)}
@@ -38,14 +41,18 @@ public:
       , m_commandDispatcher{ctx.commandStack}
       , m_sm{m_context, m_curve}
   {
-    con(m_layer, &CurveProcessModel::curveChanged, this,
+    con(m_layer,
+        &CurveProcessModel::curveChanged,
+        this,
         &CurveProcessPresenter::parentGeometryChanged);
 
     connect(m_view.impl, &Process::LayerView::pressed, this, [&]() {
       m_context.context.focusDispatcher.focus(this);
     });
 
-    con(m_curve, &Presenter::contextMenuRequested, this,
+    con(m_curve,
+        &Presenter::contextMenuRequested,
+        this,
         &LayerPresenter::contextMenuRequested);
 
     connect(&m_curve.view(), &View::doubleClick, this, [this](QPointF pt) {
@@ -56,9 +63,7 @@ public:
     m_view->setCurveView(&m_curve.view());
   }
 
-  virtual ~CurveProcessPresenter()
-  {
-  }
+  virtual ~CurveProcessPresenter() {}
 
   void on_focusChanged() final override
   {
@@ -112,10 +117,7 @@ public:
     m_curve.setRect(rect);
   }
 
-  const Model_T& model() const final override
-  {
-    return m_layer;
-  }
+  const Model_T& model() const final override { return m_layer; }
 
   const Id<Process::ProcessModel>& modelId() const final override
   {
@@ -123,16 +125,15 @@ public:
   }
 
   void fillContextMenu(
-      QMenu& menu, QPoint pos, QPointF scenepos,
+      QMenu& menu,
+      QPoint pos,
+      QPointF scenepos,
       const Process::LayerContextMenuManager&) final override
   {
     m_curve.fillContextMenu(menu, pos, scenepos);
   }
 
-  LayerView_T* view()
-  {
-    return m_view.impl;
-  }
+  LayerView_T* view() { return m_view.impl; }
 
 protected:
   const Model_T& m_layer;

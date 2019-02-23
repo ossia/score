@@ -201,41 +201,34 @@ void CommandStack::pushQuiet(Command* cmd)
 
 void CommandStack::setSavedIndex(int index)
 {
-  if(index != m_savedIndex) {
+  if (index != m_savedIndex)
+  {
     m_savedIndex = index;
     saveIndexChanged(m_savedIndex == this->currentIndex());
   }
 }
 
+CommandStackFacade::CommandStackFacade(CommandStack& stack) : m_stack{stack} {}
 
-CommandStackFacade::CommandStackFacade(CommandStack& stack) : m_stack{stack}
-{
-}
-
-
-const DocumentContext&CommandStackFacade::context() const
+const DocumentContext& CommandStackFacade::context() const
 {
   return m_stack.context();
 }
-
 
 void CommandStackFacade::push(Command* cmd) const
 {
   m_stack.push(cmd);
 }
 
-
 void CommandStackFacade::redoAndPush(Command* cmd) const
 {
   m_stack.redoAndPush(cmd);
 }
 
-
 void CommandStackFacade::disableActions() const
 {
   m_stack.disableActions();
 }
-
 
 void CommandStackFacade::enableActions() const
 {

@@ -29,10 +29,10 @@
 
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/document/DocumentInterface.hpp>
+#include <score/graphics/GraphicsItem.hpp>
 #include <score/model/ModelMetadata.hpp>
 #include <score/selection/Selectable.hpp>
 #include <score/tools/Todo.hpp>
-#include <score/graphics/GraphicsItem.hpp>
 
 #include <QApplication>
 #include <QGraphicsScene>
@@ -44,11 +44,16 @@ W_OBJECT_IMPL(Scenario::TemporalIntervalPresenter)
 namespace Scenario
 {
 TemporalIntervalPresenter::TemporalIntervalPresenter(
-    const IntervalModel& interval, const Process::ProcessPresenterContext& ctx,
-    bool handles, QGraphicsItem* parentobject, QObject* parent)
+    const IntervalModel& interval,
+    const Process::ProcessPresenterContext& ctx,
+    bool handles,
+    QGraphicsItem* parentobject,
+    QObject* parent)
     : IntervalPresenter{interval,
                         new TemporalIntervalView{*this, parentobject},
-                        new TemporalIntervalHeader{*this}, ctx, parent}
+                        new TemporalIntervalHeader{*this},
+                        ctx,
+                        parent}
     , m_handles{handles}
 {
   TemporalIntervalView& v = *view();
@@ -58,29 +63,43 @@ TemporalIntervalPresenter::TemporalIntervalPresenter(
     header()->enableOverlay(b);
   });
 
-  con(v, &TemporalIntervalView::intervalHoverEnter, this,
+  con(v,
+      &TemporalIntervalView::intervalHoverEnter,
+      this,
       &TemporalIntervalPresenter::intervalHoverEnter);
 
-  con(v, &TemporalIntervalView::intervalHoverLeave, this,
+  con(v,
+      &TemporalIntervalView::intervalHoverLeave,
+      this,
       &TemporalIntervalPresenter::intervalHoverLeave);
 
-  con(v, &IntervalView::requestOverlayMenu, this,
+  con(v,
+      &IntervalView::requestOverlayMenu,
+      this,
       &TemporalIntervalPresenter::on_requestOverlayMenu);
 
-  con(interval, &IntervalModel::executionStateChanged, &v,
+  con(interval,
+      &IntervalModel::executionStateChanged,
+      &v,
       &TemporalIntervalView::setExecutionState);
 
   const auto& metadata = m_model.metadata();
-  con(metadata, &score::ModelMetadata::LabelChanged, &v,
+  con(metadata,
+      &score::ModelMetadata::LabelChanged,
+      &v,
       &TemporalIntervalView::setLabel);
 
-  con(metadata, &score::ModelMetadata::ColorChanged, &v,
+  con(metadata,
+      &score::ModelMetadata::ColorChanged,
+      &v,
       [&](score::ColorRef c) {
         v.setLabelColor(c);
         v.update();
       });
 
-  con(metadata, &score::ModelMetadata::NameChanged, this,
+  con(metadata,
+      &score::ModelMetadata::NameChanged,
+      this,
       [&](const QString& name) { m_header->setText(name); });
 
   v.setLabel(metadata.getLabel());
@@ -98,14 +117,18 @@ TemporalIntervalPresenter::TemporalIntervalPresenter(
   });
 
   // Drop
-  con(v, &TemporalIntervalView::dropReceived, this,
+  con(v,
+      &TemporalIntervalView::dropReceived,
+      this,
       [=](const QPointF& pos, const QMimeData& mime) {
         m_context.app.interfaces<Scenario::IntervalDropHandlerList>().drop(
             m_context, m_model, mime);
       });
 
   // Time
-  con(interval.duration, &IntervalDurations::defaultDurationChanged, this,
+  con(interval.duration,
+      &IntervalDurations::defaultDurationChanged,
+      this,
       [&](const TimeVal& val) {
         on_defaultDurationChanged(val);
         updateChildren();
@@ -114,14 +137,20 @@ TemporalIntervalPresenter::TemporalIntervalPresenter(
   // Header set-up
 
   connect(
-      head, &TemporalIntervalHeader::intervalHoverEnter, this,
+      head,
+      &TemporalIntervalHeader::intervalHoverEnter,
+      this,
       &TemporalIntervalPresenter::intervalHoverEnter);
   connect(
-      head, &TemporalIntervalHeader::intervalHoverLeave, this,
+      head,
+      &TemporalIntervalHeader::intervalHoverLeave,
+      this,
       &TemporalIntervalPresenter::intervalHoverLeave);
 
   connect(
-      head, &TemporalIntervalHeader::dropReceived, this,
+      head,
+      &TemporalIntervalHeader::dropReceived,
+      this,
       [=](const QPointF& pos, const QMimeData& mime) {
         m_context.app.interfaces<Scenario::IntervalDropHandlerList>().drop(
             m_context, m_model, mime);
@@ -139,7 +168,9 @@ TemporalIntervalPresenter::TemporalIntervalPresenter(
   });
 
   // Slots & racks
-  con(m_model, &IntervalModel::smallViewVisibleChanged, this,
+  con(m_model,
+      &IntervalModel::smallViewVisibleChanged,
+      this,
       &TemporalIntervalPresenter::on_rackVisibleChanged);
 
   con(m_model, &IntervalModel::rackChanged, this, [=](Slot::RackView t) {
@@ -155,7 +186,9 @@ TemporalIntervalPresenter::TemporalIntervalPresenter(
     }
   });
 
-  con(m_model, &IntervalModel::slotsSwapped, this,
+  con(m_model,
+      &IntervalModel::slotsSwapped,
+      this,
       [=](int i, int j, Slot::RackView v) {
         if (v == Slot::SmallView)
           on_rackChanged();
@@ -171,17 +204,23 @@ TemporalIntervalPresenter::TemporalIntervalPresenter(
       this->updatePositions();
   });
 
-  con(m_model, &IntervalModel::layerAdded, this,
+  con(m_model,
+      &IntervalModel::layerAdded,
+      this,
       [=](SlotId s, Id<Process::ProcessModel> proc) {
         if (s.smallView())
           createLayer(s.index, m_model.processes.at(proc));
       });
-  con(m_model, &IntervalModel::layerRemoved, this,
+  con(m_model,
+      &IntervalModel::layerRemoved,
+      this,
       [=](SlotId s, Id<Process::ProcessModel> proc) {
         if (s.smallView())
           removeLayer(m_model.processes.at(proc));
       });
-  con(m_model, &IntervalModel::frontLayerChanged, this,
+  con(m_model,
+      &IntervalModel::frontLayerChanged,
+      this,
       [=](int pos, OptionalId<Process::ProcessModel> proc) {
         if (proc)
         {
@@ -263,9 +302,9 @@ TemporalIntervalPresenter::~TemporalIntervalPresenter()
 void TemporalIntervalPresenter::on_requestOverlayMenu(QPointF)
 {
   auto& fact = m_context.app.interfaces<Process::ProcessFactoryList>();
-  auto dialog
-      = new AddProcessDialog{fact, Process::ProcessFlags::SupportsTemporal,
-                             QApplication::activeWindow()};
+  auto dialog = new AddProcessDialog{fact,
+                                     Process::ProcessFlags::SupportsTemporal,
+                                     QApplication::activeWindow()};
 
   dialog->on_okPressed = [&](const auto& key, QString dat) {
     using namespace Scenario::Command;
@@ -328,7 +367,9 @@ void TemporalIntervalPresenter::startSlotDrag(int curslot, QPointF pos) const
   // Create an overlay object
   temporal_slot_drag_overlay = new SlotDragOverlay{*this, Slot::SmallView};
   connect(
-      temporal_slot_drag_overlay, &SlotDragOverlay::dropBefore, this,
+      temporal_slot_drag_overlay,
+      &SlotDragOverlay::dropBefore,
+      this,
       [=](int slot) {
         if (slot == curslot)
           return;
@@ -349,7 +390,9 @@ void TemporalIntervalPresenter::startSlotDrag(int curslot, QPointF pos) const
                              // stopSlotDrag can't be called
 
   connect(
-      temporal_slot_drag_overlay, &SlotDragOverlay::dropIn, this,
+      temporal_slot_drag_overlay,
+      &SlotDragOverlay::dropIn,
+      this,
       [=](int slot) {
         if (slot == curslot)
           return;
@@ -358,13 +401,11 @@ void TemporalIntervalPresenter::startSlotDrag(int curslot, QPointF pos) const
         if (qApp->keyboardModifiers() & Qt::ALT
             || m_model.smallView()[curslot].processes.size() == 1)
         {
-          disp.submit<Command::MergeSlots>(
-              this->m_model, curslot, slot);
+          disp.submit<Command::MergeSlots>(this->m_model, curslot, slot);
         }
         else
         {
-          disp.submit<Command::MergeLayerInSlot>(
-              this->m_model, curslot, slot);
+          disp.submit<Command::MergeLayerInSlot>(this->m_model, curslot, slot);
         }
       },
       Qt::QueuedConnection);
@@ -436,7 +477,8 @@ void TemporalIntervalPresenter::createSlot(int pos, const Slot& aSlt)
 }
 
 void TemporalIntervalPresenter::createLayer(
-    int slot, const Process::ProcessModel& proc)
+    int slot,
+    const Process::ProcessModel& proc)
 {
   if (m_model.smallViewVisible())
   {
@@ -451,7 +493,9 @@ void TemporalIntervalPresenter::createLayer(
         LayerData{&proc, proc_pres, proc_view});
 
     auto con_id = con(
-        proc, &Process::ProcessModel::durationChanged, this,
+        proc,
+        &Process::ProcessModel::durationChanged,
+        this,
         [&](const TimeVal&) {
           int i = 0;
           for (const SlotPresenter& slot : m_slots)
@@ -467,7 +511,9 @@ void TemporalIntervalPresenter::createLayer(
           }
         });
 
-    con(proc, &IdentifiedObjectAbstract::identified_object_destroying, this,
+    con(proc,
+        &IdentifiedObjectAbstract::identified_object_destroying,
+        this,
         [=] { QObject::disconnect(con_id); });
 
     auto frontLayer = m_model.smallView().at(slot).frontProcess;
@@ -485,7 +531,8 @@ void TemporalIntervalPresenter::createLayer(
 }
 
 void TemporalIntervalPresenter::updateProcessShape(
-    int slot, const LayerData& data)
+    int slot,
+    const LayerData& data)
 {
   if (m_model.smallViewVisible())
   {
@@ -599,7 +646,8 @@ void TemporalIntervalPresenter::updatePositions()
   updateProcessesShape();
 }
 void TemporalIntervalPresenter::on_layerModelPutToFront(
-    int slot, const Process::ProcessModel& proc)
+    int slot,
+    const Process::ProcessModel& proc)
 {
   if (m_model.smallViewVisible())
   {
@@ -640,7 +688,8 @@ void TemporalIntervalPresenter::on_layerModelPutToFront(
 }
 
 void TemporalIntervalPresenter::on_layerModelPutToBack(
-    int slot, const Process::ProcessModel& proc)
+    int slot,
+    const Process::ProcessModel& proc)
 {
   if (m_model.smallViewVisible())
   {
@@ -755,7 +804,9 @@ TemporalIntervalHeader* TemporalIntervalPresenter::header() const
 }
 
 void TemporalIntervalPresenter::requestSlotMenu(
-    int slot, QPoint pos, QPointF sp) const
+    int slot,
+    QPoint pos,
+    QPointF sp) const
 {
   if (const auto& proc = m_model.getSmallViewSlot(slot).frontProcess)
   {
@@ -779,7 +830,8 @@ void TemporalIntervalPresenter::requestSlotMenu(
 }
 
 void TemporalIntervalPresenter::setHeaderWidth(
-    const SlotPresenter& slot, double w)
+    const SlotPresenter& slot,
+    double w)
 {
   slot.header->setWidth(w);
   if (slot.handle)
@@ -795,7 +847,9 @@ void TemporalIntervalPresenter::setHeaderWidth(
 }
 
 void TemporalIntervalPresenter::requestProcessSelectorMenu(
-    int slot, QPoint pos, QPointF sp) const
+    int slot,
+    QPoint pos,
+    QPointF sp) const
 {
   if (const auto& proc = m_model.getSmallViewSlot(slot).frontProcess)
   {
