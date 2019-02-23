@@ -16,8 +16,10 @@ W_OBJECT_IMPL(Execution::VSTEffectComponent)
 namespace Execution
 {
 VSTEffectComponent::VSTEffectComponent(
-    Media::VST::VSTEffectModel& proc, const Execution::Context& ctx,
-    const Id<score::Component>& id, QObject* parent)
+    Media::VST::VSTEffectModel& proc,
+    const Execution::Context& ctx,
+    const Id<score::Component>& id,
+    QObject* parent)
     : ProcessComponent_T{proc, ctx, id, "VSTComponent", parent}
 {
   if (!proc.fx || !proc.fx->fx)
@@ -32,14 +34,17 @@ VSTEffectComponent::VSTEffectComponent(
       auto ctrl = safe_cast<Media::VST::VSTControlInlet*>(inlets[i]);
       auto inlet = ossia::make_inlet<ossia::value_port>();
 
-      node->controls.push_back(
-          {ctrl->fxNum, ctrl->value(), inlet->data.target<ossia::value_port>()});
+      node->controls.push_back({ctrl->fxNum,
+                                ctrl->value(),
+                                inlet->data.target<ossia::value_port>()});
       node->inputs().push_back(std::move(inlet));
     }
 
     std::weak_ptr<std::remove_reference_t<decltype(*node)>> wp = node;
     connect(
-        &proc, &Media::VST::VSTEffectModel::controlAdded, this,
+        &proc,
+        &Media::VST::VSTEffectModel::controlAdded,
+        this,
         [this, &proc, wp](const Id<Process::Port>& id) {
           auto ctrl = proc.getControl(id);
           if (!ctrl)
@@ -56,13 +61,16 @@ VSTEffectComponent::VSTEffectComponent(
           }
         });
     connect(
-        &proc, &Media::VST::VSTEffectModel::controlRemoved, this,
+        &proc,
+        &Media::VST::VSTEffectModel::controlRemoved,
+        this,
         [this, wp](const Process::Port& port) {
           if (auto n = wp.lock())
           {
             in_exec(
-                [n, num = static_cast<const Media::VST::VSTControlInlet&>(port)
-                              .fxNum] {
+                [n,
+                 num = static_cast<const Media::VST::VSTControlInlet&>(port)
+                           .fxNum] {
                   auto it = ossia::find_if(
                       n->controls, [&](auto& c) { return c.idx == num; });
                   if (it != n->controls.end())

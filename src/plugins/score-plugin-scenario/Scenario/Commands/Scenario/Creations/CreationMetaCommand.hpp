@@ -17,7 +17,8 @@ namespace Command
 class CreationMetaCommand final : public score::AggregateCommand
 {
   SCORE_COMMAND_DECL(
-      ScenarioCommandFactoryName(), CreationMetaCommand,
+      ScenarioCommandFactoryName(),
+      CreationMetaCommand,
       "Create elements in scenario")
 public:
   void undo(const score::DocumentContext& ctx) const override

@@ -10,7 +10,10 @@ class SCORE_LIB_BASE_EXPORT Toolbar
 {
 public:
   Toolbar(
-      QToolBar* tb, StringKey<Toolbar> key, int defaultRow, int defaultCol);
+      QToolBar* tb,
+      StringKey<Toolbar> key,
+      int defaultRow,
+      int defaultCol);
 
   QToolBar* toolbar() const;
 

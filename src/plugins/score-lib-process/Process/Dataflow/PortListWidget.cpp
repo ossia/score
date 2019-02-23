@@ -18,7 +18,8 @@
 namespace Process
 {
 PortListWidget::PortListWidget(
-    const Process::ProcessModel& proc, const score::DocumentContext& ctx,
+    const Process::ProcessModel& proc,
+    const score::DocumentContext& ctx,
     QWidget* parent)
     : QWidget{parent}, m_process{proc}, m_ctx{ctx}
 {
@@ -26,8 +27,9 @@ PortListWidget::PortListWidget(
   reload();
 
   con(proc, &Process::ProcessModel::inletsChanged, this, [this] { reload(); });
-  con(proc, &Process::ProcessModel::outletsChanged, this,
-      [this] { reload(); });
+  con(proc, &Process::ProcessModel::outletsChanged, this, [this] {
+    reload();
+  });
 }
 
 void PortListWidget::reload()
@@ -73,22 +75,28 @@ void PortListWidget::reload()
 }
 
 void PortWidgetSetup::setupAlone(
-    const Port& port, const score::DocumentContext& ctx,
-    Inspector::Layout& lay, QWidget* parent)
+    const Port& port,
+    const score::DocumentContext& ctx,
+    Inspector::Layout& lay,
+    QWidget* parent)
 {
   setupImpl(port.customData(), port, ctx, lay, parent);
 }
 
 void PortWidgetSetup::setupInLayout(
-    const Port& port, const score::DocumentContext& ctx,
-    Inspector::Layout& lay, QWidget* parent)
+    const Port& port,
+    const score::DocumentContext& ctx,
+    Inspector::Layout& lay,
+    QWidget* parent)
 {
   setupImpl(QObject::tr("Address"), port, ctx, lay, parent);
 }
 
 void PortWidgetSetup::setupControl(
-    const ControlInlet& inlet, QWidget* inlet_widget,
-    const score::DocumentContext& ctx, Inspector::Layout& vlay,
+    const ControlInlet& inlet,
+    QWidget* inlet_widget,
+    const score::DocumentContext& ctx,
+    Inspector::Layout& vlay,
     QWidget* parent)
 {
   auto widg = new QWidget;
@@ -118,14 +126,18 @@ void PortWidgetSetup::setupControl(
 }
 
 QWidget* PortWidgetSetup::makeAddressWidget(
-    const Port& port, const score::DocumentContext& ctx, QWidget* parent)
+    const Port& port,
+    const score::DocumentContext& ctx,
+    QWidget* parent)
 {
   using namespace Device;
   auto edit = new AddressAccessorEditWidget{ctx, parent};
   edit->setAddress(port.address());
 
   QObject::connect(
-      &port, &Port::addressChanged, edit,
+      &port,
+      &Port::addressChanged,
+      edit,
       [edit](const State::AddressAccessor& addr) {
         if (addr != edit->address().address)
         {
@@ -134,7 +146,9 @@ QWidget* PortWidgetSetup::makeAddressWidget(
       });
 
   QObject::connect(
-      edit, &AddressAccessorEditWidget::addressChanged, parent,
+      edit,
+      &AddressAccessorEditWidget::addressChanged,
+      parent,
       [&port, &ctx](const auto& newAddr) {
         if (newAddr.address == port.address())
           return;
@@ -150,8 +164,11 @@ QWidget* PortWidgetSetup::makeAddressWidget(
 }
 
 void PortWidgetSetup::setupImpl(
-    const QString& txt, const Port& port, const score::DocumentContext& ctx,
-    Inspector::Layout& lay, QWidget* parent)
+    const QString& txt,
+    const Port& port,
+    const score::DocumentContext& ctx,
+    Inspector::Layout& lay,
+    QWidget* parent)
 {
   auto widg = new QWidget;
   auto hl = new score::MarginLess<QHBoxLayout>{widg};

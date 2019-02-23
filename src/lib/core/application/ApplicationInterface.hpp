@@ -58,10 +58,7 @@ public:
    * plugins so that
    * all the base functions of the software will work correctly.
    */
-  void loadPluginData(
-      score::Settings& settings,
-      score::Presenter& presenter);
-
+  void loadPluginData(score::Settings& settings, score::Presenter& presenter);
 
   void registerPlugin(score::Plugin_QtInterface&);
 

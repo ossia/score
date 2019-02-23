@@ -17,7 +17,8 @@
 namespace Protocols
 {
 LocalDevice::LocalDevice(
-    ossia::net::device_base& dev, const score::DocumentContext& ctx,
+    ossia::net::device_base& dev,
+    const score::DocumentContext& ctx,
     const Device::DeviceSettings& settings)
     : DeviceInterface{settings}, m_dev{dev}
 {
@@ -40,9 +41,7 @@ LocalDevice::LocalDevice(
   enableCallbacks();
 }
 
-LocalDevice::~LocalDevice()
-{
-}
+LocalDevice::~LocalDevice() {}
 
 void LocalDevice::setRemoteSettings(const Device::DeviceSettings& settings)
 {
@@ -95,4 +94,3 @@ Device::Node LocalDevice::refresh()
   return simple_refresh();
 }
 }
-

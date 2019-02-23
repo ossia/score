@@ -25,22 +25,14 @@ class SCORE_LIB_PROCESS_EXPORT CableItem final : public QObject,
 public:
   static bool g_cables_enabled;
   CableItem(
-      Process::Cable& c, const score::DocumentContext& ctx,
+      Process::Cable& c,
+      const score::DocumentContext& ctx,
       QGraphicsItem* parent = nullptr);
   ~CableItem() override;
-  const Id<Process::Cable>& id() const
-  {
-    return m_cable.id();
-  }
+  const Id<Process::Cable>& id() const { return m_cable.id(); }
 
-  static constexpr int static_type()
-  {
-    return QGraphicsItem::UserType + 9999;
-  }
-  int type() const final override
-  {
-    return static_type();
-  }
+  static constexpr int static_type() { return QGraphicsItem::UserType + 9999; }
+  int type() const final override { return static_type(); }
 
   void resize();
   void check();
@@ -56,11 +48,12 @@ public:
 private:
   QRectF boundingRect() const override;
   void paint(
-      QPainter* painter, const QStyleOptionGraphicsItem* option,
+      QPainter* painter,
+      const QStyleOptionGraphicsItem* option,
       QWidget* widget) override;
   QPainterPath shape() const override;
   QPainterPath opaqueArea() const override;
-  bool contains(const QPointF &point) const override;
+  bool contains(const QPointF& point) const override;
   void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
   void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override;
   void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override;

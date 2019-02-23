@@ -17,17 +17,11 @@ public:
   View(QGraphicsItem* parent);
 
   ~View() override;
-  double defaultWidth() const noexcept
-  {
-    return m_defaultW;
-  }
+  double defaultWidth() const noexcept { return m_defaultW; }
   void setDefaultWidth(double w);
 
   void setRange(int, int);
-  std::pair<int, int> range() const
-  {
-    return {m_min, m_max};
-  }
+  std::pair<int, int> range() const { return {m_min, m_max}; }
   NoteData noteAtPos(QPointF point) const;
   int visibleCount() const;
 

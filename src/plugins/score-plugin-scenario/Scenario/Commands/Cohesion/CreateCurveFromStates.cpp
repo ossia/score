@@ -12,9 +12,7 @@
 #include <Scenario/Commands/Interval/Rack/Slot/AddLayerModelToSlot.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <State/ValueSerialization.hpp>
-#include <ossia/editor/state/destination_qualifiers.hpp>
 
-#include <Color/GradientModel.hpp>
 #include <score/application/ApplicationContext.hpp>
 #include <score/model/EntityMap.hpp>
 #include <score/model/Identifier.hpp>
@@ -25,17 +23,26 @@
 #include <score/tools/IdentifierGeneration.hpp>
 #include <score/tools/std/Optional.hpp>
 
+#include <ossia/editor/state/destination_qualifiers.hpp>
+
 #include <QByteArray>
+
+#include <Color/GradientModel.hpp>
 
 namespace Scenario
 {
 namespace Command
 {
 CreateAutomationFromStates::CreateAutomationFromStates(
-    const IntervalModel& interval, const std::vector<SlotPath>& slotList,
-    Id<Process::ProcessModel> curveId, State::AddressAccessor address,
-    const Curve::CurveDomain& dom, bool tween)
-    : CreateProcessAndLayers{interval, slotList, std::move(curveId),
+    const IntervalModel& interval,
+    const std::vector<SlotPath>& slotList,
+    Id<Process::ProcessModel> curveId,
+    State::AddressAccessor address,
+    const Curve::CurveDomain& dom,
+    bool tween)
+    : CreateProcessAndLayers{interval,
+                             slotList,
+                             std::move(curveId),
                              Metadata<
                                  ConcreteKey_k,
                                  Automation::ProcessModel>::get()}
@@ -87,19 +94,22 @@ void CreateAutomationFromStates::deserializeImpl(DataStreamOutput& s)
   s >> m_address >> m_dom >> m_tween;
 }
 
-
-
 CreateGradient::CreateGradient(
-    const IntervalModel& interval, const std::vector<SlotPath>& slotList,
-    Id<Process::ProcessModel> curveId, State::AddressAccessor address,
-    QColor start, QColor end,
+    const IntervalModel& interval,
+    const std::vector<SlotPath>& slotList,
+    Id<Process::ProcessModel> curveId,
+    State::AddressAccessor address,
+    QColor start,
+    QColor end,
     bool tween)
-    : CreateProcessAndLayers{interval, slotList, std::move(curveId),
-                             Metadata<
-                                 ConcreteKey_k,
-                                 Gradient::ProcessModel>::get()}
+    : CreateProcessAndLayers{interval,
+                             slotList,
+                             std::move(curveId),
+                             Metadata<ConcreteKey_k, Gradient::ProcessModel>::
+                                 get()}
     , m_address{std::move(address)}
-    , m_start{start}, m_end{end}
+    , m_start{start}
+    , m_end{end}
     , m_tween(tween)
 {
 }
@@ -134,14 +144,17 @@ void CreateGradient::deserializeImpl(DataStreamOutput& s)
   s >> m_address >> m_tween;
 }
 
-
-
-
 CreateInterpolationFromStates::CreateInterpolationFromStates(
-    const IntervalModel& interval, const std::vector<SlotPath>& slotList,
-    Id<Process::ProcessModel> curveId, State::AddressAccessor address,
-    ossia::value start, ossia::value end, bool tween)
-    : CreateProcessAndLayers{interval, slotList, std::move(curveId),
+    const IntervalModel& interval,
+    const std::vector<SlotPath>& slotList,
+    Id<Process::ProcessModel> curveId,
+    State::AddressAccessor address,
+    ossia::value start,
+    ossia::value end,
+    bool tween)
+    : CreateProcessAndLayers{interval,
+                             slotList,
+                             std::move(curveId),
                              Metadata<
                                  ConcreteKey_k,
                                  Automation::ProcessModel>::get()}
@@ -181,9 +194,13 @@ void CreateInterpolationFromStates::deserializeImpl(DataStreamOutput& s)
 }
 
 CreateProcessAndLayers::CreateProcessAndLayers(
-    const IntervalModel& interval, const std::vector<SlotPath>& slotList,
-    Id<Process::ProcessModel> procId, UuidKey<Process::ProcessModel> key)
-    : m_addProcessCmd{std::move(interval), std::move(procId), std::move(key),
+    const IntervalModel& interval,
+    const std::vector<SlotPath>& slotList,
+    Id<Process::ProcessModel> procId,
+    UuidKey<Process::ProcessModel> key)
+    : m_addProcessCmd{std::move(interval),
+                      std::move(procId),
+                      std::move(key),
                       QString{}}
 {
   m_slotsCmd.reserve(slotList.size());

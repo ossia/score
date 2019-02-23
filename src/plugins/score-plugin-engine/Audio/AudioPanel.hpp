@@ -19,8 +19,8 @@ public:
 private:
   const score::PanelStatus& defaultPanelStatus() const override;
 
-  void on_modelChanged(
-      score::MaybeDocument oldm, score::MaybeDocument newm) override;
+  void on_modelChanged(score::MaybeDocument oldm, score::MaybeDocument newm)
+      override;
 
   QWidget* m_widget{};
   AudioPanel* m_cur{};

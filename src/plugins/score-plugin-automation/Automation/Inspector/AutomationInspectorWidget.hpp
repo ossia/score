@@ -42,7 +42,8 @@ class InspectorWidget final
 {
 public:
   explicit InspectorWidget(
-      const ProcessModel& object, const score::DocumentContext& context,
+      const ProcessModel& object,
+      const score::DocumentContext& context,
       QWidget* parent);
 
 private:
@@ -67,7 +68,8 @@ class InspectorWidget final
 {
 public:
   explicit InspectorWidget(
-      const ProcessModel& object, const score::DocumentContext& context,
+      const ProcessModel& object,
+      const score::DocumentContext& context,
       QWidget* parent);
 
 private:
@@ -87,7 +89,8 @@ class InspectorWidget final
 {
 public:
   explicit InspectorWidget(
-      const ProcessModel& object, const score::DocumentContext& context,
+      const ProcessModel& object,
+      const score::DocumentContext& context,
       QWidget* parent);
 
 private:
@@ -109,7 +112,8 @@ class InspectorWidget final
 {
 public:
   explicit InspectorWidget(
-      const ProcessModel& object, const score::DocumentContext& context,
+      const ProcessModel& object,
+      const score::DocumentContext& context,
       QWidget* parent);
 
 private:

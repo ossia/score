@@ -25,7 +25,8 @@ class Model final : public Process::ProcessModel
 
 public:
   explicit Model(
-      const TimeVal& duration, const Id<Process::ProcessModel>& id,
+      const TimeVal& duration,
+      const Id<Process::ProcessModel>& id,
       QObject* parent);
 
   ~Model() override;
@@ -38,10 +39,7 @@ public:
     init();
   }
 
-  void init()
-  {
-    m_outlets.push_back(outlet.get());
-  }
+  void init() { m_outlets.push_back(outlet.get()); }
 
   std::unique_ptr<Process::Outlet> outlet;
 
@@ -81,8 +79,9 @@ private:
   W_PROPERTY(double, min READ min WRITE setMin NOTIFY minChanged)
 
   W_PROPERTY(
-      quint64, stepDuration READ stepDuration WRITE setStepDuration NOTIFY
-                   stepDurationChanged)
+      quint64,
+      stepDuration READ stepDuration WRITE setStepDuration NOTIFY
+          stepDurationChanged)
 
   W_PROPERTY(
       quint64,

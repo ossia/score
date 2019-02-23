@@ -23,14 +23,16 @@ public:
   virtual bool matches(const IntervalModel& interval) const = 0;
 
   bool matches(
-      ScenarioDocumentPresenter& pres, const IntervalModel& interval,
+      ScenarioDocumentPresenter& pres,
+      const IntervalModel& interval,
       QGraphicsItem*) const
   {
     return matches(interval);
   }
 
   virtual std::unique_ptr<GraphicsSceneToolPalette> make(
-      ScenarioDocumentPresenter& pres, const IntervalModel& interval,
+      ScenarioDocumentPresenter& pres,
+      const IntervalModel& interval,
       QGraphicsItem* parent)
       = 0;
 };

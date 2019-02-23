@@ -10,23 +10,13 @@ class state_interpolation final : public ossia::graph_node
 public:
   using drives_vector
       = std::vector<std::pair<ossia::destination, ossia::behavior>>;
-  state_interpolation()
-  {
-  }
+  state_interpolation() {}
 
-  ~state_interpolation() override
-  {
-  }
+  ~state_interpolation() override {}
 
-  std::string label() const noexcept override
-  {
-    return "state_interpolation";
-  }
+  std::string label() const noexcept override { return "state_interpolation"; }
 
-  void set_behaviors(const drives_vector& b)
-  {
-    m_drives = b;
-  }
+  void set_behaviors(const drives_vector& b) { m_drives = b; }
 
   void reset_drive()
   {
@@ -55,9 +45,14 @@ namespace InterpState
 {
 
 ExecComponent::ExecComponent(
-    InterpState::ProcessModel& element, const Execution::Context& ctx,
-    const Id<score::Component>& id, QObject* parent)
-    : ProcessComponent_T{element, ctx, id, "Executor::InterpStateComponent",
+    InterpState::ProcessModel& element,
+    const Execution::Context& ctx,
+    const Id<score::Component>& id,
+    QObject* parent)
+    : ProcessComponent_T{element,
+                         ctx,
+                         id,
+                         "Executor::InterpStateComponent",
                          parent}
 {
   // - When a state (start / end) changes
@@ -85,9 +80,7 @@ ExecComponent::ExecComponent(
   recompute();
 }
 
-ExecComponent::~ExecComponent()
-{
-}
+ExecComponent::~ExecComponent() {}
 
 void ExecComponent::recompute()
 { /*
@@ -149,7 +142,8 @@ ExecComponent::on_curveChanged_impl(const optional<ossia::destination>& d)
 }
 
 std::shared_ptr<ossia::curve_abstract> ExecComponent::on_curveChanged(
-    ossia::val_type type, const optional<ossia::destination>& d)
+    ossia::val_type type,
+    const optional<ossia::destination>& d)
 { /*
    switch (type)
    {

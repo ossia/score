@@ -59,20 +59,11 @@ public:
 
   void clear();
 
-  const auto& segments() const
-  {
-    return m_segments;
-  }
-  auto& segments()
-  {
-    return m_segments;
-  }
+  const auto& segments() const { return m_segments; }
+  auto& segments() { return m_segments; }
 
   const std::vector<PointModel*>& points() const;
-  std::vector<PointModel*>& points()
-  {
-    return m_points;
-  }
+  std::vector<PointModel*>& points() { return m_points; }
 
   double lastPointPos() const;
 
@@ -80,11 +71,15 @@ public:
   void segmentAdded(const SegmentModel& arg_1)
       E_SIGNAL(SCORE_PLUGIN_CURVE_EXPORT, segmentAdded, arg_1);
   void segmentRemoved(const Id<SegmentModel>& arg_1) E_SIGNAL(
-      SCORE_PLUGIN_CURVE_EXPORT, segmentRemoved, arg_1); // dangerous if async
+      SCORE_PLUGIN_CURVE_EXPORT,
+      segmentRemoved,
+      arg_1); // dangerous if async
   void pointAdded(const PointModel& arg_1)
       E_SIGNAL(SCORE_PLUGIN_CURVE_EXPORT, pointAdded, arg_1);
   void pointRemoved(const Id<PointModel>& arg_1) E_SIGNAL(
-      SCORE_PLUGIN_CURVE_EXPORT, pointRemoved, arg_1); // dangerous if async
+      SCORE_PLUGIN_CURVE_EXPORT,
+      pointRemoved,
+      arg_1); // dangerous if async
 
   // This signal has to be emitted after big modifications.
   // (it's an optimization to prevent updating the OSSIA API each time a

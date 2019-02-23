@@ -6,9 +6,10 @@
 #include <Device/Protocol/ProtocolFactoryInterface.hpp>
 #include <Process/Execution/ProcessComponent.hpp>
 #include <Protocols/Local/LocalProtocolFactory.hpp>
+#include <Protocols/ProtocolLibrary.hpp>
 
-#include <score/plugins/InterfaceList.hpp>
 #include <score/plugins/FactorySetup.hpp>
+#include <score/plugins/InterfaceList.hpp>
 #include <score/plugins/StringFactoryKey.hpp>
 
 #include <ossia/editor/scenario/time_event.hpp>
@@ -34,8 +35,6 @@
 #include <LocalTree/Scenario/ScenarioComponent.hpp>
 
 #include <ossia-config.hpp>
-
-#include <Protocols/ProtocolLibrary.hpp>
 #if defined(OSSIA_PROTOCOL_MINUIT)
 #include <Protocols/Minuit/MinuitProtocolFactory.hpp>
 #endif
@@ -65,10 +64,10 @@
 #include <Protocols/Joystick/JoystickProtocolFactory.hpp>
 #endif
 #if defined(OSSIA_PROTOCOL_WIIMOTE)
-#  include <Protocols/Wiimote/WiimoteProtocolFactory.hpp>
+#include <Protocols/Wiimote/WiimoteProtocolFactory.hpp>
 #endif
 #if defined(OSSIA_PROTOCOL_ARTNET)
-#  include <Protocols/Artnet/ArtnetProtocolFactory.hpp>
+#include <Protocols/Artnet/ArtnetProtocolFactory.hpp>
 #endif
 
 #include <Protocols/Audio/AudioDevice.hpp>
@@ -91,12 +90,11 @@ score_plugin_engine::score_plugin_engine()
   qRegisterMetaType<Audio::AudioFactory::ConcreteKey>("AudioKey");
   qRegisterMetaTypeStreamOperators<Audio::AudioFactory::ConcreteKey>(
       "AudioKey");
-  qRegisterMetaType<std::vector<ossia::net::node_base*>>("std::vector<ossia::net::node_base*>");
+  qRegisterMetaType<std::vector<ossia::net::node_base*>>(
+      "std::vector<ossia::net::node_base*>");
 }
 
-score_plugin_engine::~score_plugin_engine()
-{
-}
+score_plugin_engine::~score_plugin_engine() {}
 
 score::GUIApplicationPlugin* score_plugin_engine::make_guiApplicationPlugin(
     const score::GUIApplicationContext& app)
@@ -108,23 +106,26 @@ std::vector<std::unique_ptr<score::InterfaceListBase>>
 score_plugin_engine::factoryFamilies()
 {
   return make_ptr_vector<
-      score::InterfaceListBase, LocalTree::ProcessComponentFactoryList,
-      Execution::ProcessComponentFactoryList, Execution::ClockFactoryList,
+      score::InterfaceListBase,
+      LocalTree::ProcessComponentFactoryList,
+      Execution::ProcessComponentFactoryList,
+      Execution::ClockFactoryList,
       Audio::AudioFactoryList>();
 }
 
 std::vector<std::unique_ptr<score::InterfaceBase>>
 score_plugin_engine::factories(
-    const score::ApplicationContext& ctx, const score::InterfaceKey& key) const
+    const score::ApplicationContext& ctx,
+    const score::InterfaceKey& key) const
 {
   using namespace Scenario;
   using namespace Engine;
   using namespace Execution;
   return instantiate_factories<
       score::ApplicationContext,
-      FW<Device::ProtocolFactory
-      , Protocols::LocalProtocolFactory
-      , Protocols::MapperProtocolFactory
+      FW<Device::ProtocolFactory,
+         Protocols::LocalProtocolFactory,
+         Protocols::MapperProtocolFactory
 
 #if defined(OSSIA_PROTOCOL_OSC)
          ,
@@ -167,39 +168,46 @@ score_plugin_engine::factories(
          Protocols::JoystickProtocolFactory
 #endif
 #if defined(OSSIA_PROTOCOL_WIIMOTE)
-        ,
-        Protocols::WiimoteProtocolFactory
+         ,
+         Protocols::WiimoteProtocolFactory
 #endif
 #if defined(OSSIA_PROTOCOL_ARTNET)
-        ,
-        Protocols::ArtnetProtocolFactory
+         ,
+         Protocols::ArtnetProtocolFactory
 #endif
          >,
 
-      FW<Audio::AudioFactory, Audio::DummyFactory
+      FW<Audio::AudioFactory,
+         Audio::DummyFactory
 #if defined(OSSIA_AUDIO_JACK)
          ,
          Audio::JackFactory
 #endif
 #if defined(OSSIA_AUDIO_PORTAUDIO)
-    #if !defined(_WIN32) && !defined(__linux__)
-         , Audio::PortAudioFactory
-    #endif
-    #if __has_include(<pa_asio.h>)
-         , Audio::ASIOFactory
-    #endif
-    #if __has_include(<pa_win_wdmks.h>)
-         , Audio::WDMKSFactory
-    #endif
-    #if __has_include(<pa_win_wasapi.h>)
-         , Audio::WASAPIFactory
-    #endif
-    #if __has_include(<pa_win_wmme.h>)
-         , Audio::MMEFactory
-    #endif
-    #if __has_include(<pa_linux_alsa.h>)
-         , Audio::ALSAFactory
-    #endif
+#if !defined(_WIN32) && !defined(__linux__)
+         ,
+         Audio::PortAudioFactory
+#endif
+#if __has_include(<pa_asio.h>)
+         ,
+         Audio::ASIOFactory
+#endif
+#if __has_include(<pa_win_wdmks.h>)
+         ,
+         Audio::WDMKSFactory
+#endif
+#if __has_include(<pa_win_wasapi.h>)
+         ,
+         Audio::WASAPIFactory
+#endif
+#if __has_include(<pa_win_wmme.h>)
+         ,
+         Audio::MMEFactory
+#endif
+#if __has_include(<pa_linux_alsa.h>)
+         ,
+         Audio::ALSAFactory
+#endif
 #endif
 #if defined(OSSIA_AUDIO_SDL)
          ,
@@ -209,14 +217,18 @@ score_plugin_engine::factories(
 
       FW<Explorer::ListeningHandlerFactory,
          Execution::PlayListeningHandlerFactory>,
-      FW<score::SettingsDelegateFactory, Execution::Settings::Factory,
+      FW<score::SettingsDelegateFactory,
+         Execution::Settings::Factory,
          Audio::Settings::Factory>,
       FW<LocalTree::ProcessComponentFactory,
-         LocalTree::ScenarioComponentFactory, LocalTree::LoopComponentFactory,
+         LocalTree::ScenarioComponentFactory,
+         LocalTree::LoopComponentFactory,
          LocalTree::AutomationComponentFactory,
          LocalTree::MappingComponentFactory>,
       FW<score::PanelDelegateFactory, Audio::PanelDelegateFactory>,
-      FW<Library::LibraryInterface, Protocols::OSCLibraryHandler, Protocols::QMLLibraryHandler>,
+      FW<Library::LibraryInterface,
+         Protocols::OSCLibraryHandler,
+         Protocols::QMLLibraryHandler>,
       FW<Execution::ClockFactory
          // , Execution::ControlClockFactory
          ,

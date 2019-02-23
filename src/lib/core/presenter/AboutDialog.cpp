@@ -59,9 +59,7 @@ AboutDialog::AboutDialog(QWidget* parent)
     License(License&&) = default;
     License& operator=(const License&) = default;
     License& operator=(License&&) = default;
-    License(QString u, QString l) : url{u}, license{l}
-    {
-    }
+    License(QString u, QString l) : url{u}, license{l} {}
     License(QString u, const unsigned char* l) : url{u}
     {
       license = QString::fromUtf8(reinterpret_cast<const char*>(l));
@@ -100,9 +98,9 @@ AboutDialog::AboutDialog(QWidget* parent)
   map["RtMidi"] = License{"https://github.com/thestk/rtmidi", rtmidi_LICENSE};
   map["ModernMidi"] = License{"(https://github.com/ddiakopoulos/ModernMIDI",
                               modernmidi_LICENSE};
-  map["Servus"]
-      = License{"https://github.com/jcelerier/Servus",
-                "Based on https://github.com/HBPVIS/Servus\n", servus_LICENSE};
+  map["Servus"] = License{"https://github.com/jcelerier/Servus",
+                          "Based on https://github.com/HBPVIS/Servus\n",
+                          servus_LICENSE};
 
   map["SmallFunction"]
       = License{"https://github.com/jcelerier/SmallFunction",
@@ -121,9 +119,9 @@ AboutDialog::AboutDialog(QWidget* parent)
   map["ReaderWriterQueue"]
       = License{"https://github.com/cameron314/readerwriterqueue",
                 readerwriterqueue_LICENSE};
-  map["flat"]
-      = License{"https://github.com/jcelerier/flat",
-                "Based on https://github.com/pubby/flat\n", flat_LICENSE};
+  map["flat"] = License{"https://github.com/jcelerier/flat",
+                        "Based on https://github.com/pubby/flat\n",
+                        flat_LICENSE};
   map["flat_hash_map"]
       = License{"https://github.com/jcelerier/flat_hash_map",
                 "Based on https://github.com/skarupke/flat_hash_map\n"};
@@ -241,7 +239,9 @@ AboutDialog::AboutDialog(QWidget* parent)
   license->setFont(smallCata);
   license->setReadOnly(true);
   connect(
-      softwareList, &QListWidget::currentTextChanged, this,
+      softwareList,
+      &QListWidget::currentTextChanged,
+      this,
       [=](const QString& currentText) {
         auto& lic = map.at(currentText);
         license->setPlainText(lic.url + "\n\n" + lic.license);
@@ -313,7 +313,8 @@ void AboutDialog::paintEvent(QPaintEvent* event)
     painter.setPen(textPen);
     painter.setFont(m_catamaranFont);
     painter.drawText(
-        QRectF(0, 100, m_windowSize.width(), 60), Qt::AlignHCenter,
+        QRectF(0, 100, m_windowSize.width(), 60),
+        Qt::AlignHCenter,
         version_text);
   }
 
@@ -324,7 +325,8 @@ void AboutDialog::paintEvent(QPaintEvent* event)
 
     painter.setFont(m_montserratFont);
     painter.drawText(
-        QRectF(0, 160, m_windowSize.width(), 30), Qt::AlignHCenter,
+        QRectF(0, 160, m_windowSize.width(), 30),
+        Qt::AlignHCenter,
         copyright_text);
   }
 

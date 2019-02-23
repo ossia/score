@@ -32,14 +32,16 @@ class IdContainer
  */
 template <typename Element, typename Model>
 class IdContainer<
-    Element, Model,
+    Element,
+    Model,
     std::enable_if_t<std::is_base_of<IdentifiedObject<Model>, Element>::value>>
 {
 public:
   using model_type = Model;
   using order_t = std::list<Element*>;
   using map_t = tsl::hopscotch_map<
-      Id<Model>, std::pair<Element*, typename order_t::iterator>>;
+      Id<Model>,
+      std::pair<Element*, typename order_t::iterator>>;
   map_t m_map;
   order_t m_order;
 
@@ -65,10 +67,7 @@ public:
     }
   }
 
-  auto& ordered() INLINE_EXPORT
-  {
-    return m_order;
-  }
+  auto& ordered() INLINE_EXPORT { return m_order; }
 
   const_iterator begin() const INLINE_EXPORT
   {
@@ -95,15 +94,9 @@ public:
     return score::make_indirect_iterator(this->m_order.cend());
   }
 
-  std::size_t size() const INLINE_EXPORT
-  {
-    return m_map.size();
-  }
+  std::size_t size() const INLINE_EXPORT { return m_map.size(); }
 
-  bool empty() const INLINE_EXPORT
-  {
-    return m_map.empty();
-  }
+  bool empty() const INLINE_EXPORT { return m_map.empty(); }
 
   std::vector<Element*> as_vec() const INLINE_EXPORT
   {
@@ -143,10 +136,7 @@ public:
     }
   }
 
-  void remove(const Id<Model>& id) INLINE_EXPORT
-  {
-    remove(m_map.find(id));
-  }
+  void remove(const Id<Model>& id) INLINE_EXPORT { remove(m_map.find(id)); }
 
   void clear() INLINE_EXPORT
   {
@@ -192,7 +182,8 @@ public:
  */
 template <typename Element, typename Model>
 class IdContainer<
-    Element, Model,
+    Element,
+    Model,
     std::enable_if_t<
         !std::is_base_of<IdentifiedObject<Model>, Element>::value>>
 {

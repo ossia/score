@@ -40,7 +40,9 @@ WSProtocolSettingsWidget::WSProtocolSettingsWidget(QWidget* parent)
     auto engine = new QQmlEngine;
     auto comp = new QQmlComponent{engine};
     connect(
-        comp, &QQmlComponent::statusChanged, this,
+        comp,
+        &QQmlComponent::statusChanged,
+        this,
         [=](QQmlComponent::Status status) {
           switch (status)
           {
@@ -110,11 +112,9 @@ void WSProtocolSettingsWidget::setSettings(
 {
   m_deviceNameEdit->setText(settings.name);
   WSSpecificSettings specific;
-  if (settings.deviceSpecificSettings
-          .canConvert<WSSpecificSettings>())
+  if (settings.deviceSpecificSettings.canConvert<WSSpecificSettings>())
   {
-    specific
-        = settings.deviceSpecificSettings.value<WSSpecificSettings>();
+    specific = settings.deviceSpecificSettings.value<WSSpecificSettings>();
 
     m_addressNameEdit->setText(specific.address);
     m_codeEdit->setPlainText(specific.text);

@@ -38,14 +38,22 @@ W_OBJECT_IMPL(Execution::DocumentPlugin)
 namespace Execution
 {
 DocumentPlugin::DocumentPlugin(
-    const score::DocumentContext& ctx, Id<score::DocumentPlugin> id,
+    const score::DocumentContext& ctx,
+    Id<score::DocumentPlugin> id,
     QObject* parent)
     : score::DocumentPlugin{ctx, std::move(id), "OSSIADocumentPlugin", parent}
     , settings{ctx.app.settings<Execution::Settings::Model>()}
     , m_execQueue(1024)
     , m_editionQueue(1024)
-    , m_ctx{ctx,         m_created, {},       {}, m_execQueue, m_editionQueue,
-            m_setup_ctx, execGraph, execState}
+    , m_ctx{ctx,
+            m_created,
+            {},
+            {},
+            m_execQueue,
+            m_editionQueue,
+            m_setup_ctx,
+            execGraph,
+            execState}
     , m_setup_ctx{m_ctx}
     , m_base{m_ctx, this}
 {
@@ -60,14 +68,17 @@ DocumentPlugin::DocumentPlugin(
   {
     audio_device = new Dataflow::AudioDevice(
         {Dataflow::AudioProtocolFactory::static_concreteKey(), "audio", {}});
-    ctx.plugin<Explorer::DeviceDocumentPlugin>().list().setAudioDevice(audio_device);
+    ctx.plugin<Explorer::DeviceDocumentPlugin>().list().setAudioDevice(
+        audio_device);
   }
 
   auto on_deviceAdded = [=](auto& dev) {
     if (auto d = dev.getDevice())
     {
       connect(
-          &dev, &Device::DeviceInterface::deviceChanged, this,
+          &dev,
+          &Device::DeviceInterface::deviceChanged,
+          this,
           [=](ossia::net::device_base* old_dev,
               ossia::net::device_base* new_dev) {
             if (old_dev)
@@ -91,7 +102,9 @@ DocumentPlugin::DocumentPlugin(
       m_setup_ctx);
   model.cables.removing.connect<&SetupContext::on_cableRemoved>(m_setup_ctx);
 
-  con(m_base, &Execution::BaseScenarioElement::finished, this,
+  con(m_base,
+      &Execution::BaseScenarioElement::finished,
+      this,
       [=] {
         auto& stop_action = context().doc.app.actions.action<Actions::Stop>();
         stop_action.action()->trigger();
@@ -99,7 +112,10 @@ DocumentPlugin::DocumentPlugin(
       Qt::QueuedConnection);
 
   connect(
-      this, &DocumentPlugin::finished, this, &DocumentPlugin::on_finished,
+      this,
+      &DocumentPlugin::finished,
+      this,
+      &DocumentPlugin::on_finished,
       Qt::QueuedConnection);
   connect(this, &DocumentPlugin::sig_bench, this, &DocumentPlugin::slot_bench);
 }

@@ -25,7 +25,8 @@ int MinuitProtocolFactory::visualPriority() const
 }
 
 Device::DeviceInterface* MinuitProtocolFactory::makeDevice(
-    const Device::DeviceSettings& settings, const score::DocumentContext& ctx)
+    const Device::DeviceSettings& settings,
+    const score::DocumentContext& ctx)
 {
   return new MinuitDevice{settings};
 }
@@ -55,13 +56,15 @@ QVariant MinuitProtocolFactory::makeProtocolSpecificSettings(
 }
 
 void MinuitProtocolFactory::serializeProtocolSpecificSettings(
-    const QVariant& data, const VisitorVariant& visitor) const
+    const QVariant& data,
+    const VisitorVariant& visitor) const
 {
   serializeProtocolSpecificSettings_T<MinuitSpecificSettings>(data, visitor);
 }
 
 bool MinuitProtocolFactory::checkCompatibility(
-    const Device::DeviceSettings& a, const Device::DeviceSettings& b) const
+    const Device::DeviceSettings& a,
+    const Device::DeviceSettings& b) const
 {
   // TODO we should check also for other devices.  Devices should have a "open
   // ports" method that

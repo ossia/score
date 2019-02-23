@@ -80,10 +80,17 @@ inline auto& waveformMap()
 static constexpr auto WaveformChooser()
 {
   return Control::make_enum(
-      "Waveform", 0U,
+      "Waveform",
+      0U,
       ossia::make_array(
-          "Sin", "Triangle", "Saw", "Square", "Sample & Hold", "Noise 1",
-          "Noise 2", "Noise 3"));
+          "Sin",
+          "Triangle",
+          "Saw",
+          "Square",
+          "Sample & Hold",
+          "Noise 1",
+          "Noise 2",
+          "Noise 3"));
 }
 constexpr auto QuantificationChooser()
 {

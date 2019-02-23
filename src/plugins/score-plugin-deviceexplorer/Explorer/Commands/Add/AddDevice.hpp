@@ -19,7 +19,9 @@ class SCORE_PLUGIN_DEVICEEXPLORER_EXPORT AddDevice final
     : public score::Command
 {
   SCORE_COMMAND_DECL(
-      DeviceExplorerCommandFactoryName(), AddDevice, "Add a device")
+      DeviceExplorerCommandFactoryName(),
+      AddDevice,
+      "Add a device")
 public:
   AddDevice(
       const DeviceDocumentPlugin& device_tree,

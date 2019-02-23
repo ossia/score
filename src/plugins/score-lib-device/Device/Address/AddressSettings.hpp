@@ -45,10 +45,7 @@ struct SCORE_LIB_DEVICE_EXPORT AddressSettingsCommon
   {
     return extendedAttributes;
   }
-  operator ossia::extended_attributes&()
-  {
-    return extendedAttributes;
-  }
+  operator ossia::extended_attributes&() { return extendedAttributes; }
 };
 
 // this one has only the name of the current node (e.g. 'a' for dev:/azazd/a)
@@ -158,10 +155,12 @@ struct SCORE_LIB_DEVICE_EXPORT FullAddressAccessorSettings
   explicit FullAddressAccessorSettings(FullAddressSettings&& f) noexcept;
 
   FullAddressAccessorSettings(
-      State::AddressAccessor&& addr, AddressSettingsCommon&& f) noexcept;
+      State::AddressAccessor&& addr,
+      AddressSettingsCommon&& f) noexcept;
 
   FullAddressAccessorSettings(
-      const State::AddressAccessor& addr, const ossia::value& min,
+      const State::AddressAccessor& addr,
+      const ossia::value& min,
       const ossia::value& max) noexcept;
 
   ossia::value value;

@@ -19,7 +19,9 @@ View::View() : m_widg{new QWidget}
   m_Driver = new QComboBox{m_widg};
   lay->addRow(tr("Driver"), m_Driver);
   connect(
-      m_Driver, SignalUtils::QComboBox_currentIndexChanged_int(), this,
+      m_Driver,
+      SignalUtils::QComboBox_currentIndexChanged_int(),
+      this,
       [this](int i) {
         DriverChanged(
             m_Driver->itemData(i).value<AudioFactory::ConcreteKey>());
@@ -29,7 +31,8 @@ View::View() : m_widg{new QWidget}
   SETTINGS_UI_NUM_COMBOBOX_SETUP(
       "Rate", Rate, (std::vector<int>{44100, 48000, 88200, 96000, 192000}));
   SETTINGS_UI_NUM_COMBOBOX_SETUP(
-      "BufferSize", BufferSize,
+      "BufferSize",
+      BufferSize,
       (std::vector<int>{32, 64, 128, 256, 512, 1024, 2048}));
 
   lay->addWidget(m_sw);

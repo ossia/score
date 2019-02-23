@@ -19,10 +19,17 @@ class ProcessModel;
 }
 
 PROCESS_METADATA(
-    , Interpolation::ProcessModel, "aa569e11-03a9-4023-92c2-b590e88fec90",
-    "Interpolation", "Interpolation", Process::ProcessCategory::Automation,
-    "Automations", "Interpolate between two states", "ossia score",
-    (QStringList{"Curve", "Automation"}), {},
+    ,
+    Interpolation::ProcessModel,
+    "aa569e11-03a9-4023-92c2-b590e88fec90",
+    "Interpolation",
+    "Interpolation",
+    Process::ProcessCategory::Automation,
+    "Automations",
+    "Interpolate between two states",
+    "ossia score",
+    (QStringList{"Curve", "Automation"}),
+    {},
     {std::vector<Process::PortType>{Process::PortType::Message}},
     Process::ProcessFlags::SupportsTemporal)
 namespace Interpolation
@@ -49,7 +56,8 @@ public:
   ::State::MessageList messages() const override;
 
   ::State::MessageList setMessages(
-      const ::State::MessageList&, const Process::MessageNode&) override;
+      const ::State::MessageList&,
+      const Process::MessageNode&) override;
 
 private:
   Point m_point{};
@@ -65,7 +73,8 @@ class SCORE_PLUGIN_SCENARIO_EXPORT ProcessModel final
 
 public:
   ProcessModel(
-      const TimeVal& duration, const Id<Process::ProcessModel>& id,
+      const TimeVal& duration,
+      const Id<Process::ProcessModel>& id,
       QObject* parent);
 
   ~ProcessModel();
@@ -93,10 +102,7 @@ public:
   QString prettyName() const noexcept override;
   QString prettyValue(double x, double y) const noexcept override;
 
-  bool tween() const
-  {
-    return m_tween;
-  }
+  bool tween() const { return m_tween; }
   void setTween(bool tween)
   {
     if (m_tween == tween)

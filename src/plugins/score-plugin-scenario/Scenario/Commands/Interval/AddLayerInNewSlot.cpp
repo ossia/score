@@ -24,7 +24,8 @@ namespace Scenario
 namespace Command
 {
 AddLayerInNewSlot::AddLayerInNewSlot(
-    Path<IntervalModel>&& intervalPath, Id<Process::ProcessModel> process)
+    Path<IntervalModel>&& intervalPath,
+    Id<Process::ProcessModel> process)
     : m_path{std::move(intervalPath)}, m_processId{std::move(process)}
 {
 }

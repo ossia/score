@@ -25,7 +25,9 @@
 namespace Scenario
 {
 SlotHeader::SlotHeader(
-    const IntervalPresenter& slotView, int slotIndex, QGraphicsItem* parent)
+    const IntervalPresenter& slotView,
+    int slotIndex,
+    QGraphicsItem* parent)
     : QGraphicsItem{parent}
     , m_presenter{slotView}
     , m_width{slotView.view()->boundingRect().width()}
@@ -54,7 +56,9 @@ QRectF SlotHeader::boundingRect() const
 }
 
 void SlotHeader::paint(
-    QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+    QPainter* painter,
+    const QStyleOptionGraphicsItem* option,
+    QWidget* widget)
 {
   painter->setRenderHint(QPainter::Antialiasing, false);
   const auto& style = Process::Style::instance();
@@ -78,7 +82,6 @@ void SlotHeader::paint(
 
     // Frame
     painter->drawRect(QRectF{0., 0., m_width, headerHeight() - 1});
-
   }
   else
   {
@@ -126,7 +129,8 @@ void SlotHeader::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
   if (xpos >= 0 && xpos < 16 && slot_header_drag)
   {
     auto min_dist
-        = (event->screenPos() - event->buttonDownScreenPos(Qt::LeftButton)).manhattanLength()
+        = (event->screenPos() - event->buttonDownScreenPos(Qt::LeftButton))
+              .manhattanLength()
           >= QApplication::startDragDistance();
 
     if (min_dist)
@@ -159,7 +163,9 @@ void SlotHeader::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
     slot_header_drag->setHotSpot(QPoint(5, 5));
 
     QObject::connect(
-        slot_header_drag.get(), &QDrag::destroyed, &m_presenter,
+        slot_header_drag.get(),
+        &QDrag::destroyed,
+        &m_presenter,
         [p = &m_presenter] { p->stopSlotDrag(); });
 
     m_presenter.startSlotDrag(m_slotIndex, mapToParent(event->pos()));
@@ -227,7 +233,9 @@ QRectF SlotDragOverlay::boundingRect() const
 }
 
 void SlotDragOverlay::paint(
-    QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+    QPainter* painter,
+    const QStyleOptionGraphicsItem* option,
+    QWidget* widget)
 {
   const auto& style = Process::Style::instance();
   auto c = style.IntervalBase.getBrush().color();

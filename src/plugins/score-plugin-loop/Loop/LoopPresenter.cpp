@@ -27,8 +27,8 @@
 
 #include <score/application/ApplicationContext.hpp>
 #include <score/document/DocumentContext.hpp>
-#include <score/tools/Todo.hpp>
 #include <score/graphics/GraphicsItem.hpp>
+#include <score/tools/Todo.hpp>
 
 #include <ossia/detail/algorithms.hpp>
 
@@ -54,19 +54,22 @@ struct VerticalExtent;
 namespace Loop
 {
 LayerPresenter::LayerPresenter(
-    const ProcessModel& layer, LayerView* view,
-    const Process::ProcessPresenterContext& ctx, QObject* parent)
+    const ProcessModel& layer,
+    LayerView* view,
+    const Process::ProcessPresenterContext& ctx,
+    QObject* parent)
     : Process::LayerPresenter{ctx, parent}
     , BaseScenarioPresenter<
-          Loop::ProcessModel, Scenario::TemporalIntervalPresenter>{layer}
+          Loop::ProcessModel,
+          Scenario::TemporalIntervalPresenter>{layer}
     , m_layer{layer}
     , m_view{view}
     , m_viewUpdater{*this}
     , m_palette{m_layer, *this, m_context, *m_view}
 {
   using namespace Scenario;
-  m_intervalPresenter = new TemporalIntervalPresenter{layer.interval(), ctx,
-                                                      false, view, this};
+  m_intervalPresenter = new TemporalIntervalPresenter{
+      layer.interval(), ctx, false, view, this};
   m_startStatePresenter = new StatePresenter{
       layer.BaseScenarioContainer::startState(), ctx, m_view, this};
   m_endStatePresenter = new StatePresenter{
@@ -79,8 +82,12 @@ LayerPresenter::LayerPresenter(
       = new TimeSyncPresenter{layer.endTimeSync(), m_view, this};
 
   auto elements = std::make_tuple(
-      m_intervalPresenter, m_startStatePresenter, m_endStatePresenter,
-      m_startEventPresenter, m_endEventPresenter, m_startNodePresenter,
+      m_intervalPresenter,
+      m_startStatePresenter,
+      m_endStatePresenter,
+      m_startEventPresenter,
+      m_endEventPresenter,
+      m_startNodePresenter,
       m_endNodePresenter);
 
   ossia::for_each_in_tuple(elements, [&](auto elt) {
@@ -90,19 +97,27 @@ LayerPresenter::LayerPresenter(
     connect(elt, &elt_t::released, this, &LayerPresenter::released);
   });
 
-  con(m_endEventPresenter->model(), &EventModel::extentChanged, this,
+  con(m_endEventPresenter->model(),
+      &EventModel::extentChanged,
+      this,
       [=](const VerticalExtent&) {
         m_viewUpdater.updateEvent(*m_endEventPresenter);
       });
-  con(m_endEventPresenter->model(), &EventModel::dateChanged, this,
+  con(m_endEventPresenter->model(),
+      &EventModel::dateChanged,
+      this,
       [=](const TimeVal&) {
         m_viewUpdater.updateEvent(*m_endEventPresenter);
       });
-  con(m_endNodePresenter->model(), &TimeSyncModel::extentChanged, this,
+  con(m_endNodePresenter->model(),
+      &TimeSyncModel::extentChanged,
+      this,
       [=](const VerticalExtent&) {
         m_viewUpdater.updateTimeSync(*m_endNodePresenter);
       });
-  con(m_endNodePresenter->model(), &TimeSyncModel::dateChanged, this,
+  con(m_endNodePresenter->model(),
+      &TimeSyncModel::dateChanged,
+      this,
       [=](const TimeVal&) {
         m_viewUpdater.updateTimeSync(*m_endNodePresenter);
       });
@@ -112,13 +127,17 @@ LayerPresenter::LayerPresenter(
   m_model.interval()
       .processes.removed.connect<&LayerPresenter::on_removeProcess>(*this);
   connect(
-      m_view, &LayerView::askContextMenu, this,
+      m_view,
+      &LayerView::askContextMenu,
+      this,
       &LayerPresenter::contextMenuRequested);
   connect(m_view, &LayerView::pressed, this, [&]() {
     m_context.context.focusDispatcher.focus(this);
   });
 
-  con(ctx.execTimer, &QTimer::timeout, this,
+  con(ctx.execTimer,
+      &QTimer::timeout,
+      this,
       &LayerPresenter::on_intervalExecutionTimer);
 
   m_startStatePresenter->view()->disableOverlay();
@@ -138,7 +157,9 @@ void LayerPresenter::on_removeProcess(const Process::ProcessModel& p)
 LayerPresenter::~LayerPresenter()
 {
   disconnect(
-      &m_context.context.execTimer, &QTimer::timeout, this,
+      &m_context.context.execTimer,
+      &QTimer::timeout,
+      this,
       &LayerPresenter::on_intervalExecutionTimer);
 
   delete m_intervalPresenter;
@@ -223,7 +244,9 @@ void LayerPresenter::updateAllElements()
 }
 
 void LayerPresenter::fillContextMenu(
-    QMenu& menu, QPoint pos, QPointF scenepos,
+    QMenu& menu,
+    QPoint pos,
+    QPointF scenepos,
     const Process::LayerContextMenuManager&)
 {
   // TODO ACTIONS

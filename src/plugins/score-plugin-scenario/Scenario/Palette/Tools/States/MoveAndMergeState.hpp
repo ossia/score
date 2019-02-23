@@ -77,13 +77,16 @@ private:
 */
 template <
     typename MoveEventCommand_T, // MoveEventMeta
-    typename Scenario_T, typename ToolPalette_T>
+    typename Scenario_T,
+    typename ToolPalette_T>
 class MoveEventState final : public StateBase<Scenario_T>
 {
 public:
   MoveEventState(
-      const ToolPalette_T& stateMachine, const Scenario_T& scenarioPath,
-      const score::CommandStackFacade& stack, score::ObjectLocker& locker,
+      const ToolPalette_T& stateMachine,
+      const Scenario_T& scenarioPath,
+      const score::CommandStackFacade& stack,
+      score::ObjectLocker& locker,
       QState* parent)
       : StateBase<Scenario_T>{scenarioPath, parent}, m_movingDispatcher{stack}
   {
@@ -186,14 +189,21 @@ public:
           auto new_y
               = m_origPos.y + (this->currentPoint.y - this->m_pressPos.y);
           this->m_movingDispatcher.submit(
-              this->m_scenario, *evId, date, new_y,
+              this->m_scenario,
+              *evId,
+              date,
+              new_y,
               stateMachine.editionSettings().expandMode(),
-              stateMachine.editionSettings().lockMode(), *this->clickedState);
+              stateMachine.editionSettings().lockMode(),
+              *this->clickedState);
         }
         else
         {
           this->m_movingDispatcher.submit(
-              this->m_scenario, *evId, date, this->currentPoint.y,
+              this->m_scenario,
+              *evId,
+              date,
+              this->currentPoint.y,
               stateMachine.editionSettings().expandMode(),
               stateMachine.editionSettings().lockMode());
         }

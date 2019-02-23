@@ -29,8 +29,10 @@ class EditionSettings;
 namespace Loop
 {
 ToolPalette::ToolPalette(
-    const Loop::ProcessModel& model, LayerPresenter& presenter,
-    Process::LayerContext& ctx, LayerView& view)
+    const Loop::ProcessModel& model,
+    LayerPresenter& presenter,
+    Process::LayerContext& ctx,
+    LayerView& view)
     : GraphicsSceneToolPalette{*view.scene()}
     , m_model{model}
     , m_presenter{presenter}
@@ -70,13 +72,9 @@ const Scenario::EditionSettings& ToolPalette::editionSettings() const
   return m_editionSettings;
 }
 
-void ToolPalette::activate(Scenario::Tool)
-{
-}
+void ToolPalette::activate(Scenario::Tool) {}
 
-void ToolPalette::desactivate(Scenario::Tool)
-{
-}
+void ToolPalette::desactivate(Scenario::Tool) {}
 
 void ToolPalette::on_pressed(QPointF point)
 {
@@ -117,7 +115,8 @@ DisplayedElementsToolPalette::ScenePointToScenarioPoint(QPointF point)
 
 DisplayedElementsToolPalette::DisplayedElementsToolPalette(
     const Scenario::DisplayedElementsModel& model,
-    Scenario::ScenarioDocumentPresenter& pres, QGraphicsItem* view)
+    Scenario::ScenarioDocumentPresenter& pres,
+    QGraphicsItem* view)
     : GraphicsSceneToolPalette{*view->scene()}
     , m_model{model}
     , m_scenarioModel{*safe_cast<Loop::ProcessModel*>(
@@ -162,13 +161,9 @@ DisplayedElementsToolPalette::editionSettings() const
   return m_editionSettings;
 }
 
-void DisplayedElementsToolPalette::activate(Scenario::Tool)
-{
-}
+void DisplayedElementsToolPalette::activate(Scenario::Tool) {}
 
-void DisplayedElementsToolPalette::desactivate(Scenario::Tool)
-{
-}
+void DisplayedElementsToolPalette::desactivate(Scenario::Tool) {}
 
 void DisplayedElementsToolPalette::on_pressed(QPointF point)
 {
@@ -198,7 +193,8 @@ void DisplayedElementsToolPalette::on_cancel()
 std::unique_ptr<GraphicsSceneToolPalette>
 DisplayedElementsToolPaletteFactory::make(
     Scenario::ScenarioDocumentPresenter& pres,
-    const Scenario::IntervalModel& interval, QGraphicsItem* parent)
+    const Scenario::IntervalModel& interval,
+    QGraphicsItem* parent)
 {
   return std::make_unique<DisplayedElementsToolPalette>(
       pres.displayedElements, pres, parent);

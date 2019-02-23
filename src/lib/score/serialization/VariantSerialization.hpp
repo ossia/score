@@ -74,7 +74,9 @@ template <typename T>
 struct VariantDataStreamDeserializer
 {
   VariantDataStreamDeserializer(
-      DataStream::Deserializer& s_p, quint64 which_p, T& var_p)
+      DataStream::Deserializer& s_p,
+      quint64 which_p,
+      T& var_p)
       : s{s_p}, which{which_p}, var{var_p}
   {
   }

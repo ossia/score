@@ -13,39 +13,27 @@ class SlotHeader final : public QGraphicsItem
 {
 public:
   SlotHeader(
-      const IntervalPresenter& slotView, int slotIndex, QGraphicsItem* parent);
+      const IntervalPresenter& slotView,
+      int slotIndex,
+      QGraphicsItem* parent);
 
-  const IntervalPresenter& presenter() const
-  {
-    return m_presenter;
-  }
+  const IntervalPresenter& presenter() const { return m_presenter; }
   static constexpr int static_type()
   {
     return QGraphicsItem::UserType + ItemType::SlotHeader;
   }
-  int type() const override
-  {
-    return static_type();
-  }
+  int type() const override { return static_type(); }
 
   int slotIndex() const;
   void setSlotIndex(int);
-  static constexpr double headerHeight()
-  {
-    return 16.;
-  }
-  static constexpr double handleWidth()
-  {
-    return 16.;
-  }
-  static constexpr double menuWidth()
-  {
-    return 16.;
-  }
+  static constexpr double headerHeight() { return 16.; }
+  static constexpr double handleWidth() { return 16.; }
+  static constexpr double menuWidth() { return 16.; }
 
   QRectF boundingRect() const override;
   void paint(
-      QPainter* painter, const QStyleOptionGraphicsItem* option,
+      QPainter* painter,
+      const QStyleOptionGraphicsItem* option,
       QWidget* widget) override;
 
   void setWidth(qreal width);
@@ -62,7 +50,7 @@ private:
 
   const IntervalPresenter& m_presenter;
   qreal m_width{};
-  //double m_menupos{};
+  // double m_menupos{};
   int m_slotIndex{};
 };
 
@@ -77,7 +65,8 @@ public:
   QRectF boundingRect() const override;
 
   void paint(
-      QPainter* painter, const QStyleOptionGraphicsItem* option,
+      QPainter* painter,
+      const QStyleOptionGraphicsItem* option,
       QWidget* widget) override;
 
   void dropBefore(int slot) W_SIGNAL(dropBefore, slot);

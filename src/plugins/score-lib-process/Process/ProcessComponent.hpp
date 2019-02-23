@@ -15,10 +15,7 @@ public:
   {
   }
 
-  ProcessBase_T& process() const
-  {
-    return m_process;
-  }
+  ProcessBase_T& process() const { return m_process; }
 
 private:
   ProcessBase_T& m_process;

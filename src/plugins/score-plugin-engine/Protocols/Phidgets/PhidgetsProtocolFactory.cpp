@@ -22,7 +22,8 @@ QString PhidgetProtocolFactory::prettyName() const
 }
 
 Device::DeviceInterface* PhidgetProtocolFactory::makeDevice(
-    const Device::DeviceSettings& settings, const score::DocumentContext& ctx)
+    const Device::DeviceSettings& settings,
+    const score::DocumentContext& ctx)
 {
   return new PhidgetDevice{settings};
 }
@@ -52,26 +53,31 @@ QVariant PhidgetProtocolFactory::makeProtocolSpecificSettings(
 }
 
 void PhidgetProtocolFactory::serializeProtocolSpecificSettings(
-    const QVariant& data, const VisitorVariant& visitor) const
+    const QVariant& data,
+    const VisitorVariant& visitor) const
 {
   serializeProtocolSpecificSettings_T<PhidgetSpecificSettings>(data, visitor);
 }
 
 bool PhidgetProtocolFactory::checkCompatibility(
-    const Device::DeviceSettings& a, const Device::DeviceSettings& b) const
+    const Device::DeviceSettings& a,
+    const Device::DeviceSettings& b) const
 {
   return a.name != b.name;
 }
 
 Device::AddressDialog* PhidgetProtocolFactory::makeEditAddressDialog(
-    const Device::AddressSettings&, const Device::DeviceInterface& dev,
-    const score::DocumentContext& ctx, QWidget*)
+    const Device::AddressSettings&,
+    const Device::DeviceInterface& dev,
+    const score::DocumentContext& ctx,
+    QWidget*)
 {
   return nullptr;
 }
 
 Device::AddressDialog* PhidgetProtocolFactory::makeAddAddressDialog(
-    const Device::DeviceInterface& dev, const score::DocumentContext& ctx,
+    const Device::DeviceInterface& dev,
+    const score::DocumentContext& ctx,
     QWidget*)
 {
   return nullptr;

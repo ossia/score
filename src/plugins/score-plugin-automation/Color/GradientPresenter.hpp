@@ -51,7 +51,9 @@ struct TSerializer<JSONValue, QColor>
   {
     auto arr = s.val.toArray();
     c.setRgbF(
-        arr[0].toDouble(), arr[1].toDouble(), arr[2].toDouble(),
+        arr[0].toDouble(),
+        arr[1].toDouble(),
+        arr[2].toDouble(),
         arr[3].toDouble());
   }
 };
@@ -89,10 +91,13 @@ namespace Gradient
 class ChangeGradient final : public score::Command
 {
   SCORE_COMMAND_DECL(
-      Automation::CommandFactoryName(), ChangeGradient, "ChangeGradient")
+      Automation::CommandFactoryName(),
+      ChangeGradient,
+      "ChangeGradient")
 public:
   ChangeGradient(
-      const ProcessModel& autom, const ProcessModel::gradient_colors& newval)
+      const ProcessModel& autom,
+      const ProcessModel::gradient_colors& newval)
       : m_path{autom}, m_old{autom.gradient()}, m_new{newval}
   {
   }
@@ -127,8 +132,10 @@ class Presenter final : public Process::LayerPresenter
 {
 public:
   explicit Presenter(
-      const Gradient::ProcessModel& model, Gradient::View* view,
-      const Process::ProcessPresenterContext& ctx, QObject* parent);
+      const Gradient::ProcessModel& model,
+      Gradient::View* view,
+      const Process::ProcessPresenterContext& ctx,
+      QObject* parent);
 
   void setWidth(qreal width) override;
   void setHeight(qreal height) override;

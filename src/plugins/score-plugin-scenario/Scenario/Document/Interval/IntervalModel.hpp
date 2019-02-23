@@ -84,10 +84,7 @@ public:
   void setHeightPercentage(double arg);
   void setExecutionState(IntervalExecutionState);
 
-  IntervalExecutionState executionState() const
-  {
-    return m_executionState;
-  }
+  IntervalExecutionState executionState() const { return m_executionState; }
 
   // Full view properties:
   ZoomRatio zoom() const;
@@ -99,14 +96,8 @@ public:
   void setSmallViewVisible(bool);
   bool smallViewVisible() const;
 
-  const Rack& smallView() const
-  {
-    return m_smallView;
-  }
-  const FullRack& fullView() const
-  {
-    return m_fullView;
-  }
+  const Rack& smallView() const { return m_smallView; }
+  const FullRack& fullView() const { return m_fullView; }
 
   void clearSmallView();
   void clearFullView();
@@ -137,10 +128,7 @@ public:
   const FullSlot& getFullViewSlot(int slot) const;
   FullSlot& getFullViewSlot(int slot);
 
-  bool muted() const
-  {
-    return m_muted;
-  }
+  bool muted() const { return m_muted; }
   void setMuted(bool m);
 
 public:
@@ -189,8 +177,9 @@ public:
 
   PROPERTY(double, muted READ muted WRITE setMuted NOTIFY mutedChanged)
   PROPERTY(
-      double, heightPercentage READ heightPercentage WRITE setHeightPercentage
-                  NOTIFY heightPercentageChanged)
+      double,
+      heightPercentage READ heightPercentage WRITE setHeightPercentage NOTIFY
+          heightPercentageChanged)
 
 private:
   void on_addProcess(const Process::ProcessModel&);

@@ -24,7 +24,8 @@ namespace Command
 {
 
 InsertContentInState::InsertContentInState(
-    const QJsonObject& stateData, const Scenario::StateModel& state)
+    const QJsonObject& stateData,
+    const Scenario::StateModel& state)
     : m_state{state}
 {
   // TODO ask what should be copied ? the state due to the processes ? the user
@@ -38,8 +39,9 @@ InsertContentInState::InsertContentInState(
   m_oldNode = state.messages().rootNode();
   m_newNode = m_oldNode;
   updateTreeWithMessageList(
-      m_newNode, Process::flatten(score::unmarshall<Process::MessageNode>(
-                     stateData["Messages"].toObject())));
+      m_newNode,
+      Process::flatten(score::unmarshall<Process::MessageNode>(
+          stateData["Messages"].toObject())));
 }
 
 void InsertContentInState::undo(const score::DocumentContext& ctx) const

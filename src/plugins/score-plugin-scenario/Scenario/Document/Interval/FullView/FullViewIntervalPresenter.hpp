@@ -26,7 +26,8 @@ public:
 
   FullViewIntervalPresenter(
       const IntervalModel& viewModel,
-      const Process::ProcessPresenterContext& ctx, QGraphicsItem* parentobject,
+      const Process::ProcessPresenterContext& ctx,
+      QGraphicsItem* parentobject,
       QObject* parent);
 
   ~FullViewIntervalPresenter() override;
@@ -35,10 +36,7 @@ public:
   void on_zoomRatioChanged(ZoomRatio val) override;
   int indexOfSlot(const Process::LayerPresenter&);
 
-  const std::vector<SlotPresenter>& getSlots() const
-  {
-    return m_slots;
-  }
+  const std::vector<SlotPresenter>& getSlots() const { return m_slots; }
 
 public:
   void intervalSelected(IntervalModel& arg_1)

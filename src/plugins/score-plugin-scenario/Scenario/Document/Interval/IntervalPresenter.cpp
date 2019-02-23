@@ -26,8 +26,11 @@ W_OBJECT_IMPL(Scenario::IntervalPresenter)
 namespace Scenario
 {
 IntervalPresenter::IntervalPresenter(
-    const IntervalModel& model, IntervalView* view, IntervalHeader* header,
-    const Process::ProcessPresenterContext& ctx, QObject* parent)
+    const IntervalModel& model,
+    IntervalView* view,
+    IntervalHeader* header,
+    const Process::ProcessPresenterContext& ctx,
+    QObject* parent)
     : QObject{parent}
     , m_model{model}
     , m_view{view}
@@ -40,31 +43,46 @@ IntervalPresenter::IntervalPresenter(
   m_header->hide();
   // m_header->setPos(0, -m_header->headerHeight());
 
-  con(interval.duration, &IntervalDurations::minNullChanged, this,
+  con(interval.duration,
+      &IntervalDurations::minNullChanged,
+      this,
       [&](bool b) { updateBraces(); });
-  con(interval.duration, &IntervalDurations::minDurationChanged, this,
+  con(interval.duration,
+      &IntervalDurations::minDurationChanged,
+      this,
       [&](const TimeVal& val) {
         on_minDurationChanged(val);
         updateChildren();
       });
-  con(interval.duration, &IntervalDurations::maxDurationChanged, this,
+  con(interval.duration,
+      &IntervalDurations::maxDurationChanged,
+      this,
       [&](const TimeVal& val) {
         on_maxDurationChanged(val);
         updateChildren();
       });
 
-  con(interval, &IntervalModel::heightPercentageChanged, this,
+  con(interval,
+      &IntervalModel::heightPercentageChanged,
+      this,
       &IntervalPresenter::heightPercentageChanged);
-  con(interval, &IntervalModel::executionStarted, this,
+  con(interval,
+      &IntervalModel::executionStarted,
+      this,
       [=] {
         m_view->setExecuting(true);
         m_view->updatePaths();
         m_view->update();
       },
       Qt::QueuedConnection);
-  con(interval, &IntervalModel::executionStopped, this,
-      [=] { m_view->setExecuting(false); }, Qt::QueuedConnection);
-  con(interval, &IntervalModel::executionFinished, this,
+  con(interval,
+      &IntervalModel::executionStopped,
+      this,
+      [=] { m_view->setExecuting(false); },
+      Qt::QueuedConnection);
+  con(interval,
+      &IntervalModel::executionFinished,
+      this,
       [=] {
         m_view->setExecuting(false);
         m_view->setPlayWidth(0.);
@@ -73,15 +91,17 @@ IntervalPresenter::IntervalPresenter(
       },
       Qt::QueuedConnection);
 
-  con(interval.consistency, &ModelConsistency::validChanged, m_view,
+  con(interval.consistency,
+      &ModelConsistency::validChanged,
+      m_view,
       &IntervalView::setValid);
-  con(interval.consistency, &ModelConsistency::warningChanged, m_view,
+  con(interval.consistency,
+      &ModelConsistency::warningChanged,
+      m_view,
       &IntervalView::setWarning);
 }
 
-IntervalPresenter::~IntervalPresenter()
-{
-}
+IntervalPresenter::~IntervalPresenter() {}
 
 void IntervalPresenter::updateScaling()
 {

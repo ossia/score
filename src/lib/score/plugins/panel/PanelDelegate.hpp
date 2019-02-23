@@ -23,7 +23,10 @@ class PanelView;
 struct SCORE_LIB_BASE_EXPORT PanelStatus
 {
   PanelStatus(
-      bool isShown, Qt::DockWidgetArea d, int prio, QString name,
+      bool isShown,
+      Qt::DockWidgetArea d,
+      int prio,
+      QString name,
       const QKeySequence& sc);
 
   const bool shown;              // Controls if it is shown by default.

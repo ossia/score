@@ -67,7 +67,8 @@ namespace Command
 {
 
 RemoveProcessFromInterval::RemoveProcessFromInterval(
-    const IntervalModel& interval, Id<Process::ProcessModel> processId)
+    const IntervalModel& interval,
+    Id<Process::ProcessModel> processId)
     : m_path{interval}, m_processId{std::move(processId)}
 {
   // Save the process

@@ -10,8 +10,8 @@
 #include <score/model/path/Path.hpp>
 #include <score/model/path/PathSerialization.hpp>
 #include <score/model/tree/TreeNode.hpp>
-#include <score/model/tree/TreePath.hpp>
 #include <score/model/tree/TreeNodeSerialization.hpp>
+#include <score/model/tree/TreePath.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
 
 #include <QDataStream>
@@ -24,7 +24,8 @@ namespace Explorer
 namespace Command
 {
 RemoveAddress::RemoveAddress(
-    const DeviceDocumentPlugin& devplug, const Device::NodePath& nodePath)
+    const DeviceDocumentPlugin& devplug,
+    const Device::NodePath& nodePath)
     : m_nodePath{nodePath}
 {
   auto n = nodePath.toNode(&devplug.rootNode());

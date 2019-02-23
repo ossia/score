@@ -19,7 +19,6 @@ class ProtocolSettingsWidget;
 }
 struct VisitorVariant;
 
-
 namespace Protocols
 {
 QString LocalProtocolFactory::prettyName() const
@@ -28,7 +27,8 @@ QString LocalProtocolFactory::prettyName() const
 }
 
 Device::DeviceInterface* LocalProtocolFactory::makeDevice(
-    const Device::DeviceSettings& settings, const score::DocumentContext& ctx)
+    const Device::DeviceSettings& settings,
+    const score::DocumentContext& ctx)
 {
   qDebug() << "updating local" << settings.name;
   auto doc = ctx.findPlugin<LocalTree::DocumentPlugin>();
@@ -70,19 +70,19 @@ Device::ProtocolSettingsWidget* LocalProtocolFactory::makeSettingsWidget()
 QVariant LocalProtocolFactory::makeProtocolSpecificSettings(
     const VisitorVariant& visitor) const
 {
-  return makeProtocolSpecificSettings_T<LocalSpecificSettings>(
-      visitor);
+  return makeProtocolSpecificSettings_T<LocalSpecificSettings>(visitor);
 }
 
 void LocalProtocolFactory::serializeProtocolSpecificSettings(
-    const QVariant& data, const VisitorVariant& visitor) const
+    const QVariant& data,
+    const VisitorVariant& visitor) const
 {
-  serializeProtocolSpecificSettings_T<LocalSpecificSettings>(
-      data, visitor);
+  serializeProtocolSpecificSettings_T<LocalSpecificSettings>(data, visitor);
 }
 
 bool LocalProtocolFactory::checkCompatibility(
-    const Device::DeviceSettings& a, const Device::DeviceSettings& b) const
+    const Device::DeviceSettings& a,
+    const Device::DeviceSettings& b) const
 {
   return a.name != b.name;
 }

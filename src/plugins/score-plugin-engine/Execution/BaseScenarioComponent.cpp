@@ -43,9 +43,7 @@ BaseScenarioElement::BaseScenarioElement(const Context& ctx, QObject* parent)
 {
 }
 
-BaseScenarioElement::~BaseScenarioElement()
-{
-}
+BaseScenarioElement::~BaseScenarioElement() {}
 
 void BaseScenarioElement::init(BaseScenarioRefContainer element)
 {
@@ -53,16 +51,20 @@ void BaseScenarioElement::init(BaseScenarioRefContainer element)
   auto main_end_node = std::make_shared<ossia::time_sync>();
 
   auto main_start_event = *main_start_node->emplace(
-      main_start_node->get_time_events().begin(), [](auto&&...) {},
+      main_start_node->get_time_events().begin(),
+      [](auto&&...) {},
       ossia::expressions::make_expression_true());
   auto main_end_event = *main_end_node->emplace(
-      main_end_node->get_time_events().begin(), [](auto&&...) {},
+      main_end_node->get_time_events().begin(),
+      [](auto&&...) {},
       ossia::expressions::make_expression_true());
 
   // TODO PlayDuration of base interval.
   // TODO PlayDuration of FullView
   auto main_interval = ossia::time_interval::create(
-      {}, *main_start_event, *main_end_event,
+      {},
+      *main_start_event,
+      *main_end_event,
       m_ctx.time(element.interval().duration.defaultDuration()),
       m_ctx.time(element.interval().duration.minDuration()),
       m_ctx.time(element.interval().duration.maxDuration()));
@@ -90,11 +92,13 @@ void BaseScenarioElement::init(BaseScenarioRefContainer element)
   m_ossia_endTimeSync->onSetup(
       main_end_node, m_ossia_endTimeSync->makeTrigger());
   m_ossia_startEvent->onSetup(
-      main_start_event, m_ossia_startEvent->makeExpression(),
+      main_start_event,
+      m_ossia_startEvent->makeExpression(),
       (ossia::time_event::offset_behavior)element.startEvent()
           .offsetBehavior());
   m_ossia_endEvent->onSetup(
-      main_end_event, m_ossia_endEvent->makeExpression(),
+      main_end_event,
+      m_ossia_endEvent->makeExpression(),
       (ossia::time_event::offset_behavior)element.endEvent().offsetBehavior());
   m_ossia_startState->onSetup(main_start_event);
   m_ossia_endState->onSetup(main_end_event);
@@ -183,7 +187,8 @@ StateComponent& BaseScenarioElement::endState() const
 }
 
 BaseScenarioRefContainer::BaseScenarioRefContainer(
-    Scenario::IntervalModel& interval, Scenario::ScenarioInterface& s)
+    Scenario::IntervalModel& interval,
+    Scenario::ScenarioInterface& s)
     : m_interval{interval}
     , m_startState{s.state(interval.startState())}
     , m_endState{s.state(interval.endState())}

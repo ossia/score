@@ -1,8 +1,8 @@
 #pragma once
 #include <score/application/ApplicationContext.hpp>
 #include <score/application/GUIApplicationContext.hpp>
-#include <score/plugins/PluginInstances.hpp>
 #include <score/plugins/InterfaceList.hpp>
+#include <score/plugins/PluginInstances.hpp>
 #include <score/plugins/qt_interfaces/CommandFactory_QtInterface.hpp>
 #include <score/plugins/qt_interfaces/FactoryFamily_QtInterface.hpp>
 #include <score/plugins/qt_interfaces/FactoryInterface_QtInterface.hpp>
@@ -46,7 +46,8 @@ QStringList addonsDir();
 QStringList pluginsDir();
 
 SCORE_LIB_BASE_EXPORT void loadPluginsInAllFolders(
-    std::vector<score::Addon>& availablePlugins, QStringList additional = {});
+    std::vector<score::Addon>& availablePlugins,
+    QStringList additional = {});
 
 SCORE_LIB_BASE_EXPORT void
 loadAddonsInAllFolders(std::vector<score::Addon>& availablePlugins);
@@ -56,12 +57,14 @@ std::pair<score::Plugin_QtInterface*, PluginLoadingError> loadPlugin(
     const std::vector<score::Addon>& availablePlugins);
 
 ossia::optional<score::Addon> makeAddon(
-    const QString& addon_path, const QJsonObject& json_addon,
+    const QString& addon_path,
+    const QJsonObject& json_addon,
     const std::vector<score::Addon>& availablePlugins);
 
 template <typename Registrar_T>
 void registerPluginsImpl(
-    const std::vector<score::Addon>& availablePlugins, Registrar_T& registrar,
+    const std::vector<score::Addon>& availablePlugins,
+    Registrar_T& registrar,
     const score::GUIApplicationContext& context)
 {
   // Load what the plug-ins have to offer.
@@ -101,7 +104,8 @@ void registerPluginsImpl(
 
 template <typename Registrar_T>
 void registerPlugins(
-    const std::vector<score::Addon>& availablePlugins, Registrar_T& registrar,
+    const std::vector<score::Addon>& availablePlugins,
+    Registrar_T& registrar,
     const score::GUIApplicationContext& context)
 {
   for (const score::Addon& addon : availablePlugins)

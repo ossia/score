@@ -22,7 +22,9 @@ public:
   static void undo(const Id<CommentBlockModel>& id, Scenario::ProcessModel& s);
 
   static CommentBlockModel& redo(
-      const Id<CommentBlockModel>& id, const TimeVal& date, double y,
+      const Id<CommentBlockModel>& id,
+      const TimeVal& date,
+      double y,
       Scenario::ProcessModel& s);
 };
 
@@ -33,8 +35,10 @@ public:
   static void undo(const Id<TimeSyncModel>& id, Scenario::ProcessModel& s);
 
   static TimeSyncModel& redo(
-      const Id<TimeSyncModel>& id, const VerticalExtent& extent,
-      const TimeVal& date, Scenario::ProcessModel& s);
+      const Id<TimeSyncModel>& id,
+      const VerticalExtent& extent,
+      const TimeVal& date,
+      Scenario::ProcessModel& s);
 };
 
 template <>
@@ -44,8 +48,10 @@ public:
   static void undo(const Id<EventModel>& id, Scenario::ProcessModel& s);
 
   static EventModel& redo(
-      const Id<EventModel>& id, TimeSyncModel& timesync,
-      const VerticalExtent& extent, Scenario::ProcessModel& s);
+      const Id<EventModel>& id,
+      TimeSyncModel& timesync,
+      const VerticalExtent& extent,
+      Scenario::ProcessModel& s);
 };
 
 template <>
@@ -55,7 +61,9 @@ public:
   static void undo(const Id<StateModel>& id, Scenario::ProcessModel& s);
 
   static StateModel& redo(
-      const Id<StateModel>& id, EventModel& ev, double y,
+      const Id<StateModel>& id,
+      EventModel& ev,
+      double y,
       Scenario::ProcessModel& s);
 };
 
@@ -66,8 +74,11 @@ public:
   static void undo(const Id<IntervalModel>& id, Scenario::ProcessModel& s);
 
   static IntervalModel& redo(
-      const Id<IntervalModel>& id, StateModel& sst, StateModel& est,
-      double ypos, Scenario::ProcessModel& s);
+      const Id<IntervalModel>& id,
+      StateModel& sst,
+      StateModel& est,
+      double ypos,
+      Scenario::ProcessModel& s);
 };
 
 } // namespace Scenario

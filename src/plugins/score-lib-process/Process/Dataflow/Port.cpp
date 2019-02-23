@@ -19,9 +19,7 @@ W_OBJECT_IMPL(Process::ControlOutlet)
 namespace Process
 {
 
-Port::~Port()
-{
-}
+Port::~Port() {}
 
 Port::Port(Id<Port> c, const QString& name, QObject* parent)
     : IdentifiedObject<Port>{c, name, parent}
@@ -128,9 +126,7 @@ void Port::setAddress(const State::AddressAccessor& address)
 /// Inlet
 ///////////////////////////////
 
-Inlet::~Inlet()
-{
-}
+Inlet::~Inlet() {}
 
 Inlet::Inlet(Id<Process::Port> c, QObject* parent)
     : Port{std::move(c), QStringLiteral("Inlet"), parent}
@@ -158,9 +154,7 @@ Inlet::Inlet(JSONObject::Deserializer&& vis, QObject* parent)
   vis.writeTo(*this);
 }
 
-ControlInlet::~ControlInlet()
-{
-}
+ControlInlet::~ControlInlet() {}
 
 ControlInlet::ControlInlet(DataStream::Deserializer& vis, QObject* parent)
     : Inlet{vis, parent}
@@ -183,9 +177,7 @@ ControlInlet::ControlInlet(JSONObject::Deserializer&& vis, QObject* parent)
   vis.writeTo(*this);
 }
 
-Outlet::~Outlet()
-{
-}
+Outlet::~Outlet() {}
 
 Outlet::Outlet(Id<Process::Port> c, QObject* parent)
     : Port{std::move(c), QStringLiteral("Outlet"), parent}
@@ -227,9 +219,7 @@ void Outlet::setPropagate(bool propagate)
   propagateChanged(m_propagate);
 }
 
-ControlOutlet::~ControlOutlet()
-{
-}
+ControlOutlet::~ControlOutlet() {}
 
 ControlOutlet::ControlOutlet(DataStream::Deserializer& vis, QObject* parent)
     : Outlet{vis, parent}
@@ -252,47 +242,53 @@ ControlOutlet::ControlOutlet(JSONObject::Deserializer&& vis, QObject* parent)
   vis.writeTo(*this);
 }
 
-PortFactory::~PortFactory()
-{
-}
+PortFactory::~PortFactory() {}
 
 Dataflow::PortItem* PortFactory::makeItem(
-    Inlet& port, const score::DocumentContext& ctx, QGraphicsItem* parent,
+    Inlet& port,
+    const score::DocumentContext& ctx,
+    QGraphicsItem* parent,
     QObject* context)
 {
   return new Dataflow::PortItem{port, ctx, parent};
 }
 
 Dataflow::PortItem* PortFactory::makeItem(
-    Outlet& port, const score::DocumentContext& ctx, QGraphicsItem* parent,
+    Outlet& port,
+    const score::DocumentContext& ctx,
+    QGraphicsItem* parent,
     QObject* context)
 {
   return new Dataflow::PortItem{port, ctx, parent};
 }
 
 void PortFactory::setupInletInspector(
-    Inlet& port, const score::DocumentContext& ctx, QWidget* parent,
-    Inspector::Layout& lay, QObject* context)
+    Inlet& port,
+    const score::DocumentContext& ctx,
+    QWidget* parent,
+    Inspector::Layout& lay,
+    QObject* context)
 {
   PortWidgetSetup::setupInLayout(port, ctx, lay, parent);
 }
 
 void PortFactory::setupOutletInspector(
-    Outlet& port, const score::DocumentContext& ctx, QWidget* parent,
-    Inspector::Layout& lay, QObject* context)
+    Outlet& port,
+    const score::DocumentContext& ctx,
+    QWidget* parent,
+    Inspector::Layout& lay,
+    QObject* context)
 {
   PortWidgetSetup::setupInLayout(port, ctx, lay, parent);
 }
 
-Port* PortFactoryList::loadMissing(
-    const VisitorVariant& vis, QObject* parent) const
+Port* PortFactoryList::loadMissing(const VisitorVariant& vis, QObject* parent)
+    const
 {
   return nullptr;
 }
 
-PortFactoryList::~PortFactoryList()
-{
-}
+PortFactoryList::~PortFactoryList() {}
 
 std::unique_ptr<Inlet> make_inlet(DataStreamWriter& wr, QObject* parent)
 {

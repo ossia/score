@@ -109,7 +109,8 @@ struct SCORE_LIB_STATE_EXPORT AddressAccessor
   explicit AddressAccessor(State::Address a) noexcept;
   AddressAccessor(State::Address a, const AccessorVector& v) noexcept;
   AddressAccessor(
-      State::Address a, const AccessorVector& v,
+      State::Address a,
+      const AccessorVector& v,
       const ossia::unit_t&) noexcept;
 
   AddressAccessor& operator=(const Address& a);

@@ -17,7 +17,8 @@ score_plugin_midi::~score_plugin_midi() = default;
 
 std::vector<std::unique_ptr<score::InterfaceBase>>
 score_plugin_midi::factories(
-    const score::ApplicationContext& ctx, const score::InterfaceKey& key) const
+    const score::ApplicationContext& ctx,
+    const score::InterfaceKey& key) const
 {
   return instantiate_factories<
       score::ApplicationContext,

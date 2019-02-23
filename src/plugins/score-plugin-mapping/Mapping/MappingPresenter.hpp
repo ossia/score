@@ -15,8 +15,11 @@ class LayerPresenter final
   W_OBJECT(LayerPresenter)
 public:
   LayerPresenter(
-      const Curve::Style& style, const ProcessModel& layer, LayerView* view,
-      const Process::ProcessPresenterContext& context, QObject* parent)
+      const Curve::Style& style,
+      const ProcessModel& layer,
+      LayerView* view,
+      const Process::ProcessPresenterContext& context,
+      QObject* parent)
       : CurveProcessPresenter{style, layer, view, context, parent}
   {
   }

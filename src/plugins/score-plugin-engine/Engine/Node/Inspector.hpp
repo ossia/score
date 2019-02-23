@@ -6,8 +6,8 @@
 #include <Process/Inspector/ProcessInspectorWidgetDelegate.hpp>
 #include <Process/Inspector/ProcessInspectorWidgetDelegateFactory.hpp>
 
-#include <Engine/Node/Process.hpp>
 #include <Control/Widgets.hpp>
+#include <Engine/Node/Process.hpp>
 
 namespace Control
 {
@@ -104,7 +104,10 @@ struct inlet_visitor
   {
     auto& inlet = *static_cast<Process::ControlInlet*>(object.inlets()[i]);
     Process::PortWidgetSetup::setupControl(
-        inlet, ctrl.make_widget(ctrl, inlet, doc, self, self), doc, vlay,
+        inlet,
+        ctrl.make_widget(ctrl, inlet, doc, self, self),
+        doc,
+        vlay,
         self);
   }
 
@@ -132,7 +135,9 @@ class ControlCommand final : public score::Command
   ControlCommand() = default;
 
   ControlCommand(
-      const ControlProcess<Info>& obj, int control, ossia::value newval)
+      const ControlProcess<Info>& obj,
+      int control,
+      ossia::value newval)
       : m_path{obj}
       , m_control{control}
       , m_old{obj.control(control)}
@@ -140,9 +145,7 @@ class ControlCommand final : public score::Command
   {
   }
 
-  virtual ~ControlCommand()
-  {
-  }
+  virtual ~ControlCommand() {}
 
   void undo(const score::DocumentContext& ctx) const final override
   {
@@ -154,10 +157,7 @@ class ControlCommand final : public score::Command
     m_path.find(ctx).setControl(m_control, m_new);
   }
 
-  void update(unused_t, ossia::value newval)
-  {
-    m_new = std::move(newval);
-  }
+  void update(unused_t, ossia::value newval) { m_new = std::move(newval); }
 
 protected:
   void serializeImpl(DataStreamInput& stream) const final override
@@ -181,7 +181,8 @@ class InspectorWidget final
 {
 public:
   explicit InspectorWidget(
-      const ControlProcess<Info>& object, const score::DocumentContext& doc,
+      const ControlProcess<Info>& object,
+      const score::DocumentContext& doc,
       QWidget* parent)
       : Process::InspectorWidgetDelegate_T<ControlProcess<Info>>{object,
                                                                  parent}
@@ -199,7 +200,8 @@ private:
 template <typename Info>
 class InspectorFactory final
     : public Process::InspectorWidgetDelegateFactory_T<
-          ControlProcess<Info>, InspectorWidget<Info>>
+          ControlProcess<Info>,
+          InspectorWidget<Info>>
 {
 public:
   static Q_DECL_RELAXED_CONSTEXPR

@@ -18,7 +18,8 @@ class InspectorWidget final
 {
 public:
   explicit InspectorWidget(
-      const ProcessModel& object, const score::DocumentContext& context,
+      const ProcessModel& object,
+      const score::DocumentContext& context,
       QWidget* parent);
 
 private:
@@ -32,8 +33,8 @@ private:
 };
 
 class InspectorFactory final
-    : public Process::InspectorWidgetDelegateFactory_T<
-          ProcessModel, InspectorWidget>
+    : public Process::
+          InspectorWidgetDelegateFactory_T<ProcessModel, InspectorWidget>
 {
   SCORE_CONCRETE("5159eabc-cd5c-4a00-a790-bd58936aace0")
 };
@@ -42,7 +43,8 @@ class StateInspectorWidget final : public Inspector::InspectorWidgetBase
 {
 public:
   explicit StateInspectorWidget(
-      const ProcessState& object, const score::DocumentContext& context,
+      const ProcessState& object,
+      const score::DocumentContext& context,
       QWidget* parent = nullptr);
 
 private:
@@ -60,7 +62,8 @@ public:
 
   QWidget* make(
       const InspectedObjects& sourceElements,
-      const score::DocumentContext& doc, QWidget* parent) const override;
+      const score::DocumentContext& doc,
+      QWidget* parent) const override;
 
   bool matches(const InspectedObjects& objects) const override;
 };

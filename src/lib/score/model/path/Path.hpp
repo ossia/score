@@ -91,9 +91,7 @@ public:
   {
   }
 
-  Path(const Object& obj) noexcept : Path(score::IDocument::path(obj))
-  {
-  }
+  Path(const Object& obj) noexcept : Path(score::IDocument::path(obj)) {}
 
   ~Path() = default;
 
@@ -211,34 +209,16 @@ public:
     return m_impl.try_find<Object>(ctx);
   }
 
-  const auto& unsafePath() const& noexcept
-  {
-    return m_impl;
-  }
-  auto& unsafePath() & noexcept
-  {
-    return m_impl;
-  }
-  auto&& unsafePath() && noexcept
-  {
-    return std::move(m_impl);
-  }
+  const auto& unsafePath() const& noexcept { return m_impl; }
+  auto& unsafePath() & noexcept { return m_impl; }
+  auto&& unsafePath() && noexcept { return std::move(m_impl); }
 
-  bool valid() const noexcept
-  {
-    return !m_impl.vec().empty();
-  }
+  bool valid() const noexcept { return !m_impl.vec().empty(); }
 
 private:
-  Path(const ObjectPath& path) noexcept : m_impl{path.vec()}
-  {
-  }
-  Path(ObjectPath&& path) noexcept : m_impl{std::move(path.vec())}
-  {
-  }
-  Path(const std::vector<ObjectIdentifier>& vec) noexcept : m_impl{vec}
-  {
-  }
+  Path(const ObjectPath& path) noexcept : m_impl{path.vec()} {}
+  Path(ObjectPath&& path) noexcept : m_impl{std::move(path.vec())} {}
+  Path(const std::vector<ObjectIdentifier>& vec) noexcept : m_impl{vec} {}
   Path(std::vector<ObjectIdentifier>&& vec) noexcept : m_impl{std::move(vec)}
   {
   }

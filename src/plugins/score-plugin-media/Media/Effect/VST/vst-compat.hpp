@@ -888,15 +888,28 @@ extern "C"
   struct AEffect;
 
   using audioMasterCallback = intptr_t (*)(
-      AEffect* effect, int32_t opcode, int32_t index, intptr_t value,
-      void* ptr, float opt);
+      AEffect* effect,
+      int32_t opcode,
+      int32_t index,
+      intptr_t value,
+      void* ptr,
+      float opt);
   using AEffectDispatcherProc = intptr_t (*)(
-      AEffect* effect, int32_t opcode, int32_t index, intptr_t value,
-      void* ptr, float opt);
+      AEffect* effect,
+      int32_t opcode,
+      int32_t index,
+      intptr_t value,
+      void* ptr,
+      float opt);
   using AEffectProcessProc = void (*)(
-      AEffect* effect, float** inputs, float** outputs, int32_t sampleFrames);
+      AEffect* effect,
+      float** inputs,
+      float** outputs,
+      int32_t sampleFrames);
   using AEffectProcessDoubleProc = void (*)(
-      AEffect* effect, double** inputs, double** outputs,
+      AEffect* effect,
+      double** inputs,
+      double** outputs,
       int32_t sampleFrames);
   using AEffectSetParameterProc
       = void (*)(AEffect* effect, int32_t index, float parameter);

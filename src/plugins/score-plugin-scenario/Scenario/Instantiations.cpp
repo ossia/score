@@ -17,6 +17,10 @@ template class SCORE_PLUGIN_SCENARIO_EXPORT
 template class SCORE_PLUGIN_SCENARIO_EXPORT
     IdContainer<Scenario::TimeSyncPresenter, Scenario::TimeSyncModel, void>;
 template class SCORE_PLUGIN_SCENARIO_EXPORT IdContainer<
-    Scenario::TemporalIntervalPresenter, Scenario::IntervalModel, void>;
+    Scenario::TemporalIntervalPresenter,
+    Scenario::IntervalModel,
+    void>;
 template class SCORE_PLUGIN_SCENARIO_EXPORT IdContainer<
-    Scenario::CommentBlockPresenter, Scenario::CommentBlockModel, void>;
+    Scenario::CommentBlockPresenter,
+    Scenario::CommentBlockModel,
+    void>;

@@ -21,10 +21,7 @@ public:
     update();
   }
 
-  const ossia::nodes::spline_data& spline() const
-  {
-    return m_spline;
-  }
+  const ossia::nodes::spline_data& spline() const { return m_spline; }
 
 public:
   void changed() W_SIGNAL(changed);

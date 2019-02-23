@@ -41,7 +41,8 @@ class SCORE_LIB_STATE_EXPORT DestinationQualifierWidget : public QWidget
 public:
   DestinationQualifierWidget(QWidget* parent);
   DestinationQualifierWidget(
-      const State::DestinationQualifiers& u, QWidget* parent);
+      const State::DestinationQualifiers& u,
+      QWidget* parent);
 
   State::DestinationQualifiers qualifiers() const;
   void setQualifiers(const State::DestinationQualifiers&);

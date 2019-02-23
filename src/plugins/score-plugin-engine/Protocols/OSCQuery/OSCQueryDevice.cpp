@@ -12,14 +12,15 @@
 #include <ossia/network/oscquery/oscquery_mirror.hpp>
 #include <ossia/network/rate_limiting_protocol.hpp>
 
+#include <boost/algorithm/string.hpp>
+
 #include <QString>
 #include <QTimer>
 #include <QVariant>
+
 #include <asio/io_service.hpp>
 #include <asio/ip/resolver_service.hpp>
 #include <asio/ip/tcp.hpp>
-
-#include <boost/algorithm/string.hpp>
 #include <wobjectimpl.h>
 
 #include <memory>
@@ -47,8 +48,7 @@ bool resolve_ip(std::string host)
 
     asio::io_service io_service;
     asio::ip::tcp::resolver resolver(io_service);
-    asio::ip::tcp::resolver::query query(
-          m_queryHost, m_queryPort);
+    asio::ip::tcp::resolver::query query(m_queryHost, m_queryPort);
     asio::ip::tcp::resolver::iterator iter = resolver.resolve(query);
     return true;
   }
@@ -71,16 +71,25 @@ OSCQueryDevice::OSCQueryDevice(const Device::DeviceSettings& settings)
   m_capas.canSetProperties = false;
 
   connect(
-      this, &OSCQueryDevice::sig_command, this, &OSCQueryDevice::slot_command,
+      this,
+      &OSCQueryDevice::sig_command,
+      this,
+      &OSCQueryDevice::slot_command,
       Qt::QueuedConnection);
   connect(
-        this, &OSCQueryDevice::sig_createDevice, this, &OSCQueryDevice::slot_createDevice,
-        Qt::QueuedConnection);
+      this,
+      &OSCQueryDevice::sig_createDevice,
+      this,
+      &OSCQueryDevice::slot_createDevice,
+      Qt::QueuedConnection);
   connect(
-        this, &OSCQueryDevice::sig_disconnect, this, [=] {
-    // TODO how to notify the GUI ?
-    m_connected = false;
-  },
+      this,
+      &OSCQueryDevice::sig_disconnect,
+      this,
+      [=] {
+        // TODO how to notify the GUI ?
+        m_connected = false;
+      },
       Qt::QueuedConnection);
 }
 
@@ -95,7 +104,7 @@ void OSCQueryDevice::disconnect()
   {
     m_mirror->set_disconnect_callback([=] {});
     m_mirror->set_fail_callback([=] {});
-    m_mirror  = nullptr;
+    m_mirror = nullptr;
   }
 
   OwningDeviceInterface::disconnect();
@@ -104,12 +113,14 @@ void OSCQueryDevice::disconnect()
 bool OSCQueryDevice::reconnect()
 {
   const auto& cur_settings = settings();
-  const auto& stgs = cur_settings.deviceSpecificSettings.value<OSCQuerySpecificSettings>();
+  const auto& stgs
+      = cur_settings.deviceSpecificSettings.value<OSCQuerySpecificSettings>();
 
-  if(m_dev && m_mirror && m_oldSettings == cur_settings)
+  if (m_dev && m_mirror && m_oldSettings == cur_settings)
   {
     // TODO update settings
-    try {
+    try
+    {
       m_mirror->reconnect();
       m_connected = true;
     }
@@ -130,9 +141,9 @@ bool OSCQueryDevice::reconnect()
 
   disconnect();
 
-  std::thread resolver([this,host=stgs.host.toStdString()] {
+  std::thread resolver([this, host = stgs.host.toStdString()] {
     bool ok = resolve_ip(host);
-    if(ok)
+    if (ok)
     {
       sig_createDevice();
     }
@@ -165,7 +176,8 @@ void OSCQueryDevice::slot_command()
 void OSCQueryDevice::slot_createDevice()
 {
   const auto& cur_settings = settings();
-  const auto& stgs = cur_settings.deviceSpecificSettings.value<OSCQuerySpecificSettings>();
+  const auto& stgs
+      = cur_settings.deviceSpecificSettings.value<OSCQuerySpecificSettings>();
 
   try
   {
@@ -173,14 +185,14 @@ void OSCQueryDevice::slot_createDevice()
         = std::make_unique<ossia::oscquery::oscquery_mirror_protocol>(
             stgs.host.toStdString());
 
-    auto& p = static_cast<ossia::oscquery::oscquery_mirror_protocol&>(*ossia_settings);
+    auto& p = static_cast<ossia::oscquery::oscquery_mirror_protocol&>(
+        *ossia_settings);
     m_mirror = &p;
 
-    if(stgs.rate)
+    if (stgs.rate)
     {
       ossia_settings = std::make_unique<ossia::net::rate_limiting_protocol>(
-            std::chrono::milliseconds{*stgs.rate},
-            std::move(ossia_settings));
+          std::chrono::milliseconds{*stgs.rate}, std::move(ossia_settings));
     }
     // run the commands in the Qt event loop
     // FIXME they should be disabled upon manual disconnection
@@ -203,14 +215,14 @@ void OSCQueryDevice::slot_createDevice()
   {
     qDebug() << "Could not connect: " << e.what();
     m_connected = false;
-    if(!m_dev)
+    if (!m_dev)
       m_mirror = nullptr;
   }
   catch (...)
   {
     // TODO save the reason of the non-connection.
     m_connected = false;
-    if(!m_dev)
+    if (!m_dev)
       m_mirror = nullptr;
   }
 

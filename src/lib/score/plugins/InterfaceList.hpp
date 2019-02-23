@@ -8,8 +8,8 @@
 #include <score/tools/std/IndirectContainer.hpp>
 #include <score/tools/std/Pointer.hpp>
 
-#include <ossia/detail/hash_map.hpp>
 #include <ossia/detail/algorithms.hpp>
+#include <ossia/detail/hash_map.hpp>
 
 #include <QMetaType>
 
@@ -104,13 +104,14 @@ public:
 
       auto k = pf->concreteKey();
       auto it = this->map.find(k);
-      if(it == this->map.end())
+      if (it == this->map.end())
       {
         this->map.emplace(std::make_pair(k, std::move(pf)));
       }
       else
       {
-        qDebug() << "Warning: replacing" << typeid(*it->second).name() << "with" << typeid(result).name();
+        qDebug() << "Warning: replacing" << typeid(*it->second).name()
+                 << "with" << typeid(result).name();
         it->second = std::move(pf);
       }
     }
@@ -123,46 +124,25 @@ public:
     return (it != this->map.end()) ? it->second.get() : nullptr;
   }
 
-  auto begin() noexcept
-  {
-    return make_indirect_map_iterator(map.begin());
-  }
+  auto begin() noexcept { return make_indirect_map_iterator(map.begin()); }
   auto begin() const noexcept
   {
     return make_indirect_map_iterator(map.begin());
   }
 
-  auto cbegin() noexcept
-  {
-    return make_indirect_map_iterator(map.cbegin());
-  }
+  auto cbegin() noexcept { return make_indirect_map_iterator(map.cbegin()); }
   auto cbegin() const noexcept
   {
     return make_indirect_map_iterator(map.cbegin());
   }
 
-  auto end() noexcept
-  {
-    return make_indirect_map_iterator(map.end());
-  }
-  auto end() const noexcept
-  {
-    return make_indirect_map_iterator(map.end());
-  }
+  auto end() noexcept { return make_indirect_map_iterator(map.end()); }
+  auto end() const noexcept { return make_indirect_map_iterator(map.end()); }
 
-  auto cend() noexcept
-  {
-    return make_indirect_map_iterator(map.cend());
-  }
-  auto cend() const noexcept
-  {
-    return make_indirect_map_iterator(map.cend());
-  }
+  auto cend() noexcept { return make_indirect_map_iterator(map.cend()); }
+  auto cend() const noexcept { return make_indirect_map_iterator(map.cend()); }
 
-  auto empty() const noexcept
-  {
-    return map.empty();
-  }
+  auto empty() const noexcept { return map.empty(); }
 
   template <typename K>
   auto find(K&& key) const noexcept
@@ -170,13 +150,13 @@ public:
     return make_indirect_map_iterator(map.find(std::forward<K>(key)));
   }
 
-  auto size() const noexcept
-  {
-    return map.size();
-  }
+  auto size() const noexcept { return map.size(); }
 
 protected:
-  ossia::fast_hash_map<typename FactoryType::ConcreteKey, std::unique_ptr<FactoryType>> map;
+  ossia::fast_hash_map<
+      typename FactoryType::ConcreteKey,
+      std::unique_ptr<FactoryType>>
+      map;
 
 private:
   void optimize() noexcept final override

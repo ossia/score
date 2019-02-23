@@ -13,7 +13,8 @@ struct SCORE_LIB_PROCESS_EXPORT DocumentPlugin final
 {
 public:
   DocumentPlugin(
-      const score::DocumentContext& ctx, Id<score::DocumentPlugin> id,
+      const score::DocumentContext& ctx,
+      Id<score::DocumentPlugin> id,
       QObject* parent)
       : score::DocumentPlugin{ctx, id, "Process", parent}
   {
@@ -22,14 +23,8 @@ public:
   using cable_map = ossia::ptr_map<Process::Cable*, Dataflow::CableItem*>;
   using port_map = ossia::ptr_map<Process::Port*, Dataflow::PortItem*>;
 
-  cable_map& cables() noexcept
-  {
-    return m_cableMap;
-  }
-  port_map& ports() noexcept
-  {
-    return m_portMap;
-  }
+  cable_map& cables() noexcept { return m_cableMap; }
+  port_map& ports() noexcept { return m_portMap; }
 
 private:
   cable_map m_cableMap;

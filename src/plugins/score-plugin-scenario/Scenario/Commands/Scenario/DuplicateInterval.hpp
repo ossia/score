@@ -20,19 +20,19 @@ class SCORE_PLUGIN_SCENARIO_EXPORT DuplicateInterval final
     : public score::Command
 {
   SCORE_COMMAND_DECL(
-      ScenarioCommandFactoryName(), DuplicateInterval, "Duplicate an interval")
+      ScenarioCommandFactoryName(),
+      DuplicateInterval,
+      "Duplicate an interval")
 public:
   DuplicateInterval(
-      const Scenario::ProcessModel& parent, const IntervalModel& cst);
+      const Scenario::ProcessModel& parent,
+      const IntervalModel& cst);
   ~DuplicateInterval();
   void undo(const score::DocumentContext& ctx) const override;
   void redo(const score::DocumentContext& ctx) const override;
 
   const Path<IntervalModel>& intervalPath() const;
-  const Id<Scenario::IntervalModel>& createdId() const
-  {
-    return m_createdId;
-  }
+  const Id<Scenario::IntervalModel>& createdId() const { return m_createdId; }
 
 protected:
   void serializeImpl(DataStreamInput& s) const override;

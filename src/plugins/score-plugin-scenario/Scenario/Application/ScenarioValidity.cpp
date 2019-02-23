@@ -5,9 +5,7 @@
 namespace Scenario
 {
 
-ScenarioValidityChecker::~ScenarioValidityChecker()
-{
-}
+ScenarioValidityChecker::~ScenarioValidityChecker() {}
 
 bool ScenarioValidityChecker::validate(const score::DocumentContext& ctx)
 {
@@ -39,21 +37,20 @@ void ScenarioValidityChecker::checkValidity(const ProcessModel& scenar)
     SCORE_ASSERT(!dur.minDuration().isInfinite());
     SCORE_ASSERT(dur.minDuration() >= TimeVal{0});
     SCORE_ASSERT(dur.minDuration() <= dur.maxDuration());
-    SCORE_ASSERT(dur.maxDuration() >= TimeVal{0}|| dur.maxDuration().isInfinite());
-    if(dur.isRigid())
+    SCORE_ASSERT(
+        dur.maxDuration() >= TimeVal{0} || dur.maxDuration().isInfinite());
+    if (dur.isRigid())
     {
       SCORE_ASSERT(dur.minDuration() == dur.defaultDuration());
       SCORE_ASSERT(dur.maxDuration() == dur.defaultDuration());
     }
     else
     {
-      if(dur.isMinNull())
+      if (dur.isMinNull())
       {
-
       }
-      if(dur.isMaxInfinite())
+      if (dur.isMaxInfinite())
       {
-
       }
     }
   }

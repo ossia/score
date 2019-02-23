@@ -23,7 +23,8 @@ class QWidget;
 namespace Scenario
 {
 FullViewIntervalHeader::FullViewIntervalHeader(
-    const score::DocumentContext& ctx, QGraphicsItem* parent)
+    const score::DocumentContext& ctx,
+    QGraphicsItem* parent)
     : IntervalHeader{parent}, m_bar{ctx, this}
 {
   this->setCacheMode(QGraphicsItem::NoCache);
@@ -44,7 +45,9 @@ QRectF FullViewIntervalHeader::boundingRect() const
 }
 
 void FullViewIntervalHeader::paint(
-    QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+    QPainter* painter,
+    const QStyleOptionGraphicsItem* option,
+    QWidget* widget)
 {
   painter->setRenderHint(QPainter::Antialiasing, false);
 

@@ -30,12 +30,14 @@ score::UndoApplicationPlugin::UndoApplicationPlugin(
   m_undoAction.setToolTip(QObject::tr("Undo (Ctrl+Z)"));
 
   setIcons(
-      &m_undoAction, QStringLiteral(":/icons/prev_on.png"),
+      &m_undoAction,
+      QStringLiteral(":/icons/prev_on.png"),
       QStringLiteral(":/icons/prev_off.png"),
       QStringLiteral(":/icons/prev_disabled.png"));
 
-  con(m_undoAction, &QAction::triggered,
-      [&]() { currentDocument()->commandStack().undo(); });
+  con(m_undoAction, &QAction::triggered, [&]() {
+    currentDocument()->commandStack().undo();
+  });
 
   m_redoAction.setShortcut(QKeySequence::Redo);
   m_redoAction.setEnabled(false);
@@ -43,12 +45,14 @@ score::UndoApplicationPlugin::UndoApplicationPlugin(
   m_redoAction.setToolTip(QObject::tr("Redo (Ctrl+Shift+Z)"));
 
   setIcons(
-      &m_redoAction, QStringLiteral(":/icons/next_on.png"),
+      &m_redoAction,
+      QStringLiteral(":/icons/next_on.png"),
       QStringLiteral(":/icons/next_off.png"),
       QStringLiteral(":/icons/next_disabled.png"));
 
-  con(m_redoAction, &QAction::triggered,
-      [&]() { currentDocument()->commandStack().redo(); });
+  con(m_redoAction, &QAction::triggered, [&]() {
+    currentDocument()->commandStack().redo();
+  });
 }
 
 score::UndoApplicationPlugin::~UndoApplicationPlugin()
@@ -58,7 +62,8 @@ score::UndoApplicationPlugin::~UndoApplicationPlugin()
 }
 
 void score::UndoApplicationPlugin::on_documentChanged(
-    score::Document* olddoc, score::Document* newDoc)
+    score::Document* olddoc,
+    score::Document* newDoc)
 {
   using namespace score;
 

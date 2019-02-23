@@ -18,12 +18,11 @@ MediaFileHandle::MediaFileHandle()
   m_hdl = std::make_shared<ossia::audio_data>();
 }
 
-MediaFileHandle::~MediaFileHandle()
-{
-}
+MediaFileHandle::~MediaFileHandle() {}
 
 void MediaFileHandle::load(
-    const QString& path, const score::DocumentContext& ctx)
+    const QString& path,
+    const score::DocumentContext& ctx)
 {
   m_file = score::locateFilePath(path, ctx);
   QFile f{m_file};

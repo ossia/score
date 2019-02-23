@@ -1,8 +1,8 @@
 #pragma once
 #include <Device/Protocol/DeviceInterface.hpp>
 
-namespace Protocols {
-
+namespace Protocols
+{
 
 class WiimoteDevice final : public Device::OwningDeviceInterface
 {

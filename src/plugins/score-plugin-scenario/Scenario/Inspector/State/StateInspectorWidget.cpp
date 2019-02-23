@@ -80,13 +80,10 @@ public:
     return {};
   }
 
-  QModelIndex parent(const QModelIndex& child) const override
-  {
-    return {};
-  }
+  QModelIndex parent(const QModelIndex& child) const override { return {}; }
 
-  QVariant data(
-      const QModelIndex& proxyIndex, int role = Qt::DisplayRole) const override
+  QVariant data(const QModelIndex& proxyIndex, int role = Qt::DisplayRole)
+      const override
   {
     auto ptr = proxyIndex.internalPointer();
     if (!ptr)
@@ -118,10 +115,7 @@ public:
     }
     return 0;
   }
-  int columnCount(const QModelIndex& parent) const override
-  {
-    return 2;
-  }
+  int columnCount(const QModelIndex& parent) const override { return 2; }
   QModelIndex mapToSource(const QModelIndex& proxyIndex) const override
   {
     auto idx = proxyIndex.internalPointer();
@@ -167,9 +161,12 @@ public:
 };
 
 StateInspectorWidget::StateInspectorWidget(
-    const StateModel& object, const score::DocumentContext& doc,
+    const StateModel& object,
+    const score::DocumentContext& doc,
     QWidget* parent)
-    : Inspector::InspectorWidgetBase{object, doc, parent,
+    : Inspector::InspectorWidgetBase{object,
+                                     doc,
+                                     parent,
                                      tr("State (%1)")
                                          .arg(object.metadata().getName())}
     , m_model{object}
@@ -191,8 +188,8 @@ void StateInspectorWidget::updateDisplayedValues()
   SCORE_ASSERT(scenar);
 
   // State setup
-  auto metadata = new MetadataWidget{m_model.metadata(),
-                                     m_context.commandStack, &m_model, this};
+  auto metadata = new MetadataWidget{
+      m_model.metadata(), m_context.commandStack, &m_model, this};
   metadata->setupConnections(m_model);
   m_properties.push_back(metadata);
   m_properties.push_back(new score::HSeparator{this});
@@ -205,7 +202,9 @@ void StateInspectorWidget::updateDisplayedValues()
   {
     auto splitEvent = new QPushButton{tr("Put in new Event"), this};
     connect(
-        splitEvent, &QPushButton::clicked, this,
+        splitEvent,
+        &QPushButton::clicked,
+        this,
         &StateInspectorWidget::splitFromEvent);
     m_properties.push_back(splitEvent);
   }
@@ -213,7 +212,9 @@ void StateInspectorWidget::updateDisplayedValues()
   {
     auto splitNode = new QPushButton{tr("Desynchronize"), this};
     connect(
-        splitNode, &QPushButton::clicked, this,
+        splitNode,
+        &QPushButton::clicked,
+        this,
         &StateInspectorWidget::splitFromNode);
     m_properties.push_back(splitNode);
   }

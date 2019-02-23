@@ -46,8 +46,11 @@ const std::vector<DocumentPlugin*>& DocumentContext::pluginModels() const
 }
 
 Document::Document(
-    const QString& name, const Id<DocumentModel>& id,
-    DocumentDelegateFactory& factory, QWidget* parentview, QObject* parent)
+    const QString& name,
+    const Id<DocumentModel>& id,
+    DocumentDelegateFactory& factory,
+    QWidget* parentview,
+    QObject* parent)
     : QObject{parent}
     , m_metadata{name}
     , m_commandStack{*this}
@@ -81,7 +84,9 @@ Document::Document(
 
 void Document::init()
 {
-  con(m_selectionStack, &SelectionStack::currentSelectionChanged, this,
+  con(m_selectionStack,
+      &SelectionStack::currentSelectionChanged,
+      this,
       [&](const Selection& s) {
         Selection filtered = s;
         filtered.removeAll(nullptr);

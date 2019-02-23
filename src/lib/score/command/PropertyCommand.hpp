@@ -74,9 +74,7 @@ public:
   {
   }
 
-  ~PropertyCommand_T() override
-  {
-  }
+  ~PropertyCommand_T() override {}
 
   template <typename Path_T, typename U>
   void update(const Path_T&, U&& newval)

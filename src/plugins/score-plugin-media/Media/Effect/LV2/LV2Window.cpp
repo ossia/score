@@ -18,7 +18,8 @@ W_OBJECT_IMPL(Media::LV2::Window)
 namespace Media::LV2
 {
 Window::Window(
-    const LV2EffectModel& fx, const score::DocumentContext& ctx,
+    const LV2EffectModel& fx,
+    const score::DocumentContext& ctx,
     QWidget* parent)
     : m_model{fx}
 {
@@ -46,7 +47,9 @@ Window::Window(
     {
       const LilvUI* this_ui = lilv_uis_get(the_uis, u);
       if (lilv_ui_is_supported(
-              this_ui, suil_ui_supported, native_ui_type,
+              this_ui,
+              suil_ui_supported,
+              native_ui_type,
               &fx.effectContext.ui_type))
       {
         fx.effectContext.ui = this_ui;
@@ -88,10 +91,14 @@ Window::Window(
   char* binary_path = lilv_file_uri_parse(binary_uri, nullptr);
 
   fx.effectContext.ui_instance = suil_instance_new(
-      plug.lv2_context->ui_host, (LV2EffectModel*)&fx, native_ui_type_uri,
+      plug.lv2_context->ui_host,
+      (LV2EffectModel*)&fx,
+      native_ui_type_uri,
       lilv_node_as_uri(lilv_plugin_get_uri(fx.effectContext.plugin)),
       lilv_node_as_uri(lilv_ui_get_uri(fx.effectContext.ui)),
-      lilv_node_as_uri(fx.effectContext.ui_type), bundle_path, binary_path,
+      lilv_node_as_uri(fx.effectContext.ui_type),
+      bundle_path,
+      binary_path,
       ui_features);
 
   lilv_free(binary_path);
@@ -125,8 +132,11 @@ Window::Window(
       while (fx.plugin_events.try_dequeue(ev))
       {
         suil_instance_port_event(
-            fx.effectContext.ui_instance, ev.index, ev.body.size(),
-            ev.protocol, ev.body.data());
+            fx.effectContext.ui_instance,
+            ev.index,
+            ev.body.size(),
+            ev.protocol,
+            ev.body.data());
       }
     }
 
@@ -192,9 +202,7 @@ Window::Window(
   fx.externalUIVisible(true);
 }
 
-Window::~Window()
-{
-}
+Window::~Window() {}
 
 void Window::resizeEvent(QResizeEvent* event)
 {

@@ -12,10 +12,13 @@ namespace Spline
 class ChangeSpline final : public score::Command
 {
   SCORE_COMMAND_DECL(
-      Automation::CommandFactoryName(), ChangeSpline, "ChangeSpline")
+      Automation::CommandFactoryName(),
+      ChangeSpline,
+      "ChangeSpline")
 public:
   ChangeSpline(
-      const ProcessModel& autom, const ossia::nodes::spline_data& newval)
+      const ProcessModel& autom,
+      const ossia::nodes::spline_data& newval)
       : m_path{autom}, m_old{autom.spline()}, m_new{newval}
   {
   }
@@ -50,8 +53,10 @@ class Presenter final : public Process::LayerPresenter
 {
 public:
   explicit Presenter(
-      const Spline::ProcessModel& model, Spline::View* view,
-      const Process::ProcessPresenterContext& ctx, QObject* parent);
+      const Spline::ProcessModel& model,
+      Spline::View* view,
+      const Process::ProcessPresenterContext& ctx,
+      QObject* parent);
 
   void setWidth(qreal width) override;
   void setHeight(qreal height) override;

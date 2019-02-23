@@ -1,9 +1,10 @@
 #pragma once
+#include <ossia/detail/optional.hpp>
+
 #include <QMetaType>
 #include <QString>
-#include <ossia/detail/optional.hpp>
-#include <wobjectdefs.h>
 
+#include <wobjectdefs.h>
 
 namespace Protocols
 {

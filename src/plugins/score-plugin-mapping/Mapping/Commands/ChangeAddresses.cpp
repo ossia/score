@@ -25,7 +25,8 @@
 namespace Mapping
 {
 ChangeSourceAddress::ChangeSourceAddress(
-    const ProcessModel& mapping, Device::FullAddressAccessorSettings newval)
+    const ProcessModel& mapping,
+    Device::FullAddressAccessorSettings newval)
     : m_path{mapping}
     , m_old{mapping.sourceAddress(), mapping.sourceMin(), mapping.sourceMax()}
     , m_new{std::move(newval)}
@@ -67,7 +68,8 @@ void ChangeSourceAddress::deserializeImpl(DataStreamOutput& s)
 }
 
 ChangeTargetAddress::ChangeTargetAddress(
-    const ProcessModel& mapping, Device::FullAddressAccessorSettings newval)
+    const ProcessModel& mapping,
+    Device::FullAddressAccessorSettings newval)
     : m_path{mapping}
     , m_old{mapping.targetAddress(), mapping.targetMin(), mapping.targetMax()}
     , m_new{std::move(newval)}

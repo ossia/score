@@ -33,8 +33,8 @@ struct setup_Impl0
       using namespace ossia::safe_nodes;
       constexpr auto idx = Idx_T::value;
 
-      using control_type = typename std::tuple_element<
-          idx, decltype(get_controls<Info_T>{}())>::type;
+      using control_type = typename std::
+          tuple_element<idx, decltype(get_controls<Info_T>{}())>::type;
       using control_value_type = typename control_type::type;
 
       if (auto node = weak_node.lock())
@@ -57,8 +57,8 @@ struct setup_Impl0
       using namespace ossia::safe_nodes;
       constexpr auto idx = Idx_T::value;
 
-      using control_type = typename std::tuple_element<
-          idx, decltype(get_controls<Info_T>{}())>::type;
+      using control_type = typename std::
+          tuple_element<idx, decltype(get_controls<Info_T>{}())>::type;
       using control_value_type = typename control_type::type;
 
       if (auto node = weak_node.lock())
@@ -79,8 +79,8 @@ struct setup_Impl0
 
     constexpr const auto ctrl = std::get<idx>(get_controls<Info_T>{}());
     constexpr const auto control_start = info_functions<Info>::control_start;
-    using control_type = typename std::tuple_element<
-        idx, decltype(get_controls<Info_T>{}())>::type;
+    using control_type = typename std::
+        tuple_element<idx, decltype(get_controls<Info_T>{}())>::type;
     auto inlet = static_cast<Process::ControlInlet*>(
         element.inlets()[control_start + idx]);
 
@@ -93,7 +93,9 @@ struct setup_Impl0
         std::get<idx>(node.controls) = *res;
 
       QObject::connect(
-          inlet, &Process::ControlInlet::valueChanged, parent,
+          inlet,
+          &Process::ControlInlet::valueChanged,
+          parent,
           con_validated<T>{ctx, weak_node});
     }
     else
@@ -101,7 +103,9 @@ struct setup_Impl0
       std::get<idx>(node.controls) = ctrl.fromValue(element.control(idx));
 
       QObject::connect(
-          inlet, &Process::ControlInlet::valueChanged, parent,
+          inlet,
+          &Process::ControlInlet::valueChanged,
+          parent,
           con_unvalidated<T>{ctx, weak_node});
     }
   }
@@ -125,8 +129,10 @@ struct setup_Impl1
 
 template <typename Info, typename Node_T, typename Element_T>
 void setup_node(
-    const std::shared_ptr<Node_T>& node_ptr, Element_T& element,
-    const Execution::Context& ctx, QObject* parent)
+    const std::shared_ptr<Node_T>& node_ptr,
+    Element_T& element,
+    const Execution::Context& ctx,
+    QObject* parent)
 {
   using namespace ossia::safe_nodes;
   constexpr const auto control_count = info_functions<Info>::control_count;
@@ -142,7 +148,9 @@ void setup_node(
 
     // Update the value in the UI
     std::weak_ptr<Node_T> weak_node = node_ptr;
-    con(ctx.doc.coarseUpdateTimer, &QTimer::timeout, parent,
+    con(ctx.doc.coarseUpdateTimer,
+        &QTimer::timeout,
+        parent,
         [weak_node, &element] {
           if (auto node = weak_node.lock())
           {
@@ -169,8 +177,9 @@ void setup_node(
 }
 
 template <typename Info>
-class Executor final : public Execution::ProcessComponent_T<
-                           ControlProcess<Info>, ossia::node_process>
+class Executor final
+    : public Execution::
+          ProcessComponent_T<ControlProcess<Info>, ossia::node_process>
 {
 public:
   static Q_DECL_RELAXED_CONSTEXPR score::Component::Key static_key() noexcept
@@ -190,11 +199,17 @@ public:
   }
 
   Executor(
-      ControlProcess<Info>& element, const ::Execution::Context& ctx,
-      const Id<score::Component>& id, QObject* parent)
-      : Execution::ProcessComponent_T<
-            ControlProcess<Info>, ossia::node_process>{
-            element, ctx, id, "Executor::ControlProcess<Info>", parent}
+      ControlProcess<Info>& element,
+      const ::Execution::Context& ctx,
+      const Id<score::Component>& id,
+      QObject* parent)
+      : Execution::
+            ProcessComponent_T<ControlProcess<Info>, ossia::node_process>{
+                element,
+                ctx,
+                id,
+                "Executor::ControlProcess<Info>",
+                parent}
   {
     auto node = std::make_shared<ossia::safe_nodes::safe_node<Info>>();
     this->node = node;
@@ -203,8 +218,6 @@ public:
     setup_node<Info>(node, element, ctx, this);
   }
 
-  ~Executor()
-  {
-  }
+  ~Executor() {}
 };
 }

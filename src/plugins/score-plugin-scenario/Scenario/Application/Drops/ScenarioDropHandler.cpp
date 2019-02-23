@@ -5,16 +5,13 @@
 namespace Scenario
 {
 
-DropHandler::~DropHandler()
-{
-}
+DropHandler::~DropHandler() {}
 
-DropHandlerList::~DropHandlerList()
-{
-}
+DropHandlerList::~DropHandlerList() {}
 
 bool DropHandlerList::dragEnter(
-    const ScenarioPresenter& scen, QPointF drop,
+    const ScenarioPresenter& scen,
+    QPointF drop,
     const QMimeData& mime) const
 {
   for (auto& fact : *this)
@@ -27,7 +24,8 @@ bool DropHandlerList::dragEnter(
 }
 
 bool DropHandlerList::dragMove(
-    const ScenarioPresenter& scen, QPointF drop,
+    const ScenarioPresenter& scen,
+    QPointF drop,
     const QMimeData& mime) const
 {
   for (auto& fact : *this)
@@ -40,7 +38,8 @@ bool DropHandlerList::dragMove(
 }
 
 bool DropHandlerList::dragLeave(
-    const ScenarioPresenter& scen, QPointF drop,
+    const ScenarioPresenter& scen,
+    QPointF drop,
     const QMimeData& mime) const
 {
   for (auto& fact : *this)
@@ -53,7 +52,8 @@ bool DropHandlerList::dragLeave(
 }
 
 bool DropHandlerList::drop(
-    const ScenarioPresenter& scen, QPointF drop,
+    const ScenarioPresenter& scen,
+    QPointF drop,
     const QMimeData& mime) const
 {
   for (auto& fact : *this)
@@ -65,16 +65,14 @@ bool DropHandlerList::drop(
   return false;
 }
 
-IntervalDropHandler::~IntervalDropHandler()
-{
-}
+IntervalDropHandler::~IntervalDropHandler() {}
 
-IntervalDropHandlerList::~IntervalDropHandlerList()
-{
-}
+IntervalDropHandlerList::~IntervalDropHandlerList() {}
 
 bool IntervalDropHandlerList::drop(
-    const score::DocumentContext& ctx, const Scenario::IntervalModel& cst, const QMimeData& mime) const
+    const score::DocumentContext& ctx,
+    const Scenario::IntervalModel& cst,
+    const QMimeData& mime) const
 {
   for (auto& fact : *this)
   {

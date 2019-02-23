@@ -68,21 +68,20 @@ void setQApplicationMetadata()
   QCoreApplication::setOrganizationName("OSSIA");
   QCoreApplication::setOrganizationDomain("ossia.io");
   QCoreApplication::setApplicationName("score");
-  if(QString(SCORE_VERSION_EXTRA).isEmpty())
+  if (QString(SCORE_VERSION_EXTRA).isEmpty())
   {
     QCoreApplication::setApplicationVersion(QString("%1.%2.%3")
-                                            .arg(SCORE_VERSION_MAJOR)
-                                            .arg(SCORE_VERSION_MINOR)
-                                            .arg(SCORE_VERSION_PATCH));
+                                                .arg(SCORE_VERSION_MAJOR)
+                                                .arg(SCORE_VERSION_MINOR)
+                                                .arg(SCORE_VERSION_PATCH));
   }
   else
   {
     QCoreApplication::setApplicationVersion(QString("%1.%2.%3-%4")
-                                            .arg(SCORE_VERSION_MAJOR)
-                                            .arg(SCORE_VERSION_MINOR)
-                                            .arg(SCORE_VERSION_PATCH)
-                                            .arg(SCORE_VERSION_EXTRA));
-
+                                                .arg(SCORE_VERSION_MAJOR)
+                                                .arg(SCORE_VERSION_MINOR)
+                                                .arg(SCORE_VERSION_PATCH)
+                                                .arg(SCORE_VERSION_EXTRA));
   }
 }
 }

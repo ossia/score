@@ -4,17 +4,17 @@
 #include <Process/LayerPresenter.hpp>
 #include <Process/LayerView.hpp>
 #include <Process/Style/ScenarioStyle.hpp>
-#include <score/graphics/TextItem.hpp>
 
 #include <score/graphics/RectItem.hpp>
+#include <score/graphics/TextItem.hpp>
 
 #include <QGraphicsProxyWidget>
 #include <QGraphicsSceneMouseEvent>
 #include <QPainter>
 
+#include <Control/Widgets.hpp>
 #include <Effect/EffectLayer.hpp>
 #include <Engine/Node/Process.hpp>
-#include <Control/Widgets.hpp>
 
 namespace Control
 {
@@ -54,9 +54,10 @@ struct UISetup
             widg->setPos(15, lab->boundingRect().height());
 
             auto h = std::max(
-                20., (qreal)(
-                         widg->boundingRect().height()
-                         + lab->boundingRect().height() + 2.));
+                20.,
+                (qreal)(
+                    widg->boundingRect().height()
+                    + lab->boundingRect().height() + 2.));
             item->setRect(QRectF{0., 0., 170., h});
             port->setPos(7., h / 2.);
 
@@ -93,7 +94,8 @@ private:
   }
 
   Process::LayerPresenter* makeLayerPresenter(
-      const Process::ProcessModel& lm, Process::LayerView* v,
+      const Process::ProcessModel& lm,
+      Process::LayerView* v,
       const Process::ProcessPresenterContext& context,
       QObject* parent) const final override
   {
@@ -108,7 +110,8 @@ private:
   }
 
   QGraphicsItem* makeItem(
-      const Process::ProcessModel& proc, const score::DocumentContext& ctx,
+      const Process::ProcessModel& proc,
+      const score::DocumentContext& ctx,
       score::RectItem* parent) const final override
   {
     auto rootItem = new score::EmptyRectItem{parent};

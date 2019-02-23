@@ -1,7 +1,7 @@
 #pragma once
 
-#include <score/model/Identifier.hpp>
 #include <score/graphics/GraphicsItem.hpp>
+#include <score/model/Identifier.hpp>
 
 #include <QPoint>
 
@@ -25,14 +25,13 @@ class SCORE_PLUGIN_SCENARIO_EXPORT TimeSyncPresenter final : public QObject
   W_OBJECT(TimeSyncPresenter)
 public:
   TimeSyncPresenter(
-      const TimeSyncModel& model, QGraphicsItem* parentview, QObject* parent);
+      const TimeSyncModel& model,
+      QGraphicsItem* parentview,
+      QObject* parent);
   ~TimeSyncPresenter();
 
   const Id<TimeSyncModel>& id() const;
-  int32_t id_val() const
-  {
-    return id().val();
-  }
+  int32_t id_val() const { return id().val(); }
 
   const TimeSyncModel& model() const;
   TimeSyncView* view() const;
@@ -49,7 +48,8 @@ public:
       E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, released, arg_1);
 
   void eventAdded(
-      const Id<EventModel>& eventId, const Id<TimeSyncModel>& timeSyncId)
+      const Id<EventModel>& eventId,
+      const Id<TimeSyncModel>& timeSyncId)
       E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, eventAdded, eventId, timeSyncId);
 
 private:

@@ -40,8 +40,10 @@ public:
 
   static const constexpr bool is_unique = true;
   IntervalRawPtrComponentBase(
-      Scenario::IntervalModel& score_cst, const Context& ctx,
-      const Id<score::Component>& id, QObject* parent);
+      Scenario::IntervalModel& score_cst,
+      const Context& ctx,
+      const Id<score::Component>& id,
+      QObject* parent);
   IntervalRawPtrComponentBase(const IntervalRawPtrComponentBase&) = delete;
   IntervalRawPtrComponentBase(IntervalRawPtrComponentBase&&) = delete;
   IntervalRawPtrComponentBase& operator=(const IntervalRawPtrComponentBase&)
@@ -55,10 +57,7 @@ public:
   ossia::time_interval* OSSIAInterval() const;
   Scenario::IntervalModel& scoreInterval() const;
 
-  const auto& processes() const
-  {
-    return m_processes;
-  }
+  const auto& processes() const { return m_processes; }
 
   void pause();
   void resume();
@@ -68,10 +67,11 @@ public:
   void executionStopped();
 
   ProcessComponent* make(
-      const Id<score::Component>& id, ProcessComponentFactory& factory,
+      const Id<score::Component>& id,
+      ProcessComponentFactory& factory,
       Process::ProcessModel& process);
-  ProcessComponent* make(
-      const Id<score::Component>& id, Process::ProcessModel& process)
+  ProcessComponent*
+  make(const Id<score::Component>& id, Process::ProcessModel& process)
   {
     return nullptr;
   }
@@ -89,10 +89,7 @@ public:
       f();
   }
 
-  const Context& context() const
-  {
-    return system();
-  }
+  const Context& context() const { return system(); }
 
 protected:
   void on_processAdded(Process::ProcessModel& score_proc);
@@ -103,8 +100,8 @@ protected:
 };
 
 class SCORE_PLUGIN_SCENARIO_EXPORT IntervalRawPtrComponent final
-    : public score::PolymorphicComponentHierarchy<
-          IntervalRawPtrComponentBase, false>
+    : public score::
+          PolymorphicComponentHierarchy<IntervalRawPtrComponentBase, false>
 {
   W_OBJECT(IntervalRawPtrComponent)
 
@@ -115,8 +112,11 @@ public:
                                              std::forward<Args>(args)...}
   {
     connect(
-        this, &IntervalRawPtrComponent::sig_callback, this,
-        &IntervalRawPtrComponent::slot_callback, Qt::QueuedConnection);
+        this,
+        &IntervalRawPtrComponent::sig_callback,
+        this,
+        &IntervalRawPtrComponent::slot_callback,
+        Qt::QueuedConnection);
   }
 
   IntervalRawPtrComponent(const IntervalRawPtrComponent&) = delete;
@@ -137,7 +137,8 @@ public:
   //! To be called from the API edition thread
   void onSetup(
       std::shared_ptr<IntervalRawPtrComponent> self,
-      ossia::time_interval* ossia_cst, interval_duration_data dur);
+      ossia::time_interval* ossia_cst,
+      interval_duration_data dur);
 
 public:
   void sig_callback(double position, ossia::time_value date)

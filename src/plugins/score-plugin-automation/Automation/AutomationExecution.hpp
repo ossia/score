@@ -16,14 +16,17 @@ namespace Automation
 {
 namespace RecreateOnPlay
 {
-class Component final : public ::Execution::ProcessComponent_T<
-                            Automation::ProcessModel, ossia::node_process>
+class Component final
+    : public ::Execution::
+          ProcessComponent_T<Automation::ProcessModel, ossia::node_process>
 {
   COMPONENT_METADATA("f759eacd-5a67-4627-bbe8-c649e0f9b6c5")
 public:
   Component(
-      Automation::ProcessModel& element, const ::Execution::Context& ctx,
-      const Id<score::Component>& id, QObject* parent);
+      Automation::ProcessModel& element,
+      const ::Execution::Context& ctx,
+      const Id<score::Component>& id,
+      QObject* parent);
 
   ~Component() override;
 

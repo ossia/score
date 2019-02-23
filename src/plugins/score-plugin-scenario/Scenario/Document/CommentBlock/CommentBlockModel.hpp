@@ -30,7 +30,9 @@ public:
   Selectable selection;
 
   CommentBlockModel(
-      const Id<CommentBlockModel>& id, const TimeVal& date, double yPos,
+      const Id<CommentBlockModel>& id,
+      const TimeVal& date,
+      double yPos,
       QObject* parent);
 
   template <typename DeserializerVisitor>

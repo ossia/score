@@ -24,8 +24,11 @@ class PointArraySegment;
 }
 
 CURVE_SEGMENT_METADATA(
-    SCORE_PLUGIN_CURVE_EXPORT, Curve::PointArraySegment,
-    "c598b840-db67-4c8f-937a-46cfac87cb59", "PointArray", "PointArray",
+    SCORE_PLUGIN_CURVE_EXPORT,
+    Curve::PointArraySegment,
+    "c598b840-db67-4c8f-937a-46cfac87cb59",
+    "PointArray",
+    "PointArray",
     "hidden")
 
 namespace Curve
@@ -51,7 +54,9 @@ public:
   PointArraySegment(const SegmentData& dat, QObject* parent);
 
   PointArraySegment(
-      const PointArraySegment& other, const id_type& id, QObject* parent);
+      const PointArraySegment& other,
+      const id_type& id,
+      QObject* parent);
 
   PointArraySegment(DataStream::Deserializer& vis, QObject* parent)
       : SegmentModel{vis, parent}
@@ -79,36 +84,15 @@ public:
   std::vector<SegmentData> toLinearSegments() const;
   std::vector<SegmentData> toPowerSegments() const;
 
-  double min()
-  {
-    return min_y;
-  }
-  double max()
-  {
-    return max_y;
-  }
+  double min() { return min_y; }
+  double max() { return max_y; }
 
-  void setMinX(double y)
-  {
-    min_x = y;
-  }
-  void setMinY(double y)
-  {
-    min_y = y;
-  }
-  void setMaxX(double y)
-  {
-    max_x = y;
-  }
-  void setMaxY(double y)
-  {
-    max_y = y;
-  }
+  void setMinX(double y) { min_x = y; }
+  void setMinY(double y) { min_y = y; }
+  void setMaxX(double y) { max_x = y; }
+  void setMaxY(double y) { max_y = y; }
 
-  const auto& points() const
-  {
-    return m_points;
-  }
+  const auto& points() const { return m_points; }
 
   QVariant toSegmentSpecificData() const override
   {
@@ -122,14 +106,8 @@ public:
   }
 
   // This will throw if execution is attempted.
-  ossia::curve_segment<float> makeFloatFunction() const override
-  {
-    return {};
-  }
-  ossia::curve_segment<int> makeIntFunction() const override
-  {
-    return {};
-  }
+  ossia::curve_segment<float> makeFloatFunction() const override { return {}; }
+  ossia::curve_segment<int> makeIntFunction() const override { return {}; }
   void reset();
 
 public:

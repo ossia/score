@@ -27,24 +27,33 @@ class ExplorationWorkerWrapper final : public QObject
 public:
   template <typename OnSuccess_t>
   ExplorationWorkerWrapper(
-      OnSuccess_t&& success, DeviceExplorerWidget& widg,
+      OnSuccess_t&& success,
+      DeviceExplorerWidget& widg,
       Device::DeviceInterface& dev)
       : worker{new ExplorationWorker{dev}}
       , m_widget{widg}
       , m_success{std::move(success)}
   {
     QObject::connect(
-        thread, &QThread::started, worker,
+        thread,
+        &QThread::started,
+        worker,
         [&]() { on_start(); }, // so that it runs on thread.
         Qt::QueuedConnection);
 
     QObject::connect(
-        worker, &ExplorationWorker::finished, this,
-        &ExplorationWorkerWrapper::on_finish, Qt::QueuedConnection);
+        worker,
+        &ExplorationWorker::finished,
+        this,
+        &ExplorationWorkerWrapper::on_finish,
+        Qt::QueuedConnection);
 
     QObject::connect(
-        worker, &ExplorationWorker::failed, this,
-        &ExplorationWorkerWrapper::on_fail, Qt::QueuedConnection);
+        worker,
+        &ExplorationWorker::failed,
+        this,
+        &ExplorationWorkerWrapper::on_fail,
+        Qt::QueuedConnection);
   }
 
   void start()
@@ -98,10 +107,11 @@ private:
 
 template <typename OnSuccess_t>
 static auto make_worker(
-    OnSuccess_t&& success, DeviceExplorerWidget& widg,
+    OnSuccess_t&& success,
+    DeviceExplorerWidget& widg,
     Device::DeviceInterface& dev)
 {
-  return new ExplorationWorkerWrapper<OnSuccess_t>{std::move(success), widg,
-                                                   dev};
+  return new ExplorationWorkerWrapper<OnSuccess_t>{
+      std::move(success), widg, dev};
 }
 }

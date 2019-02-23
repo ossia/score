@@ -1,8 +1,8 @@
 #include "SoundView.hpp"
 
 #include <score/graphics/GraphicsItem.hpp>
-#include <score/tools/std/Invoke.hpp>
 #include <score/tools/Todo.hpp>
+#include <score/tools/std/Invoke.hpp>
 
 #include <ossia/detail/pod_vector.hpp>
 
@@ -11,6 +11,7 @@
 #include <QPainter>
 #include <QScrollBar>
 #include <QTimer>
+
 #include <cmath>
 
 #if defined(__AVX2__) && __has_include(<immintrin.h>)
@@ -27,10 +28,11 @@ namespace Media
 namespace Sound
 {
 /*
-QImage render(const QList<QPainterPath>& paths, const QPainterPath& m_channels, QRectF rect, double height, double zoom)
+QImage render(const QList<QPainterPath>& paths, const QPainterPath& m_channels,
+QRectF rect, double height, double zoom)
 {
-  auto image = QImage(rect.width(), rect.height(), QImage::Format_ARGB32_Premultiplied);
-  image.fill(Qt::transparent);
+  auto image = QImage(rect.width(), rect.height(),
+QImage::Format_ARGB32_Premultiplied); image.fill(Qt::transparent);
 
   {
     auto painter = std::make_unique<QPainter>(&image);
@@ -77,10 +79,14 @@ LayerView::LayerView(QGraphicsItem* parent)
   this->setAcceptDrops(true);
   if (auto view = getView(*parent))
     connect(
-        view->horizontalScrollBar(), &QScrollBar::valueChanged, this,
+        view->horizontalScrollBar(),
+        &QScrollBar::valueChanged,
+        this,
         &Media::Sound::LayerView::scrollValueChanged);
   connect(
-      m_cpt, &WaveformComputer::ready, this,
+      m_cpt,
+      &WaveformComputer::ready,
+      this,
       [=](QList<QPainterPath> p, QPainterPath c, double z, QImage img) {
         m_paths = std::move(p);
         m_channels = std::move(c);
@@ -102,10 +108,14 @@ void LayerView::setData(const std::shared_ptr<MediaFileHandle>& data)
   if (m_data)
   {
     QObject::disconnect(
-        &m_data->decoder(), &AudioDecoder::finishedDecoding, this,
+        &m_data->decoder(),
+        &AudioDecoder::finishedDecoding,
+        this,
         &LayerView::on_finishedDecoding);
     QObject::disconnect(
-        &m_data->decoder(), &AudioDecoder::newData, this,
+        &m_data->decoder(),
+        &AudioDecoder::newData,
+        this,
         &LayerView::on_newData);
   }
 
@@ -116,11 +126,17 @@ void LayerView::setData(const std::shared_ptr<MediaFileHandle>& data)
   if (m_data)
   {
     QObject::connect(
-        &m_data->decoder(), &AudioDecoder::finishedDecoding, this,
-        &LayerView::on_finishedDecoding, Qt::QueuedConnection);
+        &m_data->decoder(),
+        &AudioDecoder::finishedDecoding,
+        this,
+        &LayerView::on_finishedDecoding,
+        Qt::QueuedConnection);
     QObject::connect(
-        &m_data->decoder(), &AudioDecoder::newData, this,
-        &LayerView::on_newData, Qt::QueuedConnection);
+        &m_data->decoder(),
+        &AudioDecoder::newData,
+        this,
+        &LayerView::on_newData,
+        Qt::QueuedConnection);
   }
   m_sampleRate = data->sampleRate();
   m_cpt->dirty = true;
@@ -144,7 +160,7 @@ void LayerView::contextMenuEvent(QGraphicsSceneContextMenuEvent* event)
 
 void LayerView::paint_impl(QPainter* painter) const
 {
-//  painter->drawPixmap(0, 0, m_pixmap);
+  //  painter->drawPixmap(0, 0, m_pixmap);
   painter->setRenderHint(QPainter::Antialiasing, false);
   const int nchannels = m_numChan;
   if (nchannels == 0)
@@ -226,8 +242,11 @@ void LayerView::dropEvent(QGraphicsSceneDragDropEvent* event)
 WaveformComputer::WaveformComputer(LayerView& layer) : m_layer{layer}
 {
   connect(
-      this, &WaveformComputer::recompute, this,
-      &WaveformComputer::on_recompute, Qt::QueuedConnection);
+      this,
+      &WaveformComputer::recompute,
+      this,
+      &WaveformComputer::on_recompute,
+      Qt::QueuedConnection);
 
   this->moveToThread(&m_drawThread);
   m_drawThread.start();
@@ -263,7 +282,9 @@ WaveformComputer::action WaveformComputer::compareDensity(const double density)
 }
 
 void WaveformComputer::computeDataSet(
-    const MediaFileHandle& data, ZoomRatio ratio, double* densityptr,
+    const MediaFileHandle& data,
+    ZoomRatio ratio,
+    double* densityptr,
     std::vector<ossia::float_vector>& dataset)
 {
   if (!data.handle())
@@ -271,10 +292,11 @@ void WaveformComputer::computeDataSet(
 
   auto& arr = data.data();
 
-  if(ratio < 0.)
+  if (ratio < 0.)
     ratio = 0.;
   const std::size_t nchannels = data.channels();
-  const std::size_t density = std::max((data.sampleRate() * ratio) / 1000., 1.);
+  const std::size_t density
+      = std::max((data.sampleRate() * ratio) / 1000., 1.);
 
   if (densityptr != nullptr)
     *densityptr = density;
@@ -318,8 +340,7 @@ void WaveformComputer::computeDataSet(
       for (; i < npoints - 8; i += 8)
       {
         const auto one_over_dens_avx = _mm256_set1_ps(one_over_dens);
-        __m256 X = _mm256_mul_ps(
-            _mm256_load_ps(&rmsv[i]), one_over_dens_avx);
+        __m256 X = _mm256_mul_ps(_mm256_load_ps(&rmsv[i]), one_over_dens_avx);
         _mm256_store_ps(&rmsv[i], _mm256_mul_ps(_mm256_rsqrt14_ps(X), X));
       }
     }
@@ -330,8 +351,7 @@ void WaveformComputer::computeDataSet(
       for (; i < npoints - 4; i += 4)
       {
         float* addr = &rmsv[i];
-        __m128 X
-            = _mm_mul_ps(_mm_load_ps(addr), one_over_dens_sse);
+        __m128 X = _mm_mul_ps(_mm_load_ps(addr), one_over_dens_sse);
         _mm_store_ps(addr, _mm_mul_ps(X, _mm_rsqrt_ps(X)));
       }
     }
@@ -343,7 +363,8 @@ void WaveformComputer::computeDataSet(
 }
 
 void WaveformComputer::drawWaveForms(
-    const MediaFileHandle& data, ZoomRatio ratio)
+    const MediaFileHandle& data,
+    ZoomRatio ratio)
 {
   QList<QPainterPath> paths;
   QPainterPath channels;
@@ -356,7 +377,7 @@ void WaveformComputer::drawWaveForms(
   int nchannels = arr.size();
   if (nchannels == 0)
     return;
-  if(m_curdata.size() < nchannels)
+  if (m_curdata.size() < nchannels)
     return;
 
   // Height of each channel
@@ -415,7 +436,8 @@ void WaveformComputer::drawWaveForms(
 }
 
 void WaveformComputer::on_recompute(
-    std::shared_ptr<MediaFileHandle> data_qp, ZoomRatio ratio)
+    std::shared_ptr<MediaFileHandle> data_qp,
+    ZoomRatio ratio)
 {
   if (!data_qp)
     return;
@@ -428,7 +450,8 @@ void WaveformComputer::on_recompute(
   if (data.channels() == 0)
     return;
 
-  const int64_t density = std::max((int64_t)(ratio * data.sampleRate() / 1000ll), (int64_t)1);
+  const int64_t density
+      = std::max((int64_t)(ratio * data.sampleRate() / 1000ll), (int64_t)1);
   long action = compareDensity(density);
 
   switch (action)
@@ -441,11 +464,12 @@ void WaveformComputer::on_recompute(
       m_prevdensity = m_density;
       m_density = m_nextdensity;
 
-     score::invoke([p=QPointer{this}, data_qp, ratio, density] {
-       if (!data_qp || !p)
+      score::invoke([p = QPointer{this}, data_qp, ratio, density] {
+        if (!data_qp || !p)
           return;
         if (density > 1)
-          p->computeDataSet(*data_qp, ratio / 2., &p->m_nextdensity, p->m_nextdata);
+          p->computeDataSet(
+              *data_qp, ratio / 2., &p->m_nextdensity, p->m_nextdata);
         else
           p->m_nextdata = p->m_curdata;
       });
@@ -455,19 +479,22 @@ void WaveformComputer::on_recompute(
       std::swap(m_curdata, m_prevdata);
       m_nextdensity = m_density;
       m_density = m_prevdensity;
-      score::invoke([p=QPointer{this}, data_qp, ratio] {
+      score::invoke([p = QPointer{this}, data_qp, ratio] {
         if (!data_qp || !p)
           return;
-        p->computeDataSet(*data_qp, 2. * ratio, &p->m_prevdensity, p->m_prevdata);
+        p->computeDataSet(
+            *data_qp, 2. * ratio, &p->m_prevdensity, p->m_prevdata);
       });
       break;
     case RECOMPUTE_ALL:
       computeDataSet(data, ratio, &m_density, m_curdata);
-      score::invoke([p=QPointer{this}, data_qp, ratio] {
+      score::invoke([p = QPointer{this}, data_qp, ratio] {
         if (!data_qp || !p)
           return;
-        p->computeDataSet(*data_qp, 2. * ratio, &p->m_prevdensity, p->m_prevdata);
-        p->computeDataSet(*data_qp, ratio / 2., &p->m_nextdensity, p->m_nextdata);
+        p->computeDataSet(
+            *data_qp, 2. * ratio, &p->m_prevdensity, p->m_prevdata);
+        p->computeDataSet(
+            *data_qp, ratio / 2., &p->m_nextdensity, p->m_nextdata);
       });
       break;
     default:

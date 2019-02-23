@@ -17,7 +17,8 @@ class SCORE_LIB_BASE_EXPORT DocumentDelegatePresenter : public QObject
   W_OBJECT(DocumentDelegatePresenter)
 public:
   DocumentDelegatePresenter(
-      DocumentPresenter* parent_presenter, const DocumentDelegateModel& model,
+      DocumentPresenter* parent_presenter,
+      const DocumentDelegateModel& model,
       DocumentDelegateView& view);
 
   virtual ~DocumentDelegatePresenter();

@@ -71,15 +71,14 @@
 W_OBJECT_IMPL(Scenario::ScenarioExecution)
 W_OBJECT_IMPL(Scenario::ScenarioApplicationPlugin)
 SCORE_DECLARE_ACTION(
-    ShowCables, "&Show cables", Dataflow, Qt::ALT + Qt::SHIFT + Qt::Key_G)
+    ShowCables,
+    "&Show cables",
+    Dataflow,
+    Qt::ALT + Qt::SHIFT + Qt::Key_G)
 namespace Scenario
 {
-ScenarioExecution::ScenarioExecution()
-{
-}
-ScenarioExecution::~ScenarioExecution()
-{
-}
+ScenarioExecution::ScenarioExecution() {}
+ScenarioExecution::~ScenarioExecution() {}
 void test_parse_expr_full();
 
 ScenarioApplicationPlugin::ScenarioApplicationPlugin(
@@ -90,7 +89,9 @@ ScenarioApplicationPlugin::ScenarioApplicationPlugin(
   if (auto guiapp = qobject_cast<QGuiApplication*>(app))
   {
     connect(
-        guiapp, &QGuiApplication::applicationStateChanged, this,
+        guiapp,
+        &QGuiApplication::applicationStateChanged,
+        this,
         [&](Qt::ApplicationState st) { editionSettings().setDefault(); });
   }
 
@@ -200,7 +201,9 @@ void ScenarioApplicationPlugin::on_presenterFocused(
     // this is called and will create a context menu with slot & process
     // information.
     m_contextMenuConnection = QObject::connect(
-        pres, &Process::LayerPresenter::contextMenuRequested, this,
+        pres,
+        &Process::LayerPresenter::contextMenuRequested,
+        this,
         [=](const QPoint& pos, const QPointF& pt2) {
           QMenu menu(qApp->activeWindow());
           pres->fillContextMenu(menu, pos, pt2, m_layerCtxMenuManager);
@@ -217,11 +220,15 @@ void ScenarioApplicationPlugin::on_presenterFocused(
   if (s_pres)
   {
     connect(
-        s_pres, &ScenarioPresenter::keyPressed, this,
+        s_pres,
+        &ScenarioPresenter::keyPressed,
+        this,
         &ScenarioApplicationPlugin::keyPressed);
 
     connect(
-        s_pres, &ScenarioPresenter::keyReleased, this,
+        s_pres,
+        &ScenarioPresenter::keyReleased,
+        this,
         &ScenarioApplicationPlugin::keyReleased);
 
     auto& select_act = context.actions.action<Actions::SelectTool>();
@@ -230,7 +237,8 @@ void ScenarioApplicationPlugin::on_presenterFocused(
 }
 
 void ScenarioApplicationPlugin::on_documentChanged(
-    score::Document* olddoc, score::Document* newdoc)
+    score::Document* olddoc,
+    score::Document* newdoc)
 {
   using namespace score;
   // TODO the context menu connection should be reviewed, too.
@@ -260,11 +268,15 @@ void ScenarioApplicationPlugin::on_documentChanged(
     return;
 
   m_focusConnection = connect(
-      focusManager, &Process::ProcessFocusManager::sig_focusedPresenter, this,
+      focusManager,
+      &Process::ProcessFocusManager::sig_focusedPresenter,
+      this,
       &ScenarioApplicationPlugin::on_presenterFocused);
   m_defocusConnection = connect(
-      focusManager, &Process::ProcessFocusManager::sig_defocusedPresenter,
-      this, &ScenarioApplicationPlugin::on_presenterDefocused);
+      focusManager,
+      &Process::ProcessFocusManager::sig_defocusedPresenter,
+      this,
+      &ScenarioApplicationPlugin::on_presenterDefocused);
 
   if (focusManager->focusedPresenter())
   {
@@ -309,19 +321,14 @@ ScenarioPresenter* ScenarioApplicationPlugin::focusedPresenter() const
 {
   if (auto focusManager = processFocusManager())
   {
-    return dynamic_cast<ScenarioPresenter*>(
-        focusManager->focusedPresenter());
+    return dynamic_cast<ScenarioPresenter*>(focusManager->focusedPresenter());
   }
   return nullptr;
 }
 
-void ScenarioApplicationPlugin::on_initDocument(score::Document& doc)
-{
-}
+void ScenarioApplicationPlugin::on_initDocument(score::Document& doc) {}
 
-void ScenarioApplicationPlugin::on_createdDocument(score::Document& doc)
-{
-}
+void ScenarioApplicationPlugin::on_createdDocument(score::Document& doc) {}
 
 void ScenarioApplicationPlugin::prepareNewDocument()
 {

@@ -31,7 +31,8 @@ class SCORE_PLUGIN_ENGINE_EXPORT DocumentPlugin final
 {
 public:
   DocumentPlugin(
-      const score::DocumentContext& doc, Id<score::DocumentPlugin> id,
+      const score::DocumentContext& doc,
+      Id<score::DocumentPlugin> id,
       QObject* parent);
 
   ~DocumentPlugin();
@@ -39,19 +40,10 @@ public:
   void init();
 
   void on_documentClosing() override;
-  ossia::net::device_base& device()
-  {
-    return *m_localDevice;
-  }
-  const ossia::net::device_base& device() const
-  {
-    return *m_localDevice;
-  }
+  ossia::net::device_base& device() { return *m_localDevice; }
+  const ossia::net::device_base& device() const { return *m_localDevice; }
 
-  Protocols::LocalDevice& localDevice()
-  {
-    return m_localDeviceWrapper;
-  }
+  Protocols::LocalDevice& localDevice() { return m_localDeviceWrapper; }
 
 private:
   void create();

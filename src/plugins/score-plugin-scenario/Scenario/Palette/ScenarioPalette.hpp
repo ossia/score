@@ -33,21 +33,12 @@ class ToolPalette final : public GraphicsSceneToolPalette
 public:
   ToolPalette(Process::LayerContext&, ScenarioPresenter& presenter);
 
-  const ScenarioPresenter& presenter() const
-  {
-    return m_presenter;
-  }
+  const ScenarioPresenter& presenter() const { return m_presenter; }
   Scenario::EditionSettings& editionSettings() const;
 
-  const Process::LayerContext& context() const
-  {
-    return m_context;
-  }
+  const Process::LayerContext& context() const { return m_context; }
 
-  const Scenario::ProcessModel& model() const
-  {
-    return m_model;
-  }
+  const Scenario::ProcessModel& model() const { return m_model; }
 
   void on_pressed(QPointF);
   void on_moved(QPointF);
@@ -66,7 +57,9 @@ private:
 
   CreationTool<ProcessModel, Scenario::ToolPalette> m_createTool;
   SmartTool<
-      ProcessModel, Scenario::ToolPalette, ScenarioView,
+      ProcessModel,
+      Scenario::ToolPalette,
+      ScenarioView,
       Scenario::MoveIntervalInScenario_StateWrapper,
       Scenario::MoveLeftBraceInScenario_StateWrapper,
       Scenario::MoveRightBraceInScenario_StateWrapper,
@@ -77,7 +70,10 @@ private:
   PlayToolState m_playTool;
 
   ToolPaletteInputDispatcher<
-      Scenario::Tool, ToolPalette, Process::LayerContext, Process::LayerView>
+      Scenario::Tool,
+      ToolPalette,
+      Process::LayerContext,
+      Process::LayerView>
       m_inputDisp;
 };
 }

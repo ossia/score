@@ -7,9 +7,10 @@
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
 
+#include <score/graphics/YPos.hpp>
 #include <score/model/ModelMetadata.hpp>
 #include <score/model/path/ObjectIdentifier.hpp>
-#include <score/graphics/YPos.hpp>
+
 #include <QMap>
 #include <QObject>
 #include <QString>
@@ -25,7 +26,8 @@ W_OBJECT_IMPL(Scenario::AddressBarItem)
 namespace Scenario
 {
 AddressBarItem::AddressBarItem(
-    const score::DocumentContext& ctx, QGraphicsItem* parent)
+    const score::DocumentContext& ctx,
+    QGraphicsItem* parent)
     : QGraphicsItem{parent}, m_ctx{ctx}
 {
   this->setFlag(QGraphicsItem::ItemHasNoContents, true);
@@ -57,7 +59,9 @@ void AddressBarItem::setTargetObject(ObjectPath&& path)
 
     auto lab = new ClickableLabelItem{
         thisObj.metadata(),
-        [&](ClickableLabelItem*) { intervalSelected(thisObj); }, txt, this};
+        [&](ClickableLabelItem*) { intervalSelected(thisObj); },
+        txt,
+        this};
 
     lab->setIndex(i);
     connect(
@@ -88,7 +92,9 @@ QRectF AddressBarItem::boundingRect() const
 }
 
 void AddressBarItem::paint(
-    QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+    QPainter* painter,
+    const QStyleOptionGraphicsItem* option,
+    QWidget* widget)
 {
 }
 

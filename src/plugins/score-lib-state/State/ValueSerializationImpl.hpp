@@ -8,7 +8,8 @@
 //////////// Value Variant serialization /////////////
 template <typename Functor>
 void apply_typeonly(
-    Functor&& functor, ossia::value_variant_type::Type type,
+    Functor&& functor,
+    ossia::value_variant_type::Type type,
     ossia::value_variant_type& var)
 {
   using namespace ossia;
@@ -87,7 +88,8 @@ struct TSerializer<DataStream, ossia::value_variant_type>
             s.stream() >> value;
             var = std::move(value);
           },
-          (var_t::Type)which, var);
+          (var_t::Type)which,
+          var);
     }
     s.checkDelimiter();
   }
@@ -106,8 +108,16 @@ struct TSerializer<JSONObject, ossia::value_variant_type>
   }
 
   using value_type_list = brigand::list<
-      float, int, ossia::vec2f, ossia::vec3f, ossia::vec4f, ossia::impulse,
-      bool, std::string, std::vector<ossia::value>, char>;
+      float,
+      int,
+      ossia::vec2f,
+      ossia::vec3f,
+      ossia::vec4f,
+      ossia::impulse,
+      bool,
+      std::string,
+      std::vector<ossia::value>,
+      char>;
 
   static auto init_keys()
   {
@@ -138,7 +148,8 @@ struct TSerializer<JSONObject, ossia::value_variant_type>
             [&](auto type, var_t& var) {
               var = fromJsonValue<typename decltype(type)::type>(*it);
             },
-            (var_t::Type)i, var);
+            (var_t::Type)i,
+            var);
         return;
       }
     }

@@ -1,8 +1,8 @@
 #pragma once
-#include <score/graphics/TextItem.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentViewConstants.hpp>
 #include <Scenario/Document/VerticalExtent.hpp>
 
+#include <score/graphics/TextItem.hpp>
 #include <score/model/ColorReference.hpp>
 
 #include <QColor>
@@ -31,18 +31,13 @@ public:
   {
     return QGraphicsItem::UserType + ItemType::TimeSync;
   }
-  int type() const override
-  {
-    return static_type();
-  }
+  int type() const override { return static_type(); }
 
-  const TimeSyncPresenter& presenter() const
-  {
-    return m_presenter;
-  }
+  const TimeSyncPresenter& presenter() const { return m_presenter; }
 
   void paint(
-      QPainter* painter, const QStyleOptionGraphicsItem* option,
+      QPainter* painter,
+      const QStyleOptionGraphicsItem* option,
       QWidget* widget) override;
 
   // QGraphicsItem interface
@@ -59,10 +54,7 @@ public:
   void setMoving(bool);
   void setSelected(bool selected);
 
-  bool isSelected() const
-  {
-    return m_selected;
-  }
+  bool isSelected() const { return m_selected; }
 
   void changeColor(score::ColorRef);
   void setLabel(const QString& label);

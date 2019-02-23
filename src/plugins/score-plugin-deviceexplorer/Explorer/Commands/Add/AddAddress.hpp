@@ -21,11 +21,15 @@ class SCORE_PLUGIN_DEVICEEXPLORER_EXPORT AddAddress final
     : public score::Command
 {
   SCORE_COMMAND_DECL(
-      DeviceExplorerCommandFactoryName(), AddAddress, "Add an address")
+      DeviceExplorerCommandFactoryName(),
+      AddAddress,
+      "Add an address")
 public:
   AddAddress(
-      const DeviceDocumentPlugin& devplug, const Device::NodePath& nodePath,
-      InsertMode insert, const Device::AddressSettings& addressSettings);
+      const DeviceDocumentPlugin& devplug,
+      const Device::NodePath& nodePath,
+      InsertMode insert,
+      const Device::AddressSettings& addressSettings);
 
   void undo(const score::DocumentContext& ctx) const override;
   void redo(const score::DocumentContext& ctx) const override;
@@ -45,7 +49,9 @@ class SCORE_PLUGIN_DEVICEEXPLORER_EXPORT AddWholeAddress final
     : public score::Command
 {
   SCORE_COMMAND_DECL(
-      DeviceExplorerCommandFactoryName(), AddWholeAddress, "Add an address")
+      DeviceExplorerCommandFactoryName(),
+      AddWholeAddress,
+      "Add an address")
 public:
   AddWholeAddress(
       const DeviceDocumentPlugin& devplug,

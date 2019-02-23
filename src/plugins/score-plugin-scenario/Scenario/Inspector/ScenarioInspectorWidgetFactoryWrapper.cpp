@@ -21,7 +21,8 @@ ScenarioInspectorWidgetFactoryWrapper::~ScenarioInspectorWidgetFactoryWrapper()
 
 QWidget* ScenarioInspectorWidgetFactoryWrapper::make(
     const InspectedObjects& sourceElements,
-    const score::DocumentContext& doc, QWidget* parent) const
+    const score::DocumentContext& doc,
+    QWidget* parent) const
 {
   std::set<const IntervalModel*> intervals;
   std::set<const TimeSyncModel*> timesyncs;
@@ -80,14 +81,20 @@ QWidget* ScenarioInspectorWidgetFactoryWrapper::make(
   }
 
   return new SummaryInspectorWidget{
-      abstr,  intervals, timesyncs, events,
-      states, doc,       parent}; // the default InspectorWidgetBase need
-                                  // an only IdentifiedObject : this will
+      abstr,
+      intervals,
+      timesyncs,
+      events,
+      states,
+      doc,
+      parent}; // the default InspectorWidgetBase need
+               // an only IdentifiedObject : this will
   // be "abstr"
 }
 
 bool ScenarioInspectorWidgetFactoryWrapper::update(
-    QWidget* cur, const QList<const IdentifiedObjectAbstract*>& obj) const
+    QWidget* cur,
+    const QList<const IdentifiedObjectAbstract*>& obj) const
 {
   if (obj.size() <= 1)
     return false;

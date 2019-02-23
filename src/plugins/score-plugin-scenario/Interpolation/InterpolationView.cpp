@@ -22,13 +22,9 @@ View::View(QGraphicsItem* parent) : Process::LayerView{parent}
   setAcceptDrops(true);
 }
 
-View::~View()
-{
-}
+View::~View() {}
 
-void View::paint_impl(QPainter* painter) const
-{
-}
+void View::paint_impl(QPainter* painter) const {}
 
 void View::dropEvent(QGraphicsSceneDragDropEvent* event)
 {

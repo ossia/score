@@ -36,9 +36,7 @@ protected:
 
     return find(begin(types), end(types), e->type()) != end(types);
   }
-  void onTransition(QEvent* event) override
-  {
-  }
+  void onTransition(QEvent* event) override {}
 };
 
 class ReleaseOnAnything_SlotTransition final : public QAbstractTransition
@@ -61,9 +59,7 @@ protected:
 
     return find(begin(types), end(types), e->type()) != end(types);
   }
-  void onTransition(QEvent* event) override
-  {
-  }
+  void onTransition(QEvent* event) override {}
 };
 
 template <typename Scenario_T, typename ToolPalette_T>
@@ -71,7 +67,8 @@ class ResizeSlotState final : public SlotState
 {
 public:
   ResizeSlotState(
-      const score::CommandStackFacade& stack, const ToolPalette_T& sm,
+      const score::CommandStackFacade& stack,
+      const ToolPalette_T& sm,
       QState* parent)
       : SlotState{parent}, m_ongoingDispatcher{stack}, m_sm{sm}
   {

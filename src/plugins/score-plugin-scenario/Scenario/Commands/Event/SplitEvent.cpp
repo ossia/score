@@ -27,7 +27,8 @@ namespace Scenario
 namespace Command
 {
 SplitEvent::SplitEvent(
-    const Scenario::ProcessModel& scenario, Id<EventModel> event,
+    const Scenario::ProcessModel& scenario,
+    Id<EventModel> event,
     QVector<Id<StateModel>> movingstates)
     : m_scenarioPath{scenario}
     , m_originalEvent{std::move(event)}
@@ -38,8 +39,10 @@ SplitEvent::SplitEvent(
 }
 
 SplitEvent::SplitEvent(
-    const Scenario::ProcessModel& scenario, Id<EventModel> event,
-    Id<EventModel> new_event, QVector<Id<StateModel>> movingstates)
+    const Scenario::ProcessModel& scenario,
+    Id<EventModel> event,
+    Id<EventModel> new_event,
+    QVector<Id<StateModel>> movingstates)
     : m_scenarioPath{scenario}
     , m_originalEvent{std::move(event)}
     , m_newEvent{new_event}
@@ -68,8 +71,10 @@ void SplitEvent::redo(const score::DocumentContext& ctx) const
   auto& scenar = m_scenarioPath.find(ctx);
   auto& originalEvent = scenar.event(m_originalEvent);
   ScenarioCreate<EventModel>::redo(
-      m_newEvent, scenar.timeSyncs.at(originalEvent.timeSync()),
-      originalEvent.extent(), scenar);
+      m_newEvent,
+      scenar.timeSyncs.at(originalEvent.timeSync()),
+      originalEvent.extent(),
+      scenar);
 
   auto& newEvent = scenar.events.at(m_newEvent);
   newEvent.metadata().setName(m_createdName);
@@ -99,16 +104,13 @@ void SplitEvent::deserializeImpl(DataStreamOutput& s)
       >> m_movingStates;
 }
 
-
-
-SplitWholeEvent::SplitWholeEvent(
-    const EventModel& path)
-    : m_path{path}
+SplitWholeEvent::SplitWholeEvent(const EventModel& path) : m_path{path}
 {
   SCORE_ASSERT(path.states().size() > 1);
   m_originalEvent = path.id();
   auto scenar = static_cast<Scenario::ProcessModel*>(path.parent());
-  m_newEvents = getStrongIdRange<Scenario::EventModel>(path.states().size() - 1, scenar->events);
+  m_newEvents = getStrongIdRange<Scenario::EventModel>(
+      path.states().size() - 1, scenar->events);
 }
 
 void SplitWholeEvent::undo(const score::DocumentContext& ctx) const
@@ -117,7 +119,7 @@ void SplitWholeEvent::undo(const score::DocumentContext& ctx) const
       = static_cast<Scenario::ProcessModel&>(*m_path.find(ctx).parent());
 
   auto& orignalEv = scenar.event(m_originalEvent);
-  for(const auto& id : m_newEvents)
+  for (const auto& id : m_newEvents)
   {
     auto& newEv = scenar.event(id);
 
@@ -145,12 +147,11 @@ void SplitWholeEvent::redo(const score::DocumentContext& ctx) const
   auto originalStates = originalEv.states();
 
   std::size_t k = 1;
-  for(const auto& id : m_newEvents)
+  for (const auto& id : m_newEvents)
   {
     // TODO set the correct position here.
     auto& tn = ScenarioCreate<EventModel>::redo(
-        id, originalTS,
-        originalEv.extent(), scenar);
+        id, originalTS, originalEv.extent(), scenar);
 
     tn.setCondition(originalEv.condition());
 

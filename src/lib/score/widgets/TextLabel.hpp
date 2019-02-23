@@ -5,22 +5,13 @@
 class SCORE_LIB_BASE_EXPORT TextLabel final : public QLabel
 {
 public:
-  TextLabel()
-  {
-    setup();
-  }
+  TextLabel() { setup(); }
 
   ~TextLabel() override;
 
-  TextLabel(QWidget* parent) : QLabel(parent)
-  {
-    setup();
-  }
+  TextLabel(QWidget* parent) : QLabel(parent) { setup(); }
 
-  TextLabel(const QString& str) : TextLabel()
-  {
-    this->setText(str);
-  }
+  TextLabel(const QString& str) : TextLabel() { this->setText(str); }
 
   TextLabel(const QString& str, QWidget* parent) : QLabel{parent}
   {

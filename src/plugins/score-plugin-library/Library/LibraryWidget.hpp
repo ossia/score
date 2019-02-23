@@ -22,7 +22,8 @@ public:
   void selected(optional<ProcessData> p) W_SIGNAL(selected, p);
 
   void selectionChanged(
-      const QItemSelection& selected, const QItemSelection& deselected) override;
+      const QItemSelection& selected,
+      const QItemSelection& deselected) override;
 };
 
 class ProcessWidget : public QWidget
@@ -44,7 +45,8 @@ class SystemLibraryWidget : public QWidget
 {
 public:
   SystemLibraryWidget(
-      const score::GUIApplicationContext& ctx, QWidget* parent);
+      const score::GUIApplicationContext& ctx,
+      QWidget* parent);
   ~SystemLibraryWidget();
 
   void setRoot(QString path);
@@ -63,7 +65,8 @@ class ProjectLibraryWidget : public QWidget
 {
 public:
   ProjectLibraryWidget(
-      const score::GUIApplicationContext& ctx, QWidget* parent);
+      const score::GUIApplicationContext& ctx,
+      QWidget* parent);
   ~ProjectLibraryWidget();
 
   void setRoot(QString path);

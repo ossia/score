@@ -22,7 +22,9 @@ class SCORE_PLUGIN_SCENARIO_EXPORT EventPresenter final : public QObject
 
 public:
   EventPresenter(
-      const EventModel& model, QGraphicsItem* parentview, QObject* parent);
+      const EventModel& model,
+      QGraphicsItem* parentview,
+      QObject* parent);
   virtual ~EventPresenter();
 
   const Id<EventModel>& id() const;

@@ -2,8 +2,8 @@
 #include <score/application/ApplicationContext.hpp>
 #include <score/command/Command.hpp>
 #include <score/command/CommandGeneratorMap.hpp>
-#include <score/plugins/application/GUIApplicationPlugin.hpp>
 #include <score/plugins/Interface.hpp>
+#include <score/plugins/application/GUIApplicationPlugin.hpp>
 #include <score/plugins/qt_interfaces/CommandFactory_QtInterface.hpp>
 #include <score/plugins/qt_interfaces/FactoryFamily_QtInterface.hpp>
 #include <score/plugins/qt_interfaces/FactoryInterface_QtInterface.hpp>

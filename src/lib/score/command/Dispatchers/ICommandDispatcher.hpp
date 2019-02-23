@@ -23,10 +23,7 @@ public:
   {
   }
 
-  const score::CommandStackFacade& stack() const
-  {
-    return m_stack;
-  }
+  const score::CommandStackFacade& stack() const { return m_stack; }
 
 private:
   const score::CommandStackFacade& m_stack;

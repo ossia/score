@@ -33,36 +33,43 @@ Skin::~Skin()
   {                             \
 #Col, &Col                  \
   }
-Skin::Skin() noexcept
-    : SansFont{"Ubuntu"}
-    , MonoFont{"APCCourier-Bold", 10, QFont::Black}
+Skin::Skin() noexcept : SansFont{"Ubuntu"}, MonoFont
+{
+  "APCCourier-Bold", 10, QFont::Black
+}
 #if defined(_WIN32)
-    , SansFontSmall{"Ubuntu", 6}
+, SansFontSmall
+{
+  "Ubuntu", 6
+}
 #elif defined(__APPLE__)
-    , SansFontSmall{"Ubuntu", 8}
+, SansFontSmall
+{
+  "Ubuntu", 8
+}
 #else
-    , SansFontSmall{"Ubuntu", 7}
+, SansFontSmall
+{
+  "Ubuntu", 7
+}
 #endif
-    , TransparentPen{Qt::transparent}
-    , TransparentBrush{Qt::transparent}
-    , NoPen{Qt::NoPen}
-    , NoBrush{Qt::NoBrush}
-    , TextBrush{QColor("#1f2a30")}
-    , m_colorMap(new color_map{
-          SCORE_INSERT_COLOR(Dark),         SCORE_INSERT_COLOR(HalfDark),
-          SCORE_INSERT_COLOR(Gray),         SCORE_INSERT_COLOR(HalfLight),
-          SCORE_INSERT_COLOR(Light),        SCORE_INSERT_COLOR(Emphasis1),
-          SCORE_INSERT_COLOR(Emphasis2),    SCORE_INSERT_COLOR(Emphasis3),
-          SCORE_INSERT_COLOR(Emphasis4),    SCORE_INSERT_COLOR(Base1),
-          SCORE_INSERT_COLOR(Base2),        SCORE_INSERT_COLOR(Base3),
-          SCORE_INSERT_COLOR(Base4),        SCORE_INSERT_COLOR(Warn1),
-          SCORE_INSERT_COLOR(Warn2),        SCORE_INSERT_COLOR(Warn3),
-          SCORE_INSERT_COLOR(Background1),  SCORE_INSERT_COLOR(Transparent1),
-          SCORE_INSERT_COLOR(Transparent2), SCORE_INSERT_COLOR(Transparent3),
-          SCORE_INSERT_COLOR(Smooth1),      SCORE_INSERT_COLOR(Smooth2),
-          SCORE_INSERT_COLOR(Smooth3),      SCORE_INSERT_COLOR(Tender1),
-          SCORE_INSERT_COLOR(Tender2),      SCORE_INSERT_COLOR(Tender3),
-          SCORE_INSERT_COLOR(Pulse1),       SCORE_INSERT_COLOR(Pulse2)})
+, TransparentPen{Qt::transparent}, TransparentBrush{Qt::transparent},
+    NoPen{Qt::NoPen}, NoBrush{Qt::NoBrush}, TextBrush{QColor("#1f2a30")},
+    m_colorMap(new color_map{
+        SCORE_INSERT_COLOR(Dark),         SCORE_INSERT_COLOR(HalfDark),
+        SCORE_INSERT_COLOR(Gray),         SCORE_INSERT_COLOR(HalfLight),
+        SCORE_INSERT_COLOR(Light),        SCORE_INSERT_COLOR(Emphasis1),
+        SCORE_INSERT_COLOR(Emphasis2),    SCORE_INSERT_COLOR(Emphasis3),
+        SCORE_INSERT_COLOR(Emphasis4),    SCORE_INSERT_COLOR(Base1),
+        SCORE_INSERT_COLOR(Base2),        SCORE_INSERT_COLOR(Base3),
+        SCORE_INSERT_COLOR(Base4),        SCORE_INSERT_COLOR(Warn1),
+        SCORE_INSERT_COLOR(Warn2),        SCORE_INSERT_COLOR(Warn3),
+        SCORE_INSERT_COLOR(Background1),  SCORE_INSERT_COLOR(Transparent1),
+        SCORE_INSERT_COLOR(Transparent2), SCORE_INSERT_COLOR(Transparent3),
+        SCORE_INSERT_COLOR(Smooth1),      SCORE_INSERT_COLOR(Smooth2),
+        SCORE_INSERT_COLOR(Smooth3),      SCORE_INSERT_COLOR(Tender1),
+        SCORE_INSERT_COLOR(Tender2),      SCORE_INSERT_COLOR(Tender3),
+        SCORE_INSERT_COLOR(Pulse1),       SCORE_INSERT_COLOR(Pulse2)})
 {
 
   this->startTimer(32, Qt::CoarseTimer);
@@ -73,7 +80,6 @@ Skin::Skin() noexcept
   // (QFont::StyleStrategy)(QFont::PreferBitmap | QFont::NoSubpixelAntialias |
   // QFont::ForceIntegerMetrics));
   // MonoFont.setHintingPreference(QFont::PreferVerticalHinting);
-
 
   Bold10Pt = SansFont;
   Bold10Pt.setPointSize(10);

@@ -15,13 +15,15 @@ namespace Command
 {
 
 AddStateProcessToState::AddStateProcessToState(
-    const Scenario::StateModel& state, UuidKey<Process::ProcessModel> process)
+    const Scenario::StateModel& state,
+    UuidKey<Process::ProcessModel> process)
     : AddStateProcessToState{state, getStrongId(state.stateProcesses), process}
 {
 }
 
 AddStateProcessToState::AddStateProcessToState(
-    const Scenario::StateModel& state, Id<Process::ProcessModel> processId,
+    const Scenario::StateModel& state,
+    Id<Process::ProcessModel> processId,
     UuidKey<Process::ProcessModel> process)
     : m_path{state}
     , m_processName{process}

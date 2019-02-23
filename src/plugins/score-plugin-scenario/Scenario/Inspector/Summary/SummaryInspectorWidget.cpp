@@ -24,7 +24,8 @@ SummaryInspectorWidget::SummaryInspectorWidget(
     const std::set<const TimeSyncModel*>& timesyncs,
     const std::set<const EventModel*>& events,
     const std::set<const StateModel*>& states,
-    const score::DocumentContext& context, QWidget* parent)
+    const score::DocumentContext& context,
+    QWidget* parent)
     : InspectorWidgetBase{*obj, context, parent, tr("Summary")}
 {
   setObjectName("SummaryInspectorWidget");
@@ -64,9 +65,7 @@ SummaryInspectorWidget::SummaryInspectorWidget(
   updateAreaLayout(m_properties);
 }
 
-SummaryInspectorWidget::~SummaryInspectorWidget()
-{
-}
+SummaryInspectorWidget::~SummaryInspectorWidget() {}
 
 void SummaryInspectorWidget::update(
     const QList<const IdentifiedObjectAbstract*>& sourceElements)

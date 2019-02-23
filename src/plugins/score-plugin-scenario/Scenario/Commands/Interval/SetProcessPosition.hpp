@@ -20,12 +20,15 @@ namespace Command
 class PutProcessBefore final : public score::Command
 {
   SCORE_COMMAND_DECL(
-      ScenarioCommandFactoryName(), PutProcessBefore, "Set process position")
+      ScenarioCommandFactoryName(),
+      PutProcessBefore,
+      "Set process position")
 
 public:
   // Put proc2 before proc
   PutProcessBefore(
-      const IntervalModel& cst, optional<Id<Process::ProcessModel>> proc,
+      const IntervalModel& cst,
+      optional<Id<Process::ProcessModel>> proc,
       Id<Process::ProcessModel> proc2);
 
   void undo(const score::DocumentContext& ctx) const override;
@@ -50,13 +53,15 @@ private:
 class PutStateProcessBefore final : public score::Command
 {
   SCORE_COMMAND_DECL(
-      ScenarioCommandFactoryName(), PutStateProcessBefore,
+      ScenarioCommandFactoryName(),
+      PutStateProcessBefore,
       "Set process position")
 
 public:
   // Put proc2 before proc
   PutStateProcessBefore(
-      const StateModel& cst, optional<Id<Process::ProcessModel>> proc,
+      const StateModel& cst,
+      optional<Id<Process::ProcessModel>> proc,
       Id<Process::ProcessModel> proc2);
 
   void undo(const score::DocumentContext& ctx) const override;

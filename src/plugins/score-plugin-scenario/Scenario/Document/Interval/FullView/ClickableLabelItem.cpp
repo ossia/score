@@ -21,9 +21,7 @@ W_OBJECT_IMPL(Scenario::ClickableLabelItem)
 namespace Scenario
 {
 
-SeparatorItem::SeparatorItem(QGraphicsItem* parent) : QGraphicsItem{parent}
-{
-}
+SeparatorItem::SeparatorItem(QGraphicsItem* parent) : QGraphicsItem{parent} {}
 
 QRectF SeparatorItem::boundingRect() const
 {
@@ -31,7 +29,9 @@ QRectF SeparatorItem::boundingRect() const
 }
 
 void SeparatorItem::paint(
-    QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+    QPainter* painter,
+    const QStyleOptionGraphicsItem* option,
+    QWidget* widget)
 {
   auto& skin = Process::Style::instance();
   const Q_DECL_RELAXED_CONSTEXPR QRectF rect{1., 1., 4., 9.};
@@ -45,14 +45,18 @@ void SeparatorItem::paint(
 }
 
 ClickableLabelItem::ClickableLabelItem(
-    score::ModelMetadata& metadata, ClickHandler&& onClick,
-    const QString& text, QGraphicsItem* parent)
-  : score::SimpleTextItem{Process::Style::instance().StateOutline, parent}
+    score::ModelMetadata& metadata,
+    ClickHandler&& onClick,
+    const QString& text,
+    QGraphicsItem* parent)
+    : score::SimpleTextItem{Process::Style::instance().StateOutline, parent}
     , m_onClick{std::move(onClick)}
 {
   setText(text);
   connect(
-      &metadata, &score::ModelMetadata::NameChanged, this,
+      &metadata,
+      &score::ModelMetadata::NameChanged,
+      this,
       [&](const QString& name) {
         setText(name);
         textChanged();

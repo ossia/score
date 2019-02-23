@@ -19,7 +19,8 @@ class FullViewIntervalView final : public IntervalView
 
 public:
   FullViewIntervalView(
-      FullViewIntervalPresenter& presenter, QGraphicsItem* parent);
+      FullViewIntervalPresenter& presenter,
+      QGraphicsItem* parent);
 
   ~FullViewIntervalView() override;
 
@@ -29,7 +30,8 @@ public:
 
   QRectF boundingRect() const override;
   void paint(
-      QPainter* painter, const QStyleOptionGraphicsItem* option,
+      QPainter* painter,
+      const QStyleOptionGraphicsItem* option,
       QWidget* widget) override;
 
   void setGuiWidth(double);

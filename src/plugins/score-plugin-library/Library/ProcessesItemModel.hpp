@@ -86,20 +86,11 @@ public:
     return QModelIndex{};
   }
 
-  ProcessNode& rootNode() override
-  {
-    return m_root;
-  }
-  const ProcessNode& rootNode() const override
-  {
-    return m_root;
-  }
+  ProcessNode& rootNode() override { return m_root; }
+  const ProcessNode& rootNode() const override { return m_root; }
 
   // Data reading
-  int columnCount(const QModelIndex& parent) const override
-  {
-    return 1;
-  }
+  int columnCount(const QModelIndex& parent) const override { return 1; }
 
   QVariant data(const QModelIndex& index, int role) const override
   {

@@ -30,14 +30,16 @@ W_OBJECT_IMPL(JS::ProcessModel)
 namespace JS
 {
 ProcessModel::ProcessModel(
-    const TimeVal& duration
-    , const QString& data
-    , const Id<Process::ProcessModel>& id
-    , QObject* parent)
-    : Process::ProcessModel{duration, id,
-                            Metadata<ObjectKey_k, ProcessModel>::get(), parent}
+    const TimeVal& duration,
+    const QString& data,
+    const Id<Process::ProcessModel>& id,
+    QObject* parent)
+    : Process::ProcessModel{duration,
+                            id,
+                            Metadata<ObjectKey_k, ProcessModel>::get(),
+                            parent}
 {
-  if(data.isEmpty())
+  if (data.isEmpty())
   {
     setScript(
         R"_(import QtQuick 2.0
@@ -50,8 +52,7 @@ Item {
   function onTick(oldtime, time, position, offset) {
     out1.value = in1.value + sl.value * Math.random();
   }
-})_"
-    );
+})_");
   }
   else
   {
@@ -87,7 +88,9 @@ void ProcessModel::setScript(const QString& script)
   {
     m_watch = std::make_unique<QFileSystemWatcher>(QStringList{trimmed});
     connect(
-        m_watch.get(), &QFileSystemWatcher::fileChanged, this,
+        m_watch.get(),
+        &QFileSystemWatcher::fileChanged,
+        this,
         [=](const QString& path) {
           // Note:
           // https://stackoverflow.com/questions/18300376/qt-qfilesystemwatcher-signal-filechanged-gets-emited-only-once

@@ -130,7 +130,8 @@ public:
 
   // In case the device changed
   void deviceChanged(
-      ossia::net::device_base* old_dev, ossia::net::device_base* new_dev)
+      ossia::net::device_base* old_dev,
+      ossia::net::device_base* new_dev)
       E_SIGNAL(SCORE_LIB_DEVICE_EXPORT, deviceChanged, old_dev, new_dev);
 
   /* If logging is enabled, these two signals may be sent
@@ -141,7 +142,8 @@ public:
       E_SIGNAL(SCORE_LIB_DEVICE_EXPORT, logOutbound, arg_1);
 
   void connectionChanged(bool arg_1) const
-  E_SIGNAL(SCORE_LIB_DEVICE_EXPORT, connectionChanged, arg_1);
+      E_SIGNAL(SCORE_LIB_DEVICE_EXPORT, connectionChanged, arg_1);
+
 protected:
   Device::DeviceSettings m_settings;
   DeviceCapas m_capas;
@@ -153,7 +155,8 @@ protected:
 
   void removeListening_impl(ossia::net::node_base& node, State::Address addr);
   void removeListening_impl(
-      ossia::net::node_base& node, State::Address addr,
+      ossia::net::node_base& node,
+      State::Address addr,
       std::vector<State::Address>&);
   void
   renameListening_impl(const State::Address& parent, const QString& newName);

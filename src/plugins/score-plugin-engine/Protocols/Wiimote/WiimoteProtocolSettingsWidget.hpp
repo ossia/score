@@ -1,12 +1,14 @@
 #pragma once
 #include <Device/Protocol/DeviceSettings.hpp>
 #include <Device/Protocol/ProtocolSettingsWidget.hpp>
+
 #include <wobjectdefs.h>
 
 class QLineEdit;
 class QComboBox;
 
-namespace Protocols {
+namespace Protocols
+{
 
 class WiimoteProtocolSettingsWidget final
     : public Device::ProtocolSettingsWidget

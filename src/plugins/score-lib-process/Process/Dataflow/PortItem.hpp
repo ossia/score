@@ -36,13 +36,11 @@ class SCORE_LIB_PROCESS_EXPORT PortItem : public QObject, public QGraphicsItem
   Q_INTERFACES(QGraphicsItem)
 public:
   PortItem(
-      Process::Port& p, const score::DocumentContext& ctx,
+      Process::Port& p,
+      const score::DocumentContext& ctx,
       QGraphicsItem* parent);
   ~PortItem() override;
-  Process::Port& port() const
-  {
-    return m_port;
-  }
+  Process::Port& port() const { return m_port; }
 
   static PortItem* clickedPort;
 
@@ -59,7 +57,8 @@ public:
 protected:
   QRectF boundingRect() const final override;
   void paint(
-      QPainter* painter, const QStyleOptionGraphicsItem* option,
+      QPainter* painter,
+      const QStyleOptionGraphicsItem* option,
       QWidget* widget) final override;
 
   void mousePressEvent(QGraphicsSceneMouseEvent* event) final override;

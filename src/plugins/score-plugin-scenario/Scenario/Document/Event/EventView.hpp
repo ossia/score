@@ -42,15 +42,9 @@ public:
   {
     return QGraphicsItem::UserType + ItemType::Event;
   }
-  int type() const override
-  {
-    return static_type();
-  }
+  int type() const override { return static_type(); }
 
-  const EventPresenter& presenter() const
-  {
-    return m_presenter;
-  }
+  const EventPresenter& presenter() const { return m_presenter; }
 
   QRectF boundingRect() const override
   {
@@ -58,7 +52,8 @@ public:
   }
 
   void paint(
-      QPainter* painter, const QStyleOptionGraphicsItem* option,
+      QPainter* painter,
+      const QStyleOptionGraphicsItem* option,
       QWidget* widget) override;
 
   void setSelected(bool selected);

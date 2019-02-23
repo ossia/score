@@ -1,8 +1,9 @@
 #pragma once
-#include <score/graphics/TextItem.hpp>
 #include <Scenario/Document/Interval/ExecutionState.hpp>
 #include <Scenario/Document/Interval/Temporal/Braces/LeftBrace.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentViewConstants.hpp>
+
+#include <score/graphics/TextItem.hpp>
 
 #include <QBrush>
 #include <QGraphicsItem>
@@ -13,7 +14,10 @@
 #include <wobjectdefs.h>
 class QGraphicsSceneMouseEvent;
 
-namespace Process { struct Style; }
+namespace Process
+{
+struct Style;
+}
 namespace score
 {
 class SimpleTextItem;
@@ -38,21 +42,12 @@ public:
   {
     return QGraphicsItem::UserType + ItemType::Interval;
   }
-  int type() const final override
-  {
-    return static_type();
-  }
+  int type() const final override { return static_type(); }
 
-  const IntervalPresenter& presenter() const
-  {
-    return m_presenter;
-  }
+  const IntervalPresenter& presenter() const { return m_presenter; }
 
   void setInfinite(bool);
-  bool infinite() const
-  {
-    return m_infinite;
-  }
+  bool infinite() const { return m_infinite; }
 
   void setExecuting(bool);
   void setDefaultWidth(double width);
@@ -62,45 +57,21 @@ public:
   double setPlayWidth(double width);
   void setValid(bool val);
 
-  double height() const
-  {
-    return m_height;
-  }
+  double height() const { return m_height; }
 
-  bool isSelected() const
-  {
-    return m_selected;
-  }
+  bool isSelected() const { return m_selected; }
 
-  double defaultWidth() const
-  {
-    return m_defaultWidth;
-  }
+  double defaultWidth() const { return m_defaultWidth; }
 
-  double minWidth() const
-  {
-    return m_minWidth;
-  }
+  double minWidth() const { return m_minWidth; }
 
-  double maxWidth() const
-  {
-    return m_maxWidth;
-  }
+  double maxWidth() const { return m_maxWidth; }
 
-  double intervalAndRackHeight() const
-  {
-    return m_height;
-  }
+  double intervalAndRackHeight() const { return m_height; }
 
-  double playWidth() const
-  {
-    return m_playWidth;
-  }
+  double playWidth() const { return m_playWidth; }
 
-  bool isValid() const
-  {
-    return m_validInterval;
-  }
+  bool isValid() const { return m_validInterval; }
 
   void setFocused(bool b)
   {
@@ -125,14 +96,8 @@ public:
   void mouseMoveEvent(QGraphicsSceneMouseEvent* event) final override;
   void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) final override;
 
-  LeftBraceView& leftBrace()
-  {
-    return m_leftBrace;
-  }
-  RightBraceView& rightBrace()
-  {
-    return m_rightBrace;
-  }
+  LeftBraceView& leftBrace() { return m_leftBrace; }
+  RightBraceView& rightBrace() { return m_rightBrace; }
 
 public:
   void requestOverlayMenu(QPointF arg_1)

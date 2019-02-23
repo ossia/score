@@ -9,11 +9,13 @@
 namespace Scenario
 {
 
-double findSlotHeightByProcess(const IntervalModel& itv, const Process::ProcessModel& proc)
+double findSlotHeightByProcess(
+    const IntervalModel& itv,
+    const Process::ProcessModel& proc)
 {
-  for(auto& slot : itv.smallView())
+  for (auto& slot : itv.smallView())
   {
-    if(ossia::contains(slot.processes, proc.id()))
+    if (ossia::contains(slot.processes, proc.id()))
       return slot.height;
   }
 
@@ -21,7 +23,8 @@ double findSlotHeightByProcess(const IntervalModel& itv, const Process::ProcessM
 }
 
 void DecapsulateScenario(
-    const ProcessModel& scenar, const score::CommandStackFacade& stack)
+    const ProcessModel& scenar,
+    const score::CommandStackFacade& stack)
 {
   auto parent_itv = qobject_cast<Scenario::IntervalModel*>(scenar.parent());
   if (!parent_itv)
@@ -31,12 +34,14 @@ void DecapsulateScenario(
   if (!parent_s)
     return;
 
-  auto parent_s_itv = qobject_cast<Scenario::IntervalModel*>(parent_s->parent());
+  auto parent_s_itv
+      = qobject_cast<Scenario::IntervalModel*>(parent_s->parent());
   if (!parent_s_itv)
     return;
 
   auto scenar_slot_height = findSlotHeightByProcess(*parent_itv, scenar);
-  auto parent_scenar_slot_height = findSlotHeightByProcess(*parent_s_itv, *parent_s);
+  auto parent_scenar_slot_height
+      = findSlotHeightByProcess(*parent_s_itv, *parent_s);
 
   double ratio = scenar_slot_height / parent_scenar_slot_height;
 
@@ -46,14 +51,18 @@ void DecapsulateScenario(
   auto objects = copyWholeScenario(scenar);
 
   disp.pasteElementsAfter(
-      *parent_s, Scenario::startTimeSync(*parent_itv, *parent_s), objects, ratio);
+      *parent_s,
+      Scenario::startTimeSync(*parent_itv, *parent_s),
+      objects,
+      ratio);
 
   disp.removeProcess(*parent_itv, scenar.id());
   disp.commit();
 }
 
 void EncapsulateInScenario(
-    const ProcessModel& scenar, const score::CommandStackFacade& stack)
+    const ProcessModel& scenar,
+    const score::CommandStackFacade& stack)
 {
   using namespace Command;
   Scenario::Command::Macro disp{new Encapsulate, stack.context()};
@@ -73,7 +82,8 @@ void EncapsulateInScenario(
 
   // Resize the slot to fit the existing elements
   disp.resizeSlot(
-      itv, SlotPath{itv, 0, Slot::RackView::SmallView},
+      itv,
+      SlotPath{itv, 0, Slot::RackView::SmallView},
       100 + (e.bottomY - e.topY) * 400);
 
   disp.pasteElements(sub_scenar, objects, Scenario::Point{{}, 0.1});
@@ -93,7 +103,8 @@ void EncapsulateInScenario(
 }
 
 void Duplicate(
-    const ProcessModel& scenar, const score::CommandStackFacade& stack)
+    const ProcessModel& scenar,
+    const score::CommandStackFacade& stack)
 {
   using namespace Command;
   CategorisedScenario cat{scenar};
@@ -107,7 +118,8 @@ void Duplicate(
 
 SCORE_PLUGIN_SCENARIO_EXPORT
 EncapsData EncapsulateElements(
-    Scenario::Command::Macro& m, CategorisedScenario& cat,
+    Scenario::Command::Macro& m,
+    CategorisedScenario& cat,
     const ProcessModel& scenar)
 {
   using namespace Scenario::Command;
@@ -213,7 +225,7 @@ EncapsData EncapsulateElements(
 
   if (!startState && startSync)
   {
-    for (auto stid : Scenario::states(*startSync, scenar))
+    for (const auto& stid : Scenario::states(*startSync, scenar))
     {
       auto& st = scenar.states.at(stid);
       if (st.nextInterval() == ossia::none)

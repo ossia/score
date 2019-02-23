@@ -22,7 +22,8 @@ W_OBJECT_IMPL(Scenario::ExpressionMenu)
 namespace Scenario
 {
 ExpressionEditorWidget::ExpressionEditorWidget(
-    const score::DocumentContext& doc, QWidget* parent)
+    const score::DocumentContext& doc,
+    QWidget* parent)
     : QWidget(parent), m_context{doc}
 {
   this->setObjectName("ExpressionEditorWidget");
@@ -73,7 +74,7 @@ State::Expression ExpressionEditorWidget::expression()
       {
         auto p = lastRel->parent();
         // remove link between parent and current
-        if(p && !p->hasChildren())
+        if (p && !p->hasChildren())
         {
           auto oldC = p->back();
           auto last_it = (++p->children().rbegin()).base();
@@ -209,14 +210,21 @@ void ExpressionEditorWidget::addNewTerm()
   m_mainLayout->addWidget(relationEditor);
 
   connect(
-      relationEditor, &SimpleExpressionEditorWidget::addTerm, this,
+      relationEditor,
+      &SimpleExpressionEditorWidget::addTerm,
+      this,
       &ExpressionEditorWidget::addNewTermAndFinish);
   connect(
-      relationEditor, &SimpleExpressionEditorWidget::removeTerm, this,
+      relationEditor,
+      &SimpleExpressionEditorWidget::removeTerm,
+      this,
       &ExpressionEditorWidget::removeTermAndFinish);
   connect(
-      relationEditor, &SimpleExpressionEditorWidget::editingFinished, this,
-      &ExpressionEditorWidget::on_editFinished, Qt::QueuedConnection);
+      relationEditor,
+      &SimpleExpressionEditorWidget::editingFinished,
+      this,
+      &ExpressionEditorWidget::on_editFinished,
+      Qt::QueuedConnection);
 
   if (m_relations.size() == 1)
   {
@@ -234,7 +242,7 @@ void ExpressionEditorWidget::addNewTerm()
 
 void ExpressionEditorWidget::addNewTermAndFinish()
 {
-  if(m_relations.size() < 2)
+  if (m_relations.size() < 2)
   {
     addNewTerm();
     on_editFinished();

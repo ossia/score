@@ -47,7 +47,9 @@ QRectF ConditionView::boundingRect() const
 }
 
 void ConditionView::paint(
-    QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+    QPainter* painter,
+    const QStyleOptionGraphicsItem* option,
+    QWidget* widget)
 {
   auto& style = Process::Style::instance();
   painter->setRenderHint(QPainter::Antialiasing, true);
@@ -112,12 +114,10 @@ void ConditionView::mousePressEvent(QGraphicsSceneMouseEvent* event)
 }
 }
 
-
 QPainterPath Scenario::ConditionView::shape() const
 {
   return m_strokedCpath;
 }
-
 
 bool Scenario::ConditionView::contains(const QPointF& point) const
 {

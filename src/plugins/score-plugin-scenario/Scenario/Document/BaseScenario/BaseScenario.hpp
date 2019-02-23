@@ -47,7 +47,8 @@ public:
 };
 
 const QVector<Id<IntervalModel>> intervalsBeforeTimeSync(
-    const BaseScenario&, const Id<TimeSyncModel>& timeSyncId);
+    const BaseScenario&,
+    const Id<TimeSyncModel>& timeSyncId);
 }
 
 DEFAULT_MODEL_METADATA(Scenario::BaseScenario, "Base Scenario")

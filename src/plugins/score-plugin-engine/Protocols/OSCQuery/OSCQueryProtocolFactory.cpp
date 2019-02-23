@@ -25,7 +25,8 @@ int OSCQueryProtocolFactory::visualPriority() const
 }
 
 Device::DeviceInterface* OSCQueryProtocolFactory::makeDevice(
-    const Device::DeviceSettings& settings, const score::DocumentContext& ctx)
+    const Device::DeviceSettings& settings,
+    const score::DocumentContext& ctx)
 {
   return new OSCQueryDevice{settings};
 }
@@ -55,13 +56,15 @@ QVariant OSCQueryProtocolFactory::makeProtocolSpecificSettings(
 }
 
 void OSCQueryProtocolFactory::serializeProtocolSpecificSettings(
-    const QVariant& data, const VisitorVariant& visitor) const
+    const QVariant& data,
+    const VisitorVariant& visitor) const
 {
   serializeProtocolSpecificSettings_T<OSCQuerySpecificSettings>(data, visitor);
 }
 
 bool OSCQueryProtocolFactory::checkCompatibility(
-    const Device::DeviceSettings& a, const Device::DeviceSettings& b) const
+    const Device::DeviceSettings& a,
+    const Device::DeviceSettings& b) const
 {
   return a.name != b.name;
 }

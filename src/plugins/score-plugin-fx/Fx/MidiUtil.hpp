@@ -219,10 +219,23 @@ struct Node
     static const constexpr midi_out midi_outs[]{"out"};
     static const constexpr auto controls = std::make_tuple(
         Control::make_unvalidated_enum(
-            "Scale", 0U,
+            "Scale",
+            0U,
             ossia::make_array(
-                "all", "ionian", "dorian", "phyrgian", "lydian", "mixolydian",
-                "aeolian", "locrian", "I", "II", "III", "IV", "V", "VI",
+                "all",
+                "ionian",
+                "dorian",
+                "phyrgian",
+                "lydian",
+                "mixolydian",
+                "aeolian",
+                "locrian",
+                "I",
+                "II",
+                "III",
+                "IV",
+                "V",
+                "VI",
                 "VII")),
         Control::Widgets::OctaveSlider("Base", 0, 1),
         Control::Widgets::OctaveSlider("Transpose", -4, 4));
@@ -237,8 +250,12 @@ struct Node
   };
 
   static void exec(
-      const ossia::midi_port& midi_in, const scale_array& scale, int transp,
-      ossia::midi_port& midi_out, const ossia::time_value& offset, State& self)
+      const ossia::midi_port& midi_in,
+      const scale_array& scale,
+      int transp,
+      ossia::midi_port& midi_out,
+      const ossia::time_value& offset,
+      State& self)
   {
     for (const auto& msg : midi_in.messages)
     {
@@ -252,7 +269,8 @@ struct Node
             // transpose
             auto res = msg;
             res.bytes[1] = (uint8_t)ossia::clamp(int(*index + transp), 0, 127);
-            Note note{(uint8_t)res.bytes[1], (uint8_t)res.bytes[2],
+            Note note{(uint8_t)res.bytes[1],
+                      (uint8_t)res.bytes[2],
                       (uint8_t)res.get_channel()};
             auto it = self.map.find(msg.bytes[1]);
             if (it != self.map.end())
@@ -294,8 +312,12 @@ struct Node
   }
 
   static void update(
-      const ossia::midi_port& midi_in, const scale_array& scale, int transp,
-      ossia::midi_port& midi_out, const ossia::time_value& offset, State& self)
+      const ossia::midi_port& midi_in,
+      const scale_array& scale,
+      int transp,
+      ossia::midi_port& midi_out,
+      const ossia::time_value& offset,
+      State& self)
   {
     for (auto& notes : self.map)
     {
@@ -322,8 +344,10 @@ struct Node
       const ossia::safe_nodes::timed_vec<std::string>& sc,
       const ossia::safe_nodes::timed_vec<int>& base,
       const ossia::safe_nodes::timed_vec<int>& transp,
-      ossia::midi_port& midi_out, ossia::token_request tk,
-      ossia::exec_state_facade st, State& self)
+      ossia::midi_port& midi_out,
+      ossia::token_request tk,
+      ossia::exec_state_facade st,
+      State& self)
   {
     const auto& new_scale = sc.rbegin()->second;
     const int new_base = base.rbegin()->second;
@@ -335,8 +359,12 @@ struct Node
     auto apply = [&](auto f) {
       if (new_scale_idx != scale::custom)
       {
-        f(midi_in, scales.at(new_scale_idx)[new_base], new_transpose, midi_out,
-          tk.offset, self);
+        f(midi_in,
+          scales.at(new_scale_idx)[new_base],
+          new_transpose,
+          midi_out,
+          tk.offset,
+          self);
       }
       else
       {
@@ -369,8 +397,6 @@ struct Node
 
 }
 
-
-
 namespace Nodes::PitchToValue
 {
 struct Node
@@ -384,7 +410,8 @@ struct Node
     static const constexpr auto kind = Process::ProcessCategory::MidiEffect;
     static const constexpr auto description = "Extract a MIDI pitch";
     static const constexpr auto tags = std::array<const char*, 0>{};
-    static const constexpr auto uuid = make_uuid("29ce484f-cb56-4501-af79-88768fa261c3");
+    static const constexpr auto uuid
+        = make_uuid("29ce484f-cb56-4501-af79-88768fa261c3");
 
     static const constexpr midi_in midi_ins[]{"in"};
     static const constexpr value_out value_outs[]{"out"};
@@ -392,14 +419,16 @@ struct Node
 
   using control_policy = ossia::safe_nodes::default_tick;
   static void
-  run(const ossia::midi_port& in, ossia::value_port& res,
-      ossia::token_request tk, ossia::exec_state_facade st)
+  run(const ossia::midi_port& in,
+      ossia::value_port& res,
+      ossia::token_request tk,
+      ossia::exec_state_facade st)
   {
-      for(const auto& note : in.messages)
-      {
-        if(note.get_message_type() == rtmidi::message_type::NOTE_ON)
-          res.write_value(ossia::value{(int)note.bytes[1]}, note.timestamp);
-      }
+    for (const auto& note : in.messages)
+    {
+      if (note.get_message_type() == rtmidi::message_type::NOTE_ON)
+        res.write_value(ossia::value{(int)note.bytes[1]}, note.timestamp);
+    }
   }
 };
 }

@@ -20,8 +20,10 @@ class SCORE_PLUGIN_SCENARIO_EXPORT EventComponent final
   COMMON_COMPONENT_METADATA("02c41de0-3a8c-44da-ae03-68a0ca26a7d0")
 public:
   EventComponent(
-      const Scenario::EventModel& element, const Execution::Context& ctx,
-      const Id<score::Component>& id, QObject* parent);
+      const Scenario::EventModel& element,
+      const Execution::Context& ctx,
+      const Id<score::Component>& id,
+      QObject* parent);
 
   void cleanup();
 
@@ -30,7 +32,8 @@ public:
 
   //! To be called from the API edition queue
   void onSetup(
-      std::shared_ptr<ossia::time_event> event, ossia::expression_ptr expr,
+      std::shared_ptr<ossia::time_event> event,
+      ossia::expression_ptr expr,
       ossia::time_event::offset_behavior b);
 
   std::shared_ptr<ossia::time_event> OSSIAEvent() const;

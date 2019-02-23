@@ -15,14 +15,18 @@ namespace Command
 {
 
 ResizeSlotVertically::ResizeSlotVertically(
-    const IntervalModel& cst, const SlotPath& slotPath, double newSize)
+    const IntervalModel& cst,
+    const SlotPath& slotPath,
+    double newSize)
     : m_path{slotPath}, m_newSize{newSize}
 {
   m_originalSize = cst.getSlotHeight(m_path);
 }
 
 ResizeSlotVertically::ResizeSlotVertically(
-    const IntervalModel& cst, SlotPath&& slotPath, double newSize)
+    const IntervalModel& cst,
+    SlotPath&& slotPath,
+    double newSize)
     : m_path{slotPath}, m_newSize{newSize}
 {
   m_originalSize = cst.getSlotHeight(m_path);

@@ -5,9 +5,9 @@
 #include "OSCSpecificSettings.hpp"
 
 #include <Device/Protocol/ProtocolSettingsWidget.hpp>
+#include <Protocols/RateWidget.hpp>
 #include <State/Widgets/AddressFragmentLineEdit.hpp>
 
-#include <Protocols/RateWidget.hpp>
 #include <score/widgets/MarginLess.hpp>
 
 #include <QCheckBox>
@@ -19,6 +19,7 @@
 #include <QPushButton>
 #include <QSpinBox>
 #include <QVariant>
+
 #include <wobjectimpl.h>
 
 W_OBJECT_IMPL(Protocols::RateWidget)

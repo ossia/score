@@ -36,13 +36,11 @@ public:
     }
   }
 
-  QRectF boundingRect() const override
-  {
-    return {0, 0, m_width, m_height};
-  }
+  QRectF boundingRect() const override { return {0, 0, m_width, m_height}; }
 
   void paint(
-      QPainter* painter, const QStyleOptionGraphicsItem* option,
+      QPainter* painter,
+      const QStyleOptionGraphicsItem* option,
       QWidget* widget) override;
 
   QRectF computeRect() const noexcept;

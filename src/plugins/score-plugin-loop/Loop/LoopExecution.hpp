@@ -46,8 +46,10 @@ class Component final
   COMPONENT_METADATA("77b987ae-7bc8-4273-aa9c-9e4ba53a053d")
 public:
   Component(
-      ::Loop::ProcessModel& element, const ::Execution::Context& ctx,
-      const Id<score::Component>& id, QObject* parent);
+      ::Loop::ProcessModel& element,
+      const ::Execution::Context& ctx,
+      const Id<score::Component>& id,
+      QObject* parent);
 
   virtual ~Component();
 
@@ -77,4 +79,5 @@ using ComponentFactory = ::Execution::ProcessComponentFactory_T<Component>;
 }
 
 SCORE_CONCRETE_COMPONENT_FACTORY(
-    Execution::ProcessComponentFactory, Loop::RecreateOnPlay::ComponentFactory)
+    Execution::ProcessComponentFactory,
+    Loop::RecreateOnPlay::ComponentFactory)

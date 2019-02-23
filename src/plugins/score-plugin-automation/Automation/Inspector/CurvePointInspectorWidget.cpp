@@ -26,7 +26,8 @@
 namespace Automation
 {
 PointInspectorWidget::PointInspectorWidget(
-    const Curve::PointModel& model, const score::DocumentContext& doc,
+    const Curve::PointModel& model,
+    const score::DocumentContext& doc,
     QWidget* parent)
     : InspectorWidgetBase{model, doc, parent, tr("Point")}
     , m_model{model}
@@ -59,13 +60,15 @@ PointInspectorWidget::PointInspectorWidget(
       m_XBox,
       static_cast<void (QDoubleSpinBox::*)(double)>(
           &QDoubleSpinBox::valueChanged),
-      this, &PointInspectorWidget::on_pointChanged);
+      this,
+      &PointInspectorWidget::on_pointChanged);
 
   connect(
       m_XBox,
       static_cast<void (QDoubleSpinBox::*)(double)>(
           &QDoubleSpinBox::valueChanged),
-      this, &PointInspectorWidget::on_editFinished);
+      this,
+      &PointInspectorWidget::on_editFinished);
 
   vec.push_back(widgX);
   m_XBox->setSingleStep(m_xFactor / 100);
@@ -84,11 +87,15 @@ PointInspectorWidget::PointInspectorWidget(
   m_YBox->setDecimals(4); // NOTE : settings ?
 
   connect(
-      m_YBox, SignalUtils::QDoubleSpinBox_valueChanged_double(), this,
+      m_YBox,
+      SignalUtils::QDoubleSpinBox_valueChanged_double(),
+      this,
       &PointInspectorWidget::on_pointChanged);
 
   connect(
-      m_YBox, SignalUtils::QDoubleSpinBox_valueChanged_double(), this,
+      m_YBox,
+      SignalUtils::QDoubleSpinBox_valueChanged_double(),
+      this,
       &PointInspectorWidget::on_editFinished);
   vec.push_back(widgY);
 

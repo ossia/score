@@ -25,16 +25,23 @@ namespace Loop
 namespace RecreateOnPlay
 {
 Component::Component(
-    ::Loop::ProcessModel& element, const ::Execution::Context& ctx,
-    const Id<score::Component>& id, QObject* parent)
+    ::Loop::ProcessModel& element,
+    const ::Execution::Context& ctx,
+    const Id<score::Component>& id,
+    QObject* parent)
     : ::Execution::ProcessComponent_T<Loop::ProcessModel, ossia::loop>{
-          element, ctx, id, "LoopComponent", parent}
+          element,
+          ctx,
+          id,
+          "LoopComponent",
+          parent}
 {
   ossia::time_value main_duration(
       ctx.time(element.interval().duration.defaultDuration()));
 
   std::shared_ptr<ossia::loop> loop = std::make_shared<ossia::loop>(
-      main_duration, ossia::time_interval::exec_callback{},
+      main_duration,
+      ossia::time_interval::exec_callback{},
       [this, &element](ossia::time_event::status newStatus) {
         element.startEvent().setStatus(
             static_cast<Scenario::ExecutionStatus>(newStatus), process());
@@ -86,20 +93,28 @@ Component::Component(
 
   using namespace Execution;
   m_ossia_startTimeSync = std::make_shared<TimeSyncRawPtrComponent>(
-      element.startTimeSync(), system(), score::newId(element.startTimeSync()),
+      element.startTimeSync(),
+      system(),
+      score::newId(element.startTimeSync()),
       this);
   m_ossia_endTimeSync = std::make_shared<TimeSyncRawPtrComponent>(
-      element.endTimeSync(), system(), score::newId(element.endTimeSync()),
+      element.endTimeSync(),
+      system(),
+      score::newId(element.endTimeSync()),
       this);
 
   m_ossia_startEvent = std::make_shared<EventComponent>(
-      element.startEvent(), system(), score::newId(element.startEvent()),
+      element.startEvent(),
+      system(),
+      score::newId(element.startEvent()),
       this);
   m_ossia_endEvent = std::make_shared<EventComponent>(
       element.endEvent(), system(), score::newId(element.endEvent()), this);
 
   m_ossia_startState = std::make_shared<StateComponent>(
-      element.startState(), system(), score::newId(element.startState()),
+      element.startState(),
+      system(),
+      score::newId(element.startState()),
       this);
   m_ossia_endState = std::make_shared<StateComponent>(
       element.endState(), system(), score::newId(element.endState()), this);
@@ -112,30 +127,32 @@ Component::Component(
   m_ossia_endTimeSync->onSetup(
       &main_end_node, m_ossia_endTimeSync->makeTrigger());
   m_ossia_startEvent->onSetup(
-      main_start_event, m_ossia_startEvent->makeExpression(),
+      main_start_event,
+      m_ossia_startEvent->makeExpression(),
       (ossia::time_event::offset_behavior)element.startEvent()
           .offsetBehavior());
   m_ossia_endEvent->onSetup(
-      main_end_event, m_ossia_endEvent->makeExpression(),
+      main_end_event,
+      m_ossia_endEvent->makeExpression(),
       (ossia::time_event::offset_behavior)element.endEvent().offsetBehavior());
   m_ossia_startState->onSetup(main_start_event);
   m_ossia_endState->onSetup(main_end_event);
   m_ossia_interval->onSetup(
-      m_ossia_interval, &loop->get_time_interval(),
+      m_ossia_interval,
+      &loop->get_time_interval(),
       m_ossia_interval->makeDurations());
 
   auto cable = ossia::make_edge(
       ossia::immediate_glutton_connection{},
       m_ossia_interval->OSSIAInterval()->node->outputs()[0],
-      loop->node->inputs()[0], m_ossia_interval->OSSIAInterval()->node,
+      loop->node->inputs()[0],
+      m_ossia_interval->OSSIAInterval()->node,
       loop->node);
 
   in_exec([g = system().execGraph, cable] { g->connect(cable); });
 }
 
-Component::~Component()
-{
-}
+Component::~Component() {}
 
 void Component::cleanup()
 {

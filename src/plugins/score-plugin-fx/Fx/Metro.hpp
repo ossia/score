@@ -53,8 +53,13 @@ struct Node
 
   using control_policy = ossia::safe_nodes::last_tick;
   static void
-  run(float quantif, float freq, bool val, float tempo, ossia::value_port& res,
-      ossia::token_request tk, ossia::exec_state_facade st)
+  run(float quantif,
+      float freq,
+      bool val,
+      float tempo,
+      ossia::value_port& res,
+      ossia::token_request tk,
+      ossia::exec_state_facade st)
   {
     if (tk.date > tk.prev_date)
     {

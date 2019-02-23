@@ -34,33 +34,33 @@ class SCORE_LIB_BASE_EXPORT DocumentModel final
   W_OBJECT(DocumentModel)
 public:
   DocumentModel(
-      const Id<DocumentModel>& id, const score::DocumentContext& ctx,
-      DocumentDelegateFactory& fact, QObject* parent);
+      const Id<DocumentModel>& id,
+      const score::DocumentContext& ctx,
+      DocumentDelegateFactory& fact,
+      QObject* parent);
   DocumentModel(
-      score::DocumentContext& ctx, const QVariant& data,
-      DocumentDelegateFactory& fact, QObject* parent);
+      score::DocumentContext& ctx,
+      const QVariant& data,
+      DocumentDelegateFactory& fact,
+      QObject* parent);
   ~DocumentModel();
 
-  DocumentDelegateModel& modelDelegate() const
-  {
-    return *m_model;
-  }
+  DocumentDelegateModel& modelDelegate() const { return *m_model; }
 
   // Plugin models
   void addPluginModel(DocumentPlugin* m);
-  const std::vector<DocumentPlugin*>& pluginModels()
-  {
-    return m_pluginModels;
-  }
+  const std::vector<DocumentPlugin*>& pluginModels() { return m_pluginModels; }
 
   void pluginModelsChanged()
       E_SIGNAL(SCORE_LIB_BASE_EXPORT, pluginModelsChanged)
 
           private : void loadDocumentAsJson(
-                        score::DocumentContext& ctx, const QJsonObject&,
+                        score::DocumentContext& ctx,
+                        const QJsonObject&,
                         DocumentDelegateFactory& fact);
   void loadDocumentAsByteArray(
-      score::DocumentContext& ctx, const QByteArray&,
+      score::DocumentContext& ctx,
+      const QByteArray&,
       DocumentDelegateFactory& fact);
 
   std::vector<DocumentPlugin*> m_pluginModels;

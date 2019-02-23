@@ -26,10 +26,7 @@ public:
     static const CommandKey kagi{std::move(name)};
     return kagi;
   }
-  const CommandKey& key() const noexcept override
-  {
-    return static_key();
-  }
+  const CommandKey& key() const noexcept override { return static_key(); }
   QString description() const override
   {
     return QObject::tr("Change %1 color")

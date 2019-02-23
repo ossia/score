@@ -16,19 +16,11 @@ MoveSegmentCommandObject::MoveSegmentCommandObject(
 {
 }
 
-void MoveSegmentCommandObject::press()
-{
-}
+void MoveSegmentCommandObject::press() {}
 
-void MoveSegmentCommandObject::move()
-{
-}
+void MoveSegmentCommandObject::move() {}
 
-void MoveSegmentCommandObject::release()
-{
-}
+void MoveSegmentCommandObject::release() {}
 
-void MoveSegmentCommandObject::cancel()
-{
-}
+void MoveSegmentCommandObject::cancel() {}
 }

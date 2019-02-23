@@ -17,7 +17,8 @@ namespace Command
 class SetCommentText final : public score::Command
 {
   SCORE_COMMAND_DECL(
-      ScenarioCommandFactoryName(), SetCommentText,
+      ScenarioCommandFactoryName(),
+      SetCommentText,
       "Set Text in comment block")
 public:
   SetCommentText(const CommentBlockModel& model, QString newComment);

@@ -48,7 +48,11 @@ AddressSettingsWidget::AddressSettingsWidget(QWidget* parent)
   connect(m_addTagButton, &QPushButton::clicked, this, [&]() {
     bool ok = false;
     auto res = QInputDialog::getText(
-        this, tr("Add tag"), tr("Add a tag"), QLineEdit::Normal, QString{},
+        this,
+        tr("Add tag"),
+        tr("Add a tag"),
+        QLineEdit::Normal,
+        QString{},
         &ok);
     if (ok)
     {
@@ -76,7 +80,8 @@ AddressSettingsWidget::AddressSettingsWidget(QWidget* parent)
 }
 
 AddressSettingsWidget::AddressSettingsWidget(
-    AddressSettingsWidget::no_widgets_t, QWidget* parent)
+    AddressSettingsWidget::no_widgets_t,
+    QWidget* parent)
     : QWidget(parent), m_layout{new QFormLayout}, m_none_type{true}
 {
   m_tagsEdit = new QComboBox{this};
@@ -87,7 +92,11 @@ AddressSettingsWidget::AddressSettingsWidget(
   connect(addTagButton, &QPushButton::clicked, this, [&]() {
     bool ok = false;
     auto res = QInputDialog::getText(
-        this, tr("Add tag"), tr("Add a tag"), QLineEdit::Normal, QString{},
+        this,
+        tr("Add tag"),
+        tr("Add a tag"),
+        QLineEdit::Normal,
+        QString{},
         &ok);
     if (ok)
     {
@@ -204,13 +213,13 @@ AccessModeComboBox::AccessModeComboBox(QWidget* parent) : QComboBox{parent}
   }
 
   connect(
-      this, SignalUtils::QComboBox_currentIndexChanged_int(), this,
+      this,
+      SignalUtils::QComboBox_currentIndexChanged_int(),
+      this,
       [=](int i) { changed((ossia::access_mode)this->itemData(i).toInt()); });
 }
 
-AccessModeComboBox::~AccessModeComboBox()
-{
-}
+AccessModeComboBox::~AccessModeComboBox() {}
 
 ossia::access_mode AccessModeComboBox::get() const
 {
@@ -239,15 +248,15 @@ BoundingModeComboBox::BoundingModeComboBox(QWidget* parent) : QComboBox{parent}
     addItem(it.value(), (int)it.key());
   }
   connect(
-      this, SignalUtils::QComboBox_currentIndexChanged_int(), this,
+      this,
+      SignalUtils::QComboBox_currentIndexChanged_int(),
+      this,
       [=](int i) {
         changed((ossia::bounding_mode)this->itemData(i).toInt());
       });
 }
 
-BoundingModeComboBox::~BoundingModeComboBox()
-{
-}
+BoundingModeComboBox::~BoundingModeComboBox() {}
 
 ossia::bounding_mode BoundingModeComboBox::get() const
 {

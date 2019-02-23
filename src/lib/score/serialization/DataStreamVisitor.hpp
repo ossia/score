@@ -76,7 +76,8 @@ struct is_QDataStreamSerializable : std::false_type
 
 template <class T>
 struct is_QDataStreamSerializable<
-    T, enable_if_QDataStreamSerializable<typename std::decay<T>::type>>
+    T,
+    enable_if_QDataStreamSerializable<typename std::decay<T>::type>>
     : std::true_type
 {
 };
@@ -144,10 +145,7 @@ class DataStream
 public:
   using Serializer = DataStreamReader;
   using Deserializer = DataStreamWriter;
-  static constexpr SerializationIdentifier type()
-  {
-    return 2;
-  }
+  static constexpr SerializationIdentifier type() { return 2; }
 };
 
 class SCORE_LIB_BASE_EXPORT DataStreamReader : public AbstractVisitor
@@ -156,10 +154,7 @@ public:
   using type = DataStream;
   using is_visitor_tag = std::integral_constant<bool, true>;
 
-  VisitorVariant toVariant()
-  {
-    return {*this, DataStream::type()};
-  }
+  VisitorVariant toVariant() { return {*this, DataStream::type()}; }
 
   DataStreamReader();
   DataStreamReader(QByteArray* array);
@@ -189,15 +184,9 @@ public:
    *
    * Adds a delimiter that is to be checked by the reader.
    */
-  void insertDelimiter()
-  {
-    m_stream << int32_t(0xDEADBEEF);
-  }
+  void insertDelimiter() { m_stream << int32_t(0xDEADBEEF); }
 
-  auto& stream()
-  {
-    return m_stream;
-  }
+  auto& stream() { return m_stream; }
 
   //! Serializable types should reimplement this method
   //! It is not to be called by user code.
@@ -338,10 +327,7 @@ public:
   using is_visitor_tag = std::integral_constant<bool, true>;
   using is_deserializer_tag = std::integral_constant<bool, true>;
 
-  VisitorVariant toVariant()
-  {
-    return {*this, DataStream::type()};
-  }
+  VisitorVariant toVariant() { return {*this, DataStream::type()}; }
 
   DataStreamWriter();
   DataStreamWriter(const DataStreamWriter&) = delete;
@@ -388,10 +374,7 @@ public:
     }
   }
 
-  auto& stream()
-  {
-    return m_stream;
-  }
+  auto& stream() { return m_stream; }
 
 private:
   template <typename T>
@@ -422,9 +405,10 @@ public:
 };
 
 template <
-    typename T, std::enable_if_t<
-                    !std::is_arithmetic<T>::value
-                    && !std::is_same<T, QStringList>::value>* = nullptr>
+    typename T,
+    std::enable_if_t<
+        !std::is_arithmetic<T>::value
+        && !std::is_same<T, QStringList>::value>* = nullptr>
 QDataStream& operator<<(QDataStream& stream, const T& obj)
 {
   DataStreamReader reader{stream.device()};
@@ -433,9 +417,10 @@ QDataStream& operator<<(QDataStream& stream, const T& obj)
 }
 
 template <
-    typename T, std::enable_if_t<
-                    !std::is_arithmetic<T>::value
-                    && !std::is_same<T, QStringList>::value>* = nullptr>
+    typename T,
+    std::enable_if_t<
+        !std::is_arithmetic<T>::value
+        && !std::is_same<T, QStringList>::value>* = nullptr>
 QDataStream& operator>>(QDataStream& stream, T& obj)
 {
   DataStreamWriter writer{stream.device()};
@@ -618,7 +603,8 @@ struct TSerializer<DataStream, ossia::static_vector<T, N>>
 
 template <typename T, typename Alloc>
 struct TSerializer<
-    DataStream, std::vector<T, Alloc>,
+    DataStream,
+    std::vector<T, Alloc>,
     std::enable_if_t<!is_QDataStreamSerializable<
         typename std::vector<T, Alloc>::value_type>::value>>
 {
@@ -650,7 +636,8 @@ struct TSerializer<
 
 template <typename T, typename Alloc>
 struct TSerializer<
-    DataStream, std::vector<T, Alloc>,
+    DataStream,
+    std::vector<T, Alloc>,
     std::enable_if_t<is_QDataStreamSerializable<
         typename std::vector<T, Alloc>::value_type>::value>>
 {

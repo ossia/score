@@ -25,7 +25,8 @@ namespace Scenario
 TriggerInspectorWidget::TriggerInspectorWidget(
     const score::DocumentContext& doc,
     const Command::TriggerCommandFactoryList& fact,
-    const TimeSyncModel& object, Inspector::InspectorWidgetBase* parent)
+    const TimeSyncModel& object,
+    Inspector::InspectorWidgetBase* parent)
     : QWidget{parent}
     , m_triggerCommandFactory{fact}
     , m_model{object}
@@ -36,9 +37,13 @@ TriggerInspectorWidget::TriggerInspectorWidget(
 
   m_exprEditor = new ExpressionEditorWidget{doc, this};
   connect(
-      m_exprEditor, &ExpressionEditorWidget::editingFinished, this,
+      m_exprEditor,
+      &ExpressionEditorWidget::editingFinished,
+      this,
       &TriggerInspectorWidget::on_triggerChanged);
-  con(m_model, &TimeSyncModel::triggerChanged, m_exprEditor,
+  con(m_model,
+      &TimeSyncModel::triggerChanged,
+      m_exprEditor,
       &ExpressionEditorWidget::setExpression);
 
   m_addTrigBtn = new QPushButton{tr("Enable trigger")};
@@ -51,13 +56,19 @@ TriggerInspectorWidget::TriggerInspectorWidget(
   on_triggerActiveChanged();
 
   connect(
-      m_addTrigBtn, &QPushButton::released, this,
+      m_addTrigBtn,
+      &QPushButton::released,
+      this,
       &TriggerInspectorWidget::createTrigger);
 
   connect(
-      m_menu.deleteAction, &QAction::triggered, this,
+      m_menu.deleteAction,
+      &QAction::triggered,
+      this,
       &TriggerInspectorWidget::removeTrigger);
-  con(m_menu, &ExpressionMenu::expressionChanged, this,
+  con(m_menu,
+      &ExpressionMenu::expressionChanged,
+      this,
       [=](const QString& str) {
         auto trig = State::parseExpression(str);
         if (!trig)
@@ -72,7 +83,9 @@ TriggerInspectorWidget::TriggerInspectorWidget(
           m_parent->commandDispatcher()->submit(cmd);
         }
       });
-  con(m_model, &TimeSyncModel::activeChanged, this,
+  con(m_model,
+      &TimeSyncModel::activeChanged,
+      this,
       &TriggerInspectorWidget::on_triggerActiveChanged);
 }
 

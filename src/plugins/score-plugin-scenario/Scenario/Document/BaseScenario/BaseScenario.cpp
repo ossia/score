@@ -33,9 +33,7 @@ BaseScenario::BaseScenario(const Id<BaseScenario>& id, QObject* parent)
   m_endNode->setActive(true);
 }
 
-BaseScenario::~BaseScenario()
-{
-}
+BaseScenario::~BaseScenario() {}
 
 Selection BaseScenario::selectedChildren() const
 {
@@ -61,7 +59,8 @@ bool BaseScenario::focused() const
 }
 
 const QVector<Id<IntervalModel>> intervalsBeforeTimeSync(
-    const BaseScenario& scen, const Id<TimeSyncModel>& timeSyncId)
+    const BaseScenario& scen,
+    const Id<TimeSyncModel>& timeSyncId)
 {
   if (timeSyncId == scen.endTimeSync().id())
   {

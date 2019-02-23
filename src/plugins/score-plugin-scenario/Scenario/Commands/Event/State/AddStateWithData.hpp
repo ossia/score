@@ -10,7 +10,8 @@ namespace Command
 class AddStateWithData final : public score::AggregateCommand
 {
   SCORE_COMMAND_DECL(
-      ScenarioCommandFactoryName(), AddStateWithData,
+      ScenarioCommandFactoryName(),
+      AddStateWithData,
       "Drop a new state in an event")
 };
 }

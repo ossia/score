@@ -53,7 +53,8 @@ operator()(const ObjectPath& path) const
 }
 
 ObjectPath ObjectPath::pathBetweenObjects(
-    const QObject* const parent_obj, const QObject* target_object)
+    const QObject* const parent_obj,
+    const QObject* target_object)
 {
   std::vector<ObjectIdentifier> v;
 
@@ -157,7 +158,9 @@ QObject* ObjectPath::find_impl_unsafe(const score::DocumentContext& ctx) const
 }
 
 void replacePathPart(
-    const ObjectPath& src, const ObjectPath& target, ObjectPath& toChange)
+    const ObjectPath& src,
+    const ObjectPath& target,
+    ObjectPath& toChange)
 {
   auto& src_v = src.vec();
   auto& tgt_v = target.vec();

@@ -25,11 +25,13 @@ class SCORE_PLUGIN_SCENARIO_EXPORT CreateEvent_State final
     : public score::Command
 {
   SCORE_COMMAND_DECL(
-      ScenarioCommandFactoryName(), CreateEvent_State,
+      ScenarioCommandFactoryName(),
+      CreateEvent_State,
       "Create an event and a state")
 public:
   CreateEvent_State(
-      const Scenario::ProcessModel& scenario, Id<TimeSyncModel> timeSync,
+      const Scenario::ProcessModel& scenario,
+      Id<TimeSyncModel> timeSync,
       double stateY);
 
   const Path<Scenario::ProcessModel>& scenarioPath() const
@@ -42,10 +44,7 @@ public:
     return m_command.createdState();
   }
 
-  const Id<EventModel>& createdEvent() const
-  {
-    return m_newEvent;
-  }
+  const Id<EventModel>& createdEvent() const { return m_newEvent; }
 
   void undo(const score::DocumentContext& ctx) const override;
   void redo(const score::DocumentContext& ctx) const override;

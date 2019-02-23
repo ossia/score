@@ -23,7 +23,9 @@ class SCORE_PLUGIN_CURVE_EXPORT SetSegmentParameters final
     : public score::Command
 {
   SCORE_COMMAND_DECL(
-      CommandFactoryName(), SetSegmentParameters, "Set segment parameters")
+      CommandFactoryName(),
+      SetSegmentParameters,
+      "Set segment parameters")
 public:
   SetSegmentParameters(const Model& model, SegmentParameterMap&& parameters);
 

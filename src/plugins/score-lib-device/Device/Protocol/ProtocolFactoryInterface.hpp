@@ -37,23 +37,28 @@ public:
   virtual ProtocolSettingsWidget* makeSettingsWidget() = 0;
 
   virtual AddressDialog* makeAddAddressDialog(
-      const Device::DeviceInterface& dev, const score::DocumentContext& ctx,
+      const Device::DeviceInterface& dev,
+      const score::DocumentContext& ctx,
       QWidget*)
       = 0;
   virtual AddressDialog* makeEditAddressDialog(
-      const Device::AddressSettings&, const Device::DeviceInterface& dev,
-      const score::DocumentContext& ctx, QWidget*)
+      const Device::AddressSettings&,
+      const Device::DeviceInterface& dev,
+      const score::DocumentContext& ctx,
+      QWidget*)
       = 0;
 
   virtual const Device::DeviceSettings& defaultSettings() const = 0;
 
   // Save
   virtual void serializeProtocolSpecificSettings(
-      const QVariant& data, const VisitorVariant& visitor) const = 0;
+      const QVariant& data,
+      const VisitorVariant& visitor) const = 0;
 
   template <typename T>
   void serializeProtocolSpecificSettings_T(
-      const QVariant& data, const VisitorVariant& visitor) const
+      const QVariant& data,
+      const VisitorVariant& visitor) const
   {
     score::serialize_dyn(visitor, data.value<T>());
   }

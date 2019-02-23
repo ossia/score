@@ -16,7 +16,10 @@ namespace Scenario
 namespace Command
 {
 ChangeSlotPosition::ChangeSlotPosition(
-    Path<IntervalModel>&& rack, Slot::RackView v, int first, int second)
+    Path<IntervalModel>&& rack,
+    Slot::RackView v,
+    int first,
+    int second)
     : m_path{std::move(rack)}
     , m_view{v}
     , m_first{std::move(first)}
@@ -79,13 +82,16 @@ MergeSlots::MergeSlots(const IntervalModel& rack, int first, int second)
   auto& target = m_new[second];
   target.frontProcess = source.frontProcess;
   target.processes.insert(
-      target.processes.end(), source.processes.begin(),
+      target.processes.end(),
+      source.processes.begin(),
       source.processes.end());
   m_new.erase(m_new.begin() + first);
 }
 
 MoveLayerInNewSlot::MoveLayerInNewSlot(
-    const IntervalModel& rack, int first, int second)
+    const IntervalModel& rack,
+    int first,
+    int second)
     : SlotCommand{rack}
 {
   auto source = m_old[first];
@@ -121,7 +127,9 @@ MoveLayerInNewSlot::MoveLayerInNewSlot(
 }
 
 MergeLayerInSlot::MergeLayerInSlot(
-    const IntervalModel& rack, int first, int second)
+    const IntervalModel& rack,
+    int first,
+    int second)
     : SlotCommand{rack}
 {
   auto source = m_old[first];

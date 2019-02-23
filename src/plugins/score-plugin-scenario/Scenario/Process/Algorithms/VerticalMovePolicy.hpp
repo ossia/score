@@ -19,5 +19,7 @@ updateEventExtent(const Id<EventModel>& id, Scenario::ProcessModel& s);
 
 // Will call updateEventExtent
 SCORE_PLUGIN_SCENARIO_EXPORT void updateIntervalVerticalPos(
-    double y, const Id<IntervalModel>& id, Scenario::ProcessModel& s);
+    double y,
+    const Id<IntervalModel>& id,
+    Scenario::ProcessModel& s);
 }

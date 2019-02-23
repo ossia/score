@@ -20,7 +20,9 @@ View::View(QGraphicsItem* parent) : LayerView{parent}
 
 void View::heightChanged(qreal h)
 {
-  m_widg->setGeometry(QRectF{0, 0, std::max(0., this->width() - 10),
+  m_widg->setGeometry(QRectF{0,
+                             0,
+                             std::max(0., this->width() - 10),
                              std::max(0., this->height() - 10)});
   bool visible = m_widg->isVisible();
   bool enough_space = this->width() > 21 && this->height() > 21;
@@ -51,9 +53,7 @@ void View::setWidget(QWidget* w)
   // SIGNAL(contextMenuRequested(QPoint)));
 }
 
-void View::paint_impl(QPainter* painter) const
-{
-}
+void View::paint_impl(QPainter* painter) const {}
 
 void View::mousePressEvent(QGraphicsSceneMouseEvent* ev)
 {

@@ -26,7 +26,8 @@ W_OBJECT_IMPL(Curve::SegmentView)
 namespace Curve
 {
 SegmentView::SegmentView(
-    const SegmentModel* model, const Curve::Style& style,
+    const SegmentModel* model,
+    const Curve::Style& style,
     QGraphicsItem* parent)
     : QGraphicsItem{parent}, m_style{style}
 {
@@ -43,7 +44,9 @@ void SegmentView::setModel(const SegmentModel* model)
   if (m_model)
   {
     disconnect(
-        &m_model->selection, &Selectable::changed, this,
+        &m_model->selection,
+        &Selectable::changed,
+        this,
         &SegmentView::setSelected);
     disconnect(
         m_model, &SegmentModel::dataChanged, this, &SegmentView::updatePoints);
@@ -54,7 +57,9 @@ void SegmentView::setModel(const SegmentModel* model)
   if (m_model)
   {
     connect(
-        &m_model->selection, &Selectable::changed, this,
+        &m_model->selection,
+        &Selectable::changed,
+        this,
         &SegmentView::setSelected);
     connect(
         m_model, &SegmentModel::dataChanged, this, &SegmentView::updatePoints);
@@ -100,7 +105,9 @@ bool SegmentView::contains(const QPointF& pt) const
 }
 
 void SegmentView::paint(
-    QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+    QPainter* painter,
+    const QStyleOptionGraphicsItem* option,
+    QWidget* widget)
 {
   painter->setRenderHint(
       QPainter::RenderHint::Antialiasing, m_enabled && m_rect.width() > 10);

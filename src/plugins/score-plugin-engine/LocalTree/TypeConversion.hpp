@@ -10,9 +10,6 @@ struct qt_property_converter<::TimeVal>
 {
   static constexpr const auto val = ossia::val_type::FLOAT;
   using type = float;
-  static auto convert(const TimeVal& t)
-  {
-    return t.msec();
-  }
+  static auto convert(const TimeVal& t) { return t.msec(); }
 };
 }

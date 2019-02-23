@@ -43,7 +43,8 @@ bool isUnderMouse(Element ev, const QPointF& scenePos)
 
 template <typename PresenterContainer, typename IdToIgnore>
 QList<Id<typename PresenterContainer::model_type>> getCollidingModels(
-    const PresenterContainer& array, const QVector<IdToIgnore>& ids,
+    const PresenterContainer& array,
+    const QVector<IdToIgnore>& ids,
     QPointF scenePt)
 {
   using namespace std;
@@ -163,13 +164,23 @@ protected:
   }
 
   template <
-      typename EventFun, typename StateFun, typename TimeSyncFun,
-      typename IntervalFun, typename LeftBraceFun, typename RightBraceFun,
-      typename SlotHandleFun, typename NothingFun>
+      typename EventFun,
+      typename StateFun,
+      typename TimeSyncFun,
+      typename IntervalFun,
+      typename LeftBraceFun,
+      typename RightBraceFun,
+      typename SlotHandleFun,
+      typename NothingFun>
   void mapTopItem(
-      const QGraphicsItem* item, StateFun st_fun, EventFun ev_fun,
-      TimeSyncFun tn_fun, IntervalFun cst_fun, LeftBraceFun lbrace_fun,
-      RightBraceFun rbrace_fun, SlotHandleFun handle_fun,
+      const QGraphicsItem* item,
+      StateFun st_fun,
+      EventFun ev_fun,
+      TimeSyncFun tn_fun,
+      IntervalFun cst_fun,
+      LeftBraceFun lbrace_fun,
+      RightBraceFun rbrace_fun,
+      SlotHandleFun handle_fun,
       NothingFun nothing_fun) const
   {
     if (!item)

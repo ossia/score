@@ -25,8 +25,8 @@ struct AddressSettings;
 struct DeviceSettings;
 
 class SCORE_LIB_DEVICE_EXPORT DeviceExplorerNode
-    : public score::VariantBasedNode<
-          Device::DeviceSettings, Device::AddressSettings>
+    : public score::
+          VariantBasedNode<Device::DeviceSettings, Device::AddressSettings>
 {
   SCORE_SERIALIZE_FRIENDS
 
@@ -99,7 +99,8 @@ parametersList(const Node& treeNode, State::MessageList& ml);
 SCORE_LIB_DEVICE_EXPORT Device::Node&
 getNodeFromAddress(Device::Node& root, const State::Address&);
 SCORE_LIB_DEVICE_EXPORT Device::Node* getNodeFromString(
-    Device::Node& n, const QStringList& str); // Fails if not present.
+    Device::Node& n,
+    const QStringList& str); // Fails if not present.
 
 /**
  * @brief dumpTree An utility to print trees

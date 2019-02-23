@@ -34,10 +34,7 @@ template <
     typename Factory_T>
 struct FactoryBuilder // sorry padre for I have sinned
 {
-  static auto make(const Context_T&)
-  {
-    return std::make_unique<Factory_T>();
-  }
+  static auto make(const Context_T&) { return std::make_unique<Factory_T>(); }
 };
 
 /**
@@ -71,7 +68,8 @@ struct FW_T
 #endif
   template <typename Context_T>
   bool operator()(
-      const Context_T& ctx, const score::InterfaceKey& fact,
+      const Context_T& ctx,
+      const score::InterfaceKey& fact,
       std::vector<std::unique_ptr<score::InterfaceBase>>& vec) noexcept
   {
     if (fact == Factory_T::static_interfaceKey())
@@ -107,7 +105,8 @@ using FW = FW_T<Factory_T, Args...>;
  */
 template <typename Context_T, typename... Args>
 auto instantiate_factories(
-    const Context_T& ctx, const score::InterfaceKey& key) noexcept
+    const Context_T& ctx,
+    const score::InterfaceKey& key) noexcept
 {
   std::vector<std::unique_ptr<score::InterfaceBase>> vec;
 

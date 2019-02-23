@@ -22,7 +22,8 @@ SETTINGS_PARAMETER_IMPL(VstPaths)
 };
 
 SETTINGS_PARAMETER_IMPL(VstAlwaysOnTop){
-    QStringLiteral("score_plugin_engine/VstAlwaysOnTop"), true};
+    QStringLiteral("score_plugin_engine/VstAlwaysOnTop"),
+    true};
 static auto list()
 {
   return std::tie(VstPaths, VstAlwaysOnTop);

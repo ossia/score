@@ -1,13 +1,16 @@
 #pragma once
-#include <score/plugins/InterfaceList.hpp>
 #include <score/plugins/Interface.hpp>
+#include <score/plugins/InterfaceList.hpp>
 
 #include <QMimeData>
 #include <QPointF>
 
 #include <score_plugin_scenario_export.h>
 
-namespace score { struct DocumentContext; }
+namespace score
+{
+struct DocumentContext;
+}
 namespace Scenario
 {
 class ScenarioPresenter;
@@ -19,26 +22,28 @@ public:
 
   // Returns false if not handled.
   virtual bool dragEnter(
-      const Scenario::ScenarioPresenter&, QPointF pos,
+      const Scenario::ScenarioPresenter&,
+      QPointF pos,
       const QMimeData& mime)
   {
     return false;
   }
   virtual bool dragMove(
-      const Scenario::ScenarioPresenter&, QPointF pos,
+      const Scenario::ScenarioPresenter&,
+      QPointF pos,
       const QMimeData& mime)
   {
     return false;
   }
   virtual bool dragLeave(
-      const Scenario::ScenarioPresenter&, QPointF pos,
+      const Scenario::ScenarioPresenter&,
+      QPointF pos,
       const QMimeData& mime)
   {
     return false;
   }
-  virtual bool drop(
-      const Scenario::ScenarioPresenter&, QPointF pos,
-      const QMimeData& mime)
+  virtual bool
+  drop(const Scenario::ScenarioPresenter&, QPointF pos, const QMimeData& mime)
       = 0;
 };
 
@@ -48,17 +53,17 @@ public:
   ~DropHandlerList() override;
 
   bool dragEnter(
-      const ScenarioPresenter& scen, QPointF pos,
+      const ScenarioPresenter& scen,
+      QPointF pos,
       const QMimeData& mime) const;
   bool dragMove(
-      const ScenarioPresenter& scen, QPointF pos,
+      const ScenarioPresenter& scen,
+      QPointF pos,
       const QMimeData& mime) const;
-  bool dragLeave(
-      const ScenarioPresenter&, QPointF pos,
-      const QMimeData& mime) const;
-  bool drop(
-      const ScenarioPresenter& scen, QPointF pos,
-      const QMimeData& mime) const;
+  bool dragLeave(const ScenarioPresenter&, QPointF pos, const QMimeData& mime)
+      const;
+  bool drop(const ScenarioPresenter& scen, QPointF pos, const QMimeData& mime)
+      const;
 };
 
 class IntervalModel;
@@ -70,7 +75,11 @@ public:
   ~IntervalDropHandler() override;
 
   // Returns false if not handled.
-  virtual bool drop(const score::DocumentContext& ctx, const Scenario::IntervalModel&, const QMimeData& mime) = 0;
+  virtual bool drop(
+      const score::DocumentContext& ctx,
+      const Scenario::IntervalModel&,
+      const QMimeData& mime)
+      = 0;
 };
 
 class IntervalDropHandlerList final
@@ -79,6 +88,9 @@ class IntervalDropHandlerList final
 public:
   ~IntervalDropHandlerList() override;
 
-  bool drop(const score::DocumentContext& ctx, const Scenario::IntervalModel&, const QMimeData& mime) const;
+  bool drop(
+      const score::DocumentContext& ctx,
+      const Scenario::IntervalModel&,
+      const QMimeData& mime) const;
 };
 }

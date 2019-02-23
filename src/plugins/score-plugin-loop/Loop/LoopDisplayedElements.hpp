@@ -20,7 +20,8 @@ public:
 
   Scenario::DisplayedElementsPresenterContainer make_presenters(
       const Scenario::IntervalModel& m,
-      const Process::ProcessPresenterContext& ctx, QGraphicsItem* view_parent,
+      const Process::ProcessPresenterContext& ctx,
+      QGraphicsItem* view_parent,
       QObject* parent) const override;
 };
 }

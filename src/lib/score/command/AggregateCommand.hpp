@@ -48,10 +48,7 @@ public:
   //! Number of commands in this aggregate
   int count() const;
 
-  const auto& commands() const
-  {
-    return m_cmds;
-  }
+  const auto& commands() const { return m_cmds; }
 
 protected:
   void serializeImpl(DataStreamInput&) const override;

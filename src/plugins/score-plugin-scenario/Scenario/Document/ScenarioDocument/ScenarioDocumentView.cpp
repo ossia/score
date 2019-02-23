@@ -9,10 +9,10 @@
 #include <Scenario/Settings/ScenarioSettingsModel.hpp>
 
 #include <score/application/ApplicationContext.hpp>
+#include <score/graphics/GraphicsProxyObject.hpp>
 #include <score/model/Skin.hpp>
 #include <score/plugins/documentdelegate/DocumentDelegateView.hpp>
 #include <score/widgets/DoubleSlider.hpp>
-#include <score/graphics/GraphicsProxyObject.hpp>
 #include <score/widgets/MarginLess.hpp>
 #include <score/widgets/TextLabel.hpp>
 
@@ -46,11 +46,10 @@ W_OBJECT_IMPL(Scenario::ProcessGraphicsView)
 namespace Scenario
 {
 ProcessGraphicsView::ProcessGraphicsView(
-      const score::GUIApplicationContext& ctx
-      , QGraphicsScene* scene
-      , QWidget* parent)
-    : QGraphicsView{scene, parent}
-    , m_app{ctx}
+    const score::GUIApplicationContext& ctx,
+    QGraphicsScene* scene,
+    QWidget* parent)
+    : QGraphicsView{scene, parent}, m_app{ctx}
 {
   m_lastwheel = std::chrono::steady_clock::now();
   setAlignment(Qt::AlignTop | Qt::AlignLeft);
@@ -75,9 +74,7 @@ ProcessGraphicsView::ProcessGraphicsView(
 #endif
 }
 
-ProcessGraphicsView::~ProcessGraphicsView()
-{
-}
+ProcessGraphicsView::~ProcessGraphicsView() {}
 
 void ProcessGraphicsView::drawBackground(QPainter* painter, const QRectF& rect)
 {
@@ -151,7 +148,7 @@ void ProcessGraphicsView::keyPressEvent(QKeyEvent* event)
   else if (event->key() == Qt::Key_Shift)
     m_vZoom = true;
 
-  for(auto& plug : m_app.guiApplicationPlugins())
+  for (auto& plug : m_app.guiApplicationPlugins())
     plug->on_keyPressEvent(*event);
   event->ignore();
 
@@ -165,7 +162,7 @@ void ProcessGraphicsView::keyReleaseEvent(QKeyEvent* event)
   else if (event->key() == Qt::Key_Shift)
     m_vZoom = false;
 
-  for(auto& plug : m_app.guiApplicationPlugins())
+  for (auto& plug : m_app.guiApplicationPlugins())
     plug->on_keyReleaseEvent(*event);
   event->ignore();
 
@@ -191,7 +188,8 @@ void ProcessGraphicsView::leaveEvent(QEvent* event)
 }
 
 ScenarioDocumentView::ScenarioDocumentView(
-    const score::DocumentContext& ctx, QObject* parent)
+    const score::DocumentContext& ctx,
+    QObject* parent)
     : score::DocumentDelegateView{parent}
     , m_widget{new QWidget}
     , m_scene{m_widget}
@@ -229,7 +227,10 @@ ScenarioDocumentView::ScenarioDocumentView(
   largeView->setShortcutContext(Qt::WidgetWithChildrenShortcut);
   largeView->setShortcut(tr("Ctrl+0"));
   connect(
-      largeView, &QAction::triggered, this, [this] { setLargeView(); },
+      largeView,
+      &QAction::triggered,
+      this,
+      [this] { setLargeView(); },
       Qt::QueuedConnection);
   con(m_timeRuler, &TimeRuler::rescale, largeView, &QAction::trigger);
   con(m_minimap, &Minimap::rescale, largeView, &QAction::trigger);
@@ -270,9 +271,7 @@ ScenarioDocumentView::ScenarioDocumentView(
   });
 }
 
-ScenarioDocumentView::~ScenarioDocumentView()
-{
-}
+ScenarioDocumentView::~ScenarioDocumentView() {}
 
 QWidget* ScenarioDocumentView::getWidget()
 {

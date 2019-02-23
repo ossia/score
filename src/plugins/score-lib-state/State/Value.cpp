@@ -1,9 +1,9 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "Value.hpp"
-#include "ValueParser.hpp"
 
 #include "Unit.hpp"
+#include "ValueParser.hpp"
 
 #include <State/ValueConversion.hpp>
 
@@ -26,9 +26,7 @@ SCORE_LIB_STATE_EXPORT QDebug& operator<<(QDebug& s, const Value& m)
   return s;
 }
 
-Unit::Unit() noexcept : unit{std::make_unique<ossia::unit_t>()}
-{
-}
+Unit::Unit() noexcept : unit{std::make_unique<ossia::unit_t>()} {}
 
 Unit::Unit(const Unit& other) noexcept
     : unit{std::make_unique<ossia::unit_t>(*other.unit)}
@@ -52,9 +50,7 @@ Unit& Unit::operator=(Unit&& other) noexcept
   return *this;
 }
 
-Unit::~Unit()
-{
-}
+Unit::~Unit() {}
 
 Unit::Unit(const ossia::unit_t& other) noexcept
     : unit{std::make_unique<ossia::unit_t>(other)}

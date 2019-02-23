@@ -92,8 +92,10 @@ public:
 
 SCORE_LIB_DEVICE_EXPORT Device::FullAddressAccessorSettings
 makeFullAddressAccessorSettings(
-    const State::AddressAccessor& mess, const Device::NodeBasedItemModel& ctx,
-    ossia::value min, ossia::value max);
+    const State::AddressAccessor& mess,
+    const Device::NodeBasedItemModel& ctx,
+    ossia::value min,
+    ossia::value max);
 SCORE_LIB_DEVICE_EXPORT Device::FullAddressAccessorSettings
 makeFullAddressAccessorSettings(const Device::Node& mess);
 }

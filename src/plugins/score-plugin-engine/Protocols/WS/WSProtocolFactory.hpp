@@ -1,7 +1,6 @@
 #pragma once
 #include <Protocols/DefaultProtocolFactory.hpp>
 
-
 namespace Protocols
 {
 class WSProtocolFactory final : public DefaultProtocolFactory
@@ -21,7 +20,8 @@ class WSProtocolFactory final : public DefaultProtocolFactory
   makeProtocolSpecificSettings(const VisitorVariant& visitor) const override;
 
   void serializeProtocolSpecificSettings(
-      const QVariant& data, const VisitorVariant& visitor) const override;
+      const QVariant& data,
+      const VisitorVariant& visitor) const override;
 
   bool checkCompatibility(
       const Device::DeviceSettings& a,

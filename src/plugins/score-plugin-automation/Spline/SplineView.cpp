@@ -64,8 +64,8 @@ void View::paint_impl(QPainter* p) const
     painter.setBrush(QColor(170, 220, 20));
   else
     painter.setBrush(QColor(170, 220, 220));
-  painter.drawEllipse(QRectF{fp.x() - pointSize, fp.y() - pointSize,
-                             pointSize * 2., pointSize * 2.});
+  painter.drawEllipse(QRectF{
+      fp.x() - pointSize, fp.y() - pointSize, pointSize * 2., pointSize * 2.});
 
   // Remaining points
   for (std::size_t i = 1U; i < pts; i++)
@@ -80,8 +80,8 @@ void View::paint_impl(QPainter* p) const
       painter.setBrush(QColor(170, 220, 220));
 
     painter.setPen(QPen(Qt::transparent));
-    painter.drawEllipse(QRectF{p.x() - pointSize, p.y() - pointSize,
-                               pointSize * 2., pointSize * 2.});
+    painter.drawEllipse(QRectF{
+        p.x() - pointSize, p.y() - pointSize, pointSize * 2., pointSize * 2.});
     fp = p;
   }
 }

@@ -12,13 +12,19 @@ W_OBJECT_IMPL(score::DocumentPresenter)
 namespace score
 {
 DocumentPresenter::DocumentPresenter(
-    const score::DocumentContext& ctx, DocumentDelegateFactory& fact,
-    const DocumentModel& m, DocumentView& v, QObject* parent)
+    const score::DocumentContext& ctx,
+    DocumentDelegateFactory& fact,
+    const DocumentModel& m,
+    DocumentView& v,
+    QObject* parent)
     : QObject{parent}
     , m_view{v}
     , m_model{m}
     , m_presenter{fact.makePresenter(
-          ctx, this, m_model.modelDelegate(), m_view.viewDelegate())}
+          ctx,
+          this,
+          m_model.modelDelegate(),
+          m_view.viewDelegate())}
 {
 }
 

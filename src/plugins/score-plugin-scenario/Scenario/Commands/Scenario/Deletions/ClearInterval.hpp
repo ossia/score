@@ -29,7 +29,9 @@ namespace Command
 class SCORE_PLUGIN_SCENARIO_EXPORT ClearInterval final : public score::Command
 {
   SCORE_COMMAND_DECL(
-      ScenarioCommandFactoryName(), ClearInterval, "Clear a interval")
+      ScenarioCommandFactoryName(),
+      ClearInterval,
+      "Clear a interval")
 public:
   ClearInterval(const IntervalModel& intervalPath);
   void undo(const score::DocumentContext& ctx) const override;

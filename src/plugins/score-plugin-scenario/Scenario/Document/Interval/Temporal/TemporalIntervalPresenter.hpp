@@ -34,8 +34,10 @@ public:
 
   TemporalIntervalPresenter(
       const IntervalModel& viewModel,
-      const Process::ProcessPresenterContext& ctx, bool handles,
-      QGraphicsItem* parentobject, QObject* parent);
+      const Process::ProcessPresenterContext& ctx,
+      bool handles,
+      QGraphicsItem* parentobject,
+      QObject* parent);
 
   ~TemporalIntervalPresenter() override;
 

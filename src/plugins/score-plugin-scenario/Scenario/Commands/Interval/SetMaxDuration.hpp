@@ -22,7 +22,9 @@ namespace Command
 class SetMaxDuration final : public score::Command
 {
   SCORE_COMMAND_DECL(
-      ScenarioCommandFactoryName(), SetMaxDuration, "Set interval maximum")
+      ScenarioCommandFactoryName(),
+      SetMaxDuration,
+      "Set interval maximum")
 public:
   static const constexpr auto corresponding_member
       = &IntervalDurations::maxDuration; // used by state machine

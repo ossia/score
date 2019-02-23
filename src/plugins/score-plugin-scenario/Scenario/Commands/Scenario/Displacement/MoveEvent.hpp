@@ -51,9 +51,7 @@ public:
         .arg(DisplacementPolicy::name());
   }
 
-  MoveEvent() : SerializableMoveEvent{}
-  {
-  }
+  MoveEvent() : SerializableMoveEvent{} {}
   /**
    * @brief MoveEvent
    * @param scenarioPath
@@ -64,8 +62,11 @@ public:
    * @param mode
    */
   MoveEvent(
-      const Scenario::ProcessModel& scenario, const Id<EventModel>& eventId,
-      const TimeVal& newDate, ExpandMode mode, LockMode lock)
+      const Scenario::ProcessModel& scenario,
+      const Id<EventModel>& eventId,
+      const TimeVal& newDate,
+      ExpandMode mode,
+      LockMode lock)
       : SerializableMoveEvent{}, m_path{scenario}, m_mode{mode}, m_lock{lock}
   {
     auto& s = const_cast<Scenario::ProcessModel&>(scenario);
@@ -83,8 +84,12 @@ public:
   }
 
   void update(
-      Scenario::ProcessModel& scenario, const Id<EventModel>& eventId,
-      const TimeVal& newDate, double, ExpandMode, LockMode) override
+      Scenario::ProcessModel& scenario,
+      const Id<EventModel>& eventId,
+      const TimeVal& newDate,
+      double,
+      ExpandMode,
+      LockMode) override
   {
     // we need to compute the new time delta
     // NOTE: in the future in would be better to give directly the delta value
@@ -110,7 +115,8 @@ public:
 
     // update positions using old stored dates
     DisplacementPolicy::revertPositions(
-        ctx, scenario,
+        ctx,
+        scenario,
         [&](Process::ProcessModel& p, const TimeVal& t) {
           p.setParentDuration(m_mode, t);
         },
@@ -136,10 +142,7 @@ public:
     updateEventExtent(m_eventId, scenario);
   }
 
-  const Path<Scenario::ProcessModel>& path() const override
-  {
-    return m_path;
-  }
+  const Path<Scenario::ProcessModel>& path() const override { return m_path; }
 
 protected:
   void serializeImpl(DataStreamInput& s) const override

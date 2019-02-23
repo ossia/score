@@ -23,7 +23,9 @@
 namespace Scenario
 {
 SlotHandle::SlotHandle(
-    const IntervalPresenter& slotView, int slotIndex, bool isstatic,
+    const IntervalPresenter& slotView,
+    int slotIndex,
+    bool isstatic,
     QGraphicsItem* parent)
     : QGraphicsItem{parent}
     , m_presenter{slotView}
@@ -52,7 +54,9 @@ QRectF SlotHandle::boundingRect() const
 }
 
 void SlotHandle::paint(
-    QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+    QPainter* painter,
+    const QStyleOptionGraphicsItem* option,
+    QWidget* widget)
 {
   const auto& style = Process::Style::instance();
 

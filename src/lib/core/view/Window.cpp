@@ -11,11 +11,11 @@
 #include <core/document/DocumentView.hpp>
 #include <core/presenter/Presenter.hpp>
 #include <core/view/Window.hpp>
-#include <QApplication>
 
 #include <ossia/detail/algorithms.hpp>
 
 #include <QAction>
+#include <QApplication>
 #include <QCloseEvent>
 #include <QDesktopWidget>
 #include <QDockWidget>
@@ -47,23 +47,22 @@ struct PanelComparator
            < rhs.first->defaultPanelStatus().priority;
   }
 };
-View::~View()
-{
-}
+View::~View() {}
 
-static void setTitle(View& view, const score::Document* document, bool save_state) noexcept
+static void
+setTitle(View& view, const score::Document* document, bool save_state) noexcept
 {
   QString title;
 
-  if(document)
+  if (document)
   {
-    if(save_state)
+    if (save_state)
     {
       title = " * ";
     }
     title += QStringLiteral("score %1 - %2")
-        .arg(qApp->applicationVersion())
-        .arg(document->metadata().fileName());
+                 .arg(qApp->applicationVersion())
+                 .arg(document->metadata().fileName());
   }
   else
   {
@@ -104,7 +103,9 @@ View::View(QObject* parent) : QMainWindow{}, m_tabWidget{new QTabWidget}
   m_tabWidget->tabBar()->setDrawBase(false);
   m_tabWidget->tabBar()->setAutoHide(true);
   connect(
-      m_tabWidget, &QTabWidget::currentChanged, this,
+      m_tabWidget,
+      &QTabWidget::currentChanged,
+      this,
       [&](int index) {
         static QMetaObject::Connection saved_connection;
         QObject::disconnect(saved_connection);
@@ -120,10 +121,13 @@ View::View(QObject* parent) : QMainWindow{}, m_tabWidget{new QTabWidget}
         activeDocumentChanged(document.model().id());
 
         setTitle(*this, &document, !document.commandStack().isAtSavedIndex());
-        saved_connection = connect(&document.commandStack(), &score::CommandStack::saveIndexChanged,
-                                   this, [this, doc=&document] (bool state) {
-          setTitle(*this, doc, !state);
-        });
+        saved_connection = connect(
+            &document.commandStack(),
+            &score::CommandStack::saveIndexChanged,
+            this,
+            [this, doc = &document](bool state) {
+              setTitle(*this, doc, !state);
+            });
       },
       Qt::QueuedConnection);
 

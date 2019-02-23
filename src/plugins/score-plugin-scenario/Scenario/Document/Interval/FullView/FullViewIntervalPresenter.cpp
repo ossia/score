@@ -40,7 +40,9 @@ void FullViewIntervalPresenter::startSlotDrag(int curslot, QPointF pos) const
   // Create an overlay object
   full_slot_drag_overlay = new SlotDragOverlay{*this, Slot::FullView};
   connect(
-      full_slot_drag_overlay, &SlotDragOverlay::dropBefore, this,
+      full_slot_drag_overlay,
+      &SlotDragOverlay::dropBefore,
+      this,
       [=](int slot) {
         CommandDispatcher<>{this->m_context.commandStack}
             .submit<Command::ChangeSlotPosition>(
@@ -60,32 +62,46 @@ void FullViewIntervalPresenter::stopSlotDrag() const
 }
 
 FullViewIntervalPresenter::FullViewIntervalPresenter(
-    const IntervalModel& interval, const Process::ProcessPresenterContext& ctx,
-    QGraphicsItem* parentobject, QObject* parent)
-    : IntervalPresenter{
-          interval, new FullViewIntervalView{*this, parentobject},
-          new FullViewIntervalHeader{ctx, parentobject}, ctx, parent}
+    const IntervalModel& interval,
+    const Process::ProcessPresenterContext& ctx,
+    QGraphicsItem* parentobject,
+    QObject* parent)
+    : IntervalPresenter{interval,
+                        new FullViewIntervalView{*this, parentobject},
+                        new FullViewIntervalHeader{ctx, parentobject},
+                        ctx,
+                        parent}
 {
   // Address bar
   auto& addressBar = static_cast<FullViewIntervalHeader*>(m_header)->bar();
   addressBar.setTargetObject(score::IDocument::unsafe_path(interval));
-  con(addressBar, &AddressBarItem::intervalSelected, this,
+  con(addressBar,
+      &AddressBarItem::intervalSelected,
+      this,
       &FullViewIntervalPresenter::intervalSelected);
 
-  con(interval.selection, &Selectable::changed, (FullViewIntervalView*)m_view,
+  con(interval.selection,
+      &Selectable::changed,
+      (FullViewIntervalView*)m_view,
       &FullViewIntervalView::setSelected);
 
   // Header
   const auto& metadata = m_model.metadata();
-  con(metadata, &score::ModelMetadata::NameChanged, m_header,
+  con(metadata,
+      &score::ModelMetadata::NameChanged,
+      m_header,
       &IntervalHeader::setText);
   m_header->setText(metadata.getName());
   m_header->show();
 
   // Time
-  con(interval.duration, &IntervalDurations::defaultDurationChanged, this,
+  con(interval.duration,
+      &IntervalDurations::defaultDurationChanged,
+      this,
       [&](const TimeVal& val) { on_defaultDurationChanged(val); });
-  con(interval.duration, &IntervalDurations::guiDurationChanged, this,
+  con(interval.duration,
+      &IntervalDurations::guiDurationChanged,
+      this,
       [&](const TimeVal& val) {
         on_guiDurationChanged(val);
         updateChildren();
@@ -107,7 +123,9 @@ FullViewIntervalPresenter::FullViewIntervalPresenter(
       on_rackChanged();
   });
 
-  con(m_model, &IntervalModel::slotsSwapped, this,
+  con(m_model,
+      &IntervalModel::slotsSwapped,
+      this,
       [=](int i, int j, Slot::RackView v) {
         if (v == Slot::FullView)
           on_rackChanged();
@@ -204,7 +222,9 @@ void FullViewIntervalPresenter::createSlot(int pos, const FullSlot& slt)
   slot.processes.push_back(LayerData{&proc, proc_pres, proc_view});
 
   auto con_id = con(
-      proc, &Process::ProcessModel::durationChanged, this,
+      proc,
+      &Process::ProcessModel::durationChanged,
+      this,
       [&](const TimeVal&) {
         int i = 0;
         auto it = ossia::find_if(m_slots, [&](const SlotPresenter& elt) {
@@ -215,14 +235,18 @@ void FullViewIntervalPresenter::createSlot(int pos, const FullSlot& slt)
         i++;
       });
 
-  con(proc, &IdentifiedObjectAbstract::identified_object_destroying, this,
+  con(proc,
+      &IdentifiedObjectAbstract::identified_object_destroying,
+      this,
       [=] { QObject::disconnect(con_id); });
 
   updateProcessShape(pos);
 }
 
 void FullViewIntervalPresenter::requestSlotMenu(
-    int slot, QPoint pos, QPointF sp) const
+    int slot,
+    QPoint pos,
+    QPointF sp) const
 {
   auto menu = new QMenu;
   auto& reg = score::GUIAppContext()
@@ -237,7 +261,8 @@ void FullViewIntervalPresenter::requestSlotMenu(
 }
 
 void FullViewIntervalPresenter::updateProcessShape(
-    const LayerData& data, const SlotPresenter& slot)
+    const LayerData& data,
+    const SlotPresenter& slot)
 {
   data.presenter->setHeight(data.model->getSlotHeight());
 

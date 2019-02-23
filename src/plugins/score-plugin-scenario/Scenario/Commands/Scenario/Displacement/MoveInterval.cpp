@@ -18,7 +18,9 @@ namespace Scenario
 namespace Command
 {
 MoveInterval::MoveInterval(
-    const Scenario::ProcessModel& scenar, Id<IntervalModel> id, double height)
+    const Scenario::ProcessModel& scenar,
+    Id<IntervalModel> id,
+    double height)
     : m_path{scenar}, m_interval{id}, m_newHeight{height}
 {
   auto& cst = scenar.intervals.at(m_interval);

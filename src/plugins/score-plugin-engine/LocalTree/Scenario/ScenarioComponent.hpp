@@ -14,8 +14,10 @@ class ScenarioComponentBase : public ProcessComponent_T<Scenario::ProcessModel>
 
 public:
   ScenarioComponentBase(
-      const Id<score::Component>& id, ossia::net::node_base& parent,
-      Scenario::ProcessModel& scenario, DocumentPlugin& doc,
+      const Id<score::Component>& id,
+      ossia::net::node_base& parent,
+      Scenario::ProcessModel& scenario,
+      DocumentPlugin& doc,
       QObject* parent_obj);
 
   template <typename Component_T, typename Element>
@@ -39,7 +41,11 @@ private:
 };
 
 using ScenarioComponent = HierarchicalScenarioComponent<
-    ScenarioComponentBase, Scenario::ProcessModel, Interval, Event, TimeSync,
+    ScenarioComponentBase,
+    Scenario::ProcessModel,
+    Interval,
+    Event,
+    TimeSync,
     State>;
 
 using ScenarioComponentFactory

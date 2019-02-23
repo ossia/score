@@ -24,15 +24,15 @@ protected:
   void focusOutEvent(QFocusEvent* event) override;
 };
 
-class SCORE_LIB_BASE_EXPORT SimpleTextItem
-    : public QGraphicsItem
+class SCORE_LIB_BASE_EXPORT SimpleTextItem : public QGraphicsItem
 {
 public:
   SimpleTextItem(const score::ColorRef& col, QGraphicsItem*);
 
   QRectF boundingRect() const final override;
   void paint(
-      QPainter* painter, const QStyleOptionGraphicsItem* option,
+      QPainter* painter,
+      const QStyleOptionGraphicsItem* option,
       QWidget* widget) final override;
 
   void setFont(QFont f);
@@ -49,9 +49,8 @@ private:
   QImage m_line;
 };
 
-class SCORE_LIB_BASE_EXPORT QGraphicsTextButton
-    : public QObject
-    , public score::SimpleTextItem
+class SCORE_LIB_BASE_EXPORT QGraphicsTextButton : public QObject,
+                                                  public score::SimpleTextItem
 {
   W_OBJECT(QGraphicsTextButton)
 public:

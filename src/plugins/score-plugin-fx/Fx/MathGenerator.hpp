@@ -76,9 +76,14 @@ struct Node
 
   using control_policy = ossia::safe_nodes::last_tick;
   static void
-  run(const std::string& expr, float a, float b, float c,
-      ossia::value_port& output, ossia::token_request tk,
-      ossia::exec_state_facade st, State& self)
+  run(const std::string& expr,
+      float a,
+      float b,
+      float c,
+      ossia::value_port& output,
+      ossia::token_request tk,
+      ossia::exec_state_facade st,
+      State& self)
   {
     if (!updateExpr(self, expr))
       return;
@@ -118,7 +123,8 @@ struct Node
 
     static const constexpr auto controls = std::make_tuple(
         Control::LineEdit(
-            "Expression (ExprTK)", "a * cos( 2 * pi * t * 440 * b / fs )"),
+            "Expression (ExprTK)",
+            "a * cos( 2 * pi * t * 440 * b / fs )"),
         Control::FloatSlider("Param (a)", 0., 1., 0.5),
         Control::FloatSlider("Param (b)", 0., 1., 0.5),
         Control::FloatSlider("Param (c)", 0., 1., 0.5));
@@ -149,9 +155,14 @@ struct Node
 
   using control_policy = ossia::safe_nodes::last_tick;
   static void
-  run(const std::string& expr, float a, float b, float c,
-      ossia::audio_port& output, ossia::token_request tk,
-      ossia::exec_state_facade st, State& self)
+  run(const std::string& expr,
+      float a,
+      float b,
+      float c,
+      ossia::audio_port& output,
+      ossia::token_request tk,
+      ossia::exec_state_facade st,
+      State& self)
   {
     if (tk.date > tk.prev_date)
     {

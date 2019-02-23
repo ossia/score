@@ -16,11 +16,15 @@ namespace Command
 class MoveCommentBlock final : public score::Command
 {
   SCORE_COMMAND_DECL(
-      ScenarioCommandFactoryName(), MoveCommentBlock, "Move a comment block")
+      ScenarioCommandFactoryName(),
+      MoveCommentBlock,
+      "Move a comment block")
 public:
   MoveCommentBlock(
-      const ProcessModel& scenarPath, Id<CommentBlockModel> id,
-      TimeVal newDate, double newY);
+      const ProcessModel& scenarPath,
+      Id<CommentBlockModel> id,
+      TimeVal newDate,
+      double newY);
 
   void update(unused_t, unused_t, TimeVal newDate, double newYPos)
   {

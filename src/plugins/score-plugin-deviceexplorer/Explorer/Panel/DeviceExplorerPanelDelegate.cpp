@@ -13,7 +13,8 @@ namespace Explorer
 PanelDelegate::PanelDelegate(const score::GUIApplicationContext& ctx)
     : score::PanelDelegate{ctx}
     , m_widget{new DeviceExplorerWidget{
-          ctx.interfaces<Device::ProtocolFactoryList>(), nullptr}}
+          ctx.interfaces<Device::ProtocolFactoryList>(),
+          nullptr}}
 
 {
 }
@@ -25,7 +26,9 @@ QWidget* PanelDelegate::widget()
 
 const score::PanelStatus& PanelDelegate::defaultPanelStatus() const
 {
-  static const score::PanelStatus status{true, Qt::LeftDockWidgetArea, 10,
+  static const score::PanelStatus status{true,
+                                         Qt::LeftDockWidgetArea,
+                                         10,
                                          QObject::tr("Device Explorer"),
                                          QObject::tr("Ctrl+Shift+D")};
 
@@ -33,7 +36,8 @@ const score::PanelStatus& PanelDelegate::defaultPanelStatus() const
 }
 
 void PanelDelegate::on_modelChanged(
-    score::MaybeDocument oldm, score::MaybeDocument newm)
+    score::MaybeDocument oldm,
+    score::MaybeDocument newm)
 {
 #if !defined(__EMSCRIPTEN__)
   // DeviceExplorerModel ownership goes to document plugin

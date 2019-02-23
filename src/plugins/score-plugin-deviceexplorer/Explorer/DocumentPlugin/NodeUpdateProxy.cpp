@@ -49,7 +49,8 @@ void NodeUpdateProxy::loadDevice(const Device::Node& node)
 }
 
 void NodeUpdateProxy::updateDevice(
-    const QString& name, const Device::DeviceSettings& dev)
+    const QString& name,
+    const Device::DeviceSettings& dev)
 {
   devModel.list().device(name).updateSettings(dev);
   devModel.explorer().updateDevice(name, dev);
@@ -74,7 +75,8 @@ void NodeUpdateProxy::removeDevice(const Device::DeviceSettings& dev)
 
 void NodeUpdateProxy::addAddress(
     const Device::NodePath& parentPath,
-    const Device::AddressSettings& settings, int row)
+    const Device::AddressSettings& settings,
+    int row)
 {
   auto parentnode = parentPath.toNode(&devModel.rootNode());
   if (!parentnode)
@@ -113,7 +115,9 @@ void NodeUpdateProxy::addAddress(const Device::FullAddressSettings& full)
 }
 
 void NodeUpdateProxy::rec_addNode(
-    Device::NodePath parentPath, const Device::Node& n, int row)
+    Device::NodePath parentPath,
+    const Device::Node& n,
+    int row)
 {
   addAddress(parentPath, n.template get<Device::AddressSettings>(), row);
 
@@ -127,7 +131,9 @@ void NodeUpdateProxy::rec_addNode(
 }
 
 void NodeUpdateProxy::addNode(
-    const Device::NodePath& parentPath, const Device::Node& node, int row)
+    const Device::NodePath& parentPath,
+    const Device::Node& node,
+    int row)
 {
   SCORE_ASSERT(node.template is<Device::AddressSettings>());
 
@@ -135,7 +141,8 @@ void NodeUpdateProxy::addNode(
 }
 
 void NodeUpdateProxy::updateAddress(
-    const Device::NodePath& nodePath, const Device::AddressSettings& settings)
+    const Device::NodePath& nodePath,
+    const Device::AddressSettings& settings)
 {
   auto node = nodePath.toNode(&devModel.rootNode());
   if (!node)
@@ -184,13 +191,16 @@ void NodeUpdateProxy::removeNode(
 }
 
 void NodeUpdateProxy::addLocalAddress(
-    Device::Node& parentnode, const Device::AddressSettings& settings, int row)
+    Device::Node& parentnode,
+    const Device::AddressSettings& settings,
+    int row)
 {
   devModel.explorer().addAddress(&parentnode, settings, row);
 }
 
 void NodeUpdateProxy::updateLocalValue(
-    const State::AddressAccessor& addr, const ossia::value& v)
+    const State::AddressAccessor& addr,
+    const ossia::value& v)
 {
   auto n = Device::try_getNodeFromAddress(devModel.rootNode(), addr.address);
   if (!n)
@@ -206,7 +216,8 @@ void NodeUpdateProxy::updateLocalValue(
 }
 
 void NodeUpdateProxy::updateLocalSettings(
-    const State::Address& addr, const Device::AddressSettings& set,
+    const State::Address& addr,
+    const Device::AddressSettings& set,
     Device::DeviceInterface& newdev)
 {
   auto n = Device::try_getNodeFromAddress(devModel.rootNode(), addr);
@@ -248,7 +259,8 @@ void NodeUpdateProxy::updateLocalSettings(
 }
 
 void NodeUpdateProxy::updateRemoteValue(
-    const State::Address& addr, const ossia::value& val)
+    const State::Address& addr,
+    const ossia::value& val)
 {
   // TODO add these checks everywhere.
   if (auto dev = devModel.list().findDevice(addr.device))
@@ -354,7 +366,7 @@ void NodeUpdateProxy::refreshRemoteValues(const Device::NodeList& nodes)
 
 void NodeUpdateProxy::addLocalNode(Device::Node& parent, Device::Node&& node)
 {
-  if(node.is<Device::AddressSettings>())
+  if (node.is<Device::AddressSettings>())
   {
     int row = parent.childCount();
     devModel.explorer().addNode(&parent, std::move(node), row);

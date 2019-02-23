@@ -17,9 +17,7 @@ W_OBJECT_IMPL(JS::ExecStateWrapper)
 namespace JS
 {
 
-ExecStateWrapper::~ExecStateWrapper()
-{
-}
+ExecStateWrapper::~ExecStateWrapper() {}
 
 const ossia::destination_t& ExecStateWrapper::find_address(const QString& str)
 {
@@ -95,7 +93,8 @@ QVariant ExecStateWrapper::read(const QString& address)
     QVariantMap mv;
 
     bool unique = ossia::apply_to_destination(
-        addr, devices.exec_devices(),
+        addr,
+        devices.exec_devices(),
         [&](ossia::net::parameter_base* addr, bool unique) {
           if (unique)
           {
@@ -122,7 +121,8 @@ void ExecStateWrapper::write(const QString& address, const QVariant& value)
     auto val = ossia::qt::qt_to_ossia{}(value);
 
     ossia::apply_to_destination(
-        addr, devices.exec_devices(),
+        addr,
+        devices.exec_devices(),
         [&](ossia::net::parameter_base* addr, bool unique) {
           devices.insert(*addr, ossia::typed_value{val});
         });

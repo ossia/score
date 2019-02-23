@@ -32,17 +32,17 @@ namespace Command
 class SCORE_PLUGIN_SCENARIO_EXPORT CreateInterval final : public score::Command
 {
   SCORE_COMMAND_DECL(
-      ScenarioCommandFactoryName(), CreateInterval, "Create an interval")
+      ScenarioCommandFactoryName(),
+      CreateInterval,
+      "Create an interval")
 public:
   CreateInterval(
-      const Scenario::ProcessModel& scenarioPath, Id<StateModel> startState,
+      const Scenario::ProcessModel& scenarioPath,
+      Id<StateModel> startState,
       Id<StateModel> endState);
   CreateInterval& operator=(CreateInterval&&) = default;
 
-  const Path<Scenario::ProcessModel>& scenarioPath() const
-  {
-    return m_path;
-  }
+  const Path<Scenario::ProcessModel>& scenarioPath() const { return m_path; }
 
   void undo(const score::DocumentContext& ctx) const override;
   void redo(const score::DocumentContext& ctx) const override;
@@ -52,10 +52,7 @@ public:
     return m_createdIntervalId;
   }
 
-  const Id<StateModel>& startState() const
-  {
-    return m_startStateId;
-  }
+  const Id<StateModel>& startState() const { return m_startStateId; }
 
 protected:
   void serializeImpl(DataStreamInput&) const override;

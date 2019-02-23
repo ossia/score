@@ -24,7 +24,8 @@ class SCORE_PLUGIN_SCENARIO_EXPORT ScenarioPasteElementsAfter final
     : public score::Command
 {
   SCORE_COMMAND_DECL(
-      ScenarioCommandFactoryName(), ScenarioPasteElementsAfter,
+      ScenarioCommandFactoryName(),
+      ScenarioPasteElementsAfter,
       "Paste elements after sync")
 public:
   ScenarioPasteElementsAfter(

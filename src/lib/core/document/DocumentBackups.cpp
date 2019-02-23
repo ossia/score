@@ -23,7 +23,8 @@ bool score::DocumentBackups::canRestoreDocuments()
   if (OpenDocumentsFile::exists())
   {
     if (QMessageBox::question(
-            qApp->activeWindow(), QObject::tr("Reload?"),
+            qApp->activeWindow(),
+            QObject::tr("Reload?"),
             QObject::tr("It seems that score previously crashed. Do you "
                         "wish to reload your work?"))
         == QMessageBox::Yes)
@@ -43,7 +44,8 @@ bool score::DocumentBackups::canRestoreDocuments()
 template <typename T>
 static void loadRestorableDocumentData(
     const QString& date_filename,
-    const QPair<QString, QString>& command_filename, T& arr)
+    const QPair<QString, QString>& command_filename,
+    T& arr)
 {
   QFile data_file{date_filename};
   QFile command_file{command_filename.second};

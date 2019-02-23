@@ -101,8 +101,7 @@ Style& Style::instance() noexcept
   return s;
 }
 
-Style::Style() noexcept
-  : skin{score::Skin::instance()}
+Style::Style() noexcept : skin{score::Skin::instance()}
 {
   update(skin);
 }
@@ -112,8 +111,8 @@ void Style::update(const score::Skin&)
   IntervalSolidPen
       = QPen{QBrush{Qt::black}, 3, Qt::SolidLine, Qt::FlatCap, Qt::MiterJoin};
   IntervalDashPen = [] {
-    QPen pen{QBrush{Qt::black}, 3, Qt::CustomDashLine, Qt::FlatCap,
-             Qt::MiterJoin};
+    QPen pen{
+        QBrush{Qt::black}, 3, Qt::CustomDashLine, Qt::FlatCap, Qt::MiterJoin};
 
     pen.setDashPattern({2., 4.});
     return pen;
@@ -123,14 +122,19 @@ void Style::update(const score::Skin&)
   IntervalPlayPen = IntervalSolidPen;
   IntervalPlayDashPen = IntervalDashPen;
   IntervalWaitingDashPen = IntervalDashPen;
-  IntervalHeaderSeparator = QPen{IntervalHeaderSideBorder.getBrush(), 2,
-                                 Qt::SolidLine, Qt::FlatCap, Qt::MiterJoin};
-  FullViewIntervalHeaderSeparator
-      = QPen{IntervalHeaderSideBorder.getBrush(), 2, Qt::DashLine, Qt::FlatCap,
-             Qt::MiterJoin};
+  IntervalHeaderSeparator = QPen{IntervalHeaderSideBorder.getBrush(),
+                                 2,
+                                 Qt::SolidLine,
+                                 Qt::FlatCap,
+                                 Qt::MiterJoin};
+  FullViewIntervalHeaderSeparator = QPen{IntervalHeaderSideBorder.getBrush(),
+                                         2,
+                                         Qt::DashLine,
+                                         Qt::FlatCap,
+                                         Qt::MiterJoin};
 
-  IntervalBrace = QPen{IntervalBase.getBrush(), 2, Qt::SolidLine, Qt::FlatCap,
-                       Qt::MiterJoin};
+  IntervalBrace = QPen{
+      IntervalBase.getBrush(), 2, Qt::SolidLine, Qt::FlatCap, Qt::MiterJoin};
   IntervalBraceSelected = IntervalBrace;
   IntervalBraceSelected.setBrush(IntervalSelected.getBrush());
   IntervalBraceWarning = IntervalBrace;
@@ -175,19 +179,37 @@ void Style::update(const score::Skin&)
 
   MiniScenarioPen.setCosmetic(true);
 
-  AudioCablePen = QPen{QBrush{QColor("#88996666")}, 3., Qt::SolidLine,
-                       Qt::RoundCap, Qt::RoundJoin};
-  DataCablePen = QPen{QBrush{QColor("#88669966")}, 3., Qt::SolidLine,
-                      Qt::RoundCap, Qt::RoundJoin};
-  MidiCablePen = QPen{QBrush{QColor("#889966dd")}, 3., Qt::SolidLine,
-                      Qt::RoundCap, Qt::RoundJoin};
+  AudioCablePen = QPen{QBrush{QColor("#88996666")},
+                       3.,
+                       Qt::SolidLine,
+                       Qt::RoundCap,
+                       Qt::RoundJoin};
+  DataCablePen = QPen{QBrush{QColor("#88669966")},
+                      3.,
+                      Qt::SolidLine,
+                      Qt::RoundCap,
+                      Qt::RoundJoin};
+  MidiCablePen = QPen{QBrush{QColor("#889966dd")},
+                      3.,
+                      Qt::SolidLine,
+                      Qt::RoundCap,
+                      Qt::RoundJoin};
 
-  SelectedAudioCablePen = QPen{QBrush{QColor("#CC996666").lighter()}, 3.,
-                               Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin};
-  SelectedDataCablePen = QPen{QBrush{QColor("#CC669966").lighter()}, 3.,
-                              Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin};
-  SelectedMidiCablePen = QPen{QBrush{QColor("#CC9966dd").lighter()}, 3.,
-                              Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin};
+  SelectedAudioCablePen = QPen{QBrush{QColor("#CC996666").lighter()},
+                               3.,
+                               Qt::SolidLine,
+                               Qt::RoundCap,
+                               Qt::RoundJoin};
+  SelectedDataCablePen = QPen{QBrush{QColor("#CC669966").lighter()},
+                              3.,
+                              Qt::SolidLine,
+                              Qt::RoundCap,
+                              Qt::RoundJoin};
+  SelectedMidiCablePen = QPen{QBrush{QColor("#CC9966dd").lighter()},
+                              3.,
+                              Qt::SolidLine,
+                              Qt::RoundCap,
+                              Qt::RoundJoin};
 
   AudioPortPen = QPen{QBrush{QColor("#FFAAAA")}, 1.5};
   DataPortPen = QPen{QBrush{QColor("#AAFFAA")}, 1.5};
@@ -199,7 +221,10 @@ void Style::update(const score::Skin&)
   GrayTextPen.setBrush(TimenodeDefault.getBrush());
   GrayTextPen.setCosmetic(true);
 
-  SlotHeaderPen = QPen{IntervalHeaderSideBorder.getBrush(), 1, Qt::SolidLine,
-                       Qt::FlatCap, Qt::MiterJoin};
+  SlotHeaderPen = QPen{IntervalHeaderSideBorder.getBrush(),
+                       1,
+                       Qt::SolidLine,
+                       Qt::FlatCap,
+                       Qt::MiterJoin};
 }
 }

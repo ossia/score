@@ -79,15 +79,24 @@ class SCORE_LIB_BASE_EXPORT Action
 {
 public:
   Action(
-      QAction* act, QString text, ActionKey key, ActionGroupKey k,
+      QAction* act,
+      QString text,
+      ActionKey key,
+      ActionGroupKey k,
       const QKeySequence& defaultShortcut);
   Action(
-      QAction* act, QString text, ActionKey key, ActionGroupKey k,
+      QAction* act,
+      QString text,
+      ActionKey key,
+      ActionGroupKey k,
       const QKeySequence& defaultShortcut,
       const QKeySequence& defaultShortcut2);
 
   Action(
-      QAction* act, QString text, const char* key, const char* group_key,
+      QAction* act,
+      QString text,
+      const char* key,
+      const char* group_key,
       const QKeySequence& defaultShortcut);
 
   ActionKey key() const;
@@ -225,9 +234,7 @@ struct SCORE_LIB_BASE_EXPORT DocumentActionCondition : public ActionCondition
 struct SCORE_LIB_BASE_EXPORT EnableActionIfDocument final
     : public DocumentActionCondition
 {
-  EnableActionIfDocument() : DocumentActionCondition{static_key()}
-  {
-  }
+  EnableActionIfDocument() : DocumentActionCondition{static_key()} {}
 
   ~EnableActionIfDocument();
 
@@ -364,9 +371,8 @@ class EnableWhenDocumentIs;
       return score::ActionConditionKey{"FocusedObjectIs" #Type};              \
     }                                                                         \
                                                                               \
-    EnableWhenFocusedObjectIs() : score::FocusActionCondition{static_key()}   \
-    {                                                                         \
-    }                                                                         \
+    EnableWhenFocusedObjectIs()                                               \
+        : score::FocusActionCondition{static_key()} {}                        \
                                                                               \
   private:                                                                    \
     void action(score::ActionManager& mgr, score::MaybeDocument doc) override \
@@ -417,9 +423,7 @@ class EnableWhenDocumentIs;
     {                                                                         \
       return score::ActionConditionKey{"DocumentIs" #Type};                   \
     }                                                                         \
-    EnableWhenDocumentIs() : score::DocumentActionCondition{static_key()}     \
-    {                                                                         \
-    }                                                                         \
+    EnableWhenDocumentIs() : score::DocumentActionCondition{static_key()} {}  \
                                                                               \
   private:                                                                    \
     void action(score::ActionManager& mgr, score::MaybeDocument doc) override \
@@ -436,50 +440,50 @@ class EnableWhenDocumentIs;
   }
 }
 
-#define SCORE_DECLARE_ACTION(ActionName, Text, Group, Shortcut)      \
-  namespace Actions                                                  \
-  {                                                                  \
-  struct ActionName;                                                 \
-  }                                                                  \
-  namespace score                                                    \
-  {                                                                  \
-  template <>                                                        \
-  struct MetaAction<Actions::ActionName>                             \
-  {                                                                  \
-    static score::Action make(QAction* ptr)                          \
-    {                                                                \
-      return score::Action{ptr, QObject::tr(Text), key(),            \
-                           score::ActionGroupKey{#Group}, Shortcut}; \
-    }                                                                \
-                                                                     \
-    static score::ActionKey key()                                    \
-    {                                                                \
-      return score::ActionKey{#ActionName};                          \
-    }                                                                \
-  };                                                                 \
+#define SCORE_DECLARE_ACTION(ActionName, Text, Group, Shortcut)             \
+  namespace Actions                                                         \
+  {                                                                         \
+  struct ActionName;                                                        \
+  }                                                                         \
+  namespace score                                                           \
+  {                                                                         \
+  template <>                                                               \
+  struct MetaAction<Actions::ActionName>                                    \
+  {                                                                         \
+    static score::Action make(QAction* ptr)                                 \
+    {                                                                       \
+      return score::Action{ptr,                                             \
+                           QObject::tr(Text),                               \
+                           key(),                                           \
+                           score::ActionGroupKey{#Group},                   \
+                           Shortcut};                                       \
+    }                                                                       \
+                                                                            \
+    static score::ActionKey key() { return score::ActionKey{#ActionName}; } \
+  };                                                                        \
   }
 
-#define SCORE_DECLARE_ACTION_2S(                                     \
-    ActionName, Text, Group, Shortcut1, Shortcut2)                   \
-  namespace Actions                                                  \
-  {                                                                  \
-  struct ActionName;                                                 \
-  }                                                                  \
-  namespace score                                                    \
-  {                                                                  \
-  template <>                                                        \
-  struct MetaAction<Actions::ActionName>                             \
-  {                                                                  \
-    static score::Action make(QAction* ptr)                          \
-    {                                                                \
-      return score::Action{ptr,       QObject::tr(Text),             \
-                           key(),     score::ActionGroupKey{#Group}, \
-                           Shortcut1, Shortcut2};                    \
-    }                                                                \
-                                                                     \
-    static score::ActionKey key()                                    \
-    {                                                                \
-      return score::ActionKey{#ActionName};                          \
-    }                                                                \
-  };                                                                 \
+#define SCORE_DECLARE_ACTION_2S(                                            \
+    ActionName, Text, Group, Shortcut1, Shortcut2)                          \
+  namespace Actions                                                         \
+  {                                                                         \
+  struct ActionName;                                                        \
+  }                                                                         \
+  namespace score                                                           \
+  {                                                                         \
+  template <>                                                               \
+  struct MetaAction<Actions::ActionName>                                    \
+  {                                                                         \
+    static score::Action make(QAction* ptr)                                 \
+    {                                                                       \
+      return score::Action{ptr,                                             \
+                           QObject::tr(Text),                               \
+                           key(),                                           \
+                           score::ActionGroupKey{#Group},                   \
+                           Shortcut1,                                       \
+                           Shortcut2};                                      \
+    }                                                                       \
+                                                                            \
+    static score::ActionKey key() { return score::ActionKey{#ActionName}; } \
+  };                                                                        \
   }

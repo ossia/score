@@ -37,8 +37,10 @@
 namespace Midi
 {
 Presenter::Presenter(
-    const Midi::ProcessModel& layer, View* view,
-    const Process::ProcessPresenterContext& ctx, QObject* parent)
+    const Midi::ProcessModel& layer,
+    View* view,
+    const Process::ProcessPresenterContext& ctx,
+    QObject* parent)
     : LayerPresenter{ctx, parent}
     , m_layer{layer}
     , m_view{view}
@@ -107,15 +109,23 @@ Presenter::~Presenter()
 }
 
 void Presenter::fillContextMenu(
-    QMenu& menu, QPoint pos, QPointF scenepos,
+    QMenu& menu,
+    QPoint pos,
+    QPointF scenepos,
     const Process::LayerContextMenuManager& cm)
 {
   auto act = menu.addAction(tr("Rescale midi"));
   connect(act, &QAction::triggered, this, [&] {
     bool ok = true;
     double val = QInputDialog::getDouble(
-        qApp->activeWindow(), tr("Rescale factor"), tr("Rescale factor"), 1.0,
-        0.0001, 100., 8, &ok);
+        qApp->activeWindow(),
+        tr("Rescale factor"),
+        tr("Rescale factor"),
+        1.0,
+        0.0001,
+        100.,
+        8,
+        &ok);
     if (!ok)
       return;
 
@@ -127,8 +137,14 @@ void Presenter::fillContextMenu(
   connect(act2, &QAction::triggered, this, [&] {
     bool ok = true;
     double val = QInputDialog::getDouble(
-        qApp->activeWindow(), tr("Rescale factor"), tr("Rescale factor"), 1.0,
-        0.0001, 100., 8, &ok);
+        qApp->activeWindow(),
+        tr("Rescale factor"),
+        tr("Rescale factor"),
+        1.0,
+        0.0001,
+        100.,
+        8,
+        &ok);
     if (!ok)
       return;
 
@@ -177,9 +193,7 @@ void Presenter::on_zoomRatioChanged(ZoomRatio zr)
     updateNote(*note);
 }
 
-void Presenter::parentGeometryChanged()
-{
-}
+void Presenter::parentGeometryChanged() {}
 
 const Midi::ProcessModel& Presenter::model() const
 {
@@ -206,7 +220,8 @@ void Presenter::setupNote(NoteView& v)
         int(max
             - (qMin(rect.bottom(), qMax(newPos.y(), rect.top())) / height)
                   * this->m_view->visibleCount()),
-        min, max);
+        min,
+        max);
 
     auto notes = selectedNotes();
     auto it = ossia::find(notes, v.note.id());
@@ -216,7 +231,9 @@ void Presenter::setupNote(NoteView& v)
     }
 
     m_ongoing.submit(
-        m_layer, notes, note - v.note.pitch(),
+        m_layer,
+        notes,
+        note - v.note.pitch(),
         newPos.x() / m_view->defaultWidth() - v.note.start());
     m_ongoing.commit();
   });
@@ -268,7 +285,7 @@ void Presenter::on_noteRemoving(const Note& n)
 void Presenter::on_drop(const QPointF& pos, const QMimeData& md)
 {
   auto songs = Midi::MidiTrack::parse(md, context().context);
-  if(songs.empty())
+  if (songs.empty())
     return;
   auto& song = songs.front();
   if (song.tracks.empty())

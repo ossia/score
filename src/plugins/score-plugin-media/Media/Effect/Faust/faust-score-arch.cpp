@@ -1,8 +1,8 @@
 #include <Media/Effect/Faust/FaustDSPWrapper.hpp>
 
 #include <score/application/ApplicationContext.hpp>
-#include <score/plugins/InterfaceList.hpp>
 #include <score/plugins/FactorySetup.hpp>
+#include <score/plugins/InterfaceList.hpp>
 #include <score/plugins/qt_interfaces/CommandFactory_QtInterface.hpp>
 #include <score/plugins/qt_interfaces/FactoryInterface_QtInterface.hpp>
 #include <score/plugins/qt_interfaces/PluginRequirements_QtInterface.hpp>
@@ -93,6 +93,4 @@ private:
   }
 };
 
-score_faust_ == FAUST_NAME == ::~score_faust_ == FAUST_NAME == ()
-{
-}
+score_faust_ == FAUST_NAME == ::~score_faust_ == FAUST_NAME == () {}

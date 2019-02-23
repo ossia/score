@@ -17,21 +17,22 @@ class LayerPresenter final
   W_OBJECT(LayerPresenter)
 public:
   LayerPresenter(
-      const Curve::Style& style, const Metronome::ProcessModel& layer,
-      LayerView* view, const Process::ProcessPresenterContext& context,
+      const Curve::Style& style,
+      const Metronome::ProcessModel& layer,
+      LayerView* view,
+      const Process::ProcessPresenterContext& context,
       QObject* parent)
       : CurveProcessPresenter{style, layer, view, context, parent}
   {
     connect(
-        m_view, &LayerView::dropReceived, this,
+        m_view,
+        &LayerView::dropReceived,
+        this,
         &LayerPresenter::on_dropReceived);
   }
 
 private:
-  void setFullView() override
-  {
-    m_curve.setBoundedMove(false);
-  }
+  void setFullView() override { m_curve.setBoundedMove(false); }
 
   void on_dropReceived(const QPointF& pos, const QMimeData& mime)
   {
@@ -46,8 +47,7 @@ private:
         return;
 
       CommandDispatcher<> disp{context().context.commandStack};
-      disp.submit(
-          new ChangeMetronomeAddress{autom, std::move(as.address)});
+      disp.submit(new ChangeMetronomeAddress{autom, std::move(as.address)});
     }
     else if (mime.formats().contains(score::mime::messagelist()))
     {

@@ -17,7 +17,8 @@ namespace Explorer
 namespace Command
 {
 UpdateAddressSettings::UpdateAddressSettings(
-    const DeviceDocumentPlugin& devplug, const Device::NodePath& node,
+    const DeviceDocumentPlugin& devplug,
+    const Device::NodePath& node,
     const Device::AddressSettings& parameters)
     : m_node(node), m_newParameters(parameters)
 {

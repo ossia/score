@@ -11,32 +11,41 @@
 
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/document/DocumentContext.hpp>
+#include <score/graphics/GraphicsItem.hpp>
 #include <score/model/Identifier.hpp>
 #include <score/model/ModelMetadata.hpp>
 #include <score/selection/Selectable.hpp>
 #include <score/tools/Todo.hpp>
-#include <score/graphics/GraphicsItem.hpp>
 
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Scenario::TimeSyncPresenter)
 namespace Scenario
 {
 TimeSyncPresenter::TimeSyncPresenter(
-    const TimeSyncModel& model, QGraphicsItem* parentview, QObject* parent)
+    const TimeSyncModel& model,
+    QGraphicsItem* parentview,
+    QObject* parent)
     : QObject{parent}
     , m_model{model}
     , m_view{new TimeSyncView{*this, parentview}}
     , m_triggerView{new TriggerView{m_view}}
 {
-  con(m_model.selection, &Selectable::changed, this,
-      [=](bool b) { m_view->setSelected(b); });
+  con(m_model.selection, &Selectable::changed, this, [=](bool b) {
+    m_view->setSelected(b);
+  });
 
-  con(m_model, &TimeSyncModel::newEvent, this,
+  con(m_model,
+      &TimeSyncModel::newEvent,
+      this,
       &TimeSyncPresenter::on_eventAdded);
 
-  con(m_model.metadata(), &score::ModelMetadata::ColorChanged, this,
+  con(m_model.metadata(),
+      &score::ModelMetadata::ColorChanged,
+      this,
       [=](const score::ColorRef& c) { m_view->changeColor(c); });
-  con(m_model.metadata(), &score::ModelMetadata::LabelChanged, this,
+  con(m_model.metadata(),
+      &score::ModelMetadata::LabelChanged,
+      this,
       [=](const auto& t) { m_view->setLabel(t); });
   con(m_model, &TimeSyncModel::activeChanged, this, [=] {
     m_view->setTriggerActive(m_model.active());
@@ -54,7 +63,9 @@ TimeSyncPresenter::TimeSyncPresenter(
   m_triggerView->setPos(-7.5, -25.);
 
   m_triggerView->setToolTip(m_model.expression().toString());
-  con(m_model, &TimeSyncModel::triggerChanged, this,
+  con(m_model,
+      &TimeSyncModel::triggerChanged,
+      this,
       [&](const State::Expression& t) {
         m_triggerView->setToolTip(t.toString());
       });
@@ -65,13 +76,13 @@ TimeSyncPresenter::TimeSyncPresenter(
   });
 
   connect(
-      m_triggerView, &TriggerView::dropReceived, this,
+      m_triggerView,
+      &TriggerView::dropReceived,
+      this,
       &TimeSyncPresenter::handleDrop);
 }
 
-TimeSyncPresenter::~TimeSyncPresenter()
-{
-}
+TimeSyncPresenter::~TimeSyncPresenter() {}
 
 const Id<TimeSyncModel>& TimeSyncPresenter::id() const
 {

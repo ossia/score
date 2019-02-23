@@ -1,9 +1,9 @@
 #pragma once
 #include <Process/TimeValue.hpp>
-#include <score/graphics/TextItem.hpp>
 #include <Scenario/Document/Interval/ExecutionState.hpp>
 #include <Scenario/Document/Interval/IntervalView.hpp>
 
+#include <score/graphics/TextItem.hpp>
 #include <score/model/ColorReference.hpp>
 #include <score/widgets/MimeData.hpp>
 
@@ -30,14 +30,16 @@ class SCORE_PLUGIN_SCENARIO_EXPORT TemporalIntervalView final
 
 public:
   TemporalIntervalView(
-      TemporalIntervalPresenter& presenter, QGraphicsItem* parent);
+      TemporalIntervalPresenter& presenter,
+      QGraphicsItem* parent);
   ~TemporalIntervalView() override;
 
   QRectF boundingRect() const override;
 
   const TemporalIntervalPresenter& presenter() const;
   void paint(
-      QPainter* painter, const QStyleOptionGraphicsItem* option,
+      QPainter* painter,
+      const QStyleOptionGraphicsItem* option,
       QWidget* widget) override;
 
   void enableOverlay(bool b);

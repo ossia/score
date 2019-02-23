@@ -57,31 +57,16 @@ struct Node
     uint8_t base_note{};
     uint8_t base_vel{};
 
-    Note operator()()
-    {
-      return {base_note, base_vel};
-    }
-    Note operator()(ossia::impulse)
-    {
-      return {base_note, base_vel};
-    }
+    Note operator()() { return {base_note, base_vel}; }
+    Note operator()(ossia::impulse) { return {base_note, base_vel}; }
     template <typename T>
     Note operator()(const T&)
     {
       return {base_note, base_vel};
     }
-    Note operator()(float note)
-    {
-      return {(uint8_t)note, base_vel};
-    }
-    Note operator()(char note)
-    {
-      return {(uint8_t)note, base_vel};
-    }
-    Note operator()(int note)
-    {
-      return {(uint8_t)note, base_vel};
-    }
+    Note operator()(float note) { return {(uint8_t)note, base_vel}; }
+    Note operator()(char note) { return {(uint8_t)note, base_vel}; }
+    Note operator()(int note) { return {(uint8_t)note, base_vel}; }
     Note operator()(int note, int vel)
     {
       return {(uint8_t)note, (uint8_t)vel};
@@ -140,8 +125,10 @@ struct Node
       const ossia::safe_nodes::timed_vec<int>& vel_random,
       const ossia::safe_nodes::timed_vec<int>& chan_vec,
       const ossia::safe_nodes::timed_vec<float>& tempo_vec,
-      ossia::midi_port& p2, ossia::token_request tk,
-      ossia::exec_state_facade st, State& self)
+      ossia::midi_port& p2,
+      ossia::token_request tk,
+      ossia::exec_state_facade st,
+      State& self)
   {
     static std::mt19937 m;
     // TODO : when arrays like [ 1, 25, 12, 37, 10, 40 ] are received

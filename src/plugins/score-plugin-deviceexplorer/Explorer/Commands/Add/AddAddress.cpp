@@ -19,8 +19,10 @@ namespace Explorer
 namespace Command
 {
 AddAddress::AddAddress(
-    const DeviceDocumentPlugin& devplug, const Device::NodePath& nodePath,
-    InsertMode insert, const Device::AddressSettings& addressSettings)
+    const DeviceDocumentPlugin& devplug,
+    const Device::NodePath& nodePath,
+    InsertMode insert,
+    const Device::AddressSettings& addressSettings)
 {
   m_addressSettings = addressSettings;
 

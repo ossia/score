@@ -12,10 +12,7 @@ class RemoveLayerModelFromSlotTest : public QObject
   Q_OBJECT
 public:
 private:
-  void test()
-  {
-    QFAIL("TODO");
-  }
+  void test() { QFAIL("TODO"); }
 };
 
 QTEST_MAIN(RemoveLayerModelFromSlotTest)

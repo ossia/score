@@ -19,10 +19,10 @@
 #include <Scenario/Process/ScenarioViewInterface.hpp>
 
 #include <score/command/Dispatchers/OngoingCommandDispatcher.hpp>
+#include <score/graphics/GraphicsItem.hpp>
 #include <score/model/IdentifiedObjectMap.hpp>
 #include <score/model/Identifier.hpp>
 #include <score/tools/std/Optional.hpp>
-#include <score/graphics/GraphicsItem.hpp>
 
 #include <wobjectdefs.h>
 
@@ -44,9 +44,11 @@ class SCORE_PLUGIN_SCENARIO_EXPORT ScenarioPresenter final
 
 public:
   ScenarioPresenter(
-      Scenario::EditionSettings&, const Scenario::ProcessModel& model,
+      Scenario::EditionSettings&,
+      const Scenario::ProcessModel& model,
       Process::LayerView* view,
-      const Process::ProcessPresenterContext& context, QObject* parent);
+      const Process::ProcessPresenterContext& context,
+      QObject* parent);
   ~ScenarioPresenter();
 
   const Scenario::ProcessModel& model() const override;
@@ -77,60 +79,38 @@ public:
   {
     return m_comments.at(id);
   }
-  const auto& getEvents() const
-  {
-    return m_events;
-  }
-  const auto& getTimeSyncs() const
-  {
-    return m_timeSyncs;
-  }
-  const auto& getIntervals() const
-  {
-    return m_intervals;
-  }
-  const auto& getStates() const
-  {
-    return m_states;
-  }
-  const auto& getComments() const
-  {
-    return m_comments;
-  }
+  const auto& getEvents() const { return m_events; }
+  const auto& getTimeSyncs() const { return m_timeSyncs; }
+  const auto& getIntervals() const { return m_intervals; }
+  const auto& getStates() const { return m_states; }
+  const auto& getComments() const { return m_comments; }
 
-  ScenarioView& view() const
-  {
-    return *m_view;
-  }
-  const ZoomRatio& zoomRatio() const
-  {
-    return m_zoomRatio;
-  }
+  ScenarioView& view() const { return *m_view; }
+  const ZoomRatio& zoomRatio() const { return m_zoomRatio; }
 
-  Scenario::ToolPalette& stateMachine()
-  {
-    return m_sm;
-  }
+  Scenario::ToolPalette& stateMachine() { return m_sm; }
   Scenario::EditionSettings& editionSettings() const
   {
     return m_editionSettings;
   }
 
   void fillContextMenu(
-      QMenu&, QPoint pos, QPointF scenepos,
+      QMenu&,
+      QPoint pos,
+      QPointF scenepos,
       const Process::LayerContextMenuManager&) override;
 
-  bool event(QEvent* e) override
-  {
-    return QObject::event(e);
-  }
+  bool event(QEvent* e) override { return QObject::event(e); }
 
   void drawDragLine(const Scenario::StateModel&, Scenario::Point) const;
   void stopDrawDragLine() const;
 
 public:
   void linesExtremityScaled(int arg_1, int arg_2) E_SIGNAL(
-      SCORE_PLUGIN_SCENARIO_EXPORT, linesExtremityScaled, arg_1, arg_2);
+      SCORE_PLUGIN_SCENARIO_EXPORT,
+      linesExtremityScaled,
+      arg_1,
+      arg_2);
 
   void keyPressed(int arg_1)
       E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, keyPressed, arg_1);

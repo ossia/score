@@ -3,9 +3,9 @@
 #include "LibraryPanelDelegate.hpp"
 
 #include <Library/FileSystemModel.hpp>
+#include <Library/LibrarySettings.hpp>
 #include <Library/LibraryWidget.hpp>
 #include <Library/ProcessesItemModel.hpp>
-#include <Library/LibrarySettings.hpp>
 #include <Process/ProcessList.hpp>
 
 #include <score/application/GUIApplicationContext.hpp>
@@ -38,7 +38,9 @@ QWidget* PanelDelegate::widget()
 
 const score::PanelStatus& PanelDelegate::defaultPanelStatus() const
 {
-  static const score::PanelStatus status{true, Qt::LeftDockWidgetArea, 0,
+  static const score::PanelStatus status{true,
+                                         Qt::LeftDockWidgetArea,
+                                         0,
                                          QObject::tr("Library"),
                                          QObject::tr("Ctrl+Shift+B")};
 
@@ -46,7 +48,8 @@ const score::PanelStatus& PanelDelegate::defaultPanelStatus() const
 }
 
 void PanelDelegate::on_modelChanged(
-    score::MaybeDocument oldm, score::MaybeDocument newm)
+    score::MaybeDocument oldm,
+    score::MaybeDocument newm)
 {
   if (newm)
   {

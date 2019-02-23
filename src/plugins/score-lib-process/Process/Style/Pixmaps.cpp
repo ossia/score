@@ -13,9 +13,7 @@ Pixmaps::Pixmaps()
 {
 }
 
-Pixmaps::~Pixmaps()
-{
-}
+Pixmaps::~Pixmaps() {}
 
 const Pixmaps& Pixmaps::instance() noexcept
 {

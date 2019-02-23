@@ -28,7 +28,8 @@ void DeviceExplorerFilterProxyModel::setColumn(Explorer::Column col)
   Return true if the item must be included in the model.
 */
 bool DeviceExplorerFilterProxyModel::filterAcceptsRow(
-    int srcRow, const QModelIndex& srcParent) const
+    int srcRow,
+    const QModelIndex& srcParent) const
 {
   // inspired from http://qt-project.org/forums/viewthread/7782/
   // The filter must accept rows that match themselves,
@@ -56,7 +57,8 @@ bool DeviceExplorerFilterProxyModel::filterAcceptsRow(
 }
 
 bool DeviceExplorerFilterProxyModel::filterAcceptsRowItself(
-    int srcRow, const QModelIndex& srcParent) const
+    int srcRow,
+    const QModelIndex& srcParent) const
 {
   const Explorer::Column col = m_col;
   QModelIndex index = sourceModel()->index(srcRow, (int)col, srcParent);
@@ -72,7 +74,8 @@ bool DeviceExplorerFilterProxyModel::filterAcceptsRowItself(
 }
 
 bool DeviceExplorerFilterProxyModel::hasAcceptedChildren(
-    int srcRow, const QModelIndex& srcParent) const
+    int srcRow,
+    const QModelIndex& srcParent) const
 {
   QModelIndex index = sourceModel()->index(srcRow, 0, srcParent);
 

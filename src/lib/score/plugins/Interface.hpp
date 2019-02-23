@@ -1,5 +1,6 @@
 #pragma once
 #include <score/plugins/UuidKey.hpp>
+
 #include <score_lib_base_export.h>
 
 namespace score

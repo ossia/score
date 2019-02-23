@@ -18,15 +18,9 @@ public:
     connect(this, &Selectable::set, this, &Selectable::set_impl);
   }
 
-  virtual ~Selectable()
-  {
-    set(false);
-  }
+  virtual ~Selectable() { set(false); }
 
-  bool get() const
-  {
-    return m_val;
-  }
+  bool get() const { return m_val; }
 
   void set_impl(bool v)
   {

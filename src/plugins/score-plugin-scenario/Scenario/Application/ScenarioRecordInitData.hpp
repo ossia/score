@@ -13,9 +13,7 @@ namespace Scenario
 {
 struct ScenarioRecordInitData
 {
-  ScenarioRecordInitData()
-  {
-  }
+  ScenarioRecordInitData() {}
   ScenarioRecordInitData(const Process::LayerPresenter* lp, QPointF p)
       : presenter{lp}, point{p}
   {

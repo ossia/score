@@ -17,12 +17,12 @@
 
 #include <score/document/DocumentContext.hpp>
 #include <score/document/DocumentInterface.hpp>
+#include <score/graphics/GraphicsItem.hpp>
 #include <score/model/Identifier.hpp>
 #include <score/model/ModelMetadata.hpp>
 #include <score/selection/Selectable.hpp>
 #include <score/serialization/MimeVisitor.hpp>
 #include <score/tools/Todo.hpp>
-#include <score/graphics/GraphicsItem.hpp>
 
 #include <QGraphicsItem>
 #include <QMimeData>
@@ -38,27 +38,39 @@ W_OBJECT_IMPL(Scenario::EventPresenter)
 namespace Scenario
 {
 EventPresenter::EventPresenter(
-    const EventModel& model, QGraphicsItem* parentview, QObject* parent)
+    const EventModel& model,
+    QGraphicsItem* parentview,
+    QObject* parent)
     : QObject{parent}, m_model{model}, m_view{new EventView{*this, parentview}}
 {
   // The scenario catches this :
-  con(m_model.selection, &Selectable::changed, m_view,
+  con(m_model.selection,
+      &Selectable::changed,
+      m_view,
       &EventView::setSelected);
 
-  con(m_model.metadata(), &score::ModelMetadata::ColorChanged, m_view,
+  con(m_model.metadata(),
+      &score::ModelMetadata::ColorChanged,
+      m_view,
       &EventView::changeColor);
 
-  con(m_model.metadata(), &score::ModelMetadata::CommentChanged, m_view,
+  con(m_model.metadata(),
+      &score::ModelMetadata::CommentChanged,
+      m_view,
       &EventView::changeToolTip);
 
   con(m_model, &EventModel::statusChanged, m_view, &EventView::setStatus);
 
   connect(
-      m_view, &EventView::eventHoverEnter, this,
+      m_view,
+      &EventView::eventHoverEnter,
+      this,
       &EventPresenter::eventHoverEnter);
 
   connect(
-      m_view, &EventView::eventHoverLeave, this,
+      m_view,
+      &EventView::eventHoverLeave,
+      this,
       &EventPresenter::eventHoverLeave);
 
   connect(m_view, &EventView::dropReceived, this, &EventPresenter::handleDrop);
@@ -66,13 +78,13 @@ EventPresenter::EventPresenter(
   m_view->setCondition(m_model.condition().toString());
   m_view->setToolTip(m_model.metadata().getComment());
 
-  con(m_model, &EventModel::conditionChanged, this,
+  con(m_model,
+      &EventModel::conditionChanged,
+      this,
       [&](const State::Expression& c) { m_view->setCondition(c.toString()); });
 }
 
-EventPresenter::~EventPresenter()
-{
-}
+EventPresenter::~EventPresenter() {}
 
 const Id<EventModel>& EventPresenter::id() const
 {
@@ -110,7 +122,8 @@ void EventPresenter::handleDrop(const QPointF& pos, const QMimeData& mime)
         score::IDocument::documentContext(m_model).commandStack};
 
     auto cmd = new Command::CreateState{
-        *scenar, m_model.id(),
+        *scenar,
+        m_model.id(),
         pos.y() / m_view->parentItem()->boundingRect().size().height()};
     dispatcher.submit(cmd);
     dispatcher.submit(new Command::AddMessagesToState{

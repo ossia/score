@@ -20,9 +20,7 @@ Clock::Clock(const Execution::Context& ctx)
 {
 }
 
-Clock::~Clock()
-{
-}
+Clock::~Clock() {}
 
 void Clock::play_impl(const TimeVal& t, Execution::BaseScenarioElement& bs)
 {
@@ -69,7 +67,9 @@ void Clock::resume_impl(Execution::BaseScenarioElement& bs)
   if (m_plug.settings.getBench() && m_plug.bench)
   {
     auto tick = ossia::make_tick(
-        opt, *m_plug.execState, *m_plug.execGraph,
+        opt,
+        *m_plug.execState,
+        *m_plug.execGraph,
         *m_cur->baseInterval().OSSIAInterval());
 
     m_plug.audioProto().set_tick([tick, plug = &m_plug](auto&&... args) {
@@ -110,7 +110,9 @@ void Clock::resume_impl(Execution::BaseScenarioElement& bs)
   else
   {
     auto tick = ossia::make_tick(
-        opt, *m_plug.execState, *m_plug.execGraph,
+        opt,
+        *m_plug.execState,
+        *m_plug.execGraph,
         *m_cur->baseInterval().OSSIAInterval());
 
     m_plug.audioProto().set_tick([tick, plug = &m_plug](auto&&... args) {

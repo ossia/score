@@ -136,7 +136,9 @@ QVariant MessageItemModel::data(const QModelIndex& index, int role) const
 }
 
 QVariant MessageItemModel::headerData(
-    int section, Qt::Orientation orientation, int role) const
+    int section,
+    Qt::Orientation orientation,
+    int role) const
 {
   if (orientation == Qt::Horizontal && role == Qt::DisplayRole)
   {
@@ -150,7 +152,10 @@ QVariant MessageItemModel::headerData(
 }
 
 bool MessageItemModel::setHeaderData(
-    int section, Qt::Orientation orientation, const QVariant& value, int role)
+    int section,
+    Qt::Orientation orientation,
+    const QVariant& value,
+    int role)
 {
   return false;
 }
@@ -177,8 +182,9 @@ QMimeData* MessageItemModel::mimeData(const QModelIndexList& indexes) const
 {
   SelectedNodes nodes;
   ossia::transform(
-      indexes, std::back_inserter(nodes.parents),
-      [&](const QModelIndex& idx) { return &nodeFromModelIndex(idx); });
+      indexes, std::back_inserter(nodes.parents), [&](const QModelIndex& idx) {
+        return &nodeFromModelIndex(idx);
+      });
   nodes.parents = filterUniqueParents(nodes.parents);
 
   State::MessageList messages;
@@ -199,7 +205,10 @@ QMimeData* MessageItemModel::mimeData(const QModelIndexList& indexes) const
 }
 
 bool MessageItemModel::canDropMimeData(
-    const QMimeData* data, Qt::DropAction action, int row, int column,
+    const QMimeData* data,
+    Qt::DropAction action,
+    int row,
+    int column,
     const QModelIndex& parent) const
 {
   if (action == Qt::IgnoreAction)
@@ -221,7 +230,10 @@ bool MessageItemModel::canDropMimeData(
 }
 
 bool MessageItemModel::dropMimeData(
-    const QMimeData* data, Qt::DropAction action, int row, int column,
+    const QMimeData* data,
+    Qt::DropAction action,
+    int row,
+    int column,
     const QModelIndex& parent)
 {
   if (action == Qt::IgnoreAction)
@@ -305,7 +317,9 @@ Qt::ItemFlags MessageItemModel::flags(const QModelIndex& index) const
 }
 
 bool MessageItemModel::setData(
-    const QModelIndex& index, const QVariant& value_received, int role)
+    const QModelIndex& index,
+    const QVariant& value_received,
+    int role)
 {
   if (!index.isValid())
     return false;

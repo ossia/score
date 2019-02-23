@@ -26,20 +26,15 @@ public:
 
   QRectF boundingRect() const final override;
   void paint(
-      QPainter* painter, const QStyleOptionGraphicsItem* option,
+      QPainter* painter,
+      const QStyleOptionGraphicsItem* option,
       QWidget* widget) final override;
 
   void setHeight(qreal height) noexcept;
-  qreal height() const noexcept
-  {
-    return m_height;
-  }
+  qreal height() const noexcept { return m_height; }
 
   void setWidth(qreal width) noexcept;
-  qreal width() const noexcept
-  {
-    return m_width;
-  }
+  qreal width() const noexcept { return m_width; }
 
   virtual QPixmap pixmap() noexcept;
 
@@ -62,8 +57,10 @@ public:
   void dropReceived(const QPointF& pos, const QMimeData& arg_2)
       E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, dropReceived, pos, arg_2);
 
-  void keyPressed(int arg_1) E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, keyPressed, arg_1);
-  void keyReleased(int arg_1) E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, keyReleased, arg_1);
+  void keyPressed(int arg_1)
+      E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, keyPressed, arg_1);
+  void keyReleased(int arg_1)
+      E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, keyReleased, arg_1);
 
   // Screen pos, scene pos
   void dragEnter(const QPointF& pos, const QMimeData& arg_2)
@@ -86,8 +83,7 @@ private:
   qreal m_width{};
 };
 
-class SCORE_LIB_PROCESS_EXPORT MiniLayer
-    : public QGraphicsItem
+class SCORE_LIB_PROCESS_EXPORT MiniLayer : public QGraphicsItem
 {
   Q_INTERFACES(QGraphicsItem)
 public:
@@ -97,7 +93,8 @@ public:
 
   QRectF boundingRect() const final override;
   void paint(
-      QPainter* painter, const QStyleOptionGraphicsItem* option,
+      QPainter* painter,
+      const QStyleOptionGraphicsItem* option,
       QWidget* widget) final override;
 
   void setHeight(qreal height);

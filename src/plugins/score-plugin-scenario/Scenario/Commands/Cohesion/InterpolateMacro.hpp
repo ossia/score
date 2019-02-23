@@ -28,18 +28,13 @@ class AddMultipleProcessesToIntervalMacro final
     : public score::AggregateCommand
 {
   SCORE_COMMAND_DECL(
-      ScenarioCommandFactoryName(), AddMultipleProcessesToIntervalMacro,
+      ScenarioCommandFactoryName(),
+      AddMultipleProcessesToIntervalMacro,
       "Add processes to interval")
 
 public:
-  auto& commands()
-  {
-    return m_cmds;
-  }
-  auto&& takeCommands()
-  {
-    return std::move(m_cmds);
-  }
+  auto& commands() { return m_cmds; }
+  auto&& takeCommands() { return std::move(m_cmds); }
 
   // Use this constructor when the interval does not exist yet.
   AddMultipleProcessesToIntervalMacro(const Path<IntervalModel>& cstpath)

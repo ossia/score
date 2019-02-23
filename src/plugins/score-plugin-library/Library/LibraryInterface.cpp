@@ -3,15 +3,12 @@
 namespace Library
 {
 
-LibraryInterface::~LibraryInterface()
-{
-}
-LibraryInterfaceList::~LibraryInterfaceList()
-{
-}
+LibraryInterface::~LibraryInterface() {}
+LibraryInterfaceList::~LibraryInterfaceList() {}
 
 void LibraryInterface::setup(
-    ProcessesItemModel& model, const score::GUIApplicationContext& ctx)
+    ProcessesItemModel& model,
+    const score::GUIApplicationContext& ctx)
 {
 }
 
@@ -26,13 +23,18 @@ QSet<QString> LibraryInterface::acceptedMimeTypes() const noexcept
 }
 
 bool LibraryInterface::onDrop(
-    FileSystemModel& model, const QMimeData& mime, int row, int column,
+    FileSystemModel& model,
+    const QMimeData& mime,
+    int row,
+    int column,
     const QModelIndex& parent)
 {
   return false;
 }
 
-bool LibraryInterface::onDoubleClick(const QString& path, const score::DocumentContext& ctx)
+bool LibraryInterface::onDoubleClick(
+    const QString& path,
+    const score::DocumentContext& ctx)
 {
   return false;
 }

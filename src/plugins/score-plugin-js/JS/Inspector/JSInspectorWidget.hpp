@@ -16,9 +16,7 @@ namespace JS
 {
 struct JSWidgetBase
 {
-  JSWidgetBase(const score::CommandStackFacade& st) : m_dispatcher{st}
-  {
-  }
+  JSWidgetBase(const score::CommandStackFacade& st) : m_dispatcher{st} {}
 
   template <typename Widg, typename T>
   void init(Widg* self, T& model);
@@ -40,7 +38,8 @@ class InspectorWidget final
 
 public:
   explicit InspectorWidget(
-      const JS::ProcessModel& object, const score::DocumentContext& context,
+      const JS::ProcessModel& object,
+      const score::DocumentContext& context,
       QWidget* parent);
 
 public:

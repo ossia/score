@@ -25,8 +25,7 @@
 
 namespace Scenario
 {
-ScenarioView::ScenarioView(
-    const ProcessModel& m, QGraphicsItem* parent)
+ScenarioView::ScenarioView(const ProcessModel& m, QGraphicsItem* parent)
     : LayerView{parent}, m_scenario{m}
 {
   this->setFlags(
@@ -50,8 +49,8 @@ void ScenarioView::paint_impl(QPainter* painter) const
   if (m_selectArea != QRectF{})
   {
     painter->setCompositionMode(QPainter::CompositionMode_Xor);
-    painter->setPen(QPen{QColor{0, 0, 0, 127}, 2, Qt::DashLine, Qt::SquareCap,
-                         Qt::BevelJoin});
+    painter->setPen(QPen{
+        QColor{0, 0, 0, 127}, 2, Qt::DashLine, Qt::SquareCap, Qt::BevelJoin});
     painter->setBrush(Qt::transparent);
     painter->drawRect(m_selectArea);
     painter->setCompositionMode(
@@ -138,15 +137,14 @@ void ScenarioView::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 {
   m_moving = false;
   released(event->scenePos());
-  if(event->button() == Qt::RightButton)
+  if (event->button() == Qt::RightButton)
   {
     askContextMenu(event->screenPos(), event->scenePos());
   }
   event->accept();
 }
 
-void ScenarioView::mouseDoubleClickEvent(
-    QGraphicsSceneMouseEvent* event)
+void ScenarioView::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event)
 {
   if (event->button() == Qt::LeftButton)
     doubleClicked(event->pos());
@@ -154,8 +152,7 @@ void ScenarioView::mouseDoubleClickEvent(
   event->accept();
 }
 
-void ScenarioView::contextMenuEvent(
-    QGraphicsSceneContextMenuEvent* event)
+void ScenarioView::contextMenuEvent(QGraphicsSceneContextMenuEvent* event)
 {
   pressed(event->scenePos());
   released(event->scenePos());

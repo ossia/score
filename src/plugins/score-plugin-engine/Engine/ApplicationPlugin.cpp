@@ -29,12 +29,12 @@
 #include <score/widgets/DoubleSlider.hpp>
 #include <score/widgets/SetIcons.hpp>
 
+#include <core/application/ApplicationInterface.hpp>
 #include <core/application/ApplicationSettings.hpp>
 #include <core/document/Document.hpp>
 #include <core/document/DocumentModel.hpp>
 #include <core/document/DocumentPresenter.hpp>
 #include <core/presenter/DocumentManager.hpp>
-#include <core/application/ApplicationInterface.hpp>
 
 #include <ossia-qt/invoke.hpp>
 #include <ossia/audio/audio_protocol.hpp>
@@ -45,9 +45,9 @@
 #include <QAction>
 #include <QApplication>
 #include <QLabel>
+#include <QMainWindow>
 #include <QMessageBox>
 #include <QTabWidget>
-#include <QMainWindow>
 #include <QVariant>
 #include <QVector>
 
@@ -64,7 +64,10 @@
 #include <algorithm>
 #include <vector>
 SCORE_DECLARE_ACTION(
-    RestartAudio, "Restart Audio", Common, QKeySequence::UnknownKey)
+    RestartAudio,
+    "Restart Audio",
+    Common,
+    QKeySequence::UnknownKey)
 
 namespace Engine
 {
@@ -84,12 +87,17 @@ ApplicationPlugin::ApplicationPlugin(const score::GUIApplicationContext& ctx)
   {
     auto& play_action = ctx.actions.action<Actions::Play>();
     connect(
-        play_action.action(), &QAction::triggered, this,
-        [&](bool b) { on_play(b); }, Qt::QueuedConnection);
+        play_action.action(),
+        &QAction::triggered,
+        this,
+        [&](bool b) { on_play(b); },
+        Qt::QueuedConnection);
 
     auto& play_glob_action = ctx.actions.action<Actions::PlayGlobal>();
     connect(
-        play_glob_action.action(), &QAction::triggered, this,
+        play_glob_action.action(),
+        &QAction::triggered,
+        this,
         [&](bool b) {
           if (auto doc = currentDocument())
           {
@@ -105,17 +113,25 @@ ApplicationPlugin::ApplicationPlugin(const score::GUIApplicationContext& ctx)
 
     auto& stop_action = ctx.actions.action<Actions::Stop>();
     connect(
-        stop_action.action(), &QAction::triggered, this,
-        &ApplicationPlugin::on_stop, Qt::QueuedConnection);
+        stop_action.action(),
+        &QAction::triggered,
+        this,
+        &ApplicationPlugin::on_stop,
+        Qt::QueuedConnection);
 
     auto& init_action = ctx.actions.action<Actions::Reinitialize>();
     connect(
-        init_action.action(), &QAction::triggered, this,
-        &ApplicationPlugin::on_init, Qt::QueuedConnection);
+        init_action.action(),
+        &QAction::triggered,
+        this,
+        &ApplicationPlugin::on_init,
+        Qt::QueuedConnection);
 
     auto& ctrl
         = ctx.guiApplicationPlugin<Scenario::ScenarioApplicationPlugin>();
-    con(ctrl.execution(), &Scenario::ScenarioExecution::playAtDate, this,
+    con(ctrl.execution(),
+        &Scenario::ScenarioExecution::playAtDate,
+        this,
         [=, act = play_action.action()](const TimeVal& t) {
           if (m_clock)
           {
@@ -191,7 +207,8 @@ void ApplicationPlugin::setup_engine()
     catch (...)
     {
       QMessageBox::warning(
-          nullptr, tr("Audio error"),
+          nullptr,
+          tr("Audio error"),
           tr("The desired audio settings could not be applied.\nPlease change "
              "them."));
     }
@@ -205,8 +222,11 @@ void ApplicationPlugin::initialize()
 {
   auto& set = context.settings<Audio::Settings::Model>();
 
-  con(set, &Audio::Settings::Model::changed, this,
-      &ApplicationPlugin::restart_engine, Qt::QueuedConnection);
+  con(set,
+      &Audio::Settings::Model::changed,
+      this,
+      &ApplicationPlugin::restart_engine,
+      Qt::QueuedConnection);
 
   try
   {
@@ -230,7 +250,9 @@ score::GUIElements ApplicationPlugin::makeGUIElements()
     auto bar = new QToolBar;
     auto time_label = new QLabel;
     QFont time_font("Ubuntu", 18, QFont::Weight::DemiBold);
-    time_label->setFont(time_font); time_label->setStyleSheet("QLabel { font: 18pt \"Ubuntu\"; font-weight: 600; }");
+    time_label->setFont(time_font);
+    time_label->setStyleSheet(
+        "QLabel { font: 18pt \"Ubuntu\"; font-weight: 600; }");
     time_label->setText("00:00:00.000");
     bar->addWidget(time_label);
     auto timer = new QTimer{this};
@@ -255,8 +277,10 @@ score::GUIElements ApplicationPlugin::makeGUIElements()
   {
     m_speedToolbar = new QToolBar;
     toolbars.emplace_back(
-        m_speedToolbar, StringKey<score::Toolbar>("Speed"),
-        Qt::BottomToolBarArea, 300);
+        m_speedToolbar,
+        StringKey<score::Toolbar>("Speed"),
+        Qt::BottomToolBarArea,
+        300);
   }
 
   // The toolbar with the volume control
@@ -265,9 +289,11 @@ score::GUIElements ApplicationPlugin::makeGUIElements()
   m_audioEngineAct->setChecked(bool(audio));
 
   setIcons(
-      m_audioEngineAct, QStringLiteral(":/icons/engine_on.png"),
+      m_audioEngineAct,
+      QStringLiteral(":/icons/engine_on.png"),
       QStringLiteral(":/icons/engine_off.png"),
-      QStringLiteral(":/icons/engine_disabled.png"), false);
+      QStringLiteral(":/icons/engine_disabled.png"),
+      false);
   {
     auto bar = new QToolBar;
     auto sl = new Control::VolumeSlider{bar};
@@ -356,7 +382,8 @@ void ApplicationPlugin::on_createdDocument(score::Document& doc)
 }
 
 void ApplicationPlugin::on_documentChanged(
-    score::Document* olddoc, score::Document* newdoc)
+    score::Document* olddoc,
+    score::Document* newdoc)
 {
   if (context.applicationSettings.gui)
   {
@@ -498,7 +525,10 @@ void ApplicationPlugin::on_transport(TimeVal t)
 }
 
 void ApplicationPlugin::on_play(
-    Scenario::IntervalModel& cst, bool b, exec_setup_fun setup_fun, TimeVal t)
+    Scenario::IntervalModel& cst,
+    bool b,
+    exec_setup_fun setup_fun,
+    TimeVal t)
 {
   auto doc = currentDocument();
   if (!doc)
@@ -625,10 +655,10 @@ void ApplicationPlugin::on_stop()
         explorer->deviceModel().listening().restore();
     }
 
-    if(wasplaying)
+    if (wasplaying)
     {
-      if(auto scenar = dynamic_cast<Scenario::ScenarioDocumentModel*>(
-          &doc->model().modelDelegate()))
+      if (auto scenar = dynamic_cast<Scenario::ScenarioDocumentModel*>(
+              &doc->model().modelDelegate()))
       {
         auto state = Engine::score_to_ossia::state(
             scenar->baseScenario().endState(), plugmodel->context());
@@ -924,7 +954,6 @@ void ApplicationPlugin::initLocalTreeNodes(LocalTree::DocumentPlugin& lt)
     });
   }
 
-
   {
     auto node = root.create_child("document");
     auto address = node->create_parameter(ossia::val_type::INT);
@@ -935,9 +964,12 @@ void ApplicationPlugin::initLocalTreeNodes(LocalTree::DocumentPlugin& lt)
       ossia::qt::run_async(this, [=] {
         if (context.applicationSettings.gui)
         {
-          QTabWidget* docs = context.mainWindow->centralWidget()->findChild<QTabWidget*>("Documents", Qt::FindDirectChildrenOnly);
+          QTabWidget* docs
+              = context.mainWindow->centralWidget()->findChild<QTabWidget*>(
+                  "Documents", Qt::FindDirectChildrenOnly);
           SCORE_ASSERT(docs);
-          if(docs) {
+          if (docs)
+          {
             docs->setCurrentIndex(std::clamp(val, 0, docs->count() - 1));
           }
         }

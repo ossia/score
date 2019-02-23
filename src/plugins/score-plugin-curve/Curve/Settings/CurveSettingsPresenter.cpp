@@ -24,7 +24,9 @@ Presenter::Presenter(Model& m, View& v, QObject* parent)
 {
   {
     // view -> model
-    con(v, &View::simplificationRatioChanged, this,
+    con(v,
+        &View::simplificationRatioChanged,
+        this,
         [&](auto simplificationRatio) {
           if (simplificationRatio != m.getSimplificationRatio())
           {
@@ -34,7 +36,9 @@ Presenter::Presenter(Model& m, View& v, QObject* parent)
         });
 
     // model -> view
-    con(m, &Model::SimplificationRatioChanged, &v,
+    con(m,
+        &Model::SimplificationRatioChanged,
+        &v,
         &View::setSimplificationRatio);
 
     // initial value
@@ -78,13 +82,14 @@ Presenter::Presenter(Model& m, View& v, QObject* parent)
     con(v, &View::playWhileRecordingChanged, this, [&](auto val) {
       if (val != m.getPlayWhileRecording())
       {
-        m_disp.submit<SetModelPlayWhileRecording>(
-            this->model(this), val);
+        m_disp.submit<SetModelPlayWhileRecording>(this->model(this), val);
       }
     });
 
     // model -> view
-    con(m, &Model::PlayWhileRecordingChanged, &v,
+    con(m,
+        &Model::PlayWhileRecordingChanged,
+        &v,
         &View::setPlayWhileRecording);
 
     // initial value

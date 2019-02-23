@@ -1,7 +1,9 @@
 #include "ArtnetProtocolSettingsWidget.hpp"
+
 #include "ArtnetSpecificSettings.hpp"
 
 #include <State/Widgets/AddressFragmentLineEdit.hpp>
+
 #include <QFormLayout>
 #include <QVariant>
 
@@ -24,9 +26,7 @@ ArtnetProtocolSettingsWidget::ArtnetProtocolSettingsWidget(QWidget* parent)
   setLayout(layout);
 }
 
-ArtnetProtocolSettingsWidget::~ArtnetProtocolSettingsWidget()
-{
-}
+ArtnetProtocolSettingsWidget::~ArtnetProtocolSettingsWidget() {}
 
 Device::DeviceSettings ArtnetProtocolSettingsWidget::getSettings() const
 {

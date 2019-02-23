@@ -18,15 +18,14 @@ struct SCORE_PLUGIN_SCENARIO_EXPORT Slot
   Slot& operator=(const Slot&) = default;
   Slot& operator=(Slot&&) = default;
 
-  Slot(std::vector<Id<Process::ProcessModel>> p) : processes{std::move(p)}
-  {
-  }
+  Slot(std::vector<Id<Process::ProcessModel>> p) : processes{std::move(p)} {}
   Slot(std::vector<Id<Process::ProcessModel>> p, Id<Process::ProcessModel> fp)
       : processes{std::move(p)}, frontProcess{std::move(fp)}
   {
   }
   Slot(
-      std::vector<Id<Process::ProcessModel>> p, Id<Process::ProcessModel> fp,
+      std::vector<Id<Process::ProcessModel>> p,
+      Id<Process::ProcessModel> fp,
       qreal h)
       : processes{std::move(p)}, frontProcess{std::move(fp)}, height{h}
   {
@@ -54,9 +53,7 @@ struct SCORE_PLUGIN_SCENARIO_EXPORT SlotPath
   SlotPath& operator=(const SlotPath&) = default;
   SlotPath& operator=(SlotPath&&) = default;
 
-  SlotPath(Path<IntervalModel> p) : interval{std::move(p)}
-  {
-  }
+  SlotPath(Path<IntervalModel> p) : interval{std::move(p)} {}
   SlotPath(Path<IntervalModel> p, int idx) : interval{std::move(p)}, index{idx}
   {
   }
@@ -79,28 +76,16 @@ struct SCORE_PLUGIN_SCENARIO_EXPORT SlotId
   SlotId(const SlotId&) = default;
   SlotId& operator=(const SlotId&) = default;
 
-  SlotId(std::size_t p, Slot::RackView f) : index{(int)p}, view{f}
-  {
-  }
-  SlotId(int p, Slot::RackView f) : index{p}, view{f}
-  {
-  }
+  SlotId(std::size_t p, Slot::RackView f) : index{(int)p}, view{f} {}
+  SlotId(int p, Slot::RackView f) : index{p}, view{f} {}
 
-  SlotId(const SlotPath& p) : index{p.index}, view{p.full_view}
-  {
-  }
+  SlotId(const SlotPath& p) : index{p.index}, view{p.full_view} {}
 
   int index{};
   Slot::RackView view{};
 
-  bool fullView() const
-  {
-    return view == Slot::FullView;
-  }
-  bool smallView() const
-  {
-    return view == Slot::SmallView;
-  }
+  bool fullView() const { return view == Slot::FullView; }
+  bool smallView() const { return view == Slot::SmallView; }
 };
 }
 

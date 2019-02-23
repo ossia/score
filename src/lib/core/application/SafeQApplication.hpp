@@ -23,18 +23,10 @@
 class SCORE_LIB_BASE_EXPORT LogFile
 {
 public:
-  LogFile() : fd{fopen("score.log", "a")}
-  {
-  }
+  LogFile() : fd{fopen("score.log", "a")} {}
 
-  FILE* desc() const
-  {
-    return fd;
-  }
-  ~LogFile()
-  {
-    fclose(fd);
-  }
+  FILE* desc() const { return fd; }
+  ~LogFile() { fclose(fd); }
 
 private:
   FILE* fd{};
@@ -61,7 +53,9 @@ public:
   ~SafeQApplication();
 #if defined(SCORE_DEBUG)
   static void DebugOutput(
-      QtMsgType type, const QMessageLogContext& context, const QString& msg)
+      QtMsgType type,
+      const QMessageLogContext& context,
+      const QString& msg)
   {
     auto basename_arr = QFileInfo(context.file).baseName().toUtf8();
     auto basename = basename_arr.constData();
@@ -75,30 +69,45 @@ public:
     {
       case QtDebugMsg:
         fprintf(
-            out_file, "Debug: %s (%s:%u)\n", localMsg.constData(), basename,
+            out_file,
+            "Debug: %s (%s:%u)\n",
+            localMsg.constData(),
+            basename,
             context.line);
         break;
 
 #if (QT_VERSION >= QT_VERSION_CHECK(5, 5, 0))
       case QtInfoMsg:
         fprintf(
-            out_file, "Info: %s (%s:%u)\n", localMsg.constData(), basename,
+            out_file,
+            "Info: %s (%s:%u)\n",
+            localMsg.constData(),
+            basename,
             context.line);
         break;
 #endif
       case QtWarningMsg:
         fprintf(
-            out_file, "Warning: %s (%s:%u)\n", localMsg.constData(), basename,
+            out_file,
+            "Warning: %s (%s:%u)\n",
+            localMsg.constData(),
+            basename,
             context.line);
         break;
       case QtCriticalMsg:
         fprintf(
-            out_file, "Critical: %s (%s:%u)\n", localMsg.constData(), basename,
+            out_file,
+            "Critical: %s (%s:%u)\n",
+            localMsg.constData(),
+            basename,
             context.line);
         break;
       case QtFatalMsg:
         fprintf(
-            out_file, "Fatal: %s (%s:%u)\n", localMsg.constData(), basename,
+            out_file,
+            "Fatal: %s (%s:%u)\n",
+            localMsg.constData(),
+            basename,
             context.line);
         SCORE_BREAKPOINT;
         std::terminate();

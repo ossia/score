@@ -41,8 +41,10 @@ public:
 
   /** The class **/
   TimeSyncModel(
-      const Id<TimeSyncModel>& id, const VerticalExtent& extent,
-      const TimeVal& date, QObject* parent);
+      const Id<TimeSyncModel>& id,
+      const VerticalExtent& extent,
+      const TimeVal& date,
+      QObject* parent);
 
   template <typename DeserializerVisitor>
   TimeSyncModel(DeserializerVisitor&& vis, QObject* parent)
@@ -66,10 +68,7 @@ public:
   const EventIdVec& events() const;
   void setEvents(const TimeSyncModel::EventIdVec& events);
 
-  State::Expression expression() const
-  {
-    return m_expression;
-  }
+  State::Expression expression() const { return m_expression; }
   void setExpression(const State::Expression& expression);
 
   bool active() const;

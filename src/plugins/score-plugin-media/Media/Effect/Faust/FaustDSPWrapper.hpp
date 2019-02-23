@@ -1,5 +1,4 @@
 #pragma once
-#include <Control/DefaultEffectItem.hpp>
 #include <Media/Effect/Faust/FaustUtils.hpp>
 #include <Process/Dataflow/PortFactory.hpp>
 #include <Process/Execution/ProcessComponent.hpp>
@@ -13,6 +12,7 @@
 #include <ossia/dataflow/execution_state.hpp>
 #include <ossia/dataflow/node_process.hpp>
 
+#include <Control/DefaultEffectItem.hpp>
 #include <Effect/EffectFactory.hpp>
 #include <faust/gui/GUI.h>
 namespace FaustDSP
@@ -24,10 +24,7 @@ class Fx;
 template <typename DSP>
 struct Metadata<Category_k, FaustDSP::Fx<DSP>>
 {
-  static Q_DECL_RELAXED_CONSTEXPR const char* get()
-  {
-    return "Audio";
-  }
+  static Q_DECL_RELAXED_CONSTEXPR const char* get() { return "Audio"; }
 };
 template <typename DSP>
 struct Metadata<Tags_k, FaustDSP::Fx<DSP>>
@@ -76,7 +73,6 @@ struct Metadata<Process::Descriptor_k, FaustDSP::Fx<DSP>>
   }
 };
 
-
 namespace FaustDSP
 {
 template <typename T>
@@ -88,10 +84,7 @@ struct Wrap final : UI
   }
 
   T t;
-  void openTabBox(const char* label) override
-  {
-    t.openTabBox(label);
-  }
+  void openTabBox(const char* label) override { t.openTabBox(label); }
   void openHorizontalBox(const char* label) override
   {
     t.openHorizontalBox(label);
@@ -100,16 +93,15 @@ struct Wrap final : UI
   {
     t.openVerticalBox(label);
   }
-  void closeBox() override
-  {
-    t.closeBox();
-  }
+  void closeBox() override { t.closeBox(); }
   void declare(FAUSTFLOAT* zone, const char* key, const char* val) override
   {
     t.declare(zone, key, val);
   }
   void addSoundfile(
-      const char* label, const char* filename, Soundfile** sf_zone) override
+      const char* label,
+      const char* filename,
+      Soundfile** sf_zone) override
   {
     t.addSoundfile(label, filename, sf_zone);
   }
@@ -122,31 +114,47 @@ struct Wrap final : UI
     t.addCheckButton(label, zone);
   }
   void addVerticalSlider(
-      const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min,
-      FAUSTFLOAT max, FAUSTFLOAT step) override
+      const char* label,
+      FAUSTFLOAT* zone,
+      FAUSTFLOAT init,
+      FAUSTFLOAT min,
+      FAUSTFLOAT max,
+      FAUSTFLOAT step) override
   {
     t.addVerticalSlider(label, zone, init, min, max, step);
   }
   void addHorizontalSlider(
-      const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min,
-      FAUSTFLOAT max, FAUSTFLOAT step) override
+      const char* label,
+      FAUSTFLOAT* zone,
+      FAUSTFLOAT init,
+      FAUSTFLOAT min,
+      FAUSTFLOAT max,
+      FAUSTFLOAT step) override
   {
     t.addHorizontalSlider(label, zone, init, min, max, step);
   }
   void addNumEntry(
-      const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min,
-      FAUSTFLOAT max, FAUSTFLOAT step) override
+      const char* label,
+      FAUSTFLOAT* zone,
+      FAUSTFLOAT init,
+      FAUSTFLOAT min,
+      FAUSTFLOAT max,
+      FAUSTFLOAT step) override
   {
     t.addNumEntry(label, zone, init, min, max, step);
   }
   void addHorizontalBargraph(
-      const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min,
+      const char* label,
+      FAUSTFLOAT* zone,
+      FAUSTFLOAT min,
       FAUSTFLOAT max) override
   {
     t.addHorizontalBargraph(label, zone, min, max);
   }
   void addVerticalBargraph(
-      const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min,
+      const char* label,
+      FAUSTFLOAT* zone,
+      FAUSTFLOAT min,
       FAUSTFLOAT max) override
   {
     t.addVerticalBargraph(label, zone, min, max);
@@ -175,9 +183,7 @@ public:
     d.buildUserInterface(&ui);
   }
 
-  ~Fx() override
-  {
-  }
+  ~Fx() override {}
 
   template <typename Impl>
   Fx(Impl& vis, QObject* parent) : Process::ProcessModel{vis, parent}
@@ -190,27 +196,12 @@ public:
     return Metadata<PrettyName_k, Fx>::get();
   }
 
-  Process::Inlets& inlets()
-  {
-    return m_inlets;
-  }
-  Process::Outlets& outlets()
-  {
-    return m_outlets;
-  }
-  const Process::Inlets& inlets() const
-  {
-    return m_inlets;
-  }
-  const Process::Outlets& outlets() const
-  {
-    return m_outlets;
-  }
+  Process::Inlets& inlets() { return m_inlets; }
+  Process::Outlets& outlets() { return m_outlets; }
+  const Process::Inlets& inlets() const { return m_inlets; }
+  const Process::Outlets& outlets() const { return m_outlets; }
 
-  bool hasExternalUI() const noexcept
-  {
-    return false;
-  }
+  bool hasExternalUI() const noexcept { return false; }
 };
 
 template <typename DSP>
@@ -241,14 +232,9 @@ public:
       ossia::nodes::faust_exec(*this, dsp, tk);
     }
 
-    std::string label() const noexcept override
-    {
-      return "Faust";
-    }
+    std::string label() const noexcept override { return "Faust"; }
 
-    void all_notes_off() noexcept override
-    {
-    }
+    void all_notes_off() noexcept override {}
   };
 
   static Q_DECL_RELAXED_CONSTEXPR score::Component::Key static_key() noexcept
@@ -268,10 +254,16 @@ public:
   }
 
   Executor(
-      Fx<DSP>& proc, const Execution::Context& ctx,
-      const Id<score::Component>& id, QObject* parent)
+      Fx<DSP>& proc,
+      const Execution::Context& ctx,
+      const Id<score::Component>& id,
+      QObject* parent)
       : Execution::ProcessComponent_T<Fx<DSP>, ossia::node_process>{
-            proc, ctx, id, "FaustComponent", parent}
+            proc,
+            ctx,
+            id,
+            "FaustComponent",
+            parent}
   {
     auto node = std::make_shared<exec_node>();
     this->node = node;
@@ -284,7 +276,9 @@ public:
       *node->controls[i - 1].second = ossia::convert<double>(inlet->value());
       auto inl = this->node->inputs()[i];
       QObject::connect(
-          inlet, &Process::ControlInlet::valueChanged, this,
+          inlet,
+          &Process::ControlInlet::valueChanged,
+          this,
           [this, inl](const ossia::value& v) {
             this->system().executionQueue.enqueue([inl, val = v]() mutable {
               inl->data.template target<ossia::value_port>()->write_value(
@@ -314,8 +308,11 @@ struct TSerializer<DataStream, FaustDSP::Fx<DSP>>
   static void writeTo(DataStream::Deserializer& s, model_type& eff)
   {
     writePorts(
-        s, s.components.interfaces<Process::PortFactoryList>(), eff.inlets(),
-        eff.outlets(), &eff);
+        s,
+        s.components.interfaces<Process::PortFactoryList>(),
+        eff.inlets(),
+        eff.outlets(),
+        &eff);
 
     s.checkDelimiter();
   }
@@ -333,8 +330,11 @@ struct TSerializer<JSONObject, FaustDSP::Fx<DSP>>
   static void writeTo(JSONObject::Deserializer& s, model_type& eff)
   {
     writePorts(
-        s.obj, s.components.interfaces<Process::PortFactoryList>(),
-        eff.inlets(), eff.outlets(), &eff);
+        s.obj,
+        s.components.interfaces<Process::PortFactoryList>(),
+        eff.inlets(),
+        eff.outlets(),
+        &eff);
   }
 };
 

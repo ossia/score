@@ -1,39 +1,42 @@
 #pragma once
-#include <QDoubleSpinBox>
-#include <QKeyEvent>
-#include <QPainter>
-#include <QEventLoop>
-#include <QTimer>
-#include <QGraphicsSceneMouseEvent>
-
 #include <score/widgets/SignalUtils.hpp>
 
 #include <ossia/detail/math.hpp>
-#include <wobjectdefs.h>
+
+#include <QDoubleSpinBox>
+#include <QEventLoop>
+#include <QGraphicsSceneMouseEvent>
+#include <QKeyEvent>
+#include <QPainter>
+#include <QTimer>
+
 #include <score_lib_base_export.h>
+#include <wobjectdefs.h>
 namespace score
 {
 
-struct SCORE_LIB_BASE_EXPORT DoubleSpinboxWithEnter final : public QDoubleSpinBox
+struct SCORE_LIB_BASE_EXPORT DoubleSpinboxWithEnter final
+    : public QDoubleSpinBox
 {
   W_OBJECT(DoubleSpinboxWithEnter)
 public:
   using QDoubleSpinBox::QDoubleSpinBox;
 
   void ok() W_SIGNAL(ok);
+
 public:
   bool event(QEvent* event) override
   {
     if (event->type() == QEvent::ShortcutOverride)
     {
       QKeyEvent* keyEvent = static_cast<QKeyEvent*>(event);
-      switch(keyEvent->key())
+      switch (keyEvent->key())
       {
-      case Qt::Key_Enter:
-      case Qt::Key_Return:
-      case Qt::Key_Escape:
+        case Qt::Key_Enter:
+        case Qt::Key_Return:
+        case Qt::Key_Escape:
           editingFinished();
-      default:
+        default:
           break;
       }
     }
@@ -45,7 +48,10 @@ struct DefaultGraphicsSliderImpl
 {
   template <typename T, typename U>
   static void paint(
-      T& self, const U& skin, const QString& text, QPainter* painter,
+      T& self,
+      const U& skin,
+      const QString& text,
+      QPainter* painter,
       QWidget* widget)
   {
     painter->setRenderHint(QPainter::Antialiasing, true);
@@ -70,7 +76,8 @@ struct DefaultGraphicsSliderImpl
     painter->setPen(grayPen);
     painter->setFont(skin.SansFontSmall);
     painter->drawText(
-        srect.adjusted(6, dpi_adjust, -6, -1), text,
+        srect.adjusted(6, dpi_adjust, -6, -1),
+        text,
         self.getHandleX() > srect.width() / 2 ? QTextOption()
                                               : QTextOption(Qt::AlignRight));
 
@@ -83,7 +90,7 @@ struct DefaultGraphicsSliderImpl
   template <typename T>
   static void mousePressEvent(T& self, QGraphicsSceneMouseEvent* event)
   {
-    if(event->button() == Qt::LeftButton)
+    if (event->button() == Qt::LeftButton)
     {
       if (self.isInHandle(event->pos()))
       {
@@ -101,7 +108,6 @@ struct DefaultGraphicsSliderImpl
         self.update();
       }
     }
-
 
     event->accept();
   }
@@ -132,8 +138,8 @@ struct DefaultGraphicsSliderImpl
     {
       if (self.m_grab)
       {
-        double curPos
-            = ossia::clamp(event->pos().x() / self.sliderRect().width(), 0., 1.);
+        double curPos = ossia::clamp(
+            event->pos().x() / self.sliderRect().width(), 0., 1.);
         if (curPos != self.m_value)
         {
           self.m_value = curPos;
@@ -146,7 +152,7 @@ struct DefaultGraphicsSliderImpl
     }
     else if (event->button() == Qt::RightButton)
     {
-      QTimer::singleShot(0, [&,pos=event->scenePos()] {
+      QTimer::singleShot(0, [&, pos = event->scenePos()] {
         auto w = new DoubleSpinboxWithEnter;
         w->setRange(self.map(self.min), self.map(self.max));
 
@@ -159,26 +165,32 @@ struct DefaultGraphicsSliderImpl
         QTimer::singleShot(0, w, [w] { w->setFocus(); });
 
         QObject::connect(
-          w, SignalUtils::QDoubleSpinBox_valueChanged_double(), &self,
-          [=, &self](double v) {
-            self.m_value = (self.unmap(v) - self.min) / (self.max - self.min);
-            self.valueChanged(self.m_value);
-            self.sliderMoved();
-            self.update();
-          });
+            w,
+            SignalUtils::QDoubleSpinBox_valueChanged_double(),
+            &self,
+            [=, &self](double v) {
+              self.m_value
+                  = (self.unmap(v) - self.min) / (self.max - self.min);
+              self.valueChanged(self.m_value);
+              self.sliderMoved();
+              self.update();
+            });
 
         QObject::connect(
-          w, &DoubleSpinboxWithEnter::editingFinished, &self, [obj, &self] () mutable {
-            if(obj != nullptr)
-            {
-              self.sliderReleased();
-              QTimer::singleShot(0, obj, [scene = self.scene(), obj] {
-                scene->removeItem(obj);
-                delete obj;
-              });
-            }
-            obj = nullptr;
-        });
+            w,
+            &DoubleSpinboxWithEnter::editingFinished,
+            &self,
+            [obj, &self]() mutable {
+              if (obj != nullptr)
+              {
+                self.sliderReleased();
+                QTimer::singleShot(0, obj, [scene = self.scene(), obj] {
+                  scene->removeItem(obj);
+                  delete obj;
+                });
+              }
+              obj = nullptr;
+            });
       });
     }
     event->accept();
@@ -189,6 +201,5 @@ struct DefaultGraphicsSliderImpl
   {
   }
 };
-
 
 }

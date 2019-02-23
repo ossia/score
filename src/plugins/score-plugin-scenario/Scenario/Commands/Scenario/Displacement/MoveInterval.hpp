@@ -22,15 +22,16 @@ namespace Command
 class MoveInterval final : public score::Command
 {
   SCORE_COMMAND_DECL(
-      ScenarioCommandFactoryName(), MoveInterval, "Move a interval")
+      ScenarioCommandFactoryName(),
+      MoveInterval,
+      "Move a interval")
 public:
   MoveInterval(
-      const Scenario::ProcessModel& scenar, Id<IntervalModel> id, double y);
+      const Scenario::ProcessModel& scenar,
+      Id<IntervalModel> id,
+      double y);
 
-  void update(unused_t, unused_t, double height)
-  {
-    m_newHeight = height;
-  }
+  void update(unused_t, unused_t, double height) { m_newHeight = height; }
 
   void undo(const score::DocumentContext& ctx) const override;
   void redo(const score::DocumentContext& ctx) const override;

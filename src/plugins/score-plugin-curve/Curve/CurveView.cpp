@@ -1,45 +1,44 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "CurveView.hpp"
+
 #include <Process/Style/ScenarioStyle.hpp>
+
 #include <QEvent>
 #include <QFlags>
 #include <QGraphicsSceneEvent>
 #include <QKeyEvent>
 #include <QPainter>
+#include <QTextLayout>
 #include <qnamespace.h>
 
-#include <QTextLayout>
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Curve::View)
 namespace Curve
 {
-static
-QRectF getTextRect(const QString& txt)
+static QRectF getTextRect(const QString& txt)
 {
-  static auto& lay{[] () -> QFontMetricsF& {
-      const auto& style = score::Skin::instance();
-      static QFontMetricsF lay(style.Bold10Pt);
-      return lay;
+  static auto& lay{[]() -> QFontMetricsF& {
+    const auto& style = score::Skin::instance();
+    static QFontMetricsF lay(style.Bold10Pt);
+    return lay;
   }()};
 
   return lay.boundingRect(txt);
 }
 
-View::View(QGraphicsItem* parent) noexcept
-  : QGraphicsItem{parent}
+View::View(QGraphicsItem* parent) noexcept : QGraphicsItem{parent}
 {
   this->setFlags(ItemIsFocusable);
   this->setZValue(1);
 }
 
-View::~View()
-{
-}
-
+View::~View() {}
 
 void View::paint(
-    QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+    QPainter* painter,
+    const QStyleOptionGraphicsItem* option,
+    QWidget* widget)
 {
   if (m_selectArea != QRectF{})
   {
@@ -116,23 +115,24 @@ void View::setValueTooltip(QPointF pos, const QString& s) noexcept
   m_tooltipPos = pos;
 
   static QGraphicsSimpleTextItem* tooltip{};
-  if(!m_tooltip.isEmpty())
+  if (!m_tooltip.isEmpty())
   {
     // Compute position
     auto textrect = getTextRect(m_tooltip);
 
-    QPointF pos = QPointF{m_tooltipPos.x() * m_rect.width(), (1. - m_tooltipPos.y()) * m_rect.height()};
-    pos += {10.,10.};
-    if(pos.x() + textrect.width() > 0.95 * m_rect.width())
+    QPointF pos = QPointF{m_tooltipPos.x() * m_rect.width(),
+                          (1. - m_tooltipPos.y()) * m_rect.height()};
+    pos += {10., 10.};
+    if (pos.x() + textrect.width() > 0.95 * m_rect.width())
     {
       pos.rx() -= (textrect.width() + 20);
     }
-    if(pos.y() + textrect.height() > 0.95 * m_rect.height())
+    if (pos.y() + textrect.height() > 0.95 * m_rect.height())
     {
       pos.ry() -= (textrect.height() + 10);
     }
 
-    if(!tooltip)
+    if (!tooltip)
     {
       tooltip = new QGraphicsSimpleTextItem{this};
       tooltip->setZValue(100);
@@ -146,7 +146,7 @@ void View::setValueTooltip(QPointF pos, const QString& s) noexcept
   }
   else
   {
-    if(tooltip)
+    if (tooltip)
     {
       delete tooltip;
       tooltip = nullptr;
@@ -173,7 +173,8 @@ QPixmap View::pixmap() noexcept
   painter.setRenderHint(QPainter::TextAntialiasing, true);
   painter.translate(-rect.topLeft());
   paint(&painter, nullptr, nullptr);
-  for (QGraphicsItem* child : childItems())
+  const auto& items = childItems();
+  for (QGraphicsItem* child : items)
   {
     painter.save();
     painter.translate(child->mapToParent(pos()));

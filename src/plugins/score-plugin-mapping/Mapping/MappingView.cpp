@@ -25,9 +25,7 @@ LayerView::LayerView(QGraphicsItem* parent) : Process::LayerView{parent}
       | ItemIsFocusable);
 }
 
-void LayerView::paint_impl(QPainter* painter) const
-{
-}
+void LayerView::paint_impl(QPainter* painter) const {}
 
 QPixmap LayerView::pixmap() noexcept
 {

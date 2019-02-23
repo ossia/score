@@ -17,7 +17,8 @@ public:
   static void computeDisplacement(
       Scenario::ProcessModel& scenario,
       const QVector<Id<TimeSyncModel>>& draggedElements,
-      const TimeVal& deltaTime, ElementsProperties& elementsProperties);
+      const TimeVal& deltaTime,
+      ElementsProperties& elementsProperties);
 
   static QString name();
 

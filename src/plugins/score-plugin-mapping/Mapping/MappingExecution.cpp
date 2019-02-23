@@ -14,38 +14,51 @@ namespace Mapping
 namespace RecreateOnPlay
 {
 Component::Component(
-    ::Mapping::ProcessModel& element, const ::Execution::Context& ctx,
-    const Id<score::Component>& id, QObject* parent)
+    ::Mapping::ProcessModel& element,
+    const ::Execution::Context& ctx,
+    const Id<score::Component>& id,
+    QObject* parent)
     : ::Execution::ProcessComponent_T<
-          Mapping::ProcessModel, ossia::node_process>{element, ctx, id,
-                                                      "MappingElement", parent}
+          Mapping::ProcessModel,
+          ossia::node_process>{element, ctx, id, "MappingElement", parent}
 {
   node = std::make_shared<ossia::nodes::mapping>();
   m_ossia_process = std::make_shared<ossia::node_process>(node);
 
-  con(element, &Mapping::ProcessModel::sourceAddressChanged, this,
+  con(element,
+      &Mapping::ProcessModel::sourceAddressChanged,
+      this,
       [this](const auto&) { this->recompute(); });
-  con(element, &Mapping::ProcessModel::sourceMinChanged, this,
+  con(element,
+      &Mapping::ProcessModel::sourceMinChanged,
+      this,
       [this](const auto&) { this->recompute(); });
-  con(element, &Mapping::ProcessModel::sourceMaxChanged, this,
+  con(element,
+      &Mapping::ProcessModel::sourceMaxChanged,
+      this,
       [this](const auto&) { this->recompute(); });
 
-  con(element, &Mapping::ProcessModel::targetAddressChanged, this,
+  con(element,
+      &Mapping::ProcessModel::targetAddressChanged,
+      this,
       [this](const auto&) { this->recompute(); });
-  con(element, &Mapping::ProcessModel::targetMinChanged, this,
+  con(element,
+      &Mapping::ProcessModel::targetMinChanged,
+      this,
       [this](const auto&) { this->recompute(); });
-  con(element, &Mapping::ProcessModel::targetMaxChanged, this,
+  con(element,
+      &Mapping::ProcessModel::targetMaxChanged,
+      this,
       [this](const auto&) { this->recompute(); });
 
-  con(element, &Mapping::ProcessModel::curveChanged, this,
-      [this]() { this->recompute(); });
+  con(element, &Mapping::ProcessModel::curveChanged, this, [this]() {
+    this->recompute();
+  });
 
   recompute();
 }
 
-Component::~Component()
-{
-}
+Component::~Component() {}
 
 void Component::recompute()
 {

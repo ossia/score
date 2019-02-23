@@ -5,7 +5,8 @@
 namespace Dataflow
 {
 CreateCable::CreateCable(
-    const Scenario::ScenarioDocumentModel& dp, Id<Process::Cable> theCable,
+    const Scenario::ScenarioDocumentModel& dp,
+    Id<Process::Cable> theCable,
     Process::CableData dat)
     : m_model{dp}, m_cable{std::move(theCable)}, m_dat{std::move(dat)}
 {
@@ -13,7 +14,8 @@ CreateCable::CreateCable(
 }
 
 CreateCable::CreateCable(
-    const Scenario::ScenarioDocumentModel& dp, Id<Process::Cable> theCable,
+    const Scenario::ScenarioDocumentModel& dp,
+    Id<Process::Cable> theCable,
     const Process::Cable& cable)
     : m_model{dp}, m_cable{std::move(theCable)}
 {
@@ -54,7 +56,8 @@ void CreateCable::deserializeImpl(DataStreamOutput& s)
 }
 
 UpdateCable::UpdateCable(
-    const Process::Cable& cable, Process::CableType newDat)
+    const Process::Cable& cable,
+    Process::CableType newDat)
     : m_model{cable}, m_new{newDat}
 {
   m_old = cable.type();
@@ -81,7 +84,8 @@ void UpdateCable::deserializeImpl(DataStreamOutput& s)
 }
 
 RemoveCable::RemoveCable(
-    const Scenario::ScenarioDocumentModel& dp, const Process::Cable& c)
+    const Scenario::ScenarioDocumentModel& dp,
+    const Process::Cable& c)
     : m_model{dp}, m_cable{c.id()}
 {
   m_data.type = c.type();

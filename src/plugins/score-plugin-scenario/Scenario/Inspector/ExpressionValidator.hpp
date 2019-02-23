@@ -25,10 +25,7 @@ public:
     }
   }
 
-  optional<::State::Expression> get() const
-  {
-    return m_currentExp;
-  }
+  optional<::State::Expression> get() const { return m_currentExp; }
 
 private:
   mutable optional<::State::Expression> m_currentExp;

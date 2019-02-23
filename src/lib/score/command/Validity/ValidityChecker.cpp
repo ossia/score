@@ -8,13 +8,9 @@
 namespace score
 {
 
-ValidityChecker::~ValidityChecker()
-{
-}
+ValidityChecker::~ValidityChecker() {}
 
-ValidityCheckerList::~ValidityCheckerList()
-{
-}
+ValidityCheckerList::~ValidityCheckerList() {}
 
 DocumentValidator ValidityCheckerList::make(const Document& ctx)
 {
@@ -22,7 +18,8 @@ DocumentValidator ValidityCheckerList::make(const Document& ctx)
 }
 
 DocumentValidator::DocumentValidator(
-    const ValidityCheckerList& l, const Document& doc)
+    const ValidityCheckerList& l,
+    const Document& doc)
     : m_list{l}, m_doc{doc}
 {
 }

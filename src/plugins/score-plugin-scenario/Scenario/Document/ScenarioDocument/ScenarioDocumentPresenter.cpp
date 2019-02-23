@@ -80,7 +80,8 @@ ScenarioDocumentPresenter::ScenarioDocumentPresenter(
     score::DocumentPresenter* parent_presenter,
     const score::DocumentDelegateModel& delegate_model,
     score::DocumentDelegateView& delegate_view)
-    : DocumentDelegatePresenter{parent_presenter, delegate_model,
+    : DocumentDelegatePresenter{parent_presenter,
+                                delegate_model,
                                 delegate_view}
     , m_scenarioPresenter{*this}
     , m_selectionDispatcher{ctx.selectionStack}
@@ -94,24 +95,40 @@ ScenarioDocumentPresenter::ScenarioDocumentPresenter(
   if (auto win = static_cast<score::View*>(score::GUIAppContext().mainWindow))
   {
     connect(
-        win, &View::sizeChanged, this,
+        win,
+        &View::sizeChanged,
+        this,
         &ScenarioDocumentPresenter::on_windowSizeChanged,
         Qt::QueuedConnection);
     connect(
-        win, &View::ready, this, &ScenarioDocumentPresenter::on_viewReady,
+        win,
+        &View::ready,
+        this,
+        &ScenarioDocumentPresenter::on_viewReady,
         Qt::QueuedConnection);
   }
 
-  con(view().view(), &ProcessGraphicsView::sizeChanged, this,
-      &ScenarioDocumentPresenter::on_windowSizeChanged, Qt::QueuedConnection);
-  con(view().view(), &ProcessGraphicsView::horizontalZoom, this,
+  con(view().view(),
+      &ProcessGraphicsView::sizeChanged,
+      this,
+      &ScenarioDocumentPresenter::on_windowSizeChanged,
+      Qt::QueuedConnection);
+  con(view().view(),
+      &ProcessGraphicsView::horizontalZoom,
+      this,
       &ScenarioDocumentPresenter::on_horizontalZoom);
-  con(view().view(), &ProcessGraphicsView::verticalZoom, this,
+  con(view().view(),
+      &ProcessGraphicsView::verticalZoom,
+      this,
       &ScenarioDocumentPresenter::on_verticalZoom);
-  con(view().view(), &ProcessGraphicsView::scrolled, this,
+  con(view().view(),
+      &ProcessGraphicsView::scrolled,
+      this,
       &ScenarioDocumentPresenter::on_horizontalPositionChanged);
 
-  con(view(), &ScenarioDocumentView::setLargeView, this,
+  con(view(),
+      &ScenarioDocumentView::setLargeView,
+      this,
       &ScenarioDocumentPresenter::setLargeView);
 
   connect(
@@ -122,17 +139,22 @@ ScenarioDocumentPresenter::ScenarioDocumentPresenter(
           QPointer<Process::LayerPresenter>)>(
           &Process::ProcessFocusManager::focus));
 
-  con(view().timeRuler(), &TimeRuler::drag, this,
+  con(view().timeRuler(),
+      &TimeRuler::drag,
+      this,
       &ScenarioDocumentPresenter::on_timeRulerScrollEvent);
 
-  con(view().minimap(), &Minimap::visibleRectChanged, this,
+  con(view().minimap(),
+      &Minimap::visibleRectChanged,
+      this,
       &ScenarioDocumentPresenter::on_minimapChanged);
 
   // Focus
   connect(
       &m_focusDispatcher,
       qOverload<QPointer<Process::LayerPresenter>>(&FocusDispatcher::focus),
-      this, &ScenarioDocumentPresenter::setFocusedPresenter,
+      this,
+      &ScenarioDocumentPresenter::setFocusedPresenter,
       Qt::QueuedConnection);
 
   auto& set = ctx.app.settings<Settings::Model>();
@@ -140,21 +162,31 @@ ScenarioDocumentPresenter::ScenarioDocumentPresenter(
     auto& skin = Process::Style::instance();
     skin.setIntervalWidth(d);
   });
-  con(set, &Settings::Model::TimeBarChanged, this,
+  con(set,
+      &Settings::Model::TimeBarChanged,
+      this,
       &ScenarioDocumentPresenter::updateTimeBar);
 
   // Help for the FocusDispatcher.
   connect(
-      this, &ScenarioDocumentPresenter::setFocusedPresenter, &m_focusManager,
+      this,
+      &ScenarioDocumentPresenter::setFocusedPresenter,
+      &m_focusManager,
       static_cast<void (Process::ProcessFocusManager::*)(
           QPointer<Process::LayerPresenter>)>(
           &Process::ProcessFocusManager::focus));
 
-  con(m_focusManager, &Process::ProcessFocusManager::sig_defocusedViewModel,
-      this, &ScenarioDocumentPresenter::on_viewModelDefocused);
-  con(m_focusManager, &Process::ProcessFocusManager::sig_focusedViewModel,
-      this, &ScenarioDocumentPresenter::on_viewModelFocused);
-  con(m_focusManager, &Process::ProcessFocusManager::sig_focusedRoot, this,
+  con(m_focusManager,
+      &Process::ProcessFocusManager::sig_defocusedViewModel,
+      this,
+      &ScenarioDocumentPresenter::on_viewModelDefocused);
+  con(m_focusManager,
+      &Process::ProcessFocusManager::sig_focusedViewModel,
+      this,
+      &ScenarioDocumentPresenter::on_viewModelFocused);
+  con(m_focusManager,
+      &Process::ProcessFocusManager::sig_focusedRoot,
+      this,
       [] {
         ScenarioApplicationPlugin& app
             = score::GUIAppContext()
@@ -215,7 +247,8 @@ void ScenarioDocumentPresenter::selectTop()
 {
   focusManager().focus(this);
   score::SelectionDispatcher{m_context.selectionStack}.setAndCommit(
-      {&displayedElements.startState(), &displayedElements.interval(),
+      {&displayedElements.startState(),
+       &displayedElements.interval(),
        &displayedElements.endState()});
 }
 
@@ -233,7 +266,8 @@ void ScenarioDocumentPresenter::setMillisPerPixel(ZoomRatio newRatio)
 }
 
 void ScenarioDocumentPresenter::on_horizontalZoom(
-    QPointF zoom, QPointF scenePoint)
+    QPointF zoom,
+    QPointF scenePoint)
 {
   auto& map = view().minimap();
 
@@ -253,7 +287,8 @@ void ScenarioDocumentPresenter::on_horizontalZoom(
 }
 
 void ScenarioDocumentPresenter::on_verticalZoom(
-    QPointF zoom, QPointF scenePoint)
+    QPointF zoom,
+    QPointF scenePoint)
 {
   auto z = ossia::clamp(zoom.y(), -100., 100.);
   if (z == 0.)
@@ -267,7 +302,8 @@ void ScenarioDocumentPresenter::on_verticalZoom(
   }
 }
 void ScenarioDocumentPresenter::on_timeRulerScrollEvent(
-    QPointF previous, QPointF current)
+    QPointF previous,
+    QPointF current)
 {
   view().view().scrollHorizontal(previous.x() - current.x());
 }
@@ -620,8 +656,9 @@ void ScenarioDocumentPresenter::setDisplayedInterval(IntervalModel& interval)
     });
   }
   m_durationConnection = con(
-      interval.duration, &IntervalDurations::guiDurationChanged, this,
-      [=] { updateMinimap(); });
+      interval.duration, &IntervalDurations::guiDurationChanged, this, [=] {
+        updateMinimap();
+      });
 
   // Setup of the layer in the minimap
   delete m_miniLayer;
@@ -637,7 +674,9 @@ void ScenarioDocumentPresenter::setDisplayedInterval(IntervalModel& interval)
         m_miniLayer->setHeight(40);
         m_miniLayer->setWidth(view().minimap().width());
         view().minimap().scene()->addItem(m_miniLayer);
-        con(proc, &Process::ProcessModel::identified_object_destroying, this,
+        con(proc,
+            &Process::ProcessModel::identified_object_destroying,
+            this,
             [=] {
               delete m_miniLayer;
               m_miniLayer = nullptr;
@@ -651,7 +690,9 @@ void ScenarioDocumentPresenter::setDisplayedInterval(IntervalModel& interval)
   const auto& fact
       = ctx.app.interfaces<DisplayedElementsToolPaletteFactoryList>();
   m_stateMachine = fact.make(
-      &DisplayedElementsToolPaletteFactory::make, *this, interval,
+      &DisplayedElementsToolPaletteFactory::make,
+      *this,
+      interval,
       &view().baseItem());
 
   m_updatingView = true;
@@ -659,7 +700,8 @@ void ScenarioDocumentPresenter::setDisplayedInterval(IntervalModel& interval)
   m_updatingView = false;
   connect(
       m_scenarioPresenter.intervalPresenter(),
-      &FullViewIntervalPresenter::intervalSelected, this,
+      &FullViewIntervalPresenter::intervalSelected,
+      this,
       &ScenarioDocumentPresenter::setDisplayedInterval);
 
   on_viewReady();
@@ -782,7 +824,9 @@ void ScenarioDocumentPresenter::setNewSelection(const Selection& s)
         newProc->selection.set(true);
       }
       cur_proc_connection = connect(
-          newProc, &Process::ProcessModel::identified_object_destroying, this,
+          newProc,
+          &Process::ProcessModel::identified_object_destroying,
+          this,
           [&] { m_selectionDispatcher.setAndCommit(Selection{}); },
           Qt::UniqueConnection);
     }

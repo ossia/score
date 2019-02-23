@@ -27,9 +27,15 @@ struct Node
     static const constexpr auto controls = std::make_tuple(
         Control::IntSlider{"Num. Notes", 1, 5, 3},
         Control::make_enum(
-            "Chord", 0U,
+            "Chord",
+            0U,
             ossia::make_array(
-                "Major", "Minor", "Sus2", "Sus4", "Dim", "Aug")));
+                "Major",
+                "Minor",
+                "Sus2",
+                "Sus4",
+                "Dim",
+                "Aug")));
   };
 
   struct State
@@ -65,7 +71,9 @@ struct Node
 
   template <typename T>
   static void startChord(
-      const T& chord, const rtmidi::message& m, const std::size_t num,
+      const T& chord,
+      const rtmidi::message& m,
+      const std::size_t num,
       ossia::midi_port& op)
   {
     for (std::size_t i = 0; i < std::min(num, chord.size()); i++)
@@ -83,7 +91,9 @@ struct Node
 
   template <typename T>
   static void stopChord(
-      const T& chord, const rtmidi::message& m, const std::size_t num,
+      const T& chord,
+      const rtmidi::message& m,
+      const std::size_t num,
       ossia::midi_port& op)
   {
     for (std::size_t i = 0; i < std::min(num, chord.size()); i++)
@@ -101,21 +111,31 @@ struct Node
 
   template <typename F>
   static void dispatchChord(
-      std::string_view chord, const rtmidi::message& m, int num,
-      ossia::midi_port& op, F&& f)
+      std::string_view chord,
+      const rtmidi::message& m,
+      int num,
+      ossia::midi_port& op,
+      F&& f)
   {
     static const ossia::string_view_map<std::array<int, 5>> chords{
-        {"Major", major7}, {"Minor", minor7}, {"Sus2", sus2},
-        {"Sus4", sus4},    {"Dim", dim},      {"Aug", aug}};
+        {"Major", major7},
+        {"Minor", minor7},
+        {"Sus2", sus2},
+        {"Sus4", sus4},
+        {"Dim", dim},
+        {"Aug", aug}};
     auto it = chords.find(chord);
     if (it != chords.end())
       f(it->second, m, num, op);
   }
   static void
-  run(const ossia::midi_port& ip, const ossia::safe_nodes::timed_vec<int>& num,
+  run(const ossia::midi_port& ip,
+      const ossia::safe_nodes::timed_vec<int>& num,
       const ossia::safe_nodes::timed_vec<std::string>& chord,
-      ossia::midi_port& op, ossia::token_request tk,
-      ossia::exec_state_facade st, State& self)
+      ossia::midi_port& op,
+      ossia::token_request tk,
+      ossia::exec_state_facade st,
+      State& self)
   {
     for (const rtmidi::message& m : ip.messages)
     {

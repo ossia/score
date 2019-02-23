@@ -39,20 +39,25 @@ EventActions::EventActions(ScenarioApplicationPlugin* parent)
   /// Add Trigger ///
   m_addTrigger = new QAction{tr("Enable trigger"), this};
   connect(
-      m_addTrigger, &QAction::triggered, this,
+      m_addTrigger,
+      &QAction::triggered,
+      this,
       &EventActions::addTriggerToTimeSync);
   m_addTrigger->setEnabled(false);
 
   m_addTrigger->setToolTip(tr("Enable trigger"));
   setIcons(
-      m_addTrigger, QStringLiteral(":/icons/trigger_on.png"),
+      m_addTrigger,
+      QStringLiteral(":/icons/trigger_on.png"),
       QStringLiteral(":/icons/trigger_off.png"),
       QStringLiteral(":/icons/trigger_disabled.png"));
 
   /// Remove Trigger ///
   m_removeTrigger = new QAction{tr("Disable trigger"), this};
   connect(
-      m_removeTrigger, &QAction::triggered, this,
+      m_removeTrigger,
+      &QAction::triggered,
+      this,
       &EventActions::removeTriggerFromTimeSync);
   m_removeTrigger->setEnabled(false);
 
@@ -64,14 +69,17 @@ EventActions::EventActions(ScenarioApplicationPlugin* parent)
 
   m_addCondition->setToolTip(tr("Add Condition"));
   setIcons(
-      m_addCondition, QStringLiteral(":/icons/condition_on.png"),
+      m_addCondition,
+      QStringLiteral(":/icons/condition_on.png"),
       QStringLiteral(":/icons/condition_off.png"),
       QStringLiteral(":/icons/condition_disabled.png"));
 
   /// Remove Condition ///
   m_removeCondition = new QAction{tr("Remove Condition"), this};
   connect(
-      m_removeCondition, &QAction::triggered, this,
+      m_removeCondition,
+      &QAction::triggered,
+      this,
       &EventActions::removeCondition);
   m_removeCondition->setEnabled(false);
 }

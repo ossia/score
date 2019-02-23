@@ -18,29 +18,33 @@ class LayerPresenter final
   W_OBJECT(LayerPresenter)
 public:
   LayerPresenter(
-      const Curve::Style& style, const Automation::ProcessModel& layer,
-      LayerView* view, const Process::ProcessPresenterContext& context,
+      const Curve::Style& style,
+      const Automation::ProcessModel& layer,
+      LayerView* view,
+      const Process::ProcessPresenterContext& context,
       QObject* parent)
       : CurveProcessPresenter{style, layer, view, context, parent}
   {
     // TODO instead have a prettyNameChanged signal.
-    con(m_layer, &ProcessModel::tweenChanged, this,
+    con(m_layer,
+        &ProcessModel::tweenChanged,
+        this,
         &LayerPresenter::on_tweenChanges);
 
     connect(
-        m_view, &LayerView::dropReceived, this,
+        m_view,
+        &LayerView::dropReceived,
+        this,
         &LayerPresenter::on_dropReceived);
 
     on_tweenChanges(m_layer.tween());
-    con(layer.curve(), &Curve::Model::curveReset, this,
-        [&] { on_tweenChanges(layer.tween()); });
+    con(layer.curve(), &Curve::Model::curveReset, this, [&] {
+      on_tweenChanges(layer.tween());
+    });
   }
 
 private:
-  void setFullView() override
-  {
-    m_curve.setBoundedMove(false);
-  }
+  void setFullView() override { m_curve.setBoundedMove(false); }
 
   void on_tweenChanges(bool b)
   {

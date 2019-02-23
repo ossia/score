@@ -2,10 +2,10 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "CommentBlockView.hpp"
 
-#include <score/graphics/TextItem.hpp>
-
 #include <Process/Style/ScenarioStyle.hpp>
 #include <Scenario/Document/CommentBlock/CommentBlockPresenter.hpp>
+
+#include <score/graphics/TextItem.hpp>
 
 #include <QFont>
 #include <QGraphicsSceneMouseEvent>
@@ -18,7 +18,8 @@
 namespace Scenario
 {
 CommentBlockView::CommentBlockView(
-    CommentBlockPresenter& presenter, QGraphicsItem* parent)
+    CommentBlockPresenter& presenter,
+    QGraphicsItem* parent)
     : QGraphicsItem{parent}, m_presenter{presenter}
 {
   this->setParentItem(parent);
@@ -28,14 +29,21 @@ CommentBlockView::CommentBlockView(
   m_textItem = new score::TextItem{"", this};
 
   connect(
-      m_textItem->document(), &QTextDocument::contentsChanged, this,
-      [&]() { this->prepareGeometryChange(); });
-  connect(m_textItem, &score::TextItem::focusOut, this, &CommentBlockView::focusOut);
+      m_textItem->document(), &QTextDocument::contentsChanged, this, [&]() {
+        this->prepareGeometryChange();
+      });
+  connect(
+      m_textItem,
+      &score::TextItem::focusOut,
+      this,
+      &CommentBlockView::focusOut);
   focusOut();
 }
 
 void CommentBlockView::paint(
-    QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+    QPainter* painter,
+    const QStyleOptionGraphicsItem* option,
+    QWidget* widget)
 {
   auto& skin = Process::Style::instance();
 

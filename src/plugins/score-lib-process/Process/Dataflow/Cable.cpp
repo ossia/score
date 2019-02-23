@@ -15,9 +15,7 @@ W_OBJECT_IMPL(Process::Cable)
 namespace Process
 {
 
-Cable::~Cable()
-{
-}
+Cable::~Cable() {}
 
 Cable::Cable(Id<Cable> c, QObject* parent)
     : IdentifiedObject{c, Metadata<ObjectKey_k, Process::Cable>::get(), parent}
@@ -118,7 +116,6 @@ JSONValueWriter::write<Process::CableData>(Process::CableData& p)
 {
   p = fromJsonObject<Process::CableData>(this->val);
 }
-
 
 template <>
 SCORE_LIB_PROCESS_EXPORT void

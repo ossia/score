@@ -16,9 +16,7 @@ UndoPanelDelegate::UndoPanelDelegate(const GUIApplicationContext& ctx)
   m_widget->setObjectName("HistoryExplorer");
 }
 
-UndoPanelDelegate::~UndoPanelDelegate()
-{
-}
+UndoPanelDelegate::~UndoPanelDelegate() {}
 
 QWidget* UndoPanelDelegate::widget()
 {
@@ -28,7 +26,10 @@ QWidget* UndoPanelDelegate::widget()
 const PanelStatus& UndoPanelDelegate::defaultPanelStatus() const
 {
   static const score::PanelStatus status{
-      false, Qt::LeftDockWidgetArea, 1, QObject::tr("History"),
+      false,
+      Qt::LeftDockWidgetArea,
+      1,
+      QObject::tr("History"),
       QKeySequence::fromString("Ctrl+Shift+H")};
 
   return status;

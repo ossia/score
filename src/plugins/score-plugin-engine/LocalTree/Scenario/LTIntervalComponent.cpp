@@ -2,22 +2,24 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "IntervalComponent.hpp"
 
-#include <ossia/detail/algorithms.hpp>
 #include <State/Expression.hpp>
+
+#include <ossia/detail/algorithms.hpp>
 namespace State::convert
 {
 
-template<>
+template <>
 SCORE_LIB_STATE_EXPORT State::AddressAccessor value(const ossia::value& val)
 {
-  if(val.get_type() == ossia::val_type::STRING)
+  if (val.get_type() == ossia::val_type::STRING)
   {
-    if(auto res = State::parseAddressAccessor(QString::fromStdString(*val.target<std::string>())))
+    if (auto res = State::parseAddressAccessor(
+            QString::fromStdString(*val.target<std::string>())))
       return *res;
   }
   return {};
 }
-template<>
+template <>
 ossia::value value(const ossia::value& val)
 {
   return std::move(val);
@@ -54,21 +56,19 @@ struct qt_property_converter<ossia::value>
 {
   static constexpr const auto val = ossia::val_type::LIST;
   using type = ossia::value;
-  static ossia::value convert(const ossia::value& t)
-  {
-    return t;
-  }
-  static ossia::value convert(ossia::value&& t)
-  {
-    return std::move(t);
-  }
+  static ossia::value convert(const ossia::value& t) { return t; }
+  static ossia::value convert(ossia::value&& t) { return std::move(t); }
 };
 }
 
 namespace LocalTree
 {
 template <typename Property, typename Object>
-auto add_value_property(ossia::net::node_base& n, Object& obj, const std::string& name, QObject* context)
+auto add_value_property(
+    ossia::net::node_base& n,
+    Object& obj,
+    const std::string& name,
+    QObject* context)
 {
   auto node = n.create_child(name);
   SCORE_ASSERT(node);
@@ -79,45 +79,59 @@ auto add_value_property(ossia::net::node_base& n, Object& obj, const std::string
   addr->set_access(ossia::access_mode::BI);
   return std::make_unique<PropertyWrapper<Property>>(*addr, obj, context);
 }
-class DefaultProcessComponent final
-    : public ProcessComponent
+class DefaultProcessComponent final : public ProcessComponent
 {
   COMMON_COMPONENT_METADATA("0b801b8f-41db-49ca-a396-c26aadf3f1b5")
 public:
   DefaultProcessComponent(
-      ossia::net::node_base& node, Process::ProcessModel& proc,
-      DocumentPlugin& doc, const Id<score::Component>& id, QObject* parent)
-    : ProcessComponent{node, proc, doc, id, "ProcessComponent", parent}
+      ossia::net::node_base& node,
+      Process::ProcessModel& proc,
+      DocumentPlugin& doc,
+      const Id<score::Component>& id,
+      QObject* parent)
+      : ProcessComponent{node, proc, doc, id, "ProcessComponent", parent}
   {
-    for(Process::Inlet* inlet : proc.inlets())
+    for (Process::Inlet* inlet : proc.inlets())
     {
-      m_properties.push_back(add_property<Process::Inlet::p_address>(this->node(), *inlet, inlet->customData().toStdString(), this));
+      m_properties.push_back(add_property<Process::Inlet::p_address>(
+          this->node(), *inlet, inlet->customData().toStdString(), this));
       auto& port_node = m_properties.back()->addr.get_node();
-      if(auto control = dynamic_cast<Process::ControlInlet*>(inlet))
+      if (auto control = dynamic_cast<Process::ControlInlet*>(inlet))
       {
-        m_properties.push_back(add_value_property<Process::ControlInlet::p_value>(port_node, *control, "value", this));
+        m_properties.push_back(
+            add_value_property<Process::ControlInlet::p_value>(
+                port_node, *control, "value", this));
       }
     }
 
-    for(auto& outlet : proc.outlets())
+    for (auto& outlet : proc.outlets())
     {
-      m_properties.push_back(add_property<Process::Outlet::p_address>(this->node(), *outlet, outlet->customData().toStdString(), this));
+      m_properties.push_back(add_property<Process::Outlet::p_address>(
+          this->node(), *outlet, outlet->customData().toStdString(), this));
       auto& port_node = m_properties.back()->addr.get_node();
-      if(auto control = dynamic_cast<Process::ControlOutlet*>(outlet))
+      if (auto control = dynamic_cast<Process::ControlOutlet*>(outlet))
       {
-        m_properties.push_back(add_value_property<Process::ControlOutlet::p_value>(port_node, *control, "value", this));
+        m_properties.push_back(
+            add_value_property<Process::ControlOutlet::p_value>(
+                port_node, *control, "value", this));
       }
     }
   }
 };
 
-
 IntervalBase::IntervalBase(
-    ossia::net::node_base& parent, const Id<score::Component>& id,
-    Scenario::IntervalModel& interval, DocumentPlugin& doc,
+    ossia::net::node_base& parent,
+    const Id<score::Component>& id,
+    Scenario::IntervalModel& interval,
+    DocumentPlugin& doc,
     QObject* parent_comp)
-    : parent_t{parent, interval.metadata(), interval,   doc,
-               id,     "IntervalComponent", parent_comp}
+    : parent_t{parent,
+               interval.metadata(),
+               interval,
+               doc,
+               id,
+               "IntervalComponent",
+               parent_comp}
     , m_processesNode{*node().create_child("processes")}
 {
   using namespace Scenario;
@@ -131,19 +145,24 @@ IntervalBase::IntervalBase(
 }
 
 ProcessComponent* IntervalBase::make(
-    const Id<score::Component>& id, ProcessComponentFactory& factory,
+    const Id<score::Component>& id,
+    ProcessComponentFactory& factory,
     Process::ProcessModel& process)
 {
   return factory.make(id, m_processesNode, process, system(), this);
 }
 
-ProcessComponent*IntervalBase::make(const Id<score::Component>& id, Process::ProcessModel& process)
+ProcessComponent* IntervalBase::make(
+    const Id<score::Component>& id,
+    Process::ProcessModel& process)
 {
-  return new DefaultProcessComponent{m_processesNode, process, system(), id, this};
+  return new DefaultProcessComponent{
+      m_processesNode, process, system(), id, this};
 }
 
 bool IntervalBase::removing(
-    const Process::ProcessModel& cst, const ProcessComponent& comp)
+    const Process::ProcessModel& cst,
+    const ProcessComponent& comp)
 {
   return true;
 }

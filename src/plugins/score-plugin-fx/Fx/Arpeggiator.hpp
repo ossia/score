@@ -41,9 +41,15 @@ struct Node
 
   using control_policy = ossia::safe_nodes::precise_tick;
   static void
-  run(const ossia::midi_port& midi, float spacing, float tempo, int quantif,
-      int duration, ossia::midi_port& out, ossia::token_request tk,
-      ossia::exec_state_facade st, State& self)
+  run(const ossia::midi_port& midi,
+      float spacing,
+      float tempo,
+      int quantif,
+      int duration,
+      ossia::midi_port& out,
+      ossia::token_request tk,
+      ossia::exec_state_facade st,
+      State& self)
   {
     // Store the current chord in a buffer
     auto msgs = midi.messages;

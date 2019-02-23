@@ -29,10 +29,7 @@ public:
       m_lay->addWidget(m_widget);
   }
 
-  Widget* widget() const
-  {
-    return m_widget;
-  }
+  Widget* widget() const { return m_widget; }
 
 private:
   QGridLayout* m_lay{};

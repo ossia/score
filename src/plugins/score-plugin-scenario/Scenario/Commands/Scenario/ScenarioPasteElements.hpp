@@ -25,11 +25,13 @@ class SCORE_PLUGIN_SCENARIO_EXPORT ScenarioPasteElements final
     : public score::Command
 {
   SCORE_COMMAND_DECL(
-      ScenarioCommandFactoryName(), ScenarioPasteElements,
+      ScenarioCommandFactoryName(),
+      ScenarioPasteElements,
       "Paste elements in scenario")
 public:
   ScenarioPasteElements(
-      const Scenario::ProcessModel& path, const QJsonObject& obj,
+      const Scenario::ProcessModel& path,
+      const QJsonObject& obj,
       const Scenario::Point& pt);
 
   void undo(const score::DocumentContext& ctx) const override;

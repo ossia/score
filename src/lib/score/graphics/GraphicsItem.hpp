@@ -37,39 +37,19 @@ struct graphics_item_ptr
   graphics_item_ptr& operator=(const graphics_item_ptr&) = default;
   graphics_item_ptr& operator=(graphics_item_ptr&&) = default;
 
-  graphics_item_ptr(T* p) : impl{p}
-  {
-  }
+  graphics_item_ptr(T* p) : impl{p} {}
 
-  ~graphics_item_ptr()
-  {
-    deleteGraphicsItem(impl);
-  }
+  ~graphics_item_ptr() { deleteGraphicsItem(impl); }
 
-  auto operator=(T* other)
-  {
-    impl = other;
-  }
+  auto operator=(T* other) { impl = other; }
 
-  operator bool() const
-  {
-    return impl;
-  }
+  operator bool() const { return impl; }
 
-  operator T*() const
-  {
-    return impl;
-  }
+  operator T*() const { return impl; }
 
-  T& operator*() const
-  {
-    return *impl;
-  }
+  T& operator*() const { return *impl; }
 
-  T* operator->() const
-  {
-    return impl;
-  }
+  T* operator->() const { return impl; }
 };
 
 Q_DECLARE_METATYPE(QPainterPath)

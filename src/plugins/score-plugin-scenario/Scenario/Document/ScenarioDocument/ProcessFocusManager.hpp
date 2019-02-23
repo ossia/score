@@ -33,9 +33,7 @@ class SCORE_LIB_PROCESS_EXPORT ProcessFocusManager final : public QObject
   W_OBJECT(ProcessFocusManager)
 
 public:
-  ProcessFocusManager(score::FocusManager& fmgr) : m_mgr{fmgr}
-  {
-  }
+  ProcessFocusManager(score::FocusManager& fmgr) : m_mgr{fmgr} {}
 
   const ProcessModel* focusedModel() const;
   LayerPresenter* focusedPresenter() const;

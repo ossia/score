@@ -26,12 +26,12 @@
 #include <Scenario/Document/TimeSync/TimeSyncView.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
 
+#include <score/graphics/GraphicsProxyObject.hpp>
 #include <score/model/EntityMap.hpp>
 #include <score/model/IdentifiedObjectMap.hpp>
 #include <score/model/Identifier.hpp>
 #include <score/tools/Todo.hpp>
 #include <score/tools/std/Optional.hpp>
-#include <score/graphics/GraphicsProxyObject.hpp>
 
 #include <ossia/detail/algorithms.hpp>
 
@@ -60,7 +60,9 @@ DisplayedElementsPresenter::DisplayedElementsPresenter(
 DisplayedElementsPresenter::~DisplayedElementsPresenter()
 {
   disconnect(
-      &m_model.context().execTimer, &QTimer::timeout, this,
+      &m_model.context().execTimer,
+      &QTimer::timeout,
+      this,
       &DisplayedElementsPresenter::on_intervalExecutionTimer);
 
   // TODO use directly displayedelementspresentercontainer
@@ -82,7 +84,9 @@ void DisplayedElementsPresenter::on_displayedIntervalChanged(
     const IntervalModel& m)
 {
   disconnect(
-      &m_model.context().execTimer, &QTimer::timeout, this,
+      &m_model.context().execTimer,
+      &QTimer::timeout,
+      this,
       &DisplayedElementsPresenter::on_intervalExecutionTimer);
 
   for (auto& con : m_connections)
@@ -102,8 +106,11 @@ void DisplayedElementsPresenter::on_displayedIntervalChanged(
   auto& ctx = m_model.context();
   auto& provider = ctx.app.interfaces<DisplayedElementsProviderList>();
   DisplayedElementsPresenterContainer elts = provider.make(
-      &DisplayedElementsProvider::make_presenters, m, ctx,
-      &m_model.view().baseItem(), this);
+      &DisplayedElementsProvider::make_presenters,
+      m,
+      ctx,
+      &m_model.view().baseItem(),
+      this);
   m_intervalPresenter = elts.interval;
   m_startStatePresenter = elts.startState;
   m_endStatePresenter = elts.endState;
@@ -114,25 +121,34 @@ void DisplayedElementsPresenter::on_displayedIntervalChanged(
 
   m_connections.push_back(
       con(m_intervalPresenter->model().duration,
-          &IntervalDurations::defaultDurationChanged, this,
+          &IntervalDurations::defaultDurationChanged,
+          this,
           &DisplayedElementsPresenter::on_displayedIntervalDurationChanged));
   m_connections.push_back(
-      con(m_intervalPresenter->model(), &IntervalModel::heightFinishedChanging,
-          this, [&]() {
+      con(m_intervalPresenter->model(),
+          &IntervalModel::heightFinishedChanging,
+          this,
+          [&]() {
             on_displayedIntervalHeightChanged(
                 m_intervalPresenter->view()->height());
           }));
 
   m_connections.push_back(connect(
-      m_intervalPresenter, &FullViewIntervalPresenter::heightChanged, this,
+      m_intervalPresenter,
+      &FullViewIntervalPresenter::heightChanged,
+      this,
       [&]() {
         on_displayedIntervalHeightChanged(
             m_intervalPresenter->view()->height());
       }));
 
   auto elements = std::make_tuple(
-      m_intervalPresenter, m_startStatePresenter, m_endStatePresenter,
-      m_startEventPresenter, m_endEventPresenter, m_startNodePresenter,
+      m_intervalPresenter,
+      m_startStatePresenter,
+      m_endStatePresenter,
+      m_startEventPresenter,
+      m_endEventPresenter,
+      m_startNodePresenter,
       m_endNodePresenter);
 
   ossia::for_each_in_tuple(elements, [&](auto elt) {
@@ -142,7 +158,9 @@ void DisplayedElementsPresenter::on_displayedIntervalChanged(
     m_connections.push_back(connect(
         elt, &elt_t::moved, &m_model, &ScenarioDocumentPresenter::moved));
     m_connections.push_back(connect(
-        elt, &elt_t::released, &m_model,
+        elt,
+        &elt_t::released,
+        &m_model,
         &ScenarioDocumentPresenter::released));
   });
 
@@ -153,7 +171,9 @@ void DisplayedElementsPresenter::on_displayedIntervalChanged(
 
   on_zoomRatioChanged(m_intervalPresenter->zoomRatio());
 
-  con(ctx.execTimer, &QTimer::timeout, this,
+  con(ctx.execTimer,
+      &QTimer::timeout,
+      this,
       &DisplayedElementsPresenter::on_intervalExecutionTimer);
 }
 
@@ -192,7 +212,8 @@ const double deltaY = 20.;
 void DisplayedElementsPresenter::on_displayedIntervalHeightChanged(double size)
 {
   auto cur_rect = m_model.view().view().sceneRect();
-  QRectF new_rect{qreal(ScenarioLeftSpace), 0.,
+  QRectF new_rect{qreal(ScenarioLeftSpace),
+                  0.,
                   m_intervalPresenter->model().duration.guiDuration().toPixels(
                       m_intervalPresenter->zoomRatio()),
                   size + 40};

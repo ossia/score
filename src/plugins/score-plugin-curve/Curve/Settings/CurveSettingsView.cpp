@@ -23,7 +23,9 @@ View::View() : m_widg{new QWidget}
     m_sb->setMinimum(1);
     m_sb->setMaximum(100);
     connect(
-        m_sb, SignalUtils::QDoubleSpinBox_valueChanged_double(), this,
+        m_sb,
+        SignalUtils::QDoubleSpinBox_valueChanged_double(),
+        this,
         &View::simplificationRatioChanged);
 
     lay->addRow(tr("Simplification Ratio"), m_sb);

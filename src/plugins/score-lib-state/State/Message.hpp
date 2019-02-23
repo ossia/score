@@ -23,10 +23,7 @@ struct SCORE_LIB_STATE_EXPORT Message
     return address != m.address || value != m.value;
   }
 
-  bool operator<(const Message& m) const
-  {
-    return false;
-  }
+  bool operator<(const Message& m) const { return false; }
 
   QString toString() const;
 

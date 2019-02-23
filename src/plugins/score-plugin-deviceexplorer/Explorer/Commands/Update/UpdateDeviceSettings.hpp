@@ -18,11 +18,13 @@ namespace Command
 class UpdateDeviceSettings final : public score::Command
 {
   SCORE_COMMAND_DECL(
-      DeviceExplorerCommandFactoryName(), UpdateDeviceSettings,
+      DeviceExplorerCommandFactoryName(),
+      UpdateDeviceSettings,
       "Update a device")
 public:
   UpdateDeviceSettings(
-      const DeviceDocumentPlugin& devplug, const QString& name,
+      const DeviceDocumentPlugin& devplug,
+      const QString& name,
       const Device::DeviceSettings& parameters);
 
   void undo(const score::DocumentContext& ctx) const override;

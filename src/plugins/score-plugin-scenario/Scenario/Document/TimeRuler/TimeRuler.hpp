@@ -46,7 +46,8 @@ public:
 
   TimeRuler(QGraphicsView*);
   void paint(
-      QPainter* painter, const QStyleOptionGraphicsItem* option,
+      QPainter* painter,
+      const QStyleOptionGraphicsItem* option,
       QWidget* widget) override;
 
   void setWidth(qreal newWidth);
@@ -56,10 +57,7 @@ public:
     return m_intervalsBetweenMark * m_graduationsSpacing;
   }
 
-  qreal width() const
-  {
-    return m_width;
-  }
+  qreal width() const { return m_width; }
 
   void setStartPoint(TimeVal dur);
   void setPixelPerMillis(double factor);

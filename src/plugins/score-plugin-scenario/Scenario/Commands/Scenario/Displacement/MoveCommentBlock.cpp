@@ -14,7 +14,9 @@ namespace Scenario
 namespace Command
 {
 MoveCommentBlock::MoveCommentBlock(
-    const ProcessModel& scenar, Id<CommentBlockModel> id, TimeVal newDate,
+    const ProcessModel& scenar,
+    Id<CommentBlockModel> id,
+    TimeVal newDate,
     double newY)
     : m_path{scenar}
     , m_id{std::move(id)}

@@ -18,11 +18,17 @@ namespace Scenario
 namespace Command
 {
 MoveNewEvent::MoveNewEvent(
-    const Scenario::ProcessModel& scenarioPath, Id<IntervalModel> intervalId,
-    Id<EventModel> eventId, TimeVal date, double y, bool yLocked)
+    const Scenario::ProcessModel& scenarioPath,
+    Id<IntervalModel> intervalId,
+    Id<EventModel> eventId,
+    TimeVal date,
+    double y,
+    bool yLocked)
     : m_path{scenarioPath}
     , m_intervalId{std::move(intervalId)}
-    , m_cmd{scenarioPath, std::move(eventId), std::move(date),
+    , m_cmd{scenarioPath,
+            std::move(eventId),
+            std::move(date),
             ExpandMode::Scale}
     , m_y{y}
     , m_yLocked{yLocked}
@@ -30,8 +36,12 @@ MoveNewEvent::MoveNewEvent(
 }
 
 MoveNewEvent::MoveNewEvent(
-    const Scenario::ProcessModel& scenarioPath, Id<IntervalModel> intervalId,
-    Id<EventModel> eventId, TimeVal date, const double y, bool yLocked,
+    const Scenario::ProcessModel& scenarioPath,
+    Id<IntervalModel> intervalId,
+    Id<EventModel> eventId,
+    TimeVal date,
+    const double y,
+    bool yLocked,
     ExpandMode mode)
     : m_path{scenarioPath}
     , m_intervalId{std::move(intervalId)}

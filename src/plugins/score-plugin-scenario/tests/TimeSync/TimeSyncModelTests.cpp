@@ -20,7 +20,9 @@ private:
   void AddEventTest()
   {
     TimeSyncModel model{Id<TimeSyncModel>(1),
-                        TimeValue{std::chrono::milliseconds(1)}, 0.5, this};
+                        TimeValue{std::chrono::milliseconds(1)},
+                        0.5,
+                        this};
   }
 };
 

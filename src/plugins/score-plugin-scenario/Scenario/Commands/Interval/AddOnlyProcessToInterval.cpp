@@ -31,15 +31,18 @@ namespace Scenario
 namespace Command
 {
 AddOnlyProcessToInterval::AddOnlyProcessToInterval(
-    const IntervalModel& cst, UuidKey<Process::ProcessModel> process,
+    const IntervalModel& cst,
+    UuidKey<Process::ProcessModel> process,
     const QString& dat)
     : AddOnlyProcessToInterval{cst, getStrongId(cst.processes), process, dat}
 {
 }
 
 AddOnlyProcessToInterval::AddOnlyProcessToInterval(
-    const IntervalModel& cst, Id<Process::ProcessModel> processId,
-    UuidKey<Process::ProcessModel> process, const QString& dat)
+    const IntervalModel& cst,
+    Id<Process::ProcessModel> processId,
+    UuidKey<Process::ProcessModel> process,
+    const QString& dat)
     : m_path{cst}
     , m_processName{process}
     , m_data{dat}
@@ -63,7 +66,8 @@ void AddOnlyProcessToInterval::undo(IntervalModel& interval) const
 }
 
 Process::ProcessModel& AddOnlyProcessToInterval::redo(
-    IntervalModel& interval, const score::DocumentContext& ctx) const
+    IntervalModel& interval,
+    const score::DocumentContext& ctx) const
 {
   // Create process model
   auto fac
@@ -71,7 +75,9 @@ Process::ProcessModel& AddOnlyProcessToInterval::redo(
   SCORE_ASSERT(fac);
   auto proc = fac->make(
       interval.duration.defaultDuration(), // TODO should maybe be max ?
-      m_data, m_createdProcessId, &interval);
+      m_data,
+      m_createdProcessId,
+      &interval);
 
   AddProcess(interval, proc);
   return *proc;
@@ -88,7 +94,8 @@ void AddOnlyProcessToInterval::deserializeImpl(DataStreamOutput& s)
 }
 
 LoadOnlyProcessInInterval::LoadOnlyProcessInInterval(
-    const IntervalModel& cst, Id<Process::ProcessModel> processId,
+    const IntervalModel& cst,
+    Id<Process::ProcessModel> processId,
     const QJsonObject& dat)
     : m_path{cst}, m_createdProcessId{std::move(processId)}, m_data{dat}
 {
@@ -110,7 +117,8 @@ void LoadOnlyProcessInInterval::undo(IntervalModel& interval) const
 }
 
 Process::ProcessModel& LoadOnlyProcessInInterval::redo(
-    IntervalModel& interval, const score::DocumentContext& ctx) const
+    IntervalModel& interval,
+    const score::DocumentContext& ctx) const
 {
 
   // Create process model
@@ -147,13 +155,15 @@ void LoadOnlyProcessInInterval::deserializeImpl(DataStreamOutput& s)
 }
 
 DuplicateOnlyProcessToInterval::DuplicateOnlyProcessToInterval(
-    const IntervalModel& cst, const Process::ProcessModel& process)
+    const IntervalModel& cst,
+    const Process::ProcessModel& process)
     : DuplicateOnlyProcessToInterval{cst, getStrongId(cst.processes), process}
 {
 }
 
 DuplicateOnlyProcessToInterval::DuplicateOnlyProcessToInterval(
-    const IntervalModel& cst, Id<Process::ProcessModel> processId,
+    const IntervalModel& cst,
+    Id<Process::ProcessModel> processId,
     const Process::ProcessModel& process)
     : m_path{cst}
     , m_processData{score::marshall<DataStream>(process)}
@@ -179,7 +189,8 @@ void DuplicateOnlyProcessToInterval::undo(IntervalModel& interval) const
 }
 
 Process::ProcessModel& DuplicateOnlyProcessToInterval::redo(
-    IntervalModel& interval, const score::DocumentContext& ctx) const
+    IntervalModel& interval,
+    const score::DocumentContext& ctx) const
 {
   // Create process model
   auto& pl = ctx.app.interfaces<Process::ProcessFactoryList>();

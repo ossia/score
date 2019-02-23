@@ -19,7 +19,9 @@ AbsoluteSliderStyle* AbsoluteSliderStyle::instance() noexcept
 }
 
 int AbsoluteSliderStyle::styleHint(
-    QStyle::StyleHint hint, const QStyleOption* option, const QWidget* widget,
+    QStyle::StyleHint hint,
+    const QStyleOption* option,
+    const QWidget* widget,
     QStyleHintReturn* returnData) const
 {
   switch (hint)
@@ -57,7 +59,7 @@ double DoubleSlider::value() const
 Slider::Slider(Qt::Orientation ort, QWidget* widg) : QSlider{ort, widg}
 {
   setStyle(AbsoluteSliderStyle::instance());
-  switch(ort)
+  switch (ort)
   {
     case Qt::Vertical:
       setMinimumSize(20, 30);
@@ -68,9 +70,7 @@ Slider::Slider(Qt::Orientation ort, QWidget* widg) : QSlider{ort, widg}
   }
 }
 
-Slider::Slider(QWidget* widg) : Slider{Qt::Horizontal, widg}
-{
-}
+Slider::Slider(QWidget* widg) : Slider{Qt::Horizontal, widg} {}
 
 void Slider::paintEvent(QPaintEvent*)
 {

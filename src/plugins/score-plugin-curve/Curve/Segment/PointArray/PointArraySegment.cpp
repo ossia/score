@@ -43,7 +43,9 @@ PointArraySegment::PointArraySegment(const SegmentData& dat, QObject* parent)
 }
 
 PointArraySegment::PointArraySegment(
-    const PointArraySegment& other, const id_type& id, QObject* parent)
+    const PointArraySegment& other,
+    const id_type& id,
+    QObject* parent)
     : SegmentModel{other.start(), other.end(), id, parent}
     , min_x{other.min_x}
     , max_x{other.max_x}
@@ -214,7 +216,11 @@ std::vector<SegmentData> PointArraySegment::toLinearSegments() const
 
   int N0 = 10000;
   vec.emplace_back(
-      Id<SegmentModel>{N0}, pts[0], pts[1], ossia::none, ossia::none,
+      Id<SegmentModel>{N0},
+      pts[0],
+      pts[1],
+      ossia::none,
+      ossia::none,
       Metadata<ConcreteKey_k, LinearSegment>::get(),
       QVariant::fromValue(LinearSegmentData{}));
 
@@ -225,8 +231,12 @@ std::vector<SegmentData> PointArraySegment::toLinearSegments() const
     vec.back().following = Id<SegmentModel>{k};
 
     vec.emplace_back(
-        Id<SegmentModel>{k}, pts[i], pts[i + 1], Id<SegmentModel>{k - 1},
-        ossia::none, Metadata<ConcreteKey_k, LinearSegment>::get(),
+        Id<SegmentModel>{k},
+        pts[i],
+        pts[i + 1],
+        Id<SegmentModel>{k - 1},
+        ossia::none,
+        Metadata<ConcreteKey_k, LinearSegment>::get(),
         QVariant::fromValue(LinearSegmentData()));
   }
 
@@ -243,7 +253,11 @@ std::vector<SegmentData> PointArraySegment::toPowerSegments() const
 
   int N0 = 10000;
   vec.emplace_back(
-      Id<SegmentModel>{N0}, pts[0], pts[1], ossia::none, ossia::none,
+      Id<SegmentModel>{N0},
+      pts[0],
+      pts[1],
+      ossia::none,
+      ossia::none,
       Metadata<ConcreteKey_k, PowerSegment>::get(),
       QVariant::fromValue(PowerSegmentData{}));
 
@@ -254,7 +268,10 @@ std::vector<SegmentData> PointArraySegment::toPowerSegments() const
     vec.back().following = Id<SegmentModel>{k};
 
     vec.emplace_back(
-        Id<SegmentModel>{k}, pts[i], pts[i + 1], Id<SegmentModel>{k - 1},
+        Id<SegmentModel>{k},
+        pts[i],
+        pts[i + 1],
+        Id<SegmentModel>{k - 1},
         OptionalId<SegmentModel>{},
         Metadata<ConcreteKey_k, PowerSegment>::get(),
         QVariant::fromValue(PowerSegmentData()));

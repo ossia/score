@@ -10,8 +10,8 @@
 #include <State/Widgets/AddressLineEdit.hpp>
 #include <State/Widgets/UnitWidget.hpp>
 
-#include <score/model/tree/TreeNodeSerialization.hpp>
 #include <score/document/DocumentContext.hpp>
+#include <score/model/tree/TreeNodeSerialization.hpp>
 #include <score/widgets/MarginLess.hpp>
 
 #include <ossia/editor/state/destination_qualifiers.hpp>
@@ -24,7 +24,8 @@ W_OBJECT_IMPL(Device::AddressAccessorEditWidget)
 namespace Device
 {
 AddressAccessorEditWidget::AddressAccessorEditWidget(
-    const score::DocumentContext& ctx, QWidget* parent)
+    const score::DocumentContext& ctx,
+    QWidget* parent)
     : QWidget{parent}
 {
   setAcceptDrops(true);
@@ -35,8 +36,10 @@ AddressAccessorEditWidget::AddressAccessorEditWidget(
   m_qualifiers = new State::DestinationQualifierWidget{this};
   m_qualifiers->setVisible(false);
   connect(
-      m_qualifiers, &State::DestinationQualifierWidget::qualifiersChanged,
-      this, [=](const auto& qual) {
+      m_qualifiers,
+      &State::DestinationQualifierWidget::qualifiersChanged,
+      this,
+      [=](const auto& qual) {
         if (m_address.address.qualifiers != qual)
         {
           m_address.address.qualifiers = qual;
@@ -94,7 +97,9 @@ AddressAccessorEditWidget::AddressAccessorEditWidget(
 
   m_lineEdit->setContextMenuPolicy(Qt::CustomContextMenu);
   connect(
-      m_lineEdit, &QLineEdit::customContextMenuRequested, this,
+      m_lineEdit,
+      &QLineEdit::customContextMenuRequested,
+      this,
       &AddressAccessorEditWidget::customContextMenuEvent);
 
   if (m_model)

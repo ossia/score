@@ -23,10 +23,14 @@ class Creation_FromEvent final
 {
 public:
   Creation_FromEvent(
-      const ToolPalette_T& stateMachine, const Scenario_T& scenarioPath,
-      const score::CommandStackFacade& stack, QState* parent)
-      : CreationState<Scenario_T, ToolPalette_T>{
-            stateMachine, stack, std::move(scenarioPath), parent}
+      const ToolPalette_T& stateMachine,
+      const Scenario_T& scenarioPath,
+      const score::CommandStackFacade& stack,
+      QState* parent)
+      : CreationState<Scenario_T, ToolPalette_T>{stateMachine,
+                                                 stack,
+                                                 std::move(scenarioPath),
+                                                 parent}
   {
     using namespace Scenario::Command;
     auto finalState = new QFinalState{this};
@@ -177,9 +181,12 @@ public:
         }
 
         this->m_dispatcher.template submit<MoveNewEvent>(
-            this->m_scenario, this->createdIntervals.last(),
-            this->createdEvents.last(), this->currentPoint.date,
-            this->currentPoint.y, stateMachine.editionSettings().sequence());
+            this->m_scenario,
+            this->createdIntervals.last(),
+            this->createdEvents.last(),
+            this->currentPoint.date,
+            this->currentPoint.y,
+            stateMachine.editionSettings().sequence());
       });
 
       QObject::connect(move_timesync, &QState::entered, [&]() {
@@ -195,7 +202,8 @@ public:
         }
 
         this->m_dispatcher.template submit<MoveNewState>(
-            this->m_scenario, this->createdStates.last(),
+            this->m_scenario,
+            this->createdStates.last(),
             this->currentPoint.y);
       });
 
@@ -212,7 +220,8 @@ public:
         }
 
         this->m_dispatcher.template submit<MoveNewState>(
-            this->m_scenario, this->createdStates.last(),
+            this->m_scenario,
+            this->createdStates.last(),
             this->currentPoint.y);
       });
 

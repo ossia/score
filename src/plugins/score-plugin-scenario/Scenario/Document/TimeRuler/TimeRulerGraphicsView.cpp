@@ -31,7 +31,8 @@ TimeRulerGraphicsView::TimeRulerGraphicsView(QGraphicsScene* scene)
   setViewportUpdateMode(QGraphicsView::NoViewportUpdate);
   setAlignment(Qt::AlignTop | Qt::AlignLeft);
 
-  setBackgroundBrush(Process::Style::instance().TimeRulerBackground.getBrush());
+  setBackgroundBrush(
+      Process::Style::instance().TimeRulerBackground.getBrush());
 
   setOptimizationFlag(QGraphicsView::DontSavePainterState, true);
 #if defined(__APPLE__)
@@ -49,9 +50,7 @@ MinimapGraphicsView::MinimapGraphicsView(QGraphicsScene* s)
   setDragMode(DragMode::NoDrag);
 }
 
-void MinimapGraphicsView::scrollContentsBy(int dx, int dy)
-{
-}
+void MinimapGraphicsView::scrollContentsBy(int dx, int dy) {}
 
 void MinimapGraphicsView::wheelEvent(QWheelEvent* event)
 {

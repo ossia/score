@@ -12,7 +12,8 @@ namespace Scenario
 namespace Command
 {
 SetCommentText::SetCommentText(
-    const CommentBlockModel& model, QString newComment)
+    const CommentBlockModel& model,
+    QString newComment)
     : m_path{model}
     , m_newComment{std::move(newComment)}
     , m_oldComment{model.content()}

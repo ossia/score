@@ -18,7 +18,6 @@ class ProtocolSettingsWidget;
 
 struct VisitorVariant;
 
-
 namespace Protocols
 {
 QString MIDIProtocolFactory::prettyName() const
@@ -27,7 +26,8 @@ QString MIDIProtocolFactory::prettyName() const
 }
 
 Device::DeviceInterface* MIDIProtocolFactory::makeDevice(
-    const Device::DeviceSettings& settings, const score::DocumentContext& ctx)
+    const Device::DeviceSettings& settings,
+    const score::DocumentContext& ctx)
 {
   return new MIDIDevice{settings};
 }
@@ -51,15 +51,18 @@ Device::ProtocolSettingsWidget* MIDIProtocolFactory::makeSettingsWidget()
 }
 
 Device::AddressDialog* MIDIProtocolFactory::makeAddAddressDialog(
-    const Device::DeviceInterface& dev, const score::DocumentContext& ctx,
+    const Device::DeviceInterface& dev,
+    const score::DocumentContext& ctx,
     QWidget* parent)
 {
   return nullptr;
 }
 
 Device::AddressDialog* MIDIProtocolFactory::makeEditAddressDialog(
-    const Device::AddressSettings&, const Device::DeviceInterface& dev,
-    const score::DocumentContext& ctx, QWidget*)
+    const Device::AddressSettings&,
+    const Device::DeviceInterface& dev,
+    const score::DocumentContext& ctx,
+    QWidget*)
 {
   return nullptr;
 }
@@ -71,13 +74,15 @@ QVariant MIDIProtocolFactory::makeProtocolSpecificSettings(
 }
 
 void MIDIProtocolFactory::serializeProtocolSpecificSettings(
-    const QVariant& data, const VisitorVariant& visitor) const
+    const QVariant& data,
+    const VisitorVariant& visitor) const
 {
   serializeProtocolSpecificSettings_T<MIDISpecificSettings>(data, visitor);
 }
 
 bool MIDIProtocolFactory::checkCompatibility(
-    const Device::DeviceSettings& a, const Device::DeviceSettings& b) const
+    const Device::DeviceSettings& a,
+    const Device::DeviceSettings& b) const
 {
   return a.name != b.name;
 }

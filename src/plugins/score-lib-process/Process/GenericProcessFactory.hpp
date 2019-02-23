@@ -38,21 +38,30 @@ private:
   }
 
   Model_T* make(
-      const TimeVal& duration, const QString& data,
-      const Id<Process::ProcessModel>& id, QObject* parent) final override;
+      const TimeVal& duration,
+      const QString& data,
+      const Id<Process::ProcessModel>& id,
+      QObject* parent) final override;
 
   Model_T* load(const VisitorVariant& vis, QObject* parent) final override;
 };
 
 template <typename Model_T>
 Model_T* ProcessFactory_T<Model_T>::make(
-    const TimeVal& duration, const QString& data,
-    const Id<Process::ProcessModel>& id, QObject* parent)
+    const TimeVal& duration,
+    const QString& data,
+    const Id<Process::ProcessModel>& id,
+    QObject* parent)
 {
-  if constexpr(std::is_constructible_v<Model_T, TimeVal, QString, Id<Process::ProcessModel>, QObject*>)
-      return new Model_T{duration, data, id, parent};
+  if constexpr (std::is_constructible_v<
+                    Model_T,
+                    TimeVal,
+                    QString,
+                    Id<Process::ProcessModel>,
+                    QObject*>)
+    return new Model_T{duration, data, id, parent};
   else
-      return new Model_T{duration, id, parent};
+    return new Model_T{duration, id, parent};
 }
 
 template <typename Model_T>
@@ -65,7 +74,9 @@ ProcessFactory_T<Model_T>::load(const VisitorVariant& vis, QObject* parent)
 }
 
 template <
-    typename Model_T, typename LayerPresenter_T, typename LayerView_T,
+    typename Model_T,
+    typename LayerPresenter_T,
+    typename LayerView_T,
     typename HeaderDelegate_T = default_t>
 class LayerFactory_T final : public Process::LayerFactory
 {
@@ -82,19 +93,25 @@ private:
       const Process::ProcessModel& viewmodel,
       QGraphicsItem* parent) const final override
   {
-    if constexpr(std::is_constructible_v<LayerView_T, const Model_T&, QGraphicsItem*>)
-        return new LayerView_T{safe_cast<const Model_T&>(viewmodel), parent};
+    if constexpr (std::is_constructible_v<
+                      LayerView_T,
+                      const Model_T&,
+                      QGraphicsItem*>)
+      return new LayerView_T{safe_cast<const Model_T&>(viewmodel), parent};
     else
-        return new LayerView_T{parent};
+      return new LayerView_T{parent};
   }
 
   LayerPresenter_T* makeLayerPresenter(
-      const Process::ProcessModel& lm, Process::LayerView* v,
+      const Process::ProcessModel& lm,
+      Process::LayerView* v,
       const Process::ProcessPresenterContext& context,
       QObject* parent) const final override
   {
     return new LayerPresenter_T{safe_cast<const Model_T&>(lm),
-                                safe_cast<LayerView_T*>(v), context, parent};
+                                safe_cast<LayerView_T*>(v),
+                                context,
+                                parent};
   }
 
   bool matches(const UuidKey<Process::ProcessModel>& p) const override

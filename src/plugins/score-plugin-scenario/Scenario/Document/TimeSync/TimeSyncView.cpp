@@ -26,7 +26,8 @@ class QWidget;
 namespace Scenario
 {
 TimeSyncView::TimeSyncView(TimeSyncPresenter& presenter, QGraphicsItem* parent)
-    : QGraphicsItem{parent}, m_presenter{presenter}
+    : QGraphicsItem{parent}
+    , m_presenter{presenter}
     , m_color{presenter.model().metadata().getColor()}
     , m_text{m_color, this}
 {
@@ -39,16 +40,16 @@ TimeSyncView::TimeSyncView(TimeSyncPresenter& presenter, QGraphicsItem* parent)
   m_text.setFont(score::Skin::instance().Bold10Pt);
 }
 
-TimeSyncView::~TimeSyncView()
-{
-}
+TimeSyncView::~TimeSyncView() {}
 
 void TimeSyncView::paint(
-    QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+    QPainter* painter,
+    const QStyleOptionGraphicsItem* option,
+    QWidget* widget)
 {
   const auto height = m_extent.bottom() - m_extent.top();
 #if !defined(NDEBUG)
-  if(m_presenter.model().events().empty())
+  if (m_presenter.model().events().empty())
   {
     QPen ugh(Qt::red, 15);
     QBrush ughb(Qt::red);

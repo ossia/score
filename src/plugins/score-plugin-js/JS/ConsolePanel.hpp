@@ -39,9 +39,7 @@ class EditJsContext : public QObject
 {
   W_OBJECT(EditJsContext)
 public:
-  EditJsContext()
-  {
-  }
+  EditJsContext() {}
 
   const score::DocumentContext& ctx()
   {
@@ -53,8 +51,8 @@ public:
     auto& plug = ctx().plugin<Explorer::DeviceDocumentPlugin>();
     Device::DeviceSettings set;
     set.name = name;
-    set.deviceSpecificSettings = QVariant::fromValue(
-        Protocols::OSCSpecificSettings{in, out, host});
+    set.deviceSpecificSettings
+        = QVariant::fromValue(Protocols::OSCSpecificSettings{in, out, host});
     set.protocol = Protocols::OSCProtocolFactory::static_concreteKey();
 
     Scenario::Command::Macro m{new ScriptMacro, ctx()};
@@ -108,16 +106,10 @@ public:
   }
   W_SLOT(automate)
 
-  void undo()
-  {
-    ctx().document.commandStack().undo();
-  }
+  void undo() { ctx().document.commandStack().undo(); }
   W_SLOT(undo)
 
-  void redo()
-  {
-    ctx().document.commandStack().redo();
-  }
+  void redo() { ctx().document.commandStack().redo(); }
   W_SLOT(redo)
 
   QObject* find(QString p)
@@ -218,14 +210,13 @@ public:
   }
 
 private:
-  QWidget* widget() override
-  {
-    return m_widget;
-  }
+  QWidget* widget() override { return m_widget; }
 
   const score::PanelStatus& defaultPanelStatus() const override
   {
-    static const score::PanelStatus status{false, Qt::BottomDockWidgetArea, 0,
+    static const score::PanelStatus status{false,
+                                           Qt::BottomDockWidgetArea,
+                                           0,
                                            QObject::tr("Console"),
                                            QObject::tr("Ctrl+Shift+C")};
 

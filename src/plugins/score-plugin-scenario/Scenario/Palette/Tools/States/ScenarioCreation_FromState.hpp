@@ -27,10 +27,14 @@ class Creation_FromState final
 {
 public:
   Creation_FromState(
-      const ToolPalette_T& stateMachine, const Scenario_T& scenarioPath,
-      const score::CommandStackFacade& stack, QState* parent)
-      : CreationState<Scenario_T, ToolPalette_T>{
-            stateMachine, stack, std::move(scenarioPath), parent}
+      const ToolPalette_T& stateMachine,
+      const Scenario_T& scenarioPath,
+      const score::CommandStackFacade& stack,
+      QState* parent)
+      : CreationState<Scenario_T, ToolPalette_T>{stateMachine,
+                                                 stack,
+                                                 std::move(scenarioPath),
+                                                 parent}
   {
     using namespace Scenario::Command;
     auto finalState = new QFinalState{this};
@@ -190,8 +194,13 @@ public:
         {
           double h = stateMachine.presenter().view().height();
           auto sequence = settings.sequence();
-          auto magnetism_distance
-              = h * std::abs(this->currentPoint.y - this->m_parentSM.model().state(*this->clickedState).heightPercentage()) < 10.;
+          auto magnetism_distance = h
+                                        * std::abs(
+                                              this->currentPoint.y
+                                              - this->m_parentSM.model()
+                                                    .state(*this->clickedState)
+                                                    .heightPercentage())
+                                    < 10.;
           if (!sequence && magnetism_distance)
           {
             settings.setSequence(true);
@@ -220,9 +229,12 @@ public:
         }
 
         this->m_dispatcher.template submit<MoveNewEvent>(
-            this->m_scenario, this->createdIntervals.last(),
-            this->createdEvents.last(), this->currentPoint.date,
-            this->currentPoint.y, sequence);
+            this->m_scenario,
+            this->createdIntervals.last(),
+            this->createdEvents.last(),
+            this->currentPoint.date,
+            this->currentPoint.y,
+            sequence);
       });
 
       QObject::connect(move_event, &QState::entered, [&]() {
@@ -238,7 +250,8 @@ public:
         }
 
         this->m_dispatcher.template submit<MoveNewState>(
-            this->m_scenario, this->createdStates.last(),
+            this->m_scenario,
+            this->createdStates.last(),
             this->currentPoint.y);
       });
 
@@ -255,7 +268,8 @@ public:
         }
 
         this->m_dispatcher.template submit<MoveNewState>(
-            this->m_scenario, this->createdStates.last(),
+            this->m_scenario,
+            this->createdStates.last(),
             this->currentPoint.y);
       });
 

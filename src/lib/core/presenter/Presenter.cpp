@@ -4,8 +4,8 @@
 #include <score/actions/Menu.hpp>
 #include <score/application/ApplicationComponents.hpp>
 #include <score/model/Identifier.hpp>
-#include <score/plugins/application/GUIApplicationPlugin.hpp>
 #include <score/plugins/StringFactoryKey.hpp>
+#include <score/plugins/application/GUIApplicationPlugin.hpp>
 #include <score/plugins/documentdelegate/DocumentDelegateFactory.hpp>
 #include <score/tools/IdentifierGeneration.hpp>
 #include <score/tools/std/Optional.hpp>
@@ -53,8 +53,11 @@ static auto get_menubar(View* view)
 #endif
 }
 Presenter::Presenter(
-    const score::ApplicationSettings& app, score::Settings& set,
-    score::ProjectSettings& pset, View* view, QObject* arg_parent)
+    const score::ApplicationSettings& app,
+    score::Settings& set,
+    score::ProjectSettings& pset,
+    View* view,
+    QObject* arg_parent)
     : QObject{arg_parent}
     , m_view{view}
     , m_settings{set}
@@ -63,15 +66,22 @@ Presenter::Presenter(
     , m_components{}
     , m_components_readonly{m_components}
     , m_menubar{get_menubar(view)}
-    , m_context{
-          app,       m_components_readonly, m_docManager, m_menus, m_toolbars,
-          m_actions, m_settings.settings(), m_view}
+    , m_context{app,
+                m_components_readonly,
+                m_docManager,
+                m_menus,
+                m_toolbars,
+                m_actions,
+                m_settings.settings(),
+                m_view}
 {
   m_docManager.init(m_context); // It is necessary to break
   // this dependency cycle.
 
   connect(
-      &m_context.docManager, &DocumentManager::documentChanged, &m_actions,
+      &m_context.docManager,
+      &DocumentManager::documentChanged,
+      &m_actions,
       &ActionManager::reset);
 
   if (m_view)
@@ -154,19 +164,21 @@ void Presenter::setupGUI()
       for (const Toolbar& tb : toolbars[Qt::BottomToolBarArea])
       {
 
-        if (i==2 || i == (toolbars[Qt::BottomToolBarArea].size())*2)
+        if (i == 2 || i == (toolbars[Qt::BottomToolBarArea].size()) * 2)
         { // for 2nd and penultimate
           auto dummy = new QWidget;
           dummy->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Minimum);
           bl->addWidget(dummy, 0, i, 1, 1);
-          //bl->setColumnStretch(i, 10);
-          i++; i++;
+          // bl->setColumnStretch(i, 10);
+          i++;
+          i++;
         }
 
         tb.toolbar()->setIconSize({32, 32});
         tb.toolbar()->setStyleSheet("QToolBar { border: none; }");
         bl->addWidget(tb.toolbar(), 0, i, Qt::AlignCenter);
-        //bl->addWidget(new ToolbarLabel{tb}, 1, i, Qt::AlignCenter); //Label below
+        // bl->addWidget(new ToolbarLabel{tb}, 1, i, Qt::AlignCenter); //Label
+        // below
         tb.toolbar()->setFloatable(false);
         tb.toolbar()->setMovable(false);
 

@@ -7,7 +7,6 @@ class QLineEdit;
 class QSpinBox;
 class QWidget;
 
-
 namespace Protocols
 {
 class LocalProtocolSettingsWidget final : public Device::ProtocolSettingsWidget

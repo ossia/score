@@ -27,18 +27,13 @@ class SCORE_PLUGIN_SCENARIO_EXPORT IntervalDurations final : public QObject
 
   W_OBJECT(IntervalDurations)
 public:
-  IntervalDurations(IntervalModel& model) : m_model{model}
-  {
-  }
+  IntervalDurations(IntervalModel& model) : m_model{model} {}
 
   ~IntervalDurations();
 
   IntervalDurations& operator=(const IntervalDurations& other);
 
-  const TimeVal& defaultDuration() const
-  {
-    return m_defaultDuration;
-  }
+  const TimeVal& defaultDuration() const { return m_defaultDuration; }
 
   TimeVal minDuration() const
   {
@@ -54,35 +49,17 @@ public:
     return m_maxDuration;
   }
 
-  double playPercentage() const
-  {
-    return m_playPercentage;
-  }
+  double playPercentage() const { return m_playPercentage; }
 
-  double speed() const
-  {
-    return m_speed;
-  }
+  double speed() const { return m_speed; }
 
-  bool isRigid() const
-  {
-    return m_rigidity;
-  }
+  bool isRigid() const { return m_rigidity; }
 
-  TimeVal guiDuration() const
-  {
-    return m_guiDuration;
-  }
+  TimeVal guiDuration() const { return m_guiDuration; }
 
-  bool isMinNull() const
-  {
-    return m_isMinNull;
-  }
+  bool isMinNull() const { return m_isMinNull; }
 
-  bool isMaxInfinite() const
-  {
-    return m_isMaxInfinite;
-  }
+  bool isMaxInfinite() const { return m_isMaxInfinite; }
 
   void setDefaultDuration(const TimeVal& arg);
   void setMinDuration(const TimeVal& arg);
@@ -127,24 +104,30 @@ public:
   void minNullChanged(bool isMinNull)
       E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, minNullChanged, isMinNull);
   void maxInfiniteChanged(bool isMaxInfinite) E_SIGNAL(
-      SCORE_PLUGIN_SCENARIO_EXPORT, maxInfiniteChanged, isMaxInfinite);
+      SCORE_PLUGIN_SCENARIO_EXPORT,
+      maxInfiniteChanged,
+      isMaxInfinite);
   void speedChanged(double speed)
       E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, speedChanged, speed);
   void guiDurationChanged(TimeVal guiDuration)
       E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, guiDurationChanged, guiDuration);
 
   PROPERTY(
-      double, speed READ speed WRITE setSpeed NOTIFY speedChanged, W_Final)
+      double,
+      speed READ speed WRITE setSpeed NOTIFY speedChanged,
+      W_Final)
   PROPERTY(
       bool,
       isMaxInfinite READ isMaxInfinite WRITE setMaxInfinite NOTIFY
           maxInfiniteChanged,
       W_Final)
   PROPERTY(
-      bool, isMinNull READ isMinNull WRITE setMinNull NOTIFY minNullChanged,
+      bool,
+      isMinNull READ isMinNull WRITE setMinNull NOTIFY minNullChanged,
       W_Final)
   PROPERTY(
-      bool, isRigid READ isRigid WRITE setRigid NOTIFY rigidityChanged,
+      bool,
+      isRigid READ isRigid WRITE setRigid NOTIFY rigidityChanged,
       W_Final)
   PROPERTY(
       double,

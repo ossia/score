@@ -39,15 +39,20 @@ ApplicationPlugin::ApplicationPlugin(const score::GUIApplicationContext& ctx)
   auto& scenario_plugin
       = ctx.guiApplicationPlugin<ScenarioApplicationPlugin>();
   connect(
-      &scenario_plugin.execution(), &ScenarioExecution::startRecording, this,
+      &scenario_plugin.execution(),
+      &ScenarioExecution::startRecording,
+      this,
       &ApplicationPlugin::record);
   connect(
-      &scenario_plugin.execution(), &ScenarioExecution::startRecordingMessages,
-      this, &ApplicationPlugin::recordMessages);
+      &scenario_plugin.execution(),
+      &ScenarioExecution::startRecordingMessages,
+      this,
+      &ApplicationPlugin::recordMessages);
   connect(
       &scenario_plugin.execution(),
       &ScenarioExecution::stopRecording, // TODO this seems useless
-      this, &ApplicationPlugin::stopRecord);
+      this,
+      &ApplicationPlugin::stopRecord);
 
   m_ossiaplug = &ctx.guiApplicationPlugin<Engine::ApplicationPlugin>();
 
@@ -60,7 +65,8 @@ ApplicationPlugin::ApplicationPlugin(const score::GUIApplicationContext& ctx)
 }
 
 void ApplicationPlugin::record(
-    Scenario::ProcessModel& scenar, Scenario::Point pt)
+    Scenario::ProcessModel& scenar,
+    Scenario::Point pt)
 {
   if (m_currentContext)
     return;
@@ -76,8 +82,10 @@ void ApplicationPlugin::record(
   {
     connect(
         &m_recManager->recorder,
-        &Recording::AutomationRecorder::firstMessageReceived, this,
-        [=]() { m_ossiaplug->on_record(pt.date); }, Qt::QueuedConnection);
+        &Recording::AutomationRecorder::firstMessageReceived,
+        this,
+        [=]() { m_ossiaplug->on_record(pt.date); },
+        Qt::QueuedConnection);
   }
 
   auto res = m_recManager->setup();
@@ -89,7 +97,8 @@ void ApplicationPlugin::record(
 }
 
 void ApplicationPlugin::recordMessages(
-    Scenario::ProcessModel& scenar, Scenario::Point pt)
+    Scenario::ProcessModel& scenar,
+    Scenario::Point pt)
 {
   if (m_currentContext)
     return;
@@ -105,8 +114,10 @@ void ApplicationPlugin::recordMessages(
   {
     connect(
         &m_recMessagesManager->recorder,
-        &Recording::MessageRecorder::firstMessageReceived, this,
-        [=]() { m_ossiaplug->on_record(pt.date); }, Qt::QueuedConnection);
+        &Recording::MessageRecorder::firstMessageReceived,
+        this,
+        [=]() { m_ossiaplug->on_record(pt.date); },
+        Qt::QueuedConnection);
   }
 
   auto res = m_recMessagesManager->setup();

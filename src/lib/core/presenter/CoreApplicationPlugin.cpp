@@ -18,16 +18,23 @@
 #include <QUrl>
 
 SCORE_DECLARE_ACTION(
-    Documentation, "&Documentation", Common, QKeySequence::UnknownKey)
+    Documentation,
+    "&Documentation",
+    Common,
+    QKeySequence::UnknownKey)
 SCORE_DECLARE_ACTION(
-    Issues, "&Report Issues", Common, QKeySequence::UnknownKey)
+    Issues,
+    "&Report Issues",
+    Common,
+    QKeySequence::UnknownKey)
 SCORE_DECLARE_ACTION(Forum, "&Forum", Common, QKeySequence::UnknownKey)
 
 namespace score
 {
 
 CoreApplicationPlugin::CoreApplicationPlugin(
-    const GUIApplicationContext& app, Presenter& pres)
+    const GUIApplicationContext& app,
+    Presenter& pres)
     : GUIApplicationPlugin{app}, m_presenter{pres}
 {
 }
@@ -35,7 +42,8 @@ CoreApplicationPlugin::CoreApplicationPlugin(
 void CoreApplicationPlugin::newDocument()
 {
   m_presenter.m_docManager.newDocument(
-      context, getStrongId(m_presenter.m_docManager.documents()),
+      context,
+      getStrongId(m_presenter.m_docManager.documents()),
       *context.interfaces<score::DocumentDelegateList>().begin());
 }
 
@@ -134,7 +142,9 @@ GUIElements CoreApplicationPlugin::makeGUIElements()
 
   // Menus are by default at int_max - 1 so that they will be sorted before
   menus.emplace_back(
-      about, Menus::About(), Menu::is_toplevel{},
+      about,
+      Menus::About(),
+      Menu::is_toplevel{},
       std::numeric_limits<int>::max());
 
   auto export_menu = new QMenu{tr("&Export")};
@@ -162,7 +172,9 @@ GUIElements CoreApplicationPlugin::makeGUIElements()
     {
       auto new_doc = new QAction(m_presenter.view());
       connect(
-          new_doc, &QAction::triggered, this,
+          new_doc,
+          &QAction::triggered,
+          this,
           &CoreApplicationPlugin::newDocument);
       file->addAction(new_doc);
       e.actions.add<Actions::New>(new_doc);
@@ -193,7 +205,9 @@ GUIElements CoreApplicationPlugin::makeGUIElements()
     {
       auto saveas_doc = new QAction(m_presenter.view());
       connect(
-          saveas_doc, &QAction::triggered, this,
+          saveas_doc,
+          &QAction::triggered,
+          this,
           &CoreApplicationPlugin::saveAs);
       e.actions.add<Actions::SaveAs>(saveas_doc);
       cond.add<Actions::SaveAs>();
@@ -208,10 +222,15 @@ GUIElements CoreApplicationPlugin::makeGUIElements()
     {
       auto loadStack_act = new QAction(m_presenter.view());
       connect(
-          loadStack_act, &QAction::triggered, this,
+          loadStack_act,
+          &QAction::triggered,
+          this,
           &CoreApplicationPlugin::loadStack);
       actions.emplace_back(
-          loadStack_act, tr("&Load a stack"), "LoadStack", "Common",
+          loadStack_act,
+          tr("&Load a stack"),
+          "LoadStack",
+          "Common",
           QKeySequence::UnknownKey);
       export_menu->addAction(loadStack_act);
     }
@@ -219,10 +238,15 @@ GUIElements CoreApplicationPlugin::makeGUIElements()
     {
       auto saveStack_act = new QAction(m_presenter.view());
       connect(
-          saveStack_act, &QAction::triggered, this,
+          saveStack_act,
+          &QAction::triggered,
+          this,
           &CoreApplicationPlugin::saveStack);
       actions.emplace_back(
-          saveStack_act, tr("&Save a stack"), "SaveStack", "Common",
+          saveStack_act,
+          tr("&Save a stack"),
+          "SaveStack",
+          "Common",
           QKeySequence::UnknownKey);
       export_menu->addAction(saveStack_act);
     }
@@ -251,7 +275,9 @@ GUIElements CoreApplicationPlugin::makeGUIElements()
     {
       auto act = new QAction(m_presenter.view());
       connect(
-          act, &QAction::triggered, this,
+          act,
+          &QAction::triggered,
+          this,
           &CoreApplicationPlugin::restoreLayout);
       e.actions.add<Actions::RestoreLayout>(act);
       windows_menu->addAction(act);
@@ -261,7 +287,9 @@ GUIElements CoreApplicationPlugin::makeGUIElements()
     {
       auto settings_act = new QAction(m_presenter.view());
       connect(
-          settings_act, &QAction::triggered, this,
+          settings_act,
+          &QAction::triggered,
+          this,
           &CoreApplicationPlugin::openSettings);
       e.actions.add<Actions::OpenSettings>(settings_act);
       settings->addAction(settings_act);
@@ -269,7 +297,9 @@ GUIElements CoreApplicationPlugin::makeGUIElements()
     {
       auto settings_act = new QAction(m_presenter.view());
       connect(
-          settings_act, &QAction::triggered, this,
+          settings_act,
+          &QAction::triggered,
+          this,
           &CoreApplicationPlugin::openProjectSettings);
       e.actions.add<Actions::OpenProjectSettings>(settings_act);
       settings->addAction(settings_act);

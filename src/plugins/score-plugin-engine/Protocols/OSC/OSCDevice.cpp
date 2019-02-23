@@ -6,6 +6,7 @@
 #include <Explorer/DeviceList.hpp>
 #include <Explorer/DeviceLogging.hpp>
 #include <Protocols/OSC/OSCSpecificSettings.hpp>
+
 #include <score/application/ApplicationContext.hpp>
 
 #include <ossia/network/generic/generic_device.hpp>
@@ -40,11 +41,10 @@ bool OSCDevice::reconnect()
     std::unique_ptr<ossia::net::protocol_base> ossia_settings
         = std::make_unique<ossia::net::osc_protocol>(
             stgs.host.toStdString(), stgs.inputPort, stgs.outputPort);
-    if(stgs.rate)
+    if (stgs.rate)
     {
       ossia_settings = std::make_unique<ossia::net::rate_limiting_protocol>(
-            std::chrono::milliseconds{*stgs.rate},
-            std::move(ossia_settings));
+          std::chrono::milliseconds{*stgs.rate}, std::move(ossia_settings));
     }
 
     m_dev = std::make_unique<ossia::net::generic_device>(
@@ -86,7 +86,8 @@ void OSCDevice::setLearning(bool b)
         (DeviceInterface*)this);
     dev.on_node_removing.connect<&DeviceInterface::nodeRemoving>(
         (DeviceInterface*)this);
-    dev.on_node_renamed.connect<&DeviceInterface::nodeRenamed>( (DeviceInterface*)this);
+    dev.on_node_renamed.connect<&DeviceInterface::nodeRenamed>(
+        (DeviceInterface*)this);
     dev.on_parameter_created.connect<&DeviceInterface::addressCreated>(
         (DeviceInterface*)this);
     dev.on_attribute_modified.connect<&DeviceInterface::addressUpdated>(

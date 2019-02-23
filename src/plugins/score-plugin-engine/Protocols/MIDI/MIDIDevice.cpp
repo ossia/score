@@ -25,7 +25,8 @@ MIDIDevice::MIDIDevice(const Device::DeviceSettings& settings)
 {
   using namespace ossia;
 
-  const auto set = settings.deviceSpecificSettings.value<MIDISpecificSettings>();
+  const auto set
+      = settings.deviceSpecificSettings.value<MIDISpecificSettings>();
   m_capas.canRefreshTree = true;
   m_capas.canSerialize = !set.createWholeTree;
   m_capas.hasCallbacks = false;
@@ -50,14 +51,15 @@ bool MIDIDevice::reconnect()
     auto proto = std::make_unique<ossia::net::midi::midi_protocol>();
     bool res = proto->set_info(ossia::net::midi::midi_info(
         static_cast<ossia::net::midi::midi_info::Type>(set.io),
-        set.endpoint.toStdString(), set.port));
+        set.endpoint.toStdString(),
+        set.port));
     if (!res)
       return false;
 
     auto dev
         = std::make_unique<ossia::net::midi::midi_device>(std::move(proto));
     dev->set_name(settings().name.toStdString());
-    if(set.createWholeTree)
+    if (set.createWholeTree)
       dev->create_full_tree();
     m_dev = std::move(dev);
     deviceChanged(nullptr, m_dev.get());
@@ -120,7 +122,8 @@ Device::Node MIDIDevice::refresh()
 
 bool MIDIDevice::isLearning() const
 {
-  auto& proto = static_cast<ossia::net::midi::midi_protocol&>(m_dev->get_protocol());
+  auto& proto
+      = static_cast<ossia::net::midi::midi_protocol&>(m_dev->get_protocol());
   return proto.learning();
 }
 
@@ -128,7 +131,8 @@ void MIDIDevice::setLearning(bool b)
 {
   if (!m_dev)
     return;
-  auto& proto = static_cast<ossia::net::midi::midi_protocol&>(m_dev->get_protocol());
+  auto& proto
+      = static_cast<ossia::net::midi::midi_protocol&>(m_dev->get_protocol());
   auto& dev = *m_dev;
   if (b)
   {

@@ -30,7 +30,8 @@ class ScenarioDisplayedElementsToolPalette final
 {
 public:
   ScenarioDisplayedElementsToolPalette(
-      const DisplayedElementsModel&, ScenarioDocumentPresenter&,
+      const DisplayedElementsModel&,
+      ScenarioDocumentPresenter&,
       QGraphicsItem*);
 
   QGraphicsItem& view() const;
@@ -57,8 +58,10 @@ private:
   const Scenario::EditionSettings& m_editionSettings;
 
   Scenario::SmartTool<
-      Scenario::ProcessModel, ScenarioDisplayedElementsToolPalette,
-      BaseGraphicsObject, Scenario::MoveIntervalInScenario_StateWrapper,
+      Scenario::ProcessModel,
+      ScenarioDisplayedElementsToolPalette,
+      BaseGraphicsObject,
+      Scenario::MoveIntervalInScenario_StateWrapper,
       Scenario::MoveLeftBraceInScenario_StateWrapper,
       Scenario::MoveRightBraceInScenario_StateWrapper,
       Scenario::MoveEventInTopScenario_StateWrapper,
@@ -66,7 +69,9 @@ private:
       m_state;
 
   ToolPaletteInputDispatcher<
-      Scenario::Tool, ScenarioDisplayedElementsToolPalette, BaseElementContext,
+      Scenario::Tool,
+      ScenarioDisplayedElementsToolPalette,
+      BaseElementContext,
       ScenarioDocumentPresenter>
       m_inputDisp;
 };

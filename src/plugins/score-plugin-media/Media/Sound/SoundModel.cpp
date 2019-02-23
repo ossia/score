@@ -9,10 +9,14 @@ namespace Media
 namespace Sound
 {
 ProcessModel::ProcessModel(
-    const TimeVal& duration, const QString& data, const Id<Process::ProcessModel>& id,
+    const TimeVal& duration,
+    const QString& data,
+    const Id<Process::ProcessModel>& id,
     QObject* parent)
-    : Process::ProcessModel{duration, id,
-                            Metadata<ObjectKey_k, ProcessModel>::get(), parent}
+    : Process::ProcessModel{duration,
+                            id,
+                            Metadata<ObjectKey_k, ProcessModel>::get(),
+                            parent}
     , outlet{Process::make_outlet(Id<Process::Port>(0), this)}
 {
   outlet->setPropagate(true);
@@ -22,9 +26,7 @@ ProcessModel::ProcessModel(
   setFile(data);
 }
 
-ProcessModel::~ProcessModel()
-{
-}
+ProcessModel::~ProcessModel() {}
 
 void ProcessModel::setFile(const QString& file)
 {
@@ -49,7 +51,7 @@ const std::shared_ptr<MediaFileHandle>& ProcessModel::file() const
 QString ProcessModel::prettyName() const noexcept
 {
   return m_file->empty() ? Process::ProcessModel::prettyName()
-                        : m_file->fileName();
+                         : m_file->fileName();
 }
 
 int ProcessModel::upmixChannels() const

@@ -34,7 +34,9 @@ namespace Scenario
 class StateModel;
 class TimeSyncModel;
 IntervalModel::IntervalModel(
-    const Id<IntervalModel>& id, double yPos, QObject* parent)
+    const Id<IntervalModel>& id,
+    double yPos,
+    QObject* parent)
     : Entity{id, Metadata<ObjectKey_k, IntervalModel>::get(), parent}
     , inlet{Process::make_inlet(Id<Process::Port>(0), this)}
     , outlet{Process::make_outlet(Id<Process::Port>(0), this)}
@@ -53,7 +55,8 @@ IntervalModel::~IntervalModel()
 {
   static_assert(
       std::is_same<
-          serialization_tag<IntervalModel>::type, visitor_entity_tag>::value,
+          serialization_tag<IntervalModel>::type,
+          visitor_entity_tag>::value,
       "");
   processes.clear();
 }

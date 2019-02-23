@@ -10,8 +10,8 @@ class Transition_T<Scenario_T, ClickOnInterval> final
     : public MatchedTransition<Scenario_T, ClickOnInterval_Event>
 {
 public:
-  using MatchedTransition<
-      Scenario_T, ClickOnInterval_Event>::MatchedTransition;
+  using MatchedTransition<Scenario_T, ClickOnInterval_Event>::
+      MatchedTransition;
 
 protected:
   void onTransition(QEvent* ev) override
@@ -50,8 +50,8 @@ class Transition_T<Scenario_T, ClickOnLeftBrace> final
     : public MatchedTransition<Scenario_T, ClickOnLeftBrace_Event>
 {
 public:
-  using MatchedTransition<
-      Scenario_T, ClickOnLeftBrace_Event>::MatchedTransition;
+  using MatchedTransition<Scenario_T, ClickOnLeftBrace_Event>::
+      MatchedTransition;
 
 protected:
   void onTransition(QEvent* ev) override
@@ -71,8 +71,8 @@ class Transition_T<Scenario_T, ClickOnRightBrace> final
     : public MatchedTransition<Scenario_T, ClickOnRightBrace_Event>
 {
 public:
-  using MatchedTransition<
-      Scenario_T, ClickOnRightBrace_Event>::MatchedTransition;
+  using MatchedTransition<Scenario_T, ClickOnRightBrace_Event>::
+      MatchedTransition;
 
 protected:
   void onTransition(QEvent* ev) override

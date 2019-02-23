@@ -23,8 +23,10 @@ public:
     m_domainSelector = new QComboBox{this};
     m_domainSelector->addItems({tr("Float"), tr("Vec")});
     connect(
-        m_domainSelector, SignalUtils::QComboBox_currentIndexChanged_int(),
-        this, &AddressVecSettingsWidget<N>::on_domainTypeChange);
+        m_domainSelector,
+        SignalUtils::QComboBox_currentIndexChanged_int(),
+        this,
+        &AddressVecSettingsWidget<N>::on_domainTypeChange);
 
     m_domainFloatEdit = new State::NumericDomainWidget<float>{this};
     m_domainVecEdit = new State::VecDomainWidget<N>{this};
@@ -36,7 +38,9 @@ public:
     m_layout->insertRow(2, makeLabel(tr("Domain"), this), m_domainFloatEdit);
 
     connect(
-        m_unit, &State::UnitWidget::unitChanged, this,
+        m_unit,
+        &State::UnitWidget::unitChanged,
+        this,
         [=](const State::Unit& u) {
           auto dom = ossia::get_unit_default_domain(u.get());
 

@@ -25,10 +25,14 @@ namespace Command
 class SCORE_PLUGIN_SCENARIO_EXPORT MoveNewState final : public score::Command
 {
   SCORE_COMMAND_DECL(
-      ScenarioCommandFactoryName(), MoveNewState, "Move a new state")
+      ScenarioCommandFactoryName(),
+      MoveNewState,
+      "Move a new state")
 public:
   MoveNewState(
-      const Scenario::ProcessModel& scenar, Id<StateModel> stateId, double y);
+      const Scenario::ProcessModel& scenar,
+      Id<StateModel> stateId,
+      double y);
 
   void undo(const score::DocumentContext& ctx) const override;
   void redo(const score::DocumentContext& ctx) const override;
@@ -39,10 +43,7 @@ public:
     m_y = y;
   }
 
-  const Path<Scenario::ProcessModel>& path() const
-  {
-    return m_path;
-  }
+  const Path<Scenario::ProcessModel>& path() const { return m_path; }
 
 protected:
   void serializeImpl(DataStreamInput&) const override;

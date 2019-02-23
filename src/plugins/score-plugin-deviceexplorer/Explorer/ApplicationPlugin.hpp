@@ -29,8 +29,8 @@ private:
   void
   setupConnections(score::MessagesPanelDelegate&, Device::DeviceList& devices);
   void on_newDocument(score::Document& doc) override;
-  void on_documentChanged(
-      score::Document* olddoc, score::Document* newdoc) override;
+  void on_documentChanged(score::Document* olddoc, score::Document* newdoc)
+      override;
 
   QMetaObject::Connection m_inbound{}, m_outbound{}, m_error{}, m_visible{};
 };

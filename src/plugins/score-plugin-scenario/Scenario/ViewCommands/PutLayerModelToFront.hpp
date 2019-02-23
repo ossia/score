@@ -7,7 +7,8 @@ class PutLayerModelToFront
 {
 public:
   PutLayerModelToFront(
-      SlotPath&& slotPath, const Id<Process::ProcessModel>& pid);
+      SlotPath&& slotPath,
+      const Id<Process::ProcessModel>& pid);
 
   void redo(const score::DocumentContext& ctx) const;
 

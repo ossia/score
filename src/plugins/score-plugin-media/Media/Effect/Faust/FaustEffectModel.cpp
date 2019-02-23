@@ -15,8 +15,9 @@
 #include <QDialog>
 #include <QDialogButtonBox>
 #include <QPlainTextEdit>
-#include <QVBoxLayout>
 #include <QTimer>
+#include <QVBoxLayout>
+
 #include <wobjectimpl.h>
 
 #include <iostream>
@@ -45,8 +46,10 @@ namespace Media::Faust
 {
 
 FaustEffectModel::FaustEffectModel(
-    TimeVal t, const QString& faustProgram,
-    const Id<Process::ProcessModel>& id, QObject* parent)
+    TimeVal t,
+    const QString& faustProgram,
+    const Id<Process::ProcessModel>& id,
+    QObject* parent)
     : Process::ProcessModel{t, id, "Faust", parent}
 {
   init();
@@ -63,9 +66,7 @@ FaustEffectModel::FaustEffectModel(
   setText(faustProgram);
 }
 
-FaustEffectModel::~FaustEffectModel()
-{
-}
+FaustEffectModel::~FaustEffectModel() {}
 
 void FaustEffectModel::setText(const QString& txt)
 {
@@ -75,9 +76,7 @@ void FaustEffectModel::setText(const QString& txt)
   reload();
 }
 
-void FaustEffectModel::init()
-{
-}
+void FaustEffectModel::init() {}
 
 QString FaustEffectModel::prettyName() const noexcept
 {
@@ -201,7 +200,8 @@ void FaustEffectModel::reload()
 
 InspectorWidget::InspectorWidget(
     const Media::Faust::FaustEffectModel& fx,
-    const score::DocumentContext& doc, QWidget* parent)
+    const score::DocumentContext& doc,
+    QWidget* parent)
     : InspectorWidgetDelegate_T{fx, parent}
 {
   auto lay = new QVBoxLayout{this};
@@ -217,7 +217,8 @@ InspectorWidget::InspectorWidget(
 }
 
 FaustEditDialog::FaustEditDialog(
-    const FaustEffectModel& fx, const score::DocumentContext& ctx,
+    const FaustEffectModel& fx,
+    const score::DocumentContext& ctx,
     QWidget* parent)
     : QDialog{parent}, m_effect{fx}
 {
@@ -255,8 +256,11 @@ template <>
 void DataStreamWriter::write(Media::Faust::FaustEffectModel& eff)
 {
   writePorts(
-      *this, components.interfaces<Process::PortFactoryList>(), eff.m_inlets,
-      eff.m_outlets, &eff);
+      *this,
+      components.interfaces<Process::PortFactoryList>(),
+      eff.m_inlets,
+      eff.m_outlets,
+      &eff);
 
   m_stream >> eff.m_text;
   eff.reload();
@@ -273,8 +277,11 @@ template <>
 void JSONObjectWriter::write(Media::Faust::FaustEffectModel& eff)
 {
   writePorts(
-      obj, components.interfaces<Process::PortFactoryList>(), eff.m_inlets,
-      eff.m_outlets, &eff);
+      obj,
+      components.interfaces<Process::PortFactoryList>(),
+      eff.m_inlets,
+      eff.m_outlets,
+      &eff);
   eff.m_text = obj["Text"].toString();
   eff.reload();
 }
@@ -283,8 +290,10 @@ namespace Execution
 {
 
 Execution::FaustEffectComponent::FaustEffectComponent(
-    Media::Faust::FaustEffectModel& proc, const Execution::Context& ctx,
-    const Id<score::Component>& id, QObject* parent)
+    Media::Faust::FaustEffectModel& proc,
+    const Execution::Context& ctx,
+    const Id<score::Component>& id,
+    QObject* parent)
     : ProcessComponent_T{proc, ctx, id, "FaustComponent", parent}
 {
   if (proc.faust_object)
@@ -299,7 +308,9 @@ Execution::FaustEffectComponent::FaustEffectComponent(
       *node->controls[i - 1].second = ossia::convert<double>(inlet->value());
       auto inl = this->node->inputs()[i];
       connect(
-          inlet, &Process::ControlInlet::valueChanged, this,
+          inlet,
+          &Process::ControlInlet::valueChanged,
+          this,
           [this, inl](const ossia::value& v) {
             system().executionQueue.enqueue([inl, val = v]() mutable {
               inl->data.target<ossia::value_port>()->write_value(
@@ -310,7 +321,7 @@ Execution::FaustEffectComponent::FaustEffectComponent(
 
     std::weak_ptr<ossia::nodes::faust> weak_node = node;
     con(ctx.doc.coarseUpdateTimer, &QTimer::timeout, this, [weak_node, &proc] {
-      if(auto node = weak_node.lock())
+      if (auto node = weak_node.lock())
       {
         for (std::size_t i = 1; i < proc.inlets().size(); i++)
         {

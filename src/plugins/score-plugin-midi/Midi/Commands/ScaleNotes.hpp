@@ -14,7 +14,8 @@ class ScaleNotes final : public score::Command
   SCORE_COMMAND_DECL(Midi::CommandFactoryName(), ScaleNotes, "Scale notes")
 public:
   ScaleNotes(
-      const ProcessModel& model, const std::vector<Id<Note>>& to_move,
+      const ProcessModel& model,
+      const std::vector<Id<Note>>& to_move,
       double delta);
 
   void undo(const score::DocumentContext& ctx) const override;
@@ -52,7 +53,9 @@ private:
 class RescaleAllMidi final : public score::AggregateCommand
 {
   SCORE_COMMAND_DECL(
-      Midi::CommandFactoryName(), RescaleAllMidi, "Rescale all midi")
+      Midi::CommandFactoryName(),
+      RescaleAllMidi,
+      "Rescale all midi")
 public:
 };
 }

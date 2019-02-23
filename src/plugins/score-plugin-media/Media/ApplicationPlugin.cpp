@@ -57,8 +57,11 @@ W_REGISTER_ARGTYPE(std::vector<Media::ApplicationPlugin::vst_info>)
 namespace Media::LV2
 {
 void on_uiMessage(
-    SuilController controller, uint32_t port_index, uint32_t buffer_size,
-    uint32_t protocol, const void* buffer)
+    SuilController controller,
+    uint32_t port_index,
+    uint32_t buffer_size,
+    uint32_t protocol,
+    const void* buffer)
 {
   auto& fx = *(LV2EffectModel*)controller;
 
@@ -152,7 +155,9 @@ void ApplicationPlugin::initialize()
   vstChanged();
 
   auto& set = context.settings<Media::Settings::Model>();
-  con(set, &Media::Settings::Model::VstPathsChanged, this,
+  con(set,
+      &Media::Settings::Model::VstPathsChanged,
+      this,
       &ApplicationPlugin::rescanVSTs);
   rescanVSTs(set.getVstPaths());
 #endif
@@ -168,7 +173,9 @@ void ApplicationPlugin::rescanVSTs(const QStringList& paths)
 #if defined(__APPLE__)
     {
       QDirIterator it(
-          dir, QStringList{"*.vst", "*.component"}, QDir::AllEntries,
+          dir,
+          QStringList{"*.vst", "*.component"},
+          QDir::AllEntries,
           QDirIterator::Subdirectories);
 
       while (it.hasNext())
@@ -176,7 +183,9 @@ void ApplicationPlugin::rescanVSTs(const QStringList& paths)
     }
     {
       QDirIterator it(
-          dir, QStringList{"*.dylib"}, QDir::Files,
+          dir,
+          QStringList{"*.dylib"},
+          QDir::Files,
           QDirIterator::Subdirectories);
       while (it.hasNext())
       {
@@ -187,7 +196,9 @@ void ApplicationPlugin::rescanVSTs(const QStringList& paths)
     }
 #else
     QDirIterator it(
-        dir, QStringList{Media::VST::default_filter}, QDir::Files,
+        dir,
+        QStringList{Media::VST::default_filter},
+        QDir::Files,
         QDirIterator::Subdirectories);
     while (it.hasNext())
       newPlugins.insert(it.next());
@@ -241,8 +252,7 @@ void ApplicationPlugin::rescanVSTs(const QStringList& paths)
           auto last_brace = the_json.indexOf('}', first_brace);
           the_json = the_json.mid(first_brace, 1 + last_brace - first_brace);
 
-          QJsonDocument doc
-              = QJsonDocument::fromJson(the_json);
+          QJsonDocument doc = QJsonDocument::fromJson(the_json);
           bool valid = e == QProcess::ExitStatus::NormalExit && code == 0
                        && doc.isObject();
 
@@ -284,7 +294,9 @@ void ApplicationPlugin::rescanVSTs(const QStringList& paths)
 #else
         "ossia-score-vstpuppet"
 #endif
-        ,{path}, QProcess::ReadOnly);
+        ,
+        {path},
+        QProcess::ReadOnly);
     i++;
   }
 }
@@ -310,7 +322,5 @@ GUIApplicationPlugin::GUIApplicationPlugin(
 {
 }
 
-void GUIApplicationPlugin::initialize()
-{
-}
+void GUIApplicationPlugin::initialize() {}
 }

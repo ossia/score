@@ -27,9 +27,7 @@ class ObjectIdentifier
 
 public:
   ObjectIdentifier() = default;
-  explicit ObjectIdentifier(const char* name) : m_objectName{name}
-  {
-  }
+  explicit ObjectIdentifier(const char* name) : m_objectName{name} {}
 
   ObjectIdentifier(QString name, int32_t id)
       : m_objectName{std::move(name)}, m_id{id}
@@ -42,15 +40,9 @@ public:
   {
   }
 
-  const QString& objectName() const
-  {
-    return m_objectName;
-  }
+  const QString& objectName() const { return m_objectName; }
 
-  int32_t id() const
-  {
-    return m_id;
-  }
+  int32_t id() const { return m_id; }
 
 private:
   QString m_objectName;

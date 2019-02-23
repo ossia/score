@@ -49,7 +49,8 @@ QJsonObject copyWholeScenario(const Scenario::ProcessModel& sm);
 
 SCORE_PLUGIN_SCENARIO_EXPORT
 QJsonObject copySelectedScenarioElements(
-    const Scenario::ProcessModel& sm, CategorisedScenario& cat);
+    const Scenario::ProcessModel& sm,
+    CategorisedScenario& cat);
 
 SCORE_PLUGIN_SCENARIO_EXPORT
 QJsonObject copyProcess(const Process::ProcessModel&);
@@ -74,5 +75,6 @@ QJsonObject
 copySelectedScenarioElements(const BaseScenarioContainer& sm, QObject* parent);
 
 QJsonObject copySelectedElementsToJson(
-    ScenarioInterface& s, const score::DocumentContext& ctx);
+    ScenarioInterface& s,
+    const score::DocumentContext& ctx);
 }

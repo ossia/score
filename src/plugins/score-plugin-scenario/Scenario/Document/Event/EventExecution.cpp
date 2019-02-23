@@ -20,12 +20,16 @@ W_OBJECT_IMPL(Execution::EventComponent)
 namespace Execution
 {
 EventComponent::EventComponent(
-    const Scenario::EventModel& element, const Execution::Context& ctx,
-    const Id<score::Component>& id, QObject* parent)
+    const Scenario::EventModel& element,
+    const Execution::Context& ctx,
+    const Id<score::Component>& id,
+    QObject* parent)
     : Execution::Component{ctx, id, "Executor::Event", nullptr}
     , m_score_event{&element}
 {
-  con(element, &Scenario::EventModel::conditionChanged, this,
+  con(element,
+      &Scenario::EventModel::conditionChanged,
+      this,
       [this](const auto& expr) {
         auto exp_ptr
             = std::make_shared<ossia::expression_ptr>(this->makeExpression());
@@ -59,7 +63,8 @@ ossia::expression_ptr EventComponent::makeExpression() const
 }
 
 void EventComponent::onSetup(
-    std::shared_ptr<ossia::time_event> event, ossia::expression_ptr expr,
+    std::shared_ptr<ossia::time_event> event,
+    ossia::expression_ptr expr,
     ossia::time_event::offset_behavior b)
 {
   m_ossia_event = event;

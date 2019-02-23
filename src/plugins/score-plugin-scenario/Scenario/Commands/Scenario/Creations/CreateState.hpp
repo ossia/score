@@ -21,29 +21,25 @@ namespace Command
 class SCORE_PLUGIN_SCENARIO_EXPORT CreateState final : public score::Command
 {
   SCORE_COMMAND_DECL(
-      ScenarioCommandFactoryName(), CreateState, "Create a state")
+      ScenarioCommandFactoryName(),
+      CreateState,
+      "Create a state")
 public:
   CreateState(
-      const Scenario::ProcessModel& scenario, Id<EventModel> event,
+      const Scenario::ProcessModel& scenario,
+      Id<EventModel> event,
       double stateY);
   CreateState(
-      const Scenario::ProcessModel& scenario, Id<StateModel> newId,
-      Id<EventModel> event, double stateY);
+      const Scenario::ProcessModel& scenario,
+      Id<StateModel> newId,
+      Id<EventModel> event,
+      double stateY);
 
-  const Path<Scenario::ProcessModel>& scenarioPath() const
-  {
-    return m_path;
-  }
+  const Path<Scenario::ProcessModel>& scenarioPath() const { return m_path; }
 
-  const double& endStateY() const
-  {
-    return m_stateY;
-  }
+  const double& endStateY() const { return m_stateY; }
 
-  const Id<StateModel>& createdState() const
-  {
-    return m_newState;
-  }
+  const Id<StateModel>& createdState() const { return m_newState; }
 
   void undo(const score::DocumentContext& ctx) const override;
   void redo(const score::DocumentContext& ctx) const override;

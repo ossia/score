@@ -32,7 +32,8 @@ class EventInspectorWidget final : public Inspector::InspectorWidgetBase
   W_OBJECT(EventInspectorWidget)
 public:
   explicit EventInspectorWidget(
-      const EventModel& object, const score::DocumentContext& context,
+      const EventModel& object,
+      const score::DocumentContext& context,
       QWidget* parent = nullptr);
 
 public:

@@ -52,10 +52,7 @@ public:
   CommandObjectBase(Presenter* pres, const score::CommandStackFacade&);
   virtual ~CommandObjectBase();
 
-  void setCurveState(Curve::StateBase* stateBase)
-  {
-    m_state = stateBase;
-  }
+  void setCurveState(Curve::StateBase* stateBase) { m_state = stateBase; }
   void press();
 
   void handleLocking();
@@ -70,16 +67,18 @@ protected:
   find(std::vector<SegmentData>& segments, const OptionalId<SegmentModel>& id)
   {
     return std::find_if(
-        segments.begin(), segments.end(),
-        [&](const auto& seg) { return seg.id == id; });
+        segments.begin(), segments.end(), [&](const auto& seg) {
+          return seg.id == id;
+        });
   }
   auto find(
       const std::vector<SegmentData>& segments,
       const OptionalId<SegmentModel>& id)
   {
     return std::find_if(
-        segments.cbegin(), segments.cend(),
-        [&](const auto& seg) { return seg.id == id; });
+        segments.cbegin(), segments.cend(), [&](const auto& seg) {
+          return seg.id == id;
+        });
   }
 
   virtual void on_press() = 0;

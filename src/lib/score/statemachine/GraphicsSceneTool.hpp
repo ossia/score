@@ -32,19 +32,11 @@ public:
     QApplication::processEvents(QEventLoop::ExcludeUserInputEvents);
   }
 
-  const QGraphicsScene& scene() const
-  {
-    return m_scene;
-  }
-  QStateMachine& localSM()
-  {
-    return m_localSM;
-  }
+  const QGraphicsScene& scene() const { return m_scene; }
+  QStateMachine& localSM() { return m_localSM; }
 
 protected:
-  GraphicsSceneTool(const QGraphicsScene& scene) : m_scene{scene}
-  {
-  }
+  GraphicsSceneTool(const QGraphicsScene& scene) : m_scene{scene} {}
 
   QGraphicsItem* itemUnderMouse(const QPointF& point) const
   {

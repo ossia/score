@@ -38,12 +38,16 @@ public:
 
 private:
   Dataflow::PortItem* makeItem(
-      Process::Inlet& port, const score::DocumentContext& ctx,
-      QGraphicsItem* parent, QObject* context) override;
+      Process::Inlet& port,
+      const score::DocumentContext& ctx,
+      QGraphicsItem* parent,
+      QObject* context) override;
 
   Dataflow::PortItem* makeItem(
-      Process::Outlet& port, const score::DocumentContext& ctx,
-      QGraphicsItem* parent, QObject* context) override;
+      Process::Outlet& port,
+      const score::DocumentContext& ctx,
+      QGraphicsItem* parent,
+      QObject* context) override;
 };
 
 template <typename Model_T>
@@ -86,15 +90,19 @@ struct ControlInletFactory final : public AutomatablePortFactory
   }
 
   void setupInletInspector(
-      Process::Inlet& port, const score::DocumentContext& ctx, QWidget* parent,
-      Inspector::Layout& lay, QObject* context) override;
+      Process::Inlet& port,
+      const score::DocumentContext& ctx,
+      QWidget* parent,
+      Inspector::Layout& lay,
+      QObject* context) override;
 };
 
 class PortTooltip final : public QWidget
 {
 public:
   PortTooltip(
-      const score::DocumentContext& ctx, const Process::Port& p,
+      const score::DocumentContext& ctx,
+      const Process::Port& p,
       QWidget* parent);
 };
 
@@ -102,13 +110,12 @@ class PortInspectorFactory final : public Inspector::InspectorWidgetFactory
 {
   SCORE_CONCRETE("1e7166bb-278a-49ce-b6a9-d662b8cd8dd2")
 public:
-  PortInspectorFactory() : InspectorWidgetFactory{}
-  {
-  }
+  PortInspectorFactory() : InspectorWidgetFactory{} {}
 
   QWidget* make(
       const InspectedObjects& sourceElements,
-      const score::DocumentContext& doc, QWidget* parent) const override
+      const score::DocumentContext& doc,
+      QWidget* parent) const override
   {
     return new PortTooltip{
         doc, safe_cast<const Process::Port&>(*sourceElements.first()), parent};

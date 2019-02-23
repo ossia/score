@@ -26,14 +26,8 @@ public:
 
   void insert(std::vector<Action> vals);
 
-  auto& get()
-  {
-    return m_container;
-  }
-  auto& get() const
-  {
-    return m_container;
-  }
+  auto& get() { return m_container; }
+  auto& get() const { return m_container; }
   template <typename T>
   auto& action()
   {
@@ -52,22 +46,10 @@ public:
   void onSelectionChange(std::shared_ptr<ActionCondition> cond);
   void onCustomChange(std::shared_ptr<ActionCondition> cond);
 
-  const auto& documentConditions() const
-  {
-    return m_docConditions;
-  }
-  const auto& focusConditions() const
-  {
-    return m_focusConditions;
-  }
-  const auto& selectionConditions() const
-  {
-    return m_selectionConditions;
-  }
-  const auto& customConditions() const
-  {
-    return m_customConditions;
-  }
+  const auto& documentConditions() const { return m_docConditions; }
+  const auto& focusConditions() const { return m_focusConditions; }
+  const auto& selectionConditions() const { return m_selectionConditions; }
+  const auto& customConditions() const { return m_customConditions; }
 
   template <
       typename Condition_T,

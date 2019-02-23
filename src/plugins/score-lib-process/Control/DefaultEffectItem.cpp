@@ -4,28 +4,31 @@
 #include <Process/Dataflow/PortItem.hpp>
 #include <Process/Style/ScenarioStyle.hpp>
 
-#include <Control/Widgets.hpp>
-
 #include <score/graphics/TextItem.hpp>
 
 #include <QGraphicsScene>
 
+#include <Control/Widgets.hpp>
+
 namespace Media::Effect
 {
 DefaultEffectItem::DefaultEffectItem(
-    const Process::ProcessModel& effect, const score::DocumentContext& doc,
+    const Process::ProcessModel& effect,
+    const score::DocumentContext& doc,
     score::RectItem* root)
-    : score::RectItem{root}
-    , m_effect{effect}
-    , m_ctx{doc}
+    : score::RectItem{root}, m_effect{effect}, m_ctx{doc}
 {
   QObject::connect(
-      &effect, &Process::ProcessModel::controlAdded,
-      this, &DefaultEffectItem::on_controlAdded);
+      &effect,
+      &Process::ProcessModel::controlAdded,
+      this,
+      &DefaultEffectItem::on_controlAdded);
 
   QObject::connect(
-      &effect, &Process::ProcessModel::controlRemoved,
-      this, &DefaultEffectItem::on_controlRemoved);
+      &effect,
+      &Process::ProcessModel::controlRemoved,
+      this,
+      &DefaultEffectItem::on_controlRemoved);
 
   for (auto& e : effect.inlets())
   {
@@ -36,16 +39,19 @@ DefaultEffectItem::DefaultEffectItem(
     setupInlet(*inlet, doc);
   }
 
-  QObject::connect(&effect, &Process::ProcessModel::inletsChanged,
-                   this, &DefaultEffectItem::reset);
+  QObject::connect(
+      &effect,
+      &Process::ProcessModel::inletsChanged,
+      this,
+      &DefaultEffectItem::reset);
   // TODO same for outlets if we have control outlets one day
 }
 
 void DefaultEffectItem::setupInlet(
-    Process::ControlInlet& inlet, const score::DocumentContext& doc)
+    Process::ControlInlet& inlet,
+    const score::DocumentContext& doc)
 {
-  con(inlet, &Process::ControlInlet::domainChanged,
-          this, [this,&inlet] {
+  con(inlet, &Process::ControlInlet::domainChanged, this, [this, &inlet] {
     on_controlRemoved(inlet);
     on_controlAdded(inlet.id());
   });
@@ -59,13 +65,16 @@ void DefaultEffectItem::setupInlet(
   auto port = fact->makeItem(inlet, doc, item, this);
   m_ports.push_back({item, port});
 
-  auto lab = new score::SimpleTextItem{Process::Style::instance().EventDefault, item};
+  auto lab = new score::SimpleTextItem{Process::Style::instance().EventDefault,
+                                       item};
   if (inlet.customData().isEmpty())
     lab->setText(tr("Control"));
   else
     lab->setText(inlet.customData());
   connect(
-      &inlet, &Process::ControlInlet::customDataChanged, item,
+      &inlet,
+      &Process::ControlInlet::customDataChanged,
+      item,
       [=](const QString& txt) { lab->setText(txt); });
   lab->setPos(15, 2);
 
@@ -78,14 +87,8 @@ void DefaultEffectItem::setupInlet(
     struct
     {
       float min, max;
-      float getMin() const
-      {
-        return min;
-      }
-      float getMax() const
-      {
-        return max;
-      }
+      float getMin() const { return min; }
+      float getMax() const { return max; }
     } info{min, max};
     widg = Control::FloatSlider::make_item(info, inlet, doc, nullptr, this);
   }
@@ -93,14 +96,8 @@ void DefaultEffectItem::setupInlet(
   {
     struct SliderInfo
     {
-      static float getMin()
-      {
-        return 0.;
-      }
-      static float getMax()
-      {
-        return 1.;
-      }
+      static float getMin() { return 0.; }
+      static float getMax() { return 1.; }
     };
     widg = Control::FloatSlider::make_item(
         SliderInfo{}, inlet, doc, nullptr, this);
@@ -129,17 +126,17 @@ void DefaultEffectItem::on_controlAdded(const Id<Process::Port>& id)
 
 void DefaultEffectItem::on_controlRemoved(const Process::Port& port)
 {
-  for(auto it = m_ports.begin(); it != m_ports.end(); ++it)
+  for (auto it = m_ports.begin(); it != m_ports.end(); ++it)
   {
     auto ptr = it->second;
-    if(&ptr->port() == &port)
+    if (&ptr->port() == &port)
     {
       auto parent_item = it->first;
       auto h = parent_item->boundingRect().height();
       delete parent_item;
       m_ports.erase(it);
 
-      for(; it != m_ports.end(); ++it)
+      for (; it != m_ports.end(); ++it)
       {
         auto item = it->first;
         item->moveBy(0., -h);

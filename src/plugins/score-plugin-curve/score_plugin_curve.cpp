@@ -2,6 +2,7 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "score_plugin_curve.hpp"
 
+#include <Curve/ApplicationPlugin.hpp>
 #include <Curve/Commands/CurveCommandFactory.hpp>
 #include <Curve/Segment/CurveSegmentFactory.hpp>
 #include <Curve/Segment/CurveSegmentList.hpp>
@@ -12,7 +13,6 @@
 #include <Curve/Segment/Power/PowerSegment.hpp>
 #include <Curve/Segment/Sin/SinSegment.hpp>
 #include <Curve/Settings/CurveSettingsFactory.hpp>
-#include <Curve/ApplicationPlugin.hpp>
 
 #include <score/plugins/FactorySetup.hpp>
 #include <score/plugins/StringFactoryKey.hpp>
@@ -36,9 +36,12 @@ score_plugin_curve::factories(
   using namespace Curve;
   return instantiate_factories<
       score::ApplicationContext,
-      FW<SegmentFactory, SegmentFactory_T<LinearSegment>,
-         SegmentFactory_T<PowerSegment>, SegmentFactory_T<PointArraySegment>,
-         SegmentFactory_T<Segment_backIn>, SegmentFactory_T<Segment_backOut>,
+      FW<SegmentFactory,
+         SegmentFactory_T<LinearSegment>,
+         SegmentFactory_T<PowerSegment>,
+         SegmentFactory_T<PointArraySegment>,
+         SegmentFactory_T<Segment_backIn>,
+         SegmentFactory_T<Segment_backOut>,
          SegmentFactory_T<Segment_backInOut>,
          SegmentFactory_T<Segment_bounceIn>,
          SegmentFactory_T<Segment_bounceOut>,
@@ -46,7 +49,8 @@ score_plugin_curve::factories(
          SegmentFactory_T<Segment_quadraticIn>,
          SegmentFactory_T<Segment_quadraticOut>,
          SegmentFactory_T<Segment_quadraticInOut>,
-         SegmentFactory_T<Segment_cubicIn>, SegmentFactory_T<Segment_cubicOut>,
+         SegmentFactory_T<Segment_cubicIn>,
+         SegmentFactory_T<Segment_cubicOut>,
          SegmentFactory_T<Segment_cubicInOut>,
          SegmentFactory_T<Segment_quarticIn>,
          SegmentFactory_T<Segment_quarticOut>,
@@ -54,7 +58,8 @@ score_plugin_curve::factories(
          SegmentFactory_T<Segment_quinticIn>,
          SegmentFactory_T<Segment_quinticOut>,
          SegmentFactory_T<Segment_quinticInOut>,
-         SegmentFactory_T<Segment_sineIn>, SegmentFactory_T<Segment_sineOut>,
+         SegmentFactory_T<Segment_sineIn>,
+         SegmentFactory_T<Segment_sineOut>,
          SegmentFactory_T<Segment_sineInOut>,
          SegmentFactory_T<Segment_circularIn>,
          SegmentFactory_T<Segment_circularOut>,
@@ -75,8 +80,8 @@ score_plugin_curve::factoryFamilies()
   return make_ptr_vector<score::InterfaceListBase, Curve::SegmentList>();
 }
 
-score::GUIApplicationPlugin*
-score_plugin_curve::make_guiApplicationPlugin(const score::GUIApplicationContext& ctx)
+score::GUIApplicationPlugin* score_plugin_curve::make_guiApplicationPlugin(
+    const score::GUIApplicationContext& ctx)
 {
   return new Curve::ApplicationPlugin{ctx};
 }

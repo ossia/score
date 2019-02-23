@@ -17,8 +17,8 @@ public:
   void setColumn(Explorer::Column col);
 
 protected:
-  bool filterAcceptsRow(
-      int sourceRow, const QModelIndex& sourceParent) const override;
+  bool filterAcceptsRow(int sourceRow, const QModelIndex& sourceParent)
+      const override;
 
   bool
   filterAcceptsRowItself(int sourceRow, const QModelIndex& sourceParent) const;

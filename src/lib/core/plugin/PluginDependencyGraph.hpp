@@ -29,17 +29,13 @@ struct PluginDependencyGraph
 {
   struct GraphVertex
   {
-    GraphVertex() : addon{}
-    {
-    }
-    explicit GraphVertex(const score::Addon* add) : addon{add}
-    {
-    }
+    GraphVertex() : addon{} {}
+    explicit GraphVertex(const score::Addon* add) : addon{add} {}
     const score::Addon* addon{};
   };
 
-  using Graph = boost::adjacency_list<
-      boost::vecS, boost::vecS, boost::directedS, GraphVertex>;
+  using Graph = boost::
+      adjacency_list<boost::vecS, boost::vecS, boost::directedS, GraphVertex>;
 
 public:
   explicit PluginDependencyGraph(const std::vector<score::Addon>& addons)
@@ -100,10 +96,7 @@ public:
     }
   }
 
-  auto& sortedAddons() const
-  {
-    return m_sorted;
-  }
+  auto& sortedAddons() const { return m_sorted; }
 
 private:
   Graph m_graph;

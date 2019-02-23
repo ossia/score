@@ -22,14 +22,15 @@ private:
     return p == Metadata<ConcreteKey_k, Model_T>::get();
   }
 
-  View* makeLayerView(
-      const Process::ProcessModel&, QGraphicsItem* parent) const final override
+  View* makeLayerView(const Process::ProcessModel&, QGraphicsItem* parent)
+      const final override
   {
     return new View{parent};
   }
 
   Presenter<Model_T, Widget_T>* makeLayerPresenter(
-      const Process::ProcessModel& lm, Process::LayerView* v,
+      const Process::ProcessModel& lm,
+      Process::LayerView* v,
       const Process::ProcessPresenterContext& context,
       QObject* parent) const final override
   {

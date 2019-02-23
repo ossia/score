@@ -78,8 +78,8 @@ void RecordAutomationCreationVisitor::operator()(std::array<float, 3> val)
   addresses.back().push_back(Device::address(node).address);
   recorder.vec3_records.insert(std::make_pair(
       addresses.back().back(),
-      std::array<RecordData, 3>{makeCurve(val[0]), makeCurve(val[1]),
-                                makeCurve(val[2])}));
+      std::array<RecordData, 3>{
+          makeCurve(val[0]), makeCurve(val[1]), makeCurve(val[2])}));
 }
 
 void RecordAutomationCreationVisitor::operator()(std::array<float, 4> val)
@@ -90,8 +90,10 @@ void RecordAutomationCreationVisitor::operator()(std::array<float, 4> val)
   addresses.back().push_back(Device::address(node).address);
   recorder.vec4_records.insert(std::make_pair(
       addresses.back().back(),
-      std::array<RecordData, 4>{makeCurve(val[0]), makeCurve(val[1]),
-                                makeCurve(val[2]), makeCurve(val[3])}));
+      std::array<RecordData, 4>{makeCurve(val[0]),
+                                makeCurve(val[1]),
+                                makeCurve(val[2]),
+                                makeCurve(val[3])}));
 }
 
 void RecordAutomationCreationVisitor::operator()(float f)

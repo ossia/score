@@ -33,15 +33,13 @@ public:
   virtual void updateName();
   void updateBench(double d);
   void setSize(QSizeF sz) final override;
-  void on_zoomRatioChanged(ZoomRatio) final override
-  {
-    updateName();
-  }
+  void on_zoomRatioChanged(ZoomRatio) final override { updateName(); }
 
 protected:
   void updatePorts();
   void paint(
-      QPainter* painter, const QStyleOptionGraphicsItem* option,
+      QPainter* painter,
+      const QStyleOptionGraphicsItem* option,
       QWidget* widget) override;
 
   QImage m_line, m_bench;

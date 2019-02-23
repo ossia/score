@@ -35,8 +35,8 @@ class audio_engine;
 
 namespace Engine
 {
-using exec_setup_fun = std::function<void(
-    const Execution::Context&, Execution::BaseScenarioElement&)>;
+using exec_setup_fun = std::function<
+    void(const Execution::Context&, Execution::BaseScenarioElement&)>;
 class SCORE_PLUGIN_ENGINE_EXPORT ApplicationPlugin final
     : public QObject,
       public score::GUIApplicationPlugin
@@ -51,27 +51,23 @@ public:
   void on_initDocument(score::Document& doc) override;
   void on_createdDocument(score::Document& doc) override;
 
-  void on_documentChanged(
-      score::Document* olddoc, score::Document* newdoc) override;
+  void on_documentChanged(score::Document* olddoc, score::Document* newdoc)
+      override;
 
   void prepareNewDocument() override;
 
   void on_play(bool, ::TimeVal t = ::TimeVal::zero());
   void on_play(
-      Scenario::IntervalModel&, bool, exec_setup_fun setup = {},
+      Scenario::IntervalModel&,
+      bool,
+      exec_setup_fun setup = {},
       ::TimeVal t = ::TimeVal::zero());
 
   void on_record(::TimeVal t);
 
-  bool playing() const
-  {
-    return m_playing;
-  }
+  bool playing() const { return m_playing; }
 
-  bool paused() const
-  {
-    return m_paused;
-  }
+  bool paused() const { return m_paused; }
 
   void on_stop();
 

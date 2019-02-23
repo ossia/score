@@ -48,8 +48,9 @@ void JSWidgetBase::init(Widg* self, T& model)
     m_errorLabel->clear();
     m_errorLabel->setVisible(false);
   });
-  con(model, &T::scriptChanged, self,
-      [=](const QString& str) { on_modelChanged(str); });
+  con(model, &T::scriptChanged, self, [=](const QString& str) {
+    on_modelChanged(str);
+  });
 
   QObject::connect(m_edit, &JSEdit::focused, self, &Widg::pressed);
 
@@ -75,7 +76,8 @@ void JSWidgetBase::on_modelChanged(const QString& script)
 }
 
 InspectorWidget::InspectorWidget(
-    const JS::ProcessModel& JSModel, const score::DocumentContext& doc,
+    const JS::ProcessModel& JSModel,
+    const score::DocumentContext& doc,
     QWidget* parent)
     : InspectorWidgetDelegate_T{JSModel, parent}
     , JSWidgetBase{doc.commandStack}
@@ -91,8 +93,9 @@ InspectorWidget::InspectorWidget(
 
   updateControls(doc);
 
-  con(JSModel, &JS::ProcessModel::qmlDataChanged, this,
-      [&] { updateControls(doc); });
+  con(JSModel, &JS::ProcessModel::qmlDataChanged, this, [&] {
+    updateControls(doc);
+  });
 }
 void InspectorWidget::updateControls(const score::DocumentContext& doc)
 {
@@ -132,20 +135,23 @@ void InspectorWidget::updateControls(const score::DocumentContext& doc)
       else if (auto toggle = qobject_cast<Toggle*>(ctrl))
       {
         clay->addRow(
-            ctrl->objectName(), WidgetFactory::Toggle::make_widget(
-                                    *toggle, get_control(i), doc, this, this));
+            ctrl->objectName(),
+            WidgetFactory::Toggle::make_widget(
+                *toggle, get_control(i), doc, this, this));
       }
       else if (auto edit = qobject_cast<LineEdit*>(ctrl))
       {
         clay->addRow(
-            ctrl->objectName(), WidgetFactory::LineEdit::make_widget(
-                                    *edit, get_control(i), doc, this, this));
+            ctrl->objectName(),
+            WidgetFactory::LineEdit::make_widget(
+                *edit, get_control(i), doc, this, this));
       }
       else if (auto en = qobject_cast<Enum*>(ctrl))
       {
         clay->addRow(
-            ctrl->objectName(), WidgetFactory::Enum::make_widget(
-                                    *en, get_control(i), doc, this, this));
+            ctrl->objectName(),
+            WidgetFactory::Enum::make_widget(
+                *en, get_control(i), doc, this, this));
       }
 
       i++;

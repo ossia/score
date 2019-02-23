@@ -16,7 +16,8 @@ public:
   void setHighlight(bool);
   QRectF boundingRect() const final override;
   void paint(
-      QPainter* painter, const QStyleOptionGraphicsItem* option,
+      QPainter* painter,
+      const QStyleOptionGraphicsItem* option,
       QWidget* widget) final override;
 
 public:
@@ -43,7 +44,8 @@ public:
   void setRect(const QRectF& r);
   QRectF boundingRect() const final override;
   void paint(
-      QPainter* painter, const QStyleOptionGraphicsItem* option,
+      QPainter* painter,
+      const QStyleOptionGraphicsItem* option,
       QWidget* widget) final override;
 
 public:

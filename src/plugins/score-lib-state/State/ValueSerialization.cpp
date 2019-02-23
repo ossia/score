@@ -33,26 +33,11 @@ QJsonValue value(const ossia::value& val)
   {
   public:
     using return_type = QJsonValue;
-    return_type operator()() const
-    {
-      return {};
-    }
-    return_type operator()(const impulse&) const
-    {
-      return {};
-    }
-    return_type operator()(int i) const
-    {
-      return i;
-    }
-    return_type operator()(float f) const
-    {
-      return f;
-    }
-    return_type operator()(bool b) const
-    {
-      return b;
-    }
+    return_type operator()() const { return {}; }
+    return_type operator()(const impulse&) const { return {}; }
+    return_type operator()(int i) const { return i; }
+    return_type operator()(float f) const { return f; }
+    return_type operator()(bool b) const { return b; }
     return_type operator()(const std::string& s) const
     {
       return QString::fromStdString(s);
@@ -65,10 +50,7 @@ QJsonValue value(const ossia::value& val)
       return QString(c);
     }
 
-    return_type operator()(vec2f t) const
-    {
-      return QJsonArray{t[0], t[1]};
-    }
+    return_type operator()(vec2f t) const { return QJsonArray{t[0], t[1]}; }
     return_type operator()(vec3f t) const
     {
       return QJsonArray{t[0], t[1], t[2]};

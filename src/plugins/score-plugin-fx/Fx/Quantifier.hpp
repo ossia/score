@@ -27,7 +27,8 @@ struct Node
     static const constexpr auto controls = std::make_tuple(
         Control::Widgets::QuantificationChooser(),
         Control::FloatSlider{"Tightness", 0.f, 1.f, 0.8f},
-        Control::Widgets::DurationChooser(), Control::Widgets::TempoChooser());
+        Control::Widgets::DurationChooser(),
+        Control::Widgets::TempoChooser());
   };
 
   struct NoteIn
@@ -49,8 +50,10 @@ struct Node
       const ossia::safe_nodes::timed_vec<float>& tightness,
       const ossia::safe_nodes::timed_vec<float>& dur,
       const ossia::safe_nodes::timed_vec<float>& tempo_vec,
-      ossia::midi_port& p2, ossia::token_request tk,
-      ossia::exec_state_facade st, State& self)
+      ossia::midi_port& p2,
+      ossia::token_request tk,
+      ossia::exec_state_facade st,
+      State& self)
   {
     static std::mt19937 m;
 

@@ -501,7 +501,8 @@ static void read_node(const QJsonObject& dom_element, Device::Node& thisNode)
 }
 
 bool loadDeviceFromJamomaJSON(
-    const QString& filePath, Device::Node& rootNode) try
+    const QString& filePath,
+    Device::Node& rootNode) try
 {
   QFile theFile{filePath};
   if (!theFile.open(QIODevice::ReadOnly))

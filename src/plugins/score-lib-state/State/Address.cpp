@@ -1,10 +1,10 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include <State/Address.hpp>
-#include <State/Expression.hpp>
-#include <State/Unit.hpp>
-#include <State/Relation.hpp>
 #include <State/AddressParser.hpp>
+#include <State/Expression.hpp>
+#include <State/Relation.hpp>
+#include <State/Unit.hpp>
 
 #include <score/tools/Todo.hpp>
 
@@ -54,9 +54,7 @@ operator=(DestinationQualifiers&& other)
   return *this;
 }
 
-DestinationQualifiers::~DestinationQualifiers()
-{
-}
+DestinationQualifiers::~DestinationQualifiers() {}
 
 DestinationQualifiers::DestinationQualifiers(
     const ossia::destination_qualifiers& other)
@@ -203,9 +201,7 @@ bool Address::operator!=(const Address& a) const
   return !(*this == a);
 }
 
-AddressAccessor::AddressAccessor() noexcept
-{
-}
+AddressAccessor::AddressAccessor() noexcept {}
 
 AddressAccessor::AddressAccessor(const AddressAccessor& other) noexcept
     : address{other.address}, qualifiers{other.qualifiers}
@@ -233,9 +229,7 @@ AddressAccessor& AddressAccessor::operator=(AddressAccessor&& other) noexcept
   return *this;
 }
 
-AddressAccessor::AddressAccessor(Address a) noexcept : address{std::move(a)}
-{
-}
+AddressAccessor::AddressAccessor(Address a) noexcept : address{std::move(a)} {}
 
 AddressAccessor::AddressAccessor(Address a, const AccessorVector& v) noexcept
     : address{std::move(a)}, qualifiers{ossia::destination_qualifiers{v, {}}}
@@ -243,7 +237,9 @@ AddressAccessor::AddressAccessor(Address a, const AccessorVector& v) noexcept
 }
 
 AddressAccessor::AddressAccessor(
-    Address a, const AccessorVector& v, const ossia::unit_t& u) noexcept
+    Address a,
+    const AccessorVector& v,
+    const ossia::unit_t& u) noexcept
     : address{std::move(a)}, qualifiers{ossia::destination_qualifiers{v, u}}
 {
 }
@@ -320,7 +316,8 @@ QDebug operator<<(QDebug d, const State::DestinationQualifiers& val)
   auto& a = val.get();
   d.noquote().nospace() << a.accessors;
   if (a.unit)
-    d << QString::fromStdString(std::string(ossia::get_pretty_unit_text(a.unit)));
+    d << QString::fromStdString(
+        std::string(ossia::get_pretty_unit_text(a.unit)));
 
   return d;
 }
@@ -352,7 +349,7 @@ QString toString(const ossia::destination_qualifiers& qualifiers)
   if (qualifiers.unit)
   {
     QString unit_text = State::prettyUnitText(qualifiers.unit);
-      //  = QString::fromStdString(ossia::get_pretty_unit_text(qualifiers.unit));
+    //  = QString::fromStdString(ossia::get_pretty_unit_text(qualifiers.unit));
     if (!qualifiers.accessors.empty())
     {
       char c
@@ -437,7 +434,6 @@ operator()(const State::AddressAccessor& k) const
   ossia::hash_combine(seed, qual.unit.v);
   return seed;
 }
-
 
 ossia::optional<State::Address> State::parseAddress(const QString& str)
 {

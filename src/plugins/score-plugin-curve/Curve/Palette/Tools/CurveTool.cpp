@@ -13,7 +13,7 @@ CurveTool::CurveTool(const Curve::ToolPalette& csm)
 {
 }
 
-const score::DocumentContext&CurveTool::context() const noexcept
+const score::DocumentContext& CurveTool::context() const noexcept
 {
   return m_parentSM.presenter().context();
 }

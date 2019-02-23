@@ -1,8 +1,8 @@
 #pragma once
-#include <score/plugins/ProjectSettings/ProjectSettingsModel.hpp>
 #include <score/plugins/InterfaceList.hpp>
-#include <score/plugins/documentdelegate/plugin/SerializableDocumentPlugin.hpp>
+#include <score/plugins/ProjectSettings/ProjectSettingsModel.hpp>
 #include <score/plugins/documentdelegate/plugin/DocumentPluginCreator.hpp>
+#include <score/plugins/documentdelegate/plugin/SerializableDocumentPlugin.hpp>
 
 #include <score_lib_base_export.h>
 namespace score
@@ -31,18 +31,21 @@ public:
   virtual ~ProjectSettingsFactory();
 
   virtual ProjectSettingsModel* makeModel(
-      const score::DocumentContext&, Id<score::DocumentPlugin> id,
+      const score::DocumentContext&,
+      Id<score::DocumentPlugin> id,
       QObject* parent)
       = 0;
 
   ProjectSettingsPresenter* makePresenter(
-      score::ProjectSettingsModel& m, score::ProjectSettingsView& v,
+      score::ProjectSettingsModel& m,
+      score::ProjectSettingsView& v,
       QObject* parent);
   virtual ProjectSettingsView* makeView() = 0;
 
 protected:
   virtual ProjectSettingsPresenter* makePresenter_impl(
-      score::ProjectSettingsModel& m, score::ProjectSettingsView& v,
+      score::ProjectSettingsModel& m,
+      score::ProjectSettingsView& v,
       QObject* parent)
       = 0;
 };
@@ -51,7 +54,8 @@ template <typename Model_T, typename Presenter_T, typename View_T>
 class ProjectSettingsDelegateFactory_T : public ProjectSettingsFactory
 {
   ProjectSettingsModel* load(
-      const VisitorVariant& var, score::DocumentContext& doc,
+      const VisitorVariant& var,
+      score::DocumentContext& doc,
       QObject* parent) override
   {
     return deserialize_dyn(var, [&](auto&& deserializer) {
@@ -60,31 +64,31 @@ class ProjectSettingsDelegateFactory_T : public ProjectSettingsFactory
   }
 
   ProjectSettingsModel* makeModel(
-      const score::DocumentContext& ctx, Id<score::DocumentPlugin> id,
+      const score::DocumentContext& ctx,
+      Id<score::DocumentPlugin> id,
       QObject* parent) override
   {
     return new Model_T(ctx, id, parent);
   }
 
-  score::ProjectSettingsView* makeView() override
-  {
-    return new View_T;
-  }
+  score::ProjectSettingsView* makeView() override { return new View_T; }
 
   score::ProjectSettingsPresenter* makePresenter_impl(
-      score::ProjectSettingsModel& m, score::ProjectSettingsView& v,
+      score::ProjectSettingsModel& m,
+      score::ProjectSettingsView& v,
       QObject* parent) override
   {
-    return new Presenter_T{safe_cast<Model_T&>(m), safe_cast<View_T&>(v),
-                           parent};
+    return new Presenter_T{
+        safe_cast<Model_T&>(m), safe_cast<View_T&>(v), parent};
   }
 };
 }
 
-#define SCORE_DECLARE_PROJECTSETTINGS_FACTORY(                          \
-    Factory, Model, Presenter, View, Uuid)                              \
-  class Factory final : public score::ProjectSettingsDelegateFactory_T< \
-                            Model, Presenter, View>                     \
-  {                                                                     \
-    SCORE_CONCRETE(Uuid)                                                \
+#define SCORE_DECLARE_PROJECTSETTINGS_FACTORY(                       \
+    Factory, Model, Presenter, View, Uuid)                           \
+  class Factory final                                                \
+      : public score::                                               \
+            ProjectSettingsDelegateFactory_T<Model, Presenter, View> \
+  {                                                                  \
+    SCORE_CONCRETE(Uuid)                                             \
   };

@@ -16,7 +16,9 @@ QRecentFilesMenu::QRecentFilesMenu(const QString& title, QWidget* parent)
     : QMenu(title, parent), m_maxCount(5), m_format(QLatin1String("%d %s"))
 {
   connect(
-      this, &QRecentFilesMenu::triggered, this,
+      this,
+      &QRecentFilesMenu::triggered,
+      this,
       &QRecentFilesMenu::menuTriggered);
 
   setMaxCount(m_maxCount);

@@ -34,10 +34,7 @@ public:
 
   virtual ~BaseScenarioContainer() override;
 
-  QObject& parentObject() const
-  {
-    return *m_parent;
-  }
+  QObject& parentObject() const { return *m_parent; }
 
   score::IndirectContainer<IntervalModel> getIntervals() const final override
   {
@@ -117,8 +114,13 @@ protected:
   auto elements() const
   {
     return std::make_tuple(
-        m_startNode, m_endNode, m_startEvent, m_endEvent, m_startState,
-        m_endState, m_interval);
+        m_startNode,
+        m_endNode,
+        m_startEvent,
+        m_endEvent,
+        m_startState,
+        m_endState,
+        m_interval);
   }
 
 private:

@@ -21,7 +21,8 @@ class IntervalModel;
 namespace Command
 {
 void InterpolateStates(
-    const QList<const IntervalModel*>&, const score::CommandStackFacade&);
+    const QList<const IntervalModel*>&,
+    const score::CommandStackFacade&);
 }
 
 struct value_size
@@ -37,10 +38,7 @@ struct value_size
     return arr.size();
   }
 
-  std::size_t operator()()
-  {
-    return 0;
-  }
+  std::size_t operator()() { return 0; }
 
   template <typename T>
   std::size_t operator()(const T& other)
@@ -57,7 +55,8 @@ struct get_curve_domain
 
   template <std::size_t N>
   Curve::CurveDomain operator()(
-      const std::array<float, N>& start, const std::array<float, N>& end)
+      const std::array<float, N>& start,
+      const std::array<float, N>& end)
   {
     SCORE_ASSERT(!idx.empty());
     const auto i = idx[0];
@@ -143,7 +142,8 @@ struct get_start_end
 
   template <std::size_t N>
   std::pair<double, double> operator()(
-      const std::array<float, N>& start, const std::array<float, N>& end)
+      const std::array<float, N>& start,
+      const std::array<float, N>& end)
   {
     SCORE_ASSERT(!idx.empty());
     const auto i = idx[0];

@@ -139,45 +139,50 @@ struct serialization_tag
 
 template <typename T>
 struct serialization_tag<
-    T, std::enable_if_t<
-           !is_identified_object<T>::value && is_abstract_base<T>::value
-           && !is_custom_serialized<T>::value>>
+    T,
+    std::enable_if_t<
+        !is_identified_object<T>::value && is_abstract_base<T>::value
+        && !is_custom_serialized<T>::value>>
 {
   using type = visitor_abstract_tag;
 };
 
 template <typename T>
 struct serialization_tag<
-    T, std::enable_if_t<
-           is_identified_object<T>::value && !is_entity<T>::value
-           && !is_abstract_base<T>::value && !is_custom_serialized<T>::value>>
+    T,
+    std::enable_if_t<
+        is_identified_object<T>::value && !is_entity<T>::value
+        && !is_abstract_base<T>::value && !is_custom_serialized<T>::value>>
 {
   using type = visitor_object_tag;
 };
 
 template <typename T>
 struct serialization_tag<
-    T, std::enable_if_t<
-           is_identified_object<T>::value && !is_entity<T>::value
-           && is_abstract_base<T>::value && !is_custom_serialized<T>::value>>
+    T,
+    std::enable_if_t<
+        is_identified_object<T>::value && !is_entity<T>::value
+        && is_abstract_base<T>::value && !is_custom_serialized<T>::value>>
 {
   using type = visitor_abstract_object_tag;
 };
 
 template <typename T>
 struct serialization_tag<
-    T, std::enable_if_t<
-           is_entity<T>::value && !is_abstract_base<T>::value
-           && !is_custom_serialized<T>::value>>
+    T,
+    std::enable_if_t<
+        is_entity<T>::value && !is_abstract_base<T>::value
+        && !is_custom_serialized<T>::value>>
 {
   using type = visitor_entity_tag;
 };
 
 template <typename T>
 struct serialization_tag<
-    T, std::enable_if_t<
-           is_entity<T>::value && is_abstract_base<T>::value
-           && !is_custom_serialized<T>::value>>
+    T,
+    std::enable_if_t<
+        is_entity<T>::value && is_abstract_base<T>::value
+        && !is_custom_serialized<T>::value>>
 {
   using type = visitor_abstract_entity_tag;
 };

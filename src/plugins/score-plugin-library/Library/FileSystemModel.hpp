@@ -22,37 +22,37 @@ public:
     auto& lib_setup = ctx.interfaces<Library::LibraryInterfaceList>();
     // TODO refactor
     QSet<QString> types{// Media
-        "*.wav",
-        "*.mp3",
-        "*.mp4",
-        "*.ogg",
-        "*.flac",
-        "*.aif",
-        "*.aiff"
+                        "*.wav",
+                        "*.mp3",
+                        "*.mp4",
+                        "*.ogg",
+                        "*.flac",
+                        "*.aif",
+                        "*.aiff"
 
-        // score-specific
-        ,
-        "*.score",
-        "*.cue",
-        "*.device",
-        "*.oscquery",
-        "*.json"
+                        // score-specific
+                        ,
+                        "*.score",
+                        "*.cue",
+                        "*.device",
+                        "*.oscquery",
+                        "*.json"
 
-        // JS scripts
-        ,
-        "*.js",
-        "*.qml",
-        "*.script"
+                        // JS scripts
+                        ,
+                        "*.js",
+                        "*.qml",
+                        "*.script"
 
-        // Faust, other audio stuff
-        ,
-        "*.dsp",
-        "*.mid"};
+                        // Faust, other audio stuff
+                        ,
+                        "*.dsp",
+                        "*.mid"};
 
     for (const LibraryInterface& lib : lib_setup)
     {
       auto lst = lib.acceptedFiles();
-      for(const auto& ext : lib.acceptedFiles())
+      for (const auto& ext : lib.acceptedFiles())
       {
         types.insert("*." + ext);
       }
@@ -74,23 +74,22 @@ public:
 
   Qt::ItemFlags flags(const QModelIndex& index) const override
   {
-    Qt::ItemFlags f = Qt::ItemIsEnabled
-                      | Qt::ItemIsSelectable | Qt::ItemIsDragEnabled
-                      | Qt::ItemIsDropEnabled;
+    Qt::ItemFlags f = Qt::ItemIsEnabled | Qt::ItemIsSelectable
+                      | Qt::ItemIsDragEnabled | Qt::ItemIsDropEnabled;
 
-    if(!isDir(index))
+    if (!isDir(index))
       f |= Qt::ItemIsEditable;
 
     return f;
   }
 
-  QStringList mimeTypes() const override
-  {
-    return m_mimeTypes;
-  }
+  QStringList mimeTypes() const override { return m_mimeTypes; }
 
   bool dropMimeData(
-      const QMimeData* data, Qt::DropAction action, int row, int column,
+      const QMimeData* data,
+      Qt::DropAction action,
+      int row,
+      int column,
       const QModelIndex& parent) override
   {
     LibraryInterface* handler{};

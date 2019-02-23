@@ -18,7 +18,8 @@ void VSTWindow::setup_rect(QWidget* container, int width, int height)
 }
 
 VSTWindow::VSTWindow(
-    const VSTEffectModel& e, const score::DocumentContext& ctx)
+    const VSTEffectModel& e,
+    const score::DocumentContext& ctx)
     : m_model{e}
 {
   if (!e.fx)

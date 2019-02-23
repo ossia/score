@@ -182,12 +182,15 @@ void InterpolateStates(
     for (const auto& elt : pairs.numericMessages)
     {
       Curve::CurveDomain d = ossia::apply(
-          get_curve_domain{elt.first.address, {}, rootNode}, elt.first.value.v,
+          get_curve_domain{elt.first.address, {}, rootNode},
+          elt.first.value.v,
           elt.second.value.v);
 
-      macro->addCommand(new CreateAutomationFromStates{
-          interval, macro->slotsToUse, process_ids[cur_proc],
-          elt.first.address, d});
+      macro->addCommand(new CreateAutomationFromStates{interval,
+                                                       macro->slotsToUse,
+                                                       process_ids[cur_proc],
+                                                       elt.first.address,
+                                                       d});
 
       cur_proc++;
     }
@@ -199,11 +202,14 @@ void InterpolateStates(
           get_curve_domain{elt.first.address,
                            elt.first.address.qualifiers.get().accessors,
                            rootNode},
-          elt.first.value.v, elt.second.value.v);
+          elt.first.value.v,
+          elt.second.value.v);
 
-      macro->addCommand(new CreateAutomationFromStates{
-          interval, macro->slotsToUse, process_ids[cur_proc],
-          elt.first.address, d});
+      macro->addCommand(new CreateAutomationFromStates{interval,
+                                                       macro->slotsToUse,
+                                                       process_ids[cur_proc],
+                                                       elt.first.address,
+                                                       d});
       cur_proc++;
     }
 

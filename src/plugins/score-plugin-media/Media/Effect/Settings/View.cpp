@@ -1,11 +1,11 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+#include <Media/ApplicationPlugin.hpp>
 #include <Media/Effect/Settings/Model.hpp>
 #include <Media/Effect/Settings/View.hpp>
 
-#include <score/widgets/SignalUtils.hpp>
 #include <score/application/GUIApplicationContext.hpp>
-#include <Media/ApplicationPlugin.hpp>
+#include <score/widgets/SignalUtils.hpp>
 
 #include <QFileDialog>
 #include <QFormLayout>
@@ -36,7 +36,9 @@ View::View() : m_widg{new QWidget}
 
   m_VstPaths->setContextMenuPolicy(Qt::ContextMenuPolicy::CustomContextMenu);
   connect(
-      m_VstPaths, &QListWidget::customContextMenuRequested, this,
+      m_VstPaths,
+      &QListWidget::customContextMenuRequested,
+      this,
       [=](const QPoint& p) {
         QMenu* m = new QMenu;
         auto act = m->addAction("Remove");
@@ -68,32 +70,38 @@ View::View() : m_widg{new QWidget}
     }
   });
 
-  auto& app_plug = score::GUIAppContext().applicationPlugin<Media::ApplicationPlugin>();
+  auto& app_plug
+      = score::GUIAppContext().applicationPlugin<Media::ApplicationPlugin>();
 
   connect(rescan, &QPushButton::clicked, this, [&] {
     app_plug.rescanVSTs(m_curitems);
   });
 
-  auto reloadVSTs = [=,&app_plug] {
+  auto reloadVSTs = [=, &app_plug] {
     vst_ok->clear();
     vst_bad->clear();
-    for(auto& plug : app_plug.vst_infos)
+    for (auto& plug : app_plug.vst_infos)
     {
-      if(plug.isValid)
+      if (plug.isValid)
       {
-        vst_ok->addItem(QString{"%1 - %2\t(%3)"}.arg(plug.prettyName).arg(plug.displayName).arg(plug.path));
+        vst_ok->addItem(QString{"%1 - %2\t(%3)"}
+                            .arg(plug.prettyName)
+                            .arg(plug.displayName)
+                            .arg(plug.path));
       }
       else
       {
-        vst_bad->addItem(QString{"%1 - %2\t(%3)"}.arg(plug.prettyName).arg(plug.displayName).arg(plug.path));
+        vst_bad->addItem(QString{"%1 - %2\t(%3)"}
+                             .arg(plug.prettyName)
+                             .arg(plug.displayName)
+                             .arg(plug.path));
       }
     }
   };
 
   reloadVSTs();
 
-  con(app_plug, &Media::ApplicationPlugin::vstChanged,
-      this, reloadVSTs);
+  con(app_plug, &Media::ApplicationPlugin::vstChanged, this, reloadVSTs);
   lay->addRow(vst_lay);
   vst_lay->addWidget(new QLabel("Working plug-ins"), 0, 0, 1, 1);
   vst_lay->addWidget(new QLabel("Bad plug-ins"), 0, 1, 1, 1);

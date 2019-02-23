@@ -39,52 +39,34 @@ class SCORE_LIB_BASE_EXPORT Presenter final : public QObject
 
 public:
   Presenter(
-      const score::ApplicationSettings& app, score::Settings& set,
-      score::ProjectSettings& pset, score::View* view, QObject* parent);
+      const score::ApplicationSettings& app,
+      score::Settings& set,
+      score::ProjectSettings& pset,
+      score::View* view,
+      QObject* parent);
 
   // Exit score
   bool exit();
 
   View* view() const;
 
-  auto& menuManager()
-  {
-    return m_menus;
-  }
-  auto& toolbarManager()
-  {
-    return m_toolbars;
-  }
-  auto& actionManager()
-  {
-    return m_actions;
-  }
+  auto& menuManager() { return m_menus; }
+  auto& toolbarManager() { return m_toolbars; }
+  auto& actionManager() { return m_actions; }
 
   // Called after all the classes
   // have been loaded from plug-ins.
   void setupGUI();
 
-  auto& documentManager()
-  {
-    return m_docManager;
-  }
+  auto& documentManager() { return m_docManager; }
   const ApplicationComponents& applicationComponents()
   {
     return m_components_readonly;
   }
-  const GUIApplicationContext& applicationContext()
-  {
-    return m_context;
-  }
+  const GUIApplicationContext& applicationContext() { return m_context; }
 
-  auto& components()
-  {
-    return m_components;
-  }
-  auto& settings()
-  {
-    return m_settings;
-  }
+  auto& components() { return m_components; }
+  auto& settings() { return m_settings; }
 
   void optimize();
 

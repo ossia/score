@@ -21,7 +21,9 @@ DataStreamSerializedComponents::~DataStreamSerializedComponents() = default;
 JSONSerializedComponents::~JSONSerializedComponents() = default;
 
 DataStreamSerializedComponents::DataStreamSerializedComponents(
-    const Id<Component>& id, DataStreamComponents obj, QObject* parent)
+    const Id<Component>& id,
+    DataStreamComponents obj,
+    QObject* parent)
     : score::Component{id, "SerializedComponents", parent}
     , data(std::move(obj))
 {
@@ -35,14 +37,17 @@ DataStreamSerializedComponents::DataStreamSerializedComponents(
 }
 
 JSONSerializedComponents::JSONSerializedComponents(
-    const Id<Component>& id, JSONComponents obj, QObject* parent)
+    const Id<Component>& id,
+    JSONComponents obj,
+    QObject* parent)
     : score::Component{id, "SerializedComponents", parent}
     , data(std::move(obj))
 {
 }
 
 bool JSONSerializedComponents::deserializeRemaining(
-    Components& comps, QObject* entity)
+    Components& comps,
+    QObject* entity)
 {
   auto& ctx = score::IDocument::documentContext(*entity);
   auto& comp_factory
@@ -66,7 +71,8 @@ bool JSONSerializedComponents::deserializeRemaining(
 }
 
 bool DataStreamSerializedComponents::deserializeRemaining(
-    Components& components, QObject* entity)
+    Components& components,
+    QObject* entity)
 {
   auto& ctx = score::IDocument::documentContext(*entity);
   auto& comp_factory
@@ -88,16 +94,13 @@ bool DataStreamSerializedComponents::deserializeRemaining(
   return data.empty();
 }
 
-SerializableComponentFactory::~SerializableComponentFactory()
-{
-}
+SerializableComponentFactory::~SerializableComponentFactory() {}
 
-SerializableComponentFactoryList::~SerializableComponentFactoryList()
-{
-}
+SerializableComponentFactoryList::~SerializableComponentFactoryList() {}
 
 score::SerializableComponent* SerializableComponentFactoryList::loadMissing(
-    const VisitorVariant& vis, const DocumentContext& ctx,
+    const VisitorVariant& vis,
+    const DocumentContext& ctx,
     QObject* parent) const
 {
   SCORE_TODO;

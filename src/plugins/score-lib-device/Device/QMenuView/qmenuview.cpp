@@ -77,9 +77,7 @@ void ClickableMenu::mouseReleaseEvent(QMouseEvent* event)
 
 /* QMenuViewPrivate */
 
-QMenuViewPrivate::QMenuViewPrivate(QMenuView* menu) : _menu(menu)
-{
-}
+QMenuViewPrivate::QMenuViewPrivate(QMenuView* menu) : _menu(menu) {}
 
 QAction* QMenuViewPrivate::makeAction(const QModelIndex& index)
 {
@@ -224,9 +222,7 @@ bool QMenuView::prePopulated()
 }
 
 //! Add any actions after the tree
-void QMenuView::postPopulated()
-{
-}
+void QMenuView::postPopulated() {}
 
 /*!
  * \brief Set the new model to \p model.
@@ -269,7 +265,9 @@ QModelIndex QMenuView::rootIndex() const
 
 //! Puts all of the children of parent into menu
 void QMenuView::createMenu(
-    const QModelIndex& parent, QMenu& parentMenu, QMenu* menu)
+    const QModelIndex& parent,
+    QMenu& parentMenu,
+    QMenu* menu)
 {
   if (!menu)
   {

@@ -29,7 +29,8 @@ W_OBJECT_IMPL(Explorer::DeviceEditDialog)
 namespace Explorer
 {
 DeviceEditDialog::DeviceEditDialog(
-    const Device::ProtocolFactoryList& pl, QWidget* parent)
+    const Device::ProtocolFactoryList& pl,
+    QWidget* parent)
     : QDialog(parent)
     , m_protocolList{pl}
     , m_protocolWidget{nullptr}
@@ -40,9 +41,7 @@ DeviceEditDialog::DeviceEditDialog(
   setMinimumWidth(400);
 }
 
-DeviceEditDialog::~DeviceEditDialog()
-{
-}
+DeviceEditDialog::~DeviceEditDialog() {}
 
 void DeviceEditDialog::buildGUI()
 {
@@ -65,7 +64,9 @@ void DeviceEditDialog::buildGUI()
   initAvailableProtocols(); // populate m_protocolCBox
 
   connect(
-      m_protocolCBox, SignalUtils::QComboBox_currentIndexChanged_int(), this,
+      m_protocolCBox,
+      SignalUtils::QComboBox_currentIndexChanged_int(),
+      this,
       &DeviceEditDialog::updateProtocolWidget);
 
   if (m_protocolCBox->count() > 0)

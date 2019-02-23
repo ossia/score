@@ -15,17 +15,13 @@ class IntervalMenuOverlay final : public QGraphicsItem
 {
 
 public:
-  IntervalMenuOverlay(IntervalView* parent) : QGraphicsItem{parent}
-  {
-  }
+  IntervalMenuOverlay(IntervalView* parent) : QGraphicsItem{parent} {}
 
-  QRectF boundingRect() const override
-  {
-    return {0, -10, 20, 20};
-  }
+  QRectF boundingRect() const override { return {0, -10, 20, 20}; }
 
   void paint(
-      QPainter* painter, const QStyleOptionGraphicsItem* option,
+      QPainter* painter,
+      const QStyleOptionGraphicsItem* option,
       QWidget* widget) override
   {
     auto& skin = Process::Style::instance();

@@ -32,7 +32,8 @@ class SCORE_LIB_INSPECTOR_EXPORT InspectorWidgetFactory
     : public score::InterfaceBase
 {
   SCORE_INTERFACE(
-      InspectorWidgetFactory, "e7098592-7e2f-400d-9b71-2628d7276f99")
+      InspectorWidgetFactory,
+      "e7098592-7e2f-400d-9b71-2628d7276f99")
 public:
   using InspectedObjects = QList<const IdentifiedObjectAbstract*>;
   virtual ~InspectorWidgetFactory();
@@ -44,7 +45,8 @@ public:
    */
   virtual QWidget* make(
       const InspectedObjects& sourceElement,
-      const score::DocumentContext& doc, QWidget* parent) const = 0;
+      const score::DocumentContext& doc,
+      QWidget* parent) const = 0;
 
   virtual bool update(QWidget* cur, const InspectedObjects& obj) const;
 

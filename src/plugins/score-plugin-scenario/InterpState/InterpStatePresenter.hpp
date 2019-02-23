@@ -13,8 +13,11 @@ class Presenter final : public Curve::CurveProcessPresenter<ProcessModel, View>
   W_OBJECT(Presenter)
 public:
   Presenter(
-      const Curve::Style& style, const ProcessModel& layer, View* view,
-      const Process::ProcessPresenterContext& context, QObject* parent)
+      const Curve::Style& style,
+      const ProcessModel& layer,
+      View* view,
+      const Process::ProcessPresenterContext& context,
+      QObject* parent)
       : CurveProcessPresenter{style, layer, view, context, parent}
   {
   }

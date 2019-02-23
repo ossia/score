@@ -77,11 +77,14 @@ void SelectionStack::push(const Selection& selection)
     }
 
     Foreach(s, [&](auto obj) {
-      if(m_connections.find(obj) == m_connections.end())
+      if (m_connections.find(obj) == m_connections.end())
       {
         QMetaObject::Connection con = connect(
-              obj, &IdentifiedObjectAbstract::identified_object_destroyed, this,
-              &SelectionStack::prune, Qt::UniqueConnection);
+            obj,
+            &IdentifiedObjectAbstract::identified_object_destroyed,
+            this,
+            &SelectionStack::prune,
+            Qt::UniqueConnection);
         m_connections.insert({obj, con});
       }
     });
@@ -176,13 +179,15 @@ void SelectionStack::prune(IdentifiedObjectAbstract* p)
 
   m_unselectable.erase(
       std::remove_if(
-          m_unselectable.begin(), m_unselectable.end(),
+          m_unselectable.begin(),
+          m_unselectable.end(),
           [](const Selection& s) { return s.empty(); }),
       m_unselectable.end());
 
   m_reselectable.erase(
       std::remove_if(
-          m_reselectable.begin(), m_reselectable.end(),
+          m_reselectable.begin(),
+          m_reselectable.end(),
           [](const Selection& s) { return s.empty(); }),
       m_reselectable.end());
 
@@ -196,29 +201,29 @@ void SelectionStack::prune(IdentifiedObjectAbstract* p)
 void SelectionStack::pruneConnections()
 {
   ossia::flat_set<const IdentifiedObjectAbstract*> present;
-  for(auto& sel : m_unselectable)
+  for (auto& sel : m_unselectable)
   {
-    for(auto& obj : sel)
+    for (auto& obj : sel)
     {
       present.insert(obj.data());
     }
   }
-  for(auto& sel : m_reselectable)
+  for (auto& sel : m_reselectable)
   {
-    for(auto& obj : sel)
+    for (auto& obj : sel)
     {
       present.insert(obj.data());
     }
   }
 
   std::vector<const IdentifiedObjectAbstract*> to_remove;
-  for(auto& e : m_connections)
+  for (auto& e : m_connections)
   {
-    if(present.find(e.first) == present.end())
+    if (present.find(e.first) == present.end())
       to_remove.push_back(e.first);
   }
 
-  for(auto ptr : to_remove)
+  for (auto ptr : to_remove)
   {
     auto it = m_connections.find(ptr);
     QObject::disconnect(it->second);

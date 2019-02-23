@@ -1,10 +1,11 @@
 #include "WiimoteSpecificSettings.hpp"
 
+#include <score/serialization/DataStreamVisitor.hpp>
+#include <score/serialization/JSONVisitor.hpp>
+
 #include <QJsonObject>
 #include <QJsonValue>
 #include <QString>
-#include <score/serialization/DataStreamVisitor.hpp>
-#include <score/serialization/JSONVisitor.hpp>
 
 template <>
 void DataStreamReader::read(const Protocols::WiimoteSpecificSettings& n)

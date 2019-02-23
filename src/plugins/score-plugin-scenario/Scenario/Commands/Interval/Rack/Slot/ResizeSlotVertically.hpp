@@ -22,20 +22,23 @@ class SCORE_PLUGIN_SCENARIO_EXPORT ResizeSlotVertically final
     : public score::Command
 {
   SCORE_COMMAND_DECL(
-      ScenarioCommandFactoryName(), ResizeSlotVertically, "Resize a slot")
+      ScenarioCommandFactoryName(),
+      ResizeSlotVertically,
+      "Resize a slot")
 public:
   ResizeSlotVertically(
-      const IntervalModel& cst, const SlotPath& slotPath, double newSize);
+      const IntervalModel& cst,
+      const SlotPath& slotPath,
+      double newSize);
   ResizeSlotVertically(
-      const IntervalModel& cst, SlotPath&& slotPath, double newSize);
+      const IntervalModel& cst,
+      SlotPath&& slotPath,
+      double newSize);
 
   void undo(const score::DocumentContext& ctx) const override;
   void redo(const score::DocumentContext& ctx) const override;
 
-  void update(unused_t, unused_t, double size)
-  {
-    m_newSize = size;
-  }
+  void update(unused_t, unused_t, double size) { m_newSize = size; }
 
 protected:
   void serializeImpl(DataStreamInput&) const override;

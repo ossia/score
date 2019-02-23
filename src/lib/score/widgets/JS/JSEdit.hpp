@@ -86,9 +86,8 @@ public:
 
 public:
   void editingFinished(QString arg_1)
-  E_SIGNAL(SCORE_LIB_BASE_EXPORT, editingFinished, arg_1);
-  void focused()
-  E_SIGNAL(SCORE_LIB_BASE_EXPORT, focused);
+      E_SIGNAL(SCORE_LIB_BASE_EXPORT, editingFinished, arg_1);
+  void focused() E_SIGNAL(SCORE_LIB_BASE_EXPORT, focused);
 
 public:
   void updateSidebar();
@@ -129,14 +128,15 @@ private:
   W_SLOT(do_updateSidebar);
 
 private:
-  void dropEvent(QDropEvent *event) override;
+  void dropEvent(QDropEvent* event) override;
   void focusInEvent(QFocusEvent* event) override;
   QScopedPointer<JSEditPrivate> d_ptr;
   Q_DECLARE_PRIVATE(JSEdit)
   Q_DISABLE_COPY(JSEdit)
 
   W_PROPERTY(
-      bool, textWrapEnabled READ isTextWrapEnabled WRITE setTextWrapEnabled)
+      bool,
+      textWrapEnabled READ isTextWrapEnabled WRITE setTextWrapEnabled)
 
   W_PROPERTY(
       bool,
@@ -147,8 +147,9 @@ private:
       codeFoldingEnabled READ isCodeFoldingEnabled WRITE setCodeFoldingEnabled)
 
   W_PROPERTY(
-      bool, bracketsMatchingEnabled READ isBracketsMatchingEnabled WRITE
-                setBracketsMatchingEnabled)
+      bool,
+      bracketsMatchingEnabled READ isBracketsMatchingEnabled WRITE
+          setBracketsMatchingEnabled)
 };
 
 W_REGISTER_ARGTYPE(Qt::CaseSensitivity)

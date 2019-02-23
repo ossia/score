@@ -24,8 +24,10 @@ namespace Scenario
 struct VerticalExtent;
 
 ScenarioPresenter::ScenarioPresenter(
-    Scenario::EditionSettings& e, const Scenario::ProcessModel& scenario,
-    Process::LayerView* view, const Process::ProcessPresenterContext& context,
+    Scenario::EditionSettings& e,
+    const Scenario::ProcessModel& scenario,
+    Process::LayerView* view,
+    const Process::ProcessPresenterContext& context,
     QObject* parent)
     : LayerPresenter{context, parent}
     , m_layer{scenario}
@@ -64,47 +66,52 @@ ScenarioPresenter::ScenarioPresenter(
   }
 
   /////// Connections
-  scenario.intervals.added
-      .connect<&ScenarioPresenter::on_intervalCreated>(this);
-  scenario.intervals.removed
-      .connect<&ScenarioPresenter::on_intervalRemoved>(this);
-
-  scenario.states.added.connect<&ScenarioPresenter::on_stateCreated>(
+  scenario.intervals.added.connect<&ScenarioPresenter::on_intervalCreated>(
       this);
-  scenario.states.removed.connect<&ScenarioPresenter::on_stateRemoved>(
+  scenario.intervals.removed.connect<&ScenarioPresenter::on_intervalRemoved>(
       this);
 
-  scenario.events.added.connect<&ScenarioPresenter::on_eventCreated>(
+  scenario.states.added.connect<&ScenarioPresenter::on_stateCreated>(this);
+  scenario.states.removed.connect<&ScenarioPresenter::on_stateRemoved>(this);
+
+  scenario.events.added.connect<&ScenarioPresenter::on_eventCreated>(this);
+  scenario.events.removed.connect<&ScenarioPresenter::on_eventRemoved>(this);
+
+  scenario.timeSyncs.added.connect<&ScenarioPresenter::on_timeSyncCreated>(
       this);
-  scenario.events.removed.connect<&ScenarioPresenter::on_eventRemoved>(
+  scenario.timeSyncs.removed.connect<&ScenarioPresenter::on_timeSyncRemoved>(
       this);
 
-  scenario.timeSyncs.added
-      .connect<&ScenarioPresenter::on_timeSyncCreated>(this);
-  scenario.timeSyncs.removed
-      .connect<&ScenarioPresenter::on_timeSyncRemoved>(this);
-
-  scenario.comments.added
-      .connect<&ScenarioPresenter::on_commentCreated>(this);
-  scenario.comments.removed
-      .connect<&ScenarioPresenter::on_commentRemoved>(this);
+  scenario.comments.added.connect<&ScenarioPresenter::on_commentCreated>(this);
+  scenario.comments.removed.connect<&ScenarioPresenter::on_commentRemoved>(
+      this);
 
   connect(
-      m_view, &ScenarioView::keyPressed, this,
+      m_view,
+      &ScenarioView::keyPressed,
+      this,
       &ScenarioPresenter::on_keyPressed);
   connect(
-      m_view, &ScenarioView::keyReleased, this,
+      m_view,
+      &ScenarioView::keyReleased,
+      this,
       &ScenarioPresenter::on_keyReleased);
 
   connect(
-      m_view, &ScenarioView::doubleClicked, this,
+      m_view,
+      &ScenarioView::doubleClicked,
+      this,
       &ScenarioPresenter::doubleClick);
 
   connect(
-      m_view, &ScenarioView::askContextMenu, this,
+      m_view,
+      &ScenarioView::askContextMenu,
+      this,
       &ScenarioPresenter::contextMenuRequested);
   connect(
-      m_view, &ScenarioView::dragEnter, this,
+      m_view,
+      &ScenarioView::dragEnter,
+      this,
       [=](const QPointF& pos, const QMimeData& mime) {
         try
         {
@@ -117,7 +124,9 @@ ScenarioPresenter::ScenarioPresenter(
         }
       });
   connect(
-      m_view, &ScenarioView::dragMove, this,
+      m_view,
+      &ScenarioView::dragMove,
+      this,
       [=](const QPointF& pos, const QMimeData& mime) {
         try
         {
@@ -130,7 +139,9 @@ ScenarioPresenter::ScenarioPresenter(
         }
       });
   connect(
-      m_view, &ScenarioView::dragLeave, this,
+      m_view,
+      &ScenarioView::dragLeave,
+      this,
       [=](const QPointF& pos, const QMimeData& mime) {
         try
         {
@@ -144,7 +155,9 @@ ScenarioPresenter::ScenarioPresenter(
         }
       });
   connect(
-      m_view, &ScenarioView::dropReceived, this,
+      m_view,
+      &ScenarioView::dropReceived,
+      this,
       [=](const QPointF& pos, const QMimeData& mime) {
         try
         {
@@ -161,14 +174,18 @@ ScenarioPresenter::ScenarioPresenter(
   m_graphicalScale = context.app.settings<Settings::Model>().getGraphicZoom();
 
   con(context.app.settings<Settings::Model>(),
-      &Settings::Model::GraphicZoomChanged, this, [&](double d) {
+      &Settings::Model::GraphicZoomChanged,
+      this,
+      [&](double d) {
         m_graphicalScale = d;
         m_viewInterface.on_graphicalScaleChanged(m_graphicalScale);
       });
   m_viewInterface.on_graphicalScaleChanged(m_graphicalScale);
 
   m_con = con(
-      context.execTimer, &QTimer::timeout, this,
+      context.execTimer,
+      &QTimer::timeout,
+      this,
       &ScenarioPresenter::on_intervalExecutionTimer);
 
   auto& es = context.app.guiApplicationPlugin<ScenarioApplicationPlugin>()
@@ -271,20 +288,20 @@ ScenarioPresenter::interval(const Id<IntervalModel>& id) const
   return m_intervals.at(id);
 }
 
-StatePresenter&
-ScenarioPresenter::state(const Id<StateModel>& id) const
+StatePresenter& ScenarioPresenter::state(const Id<StateModel>& id) const
 {
   return m_states.at(id);
 }
 
-EventPresenter&
-ScenarioPresenter::event(const Id<EventModel>& id) const
+EventPresenter& ScenarioPresenter::event(const Id<EventModel>& id) const
 {
   return m_events.at(id);
 }
 
 void ScenarioPresenter::fillContextMenu(
-    QMenu& menu, QPoint pos, QPointF scenepos,
+    QMenu& menu,
+    QPoint pos,
+    QPointF scenepos,
     const Process::LayerContextMenuManager& cm)
 {
   auto& ctx = m_context.context;
@@ -319,8 +336,7 @@ void ScenarioPresenter::fillContextMenu(
   menu.addAction(createCommentAct);
 }
 
-void ScenarioPresenter::drawDragLine(
-    const StateModel& st, Point pt) const
+void ScenarioPresenter::drawDragLine(const StateModel& st, Point pt) const
 {
   auto& real_st = m_states.at(st.id());
   m_view->drawDragLine(
@@ -350,8 +366,7 @@ void ScenarioPresenter::on_eventRemoved(const EventModel& event)
   removeElement(m_events, event.id());
 }
 
-void ScenarioPresenter::on_timeSyncRemoved(
-    const TimeSyncModel& timeSync)
+void ScenarioPresenter::on_timeSyncRemoved(const TimeSyncModel& timeSync)
 {
   removeElement(m_timeSyncs, timeSync.id());
 }
@@ -435,10 +450,13 @@ void ScenarioPresenter::on_eventCreated(const EventModel& event_model)
   ev_pres->view()->setWidthScale(m_graphicalScale);
   m_viewInterface.on_eventMoved(*ev_pres);
 
-  con(event_model, &EventModel::extentChanged, this,
+  con(event_model,
+      &EventModel::extentChanged,
+      this,
       [=](const VerticalExtent&) { m_viewInterface.on_eventMoved(*ev_pres); });
-  con(event_model, &EventModel::dateChanged, this,
-      [=](const TimeVal&) { m_viewInterface.on_eventMoved(*ev_pres); });
+  con(event_model, &EventModel::dateChanged, this, [=](const TimeVal&) {
+    m_viewInterface.on_eventMoved(*ev_pres);
+  });
 
   connect(ev_pres, &EventPresenter::eventHoverEnter, this, [=]() {
     m_viewInterface.on_hoverOnEvent(ev_pres->id(), true);
@@ -449,41 +467,38 @@ void ScenarioPresenter::on_eventCreated(const EventModel& event_model)
 
   // For the state machine
   connect(
-      ev_pres, &EventPresenter::pressed, m_view,
-      &ScenarioView::pressedAsked);
-  connect(
-      ev_pres, &EventPresenter::moved, m_view,
-      &ScenarioView::movedAsked);
-  connect(
-      ev_pres, &EventPresenter::released, m_view,
-      &ScenarioView::released);
+      ev_pres, &EventPresenter::pressed, m_view, &ScenarioView::pressedAsked);
+  connect(ev_pres, &EventPresenter::moved, m_view, &ScenarioView::movedAsked);
+  connect(ev_pres, &EventPresenter::released, m_view, &ScenarioView::released);
 }
 
-void ScenarioPresenter::on_timeSyncCreated(
-    const TimeSyncModel& timeSync_model)
+void ScenarioPresenter::on_timeSyncCreated(const TimeSyncModel& timeSync_model)
 {
   auto tn_pres = new TimeSyncPresenter{timeSync_model, m_view, this};
   m_timeSyncs.insert(tn_pres);
 
   m_viewInterface.on_timeSyncMoved(*tn_pres);
 
-  con(timeSync_model, &TimeSyncModel::extentChanged, this,
+  con(timeSync_model,
+      &TimeSyncModel::extentChanged,
+      this,
       [=](const VerticalExtent&) {
         m_viewInterface.on_timeSyncMoved(*tn_pres);
       });
-  con(timeSync_model, &TimeSyncModel::dateChanged, this,
-      [=](const TimeVal&) { m_viewInterface.on_timeSyncMoved(*tn_pres); });
+  con(timeSync_model, &TimeSyncModel::dateChanged, this, [=](const TimeVal&) {
+    m_viewInterface.on_timeSyncMoved(*tn_pres);
+  });
 
   // For the state machine
   connect(
-      tn_pres, &TimeSyncPresenter::pressed, m_view,
+      tn_pres,
+      &TimeSyncPresenter::pressed,
+      m_view,
       &ScenarioView::pressedAsked);
   connect(
-      tn_pres, &TimeSyncPresenter::moved, m_view,
-      &ScenarioView::movedAsked);
+      tn_pres, &TimeSyncPresenter::moved, m_view, &ScenarioView::movedAsked);
   connect(
-      tn_pres, &TimeSyncPresenter::released, m_view,
-      &ScenarioView::released);
+      tn_pres, &TimeSyncPresenter::released, m_view, &ScenarioView::released);
 }
 
 void ScenarioPresenter::on_stateCreated(const StateModel& state)
@@ -494,42 +509,44 @@ void ScenarioPresenter::on_stateCreated(const StateModel& state)
   st_pres->view()->setScale(m_graphicalScale);
   m_viewInterface.on_stateMoved(*st_pres);
 
-  con(state, &StateModel::heightPercentageChanged, this,
-      [=]() { m_viewInterface.on_stateMoved(*st_pres); });
+  con(state, &StateModel::heightPercentageChanged, this, [=]() {
+    m_viewInterface.on_stateMoved(*st_pres);
+  });
 
   // For the state machine
   connect(
-      st_pres, &StatePresenter::pressed, m_view,
-      &ScenarioView::pressedAsked);
-  connect(
-      st_pres, &StatePresenter::moved, m_view,
-      &ScenarioView::movedAsked);
-  connect(
-      st_pres, &StatePresenter::released, m_view,
-      &ScenarioView::released);
+      st_pres, &StatePresenter::pressed, m_view, &ScenarioView::pressedAsked);
+  connect(st_pres, &StatePresenter::moved, m_view, &ScenarioView::movedAsked);
+  connect(st_pres, &StatePresenter::released, m_view, &ScenarioView::released);
 
   connect(
-      st_pres, &StatePresenter::askUpdate, this,
+      st_pres,
+      &StatePresenter::askUpdate,
+      this,
       &ScenarioPresenter::on_askUpdate);
 }
 
-void ScenarioPresenter::on_intervalCreated(
-    const IntervalModel& interval)
+void ScenarioPresenter::on_intervalCreated(const IntervalModel& interval)
 {
-  auto cst_pres = new TemporalIntervalPresenter{interval, m_context.context,
-                                                true, m_view, this};
+  auto cst_pres = new TemporalIntervalPresenter{
+      interval, m_context.context, true, m_view, this};
   m_intervals.insert(cst_pres);
   cst_pres->on_zoomRatioChanged(m_zoomRatio);
 
   m_viewInterface.on_intervalMoved(*cst_pres);
 
   connect(
-      cst_pres, &TemporalIntervalPresenter::heightPercentageChanged, this,
+      cst_pres,
+      &TemporalIntervalPresenter::heightPercentageChanged,
+      this,
       [=]() { m_viewInterface.on_intervalMoved(*cst_pres); });
-  con(interval, &IntervalModel::dateChanged, this,
-      [=](const TimeVal&) { m_viewInterface.on_intervalMoved(*cst_pres); });
+  con(interval, &IntervalModel::dateChanged, this, [=](const TimeVal&) {
+    m_viewInterface.on_intervalMoved(*cst_pres);
+  });
   connect(
-      cst_pres, &TemporalIntervalPresenter::askUpdate, this,
+      cst_pres,
+      &TemporalIntervalPresenter::askUpdate,
+      this,
       &ScenarioPresenter::on_askUpdate);
 
   connect(cst_pres, &TemporalIntervalPresenter::intervalHoverEnter, [=]() {
@@ -541,13 +558,19 @@ void ScenarioPresenter::on_intervalCreated(
 
   // For the state machine
   connect(
-      cst_pres, &TemporalIntervalPresenter::pressed, m_view,
+      cst_pres,
+      &TemporalIntervalPresenter::pressed,
+      m_view,
       &ScenarioView::pressedAsked);
   connect(
-      cst_pres, &TemporalIntervalPresenter::moved, m_view,
+      cst_pres,
+      &TemporalIntervalPresenter::moved,
+      m_view,
       &ScenarioView::movedAsked);
   connect(
-      cst_pres, &TemporalIntervalPresenter::released, m_view,
+      cst_pres,
+      &TemporalIntervalPresenter::released,
+      m_view,
       &ScenarioView::released);
 }
 
@@ -560,9 +583,13 @@ void ScenarioPresenter::on_commentCreated(
   m_comments.insert(cmt_pres);
   m_viewInterface.on_commentMoved(*cmt_pres);
 
-  con(comment_block_model, &CommentBlockModel::dateChanged, this,
+  con(comment_block_model,
+      &CommentBlockModel::dateChanged,
+      this,
       [=](const TimeVal&) { m_viewInterface.on_commentMoved(*cmt_pres); });
-  con(comment_block_model, &CommentBlockModel::heightPercentageChanged, this,
+  con(comment_block_model,
+      &CommentBlockModel::heightPercentageChanged,
+      this,
       [=](double y) { m_viewInterface.on_commentMoved(*cmt_pres); });
 
   // Selection
@@ -578,11 +605,14 @@ void ScenarioPresenter::on_commentCreated(
         m_layer, comment_block_model.id(), pos.date, pos.y);
   });
   connect(
-      cmt_pres, &CommentBlockPresenter::released, this,
-      [&](QPointF scenPos) { m_ongoingDispatcher.commit(); });
+      cmt_pres, &CommentBlockPresenter::released, this, [&](QPointF scenPos) {
+        m_ongoingDispatcher.commit();
+      });
 
   connect(
-      cmt_pres, &CommentBlockPresenter::editFinished, this,
+      cmt_pres,
+      &CommentBlockPresenter::editFinished,
+      this,
       [&](const QString& doc) {
         if (focused() && doc != comment_block_model.content())
         {

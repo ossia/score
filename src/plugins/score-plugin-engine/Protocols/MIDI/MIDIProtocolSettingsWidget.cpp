@@ -21,7 +21,6 @@
 W_OBJECT_IMPL(Protocols::MIDIProtocolSettingsWidget)
 class QWidget;
 
-
 namespace Protocols
 {
 MIDIProtocolSettingsWidget::MIDIProtocolSettingsWidget(QWidget* parent)
@@ -100,12 +99,10 @@ void MIDIProtocolSettingsWidget::setSettings(
     m_deviceCBox->setCurrentIndex(index);
   }
 
-  if (settings.deviceSpecificSettings
-          .canConvert<MIDISpecificSettings>())
+  if (settings.deviceSpecificSettings.canConvert<MIDISpecificSettings>())
   {
     MIDISpecificSettings midi
-        = settings.deviceSpecificSettings
-              .value<MIDISpecificSettings>();
+        = settings.deviceSpecificSettings.value<MIDISpecificSettings>();
     if (midi.io == MIDISpecificSettings::IO::In)
     {
       m_inButton->setChecked(true);
@@ -114,7 +111,6 @@ void MIDIProtocolSettingsWidget::setSettings(
     {
       m_outButton->setChecked(true);
     }
-
 
     m_createWhole->setChecked(midi.createWholeTree);
     m_deviceCBox->setCurrentText(midi.endpoint);

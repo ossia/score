@@ -15,28 +15,18 @@
 
 namespace Process
 {
-ProcessModelFactory::~ProcessModelFactory()
-{
-}
+ProcessModelFactory::~ProcessModelFactory() {}
 
-LayerFactory::~LayerFactory()
-{
-}
+LayerFactory::~LayerFactory() {}
 
-ProcessFactoryList::~ProcessFactoryList()
-{
-}
+ProcessFactoryList::~ProcessFactoryList() {}
 
-LayerFactoryList::~LayerFactoryList()
-{
-}
+LayerFactoryList::~LayerFactoryList() {}
 
 class DefaultLayerView final : public LayerView
 {
 public:
-  DefaultLayerView(QGraphicsItem* parent) : LayerView(parent)
-  {
-  }
+  DefaultLayerView(QGraphicsItem* parent) : LayerView(parent) {}
   void paint_impl(QPainter* p) const override
   {
     QTextOption o;
@@ -54,86 +44,72 @@ class DefaultLayerPresenter final : public LayerPresenter
 
 public:
   DefaultLayerPresenter(
-      const Process::ProcessModel& model, Process::LayerView* v,
-      const ProcessPresenterContext& ctx, QObject* parent)
+      const Process::ProcessModel& model,
+      Process::LayerView* v,
+      const ProcessPresenterContext& ctx,
+      QObject* parent)
       : LayerPresenter{ctx, parent}, m_model{model}, m_view{v}
   {
     auto vi = dynamic_cast<DefaultLayerView*>(v);
     vi->m_txt = m_model.metadata().getName();
     connect(
-        &m_model.metadata(), &score::ModelMetadata::NameChanged, this,
+        &m_model.metadata(),
+        &score::ModelMetadata::NameChanged,
+        this,
         [=](auto t) {
           vi->m_txt = t;
           vi->update();
         });
   }
 
-  ~DefaultLayerPresenter() override
-  {
-  }
+  ~DefaultLayerPresenter() override {}
 
-  void setWidth(qreal width) override
-  {
-    m_view->setWidth(width);
-  }
-  void setHeight(qreal height) override
-  {
-    m_view->setHeight(height);
-  }
+  void setWidth(qreal width) override { m_view->setWidth(width); }
+  void setHeight(qreal height) override { m_view->setHeight(height); }
 
-  void putToFront() override
-  {
-    m_view->setVisible(true);
-  }
-  void putBehind() override
-  {
-    m_view->setVisible(false);
-  }
+  void putToFront() override { m_view->setVisible(true); }
+  void putBehind() override { m_view->setVisible(false); }
 
-  void on_zoomRatioChanged(ZoomRatio) override
-  {
-  }
-  void parentGeometryChanged() override
-  {
-  }
+  void on_zoomRatioChanged(ZoomRatio) override {}
+  void parentGeometryChanged() override {}
 
-  const ProcessModel& model() const override
-  {
-    return m_model;
-  }
-  const Id<ProcessModel>& modelId() const override
-  {
-    return m_model.id();
-  }
+  const ProcessModel& model() const override { return m_model; }
+  const Id<ProcessModel>& modelId() const override { return m_model.id(); }
 };
 LayerPresenter* LayerFactory::makeLayerPresenter(
-    const ProcessModel& m, LayerView* v,
-    const ProcessPresenterContext& context, QObject* parent) const
+    const ProcessModel& m,
+    LayerView* v,
+    const ProcessPresenterContext& context,
+    QObject* parent) const
 {
   return new DefaultLayerPresenter{m, v, context, parent};
 }
 
 LayerView* LayerFactory::makeLayerView(
-    const ProcessModel& view, QGraphicsItem* parent) const
+    const ProcessModel& view,
+    QGraphicsItem* parent) const
 {
   return new DefaultLayerView{parent};
 }
 
 Process::MiniLayer* LayerFactory::makeMiniLayer(
-    const ProcessModel& view, QGraphicsItem* parent) const
+    const ProcessModel& view,
+    QGraphicsItem* parent) const
 {
   return nullptr;
 }
 
 QGraphicsItem* LayerFactory::makeItem(
-    const ProcessModel&, const score::DocumentContext& ctx,
+    const ProcessModel&,
+    const score::DocumentContext& ctx,
     score::RectItem* parent) const
 {
   return nullptr;
 }
 
 bool LayerFactory::hasExternalUI(
-    const ProcessModel&, const score::DocumentContext& ctx) const noexcept
+    const ProcessModel&,
+    const score::DocumentContext& ctx) const noexcept
 {
   return false;
 }
@@ -145,7 +121,8 @@ LayerFactory::makeHeaderDelegate(const LayerPresenter& pres) const
 }
 
 QWidget* LayerFactory::makeExternalUI(
-    const ProcessModel&, const score::DocumentContext& ctx,
+    const ProcessModel&,
+    const score::DocumentContext& ctx,
     QWidget* parent) const
 {
   return nullptr;
@@ -162,7 +139,8 @@ bool LayerFactory::matches(const UuidKey<Process::ProcessModel>& p) const
 }
 
 ProcessFactoryList::object_type* ProcessFactoryList::loadMissing(
-    const VisitorVariant& vis, QObject* parent) const
+    const VisitorVariant& vis,
+    QObject* parent) const
 {
   SCORE_TODO;
   return nullptr;

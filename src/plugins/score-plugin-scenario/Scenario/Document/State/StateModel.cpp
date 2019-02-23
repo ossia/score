@@ -27,7 +27,9 @@ W_OBJECT_IMPL(Scenario::StateModel)
 namespace Scenario
 {
 StateModel::StateModel(
-    const Id<StateModel>& id, const Id<EventModel>& eventId, double yPos,
+    const Id<StateModel>& id,
+    const Id<EventModel>& eventId,
+    double yPos,
     QObject* parent)
     : Entity{id, Metadata<ObjectKey_k, StateModel>::get(), parent}
     , m_eventId{eventId}
@@ -38,21 +40,29 @@ StateModel::StateModel(
   init();
 }
 
-StateModel::~StateModel()
-{
-}
+StateModel::~StateModel() {}
 
 void StateModel::init()
 {
-  con(*m_messageItemModel, &QAbstractItemModel::modelReset, this,
+  con(*m_messageItemModel,
+      &QAbstractItemModel::modelReset,
+      this,
       &StateModel::statesUpdated_slt);
-  con(*m_messageItemModel, &QAbstractItemModel::dataChanged, this,
+  con(*m_messageItemModel,
+      &QAbstractItemModel::dataChanged,
+      this,
       &StateModel::statesUpdated_slt);
-  con(*m_messageItemModel, &QAbstractItemModel::rowsInserted, this,
+  con(*m_messageItemModel,
+      &QAbstractItemModel::rowsInserted,
+      this,
       &StateModel::statesUpdated_slt);
-  con(*m_messageItemModel, &QAbstractItemModel::rowsMoved, this,
+  con(*m_messageItemModel,
+      &QAbstractItemModel::rowsMoved,
+      this,
       &StateModel::statesUpdated_slt);
-  con(*m_messageItemModel, &QAbstractItemModel::rowsRemoved, this,
+  con(*m_messageItemModel,
+      &QAbstractItemModel::rowsRemoved,
+      this,
       &StateModel::statesUpdated_slt);
 }
 
@@ -118,7 +128,5 @@ void StateModel::setStatus(ExecutionStatus status)
   statusChanged(status);
 }
 
-ProcessStateWrapper::~ProcessStateWrapper()
-{
-}
+ProcessStateWrapper::~ProcessStateWrapper() {}
 }

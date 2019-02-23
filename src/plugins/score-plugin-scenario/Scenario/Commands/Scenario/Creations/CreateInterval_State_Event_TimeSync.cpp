@@ -24,8 +24,10 @@ namespace Scenario
 namespace Command
 {
 CreateInterval_State_Event_TimeSync::CreateInterval_State_Event_TimeSync(
-    const Scenario::ProcessModel& scenario, Id<StateModel> startState,
-    TimeVal date, double endStateY)
+    const Scenario::ProcessModel& scenario,
+    Id<StateModel> startState,
+    TimeVal date,
+    double endStateY)
     : m_newTimeSync{getStrongId(scenario.timeSyncs)}
     , m_createdName{RandomNameProvider::generateName<TimeSyncModel>()}
     , m_command{scenario, std::move(startState), m_newTimeSync, endStateY}
@@ -49,7 +51,9 @@ void CreateInterval_State_Event_TimeSync::redo(
 
   // Create the end timesync
   ScenarioCreate<TimeSyncModel>::redo(
-      m_newTimeSync, {m_command.endStateY(), m_command.endStateY()}, m_date,
+      m_newTimeSync,
+      {m_command.endStateY(), m_command.endStateY()},
+      m_date,
       scenar);
 
   scenar.timeSync(m_newTimeSync).metadata().setName(m_createdName);

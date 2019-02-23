@@ -3,7 +3,5 @@
 namespace Audio
 {
 
-AudioFactory::~AudioFactory()
-{
-}
+AudioFactory::~AudioFactory() {}
 }

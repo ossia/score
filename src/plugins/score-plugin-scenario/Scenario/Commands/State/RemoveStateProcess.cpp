@@ -15,7 +15,8 @@ namespace Command
 {
 
 RemoveStateProcess::RemoveStateProcess(
-    const Scenario::StateModel& state, Id<Process::ProcessModel> processId)
+    const Scenario::StateModel& state,
+    Id<Process::ProcessModel> processId)
     : m_path{state}, m_processId{std::move(processId)}
 {
   auto& p = state.stateProcesses.at(m_processId);

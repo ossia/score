@@ -15,15 +15,9 @@ namespace testing
 struct MockApplication final : public score::ApplicationInterface
 {
 public:
-  MockApplication()
-  {
-    m_instance = this;
-  }
+  MockApplication() { m_instance = this; }
 
-  const score::ApplicationContext& context() const override
-  {
-    throw;
-  }
+  const score::ApplicationContext& context() const override { throw; }
 
   const score::ApplicationComponents& components() const override
   {

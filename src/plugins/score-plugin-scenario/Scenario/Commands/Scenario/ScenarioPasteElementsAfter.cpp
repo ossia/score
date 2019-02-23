@@ -58,8 +58,15 @@ ScenarioPasteElementsAfter::ScenarioPasteElementsAfter(
 
   auto& ctx = score::IDocument::documentContext(scenario);
   auto
-      [timesyncs, intervals, events, states, cables, interval_ids,
-       timesync_ids, event_ids, state_ids]
+      [timesyncs,
+       intervals,
+       events,
+       states,
+       cables,
+       interval_ids,
+       timesync_ids,
+       event_ids,
+       state_ids]
       = ScenarioBeingCopied{obj, scenario, ctx};
 
   SCORE_ASSERT(!timesyncs.empty());
@@ -71,7 +78,7 @@ ScenarioPasteElementsAfter::ScenarioPasteElementsAfter(
     auto min_date = (*earliest_it)->date();
     for (auto it = earliest_it; it != timesyncs.end(); ++it)
     {
-      if((*it)->date() < min_date)
+      if ((*it)->date() < min_date)
       {
         min_date = (*it)->date();
         earliest_it = it;
@@ -101,7 +108,8 @@ ScenarioPasteElementsAfter::ScenarioPasteElementsAfter(
       auto timesync = *it;
       for (EventModel* event : events)
       {
-        if (event->timeSync() == timesync->id() && !ossia::contains(event_in_start, event))
+        if (event->timeSync() == timesync->id()
+            && !ossia::contains(event_in_start, event))
         {
           event->changeTimeSync(timesync_ids[i]);
         }
@@ -116,8 +124,9 @@ ScenarioPasteElementsAfter::ScenarioPasteElementsAfter(
     {
       {
         auto it = std::find_if(
-            timesyncs.begin(), timesyncs.end(),
-            [&](TimeSyncModel* tn) { return tn->id() == event->timeSync(); });
+            timesyncs.begin(), timesyncs.end(), [&](TimeSyncModel* tn) {
+              return tn->id() == event->timeSync();
+            });
         if (it != timesyncs.end())
         {
           auto timesync = *it;
@@ -212,10 +221,12 @@ ScenarioPasteElementsAfter::ScenarioPasteElementsAfter(
           = ObjectIdentifier{sink_vec.front().objectName(), sink_itv_id};
 
       source_vec.insert(
-          source_vec.begin(), p.unsafePath().vec().begin(),
+          source_vec.begin(),
+          p.unsafePath().vec().begin(),
           p.unsafePath().vec().end());
       sink_vec.insert(
-          sink_vec.begin(), p.unsafePath().vec().begin(),
+          sink_vec.begin(),
+          p.unsafePath().vec().begin(),
           p.unsafePath().vec().end());
 
       m_cables.insert(cable_ids[i], std::move(cd));
@@ -312,7 +323,8 @@ ScenarioPasteElementsAfter::ScenarioPasteElementsAfter(
 
   for (IntervalModel* cst : intervals)
   {
-    cst->setHeightPercentage(clamp(cst->heightPercentage() * ratio + delta_y, 0., 1.));
+    cst->setHeightPercentage(
+        clamp(cst->heightPercentage() * ratio + delta_y, 0., 1.));
   }
   for (StateModel* state : states)
   {

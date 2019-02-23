@@ -45,11 +45,11 @@ BaseScenarioContainer::BaseScenarioContainer(QObject* parentObject)
                               TimeVal::zero(),
                               m_parent};
   m_endEvent->metadata().setName("Event.end");
-  m_startState = new StateModel{Scenario::startId<StateModel>(),
-                                m_startEvent->id(), 0, m_parent};
+  m_startState = new StateModel{
+      Scenario::startId<StateModel>(), m_startEvent->id(), 0, m_parent};
   m_startState->metadata().setName("State.start");
-  m_endState = new StateModel{Scenario::endId<StateModel>(), m_endEvent->id(),
-                              0, m_parent};
+  m_endState = new StateModel{
+      Scenario::endId<StateModel>(), m_endEvent->id(), 0, m_parent};
   m_endState->metadata().setName("State.end");
   m_interval = new IntervalModel{Id<IntervalModel>{0}, 0, m_parent};
 

@@ -40,7 +40,9 @@ public:
 
   template <typename Impl>
   ScenarioDocumentModel(
-      Impl& vis, const score::DocumentContext& ctx, QObject* parent)
+      Impl& vis,
+      const score::DocumentContext& ctx,
+      QObject* parent)
       : score::DocumentDelegateModel{vis, parent}, m_context{ctx}
   {
     vis.writeTo(*this);
@@ -49,10 +51,7 @@ public:
   void finishLoading();
   ~ScenarioDocumentModel() override;
 
-  BaseScenario& baseScenario() const
-  {
-    return *m_baseScenario;
-  }
+  BaseScenario& baseScenario() const { return *m_baseScenario; }
 
   IntervalModel& baseInterval() const;
 

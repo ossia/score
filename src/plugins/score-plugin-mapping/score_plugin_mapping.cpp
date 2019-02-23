@@ -27,8 +27,11 @@ namespace Mapping
 
 using MappingFactory = Process::ProcessFactory_T<Mapping::ProcessModel>;
 using MappingLayerFactory = Curve::CurveLayerFactory_T<
-    Mapping::ProcessModel, Mapping::LayerPresenter, Mapping::LayerView,
-    Mapping::Colors, Process::DefaultHeaderDelegate>;
+    Mapping::ProcessModel,
+    Mapping::LayerPresenter,
+    Mapping::LayerView,
+    Mapping::Colors,
+    Process::DefaultHeaderDelegate>;
 }
 
 #include <score_plugin_mapping_commands_files.hpp>
@@ -38,7 +41,8 @@ score_plugin_mapping::~score_plugin_mapping() = default;
 
 std::vector<std::unique_ptr<score::InterfaceBase>>
 score_plugin_mapping::factories(
-    const score::ApplicationContext& ctx, const score::InterfaceKey& key) const
+    const score::ApplicationContext& ctx,
+    const score::InterfaceKey& key) const
 {
   using namespace Mapping;
   return instantiate_factories<

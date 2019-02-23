@@ -24,8 +24,10 @@ namespace Command
 {
 
 MoveEventOnCreationMeta::MoveEventOnCreationMeta(
-    const Scenario::ProcessModel& scenarioPath, Id<EventModel> eventId,
-    TimeVal newDate, ExpandMode mode)
+    const Scenario::ProcessModel& scenarioPath,
+    Id<EventModel> eventId,
+    TimeVal newDate,
+    ExpandMode mode)
     : SerializableMoveEvent{}
     , m_moveEventImplementation(
           score::AppContext()
@@ -34,14 +36,15 @@ MoveEventOnCreationMeta::MoveEventOnCreationMeta(
                   score::AppContext(),
                   MoveEventFactoryInterface::Strategy::CREATION)
               .make(
-                  scenarioPath, std::move(eventId), std::move(newDate), mode,
+                  scenarioPath,
+                  std::move(eventId),
+                  std::move(newDate),
+                  mode,
                   LockMode::Free))
 {
 }
 
-MoveEventOnCreationMeta::~MoveEventOnCreationMeta()
-{
-}
+MoveEventOnCreationMeta::~MoveEventOnCreationMeta() {}
 
 void MoveEventOnCreationMeta::undo(const score::DocumentContext& ctx) const
 {
@@ -81,8 +84,12 @@ void MoveEventOnCreationMeta::deserializeImpl(DataStreamOutput& qDataStream)
 }
 
 void MoveEventOnCreationMeta::update(
-    Scenario::ProcessModel& scenario, const Id<EventModel>& eventId,
-    const TimeVal& newDate, double y, ExpandMode mode, LockMode lm)
+    Scenario::ProcessModel& scenario,
+    const Id<EventModel>& eventId,
+    const TimeVal& newDate,
+    double y,
+    ExpandMode mode,
+    LockMode lm)
 {
   m_moveEventImplementation->update(
       scenario, eventId, newDate, y, mode, LockMode::Free);

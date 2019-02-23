@@ -2,9 +2,9 @@
 #include <Curve/Palette/CurvePoint.hpp>
 #include <Curve/Point/CurvePointView.hpp>
 #include <Curve/Segment/CurveSegmentView.hpp>
-#include <score/selection/SelectionDispatcher.hpp>
-#include <score/document/DocumentContext.hpp>
 
+#include <score/document/DocumentContext.hpp>
+#include <score/selection/SelectionDispatcher.hpp>
 #include <score/statemachine/CommonSelectionState.hpp>
 #include <score/statemachine/GraphicsSceneTool.hpp>
 
@@ -23,8 +23,11 @@ public:
 protected:
   template <typename PointFun, typename SegmentFun, typename NothingFun>
   void mapTopItem(
-      QPointF scenePoint, const QGraphicsItem* pressedItem, PointFun pt_fun,
-      SegmentFun seg_fun, NothingFun nothing_fun) const
+      QPointF scenePoint,
+      const QGraphicsItem* pressedItem,
+      PointFun pt_fun,
+      SegmentFun seg_fun,
+      NothingFun nothing_fun) const
   {
     if (!pressedItem)
     {
@@ -60,11 +63,14 @@ protected:
     }
   }
 
-  template<typename Model>
-  void select(const Model& model, const Selection& selected, bool multi = CommonSelectionState::multiSelection())
+  template <typename Model>
+  void select(
+      const Model& model,
+      const Selection& selected,
+      bool multi = CommonSelectionState::multiSelection())
   {
-    score::SelectionDispatcher{context().selectionStack}
-    .setAndCommit(filterSelections(&model, selected, multi));
+    score::SelectionDispatcher{context().selectionStack}.setAndCommit(
+        filterSelections(&model, selected, multi));
   }
 
   const Curve::ToolPalette& m_parentSM;

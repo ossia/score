@@ -15,8 +15,10 @@
 namespace Spline
 {
 Presenter::Presenter(
-    const Spline::ProcessModel& layer, View* view,
-    const Process::ProcessPresenterContext& ctx, QObject* parent)
+    const Spline::ProcessModel& layer,
+    View* view,
+    const Process::ProcessPresenterContext& ctx,
+    QObject* parent)
     : LayerPresenter{ctx, parent}, m_layer{layer}, m_view{view}
 {
   putToFront();
@@ -26,8 +28,8 @@ Presenter::Presenter(
 
   m_view->setSpline(m_layer.spline());
   connect(m_view, &View::changed, this, [&] {
-    CommandDispatcher<>{context().context.commandStack}
-        .submit<ChangeSpline>(layer, m_view->spline());
+    CommandDispatcher<>{context().context.commandStack}.submit<ChangeSpline>(
+        layer, m_view->spline());
   });
 
   connect(m_view, &View::pressed, this, [&] {
@@ -63,9 +65,7 @@ void Presenter::on_zoomRatioChanged(ZoomRatio r)
   parentGeometryChanged();
 }
 
-void Presenter::parentGeometryChanged()
-{
-}
+void Presenter::parentGeometryChanged() {}
 
 const Spline::ProcessModel& Presenter::model() const
 {

@@ -1,8 +1,8 @@
 #pragma once
 
 #include <Scenario/Document/Event/EventPresenter.hpp>
-#include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/Interval/FullView/FullViewIntervalPresenter.hpp>
+#include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/State/StatePresenter.hpp>
 #include <Scenario/Document/TimeSync/TimeSyncPresenter.hpp>
 
@@ -12,9 +12,7 @@ template <typename Model_T, typename IntervalPresenter_T>
 class BaseScenarioPresenter
 {
 public:
-  BaseScenarioPresenter(const Model_T& model) : m_model{model}
-  {
-  }
+  BaseScenarioPresenter(const Model_T& model) : m_model{model} {}
 
   virtual ~BaseScenarioPresenter() = default;
 

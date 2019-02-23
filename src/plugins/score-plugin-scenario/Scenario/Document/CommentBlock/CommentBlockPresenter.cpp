@@ -13,18 +13,24 @@ W_OBJECT_IMPL(Scenario::CommentBlockPresenter)
 namespace Scenario
 {
 CommentBlockPresenter::CommentBlockPresenter(
-    const CommentBlockModel& model, QGraphicsItem* parentView, QObject* parent)
+    const CommentBlockModel& model,
+    QGraphicsItem* parentView,
+    QObject* parent)
     : QObject{parent}
     , m_model{model}
     , m_view{new CommentBlockView{*this, parentView}}
 {
-  con(m_model.selection, &Selectable::changed, this,
+  con(m_model.selection,
+      &Selectable::changed,
+      this,
       [&](bool b)
       // ensure that connection is broken when presenter is delete
       // (may crash otherwise)
       { m_view->setSelected(b); });
 
-  con(m_model, &CommentBlockModel::contentChanged, this,
+  con(m_model,
+      &CommentBlockModel::contentChanged,
+      this,
       [&](QString s)
       // ensure that connection is broken when presenter is delete
       // (may crash otherwise)
@@ -33,9 +39,7 @@ CommentBlockPresenter::CommentBlockPresenter(
   m_view->setHtmlContent(m_model.content());
 }
 
-CommentBlockPresenter::~CommentBlockPresenter()
-{
-}
+CommentBlockPresenter::~CommentBlockPresenter() {}
 
 const Id<CommentBlockModel>& CommentBlockPresenter::id() const
 {

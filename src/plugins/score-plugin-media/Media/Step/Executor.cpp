@@ -11,10 +11,16 @@ namespace Execution
 {
 
 StepComponent::StepComponent(
-    Media::Step::Model& element, const Execution::Context& ctx,
-    const Id<score::Component>& id, QObject* parent)
+    Media::Step::Model& element,
+    const Execution::Context& ctx,
+    const Id<score::Component>& id,
+    QObject* parent)
     : Execution::ProcessComponent_T<Media::Step::Model, ossia::node_process>{
-          element, ctx, id, "Executor::StepComponent", parent}
+          element,
+          ctx,
+          id,
+          "Executor::StepComponent",
+          parent}
 {
   auto node = std::make_shared<ossia::nodes::step>();
   this->node = node;
@@ -22,11 +28,17 @@ StepComponent::StepComponent(
   node->dur = ossia::time_value{int64_t(element.stepDuration())};
 
   recompute();
-  con(element, &Media::Step::Model::stepsChanged, this,
+  con(element,
+      &Media::Step::Model::stepsChanged,
+      this,
       &StepComponent::recompute);
-  con(element, &Media::Step::Model::minChanged, this,
+  con(element,
+      &Media::Step::Model::minChanged,
+      this,
       &StepComponent::recompute);
-  con(element, &Media::Step::Model::maxChanged, this,
+  con(element,
+      &Media::Step::Model::maxChanged,
+      this,
       &StepComponent::recompute);
   con(element, &Media::Step::Model::stepDurationChanged, this, [=] {
     in_exec([node, dur = process().stepDuration()]() mutable {
@@ -49,7 +61,5 @@ void StepComponent::recompute()
        vec = std::move(v)]() mutable { n->values = std::move(vec); });
 }
 
-StepComponent::~StepComponent()
-{
-}
+StepComponent::~StepComponent() {}
 }

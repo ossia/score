@@ -12,9 +12,6 @@ namespace std
 template <>
 struct hash<QString>
 {
-  std::size_t operator()(const QString& path) const
-  {
-    return qHash(path);
-  }
+  std::size_t operator()(const QString& path) const { return qHash(path); }
 };
 }

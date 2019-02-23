@@ -34,8 +34,10 @@ public:
       const score::ApplicationContext& ctx)
       = 0;
   virtual QWidget* make_settings(
-      Audio::Settings::Model& m, Audio::Settings::View& v,
-      score::SettingsCommandDispatcher&, QWidget* parent)
+      Audio::Settings::Model& m,
+      Audio::Settings::View& v,
+      score::SettingsCommandDispatcher&,
+      QWidget* parent)
       = 0;
 };
 

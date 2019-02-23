@@ -47,8 +47,10 @@ void SetCondition::deserializeImpl(DataStreamOutput& s)
 }
 
 SetOffsetBehavior::SetOffsetBehavior(
-    const EventModel& event, OffsetBehavior newval)
-    : score::PropertyCommand{event, "offsetBehavior",
+    const EventModel& event,
+    OffsetBehavior newval)
+    : score::PropertyCommand{event,
+                             "offsetBehavior",
                              QVariant::fromValue(newval)}
 {
 }

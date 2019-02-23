@@ -9,8 +9,8 @@
 #include <Scenario/Document/Interval/IntervalHeader.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 
-#include <score/model/Skin.hpp>
 #include <score/graphics/GraphicsItem.hpp>
+#include <score/model/Skin.hpp>
 #include <score/widgets/Pixmap.hpp>
 
 #include <QBrush>
@@ -51,7 +51,9 @@ QRectF TemporalIntervalHeader::boundingRect() const
 }
 
 void TemporalIntervalHeader::paint(
-    QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+    QPainter* painter,
+    const QStyleOptionGraphicsItem* option,
+    QWidget* widget)
 {
   const auto& skin = Process::Style::instance();
   painter->setRenderHint(QPainter::Antialiasing, false);
@@ -151,9 +153,13 @@ void TemporalIntervalHeader::enableOverlay(bool b)
     if (m_presenter.model().muted())
       m_mute->toggle();
     connect(
-        m_mute, &score::QGraphicsPixmapToggle::toggled, &m_presenter,
+        m_mute,
+        &score::QGraphicsPixmapToggle::toggled,
+        &m_presenter,
         [=](bool b) { ((IntervalModel&)m_presenter.model()).setMuted(b); });
-    con(m_presenter.model(), &IntervalModel::mutedChanged, m_mute,
+    con(m_presenter.model(),
+        &IntervalModel::mutedChanged,
+        m_mute,
         [=](bool b) { m_mute->setState(b); });
     updateButtons();
   }
@@ -198,7 +204,8 @@ void TemporalIntervalHeader::on_textChange()
       if (auto v = getView(*this))
         ratio = v->devicePixelRatioF();
       m_line = QImage(
-          m_textRectCache.width() * ratio, m_textRectCache.height() * ratio,
+          m_textRectCache.width() * ratio,
+          m_textRectCache.height() * ratio,
           QImage::Format_ARGB32_Premultiplied);
       m_line.setDevicePixelRatio(ratio);
       m_line.fill(Qt::transparent);
@@ -241,9 +248,7 @@ void TemporalIntervalHeader::dropEvent(QGraphicsSceneDragDropEvent* event)
   event->accept();
 }
 
-RackButton::RackButton(QGraphicsItem* parent) : QGraphicsObject{parent}
-{
-}
+RackButton::RackButton(QGraphicsItem* parent) : QGraphicsObject{parent} {}
 
 void RackButton::setUnrolled(bool b)
 {
@@ -291,7 +296,9 @@ QRectF RackButton::boundingRect() const
 }
 
 void RackButton::paint(
-    QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+    QPainter* painter,
+    const QStyleOptionGraphicsItem* option,
+    QWidget* widget)
 {
   painter->setRenderHint(QPainter::Antialiasing, true);
   painter->setBrush(Qt::NoBrush);

@@ -17,10 +17,7 @@ public:
   {
   }
 
-  void submit(score::Command* cmd) const
-  {
-    SendStrategy::send(stack(), cmd);
-  }
+  void submit(score::Command* cmd) const { SendStrategy::send(stack(), cmd); }
 
   template <typename T, typename... Args>
   void submit(Args&&... args) const

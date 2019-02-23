@@ -46,8 +46,9 @@ InspectorSectionWidget::InspectorSectionWidget(bool editable, QWidget* parent)
   m_buttonTitle.setText(QStringLiteral("section name"));
 
   m_sectionTitle.setObjectName("SectionTitle");
-  con(m_sectionTitle, &QLineEdit::editingFinished, this,
-      [=]() { nameChanged(m_sectionTitle.text()); });
+  con(m_sectionTitle, &QLineEdit::editingFinished, this, [=]() {
+    nameChanged(m_sectionTitle.text());
+  });
   if (editable)
     m_buttonTitle.hide();
   else
@@ -69,10 +70,12 @@ InspectorSectionWidget::InspectorSectionWidget(bool editable, QWidget* parent)
   // GENERAL
   m_generalLayout.addWidget(&m_title);
 
-  con(m_unfoldBtn, &QAbstractButton::released, this,
-      [&] { this->expand(!m_isUnfolded); });
-  con(m_buttonTitle, &QAbstractButton::clicked, this,
-      [&] { this->expand(!m_isUnfolded); });
+  con(m_unfoldBtn, &QAbstractButton::released, this, [&] {
+    this->expand(!m_isUnfolded);
+  });
+  con(m_buttonTitle, &QAbstractButton::clicked, this, [&] {
+    this->expand(!m_isUnfolded);
+  });
 
   // INIT
   m_isUnfolded = true;
@@ -81,7 +84,9 @@ InspectorSectionWidget::InspectorSectionWidget(bool editable, QWidget* parent)
 }
 
 InspectorSectionWidget::InspectorSectionWidget(
-    QString name, bool editable, QWidget* parent)
+    QString name,
+    bool editable,
+    QWidget* parent)
     : InspectorSectionWidget(editable, parent)
 {
   renameSection(name);

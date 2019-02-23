@@ -14,7 +14,8 @@ class StateInspectorWidget final : public Inspector::InspectorWidgetBase
 {
 public:
   explicit StateInspectorWidget(
-      const StateModel& object, const score::DocumentContext& context,
+      const StateModel& object,
+      const score::DocumentContext& context,
       QWidget* parent);
 
 private:

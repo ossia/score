@@ -26,9 +26,6 @@ public:
 
   LayerPresenter& m_presenter;
 
-  static const Scenario::VerticalExtent extent()
-  {
-    return {30., 50.};
-  }
+  static const Scenario::VerticalExtent extent() { return {30., 50.}; }
 };
 }

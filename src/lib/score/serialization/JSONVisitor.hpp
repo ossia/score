@@ -29,10 +29,7 @@ class JSONObject
 public:
   using Serializer = JSONObjectReader;
   using Deserializer = JSONObjectWriter;
-  static constexpr SerializationIdentifier type()
-  {
-    return 1;
-  }
+  static constexpr SerializationIdentifier type() { return 1; }
 };
 
 template <class>
@@ -59,10 +56,7 @@ public:
   JSONObjectReader(const JSONObjectReader&) = delete;
   JSONObjectReader& operator=(const JSONObjectReader&) = delete;
 
-  VisitorVariant toVariant()
-  {
-    return {*this, JSONObject::type()};
-  }
+  VisitorVariant toVariant() { return {*this, JSONObject::type()}; }
 
   template <typename T>
   static auto marshall(const T& t)
@@ -187,10 +181,7 @@ public:
   using is_visitor_tag = std::integral_constant<bool, true>;
   using is_deserializer_tag = std::integral_constant<bool, true>;
 
-  VisitorVariant toVariant()
-  {
-    return {*this, JSONObject::type()};
-  }
+  VisitorVariant toVariant() { return {*this, JSONObject::type()}; }
 
   JSONObjectWriter();
   JSONObjectWriter(const JSONObjectWriter&) = delete;
@@ -436,7 +427,10 @@ QJsonArray toJsonArray(const T<Id<V>>& array)
 }
 
 template <
-    template <typename U, typename W> class T, typename V, typename Alloc>
+    template <typename U, typename W>
+    class T,
+    typename V,
+    typename Alloc>
 QJsonArray toJsonArray(const T<Id<V>, Alloc>& array)
 {
   QJsonArray arr;
@@ -450,7 +444,10 @@ QJsonArray toJsonArray(const T<Id<V>, Alloc>& array)
 }
 
 template <
-    template <typename U, std::size_t> class T, typename V, std::size_t N>
+    template <typename U, std::size_t>
+    class T,
+    typename V,
+    std::size_t N>
 QJsonArray toJsonArray(const T<Id<V>, N>& array)
 {
   QJsonArray arr;
@@ -498,7 +495,8 @@ QJsonArray toJsonMap(const QMap<Key, Value>& map)
 }
 
 template <
-    typename Key, typename Value,
+    typename Key,
+    typename Value,
     std::enable_if_t<std::is_same<bool, Value>::value>* = nullptr>
 QMap<Key, Value> fromJsonMap(const QJsonArray& array)
 {
@@ -590,8 +588,11 @@ void fromJsonArray(QJsonArray&& json_arr, Container<T>& arr)
 }
 
 template <
-    template <typename U, typename V> class Container, typename T1,
-    typename T2, std::enable_if_t<!std::is_arithmetic<T1>::value>* = nullptr>
+    template <typename U, typename V>
+    class Container,
+    typename T1,
+    typename T2,
+    std::enable_if_t<!std::is_arithmetic<T1>::value>* = nullptr>
 void fromJsonArray(QJsonArray&& json_arr, Container<T1, T2>& arr)
 {
   arr.clear();
@@ -604,8 +605,11 @@ void fromJsonArray(QJsonArray&& json_arr, Container<T1, T2>& arr)
 }
 
 template <
-    template <typename U, typename V> class Container, typename T1,
-    typename T2, std::enable_if_t<std::is_integral<T1>::value>* = nullptr>
+    template <typename U, typename V>
+    class Container,
+    typename T1,
+    typename T2,
+    std::enable_if_t<std::is_integral<T1>::value>* = nullptr>
 void fromJsonArray(QJsonArray&& json_arr, Container<T1, T2>& arr)
 {
   int n = json_arr.size();
@@ -617,7 +621,9 @@ void fromJsonArray(QJsonArray&& json_arr, Container<T1, T2>& arr)
 }
 
 template <
-    template <typename U, typename V> class Container, typename T1,
+    template <typename U, typename V>
+    class Container,
+    typename T1,
     typename T2,
     std::enable_if_t<std::is_floating_point<T1>::value>* = nullptr>
 void fromJsonArray(QJsonArray&& json_arr, Container<T1, T2>& arr)
@@ -652,7 +658,9 @@ QJsonArray toJsonArray(const std::vector<T*>& array)
 
 template <typename T>
 void fromJsonArray(
-    const QJsonArray& arr, std::vector<T*>& array, QObject* parent)
+    const QJsonArray& arr,
+    std::vector<T*>& array,
+    QObject* parent)
 {
   for (const auto& v : arr)
   {
@@ -663,7 +671,9 @@ void fromJsonArray(
 
 template <typename T, std::size_t N>
 void fromJsonArray(
-    const QJsonArray& arr, ossia::small_vector<T*, N>& array, QObject* parent)
+    const QJsonArray& arr,
+    ossia::small_vector<T*, N>& array,
+    QObject* parent)
 {
   for (const auto& v : arr)
   {

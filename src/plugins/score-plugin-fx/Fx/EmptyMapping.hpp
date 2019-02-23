@@ -25,7 +25,9 @@ struct Node
 
   using control_policy = ossia::safe_nodes::default_tick;
   static void
-  run(const ossia::value_port& p1, ossia::value_port& p2, ossia::token_request,
+  run(const ossia::value_port& p1,
+      ossia::value_port& p2,
+      ossia::token_request,
       ossia::exec_state_facade)
   {
     p2.set_data(p1.get_data());
@@ -56,7 +58,9 @@ struct Node
 
   using control_policy = ossia::safe_nodes::default_tick;
   static void
-  run(const ossia::midi_port& p1, ossia::midi_port& p2, ossia::token_request,
+  run(const ossia::midi_port& p1,
+      ossia::midi_port& p2,
+      ossia::token_request,
       ossia::exec_state_facade)
   {
     p2.messages = p1.messages;
@@ -87,7 +91,9 @@ struct Node
 
   using control_policy = ossia::safe_nodes::default_tick;
   static void
-  run(const ossia::audio_port& p1, ossia::audio_port& p2, ossia::token_request,
+  run(const ossia::audio_port& p1,
+      ossia::audio_port& p2,
+      ossia::token_request,
       ossia::exec_state_facade)
   {
     p2.samples = p1.samples;

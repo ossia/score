@@ -21,10 +21,13 @@ namespace Command
 class RemoveAddress final : public score::Command
 {
   SCORE_COMMAND_DECL(
-      DeviceExplorerCommandFactoryName(), RemoveAddress, "Remove an address")
+      DeviceExplorerCommandFactoryName(),
+      RemoveAddress,
+      "Remove an address")
 public:
   RemoveAddress(
-      const DeviceDocumentPlugin& devplug, const Device::NodePath& nodePath);
+      const DeviceDocumentPlugin& devplug,
+      const Device::NodePath& nodePath);
 
   void undo(const score::DocumentContext& ctx) const override;
   void redo(const score::DocumentContext& ctx) const override;

@@ -1,14 +1,14 @@
 #pragma once
+#include <Curve/Palette/CurveEditionSettings.hpp>
+
 #include <score/plugins/application/GUIApplicationPlugin.hpp>
 
-#include <Curve/Palette/CurveEditionSettings.hpp>
 #include <QMainWindow>
 namespace Curve
 {
 
-class ApplicationPlugin final
-    : public QObject
-    , public score::GUIApplicationPlugin
+class ApplicationPlugin final : public QObject,
+                                public score::GUIApplicationPlugin
 {
 public:
   ApplicationPlugin(const score::GUIApplicationContext& ctx);
@@ -19,6 +19,7 @@ public:
 
   void on_keyPressEvent(QKeyEvent& event) override;
   void on_keyReleaseEvent(QKeyEvent& event) override;
+
 private:
   QActionGroup* m_actions{};
   QAction* m_shiftact{};
@@ -26,6 +27,5 @@ private:
   QAction* m_altact{};
   EditionSettings m_editionSettings;
 };
-
 
 }

@@ -26,8 +26,11 @@ static auto& iconMap()
 }
 
 void setIcons(
-    QAction* action, const QString& iconOn, const QString& iconOff,
-    const QString& iconDisable, bool enableHover)
+    QAction* action,
+    const QString& iconOn,
+    const QString& iconOff,
+    const QString& iconDisable,
+    bool enableHover)
 {
   auto& map = iconMap();
   auto pair = std::make_pair(iconOn, iconOff);
@@ -55,13 +58,17 @@ void setIcons(
 }
 
 QIcon makeIcons(
-    const QString& iconOn, const QString& iconOff, const QString& iconDisabled)
+    const QString& iconOn,
+    const QString& iconOff,
+    const QString& iconDisabled)
 {
   return genIconFromPixmaps(iconOn, iconOff, iconDisabled);
 }
 
 QIcon genIconFromPixmaps(
-    const QString& iconOn, const QString& iconOff, const QString& iconDisabled)
+    const QString& iconOn,
+    const QString& iconOff,
+    const QString& iconDisabled)
 {
   auto& map = iconMap();
   auto pair = std::make_pair(iconOn, iconOff);

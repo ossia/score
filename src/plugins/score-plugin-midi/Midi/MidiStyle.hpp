@@ -6,9 +6,7 @@ namespace Midi
 {
 struct MidiStyle
 {
-  MidiStyle()
-  {
-  }
+  MidiStyle() {}
 
   const QBrush lightBrush = QColor::fromRgb(200, 200, 200);
   const QBrush darkBrush = QColor::fromRgb(170, 170, 170);
@@ -21,8 +19,8 @@ struct MidiStyle
   }();
 
   const QPen selectionPen = [] {
-    QPen pen{QColor{0, 0, 0, 127}, 2, Qt::DashLine, Qt::SquareCap,
-             Qt::BevelJoin};
+    QPen pen{
+        QColor{0, 0, 0, 127}, 2, Qt::DashLine, Qt::SquareCap, Qt::BevelJoin};
     pen.setCosmetic(true);
     return pen;
   }();

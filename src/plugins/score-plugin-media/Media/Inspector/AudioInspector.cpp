@@ -11,7 +11,8 @@ namespace Media
 namespace Sound
 {
 InspectorWidget::InspectorWidget(
-    const Sound::ProcessModel& object, const score::DocumentContext& doc,
+    const Sound::ProcessModel& object,
+    const score::DocumentContext& doc,
     QWidget* parent)
     : InspectorWidgetDelegate_T{object, parent}
     , m_dispatcher{doc.commandStack}
@@ -37,8 +38,9 @@ InspectorWidget::InspectorWidget(
   ::bind(process(), Sound::ProcessModel::p_startOffset{}, this, [&](qint32 v) {
     m_startOffset.setValue(v);
   });
-  con(process(), &Sound::ProcessModel::fileChanged, this,
-      [&] { m_edit.setText(object.file()->path()); });
+  con(process(), &Sound::ProcessModel::fileChanged, this, [&] {
+    m_edit.setText(object.file()->path());
+  });
 
   con(m_edit, &QLineEdit::editingFinished, this, [&]() {
     m_dispatcher.submit(new ChangeAudioFile(object, m_edit.text()));
@@ -50,8 +52,7 @@ InspectorWidget::InspectorWidget(
     m_dispatcher.submit(new ChangeUpmix(object, m_upmix.value()));
   });
   con(m_startOffset, &QSpinBox::editingFinished, this, [&]() {
-    m_dispatcher.submit(
-        new ChangeStartOffset(object, m_startOffset.value()));
+    m_dispatcher.submit(new ChangeStartOffset(object, m_startOffset.value()));
   });
 
   lay->addRow(tr("Path"), &m_edit);

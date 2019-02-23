@@ -4,9 +4,8 @@
 #include <QObject>
 #include <QStack>
 
-#include <wobjectdefs.h>
-
 #include <tsl/hopscotch_map.h>
+#include <wobjectdefs.h>
 
 class IdentifiedObjectAbstract;
 
@@ -43,10 +42,10 @@ public:
   Selection currentSelection() const;
 
   void pushNewSelection(const Selection& s)
-  E_SIGNAL(SCORE_LIB_BASE_EXPORT, pushNewSelection, s);
+      E_SIGNAL(SCORE_LIB_BASE_EXPORT, pushNewSelection, s);
 
   void currentSelectionChanged(const Selection& s)
-  E_SIGNAL(SCORE_LIB_BASE_EXPORT, currentSelectionChanged, s);
+      E_SIGNAL(SCORE_LIB_BASE_EXPORT, currentSelectionChanged, s);
 
   void prune(IdentifiedObjectAbstract* p);
   W_INVOKABLE(prune)
@@ -60,6 +59,7 @@ private:
   QStack<Selection> m_unselectable;
   QStack<Selection> m_reselectable;
 
-  tsl::hopscotch_map<const IdentifiedObjectAbstract*, QMetaObject::Connection> m_connections;
+  tsl::hopscotch_map<const IdentifiedObjectAbstract*, QMetaObject::Connection>
+      m_connections;
 };
 }

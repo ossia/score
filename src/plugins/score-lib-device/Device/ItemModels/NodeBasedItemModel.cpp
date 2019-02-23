@@ -10,7 +10,8 @@ NodeBasedItemModel::~NodeBasedItemModel() = default;
 
 Device::FullAddressAccessorSettings makeFullAddressAccessorSettings(
     const State::AddressAccessor& addr,
-    const Device::NodeBasedItemModel& deviceexplorer, ossia::value min,
+    const Device::NodeBasedItemModel& deviceexplorer,
+    ossia::value min,
     ossia::value max)
 {
   auto& newval = addr.address;

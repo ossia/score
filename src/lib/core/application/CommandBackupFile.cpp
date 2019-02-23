@@ -24,7 +24,8 @@ CommandStackBackup::CommandStackBackup(const CommandStack& stack)
 }
 
 CommandBackupFile::CommandBackupFile(
-    const score::CommandStack& stack, QObject* parent)
+    const score::CommandStack& stack,
+    QObject* parent)
     : QObject{parent}, m_stack{stack}, m_backup{m_stack}
 {
   m_file.open();
@@ -33,7 +34,9 @@ CommandBackupFile::CommandBackupFile(
   con(m_stack, &CommandStack::sig_push, this, &CommandBackupFile::on_push);
   con(m_stack, &CommandStack::sig_undo, this, &CommandBackupFile::on_undo);
   con(m_stack, &CommandStack::sig_redo, this, &CommandBackupFile::on_redo);
-  con(m_stack, &CommandStack::sig_indexChanged, this,
+  con(m_stack,
+      &CommandStack::sig_indexChanged,
+      this,
       &CommandBackupFile::on_indexChanged);
 
   // Initial backup so that the file is always in a loadable state.

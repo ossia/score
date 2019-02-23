@@ -46,9 +46,12 @@
 namespace Scenario
 {
 TimeSyncInspectorWidget::TimeSyncInspectorWidget(
-    const TimeSyncModel& object, const score::DocumentContext& ctx,
+    const TimeSyncModel& object,
+    const score::DocumentContext& ctx,
     QWidget* parent)
-    : InspectorWidgetBase{object, ctx, parent,
+    : InspectorWidgetBase{object,
+                          ctx,
+                          parent,
                           tr("Sync (%1)").arg(object.metadata().getName())}
     , m_model{object}
 {
@@ -56,8 +59,8 @@ TimeSyncInspectorWidget::TimeSyncInspectorWidget(
   setParent(parent);
 
   // metadata
-  m_metadata = new MetadataWidget{m_model.metadata(), ctx.commandStack,
-                                  &m_model, this};
+  m_metadata = new MetadataWidget{
+      m_model.metadata(), ctx.commandStack, &m_model, this};
 
   m_metadata->setupConnections(m_model);
 
@@ -69,15 +72,21 @@ TimeSyncInspectorWidget::TimeSyncInspectorWidget(
 
   // Trigger
   m_trigwidg = new TriggerInspectorWidget{
-      ctx, ctx.app.interfaces<Command::TriggerCommandFactoryList>(), m_model,
+      ctx,
+      ctx.app.interfaces<Command::TriggerCommandFactoryList>(),
+      m_model,
       this};
-  updateAreaLayout({m_date, new score::HSeparator{this},
-                    new TextLabel{tr("Trigger")}, m_trigwidg});
+  updateAreaLayout({m_date,
+                    new score::HSeparator{this},
+                    new TextLabel{tr("Trigger")},
+                    m_trigwidg});
 
   // display data
   updateDisplayedValues();
 
-  con(m_model, &TimeSyncModel::dateChanged, this,
+  con(m_model,
+      &TimeSyncModel::dateChanged,
+      this,
       &TimeSyncInspectorWidget::on_dateChanged);
 }
 

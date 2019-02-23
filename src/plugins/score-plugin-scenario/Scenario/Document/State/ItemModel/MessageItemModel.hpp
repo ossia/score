@@ -52,15 +52,9 @@ public:
   MessageItemModel& operator=(const node_type&);
   MessageItemModel& operator=(node_type&&);
 
-  const Process::MessageNode& rootNode() const override
-  {
-    return m_rootNode;
-  }
+  const Process::MessageNode& rootNode() const override { return m_rootNode; }
 
-  Process::MessageNode& rootNode() override
-  {
-    return m_rootNode;
-  }
+  Process::MessageNode& rootNode() override { return m_rootNode; }
 
   // AbstractItemModel interface
   int columnCount(const QModelIndex& parent) const override;
@@ -69,19 +63,27 @@ public:
   bool
   setData(const QModelIndex& index, const QVariant& value, int role) override;
 
-  QVariant headerData(
-      int section, Qt::Orientation orientation, int role) const override;
+  QVariant headerData(int section, Qt::Orientation orientation, int role)
+      const override;
   bool setHeaderData(
-      int section, Qt::Orientation orientation, const QVariant& value,
+      int section,
+      Qt::Orientation orientation,
+      const QVariant& value,
       int role) override;
 
   QStringList mimeTypes() const override;
   QMimeData* mimeData(const QModelIndexList& indexes) const override;
   bool canDropMimeData(
-      const QMimeData* data, Qt::DropAction action, int row, int column,
+      const QMimeData* data,
+      Qt::DropAction action,
+      int row,
+      int column,
       const QModelIndex& parent) const override;
   bool dropMimeData(
-      const QMimeData* data, Qt::DropAction action, int row, int column,
+      const QMimeData* data,
+      Qt::DropAction action,
+      int row,
+      int column,
       const QModelIndex& parent) override;
 
   Qt::DropActions supportedDragActions() const override;

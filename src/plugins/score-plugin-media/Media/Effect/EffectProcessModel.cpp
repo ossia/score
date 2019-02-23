@@ -1,15 +1,15 @@
+#include <Media/Commands/InsertEffect.hpp>
 #include <Media/Effect/EffectProcessModel.hpp>
 #include <Process/Dataflow/Port.hpp>
 #include <Process/Process.hpp>
 #include <Process/ProcessList.hpp>
 
+#include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/tools/Clamp.hpp>
 
 #include <QFile>
 
 #include <Effect/EffectFactory.hpp>
-#include <Media/Commands/InsertEffect.hpp>
-#include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Media::Effect::ProcessModel)
 namespace Media
@@ -18,10 +18,13 @@ namespace Effect
 {
 
 ProcessModel::ProcessModel(
-    const TimeVal& duration, const Id<Process::ProcessModel>& id,
+    const TimeVal& duration,
+    const Id<Process::ProcessModel>& id,
     QObject* parent)
-    : Process::ProcessModel{duration, id,
-                            Metadata<ObjectKey_k, ProcessModel>::get(), parent}
+    : Process::ProcessModel{duration,
+                            id,
+                            Metadata<ObjectKey_k, ProcessModel>::get(),
+                            parent}
     , inlet{Process::make_inlet(Id<Process::Port>(0), this)}
     , outlet{Process::make_outlet(Id<Process::Port>(0), this)}
 {
@@ -73,10 +76,14 @@ void ProcessModel::insertEffect(Process::ProcessModel* eff, int pos)
   setBadChaining(bad_effect);
 
   connect(
-      eff, &Process::ProcessModel::inletsChanged, this,
+      eff,
+      &Process::ProcessModel::inletsChanged,
+      this,
       &ProcessModel::checkChaining);
   connect(
-      eff, &Process::ProcessModel::outletsChanged, this,
+      eff,
+      &Process::ProcessModel::outletsChanged,
+      this,
       &ProcessModel::checkChaining);
 
   if (!bad_effect)
@@ -195,17 +202,20 @@ void ProcessModel::checkChaining()
   setBadChaining(bad_effect);
 }
 
-bool EffectRemover::remove(const Selection& s, const score::DocumentContext& ctx)
+bool EffectRemover::remove(
+    const Selection& s,
+    const score::DocumentContext& ctx)
 {
-  if(s.size() == 1)
+  if (s.size() == 1)
   {
     auto first = s.begin()->data();
-    if(auto proc = qobject_cast<const Process::ProcessModel*>(first))
+    if (auto proc = qobject_cast<const Process::ProcessModel*>(first))
     {
       auto p = proc->parent();
-      if(auto fxc = qobject_cast<ProcessModel*>(p))
+      if (auto fxc = qobject_cast<ProcessModel*>(p))
       {
-        CommandDispatcher<>{ctx.commandStack}.submit<RemoveEffect>(*fxc, *proc);
+        CommandDispatcher<>{ctx.commandStack}.submit<RemoveEffect>(
+            *fxc, *proc);
       }
     }
   }
@@ -325,7 +335,8 @@ Selection Media::Effect::ProcessModel::selectedChildren() const noexcept
   return s;
 }
 
-void Media::Effect::ProcessModel::setSelection(const Selection& s) const noexcept
+void Media::Effect::ProcessModel::setSelection(const Selection& s) const
+    noexcept
 {
   for (auto& c : effects())
   {

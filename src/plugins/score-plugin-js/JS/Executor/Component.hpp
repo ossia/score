@@ -22,14 +22,17 @@ namespace JS
 class ProcessModel;
 namespace Executor
 {
-class Component final : public ::Execution::ProcessComponent_T<
-                            JS::ProcessModel, ossia::node_process>
+class Component final
+    : public ::Execution::
+          ProcessComponent_T<JS::ProcessModel, ossia::node_process>
 {
   COMPONENT_METADATA("c2737929-231e-4d57-9088-a2a3a8d3c24e")
 public:
   Component(
-      JS::ProcessModel& element, const Execution::Context& ctx,
-      const Id<score::Component>& id, QObject* parent);
+      JS::ProcessModel& element,
+      const Execution::Context& ctx,
+      const Id<score::Component>& id,
+      QObject* parent);
   ~Component() override;
 };
 

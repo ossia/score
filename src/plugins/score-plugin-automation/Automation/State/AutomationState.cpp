@@ -23,15 +23,21 @@ class QObject;
 namespace Automation
 {
 ProcessState::ProcessState(
-    ProcessModel& model, double watchedPoint, QObject* parent)
+    ProcessModel& model,
+    double watchedPoint,
+    QObject* parent)
     : ProcessStateDataInterface{model, parent}, m_point{watchedPoint}
 {
   SCORE_ASSERT(0 <= watchedPoint && watchedPoint <= 1);
 
-  con(this->process(), &ProcessModel::curveChanged, this,
+  con(this->process(),
+      &ProcessModel::curveChanged,
+      this,
       &ProcessStateDataInterface::stateChanged);
 
-  con(this->process(), &ProcessModel::addressChanged, this,
+  con(this->process(),
+      &ProcessModel::addressChanged,
+      this,
       &ProcessStateDataInterface::stateChanged);
 }
 
@@ -111,7 +117,8 @@ std::vector<State::AddressAccessor> ProcessState::matchingAddresses()
 
 // TESTME
 ::State::MessageList ProcessState::setMessages(
-    const ::State::MessageList& received, const Process::MessageNode&)
+    const ::State::MessageList& received,
+    const Process::MessageNode&)
 {
   if (m_point != 0. && m_point != 1.)
     return messages();
@@ -136,8 +143,9 @@ std::vector<State::AddressAccessor> ProcessState::matchingAddresses()
         // Find first segment
         // TODO ordering would help, here.
         auto seg_it = std::find_if(
-            segs.begin(), segs.end(),
-            [](Curve::SegmentModel& segt) { return segt.start().x() == 0.; });
+            segs.begin(), segs.end(), [](Curve::SegmentModel& segt) {
+              return segt.start().x() == 0.;
+            });
         if (seg_it != segs.end())
         {
           if (val != seg_it->start().y())
@@ -150,8 +158,9 @@ std::vector<State::AddressAccessor> ProcessState::matchingAddresses()
       {
         // Find last segment
         auto seg_it = std::find_if(
-            segs.begin(), segs.end(),
-            [](Curve::SegmentModel& segt) { return segt.end().x() == 1; });
+            segs.begin(), segs.end(), [](Curve::SegmentModel& segt) {
+              return segt.end().x() == 1;
+            });
         if (seg_it != segs.end())
         {
           if (val != seg_it->end().y())

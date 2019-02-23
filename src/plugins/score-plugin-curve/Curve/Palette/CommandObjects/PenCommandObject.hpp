@@ -19,10 +19,7 @@ class SCORE_PLUGIN_CURVE_EXPORT PenCommandObject final
 public:
   PenCommandObject(Presenter* presenter, const score::CommandStackFacade&);
 
-  void setCurveState(Curve::StateBase* stateBase)
-  {
-    m_state = stateBase;
-  }
+  void setCurveState(Curve::StateBase* stateBase) { m_state = stateBase; }
 
   void on_press() override;
 
@@ -34,7 +31,9 @@ public:
 
 private:
   using seg_tuple = std::tuple<
-      optional<SegmentData>, optional<SegmentData>, std::vector<SegmentData>>;
+      optional<SegmentData>,
+      optional<SegmentData>,
+      std::vector<SegmentData>>;
   void release_n(seg_tuple&&);
   seg_tuple filterSegments();
   PointArraySegment m_segment;

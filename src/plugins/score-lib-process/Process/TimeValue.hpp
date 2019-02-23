@@ -41,9 +41,7 @@ struct TimeValue_T
   OPTIONAL_CONSTEXPR TimeValue_T(TimeValue_T&&) = default;
   OPTIONAL_CONSTEXPR TimeValue_T& operator=(const TimeValue_T&) = default;
   OPTIONAL_CONSTEXPR TimeValue_T& operator=(TimeValue_T&&) = default;
-  OPTIONAL_CONSTEXPR TimeValue_T(optional<T> t) : m_impl{std::move(t)}
-  {
-  }
+  OPTIONAL_CONSTEXPR TimeValue_T(optional<T> t) : m_impl{std::move(t)} {}
 
   TimeValue_T(QTime t)
       : m_impl{
@@ -64,23 +62,18 @@ struct TimeValue_T
   }
 
   template <
-      typename Duration, std::enable_if_t<std::is_class<
-                             typename Duration::period>::value>* = nullptr>
+      typename Duration,
+      std::enable_if_t<
+          std::is_class<typename Duration::period>::value>* = nullptr>
   OPTIONAL_CONSTEXPR TimeValue_T(Duration&& dur)
       : m_impl{T(std::chrono::duration_cast<std::chrono::milliseconds>(dur)
                      .count())}
   {
   }
 
-  bool isInfinite() const
-  {
-    return !bool(m_impl);
-  }
+  bool isInfinite() const { return !bool(m_impl); }
 
-  bool isZero() const
-  {
-    return !isInfinite() && (msec() == 0);
-  }
+  bool isZero() const { return !isInfinite() && (msec() == 0); }
 
   T msec() const
   {
@@ -90,10 +83,7 @@ struct TimeValue_T
     return 0;
   }
 
-  T sec() const
-  {
-    return double(*m_impl) / 1000;
-  }
+  T sec() const { return double(*m_impl) / 1000; }
 
   double toPixels(ZoomRatio ratio) const
   {
@@ -118,7 +108,8 @@ struct TimeValue_T
             qT.minute() != 0
                 ? QString::number(qT.minute()) % QStringLiteral(" min ")
                 : QString(),
-            QString::number(qT.second()), QString::number(qT.msec()));
+            QString::number(qT.second()),
+            QString::number(qT.msec()));
   }
 
   void addMSecs(T msecs)
@@ -129,10 +120,7 @@ struct TimeValue_T
     }
   }
 
-  void setMSecs(T msecs)
-  {
-    m_impl = msecs;
-  }
+  void setMSecs(T msecs) { m_impl = msecs; }
 
   bool operator==(const TimeValue_T& other) const
   {

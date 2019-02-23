@@ -22,16 +22,15 @@ void LayerPresenter::setFocus(bool focus)
   on_focusChanged();
 }
 
-void LayerPresenter::on_focusChanged()
-{
-}
+void LayerPresenter::on_focusChanged() {}
 
-void LayerPresenter::setFullView()
-{
-}
+void LayerPresenter::setFullView() {}
 
 void LayerPresenter::fillContextMenu(
-    QMenu&, QPoint pos, QPointF scenepos, const LayerContextMenuManager&)
+    QMenu&,
+    QPoint pos,
+    QPointF scenepos,
+    const LayerContextMenuManager&)
 {
 }
 
@@ -40,9 +39,7 @@ GraphicsShapeItem* LayerPresenter::makeSlotHeaderDelegate()
   return nullptr;
 }
 
-GraphicsShapeItem::~GraphicsShapeItem()
-{
-}
+GraphicsShapeItem::~GraphicsShapeItem() {}
 
 void GraphicsShapeItem::setSize(QSizeF sz)
 {

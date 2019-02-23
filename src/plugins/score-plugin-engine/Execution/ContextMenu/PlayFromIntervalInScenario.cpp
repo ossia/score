@@ -33,7 +33,8 @@ struct dfs_visitor : public boost::default_dfs_visitor
       std::make_shared<dfs_visitor_state>()};
 
   void discover_vertex(
-      Scenario::Graph::vertex_descriptor i, const Scenario::Graph& g)
+      Scenario::Graph::vertex_descriptor i,
+      const Scenario::Graph& g)
   {
     state->nodes.insert(g[i]);
   }
@@ -60,9 +61,12 @@ PlayFromIntervalScenarioPruner::intervalsToKeep() const
         boost::num_vertices(g.graph()));
 
     boost::depth_first_visit(
-        g.graph(), vertex, vis,
+        g.graph(),
+        vertex,
+        vis,
         boost::make_iterator_property_map(
-            color_map.begin(), boost::get(boost::vertex_index, g.graph()),
+            color_map.begin(),
+            boost::get(boost::vertex_index, g.graph()),
             color_map[0]));
 
     // Add the first interval
@@ -104,7 +108,7 @@ operator()(const Context& exec_ctx, const BaseScenarioElement& bs)
 
   auto scenar_comp
       = dynamic_cast<ScenarioComponent*>((*scenar_proc_it).second.get());
-  auto scenar_intervals = scenar_comp->intervals();
+  const auto scenar_intervals = scenar_comp->intervals();
   IntervalComponent* other_cst{};
   for (auto elt : scenar_intervals)
   {
@@ -135,7 +139,10 @@ operator()(const Context& exec_ctx, const BaseScenarioElement& bs)
         *scenar_comp->OSSIAProcess()
              .get_start_time_sync()
              ->get_time_events()[0],
-        new_end_e, end_date, end_date, end_date);
+        new_end_e,
+        end_date,
+        end_date,
+        end_date);
 
     scenar_comp->OSSIAProcess().add_time_interval(new_cst);
   }

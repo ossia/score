@@ -27,13 +27,20 @@ QRectF RectItem::boundingRect() const
 }
 
 void RectItem::paint(
-    QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+    QPainter* painter,
+    const QStyleOptionGraphicsItem* option,
+    QWidget* widget)
 {
-  static const auto pen = QPen{QColor(qRgba(80, 100, 140, 100)), 2,
-                               Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin};
-  static const auto highlight_pen
-      = QPen{QColor(qRgba(100, 120, 180, 100)), 2, Qt::SolidLine, Qt::RoundCap,
-             Qt::RoundJoin};
+  static const auto pen = QPen{QColor(qRgba(80, 100, 140, 100)),
+                               2,
+                               Qt::SolidLine,
+                               Qt::RoundCap,
+                               Qt::RoundJoin};
+  static const auto highlight_pen = QPen{QColor(qRgba(100, 120, 180, 100)),
+                                         2,
+                                         Qt::SolidLine,
+                                         Qt::RoundCap,
+                                         Qt::RoundJoin};
   static const auto brush = QBrush{Qt::transparent};
 
   painter->setRenderHint(QPainter::Antialiasing, true);
@@ -82,7 +89,9 @@ QRectF EmptyRectItem::boundingRect() const
 }
 
 void EmptyRectItem::paint(
-    QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+    QPainter* painter,
+    const QStyleOptionGraphicsItem* option,
+    QWidget* widget)
 {
 }
 

@@ -3,7 +3,10 @@
 #include <Process/Process.hpp>
 
 #include <score/graphics/RectItem.hpp>
-namespace Dataflow { class PortItem; }
+namespace Dataflow
+{
+class PortItem;
+}
 
 namespace Media::Effect
 {
@@ -11,7 +14,8 @@ class SCORE_LIB_PROCESS_EXPORT DefaultEffectItem final : public score::RectItem
 {
 public:
   DefaultEffectItem(
-      const Process::ProcessModel& effect, const score::DocumentContext& doc,
+      const Process::ProcessModel& effect,
+      const score::DocumentContext& doc,
       score::RectItem* root);
 
   void

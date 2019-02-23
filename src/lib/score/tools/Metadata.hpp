@@ -98,20 +98,14 @@ class Json_k;
   template <>                                   \
   struct Export Metadata<Key, Model>            \
   {                                             \
-    static auto get()                           \
-    {                                           \
-      return Text;                              \
-    }                                           \
+    static auto get() { return Text; }          \
   };
 
 #define TYPED_METADATA(Export, Model, Key, Type, Value) \
   template <>                                           \
   struct Export Metadata<Key, Model>                    \
   {                                                     \
-    static Type get()                                   \
-    {                                                   \
-      return Value;                                     \
-    }                                                   \
+    static Type get() { return Value; }                 \
   };
 
 #define TR_TEXT_METADATA(Export, Model, Key, Text) \

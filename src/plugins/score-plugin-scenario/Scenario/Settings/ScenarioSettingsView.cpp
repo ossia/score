@@ -78,23 +78,79 @@ void CssHighlighter::highlightBlock(const QString& text)
     STAR
   };
   static const int transitions[10][9] = {
-      {Selector, Property, Selector, Pseudo, Property, Selector, Quote,
-       MaybeComment, Selector}, // Selector
-      {Property, Property, Selector, Value, Property, Property, Quote,
-       MaybeComment, Property}, // Property
-      {Value, Property, Selector, Value, Property, Value, Quote, MaybeComment,
+      {Selector,
+       Property,
+       Selector,
+       Pseudo,
+       Property,
+       Selector,
+       Quote,
+       MaybeComment,
+       Selector}, // Selector
+      {Property,
+       Property,
+       Selector,
+       Value,
+       Property,
+       Property,
+       Quote,
+       MaybeComment,
+       Property}, // Property
+      {Value,
+       Property,
+       Selector,
+       Value,
+       Property,
+       Value,
+       Quote,
+       MaybeComment,
        Value}, // Value
-      {Pseudo1, Property, Selector, Pseudo2, Selector, Selector, Quote,
-       MaybeComment, Pseudo}, // Pseudo
-      {Pseudo1, Property, Selector, Pseudo, Selector, Selector, Quote,
-       MaybeComment, Pseudo1}, // Pseudo1
-      {Pseudo2, Property, Selector, Pseudo, Selector, Selector, Quote,
-       MaybeComment, Pseudo2},                                      // Pseudo2
+      {Pseudo1,
+       Property,
+       Selector,
+       Pseudo2,
+       Selector,
+       Selector,
+       Quote,
+       MaybeComment,
+       Pseudo}, // Pseudo
+      {Pseudo1,
+       Property,
+       Selector,
+       Pseudo,
+       Selector,
+       Selector,
+       Quote,
+       MaybeComment,
+       Pseudo1}, // Pseudo1
+      {Pseudo2,
+       Property,
+       Selector,
+       Pseudo,
+       Selector,
+       Selector,
+       Quote,
+       MaybeComment,
+       Pseudo2},                                                    // Pseudo2
       {Quote, Quote, Quote, Quote, Quote, Quote, -1, Quote, Quote}, // Quote
       {-1, -1, -1, -1, -1, -1, -1, -1, Comment}, // MaybeComment
-      {Comment, Comment, Comment, Comment, Comment, Comment, Comment, Comment,
+      {Comment,
+       Comment,
+       Comment,
+       Comment,
+       Comment,
+       Comment,
+       Comment,
+       Comment,
        MaybeCommentEnd}, // Comment
-      {Comment, Comment, Comment, Comment, Comment, Comment, Comment, -1,
+      {Comment,
+       Comment,
+       Comment,
+       Comment,
+       Comment,
+       Comment,
+       Comment,
+       -1,
        MaybeCommentEnd} // MaybeCommentEnd
   };
 
@@ -226,7 +282,10 @@ void CssHighlighter::highlightBlock(const QString& text)
 }
 
 void CssHighlighter::highlight(
-    const QString& text, int start, int length, int state)
+    const QString& text,
+    int start,
+    int length,
+    int state)
 {
   if (start >= text.length() || length <= 0)
     return;
@@ -294,7 +353,9 @@ public:
     }
 
     connect(
-        &list, &QListWidget::currentItemChanged, this,
+        &list,
+        &QListWidget::currentItemChanged,
+        this,
         [&](QListWidgetItem* cur, auto prev) {
           if (cur)
             wheel.setColor(s.fromString(cur->text())->color());
@@ -401,7 +462,9 @@ View::View() : m_widg{new QWidget}
   m_zoomSpinBox->setMaximum(300);
 
   connect(
-      m_zoomSpinBox, SignalUtils::QSpinBox_valueChanged_int(), this,
+      m_zoomSpinBox,
+      SignalUtils::QSpinBox_valueChanged_int(),
+      this,
       &View::zoomChanged);
 
   m_zoomSpinBox->setSuffix(tr("%"));
@@ -415,7 +478,8 @@ View::View() : m_widg{new QWidget}
 
   connect(
       m_slotHeightBox,
-      static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged), this,
+      static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged),
+      this,
       &View::SlotHeightChanged);
 
   lay->addRow(tr("Default Slot Height"), m_slotHeightBox);
@@ -423,7 +487,9 @@ View::View() : m_widg{new QWidget}
   // Default duration
   m_defaultDur = new score::TimeSpinBox;
   connect(
-      m_defaultDur, &score::TimeSpinBox::timeChanged, this,
+      m_defaultDur,
+      &score::TimeSpinBox::timeChanged,
+      this,
       [=](const QTime& t) { DefaultDurationChanged(TimeVal{t}); });
   lay->addRow(tr("New score duration"), m_defaultDur);
 

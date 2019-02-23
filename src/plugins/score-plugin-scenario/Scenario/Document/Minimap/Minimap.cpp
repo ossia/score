@@ -87,7 +87,9 @@ QRectF Minimap::boundingRect() const
 }
 
 void Minimap::paint(
-    QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+    QPainter* painter,
+    const QStyleOptionGraphicsItem* option,
+    QWidget* widget)
 {
   auto& sk = Process::Style::instance();
   painter->setRenderHint(QPainter::Antialiasing, false);
@@ -200,7 +202,8 @@ void Minimap::mouseReleaseEvent(QGraphicsSceneMouseEvent* ev)
     QPointF pos;
     pos.setX(ossia::clamp(
         m_leftHandle + m_relativeStartX * (m_rightHandle - m_leftHandle),
-        m_leftHandle, m_rightHandle));
+        m_leftHandle,
+        m_rightHandle));
     pos.setY(m_startY);
 
     QCursor::setPos(m_viewport->mapToGlobal(pos.toPoint()));

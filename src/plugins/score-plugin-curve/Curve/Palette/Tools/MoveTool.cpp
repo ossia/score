@@ -2,6 +2,7 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "MoveTool.hpp"
 
+#include <Curve/CurveModel.hpp>
 #include <Curve/Palette/CurvePalette.hpp>
 #include <Curve/Palette/CurvePaletteBaseEvents.hpp>
 #include <Curve/Palette/CurvePaletteBaseTransitions.hpp>
@@ -9,7 +10,6 @@
 #include <Curve/Palette/Tools/CurveTool.hpp>
 #include <Curve/Point/CurvePointView.hpp>
 #include <Curve/Segment/CurveSegmentView.hpp>
-#include <Curve/CurveModel.hpp>
 
 #include <score/statemachine/StateMachineUtils.hpp>
 #include <score/tools/std/Optional.hpp>
@@ -25,20 +25,23 @@ EditionToolForCreate::EditionToolForCreate(Curve::ToolPalette& sm)
 }
 
 void EditionToolForCreate::on_pressed(
-    QPointF scenePoint, Curve::Point curvePoint)
+    QPointF scenePoint,
+    Curve::Point curvePoint)
 {
   mapTopItem(
-      scenePoint, itemUnderMouse(scenePoint),
+      scenePoint,
+      itemUnderMouse(scenePoint),
       [&](const PointView* point) {
-        if(m_parentSM.editionSettings().tool() != Tool::SetSegment)
+        if (m_parentSM.editionSettings().tool() != Tool::SetSegment)
           select(point->model(), m_parentSM.model().selectedChildren(), true);
         else
           select(point->model(), m_parentSM.model().selectedChildren());
         localSM().postEvent(new ClickOnPoint_Event(curvePoint, point));
       },
       [&](const SegmentView* segment) {
-        if(m_parentSM.editionSettings().tool() != Tool::SetSegment)
-          select(segment->model(), m_parentSM.model().selectedChildren(), true);
+        if (m_parentSM.editionSettings().tool() != Tool::SetSegment)
+          select(
+              segment->model(), m_parentSM.model().selectedChildren(), true);
         else
           select(segment->model(), m_parentSM.model().selectedChildren());
         localSM().postEvent(new ClickOnSegment_Event(curvePoint, segment));
@@ -49,10 +52,12 @@ void EditionToolForCreate::on_pressed(
 }
 
 void EditionToolForCreate::on_moved(
-    QPointF scenePoint, Curve::Point curvePoint)
+    QPointF scenePoint,
+    Curve::Point curvePoint)
 {
   mapTopItem(
-      scenePoint, itemUnderMouse(scenePoint),
+      scenePoint,
+      itemUnderMouse(scenePoint),
       [&](const PointView* point) {
         localSM().postEvent(new MoveOnPoint_Event(curvePoint, point));
       },
@@ -65,10 +70,12 @@ void EditionToolForCreate::on_moved(
 }
 
 void EditionToolForCreate::on_released(
-    QPointF scenePoint, Curve::Point curvePoint)
+    QPointF scenePoint,
+    Curve::Point curvePoint)
 {
   mapTopItem(
-      scenePoint, itemUnderMouse(scenePoint),
+      scenePoint,
+      itemUnderMouse(scenePoint),
       [&](const PointView* point) {
         localSM().postEvent(new ReleaseOnPoint_Event(curvePoint, point));
       },
@@ -81,7 +88,8 @@ void EditionToolForCreate::on_released(
 }
 
 SetSegmentTool::SetSegmentTool(
-    Curve::ToolPalette& sm, const score::DocumentContext& context)
+    Curve::ToolPalette& sm,
+    const score::DocumentContext& context)
     : EditionToolForCreate{sm}, m_co{sm.model(), context.commandStack}
 {
   QState* waitState = new QState{&localSM()};
@@ -97,7 +105,8 @@ SetSegmentTool::SetSegmentTool(
 }
 
 CreateTool::CreateTool(
-    Curve::ToolPalette& sm, const score::DocumentContext& context)
+    Curve::ToolPalette& sm,
+    const score::DocumentContext& context)
     : EditionToolForCreate{sm}, m_co{&sm.presenter(), context.commandStack}
 {
   localSM().setObjectName("CreateToolLocalSM");
@@ -116,7 +125,8 @@ CreateTool::CreateTool(
 }
 
 CreatePenTool::CreatePenTool(
-    Curve::ToolPalette& sm, const score::DocumentContext& context)
+    Curve::ToolPalette& sm,
+    const score::DocumentContext& context)
     : EditionToolForCreate{sm}, m_co{&sm.presenter(), context.commandStack}
 {
   localSM().setObjectName("CreatePenToolLocalSM");

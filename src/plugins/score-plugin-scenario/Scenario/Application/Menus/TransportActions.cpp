@@ -37,7 +37,8 @@ TransportActions::TransportActions(const score::GUIApplicationContext& context)
   m_play->setShortcutContext(Qt::WidgetWithChildrenShortcut);
   m_play->setData(false);
   setIcons(
-      m_play, QStringLiteral(":/icons/play_on.png"),
+      m_play,
+      QStringLiteral(":/icons/play_on.png"),
       QStringLiteral(":/icons/play_off.png"),
       QStringLiteral(":/icons/play_disabled.png"));
 
@@ -48,7 +49,8 @@ TransportActions::TransportActions(const score::GUIApplicationContext& context)
   m_playGlobal->setShortcutContext(Qt::WidgetWithChildrenShortcut);
   m_playGlobal->setData(false);
   setIcons(
-      m_playGlobal, QStringLiteral(":/icons/play_glob_on.png"),
+      m_playGlobal,
+      QStringLiteral(":/icons/play_glob_on.png"),
       QStringLiteral(":/icons/play_glob_off.png"),
       QStringLiteral(":/icons/play_glob_disabled.png"));
 
@@ -57,7 +59,8 @@ TransportActions::TransportActions(const score::GUIApplicationContext& context)
   m_stop->setShortcut(Qt::Key_Return);
   m_stop->setShortcutContext(Qt::WidgetWithChildrenShortcut);
   setIcons(
-      m_stop, QStringLiteral(":/icons/stop_on.png"),
+      m_stop,
+      QStringLiteral(":/icons/stop_on.png"),
       QStringLiteral(":/icons/stop_off.png"),
       QStringLiteral(":/icons/stop_disabled.png"));
   /*
@@ -77,7 +80,8 @@ TransportActions::TransportActions(const score::GUIApplicationContext& context)
   m_stopAndInit->setShortcutContext(Qt::WidgetWithChildrenShortcut);
 
   setIcons(
-      m_stopAndInit, QStringLiteral(":/icons/reinitialize_on.png"),
+      m_stopAndInit,
+      QStringLiteral(":/icons/reinitialize_on.png"),
       QStringLiteral(":/icons/reinitialize_off.png"),
       QStringLiteral(":/icons/reinitialize_disabled.png"));
   /*
@@ -129,7 +133,8 @@ TransportActions::TransportActions(const score::GUIApplicationContext& context)
     m_play->setChecked(false);
     m_play->setText(tr("Play"));
     setIcons(
-        m_play, QStringLiteral(":/icons/play_on.png"),
+        m_play,
+        QStringLiteral(":/icons/play_on.png"),
         QStringLiteral(":/icons/play_off.png"),
         QStringLiteral(":/icons/play_disabled.png"));
     m_play->setData(false);
@@ -138,7 +143,8 @@ TransportActions::TransportActions(const score::GUIApplicationContext& context)
     m_playGlobal->setChecked(false);
     m_play->setText(tr("Play (global)"));
     setIcons(
-        m_playGlobal, QStringLiteral(":/icons/play_glob_on.png"),
+        m_playGlobal,
+        QStringLiteral(":/icons/play_glob_on.png"),
         QStringLiteral(":/icons/play_glob_off.png"),
         QStringLiteral(":/icons/play_glob_disabled.png"));
     m_playGlobal->setData(false);
@@ -199,7 +205,9 @@ void TransportActions::makeGUIElements(score::GUIElements& ref)
     bar->addAction(m_stopAndInit);
 
     ref.toolbars.emplace_back(
-        bar, StringKey<score::Toolbar>("Transport"), Qt::BottomToolBarArea,
+        bar,
+        StringKey<score::Toolbar>("Transport"),
+        Qt::BottomToolBarArea,
         200);
   }
 

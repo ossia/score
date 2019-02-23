@@ -11,14 +11,17 @@ namespace Command
 class AddProcessInNewSlot final : public score::AggregateCommand
 {
   SCORE_COMMAND_DECL(
-      ScenarioCommandFactoryName(), AddProcessInNewSlot,
+      ScenarioCommandFactoryName(),
+      AddProcessInNewSlot,
       "Create a process in a new slot")
 };
 
 class DuplicateProcess final : public score::AggregateCommand
 {
   SCORE_COMMAND_DECL(
-      ScenarioCommandFactoryName(), DuplicateProcess, "Duplicate a process")
+      ScenarioCommandFactoryName(),
+      DuplicateProcess,
+      "Duplicate a process")
 };
 }
 }

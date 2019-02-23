@@ -143,14 +143,21 @@ QMetaObject::Connection con(const T& t, Args&&... args)
 }
 
 template <
-    typename T, typename Property, typename U, typename Slot, typename... Args>
+    typename T,
+    typename Property,
+    typename U,
+    typename Slot,
+    typename... Args>
 QMetaObject::Connection
 bind(T& t, const Property&, const U* tgt, Slot&& slt, Args&&... args)
 {
   slt((t.*(Property::get()))());
 
   return QObject::connect(
-      &t, Property::notify(), tgt, std::forward<Slot>(slt),
+      &t,
+      Property::notify(),
+      tgt,
+      std::forward<Slot>(slt),
       std::forward<Args>(args)...);
 }
 
@@ -181,10 +188,7 @@ struct unused_t
 template <typename T>
 struct matches
 {
-  bool operator()(const QObject* obj)
-  {
-    return dynamic_cast<const T*>(obj);
-  }
+  bool operator()(const QObject* obj) { return dynamic_cast<const T*>(obj); }
 };
 
 /**

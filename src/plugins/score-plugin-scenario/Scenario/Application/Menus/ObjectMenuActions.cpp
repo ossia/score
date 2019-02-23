@@ -85,9 +85,9 @@ ObjectMenuActions::ObjectMenuActions(ScenarioApplicationPlugin* parent)
     const auto& cur_sel = ctx.selectionStack.currentSelection();
 
     auto& rm = ctx.app.interfaces<score::ObjectRemoverList>();
-    for(auto& iface : rm)
+    for (auto& iface : rm)
     {
-      if(iface.remove(cur_sel, ctx))
+      if (iface.remove(cur_sel, ctx))
         break;
     }
   });
@@ -170,7 +170,8 @@ ObjectMenuActions::ObjectMenuActions(ScenarioApplicationPlugin* parent)
     pasteElementsAfter(
         QJsonDocument::fromJson(QApplication::clipboard()->text().toUtf8())
             .object(),
-        pt, pres->context().context.selectionStack.currentSelection());
+        pt,
+        pres->context().context.selectionStack.currentSelection());
   });
 
   // DISPLAY JSON
@@ -367,11 +368,11 @@ void ObjectMenuActions::setupContextMenu(
 
   // Used for scenario model
   scenario_model.functions.push_back([this](
-                                         QMenu& menu, QPoint,
+                                         QMenu& menu,
+                                         QPoint,
                                          QPointF scenePoint,
                                          const LayerContext& ctx) {
-    auto& scenario
-        = *safe_cast<const ScenarioPresenter*>(&ctx.presenter);
+    auto& scenario = *safe_cast<const ScenarioPresenter*>(&ctx.presenter);
     auto sel = ctx.context.selectionStack.currentSelection();
     if (!sel.empty())
     {
@@ -452,14 +453,16 @@ QJsonObject ObjectMenuActions::cutSelectedElementsToJson()
   {
     Scenario::clearContentFromSelection(
         selectedElements(si->getIntervals()),
-        selectedElements(si->getStates()), ctx);
+        selectedElements(si->getStates()),
+        ctx);
   }
 
   return obj;
 }
 
 void ObjectMenuActions::pasteElements(
-    const QJsonObject& obj, const Scenario::Point& origin)
+    const QJsonObject& obj,
+    const Scenario::Point& origin)
 {
   // TODO check for unnecessary uses of focusedProcessModel after
   // focusedPresenter.
@@ -475,7 +478,8 @@ void ObjectMenuActions::pasteElements(
 }
 
 void ObjectMenuActions::pasteElementsAfter(
-    const QJsonObject& obj, const Scenario::Point& origin,
+    const QJsonObject& obj,
+    const Scenario::Point& origin,
     const Selection& sel)
 {
   // TODO check for unnecessary uses of focusedProcessModel after
@@ -497,7 +501,8 @@ void ObjectMenuActions::pasteElementsAfter(
 
 template <typename Scenario_T>
 static void writeJsonToScenario(
-    const Scenario_T& scen, const ObjectMenuActions& self,
+    const Scenario_T& scen,
+    const ObjectMenuActions& self,
     const QJsonObject& obj)
 {
   MacroCommandDispatcher<Command::ScenarioPasteContent> dispatcher{

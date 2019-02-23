@@ -34,7 +34,8 @@ DocumentBuilder::DocumentBuilder(QObject* parentPresenter, QWidget* parentView)
 
 SCORE_LIB_BASE_EXPORT
 Document* DocumentBuilder::newDocument(
-    const score::GUIApplicationContext& ctx, const Id<DocumentModel>& id,
+    const score::GUIApplicationContext& ctx,
+    const Id<DocumentModel>& id,
     DocumentDelegateFactory& doctype)
 {
   QString docName
@@ -46,7 +47,8 @@ Document* DocumentBuilder::newDocument(
   {
     if (auto fact = dynamic_cast<ProjectSettingsFactory*>(&projectsettings))
       doc->model().addPluginModel(fact->makeModel(
-          doc->context(), getStrongId(doc->model().pluginModels()),
+          doc->context(),
+          getStrongId(doc->model().pluginModels()),
           &doc->model()));
   }
 
@@ -70,15 +72,17 @@ Document* DocumentBuilder::newDocument(
 
 SCORE_LIB_BASE_EXPORT
 Document* DocumentBuilder::loadDocument(
-    const score::GUIApplicationContext& ctx, QString filename,
-    const QVariant& docData, DocumentDelegateFactory& doctype)
+    const score::GUIApplicationContext& ctx,
+    QString filename,
+    const QVariant& docData,
+    DocumentDelegateFactory& doctype)
 {
   Document* doc = nullptr;
   auto& doclist = ctx.documents.documents();
   try
   {
-    doc = new Document{filename, docData, doctype, m_parentView,
-                       m_parentPresenter};
+    doc = new Document{
+        filename, docData, doctype, m_parentView, m_parentPresenter};
     for (auto& appPlug : ctx.guiApplicationPlugins())
     {
       appPlug->on_loadedDocument(*doc);
@@ -113,8 +117,10 @@ Document* DocumentBuilder::loadDocument(
 }
 SCORE_LIB_BASE_EXPORT
 Document* DocumentBuilder::restoreDocument(
-    const score::GUIApplicationContext& ctx, QString filename,
-    const QByteArray& docData, const QByteArray& cmdData,
+    const score::GUIApplicationContext& ctx,
+    QString filename,
+    const QByteArray& docData,
+    const QByteArray& cmdData,
     DocumentDelegateFactory& doctype)
 {
   Document* doc = nullptr;
@@ -124,8 +130,8 @@ Document* DocumentBuilder::restoreDocument(
     // Restoring behaves just like loading : we reload what was loaded
     // (potentially a blank document which is saved at the beginning, once
     // every plug-in has been loaded)
-    doc = new Document{filename, docData, doctype, m_parentView,
-                       m_parentPresenter};
+    doc = new Document{
+        filename, docData, doctype, m_parentView, m_parentPresenter};
     for (auto& appPlug : ctx.guiApplicationPlugins())
     {
       appPlug->on_loadedDocument(*doc);
@@ -141,8 +147,9 @@ Document* DocumentBuilder::restoreDocument(
     // We restore the pre-crash command stack.
     DataStream::Deserializer writer(cmdData);
     loadCommandStack(
-        ctx.components, writer, doc->commandStack(),
-        [doc](auto cmd) { cmd->redo(doc->context()); });
+        ctx.components, writer, doc->commandStack(), [doc](auto cmd) {
+          cmd->redo(doc->context());
+        });
 
     m_backupManager = new DocumentBackupManager{*doc};
     m_backupManager->saveModelData(docData); // Reuse the same data

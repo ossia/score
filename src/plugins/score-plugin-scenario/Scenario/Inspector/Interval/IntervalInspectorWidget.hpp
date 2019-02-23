@@ -39,8 +39,10 @@ class SCORE_PLUGIN_SCENARIO_EXPORT IntervalInspectorWidget final
 {
 public:
   explicit IntervalInspectorWidget(
-      const Inspector::InspectorWidgetList& list, const IntervalModel& object,
-      const score::DocumentContext& context, QWidget* parent = nullptr);
+      const Inspector::InspectorWidgetList& list,
+      const IntervalModel& object,
+      const score::DocumentContext& context,
+      QWidget* parent = nullptr);
 
   ~IntervalInspectorWidget() override;
 

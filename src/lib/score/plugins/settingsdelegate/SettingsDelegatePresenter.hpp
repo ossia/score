@@ -22,15 +22,9 @@ public:
   }
 
   virtual ~SettingsDelegatePresenter() = default;
-  virtual void on_accept()
-  {
-    m_disp.commit();
-  }
+  virtual void on_accept() { m_disp.commit(); }
 
-  virtual void on_reject()
-  {
-    m_disp.rollback();
-  }
+  virtual void on_reject() { m_disp.rollback(); }
 
   virtual QString settingsName() = 0;
   virtual QIcon settingsIcon() = 0;
@@ -74,16 +68,16 @@ using GlobalSettingsView = SettingsDelegateView<SettingsDelegateModel>;
     v.set##Control(m.get##Control());                          \
   } while (0)
 
-#define SETTINGS_PRESENTER(Control)                                      \
-  do                                                                     \
-  {                                                                      \
-    con(v, &View::Control##Changed, this, [&](auto val) {                \
-      if (val != m.get##Control())                                       \
-      {                                                                  \
+#define SETTINGS_PRESENTER(Control)                               \
+  do                                                              \
+  {                                                               \
+    con(v, &View::Control##Changed, this, [&](auto val) {         \
+      if (val != m.get##Control())                                \
+      {                                                           \
         m_disp.submit<SetModel##Control>(this->model(this), val); \
-      }                                                                  \
-    });                                                                  \
-                                                                         \
-    con(m, &Model::Control##Changed, &v, &View::set##Control);           \
-    v.set##Control(m.get##Control());                                    \
+      }                                                           \
+    });                                                           \
+                                                                  \
+    con(m, &Model::Control##Changed, &v, &View::set##Control);    \
+    v.set##Control(m.get##Control());                             \
   } while (0)

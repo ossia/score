@@ -29,9 +29,7 @@ public:
   virtual ~SerializableInterface() = default;
   virtual UuidKey<T> concreteKey() const noexcept = 0;
 
-  virtual void serialize_impl(const VisitorVariant& vis) const
-  {
-  }
+  virtual void serialize_impl(const VisitorVariant& vis) const {}
 };
 }
 
@@ -61,7 +59,8 @@ Type deserialize_key(DataStream::Deserializer& des)
  */
 template <typename FactoryList_T, typename... Args>
 auto deserialize_interface(
-    const FactoryList_T& factories, DataStream::Deserializer& des,
+    const FactoryList_T& factories,
+    DataStream::Deserializer& des,
     Args&&... args) -> typename FactoryList_T::object_type*
 {
   QByteArray b;
@@ -100,7 +99,8 @@ auto deserialize_interface(
 
 template <typename FactoryList_T, typename... Args>
 auto deserialize_interface(
-    const FactoryList_T& factories, DataStream::Deserializer&& des,
+    const FactoryList_T& factories,
+    DataStream::Deserializer&& des,
     Args&&... args) -> typename FactoryList_T::object_type*
 {
   QByteArray b;
@@ -139,7 +139,8 @@ auto deserialize_interface(
 
 template <typename FactoryList_T, typename... Args>
 auto deserialize_interface(
-    const FactoryList_T& factories, JSONObject::Deserializer& des,
+    const FactoryList_T& factories,
+    JSONObject::Deserializer& des,
     Args&&... args) -> typename FactoryList_T::object_type*
 {
   // Deserialize the interface identifier
@@ -168,7 +169,8 @@ auto deserialize_interface(
 
 template <typename FactoryList_T, typename... Args>
 auto deserialize_interface(
-    const FactoryList_T& factories, JSONObject::Deserializer&& des,
+    const FactoryList_T& factories,
+    JSONObject::Deserializer&& des,
     Args&&... args) -> typename FactoryList_T::object_type*
 {
   // Deserialize the interface identifier

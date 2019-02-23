@@ -13,10 +13,13 @@ W_OBJECT_IMPL(Spline::ProcessModel)
 namespace Spline
 {
 ProcessModel::ProcessModel(
-    const TimeVal& duration, const Id<Process::ProcessModel>& id,
+    const TimeVal& duration,
+    const Id<Process::ProcessModel>& id,
     QObject* parent)
-    : Process::ProcessModel{duration, id,
-                            Metadata<ObjectKey_k, ProcessModel>::get(), parent}
+    : Process::ProcessModel{duration,
+                            id,
+                            Metadata<ObjectKey_k, ProcessModel>::get(),
+                            parent}
     , outlet{Process::make_outlet(Id<Process::Port>(0), this)}
 {
   outlet->type = Process::PortType::Message;
@@ -34,16 +37,16 @@ ProcessModel::ProcessModel(
   metadata().setInstanceName(*this);
 }
 
-ProcessModel::~ProcessModel()
-{
-}
+ProcessModel::~ProcessModel() {}
 
 void ProcessModel::init()
 {
   outlet->setCustomData("Out");
   m_outlets.push_back(outlet.get());
   connect(
-      outlet.get(), &Process::Port::addressChanged, this,
+      outlet.get(),
+      &Process::Port::addressChanged,
+      this,
       [=](const State::AddressAccessor& arg) {
         addressChanged(arg);
         prettyNameChanged();

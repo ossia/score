@@ -27,38 +27,30 @@ namespace Command
 class CreateSequence final : public score::AggregateCommand
 {
   SCORE_COMMAND_DECL(
-      ScenarioCommandFactoryName(), CreateSequence, "CreateSequence")
+      ScenarioCommandFactoryName(),
+      CreateSequence,
+      "CreateSequence")
 
 public:
   static CreateSequence* make(
       const score::DocumentContext& ctx,
-      const Scenario::ProcessModel& scenario, const Id<StateModel>& start,
-      const TimeVal& date, double endStateY);
+      const Scenario::ProcessModel& scenario,
+      const Id<StateModel>& start,
+      const TimeVal& date,
+      double endStateY);
 
   void undo(const score::DocumentContext& ctx) const override
   {
     m_cmds.front()->undo(ctx);
   }
 
-  const Id<IntervalModel>& createdInterval() const
-  {
-    return m_newInterval;
-  }
+  const Id<IntervalModel>& createdInterval() const { return m_newInterval; }
 
-  const Id<StateModel>& createdState() const
-  {
-    return m_newState;
-  }
+  const Id<StateModel>& createdState() const { return m_newState; }
 
-  const Id<EventModel>& createdEvent() const
-  {
-    return m_newEvent;
-  }
+  const Id<EventModel>& createdEvent() const { return m_newEvent; }
 
-  const Id<TimeSyncModel>& createdTimeSync() const
-  {
-    return m_newTimeSync;
-  }
+  const Id<TimeSyncModel>& createdTimeSync() const { return m_newTimeSync; }
 
 private:
   Id<IntervalModel> m_newInterval;
@@ -70,7 +62,8 @@ private:
 class CreateSequenceProcesses final : public score::Command
 {
   SCORE_COMMAND_DECL(
-      ScenarioCommandFactoryName(), CreateSequenceProcesses,
+      ScenarioCommandFactoryName(),
+      CreateSequenceProcesses,
       "CreateSequenceData")
 
 public:
@@ -78,10 +71,7 @@ public:
       const Scenario::ProcessModel& scenario,
       const Scenario::IntervalModel& interval);
 
-  int addedProcessCount() const
-  {
-    return m_addedProcessCount;
-  }
+  int addedProcessCount() const { return m_addedProcessCount; }
 
   void undo(const score::DocumentContext& ctx) const override;
   void redo(const score::DocumentContext& ctx) const override;

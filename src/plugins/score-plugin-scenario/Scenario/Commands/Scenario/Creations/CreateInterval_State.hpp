@@ -26,37 +26,31 @@ class SCORE_PLUGIN_SCENARIO_EXPORT CreateInterval_State final
     : public score::Command
 {
   SCORE_COMMAND_DECL(
-      ScenarioCommandFactoryName(), CreateInterval_State,
+      ScenarioCommandFactoryName(),
+      CreateInterval_State,
       "Create an interval and a state")
 public:
   CreateInterval_State(
-      const Scenario::ProcessModel& scenario, Id<StateModel> startState,
-      Id<EventModel> endEvent, double endStateY);
+      const Scenario::ProcessModel& scenario,
+      Id<StateModel> startState,
+      Id<EventModel> endEvent,
+      double endStateY);
 
   const Path<Scenario::ProcessModel>& scenarioPath() const
   {
     return m_command.scenarioPath();
   }
 
-  const double& endStateY() const
-  {
-    return m_stateY;
-  }
+  const double& endStateY() const { return m_stateY; }
 
-  const Id<StateModel>& startState() const
-  {
-    return m_command.startState();
-  }
+  const Id<StateModel>& startState() const { return m_command.startState(); }
 
   const Id<IntervalModel>& createdInterval() const
   {
     return m_command.createdInterval();
   }
 
-  const Id<StateModel>& createdState() const
-  {
-    return m_newState;
-  }
+  const Id<StateModel>& createdState() const { return m_newState; }
 
   void undo(const score::DocumentContext& ctx) const override;
   void redo(const score::DocumentContext& ctx) const override;

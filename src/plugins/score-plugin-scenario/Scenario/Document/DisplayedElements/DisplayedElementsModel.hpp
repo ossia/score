@@ -16,10 +16,7 @@ class SCORE_PLUGIN_SCENARIO_EXPORT DisplayedElementsModel
 {
 public:
   DisplayedElementsModel() = default;
-  bool initialized() const
-  {
-    return m_initialized;
-  }
+  bool initialized() const { return m_initialized; }
 
   void setSelection(const Selection&);
 
@@ -39,8 +36,12 @@ private:
   auto elements() const
   {
     return std::make_tuple(
-        m_elements.startNode, m_elements.endNode, m_elements.startEvent,
-        m_elements.endEvent, m_elements.startState, m_elements.endState,
+        m_elements.startNode,
+        m_elements.endNode,
+        m_elements.startEvent,
+        m_elements.endEvent,
+        m_elements.startState,
+        m_elements.endState,
         m_elements.interval);
   }
 

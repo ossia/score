@@ -15,8 +15,9 @@
 
 #include <ossia/detail/hash_map.hpp>
 
-#include <score_plugin_media_export.h>
 #include <QProcess>
+
+#include <score_plugin_media_export.h>
 
 #include <thread>
 namespace Media
@@ -26,7 +27,9 @@ namespace LV2
 struct HostContext;
 struct GlobalContext;
 }
-class SCORE_PLUGIN_MEDIA_EXPORT ApplicationPlugin : public QObject, public score::ApplicationPlugin
+class SCORE_PLUGIN_MEDIA_EXPORT ApplicationPlugin
+    : public QObject,
+      public score::ApplicationPlugin
 {
   W_OBJECT(ApplicationPlugin)
 public:
@@ -47,7 +50,7 @@ public:
   void rescanVSTs(const QStringList&);
   void vstChanged() W_SIGNAL(vstChanged)
 
-  struct vst_info
+      struct vst_info
   {
     QString path;
     QString prettyName;
@@ -62,10 +65,7 @@ public:
   ossia::fast_hash_map<int32_t, Media::VST::VSTModule*> vst_modules;
 
   const std::thread::id m_tid{std::this_thread::get_id()};
-  auto mainThreadId() const noexcept
-  {
-    return m_tid;
-  }
+  auto mainThreadId() const noexcept { return m_tid; }
   std::vector<std::pair<QString, std::unique_ptr<QProcess>>> m_processes;
 #endif
 };

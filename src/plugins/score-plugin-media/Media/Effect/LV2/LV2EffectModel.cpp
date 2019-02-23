@@ -123,7 +123,9 @@ struct LV2PluginChooserDialog : public QDialog
       m_categories.addItem(category.first);
     }
 
-    con(m_categories, &QListWidget::currentTextChanged, this,
+    con(m_categories,
+        &QListWidget::currentTextChanged,
+        this,
         &LV2PluginChooserDialog::updateProcesses);
 
     auto accept_item = [&](auto item) {
@@ -135,14 +137,15 @@ struct LV2PluginChooserDialog : public QDialog
     };
     con(m_plugins, &QListWidget::itemDoubleClicked, this, accept_item);
 
-    con(m_buttons, &QDialogButtonBox::accepted, this,
-        [=] { accept_item(m_plugins.currentItem()); });
+    con(m_buttons, &QDialogButtonBox::accepted, this, [=] {
+      accept_item(m_plugins.currentItem());
+    });
   }
 
   void updateProcesses(const QString& str)
   {
     m_plugins.clear();
-    for (auto plug : m_categories_map[str])
+    for (const auto& plug : m_categories_map[str])
     {
       m_plugins.addItem(plug);
     }
@@ -266,7 +269,9 @@ namespace LV2
 {
 
 LV2EffectModel::LV2EffectModel(
-    TimeVal t, const QString& path, const Id<Process::ProcessModel>& id,
+    TimeVal t,
+    const QString& path,
+    const Id<Process::ProcessModel>& id,
     QObject* parent)
     : ProcessModel{t, id, "LV2Effect", parent}, m_effectPath{path}
 {
@@ -300,7 +305,9 @@ bool LV2EffectModel::hasExternalUI() const noexcept
   {
     const LilvUI* this_ui = lilv_uis_get(the_uis, u);
     if (lilv_ui_is_supported(
-            this_ui, suil_ui_supported, native_ui_type,
+            this_ui,
+            suil_ui_supported,
+            native_ui_type,
             &effectContext.ui_type))
     {
       return true;
@@ -396,14 +403,18 @@ void LV2EffectModel::readPlugin()
     Lilv::Port p = data.effect.plugin.get_port_by_index(port_id);
     Lilv::Node n = p.get_name();
 
-    auto port = new Process::FloatSlider{
-        fParamMin[port_id],         fParamMax[port_id],
-        fParamInit[port_id],        QString::fromUtf8(n.as_string()),
-        Id<Process::Port>{in_id++}, this};
+    auto port = new Process::FloatSlider{fParamMin[port_id],
+                                         fParamMax[port_id],
+                                         fParamInit[port_id],
+                                         QString::fromUtf8(n.as_string()),
+                                         Id<Process::Port>{in_id++},
+                                         this};
 
     control_map.insert({port_id, {port, false}});
     connect(
-        port, &Process::ControlInlet::valueChanged, this,
+        port,
+        &Process::ControlInlet::valueChanged,
+        this,
         [this, port, port_id](const ossia::value& v) {
           if (effectContext.ui_instance)
           {
@@ -437,7 +448,8 @@ void LV2EffectModel::readPlugin()
   }
 
   effectContext.instance = lilv_plugin_instantiate(
-      effectContext.plugin.me, app_plug.lv2_context->sampleRate,
+      effectContext.plugin.me,
+      app_plug.lv2_context->sampleRate,
       app_plug.lv2_host_context.features);
 
   effectContext.data.data_access
@@ -547,8 +559,10 @@ struct on_finish
 };
 
 LV2EffectComponent::LV2EffectComponent(
-    Media::LV2::LV2EffectModel& proc, const Execution::Context& ctx,
-    const Id<score::Component>& id, QObject* parent)
+    Media::LV2::LV2EffectModel& proc,
+    const Execution::Context& ctx,
+    const Id<score::Component>& id,
+    QObject* parent)
     : ProcessComponent_T{proc, ctx, id, "LV2Component", parent}
 {
 }
@@ -565,7 +579,8 @@ void LV2EffectComponent::lazy_init()
 
   auto node = std::make_shared<Media::LV2::lv2_node<on_finish>>(
       Media::LV2::LV2Data{host.lv2_host_context, proc.effectContext},
-      ctx.execState->sampleRate, of);
+      ctx.execState->sampleRate,
+      of);
 
   for (std::size_t i = proc.m_controlInStart; i < proc.inlets().size(); i++)
   {
@@ -574,7 +589,9 @@ void LV2EffectComponent::lazy_init()
         = ossia::convert<float>(inlet->value());
     auto inl = node->inputs()[i];
     connect(
-        inlet, &Process::ControlInlet::valueChanged, this,
+        inlet,
+        &Process::ControlInlet::valueChanged,
+        this,
         [this, inl](const ossia::value& v) {
           system().executionQueue.enqueue([inl, val = v]() mutable {
             inl->data.target<ossia::value_port>()->write_value(
@@ -588,7 +605,10 @@ void LV2EffectComponent::lazy_init()
 }
 
 void LV2EffectComponent::writeAtomToUi(
-    uint32_t port_index, uint32_t type, uint32_t size, const void* body)
+    uint32_t port_index,
+    uint32_t type,
+    uint32_t size,
+    const void* body)
 {
   auto& p
       = score::GUIAppContext().applicationPlugin<Media::ApplicationPlugin>();

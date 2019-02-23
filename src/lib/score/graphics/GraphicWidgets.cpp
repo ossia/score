@@ -1,8 +1,8 @@
 #include "GraphicWidgets.hpp"
 
 #include <score/actions/ActionManager.hpp>
-#include <score/model/Skin.hpp>
 #include <score/graphics/DefaultGraphicsSliderImpl.hpp>
+#include <score/model/Skin.hpp>
 
 #include <QDebug>
 #include <QDoubleSpinBox>
@@ -23,7 +23,9 @@ namespace score
 {
 
 QGraphicsPixmapButton::QGraphicsPixmapButton(
-    QPixmap pressed, QPixmap released, QGraphicsItem* parent)
+    QPixmap pressed,
+    QPixmap released,
+    QGraphicsItem* parent)
     : QGraphicsPixmapItem{released, parent}
     , m_pressed{std::move(pressed)}
     , m_released{std::move(released)}
@@ -49,7 +51,9 @@ void QGraphicsPixmapButton::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 }
 
 QGraphicsPixmapToggle::QGraphicsPixmapToggle(
-    QPixmap pressed, QPixmap released, QGraphicsItem* parent)
+    QPixmap pressed,
+    QPixmap released,
+    QGraphicsItem* parent)
     : QGraphicsPixmapItem{released, parent}
     , m_pressed{std::move(pressed)}
     , m_released{std::move(released)}
@@ -134,11 +138,16 @@ QRectF QGraphicsSlider::boundingRect() const
 }
 
 void QGraphicsSlider::paint(
-    QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+    QPainter* painter,
+    const QStyleOptionGraphicsItem* option,
+    QWidget* widget)
 {
   DefaultGraphicsSliderImpl::paint(
-      *this, score::Skin::instance(),
-      QString::number(min + value() * (max - min), 'f', 3), painter, widget);
+      *this,
+      score::Skin::instance(),
+      QString::number(min + value() * (max - min), 'f', 3),
+      painter,
+      widget);
 }
 
 bool QGraphicsSlider::isInHandle(QPointF p)
@@ -210,11 +219,15 @@ QRectF QGraphicsLogSlider::boundingRect() const
 }
 
 void QGraphicsLogSlider::paint(
-    QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+    QPainter* painter,
+    const QStyleOptionGraphicsItem* option,
+    QWidget* widget)
 {
   DefaultGraphicsSliderImpl::paint(
-      *this, score::Skin::instance(),
-      QString::number(std::exp2(min + value() * (max - min)), 'f', 3), painter,
+      *this,
+      score::Skin::instance(),
+      QString::number(std::exp2(min + value() * (max - min)), 'f', 3),
+      painter,
       widget);
 }
 
@@ -334,10 +347,15 @@ QRectF QGraphicsIntSlider::boundingRect() const
 }
 
 void QGraphicsIntSlider::paint(
-    QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+    QPainter* painter,
+    const QStyleOptionGraphicsItem* option,
+    QWidget* widget)
 {
   DefaultGraphicsSliderImpl::paint(
-      *this, score::Skin::instance(), QString::number(value()), painter,
+      *this,
+      score::Skin::instance(),
+      QString::number(value()),
+      painter,
       widget);
 }
 
@@ -452,7 +470,9 @@ QRectF QGraphicsComboSlider::boundingRect() const
 }
 
 void QGraphicsComboSlider::paint(
-    QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+    QPainter* painter,
+    const QStyleOptionGraphicsItem* option,
+    QWidget* widget)
 {
   DefaultGraphicsSliderImpl::paint(
       *this, score::Skin::instance(), array[value()], painter, widget);

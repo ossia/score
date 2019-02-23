@@ -40,7 +40,8 @@ namespace Scenario
 namespace Command
 {
 RemoveSelection::RemoveSelection(
-    const Scenario::ProcessModel& scenar, Selection sel)
+    const Scenario::ProcessModel& scenar,
+    Selection sel)
     : m_path{scenar}
 {
   // Serialize all the events and intervals and timesyncs and states and
@@ -194,32 +195,40 @@ void RemoveSelection::undo(const score::DocumentContext& ctx) const
 
   QList<StateModel*> states;
   std::transform(
-      m_removedStates.begin(), m_removedStates.end(),
-      std::back_inserter(states), [&](const auto& data) {
+      m_removedStates.begin(),
+      m_removedStates.end(),
+      std::back_inserter(states),
+      [&](const auto& data) {
         DataStream::Deserializer s{data.second};
         return new StateModel{s, &scenar};
       });
 
   QList<EventModel*> events;
   std::transform(
-      m_cleanedEvents.begin(), m_cleanedEvents.end(),
-      std::back_inserter(events), [&](const auto& eventdata) {
+      m_cleanedEvents.begin(),
+      m_cleanedEvents.end(),
+      std::back_inserter(events),
+      [&](const auto& eventdata) {
         DataStream::Deserializer s{eventdata.second};
         return new EventModel{s, &scenar};
       });
 
   QList<TimeSyncModel*> timesyncs;
   std::transform(
-      m_cleanedTimeSyncs.begin(), m_cleanedTimeSyncs.end(),
-      std::back_inserter(timesyncs), [&](const auto& tndata) {
+      m_cleanedTimeSyncs.begin(),
+      m_cleanedTimeSyncs.end(),
+      std::back_inserter(timesyncs),
+      [&](const auto& tndata) {
         DataStream::Deserializer s{tndata.second};
         return new TimeSyncModel{s, &scenar};
       });
 
   QList<CommentBlockModel*> comments;
   std::transform(
-      m_removedComments.begin(), m_removedComments.end(),
-      std::back_inserter(comments), [&](const auto& cmtdata) {
+      m_removedComments.begin(),
+      m_removedComments.end(),
+      std::back_inserter(comments),
+      [&](const auto& cmtdata) {
         DataStream::Deserializer s{cmtdata.second};
         return new CommentBlockModel(s, &scenar);
       });
@@ -271,7 +280,8 @@ void RemoveSelection::undo(const score::DocumentContext& ctx) const
       // might add a timesync.
       auto timesyncs_in_scenar = shallow_copy(scenar.timeSyncs.map());
       auto scenar_timesync_it = std::find(
-          timesyncs_in_scenar.begin(), timesyncs_in_scenar.end(),
+          timesyncs_in_scenar.begin(),
+          timesyncs_in_scenar.end(),
           event->timeSync());
       if (scenar_timesync_it != timesyncs_in_scenar.end())
       {

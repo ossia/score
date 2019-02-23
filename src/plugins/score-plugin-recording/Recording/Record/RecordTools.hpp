@@ -57,7 +57,9 @@ struct RecordContext;
  */
 using RecordListening = std::vector<std::vector<Device::Node*>>;
 using RecordCommandDispatcher = GenericMacroCommandDispatcher<
-    Recording::Record, RedoStrategy::Quiet, SendStrategy::UndoRedo>;
+    Recording::Record,
+    RedoStrategy::Quiet,
+    SendStrategy::UndoRedo>;
 
 struct Box
 {

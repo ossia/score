@@ -38,13 +38,9 @@ public:
   ColorRef& operator=(const ColorRef& other) = default;
   ColorRef& operator=(ColorRef&& other) = default;
 
-  ColorRef(QBrush Skin::*s) : ref{&(score::Skin::instance().*s)}
-  {
-  }
+  ColorRef(QBrush Skin::*s) : ref{&(score::Skin::instance().*s)} {}
 
-  ColorRef(const QBrush* col) : ref{col}
-  {
-  }
+  ColorRef(const QBrush* col) : ref{col} {}
 
   void setColor(QBrush Skin::*s)
   {
@@ -58,10 +54,7 @@ public:
     return *ref;
   }
 
-  QString name() const
-  {
-    return score::Skin::instance().toString(ref);
-  }
+  QString name() const { return score::Skin::instance().toString(ref); }
 
   static optional<ColorRef> ColorFromString(const QString&);
   static optional<ColorRef> SimilarColor(QColor other);

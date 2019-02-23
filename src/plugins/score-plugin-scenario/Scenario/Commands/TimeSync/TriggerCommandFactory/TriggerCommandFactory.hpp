@@ -16,7 +16,8 @@ class SCORE_PLUGIN_SCENARIO_EXPORT TriggerCommandFactory
     : public score::InterfaceBase
 {
   SCORE_INTERFACE(
-      TriggerCommandFactory, "d6b7385e-b6c4-4cc2-8fc6-1041a43d98fa")
+      TriggerCommandFactory,
+      "d6b7385e-b6c4-4cc2-8fc6-1041a43d98fa")
 public:
   virtual ~TriggerCommandFactory();
   virtual bool matches(const TimeSyncModel& tn) const = 0;

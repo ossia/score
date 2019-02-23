@@ -18,15 +18,9 @@ public:
     add<score::ModelMetadata::p_label>(m);
   }
 
-  ossia::net::node_base& node() const
-  {
-    return m_thisNode.node;
-  }
+  ossia::net::node_base& node() const { return m_thisNode.node; }
 
-  auto& context() const
-  {
-    return this->system().context();
-  }
+  auto& context() const { return this->system().context(); }
 
 protected:
   template <typename Property, typename Object>

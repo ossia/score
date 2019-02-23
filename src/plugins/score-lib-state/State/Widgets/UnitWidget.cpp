@@ -24,9 +24,9 @@ W_OBJECT_IMPL(State::DestinationQualifierWidget)
 namespace State
 {
 UnitWidget::UnitWidget(Qt::Orientation orient, QWidget* parent)
-  : QWidget{parent}
+    : QWidget{parent}
 {
-  if(orient == Qt::Horizontal)
+  if (orient == Qt::Horizontal)
     m_layout = new score::MarginLess<QHBoxLayout>{this};
   else
     m_layout = new score::MarginLess<QVBoxLayout>{this};
@@ -52,17 +52,24 @@ UnitWidget::UnitWidget(Qt::Orientation orient, QWidget* parent)
 
   // Signals
   connect(
-      m_dataspace, SignalUtils::QComboBox_currentIndexChanged_int(), this,
+      m_dataspace,
+      SignalUtils::QComboBox_currentIndexChanged_int(),
+      this,
       [=](int i) {
         on_dataspaceChanged(m_dataspace->itemData(i).value<State::Unit>());
       });
 
   connect(
-      m_unit, SignalUtils::QComboBox_currentIndexChanged_int(), this,
+      m_unit,
+      SignalUtils::QComboBox_currentIndexChanged_int(),
+      this,
       [=](int i) { unitChanged(m_unit->itemData(i).value<State::Unit>()); });
 }
 
-UnitWidget::UnitWidget(const State::Unit& u, Qt::Orientation orient, QWidget* parent)
+UnitWidget::UnitWidget(
+    const State::Unit& u,
+    Qt::Orientation orient,
+    QWidget* parent)
     : UnitWidget{orient, parent}
 {
   setUnit(u);
@@ -152,14 +159,8 @@ public:
   {
     return QModelIndex();
   }
-  int rowCount(const QModelIndex& parent) const override
-  {
-    return 0;
-  }
-  int columnCount(const QModelIndex& parent) const override
-  {
-    return 0;
-  }
+  int rowCount(const QModelIndex& parent) const override { return 0; }
+  int columnCount(const QModelIndex& parent) const override { return 0; }
   QVariant data(const QModelIndex& index, int role) const override
   {
     return {};
@@ -174,36 +175,26 @@ public:
   struct TreeNode
   {
     TreeNode* parent{};
-    virtual ~TreeNode()
-    {
-    }
+    virtual ~TreeNode() {}
   };
 
   struct AccessorModel : TreeNode
   {
-    AccessorModel(ossia::destination_qualifiers a) : accessor{a}
-    {
-    }
-    virtual ~AccessorModel()
-    {
-    }
+    AccessorModel(ossia::destination_qualifiers a) : accessor{a} {}
+    virtual ~AccessorModel() {}
     ossia::destination_qualifiers accessor;
   };
 
   struct UnitDataModel : TreeNode
   {
-    virtual ~UnitDataModel()
-    {
-    }
+    virtual ~UnitDataModel() {}
     ossia::unit_t unit;
     std::vector<AccessorModel> accessors;
   };
 
   struct DataspaceModel : TreeNode
   {
-    virtual ~DataspaceModel()
-    {
-    }
+    virtual ~DataspaceModel() {}
     ossia::unit_t dataspace;
     std::vector<UnitDataModel> units;
   };
@@ -321,7 +312,8 @@ public:
     else if (!parent.parent().parent().isValid())
     {
       return createIndex(
-          row, column,
+          row,
+          column,
           (void*)&m_data[parent.parent().row()]
               .units[parent.row()]
               .accessors[row]);
@@ -406,10 +398,7 @@ public:
     }
   }
 
-  int columnCount(const QModelIndex& parent) const override
-  {
-    return 1;
-  }
+  int columnCount(const QModelIndex& parent) const override { return 1; }
 
   QVariant data(const QModelIndex& index, int role) const override
   {
@@ -459,7 +448,7 @@ static UnitModel& unit_model() noexcept
 DestinationQualifierWidget::DestinationQualifierWidget(QWidget* parent)
     : QWidget{parent}
 {
-  //auto& empty = empty_model();
+  // auto& empty = empty_model();
   auto& m = unit_model();
   auto lay = new score::MarginLess<QHBoxLayout>{this};
 
@@ -503,20 +492,27 @@ QComboBox::drop-down {
   m_ac->setMaximumWidth(45);
   lay->addWidget(m_ac);
   connect(
-      m_ds, qOverload<int>(&QComboBox::currentIndexChanged), this,
+      m_ds,
+      qOverload<int>(&QComboBox::currentIndexChanged),
+      this,
       &DestinationQualifierWidget::on_dataspaceChanged);
 
   connect(
-      m_unit, qOverload<int>(&QComboBox::currentIndexChanged), this,
+      m_unit,
+      qOverload<int>(&QComboBox::currentIndexChanged),
+      this,
       &DestinationQualifierWidget::on_unitChanged);
 
   connect(
-      m_ac, qOverload<int>(&QComboBox::currentIndexChanged), this,
+      m_ac,
+      qOverload<int>(&QComboBox::currentIndexChanged),
+      this,
       [=](int idx) { qualifiersChanged(qualifiers()); });
 }
 
 DestinationQualifierWidget::DestinationQualifierWidget(
-    const State::DestinationQualifiers& u, QWidget* parent)
+    const State::DestinationQualifiers& u,
+    QWidget* parent)
     : DestinationQualifierWidget{parent}
 {
   setQualifiers(u);

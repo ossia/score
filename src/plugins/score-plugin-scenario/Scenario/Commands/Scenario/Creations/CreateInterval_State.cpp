@@ -24,8 +24,10 @@ namespace Scenario
 namespace Command
 {
 CreateInterval_State::CreateInterval_State(
-    const Scenario::ProcessModel& scenario, Id<StateModel> startState,
-    Id<EventModel> endEvent, double endStateY)
+    const Scenario::ProcessModel& scenario,
+    Id<StateModel> startState,
+    Id<EventModel> endEvent,
+    double endStateY)
     : m_createdName{RandomNameProvider::generateName<StateModel>()}
     , m_newState{getStrongId(scenario.states)}
     , m_command{scenario, std::move(startState), m_newState}

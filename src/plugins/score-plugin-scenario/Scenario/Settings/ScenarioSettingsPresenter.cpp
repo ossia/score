@@ -36,8 +36,9 @@ Presenter::Presenter(Model& m, View& v, QObject* parent)
           this->model(this), 0.01 * double(val));
     }
   });
-  con(m, &Model::GraphicZoomChanged, this,
-      [&](double z) { v.setZoom((100 * z)); });
+  con(m, &Model::GraphicZoomChanged, this, [&](double z) {
+    v.setZoom((100 * z));
+  });
   v.setZoom(m.getGraphicZoom() * 100);
 }
 

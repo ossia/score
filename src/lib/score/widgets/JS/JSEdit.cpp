@@ -39,13 +39,22 @@
 #include <array>
 
 W_OBJECT_IMPL(JSEdit)
-const std::array<QColor, 16> colors{
-    QColor{"#151515"}, QColor{"#202020"}, QColor{"#303030"},
-    QColor{"#F4F4F0"}, QColor{"#b0b0b0"}, QColor{"#d0d0d0"},
-    QColor{"#e0e0e0"}, QColor{"#f5f5f5"}, QColor{"#ac4142"},
-    QColor{"#d28445"}, QColor{"#f4bf75"}, QColor{"#90a959"},
-    QColor{"#75b5aa"}, QColor{"#6a9fb5"}, QColor{"#aa759f"},
-    QColor{"#8f5536"}};
+const std::array<QColor, 16> colors{QColor{"#151515"},
+                                    QColor{"#202020"},
+                                    QColor{"#303030"},
+                                    QColor{"#F4F4F0"},
+                                    QColor{"#b0b0b0"},
+                                    QColor{"#d0d0d0"},
+                                    QColor{"#e0e0e0"},
+                                    QColor{"#f5f5f5"},
+                                    QColor{"#ac4142"},
+                                    QColor{"#d28445"},
+                                    QColor{"#f4bf75"},
+                                    QColor{"#90a959"},
+                                    QColor{"#75b5aa"},
+                                    QColor{"#6a9fb5"},
+                                    QColor{"#aa759f"},
+                                    QColor{"#8f5536"}};
 
 class JSBlockData final : public QTextBlockUserData
 {
@@ -274,7 +283,8 @@ JSHighlighter::JSHighlighter(QTextDocument* parent)
 }
 
 void JSHighlighter::setColor(
-    JSEdit::ColorComponent component, const QColor& color)
+    JSEdit::ColorComponent component,
+    const QColor& color)
 {
   m_colors[component] = color;
   rehighlight();
@@ -497,7 +507,8 @@ void JSHighlighter::highlightBlock(const QString& text)
 }
 
 void JSHighlighter::mark(
-    const QString& str, Qt::CaseSensitivity caseSensitivity)
+    const QString& str,
+    Qt::CaseSensitivity caseSensitivity)
 {
   m_markString = str;
   m_markCaseSensitivity = caseSensitivity;
@@ -593,7 +604,11 @@ void SidebarWidget::paintEvent(QPaintEvent* event)
   {
     p.setPen(ln.number != errorLine ? linePen : errorPen);
     p.drawText(
-        0, ln.position, width() - 4 - foldIndicatorWidth, fh, Qt::AlignRight,
+        0,
+        ln.position,
+        width() - 4 - foldIndicatorWidth,
+        fh,
+        Qt::AlignRight,
         QString::number(ln.number));
   }
 
@@ -715,9 +730,7 @@ public:
   void forceUpdate();
 };
 
-JSDocLayout::JSDocLayout(QTextDocument* doc) : QPlainTextDocumentLayout(doc)
-{
-}
+JSDocLayout::JSDocLayout(QTextDocument* doc) : QPlainTextDocumentLayout(doc) {}
 
 void JSDocLayout::forceUpdate()
 {
@@ -760,14 +773,17 @@ JSEdit::JSEdit(QWidget* parent)
   document()->setDocumentLayout(d_ptr->layout);
 
   connect(
-      this, &QPlainTextEdit::cursorPositionChanged, this,
+      this,
+      &QPlainTextEdit::cursorPositionChanged,
+      this,
       &JSEdit::updateCursor);
   connect(this, &QPlainTextEdit::blockCountChanged, this, [=] {
     updateSidebar();
   });
   connect(
-      this, &QPlainTextEdit::updateRequest, this,
-      [=](const QRect& r, int d) { do_updateSidebar(r, d); });
+      this, &QPlainTextEdit::updateRequest, this, [=](const QRect& r, int d) {
+        do_updateSidebar(r, d);
+      });
   this->setContextMenuPolicy(Qt::NoContextMenu);
 
 #if defined(Q_OS_MAC)
@@ -1213,12 +1229,12 @@ void JSEdit::mark(const QString& str, Qt::CaseSensitivity sens)
   d_ptr->highlighter->mark(str, sens);
 }
 
-void JSEdit::dropEvent(QDropEvent *event)
+void JSEdit::dropEvent(QDropEvent* event)
 {
-  if(auto urls = event->mimeData()->urls(); !urls.isEmpty())
+  if (auto urls = event->mimeData()->urls(); !urls.isEmpty())
   {
     QFile f{urls.first().toLocalFile()};
-    if(f.open(QIODevice::ReadOnly))
+    if (f.open(QIODevice::ReadOnly))
     {
       auto txt = f.readAll();
       document()->setPlainText(txt);

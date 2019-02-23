@@ -52,56 +52,26 @@ class SCORE_LIB_BASE_EXPORT Document final : public QObject
 public:
   ~Document();
 
-  const DocumentMetadata& metadata() const
-  {
-    return m_metadata;
-  }
-  DocumentMetadata& metadata()
-  {
-    return m_metadata;
-  }
+  const DocumentMetadata& metadata() const { return m_metadata; }
+  DocumentMetadata& metadata() { return m_metadata; }
 
   const Id<DocumentModel>& id() const;
 
-  CommandStack& commandStack()
-  {
-    return m_commandStack;
-  }
+  CommandStack& commandStack() { return m_commandStack; }
 
-  SelectionStack& selectionStack()
-  {
-    return m_selectionStack;
-  }
+  SelectionStack& selectionStack() { return m_selectionStack; }
 
-  FocusManager& focusManager()
-  {
-    return m_focus;
-  }
+  FocusManager& focusManager() { return m_focus; }
 
-  ObjectLocker& locker()
-  {
-    return m_objectLocker;
-  }
+  ObjectLocker& locker() { return m_objectLocker; }
 
-  const DocumentContext& context() const
-  {
-    return m_context;
-  }
+  const DocumentContext& context() const { return m_context; }
 
-  DocumentModel& model() const
-  {
-    return *m_model;
-  }
+  DocumentModel& model() const { return *m_model; }
 
-  DocumentPresenter* presenter() const
-  {
-    return m_presenter;
-  }
+  DocumentPresenter* presenter() const { return m_presenter; }
 
-  DocumentView* view() const
-  {
-    return m_view;
-  }
+  DocumentView* view() const { return m_view; }
 
   QJsonObject saveDocumentModelAsJson();
   QByteArray saveDocumentModelAsByteArray();
@@ -109,10 +79,7 @@ public:
   QJsonObject saveAsJson();
   QByteArray saveAsByteArray();
 
-  DocumentBackupManager* backupManager() const
-  {
-    return m_backupMgr;
-  }
+  DocumentBackupManager* backupManager() const { return m_backupMgr; }
 
   void setBackupMgr(DocumentBackupManager* backupMgr);
 
@@ -125,18 +92,26 @@ public:
 
   // Load without creating presenter and view
   Document(
-      const QString& name, const QVariant& data, DocumentDelegateFactory& type,
+      const QString& name,
+      const QVariant& data,
+      DocumentDelegateFactory& type,
       QObject* parent);
 
 private:
   // These are to be constructed by DocumentBuilder.
   Document(
-      const QString& name, const Id<DocumentModel>& id,
-      DocumentDelegateFactory& type, QWidget* parentview, QObject* parent);
+      const QString& name,
+      const Id<DocumentModel>& id,
+      DocumentDelegateFactory& type,
+      QWidget* parentview,
+      QObject* parent);
 
   Document(
-      const QString& name, const QVariant& data, DocumentDelegateFactory& type,
-      QWidget* parentview, QObject* parent);
+      const QString& name,
+      const QVariant& data,
+      DocumentDelegateFactory& type,
+      QWidget* parentview,
+      QObject* parent);
 
   void init();
 

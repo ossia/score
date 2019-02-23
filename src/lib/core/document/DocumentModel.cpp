@@ -16,8 +16,10 @@ W_OBJECT_IMPL(score::DocumentModel)
 namespace score
 {
 DocumentModel::DocumentModel(
-    const Id<DocumentModel>& id, const score::DocumentContext& ctx,
-    DocumentDelegateFactory& fact, QObject* parent)
+    const Id<DocumentModel>& id,
+    const score::DocumentContext& ctx,
+    DocumentDelegateFactory& fact,
+    QObject* parent)
     : IdentifiedObject{id, "DocumentModel", parent}
 {
   fact.make(ctx, m_model, this);

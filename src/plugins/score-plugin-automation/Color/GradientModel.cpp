@@ -13,10 +13,13 @@ W_OBJECT_IMPL(Gradient::ProcessModel)
 namespace Gradient
 {
 ProcessModel::ProcessModel(
-    const TimeVal& duration, const Id<Process::ProcessModel>& id,
+    const TimeVal& duration,
+    const Id<Process::ProcessModel>& id,
     QObject* parent)
-    : Process::ProcessModel{duration, id,
-                            Metadata<ObjectKey_k, ProcessModel>::get(), parent}
+    : Process::ProcessModel{duration,
+                            id,
+                            Metadata<ObjectKey_k, ProcessModel>::get(),
+                            parent}
     , outlet{Process::make_outlet(Id<Process::Port>(0), this)}
 
 {
@@ -28,23 +31,21 @@ ProcessModel::ProcessModel(
   init();
 }
 
-ProcessModel::~ProcessModel()
-{
-}
+ProcessModel::~ProcessModel() {}
 
 void ProcessModel::init()
 {
   outlet->setCustomData("Out");
-  auto update_invalid_address = [=] (const State::AddressAccessor& addr) {
-    if(addr.qualifiers.get() != ossia::destination_qualifiers{{}, ossia::argb_u{}})
+  auto update_invalid_address = [=](const State::AddressAccessor& addr) {
+    if (addr.qualifiers.get()
+        != ossia::destination_qualifiers{{}, ossia::argb_u{}})
     {
       State::AddressAccessor copy = addr;
       copy.qualifiers = ossia::destination_qualifiers{{}, ossia::argb_u{}};
       outlet->setAddress(std::move(copy));
     }
   };
-  con(*outlet, &Process::Outlet::addressChanged,
-      this, update_invalid_address);
+  con(*outlet, &Process::Outlet::addressChanged, this, update_invalid_address);
   update_invalid_address(outlet->address());
   m_outlets.push_back(outlet.get());
 }

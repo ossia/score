@@ -28,16 +28,24 @@ class ControlInlet;
 class ControlOutlet;
 }
 UUID_METADATA(
-    SCORE_LIB_PROCESS_EXPORT, Process::Port, Process::Inlet,
+    SCORE_LIB_PROCESS_EXPORT,
+    Process::Port,
+    Process::Inlet,
     "8884228a-d197-4b0a-b6ca-d1fb15291559")
 UUID_METADATA(
-    SCORE_LIB_PROCESS_EXPORT, Process::Port, Process::Outlet,
+    SCORE_LIB_PROCESS_EXPORT,
+    Process::Port,
+    Process::Outlet,
     "34e2c5a7-18c4-4759-b6cc-46feaeee06e2")
 UUID_METADATA(
-    SCORE_LIB_PROCESS_EXPORT, Process::Port, Process::ControlInlet,
+    SCORE_LIB_PROCESS_EXPORT,
+    Process::Port,
+    Process::ControlInlet,
     "9a13fb32-269a-47bf-99a9-930188c1f19c")
 UUID_METADATA(
-    SCORE_LIB_PROCESS_EXPORT, Process::Port, Process::ControlOutlet,
+    SCORE_LIB_PROCESS_EXPORT,
+    Process::Port,
+    Process::ControlOutlet,
     "3620ea94-5991-41cf-89b3-11f842cc39d0")
 namespace Process
 {
@@ -61,14 +69,8 @@ public:
   const QString& exposed() const;
   const QString& description() const;
 
-  const score::Components& components() const
-  {
-    return m_components;
-  }
-  score::Components& components()
-  {
-    return m_components;
-  }
+  const score::Components& components() const { return m_components; }
+  score::Components& components() { return m_components; }
 
 public:
   void setCustomData(const QString& customData);
@@ -91,8 +93,12 @@ public:
   void addressChanged(const State::AddressAccessor& address)
       E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, addressChanged, address);
 
-  PROPERTY(State::AddressAccessor, address READ address WRITE setAddress NOTIFY addressChanged)
-  PROPERTY(QString, customData READ customData WRITE setCustomData NOTIFY customDataChanged)
+  PROPERTY(
+      State::AddressAccessor,
+      address READ address WRITE setAddress NOTIFY addressChanged)
+  PROPERTY(
+      QString,
+      customData READ customData WRITE setCustomData NOTIFY customDataChanged)
 protected:
   Port() = delete;
   ~Port() override;
@@ -127,7 +133,6 @@ public:
   Inlet(JSONObject::Deserializer& vis, QObject* parent);
   Inlet(DataStream::Deserializer&& vis, QObject* parent);
   Inlet(JSONObject::Deserializer&& vis, QObject* parent);
-
 };
 
 class SCORE_LIB_PROCESS_EXPORT ControlInlet : public Inlet
@@ -145,14 +150,8 @@ public:
   ControlInlet(DataStream::Deserializer&& vis, QObject* parent);
   ControlInlet(JSONObject::Deserializer&& vis, QObject* parent);
 
-  const ossia::value& value() const
-  {
-    return m_value;
-  }
-  const State::Domain& domain() const
-  {
-    return m_domain;
-  }
+  const ossia::value& value() const { return m_value; }
+  const State::Domain& domain() const { return m_domain; }
 
 public:
   void valueChanged(const ossia::value& v)
@@ -181,7 +180,9 @@ public:
   };
   W_SLOT(setDomain)
 
-  PROPERTY(State::Domain, domain READ domain WRITE setDomain NOTIFY domainChanged)
+  PROPERTY(
+      State::Domain,
+      domain READ domain WRITE setDomain NOTIFY domainChanged)
   PROPERTY(ossia::value, value READ value WRITE setValue NOTIFY valueChanged)
 private:
   ossia::value m_value;
@@ -238,14 +239,8 @@ public:
   ControlOutlet(DataStream::Deserializer&& vis, QObject* parent);
   ControlOutlet(JSONObject::Deserializer&& vis, QObject* parent);
 
-  const ossia::value& value() const
-  {
-    return m_value;
-  }
-  const State::Domain& domain() const
-  {
-    return m_domain;
-  }
+  const ossia::value& value() const { return m_value; }
+  const State::Domain& domain() const { return m_domain; }
 
 public:
   void valueChanged(const ossia::value& v)
@@ -274,8 +269,9 @@ public:
   };
   W_SLOT(setDomain)
 
-
-  PROPERTY(State::Domain, domain READ domain WRITE setDomain NOTIFY domainChanged)
+  PROPERTY(
+      State::Domain,
+      domain READ domain WRITE setDomain NOTIFY domainChanged)
   PROPERTY(ossia::value, value READ value WRITE setValue NOTIFY valueChanged)
 private:
   ossia::value m_value;

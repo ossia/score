@@ -28,11 +28,14 @@ class ProcessModel;
 class InsertEffect final : public score::Command
 {
   SCORE_COMMAND_DECL(
-      Media::CommandFactoryName(), InsertEffect, "Insert effect")
+      Media::CommandFactoryName(),
+      InsertEffect,
+      "Insert effect")
 public:
   InsertEffect(
       const Effect::ProcessModel& model,
-      const UuidKey<Process::ProcessModel>& effectKind, QString d,
+      const UuidKey<Process::ProcessModel>& effectKind,
+      QString d,
       std::size_t effectPos);
 
   void undo(const score::DocumentContext& ctx) const override;
@@ -57,7 +60,8 @@ class LoadEffect final : public score::Command
   SCORE_COMMAND_DECL(Media::CommandFactoryName(), LoadEffect, "Load effect")
 public:
   LoadEffect(
-      const Effect::ProcessModel& model, const QJsonObject& obj,
+      const Effect::ProcessModel& model,
+      const QJsonObject& obj,
       std::size_t effectPos);
 
   void undo(const score::DocumentContext& ctx) const override;
@@ -90,10 +94,7 @@ public:
     return kagi;
   }
 
-  const CommandKey& key() const noexcept override
-  {
-    return static_key();
-  }
+  const CommandKey& key() const noexcept override { return static_key(); }
   QString description() const override
   {
     return QObject::tr("Insert %1 effect")
@@ -102,7 +103,8 @@ public:
 
   InsertGenericEffect() = default;
   InsertGenericEffect(
-      const Effect::ProcessModel& model, const QString& path,
+      const Effect::ProcessModel& model,
+      const QString& path,
       std::size_t effectPos)
       : m_model{model}
       , m_id{getStrongId(model.effects())}
@@ -146,10 +148,13 @@ private:
 class RemoveEffect final : public score::Command
 {
   SCORE_COMMAND_DECL(
-      Media::CommandFactoryName(), RemoveEffect, "Remove effect")
+      Media::CommandFactoryName(),
+      RemoveEffect,
+      "Remove effect")
 public:
   RemoveEffect(
-      const Effect::ProcessModel& model, const Process::ProcessModel& effect);
+      const Effect::ProcessModel& model,
+      const Process::ProcessModel& effect);
 
   void undo(const score::DocumentContext& ctx) const override;
   void redo(const score::DocumentContext& ctx) const override;
@@ -171,7 +176,8 @@ class MoveEffect final : public score::Command
   SCORE_COMMAND_DECL(Media::CommandFactoryName(), MoveEffect, "Move effect")
 public:
   MoveEffect(
-      const Effect::ProcessModel& model, Id<Process::ProcessModel> id,
+      const Effect::ProcessModel& model,
+      Id<Process::ProcessModel> id,
       int new_pos);
 
   void undo(const score::DocumentContext& ctx) const override;
@@ -190,7 +196,9 @@ private:
 class DropEffectMacro final : public score::AggregateCommand
 {
   SCORE_COMMAND_DECL(
-      Media::CommandFactoryName(), DropEffectMacro, "Drop an effect")
+      Media::CommandFactoryName(),
+      DropEffectMacro,
+      "Drop an effect")
 };
 
 }

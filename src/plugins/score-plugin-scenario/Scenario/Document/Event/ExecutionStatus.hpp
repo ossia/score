@@ -30,10 +30,7 @@ enum class ExecutionStatus : int8_t
 class ExecutionStatusProperty
 {
 public:
-  ExecutionStatus get() const noexcept
-  {
-    return m_status;
-  }
+  ExecutionStatus get() const noexcept { return m_status; }
   void set(ExecutionStatus e) noexcept
   {
     if (m_status != e)

@@ -15,8 +15,7 @@ namespace Scenario
 namespace Command
 {
 ShowRack::ShowRack(const IntervalModel& vm)
-  : m_intervalViewPath{vm}
-  , m_old{vm.smallViewVisible()}
+    : m_intervalViewPath{vm}, m_old{vm.smallViewVisible()}
 {
 }
 

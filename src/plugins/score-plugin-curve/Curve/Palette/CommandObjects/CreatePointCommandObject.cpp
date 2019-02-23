@@ -27,14 +27,13 @@ class CommandStackFacade;
 namespace Curve
 {
 CreatePointCommandObject::CreatePointCommandObject(
-    Presenter* presenter, const score::CommandStackFacade& stack)
+    Presenter* presenter,
+    const score::CommandStackFacade& stack)
     : CommandObjectBase{presenter, stack}
 {
 }
 
-CreatePointCommandObject::~CreatePointCommandObject()
-{
-}
+CreatePointCommandObject::~CreatePointCommandObject() {}
 
 void CreatePointCommandObject::on_press()
 {
@@ -128,10 +127,13 @@ void CreatePointCommandObject::createPoint(std::vector<SegmentData>& segments)
   {
     // TODO refactor with MovePointState (line ~330)
     // The segment goes in the first half of "middle"
-    SegmentData newSegment{
-        getSegmentId(segments),     middle->start, m_state->currentPoint,
-        middle->previous,           middle->id,    middle->type,
-        middle->specificSegmentData};
+    SegmentData newSegment{getSegmentId(segments),
+                           middle->start,
+                           m_state->currentPoint,
+                           middle->previous,
+                           middle->id,
+                           middle->type,
+                           middle->specificSegmentData};
 
     auto prev_it = find(segments, middle->previous);
     // TODO we shouldn't have to test for this, only test if middle->previous

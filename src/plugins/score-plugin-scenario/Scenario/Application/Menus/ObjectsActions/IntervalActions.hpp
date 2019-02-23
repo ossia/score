@@ -30,7 +30,8 @@ public:
 
 private:
   void addProcessInInterval(
-      const UuidKey<Process::ProcessModel>&, const QString& data);
+      const UuidKey<Process::ProcessModel>&,
+      const QString& data);
 
   void on_showRacks();
   void on_hideRacks();

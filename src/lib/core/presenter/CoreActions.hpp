@@ -14,11 +14,20 @@ SCORE_DECLARE_ACTION(Close, "&Close", Common, QKeySequence::Close)
 SCORE_DECLARE_ACTION(Quit, "&Quit", Common, QKeySequence::Quit)
 
 SCORE_DECLARE_ACTION(
-    OpenSettings, "&Settings", Common, QKeySequence::Preferences)
+    OpenSettings,
+    "&Settings",
+    Common,
+    QKeySequence::Preferences)
 SCORE_DECLARE_ACTION(
-    OpenProjectSettings, "&Project Settings", Common, QKeySequence::UnknownKey)
+    OpenProjectSettings,
+    "&Project Settings",
+    Common,
+    QKeySequence::UnknownKey)
 
 SCORE_DECLARE_ACTION(
-    RestoreLayout, "&Restore Layout", Common, QKeySequence::UnknownKey)
+    RestoreLayout,
+    "&Restore Layout",
+    Common,
+    QKeySequence::UnknownKey)
 SCORE_DECLARE_ACTION(About, "&About", Common, QKeySequence::UnknownKey)
 SCORE_DECLARE_ACTION(Help, "&Help", Common, QKeySequence::UnknownKey)

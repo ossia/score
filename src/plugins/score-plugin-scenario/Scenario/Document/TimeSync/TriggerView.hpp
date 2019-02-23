@@ -29,10 +29,7 @@ public:
   {
     return QGraphicsItem::UserType + ItemType::Trigger;
   }
-  int type() const override
-  {
-    return static_type();
-  }
+  int type() const override { return static_type(); }
 
 public:
   void pressed(QPointF arg_1) W_SIGNAL(pressed, arg_1);

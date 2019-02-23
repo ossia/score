@@ -10,8 +10,10 @@ namespace Process
 {
 template <>
 inline JS::ProcessModel* ProcessFactory_T<JS::ProcessModel>::make(
-    const TimeVal& duration, const QString& data,
-    const Id<Process::ProcessModel>& id, QObject* parent)
+    const TimeVal& duration,
+    const QString& data,
+    const Id<Process::ProcessModel>& id,
+    QObject* parent)
 {
   return new JS::ProcessModel{duration, data, id, parent};
 }
