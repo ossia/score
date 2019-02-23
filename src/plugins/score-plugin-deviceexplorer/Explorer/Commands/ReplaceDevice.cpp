@@ -45,15 +45,9 @@ ReplaceDevice::ReplaceDevice(
 {
 }
 
-void ReplaceDevice::undo(const score::DocumentContext& ctx) const
-{
-  auto& explorer = ctx.plugin<DeviceDocumentPlugin>().explorer();
-
-  explorer.removeRow(m_deviceIndex);
-  explorer.addDevice(m_savedNode);
-}
-
-void ReplaceDevice::redo(const score::DocumentContext& ctx) const
+static void replaceDevice(
+      const Device::Node& new_d
+    , const score::DocumentContext& ctx)
 {
   auto& explorer = ctx.plugin<DeviceDocumentPlugin>().explorer();
 
@@ -61,14 +55,24 @@ void ReplaceDevice::redo(const score::DocumentContext& ctx) const
   for (auto it = cld.begin(); it != cld.end(); ++it)
   {
     auto ds = it->get<Device::DeviceSettings>();
-    if (ds.name == m_deviceNode.get<Device::DeviceSettings>().name)
+    if (ds.name == new_d.get<Device::DeviceSettings>().name)
     {
       explorer.removeNode(it);
       break;
     }
   }
 
-  explorer.addDevice(m_deviceNode);
+  explorer.addDevice(new_d);
+
+}
+void ReplaceDevice::undo(const score::DocumentContext& ctx) const
+{
+  replaceDevice(m_savedNode, ctx);
+}
+
+void ReplaceDevice::redo(const score::DocumentContext& ctx) const
+{
+  replaceDevice(m_deviceNode, ctx);
 }
 
 void ReplaceDevice::serializeImpl(DataStreamInput& d) const
