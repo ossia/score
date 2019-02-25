@@ -19,6 +19,7 @@
 #include <QDirIterator>
 #include <QFileInfo>
 #include <QProcess>
+#include <QWebSocket>
 
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Media::ApplicationPlugin)
@@ -114,6 +115,9 @@ ApplicationPlugin::ApplicationPlugin(const score::ApplicationContext& app)
   lv2_context.get(), nullptr, lv2_context->features(), lilv
 }
 #endif
+#if defined(HAS_VST2)
+, m_wsServer("vst-notification-server", QWebSocketServer::NonSecureMode)
+#endif
 {
 
 #if defined(HAS_VST2)
@@ -121,6 +125,25 @@ ApplicationPlugin::ApplicationPlugin(const score::ApplicationContext& app)
   qRegisterMetaTypeStreamOperators<vst_info>();
   qRegisterMetaType<std::vector<vst_info>>();
   qRegisterMetaTypeStreamOperators<std::vector<vst_info>>();
+
+  m_wsServer.listen({}, 37587);
+  con(m_wsServer, &QWebSocketServer::newConnection,
+      this, [this] {
+    QWebSocket* ws = m_wsServer.nextPendingConnection();
+    if(!ws)
+      return;
+
+    connect(ws, &QWebSocket::textMessageReceived,
+            this, [=] (const QString& txt) {
+      QJsonDocument doc = QJsonDocument::fromJson(txt.toUtf8());
+      if(doc.isObject())
+      {
+        auto obj = doc.object();
+        addVST(obj["Path"].toString(), obj);
+      }
+      ws->deleteLater();
+    });
+  });
 #endif
 
 #if defined(LILV_SHARED) // TODO instead add a proper preprocessor macro that
@@ -164,6 +187,49 @@ void ApplicationPlugin::initialize()
 }
 
 #if defined(HAS_VST2)
+
+void ApplicationPlugin::addInvalidVST(const QString& path)
+{
+  vst_info i;
+  i.path = path;
+  i.prettyName = "invalid";
+  i.uniqueID = -1;
+  i.isSynth = false;
+  i.isValid = false;
+  vst_infos.push_back(i);
+
+  // write in the database
+  QSettings{}.setValue(
+      "Effect/KnownVST2", QVariant::fromValue(vst_infos));
+
+  vstChanged();
+}
+
+void ApplicationPlugin::addVST(const QString& path, const QJsonObject& obj)
+{
+  vst_info i;
+  i.path = path;
+  i.uniqueID = obj["UniqueID"].toInt();
+  i.isSynth = obj["Synth"].toBool();
+  i.author = obj["Author"].toString();
+  i.displayName = obj["PrettyName"].toString();
+  i.controls = obj["Controls"].toInt();
+  i.isValid = true;
+
+  // Only way to get a separation between Kontakt 5 / Kontakt 5 (8
+  // out) / Kontakt 5 (16 out),  etc...
+  i.prettyName = QFileInfo(path).baseName();
+
+  vst_modules.insert({i.uniqueID, nullptr});
+  vst_infos.push_back(std::move(i));
+
+  // write in the database
+  QSettings{}.setValue(
+      "Effect/KnownVST2", QVariant::fromValue(vst_infos));
+
+  qDebug() << "Loaded VST " << path << "successfully";
+  vstChanged();
+}
 void ApplicationPlugin::rescanVSTs(const QStringList& paths)
 {
   // 1. List all plug-ins in new paths
@@ -224,17 +290,6 @@ void ApplicationPlugin::rescanVSTs(const QStringList& paths)
   vstChanged();
 
   // 3. Add remaining plug-ins
-  auto add_invalid = [this](const QString& path) {
-    vst_info i;
-    i.path = path;
-    i.prettyName = "invalid";
-    i.uniqueID = -1;
-    i.isSynth = false;
-    i.isValid = false;
-    vst_infos.push_back(i);
-
-    vstChanged();
-  };
 
   m_processes.clear();
   m_processes.reserve(newPlugins.size());
@@ -242,52 +297,6 @@ void ApplicationPlugin::rescanVSTs(const QStringList& paths)
   for (const QString& path : newPlugins)
   {
     m_processes.emplace_back(path, std::make_unique<QProcess>());
-    auto& p = *m_processes.back().second;
-    connect(
-        m_processes.back().second.get(),
-        qOverload<int, QProcess::ExitStatus>(&QProcess::finished),
-        [=, &p](int code, QProcess::ExitStatus e) {
-          auto the_json = p.readAllStandardOutput();
-          auto first_brace = the_json.indexOf('{');
-          auto last_brace = the_json.indexOf('}', first_brace);
-          the_json = the_json.mid(first_brace, 1 + last_brace - first_brace);
-
-          QJsonDocument doc = QJsonDocument::fromJson(the_json);
-          bool valid = e == QProcess::ExitStatus::NormalExit && code == 0
-                       && doc.isObject();
-
-          if (valid)
-          {
-            const auto& obj = doc.object();
-            vst_info i;
-            i.path = path;
-            i.uniqueID = obj["UniqueID"].toInt();
-            i.isSynth = obj["Synth"].toBool();
-            i.author = obj["Author"].toString();
-            i.displayName = obj["PrettyName"].toString();
-            i.controls = obj["Controls"].toInt();
-            i.isValid = true;
-
-            // Only way to get a separation between Kontakt 5 / Kontakt 5 (8
-            // out) / Kontakt 5 (16 out),  etc...
-            i.prettyName = QFileInfo(path).baseName();
-
-            vst_modules.insert({i.uniqueID, nullptr});
-            vst_infos.push_back(std::move(i));
-
-            qDebug() << "Loaded VST " << path << "successfully";
-            vstChanged();
-          }
-          else
-          {
-            qDebug() << "Loading VST " << path << "failed";
-            add_invalid(path);
-          }
-
-          // write in the database
-          QSettings{}.setValue(
-              "Effect/KnownVST2", QVariant::fromValue(vst_infos));
-        });
     m_processes.back().second->start(
 #if defined(__APPLE__)
         qApp->applicationDirPath() + "/ossia-score-vstpuppet"
