@@ -16,7 +16,7 @@
 #include <ossia/detail/hash_map.hpp>
 
 #include <QProcess>
-
+#include <QWebSocketServer>
 #include <score_plugin_media_export.h>
 
 #include <thread>
@@ -50,7 +50,7 @@ public:
   void rescanVSTs(const QStringList&);
   void vstChanged() W_SIGNAL(vstChanged)
 
-      struct vst_info
+  struct vst_info
   {
     QString path;
     QString prettyName;
@@ -67,6 +67,11 @@ public:
   const std::thread::id m_tid{std::this_thread::get_id()};
   auto mainThreadId() const noexcept { return m_tid; }
   std::vector<std::pair<QString, std::unique_ptr<QProcess>>> m_processes;
+
+  QWebSocketServer m_wsServer;
+
+  void addInvalidVST(const QString& path);
+  void addVST(const QString& path, const QJsonObject& json);
 #endif
 };
 

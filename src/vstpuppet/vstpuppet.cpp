@@ -1,10 +1,12 @@
 #include <Media/Effect/VST/VSTLoader.hpp>
 
 #include <QFileInfo>
+#include <QGuiApplication>
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QUrl>
-
+#include <QTimer>
+#include <QWebSocket>
 #include <iostream>
 #include <set>
 
@@ -102,7 +104,7 @@ static QString getString(AEffect* fx, AEffectOpcodes op, int param)
   return QString::fromUtf8(paramName);
 }
 
-bool load_vst(const QString& path)
+QString load_vst(const QString& path)
 {
   try
   {
@@ -110,7 +112,7 @@ bool load_vst(const QString& path)
     if (!isFile)
     {
       std::cerr << "Invalid path: " << path.toStdString() << std::endl;
-      return 1;
+      return {};
     }
 
     Media::VST::VSTModule plugin{path.toStdString()};
@@ -126,8 +128,9 @@ bool load_vst(const QString& path)
         obj["PrettyName"] = getString(p, effGetProductString, 0);
         obj["Version"] = getString(p, effGetVendorVersion, 0);
         obj["Synth"] = bool(p->flags & effFlagsIsSynth);
-        std::cout << QJsonDocument{obj}.toJson().toStdString() << std::endl;
-        return 0;
+        obj["Path"] = path;
+
+        return QJsonDocument{obj}.toJson();
       }
     }
   }
@@ -135,14 +138,32 @@ bool load_vst(const QString& path)
   {
     std::cerr << e.what() << std::endl;
   }
-  return 1;
+  return {};
 }
 
 int main(int argc, char** argv)
 {
   if (argc > 1)
   {
-    return load_vst(argv[1]);
+    QGuiApplication app(argc, argv);
+    QWebSocket socket;
+
+    QObject::connect(&socket, &QWebSocket::connected,
+            &app, [&] {
+      auto ret = load_vst(argv[1]);
+      std::cout << ret.toStdString();
+      socket.sendTextMessage(ret);
+      socket.flush();
+      socket.close();
+
+      app.exit(ret.isEmpty() ? 1 : 0);
+    });
+
+    QObject::connect(&socket, qOverload<QAbstractSocket::SocketError>(&QWebSocket::error), &app,
+                     [&] (QAbstractSocket::SocketError) { qDebug() << socket.errorString(); app.exit(1); });
+
+    socket.open(QUrl("ws://127.0.0.1:37587"));
+    app.exec();
   }
   return 1;
 }
