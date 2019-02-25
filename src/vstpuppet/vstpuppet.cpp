@@ -131,6 +131,7 @@ QString load_vst(const QString& path)
         obj["Synth"] = bool(p->flags & effFlagsIsSynth);
         obj["Path"] = path;
 
+        p->dispatcher(p, AEffectOpcodes::effClose, 0, 0, nullptr, 0.f);
         return QJsonDocument{obj}.toJson();
       }
     }
