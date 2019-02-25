@@ -9,6 +9,7 @@
 #include <QWebSocket>
 #include <iostream>
 #include <set>
+#include <QWindow>
 
 intptr_t vst_host_callback(
     AEffect* effect, int32_t opcode, int32_t index, intptr_t value, void* ptr,
@@ -146,6 +147,11 @@ int main(int argc, char** argv)
   if (argc > 1)
   {
     QGuiApplication app(argc, argv);
+    QWindow w;
+    w.setWidth(10);
+    w.setHeight(10);
+    w.show();
+
     QWebSocket socket;
 
     bool socket_ready{}, vst_ready{};
@@ -160,7 +166,7 @@ int main(int argc, char** argv)
       }
     };
 
-    QTimer::singleShot(0, [&] {
+    QTimer::singleShot(32, [&] {
       json_ret = load_vst(argv[1]);
       std::cout << json_ret.toStdString();
       vst_ready = true;
@@ -177,6 +183,8 @@ int main(int argc, char** argv)
                      [&] { qDebug() << socket.errorString(); app.exit(1); });
     QObject::connect(&socket, &QWebSocket::disconnected, &app,
                      [&] { qDebug() << socket.errorString(); app.exit(1); });
+
+    QTimer::singleShot(10000, [&] { qDebug() << "timeout"; qApp->exit(1); });
 
     socket.open(QUrl("ws://127.0.0.1:37587"));
     app.exec();
