@@ -148,19 +148,35 @@ int main(int argc, char** argv)
     QGuiApplication app(argc, argv);
     QWebSocket socket;
 
+    bool socket_ready{}, vst_ready{};
+    QString json_ret;
+
+    auto onReady = [&] {
+      if(socket_ready && vst_ready) {
+        socket.sendTextMessage(json_ret);
+        socket.flush();
+        socket.close();
+        app.exit(json_ret.isEmpty() ? 1 : 0);
+      }
+    };
+
+    QTimer::singleShot(0, [&] {
+      json_ret = load_vst(argv[1]);
+      std::cout << json_ret.toStdString();
+      vst_ready = true;
+      onReady();
+    });
+
     QObject::connect(&socket, &QWebSocket::connected,
             &app, [&] {
-      auto ret = load_vst(argv[1]);
-      std::cout << ret.toStdString();
-      socket.sendTextMessage(ret);
-      socket.flush();
-      socket.close();
-
-      app.exit(ret.isEmpty() ? 1 : 0);
+      socket_ready = true;
+      onReady();
     });
 
     QObject::connect(&socket, qOverload<QAbstractSocket::SocketError>(&QWebSocket::error), &app,
-                     [&] (QAbstractSocket::SocketError) { qDebug() << socket.errorString(); app.exit(1); });
+                     [&] { qDebug() << socket.errorString(); app.exit(1); });
+    QObject::connect(&socket, &QWebSocket::disconnected, &app,
+                     [&] { qDebug() << socket.errorString(); app.exit(1); });
 
     socket.open(QUrl("ws://127.0.0.1:37587"));
     app.exec();
