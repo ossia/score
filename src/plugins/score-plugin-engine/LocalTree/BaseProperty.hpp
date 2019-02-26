@@ -1,5 +1,7 @@
 #pragma once
 #include <score/tools/Todo.hpp>
+#include <score_plugin_engine_export.h>
+
 namespace ossia::net
 {
 class parameter_base;
@@ -7,7 +9,7 @@ class parameter_base;
 
 namespace LocalTree
 {
-struct BaseProperty
+struct SCORE_PLUGIN_ENGINE_EXPORT BaseProperty
 {
   ossia::net::parameter_base& addr;
   explicit BaseProperty(ossia::net::parameter_base& a) : addr{a} {}

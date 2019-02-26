@@ -1,30 +1,26 @@
 cmake_minimum_required(VERSION 3.9 FATAL_ERROR)
 set(CMAKE_MODULE_PATH
-  "${CMAKE_MODULE_PATH}"
-  "${CMAKE_CURRENT_SOURCE_DIR}/CMake"
-  "${CMAKE_CURRENT_SOURCE_DIR}/CMake/modules"
-  "${CMAKE_CURRENT_SOURCE_DIR}/CMake/Configurations"
-  "${CMAKE_CURRENT_SOURCE_DIR}/CMake/Configurations/travis"
-  "${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/libossia/CMake"
-  "${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/libossia/CMake/cmake-modules"
-  )
+    "${CMAKE_MODULE_PATH}"
+    "${CMAKE_CURRENT_SOURCE_DIR}/CMake"
+    "${CMAKE_CURRENT_SOURCE_DIR}/CMake/modules"
+    "${CMAKE_CURRENT_SOURCE_DIR}/CMake/Configurations"
+    "${CMAKE_CURRENT_SOURCE_DIR}/CMake/Configurations/travis"
+    "${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/libossia/CMake"
+    "${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/libossia/CMake/cmake-modules")
 
 list(APPEND CMAKE_PREFIX_PATH "${CMAKE_MODULE_PATH}")
 if(APPLE AND EXISTS /usr/local/opt/qt5)
   list(APPEND CMAKE_PREFIX_PATH "/usr/local/opt/qt5")
 endif()
 
-set(CMAKE_MODULE_PATH
-  "${CMAKE_CURRENT_SOURCE_DIR}/CMake"
-  "${CMAKE_MODULE_PATH}"
-)
+set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/CMake"
+    "${CMAKE_MODULE_PATH}")
 
 set(CMAKE_PREFIX_PATH
-  "${OSSIA_SDK}/SDL2/cmake"
-  "${OSSIA_SDK}/portaudio/lib/cmake"
-  "${OSSIA_SDK}/portaudio/lib/cmake/portaudio"
-  "${CMAKE_PREFIX_PATH}"
-)
+    "${OSSIA_SDK}/SDL2/cmake"
+    "${OSSIA_SDK}/portaudio/lib/cmake"
+    "${OSSIA_SDK}/portaudio/lib/cmake/portaudio"
+    "${CMAKE_PREFIX_PATH}")
 
 if(NOT SCORE_CONFIGURATION)
   set(SCORE_CONFIGURATION developer)
@@ -42,11 +38,13 @@ set(SCORE_VERSION_PATCH 3)
 set(SCORE_VERSION_EXTRA "")
 set(SCORE_CODENAME "Interstitial spaces taking their toll")
 
-set(SCORE_VERSION "${SCORE_VERSION_MAJOR}.${SCORE_VERSION_MINOR}.${SCORE_VERSION_PATCH}")
+set(SCORE_VERSION
+    "${SCORE_VERSION_MAJOR}.${SCORE_VERSION_MINOR}.${SCORE_VERSION_PATCH}")
 
 if(MSVC)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /EHsc /std:c++latest")
-  add_definitions(/D_HAS_AUTO_PTR_ETC=1 /D_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS=1)
+  add_definitions(/D_HAS_AUTO_PTR_ETC=1
+                  /D_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS=1)
 else()
   set(CMAKE_CXX_STANDARD 17)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++1z -fno-stack-protector")
@@ -65,10 +63,24 @@ include("${CMAKE_CURRENT_SOURCE_DIR}/CMake/IScoreConfiguration.cmake")
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-find_package(Qt5 5.3 REQUIRED COMPONENTS Core Widgets Gui Network Xml Svg Test Qml WebSockets)
+find_package(Qt5 5.3 REQUIRED
+             COMPONENTS Core
+                        Widgets
+                        Gui
+                        Network
+                        Xml
+                        Svg
+                        Test
+                        Qml
+                        WebSockets)
+find_package(Qt5 5.3 COMPONENTS
+  Quick
+  QuickControls2
+  SerialPort)
 
 set(3RDPARTY_FOLDER "${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/")
-set(OSSIA_3RDPARTY_FOLDER "${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/libossia/3rdparty")
+set(OSSIA_3RDPARTY_FOLDER
+    "${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/libossia/3rdparty")
 set(SCORE_ROOT_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}")
 set(SCORE_ROOT_BINARY_DIR "${CMAKE_CURRENT_BINARY_DIR}")
 set(SCORE_SRC "${CMAKE_CURRENT_SOURCE_DIR}/src")
@@ -82,7 +94,8 @@ include_directories(SYSTEM "${OSSIA_3RDPARTY_FOLDER}/readerwriterqueue")
 include_directories(SYSTEM "${OSSIA_3RDPARTY_FOLDER}/exprtk")
 include_directories(SYSTEM "${OSSIA_3RDPARTY_FOLDER}/multi_index/include")
 
-set(SCORE_PLUGINS_LIST CACHE INTERNAL "List of plugins") # todo libraries, components ?
+set(SCORE_LIBRARIES_LIST CACHE INTERNAL "List of libraries")
+set(SCORE_PLUGINS_LIST CACHE INTERNAL "List of plugins")
 
 add_subdirectory(src)
 
@@ -95,7 +108,10 @@ if(EXISTS Documentation/Models/score.qmodel)
 endif()
 
 if(INTEGRATION_TESTING)
-  file(COPY "${CMAKE_CURRENT_SOURCE_DIR}/Tests/testdata" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/Tests/Integration/")
+  file(COPY
+       "${CMAKE_CURRENT_SOURCE_DIR}/Tests/testdata"
+       DESTINATION
+       "${CMAKE_CURRENT_BINARY_DIR}/Tests/Integration/")
 
   include_directories("${CMAKE_CURRENT_SOURCE_DIR}/Tests")
   file(GLOB_RECURSE TESTS_HDRS "${CMAKE_CURRENT_SOURCE_DIR}/Tests/*.hpp")
@@ -103,4 +119,5 @@ if(INTEGRATION_TESTING)
   setup_score_tests(Tests/Integration)
 endif()
 
+include(GenerateQMake)
 include(CTest)

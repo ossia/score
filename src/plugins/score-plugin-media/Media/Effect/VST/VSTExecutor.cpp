@@ -1,3 +1,4 @@
+#if defined(HAS_VST2)
 #include "VSTExecutor.hpp"
 
 #include <Media/Effect/VST/VSTControl.hpp>
@@ -129,3 +130,4 @@ VSTEffectComponent::VSTEffectComponent(
   m_ossia_process = std::make_shared<ossia::node_process>(node);
 }
 }
+#endif

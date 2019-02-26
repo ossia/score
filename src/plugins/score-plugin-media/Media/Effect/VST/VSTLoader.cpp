@@ -1,5 +1,5 @@
 #include "VSTLoader.hpp"
-
+#if defined(HAS_VST2)
 #include <stdexcept>
 
 #if defined(_WIN32)
@@ -115,3 +115,4 @@ PluginEntryProc VSTModule::getMain()
 }
 }
 }
+#endif

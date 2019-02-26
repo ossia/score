@@ -1,3 +1,4 @@
+#if defined(HAS_VST2)
 #include <Automation/AutomationModel.hpp>
 #include <Automation/Commands/SetAutomationMax.hpp>
 #include <Dataflow/Commands/EditConnection.hpp>
@@ -93,3 +94,4 @@ Dataflow::PortItem* VSTControlPortFactory::makeItem(
   return nullptr;
 }
 }
+#endif

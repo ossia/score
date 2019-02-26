@@ -32,6 +32,7 @@
 #endif
 
 #include <Process/ProcessList.hpp>
+#include <Effect/EffectLayer.hpp>
 #include <Scenario/DialogWidget/AddProcessDialog.hpp>
 namespace Media
 {

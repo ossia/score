@@ -7,6 +7,7 @@
 #include <Explorer/DeviceLogging.hpp>
 #include <Protocols/OSCQuery/OSCQuerySpecificSettings.hpp>
 
+#include <ossia/network/local/local.hpp>
 #include <ossia/network/generic/generic_device.hpp>
 #include <ossia/network/generic/generic_parameter.hpp>
 #include <ossia/network/oscquery/oscquery_mirror.hpp>
@@ -142,7 +143,7 @@ bool OSCQueryDevice::reconnect()
   disconnect();
 
   std::thread resolver([this, host = stgs.host.toStdString()] {
-    bool ok = resolve_ip(host);
+    bool ok = true; //resolve_ip(host);
     if (ok)
     {
       sig_createDevice();
@@ -181,6 +182,7 @@ void OSCQueryDevice::slot_createDevice()
 
   try
   {
+    /*
     std::unique_ptr<ossia::net::protocol_base> ossia_settings
         = std::make_unique<ossia::oscquery::oscquery_mirror_protocol>(
             stgs.host.toStdString());
@@ -194,6 +196,8 @@ void OSCQueryDevice::slot_createDevice()
       ossia_settings = std::make_unique<ossia::net::rate_limiting_protocol>(
           std::chrono::milliseconds{*stgs.rate}, std::move(ossia_settings));
     }
+    */
+    auto ossia_settings = std::make_unique<ossia::net::multiplex_protocol>();
     // run the commands in the Qt event loop
     // FIXME they should be disabled upon manual disconnection
 
@@ -202,9 +206,9 @@ void OSCQueryDevice::slot_createDevice()
 
     deviceChanged(nullptr, m_dev.get());
 
-    p.set_command_callback([=] { sig_command(); });
-    p.set_disconnect_callback([=] { sig_disconnect(); });
-    p.set_fail_callback([=] { sig_disconnect(); });
+    //p.set_command_callback([=] { sig_command(); });
+    //p.set_disconnect_callback([=] { sig_disconnect(); });
+    //p.set_fail_callback([=] { sig_disconnect(); });
 
     setLogging_impl(Device::get_cur_logging(isLogging()));
 

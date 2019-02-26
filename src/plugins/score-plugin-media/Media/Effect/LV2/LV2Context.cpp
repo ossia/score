@@ -1,3 +1,4 @@
+#if defined(LILV_SHARED)
 #include "LV2Context.hpp"
 
 #include "lv2_atom_helpers.hpp"
@@ -336,3 +337,4 @@ LV2Data::LV2Data(HostContext& h, EffectContext& ctx) : host{h}, effect{ctx}
 }
 }
 }
+#endif

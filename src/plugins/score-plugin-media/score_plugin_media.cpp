@@ -35,6 +35,7 @@
 #include <Media/Effect/Faust/FaustEffectModel.hpp>
 #include <Media/Effect/Faust/FaustLibrary.hpp>
 #endif
+#include <Library/LibraryInterface.hpp>
 #include <score/plugins/FactorySetup.hpp>
 #include <score/plugins/InterfaceList.hpp>
 #include <score/plugins/application/GUIApplicationPlugin.hpp>
@@ -56,7 +57,9 @@ std::pair<const CommandGroupKey, CommandGeneratorMap>
 score_plugin_media::make_commands()
 {
   using namespace Media;
+#if defined(HAS_VST2)
   using namespace Media::VST;
+#endif
   std::pair<const CommandGroupKey, CommandGeneratorMap> cmds{
       Media::CommandFactoryName(), CommandGeneratorMap{}};
 

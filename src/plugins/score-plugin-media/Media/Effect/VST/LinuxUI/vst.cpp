@@ -1,3 +1,4 @@
+#if defined(HAS_VST2)
 #include <Media/Effect/VST/VSTEffectModel.hpp>
 #include <Media/Effect/VST/VSTWidgets.hpp>
 #include <Media/Effect/VST/vst-compat.hpp>
@@ -52,3 +53,4 @@ VSTWindow::VSTWindow(
   }
 }
 }
+#endif

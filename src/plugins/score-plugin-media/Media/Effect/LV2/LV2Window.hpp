@@ -1,4 +1,5 @@
 #pragma once
+#if defined(LILV_SHARED)
 #include <Media/Effect/LV2/LV2EffectModel.hpp>
 
 #include <QDialog>
@@ -34,3 +35,4 @@ using LayerFactory = Process::EffectLayerFactory_T<
     Media::Effect::DefaultEffectItem,
     Window>;
 }
+#endif
