@@ -1,3 +1,4 @@
+#if defined(HAS_VST2)
 #include "VSTCommands.hpp"
 
 #include <Media/Effect/VST/VSTControl.hpp>
@@ -109,3 +110,4 @@ void RemoveVSTControl::deserializeImpl(DataStreamOutput& stream)
   stream >> m_path >> m_id >> m_control >> m_cables;
 }
 }
+#endif

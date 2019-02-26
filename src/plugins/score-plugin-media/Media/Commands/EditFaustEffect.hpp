@@ -1,4 +1,5 @@
 #pragma once
+#if defined(HAS_FAUST)
 #include <Media/Commands/MediaCommandFactory.hpp>
 
 #include <score/command/Command.hpp>
@@ -32,3 +33,4 @@ private:
   QString m_old, m_new;
 };
 }
+#endif

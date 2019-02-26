@@ -1,3 +1,4 @@
+#if defined(LILV_SHARED)
 #include "LV2Window.hpp"
 
 #include <Media/ApplicationPlugin.hpp>
@@ -243,3 +244,4 @@ bool Window::is_resizable(LilvWorld* world, const LilvUI& ui)
   return fs_matches.me == nullptr && nrs_matches.me == nullptr;
 }
 }
+#endif

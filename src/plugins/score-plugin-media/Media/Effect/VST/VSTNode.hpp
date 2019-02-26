@@ -1,4 +1,5 @@
 #pragma once
+#if defined(HAS_VST2)
 #include <Media/Effect/VST/VSTEffectModel.hpp>
 #include <Process/Dataflow/TimeSignature.hpp>
 
@@ -376,3 +377,4 @@ auto make_vst_fx(Args&... args)
 }
 }
 }
+#endif

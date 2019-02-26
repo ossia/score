@@ -1,3 +1,4 @@
+#if defined(HAS_FAUST)
 #include "EditFaustEffect.hpp"
 
 #include <Media/Effect/Faust/FaustEffectModel.hpp>
@@ -44,3 +45,4 @@ void EditFaustEffect::deserializeImpl(DataStreamOutput& s)
   s >> m_model >> m_old >> m_new;
 }
 }
+#endif

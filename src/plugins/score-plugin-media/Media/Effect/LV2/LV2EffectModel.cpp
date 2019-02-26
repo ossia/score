@@ -1,3 +1,4 @@
+#if defined(LILV_SHARED)
 #include "LV2EffectModel.hpp"
 
 #include "lv2_atom_helpers.hpp"
@@ -636,3 +637,4 @@ void LV2EffectComponent::writeAtomToUi(
 }
 }
 W_OBJECT_IMPL(Media::LV2::LV2EffectComponent)
+#endif

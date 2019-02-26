@@ -21,6 +21,7 @@ View::View() : m_widg{new QWidget}
 
   m_widg->setLayout(lay);
 
+#if defined(HAS_VST2)
   m_VstPaths = new QListWidget;
 
   auto button_lay = new QHBoxLayout;
@@ -69,7 +70,6 @@ View::View() : m_widg{new QWidget}
       VstPathsChanged(m_curitems);
     }
   });
-
   auto& app_plug
       = score::GUIAppContext().applicationPlugin<Media::ApplicationPlugin>();
 
@@ -107,10 +107,12 @@ View::View() : m_widg{new QWidget}
   vst_lay->addWidget(new QLabel("Bad plug-ins"), 0, 1, 1, 1);
   vst_lay->addWidget(vst_ok, 1, 0, 1, 1);
   vst_lay->addWidget(vst_bad, 1, 1, 1, 1);
+#endif
 }
 
 void View::setVstPaths(QStringList val)
 {
+#if defined(HAS_VST2)
   if (m_curitems != val)
   {
     m_curitems = val;
@@ -120,6 +122,7 @@ void View::setVstPaths(QStringList val)
     m_VstPaths->blockSignals(false);
     m_VstPaths->update();
   }
+#endif
 }
 
 QWidget* View::getWidget()

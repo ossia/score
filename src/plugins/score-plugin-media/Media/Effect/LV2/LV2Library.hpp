@@ -1,4 +1,5 @@
 #pragma once
+#if defined(LILV_SHARED)
 #include <Library/LibraryInterface.hpp>
 #include <Library/ProcessesItemModel.hpp>
 #include <Media/ApplicationPlugin.hpp>
@@ -55,3 +56,4 @@ class LibraryHandler final : public Library::LibraryInterface
   }
 };
 }
+#endif

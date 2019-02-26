@@ -1,4 +1,5 @@
 #pragma once
+#if defined(HAS_VST2)
 //  Taken and refactored from ofxVstHostPluginLoader.h
 //  https://github.com/Meach/ofxVstHost
 
@@ -34,3 +35,4 @@ static const constexpr auto default_path = "";
 static const constexpr auto default_filter = "";
 #endif
 }
+#endif

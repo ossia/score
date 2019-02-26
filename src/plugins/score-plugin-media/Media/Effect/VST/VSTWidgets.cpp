@@ -1,3 +1,4 @@
+#if defined(HAS_VST2)
 #include "VSTWidgets.hpp"
 
 #include <Automation/AutomationModel.hpp>
@@ -341,3 +342,4 @@ QGraphicsItem* VSTFloatSlider::make_item(
   return sl;
 }
 }
+#endif

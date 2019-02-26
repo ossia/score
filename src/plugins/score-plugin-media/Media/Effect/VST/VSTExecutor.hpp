@@ -1,4 +1,5 @@
 #pragma once
+#if defined(HAS_VST2)
 #include <Media/Effect/VST/VSTEffectModel.hpp>
 #include <Process/Execution/ProcessComponent.hpp>
 
@@ -27,3 +28,4 @@ public:
 using VSTEffectComponentFactory
     = Execution::ProcessComponentFactory_T<VSTEffectComponent>;
 }
+#endif

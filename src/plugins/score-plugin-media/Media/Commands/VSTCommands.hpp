@@ -1,4 +1,5 @@
 #pragma once
+#if defined(HAS_VST2)
 #include <Dataflow/Commands/CableHelpers.hpp>
 #include <Media/Commands/MediaCommandFactory.hpp>
 
@@ -82,3 +83,4 @@ private:
   Dataflow::SerializedCables m_cables;
 };
 }
+#endif

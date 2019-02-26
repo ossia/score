@@ -1,4 +1,5 @@
 #pragma once
+#if defined(LILV_SHARED)
 #include <Media/Effect/LV2/LV2Context.hpp>
 #include <Process/Execution/ProcessComponent.hpp>
 #include <Process/GenericProcessFactory.hpp>
@@ -121,3 +122,4 @@ using LV2EffectFactory = Process::EffectProcessFactory_T<LV2EffectModel>;
 using LV2EffectComponentFactory
     = Execution::ProcessComponentFactory_T<LV2EffectComponent>;
 }
+#endif

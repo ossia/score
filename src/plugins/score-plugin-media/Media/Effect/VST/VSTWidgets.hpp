@@ -1,4 +1,5 @@
 #pragma once
+#if defined(HAS_VST2)
 #include <Dataflow/UI/PortItem.hpp>
 #include <Media/Effect/VST/VSTEffectModel.hpp>
 #include <Process/Style/ScenarioStyle.hpp>
@@ -160,3 +161,4 @@ private:
 using LayerFactory
     = Process::EffectLayerFactory_T<VSTEffectModel, VSTEffectItem, VSTWindow>;
 }
+#endif

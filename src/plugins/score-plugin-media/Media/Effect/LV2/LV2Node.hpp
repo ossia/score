@@ -1,4 +1,5 @@
 #pragma once
+#if defined(LILV_SHARED)
 #include <Media/Effect/LV2/LV2Context.hpp>
 #include <Media/Effect/LV2/lv2_atom_helpers.hpp>
 
@@ -345,3 +346,4 @@ struct lv2_node final : public ossia::graph_node
 };
 }
 }
+#endif

@@ -1,3 +1,4 @@
+#if defined(HAS_VST2)
 #include "VSTEffectModel.hpp"
 
 #include "VSTWidgets.hpp"
@@ -868,3 +869,4 @@ void JSONObjectWriter::write<Media::VST::VSTControlInlet>(
 {
   p.fxNum = obj["FxNum"].toInt();
 }
+#endif

@@ -1,4 +1,5 @@
 #pragma once
+#if defined(HAS_VST2)
 #include <Library/LibraryInterface.hpp>
 #include <Library/ProcessesItemModel.hpp>
 #include <Media/ApplicationPlugin.hpp>
@@ -71,3 +72,4 @@ class LibraryHandler final : public QObject, public Library::LibraryInterface
   }
 };
 }
+#endif

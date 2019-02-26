@@ -1,4 +1,5 @@
 #pragma once
+#if defined(LILV_SHARED)
 #include <score/tools/Todo.hpp>
 
 #include <ossia/detail/hash_map.hpp>
@@ -14,7 +15,6 @@
 #include <cstdio>
 #include <functional>
 #include <vector>
-
 #include <lv2/lv2plug.in/ns/ext/atom/atom.h>
 #include <lv2/lv2plug.in/ns/ext/atom/forge.h>
 #include <lv2/lv2plug.in/ns/ext/buf-size/buf-size.h>
@@ -178,3 +178,4 @@ struct Message
   ossia::small_vector<uint8_t, 8> body;
 };
 }
+#endif

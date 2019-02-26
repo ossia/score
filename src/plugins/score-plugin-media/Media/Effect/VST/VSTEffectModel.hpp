@@ -1,4 +1,5 @@
 #pragma once
+#if defined(HAS_VST2)
 #include <Media/Effect/VST/VSTLoader.hpp>
 #include <Process/Dataflow/PortFactory.hpp>
 #include <Process/GenericProcessFactory.hpp>
@@ -174,3 +175,4 @@ namespace Media::VST
 {
 using VSTEffectFactory = Process::EffectProcessFactory_T<VSTEffectModel>;
 }
+#endif

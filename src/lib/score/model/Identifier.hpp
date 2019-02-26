@@ -2,6 +2,8 @@
 #include <score/tools/Todo.hpp>
 #include <score/tools/std/Optional.hpp>
 
+#include <type_traits>
+
 #include <QDebug>
 #include <QPointer>
 
