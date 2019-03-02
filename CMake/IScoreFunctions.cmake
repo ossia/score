@@ -87,7 +87,7 @@ endfunction()
 
 function(score_write_static_plugins_header)
   set(SCORE_PLUGINS_FILE "${SCORE_ROOT_BINARY_DIR}/score_static_plugins.hpp")
-  set(SCORE_PLUGINS_FILE_DATA)
+  set(SCORE_PLUGINS_FILE_DATA "#pragma once\n")
 
   foreach(plugin ${SCORE_PLUGINS_LIST})
     message("Linking statically with score plugin : ${plugin}")
