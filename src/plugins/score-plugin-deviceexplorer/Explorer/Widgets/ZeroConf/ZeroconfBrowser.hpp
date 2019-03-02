@@ -1,4 +1,6 @@
 #pragma once
+#include <ossia/detail/config.hpp>
+#if defined(OSSIA_DNSSD)
 #include <QByteArray>
 #include <QMap>
 #include <QObject>
@@ -61,3 +63,4 @@ private:
   std::unique_ptr<servus::Servus> m_serv;
   servus::qt::ItemModel* m_model{};
 };
+#endif

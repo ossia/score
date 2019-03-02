@@ -39,7 +39,10 @@ void disableAppRestore()
 Q_IMPORT_PLUGIN(QSvgPlugin)
 Q_IMPORT_PLUGIN(QJpegPlugin)
 Q_IMPORT_PLUGIN(QSvgIconPlugin)
+
+#if !defined(__EMSCRIPTEN__)
 Q_IMPORT_PLUGIN(QtQuick2Plugin)
+#endif
 
 #if defined(__linux__)
 Q_IMPORT_PLUGIN(QXcbIntegrationPlugin)

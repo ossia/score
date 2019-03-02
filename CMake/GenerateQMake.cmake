@@ -125,8 +125,6 @@ QT+=core widgets gui network xml svg websockets quick serialport
     endif()
   endforeach()
 
-
-
   list(REMOVE_DUPLICATES INCLUDES)
   list(REMOVE_ITEM INCLUDES /usr/include)
 

@@ -120,4 +120,5 @@ if(INTEGRATION_TESTING)
 endif()
 
 include(GenerateQMake)
+include(GenerateUnity)
 include(CTest)

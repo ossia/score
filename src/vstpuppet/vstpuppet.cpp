@@ -149,8 +149,10 @@ int main(int argc, char** argv)
   {
     QGuiApplication app(argc, argv);
     QWindow w;
-    w.setWidth(10);
-    w.setHeight(10);
+    w.setWidth(1);
+    w.setHeight(1);
+    w.setFlag(Qt::FramelessWindowHint);
+    w.setFlag(Qt::X11BypassWindowManagerHint);
     w.show();
 
     QWebSocket socket;
