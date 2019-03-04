@@ -17,8 +17,7 @@ file(GLOB QT_SOS
   "${QT_SO_DIR}/libQt5Qml.so*"
   "${QT_SO_DIR}/libQt5OpenGL.so*"
   "${QT_SO_DIR}/libQt5WebSockets.so*"
-  "${QT_SO_DIR}/libQt5XcbQpa.so*"
-  "${QT_SO_DIR}/libQt5Test.so*")
+  "${QT_SO_DIR}/libQt5XcbQpa.so*")
 
 install(FILES
   ${ICU_SOS}

@@ -5,7 +5,7 @@ include(CTest)
 
 function(add_integration_test TESTNAME TESTSRCS)
     add_executable(Integration_${TESTNAME} ${TESTSRCS} score_integration.hpp)
-    target_link_libraries(Integration_${TESTNAME} PRIVATE ${SCORE_PLUGINS_LIST} Qt5::Test)
+    target_link_libraries(Integration_${TESTNAME} PRIVATE ${SCORE_PLUGINS_LIST})
     target_include_directories(Integration_${TESTNAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
     add_test(Integration_${TESTNAME}_target Integration_${TESTNAME})
 endFunction()
@@ -27,7 +27,7 @@ function(add_score_test _name _file)
   add_executable(${_name} ${_file})
 
   target_link_libraries(${_name} PRIVATE score_lib_base ${SCORE_PLUGINS_LIST}
-      Qt5::Core Qt5::Widgets Qt5::Gui Qt5::Network Qt5::Xml Qt5::Svg Qt5::Test)
+      Qt5::Core Qt5::Widgets Qt5::Gui Qt5::Network Qt5::Xml Qt5::Svg)
 
   target_include_directories(${_name} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
   setup_score_common_exe_features(${_name})

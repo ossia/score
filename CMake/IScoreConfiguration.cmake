@@ -107,7 +107,7 @@ endif()
 
 # Settings
 include(ProcessorCount)
-include(GenerateExportHeader)
+include(GenerateStaticExport)
 
 if(UNIX AND NOT APPLE AND NOT SCORE_STATIC_PLUGINS AND DEPLOYMENT_BUILD)
   set(CMAKE_INSTALL_RPATH "plugins")
