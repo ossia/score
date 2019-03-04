@@ -312,7 +312,11 @@ function(setup_score_common_lib_features TheTarget)
     set_target_properties(${TheTarget} PROPERTIES VISIBILITY_INLINES_HIDDEN 1)
   endif()
 
-  generate_export_header(${TheTarget})
+  if(OSSIA_STATIC_EXPORT)
+    generate_export_header(${TheTarget} ALWAYS_EXPORT)
+  else()
+    generate_export_header(${TheTarget})
+  endif()
 
   get_target_property(_srcDir ${TheTarget} SOURCE_DIR)
   get_target_property(_binDir ${TheTarget} BINARY_DIR)
