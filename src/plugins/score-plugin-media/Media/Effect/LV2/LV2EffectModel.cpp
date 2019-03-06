@@ -1,4 +1,4 @@
-#if defined(LILV_SHARED)
+#if defined(HAS_LV2)
 #include "LV2EffectModel.hpp"
 
 #include "lv2_atom_helpers.hpp"

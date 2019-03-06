@@ -18,7 +18,7 @@
 #include <Media/Effect/Faust/FaustEffectModel.hpp>
 #endif
 
-#if defined(LILV_SHARED)
+#if defined(HAS_LV2)
 #include <Media/ApplicationPlugin.hpp>
 #include <Media/Effect/LV2/LV2EffectModel.hpp>
 
@@ -89,7 +89,7 @@ InspectorWidget::InspectorWidget(
   }
 
   {
-#if defined(LILV_SHARED)
+#if defined(HAS_LV2)
     auto add = new QPushButton{tr("Add (LV2)")};
     connect(add, &QPushButton::pressed, this, [&] { add_lv2(cur_pos()); });
 
@@ -129,7 +129,7 @@ void InspectorWidget::add_score(std::size_t pos)
 
 void InspectorWidget::add_lv2(std::size_t pos)
 {
-#if defined(LILV_SHARED)
+#if defined(HAS_LV2)
   auto txt = LV2::LV2EffectFactory{}.customConstructionData();
   if (!txt.isEmpty())
   {

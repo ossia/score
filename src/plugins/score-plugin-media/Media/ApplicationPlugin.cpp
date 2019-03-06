@@ -1,7 +1,7 @@
 #include "ApplicationPlugin.hpp"
 
 #include <Media/Effect/Settings/Model.hpp>
-#if defined(LILV_SHARED)
+#if defined(HAS_LV2)
 #include <Media/Effect/LV2/LV2Context.hpp>
 #include <Media/Effect/LV2/LV2EffectModel.hpp>
 #endif
@@ -54,7 +54,7 @@ W_REGISTER_ARGTYPE(std::vector<Media::ApplicationPlugin::vst_info>)
 
 #endif
 
-#if defined(LILV_SHARED)
+#if defined(HAS_LV2)
 namespace Media::LV2
 {
 void on_uiMessage(
@@ -108,7 +108,7 @@ ApplicationPlugin::ApplicationPlugin(const score::ApplicationContext& app)
 {
   app
 }
-#if defined(LILV_SHARED)
+#if defined(HAS_LV2)
 , lv2_context{std::make_unique<LV2::GlobalContext>(64, lv2_host_context)},
     lv2_host_context
 {
@@ -146,7 +146,7 @@ ApplicationPlugin::ApplicationPlugin(const score::ApplicationContext& app)
   });
 #endif
 
-#if defined(LILV_SHARED) // TODO instead add a proper preprocessor macro that
+#if defined(HAS_LV2) // TODO instead add a proper preprocessor macro that
                          // also works in static case
   static int argc{0};
   static char** argv{nullptr};
@@ -320,7 +320,7 @@ ApplicationPlugin::~ApplicationPlugin()
   }
 #endif
 
-#if defined(LILV_SHARED)
+#if defined(HAS_LV2)
   suil_host_free(lv2_context->ui_host);
 #endif
 }

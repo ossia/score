@@ -2,7 +2,7 @@
 #include <score/plugins/application/GUIApplicationPlugin.hpp>
 
 #include <wobjectdefs.h>
-#if defined(LILV_SHARED) // TODO instead add a proper preprocessor macro that
+#if defined(HAS_LV2) // TODO instead add a proper preprocessor macro that
                          // also works in static case
 #include <Media/Effect/LV2/LV2Context.hpp>
 
@@ -37,7 +37,7 @@ public:
   void initialize() override;
   ~ApplicationPlugin() override;
 
-#if defined(LILV_SHARED) // TODO instead add a proper preprocessor macro that
+#if defined(HAS_LV2) // TODO instead add a proper preprocessor macro that
                          // also works in static case
 public:
   Lilv::World lilv;

@@ -19,7 +19,7 @@
 
 #include <QAction>
 
-#if defined(LILV_SHARED)
+#if defined(HAS_LV2)
 #include <Media/Effect/LV2/LV2EffectModel.hpp>
 #include <Media/Effect/LV2/LV2Library.hpp>
 #include <Media/Effect/LV2/LV2Window.hpp>
@@ -98,7 +98,7 @@ score_plugin_media::factories(
          ,
          Media::Faust::FaustEffectFactory
 #endif
-#if defined(LILV_SHARED)
+#if defined(HAS_LV2)
          ,
          Media::LV2::LV2EffectFactory
 #endif
@@ -126,7 +126,7 @@ score_plugin_media::factories(
          ,
          Media::VST::LayerFactory
 #endif
-#if defined(LILV_SHARED)
+#if defined(HAS_LV2)
          ,
          Media::LV2::LayerFactory
 #endif
@@ -140,7 +140,7 @@ score_plugin_media::factories(
          ,
          Media::VST::LibraryHandler
 #endif
-#if defined(LILV_SHARED)
+#if defined(HAS_LV2)
          ,
          Media::LV2::LibraryHandler
 #endif
@@ -163,7 +163,7 @@ score_plugin_media::factories(
          ,
          Execution::VSTEffectComponentFactory
 #endif
-#if defined(LILV_SHARED)
+#if defined(HAS_LV2)
          ,
          Media::LV2::LV2EffectComponentFactory
 #endif

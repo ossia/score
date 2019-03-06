@@ -1,5 +1,5 @@
 #pragma once
-#if defined(LILV_SHARED)
+#if defined(HAS_LV2)
 #include <Media/Effect/LV2/LV2EffectModel.hpp>
 
 #include <QDialog>
