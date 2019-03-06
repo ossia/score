@@ -1,5 +1,5 @@
 #pragma once
-#if defined(LILV_SHARED)
+#if defined(HAS_LV2)
 #include <Library/LibraryInterface.hpp>
 #include <Library/ProcessesItemModel.hpp>
 #include <Media/ApplicationPlugin.hpp>

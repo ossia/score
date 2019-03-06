@@ -1,5 +1,5 @@
 #pragma once
-#if defined(LILV_SHARED)
+#if defined(HAS_LV2)
 #include <score/tools/Todo.hpp>
 
 #include <ossia/detail/hash_map.hpp>

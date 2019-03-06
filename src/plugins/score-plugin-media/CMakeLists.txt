@@ -235,7 +235,9 @@ target_compile_definitions(${PROJECT_NAME} PUBLIC HAS_VST2)
 target_link_libraries(${PROJECT_NAME} PRIVATE ${CMAKE_DL_LIBS})
 
 if(TARGET Lilv)
+
     target_link_libraries(${PROJECT_NAME} PUBLIC Lilv)
+    target_compile_definitions(${PROJECT_NAME} PUBLIC HAS_LV2)
     target_include_directories(${PROJECT_NAME} PRIVATE 3rdparty/readerwriterqueue)
 
     if(TARGET Suil)

@@ -1,4 +1,4 @@
-#if defined(LILV_SHARED)
+#if defined(HAS_LV2)
 #include "LV2Window.hpp"
 
 #include <Media/ApplicationPlugin.hpp>

@@ -1,5 +1,5 @@
 #pragma once
-#if defined(LILV_SHARED)
+#if defined(HAS_LV2)
 #include <Media/Effect/LV2/LV2Context.hpp>
 #include <Media/Effect/LV2/lv2_atom_helpers.hpp>
 
