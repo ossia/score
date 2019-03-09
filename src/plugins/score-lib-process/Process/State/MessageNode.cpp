@@ -36,7 +36,11 @@ bool operator==(
          && lhs.values.userValue == rhs.values.userValue;
 }
 }
+
+#if !defined(SCORE_ALL_UNITY)
 template class SCORE_LIB_PROCESS_EXPORT TreeNode<Process::StateNodeData>;
+#endif
+
 namespace Process
 {
 

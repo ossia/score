@@ -158,7 +158,8 @@ Node_T* try_getNodeFromAddress(Node_T& root, const State::Address& addr)
 bool operator<(const Device::Node& lhs, const Device::Node& rhs);
 }
 
+#if !defined(SCORE_ALL_UNITY)
 extern template class SCORE_LIB_DEVICE_EXPORT
     TreeNode<Device::DeviceExplorerNode>;
-
+#endif
 W_REGISTER_ARGTYPE(Device::Node*)

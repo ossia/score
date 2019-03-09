@@ -61,4 +61,6 @@ private:
 };
 }
 
+#if !defined(SCORE_ALL_UNITY)
 extern template class IdContainer<Curve::PointView, Curve::PointModel>;
+#endif

@@ -45,6 +45,7 @@ function(GenerateUnity targets)
   set(UNITY "")
   set(INCLUDES "")
   set(SOURCES "")
+  set(C_SOURCES "")
   set(RESSOURCES "")
   set(DEFINES "")
   set(LIBS "")
@@ -63,14 +64,27 @@ function(GenerateUnity targets)
         list(APPEND RESSOURCES "${source}")
         continue()
       endif()
+
       if("${source}" MATCHES ".*\\.hpp")
         continue()
       endif()
 
-      if(IS_ABSOLUTE "${source}")
-        list(APPEND SOURCES "${source}")
+      if("${source}" MATCHES ".*\\.h")
+        continue()
+      endif()
+
+      if("${source}" MATCHES ".*\\.c$")
+        if(IS_ABSOLUTE "${source}")
+          list(APPEND C_SOURCES "${source}")
+        else()
+          list(APPEND C_SOURCES "${_srcdir}/${source}")
+        endif()
       else()
-        list(APPEND SOURCES "${_srcdir}/${source}")
+        if(IS_ABSOLUTE "${source}")
+          list(APPEND SOURCES "${source}")
+        else()
+          list(APPEND SOURCES "${_srcdir}/${source}")
+        endif()
       endif()
     endforeach()
 
@@ -144,14 +158,21 @@ function(GenerateUnity targets)
   list(REMOVE_DUPLICATES INCLUDES)
   list(REMOVE_ITEM INCLUDES /usr/include)
 
-  set(BUILD "${BUILD}$CXX -c unity.cpp -o unity.o -fPIC -std=c++1z \\\n")
-
+  ## Build script ##
+  # C build line
+  set(BUILD "${BUILD}$CC -c unity.c -o unity_c.o -fPIC \\\n")
   foreach(include ${INCLUDES})
     set(BUILD "${BUILD} -I${include} \\\n")
   endforeach()
 
+  # C++ build line
+  set(BUILD "${BUILD}\n")
+  set(BUILD "${BUILD}$CXX -flifetime-dse=1 -mrtm -Wfatal-errors -c unity.cpp -o unity.o -fPIC -std=c++1z \\\n")
+  foreach(include ${INCLUDES})
+    set(BUILD "${BUILD} -I${include} \\\n")
+  endforeach()
 
-
+  # Qt resources
   set(i 0)
   set(res_obj "")
   foreach(res ${RESSOURCES})
@@ -160,22 +181,28 @@ function(GenerateUnity targets)
     math(EXPR i "${i}+1")
   endforeach()
 
-  set(BUILD "${BUILD}\n$CXX unity.o ${res_obj} -fPIC -std=c++1z")
+  # Link line
+  set(BUILD "${BUILD}\n$CXX -Wfatal-errors unity_c.o unity.o ${res_obj} -fPIC -std=c++1z")
 
   foreach(lib ${ACTUAL_LIBS})
     set(BUILD "${BUILD} ${lib} \\\n")
   endforeach()
+  set(BUILD "${BUILD} -ltbb \n")
 
+  ## Unity source ##
   list(REMOVE_DUPLICATES DEFINES)
   foreach(define ${DEFINES})
     if("${define}" MATCHES "^([A-Za-z0-9_]+)=(.*)")
       set(UNITY "${UNITY}#define ${CMAKE_MATCH_1} ${CMAKE_MATCH_2}\n")
+      set(UNITY_C "${UNITY}#define ${CMAKE_MATCH_1} ${CMAKE_MATCH_2}\n")
     else()
-      set(UNITY "${UNITY}#define ${define}\n")
+      set(UNITY "${UNITY}#define ${define} 1\n")
+      set(UNITY_C "${UNITY}#define ${define} 1\n")
     endif()
   endforeach()
 
   set(UNITY "${UNITY}#define QT_NO_KEYWORDS 1\n")
+  set(UNITY "${UNITY}#define SCORE_ALL_UNITY 1\n")
 
   set(UNITY "${UNITY}\n\n")
 
@@ -183,14 +210,20 @@ function(GenerateUnity targets)
     set(UNITY "${UNITY}#include \"${source}\"\n")
   endforeach()
 
+  foreach(source ${C_SOURCES})
+    set(UNITY_C "${UNITY_C}#include \"${source}\"\n")
+  endforeach()
+
 
   set(UNITY "${UNITY}" PARENT_SCOPE)
+  set(UNITY_C "${UNITY_C}" PARENT_SCOPE)
   set(BUILD "${BUILD}" PARENT_SCOPE)
 endfunction()
 
-set(ALL_LIBS "${SCORE_LIBRARIES_LIST};${SCORE_PLUGINS_LIST};score;ossia")
+set(ALL_LIBS "artnet;${SCORE_LIBRARIES_LIST};${SCORE_PLUGINS_LIST};score;ossia")
 list(REMOVE_DUPLICATES ALL_LIBS)
 
 GenerateUnity("${ALL_LIBS}")
+score_write_file("${CMAKE_BINARY_DIR}/unity.c" "${UNITY_C}")
 score_write_file("${CMAKE_BINARY_DIR}/unity.cpp" "${UNITY}")
 score_write_file("${CMAKE_BINARY_DIR}/build.sh" "${BUILD}")

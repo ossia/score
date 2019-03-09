@@ -20,7 +20,9 @@
 
 #include <vector>
 
+#if !defined(SCORE_ALL_UNITY)
 template class SCORE_LIB_DEVICE_EXPORT TreeNode<Device::DeviceExplorerNode>;
+#endif
 namespace Device
 {
 bool operator<(const Device::Node& lhs, const Device::Node& rhs)

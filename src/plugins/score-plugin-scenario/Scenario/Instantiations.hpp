@@ -10,6 +10,7 @@
 #include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
 #include <Scenario/Document/TimeSync/TimeSyncPresenter.hpp>
 
+#if !defined(SCORE_ALL_UNITY)
 extern template class SCORE_PLUGIN_SCENARIO_EXPORT
     score::EntityMap<Scenario::IntervalModel>;
 extern template class SCORE_PLUGIN_SCENARIO_EXPORT
@@ -31,3 +32,4 @@ extern template class SCORE_PLUGIN_SCENARIO_EXPORT
     IdContainer<Scenario::TemporalIntervalPresenter, Scenario::IntervalModel>;
 extern template class SCORE_PLUGIN_SCENARIO_EXPORT
     IdContainer<Scenario::CommentBlockPresenter, Scenario::CommentBlockModel>;
+#endif
