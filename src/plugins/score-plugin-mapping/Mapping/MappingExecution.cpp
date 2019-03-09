@@ -68,32 +68,7 @@ void Component::recompute()
   auto ossia_target_addr
       = Execution::makeDestination(devices, process().targetAddress());
 
-  std::shared_ptr<ossia::curve_abstract> curve;
-  if (ossia_source_addr && ossia_target_addr)
-  {
-    auto sourceAddressType = ossia_source_addr->address().get_value_type();
-    auto targetAddressType = ossia_target_addr->address().get_value_type();
-
-    curve = rebuildCurve(
-        sourceAddressType, targetAddressType); // If the type changes we need
-                                               // to rebuild the curve.
-  }
-  else if (ossia_source_addr)
-  {
-    curve = rebuildCurve(
-        ossia_source_addr->address().get_value_type(),
-        ossia_source_addr->address().get_value_type());
-  }
-  else if (ossia_target_addr)
-  {
-    curve = rebuildCurve(
-        ossia::val_type::FLOAT, ossia_target_addr->address().get_value_type());
-  }
-  else
-  {
-    curve = rebuildCurve(ossia::val_type::FLOAT, ossia::val_type::FLOAT);
-  }
-
+  std::shared_ptr<ossia::curve_abstract> curve = rebuildCurve(ossia::val_type::FLOAT, ossia::val_type::FLOAT);
   if (curve)
   {
     std::function<void()> v
