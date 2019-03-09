@@ -19,8 +19,11 @@
 #include <algorithm>
 #include <stdexcept>
 W_OBJECT_IMPL(Process::ProcessModel)
+
+#if !defined(SCORE_ALL_UNITY)
 template class IdentifiedObject<Process::ProcessModel>;
 template class score::SerializableInterface<Process::ProcessModelFactory>;
+#endif
 namespace Process
 {
 ProcessModel::ProcessModel(

@@ -28,33 +28,34 @@ echo "$HOME/i-score/API/3rdparty/ModernMIDI/third_party/rtmidi/RtMidi.cpp" | awk
 
 # -enable-checker alpha.clone.CloneChecker \ too much false positive for now
 
-#~ scan-build \
-    #~ -disable-checker deadcode.DeadStores \
-    #~ -enable-checker core.DivideZero \
-    #~ -enable-checker core.CallAndMessage \
-    #~ -enable-checker core.DynamicTypePropagation \
-    #~ -enable-checker alpha.core.BoolAssignment \
-    #~ -enable-checker alpha.core.CastSize \
-    #~ -enable-checker alpha.core.CastToStruct \
-    #~ -enable-checker alpha.core.IdenticalExpr \
-    #~ -enable-checker alpha.core.SizeofPtr \
-    #~ -enable-checker alpha.core.PointerArithm \
-    #~ -enable-checker alpha.core.PointerSub \
-    #~ -enable-checker alpha.core.SizeofPtr \
-    #~ -enable-checker alpha.core.TestAfterDivZero \
-    #~ -enable-checker alpha.cplusplus.IteratorRange \
-    #~ -enable-checker alpha.cplusplus.MisusedMovedObject \
-    #~ -enable-checker alpha.security.ArrayBoundV2 \
-    #~ -enable-checker alpha.security.MallocOverflow \
-    #~ -enable-checker alpha.security.ReturnPtrRange \
-    #~ -enable-checker alpha.security.taint.TaintPropagation \
-    #~ -enable-checker alpha.unix.SimpleStream \
-    #~ -enable-checker alpha.unix.cstring.BufferOverlap \
-    #~ -enable-checker alpha.unix.cstring.NotNullTerminated \
-    #~ -enable-checker alpha.unix.cstring.OutOfBounds \
-    #~ -enable-checker alpha.core.FixedAddr \
-    #~ -enable-checker optin.performance.Padding \
-    #~ -enable-checker security.insecureAPI.strcpy \
+CXX=clang++ scan-build \
+    -disable-checker deadcode.DeadStores \
+    -enable-checker core.DivideZero \
+    -enable-checker core.CallAndMessage \
+    -enable-checker core.DynamicTypePropagation \
+    -enable-checker alpha.core.BoolAssignment \
+    -enable-checker alpha.core.CastSize \
+    -enable-checker alpha.core.CastToStruct \
+    -enable-checker alpha.core.IdenticalExpr \
+    -enable-checker alpha.core.SizeofPtr \
+    -enable-checker alpha.core.PointerArithm \
+    -enable-checker alpha.core.PointerSub \
+    -enable-checker alpha.core.SizeofPtr \
+    -enable-checker alpha.core.TestAfterDivZero \
+    -enable-checker alpha.cplusplus.IteratorRange \
+    -enable-checker alpha.cplusplus.MisusedMovedObject \
+    -enable-checker alpha.security.ArrayBoundV2 \
+    -enable-checker alpha.security.MallocOverflow \
+    -enable-checker alpha.security.ReturnPtrRange \
+    -enable-checker alpha.security.taint.TaintPropagation \
+    -enable-checker alpha.unix.SimpleStream \
+    -enable-checker alpha.unix.cstring.BufferOverlap \
+    -enable-checker alpha.unix.cstring.NotNullTerminated \
+    -enable-checker alpha.unix.cstring.OutOfBounds \
+    -enable-checker alpha.core.FixedAddr \
+    -enable-checker optin.performance.Padding \
+    -enable-checker security.insecureAPI.strcpy \
+    build.sh
 
     clang++ -O3 -fPIC -march=native -std=c++1z \
     -DASIO_STANDALONE=1 -DBOOST_MULTI_INDEX_ENABLE_INVARIANT_CHECKING \

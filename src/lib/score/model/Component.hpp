@@ -116,11 +116,12 @@ using DataStreamComponents
 using JSONComponents
     = score::hash_map<UuidKey<score::SerializableComponent>, QJsonObject>;
 }
+#if !defined(SCORE_ALL_UNITY)
 extern template class SCORE_LIB_BASE_EXPORT
     tsl::hopscotch_map<UuidKey<score::SerializableComponent>, QByteArray>;
 extern template class SCORE_LIB_BASE_EXPORT
     tsl::hopscotch_map<UuidKey<score::SerializableComponent>, QJsonObject>;
-
+#endif
 /**
  * \macro ABSTRACT_COMPONENT_METADATA
  */

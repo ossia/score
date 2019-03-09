@@ -1,4 +1,7 @@
+#if !defined(SCORE_ALL_UNITY)
+
 #include <Scenario/Instantiations.hpp>
+
 template class SCORE_PLUGIN_SCENARIO_EXPORT
     score::EntityMap<Scenario::IntervalModel>;
 template class SCORE_PLUGIN_SCENARIO_EXPORT
@@ -24,3 +27,5 @@ template class SCORE_PLUGIN_SCENARIO_EXPORT IdContainer<
     Scenario::CommentBlockPresenter,
     Scenario::CommentBlockModel,
     void>;
+
+#endif

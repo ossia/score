@@ -30,11 +30,13 @@
 #include <algorithm>
 #include <vector>
 
+#if !defined(SCORE_ALL_UNITY)
 // template class SCORE_PLUGIN_CURVE_EXPORT IdContainer<Curve::SegmentModel>;
 template class SCORE_PLUGIN_CURVE_EXPORT
     IdContainer<Curve::PointView, Curve::PointModel>;
 template class SCORE_PLUGIN_CURVE_EXPORT
     IdContainer<Curve::SegmentView, Curve::SegmentModel>;
+#endif
 
 template <>
 SCORE_PLUGIN_CURVE_EXPORT void

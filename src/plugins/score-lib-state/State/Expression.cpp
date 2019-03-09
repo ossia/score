@@ -26,7 +26,11 @@ bool operator<(const State::ExprData& lhs, const State::ExprData& rhs)
   return false;
 }
 }
+
+#if !defined(SCORE_ALL_UNITY)
 template class SCORE_LIB_STATE_EXPORT std::list<State::ExprData>;
+#endif
+
 QString State::ExprData::toString() const
 {
   static const QMap<State::BinaryOperator, QString> binopMap{

@@ -94,5 +94,7 @@ SCORE_LIB_PROCESS_EXPORT State::MessageList
 getUserMessages(const MessageNode&);
 }
 
+#if !defined(SCORE_ALL_UNITY)
 extern template class SCORE_LIB_PROCESS_EXPORT
     TreeNode<Process::StateNodeData>;
+#endif
