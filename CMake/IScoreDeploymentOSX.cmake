@@ -140,7 +140,7 @@ else()
         fixup_bundle(
            \"${CMAKE_INSTALL_PREFIX}/score.app\"
            \"\${QTPLUGINS};\${QMLPLUGINS};${SCORE_BUNDLE_INSTALLED_PLUGINS}\"
-       \"${QT_LIBRARY_DIR};${CMAKE_BINARY_DIR}/plugins;${CMAKE_INSTALL_PREFIX}/plugins;${CMAKE_BINARY_DIR}/API/OSSIA;${CMAKE_BINARY_DIR}/src/lib;${CMAKE_INSTALL_PREFIX}/${APPNAME}.app/Contents/MacOS/plugins/\"
+       \"${QT_LIBRARY_DIR};${CMAKE_BINARY_DIR}/plugins;${CMAKE_INSTALL_PREFIX}/plugins;${CMAKE_BINARY_DIR}/3rdparty/libossia/OSSIA;${CMAKE_BINARY_DIR}/src/lib;${CMAKE_INSTALL_PREFIX}/${APPNAME}.app/Contents/MacOS/plugins/\"
         )
 message(\"${SCORE_ROOT_SOURCE_DIR}/CMake/Deployment/OSX/set_rpath.sh\"
           \"${CMAKE_INSTALL_PREFIX}/score.app/Contents\")
