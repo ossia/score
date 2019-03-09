@@ -124,7 +124,7 @@ set(CPACK_COMPONENTS_ALL score)
 
 set(CPACK_MONOLITHIC_INSTALL TRUE)
 set(CPACK_NSIS_PACKAGE_NAME "ossia score")
-set(CPACK_PACKAGE_ICON "${SCORE_ROOT_SOURCE_DIR}\\\\base\\\\lib\\\\resources\\\\score.ico")
+set(CPACK_PACKAGE_ICON "${SCORE_ROOT_SOURCE_DIR}\\\\src\\\\lib\\\\resources\\\\score.ico")
 set(CPACK_NSIS_MUI_ICON "${CPACK_PACKAGE_ICON}")
 set(CPACK_NSIS_MUI_UNIICON "${CPACK_PACKAGE_ICON}")
 
