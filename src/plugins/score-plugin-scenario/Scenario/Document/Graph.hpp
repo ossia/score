@@ -3,6 +3,7 @@
 
 #include <boost/graph/adjacency_list.hpp>
 
+#include <nano_observer.hpp>
 #include <score_plugin_scenario_export.h>
 
 namespace Scenario
@@ -52,6 +53,7 @@ struct SCORE_PLUGIN_SCENARIO_EXPORT TimenodeGraphComponents
   bool isInMain(const Scenario::StateModel& c) const;
 };
 struct SCORE_PLUGIN_SCENARIO_EXPORT TimenodeGraph
+    : public Nano::Observer
 {
   TimenodeGraph(const Scenario::ProcessModel& scenar);
 
@@ -65,6 +67,10 @@ struct SCORE_PLUGIN_SCENARIO_EXPORT TimenodeGraph
   TimenodeGraphComponents components();
 
 private:
+  void intervalsChanged(const IntervalModel&);
+  void timeSyncsChanged(const TimeSyncModel&);
+  void recompute();
+
   const Scenario::ProcessModel& m_scenario;
   Graph m_graph;
 

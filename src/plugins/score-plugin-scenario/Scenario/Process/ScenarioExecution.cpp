@@ -56,6 +56,7 @@ ScenarioComponentBase::ScenarioComponentBase(
           Scenario::ProcessModel,
           ossia::scenario>{element, ctx, id, "ScenarioComponent", nullptr}
     , m_ctx{ctx}
+    , m_graph{element}
 {
   this->setObjectName("OSSIAScenarioElement");
 
@@ -68,6 +69,12 @@ ScenarioComponentBase::ScenarioComponentBase(
       this,
       &ScenarioComponentBase::eventCallback,
       Qt::QueuedConnection);
+
+
+  auto& start_ts = *OSSIAProcess().get_start_time_sync();
+  m_ghost_start = std::make_shared<ossia::time_event>(ossia::time_event::exec_callback{}, start_ts, ossia::expressions::make_expression_true());
+
+  start_ts.insert(start_ts.get_time_events().end(), m_ghost_start);
 }
 
 ScenarioComponentBase::~ScenarioComponentBase() {}
@@ -448,12 +455,10 @@ ScenarioComponentBase::make<TimeSyncComponent, Scenario::TimeSyncModel>(
   if (tn.id() == Scenario::startId<Scenario::TimeSyncModel>())
   {
     ossia_tn = OSSIAProcess().get_start_time_sync();
-    // qDebug() << "root" << tn.expression().toString();
   }
   else
   {
     ossia_tn = std::make_shared<ossia::time_sync>();
-    // qDebug() << "non root" << tn.expression().toString();
     must_add = true;
   }
 
@@ -470,11 +475,38 @@ ScenarioComponentBase::make<TimeSyncComponent, Scenario::TimeSyncModel>(
   // Changing the running API structures
   if (must_add)
   {
-    if (auto ossia_sc
-        = std::dynamic_pointer_cast<ossia::scenario>(m_ossia_process))
-    {
-      m_ctx.executionQueue.enqueue(
+    auto ossia_sc = std::dynamic_pointer_cast<ossia::scenario>(m_ossia_process);
+    m_ctx.executionQueue.enqueue(
           [ossia_sc, ossia_tn] { ossia_sc->add_time_sync(ossia_tn); });
+
+    if(Scenario::previousIntervals(tn, process()).empty())
+    {
+      if(!tn.active())
+      {
+        auto ghost_end = std::make_shared<ossia::time_event>(
+              ossia::time_event::exec_callback{},
+              *ossia_tn,
+              ossia::expressions::make_expression_true());
+
+        auto duration = m_ctx.time(tn.date());
+        auto ghost_itv = std::make_shared<ossia::time_interval>(
+              ossia::time_interval::exec_callback{},
+              *m_ghost_start, *ghost_end
+              , duration, duration, duration);
+
+        // todo on interval added
+        // todo on TS moved
+        // todo on TS removed
+        ossia_tn->insert(ossia_tn->get_time_events().end(), ghost_end);
+        m_ctx.executionQueue.enqueue(
+              [ossia_sc, ghost_itv, ghost_start=m_ghost_start, ghost_end] {
+
+          ghost_start->next_time_intervals().push_back(ghost_itv);
+          ghost_end->previous_time_intervals().push_back(ghost_itv);
+
+          ossia_sc->add_time_interval(ghost_itv);
+        });
+      }
     }
   }
 
