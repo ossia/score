@@ -5,9 +5,6 @@
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/serialization/JSONVisitor.hpp>
 
-#include <QJsonArray>
-#include <QJsonObject>
-#include <QJsonValue>
 
 template <>
 SCORE_LIB_BASE_EXPORT void DataStreamReader::read(const ObjectPath& path)

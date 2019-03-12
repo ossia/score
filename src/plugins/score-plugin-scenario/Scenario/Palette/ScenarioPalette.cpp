@@ -19,8 +19,6 @@
 #include <score/statemachine/GraphicsSceneToolPalette.hpp>
 #include <score/tools/std/Optional.hpp>
 
-#include <QApplication>
-#include <QRect>
 
 #include <algorithm>
 #include <vector>

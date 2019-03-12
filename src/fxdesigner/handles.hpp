@@ -1,8 +1,8 @@
 #pragma once
 #include <QObject>
 #include <QGraphicsItem>
-#include <QCursor>
 #include <QPainter>
+#include <QCursor>
 #include <QGraphicsSceneHoverEvent>
 #include <verdigris>
 
@@ -58,6 +58,8 @@ public:
         break;
       case GraphicsItemChange::ItemSelectedHasChanged:
         selectionChanged(value.toBool());
+        break;
+      default:
         break;
     }
     return QGraphicsItem::itemChange(change, value);
@@ -127,11 +129,13 @@ public:
       case GraphicsItemChange::ItemScenePositionHasChanged:
         positionChanged(value.toPointF());
         break;
+      default:
+        break;
     }
     return QGraphicsItem::itemChange(change, value);
   }
 
-  void mouseReleaseEvent(QGraphicsSceneMouseEvent* ev)
+  void mouseReleaseEvent(QGraphicsSceneMouseEvent* ev) override
   {
     QGraphicsItem::mouseReleaseEvent(ev);
     released();

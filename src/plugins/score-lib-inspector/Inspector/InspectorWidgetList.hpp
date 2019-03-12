@@ -6,7 +6,6 @@
 #include <score/tools/std/OwningVector.hpp>
 #include <score/tools/std/Pointer.hpp>
 
-#include <QString>
 
 #include <vector>
 class IdentifiedObjectAbstract;

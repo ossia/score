@@ -7,7 +7,6 @@
 #include <score/model/Identifier.hpp>
 #include <score/tools/std/Optional.hpp>
 
-#include <QString>
 
 #include <score_lib_process_export.h>
 #include <verdigris>

@@ -10,7 +10,6 @@
 #include <score/widgets/SignalUtils.hpp>
 
 #include <QFormLayout>
-#include <QLineEdit>
 #include <QSpinBox>
 
 namespace Media

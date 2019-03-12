@@ -1,8 +1,8 @@
 #include <Process/Drop/ProcessDropHandler.hpp>
 
 #include <QFile>
-#include <QFileInfo>
 #include <QUrl>
+#include <QFileInfo>
 namespace Process
 {
 

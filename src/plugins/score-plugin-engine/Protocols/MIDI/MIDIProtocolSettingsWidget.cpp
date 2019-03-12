@@ -9,11 +9,8 @@
 #include <QCheckBox>
 #include <QComboBox>
 #include <QFormLayout>
-#include <QGridLayout>
-#include <QGroupBox>
-#include <QLabel>
+#include <QDebug>
 #include <QLineEdit>
-#include <QRadioButton>
 #include <QString>
 #include <QVariant>
 

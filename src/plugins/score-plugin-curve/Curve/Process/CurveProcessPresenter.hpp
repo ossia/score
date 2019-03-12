@@ -12,9 +12,8 @@
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/document/DocumentInterface.hpp>
 #include <score/graphics/GraphicsItem.hpp>
+#include <score/tools/Bind.hpp>
 
-#include <QGraphicsScene>
-#include <QGraphicsSceneMouseEvent>
 
 #include <score_plugin_curve_export.h>
 

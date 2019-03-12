@@ -10,7 +10,6 @@
 #include <score/document/DocumentInterface.hpp>
 #include <score/statemachine/GraphicsSceneToolPalette.hpp>
 
-#include <QObject>
 
 namespace Scenario
 {

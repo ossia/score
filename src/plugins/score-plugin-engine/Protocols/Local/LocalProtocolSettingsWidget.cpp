@@ -11,9 +11,7 @@
 
 #include <QFormLayout>
 #include <QLabel>
-#include <QLineEdit>
 #include <QSpinBox>
-#include <QVBoxLayout>
 
 class QWidget;
 

@@ -3,7 +3,6 @@
 
 #include <score/model/tree/TreeNodeItemModel.hpp>
 
-#include <QAbstractItemModel>
 #include <QStringList>
 #include <QVariant>
 #include <qnamespace.h>

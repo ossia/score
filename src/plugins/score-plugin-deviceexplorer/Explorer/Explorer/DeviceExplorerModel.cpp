@@ -38,15 +38,11 @@
 
 #include <QAbstractProxyModel>
 #include <QApplication>
-#include <QDebug>
-#include <QFlags>
 #include <QJsonDocument>
 #include <QMap>
 #include <QMimeData>
 #include <QObject>
-#include <QSet>
 #include <QTreeView>
-#include <QVector>
 #include <qtypetraits.h>
 
 #include <wobjectimpl.h>

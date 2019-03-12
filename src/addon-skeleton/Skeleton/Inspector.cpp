@@ -4,7 +4,6 @@
 
 #include <QFormLayout>
 #include <QLabel>
-#include <QPushButton>
 
 namespace Skeleton
 {

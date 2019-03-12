@@ -5,8 +5,7 @@
 #include <ossia/detail/hash_map.hpp>
 #include <ossia/network/common/path.hpp>
 
-#include <QtQml/QJSEngine>
-
+#include <QObject>
 #include <verdigris>
 namespace ossia
 {

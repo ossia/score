@@ -1,6 +1,5 @@
 #pragma once
 #include <QObject>
-#include <QString>
 
 #include <score_lib_base_export.h>
 #include <verdigris>

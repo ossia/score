@@ -4,7 +4,6 @@
 
 #include <QDialogButtonBox>
 #include <QGridLayout>
-#include <QLayout>
 #include <QTextEdit>
 
 class QWidget;

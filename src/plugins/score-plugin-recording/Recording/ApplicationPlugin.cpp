@@ -21,9 +21,6 @@
 
 #include <QAction>
 #include <QApplication>
-#include <QMainWindow>
-#include <QString>
-#include <QToolBar>
 #include <qnamespace.h>
 
 #include <Engine/ApplicationPlugin.hpp>

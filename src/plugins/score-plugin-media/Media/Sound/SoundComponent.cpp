@@ -3,6 +3,7 @@
 #include <ossia/dataflow/nodes/sound_ref.hpp>
 #include <Process/ExecutionContext.hpp>
 #include <Scenario/Execution/score2OSSIA.hpp>
+#include <score/tools/Bind.hpp>
 
 #include <ossia/dataflow/execution_state.hpp>
 #include <ossia/dataflow/nodes/sound.hpp>

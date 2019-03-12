@@ -7,7 +7,6 @@
 #include <core/view/Window.hpp>
 
 #include <QApplication>
-#include <QLocale>
 
 #include <clocale>
 

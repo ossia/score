@@ -7,12 +7,11 @@
 
 #include <score/graphics/GraphicsItem.hpp>
 #include <score/widgets/WidgetWrapper.hpp>
+#include <score/tools/Bind.hpp>
 
-#include <QGraphicsScene>
-#include <QGraphicsView>
-#include <QList>
 #include <QPoint>
-
+#include <QGraphicsView>
+#include <QPainter>
 #include <cmath>
 
 class QGraphicsItem;

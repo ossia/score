@@ -9,7 +9,6 @@
 
 #include <score/plugins/application/GUIApplicationPlugin.hpp>
 
-#include <QVector>
 
 #include <score_plugin_scenario_export.h>
 #include <verdigris>

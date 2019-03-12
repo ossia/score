@@ -4,6 +4,7 @@
 
 #include <Curve/CurveConversion.hpp>
 #include <Process/ExecutionContext.hpp>
+#include <score/tools/Bind.hpp>
 
 #include <ossia/dataflow/nodes/metronome.hpp>
 namespace Metronome

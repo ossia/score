@@ -6,7 +6,6 @@
 
 #include <QCheckBox>
 #include <QFormLayout>
-#include <QSpinBox>
 
 namespace Curve
 {

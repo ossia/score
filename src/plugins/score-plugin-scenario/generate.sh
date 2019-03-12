@@ -3,7 +3,6 @@
 function make_file
 {
 	TEMPLATE="#pragma once
-#include <QNamedObject>
 
 class CLASSNAME : public
 {

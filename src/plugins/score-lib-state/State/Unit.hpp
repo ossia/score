@@ -1,14 +1,12 @@
 #pragma once
 #include <score/serialization/VisitorInterface.hpp>
 
-#include <QMetaType>
-#include <QString>
-
 #include <score_lib_state_export.h>
 #include <verdigris>
 
 #include <memory>
 
+#include <QLatin1String>
 namespace ossia
 {
 struct unit_t;

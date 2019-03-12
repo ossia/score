@@ -2,6 +2,7 @@
 #include <Audio/Settings/Model.hpp>
 #include <Audio/Settings/View.hpp>
 #include <score/widgets/SignalUtils.hpp>
+#include <score/tools/Bind.hpp>
 #include <score/command/Dispatchers/SettingsCommandDispatcher.hpp>
 #include <QComboBox>
 #include <QLabel>

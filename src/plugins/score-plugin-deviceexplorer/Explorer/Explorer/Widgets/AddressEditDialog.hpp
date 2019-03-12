@@ -4,7 +4,6 @@
 
 #include <score/widgets/WidgetWrapper.hpp>
 
-#include <QDialog>
 
 #include <score_plugin_deviceexplorer_export.h>
 #include <verdigris>

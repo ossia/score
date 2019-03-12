@@ -1,6 +1,5 @@
 #include <Media/Effect/VST/VSTLoader.hpp>
 
-#include <QFileInfo>
 #include <QGuiApplication>
 #include <QJsonDocument>
 #include <QJsonObject>

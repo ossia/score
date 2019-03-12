@@ -19,6 +19,7 @@
 #include <QFile>
 #include <QFileInfo>
 #include <QMimeData>
+#include <QUrl>
 
 namespace Scenario
 {

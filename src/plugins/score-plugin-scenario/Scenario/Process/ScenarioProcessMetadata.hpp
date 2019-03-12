@@ -1,7 +1,6 @@
 #pragma once
 #include <Process/ProcessMetadata.hpp>
 
-#include <QString>
 
 #include <score_plugin_scenario_export.h>
 

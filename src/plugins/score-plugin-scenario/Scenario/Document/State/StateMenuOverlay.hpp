@@ -4,7 +4,6 @@
 #include <Scenario/Document/State/StatePresenter.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
 
-#include <QBrush>
 #include <QGraphicsItem>
 #include <QGraphicsSceneMouseEvent>
 #include <QPainter>

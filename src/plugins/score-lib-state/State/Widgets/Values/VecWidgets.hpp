@@ -10,7 +10,6 @@
 #include <QDoubleSpinBox>
 #include <QFormLayout>
 #include <QHBoxLayout>
-#include <QLabel>
 #include <QWidget>
 
 #include <verdigris>

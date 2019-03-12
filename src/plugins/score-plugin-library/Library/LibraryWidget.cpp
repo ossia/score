@@ -6,16 +6,15 @@
 #include <Library/LibrarySettings.hpp>
 
 #include <score/tools/std/StringHash.hpp>
+#include <score/tools/Bind.hpp>
 #include <score/widgets/MarginLess.hpp>
 #include <score/widgets/SearchLineEdit.hpp>
 
 #include <core/presenter/DocumentManager.hpp>
 
-#include <QFormLayout>
 #include <QLabel>
 #include <QScrollArea>
 #include <QSortFilterProxyModel>
-#include <QStandardItemModel>
 #include <QVBoxLayout>
 
 #include <wobjectimpl.h>

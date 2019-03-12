@@ -15,9 +15,6 @@
 #include <score/serialization/VisitorCommon.hpp>
 #include <score/tools/std/Optional.hpp>
 
-#include <QDataStream>
-#include <QIODevice>
-#include <QMap>
 
 namespace Process
 {

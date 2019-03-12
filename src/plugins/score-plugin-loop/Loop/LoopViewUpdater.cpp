@@ -23,9 +23,6 @@
 #include <Scenario/Document/TimeSync/TimeSyncView.hpp>
 #include <Scenario/Document/VerticalExtent.hpp>
 
-#include <QPoint>
-#include <QRect>
-#include <QtGlobal>
 
 namespace Loop
 {

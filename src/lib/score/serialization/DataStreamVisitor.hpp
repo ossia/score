@@ -2,7 +2,6 @@
 #include <score/model/EntityBase.hpp>
 #include <score/serialization/VisitorInterface.hpp>
 #include <score/serialization/VisitorTags.hpp>
-#include <score/tools/Todo.hpp>
 #include <score/tools/std/Optional.hpp>
 
 #include <ossia/detail/flat_set.hpp>
@@ -16,7 +15,6 @@
 
 #include <sys/types.h>
 
-#include <stdexcept>
 #include <string>
 #include <vector>
 
@@ -362,17 +360,7 @@ public:
    * Checks if a delimiter is present at the current
    * stream position, and fails if it isn't.
    */
-  void checkDelimiter()
-  {
-    int val{};
-    m_stream >> val;
-
-    if (val != int32_t(0xDEADBEEF))
-    {
-      SCORE_BREAKPOINT;
-      throw std::runtime_error("Corrupt save file.");
-    }
-  }
+  void checkDelimiter();
 
   auto& stream() { return m_stream; }
 
@@ -673,14 +661,14 @@ struct TSerializer<DataStream, UuidKey<U>>
   static void readFrom(DataStream::Serializer& s, const UuidKey<U>& uid)
   {
     s.stream().stream.writeRawData(
-        (const char*)uid.impl().data.data(), sizeof(uid.impl().data));
+        (const char*)uid.impl().data, sizeof(uid.impl().data));
     SCORE_DEBUG_INSERT_DELIMITER2(s);
   }
 
   static void writeTo(DataStream::Deserializer& s, UuidKey<U>& uid)
   {
     s.stream().stream.readRawData(
-        (char*)uid.impl().data.data(), sizeof(uid.impl().data));
+        (char*)uid.impl().data, sizeof(uid.impl().data));
     SCORE_DEBUG_CHECK_DELIMITER2(s);
   }
 };

@@ -13,13 +13,7 @@
 #include <score/widgets/Layout.hpp>
 
 #include <QComboBox>
-#include <QFormLayout>
-#include <QGridLayout>
-#include <QLabel>
 #include <QLineEdit>
-#include <QPlainTextEdit>
-#include <QSpinBox>
-#include <QString>
 #include <QVariant>
 namespace Protocols
 {

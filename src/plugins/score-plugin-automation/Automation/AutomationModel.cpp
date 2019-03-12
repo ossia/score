@@ -21,8 +21,6 @@
 
 #include <ossia/editor/state/destination_qualifiers.hpp>
 
-#include <QDebug>
-#include <QPoint>
 
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Automation::ProcessModel)

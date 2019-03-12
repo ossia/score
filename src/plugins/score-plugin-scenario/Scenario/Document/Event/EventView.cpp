@@ -11,12 +11,9 @@
 
 #include <score/model/ModelMetadata.hpp>
 
-#include <QBrush>
-#include <QCursor>
-#include <QGraphicsSceneEvent>
 #include <QGraphicsSceneMouseEvent>
 #include <QPainter>
-#include <QPen>
+#include <QCursor>
 #include <qnamespace.h>
 
 #include <wobjectimpl.h>

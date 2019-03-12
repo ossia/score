@@ -6,9 +6,7 @@
 
 #include <score/graphics/GraphicWidgets.hpp>
 
-#include <QGraphicsSceneEvent>
 #include <QMenu>
-#include <QWindow>
 
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Process::EffectLayerPresenter)

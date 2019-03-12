@@ -1,6 +1,4 @@
 #pragma once
-#include <QBrush>
-#include <QDebug>
 #include <QGraphicsItem>
 #include <QObject>
 #include <QPainter>

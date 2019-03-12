@@ -22,6 +22,7 @@
 #include <ossia/detail/thread.hpp>
 #include <ossia/network/value/value_traits.hpp>
 
+#include <QUrl>
 #include <QFileInfo>
 namespace Scenario
 {

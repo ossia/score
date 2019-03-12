@@ -9,12 +9,26 @@
 
 #include <functional>
 #include <memory>
-
 namespace ossia
 {
 class graph_node;
 class graph_interface;
 struct execution_state;
+
+#if __cplusplus > 201703L
+// TODO moveme
+static const constexpr struct disable_init_key_t{ } disable_init;
+struct disable_init_t
+{
+disable_init_t(disable_init_key_t) { }
+disable_init_t() = delete;
+disable_init_t(const disable_init_t&) = delete;
+disable_init_t(disable_init_t&&) = delete;
+disable_init_t& operator=(const disable_init_t&) = delete;
+disable_init_t& operator=(disable_init_t&&) = delete;
+};
+#endif
+
 namespace net
 {
 class node_base;
@@ -54,16 +68,9 @@ using ExecutionCommandQueue
     = moodycamel::ReaderWriterQueue<ExecutionCommand, 1024>;
 
 //! Useful structures when creating the execution elements.
+//!
 struct SCORE_LIB_PROCESS_EXPORT Context
 {
-#if !defined(_MSC_VER)
-  Context() = delete;
-  Context(const Context&) = delete;
-  Context& operator=(const Context&) = delete;
-  Context(Context&&) = delete;
-  Context& operator=(Context&&) = delete;
-#endif
-
   const score::DocumentContext& doc;
   const std::atomic_bool& created;
 
@@ -84,6 +91,23 @@ struct SCORE_LIB_PROCESS_EXPORT Context
   const std::shared_ptr<ossia::execution_state>& execState;
 
   auto& context() const { return *this; }
+
+#if __cplusplus > 201703L
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunknown-attributes"
+  [[no_unique_address]]
+  ossia::disable_init_t disable_copy;
+#pragma clang diagnostic pop
+#else
+#if !defined(_MSC_VER)
+  Context() = delete;
+  Context(const Context&) = delete;
+  Context& operator=(const Context&) = delete;
+  Context(Context&&) = delete;
+  Context& operator=(Context&&) = delete;
+#endif
+#endif
+
 };
 }
 

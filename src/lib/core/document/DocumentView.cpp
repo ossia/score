@@ -8,8 +8,6 @@
 #include <core/document/Document.hpp>
 #include <core/document/DocumentView.hpp>
 
-#include <QGridLayout>
-#include <QLayout>
 
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(score::DocumentView)

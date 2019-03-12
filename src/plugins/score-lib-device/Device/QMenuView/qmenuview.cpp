@@ -46,12 +46,9 @@ J'ai apporté quelques modifications en plus.
 
 #include <QAbstractItemModel>
 #include <QAction>
-#include <QEvent>
 #include <QIcon>
 #include <QMenu>
 #include <QMouseEvent>
-#include <QObject>
-#include <QScopedPointer>
 #include <QString>
 #include <QVariant>
 #include <qnamespace.h>

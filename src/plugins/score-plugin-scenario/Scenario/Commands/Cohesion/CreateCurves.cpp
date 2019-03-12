@@ -28,7 +28,6 @@
 #include <ossia/network/value/value_conversion.hpp>
 
 #include <QList>
-#include <QPointer>
 namespace Scenario
 {
 static std::vector<Device::FullAddressSettings>

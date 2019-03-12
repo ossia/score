@@ -14,8 +14,6 @@
 #include <score/tools/std/Optional.hpp>
 
 #include <QObject>
-#include <QString>
-#include <QVector>
 
 #include <score_plugin_scenario_export.h>
 #include <verdigris>

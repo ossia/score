@@ -4,7 +4,6 @@
 #include <QGraphicsItem>
 #include <QGraphicsSceneDragDropEvent>
 #include <QRect>
-#include <QtGlobal>
 
 #include <score_lib_process_export.h>
 #include <verdigris>

@@ -181,6 +181,7 @@ function(score_set_clang_compile_options theTarget)
         -Werror=return-stack-address
         -Wmissing-field-initializers
         -Wno-gnu-statement-expression
+        -Wno-four-char-constants
       #  -Wweak-vtables
         -ftemplate-backtrace-limit=0
         "$<$<CONFIG:Debug>:-O0>"
@@ -224,7 +225,6 @@ function(score_set_unix_compile_options theTarget)
     -Wextra
     -Wno-unused-parameter
     -Wno-unknown-pragmas
-    -Wno-four-char-constants
     -Wnon-virtual-dtor
     -pedantic
     -Woverloaded-virtual

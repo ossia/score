@@ -11,8 +11,6 @@
 #include <score/serialization/JSONVisitor.hpp>
 #include <score/serialization/VisitorCommon.hpp>
 
-#include <QJsonObject>
-#include <QJsonValue>
 
 #include <algorithm>
 

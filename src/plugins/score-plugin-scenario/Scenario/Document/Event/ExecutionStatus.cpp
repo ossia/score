@@ -4,7 +4,6 @@
 
 #include <Process/Style/ScenarioStyle.hpp>
 
-#include <QColor>
 #include <qnamespace.h>
 
 namespace Scenario

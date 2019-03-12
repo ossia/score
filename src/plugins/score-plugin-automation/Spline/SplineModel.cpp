@@ -4,7 +4,6 @@
 
 #include <ossia/editor/state/destination_qualifiers.hpp>
 
-#include <QColor>
 
 #include <Spline/SplineModel.hpp>
 #include <Spline/SplinePresenter.hpp>

@@ -1,9 +1,9 @@
 #include <score/graphics/RectItem.hpp>
 #include <score/model/Skin.hpp>
 
-#include <QGraphicsSceneEvent>
 #include <QPainter>
 
+#include <QGraphicsSceneMouseEvent>
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(score::RectItem)
 W_OBJECT_IMPL(score::ResizeableItem)

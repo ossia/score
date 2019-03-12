@@ -9,13 +9,8 @@
 
 #include <QApplication>
 #include <QColor>
-#include <QCursor>
-#include <QDebug>
 #include <QDrag>
-#include <QEvent>
-#include <QFlags>
 #include <QGraphicsItem>
-#include <QGraphicsSceneEvent>
 #include <QKeyEvent>
 #include <QMimeData>
 #include <QPainter>

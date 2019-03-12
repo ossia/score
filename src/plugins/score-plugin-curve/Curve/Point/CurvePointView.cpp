@@ -8,16 +8,13 @@
 
 #include <score/model/Identifier.hpp>
 #include <score/selection/Selectable.hpp>
-#include <score/tools/Todo.hpp>
+#include <score/tools/Bind.hpp>
 
-#include <QColor>
 #include <QCursor>
-#include <QGraphicsSceneEvent>
 #include <QPainter>
-#include <QPen>
-#include <QtGlobal>
 #include <qnamespace.h>
 
+#include <qgraphicssceneevent.h>
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Curve::PointView)
 namespace Curve

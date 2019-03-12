@@ -7,7 +7,6 @@
 
 #include <score/model/path/Path.hpp>
 
-#include <QtTest/QtTest>
 
 #include <chrono>
 

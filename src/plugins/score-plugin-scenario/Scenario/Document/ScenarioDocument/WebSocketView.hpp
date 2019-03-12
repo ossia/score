@@ -1,11 +1,6 @@
 #pragma once
 
 #include <QGraphicsScene>
-#include <QtCore/QByteArray>
-#include <QtCore/QList>
-#include <QtCore/QObject>
-#include <QtWebSockets/QWebSocket>
-#include <QtWebSockets/QWebSocketServer>
 
 #include <verdigris>
 

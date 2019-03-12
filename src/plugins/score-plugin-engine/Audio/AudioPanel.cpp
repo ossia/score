@@ -5,6 +5,7 @@
 
 #include <score/widgets/DoubleSlider.hpp>
 #include <score/widgets/MarginLess.hpp>
+#include <score/tools/Bind.hpp>
 
 #include <ossia/audio/audio_parameter.hpp>
 #include <ossia/network/base/node.hpp>

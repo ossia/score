@@ -5,6 +5,7 @@
 #include <score/application/ApplicationContext.hpp>
 
 #include <QIODevice>
+#include <stdexcept>
 
 template <typename T>
 class Reader;
@@ -36,6 +37,18 @@ DataStreamWriter::DataStreamWriter(const QByteArray& array)
 DataStreamWriter::DataStreamWriter(QIODevice* dev)
     : m_stream_impl{dev}, components{score::AppComponents()}
 {
+}
+
+void DataStreamWriter::checkDelimiter()
+{
+  int val{};
+  m_stream >> val;
+
+  if (val != int32_t(0xDEADBEEF))
+  {
+    SCORE_BREAKPOINT;
+    throw std::runtime_error("Corrupt save file.");
+  }
 }
 
 QDataStream& operator<<(QDataStream& s, char c)

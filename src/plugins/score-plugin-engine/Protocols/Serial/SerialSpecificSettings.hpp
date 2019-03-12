@@ -2,7 +2,6 @@
 
 #include <ossia/detail/config.hpp>
 #if defined(OSSIA_PROTOCOL_SERIAL)
-#include <QMetaType>
 #include <QSerialPortInfo>
 #include <QString>
 

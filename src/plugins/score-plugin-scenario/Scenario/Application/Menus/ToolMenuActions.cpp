@@ -12,16 +12,17 @@
 #include <score/actions/Menu.hpp>
 #include <score/actions/MenuManager.hpp>
 #include <score/widgets/SetIcons.hpp>
+#include <score/tools/Bind.hpp>
 
 #include <core/application/ApplicationSettings.hpp>
 
 #include <QAction>
 #include <QActionGroup>
-#include <QMainWindow>
-#include <QMenu>
 #include <QString>
 #include <QToolBar>
 #include <QVariant>
+#include <QMenu>
+#include <QMainWindow>
 #include <qnamespace.h>
 
 class QObject;

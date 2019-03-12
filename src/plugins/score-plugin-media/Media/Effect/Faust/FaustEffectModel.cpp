@@ -8,6 +8,7 @@
 
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/tools/IdentifierGeneration.hpp>
+#include <score/tools/std/String.hpp>
 
 #include <ossia/dataflow/execution_state.hpp>
 #include <ossia/dataflow/nodes/faust/faust_node.hpp>
@@ -17,10 +18,10 @@
 #include <QPlainTextEdit>
 #include <QTimer>
 #include <QVBoxLayout>
+#include <score/tools/Bind.hpp>
 
 #include <wobjectimpl.h>
 
-#include <iostream>
 W_OBJECT_IMPL(Media::Faust::FaustEffectModel)
 std::list<::GUI*> GUI::fGuiList;
 namespace Process

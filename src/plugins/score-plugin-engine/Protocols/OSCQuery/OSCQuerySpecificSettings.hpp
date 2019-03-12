@@ -1,7 +1,6 @@
 #pragma once
 #include <ossia/detail/optional.hpp>
 
-#include <QMetaType>
 #include <QString>
 
 #include <verdigris>

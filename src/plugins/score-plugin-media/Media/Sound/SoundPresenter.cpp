@@ -7,6 +7,7 @@
 
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/document/DocumentContext.hpp>
+#include <score/tools/Bind.hpp>
 
 namespace Media
 {

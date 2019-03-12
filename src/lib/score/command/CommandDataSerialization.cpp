@@ -6,7 +6,6 @@
 #include <score/plugins/StringFactoryKeySerialization.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
 
-#include <QByteArray>
 
 template <typename T>
 class Reader;

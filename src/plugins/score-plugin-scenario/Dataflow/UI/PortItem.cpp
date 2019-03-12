@@ -28,20 +28,11 @@
 #include <ossia/editor/state/destination_qualifiers.hpp>
 #include <ossia/network/domain/domain.hpp>
 
-#include <QApplication>
-#include <QCheckBox>
-#include <QCursor>
 #include <QDialog>
 #include <QDialogButtonBox>
-#include <QDrag>
-#include <QFormLayout>
-#include <QGraphicsProxyWidget>
 #include <QGraphicsScene>
-#include <QGraphicsSceneMoveEvent>
-#include <QLineEdit>
+#include <QGraphicsSceneDragDropEvent>
 #include <QMenu>
-#include <QMimeData>
-#include <QPainter>
 #include <QPushButton>
 namespace Dataflow
 {

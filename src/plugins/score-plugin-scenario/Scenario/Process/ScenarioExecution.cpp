@@ -37,8 +37,6 @@
 #include <ossia/editor/scenario/time_value.hpp>
 #include <ossia/editor/state/state.hpp>
 
-#include <QDebug>
-
 #include <wobjectimpl.h>
 
 #include <algorithm>

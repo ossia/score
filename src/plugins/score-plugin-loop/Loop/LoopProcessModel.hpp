@@ -9,8 +9,6 @@
 #include <score/selection/Selection.hpp>
 #include <score/serialization/VisitorInterface.hpp>
 
-#include <QByteArray>
-#include <QString>
 #include <QVector>
 
 #include <score_plugin_loop_export.h>

@@ -4,7 +4,6 @@
 
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 
-#include <QString>
 
 #include <Color/GradientModel.hpp>
 #include <Metronome/MetronomeModel.hpp>

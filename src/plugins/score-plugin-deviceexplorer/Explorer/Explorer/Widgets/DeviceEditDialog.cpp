@@ -13,11 +13,8 @@
 
 #include <QComboBox>
 #include <QDialogButtonBox>
-#include <QFlags>
 #include <QFormLayout>
-#include <QGridLayout>
 #include <QLabel>
-#include <QLayoutItem>
 #include <QVariant>
 #include <QWidget>
 #include <qnamespace.h>

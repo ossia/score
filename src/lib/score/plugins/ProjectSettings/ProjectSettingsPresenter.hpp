@@ -1,7 +1,6 @@
 #pragma once
 #include <score/plugins/settingsdelegate/SettingsDelegatePresenter.hpp>
 
-#include <QObject>
 
 namespace score
 {

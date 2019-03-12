@@ -5,8 +5,6 @@
 #include <State/Widgets/Values/NumericValueWidget.hpp>
 #include <State/Widgets/Values/VecWidgets.hpp>
 
-#include <QComboBox>
-#include <QFormLayout>
 
 namespace Explorer
 {

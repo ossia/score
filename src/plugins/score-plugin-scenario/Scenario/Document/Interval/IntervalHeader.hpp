@@ -2,8 +2,6 @@
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentViewConstants.hpp>
 
 #include <QGraphicsItem>
-#include <QStaticText>
-#include <QString>
 
 class QGraphicsSceneMouseEvent;
 

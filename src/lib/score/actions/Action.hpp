@@ -3,9 +3,7 @@
 #include <score/plugins/StringFactoryKey.hpp>
 
 #include <QAction>
-#include <QMenu>
 #include <QString>
-#include <QToolBar>
 
 #include <memory>
 

@@ -4,10 +4,8 @@
 
 #include <score/widgets/Pixmap.hpp>
 #include <QGraphicsSceneMouseEvent>
-#include <QPainter>
 
 #include <wobjectimpl.h>
-#include <QImageReader>
 W_OBJECT_IMPL(Scenario::TriggerView)
 namespace Scenario
 {

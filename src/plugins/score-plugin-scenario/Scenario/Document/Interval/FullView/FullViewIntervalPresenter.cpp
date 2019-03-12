@@ -25,10 +25,10 @@
 #include <Scenario/Application/Drops/ScenarioDropHandler.hpp>
 #include <score/document/DocumentInterface.hpp>
 #include <score/graphics/GraphicsItem.hpp>
+#include <score/tools/Bind.hpp>
 
 #include <QGraphicsScene>
-#include <QList>
-#include <QPainter>
+#include <QMenu>
 
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Scenario::FullViewIntervalPresenter)
@@ -203,7 +203,7 @@ void FullViewIntervalPresenter::createSlot(int pos, const FullSlot& slt)
 {
   SlotPresenter p;
   p.header = new SlotHeader{*this, pos, m_view};
-  p.footer = new SlotFooter{*this, pos, m_view};
+  p.footer = new AmovibleSlotFooter{*this, pos, m_view};
 
   const auto& proc = m_model.processes.at(slt.process);
 

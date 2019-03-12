@@ -2,9 +2,9 @@
 #include "view.hpp"
 #include <Process/Style/ScenarioStyle.hpp>
 #include <score/graphics/GraphicWidgets.hpp>
+#include <score/tools/IdentifierGeneration.hpp>
 #include <score/graphics/RectItem.hpp>
 #include <QJsonDocument>
-#include <QPen>
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(fxd::Widget)
 
@@ -227,7 +227,7 @@ QString Widget::code(QString variable) const
     {
 
     }
-  } op{*this, variable};
+  } op{*this, variable, {}};
   ossia::apply(op, data());
   return op.code;
 }
@@ -240,7 +240,7 @@ QGraphicsItem* Widget::makeItem(DocumentView& view)
 
 bool Widget::keepRatio() const
 {
-  return eggs::variants::apply([this] (const auto& t)
+  return eggs::variants::apply([] (const auto& t)
   {
     return t.keepRatio;
   }, m_data);

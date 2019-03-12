@@ -3,10 +3,8 @@
 #include <score/widgets/SignalUtils.hpp>
 
 #include <QComboBox>
-#include <QFormLayout>
-#include <QSpinBox>
-#include <QStackedWidget>
 #include <QCheckBox>
+#include <QFormLayout>
 
 #include <Audio/Settings/Model.hpp>
 #include <Audio/Settings/View.hpp>

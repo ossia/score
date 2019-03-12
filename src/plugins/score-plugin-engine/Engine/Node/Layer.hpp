@@ -4,13 +4,11 @@
 #include <Process/LayerPresenter.hpp>
 #include <Process/LayerView.hpp>
 #include <Process/Style/ScenarioStyle.hpp>
+#include <Effect/EffectLayout.hpp>
 
 #include <score/graphics/RectItem.hpp>
 #include <score/graphics/TextItem.hpp>
 
-#include <QGraphicsProxyWidget>
-#include <QGraphicsSceneMouseEvent>
-#include <QPainter>
 
 #include <Control/Widgets.hpp>
 #include <Effect/EffectLayer.hpp>
@@ -73,8 +71,9 @@ struct AutoUISetup
   const Process::PortFactoryList& portFactory = doc.app.interfaces<Process::PortFactoryList>();
 
   std::size_t i = 0;
-  double pos_y = 0.;
+  std::size_t ctl_i = 0;
 
+  std::vector<QRectF> controlRects;
   template <typename Info>
   AutoUISetup(
       Info&&,
@@ -92,32 +91,19 @@ struct AutoUISetup
   template<typename T>
   void operator()(const T& ctrl)
   {
-    auto item = new score::EmptyItem{&parent};
-    item->setPos(0, pos_y);
     auto inlet = static_cast<Process::ControlInlet*>(inlets[i]);
-
-    // Port
-    Process::PortFactory* fact = portFactory.get(inlet->concreteKey());
-    auto port = fact->makeItem(*inlet, doc, item, &context);
-
-    // Text
-    auto lab = new score::SimpleTextItem{score::Skin::instance().Port2.main, item};
-    lab->setText(ctrl.name);
-    lab->setPos(20., 2.);
-    const qreal labelHeight = 10;
-
-    // Control
-    QGraphicsItem* widg
-        = ctrl.make_item(ctrl, *inlet, doc, nullptr, &context);
-    widg->setParentItem(item);
-    widg->setPos(18., labelHeight + 5.);
-
-    // Positioning
-    port->setPos(8., 4.);
-
-    pos_y += 20.;
-
+    auto csetup = Process::controlSetup(
+     [] (auto& factory, auto& inlet, const auto& doc, auto item, auto parent)
+     { return factory.makeItem(inlet, doc, item, parent); },
+     [&] (auto& factory, auto& inlet, const auto& doc, auto item, auto parent)
+     { return ctrl.make_item(ctrl, inlet, doc, item, parent); },
+     [&] (int j) { return controlRects[j].size(); },
+    [&] { return ctrl.name; }
+    );
+    auto res = Process::createControl(ctl_i, csetup, *inlet, portFactory, doc, &parent, &context);
+    controlRects.push_back(res.itemRect);
     i++;
+    ctl_i++;
   }
 };
 

@@ -5,10 +5,8 @@
 #include <score/model/path/Path.hpp>
 #include <score/statemachine/StateMachineUtils.hpp>
 
-#include <QAbstractTransition>
 #include <QPointF>
 #include <QState>
-#include <QStateMachine>
 
 namespace Scenario
 {

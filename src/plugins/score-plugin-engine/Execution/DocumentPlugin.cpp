@@ -14,6 +14,7 @@
 
 #include <score/actions/ActionManager.hpp>
 #include <score/plugins/documentdelegate/plugin/DocumentPlugin.hpp>
+#include <score/tools/Bind.hpp>
 
 #include <core/document/Document.hpp>
 #include <core/document/DocumentModel.hpp>
@@ -53,7 +54,11 @@ DocumentPlugin::DocumentPlugin(
             m_editionQueue,
             m_setup_ctx,
             execGraph,
-            execState}
+            execState
+            #if __cplusplus > 201703L
+            , {ossia::disable_init}
+            #endif
+}
     , m_setup_ctx{m_ctx}
     , m_base{m_ctx, this}
 {

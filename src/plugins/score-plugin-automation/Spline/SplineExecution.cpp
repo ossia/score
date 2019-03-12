@@ -3,6 +3,7 @@
 #include "SplineExecution.hpp"
 
 #include <Process/ExecutionContext.hpp>
+#include <score/tools/Bind.hpp>
 
 #include <ossia/dataflow/nodes/spline.hpp>
 namespace Spline

@@ -7,8 +7,8 @@
 
 #include <score/widgets/TextLabel.hpp>
 
-#include <QHBoxLayout>
 #include <QTabWidget>
+#include <QVBoxLayout>
 #include <QWidget>
 namespace Process
 {

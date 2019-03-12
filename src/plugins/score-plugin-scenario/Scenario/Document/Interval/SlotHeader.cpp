@@ -14,11 +14,11 @@
 #include <score/model/path/PathSerialization.hpp>
 
 #include <QDrag>
-#include <QGraphicsSceneEvent>
-#include <QGraphicsView>
 #include <QJsonDocument>
 #include <QMimeData>
 #include <QWidget>
+#include <QGraphicsView>
+#include <QPainter>
 
 #include <wobjectimpl.h>
 namespace Scenario
@@ -232,7 +232,6 @@ SlotFooter::SlotFooter(
   this->setFlag(ItemClipsChildrenToShape);
   this->setAcceptedMouseButtons(Qt::LeftButton | Qt::RightButton);
   this->setZValue(ZPos::Header);
-  this->setCursor(Qt::SizeVerCursor);
 }
 
 int SlotFooter::type() const
@@ -274,14 +273,23 @@ void SlotFooter::setWidth(qreal width)
   update();
 }
 
-void SlotFooter::mousePressEvent(QGraphicsSceneMouseEvent* event)
+AmovibleSlotFooter::AmovibleSlotFooter(
+    const IntervalPresenter& slotView,
+    int slotIndex,
+    QGraphicsItem* parent):
+  SlotFooter{slotView, slotIndex, parent}
+{
+  this->setCursor(Qt::SizeVerCursor);
+}
+
+void AmovibleSlotFooter::mousePressEvent(QGraphicsSceneMouseEvent* event)
 {
   if(m_presenter.model().smallViewVisible())
     m_presenter.pressed(event->scenePos());
   event->accept();
 }
 
-void SlotFooter::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
+void AmovibleSlotFooter::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 {
   if(m_presenter.model().smallViewVisible())
   {
@@ -302,13 +310,30 @@ void SlotFooter::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
   event->accept();
 }
 
-void SlotFooter::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
+void AmovibleSlotFooter::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 {
   if(m_presenter.model().smallViewVisible())
     m_presenter.released(event->scenePos());
 
   event->accept();
 }
+
+void FixedSlotFooter::mousePressEvent(QGraphicsSceneMouseEvent* event)
+{
+  event->accept();
+}
+
+void FixedSlotFooter::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
+{
+  event->accept();
+}
+
+void FixedSlotFooter::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
+{
+  event->accept();
+}
+
+
 
 
 

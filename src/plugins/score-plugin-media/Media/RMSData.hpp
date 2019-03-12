@@ -2,9 +2,6 @@
 #include <gsl/span>
 #include <Process/TimeValue.hpp>
 #include <Media/AudioArray.hpp>
-#include <QCryptographicHash>
-#include <QDir>
-#include <QStandardPaths>
 #include <QFile>
 #include <QBuffer>
 

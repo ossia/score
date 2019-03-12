@@ -4,10 +4,7 @@
 
 #include <score/tools/IdentifierGeneration.hpp>
 
-#include <QByteArray>
 #include <QFile>
-#include <QFlags>
-#include <QIODevice>
 #include <QStringList>
 
 #include <cstdlib>

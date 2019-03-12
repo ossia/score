@@ -14,8 +14,6 @@
 #include <score/model/tree/TreeNodeSerialization.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
 
-#include <QDataStream>
-#include <QtGlobal>
 
 #include <algorithm>
 

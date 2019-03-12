@@ -15,12 +15,8 @@
 #include <ossia/detail/hash.hpp>
 #include <ossia/detail/murmur3.hpp>
 
-#include <QApplication>
-#include <QByteArray>
-#include <QDebug>
-#include <QList>
-#include <QObject>
 #include <QStringBuilder>
+#include <QObject>
 #include <qnamespace.h>
 
 #include <sys/types.h>

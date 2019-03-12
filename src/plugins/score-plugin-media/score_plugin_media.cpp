@@ -17,7 +17,6 @@
 #include <Media/Step/Inspector.hpp>
 #include <Scenario/Application/ScenarioApplicationPlugin.hpp>
 
-#include <QAction>
 
 #if defined(HAS_LV2)
 #include <Media/Effect/LV2/LV2EffectModel.hpp>

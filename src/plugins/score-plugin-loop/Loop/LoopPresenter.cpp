@@ -29,12 +29,12 @@
 #include <score/application/ApplicationContext.hpp>
 #include <score/document/DocumentContext.hpp>
 #include <score/graphics/GraphicsItem.hpp>
-#include <score/tools/Todo.hpp>
 
 #include <ossia/detail/algorithms.hpp>
 
 #include <QGraphicsItem>
 #include <QMenu>
+#include <QTimer>
 
 #include <wobjectimpl.h>
 

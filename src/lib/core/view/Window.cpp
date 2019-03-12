@@ -14,19 +14,16 @@
 
 #include <ossia/detail/algorithms.hpp>
 
-#include <QAction>
-#include <QApplication>
 #include <QLabel>
 #include <QCloseEvent>
-#include <QDesktopWidget>
 #include <QDockWidget>
 #include <QEvent>
-#include <QFlags>
-#include <QRect>
-#include <QTabBar>
 #include <QTabWidget>
+#include <QTabBar>
 #include <QVBoxLayout>
 #include <QWidget>
+#include <QGuiApplication>
+#include <QScreen>
 #include <qcoreevent.h>
 #include <qnamespace.h>
 
@@ -88,8 +85,7 @@ View::View(QObject* parent) : QMainWindow{}, m_tabWidget{new QTabWidget}
   setCorner(Qt::BottomLeftCorner, Qt::LeftDockWidgetArea);
   setCorner(Qt::BottomRightCorner, Qt::RightDockWidgetArea);
 
-  QDesktopWidget w;
-  auto rect = w.availableGeometry();
+  auto rect = QGuiApplication::primaryScreen()->availableGeometry();
   this->resize(
       static_cast<int>(rect.width() * 0.75),
       static_cast<int>(rect.height() * 0.75));

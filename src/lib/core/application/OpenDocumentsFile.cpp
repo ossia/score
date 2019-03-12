@@ -4,7 +4,6 @@
 
 #include <QFile>
 #include <QStandardPaths>
-#include <QStringList>
 
 namespace score
 {

@@ -50,17 +50,7 @@
 #include <core/view/Window.hpp>
 
 #include <QAction>
-#include <QByteArray>
-#include <QIODevice>
-#include <QJsonArray>
-#include <QJsonDocument>
-#include <QJsonObject>
-#include <QJsonValue>
-#include <QKeySequence>
-#include <QList>
 #include <QMenu>
-#include <QString>
-#include <QToolBar>
 #include <qnamespace.h>
 
 #include <string.h>

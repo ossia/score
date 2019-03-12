@@ -2,9 +2,6 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include <Process/Style/ScenarioStyle.hpp>
 
-#include <QColorDialog>
-#include <QEasingCurve>
-#include <QGraphicsSceneMoveEvent>
 #include <QPainter>
 
 #include <Spline/SplineView.hpp>

@@ -1,8 +1,6 @@
 #pragma once
-
 #include <cassert>
 #include <cstddef>
-#include <stdexcept>
 
 #if defined(_WIN32)
 #include <malloc.h>
@@ -35,16 +33,8 @@ public:
 
   T& operator[](std::size_t pos) const
   {
-    SCORE_ASSERT(m_ptr);
-    SCORE_ASSERT(pos < m_size);
-    return *(m_ptr + pos);
-  }
-
-  T& at(std::size_t pos) const
-  {
-    if (!m_ptr || !(pos < m_size))
-      throw std::out_of_range{"pos >= m_size"};
-
+    assert(m_ptr);
+    assert(pos < m_size);
     return *(m_ptr + pos);
   }
 };
@@ -81,29 +71,21 @@ public:
 
   T& operator[](std::size_t pos) const
   {
-    SCORE_ASSERT(m_ptr);
-    SCORE_ASSERT(pos < m_size);
-    return *(m_ptr + pos);
-  }
-
-  T& at(std::size_t pos) const
-  {
-    if (!m_ptr || !(pos < m_size))
-      throw std::out_of_range{"pos >= m_size"};
-
+    assert(m_ptr);
+    assert(pos < m_size);
     return *(m_ptr + pos);
   }
 
   void push_back(T&& t)
   {
-    SCORE_ASSERT(m_size + 1 <= m_capacity);
+    assert(m_size + 1 <= m_capacity);
     *(m_ptr + m_size) = std::move(t);
     m_size++;
   }
 
   void push_back(const T& t)
   {
-    SCORE_ASSERT(m_size + 1 <= m_capacity);
+    assert(m_size + 1 <= m_capacity);
     *(m_ptr + m_size) = t;
     m_size++;
   }

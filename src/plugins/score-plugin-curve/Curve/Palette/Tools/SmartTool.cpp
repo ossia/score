@@ -21,7 +21,6 @@
 #include <score/statemachine/StateMachineUtils.hpp>
 #include <score/tools/std/Optional.hpp>
 
-#include <QStateMachine>
 
 namespace Curve
 {

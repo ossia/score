@@ -5,11 +5,9 @@
 #include <score/graphics/TextItem.hpp>
 #include <score/model/ColorReference.hpp>
 
-#include <QColor>
 #include <QGraphicsItem>
 #include <QPoint>
 #include <QRect>
-#include <QTextLayout>
 
 #include <score_plugin_scenario_export.h>
 class QGraphicsSceneMouseEvent;

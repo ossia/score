@@ -10,12 +10,8 @@
 #include <ossia/network/dataspace/dataspace_visitors.hpp>
 #include <ossia/network/dataspace/detail/dataspace_parse.hpp>
 
-#include <QApplication>
-#include <QColumnView>
 #include <QComboBox>
 #include <QHBoxLayout>
-#include <QPushButton>
-#include <QTreeView>
 
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(State::UnitWidget)

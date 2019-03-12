@@ -7,7 +7,6 @@
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/tools/Clamp.hpp>
 
-#include <QFile>
 
 #include <Effect/EffectFactory.hpp>
 #include <wobjectimpl.h>

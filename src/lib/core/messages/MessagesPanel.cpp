@@ -5,10 +5,11 @@
 #include <core/application/SafeQApplication.hpp>
 #include <ossia-qt/invoke.hpp>
 #include <ossia/detail/logger.hpp>
+#include <score/tools/Bind.hpp>
 
 #include <QDockWidget>
 #include <QFileInfo>
-#include <QListWidget>
+#include <QListView>
 #include <QMenu>
 
 #include <wobjectimpl.h>

@@ -14,9 +14,6 @@
 #include <ossia/network/osc/osc.hpp>
 #include <ossia/network/rate_limiting_protocol.hpp>
 
-#include <QDebug>
-#include <QString>
-#include <QVariant>
 
 #include <memory>
 

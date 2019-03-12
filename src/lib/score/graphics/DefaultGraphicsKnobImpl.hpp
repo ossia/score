@@ -4,15 +4,11 @@
 
 #include <ossia/detail/math.hpp>
 
-#include <QApplication>
-#include <QDesktopWidget>
 #include <QDoubleSpinBox>
-#include <QEventLoop>
 #include <QGraphicsSceneMouseEvent>
-#include <QKeyEvent>
+#include <QGuiApplication>
 #include <QPainter>
 #include <QTimer>
-#include <QWindow>
 #include <QScreen>
 
 namespace score

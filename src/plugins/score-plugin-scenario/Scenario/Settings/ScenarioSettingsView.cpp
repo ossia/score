@@ -6,7 +6,6 @@
 #include <score/serialization/JSONVisitor.hpp>
 #include <score/widgets/SignalUtils.hpp>
 
-#include <QApplication>
 #include <QCheckBox>
 #include <QComboBox>
 #include <QDialog>
@@ -14,12 +13,12 @@
 #include <QFormLayout>
 #include <QJsonDocument>
 #include <QJsonObject>
-#include <QLabel>
 #include <QLineEdit>
 #include <QListWidget>
 #include <QPushButton>
 #include <QSpinBox>
 #include <QSyntaxHighlighter>
+#include <QApplication>
 #include <QTextEdit>
 #include <QtColorWidgets/ColorWheel>
 

@@ -22,9 +22,7 @@
 
 #include <QFile>
 #include <QFileInfo>
-#include <QFlags>
 #include <QJsonDocument>
-#include <QMap>
 #include <QMimeData>
 #include <QObject>
 #include <QString>

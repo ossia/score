@@ -7,7 +7,6 @@
 #include <score/plugins/qt_interfaces/FactoryInterface_QtInterface.hpp>
 #include <score/plugins/qt_interfaces/PluginRequirements_QtInterface.hpp>
 
-#include <QObject>
 
 #include <cmath>
 #include <faust/dsp/dsp.h>

@@ -24,10 +24,10 @@
 #include <score/plugins/application/GUIApplicationPlugin.hpp>
 #include <score/plugins/documentdelegate/plugin/DocumentPluginCreator.hpp>
 #include <score/tools/IdentifierGeneration.hpp>
-#include <score/tools/Todo.hpp>
 #include <score/widgets/ControlWidgets.hpp>
 #include <score/widgets/DoubleSlider.hpp>
 #include <score/widgets/SetIcons.hpp>
+#include <score/tools/Bind.hpp>
 
 #include <core/application/ApplicationInterface.hpp>
 #include <core/application/ApplicationSettings.hpp>
@@ -43,13 +43,11 @@
 #include <ossia/network/generic/generic_device.hpp>
 
 #include <QAction>
-#include <QApplication>
 #include <QLabel>
-#include <QMainWindow>
 #include <QMessageBox>
 #include <QTabWidget>
-#include <QVariant>
-#include <QVector>
+#include <QToolBar>
+#include <QMainWindow>
 
 #include <Audio/AudioInterface.hpp>
 #include <Audio/Settings/Model.hpp>

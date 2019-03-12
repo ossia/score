@@ -15,13 +15,10 @@
 #include <boost/range/algorithm/find_if.hpp>
 
 #include <QCoreApplication>
-#include <QDebug>
 #include <QDir>
 #include <QJsonDocument>
-#include <QRegularExpression>
 #include <QSettings>
 #include <QStandardPaths>
-#include <QVariant>
 
 #include <utility>
 

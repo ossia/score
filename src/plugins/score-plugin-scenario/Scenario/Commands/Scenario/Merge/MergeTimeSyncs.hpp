@@ -14,6 +14,7 @@
 #include <score/model/path/Path.hpp>
 #include <score/model/path/PathSerialization.hpp>
 #include <score/model/tree/TreeNode.hpp>
+#include <score/tools/Unused.hpp>
 //#include <Scenario/Application/ScenarioValidity.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
 

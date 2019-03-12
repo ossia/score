@@ -7,6 +7,7 @@
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <JS/JSProcessModel.hpp>
 #include <Scenario/Execution/score2OSSIA.hpp>
+#include <score/tools/Bind.hpp>
 
 #include <ossia-qt/invoke.hpp>
 #include <ossia-qt/js_utilities.hpp>
@@ -17,8 +18,8 @@
 #include <ossia/editor/state/state.hpp>
 
 #include <QEventLoop>
-#include <QQmlComponent>
 #include <QQmlContext>
+#include <QQmlComponent>
 
 #include <Engine/OSSIA2score.hpp>
 #include <Execution/DocumentPlugin.hpp>

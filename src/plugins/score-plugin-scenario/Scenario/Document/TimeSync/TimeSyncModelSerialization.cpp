@@ -17,11 +17,7 @@
 #include <score/serialization/JSONVisitor.hpp>
 #include <score/tools/std/Optional.hpp>
 
-#include <QDataStream>
-#include <QJsonArray>
 #include <QJsonObject>
-#include <QJsonValue>
-#include <QtGlobal>
 
 #include <algorithm>
 

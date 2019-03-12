@@ -8,7 +8,6 @@
 #include <Process/Style/ScenarioStyle.hpp>
 
 #include <QGraphicsSceneDragDropEvent>
-#include <QMimeData>
 #include <QPainter>
 #include <QStyleOption>
 

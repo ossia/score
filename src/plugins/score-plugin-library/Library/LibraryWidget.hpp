@@ -3,8 +3,6 @@
 
 #include <score/tools/std/Optional.hpp>
 
-#include <QStandardItemModel>
-#include <QTableView>
 #include <QTreeView>
 class QFileSystemModel;
 class QSortFilterProxyModel;

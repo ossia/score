@@ -4,7 +4,6 @@
 #include <State/Widgets/Values/TypeComboBox.hpp>
 
 #include <QAbstractItemModel>
-#include <QComboBox>
 #include <QStyledItemDelegate>
 
 #include <verdigris>

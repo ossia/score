@@ -17,8 +17,8 @@
 #include <ossia/editor/state/destination_qualifiers.hpp>
 #include <ossia/network/value/value.hpp>
 
-#include <QHBoxLayout>
 
+#include <QVBoxLayout>
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Device::AddressAccessorEditWidget)
 namespace Device

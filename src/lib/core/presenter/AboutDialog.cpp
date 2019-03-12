@@ -2,22 +2,19 @@
 
 #include <score/widgets/Pixmap.hpp>
 
-#include <QDate>
-#include <QDebug>
-#include <QDesktopServices>
-#include <QEvent>
-#include <QFont>
+#include <QGuiApplication>
+#include <QScreen>
+#include <QUrl>
 #include <QListWidget>
-#include <QPainter>
-#include <QPicture>
 #include <QPlainTextEdit>
-#include <QSize>
-
 #include <score_git_info.hpp>
 #if __has_include(<score_licenses.hpp>)
 #include <score_licenses.hpp>
 #endif
 
+#include <QDate>
+#include <QDesktopServices>
+#include <QPainter>
 #include <map>
 namespace score
 {

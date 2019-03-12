@@ -7,7 +7,6 @@
 
 #include <score/graphics/TextItem.hpp>
 
-#include <QFont>
 #include <QGraphicsSceneMouseEvent>
 #include <QPainter>
 #include <QTextCursor>

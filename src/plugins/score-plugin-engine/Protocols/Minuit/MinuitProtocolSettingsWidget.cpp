@@ -10,7 +10,6 @@
 
 #include <QAction>
 #include <QFormLayout>
-#include <QLabel>
 #include <QLineEdit>
 #include <QPushButton>
 #include <QSpinBox>

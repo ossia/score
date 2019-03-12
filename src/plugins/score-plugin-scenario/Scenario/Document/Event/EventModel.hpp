@@ -12,8 +12,6 @@
 #include <score/tools/Metadata.hpp>
 #include <score/tools/std/Optional.hpp>
 
-#include <QString>
-#include <QVector>
 
 #include <score_plugin_scenario_export.h>
 #include <verdigris>
