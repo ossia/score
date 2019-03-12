@@ -9,7 +9,6 @@
 #include <score/tools/std/Optional.hpp>
 
 #include <QString>
-#include <QStringList>
 #include <QVector>
 
 #include <score_lib_process_export.h>

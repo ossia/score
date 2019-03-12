@@ -19,15 +19,10 @@
 #include <core/view/QRecentFilesMenu.h>
 #include <core/view/Window.hpp>
 
-#include <QAction>
-#include <QApplication>
-#include <QKeySequence>
-#include <QLabel>
 #include <QMenu>
 #include <QMenuBar>
-#include <QMessageBox>
 #include <QObject>
-#include <QString>
+#include <QToolBar>
 #include <qnamespace.h>
 
 #include <sys/types.h>
@@ -39,7 +34,6 @@
 #include <utility>
 #include <vector>
 
-#include <QStatusBar>
 #include <unordered_map>
 W_OBJECT_IMPL(score::Presenter)
 namespace score

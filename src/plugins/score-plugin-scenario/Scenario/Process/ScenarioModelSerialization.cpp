@@ -21,10 +21,6 @@
 #include <score/tools/MapCopy.hpp>
 #include <score/tools/std/Optional.hpp>
 
-#include <QJsonArray>
-#include <QJsonObject>
-#include <QJsonValue>
-#include <QString>
 
 #include <sys/types.h>
 

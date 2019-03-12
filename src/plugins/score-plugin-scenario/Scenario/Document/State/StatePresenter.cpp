@@ -25,14 +25,11 @@
 #include <score/model/ModelMetadata.hpp>
 #include <score/selection/Selectable.hpp>
 #include <score/serialization/MimeVisitor.hpp>
-#include <score/tools/Todo.hpp>
 
-#include <QApplication>
 #include <QFile>
 #include <QFileInfo>
 #include <QJsonDocument>
 #include <QMimeData>
-#include <QStringList>
 #include <QUrl>
 
 #include <wobjectimpl.h>

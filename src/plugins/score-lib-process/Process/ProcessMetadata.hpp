@@ -6,7 +6,6 @@
 #include <score/tools/Metadata.hpp>
 #include <score/tools/std/Optional.hpp>
 
-#include <QObject>
 #include <QStringList>
 
 #include <cinttypes>

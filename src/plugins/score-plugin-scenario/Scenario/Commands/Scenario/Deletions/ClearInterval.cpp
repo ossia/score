@@ -16,8 +16,6 @@
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/tools/MapCopy.hpp>
 
-#include <QDataStream>
-#include <QtGlobal>
 
 #include <algorithm>
 

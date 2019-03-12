@@ -5,7 +5,6 @@
 #include <ossia/detail/math.hpp>
 
 #include <QDoubleSpinBox>
-#include <QEventLoop>
 #include <QGraphicsSceneMouseEvent>
 #include <QKeyEvent>
 #include <QPainter>
@@ -57,7 +56,7 @@ struct DefaultGraphicsSliderImpl
       QPainter* painter,
       QWidget* widget)
   {
-    painter->setRenderHint(QPainter::Antialiasing, true);
+    painter->setRenderHint(QPainter::Antialiasing, false);
 
     painter->setPen(skin.NoPen);
     painter->setBrush(skin.Emphasis2.main.brush);
@@ -84,7 +83,6 @@ struct DefaultGraphicsSliderImpl
         QTextOption(Qt::AlignCenter));
 
     // Draw handle
-    painter->setRenderHint(QPainter::Antialiasing, false);
     painter->fillRect(self.handleRect(), skin.Base4);
 
     // painter->setPen(QPen(Qt::green, 1));

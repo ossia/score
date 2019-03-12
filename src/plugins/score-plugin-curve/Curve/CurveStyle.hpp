@@ -1,5 +1,4 @@
 #pragma once
-#include <QColor>
 #include <QPen>
 
 #include <score_plugin_curve_export.h>

@@ -4,15 +4,14 @@
 
 #include <ossia/editor/scenario/time_value.hpp>
 
-#include <QHBoxLayout>
-#include <QMainWindow>
-#include <QPushButton>
 #include <QToolBar>
 
 #include <Execution/Clock/ClockFactory.hpp>
 #include <Execution/Clock/DefaultClock.hpp>
 #include <Execution/DocumentPlugin.hpp>
 #include <verdigris>
+#include <QMainWindow>
+
 namespace Execution
 {
 namespace ManualClock

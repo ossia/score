@@ -10,13 +10,12 @@
 
 #include <score/model/Identifier.hpp>
 #include <score/selection/Selectable.hpp>
-#include <score/tools/Todo.hpp>
 
 #include <ossia/detail/math.hpp>
 
-#include <QGraphicsSceneEvent>
 #include <QPainter>
 #include <QPen>
+#include <qgraphicssceneevent.h>
 
 #include <wobjectimpl.h>
 

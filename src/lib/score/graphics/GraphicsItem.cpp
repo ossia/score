@@ -3,10 +3,10 @@
 #include "GraphicsItem.hpp"
 
 #include <score/plugins/UuidKey.hpp>
+#include <score/tools/Debug.hpp>
 
 #include <QGraphicsItem>
 #include <QGraphicsView>
-#include <QGraphicsScene>
 
 void deleteGraphicsObject(QGraphicsObject* item)
 {

@@ -11,8 +11,6 @@
 #include <score/model/tree/TreeNode.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
 
-#include <QDataStream>
-#include <QtGlobal>
 
 namespace Explorer
 {

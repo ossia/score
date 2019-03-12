@@ -17,8 +17,6 @@
 
 #include <ossia/detail/algorithms.hpp>
 
-#include <QDebug>
-#include <QStringList>
 
 #include <algorithm>
 #include <vector>

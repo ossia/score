@@ -6,7 +6,6 @@
 #include <ossia/network/domain/domain.hpp>
 
 #include <QDialog>
-#include <QString>
 
 class QLineEdit;
 class QWidget;

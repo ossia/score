@@ -11,8 +11,6 @@
 #include <score/serialization/VisitorCommon.hpp>
 
 #include <QJsonDocument>
-#include <QJsonObject>
-#include <QJsonValue>
 
 #include <algorithm>
 namespace score

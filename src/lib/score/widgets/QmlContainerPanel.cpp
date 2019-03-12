@@ -5,18 +5,11 @@
 #include <score/widgets/SetIcons.hpp>
 
 #include <QAction>
-#include <QDebug>
-#include <QDockWidget>
 #include <QIcon>
-#include <QObject>
-#include <QQmlContext>
-#include <QQmlEngine>
 #include <QString>
 #include <QToolButton>
-#include <QUrl>
 #include <QVBoxLayout>
 #include <QWidget>
-#include <QtQuickWidgets/QQuickWidget>
 
 QMLContainerPanel::QMLContainerPanel(QWidget* parent)
     : QWidget{parent}

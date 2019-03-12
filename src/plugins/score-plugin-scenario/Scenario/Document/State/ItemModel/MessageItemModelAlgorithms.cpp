@@ -10,17 +10,13 @@
 
 #include <score/model/Identifier.hpp>
 #include <score/model/tree/TreeNode.hpp>
-#include <score/tools/Todo.hpp>
 #include <score/tools/std/Optional.hpp>
 
 #include <ossia/detail/algorithms.hpp>
 
-#include <QList>
 #include <QString>
 #include <QStringList>
-#include <QTypeInfo>
 #include <QVector>
-#include <QtGlobal>
 
 #include <algorithm>
 #include <set>

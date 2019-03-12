@@ -31,8 +31,6 @@
 #include <ossia/editor/scenario/time_interval.hpp>
 
 #include <QCoreApplication>
-#include <QJsonDocument>
-#include <QPluginLoader>
 
 #include <Execution/DocumentPlugin.hpp>
 #include <Execution/IntervalComponent.hpp>

@@ -1,10 +1,7 @@
 #pragma once
 #include <State/Value.hpp>
 
-#include <score/tools/Todo.hpp>
-
 #include <QChar>
-#include <QDebug>
 #include <QJsonValue>
 #include <QString>
 #include <QVariant>

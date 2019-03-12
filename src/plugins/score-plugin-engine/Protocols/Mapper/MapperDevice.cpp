@@ -9,6 +9,7 @@
 
 #include <score/widgets/JS/JSEdit.hpp>
 #include <score/widgets/Layout.hpp>
+#include <score/tools/Bind.hpp>
 
 #include <ossia/detail/config.hpp>
 
@@ -19,14 +20,11 @@
 #include <ossia/network/common/node_visitor.hpp>
 #include <ossia/network/generic/wrapped_parameter.hpp>
 
-#include <QDebug>
-#include <QFormLayout>
-#include <QLabel>
 #include <QLineEdit>
 #include <QObject>
 #include <QQmlComponent>
-#include <QQmlContext>
 #include <QQmlEngine>
+#include <QQmlContext>
 #include <QThread>
 
 #include <verdigris>

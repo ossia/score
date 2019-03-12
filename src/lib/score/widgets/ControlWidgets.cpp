@@ -5,10 +5,9 @@
 #include <QPainter>
 #include <QStyle>
 #include <QStyleOptionButton>
-#include <QGuiApplication>
-#include <QStyleOptionSlider>
 #include <QTimer>
-#include <QWindow>
+#include <QAction>
+#include <QGuiApplication>
 #include <cmath>
 #include <score/graphics/DefaultGraphicsSliderImpl.hpp>
 
@@ -37,7 +36,7 @@ const QPalette& transparentPalette()
 {
   static QPalette p{[] {
     QPalette palette;
-    palette.setBrush(QPalette::Background, Qt::transparent);
+    palette.setBrush(QPalette::Window, Qt::transparent);
     return palette;
   }()};
   return p;
@@ -170,7 +169,7 @@ void ValueDoubleSlider::paintEvent(QPaintEvent* event)
 void ValueLogDoubleSlider::paintEvent(QPaintEvent* event)
 {
   paintWithText(
-      QString::number(std::exp2(min + value() * (max - min)), 'f', 3));
+      QString::number(ossia::normalized_to_log(min, max - min, value()), 'f', 3));
 }
 
 ComboSlider::ComboSlider(const QStringList& arr, QWidget* parent)

@@ -14,7 +14,6 @@
 #include <score/command/Dispatchers/SingleOngoingCommandDispatcher.hpp>
 #include <score/model/Identifier.hpp>
 
-#include <QPoint>
 #include <QVariant>
 
 #include <algorithm>

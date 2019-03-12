@@ -11,14 +11,12 @@
 #include <QAction>
 #include <QFormLayout>
 #include <QJsonDocument>
-#include <QJsonObject>
-#include <QLabel>
 #include <QLineEdit>
 #include <QNetworkReply>
 #include <QPushButton>
-#include <QSpinBox>
 #include <QString>
 #include <QVariant>
+#include <QJsonObject>
 #if defined(OSSIA_DNSSD)
 #include <Explorer/Widgets/ZeroConf/ZeroconfBrowser.hpp>
 #endif

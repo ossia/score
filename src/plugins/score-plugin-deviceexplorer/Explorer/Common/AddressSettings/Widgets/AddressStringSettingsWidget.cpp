@@ -7,10 +7,10 @@
 #include <State/ValueConversion.hpp>
 #include <State/Widgets/Values/StringValueWidget.hpp>
 
-#include <QFormLayout>
 #include <QLineEdit>
 #include <QPushButton>
 #include <QString>
+#include <QFormLayout>
 
 class QWidget;
 

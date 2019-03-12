@@ -20,7 +20,6 @@
 #include <QFileInfo>
 #include <QFileSystemWatcher>
 #include <QQmlComponent>
-#include <QQmlEngine>
 
 #include <wobjectimpl.h>
 

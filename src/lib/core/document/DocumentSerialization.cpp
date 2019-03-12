@@ -30,13 +30,11 @@
 #include <QDataStream>
 #include <QIODevice>
 #include <QJsonObject>
-#include <QJsonValue>
 #include <QMetaType>
 #include <QPair>
 #include <QString>
 #include <QVariant>
 #include <QVector>
-#include <QtGlobal>
 
 #include <algorithm>
 #include <iterator>

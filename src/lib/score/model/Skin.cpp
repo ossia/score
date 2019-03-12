@@ -5,8 +5,8 @@
 #include <boost/assign/list_of.hpp>
 #include <boost/bimap.hpp>
 
-#include <QJsonArray>
 #include <QJsonObject>
+#include <QJsonArray>
 
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(score::Skin)

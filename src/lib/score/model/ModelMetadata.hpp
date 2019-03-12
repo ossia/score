@@ -3,9 +3,9 @@
 #include <score/serialization/VisitorInterface.hpp>
 #include <score/tools/Metadata.hpp>
 
-#include <QColor>
 #include <QObject>
 #include <QString>
+#include <QVariantMap>
 #include <qnamespace.h>
 
 #include <score_lib_base_export.h>

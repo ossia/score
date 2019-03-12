@@ -12,13 +12,9 @@
 #include <score/serialization/JSONVisitor.hpp>
 #include <score/serialization/VisitorCommon.hpp>
 
-#include <QDataStream>
 #include <QJsonArray>
 #include <QJsonObject>
-#include <QJsonValue>
 #include <QString>
-#include <QVector>
-#include <QtGlobal>
 
 #include <algorithm>
 #include <array>

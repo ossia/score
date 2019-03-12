@@ -14,12 +14,13 @@
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <Protocols/Audio/AudioDevice.hpp>
 
+#include <score/tools/Bind.hpp>
 #include <ossia/audio/audio_protocol.hpp>
 
-#include <QCoreApplication>
 #include <QDirIterator>
 #include <QFileInfo>
 #include <QProcess>
+#include <QJsonDocument>
 
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Media::ApplicationPlugin)
@@ -323,7 +324,7 @@ void ApplicationPlugin::rescanVSTs(const QStringList& paths)
             #endif
     );
     proc->setArguments({path, QString::number(i)});
-    m_processes.push_back({path, std::move(proc), false});
+    m_processes.push_back({path, std::move(proc), false, {}});
     i++;
   }
   scanVSTsEvent();

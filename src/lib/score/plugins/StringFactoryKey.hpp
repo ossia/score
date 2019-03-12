@@ -1,21 +1,11 @@
 #pragma once
 #include <score/tools/opaque/OpaqueString.hpp>
-#include <score/tools/std/String.hpp>
-
-#include <QDebug>
-
 #include <score_lib_base_export.h>
 // TODO rename file.
 template <typename Tag>
 class StringKey : OpaqueString
 {
   using this_type = StringKey<Tag>;
-
-  friend QDebug operator<<(QDebug debug, const StringKey& obj)
-  {
-    debug << obj.impl;
-    return debug;
-  }
 
   friend struct std::hash<this_type>;
   friend bool operator==(const this_type& lhs, const this_type& rhs)

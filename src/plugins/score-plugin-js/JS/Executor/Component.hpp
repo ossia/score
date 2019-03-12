@@ -10,10 +10,6 @@
 #include <ossia/editor/scenario/time_process.hpp>
 #include <ossia/editor/scenario/time_value.hpp>
 
-#include <QEventLoop>
-#include <QJSValue>
-#include <QQmlEngine>
-#include <QString>
 
 #include <memory>
 

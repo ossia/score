@@ -5,15 +5,12 @@
 #include <Process/Style/ScenarioStyle.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
 
-#include <QColor>
 #include <QGraphicsSceneMouseEvent>
 #include <QPainter>
-#include <QPen>
 #include <QPoint>
-#include <QPolygon>
 #include <QSize>
-#include <QVector>
 #include <QCursor>
+#include <QVector>
 #include <qnamespace.h>
 
 #include <wobjectimpl.h>

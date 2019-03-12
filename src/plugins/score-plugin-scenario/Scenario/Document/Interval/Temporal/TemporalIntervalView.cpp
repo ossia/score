@@ -17,16 +17,10 @@
 #include <score/graphics/GraphicsItem.hpp>
 #include <score/model/Skin.hpp>
 
-#include <QBrush>
-#include <QCursor>
-#include <QFont>
 #include <QGraphicsItem>
 #include <QGraphicsView>
-#include <QGraphicsSceneEvent>
 #include <QPainter>
 #include <QPainterPath>
-#include <QPen>
-#include <QMatrix>
 #include <qnamespace.h>
 
 #include <QStyleOption>

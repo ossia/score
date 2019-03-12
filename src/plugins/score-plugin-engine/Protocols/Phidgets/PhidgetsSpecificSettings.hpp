@@ -1,6 +1,4 @@
 #pragma once
-#include <QMetaType>
-#include <QString>
 
 namespace Protocols
 {

@@ -6,6 +6,7 @@
 #include <Scenario/Document/CommentBlock/CommentBlockView.hpp>
 
 #include <score/graphics/GraphicsItem.hpp>
+#include <score/tools/Bind.hpp>
 
 #include <wobjectimpl.h>
 #include <score/document/DocumentContext.hpp>

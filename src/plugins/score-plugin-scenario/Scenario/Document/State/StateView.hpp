@@ -5,10 +5,8 @@
 #include <score/model/ColorReference.hpp>
 #include <score/widgets/MimeData.hpp>
 
-#include <QColor>
 #include <QGraphicsItem>
 #include <QRect>
-#include <QtGlobal>
 
 #include <score_plugin_scenario_export.h>
 #include <verdigris>

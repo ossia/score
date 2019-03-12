@@ -13,17 +13,15 @@
 #include <score/graphics/GraphicsItem.hpp>
 #include <score/model/Skin.hpp>
 #include <score/widgets/Pixmap.hpp>
+#include <score/tools/Bind.hpp>
 
-#include <QBrush>
-#include <QFont>
-#include <QFontMetrics>
 #include <QGraphicsScene>
 #include <QGraphicsSceneMouseEvent>
-#include <QGraphicsView>
-#include <QList>
 #include <QPainter>
 #include <QPen>
+#include <QGraphicsView>
 #include <QPoint>
+#include <QTextLayout>
 
 #include <cmath>
 #include <wobjectimpl.h>

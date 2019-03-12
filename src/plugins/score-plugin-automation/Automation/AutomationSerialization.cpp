@@ -13,8 +13,6 @@
 
 #include <ossia/network/dataspace/dataspace_visitors.hpp>
 
-#include <QJsonObject>
-#include <QJsonValue>
 
 #include <algorithm>
 

@@ -1,5 +1,6 @@
 #pragma once
 #include <score/command/Dispatchers/SettingsCommandDispatcher.hpp>
+#include <score/tools/Bind.hpp>
 
 #include <QObject>
 

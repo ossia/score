@@ -42,8 +42,6 @@ bool validate(const State::Expression& expr)
 #include <QDebug>
 #include <QObject>
 #include <QString>
-#include <QStringList>
-#include <QtTest/QtTest>
 
 #include <eggs/variant/variant.hpp>
 using namespace score;

@@ -10,7 +10,6 @@
 #include <Process/Dataflow/WidgetInlets.hpp>
 
 #include <score/tools/DeleteAll.hpp>
-#include <score/tools/Todo.hpp>
 #include <score/tools/std/StringHash.hpp>
 
 #include <ossia/dataflow/execution_state.hpp>
@@ -24,14 +23,13 @@
 #include <QFile>
 #include <QHBoxLayout>
 #include <QListWidget>
-#include <QPushButton>
 #include <QUrl>
 
+#include <score/tools/Bind.hpp>
 #include <Execution/DocumentPlugin.hpp>
 #include <cmath>
 #include <wobjectimpl.h>
 
-#include <iostream>
 #include <memory>
 #include <set>
 W_OBJECT_IMPL(Media::LV2::LV2EffectModel)

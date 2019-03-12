@@ -7,13 +7,13 @@
 #include <score/document/DocumentContext.hpp>
 #include <score/widgets/ReactiveLabel.hpp>
 #include <score/widgets/TextLabel.hpp>
+#include <score/tools/Bind.hpp>
 
 #include <ossia/editor/state/destination_qualifiers.hpp>
 #include <ossia/network/dataspace/dataspace_visitors.hpp>
 
 #include <QCheckBox>
 #include <QFormLayout>
-#include <QLabel>
 
 #include <Interpolation/Commands/ChangeAddress.hpp>
 

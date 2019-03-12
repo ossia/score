@@ -17,11 +17,8 @@
 #include <score/serialization/VisitorInterface.hpp>
 #include <score/tools/std/Optional.hpp>
 
-#include <QByteArray>
 #include <QList>
 #include <QObject>
-#include <QPointer>
-#include <QString>
 #include <QVector>
 
 #include <verdigris>

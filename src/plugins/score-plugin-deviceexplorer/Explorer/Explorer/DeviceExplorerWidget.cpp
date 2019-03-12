@@ -40,6 +40,7 @@
 #include <score/model/tree/TreeNodeSerialization.hpp>
 #include <score/plugins/application/GUIApplicationPlugin.hpp>
 #include <score/tools/std/Optional.hpp>
+#include <score/tools/Bind.hpp>
 #include <score/widgets/SetIcons.hpp>
 #include <score/widgets/SignalUtils.hpp>
 #include <score/widgets/SearchLineEdit.hpp>
@@ -49,12 +50,10 @@
 
 #include <QAbstractProxyModel>
 #include <QAction>
-#include <QBoxLayout>
 #include <QComboBox>
 #include <QContextMenuEvent>
 #include <QDialog>
 #include <QDialogButtonBox>
-#include <QEvent>
 #include <QFileDialog>
 #include <QGridLayout>
 #include <QHeaderView>
@@ -69,13 +68,11 @@
 #include <QPair>
 #include <QPushButton>
 #include <QRegExp>
-#include <QSet>
 #include <QSize>
 #include <QStackedLayout>
 #include <QString>
 #include <QStringList>
 #include <QTableView>
-#include <QToolButton>
 #include <QTreeView>
 #include <qnamespace.h>
 

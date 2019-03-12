@@ -9,11 +9,7 @@
 
 #include <score/serialization/DataStreamVisitor.hpp>
 
-#include <QDataStream>
-#include <QJsonArray>
-#include <QJsonObject>
 #include <QJsonValue>
-#include <QtGlobal>
 
 template <>
 SCORE_LIB_STATE_EXPORT void DataStreamReader::read(const State::Message& mess)

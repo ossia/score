@@ -13,7 +13,6 @@
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/tools/std/Optional.hpp>
 
-#include <QString>
 
 #include <algorithm>
 

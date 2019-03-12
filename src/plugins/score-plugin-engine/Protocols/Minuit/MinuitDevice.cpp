@@ -12,8 +12,6 @@
 #include <ossia/network/minuit/minuit.hpp>
 #include <ossia/network/rate_limiting_protocol.hpp>
 
-#include <QString>
-#include <QVariant>
 
 #include <wobjectimpl.h>
 

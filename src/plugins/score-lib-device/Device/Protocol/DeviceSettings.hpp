@@ -1,7 +1,6 @@
 #pragma once
 #include <score/plugins/UuidKey.hpp>
 #include <score/tools/Metadata.hpp>
-#include <score/tools/Todo.hpp>
 
 #include <QString>
 #include <QVariant>

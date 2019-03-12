@@ -11,7 +11,6 @@
 
 #include <ossia/editor/curve/curve_segment/linear.hpp>
 
-#include <QPoint>
 
 #include <vector>
 

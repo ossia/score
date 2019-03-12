@@ -7,7 +7,6 @@
 #include <score/model/Identifier.hpp>
 #include <score/serialization/VisitorInterface.hpp>
 
-#include <QByteArray>
 #include <QString>
 
 #include <score_plugin_mapping_export.h>

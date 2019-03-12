@@ -61,7 +61,6 @@
 #include <QList>
 #include <QMetaType>
 #include <QPainterPath>
-#include <QString>
 
 #include <Interpolation/InterpolationFactory.hpp>
 #include <score_plugin_scenario.hpp>

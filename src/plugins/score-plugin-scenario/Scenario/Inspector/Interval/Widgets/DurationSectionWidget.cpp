@@ -22,7 +22,7 @@
 #include <score/model/Identifier.hpp>
 #include <score/model/path/Path.hpp>
 #include <score/model/path/PathSerialization.hpp>
-#include <score/tools/Todo.hpp>
+#include <score/tools/Bind.hpp>
 #include <score/tools/std/Optional.hpp>
 #include <score/widgets/MarginLess.hpp>
 #include <score/widgets/SpinBoxes.hpp>
@@ -33,11 +33,9 @@
 #include <core/document/DocumentPresenter.hpp>
 
 #include <QCheckBox>
-#include <QDateTime>
 #include <QFormLayout>
 #include <QGridLayout>
 #include <QLabel>
-#include <QStackedLayout>
 #include <QStackedWidget>
 #include <QString>
 #include <QWidget>

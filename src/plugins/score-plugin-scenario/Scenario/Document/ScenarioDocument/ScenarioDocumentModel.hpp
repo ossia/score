@@ -9,7 +9,6 @@
 
 #include <core/document/Document.hpp>
 
-#include <QPointer>
 
 #include <score_plugin_scenario_export.h>
 #include <verdigris>

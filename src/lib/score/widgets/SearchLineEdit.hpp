@@ -1,5 +1,4 @@
 #pragma once
-#include <QAction>
 #include <QLineEdit>
 #include <score_lib_base_export.h>
 #include <verdigris>

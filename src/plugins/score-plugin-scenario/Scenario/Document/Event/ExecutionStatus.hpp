@@ -1,7 +1,6 @@
 #pragma once
 #include <score/model/ColorReference.hpp>
 
-#include <QObject>
 
 #include <verdigris>
 class QColor;

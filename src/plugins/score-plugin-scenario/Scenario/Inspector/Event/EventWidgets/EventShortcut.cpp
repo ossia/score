@@ -4,9 +4,9 @@
 
 #include <score/widgets/MarginLess.hpp>
 
-#include <QBoxLayout>
 #include <QCheckBox>
 #include <QPushButton>
+#include <QVBoxLayout>
 
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Scenario::EventShortCut)

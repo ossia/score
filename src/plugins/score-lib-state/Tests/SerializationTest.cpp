@@ -10,7 +10,6 @@
 
 #include <QMetaType>
 #include <QObject>
-#include <QtTest/QtTest>
 
 using namespace score;
 class SerializationTest : public QObject

@@ -7,7 +7,6 @@
 #include <score/model/tree/TreeNode.hpp>
 #include <score/model/tree/TreeNodeItemModel.hpp>
 
-#include <QAbstractItemModel>
 
 #include <score_lib_device_export.h>
 

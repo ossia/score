@@ -11,7 +11,6 @@
 #include <score/document/DocumentInterface.hpp>
 
 #include <QFinalState>
-#include <QGraphicsScene>
 
 namespace Scenario
 {

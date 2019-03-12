@@ -6,7 +6,6 @@
 #include <QGraphicsItem>
 #include <QGraphicsPixmapItem>
 #include <QMimeData>
-#include <QRect>
 
 #include <score_plugin_scenario_export.h>
 #include <verdigris>

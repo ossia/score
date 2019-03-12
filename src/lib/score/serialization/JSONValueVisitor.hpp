@@ -8,9 +8,7 @@
 #include <ossia/detail/small_vector.hpp>
 
 #include <QJsonArray>
-#include <QJsonObject>
 #include <QJsonValue>
-#include <QMap>
 template <class>
 class StringKey;
 

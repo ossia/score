@@ -1,11 +1,8 @@
 #pragma once
 #include <score/model/ColorReference.hpp>
 
-#include <QColor>
-#include <QGlyphRun>
 #include <QGraphicsSceneMouseEvent>
 #include <QGraphicsTextItem>
-#include <QPen>
 
 #include <score_lib_base_export.h>
 #include <verdigris>

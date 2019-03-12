@@ -2,13 +2,12 @@
 #include <score/plugins/settingsdelegate/SettingsDelegatePresenter.hpp>
 #include <score/plugins/settingsdelegate/SettingsDelegateView.hpp>
 
-#include <QBoxLayout>
 #include <QDialog>
 #include <QDialogButtonBox>
-#include <QFlags>
 #include <QListWidget>
 #include <QSize>
 #include <QStackedWidget>
+#include <QVBoxLayout>
 #include <QWidget>
 
 #include <set>

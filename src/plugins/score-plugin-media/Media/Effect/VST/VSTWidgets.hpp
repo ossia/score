@@ -8,7 +8,6 @@
 #include <score/graphics/TextItem.hpp>
 
 #include <QDialog>
-#include <QTimer>
 
 #include <Control/Widgets.hpp>
 #include <Process/Inspector/GenericProcessInspector.hpp>
@@ -21,7 +20,6 @@ class VSTEffectItem final : public score::EmptyRectItem
 {
   QGraphicsItem* rootItem{};
   std::vector<std::pair<VSTControlInlet*, score::EmptyRectItem*>> controlItems;
-  double currentColumnX() const;
 public:
   VSTEffectItem(
       const VSTEffectModel& effect,

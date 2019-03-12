@@ -44,19 +44,12 @@
 #include <core/document/Document.hpp>
 
 #include <QAction>
-#include <QByteArray>
 #include <QClipboard>
-#include <QGraphicsView>
-#include <QJsonArray>
 #include <QJsonDocument>
-#include <QJsonValue>
 #include <QKeySequence>
 #include <QMainWindow>
 #include <QMenu>
-#include <QObject>
-#include <QRect>
-#include <QString>
-#include <QToolBar>
+#include <QGraphicsView>
 #include <qnamespace.h>
 
 #include <algorithm>

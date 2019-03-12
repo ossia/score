@@ -18,7 +18,7 @@
 #include <score/document/DocumentInterface.hpp>
 #include <score/model/ModelMetadata.hpp>
 #include <score/tools/IdentifierGeneration.hpp>
-#include <score/tools/Todo.hpp>
+#include <score/tools/Bind.hpp>
 
 #include <core/document/Document.hpp>
 #include <core/document/DocumentPresenter.hpp>

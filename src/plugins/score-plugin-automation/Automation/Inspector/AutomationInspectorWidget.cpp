@@ -14,19 +14,14 @@
 #include <score/document/DocumentContext.hpp>
 #include <score/document/DocumentInterface.hpp>
 #include <score/model/path/Path.hpp>
-#include <score/tools/Todo.hpp>
+#include <score/tools/Bind.hpp>
 #include <score/widgets/SpinBoxes.hpp>
 #include <score/widgets/TextLabel.hpp>
 
 #include <ossia/network/dataspace/dataspace_visitors.hpp>
 
-#include <QBoxLayout>
 #include <QCheckBox>
 #include <QFormLayout>
-#include <QLabel>
-#include <QPushButton>
-#include <QSpinBox>
-#include <QStringList>
 #include <QWidget>
 
 #include <algorithm>

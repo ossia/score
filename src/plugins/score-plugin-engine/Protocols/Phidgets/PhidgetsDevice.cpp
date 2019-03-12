@@ -14,9 +14,7 @@
 #include <ossia/network/generic/generic_parameter.hpp>
 #include <ossia/network/phidgets/phidgets_protocol.hpp>
 
-#include <QString>
 #include <QTimer>
-#include <QVariant>
 
 #include <wobjectimpl.h>
 

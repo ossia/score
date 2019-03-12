@@ -8,23 +8,14 @@
 #include <Process/Style/ScenarioStyle.hpp>
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/model/ModelMetadata.hpp>
+#include <score/tools/Bind.hpp>
 #include <score/widgets/MarginLess.hpp>
 
-#include <QBoxLayout>
-#include <QColorDialog>
-#include <QFormLayout>
-#include <QIcon>
-#include <QLabel>
 #include <QLineEdit>
-#include <QMenu>
-#include <QPushButton>
 #include <QSize>
-#include <QToolButton>
-#include <QWidgetAction>
-#include <QtColorWidgets/color_palette.hpp>
 #include <QtColorWidgets/color_palette_model.hpp>
+#include <QtColorWidgets/color_palette.hpp>
 #include <QtColorWidgets/swatch.hpp>
-
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Scenario::MetadataWidget)
 W_OBJECT_IMPL(Scenario::CommentEdit)

@@ -14,8 +14,6 @@
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/tools/IdentifierGeneration.hpp>
 
-#include <QDataStream>
-#include <QtGlobal>
 
 #include <algorithm>
 #include <vector>

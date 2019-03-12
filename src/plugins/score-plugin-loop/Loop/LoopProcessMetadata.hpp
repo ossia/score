@@ -3,7 +3,6 @@
 
 #include <score/plugins/UuidKey.hpp>
 
-#include <QString>
 
 #include <score_plugin_loop_export.h>
 

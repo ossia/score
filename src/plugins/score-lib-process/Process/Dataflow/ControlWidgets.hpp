@@ -7,21 +7,23 @@
 #include <score/graphics/GraphicWidgets.hpp>
 #include <score/graphics/GraphicsItem.hpp>
 #include <score/widgets/ControlWidgets.hpp>
+#include <score/tools/Unused.hpp>
 
 #include <ossia/network/value/value_conversion.hpp>
 #include <ossia/detail/math.hpp>
 #include <QGraphicsItem>
 #include <QGraphicsProxyWidget>
 #include <QLineEdit>
-#include <QPalette>
 
+#include <QCheckBox>
 #include <score_lib_process_export.h>
 
 namespace WidgetFactory
 {
 inline QGraphicsItem* wrapWidget(QWidget* widg)
 {
-  widg->setMaximumWidth(150);
+  if(widg->maximumWidth() > 130 || widg->maximumWidth() == 0)
+    widg->setMaximumWidth(130);
   widg->setContentsMargins(0, 0, 0, 0);
   widg->setPalette(score::transparentPalette());
   widg->setAutoFillBackground(false);
@@ -144,16 +146,6 @@ struct LogFloatControl
 {
   static_assert(std::numeric_limits<float>::is_iec559, "IEEE 754 required");
 
-  /*
-  static float from01(float min, float max, float val)
-  {
-    return std::exp2(min + val * (max - min));
-  }
-  static float to01(float min, float max, float val)
-  {
-    return (std::log2(val) - min) / (max - min);
-  }
-  */
   static float to01(float min, float range, float val)
   {
     return ossia::log_to_normalized(min, range, val);
@@ -582,6 +574,7 @@ struct LineEdit
     sl->setText(
         QString::fromStdString(ossia::convert<std::string>(inlet.value())));
     sl->setContentsMargins(0, 0, 0, 0);
+    sl->setMaximumWidth(70);
 
     QObject::connect(
         sl, &QLineEdit::editingFinished, context, [sl, &inlet, &ctx]() {
@@ -843,6 +836,7 @@ struct TimeSignatureChooser
 
     sl->setValidator(new TimeSignatureValidator{sl});
     sl->setContentsMargins(0, 0, 0, 0);
+    sl->setMaximumWidth(70);
 
     auto set_text = [sl](const ossia::value& val) {
       const auto& vptr = val.target<std::string>();

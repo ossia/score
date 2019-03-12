@@ -9,8 +9,6 @@
 #include <score/selection/Selection.hpp>
 
 #include <QJsonObject>
-#include <QList>
-#include <QPoint>
 class QAction;
 class QMenu;
 class QToolBar;

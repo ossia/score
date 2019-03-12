@@ -3,6 +3,7 @@
 #include <score/model/IdentifiedObject.hpp>
 #include <score/serialization/JSONValueVisitor.hpp>
 #include <score/serialization/StringConstants.hpp>
+#include <score/tools/ForEach.hpp>
 
 #include <ossia/detail/small_vector.hpp>
 

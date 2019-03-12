@@ -3,7 +3,6 @@
 #include <State/Expression.hpp>
 
 #include <QString>
-#include <QVector>
 #include <QWidget>
 
 #include <verdigris>

@@ -3,6 +3,7 @@
 #include <Media/Commands/ChangeAudioFile.hpp>
 
 #include <score/document/DocumentContext.hpp>
+#include <score/tools/Bind.hpp>
 
 #include <QFormLayout>
 #include <QLineEdit>

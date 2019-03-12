@@ -20,8 +20,6 @@
 #include <score/serialization/JSONVisitor.hpp>
 #include <score/tools/IdentifierGeneration.hpp>
 
-#include <QDataStream>
-#include <QtGlobal>
 
 #include <algorithm>
 #include <functional>

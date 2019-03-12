@@ -15,25 +15,16 @@
 #include <score/widgets/DoubleSlider.hpp>
 #include <score/widgets/MarginLess.hpp>
 #include <score/widgets/TextLabel.hpp>
+#include <score/tools/Bind.hpp>
 
 #include <QAction>
-#include <QApplication>
-#include <QBoxLayout>
-#include <QBrush>
-#include <QFlags>
+#include <QScrollBar>
 #include <QGraphicsScene>
 #include <QGraphicsView>
-#include <QGridLayout>
-#include <QLabel>
 #include <QPainter>
 #include <QRect>
-#include <QScrollBar>
-#include <QSize>
-#include <QString>
-#include <QStyleFactory>
-#include <QTimer>
-#include <QToolBar>
 #include <QWidget>
+#include <QVBoxLayout>
 
 #if defined(SCORE_WEBSOCKETS)
 #include "WebSocketView.hpp"

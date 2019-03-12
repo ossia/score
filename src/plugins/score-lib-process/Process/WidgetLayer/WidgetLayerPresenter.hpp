@@ -10,7 +10,6 @@
 #include <score/document/DocumentInterface.hpp>
 #include <score/model/Identifier.hpp>
 
-#include <QPoint>
 
 #include <score_lib_process_export.h>
 

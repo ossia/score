@@ -1,8 +1,7 @@
 #pragma once
-#include <QJsonObject>
-#include <QMetaType>
 
 #include <verdigris>
+#include <QString>
 
 namespace Protocols
 {

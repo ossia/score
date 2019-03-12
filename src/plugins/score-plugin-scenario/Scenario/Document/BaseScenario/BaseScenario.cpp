@@ -18,7 +18,6 @@
 
 #include <ossia/detail/algorithms.hpp>
 
-#include <QString>
 
 #include <wobjectimpl.h>
 

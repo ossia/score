@@ -39,7 +39,6 @@
 #include <core/document/Document.hpp>
 
 #include <QApplication>
-#include <QString>
 #include <qnamespace.h>
 
 #include <wobjectimpl.h>

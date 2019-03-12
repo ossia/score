@@ -2,7 +2,6 @@
 #include <score/widgets/SignalUtils.hpp>
 
 #include <QGraphicsPixmapItem>
-#include <QGraphicsSceneEvent>
 
 #include <cmath>
 #include <score_lib_base_export.h>

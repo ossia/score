@@ -8,15 +8,14 @@
 #include <State/Widgets/AddressFragmentLineEdit.hpp>
 
 #include <score/widgets/JS/JSEdit.hpp>
+#include <score/tools/Debug.hpp>
 
+#include <QDebug>
 #include <QGridLayout>
 #include <QLabel>
 #include <QLineEdit>
-#include <QPlainTextEdit>
 #include <QQmlComponent>
 #include <QQmlEngine>
-#include <QSpinBox>
-#include <QString>
 #include <QVariant>
 
 namespace Protocols

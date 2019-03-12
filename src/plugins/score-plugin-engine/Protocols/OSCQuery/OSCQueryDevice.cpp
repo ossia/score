@@ -15,9 +15,6 @@
 
 #include <boost/algorithm/string.hpp>
 
-#include <QString>
-#include <QTimer>
-#include <QVariant>
 
 #include <asio/io_service.hpp>
 #include <asio/ip/resolver_service.hpp>

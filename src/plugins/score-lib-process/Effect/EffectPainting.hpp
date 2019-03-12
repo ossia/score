@@ -4,6 +4,7 @@
 
 #include <score/graphics/TextItem.hpp>
 #include <score/model/Skin.hpp>
+#include <score/tools/Bind.hpp>
 
 #include <QGraphicsItem>
 #include <QPainter>

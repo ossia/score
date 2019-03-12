@@ -6,6 +6,7 @@
 #include <State/Widgets/AddressFragmentLineEdit.hpp>
 
 #include <score/widgets/SignalUtils.hpp>
+#include <score/tools/Bind.hpp>
 
 #include <ossia-qt/js_utilities.hpp>
 #include <ossia/audio/audio_parameter.hpp>
@@ -13,13 +14,11 @@
 #include <ossia/network/generic/generic_parameter.hpp>
 
 #include <QButtonGroup>
-#include <QCheckBox>
 #include <QComboBox>
 #include <QCoreApplication>
 #include <QDialogButtonBox>
 #include <QFormLayout>
 #include <QHeaderView>
-#include <QLineEdit>
 #include <QRadioButton>
 #include <QTableWidget>
 

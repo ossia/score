@@ -8,7 +8,6 @@
 
 #include <score/statemachine/GraphicsSceneToolPalette.hpp>
 
-#include <QObject>
 
 namespace Scenario
 {

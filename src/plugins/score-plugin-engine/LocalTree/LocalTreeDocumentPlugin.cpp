@@ -9,6 +9,7 @@
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 
 #include <score/tools/IdentifierGeneration.hpp>
+#include <score/tools/Bind.hpp>
 
 #include <core/document/Document.hpp>
 #include <core/document/DocumentModel.hpp>

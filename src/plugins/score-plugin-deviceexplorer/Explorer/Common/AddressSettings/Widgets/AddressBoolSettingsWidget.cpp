@@ -6,10 +6,8 @@
 #include <State/Value.hpp>
 #include <State/ValueConversion.hpp>
 
-#include <QComboBox>
 #include <QFormLayout>
-#include <QString>
-#include <QVariant>
+#include <QComboBox>
 
 class QWidget;
 

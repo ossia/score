@@ -11,14 +11,8 @@
 
 #include <score/widgets/JS/JSEdit.hpp>
 
-#include <QComboBox>
 #include <QFormLayout>
-#include <QGridLayout>
-#include <QLabel>
 #include <QLineEdit>
-#include <QPlainTextEdit>
-#include <QSpinBox>
-#include <QString>
 #include <QVariant>
 class QWidget;
 

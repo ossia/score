@@ -1,6 +1,6 @@
 #pragma once
 #include <score/plugins/qt_interfaces/PluginRequirements_QtInterface.hpp>
-#include <score/tools/Todo.hpp>
+#include <score/tools/Debug.hpp>
 
 #include <score_lib_base_export.h>
 

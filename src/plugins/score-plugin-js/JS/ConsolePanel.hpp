@@ -27,7 +27,6 @@
 #include <QJSEngine>
 #include <QLineEdit>
 #include <QPlainTextEdit>
-#include <QQmlContext>
 #include <QVBoxLayout>
 
 #include <Engine/ApplicationPlugin.hpp>

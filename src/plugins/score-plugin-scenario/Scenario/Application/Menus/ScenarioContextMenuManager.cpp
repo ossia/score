@@ -39,10 +39,8 @@
 #include <score/tools/std/Optional.hpp>
 
 #include <QAction>
-#include <QApplication>
 #include <QMenu>
 #include <QPoint>
-#include <QString>
 
 #include <algorithm>
 

@@ -32,10 +32,13 @@
 
 #include "JSEdit.hpp"
 
-#include <QtGui>
 
 #include <wobjectimpl.h>
 
+#include <QSyntaxHighlighter>
+#include <QTextBlockUserData>
+#include <QPainter>
+#include <QMimeData>
 #include <array>
 
 W_OBJECT_IMPL(JSEdit)
@@ -1182,12 +1185,12 @@ void JSEdit::updateSidebar()
     int maxLines = blockCount();
     for (int number = 10; number < maxLines; number *= 10)
       ++digits;
-    sw += fontMetrics().width('w') * digits;
+    sw += fontMetrics().horizontalAdvance('w') * digits;
   }
   if (d->codeFolding)
   {
     int fh = fontMetrics().lineSpacing();
-    int fw = fontMetrics().width('w');
+    int fw = fontMetrics().horizontalAdvance('w');
     d->sidebar->foldIndicatorWidth = qMax(fw, fh);
     sw += d->sidebar->foldIndicatorWidth;
   }

@@ -6,17 +6,11 @@
 
 #include <ossia/editor/scenario/time_value.hpp>
 
-#include <QCache>
-#include <QColor>
-#include <QDateTime>
 #include <QGlyphRun>
 #include <QGraphicsItem>
-#include <QMap>
 #include <QPainterPath>
 #include <QPoint>
-#include <QString>
 #include <QTextLayout>
-#include <QtGlobal>
 
 #include <score_plugin_scenario_export.h>
 #include <verdigris>

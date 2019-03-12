@@ -2,7 +2,6 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "WidgetLayerView.hpp"
 
-#include <QDebug>
 #include <QGraphicsProxyWidget>
 #include <QGraphicsSceneMouseEvent>
 #include <QPalette>
@@ -42,7 +41,7 @@ void View::setWidget(QWidget* w)
   m_widg->setContentsMargins(0, 0, 0, 0);
 
   QPalette palette;
-  palette.setBrush(QPalette::Background, Qt::transparent);
+  palette.setBrush(QPalette::Window, Qt::transparent);
   w->setPalette(palette);
 
   w->setAutoFillBackground(false);

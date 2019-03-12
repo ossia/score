@@ -13,17 +13,13 @@
 
 #include <score/tools/DeleteAll.hpp>
 #include <score/tools/IdentifierGeneration.hpp>
-#include <score/tools/Todo.hpp>
 
 #include <ossia-qt/invoke.hpp>
 #include <ossia/detail/math.hpp>
 #include <ossia/detail/pod_vector.hpp>
 
-#include <QFile>
-#include <QFileInfo>
 #include <QInputDialog>
 #include <QTimer>
-#include <QUrl>
 
 #include <Audio/Settings/Model.hpp>
 #include <Execution/DocumentPlugin.hpp>
@@ -31,7 +27,6 @@
 #include <websocketpp/base64/base64.hpp>
 #include <wobjectimpl.h>
 
-#include <iostream>
 #include <memory>
 #include <set>
 W_OBJECT_IMPL(Media::VST::VSTEffectModel)

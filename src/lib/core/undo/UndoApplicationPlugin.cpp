@@ -5,13 +5,14 @@
 #include <score/actions/Menu.hpp>
 #include <score/plugins/application/GUIApplicationPlugin.hpp>
 #include <score/widgets/SetIcons.hpp>
+#include <score/tools/Bind.hpp>
+#include <score/tools/ForEach.hpp>
 
 #include <core/command/CommandStack.hpp>
 #include <core/document/Document.hpp>
 #include <core/presenter/CoreActions.hpp>
 #include <core/presenter/CoreApplicationPlugin.hpp>
 
-#include <QIcon>
 #include <QKeySequence>
 #include <QString>
 #include <QToolBar>

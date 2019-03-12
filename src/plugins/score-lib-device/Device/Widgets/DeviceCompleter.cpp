@@ -8,9 +8,7 @@
 
 #include <score/model/tree/TreeNode.hpp>
 
-#include <QAbstractItemModel>
 #include <QChar>
-#include <QVariant>
 #include <qnamespace.h>
 
 class QObject;

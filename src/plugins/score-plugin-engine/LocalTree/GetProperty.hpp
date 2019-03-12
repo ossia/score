@@ -3,6 +3,7 @@
 
 #include <LocalTree/BaseCallbackWrapper.hpp>
 #include <LocalTree/TypeConversion.hpp>
+#include <QObject>
 
 namespace LocalTree
 {

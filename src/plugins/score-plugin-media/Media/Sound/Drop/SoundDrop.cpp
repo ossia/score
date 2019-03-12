@@ -7,10 +7,10 @@
 #include <Media/Sound/SoundModel.hpp>
 #include <Process/TimeValueSerialization.hpp>
 
-#include <QApplication>
 #include <QMimeData>
-#include <QUrl>
 #include <QFileInfo>
+#include <QUrl>
+
 namespace Media
 {
 namespace Sound

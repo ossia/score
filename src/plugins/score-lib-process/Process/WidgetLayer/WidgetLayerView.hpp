@@ -1,7 +1,6 @@
 #pragma once
 #include <Process/LayerView.hpp>
 
-#include <QString>
 
 #include <score_lib_process_export.h>
 #include <verdigris>

@@ -4,7 +4,6 @@
 
 #include <score/command/AggregateCommand.hpp>
 
-#include <QVector>
 
 namespace Scenario
 {

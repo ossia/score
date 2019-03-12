@@ -28,14 +28,12 @@
 #include <QByteArray>
 #include <QFile>
 #include <QFileDialog>
-#include <QFlags>
 #include <QIODevice>
 #include <QJsonDocument>
 #include <QMessageBox>
 #include <QSaveFile>
 #include <QSettings>
 #include <QStringList>
-#include <QVariant>
 
 #include <multi_index/hashed_index.hpp>
 #include <multi_index/identity.hpp>
@@ -311,7 +309,7 @@ bool DocumentManager::saveDocumentAs(Document& doc)
   filters << jsonFilter << binFilter;
 
   d.setNameFilters(filters);
-  d.setConfirmOverwrite(true);
+  d.setOption(QFileDialog::DontConfirmOverwrite, false);
   d.setFileMode(QFileDialog::AnyFile);
   d.setAcceptMode(QFileDialog::AcceptSave);
 
@@ -362,7 +360,7 @@ bool DocumentManager::saveStack()
     return false;
   QFileDialog d{m_view, tr("Save Stack As")};
   d.setNameFilters({"*.stack"});
-  d.setConfirmOverwrite(true);
+  d.setOption(QFileDialog::DontConfirmOverwrite, false);
   d.setFileMode(QFileDialog::AnyFile);
   d.setAcceptMode(QFileDialog::AcceptSave);
 

@@ -13,20 +13,14 @@
 #include <score/document/DocumentInterface.hpp>
 #include <score/model/path/Path.hpp>
 #include <score/model/tree/TreeNode.hpp>
-#include <score/tools/Todo.hpp>
+#include <score/tools/Bind.hpp>
 
 #include <QAbstractItemView>
 #include <QAction>
 #include <QContextMenuEvent>
-#include <QEvent>
-#include <QFlags>
-#include <QHeaderView>
-#include <QKeySequence>
-#include <QList>
 #include <QMenu>
+#include <QHeaderView>
 #include <QResizeEvent>
-#include <QSet>
-#include <QString>
 #include <qnamespace.h>
 
 class QWidget;

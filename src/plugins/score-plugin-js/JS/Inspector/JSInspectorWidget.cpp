@@ -15,12 +15,10 @@
 #include <score/model/path/Path.hpp>
 #include <score/widgets/JS/JSEdit.hpp>
 #include <score/widgets/MarginLess.hpp>
+#include <score/tools/Bind.hpp>
 
 #include <QFormLayout>
-#include <QHeaderView>
 #include <QLabel>
-#include <QTableWidget>
-#include <QTableWidgetItem>
 #include <QVBoxLayout>
 
 #include <wobjectimpl.h>

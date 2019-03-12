@@ -6,7 +6,6 @@
 #include <score/model/path/Path.hpp>
 #include <score/tools/std/Optional.hpp>
 
-#include <QByteArray>
 
 struct DataStreamInput;
 struct DataStreamOutput;

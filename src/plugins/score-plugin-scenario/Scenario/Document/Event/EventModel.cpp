@@ -16,7 +16,6 @@
 #include <score/model/ModelMetadata.hpp>
 
 #include <QObject>
-#include <QPoint>
 
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Scenario::EventModel)

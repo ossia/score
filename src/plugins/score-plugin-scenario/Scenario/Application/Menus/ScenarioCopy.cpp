@@ -28,8 +28,6 @@
 
 #include <QJsonArray>
 #include <QJsonObject>
-#include <QJsonValue>
-#include <QList>
 
 #include <algorithm>
 #include <vector>

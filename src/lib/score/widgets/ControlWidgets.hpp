@@ -1,7 +1,6 @@
 #pragma once
 #include <score/widgets/DoubleSlider.hpp>
 
-#include <QCheckBox>
 #include <QPushButton>
 
 #include <score_lib_base_export.h>

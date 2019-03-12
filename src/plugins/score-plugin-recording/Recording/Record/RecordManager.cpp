@@ -51,7 +51,6 @@
 #include <ossia/network/value/value_conversion.hpp>
 
 #include <QApplication>
-#include <QString>
 #include <qnamespace.h>
 
 #include <algorithm>

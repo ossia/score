@@ -6,8 +6,6 @@
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/model/tree/TreePath.hpp>
 
-#include <QAbstractItemModel>
-#include <QGroupBox>
 #include <QWidget>
 
 #include <verdigris>

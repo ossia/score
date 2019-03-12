@@ -9,8 +9,6 @@
 #include <score/serialization/JSONValueVisitor.hpp>
 #include <score/serialization/JSONVisitor.hpp>
 
-#include <QJsonObject>
-#include <QJsonValue>
 #include <QString>
 
 template <>

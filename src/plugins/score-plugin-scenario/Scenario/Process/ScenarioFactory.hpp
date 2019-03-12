@@ -4,8 +4,6 @@
 #include <Process/TimeValue.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
 
-#include <QByteArray>
-#include <QString>
 namespace Process
 {
 class LayerPresenter;

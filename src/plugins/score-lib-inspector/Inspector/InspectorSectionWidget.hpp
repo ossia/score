@@ -1,11 +1,11 @@
 #pragma once
 #include <score/widgets/MarginLess.hpp>
 
-#include <QBoxLayout>
 #include <QLineEdit>
 #include <QPushButton>
 #include <QString>
 #include <QToolButton>
+#include <QVBoxLayout>
 #include <QWidget>
 
 #include <score_lib_inspector_export.h>

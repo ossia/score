@@ -7,8 +7,6 @@
 #include <core/command/CommandStack.hpp>
 #include <core/document/Document.hpp>
 
-#include <QVector>
-#include <QtAlgorithms>
 
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(score::CommandStack)

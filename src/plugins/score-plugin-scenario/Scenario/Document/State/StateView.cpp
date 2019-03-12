@@ -12,13 +12,10 @@
 #include <Scenario/Process/ScenarioInterface.hpp>
 
 #include <QApplication>
-#include <QBrush>
 #include <QCursor>
 #include <QDrag>
-#include <QGraphicsSceneEvent>
 #include <QMimeData>
 #include <QPainter>
-#include <QPen>
 #include <QScreen>
 #include <qnamespace.h>
 

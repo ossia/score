@@ -30,13 +30,12 @@
 #include <score/model/EntityMap.hpp>
 #include <score/model/IdentifiedObjectMap.hpp>
 #include <score/model/Identifier.hpp>
-#include <score/tools/Todo.hpp>
 #include <score/tools/std/Optional.hpp>
+#include <score/tools/Bind.hpp>
 
 #include <ossia/detail/algorithms.hpp>
 
-#include <QApplication>
-
+#include <QGuiApplication>
 #include <wobjectimpl.h>
 
 #include <tuple>

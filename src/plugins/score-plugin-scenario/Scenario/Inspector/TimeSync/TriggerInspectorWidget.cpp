@@ -11,12 +11,11 @@
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/model/path/Path.hpp>
 #include <score/widgets/MarginLess.hpp>
+#include <score/tools/Bind.hpp>
 
-#include <QBoxLayout>
-#include <QInputDialog>
-#include <QMenu>
 #include <QPushButton>
 
+#include <QVBoxLayout>
 #include <algorithm>
 
 namespace Scenario

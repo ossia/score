@@ -6,8 +6,6 @@
 #include <score/serialization/JSONVisitor.hpp>
 #include <score/tools/std/Optional.hpp>
 
-#include <QJsonObject>
-#include <QJsonValue>
 #include <QString>
 
 #include <sys/types.h>

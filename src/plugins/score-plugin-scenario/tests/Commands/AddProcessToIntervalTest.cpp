@@ -10,7 +10,6 @@
 #include <Scenario/Process/ScenarioFactory.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
 
-#include <QtTest/QtTest>
 
 using namespace score;
 using namespace Scenario::Command;

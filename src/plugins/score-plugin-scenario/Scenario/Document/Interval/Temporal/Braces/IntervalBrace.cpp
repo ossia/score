@@ -7,9 +7,7 @@
 #include <Scenario/Document/Interval/IntervalView.hpp>
 
 #include <QCursor>
-#include <QGraphicsSceneEvent>
 #include <QPainter>
-#include <QPen>
 
 namespace Scenario
 {

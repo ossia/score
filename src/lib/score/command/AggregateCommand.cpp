@@ -11,11 +11,6 @@
 #include <boost/concept/usage.hpp>
 #include <boost/range/adaptor/reversed.hpp>
 
-#include <QByteArray>
-#include <QDataStream>
-#include <QList>
-#include <QPair>
-#include <QtGlobal>
 
 namespace score
 {

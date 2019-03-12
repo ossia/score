@@ -7,12 +7,8 @@
 
 #include <score/model/Skin.hpp>
 
-#include <QFlags>
-#include <QFont>
 #include <QGraphicsItem>
-#include <QGraphicsSceneMouseEvent>
 #include <QPainter>
-#include <QRect>
 #include <qnamespace.h>
 
 #include <wobjectimpl.h>

@@ -1,6 +1,5 @@
 #pragma once
 #include <QObject>
-#include <QQmlScriptString>
 namespace JS
 {
 class ProcessScript : public QObject

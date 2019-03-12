@@ -5,9 +5,7 @@
 
 #include <score/graphics/TextItem.hpp>
 
-#include <QBrush>
 #include <QGraphicsItem>
-#include <QPen>
 #include <qnamespace.h>
 
 #include <score_plugin_scenario_export.h>

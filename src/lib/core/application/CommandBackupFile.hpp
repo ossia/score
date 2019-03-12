@@ -2,9 +2,7 @@
 #include <score/command/Command.hpp>
 #include <score/command/CommandData.hpp>
 
-#include <QByteArray>
 #include <QObject>
-#include <QPair>
 #include <QStack>
 #include <QString>
 #include <QTemporaryFile>

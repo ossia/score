@@ -18,7 +18,6 @@
 #include <verdigris>
 #include <QJsonDocument>
 #include <QGraphicsItem>
-#include <QRegularExpression>
 
 namespace fxd {
 struct BackgroundWidget {

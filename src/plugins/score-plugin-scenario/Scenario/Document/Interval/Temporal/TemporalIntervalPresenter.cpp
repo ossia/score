@@ -33,11 +33,12 @@
 #include <score/graphics/GraphicsItem.hpp>
 #include <score/model/ModelMetadata.hpp>
 #include <score/selection/Selectable.hpp>
-#include <score/tools/Todo.hpp>
+#include <score/tools/Bind.hpp>
 
 #include <QApplication>
 #include <QGraphicsScene>
-#include <QList>
+#include <QGraphicsView>
+#include <QMenu>
 
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Scenario::TemporalIntervalPresenter)
@@ -468,7 +469,10 @@ void TemporalIntervalPresenter::createSlot(int pos, const Slot& aSlt)
   {
     SlotPresenter p;
     p.header = new SlotHeader{*this, pos, m_view};
-    p.footer = new SlotFooter{*this, pos, m_view};
+    if(m_handles)
+      p.footer = new AmovibleSlotFooter{*this, pos, m_view};
+    else
+      p.footer = new FixedSlotFooter{*this, pos, m_view};
 
     // p.view = new SlotView{};
     m_slots.insert(m_slots.begin() + pos, std::move(p));
@@ -497,7 +501,7 @@ void TemporalIntervalPresenter::createSmallSlot(int pos, const Slot& slt)
 {
   SlotPresenter p;
   p.header = new SlotHeader{*this, pos, m_view};
-  p.footer = new SlotFooter{*this, pos, m_view};
+  p.footer = new FixedSlotFooter{*this, pos, m_view};
 
   // FIXME: due to a crash with slots with invalid processes being
   // serialized. fix the model !!
@@ -629,7 +633,7 @@ void TemporalIntervalPresenter::removeLayer(const Process::ProcessModel& proc)
 
 void TemporalIntervalPresenter::on_slotRemoved(int pos)
 {
-  if (pos < m_slots.size())
+  if (pos < (int)m_slots.size())
   {
     SlotPresenter& slot = m_slots[pos];
     slot.cleanup(this->view()->scene());
