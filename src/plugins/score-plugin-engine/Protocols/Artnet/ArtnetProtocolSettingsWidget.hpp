@@ -1,4 +1,7 @@
 #pragma once
+#include <ossia/detail/config.hpp>
+#if defined(OSSIA_PROTOCOL_ARTNET)
+
 #include <Device/Protocol/DeviceSettings.hpp>
 #include <Device/Protocol/ProtocolSettingsWidget.hpp>
 
@@ -25,3 +28,4 @@ protected:
   QLineEdit* m_deviceNameEdit{};
 };
 }
+#endif

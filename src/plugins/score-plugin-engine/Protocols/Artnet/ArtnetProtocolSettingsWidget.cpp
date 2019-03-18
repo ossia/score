@@ -1,3 +1,5 @@
+#include <ossia/detail/config.hpp>
+#if defined(OSSIA_PROTOCOL_ARTNET)
 #include "ArtnetProtocolSettingsWidget.hpp"
 
 #include "ArtnetSpecificSettings.hpp"
@@ -45,3 +47,4 @@ void ArtnetProtocolSettingsWidget::setSettings(
   m_deviceNameEdit->setText(settings.name);
 }
 }
+#endif

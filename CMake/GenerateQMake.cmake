@@ -35,7 +35,7 @@ function(GenerateQMake targets)
   set(QMAKE "TARGET = ossia-score
 TEMPLATE = app
 CONFIG += c++1z object_parallel_to_source warn_off debug
-QT+=core widgets gui network xml svg websockets quick serialport
+QT+=core widgets gui network xml svg websockets quick
 ")
   set(INCLUDES "")
   set(DEFINES "")

@@ -1,5 +1,6 @@
 #pragma once
-
+#include <ossia/detail/config.hpp>
+#if defined(OSSIA_PROTOCOL_ARTNET)
 #include <Protocols/DefaultProtocolFactory.hpp>
 
 namespace Protocols
@@ -31,3 +32,4 @@ class ArtnetProtocolFactory final : public DefaultProtocolFactory
       const Device::DeviceSettings& b) const override;
 };
 }
+#endif

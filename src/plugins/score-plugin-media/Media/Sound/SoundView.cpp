@@ -289,6 +289,8 @@ void WaveformComputer::computeDataSet(
 {
   if (!data.handle())
     return;
+  if (data.sampleRate() < 1)
+    return;
 
   auto& arr = data.data();
 

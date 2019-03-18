@@ -220,7 +220,12 @@ function(GenerateUnity targets)
   set(BUILD "${BUILD}" PARENT_SCOPE)
 endfunction()
 
-set(ALL_LIBS "artnet;${SCORE_LIBRARIES_LIST};${SCORE_PLUGINS_LIST};score;ossia")
+set(ALL_LIBS "")
+if(TARGET artnet)
+  list(APPEND ALL_LIBS artnet)
+endif()
+
+list(APPEND ALL_LIBS "${SCORE_LIBRARIES_LIST};${SCORE_PLUGINS_LIST};score;ossia")
 list(REMOVE_DUPLICATES ALL_LIBS)
 
 GenerateUnity("${ALL_LIBS}")
