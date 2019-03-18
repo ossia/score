@@ -35,9 +35,9 @@ public:
   getDrops(const QMimeData& mime, const score::DocumentContext& ctx) const
       noexcept;
 
-protected:
   virtual QSet<QString> mimeTypes() const noexcept;
   virtual QSet<QString> fileExtensions() const noexcept;
+protected:
   virtual std::vector<ProcessDrop>
   drop(const QMimeData& mime, const score::DocumentContext& ctx) const
       noexcept;

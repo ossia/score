@@ -2,6 +2,7 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "MessagesPanel.hpp"
 
+#include <core/application/SafeQApplication.hpp>
 #include <ossia-qt/invoke.hpp>
 #include <ossia/detail/logger.hpp>
 
@@ -107,6 +108,7 @@ static void LogToMessagePanel(
     const QMessageLogContext& context,
     const QString& msg)
 {
+  SafeQApplication::DebugOutput(type, context, msg);
   if (!g_messagesPanel)
     return;
 

@@ -1,4 +1,6 @@
 #pragma once
+#include <ossia/detail/config.hpp>
+#if defined(OSSIA_PROTOCOL_ARTNET)
 #include <Device/Protocol/DeviceInterface.hpp>
 
 namespace Protocols
@@ -15,3 +17,4 @@ public:
   void disconnect() override;
 };
 }
+#endif
