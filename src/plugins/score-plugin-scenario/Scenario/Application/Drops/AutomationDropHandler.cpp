@@ -37,23 +37,51 @@ public:
       , m_pos{pos}
       , m_macro{new Command::AddProcessInNewBoxMacro, pres.context().context}
   {
+    auto& m = m_macro;
+    const auto& scenar = pres.model();
+    Scenario::Point pt = pres.toScenarioPoint(pos);
+    auto state = closestLeftState(pt, scenar);
+    if (state)
+    {
+      if (state->nextInterval())
+      {
+        // We create from the event instead
+        auto& s = m.createState(scenar, state->eventId(), pt.y);
+        auto& i = m.createIntervalAfter(scenar, s.id(), pt);
+        m_createdState = i.endState();
+      }
+      else
+      {
+        auto& i = m.createIntervalAfter(
+            scenar, state->id(), {pt.date, state->heightPercentage()});
+        m_createdState = i.endState();
+      }
+    }
+    else
+    {
+      // We create in the emptiness
+      const auto& [t, e, s] = m.createDot(scenar, pt);
+      m_createdState = s.id();
+    }
+
     if (!m_sequence)
     {
-      const Scenario::ProcessModel& scenar = pres.model();
-      Scenario::Point pt = pres.toScenarioPoint(pos);
-      m_itv = &m_macro.createBox(scenar, pt.date, pt.date + maxdur, pt.y);
+      // Everything will go in a single interval
+      m_itv = &m.createIntervalAfter(scenar, m_createdState, Scenario::Point{pt.date + maxdur, pt.y});
     }
   }
 
   template <typename F>
   auto addProcess(F&& fun, TimeVal duration) -> decltype(auto)
   {
+    // sequence : processes are put all one after the other
     if (m_sequence)
     {
       const Scenario::ProcessModel& scenar = m_pres.model();
       Scenario::Point pt = m_pres.toScenarioPoint(m_pos);
       if (m_itv)
       {
+        // We already created the first interval / process
         auto last_state = m_itv->endState();
         pt.date
             = Scenario::parentEvent(scenar.state(last_state), scenar).date()
@@ -65,7 +93,8 @@ public:
       }
       else
       {
-        m_itv = &m_macro.createBox(scenar, pt.date, pt.date + duration, pt.y);
+        // We create the first interval / process
+        m_itv = &m_macro.createIntervalAfter(scenar, m_createdState, pt);
         decltype(auto) proc = fun(m_macro, *m_itv);
         m_macro.showRack(*m_itv);
         return proc;
@@ -93,6 +122,7 @@ private:
   QPointF m_pos;
   Scenario::Command::Macro m_macro;
   Scenario::IntervalModel* m_itv{};
+  Id<StateModel> m_createdState;
 };
 
 class DropProcessInIntervalHelper
@@ -135,6 +165,21 @@ private:
   const Scenario::IntervalModel& m_itv;
 };
 
+DropProcessInScenario::DropProcessInScenario()
+{
+}
+
+void DropProcessInScenario::init()
+{
+  const auto& handlers = score::GUIAppContext().interfaces<Process::ProcessDropHandlerList>();
+  for(auto& handler : handlers)
+  {
+    for(auto& type : handler.mimeTypes())
+      m_acceptableMimeTypes.push_back(type);
+    for(auto& ext : handler.fileExtensions())
+      m_acceptableSuffixes.push_back(ext);
+  }
+}
 bool DropProcessInScenario::drop(
     const ScenarioPresenter& pres,
     QPointF pos,
@@ -217,6 +262,11 @@ bool DropProcessInInterval::drop(
   return false;
 }
 
+DropPortInScenario::DropPortInScenario()
+{
+  m_acceptableMimeTypes.push_back(score::mime::port());
+}
+
 bool DropPortInScenario::drop(
     const ScenarioPresenter& pres,
     QPointF pos,
@@ -265,6 +315,12 @@ bool DropPortInScenario::drop(
   return false;
 }
 
+DropScenario::DropScenario()
+{
+  // TODO give them a mime type ?
+  m_acceptableSuffixes.push_back("scenario");
+}
+
 bool DropScenario::drop(
     const ScenarioPresenter& pres,
     QPointF pos,
@@ -288,6 +344,11 @@ bool DropScenario::drop(
   }
 
   return false;
+}
+
+DropLayerInScenario::DropLayerInScenario()
+{
+  m_acceptableMimeTypes.push_back(score::mime::layerdata());
 }
 
 bool DropLayerInScenario::drop(

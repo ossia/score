@@ -1,4 +1,6 @@
 #pragma once
+#include <Scenario/Palette/ScenarioPoint.hpp>
+
 #include <score/plugins/Interface.hpp>
 #include <score/plugins/InterfaceList.hpp>
 
@@ -7,12 +9,20 @@
 
 #include <score_plugin_scenario_export.h>
 
+
 namespace score
 {
 struct DocumentContext;
 }
 namespace Scenario
 {
+class StateModel;
+class ProcessModel;
+
+Scenario::StateModel*
+closestLeftState(Scenario::Point pt, const Scenario::ProcessModel& scenario);
+
+
 class ScenarioPresenter;
 class SCORE_PLUGIN_SCENARIO_EXPORT DropHandler : public score::InterfaceBase
 {
@@ -45,6 +55,30 @@ public:
   virtual bool
   drop(const Scenario::ScenarioPresenter&, QPointF pos, const QMimeData& mime)
       = 0;
+};
+
+class SCORE_PLUGIN_SCENARIO_EXPORT GhostIntervalDropHandler : public DropHandler
+{
+public:
+  ~GhostIntervalDropHandler() override;
+
+protected:
+  std::vector<QString> m_acceptableMimeTypes;
+  std::vector<QString> m_acceptableSuffixes;
+
+private:
+  bool dragEnter(
+      const Scenario::ScenarioPresenter&,
+      QPointF pos,
+      const QMimeData& mime) final override;
+  bool dragMove(
+      const Scenario::ScenarioPresenter&,
+      QPointF pos,
+      const QMimeData& mime) final override;
+  bool dragLeave(
+      const Scenario::ScenarioPresenter&,
+      QPointF pos,
+      const QMimeData& mime) final override;
 };
 
 class DropHandlerList final : public score::InterfaceList<DropHandler>

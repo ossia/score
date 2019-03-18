@@ -167,10 +167,39 @@ IntervalDurations::Algorithms::setDurationInBounds(
 }
 
 SCORE_PLUGIN_SCENARIO_EXPORT void
+IntervalDurations::Algorithms::fixAllDurations(
+    IntervalModel& cstr,
+    const TimeVal& time)
+{
+  if (cstr.duration.defaultDuration() != time
+      || cstr.duration.minDuration() != time
+      || cstr.duration.maxDuration() != time)
+  {
+    cstr.duration.setDefaultDuration(time);
+    cstr.duration.setMinDuration(time);
+    cstr.duration.setMaxDuration(time);
+
+    auto& dur = cstr.duration;
+    qDebug() << dur.minDuration() << dur.defaultDuration() << dur.maxDuration();
+    qDebug() << dur.isRigid() << dur.isMinNull() << dur.isMaxInfinite();
+    qDebug() << (dur.maxDuration() >= dur.defaultDuration());
+    qDebug() << (dur.maxDuration() - dur.defaultDuration());
+    std::cout << std::flush;
+    std::cerr << std::flush;
+  }
+}
+
+SCORE_PLUGIN_SCENARIO_EXPORT void
 IntervalDurations::Algorithms::changeAllDurations(
     IntervalModel& cstr,
     const TimeVal& time)
 {
+  if (cstr.duration.isRigid())
+  {
+    fixAllDurations(cstr, time);
+    return;
+  }
+
   if (cstr.duration.defaultDuration() != time)
   {
     // Note: the OSSIA implementation requires min <= dur <= max at all time
