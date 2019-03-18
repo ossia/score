@@ -149,6 +149,7 @@ protected:
   Scenario::ElementsProperties m_properties{};
 
   Scenario::TimenodeGraph m_graph;
+  /*
   struct GhostInterval {
     std::shared_ptr<ossia::time_interval> interval;
     std::shared_ptr<ossia::time_event> end_event;
@@ -156,6 +157,7 @@ protected:
 
   std::vector<GhostInterval> m_ghosts;
   std::shared_ptr<ossia::time_event> m_ghost_start;
+  */
 };
 
 using ScenarioComponentHierarchy = HierarchicalScenarioComponent<

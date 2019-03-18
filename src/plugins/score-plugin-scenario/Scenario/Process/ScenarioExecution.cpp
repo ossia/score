@@ -70,11 +70,13 @@ ScenarioComponentBase::ScenarioComponentBase(
       &ScenarioComponentBase::eventCallback,
       Qt::QueuedConnection);
 
+  /*
 
   auto& start_ts = *OSSIAProcess().get_start_time_sync();
   m_ghost_start = std::make_shared<ossia::time_event>(ossia::time_event::exec_callback{}, start_ts, ossia::expressions::make_expression_true());
 
   start_ts.insert(start_ts.get_time_events().end(), m_ghost_start);
+  */
 }
 
 ScenarioComponentBase::~ScenarioComponentBase() {}
@@ -478,7 +480,7 @@ ScenarioComponentBase::make<TimeSyncComponent, Scenario::TimeSyncModel>(
     auto ossia_sc = std::dynamic_pointer_cast<ossia::scenario>(m_ossia_process);
     m_ctx.executionQueue.enqueue(
           [ossia_sc, ossia_tn] { ossia_sc->add_time_sync(ossia_tn); });
-
+    /*
     if(Scenario::previousIntervals(tn, process()).empty())
     {
       if(!tn.active())
@@ -508,6 +510,7 @@ ScenarioComponentBase::make<TimeSyncComponent, Scenario::TimeSyncModel>(
         });
       }
     }
+    */
   }
 
   return elt.get();

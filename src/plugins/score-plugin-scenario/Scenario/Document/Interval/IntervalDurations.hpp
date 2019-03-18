@@ -86,6 +86,7 @@ public:
   {
   public:
     static void setDurationInBounds(IntervalModel& cstr, const TimeVal& time);
+    static void fixAllDurations(IntervalModel& cstr, const TimeVal& time);
     static void changeAllDurations(IntervalModel& cstr, const TimeVal& time);
     static void scaleAllDurations(IntervalModel& cstr, const TimeVal& time);
   };
