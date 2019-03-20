@@ -3,13 +3,39 @@
 #include "ScenarioDropHandler.hpp"
 
 #include <Scenario/Process/ScenarioPresenter.hpp>
+#include <Scenario/Process/ScenarioView.hpp>
 #include <QFileInfo>
 namespace Scenario
 {
 
 Scenario::StateModel*
-closestLeftState(Scenario::Point pt, const Scenario::ProcessModel& scenario)
+closestLeftState(Scenario::Point pt,const Scenario::ScenarioPresenter& pres)
 {
+  const auto& scenario = pres.model();
+  EventModel& start_ev = scenario.startEvent();
+  SCORE_ASSERT(!start_ev.states().empty());
+  Scenario::StateModel* cur_st = &scenario.states.at(start_ev.states().front());
+
+  double cur_distance = std::numeric_limits<double>::max();
+  for(auto& state : scenario.states)
+  {
+    const double rel_distance = std::abs(state.heightPercentage() - pt.y);
+    //const double abs_x_distance = std::abs(Scenario::parentEvent(state, scenario).date().msec() / pres.zoomRatio() - pt.date.msec() / pres.zoomRatio());
+    const double abs_y_distance = rel_distance * pres.view().height();
+
+    if(rel_distance < cur_distance && (abs_y_distance < 15./* || abs_x_distance < 15. */))
+    {
+      auto& ev = scenario.event(state.eventId());
+      if(ev.date() < pt.date)
+      {
+        cur_st = &state;
+        cur_distance = rel_distance;
+      }
+    }
+  }
+  return cur_st;
+
+  /*
   TimeSyncModel* cur_tn = &scenario.startTimeSync();
   for (auto& tn : scenario.timeSyncs)
   {
@@ -35,6 +61,7 @@ closestLeftState(Scenario::Point pt, const Scenario::ProcessModel& scenario)
     }
     return cur_st;
   }
+  */
   return nullptr;
 }
 
@@ -95,10 +122,10 @@ bool GhostIntervalDropHandler::dragMove(
     return false;
 
   auto pt = pres.toScenarioPoint(pos);
-  auto st = closestLeftState(pt, pres.model());
+  auto st = closestLeftState(pt, pres);
   if (st)
   {
-    if (st->nextInterval())
+    if (st->nextInterval() || st->eventId() == pres.model().startEvent().id())
     {
       pres.drawDragLine(*st, pt);
     }

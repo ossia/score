@@ -18,9 +18,10 @@ namespace Scenario
 {
 class StateModel;
 class ProcessModel;
+class ScenarioPresenter;
 
 Scenario::StateModel*
-closestLeftState(Scenario::Point pt, const Scenario::ProcessModel& scenario);
+closestLeftState(Scenario::Point pt, const Scenario::ScenarioPresenter& pres);
 
 
 class ScenarioPresenter;
