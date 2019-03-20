@@ -40,7 +40,7 @@ public:
     auto& m = m_macro;
     const auto& scenar = pres.model();
     Scenario::Point pt = pres.toScenarioPoint(pos);
-    auto state = closestLeftState(pt, scenar);
+    auto state = closestLeftState(pt, pres);
     if (state)
     {
       if (state->nextInterval())
