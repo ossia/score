@@ -50,15 +50,19 @@ case "$TRAVIS_OS_NAME" in
     brew install gnu-tar xz
 
     SDK_ARCHIVE=homebrew-cache.txz
-    wget -nv https://github.com/OSSIA/score-sdk/releases/download/sdk9/$SDK_ARCHIVE -O $SDK_ARCHIVE
-    gtar xhaf $SDK_ARCHIVE --directory /usr/local/Cellar
-
-    AUDIO_ARCHIVE=mac-audio-sdk.txz
-    wget -nv https://github.com/OSSIA/score-sdk/releases/download/sdk10/$AUDIO_ARCHIVE -O $AUDIO_ARCHIVE
-    sudo gtar xhaf $AUDIO_ARCHIVE --directory /opt/ossia-sdk
+    wget -nv https://github.com/OSSIA/score-sdk/releases/download/sdk12/$SDK_ARCHIVE -O $SDK_ARCHIVE
+    gtar xhaf $SDK_ARCHIVE --directory /opt/score-sdk
+    
+    ln -s /opt/score-sdk/cmake /usr/local/Cellar/cmake 
+    ln -s /opt/score-sdk/ninja /usr/local/Cellar/ninja
+    ln -s /opt/score-sdk/boost /usr/local/Cellar/boost
+    
+    #AUDIO_ARCHIVE=mac-audio-sdk.txz
+    #wget -nv https://github.com/OSSIA/score-sdk/releases/download/sdk10/$AUDIO_ARCHIVE -O $AUDIO_ARCHIVE
+    #sudo gtar xhaf $AUDIO_ARCHIVE --directory /opt/ossia-sdk
 
     brew unlink cmake
-    brew link --force boost ninja qt5 cmake
+    brew link --force boost ninja cmake
 
     set -e
   ;;
