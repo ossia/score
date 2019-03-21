@@ -51,12 +51,13 @@ case "$TRAVIS_OS_NAME" in
 
     SDK_ARCHIVE=homebrew-cache.txz
     wget -nv https://github.com/OSSIA/score-sdk/releases/download/sdk12/$SDK_ARCHIVE -O $SDK_ARCHIVE
+    mkdir -p /opt/score-sdk
     gtar xhaf $SDK_ARCHIVE --directory /opt/score-sdk
-    
-    ln -s /opt/score-sdk/cmake /usr/local/Cellar/cmake 
+
+    ln -s /opt/score-sdk/cmake /usr/local/Cellar/cmake
     ln -s /opt/score-sdk/ninja /usr/local/Cellar/ninja
     ln -s /opt/score-sdk/boost /usr/local/Cellar/boost
-    
+
     #AUDIO_ARCHIVE=mac-audio-sdk.txz
     #wget -nv https://github.com/OSSIA/score-sdk/releases/download/sdk10/$AUDIO_ARCHIVE -O $AUDIO_ARCHIVE
     #sudo gtar xhaf $AUDIO_ARCHIVE --directory /opt/ossia-sdk
