@@ -51,7 +51,8 @@ case "$TRAVIS_OS_NAME" in
 
     SDK_ARCHIVE=homebrew-cache.txz
     wget -nv https://github.com/OSSIA/score-sdk/releases/download/sdk12/$SDK_ARCHIVE -O $SDK_ARCHIVE
-    mkdir -p /opt/score-sdk
+    sudo mkdir -p /opt/score-sdk
+    sudo chmod -R a+rwx /opt/score-sdk
     gtar xhaf $SDK_ARCHIVE --directory /opt/score-sdk
 
     ln -s /opt/score-sdk/cmake /usr/local/Cellar/cmake
