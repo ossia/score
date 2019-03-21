@@ -28,7 +28,7 @@ class ScenarioDocumentPresenter;
 // should more be part of the per-document part.
 namespace Process
 {
-class SCORE_LIB_PROCESS_EXPORT ProcessFocusManager final : public QObject
+class SCORE_PLUGIN_SCENARIO_EXPORT ProcessFocusManager final : public QObject
 {
   W_OBJECT(ProcessFocusManager)
 

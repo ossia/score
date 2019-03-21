@@ -314,6 +314,7 @@ function(setup_score_common_lib_features TheTarget)
 
   if(OSSIA_STATIC_EXPORT)
     generate_export_header(${TheTarget} ALWAYS_EXPORT)
+    target_compile_definitions(${TheTarget} PRIVATE "${TheTarget}_EXPORTS=1")
   else()
     generate_export_header(${TheTarget})
   endif()

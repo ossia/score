@@ -9,4 +9,8 @@ if(UNIX AND EXISTS "/etc/centos-release")
   set(SCORE_ENABLE_LTO False)
 endif()
 
+if(MSYS OR MINGW)
+  set(SCORE_ENABLE_LTO False)
+endif()
+
 include(default-plugins)

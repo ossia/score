@@ -146,7 +146,11 @@ private:
   bool m_preparingNewDocument{};
 };
 
+SCORE_LIB_BASE_EXPORT
 Id<score::DocumentModel> getStrongId(const std::vector<score::Document*>& v);
+
+
+SCORE_LIB_BASE_EXPORT
 Id<score::DocumentPlugin>
 getStrongId(const std::vector<score::DocumentPlugin*>& v);
 }
