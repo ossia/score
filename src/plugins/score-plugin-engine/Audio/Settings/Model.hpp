@@ -18,13 +18,11 @@ public:                                                 \
     static constexpr auto name = #Name;                 \
     static constexpr auto get()                         \
     {                                                   \
-      constexpr auto x = &model_type::get##Name;        \
-      return x;                                         \
+      return &model_type::get##Name;                    \
     }                                                   \
     static constexpr auto set()                         \
     {                                                   \
-      constexpr auto x = &model_type::set##Name;        \
-      return x;                                         \
+      return &model_type::set##Name;                    \
     }                                                   \
   };                                                    \
                                                         \

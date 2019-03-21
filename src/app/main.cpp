@@ -140,7 +140,9 @@ static void setup_app_flags()
 #endif
 }
 
-int main(int argc, char** argv)
+extern "C"
+Q_DECL_EXPORT
+int score_main(int argc, char** argv)
 {
 #if defined(__APPLE__)
   auto pool = mac_init_pool();

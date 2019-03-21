@@ -5,11 +5,12 @@
 #include <State/Expression.hpp>
 
 #include <ossia/detail/algorithms.hpp>
+
+// TODO move this !
 namespace State::convert
 {
-
 template <>
-SCORE_LIB_STATE_EXPORT State::AddressAccessor value(const ossia::value& val)
+State::AddressAccessor value(const ossia::value& val)
 {
   if (val.get_type() == ossia::val_type::STRING)
   {

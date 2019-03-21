@@ -109,10 +109,17 @@ install(CODE "
     endif()
 
     file(REMOVE_RECURSE
-        \"\${CMAKE_INSTALL_PREFIX}/include\"
         \"\${CMAKE_INSTALL_PREFIX}/lib\"
     )
 ")
+
+if(NOT TARGET score_addon_jit)
+    install(CODE "
+        file(REMOVE_RECURSE
+            \"\${CMAKE_INSTALL_PREFIX}/include\"
+        )
+    ")
+endif()
 
 install(FILES "${QT_QML_PLUGINS_DIR}/QtQuick.2/qtquick2plugin${DEBUG_CHAR}.dll" DESTINATION "${SCORE_BIN_INSTALL_DIR}/qml/QtQuick.2")
 

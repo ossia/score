@@ -150,7 +150,6 @@ DocumentManager::~DocumentManager()
     delete m_recentFiles;
 }
 
-SCORE_LIB_BASE_EXPORT
 Document* DocumentManager::setupDocument(
     const score::GUIApplicationContext& ctx,
     Document* doc)
@@ -444,7 +443,6 @@ static QString lastOpenFileName()
   return {};
 }
 
-SCORE_LIB_BASE_EXPORT
 Document* DocumentManager::loadFile(const score::GUIApplicationContext& ctx)
 {
   if (!m_view)
@@ -514,7 +512,6 @@ Document* DocumentManager::loadFile(
   return doc;
 }
 
-SCORE_LIB_BASE_EXPORT
 void DocumentManager::prepareNewDocument(
     const score::GUIApplicationContext& ctx)
 {
@@ -679,7 +676,6 @@ void DocumentManager::saveRecentFilesState()
 #endif
 }
 
-SCORE_LIB_BASE_EXPORT
 void DocumentManager::restoreDocuments(const score::GUIApplicationContext& ctx)
 {
   for (const RestorableDocument& backup :
@@ -694,7 +690,6 @@ void DocumentManager::restoreDocuments(const score::GUIApplicationContext& ctx)
   }
 }
 
-SCORE_LIB_BASE_EXPORT
 Id<score::DocumentModel> getStrongId(const std::vector<score::Document*>& v)
 {
   using namespace std;
@@ -707,7 +702,6 @@ Id<score::DocumentModel> getStrongId(const std::vector<score::Document*>& v)
   return Id<score::DocumentModel>{score::random_id_generator::getNextId(ids)};
 }
 
-SCORE_LIB_BASE_EXPORT
 Id<score::DocumentPlugin>
 getStrongId(const std::vector<score::DocumentPlugin*>& v)
 {

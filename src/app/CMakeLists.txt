@@ -6,12 +6,13 @@ enable_testing()
 set(APPNAME "score")
 set(CMAKE_POSITION_INDEPENDENT_CODE 1)
 
-add_executable(${APPNAME} WIN32
+add_executable(score-main WIN32 AppLauncher.cpp)
+add_library(${APPNAME} SHARED
   "${CMAKE_CURRENT_SOURCE_DIR}/Application.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Application.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/main.cpp"
 )
-
+target_link_libraries(score-main PRIVATE ${APPNAME})
 target_link_libraries(${APPNAME} PUBLIC score_lib_base)
 if(SCORE_STATIC_PLUGINS)
   target_link_libraries(${APPNAME} PUBLIC ${SCORE_PLUGINS_LIST})
@@ -19,7 +20,12 @@ endif()
 
 if(TARGET score_addon_jit)
   set_target_properties(${APPNAME} PROPERTIES ENABLE_EXPORTS 1)
+  if(MINGW OR MSYS)
+    target_link_libraries(${APPNAME} PUBLIC -Wl,--stack,16777216)
+    target_link_libraries(score-main PUBLIC -Wl,--stack,16777216)
+  endif()
 endif()
+
 find_package(Qt5 5.7 COMPONENTS QuickControls2)
 if(TARGET Qt5::QuickControls2)
   target_link_libraries(${APPNAME} PUBLIC score_lib_base Qt5::QuickControls2)
