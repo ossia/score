@@ -178,7 +178,7 @@ IntervalDurations::Algorithms::fixAllDurations(
     cstr.duration.setDefaultDuration(time);
     cstr.duration.setMinDuration(time);
     cstr.duration.setMaxDuration(time);
-
+  /*
     auto& dur = cstr.duration;
     qDebug() << dur.minDuration() << dur.defaultDuration() << dur.maxDuration();
     qDebug() << dur.isRigid() << dur.isMinNull() << dur.isMaxInfinite();
@@ -186,6 +186,7 @@ IntervalDurations::Algorithms::fixAllDurations(
     qDebug() << (dur.maxDuration() - dur.defaultDuration());
     std::cout << std::flush;
     std::cerr << std::flush;
+    */
   }
 }
 

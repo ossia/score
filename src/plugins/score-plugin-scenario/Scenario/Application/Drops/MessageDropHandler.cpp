@@ -67,22 +67,44 @@ bool MessageDropHandler::drop(
 
   Scenario::Point pt = pres.toScenarioPoint(pos);
 
-  m_magnetic = closestLeftState(m_magnetic, pt, pres);
-  auto [state, ver_st, magnetic] = m_magnetic;
-  if (state)
+  m_magnetic = magneticStates(m_magnetic, pt, pres);
+  auto [x_state, y_state, magnetic] = m_magnetic;
+  if(y_state)
   {
-    if (state->nextInterval())
+    if(magnetic)
+    {
+      createdState = m.createState(scenar, y_state->eventId(), pt.y).id();
+    }
+    else
+    {
+      auto& s = m.createState(scenar, y_state->eventId(), pt.y);
+      auto& i = m.createIntervalAfter(scenar, s.id(), pt);
+      createdState = i.endState();
+    }
+  }
+  else if (x_state)
+  {
+    if (x_state->nextInterval())
     {
       // We create from the event instead
-      auto& s = m.createState(scenar, state->eventId(), pt.y);
+      auto& s = m.createState(scenar, x_state->eventId(), pt.y);
       auto& i = m.createIntervalAfter(scenar, s.id(), pt);
       createdState = i.endState();
     }
     else
     {
-      auto& i = m.createIntervalAfter(
-          scenar, state->id(), {pt.date, state->heightPercentage()});
-      createdState = i.endState();
+      if(magnetic)
+      {
+        auto& i = m.createIntervalAfter(
+              scenar, x_state->id(), {pt.date, x_state->heightPercentage()});
+          createdState = i.endState();
+      }
+      else
+      {
+        auto& s = m.createState(scenar, x_state->eventId(), pt.y);
+        auto& i = m.createIntervalAfter(scenar, s.id(), pt);
+        createdState = i.endState();
+      }
     }
   }
   else

@@ -28,7 +28,7 @@ struct MagneticStates
 };
 
 MagneticStates
-closestLeftState(
+magneticStates(
     MagneticStates cur, Scenario::Point pt, const Scenario::ScenarioPresenter& pres);
 
 

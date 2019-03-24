@@ -9,7 +9,7 @@ namespace Scenario
 {
 
 MagneticStates
-closestLeftState(
+magneticStates(
     MagneticStates cur, Scenario::Point pt, const Scenario::ScenarioPresenter& pres)
 {
   constexpr int magnetic = 10;
@@ -126,7 +126,7 @@ bool GhostIntervalDropHandler::dragMove(
     return false;
 
   auto pt = pres.toScenarioPoint(pos);
-  m_magnetic = closestLeftState(m_magnetic, pt, pres);
+  m_magnetic = magneticStates(m_magnetic, pt, pres);
   auto [x_state, y_state, magnetic] = m_magnetic;
 
   if(y_state)
