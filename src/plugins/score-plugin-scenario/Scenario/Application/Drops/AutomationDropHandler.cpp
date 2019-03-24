@@ -29,6 +29,7 @@ class DropProcessInScenarioHelper
 {
 public:
   DropProcessInScenarioHelper(
+      MagneticStates m_magnetic,
       const Scenario::ScenarioPresenter& pres,
       QPointF pos,
       TimeVal maxdur)
@@ -40,7 +41,8 @@ public:
     auto& m = m_macro;
     const auto& scenar = pres.model();
     Scenario::Point pt = pres.toScenarioPoint(pos);
-    auto state = closestLeftState(pt, pres);
+
+    auto [state, ver_st, magnetic] = m_magnetic;
     if (state)
     {
       if (state->nextInterval())
@@ -192,7 +194,7 @@ bool DropProcessInScenario::drop(
   {
     auto t = handlers.getMaxDuration(res).value_or(TimeVal{10000});
 
-    DropProcessInScenarioHelper dropper(pres, pos, t);
+    DropProcessInScenarioHelper dropper(m_magnetic, pres, pos, t);
 
     score::Dispatcher_T disp{dropper.macro()};
     for (const auto& proc : res)

@@ -8,82 +8,86 @@
 namespace Scenario
 {
 
-Scenario::StateModel*
-closestLeftState(Scenario::Point pt,const Scenario::ScenarioPresenter& pres)
+MagneticStates
+closestLeftState(
+    MagneticStates cur, Scenario::Point pt, const Scenario::ScenarioPresenter& pres)
 {
+  constexpr int magnetic = 10;
   const auto& scenario = pres.model();
+
+  // Check if we keep the current magnetism
+  if(cur.horizontal)
+  {
+    const auto state_msec = scenario.events.at(cur.horizontal->eventId()).date().msec();
+
+    const double rel_y_distance = std::abs(cur.horizontal->heightPercentage() - pt.y);
+    const double abs_y_distance = rel_y_distance * pres.view().height();
+
+    if(abs_y_distance < magnetic && state_msec < pt.date.msec())
+    {
+      return {cur.horizontal, cur.vertical, true};
+    }
+  }
+  else if(cur.vertical)
+  {
+    auto cur_date = Scenario::parentEvent(*cur.vertical, scenario).date().msec();
+    const double abs_x_distance = std::abs((cur_date - pt.date.msec()) / pres.zoomRatio());
+    if(abs_x_distance < magnetic)
+    {
+      return {cur.horizontal, cur.vertical, true};
+    }
+  }
+
   EventModel& start_ev = scenario.startEvent();
   SCORE_ASSERT(!start_ev.states().empty());
-  Scenario::StateModel* cur_st = &scenario.states.at(start_ev.states().front());
 
-  double cur_distance = std::numeric_limits<double>::max();
+  ossia::fast_hash_map<Id<EventModel>, double> eventDates;
+  for(auto& ev : scenario.events)
+    eventDates[ev.id()] = ev.date().msec();
+
+  Scenario::StateModel* start_st = &scenario.states.at(start_ev.states().front());
+
+  const double pt_msec = pt.date.msec();
+  StateModel* min_x_state = start_st;
+  double min_x_distance = std::numeric_limits<double>::max();
+
+  StateModel* min_y_state = start_st;
+  double min_y_distance = std::numeric_limits<double>::max();
   for(auto& state : scenario.states)
   {
-    const double rel_distance = std::abs(state.heightPercentage() - pt.y);
-    //const double abs_x_distance = std::abs(Scenario::parentEvent(state, scenario).date().msec() / pres.zoomRatio() - pt.date.msec() / pres.zoomRatio());
-    const double abs_y_distance = rel_distance * pres.view().height();
+    const auto state_msec = eventDates[state.eventId()];
 
-    if(rel_distance < cur_distance && (abs_y_distance < 15./* || abs_x_distance < 15. */))
+    if(state_msec >= pt_msec)
+      continue;
+
+    const double rel_x_distance = std::abs(state_msec - pt.date.msec());
+    const double abs_x_distance = rel_x_distance / pres.zoomRatio();
+
+    const double rel_y_distance = std::abs(state.heightPercentage() - pt.y);
+    const double abs_y_distance = rel_y_distance * pres.view().height();
+
+    if(abs_x_distance < min_x_distance)
     {
-      auto& ev = scenario.event(state.eventId());
-      if(ev.date() < pt.date)
-      {
-        cur_st = &state;
-        cur_distance = rel_distance;
-      }
+      min_x_state = &state;
+      min_x_distance = abs_x_distance;
+    }
+
+    if(abs_y_distance < min_y_distance)
+    {
+      min_y_state = &state;
+      min_y_distance = abs_y_distance;
     }
   }
-  return cur_st;
 
-  /*
-  TimeSyncModel* cur_tn = &scenario.startTimeSync();
-  for (auto& tn : scenario.timeSyncs)
+  if(min_x_distance < min_y_distance)
   {
-    auto date = tn.date();
-    if (date > cur_tn->date() && date < pt.date)
-    {
-      cur_tn = &tn;
-    }
+    return {nullptr, min_x_state, min_x_distance < magnetic};
   }
-
-  auto states = Scenario::states(*cur_tn, scenario);
-  if (!states.empty())
+  else
   {
-    auto cur_st = &scenario.states.at(states.front());
-    for (auto state_id : states)
-    {
-      auto& state = scenario.states.at(state_id);
-      if (std::abs(state.heightPercentage() - pt.y)
-          < std::abs(cur_st->heightPercentage() - pt.y))
-      {
-        cur_st = &state;
-      }
-    }
-    return cur_st;
+    return {min_y_state, nullptr, min_y_distance < magnetic};
   }
-  */
-  return nullptr;
 }
-
-/*
-static Scenario::StateModel* magneticLeftState(Scenario::Point pt, const
-Scenario::ProcessModel& scenario)
-{
-  Scenario::StateModel* cur_st = &*scenario.states.begin();
-
-  for(auto& state : scenario.states)
-  {
-      if(std::abs(state.heightPercentage() - pt.y) <
-std::abs(cur_st->heightPercentage() - pt.y))
-      {
-        auto& new_ev = scenario.event(state.eventId());
-        if(new_ev.date() < pt.date)
-          cur_st = &state;
-      }
-  }
-  return cur_st;
-}
-*/
 
 DropHandler::~DropHandler() {}
 GhostIntervalDropHandler::~GhostIntervalDropHandler() {}
@@ -122,17 +126,34 @@ bool GhostIntervalDropHandler::dragMove(
     return false;
 
   auto pt = pres.toScenarioPoint(pos);
-  auto st = closestLeftState(pt, pres);
-  if (st)
+  m_magnetic = closestLeftState(m_magnetic, pt, pres);
+  auto [x_state, y_state, magnetic] = m_magnetic;
+
+  if(y_state)
   {
-    if (st->nextInterval() || st->eventId() == pres.model().startEvent().id())
+    if(magnetic)
     {
-      pres.drawDragLine(*st, pt);
+      // TODO in the drop, handle the case where rel_t < 0 - else, negative date + crash
+      pres.drawDragLine(*y_state, {Scenario::parentEvent(*y_state, pres.model()).date(), pt.y});
+    }
+    else
+    {
+      pres.drawDragLine(*y_state, pt);
+    }
+  }
+  else if (x_state)
+  {
+    if (x_state->nextInterval() || x_state->eventId() == pres.model().startEvent().id())
+    {
+      pres.drawDragLine(*x_state, pt);
     }
     else
     {
       // Sequence
-      pres.drawDragLine(*st, {pt.date, st->heightPercentage()});
+      if(magnetic)
+        pres.drawDragLine(*x_state, {pt.date, x_state->heightPercentage()});
+      else
+        pres.drawDragLine(*x_state, pt);
     }
   }
   return true;

@@ -1,6 +1,6 @@
 #pragma once
 #include <Scenario/Palette/ScenarioPoint.hpp>
-
+#include <score/model/Identifier.hpp>
 #include <score/plugins/Interface.hpp>
 #include <score/plugins/InterfaceList.hpp>
 
@@ -20,8 +20,16 @@ class StateModel;
 class ProcessModel;
 class ScenarioPresenter;
 
-Scenario::StateModel*
-closestLeftState(Scenario::Point pt, const Scenario::ScenarioPresenter& pres);
+struct MagneticStates
+{
+  Scenario::StateModel* horizontal{};
+  Scenario::StateModel* vertical{};
+  bool magnetic{};
+};
+
+MagneticStates
+closestLeftState(
+    MagneticStates cur, Scenario::Point pt, const Scenario::ScenarioPresenter& pres);
 
 
 class ScenarioPresenter;
@@ -66,6 +74,8 @@ public:
 protected:
   std::vector<QString> m_acceptableMimeTypes;
   std::vector<QString> m_acceptableSuffixes;
+
+  MagneticStates m_magnetic{};
 
 private:
   bool dragEnter(
