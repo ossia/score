@@ -39,7 +39,6 @@ TemporalIntervalView::TemporalIntervalView(
 {
   this->setCacheMode(QGraphicsItem::NoCache);
   this->setParentItem(parent);
-  this->setAcceptDrops(true);
 
   this->setZValue(ZPos::Interval);
 }
@@ -336,30 +335,6 @@ void TemporalIntervalView::hoverLeaveEvent(QGraphicsSceneHoverEvent* h)
   unsetCursor();
   updateOverlay();
   intervalHoverLeave();
-}
-
-void TemporalIntervalView::dragEnterEvent(QGraphicsSceneDragDropEvent* event)
-{
-  QGraphicsItem::dragEnterEvent(event);
-  m_dropTarget = true;
-  updateOverlay();
-  event->accept();
-}
-
-void TemporalIntervalView::dragLeaveEvent(QGraphicsSceneDragDropEvent* event)
-{
-  QGraphicsItem::dragLeaveEvent(event);
-  m_dropTarget = false;
-  updateOverlay();
-  event->accept();
-}
-
-void TemporalIntervalView::dropEvent(QGraphicsSceneDragDropEvent* event)
-{
-  dropReceived(event->pos(), *event->mimeData());
-  m_dropTarget = false;
-
-  event->accept();
 }
 
 void TemporalIntervalView::setLabel(const QString& label)
