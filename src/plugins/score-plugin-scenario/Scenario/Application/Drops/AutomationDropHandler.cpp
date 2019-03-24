@@ -42,20 +42,38 @@ public:
     const auto& scenar = pres.model();
     Scenario::Point pt = pres.toScenarioPoint(pos);
 
-    auto [state, ver_st, magnetic] = m_magnetic;
-    if (state)
+    auto [x_state, y_state, magnetic] = m_magnetic;
+    if(y_state)
     {
-      if (state->nextInterval())
+      m_intervalY = pt.y;
+      if(magnetic || pt.date <= scenar.event(y_state->eventId()).date())
+      {
+        // Create another state on that event and put the process afterwards
+        m_createdState = m.createState(scenar, y_state->eventId(), m_intervalY).id();
+      }
+      else
+      {
+        auto& s = m.createState(scenar, y_state->eventId(), m_intervalY);
+        auto& i = m.createIntervalAfter(scenar, s.id(), {pt.date, m_intervalY});
+        m_createdState = i.endState();
+      }
+    }
+    else if (x_state)
+    {
+      if (x_state->nextInterval())
       {
         // We create from the event instead
-        auto& s = m.createState(scenar, state->eventId(), pt.y);
-        auto& i = m.createIntervalAfter(scenar, s.id(), pt);
+        m_intervalY = pt.y;
+        auto& s = m.createState(scenar, x_state->eventId(), m_intervalY);
+        auto& i = m.createIntervalAfter(scenar, s.id(), {pt.date, m_intervalY});
         m_createdState = i.endState();
       }
       else
       {
+        m_intervalY = magnetic ? x_state->heightPercentage() : pt.y;
+
         auto& i = m.createIntervalAfter(
-            scenar, state->id(), {pt.date, state->heightPercentage()});
+            scenar, x_state->id(), {pt.date, m_intervalY});
         m_createdState = i.endState();
       }
     }
@@ -69,7 +87,7 @@ public:
     if (!m_sequence)
     {
       // Everything will go in a single interval
-      m_itv = &m.createIntervalAfter(scenar, m_createdState, Scenario::Point{pt.date + maxdur, pt.y});
+      m_itv = &m.createIntervalAfter(scenar, m_createdState, Scenario::Point{pt.date + maxdur, m_intervalY});
     }
   }
 
@@ -88,7 +106,7 @@ public:
         pt.date
             = Scenario::parentEvent(scenar.state(last_state), scenar).date()
               + duration;
-        m_itv = &m_macro.createIntervalAfter(scenar, last_state, pt);
+        m_itv = &m_macro.createIntervalAfter(scenar, last_state, {pt.date, m_intervalY});
         decltype(auto) proc = fun(m_macro, *m_itv);
         m_macro.showRack(*m_itv);
         return proc;
@@ -119,7 +137,8 @@ public:
   Scenario::Command::Macro& macro() { return m_macro; }
 
 private:
-  const bool m_sequence;
+  const bool m_sequence{};
+  double m_intervalY{};
   const Scenario::ScenarioPresenter& m_pres;
   QPointF m_pos;
   Scenario::Command::Macro m_macro;

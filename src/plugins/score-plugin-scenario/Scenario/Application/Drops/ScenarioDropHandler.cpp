@@ -149,7 +149,6 @@ bool GhostIntervalDropHandler::dragMove(
     }
     else
     {
-      // Sequence
       if(magnetic)
         pres.drawDragLine(*x_state, {pt.date, x_state->heightPercentage()});
       else
