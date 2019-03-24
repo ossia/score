@@ -38,6 +38,8 @@ IntervalView::IntervalView(IntervalPresenter& presenter, QGraphicsItem* parent)
     , m_dropTarget{false}
 {
   setAcceptHoverEvents(true);
+  setAcceptDrops(true);
+
   m_leftBrace.setX(minWidth());
   m_leftBrace.hide();
 
@@ -286,5 +288,29 @@ void IntervalView::setExecutionState(IntervalExecutionState s)
 {
   m_state = s;
   update();
+}
+
+void IntervalView::dragEnterEvent(QGraphicsSceneDragDropEvent* event)
+{
+  QGraphicsItem::dragEnterEvent(event);
+  m_dropTarget = true;
+  updateOverlay();
+  event->accept();
+}
+
+void IntervalView::dragLeaveEvent(QGraphicsSceneDragDropEvent* event)
+{
+  QGraphicsItem::dragLeaveEvent(event);
+  m_dropTarget = false;
+  updateOverlay();
+  event->accept();
+}
+
+void IntervalView::dropEvent(QGraphicsSceneDragDropEvent* event)
+{
+  dropReceived(event->pos(), *event->mimeData());
+  m_dropTarget = false;
+
+  event->accept();
 }
 }

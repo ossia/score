@@ -22,6 +22,7 @@
 #include <Scenario/Document/Interval/SlotHeader.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentPresenter.hpp>
 
+#include <Scenario/Application/Drops/ScenarioDropHandler.hpp>
 #include <score/document/DocumentInterface.hpp>
 #include <score/graphics/GraphicsItem.hpp>
 
@@ -135,6 +136,17 @@ FullViewIntervalPresenter::FullViewIntervalPresenter(
     if (s.fullView())
       this->updatePositions();
   });
+
+  // Drops
+
+  con(*this->view(),
+      &IntervalView::dropReceived,
+      this,
+      [=](const QPointF& pos, const QMimeData& mime) {
+        m_context.app.interfaces<Scenario::IntervalDropHandlerList>().drop(
+            m_context, m_model, mime);
+      });
+
 
   // Initial state
   const auto& slts = interval.fullView();
