@@ -122,15 +122,15 @@ protected:
   double m_maxWidth{};
   double m_minWidth{};
   double m_playWidth{};
-
   double m_height{};
 
-  bool m_selected{};
-  bool m_infinite{};
-  bool m_validInterval{true};
-  bool m_warning{};
-  bool m_hasFocus{};
-  bool m_waiting{};
+  bool m_selected : 1;
+  bool m_infinite : 1;
+  bool m_validInterval : 1;//{true};
+  bool m_warning : 1;
+  bool m_hasFocus : 1;
+  bool m_waiting : 1;
+  bool m_dropTarget : 1;
   IntervalExecutionState m_state{};
 };
 }
