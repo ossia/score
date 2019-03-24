@@ -10,6 +10,7 @@ Style::Style(score::Skin& s) noexcept
 
     , IntervalBase{&s.Base1}
     , IntervalSelected{&s.Base2}
+    , IntervalDropTarget{&s.Warn1}
     , IntervalPlayFill{&s.Base3}
     , IntervalPlayDashFill{&s.Pulse1}
     , IntervalWaitingDashFill{&s.Pulse2}
