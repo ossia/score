@@ -67,7 +67,8 @@ bool MessageDropHandler::drop(
 
   Scenario::Point pt = pres.toScenarioPoint(pos);
 
-  auto state = closestLeftState(pt, pres);
+  m_magnetic = closestLeftState(m_magnetic, pt, pres);
+  auto [state, ver_st, magnetic] = m_magnetic;
   if (state)
   {
     if (state->nextInterval())
