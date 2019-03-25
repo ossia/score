@@ -29,13 +29,13 @@ QSet<QString> DropHandler::fileExtensions() const noexcept
 }
 
 std::vector<Process::ProcessDropHandler::ProcessDrop> DropHandler::dropData(
-    const std::vector<QByteArray>& data,
+    const std::vector<DroppedFile>& data,
     const score::DocumentContext& ctx) const noexcept
 {
   std::vector<Process::ProcessDropHandler::ProcessDrop> vec;
   {
     std::vector<MidiTrack::MidiSong> songs;
-    for (const auto& file : data)
+    for (const auto& [filename, file]: data)
     {
       if (auto song = MidiTrack::parse(file, ctx); !song.tracks.empty())
       {
@@ -43,6 +43,7 @@ std::vector<Process::ProcessDropHandler::ProcessDrop> DropHandler::dropData(
         {
           Process::ProcessDropHandler::ProcessDrop p;
           p.creation.key = Metadata<ConcreteKey_k, Midi::ProcessModel>::get();
+          p.creation.prettyName = QFileInfo{filename}.baseName();
           p.duration = TimeVal::fromMsecs(song.durationInMs);
           p.setup = [track = std::move(t), song_t = *p.duration](
                         Process::ProcessModel& m, score::Dispatcher& disp) {

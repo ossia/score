@@ -6,6 +6,7 @@
 #include <Media/Effect/EffectProcessModel.hpp>
 #include <Media/Effect/Faust/FaustEffectModel.hpp>
 #include <Process/Drop/ProcessDropHandler.hpp>
+#include <QFileInfo>
 
 namespace Media::Faust
 {
@@ -23,16 +24,18 @@ class DropHandler final : public Process::ProcessDropHandler
   QSet<QString> fileExtensions() const noexcept override { return {"dsp"}; }
 
   std::vector<Process::ProcessDropHandler::ProcessDrop> dropData(
-      const std::vector<QByteArray>& data,
+      const std::vector<DroppedFile>& data,
       const score::DocumentContext& ctx) const noexcept override
   {
     std::vector<Process::ProcessDropHandler::ProcessDrop> vec;
 
-    for (auto&& file : data)
+    for (auto&& [filename, file] : data)
     {
       Process::ProcessDropHandler::ProcessDrop p;
       p.creation.key
           = Metadata<ConcreteKey_k, Media::Faust::FaustEffectModel>::get();
+      // TODO use faust-provided name
+      p.creation.prettyName = QFileInfo{filename}.baseName();
       p.creation.customData = std::move(file);
 
       vec.push_back(std::move(p));

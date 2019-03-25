@@ -22,6 +22,7 @@
 #include <Execution/DocumentPlugin.hpp>
 #include <score_plugin_js_commands_files.hpp>
 
+#include <QFileInfo>
 namespace JS
 {
 class LibraryHandler final : public Library::LibraryInterface
@@ -44,15 +45,16 @@ class DropHandler final : public Process::ProcessDropHandler
   }
 
   std::vector<Process::ProcessDropHandler::ProcessDrop> dropData(
-      const std::vector<QByteArray>& data,
+      const std::vector<DroppedFile>& data,
       const score::DocumentContext& ctx) const noexcept override
   {
     std::vector<Process::ProcessDropHandler::ProcessDrop> vec;
 
-    for (auto&& file : data)
+    for (auto&& [filename, file] : data)
     {
       Process::ProcessDropHandler::ProcessDrop p;
       p.creation.key = Metadata<ConcreteKey_k, ProcessModel>::get();
+      p.creation.prettyName = QFileInfo{filename}.baseName();
       p.creation.customData = std::move(file);
 
       vec.push_back(std::move(p));
