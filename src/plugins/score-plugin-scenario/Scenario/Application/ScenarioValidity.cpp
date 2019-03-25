@@ -35,13 +35,6 @@ void ScenarioValidityChecker::checkValidity(const ProcessModel& scenar)
     auto& dur = interval.duration;
     SCORE_ASSERT(dur.defaultDuration() > TimeVal{0});
 
-    qDebug() << dur.minDuration() << dur.defaultDuration() << dur.maxDuration();
-    qDebug() << dur.isRigid() << dur.isMinNull() << dur.isMaxInfinite();
-    qDebug() << (dur.maxDuration() >= dur.defaultDuration());
-    qDebug() << (dur.maxDuration() - dur.defaultDuration());
-    std::cout << std::flush;
-    std::cerr << std::flush;
-
     SCORE_ASSERT(!dur.minDuration().isInfinite());
     SCORE_ASSERT(dur.minDuration() >= TimeVal{0});
     SCORE_ASSERT(dur.minDuration() <= dur.maxDuration());
