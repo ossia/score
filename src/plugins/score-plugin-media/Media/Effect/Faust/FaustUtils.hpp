@@ -7,16 +7,17 @@
 #include <ossia/dataflow/port.hpp>
 #include <ossia/network/domain/domain.hpp>
 
+#include <faust/dsp/poly-llvm-dsp.h>
+
 namespace Media
 {
 namespace Faust
 {
 
 template <typename Proc>
-struct UI
+struct UI : ::UI
 {
   Proc& fx;
-  ossia::nodes::faust_setup_ui<UI> glue{*this};
 
   UI(Proc& sfx) : fx{sfx} {}
 
@@ -101,11 +102,10 @@ struct UI
 };
 
 template <typename Proc>
-struct UpdateUI
+struct UpdateUI : ::UI
 {
   Proc& fx;
   std::size_t i = 1;
-  ossia::nodes::faust_setup_ui<UpdateUI> glue{*this};
 
   UpdateUI(Proc& sfx) : fx{sfx} {}
 
