@@ -237,7 +237,7 @@ void TemporalIntervalView::paint(
   {
     // Background
     auto rect = boundingRect();
-    rect.adjust(0, 4, 0, SlotHandle::handleHeight());
+    rect.adjust(0, 12, 0, SlotHandle::handleHeight() - 4);
     rect.setWidth(def_w);
 
     auto bgColor
