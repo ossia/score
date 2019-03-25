@@ -11,6 +11,13 @@ namespace Process
 {
 LayerPresenter::~LayerPresenter() = default;
 
+LayerPresenter::LayerPresenter(
+      const ProcessPresenterContext& ctx,
+      QObject* parent)
+  : QObject{parent}, m_context{ctx, *this}
+{
+}
+
 bool LayerPresenter::focused() const
 {
   return m_focus;
