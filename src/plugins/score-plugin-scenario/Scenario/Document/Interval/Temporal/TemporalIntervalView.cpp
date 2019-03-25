@@ -50,7 +50,7 @@ QRectF TemporalIntervalView::boundingRect() const
   qreal x = std::min(0., minWidth());
   qreal rectW = infinite() ? defaultWidth() : maxWidth();
   rectW -= x;
-  return {x, -4, rectW, qreal(intervalAndRackHeight())};
+  return {x, -12., rectW, qreal(intervalAndRackHeight()) + 12.};
 }
 
 const TemporalIntervalPresenter& TemporalIntervalView::presenter() const
@@ -325,7 +325,7 @@ void TemporalIntervalView::hoverEnterEvent(QGraphicsSceneHoverEvent* h)
   else
     unsetCursor();
 
-  updateOverlay();
+  enableOverlay(true);
   intervalHoverEnter();
 }
 
@@ -333,7 +333,8 @@ void TemporalIntervalView::hoverLeaveEvent(QGraphicsSceneHoverEvent* h)
 {
   QGraphicsItem::hoverLeaveEvent(h);
   unsetCursor();
-  updateOverlay();
+  if(!m_selected)
+    enableOverlay(false);
   intervalHoverLeave();
 }
 
@@ -347,8 +348,11 @@ void TemporalIntervalView::enableOverlay(bool b)
 {
   if (b)
   {
-    m_overlay = new IntervalMenuOverlay{this};
-    updateOverlayPos();
+    if(!m_overlay)
+    {
+      m_overlay = new IntervalMenuOverlay{this};
+      updateOverlayPos();
+    }
   }
   else
   {
