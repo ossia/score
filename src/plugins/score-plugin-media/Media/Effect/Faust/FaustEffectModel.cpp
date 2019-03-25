@@ -85,7 +85,7 @@ QString FaustEffectModel::prettyName() const noexcept
 
 static bool faustIsMidi(llvm_dsp& dsp)
 {
-  struct : Meta {
+  struct _ final : Meta {
     bool midi{};
     void declare(const char* key, const char* value)
     {
@@ -95,7 +95,47 @@ static bool faustIsMidi(llvm_dsp& dsp)
   } meta;
   dsp.metadata(&meta);
 
-  return meta.midi;
+  if(meta.midi)
+    return true;
+
+  struct _2 final : ::UI {
+    bool gate{false};
+    bool freq{false};
+    bool gain{false};
+
+    void openTabBox(const char* label) override { }
+    void openHorizontalBox(const char* label) override { }
+    void openVerticalBox(const char* label) override { }
+    void closeBox() override { }
+
+    // -- active widgets
+
+    void addButton(const char* label, FAUSTFLOAT* zone) override { if(label == std::string("gate")) gate = true; }
+    void addCheckButton(const char* label, FAUSTFLOAT* zone) override { }
+    void addVerticalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step) override
+    {
+      if(label == std::string("freq"))
+        freq = true;
+      if(label == std::string("gain"))
+        gain = true;
+    }
+    void addHorizontalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step) override
+    { addVerticalSlider(label, zone, init, min, max, step);  }
+    void addNumEntry(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step) override { }
+
+    // -- passive widgets
+
+    void addHorizontalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max) override { }
+    void addVerticalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max) override { }
+
+    // -- soundfiles
+
+    void addSoundfile(const char* label, const char* filename, Soundfile** sf_zone) override { }
+
+  } ui;
+
+  dsp.buildUserInterface(&ui);
+  return ui.freq && ui.gain && ui.gate;
 }
 
 ossia::flat_set<llvm_dsp_factory*> dsp_factories;
