@@ -188,15 +188,6 @@ IntervalDurations::Algorithms::fixAllDurations(
       dur.m_rigidity = true;
       dur.rigidityChanged(true);
     }
-
-    auto& dur = cstr.duration;
-    qDebug() << dur.minDuration() << dur.defaultDuration() << dur.maxDuration();
-    qDebug() << dur.isRigid() << dur.isMinNull() << dur.isMaxInfinite();
-    qDebug() << (dur.maxDuration() >= dur.defaultDuration());
-    qDebug() << (dur.maxDuration() - dur.defaultDuration());
-    std::cout << std::flush;
-    std::cerr << std::flush;
-
   }
 }
 
