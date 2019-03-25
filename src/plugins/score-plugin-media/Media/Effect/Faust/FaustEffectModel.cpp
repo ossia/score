@@ -22,7 +22,7 @@
 
 #include <iostream>
 W_OBJECT_IMPL(Media::Faust::FaustEffectModel)
-
+std::list<::GUI*> GUI::fGuiList;
 namespace Process
 {
 
@@ -85,76 +85,38 @@ QString FaustEffectModel::prettyName() const noexcept
 
 static bool faustIsMidi(llvm_dsp& dsp)
 {
-  bool ok{false};
+  struct : Meta {
+    bool midi{};
+    void declare(const char* key, const char* value)
+    {
+      if(key == std::string("options") && std::string(value).find("[midi:on]") != std::string::npos)
+        midi = true;
+    }
+  } meta;
+  dsp.metadata(&meta);
 
-  MetaGlue meta{};
-
-  meta.metaInterface = &ok;
-  meta.declare = [] (void* ui_interface, const char* key, const char* value) {
-    if(key == std::string("options") && std::string(value).find("[midi:on]") != std::string::npos)
-      *((bool*)ui_interface) = true;
-   };
-
-  metadataCDSPInstance(&dsp, &meta);
-  return ok;
+  return meta.midi;
 }
-void FaustEffectModel::reload()
+
+ossia::flat_set<llvm_dsp_factory*> dsp_factories;
+ossia::flat_set<dsp_poly_factory*> dsp_poly_factories;
+void FaustEffectModel::reloadFx(llvm_dsp_factory* fac, llvm_dsp* obj)
 {
-  auto fx_text = m_text.toLocal8Bit();
-  if (fx_text.isEmpty())
-  {
-    return;
-  }
-
-  char err[4096] = {};
-
-  const char* triple =
-#if defined(_MSC_VER)
-      "x86_64-pc-windows-msvc"
-#else
-      ""
-#endif
-      ;
-  auto str = fx_text.toStdString();
-  int argc = 0;
-  const char* argv[1]{};
-
-  auto fac = createCDSPFactoryFromString(
-      "score", str.c_str(), argc, argv, triple, err, -1);
-
-  if (err[0] != 0)
-    qDebug() << "Faust error: " << err;
-  if (!fac)
-  {
-    // TODO mark as invalid, like JS
-    return;
-  }
-
-  auto obj = createCDSPInstance(fac);
-  if (!obj)
-    return;
-
+  dsp_factories.insert(fac);
   if (faust_factory && faust_object)
   {
     // updating an existing DSP
 
-    deleteCDSPInstance(faust_object); // TODO not thread-safe wrt exec thread
-    deleteCDSPFactory(faust_factory);
+    delete faust_poly_object; // TODO not thread-safe wrt exec thread
+    faust_poly_object = nullptr;
+    delete faust_object; // TODO not thread-safe wrt exec thread
+    faust_object = nullptr;
 
     faust_factory = fac;
     faust_object = obj;
     // Try to reuse controls
     Faust::UpdateUI<decltype(*this)> ui{*this};
-    buildUserInterfaceCDSPInstance(faust_object, &ui.glue);
-
-    if(faustIsMidi(*faust_object))
-    {
-      m_inlets.front()->type = Process::PortType::Midi;
-    }
-    else
-    {
-      m_inlets.front()->type = Process::PortType::Audio;
-    }
+    faust_object->buildUserInterface(&ui);
 
     for (std::size_t i = ui.i; i < m_inlets.size(); i++)
     {
@@ -162,35 +124,22 @@ void FaustEffectModel::reload()
       delete m_inlets[i];
     }
     m_inlets.resize(ui.i);
+    m_inlets.front()->type = Process::PortType::Audio;
   }
   else if (
       !m_inlets.empty() && !m_outlets.empty() && !faust_factory
       && !faust_object)
   {
     // loading
-
     faust_factory = fac;
     faust_object = obj;
     // Try to reuse controls
     Faust::UpdateUI<decltype(*this)> ui{*this};
-    buildUserInterfaceCDSPInstance(faust_object, &ui.glue);
-
-    if(faustIsMidi(*faust_object))
-    {
-      m_inlets.front()->type = Process::PortType::Midi;
-    }
-    else
-    {
-      m_inlets.front()->type = Process::PortType::Audio;
-    }
+    faust_object->buildUserInterface(&ui);
   }
   else
   {
     // creating a new dsp
-
-    if (faust_factory)
-      deleteCDSPFactory(faust_factory);
-
     faust_factory = fac;
     faust_object = obj;
     for (std::size_t i = 1; i < m_inlets.size(); i++)
@@ -203,22 +152,129 @@ void FaustEffectModel::reload()
     m_outlets.clear();
 
     m_inlets.push_back(new Process::Inlet{getStrongId(m_inlets), this});
-    if(faustIsMidi(*faust_object))
-    {
-      m_inlets.front()->type = Process::PortType::Midi;
-    }
-    else
-    {
-      m_inlets.front()->type = Process::PortType::Audio;
-    }
-
+    m_inlets.front()->type = Process::PortType::Audio;
     m_outlets.push_back(new Process::Outlet{getStrongId(m_outlets), this});
-    m_outlets.back()->type = Process::PortType::Audio;
-    m_outlets.back()->setPropagate(true);
+    m_outlets.front()->type = Process::PortType::Audio;
+    m_outlets.front()->setPropagate(true);
 
     Faust::UI<decltype(*this)> ui{*this};
-    buildUserInterfaceCDSPInstance(faust_object, &ui.glue);
+    faust_object->buildUserInterface(&ui);
   }
+}
+
+void FaustEffectModel::reloadMidi(dsp_poly_factory* fac, dsp_poly* obj)
+{
+  dsp_poly_factories.insert(fac);
+  if (faust_factory && faust_object)
+  {
+    // updating an existing DSP
+
+    delete faust_poly_object; // TODO not thread-safe wrt exec thread
+    faust_poly_object = nullptr;
+    delete faust_object; // TODO not thread-safe wrt exec thread
+    faust_object = nullptr;
+
+    faust_poly_factory = fac;
+    faust_poly_object = obj;
+    // Try to reuse controls
+    Faust::UpdateUI<decltype(*this)> ui{*this};
+    faust_poly_object->buildUserInterface(&ui);
+
+    for (std::size_t i = ui.i; i < m_inlets.size(); i++)
+    {
+      controlRemoved(*m_inlets[i]);
+      delete m_inlets[i];
+    }
+    m_inlets.resize(ui.i);
+    m_inlets.front()->type = Process::PortType::Midi;
+  }
+  else if (
+      !m_inlets.empty() && !m_outlets.empty() && !faust_poly_factory
+      && !faust_poly_object)
+  {
+    // loading
+    faust_poly_factory = fac;
+    faust_poly_object = obj;
+    // Try to reuse controls
+    Faust::UpdateUI<decltype(*this)> ui{*this};
+    faust_poly_object->buildUserInterface(&ui);
+  }
+  else
+  {
+    // creating a new dsp
+    faust_poly_factory = fac;
+    faust_poly_object = obj;
+    for (std::size_t i = 1; i < m_inlets.size(); i++)
+    {
+      controlRemoved(*m_inlets[i]);
+    }
+    qDeleteAll(m_inlets);
+    qDeleteAll(m_outlets);
+    m_inlets.clear();
+    m_outlets.clear();
+
+    m_inlets.push_back(new Process::Inlet{getStrongId(m_inlets), this});
+    m_inlets.front()->type = Process::PortType::Midi;
+    m_outlets.push_back(new Process::Outlet{getStrongId(m_outlets), this});
+    m_outlets.front()->type = Process::PortType::Audio;
+    m_outlets.front()->setPropagate(true);
+
+    Faust::UI<decltype(*this)> ui{*this};
+    faust_poly_object->buildUserInterface(&ui);
+  }
+}
+void FaustEffectModel::reload()
+{
+  auto fx_text = m_text.toLocal8Bit();
+  if (fx_text.isEmpty())
+  {
+    return;
+  }
+
+  const char* triple =
+#if defined(_MSC_VER)
+      "x86_64-pc-windows-msvc"
+#else
+      ""
+#endif
+      ;
+  auto str = fx_text.toStdString();
+  int argc = 0;
+  const char* argv[1]{};
+
+  std::string err;
+  err.resize(4097);
+  auto fac = createDSPFactoryFromString(
+      "score", str, argc, argv, triple, err, -1);
+  dsp_factories.insert(fac);
+
+  if (err[0] != 0)
+    qDebug() << "Faust error: " << err;
+  if (!fac)
+  {
+    // TODO mark as invalid, like JS
+    return;
+  }
+
+  auto obj = fac->createDSPInstance();
+  if (!obj)
+    return;
+
+  if(faustIsMidi(*obj))
+  {
+    delete obj;
+    auto fac = createPolyDSPFactoryFromString(
+          "score", str, argc, argv, triple, err, -1);
+    dsp_poly_factories.insert(fac);
+
+    auto obj = fac->createPolyDSPInstance(64, false, true);
+    reloadMidi(fac, obj);
+  }
+  else
+  {
+    reloadFx(fac, obj);
+  }
+
 
   auto lines = fx_text.split('\n');
   for (int i = 0; i < std::min(5, lines.size()); i++)
@@ -346,20 +402,11 @@ FaustEffectComponent::FaustEffectComponent(
     auto& proc = process();
     if (proc.faust_object)
     {
-      if(!proc.inlets().empty())
-      {
-        switch(proc.inlets().front()->type)
-        {
-          case Process::PortType::Audio:
-            reload<ossia::nodes::faust_fx>();
-            break;
-          case Process::PortType::Midi:
-            reload<ossia::nodes::faust_synth>();
-            break;
-          default:
-            break;
-        }
-      }
+      reloadFx();
+    }
+    else if(proc.faust_poly_object)
+    {
+      reloadSynth();
     }
   };
   do_reload();
@@ -367,13 +414,13 @@ FaustEffectComponent::FaustEffectComponent(
           this, do_reload);
 }
 
-template<typename faust_type>
-void FaustEffectComponent::reload()
+void FaustEffectComponent::reloadSynth()
 {
+  using faust_type = ossia::nodes::faust_synth;
   auto& proc = process();
   auto& ctx = system();
-  initCDSPInstance(proc.faust_object, ctx.execState->sampleRate);
-  auto node = std::make_shared<faust_type>(proc.faust_object);
+  proc.faust_poly_object->init(ctx.execState->sampleRate);
+  auto node = std::make_shared<faust_type>(proc.faust_poly_object);
   this->node = node;
   m_ossia_process = std::make_shared<ossia::node_process>(node);
   for (std::size_t i = 1; i < proc.inlets().size(); i++)
@@ -405,13 +452,43 @@ void FaustEffectComponent::reload()
     }
   });
 }
-void FaustEffectComponent::reloadSynth()
-{
-  using faust_type = ossia::nodes::faust_synth;
-}
 void FaustEffectComponent::reloadFx()
 {
   using faust_type = ossia::nodes::faust_fx;
+  auto& proc = process();
+  auto& ctx = system();
+  proc.faust_object->init(ctx.execState->sampleRate);
+  auto node = std::make_shared<faust_type>(proc.faust_object);
+  this->node = node;
+  m_ossia_process = std::make_shared<ossia::node_process>(node);
+  for (std::size_t i = 1; i < proc.inlets().size(); i++)
+  {
+    auto inlet = static_cast<Process::ControlInlet*>(proc.inlets()[i]);
+    *node->controls[i - 1].second = ossia::convert<float>(inlet->value());
+    auto inl = this->node->inputs()[i];
+    connect(
+        inlet,
+        &Process::ControlInlet::valueChanged,
+        this,
+        [this, inl](const ossia::value& v) {
+          system().executionQueue.enqueue([inl, val = v]() mutable {
+            inl->data.target<ossia::value_port>()->write_value(
+                std::move(val), 0);
+          });
+        });
+  }
+
+  std::weak_ptr<faust_type> weak_node = node;
+  con(ctx.doc.coarseUpdateTimer, &QTimer::timeout, this, [weak_node, &proc] {
+    if (auto node = weak_node.lock())
+    {
+      for (std::size_t i = 1; i < proc.inlets().size(); i++)
+      {
+        auto inlet = static_cast<Process::ControlInlet*>(proc.inlets()[i]);
+        inlet->setValue(*node->controls[i - 1].second);
+      }
+    }
+  });
 }
 }
 W_OBJECT_IMPL(Execution::FaustEffectComponent)

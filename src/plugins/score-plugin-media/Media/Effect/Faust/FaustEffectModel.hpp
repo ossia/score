@@ -14,7 +14,7 @@
 #include <Effect/EffectFactory.hpp>
 #include <wobjectdefs.h>
 
-#include <faust/dsp/llvm-c-dsp.h>
+#include <faust/dsp/poly-llvm-dsp.h>
 namespace Media::Faust
 {
 class FaustEffectModel;
@@ -74,12 +74,17 @@ public:
   llvm_dsp_factory* faust_factory{};
   llvm_dsp* faust_object{};
 
+  dsp_poly_factory* faust_poly_factory{};
+  dsp_poly* faust_poly_object{};
+
   void changed()
   W_SIGNAL(changed);
 
 private:
   void init();
   void reload();
+  void reloadFx(llvm_dsp_factory* fac, llvm_dsp* obj);
+  void reloadMidi(dsp_poly_factory* fac, dsp_poly* obj);
   QString m_text;
   QString m_declareName;
 };
