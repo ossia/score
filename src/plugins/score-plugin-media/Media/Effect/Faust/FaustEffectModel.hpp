@@ -74,6 +74,9 @@ public:
   llvm_dsp_factory* faust_factory{};
   llvm_dsp* faust_object{};
 
+  void changed()
+  W_SIGNAL(changed);
+
 private:
   void init();
   void reload();
@@ -155,6 +158,12 @@ public:
       const Execution::Context& ctx,
       const Id<score::Component>& id,
       QObject* parent);
+
+private:
+  void reloadSynth();
+  void reloadFx();
+  template<typename T>
+  void reload();
 };
 using FaustEffectComponentFactory
     = Execution::ProcessComponentFactory_T<FaustEffectComponent>;
