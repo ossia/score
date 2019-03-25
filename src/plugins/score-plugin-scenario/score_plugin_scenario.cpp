@@ -105,7 +105,7 @@ struct WidgetInletFactory final : public AutomatablePortFactory
         Process::ControlInlet& port,
         const score::DocumentContext& ctx,
         QGraphicsItem* parent,
-        QObject* context)
+        QObject* context) override
   {
     auto& ctrl = static_cast<Model_T&>(port);
     using widg_t = typename Model_T::control_type;
