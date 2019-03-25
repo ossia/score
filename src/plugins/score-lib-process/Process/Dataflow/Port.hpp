@@ -150,8 +150,8 @@ public:
   ControlInlet(DataStream::Deserializer&& vis, QObject* parent);
   ControlInlet(JSONObject::Deserializer&& vis, QObject* parent);
 
-  const ossia::value& value() const { return m_value; }
-  const State::Domain& domain() const { return m_domain; }
+  const ossia::value& value() const noexcept { return m_value; }
+  const State::Domain& domain() const noexcept { return m_domain; }
 
 public:
   void valueChanged(const ossia::value& v)

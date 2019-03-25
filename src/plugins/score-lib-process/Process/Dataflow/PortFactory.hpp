@@ -44,6 +44,19 @@ public:
       QWidget* parent,
       Inspector::Layout& lay,
       QObject* context);
+
+  virtual QGraphicsItem* makeControlItem(
+      Process::ControlInlet& port,
+      const score::DocumentContext& ctx,
+      QGraphicsItem* parent,
+      QObject* context);
+
+  virtual QWidget* makeControlWidget(
+      Process::ControlInlet& port,
+      const score::DocumentContext& ctx,
+      QGraphicsItem* parent,
+      QObject* context);
+
 };
 
 class SCORE_LIB_PROCESS_EXPORT PortFactoryList final

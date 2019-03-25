@@ -276,7 +276,8 @@ struct ComboBox final : public Process::ControlInlet
     setCustomData(name);
   }
 
-  const auto& getValues() const { return alternatives; }
+  const auto& getValues() const noexcept { return alternatives; }
+  auto count() const noexcept { return alternatives.size(); }
   using Process::ControlInlet::ControlInlet;
 };
 
@@ -360,8 +361,8 @@ struct Button final : public Process::ControlInlet
   {
     type = Process::PortType::Message;
     hidden = true;
-    setValue(ossia::impulse{});
-    setDomain(State::Domain{ossia::domain_base<ossia::impulse>{}});
+    setValue(false);
+    setDomain(State::Domain{ossia::domain_base<bool>{}});
     setCustomData(name);
   }
 

@@ -82,6 +82,22 @@ QString FaustEffectModel::prettyName() const noexcept
 {
   return m_declareName.isEmpty() ? "Faust" : m_declareName;
 }
+
+static bool faustIsMidi(llvm_dsp& dsp)
+{
+  bool ok{false};
+
+  MetaGlue meta{};
+
+  meta.metaInterface = &ok;
+  meta.declare = [] (void* ui_interface, const char* key, const char* value) {
+    if(key == std::string("options") && std::string(value).find("[midi:on]") != std::string::npos)
+      *((bool*)ui_interface) = true;
+   };
+
+  metadataCDSPInstance(&dsp, &meta);
+  return ok;
+}
 void FaustEffectModel::reload()
 {
   auto fx_text = m_text.toLocal8Bit();
@@ -131,6 +147,15 @@ void FaustEffectModel::reload()
     Faust::UpdateUI<decltype(*this)> ui{*this};
     buildUserInterfaceCDSPInstance(faust_object, &ui.glue);
 
+    if(faustIsMidi(*faust_object))
+    {
+      m_inlets.front()->type = Process::PortType::Midi;
+    }
+    else
+    {
+      m_inlets.front()->type = Process::PortType::Audio;
+    }
+
     for (std::size_t i = ui.i; i < m_inlets.size(); i++)
     {
       controlRemoved(*m_inlets[i]);
@@ -149,6 +174,15 @@ void FaustEffectModel::reload()
     // Try to reuse controls
     Faust::UpdateUI<decltype(*this)> ui{*this};
     buildUserInterfaceCDSPInstance(faust_object, &ui.glue);
+
+    if(faustIsMidi(*faust_object))
+    {
+      m_inlets.front()->type = Process::PortType::Midi;
+    }
+    else
+    {
+      m_inlets.front()->type = Process::PortType::Audio;
+    }
   }
   else
   {
@@ -169,7 +203,15 @@ void FaustEffectModel::reload()
     m_outlets.clear();
 
     m_inlets.push_back(new Process::Inlet{getStrongId(m_inlets), this});
-    m_inlets.back()->type = Process::PortType::Audio;
+    if(faustIsMidi(*faust_object))
+    {
+      m_inlets.front()->type = Process::PortType::Midi;
+    }
+    else
+    {
+      m_inlets.front()->type = Process::PortType::Audio;
+    }
+
     m_outlets.push_back(new Process::Outlet{getStrongId(m_outlets), this});
     m_outlets.back()->type = Process::PortType::Audio;
     m_outlets.back()->setPropagate(true);
@@ -196,6 +238,10 @@ void FaustEffectModel::reload()
       break;
     }
   }
+
+  inletsChanged();
+  outletsChanged();
+  changed();
 }
 
 InspectorWidget::InspectorWidget(
@@ -289,48 +335,83 @@ void JSONObjectWriter::write(Media::Faust::FaustEffectModel& eff)
 namespace Execution
 {
 
-Execution::FaustEffectComponent::FaustEffectComponent(
+FaustEffectComponent::FaustEffectComponent(
     Media::Faust::FaustEffectModel& proc,
     const Execution::Context& ctx,
     const Id<score::Component>& id,
     QObject* parent)
     : ProcessComponent_T{proc, ctx, id, "FaustComponent", parent}
 {
-  if (proc.faust_object)
-  {
-    initCDSPInstance(proc.faust_object, ctx.execState->sampleRate);
-    auto node = std::make_shared<ossia::nodes::faust>(proc.faust_object);
-    this->node = node;
-    m_ossia_process = std::make_shared<ossia::node_process>(node);
-    for (std::size_t i = 1; i < proc.inlets().size(); i++)
+  auto do_reload = [this] {
+    auto& proc = process();
+    if (proc.faust_object)
     {
-      auto inlet = static_cast<Process::ControlInlet*>(proc.inlets()[i]);
-      *node->controls[i - 1].second = ossia::convert<double>(inlet->value());
-      auto inl = this->node->inputs()[i];
-      connect(
-          inlet,
-          &Process::ControlInlet::valueChanged,
-          this,
-          [this, inl](const ossia::value& v) {
-            system().executionQueue.enqueue([inl, val = v]() mutable {
-              inl->data.target<ossia::value_port>()->write_value(
-                  std::move(val), 0);
-            });
-          });
-    }
-
-    std::weak_ptr<ossia::nodes::faust> weak_node = node;
-    con(ctx.doc.coarseUpdateTimer, &QTimer::timeout, this, [weak_node, &proc] {
-      if (auto node = weak_node.lock())
+      if(!proc.inlets().empty())
       {
-        for (std::size_t i = 1; i < proc.inlets().size(); i++)
+        switch(proc.inlets().front()->type)
         {
-          auto inlet = static_cast<Process::ControlInlet*>(proc.inlets()[i]);
-          inlet->setValue(*node->controls[i - 1].second);
+          case Process::PortType::Audio:
+            reload<ossia::nodes::faust_fx>();
+            break;
+          case Process::PortType::Midi:
+            reload<ossia::nodes::faust_synth>();
+            break;
+          default:
+            break;
         }
       }
-    });
+    }
+  };
+  do_reload();
+  connect(&proc, &Media::Faust::FaustEffectModel::changed,
+          this, do_reload);
+}
+
+template<typename faust_type>
+void FaustEffectComponent::reload()
+{
+  auto& proc = process();
+  auto& ctx = system();
+  initCDSPInstance(proc.faust_object, ctx.execState->sampleRate);
+  auto node = std::make_shared<faust_type>(proc.faust_object);
+  this->node = node;
+  m_ossia_process = std::make_shared<ossia::node_process>(node);
+  for (std::size_t i = 1; i < proc.inlets().size(); i++)
+  {
+    auto inlet = static_cast<Process::ControlInlet*>(proc.inlets()[i]);
+    *node->controls[i - 1].second = ossia::convert<float>(inlet->value());
+    auto inl = this->node->inputs()[i];
+    connect(
+        inlet,
+        &Process::ControlInlet::valueChanged,
+        this,
+        [this, inl](const ossia::value& v) {
+          system().executionQueue.enqueue([inl, val = v]() mutable {
+            inl->data.target<ossia::value_port>()->write_value(
+                std::move(val), 0);
+          });
+        });
   }
+
+  std::weak_ptr<faust_type> weak_node = node;
+  con(ctx.doc.coarseUpdateTimer, &QTimer::timeout, this, [weak_node, &proc] {
+    if (auto node = weak_node.lock())
+    {
+      for (std::size_t i = 1; i < proc.inlets().size(); i++)
+      {
+        auto inlet = static_cast<Process::ControlInlet*>(proc.inlets()[i]);
+        inlet->setValue(*node->controls[i - 1].second);
+      }
+    }
+  });
+}
+void FaustEffectComponent::reloadSynth()
+{
+  using faust_type = ossia::nodes::faust_synth;
+}
+void FaustEffectComponent::reloadFx()
+{
+  using faust_type = ossia::nodes::faust_fx;
 }
 }
 W_OBJECT_IMPL(Execution::FaustEffectComponent)
