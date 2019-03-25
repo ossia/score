@@ -27,7 +27,6 @@ struct UI : ::UI
   void closeBox() {}
   void declare(FAUSTFLOAT* zone, const char* key, const char* val)
   {
-    qDebug() << "UI: " << key << val;
   }
   void
   addSoundfile(const char* label, const char* filename, Soundfile** sf_zone)
