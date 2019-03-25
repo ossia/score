@@ -6,6 +6,11 @@
 namespace Process
 {
 
+ProcessDropHandler::ProcessDropHandler()
+{
+
+}
+
 ProcessDropHandler::~ProcessDropHandler() {}
 
 std::vector<ProcessDropHandler::ProcessDrop> ProcessDropHandler::getDrops(
@@ -22,10 +27,10 @@ std::vector<ProcessDropHandler::ProcessDrop> ProcessDropHandler::getDrops(
     if (!res.empty())
       return res;
 
-    std::vector<QByteArray> data;
+    std::vector<DroppedFile> data;
     for (auto& format : commonFormats)
     {
-      data.push_back(mime.data(format));
+      data.push_back({{}, mime.data(format)});
     }
     res = dropData(data, ctx);
     if (!res.empty())
@@ -54,13 +59,13 @@ std::vector<ProcessDropHandler::ProcessDrop> ProcessDropHandler::getDrops(
         return res;
     }
 
-    std::vector<QByteArray> data;
+    std::vector<DroppedFile> data;
     for (const auto& path : paths)
     {
       QFile file{path};
       if (file.open(QIODevice::ReadOnly))
       {
-        data.push_back(file.readAll());
+        data.push_back({QFileInfo{file}.fileName(), file.readAll()});
       }
     }
     res = dropData(data, ctx);
@@ -88,7 +93,7 @@ std::vector<ProcessDropHandler::ProcessDrop> ProcessDropHandler::drop(
 }
 
 std::vector<ProcessDropHandler::ProcessDrop> ProcessDropHandler::dropData(
-    const std::vector<QByteArray>& data,
+    const std::vector<DroppedFile>& data,
     const score::DocumentContext& ctx) const noexcept
 {
   return {};

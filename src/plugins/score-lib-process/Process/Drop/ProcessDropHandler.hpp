@@ -21,8 +21,6 @@ class SCORE_LIB_PROCESS_EXPORT ProcessDropHandler : public score::InterfaceBase
 {
   SCORE_INTERFACE(ProcessDropHandler, "e0908e4a-9e88-4029-9a61-7658cc695152")
 public:
-  ~ProcessDropHandler() override;
-
   struct ProcessDrop
   {
     ProcessData creation;
@@ -30,19 +28,28 @@ public:
     std::function<void(Process::ProcessModel&, score::Dispatcher&)> setup;
   };
 
-public:
+  struct DroppedFile {
+    QString filename;
+    QByteArray data;
+  };
+
+  ProcessDropHandler();
+  ~ProcessDropHandler() override;
+
   std::vector<ProcessDrop>
   getDrops(const QMimeData& mime, const score::DocumentContext& ctx) const
       noexcept;
 
   virtual QSet<QString> mimeTypes() const noexcept;
   virtual QSet<QString> fileExtensions() const noexcept;
+
 protected:
   virtual std::vector<ProcessDrop>
   drop(const QMimeData& mime, const score::DocumentContext& ctx) const
       noexcept;
+
   virtual std::vector<ProcessDrop> dropData(
-      const std::vector<QByteArray>& data,
+      const std::vector<DroppedFile>& data,
       const score::DocumentContext& ctx) const noexcept;
 };
 
