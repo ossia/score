@@ -13,8 +13,11 @@
 #include <QDrag>
 #include <QGraphicsSceneHoverEvent>
 #include <QMenu>
+#include <QGraphicsScene>
+#include <QGraphicsView>
 #include <QMimeData>
 #include <QPainter>
+#include <QMouseEvent>
 
 #include <tsl/hopscotch_map.h>
 #include <wobjectimpl.h>
@@ -32,7 +35,7 @@ PortItem::PortItem(
     Process::Port& p,
     const score::DocumentContext& ctx,
     QGraphicsItem* parent)
-    : QGraphicsItem{parent}, m_context{ctx}, m_port{p}
+  : QGraphicsItem{parent}, m_context{ctx}, m_port{p}, m_diam{8.}
 {
   this->setCursor(QCursor());
   this->setAcceptDrops(true);
@@ -105,7 +108,8 @@ void PortItem::resetPortVisible()
 
 QRectF PortItem::boundingRect() const
 {
-  return {-m_diam / 2., -m_diam / 2., m_diam, m_diam};
+  constexpr auto max_diam = 13.;
+  return {-max_diam / 2., -max_diam / 2., max_diam, max_diam};
 }
 
 void PortItem::paint(
@@ -113,16 +117,16 @@ void PortItem::paint(
     const QStyleOptionGraphicsItem* option,
     QWidget* widget)
 {
-  static const qreal smallRadius = 3.;
-  static const qreal largeRadius = 4.;
-  static const QRectF smallEllipse{
+  static constexpr qreal smallRadius = 4.;
+  static constexpr qreal largeRadius = 6.;
+  static constexpr QRectF smallEllipse{
       -smallRadius, -smallRadius, 2. * smallRadius, 2. * smallRadius};
   static const QPolygonF smallEllipsePath{[] {
     QPainterPath p;
     p.addEllipse(smallEllipse);
     return p.simplified().toFillPolygon();
   }()};
-  static const QRectF largeEllipse{
+  static constexpr QRectF largeEllipse{
       -largeRadius, -largeRadius, 2. * largeRadius, 2. * largeRadius};
   static const QPolygonF largeEllipsePath{[] {
     QPainterPath p;
@@ -149,7 +153,7 @@ void PortItem::paint(
       break;
   }
 
-  painter->drawPolygon(m_diam == 6. ? smallEllipsePath : largeEllipsePath);
+  painter->drawPolygon(m_diam == 8. ? smallEllipsePath : largeEllipsePath);
   painter->setRenderHint(QPainter::Antialiasing, false);
 }
 
@@ -169,6 +173,59 @@ void PortItem::mousePressEvent(QGraphicsSceneMouseEvent* event)
   event->accept();
 }
 
+QLineF portDragLineCoords{};
+struct DragLine : QGraphicsLineItem
+{
+public:
+  DragLine(QLineF f)
+    : QGraphicsLineItem{f}
+  {
+    setPen(QPen(QBrush{qRgb(200, 200, 210)}, 2, Qt::PenStyle::SolidLine, Qt::PenCapStyle::RoundCap,
+                Qt::PenJoinStyle::RoundJoin));
+
+    setAcceptHoverEvents(true);
+  }
+  void hoverEnterEvent(QGraphicsSceneHoverEvent* event) override
+  {
+    portDragLineCoords.setP2(event->scenePos());
+    setLine(portDragLineCoords);
+  }
+  void hoverMoveEvent(QGraphicsSceneHoverEvent* event) override
+  {
+    portDragLineCoords.setP2(event->scenePos());
+    setLine(portDragLineCoords);
+  }
+  void hoverLeaveEvent(QGraphicsSceneHoverEvent* event) override
+  {
+    portDragLineCoords.setP2(event->scenePos());
+    setLine(portDragLineCoords);
+  }
+
+  void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget = nullptr)
+  {
+    painter->setRenderHint(QPainter::Antialiasing, true);
+    QGraphicsLineItem::paint(painter, option, widget);
+    painter->setRenderHint(QPainter::Antialiasing, false);
+  }
+};
+
+QGraphicsLineItem* portDragLine{};
+struct DragMoveFilter : QObject
+{
+public:
+  bool eventFilter(QObject* watched, QEvent* event) override
+  {
+    if (event->type() == QEvent::GraphicsSceneDragMove) {
+        auto ev = static_cast<QGraphicsSceneDragDropEvent *>(event);
+        portDragLineCoords.setP2(ev->scenePos());
+        portDragLine->setLine(portDragLineCoords);
+        return false;
+    } else {
+        return QObject::eventFilter(watched, event);
+    }
+  }
+};
+DragMoveFilter* drag_move_filter{};
 void PortItem::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 {
   event->accept();
@@ -176,11 +233,22 @@ void PortItem::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
   {
     QDrag* d{new QDrag{this}};
     QMimeData* m = new QMimeData;
+    portDragLineCoords = QLineF{scenePos(), event->scenePos()};
+    portDragLine = new DragLine{portDragLineCoords};
+
+    scene()->installEventFilter(drag_move_filter = new DragMoveFilter{});
+    scene()->addItem(portDragLine);
     clickedPort = this;
     m->setData(score::mime::port(), {});
     d->setMimeData(m);
     d->exec();
-    connect(d, &QDrag::destroyed, this, [] { clickedPort = nullptr; });
+
+    connect(d, &QDrag::destroyed, this, [this] {
+      scene()->removeEventFilter(drag_move_filter);
+      clickedPort = nullptr;
+      delete portDragLine;
+      delete drag_move_filter;
+    });
   }
 }
 
@@ -218,7 +286,7 @@ void PortItem::hoverMoveEvent(QGraphicsSceneHoverEvent* event)
 void PortItem::hoverLeaveEvent(QGraphicsSceneHoverEvent* event)
 {
   prepareGeometryChange();
-  m_diam = 6.;
+  m_diam = 8.;
   update();
   event->accept();
 }
@@ -226,7 +294,7 @@ void PortItem::hoverLeaveEvent(QGraphicsSceneHoverEvent* event)
 void PortItem::dragEnterEvent(QGraphicsSceneDragDropEvent* event)
 {
   prepareGeometryChange();
-  m_diam = 8.;
+  m_diam = 12.;
   update();
   event->accept();
 }
@@ -239,7 +307,7 @@ void PortItem::dragMoveEvent(QGraphicsSceneDragDropEvent* event)
 void PortItem::dragLeaveEvent(QGraphicsSceneDragDropEvent* event)
 {
   prepareGeometryChange();
-  m_diam = 6.;
+  m_diam = 8.;
   update();
   event->accept();
 }
