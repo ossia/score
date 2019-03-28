@@ -213,4 +213,10 @@ const ProcessModel* parentProcess(const QObject* obj) noexcept
     return static_cast<const ProcessModel*>(obj);
   return nullptr;
 }
+
+void ProcessModel::breakpointsPositions(const BreakpointPositionsHandler&) const { }
+void ProcessModel::breakpointMessages(double pos, const BreakpointHandler& h) const { }
+bool ProcessModel::createBreakpoint(double pos) { return false; }
+bool ProcessModel::moveBreakpoint(double oldpos, double newpos) { return false; }
+bool ProcessModel::removeBreakpoint(double pos) { return false; }
 }

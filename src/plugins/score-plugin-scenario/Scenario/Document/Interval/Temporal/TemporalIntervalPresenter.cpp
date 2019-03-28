@@ -27,6 +27,7 @@
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentPresenter.hpp>
 
+#include <Scenario/ViewCommands/PutLayerModelToFront.hpp>
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/document/DocumentInterface.hpp>
 #include <score/graphics/GraphicsItem.hpp>
@@ -803,32 +804,6 @@ TemporalIntervalHeader* TemporalIntervalPresenter::header() const
   }
 }
 
-void TemporalIntervalPresenter::requestSlotMenu(
-    int slot,
-    QPoint pos,
-    QPointF sp) const
-{
-  if (const auto& proc = m_model.getSmallViewSlot(slot).frontProcess)
-  {
-    const SlotPresenter& slt = m_slots.at(slot);
-    for (auto& p : slt.processes)
-    {
-      if (p.model->id() == proc)
-      {
-        auto menu = new QMenu;
-        auto& reg = score::GUIAppContext()
-                        .guiApplicationPlugin<ScenarioApplicationPlugin>()
-                        .layerContextMenuRegistrar();
-        p.presenter->fillContextMenu(*menu, pos, sp, reg);
-        menu->exec(pos);
-        menu->close();
-        menu->deleteLater();
-        break;
-      }
-    }
-  }
-}
-
 void TemporalIntervalPresenter::setHeaderWidth(
     const SlotPresenter& slot,
     double w)
@@ -846,6 +821,34 @@ void TemporalIntervalPresenter::setHeaderWidth(
   }
 }
 
+static void createProcessSelectorContextMenu(
+      const score::DocumentContext& ctx,
+      QMenu& menu,
+      const TemporalIntervalPresenter& pres,
+      int slot_index)
+{
+  using namespace Scenario::Command;
+  // TODO see
+  // http://stackoverflow.com/questions/21443023/capturing-a-reference-by-reference-in-a-c11-lambda
+  auto& interval = pres.model();
+  const Slot& slot = interval.smallView().at(slot_index);
+  SlotPath slot_path{interval, slot_index, Slot::SmallView};
+
+  for (const Id<Process::ProcessModel>& proc : slot.processes)
+  {
+    auto& p = interval.processes.at(proc);
+    auto name = p.prettyName();
+    if (name.isEmpty())
+      name = p.prettyShortName();
+    QAction* procAct = new QAction{name, &menu};
+    QObject::connect(procAct, &QAction::triggered, [&, slot_path]() mutable {
+      PutLayerModelToFront cmd{std::move(slot_path), p.id()};
+      cmd.redo(ctx);
+    });
+    menu.addAction(procAct);
+  }
+}
+
 void TemporalIntervalPresenter::requestProcessSelectorMenu(
     int slot,
     QPoint pos,
@@ -859,11 +862,7 @@ void TemporalIntervalPresenter::requestProcessSelectorMenu(
       if (p.model->id() == proc)
       {
         auto menu = new QMenu;
-        auto& reg = score::GUIAppContext()
-                        .guiApplicationPlugin<ScenarioApplicationPlugin>()
-                        .layerContextMenuRegistrar();
-        ScenarioContextMenuManager::createLayerContextMenuForProcess(
-            *menu, pos, sp, reg, *p.presenter);
+        createProcessSelectorContextMenu(m_context, *menu, *this, slot);
         menu->exec(pos);
         // menu->close();
         menu->deleteLater();

@@ -106,6 +106,12 @@ private:
   bool contentHasDuration() const noexcept override;
   TimeVal contentDuration() const noexcept override;
 
+  void breakpointsPositions(const BreakpointPositionsHandler&) const override;
+  void breakpointMessages(double pos, const BreakpointHandler& h) const override;
+  bool createBreakpoint(double pos) override;
+  bool moveBreakpoint(double oldpos, double newpos) override;
+  bool removeBreakpoint(double pos) override;
+
   /// States
   ProcessState* startStateData() const noexcept override;
   ProcessState* endStateData() const noexcept override;

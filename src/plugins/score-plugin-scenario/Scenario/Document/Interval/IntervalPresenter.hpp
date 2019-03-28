@@ -87,7 +87,6 @@ public:
   virtual void stopSlotDrag() const = 0;
 
   virtual void selectedSlot(int) const = 0;
-  virtual void requestSlotMenu(int slot, QPoint pos, QPointF sp) const = 0;
 
 public:
   void pressed(QPointF arg_1) const

@@ -52,7 +52,6 @@ public:
   TemporalIntervalView* view() const;
   TemporalIntervalHeader* header() const;
 
-  void requestSlotMenu(int slot, QPoint pos, QPointF sp) const override;
   void requestProcessSelectorMenu(int slot, QPoint pos, QPointF sp) const;
 
 public:

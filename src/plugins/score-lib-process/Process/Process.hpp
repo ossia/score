@@ -20,13 +20,19 @@
 
 #include <QByteArray>
 #include <QString>
+#include <gsl/span>
 
 #include <score_lib_process_export.h>
 #include <wobjectdefs.h>
 
 #include <vector>
-
+#include <smallfun.hpp>
 class ProcessStateDataInterface;
+
+namespace State
+{
+struct Message;
+}
 
 namespace Process
 {
@@ -95,6 +101,17 @@ public:
   virtual Selection selectedChildren() const noexcept;
   virtual void setSelection(const Selection& s) const noexcept;
 
+  // Breakpoints
+  using BreakpointPositionsHandler = smallfun::function<void(double pos)>;
+  using BreakpointHandler = smallfun::function<void(gsl::span<State::Message>)>;
+
+  virtual void breakpointsPositions(const BreakpointPositionsHandler&) const;
+  virtual void breakpointMessages(double pos, const BreakpointHandler& h) const;
+  virtual bool createBreakpoint(double pos);
+  virtual bool moveBreakpoint(double oldpos, double newpos);
+  virtual bool removeBreakpoint(double pos);
+
+  // Other
   double getSlotHeight() const noexcept;
   void setSlotHeight(double) noexcept;
 
@@ -103,6 +120,7 @@ public:
 
   Process::Inlet* inlet(const Id<Process::Port>&) const noexcept;
   Process::Outlet* outlet(const Id<Process::Port>&) const noexcept;
+
 
   // FIXME ugh
   QWidget* externalUI{};
@@ -133,7 +151,13 @@ public:
   void externalUIVisible(bool v) const
       E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, externalUIVisible, v);
 
-protected:
+  void breakpointCreated(double d) const
+  E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, breakpointCreated, d);
+  void breakpointChanged(double oldpos, double newpos) const
+  E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, breakpointChanged, oldpos, newpos);
+  void breakpointRemoved(double pos) const
+  E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, breakpointRemoved, pos);
+
   // Used to scale the process.
   // This should be commutative :
   //   setDurationWithScale(2); setDurationWithScale(3);
@@ -146,7 +170,7 @@ protected:
 
   // Does nothing if newDuration > currentDuration
   virtual void setDurationAndShrink(const TimeVal& newDuration) noexcept;
-
+protected:
   Process::Inlets m_inlets;
   Process::Outlets m_outlets;
 

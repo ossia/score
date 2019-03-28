@@ -46,7 +46,6 @@ private:
   void startSlotDrag(int slot, QPointF) const override;
   void stopSlotDrag() const override;
 
-  void requestSlotMenu(int slot, QPoint pos, QPointF sp) const override;
   void updateScaling() override;
   void selectedSlot(int) const override;
 

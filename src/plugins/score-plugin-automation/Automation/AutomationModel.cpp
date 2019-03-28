@@ -12,6 +12,7 @@
 #include <Process/Dataflow/Port.hpp>
 #include <State/Address.hpp>
 
+#include <Curve/Palette/CommandObjects/MovePointCommandObject.hpp>
 #include <score/document/DocumentInterface.hpp>
 #include <score/model/IdentifiedObjectMap.hpp>
 #include <score/model/Identifier.hpp>
@@ -273,4 +274,29 @@ void ProcessModel::setUnit(const State::Unit& u)
     unitChanged(u);
   }
 }
+
+void ProcessModel::breakpointsPositions(const BreakpointPositionsHandler& h) const
+{
+  for(auto& pt : m_curve->points())
+    h(pt->pos().x());
+}
+
+void ProcessModel::breakpointMessages(double pos, const BreakpointHandler& h) const
+{
+  auto pt = ossia::find_if(m_curve->points(), [=] (Curve::PointModel* pt) { return pt->pos().x() == pos; });
+  if(pt != m_curve->points().end())
+  {
+    double y = ((**pt).pos().y());
+    State::Message m{outlet->address(), min() + y * (max() - min())};
+    h(gsl::span<State::Message>{&m, 1});
+  }
+}
+bool ProcessModel::createBreakpoint(double pos) { return false; }
+bool ProcessModel::moveBreakpoint(double oldpos, double newpos)
+{
+  //Curve::MovePointCommandObject obj;
+  return false;
+}
+bool ProcessModel::removeBreakpoint(double pos) { return false; }
+
 }

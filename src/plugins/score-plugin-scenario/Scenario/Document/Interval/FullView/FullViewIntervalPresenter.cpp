@@ -255,23 +255,6 @@ void FullViewIntervalPresenter::createSlot(int pos, const FullSlot& slt)
   updateProcessShape(pos);
 }
 
-void FullViewIntervalPresenter::requestSlotMenu(
-    int slot,
-    QPoint pos,
-    QPointF sp) const
-{
-  auto menu = new QMenu;
-  auto& reg = score::GUIAppContext()
-                  .guiApplicationPlugin<ScenarioApplicationPlugin>()
-                  .layerContextMenuRegistrar();
-
-  m_slots[slot].processes.front().presenter->fillContextMenu(
-      *menu, pos, sp, reg);
-  menu->exec(pos);
-  menu->close();
-  menu->deleteLater();
-}
-
 void FullViewIntervalPresenter::updateProcessShape(
     const LayerData& data,
     const SlotPresenter& slot)

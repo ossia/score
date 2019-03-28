@@ -279,8 +279,8 @@ void FaustEffectModel::reload()
 #endif
       ;
   auto str = fx_text.toStdString();
-  int argc = 0;
-  const char* argv[1]{};
+  int argc = 1;
+  const char* argv[2]{"-vec", nullptr};
 
   std::string err;
   err.resize(4097);
