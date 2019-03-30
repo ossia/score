@@ -71,7 +71,7 @@ function(score_set_msvc_compile_options theTarget)
 endfunction()
 
 function(score_set_apple_compile_options theTarget)
-  target_compile_definitions(theTarget PUBLIC
+  target_compile_definitions(${theTarget} PUBLIC
     -Wno-auto-var-id
     -Wno-availability
     -Wno-deprecated-declarations
