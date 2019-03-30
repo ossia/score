@@ -330,12 +330,16 @@ void LV2EffectModel::readPlugin()
 
   const std::size_t audio_in_size = data.audio_in_ports.size();
   const std::size_t audio_out_size = data.audio_out_ports.size();
+  /*
   const std::size_t in_size = data.control_in_ports.size();
   const std::size_t out_size = data.control_out_ports.size();
   const std::size_t midi_in_size = data.midi_in_ports.size();
   const std::size_t midi_out_size = data.midi_out_ports.size();
+  */
   const std::size_t cv_size = data.cv_ports.size();
+  /*
   const std::size_t other_size = data.control_other_ports.size();
+  */
   const std::size_t num_ports = data.effect.plugin.get_num_ports();
 
   fParamMin.resize(num_ports);
@@ -527,13 +531,14 @@ struct on_finish
         return;
       auto& node = *static_cast<lv2_node<on_finish>*>(nn.get());
 
-      for (int k = 0; k < node.data.control_out_ports.size(); k++)
+      for (std::size_t k = 0; k < node.data.control_out_ports.size(); k++)
       {
-        auto port = node.data.control_out_ports[k];
+        auto port = (uint32_t)node.data.control_out_ports[k];
         float val = node.fOutControls[k];
 
         auto cport
             = static_cast<LV2EffectModel&>(p->process()).control_out_map[port];
+        SCORE_ASSERT(cport);
         cport->setValue(val);
       }
     });

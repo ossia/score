@@ -379,7 +379,7 @@ void WaveformComputer::drawWaveForms(
   int nchannels = arr.size();
   if (nchannels == 0)
     return;
-  if (m_curdata.size() < nchannels)
+  if ((int64_t)m_curdata.size() < nchannels)
     return;
 
   // Height of each channel

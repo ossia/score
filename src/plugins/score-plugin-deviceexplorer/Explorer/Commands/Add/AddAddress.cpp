@@ -76,8 +76,8 @@ AddWholeAddress::AddWholeAddress(
   if (devplug.list().findDevice(addr.address.device))
   {
     // TODO
-    auto iter = &devplug.rootNode();
     /*
+    auto iter = &devplug.rootNode();
         auto find_cld = [&] (QString toFind) {
           return [&, toFind] (auto& cld) {
             if(cld.prettyName() == toFind)
