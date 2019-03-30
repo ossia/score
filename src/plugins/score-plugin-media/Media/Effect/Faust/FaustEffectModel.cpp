@@ -87,7 +87,7 @@ static bool faustIsMidi(llvm_dsp& dsp)
 {
   struct _ final : Meta {
     bool midi{};
-    void declare(const char* key, const char* value)
+    void declare(const char* key, const char* value) override
     {
       if(key == std::string("options") && std::string(value).find("[midi:on]") != std::string::npos)
         midi = true;
