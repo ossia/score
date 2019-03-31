@@ -10,6 +10,17 @@
 
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(score::Skin)
+
+
+#define SCORE_INSERT_COLOR(Col) \
+  {                             \
+#Col, &Col                  \
+  }
+
+
+#define SCORE_INSERT_COLOR_CUSTOM(Hex, Name) \
+  qMakePair(QStringLiteral(Name), QColor(Hex))
+
 namespace score
 {
 struct Skin::color_map
@@ -29,10 +40,6 @@ Skin::~Skin()
 {
   delete m_colorMap;
 }
-#define SCORE_INSERT_COLOR(Col) \
-  {                             \
-#Col, &Col                  \
-  }
 Skin::Skin() noexcept : SansFont{"Ubuntu"}, MonoFont
 {
   "APCCourier-Bold", 10, QFont::Black
@@ -69,8 +76,32 @@ Skin::Skin() noexcept : SansFont{"Ubuntu"}, MonoFont
         SCORE_INSERT_COLOR(Smooth1),      SCORE_INSERT_COLOR(Smooth2),
         SCORE_INSERT_COLOR(Smooth3),      SCORE_INSERT_COLOR(Tender1),
         SCORE_INSERT_COLOR(Tender2),      SCORE_INSERT_COLOR(Tender3),
-        SCORE_INSERT_COLOR(Pulse1),       SCORE_INSERT_COLOR(Pulse2)})
+        SCORE_INSERT_COLOR(Pulse1),       SCORE_INSERT_COLOR(Pulse2)}),
+    m_defaultPalette{
+       SCORE_INSERT_COLOR_CUSTOM("#3F51B5", "Indigo"),
+       SCORE_INSERT_COLOR_CUSTOM("#2196F3", "Blue"),
+       SCORE_INSERT_COLOR_CUSTOM("#03A9F4", "LightBlue"),
+       SCORE_INSERT_COLOR_CUSTOM("#00BCD4", "Cyan"),
+       SCORE_INSERT_COLOR_CUSTOM("#009688", "Teal"),
+       SCORE_INSERT_COLOR_CUSTOM("#4CAF50", "Green"),
+       SCORE_INSERT_COLOR_CUSTOM("#8BC34A", "LightGreen"),
+       SCORE_INSERT_COLOR_CUSTOM("#CDDC39", "Lime"),
+       SCORE_INSERT_COLOR_CUSTOM("#FFEB3B", "Yellow"),
+       SCORE_INSERT_COLOR_CUSTOM("#FFC107", "Amber"),
+       SCORE_INSERT_COLOR_CUSTOM("#FF9800", "Orange"),
+       SCORE_INSERT_COLOR_CUSTOM("#FF5722", "DeepOrange"),
+       SCORE_INSERT_COLOR_CUSTOM("#F44336", "Red"),
+       SCORE_INSERT_COLOR_CUSTOM("#E91E63", "Pink"),
+       SCORE_INSERT_COLOR_CUSTOM("#9C27B0", "Purple"),
+       SCORE_INSERT_COLOR_CUSTOM("#673AB7", "DeepPurple"),
+       SCORE_INSERT_COLOR_CUSTOM("#455A64", "BlueGrey"),
+       SCORE_INSERT_COLOR_CUSTOM("#9E9E9E", "Grey"),
+       SCORE_INSERT_COLOR_CUSTOM("#FFFFFF", "White"),
+       SCORE_INSERT_COLOR_CUSTOM("#000000", "Black")
+    }
 {
+  for(auto& c : m_defaultPalette)
+    m_colorMap->left.insert({c.first, &c.second});
 
   this->startTimer(32, Qt::CoarseTimer);
 #if QT_VERSION >= QT_VERSION_CHECK(5, 10, 0)
@@ -218,33 +249,13 @@ QVector<QPair<QColor, QString>> Skin::getColors() const
 
   return vec;
 }
-#define SCORE_MAKE_PAIR_COLOR_CUSTOM(Hex, Name) \
-  vec_color.push_back(qMakePair(QColor(Hex), QStringLiteral(Name)));
 QVector<QPair<QColor, QString>> Skin::getDefaultPaletteColors() const
 {
   QVector<QPair<QColor, QString>> vec_color;
   vec_color.reserve(18);
 
-  SCORE_MAKE_PAIR_COLOR_CUSTOM("#3F51B5", "Indigo");
-  SCORE_MAKE_PAIR_COLOR_CUSTOM("#2196F3", "Blue");
-  SCORE_MAKE_PAIR_COLOR_CUSTOM("#03A9F4", "LightBlue");
-  SCORE_MAKE_PAIR_COLOR_CUSTOM("#00BCD4", "Cyan");
-  SCORE_MAKE_PAIR_COLOR_CUSTOM("#009688", "Teal");
-  SCORE_MAKE_PAIR_COLOR_CUSTOM("#4CAF50", "Green");
-  SCORE_MAKE_PAIR_COLOR_CUSTOM("#8BC34A", "LightGreen");
-  SCORE_MAKE_PAIR_COLOR_CUSTOM("#CDDC39", "Lime");
-  SCORE_MAKE_PAIR_COLOR_CUSTOM("#FFEB3B", "Yellow");
-  SCORE_MAKE_PAIR_COLOR_CUSTOM("#FFC107", "Amber");
-  SCORE_MAKE_PAIR_COLOR_CUSTOM("#FF9800", "Orange");
-  SCORE_MAKE_PAIR_COLOR_CUSTOM("#FF5722", "DeepOrange");
-  SCORE_MAKE_PAIR_COLOR_CUSTOM("#F44336", "Red");
-  SCORE_MAKE_PAIR_COLOR_CUSTOM("#E91E63", "Pink");
-  SCORE_MAKE_PAIR_COLOR_CUSTOM("#9C27B0", "Purple");
-  SCORE_MAKE_PAIR_COLOR_CUSTOM("#673AB7", "DeepPurple");
-  SCORE_MAKE_PAIR_COLOR_CUSTOM("#455A64", "BlueGrey");
-  SCORE_MAKE_PAIR_COLOR_CUSTOM("#9E9E9E", "Grey");
-  SCORE_MAKE_PAIR_COLOR_CUSTOM("#FFFFFF", "White");
-  SCORE_MAKE_PAIR_COLOR_CUSTOM("#000000", "Black");
+  for(auto& c : m_defaultPalette)
+    vec_color.push_back({c.second.color(), c.first});
 
   return vec_color;
 }

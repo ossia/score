@@ -418,9 +418,13 @@ void ScenarioPresenter::on_intervalExecutionTimer()
       const auto r = v.boundingRect();
 
       if (r.width() > 7.)
-        v.update(r.x() + v.playWidth() - w, r.y(), 2 * w, 5.);
+      {
+        v.update({r.x() + v.playWidth() - w, r.y() + 9.5, 2. * w, 6.});
+      }
       else if (pp == 0.)
+      {
         v.update();
+      }
     }
   }
 }

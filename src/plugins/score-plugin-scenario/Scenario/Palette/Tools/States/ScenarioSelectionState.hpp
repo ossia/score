@@ -1,8 +1,7 @@
 #pragma once
 #include <Scenario/Process/ScenarioGlobalCommandManager.hpp>
-
 #include <score/statemachine/CommonSelectionState.hpp>
-
+#include <Scenario/Document/Interval/Temporal/TemporalIntervalView.hpp>
 #include <QPointF>
 
 namespace Scenario

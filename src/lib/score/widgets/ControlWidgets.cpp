@@ -110,7 +110,7 @@ void SpeedSlider::paintEvent(QPaintEvent*)
 void VolumeSlider::paintEvent(QPaintEvent*)
 {
   paintWithText(
-      "volume: "
+      "vol: "
       + QString::number(ossia::detail::LinearGainToDecibels(value()), 'f', 1)
       + " dB");
 }

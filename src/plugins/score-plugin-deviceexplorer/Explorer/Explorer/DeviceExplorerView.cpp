@@ -44,16 +44,15 @@ DeviceExplorerView::DeviceExplorerView(QWidget* parent)
   setSelectionBehavior(QAbstractItemView::SelectRows);
   setSelectionMode(QAbstractItemView::ExtendedSelection);
 
-  /*
+
   header()->setContextMenuPolicy(Qt::CustomContextMenu);
   connect(
       header(),
       &QWidget::customContextMenuRequested,
       this,
       &DeviceExplorerView::headerMenuRequested);
-  */
-  header()->hide();
 
+  header()->setMaximumHeight(20);
   //- Drag'n Drop.
 
   setDragEnabled(true);

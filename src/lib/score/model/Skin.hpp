@@ -97,6 +97,7 @@ private:
 
   struct color_map;
   color_map* m_colorMap{};
+  QVector<QPair<QString, QBrush>> m_defaultPalette;
 
   bool m_pulseDirection{false};
 };
