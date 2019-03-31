@@ -211,6 +211,36 @@ QVector<QPair<QColor, QString>> Skin::getColors() const
 
   return vec;
 }
+#define SCORE_MAKE_PAIR_COLOR_CUSTOM(Hex, Name) \
+  vec_color.push_back(qMakePair(QColor(Hex), QStringLiteral(Name)));
+QVector<QPair<QColor, QString>> Skin::getDefaultPaletteColors() const
+{
+  QVector<QPair<QColor, QString>> vec_color;
+  vec_color.reserve(18);
+
+  SCORE_MAKE_PAIR_COLOR_CUSTOM("#3F51B5", "Indigo");
+  SCORE_MAKE_PAIR_COLOR_CUSTOM("#2196F3", "Blue");
+  SCORE_MAKE_PAIR_COLOR_CUSTOM("#03A9F4", "LightBlue");
+  SCORE_MAKE_PAIR_COLOR_CUSTOM("#00BCD4", "Cyan");
+  SCORE_MAKE_PAIR_COLOR_CUSTOM("#009688", "Teal");
+  SCORE_MAKE_PAIR_COLOR_CUSTOM("#4CAF50", "Green");
+  SCORE_MAKE_PAIR_COLOR_CUSTOM("#8BC34A", "LightGreen");
+  SCORE_MAKE_PAIR_COLOR_CUSTOM("#CDDC39", "Lime");
+  SCORE_MAKE_PAIR_COLOR_CUSTOM("#FFEB3B", "Yellow");
+  SCORE_MAKE_PAIR_COLOR_CUSTOM("#FFC107", "Amber");
+  SCORE_MAKE_PAIR_COLOR_CUSTOM("#FF9800", "Orange");
+  SCORE_MAKE_PAIR_COLOR_CUSTOM("#FF5722", "DeepOrange");
+  SCORE_MAKE_PAIR_COLOR_CUSTOM("#F44336", "Red");
+  SCORE_MAKE_PAIR_COLOR_CUSTOM("#E91E63", "Pink");
+  SCORE_MAKE_PAIR_COLOR_CUSTOM("#9C27B0", "Purple");
+  SCORE_MAKE_PAIR_COLOR_CUSTOM("#673AB7", "DeepPurple");
+  SCORE_MAKE_PAIR_COLOR_CUSTOM("#455A64", "BlueGrey");
+  SCORE_MAKE_PAIR_COLOR_CUSTOM("#9E9E9E", "Grey");
+  SCORE_MAKE_PAIR_COLOR_CUSTOM("#FFFFFF", "White");
+  SCORE_MAKE_PAIR_COLOR_CUSTOM("#000000", "Black");
+
+  return vec_color;
+}
 
 static bool pulse(QBrush& ref, bool pulse)
 {

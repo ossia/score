@@ -76,10 +76,7 @@ TimeSyncInspectorWidget::TimeSyncInspectorWidget(
       ctx.app.interfaces<Command::TriggerCommandFactoryList>(),
       m_model,
       this};
-  updateAreaLayout({m_date,
-                    new score::HSeparator{this},
-                    new TextLabel{tr("Trigger")},
-                    m_trigwidg});
+  updateAreaLayout({m_date, new TextLabel{tr("Trigger")}, m_trigwidg});
 
   // display data
   updateDisplayedValues();

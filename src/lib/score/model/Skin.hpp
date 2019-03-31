@@ -81,6 +81,7 @@ public:
   QString toString(const QBrush*) const;
 
   QVector<QPair<QColor, QString>> getColors() const;
+  QVector<QPair<QColor, QString>> getDefaultPaletteColors() const;
 
 public:
   void changed() E_SIGNAL(SCORE_LIB_BASE_EXPORT, changed);

@@ -192,7 +192,6 @@ void StateInspectorWidget::updateDisplayedValues()
       m_model.metadata(), m_context.commandStack, &m_model, this};
   metadata->setupConnections(m_model);
   m_properties.push_back(metadata);
-  m_properties.push_back(new score::HSeparator{this});
 
   {
     auto linkWidget = new QWidget;

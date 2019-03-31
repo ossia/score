@@ -111,17 +111,8 @@ private:
   CommandDispatcher<> m_commandDispatcher;
 
   score::MarginLess<QVBoxLayout> m_metadataLayout;
-  score::MarginLess<QHBoxLayout> m_headerLay;
-  score::MarginLess<QVBoxLayout> m_btnLay;
-  score::MarginLess<QHBoxLayout> m_cmtLay;
-  QLabel* m_cmtLabel;
-  QWidget m_descriptionWidget;
-  score::MarginLess<QFormLayout> m_descriptionLay;
   QLineEdit m_labelLine;
   CommentEdit m_comments;
-  QToolButton m_colorButton;
-  QToolButton m_cmtBtn;
-  // ExtendedMetadataWidget m_meta;
   QPixmap m_colorButtonPixmap{4 * m_colorIconSize / 3,
                               4 * m_colorIconSize / 3};
 
