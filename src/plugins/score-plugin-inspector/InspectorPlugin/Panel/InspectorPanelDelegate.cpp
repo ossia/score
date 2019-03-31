@@ -21,6 +21,7 @@ PanelDelegate::PanelDelegate(const score::GUIApplicationContext& ctx)
   m_widget->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Minimum);
   m_widget->setMinimumHeight(400);
   m_widget->setMinimumWidth(250);
+  m_widget->setMaximumWidth(250);
 }
 
 QWidget* PanelDelegate::widget()

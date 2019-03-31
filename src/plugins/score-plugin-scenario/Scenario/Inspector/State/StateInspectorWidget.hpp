@@ -26,7 +26,5 @@ private:
   const StateModel& m_model;
   const score::DocumentContext& m_context;
   CommandDispatcher<> m_commandDispatcher;
-
-  std::vector<QWidget*> m_properties;
 };
 }

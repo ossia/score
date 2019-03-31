@@ -83,8 +83,8 @@ EventInspectorWidget::EventInspectorWidget(
   m_metadata
       = new MetadataWidget{object.metadata(), doc.commandStack, &object, this};
   m_metadata->setupConnections(object);
+  addHeader(m_metadata);
 
-  m_properties.push_back(m_metadata);
 
   ////// BODY
   /// Information

@@ -176,26 +176,20 @@ StateInspectorWidget::StateInspectorWidget(
   setObjectName("StateInspectorWidget");
   setParent(parent);
 
-  updateDisplayedValues();
-}
+  auto metadata = new MetadataWidget{
+      m_model.metadata(), m_context.commandStack, &m_model, this};
+  metadata->setupConnections(m_model);
+  addHeader(metadata);
 
-void StateInspectorWidget::updateDisplayedValues()
-{
-  // Cleanup
-  // OPTIMIZEME
-  m_properties.clear();
+  std::vector<QWidget*> properties;
   auto scenar = dynamic_cast<ScenarioInterface*>(m_model.parent());
   SCORE_ASSERT(scenar);
 
   // State setup
-  auto metadata = new MetadataWidget{
-      m_model.metadata(), m_context.commandStack, &m_model, this};
-  metadata->setupConnections(m_model);
-  m_properties.push_back(metadata);
 
   {
     auto linkWidget = new QWidget;
-    m_properties.push_back(linkWidget);
+    properties.push_back(linkWidget);
   }
 
   {
@@ -205,7 +199,7 @@ void StateInspectorWidget::updateDisplayedValues()
         &QPushButton::clicked,
         this,
         &StateInspectorWidget::splitFromEvent);
-    m_properties.push_back(splitEvent);
+    properties.push_back(splitEvent);
   }
 
   {
@@ -215,11 +209,10 @@ void StateInspectorWidget::updateDisplayedValues()
         &QPushButton::clicked,
         this,
         &StateInspectorWidget::splitFromNode);
-    m_properties.push_back(splitNode);
+    properties.push_back(splitNode);
   }
   {
     auto tab = new QTabWidget;
-
     // list view
 
     auto lv = new QTableView{this};
@@ -253,10 +246,9 @@ void StateInspectorWidget::updateDisplayedValues()
 
     tab->setDocumentMode(true);
 
-    m_properties.push_back(tab);
+    properties.push_back(tab);
   }
-
-  updateAreaLayout(m_properties);
+  updateAreaLayout(properties);
 }
 
 void StateInspectorWidget::splitFromEvent()
