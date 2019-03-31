@@ -6,6 +6,6 @@ namespace score
 {
 static const QString ValueStylesheet(
     "background-color: #252930;"
-    "color: #ffaa00; "
+    "color: #ffc107; "
     "font-weight: 600;");
 }

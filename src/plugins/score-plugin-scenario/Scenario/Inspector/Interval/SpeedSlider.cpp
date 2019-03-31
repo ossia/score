@@ -62,6 +62,7 @@ SpeedWidget::SpeedWidget(
   speedSlider->setMinimum(-100);
   speedSlider->setMaximum(500);
   speedSlider->setValue(m_model.duration.speed() * 100.);
+
   con(model.duration, &IntervalDurations::speedChanged, this, [=](double s) {
     double r = s * 100;
     if (!qFuzzyCompare(r, speedSlider->value()))
@@ -73,6 +74,7 @@ SpeedWidget::SpeedWidget(
   for (int i = 0; i < 5; i++)
     lay->setColumnStretch(i, 0);
   lay->setColumnStretch(5, 10);
+
   connect(speedSlider, &QSlider::valueChanged, this, setSpeedFun);
 }
 

@@ -141,7 +141,7 @@ Skin::Skin() noexcept : SansFont{"Ubuntu"}, MonoFont
   // Medium12Pt.setStyleStrategy(QFont::NoAntialias);
   Medium12Pt.setKerning(false);
 
-  SliderBrush = QColor("#12171a");
+  SliderBrush = QColor("#252930");
   SliderExtBrush = QColor("#666");
   SliderTextPen = QColor("silver");
   SliderFont = SansFont;
