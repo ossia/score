@@ -33,17 +33,17 @@ auto colorPalette() -> color_widgets::ColorPaletteModel&
   using namespace color_widgets;
   static ColorPaletteModel p;
   auto& skin = score::Skin::instance();
-  ColorPalette palette1;
-  palette1.setColors(skin.getColors());
-  palette1.setName("Choose a color");
-  p.addPalette(palette1, false);
+  ColorPalette palette;
+  palette.setColors(skin.getDefaultPaletteColors());
+
+  p.addPalette(palette, false);
+
   QObject::connect(&skin, &score::Skin::changed, [] {
     p.removePalette(0, false);
 
-    ColorPalette palette1;
-    palette1.setColors(score::Skin::instance().getColors());
-    palette1.setName("Choose a color");
-    p.addPalette(palette1, false);
+    ColorPalette palette;
+    palette.setColors(score::Skin::instance().getDefaultPaletteColors());
+    p.addPalette(palette, false);
   });
   return p;
 }
@@ -56,65 +56,82 @@ MetadataWidget::MetadataWidget(
     , m_metadata{metadata}
     , m_commandDispatcher{m}
     , m_metadataLayout{this}
-    , m_descriptionWidget{this}
-    , m_descriptionLay{&m_descriptionWidget}
     , m_labelLine{metadata.getLabel(), this}
     , m_comments{metadata.getComment(), this}
-    , m_colorButton{this}
-    , m_cmtBtn{this}
-// , m_meta{metadata.getExtendedMetadata(), this}
 {
   // main
-  m_metadataLayout.setSizeConstraint(QLayout::SetMinimumSize);
-  m_metadataLayout.addLayout(&m_headerLay);
-  m_headerLay.addLayout(&m_btnLay);
+  setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
+
+  m_metadataLayout.setSpacing(8);
+  m_metadataLayout.setMargin(0);
 
   // Name(s)
-  m_descriptionLay.addRow(tr("Label"), &m_labelLine);
-  m_descriptionWidget.setObjectName("Description");
+  m_labelLine.setPlaceholderText(tr("Label"));
+  m_metadataLayout.addWidget(&m_labelLine);
   con(metadata,
       &score::ModelMetadata::LabelChanged,
       this,
       [=](const auto& str) { m_labelLine.setText(str); });
 
-  // color
-  m_colorButton.setArrowType(Qt::NoArrow);
-  m_colorButton.setToolButtonStyle(Qt::ToolButtonIconOnly);
-  m_colorButton.setPopupMode(QToolButton::InstantPopup);
-
   // comments
-  m_comments.setVisible(false);
-
-  m_cmtBtn.setArrowType(Qt::RightArrow);
-  m_cmtBtn.setIconSize({4, 4});
-  m_cmtLay.addWidget(&m_cmtBtn);
-  m_cmtLabel = new TextLabel{tr("Comments"), this};
-  m_cmtLay.addWidget(m_cmtLabel);
-
+  m_comments.setMaximumHeight(50);
+  m_comments.setPlaceholderText(tr("Comments"));
   con(metadata,
       &score::ModelMetadata::CommentChanged,
       this,
       [=](const auto& str) { m_comments.setText(str); });
 
-  // m_meta.setVisible(false);
-
-  m_btnLay.addWidget(&m_colorButton);
-  m_btnLay.addLayout(&m_cmtLay);
-
-  m_headerLay.addWidget(&m_descriptionWidget);
-
-  // m_metadataLayout.addWidget(&m_meta);
   m_metadataLayout.addWidget(&m_comments);
 
-  con(m_cmtBtn, &QToolButton::released, this, [&]() {
-    m_cmtExpanded = !m_cmtExpanded;
-    m_comments.setVisible(m_cmtExpanded);
-    // m_meta.setVisible(m_cmtExpanded);
-    if (m_cmtExpanded)
-      m_cmtBtn.setArrowType(Qt::DownArrow);
-    else
-      m_cmtBtn.setArrowType(Qt::RightArrow);
-  });
+  // color palette
+  {
+    using namespace color_widgets;
+    static auto& color_palette = colorPalette();
+
+    auto palette_widget = new Swatch{this};
+
+    palette_widget->setPalette(color_palette.palette(0));
+    palette_widget->setReadOnly(true);
+
+    palette_widget->setColorSize(QSize(20, 20));
+    palette_widget->setColorSizePolicy(Swatch::ColorSizePolicy::Fixed);
+    palette_widget->setSelection(QPen(QColor(0, 0, 0), 3));
+    palette_widget->setBorder(QPen(QColor(0, 0, 0), 1));
+
+    int forced_rows = 2;
+    palette_widget->setForcedRows(forced_rows);
+    palette_widget->setMaximumWidth(
+        20 * palette_widget->colorCount() / forced_rows);
+    palette_widget->setMaximumHeight(20 * forced_rows);
+
+    connect(palette_widget, &Swatch::selectedChanged, this, [=](int idx) {
+      auto colors = color_palette.palette(0).colors();
+
+      if (idx >= 0 && idx < colors.size())
+      {
+        auto col_1 = colors.at(idx).second;
+        auto col = score::ColorRef::ColorFromString(col_1);
+        if (col)
+          colorChanged(*col);
+      }
+    });
+
+    con(metadata,
+        &score::ModelMetadata::ColorChanged,
+        this,
+        [=](const score::ColorRef& str) {
+          auto palette = palette_widget->palette();
+          auto color = str.getBrush().color();
+          for (int i = 0; i < palette.count(); i++)
+          {
+            if (palette.colorAt(i) == color)
+            {
+              palette_widget->setSelected(i);
+            }
+          }
+        });
+    m_metadataLayout.addWidget(palette_widget);
+  }
 
   con(m_labelLine, &QLineEdit::editingFinished, [=]() {
     labelChanged(m_labelLine.text());
@@ -123,58 +140,6 @@ MetadataWidget::MetadataWidget(
   con(m_comments, &CommentEdit::editingFinished, [=]() {
     commentsChanged(m_comments.toPlainText());
   });
-
-  /*
-  con(m_meta, &ExtendedMetadataWidget::dataChanged, this,
-      [=]() { extendedMetadataChanged(m_meta.currentMap()); },
-      Qt::QueuedConnection);
-  */
-  {
-    using namespace color_widgets;
-    static auto& palette = colorPalette();
-
-    auto palette_widget = new ColorPaletteWidget{this};
-
-    palette_widget->setModel(&palette);
-    palette_widget->setReadOnly(true);
-
-    connect(
-        palette_widget,
-        static_cast<void (ColorPaletteWidget::*)(int)>(
-            &ColorPaletteWidget::selectedChanged),
-        this,
-        [=](int idx) {
-          auto colors = palette.palette(0).colors();
-
-          if (idx >= 0 && idx < colors.size())
-          {
-            auto col_1 = colors.at(idx).second;
-            auto col = score::ColorRef::ColorFromString(col_1);
-            if (col)
-              colorChanged(*col);
-          }
-        });
-
-    auto colorMenu = new QMenu{this};
-    auto act = new QWidgetAction(colorMenu);
-    act->setDefaultWidget(palette_widget);
-    colorMenu->insertAction(nullptr, act);
-    m_colorButton.setMenu(colorMenu);
-    m_colorButton.setMaximumSize(
-        QSize(1.5 * m_colorIconSize, 1.5 * m_colorIconSize));
-
-    m_colorButtonPixmap = QPixmap(m_colorIconSize, m_colorIconSize);
-    m_colorButtonPixmap.fill(metadata.getColor().getBrush().color());
-    m_colorButton.setIcon(QIcon(m_colorButtonPixmap));
-    m_colorButton.setIconSize(QSize(m_colorIconSize, m_colorIconSize));
-
-    con(metadata,
-        &score::ModelMetadata::ColorChanged,
-        this,
-        [=](const score::ColorRef& str) {
-          palette_widget->setCurrentColor(str.getBrush().color());
-        });
-  }
 
   con(metadata,
       &score::ModelMetadata::metadataChanged,
@@ -189,11 +154,5 @@ void MetadataWidget::updateAsked()
 {
   m_labelLine.setText(m_metadata.getLabel());
   m_comments.setText(m_metadata.getComment());
-  // m_meta.update(m_metadata.getExtendedMetadata());
-
-  m_colorButtonPixmap.fill(m_metadata.getColor().getBrush().color());
-  m_colorButton.setIcon(QIcon(m_colorButtonPixmap));
-
-  // m_currentColor = newColor;
 }
 }

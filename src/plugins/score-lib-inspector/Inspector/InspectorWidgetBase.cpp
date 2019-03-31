@@ -28,12 +28,13 @@ InspectorWidgetBase::InspectorWidgetBase(
     , m_commandDispatcher(new CommandDispatcher<>{ctx.commandStack})
 {
   m_layout = new QVBoxLayout;
-  m_layout->setContentsMargins(0, 1, 0, 0);
+  m_layout->setMargin(5);
+  m_layout->setSpacing(5);
+
   setLayout(m_layout);
-  m_layout->setSpacing(0);
 
   m_label = new TextLabel{name, this};
-  m_label->setStyleSheet("font-weight: bold; font-size: 18");
+  m_label->setStyleSheet("font-weight: bold; font-size: 18;");
   m_sections.push_back(m_label);
 
   // scroll Area

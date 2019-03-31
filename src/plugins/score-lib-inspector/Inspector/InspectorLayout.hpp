@@ -10,9 +10,10 @@ public:
   Layout(QWidget* widg = nullptr) : QFormLayout{widg}
   {
     this->setContentsMargins(0, 0, 0, 0);
-    this->setSpacing(2);
     this->setMargin(2);
-    this->setHorizontalSpacing(20);
+    this->setHorizontalSpacing(10);
+    this->setVerticalSpacing(5);
+    this->setLabelAlignment(Qt::AlignRight);
   }
 };
 }

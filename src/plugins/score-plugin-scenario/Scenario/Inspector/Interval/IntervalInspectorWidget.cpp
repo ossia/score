@@ -46,7 +46,6 @@ IntervalInspectorWidget::IntervalInspectorWidget(
 
   ////// BODY
   // Separator
-  parts.push_back(new score::HSeparator{this});
   auto w = new QWidget;
   auto lay = new Inspector::Layout{w};
   parts.push_back(w);

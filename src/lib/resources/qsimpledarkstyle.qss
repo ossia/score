@@ -140,9 +140,21 @@ QAbstractScrollArea
 
 QTextEdit
 {
-    background-color: #12171A;
-    color: silver;
-   /* border: 1px solid #3A3939;*/
+background-color: #12171A;
+border-style: solid;
+border: 1px solid #444;
+border-radius: 2px;
+color: silver;
+height: 50px;
+}
+QTextEdit:focus
+{
+background-color: #12171A;
+color: #888;
+border-style: solid;
+border: 1px solid #888;
+border-radius: 2px;
+height: 50px;
 }
 
 QPlainTextEdit
@@ -306,13 +318,13 @@ QPushButton:checked{
 
 
 
-QComboBox:hover,QPushButton:hover,QAbstractSpinBox:hover,QTextEdit:hover,QPlainTextEdit:hover
+QComboBox:hover,QPushButton:hover,QAbstractSpinBox:hover,QPlainTextEdit:hover
 {
     border: 1px solid #aaa;
     color: white;
 }
 
-QComboBox:focus,QPushButton:focus,QAbstractSpinBox:focus,QTextEdit:focus,QPlainTextEdit:focus
+QComboBox:focus,QPushButton:focus,QAbstractSpinBox:focus,QPlainTextEdit:focus
 {
     border: 1px solid #aaa;
     color: white;
@@ -362,6 +374,9 @@ QComboBox::down-arrow:focus
     image: url(:/qss_icons/rc/down_arrow.png);
 }
 
+QFormLayout QLabel{
+    text-align: right;
+}
 
 QLabel
 {

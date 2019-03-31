@@ -102,7 +102,6 @@ EventInspectorWidget::EventInspectorWidget(
   infoLay->addWidget(tnBtn);
 
   m_properties.push_back(infoWidg);
-  m_properties.push_back(new score::HSeparator{this});
 
   m_properties.push_back(new TextLabel{tr("Condition")});
   // Condition
