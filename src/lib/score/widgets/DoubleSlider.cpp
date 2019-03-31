@@ -89,11 +89,11 @@ void Slider::paint(QPainter& p)
   static constexpr auto round = 1.5;
   p.setPen(Qt::transparent);
   p.setBrush(skin.SliderBrush);
-  p.drawRoundedRect(rect().adjusted(2, 2, -2, -2), round, round);
+  p.drawRoundedRect(rect(), round, round);
 
   p.setBrush(skin.SliderExtBrush);
   p.drawRoundedRect(
-      QRect{3, 3, int(ratio * (width() - 6)), height() - 6}, round, round);
+      QRect{1, 1, int(ratio * (width() - 2)), height() - 2}, round, round);
 }
 
 void Slider::paintWithText(const QString& s)
