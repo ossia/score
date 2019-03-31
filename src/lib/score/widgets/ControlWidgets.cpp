@@ -15,6 +15,7 @@ namespace score
 {
 SearchLineEdit::SearchLineEdit(QWidget* parent) : QLineEdit{parent}
 {
+  setObjectName("SearchLineEdit");
   setPlaceholderText("Search");
   auto act = new QAction{this};
   act->setIcon(QIcon(":/icons/search.png"));
@@ -98,8 +99,12 @@ void ValueSlider::paintEvent(QPaintEvent* event)
 
 void SpeedSlider::paintEvent(QPaintEvent*)
 {
-  paintWithText(
-      QString{" speed: x " + QString::number(double(value()) * 0.01)});
+  QString text;
+  text.reserve(16);
+    text += (showText) ? "speed: × " : "× ";
+
+  text += QString::number(double(value()) * 0.01, 'f', 2);
+  paintWithText(text);
 }
 
 void VolumeSlider::paintEvent(QPaintEvent*)

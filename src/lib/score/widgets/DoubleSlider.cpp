@@ -1,7 +1,7 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "DoubleSlider.hpp"
-
+#include <score/model/Skin.hpp>
 #include <QPainter>
 
 #include <wobjectimpl.h>
@@ -79,8 +79,7 @@ void Slider::paintEvent(QPaintEvent*)
 }
 void Slider::paint(QPainter& p)
 {
-  static const QBrush slider_brush{QColor("#12171a")};
-  static const QBrush slider_ext_brush{QColor("#666")};
+  auto& skin = score::Skin::instance();
   double min = minimum();
   double max = maximum();
   double val = value();
@@ -89,24 +88,23 @@ void Slider::paint(QPainter& p)
 
   static constexpr auto round = 1.5;
   p.setPen(Qt::transparent);
-  p.setBrush(slider_brush);
+  p.setBrush(skin.SliderBrush);
   p.drawRoundedRect(rect().adjusted(2, 2, -2, -2), round, round);
 
-  p.setBrush(slider_ext_brush);
+  p.setBrush(skin.SliderExtBrush);
   p.drawRoundedRect(
       QRect{3, 3, int(ratio * (width() - 6)), height() - 6}, round, round);
 }
 
 void Slider::paintWithText(const QString& s)
 {
-  static const QPen slider_text_pen{QColor("silver")};
-  static const QFont slider_font{"Ubuntu", 8};
+  auto& skin = score::Skin::instance();
 
   QPainter p{this};
   paint(p);
 
-  p.setPen(slider_text_pen);
-  p.setFont(slider_font);
-  p.drawText(QRect{13, 3, (width() - 16), height() - 6}, s);
+  p.setPen(skin.SliderTextPen);
+  p.setFont(skin.SliderFont);
+  p.drawText(QRectF{0., 3.5, (width() - 16.), height() - 5.}, s, QTextOption(Qt::AlignRight));
 }
 }

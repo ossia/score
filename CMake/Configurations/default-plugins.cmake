@@ -13,15 +13,16 @@ score-plugin-automation
 score-plugin-library
 score-plugin-scenario
 
-)
 
-# score-plugin-loop
-#
-# score-plugin-engine
-#
-# score-plugin-media
-# score-plugin-fx
-# score-plugin-js
-# score-plugin-midi
-# score-plugin-recording
-#
+
+ score-plugin-loop
+
+ score-plugin-engine
+
+ score-plugin-media
+ score-plugin-fx
+ score-plugin-js
+ score-plugin-midi
+ score-plugin-recording
+
+ )

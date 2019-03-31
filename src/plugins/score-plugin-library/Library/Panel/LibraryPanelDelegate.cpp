@@ -21,7 +21,7 @@ PanelDelegate::PanelDelegate(const score::GUIApplicationContext& ctx)
     : score::PanelDelegate{ctx}, m_widget{new QTabWidget}
 {
   m_widget->addTab(
-      new SystemLibraryWidget{ctx, m_widget}, QObject::tr("Library"));
+      new SystemLibraryWidget{ctx, m_widget}, QObject::tr("System"));
 
   m_projectView = new ProjectLibraryWidget{ctx, m_widget};
   m_widget->addTab(m_projectView, QObject::tr("Project"));

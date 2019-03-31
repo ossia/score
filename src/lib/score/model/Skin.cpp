@@ -109,6 +109,13 @@ Skin::Skin() noexcept : SansFont{"Ubuntu"}, MonoFont
   Medium12Pt.setPointSize(12);
   // Medium12Pt.setStyleStrategy(QFont::NoAntialias);
   Medium12Pt.setKerning(false);
+
+  SliderBrush = QColor("#12171a");
+  SliderExtBrush = QColor("#666");
+  SliderTextPen = QColor("silver");
+  SliderFont = SansFont;
+  SliderFont.setPointSize(10);
+  SliderFont.setWeight(QFont::DemiBold);
 }
 
 Skin& score::Skin::instance() noexcept
