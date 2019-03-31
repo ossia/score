@@ -51,7 +51,7 @@ IntervalInspectorWidget::IntervalInspectorWidget(
   parts.push_back(w);
 
   // Full View
-  auto fullview = new QPushButton{tr("Full view")};
+  auto fullview = new QPushButton{tr("FV")};
   connect(fullview, &QPushButton::clicked, this, [this] {
     auto base = get<ScenarioDocumentPresenter>(*documentFromObject(m_model));
 
@@ -59,7 +59,7 @@ IntervalInspectorWidget::IntervalInspectorWidget(
       base->setDisplayedInterval(model());
   });
 
-  lay->addRow(fullview);
+  lay->addRow(tr("Fullview"), fullview);
 
   // Speed
   auto speedWidg = new SpeedWidget{m_model, ctx, true, this};

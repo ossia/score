@@ -95,8 +95,8 @@ MetadataWidget::MetadataWidget(
 
     palette_widget->setColorSize(QSize(20, 20));
     palette_widget->setColorSizePolicy(Swatch::ColorSizePolicy::Fixed);
-    palette_widget->setSelection(QPen(QColor(0, 0, 0), 3));
-    palette_widget->setBorder(QPen(QColor(0, 0, 0), 1));
+    palette_widget->setSelection(QPen(QColor(0, 0, 0), 2));
+    palette_widget->setBorder(QPen(Qt::transparent));
 
     int forced_rows = 2;
     palette_widget->setForcedRows(forced_rows);
