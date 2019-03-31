@@ -3,6 +3,7 @@
 
 #include <score/widgets/ControlWidgets.hpp>
 #include <score/widgets/MarginLess.hpp>
+#include <score/widgets/StyleSheets.hpp>
 #include <score/widgets/TextLabel.hpp>
 
 #include <QGridLayout>
@@ -23,6 +24,7 @@ SpeedWidget::SpeedWidget(
     : QWidget{parent}, m_model{model}
 {
   setObjectName("SpeedSlider");
+
   auto lay = new score::MarginLess<QGridLayout>{this};
   auto setSpeedFun = [=](double val) {
     auto& dur = ((IntervalModel&)(m_model)).duration;
@@ -44,8 +46,9 @@ SpeedWidget::SpeedWidget(
       pb->setMaximumWidth(45);
       pb->setFlat(true);
       pb->setContentsMargins(0, 0, 0, 0);
-      pb->setStyleSheet(QStringLiteral(
-          "QPushButton { margin: 0px; padding: 0px; border: none; }"));
+      pb->setStyleSheet(
+          "QPushButton { margin: 0px; padding: 0px; border: none; "
+          + score::ValueStylesheet + "}");
 
       connect(pb, &QPushButton::clicked, this, [=] { setSpeedFun(factor); });
       lay->addWidget(pb, 1, btn_col++, 1, 1);

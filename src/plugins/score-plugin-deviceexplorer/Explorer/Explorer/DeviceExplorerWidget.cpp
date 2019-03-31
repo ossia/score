@@ -463,7 +463,8 @@ void DeviceExplorerWidget::buildGUI()
       &DeviceExplorerWidget::filterChanged);
 
   auto filterHLayout = new score::MarginLess<QHBoxLayout>;
-  filterHLayout->setContentsMargins(0, 0, 0, 0);
+  filterHLayout->setSpacing(2);
+
   filterHLayout->addWidget(m_columnCBox);
   filterHLayout->addWidget(m_nameLEdit);
 

@@ -1,4 +1,6 @@
 #pragma once
+#include <score/widgets/StyleSheets.hpp>
+
 #include <QDoubleSpinBox>
 #include <QSpinBox>
 #include <QTimeEdit>
@@ -101,6 +103,7 @@ public:
   {
     setDisplayFormat(QStringLiteral("h.mm.ss.zzz"));
     setAlignment(Qt::AlignRight);
+    setStyleSheet(score::ValueStylesheet);
   }
 
   void wheelEvent(QWheelEvent* event) override { event->ignore(); }

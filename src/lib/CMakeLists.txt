@@ -209,6 +209,7 @@ set(HEADERS
     "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/Separator.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/SetIcons.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/SignalUtils.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/StyleSheets.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/SpinBoxes.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/TextLabel.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/WidgetWrapper.hpp"
