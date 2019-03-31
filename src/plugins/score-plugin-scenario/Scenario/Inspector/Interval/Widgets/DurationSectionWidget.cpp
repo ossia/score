@@ -116,6 +116,8 @@ public:
   {
     using namespace score;
     auto editableGrid = &lay;
+    editableGrid->setLabelAlignment(Qt::AlignRight);
+    editableGrid->setFormAlignment(Qt::AlignRight);
 
     // SPINBOXES
     m_minSpin = new TimeSpinBox{this};

@@ -100,6 +100,7 @@ public:
   TimeSpinBox(QWidget* parent = nullptr) : QTimeEdit(parent)
   {
     setDisplayFormat(QStringLiteral("h.mm.ss.zzz"));
+    setAlignment(Qt::AlignRight);
   }
 
   void wheelEvent(QWheelEvent* event) override { event->ignore(); }
