@@ -16,6 +16,7 @@
 #include <score/document/DocumentContext.hpp>
 #include <score/widgets/MarginLess.hpp>
 #include <score/widgets/Separator.hpp>
+#include <score/widgets/StyleSheets.hpp>
 #include <score/widgets/TextLabel.hpp>
 
 namespace Scenario
@@ -52,6 +53,7 @@ IntervalInspectorWidget::IntervalInspectorWidget(
 
   // Full View
   auto fullview = new QPushButton{tr("FV")};
+  fullview->setStyleSheet(score::ValueStylesheet);
   connect(fullview, &QPushButton::clicked, this, [this] {
     auto base = get<ScenarioDocumentPresenter>(*documentFromObject(m_model));
 
