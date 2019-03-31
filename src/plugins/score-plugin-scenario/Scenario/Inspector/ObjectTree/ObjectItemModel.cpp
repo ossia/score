@@ -1074,6 +1074,7 @@ ObjectWidget::ObjectWidget(const score::DocumentContext& ctx, QWidget* par)
     : QTreeView{par}, model{ctx, this}, m_ctx{ctx}
 {
   setModel(&model);
+
   setAnimated(true);
   setAlternatingRowColors(true);
   setMidLineWidth(40);
@@ -1081,6 +1082,7 @@ ObjectWidget::ObjectWidget(const score::DocumentContext& ctx, QWidget* par)
   setWordWrap(false);
   setMouseTracking(true);
   setDragDropMode(QAbstractItemView::DragDrop);
+  header()->hide();
 
   con(model, &ObjectItemModel::changed, this, &QTreeView::expandAll);
 }

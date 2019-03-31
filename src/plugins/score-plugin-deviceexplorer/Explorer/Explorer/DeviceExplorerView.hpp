@@ -66,5 +66,9 @@ private:
   QList<QAction*> m_actions;
 
   bool m_hasProxy{};
+
+  // QWidget interface
+protected:
+  void paintEvent(QPaintEvent* event) override;
 };
 }

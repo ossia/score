@@ -1,0 +1,46 @@
+QAbstractSpinBox {
+    padding: 0px;
+    /*border: 1px solid #3A3939;*/
+    background-color: #12171A;
+    color: silver;
+    border-radius: 2px;
+    min-width: 75px;
+}
+
+QAbstractSpinBox:up-button
+{
+    background-color: transparent;
+    subcontrol-origin: border;
+    subcontrol-position: center right;
+}
+
+QAbstractSpinBox:down-button
+{
+    background-color: transparent;
+    subcontrol-origin: border;
+    subcontrol-position: center left;
+}
+
+QAbstractSpinBox::up-arrow,QAbstractSpinBox::up-arrow:disabled,QAbstractSpinBox::up-arrow:off {
+    image: url(:/qss_icons/rc/up_arrow_disabled.png);
+    width: 10px;
+    height: 10px;
+}
+
+QAbstractSpinBox::up-arrow:hover
+{
+    image: url(:/qss_icons/rc/up_arrow.png);
+}
+
+
+QAbstractSpinBox::down-arrow,QAbstractSpinBox::down-arrow:disabled,QAbstractSpinBox::down-arrow:off
+{
+    image: url(:/qss_icons/rc/down_arrow_disabled.png);
+    width: 10px;
+    height: 10px;
+}
+QAbstractSpinBox::down-arrow:hover
+{
+    image: url(:/qss_icons/rc/down_arrow.png);
+}
+

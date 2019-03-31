@@ -1,5 +1,5 @@
 #include <score/widgets/ControlWidgets.hpp>
-
+#include <score/widgets/SearchLineEdit.hpp>
 #include <ossia/network/dataspace/gain.hpp>
 
 #include <QPainter>
@@ -8,6 +8,26 @@
 #include <QStyleOptionSlider>
 
 #include <cmath>
+
+#include <wobjectimpl.h>
+W_OBJECT_IMPL(score::SearchLineEdit)
+namespace score
+{
+SearchLineEdit::SearchLineEdit(QWidget* parent) : QLineEdit{parent}
+{
+  setPlaceholderText("Search");
+  auto act = new QAction{this};
+  act->setIcon(QIcon(":/icons/search.png"));
+  addAction(act, QLineEdit::TrailingPosition);
+
+  connect(this, &QLineEdit::returnPressed, [&]() { search(); });
+  connect(act, &QAction::triggered, [&]() { search(); });
+}
+
+SearchLineEdit::~SearchLineEdit() {
+
+}
+}
 
 namespace Control
 {
