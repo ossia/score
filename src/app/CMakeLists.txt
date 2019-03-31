@@ -6,23 +6,32 @@ enable_testing()
 set(APPNAME "score")
 set(CMAKE_POSITION_INDEPENDENT_CODE 1)
 
-add_executable(score-main WIN32 AppLauncher.cpp)
+#add_executable(score-main WIN32 AppLauncher.cpp)
 add_library(${APPNAME} SHARED
   "${CMAKE_CURRENT_SOURCE_DIR}/Application.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Application.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/main.cpp"
+
+  "${3RDPARTY_FOLDER}/phantomstyle/src/phantom/phantomcolor.cpp"
+  "${3RDPARTY_FOLDER}/phantomstyle/src/phantom/phantomstyle.cpp"
 )
-target_link_libraries(score-main PRIVATE ${APPNAME})
+#target_link_libraries(score-main PRIVATE ${APPNAME})
+
+target_include_directories(${APPNAME} PRIVATE "${3RDPARTY_FOLDER}/phantomstyle/src")
+
 target_link_libraries(${APPNAME} PUBLIC score_lib_base)
 if(SCORE_STATIC_PLUGINS)
   target_link_libraries(${APPNAME} PUBLIC ${SCORE_PLUGINS_LIST})
 endif()
 
+target_compile_definitions(${APPNAME} PUBLIC
+    $<$<CONFIG:Debug>:SCORE_SOURCE_DIR="${SCORE_ROOT_SOURCE_DIR}">
+)
 if(TARGET score_addon_jit)
   set_target_properties(${APPNAME} PROPERTIES ENABLE_EXPORTS 1)
   if(MINGW OR MSYS)
     target_link_libraries(${APPNAME} PUBLIC -Wl,--stack,16777216)
-    target_link_libraries(score-main PUBLIC -Wl,--stack,16777216)
+    # target_link_libraries(score-main PUBLIC -Wl,--stack,16777216)
   endif()
 endif()
 

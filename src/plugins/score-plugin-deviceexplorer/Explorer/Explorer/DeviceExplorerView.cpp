@@ -4,7 +4,7 @@
 
 #include "DeviceExplorerFilterProxyModel.hpp"
 #include "DeviceExplorerModel.hpp"
-
+#include <score/model/Skin.hpp>
 #include <QAbstractItemView>
 #include <QAbstractProxyModel>
 #include <QAction>
@@ -44,12 +44,15 @@ DeviceExplorerView::DeviceExplorerView(QWidget* parent)
   setSelectionBehavior(QAbstractItemView::SelectRows);
   setSelectionMode(QAbstractItemView::ExtendedSelection);
 
+  /*
   header()->setContextMenuPolicy(Qt::CustomContextMenu);
   connect(
       header(),
       &QWidget::customContextMenuRequested,
       this,
       &DeviceExplorerView::headerMenuRequested);
+  */
+  header()->hide();
 
   //- Drag'n Drop.
 
@@ -322,4 +325,23 @@ void DeviceExplorerView::setSelectedIndex(const QModelIndex& index)
             ->mapFromSource(index));
   }
 }
+void DeviceExplorerView::paintEvent(QPaintEvent* event)
+{
+  QTreeView::paintEvent(event);
+  if (model() && model()->rowCount(rootIndex()) > 0)
+    return;
+
+  QPainter p{this->viewport()};
+  const auto& skin = score::Skin::instance();
+  auto font = skin.Bold12Pt;
+  font.setPointSize(24);
+  p.setFont(font);
+  auto pen = p.pen();
+  auto col = pen.color();
+  col.setAlphaF(0.5);
+  pen.setColor(col);
+  p.setPen(pen);
+  p.drawText(rect(), Qt::AlignCenter, "Right-click\nto add a device");
 }
+}
+

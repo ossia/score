@@ -63,13 +63,82 @@
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Application)
 
+#if defined(SCORE_SOURCE_DIR)
+#include <QFileSystemWatcher>
+#endif
 #if defined(SCORE_STATIC_PLUGINS)
 int qInitResources_score();
 #endif
 
+#include <phantom/phantomstyle.h>
 namespace score
 {
 class DocumentModel;
+
+struct StyleLoader : public QObject
+{
+  std::vector<QString> filesToRead;
+
+#if defined(SCORE_SOURCE_DIR)
+  std::vector<QFileSystemWatcher*> watchers;
+#endif
+
+  StyleLoader()
+  {
+#if defined(SCORE_SOURCE_DIR)
+    QString prefix = QString(SCORE_SOURCE_DIR) + "/src/lib/resources";
+#else
+    QString prefix = ":";
+#endif
+  #if defined(_WIN32)
+    addFile(prefix + "/style/windows.qss");
+  #elif defined(__APPLE__)
+    addFile(prefix + "/style/macos.qss");
+  #else
+    addFile(prefix + "/style/linux.qss");
+  #endif
+    addFile(prefix + "/qsimpledarkstyle.qss");
+    addFile(prefix + "/style/spinbox.qss");
+    addFile(prefix + "/style/scrollbars.qss");
+    addFile(prefix + "/style/lineedit.qss");
+
+    on_styleChanged();
+  }
+
+  void addFile(const QString& str)
+  {
+    filesToRead.push_back(str);
+#if defined(SCORE_SOURCE_DIR)
+    watchers.push_back(new QFileSystemWatcher{this});
+    auto w = watchers.back();
+    connect(w, &QFileSystemWatcher::fileChanged,
+            this, [=] {
+      QTimer::singleShot(100, [=] {
+        on_styleChanged();
+        w->addPath(str);
+      });
+    });
+    w->addPath(str);
+#endif
+  }
+
+  void on_styleChanged()
+  {
+    auto readFile = [] (QString s) {
+      QFile f{s};
+      SCORE_ASSERT(f.open(QFile::ReadOnly));
+      return f.readAll();
+    };
+
+    QByteArray ss;
+    for(const auto& path : filesToRead)
+    {
+      ss += readFile(path);
+    }
+
+    qApp->setStyleSheet(ss);
+  }
+};
 
 static void setQApplicationSettings(QApplication& m_app)
 {
@@ -85,26 +154,11 @@ static void setQApplicationSettings(QApplication& m_app)
       ":/Catamaran-Regular.ttf"); // Catamaran Regular
   QFontDatabase::addApplicationFont(":/Montserrat-Regular.ttf"); // Montserrat
 
-  auto readFile = [] (QString s) {
-    QFile f{s};
-    SCORE_ASSERT(f.open(QFile::ReadOnly));
-    return f.readAll();
-  };
-  QByteArray ss;
-#if defined(_WIN32)
-  ss += readFile(":/style-windows.qss");
-#elif defined(__APPLE__)
-  ss += readFile(":/style-macos.qss");
-#else
-  ss += readFile(":/style-linux.qss");
-#endif
-  ss += readFile(":/qsimpledarkstyle.qss");
-
-  m_app.setStyle(QStyleFactory::create("Fusion"));
-  m_app.setStyleSheet(QLatin1String(ss));
+  static StyleLoader style;
+  m_app.setStyle(new PhantomStyle);
 
   auto pal = qApp->palette();
-  pal.setBrush(QPalette::Background, QColor("#001A2024"));
+  pal.setBrush(QPalette::Background, QColor("#1A2024"));
   pal.setBrush(QPalette::Base, QColor("#12171A"));          // lineedit bg
   pal.setBrush(QPalette::Button, QColor("#12171A"));        // lineedit bg
   pal.setBrush(QPalette::AlternateBase, QColor("#1f2a30")); // alternate bg
@@ -182,6 +236,11 @@ const score::ApplicationComponents& Application::components() const
   return m_presenter->applicationComponents();
 }
 
+#if !defined(SCORE_DEBUG) && !defined(__EMSCRIPTEN__)
+#define SCORE_SPLASH_SCREEN 1
+#endif
+
+#if defined(SCORE_SPLASH_SCREEN)
 static QPixmap writeVersionName()
 {
   QImage pixmap = score::get_image(":/splash.png");
@@ -205,6 +264,7 @@ static QPixmap writeVersionName()
 
   return QPixmap::fromImage(pixmap);
 }
+#endif
 
 void Application::init()
 {
@@ -219,9 +279,6 @@ void Application::init()
   ossia::logger().set_level(spdlog::level::debug);
 
   score::setQApplicationMetadata();
-#if !defined(SCORE_DEBUG) && !defined(__EMSCRIPTEN__)
-#define SCORE_SPLASH_SCREEN 1
-#endif
 #if defined(SCORE_SPLASH_SCREEN)
   QSplashScreen* splash{};
   if (m_applicationSettings.gui)

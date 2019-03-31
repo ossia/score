@@ -355,9 +355,12 @@
         <file>icons/radio_checked@2x.png</file>
         <file>icons/unit_icon.png</file>
         <file>icons/unit_icon@2x.png</file>
-        <file>style-linux.qss</file>
-        <file>style-macos.qss</file>
-        <file>style-windows.qss</file>
+        <file>style/linux.qss</file>
+        <file>style/macos.qss</file>
+        <file>style/windows.qss</file>
+        <file>style/lineedit.qss</file>
+        <file>style/scrollbars.qss</file>
+        <file>style/spinbox.qss</file>
     </qresource>
     <qresource prefix="/qss_icons">
         <file>rc/up_arrow_disabled.png</file>

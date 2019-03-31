@@ -1,24 +1,19 @@
 #pragma once
 #include <QAction>
 #include <QLineEdit>
+#include <wobjectdefs.h>
 
 namespace score
 {
 
 class SearchLineEdit : public QLineEdit
 {
+  W_OBJECT(SearchLineEdit)
 public:
-  SearchLineEdit(QWidget* parent) : QLineEdit{parent}
-  {
-    setPlaceholderText("Search");
-    auto act = new QAction{this};
-    act->setIcon(QIcon(":/icons/search.png"));
-    addAction(act, QLineEdit::TrailingPosition);
+  SearchLineEdit(QWidget* parent);
 
-    connect(this, &QLineEdit::returnPressed, [&]() { search(); });
-    connect(act, &QAction::triggered, [&]() { search(); });
-  }
-
+  ~SearchLineEdit() override;
   virtual void search() = 0;
 };
+
 }

@@ -25,6 +25,7 @@ namespace Scenario
 MessageDropHandler::MessageDropHandler()
 {
   m_acceptableMimeTypes.push_back(score::mime::messagelist());
+  m_acceptableSuffixes.push_back("cues");
 }
 
 bool MessageDropHandler::drop(
