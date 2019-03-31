@@ -76,6 +76,11 @@ public:
 
   QPen TextItemPen;
 
+  QBrush SliderBrush;
+  QBrush SliderExtBrush;
+  QPen SliderTextPen;
+  QFont SliderFont;
+
   const QBrush* fromString(const QString& s) const;
   QBrush* fromString(const QString& s);
   QString toString(const QBrush*) const;

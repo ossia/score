@@ -39,6 +39,7 @@ struct SCORE_LIB_BASE_EXPORT SpeedSlider : public score::Slider
 public:
   using Slider::Slider;
   bool moving = false;
+  bool showText = true;
 
 protected:
   void paintEvent(QPaintEvent* event) override;

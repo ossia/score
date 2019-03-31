@@ -1,12 +1,14 @@
+
 QLineEdit
 {
-background-color: #12171A;
-border-style: solid;
-border: 1px solid #444;
-border-radius: 2px;
-color: silver;
-height: 18px;
+    background-color: #12171A;
+    border-style: solid;
+    border: 1px solid #1A2024;
+    border-radius: 2px;
+    padding: 0;
+    color: silver;
 }
+
 QLineEdit:focus
 {
 background-color: #12171A;
@@ -26,8 +28,25 @@ border-radius: 2px;
 color: silver;
 }
 
-QLineEdit:focus
+
+QLineEdit#SearchLineEdit
 {
+background-color: #12171A;
+border-style: solid;
+border: 1px solid #444;
+border-radius: 2px;
+color: silver;
+height: 18px;
+}
+
+QLineEdit:focus#SearchLineEdit
+{
+background-color: #12171A;
+color: #888;
+border-style: solid;
+border: 1px solid #888;
+border-radius: 2px;
+height: 18px;
 }
 /*
 QLineEdit#SectionTitle:hover {

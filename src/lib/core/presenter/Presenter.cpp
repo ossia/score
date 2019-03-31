@@ -39,6 +39,7 @@
 #include <utility>
 #include <vector>
 
+#include <QStatusBar>
 #include <unordered_map>
 W_OBJECT_IMPL(score::Presenter)
 namespace score

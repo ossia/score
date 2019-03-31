@@ -42,7 +42,8 @@ struct PropertyWrapper final : public BaseCallbackWrapper
 
             if (newVal != res)
             {
-              addr.push_value(newVal);
+              addr.set_value_quiet(newVal);
+              addr.push_value();
             }
           }
           catch (...)

@@ -17,6 +17,7 @@ public:
       const IntervalModel& model,
       const score::DocumentContext&,
       bool withButtons,
+      bool showText,
       QWidget* parent);
   ~SpeedWidget() override;
 

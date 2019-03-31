@@ -59,6 +59,7 @@ public:
   ListeningManager& listeningManager() const { return *m_listeningManager; }
 
 private:
+  friend struct ExplorerSearchLineEdit;
   // User commands
   void edit();
   void refresh();

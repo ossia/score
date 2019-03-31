@@ -42,6 +42,7 @@
 #include <score/tools/std/Optional.hpp>
 #include <score/widgets/SetIcons.hpp>
 #include <score/widgets/SignalUtils.hpp>
+#include <score/widgets/SearchLineEdit.hpp>
 
 #include <ossia-qt/js_utilities.hpp>
 #include <ossia/detail/algorithms.hpp>
@@ -103,6 +104,56 @@ static const Device::DeviceSettings* getDevice(const Device::Node& n)
   }
   return nullptr;
 }
+
+
+
+struct ExplorerSearchLineEdit final : public score::SearchLineEdit
+{
+public:
+  ExplorerSearchLineEdit(DeviceExplorerWidget& parent)
+      : score::SearchLineEdit{&parent}
+      , m_widget{parent}
+  {
+    connect(this, &QLineEdit::textEdited, this, [=] { search(); });
+
+    setStyleSheet(R"_(
+QScrollArea
+{
+    border: 1px solid #3A3939;
+    border-radius: 2px;
+    padding: 0;
+    background-color: #12171A;
+}
+QScrollArea QLabel
+{
+    background-color: #12171A;
+}
+)_");
+  }
+
+  void search() override
+  {
+    auto m = m_widget.proxyModel();
+    if(!m)
+      return;
+    auto v = m_widget.view();
+    if(!v)
+      return;
+
+    if (text() != m->filterRegExp().pattern())
+    {
+      m->setFilterRegExp(
+          QRegExp(text(), Qt::CaseInsensitive, QRegExp::FixedString));
+
+      if (text().isEmpty())
+        v->collapseAll();
+      else
+        v->expandAll();
+    }
+  }
+
+  DeviceExplorerWidget& m_widget;
+};
 
 class LearnDialog final : public QDialog
 {
@@ -398,7 +449,7 @@ void DeviceExplorerWidget::buildGUI()
   }
 
   m_columnCBox = new QComboBox(this);
-  m_nameLEdit = new QLineEdit(this);
+  m_nameLEdit = new ExplorerSearchLineEdit(*this);
 
   connect(
       m_columnCBox,
@@ -411,12 +462,12 @@ void DeviceExplorerWidget::buildGUI()
       this,
       &DeviceExplorerWidget::filterChanged);
 
-  QHBoxLayout* filterHLayout = new QHBoxLayout;
+  auto filterHLayout = new score::MarginLess<QHBoxLayout>;
   filterHLayout->setContentsMargins(0, 0, 0, 0);
   filterHLayout->addWidget(m_columnCBox);
   filterHLayout->addWidget(m_nameLEdit);
 
-  QHBoxLayout* hLayout = new QHBoxLayout;
+  auto hLayout =  new score::MarginLess<QHBoxLayout>;
   hLayout->addWidget(addButton);
   hLayout->addWidget(editButton);
   hLayout->addStretch(0);
@@ -424,11 +475,11 @@ void DeviceExplorerWidget::buildGUI()
   hLayout->setContentsMargins(0, 0, 0, 0);
 
   QWidget* mainWidg = new QWidget;
-  mainWidg->setContentsMargins(0, 0, 0, 0);
-  QVBoxLayout* vLayout = new QVBoxLayout;
+  mainWidg->setContentsMargins(0, 0, 0, 2);
+  auto vLayout = new score::MarginLess<QVBoxLayout>;
+  vLayout->addLayout(hLayout);
   vLayout->addWidget(m_ntView);
   vLayout->addWidget(m_addressView);
-  vLayout->addLayout(hLayout);
   mainWidg->setLayout(vLayout);
   mainWidg->setObjectName("DeviceExplorer");
 

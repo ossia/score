@@ -62,7 +62,7 @@ IntervalInspectorWidget::IntervalInspectorWidget(
   lay->addRow(tr("Fullview"), fullview);
 
   // Speed
-  auto speedWidg = new SpeedWidget{m_model, ctx, true, this};
+  auto speedWidg = new SpeedWidget{m_model, ctx, true, true, this};
   lay->addRow(tr("Speed"), speedWidg);
 
   // Durations

@@ -945,8 +945,7 @@ SelectionStackWidget::SelectionStackWidget(
   lay->addWidget(m_prev);
   lay->addWidget(m_label);
   lay->addWidget(m_next);
-  QLabel* separator = new QLabel{"|"};
-  lay->addWidget(separator);
+  lay->addStretch(8);
   lay->addWidget(m_left);
   lay->addWidget(m_up);
   lay->addWidget(m_down);
