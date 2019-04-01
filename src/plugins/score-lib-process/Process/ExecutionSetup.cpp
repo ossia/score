@@ -254,6 +254,12 @@ void SetupContext::register_node_impl(
 {
   if (node)
   {
+    std::weak_ptr<ossia::graph_interface> wg = context.execGraph;
+    exec([wg, node]() mutable {
+      if (auto g = wg.lock())
+        g->add_node(std::move(node));
+    });
+
     const std::size_t n_inlets = proc_inlets.size();
     const std::size_t n_outlets = proc_outlets.size();
 
@@ -300,12 +306,6 @@ void SetupContext::register_node_impl(
       outlets.insert(
           {proc_outlets[i], std::make_pair(node, node->outputs()[i])});
     }
-
-    std::weak_ptr<ossia::graph_interface> wg = context.execGraph;
-    exec([wg, node = std::move(node)]() mutable {
-      if (auto g = wg.lock())
-        g->add_node(std::move(node));
-    });
   }
 }
 
