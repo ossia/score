@@ -1,9 +1,9 @@
 #pragma once
 #include <score/plugins/ProjectSettings/ProjectSettingsView.hpp>
 #include <score/plugins/settingsdelegate/SettingsDelegateView.hpp>
-
 #include <Audio/AudioInterface.hpp>
 #include <wobjectdefs.h>
+class QStackedWidget;
 class QCheckBox;
 namespace Audio::Settings
 {

@@ -1,5 +1,5 @@
 #pragma once
-#include <core/settings/SettingsView.hpp>
+#include <score/plugins/settingsdelegate/SettingsDelegateView.hpp>
 namespace score
 {
 class ProjectSettingsModel;

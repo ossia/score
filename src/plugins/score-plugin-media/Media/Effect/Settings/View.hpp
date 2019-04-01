@@ -3,6 +3,7 @@
 #include <score/plugins/settingsdelegate/SettingsDelegateView.hpp>
 
 #include <wobjectdefs.h>
+class QListWidget;
 class QCheckBox;
 namespace Media::Settings
 {

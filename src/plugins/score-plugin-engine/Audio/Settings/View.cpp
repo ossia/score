@@ -5,6 +5,7 @@
 #include <QComboBox>
 #include <QFormLayout>
 #include <QSpinBox>
+#include <QStackedWidget>
 
 #include <Audio/Settings/Model.hpp>
 #include <Audio/Settings/View.hpp>

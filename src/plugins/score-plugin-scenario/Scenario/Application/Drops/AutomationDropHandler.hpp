@@ -54,6 +54,7 @@ class DropPortInScenario final : public GhostIntervalDropHandler
 public:
   DropPortInScenario();
 private:
+  bool canDrop(const QMimeData& mime) const noexcept override;
   bool drop(
       const Scenario::ScenarioPresenter&,
       QPointF pos,

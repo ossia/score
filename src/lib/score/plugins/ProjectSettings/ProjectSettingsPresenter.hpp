@@ -1,5 +1,5 @@
 #pragma once
-#include <core/settings/SettingsPresenter.hpp>
+#include <score/plugins/settingsdelegate/SettingsDelegatePresenter.hpp>
 
 #include <QObject>
 
