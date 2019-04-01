@@ -186,31 +186,32 @@ StateInspectorWidget::StateInspectorWidget(
   SCORE_ASSERT(scenar);
 
   // State setup
-
   {
-    auto linkWidget = new QWidget;
-    properties.push_back(linkWidget);
-  }
-
-  {
-    auto splitEvent = new QPushButton{tr("Put in new Event"), this};
+    auto splitEvent = new QPushButton{tr("Split condition")};
+    m_btnLayout.addWidget(splitEvent);
     connect(
         splitEvent,
         &QPushButton::clicked,
         this,
         &StateInspectorWidget::splitFromEvent);
-    properties.push_back(splitEvent);
+    //properties.push_back(splitEvent);
   }
 
   {
-    auto splitNode = new QPushButton{tr("Desynchronize"), this};
+    auto splitNode = new QPushButton{tr("Desynchronize")};
+    m_btnLayout.addWidget(splitNode);
     connect(
         splitNode,
         &QPushButton::clicked,
         this,
         &StateInspectorWidget::splitFromNode);
-    properties.push_back(splitNode);
+   // properties.push_back(splitNode);
   }
+
+  auto btns = new QWidget(this);
+  btns->setLayout(m_btnLayout.layout());
+  properties.push_back(btns);
+
   {
     auto tab = new QTabWidget;
     // list view
