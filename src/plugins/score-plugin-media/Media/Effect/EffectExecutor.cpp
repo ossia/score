@@ -9,6 +9,33 @@
 
 #include <fmt/format.h>
 
+namespace ossia
+{
+class empty_audio_mapper final : public ossia::nonowning_graph_node
+{
+  ossia::inlet audio_in{ossia::audio_port{}};
+  ossia::outlet audio_out{ossia::audio_port{}};
+
+public:
+  empty_audio_mapper()
+  {
+    m_inlets.push_back(&audio_in);
+    m_outlets.push_back(&audio_out);
+  }
+
+  void
+  run(ossia::token_request , ossia::exec_state_facade st) noexcept override
+  {
+    *audio_out.data.target<ossia::audio_port>() = *audio_in.data.target<ossia::audio_port>();
+  }
+
+  // graph_node interface
+public:
+  std::string label() const noexcept override
+  { return "empty_audio_mapper"; }
+};
+
+}
 namespace fmt
 {
 template <>
@@ -252,6 +279,7 @@ Execution::ProcessComponent* EffectProcessComponentBase::make(
   std::vector<Execution::ExecutionCommand> commands;
   commands.reserve(4);
 
+  removePassthrough(commands);
   std::shared_ptr<ProcessComponent> fx
       = factory.make(effect, system(), id, this);
   if (fx)
@@ -290,8 +318,6 @@ Execution::ProcessComponent* EffectProcessComponentBase::make(
     this_fx.registeredInlets = effect.inlets();
     this_fx.registeredOutlets = effect.outlets();
 
-    // TODO this could be glitchy : there's no guarantee there won't be another
-    // tick between all the submitted commands
     if (idx == 0)
     {
       // unregister and re-register previous first node if any
@@ -339,7 +365,7 @@ Execution::ProcessComponent* EffectProcessComponentBase::make(
       // unregister previous last node if any
       if (idx >= 1)
       {
-        unregister_old_first_node(m_fxes[idx - 1], commands);
+        unregister_old_last_node(m_fxes[idx - 1], commands);
       }
 
       // register new last node
@@ -459,7 +485,10 @@ Execution::ProcessComponent* EffectProcessComponentBase::make(
   return fx.get();
 }
 
-void EffectProcessComponentBase::added(ProcessComponent& e) {}
+void EffectProcessComponentBase::added(ProcessComponent& e)
+{
+
+}
 
 std::function<void()> EffectProcessComponentBase::removing(
     const Process::ProcessModel& e,
@@ -539,6 +568,8 @@ std::function<void()> EffectProcessComponentBase::removing(
     }
   }
 
+  createPassthrough(commands);
+
   if (!commands.empty())
   {
 #if !defined(NDEBUG)
@@ -568,6 +599,32 @@ std::function<void()> EffectProcessComponentBase::removing(
 
   this_fx.comp->node.reset();
   return [=] { m_fxes.erase(it); };
+}
+
+void EffectProcessComponentBase::createPassthrough(std::vector<Execution::ExecutionCommand>& commands)
+{
+  if(m_passthrough)
+    return;
+  if(process().effects().size() > 1)
+    return;
+  m_passthrough = std::make_shared<ossia::empty_audio_mapper>();
+  auto old_node = this->node;
+  this->node = m_passthrough;
+  // TODO put in the commands
+
+  auto echain
+      = std::dynamic_pointer_cast<ossia::node_chain_process>(m_ossia_process);
+  echain->add_node(0, m_passthrough);
+  m_ossia_process->node = m_passthrough;
+
+  nodeChanged(old_node, this->node, commands);
+}
+
+void EffectProcessComponentBase::removePassthrough(std::vector<Execution::ExecutionCommand>& )
+{
+  if(!m_passthrough)
+    return;
+
 }
 
 void EffectProcessComponentBase::on_orderChanged()
@@ -677,7 +734,7 @@ void EffectProcessComponentBase::on_orderChanged()
       check_exec_order(test_fx, *proc);
     });
 #else
-    in_exec([f = std::move(commands), g = ctx.execGraph, proc = echain] {
+    in_exec([f = std::move(commands)] {
       for (auto& cmd : f)
         cmd();
     });
@@ -698,6 +755,43 @@ void EffectProcessComponentBase::reg(
 {
   system().setup.register_node(
       fx.registeredInlets, fx.registeredOutlets, fx.node(), vec);
+}
+
+EffectProcessComponent::EffectProcessComponent(
+    Effect::ProcessModel& element,
+    const Execution::Context& ctx,
+    const Id<score::Component>& id, QObject* parent)
+  : score::PolymorphicComponentHierarchy<
+    EffectProcessComponentBase,
+    false>{score::lazy_init_t{}, element, ctx, id, parent}
+{
+  if (!element.badChaining())
+    init_hierarchy();
+
+  connect(
+        &element,
+        &Media::Effect::ProcessModel::badChainingChanged,
+        this,
+        [&](bool b) {
+    if (b)
+    {
+      clear();
+    }
+    else
+    {
+      init_hierarchy();
+    }
+  });
+
+  if(element.effects().empty())
+  {
+    std::vector<Execution::ExecutionCommand> commands;
+    createPassthrough(commands);
+    in_exec([f = std::move(commands)] {
+      for (auto& cmd : f)
+        cmd();
+    });
+  }
 }
 
 void EffectProcessComponent::cleanup()

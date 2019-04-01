@@ -74,15 +74,12 @@ public:
     operator bool() const { return bool(comp); }
   };
 
-private:
-  std::vector<std::pair<Id<Process::ProcessModel>, RegisteredEffect>> m_fxes;
-
-#if !defined(NDEBUG)
 protected:
+#if !defined(NDEBUG)
   bool m_clearing = false;
-
-private:
 #endif
+
+  std::vector<std::pair<Id<Process::ProcessModel>, RegisteredEffect>> m_fxes;
 
   void unreg(const RegisteredEffect& fx);
   void
@@ -113,6 +110,10 @@ private:
           Id<Process::ProcessModel>,
           EffectProcessComponentBase::RegisteredEffect>& new_first,
       std::vector<Execution::ExecutionCommand>& commands);
+  void createPassthrough(std::vector<Execution::ExecutionCommand>&);
+  void removePassthrough(std::vector<Execution::ExecutionCommand>&);
+
+  std::shared_ptr<ossia::graph_node> m_passthrough{};
 };
 
 class EffectProcessComponent final
@@ -124,29 +125,7 @@ public:
       Media::Effect::ProcessModel& element,
       const ::Execution::Context& ctx,
       const Id<score::Component>& id,
-      QObject* parent)
-      : score::PolymorphicComponentHierarchy<
-            EffectProcessComponentBase,
-            false>{score::lazy_init_t{}, element, ctx, id, parent}
-  {
-    if (!element.badChaining())
-      init_hierarchy();
-
-    connect(
-        &element,
-        &Media::Effect::ProcessModel::badChainingChanged,
-        this,
-        [&](bool b) {
-          if (b)
-          {
-            clear();
-          }
-          else
-          {
-            init_hierarchy();
-          }
-        });
-  }
+      QObject* parent);
 
   void cleanup() override;
 
