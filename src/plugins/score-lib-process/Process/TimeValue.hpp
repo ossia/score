@@ -35,15 +35,15 @@ struct TimeValue_T
     return time;
   }
 
-  OPTIONAL_CONSTEXPR TimeValue_T() = default;
+  OPTIONAL_CONSTEXPR TimeValue_T() noexcept { }
   //~TimeValue_T() = default;
   OPTIONAL_CONSTEXPR TimeValue_T(const TimeValue_T&) = default;
-  OPTIONAL_CONSTEXPR TimeValue_T(TimeValue_T&&) = default;
+  OPTIONAL_CONSTEXPR TimeValue_T(TimeValue_T&&) noexcept = default;
   OPTIONAL_CONSTEXPR TimeValue_T& operator=(const TimeValue_T&) = default;
-  OPTIONAL_CONSTEXPR TimeValue_T& operator=(TimeValue_T&&) = default;
+  OPTIONAL_CONSTEXPR TimeValue_T& operator=(TimeValue_T&&) noexcept = default;
   OPTIONAL_CONSTEXPR TimeValue_T(optional<T> t) : m_impl{std::move(t)} {}
 
-  TimeValue_T(QTime t)
+  TimeValue_T(QTime t) noexcept
       : m_impl{
             T(t.msec() + 1000 * t.second() + 60000 * t.minute()
               + 3600000 * t.hour())}
@@ -51,12 +51,12 @@ struct TimeValue_T
   }
 
   // These two overloads are here to please coverity...
-  OPTIONAL_CONSTEXPR TimeValue_T(std::chrono::seconds&& dur)
+  OPTIONAL_CONSTEXPR TimeValue_T(std::chrono::seconds&& dur) noexcept
       : m_impl{T(std::chrono::duration_cast<std::chrono::milliseconds>(dur)
                      .count())}
   {
   }
-  OPTIONAL_CONSTEXPR TimeValue_T(std::chrono::milliseconds&& dur)
+  OPTIONAL_CONSTEXPR TimeValue_T(std::chrono::milliseconds&& dur) noexcept
       : m_impl{T(dur.count())}
   {
   }
@@ -65,17 +65,17 @@ struct TimeValue_T
       typename Duration,
       std::enable_if_t<
           std::is_class<typename Duration::period>::value>* = nullptr>
-  OPTIONAL_CONSTEXPR TimeValue_T(Duration&& dur)
+  OPTIONAL_CONSTEXPR TimeValue_T(Duration&& dur) noexcept
       : m_impl{T(std::chrono::duration_cast<std::chrono::milliseconds>(dur)
                      .count())}
   {
   }
 
-  bool isInfinite() const { return !bool(m_impl); }
+  bool isInfinite() const noexcept { return !bool(m_impl); }
 
-  bool isZero() const { return !isInfinite() && (msec() == 0); }
+  bool isZero() const noexcept { return !isInfinite() && (msec() == 0.f); }
 
-  T msec() const
+  T msec() const noexcept
   {
     if (!isInfinite())
       return *m_impl;
@@ -83,14 +83,14 @@ struct TimeValue_T
     return 0;
   }
 
-  T sec() const { return double(*m_impl) / 1000; }
+  T sec() const noexcept { return double(*m_impl) / 1000; }
 
-  double toPixels(ZoomRatio ratio) const
+  double toPixels(ZoomRatio ratio) const noexcept
   {
     return (ratio > 0 && !isInfinite()) ? *m_impl / ratio : 0;
   }
 
-  QTime toQTime() const
+  QTime toQTime() const noexcept
   {
     if (isInfinite())
       return QTime(23, 59, 59, 999);
@@ -98,7 +98,7 @@ struct TimeValue_T
       return QTime(0, 0, 0, 0).addMSecs(static_cast<int>(*m_impl));
   }
 
-  QString toString() const
+  QString toString() const noexcept
   {
     auto qT = this->toQTime();
     return QString("%1%2%3 s %4 ms")
@@ -112,7 +112,7 @@ struct TimeValue_T
             QString::number(qT.msec()));
   }
 
-  void addMSecs(T msecs)
+  void addMSecs(T msecs) noexcept
   {
     if (m_impl)
     {
@@ -120,19 +120,19 @@ struct TimeValue_T
     }
   }
 
-  void setMSecs(T msecs) { m_impl = msecs; }
+  void setMSecs(T msecs) noexcept { m_impl = msecs; }
 
-  bool operator==(const TimeValue_T& other) const
+  bool operator==(const TimeValue_T& other) const noexcept
   {
     return other.m_impl == m_impl;
   }
 
-  bool operator!=(const TimeValue_T& other) const
+  bool operator!=(const TimeValue_T& other) const noexcept
   {
     return other.m_impl != m_impl;
   }
 
-  bool operator>(const TimeValue_T& other) const
+  bool operator>(const TimeValue_T& other) const noexcept
   {
     if (isInfinite() && other.isInfinite())
     {
@@ -152,12 +152,12 @@ struct TimeValue_T
     }
   }
 
-  bool operator>=(const TimeValue_T& other) const
+  bool operator>=(const TimeValue_T& other) const noexcept
   {
     return *this > other || *this == other;
   }
 
-  bool operator<(const TimeValue_T& other) const
+  bool operator<(const TimeValue_T& other) const noexcept
   {
     if (isInfinite() && other.isInfinite())
     {
@@ -177,12 +177,12 @@ struct TimeValue_T
     }
   }
 
-  bool operator<=(const TimeValue_T& other) const
+  bool operator<=(const TimeValue_T& other) const noexcept
   {
     return *this < other || *this == other;
   }
 
-  TimeValue_T operator+(const TimeValue_T& other) const
+  TimeValue_T operator+(const TimeValue_T& other) const noexcept
   {
     TimeValue_T res = TimeValue_T::infinite();
 
@@ -195,7 +195,7 @@ struct TimeValue_T
     return res;
   }
 
-  TimeValue_T operator*(double other) const
+  TimeValue_T operator*(double other) const noexcept
   {
     TimeValue_T res = TimeValue_T::infinite();
 
@@ -208,12 +208,12 @@ struct TimeValue_T
     return res;
   }
 
-  double operator/(const TimeValue_T& other) const
+  double operator/(const TimeValue_T& other) const noexcept
   {
     return double(*m_impl) / double(*other.m_impl);
   }
 
-  TimeValue_T operator-(const TimeValue_T& other) const
+  TimeValue_T operator-(const TimeValue_T& other) const noexcept
   {
     TimeValue_T res = TimeValue_T::infinite();
 
@@ -226,7 +226,7 @@ struct TimeValue_T
     return res;
   }
 
-  TimeValue_T operator-() const
+  TimeValue_T operator-() const noexcept
   {
     TimeValue_T res = TimeValue_T::zero();
     OPTIONAL_CONSTEXPR TimeValue_T zero = TimeValue_T::zero();
@@ -236,7 +236,7 @@ struct TimeValue_T
     return res;
   }
 
-  TimeValue_T operator+=(const TimeValue_T& other)
+  TimeValue_T operator+=(const TimeValue_T& other) noexcept
   {
     *this = *this + other;
     return *this;
@@ -249,7 +249,7 @@ struct TimeValue_T
 
 using TimeVal = TimeValue_T;
 
-inline const TimeVal& max(const TimeVal& lhs, const TimeVal& rhs)
+inline const TimeVal& max(const TimeVal& lhs, const TimeVal& rhs) noexcept
 {
   if (lhs < rhs)
     return rhs;

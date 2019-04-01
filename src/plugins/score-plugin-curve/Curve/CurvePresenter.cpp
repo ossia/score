@@ -451,7 +451,8 @@ void Presenter::removeSelection()
   // First find the segments that will be deleted.
   // If a point is selected, the segments linked to that point
   // will be deleted, too.
-  for (const auto& elt : m_model.selectedChildren())
+  const auto& c = m_model.selectedChildren();
+  for (const auto& elt : c)
   {
     if (auto point = qobject_cast<const PointModel*>(elt.data()))
     {

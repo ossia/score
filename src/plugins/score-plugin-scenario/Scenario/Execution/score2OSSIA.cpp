@@ -176,20 +176,19 @@ ossia::expression_ptr expression(
   {
     const State::Expression& expr;
     const ossia::execution_state& devlist;
-    using return_type = ossia::expression_ptr;
 
-    return_type operator()() const { return T::default_expression(); }
+    ossia::expression_ptr operator()() const { return T::default_expression(); }
 
-    return_type operator()(const State::Relation& rel) const
+    ossia::expression_ptr operator()(const State::Relation& rel) const
     {
       return expressionAtom(rel, devlist);
     }
-    return_type operator()(const State::Pulse& rel) const
+    ossia::expression_ptr operator()(const State::Pulse& rel) const
     {
       return expressionPulse(rel, devlist);
     }
 
-    return_type operator()(const State::BinaryOperator rel) const
+    ossia::expression_ptr operator()(const State::BinaryOperator rel) const
     {
       const auto& lhs = expr.childAt(0);
       const auto& rhs = expr.childAt(1);
@@ -198,12 +197,12 @@ ossia::expression_ptr expression(
           rel,
           condition_expression(rhs, devlist));
     }
-    return_type operator()(const State::UnaryOperator) const
+    ossia::expression_ptr operator()(const State::UnaryOperator) const
     {
       return ossia::expressions::make_expression_not(
           condition_expression(expr.childAt(0), devlist));
     }
-    return_type operator()(const InvisibleRootNode) const
+    ossia::expression_ptr operator()(const InvisibleRootNode) const
     {
       if (expr.childCount() == 0)
       {
