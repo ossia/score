@@ -90,6 +90,26 @@ magneticStates(
 }
 
 DropHandler::~DropHandler() {}
+
+bool DropHandler::dragEnter(const ScenarioPresenter&, QPointF pos, const QMimeData& mime)
+{
+  return false;
+}
+
+bool DropHandler::dragMove(const ScenarioPresenter&, QPointF pos, const QMimeData& mime)
+{
+  return false;
+}
+
+bool DropHandler::dragLeave(const ScenarioPresenter&, QPointF pos, const QMimeData& mime)
+{
+  return false;
+}
+
+bool DropHandler::canDrop(const QMimeData& mime) const noexcept
+{
+  return false;
+}
 GhostIntervalDropHandler::~GhostIntervalDropHandler() {}
 
 bool GhostIntervalDropHandler::dragEnter(
@@ -105,25 +125,28 @@ bool GhostIntervalDropHandler::dragMove(
     QPointF pos,
     const QMimeData& mime)
 {
-  bool mimeTypes = ossia::any_of(m_acceptableMimeTypes, [&] (const auto& mimeType){
-    return mime.formats().contains(mimeType);
-  });
-
-  bool suffixes = false;
-  for(auto& url : mime.urls())
+  if(!canDrop(mime))
   {
-    if(url.isLocalFile())
+    bool mimeTypes = ossia::any_of(m_acceptableMimeTypes, [&] (const auto& mimeType){
+      return mime.formats().contains(mimeType);
+    });
+
+    bool suffixes = false;
+    for(auto& url : mime.urls())
     {
-      const auto ext = QFileInfo{url.toLocalFile()}.suffix();
-      suffixes |= ossia::any_of(m_acceptableSuffixes, [&] (const auto& suffix) {
-        return ext == suffix;
-      });
-      if(suffixes)
-        break;
+      if(url.isLocalFile())
+      {
+        const auto ext = QFileInfo{url.toLocalFile()}.suffix();
+        suffixes |= ossia::any_of(m_acceptableSuffixes, [&] (const auto& suffix) {
+          return ext == suffix;
+        });
+        if(suffixes)
+          break;
+      }
     }
+    if (!(mimeTypes || suffixes))
+      return false;
   }
-  if (!(mimeTypes || suffixes))
-    return false;
 
   auto pt = pres.toScenarioPoint(pos);
   m_magnetic = magneticStates(m_magnetic, pt, pres);

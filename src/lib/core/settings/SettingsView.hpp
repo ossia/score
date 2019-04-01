@@ -26,6 +26,8 @@ public:
     {
       auto centerWidg = new QWidget{this};
       {
+        m_settingsList->setMinimumWidth(150);
+        m_settingsList->setMaximumWidth(150);
         m_hboxLayout->addWidget(m_settingsList);
         m_hboxLayout->addWidget(m_stackedWidget);
         centerWidg->setLayout(m_hboxLayout);

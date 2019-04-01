@@ -300,9 +300,21 @@ bool DropProcessInInterval::drop(
 
 DropPortInScenario::DropPortInScenario()
 {
-  m_acceptableMimeTypes.push_back(score::mime::port());
 }
 
+bool DropPortInScenario::canDrop(const QMimeData& mime) const noexcept
+{
+  if (mime.formats().contains(score::mime::port()))
+  {
+    auto base_port = Dataflow::PortItem::clickedPort;
+    if (!base_port || base_port->port().type != Process::PortType::Message
+        || qobject_cast<Process::Outlet*>(&base_port->port()))
+      return false;
+
+    return bool(dynamic_cast<Dataflow::AutomatablePortItem*>(base_port));
+  }
+  return false;
+}
 bool DropPortInScenario::drop(
     const ScenarioPresenter& pres,
     QPointF pos,

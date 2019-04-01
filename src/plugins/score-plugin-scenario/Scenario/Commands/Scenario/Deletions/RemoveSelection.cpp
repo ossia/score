@@ -138,15 +138,18 @@ RemoveSelection::RemoveSelection(
   {
     if (auto state = dynamic_cast<const StateModel*>(obj))
     {
-      QByteArray arr;
-      DataStream::Serializer s{&arr};
-      s.readFrom(*state);
-      m_removedStates.push_back({state->id(), arr});
+      if (Q_UNLIKELY(state->id() != Scenario::startId<StateModel>()))
+      {
+        QByteArray arr;
+        DataStream::Serializer s{&arr};
+        s.readFrom(*state);
+        m_removedStates.push_back({state->id(), arr});
+      }
     }
 
     else if (auto event = dynamic_cast<const EventModel*>(obj))
     {
-      if (event->id() != Id<EventModel>{0})
+      if (Q_LIKELY(event->id() != Scenario::startId<EventModel>()))
       {
         QByteArray arr;
         DataStream::Serializer s{&arr};
@@ -157,7 +160,7 @@ RemoveSelection::RemoveSelection(
 
     else if (auto ts = dynamic_cast<const TimeSyncModel*>(obj))
     {
-      if (ts->id() != Id<TimeSyncModel>{0})
+      if (Q_LIKELY(ts->id() != Scenario::startId<TimeSyncModel>()))
       {
         QByteArray arr;
         DataStream::Serializer s2{&arr};

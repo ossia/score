@@ -43,24 +43,20 @@ public:
   virtual bool dragEnter(
       const Scenario::ScenarioPresenter&,
       QPointF pos,
-      const QMimeData& mime)
-  {
-    return false;
-  }
+      const QMimeData& mime);
+
   virtual bool dragMove(
       const Scenario::ScenarioPresenter&,
       QPointF pos,
-      const QMimeData& mime)
-  {
-    return false;
-  }
+      const QMimeData& mime);
+
   virtual bool dragLeave(
       const Scenario::ScenarioPresenter&,
       QPointF pos,
-      const QMimeData& mime)
-  {
-    return false;
-  }
+      const QMimeData& mime);
+
+  virtual bool canDrop(const QMimeData& mime) const noexcept;
+
   virtual bool
   drop(const Scenario::ScenarioPresenter&, QPointF pos, const QMimeData& mime)
       = 0;

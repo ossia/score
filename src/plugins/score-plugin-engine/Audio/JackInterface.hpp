@@ -14,6 +14,7 @@
 #include <Audio/AudioInterface.hpp>
 #include <Audio/Settings/Model.hpp>
 #include <Audio/Settings/View.hpp>
+#include <score/command/Dispatchers/SettingsCommandDispatcher.hpp>
 
 namespace Audio
 {
