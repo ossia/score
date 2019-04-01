@@ -420,7 +420,7 @@ void LV2EffectModel::readPlugin()
         port,
         &Process::ControlInlet::valueChanged,
         this,
-        [this, port, port_id](const ossia::value& v) {
+        [this, port_id](const ossia::value& v) {
           if (effectContext.ui_instance)
           {
             auto& writing = control_map[port_id].second;
