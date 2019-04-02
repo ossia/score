@@ -174,7 +174,7 @@ static auto move_edges(
   auto old_sources = old_in.sources;
   for (ossia::graph_edge* e : old_sources)
   {
-    g.connect(ossia::make_edge(e->con, e->out, new_in, e->out_node, new_node));
+    g.connect(ossia::make_edge(e->con, e->out, new_in, e->out_node, std::move(new_node)));
     g.disconnect(e);
   }
 }
@@ -187,7 +187,7 @@ static auto move_edges(
   auto old_targets = old_out.targets;
   for (ossia::graph_edge* e : old_targets)
   {
-    g.connect(ossia::make_edge(e->con, new_out, e->in, new_node, e->in_node));
+    g.connect(ossia::make_edge(e->con, new_out, e->in, std::move(new_node), e->in_node));
     g.disconnect(e);
   }
 }
@@ -279,7 +279,6 @@ Execution::ProcessComponent* EffectProcessComponentBase::make(
   std::vector<Execution::ExecutionCommand> commands;
   commands.reserve(4);
 
-  removePassthrough(commands);
   std::shared_ptr<ProcessComponent> fx
       = factory.make(effect, system(), id, this);
   if (fx)
@@ -350,14 +349,35 @@ Execution::ProcessComponent* EffectProcessComponentBase::make(
       }
       else
       {
+        auto old = m_passthrough;
+        if(old)
+        {
+          commands.push_back([
+                             g = ctx.execGraph,
+                             echain,
+                             proc = m_ossia_process,
+                             pt = old,
+                             new_node = fx->node] () mutable {
+            // passthrough has been put in position 2
+            // by proc->add_node(idx, n);
+            // so we remove it
+            echain->nodes.resize(1);
+            proc->node = new_node;
+
+            if(!pt->inputs().empty() && !new_node->inputs().empty())
+              move_edges(*pt->inputs()[0], new_node->inputs()[0], new_node, *g);
+            // no need to copy outs : done in IntervalExecution (c.f. nodeChanged signal)
+          });
+
+          system().context().setup.unregister_node(process().inlets(), process().outlets(), old, commands);
+          m_passthrough.reset();
+        }
         // only effect, goes to end of process
         this_fx.registeredOutlets[0] = process().outlet.get();
         reg(this_fx, commands);
 
         // set as process node
-        auto old = m_ossia_process->node;
-        m_ossia_process->node = fx->node;
-        nodeChanged(old, m_ossia_process->node, commands);
+        nodeChanged(old, fx->node, commands);
       }
     }
     else if (idx == (process().effects().size() - 1))
@@ -383,7 +403,8 @@ Execution::ProcessComponent* EffectProcessComponentBase::make(
           commands.push_back([g = ctx.execGraph,
                               n1 = old_last_comp.second.node(),
                               n2 = this_fx.node()] {
-            move_edges(*n1->outputs()[0], n2->outputs()[0], n2, *g);
+            // unnecessary : done in IntervalExecution (c.f. nodeChanged signal)
+            //move_edges(*n1->outputs()[0], n2->outputs()[0], n2, *g);
             auto edge = ossia::make_edge(
                 ossia::immediate_strict_connection{},
                 n1->outputs()[0],
@@ -471,7 +492,9 @@ Execution::ProcessComponent* EffectProcessComponentBase::make(
              proc = echain,
              test_fx = get_nodes(m_fxes)] {
       for (auto& cmd : f)
+      {
         cmd();
+      }
       check_exec_validity(*g, *proc);
       check_exec_order(test_fx, *proc);
     });
@@ -508,17 +531,11 @@ std::function<void()> EffectProcessComponentBase::removing(
   std::size_t idx = std::distance(m_fxes.begin(), it);
   auto& this_fx = it->second;
 
+  auto old_node_in = this_fx.node()->inputs();
+  auto old_node_out = this_fx.node()->outputs();
   // Remove all the chaining
   auto echain
       = std::dynamic_pointer_cast<ossia::node_chain_process>(m_ossia_process);
-
-  commands.push_back([g = system().execGraph, n = this_fx.node(), echain] {
-    ossia::remove_one(echain->nodes, n);
-    if (echain->nodes.empty())
-      echain->node.reset();
-    n->clear();
-    g->remove_node(n);
-  });
 
   unreg(this_fx);
 
@@ -528,10 +545,25 @@ std::function<void()> EffectProcessComponentBase::removing(
     {
       // Link start with next idx
       register_new_first_node(m_fxes[1], commands);
+      commands.push_back(
+          [g = ctx.execGraph, n1 = m_fxes[1].second.node(), n2 = this_fx.node()] {
+        if(!n2->inputs().empty() && !n1->inputs().empty())
+            move_edges(*n2->inputs()[0], n1->inputs()[0], n1, *g);
+      });
     }
     else if (m_fxes.size() == 1)
     {
-      nodeChanged(m_fxes.front().second.node(), {}, commands);
+      createPassthrough(commands);
+      if(m_passthrough && this_fx.node())
+      {
+        commands.push_back(
+              [g = ctx.execGraph, n1 = m_passthrough, n2 = this_fx.node()] {
+          if(!n2->inputs().empty() && !n1->inputs().empty())
+            move_edges(*n2->inputs()[0], n1->inputs()[0], n1, *g);
+          if(!n2->outputs().empty() && !n1->outputs().empty())
+            move_edges(*n2->outputs()[0], n1->outputs()[0], n1, *g);
+        });
+      }
     }
   }
   else if (idx == (m_fxes.size() - 1))
@@ -539,10 +571,25 @@ std::function<void()> EffectProcessComponentBase::removing(
     if (m_fxes.size() > 1)
     {
       register_new_last_node(m_fxes[idx - 1], commands);
+      commands.push_back(
+          [g = ctx.execGraph, n1 = m_fxes[idx - 1].second.node(), n2 = this_fx.node()] {
+        if(!n2->outputs().empty() && !n1->outputs().empty())
+            move_edges(*n2->outputs()[0], n1->outputs()[0], n1, *g);
+      });
     }
     else if (m_fxes.size() == 1)
     {
-      nodeChanged(m_fxes.front().second.node(), {}, commands);
+      createPassthrough(commands);
+      if(m_passthrough && this_fx.node())
+      {
+        commands.push_back(
+              [g = ctx.execGraph, n1 = m_passthrough, n2 = this_fx.node()] {
+          if(!n2->inputs().empty() && !n1->inputs().empty())
+            move_edges(*n2->inputs()[0], n1->inputs()[0], n1, *g);
+          if(!n2->outputs().empty() && !n1->outputs().empty())
+            move_edges(*n2->outputs()[0], n1->outputs()[0], n1, *g);
+        });
+      }
     }
   }
   else
@@ -566,14 +613,26 @@ std::function<void()> EffectProcessComponentBase::removing(
         });
       }
     }
+    else {
+      qDebug() << "m_fxes.size() <= (idx + 1)" << m_fxes.size() << (idx + 1);
+    }
   }
 
-  createPassthrough(commands);
+  commands.push_back([g = system().execGraph, n = this_fx.node(), echain] {
+    ossia::remove_one(echain->nodes, n);
+    if (echain->nodes.empty())
+      echain->node.reset();
+    n->clear();
+    g->remove_node(n);
+  });
+
 
   if (!commands.empty())
   {
 #if !defined(NDEBUG)
     auto test_fx = get_nodes(m_fxes);
+    if(m_passthrough)
+      test_fx = {m_passthrough};
     ossia::remove_erase(test_fx, this_fx.node());
     in_exec([f = std::move(commands),
              g = ctx.execGraph,
@@ -610,21 +669,14 @@ void EffectProcessComponentBase::createPassthrough(std::vector<Execution::Execut
   m_passthrough = std::make_shared<ossia::empty_audio_mapper>();
   auto old_node = this->node;
   this->node = m_passthrough;
-  // TODO put in the commands
 
-  auto echain
-      = std::dynamic_pointer_cast<ossia::node_chain_process>(m_ossia_process);
-  echain->add_node(0, m_passthrough);
-  m_ossia_process->node = m_passthrough;
-
+  auto echain = std::dynamic_pointer_cast<ossia::node_chain_process>(m_ossia_process);
+  commands.push_back([echain, proc = m_ossia_process, pt = m_passthrough] () mutable {
+    echain->add_node(0, pt);
+    proc->node = std::move(pt);
+  });
+  system().context().setup.register_node(process().inlets(), process().outlets(), m_passthrough, commands);
   nodeChanged(old_node, this->node, commands);
-}
-
-void EffectProcessComponentBase::removePassthrough(std::vector<Execution::ExecutionCommand>& )
-{
-  if(!m_passthrough)
-    return;
-
 }
 
 void EffectProcessComponentBase::on_orderChanged()

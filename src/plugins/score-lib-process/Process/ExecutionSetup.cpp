@@ -390,6 +390,36 @@ void SetupContext::unregister_node(
     outlets.erase(ptr);
 }
 
+void SetupContext::unregister_node(
+    const Process::Inlets& proc_inlets,
+    const Process::Outlets& proc_outlets,
+    const std::shared_ptr<ossia::graph_node>& node,
+    std::vector<ExecutionCommand>& vec)
+{
+  if (node)
+  {
+    std::weak_ptr<ossia::graph_interface> wg = context.execGraph;
+    vec.push_back([wg, node] {
+      if (auto g = wg.lock())
+        g->remove_node(node);
+      node->clear();
+    });
+
+    for (const auto& con : runtime_connections[node])
+    {
+      QObject::disconnect(con);
+    }
+    runtime_connections.erase(node);
+
+    proc_map.erase(node.get());
+  }
+
+  for (auto ptr : proc_inlets)
+    inlets.erase(ptr);
+  for (auto ptr : proc_outlets)
+    outlets.erase(ptr);
+}
+
 void SetupContext::unregister_node_soft(
     const Process::Inlets& proc_inlets,
     const Process::Outlets& proc_outlets,
@@ -402,6 +432,8 @@ void SetupContext::unregister_node_soft(
       QObject::disconnect(con);
     }
     runtime_connections.erase(node);
+
+    proc_map.erase(node.get());
   }
 
   for (auto ptr : proc_inlets)

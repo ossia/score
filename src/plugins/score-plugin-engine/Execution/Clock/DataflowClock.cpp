@@ -126,6 +126,9 @@ void Clock::resume_impl(Execution::BaseScenarioElement& bs)
       tick(args...);
     });
   }
+
+
+  m_plug.execGraph->print(std::cerr);
 }
 
 void Clock::stop_impl(Execution::BaseScenarioElement& bs)

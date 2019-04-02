@@ -67,6 +67,11 @@ struct SCORE_LIB_PROCESS_EXPORT SetupContext final : public QObject
       const Process::Outlets& outlets,
       const std::shared_ptr<ossia::graph_node>& node,
       std::vector<ExecutionCommand>& vec);
+  void unregister_node(
+      const Process::Inlets& inlets,
+      const Process::Outlets& outlets,
+      const std::shared_ptr<ossia::graph_node>& node,
+      std::vector<ExecutionCommand>& vec);
 
   void on_cableCreated(Process::Cable& c);
   void on_cableRemoved(const Process::Cable& c);
