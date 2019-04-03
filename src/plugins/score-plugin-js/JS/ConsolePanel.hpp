@@ -214,7 +214,7 @@ private:
 
   const score::PanelStatus& defaultPanelStatus() const override
   {
-    static const score::PanelStatus status{false,
+    static const score::PanelStatus status{false, false,
                                            Qt::BottomDockWidgetArea,
                                            0,
                                            QObject::tr("Console"),

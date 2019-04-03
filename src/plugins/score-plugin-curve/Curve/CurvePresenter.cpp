@@ -181,6 +181,7 @@ void Presenter::fillContextMenu(
   menu.addSeparator();
 
   auto removeAct = new QAction{tr("Remove"), this};
+  removeAct->setStatusTip(tr("Remove the selection"));
   connect(removeAct, &QAction::triggered, [&]() { removeSelection(); });
 
   auto typeMenu = menu.addMenu(tr("Type"));
@@ -218,6 +219,7 @@ void Presenter::fillContextMenu(
   }
 
   auto lockAction = new QAction{tr("Lock between points"), this};
+  lockAction->setStatusTip(tr("Prevent the moved point from moving before its previous point or after its following point."));
   connect(lockAction, &QAction::toggled, this, [&](bool b) {
     m_editionSettings.setLockBetweenPoints(b);
   });
@@ -225,6 +227,7 @@ void Presenter::fillContextMenu(
   lockAction->setChecked(m_editionSettings.lockBetweenPoints());
 
   auto suppressAction = new QAction{tr("Suppress on overlap"), this};
+  suppressAction->setStatusTip(tr("When moving past another point, remove the other point."));
   connect(suppressAction, &QAction::toggled, this, [&](bool b) {
     m_editionSettings.setSuppressOnOverlap(b);
   });

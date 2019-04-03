@@ -287,6 +287,7 @@ score::GUIElements ApplicationPlugin::makeGUIElements()
   m_audioEngineAct = new QAction{tr("Restart Audio"), this};
   m_audioEngineAct->setCheckable(true);
   m_audioEngineAct->setChecked(bool(audio));
+  m_audioEngineAct->setStatusTip("Restart the audio engine");
 
   setIcons(
       m_audioEngineAct,
@@ -299,6 +300,7 @@ score::GUIElements ApplicationPlugin::makeGUIElements()
     auto sl = new Control::VolumeSlider{bar};
     sl->setMaximumSize(100, 20);
     sl->setValue(0.5);
+    sl->setStatusTip("Change the master volume");
     bar->addWidget(sl);
     bar->addAction(m_audioEngineAct);
     connect(sl, &Control::VolumeSlider::valueChanged, this, [=](double v) {

@@ -26,7 +26,7 @@ QWidget* UndoPanelDelegate::widget()
 const PanelStatus& UndoPanelDelegate::defaultPanelStatus() const
 {
   static const score::PanelStatus status{
-      false,
+      false, false,
       Qt::LeftDockWidgetArea,
       1,
       QObject::tr("History"),

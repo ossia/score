@@ -20,8 +20,11 @@ namespace Library
 PanelDelegate::PanelDelegate(const score::GUIApplicationContext& ctx)
     : score::PanelDelegate{ctx}, m_widget{new QTabWidget}
 {
+  m_widget->setStatusTip(QObject::tr("This panel allows to browse medias, presets and processes."));
+
   m_widget->addTab(
       new SystemLibraryWidget{ctx, m_widget}, QObject::tr("System"));
+
 
   m_projectView = new ProjectLibraryWidget{ctx, m_widget};
   m_widget->addTab(m_projectView, QObject::tr("Project"));
@@ -38,7 +41,7 @@ QWidget* PanelDelegate::widget()
 
 const score::PanelStatus& PanelDelegate::defaultPanelStatus() const
 {
-  static const score::PanelStatus status{true,
+  static const score::PanelStatus status{true, false,
                                          Qt::LeftDockWidgetArea,
                                          0,
                                          QObject::tr("Library"),

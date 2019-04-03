@@ -19,6 +19,7 @@ SearchLineEdit::SearchLineEdit(QWidget* parent) : QLineEdit{parent}
   setPlaceholderText("Search");
   auto act = new QAction{this};
   act->setIcon(QIcon(":/icons/search.png"));
+  act->setStatusTip(tr("Filter with the given text"));
   addAction(act, QLineEdit::TrailingPosition);
 
   connect(this, &QLineEdit::returnPressed, [&]() { search(); });

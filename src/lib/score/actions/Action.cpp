@@ -142,9 +142,12 @@ void Action::updateTexts()
   QString clearText = m_text;
   clearText.remove('&');
   clearText.append(QString(" (%1)").arg(m_impl->shortcut().toString()));
-  m_impl->setToolTip(clearText);
-  m_impl->setWhatsThis(clearText);
-  m_impl->setStatusTip(clearText);
+  if(m_impl->toolTip().isEmpty())
+    m_impl->setToolTip(clearText);
+  if(m_impl->whatsThis().isEmpty())
+     m_impl->setWhatsThis(clearText);
+  if(m_impl->statusTip().isEmpty())
+     m_impl->setStatusTip(clearText);
 }
 
 DocumentActionCondition::~DocumentActionCondition() {}

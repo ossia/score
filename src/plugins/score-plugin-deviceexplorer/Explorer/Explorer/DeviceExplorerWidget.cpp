@@ -273,6 +273,7 @@ void DeviceExplorerWidget::buildGUI()
       Qt::QueuedConnection);
 
   m_editAction = new QAction(tr("Edit"), this);
+  m_editAction->setStatusTip(tr("Edit the device."));
 
   m_refreshAction = new QAction(tr("Refresh namespace"), this);
   m_refreshAction->setShortcut(QKeySequence::Refresh);
