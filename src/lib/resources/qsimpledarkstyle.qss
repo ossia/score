@@ -156,7 +156,6 @@ border: 1px solid #888;
 border-radius: 2px;
 height: 50px;
 }
-
 QPlainTextEdit
 {
     background-color: #12171A;
@@ -316,8 +315,6 @@ QPushButton:checked{
     border-color: white;*/
 }
 
-
-
 QComboBox:hover,QPushButton:hover,QAbstractSpinBox:hover,QPlainTextEdit:hover
 {
     border: 1px solid #aaa;
@@ -329,6 +326,7 @@ QComboBox:focus,QPushButton:focus,QAbstractSpinBox:focus,QPlainTextEdit:focus
     border: 1px solid #aaa;
     color: white;
 }
+
 
 QAbstractView:hover,QTreeView:hover {
     color: white
@@ -968,7 +966,12 @@ QPushButton#buttonWithoutArrow QIcon{
 }
 
 
-
+Swatch:focus {
+border: none;
+}
+Swatch:selected {
+border: none;
+}
 
 QTabWidget QTabBar{
     margin: 0px;
@@ -1010,4 +1013,24 @@ QTabBar:tab:right:selected{
 
 QCheckBox:focus {
 border: none;
+}
+
+
+QAbstractSpinBox {
+    color: #03c3dd;
+}
+
+QPushButton#SplitCondition {
+    image: url(:/icons/split_condition_off.png);
+}
+
+QPushButton#SplitCondition:hover {
+    image: url(:/icons/split_condition_on.png);
+}
+
+QPushButton#Desynchronize {
+    image: url(:/icons/desynchronize_off.png);
+}
+QPushButton#Desynchronize:hover {
+    image: url(:/icons/desynchronize_on.png);
 }

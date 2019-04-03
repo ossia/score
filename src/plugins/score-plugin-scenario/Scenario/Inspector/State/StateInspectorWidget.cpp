@@ -28,6 +28,7 @@
 #include <score/tools/std/Optional.hpp>
 #include <score/widgets/MarginLess.hpp>
 #include <score/widgets/Separator.hpp>
+#include <score/widgets/SetIcons.hpp>
 #include <score/widgets/TextLabel.hpp>
 
 #include <QAbstractProxyModel>
@@ -187,7 +188,14 @@ StateInspectorWidget::StateInspectorWidget(
 
   // State setup
   {
-    auto splitEvent = new QPushButton{tr("Split condition")};
+    auto splitEvent = new QPushButton;
+
+    splitEvent->setMinimumSize(QSize(50,50));
+    splitEvent->setIconSize(QSize(35, 35));
+    splitEvent->setObjectName("SplitCondition");
+    splitEvent->setToolTip(tr("Split condition"));
+    splitEvent->setStatusTip(tr("Split condition"));
+
     m_btnLayout.addWidget(splitEvent);
     connect(
         splitEvent,
@@ -198,15 +206,24 @@ StateInspectorWidget::StateInspectorWidget(
   }
 
   {
-    auto splitNode = new QPushButton{tr("Desynchronize")};
-    m_btnLayout.addWidget(splitNode);
+    auto desynchronize = new QPushButton;
+
+    desynchronize->setMinimumSize(QSize(50,50));
+    desynchronize->setIconSize(QSize(35, 35));
+    desynchronize->setObjectName("Desynchronize");
+    desynchronize->setToolTip(tr("Desynchronize"));
+    desynchronize->setStatusTip(tr("Desynchronize"));
+    m_btnLayout.addWidget(desynchronize);
+
     connect(
-        splitNode,
+        desynchronize,
         &QPushButton::clicked,
         this,
         &StateInspectorWidget::splitFromNode);
    // properties.push_back(splitNode);
   }
+  m_btnLayout.layout()->setSpacing(5);
+  m_btnLayout.layout()->setContentsMargins(0,5,0,0);
 
   auto btns = new QWidget(this);
   btns->setLayout(m_btnLayout.layout());
