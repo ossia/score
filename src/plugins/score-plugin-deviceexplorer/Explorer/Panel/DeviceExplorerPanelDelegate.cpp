@@ -17,6 +17,7 @@ PanelDelegate::PanelDelegate(const score::GUIApplicationContext& ctx)
           nullptr}}
 
 {
+  m_widget->setStatusTip(QObject::tr("The device explorer displays and controls network devices and hardware peripherals."));
 }
 
 QWidget* PanelDelegate::widget()
@@ -26,7 +27,7 @@ QWidget* PanelDelegate::widget()
 
 const score::PanelStatus& PanelDelegate::defaultPanelStatus() const
 {
-  static const score::PanelStatus status{true,
+  static const score::PanelStatus status{true, false,
                                          Qt::LeftDockWidgetArea,
                                          10,
                                          QObject::tr("Device Explorer"),

@@ -22,6 +22,8 @@ PanelDelegate::PanelDelegate(const score::GUIApplicationContext& ctx)
   m_widget->setMinimumHeight(400);
   m_widget->setMinimumWidth(250);
   m_widget->setMaximumWidth(250);
+
+  m_widget->setStatusTip(QObject::tr("The inspector show information on the currently selected items."));
 }
 
 QWidget* PanelDelegate::widget()
@@ -31,7 +33,7 @@ QWidget* PanelDelegate::widget()
 
 const score::PanelStatus& PanelDelegate::defaultPanelStatus() const
 {
-  static const score::PanelStatus status{true,
+  static const score::PanelStatus status{true, false,
                                          Qt::RightDockWidgetArea,
                                          10,
                                          QObject::tr("Inspector"),

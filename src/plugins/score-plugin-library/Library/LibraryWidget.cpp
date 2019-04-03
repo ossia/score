@@ -236,6 +236,9 @@ ProcessWidget::ProcessWidget(
     QWidget* parent)
     : QWidget{parent}, m_model{new ProcessesItemModel{ctx, this}}
 {
+  setStatusTip(QObject::tr("This panel shows the available processes.\n"
+                           "They can be drag'n'dropped in the score, in intervals, "
+                           "and sometimes in effect chains."));
   auto lay = new score::MarginLess<QVBoxLayout>;
 
   this->setLayout(lay);
@@ -250,6 +253,8 @@ ProcessWidget::ProcessWidget(
 
   auto widg = new InfoWidget{this};
   lay->addWidget(widg);
+  m_tv.setStatusTip(statusTip());
+  widg->setStatusTip(statusTip());
 
   con(m_tv, &ProcessTreeView::selected, this, [=](const auto& pdata) {
     widg->setData(pdata);
@@ -291,7 +296,11 @@ SystemLibraryWidget::SystemLibraryWidget(
     , m_model{new FileSystemModel{ctx, this}}
     , m_proxy{new RecursiveFilterProxy{this}}
 {
-  ;
+  setStatusTip(QObject::tr("This panel shows the system library.\n"
+                           "It is present by default in your user's Documents folder, \n"
+                           "in a subfolder named ossia score library."
+                           "A user-provided library is available on : \n"
+                           "github.com/OSSIA/score-user-library"));
   auto lay = new score::MarginLess<QVBoxLayout>;
 
   this->setLayout(lay);
@@ -337,6 +346,8 @@ ProjectLibraryWidget::ProjectLibraryWidget(
     , m_proxy{new RecursiveFilterProxy{this}}
 {
   auto lay = new score::MarginLess<QVBoxLayout>;
+  setStatusTip(QObject::tr("This panel shows the project library.\n"
+                           "It lists the files in the folder where the score is saved."));
 
   this->setLayout(lay);
 

@@ -2,6 +2,11 @@
 
 #include <core/document/Document.hpp>
 
+#include <score/model/Identifier.hpp>
+
+#include <score_lib_base_export.h>
+
+
 #include <QMainWindow>
 #include <QPair>
 #include <QString>
@@ -15,11 +20,7 @@ class QDockWidget;
 class QEvent;
 class QObject;
 class QTabWidget;
-
-#include <score/model/Identifier.hpp>
-
-#include <score_lib_base_export.h>
-
+class QLabel;
 namespace score
 {
 class DocumentModel;
@@ -47,6 +48,7 @@ public:
   void restoreLayout();
   void closeEvent(QCloseEvent*) override;
 
+
 public:
   void activeDocumentChanged(const Id<DocumentModel>& arg_1)
       E_SIGNAL(SCORE_LIB_BASE_EXPORT, activeDocumentChanged, arg_1);
@@ -62,6 +64,7 @@ public:
   W_SLOT(on_fileNameChanged);
 
 private:
+  bool event(QEvent* event) override;
   void changeEvent(QEvent*) override;
   void resizeEvent(QResizeEvent*) override;
 
@@ -71,5 +74,7 @@ private:
 
   Presenter* m_presenter{};
   QTabWidget* m_tabWidget{};
+  QLabel* m_status{};
+
 };
 }

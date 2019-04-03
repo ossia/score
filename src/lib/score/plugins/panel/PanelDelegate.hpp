@@ -24,12 +24,14 @@ struct SCORE_LIB_BASE_EXPORT PanelStatus
 {
   PanelStatus(
       bool isShown,
+      bool fixed,
       Qt::DockWidgetArea d,
       int prio,
       QString name,
       const QKeySequence& sc);
 
   const bool shown;              // Controls if it is shown by default.
+  const bool fixed;
   const Qt::DockWidgetArea dock; // Which dock.
   const int priority;            // Higher priority will come up first.
   const QString prettyName;      // Used in the header.

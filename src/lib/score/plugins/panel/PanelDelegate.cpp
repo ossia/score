@@ -7,11 +7,13 @@ namespace score
 
 PanelStatus::PanelStatus(
     bool isShown,
+    bool fixed,
     Qt::DockWidgetArea d,
     int prio,
     QString name,
     const QKeySequence& sc)
     : shown{isShown}
+    , fixed{fixed}
     , dock{d}
     , priority{prio}
     , prettyName{std::move(name)}

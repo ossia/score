@@ -917,30 +917,38 @@ SelectionStackWidget::SelectionStackWidget(
   m_prev = new QToolButton{this};
   m_prev->setArrowType(Qt::LeftArrow);
   m_prev->setEnabled(m_stack.canUnselect());
+  m_prev->setStatusTip(tr("Previous selection."));
 
   m_label = new TextLabel{"History", this};
+  m_label->setStatusTip(tr("Go back and forth in the selected items."));
 
   m_next = new QToolButton{this};
   m_next->setArrowType(Qt::RightArrow);
   m_next->setEnabled(m_stack.canReselect());
+  m_next->setStatusTip(tr("Next selection."));
 
   m_left = new QToolButton{this};
   m_left->setArrowType(Qt::LeftArrow);
   m_left->setEnabled(m_selector.hasLeft());
+  m_left->setStatusTip(tr("Select the item to the left."));
 
   m_right = new QToolButton{this};
   m_right->setArrowType(Qt::RightArrow);
   m_right->setEnabled(m_selector.hasRight());
+  m_right->setStatusTip(tr("Select the item to the right."));
 
   m_up = new QToolButton{this};
   m_up->setArrowType(Qt::UpArrow);
   m_up->setEnabled(m_selector.hasUp());
+  m_up->setStatusTip(tr("Select the item above."));
 
   m_down = new QToolButton{this};
   m_down->setArrowType(Qt::DownArrow);
   m_down->setEnabled(m_selector.hasDown());
+  m_down->setStatusTip(tr("Select the item below."));
 
   auto lay = new score::MarginLess<QHBoxLayout>{this};
+
   lay->setSizeConstraint(QLayout::SetMinimumSize);
   lay->addWidget(m_prev);
   lay->addWidget(m_label);
@@ -980,6 +988,9 @@ ObjectPanelDelegate::ObjectPanelDelegate(
   m_widget->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
   m_widget->setMinimumHeight(100);
   m_widget->setSizeHint({200, 100});
+  m_widget->setStatusTip(QObject::tr("Shows the currently selected items.\n"
+                                     "They can be renamed by double-clicking.\n"
+                                     "More options are available on the right-click menu."));
 }
 
 QWidget* ObjectPanelDelegate::widget()
@@ -989,7 +1000,7 @@ QWidget* ObjectPanelDelegate::widget()
 
 const score::PanelStatus& ObjectPanelDelegate::defaultPanelStatus() const
 {
-  static const score::PanelStatus status{true,
+  static const score::PanelStatus status{true, false,
                                          Qt::RightDockWidgetArea,
                                          12,
                                          QObject::tr("Objects"),

@@ -50,6 +50,7 @@ AddressAccessorEditWidget::AddressAccessorEditWidget(
 
   auto act = new QAction{this};
   act->setIcon(QIcon(":/icons/unit_icon.png"));
+  act->setStatusTip(tr("Show the unit selector"));
   m_lineEdit->addAction(act, QLineEdit::TrailingPosition);
 
   connect(act, &QAction::triggered, [=] {

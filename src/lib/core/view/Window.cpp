@@ -16,6 +16,7 @@
 
 #include <QAction>
 #include <QApplication>
+#include <QLabel>
 #include <QCloseEvent>
 #include <QDesktopWidget>
 #include <QDockWidget>
@@ -135,8 +136,8 @@ View::View(QObject* parent) : QMainWindow{}, m_tabWidget{new QTabWidget}
     closeRequested(
         m_documents.at(m_tabWidget->widget(index))->document().model().id());
   });
-}
 
+}
 void View::setPresenter(Presenter* p)
 {
   m_presenter = p;
@@ -152,13 +153,61 @@ void View::addDocumentView(DocumentView* doc)
   sizeChanged(size());
 }
 
+class HelperPanelDelegate : public PanelDelegate
+{
+public:
+  HelperPanelDelegate(const score::GUIApplicationContext& ctx):
+    PanelDelegate{ctx}
+  {
+    widg = new QWidget;
+    widg->setContentsMargins(0, 0, 0, 0);
+    widg->setMinimumHeight(60);
+    widg->setMaximumHeight(60);
+    auto l = new score::MarginLess<QVBoxLayout>{widg};
+
+    status = new QLabel;
+    status->setTextFormat(Qt::RichText);
+    status->setText("<i>Remember those quiet evenings</i>");
+    status->setWordWrap(true);
+
+    l->addWidget(status);
+    l->addStretch(12);
+  }
+
+  QWidget* widget() override
+  {
+    return widg;
+  }
+
+  const PanelStatus& defaultPanelStatus() const override
+  {
+    static const PanelStatus stat{true, true, Qt::RightDockWidgetArea, -100000, "Info", QKeySequence::HelpContents};
+    return stat;
+  }
+  QWidget* widg{};
+  QLabel* status{};
+};
 void View::setupPanel(PanelDelegate* v)
 {
+  {
+    // First time we get there, register the additional helper panel
+    static int ok = false;
+    if(!ok) {
+      ok = true;
+      static HelperPanelDelegate hd(v->context());
+      m_status = hd.status;
+      setupPanel(&hd);
+    }
+  }
   using namespace std;
   auto dial
       = new QDockWidget{v->defaultPanelStatus().prettyName.toUpper(), this};
+  if(v->defaultPanelStatus().fixed)
+    dial->setFeatures(QDockWidget::DockWidgetFeature::DockWidgetClosable);
+
   auto w = v->widget();
   dial->setWidget(w);
+  dial->setStatusTip(w->statusTip());
   dial->toggleViewAction()->setShortcut(v->defaultPanelStatus().shortcut);
 
   auto& mw = v->context().menus.get().at(score::Menus::Windows());
@@ -235,6 +284,9 @@ void View::setupPanel(PanelDelegate* v)
       break;
     }
   }
+  // TODO why isn't there a title and how to access it ?
+  if(auto title = dial->titleBarWidget())
+    title->setStatusTip(w->statusTip());
 
   if (!v->defaultPanelStatus().shown)
     dial->hide();
@@ -322,4 +374,27 @@ void View::resizeEvent(QResizeEvent* e)
   QMainWindow::resizeEvent(e);
   sizeChanged(e->size());
 }
+bool score::View::event(QEvent* event)
+{
+  if(event->type() == QEvent::StatusTip)
+  {
+    auto tip = ((QStatusTipEvent*) event)->tip();
+    auto idx = tip.indexOf(QChar('\n'));
+    if(idx != -1)
+    {
+      tip.insert(idx, "</b>\n");
+      tip.push_front("<b>");
+    }
+    else
+    {
+      tip.push_front("<b>");
+      tip.push_back("</b>");
+    }
+    tip.replace(QChar('\n'), "</br>");
+    m_status->setText(tip);
+  }
+
+  return QMainWindow::event(event);
 }
+}
+
