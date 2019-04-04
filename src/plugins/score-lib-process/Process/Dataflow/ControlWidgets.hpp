@@ -468,11 +468,14 @@ struct Button
       QObject* context)
   {
     auto sl = new QPushButton{parent};
-    sl->setText(QObject::tr("Bang"));
+    sl->setText(inlet.customData().isEmpty() ? QObject::tr("Bang") : inlet.customData());
     sl->setContentsMargins(0, 0, 0, 0);
 
-    QObject::connect(sl, &QPushButton::clicked, context, [&inlet] {
-      inlet.valueChanged(ossia::impulse{});
+    QObject::connect(sl, &QPushButton::pressed, context, [&inlet] {
+      inlet.setValue(true);
+    });
+    QObject::connect(sl, &QPushButton::released, context, [&inlet] {
+      inlet.setValue(false);
     });
 
     return sl;

@@ -51,75 +51,18 @@ public:
   }
 
   ~SafeQApplication();
-#if defined(SCORE_DEBUG)
   static void DebugOutput(
       QtMsgType type,
       const QMessageLogContext& context,
-      const QString& msg)
-  {
-    auto basename_arr = QFileInfo(context.file).baseName().toUtf8();
-    auto basename = basename_arr.constData();
-    FILE* out_file = stderr;
-#if defined(_MSC_VER)
-    static LogFile logger;
-    out_file = logger.desc();
-#endif
-    QByteArray localMsg = msg.toLocal8Bit();
-    switch (type)
-    {
-      case QtDebugMsg:
-        fprintf(
-            out_file,
-            "Debug: %s (%s:%u)\n",
-            localMsg.constData(),
-            basename,
-            context.line);
-        break;
+      const QString& msg);
 
-#if (QT_VERSION >= QT_VERSION_CHECK(5, 5, 0))
-      case QtInfoMsg:
-        fprintf(
-            out_file,
-            "Info: %s (%s:%u)\n",
-            localMsg.constData(),
-            basename,
-            context.line);
-        break;
-#endif
-      case QtWarningMsg:
-        fprintf(
-            out_file,
-            "Warning: %s (%s:%u)\n",
-            localMsg.constData(),
-            basename,
-            context.line);
-        break;
-      case QtCriticalMsg:
-        fprintf(
-            out_file,
-            "Critical: %s (%s:%u)\n",
-            localMsg.constData(),
-            basename,
-            context.line);
-        break;
-      case QtFatalMsg:
-        fprintf(
-            out_file,
-            "Fatal: %s (%s:%u)\n",
-            localMsg.constData(),
-            basename,
-            context.line);
-        SCORE_BREAKPOINT;
-        std::terminate();
-    }
-    fflush(out_file);
-  }
-#else
+#if !defined(SCORE_DEBUG)
   void inform(const QString& str)
   {
     QMessageBox::information(
         QApplication::activeWindow(), "", str, QMessageBox::Ok);
   }
+
   bool notify(QObject* receiver, QEvent* event) override
   {
     try

@@ -168,7 +168,7 @@ struct lv2_node final : public ossia::graph_node
 
     // Copy midi
     int first_midi_idx = (audio_in_size > 0 ? 1 : 0) + cv_size;
-    for (int i = 0; i < fMidiIns.size(); i++)
+    for (std::size_t i = 0; i < fMidiIns.size(); i++)
     {
       ossia::midi_port& ossia_port
           = *this->inputs()[i + first_midi_idx]
@@ -227,7 +227,7 @@ struct lv2_node final : public ossia::graph_node
 
     // Copy midi
     int first_midi_idx = (audio_out_size > 0 ? 1 : 0);
-    for (int i = 0; i < fMidiOuts.size(); i++)
+    for (std::size_t i = 0; i < fMidiOuts.size(); i++)
     {
       ossia::midi_port& ossia_port
           = *this->outputs()[i + first_midi_idx]

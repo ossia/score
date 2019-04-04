@@ -13,7 +13,7 @@ public:
   QSet<QString> mimeTypes() const noexcept override;
   QSet<QString> fileExtensions() const noexcept override;
   std::vector<ProcessDrop> dropData(
-      const std::vector<QByteArray>& data,
+      const std::vector<DroppedFile>& data,
       const score::DocumentContext& ctx) const noexcept override;
 };
 

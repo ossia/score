@@ -1,4 +1,6 @@
 #!/bin/sh
+source "$CONFIG_FOLDER/linux-source-qt.sh"
+
 export CC=gcc-6
 export CXX=g++-6
 

@@ -188,3 +188,22 @@ qreal MiniLayer::zoom() const
   return m_zoom;
 }
 }
+
+
+void Process::LayerView::mousePressEvent(QGraphicsSceneMouseEvent* event)
+{
+  pressed(event->pos());
+  event->accept();
+}
+
+void Process::LayerView::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
+{
+  moved(event->pos());
+  event->accept();
+}
+
+void Process::LayerView::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
+{
+  released(event->pos());
+  event->accept();
+}

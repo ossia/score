@@ -308,8 +308,7 @@ score::GUIElements ApplicationPlugin::makeGUIElements()
         {
           for (auto& dev : st->edit_devices())
           {
-            if (auto protocol
-                = dynamic_cast<ossia::audio_protocol*>(&dev->get_protocol()))
+            if (dynamic_cast<ossia::audio_protocol*>(&dev->get_protocol()))
             {
               auto root
                   = ossia::net::find_node(dev->get_root_node(), "/out/main");

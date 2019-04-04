@@ -29,6 +29,7 @@ struct SCORE_LIB_PROCESS_EXPORT Style
 
   score::ColorRef IntervalBase;
   score::ColorRef IntervalSelected;
+  score::ColorRef IntervalDropTarget;
   score::ColorRef IntervalPlayFill;
   score::ColorRef IntervalPlayDashFill;
   score::ColorRef IntervalWaitingDashFill;

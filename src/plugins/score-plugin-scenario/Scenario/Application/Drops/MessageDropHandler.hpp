@@ -8,22 +8,13 @@ namespace Scenario
  * Will create a state in the scenario at the
  * point a MessageList is dropped.
  */
-class MessageDropHandler final : public DropHandler
+class MessageDropHandler final : public GhostIntervalDropHandler
 {
   SCORE_CONCRETE("75156fa7-e083-4c9c-a88c-3a05c54f330f")
 
-  bool dragEnter(
-      const Scenario::ScenarioPresenter&,
-      QPointF pos,
-      const QMimeData& mime) override;
-  bool dragMove(
-      const Scenario::ScenarioPresenter&,
-      QPointF pos,
-      const QMimeData& mime) override;
-  bool dragLeave(
-      const Scenario::ScenarioPresenter&,
-      QPointF pos,
-      const QMimeData& mime) override;
+public:
+  MessageDropHandler();
+private:
   bool
   drop(const ScenarioPresenter&, QPointF drop, const QMimeData& mime) override;
 };

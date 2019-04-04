@@ -54,6 +54,8 @@ public:
       {
         QJsonObject obj;
         obj["Type"] = "Process";
+        if(!(p->flags() & Process::ProcessFlags::RequiresCustomData))
+          obj["Data"] = p->customConstructionData();
         obj["uuid"] = toJsonValue(p->concreteKey().impl());
         cat.emplace_back(
             ProcessData{p->prettyName(), QIcon{}, obj, p->concreteKey()},

@@ -4,6 +4,7 @@ set(DEPLOYMENT_BUILD True)
 
 if(NOT DEFINED SCORE_ENABLE_LTO)
 set(SCORE_ENABLE_LTO True)
+set(SCORE_AUDIO_PLUGINS True)
 endif()
 if(UNIX AND EXISTS "/etc/centos-release")
   set(SCORE_ENABLE_LTO False)

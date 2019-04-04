@@ -48,6 +48,7 @@ public:
   ScenarioApplicationPlugin(const score::GUIApplicationContext& app);
   ~ScenarioApplicationPlugin();
 
+  void initialize() override;
   GUIElements makeGUIElements() override;
 
   ScenarioPresenter* focusedPresenter() const;

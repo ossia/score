@@ -167,19 +167,71 @@ IntervalDurations::Algorithms::setDurationInBounds(
 }
 
 SCORE_PLUGIN_SCENARIO_EXPORT void
+IntervalDurations::Algorithms::fixAllDurations(
+    IntervalModel& cstr,
+    const TimeVal& time)
+{
+  auto& dur = cstr.duration;
+  if (dur.defaultDuration() != time
+      || dur.minDuration() != time
+      || dur.maxDuration() != time)
+  {
+    dur.m_defaultDuration = time;
+    dur.m_minDuration = time;
+    dur.m_maxDuration = time;
+
+    dur.defaultDurationChanged(time);
+    dur.minDurationChanged(time);
+    dur.maxDurationChanged(time);
+    if(!dur.m_rigidity)
+    {
+      dur.m_rigidity = true;
+      dur.rigidityChanged(true);
+    }
+  }
+}
+
+SCORE_PLUGIN_SCENARIO_EXPORT void
 IntervalDurations::Algorithms::changeAllDurations(
     IntervalModel& cstr,
     const TimeVal& time)
 {
-  if (cstr.duration.defaultDuration() != time)
+  auto& d = cstr.duration;
+  if (d.isRigid())
   {
-    // Note: the OSSIA implementation requires min <= dur <= max at all time
-    // and will throw if not the case. Hence this order.
-    auto delta = time - cstr.duration.defaultDuration();
-    cstr.duration.setDefaultDuration(time);
+    fixAllDurations(cstr, time);
+    return;
+  }
 
-    cstr.duration.setMinDuration(cstr.duration.minDuration() + delta);
-    cstr.duration.setMaxDuration(cstr.duration.maxDuration() + delta);
+  if (d.defaultDuration() != time)
+  {
+    const auto delta = time - d.defaultDuration();
+    d.m_defaultDuration = time;
+
+    if(!d.m_isMinNull)
+      d.m_minDuration += delta;
+    d.m_maxDuration += delta;
+
+    if(d.m_minDuration < TimeVal::zero())
+      d.m_minDuration = TimeVal::zero();
+
+    if(d.m_maxDuration <= d.m_defaultDuration)
+//      d.m_maxDuration = TimeVal{std::nextafter(d.m_defaultDuration.msec(), d.m_defaultDuration.msec() * 2.)};
+      d.m_maxDuration = d.m_defaultDuration * 1.05; //TimeVal{std::nextafter(d.m_defaultDuration.msec(), d.m_defaultDuration.msec() * 2.)};
+
+    if (d.m_guiDuration < d.m_defaultDuration)
+      d.m_guiDuration = time * 1.1;
+
+    if (d.m_guiDuration < d.m_maxDuration && !d.m_maxDuration.isInfinite())
+      d.m_guiDuration = d.m_maxDuration * 1.1;
+
+
+    d.defaultDurationChanged(time);
+    d.guiDurationChanged(d.m_guiDuration);
+    d.minDurationChanged(d.m_minDuration);
+    d.maxDurationChanged(d.m_maxDuration);
+
+    d.checkConsistency();
   }
 }
 

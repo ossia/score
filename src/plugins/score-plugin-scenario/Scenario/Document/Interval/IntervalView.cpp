@@ -29,8 +29,17 @@ IntervalView::IntervalView(IntervalPresenter& presenter, QGraphicsItem* parent)
     , m_labelItem{Process::Style::instance().ConditionWaiting, this}
     , m_counterItem{score::ColorRef(&score::Skin::Light), this}
     , m_presenter{presenter}
+    , m_selected{false}
+    , m_infinite{false}
+    , m_validInterval{true}
+    , m_warning{false}
+    , m_hasFocus{false}
+    , m_waiting{false}
+    , m_dropTarget{false}
 {
   setAcceptHoverEvents(true);
+  setAcceptDrops(true);
+
   m_leftBrace.setX(minWidth());
   m_leftBrace.hide();
 
@@ -217,15 +226,19 @@ void IntervalView::setWarning(bool warning)
 
 const QBrush& IntervalView::intervalColor(const Process::Style& skin) const
 {
-  if (isSelected())
+  if(m_dropTarget)
+  {
+    return skin.IntervalDropTarget.getBrush();
+  }
+  else if (m_selected)
   {
     return skin.IntervalSelected.getBrush();
   }
-  else if (warning())
+  else if (m_warning)
   {
     return skin.IntervalWarning.getBrush();
   }
-  else if (!isValid() || m_state == IntervalExecutionState::Disabled)
+  else if (!m_validInterval || m_state == IntervalExecutionState::Disabled)
   {
     return skin.IntervalInvalid.getBrush();
   }
@@ -275,5 +288,29 @@ void IntervalView::setExecutionState(IntervalExecutionState s)
 {
   m_state = s;
   update();
+}
+
+void IntervalView::dragEnterEvent(QGraphicsSceneDragDropEvent* event)
+{
+  QGraphicsItem::dragEnterEvent(event);
+  m_dropTarget = true;
+  updateOverlay();
+  event->accept();
+}
+
+void IntervalView::dragLeaveEvent(QGraphicsSceneDragDropEvent* event)
+{
+  QGraphicsItem::dragLeaveEvent(event);
+  m_dropTarget = false;
+  updateOverlay();
+  event->accept();
+}
+
+void IntervalView::dropEvent(QGraphicsSceneDragDropEvent* event)
+{
+  dropReceived(event->pos(), *event->mimeData());
+  m_dropTarget = false;
+
+  event->accept();
 }
 }

@@ -4,9 +4,9 @@ cache:
   directories:
   - $HOME/travis-cache
 
-osx_image: xcode10
-
-dist: trusty
+osx_image: xcode10.2
+language: minimal
+dist: xenial
 sudo: required
 services:
   - docker

@@ -1,6 +1,7 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "ScenarioValidity.hpp"
+#include <Process/TimeValueSerialization.hpp>
 
 namespace Scenario
 {
@@ -38,7 +39,10 @@ void ScenarioValidityChecker::checkValidity(const ProcessModel& scenar)
     SCORE_ASSERT(dur.minDuration() >= TimeVal{0});
     SCORE_ASSERT(dur.minDuration() <= dur.maxDuration());
     SCORE_ASSERT(
-        dur.maxDuration() >= TimeVal{0} || dur.maxDuration().isInfinite());
+        (qFuzzyCompare(dur.defaultDuration().msec(), dur.maxDuration().msec()))
+          || dur.defaultDuration() < dur.maxDuration()
+          || dur.maxDuration().isInfinite());
+    /*
     if (dur.isRigid())
     {
       SCORE_ASSERT(dur.minDuration() == dur.defaultDuration());
@@ -53,6 +57,7 @@ void ScenarioValidityChecker::checkValidity(const ProcessModel& scenar)
       {
       }
     }
+    */
   }
 
   for (const StateModel& state : scenar.states)

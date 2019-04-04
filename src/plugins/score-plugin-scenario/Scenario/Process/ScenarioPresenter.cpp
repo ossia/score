@@ -229,9 +229,14 @@ const Id<Process::ProcessModel>& ScenarioPresenter::modelId() const
   return m_layer.id();
 }
 
-Point ScenarioPresenter::toScenarioPoint(QPointF pt) const
+Point ScenarioPresenter::toScenarioPoint(QPointF pt) const noexcept
 {
   return ConvertToScenarioPoint(pt, zoomRatio(), view().height());
+}
+
+QPointF ScenarioPresenter::fromScenarioPoint(const Scenario::Point& pt) const noexcept
+{
+  return ConvertFromScenarioPoint(pt, zoomRatio(), view().height());
 }
 
 void ScenarioPresenter::setWidth(qreal width)
@@ -339,9 +344,12 @@ void ScenarioPresenter::fillContextMenu(
 void ScenarioPresenter::drawDragLine(const StateModel& st, Point pt) const
 {
   auto& real_st = m_states.at(st.id());
+  auto& ev = Scenario::parentEvent(m_layer.states.at(st.id()), m_layer);
+  auto diff = pt.date - ev.date();
   m_view->drawDragLine(
       real_st.view()->pos(),
-      {pt.date.toPixels(m_zoomRatio), pt.y * m_view->height()});
+      {pt.date.toPixels(m_zoomRatio), pt.y * m_view->height()},
+      diff.toString());
 }
 
 void ScenarioPresenter::stopDrawDragLine() const

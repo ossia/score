@@ -66,12 +66,15 @@ void ScenarioView::paint_impl(QPainter* painter) const
     painter->drawLine(rec.bottomLeft(), rec.bottomRight());
     painter->drawEllipse(rec.bottomRight(), 3., 3.);
     painter->setRenderHint(QPainter::Antialiasing, false);
+
+    painter->drawText(rec.adjusted(5, -15, 0, -3), Qt::TextDontClip, m_dragText);
   }
 }
 
-void ScenarioView::drawDragLine(QPointF left, QPointF right)
+void ScenarioView::drawDragLine(QPointF left, QPointF right, const QString& txt)
 {
   m_dragLine = QRectF(left, right);
+  m_dragText = txt;
   update();
 }
 

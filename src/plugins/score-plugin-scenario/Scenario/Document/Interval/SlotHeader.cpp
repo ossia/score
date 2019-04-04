@@ -240,7 +240,7 @@ void SlotDragOverlay::paint(
   const auto& style = Process::Style::instance();
   auto c = style.IntervalBase.getBrush().color();
   c.setAlphaF(0.2);
-  painter->fillRect(interval.view()->boundingRect(), c);
+  painter->fillRect(interval.view()->boundingRect().adjusted(0, 12, 0, 0), c);
   painter->fillRect(m_drawnRect, QColor::fromRgbF(0.6, 0.6, 1., 0.8));
   painter->setPen(QPen(QColor::fromRgbF(0.6, 0.6, 1., 0.7), 2));
   painter->drawRect(m_drawnRect);

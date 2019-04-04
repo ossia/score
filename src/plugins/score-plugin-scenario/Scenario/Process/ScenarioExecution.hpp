@@ -7,7 +7,7 @@
 #include <Scenario/Document/State/StateExecution.hpp>
 #include <Scenario/Document/TimeSync/TimeSyncExecution.hpp>
 #include <Scenario/Tools/dataStructures.hpp>
-
+#include <Scenario/Document/Graph.hpp>
 #include <score/model/IdentifiedObjectMap.hpp>
 #include <score/model/Identifier.hpp>
 #include <score/tools/std/Optional.hpp>
@@ -147,6 +147,17 @@ protected:
   Scenario::CSPCoherencyCheckerInterface* m_checker{};
   QVector<Id<Scenario::TimeSyncModel>> m_pastTn{};
   Scenario::ElementsProperties m_properties{};
+
+  Scenario::TimenodeGraph m_graph;
+  /*
+  struct GhostInterval {
+    std::shared_ptr<ossia::time_interval> interval;
+    std::shared_ptr<ossia::time_event> end_event;
+  };
+
+  std::vector<GhostInterval> m_ghosts;
+  std::shared_ptr<ossia::time_event> m_ghost_start;
+  */
 };
 
 using ScenarioComponentHierarchy = HierarchicalScenarioComponent<

@@ -184,12 +184,14 @@ public:
     rate->clear();
     for (int sr : {22050, 32000, 44100, 48000, 88200, 96000, 192000})
     {
-      PaStreamParameters iParams{}, oParams{};
+      /*
+      PaStreamParameters iParams{};
       iParams.device = input.dev_idx;
       iParams.channelCount = input.inputChan;
       iParams.sampleFormat = paFloat32;
       iParams.suggestedLatency = 0.02;
-
+      */
+      PaStreamParameters oParams{};
       oParams.device = output.dev_idx;
       oParams.channelCount = output.outputChan;
       oParams.sampleFormat = paFloat32;

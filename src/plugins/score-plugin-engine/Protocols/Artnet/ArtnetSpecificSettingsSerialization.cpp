@@ -1,3 +1,5 @@
+#include <ossia/detail/config.hpp>
+#if defined(OSSIA_PROTOCOL_ARTNET)
 #include "ArtnetSpecificSettings.hpp"
 
 #include <score/serialization/DataStreamVisitor.hpp>
@@ -28,3 +30,4 @@ template <>
 void JSONObjectWriter::write(Protocols::ArtnetSpecificSettings& n)
 {
 }
+#endif

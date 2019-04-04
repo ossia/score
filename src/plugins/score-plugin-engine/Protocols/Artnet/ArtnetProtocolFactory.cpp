@@ -1,4 +1,5 @@
-
+#include <ossia/detail/config.hpp>
+#if defined(OSSIA_PROTOCOL_ARTNET)
 #include "ArtnetProtocolFactory.hpp"
 
 #include "ArtnetDevice.hpp"
@@ -61,3 +62,4 @@ bool ArtnetProtocolFactory::checkCompatibility(
   return false; //  TODO
 }
 }
+#endif

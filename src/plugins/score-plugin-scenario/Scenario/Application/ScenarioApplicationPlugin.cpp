@@ -42,6 +42,7 @@
 #include <score/plugins/application/GUIApplicationPlugin.hpp>
 #include <score/plugins/documentdelegate/DocumentDelegateModel.hpp>
 
+#include <Scenario/Application/Drops/AutomationDropHandler.hpp>
 #include <core/application/ApplicationSettings.hpp>
 #include <core/document/Document.hpp>
 #include <core/document/DocumentModel.hpp>
@@ -154,6 +155,15 @@ ScenarioApplicationPlugin::ScenarioApplicationPlugin(
       }
     }
   });
+}
+
+void ScenarioApplicationPlugin::initialize()
+{
+  // Needs a delayed init because it scans all the registered factories
+  auto& droppers = context.interfaces<Scenario::DropHandlerList>();
+  auto dropper = (DropProcessInScenario*)droppers.get(DropProcessInScenario::static_concreteKey());
+  SCORE_ASSERT(dropper);
+  dropper->init();
 }
 
 auto ScenarioApplicationPlugin::makeGUIElements() -> GUIElements

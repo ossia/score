@@ -60,7 +60,8 @@ public:
    * Maps a point in item coordinates
    * to a point in scenario model coordinates (time; y percentage)
    */
-  Scenario::Point toScenarioPoint(QPointF pt) const;
+  Scenario::Point toScenarioPoint(QPointF pt) const noexcept;
+  QPointF fromScenarioPoint(const Scenario::Point& pt) const noexcept;
 
   void setWidth(qreal width) override;
   void setHeight(qreal height) override;
