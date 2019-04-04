@@ -10,7 +10,7 @@
 #include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
 #include <Scenario/Document/TimeSync/TimeSyncPresenter.hpp>
 
-#if !defined(SCORE_ALL_UNITY)
+#if !defined(SCORE_ALL_UNITY) && !defined(__MINGW32__)
 extern template class SCORE_PLUGIN_SCENARIO_EXPORT
     score::EntityMap<Scenario::IntervalModel>;
 extern template class SCORE_PLUGIN_SCENARIO_EXPORT

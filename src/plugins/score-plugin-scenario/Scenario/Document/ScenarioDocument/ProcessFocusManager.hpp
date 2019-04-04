@@ -4,7 +4,7 @@
 #include <QObject>
 #include <QPointer>
 
-#include <score_lib_process_export.h>
+#include <score_plugin_scenario_export.h>
 #include <wobjectdefs.h>
 namespace score
 {
@@ -33,7 +33,8 @@ class SCORE_PLUGIN_SCENARIO_EXPORT ProcessFocusManager final : public QObject
   W_OBJECT(ProcessFocusManager)
 
 public:
-  ProcessFocusManager(score::FocusManager& fmgr) : m_mgr{fmgr} {}
+  ProcessFocusManager(score::FocusManager& fmgr);
+  ~ProcessFocusManager();
 
   const ProcessModel* focusedModel() const;
   LayerPresenter* focusedPresenter() const;

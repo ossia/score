@@ -1,4 +1,4 @@
-#if !defined(SCORE_ALL_UNITY)
+#if !defined(SCORE_ALL_UNITY) && !defined(__MINGW32__)
 
 #include <Scenario/Instantiations.hpp>
 
