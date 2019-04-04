@@ -37,6 +37,7 @@ class QToolButton;
 namespace color_widgets
 {
 class ColorPaletteModel;
+class Swatch;
 }
 
 namespace Scenario
@@ -113,6 +114,7 @@ private:
   score::MarginLess<QVBoxLayout> m_metadataLayout;
   QLineEdit m_labelLine;
   CommentEdit m_comments;
+  color_widgets::Swatch* m_palette_widget;
   QPixmap m_colorButtonPixmap{4 * m_colorIconSize / 3,
                               4 * m_colorIconSize / 3};
 

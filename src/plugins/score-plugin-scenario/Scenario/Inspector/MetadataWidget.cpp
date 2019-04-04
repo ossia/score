@@ -21,7 +21,9 @@
 #include <QSize>
 #include <QToolButton>
 #include <QWidgetAction>
-#include <QtColorWidgets/color_palette_widget.hpp>
+#include <QtColorWidgets/color_palette.hpp>
+#include <QtColorWidgets/color_palette_model.hpp>
+#include <QtColorWidgets/swatch.hpp>
 
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Scenario::MetadataWidget)
@@ -91,23 +93,22 @@ MetadataWidget::MetadataWidget(
     using namespace color_widgets;
     static auto& color_palette = colorPalette();
 
-    auto palette_widget = new Swatch{this};
+    m_palette_widget = new Swatch(this);
+    m_palette_widget->setPalette(color_palette.palette(0));
+    m_palette_widget->setReadOnly(true);
 
-    palette_widget->setPalette(color_palette.palette(0));
-    palette_widget->setReadOnly(true);
-
-    palette_widget->setColorSize(QSize(20, 20));
-    palette_widget->setColorSizePolicy(Swatch::ColorSizePolicy::Fixed);
-    palette_widget->setSelection(QPen(QColor(0, 0, 0), 2));
-    palette_widget->setBorder(QPen(Qt::transparent));
+    m_palette_widget->setColorSize(QSize(20, 20));
+    m_palette_widget->setColorSizePolicy(Swatch::ColorSizePolicy::Fixed);
+    m_palette_widget->setSelection(QPen(QColor(0, 0, 0), 2));
+    m_palette_widget->setBorder(QPen(Qt::transparent));
 
     int forced_rows = 2;
-    palette_widget->setForcedRows(forced_rows);
-    palette_widget->setMaximumWidth(
-        20 * palette_widget->colorCount() / forced_rows);
-    palette_widget->setMaximumHeight(20 * forced_rows);
+    m_palette_widget->setForcedRows(forced_rows);
+    m_palette_widget->setMaximumWidth(
+        20 * m_palette_widget->colorCount() / forced_rows);
+    m_palette_widget->setMaximumHeight(20 * forced_rows);
 
-    connect(palette_widget, &Swatch::selectedChanged, this, [=](int idx) {
+    connect(m_palette_widget, &Swatch::selectedChanged, this, [=](int idx) {
       auto colors = color_palette.palette(0).colors();
 
       if (idx >= 0 && idx < colors.size())
@@ -123,17 +124,18 @@ MetadataWidget::MetadataWidget(
         &score::ModelMetadata::ColorChanged,
         this,
         [=](const score::ColorRef& str) {
-          auto palette = palette_widget->palette();
+          auto palette = m_palette_widget->palette();
           auto color = str.getBrush().color();
           for (int i = 0; i < palette.count(); i++)
           {
             if (palette.colorAt(i) == color)
             {
-              palette_widget->setSelected(i);
+              m_palette_widget->setSelected(i);
+              break;
             }
           }
         });
-    m_metadataLayout.addWidget(palette_widget);
+    m_metadataLayout.addWidget(m_palette_widget);
   }
 
   con(m_labelLine, &QLineEdit::editingFinished, [=]() {
@@ -157,5 +159,16 @@ void MetadataWidget::updateAsked()
 {
   m_labelLine.setText(m_metadata.getLabel());
   m_comments.setText(m_metadata.getComment());
+
+  auto palette = m_palette_widget->palette();
+  auto color = m_metadata.getColor().getBrush().color();
+  for (int i = 0; i < m_palette_widget->colorCount(); i++)
+  {
+    if (palette.colorAt(i) == color)
+    {
+      m_palette_widget->setSelected(i);
+      break;
+    }
+  }
 }
 }
