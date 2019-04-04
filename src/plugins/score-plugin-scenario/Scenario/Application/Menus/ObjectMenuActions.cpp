@@ -76,9 +76,7 @@ ObjectMenuActions::ObjectMenuActions(ScenarioApplicationPlugin* parent)
 
   // REMOVE - todo, put me in "core application plugin" instead
   m_removeElements = new QAction{tr("Remove selected elements"), this};
-  m_removeElements->setShortcut(Qt::Key_Backspace); // NOTE : the effective
-                                                    // shortcut is in
-                                                    // ../ScenarioActions.hpp
+  // NOTE : the shortcut is defined in ScenarioActions.hpp
   m_removeElements->setShortcutContext(Qt::WidgetWithChildrenShortcut);
   connect(m_removeElements, &QAction::triggered, [this]() {
     auto& ctx = m_parent->currentDocument()->context();

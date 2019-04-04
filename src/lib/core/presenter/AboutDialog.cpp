@@ -185,6 +185,17 @@ AboutDialog::AboutDialog(QWidget* parent)
       = License{"https://libusb.info/",
                 "GNU Lesser General Public License v2.1 or any later version"};
 
+  //! Note : if there is a build error around here, you need to
+  //! reset the _score_license_written CMake variable to zero
+  //! (it will then add the missing license which have been added in a more
+  //! recent commit - see score/src/lib/CMakeLists.txt at the end
+  map["phantomstyle"]
+      = License{"https://github.com/randrew/phantomstyle",
+                phantomstyle_LICENSE};
+  map["hsluvc"]
+      = License{"",
+      hsluv_LICENSE};
+
   // software list
   auto softwareList = new QListWidget{this};
   softwareList->move(145, 230);
