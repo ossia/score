@@ -312,6 +312,36 @@ void VSTWindow::resize(int w, int h)
   setup_rect(this, w, h);
 }
 
+QWidget* VSTFloatSlider::make_widget(
+    AEffect* fx,
+    VSTControlInlet& inlet,
+    const score::DocumentContext& ctx,
+    QWidget* parent,
+    QObject* context)
+{
+  auto sl = new Control::ValueDoubleSlider{parent};
+  sl->min = 0.;
+  sl->max = 1.;
+  sl->setValue(ossia::convert<double>(inlet.value()));
+
+  QObject::connect(
+      sl, &Control::ValueDoubleSlider::sliderMoved, context, [=, &inlet, &ctx] {
+        sl->moving = true;
+        ctx.dispatcher.submit<SetVSTControl>(inlet, sl->value());
+      });
+  QObject::connect(
+      sl, &Control::ValueDoubleSlider::sliderReleased, context, [&ctx, sl]() {
+        ctx.dispatcher.commit();
+        sl->moving = false;
+      });
+
+  QObject::connect(&inlet, &VSTControlInlet::valueChanged, sl, [=](float val) {
+    if (!sl->moving)
+      sl->setValue(val);
+  });
+
+  return sl;
+}
 QGraphicsItem* VSTFloatSlider::make_item(
     AEffect* fx,
     VSTControlInlet& inlet,

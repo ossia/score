@@ -372,6 +372,14 @@ Execution::ProcessComponent* EffectProcessComponentBase::make(
           system().context().setup.unregister_node(process().inlets(), process().outlets(), old, commands);
           m_passthrough.reset();
         }
+        else {
+          commands.push_back([
+                             proc = m_ossia_process,
+                             new_node = fx->node] () mutable {
+            proc->node = new_node;
+          });
+        }
+
         // only effect, goes to end of process
         this_fx.registeredOutlets[0] = process().outlet.get();
         reg(this_fx, commands);

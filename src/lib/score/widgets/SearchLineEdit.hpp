@@ -1,12 +1,13 @@
 #pragma once
 #include <QAction>
 #include <QLineEdit>
+#include <score_lib_base_export.h>
 #include <wobjectdefs.h>
 
 namespace score
 {
 
-class SearchLineEdit : public QLineEdit
+class SCORE_LIB_BASE_EXPORT SearchLineEdit : public QLineEdit
 {
   W_OBJECT(SearchLineEdit)
 public:

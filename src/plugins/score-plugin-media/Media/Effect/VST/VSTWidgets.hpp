@@ -11,6 +11,7 @@
 #include <QTimer>
 
 #include <Control/Widgets.hpp>
+#include <Process/Inspector/GenericProcessInspector.hpp>
 #include <wobjectdefs.h>
 
 namespace Media::VST
@@ -119,6 +120,12 @@ private:
 
 struct VSTFloatSlider : ossia::safe_nodes::control_in
 {
+  static QWidget* make_widget(
+      AEffect* fx,
+      VSTControlInlet& inlet,
+      const score::DocumentContext& ctx,
+      QWidget* parent,
+      QObject* context);
   static QGraphicsItem* make_item(
       AEffect* fx,
       VSTControlInlet& inlet,
@@ -160,5 +167,18 @@ private:
 
 using LayerFactory
     = Process::EffectLayerFactory_T<VSTEffectModel, VSTEffectItem, VSTWindow>;
+
+class VSTInspector final
+    : public Process::GenericInspectorWidget<VSTEffectModel>
+{
+public:
+  using GenericInspectorWidget::GenericInspectorWidget;
+};
+
+class VSTInspectorFactory final
+    : public Process::InspectorWidgetDelegateFactory_T<VSTEffectModel, VSTInspector>
+{
+  SCORE_CONCRETE("26a8d3ef-1a77-4d58-961b-a43d7539bc22")
+};
 }
 #endif
