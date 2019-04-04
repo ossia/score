@@ -9,10 +9,11 @@
 W_OBJECT_IMPL(Process::ProcessFocusManager)
 namespace Process
 {
-
-const ProcessModel* ProcessFocusManager::focusedModel() const
-{
-  return m_currentModel;
+  ProcessFocusManager::ProcessFocusManager(score::FocusManager& fmgr) : m_mgr{fmgr} {}
+  ProcessFocusManager::~ProcessFocusManager() {}
+  const ProcessModel* ProcessFocusManager::focusedModel() const
+  {
+    return m_currentModel;
 }
 
 LayerPresenter* ProcessFocusManager::focusedPresenter() const
