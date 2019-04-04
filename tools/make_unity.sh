@@ -27,8 +27,7 @@ echo "$HOME/i-score/API/3rdparty/ModernMIDI/ModernMIDI/music_theory.cpp" | awk '
 echo "$HOME/i-score/API/3rdparty/ModernMIDI/third_party/rtmidi/RtMidi.cpp" | awk '{ print "#include \"" $1  "\""} ' >> /tmp/out.cpp
 
 # -enable-checker alpha.clone.CloneChecker \ too much false positive for now
-
-CXX=clang++ scan-build \
+CC="clang -O3 -flto" CXX="clang++ -O3 -flto" scan-build -o html \
     -disable-checker deadcode.DeadStores \
     -enable-checker core.DivideZero \
     -enable-checker core.CallAndMessage \
@@ -44,6 +43,8 @@ CXX=clang++ scan-build \
     -enable-checker alpha.core.TestAfterDivZero \
     -enable-checker alpha.cplusplus.IteratorRange \
     -enable-checker alpha.cplusplus.MisusedMovedObject \
+    -enable-checker alpha.cplusplus.UninitializedObject \
+    -enable-checker alpha.deadcode.UnreachableCode \
     -enable-checker alpha.security.ArrayBoundV2 \
     -enable-checker alpha.security.MallocOverflow \
     -enable-checker alpha.security.ReturnPtrRange \
@@ -55,8 +56,14 @@ CXX=clang++ scan-build \
     -enable-checker alpha.core.FixedAddr \
     -enable-checker optin.performance.Padding \
     -enable-checker security.insecureAPI.strcpy \
-    build.sh
-
+    ./build.sh
+    
+    -enable-checker alpha.cplusplus.InvalidatedIterator \
+    -enable-checker alpha.cplusplus.MismatchedIterator \
+    -enable-checker alpha.cplusplus.Move \
+    -enable-checker alpha.nondeterminism.PointerSorting \
+    
+    
     clang++ -O3 -fPIC -march=native -std=c++1z \
     -DASIO_STANDALONE=1 -DBOOST_MULTI_INDEX_ENABLE_INVARIANT_CHECKING \
     -DBOOST_MULTI_INDEX_ENABLE_SAFE_MODE -DQT_CORE_LIB \

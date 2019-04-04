@@ -5,7 +5,7 @@
 #include <Process/Dataflow/Cable.hpp>
 #include <Process/Dataflow/PortFactory.hpp>
 #include <Process/Dataflow/PortListWidget.hpp>
-
+#include <Control/Widgets.hpp>
 #include <score/model/path/PathSerialization.hpp>
 
 #include <ossia-qt/value_metatypes.hpp>
@@ -280,6 +280,46 @@ void PortFactory::setupOutletInspector(
     QObject* context)
 {
   PortWidgetSetup::setupInLayout(port, ctx, lay, parent);
+}
+
+
+QWidget* PortFactory::makeControlWidget(
+      ControlInlet& port,
+      const score::DocumentContext& ctx,
+      QGraphicsItem* parent,
+      QObject* context)
+{
+  return nullptr;
+}
+
+QGraphicsItem* PortFactory::makeControlItem(
+      ControlInlet& port,
+      const score::DocumentContext& ctx,
+      QGraphicsItem* parent,
+      QObject* context)
+{
+  auto& dom = port.domain().get();
+  if (bool(dom))
+  {
+    auto min = dom.convert_min<float>();
+    auto max = dom.convert_max<float>();
+    struct
+    {
+      float min, max;
+      float getMin() const { return min; }
+      float getMax() const { return max; }
+    } info{min, max};
+    return WidgetFactory::FloatSlider::make_item(info, port, ctx, nullptr, context);
+  }
+  else
+  {
+    struct SliderInfo
+    {
+      static float getMin() { return 0.; }
+      static float getMax() { return 1.; }
+    };
+    return WidgetFactory::FloatSlider::make_item(SliderInfo{}, port, ctx, nullptr, context);
+  }
 }
 
 Port* PortFactoryList::loadMissing(const VisitorVariant& vis, QObject* parent)

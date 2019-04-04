@@ -57,15 +57,10 @@ public:
       E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, intervalHoverEnter);
   void intervalHoverLeave()
       E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, intervalHoverLeave);
-  void dropReceived(const QPointF& pos, const QMimeData& arg_2)
-      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, dropReceived, pos, arg_2);
 
 private:
   void hoverEnterEvent(QGraphicsSceneHoverEvent* h) override;
   void hoverLeaveEvent(QGraphicsSceneHoverEvent* h) override;
-  void dragEnterEvent(QGraphicsSceneDragDropEvent* event) override;
-  void dragLeaveEvent(QGraphicsSceneDragDropEvent* event) override;
-  void dropEvent(QGraphicsSceneDragDropEvent* event) override;
 
   void updatePaths() final override;
   void updatePlayPaths() final override;

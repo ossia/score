@@ -1,4 +1,5 @@
-
+#include <ossia/detail/config.hpp>
+#if defined(OSSIA_PROTOCOL_ARTNET)
 #include "ArtnetDevice.hpp"
 
 #include "ArtnetSpecificSettings.hpp"
@@ -55,3 +56,4 @@ void ArtnetDevice::disconnect()
   OwningDeviceInterface::disconnect();
 }
 }
+#endif

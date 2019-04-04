@@ -50,7 +50,10 @@ public:
   void on_releaseAreaSelection() override
   {
     if (m_parentSM.scenePoint == m_initialPoint)
-      on_deselect();
+    {
+      dispatcher.setAndCommit(Selection{});
+      dispatcher.setAndCommit(Selection{&m_parentSM.model()});
+    }
 
     m_scenarioView.setSelectionArea(QRectF{});
   }

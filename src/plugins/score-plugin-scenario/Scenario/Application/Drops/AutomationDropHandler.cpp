@@ -18,6 +18,7 @@
 
 #include <score/document/DocumentContext.hpp>
 
+#include <Scenario/Commands/Metadata/ChangeElementName.hpp>
 #include <ossia/detail/thread.hpp>
 #include <ossia/network/value/value_traits.hpp>
 
@@ -29,139 +30,219 @@ class DropProcessInScenarioHelper
 {
 public:
   DropProcessInScenarioHelper(
+      MagneticStates m_magnetic,
       const Scenario::ScenarioPresenter& pres,
       QPointF pos,
       TimeVal maxdur)
-      : m_sequence{bool(qApp->keyboardModifiers() & Qt::ShiftModifier)}
-      , m_pres{pres}
-      , m_pos{pos}
-      , m_macro{new Command::AddProcessInNewBoxMacro, pres.context().context}
+    : m_sequence{bool(qApp->keyboardModifiers() & Qt::ShiftModifier)}
+    , m_pres{pres}
+    , m_pos{pos}
+    , m_macro{new Command::AddProcessInNewBoxMacro, pres.context().context}
   {
-    if (!m_sequence)
-    {
-      const Scenario::ProcessModel& scenar = pres.model();
-      Scenario::Point pt = pres.toScenarioPoint(pos);
-      m_itv = &m_macro.createBox(scenar, pt.date, pt.date + maxdur, pt.y);
-    }
-  }
+    auto& m = m_macro;
+    const auto& scenar = pres.model();
+    Scenario::Point pt = pres.toScenarioPoint(pos);
 
-  template <typename F>
-  auto addProcess(F&& fun, TimeVal duration) -> decltype(auto)
-  {
-    if (m_sequence)
+    auto [x_state, y_state, magnetic] = m_magnetic;
+        if(y_state)
     {
-      const Scenario::ProcessModel& scenar = m_pres.model();
-      Scenario::Point pt = m_pres.toScenarioPoint(m_pos);
-      if (m_itv)
+      m_intervalY = pt.y;
+      if(magnetic || pt.date <= scenar.event(y_state->eventId()).date())
       {
-        auto last_state = m_itv->endState();
-        pt.date
-            = Scenario::parentEvent(scenar.state(last_state), scenar).date()
-              + duration;
-        m_itv = &m_macro.createIntervalAfter(scenar, last_state, pt);
-        decltype(auto) proc = fun(m_macro, *m_itv);
-        m_macro.showRack(*m_itv);
-        return proc;
+        // Create another state on that event and put the process afterwards
+        m_createdState = m.createState(scenar, y_state->eventId(), m_intervalY).id();
       }
       else
       {
-        m_itv = &m_macro.createBox(scenar, pt.date, pt.date + duration, pt.y);
-        decltype(auto) proc = fun(m_macro, *m_itv);
-        m_macro.showRack(*m_itv);
-        return proc;
+        auto& s = m.createState(scenar, y_state->eventId(), m_intervalY);
+        auto& i = m.createIntervalAfter(scenar, s.id(), {pt.date, m_intervalY});
+        m_createdState = i.endState();
+      }
+    }
+    else if (x_state)
+    {
+      if (x_state->nextInterval())
+      {
+        // We create from the event instead
+        m_intervalY = pt.y;
+        auto& s = m.createState(scenar, x_state->eventId(), m_intervalY);
+        auto& i = m.createIntervalAfter(scenar, s.id(), {pt.date, m_intervalY});
+        m_createdState = i.endState();
+      }
+      else
+      {
+        m_intervalY = magnetic ? x_state->heightPercentage() : pt.y;
+
+        auto& i = m.createIntervalAfter(
+              scenar, x_state->id(), {pt.date, m_intervalY});
+        m_createdState = i.endState();
       }
     }
     else
     {
-      return fun(m_macro, *m_itv);
+      // We create in the emptiness
+      const auto& [t, e, s] = m.createDot(scenar, pt);
+          m_createdState = s.id();
     }
-  }
 
-  void commit()
+          if (!m_sequence)
+      {
+        // Everything will go in a single interval
+        m_itv = &m.createIntervalAfter(scenar, m_createdState, Scenario::Point{pt.date + maxdur, m_intervalY});
+      }
+    }
+
+    template <typename F>
+    auto addProcess(F&& fun, TimeVal duration) -> decltype(auto)
+    {
+      // sequence : processes are put all one after the other
+      if (m_sequence)
+      {
+        const Scenario::ProcessModel& scenar = m_pres.model();
+        Scenario::Point pt = m_pres.toScenarioPoint(m_pos);
+        if (m_itv)
+        {
+          // We already created the first interval / process
+          auto last_state = m_itv->endState();
+          pt.date
+              = Scenario::parentEvent(scenar.state(last_state), scenar).date()
+              + duration;
+          m_itv = &m_macro.createIntervalAfter(scenar, last_state, {pt.date, m_intervalY});
+          decltype(auto) proc = fun(m_macro, *m_itv);
+          m_macro.showRack(*m_itv);
+          return proc;
+        }
+        else
+        {
+          // We create the first interval / process
+          m_itv = &m_macro.createIntervalAfter(scenar, m_createdState, pt);
+          decltype(auto) proc = fun(m_macro, *m_itv);
+          m_macro.showRack(*m_itv);
+          return proc;
+        }
+      }
+      else
+      {
+        return fun(m_macro, *m_itv);
+      }
+    }
+
+    void commit()
+    {
+      if (!m_sequence)
+        m_macro.showRack(*m_itv);
+
+      m_macro.commit();
+    }
+
+    Scenario::IntervalModel& interval() { return *m_itv; }
+    Scenario::Command::Macro& macro() { return m_macro; }
+
+    private:
+    const bool m_sequence{};
+    double m_intervalY{};
+    const Scenario::ScenarioPresenter& m_pres;
+    QPointF m_pos;
+    Scenario::Command::Macro m_macro;
+    Scenario::IntervalModel* m_itv{};
+    Id<StateModel> m_createdState;
+  };
+
+  class DropProcessInIntervalHelper
   {
-    if (!m_sequence)
-      m_macro.showRack(*m_itv);
-
-    m_macro.commit();
-  }
-
-  Scenario::Command::Macro& macro() { return m_macro; }
-
-private:
-  const bool m_sequence;
-  const Scenario::ScenarioPresenter& m_pres;
-  QPointF m_pos;
-  Scenario::Command::Macro m_macro;
-  Scenario::IntervalModel* m_itv{};
-};
-
-class DropProcessInIntervalHelper
-{
-public:
-  DropProcessInIntervalHelper(
-      const Scenario::IntervalModel& interval,
-      optional<TimeVal> maxdur)
+  public:
+    DropProcessInIntervalHelper(
+        const Scenario::IntervalModel& interval,
+        optional<TimeVal> maxdur)
       : m_context{score::IDocument::documentContext(interval)}
       , m_macro{new Command::AddProcessInNewBoxMacro, m_context}
       , m_itv{interval}
-  {
-    // If the interval has no processes and nothing after, we will resize it
-    if (interval.processes.empty() && maxdur)
     {
-      if (auto resizer
-          = m_context.app.interfaces<Scenario::IntervalResizerList>().make(
+      // If the interval has no processes and nothing after, we will resize it
+      if (interval.processes.empty() && maxdur)
+      {
+        if (auto resizer
+            = m_context.app.interfaces<Scenario::IntervalResizerList>().make(
               m_itv, *maxdur))
-        m_macro.submit(resizer);
+          m_macro.submit(resizer);
+      }
+    }
+
+    template <typename F>
+    auto addProcess(F&& fun) -> decltype(auto)
+    {
+      return fun(m_macro, m_itv);
+    }
+
+    void commit()
+    {
+      m_macro.showRack(m_itv);
+      m_macro.commit();
+    }
+
+    Scenario::Command::Macro& macro() { return m_macro; }
+
+  private:
+    const score::DocumentContext& m_context;
+    Scenario::Command::Macro m_macro;
+    const Scenario::IntervalModel& m_itv;
+  };
+
+  DropProcessInScenario::DropProcessInScenario()
+  {
+  }
+
+  void DropProcessInScenario::init()
+  {
+    const auto& handlers = score::GUIAppContext().interfaces<Process::ProcessDropHandlerList>();
+    for(auto& handler : handlers)
+    {
+      for(auto& type : handler.mimeTypes())
+        m_acceptableMimeTypes.push_back(type);
+      for(auto& ext : handler.fileExtensions())
+        m_acceptableSuffixes.push_back(ext);
     }
   }
-
-  template <typename F>
-  auto addProcess(F&& fun) -> decltype(auto)
+  bool DropProcessInScenario::drop(
+      const ScenarioPresenter& pres,
+      QPointF pos,
+      const QMimeData& mime)
   {
-    return fun(m_macro, m_itv);
-  }
+    const auto& ctx = pres.context().context;
+    const auto& handlers = ctx.app.interfaces<Process::ProcessDropHandlerList>();
 
-  void commit()
-  {
-    m_macro.showRack(m_itv);
-    m_macro.commit();
-  }
-
-  Scenario::Command::Macro& macro() { return m_macro; }
-
-private:
-  const score::DocumentContext& m_context;
-  Scenario::Command::Macro m_macro;
-  const Scenario::IntervalModel& m_itv;
-};
-
-bool DropProcessInScenario::drop(
-    const ScenarioPresenter& pres,
-    QPointF pos,
-    const QMimeData& mime)
-{
-  const auto& ctx = pres.context().context;
-  const auto& handlers = ctx.app.interfaces<Process::ProcessDropHandlerList>();
-
-  if (auto res = handlers.getDrop(mime, ctx); !res.empty())
-  {
-    auto t = handlers.getMaxDuration(res).value_or(TimeVal{10000});
-
-    DropProcessInScenarioHelper dropper(pres, pos, t);
-
-    score::Dispatcher_T disp{dropper.macro()};
-    for (const auto& proc : res)
+    if (auto res = handlers.getDrop(mime, ctx); !res.empty())
     {
-      auto p = dropper.addProcess(
-          [&](Scenario::Command::Macro& m,
+      auto t = handlers.getMaxDuration(res).value_or(TimeVal{10000});
+
+      DropProcessInScenarioHelper dropper(m_magnetic, pres, pos, t);
+
+      score::Dispatcher_T disp{dropper.macro()};
+      for (const auto& proc : res)
+      {
+        auto p = dropper.addProcess(
+              [&](Scenario::Command::Macro& m,
               const IntervalModel& itv) -> Process::ProcessModel* {
-            return m.createProcessInNewSlot(
-                itv, proc.creation.key, proc.creation.customData);
-          },
-          proc.duration ? *proc.duration : t);
+            auto p = m.createProcessInNewSlot(
+              itv, proc.creation.key, proc.creation.customData);
+            if(auto& name = proc.creation.prettyName; !name.isEmpty())
+              dropper.macro().submit(new Scenario::Command::ChangeElementName{*p, name});
+           return p;
+      },
+      proc.duration ? *proc.duration : t);
       if (p && proc.setup)
       {
         proc.setup(*p, disp);
+      }
+    }
+
+    if(res.size() == 1)
+    {
+      const auto& name = res.front().creation.prettyName;
+      auto& itv = dropper.interval();
+      if(!name.isEmpty())
+      {
+        dropper.macro().submit(new Scenario::Command::ChangeElementName{itv, name});
       }
     }
 
@@ -179,12 +260,12 @@ bool DropProcessInInterval::drop(
   if (mime.hasFormat("score/object-item-model-index"))
   {
     auto dat = score::unmarshall<Path<Process::ProcessModel>>(
-        mime.data("score/object-item-model-index"));
+                                                               mime.data("score/object-item-model-index"));
     auto proc = dat.try_find(ctx);
     if (proc->parent() == &cst)
     {
       CommandDispatcher<>{ctx.commandStack}.submit(
-          new Scenario::Command::AddLayerInNewSlot{cst, proc->id()});
+            new Scenario::Command::AddLayerInNewSlot{cst, proc->id()});
     }
     return true;
   }
@@ -200,11 +281,11 @@ bool DropProcessInInterval::drop(
     for (const auto& proc : res)
     {
       auto p = dropper.addProcess(
-          [&](Scenario::Command::Macro& m,
-              const IntervalModel& itv) -> Process::ProcessModel* {
-            return m.createProcessInNewSlot(
-                itv, proc.creation.key, proc.creation.customData);
-          });
+            [&](Scenario::Command::Macro& m,
+            const IntervalModel& itv) -> Process::ProcessModel* {
+          return m.createProcessInNewSlot(
+            itv, proc.creation.key, proc.creation.customData);
+    });
       if (p && proc.setup)
       {
         proc.setup(*p, disp);
@@ -215,6 +296,11 @@ bool DropProcessInInterval::drop(
     return true;
   }
   return false;
+}
+
+DropPortInScenario::DropPortInScenario()
+{
+  m_acceptableMimeTypes.push_back(score::mime::port());
 }
 
 bool DropPortInScenario::drop(
@@ -234,7 +320,7 @@ bool DropPortInScenario::drop(
       return false;
 
     Scenario::Command::Macro m{new Scenario::Command::AddProcessInNewBoxMacro,
-                               pres.context().context};
+          pres.context().context};
 
     // Create a box.
     const Scenario::ProcessModel& scenar = pres.model();
@@ -248,8 +334,8 @@ bool DropPortInScenario::drop(
 
     // Create process
     auto ok = port->on_createAutomation(
-        interval,
-        [&](score::Command* cmd) { m.submit(cmd); },
+          interval,
+          [&](score::Command* cmd) { m.submit(cmd); },
         pres.context().context);
     if (!ok)
     {
@@ -263,6 +349,12 @@ bool DropPortInScenario::drop(
   }
 
   return false;
+}
+
+DropScenario::DropScenario()
+{
+  // TODO give them a mime type ?
+  m_acceptableSuffixes.push_back("scenario");
 }
 
 bool DropScenario::drop(
@@ -280,14 +372,19 @@ bool DropScenario::drop(
     {
       CommandDispatcher<> d{doc.commandStack};
       d.submit(new Scenario::Command::ScenarioPasteElements(
-          sm,
-          QJsonDocument::fromJson(f.readAll()).object(),
-          pres.toScenarioPoint(pos)));
+                 sm,
+                 QJsonDocument::fromJson(f.readAll()).object(),
+                 pres.toScenarioPoint(pos)));
       return true;
     }
   }
 
   return false;
+}
+
+DropLayerInScenario::DropLayerInScenario()
+{
+  m_acceptableMimeTypes.push_back(score::mime::layerdata());
 }
 
 bool DropLayerInScenario::drop(
@@ -296,16 +393,18 @@ bool DropLayerInScenario::drop(
     const QMimeData& mime)
 {
   QJsonObject json;
+  QString filename;
   if (mime.formats().contains(score::mime::layerdata()))
   {
     json = QJsonDocument::fromJson(mime.data(score::mime::layerdata()))
-               .object();
+        .object();
   }
   else if (mime.hasUrls())
   {
     if (QFile f{mime.urls()[0].toLocalFile()};
         QFileInfo{f}.suffix() == "layer" && f.open(QIODevice::ReadOnly))
     {
+      filename = QFileInfo{f}.fileName();
       json = QJsonDocument::fromJson(f.readAll()).object();
     }
   }
@@ -314,7 +413,7 @@ bool DropLayerInScenario::drop(
     return false;
 
   Scenario::Command::Macro m{new Scenario::Command::AddProcessInNewBoxMacro,
-                             pres.context().context};
+        pres.context().context};
 
   // Create a box.
   const Scenario::ProcessModel& scenar = pres.model();
@@ -325,6 +424,8 @@ bool DropLayerInScenario::drop(
   auto& interval = m.createBox(scenar, pt.date, pt.date + t, pt.y);
 
   DropLayerInInterval::perform(interval, pres.context().context, m, json);
+
+  m.submit(new Scenario::Command::ChangeElementName{interval, filename});
   m.commit();
   return true;
 }
@@ -338,7 +439,7 @@ void DropLayerInInterval::perform(
   const auto pid = ossia::get_pid();
   const bool same_doc
       = (pid == json["PID"].toInt())
-        && (ctx.document.id().val() == json["Document"].toInt());
+      && (ctx.document.id().val() == json["Document"].toInt());
   const bool small_view = json["View"].toString() == "Small";
   const int slot_index = json["SlotIndex"].toInt();
 
@@ -381,7 +482,7 @@ void DropLayerInInterval::perform(
   {
     auto new_path = score::IDocument::path(interval).unsafePath();
     auto cables = fromJsonValueArray<Dataflow::SerializedCables>(
-        json["Cables"].toArray());
+          json["Cables"].toArray());
 
     auto& document
         = score::IDocument::get<Scenario::ScenarioDocumentModel>(ctx.document);
@@ -405,11 +506,11 @@ bool DropLayerInInterval::drop(
   if (mime.formats().contains(score::mime::layerdata()))
   {
     Scenario::Command::Macro m{
-        new Scenario::Command::DropProcessInIntervalMacro, ctx};
+      new Scenario::Command::DropProcessInIntervalMacro, ctx};
 
     const auto json
         = QJsonDocument::fromJson(mime.data(score::mime::layerdata()))
-              .object();
+        .object();
     perform(interval, ctx, m, json);
     m.commit();
     return true;
@@ -417,7 +518,7 @@ bool DropLayerInInterval::drop(
   else if (mime.hasUrls())
   {
     Scenario::Command::Macro m{
-        new Scenario::Command::DropProcessInIntervalMacro, ctx};
+      new Scenario::Command::DropProcessInIntervalMacro, ctx};
     bool ok = false;
     for (const QUrl& u : mime.urls())
     {

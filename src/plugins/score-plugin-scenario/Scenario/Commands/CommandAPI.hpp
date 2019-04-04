@@ -104,6 +104,20 @@ public:
       const IntervalModel& targetInterval,
       ExpandMode mode);
 
+  void resizeInterval(
+      const IntervalModel& itv,
+      const TimeVal& dur);
+
+  void setIntervalMin(
+      const IntervalModel& itv,
+      const TimeVal& dur,
+      bool noMin);
+
+  void setIntervalMax(
+      const IntervalModel& itv,
+      const TimeVal& dur,
+      bool infinite);
+
   void createSlot(const Scenario::IntervalModel& interval);
 
   void addLayer(

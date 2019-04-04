@@ -22,97 +22,9 @@
 
 namespace Scenario
 {
-static Scenario::StateModel*
-closestLeftState(Scenario::Point pt, const Scenario::ProcessModel& scenario)
+MessageDropHandler::MessageDropHandler()
 {
-  TimeSyncModel* cur_tn = &scenario.startTimeSync();
-  for (auto& tn : scenario.timeSyncs)
-  {
-    auto date = tn.date();
-    if (date > cur_tn->date() && date < pt.date)
-    {
-      cur_tn = &tn;
-    }
-  }
-
-  auto states = Scenario::states(*cur_tn, scenario);
-  if (!states.empty())
-  {
-    auto cur_st = &scenario.states.at(states.front());
-    for (auto state_id : states)
-    {
-      auto& state = scenario.states.at(state_id);
-      if (std::abs(state.heightPercentage() - pt.y)
-          < std::abs(cur_st->heightPercentage() - pt.y))
-      {
-        cur_st = &state;
-      }
-    }
-    return cur_st;
-  }
-  return nullptr;
-}
-
-/*
-static Scenario::StateModel* magneticLeftState(Scenario::Point pt, const
-Scenario::ProcessModel& scenario)
-{
-  Scenario::StateModel* cur_st = &*scenario.states.begin();
-
-  for(auto& state : scenario.states)
-  {
-      if(std::abs(state.heightPercentage() - pt.y) <
-std::abs(cur_st->heightPercentage() - pt.y))
-      {
-        auto& new_ev = scenario.event(state.eventId());
-        if(new_ev.date() < pt.date)
-          cur_st = &state;
-      }
-  }
-  return cur_st;
-}
-*/
-
-bool MessageDropHandler::dragEnter(
-    const Scenario::ScenarioPresenter& pres,
-    QPointF pos,
-    const QMimeData& mime)
-{
-  return dragMove(pres, pos, mime);
-}
-
-bool MessageDropHandler::dragMove(
-    const Scenario::ScenarioPresenter& pres,
-    QPointF pos,
-    const QMimeData& mime)
-{
-  if (!mime.formats().contains(score::mime::messagelist()) && !mime.hasUrls())
-    return false;
-
-  auto pt = pres.toScenarioPoint(pos);
-  auto st = closestLeftState(pt, pres.model());
-  if (st)
-  {
-    if (st->nextInterval())
-    {
-      pres.drawDragLine(*st, pt);
-    }
-    else
-    {
-      // Sequence
-      pres.drawDragLine(*st, {pt.date, st->heightPercentage()});
-    }
-  }
-  return true;
-}
-
-bool MessageDropHandler::dragLeave(
-    const Scenario::ScenarioPresenter& pres,
-    QPointF pos,
-    const QMimeData& mime)
-{
-  pres.stopDrawDragLine();
-  return false;
+  m_acceptableMimeTypes.push_back(score::mime::messagelist());
 }
 
 bool MessageDropHandler::drop(
@@ -155,21 +67,44 @@ bool MessageDropHandler::drop(
 
   Scenario::Point pt = pres.toScenarioPoint(pos);
 
-  auto state = closestLeftState(pt, scenar);
-  if (state)
+  m_magnetic = magneticStates(m_magnetic, pt, pres);
+  auto [x_state, y_state, magnetic] = m_magnetic;
+  if(y_state)
   {
-    if (state->nextInterval())
+    if(magnetic)
+    {
+      createdState = m.createState(scenar, y_state->eventId(), pt.y).id();
+    }
+    else
+    {
+      auto& s = m.createState(scenar, y_state->eventId(), pt.y);
+      auto& i = m.createIntervalAfter(scenar, s.id(), pt);
+      createdState = i.endState();
+    }
+  }
+  else if (x_state)
+  {
+    if (x_state->nextInterval())
     {
       // We create from the event instead
-      auto& s = m.createState(scenar, state->eventId(), pt.y);
+      auto& s = m.createState(scenar, x_state->eventId(), pt.y);
       auto& i = m.createIntervalAfter(scenar, s.id(), pt);
       createdState = i.endState();
     }
     else
     {
-      auto& i = m.createIntervalAfter(
-          scenar, state->id(), {pt.date, state->heightPercentage()});
-      createdState = i.endState();
+      if(magnetic)
+      {
+        auto& i = m.createIntervalAfter(
+              scenar, x_state->id(), {pt.date, x_state->heightPercentage()});
+          createdState = i.endState();
+      }
+      else
+      {
+        auto& s = m.createState(scenar, x_state->eventId(), pt.y);
+        auto& i = m.createIntervalAfter(scenar, s.id(), pt);
+        createdState = i.endState();
+      }
     }
   }
   else

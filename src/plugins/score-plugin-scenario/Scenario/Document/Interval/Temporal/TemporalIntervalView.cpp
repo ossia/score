@@ -39,7 +39,6 @@ TemporalIntervalView::TemporalIntervalView(
 {
   this->setCacheMode(QGraphicsItem::NoCache);
   this->setParentItem(parent);
-  this->setAcceptDrops(true);
 
   this->setZValue(ZPos::Interval);
 }
@@ -51,7 +50,7 @@ QRectF TemporalIntervalView::boundingRect() const
   qreal x = std::min(0., minWidth());
   qreal rectW = infinite() ? defaultWidth() : maxWidth();
   rectW -= x;
-  return {x, -4, rectW, qreal(intervalAndRackHeight())};
+  return {x, -12., rectW, qreal(intervalAndRackHeight()) + 12.};
 }
 
 const TemporalIntervalPresenter& TemporalIntervalView::presenter() const
@@ -238,7 +237,7 @@ void TemporalIntervalView::paint(
   {
     // Background
     auto rect = boundingRect();
-    rect.adjust(0, 4, 0, SlotHandle::handleHeight());
+    rect.adjust(0, 12, 0, SlotHandle::handleHeight() - 4);
     rect.setWidth(def_w);
 
     auto bgColor
@@ -326,7 +325,7 @@ void TemporalIntervalView::hoverEnterEvent(QGraphicsSceneHoverEvent* h)
   else
     unsetCursor();
 
-  updateOverlay();
+  enableOverlay(true);
   intervalHoverEnter();
 }
 
@@ -334,29 +333,9 @@ void TemporalIntervalView::hoverLeaveEvent(QGraphicsSceneHoverEvent* h)
 {
   QGraphicsItem::hoverLeaveEvent(h);
   unsetCursor();
-  updateOverlay();
+  if(!m_selected)
+    enableOverlay(false);
   intervalHoverLeave();
-}
-
-void TemporalIntervalView::dragEnterEvent(QGraphicsSceneDragDropEvent* event)
-{
-  QGraphicsItem::dragEnterEvent(event);
-  updateOverlay();
-  event->accept();
-}
-
-void TemporalIntervalView::dragLeaveEvent(QGraphicsSceneDragDropEvent* event)
-{
-  QGraphicsItem::dragLeaveEvent(event);
-  updateOverlay();
-  event->accept();
-}
-
-void TemporalIntervalView::dropEvent(QGraphicsSceneDragDropEvent* event)
-{
-  dropReceived(event->pos(), *event->mimeData());
-
-  event->accept();
 }
 
 void TemporalIntervalView::setLabel(const QString& label)
@@ -369,8 +348,11 @@ void TemporalIntervalView::enableOverlay(bool b)
 {
   if (b)
   {
-    m_overlay = new IntervalMenuOverlay{this};
-    updateOverlayPos();
+    if(!m_overlay)
+    {
+      m_overlay = new IntervalMenuOverlay{this};
+      updateOverlayPos();
+    }
   }
   else
   {

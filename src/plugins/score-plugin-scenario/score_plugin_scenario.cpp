@@ -100,6 +100,17 @@ struct WidgetInletFactory final : public AutomatablePortFactory
     auto widg = factory::make_widget(ctrl, ctrl, ctx, parent, parent);
     Process::PortWidgetSetup::setupControl(ctrl, widg, ctx, lay, parent);
   }
+
+  QGraphicsItem* makeControlItem(
+        Process::ControlInlet& port,
+        const score::DocumentContext& ctx,
+        QGraphicsItem* parent,
+        QObject* context) override
+  {
+    auto& ctrl = static_cast<Model_T&>(port);
+    using widg_t = typename Model_T::control_type;
+    return widg_t::make_item(ctrl, ctrl, ctx, nullptr, context);
+  }
 };
 }
 

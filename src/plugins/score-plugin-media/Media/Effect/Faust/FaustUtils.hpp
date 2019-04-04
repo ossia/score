@@ -7,39 +7,39 @@
 #include <ossia/dataflow/port.hpp>
 #include <ossia/network/domain/domain.hpp>
 
+#include <faust/dsp/poly-llvm-dsp.h>
+
 namespace Media
 {
 namespace Faust
 {
 
 template <typename Proc>
-struct UI
+struct UI : ::UI
 {
   Proc& fx;
-  ossia::nodes::faust_setup_ui<UI> glue{*this};
 
   UI(Proc& sfx) : fx{sfx} {}
 
-  void openTabBox(const char* label) {}
-  void openHorizontalBox(const char* label) {}
-  void openVerticalBox(const char* label) {}
-  void closeBox() {}
-  void declare(FAUSTFLOAT* zone, const char* key, const char* val)
+  void openTabBox(const char* label) override {}
+  void openHorizontalBox(const char* label) override {}
+  void openVerticalBox(const char* label) override {}
+  void closeBox() override {}
+  void declare(FAUSTFLOAT* zone, const char* key, const char* val) override
   {
-    qDebug() << "UI: " << key << val;
   }
   void
-  addSoundfile(const char* label, const char* filename, Soundfile** sf_zone)
+  addSoundfile(const char* label, const char* filename, Soundfile** sf_zone) override
   {
   }
 
-  void addButton(const char* label, FAUSTFLOAT* zone)
+  void addButton(const char* label, FAUSTFLOAT* zone) override
   {
     auto inl = new Process::Button{label, getStrongId(fx.inlets()), &fx};
     fx.inlets().push_back(inl);
   }
 
-  void addCheckButton(const char* label, FAUSTFLOAT* zone)
+  void addCheckButton(const char* label, FAUSTFLOAT* zone) override
   {
     auto inl = new Process::Toggle{
         bool(*zone), label, getStrongId(fx.inlets()), &fx};
@@ -52,7 +52,7 @@ struct UI
       FAUSTFLOAT init,
       FAUSTFLOAT min,
       FAUSTFLOAT max,
-      FAUSTFLOAT step)
+      FAUSTFLOAT step) override
   {
     auto inl = new Process::FloatSlider{
         min, max, init, label, getStrongId(fx.inlets()), &fx};
@@ -65,7 +65,7 @@ struct UI
       FAUSTFLOAT init,
       FAUSTFLOAT min,
       FAUSTFLOAT max,
-      FAUSTFLOAT step)
+      FAUSTFLOAT step) override
   {
     addVerticalSlider(label, zone, init, min, max, step);
   }
@@ -76,7 +76,7 @@ struct UI
       FAUSTFLOAT init,
       FAUSTFLOAT min,
       FAUSTFLOAT max,
-      FAUSTFLOAT step)
+      FAUSTFLOAT step) override
   {
     // TODO spinbox ?
     addVerticalSlider(label, zone, init, min, max, step);
@@ -86,7 +86,7 @@ struct UI
       const char* label,
       FAUSTFLOAT* zone,
       FAUSTFLOAT min,
-      FAUSTFLOAT max)
+      FAUSTFLOAT max) override
   {
   }
 
@@ -94,35 +94,34 @@ struct UI
       const char* label,
       FAUSTFLOAT* zone,
       FAUSTFLOAT min,
-      FAUSTFLOAT max)
+      FAUSTFLOAT max) override
   {
     addHorizontalBargraph(label, zone, min, max);
   }
 };
 
 template <typename Proc>
-struct UpdateUI
+struct UpdateUI : ::UI
 {
   Proc& fx;
   std::size_t i = 1;
-  ossia::nodes::faust_setup_ui<UpdateUI> glue{*this};
 
   UpdateUI(Proc& sfx) : fx{sfx} {}
 
-  void openTabBox(const char* label) {}
-  void openHorizontalBox(const char* label) {}
-  void openVerticalBox(const char* label) {}
-  void closeBox() {}
-  void declare(FAUSTFLOAT* zone, const char* key, const char* val)
+  void openTabBox(const char* label) override {}
+  void openHorizontalBox(const char* label) override {}
+  void openVerticalBox(const char* label) override {}
+  void closeBox() override {}
+  void declare(FAUSTFLOAT* zone, const char* key, const char* val) override
   {
     qDebug() << "UpdateUI: " << key << val;
   }
   void
-  addSoundfile(const char* label, const char* filename, Soundfile** sf_zone)
+  addSoundfile(const char* label, const char* filename, Soundfile** sf_zone) override
   {
   }
 
-  void addButton(const char* label, FAUSTFLOAT* zone)
+  void addButton(const char* label, FAUSTFLOAT* zone) override
   {
     if (i < fx.inlets().size())
     {
@@ -150,7 +149,7 @@ struct UpdateUI
     i++;
   }
 
-  void addCheckButton(const char* label, FAUSTFLOAT* zone)
+  void addCheckButton(const char* label, FAUSTFLOAT* zone) override
   {
     if (i < fx.inlets().size())
     {
@@ -186,7 +185,7 @@ struct UpdateUI
       FAUSTFLOAT init,
       FAUSTFLOAT min,
       FAUSTFLOAT max,
-      FAUSTFLOAT step)
+      FAUSTFLOAT step) override
   {
     if (i < fx.inlets().size())
     {
@@ -222,7 +221,7 @@ struct UpdateUI
       FAUSTFLOAT init,
       FAUSTFLOAT min,
       FAUSTFLOAT max,
-      FAUSTFLOAT step)
+      FAUSTFLOAT step) override
   {
     addVerticalSlider(label, zone, init, min, max, step);
   }
@@ -233,7 +232,7 @@ struct UpdateUI
       FAUSTFLOAT init,
       FAUSTFLOAT min,
       FAUSTFLOAT max,
-      FAUSTFLOAT step)
+      FAUSTFLOAT step) override
   {
     addVerticalSlider(label, zone, init, min, max, step);
   }
@@ -242,7 +241,7 @@ struct UpdateUI
       const char* label,
       FAUSTFLOAT* zone,
       FAUSTFLOAT min,
-      FAUSTFLOAT max)
+      FAUSTFLOAT max) override
   {
   }
 
@@ -250,7 +249,7 @@ struct UpdateUI
       const char* label,
       FAUSTFLOAT* zone,
       FAUSTFLOAT min,
-      FAUSTFLOAT max)
+      FAUSTFLOAT max) override
   {
     addHorizontalBargraph(label, zone, min, max);
   }

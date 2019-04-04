@@ -2,6 +2,7 @@
 #include <Explorer/Explorer/DeviceExplorerModel.hpp>
 #include <Scenario/Commands/Cohesion/CreateCurves.hpp>
 #include <Scenario/Commands/CommandAPI.hpp>
+#include <Scenario/Commands/Interval/ResizeInterval.hpp>
 
 #include <score_plugin_scenario_commands_files.hpp>
 
@@ -357,6 +358,24 @@ void Macro::insertInInterval(
     ExpandMode mode)
 {
   m.submit(new InsertContentInInterval{std::move(json), itv, mode});
+}
+
+void Macro::resizeInterval(const IntervalModel& itv, const TimeVal& dur)
+{
+  auto& resizers = m.stack().context().app.interfaces<IntervalResizerList>();
+  auto cmd = resizers.make(itv, dur);
+  if(cmd)
+    m.submit(cmd);
+}
+
+void Macro::setIntervalMin(const IntervalModel& itv, const TimeVal& dur, bool noMin)
+{
+  m.submit(new SetMinDuration{itv, dur, noMin});
+}
+
+void Macro::setIntervalMax(const IntervalModel& itv, const TimeVal& dur, bool inf)
+{
+  m.submit(new SetMaxDuration{itv, dur, inf});
 }
 
 void Macro::submit(score::Command* cmd)

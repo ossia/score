@@ -78,9 +78,14 @@ protected:
   void hoverEnterEvent(QGraphicsSceneHoverEvent* event) override;
   void hoverLeaveEvent(QGraphicsSceneHoverEvent* event) override;
 
+  void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
+  void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override;
+  void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override;
+
 private:
   qreal m_height{};
   qreal m_width{};
+
 };
 
 class SCORE_LIB_PROCESS_EXPORT MiniLayer : public QGraphicsItem

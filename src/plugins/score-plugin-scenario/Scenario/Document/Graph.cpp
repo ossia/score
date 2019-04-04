@@ -40,6 +40,33 @@ TimenodeGraph::TimenodeGraph(const Scenario::ProcessModel& scenar)
                         m_graph)
                         .first;
   }
+
+  scenar.intervals.added.connect<&TimenodeGraph::intervalsChanged>(this);
+  scenar.intervals.removing.connect<&TimenodeGraph::intervalsChanged>(this);
+  scenar.timeSyncs.added.connect<&TimenodeGraph::timeSyncsChanged>(this);
+  scenar.timeSyncs.removing.connect<&TimenodeGraph::timeSyncsChanged>(this);
+}
+
+void TimenodeGraph::recompute()
+{
+  m_vertices.clear();
+  m_edges.clear();
+  m_graph.clear();
+
+  for (auto& tn : m_scenario.getTimeSyncs())
+  {
+    m_vertices[&tn] = boost::add_vertex(&tn, m_graph);
+  }
+
+  for (auto& cst : m_scenario.getIntervals())
+  {
+    m_edges[&cst] = boost::add_edge(
+                        m_vertices[&Scenario::startTimeSync(cst, m_scenario)],
+                        m_vertices[&Scenario::endTimeSync(cst, m_scenario)],
+                        &cst,
+                        m_graph)
+                        .first;
+  }
 }
 
 void TimenodeGraph::writeGraphviz()
@@ -81,6 +108,16 @@ TimenodeGraphComponents TimenodeGraph::components()
     }
   }
   return {m_scenario, comps};
+}
+
+void TimenodeGraph::intervalsChanged(const IntervalModel&)
+{
+  recompute();
+}
+
+void TimenodeGraph::timeSyncsChanged(const TimeSyncModel&)
+{
+  recompute();
 }
 
 bool TimenodeGraphComponents::isInMain(const EventModel& c) const

@@ -36,7 +36,7 @@ public:
     update();
   }
 
-  void drawDragLine(QPointF, QPointF);
+  void drawDragLine(QPointF, QPointF, const QString&);
   void stopDrawDragLine();
 
 public:
@@ -78,6 +78,7 @@ private:
   QRectF m_selectArea{};
   QPointF m_previousPoint{};
   ossia::optional<QRectF> m_dragLine{};
+  QString m_dragText;
   bool m_lock{};
   bool m_moving{};
 };
