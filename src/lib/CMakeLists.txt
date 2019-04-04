@@ -429,6 +429,8 @@ if(NOT _score_license_written)
 
   AddLicenseFile(license_text qprogressindicator "${SCORE_SRC}/lib/3rdparty/QProgressIndicator/LICENSE")
   AddLicenseFile(license_text qtcolorwidgets "${SCORE_SRC}/lib/3rdparty/Qt-Color-Widgets/COPYING")
+  AddLicenseFile(license_text phantomstyle "${CMAKE_SOURCE_DIR}/3rdparty/phantomstyle/LICENSE")
+  AddLicenseFile(license_text hsluv "${CMAKE_SOURCE_DIR}/3rdparty/phantomstyle/LICENSE-hsluv-c.md")
 
   score_write_file("${CMAKE_BINARY_DIR}/score_licenses.hpp" "${license_text}")
 endif()

@@ -121,11 +121,19 @@ SCORE_DECLARE_ACTION(Scale, "&Scale mode", Scenario, Qt::ALT + Qt::Key_S)
 SCORE_DECLARE_ACTION(Grow, "&Grow mode", Scenario, Qt::ALT + Qt::Key_D)
 
 // Object
+#if defined(__APPLE__)
 SCORE_DECLARE_ACTION(
     RemoveElements,
     "&Remove elements",
     Scenario,
     Qt::Key_Backspace)
+#else
+SCORE_DECLARE_ACTION(
+    RemoveElements,
+    "&Remove elements",
+    Scenario,
+    Qt::Key_Delete)
+#endif
 SCORE_DECLARE_ACTION(CopyContent, "C&opy", Scenario, QKeySequence::Copy)
 SCORE_DECLARE_ACTION(CutContent, "C&ut", Scenario, QKeySequence::Cut)
 SCORE_DECLARE_ACTION(

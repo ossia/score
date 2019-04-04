@@ -45,8 +45,10 @@ score::Command* ScenarioIntervalResizer::make(
 
   // First check that the end time sync has nothing afterwards :
   // all its states must not have next intervals
-  if (intervalHasNoFollowers(*scenar, interval))
-  {
+  if(Scenario::isInFullView(interval))
+    if(!intervalHasNoFollowers(*scenar, interval))
+      return nullptr;
+
     auto& ev = Scenario::endState(interval, *scenar).eventId();
     auto resize_cmd
         = new Scenario::Command::MoveEventMeta{*scenar,
@@ -56,9 +58,6 @@ score::Command* ScenarioIntervalResizer::make(
                                                e,
                                                l};
     return resize_cmd;
-  }
-
-  return nullptr;
 }
 
 void ScenarioIntervalResizer::update(
