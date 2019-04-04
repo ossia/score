@@ -110,12 +110,13 @@ score_plugin_media::factories(
       FW<Inspector::InspectorWidgetFactory,
          Media::Sound::InspectorFactory,
          Media::Effect::InspectorFactory
-#if defined(HAS_FAUST)
-         ,
-         Media::Faust::InspectorFactory
-#endif
-         ,
-         Media::Step::InspectorFactory,
+    #if defined(HAS_FAUST)
+       , Media::Faust::InspectorFactory
+    #endif
+    #if defined(HAS_VST2)
+       , Media::VST::VSTInspectorFactory
+    #endif
+       , Media::Step::InspectorFactory,
          Media::Merger::InspectorFactory>,
       FW<Process::LayerFactory,
          Media::Sound::LayerFactory,

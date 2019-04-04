@@ -166,6 +166,12 @@ void PortItem::mousePressEvent(QGraphicsSceneMouseEvent* event)
       case Qt::RightButton:
         contextMenuRequested(event->scenePos(), event->screenPos());
         break;
+      case Qt::LeftButton:
+      {
+        for(const auto& cable : cables) {
+          cable->setZValue(10);
+        }
+      }
       default:
         break;
     }

@@ -7,7 +7,7 @@ namespace Process
 {
 
 template <typename P>
-class GenericInspectorWidget final : public Process::InspectorWidgetDelegate
+class GenericInspectorWidget : public Process::InspectorWidgetDelegate_T<P>
 {
 public:
   explicit GenericInspectorWidget(
@@ -21,10 +21,5 @@ public:
   }
 
   ~GenericInspectorWidget() = default;
-
-  const P& process() const final override { return m_process; }
-
-private:
-  const P& m_process;
 };
 }

@@ -88,6 +88,13 @@ public:
       const score::DocumentContext& ctx,
       QGraphicsItem* parent,
       QObject* context) override;
+
+  void setupInletInspector(
+      Process::Inlet& port,
+      const score::DocumentContext& ctx,
+      QWidget* parent,
+      Inspector::Layout& lay,
+      QObject* context) override;
 };
 }
 #endif

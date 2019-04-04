@@ -1,9 +1,11 @@
 #if defined(HAS_VST2)
+
 #include <Automation/AutomationModel.hpp>
 #include <Automation/Commands/SetAutomationMax.hpp>
 #include <Dataflow/Commands/EditConnection.hpp>
 #include <Media/Commands/VSTCommands.hpp>
 #include <Media/Effect/VST/VSTControl.hpp>
+#include <Media/Effect/VST/VSTWidgets.hpp>
 #include <Scenario/Commands/Interval/AddLayerInNewSlot.hpp>
 #include <Scenario/Commands/Interval/AddOnlyProcessToInterval.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
@@ -12,6 +14,7 @@
 
 #include <QMenu>
 
+#include <QToolButton>
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Media::VST::VSTControlInlet)
 namespace Media::VST
@@ -92,6 +95,54 @@ Dataflow::PortItem* VSTControlPortFactory::makeItem(
     QObject* context)
 {
   return nullptr;
+}
+
+static void setupVSTControl(
+      const VSTControlInlet& inlet,
+      QWidget* inlet_widget,
+      const score::DocumentContext& ctx,
+      Inspector::Layout& vlay,
+      QWidget* parent)
+{
+  // TODO refactor with PortWidgetSetup::setupControl
+  auto widg = new QWidget;
+  auto advBtn = new QToolButton{widg};
+  advBtn->setText("●");
+
+  auto lab = new TextLabel{inlet.customData(), widg};
+  auto hl = new score::MarginLess<QHBoxLayout>{widg};
+  hl->addWidget(advBtn);
+  hl->addWidget(lab);
+
+  auto sw = new QWidget{parent};
+  sw->setContentsMargins(0, 0, 0, 0);
+  auto hl2 = new score::MarginLess<QHBoxLayout>{sw};
+  hl2->addSpacing(30);
+  auto lay = new Inspector::Layout{};
+  Process::PortWidgetSetup::setupInLayout(inlet, ctx, *lay, sw);
+  hl2->addLayout(lay);
+
+  QObject::connect(advBtn, &QToolButton::clicked, sw, [=] {
+    sw->setVisible(!sw->isVisible());
+  });
+  sw->setVisible(false);
+
+  vlay.addRow(widg, inlet_widget);
+  vlay.addRow(sw);
+}
+
+void VSTControlPortFactory::setupInletInspector(
+      Process::Inlet& port,
+      const score::DocumentContext& ctx,
+      QWidget* parent,
+      Inspector::Layout& lay,
+      QObject* context)
+{
+  auto& inl = safe_cast<VSTControlInlet&>(port);
+  auto proc = safe_cast<VSTEffectModel*>(port.parent());
+  auto widg = VSTFloatSlider::make_widget(proc->fx->fx, inl, ctx, parent, context);
+
+  setupVSTControl(inl, widg, ctx, lay, parent);
 }
 }
 #endif
