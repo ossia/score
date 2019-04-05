@@ -117,6 +117,8 @@ bool GhostIntervalDropHandler::dragEnter(
     QPointF pos,
     const QMimeData& mime)
 {
+  m_magnetic.vertical = nullptr;
+  m_magnetic.horizontal = nullptr;
   return dragMove(pres, pos, mime);
 }
 
@@ -186,6 +188,8 @@ bool GhostIntervalDropHandler::dragLeave(
     QPointF pos,
     const QMimeData& mime)
 {
+  m_magnetic.vertical = nullptr;
+  m_magnetic.horizontal = nullptr;
   pres.stopDrawDragLine();
   return false;
 }

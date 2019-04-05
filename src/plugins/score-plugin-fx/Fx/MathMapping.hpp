@@ -121,6 +121,7 @@ struct Node
     State()
     {
       syms.add_variable("x", cur_in);
+      syms.add_variable("px", prev_in);
       syms.add_variable("t", cur_time);
       syms.add_variable("a", p1);
       syms.add_variable("b", p2);
@@ -131,6 +132,7 @@ struct Node
       expr.register_symbol_table(syms);
     }
     double cur_in{};
+    double prev_in{};
     double cur_time{};
     double p1{}, p2{}, p3{};
     double fs{44100};
@@ -177,6 +179,7 @@ struct Node
         self.cur_in = input.samples[0][tk.offset + i];
         self.cur_time = tk.prev_date + i;
         out[tk.offset + i] = self.expr.value();
+        self.prev_in = self.cur_in;
       }
     }
   }

@@ -61,10 +61,19 @@ struct ScenarioBeingCopied
       cables.reserve(json_arr.size());
       for (const auto& element : json_arr)
       {
-        cables.emplace_back(
-            fromJsonValue<std::pair<Id<Process::Cable>, Process::CableData>>(
-                element.toObject())
-                .second);
+        auto obj = element.toObject();
+        if(obj.contains("ObjectName"))
+        {
+          auto cd = fromJsonObject<Process::CableData>(obj["Data"].toObject());
+          cables.emplace_back(std::move(cd));
+        }
+        else
+        {
+          cables.emplace_back(
+              fromJsonValue<std::pair<Id<Process::Cable>, Process::CableData>>(
+                  element.toObject())
+                  .second);
+        }
       }
     }
 
