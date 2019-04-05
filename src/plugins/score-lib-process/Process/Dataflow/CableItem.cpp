@@ -87,7 +87,6 @@ QRectF CableItem::boundingRect() const
 
 bool CableItem::contains(const QPointF& point) const
 {
-  qDebug() << m_path;
   return m_path.contains(point);
 }
 
