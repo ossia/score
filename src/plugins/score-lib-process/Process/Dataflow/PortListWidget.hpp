@@ -61,7 +61,7 @@ private:
  *
  * For use in the process inspectors.
  */
-class PortListWidget final : public QWidget
+class SCORE_LIB_PROCESS_EXPORT PortListWidget final : public QWidget
 {
 public:
   PortListWidget(
