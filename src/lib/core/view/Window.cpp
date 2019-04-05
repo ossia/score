@@ -160,16 +160,17 @@ public:
     PanelDelegate{ctx}
   {
     widg = new QWidget;
-    widg->setContentsMargins(0, 0, 0, 0);
+    widg->setContentsMargins(3, 2, 3, 2);
     widg->setMinimumHeight(60);
     widg->setMaximumHeight(60);
+
     auto l = new score::MarginLess<QVBoxLayout>{widg};
 
     status = new QLabel;
     status->setTextFormat(Qt::RichText);
     status->setText("<i>Remember those quiet evenings</i>");
     status->setWordWrap(true);
-
+    status->setStyleSheet("color: #787876;");
     l->addWidget(status);
     l->addStretch(12);
   }
