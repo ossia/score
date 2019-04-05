@@ -230,6 +230,7 @@ score_plugin_scenario::factories(
       FW<Scenario::DropHandler,
          Scenario::MessageDropHandler,
          Scenario::DropScenario,
+         Scenario::DropScore,
          Scenario::DropProcessInScenario,
          Scenario::DropPortInScenario,
          Scenario::DropLayerInScenario>,

@@ -44,7 +44,7 @@ public:
     Scenario::Point pt = pres.toScenarioPoint(pos);
 
     auto [x_state, y_state, magnetic] = m_magnetic;
-        if(y_state)
+    if(y_state)
     {
       m_intervalY = pt.y;
       if(magnetic || pt.date <= scenar.event(y_state->eventId()).date())
@@ -93,7 +93,7 @@ public:
     }
 
     template <typename F>
-    auto addProcess(F&& fun, TimeVal duration) -> decltype(auto)
+    Process::ProcessModel* addProcess(F&& fun, TimeVal duration)
     {
       // sequence : processes are put all one after the other
       if (m_sequence)
@@ -169,7 +169,7 @@ public:
     }
 
     template <typename F>
-    auto addProcess(F&& fun) -> decltype(auto)
+    Process::ProcessModel* addProcess(F&& fun)
     {
       return fun(m_macro, m_itv);
     }
@@ -220,7 +220,7 @@ public:
       score::Dispatcher_T disp{dropper.macro()};
       for (const auto& proc : res)
       {
-        auto p = dropper.addProcess(
+        Process::ProcessModel* p = dropper.addProcess(
               [&](Scenario::Command::Macro& m,
               const IntervalModel& itv) -> Process::ProcessModel* {
             auto p = m.createProcessInNewSlot(
@@ -394,9 +394,51 @@ bool DropScenario::drop(
   return false;
 }
 
+DropScore::DropScore()
+{
+  m_acceptableSuffixes.push_back("score");
+  m_acceptableSuffixes.push_back("scorebin");
+}
+
+bool DropScore::drop(const ScenarioPresenter& pres, QPointF pos, const QMimeData& mime)
+{
+  if (mime.hasUrls())
+  {
+    const auto& doc = pres.context().context;
+    auto& sm = pres.model();
+    auto path = mime.urls().first().toLocalFile();
+    if (QFile f{path};
+        QFileInfo{f}.suffix() == "score" && f.open(QIODevice::ReadOnly))
+    {
+      QJsonObject res;
+
+      auto obj = QJsonDocument::fromJson(f.readAll()).object();
+      auto docobj = obj["Document"].toObject();
+      res["Cables"] = docobj["Cables"];
+
+      obj = docobj["BaseScenario"].toObject();
+
+      res["Intervals"] = QJsonArray{obj["Constraint"].toObject()};
+      res["States"] = QJsonArray{obj["StartState"].toObject(), obj["EndState"].toObject()};
+      res["Events"] = QJsonArray{obj["StartEvent"].toObject(), obj["EndEvent"].toObject()};
+      res["TimeNodes"] = QJsonArray{obj["StartTimeNode"].toObject(), obj["EndTimeNode"].toObject()};
+
+      CommandDispatcher<> d{doc.commandStack};
+      d.submit(new Scenario::Command::ScenarioPasteElements(
+                 sm,
+                 res,
+                 pres.toScenarioPoint(pos)));
+      return true;
+    }
+  }
+
+  return false;
+}
+
 DropLayerInScenario::DropLayerInScenario()
 {
   m_acceptableMimeTypes.push_back(score::mime::layerdata());
+  m_acceptableSuffixes.push_back("layer");
 }
 
 bool DropLayerInScenario::drop(
@@ -622,4 +664,5 @@ bool AutomationDropHandler::drop(
     return false;
   }
 }
+
 }

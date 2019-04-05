@@ -1,5 +1,9 @@
 #include <Library/LibraryInterface.hpp>
 
+#include <score/document/DocumentContext.hpp>
+#include <score/application/ApplicationContext.hpp>
+#include <core/presenter/DocumentManager.hpp>
+
 namespace Library
 {
 
@@ -38,4 +42,24 @@ bool LibraryInterface::onDoubleClick(
 {
   return false;
 }
+
+LibraryDocumentLoader::~LibraryDocumentLoader()
+{
+
+}
+
+QSet<QString> LibraryDocumentLoader::acceptedFiles() const noexcept
+{
+  return {"score", "scorebin"};
+
+}
+
+bool LibraryDocumentLoader::onDoubleClick(
+    const QString& path,
+    const score::DocumentContext& ctx)
+{
+  ctx.app.docManager.loadFile(ctx.app, path);
+  return true;
+}
+
 }
