@@ -87,6 +87,18 @@ private:
       const QMimeData& mime) override;
 };
 
+class DropScore final : public GhostIntervalDropHandler
+{
+  SCORE_CONCRETE("63fc2b70-79b2-4bf8-a1f6-c148b8eceba8")
+public:
+  DropScore();
+
+private:
+  bool drop(
+      const Scenario::ScenarioPresenter&,
+      QPointF pos,
+      const QMimeData& mime) override;
+};
 class DropLayerInInterval final : public IntervalDropHandler
 {
   SCORE_CONCRETE("9df2eac6-6680-43cc-9634-60324416ba04")

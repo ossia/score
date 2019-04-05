@@ -40,4 +40,17 @@ class SCORE_PLUGIN_LIBRARY_EXPORT LibraryInterfaceList final
 public:
   ~LibraryInterfaceList() override;
 };
+
+class LibraryDocumentLoader final
+    : public LibraryInterface
+{
+  SCORE_CONCRETE("e4785238-af94-4fe9-9e5b-12b9555a2482")
+public:
+  ~LibraryDocumentLoader() override;
+
+  QSet<QString> acceptedFiles() const noexcept override;
+
+  bool
+  onDoubleClick(const QString& path, const score::DocumentContext& ctx) override;
+};
 }

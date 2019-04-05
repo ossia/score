@@ -78,14 +78,12 @@ bool SafeQApplication::event(QEvent* ev)
 {
   switch ((int)ev->type())
   {
-#ifdef __APPLE__
   case QEvent::FileOpen:
   {
     auto loadString = static_cast<QFileOpenEvent*>(ev)->file();
     fileOpened(loadString);
     return true;
   }
-#endif
   case score::PostedEventBase::static_type:
   {
     (*static_cast<score::PostedEventBase*>(ev))();
