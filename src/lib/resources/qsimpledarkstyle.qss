@@ -929,11 +929,6 @@ QListView::item:selected:active, QListView::item:selected:!active{
     background-color: #1c384c;/*#73C1C6;*/
     color: #ffffff;
 }
-/*
-QPushButton:pressed, QPushButton:pressed:!active, QPushButton:pressed:active, QPushButton:pressed:selected{
-    background-color: #1c384c;
-    color: #1A2024;
-}*/
 
 
 QComboBox::item:selected{
@@ -1015,22 +1010,32 @@ QCheckBox:focus {
 border: none;
 }
 
-
-QAbstractSpinBox {
-    color: #03c3dd;
+StyledButton {
+    background-color: #252930;
+    border: 0px solid #aaa;
+}
+StyledButton:hover {
+    border: 1px solid #aaa;
 }
 
-QPushButton#SplitCondition {
+StyledButton#SplitCondition {
     image: url(:/icons/split_condition_off.png);
 }
 
-QPushButton#SplitCondition:hover {
+StyledButton#SplitCondition:hover {
     image: url(:/icons/split_condition_on.png);
 }
 
-QPushButton#Desynchronize {
+StyledButton#Desynchronize {
     image: url(:/icons/desynchronize_off.png);
 }
-QPushButton#Desynchronize:hover {
+StyledButton#Desynchronize:hover {
     image: url(:/icons/desynchronize_on.png);
+}
+
+StyledButton#FullView {
+    image: url(:/icons/fullview_off.png);
+}
+StyledButton#FullView:hover {
+    image: url(:/icons/fullview_on.png);
 }

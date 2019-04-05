@@ -29,6 +29,7 @@
 #include <score/widgets/MarginLess.hpp>
 #include <score/widgets/Separator.hpp>
 #include <score/widgets/SetIcons.hpp>
+#include <score/widgets/StyledButton.hpp>
 #include <score/widgets/TextLabel.hpp>
 
 #include <QAbstractProxyModel>
@@ -188,10 +189,8 @@ StateInspectorWidget::StateInspectorWidget(
 
   // State setup
   {
-    auto splitEvent = new QPushButton;
+    auto splitEvent = new score::StyledButton;
 
-    splitEvent->setMinimumSize(QSize(50,50));
-    splitEvent->setIconSize(QSize(35, 35));
     splitEvent->setObjectName("SplitCondition");
     splitEvent->setToolTip(tr("Split condition"));
     splitEvent->setStatusTip(tr("Split condition"));
@@ -206,10 +205,8 @@ StateInspectorWidget::StateInspectorWidget(
   }
 
   {
-    auto desynchronize = new QPushButton;
+    auto desynchronize = new score::StyledButton;
 
-    desynchronize->setMinimumSize(QSize(50,50));
-    desynchronize->setIconSize(QSize(35, 35));
     desynchronize->setObjectName("Desynchronize");
     desynchronize->setToolTip(tr("Desynchronize"));
     desynchronize->setStatusTip(tr("Desynchronize"));

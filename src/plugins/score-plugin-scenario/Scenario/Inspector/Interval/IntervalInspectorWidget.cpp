@@ -16,6 +16,7 @@
 #include <score/document/DocumentContext.hpp>
 #include <score/widgets/MarginLess.hpp>
 #include <score/widgets/Separator.hpp>
+#include <score/widgets/StyledButton.hpp>
 #include <score/widgets/StyleSheets.hpp>
 #include <score/widgets/TextLabel.hpp>
 
@@ -52,8 +53,12 @@ IntervalInspectorWidget::IntervalInspectorWidget(
   parts.push_back(w);
 
   // Full View
-  auto fullview = new QPushButton{tr("FV")};
-  fullview->setStyleSheet(score::ValueStylesheet);
+  auto fullview = new StyledButton;
+  fullview->setObjectName("FullView");
+  fullview->setToolTip(tr("FullView"));
+  fullview->setStatusTip(tr("FullView"));
+
+ // fullview->setStyleSheet(score::ValueStylesheet);
   connect(fullview, &QPushButton::clicked, this, [this] {
     auto base = get<ScenarioDocumentPresenter>(*documentFromObject(m_model));
 
@@ -61,7 +66,7 @@ IntervalInspectorWidget::IntervalInspectorWidget(
       base->setDisplayedInterval(model());
   });
 
-  lay->addRow(tr("Fullview"), fullview);
+  lay->addRow(fullview);
 
   // Speed
   auto speedWidg = new SpeedWidget{m_model, ctx, true, true, this};
