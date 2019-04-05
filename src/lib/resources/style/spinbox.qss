@@ -1,12 +1,18 @@
 QAbstractSpinBox {
     padding: 0px;
     /*border: 1px solid #3A3939;*/
-    background-color: #12171A;
-    color: silver;
     border-radius: 2px;
     min-width: 75px;
-}
 
+    color: #03c3dd;
+    background-color: #252930;
+    color: #d6d6d6;
+    font-weight: 600;
+}
+QAbstractSpinBox:text
+{
+    text-align: right
+}
 QAbstractSpinBox:up-button
 {
     background-color: transparent;
@@ -43,4 +49,3 @@ QAbstractSpinBox::down-arrow:hover
 {
     image: url(:/qss_icons/rc/down_arrow.png);
 }
-

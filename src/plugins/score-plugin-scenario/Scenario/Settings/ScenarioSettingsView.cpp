@@ -412,7 +412,7 @@ View::View() : m_widg{new QWidget}
 {
   auto lay = new QFormLayout;
   m_widg->setLayout(lay);
-
+  lay->setLabelAlignment(Qt::AlignRight);
   // SKIN
   {
     m_skin = new QComboBox;
@@ -469,7 +469,7 @@ View::View() : m_widg{new QWidget}
 
   m_zoomSpinBox->setSuffix(tr("%"));
 
-  lay->addRow(tr("Graphical Zoom \n (50% -- 300%)"), m_zoomSpinBox);
+  lay->addRow(tr("Graphical Zoom (50% -- 300%)"), m_zoomSpinBox);
 
   // SLOT HEIGHT
   m_slotHeightBox = new QSpinBox;
