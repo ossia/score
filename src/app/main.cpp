@@ -158,7 +158,7 @@ int main(int argc, char** argv)
 
   QPixmapCache::setCacheLimit(819200);
   Application app(argc, argv);
-  ;
+
   app.init();
   int res = app.exec();
 

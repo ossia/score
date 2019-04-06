@@ -8,6 +8,8 @@
 #include <score/graphics/GraphicsItem.hpp>
 
 #include <wobjectimpl.h>
+#include <score/document/DocumentContext.hpp>
+#include <score/selection/SelectionDispatcher.hpp>
 W_OBJECT_IMPL(Scenario::CommentBlockPresenter)
 
 namespace Scenario

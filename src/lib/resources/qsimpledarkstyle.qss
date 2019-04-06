@@ -1010,32 +1010,32 @@ QCheckBox:focus {
 border: none;
 }
 
-StyledButton {
+score--StyledButton {
     background-color: #252930;
-    border: 0px solid #aaa;
+    border: 1px solid #252930;
 }
-StyledButton:hover {
+score--StyledButton:hover {
     border: 1px solid #aaa;
 }
 
-StyledButton#SplitCondition {
+score--StyledButton#SplitCondition {
     image: url(:/icons/split_condition_off.png);
 }
 
-StyledButton#SplitCondition:hover {
+score--StyledButton#SplitCondition:hover {
     image: url(:/icons/split_condition_on.png);
 }
 
-StyledButton#Desynchronize {
+score--StyledButton#Desynchronize {
     image: url(:/icons/desynchronize_off.png);
 }
-StyledButton#Desynchronize:hover {
+score--StyledButton#Desynchronize:hover {
     image: url(:/icons/desynchronize_on.png);
 }
 
-StyledButton#FullView {
+score--StyledButton#FullView {
     image: url(:/icons/fullview_off.png);
 }
-StyledButton#FullView:hover {
+score--StyledButton#FullView:hover {
     image: url(:/icons/fullview_on.png);
 }

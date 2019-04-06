@@ -75,6 +75,7 @@ Style::Style(score::Skin& s) noexcept
     , TimeRuler{&s.Base1}
     , LocalTimeRuler{&s.Gray}
     , CommentBlockPen{Qt::white, 1.}
+    , CommentBlockSelectedPen{Qt::white, 2.}
     , SeparatorPen{Qt::white, 2.}
     , SeparatorBrush{Qt::white}
 

@@ -987,7 +987,9 @@ ObjectPanelDelegate::ObjectPanelDelegate(
 {
   m_widget->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
   m_widget->setMinimumHeight(100);
-  m_widget->setSizeHint({200, 100});
+  m_widget->setSizeHint({250, 100});
+  m_widget->setMinimumWidth(250);
+  m_widget->setMaximumWidth(250);
   m_widget->setStatusTip(QObject::tr("Shows the currently selected items.\n"
                                      "They can be renamed by double-clicking.\n"
                                      "More options are available on the right-click menu."));
