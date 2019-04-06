@@ -12,6 +12,7 @@
 #include <score/model/IdentifiedObject.hpp>
 #include <score/widgets/MarginLess.hpp>
 #include <score/widgets/TextLabel.hpp>
+#include <Inspector/InspectorLayout.hpp>
 
 #include <QColor>
 #include <QFormLayout>
@@ -28,6 +29,7 @@ namespace score
 {
 class ModelMetadata;
 }
+
 class QLabel;
 class QLineEdit;
 class QObject;
@@ -111,7 +113,7 @@ private:
   const score::ModelMetadata& m_metadata;
   CommandDispatcher<> m_commandDispatcher;
 
-  score::MarginLess<QVBoxLayout> m_metadataLayout;
+  Inspector::VBoxLayout m_metadataLayout;
   QLineEdit m_labelLine;
   CommentEdit m_comments;
   color_widgets::Swatch* m_palette_widget;

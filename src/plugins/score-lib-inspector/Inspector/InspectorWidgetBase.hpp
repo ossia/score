@@ -24,6 +24,8 @@ class SelectionDispatcher;
 
 namespace Inspector
 {
+
+class VBoxLayout;
 /*!
  * \brief The InspectorWidgetBase class
  * Set the global structuration for an inspected element. Inherited by class
@@ -83,7 +85,7 @@ private:
 
   static const int m_colorIconSize{21};
 
-  QVBoxLayout* m_layout{};
+  VBoxLayout* m_layout{};
   QLabel* m_label{};
 };
 }

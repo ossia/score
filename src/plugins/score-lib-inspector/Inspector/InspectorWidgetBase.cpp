@@ -8,6 +8,7 @@
 #include <score/selection/SelectionDispatcher.hpp>
 #include <score/widgets/MarginLess.hpp>
 #include <score/widgets/TextLabel.hpp>
+#include <Inspector/InspectorLayout.hpp>
 
 #include <QBoxLayout>
 #include <QLayoutItem>
@@ -27,9 +28,8 @@ InspectorWidgetBase::InspectorWidgetBase(
     , m_context{ctx}
     , m_commandDispatcher(new CommandDispatcher<>{ctx.commandStack})
 {
-  m_layout = new QVBoxLayout;
-  m_layout->setMargin(5);
-  m_layout->setSpacing(5);
+  m_layout = new VBoxLayout;
+ // m_layout->setSpacing(5);
 
   setLayout(m_layout);
 
