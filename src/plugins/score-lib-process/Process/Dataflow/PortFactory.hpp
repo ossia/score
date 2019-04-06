@@ -68,128 +68,58 @@ public:
   Process::Port* loadMissing(const VisitorVariant& vis, QObject* parent) const;
 };
 
-inline auto writeInlets(
+SCORE_LIB_PROCESS_EXPORT
+void writeInlets(
     DataStreamWriter& wr,
     const Process::PortFactoryList& pl,
     Process::Inlets& ports,
-    QObject* parent)
-{
-  int32_t count;
-  wr.m_stream >> count;
+    QObject* parent);
 
-  for (; count-- > 0;)
-  {
-    auto proc = deserialize_interface(pl, wr, parent);
-    if (proc)
-    {
-      ports.push_back(safe_cast<Process::Inlet*>(proc));
-    }
-    else
-    {
-      SCORE_ABORT;
-    }
-  }
-}
-inline auto writeOutlets(
-    DataStreamWriter& wr,
-    const Process::PortFactoryList& pl,
-    Process::Outlets& ports,
-    QObject* parent)
-{
-  int32_t count;
-  wr.m_stream >> count;
-
-  for (; count-- > 0;)
-  {
-    auto proc = deserialize_interface(pl, wr, parent);
-    if (proc)
-    {
-      ports.push_back(safe_cast<Process::Outlet*>(proc));
-    }
-    else
-    {
-      SCORE_ABORT;
-    }
-  }
-}
-inline auto writeInlets(
+SCORE_LIB_PROCESS_EXPORT
+void writeInlets(
     const QJsonArray& wr,
     const Process::PortFactoryList& pl,
     Process::Inlets& ports,
-    QObject* parent)
-{
-  for (const auto& json_vref : wr)
-  {
-    auto proc = deserialize_interface(
-        pl, JSONObject::Deserializer{json_vref.toObject()}, parent);
-    if (proc)
-    {
-      ports.push_back(safe_cast<Process::Inlet*>(proc));
-    }
-    else
-    {
-      SCORE_ABORT;
-    }
-  }
-}
-inline auto writeOutlets(
+    QObject* parent);
+
+SCORE_LIB_PROCESS_EXPORT
+void writeOutlets(
+    DataStreamWriter& wr,
+    const Process::PortFactoryList& pl,
+    Process::Outlets& ports,
+    QObject* parent);
+SCORE_LIB_PROCESS_EXPORT
+void writeOutlets(
     const QJsonArray& wr,
     const Process::PortFactoryList& pl,
     Process::Outlets& ports,
-    QObject* parent)
-{
-  for (const auto& json_vref : wr)
-  {
-    auto proc = deserialize_interface(
-        pl, JSONObject::Deserializer{json_vref.toObject()}, parent);
-    if (proc)
-    {
-      ports.push_back(safe_cast<Process::Outlet*>(proc));
-    }
-    else
-    {
-      SCORE_ABORT;
-    }
-  }
-}
-inline auto readPorts(
+    QObject* parent);
+
+SCORE_LIB_PROCESS_EXPORT
+void readPorts(
     DataStreamReader& wr,
     const Process::Inlets& ins,
-    const Process::Outlets& outs)
-{
-  wr.m_stream << (int32_t)ins.size();
-  for (auto v : ins)
-    wr.readFrom(*v);
-  wr.m_stream << (int32_t)outs.size();
-  for (auto v : outs)
-    wr.readFrom(*v);
-}
-inline auto writePorts(
+    const Process::Outlets& outs);
+
+SCORE_LIB_PROCESS_EXPORT
+void readPorts(
+    QJsonObject& obj,
+    const Process::Inlets& ins,
+    const Process::Outlets& outs);
+
+SCORE_LIB_PROCESS_EXPORT
+void writePorts(
     DataStreamWriter& wr,
     const Process::PortFactoryList& pl,
     Process::Inlets& ins,
     Process::Outlets& outs,
-    QObject* parent)
-{
-  writeInlets(wr, pl, ins, parent);
-  writeOutlets(wr, pl, outs, parent);
-}
-inline auto readPorts(
-    QJsonObject& obj,
-    const Process::Inlets& ins,
-    const Process::Outlets& outs)
-{
-  obj["Inlets"] = toJsonArray(ins);
-  obj["Outlets"] = toJsonArray(outs);
-}
-inline auto writePorts(
+    QObject* parent);
+
+SCORE_LIB_PROCESS_EXPORT
+void writePorts(
     const QJsonObject& obj,
     const Process::PortFactoryList& pl,
     Process::Inlets& ins,
     Process::Outlets& outs,
-    QObject* parent)
-{
-  writeInlets(obj["Inlets"].toArray(), pl, ins, parent);
-  writeOutlets(obj["Outlets"].toArray(), pl, outs, parent);
-}
+    QObject* parent);
 }
