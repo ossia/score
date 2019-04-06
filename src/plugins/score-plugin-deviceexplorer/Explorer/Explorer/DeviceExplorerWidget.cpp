@@ -195,6 +195,7 @@ DeviceExplorerWidget::DeviceExplorerWidget(
     , m_proxyModel(nullptr)
     , m_deviceDialog(nullptr)
 {
+  setMinimumWidth(150);
   buildGUI();
 
   // Set the expansion signals
@@ -533,6 +534,11 @@ QModelIndex DeviceExplorerWidget::proxyIndex(QModelIndex index) const
         = static_cast<const QAbstractProxyModel*>(m_ntView->QTreeView::model())
               ->mapFromSource(index);
   return index;
+}
+
+QSize DeviceExplorerWidget::sizeHint() const
+{
+  return {200, 800};
 }
 
 void DeviceExplorerWidget::contextMenuEvent(QContextMenuEvent* event)

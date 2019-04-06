@@ -60,6 +60,7 @@ public:
 
 private:
   friend struct ExplorerSearchLineEdit;
+  QSize sizeHint() const override;
   // User commands
   void edit();
   void refresh();
