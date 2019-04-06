@@ -26,6 +26,9 @@ SpeedWidget::SpeedWidget(
   setObjectName("SpeedSlider");
 
   auto lay = new score::MarginLess<QGridLayout>{this};
+  lay->setHorizontalSpacing(1);
+  lay->setVerticalSpacing(1);
+
   auto setSpeedFun = [=](double val) {
     auto& dur = ((IntervalModel&)(m_model)).duration;
     auto s = double(val) / 100.0;
@@ -47,8 +50,9 @@ SpeedWidget::SpeedWidget(
       pb->setFlat(true);
       pb->setContentsMargins(0, 0, 0, 0);
       pb->setStyleSheet(
-          "QPushButton { margin: 0px; padding: 0px; border: none; "
-          + score::ValueStylesheet + "}");
+          "QPushButton { margin: 0px; padding: 0px; border:  1px solid #252930; "
+          + score::ValueStylesheet + "}"
+          + "QPushButton:hover { border: 1px solid #aaa;} ");
 
       connect(pb, &QPushButton::clicked, this, [=] { setSpeedFun(factor); });
       lay->addWidget(pb, 1, btn_col++, 1, 1);

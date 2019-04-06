@@ -64,14 +64,12 @@ MetadataWidget::MetadataWidget(
   // main
   setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
 
-  m_metadataLayout.setSpacing(3);
-  m_metadataLayout.setMargin(0);
-
   // Name(s)
   float margin = m_comments.document()->documentMargin() / 2.;
 
   m_labelLine.setTextMargins(margin,0,margin,0);
   m_labelLine.setPlaceholderText(tr("Label"));
+  m_labelLine.setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
   m_metadataLayout.addWidget(&m_labelLine);
   con(metadata,
       &score::ModelMetadata::LabelChanged,
