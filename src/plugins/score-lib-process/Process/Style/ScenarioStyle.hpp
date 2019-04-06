@@ -120,6 +120,7 @@ struct SCORE_LIB_PROCESS_EXPORT Style
   QPen SlotHandlePen;
 
   QPen CommentBlockPen;
+  QPen CommentBlockSelectedPen;
   QPen MiniScenarioPen;
   QPen SeparatorPen;
   QBrush SeparatorBrush;

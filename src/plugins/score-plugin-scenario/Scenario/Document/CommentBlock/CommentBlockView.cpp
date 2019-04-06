@@ -47,7 +47,10 @@ void CommentBlockView::paint(
 {
   auto& skin = Process::Style::instance();
 
-  painter->setPen(skin.CommentBlockPen);
+  if(!m_selected)
+    painter->setPen(skin.CommentBlockPen);
+  else
+    painter->setPen(skin.CommentBlockSelectedPen);
   painter->setBrush(skin.TransparentBrush);
   painter->drawRoundedRect(boundingRect(), 5., 5.);
 }
@@ -66,17 +69,17 @@ QRectF CommentBlockView::boundingRect() const
     return {-1., -1., 2., 2.};
 }
 
-void CommentBlockView::setSelected(bool b)
-{
-  if (m_selected == b)
-    return;
-
-  m_selected = b;
-}
-
 void CommentBlockView::setHtmlContent(QString htmlText)
 {
   m_textItem->setHtml(htmlText);
+}
+
+void CommentBlockView::setSelected(bool b)
+{
+  if (b != m_selected) {
+    m_selected = b;
+    update();
+  }
 }
 
 void CommentBlockView::mousePressEvent(QGraphicsSceneMouseEvent* event)
@@ -105,6 +108,8 @@ void CommentBlockView::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 
 void CommentBlockView::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* evt)
 {
+  m_presenter.selected();
+
   focusOnText();
 }
 

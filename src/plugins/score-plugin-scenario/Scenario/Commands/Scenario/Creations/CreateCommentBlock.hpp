@@ -40,5 +40,29 @@ private:
 
   Id<CommentBlockModel> m_id;
 };
+class RemoveCommentBlock final : public score::Command
+{
+  SCORE_COMMAND_DECL(
+      ScenarioCommandFactoryName(),
+      RemoveCommentBlock,
+      "Remove a comment block")
+public:
+  RemoveCommentBlock(
+      const Scenario::ProcessModel& sc,
+      const Scenario::CommentBlockModel& cb
+      );
+
+  void undo(const score::DocumentContext& ctx) const override;
+  void redo(const score::DocumentContext& ctx) const override;
+
+protected:
+  void serializeImpl(DataStreamInput&) const override;
+  void deserializeImpl(DataStreamOutput&) override;
+
+private:
+  Path<ProcessModel> m_path;
+  Id<CommentBlockModel> m_id;
+  QByteArray m_block;
+};
 }
 }

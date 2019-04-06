@@ -6,6 +6,7 @@
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 #include <Scenario/Process/ScenarioGlobalCommandManager.hpp>
 
+#include <Scenario/Commands/Scenario/Creations/CreateCommentBlock.hpp>
 #include <score/document/DocumentInterface.hpp>
 #include <score/model/ObjectRemover.hpp>
 namespace Scenario
@@ -44,6 +45,17 @@ class ScenarioRemover final : public score::ObjectRemover
 
     if (auto sm = focusedScenarioModel(ctx))
     {
+      if (s.size() == 1)
+      {
+        auto first = s.begin()->data();
+        if(auto cb = qobject_cast<const Scenario::CommentBlockModel*>(first))
+        {
+          CommandDispatcher<> d{ctx.commandStack};
+          d.submit<Command::RemoveCommentBlock>(*sm, *cb);
+          return true;
+        }
+      }
+
       Scenario::removeSelection(*sm, ctx);
       return true;
     }

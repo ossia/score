@@ -6,6 +6,6 @@ namespace score
   StyledButton::StyledButton(QWidget* parent) : QPushButton{parent}
   {
     setMinimumSize(QSize(45, 45));
-    setIconSize(QSize(35, 35));
+    setIconSize(QSize(35, 33));
   }
 }

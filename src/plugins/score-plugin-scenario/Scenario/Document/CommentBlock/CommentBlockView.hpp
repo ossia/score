@@ -4,6 +4,7 @@
 #include <QGraphicsItem>
 #include <QObject>
 #include <QPointF>
+#include <wobjectdefs.h>
 namespace score
 {
 class TextItem;
@@ -34,8 +35,9 @@ public:
 
   QRectF boundingRect() const override;
 
-  void setSelected(bool b);
   void setHtmlContent(QString htmlText);
+
+  void setSelected(bool);
 
 protected:
   void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
@@ -50,9 +52,9 @@ private:
   CommentBlockPresenter& m_presenter;
 
   score::TextItem* m_textItem{};
-  bool m_selected{false};
 
   QPointF m_clickedPoint{};
   QPointF m_clickedScenePoint{};
+  bool m_selected{};
 };
 }

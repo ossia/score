@@ -44,5 +44,36 @@ void CreateCommentBlock::deserializeImpl(DataStreamOutput& s)
 {
   s >> m_path >> m_date >> m_y >> m_id;
 }
+
+RemoveCommentBlock::RemoveCommentBlock(
+    const Scenario::ProcessModel& sc,
+    const Scenario::CommentBlockModel& cb)
+    : m_path{sc}, m_id{cb.id()}, m_block{score::marshall<DataStream>(cb)}
+{
+}
+
+void RemoveCommentBlock::undo(const score::DocumentContext& ctx) const
+{
+  auto& scenar = m_path.find(ctx);
+
+  auto comment = new CommentBlockModel{DataStreamWriter{m_block}, &scenar};
+  scenar.comments.add(comment);
+}
+
+void RemoveCommentBlock::redo(const score::DocumentContext& ctx) const
+{
+  auto& scenar = m_path.find(ctx);
+  ScenarioCreate<CommentBlockModel>::undo(m_id, scenar);
+}
+
+void RemoveCommentBlock::serializeImpl(DataStreamInput& s) const
+{
+  s << m_path << m_id << m_block;
+}
+
+void RemoveCommentBlock::deserializeImpl(DataStreamOutput& s)
+{
+  s >> m_path >> m_id >> m_block;
+}
 }
 }

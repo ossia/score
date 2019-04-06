@@ -90,12 +90,12 @@ ScenarioPresenter::ScenarioPresenter(
       m_view,
       &ScenarioView::keyPressed,
       this,
-      &ScenarioPresenter::on_keyPressed);
+      &ScenarioPresenter::keyPressed);
   connect(
       m_view,
       &ScenarioView::keyReleased,
       this,
-      &ScenarioPresenter::on_keyReleased);
+      &ScenarioPresenter::keyReleased);
 
   connect(
       m_view,
@@ -394,16 +394,6 @@ void ScenarioPresenter::on_commentRemoved(const CommentBlockModel& cmt)
 void ScenarioPresenter::on_askUpdate()
 {
   m_view->update();
-}
-
-void ScenarioPresenter::on_keyPressed(int k)
-{
-  keyPressed(k);
-}
-
-void ScenarioPresenter::on_keyReleased(int k)
-{
-  keyReleased(k);
 }
 
 void ScenarioPresenter::on_intervalExecutionTimer()

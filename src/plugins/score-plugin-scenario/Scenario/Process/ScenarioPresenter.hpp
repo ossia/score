@@ -137,9 +137,6 @@ public:
 
   void on_askUpdate();
 
-  void on_keyPressed(int);
-  void on_keyReleased(int);
-
   void on_intervalExecutionTimer();
 
 private:
