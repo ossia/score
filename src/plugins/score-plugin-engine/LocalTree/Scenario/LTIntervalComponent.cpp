@@ -92,31 +92,36 @@ public:
       QObject* parent)
       : ProcessComponent{node, proc, doc, id, "ProcessComponent", parent}
   {
-    for (Process::Inlet* inlet : proc.inlets())
-    {
-      m_properties.push_back(add_property<Process::Inlet::p_address>(
-          this->node(), *inlet, inlet->customData().toStdString(), this));
-      auto& port_node = m_properties.back()->addr.get_node();
-      if (auto control = dynamic_cast<Process::ControlInlet*>(inlet))
-      {
-        m_properties.push_back(
-            add_value_property<Process::ControlInlet::p_value>(
-                port_node, *control, "value", this));
-      }
-    }
+    try {
 
-    for (auto& outlet : proc.outlets())
-    {
-      m_properties.push_back(add_property<Process::Outlet::p_address>(
-          this->node(), *outlet, outlet->customData().toStdString(), this));
-      auto& port_node = m_properties.back()->addr.get_node();
-      if (auto control = dynamic_cast<Process::ControlOutlet*>(outlet))
+      for (Process::Inlet* inlet : proc.inlets())
       {
-        m_properties.push_back(
-            add_value_property<Process::ControlOutlet::p_value>(
-                port_node, *control, "value", this));
+        m_properties.push_back(add_property<Process::Inlet::p_address>(
+            this->node(), *inlet, inlet->customData().toStdString(), this));
+        auto& port_node = m_properties.back()->addr.get_node();
+        if (auto control = dynamic_cast<Process::ControlInlet*>(inlet))
+        {
+          m_properties.push_back(
+              add_value_property<Process::ControlInlet::p_value>(
+                  port_node, *control, "value", this));
+        }
       }
-    }
+
+      for (auto& outlet : proc.outlets())
+      {
+        m_properties.push_back(add_property<Process::Outlet::p_address>(
+            this->node(), *outlet, outlet->customData().toStdString(), this));
+        auto& port_node = m_properties.back()->addr.get_node();
+        if (auto control = dynamic_cast<Process::ControlOutlet*>(outlet))
+        {
+          m_properties.push_back(
+              add_value_property<Process::ControlOutlet::p_value>(
+                  port_node, *control, "value", this));
+        }
+
+      }
+    } catch (... ) {
+  }
   }
 };
 
