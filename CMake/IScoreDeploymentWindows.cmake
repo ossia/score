@@ -9,6 +9,13 @@ set(CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS_SKIP true)
 
 if(MINGW)
   get_target_property(ZLIB_LOCATION ZLIB::ZLIB IMPORTED_LOCATION_RELEASE)
+  if(NOT ZLIB_LOCATION)
+    get_target_property(ZLIB_LOCATION ZLIB::ZLIB IMPORTED_LOCATION_DEBUG)
+    if(NOT ZLIB_LOCATION)
+      get_target_property(ZLIB_LOCATION ZLIB::ZLIB IMPORTED_LOCATION)
+    endif()
+  endif()
+  
   get_filename_component(MINGW64_LIB ${ZLIB_LOCATION} DIRECTORY)
 
   get_filename_component(cxx_path ${CMAKE_CXX_COMPILER} PATH)
