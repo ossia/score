@@ -308,12 +308,15 @@ void AboutDialog::paintEvent(QPaintEvent* event)
 
   // write version and commit
   {
-    auto version_text = QStringLiteral("Version: %1.%2.%3-%4 “%5”\n")
-                            .arg(SCORE_VERSION_MAJOR)
-                            .arg(SCORE_VERSION_MINOR)
-                            .arg(SCORE_VERSION_PATCH)
-                            .arg(SCORE_VERSION_EXTRA)
-                            .arg(SCORE_CODENAME);
+    auto version_text = QStringLiteral("Version: %1.%2.%3")
+        .arg(SCORE_VERSION_MAJOR)
+        .arg(SCORE_VERSION_MINOR)
+        .arg(SCORE_VERSION_PATCH);
+    if (std::string_view(SCORE_VERSION_EXTRA).size() != 0) {
+      version_text += QStringLiteral("-%4").arg(SCORE_VERSION_EXTRA);
+    }
+    version_text += QStringLiteral(" “%5”\n")
+        .arg(SCORE_CODENAME);
 
     QString commit{GIT_COMMIT};
 

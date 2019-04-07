@@ -7,7 +7,7 @@ set(APPNAME "score")
 set(CMAKE_POSITION_INDEPENDENT_CODE 1)
 
 #add_executable(score-main WIN32 AppLauncher.cpp)
-add_library(${APPNAME} SHARED
+add_executable(${APPNAME} WIN32
   "${CMAKE_CURRENT_SOURCE_DIR}/Application.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Application.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/main.cpp"
@@ -41,6 +41,8 @@ if(TARGET Qt5::QuickControls2)
 endif()
 
 if(MSVC)
+  # Necessary for JACK on windows.
+  # http://jack-audio.10948.n7.nabble.com/Cannot-run-64bit-windows-client-td18952.html
   set_property(
     TARGET ${APPNAME}
     APPEND PROPERTY
