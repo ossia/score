@@ -32,17 +32,17 @@ struct SCORE_LIB_BASE_EXPORT ColorRef
   }
 
 public:
-  ColorRef() = default;
-  ColorRef(const ColorRef& other) = default;
-  ColorRef(ColorRef&& other) = default;
-  ColorRef& operator=(const ColorRef& other) = default;
-  ColorRef& operator=(ColorRef&& other) = default;
+  constexpr ColorRef() noexcept = default;
+  constexpr ColorRef(const ColorRef& other) noexcept = default;
+  constexpr ColorRef(ColorRef&& other) noexcept = default;
+  constexpr ColorRef& operator=(const ColorRef& other) noexcept = default;
+  constexpr ColorRef& operator=(ColorRef&& other) noexcept = default;
 
   ColorRef(QBrush Skin::*s) : ref{&(score::Skin::instance().*s)} {}
 
-  ColorRef(const QBrush* col) : ref{col} {}
+  constexpr ColorRef(const QBrush* col) noexcept : ref{col} {}
 
-  void setColor(QBrush Skin::*s)
+  void setColor(QBrush Skin::*s) noexcept
   {
     // Set color by reference
     ref = &(score::Skin::instance().*s);
@@ -54,10 +54,10 @@ public:
     return *ref;
   }
 
-  QString name() const { return score::Skin::instance().toString(ref); }
+  QString name() const noexcept { return score::Skin::instance().toString(ref); }
 
-  static optional<ColorRef> ColorFromString(const QString&);
-  static optional<ColorRef> SimilarColor(QColor other);
+  static optional<ColorRef> ColorFromString(const QString&) noexcept;
+  static optional<ColorRef> SimilarColor(QColor other) noexcept;
 
 private:
   const QBrush* ref{};

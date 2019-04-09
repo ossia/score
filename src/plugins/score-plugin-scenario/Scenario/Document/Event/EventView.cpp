@@ -29,7 +29,7 @@ namespace Scenario
 EventView::EventView(EventPresenter& presenter, QGraphicsItem* parent)
     : QGraphicsItem{parent}
     , m_presenter{presenter}
-    , m_conditionItem{Process::Style::instance().ConditionDefault, this}
+    , m_conditionItem{this}
 {
   this->setCacheMode(QGraphicsItem::NoCache);
   setAcceptDrops(true);
@@ -79,7 +79,7 @@ void EventView::paint(
   if (m_status.get() == ExecutionStatus::Editing)
     skin.EventPen.setBrush(m_color.getBrush());
   else
-    skin.EventPen.setBrush(m_status.eventStatusColor().getBrush());
+    skin.EventPen.setBrush(m_status.eventStatusColor(skin).getBrush());
 
   if (isSelected())
   {
@@ -118,17 +118,14 @@ void EventView::setExtent(VerticalExtent&& extent)
 void EventView::setStatus(ExecutionStatus s)
 {
   m_status.set(s);
-  if (s != ExecutionStatus::Editing)
-    m_conditionItem.setColor(m_status.eventStatusColor());
-  else
-    m_conditionItem.setColor(Process::Style::instance().ConditionDefault);
-
+  m_conditionItem.setStatus(s);
   update();
 }
 
 void EventView::setSelected(bool selected)
 {
   m_selected = selected;
+  m_conditionItem.setSelected(selected);
   update();
 }
 

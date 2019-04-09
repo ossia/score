@@ -5,6 +5,9 @@
 
 #include <wobjectdefs.h>
 class QColor;
+namespace Process {
+struct Style;
+}
 
 namespace Scenario
 {
@@ -38,8 +41,9 @@ public:
       m_status = e;
     }
   }
-  score::ColorRef eventStatusColor();
-  score::ColorRef stateStatusColor();
+  score::ColorRef eventStatusColor(const Process::Style&) noexcept;
+  score::ColorRef stateStatusColor(const Process::Style&) noexcept;
+  score::ColorRef conditionStatusColor(const Process::Style&) noexcept;
 
 private:
   ExecutionStatus m_status{ExecutionStatus::Editing};

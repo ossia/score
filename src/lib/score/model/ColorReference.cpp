@@ -6,7 +6,7 @@
 
 namespace score
 {
-optional<ColorRef> ColorRef::ColorFromString(const QString& txt)
+optional<ColorRef> ColorRef::ColorFromString(const QString& txt) noexcept
 {
   auto res = score::Skin::instance().fromString(txt);
 
@@ -16,7 +16,7 @@ optional<ColorRef> ColorRef::ColorFromString(const QString& txt)
     return {};
 }
 
-optional<ColorRef> ColorRef::SimilarColor(QColor other)
+optional<ColorRef> ColorRef::SimilarColor(QColor other) noexcept
 {
   SCORE_TODO_("Load similar colors");
   return {};

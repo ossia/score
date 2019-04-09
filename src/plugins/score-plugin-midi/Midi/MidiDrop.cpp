@@ -37,6 +37,7 @@ std::vector<Process::ProcessDropHandler::ProcessDrop> DropHandler::dropData(
     std::vector<MidiTrack::MidiSong> songs;
     for (const auto& [filename, file]: data)
     {
+      try {
       if (auto song = MidiTrack::parse(file, ctx); !song.tracks.empty())
       {
         for (MidiTrack& t : song.tracks)
@@ -53,6 +54,9 @@ std::vector<Process::ProcessDropHandler::ProcessDrop> DropHandler::dropData(
           };
           vec.push_back(std::move(p));
         }
+      }
+      } catch(std::exception& e) {
+        qDebug() << e.what();
       }
     }
   }

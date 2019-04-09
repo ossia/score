@@ -6,7 +6,20 @@ namespace Midi
 {
 struct MidiStyle
 {
-  MidiStyle() {}
+  MidiStyle() {
+    for(std::size_t i = 0; i < std::size(paintedNotePen); i++)
+    {
+      auto orange = noteBaseBrush.color();
+      orange.setHslF(
+          orange.hslHueF() - 0.02, 1., 0.25 + (127. - i) / 256.);
+      paintedNotePen[i].setColor(orange);
+      paintedNotePen[i].setWidth(2);
+      paintedNotePen[i].setStyle(Qt::DashLine);
+      paintedNotePen[i].setCapStyle(Qt::SquareCap);
+      paintedNotePen[i].setJoinStyle(Qt::BevelJoin);
+      paintedNotePen[i].setCosmetic(true);
+    }
+  }
 
   const QBrush lightBrush = QColor::fromRgb(200, 200, 200);
   const QBrush darkBrush = QColor::fromRgb(170, 170, 170);
@@ -32,10 +45,7 @@ struct MidiStyle
     // p.setWidthF(0.8);
     return p;
   }();
-  QPen paintedNote = [] {
-    QPen pen{QColor{0, 0, 0}, 2, Qt::DashLine, Qt::SquareCap, Qt::BevelJoin};
-    pen.setCosmetic(true);
-    return pen;
-  }();
+
+  QPen paintedNotePen[128];
 };
 }
