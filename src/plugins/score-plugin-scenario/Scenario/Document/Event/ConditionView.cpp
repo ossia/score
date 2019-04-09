@@ -32,8 +32,8 @@ static const QPainterPath conditionTrianglePath{[] {
   return p + s.createStroke(p);
 }()};
 
-ConditionView::ConditionView(score::ColorRef color, QGraphicsItem* parent)
-    : QGraphicsItem{parent}, m_color{color}
+ConditionView::ConditionView(QGraphicsItem* parent)
+    : QGraphicsItem{parent}
 {
   this->setCacheMode(QGraphicsItem::NoCache);
   setFlag(ItemStacksBehindParent, true);
@@ -43,7 +43,8 @@ ConditionView::ConditionView(score::ColorRef color, QGraphicsItem* parent)
 
 QRectF ConditionView::boundingRect() const
 {
-  return QRectF{0, 0, m_width, m_height + m_CHeight};
+  constexpr double penWidth = 0.;
+  return QRectF{-penWidth, -penWidth, m_width + penWidth, m_height + m_CHeight + penWidth};
 }
 
 void ConditionView::paint(
@@ -53,7 +54,11 @@ void ConditionView::paint(
 {
   auto& style = Process::Style::instance();
   painter->setRenderHint(QPainter::Antialiasing, true);
-  const QBrush& col = m_color.getBrush();
+
+  const QBrush& col = !m_selected
+      ? m_status.conditionStatusColor(style).getBrush()
+      : style.IntervalSelected.getBrush();
+
   style.ConditionPen.setBrush(col);
   style.ConditionTrianglePen.setBrush(col);
 
@@ -85,19 +90,31 @@ void ConditionView::changeHeight(qreal newH)
           boundingRect().bottomLeft().y() - m_CHeight),
       QSize(m_CHeight, m_CHeight));
 
-  m_Cpath.moveTo(boundingRect().width() / 2., 2);
-  m_Cpath.arcTo(rect, 60, 120);
-  m_Cpath.lineTo(0, m_height + m_CHeight / 2);
-  m_Cpath.arcTo(bottomRect, -180, 120);
+  m_Cpath.moveTo(boundingRect().width() / 2., 2.);
+  m_Cpath.arcTo(rect, 60., 120.);
+  m_Cpath.lineTo(0., m_height + m_CHeight / 2.);
+  m_Cpath.arcTo(bottomRect, -180., 120.);
 
   auto& style = Process::Style::instance();
   QPainterPathStroker stk;
-  stk.setWidth(style.ConditionPen.widthF());
+  stk.setWidth(1.);
   stk.setCapStyle(style.ConditionPen.capStyle());
   stk.setJoinStyle(style.ConditionPen.joinStyle());
   m_strokedCpath = stk.createStroke(m_Cpath) + conditionTrianglePath;
 
   this->update();
+}
+
+void ConditionView::setStatus(ExecutionStatus c)
+{
+  m_status.set(c);
+  update();
+}
+
+void ConditionView::setSelected(bool selected)
+{
+  m_selected = selected;
+  update();
 }
 
 void ConditionView::mousePressEvent(QGraphicsSceneMouseEvent* event)

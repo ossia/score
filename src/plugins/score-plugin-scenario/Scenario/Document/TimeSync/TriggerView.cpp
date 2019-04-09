@@ -2,20 +2,38 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "TriggerView.hpp"
 
+#include <score/widgets/Pixmap.hpp>
 #include <QGraphicsSceneMouseEvent>
 #include <QPainter>
 
 #include <wobjectimpl.h>
+#include <QImageReader>
 W_OBJECT_IMPL(Scenario::TriggerView)
 namespace Scenario
 {
+  static const QPixmap& triggerPixmap() {
+    static const auto p = score::get_pixmap(":/images/trigger.png");
+    return p;
+  }
+  static const QPixmap& selectedTriggerPixmap() {
+    static const auto p = score::get_pixmap(":/images/trigger-selected.png");
+    return p;
+  }
 TriggerView::TriggerView(QGraphicsItem* parent)
-    : QGraphicsSvgItem{":/images/trigger.svg", parent}
+    : QGraphicsPixmapItem{triggerPixmap(), parent}
 {
   this->setCacheMode(QGraphicsItem::NoCache);
-  this->setScale(1.5);
   this->setAcceptDrops(true);
   setFlag(ItemStacksBehindParent, true);
+}
+
+void TriggerView::setSelected(bool b) noexcept
+{
+  if(b)
+    setPixmap(selectedTriggerPixmap());
+  else {
+    setPixmap(triggerPixmap());
+  }
 }
 
 void TriggerView::mousePressEvent(QGraphicsSceneMouseEvent* event)

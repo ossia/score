@@ -83,7 +83,7 @@ void StateView::paint(
 
   auto status = m_status.get();
   if (status != ExecutionStatus::Editing)
-    skin.StateTemporalPointBrush = m_status.stateStatusColor().getBrush();
+    skin.StateTemporalPointBrush = m_status.stateStatusColor(skin).getBrush();
 
   if (m_containMessage)
   {

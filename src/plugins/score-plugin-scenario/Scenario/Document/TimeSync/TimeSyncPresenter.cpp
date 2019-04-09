@@ -32,6 +32,7 @@ TimeSyncPresenter::TimeSyncPresenter(
 {
   con(m_model.selection, &Selectable::changed, this, [=](bool b) {
     m_view->setSelected(b);
+    m_triggerView->setSelected(b);
   });
 
   con(m_model,

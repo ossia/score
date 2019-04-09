@@ -4,20 +4,21 @@
 #include <score/widgets/MimeData.hpp>
 
 #include <QGraphicsItem>
-#include <QGraphicsSvgItem>
+#include <QGraphicsPixmapItem>
 #include <QMimeData>
 #include <QRect>
 
 #include <score_plugin_scenario_export.h>
 #include <wobjectdefs.h>
 class QGraphicsSceneMouseEvent;
-class QGraphicsSvgItem;
 class QPainter;
 class QStyleOptionGraphicsItem;
 class QWidget;
 namespace Scenario
 {
-class SCORE_PLUGIN_SCENARIO_EXPORT TriggerView final : public QGraphicsSvgItem
+class SCORE_PLUGIN_SCENARIO_EXPORT TriggerView final
+    : public QGraphicsPixmapItem
+    , public QObject
 {
   W_OBJECT(TriggerView)
   Q_INTERFACES(QGraphicsItem)
@@ -30,6 +31,8 @@ public:
     return QGraphicsItem::UserType + ItemType::Trigger;
   }
   int type() const override { return static_type(); }
+
+  void setSelected(bool b) noexcept;
 
 public:
   void pressed(QPointF arg_1) W_SIGNAL(pressed, arg_1);

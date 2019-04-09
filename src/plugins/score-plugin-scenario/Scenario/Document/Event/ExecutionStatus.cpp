@@ -9,9 +9,8 @@
 
 namespace Scenario
 {
-score::ColorRef ExecutionStatusProperty::eventStatusColor()
+score::ColorRef ExecutionStatusProperty::eventStatusColor(const Process::Style& col) noexcept
 {
-  const auto& col = Process::Style::instance();
   switch (m_status)
   {
     case ExecutionStatus::Editing:
@@ -29,13 +28,31 @@ score::ColorRef ExecutionStatusProperty::eventStatusColor()
   }
 }
 
-score::ColorRef ExecutionStatusProperty::stateStatusColor()
+score::ColorRef ExecutionStatusProperty::stateStatusColor(const Process::Style& col) noexcept
 {
-  const auto& col = Process::Style::instance();
   switch (m_status)
   {
     case ExecutionStatus::Editing:
       return col.StateOutline;
+    case ExecutionStatus::Waiting:
+      return col.EventWaiting;
+    case ExecutionStatus::Pending:
+      return col.EventPending;
+    case ExecutionStatus::Happened:
+      return col.EventHappened;
+    case ExecutionStatus::Disposed:
+      return col.EventDisposed;
+    default:
+      return score::ColorRef(&score::Skin::instance().Warn3);
+  }
+}
+
+score::ColorRef ExecutionStatusProperty::conditionStatusColor(const Process::Style& col) noexcept
+{
+  switch (m_status)
+  {
+    case ExecutionStatus::Editing:
+      return col.ConditionDefault;
     case ExecutionStatus::Waiting:
       return col.EventWaiting;
     case ExecutionStatus::Pending:

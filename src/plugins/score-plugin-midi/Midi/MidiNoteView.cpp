@@ -45,13 +45,7 @@ void NoteView::paint(
 
     if (m_height > 8 && m_width > 4)
     {
-      auto orange = s.noteBaseBrush.color();
-      orange.setHslF(
-          orange.hslHueF() - 0.02, 1., 0.25 + (127. - note.velocity()) / 256.);
-
-      s.paintedNote.setColor(orange);
-
-      painter->setPen(s.paintedNote);
+      painter->setPen(s.paintedNotePen[note.velocity()]);
       painter->drawLine(
           QPointF{2., m_height / 2.}, QPointF{m_width - 2., m_height / 2.});
     }

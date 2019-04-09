@@ -1,6 +1,8 @@
 #pragma once
 #include <Scenario/Application/Menus/ScenarioCopy.hpp>
 #include <Scenario/Commands/Scenario/Deletions/RemoveSelection.hpp>
+#include <Scenario/Commands/TimeSync/RemoveTrigger.hpp>
+#include <Scenario/Commands/Event/SetCondition.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
 
 #include <score/command/Dispatchers/MacroCommandDispatcher.hpp>
@@ -24,6 +26,12 @@ void setupRemoveMacro(
       auto obj = sel.at(0);
       if (auto ts = dynamic_cast<const Scenario::TimeSyncModel*>(obj.data()))
       {
+        if(ts->active())
+        {
+          macro.submit(new RemoveTrigger<Scenario::ProcessModel>{*ts});
+        }
+        return;
+        /*
         if (ts->events().size() > 1)
         {
           macro.submit(new SplitWholeSync(*ts));
@@ -31,20 +39,25 @@ void setupRemoveMacro(
         }
         else
         {
-          /*
             SCORE_ASSERT(ts->events().size() == 1);
             auto ev = scenar.event(ts->events()[0]);
             SCORE_ASSERT()
-            */
           return;
         }
+            */
       }
       else if (auto ev = dynamic_cast<const Scenario::EventModel*>(obj.data()))
       {
+        if(ev->condition().childCount() > 0)
+        {
+          macro.submit(new SetCondition{*ev, State::Expression{}});
+        }
+        /*
         if (ev->states().size() > 1)
         {
           macro.submit(new SplitWholeEvent(*ev));
         }
+        */
         return;
       }
     }
