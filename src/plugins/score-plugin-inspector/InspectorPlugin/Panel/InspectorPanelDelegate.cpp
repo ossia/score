@@ -14,14 +14,22 @@
 
 namespace InspectorPanel
 {
+
+template<int w, int h>
+class SizedWidget : public QWidget
+{
+  QSize sizeHint() const final override {
+    return QSize{w, h};
+  }
+};
+
 PanelDelegate::PanelDelegate(const score::GUIApplicationContext& ctx)
-    : score::PanelDelegate{ctx}, m_widget{new QWidget}
+    : score::PanelDelegate{ctx}, m_widget{new SizedWidget<250, 600>}
 {
   new score::MarginLess<QVBoxLayout>{m_widget};
   m_widget->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Minimum);
   m_widget->setMinimumHeight(400);
   m_widget->setMinimumWidth(250);
-  m_widget->setMaximumWidth(250);
 
   m_widget->setStatusTip(QObject::tr("The inspector show information on the currently selected items."));
 }
