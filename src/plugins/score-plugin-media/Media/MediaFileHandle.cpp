@@ -24,6 +24,7 @@ void MediaFileHandle::load(
     const QString& path,
     const score::DocumentContext& ctx)
 {
+  m_originalFile = path;
   m_file = score::locateFilePath(path, ctx);
   QFile f{m_file};
   if (isAudioFile(f))

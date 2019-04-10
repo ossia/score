@@ -25,6 +25,6 @@ locateFilePath(const QString& filename, const score::DocumentContext& ctx)
     path += filename;
   }
 
-  return path;
+  return QFileInfo{path}.absoluteFilePath();
 }
 }
