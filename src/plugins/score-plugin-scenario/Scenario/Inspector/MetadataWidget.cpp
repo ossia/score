@@ -102,8 +102,8 @@ MetadataWidget::MetadataWidget(
 
     int forced_rows = 2;
     m_palette_widget->setForcedRows(forced_rows);
-    m_palette_widget->setMaximumWidth(
-        20 * m_palette_widget->colorCount() / forced_rows);
+    //m_palette_widget->setMaximumWidth(
+    //    20 * m_palette_widget->palette().count() / forced_rows);
     m_palette_widget->setMaximumHeight(20 * forced_rows);
 
     connect(m_palette_widget, &Swatch::selectedChanged, this, [=](int idx) {
@@ -158,9 +158,9 @@ void MetadataWidget::updateAsked()
   m_labelLine.setText(m_metadata.getLabel());
   m_comments.setText(m_metadata.getComment());
 
-  auto palette = m_palette_widget->palette();
+  const auto& palette = m_palette_widget->palette();
   auto color = m_metadata.getColor().getBrush().color();
-  for (int i = 0; i < m_palette_widget->colorCount(); i++)
+  for (int i = 0; i < palette.count(); i++)
   {
     if (palette.colorAt(i) == color)
     {
