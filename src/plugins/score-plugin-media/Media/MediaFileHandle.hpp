@@ -29,7 +29,7 @@ public:
 
   void load(const QString& path, const score::DocumentContext&);
 
-  QString path() const { return m_file; }
+  QString path() const { return m_originalFile; }
 
   QString fileName() const { return m_fileName; }
 
@@ -52,6 +52,7 @@ public:
   Nano::Signal<void()> on_mediaChanged;
 
 private:
+  QString m_originalFile;
   QString m_file;
   QString m_fileName;
   AudioDecoder m_decoder;
