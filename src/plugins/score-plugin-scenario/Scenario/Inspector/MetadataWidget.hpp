@@ -119,7 +119,5 @@ private:
   color_widgets::Swatch* m_palette_widget;
   QPixmap m_colorButtonPixmap{4 * m_colorIconSize / 3,
                               4 * m_colorIconSize / 3};
-
-  bool m_cmtExpanded{false};
 };
 }

@@ -9,13 +9,14 @@
 #include <Scenario/Palette/Transitions/IntervalTransitions.hpp>
 #include <Scenario/Palette/Transitions/StateTransitions.hpp>
 #include <Scenario/Palette/Transitions/TimeSyncTransitions.hpp>
+#include <score/statemachine/StateMachineTools.hpp>
 namespace Scenario
 {
 class MoveIntervalInScenario_StateWrapper
 {
 public:
   template <typename Scenario_T, typename ToolPalette_T>
-  static void
+  static auto
   make(const ToolPalette_T& palette, QState* waitState, QState& parent)
   {
     /// Interval
@@ -30,6 +31,7 @@ public:
     score::make_transition<ClickOnInterval_Transition<Scenario_T>>(
         waitState, moveInterval, *moveInterval);
     moveInterval->addTransition(moveInterval, finishedState(), waitState);
+    return moveInterval;
   }
 };
 
@@ -37,7 +39,7 @@ class MoveLeftBraceInScenario_StateWrapper
 {
 public:
   template <typename Scenario_T, typename ToolPalette_T>
-  static void
+  static auto
   make(const ToolPalette_T& palette, QState* waitState, QState& parent)
   {
     auto moveBrace = new MoveIntervalBraceState<
@@ -51,6 +53,7 @@ public:
     score::make_transition<ClickOnLeftBrace_Transition<Scenario_T>>(
         waitState, moveBrace, *moveBrace);
     moveBrace->addTransition(moveBrace, finishedState(), waitState);
+    return moveBrace;
   }
 };
 
@@ -58,7 +61,7 @@ class MoveRightBraceInScenario_StateWrapper
 {
 public:
   template <typename Scenario_T, typename ToolPalette_T>
-  static void
+  static auto
   make(const ToolPalette_T& palette, QState* waitState, QState& parent)
   {
     auto moveBrace = new MoveIntervalBraceState<
@@ -72,6 +75,7 @@ public:
     score::make_transition<ClickOnRightBrace_Transition<Scenario_T>>(
         waitState, moveBrace, *moveBrace);
     moveBrace->addTransition(moveBrace, finishedState(), waitState);
+    return moveBrace;
   }
 };
 
@@ -79,7 +83,7 @@ class MoveEventInScenario_StateWrapper
 {
 public:
   template <typename Scenario_T, typename ToolPalette_T>
-  static void
+  static auto
   make(const ToolPalette_T& palette, QState* waitState, QState& parent)
   {
     /// Event
@@ -98,6 +102,8 @@ public:
     score::make_transition<ClickOnEvent_Transition<Scenario_T>>(
         waitState, moveEvent, *moveEvent);
     moveEvent->addTransition(moveEvent, finishedState(), waitState);
+
+    return moveEvent;
   }
 };
 
@@ -105,7 +111,7 @@ class MoveTimeSyncInScenario_StateWrapper
 {
 public:
   template <typename Scenario_T, typename ToolPalette_T>
-  static void
+  static auto
   make(const ToolPalette_T& palette, QState* waitState, QState& parent)
   {
     /// TimeSync
@@ -120,7 +126,10 @@ public:
 
     score::make_transition<ClickOnTimeSync_Transition<Scenario_T>>(
         waitState, moveTimeSync, *moveTimeSync);
+
     moveTimeSync->addTransition(moveTimeSync, finishedState(), waitState);
+
+    return moveTimeSync;
   }
 };
 
@@ -128,7 +137,7 @@ class MoveEventInTopScenario_StateWrapper
 {
 public:
   template <typename Scenario_T, typename ToolPalette_T>
-  static void
+  static auto
   make(const ToolPalette_T& palette, QState* waitState, QState& parent)
   {
     /// Event
@@ -147,6 +156,8 @@ public:
     score::make_transition<ClickOnEvent_Transition<Scenario_T>>(
         waitState, moveEvent, *moveEvent);
     moveEvent->addTransition(moveEvent, finishedState(), waitState);
+
+    return moveEvent;
   }
 };
 
@@ -154,7 +165,7 @@ class MoveTimeSyncInTopScenario_StateWrapper
 {
 public:
   template <typename Scenario_T, typename ToolPalette_T>
-  static void
+  static auto
   make(const ToolPalette_T& palette, QState* waitState, QState& parent)
   {
     /// TimeSync
@@ -170,6 +181,8 @@ public:
     score::make_transition<ClickOnTimeSync_Transition<Scenario_T>>(
         waitState, moveTimeSync, *moveTimeSync);
     moveTimeSync->addTransition(moveTimeSync, finishedState(), waitState);
+
+    return moveTimeSync;
   }
 };
 }
