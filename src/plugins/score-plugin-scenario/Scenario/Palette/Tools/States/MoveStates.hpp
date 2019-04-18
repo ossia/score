@@ -245,9 +245,9 @@ public:
       auto pressed = new QState{mainState};
       auto released = new QState{mainState};
       auto moving = new QState{mainState};
-      mainState->setInitialState(pressed);
 
       // General setup
+      mainState->setInitialState(pressed);
       released->addTransition(finalState);
 
       score::make_transition<MoveOnAnything_Transition<Scenario_T>>(
@@ -317,7 +317,10 @@ public:
       });
 
       QObject::connect(
-          released, &QState::entered, [&]() { m_dispatcher.commit(); });
+          released, &QState::entered, [&]() {
+        m_dispatcher.commit();
+        m_pressedPrevious = {};
+      });
     }
 
     auto rollbackState = new QState{this};
