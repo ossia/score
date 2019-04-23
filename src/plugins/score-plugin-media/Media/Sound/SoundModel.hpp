@@ -44,10 +44,10 @@ public:
   }
 
   void setFile(const QString& file);
-  void setFile(const MediaFileHandle& file);
+  void setFile(const FFMPEGAudioFileHandle& file);
 
-  std::shared_ptr<MediaFileHandle>& file();
-  const std::shared_ptr<MediaFileHandle>& file() const;
+  std::shared_ptr<FFMPEGAudioFileHandle>& file();
+  const std::shared_ptr<FFMPEGAudioFileHandle>& file() const;
 
   int upmixChannels() const;
   int startChannel() const;
@@ -89,7 +89,7 @@ public:
 private:
   void init();
 
-  std::shared_ptr<MediaFileHandle> m_file{std::make_shared<MediaFileHandle>()};
+  std::shared_ptr<FFMPEGAudioFileHandle> m_file{std::make_shared<FFMPEGAudioFileHandle>()};
   int m_upmixChannels{};
   int m_startChannel{};
   qint32 m_startOffset{};

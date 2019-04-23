@@ -49,7 +49,11 @@
 W_OBJECT_IMPL(Media::Step::View)
 W_OBJECT_IMPL(Media::Effect::EffectTitleItem)
 
-score_plugin_media::score_plugin_media() {}
+score_plugin_media::score_plugin_media()
+{
+  qRegisterMetaType<Media::Sound::ComputedWaveform>();
+  qRegisterMetaType<QVector<QImage>>();
+}
 
 score_plugin_media::~score_plugin_media() {}
 
