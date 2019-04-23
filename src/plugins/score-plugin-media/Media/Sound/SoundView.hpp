@@ -20,27 +20,19 @@ namespace Sound
 class LayerView;
 struct ComputedWaveform
 {
-  QList<QPainterPath> arg_1;
-  QPainterPath arg_2;
-  double zoom;
-  QImage img;
+  double zoom{};
+
+  int x0{};
+  int xf{};
 };
 
 struct WaveformComputer : public QObject
 {
   W_OBJECT(WaveformComputer)
 public:
-  enum action
-  {
-    KEEP_CUR = 0,
-    USE_PREV,
-    USE_NEXT,
-    RECOMPUTE_ALL
-  };
-  W_ENUM(action, KEEP_CUR, USE_PREV, USE_NEXT, RECOMPUTE_ALL)
+    WaveformComputer(LayerView& layer);
 
   LayerView& m_layer;
-  WaveformComputer(LayerView& layer);
   std::atomic_bool dirty{};
 
   ~WaveformComputer() { m_drawThread.quit(); }
@@ -51,38 +43,24 @@ public:
   }
 
 public:
-  void recompute(std::shared_ptr<MediaFileHandle> arg_1, double arg_2)
+  void recompute(const std::shared_ptr<FFMPEGAudioFileHandle> &arg_1, double arg_2)
       W_SIGNAL(recompute, arg_1, arg_2);
   void
-  ready(QList<QPainterPath> arg_1, QPainterPath arg_2, double z, QImage img)
-      W_SIGNAL(ready, arg_1, arg_2, z, img);
+  ready(QVector<QImage> img, ComputedWaveform wf)
+      W_SIGNAL(ready, img, wf);
 
 private:
-  void on_recompute(std::shared_ptr<MediaFileHandle> data, double ratio);
+  void on_recompute(std::shared_ptr<FFMPEGAudioFileHandle> data, double ratio, int64_t n);
   W_SLOT(on_recompute);
 
 private:
-  // Returns what to do depending on current density and stored density
-  action compareDensity(const double density);
-
-  // Computes a data set for the given ZoomRatio
-  void computeDataSet(
-      const MediaFileHandle& m_data,
+  void drawWaveFormsOnImage(
+      const FFMPEGAudioFileHandle& data,
       ZoomRatio ratio,
-      double* densityptr,
-      std::vector<ossia::float_vector>& dataset);
-
-  void drawWaveForms(const MediaFileHandle& data, ZoomRatio ratio);
+      QImage& img, int64_t n);
   ZoomRatio m_zoom{};
 
-  double m_prevdensity = -1;
-  double m_density = -1;
-  double m_nextdensity = -1;
-
-  std::vector<ossia::float_vector> m_prevdata;
-  std::vector<ossia::float_vector> m_curdata;
-  std::vector<ossia::float_vector> m_nextdata;
-
+  std::atomic_int64_t m_redraw_count = std::numeric_limits<int64_t>::lowest();
   QThread m_drawThread;
 };
 
@@ -94,7 +72,7 @@ public:
   explicit LayerView(QGraphicsItem* parent);
   ~LayerView();
 
-  void setData(const std::shared_ptr<MediaFileHandle>& data);
+  void setData(const std::shared_ptr<FFMPEGAudioFileHandle>& data);
   void recompute(ZoomRatio ratio);
 
 private:
@@ -111,18 +89,21 @@ private:
   void on_finishedDecoding();
   void on_newData();
 
-  std::shared_ptr<MediaFileHandle> m_data;
-  QList<QPainterPath> m_paths;
-  QPainterPath m_channels{};
+  std::shared_ptr<FFMPEGAudioFileHandle> m_data;
   int m_numChan{};
   int m_sampleRate{};
 
-  ZoomRatio m_pathZoom{};
   ZoomRatio m_zoom{};
   void printAction(long);
 
-  // QPixmap m_pixmap;
+  std::vector<QPixmap> m_pixmap;
   WaveformComputer* m_cpt{};
+
+  ComputedWaveform m_wf{};
 };
 }
 }
+
+Q_DECLARE_METATYPE(Media::Sound::ComputedWaveform)
+W_REGISTER_ARGTYPE(Media::Sound::ComputedWaveform)
+W_REGISTER_ARGTYPE(QVector<QImage>)

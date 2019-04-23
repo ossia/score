@@ -38,12 +38,12 @@ void ProcessModel::setFile(const QString& file)
   }
 }
 
-std::shared_ptr<MediaFileHandle>& ProcessModel::file()
+std::shared_ptr<FFMPEGAudioFileHandle>& ProcessModel::file()
 {
   return m_file;
 }
 
-const std::shared_ptr<MediaFileHandle>& ProcessModel::file() const
+const std::shared_ptr<FFMPEGAudioFileHandle>& ProcessModel::file() const
 {
   return m_file;
 }

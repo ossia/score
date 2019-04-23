@@ -19,7 +19,7 @@ DroppedAudioFiles::DroppedAudioFiles(const QMimeData& mime)
   for (const auto& url : mime.urls())
   {
     QString filename = url.toLocalFile();
-    if (!MediaFileHandle::isAudioFile(QFile{filename}))
+    if (!FFMPEGAudioFileHandle::isSupported(QFile{filename}))
       continue;
 
     AudioDecoder dec;

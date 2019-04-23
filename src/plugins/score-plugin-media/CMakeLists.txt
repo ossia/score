@@ -74,6 +74,7 @@ set(HDRS ${HDRS}
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Merger/Model.hpp"
 
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/MediaFileHandle.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Media/RMSData.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/AudioDecoder.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/ApplicationPlugin.hpp"
 
@@ -110,6 +111,7 @@ set(SRCS
 
 
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/MediaFileHandle.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Media/RMSData.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/AudioDecoder.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/ApplicationPlugin.cpp"
 
