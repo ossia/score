@@ -186,5 +186,6 @@ void RMSData::computeRMS(const std::vector<gsl::span<const ossia::audio_sample> 
   }
 
   // TODO finish the remainign samples
+  newSamples();
 }
 }
