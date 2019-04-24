@@ -10,9 +10,10 @@ namespace Media
 {
 
 using rms_sample_t = uint16_t;
-struct RMSData
+struct RMSData : public QObject
 {
 
+  W_OBJECT(RMSData)
 public:
   struct Header
   {
@@ -30,6 +31,9 @@ public:
 
   rms_sample_t valueAt(int64_t start_sample, int64_t end_sample, int32_t channel) const noexcept;
   ossia::small_vector<rms_sample_t, 8> frame(int64_t start_sample, int64_t end_sample) const noexcept;
+
+  void newData() W_SIGNAL(newData);
+  void finishedDecoding(audio_handle hdl) W_SIGNAL(finishedDecoding, hdl);
 private:
   QFile m_file;
   bool m_exists{false};
