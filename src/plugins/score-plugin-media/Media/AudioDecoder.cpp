@@ -853,6 +853,7 @@ void AudioDecoder::on_startDecode(QString path, audio_handle hdl)
                   ret = avcodec_receive_frame(codec_ctx.get(), frame.get());
 
                   update++;
+                  qDebug() << "DEcODE" << update;
                   if ((update % 512) == 0)
                   {
                     newData();
