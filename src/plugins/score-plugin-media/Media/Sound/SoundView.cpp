@@ -68,16 +68,7 @@ void LayerView::setData(const std::shared_ptr<FFMPEGAudioFileHandle>& data)
 {
   if (m_data)
   {
-    QObject::disconnect(
-        &m_data->decoder(),
-        &AudioDecoder::finishedDecoding,
-        this,
-        &LayerView::on_finishedDecoding);
-    QObject::disconnect(
-        &m_data->decoder(),
-        &AudioDecoder::newData,
-        this,
-        &LayerView::on_newData);
+    QObject::disconnect(&m_data->rms(), nullptr, this, nullptr);
   }
 
   SCORE_ASSERT(data);
@@ -87,14 +78,14 @@ void LayerView::setData(const std::shared_ptr<FFMPEGAudioFileHandle>& data)
   if (m_data)
   {
     QObject::connect(
-        &m_data->decoder(),
-        &AudioDecoder::finishedDecoding,
+        &m_data->rms(),
+        &RMSData::finishedDecoding,
         this,
         &LayerView::on_finishedDecoding,
         Qt::QueuedConnection);
     QObject::connect(
-        &m_data->decoder(),
-        &AudioDecoder::newData,
+        &m_data->rms(),
+        &RMSData::newData,
         this,
         &LayerView::on_newData,
         Qt::QueuedConnection);
@@ -229,17 +220,19 @@ void WaveformComputer::drawWaveFormsOnImage(
   double x0
       = std::max(m_layer.mapFromScene(view->mapToScene(0, 0)).x(), 0.);
 
-  const int64_t n = data.decoder().decoded;
-  if (n == 0)
-    return;
+  auto& rms = data.rms();
 
+  if (rms.frames_count == 0) {
+    return;
+  }
+
+  qDebug() << rms.frames_count;
   // rightmost point
   double xf = m_layer.mapFromScene(view->mapToScene(view->width(), 0)).x();
 
 
   const int64_t width = std::min(double(w), 2. * (xf - x0));
 
-  auto& rms = data.rms();
   const auto half_h = h / 2;
   const auto h_ratio = -half_h / std::numeric_limits<rms_sample_t>::max();
   double samples_per_pixels = 0.001 * ratio * data.sampleRate();
@@ -257,9 +250,12 @@ void WaveformComputer::drawWaveFormsOnImage(
           width,
           half_h,
           QImage::Format_ARGB32_Premultiplied);
-
   }
 
+  constexpr auto f = 1.;//std::numeric_limits<rms_sample_t>::max() / 2;
+
+  decltype(rms.frame(0, 0)) prev;
+  prev.resize(data.channels());
   for(int32_t x = 0; x < max_pixel; x++)
   {
     if(m_redraw_count > redraw_number)
@@ -268,11 +264,12 @@ void WaveformComputer::drawWaveFormsOnImage(
     const auto rms_sample = rms.frame(
           (x0 + x)      * samples_per_pixels,
           (x0 + x + 1.) * samples_per_pixels);
+    //qDebug() << x << rms_sample[0];
 
     for(int k = 0; k < data.channels(); k++)
     {
       auto& image = images[k];
-      const int value = rms_sample[k] * h_ratio + half_h;
+      const int value = rms_sample[k] * h_ratio / f + half_h;
 
       for(int y = 0; y < value; y++) {
         image.setPixel(x, y, qRgba(0, 0, 0, 0));
@@ -281,6 +278,7 @@ void WaveformComputer::drawWaveFormsOnImage(
         image.setPixel(x, y, qRgba(250, 180, 15, 255));
       }
     }
+    prev = rms_sample;
   }
 
   ComputedWaveform wf;
