@@ -75,50 +75,9 @@ void RMSData::decodeLast(const std::vector<gsl::span<const ossia::audio_sample> 
   computeLastRMS(audio, rms_buffer_size);
 }
 
-rms_sample_t RMSData::valueAt(int64_t start_frame, int64_t end_frame, int32_t channel) const noexcept
+ossia::small_vector<float, 8> RMSData::frame(int64_t start_frame, int64_t end_frame) const noexcept
 {
-  int64_t sum = 0;
-
-  assert(start_frame >= 0);
-  assert(end_frame >= 0);
-  const auto channels = header->channels;
-
-  const auto start_idx = (start_frame / rms_buffer_size + channel);
-  auto end_idx = (end_frame / rms_buffer_size + channel);
-
-  if(start_idx >= samples_count) {
-    qDebug() << "bug on start! " << start_idx << samples_count;
-    return 0;
-  }
-
-  if(end_idx > samples_count) {
-    qDebug() << "bug on end! " << end_idx << samples_count;
-    end_idx = samples_count;
-  }
-
-  rms_sample_t* begin = (data + start_idx);
-  rms_sample_t* end = (data + end_idx);
-
-  if(begin == end && start_frame < end_frame) {
-    // TODO go fetch the actual samples.
-    return *begin;
-  }
-
-  for(; begin < end; begin += channels) {
-    sum += *begin;
-  }
-  if(auto n = (end_idx-start_idx) / channels;
-     n != 0)
-    sum /= n;
-
-  return sum;
-}
-
-ossia::small_vector<rms_sample_t, 8> RMSData::frame(int64_t start_frame, int64_t end_frame) const noexcept
-{
-  ossia::small_vector<rms_sample_t, 8> res;
-  res.resize(header->channels);
-  ossia::small_vector<int64_t, 8> sum;
+  ossia::small_vector<float, 8> sum;
   sum.resize(header->channels);
 
   assert(start_frame >= 0);
@@ -129,7 +88,7 @@ ossia::small_vector<rms_sample_t, 8> RMSData::frame(int64_t start_frame, int64_t
 
   if(start_idx >= samples_count) {
     qDebug() << "bug on start! " << start_idx << samples_count;
-    return res;
+    return sum;
   }
 
   if(end_idx > samples_count) {
@@ -143,20 +102,21 @@ ossia::small_vector<rms_sample_t, 8> RMSData::frame(int64_t start_frame, int64_t
   if(begin == end && start_frame < end_frame) {
     // TODO go fetch the actual samples.
     for(int k = 0; k < channels; k++)
-      res[k] += begin[k];
-    return res;
+      sum[k] = begin[k];
+
+    return sum;
   }
 
   for(; begin < end; begin += channels) {
     for(int k = 0; k < channels; k++)
       sum[k] += begin[k];
   }
-  if(auto n = (end_idx-start_idx) / channels;
-     n != 0)
-    for(int k = 0; k < channels; k++)
-      res[k] = sum[k] / n;
 
-  return res;
+  const float n = std::max(int64_t(1), (end_idx-start_idx) / channels);
+  for(int k = 0; k < channels; k++)
+    sum[k] = sum[k] / n;
+
+  return sum;
 }
 
 rms_sample_t RMSData::computeChannelRMS(gsl::span<const ossia::audio_sample> chan, int64_t start_idx, int64_t buffer_size)
@@ -168,7 +128,6 @@ rms_sample_t RMSData::computeChannelRMS(gsl::span<const ossia::audio_sample> cha
   for(auto it = begin; it < end; ++it)
     val += (*it)*(*it);
   return ossia::clamp(sqrt(val / buffer_size), 0., 1.) * std::numeric_limits<rms_sample_t>::max();
-
 }
 
 void RMSData::computeRMS(const std::vector<gsl::span<const ossia::audio_sample> >& audio, int buffer_size)

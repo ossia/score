@@ -57,7 +57,7 @@ private:
   void drawWaveFormsOnImage(
       const FFMPEGAudioFileHandle& data,
       ZoomRatio ratio,
-      QImage& img, int64_t n);
+      int64_t n);
   ZoomRatio m_zoom{};
 
   std::atomic_int64_t m_redraw_count = std::numeric_limits<int64_t>::lowest();
@@ -97,6 +97,7 @@ private:
   void printAction(long);
 
   std::vector<QPixmap> m_pixmap;
+  QVector<QImage> m_image;
   WaveformComputer* m_cpt{};
 
   ComputedWaveform m_wf{};

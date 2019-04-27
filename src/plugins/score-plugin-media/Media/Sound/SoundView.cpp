@@ -5,15 +5,17 @@
 #include <score/tools/std/Invoke.hpp>
 
 #include <ossia/detail/pod_vector.hpp>
+#include <ossia/detail/math.hpp>
 
 #include <QGraphicsSceneContextMenuEvent>
 #include <QGraphicsView>
 #include <QPainter>
 #include <QScrollBar>
 #include <QTimer>
-
+#include <QApplication>
 #include <cmath>
 
+#include <boost/circular_buffer.hpp>
 #if defined(__AVX2__) && __has_include(<immintrin.h>)
 #include <immintrin.h>
 #elif defined(__SSE2__) && __has_include(<xmmintrin.h>)
@@ -31,6 +33,7 @@ namespace Sound
 LayerView::LayerView(QGraphicsItem* parent)
     : Process::LayerView{parent}, m_cpt{new WaveformComputer{*this}}
 {
+  setCacheMode(NoCache);
   setFlag(ItemClipsToShape, true);
   this->setAcceptDrops(true);
   if (auto view = getView(*parent))
@@ -44,13 +47,13 @@ LayerView::LayerView(QGraphicsItem* parent)
       &WaveformComputer::ready,
       this,
       [=](QVector<QImage> img, ComputedWaveform wf) {
-        m_pixmap.resize(img.size() * 2);
-        for(int i = 0; i < img.size(); i+=2)
+        m_image = std::move(img);
+        m_pixmap.resize(m_image.size() * 2);
+        for(int i = 0; i < m_image.size(); i++)
         {
-          m_pixmap[i].convertFromImage(img[i]);
-          m_pixmap[i+1].convertFromImage(img[i].mirrored(false, true));
+          m_pixmap[2 * i].convertFromImage(m_image[i]);
+          m_pixmap[2 * i + 1].convertFromImage(m_image[i].mirrored(false, true));
         }
-
         m_wf = wf;
 
         update();
@@ -123,11 +126,12 @@ void LayerView::paint_impl(QPainter* painter) const
 
   const qreal w = (m_wf.xf - m_wf.x0) * ratio;
   const qreal h = height() / channels;
-  for(int i = 0; i < m_pixmap.size(); i++)
-  {
-    double x0 = m_wf.x0 * ratio;
-    painter->drawPixmap(x0, h * i, w, h, m_pixmap[i]);
 
+  const double x0 = m_wf.x0 * ratio;
+
+  for(int i = 0; i < channels; i++)
+  {
+    painter->drawPixmap(x0, h * i, w, h, m_pixmap[i]);
   }
 }
 
@@ -178,6 +182,49 @@ void LayerView::dropEvent(QGraphicsSceneDragDropEvent* event)
     dropReceived(event->pos(), *event->mimeData());
 }
 
+
+template <typename T = float>
+struct low_pass_filter
+{
+  constexpr T operator()(T x, T alpha) noexcept
+  {
+    T hatx = alpha * x + (1.f - alpha) * hatxprev;
+    hatxprev = hatx;
+    xprev = x;
+
+    return hatx;
+  }
+
+  T hatxprev{};
+  T xprev{};
+};
+
+template <typename T = float, typename timestamp_t = int64_t>
+struct one_euro_filter
+{
+  constexpr T operator()(T x) noexcept
+  {
+    const T dx = (x - xfilt_.xprev) * freq;
+    const T edx = dxfilt_(dx, alpha(dcutoff));
+    const T cutoff = mincutoff + beta * std::abs(edx);
+    return xfilt_(x, alpha(cutoff));
+  }
+
+  static const constexpr float freq = 1.;
+  static const constexpr float mincutoff = 0.05;
+  static const constexpr float beta = 0.00002;
+  static const constexpr float dcutoff = 0.005;
+
+private:
+  static constexpr T alpha(T cutoff) noexcept {
+    T tau = 1.0f / (2.f * M_PI * cutoff);
+    return 1.0f / (1.0f + tau / te);
+  }
+
+  static const constexpr T te = 1.0f / freq;
+  low_pass_filter<T> xfilt_{}, dxfilt_{};
+};
+
 WaveformComputer::WaveformComputer(LayerView& layer) : m_layer{layer}
 {
   connect(this, &WaveformComputer::recompute,
@@ -196,20 +243,15 @@ WaveformComputer::WaveformComputer(LayerView& layer) : m_layer{layer}
 void WaveformComputer::drawWaveFormsOnImage(
     const FFMPEGAudioFileHandle& data,
     ZoomRatio ratio,
-    QImage& img,
     int64_t redraw_number)
 {
-//  QPainter p(img);
-  //p.setPen(Qt::green);
-
   int nchannels = data.channels();
   if (nchannels == 0)
     return;
 
   // Height of each channel
-  const auto h = m_layer.height() / (double)nchannels;
+  const float h = m_layer.height() / (float)nchannels;
   const int64_t w = m_layer.width();
-
 
   // Get horizontal offset
   auto view = getView(m_layer);
@@ -226,16 +268,15 @@ void WaveformComputer::drawWaveFormsOnImage(
     return;
   }
 
-  qDebug() << rms.frames_count;
   // rightmost point
   double xf = m_layer.mapFromScene(view->mapToScene(view->width(), 0)).x();
 
-
   const int64_t width = std::min(double(w), 2. * (xf - x0));
 
-  const auto half_h = h / 2;
-  const auto h_ratio = -half_h / std::numeric_limits<rms_sample_t>::max();
-  double samples_per_pixels = 0.001 * ratio * data.sampleRate();
+  const float half_h = h / 2;
+  const int half_h_int = half_h;
+  const float h_ratio = -half_h / std::numeric_limits<rms_sample_t>::max();
+  float samples_per_pixels = 0.001 * ratio * data.sampleRate();
   if(samples_per_pixels <= 1e-6)
     return;
 
@@ -243,7 +284,7 @@ void WaveformComputer::drawWaveFormsOnImage(
 
   // TODO put in cache !
   QVector<QImage> images;
-  images.resize(data.channels());
+  images.resize(nchannels);
   for(QImage& image : images)
   {
     image = QImage(
@@ -252,10 +293,12 @@ void WaveformComputer::drawWaveFormsOnImage(
           QImage::Format_ARGB32_Premultiplied);
   }
 
-  constexpr auto f = 1.;//std::numeric_limits<rms_sample_t>::max() / 2;
+  constexpr const auto transparent = qRgba(0, 0, 0, 0);
+  constexpr const auto orange = qRgba(250, 180, 15, 255);
 
-  decltype(rms.frame(0, 0)) prev;
-  prev.resize(data.channels());
+  ossia::small_vector<one_euro_filter<>, 8> filter;
+  filter.resize(nchannels);
+
   for(int32_t x = 0; x < max_pixel; x++)
   {
     if(m_redraw_count > redraw_number)
@@ -263,22 +306,19 @@ void WaveformComputer::drawWaveFormsOnImage(
 
     const auto rms_sample = rms.frame(
           (x0 + x)      * samples_per_pixels,
-          (x0 + x + 1.) * samples_per_pixels);
-    //qDebug() << x << rms_sample[0];
+          (x0 + x + 1.) * samples_per_pixels
+          );
 
-    for(int k = 0; k < data.channels(); k++)
+    for(int k = 0; k < nchannels; k++)
     {
-      auto& image = images[k];
-      const int value = rms_sample[k] * h_ratio / f + half_h;
+      QImage& image = images[k];
+      const int value = ossia::clamp(int(0.5 * filter[k](rms_sample[k]) * h_ratio + half_h), 0, half_h_int - 1);
 
-      for(int y = 0; y < value; y++) {
-        image.setPixel(x, y, qRgba(0, 0, 0, 0));
-      }
-      for(int y = value; y < half_h; y++) {
-        image.setPixel(x, y, qRgba(250, 180, 15, 255));
-      }
+      for(int y = 0; y < value; y++)
+        image.setPixel(x, y, transparent);
+      for(int y = value; y < half_h_int; y++)
+        image.setPixel(x, y, orange);
     }
-    prev = rms_sample;
   }
 
   ComputedWaveform wf;
@@ -303,8 +343,7 @@ void WaveformComputer::on_recompute(
   if (data.channels() == 0)
     return;
 
-  QImage img;
-  drawWaveFormsOnImage(*data_qp, ratio, img, n);
+  drawWaveFormsOnImage(*data_qp, ratio, n);
 }
 }
 }
