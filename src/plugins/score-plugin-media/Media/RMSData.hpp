@@ -30,8 +30,7 @@ public:
   void decode(const std::vector<gsl::span<const ossia::audio_sample>>& audio);
   void decodeLast(const std::vector<gsl::span<const ossia::audio_sample> >& audio);
 
-  rms_sample_t valueAt(int64_t start_sample, int64_t end_sample, int32_t channel) const noexcept;
-  ossia::small_vector<rms_sample_t, 8> frame(int64_t start_sample, int64_t end_sample) const noexcept;
+  ossia::small_vector<float, 8> frame(int64_t start_sample, int64_t end_sample) const noexcept;
 
   int64_t frames_count = 0;
   int64_t samples_count = 0;
