@@ -10,6 +10,77 @@
 namespace Execution
 {
 using sound_proc_type = ossia::nodes::sound_ref;
+}
+namespace Media
+{
+class SoundComponentSetup
+{
+public:
+
+  void construct(Execution::SoundComponent& component)
+  {
+    auto& element = component.process();
+    auto handle = element.file();
+    construct_ffmpeg(component);
+  }
+
+  void construct_ffmpeg(Execution::SoundComponent& component)
+  {
+    auto node = std::make_shared<Execution::sound_proc_type>();
+    component.node = node;
+    component.m_ossia_process = std::make_shared<ossia::node_process>(node);
+
+    auto& element = component.process();
+
+    con(element, &Media::Sound::ProcessModel::fileChanged,
+        &component, &Execution::SoundComponent::recompute);
+    element.file()->on_finishedDecoding.connect<&Execution::SoundComponent::recompute>(component);
+
+    con(element, &Media::Sound::ProcessModel::startChannelChanged, &component, [=,&element,&component] {
+      component.in_exec([node, start = element.startChannel()] { node->set_start(start); });
+    });
+    con(element, &Media::Sound::ProcessModel::upmixChannelsChanged, &component, [=,&element,&component] {
+      component.in_exec([node, upmix = element.upmixChannels()] { node->set_upmix(upmix); });
+    });
+    con(element, &Media::Sound::ProcessModel::startOffsetChanged, &component, [=,&element,&component] {
+      component.in_exec([node, off = element.startOffset()] { node->set_start_offset(off); });
+    });
+    recompute_ffmpeg(component);
+  }
+
+  void construct_drwav(Execution::SoundComponent& component)
+  {
+
+  }
+
+
+  void recompute(Execution::SoundComponent& component)
+  {
+
+  }
+  void recompute_ffmpeg(Execution::SoundComponent& component)
+  {
+    auto& p = component.process();
+    component.in_exec([n = std::dynamic_pointer_cast<ossia::nodes::sound_ref>(
+                 component.OSSIAProcess().node),
+             data = p.file()->m_hdl,
+             upmix = p.upmixChannels(),
+             start = p.startChannel(),
+             startOff = p.startOffset()] {
+      n->set_sound(std::move(data));
+      n->set_start(start);
+      n->set_start_offset(startOff);
+      n->set_upmix(upmix);
+    });
+  }
+  void recompute_drwav(Execution::SoundComponent& component)
+  {
+
+  }
+};
+}
+namespace Execution
+{
 /*
 class sound_mmap final : public ossia::nonowning_graph_node
 {
@@ -180,35 +251,13 @@ SoundComponent::SoundComponent(
               "Executor::SoundComponent",
               parent}
 {
-  auto node = std::make_shared<sound_proc_type>();
-  this->node = node;
-  m_ossia_process = std::make_shared<ossia::node_process>(node);
-
-  con(element, &Media::Sound::ProcessModel::fileChanged, this, [this] {
-    this->recompute();
-  });
-  con(element.file()->decoder(),
-      &Media::AudioDecoder::finishedDecoding,
-      this,
-      [this] { this->recompute(); });
-  con(element, &Media::Sound::ProcessModel::startChannelChanged, this, [=] {
-    in_exec(
-        [node, start = process().startChannel()] { node->set_start(start); });
-  });
-  con(element, &Media::Sound::ProcessModel::upmixChannelsChanged, this, [=] {
-    in_exec(
-        [node, upmix = process().upmixChannels()] { node->set_upmix(upmix); });
-  });
-  con(element, &Media::Sound::ProcessModel::startOffsetChanged, this, [=] {
-    in_exec([node, off = process().startOffset()] {
-      node->set_start_offset(off);
-    });
-  });
-  recompute();
+  Media::SoundComponentSetup{}.construct(*this);
 }
 
 void SoundComponent::recompute()
 {
+  Media::SoundComponentSetup{}.recompute(*this);
+  /*
   if constexpr (std::is_same_v<sound_proc_type, ossia::nodes::sound>)
   {
     auto to_double = [](const auto& float_vec) {
@@ -232,19 +281,8 @@ void SoundComponent::recompute()
       n->set_upmix(upmix);
     });
   }
-  else
+  else*/
   {
-    in_exec([n = std::dynamic_pointer_cast<ossia::nodes::sound_ref>(
-                 OSSIAProcess().node),
-             data = process().file()->handle(),
-             upmix = process().upmixChannels(),
-             start = process().startChannel(),
-             startOff = process().startOffset()] {
-      n->set_sound(std::move(data));
-      n->set_start(start);
-      n->set_start_offset(startOff);
-      n->set_upmix(upmix);
-    });
   }
 }
 

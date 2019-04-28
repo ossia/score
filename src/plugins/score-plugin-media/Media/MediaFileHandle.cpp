@@ -40,29 +40,32 @@ void FFMPEGAudioFileHandle::load(
       connect(&m_decoder, &AudioDecoder::newData,
               this, [=] {
         std::vector<gsl::span<const audio_sample>> samples;
-        auto& handle = this->data();
+        auto& handle = m_hdl->data;
         auto decoded = this->decoder().decoded;
 
-        qDebug()  << "decoded: " << decoded;
         for(auto& channel : handle)
         {
           samples.emplace_back(channel.data(), gsl::span<ossia::audio_sample>::index_type(decoded));
         }
         m_rms->decode(samples);
+
+        on_newData();
       }, Qt::QueuedConnection);
 
       connect(&m_decoder, &AudioDecoder::finishedDecoding,
               this, [=] {
         std::vector<gsl::span<const audio_sample>> samples;
-        auto& handle = this->data();
+        auto& handle = m_hdl->data;
         auto decoded = this->decoder().decoded;
-        qDebug()  << "finieshed: " << decoded;
+
         for(auto& channel : handle)
         {
           samples.emplace_back(channel.data(), gsl::span<ossia::audio_sample>::index_type(decoded));
         }
         m_rms->decodeLast(samples);
-        m_rms->finishedDecoding(this->handle());
+        m_rms->finishedDecoding(m_hdl);
+
+        on_finishedDecoding();
       }, Qt::QueuedConnection);
     }
 
@@ -80,11 +83,16 @@ void FFMPEGAudioFileHandle::load(
   }
 }
 
+int64_t FFMPEGAudioFileHandle::decodedSamples() const
+{
+  return m_decoder.decoded;
+}
+
 bool FFMPEGAudioFileHandle::isSupported(const QFile& file)
 {
   return file.exists()
       && file.fileName().contains(
-        QRegExp(".(wav|aif|aiff|flac|ogg|mp3)", Qt::CaseInsensitive));
+        QRegExp(".(wav|aif|aiff|flac|ogg|mp3|m4a)", Qt::CaseInsensitive));
 }
 
 int64_t FFMPEGAudioFileHandle::samples() const
@@ -96,6 +104,5 @@ int64_t FFMPEGAudioFileHandle::channels() const
 {
   return m_hdl->data.size();
 }
-
 
 }

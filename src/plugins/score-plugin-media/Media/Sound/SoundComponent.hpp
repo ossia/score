@@ -9,12 +9,17 @@
 #include <ossia/dataflow/node_process.hpp>
 #include <ossia/network/value/value.hpp>
 
+namespace Media
+{
+class SoundComponentSetup;
+}
 namespace Execution
 {
 
 class SoundComponent final
     : public ::Execution::
           ProcessComponent_T<Media::Sound::ProcessModel, ossia::node_process>
+    , public Nano::Observer
 {
   COMPONENT_METADATA("a25d0de0-74e2-4011-aeb6-4188673015f2")
 public:
@@ -29,6 +34,7 @@ public:
   ~SoundComponent() override;
 
 private:
+  friend class Media::SoundComponentSetup;
 };
 
 using SoundComponentFactory
