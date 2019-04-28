@@ -1,4 +1,5 @@
 #pragma once
+#include <Media/AudioArray.hpp>
 #include <Media/AudioDecoder.hpp>
 
 #include <ossia/detail/small_vector.hpp>
@@ -18,8 +19,8 @@ namespace Media
 {
 // TODO store them in an application-wide cache to prevent loading / unloading
 // TODO memmap
-
 struct RMSData;
+class SoundComponentSetup;
 struct SCORE_PLUGIN_MEDIA_EXPORT FFMPEGAudioFileHandle final : public QObject
 {
 public:
@@ -33,14 +34,14 @@ public:
   QString path() const { return m_originalFile; }
 
   QString fileName() const { return m_fileName; }
-
-  const AudioDecoder& decoder() const { return m_decoder; }
-
+/*
   const audio_array& data() const { return m_hdl->data; }
 
   audio_handle handle() const { return m_hdl; }
-
+*/
   int sampleRate() const { return m_sampleRate; }
+
+  int64_t decodedSamples() const;
 
   // Number of samples in a channel.
   int64_t samples() const;
@@ -49,9 +50,15 @@ public:
   bool empty() const { return channels() == 0 || samples() == 0; }
 
   const RMSData& rms() const { SCORE_ASSERT(m_rms); return *m_rms; }
+
   Nano::Signal<void()> on_mediaChanged;
+  Nano::Signal<void()> on_newData;
+  Nano::Signal<void()> on_finishedDecoding;
 
 private:
+  friend class SoundComponentSetup;
+  const AudioDecoder& decoder() const { return m_decoder; }
+
   QString m_originalFile;
   QString m_file;
   QString m_fileName;

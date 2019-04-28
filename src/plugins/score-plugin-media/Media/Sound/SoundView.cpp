@@ -229,9 +229,7 @@ WaveformComputer::WaveformComputer(LayerView& layer) : m_layer{layer}
 {
   connect(this, &WaveformComputer::recompute,
       this, [=] (const std::shared_ptr<FFMPEGAudioFileHandle>& arg_1, double arg_2) {
-    int64_t n = m_redraw_count;
-    n++;
-    m_redraw_count = n;
+    int64_t n = m_redraw_count++;
 
     QMetaObject::invokeMethod(this, [=] { on_recompute(arg_1, arg_2, n); }, Qt::QueuedConnection);
   }, Qt::DirectConnection);
@@ -280,7 +278,7 @@ void WaveformComputer::drawWaveFormsOnImage(
   if(samples_per_pixels <= 1e-6)
     return;
 
-  int32_t max_pixel = std::min((int32_t)width, (int32_t) (data.decoder().decoded / samples_per_pixels));
+  int32_t max_pixel = std::min((int32_t)width, (int32_t) (data.decodedSamples() / samples_per_pixels));
 
   // TODO put in cache !
   QVector<QImage> images;
@@ -338,12 +336,10 @@ void WaveformComputer::on_recompute(
   auto& data = *data_qp;
   m_zoom = ratio;
 
-  if (!data.handle())
-    return;
   if (data.channels() == 0)
     return;
 
-  drawWaveFormsOnImage(*data_qp, ratio, n);
+  drawWaveFormsOnImage(data, ratio, n);
 }
 }
 }

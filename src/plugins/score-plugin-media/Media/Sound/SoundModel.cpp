@@ -18,6 +18,7 @@ ProcessModel::ProcessModel(
                             Metadata<ObjectKey_k, ProcessModel>::get(),
                             parent}
     , outlet{Process::make_outlet(Id<Process::Port>(0), this)}
+    , m_file{std::make_shared<FFMPEGAudioFileHandle>()}
 {
   outlet->setPropagate(true);
   outlet->type = Process::PortType::Audio;
