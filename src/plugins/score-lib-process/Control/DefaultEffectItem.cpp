@@ -15,7 +15,7 @@ namespace Media::Effect
 DefaultEffectItem::DefaultEffectItem(
     const Process::ProcessModel& effect,
     const score::DocumentContext& doc,
-    score::RectItem* root)
+    QGraphicsItem* root)
     : score::RectItem{root}, m_effect{effect}, m_ctx{doc}
 {
   QObject::connect(
