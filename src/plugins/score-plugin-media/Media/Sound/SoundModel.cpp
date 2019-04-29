@@ -31,7 +31,7 @@ ProcessModel::~ProcessModel() {}
 
 void ProcessModel::setFile(const QString& file)
 {
-  if (file != m_file->path())
+  if (file != m_file->originalFile())
   {
     m_file->load(file, score::IDocument::documentContext(*this));
     fileChanged();
@@ -117,7 +117,7 @@ void ProcessModel::init()
 template <>
 void DataStreamReader::read(const Media::Sound::ProcessModel& proc)
 {
-  m_stream << proc.m_file->path() << *proc.outlet << proc.m_upmixChannels
+  m_stream << proc.m_file->originalFile() << *proc.outlet << proc.m_upmixChannels
            << proc.m_startChannel << proc.m_startOffset << proc.m_endOffset;
 
   insertDelimiter();
@@ -139,7 +139,7 @@ void DataStreamWriter::write(Media::Sound::ProcessModel& proc)
 template <>
 void JSONObjectReader::read(const Media::Sound::ProcessModel& proc)
 {
-  obj["File"] = proc.m_file->path();
+  obj["File"] = proc.m_file->originalFile();
   obj["Outlet"] = toJsonObject(*proc.outlet);
   obj["Upmix"] = proc.m_upmixChannels;
   obj["Start"] = proc.m_startChannel;
