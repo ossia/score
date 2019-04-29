@@ -18,7 +18,6 @@ struct DocumentContext;
 namespace Media
 {
 // TODO store them in an application-wide cache to prevent loading / unloading
-// TODO memmap
 struct RMSData;
 class SoundComponentSetup;
 struct SCORE_PLUGIN_MEDIA_EXPORT FFMPEGAudioFileHandle final : public QObject
@@ -29,16 +28,17 @@ public:
   FFMPEGAudioFileHandle();
   ~FFMPEGAudioFileHandle() override;
 
-  void load(const QString& path, const score::DocumentContext&);
+  void load(const QString&, const score::DocumentContext&);
 
-  QString path() const { return m_originalFile; }
+  //! The text passed to the load function
+  QString originalFile() const { return m_originalFile; }
 
+  //! Actual filename
   QString fileName() const { return m_fileName; }
-/*
-  const audio_array& data() const { return m_hdl->data; }
 
-  audio_handle handle() const { return m_hdl; }
-*/
+  //! Absolute resolved filename
+  QString absoluteFileName() const { return m_file; }
+
   int sampleRate() const { return m_sampleRate; }
 
   int64_t decodedSamples() const;
@@ -56,17 +56,40 @@ public:
   Nano::Signal<void()> on_finishedDecoding;
 
 private:
+  void load_ffmpeg();
+  void load_drwav();
+
   friend class SoundComponentSetup;
-  const AudioDecoder& decoder() const { return m_decoder; }
+
+  struct MmapReader
+  {
+    QFile file;
+    void* data{};
+    drwav* wav{};
+  };
+
+  struct LibavReader
+  {
+    AudioDecoder decoder;
+    audio_handle handle;
+    ossia::small_vector<audio_sample*, 8> data;
+  };
+
+  using libav_ptr = std::shared_ptr<LibavReader>;
+  using mmap_ptr = std::shared_ptr<MmapReader>;
+  using impl_t = std::variant<
+    std::monostate,
+    mmap_ptr,
+    libav_ptr
+  >;
 
   QString m_originalFile;
   QString m_file;
   QString m_fileName;
 
+  impl_t m_impl;
+
   RMSData* m_rms{};
-  AudioDecoder m_decoder;
-  audio_handle m_hdl;
-  ossia::small_vector<audio_sample*, 8> m_data;
   int m_sampleRate{};
 };
 }
