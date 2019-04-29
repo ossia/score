@@ -14,6 +14,7 @@ namespace score
 {
 struct DocumentContext;
 class RectItem;
+class ResizeableItem;
 }
 namespace Process
 {
@@ -72,10 +73,10 @@ public:
   virtual Process::MiniLayer*
   makeMiniLayer(const Process::ProcessModel&, QGraphicsItem* parent) const;
 
-  virtual QGraphicsItem* makeItem(
+  virtual score::ResizeableItem* makeItem(
       const Process::ProcessModel&,
       const score::DocumentContext& ctx,
-      score::RectItem* parent) const;
+      QGraphicsItem* parent) const;
 
   virtual bool hasExternalUI(
       const Process::ProcessModel& proc,
