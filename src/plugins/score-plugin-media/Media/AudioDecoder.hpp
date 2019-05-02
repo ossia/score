@@ -27,13 +27,13 @@ class AudioDecoder : public QObject
   W_OBJECT(AudioDecoder)
 
 public:
-  AudioDecoder();
+  AudioDecoder(int rate);
   ~AudioDecoder();
   ossia::optional<AudioInfo> probe(const QString& path);
   void decode(const QString& path, audio_handle hdl);
 
   static ossia::optional<std::pair<AudioInfo, audio_array>>
-  decode_synchronous(const QString& path);
+  decode_synchronous(const QString& path, int rate);
 
   static QHash<QString, AudioInfo>& database();
 
@@ -56,6 +56,7 @@ private:
 
   QThread* m_baseThread{};
   QThread m_decodeThread;
+  int m_targetSampleRate{};
 
   template <typename Decoder>
   void decodeFrame(Decoder dec, audio_array& data, AVFrame& frame);

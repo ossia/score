@@ -56,8 +56,10 @@ public:
   Nano::Signal<void()> on_newData;
   Nano::Signal<void()> on_finishedDecoding;
 
+  void updateSampleRate(int);
+
 private:
-  void load_ffmpeg();
+  void load_ffmpeg(int rate);
   void load_drwav();
 
   friend class SoundComponentSetup;
@@ -67,10 +69,13 @@ private:
     QFile file;
     void* data{};
     drwav* wav{};
+    ~MmapReader();
   };
 
   struct LibavReader
   {
+    LibavReader(int rate) noexcept
+      : decoder{rate} { }
     AudioDecoder decoder;
     audio_handle handle;
     ossia::small_vector<audio_sample*, 8> data;

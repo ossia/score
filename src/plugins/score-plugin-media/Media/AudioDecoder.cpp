@@ -372,7 +372,8 @@ struct AVFormatContext;
 struct AVFrame;
 namespace Media
 {
-AudioDecoder::AudioDecoder()
+AudioDecoder::AudioDecoder(int rate)
+  : m_targetSampleRate{rate}
 {
   connect(
       this,
@@ -446,6 +447,8 @@ AVFormatContext_ptr open_audio(const QString& path)
 
 ossia::optional<AudioInfo> AudioDecoder::probe(const QString& path)
 {
+  // TODO this should be independent from the sample rate !
+  // The database should store the number of samples and the rate.
   auto it = database().find(path);
   if (it == database().end())
   {
@@ -471,10 +474,10 @@ ossia::optional<AudioInfo> AudioDecoder::probe(const QString& path)
         info.length = read_length(path);
         info.max_arr_length = info.length;
 
-        if (info.rate != 44100)
+        if (info.rate != m_targetSampleRate)
         {
           info.length
-              = av_rescale_rnd(info.length, 44100, info.rate, AV_ROUND_UP);
+              = av_rescale_rnd(info.length, m_targetSampleRate, info.rate, AV_ROUND_UP);
 
           if (info.length > info.max_arr_length)
             info.max_arr_length = info.length;
@@ -657,10 +660,10 @@ void AudioDecoder::decode(const QString& path, audio_handle hdl)
 }
 
 ossia::optional<std::pair<AudioInfo, audio_array>>
-AudioDecoder::decode_synchronous(const QString& path)
+AudioDecoder::decode_synchronous(const QString& path, int rate)
 {
 
-  AudioDecoder dec;
+  AudioDecoder dec(rate);
   auto res = dec.probe(path);
   if (!res)
     return ossia::none;
@@ -686,10 +689,10 @@ void AudioDecoder::decodeFrame(Decoder dec, audio_array& data, AVFrame& frame)
   const std::size_t channels = data.size();
   const std::size_t max_samples = data[0].size();
 
-  if (sampleRate != 44100)
+  if (sampleRate != m_targetSampleRate)
   {
     auto new_len
-        = av_rescale_rnd(frame.nb_samples, 44100, sampleRate, AV_ROUND_UP);
+        = av_rescale_rnd(frame.nb_samples, m_targetSampleRate, sampleRate, AV_ROUND_UP);
 
     if (decoded + new_len > max_samples)
     {
@@ -737,7 +740,7 @@ void AudioDecoder::decodeRemaining(audio_array& data)
 {
 #if __has_include(<libavcodec/avcodec.h>)
   const std::size_t channels = data.size();
-  if (sampleRate != 44100)
+  if (sampleRate != m_targetSampleRate)
   {
     int res = 0;
     for (std::size_t i = 0; i < channels; ++i)
@@ -808,7 +811,7 @@ void AudioDecoder::on_startDecode(QString path, audio_handle hdl)
       throw std::runtime_error("Couldn't create decoder");
 
     // init resampling
-    if (sampleRate != 44100)
+    if (sampleRate != m_targetSampleRate)
     {
       for (std::size_t i = 0; i < channels; ++i)
       {
@@ -816,7 +819,7 @@ void AudioDecoder::on_startDecode(QString path, audio_handle hdl)
             nullptr,
             AV_CH_LAYOUT_MONO,
             AV_SAMPLE_FMT_DBL,
-            44100,
+            m_targetSampleRate,
             AV_CH_LAYOUT_MONO,
             AV_SAMPLE_FMT_DBL,
             sampleRate,

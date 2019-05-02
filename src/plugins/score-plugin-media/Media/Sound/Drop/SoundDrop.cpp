@@ -1,5 +1,6 @@
 #include "SoundDrop.hpp"
 
+#include <Audio/Settings/Model.hpp>
 #include <Loop/LoopProcessModel.hpp>
 #include <Media/AudioDecoder.hpp>
 #include <Media/Commands/ChangeAudioFile.hpp>
@@ -21,8 +22,8 @@ DroppedAudioFiles::DroppedAudioFiles(const QMimeData& mime)
     QString filename = url.toLocalFile();
     if (!AudioFileHandle::isSupported(QFile{filename}))
       continue;
-
-    AudioDecoder dec;
+    auto& audioSettings = score::GUIAppContext().settings<Audio::Settings::Model>();
+    AudioDecoder dec(audioSettings.getRate());
     if (auto info_opt = dec.probe(filename))
     {
       auto info = *info_opt;
