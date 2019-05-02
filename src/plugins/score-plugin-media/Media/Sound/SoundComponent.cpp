@@ -25,11 +25,11 @@ public:
       Execution::SoundComponent& component;
       void operator()(const std::monostate& r) const noexcept
       { return ; }
-      void operator()(const std::shared_ptr<Media::FFMPEGAudioFileHandle::LibavReader>& r) const noexcept
+      void operator()(const std::shared_ptr<Media::AudioFileHandle::LibavReader>& r) const noexcept
       {
         construct_ffmpeg(r, component);
       }
-      void operator()(const std::shared_ptr<Media::FFMPEGAudioFileHandle::MmapReader>& r) const noexcept
+      void operator()(const std::shared_ptr<Media::AudioFileHandle::MmapReader>& r) const noexcept
       {
         construct_drwav(r, component);
       }
@@ -39,7 +39,7 @@ public:
   }
 
   static void construct_ffmpeg(
-      const std::shared_ptr<Media::FFMPEGAudioFileHandle::LibavReader>& r,
+      const std::shared_ptr<Media::AudioFileHandle::LibavReader>& r,
       Execution::SoundComponent& component)
   {
     auto node = std::make_shared<ossia::nodes::sound_ref>();
@@ -66,7 +66,7 @@ public:
   }
 
   static void construct_drwav(
-      const std::shared_ptr<Media::FFMPEGAudioFileHandle::MmapReader>& r,
+      const std::shared_ptr<Media::AudioFileHandle::MmapReader>& r,
       Execution::SoundComponent& component)
   {
     auto node = std::make_shared<ossia::nodes::sound_mmap>();
@@ -103,11 +103,11 @@ public:
       Execution::SoundComponent& component;
       void operator()(const std::monostate& r) const noexcept
       { return ; }
-      void operator()(const std::shared_ptr<Media::FFMPEGAudioFileHandle::LibavReader>& r) const noexcept
+      void operator()(const std::shared_ptr<Media::AudioFileHandle::LibavReader>& r) const noexcept
       {
         recompute_ffmpeg(r, component);
       }
-      void operator()(const std::shared_ptr<Media::FFMPEGAudioFileHandle::MmapReader>& r) const noexcept
+      void operator()(const std::shared_ptr<Media::AudioFileHandle::MmapReader>& r) const noexcept
       {
         recompute_drwav(r, component);
       }
@@ -117,7 +117,7 @@ public:
 
   }
   static void recompute_ffmpeg(
-      const std::shared_ptr<Media::FFMPEGAudioFileHandle::LibavReader>& r,
+      const std::shared_ptr<Media::AudioFileHandle::LibavReader>& r,
       Execution::SoundComponent& component)
   {
     auto& p = component.process();
@@ -134,7 +134,7 @@ public:
     });
   }
   static void recompute_drwav(
-      const std::shared_ptr<Media::FFMPEGAudioFileHandle::MmapReader>& r,
+      const std::shared_ptr<Media::AudioFileHandle::MmapReader>& r,
       Execution::SoundComponent& component)
   {
     Sound::ProcessModel& p = component.process();

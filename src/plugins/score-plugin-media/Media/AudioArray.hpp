@@ -1,5 +1,5 @@
 #pragma once
-#include <ossia/dataflow/nodes/sound.hpp>
+#include <ossia/dataflow/nodes/media.hpp>
 #include <wobjectdefs.h>
 
 namespace Media

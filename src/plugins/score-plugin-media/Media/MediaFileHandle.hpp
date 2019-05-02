@@ -3,12 +3,14 @@
 #include <Media/AudioDecoder.hpp>
 
 #include <ossia/detail/small_vector.hpp>
+#include <ossia/detail/hash_map.hpp>
 
 #include <QFile>
 
 #include <nano_signal_slot.hpp>
 #include <score_plugin_media_export.h>
 #include <wobjectdefs.h>
+#include <score/tools/std/StringHash.hpp>
 
 #include <array>
 namespace score
@@ -17,18 +19,17 @@ struct DocumentContext;
 }
 namespace Media
 {
-// TODO store them in an application-wide cache to prevent loading / unloading
 struct RMSData;
 class SoundComponentSetup;
-struct SCORE_PLUGIN_MEDIA_EXPORT FFMPEGAudioFileHandle final : public QObject
+struct SCORE_PLUGIN_MEDIA_EXPORT AudioFileHandle final : public QObject
 {
 public:
   static bool isSupported(const QFile& f);
 
-  FFMPEGAudioFileHandle();
-  ~FFMPEGAudioFileHandle() override;
+  AudioFileHandle();
+  ~AudioFileHandle() override;
 
-  void load(const QString&, const score::DocumentContext&);
+  void load(const QString&, const QString&);
 
   //! The text passed to the load function
   QString originalFile() const { return m_originalFile; }
@@ -92,7 +93,21 @@ private:
   RMSData* m_rms{};
   int m_sampleRate{};
 };
+
+class SCORE_PLUGIN_MEDIA_EXPORT AudioFileHandleManager final
+    : public QObject
+{
+public:
+  AudioFileHandleManager() noexcept;
+  ~AudioFileHandleManager() noexcept;
+
+  static AudioFileHandleManager& instance() noexcept;
+  std::shared_ptr<AudioFileHandle> get(const QString&, const score::DocumentContext&);
+
+private:
+  ossia::fast_hash_map<QString, std::shared_ptr<AudioFileHandle>> m_handles;
+};
 }
 
-Q_DECLARE_METATYPE(std::shared_ptr<Media::FFMPEGAudioFileHandle>)
-W_REGISTER_ARGTYPE(std::shared_ptr<Media::FFMPEGAudioFileHandle>)
+Q_DECLARE_METATYPE(std::shared_ptr<Media::AudioFileHandle>)
+W_REGISTER_ARGTYPE(std::shared_ptr<Media::AudioFileHandle>)
