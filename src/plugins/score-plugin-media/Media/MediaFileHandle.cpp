@@ -15,6 +15,27 @@
 namespace Media
 {
 
+static int64_t readSampleRate(QFile& file)
+{
+  bool ok = file.open(QIODevice::ReadOnly);
+  if(!ok) {
+    return -1;
+  }
+
+  auto data = file.map(0, file.size());
+  if(!data) {
+    return -1;
+  }
+  auto wav = drwav_open_memory(data, file.size());
+  if(!wav) {
+    return -1;
+  }
+
+  auto sr = wav->sampleRate;
+  drwav_close(wav);
+  return sr;
+}
+
 AudioFileHandle::AudioFileHandle()
 {
   m_impl = std::monostate{};
@@ -29,15 +50,25 @@ void AudioFileHandle::load(
 {
   m_originalFile = path;
   m_file = abspath;
+
+  const auto& audioSettings = score::GUIAppContext().settings<Audio::Settings::Model>();
+  const auto rate = audioSettings.getRate();
+
   // TODO if it's smaller than e.g. 1 megabyte, it would be worth
   // loading it in memory entirely..
   if(m_file.endsWith("wav", Qt::CaseInsensitive))
   {
-    load_drwav();
+
+    QFile f(m_file);
+    auto sr = readSampleRate(f);
+    if(sr == rate)
+      load_drwav();
+    else
+      load_ffmpeg(rate);
   }
   else
   {
-    load_ffmpeg();
+    load_ffmpeg(rate);
   }
 }
 
@@ -90,9 +121,46 @@ int64_t AudioFileHandle::channels() const
   return std::visit(_, m_impl);
 }
 
-void AudioFileHandle::load_ffmpeg()
+void AudioFileHandle::updateSampleRate(int rate)
 {
-  auto ptr = std::make_shared<LibavReader>();
+  struct
+  {
+    AudioFileHandle& self;
+    int rate;
+    void operator()(const std::monostate& r) const noexcept
+    { return; }
+    void operator()(const libav_ptr& r) const noexcept
+    {
+      if(self.m_file.endsWith("wav", Qt::CaseInsensitive))
+      {
+        QFile f(self.m_file);
+        auto sr = readSampleRate(f);
+        if(sr != -1 && sr == rate)
+        {
+          // We can use drwav
+          self.load_drwav();
+          return;
+        }
+      }
+
+      // libav fallback
+      r->handle = std::make_shared<ossia::audio_data>();
+      r->decoder.~AudioDecoder();
+      new (&r->decoder) AudioDecoder(rate);
+    }
+    void operator()(const mmap_ptr& r) const noexcept
+    {
+      // if we're changing sample rate we're going to need to switch
+      // to libav
+      self.load_ffmpeg(rate);
+    }
+  } _{*this, rate};
+  return std::visit(_, m_impl);
+}
+
+void AudioFileHandle::load_ffmpeg(int rate)
+{
+  const auto ptr = std::make_shared<LibavReader>(rate);
   auto& r = *ptr;
   QFile f{m_file};
   if (isSupported(f))
@@ -107,7 +175,7 @@ void AudioFileHandle::load_ffmpeg()
         const auto& r = *std::get<std::shared_ptr<LibavReader>>(m_impl);
         std::vector<gsl::span<const audio_sample>> samples;
         auto& handle = r.handle->data;
-        auto decoded = r.decoder.decoded;
+        const auto decoded = r.decoder.decoded;
 
         for(auto& channel : handle)
         {
@@ -138,7 +206,7 @@ void AudioFileHandle::load_ffmpeg()
 
     r.decoder.decode(m_file, r.handle);
 
-    m_sampleRate = 44100; // TODO for now everything is reencoded
+    m_sampleRate = rate; // TODO for now everything is reencoded
 
     r.data.resize(r.handle->data.size());
     for (std::size_t i = 0; i < r.handle->data.size(); i++)
@@ -193,15 +261,17 @@ void AudioFileHandle::load_drwav()
   m_sampleRate = 44100; // TODO execution won't work for other sample rates for now
 
   on_mediaChanged();
-
 }
 
 AudioFileHandleManager::AudioFileHandleManager() noexcept
 {
   auto& audioSettings = score::GUIAppContext().settings<Audio::Settings::Model>();
   con(audioSettings, &Audio::Settings::Model::RateChanged,
-      this, [] {
+      this, [this] (auto newRate) {
     // TODO recompute the Libav ones and small ones
+    for(auto& [k, v] : m_handles) {
+      v->updateSampleRate(newRate);
+    }
   });
 }
 
@@ -230,6 +300,12 @@ std::shared_ptr<AudioFileHandle> AudioFileHandleManager::get(
   r->load(path, abspath);
   m_handles.insert({abspath, r});
   return r;
+}
+
+AudioFileHandle::MmapReader::~MmapReader()
+{
+  if(wav)
+    drwav_close(wav);
 }
 
 }
