@@ -6,26 +6,27 @@
 #include <score_plugin_engine_export.h>
 #include <wobjectdefs.h>
 
-#define AUDIO_PARAMETER_HPP(Export, Type, Name)         \
-public:                                                 \
-  Type get##Name() const;                               \
-  void set##Name(Type);                                 \
-  W_PROPERTY(Type, Name READ get##Name WRITE set##Name) \
-  struct p_##Name                                       \
-  {                                                     \
-    using param_type = Type;                            \
-    using model_type = W_ThisType;                      \
-    static constexpr auto name = #Name;                 \
-    static constexpr auto get()                         \
-    {                                                   \
-      return &model_type::get##Name;                    \
-    }                                                   \
-    static constexpr auto set()                         \
-    {                                                   \
-      return &model_type::set##Name;                    \
-    }                                                   \
-  };                                                    \
-                                                        \
+#define AUDIO_PARAMETER_HPP(Export, Type, Name)                              \
+public:                                                                      \
+  Type get##Name() const;                                                    \
+  void set##Name(Type);                                                      \
+  void Name##Changed(Type v) W_SIGNAL(Name##Changed, v);                     \
+  W_PROPERTY(Type, Name READ get##Name WRITE set##Name NOTIFY Name##Changed) \
+  struct p_##Name                                                            \
+  {                                                                          \
+    using param_type = Type;                                                 \
+    using model_type = W_ThisType;                                           \
+    static constexpr auto name = #Name;                                      \
+    static constexpr auto get()                                              \
+    {                                                                        \
+      return &model_type::get##Name;                                         \
+    }                                                                        \
+    static constexpr auto set()                                              \
+    {                                                                        \
+      return &model_type::set##Name;                                         \
+    }                                                                        \
+  };                                                                         \
+                                                                             \
 private:
 
 namespace Audio::Settings

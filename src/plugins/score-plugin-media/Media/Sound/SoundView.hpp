@@ -25,7 +25,7 @@ struct ComputedWaveform
   int x0{};
   int xf{};
 };
-
+class FilterWidget;
 struct WaveformComputer : public QObject
 {
   W_OBJECT(WaveformComputer)
@@ -33,29 +33,25 @@ public:
     WaveformComputer(LayerView& layer);
 
   LayerView& m_layer;
-  std::atomic_bool dirty{};
+  QGraphicsView& m_view;
 
   ~WaveformComputer() { m_drawThread.quit(); }
-  void stop()
-  {
-    m_drawThread.quit();
-    m_drawThread.wait();
-  }
+  void stop();
 
 public:
-  void recompute(const std::shared_ptr<FFMPEGAudioFileHandle> &arg_1, double arg_2)
+  void recompute(const std::shared_ptr<AudioFileHandle> &arg_1, double arg_2)
       W_SIGNAL(recompute, arg_1, arg_2);
   void
   ready(QVector<QImage> img, ComputedWaveform wf)
       W_SIGNAL(ready, img, wf);
 
 private:
-  void on_recompute(std::shared_ptr<FFMPEGAudioFileHandle> data, double ratio, int64_t n);
+  void on_recompute(std::shared_ptr<AudioFileHandle> data, double ratio, int64_t n);
   W_SLOT(on_recompute);
 
 private:
   void drawWaveFormsOnImage(
-      const FFMPEGAudioFileHandle& data,
+      const AudioFileHandle& data,
       ZoomRatio ratio,
       int64_t n);
   ZoomRatio m_zoom{};
@@ -72,7 +68,7 @@ public:
   explicit LayerView(QGraphicsItem* parent);
   ~LayerView();
 
-  void setData(const std::shared_ptr<FFMPEGAudioFileHandle>& data);
+  void setData(const std::shared_ptr<AudioFileHandle>& data);
   void recompute(ZoomRatio ratio);
 
 private:
@@ -89,7 +85,7 @@ private:
   void on_finishedDecoding();
   void on_newData();
 
-  std::shared_ptr<FFMPEGAudioFileHandle> m_data;
+  std::shared_ptr<AudioFileHandle> m_data;
   int m_numChan{};
   int m_sampleRate{};
 
@@ -101,6 +97,8 @@ private:
   WaveformComputer* m_cpt{};
 
   ComputedWaveform m_wf{};
+
+  friend class FilterWidget;
 };
 }
 }

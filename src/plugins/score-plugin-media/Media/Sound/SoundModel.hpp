@@ -38,17 +38,17 @@ public:
   template <typename Impl>
   explicit ProcessModel(Impl& vis, QObject* parent)
       : Process::ProcessModel{vis, parent}
-      , m_file{std::make_shared<FFMPEGAudioFileHandle>()}
+      , m_file{std::make_shared<AudioFileHandle>()}
   {
     vis.writeTo(*this);
     init();
   }
 
   void setFile(const QString& file);
-  void setFile(const FFMPEGAudioFileHandle& file);
+  void setFile(const AudioFileHandle& file);
 
-  std::shared_ptr<FFMPEGAudioFileHandle>& file();
-  const std::shared_ptr<FFMPEGAudioFileHandle>& file() const;
+  std::shared_ptr<AudioFileHandle>& file();
+  const std::shared_ptr<AudioFileHandle>& file() const;
 
   int upmixChannels() const;
   int startChannel() const;
@@ -90,7 +90,7 @@ public:
 private:
   void init();
 
-  std::shared_ptr<FFMPEGAudioFileHandle> m_file;
+  std::shared_ptr<AudioFileHandle> m_file;
   int m_upmixChannels{};
   int m_startChannel{};
   qint32 m_startOffset{};

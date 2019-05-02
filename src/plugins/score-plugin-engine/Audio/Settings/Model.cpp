@@ -66,6 +66,7 @@ Model::Model(QSettings& set, const score::ApplicationContext& ctx)
                                                                      \
     QSettings s;                                                     \
     s.setValue(Parameters::Name.key, QVariant::fromValue(m_##Name)); \
+    Name##Changed(m_##Name);                                         \
   }
 
 Audio::AudioFactory::ConcreteKey Model::getDriver() const

@@ -27,8 +27,12 @@ public:
   void load(QString abspath);
   bool exists() const;
 
+  // deinterleaved
   void decode(const std::vector<gsl::span<const ossia::audio_sample>>& audio);
   void decodeLast(const std::vector<gsl::span<const ossia::audio_sample> >& audio);
+
+  // interleaved
+  void decode(drwav& audio);
 
   ossia::small_vector<float, 8> frame(int64_t start_sample, int64_t end_sample) const noexcept;
 
@@ -36,11 +40,11 @@ public:
   int64_t samples_count = 0;
 
   void newData() W_SIGNAL(newData);
-  void finishedDecoding(ossia::audio_handle hdl) W_SIGNAL(finishedDecoding, hdl);
-  private:
+  void finishedDecoding() W_SIGNAL(finishedDecoding);
+
+private:
   QFile m_file;
   bool m_exists{false};
-
 
   Header* header{};
   rms_sample_t* data{};
@@ -49,6 +53,7 @@ public:
   void computeRMS(const std::vector<gsl::span<const ossia::audio_sample>>& audio, int buffer_size);
   void computeLastRMS(const std::vector<gsl::span<const ossia::audio_sample> >& audio, int buffer_size);
 
+  void computeChannelRMS(drwav& wav, rms_sample_t* bytes, int64_t buffer_size);
 };
 
 }

@@ -15,24 +15,112 @@
 #include <QApplication>
 #include <cmath>
 
-#include <boost/circular_buffer.hpp>
-#if defined(__AVX2__) && __has_include(<immintrin.h>)
-#include <immintrin.h>
-#elif defined(__SSE2__) && __has_include(<xmmintrin.h>)
-#include <xmmintrin.h>
-#endif
+//#include <QFormLayout>
 #include <wobjectimpl.h>
-W_REGISTER_ARGTYPE(const Media::FFMPEGAudioFileHandle*)
+
+#include <score/widgets/DoubleSlider.hpp>
+W_REGISTER_ARGTYPE(const Media::AudioFileHandle*)
 W_OBJECT_IMPL(Media::Sound::LayerView)
 W_OBJECT_IMPL(Media::Sound::WaveformComputer)
 namespace Media
 {
 namespace Sound
 {
+/*
+template <typename T = float>
+struct low_pass_filter
+{
+  constexpr T operator()(T x, T alpha) noexcept
+  {
+    T hatx = alpha * x + (1.f - alpha) * hatxprev;
+    hatxprev = hatx;
+    xprev = x;
 
+    return hatx;
+  }
+
+  T hatxprev{};
+  T xprev{};
+};
+
+
+
+template <typename T = float, typename timestamp_t = int64_t>
+struct one_euro_filter
+{
+  constexpr T operator()(T x) noexcept
+  {
+    const T dx = (x - xfilt_.xprev) * freq;
+    const T edx = dxfilt_(dx, alpha(dcutoff));
+    const T cutoff = mincutoff + beta * std::abs(edx);
+    return xfilt_(x, alpha(cutoff));
+  }
+
+  // 5.83344 0.0274994 0.000166626 0.0458344
+  static inline float freq = 1.;
+  static inline float mincutoff = 0.05;
+  static inline float beta = 0.00002;
+  static inline float dcutoff = 0.005;
+  static inline T te = 1.0f / freq;
+
+private:
+  static constexpr T alpha(T cutoff) noexcept {
+    T tau = 1.0f / (2.f * M_PI * cutoff);
+    return 1.0f / (1.0f + tau / te);
+  }
+
+  low_pass_filter<T> xfilt_{}, dxfilt_{};
+};
+
+struct FilterWidget : public QWidget
+{
+public:
+  FilterWidget(LayerView& lv)
+  {
+    auto lay = new QFormLayout;
+    auto freq = new score::DoubleSlider{this};
+    freq->setValue(1. / 10.);
+    lay->addRow("freq", freq);
+    auto mc = new score::DoubleSlider{this};
+    mc->setValue(0.05 / 0.1);
+    lay->addRow("cutoff", mc);
+    auto beta = new score::DoubleSlider{this};
+    beta->setValue(0.00002 / 0.01);
+    lay->addRow("beta", beta);
+    auto dc = new score::DoubleSlider{this};
+    dc->setValue(0.005 / 0.1);
+    lay->addRow("dc", dc);
+    setLayout(lay);
+
+    auto changed = [=,&lv] {
+      using filter = one_euro_filter<>;
+      filter::freq = freq->value() * 10.;
+      filter::mincutoff = mc->value() * 0.1;
+      filter::beta = beta->value() * 0.01;
+      filter::dcutoff = dc->value() * 0.1;
+      filter::te = 1. / filter::freq;
+      qDebug() << filter::freq << filter::mincutoff << filter::beta << filter::dcutoff;
+      lv.on_finishedDecoding();
+    };
+    connect(freq, &score::DoubleSlider::sliderMoved,
+            this, changed);
+    connect(mc, &score::DoubleSlider::sliderMoved,
+            this, changed);
+    connect(beta, &score::DoubleSlider::sliderMoved,
+            this, changed);
+    connect(dc, &score::DoubleSlider::sliderMoved,
+            this, changed);
+
+    show();
+  }
+};
+*/
 LayerView::LayerView(QGraphicsItem* parent)
     : Process::LayerView{parent}, m_cpt{new WaveformComputer{*this}}
 {
+  //static FilterWidget* f = nullptr;
+  //if(f) f->deleteLater(); f = new FilterWidget{*this};
+
   setCacheMode(NoCache);
   setFlag(ItemClipsToShape, true);
   this->setAcceptDrops(true);
@@ -67,7 +155,7 @@ LayerView::~LayerView()
   delete m_cpt;
 }
 
-void LayerView::setData(const std::shared_ptr<FFMPEGAudioFileHandle>& data)
+void LayerView::setData(const std::shared_ptr<AudioFileHandle>& data)
 {
   if (m_data)
   {
@@ -94,7 +182,6 @@ void LayerView::setData(const std::shared_ptr<FFMPEGAudioFileHandle>& data)
         Qt::QueuedConnection);
   }
   m_sampleRate = data->sampleRate();
-  m_cpt->dirty = true;
 }
 
 void LayerView::recompute(ZoomRatio ratio)
@@ -144,13 +231,11 @@ void LayerView::scrollValueChanged(int sbvalue)
 
 void LayerView::on_finishedDecoding()
 {
-  m_cpt->dirty = true;
   recompute(m_zoom);
 }
 
 void LayerView::on_newData()
 {
-  m_cpt->dirty = true;
   recompute(m_zoom);
 }
 
@@ -183,53 +268,13 @@ void LayerView::dropEvent(QGraphicsSceneDragDropEvent* event)
 }
 
 
-template <typename T = float>
-struct low_pass_filter
-{
-  constexpr T operator()(T x, T alpha) noexcept
-  {
-    T hatx = alpha * x + (1.f - alpha) * hatxprev;
-    hatxprev = hatx;
-    xprev = x;
-
-    return hatx;
-  }
-
-  T hatxprev{};
-  T xprev{};
-};
-
-template <typename T = float, typename timestamp_t = int64_t>
-struct one_euro_filter
-{
-  constexpr T operator()(T x) noexcept
-  {
-    const T dx = (x - xfilt_.xprev) * freq;
-    const T edx = dxfilt_(dx, alpha(dcutoff));
-    const T cutoff = mincutoff + beta * std::abs(edx);
-    return xfilt_(x, alpha(cutoff));
-  }
-
-  static const constexpr float freq = 1.;
-  static const constexpr float mincutoff = 0.05;
-  static const constexpr float beta = 0.00002;
-  static const constexpr float dcutoff = 0.005;
-
-private:
-  static constexpr T alpha(T cutoff) noexcept {
-    T tau = 1.0f / (2.f * M_PI * cutoff);
-    return 1.0f / (1.0f + tau / te);
-  }
-
-  static const constexpr T te = 1.0f / freq;
-  low_pass_filter<T> xfilt_{}, dxfilt_{};
-};
-
-WaveformComputer::WaveformComputer(LayerView& layer) : m_layer{layer}
+WaveformComputer::WaveformComputer(LayerView& layer)
+  : m_layer{layer}
+  , m_view{*getView(m_layer)}
 {
   connect(this, &WaveformComputer::recompute,
-      this, [=] (const std::shared_ptr<FFMPEGAudioFileHandle>& arg_1, double arg_2) {
-    int64_t n = m_redraw_count++;
+      this, [=] (const std::shared_ptr<AudioFileHandle>& arg_1, double arg_2) {
+    int64_t n = ++m_redraw_count;
 
     QMetaObject::invokeMethod(this, [=] { on_recompute(arg_1, arg_2, n); }, Qt::QueuedConnection);
   }, Qt::DirectConnection);
@@ -238,10 +283,19 @@ WaveformComputer::WaveformComputer(LayerView& layer) : m_layer{layer}
   m_drawThread.start();
 }
 
+void WaveformComputer::stop()
+{
+  QMetaObject::invokeMethod(this, [this] {
+    moveToThread(m_layer.thread());
+    m_drawThread.quit();
+  });
+  m_drawThread.wait();
+}
+
 void WaveformComputer::drawWaveFormsOnImage(
-    const FFMPEGAudioFileHandle& data,
-    ZoomRatio ratio,
-    int64_t redraw_number)
+      const AudioFileHandle& data,
+      ZoomRatio ratio,
+      int64_t redraw_number)
 {
   int nchannels = data.channels();
   if (nchannels == 0)
@@ -252,13 +306,9 @@ void WaveformComputer::drawWaveFormsOnImage(
   const int64_t w = m_layer.width();
 
   // Get horizontal offset
-  auto view = getView(m_layer);
-  if (!view)
-    return;
-
   // leftmost point
   double x0
-      = std::max(m_layer.mapFromScene(view->mapToScene(0, 0)).x(), 0.);
+      = std::max(m_layer.mapFromScene(m_view.mapToScene(0, 0)).x(), 0.);
 
   auto& rms = data.rms();
 
@@ -267,7 +317,7 @@ void WaveformComputer::drawWaveFormsOnImage(
   }
 
   // rightmost point
-  double xf = m_layer.mapFromScene(view->mapToScene(view->width(), 0)).x();
+  double xf = m_layer.mapFromScene(m_view.mapToScene(m_view.width(), 0)).x();
 
   const int64_t width = std::min(double(w), 2. * (xf - x0));
 
@@ -293,9 +343,10 @@ void WaveformComputer::drawWaveFormsOnImage(
 
   constexpr const auto transparent = qRgba(0, 0, 0, 0);
   constexpr const auto orange = qRgba(250, 180, 15, 255);
+  constexpr const auto transporange = qRgba(125, 90, 7, 127);
 
-  ossia::small_vector<one_euro_filter<>, 8> filter;
-  filter.resize(nchannels);
+  //ossia::small_vector<one_euro_filter<>, 8> filter;
+  //filter.resize(nchannels);
 
   for(int32_t x = 0; x < max_pixel; x++)
   {
@@ -310,11 +361,14 @@ void WaveformComputer::drawWaveFormsOnImage(
     for(int k = 0; k < nchannels; k++)
     {
       QImage& image = images[k];
-      const int value = ossia::clamp(int(0.5 * filter[k](rms_sample[k]) * h_ratio + half_h), 0, half_h_int - 1);
+      const int value = ossia::clamp(int( /*filter[k]*/rms_sample[k] * h_ratio + half_h), 0, half_h_int - 1);
 
       for(int y = 0; y < value; y++)
         image.setPixel(x, y, transparent);
-      for(int y = value; y < half_h_int; y++)
+
+      image.setPixel(x, value, transporange);
+
+      for(int y = value +1; y < half_h_int; y++)
         image.setPixel(x, y, orange);
     }
   }
@@ -326,10 +380,13 @@ void WaveformComputer::drawWaveFormsOnImage(
   ready(images, wf);
 }
 void WaveformComputer::on_recompute(
-    std::shared_ptr<FFMPEGAudioFileHandle> data_qp,
+    std::shared_ptr<AudioFileHandle> data_qp,
     ZoomRatio ratio,
     int64_t n)
 {
+  if(m_redraw_count > n)
+    return;
+
   if (!data_qp)
     return;
 

@@ -7,7 +7,7 @@
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/serialization/JSONVisitor.hpp>
 #include <score/tools/File.hpp>
-
+#include <Audio/Settings/Model.hpp>
 
 #include <core/document/Document.hpp>
 
@@ -15,20 +15,22 @@
 namespace Media
 {
 
-FFMPEGAudioFileHandle::FFMPEGAudioFileHandle()
+AudioFileHandle::AudioFileHandle()
 {
   m_impl = std::monostate{};
   m_rms = new RMSData{};
 }
 
-FFMPEGAudioFileHandle::~FFMPEGAudioFileHandle() {}
+AudioFileHandle::~AudioFileHandle() {}
 
-void FFMPEGAudioFileHandle::load(
+void AudioFileHandle::load(
     const QString& path,
-    const score::DocumentContext& ctx)
+    const QString& abspath)
 {
   m_originalFile = path;
-  m_file = score::locateFilePath(path, ctx);
+  m_file = abspath;
+  // TODO if it's smaller than e.g. 1 megabyte, it would be worth
+  // loading it in memory entirely..
   if(m_file.endsWith("wav", Qt::CaseInsensitive))
   {
     load_drwav();
@@ -39,7 +41,7 @@ void FFMPEGAudioFileHandle::load(
   }
 }
 
-int64_t FFMPEGAudioFileHandle::decodedSamples() const
+int64_t AudioFileHandle::decodedSamples() const
 {
   struct
   {
@@ -53,14 +55,14 @@ int64_t FFMPEGAudioFileHandle::decodedSamples() const
   return std::visit(_, m_impl);
 }
 
-bool FFMPEGAudioFileHandle::isSupported(const QFile& file)
+bool AudioFileHandle::isSupported(const QFile& file)
 {
   return file.exists()
       && file.fileName().contains(
         QRegExp(".(wav|aif|aiff|flac|ogg|mp3|m4a)", Qt::CaseInsensitive));
 }
 
-int64_t FFMPEGAudioFileHandle::samples() const
+int64_t AudioFileHandle::samples() const
 {
   struct
   {
@@ -74,7 +76,7 @@ int64_t FFMPEGAudioFileHandle::samples() const
   return std::visit(_, m_impl);
 }
 
-int64_t FFMPEGAudioFileHandle::channels() const
+int64_t AudioFileHandle::channels() const
 {
   struct
   {
@@ -88,7 +90,7 @@ int64_t FFMPEGAudioFileHandle::channels() const
   return std::visit(_, m_impl);
 }
 
-void FFMPEGAudioFileHandle::load_ffmpeg()
+void AudioFileHandle::load_ffmpeg()
 {
   auto ptr = std::make_shared<LibavReader>();
   auto& r = *ptr;
@@ -128,7 +130,7 @@ void FFMPEGAudioFileHandle::load_ffmpeg()
           samples.emplace_back(channel.data(), gsl::span<ossia::audio_sample>::index_type(decoded));
         }
         m_rms->decodeLast(samples);
-        m_rms->finishedDecoding(r.handle);
+        m_rms->finishedDecoding();
 
         on_finishedDecoding();
       }, Qt::QueuedConnection);
@@ -136,7 +138,7 @@ void FFMPEGAudioFileHandle::load_ffmpeg()
 
     r.decoder.decode(m_file, r.handle);
 
-    m_sampleRate = 44100; // for now everything is reencoded
+    m_sampleRate = 44100; // TODO for now everything is reencoded
 
     r.data.resize(r.handle->data.size());
     for (std::size_t i = 0; i < r.handle->data.size(); i++)
@@ -144,40 +146,90 @@ void FFMPEGAudioFileHandle::load_ffmpeg()
 
     QFileInfo fi{f};
     m_fileName = fi.fileName();
-    on_mediaChanged();
     m_impl = std::move(ptr);
   }
   else
   {
     m_impl = std::monostate{};
   }
+  on_mediaChanged();
 }
 
-void FFMPEGAudioFileHandle::load_drwav()
+void AudioFileHandle::load_drwav()
 {
   auto ptr = std::make_shared<MmapReader>();
-  auto& r = *ptr;
+  MmapReader& r = *ptr;
   r.file.setFileName(m_file);
 
   bool ok = r.file.open(QIODevice::ReadOnly);
   if(!ok) {
     m_impl = std::monostate{};
-    return;
+    on_mediaChanged();
   }
 
   r.data = r.file.map(0, r.file.size());
   if(!r.data) {
     m_impl = std::monostate{};
-    return;
+    on_mediaChanged();
   }
   r.wav = drwav_open_memory(r.data, r.file.size());
   if(!r.wav) {
     m_impl = std::monostate{};
-    return;
+    on_mediaChanged();
   }
+
+  m_rms->load(m_file);
+  if(!m_rms->exists())
+  {
+    m_rms->decode(*r.wav);
+    m_rms->finishedDecoding();
+  }
+
+  QFileInfo fi{r.file};
+  m_fileName = fi.fileName();
 
   m_impl = std::move(ptr);
 
+  m_sampleRate = 44100; // TODO execution won't work for other sample rates for now
+
+  on_mediaChanged();
+
+}
+
+AudioFileHandleManager::AudioFileHandleManager() noexcept
+{
+  auto& audioSettings = score::GUIAppContext().settings<Audio::Settings::Model>();
+  con(audioSettings, &Audio::Settings::Model::RateChanged,
+      this, [] {
+    // TODO recompute the Libav ones and small ones
+  });
+}
+
+AudioFileHandleManager::~AudioFileHandleManager() noexcept
+{
+
+}
+
+AudioFileHandleManager&AudioFileHandleManager::instance() noexcept
+{
+  static AudioFileHandleManager m;
+  return m;
+}
+
+std::shared_ptr<AudioFileHandle> AudioFileHandleManager::get(
+    const QString& path,
+    const score::DocumentContext& ctx)
+{
+  // TODO what would be a good garbage collection mechanism ?
+  auto abspath = score::locateFilePath(path, ctx);
+  if(auto it = m_handles.find(abspath); it != m_handles.end())
+  {
+    return it->second;
+  }
+  auto r = std::make_shared<AudioFileHandle>();
+  r->load(path, abspath);
+  m_handles.insert({abspath, r});
+  return r;
 }
 
 }
