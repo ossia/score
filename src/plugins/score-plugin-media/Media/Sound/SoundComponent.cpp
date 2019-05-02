@@ -1,5 +1,6 @@
 #include "SoundComponent.hpp"
 
+#include <ossia/dataflow/nodes/sound_ref.hpp>
 #include <Process/ExecutionContext.hpp>
 #include <Scenario/Execution/score2OSSIA.hpp>
 
