@@ -303,23 +303,26 @@ void WaveformComputer::drawWaveFormsOnImage(
 
   // Height of each channel
   const float h = m_layer.height() / (float)nchannels;
+  if(h < 1.)
+    return;
   const int64_t w = m_layer.width();
+  if(w == 0)
+    return;
 
   // Get horizontal offset
   // leftmost point
-  double x0
-      = std::max(m_layer.mapFromScene(m_view.mapToScene(0, 0)).x(), 0.);
+  int64_t x0
+      = std::max(std::floor(m_layer.mapFromScene(m_view.mapToScene(0, 0)).x()), 0.);
 
   auto& rms = data.rms();
-
   if (rms.frames_count == 0) {
     return;
   }
 
   // rightmost point
-  double xf = m_layer.mapFromScene(m_view.mapToScene(m_view.width(), 0)).x();
+  const int64_t xf = std::floor(m_layer.mapFromScene(m_view.mapToScene(m_view.width(), 0)).x());
 
-  const int64_t width = std::min(double(w), 2. * (xf - x0));
+  const int64_t width = std::min(w, 2 * (xf - x0));
 
   const float half_h = h / 2;
   const int half_h_int = half_h;
@@ -339,6 +342,7 @@ void WaveformComputer::drawWaveFormsOnImage(
           width,
           half_h,
           QImage::Format_ARGB32_Premultiplied);
+    image.fill(Qt::transparent);
   }
 
   constexpr const auto transparent = qRgba(0, 0, 0, 0);
@@ -348,31 +352,52 @@ void WaveformComputer::drawWaveFormsOnImage(
   //ossia::small_vector<one_euro_filter<>, 8> filter;
   //filter.resize(nchannels);
 
-  for(int32_t x = 0; x < max_pixel; x++)
+  for(int32_t x = x0; x < xf && (x - x0) < max_pixel; x++)
   {
     if(m_redraw_count > redraw_number)
       return;
 
     const auto rms_sample = rms.frame(
-          (x0 + x)      * samples_per_pixels,
-          (x0 + x + 1.) * samples_per_pixels
+          (x)      * samples_per_pixels,
+          (x + 1.) * samples_per_pixels
           );
 
+    int32_t x2 = x - x0;
     for(int k = 0; k < nchannels; k++)
     {
       QImage& image = images[k];
+      auto dat = reinterpret_cast<uint32_t*>(image.bits());
       const int value = ossia::clamp(int( /*filter[k]*/rms_sample[k] * h_ratio + half_h), 0, half_h_int - 1);
 
+      /*
       for(int y = 0; y < value; y++)
-        image.setPixel(x, y, transparent);
+        dat[x2 + y * width] = transparent;
+      */
 
-      image.setPixel(x, value, transporange);
+      dat[x2 + value * width] = transporange;
 
       for(int y = value +1; y < half_h_int; y++)
-        image.setPixel(x, y, orange);
+        dat[x2 + y * width] = orange;
     }
   }
+/*
 
+  if(max_pixel < width)
+  {
+    for(int k = 0; k < nchannels; k++)
+    {
+      QImage& image = images[k];
+      auto dat = reinterpret_cast<uint32_t*>(image.bits());
+
+      for(int y = 0; y < half_h_int; y++)
+      {
+        const auto y0 = y * width;
+        for(int32_t x = max_pixel; x < width; x++)
+          dat[x + y0] = transparent;
+      }
+    }
+  }
+*/
   ComputedWaveform wf;
   wf.zoom = ratio;
   wf.x0 = x0;
