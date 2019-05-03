@@ -7,7 +7,7 @@
 W_OBJECT_IMPL(Media::RMSData)
 namespace Media
 {
-static const constexpr auto rms_buffer_size = 512;
+static const constexpr auto rms_buffer_size = 64;
 RMSData::RMSData()
 {
 
@@ -74,6 +74,7 @@ void RMSData::decode(const std::vector<gsl::span<const ossia::audio_sample> >& a
 void RMSData::decodeLast(const std::vector<gsl::span<const ossia::audio_sample> >& audio)
 {
   computeLastRMS(audio, rms_buffer_size);
+  finishedDecoding();
 }
 
 void RMSData::decode(drwav& audio)
@@ -102,6 +103,7 @@ void RMSData::decode(drwav& audio)
   m_file.flush();
   m_file.waitForBytesWritten(100);
   newData();
+  finishedDecoding();
 }
 
 ossia::small_vector<float, 8> RMSData::frame(int64_t start_frame, int64_t end_frame) const noexcept
@@ -138,12 +140,12 @@ ossia::small_vector<float, 8> RMSData::frame(int64_t start_frame, int64_t end_fr
 
   for(; begin < end; begin += channels) {
     for(std::size_t k = 0; k < channels; k++)
-      sum[k] += begin[k];
+      sum[k] += begin[k] * begin[k];
   }
 
   const float n = std::max(int64_t(1), (end_idx-start_idx) / channels);
   for(std::size_t k = 0; k < channels; k++)
-    sum[k] = sum[k] / n;
+    sum[k] = std::sqrt(sum[k] / n);
 
   return sum;
 }
@@ -217,6 +219,8 @@ void RMSData::computeRMS(const std::vector<gsl::span<const ossia::audio_sample> 
     samples_count += channels;
   }
 
+  m_file.flush();
+  m_file.waitForBytesWritten(100);
   newData();
 }
 
@@ -261,6 +265,8 @@ void RMSData::computeLastRMS(const std::vector<gsl::span<const ossia::audio_samp
     samples_count += channels;
   }
 
+  m_file.flush();
+  m_file.waitForBytesWritten(100);
   newData();
 }
 }

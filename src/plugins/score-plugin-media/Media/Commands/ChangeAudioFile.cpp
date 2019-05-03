@@ -14,48 +14,52 @@ namespace Media
 ChangeAudioFile::ChangeAudioFile(
     const Sound::ProcessModel& model,
     const QString& text)
-    : m_model{model}, m_new{text}
+  : m_model{model}, m_new{text}
 {
   m_old = model.file()->originalFile();
   if (auto p = qobject_cast<Scenario::IntervalModel*>(model.parent()))
   {
     m_olddur = p->duration.defaultDuration();
   }
+
+  auto& info = AudioDecoder::database()[m_new];
+  if (info.length != 0)
+  {
+    m_newdur = TimeVal::fromMsecs(1000. * double(info.length) / double(info.rate));
+  }
 }
 
 void ChangeAudioFile::undo(const score::DocumentContext& ctx) const
 {
-  auto& snd = m_model.find(ctx);
-  snd.setFile(m_old);
-  if (auto itv = qobject_cast<Scenario::IntervalModel*>(snd.parent()))
+  if(m_newdur != TimeVal::zero())
   {
-    if (auto fact
-        = ctx.app.interfaces<Scenario::IntervalResizerList>().find(*itv))
+    auto& snd = m_model.find(ctx);
+    snd.setFile(m_old);
+    if (auto itv = qobject_cast<Scenario::IntervalModel*>(snd.parent()))
     {
-      auto cmd = fact->make(*itv, m_olddur);
-      cmd->redo(ctx);
-      delete cmd;
+      if (auto fact
+          = ctx.app.interfaces<Scenario::IntervalResizerList>().find(*itv))
+      {
+        auto cmd = fact->make(*itv, m_olddur);
+        cmd->redo(ctx);
+        delete cmd;
+      }
     }
   }
 }
 
 void ChangeAudioFile::redo(const score::DocumentContext& ctx) const
 {
-  auto& snd = m_model.find(ctx);
-  snd.setFile(m_new);
-  if (auto itv = qobject_cast<Scenario::IntervalModel*>(snd.parent()))
+  if(m_newdur != TimeVal::zero())
   {
-    auto& info = AudioDecoder::database()[m_new];
-
-    if (info.length != 0)
+    auto& snd = m_model.find(ctx);
+    snd.setFile(m_new);
+    if (auto itv = qobject_cast<Scenario::IntervalModel*>(snd.parent()))
     {
       if (auto fact
           = ctx.app.interfaces<Scenario::IntervalResizerList>().find(*itv))
       {
-        auto cmd = fact->make(
-            *itv,
-            TimeVal::fromMsecs(
-                1000. * double(info.length) / double(info.rate)));
+        auto cmd = fact->make(*itv, m_newdur);
         cmd->redo(ctx);
         delete cmd;
       }
@@ -65,11 +69,11 @@ void ChangeAudioFile::redo(const score::DocumentContext& ctx) const
 
 void ChangeAudioFile::serializeImpl(DataStreamInput& s) const
 {
-  s << m_model << m_old << m_new << m_olddur;
+  s << m_model << m_old << m_new << m_olddur << m_newdur;
 }
 
 void ChangeAudioFile::deserializeImpl(DataStreamOutput& s)
 {
-  s >> m_model >> m_old >> m_new >> m_olddur;
+  s >> m_model >> m_old >> m_new >> m_olddur >> m_newdur;
 }
 }

@@ -36,6 +36,32 @@ static int64_t readSampleRate(QFile& file)
   return sr;
 }
 
+// TODO if it's smaller than e.g. 1 megabyte, it would be worth
+// loading it in memory entirely..
+// TODO might make sense to do resampling during execution if it's nott too expensive?
+enum class DecodingMethod {
+  Invalid,
+  Mmap,
+  Libav
+};
+
+static DecodingMethod needsDecoding(const QString& path, int rate)
+{
+  if(path.endsWith("wav", Qt::CaseInsensitive))
+  {
+    QFile f(path);
+    auto sr = readSampleRate(f);
+    if(sr == rate)
+      return DecodingMethod::Mmap;
+    else
+      return DecodingMethod::Libav;
+  }
+  else
+  {
+    return DecodingMethod::Libav;
+  }
+}
+
 AudioFileHandle::AudioFileHandle()
 {
   m_impl = std::monostate{};
@@ -54,21 +80,16 @@ void AudioFileHandle::load(
   const auto& audioSettings = score::GUIAppContext().settings<Audio::Settings::Model>();
   const auto rate = audioSettings.getRate();
 
-  // TODO if it's smaller than e.g. 1 megabyte, it would be worth
-  // loading it in memory entirely..
-  if(m_file.endsWith("wav", Qt::CaseInsensitive))
+  switch(needsDecoding(m_file, rate))
   {
-
-    QFile f(m_file);
-    auto sr = readSampleRate(f);
-    if(sr == rate)
-      load_drwav();
-    else
+    case DecodingMethod::Libav:
       load_ffmpeg(rate);
-  }
-  else
-  {
-    load_ffmpeg(rate);
+      break;
+    case DecodingMethod::Mmap:
+      load_drwav();
+      break;
+    default:
+      break;
   }
 }
 
@@ -123,43 +144,24 @@ int64_t AudioFileHandle::channels() const
 
 void AudioFileHandle::updateSampleRate(int rate)
 {
-  struct
+  switch(needsDecoding(m_file, rate))
   {
-    AudioFileHandle& self;
-    int rate;
-    void operator()(const std::monostate& r) const noexcept
-    { return; }
-    void operator()(const libav_ptr& r) const noexcept
-    {
-      if(self.m_file.endsWith("wav", Qt::CaseInsensitive))
-      {
-        QFile f(self.m_file);
-        auto sr = readSampleRate(f);
-        if(sr != -1 && sr == rate)
-        {
-          // We can use drwav
-          self.load_drwav();
-          return;
-        }
-      }
-
-      // libav fallback
-      r->handle = std::make_shared<ossia::audio_data>();
-      r->decoder.~AudioDecoder();
-      new (&r->decoder) AudioDecoder(rate);
-    }
-    void operator()(const mmap_ptr& r) const noexcept
-    {
-      // if we're changing sample rate we're going to need to switch
-      // to libav
-      self.load_ffmpeg(rate);
-    }
-  } _{*this, rate};
-  return std::visit(_, m_impl);
+    case DecodingMethod::Libav:
+      load_ffmpeg(rate);
+      break;
+    case DecodingMethod::Mmap:
+      load_drwav();
+      break;
+    default:
+      break;
+  }
 }
 
 void AudioFileHandle::load_ffmpeg(int rate)
 {
+  // Loading with libav is used :
+  // - when resampling is required
+  // - when the file is not a .wav
   const auto ptr = std::make_shared<LibavReader>(rate);
   auto& r = *ptr;
   QFile f{m_file};
@@ -183,6 +185,7 @@ void AudioFileHandle::load_ffmpeg(int rate)
         }
         m_rms->decode(samples);
 
+        qDebug() << "decoded:" << decoded << m_rms->frames_count;
         on_newData();
       }, Qt::QueuedConnection);
 
@@ -198,7 +201,6 @@ void AudioFileHandle::load_ffmpeg(int rate)
           samples.emplace_back(channel.data(), gsl::span<ossia::audio_sample>::index_type(decoded));
         }
         m_rms->decodeLast(samples);
-        m_rms->finishedDecoding();
 
         on_finishedDecoding();
       }, Qt::QueuedConnection);
@@ -206,7 +208,7 @@ void AudioFileHandle::load_ffmpeg(int rate)
 
     r.decoder.decode(m_file, r.handle);
 
-    m_sampleRate = rate; // TODO for now everything is reencoded
+    m_sampleRate = rate;
 
     r.data.resize(r.handle->data.size());
     for (std::size_t i = 0; i < r.handle->data.size(); i++)
@@ -225,6 +227,9 @@ void AudioFileHandle::load_ffmpeg(int rate)
 
 void AudioFileHandle::load_drwav()
 {
+  // Loading with drwav is done when the file can be
+  // mmapped directly in to memory.
+
   auto ptr = std::make_shared<MmapReader>();
   MmapReader& r = *ptr;
   r.file.setFileName(m_file);
@@ -250,7 +255,6 @@ void AudioFileHandle::load_drwav()
   if(!m_rms->exists())
   {
     m_rms->decode(*r.wav);
-    m_rms->finishedDecoding();
   }
 
   QFileInfo fi{r.file};
@@ -258,8 +262,9 @@ void AudioFileHandle::load_drwav()
 
   m_impl = std::move(ptr);
 
-  m_sampleRate = 44100; // TODO execution won't work for other sample rates for now
+  m_sampleRate = r.wav->sampleRate; // TODO execution won't work for other sample rates for now
 
+  on_finishedDecoding();
   on_mediaChanged();
 }
 
