@@ -1,9 +1,9 @@
 #include "RMSData.hpp"
 
+#include <ossia/detail/math.hpp>
 #include <Media/RMSData.hpp>
 #include <wobjectimpl.h>
 #include <dr_wav.h>
-
 W_OBJECT_IMPL(Media::RMSData)
 namespace Media
 {
@@ -13,7 +13,7 @@ RMSData::RMSData()
 
 }
 
-void RMSData::load(QString abspath)
+void RMSData::load(QString abspath, int channels, int rate, TimeVal duration)
 {
   this->header = nullptr;
   this->data = nullptr;
@@ -29,6 +29,7 @@ void RMSData::load(QString abspath)
   h.addData(abspath.toUtf8());
   auto hash = h.result();
 
+  QDir::root().mkpath(cache.first());
   QDir cache_dir{cache.first()};
   cache_dir.mkdir("waveforms");
   cache_dir.cd("waveforms");
@@ -50,14 +51,17 @@ void RMSData::load(QString abspath)
   }
   else
   {
-    m_file.open(QIODevice::ReadWrite);
+    m_ramData.reserve(duration.msec() * 0.001 * rate * channels * sizeof(rms_sample_t) + 1000);
+    m_ramBuffer.setBuffer(&m_ramData);
+    m_ramBuffer.open(QIODevice::ReadWrite);
     Header h;
-    m_file.write((const char*)&h, sizeof(h));
+    h.channels = channels;
+    h.sampleRate = rate;
+    h.bufferSize = rms_buffer_size;
+    m_ramBuffer.write((const char*)&h, sizeof(h));
 
-    void* data = m_file.map(0, m_file.size());
-    assert(data);
-    this->header = reinterpret_cast<Header*>(data);
-    this->data = reinterpret_cast<rms_sample_t*>(((char*)data) + sizeof(Header));
+    this->header = reinterpret_cast<Header*>(m_ramData.data());
+    this->data = reinterpret_cast<rms_sample_t*>(((char*)m_ramData.data()) + sizeof(Header));
   }
 }
 
@@ -74,6 +78,10 @@ void RMSData::decode(const std::vector<gsl::span<const ossia::audio_sample> >& a
 void RMSData::decodeLast(const std::vector<gsl::span<const ossia::audio_sample> >& audio)
 {
   computeLastRMS(audio, rms_buffer_size);
+
+  m_file.open(QIODevice::WriteOnly);
+  qDebug() << m_file.errorString();
+  m_file.write(m_ramData);
   finishedDecoding();
 }
 
@@ -82,11 +90,7 @@ void RMSData::decode(drwav& audio)
   // store the data in interleaved format, it's much easier...
   const int64_t channels = audio.channels;
   const int64_t max_frames = audio.totalPCMFrameCount;
-  const auto buffer_size = rms_buffer_size;
-  header->channels = channels;
-  header->bufferSize = buffer_size;
-
-  m_file.seek(m_file.size());
+  constexpr const auto buffer_size = rms_buffer_size;
 
   const int64_t len = sizeof(rms_sample_t) * channels;
   rms_sample_t* bytes = reinterpret_cast<rms_sample_t*>(alloca(len));
@@ -94,16 +98,23 @@ void RMSData::decode(drwav& audio)
   int64_t start_idx = 0;
   while(start_idx < max_frames) {
     computeChannelRMS(audio, bytes, buffer_size);
-    m_file.write(reinterpret_cast<const char*>(bytes), len);
+    m_ramBuffer.write(reinterpret_cast<const char*>(bytes), len);
     start_idx += buffer_size;
     frames_count++;
     samples_count += channels;
   }
 
-  m_file.flush();
-  m_file.waitForBytesWritten(100);
   newData();
+
+  m_file.open(QIODevice::WriteOnly);
+  qDebug() << m_file.errorString();
+  m_file.write(m_ramData);
   finishedDecoding();
+}
+
+double RMSData::sampleRateRatio(double expectedRate) const noexcept
+{
+  return expectedRate / header->sampleRate;
 }
 
 ossia::small_vector<float, 8> RMSData::frame(int64_t start_frame, int64_t end_frame) const noexcept
@@ -144,21 +155,22 @@ ossia::small_vector<float, 8> RMSData::frame(int64_t start_frame, int64_t end_fr
   }
 
   const float n = std::max(int64_t(1), (end_idx-start_idx) / channels);
+  constexpr const float sqrt_2 = ossia::sqrt_2;
   for(std::size_t k = 0; k < channels; k++)
-    sum[k] = std::sqrt(sum[k] / n);
+    sum[k] = sqrt_2 * std::sqrt(sum[k] / n);
 
   return sum;
 }
 
 rms_sample_t RMSData::computeChannelRMS(gsl::span<const ossia::audio_sample> chan, int64_t start_idx, int64_t buffer_size)
 {
-  ossia::audio_sample val = 0.;
+  float val = 0.;
   auto begin = chan.begin() + start_idx;
   auto end = begin + buffer_size;
 
   for(auto it = begin; it < end; ++it)
     val += (*it)*(*it);
-  return ossia::clamp(sqrt(val / buffer_size), 0., 1.) * std::numeric_limits<rms_sample_t>::max();
+  return ossia::clamp(sqrt(val / buffer_size), 0.f, 1.f) * std::numeric_limits<rms_sample_t>::max();
 }
 
 
@@ -185,7 +197,7 @@ void RMSData::computeChannelRMS(drwav& wav, rms_sample_t* bytes, int64_t buffer_
 
   for(int c = 0; c < channels; c++)
   {
-    bytes[c] = ossia::clamp(sqrt(val[c] / buffer_size), 0., 1.) * std::numeric_limits<rms_sample_t>::max();
+    bytes[c] = ossia::clamp(sqrt(val[c] / buffer_size), 0.f, 1.f) * std::numeric_limits<rms_sample_t>::max();
   }
 }
 
@@ -197,11 +209,8 @@ void RMSData::computeRMS(const std::vector<gsl::span<const ossia::audio_sample> 
   // store the data in interleaved format, it's much easier...
   const int64_t channels = audio.size();
   const int64_t max_sample = audio.front().size();
-  header->channels = channels;
-  header->bufferSize = buffer_size;
 
-  int64_t buffers_written = (m_file.size() - sizeof(Header)) / channels;
-  m_file.seek(m_file.size());
+  int64_t buffers_written = (m_ramBuffer.size() - sizeof(Header)) / channels;
 
   const int64_t len = sizeof(rms_sample_t) * channels;
   rms_sample_t* bytes = reinterpret_cast<rms_sample_t*>(alloca(len));
@@ -213,14 +222,12 @@ void RMSData::computeRMS(const std::vector<gsl::span<const ossia::audio_sample> 
       bytes[i] = computeChannelRMS(audio[i], start_idx, buffer_size) ;
     }
 
-    m_file.write(reinterpret_cast<const char*>(bytes), len);
+    m_ramBuffer.write(reinterpret_cast<const char*>(bytes), len);
     start_idx += buffer_size ;
     frames_count++;
     samples_count += channels;
   }
 
-  m_file.flush();
-  m_file.waitForBytesWritten(100);
   newData();
 }
 
@@ -230,13 +237,10 @@ void RMSData::computeLastRMS(const std::vector<gsl::span<const ossia::audio_samp
     return;
 
   // store the data in interleaved format, it's much easier...
-  const int64_t channels = audio.size();
+  const int channels = audio.size();
   const int64_t max_frames = audio.front().size();
-  header->channels = channels;
-  header->bufferSize = buffer_size;
 
-  int64_t buffers_written = (m_file.size() - sizeof(Header)) / channels;
-  m_file.seek(m_file.size());
+  int64_t buffers_written = (m_ramBuffer.size() - sizeof(Header)) / channels;
 
   const int64_t len = sizeof(rms_sample_t) * channels;
   rms_sample_t* bytes = reinterpret_cast<rms_sample_t*>(alloca(len));
@@ -247,7 +251,7 @@ void RMSData::computeLastRMS(const std::vector<gsl::span<const ossia::audio_samp
     {
       bytes[i] = computeChannelRMS(audio[i], start_idx, buffer_size) ;
     }
-    m_file.write(reinterpret_cast<const char*>(bytes), len);
+    m_ramBuffer.write(reinterpret_cast<const char*>(bytes), len);
     start_idx += buffer_size ;
     frames_count++;
     samples_count += channels;
@@ -259,14 +263,12 @@ void RMSData::computeLastRMS(const std::vector<gsl::span<const ossia::audio_samp
     {
       bytes[i] = computeChannelRMS(audio[i], start_idx, max_frames - start_idx) ;
     }
-    m_file.write(reinterpret_cast<const char*>(bytes), len);
+    m_ramBuffer.write(reinterpret_cast<const char*>(bytes), len);
     start_idx += buffer_size ;
     frames_count++;
     samples_count += channels;
   }
 
-  m_file.flush();
-  m_file.waitForBytesWritten(100);
   newData();
 }
 }

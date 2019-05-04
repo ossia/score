@@ -29,8 +29,9 @@ DroppedAudioFiles::DroppedAudioFiles(const QMimeData& mime)
       auto info = *info_opt;
       if (info.channels > 0 && info.length > 0)
       {
-        files.emplace_back(std::make_pair(filename, info.length));
-        maxDuration = std::max((int64_t)maxDuration, (int64_t)info.length);
+        const auto dur = info.duration();
+        files.emplace_back(std::make_pair(filename, dur));
+        maxDuration = std::max(maxDuration, dur);
       }
     }
   }
@@ -38,8 +39,7 @@ DroppedAudioFiles::DroppedAudioFiles(const QMimeData& mime)
 
 TimeVal DroppedAudioFiles::dropMaxDuration() const
 {
-  // TODO use settings Samplerate
-  return TimeVal::fromMsecs(maxDuration / 44.1);
+  return maxDuration;
 }
 
 QSet<QString> DropHandler::mimeTypes() const noexcept
@@ -68,7 +68,7 @@ std::vector<Process::ProcessDropHandler::ProcessDrop> DropHandler::drop(
     Process::ProcessDropHandler::ProcessDrop p;
     p.creation.key = Metadata<ConcreteKey_k, Sound::ProcessModel>::get();
     p.creation.prettyName = QFileInfo{file.first}.baseName();
-    p.duration = TimeVal{file.second};
+    p.duration = file.second;
     p.setup = [f = std::move(file.first), song_t = *p.duration](
                   Process::ProcessModel& m, score::Dispatcher& disp) {
       auto& proc = static_cast<Sound::ProcessModel&>(m);

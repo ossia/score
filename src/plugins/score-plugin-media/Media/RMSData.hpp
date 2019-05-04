@@ -1,10 +1,12 @@
 #pragma once
 #include <gsl/span>
+#include <Process/TimeValue.hpp>
 #include <Media/AudioArray.hpp>
 #include <QCryptographicHash>
 #include <QDir>
 #include <QStandardPaths>
 #include <QFile>
+#include <QBuffer>
 
 namespace Media
 {
@@ -24,7 +26,7 @@ public:
 
   RMSData();
 
-  void load(QString abspath);
+  void load(QString abspath, int channels, int rate, TimeVal duration);
   bool exists() const;
 
   // deinterleaved
@@ -33,6 +35,7 @@ public:
 
   // interleaved
   void decode(drwav& audio);
+  double sampleRateRatio(double expectedRate) const noexcept;
 
   ossia::small_vector<float, 8> frame(int64_t start_sample, int64_t end_sample) const noexcept;
 
@@ -49,6 +52,8 @@ private:
   Header* header{};
   rms_sample_t* data{};
 
+  QByteArray m_ramData;
+  QBuffer m_ramBuffer;
   rms_sample_t computeChannelRMS(gsl::span<const ossia::audio_sample> chan, int64_t start_idx, int64_t buffer_size);
   void computeRMS(const std::vector<gsl::span<const ossia::audio_sample>>& audio, int buffer_size);
   void computeLastRMS(const std::vector<gsl::span<const ossia::audio_sample> >& audio, int buffer_size);

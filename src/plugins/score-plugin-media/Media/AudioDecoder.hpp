@@ -1,6 +1,6 @@
 #pragma once
 #include <Media/AudioArray.hpp>
-
+#include <Process/TimeValue.hpp>
 #include <ossia/detail/optional.hpp>
 
 #include <QThread>
@@ -20,6 +20,11 @@ struct AudioInfo
   int64_t channels{};
   int64_t length{};
   int64_t max_arr_length{};
+
+  // Duration in seconds
+  TimeVal duration() const noexcept {
+    return TimeVal::fromMsecs(1000. * double(length) / double(rate));
+  }
 };
 
 class AudioDecoder : public QObject
@@ -29,7 +34,7 @@ class AudioDecoder : public QObject
 public:
   AudioDecoder(int rate);
   ~AudioDecoder();
-  ossia::optional<AudioInfo> probe(const QString& path);
+  static ossia::optional<AudioInfo> probe(const QString& path);
   void decode(const QString& path, audio_handle hdl);
 
   static ossia::optional<std::pair<AudioInfo, audio_array>>
@@ -52,7 +57,7 @@ public:
   W_SLOT(on_startDecode);
 
 private:
-  std::size_t read_length(const QString& path);
+  static double read_length(const QString& path);
 
   QThread* m_baseThread{};
   QThread m_decodeThread;
