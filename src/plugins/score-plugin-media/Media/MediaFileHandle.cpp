@@ -168,7 +168,15 @@ void AudioFileHandle::load_ffmpeg(int rate)
   if (isSupported(f))
   {
     r.handle = std::make_shared<ossia::audio_data>();
-    m_rms->load(m_file);
+
+    auto info = AudioDecoder::probe(m_file);
+    if(!info)
+    {
+      m_impl = std::monostate{};
+      return;
+    }
+
+    m_rms->load(m_file, info->channels, rate, info->duration());
 
     if(!m_rms->exists())
     {
@@ -185,7 +193,6 @@ void AudioFileHandle::load_ffmpeg(int rate)
         }
         m_rms->decode(samples);
 
-        qDebug() << "decoded:" << decoded << m_rms->frames_count;
         on_newData();
       }, Qt::QueuedConnection);
 
@@ -251,7 +258,12 @@ void AudioFileHandle::load_drwav()
     on_mediaChanged();
   }
 
-  m_rms->load(m_file);
+  m_rms->load(m_file,
+              r.wav->channels,
+              r.wav->sampleRate,
+              TimeVal::fromMsecs(1000. * r.wav->totalPCMFrameCount / r.wav->sampleRate)
+  );
+
   if(!m_rms->exists())
   {
     m_rms->decode(*r.wav);
@@ -262,7 +274,7 @@ void AudioFileHandle::load_drwav()
 
   m_impl = std::move(ptr);
 
-  m_sampleRate = r.wav->sampleRate; // TODO execution won't work for other sample rates for now
+  m_sampleRate = r.wav->sampleRate;
 
   on_finishedDecoding();
   on_mediaChanged();
@@ -273,7 +285,6 @@ AudioFileHandleManager::AudioFileHandleManager() noexcept
   auto& audioSettings = score::GUIAppContext().settings<Audio::Settings::Model>();
   con(audioSettings, &Audio::Settings::Model::RateChanged,
       this, [this] (auto newRate) {
-    // TODO recompute the Libav ones and small ones
     for(auto& [k, v] : m_handles) {
       v->updateSampleRate(newRate);
     }

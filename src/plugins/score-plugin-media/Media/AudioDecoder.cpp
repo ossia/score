@@ -471,9 +471,10 @@ ossia::optional<AudioInfo> AudioDecoder::probe(const QString& path)
         if (info.channels == 0)
           return {};
         info.rate = stream->codecpar->sample_rate;
-        info.length = read_length(path);
+        info.length = std::ceil(info.rate * read_length(path));
         info.max_arr_length = info.length;
 
+        /*
         if (info.rate != m_targetSampleRate)
         {
           info.length
@@ -482,6 +483,7 @@ ossia::optional<AudioInfo> AudioDecoder::probe(const QString& path)
           if (info.length > info.max_arr_length)
             info.max_arr_length = info.length;
         }
+        */
 
         database().insert(path, info);
         return info;
@@ -518,7 +520,7 @@ auto debug_ffmpeg(int ret, QString ctx)
 #endif
 }
 
-std::size_t AudioDecoder::read_length(const QString& path)
+double AudioDecoder::read_length(const QString& path)
 {
 #if __has_include(<libavcodec/avcodec.h>)
   av_register_all();
@@ -530,6 +532,8 @@ std::size_t AudioDecoder::read_length(const QString& path)
   if (ret != 0)
     throw std::runtime_error("Couldn't find stream information");
 
+  return fmt_ctx->duration / double(AV_TIME_BASE);
+  /*
   for (std::size_t i = 0; i < fmt_ctx->nb_streams; i++)
   {
     if (fmt_ctx->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_AUDIO)
@@ -612,7 +616,7 @@ std::size_t AudioDecoder::read_length(const QString& path)
 
       return pos;
     }
-  }
+  }*/
 #endif
   return 0;
 }

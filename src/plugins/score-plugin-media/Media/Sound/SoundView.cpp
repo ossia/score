@@ -26,101 +26,9 @@ namespace Media
 {
 namespace Sound
 {
-/*
-template <typename T = float>
-struct low_pass_filter
-{
-  constexpr T operator()(T x, T alpha) noexcept
-  {
-    T hatx = alpha * x + (1.f - alpha) * hatxprev;
-    hatxprev = hatx;
-    xprev = x;
-
-    return hatx;
-  }
-
-  T hatxprev{};
-  T xprev{};
-};
-
-
-
-template <typename T = float, typename timestamp_t = int64_t>
-struct one_euro_filter
-{
-  constexpr T operator()(T x) noexcept
-  {
-    const T dx = (x - xfilt_.xprev) * freq;
-    const T edx = dxfilt_(dx, alpha(dcutoff));
-    const T cutoff = mincutoff + beta * std::abs(edx);
-    return xfilt_(x, alpha(cutoff));
-  }
-
-  // 5.83344 0.0274994 0.000166626 0.0458344
-  static inline float freq = 1.;
-  static inline float mincutoff = 0.05;
-  static inline float beta = 0.00002;
-  static inline float dcutoff = 0.005;
-  static inline T te = 1.0f / freq;
-
-private:
-  static constexpr T alpha(T cutoff) noexcept {
-    T tau = 1.0f / (2.f * M_PI * cutoff);
-    return 1.0f / (1.0f + tau / te);
-  }
-
-  low_pass_filter<T> xfilt_{}, dxfilt_{};
-};
-
-struct FilterWidget : public QWidget
-{
-public:
-  FilterWidget(LayerView& lv)
-  {
-    auto lay = new QFormLayout;
-    auto freq = new score::DoubleSlider{this};
-    freq->setValue(1. / 10.);
-    lay->addRow("freq", freq);
-    auto mc = new score::DoubleSlider{this};
-    mc->setValue(0.05 / 0.1);
-    lay->addRow("cutoff", mc);
-    auto beta = new score::DoubleSlider{this};
-    beta->setValue(0.00002 / 0.01);
-    lay->addRow("beta", beta);
-    auto dc = new score::DoubleSlider{this};
-    dc->setValue(0.005 / 0.1);
-    lay->addRow("dc", dc);
-    setLayout(lay);
-
-    auto changed = [=,&lv] {
-      using filter = one_euro_filter<>;
-      filter::freq = freq->value() * 10.;
-      filter::mincutoff = mc->value() * 0.1;
-      filter::beta = beta->value() * 0.01;
-      filter::dcutoff = dc->value() * 0.1;
-      filter::te = 1. / filter::freq;
-      qDebug() << filter::freq << filter::mincutoff << filter::beta << filter::dcutoff;
-      lv.on_finishedDecoding();
-    };
-    connect(freq, &score::DoubleSlider::sliderMoved,
-            this, changed);
-    connect(mc, &score::DoubleSlider::sliderMoved,
-            this, changed);
-    connect(beta, &score::DoubleSlider::sliderMoved,
-            this, changed);
-    connect(dc, &score::DoubleSlider::sliderMoved,
-            this, changed);
-
-    show();
-  }
-};
-*/
 LayerView::LayerView(QGraphicsItem* parent)
     : Process::LayerView{parent}, m_cpt{new WaveformComputer{*this}}
 {
-  //static FilterWidget* f = nullptr;
-  //if(f) f->deleteLater(); f = new FilterWidget{*this};
-
   setCacheMode(NoCache);
   setFlag(ItemClipsToShape, true);
   this->setAcceptDrops(true);
@@ -305,35 +213,41 @@ void WaveformComputer::drawWaveFormsOnImage(
   const float h = m_layer.height() / (float)nchannels;
   if(h < 1.)
     return;
-  const int64_t w = m_layer.width();
+  const int32_t w = m_layer.width();
   if(w == 0)
     return;
 
   // Get horizontal offset
   // leftmost point
-  int64_t x0
+  int32_t x0
       = std::max(std::floor(m_layer.mapFromScene(m_view.mapToScene(0, 0)).x()), 0.);
 
   auto& rms = data.rms();
-  if (rms.frames_count == 0) {
+  if (rms.frames_count == 0)
     return;
-  }
 
   // rightmost point
-  const int64_t xf = std::floor(m_layer.mapFromScene(m_view.mapToScene(m_view.width(), 0)).x());
+  const float samples_per_pixels = 0.001 * ratio * data.sampleRate() * data.rms().sampleRateRatio(data.sampleRate());
 
-  const int64_t width = std::min(w, 2 * (xf - x0));
-
-  const float half_h = h / 2;
-  const int half_h_int = half_h;
-  const float h_ratio = -half_h / std::numeric_limits<rms_sample_t>::max();
-  float samples_per_pixels = 0.001 * ratio * data.sampleRate();
+  // TODO problem here : the data saved in the RMSData has samples relative to a different samplerate
   if(samples_per_pixels <= 1e-6)
     return;
 
-  int32_t max_pixel = std::min((int32_t)width, (int32_t) (data.decodedSamples() / samples_per_pixels));
+  int32_t xf = std::floor(m_layer.mapFromScene(m_view.mapToScene(m_view.width(), 0)).x());
+  int32_t rightmost_sample = (int32_t) (data.decodedSamples() / samples_per_pixels);
+  xf = std::min(xf, rightmost_sample);
 
-  // TODO put in cache !
+  const int32_t width = std::min(w, (xf - x0));
+  int32_t max_pixel = std::min((int32_t)width, (int32_t) rightmost_sample);
+
+  // height
+  const float half_h = h / 2;
+  const int half_h_int = half_h;
+  const float h_ratio = -half_h / std::numeric_limits<rms_sample_t>::max();
+
+  // TODO put in cache ! have some kind of rotation.
+  // If we set images with the "bits" constructor it could be possible
+  // to resize.
   QVector<QImage> images;
   images.resize(nchannels);
   for(QImage& image : images)
@@ -349,55 +263,31 @@ void WaveformComputer::drawWaveFormsOnImage(
   constexpr const auto orange = qRgba(250, 180, 15, 255);
   constexpr const auto transporange = qRgba(125, 90, 7, 127);
 
-  //ossia::small_vector<one_euro_filter<>, 8> filter;
-  //filter.resize(nchannels);
-
-  for(int32_t x = x0; x < xf && (x - x0) < max_pixel; x++)
+  int32_t x_samples = x0;
+  int32_t x_pixels = x_samples - x0;
+  for(; x_samples < xf && x_pixels < max_pixel; x_samples++, x_pixels++)
   {
     if(m_redraw_count > redraw_number)
       return;
 
     const auto rms_sample = rms.frame(
-          (x)      * samples_per_pixels,
-          (x + 1.) * samples_per_pixels
+          (x_samples)     * samples_per_pixels,
+          (x_samples + 1) * samples_per_pixels
           );
 
-    int32_t x2 = x - x0;
     for(int k = 0; k < nchannels; k++)
     {
       QImage& image = images[k];
       auto dat = reinterpret_cast<uint32_t*>(image.bits());
-      const int value = ossia::clamp(int( /*filter[k]*/rms_sample[k] * h_ratio + half_h), 0, half_h_int - 1);
+      const int value = ossia::clamp(int(rms_sample[k] * h_ratio + half_h), 0, half_h_int - 1);
 
-      /*
-      for(int y = 0; y < value; y++)
-        dat[x2 + y * width] = transparent;
-      */
-
-      dat[x2 + value * width] = transporange;
+      dat[x_pixels + value * width] = transporange;
 
       for(int y = value +1; y < half_h_int; y++)
-        dat[x2 + y * width] = orange;
+        dat[x_pixels + y * width] = orange;
     }
   }
-/*
 
-  if(max_pixel < width)
-  {
-    for(int k = 0; k < nchannels; k++)
-    {
-      QImage& image = images[k];
-      auto dat = reinterpret_cast<uint32_t*>(image.bits());
-
-      for(int y = 0; y < half_h_int; y++)
-      {
-        const auto y0 = y * width;
-        for(int32_t x = max_pixel; x < width; x++)
-          dat[x + y0] = transparent;
-      }
-    }
-  }
-*/
   ComputedWaveform wf;
   wf.zoom = ratio;
   wf.x0 = x0;
