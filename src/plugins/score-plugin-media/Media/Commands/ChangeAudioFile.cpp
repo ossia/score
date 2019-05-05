@@ -25,7 +25,7 @@ ChangeAudioFile::ChangeAudioFile(
   auto& info = AudioDecoder::database()[m_new];
   if (info.length != 0)
   {
-    m_newdur = TimeVal::fromMsecs(1000. * double(info.length) / double(info.rate));
+    m_newdur = info.duration();
   }
 }
 

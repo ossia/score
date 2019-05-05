@@ -217,9 +217,8 @@ void WaveformComputer::drawWaveFormsOnImage(
   if(w == 0)
     return;
 
-  // Get horizontal offset
   // leftmost point
-  int32_t x0
+  const int32_t x0
       = std::max(std::floor(m_layer.mapFromScene(m_view.mapToScene(0, 0)).x()), 0.);
 
   auto& rms = data.rms();
@@ -227,23 +226,26 @@ void WaveformComputer::drawWaveFormsOnImage(
     return;
 
   // rightmost point
-  const float samples_per_pixels = 0.001 * ratio * data.sampleRate() * data.rms().sampleRateRatio(data.sampleRate());
+  const auto audioSampleRate = data.sampleRate();
+  // There may be a ratio because the waveform could have been computed at a different samplerate.
+  const auto rate_ratio = data.rms().sampleRateRatio(audioSampleRate);
+  const float samples_per_pixels = 0.001 * ratio * audioSampleRate;
 
-  // TODO problem here : the data saved in the RMSData has samples relative to a different samplerate
   if(samples_per_pixels <= 1e-6)
     return;
 
   int32_t xf = std::floor(m_layer.mapFromScene(m_view.mapToScene(m_view.width(), 0)).x());
-  int32_t rightmost_sample = (int32_t) (data.decodedSamples() / samples_per_pixels);
+  const int32_t rightmost_sample = (int32_t) (data.decodedSamples() / samples_per_pixels);
   xf = std::min(xf, rightmost_sample);
 
   const int32_t width = std::min(w, (xf - x0));
-  int32_t max_pixel = std::min((int32_t)width, (int32_t) rightmost_sample);
+  const int32_t max_pixel = std::min((int32_t)width, (int32_t) rightmost_sample);
 
   // height
   const float half_h = h / 2;
   const int half_h_int = half_h;
   const float h_ratio = -half_h / std::numeric_limits<rms_sample_t>::max();
+
 
   // TODO put in cache ! have some kind of rotation.
   // If we set images with the "bits" constructor it could be possible
@@ -259,20 +261,23 @@ void WaveformComputer::drawWaveFormsOnImage(
     image.fill(Qt::transparent);
   }
 
-  constexpr const auto transparent = qRgba(0, 0, 0, 0);
   constexpr const auto orange = qRgba(250, 180, 15, 255);
   constexpr const auto transporange = qRgba(125, 90, 7, 127);
 
-  int32_t x_samples = x0;
-  int32_t x_pixels = x_samples - x0;
-  for(; x_samples < xf && x_pixels < max_pixel; x_samples++, x_pixels++)
+  // Draw the frames on the image
+  // TODO hidpi
+
+  for(int32_t x_samples = x0, x_pixels = x_samples - x0
+      ;       x_samples < xf && x_pixels < max_pixel
+      ;       x_samples++, x_pixels++
+      )
   {
     if(m_redraw_count > redraw_number)
       return;
 
     const auto rms_sample = rms.frame(
-          (x_samples)     * samples_per_pixels,
-          (x_samples + 1) * samples_per_pixels
+          (x_samples)     * samples_per_pixels * rate_ratio,
+          (x_samples + 1) * samples_per_pixels * rate_ratio
           );
 
     for(int k = 0; k < nchannels; k++)
