@@ -34,7 +34,7 @@ public:
   void decodeLast(const std::vector<gsl::span<const ossia::audio_sample> >& audio);
 
   // interleaved
-  void decode(drwav& audio);
+  void decode(ossia::drwav_handle& audio);
   double sampleRateRatio(double expectedRate) const noexcept;
 
   ossia::small_vector<float, 8> frame(int64_t start_sample, int64_t end_sample) const noexcept;
@@ -46,6 +46,11 @@ public:
   void finishedDecoding() W_SIGNAL(finishedDecoding);
 
 private:
+  rms_sample_t computeChannelRMS(gsl::span<const ossia::audio_sample> chan, int64_t start_idx, int64_t buffer_size);
+  void computeRMS(const std::vector<gsl::span<const ossia::audio_sample>>& audio, int buffer_size);
+  void computeLastRMS(const std::vector<gsl::span<const ossia::audio_sample> >& audio, int buffer_size);
+  void computeChannelRMS(ossia::drwav_handle& wav, rms_sample_t* bytes, int64_t buffer_size);
+
   QFile m_file;
   bool m_exists{false};
 
@@ -54,11 +59,6 @@ private:
 
   QByteArray m_ramData;
   QBuffer m_ramBuffer;
-  rms_sample_t computeChannelRMS(gsl::span<const ossia::audio_sample> chan, int64_t start_idx, int64_t buffer_size);
-  void computeRMS(const std::vector<gsl::span<const ossia::audio_sample>>& audio, int buffer_size);
-  void computeLastRMS(const std::vector<gsl::span<const ossia::audio_sample> >& audio, int buffer_size);
-
-  void computeChannelRMS(drwav& wav, rms_sample_t* bytes, int64_t buffer_size);
 };
 
 }
