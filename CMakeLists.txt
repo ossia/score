@@ -63,7 +63,7 @@ include("${CMAKE_CURRENT_SOURCE_DIR}/CMake/IScoreConfiguration.cmake")
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-find_package(Qt5 5.3 REQUIRED
+find_package(Qt5 5.12 REQUIRED
              COMPONENTS Core
                         Widgets
                         Gui
@@ -73,7 +73,7 @@ find_package(Qt5 5.3 REQUIRED
                         Test
                         Qml
                         WebSockets)
-find_package(Qt5 5.3 COMPONENTS
+find_package(Qt5 5.12 COMPONENTS
   Quick
   QuickControls2
   SerialPort)
