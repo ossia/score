@@ -70,7 +70,7 @@ void TimeSyncModel::clearEvents()
     eventRemoved(e);
 }
 
-const TimeVal& TimeSyncModel::date() const
+const TimeVal& TimeSyncModel::date() const noexcept
 {
   return m_date;
 }
@@ -81,7 +81,7 @@ void TimeSyncModel::setDate(const TimeVal& date)
   dateChanged(m_date);
 }
 
-const TimeSyncModel::EventIdVec& TimeSyncModel::events() const
+const TimeSyncModel::EventIdVec& TimeSyncModel::events() const noexcept
 {
   return m_events;
 }
@@ -91,7 +91,7 @@ void TimeSyncModel::setEvents(const TimeSyncModel::EventIdVec& events)
   m_events = events;
 }
 
-const VerticalExtent& TimeSyncModel::extent() const
+const VerticalExtent& TimeSyncModel::extent() const noexcept
 {
   return m_extent;
 }
@@ -113,7 +113,7 @@ void TimeSyncModel::setExpression(const State::Expression& expression)
   triggerChanged(m_expression);
 }
 
-bool TimeSyncModel::active() const
+bool TimeSyncModel::active() const noexcept
 {
   return m_active;
 }
@@ -125,4 +125,17 @@ void TimeSyncModel::setActive(bool active)
   m_active = active;
   activeChanged();
 }
+
+bool TimeSyncModel::autotrigger() const noexcept
+{
+  return m_autotrigger;
+}
+void TimeSyncModel::setAutotrigger(bool a)
+{
+  if (a == m_autotrigger)
+    return;
+  m_autotrigger = a;
+  autotriggerChanged(a);
+}
+
 }

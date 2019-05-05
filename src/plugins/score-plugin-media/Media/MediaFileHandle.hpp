@@ -1,5 +1,4 @@
 #pragma once
-#include <Media/AudioArray.hpp>
 #include <Media/AudioDecoder.hpp>
 
 #include <ossia/detail/small_vector.hpp>
@@ -12,6 +11,7 @@
 #include <score_plugin_media_export.h>
 #include <wobjectdefs.h>
 #include <score/tools/std/StringHash.hpp>
+#include <score/tools/Todo.hpp>
 
 #include <array>
 namespace score

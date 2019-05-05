@@ -107,6 +107,23 @@ struct StringConstants
   const QString SmallViewShown;
   const QString Height;
   const QString Width;
+  const QString Inlet;
+  const QString Outlet;
+  const QString Inlets;
+  const QString Outlets;
+  const QString Hidden;
+  const QString Custom;
+  const QString Exposed;
+  const QString Propagate;
+  const QString Source;
+  const QString Sink;
+  const QString AutoTrigger;
+  const QString Text;
+  const QString Host;
+  const QString Rate;
+  const QString Pitch;
+  const QString Velocity;
+  const QString Channel;
 };
 
 SCORE_LIB_BASE_EXPORT const StringConstants& StringConstant();
