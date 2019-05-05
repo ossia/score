@@ -110,6 +110,10 @@ protected:
   void dragLeaveEvent(QGraphicsSceneDragDropEvent* event) override;
   void dropEvent(QGraphicsSceneDragDropEvent* event) override;
 
+  QPainterPath shape() const override;
+  QPainterPath opaqueArea() const override;
+  bool contains(const QPointF&) const override;
+
   void setGripCursor();
   void setUngripCursor();
 
@@ -138,5 +142,6 @@ protected:
   bool m_waiting : 1;
   bool m_dropTarget : 1;
   IntervalExecutionState m_state{};
+
 };
 }
