@@ -6,29 +6,6 @@
 #include <score_plugin_engine_export.h>
 #include <wobjectdefs.h>
 
-#define AUDIO_PARAMETER_HPP(Export, Type, Name)                              \
-public:                                                                      \
-  Type get##Name() const;                                                    \
-  void set##Name(Type);                                                      \
-  void Name##Changed(Type v) W_SIGNAL(Name##Changed, v);                     \
-  W_PROPERTY(Type, Name READ get##Name WRITE set##Name NOTIFY Name##Changed) \
-  struct p_##Name                                                            \
-  {                                                                          \
-    using param_type = Type;                                                 \
-    using model_type = W_ThisType;                                           \
-    static constexpr auto name = #Name;                                      \
-    static constexpr auto get()                                              \
-    {                                                                        \
-      return &model_type::get##Name;                                         \
-    }                                                                        \
-    static constexpr auto set()                                              \
-    {                                                                        \
-      return &model_type::set##Name;                                         \
-    }                                                                        \
-  };                                                                         \
-                                                                             \
-private:
-
 namespace Audio::Settings
 {
 
@@ -43,21 +20,20 @@ class SCORE_PLUGIN_ENGINE_EXPORT Model : public score::SettingsDelegateModel
   int m_Rate{};
   int m_DefaultIn{};
   int m_DefaultOut{};
+  bool m_AutoStereo{true};
 
 public:
   Model(QSettings& set, const score::ApplicationContext& ctx);
 
   void changed() E_SIGNAL(SCORE_PLUGIN_ENGINE_EXPORT, changed);
-  AUDIO_PARAMETER_HPP(
-      SCORE_PLUGIN_ENGINE_EXPORT,
-      Audio::AudioFactory::ConcreteKey,
-      Driver)
-  AUDIO_PARAMETER_HPP(SCORE_PLUGIN_ENGINE_EXPORT, QString, CardIn)
-  AUDIO_PARAMETER_HPP(SCORE_PLUGIN_ENGINE_EXPORT, QString, CardOut)
-  AUDIO_PARAMETER_HPP(SCORE_PLUGIN_ENGINE_EXPORT, int, BufferSize)
-  AUDIO_PARAMETER_HPP(SCORE_PLUGIN_ENGINE_EXPORT, int, Rate)
-  AUDIO_PARAMETER_HPP(SCORE_PLUGIN_ENGINE_EXPORT, int, DefaultIn)
-  AUDIO_PARAMETER_HPP(SCORE_PLUGIN_ENGINE_EXPORT, int, DefaultOut)
+  SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_ENGINE_EXPORT, Audio::AudioFactory::ConcreteKey, Driver)
+  SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_ENGINE_EXPORT, QString, CardIn)
+  SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_ENGINE_EXPORT, QString, CardOut)
+  SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_ENGINE_EXPORT, int, BufferSize)
+  SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_ENGINE_EXPORT, int, Rate)
+  SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_ENGINE_EXPORT, int, DefaultIn)
+  SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_ENGINE_EXPORT, int, DefaultOut)
+  SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_ENGINE_EXPORT, bool, AutoStereo)
 };
 
 SCORE_SETTINGS_PARAMETER(Model, Driver)
@@ -67,6 +43,7 @@ SCORE_SETTINGS_DEFERRED_PARAMETER(Model, BufferSize)
 SCORE_SETTINGS_DEFERRED_PARAMETER(Model, Rate)
 SCORE_SETTINGS_DEFERRED_PARAMETER(Model, DefaultIn)
 SCORE_SETTINGS_DEFERRED_PARAMETER(Model, DefaultOut)
+SCORE_SETTINGS_DEFERRED_PARAMETER(Model, AutoStereo)
 }
 
 #undef AUDIO_PARAMETER_HPP

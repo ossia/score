@@ -3,6 +3,8 @@
 #include <QFile>
 
 #include <wobjectimpl.h>
+
+#include <Audio/Settings/Model.hpp>
 W_OBJECT_IMPL(Media::Sound::ProcessModel)
 namespace Media
 {
@@ -33,8 +35,12 @@ void ProcessModel::setFile(const QString& file)
 {
   if (file != m_file->originalFile())
   {
+    m_file->on_mediaChanged.disconnect<&ProcessModel::on_mediaChanged>(*this);
+
     m_file = AudioFileHandleManager::instance().get(file, score::IDocument::documentContext(*this));
-    fileChanged();
+
+    m_file->on_mediaChanged.connect<&ProcessModel::on_mediaChanged>(*this);
+    on_mediaChanged();
     prettyNameChanged();
   }
 }
@@ -99,7 +105,8 @@ void ProcessModel::setStartOffset(qint32 startOffset)
 
 void ProcessModel::on_mediaChanged()
 {
-  if (m_file->channels() == 1)
+  auto& audio_settings = score::GUIAppContext().settings<Audio::Settings::Model>();
+  if (audio_settings.getAutoStereo() && m_file->channels() == 1)
   {
     setUpmixChannels(2);
   }
@@ -109,7 +116,6 @@ void ProcessModel::on_mediaChanged()
 void ProcessModel::init()
 {
   m_outlets.push_back(outlet.get());
-  m_file->on_mediaChanged.connect<&ProcessModel::on_mediaChanged>(*this);
 }
 }
 }

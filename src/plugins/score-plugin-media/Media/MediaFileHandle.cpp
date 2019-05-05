@@ -165,6 +165,7 @@ void AudioFileHandle::updateSampleRate(int rate)
 
 void AudioFileHandle::load_ffmpeg(int rate)
 {
+  qDebug() << "AudioFileHandle::load_ffmpeg(): " << m_file << rate;
   // Loading with libav is used :
   // - when resampling is required
   // - when the file is not a .wav
@@ -235,11 +236,14 @@ void AudioFileHandle::load_ffmpeg(int rate)
   {
     m_impl = {};
   }
+  qDebug() << "AudioFileHandle::on_mediaChanged(): " << m_file;
   on_mediaChanged();
 }
 
 void AudioFileHandle::load_drwav()
 {
+  qDebug() << "AudioFileHandle::load_drwav(): " << m_file;
+
   // Loading with drwav is done when the file can be
   // mmapped directly in to memory.
 
@@ -284,6 +288,7 @@ void AudioFileHandle::load_drwav()
 
   on_finishedDecoding();
   on_mediaChanged();
+  qDebug() << "AudioFileHandle::on_mediaChanged(): " << m_file;
 }
 
 AudioFileHandleManager::AudioFileHandleManager() noexcept

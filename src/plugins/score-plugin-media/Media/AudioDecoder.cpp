@@ -685,7 +685,6 @@ void AudioDecoder::decodeRemaining(audio_array& data)
 void AudioDecoder::on_startDecode(QString path, audio_handle hdl)
 {
 #if SCORE_HAS_LIBAV
-  qDebug() << "decoding: " << path;
   auto& data = hdl->data;
   try
   {
