@@ -4,6 +4,7 @@
 
 #include <ossia/detail/small_vector.hpp>
 #include <ossia/detail/hash_map.hpp>
+#include <eggs/variant.hpp>
 
 #include <QFile>
 
@@ -83,8 +84,7 @@ private:
 
   using libav_ptr = std::shared_ptr<LibavReader>;
   using mmap_ptr = std::shared_ptr<MmapReader>;
-  using impl_t = std::variant<
-    std::monostate,
+  using impl_t = eggs::variant<
     mmap_ptr,
     libav_ptr
   >;

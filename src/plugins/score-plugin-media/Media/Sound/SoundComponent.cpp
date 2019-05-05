@@ -23,7 +23,7 @@ public:
     struct
     {
       Execution::SoundComponent& component;
-      void operator()(const std::monostate& r) const noexcept
+      void operator()() const noexcept
       { return ; }
       void operator()(const std::shared_ptr<Media::AudioFileHandle::LibavReader>& r) const noexcept
       {
@@ -35,7 +35,7 @@ public:
       }
     } _{component};
 
-    std::visit(_, handle->m_impl);
+    ossia::apply(_, handle->m_impl);
   }
 
   static void construct_ffmpeg(
@@ -101,7 +101,7 @@ public:
     struct
     {
       Execution::SoundComponent& component;
-      void operator()(const std::monostate& r) const noexcept
+      void operator()() const noexcept
       { return ; }
       void operator()(const std::shared_ptr<Media::AudioFileHandle::LibavReader>& r) const noexcept
       {
@@ -113,7 +113,7 @@ public:
       }
     } _{component};
 
-    std::visit(_, handle->m_impl);
+    ossia::apply(_, handle->m_impl);
 
   }
   static void recompute_ffmpeg(

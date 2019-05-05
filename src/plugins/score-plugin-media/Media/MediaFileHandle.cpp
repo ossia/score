@@ -11,6 +11,7 @@
 #include <ossia/dataflow/nodes/sound_mmap.hpp>
 
 #include <core/document/Document.hpp>
+#include <ossia/detail/apply.hpp>
 
 #include <QFileInfo>
 
@@ -69,7 +70,7 @@ static DecodingMethod needsDecoding(const QString& path, int rate)
 
 AudioFileHandle::AudioFileHandle()
 {
-  m_impl = std::monostate{};
+  m_impl = {};
   m_rms = new RMSData{};
 }
 
@@ -102,14 +103,14 @@ int64_t AudioFileHandle::decodedSamples() const
 {
   struct
   {
-  int64_t operator()(const std::monostate& r) const noexcept
+  int64_t operator()() const noexcept
   { return 0; }
   int64_t operator()(const libav_ptr& r) const noexcept
   { return r->decoder.decoded; }
   int64_t operator()(const mmap_ptr& r) const noexcept
   { return r->wav->totalPCMFrameCount; }
   } _;
-  return std::visit(_, m_impl);
+  return ossia::apply(_, m_impl);
 }
 
 bool AudioFileHandle::isSupported(const QFile& file)
@@ -123,28 +124,28 @@ int64_t AudioFileHandle::samples() const
 {
   struct
   {
-  int64_t operator()(const std::monostate& r) const noexcept
+  int64_t operator()() const noexcept
   { return 0; }
   int64_t operator()(const libav_ptr& r) const noexcept
   { const auto& samples = r->handle->data;  return samples.size() > 0 ? samples[0].size() : 0; }
   int64_t operator()(const mmap_ptr& r) const noexcept
   { return r->wav->totalPCMFrameCount; }
   } _;
-  return std::visit(_, m_impl);
+  return ossia::apply(_, m_impl);
 }
 
 int64_t AudioFileHandle::channels() const
 {
   struct
   {
-  int64_t operator()(const std::monostate& r) const noexcept
+  int64_t operator()() const noexcept
   { return 0; }
   int64_t operator()(const libav_ptr& r) const noexcept
   { return r->handle->data.size(); }
   int64_t operator()(const mmap_ptr& r) const noexcept
   { return r->wav->channels; }
   } _;
-  return std::visit(_, m_impl);
+  return ossia::apply(_, m_impl);
 }
 
 void AudioFileHandle::updateSampleRate(int rate)
@@ -177,7 +178,7 @@ void AudioFileHandle::load_ffmpeg(int rate)
     auto info = AudioDecoder::probe(m_file);
     if(!info)
     {
-      m_impl = std::monostate{};
+      m_impl = {};
       return;
     }
 
@@ -187,7 +188,7 @@ void AudioFileHandle::load_ffmpeg(int rate)
     {
       connect(&r.decoder, &AudioDecoder::newData,
               this, [=] {
-        const auto& r = *std::get<std::shared_ptr<LibavReader>>(m_impl);
+        const auto& r = *eggs::variants::get<std::shared_ptr<LibavReader>>(m_impl);
         std::vector<gsl::span<const audio_sample>> samples;
         auto& handle = r.handle->data;
         const auto decoded = r.decoder.decoded;
@@ -203,7 +204,7 @@ void AudioFileHandle::load_ffmpeg(int rate)
 
       connect(&r.decoder, &AudioDecoder::finishedDecoding,
               this, [=] {
-        const auto& r = *std::get<std::shared_ptr<LibavReader>>(m_impl);
+        const auto& r = *eggs::variants::get<std::shared_ptr<LibavReader>>(m_impl);
         std::vector<gsl::span<const audio_sample>> samples;
         auto& handle = r.handle->data;
         auto decoded = r.decoder.decoded;
@@ -232,7 +233,7 @@ void AudioFileHandle::load_ffmpeg(int rate)
   }
   else
   {
-    m_impl = std::monostate{};
+    m_impl = {};
   }
   on_mediaChanged();
 }
@@ -248,18 +249,18 @@ void AudioFileHandle::load_drwav()
 
   bool ok = r.file.open(QIODevice::ReadOnly);
   if(!ok) {
-    m_impl = std::monostate{};
+    m_impl = {};
     on_mediaChanged();
   }
 
   r.data = r.file.map(0, r.file.size());
   if(!r.data) {
-    m_impl = std::monostate{};
+    m_impl = {};
     on_mediaChanged();
   }
   r.wav = reinterpret_cast<ossia::drwav_handle*>(drwav_open_memory(r.data, r.file.size()));
   if(!r.wav) {
-    m_impl = std::monostate{};
+    m_impl = {};
     on_mediaChanged();
   }
 
