@@ -185,7 +185,7 @@ WaveformComputer::WaveformComputer(LayerView& layer)
       this, [=] (const std::shared_ptr<AudioFileHandle>& arg_1, double arg_2) {
     int64_t n = ++m_redraw_count;
 
-    score::invoke([=] { on_recompute(arg_1, arg_2, n); });
+     QMetaObject::invokeMethod(this, [=] { on_recompute(arg_1, arg_2, n); }, Qt::QueuedConnection);
   }, Qt::DirectConnection);
 
   this->moveToThread(&m_drawThread);
@@ -194,7 +194,7 @@ WaveformComputer::WaveformComputer(LayerView& layer)
 
 void WaveformComputer::stop()
 {
-  score::invoke([this] {
+  QMetaObject::invokeMethod(this, [this] {
     moveToThread(m_layer.thread());
     m_drawThread.quit();
   });
