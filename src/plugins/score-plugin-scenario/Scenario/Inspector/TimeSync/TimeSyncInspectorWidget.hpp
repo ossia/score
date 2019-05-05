@@ -9,6 +9,7 @@ namespace Inspector
 {
 class InspectorSectionWidget;
 }
+class QCheckBox;
 class QLabel;
 namespace Scenario
 {
@@ -37,6 +38,7 @@ private:
 
   MetadataWidget* m_metadata{};
   QLabel* m_date{};
+  QCheckBox* m_autotrigger{};
   TriggerInspectorWidget* m_trigwidg{};
 };
 }

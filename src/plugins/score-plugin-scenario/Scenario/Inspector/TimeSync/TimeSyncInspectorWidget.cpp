@@ -2,47 +2,17 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "TimeSyncInspectorWidget.hpp"
 
-#include <Inspector/InspectorSectionWidget.hpp>
-#include <Inspector/InspectorWidgetBase.hpp>
-#include <Scenario/Commands/TimeSync/SplitTimeSync.hpp>
-#include <Scenario/Commands/TimeSync/TriggerCommandFactory/TriggerCommandFactoryList.hpp>
-#include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
-#include <Scenario/Inspector/Event/EventInspectorWidget.hpp>
-#include <Scenario/Inspector/MetadataWidget.hpp>
+#include <Scenario/Commands/TimeSync/TriggerCommandFactory/TriggerCommandFactoryList.hpp>
+#include <Scenario/Commands/TimeSync/SetAutoTrigger.hpp>
 #include <Scenario/Inspector/TimeSync/TriggerInspectorWidget.hpp>
-#include <Scenario/Process/ScenarioInterface.hpp>
+#include <Scenario/Inspector/MetadataWidget.hpp>
 
-#include <score/application/ApplicationContext.hpp>
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/document/DocumentContext.hpp>
-#include <score/model/Identifier.hpp>
-#include <score/model/path/Path.hpp>
-#include <score/model/path/PathSerialization.hpp>
-#include <score/plugins/StringFactoryKey.hpp>
-#include <score/selection/Selection.hpp>
-#include <score/selection/SelectionDispatcher.hpp>
-#include <score/serialization/DataStreamVisitor.hpp>
-#include <score/tools/Todo.hpp>
-#include <score/tools/std/Optional.hpp>
-#include <score/widgets/MarginLess.hpp>
-#include <score/widgets/Separator.hpp>
 #include <score/widgets/TextLabel.hpp>
 
-#include <QApplication>
-#include <QBoxLayout>
-#include <QColor>
-#include <QFormLayout>
-#include <QLabel>
-#include <QMenu>
-#include <QPushButton>
-#include <QString>
-#include <QTimer>
-#include <QVector>
-#include <QWidget>
-
-#include <algorithm>
-
+#include <QCheckBox>
 namespace Scenario
 {
 TimeSyncInspectorWidget::TimeSyncInspectorWidget(
@@ -71,12 +41,31 @@ TimeSyncInspectorWidget::TimeSyncInspectorWidget(
       = new TextLabel{tr("Default date: ") + m_model.date().toString(), this};
 
   // Trigger
+  m_autotrigger = new QCheckBox{tr("Auto-trigger")};
+  m_autotrigger->setChecked(object.autotrigger());
+  m_autotrigger->setWhatsThis(tr(R"_(Auto-trigger timesyncs are timesyncs which will
+                                  directly restart their following floating scenario upon triggering.
+                                  Else, triggering the timesync will stop the following subgraph and
+                                  it will be necessary to trigger it again to restart it.
+                                  This is only relevant for subgraphs not connected
+                                  to the root of a score.)_"));
+  m_autotrigger->setToolTip(m_autotrigger->whatsThis());
+  connect(m_autotrigger, &QCheckBox::toggled,
+          this, [&] (bool t) {
+    if(t != object.autotrigger())
+      CommandDispatcher<>{ctx.commandStack}.submit<Scenario::Command::SetAutoTrigger>(object, t);
+  });
+  connect(&object, &TimeSyncModel::autotriggerChanged,
+          this, [&] (bool t) {
+    if(t != m_autotrigger->isChecked())
+      m_autotrigger->setChecked(t);
+  });
   m_trigwidg = new TriggerInspectorWidget{
       ctx,
       ctx.app.interfaces<Command::TriggerCommandFactoryList>(),
       m_model,
       this};
-  updateAreaLayout({m_date, new TextLabel{tr("Trigger")}, m_trigwidg});
+  updateAreaLayout({m_date, m_autotrigger, new TextLabel{tr("Trigger")}, m_trigwidg});
 
   // display data
   updateDisplayedValues();

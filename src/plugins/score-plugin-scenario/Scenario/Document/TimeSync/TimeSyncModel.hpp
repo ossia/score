@@ -54,10 +54,10 @@ public:
   }
 
   // Data of the TimeSync
-  const VerticalExtent& extent() const;
+  const VerticalExtent& extent() const noexcept;
   void setExtent(const VerticalExtent& extent);
 
-  const TimeVal& date() const;
+  const TimeVal& date() const noexcept;
   void setDate(const TimeVal&);
 
   void addEvent(const Id<EventModel>&);
@@ -65,14 +65,17 @@ public:
   void clearEvents();
 
   using EventIdVec = ossia::small_vector<Id<EventModel>, 2>;
-  const EventIdVec& events() const;
+  const EventIdVec& events() const noexcept;
   void setEvents(const TimeSyncModel::EventIdVec& events);
 
-  State::Expression expression() const { return m_expression; }
+  State::Expression expression() const noexcept { return m_expression; }
   void setExpression(const State::Expression& expression);
 
-  bool active() const;
+  bool active() const noexcept;
   void setActive(bool active);
+
+  bool autotrigger() const noexcept;
+  void setAutotrigger(bool t);
 
 public:
   void extentChanged(const Scenario::VerticalExtent& arg_1)
@@ -88,6 +91,7 @@ public:
   void triggerChanged(const State::Expression& arg_1)
       E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, triggerChanged, arg_1);
   void activeChanged() E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, activeChanged);
+  void autotriggerChanged(bool b) E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, autotriggerChanged, b);
 
   void triggeredByGui() const
       E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, triggeredByGui);
@@ -100,6 +104,7 @@ private:
   VerticalExtent m_extent;
 
   bool m_active{false};
+  bool m_autotrigger{false};
 };
 }
 

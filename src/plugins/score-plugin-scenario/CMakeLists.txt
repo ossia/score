@@ -115,6 +115,7 @@ set(HDRS
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/State/SnapshotStatesMacro.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/TimeSync/AddTrigger.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/TimeSync/RemoveTrigger.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/TimeSync/SetAutoTrigger.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/TimeSync/SetTrigger.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/TimeSync/SplitTimeSync.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/TimeSync/TriggerCommandFactory/BaseScenarioTriggerCommandFactory.hpp"
@@ -416,6 +417,7 @@ set(SRCS ${SRCS}
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/TimeSync/TriggerCommandFactory/ScenarioTriggerCommandFactory.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/TimeSync/TriggerCommandFactory/BaseScenarioTriggerCommandFactory.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/TimeSync/SplitTimeSync.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/TimeSync/SetAutoTrigger.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/TimeSync/SetTrigger.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/ScenarioCommandFactory.cpp"
