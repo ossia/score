@@ -68,7 +68,7 @@ private:
   {
     QFile file;
     void* data{};
-    drwav* wav{};
+    ossia::drwav_handle* wav{};
     ~MmapReader();
   };
 

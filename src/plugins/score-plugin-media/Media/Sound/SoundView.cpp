@@ -17,8 +17,9 @@
 
 //#include <QFormLayout>
 #include <wobjectimpl.h>
-
 #include <score/widgets/DoubleSlider.hpp>
+#include <score/tools/std/Invoke.hpp>
+
 W_REGISTER_ARGTYPE(const Media::AudioFileHandle*)
 W_OBJECT_IMPL(Media::Sound::LayerView)
 W_OBJECT_IMPL(Media::Sound::WaveformComputer)
@@ -184,7 +185,7 @@ WaveformComputer::WaveformComputer(LayerView& layer)
       this, [=] (const std::shared_ptr<AudioFileHandle>& arg_1, double arg_2) {
     int64_t n = ++m_redraw_count;
 
-    QMetaObject::invokeMethod(this, [=] { on_recompute(arg_1, arg_2, n); }, Qt::QueuedConnection);
+    score::invoke([=] { on_recompute(arg_1, arg_2, n); });
   }, Qt::DirectConnection);
 
   this->moveToThread(&m_drawThread);
@@ -193,7 +194,7 @@ WaveformComputer::WaveformComputer(LayerView& layer)
 
 void WaveformComputer::stop()
 {
-  QMetaObject::invokeMethod(this, [this] {
+  score::invoke([this] {
     moveToThread(m_layer.thread());
     m_drawThread.quit();
   });

@@ -8,10 +8,15 @@
 #include <score/serialization/JSONVisitor.hpp>
 #include <score/tools/File.hpp>
 #include <Audio/Settings/Model.hpp>
+#include <ossia/dataflow/nodes/sound_mmap.hpp>
 
 #include <core/document/Document.hpp>
 
 #include <QFileInfo>
+
+#define DR_WAV_NO_STDIO
+#include <dr_wav.h>
+
 namespace Media
 {
 
@@ -252,7 +257,7 @@ void AudioFileHandle::load_drwav()
     m_impl = std::monostate{};
     on_mediaChanged();
   }
-  r.wav = drwav_open_memory(r.data, r.file.size());
+  r.wav = reinterpret_cast<ossia::drwav_handle*>(drwav_open_memory(r.data, r.file.size()));
   if(!r.wav) {
     m_impl = std::monostate{};
     on_mediaChanged();

@@ -1,9 +1,14 @@
+#include <score/tools/Todo.hpp>
+#define DR_WAV_IMPLEMENTATION
+#define DR_WAV_NO_STDIO
+#include <dr_wav.h>
+#undef DR_WAV_IMPLEMENTATION
 #include "RMSData.hpp"
 
 #include <ossia/detail/math.hpp>
 #include <Media/RMSData.hpp>
 #include <wobjectimpl.h>
-#include <dr_wav.h>
+#include <ossia/dataflow/nodes/sound_mmap.hpp>
 W_OBJECT_IMPL(Media::RMSData)
 namespace Media
 {
@@ -84,7 +89,7 @@ void RMSData::decodeLast(const std::vector<gsl::span<const ossia::audio_sample> 
   finishedDecoding();
 }
 
-void RMSData::decode(drwav& audio)
+void RMSData::decode(ossia::drwav_handle& audio)
 {
   // store the data in interleaved format, it's much easier...
   const int64_t channels = audio.channels;
@@ -172,7 +177,7 @@ rms_sample_t RMSData::computeChannelRMS(gsl::span<const ossia::audio_sample> cha
 
 
 
-void RMSData::computeChannelRMS(drwav& wav, rms_sample_t* bytes, int64_t buffer_size)
+void RMSData::computeChannelRMS(ossia::drwav_handle& wav, rms_sample_t* bytes, int64_t buffer_size)
 {
   const int channels = wav.channels;
   float* val = (float*)alloca(sizeof(float) * channels);
