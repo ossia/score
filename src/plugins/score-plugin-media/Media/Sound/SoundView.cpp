@@ -77,18 +77,19 @@ void LayerView::setData(const std::shared_ptr<AudioFileHandle>& data)
   m_numChan = data->channels();
   if (m_data)
   {
-    QObject::connect(
+    connect(
         &m_data->rms(),
         &RMSData::finishedDecoding,
         this,
         &LayerView::on_finishedDecoding,
         Qt::QueuedConnection);
-    QObject::connect(
+    connect(
         &m_data->rms(),
         &RMSData::newData,
         this,
         &LayerView::on_newData,
         Qt::QueuedConnection);
+    on_newData();
   }
   m_sampleRate = data->sampleRate();
 }
