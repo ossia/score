@@ -80,7 +80,6 @@ void RMSData::decodeLast(const std::vector<gsl::span<const ossia::audio_sample> 
   computeLastRMS(audio, rms_buffer_size);
 
   m_file.open(QIODevice::WriteOnly);
-  qDebug() << m_file.errorString();
   m_file.write(m_ramData);
   finishedDecoding();
 }
@@ -107,14 +106,13 @@ void RMSData::decode(drwav& audio)
   newData();
 
   m_file.open(QIODevice::WriteOnly);
-  qDebug() << m_file.errorString();
   m_file.write(m_ramData);
   finishedDecoding();
 }
 
 double RMSData::sampleRateRatio(double expectedRate) const noexcept
 {
-  return expectedRate / header->sampleRate;
+  return header->sampleRate / expectedRate;
 }
 
 ossia::small_vector<float, 8> RMSData::frame(int64_t start_frame, int64_t end_frame) const noexcept
@@ -154,10 +152,9 @@ ossia::small_vector<float, 8> RMSData::frame(int64_t start_frame, int64_t end_fr
       sum[k] += begin[k] * begin[k];
   }
 
-  const float n = std::max(int64_t(1), (end_idx-start_idx) / channels);
-  constexpr const float sqrt_2 = ossia::sqrt_2;
+  const float n = std::max(int64_t(1), (end_idx-start_idx));
   for(std::size_t k = 0; k < channels; k++)
-    sum[k] = sqrt_2 * std::sqrt(sum[k] / n);
+    sum[k] = std::sqrt(sum[k] / n);
 
   return sum;
 }

@@ -21,7 +21,7 @@ struct AudioInfo
   int64_t length{};
   int64_t max_arr_length{};
 
-  // Duration in seconds
+  // Duration
   TimeVal duration() const noexcept {
     return TimeVal::fromMsecs(1000. * double(length) / double(rate));
   }
