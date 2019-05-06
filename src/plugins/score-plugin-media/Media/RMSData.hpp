@@ -42,6 +42,9 @@ public:
   int64_t frames_count = 0;
   int64_t samples_count = 0;
 
+  Header* header_ptr() const noexcept { return header; }
+  rms_sample_t* data_ptr() const noexcept { return data; }
+
   void newData() W_SIGNAL(newData);
   void finishedDecoding() W_SIGNAL(finishedDecoding);
 
