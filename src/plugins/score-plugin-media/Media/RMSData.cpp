@@ -86,6 +86,8 @@ void RMSData::decodeLast(const std::vector<gsl::span<const ossia::audio_sample> 
 
   m_file.open(QIODevice::WriteOnly);
   m_file.write(m_ramData);
+  m_file.flush();
+  m_file.close();
   finishedDecoding();
 }
 
@@ -112,6 +114,8 @@ void RMSData::decode(ossia::drwav_handle& audio)
 
   m_file.open(QIODevice::WriteOnly);
   m_file.write(m_ramData);
+  m_file.flush();
+  m_file.close();
   finishedDecoding();
 }
 
@@ -132,12 +136,12 @@ ossia::small_vector<float, 8> RMSData::frame(int64_t start_frame, int64_t end_fr
   auto end_idx = (end_frame / rms_buffer_size);
 
   if(start_idx >= samples_count) {
-    qDebug() << "bug on start! " << start_idx << samples_count;
+    //qDebug() << "bug on start! " << start_idx << samples_count;
     return sum;
   }
 
   if(end_idx > samples_count) {
-    qDebug() << "bug on end! " << end_idx << samples_count;
+    //qDebug() << "bug on end! " << end_idx << samples_count;
     end_idx = samples_count;
   }
 
@@ -212,12 +216,10 @@ void RMSData::computeRMS(const std::vector<gsl::span<const ossia::audio_sample> 
   const int64_t channels = audio.size();
   const int64_t max_sample = audio.front().size();
 
-  int64_t buffers_written = (m_ramBuffer.size() - sizeof(Header)) / channels;
-
   const int64_t len = sizeof(rms_sample_t) * channels;
   rms_sample_t* bytes = reinterpret_cast<rms_sample_t*>(alloca(len));
 
-  int64_t start_idx = buffers_written * buffer_size;
+  int64_t start_idx = frames_count * buffer_size;
   while(start_idx + buffer_size < max_sample) {
     for(int i = 0; i < channels; i++)
     {
@@ -242,12 +244,10 @@ void RMSData::computeLastRMS(const std::vector<gsl::span<const ossia::audio_samp
   const int channels = audio.size();
   const int64_t max_frames = audio.front().size();
 
-  int64_t buffers_written = (m_ramBuffer.size() - sizeof(Header)) / channels;
-
   const int64_t len = sizeof(rms_sample_t) * channels;
   rms_sample_t* bytes = reinterpret_cast<rms_sample_t*>(alloca(len));
 
-  int64_t start_idx = buffers_written * buffer_size;
+  int64_t start_idx = frames_count * buffer_size;
   while(start_idx + buffer_size < max_frames) {
     for(int i = 0; i < channels; i++)
     {

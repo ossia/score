@@ -14,6 +14,8 @@
 #include <QTimer>
 #include <QApplication>
 #include <cmath>
+#include <QDialog>
+#include <QHBoxLayout>
 
 //#include <QFormLayout>
 #include <wobjectimpl.h>

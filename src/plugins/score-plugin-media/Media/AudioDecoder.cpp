@@ -11,7 +11,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#if __has_include(<libavcodec/avcodec.h>)
+#if 1  || __has_include(<libavcodec/avcodec.h>)
 #define SCORE_HAS_LIBAV 1
 extern "C"
 {
