@@ -12,7 +12,7 @@
 
 #include <QPainter>
 #include <QTextOption>
-
+#include <wobjectimpl.h>
 namespace Process
 {
 ProcessModelFactory::~ProcessModelFactory() {}
@@ -99,10 +99,9 @@ Process::MiniLayer* LayerFactory::makeMiniLayer(
   return nullptr;
 }
 
-QGraphicsItem* LayerFactory::makeItem(
-    const ProcessModel&,
+score::ResizeableItem* LayerFactory::makeItem(const ProcessModel&,
     const score::DocumentContext& ctx,
-    score::RectItem* parent) const
+    QGraphicsItem* parent) const
 {
   return nullptr;
 }

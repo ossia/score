@@ -5,13 +5,27 @@
 #include <wobjectdefs.h>
 namespace score
 {
+class SCORE_LIB_BASE_EXPORT ResizeableItem
+    : public QObject
+    , public QGraphicsItem
+{
+  W_OBJECT(ResizeableItem)
+public:
+  ResizeableItem(QGraphicsItem* parent);
+  ~ResizeableItem();
 
-class SCORE_LIB_BASE_EXPORT RectItem : public QObject, public QGraphicsItem
+  void sizeChanged(QSizeF sz)
+  W_SIGNAL(sizeChanged, sz);
+};
+
+class SCORE_LIB_BASE_EXPORT RectItem
+    : public ResizeableItem
 {
   W_OBJECT(RectItem)
   Q_INTERFACES(QGraphicsItem)
 public:
-  using QGraphicsItem::QGraphicsItem;
+  using ResizeableItem::ResizeableItem;
+
   void setRect(const QRectF& r);
   void setHighlight(bool);
   QRectF boundingRect() const final override;
@@ -34,8 +48,8 @@ private:
   bool m_highlight{false};
 };
 
-class SCORE_LIB_BASE_EXPORT EmptyRectItem : public QObject,
-                                            public QGraphicsItem
+class SCORE_LIB_BASE_EXPORT EmptyRectItem
+    : public ResizeableItem
 {
   W_OBJECT(EmptyRectItem)
   Q_INTERFACES(QGraphicsItem)

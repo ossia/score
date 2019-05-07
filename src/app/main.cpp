@@ -134,8 +134,8 @@ static void setup_app_flags()
 #endif
 
 #if !defined(__EMSCRIPTEN__)
-  QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
-  QCoreApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
+  QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling, true);
+  QCoreApplication::setAttribute(Qt::AA_UseHighDpiPixmaps, true);
   QCoreApplication::setAttribute(Qt::AA_CompressHighFrequencyEvents);
 #endif
 }

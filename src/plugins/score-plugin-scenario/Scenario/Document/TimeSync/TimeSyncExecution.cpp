@@ -36,9 +36,13 @@ TimeSyncComponent::TimeSyncComponent(
       this,
       &TimeSyncComponent::updateTrigger);
   con(element,
+      &Scenario::TimeSyncModel::autotriggerChanged,
+      this,
+      [=] (bool b) { in_exec([ts = m_ossia_node,b] { ts->set_autotrigger(b); }); });
+  con(element,
       &Scenario::TimeSyncModel::triggerChanged,
       this,
-      [this](const State::Expression& expr) { this->updateTrigger(); });
+      &TimeSyncComponent::updateTrigger);
 }
 
 void TimeSyncComponent::cleanup()
@@ -49,14 +53,14 @@ void TimeSyncComponent::cleanup()
 
 ossia::expression_ptr TimeSyncComponent::makeTrigger() const
 {
-  if (auto element = m_score_node)
+  if (m_score_node)
   {
-    if (element->active())
+    if (m_score_node->active())
     {
       try
       {
         return Engine::score_to_ossia::trigger_expression(
-            element->expression(), *system().execState);
+            m_score_node->expression(), *system().execState);
       }
       catch (std::exception& e)
       {
@@ -74,6 +78,8 @@ void TimeSyncComponent::onSetup(
 {
   m_ossia_node = ptr;
   m_ossia_node->set_expression(std::move(exp));
+  if (m_score_node)
+    m_ossia_node->set_autotrigger(m_score_node->autotrigger());
 }
 
 std::shared_ptr<ossia::time_sync> TimeSyncComponent::OSSIATimeSync() const

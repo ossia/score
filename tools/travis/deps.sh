@@ -18,7 +18,7 @@ case "$TRAVIS_OS_NAME" in
     sudo apt-get update -qq
     sudo apt-get install wget software-properties-common
 
-    wget -nv https://cmake.org/files/v3.14/cmake-3.14.1-Linux-x86_64.tar.gz -O cmake-linux.tgz &
+    wget -nv https://cmake.org/files/v3.14/cmake-3.14.3-Linux-x86_64.tar.gz -O cmake-linux.tgz &
 
     echo 'deb http://apt.llvm.org/xenial/ llvm-toolchain-xenial-8 main' | sudo tee /etc/apt/sources.list.d/llvm.list
     sudo apt-key adv --recv-keys --keyserver keyserver.ubuntu.com 1397BC53640DB551
@@ -26,19 +26,20 @@ case "$TRAVIS_OS_NAME" in
 
     sudo add-apt-repository --yes ppa:jonathonf/ffmpeg-3
     sudo add-apt-repository --yes ppa:ubuntu-toolchain-r/test
-    sudo add-apt-repository --yes ppa:beineri/opt-qt597-xenial
+    sudo add-apt-repository --yes ppa:beineri/opt-qt-5.12.3-xenial
 
     sudo apt-get update -qq
     sudo apt-get install -qq --force-yes \
         g++-8 binutils libasound-dev ninja-build \
-        gcovr lcov qt59-meta-minimal qt59svg \
-        qt59quickcontrols2 qt59websockets qt59serialport \
-        qt59multimedia libgl1-mesa-dev \
+        gcovr lcov \
+        qt512-meta-minimal qt512svg qt512quickcontrols2 qt512websockets qt512serialport \
+        qt512base qt512declarative \
+        libgl1-mesa-dev \
         libavcodec-dev libavutil-dev libavfilter-dev libavformat-dev libswresample-dev \
         portaudio19-dev clang-8 lld-8 \
         libbluetooth-dev \
         libsdl2-dev libsdl2-2.0-0 libglu1-mesa-dev libglu1-mesa \
-        qt59base qt59declarative qt59xmlpatterns libgles2-mesa-dev \
+        libgles2-mesa-dev \
         libavahi-compat-libdnssd-dev
 
     wait wget || true

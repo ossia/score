@@ -71,7 +71,7 @@ struct EffectUi
   }
   const Process::ProcessModel& effect;
   score::RectItem* root_item{};
-  QGraphicsItem* fx_item{};
+  score::ResizeableItem* fx_item{};
   EffectTitleItem* title{};
   std::vector<Dataflow::PortItem*> inlets;
   std::vector<Dataflow::PortItem*> outlets;
@@ -298,7 +298,14 @@ public:
 
       fx_ui.fx_item->setParentItem(root_item);
       fx_ui.fx_item->setPos({0, fx_ui.title->boundingRect().height()});
+
+      // TODO bind
       fx_ui.root_item->setRect(fx_ui.root_item->childrenBoundingRect());
+      connect(fx_ui.fx_item, &score::ResizeableItem::sizeChanged,
+              this, [=] {
+        fx_ui.root_item->setRect(fx_ui.root_item->childrenBoundingRect());
+      });
+
       m_effects.push_back(fx_ui_);
 
       fx_ui.root_item->setRect(

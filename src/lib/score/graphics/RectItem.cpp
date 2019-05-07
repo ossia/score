@@ -5,6 +5,7 @@
 
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(score::RectItem)
+W_OBJECT_IMPL(score::ResizeableItem)
 W_OBJECT_IMPL(score::EmptyRectItem)
 namespace score
 {
@@ -73,7 +74,19 @@ void RectItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
   event->accept();
 }
 
-EmptyRectItem::EmptyRectItem(QGraphicsItem* parent) : QGraphicsItem{parent}
+ResizeableItem::ResizeableItem(QGraphicsItem* parent)
+  : QGraphicsItem{parent}
+{
+
+}
+
+ResizeableItem::~ResizeableItem()
+{
+
+}
+
+EmptyRectItem::EmptyRectItem(QGraphicsItem* parent)
+  : ResizeableItem{parent}
 {
   this->setFlag(ItemHasNoContents, true);
 }

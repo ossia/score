@@ -109,10 +109,10 @@ private:
     return pres;
   }
 
-  QGraphicsItem* makeItem(
+  score::ResizeableItem* makeItem(
       const Process::ProcessModel& proc,
       const score::DocumentContext& ctx,
-      score::RectItem* parent) const final override
+      QGraphicsItem* parent) const final override
   {
     auto rootItem = new score::EmptyRectItem{parent};
     Control::UISetup::init<Info>(

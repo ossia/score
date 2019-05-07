@@ -96,10 +96,10 @@ private:
     return pres;
   }
 
-  QGraphicsItem* makeItem(
+  score::ResizeableItem* makeItem(
       const Process::ProcessModel& proc,
       const score::DocumentContext& ctx,
-      score::RectItem* parent) const override
+      QGraphicsItem* parent) const override
   {
     return new Item_T{safe_cast<const Model_T&>(proc), ctx, parent};
   }

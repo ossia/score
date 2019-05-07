@@ -6,6 +6,7 @@
 #include <QFormLayout>
 #include <QSpinBox>
 #include <QStackedWidget>
+#include <QCheckBox>
 
 #include <Audio/Settings/Model.hpp>
 #include <Audio/Settings/View.hpp>
@@ -16,7 +17,6 @@ View::View() : m_widg{new QWidget}
   auto lay = new QFormLayout{m_widg};
 
   m_sw = new QStackedWidget;
-  QStringList audio_drivers;
   m_Driver = new QComboBox{m_widg};
   lay->addRow(tr("Driver"), m_Driver);
   connect(
@@ -35,6 +35,9 @@ View::View() : m_widg{new QWidget}
       "BufferSize",
       BufferSize,
       (std::vector<int>{32, 64, 128, 256, 512, 1024, 2048}));
+  SETTINGS_UI_TOGGLE_SETUP(
+        "Auto-Stereo",
+        AutoStereo);
 
   lay->addWidget(m_sw);
 }
@@ -66,4 +69,5 @@ void View::setDriver(AudioFactory::ConcreteKey k)
 
 SETTINGS_UI_NUM_COMBOBOX_IMPL(Rate)
 SETTINGS_UI_NUM_COMBOBOX_IMPL(BufferSize)
+SETTINGS_UI_TOGGLE_IMPL(AutoStereo)
 }

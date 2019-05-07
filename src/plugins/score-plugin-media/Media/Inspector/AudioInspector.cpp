@@ -16,7 +16,7 @@ InspectorWidget::InspectorWidget(
     QWidget* parent)
     : InspectorWidgetDelegate_T{object, parent}
     , m_dispatcher{doc.commandStack}
-    , m_edit{object.file()->path(), this}
+    , m_edit{object.file()->originalFile(), this}
     , m_start{this}
     , m_upmix{this}
     , m_startOffset{this}
@@ -39,7 +39,7 @@ InspectorWidget::InspectorWidget(
     m_startOffset.setValue(v);
   });
   con(process(), &Sound::ProcessModel::fileChanged, this, [&] {
-    m_edit.setText(object.file()->path());
+    m_edit.setText(object.file()->originalFile());
   });
 
   con(m_edit, &QLineEdit::editingFinished, this, [&]() {

@@ -16,7 +16,7 @@ public:
   DefaultEffectItem(
       const Process::ProcessModel& effect,
       const score::DocumentContext& doc,
-      score::RectItem* root);
+      QGraphicsItem* root);
 
   void
   setupInlet(Process::ControlInlet& inlet, const score::DocumentContext& doc);

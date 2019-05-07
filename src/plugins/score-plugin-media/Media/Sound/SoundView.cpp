@@ -1,80 +1,38 @@
 #include "SoundView.hpp"
-
+#include <Media/RMSData.hpp>
 #include <score/graphics/GraphicsItem.hpp>
 #include <score/tools/Todo.hpp>
 #include <score/tools/std/Invoke.hpp>
 
 #include <ossia/detail/pod_vector.hpp>
+#include <ossia/detail/math.hpp>
 
 #include <QGraphicsSceneContextMenuEvent>
 #include <QGraphicsView>
 #include <QPainter>
 #include <QScrollBar>
 #include <QTimer>
-
+#include <QApplication>
 #include <cmath>
+#include <QDialog>
+#include <QHBoxLayout>
 
-#if defined(__AVX2__) && __has_include(<immintrin.h>)
-#include <immintrin.h>
-#elif defined(__SSE2__) && __has_include(<xmmintrin.h>)
-#include <xmmintrin.h>
-#endif
+//#include <QFormLayout>
 #include <wobjectimpl.h>
-W_REGISTER_ARGTYPE(const Media::MediaFileHandle*)
+#include <score/widgets/DoubleSlider.hpp>
+#include <score/tools/std/Invoke.hpp>
+
+W_REGISTER_ARGTYPE(const Media::AudioFileHandle*)
 W_OBJECT_IMPL(Media::Sound::LayerView)
 W_OBJECT_IMPL(Media::Sound::WaveformComputer)
 namespace Media
 {
 namespace Sound
 {
-/*
-QImage render(const QList<QPainterPath>& paths, const QPainterPath& m_channels,
-QRectF rect, double height, double zoom)
-{
-  auto image = QImage(rect.width(), rect.height(),
-QImage::Format_ARGB32_Premultiplied); image.fill(Qt::transparent);
-
-  {
-    auto painter = std::make_unique<QPainter>(&image);
-    painter->setRenderHint(QPainter::Antialiasing, false);
-    const int nchannels = paths.size();
-    if (nchannels == 0)
-      return {};
-
-    painter->setBrush(Qt::darkCyan);
-    painter->setPen(Qt::darkBlue);
-
-    painter->save();
-
-    painter->scale(zoom, 1.);
-
-    for (const auto& path : paths)
-      painter->drawPath(path);
-
-    const auto h = -height / nchannels;
-    const auto dblh = 2. * h;
-
-    painter->scale(1., -1);
-    painter->translate(0, h + 1);
-
-    for (const auto& path : paths)
-    {
-      painter->drawPath(path);
-      painter->translate(0., dblh + 1);
-    }
-
-    painter->restore();
-
-    painter->setPen(Qt::lightGray);
-    painter->drawPath(m_channels);
-  }
-
-  return image;
-}
-*/
 LayerView::LayerView(QGraphicsItem* parent)
     : Process::LayerView{parent}, m_cpt{new WaveformComputer{*this}}
 {
+  setCacheMode(NoCache);
   setFlag(ItemClipsToShape, true);
   this->setAcceptDrops(true);
   if (auto view = getView(*parent))
@@ -87,10 +45,15 @@ LayerView::LayerView(QGraphicsItem* parent)
       m_cpt,
       &WaveformComputer::ready,
       this,
-      [=](QList<QPainterPath> p, QPainterPath c, double z, QImage img) {
-        m_paths = std::move(p);
-        m_channels = std::move(c);
-        m_pathZoom = z;
+      [=](QVector<QImage> img, ComputedWaveform wf) {
+        m_image = std::move(img);
+        m_pixmap.resize(m_image.size() * 2);
+        for(int i = 0; i < m_image.size(); i++)
+        {
+          m_pixmap[2 * i].convertFromImage(m_image[i]);
+          m_pixmap[2 * i + 1].convertFromImage(m_image[i].mirrored(false, true));
+        }
+        m_wf = wf;
 
         update();
       });
@@ -103,43 +66,34 @@ LayerView::~LayerView()
   delete m_cpt;
 }
 
-void LayerView::setData(const std::shared_ptr<MediaFileHandle>& data)
+void LayerView::setData(const std::shared_ptr<AudioFileHandle>& data)
 {
   if (m_data)
   {
-    QObject::disconnect(
-        &m_data->decoder(),
-        &AudioDecoder::finishedDecoding,
-        this,
-        &LayerView::on_finishedDecoding);
-    QObject::disconnect(
-        &m_data->decoder(),
-        &AudioDecoder::newData,
-        this,
-        &LayerView::on_newData);
+    QObject::disconnect(&m_data->rms(), nullptr, this, nullptr);
   }
 
   SCORE_ASSERT(data);
 
   m_data = data;
-  m_numChan = data->data().size();
+  m_numChan = data->channels();
   if (m_data)
   {
-    QObject::connect(
-        &m_data->decoder(),
-        &AudioDecoder::finishedDecoding,
+    connect(
+        &m_data->rms(),
+        &RMSData::finishedDecoding,
         this,
         &LayerView::on_finishedDecoding,
         Qt::QueuedConnection);
-    QObject::connect(
-        &m_data->decoder(),
-        &AudioDecoder::newData,
+    connect(
+        &m_data->rms(),
+        &RMSData::newData,
         this,
         &LayerView::on_newData,
         Qt::QueuedConnection);
+    on_newData();
   }
   m_sampleRate = data->sampleRate();
-  m_cpt->dirty = true;
 }
 
 void LayerView::recompute(ZoomRatio ratio)
@@ -160,54 +114,40 @@ void LayerView::contextMenuEvent(QGraphicsSceneContextMenuEvent* event)
 
 void LayerView::paint_impl(QPainter* painter) const
 {
-  //  painter->drawPixmap(0, 0, m_pixmap);
-  painter->setRenderHint(QPainter::Antialiasing, false);
-  const int nchannels = m_numChan;
-  if (nchannels == 0)
+  if(m_zoom == 0.)
     return;
 
-  painter->setBrush(Qt::darkCyan);
-  painter->setPen(Qt::darkBlue);
+  int channels = m_pixmap.size();
+  if(channels == 0.)
+    return;
 
-  painter->save();
+  auto ratio = m_wf.zoom / m_zoom;
 
-  painter->scale(m_pathZoom / m_zoom, 1.);
+  const qreal w = (m_wf.xf - m_wf.x0) * ratio;
+  const qreal h = height() / channels;
 
-  for (const auto& path : m_paths)
-    painter->drawPath(path);
+  const double x0 = m_wf.x0 * ratio;
 
-  const auto h = -height() / nchannels;
-  const auto dblh = 2. * h;
-
-  painter->scale(1., -1);
-  painter->translate(0, h + 1);
-
-  for (const auto& path : m_paths)
+  for(int i = 0; i < channels; i++)
   {
-    painter->drawPath(path);
-    painter->translate(0., dblh + 1);
+    painter->drawPixmap(x0, h * i, w, h, m_pixmap[i]);
   }
-
-  painter->restore();
-
-  painter->setPen(Qt::lightGray);
-  painter->drawPath(m_channels);
 }
 
 void LayerView::scrollValueChanged(int sbvalue)
 {
+  // TODO maybe we don't actually need to always recompute... check if we're in the visible area.
+  // TODO on_heightChanged
   recompute(m_zoom);
 }
 
 void LayerView::on_finishedDecoding()
 {
-  m_cpt->dirty = true;
   recompute(m_zoom);
 }
 
 void LayerView::on_newData()
 {
-  m_cpt->dirty = true;
   recompute(m_zoom);
 }
 
@@ -239,271 +179,149 @@ void LayerView::dropEvent(QGraphicsSceneDragDropEvent* event)
     dropReceived(event->pos(), *event->mimeData());
 }
 
-WaveformComputer::WaveformComputer(LayerView& layer) : m_layer{layer}
+
+WaveformComputer::WaveformComputer(LayerView& layer)
+  : m_layer{layer}
+  , m_view{*getView(m_layer)}
 {
-  connect(
-      this,
-      &WaveformComputer::recompute,
-      this,
-      &WaveformComputer::on_recompute,
-      Qt::QueuedConnection);
+  connect(this, &WaveformComputer::recompute,
+      this, [=] (const std::shared_ptr<AudioFileHandle>& arg_1, double arg_2) {
+    int64_t n = ++m_redraw_count;
+
+     QMetaObject::invokeMethod(this, [=] { on_recompute(arg_1, arg_2, n); }, Qt::QueuedConnection);
+  }, Qt::DirectConnection);
 
   this->moveToThread(&m_drawThread);
   m_drawThread.start();
 }
 
-WaveformComputer::action WaveformComputer::compareDensity(const double density)
+void WaveformComputer::stop()
 {
-  int ratio{};
-  if (density > m_density)
-  {
-    ratio = 2;
-  }
-  else
-  {
-    ratio = 8;
-  }
-  if (dirty || m_density == -1 || m_density >= 2 * ratio * density
-      || 2 * ratio * m_density <= density || (int)m_layer.width() == 0
-      || m_curdata.empty())
-  {
-    dirty = false;
-    return RECOMPUTE_ALL;
-  }
-  if (m_density >= ratio * density)
-  {
-    return USE_NEXT;
-  }
-  if (ratio * m_density <= density)
-  {
-    return USE_PREV;
-  }
-  return KEEP_CUR;
+  QMetaObject::invokeMethod(this, [this] {
+    moveToThread(m_layer.thread());
+    m_drawThread.quit();
+  });
+  m_drawThread.wait();
 }
 
-void WaveformComputer::computeDataSet(
-    const MediaFileHandle& data,
-    ZoomRatio ratio,
-    double* densityptr,
-    std::vector<ossia::float_vector>& dataset)
+void WaveformComputer::drawWaveFormsOnImage(
+      const AudioFileHandle& data,
+      ZoomRatio ratio,
+      int64_t redraw_number)
 {
-  if (!data.handle())
-    return;
-  if (data.sampleRate() < 1)
-    return;
-
-  auto& arr = data.data();
-
-  if (ratio < 0.)
-    ratio = 0.;
-  const std::size_t nchannels = data.channels();
-  const std::size_t density
-      = std::max((data.sampleRate() * ratio) / 1000., 1.);
-
-  if (densityptr != nullptr)
-    *densityptr = density;
-
-  dataset.resize(nchannels);
-  for (std::size_t c = 0; c < nchannels; ++c)
-  {
-    const auto& chan = arr[c];
-    const std::size_t chan_n = std::min(data.decoder().decoded, chan.size());
-
-    const double length
-        = double(1000ll * chan_n) / data.sampleRate(); // duration of the track
-    const std::size_t npoints
-        = ratio > 0
-              ? length / ratio
-              : 0ul; // number of pixels the track will occupy in its entirety
-
-    ossia::float_vector& rmsv = dataset[c];
-    rmsv.resize(npoints);
-
-    const float one_over_dens = 1.f / density;
-    for (std::size_t i = 0; i < npoints; ++i)
-    {
-      rmsv[i] = 0;
-      const std::size_t i_dense = i * density;
-      const std::size_t max_a = density - 1;
-      const std::size_t max_b = chan_n - i_dense - 1;
-      const std::size_t limit = std::min(max_a, max_b);
-      const double* chan_start = &chan[i_dense];
-      for (std::size_t j = 0; j < limit; ++j)
-      {
-        float s = *(chan_start + j);
-        rmsv[i] += s * s;
-      }
-    }
-
-    std::size_t i = 0;
-#if defined(__AVX512__)
-    if (npoints > 8)
-    {
-      for (; i < npoints - 8; i += 8)
-      {
-        const auto one_over_dens_avx = _mm256_set1_ps(one_over_dens);
-        __m256 X = _mm256_mul_ps(_mm256_load_ps(&rmsv[i]), one_over_dens_avx);
-        _mm256_store_ps(&rmsv[i], _mm256_mul_ps(_mm256_rsqrt14_ps(X), X));
-      }
-    }
-#elif defined(__SSE2__)
-    if (npoints >= 4)
-    {
-      const auto one_over_dens_sse = _mm_set1_ps(one_over_dens);
-      for (; i < npoints - 4; i += 4)
-      {
-        float* addr = &rmsv[i];
-        __m128 X = _mm_mul_ps(_mm_load_ps(addr), one_over_dens_sse);
-        _mm_store_ps(addr, _mm_mul_ps(X, _mm_rsqrt_ps(X)));
-      }
-    }
-#endif
-
-    for (; i < npoints; i++)
-      rmsv[i] = std::sqrt(rmsv[i] * one_over_dens);
-  }
-}
-
-void WaveformComputer::drawWaveForms(
-    const MediaFileHandle& data,
-    ZoomRatio ratio)
-{
-  QList<QPainterPath> paths;
-  QPainterPath channels;
-
-  auto& arr = data.data();
-  const double density = std::max((ratio * data.sampleRate()) / 1000., 1.);
-  const double densityratio
-      = (m_density > 0 && density > 0) ? m_density / density : 1.;
-
-  int nchannels = arr.size();
+  int nchannels = data.channels();
   if (nchannels == 0)
-    return;
-  if ((int64_t)m_curdata.size() < nchannels)
     return;
 
   // Height of each channel
-  const auto h = m_layer.height() / (double)nchannels;
+  const float h = m_layer.height() / (float)nchannels;
+  if(h < 1.)
+    return;
+  const int32_t w = m_layer.width();
+  if(w == 0)
+    return;
 
-  const int64_t w = m_layer.width();
+  // leftmost point
+  const int32_t x0
+      = std::max(std::floor(m_layer.mapFromScene(m_view.mapToScene(0, 0)).x()), 0.);
 
-  // Trace lines between channels
+  auto& rms = data.rms();
+  if (rms.frames_count == 0)
+    return;
 
-  for (int c = 1; c < nchannels; ++c)
+  // rightmost point
+  const auto audioSampleRate = data.sampleRate();
+  // There may be a ratio because the waveform could have been computed at a different samplerate.
+  const auto rate_ratio = data.rms().sampleRateRatio(audioSampleRate);
+  const float samples_per_pixels = 0.001 * ratio * audioSampleRate;
+
+  if(samples_per_pixels <= 1e-6)
+    return;
+
+  int32_t xf = std::floor(m_layer.mapFromScene(m_view.mapToScene(m_view.width(), 0)).x());
+  const int32_t rightmost_sample = (int32_t) (data.decodedSamples() / samples_per_pixels);
+  xf = std::min(xf, rightmost_sample);
+
+  const int32_t width = std::min(w, (xf - x0));
+  const int32_t max_pixel = std::min((int32_t)width, (int32_t) rightmost_sample);
+
+  // height
+  const float half_h = h / 2;
+  const int half_h_int = half_h;
+  const float h_ratio = -half_h / std::numeric_limits<rms_sample_t>::max();
+
+
+  // TODO put in cache ! have some kind of rotation.
+  // If we set images with the "bits" constructor it could be possible
+  // to resize.
+  QVector<QImage> images;
+  images.resize(nchannels);
+  for(QImage& image : images)
   {
-    channels.moveTo(0, c * h);
-    channels.lineTo(w, c * h);
+    image = QImage(
+          width,
+          half_h,
+          QImage::Format_ARGB32_Premultiplied);
+    image.fill(Qt::transparent);
   }
 
-  // Get horizontal offset
-  auto view = getView(m_layer);
-  if (!view)
-    return;
-  auto x0
-      = std::max(m_layer.mapFromScene(view->mapToScene(0, 0)).x(), qreal(0));
+  constexpr const auto orange = qRgba(250, 180, 15, 255);
+  constexpr const auto transporange = qRgba(125, 90, 7, 127);
 
-  int64_t i0 = x0 / densityratio;
-  const int64_t n = m_curdata[0].size();
-  if (n == 0)
-    return;
+  // Draw the frames on the image
+  // TODO hidpi
 
-  auto xf = m_layer.mapFromScene(view->mapToScene(view->width(), 0)).x();
-
-  const float half_h = h / 2.f;
-  for (int64_t c = 0; c < nchannels; ++c)
+  for(int32_t x_samples = x0, x_pixels = x_samples - x0
+      ;       x_samples < xf && x_pixels < max_pixel
+      ;       x_samples++, x_pixels++
+      )
   {
-    const int64_t current_height = c * h;
-    const ossia::float_vector& dataset = m_curdata[c];
+    if(m_redraw_count > redraw_number)
+      return;
 
-    QPainterPath path{};
-    path.setFillRule(Qt::WindingFill);
+    const auto rms_sample = rms.frame(
+          (x_samples)     * samples_per_pixels * rate_ratio,
+          (x_samples + 1) * samples_per_pixels * rate_ratio
+          );
 
-    // Draw path for current channel
-    const float height_adj = current_height + half_h;
-    if (n > i0)
+    for(int k = 0; k < nchannels; k++)
     {
-      path.moveTo(x0, double(dataset[i0] + height_adj));
-      double x = x0;
-      for (int64_t i = i0; (i < n) && (x <= xf); ++i)
-      {
-        x = i * densityratio;
-        path.lineTo(x, double(dataset[i] * half_h + height_adj));
-      }
-      path.lineTo(x, height_adj);
+      QImage& image = images[k];
+      auto dat = reinterpret_cast<uint32_t*>(image.bits());
+      const int value = ossia::clamp(int(rms_sample[k] * h_ratio + half_h), 0, half_h_int - 1);
+
+      dat[x_pixels + value * width] = transporange;
+
+      for(int y = value +1; y < half_h_int; y++)
+        dat[x_pixels + y * width] = orange;
     }
-    paths.push_back(std::move(path));
   }
 
-  ready(std::move(paths), std::move(channels), ratio, QImage());
+  ComputedWaveform wf;
+  wf.zoom = ratio;
+  wf.x0 = x0;
+  wf.xf = x0 + max_pixel;
+  ready(images, wf);
 }
-
 void WaveformComputer::on_recompute(
-    std::shared_ptr<MediaFileHandle> data_qp,
-    ZoomRatio ratio)
+    std::shared_ptr<AudioFileHandle> data_qp,
+    ZoomRatio ratio,
+    int64_t n)
 {
+  if(m_redraw_count > n)
+    return;
+
   if (!data_qp)
     return;
 
   auto& data = *data_qp;
   m_zoom = ratio;
 
-  if (!data.handle())
-    return;
   if (data.channels() == 0)
     return;
 
-  const int64_t density
-      = std::max((int64_t)(ratio * data.sampleRate() / 1000ll), (int64_t)1);
-  long action = compareDensity(density);
-
-  switch (action)
-  {
-    case KEEP_CUR:
-      break;
-    case USE_NEXT:
-      std::swap(m_prevdata, m_curdata);
-      std::swap(m_curdata, m_nextdata);
-      m_prevdensity = m_density;
-      m_density = m_nextdensity;
-
-      score::invoke([p = QPointer{this}, data_qp, ratio, density] {
-        if (!data_qp || !p)
-          return;
-        if (density > 1)
-          p->computeDataSet(
-              *data_qp, ratio / 2., &p->m_nextdensity, p->m_nextdata);
-        else
-          p->m_nextdata = p->m_curdata;
-      });
-      break;
-    case USE_PREV:
-      std::swap(m_nextdata, m_curdata);
-      std::swap(m_curdata, m_prevdata);
-      m_nextdensity = m_density;
-      m_density = m_prevdensity;
-      score::invoke([p = QPointer{this}, data_qp, ratio] {
-        if (!data_qp || !p)
-          return;
-        p->computeDataSet(
-            *data_qp, 2. * ratio, &p->m_prevdensity, p->m_prevdata);
-      });
-      break;
-    case RECOMPUTE_ALL:
-      computeDataSet(data, ratio, &m_density, m_curdata);
-      score::invoke([p = QPointer{this}, data_qp, ratio] {
-        if (!data_qp || !p)
-          return;
-        p->computeDataSet(
-            *data_qp, 2. * ratio, &p->m_prevdensity, p->m_prevdata);
-        p->computeDataSet(
-            *data_qp, ratio / 2., &p->m_nextdensity, p->m_nextdata);
-      });
-      break;
-    default:
-      break;
-  }
-
-  drawWaveForms(data, ratio);
+  drawWaveFormsOnImage(data, ratio, n);
 }
 }
 }
+
