@@ -87,6 +87,8 @@ struct StyleLoader : public QObject
   {
 #if defined(SCORE_SOURCE_DIR)
     QString prefix = QString(SCORE_SOURCE_DIR) + "/src/lib/resources";
+    if(!QDir::exists(prefix))
+      prefix = ":";
 #else
     QString prefix = ":";
 #endif
@@ -126,7 +128,13 @@ struct StyleLoader : public QObject
   {
     auto readFile = [] (QString s) {
       QFile f{s};
-      SCORE_ASSERT(f.open(QFile::ReadOnly));
+
+      if(!f.open(QFile::ReadOnly))
+      {
+        qDebug() << "Warning : could not read style file: " << s;
+        return QByteArray{};
+      }
+
       return f.readAll();
     };
 
