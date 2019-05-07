@@ -33,8 +33,8 @@ cmake_policy(VERSION 3.9)
 cmake_policy(SET CMP0025 NEW)
 
 set(SCORE_VERSION_MAJOR 2)
-set(SCORE_VERSION_MINOR 2)
-set(SCORE_VERSION_PATCH 3)
+set(SCORE_VERSION_MINOR 3)
+set(SCORE_VERSION_PATCH 0)
 set(SCORE_VERSION_EXTRA "")
 set(SCORE_CODENAME "Through the Last Weimar Beer Belly")
 
