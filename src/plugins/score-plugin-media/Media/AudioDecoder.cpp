@@ -11,7 +11,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-#if __has_include(<libavcodec/avcodec.h>)
+#if 1  || __has_include(<libavcodec/avcodec.h>)
+#define SCORE_HAS_LIBAV 1
 extern "C"
 {
 #include <libavcodec/avcodec.h>
@@ -24,7 +25,7 @@ extern "C"
 
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Media::AudioDecoder)
-#if __has_include(<libavcodec/avcodec.h>)
+#if SCORE_HAS_LIBAV
 namespace
 {
 using namespace Media;
@@ -372,7 +373,8 @@ struct AVFormatContext;
 struct AVFrame;
 namespace Media
 {
-AudioDecoder::AudioDecoder()
+AudioDecoder::AudioDecoder(int rate)
+  : m_targetSampleRate{rate}
 {
   connect(
       this,
@@ -393,7 +395,7 @@ struct AVCodecContext_Free
 {
   void operator()(AVCodecContext* ctx)
   {
-#if __has_include(<libavcodec/avcodec.h>)
+#if SCORE_HAS_LIBAV
     avcodec_free_context(&ctx);
 #endif
   }
@@ -402,7 +404,7 @@ struct AVFormatContext_Free
 {
   void operator()(AVFormatContext* ctx)
   {
-#if __has_include(<libavcodec/avcodec.h>)
+#if SCORE_HAS_LIBAV
     avformat_free_context(ctx);
 #endif
   }
@@ -411,7 +413,7 @@ struct AVFrame_Free
 {
   void operator()(AVFrame* frame)
   {
-#if __has_include(<libavcodec/avcodec.h>)
+#if SCORE_HAS_LIBAV
     av_frame_free(&frame);
 #endif
   }
@@ -424,7 +426,7 @@ using AVFrame_ptr = std::unique_ptr<AVFrame, AVFrame_Free>;
 
 AVFormatContext_ptr open_audio(const QString& path)
 {
-#if __has_include(<libavcodec/avcodec.h>)
+#if SCORE_HAS_LIBAV
   AVFormatContext* fmt_ctx_ptr{};
   auto l1 = path.toUtf8();
   auto ret
@@ -449,7 +451,7 @@ ossia::optional<AudioInfo> AudioDecoder::probe(const QString& path)
   auto it = database().find(path);
   if (it == database().end())
   {
-#if __has_include(<libavcodec/avcodec.h>)
+#if SCORE_HAS_LIBAV
     av_register_all();
     avcodec_register_all();
 
@@ -468,17 +470,19 @@ ossia::optional<AudioInfo> AudioDecoder::probe(const QString& path)
         if (info.channels == 0)
           return {};
         info.rate = stream->codecpar->sample_rate;
-        info.length = read_length(path);
+        info.length = std::ceil(info.rate * read_length(path));
         info.max_arr_length = info.length;
 
-        if (info.rate != 44100)
+        /*
+        if (info.rate != m_targetSampleRate)
         {
           info.length
-              = av_rescale_rnd(info.length, 44100, info.rate, AV_ROUND_UP);
+              = av_rescale_rnd(info.length, m_targetSampleRate, info.rate, AV_ROUND_UP);
 
           if (info.length > info.max_arr_length)
             info.max_arr_length = info.length;
         }
+        */
 
         database().insert(path, info);
         return info;
@@ -501,7 +505,7 @@ QHash<QString, AudioInfo>& AudioDecoder::database()
 
 auto debug_ffmpeg(int ret, QString ctx)
 {
-#if __has_include(<libavcodec/avcodec.h>)
+#if SCORE_HAS_LIBAV
   if (ret < 0 && ret != AVERROR_EOF)
   {
     char err[100]{0};
@@ -515,9 +519,9 @@ auto debug_ffmpeg(int ret, QString ctx)
 #endif
 }
 
-std::size_t AudioDecoder::read_length(const QString& path)
+double AudioDecoder::read_length(const QString& path)
 {
-#if __has_include(<libavcodec/avcodec.h>)
+#if SCORE_HAS_LIBAV
   av_register_all();
   avcodec_register_all();
 
@@ -527,89 +531,7 @@ std::size_t AudioDecoder::read_length(const QString& path)
   if (ret != 0)
     throw std::runtime_error("Couldn't find stream information");
 
-  for (std::size_t i = 0; i < fmt_ctx->nb_streams; i++)
-  {
-    if (fmt_ctx->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_AUDIO)
-    {
-      auto stream = fmt_ctx->streams[i];
-      auto codec
-          = avcodec_find_decoder(fmt_ctx->streams[i]->codecpar->codec_id);
-      if (!codec)
-        throw std::runtime_error("Couldn't find codec");
-
-      AVCodecContext_ptr codec_ctx{avcodec_alloc_context3(codec)};
-      if (!codec_ctx)
-        throw std::runtime_error("Couldn't allocate codec context");
-
-      ret = avcodec_parameters_to_context(
-          codec_ctx.get(), fmt_ctx->streams[i]->codecpar);
-      if (ret != 0)
-        throw std::runtime_error("Couldn't copy codec data");
-
-      ret = avcodec_open2(codec_ctx.get(), codec, nullptr);
-      if (ret != 0)
-        throw std::runtime_error("Couldn't open codec");
-
-      sampleRate = stream->codecpar->sample_rate;
-      AVPacket packet;
-      AVFrame_ptr frame{av_frame_alloc()};
-
-      int64_t pos = 0;
-
-      ret = av_read_frame(fmt_ctx.get(), &packet);
-
-      debug_ffmpeg(ret, "av_read_frame");
-      while (ret >= 0)
-      {
-        ret = avcodec_send_packet(codec_ctx.get(), &packet);
-        debug_ffmpeg(ret, "avcodec_send_packet");
-        if (ret == 0)
-        {
-          ret = avcodec_receive_frame(codec_ctx.get(), frame.get());
-          debug_ffmpeg(ret, "avcodec_receive_frame");
-          if (ret == 0)
-          {
-            while (ret == 0)
-            {
-              pos += frame->nb_samples;
-              ret = avcodec_receive_frame(codec_ctx.get(), frame.get());
-            }
-            ret = av_read_frame(fmt_ctx.get(), &packet);
-            debug_ffmpeg(ret, "av_read_frame");
-            continue;
-          }
-          else if (ret == AVERROR(EAGAIN))
-          {
-            ret = av_read_frame(fmt_ctx.get(), &packet);
-            debug_ffmpeg(ret, "av_read_frame");
-            continue;
-          }
-          else if (ret == AVERROR_EOF)
-          {
-            pos += frame->nb_samples;
-            break;
-          }
-          else
-          {
-            break;
-          }
-        }
-        else if (ret == AVERROR(EAGAIN))
-        {
-          ret = avcodec_receive_frame(codec_ctx.get(), frame.get());
-          debug_ffmpeg(ret, "avcodec_receive_frame EAGAIN");
-        }
-        else
-        {
-          break;
-        }
-      }
-      // Flush
-      avcodec_send_packet(codec_ctx.get(), nullptr);
-
-      return pos;
-    }
-  }
+  return fmt_ctx->duration / double(AV_TIME_BASE);
 #endif
   return 0;
 }
@@ -642,9 +564,13 @@ void AudioDecoder::decode(const QString& path, audio_handle hdl)
   sampleRate = info.rate;
   auto& data = hdl->data;
   data.resize(info.channels);
-  qDebug() << "CHANNELS" << info.channels << "LENGTH" << info.max_arr_length;
+
+  if(m_targetSampleRate != sampleRate)
+    info.max_arr_length = av_rescale_rnd(info.max_arr_length, m_targetSampleRate, sampleRate, AV_ROUND_UP);
+
   for (auto& c : data)
   {
+    c.reserve(info.max_arr_length * 1.1);
     c.resize(info.max_arr_length);
   }
 
@@ -657,10 +583,10 @@ void AudioDecoder::decode(const QString& path, audio_handle hdl)
 }
 
 ossia::optional<std::pair<AudioInfo, audio_array>>
-AudioDecoder::decode_synchronous(const QString& path)
+AudioDecoder::decode_synchronous(const QString& path, int rate)
 {
 
-  AudioDecoder dec;
+  AudioDecoder dec(rate);
   auto res = dec.probe(path);
   if (!res)
     return ossia::none;
@@ -671,6 +597,7 @@ AudioDecoder::decode_synchronous(const QString& path)
   hdl->data.resize(res->channels);
   for (auto& c : hdl->data)
   {
+    c.reserve(res->max_arr_length * 1.1);
     c.resize(res->max_arr_length);
   }
 
@@ -682,14 +609,14 @@ AudioDecoder::decode_synchronous(const QString& path)
 template <typename Decoder>
 void AudioDecoder::decodeFrame(Decoder dec, audio_array& data, AVFrame& frame)
 {
-#if __has_include(<libavcodec/avcodec.h>)
+#if SCORE_HAS_LIBAV
   const std::size_t channels = data.size();
   const std::size_t max_samples = data[0].size();
 
-  if (sampleRate != 44100)
+  if (sampleRate != m_targetSampleRate)
   {
     auto new_len
-        = av_rescale_rnd(frame.nb_samples, 44100, sampleRate, AV_ROUND_UP);
+        = av_rescale_rnd(frame.nb_samples, m_targetSampleRate, sampleRate, AV_ROUND_UP);
 
     if (decoded + new_len > max_samples)
     {
@@ -735,9 +662,9 @@ void AudioDecoder::decodeFrame(Decoder dec, audio_array& data, AVFrame& frame)
 
 void AudioDecoder::decodeRemaining(audio_array& data)
 {
-#if __has_include(<libavcodec/avcodec.h>)
+#if SCORE_HAS_LIBAV
   const std::size_t channels = data.size();
-  if (sampleRate != 44100)
+  if (sampleRate != m_targetSampleRate)
   {
     int res = 0;
     for (std::size_t i = 0; i < channels; ++i)
@@ -757,8 +684,7 @@ void AudioDecoder::decodeRemaining(audio_array& data)
 }
 void AudioDecoder::on_startDecode(QString path, audio_handle hdl)
 {
-#if __has_include(<libavcodec/avcodec.h>)
-  qDebug() << "decoding: " << path;
+#if SCORE_HAS_LIBAV
   auto& data = hdl->data;
   try
   {
@@ -808,7 +734,7 @@ void AudioDecoder::on_startDecode(QString path, audio_handle hdl)
       throw std::runtime_error("Couldn't create decoder");
 
     // init resampling
-    if (sampleRate != 44100)
+    if (sampleRate != m_targetSampleRate)
     {
       for (std::size_t i = 0; i < channels; ++i)
       {
@@ -816,7 +742,7 @@ void AudioDecoder::on_startDecode(QString path, audio_handle hdl)
             nullptr,
             AV_CH_LAYOUT_MONO,
             AV_SAMPLE_FMT_DBL,
-            44100,
+            m_targetSampleRate,
             AV_CH_LAYOUT_MONO,
             AV_SAMPLE_FMT_DBL,
             sampleRate,

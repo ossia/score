@@ -9,11 +9,11 @@ struct DroppedAudioFiles
 {
   DroppedAudioFiles(const QMimeData& mime);
 
-  bool valid() const { return !files.empty() && maxDuration != 0; }
+  bool valid() const { return !files.empty() && maxDuration != TimeVal::zero(); }
 
   TimeVal dropMaxDuration() const;
-  int64_t maxDuration = 0;
-  std::vector<std::pair<QString, int64_t>> files;
+  TimeVal maxDuration = TimeVal::zero();
+  std::vector<std::pair<QString, TimeVal>> files;
 };
 
 /**

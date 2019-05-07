@@ -19,14 +19,14 @@ namespace Media::VST
 
 class VSTEffectItem final : public score::EmptyRectItem
 {
-  score::RectItem* rootItem{};
+  QGraphicsItem* rootItem{};
   std::vector<std::pair<VSTControlInlet*, score::EmptyRectItem*>> controlItems;
 
 public:
   VSTEffectItem(
       const VSTEffectModel& effect,
       const score::DocumentContext& doc,
-      score::RectItem* root);
+      QGraphicsItem* root);
 
   template <typename T>
   void setupInlet(

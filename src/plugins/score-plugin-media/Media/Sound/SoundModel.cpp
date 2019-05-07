@@ -3,6 +3,8 @@
 #include <QFile>
 
 #include <wobjectimpl.h>
+
+#include <Audio/Settings/Model.hpp>
 W_OBJECT_IMPL(Media::Sound::ProcessModel)
 namespace Media
 {
@@ -18,6 +20,7 @@ ProcessModel::ProcessModel(
                             Metadata<ObjectKey_k, ProcessModel>::get(),
                             parent}
     , outlet{Process::make_outlet(Id<Process::Port>(0), this)}
+    , m_file{std::make_shared<AudioFileHandle>()}
 {
   outlet->setPropagate(true);
   outlet->type = Process::PortType::Audio;
@@ -30,20 +33,24 @@ ProcessModel::~ProcessModel() {}
 
 void ProcessModel::setFile(const QString& file)
 {
-  if (file != m_file->path())
+  if (file != m_file->originalFile())
   {
-    m_file->load(file, score::IDocument::documentContext(*this));
-    fileChanged();
+    m_file->on_mediaChanged.disconnect<&ProcessModel::on_mediaChanged>(*this);
+
+    m_file = AudioFileHandleManager::instance().get(file, score::IDocument::documentContext(*this));
+
+    m_file->on_mediaChanged.connect<&ProcessModel::on_mediaChanged>(*this);
+    on_mediaChanged();
     prettyNameChanged();
   }
 }
 
-std::shared_ptr<MediaFileHandle>& ProcessModel::file()
+std::shared_ptr<AudioFileHandle>& ProcessModel::file()
 {
   return m_file;
 }
 
-const std::shared_ptr<MediaFileHandle>& ProcessModel::file() const
+const std::shared_ptr<AudioFileHandle>& ProcessModel::file() const
 {
   return m_file;
 }
@@ -98,7 +105,8 @@ void ProcessModel::setStartOffset(qint32 startOffset)
 
 void ProcessModel::on_mediaChanged()
 {
-  if (m_file->channels() == 1)
+  auto& audio_settings = score::GUIAppContext().settings<Audio::Settings::Model>();
+  if (audio_settings.getAutoStereo() && m_file->channels() == 1)
   {
     setUpmixChannels(2);
   }
@@ -108,7 +116,6 @@ void ProcessModel::on_mediaChanged()
 void ProcessModel::init()
 {
   m_outlets.push_back(outlet.get());
-  m_file->on_mediaChanged.connect<&ProcessModel::on_mediaChanged>(*this);
 }
 }
 }
@@ -116,7 +123,7 @@ void ProcessModel::init()
 template <>
 void DataStreamReader::read(const Media::Sound::ProcessModel& proc)
 {
-  m_stream << proc.m_file->path() << *proc.outlet << proc.m_upmixChannels
+  m_stream << proc.m_file->originalFile() << *proc.outlet << proc.m_upmixChannels
            << proc.m_startChannel << proc.m_startOffset << proc.m_endOffset;
 
   insertDelimiter();
@@ -138,7 +145,7 @@ void DataStreamWriter::write(Media::Sound::ProcessModel& proc)
 template <>
 void JSONObjectReader::read(const Media::Sound::ProcessModel& proc)
 {
-  obj["File"] = proc.m_file->path();
+  obj["File"] = proc.m_file->originalFile();
   obj["Outlet"] = toJsonObject(*proc.outlet);
   obj["Upmix"] = proc.m_upmixChannels;
   obj["Start"] = proc.m_startChannel;

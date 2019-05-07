@@ -314,3 +314,31 @@ void IntervalView::dropEvent(QGraphicsSceneDragDropEvent* event)
   event->accept();
 }
 }
+
+QPainterPath Scenario::IntervalView::shape() const
+{
+  qreal x = std::min(0., minWidth());
+  qreal rectW = infinite() ? defaultWidth() : maxWidth();
+  rectW -= x;
+  QPainterPath p;
+  p.addRect({x, -12., rectW, 24.});
+  return p;
+}
+
+QPainterPath Scenario::IntervalView::opaqueArea() const
+{
+  qreal x = std::min(0., minWidth());
+  qreal rectW = infinite() ? defaultWidth() : maxWidth();
+  rectW -= x;
+  QPainterPath p;
+  p.addRect({x, -12., rectW, 24.});
+  return p;
+}
+
+bool Scenario::IntervalView::contains(const QPointF& pt) const
+{
+  qreal x = std::min(0., minWidth());
+  qreal rectW = infinite() ? defaultWidth() : maxWidth();
+  rectW -= x;
+  return QRectF{x, -12., rectW, 24.}.contains(pt);
+}

@@ -52,6 +52,7 @@ JSONObjectReader::read(const Scenario::TimeSyncModel& timesync)
   obj[strings.Date] = toJsonValue(timesync.date());
   obj[strings.Events] = toJsonArray(timesync.m_events);
   obj[strings.Extent] = toJsonValue(timesync.m_extent);
+  obj[strings.AutoTrigger] = toJsonValue(timesync.m_autotrigger);
 
   QJsonObject trig;
   trig[strings.Active] = timesync.m_active;
@@ -74,4 +75,5 @@ JSONObjectWriter::write(Scenario::TimeSyncModel& timesync)
   fromJsonObject(trig_obj[strings.Expression], t);
   timesync.m_expression = std::move(t);
   timesync.m_active = trig_obj[strings.Active].toBool();
+  timesync.m_autotrigger = obj[strings.AutoTrigger].toBool();
 }

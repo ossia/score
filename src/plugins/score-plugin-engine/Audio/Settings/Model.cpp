@@ -39,11 +39,12 @@ SETTINGS_PARAMETER_IMPL(BufferSize){QStringLiteral("Audio/BufferSize"), 64};
 SETTINGS_PARAMETER_IMPL(Rate){QStringLiteral("Audio/SamplingRate"), 44100};
 SETTINGS_PARAMETER_IMPL(DefaultIn){QStringLiteral("Audio/DefaultIn"), 2};
 SETTINGS_PARAMETER_IMPL(DefaultOut){QStringLiteral("Audio/DefaultOut"), 2};
+SETTINGS_PARAMETER_IMPL(AutoStereo){QStringLiteral("Audio/AutoStereo"), true};
 
 static auto list()
 {
   return std::tie(
-      Driver, Rate, CardIn, CardOut, BufferSize, DefaultIn, DefaultOut);
+      Driver, Rate, CardIn, CardOut, BufferSize, DefaultIn, DefaultOut, AutoStereo);
 }
 }
 
@@ -51,22 +52,6 @@ Model::Model(QSettings& set, const score::ApplicationContext& ctx)
 {
   score::setupDefaultSettings(set, Parameters::list(), *this);
 }
-
-// For the audio settings, we only want to send a "changed" signal when
-// everything has been updated
-#define AUDIO_PARAMETER_CPP(Type, ModelType, Name)                   \
-  Type ModelType::get##Name() const { return m_##Name; }             \
-                                                                     \
-  void ModelType::set##Name(Type val)                                \
-  {                                                                  \
-    if (val == m_##Name)                                             \
-      return;                                                        \
-                                                                     \
-    m_##Name = val;                                                  \
-                                                                     \
-    QSettings s;                                                     \
-    s.setValue(Parameters::Name.key, QVariant::fromValue(m_##Name)); \
-  }
 
 Audio::AudioFactory::ConcreteKey Model::getDriver() const
 {
@@ -91,10 +76,11 @@ void Model::setDriver(Audio::AudioFactory::ConcreteKey val)
   s.setValue(Parameters::Driver.key, QVariant::fromValue(m_Driver));
 }
 
-AUDIO_PARAMETER_CPP(QString, Model, CardIn)
-AUDIO_PARAMETER_CPP(QString, Model, CardOut)
-AUDIO_PARAMETER_CPP(int, Model, BufferSize)
-AUDIO_PARAMETER_CPP(int, Model, Rate)
-AUDIO_PARAMETER_CPP(int, Model, DefaultIn)
-AUDIO_PARAMETER_CPP(int, Model, DefaultOut)
+SCORE_SETTINGS_PARAMETER_CPP(QString, Model, CardIn)
+SCORE_SETTINGS_PARAMETER_CPP(QString, Model, CardOut)
+SCORE_SETTINGS_PARAMETER_CPP(int, Model, BufferSize)
+SCORE_SETTINGS_PARAMETER_CPP(int, Model, Rate)
+SCORE_SETTINGS_PARAMETER_CPP(int, Model, DefaultIn)
+SCORE_SETTINGS_PARAMETER_CPP(int, Model, DefaultOut)
+SCORE_SETTINGS_PARAMETER_CPP(bool, Model, AutoStereo)
 }

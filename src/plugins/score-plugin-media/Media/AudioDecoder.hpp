@@ -1,6 +1,6 @@
 #pragma once
 #include <Media/AudioArray.hpp>
-
+#include <Process/TimeValue.hpp>
 #include <ossia/detail/optional.hpp>
 
 #include <QThread>
@@ -14,16 +14,17 @@ struct SwrContext;
 
 namespace Media
 {
-using audio_handle = ossia::audio_handle;
-using audio_array = ossia::audio_array;
-using audio_sample = ossia::audio_sample;
-
 struct AudioInfo
 {
   int32_t rate{};
   int64_t channels{};
   int64_t length{};
   int64_t max_arr_length{};
+
+  // Duration
+  TimeVal duration() const noexcept {
+    return TimeVal::fromMsecs(1000. * double(length) / double(rate));
+  }
 };
 
 class AudioDecoder : public QObject
@@ -31,13 +32,13 @@ class AudioDecoder : public QObject
   W_OBJECT(AudioDecoder)
 
 public:
-  AudioDecoder();
+  AudioDecoder(int rate);
   ~AudioDecoder();
-  ossia::optional<AudioInfo> probe(const QString& path);
+  static ossia::optional<AudioInfo> probe(const QString& path);
   void decode(const QString& path, audio_handle hdl);
 
   static ossia::optional<std::pair<AudioInfo, audio_array>>
-  decode_synchronous(const QString& path);
+  decode_synchronous(const QString& path, int rate);
 
   static QHash<QString, AudioInfo>& database();
 
@@ -56,10 +57,11 @@ public:
   W_SLOT(on_startDecode);
 
 private:
-  std::size_t read_length(const QString& path);
+  static double read_length(const QString& path);
 
   QThread* m_baseThread{};
   QThread m_decodeThread;
+  int m_targetSampleRate{};
 
   template <typename Decoder>
   void decodeFrame(Decoder dec, audio_array& data, AVFrame& frame);
@@ -69,5 +71,3 @@ private:
 };
 }
 
-Q_DECLARE_METATYPE(Media::audio_handle)
-W_REGISTER_ARGTYPE(Media::audio_handle)

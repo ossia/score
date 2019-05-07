@@ -118,7 +118,7 @@ QRectF VSTGraphicsSlider::handleRect() const
 VSTEffectItem::VSTEffectItem(
     const VSTEffectModel& effect,
     const score::DocumentContext& doc,
-    score::RectItem* root)
+    QGraphicsItem* root)
     : score::EmptyRectItem{root}
 {
   rootItem = root;
@@ -130,7 +130,7 @@ VSTEffectItem::VSTEffectItem(
       [&](const Id<Process::Port>& id) {
         auto inlet = safe_cast<VSTControlInlet*>(effect.inlet(id));
         setupInlet(effect, *inlet, doc);
-        rootItem->setRect(rootItem->childrenBoundingRect());
+        sizeChanged(rootItem->childrenBoundingRect().size());
       });
 
   QObject::connect(
@@ -154,7 +154,7 @@ VSTEffectItem::VSTEffectItem(
             pos_y += rect->boundingRect().height();
           }
         }
-        rootItem->setRect(rootItem->childrenBoundingRect());
+        sizeChanged(rootItem->childrenBoundingRect().size());
       });
 
   {

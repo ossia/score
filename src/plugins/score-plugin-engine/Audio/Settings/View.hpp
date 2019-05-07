@@ -22,6 +22,8 @@ public:
   SETTINGS_UI_NUM_COMBOBOX_HPP(BufferSize)
   SETTINGS_UI_NUM_COMBOBOX_HPP(Rate)
 
+  SETTINGS_UI_TOGGLE_HPP(AutoStereo)
+
 private:
   QWidget* getWidget() override;
   QWidget* m_widg{};

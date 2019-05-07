@@ -31,11 +31,18 @@ Presenter::Presenter(Model& m, View& v, QObject* parent)
   v.setDriver(m.getDriver());
   v.setRate(m.getRate());
   v.setBufferSize(m.getBufferSize());
+  v.setAutoStereo(m.getAutoStereo());
 
   con(v, &View::DriverChanged, this, [&](auto val) {
     if (val != m.getDriver())
     {
       m_disp.submit<SetModelDriver>(this->model(this), val);
+    }
+  });
+  con(v, &View::AutoStereoChanged, this, [&](auto val) {
+    if (val != m.getAutoStereo())
+    {
+      m_disp.submitDeferredCommand<SetModelAutoStereo>(this->model(this), val);
     }
   });
 

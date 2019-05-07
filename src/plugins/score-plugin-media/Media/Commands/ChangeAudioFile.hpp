@@ -30,7 +30,8 @@ protected:
 private:
   Path<Sound::ProcessModel> m_model;
   QString m_old, m_new;
-  TimeVal m_olddur;
+  TimeVal m_olddur{};
+  TimeVal m_newdur{};
 };
 }
 
