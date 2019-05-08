@@ -52,7 +52,7 @@ fi
 
 else
 	# assume all dev packages are already installed
-	cmake .. -DSCORE_CONFIGURATION=static-release -DPORTAUDIO_ONLY_DYNAMIC=1
+	cmake .. -Wno-dev -DSCORE_CONFIGURATION=static-release -DPORTAUDIO_ONLY_DYNAMIC=1 -DDEPLOYMENT_BUILD=1 -DCMAKE_SKIP_RPATH=ON
 	make all_unity -j$(nproc)
 
 	echo "ok then you should have a ossia-score executable in the $BUILD_DIR folder"
