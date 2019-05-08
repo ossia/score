@@ -59,27 +59,27 @@ void TemporalIntervalHeader::paint(
   painter->setRenderHint(QPainter::Antialiasing, false);
   if (m_state == State::RackHidden)
   {
-    const auto rect = boundingRect();
-    auto bgColor
-        = m_presenter.model().metadata().getColor().getBrush().color();
-    bgColor.setAlpha(m_hasFocus ? 86 : 70);
+    // const auto rect = boundingRect();
+    // auto bgColor
+    //     = m_presenter.model().metadata().getColor().getBrush().color();
+    // bgColor.setAlpha(m_hasFocus ? 86 : 70);
 
-    painter->fillRect(rect, bgColor);
+    // painter->fillRect(rect, bgColor);
 
     // Fake timesync continuation
-    painter->setPen(skin.IntervalHeaderSeparator);
-    painter->drawLine(rect.topLeft(), rect.bottomLeft());
-    painter->drawLine(rect.topRight(), rect.bottomRight());
-    painter->drawLine(rect.bottomLeft(), rect.bottomRight());
+    //painter->setPen(skin.IntervalHeaderSeparator);
+    //painter->drawLine(rect.topLeft(), rect.bottomLeft());
+    //painter->drawLine(rect.topRight(), rect.bottomRight());
+    //painter->drawLine(rect.bottomLeft(), rect.bottomRight());
     if (m_button)
       m_button->setUnrolled(true);
   }
   else
   {
-    painter->setPen(skin.IntervalHeaderSeparator);
-    painter->drawLine(
-        QPointF{0., (double)IntervalHeaderHeight},
-        QPointF{m_width, (double)IntervalHeaderHeight});
+    //painter->setPen(skin.IntervalHeaderSeparator);
+    //painter->drawLine(
+    //    QPointF{0., (double)IntervalHeaderHeight},
+    //    QPointF{m_width, (double)IntervalHeaderHeight});
     if (m_button)
       m_button->setUnrolled(false);
   }
@@ -131,9 +131,9 @@ void TemporalIntervalHeader::paint(
 void TemporalIntervalHeader::updateButtons()
 {
   if (m_button)
-    m_button->setPos(10, 5);
+    m_button->setPos(10, -1);
   if (m_mute)
-    m_mute->setPos(30, 5);
+    m_mute->setPos(30, -1);
 }
 
 void TemporalIntervalHeader::enableOverlay(bool b)
@@ -181,7 +181,7 @@ void TemporalIntervalHeader::mouseDoubleClickEvent(
 
 void TemporalIntervalHeader::on_textChange()
 {
-  const auto& font = score::Skin::instance().Bold12Pt;
+  const auto& font = score::Skin::instance().Bold10Pt;
   if (m_text.isEmpty())
   {
     m_textRectCache = {};

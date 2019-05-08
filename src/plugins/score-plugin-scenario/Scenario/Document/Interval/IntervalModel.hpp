@@ -119,6 +119,10 @@ public:
 
   double getSlotHeight(const SlotId& slot) const;
   void setSlotHeight(const SlotId& slot, double height);
+  double getHeight() const noexcept;
+
+  //! Must be called with a process which is a child of this interval.
+  double getSlotHeightForProcess(const Id<Process::ProcessModel>& p) const;
 
   const Slot* findSmallViewSlot(int slot) const;
   const Slot& getSmallViewSlot(int slot) const;
