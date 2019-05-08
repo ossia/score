@@ -24,6 +24,18 @@ void updateEventExtent(const Id<EventModel>& id, Scenario::ProcessModel& s)
   auto& ev = s.event(id);
   double min = std::numeric_limits<double>::max();
   double max = std::numeric_limits<double>::lowest();
+
+  auto parent_itv = qobject_cast<IntervalModel*>(s.parent());
+  SCORE_ASSERT(parent_itv);
+
+  double view_height = 0.;
+  if(!Scenario::isInFullView(*parent_itv)) {
+    view_height = parent_itv->getSlotHeightForProcess(s.id());
+  }
+  else {
+    view_height = s.getSlotHeight();
+  }
+
   for (const auto& state_id : ev.states())
   {
     const auto& st = s.states.at(state_id);
@@ -32,6 +44,25 @@ void updateEventExtent(const Id<EventModel>& id, Scenario::ProcessModel& s)
       min = st.heightPercentage();
     if (st.heightPercentage() > max)
       max = st.heightPercentage();
+
+    if (const auto& itv_id = st.previousInterval())
+    {
+      const IntervalModel& itv = s.interval(*itv_id);
+      const double h = itv.getHeight() / view_height;
+      if(itv.smallViewVisible() && st.heightPercentage() + h > max)
+      {
+        max = st.heightPercentage() + h;
+      }
+    }
+    if (const auto& itv_id = st.nextInterval())
+    {
+      const IntervalModel& itv = s.interval(*itv_id);
+      const double h = itv.getHeight() / view_height;
+      if(itv.smallViewVisible() && st.heightPercentage() + h > max)
+      {
+        max = st.heightPercentage() + h;
+      }
+    }
   }
 
   ev.setExtent({min, max});

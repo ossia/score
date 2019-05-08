@@ -360,6 +360,18 @@ double IntervalModel::getSlotHeight(const SlotId& slot) const
     return m_smallView.at(slot.index).height;
 }
 
+double IntervalModel::getSlotHeightForProcess(const Id<Process::ProcessModel>& p) const
+{
+  for(auto& slt : m_smallView)
+  {
+    for(auto& proc : slt.processes) {
+      if(proc == p)
+        return slt.height;
+    }
+  }
+  SCORE_ABORT;
+}
+
 void IntervalModel::setSlotHeight(const SlotId& slot, double height)
 {
   height = std::max(height, 20.);
@@ -368,6 +380,16 @@ void IntervalModel::setSlotHeight(const SlotId& slot, double height)
   else
     getSmallViewSlot(slot.index).height = height;
   slotResized(slot);
+}
+
+double IntervalModel::getHeight() const noexcept
+{
+  double h = 0.;
+  for(const auto& slot : m_smallView)
+  {
+    h += slot.height + SlotHeader::headerHeight() + SlotHandle::handleHeight();
+  }
+  return h;
 }
 
 void swap(Scenario::Slot& lhs, Scenario::Slot& rhs)

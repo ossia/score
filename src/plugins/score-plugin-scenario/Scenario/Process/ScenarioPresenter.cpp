@@ -537,6 +537,23 @@ void ScenarioPresenter::on_intervalCreated(const IntervalModel& interval)
 
   m_viewInterface.on_intervalMoved(*cst_pres);
 
+  auto updateHeight = [
+          &
+          , sev = Scenario::startState(interval, m_layer).eventId()
+          , eev = Scenario::endState(interval, m_layer).eventId()
+      ] {
+    updateEventExtent(sev, const_cast<Scenario::ProcessModel&>(m_layer));
+    updateEventExtent(eev, const_cast<Scenario::ProcessModel&>(m_layer));
+  };
+  con(interval, &IntervalModel::rackChanged,
+      this, updateHeight);
+
+  con(interval, &IntervalModel::smallViewVisibleChanged,
+      this, updateHeight);
+
+  con(interval, &IntervalModel::slotResized,
+      this, updateHeight);
+
   connect(
       cst_pres,
       &TemporalIntervalPresenter::heightPercentageChanged,

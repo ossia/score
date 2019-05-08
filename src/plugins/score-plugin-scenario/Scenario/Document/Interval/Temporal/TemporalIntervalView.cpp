@@ -6,6 +6,7 @@
 #include "TemporalIntervalPresenter.hpp"
 
 #include <Process/Style/ScenarioStyle.hpp>
+#include <Scenario/Document/Interval/IntervalHeader.hpp>
 #include <Scenario/Document/Interval/IntervalMenuOverlay.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/Interval/IntervalPresenter.hpp>
@@ -50,7 +51,7 @@ QRectF TemporalIntervalView::boundingRect() const
   qreal x = std::min(0., minWidth());
   qreal rectW = infinite() ? defaultWidth() : maxWidth();
   rectW -= x;
-  return {x, -12., rectW, qreal(intervalAndRackHeight()) + 12.};
+  return {x, -12. - IntervalHeader::headerHeight(), rectW, qreal(intervalAndRackHeight()) + 12. +  IntervalHeader::headerHeight()};
 }
 
 const TemporalIntervalPresenter& TemporalIntervalView::presenter() const
@@ -237,7 +238,12 @@ void TemporalIntervalView::paint(
   {
     // Background
     auto rect = boundingRect();
-    rect.adjust(0, 12, 0, SlotHandle::handleHeight() - 4);
+    if(m_selected) {
+      rect.adjust(0, 12, 0, SlotHandle::handleHeight() - 4);
+    }
+    else {
+      rect.adjust(0, 12 + IntervalHeader::headerHeight(), 0, SlotHandle::handleHeight() - 4 );
+    }
     rect.setWidth(def_w);
 
     auto bgColor
@@ -247,10 +253,10 @@ void TemporalIntervalView::paint(
     painter.fillRect(rect, bgColor);
 
     // Fake timesync continuation
-    skin.IntervalRackPen.setBrush(skin.RackSideBorder.getBrush());
-    painter.setPen(skin.IntervalRackPen);
-    painter.drawLine(rect.topLeft(), rect.bottomLeft());
-    painter.drawLine(rect.topRight(), rect.bottomRight());
+    // skin.IntervalRackPen.setBrush(skin.RackSideBorder.getBrush());
+    // painter.setPen(skin.IntervalRackPen);
+    // painter.drawLine(rect.topLeft(), rect.bottomLeft());
+    // painter.drawLine(rect.topRight(), rect.bottomRight());
   }
 
   // Colors
@@ -346,19 +352,19 @@ void TemporalIntervalView::setLabel(const QString& label)
 
 void TemporalIntervalView::enableOverlay(bool b)
 {
-  if (b)
-  {
-    if(!m_overlay)
-    {
-      m_overlay = new IntervalMenuOverlay{this};
-      updateOverlayPos();
-    }
-  }
-  else
-  {
-    delete m_overlay;
-    m_overlay = nullptr;
-  }
+  // if (b)
+  // {
+  //   if(!m_overlay)
+  //   {
+  //     m_overlay = new IntervalMenuOverlay{this};
+  //     updateOverlayPos();
+  //   }
+  // }
+  // else
+  // {
+  //   delete m_overlay;
+  //   m_overlay = nullptr;
+  // }
 }
 
 void TemporalIntervalView::setSelected(bool selected)
@@ -390,11 +396,11 @@ void TemporalIntervalView::setExecutionDuration(const TimeVal& progress)
 
 void TemporalIntervalView::updateOverlayPos()
 {
-  if (m_overlay)
-  {
-    m_overlay->setPos(
-        defaultWidth() / 2. - m_overlay->boundingRect().width() / 2, -10);
-  }
+  //if (m_overlay)
+  //{
+  //  m_overlay->setPos(
+  //      defaultWidth() / 2. - m_overlay->boundingRect().width() / 2, -10);
+  //}
 }
 
 void TemporalIntervalView::setLabelColor(score::ColorRef labelColor)

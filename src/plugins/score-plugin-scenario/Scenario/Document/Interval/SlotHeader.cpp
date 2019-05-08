@@ -80,13 +80,9 @@ void SlotHeader::paint(
 
     painter->setRenderHint(QPainter::Antialiasing, true);
 
-    // Frame
-    painter->drawRect(QRectF{0., 0., m_width, headerHeight() - 1});
   }
-  else
-  {
-    painter->drawRect(QRectF{0., 0., m_width, headerHeight() - 1});
-  }
+
+  painter->fillRect(QRectF{0., 0., m_width, headerHeight() - 1}, style.IntervalDefaultBackground.getBrush());
 }
 
 void SlotHeader::setWidth(qreal width)

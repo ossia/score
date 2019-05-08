@@ -66,7 +66,7 @@ IntervalView::~IntervalView()
       item->setParentItem(nullptr);
     }
   }
-  delete m_overlay;
+  //delete m_overlay;
 }
 
 void IntervalView::setInfinite(bool infinite)
@@ -254,8 +254,8 @@ const QBrush& IntervalView::intervalColor(const Process::Style& skin) const
 
 void IntervalView::updateOverlay()
 {
-  if (m_overlay)
-    m_overlay->update();
+  //if (m_overlay)
+  //  m_overlay->update();
   update();
 }
 void IntervalView::updateLabelPos()

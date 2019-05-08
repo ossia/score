@@ -56,6 +56,7 @@ TemporalIntervalPresenter::TemporalIntervalPresenter(
                         parent}
     , m_handles{handles}
 {
+  m_header->setPos(0, -IntervalHeader::headerHeight());
   TemporalIntervalView& v = *view();
   auto head = header();
   con(interval.selection, &Selectable::changed, this, [=](bool b) {
@@ -346,11 +347,11 @@ void TemporalIntervalPresenter::updateHeight()
 {
   if (m_model.smallViewVisible())
   {
-    m_view->setHeight(rackHeight() + IntervalHeader::headerHeight());
+    m_view->setHeight(rackHeight());
   }
   else if (!m_model.smallViewVisible() && !m_model.processes.empty())
   {
-    m_view->setHeight(IntervalHeader::headerHeight());
+    m_view->setHeight(8);
   }
   else
   {
@@ -611,7 +612,7 @@ void TemporalIntervalPresenter::updatePositions()
   m_view->setHeight(rackHeight() + IntervalHeader::headerHeight());
 
   // Set the slots position graphically in order.
-  qreal currentSlotY = IntervalHeader::headerHeight();
+  qreal currentSlotY = 0;
 
   for (int i = 0; i < (int)m_slots.size(); i++)
   {
