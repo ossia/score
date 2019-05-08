@@ -87,7 +87,7 @@ struct StyleLoader : public QObject
   {
 #if defined(SCORE_SOURCE_DIR)
     QString prefix = QString(SCORE_SOURCE_DIR) + "/src/lib/resources";
-    if(!QDir::exists(prefix))
+    if(!QDir::root().exists(prefix))
       prefix = ":";
 #else
     QString prefix = ":";

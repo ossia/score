@@ -1,6 +1,7 @@
-#!/bin/sh
+#!/bin/bash
 cd ..
 rm -rf .git
+rm *.tar.xz
 find . -name '.git' -exec rm -rf {} \;
 rm -rf 3rdparty/libossia/.git
 rm -rf 3rdparty/libossia/3rdparty/CicmWrapper
@@ -24,8 +25,12 @@ rm -rf 3rdparty/libossia/3rdparty/concurrentqueue/build
 rm -rf 3rdparty/libossia/3rdparty/concurrentqueue/test
 rm -rf 3rdparty/libossia/3rdparty/tbb/examples
 rm -rf 3rdparty/libossia/3rdparty/exprtk/*test*
+rm -rf 3rdparty/libossia/3rdparty/purr-data
 rm -rf Documentation/Doc_sources
 rm -rf Documentation/Doxygen
+rm -rf cmake-build-*
+find . -name '*.user' -exec rm {} \;
+find . -name '*.user.*' -exec rm {} \;
 
 tar caf ossia-score.tar.xz ./*
 
