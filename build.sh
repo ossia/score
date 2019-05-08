@@ -1,6 +1,5 @@
 #!/bin/bash -xue
 
-if [[ "$OSTYPE" == "darwin"* ]]; then
 
 BUILD_DIR=build
 BUILD_TYPE=developer
@@ -16,9 +15,12 @@ then
     esac
 fi
 
-brew install qt5 boost ninja ffmpeg tbb jack || true
 mkdir -p $BUILD_DIR
 cd $BUILD_DIR
+
+if [[ "$OSTYPE" == "darwin"* ]]; then
+
+brew install qt5 boost ninja ffmpeg tbb jack || true
 
 SCORE_CMAKE_QT_CONFIG="$(find /usr/local/Cellar/qt -name Qt5Config.cmake | head -1)"
 VAR1=`dirname $SCORE_CMAKE_QT_CONFIG`
@@ -49,5 +51,9 @@ then
 fi
 
 else
-    echo "Only for OS X"
+	# assume all dev packages are already installed
+	cmake .. -DSCORE_CONFIGURATION=static-release -DPORTAUDIO_ONLY_DYNAMIC=1
+	make all_unity -j$(nproc)
+
+	echo "ok then you should have a ossia-score executable in the $BUILD_DIR folder"
 fi
