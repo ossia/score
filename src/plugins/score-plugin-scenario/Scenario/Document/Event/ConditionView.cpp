@@ -37,7 +37,7 @@ ConditionView::ConditionView(QGraphicsItem* parent)
 {
   this->setCacheMode(QGraphicsItem::NoCache);
   setFlag(ItemStacksBehindParent, true);
-
+  setCursor(Qt::CursorShape::CrossCursor);
   changeHeight(0);
 }
 
@@ -138,7 +138,7 @@ QPainterPath Scenario::ConditionView::shape() const
 
 bool Scenario::ConditionView::contains(const QPointF& point) const
 {
-  return m_strokedCpath.contains(point);
+  return m_Cpath.contains(point) || m_strokedCpath.contains(point);
 }
 
 QPainterPath Scenario::ConditionView::opaqueArea() const

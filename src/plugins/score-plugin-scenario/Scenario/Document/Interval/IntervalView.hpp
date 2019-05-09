@@ -79,8 +79,6 @@ public:
     update();
   }
 
-  void updateOverlay();
-
   bool warning() const;
   void setWarning(bool warning);
 
@@ -119,10 +117,7 @@ protected:
 
   LeftBraceView m_leftBrace;
   RightBraceView m_rightBrace;
-  score::SimpleTextItem m_labelItem;
   score::SimpleTextItem m_counterItem;
-
-  IntervalMenuOverlay* m_overlay{};
 
   IntervalPresenter& m_presenter;
   QPainterPath solidPath, dashedPath, playedSolidPath, playedDashedPath,

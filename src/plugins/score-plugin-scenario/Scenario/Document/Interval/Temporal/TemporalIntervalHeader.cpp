@@ -55,34 +55,10 @@ void TemporalIntervalHeader::paint(
     const QStyleOptionGraphicsItem* option,
     QWidget* widget)
 {
-  const auto& skin = Process::Style::instance();
   painter->setRenderHint(QPainter::Antialiasing, false);
-  if (m_state == State::RackHidden)
-  {
-    // const auto rect = boundingRect();
-    // auto bgColor
-    //     = m_presenter.model().metadata().getColor().getBrush().color();
-    // bgColor.setAlpha(m_hasFocus ? 86 : 70);
 
-    // painter->fillRect(rect, bgColor);
-
-    // Fake timesync continuation
-    //painter->setPen(skin.IntervalHeaderSeparator);
-    //painter->drawLine(rect.topLeft(), rect.bottomLeft());
-    //painter->drawLine(rect.topRight(), rect.bottomRight());
-    //painter->drawLine(rect.bottomLeft(), rect.bottomRight());
-    if (m_button)
-      m_button->setUnrolled(true);
-  }
-  else
-  {
-    //painter->setPen(skin.IntervalHeaderSeparator);
-    //painter->drawLine(
-    //    QPointF{0., (double)IntervalHeaderHeight},
-    //    QPointF{m_width, (double)IntervalHeaderHeight});
-    if (m_button)
-      m_button->setUnrolled(false);
-  }
+  if (m_button)
+    m_button->setUnrolled(m_state == State::RackHidden);
 
   if (m_width < 30)
     return;
@@ -206,7 +182,8 @@ void TemporalIntervalHeader::setState(IntervalHeader::State s)
 
 void TemporalIntervalHeader::on_textChanged()
 {
-  const auto& font = score::Skin::instance().Bold10Pt;
+  const auto& skin = Process::Style::instance();
+  const auto& font = skin.skin.Bold10Pt;
   const auto& model = m_presenter.model().metadata();
   const auto& label = model.getLabel();
   const auto& name = model.getName();
@@ -241,9 +218,15 @@ void TemporalIntervalHeader::on_textChanged()
 
       QPainter p{&m_line};
       if(!m_hasFocus)
-        p.setPen(Process::Style::instance().IntervalHeaderTextPen);
+      {
+        const auto& col = model.getColor();
+        if(col == skin.IntervalDefaultBackground)
+          p.setPen(skin.IntervalHeaderTextPen);
+        else
+          p.setPen(QPen(model.getColor().getBrush().color()));
+      }
       else
-        p.setPen(Process::Style::instance().IntervalBraceSelected);
+        p.setPen(skin.IntervalBraceSelected);
 
       p.drawGlyphRun(QPointF{0, 0}, r[0]);
     }

@@ -433,7 +433,6 @@ void FullViewIntervalPresenter::on_defaultDurationChanged(const TimeVal& val)
 {
   const auto w = val.toPixels(m_zoomRatio);
   m_view->setDefaultWidth(w);
-  m_view->updateLabelPos();
   m_view->updateCounterPos();
   ((FullViewIntervalView*)m_view)->updateOverlayPos();
 

@@ -89,14 +89,9 @@ TemporalIntervalPresenter::TemporalIntervalPresenter(
 
   con(metadata,
       &score::ModelMetadata::ColorChanged,
-      &v,
-      [&](score::ColorRef c) {
-        v.setLabelColor(c);
-        v.update();
-      });
+      m_header, &IntervalHeader::on_textChanged);
 
   m_header->on_textChanged();
-  v.setLabelColor(metadata.getColor());
   v.setExecutionState(m_model.executionState());
 
   con(m_model.selection, &Selectable::changed, this, [&, head](bool b) {
@@ -668,10 +663,6 @@ void TemporalIntervalPresenter::on_layerModelPutToFront(
 
         setHeaderWidth(
             slt, m_model.duration.defaultDuration().toPixels(m_zoomRatio));
-
-        // slt.headerDelegate->setSize(QSizeF{m_view->defaultWidth() -
-        // SlotHeader::handleWidth() - SlotHeader::menuWidth(),
-        // SlotHeader::headerHeight()});
       }
       else
       {
@@ -871,9 +862,7 @@ void TemporalIntervalPresenter::on_defaultDurationChanged(const TimeVal& val)
 {
   const auto w = val.toPixels(m_zoomRatio);
   m_view->setDefaultWidth(w);
-  m_view->updateLabelPos();
   m_view->updateCounterPos();
-  ((TemporalIntervalView*)m_view)->updateOverlayPos();
   m_header->setWidth(w);
   ((TemporalIntervalHeader*)m_header)->updateButtons();
   updateBraces();

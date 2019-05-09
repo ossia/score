@@ -42,10 +42,6 @@ public:
       const QStyleOptionGraphicsItem* option,
       QWidget* widget) override;
 
-  void enableOverlay(bool b);
-
-  void setLabelColor(score::ColorRef labelColor);
-  void setLabel(const QString& label);
 
   void setExecutionDuration(const TimeVal& progress);
 

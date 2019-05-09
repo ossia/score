@@ -38,6 +38,9 @@ public:
     , State
     , Interval
     , SelectedInterval
+    , SelectedTimeSync
+    , SelectedEvent
+    , SelectedState
   };
   enum IntervalItemZPos
   {
