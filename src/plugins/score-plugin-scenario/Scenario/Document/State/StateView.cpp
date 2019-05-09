@@ -29,12 +29,12 @@ namespace Scenario
 static const QPainterPath smallNonDilated{[] {
   QPainterPath p;
   p.addEllipse({0, 0}, StateView::pointRadius, StateView::pointRadius);
-  return p; // return p.simplified().toFillPolygon();
+  return p;
 }()};
 static const QPainterPath fullNonDilated{[] {
   QPainterPath p;
   p.addEllipse({0, 0}, StateView::fullRadius, StateView::fullRadius);
-  return p; // return p.simplified().toFillPolygon();
+  return p;
 }()};
 static const QPainterPath smallDilated{[] {
   QPainterPath p;
@@ -42,7 +42,7 @@ static const QPainterPath smallDilated{[] {
       {0, 0},
       StateView::pointRadius * StateView::dilated,
       StateView::pointRadius * StateView::dilated);
-  return p; // return p.simplified().toFillPolygon();
+  return p;
 }()};
 static const QPainterPath fullDilated{[] {
   QPainterPath p;
@@ -50,7 +50,7 @@ static const QPainterPath fullDilated{[] {
       {0, 0},
       StateView::fullRadius * StateView::dilated,
       StateView::fullRadius * StateView::dilated);
-  return p; // return p.simplified().toFillPolygon();
+  return p;
 }()};
 bool is_hidpi()
 {
@@ -64,7 +64,7 @@ StateView::StateView(StatePresenter& pres, QGraphicsItem* parent)
     this->setCacheMode(QGraphicsItem::CacheMode::ItemCoordinateCache);
   this->setParentItem(parent);
 
-  this->setCursor(QCursor(Qt::SizeAllCursor));
+  this->setCursor(QCursor(Qt::CrossCursor));
   this->setZValue(ZPos::State);
   this->setAcceptDrops(true);
   this->setAcceptHoverEvents(true);
@@ -122,6 +122,7 @@ void StateView::setSelected(bool b)
 {
   m_selected = b;
   setDilatation(m_selected);
+  setZValue(m_selected ? ZPos::SelectedState: ZPos::State);
 
   if (m_hasOverlay)
   {

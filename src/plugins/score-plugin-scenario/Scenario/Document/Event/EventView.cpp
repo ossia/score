@@ -126,6 +126,8 @@ void EventView::setSelected(bool selected)
 {
   m_selected = selected;
   m_conditionItem.setSelected(selected);
+  setZValue(m_selected ? ZPos::SelectedEvent: ZPos::Event);
+  m_conditionItem.setZValue(m_selected ? ZPos::SelectedEvent: ZPos::Event);
   update();
 }
 

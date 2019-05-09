@@ -116,6 +116,7 @@ void TimeSyncView::setTriggerActive(bool b)
 void TimeSyncView::setSelected(bool selected)
 {
   m_selected = selected;
+  setZValue(m_selected ? ZPos::SelectedTimeSync: ZPos::TimeSync);
   update();
 }
 

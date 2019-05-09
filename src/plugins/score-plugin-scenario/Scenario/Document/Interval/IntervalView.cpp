@@ -26,7 +26,6 @@ IntervalView::IntervalView(IntervalPresenter& presenter, QGraphicsItem* parent)
     : QGraphicsItem{parent}
     , m_leftBrace{*this, this}
     , m_rightBrace{*this, this}
-    , m_labelItem{Process::Style::instance().ConditionWaiting, this}
     , m_counterItem{score::ColorRef(&score::Skin::Light), this}
     , m_presenter{presenter}
     , m_selected{false}
@@ -47,10 +46,6 @@ IntervalView::IntervalView(IntervalPresenter& presenter, QGraphicsItem* parent)
   m_rightBrace.hide();
 
   const auto& skin = score::Skin::instance();
-  m_labelItem.setFont(skin.Medium12Pt);
-  m_labelItem.setPos(0, -16);
-  m_labelItem.setAcceptedMouseButtons(Qt::MouseButton::NoButton);
-  m_labelItem.setAcceptHoverEvents(false);
 
   m_counterItem.setFont(skin.Medium7Pt);
   m_counterItem.setAcceptedMouseButtons(Qt::MouseButton::NoButton);
@@ -252,32 +247,6 @@ const QBrush& IntervalView::intervalColor(const Process::Style& skin) const
   }
 }
 
-void IntervalView::updateOverlay()
-{
-  //if (m_overlay)
-  //  m_overlay->update();
-  update();
-}
-void IntervalView::updateLabelPos()
-{
-  const auto defW = defaultWidth();
-  const auto textW = m_labelItem.boundingRect().width();
-  const bool vis = m_labelItem.isVisible();
-  if (defW > textW && !vis)
-  {
-    m_labelItem.setVisible(true);
-    m_labelItem.setPos(defW / 2. - textW / 2., -17);
-  }
-  else if (defW <= textW && vis)
-  {
-    m_labelItem.setVisible(false);
-  }
-  else if (vis)
-  {
-    m_labelItem.setPos(defW / 2. - textW / 2., -17);
-  }
-}
-
 void IntervalView::updateCounterPos()
 {
   m_counterItem.setPos(
@@ -294,7 +263,6 @@ void IntervalView::dragEnterEvent(QGraphicsSceneDragDropEvent* event)
 {
   QGraphicsItem::dragEnterEvent(event);
   m_dropTarget = true;
-  updateOverlay();
   event->accept();
 }
 
@@ -302,7 +270,6 @@ void IntervalView::dragLeaveEvent(QGraphicsSceneDragDropEvent* event)
 {
   QGraphicsItem::dragLeaveEvent(event);
   m_dropTarget = false;
-  updateOverlay();
   event->accept();
 }
 

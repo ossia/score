@@ -238,27 +238,10 @@ void TemporalIntervalView::paint(
   {
     // Background
     auto rect = boundingRect();
-    /*
-    if(m_selected) {
-      rect.adjust(0, 12, 0, SlotHandle::handleHeight() - 4);
-    }
-    else {
-
-    }*/
     rect.adjust(0, 12 + IntervalHeader::headerHeight(), 0, SlotHandle::handleHeight() - 4 );
     rect.setWidth(def_w);
 
-    auto bgColor
-        = m_presenter.model().metadata().getColor().getBrush().color();
-    //bgColor.setAlpha(m_hasFocus ? 86 : 70);
-    // TODO try to prevent allocation here by storing two copies instead
-    painter.fillRect(rect, bgColor);
-
-    // Fake timesync continuation
-    // skin.IntervalRackPen.setBrush(skin.RackSideBorder.getBrush());
-    // painter.setPen(skin.IntervalRackPen);
-    // painter.drawLine(rect.topLeft(), rect.bottomLeft());
-    // painter.drawLine(rect.topRight(), rect.bottomRight());
+    painter.fillRect(rect, m_presenter.model().metadata().getColor().getBrush());
   }
 
   // Colors
@@ -333,7 +316,6 @@ void TemporalIntervalView::hoverEnterEvent(QGraphicsSceneHoverEvent* h)
   else
     unsetCursor();
 
-  enableOverlay(true);
   intervalHoverEnter();
 }
 
@@ -341,39 +323,13 @@ void TemporalIntervalView::hoverLeaveEvent(QGraphicsSceneHoverEvent* h)
 {
   QGraphicsItem::hoverLeaveEvent(h);
   unsetCursor();
-  if(!m_selected)
-    enableOverlay(false);
   intervalHoverLeave();
-}
-
-void TemporalIntervalView::setLabel(const QString& label)
-{
-  // m_labelItem.setText(label);
-  // updateLabelPos();
-}
-
-void TemporalIntervalView::enableOverlay(bool b)
-{
-  // if (b)
-  // {
-  //   if(!m_overlay)
-  //   {
-  //     m_overlay = new IntervalMenuOverlay{this};
-  //     updateOverlayPos();
-  //   }
-  // }
-  // else
-  // {
-  //   delete m_overlay;
-  //   m_overlay = nullptr;
-  // }
 }
 
 void TemporalIntervalView::setSelected(bool selected)
 {
   m_selected = selected;
   setZValue(m_selected ? ZPos::SelectedInterval : ZPos::Interval);
-  enableOverlay(selected);
   update();
 }
 
@@ -396,18 +352,4 @@ void TemporalIntervalView::setExecutionDuration(const TimeVal& progress)
   update();
 }
 
-void TemporalIntervalView::updateOverlayPos()
-{
-  //if (m_overlay)
-  //{
-  //  m_overlay->setPos(
-  //      defaultWidth() / 2. - m_overlay->boundingRect().width() / 2, -10);
-  //}
-}
-
-void TemporalIntervalView::setLabelColor(score::ColorRef labelColor)
-{
-  m_labelItem.setColor(labelColor);
-  update();
-}
 }
