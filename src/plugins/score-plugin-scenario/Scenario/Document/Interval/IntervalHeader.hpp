@@ -29,25 +29,12 @@ public:
   int type() const override { return static_type(); }
 
   void setIntervalView(IntervalView* view) { m_view = view; }
-
   static constexpr double headerHeight() { return IntervalHeaderHeight; }
 
   void setWidth(double width);
-  void setText(const QString& text);
+  virtual void setState(State s) = 0;
 
-  virtual void setState(State s)
-  {
-    if (s == m_state)
-      return;
-
-    if (m_state == State::Hidden)
-      show();
-    else if (s == State::Hidden)
-      hide();
-
-    m_state = s;
-    update();
-  }
+  virtual void on_textChanged() {}
 
 protected:
   void mousePressEvent(QGraphicsSceneMouseEvent* event) final override;
@@ -55,10 +42,8 @@ protected:
   void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) final override;
 
 protected:
-  virtual void on_textChange() {}
   IntervalView* m_view{};
   State m_state{};
   double m_width{};
-  QString m_text;
 };
 }

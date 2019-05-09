@@ -91,8 +91,8 @@ FullViewIntervalPresenter::FullViewIntervalPresenter(
   con(metadata,
       &score::ModelMetadata::NameChanged,
       m_header,
-      &IntervalHeader::setText);
-  m_header->setText(metadata.getName());
+      &IntervalHeader::on_textChanged);
+  m_header->on_textChanged();
   m_header->show();
 
   // Time

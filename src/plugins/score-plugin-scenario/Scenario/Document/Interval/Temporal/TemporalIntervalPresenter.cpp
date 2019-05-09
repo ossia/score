@@ -59,11 +59,6 @@ TemporalIntervalPresenter::TemporalIntervalPresenter(
   m_header->setPos(0, -IntervalHeader::headerHeight());
   TemporalIntervalView& v = *view();
   auto head = header();
-  con(interval.selection, &Selectable::changed, this, [=](bool b) {
-    view()->setSelected(b);
-    header()->enableOverlay(b);
-  });
-
   con(v,
       &TemporalIntervalView::intervalHoverEnter,
       this,
@@ -86,9 +81,11 @@ TemporalIntervalPresenter::TemporalIntervalPresenter(
 
   const auto& metadata = m_model.metadata();
   con(metadata,
+      &score::ModelMetadata::NameChanged,
+      m_header, &IntervalHeader::on_textChanged);
+  con(metadata,
       &score::ModelMetadata::LabelChanged,
-      &v,
-      &TemporalIntervalView::setLabel);
+      m_header, &IntervalHeader::on_textChanged);
 
   con(metadata,
       &score::ModelMetadata::ColorChanged,
@@ -98,17 +95,13 @@ TemporalIntervalPresenter::TemporalIntervalPresenter(
         v.update();
       });
 
-  con(metadata,
-      &score::ModelMetadata::NameChanged,
-      this,
-      [&](const QString& name) { m_header->setText(name); });
-
-  v.setLabel(metadata.getLabel());
+  m_header->on_textChanged();
   v.setLabelColor(metadata.getColor());
-  m_header->setText(metadata.getName());
   v.setExecutionState(m_model.executionState());
 
   con(m_model.selection, &Selectable::changed, this, [&, head](bool b) {
+    v.setSelected(b);
+    head->enableOverlay(b);
     v.setFocused(b);
     head->setFocused(b);
   });

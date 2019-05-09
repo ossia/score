@@ -96,12 +96,24 @@ void LayerView::setData(const std::shared_ptr<AudioFileHandle>& data)
   m_sampleRate = data->sampleRate();
 }
 
+void LayerView::setFrontColors(bool b)
+{
+  if(b != m_frontColors)
+  {
+    m_frontColors = b;
+    if (m_data)
+    {
+      m_cpt->recompute(m_data, m_zoom, m_frontColors);
+    }
+  }
+}
+
 void LayerView::recompute(ZoomRatio ratio)
 {
   m_zoom = ratio;
   if (m_data)
   {
-    m_cpt->recompute(m_data, ratio);
+    m_cpt->recompute(m_data, m_zoom, m_frontColors);
   }
 }
 
@@ -185,10 +197,10 @@ WaveformComputer::WaveformComputer(LayerView& layer)
   , m_view{*getView(m_layer)}
 {
   connect(this, &WaveformComputer::recompute,
-      this, [=] (const std::shared_ptr<AudioFileHandle>& arg_1, double arg_2) {
+      this, [=] (const std::shared_ptr<AudioFileHandle>& arg_1, double arg_2, bool cols) {
     int64_t n = ++m_redraw_count;
 
-     QMetaObject::invokeMethod(this, [=] { on_recompute(arg_1, arg_2, n); }, Qt::QueuedConnection);
+     QMetaObject::invokeMethod(this, [=] { on_recompute(arg_1, arg_2, cols, n); }, Qt::QueuedConnection);
   }, Qt::DirectConnection);
 
   this->moveToThread(&m_drawThread);
@@ -207,6 +219,7 @@ void WaveformComputer::stop()
 void WaveformComputer::drawWaveFormsOnImage(
       const AudioFileHandle& data,
       ZoomRatio ratio,
+      bool cols,
       int64_t redraw_number)
 {
   int nchannels = data.channels();
@@ -267,7 +280,11 @@ void WaveformComputer::drawWaveFormsOnImage(
 
   constexpr const auto orange = qRgba(250, 180, 15, 255);
   constexpr const auto transporange = qRgba(125, 90, 7, 127);
+  constexpr const auto gray = qRgba(20, 81, 120, 255);
+  constexpr const auto transpgray = qRgba(5, 35, 55, 127);
 
+  const auto main_color = cols ? orange : gray;
+  const auto border_color = cols ? transporange : transpgray;
   // Draw the frames on the image
   // TODO hidpi
 
@@ -290,10 +307,10 @@ void WaveformComputer::drawWaveFormsOnImage(
       auto dat = reinterpret_cast<uint32_t*>(image.bits());
       const int value = ossia::clamp(int(rms_sample[k] * h_ratio + half_h), 0, half_h_int - 1);
 
-      dat[x_pixels + value * width] = transporange;
+      dat[x_pixels + value * width] = border_color;
 
       for(int y = value +1; y < half_h_int; y++)
-        dat[x_pixels + y * width] = orange;
+        dat[x_pixels + y * width] = main_color;
     }
   }
 
@@ -306,6 +323,7 @@ void WaveformComputer::drawWaveFormsOnImage(
 void WaveformComputer::on_recompute(
     std::shared_ptr<AudioFileHandle> data_qp,
     ZoomRatio ratio,
+    bool cols,
     int64_t n)
 {
   if(m_redraw_count > n)
@@ -320,7 +338,7 @@ void WaveformComputer::on_recompute(
   if (data.channels() == 0)
     return;
 
-  drawWaveFormsOnImage(data, ratio, n);
+  drawWaveFormsOnImage(data, ratio, cols, n);
 }
 }
 }

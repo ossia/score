@@ -46,6 +46,7 @@ public:
   QBrush Base2;
   QBrush Base3;
   QBrush Base4;
+  QBrush Base5;
 
   QBrush Warn1;
   QBrush Warn2;

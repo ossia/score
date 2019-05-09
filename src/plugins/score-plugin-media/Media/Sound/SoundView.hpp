@@ -39,20 +39,21 @@ public:
   void stop();
 
 public:
-  void recompute(const std::shared_ptr<AudioFileHandle> &arg_1, double arg_2)
-      W_SIGNAL(recompute, arg_1, arg_2);
+  void recompute(const std::shared_ptr<AudioFileHandle> &arg_1, double arg_2, bool cols)
+      W_SIGNAL(recompute, arg_1, arg_2, cols);
   void
   ready(QVector<QImage> img, ComputedWaveform wf)
       W_SIGNAL(ready, img, wf);
 
 private:
-  void on_recompute(std::shared_ptr<AudioFileHandle> data, double ratio, int64_t n);
+  void on_recompute(std::shared_ptr<AudioFileHandle> data, double ratio, bool cols, int64_t n);
   W_SLOT(on_recompute);
 
 private:
   void drawWaveFormsOnImage(
       const AudioFileHandle& data,
       ZoomRatio ratio,
+      bool cols,
       int64_t n);
   ZoomRatio m_zoom{};
 
@@ -69,6 +70,7 @@ public:
   ~LayerView();
 
   void setData(const std::shared_ptr<AudioFileHandle>& data);
+  void setFrontColors(bool);
   void recompute(ZoomRatio ratio);
 
 private:
@@ -97,6 +99,8 @@ private:
   WaveformComputer* m_cpt{};
 
   ComputedWaveform m_wf{};
+
+  bool m_frontColors{true};
 
   friend class FilterWidget;
 };

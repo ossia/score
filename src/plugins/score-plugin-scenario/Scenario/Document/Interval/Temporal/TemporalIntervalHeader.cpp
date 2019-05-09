@@ -88,7 +88,6 @@ void TemporalIntervalHeader::paint(
     return;
 
   // Header
-  painter->setPen(skin.IntervalHeaderTextPen);
 
   // If the centered text is hidden, we put it at the left so that it's on the
   // view.
@@ -138,7 +137,7 @@ void TemporalIntervalHeader::updateButtons()
 
 void TemporalIntervalHeader::enableOverlay(bool b)
 {
-  if (b)
+  if (b && m_state != State::Hidden)
   {
     m_button = new RackButton{this};
     connect(m_button, &RackButton::clicked, &m_presenter, [=] {
@@ -173,16 +172,46 @@ void TemporalIntervalHeader::enableOverlay(bool b)
   }
 }
 
+void TemporalIntervalHeader::setFocused(bool b)
+{
+  m_hasFocus = b;
+  on_textChanged();
+}
+
+void TemporalIntervalHeader::setLabel(const QString& label)
+{
+  on_textChanged();
+}
+
 void TemporalIntervalHeader::mouseDoubleClickEvent(
-    QGraphicsSceneMouseEvent* event)
+      QGraphicsSceneMouseEvent* event)
 {
   doubleClicked();
 }
 
-void TemporalIntervalHeader::on_textChange()
+void TemporalIntervalHeader::setState(IntervalHeader::State s)
+{
+  if (s == m_state)
+    return;
+  //
+  //if (m_state == State::Hidden)
+  //  show();
+  //else if (s == State::Hidden)
+  //  hide();
+  //
+  m_state = s;
+  on_textChanged();
+  update();
+}
+
+void TemporalIntervalHeader::on_textChanged()
 {
   const auto& font = score::Skin::instance().Bold10Pt;
-  if (m_text.isEmpty())
+  const auto& model = m_presenter.model().metadata();
+  const auto& label = model.getLabel();
+  const auto& name = model.getName();
+  const auto& text = m_state != State::Hidden ? (label.isEmpty() ? name : label) : label;
+  if (text.isEmpty())
   {
     m_textRectCache = {};
     m_line = QImage{};
@@ -190,7 +219,7 @@ void TemporalIntervalHeader::on_textChange()
   }
   else
   {
-    QTextLayout layout(m_text, font);
+    QTextLayout layout(text, font);
     layout.beginLayout();
     auto line = layout.createLine();
     layout.endLayout();
@@ -211,7 +240,11 @@ void TemporalIntervalHeader::on_textChange()
       m_line.fill(Qt::transparent);
 
       QPainter p{&m_line};
-      p.setPen(Process::Style::instance().IntervalHeaderTextPen);
+      if(!m_hasFocus)
+        p.setPen(Process::Style::instance().IntervalHeaderTextPen);
+      else
+        p.setPen(Process::Style::instance().IntervalBraceSelected);
+
       p.drawGlyphRun(QPointF{0, 0}, r[0]);
     }
   }

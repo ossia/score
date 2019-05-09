@@ -28,13 +28,6 @@ void IntervalHeader::setWidth(double width)
   update();
 }
 
-void IntervalHeader::setText(const QString& text)
-{
-  m_text = text;
-  on_textChange();
-  update();
-}
-
 void IntervalHeader::mousePressEvent(QGraphicsSceneMouseEvent* event)
 {
   if (this->cursor().shape() != closedCursor().shape())

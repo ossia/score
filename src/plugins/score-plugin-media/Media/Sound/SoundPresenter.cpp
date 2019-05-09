@@ -54,12 +54,12 @@ void LayerPresenter::setHeight(qreal val)
 void LayerPresenter::putToFront()
 {
   m_view->recompute(m_ratio);
-  m_view->show();
+  m_view->setFrontColors(true);
 }
 
 void LayerPresenter::putBehind()
 {
-  m_view->hide();
+  m_view->setFrontColors(false);
 }
 
 void LayerPresenter::on_zoomRatioChanged(ZoomRatio r)

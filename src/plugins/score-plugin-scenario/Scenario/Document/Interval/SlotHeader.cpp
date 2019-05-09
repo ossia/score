@@ -62,12 +62,13 @@ void SlotHeader::paint(
 {
   painter->setRenderHint(QPainter::Antialiasing, false);
   const auto& style = Process::Style::instance();
-  painter->setPen(style.SlotHeaderPen);
-  painter->setBrush(style.NoBrush);
 
+
+  painter->fillRect(QRectF{0., 0., m_width, headerHeight() - 1}, style.SlotHeaderBrush);
   if (m_width > 20)
   {
-
+    painter->setPen(style.SlotHeaderPen);
+    painter->setBrush(style.NoBrush);
     // Grip
     double r = 4.5;
     double centerX = 9.;
@@ -81,8 +82,6 @@ void SlotHeader::paint(
     painter->setRenderHint(QPainter::Antialiasing, true);
 
   }
-
-  painter->fillRect(QRectF{0., 0., m_width, headerHeight() - 1}, style.IntervalDefaultBackground.getBrush());
 }
 
 void SlotHeader::setWidth(qreal width)
