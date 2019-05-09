@@ -71,13 +71,13 @@ void TemporalIntervalHeader::paint(
   const auto textWidth = m_textRectCache.width();
   auto view = getView(*this);
   int text_left
-      = view->mapFromScene(mapToScene({m_width / 2. - textWidth / 2., 0.}))
+      = view->mapFromScene(mapToScene({5., 0.}))
             .x();
   int text_right
-      = view->mapFromScene(mapToScene({m_width / 2. + textWidth / 2., 0.}))
+      = view->mapFromScene(mapToScene({5. + textWidth , 0.}))
             .x();
-  double x = (m_width - textWidth) / 2.;
-  const constexpr double min_x = 10.;
+  double x = 5.;
+  const constexpr double min_x = 5.;
   const double max_x = view->width() - 30.;
 
   if (text_left <= min_x)
@@ -100,15 +100,32 @@ void TemporalIntervalHeader::paint(
       m_previous_x,
       (IntervalHeader::headerHeight() - m_textRectCache.height()) / 2.};
 
+  if(m_hasFocus && m_button)
+  {
+    auto& style = Process::Style::instance();
+    painter->setRenderHint(QPainter::Antialiasing, true);
+    painter->setPen(style.NoPen);
+    painter->setBrush(style.SlotHeader.getBrush());
+
+    QPolygonF poly;
+    poly << QPointF{0., qreal(IntervalHeader::headerHeight()) - 1.5}
+         << QPointF{5., 0.}
+         << QPointF{m_previous_x + textWidth + 47., 0.}
+         << QPointF{m_previous_x + textWidth + 52., qreal(IntervalHeader::headerHeight()) - 1.5};
+
+    painter->drawPolygon(poly);
+    painter->setRenderHint(QPainter::Antialiasing, false);
+    updateButtons();
+  }
   painter->drawImage(p, m_line);
 }
 
 void TemporalIntervalHeader::updateButtons()
 {
   if (m_button)
-    m_button->setPos(10, -1);
+    m_button->setPos(m_previous_x + m_textRectCache.width() + 10, 0);
   if (m_mute)
-    m_mute->setPos(30, -1);
+    m_mute->setPos(m_previous_x + m_textRectCache.width() + 22, 0);
 }
 
 void TemporalIntervalHeader::enableOverlay(bool b)
@@ -264,13 +281,21 @@ void TemporalIntervalHeader::dropEvent(QGraphicsSceneDragDropEvent* event)
   event->accept();
 }
 
-RackButton::RackButton(QGraphicsItem* parent) : QGraphicsObject{parent} {}
+RackButton::RackButton(QGraphicsItem* parent)
+  : QGraphicsObject{parent}
+{
+  setCursor(Qt::CrossCursor);
+  setTransformOriginPoint(boundingRect().center());
+  setRotation(m_unroll ? 0 : 90);
+}
 
 void RackButton::setUnrolled(bool b)
 {
   if (m_unroll != b)
   {
     m_unroll = b;
+
+    setRotation(m_unroll ? 0 : 90);
     update();
   }
 }
@@ -328,13 +353,12 @@ void RackButton::paint(
   {
     pen.setColor("#a0a0a0");
     painter->setPen(pen);
-    painter->drawPath(arrowPath);
   }
   else
   {
     painter->setPen(pen);
-    painter->drawPath(rotatedArrow);
   }
+  painter->drawPath(arrowPath);
   painter->setRenderHint(QPainter::Antialiasing, false);
 }
 

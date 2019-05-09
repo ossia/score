@@ -58,6 +58,7 @@ QGraphicsPixmapToggle::QGraphicsPixmapToggle(
     , m_pressed{std::move(pressed)}
     , m_released{std::move(released)}
 {
+  setCursor(Qt::CrossCursor);
 }
 
 void QGraphicsPixmapToggle::toggle()

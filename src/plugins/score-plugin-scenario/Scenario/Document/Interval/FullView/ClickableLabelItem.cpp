@@ -62,7 +62,7 @@ ClickableLabelItem::ClickableLabelItem(
         textChanged();
       });
 
-  this->setFont(score::Skin::instance().Bold12Pt);
+  this->setFont(score::Skin::instance().Bold10Pt);
   this->setAcceptHoverEvents(true);
 }
 
