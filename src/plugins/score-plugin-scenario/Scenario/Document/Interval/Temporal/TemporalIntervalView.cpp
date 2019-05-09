@@ -238,17 +238,19 @@ void TemporalIntervalView::paint(
   {
     // Background
     auto rect = boundingRect();
+    /*
     if(m_selected) {
       rect.adjust(0, 12, 0, SlotHandle::handleHeight() - 4);
     }
     else {
-      rect.adjust(0, 12 + IntervalHeader::headerHeight(), 0, SlotHandle::handleHeight() - 4 );
-    }
+
+    }*/
+    rect.adjust(0, 12 + IntervalHeader::headerHeight(), 0, SlotHandle::handleHeight() - 4 );
     rect.setWidth(def_w);
 
     auto bgColor
         = m_presenter.model().metadata().getColor().getBrush().color();
-    bgColor.setAlpha(m_hasFocus ? 86 : 70);
+    //bgColor.setAlpha(m_hasFocus ? 86 : 70);
     // TODO try to prevent allocation here by storing two copies instead
     painter.fillRect(rect, bgColor);
 
@@ -346,8 +348,8 @@ void TemporalIntervalView::hoverLeaveEvent(QGraphicsSceneHoverEvent* h)
 
 void TemporalIntervalView::setLabel(const QString& label)
 {
-  m_labelItem.setText(label);
-  updateLabelPos();
+  // m_labelItem.setText(label);
+  // updateLabelPos();
 }
 
 void TemporalIntervalView::enableOverlay(bool b)

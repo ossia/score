@@ -40,7 +40,7 @@ IntervalPresenter::IntervalPresenter(
   auto& interval = m_model;
   m_header->setParentItem(m_view);
   m_header->setIntervalView(m_view);
-  m_header->hide();
+  // m_header->hide();
   // m_header->setPos(0, -m_header->headerHeight());
 
   con(interval.duration,

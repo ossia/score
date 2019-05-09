@@ -83,6 +83,8 @@ struct SCORE_LIB_PROCESS_EXPORT Style
   score::ColorRef TimeRuler;
   score::ColorRef LocalTimeRuler;
 
+  score::ColorRef SlotHeader;
+
   QPen IntervalSolidPen;
   QPen IntervalDashPen;
   QPen IntervalRackPen;
@@ -144,6 +146,8 @@ struct SCORE_LIB_PROCESS_EXPORT Style
   QPen GrayTextPen;
 
   QPen SlotHeaderPen;
+  QBrush SlotHeaderBrush;
+
   const QPen TransparentPen;
   const QBrush TransparentBrush;
   const QPen NoPen;

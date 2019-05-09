@@ -61,11 +61,8 @@ public:
       QWidget* widget) override;
   void updateButtons();
   void enableOverlay(bool b);
-  void setFocused(bool b)
-  {
-    m_hasFocus = b;
-    update();
-  }
+  void setFocused(bool b);
+  void setLabel(const QString& label);
 
 public:
   void doubleClicked() W_SIGNAL(doubleClicked);
@@ -85,11 +82,11 @@ protected:
   void mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event) override;
 
 private:
-  void on_textChange() override;
+  void setState(IntervalHeader::State s) override;
+  void on_textChanged() override;
   qreal m_previous_x{};
 
   QRectF m_textRectCache;
-  // ossia::optional<QGlyphRun> m_line;
   QImage m_line;
   RackButton* m_button{};
   score::QGraphicsPixmapToggle* m_mute{};

@@ -65,22 +65,26 @@ Style::Style(score::Skin& s) noexcept
     StateOutline{&s.Light}
     , StateSelected{&s.Base2}
     , StateDot{&s.Base1}
-    ,
-
-    Background{&s.Background1}
+    , Background{&s.Background1}
     , ProcessPanelBackground{&s.Transparent1}
-    ,
 
-    TimeRulerBackground{&s.Background1}
+    , TimeRulerBackground{&s.Background1}
     , TimeRuler{&s.Base1}
     , LocalTimeRuler{&s.Gray}
+
+    , SlotHeader{&s.Base5}
+
     , CommentBlockPen{Qt::white, 1.}
     , CommentBlockSelectedPen{Qt::white, 2.}
     , SeparatorPen{Qt::white, 2.}
     , SeparatorBrush{Qt::white}
 
+    , SlotHeaderBrush{Qt::transparent}
+
     , TransparentPen{Qt::transparent}
     , TransparentBrush{Qt::transparent}
+
+
     , NoPen{Qt::NoPen}
     , NoBrush{Qt::NoBrush}
 {
@@ -228,5 +232,7 @@ void Style::update(const score::Skin&)
                        Qt::SolidLine,
                        Qt::FlatCap,
                        Qt::MiterJoin};
+
+  SlotHeaderBrush = QBrush{SlotHeader.getBrush()};
 }
 }
