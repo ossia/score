@@ -90,7 +90,7 @@ public:
   QVector<QPair<QColor, QString>> getDefaultPaletteColors() const;
 
 public:
-  void changed() E_SIGNAL(SCORE_LIB_BASE_EXPORT, changed);
+  void changed() E_SIGNAL(SCORE_LIB_BASE_EXPORT, changed)
 
 private:
   void timerEvent(QTimerEvent* event) override;

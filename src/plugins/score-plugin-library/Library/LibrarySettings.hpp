@@ -48,7 +48,7 @@ class SCORE_PLUGIN_LIBRARY_EXPORT Model final
 public:
   Model(QSettings& set, const score::ApplicationContext& ctx);
 
-  SCORE_SETTINGS_PARAMETER_HPP(, QString, Path)
+  SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_LIBRARY_EXPORT, QString, Path)
 };
 
 SCORE_SETTINGS_PARAMETER(Model, Path)

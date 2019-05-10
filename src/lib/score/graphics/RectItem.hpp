@@ -36,7 +36,6 @@ public:
 
 public:
   void clicked() E_SIGNAL(SCORE_LIB_BASE_EXPORT, clicked);
-
 private:
   void hoverEnterEvent(QGraphicsSceneHoverEvent* event) final override;
   void hoverLeaveEvent(QGraphicsSceneHoverEvent* event) final override;

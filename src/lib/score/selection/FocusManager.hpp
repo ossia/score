@@ -24,7 +24,7 @@ public:
     changed();
   }
 
-  void changed() E_SIGNAL(SCORE_LIB_BASE_EXPORT, changed);
+  void changed() E_SIGNAL(SCORE_LIB_BASE_EXPORT, changed)
 
 private:
   QPointer<const IdentifiedObjectAbstract> m_obj{};

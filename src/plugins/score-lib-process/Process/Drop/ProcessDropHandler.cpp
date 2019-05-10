@@ -115,7 +115,7 @@ std::vector<ProcessDropHandler::ProcessDrop> ProcessDropHandlerList::getDrop(
 }
 
 optional<TimeVal> ProcessDropHandlerList::getMaxDuration(
-    const std::vector<ProcessDropHandler::ProcessDrop>& res) noexcept
+    const std::vector<ProcessDropHandler::ProcessDrop>& res)
 {
   using drop_t = Process::ProcessDropHandler::ProcessDrop;
   SCORE_ASSERT(!res.empty());

@@ -56,6 +56,8 @@ void TemporalIntervalHeader::paint(
     QWidget* widget)
 {
   painter->setRenderHint(QPainter::Antialiasing, false);
+  painter->setPen(QPen(Qt::red, 1));
+  painter->drawRect(boundingRect());
 
   if (m_button)
     m_button->setUnrolled(m_state == State::RackHidden);
