@@ -4,7 +4,8 @@
 #pragma GCC system_header
 #pragma clang system_header
 
-///////////
+/////////////
+/*
 #include <score/command/AggregateCommand.hpp>
 #include <score/model/EntityImpl.hpp>
 #include <score/model/path/Path.hpp>
@@ -77,4 +78,5 @@
 #include <typeinfo>
 #include <utility>
 #include <vector>
+*/
 #endif

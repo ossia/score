@@ -73,22 +73,22 @@ public:
   void segmentRemoved(const Id<SegmentModel>& arg_1) E_SIGNAL(
       SCORE_PLUGIN_CURVE_EXPORT,
       segmentRemoved,
-      arg_1); // dangerous if async
+      arg_1) // dangerous if async
   void pointAdded(const PointModel& arg_1)
       E_SIGNAL(SCORE_PLUGIN_CURVE_EXPORT, pointAdded, arg_1);
   void pointRemoved(const Id<PointModel>& arg_1) E_SIGNAL(
       SCORE_PLUGIN_CURVE_EXPORT,
       pointRemoved,
-      arg_1); // dangerous if async
+      arg_1) // dangerous if async
 
   // This signal has to be emitted after big modifications.
   // (it's an optimization to prevent updating the OSSIA API each time a
   // segment moves).
-  void changed() E_SIGNAL(SCORE_PLUGIN_CURVE_EXPORT, changed);
+  void changed() E_SIGNAL(SCORE_PLUGIN_CURVE_EXPORT, changed)
   void curveReset() E_SIGNAL(
       SCORE_PLUGIN_CURVE_EXPORT,
-      curveReset); // like changed() but for the presenter
-  void cleared() E_SIGNAL(SCORE_PLUGIN_CURVE_EXPORT, cleared);
+      curveReset) // like changed() but for the presenter
+  void cleared() E_SIGNAL(SCORE_PLUGIN_CURVE_EXPORT, cleared)
 
 private:
   void addPoint(PointModel* pt);

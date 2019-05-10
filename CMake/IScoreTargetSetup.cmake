@@ -342,9 +342,12 @@ function(setup_score_common_lib_features TheTarget)
     set_target_properties(${TheTarget} PROPERTIES VISIBILITY_INLINES_HIDDEN 1)
   endif()
 
+  string(TOUPPER ${TheTarget} Target_upper)
+  set_target_properties(${TheTarget} PROPERTIES DEFINE_SYMBOL "${Target_upper}_EXPORTS")
+
   if(OSSIA_STATIC_EXPORT)
     generate_export_header(${TheTarget} ALWAYS_EXPORT)
-    target_compile_definitions(${TheTarget} PRIVATE "${TheTarget}_EXPORTS=1")
+    target_compile_definitions(${TheTarget} PRIVATE "${Target_upper}_EXPORTS=1")
   else()
     generate_export_header(${TheTarget})
   endif()

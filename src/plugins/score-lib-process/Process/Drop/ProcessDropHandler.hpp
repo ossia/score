@@ -64,6 +64,6 @@ public:
       noexcept;
 
   static optional<TimeVal>
-  getMaxDuration(const std::vector<ProcessDropHandler::ProcessDrop>&) noexcept;
+  getMaxDuration(const std::vector<ProcessDropHandler::ProcessDrop>&);
 };
 }
