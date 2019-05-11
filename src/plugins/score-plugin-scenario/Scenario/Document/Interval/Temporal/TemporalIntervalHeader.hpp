@@ -61,7 +61,7 @@ public:
       QWidget* widget) override;
   void updateButtons();
   void enableOverlay(bool b);
-  void setFocused(bool b);
+  void setSelected(bool b);
   void setLabel(const QString& label);
 
 public:
@@ -90,7 +90,9 @@ private:
   QImage m_line;
   RackButton* m_button{};
   score::QGraphicsPixmapToggle* m_mute{};
+  score::QGraphicsSlider* m_speed{};
   TemporalIntervalPresenter& m_presenter;
-  bool m_hasFocus{};
+  bool m_selected : 1;
+  bool m_hovered : 1;
 };
 }

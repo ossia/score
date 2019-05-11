@@ -1,10 +1,10 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
-#include "IntervalView.hpp"
-
-#include "IntervalMenuOverlay.hpp"
-#include "IntervalModel.hpp"
-#include "IntervalPresenter.hpp"
+#include <Scenario/Document/Interval/IntervalView.hpp>
+#include <Scenario/Document/Interval/IntervalMenuOverlay.hpp>
+#include <Scenario/Document/Interval/IntervalModel.hpp>
+#include <Scenario/Document/Interval/IntervalPresenter.hpp>
+#include <Scenario/Document/Interval/IntervalHeader.hpp>
 
 #include <Process/Dataflow/CableItem.hpp>
 #include <Process/ProcessMimeSerialization.hpp>
@@ -32,9 +32,9 @@ IntervalView::IntervalView(IntervalPresenter& presenter, QGraphicsItem* parent)
     , m_infinite{false}
     , m_validInterval{true}
     , m_warning{false}
-    , m_hasFocus{false}
     , m_waiting{false}
     , m_dropTarget{false}
+    , m_state{}
 {
   setAcceptHoverEvents(true);
   setAcceptDrops(true);
@@ -262,21 +262,22 @@ void IntervalView::setExecutionState(IntervalExecutionState s)
 void IntervalView::dragEnterEvent(QGraphicsSceneDragDropEvent* event)
 {
   QGraphicsItem::dragEnterEvent(event);
-  m_dropTarget = true;
+  setDropTarget(true);
   event->accept();
 }
 
 void IntervalView::dragLeaveEvent(QGraphicsSceneDragDropEvent* event)
 {
   QGraphicsItem::dragLeaveEvent(event);
-  m_dropTarget = false;
+  setDropTarget(m_presenter.header()->contains(mapToItem(m_presenter.header(), event->pos())));
   event->accept();
 }
 
 void IntervalView::dropEvent(QGraphicsSceneDragDropEvent* event)
 {
   dropReceived(event->pos(), *event->mimeData());
-  m_dropTarget = false;
+  setDropTarget(false);
+  update();
 
   event->accept();
 }
@@ -288,7 +289,7 @@ QPainterPath Scenario::IntervalView::shape() const
   qreal rectW = infinite() ? defaultWidth() : maxWidth();
   rectW -= x;
   QPainterPath p;
-  p.addRect({x, -12., rectW, 24.});
+  p.addRect({x, -1., rectW, 0.});
   return p;
 }
 
@@ -298,7 +299,7 @@ QPainterPath Scenario::IntervalView::opaqueArea() const
   qreal rectW = infinite() ? defaultWidth() : maxWidth();
   rectW -= x;
   QPainterPath p;
-  p.addRect({x, -12., rectW, 24.});
+  p.addRect({x, -1., rectW, 0.});
   return p;
 }
 
@@ -307,5 +308,5 @@ bool Scenario::IntervalView::contains(const QPointF& pt) const
   qreal x = std::min(0., minWidth());
   qreal rectW = infinite() ? defaultWidth() : maxWidth();
   rectW -= x;
-  return QRectF{x, -12., rectW, 24.}.contains(pt);
+  return QRectF{x, -1., rectW, 0.}.contains(pt);
 }

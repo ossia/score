@@ -409,7 +409,7 @@ void ScenarioPresenter::on_intervalExecutionTimer()
 
       if (r.width() > 7.)
       {
-        v.update({r.x() + v.playWidth() - w, r.y() + 9.5, 2. * w, 6.});
+        v.update({r.x() + v.playWidth() - w, r.y(), 2. * w, 6.});
       }
       else if (pp == 0.)
       {

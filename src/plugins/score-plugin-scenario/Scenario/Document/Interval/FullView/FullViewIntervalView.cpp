@@ -31,7 +31,7 @@ FullViewIntervalView::FullViewIntervalView(
   this->setParentItem(parent);
   this->setFlag(ItemIsSelectable);
 
-  this->setZValue(1);
+  this->setZValue(ZPos::Interval);
 }
 
 FullViewIntervalView::~FullViewIntervalView() {}

@@ -33,6 +33,7 @@ public:
 
   void setWidth(double width);
   virtual void setState(State s) = 0;
+  State state() const noexcept { return m_state; }
 
   virtual void on_textChanged() {}
 

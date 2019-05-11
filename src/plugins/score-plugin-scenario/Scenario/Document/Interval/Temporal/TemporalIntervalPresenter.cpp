@@ -95,14 +95,19 @@ TemporalIntervalPresenter::TemporalIntervalPresenter(
   v.setExecutionState(m_model.executionState());
 
   con(m_model.selection, &Selectable::changed, this, [&, head](bool b) {
+    if(b)
+      v.setZValue(ZPos::SelectedInterval);
+    else if(m_header->state() == IntervalHeader::State::RackShown)
+      v.setZValue(ZPos::IntervalWithRack);
+    else
+      v.setZValue(ZPos::Interval);
+
     v.setSelected(b);
-    head->enableOverlay(b);
-    v.setFocused(b);
-    head->setFocused(b);
+
+    head->setSelected(b);
   });
   con(m_model, &IntervalModel::focusChanged, this, [&, head](bool b) {
-    v.setFocused(b);
-    head->setFocused(b);
+    qDebug() << "focus changed: " << m_model.metadata().getName() << b;
   });
 
   // Drop
@@ -415,19 +420,23 @@ void TemporalIntervalPresenter::on_rackVisibleChanged(bool b)
     if (!m_model.processes.empty())
     {
       m_header->setState(IntervalHeader::State::RackShown);
+      m_view->setZValue(ZPos::IntervalWithRack);
     }
     else
     {
       m_header->setState(IntervalHeader::State::Hidden);
+      m_view->setZValue(ZPos::Interval);
     }
   }
   else if (!m_model.processes.empty())
   {
     m_header->setState(IntervalHeader::State::RackHidden);
+    m_view->setZValue(ZPos::Interval);
   }
   else
   {
     m_header->setState(IntervalHeader::State::Hidden);
+    m_view->setZValue(ZPos::Interval);
   }
 
   on_rackChanged();
