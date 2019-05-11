@@ -99,6 +99,14 @@ void DeviceExplorerView::startDrag(Qt::DropActions)
 
     QDrag* drag = new QDrag(this);
     drag->setMimeData(data);
+    drag->setPixmap(QPixmap());
+    drag->setDragCursor(QCursor{Qt::CrossCursor}.pixmap(), Qt::CopyAction);
+    drag->setDragCursor(QCursor{Qt::CrossCursor}.pixmap(), Qt::MoveAction);
+    drag->setDragCursor(QCursor{Qt::CrossCursor}.pixmap(), Qt::LinkAction);
+    drag->setDragCursor(QCursor{Qt::CrossCursor}.pixmap(), Qt::ActionMask);
+    drag->setDragCursor(QCursor{Qt::CrossCursor}.pixmap(), Qt::IgnoreAction);
+    drag->setDragCursor(QCursor{Qt::CrossCursor}.pixmap(), Qt::TargetMoveAction);
+
     drag->exec();
   }
 }

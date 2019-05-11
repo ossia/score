@@ -7,6 +7,7 @@
 #include <Scenario/Document/Interval/IntervalHeader.hpp>
 
 #include <Process/Dataflow/CableItem.hpp>
+#include <Process/Style/ScenarioStyle.hpp>
 #include <Process/ProcessMimeSerialization.hpp>
 #include <Scenario/Application/Menus/ScenarioCopy.hpp>
 #include <Scenario/Process/ScenarioInterface.hpp>

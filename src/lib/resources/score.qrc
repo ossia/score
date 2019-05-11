@@ -373,6 +373,8 @@
         <file>icons/fullview_on.png</file>
         <file>icons/fullview_on@2x.png</file>
         <file>icons/fullview_off@2x.png</file>
+        <file>icons/process_add_off.png</file>
+        <file>icons/process_add_off@2x.png</file>
     </qresource>
     <qresource prefix="/qss_icons">
         <file>rc/up_arrow_disabled.png</file>
