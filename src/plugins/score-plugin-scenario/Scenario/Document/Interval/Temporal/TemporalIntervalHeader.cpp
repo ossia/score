@@ -131,9 +131,9 @@ void TemporalIntervalHeader::updateButtons()
   if (m_rackButton)
     m_rackButton->setPos(pos += 12, 0);
   if (m_mute)
-    m_mute->setPos(pos += 11, 0);
+    m_mute->setPos(pos += 10, 0);
   if (m_add)
-    m_add->setPos(pos += 16, 0);
+    m_add->setPos(pos += 17, 0);
   if(m_speed)
     m_speed->setPos(pos += 16, headerHeight() * 0.05);
 }
