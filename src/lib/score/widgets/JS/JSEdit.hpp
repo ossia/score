@@ -86,8 +86,8 @@ public:
 
 public:
   void editingFinished(QString arg_1)
-      E_SIGNAL(SCORE_LIB_BASE_EXPORT, editingFinished, arg_1);
-  void focused() E_SIGNAL(SCORE_LIB_BASE_EXPORT, focused);
+      E_SIGNAL(SCORE_LIB_BASE_EXPORT, editingFinished, arg_1)
+  void focused() E_SIGNAL(SCORE_LIB_BASE_EXPORT, focused)
 
 public:
   void updateSidebar();

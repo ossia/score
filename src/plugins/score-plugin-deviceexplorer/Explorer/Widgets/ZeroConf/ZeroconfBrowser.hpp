@@ -47,7 +47,7 @@ public:
           arg_1,
           arg_2,
           arg_3,
-          arg_4);
+          arg_4)
 
 public:
   void accept();
