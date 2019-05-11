@@ -36,16 +36,16 @@ public:
 
 public:
   void pressed(const QPointF& arg_1)
-      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, pressed, arg_1);
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, pressed, arg_1)
   void moved(const QPointF& arg_1)
-      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, moved, arg_1);
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, moved, arg_1)
   void released(const QPointF& arg_1)
-      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, released, arg_1);
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, released, arg_1)
 
-  void hoverEnter() E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, hoverEnter);
-  void hoverLeave() E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, hoverLeave);
+  void hoverEnter() E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, hoverEnter)
+  void hoverLeave() E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, hoverLeave)
 
-  void askUpdate() E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, askUpdate);
+  void askUpdate() E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, askUpdate)
 
 private:
   void updateStateView();

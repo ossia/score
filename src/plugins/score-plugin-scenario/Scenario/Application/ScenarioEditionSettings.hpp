@@ -40,14 +40,14 @@ public:
 
 public:
   void expandModeChanged(ExpandMode expandMode)
-      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, expandModeChanged, expandMode);
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, expandModeChanged, expandMode)
   void toolChanged(Scenario::Tool tool)
-      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, toolChanged, tool);
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, toolChanged, tool)
   void sequenceChanged(bool sequence)
-      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, sequenceChanged, sequence);
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, sequenceChanged, sequence)
 
   void lockModeChanged(LockMode lockMode)
-      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, lockModeChanged, lockMode);
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, lockModeChanged, lockMode)
 
   W_PROPERTY(
       bool,

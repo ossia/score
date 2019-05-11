@@ -46,16 +46,16 @@ public:
 
 public:
   void logInbound(const QString& arg_1) const
-      E_SIGNAL(SCORE_PLUGIN_DEVICEEXPLORER_EXPORT, logInbound, arg_1);
+      E_SIGNAL(SCORE_PLUGIN_DEVICEEXPLORER_EXPORT, logInbound, arg_1)
   void logOutbound(const QString& arg_1) const
-      E_SIGNAL(SCORE_PLUGIN_DEVICEEXPLORER_EXPORT, logOutbound, arg_1);
+      E_SIGNAL(SCORE_PLUGIN_DEVICEEXPLORER_EXPORT, logOutbound, arg_1)
   void logError(const QString& arg_1) const
-      E_SIGNAL(SCORE_PLUGIN_DEVICEEXPLORER_EXPORT, logError, arg_1);
+      E_SIGNAL(SCORE_PLUGIN_DEVICEEXPLORER_EXPORT, logError, arg_1)
 
   void deviceAdded(DeviceInterface& dev) const
-      E_SIGNAL(SCORE_PLUGIN_DEVICEEXPLORER_EXPORT, deviceAdded, dev);
+      E_SIGNAL(SCORE_PLUGIN_DEVICEEXPLORER_EXPORT, deviceAdded, dev)
   void deviceRemoved(DeviceInterface& dev) const
-      E_SIGNAL(SCORE_PLUGIN_DEVICEEXPLORER_EXPORT, deviceRemoved, dev);
+      E_SIGNAL(SCORE_PLUGIN_DEVICEEXPLORER_EXPORT, deviceRemoved, dev)
 
 private:
   std::vector<DeviceInterface*> m_devices;

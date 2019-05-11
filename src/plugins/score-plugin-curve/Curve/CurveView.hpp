@@ -40,22 +40,22 @@ public:
 
 public:
   void pressed(QPointF arg_1)
-      E_SIGNAL(SCORE_PLUGIN_CURVE_EXPORT, pressed, arg_1);
-  void moved(QPointF arg_1) E_SIGNAL(SCORE_PLUGIN_CURVE_EXPORT, moved, arg_1);
+      E_SIGNAL(SCORE_PLUGIN_CURVE_EXPORT, pressed, arg_1)
+  void moved(QPointF arg_1) E_SIGNAL(SCORE_PLUGIN_CURVE_EXPORT, moved, arg_1)
   void released(QPointF arg_1)
-      E_SIGNAL(SCORE_PLUGIN_CURVE_EXPORT, released, arg_1);
+      E_SIGNAL(SCORE_PLUGIN_CURVE_EXPORT, released, arg_1)
   void doubleClick(QPointF arg_1)
-      E_SIGNAL(SCORE_PLUGIN_CURVE_EXPORT, doubleClick, arg_1);
+      E_SIGNAL(SCORE_PLUGIN_CURVE_EXPORT, doubleClick, arg_1)
 
-  void escPressed() E_SIGNAL(SCORE_PLUGIN_CURVE_EXPORT, escPressed);
+  void escPressed() E_SIGNAL(SCORE_PLUGIN_CURVE_EXPORT, escPressed)
 
   void keyPressed(int arg_1)
-      E_SIGNAL(SCORE_PLUGIN_CURVE_EXPORT, keyPressed, arg_1);
+      E_SIGNAL(SCORE_PLUGIN_CURVE_EXPORT, keyPressed, arg_1)
   void keyReleased(int arg_1)
-      E_SIGNAL(SCORE_PLUGIN_CURVE_EXPORT, keyReleased, arg_1);
+      E_SIGNAL(SCORE_PLUGIN_CURVE_EXPORT, keyReleased, arg_1)
 
   void contextMenuRequested(const QPoint& arg_1, const QPointF& arg_2)
-      E_SIGNAL(SCORE_PLUGIN_CURVE_EXPORT, contextMenuRequested, arg_1, arg_2);
+      E_SIGNAL(SCORE_PLUGIN_CURVE_EXPORT, contextMenuRequested, arg_1, arg_2)
 
 private:
   void mousePressEvent(QGraphicsSceneMouseEvent* event) override;

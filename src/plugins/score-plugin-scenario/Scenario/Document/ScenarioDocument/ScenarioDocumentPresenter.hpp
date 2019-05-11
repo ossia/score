@@ -96,15 +96,15 @@ public:
 
 public:
   void pressed(QPointF arg_1)
-      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, pressed, arg_1);
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, pressed, arg_1)
   void moved(QPointF arg_1)
-      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, moved, arg_1);
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, moved, arg_1)
   void released(QPointF arg_1)
-      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, released, arg_1);
-  void escPressed() E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, escPressed);
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, released, arg_1)
+  void escPressed() E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, escPressed)
 
   void setFocusedPresenter(QPointer<Process::LayerPresenter> arg_1)
-      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, setFocusedPresenter, arg_1);
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, setFocusedPresenter, arg_1)
 
 private:
   void on_windowSizeChanged(QSize);

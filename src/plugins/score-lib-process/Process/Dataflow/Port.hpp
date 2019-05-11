@@ -84,14 +84,14 @@ public:
 
 public:
   void exposedChanged(const QString& addr)
-      E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, exposedChanged, addr);
+      E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, exposedChanged, addr)
   void descriptionChanged(const QString& txt)
-      E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, descriptionChanged, txt);
-  void cablesChanged() E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, cablesChanged);
+      E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, descriptionChanged, txt)
+  void cablesChanged() E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, cablesChanged)
   void customDataChanged(const QString& customData)
-      E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, customDataChanged, customData);
+      E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, customDataChanged, customData)
   void addressChanged(const State::AddressAccessor& address)
-      E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, addressChanged, address);
+      E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, addressChanged, address)
 
   PROPERTY(
       State::AddressAccessor,
@@ -155,9 +155,9 @@ public:
 
 public:
   void valueChanged(const ossia::value& v)
-      E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, valueChanged, v);
+      E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, valueChanged, v)
   void domainChanged(const State::Domain& d)
-      E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, domainChanged, d);
+      E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, domainChanged, d)
 
 public:
   void setValue(const ossia::value& value)
@@ -167,7 +167,7 @@ public:
       m_value = value;
       valueChanged(value);
     }
-  };
+  }
   W_SLOT(setValue)
 
   void setDomain(const State::Domain& d)
@@ -177,7 +177,7 @@ public:
       m_domain = d;
       domainChanged(d);
     }
-  };
+  }
   W_SLOT(setDomain)
 
   PROPERTY(
@@ -210,7 +210,7 @@ public:
 
 public:
   void propagateChanged(bool propagate)
-      E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, propagateChanged, propagate);
+      E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, propagateChanged, propagate)
 
 public:
   void setPropagate(bool propagate);
@@ -244,9 +244,9 @@ public:
 
 public:
   void valueChanged(const ossia::value& v)
-      E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, valueChanged, v);
+      E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, valueChanged, v)
   void domainChanged(const State::Domain& d)
-      E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, domainChanged, d);
+      E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, domainChanged, d)
 
 public:
   void setValue(const ossia::value& value)
@@ -256,7 +256,7 @@ public:
       m_value = value;
       valueChanged(value);
     }
-  };
+  }
   W_SLOT(setValue)
 
   void setDomain(const State::Domain& d)
@@ -266,7 +266,7 @@ public:
       m_domain = d;
       domainChanged(d);
     }
-  };
+  }
   W_SLOT(setDomain)
 
   PROPERTY(

@@ -25,7 +25,7 @@ public:
 
 public:
   void unitChanged(const State::Unit& arg_1)
-      E_SIGNAL(SCORE_LIB_STATE_EXPORT, unitChanged, arg_1);
+      E_SIGNAL(SCORE_LIB_STATE_EXPORT, unitChanged, arg_1)
 
 private:
   void on_dataspaceChanged(const State::Unit&);
@@ -49,7 +49,7 @@ public:
 
 public:
   void qualifiersChanged(const State::DestinationQualifiers& arg_1)
-      E_SIGNAL(SCORE_LIB_STATE_EXPORT, qualifiersChanged, arg_1);
+      E_SIGNAL(SCORE_LIB_STATE_EXPORT, qualifiersChanged, arg_1)
 
 private:
   void on_dataspaceChanged(int idx);

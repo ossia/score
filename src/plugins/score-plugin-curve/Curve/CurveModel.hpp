@@ -69,14 +69,12 @@ public:
 
 public:
   void segmentAdded(const SegmentModel& arg_1)
-      E_SIGNAL(SCORE_PLUGIN_CURVE_EXPORT, segmentAdded, arg_1);
-  void segmentRemoved(const Id<SegmentModel>& arg_1) E_SIGNAL(
+      E_SIGNAL(SCORE_PLUGIN_CURVE_EXPORT, segmentAdded, arg_1) void segmentRemoved(const Id<SegmentModel>& arg_1) E_SIGNAL(
       SCORE_PLUGIN_CURVE_EXPORT,
       segmentRemoved,
       arg_1) // dangerous if async
   void pointAdded(const PointModel& arg_1)
-      E_SIGNAL(SCORE_PLUGIN_CURVE_EXPORT, pointAdded, arg_1);
-  void pointRemoved(const Id<PointModel>& arg_1) E_SIGNAL(
+      E_SIGNAL(SCORE_PLUGIN_CURVE_EXPORT, pointAdded, arg_1) void pointRemoved(const Id<PointModel>& arg_1) E_SIGNAL(
       SCORE_PLUGIN_CURVE_EXPORT,
       pointRemoved,
       arg_1) // dangerous if async

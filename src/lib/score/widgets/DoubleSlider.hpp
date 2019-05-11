@@ -59,6 +59,6 @@ public:
 
 public:
   void valueChanged(double arg_1)
-      E_SIGNAL(SCORE_LIB_BASE_EXPORT, valueChanged, arg_1);
+      E_SIGNAL(SCORE_LIB_BASE_EXPORT, valueChanged, arg_1)
 };
 }

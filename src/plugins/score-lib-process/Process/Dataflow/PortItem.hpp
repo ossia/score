@@ -50,9 +50,9 @@ public:
 
 public:
   void createCable(PortItem* src, PortItem* snk)
-      E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, createCable, src, snk);
+      E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, createCable, src, snk)
   void contextMenuRequested(QPointF scenepos, QPoint pos)
-      E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, contextMenuRequested, scenepos, pos);
+      E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, contextMenuRequested, scenepos, pos)
 
 protected:
   QRectF boundingRect() const final override;

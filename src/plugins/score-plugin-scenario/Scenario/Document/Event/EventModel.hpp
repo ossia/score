@@ -81,16 +81,16 @@ public:
 
 public:
   void extentChanged(const VerticalExtent& arg_1)
-      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, extentChanged, arg_1);
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, extentChanged, arg_1)
   void dateChanged(const TimeVal& arg_1)
-      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, dateChanged, arg_1);
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, dateChanged, arg_1)
   void conditionChanged(const State::Expression& arg_1)
-      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, conditionChanged, arg_1);
-  void statesChanged() E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, statesChanged);
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, conditionChanged, arg_1)
+  void statesChanged() E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, statesChanged)
   void statusChanged(Scenario::ExecutionStatus status)
-      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, statusChanged, status);
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, statusChanged, status)
   void offsetBehaviorChanged(OffsetBehavior arg_1)
-      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, offsetBehaviorChanged, arg_1);
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, offsetBehaviorChanged, arg_1)
 
 private:
   Id<TimeSyncModel> m_timeSync;

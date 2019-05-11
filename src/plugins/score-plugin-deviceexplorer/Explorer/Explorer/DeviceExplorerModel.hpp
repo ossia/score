@@ -179,7 +179,7 @@ public:
 
 public:
   void nodeChanged(Device::Node* n)
-      E_SIGNAL(SCORE_PLUGIN_DEVICEEXPLORER_EXPORT, nodeChanged, n);
+      E_SIGNAL(SCORE_PLUGIN_DEVICEEXPLORER_EXPORT, nodeChanged, n)
 
 protected:
   void debug_printPath(const Device::NodePath& path);

@@ -99,9 +99,9 @@ public:
 
 public:
   void requestOverlayMenu(QPointF arg_1)
-      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, requestOverlayMenu, arg_1);
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, requestOverlayMenu, arg_1)
   void dropReceived(const QPointF& pos, const QMimeData& arg_2)
-      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, dropReceived, pos, arg_2);
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, dropReceived, pos, arg_2)
 
 protected:
   void dragEnterEvent(QGraphicsSceneDragDropEvent* event) override;

@@ -207,7 +207,7 @@ public:
   }
 
   void setHighlight(bool b) {}
-  void clicked() E_SIGNAL(, clicked);
+  void clicked() W_SIGNAL(clicked)
 
 private:
   void hoverEnterEvent(QGraphicsSceneHoverEvent* event) override

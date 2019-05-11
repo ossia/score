@@ -118,7 +118,7 @@ public:
 
 public:
   void documentChanged(score::Document* arg_1)
-      E_SIGNAL(SCORE_LIB_BASE_EXPORT, documentChanged, arg_1);
+      E_SIGNAL(SCORE_LIB_BASE_EXPORT, documentChanged, arg_1)
 
 private:
   void prepareNewDocument(const score::GUIApplicationContext& ctx);

@@ -131,6 +131,6 @@ private:
 
 public:
   void findAddresses(QStringList strlst)
-      E_SIGNAL(SCORE_PLUGIN_DEVICEEXPLORER_EXPORT, findAddresses, strlst);
+      E_SIGNAL(SCORE_PLUGIN_DEVICEEXPLORER_EXPORT, findAddresses, strlst)
 };
 }

@@ -114,11 +114,11 @@ public:
 
 public:
   void sig_statesUpdated()
-      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, sig_statesUpdated);
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, sig_statesUpdated)
   void heightPercentageChanged()
-      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, heightPercentageChanged);
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, heightPercentageChanged)
   void statusChanged(Scenario::ExecutionStatus arg_1)
-      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, statusChanged, arg_1);
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, statusChanged, arg_1)
 
 private:
   void statesUpdated_slt();

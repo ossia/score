@@ -38,9 +38,9 @@ public:
 
 public:
   // Will stop everything from listening
-  void stop() E_SIGNAL(SCORE_PLUGIN_DEVICEEXPLORER_EXPORT, stop);
+  void stop() E_SIGNAL(SCORE_PLUGIN_DEVICEEXPLORER_EXPORT, stop)
 
   // Will restore with the current state of the tree
-  void restore() E_SIGNAL(SCORE_PLUGIN_DEVICEEXPLORER_EXPORT, restore);
+  void restore() E_SIGNAL(SCORE_PLUGIN_DEVICEEXPLORER_EXPORT, restore)
 };
 }

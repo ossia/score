@@ -105,7 +105,7 @@ public:
   StateComponent& endState() const;
 
 public:
-  void finished() E_SIGNAL(SCORE_PLUGIN_ENGINE_EXPORT, finished);
+  void finished() E_SIGNAL(SCORE_PLUGIN_ENGINE_EXPORT, finished)
 
 private:
   const Context& m_ctx;
