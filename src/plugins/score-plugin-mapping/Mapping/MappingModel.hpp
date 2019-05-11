@@ -63,18 +63,18 @@ public:
 
 public:
   void sourceAddressChanged(const State::AddressAccessor& arg)
-      E_SIGNAL(SCORE_PLUGIN_MAPPING_EXPORT, sourceAddressChanged, arg);
+      E_SIGNAL(SCORE_PLUGIN_MAPPING_EXPORT, sourceAddressChanged, arg)
   void sourceMinChanged(double arg)
-      E_SIGNAL(SCORE_PLUGIN_MAPPING_EXPORT, sourceMinChanged, arg);
+      E_SIGNAL(SCORE_PLUGIN_MAPPING_EXPORT, sourceMinChanged, arg)
   void sourceMaxChanged(double arg)
-      E_SIGNAL(SCORE_PLUGIN_MAPPING_EXPORT, sourceMaxChanged, arg);
+      E_SIGNAL(SCORE_PLUGIN_MAPPING_EXPORT, sourceMaxChanged, arg)
 
   void targetAddressChanged(const State::AddressAccessor& arg)
-      E_SIGNAL(SCORE_PLUGIN_MAPPING_EXPORT, targetAddressChanged, arg);
+      E_SIGNAL(SCORE_PLUGIN_MAPPING_EXPORT, targetAddressChanged, arg)
   void targetMinChanged(double arg)
-      E_SIGNAL(SCORE_PLUGIN_MAPPING_EXPORT, targetMinChanged, arg);
+      E_SIGNAL(SCORE_PLUGIN_MAPPING_EXPORT, targetMinChanged, arg)
   void targetMaxChanged(double arg)
-      E_SIGNAL(SCORE_PLUGIN_MAPPING_EXPORT, targetMaxChanged, arg);
+      E_SIGNAL(SCORE_PLUGIN_MAPPING_EXPORT, targetMaxChanged, arg)
 
   PROPERTY(
       double,

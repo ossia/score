@@ -47,11 +47,7 @@ public:
 
   const StatePresenter& presenter() const { return m_presenter; }
 
-  QRectF boundingRect() const override
-  {
-    const auto radius = m_dilated ? fullRadius * dilated : fullRadius;
-    return {-radius, -radius, 2. * radius, 2. * radius};
-  }
+  QRectF boundingRect() const override;
 
   void paint(
       QPainter* painter,
@@ -82,14 +78,16 @@ protected:
 
 private:
   void setDilatation(bool);
+  void updateOverlay();
   StatePresenter& m_presenter;
   StateMenuOverlay* m_overlay{};
-
-  bool m_dilated{false};
-  bool m_containMessage{false};
-  bool m_selected{false};
-  bool m_hasOverlay{true};
-  bool m_moving{false};
   ExecutionStatusProperty m_status{};
+
+  bool m_dilated : 1;
+  bool m_containMessage : 1;
+  bool m_selected : 1;
+  bool m_hovered : 1;
+  bool m_hasOverlay : 1;
+  bool m_moving : 1;
 };
 }

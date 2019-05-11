@@ -58,7 +58,14 @@ bool is_hidpi()
   return res;
 }
 StateView::StateView(StatePresenter& pres, QGraphicsItem* parent)
-    : QGraphicsItem(parent), m_presenter{pres}
+    : QGraphicsItem(parent)
+    , m_presenter{pres}
+    , m_dilated{}
+    , m_containMessage{}
+    , m_selected{}
+    , m_hovered{}
+    , m_hasOverlay{true}
+    , m_moving{}
 {
   if (!is_hidpi())
     this->setCacheMode(QGraphicsItem::CacheMode::ItemCoordinateCache);
@@ -70,10 +77,16 @@ StateView::StateView(StatePresenter& pres, QGraphicsItem* parent)
   this->setAcceptHoverEvents(true);
 }
 
+QRectF StateView::boundingRect() const
+{
+  const auto radius = m_dilated ? fullRadius * dilated : fullRadius;
+  return {-radius, -radius, 2. * radius, 2. * radius};
+}
+
 void StateView::paint(
-    QPainter* painter,
-    const QStyleOptionGraphicsItem* option,
-    QWidget* widget)
+      QPainter* painter,
+      const QStyleOptionGraphicsItem* option,
+      QWidget* widget)
 {
   painter->setRenderHint(QPainter::Antialiasing, true);
   auto& skin = Process::Style::instance();
@@ -122,21 +135,9 @@ void StateView::setSelected(bool b)
 {
   m_selected = b;
   setDilatation(m_selected);
-  setZValue(m_selected ? ZPos::SelectedState: ZPos::State);
+  setZValue(m_selected ? ZPos::SelectedState : ZPos::State);
 
-  if (m_hasOverlay)
-  {
-    if (b)
-    {
-      m_overlay = new StateMenuOverlay{this};
-      m_overlay->setPos(14, -14);
-    }
-    else
-    {
-      delete m_overlay;
-      m_overlay = nullptr;
-    }
-  }
+  updateOverlay();
 }
 
 void StateView::setStatus(ExecutionStatus status)
@@ -202,9 +203,20 @@ void StateView::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
   event->accept();
 }
 
-void StateView::hoverEnterEvent(QGraphicsSceneHoverEvent* event) {}
+void StateView::hoverEnterEvent(QGraphicsSceneHoverEvent* event)
+{
+  m_hovered = true;
+  updateOverlay();
+  event->accept();
+}
 
-void StateView::hoverLeaveEvent(QGraphicsSceneHoverEvent* event) {}
+void StateView::hoverLeaveEvent(QGraphicsSceneHoverEvent* event)
+{
+  m_hovered = false;
+  updateOverlay();
+  event->accept();
+}
+
 void StateView::dragEnterEvent(QGraphicsSceneDragDropEvent* event)
 {
   setDilatation(true);
@@ -226,5 +238,25 @@ void StateView::setDilatation(bool val)
   prepareGeometryChange();
   m_dilated = val;
   this->update();
+}
+
+void StateView::updateOverlay()
+{
+  if (m_hasOverlay)
+  {
+    if (m_selected || m_hovered)
+    {
+      if(m_overlay)
+        return;
+
+      m_overlay = new StateMenuOverlay{this};
+      m_overlay->setPos(0, -14);
+    }
+    else
+    {
+      delete m_overlay;
+      m_overlay = nullptr;
+    }
+  }
 }
 }

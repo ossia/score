@@ -30,6 +30,7 @@ public:
 
   const StateModel& model() const;
 
+  void select() const;
   bool isSelected() const;
 
   void handleDrop(const QMimeData& mime);
