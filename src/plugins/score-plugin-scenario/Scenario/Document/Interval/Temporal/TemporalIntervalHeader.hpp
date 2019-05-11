@@ -88,9 +88,10 @@ private:
 
   QRectF m_textRectCache;
   QImage m_line;
-  RackButton* m_button{};
+  RackButton* m_rackButton{};
   score::QGraphicsPixmapToggle* m_mute{};
   score::QGraphicsSlider* m_speed{};
+  score::QGraphicsPixmapButton* m_add{};
   TemporalIntervalPresenter& m_presenter;
   bool m_selected : 1;
   bool m_hovered : 1;

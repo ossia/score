@@ -62,13 +62,9 @@ void TemporalIntervalHeader::paint(
     QWidget* widget)
 {
   painter->setRenderHint(QPainter::Antialiasing, false);
-  /*
-  painter->setPen(Qt::green);
-  painter->setBrush(Qt::transparent);
-  painter->drawRect(boundingRect());
-  */
-  if (m_button)
-    m_button->setUnrolled(m_state == State::RackHidden);
+
+  if (m_rackButton)
+    m_rackButton->setUnrolled(m_state == State::RackHidden);
 
   if (m_width < 30)
     return;
@@ -84,8 +80,7 @@ void TemporalIntervalHeader::paint(
       = view->mapFromScene(mapToScene({5., 0.}))
             .x();
   int text_right
-      = view->mapFromScene(mapToScene({5. + textWidth , 0.}))
-            .x();
+      = text_left + textWidth;
   double x = 5.;
   const constexpr double min_x = 5.;
   const double max_x = view->width() - 30.;
@@ -120,8 +115,8 @@ void TemporalIntervalHeader::paint(
     QPolygonF poly;
     poly << QPointF{0., qreal(IntervalHeader::headerHeight()) - 1.5}
          << QPointF{5., 0.}
-         << QPointF{m_previous_x + textWidth + 107., 0.}
-         << QPointF{m_previous_x + textWidth + 112., qreal(IntervalHeader::headerHeight()) - 1.5};
+         << QPointF{m_previous_x + textWidth + 117., 0.}
+         << QPointF{m_previous_x + textWidth + 122., qreal(IntervalHeader::headerHeight()) - 1.5};
 
     painter->drawPolygon(poly);
     painter->setRenderHint(QPainter::Antialiasing, false);
@@ -132,70 +127,87 @@ void TemporalIntervalHeader::paint(
 
 void TemporalIntervalHeader::updateButtons()
 {
-  if (m_button)
-    m_button->setPos(m_previous_x + m_textRectCache.width() + 10, 0);
+  double pos = m_previous_x + m_textRectCache.width();
+  if (m_rackButton)
+    m_rackButton->setPos(pos += 12, 0);
   if (m_mute)
-    m_mute->setPos(m_previous_x + m_textRectCache.width() + 22, 0);
+    m_mute->setPos(pos += 11, 0);
+  if (m_add)
+    m_add->setPos(pos += 16, 0);
   if(m_speed)
-    m_speed->setPos(m_previous_x + m_textRectCache.width() + 40, headerHeight() * 0.1);
+    m_speed->setPos(pos += 16, headerHeight() * 0.05);
 }
 
 void TemporalIntervalHeader::enableOverlay(bool b)
 {
+  delete m_rackButton;
+  m_rackButton = nullptr;
+
+  delete m_add;
+  m_add = nullptr;
+
+  delete m_mute;
+  m_mute = nullptr;
+
+  delete m_speed;
+  m_speed = nullptr;
+
   if (b)
   {
-    if(m_button)
-      return;
+    auto& itv = m_presenter.model();
+    auto& durations = const_cast<IntervalDurations&>(itv.duration);
 
-    m_button = new RackButton{this};
-    connect(m_button, &RackButton::clicked, &m_presenter, [=] {
-      ((TemporalIntervalPresenter&)m_presenter).changeRackState();
-    });
+    // Show-hide rack
+    if(!itv.processes.empty())
+    {
+      m_rackButton = new RackButton{this};
+      connect(m_rackButton, &RackButton::clicked, &m_presenter, [=] {
+        ((TemporalIntervalPresenter&)m_presenter).changeRackState();
+      });
+    }
 
+    // Mute
     static const auto pix_unmuted
         = score::get_pixmap(":/icons/process_on.png");
     static const auto pix_muted = score::get_pixmap(":/icons/process_off.png");
 
     m_mute = new score::QGraphicsPixmapToggle{pix_muted, pix_unmuted, this};
-    if (m_presenter.model().muted())
+    if (itv.muted())
       m_mute->toggle();
     connect(
         m_mute,
         &score::QGraphicsPixmapToggle::toggled,
         &m_presenter,
-        [=](bool b) { ((IntervalModel&)m_presenter.model()).setMuted(b); });
-    con(m_presenter.model(),
+        [&itv](bool b) { ((IntervalModel&)itv).setMuted(b); });
+    con(itv,
         &IntervalModel::mutedChanged,
         m_mute,
         [=](bool b) { m_mute->setState(b); });
 
+    // Add process
+    static const auto pix_add_on = score::get_pixmap(":/icons/process_add_off.png");
+    m_add = new score::QGraphicsPixmapButton{pix_add_on, pix_add_on, this};
+    connect(m_add, &score::QGraphicsPixmapButton::clicked,
+            this, [this] {
+      m_view->requestOverlayMenu({});
+    });;
+
+    // Speed slider
     m_speed = new score::QGraphicsSlider{this};
     m_speed->min = -1.;
     m_speed->max = 5.;
     m_speed->setRect({0., 0., 60., headerHeight() * 0.8});
-    auto& itv = const_cast<IntervalDurations&>(m_presenter.model().duration);
-    m_speed->setValue((itv.speed() - m_speed->min) / (m_speed->max - m_speed->min));
+    m_speed->setValue((durations.speed() - m_speed->min) / (m_speed->max - m_speed->min));
     connect(m_speed, &score::QGraphicsSlider::sliderMoved,
-            this, [this, min=m_speed->min, max=m_speed->max, &itv] {
-      itv.setSpeed(m_speed->value() * (max - min) + min);
+            this, [this, min=m_speed->min, max=m_speed->max, &durations] {
+      durations.setSpeed(m_speed->value() * (max - min) + min);
     });
     connect(m_speed, &score::QGraphicsSlider::sliderReleased,
-            this, [this, min=m_speed->min, max=m_speed->max, &itv] {
-      itv.setSpeed(m_speed->value() * (max - min) + min);
+            this, [this, min=m_speed->min, max=m_speed->max, &durations] {
+      durations.setSpeed(m_speed->value() * (max - min) + min);
     });
 
     updateButtons();
-  }
-  else
-  {
-    delete m_button;
-    m_button = nullptr;
-
-    delete m_mute;
-    m_mute = nullptr;
-
-    delete m_speed;
-    m_speed = nullptr;
   }
 }
 
@@ -298,19 +310,19 @@ void TemporalIntervalHeader::hoverLeaveEvent(QGraphicsSceneHoverEvent* h)
 
 void TemporalIntervalHeader::dragEnterEvent(QGraphicsSceneDragDropEvent* event)
 {
-  m_presenter.view()->setDropTarget(true);
+  m_view->setDropTarget(true);
   event->accept();
 }
 
 void TemporalIntervalHeader::dragLeaveEvent(QGraphicsSceneDragDropEvent* event)
 {
-  m_presenter.view()->setDropTarget(m_presenter.view()->contains(mapToItem(m_presenter.view(), event->pos())));
+  m_view->setDropTarget(m_view->contains(mapToItem(m_view, event->pos())));
   event->accept();
 }
 
 void TemporalIntervalHeader::dropEvent(QGraphicsSceneDragDropEvent* event)
 {
-  m_presenter.view()->dropEvent(event);
+  m_view->dropEvent(event);
 }
 
 RackButton::RackButton(QGraphicsItem* parent)

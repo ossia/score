@@ -71,10 +71,10 @@ void FullViewIntervalHeader::paint(
 
   const double text_left
       = view->mapFromScene(
-                mapToScene(QPointF{m_width / 2. - textWidth / 2., 0.}))
+                mapToScene(QPointF{10., 0.}))
             .x();
   const double text_right = text_left + textWidth;
-  double x = (m_width - textWidth) / 2.;
+  double x = 10.;
   const constexpr double min_x = 10.;
   const double max_x = view->width() - 30.;
 
