@@ -1,6 +1,8 @@
 #pragma once
 #include <Process/Style/ScenarioStyle.hpp>
 #include <Scenario/Document/State/StateView.hpp>
+#include <Scenario/Document/State/StatePresenter.hpp>
+#include <Scenario/Document/State/StateModel.hpp>
 
 #include <QBrush>
 #include <QGraphicsItem>
@@ -21,7 +23,7 @@ public:
 
   QRectF boundingRect() const override
   {
-    return {-m_radius, -m_radius, 2 * m_radius, 2 * m_radius};
+    return {-1, -1, 16, 16};
   }
 
   void paint(
@@ -41,9 +43,18 @@ public:
     painter->setPen(p);
 
     // TODO instead of a cross, make an arrow that looks like |->
-    const auto small_rad = 0.5 * m_radius;
-    const QLineF l1{QPointF{0, -small_rad}, QPointF{0, small_rad}};
-    const QLineF l2{QPointF{-small_rad, 0}, QPointF{small_rad, 0}};
+    const auto small_rad = m_big ? 3. : 2.;
+    const auto rad = m_big ? 6. : 4.;
+
+    const auto l1 =
+        m_big
+        ? QLineF{QPointF{15 - small_rad, 0}, QPointF{15 - small_rad, 2 * small_rad}}.translated(-3, 1)
+        : QLineF{QPointF{15 - small_rad, 0}, QPointF{15 - small_rad, 2 * small_rad}}.translated(-4, 2);
+    const auto l2 =
+        m_big
+        ? QLineF{QPointF{15 - 2 * small_rad, small_rad}, QPointF{15, small_rad}}.translated(-3, 1)
+        : QLineF{QPointF{15 - 2 * small_rad, small_rad}, QPointF{15, small_rad}}.translated(-4, 2);
+
     painter->drawLine(l1.translated(1, 1));
     painter->drawLine(l2.translated(1, 1));
     p.setColor(bright);
@@ -58,23 +69,25 @@ private:
   void mousePressEvent(QGraphicsSceneMouseEvent* event) override
   {
     auto st = static_cast<StateView*>(parentItem());
+    st->presenter().select();
     st->startCreateMode();
+
     event->ignore();
   }
 
   void hoverEnterEvent(QGraphicsSceneHoverEvent* event) override
   {
     prepareGeometryChange();
-    m_radius = 6;
+    m_big = true;
     update();
   }
   void hoverLeaveEvent(QGraphicsSceneHoverEvent* event) override
   {
     prepareGeometryChange();
-    m_radius = 4;
+    m_big = false;
     update();
   }
 
-  double m_radius{4};
+  bool m_big{false};
 };
 }
