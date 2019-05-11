@@ -6,7 +6,6 @@
 #include <Process/ProcessMimeSerialization.hpp>
 #include <Process/Style/ScenarioStyle.hpp>
 #include <Scenario/Application/Menus/ScenarioCopy.hpp>
-#include <Scenario/Document/Interval/IntervalHeader.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/Interval/IntervalPresenter.hpp>
 #include <Scenario/Document/Interval/IntervalView.hpp>
@@ -222,9 +221,7 @@ SlotDragOverlay::SlotDragOverlay(const IntervalPresenter& c, Slot::RackView v)
 
 QRectF SlotDragOverlay::boundingRect() const
 {
-  auto rect = interval.view()->boundingRect();
-  rect.adjust(0, 0, 0, 10);
-  return rect;
+  return interval.view()->boundingRect();
 }
 
 void SlotDragOverlay::paint(
@@ -235,7 +232,7 @@ void SlotDragOverlay::paint(
   const auto& style = Process::Style::instance();
   auto c = style.IntervalBase.getBrush().color();
   c.setAlphaF(0.2);
-  painter->fillRect(interval.view()->boundingRect().adjusted(0, 12, 0, 0), c);
+  painter->fillRect(interval.view()->boundingRect(), c);
   painter->fillRect(m_drawnRect, QColor::fromRgbF(0.6, 0.6, 1., 0.8));
   painter->setPen(QPen(QColor::fromRgbF(0.6, 0.6, 1., 0.7), 2));
   painter->drawRect(m_drawnRect);
@@ -247,7 +244,7 @@ void SlotDragOverlay::onDrag(QPointF pos)
   const auto& itv = interval.model();
   const auto rect = interval.view()->boundingRect();
 
-  double height = interval.header()->headerHeight();
+  double height = 0.;
 
   if (y <= height)
   {
@@ -321,7 +318,7 @@ void SlotDragOverlay::dropEvent(QGraphicsSceneDragDropEvent* event)
   const auto y = pos.y();
   const auto rect = interval.view()->boundingRect();
   const auto& itv = interval.model();
-  double height = interval.header()->headerHeight();
+  double height = 0.;
   const int N = int(
       view == Slot::SmallView ? itv.smallView().size()
                               : itv.fullView().size());

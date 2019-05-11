@@ -51,7 +51,7 @@ QRectF TemporalIntervalView::boundingRect() const
   qreal x = std::min(0., minWidth());
   qreal rectW = infinite() ? defaultWidth() : maxWidth();
   rectW -= x;
-  return {x, -12. - IntervalHeader::headerHeight(), rectW, qreal(intervalAndRackHeight()) + 12. +  IntervalHeader::headerHeight()};
+  return {x, -1. , rectW, qreal(intervalAndRackHeight()) + 1.};
 }
 
 const TemporalIntervalPresenter& TemporalIntervalView::presenter() const
@@ -228,7 +228,12 @@ void TemporalIntervalView::paint(
   auto& painter = *p;
   painter.setRenderHint(QPainter::Antialiasing, false);
   auto& skin = Process::Style::instance();
-
+  painter.fillPath(shape(), Qt::white);
+/*
+  painter.setPen(Qt::red);
+  painter.setBrush(Qt::transparent);
+  painter.drawRect(boundingRect());
+  */
   const qreal def_w = defaultWidth();
 
   // Draw the stuff present if there is a rack *in the model* ?
@@ -238,7 +243,7 @@ void TemporalIntervalView::paint(
   {
     // Background
     auto rect = boundingRect();
-    rect.adjust(0, 12 + IntervalHeader::headerHeight(), 0, SlotHandle::handleHeight() - 4 );
+    rect.adjust(0, 0, 0, SlotHandle::handleHeight() - 4 );
     rect.setWidth(def_w);
 
     painter.fillRect(rect, m_presenter.model().metadata().getColor().getBrush());
@@ -329,7 +334,6 @@ void TemporalIntervalView::hoverLeaveEvent(QGraphicsSceneHoverEvent* h)
 void TemporalIntervalView::setSelected(bool selected)
 {
   m_selected = selected;
-  setZValue(m_selected ? ZPos::SelectedInterval : ZPos::Interval);
   update();
 }
 

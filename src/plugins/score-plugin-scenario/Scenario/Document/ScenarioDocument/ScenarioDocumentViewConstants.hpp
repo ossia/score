@@ -35,8 +35,9 @@ public:
     Comment = 1
     , TimeSync
     , Event
-    , State
     , Interval
+    , State
+    , IntervalWithRack
     , SelectedInterval
     , SelectedTimeSync
     , SelectedEvent

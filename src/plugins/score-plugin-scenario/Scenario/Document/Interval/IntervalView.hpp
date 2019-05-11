@@ -73,12 +73,6 @@ public:
 
   bool isValid() const { return m_validInterval; }
 
-  void setFocused(bool b)
-  {
-    m_hasFocus = b;
-    update();
-  }
-
   bool warning() const;
   void setWarning(bool warning);
 
@@ -97,6 +91,12 @@ public:
   LeftBraceView& leftBrace() { return m_leftBrace; }
   RightBraceView& rightBrace() { return m_rightBrace; }
 
+  void setDropTarget(bool b)
+  {
+     m_dropTarget = b;
+     update();
+  }
+
 public:
   void requestOverlayMenu(QPointF arg_1)
       E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, requestOverlayMenu, arg_1)
@@ -104,6 +104,8 @@ public:
       E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, dropReceived, pos, arg_2)
 
 protected:
+  friend class TemporalIntervalHeader;
+  friend class FullViewIntervalHeader;
   void dragEnterEvent(QGraphicsSceneDragDropEvent* event) override;
   void dragLeaveEvent(QGraphicsSceneDragDropEvent* event) override;
   void dropEvent(QGraphicsSceneDragDropEvent* event) override;
@@ -133,10 +135,9 @@ protected:
   bool m_infinite : 1;
   bool m_validInterval : 1;//{true};
   bool m_warning : 1;
-  bool m_hasFocus : 1;
   bool m_waiting : 1;
   bool m_dropTarget : 1;
-  IntervalExecutionState m_state{};
+  IntervalExecutionState m_state : 2;
 
 };
 }

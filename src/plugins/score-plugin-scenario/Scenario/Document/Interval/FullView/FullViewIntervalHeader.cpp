@@ -29,7 +29,7 @@ FullViewIntervalHeader::FullViewIntervalHeader(
 {
   this->setCacheMode(QGraphicsItem::NoCache);
   this->setFlag(QGraphicsItem::ItemClipsChildrenToShape, false);
-  m_bar.setPos(10., 10.);
+  m_bar.setPos(10., 4.);
 
   con(m_bar, &AddressBarItem::needRedraw, this, [&]() { update(); });
 }
@@ -91,6 +91,6 @@ void FullViewIntervalHeader::paint(
   x = std::max(x, 5.);
 
   if (std::abs(m_bar.pos().x() - x) > 0.1)
-    m_bar.setPos(x, 8.);
+    m_bar.setPos(x, 4.);
 }
 }
