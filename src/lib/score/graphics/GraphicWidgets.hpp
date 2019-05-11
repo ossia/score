@@ -25,7 +25,7 @@ public:
       QGraphicsItem* parent);
 
 public:
-  void clicked() E_SIGNAL(SCORE_LIB_BASE_EXPORT, clicked);
+  void clicked() E_SIGNAL(SCORE_LIB_BASE_EXPORT, clicked)
 
 protected:
   void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
@@ -53,7 +53,7 @@ public:
   void setState(bool toggled);
 
 public:
-  void toggled(bool arg_1) E_SIGNAL(SCORE_LIB_BASE_EXPORT, toggled, arg_1);
+  void toggled(bool arg_1) E_SIGNAL(SCORE_LIB_BASE_EXPORT, toggled, arg_1)
 
 protected:
   void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
@@ -91,9 +91,9 @@ public:
 
 public:
   void valueChanged(double arg_1)
-      E_SIGNAL(SCORE_LIB_BASE_EXPORT, valueChanged, arg_1);
-  void sliderMoved() E_SIGNAL(SCORE_LIB_BASE_EXPORT, sliderMoved);
-  void sliderReleased() E_SIGNAL(SCORE_LIB_BASE_EXPORT, sliderReleased);
+      E_SIGNAL(SCORE_LIB_BASE_EXPORT, valueChanged, arg_1)
+  void sliderMoved() E_SIGNAL(SCORE_LIB_BASE_EXPORT, sliderMoved)
+  void sliderReleased() E_SIGNAL(SCORE_LIB_BASE_EXPORT, sliderReleased)
 
 private:
   void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
@@ -142,9 +142,9 @@ public:
 
 public:
   void valueChanged(double arg_1)
-      E_SIGNAL(SCORE_LIB_BASE_EXPORT, valueChanged, arg_1);
-  void sliderMoved() E_SIGNAL(SCORE_LIB_BASE_EXPORT, sliderMoved);
-  void sliderReleased() E_SIGNAL(SCORE_LIB_BASE_EXPORT, sliderReleased);
+      E_SIGNAL(SCORE_LIB_BASE_EXPORT, valueChanged, arg_1)
+  void sliderMoved() E_SIGNAL(SCORE_LIB_BASE_EXPORT, sliderMoved)
+  void sliderReleased() E_SIGNAL(SCORE_LIB_BASE_EXPORT, sliderReleased)
 
 private:
   void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
@@ -184,9 +184,9 @@ public:
 
 public:
   void valueChanged(int arg_1)
-      E_SIGNAL(SCORE_LIB_BASE_EXPORT, valueChanged, arg_1);
-  void sliderMoved() E_SIGNAL(SCORE_LIB_BASE_EXPORT, sliderMoved);
-  void sliderReleased() E_SIGNAL(SCORE_LIB_BASE_EXPORT, sliderReleased);
+      E_SIGNAL(SCORE_LIB_BASE_EXPORT, valueChanged, arg_1)
+  void sliderMoved() E_SIGNAL(SCORE_LIB_BASE_EXPORT, sliderMoved)
+  void sliderReleased() E_SIGNAL(SCORE_LIB_BASE_EXPORT, sliderReleased)
 
 private:
   void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
@@ -248,9 +248,9 @@ public:
 
 public:
   void valueChanged(int arg_1)
-      E_SIGNAL(SCORE_LIB_BASE_EXPORT, valueChanged, arg_1);
-  void sliderMoved() E_SIGNAL(SCORE_LIB_BASE_EXPORT, sliderMoved);
-  void sliderReleased() E_SIGNAL(SCORE_LIB_BASE_EXPORT, sliderReleased);
+      E_SIGNAL(SCORE_LIB_BASE_EXPORT, valueChanged, arg_1)
+  void sliderMoved() E_SIGNAL(SCORE_LIB_BASE_EXPORT, sliderMoved)
+  void sliderReleased() E_SIGNAL(SCORE_LIB_BASE_EXPORT, sliderReleased)
 
 private:
   void mousePressEvent(QGraphicsSceneMouseEvent* event) override;

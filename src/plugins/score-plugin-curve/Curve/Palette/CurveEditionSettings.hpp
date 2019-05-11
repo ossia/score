@@ -60,21 +60,21 @@ public:
 
 public:
   void lockBetweenPointsChanged(bool arg_1)
-      E_SIGNAL(SCORE_PLUGIN_CURVE_EXPORT, lockBetweenPointsChanged, arg_1);
+      E_SIGNAL(SCORE_PLUGIN_CURVE_EXPORT, lockBetweenPointsChanged, arg_1)
   void suppressOnOverlapChanged(bool arg_1)
-      E_SIGNAL(SCORE_PLUGIN_CURVE_EXPORT, suppressOnOverlapChanged, arg_1);
+      E_SIGNAL(SCORE_PLUGIN_CURVE_EXPORT, suppressOnOverlapChanged, arg_1)
   void stretchBothBoundsChanged(bool arg_1)
-      E_SIGNAL(SCORE_PLUGIN_CURVE_EXPORT, stretchBothBoundsChanged, arg_1);
+      E_SIGNAL(SCORE_PLUGIN_CURVE_EXPORT, stretchBothBoundsChanged, arg_1)
   void addPointBehaviourChanged(Curve::AddPointBehaviour arg_1)
-      E_SIGNAL(SCORE_PLUGIN_CURVE_EXPORT, addPointBehaviourChanged, arg_1);
+      E_SIGNAL(SCORE_PLUGIN_CURVE_EXPORT, addPointBehaviourChanged, arg_1)
   void
   removePointBehaviourChanged(Curve::RemovePointBehaviour removePointBehaviour)
       E_SIGNAL(
           SCORE_PLUGIN_CURVE_EXPORT,
           removePointBehaviourChanged,
-          removePointBehaviour);
+          removePointBehaviour)
   void toolChanged(Curve::Tool tool)
-      E_SIGNAL(SCORE_PLUGIN_CURVE_EXPORT, toolChanged, tool);
+      E_SIGNAL(SCORE_PLUGIN_CURVE_EXPORT, toolChanged, tool)
 
   W_PROPERTY(Curve::Tool, tool READ tool WRITE setTool NOTIFY toolChanged)
 

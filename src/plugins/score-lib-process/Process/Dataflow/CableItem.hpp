@@ -42,8 +42,8 @@ public:
   void setTarget(PortItem* p);
 
 public:
-  void clicked() E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, clicked);
-  void removeRequested() E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, removeRequested);
+  void clicked() E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, clicked)
+  void removeRequested() E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, removeRequested)
 
 private:
   QRectF boundingRect() const override;

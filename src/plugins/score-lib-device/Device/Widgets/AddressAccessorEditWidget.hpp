@@ -41,7 +41,7 @@ public:
 
 public:
   void addressChanged(const Device::FullAddressAccessorSettings& arg_1)
-      E_SIGNAL(SCORE_LIB_DEVICE_EXPORT, addressChanged, arg_1);
+      E_SIGNAL(SCORE_LIB_DEVICE_EXPORT, addressChanged, arg_1)
 
 private:
   void customContextMenuEvent(const QPoint& p);

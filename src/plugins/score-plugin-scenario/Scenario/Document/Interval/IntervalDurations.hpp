@@ -93,25 +93,25 @@ public:
 
 public:
   void defaultDurationChanged(const TimeVal& arg)
-      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, defaultDurationChanged, arg);
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, defaultDurationChanged, arg)
   void minDurationChanged(const TimeVal& arg)
-      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, minDurationChanged, arg);
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, minDurationChanged, arg)
   void maxDurationChanged(const TimeVal& arg)
-      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, maxDurationChanged, arg);
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, maxDurationChanged, arg)
   void playPercentageChanged(double arg)
-      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, playPercentageChanged, arg);
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, playPercentageChanged, arg)
   void rigidityChanged(bool arg)
-      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, rigidityChanged, arg);
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, rigidityChanged, arg)
   void minNullChanged(bool isMinNull)
-      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, minNullChanged, isMinNull);
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, minNullChanged, isMinNull)
   void maxInfiniteChanged(bool isMaxInfinite) E_SIGNAL(
       SCORE_PLUGIN_SCENARIO_EXPORT,
       maxInfiniteChanged,
-      isMaxInfinite);
+      isMaxInfinite)
   void speedChanged(double speed)
-      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, speedChanged, speed);
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, speedChanged, speed)
   void guiDurationChanged(TimeVal guiDuration)
-      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, guiDurationChanged, guiDuration);
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, guiDurationChanged, guiDuration)
 
   PROPERTY(
       double,

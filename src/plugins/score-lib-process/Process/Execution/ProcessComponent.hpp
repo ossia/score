@@ -82,7 +82,7 @@ public:
           nodeChanged,
           old_node,
           new_node,
-          commands);
+          commands)
 
 protected:
   std::shared_ptr<ossia::time_process> m_ossia_process;

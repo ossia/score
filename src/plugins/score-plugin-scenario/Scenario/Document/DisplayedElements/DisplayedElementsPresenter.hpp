@@ -48,7 +48,7 @@ public:
   void requestFocusedPresenterChange(Process::LayerPresenter* arg_1) E_SIGNAL(
       SCORE_PLUGIN_SCENARIO_EXPORT,
       requestFocusedPresenterChange,
-      arg_1);
+      arg_1)
 
 private:
   void on_intervalExecutionTimer();

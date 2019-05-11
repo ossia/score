@@ -76,9 +76,9 @@ public:
   QPointer<Device::DeviceInterface> local_device{};
 
 public:
-  void finished() E_SIGNAL(SCORE_PLUGIN_ENGINE_EXPORT, finished);
+  void finished() E_SIGNAL(SCORE_PLUGIN_ENGINE_EXPORT, finished)
   void sig_bench(ossia::bench_map arg_1, int64_t ns)
-      E_SIGNAL(SCORE_PLUGIN_ENGINE_EXPORT, sig_bench, arg_1, ns);
+      E_SIGNAL(SCORE_PLUGIN_ENGINE_EXPORT, sig_bench, arg_1, ns)
 
 public:
   void slot_bench(ossia::bench_map, int64_t ns);

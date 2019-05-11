@@ -71,9 +71,9 @@ public:
 
 public:
   void keyPressed(int arg_1)
-      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, keyPressed, arg_1);
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, keyPressed, arg_1)
   void keyReleased(int arg_1)
-      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, keyReleased, arg_1);
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, keyReleased, arg_1)
 
 private:
   void prepareNewDocument() override;

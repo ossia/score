@@ -21,7 +21,7 @@ public:
       SCORE_LIB_PROCESS_EXPORT,
       focus,
       (QPointer<Process::LayerPresenter>),
-      arg_1);
+      arg_1)
 };
 
 Q_DECLARE_METATYPE(QPointer<Process::LayerPresenter>)

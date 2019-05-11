@@ -79,22 +79,22 @@ public:
 
 public:
   void extentChanged(const Scenario::VerticalExtent& arg_1)
-      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, extentChanged, arg_1);
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, extentChanged, arg_1)
   void dateChanged(const TimeVal& arg_1)
-      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, dateChanged, arg_1);
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, dateChanged, arg_1)
 
   void newEvent(const Id<Scenario::EventModel>& eventId)
-      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, newEvent, eventId);
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, newEvent, eventId)
   void eventRemoved(const Id<Scenario::EventModel>& eventId)
-      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, eventRemoved, eventId);
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, eventRemoved, eventId)
 
   void triggerChanged(const State::Expression& arg_1)
-      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, triggerChanged, arg_1);
-  void activeChanged() E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, activeChanged);
-  void autotriggerChanged(bool b) E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, autotriggerChanged, b);
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, triggerChanged, arg_1)
+  void activeChanged() E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, activeChanged)
+  void autotriggerChanged(bool b) E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, autotriggerChanged, b)
 
   void triggeredByGui() const
-      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, triggeredByGui);
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, triggeredByGui)
 
 private:
   TimeVal m_date{std::chrono::seconds{0}};

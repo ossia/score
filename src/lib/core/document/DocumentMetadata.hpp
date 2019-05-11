@@ -32,13 +32,13 @@ public:
   void setLastEdition(QDateTime lastEdition);
 
   void fileNameChanged(QString fileName)
-      E_SIGNAL(SCORE_LIB_BASE_EXPORT, fileNameChanged, fileName);
+      E_SIGNAL(SCORE_LIB_BASE_EXPORT, fileNameChanged, fileName)
   void authorChanged(QString author)
-      E_SIGNAL(SCORE_LIB_BASE_EXPORT, authorChanged, author);
+      E_SIGNAL(SCORE_LIB_BASE_EXPORT, authorChanged, author)
   void creationChanged(QDateTime creation)
-      E_SIGNAL(SCORE_LIB_BASE_EXPORT, creationChanged, creation);
+      E_SIGNAL(SCORE_LIB_BASE_EXPORT, creationChanged, creation)
   void lastEditionChanged(QDateTime lastEdition)
-      E_SIGNAL(SCORE_LIB_BASE_EXPORT, lastEditionChanged, lastEdition);
+      E_SIGNAL(SCORE_LIB_BASE_EXPORT, lastEditionChanged, lastEdition)
 
   W_PROPERTY(
       QString,

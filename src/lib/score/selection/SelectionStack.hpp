@@ -42,10 +42,10 @@ public:
   Selection currentSelection() const;
 
   void pushNewSelection(const Selection& s)
-      E_SIGNAL(SCORE_LIB_BASE_EXPORT, pushNewSelection, s);
+      E_SIGNAL(SCORE_LIB_BASE_EXPORT, pushNewSelection, s)
 
   void currentSelectionChanged(const Selection& s)
-      E_SIGNAL(SCORE_LIB_BASE_EXPORT, currentSelectionChanged, s);
+      E_SIGNAL(SCORE_LIB_BASE_EXPORT, currentSelectionChanged, s)
 
   void prune(IdentifiedObjectAbstract* p);
   W_INVOKABLE(prune)

@@ -31,7 +31,7 @@ public:
   void setPos(const Curve::Point& pos);
 
 public:
-  void posChanged() E_SIGNAL(SCORE_PLUGIN_CURVE_EXPORT, posChanged);
+  void posChanged() E_SIGNAL(SCORE_PLUGIN_CURVE_EXPORT, posChanged)
 
 private:
   OptionalId<SegmentModel> m_previous, m_following;

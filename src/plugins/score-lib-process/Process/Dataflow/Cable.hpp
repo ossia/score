@@ -82,7 +82,7 @@ public:
 
 public:
   void typeChanged(CableType type)
-      E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, typeChanged, type);
+      E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, typeChanged, type)
 
 private:
   CableType m_type{};

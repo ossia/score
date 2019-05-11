@@ -37,16 +37,16 @@ public:
 
 public:
   void pressed(const QPointF& arg_1)
-      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, pressed, arg_1);
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, pressed, arg_1)
   void moved(const QPointF& arg_1)
-      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, moved, arg_1);
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, moved, arg_1)
   void released(const QPointF& arg_1)
-      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, released, arg_1);
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, released, arg_1)
 
   void eventHoverEnter()
-      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, eventHoverEnter);
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, eventHoverEnter)
   void eventHoverLeave()
-      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, eventHoverLeave);
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, eventHoverLeave)
 
 private:
   const EventModel& m_model;

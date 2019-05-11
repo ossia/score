@@ -50,9 +50,9 @@ public:
 
 public:
   void intervalHoverEnter()
-      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, intervalHoverEnter);
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, intervalHoverEnter)
   void intervalHoverLeave()
-      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, intervalHoverLeave);
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, intervalHoverLeave)
 
 private:
   void hoverEnterEvent(QGraphicsSceneHoverEvent* h) override;

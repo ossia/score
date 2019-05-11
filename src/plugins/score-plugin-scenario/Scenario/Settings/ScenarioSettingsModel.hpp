@@ -54,7 +54,7 @@ public:
 
 public:
   void SkinChanged(const QString& arg_1)
-      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, SkinChanged, arg_1);
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, SkinChanged, arg_1)
   PROPERTY(
       QString,
       Skin READ getSkin WRITE setSkin NOTIFY SkinChanged,

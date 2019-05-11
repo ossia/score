@@ -12,6 +12,7 @@
 #include <QPolygon>
 #include <QSize>
 #include <QVector>
+#include <QCursor>
 #include <qnamespace.h>
 
 #include <wobjectimpl.h>

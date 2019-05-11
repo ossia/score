@@ -11,7 +11,7 @@
 #include <QGraphicsView>
 #include <QPoint>
 
-#include <score_lib_process_export.h>
+#include <score_plugin_scenario_export.h>
 #include <wobjectdefs.h>
 
 class QGraphicsView;
@@ -38,7 +38,7 @@ namespace Scenario
 class Minimap;
 class ScenarioScene;
 class TimeRuler;
-class ProcessGraphicsView final : public QGraphicsView
+class SCORE_PLUGIN_SCENARIO_EXPORT ProcessGraphicsView final : public QGraphicsView
 {
   W_OBJECT(ProcessGraphicsView)
 public:
@@ -52,13 +52,13 @@ public:
 
 public:
   void sizeChanged(const QSize& arg_1)
-      E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, sizeChanged, arg_1);
-  void scrolled(int arg_1) E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, scrolled, arg_1);
-  void focusedOut() E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, focusedOut);
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, sizeChanged, arg_1)
+  void scrolled(int arg_1) E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, scrolled, arg_1)
+  void focusedOut() E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, focusedOut)
   void horizontalZoom(QPointF pixDelta, QPointF pos)
-      E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, horizontalZoom, pixDelta, pos);
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, horizontalZoom, pixDelta, pos)
   void verticalZoom(QPointF pixDelta, QPointF pos)
-      E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, verticalZoom, pixDelta, pos);
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, verticalZoom, pixDelta, pos)
 
 private:
   void resizeEvent(QResizeEvent* ev) override;

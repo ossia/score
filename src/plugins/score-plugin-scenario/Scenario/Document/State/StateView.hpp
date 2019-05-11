@@ -65,9 +65,9 @@ public:
 
 public:
   void dropReceived(const QMimeData& arg_1)
-      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, dropReceived, arg_1);
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, dropReceived, arg_1)
   void startCreateMode()
-      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, startCreateMode);
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, startCreateMode)
 
 protected:
   void mousePressEvent(QGraphicsSceneMouseEvent* event) override;

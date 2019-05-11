@@ -337,13 +337,20 @@ endfunction()
 function(setup_score_common_lib_features TheTarget)
   setup_score_common_features(${TheTarget})
 
-  if(NOT SCORE_STATIC_PLUGINS)
-    set_target_properties(${TheTarget} PROPERTIES CXX_VISIBILITY_PRESET hidden)
-    set_target_properties(${TheTarget} PROPERTIES VISIBILITY_INLINES_HIDDEN 1)
+  string(TOUPPER ${TheTarget} Target_upper)
+  set_target_properties(${TheTarget} PROPERTIES
+    DEFINE_SYMBOL "${Target_upper}_EXPORTS"
+    )
+
+  if(SCORE_STATIC_PLUGINS)
+    target_compile_definitions(${TheTarget} PRIVATE "${Target_upper}_EXPORTS")
+  else()
+    set_target_properties(${TheTarget} PROPERTIES
+      CXX_VISIBILITY_PRESET hidden
+      VISIBILITY_INLINES_HIDDEN 1
+      )
   endif()
 
-  string(TOUPPER ${TheTarget} Target_upper)
-  set_target_properties(${TheTarget} PROPERTIES DEFINE_SYMBOL "${Target_upper}_EXPORTS")
 
   if(OSSIA_STATIC_EXPORT)
     generate_export_header(${TheTarget} ALWAYS_EXPORT)

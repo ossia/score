@@ -51,13 +51,13 @@ public:
 
 public:
   void activeDocumentChanged(const Id<DocumentModel>& arg_1)
-      E_SIGNAL(SCORE_LIB_BASE_EXPORT, activeDocumentChanged, arg_1);
+      E_SIGNAL(SCORE_LIB_BASE_EXPORT, activeDocumentChanged, arg_1)
   void closeRequested(const Id<DocumentModel>& arg_1)
-      E_SIGNAL(SCORE_LIB_BASE_EXPORT, closeRequested, arg_1);
+      E_SIGNAL(SCORE_LIB_BASE_EXPORT, closeRequested, arg_1)
 
-  void ready() E_SIGNAL(SCORE_LIB_BASE_EXPORT, ready);
+  void ready() E_SIGNAL(SCORE_LIB_BASE_EXPORT, ready)
   void sizeChanged(QSize arg_1)
-      E_SIGNAL(SCORE_LIB_BASE_EXPORT, sizeChanged, arg_1);
+      E_SIGNAL(SCORE_LIB_BASE_EXPORT, sizeChanged, arg_1)
 
 public:
   void on_fileNameChanged(DocumentView* d, const QString& newName);

@@ -41,16 +41,16 @@ public:
 
 public:
   void pressed(const QPointF& arg_1)
-      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, pressed, arg_1);
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, pressed, arg_1)
   void moved(const QPointF& arg_1)
-      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, moved, arg_1);
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, moved, arg_1)
   void released(const QPointF& arg_1)
-      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, released, arg_1);
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, released, arg_1)
 
   void eventAdded(
       const Id<EventModel>& eventId,
       const Id<TimeSyncModel>& timeSyncId)
-      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, eventAdded, eventId, timeSyncId);
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, eventAdded, eventId, timeSyncId)
 
 private:
   const TimeSyncModel& m_model;

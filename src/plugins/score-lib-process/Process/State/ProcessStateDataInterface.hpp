@@ -61,14 +61,14 @@ public:
   Process::ProcessModel& process() const { return m_model; }
 
 public:
-  void stateChanged() E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, stateChanged);
+  void stateChanged() E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, stateChanged)
   /**
    * @brief messagesChanged
    * Sent whenever the messages in the process changed.
    *
    */
   void messagesChanged(const State::MessageList& arg_1)
-      E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, messagesChanged, arg_1);
+      E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, messagesChanged, arg_1)
 
 private:
   Process::ProcessModel& m_model;

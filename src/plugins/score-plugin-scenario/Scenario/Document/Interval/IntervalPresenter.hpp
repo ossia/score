@@ -91,19 +91,19 @@ public:
 
 public:
   void pressed(QPointF arg_1) const
-      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, pressed, arg_1);
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, pressed, arg_1)
   void moved(QPointF arg_1) const
-      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, moved, arg_1);
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, moved, arg_1)
   void released(QPointF arg_1) const
-      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, released, arg_1);
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, released, arg_1)
 
-  void askUpdate() E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, askUpdate);
+  void askUpdate() E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, askUpdate)
   void heightChanged() E_SIGNAL(
       SCORE_PLUGIN_SCENARIO_EXPORT,
-      heightChanged); // The vertical size
+      heightChanged) // The vertical size
   void heightPercentageChanged() E_SIGNAL(
       SCORE_PLUGIN_SCENARIO_EXPORT,
-      heightPercentageChanged); // The vertical position
+      heightPercentageChanged) // The vertical position
 
 protected:
   // Process presenters are in the slot presenters.

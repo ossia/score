@@ -51,9 +51,9 @@ public:
 
 public:
   void tweenChanged(bool tween)
-      E_SIGNAL(SCORE_PLUGIN_AUTOMATION_EXPORT, tweenChanged, tween);
+      E_SIGNAL(SCORE_PLUGIN_AUTOMATION_EXPORT, tweenChanged, tween)
   void gradientChanged()
-      E_SIGNAL(SCORE_PLUGIN_AUTOMATION_EXPORT, gradientChanged);
+      E_SIGNAL(SCORE_PLUGIN_AUTOMATION_EXPORT, gradientChanged)
 
   PROPERTY(bool, tween READ tween WRITE setTween NOTIFY tweenChanged)
 private:
