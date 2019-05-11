@@ -216,6 +216,7 @@ void TemporalIntervalHeader::setSelected(bool b)
   m_selected = b;
   enableOverlay(m_selected || m_hovered);
   on_textChanged();
+  update();
 }
 
 void TemporalIntervalHeader::setLabel(const QString& label)
