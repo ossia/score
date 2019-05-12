@@ -44,7 +44,6 @@ public:
 
     // TODO instead of a cross, make an arrow that looks like |->
     const auto small_rad = m_big ? 3. : 2.;
-    const auto rad = m_big ? 6. : 4.;
 
     const auto l1 =
         m_big

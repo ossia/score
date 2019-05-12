@@ -90,7 +90,6 @@ function(score_write_static_plugins_header)
   set(SCORE_PLUGINS_FILE_DATA "#pragma once\n")
 
   foreach(plugin ${SCORE_PLUGINS_LIST})
-    message("Linking statically with score plugin : ${plugin}")
     string(APPEND SCORE_PLUGINS_FILE_DATA "#if __has_include(<${plugin}.hpp>)\n#include <${plugin}.hpp>\n#endif\n")
   endforeach()
 

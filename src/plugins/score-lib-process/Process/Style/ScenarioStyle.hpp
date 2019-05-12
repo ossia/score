@@ -148,6 +148,11 @@ struct SCORE_LIB_PROCESS_EXPORT Style
   QPen SlotHeaderPen;
   QBrush SlotHeaderBrush;
 
+  QPen RectPen;
+  QPen RectHighlightPen;
+  QBrush RectBrush;
+  QBrush RectHighlightBrush;
+
   const QPen TransparentPen;
   const QBrush TransparentBrush;
   const QPen NoPen;
