@@ -33,6 +33,9 @@ W_OBJECT_IMPL(Scenario::TemporalIntervalHeader)
 
 namespace Scenario
 {
+    static const constexpr auto interval_header_rack_button_spacing = 17.;
+    static const constexpr auto interval_header_button_spacing = 20.;
+
 TemporalIntervalHeader::TemporalIntervalHeader(TemporalIntervalPresenter& pres)
     : IntervalHeader{}
     , m_presenter{pres}
@@ -73,13 +76,13 @@ void TemporalIntervalHeader::paint(
   // If the centered text is hidden, we put it at the left so that it's on the
   // view.
   // We have to compute the visible part of the header
-  const auto textWidth = m_textRectCache.width();
+  const auto text_width = m_textRectCache.width();
   auto view = getView(*this);
   int text_left
       = view->mapFromScene(mapToScene({5., 0.}))
             .x();
   int text_right
-      = text_left + textWidth;
+      = text_left + text_width;
   double x = 5.;
   const constexpr double min_x = 5.;
   const double max_x = view->width() - 30.;
@@ -100,9 +103,16 @@ void TemporalIntervalHeader::paint(
   {
     m_previous_x = x;
   }
+
+  double rack_button_offset = 0.;
+
+  auto& itv = m_presenter.model();
+  if (m_rackButton && !itv.processes.empty())
+    rack_button_offset += interval_header_rack_button_spacing ;
+
   const auto p = QPointF{
-      m_previous_x,
-      (IntervalHeader::headerHeight() - m_textRectCache.height()) / 2.};
+      m_previous_x + rack_button_offset,
+      -1. + (IntervalHeader::headerHeight() - m_textRectCache.height()) / 2.};
 
   if(m_selected)
   {
@@ -111,31 +121,54 @@ void TemporalIntervalHeader::paint(
     painter->setPen(style.NoPen);
     painter->setBrush(style.SlotHeader.getBrush());
 
+    double buttons_width = rack_button_offset + 5.;
+
+    if (m_mute)
+      buttons_width += interval_header_button_spacing;
+    if (m_add)
+      buttons_width += interval_header_button_spacing;
+    if(m_speed)
+      buttons_width += m_speed->boundingRect().width();
+
     QPolygonF poly;
-    poly << QPointF{0., qreal(IntervalHeader::headerHeight()) - 1.5}
+    poly << QPointF{0., qreal(IntervalHeader::headerHeight()) - 0.5}
          << QPointF{5., 0.}
-         << QPointF{m_previous_x + textWidth + 117., 0.}
-         << QPointF{m_previous_x + textWidth + 122., qreal(IntervalHeader::headerHeight()) - 1.5};
+         << QPointF{m_previous_x + text_width + buttons_width, 0.}
+         << QPointF{m_previous_x + text_width + buttons_width + 5., qreal(IntervalHeader::headerHeight()) - 0.5};
 
     painter->drawPolygon(poly);
     painter->setRenderHint(QPainter::Antialiasing, false);
-    updateButtons();
   }
+
+  updateButtons();
   painter->drawImage(p, m_line);
 }
 
 void TemporalIntervalHeader::updateButtons()
 {
-  double pos = m_previous_x + m_textRectCache.width();
+  double pos = m_previous_x;
+  auto& itv = m_presenter.model();
 
-  if (m_rackButton)
-    m_rackButton->setPos(pos += 17, 0);
+  if (m_rackButton && !itv.processes.empty())
+  {
+      m_rackButton->setPos(pos - 3., 0.);
+      pos += interval_header_rack_button_spacing;
+  }
+
+  pos += m_textRectCache.width() + 5.;
   if (m_mute)
-    m_mute->setPos(pos += 17, 0);
+  {
+      m_mute->setPos(pos, 0.);
+      pos += interval_header_button_spacing;
+  }
   if (m_add)
-    m_add->setPos(pos += 17, 0);
+  {
+      m_add->setPos(pos, 0.);
+      pos += interval_header_button_spacing;
+  }
   if(m_speed)
-    m_speed->setPos(pos += 17, headerHeight() * 0.05);
+      m_speed->setPos(pos, headerHeight() * 0.05);
+
 }
 
 void TemporalIntervalHeader::enableOverlay(bool b)
@@ -152,23 +185,29 @@ void TemporalIntervalHeader::enableOverlay(bool b)
   delete m_speed;
   m_speed = nullptr;
 
+  auto& itv = m_presenter.model();
+
+  // Show-hide rack
+  if(!itv.processes.empty())
+  {
+      static const auto pix_unroll = score::get_pixmap(":/icons/rack_button_off.png");
+      static const auto pix_unroll_selected = score::get_pixmap(":/icons/rack_button_off_selected.png");
+
+      static const auto pix_rolled = score::get_pixmap(":/icons/rack_button_on.png");
+      static const auto pix_rolled_selected = score::get_pixmap(":/icons/rack_button_on_selected.png");
+
+      m_rackButton = new score::QGraphicsSelectablePixmapToggle{pix_rolled, pix_rolled_selected, pix_unroll, pix_unroll_selected, this};
+
+      connect(m_rackButton, &score::QGraphicsSelectablePixmapToggle::toggled, &m_presenter, [=] {
+          ((TemporalIntervalPresenter&)m_presenter).changeRackState();
+      });
+
+      m_rackButton->setSelected(b);
+  }
+
   if (b)
   {
-    auto& itv = m_presenter.model();
     auto& durations = const_cast<IntervalDurations&>(itv.duration);
-
-    // Show-hide rack
-    if(!itv.processes.empty())
-    {
-        static const auto pix_unroll = score::get_pixmap(":/icons/rack_button_off.png");
-        static const auto pix_rolled = score::get_pixmap(":/icons/rack_button_on.png");
-
-        m_rackButton = new score::QGraphicsPixmapToggle{pix_rolled, pix_unroll, this};
-
-        connect(m_rackButton, &score::QGraphicsPixmapToggle::toggled, &m_presenter, [=] {
-            ((TemporalIntervalPresenter&)m_presenter).changeRackState();
-        });
-    }
 
     // Mute
     static const auto pix_unmuted
@@ -291,8 +330,6 @@ void TemporalIntervalHeader::on_textChanged()
         else
           p.setPen(QPen(col.getBrush().color()));
       }
-
-
       p.drawGlyphRun(QPointF{0, 0}, r[0]);
     }
   }
