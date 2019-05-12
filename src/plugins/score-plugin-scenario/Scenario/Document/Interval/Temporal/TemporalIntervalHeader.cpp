@@ -29,7 +29,6 @@
 #include <wobjectimpl.h>
 
 #include <algorithm>
-W_OBJECT_IMPL(Scenario::RackButton)
 W_OBJECT_IMPL(Scenario::TemporalIntervalHeader)
 
 namespace Scenario
@@ -64,7 +63,7 @@ void TemporalIntervalHeader::paint(
   painter->setRenderHint(QPainter::Antialiasing, false);
 
   if (m_rackButton)
-    m_rackButton->setUnrolled(m_state == State::RackHidden);
+    m_rackButton->setState(m_state == State::RackHidden);
 
   if (m_width < 30)
     return;
@@ -128,14 +127,15 @@ void TemporalIntervalHeader::paint(
 void TemporalIntervalHeader::updateButtons()
 {
   double pos = m_previous_x + m_textRectCache.width();
+
   if (m_rackButton)
-    m_rackButton->setPos(pos += 12, 0);
+    m_rackButton->setPos(pos += 17, 0);
   if (m_mute)
-    m_mute->setPos(pos += 10, 0);
+    m_mute->setPos(pos += 17, 0);
   if (m_add)
     m_add->setPos(pos += 17, 0);
   if(m_speed)
-    m_speed->setPos(pos += 16, headerHeight() * 0.05);
+    m_speed->setPos(pos += 17, headerHeight() * 0.05);
 }
 
 void TemporalIntervalHeader::enableOverlay(bool b)
@@ -160,10 +160,14 @@ void TemporalIntervalHeader::enableOverlay(bool b)
     // Show-hide rack
     if(!itv.processes.empty())
     {
-      m_rackButton = new RackButton{this};
-      connect(m_rackButton, &RackButton::clicked, &m_presenter, [=] {
-        ((TemporalIntervalPresenter&)m_presenter).changeRackState();
-      });
+        static const auto pix_unroll = score::get_pixmap(":/icons/rack_button_off.png");
+        static const auto pix_rolled = score::get_pixmap(":/icons/rack_button_on.png");
+
+        m_rackButton = new score::QGraphicsPixmapToggle{pix_rolled, pix_unroll, this};
+
+        connect(m_rackButton, &score::QGraphicsPixmapToggle::toggled, &m_presenter, [=] {
+            ((TemporalIntervalPresenter&)m_presenter).changeRackState();
+        });
     }
 
     // Mute
@@ -277,16 +281,17 @@ void TemporalIntervalHeader::on_textChanged()
       m_line.fill(Qt::transparent);
 
       QPainter p{&m_line};
-      if(!m_selected)
+      if(m_hovered || m_selected)
+          p.setPen(skin.IntervalBraceSelected);
+      else
       {
         const auto& col = model.getColor();
         if(col == skin.IntervalDefaultBackground)
           p.setPen(skin.IntervalHeaderTextPen);
         else
-          p.setPen(QPen(model.getColor().getBrush().color()));
+          p.setPen(QPen(col.getBrush().color()));
       }
-      else
-        p.setPen(skin.IntervalBraceSelected);
+
 
       p.drawGlyphRun(QPointF{0, 0}, r[0]);
     }
@@ -299,6 +304,7 @@ void TemporalIntervalHeader::hoverEnterEvent(QGraphicsSceneHoverEvent* h)
   m_hovered = true;
   enableOverlay(m_selected || m_hovered);
   intervalHoverEnter();
+  on_textChanged();
 }
 
 void TemporalIntervalHeader::hoverLeaveEvent(QGraphicsSceneHoverEvent* h)
@@ -307,6 +313,7 @@ void TemporalIntervalHeader::hoverLeaveEvent(QGraphicsSceneHoverEvent* h)
   m_hovered = false;
   enableOverlay(m_selected || m_hovered);
   intervalHoverLeave();
+  on_textChanged();
 }
 
 void TemporalIntervalHeader::dragEnterEvent(QGraphicsSceneDragDropEvent* event)
@@ -324,104 +331,5 @@ void TemporalIntervalHeader::dragLeaveEvent(QGraphicsSceneDragDropEvent* event)
 void TemporalIntervalHeader::dropEvent(QGraphicsSceneDragDropEvent* event)
 {
   m_view->dropEvent(event);
-}
-
-RackButton::RackButton(QGraphicsItem* parent)
-  : QGraphicsObject{parent}
-{
-  setCursor(Qt::CrossCursor);
-  setTransformOriginPoint(boundingRect().center());
-  setRotation(m_unroll ? 0 : 90);
-}
-
-void RackButton::setUnrolled(bool b)
-{
-  if (m_unroll != b)
-  {
-    m_unroll = b;
-
-    setRotation(m_unroll ? 0 : 90);
-    update();
-  }
-}
-
-static const QPainterPath trianglePath{[] {
-  QPainterPath p;
-  QPainterPathStroker s;
-  s.setCapStyle(Qt::RoundCap);
-  s.setJoinStyle(Qt::RoundJoin);
-  s.setWidth(2);
-
-  p.addPolygon(
-      QVector<QPointF>{QPointF(0, 5), QPointF(0, 21), QPointF(9, 13)});
-  p.closeSubpath();
-  p = QTransform().scale(0.8, 0.8).map(p);
-
-  return p + s.createStroke(p);
-}()};
-static const auto rotatedTriangle
-    = QTransform().rotate(90).translate(8, -12).map(trianglePath);
-
-static const QPainterPath arrowPath{[] {
-  QPainterPath p;
-
-  p.moveTo(QPointF(5, 5));
-  p.lineTo(QPointF(14, 13));
-  p.lineTo(QPointF(5, 21));
-
-  p = QTransform().scale(0.55, 0.55).translate(0, 6).map(p);
-
-  return p;
-}()};
-static const auto rotatedArrow
-    = QTransform().rotate(90).translate(6, -16).map(arrowPath);
-
-QRectF RackButton::boundingRect() const
-{
-  return QRectF(trianglePath.boundingRect());
-}
-
-void RackButton::paint(
-    QPainter* painter,
-    const QStyleOptionGraphicsItem* option,
-    QWidget* widget)
-{
-  painter->setRenderHint(QPainter::Antialiasing, true);
-  painter->setBrush(Qt::NoBrush);
-
-  auto pen = QPen(QColor("#f6a019"));
-  pen.setCapStyle(Qt::RoundCap);
-  pen.setJoinStyle(Qt::RoundJoin);
-  pen.setWidth(2);
-
-  if (m_unroll)
-  {
-    pen.setColor("#a0a0a0");
-    painter->setPen(pen);
-  }
-  else
-  {
-    painter->setPen(pen);
-  }
-  painter->drawPath(arrowPath);
-  painter->setRenderHint(QPainter::Antialiasing, false);
-}
-
-void RackButton::mousePressEvent(QGraphicsSceneMouseEvent* event)
-{
-  event->accept();
-  update();
-  clicked();
-}
-
-void RackButton::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
-{
-  event->accept();
-}
-
-void RackButton::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
-{
-  event->accept();
-  update();
 }
 }

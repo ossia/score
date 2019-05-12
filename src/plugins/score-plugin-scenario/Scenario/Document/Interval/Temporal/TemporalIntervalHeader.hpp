@@ -22,31 +22,6 @@ class QWidget;
 namespace Scenario
 {
 class TemporalIntervalPresenter;
-class RackButton final : public QGraphicsObject
-{
-  W_OBJECT(RackButton)
-public:
-  RackButton(QGraphicsItem* parent);
-
-  void setUnrolled(bool b);
-
-public:
-  void clicked() W_SIGNAL(clicked);
-
-private:
-  QRectF boundingRect() const override;
-
-  void paint(
-      QPainter* painter,
-      const QStyleOptionGraphicsItem* option,
-      QWidget* widget) override;
-
-  void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
-  void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override;
-  void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override;
-
-  bool m_unroll{false};
-};
 
 class TemporalIntervalHeader final : public IntervalHeader
 {
@@ -88,7 +63,7 @@ private:
 
   QRectF m_textRectCache;
   QImage m_line;
-  RackButton* m_rackButton{};
+  score::QGraphicsPixmapToggle* m_rackButton{};
   score::QGraphicsPixmapToggle* m_mute{};
   score::QGraphicsSlider* m_speed{};
   score::QGraphicsPixmapButton* m_add{};
