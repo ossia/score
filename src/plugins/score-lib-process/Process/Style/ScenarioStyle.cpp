@@ -81,9 +81,11 @@ Style::Style(score::Skin& s) noexcept
 
     , SlotHeaderBrush{Qt::transparent}
 
+    , RectPen{Qt::transparent}
+    , RectBrush{Qt::transparent}
+
     , TransparentPen{Qt::transparent}
     , TransparentBrush{Qt::transparent}
-
 
     , NoPen{Qt::NoPen}
     , NoBrush{Qt::NoBrush}
@@ -234,5 +236,20 @@ void Style::update(const score::Skin&)
                        Qt::MiterJoin};
 
   SlotHeaderBrush = QBrush{SlotHeader.getBrush()};
+
+
+  // TODO use them for RectItem
+  RectPen = QPen{QColor(qRgba(80, 100, 140, 100)),
+                               2,
+                               Qt::SolidLine,
+                               Qt::RoundCap,
+                               Qt::RoundJoin};
+  RectHighlightPen = QPen{QColor(qRgba(100, 120, 180, 100)),
+                                         2,
+                                         Qt::SolidLine,
+                                         Qt::RoundCap,
+                                         Qt::RoundJoin};
+  RectBrush = TransparentBrush;
+  RectHighlightBrush = TransparentBrush;
 }
 }
