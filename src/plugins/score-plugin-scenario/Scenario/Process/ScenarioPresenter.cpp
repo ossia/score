@@ -13,6 +13,7 @@
 #include <Scenario/Commands/Scenario/Displacement/MoveCommentBlock.hpp>
 #include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
 #include <Scenario/Process/ScenarioView.hpp>
+#include <Scenario/Process/Algorithms/VerticalMovePolicy.hpp>
 #include <State/MessageListSerialization.hpp>
 
 #include <score/actions/ActionManager.hpp>
@@ -247,6 +248,13 @@ void ScenarioPresenter::setWidth(qreal width)
 void ScenarioPresenter::setHeight(qreal height)
 {
   m_view->setHeight(height);
+  if(height > 10)
+  {
+    for(auto& ev : m_layer.events)
+    {
+      updateEventExtent(ev.id(), m_layer);
+    }
+  }
 }
 
 void ScenarioPresenter::putToFront()

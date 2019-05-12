@@ -12,6 +12,7 @@
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentPresenter.hpp>
 
+#include <Scenario/Document/BaseScenario/BaseScenario.hpp>
 #include <score/application/ApplicationContext.hpp>
 #include <score/document/DocumentContext.hpp>
 #include <score/document/DocumentInterface.hpp>
@@ -369,7 +370,8 @@ double IntervalModel::getSlotHeightForProcess(const Id<Process::ProcessModel>& p
         return slt.height;
     }
   }
-  SCORE_ABORT;
+
+  return 0.;
 }
 
 void IntervalModel::setSlotHeight(const SlotId& slot, double height)
@@ -498,7 +500,9 @@ void IntervalModel::on_removingProcess(const Process::ProcessModel& p)
 
 bool isInFullView(const IntervalModel& cstr)
 {
-  // TODO just check if parent() == basescenario
+  if(qobject_cast<BaseScenario*>(cstr.parent()))
+    return true;
+
   auto& doc = score::IDocument::documentContext(cstr);
   if (auto pres = doc.document.presenter())
   {
