@@ -13,9 +13,10 @@ class View : public score::GlobalSettingsView
 public:
   View();
 
-  void addDriver(QString txt, QVariant data, QWidget* widg);
+  void addDriver(QString txt, QVariant data, Audio::AudioFactory* widg);
 
   void setDriver(AudioFactory::ConcreteKey k);
+  void setDriverWidget(QWidget* w);
   void DriverChanged(AudioFactory::ConcreteKey arg_1)
       W_SIGNAL(DriverChanged, arg_1);
 
@@ -26,8 +27,10 @@ public:
 
 private:
   QWidget* getWidget() override;
+
   QWidget* m_widg{};
-  QStackedWidget* m_sw{};
+  QWidget* m_sw{};
   QComboBox* m_Driver{};
+  QWidget* m_curDriver{};
 };
 }

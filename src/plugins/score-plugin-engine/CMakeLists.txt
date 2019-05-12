@@ -21,6 +21,13 @@ set(HDRS
     "${CMAKE_CURRENT_SOURCE_DIR}/Audio/JackInterface.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Audio/SDLInterface.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Audio/PortAudioInterface.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Audio/ALSAPortAudioInterface.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Audio/ASIOPortAudioInterface.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Audio/CoreAudioPortAudioInterface.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Audio/GenericPortAudioInterface.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Audio/MMEPortAudioInterface.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Audio/WASAPIPortAudioInterface.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Audio/WDMKSPortAudioInterface.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Audio/DummyInterface.hpp"
 
     "${CMAKE_CURRENT_SOURCE_DIR}/Engine/ApplicationPlugin.hpp"
@@ -81,6 +88,13 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Audio/Settings/Presenter.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Audio/Settings/View.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Audio/AudioInterface.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Audio/ALSAPortAudioInterface.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Audio/ASIOPortAudioInterface.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Audio/CoreAudioPortAudioInterface.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Audio/GenericPortAudioInterface.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Audio/MMEPortAudioInterface.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Audio/WASAPIPortAudioInterface.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Audio/WDMKSPortAudioInterface.cpp"
 
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Engine/ApplicationPlugin.cpp"

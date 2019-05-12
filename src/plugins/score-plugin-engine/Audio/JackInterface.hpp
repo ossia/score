@@ -5,6 +5,7 @@
 
 #include <QComboBox>
 #include <QFormLayout>
+#include <QLabel>
 #include <QListWidget>
 #include <QMenu>
 #include <QPushButton>
@@ -22,6 +23,8 @@ namespace Audio
 class JackFactory final : public AudioFactory
 {
   SCORE_CONCRETE("7ff2af00-f2f5-4930-beec-0e2d21eda195")
+  private:
+    std::weak_ptr<ossia::jack_client> m_client{};
 public:
   ~JackFactory() override {}
 
@@ -31,12 +34,15 @@ public:
       const score::ApplicationContext& ctx) override
   {
     static_assert(std::is_base_of_v<ossia::audio_engine, ossia::jack_engine>);
+    auto clt = m_client.lock();
+    if(!clt)
+    {
+      m_client = (clt = std::make_shared<ossia::jack_client>("ossia score"));
+    }
     return std::make_unique<ossia::jack_engine>(
-        "ossia score",
+        clt,
         set.getDefaultIn(),
-        set.getDefaultOut(),
-        set.getRate(),
-        set.getBufferSize());
+        set.getDefaultOut());
   }
 
   QWidget* make_settings(
@@ -53,13 +59,40 @@ public:
     auto in_count = new QSpinBox{w};
     auto out_count = new QSpinBox{w};
 
+
+#if defined(_WIN32)
+    {
+      if (!ossia::has_jackd_process())
+      {
+        std::cerr << "JACK server not running?" << std::endl;
+        throw std::runtime_error("Audio error: no JACK server");
+      }
+    }
+#endif
+
+    std::cerr << "JACK: " << WeakJack::instance().available() << std::endl;
+    std::shared_ptr<ossia::jack_client> client = m_client.lock();
+    if(!client)
+      m_client = (client = std::make_shared<ossia::jack_client>("ossia score"));
+
+    {
+      auto rate = jack_get_sample_rate(*client);
+      lay->addRow(QObject::tr("Rate"), new QLabel{QString::number(rate)});
+      m.setRate(rate);
+    }
+    {
+      auto bs = jack_get_buffer_size(*client);
+      lay->addRow(QObject::tr("Buffer size"), new QLabel{QString::number(bs)});
+      m.setBufferSize(bs);
+    }
+
     {
       in_count->setRange(0, 1024);
       lay->addRow(QObject::tr("Inputs"), in_count);
       QObject::connect(
           in_count,
           SignalUtils::QSpinBox_valueChanged_int(),
-          &v,
+          w,
           [=, &m, &m_disp](int i) {
             m_disp.submitDeferredCommand<Audio::Settings::SetModelDefaultIn>(
                 m, i);
@@ -74,7 +107,7 @@ public:
       QObject::connect(
           out_count,
           SignalUtils::QSpinBox_valueChanged_int(),
-          &v,
+          w,
           [=, &m, &m_disp](int i) {
             m_disp.submitDeferredCommand<Audio::Settings::SetModelDefaultOut>(
                 m, i);
@@ -83,7 +116,7 @@ public:
       out_count->setValue(m.getDefaultIn());
     }
 
-    con(m, &Model::changed, &v, [=, &m] {
+    con(m, &Model::changed, w, [=, &m] {
       {
         auto val = m.getDefaultIn();
         if (val != in_count->value())

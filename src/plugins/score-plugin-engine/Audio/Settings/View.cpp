@@ -12,23 +12,12 @@
 #include <Audio/Settings/View.hpp>
 namespace Audio::Settings
 {
-View::View() : m_widg{new QWidget}
+View::View()
+  : m_widg{new QWidget}
 {
   auto lay = new QFormLayout{m_widg};
 
-  m_sw = new QStackedWidget;
-  m_Driver = new QComboBox{m_widg};
-  lay->addRow(tr("Driver"), m_Driver);
-  connect(
-      m_Driver,
-      SignalUtils::QComboBox_currentIndexChanged_int(),
-      this,
-      [this](int i) {
-        DriverChanged(
-            m_Driver->itemData(i).value<AudioFactory::ConcreteKey>());
-        m_sw->setCurrentIndex(i);
-      });
-
+  // General settings
   SETTINGS_UI_NUM_COMBOBOX_SETUP(
       "Rate", Rate, (std::vector<int>{44100, 48000, 88200, 96000, 192000}));
   SETTINGS_UI_NUM_COMBOBOX_SETUP(
@@ -39,21 +28,31 @@ View::View() : m_widg{new QWidget}
         "Auto-Stereo",
         AutoStereo);
 
+  // Driver combo-box
+  m_Driver = new QComboBox{m_widg};
+  lay->addRow(tr("Driver"), m_Driver);
+  auto& list = score::GUIAppContext().interfaces<AudioFactoryList>();
+  for (AudioFactory& drv : list)
+  {
+    m_Driver->addItem(drv.prettyName(), QVariant::fromValue(drv.concreteKey()));
+  }
+
+  connect(
+      m_Driver,
+      SignalUtils::QComboBox_currentIndexChanged_int(),
+      this,
+      [this](int i) {
+    const auto key = m_Driver->itemData(i).value<AudioFactory::ConcreteKey>();
+    DriverChanged(key);
+  });
+
+
+  // Driver-specific things
+  m_sw = new QWidget;
+  m_sw->setLayout(new QHBoxLayout);
   lay->addWidget(m_sw);
 }
 
-void View::addDriver(QString txt, QVariant data, QWidget* widg)
-{
-  m_Driver->addItem(txt, data);
-  if (widg)
-  {
-    m_sw->addWidget(widg);
-  }
-  else
-  {
-    m_sw->addWidget(new QWidget);
-  }
-}
 
 QWidget* View::getWidget()
 {
@@ -64,10 +63,56 @@ void View::setDriver(AudioFactory::ConcreteKey k)
 {
   int idx = m_Driver->findData(QVariant::fromValue(k));
   if (idx != m_Driver->currentIndex())
+  {
     m_Driver->setCurrentIndex(idx);
+  }
 }
 
-SETTINGS_UI_NUM_COMBOBOX_IMPL(Rate)
-SETTINGS_UI_NUM_COMBOBOX_IMPL(BufferSize)
+void View::setDriverWidget(QWidget* w)
+{
+  delete m_curDriver;
+  m_curDriver = w;
+
+  if(w)
+    m_sw->layout()->addWidget(m_curDriver);
+}
+
+void View::setRate(int val)
+{
+  if(m_curDriver)
+  {
+    if(auto cb = m_curDriver->findChild<QComboBox*>("Rate"))
+    {
+      int idx = cb->findData(QVariant::fromValue(val));
+      if (idx != -1 && idx != cb->currentIndex())
+        cb->setCurrentIndex(idx);
+      else
+      {
+        idx = cb->findText(QString::number(val));
+        if (idx != -1 && idx != cb->currentIndex())
+          cb->setCurrentIndex(idx);
+      }
+    }
+  }
+}
+
+void View::setBufferSize(int val)
+{
+  if(m_curDriver)
+  {
+    if(auto cb = m_curDriver->findChild<QComboBox*>("BufferSize"))
+    {
+      int idx = cb->findData(QVariant::fromValue(val));
+      if (idx != -1 && idx != cb->currentIndex())
+        cb->setCurrentIndex(idx);
+      else
+      {
+        idx = cb->findText(QString::number(val));
+        if (idx != -1 && idx != cb->currentIndex())
+          cb->setCurrentIndex(idx);
+      }
+    }
+  }
+}
 SETTINGS_UI_TOGGLE_IMPL(AutoStereo)
 }
