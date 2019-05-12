@@ -248,7 +248,7 @@ endfunction()
 
 function(score_set_compile_options theTarget)
   #set_target_properties(${TheTarget} PROPERTIES CXX_STANDARD 17)
-  target_compile_definitions(${TheTarget} PUBLIC
+  target_compile_definitions(${theTarget} PUBLIC
       $<$<CONFIG:Debug>:SCORE_DEBUG>
       $<$<CONFIG:Debug>:BOOST_MULTI_INDEX_ENABLE_INVARIANT_CHECKING>
       $<$<CONFIG:Debug>:BOOST_MULTI_INDEX_ENABLE_SAFE_MODE>
@@ -264,7 +264,7 @@ function(score_set_compile_options theTarget)
   get_target_property(theType ${theTarget} TYPE)
 
   if(${theType} MATCHES STATIC_LIBRARY)
-    target_compile_definitions(${TheTarget} PRIVATE
+    target_compile_definitions(${theTarget} PRIVATE
       $<$<BOOL:${SCORE_STATIC_PLUGINS}>:QT_STATICPLUGIN>
     )
   endif()

@@ -25,7 +25,7 @@ class SCORE_PLUGIN_ENGINE_EXPORT Model : public score::SettingsDelegateModel
 public:
   Model(QSettings& set, const score::ApplicationContext& ctx);
 
-  void changed() E_SIGNAL(SCORE_PLUGIN_ENGINE_EXPORT, changed);
+  void changed() E_SIGNAL(SCORE_PLUGIN_ENGINE_EXPORT, changed)
   SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_ENGINE_EXPORT, Audio::AudioFactory::ConcreteKey, Driver)
   SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_ENGINE_EXPORT, QString, CardIn)
   SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_ENGINE_EXPORT, QString, CardOut)
