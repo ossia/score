@@ -6,7 +6,7 @@
 #include <windows.h>
 #elif defined(__APPLE__)
 #include <CoreFoundation/CoreFoundation.h>
-#elif __linux__
+#elif __has_include(<dlfcn.h>)
 #include <dlfcn.h>
 #endif
 
@@ -70,7 +70,7 @@ struct AppleLoader
   }
 };
 using PluginLoader = AppleLoader;
-#elif defined(__linux__)
+#elif __has_include(<dlfcn.h>)
 struct LinuxLoader
 {
   static void* load(const char* name)
