@@ -20,8 +20,11 @@ public:
   void DriverChanged(AudioFactory::ConcreteKey arg_1)
       W_SIGNAL(DriverChanged, arg_1);
 
-  SETTINGS_UI_NUM_COMBOBOX_HPP(BufferSize)
-  SETTINGS_UI_NUM_COMBOBOX_HPP(Rate)
+
+  void setBufferSize(int);
+  void BufferSizeChanged(int arg) W_SIGNAL(BufferSizeChanged, arg)
+  void setRate(int);
+  void RateChanged(int arg) W_SIGNAL(RateChanged, arg)
 
   SETTINGS_UI_TOGGLE_HPP(AutoStereo)
 
