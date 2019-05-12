@@ -1,7 +1,7 @@
 #pragma once
 #include <score/plugins/ProjectSettings/ProjectSettingsPresenter.hpp>
 #include <score/plugins/settingsdelegate/SettingsDelegatePresenter.hpp>
-
+#include <Audio/AudioInterface.hpp>
 namespace Audio::Settings
 {
 class Model;
@@ -17,5 +17,7 @@ private:
   void on_accept() override;
   QString settingsName() override;
   QIcon settingsIcon() override;
+
+  void loadDriver(const UuidKey<AudioFactory>& k);
 };
 }

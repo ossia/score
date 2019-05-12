@@ -19,43 +19,37 @@ namespace Audio::Settings
 Presenter::Presenter(Model& m, View& v, QObject* parent)
     : score::GlobalSettingsPresenter{m, v, parent}
 {
-  auto& ctx = score::GUIAppContext().interfaces<AudioFactoryList>();
-  for (auto& drv : ctx)
-  {
-    v.addDriver(
-        drv.prettyName(),
-        QVariant::fromValue(drv.concreteKey()),
-        drv.make_settings(m, v, m_disp, nullptr));
-  }
 
   v.setDriver(m.getDriver());
+  loadDriver(m.getDriver());
   v.setRate(m.getRate());
   v.setBufferSize(m.getBufferSize());
   v.setAutoStereo(m.getAutoStereo());
 
-  con(v, &View::DriverChanged, this, [&](auto val) {
+  con(v, &View::DriverChanged, this, [this, &m] (auto val) {
     if (val != m.getDriver())
     {
-      m_disp.submit<SetModelDriver>(this->model(this), val);
+      m_disp.submit<SetModelDriver>(m, val);
+      loadDriver(val);
     }
   });
-  con(v, &View::AutoStereoChanged, this, [&](auto val) {
+  con(v, &View::AutoStereoChanged, this, [this, &m](auto val) {
     if (val != m.getAutoStereo())
     {
-      m_disp.submitDeferredCommand<SetModelAutoStereo>(this->model(this), val);
+      m_disp.submitDeferredCommand<SetModelAutoStereo>(m, val);
     }
   });
 
-  con(v, &View::BufferSizeChanged, this, [&](auto val) {
+  con(v, &View::BufferSizeChanged, this, [this, &m](auto val) {
     if (val != m.getBufferSize())
     {
-      m_disp.submitDeferredCommand<SetModelBufferSize>(this->model(this), val);
+      m_disp.submitDeferredCommand<SetModelBufferSize>(m, val);
     }
   });
-  con(v, &View::RateChanged, this, [&](auto val) {
+  con(v, &View::RateChanged, this, [this, &m](auto val) {
     if (val != m.getRate())
     {
-      m_disp.submitDeferredCommand<SetModelRate>(this->model(this), val);
+      m_disp.submitDeferredCommand<SetModelRate>(m, val);
     }
   });
 
@@ -79,5 +73,22 @@ QString Presenter::settingsName()
 QIcon Presenter::settingsIcon()
 {
   return QApplication::style()->standardIcon(QStyle::SP_MediaVolume);
+}
+
+void Presenter::loadDriver(const UuidKey<AudioFactory>& val)
+{
+  auto& list = score::GUIAppContext().interfaces<AudioFactoryList>();
+  auto factory = list.get(val);
+  auto& m = this->model(this);
+  auto& v = this->view(this);
+
+  if(factory)
+  {
+    auto widg = factory->make_settings(m, v, m_disp, nullptr);
+    v.setDriverWidget(widg);
+  }
+  else {
+    v.setDriverWidget(nullptr);
+  }
 }
 }

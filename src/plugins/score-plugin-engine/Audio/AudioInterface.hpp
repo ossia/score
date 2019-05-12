@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include <score/plugins/InterfaceList.hpp>
 
 #include <score_plugin_engine_export.h>
@@ -39,6 +39,9 @@ public:
       score::SettingsCommandDispatcher&,
       QWidget* parent)
       = 0;
+
+  static void addBufferSizeWidget(QWidget& widg, Audio::Settings::Model& m, Audio::Settings::View& v);
+  static void addSampleRateWidget(QWidget& widg, Audio::Settings::Model& m, Audio::Settings::View& v);
 };
 
 class AudioFactoryList final : public score::InterfaceList<AudioFactory>

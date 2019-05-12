@@ -21,6 +21,13 @@
 #include <Audio/DummyInterface.hpp>
 #include <Audio/JackInterface.hpp>
 #include <Audio/PortAudioInterface.hpp>
+#include <Audio/ALSAPortAudioInterface.hpp>
+#include <Audio/ASIOPortAudioInterface.hpp>
+#include <Audio/CoreAudioPortAudioInterface.hpp>
+#include <Audio/GenericPortAudioInterface.hpp>
+#include <Audio/MMEPortAudioInterface.hpp>
+#include <Audio/WASAPIPortAudioInterface.hpp>
+#include <Audio/WDMKSPortAudioInterface.hpp>
 #include <Audio/SDLInterface.hpp>
 #include <Audio/Settings/Factory.hpp>
 #include <Engine/ApplicationPlugin.hpp>
