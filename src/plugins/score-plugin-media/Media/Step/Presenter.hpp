@@ -5,6 +5,7 @@
 #include <Process/LayerPresenter.hpp>
 
 #include <score/command/Dispatchers/SingleOngoingCommandDispatcher.hpp>
+#include <Audio/Settings/Model.hpp>
 
 #include <ossia/detail/math.hpp>
 
@@ -56,6 +57,12 @@ public:
       on_zoomRatioChanged(m_ratio);
     });
 
+    auto& audio_settings = context().context.app.settings<Audio::Settings::Model>();
+    con(audio_settings, &Audio::Settings::Model::RateChanged,
+        this, [&] {
+      on_zoomRatioChanged(m_ratio);
+    });
+
     view->m_model = &m;
   }
 
@@ -68,9 +75,10 @@ public:
 
   void on_zoomRatioChanged(ZoomRatio r) override
   {
+    auto samplerate = 0.001 * context().context.app.settings<Audio::Settings::Model>().getRate();
     m_ratio = r;
     auto& m = static_cast<const Step::Model&>(m_layer);
-    auto v = TimeVal::fromMsecs(m.stepDuration() / 44.1).toPixels(r);
+    auto v = TimeVal::fromMsecs(m.stepDuration() / samplerate).toPixels(r);
     m_view->setBarWidth(v);
   }
 
