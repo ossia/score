@@ -19,14 +19,13 @@
 
 namespace Scenario
 {
-void updateEventExtent(const Id<EventModel>& id, Scenario::ProcessModel& s)
+void updateEventExtent(const Id<EventModel>& id, const Scenario::ProcessModel& s)
 {
   auto& ev = s.event(id);
   double min = std::numeric_limits<double>::max();
   double max = std::numeric_limits<double>::lowest();
 
-  auto parent_itv = qobject_cast<IntervalModel*>(s.parent());
-  SCORE_ASSERT(parent_itv);
+  auto parent_itv = safe_cast<IntervalModel*>(s.parent());
 
   double view_height = 0.;
   if(!Scenario::isInFullView(*parent_itv)) {
@@ -35,6 +34,8 @@ void updateEventExtent(const Id<EventModel>& id, Scenario::ProcessModel& s)
   else {
     view_height = s.getSlotHeight();
   }
+  if(view_height == 0.)
+    return;
 
   for (const auto& state_id : ev.states())
   {
@@ -71,7 +72,7 @@ void updateEventExtent(const Id<EventModel>& id, Scenario::ProcessModel& s)
 
 void updateTimeSyncExtent(
     const Id<TimeSyncModel>& id,
-    Scenario::ProcessModel& s)
+    const Scenario::ProcessModel& s)
 {
   auto& tn = s.timeSyncs.at(id);
   double min = std::numeric_limits<double>::max();
@@ -91,7 +92,7 @@ void updateTimeSyncExtent(
 void updateIntervalVerticalPos(
     double y,
     const Id<IntervalModel>& id,
-    Scenario::ProcessModel& s)
+    const Scenario::ProcessModel& s)
 {
   auto& cst = s.intervals.at(id);
 

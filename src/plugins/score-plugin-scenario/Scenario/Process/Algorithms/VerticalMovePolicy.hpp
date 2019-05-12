@@ -11,15 +11,15 @@ class EventModel;
 class ProcessModel;
 class TimeSyncModel;
 SCORE_PLUGIN_SCENARIO_EXPORT void
-updateTimeSyncExtent(const Id<TimeSyncModel>& id, Scenario::ProcessModel& s);
+updateTimeSyncExtent(const Id<TimeSyncModel>& id, const Scenario::ProcessModel& s);
 
 // Will call updateTimeSyncExtent
 SCORE_PLUGIN_SCENARIO_EXPORT void
-updateEventExtent(const Id<EventModel>& id, Scenario::ProcessModel& s);
+updateEventExtent(const Id<EventModel>& id, const Scenario::ProcessModel& s);
 
 // Will call updateEventExtent
 SCORE_PLUGIN_SCENARIO_EXPORT void updateIntervalVerticalPos(
     double y,
     const Id<IntervalModel>& id,
-    Scenario::ProcessModel& s);
+    const Scenario::ProcessModel& s);
 }
