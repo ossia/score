@@ -63,7 +63,7 @@ private:
 
   QRectF m_textRectCache;
   QImage m_line;
-  score::QGraphicsPixmapToggle* m_rackButton{};
+  score::QGraphicsSelectablePixmapToggle* m_rackButton{};
   score::QGraphicsPixmapToggle* m_mute{};
   score::QGraphicsSlider* m_speed{};
   score::QGraphicsPixmapButton* m_add{};

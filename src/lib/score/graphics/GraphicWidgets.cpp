@@ -13,6 +13,7 @@
 
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(score::QGraphicsPixmapButton)
+W_OBJECT_IMPL(score::QGraphicsSelectablePixmapToggle)
 W_OBJECT_IMPL(score::QGraphicsPixmapToggle)
 W_OBJECT_IMPL(score::QGraphicsSlider)
 W_OBJECT_IMPL(score::QGraphicsLogSlider)
@@ -47,6 +48,65 @@ void QGraphicsPixmapButton::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 {
   setPixmap(m_released);
   clicked();
+  event->accept();
+}
+
+QGraphicsSelectablePixmapToggle::QGraphicsSelectablePixmapToggle(
+    QPixmap pressed,
+    QPixmap pressed_selected,
+    QPixmap released,
+    QPixmap released_selected,
+    QGraphicsItem* parent)
+    : QGraphicsPixmapItem{released, parent}
+    , m_pressed{std::move(pressed)}
+    , m_pressed_selected{std::move(pressed_selected)}
+    , m_released{std::move(released)}
+    , m_released_selected{std::move(released_selected)}
+{
+  setCursor(Qt::CrossCursor);
+}
+
+void QGraphicsSelectablePixmapToggle::toggle()
+{
+  m_toggled = !m_toggled;
+  setPixmap(m_toggled ?
+                (m_selected ? m_pressed_selected : m_pressed)
+              : (m_selected ? m_released_selected : m_released));
+}
+
+void QGraphicsSelectablePixmapToggle::setSelected(bool selected)
+{
+  m_selected = selected;
+  setPixmap(m_toggled ?
+                (m_selected ? m_pressed_selected : m_pressed)
+              : (m_selected ? m_released_selected : m_released));
+}
+
+void QGraphicsSelectablePixmapToggle::setState(bool toggled)
+{
+  m_toggled = toggled;
+  setPixmap(m_toggled ?
+                (m_selected ? m_pressed_selected : m_pressed)
+              : (m_selected ? m_released_selected : m_released));
+}
+
+void QGraphicsSelectablePixmapToggle::mousePressEvent(QGraphicsSceneMouseEvent* event)
+{
+  m_toggled = !m_toggled;
+  setPixmap(m_toggled ?
+                (m_selected ? m_pressed_selected : m_pressed)
+              : (m_selected ? m_released_selected : m_released));
+  toggled(m_toggled);
+  event->accept();
+}
+
+void QGraphicsSelectablePixmapToggle::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
+{
+  event->accept();
+}
+
+void QGraphicsSelectablePixmapToggle::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
+{
   event->accept();
 }
 

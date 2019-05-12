@@ -4,7 +4,7 @@ namespace Scenario
 {
 // SPace at the left of the main box in the main scenario view.
 static const constexpr double ScenarioLeftSpace = 0.; // -5
-static const constexpr double IntervalHeaderHeight = 20.;
+static const constexpr double IntervalHeaderHeight = 21.;
 
 class ItemType
 {
