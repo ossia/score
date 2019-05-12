@@ -18,12 +18,6 @@ View::View()
   auto lay = new QFormLayout{m_widg};
 
   // General settings
-  SETTINGS_UI_NUM_COMBOBOX_SETUP(
-      "Rate", Rate, (std::vector<int>{44100, 48000, 88200, 96000, 192000}));
-  SETTINGS_UI_NUM_COMBOBOX_SETUP(
-      "BufferSize",
-      BufferSize,
-      (std::vector<int>{32, 64, 128, 256, 512, 1024, 2048}));
   SETTINGS_UI_TOGGLE_SETUP(
         "Auto-Stereo",
         AutoStereo);

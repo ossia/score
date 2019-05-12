@@ -104,7 +104,7 @@ public:
       set_informations(
           devices[card_list->itemData(card_list->currentIndex()).toInt()]);
     }
-    con(m, &Model::changed, &v, [=, &m] {
+    con(m, &Model::changed, this, [=, &m] {
       setCard(card_list, m.getCardOut());
     });
 
