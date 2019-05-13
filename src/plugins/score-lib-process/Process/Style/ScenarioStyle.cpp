@@ -82,7 +82,9 @@ Style::Style(score::Skin& s) noexcept
     , SlotHeaderBrush{Qt::transparent}
 
     , RectPen{Qt::transparent}
+    , RectHighlightPen{Qt::transparent}
     , RectBrush{Qt::transparent}
+    , RectHighlightBrush{Qt::transparent}
 
     , TransparentPen{Qt::transparent}
     , TransparentBrush{Qt::transparent}
@@ -251,5 +253,7 @@ void Style::update(const score::Skin&)
                                          Qt::RoundJoin};
   RectBrush = TransparentBrush;
   RectHighlightBrush = TransparentBrush;
+
+  LoopBrush = skin.Tender3.color();
 }
 }

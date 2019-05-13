@@ -20,7 +20,9 @@ void LayerView::setSelectionArea(QRectF) {}
 
 void LayerView::paint_impl(QPainter* p) const
 {
-  p->fillRect(boundingRect(), QColor(85, 75, 0, 200));
+  //QColor(85, 75, 0, 200)
+  auto& style = Process::Style::instance();
+  p->fillRect(boundingRect(), style.LoopBrush);
 }
 
 void LayerView::contextMenuEvent(QGraphicsSceneContextMenuEvent* event)
