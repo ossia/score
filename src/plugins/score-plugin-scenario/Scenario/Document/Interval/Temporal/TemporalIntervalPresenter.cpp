@@ -359,7 +359,7 @@ void TemporalIntervalPresenter::on_requestOverlayMenu(QPointF)
 
 double TemporalIntervalPresenter::rackHeight() const
 {
-  qreal height = m_model.smallView().size()
+  qreal height = 1. + m_model.smallView().size()
                  * (SlotHandle::handleHeight() + SlotHeader::headerHeight());
   for (const auto& slot : m_model.smallView())
   {
@@ -480,7 +480,8 @@ void TemporalIntervalPresenter::createSlot(int pos, const Slot& aSlt)
   {
     SlotPresenter p;
     p.header = new SlotHeader{*this, pos, m_view};
-    p.handle = new SlotHandle{*this, pos, !m_handles, m_view};
+    if(m_handles)
+      p.handle = new SlotHandle{*this, pos, m_view};
 
     // p.view = new SlotView{};
     m_slots.insert(m_slots.begin() + pos, std::move(p));
@@ -641,7 +642,7 @@ void TemporalIntervalPresenter::updatePositions()
   m_view->setHeight(rackHeight() + IntervalHeader::headerHeight());
 
   // Set the slots position graphically in order.
-  qreal currentSlotY = 0;
+  qreal currentSlotY = 1.;
 
   for (int i = 0; i < (int)m_slots.size(); i++)
   {
@@ -666,8 +667,8 @@ void TemporalIntervalPresenter::updatePositions()
     {
       slot.handle->setPos(QPointF{1, currentSlotY});
       slot.handle->setSlotIndex(i);
+      currentSlotY += SlotHandle::handleHeight();
     }
-    currentSlotY += SlotHandle::handleHeight();
   }
 
   // Horizontal shape
