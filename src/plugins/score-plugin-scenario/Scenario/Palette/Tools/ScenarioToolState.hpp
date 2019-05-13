@@ -14,6 +14,7 @@
 #include <Scenario/Document/State/StateModel.hpp>
 #include <Scenario/Document/State/StatePresenter.hpp>
 #include <Scenario/Document/State/StateView.hpp>
+#include <Scenario/Document/State/StateMenuOverlay.hpp>
 #include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
 #include <Scenario/Document/TimeSync/TimeSyncPresenter.hpp>
 #include <Scenario/Document/TimeSync/TimeSyncView.hpp>
@@ -121,6 +122,7 @@ protected:
                ? interval.id()
                : OptionalId<IntervalModel>{};
   }
+
   OptionalId<StateModel> itemToStateId(const QGraphicsItem* pressedItem) const
   {
     const auto& state
@@ -218,6 +220,9 @@ protected:
         tryFun(tn_fun, itemToTimeSyncId(item));
         break;
 
+      case StateMenuOverlay::static_type():
+        tryFun(st_fun, itemToStateId(item->parentItem()));
+        break;
       case StateView::static_type():
         tryFun(st_fun, itemToStateId(item));
         break;

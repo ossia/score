@@ -23,7 +23,8 @@ public:
     Event,
     State,
     Comment,
-    Condition
+    Condition,
+    StateOverlay
   };
 };
 

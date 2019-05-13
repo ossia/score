@@ -90,6 +90,8 @@ void TimeSyncView::setExtent(const VerticalExtent& extent)
 {
   prepareGeometryChange();
   m_extent = extent;
+  const auto h = m_extent.bottom() - m_extent.top();
+  setFlag(ItemHasNoContents, h < 3.);
   this->update();
 }
 
@@ -97,6 +99,8 @@ void TimeSyncView::setExtent(VerticalExtent&& extent)
 {
   prepareGeometryChange();
   m_extent = std::move(extent);
+  const auto h = m_extent.bottom() - m_extent.top();
+  setFlag(ItemHasNoContents, h < 3.);
   this->update();
 }
 

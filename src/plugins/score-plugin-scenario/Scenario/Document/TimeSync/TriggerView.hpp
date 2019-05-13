@@ -45,5 +45,11 @@ protected:
 
 private:
   void mousePressEvent(QGraphicsSceneMouseEvent*) override;
+
+  void hoverEnterEvent(QGraphicsSceneHoverEvent*) override;
+  void hoverLeaveEvent(QGraphicsSceneHoverEvent*) override;
+
+  bool m_selected: 1;
+  bool m_hovered: 1;
 };
 }

@@ -19,5 +19,7 @@
         <file>images/trigger@2x.png</file>
         <file>images/trigger-selected@2x.png</file>
         <file>images/trigger-selected.png</file>
+        <file>images/trigger-hovered.png</file>
+        <file>images/trigger-hovered@2x.png</file>
     </qresource>
 </RCC>

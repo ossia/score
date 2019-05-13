@@ -19,19 +19,28 @@ namespace Scenario
     static const auto p = score::get_pixmap(":/images/trigger-selected.png");
     return p;
   }
+  static const QPixmap& hoveredTriggerPixmap() {
+    static const auto p = score::get_pixmap(":/images/trigger-hovered.png");
+    return p;
+  }
 TriggerView::TriggerView(QGraphicsItem* parent)
     : QGraphicsPixmapItem{triggerPixmap(), parent}
+    , m_selected{false}
+    , m_hovered{false}
 {
   this->setCacheMode(QGraphicsItem::NoCache);
+  this->setAcceptHoverEvents(true);
   this->setAcceptDrops(true);
-  setFlag(ItemStacksBehindParent, true);
 }
 
 void TriggerView::setSelected(bool b) noexcept
 {
-  if(b)
+  m_selected = b;
+  if(m_selected) {
     setPixmap(selectedTriggerPixmap());
-  else {
+  } else if (m_hovered) {
+    setPixmap(hoveredTriggerPixmap());
+  } else {
     setPixmap(triggerPixmap());
   }
 }
@@ -40,6 +49,32 @@ void TriggerView::mousePressEvent(QGraphicsSceneMouseEvent* event)
 {
   if (event->button() == Qt::MouseButton::LeftButton)
     pressed(event->scenePos());
+}
+
+void TriggerView::hoverEnterEvent(QGraphicsSceneHoverEvent* event)
+{
+  m_hovered = true;
+  if(m_selected) {
+    setPixmap(selectedTriggerPixmap());
+  } else if (m_hovered) {
+    setPixmap(hoveredTriggerPixmap());
+  } else {
+    setPixmap(triggerPixmap());
+  }
+  event->accept();
+}
+
+void TriggerView::hoverLeaveEvent(QGraphicsSceneHoverEvent* event)
+{
+  m_hovered = false;
+  if(m_selected) {
+    setPixmap(selectedTriggerPixmap());
+  } else if (m_hovered) {
+    setPixmap(hoveredTriggerPixmap());
+  } else {
+    setPixmap(triggerPixmap());
+  }
+  event->accept();
 }
 
 void TriggerView::dropEvent(QGraphicsSceneDragDropEvent* event)

@@ -90,7 +90,7 @@ void EventView::paint(
   painter->setPen(skin.EventPen);
   painter->fillRect(
       QRectF(
-          QPointF(-1.3, 0), QPointF(1.3, m_extent.bottom() - m_extent.top())),
+          QPointF(-1.3, 0), QPointF(1.3, m_height)),
       skin.EventBrush);
 
 #if defined(SCORE_SCENARIO_DEBUG_RECTS)
@@ -102,16 +102,20 @@ void EventView::paint(
 void EventView::setExtent(const VerticalExtent& extent)
 {
   prepareGeometryChange();
-  m_extent = extent;
-  m_conditionItem.changeHeight(extent.bottom() - extent.top());
+  const auto h = extent.bottom() - extent.top();
+  m_conditionItem.changeHeight(h);
+  m_height = h;
+  setFlag(ItemHasNoContents, h < 3.);
   this->update();
 }
 
 void EventView::setExtent(VerticalExtent&& extent)
 {
   prepareGeometryChange();
-  m_conditionItem.changeHeight(extent.bottom() - extent.top());
-  m_extent = std::move(extent);
+  const auto h = extent.bottom() - extent.top();
+  m_conditionItem.changeHeight(h);
+  m_height = h;
+  setFlag(ItemHasNoContents, h < 3.);
   this->update();
 }
 
