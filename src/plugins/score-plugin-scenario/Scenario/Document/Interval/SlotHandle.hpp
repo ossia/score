@@ -25,7 +25,6 @@ public:
   SlotHandle(
       const IntervalPresenter& slotView,
       int slotIndex,
-      bool isstatic,
       QGraphicsItem* parent);
 
   const IntervalPresenter& presenter() const { return m_presenter; }
@@ -55,6 +54,5 @@ private:
   const IntervalPresenter& m_presenter;
   qreal m_width{};
   int m_slotIndex{};
-  bool m_static{};
 };
 }

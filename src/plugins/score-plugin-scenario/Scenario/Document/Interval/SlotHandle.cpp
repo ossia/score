@@ -25,17 +25,14 @@ namespace Scenario
 SlotHandle::SlotHandle(
     const IntervalPresenter& slotView,
     int slotIndex,
-    bool isstatic,
     QGraphicsItem* parent)
-    : QGraphicsItem{parent}
-    , m_presenter{slotView}
-    , m_width{slotView.view()->boundingRect().width()}
-    , m_slotIndex{slotIndex}
-    , m_static{isstatic} // TODO inheritance instead
+  : QGraphicsItem{parent}
+  , m_presenter{slotView}
+  , m_width{slotView.view()->boundingRect().width()}
+  , m_slotIndex{slotIndex}
 {
   this->setCacheMode(QGraphicsItem::NoCache);
-  if (!m_static)
-    this->setCursor(Qt::SizeVerCursor);
+  this->setCursor(Qt::SizeVerCursor);
 }
 
 int SlotHandle::slotIndex() const
@@ -75,40 +72,31 @@ void SlotHandle::setWidth(qreal width)
 
 void SlotHandle::mousePressEvent(QGraphicsSceneMouseEvent* event)
 {
-  if (!m_static)
-  {
-    m_presenter.pressed(event->scenePos());
-  }
+  m_presenter.pressed(event->scenePos());
   event->accept();
 }
 
 void SlotHandle::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 {
-  if (!m_static)
+  static bool moving = false;
+
+  if (!moving)
   {
-    static bool moving = false;
+    moving = true;
+    auto p = event->scenePos();
+    m_presenter.moved(p);
 
-    if (!moving)
-    {
-      moving = true;
-      auto p = event->scenePos();
-      m_presenter.moved(p);
-
-      auto view = getView(*this);
-      if (view)
-        view->ensureVisible(p.x(), p.y(), 1, 1);
-      moving = false;
-    }
+    auto view = getView(*this);
+    if (view)
+      view->ensureVisible(p.x(), p.y(), 1, 1);
+    moving = false;
   }
   event->accept();
 }
 
 void SlotHandle::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 {
-  if (!m_static)
-  {
-    m_presenter.released(event->scenePos());
-  }
+  m_presenter.released(event->scenePos());
   event->accept();
 }
 }
