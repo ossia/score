@@ -74,11 +74,43 @@ TemporalIntervalPresenter::TemporalIntervalPresenter(
       this,
       &TemporalIntervalPresenter::on_requestOverlayMenu);
 
+  // Execution
   con(interval,
       &IntervalModel::executionStateChanged,
       &v,
       &TemporalIntervalView::setExecutionState);
 
+  con(interval,
+      &IntervalModel::executionStarted,
+      this,
+      [=] {
+        m_view->setExecuting(true);
+        head->setExecuting(true);
+        m_view->updatePaths();
+        m_view->update();
+      },
+      Qt::QueuedConnection);
+  con(interval,
+      &IntervalModel::executionStopped,
+      this,
+      [=] {
+         m_view->setExecuting(false);
+         head->setExecuting(false);
+      },
+      Qt::QueuedConnection);
+  con(interval,
+      &IntervalModel::executionFinished,
+      this,
+      [=] {
+        m_view->setExecuting(false);
+        head->setExecuting(false);
+        m_view->setPlayWidth(0.);
+        m_view->updatePaths();
+        m_view->update();
+      },
+      Qt::QueuedConnection);
+
+  // Metadata
   const auto& metadata = m_model.metadata();
   con(metadata,
       &score::ModelMetadata::NameChanged,
@@ -94,6 +126,7 @@ TemporalIntervalPresenter::TemporalIntervalPresenter(
   m_header->on_textChanged();
   v.setExecutionState(m_model.executionState());
 
+  // Selection
   con(m_model.selection, &Selectable::changed, this, [&, head](bool b) {
     if(b)
       v.setZValue(ZPos::SelectedInterval);
@@ -106,7 +139,7 @@ TemporalIntervalPresenter::TemporalIntervalPresenter(
 
     head->setSelected(b);
   });
-  con(m_model, &IntervalModel::focusChanged, this, [&, head](bool b) {
+  con(m_model, &IntervalModel::focusChanged, this, [&](bool b) {
     qDebug() << "focus changed: " << m_model.metadata().getName() << b;
   });
 
@@ -129,7 +162,6 @@ TemporalIntervalPresenter::TemporalIntervalPresenter(
       });
 
   // Header set-up
-
   connect(
       head,
       &TemporalIntervalHeader::intervalHoverEnter,

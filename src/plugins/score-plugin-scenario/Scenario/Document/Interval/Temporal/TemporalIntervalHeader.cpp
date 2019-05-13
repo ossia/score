@@ -137,7 +137,7 @@ void TemporalIntervalHeader::paint(
 
 void TemporalIntervalHeader::updateButtons()
 {
-  double pos = m_previous_x;
+  double pos = m_previous_x - 2;
   auto& itv = m_presenter.model();
 
   if (m_rackButton && !itv.processes.empty())
@@ -233,19 +233,22 @@ void TemporalIntervalHeader::enableOverlay(bool b)
     });;
 
     // Speed slider
-    m_speed = new score::QGraphicsSlider{this};
-    m_speed->min = -1.;
-    m_speed->max = 5.;
-    m_speed->setRect({0., 0., 60., headerHeight() * 0.8});
-    m_speed->setValue((durations.speed() - m_speed->min) / (m_speed->max - m_speed->min));
-    connect(m_speed, &score::QGraphicsSlider::sliderMoved,
-            this, [this, min=m_speed->min, max=m_speed->max, &durations] {
-      durations.setSpeed(m_speed->value() * (max - min) + min);
-    });
-    connect(m_speed, &score::QGraphicsSlider::sliderReleased,
-            this, [this, min=m_speed->min, max=m_speed->max, &durations] {
-      durations.setSpeed(m_speed->value() * (max - min) + min);
-    });
+    if(m_executing)
+    {
+      m_speed = new score::QGraphicsSlider{this};
+      m_speed->min = -1.;
+      m_speed->max = 5.;
+      m_speed->setRect({0., 0., 60., headerHeight() * 0.8});
+      m_speed->setValue((durations.speed() - m_speed->min) / (m_speed->max - m_speed->min));
+      connect(m_speed, &score::QGraphicsSlider::sliderMoved,
+              this, [this, min=m_speed->min, max=m_speed->max, &durations] {
+        durations.setSpeed(m_speed->value() * (max - min) + min);
+      });
+      connect(m_speed, &score::QGraphicsSlider::sliderReleased,
+              this, [this, min=m_speed->min, max=m_speed->max, &durations] {
+        durations.setSpeed(m_speed->value() * (max - min) + min);
+      });
+    }
 
     updateButtons();
     m_overlay = true;
@@ -257,6 +260,12 @@ void TemporalIntervalHeader::setSelected(bool b)
   m_selected = b;
   enableOverlay(m_selected || m_hovered);
   on_textChanged();
+}
+
+void TemporalIntervalHeader::setExecuting(bool b)
+{
+  m_executing = b;
+  enableOverlay(m_selected || m_hovered);
 }
 
 void TemporalIntervalHeader::setLabel(const QString& label)
