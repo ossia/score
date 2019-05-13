@@ -37,6 +37,7 @@ public:
   void updateButtons();
   void enableOverlay(bool b);
   void setSelected(bool b);
+  void setExecuting(bool b);
   void setLabel(const QString& label);
 
 public:
@@ -78,5 +79,6 @@ private:
   bool m_selected : 1;
   bool m_hovered : 1;
   bool m_overlay : 1;
+  bool m_executing : 1;
 };
 }

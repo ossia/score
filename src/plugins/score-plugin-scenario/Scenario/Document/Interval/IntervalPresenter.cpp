@@ -66,30 +66,6 @@ IntervalPresenter::IntervalPresenter(
       &IntervalModel::heightPercentageChanged,
       this,
       &IntervalPresenter::heightPercentageChanged);
-  con(interval,
-      &IntervalModel::executionStarted,
-      this,
-      [=] {
-        m_view->setExecuting(true);
-        m_view->updatePaths();
-        m_view->update();
-      },
-      Qt::QueuedConnection);
-  con(interval,
-      &IntervalModel::executionStopped,
-      this,
-      [=] { m_view->setExecuting(false); },
-      Qt::QueuedConnection);
-  con(interval,
-      &IntervalModel::executionFinished,
-      this,
-      [=] {
-        m_view->setExecuting(false);
-        m_view->setPlayWidth(0.);
-        m_view->updatePaths();
-        m_view->update();
-      },
-      Qt::QueuedConnection);
 
   con(interval.consistency,
       &ModelConsistency::validChanged,
