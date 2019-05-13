@@ -153,6 +153,8 @@ struct SCORE_LIB_PROCESS_EXPORT Style
   QBrush RectBrush;
   QBrush RectHighlightBrush;
 
+  QBrush LoopBrush;
+
   const QPen TransparentPen;
   const QBrush TransparentBrush;
   const QPen NoPen;
