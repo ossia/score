@@ -51,7 +51,7 @@ QRectF TemporalIntervalView::boundingRect() const
   qreal x = std::min(0., minWidth());
   qreal rectW = infinite() ? defaultWidth() : maxWidth();
   rectW -= x;
-  return {x, -1. , rectW, qreal(intervalAndRackHeight()) + 1.};
+  return {x, -1. , rectW, qreal(intervalAndRackHeight()) + 10.};
 }
 
 const TemporalIntervalPresenter& TemporalIntervalView::presenter() const
@@ -226,14 +226,11 @@ void TemporalIntervalView::paint(
     QWidget*)
 {
   auto& painter = *p;
+
   painter.setRenderHint(QPainter::Antialiasing, false);
   auto& skin = Process::Style::instance();
-  painter.fillPath(shape(), Qt::white);
-/*
-  painter.setPen(Qt::red);
-  painter.setBrush(Qt::transparent);
-  painter.drawRect(boundingRect());
-  */
+
+
   const qreal def_w = defaultWidth();
 
   // Draw the stuff present if there is a rack *in the model* ?
@@ -305,6 +302,14 @@ void TemporalIntervalView::paint(
     painter.setPen(skin.IntervalPlayDashPen);
     painter.drawPath(playedDashedPath);
   }
+
+
+  /*
+  painter.setPen(Qt::red);
+  painter.setBrush(Qt::green);
+  //painter.drawRect(boundingRect());
+  painter.drawPath(shape());
+  */
 
 #if defined(SCORE_SCENARIO_DEBUG_RECTS)
   painter.setPen(Qt::darkRed);

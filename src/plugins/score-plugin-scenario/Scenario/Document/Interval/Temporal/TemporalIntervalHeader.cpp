@@ -49,8 +49,7 @@ TemporalIntervalHeader::TemporalIntervalHeader(TemporalIntervalPresenter& pres)
       Qt::LeftButton); // needs to be enabled for dblclick
   this->setFlags(
       QGraphicsItem::ItemIsSelectable | QGraphicsItem::ItemClipsToShape
-      | QGraphicsItem::ItemClipsChildrenToShape);
-  this->setZValue(-1);
+      | QGraphicsItem::ItemClipsChildrenToShape | ItemStacksBehindParent);
 }
 
 QRectF TemporalIntervalHeader::boundingRect() const
@@ -121,22 +120,10 @@ void TemporalIntervalHeader::paint(
     painter->setPen(style.NoPen);
     painter->setBrush(style.SlotHeader.getBrush());
 
-    double buttons_width = rack_button_offset + 5.;
-
-    if (m_mute)
-      buttons_width += interval_header_button_spacing;
-    if (m_add)
-      buttons_width += interval_header_button_spacing;
-    if(m_speed)
-      buttons_width += m_speed->boundingRect().width();
-
-    QPolygonF poly;
-    poly << QPointF{0., qreal(IntervalHeader::headerHeight()) - 0.5}
-         << QPointF{5., 0.}
-         << QPointF{m_previous_x + text_width + buttons_width, 0.}
-         << QPointF{m_previous_x + text_width + buttons_width + 5., qreal(IntervalHeader::headerHeight()) - 0.5};
-
-    painter->drawPolygon(poly);
+    updateShape();
+    painter->drawPolygon(m_poly);
+    //painter->setPen(Qt::red);
+    //painter->drawPath(shape());
     painter->setRenderHint(QPainter::Antialiasing, false);
   }
 
@@ -169,6 +156,7 @@ void TemporalIntervalHeader::updateButtons()
   if(m_speed)
       m_speed->setPos(pos, headerHeight() * 0.05);
 
+  updateShape();
 }
 
 void TemporalIntervalHeader::enableOverlay(bool b)
@@ -259,7 +247,6 @@ void TemporalIntervalHeader::setSelected(bool b)
   m_selected = b;
   enableOverlay(m_selected || m_hovered);
   on_textChanged();
-  update();
 }
 
 void TemporalIntervalHeader::setLabel(const QString& label)
@@ -273,6 +260,33 @@ void TemporalIntervalHeader::mouseDoubleClickEvent(
   doubleClicked();
 }
 
+void TemporalIntervalHeader::updateShape() noexcept
+{
+  m_poly.clear();
+  const auto text_width = m_textRectCache.width();
+  double rack_button_offset = 0.;
+
+  auto& itv = m_presenter.model();
+  if (m_rackButton && !itv.processes.empty())
+    rack_button_offset += interval_header_rack_button_spacing;
+
+  double buttons_width = rack_button_offset + 5.;
+
+  if (m_mute)
+    buttons_width += interval_header_button_spacing;
+  if (m_add)
+    buttons_width += interval_header_button_spacing;
+  if(m_speed)
+    buttons_width += m_speed->boundingRect().width();
+
+  m_poly << QPointF{0., qreal(IntervalHeader::headerHeight()) - 0.5}
+         << QPointF{5., 0.}
+         << QPointF{m_previous_x + text_width + buttons_width, 0.}
+         << QPointF{m_previous_x + text_width + buttons_width + 5., qreal(IntervalHeader::headerHeight()) - 0.5};
+
+  update();
+}
+
 void TemporalIntervalHeader::setState(IntervalHeader::State s)
 {
   if (s == m_state)
@@ -280,7 +294,6 @@ void TemporalIntervalHeader::setState(IntervalHeader::State s)
 
   m_state = s;
   on_textChanged();
-  update();
 }
 
 void TemporalIntervalHeader::on_textChanged()
@@ -369,4 +382,44 @@ void TemporalIntervalHeader::dropEvent(QGraphicsSceneDragDropEvent* event)
 {
   m_view->dropEvent(event);
 }
+}
+
+
+bool Scenario::TemporalIntervalHeader::contains(const QPointF& point) const
+{
+  return QGraphicsItem::contains(point);
+  /*
+  if(!m_selected && !m_hovered)
+  {
+    bool insmallrect = point.x() > 2. && point.x() < m_width - 2.
+        && point.y() > headerHeight() - headerHeight() / 2.;
+    return insmallrect || m_textRectCache.adjusted(m_previous_x, 0, m_previous_x, 0).contains(point);
+  }
+  else
+  {
+    return m_poly.containsPoint(point, Qt::OddEvenFill);
+  }
+  */
+}
+
+QPainterPath Scenario::TemporalIntervalHeader::shape() const
+{
+  return QGraphicsItem::shape();
+  /* TOOD improve it
+  if(m_selected || m_hovered)
+  {
+    return QGraphicsItem::shape();
+  }
+
+  QPainterPath p;
+
+  if(m_textRectCache.width() > 0)
+  {
+    p.addRect(m_textRectCache);
+    p.addRect(, headerHeight() / 2., m_width - 4., headerHeight() / 2.);
+  }
+
+
+  return p;
+  */
 }
