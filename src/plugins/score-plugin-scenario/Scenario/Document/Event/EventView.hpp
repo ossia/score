@@ -48,7 +48,7 @@ public:
 
   QRectF boundingRect() const override
   {
-    return {-3, -10., 6, qreal(m_extent.bottom() - m_extent.top() + 20)};
+    return {-1, -10., 6, m_height};
   }
 
   void paint(
@@ -96,9 +96,9 @@ private:
   ConditionView m_conditionItem;
   QString m_condition;
   score::ColorRef m_color;
+  double m_height{};
 
   ExecutionStatusProperty m_status{};
   bool m_selected{};
-  VerticalExtent m_extent;
 };
 }

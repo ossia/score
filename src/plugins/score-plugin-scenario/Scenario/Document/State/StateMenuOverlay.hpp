@@ -21,6 +21,13 @@ public:
     this->setAcceptHoverEvents(true);
   }
 
+  static constexpr int static_type()
+  {
+    return QGraphicsItem::UserType + ItemType::StateOverlay;
+  }
+
+  int type() const override { return static_type(); }
+
   QRectF boundingRect() const override
   {
     return {-1, -1, 16, 16};

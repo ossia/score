@@ -51,7 +51,7 @@ QRectF TemporalIntervalView::boundingRect() const
   qreal x = std::min(0., minWidth());
   qreal rectW = infinite() ? defaultWidth() : maxWidth();
   rectW -= x;
-  return {x, -1. , rectW, qreal(intervalAndRackHeight()) + 10.};
+  return {x, -1. , rectW, qreal(intervalAndRackHeight()) + 1.};
 }
 
 const TemporalIntervalPresenter& TemporalIntervalView::presenter() const

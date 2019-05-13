@@ -59,7 +59,10 @@ void SlotHandle::paint(
     QWidget* widget)
 {
   const auto& style = Process::Style::instance();
-
+  //
+  //painter->setPen(Qt::red);
+  //painter->setBrush(Qt::blue);
+  //painter->drawRect(boundingRect());
   painter->fillRect(boundingRect(), style.ProcessViewBorder.getBrush());
 }
 
@@ -73,7 +76,9 @@ void SlotHandle::setWidth(qreal width)
 void SlotHandle::mousePressEvent(QGraphicsSceneMouseEvent* event)
 {
   if (!m_static)
+  {
     m_presenter.pressed(event->scenePos());
+  }
   event->accept();
 }
 
@@ -82,6 +87,7 @@ void SlotHandle::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
   if (!m_static)
   {
     static bool moving = false;
+
     if (!moving)
     {
       moving = true;

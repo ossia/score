@@ -41,6 +41,7 @@ TemporalIntervalHeader::TemporalIntervalHeader(TemporalIntervalPresenter& pres)
     , m_presenter{pres}
     , m_selected{false}
     , m_hovered{false}
+    , m_overlay{false}
 {
   this->setCacheMode(QGraphicsItem::NoCache);
   this->setAcceptDrops(true);
@@ -54,7 +55,10 @@ TemporalIntervalHeader::TemporalIntervalHeader(TemporalIntervalPresenter& pres)
 
 QRectF TemporalIntervalHeader::boundingRect() const
 {
-  return {0., 0., m_width, qreal(IntervalHeader::headerHeight())};
+  if(Q_UNLIKELY(m_overlay))
+    return {0., 0., m_width, qreal(IntervalHeader::headerHeight())};
+  else
+    return {5., 0., m_width - 10., qreal(IntervalHeader::headerHeight())};
 }
 
 void TemporalIntervalHeader::paint(
@@ -161,6 +165,10 @@ void TemporalIntervalHeader::updateButtons()
 
 void TemporalIntervalHeader::enableOverlay(bool b)
 {
+  prepareGeometryChange();
+
+  m_overlay = false;
+
   delete m_rackButton;
   m_rackButton = nullptr;
 
@@ -191,6 +199,7 @@ void TemporalIntervalHeader::enableOverlay(bool b)
       });
 
       m_rackButton->setSelected(b);
+      m_overlay = true;
   }
 
   if (b)
@@ -239,6 +248,7 @@ void TemporalIntervalHeader::enableOverlay(bool b)
     });
 
     updateButtons();
+    m_overlay = true;
   }
 }
 
@@ -294,6 +304,7 @@ void TemporalIntervalHeader::setState(IntervalHeader::State s)
 
   m_state = s;
   on_textChanged();
+  enableOverlay(m_selected || m_hovered);
 }
 
 void TemporalIntervalHeader::on_textChanged()

@@ -77,5 +77,6 @@ private:
 
   bool m_selected : 1;
   bool m_hovered : 1;
+  bool m_overlay : 1;
 };
 }
