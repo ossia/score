@@ -57,17 +57,24 @@ protected:
   void mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event) override;
 
 private:
+  void updateShape() noexcept;
   void setState(IntervalHeader::State s) override;
   void on_textChanged() override;
+  bool contains(const QPointF& point) const override;
+  QPainterPath shape() const override;
+
   qreal m_previous_x{};
 
   QRectF m_textRectCache;
   QImage m_line;
+  QPolygonF m_poly;
+
   score::QGraphicsSelectablePixmapToggle* m_rackButton{};
   score::QGraphicsPixmapToggle* m_mute{};
   score::QGraphicsSlider* m_speed{};
   score::QGraphicsPixmapButton* m_add{};
   TemporalIntervalPresenter& m_presenter;
+
   bool m_selected : 1;
   bool m_hovered : 1;
 };

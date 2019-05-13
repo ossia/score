@@ -290,7 +290,7 @@ QPainterPath Scenario::IntervalView::shape() const
   qreal rectW = infinite() ? defaultWidth() : maxWidth();
   rectW -= x;
   QPainterPath p;
-  p.addRect({x, -1., rectW, 0.});
+  p.addRect({x, -1., rectW, intervalAndRackHeight()});
   return p;
 }
 
@@ -300,7 +300,7 @@ QPainterPath Scenario::IntervalView::opaqueArea() const
   qreal rectW = infinite() ? defaultWidth() : maxWidth();
   rectW -= x;
   QPainterPath p;
-  p.addRect({x, -1., rectW, 0.});
+  p.addRect({x, -1., rectW, intervalAndRackHeight()});
   return p;
 }
 
@@ -309,5 +309,5 @@ bool Scenario::IntervalView::contains(const QPointF& pt) const
   qreal x = std::min(0., minWidth());
   qreal rectW = infinite() ? defaultWidth() : maxWidth();
   rectW -= x;
-  return QRectF{x, -1., rectW, 0.}.contains(pt);
+  return QRectF{x, -1., rectW, intervalAndRackHeight()}.contains(pt);
 }
