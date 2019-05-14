@@ -9,9 +9,9 @@
 
 namespace Scenario
 {
-score::ColorRef ExecutionStatusProperty::eventStatusColor(const Process::Style& col) noexcept
+score::ColorRef ExecutionStatusProperty::eventStatusColor(const Process::Style& col) const noexcept
 {
-  switch (m_status)
+  switch (status)
   {
     case ExecutionStatus::Editing:
       return col.EventDefault;
@@ -28,9 +28,9 @@ score::ColorRef ExecutionStatusProperty::eventStatusColor(const Process::Style& 
   }
 }
 
-score::ColorRef ExecutionStatusProperty::stateStatusColor(const Process::Style& col) noexcept
+score::ColorRef ExecutionStatusProperty::stateStatusColor(const Process::Style& col) const noexcept
 {
-  switch (m_status)
+  switch (status)
   {
     case ExecutionStatus::Editing:
       return col.StateOutline;
@@ -47,9 +47,9 @@ score::ColorRef ExecutionStatusProperty::stateStatusColor(const Process::Style& 
   }
 }
 
-score::ColorRef ExecutionStatusProperty::conditionStatusColor(const Process::Style& col) noexcept
+score::ColorRef ExecutionStatusProperty::conditionStatusColor(const Process::Style& col) const noexcept
 {
-  switch (m_status)
+  switch (status)
   {
     case ExecutionStatus::Editing:
       return col.ConditionDefault;

@@ -259,13 +259,13 @@ void ScenarioPresenter::setHeight(qreal height)
 
 void ScenarioPresenter::putToFront()
 {
-  m_view->setFlag(QGraphicsItem::ItemStacksBehindParent, false);
+  //m_view->setFlag(QGraphicsItem::ItemStacksBehindParent, false);
   m_view->setOpacity(1);
 }
 
 void ScenarioPresenter::putBehind()
 {
-  m_view->setFlag(QGraphicsItem::ItemStacksBehindParent, true);
+  //m_view->setFlag(QGraphicsItem::ItemStacksBehindParent, true);
   m_view->setOpacity(0.1);
 }
 
@@ -538,18 +538,17 @@ void ScenarioPresenter::on_stateCreated(const StateModel& state)
 
 void ScenarioPresenter::on_intervalCreated(const IntervalModel& interval)
 {
+  auto& startEvent = Scenario::startEvent(interval, m_layer);
+  auto& endEvent = Scenario::endEvent(interval, m_layer);
+
   auto cst_pres = new TemporalIntervalPresenter{
-      interval, m_context.context, true, m_view, this};
+      interval, startEvent, endEvent, m_context.context, true, m_view, this};
   m_intervals.insert(cst_pres);
   cst_pres->on_zoomRatioChanged(m_zoomRatio);
 
   m_viewInterface.on_intervalMoved(*cst_pres);
 
-  auto updateHeight = [
-          &
-          , sev = Scenario::startState(interval, m_layer).eventId()
-          , eev = Scenario::endState(interval, m_layer).eventId()
-      ] {
+  auto updateHeight = [&, sev = startEvent.id(), eev = endEvent.id()] {
     updateEventExtent(sev, const_cast<Scenario::ProcessModel&>(m_layer));
     updateEventExtent(eev, const_cast<Scenario::ProcessModel&>(m_layer));
   };

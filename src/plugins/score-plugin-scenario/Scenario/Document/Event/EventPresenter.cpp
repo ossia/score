@@ -52,14 +52,18 @@ EventPresenter::EventPresenter(
   con(m_model.metadata(),
       &score::ModelMetadata::ColorChanged,
       m_view,
-      &EventView::changeColor);
+      [this] { m_view->update(); });
 
   con(m_model.metadata(),
       &score::ModelMetadata::CommentChanged,
       m_view,
       &EventView::changeToolTip);
 
-  con(m_model, &EventModel::statusChanged, m_view, &EventView::setStatus);
+  con(m_model, &EventModel::statusChanged, m_view,
+      [this] {
+    m_view->update();
+    m_view->conditionItem().update();
+  });
 
   connect(
       m_view,

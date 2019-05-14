@@ -13,23 +13,21 @@
 
 namespace Scenario
 {
+class EventModel;
 class SCORE_PLUGIN_SCENARIO_EXPORT ConditionView final : public QObject,
                                                          public QGraphicsItem
 {
   W_OBJECT(ConditionView)
   Q_INTERFACES(QGraphicsItem)
 public:
-  ConditionView(QGraphicsItem* parent);
+  ConditionView(const EventModel& m, QGraphicsItem* parent);
 
-  using QGraphicsItem::QGraphicsItem;
   QRectF boundingRect() const override;
   void paint(
       QPainter* painter,
       const QStyleOptionGraphicsItem* option,
       QWidget* widget) override;
   void changeHeight(qreal newH);
-
-  void setStatus(ExecutionStatus c);
 
   void setSelected(bool selected);
 
@@ -48,12 +46,12 @@ private:
   QPainterPath opaqueArea() const override;
   void mousePressEvent(QGraphicsSceneMouseEvent*) override;
 
+  const EventModel& m_model;
   QPainterPath m_Cpath;
   QPainterPath m_strokedCpath;
   qreal m_height{0.};
   qreal m_width{40.};
   qreal m_CHeight{27.};
-  ExecutionStatusProperty m_status{};
   bool m_selected{false};
 };
 }

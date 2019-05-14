@@ -21,6 +21,11 @@ class DataStream;
 class JSONObject;
 class QObject;
 
+namespace Process
+{
+struct Style;
+}
+
 namespace Scenario
 {
 class StateModel;
@@ -54,22 +59,22 @@ public:
 
   // Timenode
   void changeTimeSync(const Id<TimeSyncModel>& elt) { m_timeSync = elt; }
-  const auto& timeSync() const { return m_timeSync; }
+  const auto& timeSync() const noexcept { return m_timeSync; }
 
   // States
   void addState(const Id<StateModel>& ds);
   void removeState(const Id<StateModel>& ds);
   void clearStates();
   using StateIdVec = ossia::small_vector<Id<StateModel>, 2>;
-  const StateIdVec& states() const;
+  const StateIdVec& states() const noexcept;
 
   // Other properties
-  const State::Expression& condition() const;
-  OffsetBehavior offsetBehavior() const;
-  VerticalExtent extent() const;
-  const TimeVal& date() const;
+  const State::Expression& condition() const noexcept;
+  OffsetBehavior offsetBehavior() const noexcept;
+  VerticalExtent extent() const noexcept;
+  const TimeVal& date() const noexcept;
   void translate(const TimeVal& deltaTime);
-  ExecutionStatus status() const;
+  ExecutionStatus status() const noexcept;
 
   void setCondition(const State::Expression& arg);
   void setExtent(const Scenario::VerticalExtent& extent);
@@ -78,6 +83,8 @@ public:
       Scenario::ExecutionStatus status,
       const Scenario::ScenarioInterface&);
   void setOffsetBehavior(Scenario::OffsetBehavior);
+
+  const QBrush& color(const Process::Style&) const noexcept;
 
 public:
   void extentChanged(const VerticalExtent& arg_1)
@@ -94,11 +101,8 @@ public:
 
 private:
   Id<TimeSyncModel> m_timeSync;
-
   StateIdVec m_states;
-
   State::Expression m_condition;
-
   VerticalExtent m_extent;
   TimeVal m_date{TimeVal::zero()};
 

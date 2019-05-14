@@ -39,7 +39,7 @@ EventModel::EventModel(
   metadata().setColor(Process::Style::instance().EventDefault);
 }
 
-VerticalExtent EventModel::extent() const
+VerticalExtent EventModel::extent() const noexcept
 {
   return m_extent;
 }
@@ -53,7 +53,7 @@ void EventModel::setExtent(const VerticalExtent& extent)
   }
 }
 
-const TimeVal& EventModel::date() const
+const TimeVal& EventModel::date() const noexcept
 {
   return m_date;
 }
@@ -92,17 +92,23 @@ void EventModel::setOffsetBehavior(OffsetBehavior f)
   }
 }
 
+const QBrush& EventModel::color(const Process::Style& skin) const noexcept
+{
+  if (m_status.get() == ExecutionStatus::Editing)
+    return metadata().getColor().getBrush();
+  else
+    return m_status.eventStatusColor(skin).getBrush();
+}
+
 void EventModel::translate(const TimeVal& deltaTime)
 {
   setDate(m_date + deltaTime);
 }
 
-ExecutionStatus EventModel::status() const
+ExecutionStatus EventModel::status() const noexcept
 {
   return m_status.get();
 }
-
-// TODO Maybe remove the need for this by passing to the scenario instead ?
 
 void EventModel::addState(const Id<StateModel>& ds)
 {
@@ -128,17 +134,17 @@ void EventModel::clearStates()
   statesChanged();
 }
 
-const EventModel::StateIdVec& EventModel::states() const
+const EventModel::StateIdVec& EventModel::states() const noexcept
 {
   return m_states;
 }
 
-const State::Expression& EventModel::condition() const
+const State::Expression& EventModel::condition() const noexcept
 {
   return m_condition;
 }
 
-OffsetBehavior EventModel::offsetBehavior() const
+OffsetBehavior EventModel::offsetBehavior() const noexcept
 {
   return m_offset;
 }

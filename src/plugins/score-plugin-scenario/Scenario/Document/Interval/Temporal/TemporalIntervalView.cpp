@@ -12,6 +12,7 @@
 #include <Scenario/Document/Interval/IntervalPresenter.hpp>
 #include <Scenario/Document/Interval/IntervalView.hpp>
 #include <Scenario/Document/Interval/SlotHandle.hpp>
+#include <Scenario/Document/Event/EventModel.hpp>
 
 #include <score/model/Skin.hpp>
 
@@ -244,6 +245,16 @@ void TemporalIntervalView::paint(
     rect.setWidth(def_w);
 
     painter.fillRect(rect, m_presenter.model().metadata().getColor().getBrush());
+
+    painter.setRenderHint(QPainter::Antialiasing, true);
+    auto& left_st = static_cast<TemporalIntervalPresenter&>(m_presenter).startEvent;
+    const auto& left_b = left_st.color(skin);
+    painter.fillRect(QRectF{0., 0., 0.5, height()}, left_b);
+
+    auto& right_st = static_cast<TemporalIntervalPresenter&>(m_presenter).endEvent;
+    const auto& right_b = right_st.color(skin);
+    painter.fillRect(QRectF{def_w - 0.5, 0., 0.5, height()}, right_b);
+    painter.setRenderHint(QPainter::Antialiasing, false);
   }
 
   // Colors
@@ -302,14 +313,6 @@ void TemporalIntervalView::paint(
     painter.setPen(skin.IntervalPlayDashPen);
     painter.drawPath(playedDashedPath);
   }
-
-
-  /*
-  painter.setPen(Qt::red);
-  painter.setBrush(Qt::green);
-  //painter.drawRect(boundingRect());
-  painter.drawPath(shape());
-  */
 
 #if defined(SCORE_SCENARIO_DEBUG_RECTS)
   painter.setPen(Qt::darkRed);

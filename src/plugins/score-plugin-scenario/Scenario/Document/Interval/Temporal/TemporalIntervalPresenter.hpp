@@ -12,6 +12,7 @@ class GraphicsShapeItem;
 }
 namespace Scenario
 {
+class EventModel;
 class SlotHandle;
 class SlotHeader;
 class DefaultHeaderDelegate;
@@ -30,8 +31,13 @@ public:
     return IntervalPresenter::id();
   } // To please boost::const_mem_fun
 
+  const EventModel& startEvent;
+  const EventModel& endEvent;
+
   TemporalIntervalPresenter(
       const IntervalModel& viewModel,
+      const EventModel& start,
+      const EventModel& end,
       const Process::ProcessPresenterContext& ctx,
       bool handles,
       QGraphicsItem* parentobject,
@@ -79,7 +85,8 @@ private:
   void startSlotDrag(int slot, QPointF) const override;
   void stopSlotDrag() const override;
 
-  bool m_handles{true};
   void setHeaderWidth(const SlotPresenter& slot, double w);
+
+  bool m_handles{true};
 };
 }
