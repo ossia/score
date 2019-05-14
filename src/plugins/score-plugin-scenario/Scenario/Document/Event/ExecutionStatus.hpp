@@ -30,23 +30,21 @@ enum class ExecutionStatus : int8_t
 };
 
 // TODO Use me for events, states
-class ExecutionStatusProperty
+struct ExecutionStatusProperty
 {
-public:
-  ExecutionStatus get() const noexcept { return m_status; }
+  ExecutionStatus status{ExecutionStatus::Editing};
+
+  ExecutionStatus get() const noexcept { return status; }
   void set(ExecutionStatus e) noexcept
   {
-    if (m_status != e)
+    if (status != e)
     {
-      m_status = e;
+      status = e;
     }
   }
-  score::ColorRef eventStatusColor(const Process::Style&) noexcept;
-  score::ColorRef stateStatusColor(const Process::Style&) noexcept;
-  score::ColorRef conditionStatusColor(const Process::Style&) noexcept;
-
-private:
-  ExecutionStatus m_status{ExecutionStatus::Editing};
+  score::ColorRef eventStatusColor(const Process::Style&) const noexcept;
+  score::ColorRef stateStatusColor(const Process::Style&) const noexcept;
+  score::ColorRef conditionStatusColor(const Process::Style&) const noexcept;
 };
 }
 

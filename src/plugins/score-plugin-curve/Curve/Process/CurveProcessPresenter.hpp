@@ -91,13 +91,13 @@ public:
 
   void putToFront() final override
   {
-    m_view->setFlag(QGraphicsItem::ItemStacksBehindParent, false);
+    //m_view->setFlag(QGraphicsItem::ItemStacksBehindParent, false);
     m_curve.enable();
   }
 
   void putBehind() final override
   {
-    m_view->setFlag(QGraphicsItem::ItemStacksBehindParent, true);
+    //m_view->setFlag(QGraphicsItem::ItemStacksBehindParent, true);
     m_curve.disable();
   }
 

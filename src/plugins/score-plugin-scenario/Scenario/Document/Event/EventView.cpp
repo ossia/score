@@ -29,12 +29,10 @@ namespace Scenario
 EventView::EventView(EventPresenter& presenter, QGraphicsItem* parent)
     : QGraphicsItem{parent}
     , m_presenter{presenter}
-    , m_conditionItem{this}
+    , m_conditionItem{presenter.model(), this}
 {
   this->setCacheMode(QGraphicsItem::NoCache);
   setAcceptDrops(true);
-
-  m_color = presenter.model().metadata().getColor();
 
   m_conditionItem.setVisible(false);
   m_conditionItem.setPos(-13.5, -13.5);
@@ -76,22 +74,15 @@ void EventView::paint(
   auto& skin = Process::Style::instance();
   painter->setRenderHint(QPainter::Antialiasing, false);
 
-  if (m_status.get() == ExecutionStatus::Editing)
-    skin.EventPen.setBrush(m_color.getBrush());
-  else
-    skin.EventPen.setBrush(m_status.eventStatusColor(skin).getBrush());
-
-  if (isSelected())
+  const auto rect = QRectF(QPointF(-1.3, 0.), QPointF(1.3, m_height));
+  if (Q_UNLIKELY(isSelected()))
   {
-    skin.EventPen.setBrush(skin.EventSelected.getBrush());
+    painter->fillRect(rect, skin.EventSelected.getBrush());
   }
-  skin.EventBrush = skin.EventPen.brush();
-
-  painter->setPen(skin.EventPen);
-  painter->fillRect(
-      QRectF(
-          QPointF(-1.3, 0), QPointF(1.3, m_height)),
-      skin.EventBrush);
+  else
+  {
+    painter->fillRect(rect, m_presenter.model().color(skin));
+  }
 
 #if defined(SCORE_SCENARIO_DEBUG_RECTS)
   painter->setPen(Qt::cyan);
@@ -119,13 +110,6 @@ void EventView::setExtent(VerticalExtent&& extent)
   this->update();
 }
 
-void EventView::setStatus(ExecutionStatus s)
-{
-  m_status.set(s);
-  m_conditionItem.setStatus(s);
-  update();
-}
-
 void EventView::setSelected(bool selected)
 {
   m_selected = selected;
@@ -138,12 +122,6 @@ void EventView::setSelected(bool selected)
 bool EventView::isSelected() const
 {
   return m_selected;
-}
-
-void EventView::changeColor(score::ColorRef newColor)
-{
-  m_color = newColor;
-  this->update();
 }
 
 void EventView::setWidthScale(double d)

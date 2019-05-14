@@ -63,7 +63,7 @@ void SlotHeader::paint(
   const auto& style = Process::Style::instance();
 
 
-  painter->fillRect(QRectF{0., 0., m_width, headerHeight() - 1}, style.SlotHeaderBrush);
+  painter->fillRect(QRectF{0., 0., m_width, headerHeight() - 1}, m_presenter.model().metadata().getColor().getBrush().color().darker());
   if (m_width > 20)
   {
     painter->setPen(style.SlotHeaderPen);

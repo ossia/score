@@ -61,13 +61,10 @@ public:
 
   void setCondition(const QString& cond);
   bool hasCondition() const;
+  ConditionView& conditionItem() noexcept { return m_conditionItem; }
 
   void setExtent(const VerticalExtent& extent);
   void setExtent(VerticalExtent&& extent);
-
-  void setStatus(ExecutionStatus s);
-
-  void changeColor(score::ColorRef);
 
   void setWidthScale(double);
   void changeToolTip(const QString&);
@@ -98,7 +95,6 @@ private:
   score::ColorRef m_color;
   double m_height{};
 
-  ExecutionStatusProperty m_status{};
   bool m_selected{};
 };
 }

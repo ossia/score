@@ -69,7 +69,7 @@ LayerPresenter::LayerPresenter(
 {
   using namespace Scenario;
   m_intervalPresenter = new TemporalIntervalPresenter{
-      layer.interval(), ctx, false, view, this};
+      layer.interval(), layer.startEvent(), layer.endEvent(), ctx, false, view, this};
   m_startStatePresenter = new StatePresenter{
       layer.BaseScenarioContainer::startState(), ctx, m_view, this};
   m_endStatePresenter = new StatePresenter{
@@ -208,13 +208,13 @@ void LayerPresenter::setHeight(qreal height)
 
 void LayerPresenter::putToFront()
 {
-  m_view->setFlag(QGraphicsItem::ItemStacksBehindParent, false);
+  //m_view->setFlag(QGraphicsItem::ItemStacksBehindParent, false);
   m_view->setOpacity(1);
 }
 
 void LayerPresenter::putBehind()
 {
-  m_view->setFlag(QGraphicsItem::ItemStacksBehindParent, true);
+  //m_view->setFlag(QGraphicsItem::ItemStacksBehindParent, true);
   m_view->setOpacity(0.1);
 }
 

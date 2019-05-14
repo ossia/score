@@ -24,6 +24,7 @@
 #include <Scenario/Document/Interval/IntervalPresenter.hpp>
 #include <Scenario/Document/Interval/SlotHandle.hpp>
 #include <Scenario/Document/Interval/Temporal/TemporalIntervalView.hpp>
+#include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentPresenter.hpp>
 
@@ -45,6 +46,8 @@ namespace Scenario
 {
 TemporalIntervalPresenter::TemporalIntervalPresenter(
     const IntervalModel& interval,
+    const EventModel& start,
+    const EventModel& end,
     const Process::ProcessPresenterContext& ctx,
     bool handles,
     QGraphicsItem* parentobject,
@@ -55,6 +58,8 @@ TemporalIntervalPresenter::TemporalIntervalPresenter(
                         ctx,
                         parent}
     , m_handles{handles}
+    , startEvent{start}
+    , endEvent{end}
 {
   m_header->setPos(5, -IntervalHeader::headerHeight());
   TemporalIntervalView& v = *view();
@@ -109,6 +114,13 @@ TemporalIntervalPresenter::TemporalIntervalPresenter(
         m_view->update();
       },
       Qt::QueuedConnection);
+
+  // Events
+
+  con(startEvent, &EventModel::statusChanged, m_view,
+      [this] { m_view->update(); });
+  con(endEvent, &EventModel::statusChanged, m_view,
+      [this] { m_view->update(); });
 
   // Metadata
   const auto& metadata = m_model.metadata();
@@ -651,7 +663,7 @@ void TemporalIntervalPresenter::updatePositions()
 
     if (slot.header)
     {
-      slot.header->setPos(QPointF{0, currentSlotY});
+      slot.header->setPos(QPointF{0.5, currentSlotY});
       slot.header->setSlotIndex(i);
     }
     currentSlotY += SlotHeader::headerHeight();
@@ -695,6 +707,7 @@ void TemporalIntervalPresenter::on_layerModelPutToFront(
         auto factory = m_context.processList.findDefaultFactory(
             elt.model->concreteKey());
         elt.presenter->putToFront();
+        elt.view->setZValue(2);
         slt.headerDelegate = factory->makeHeaderDelegate(*elt.presenter);
         slt.headerDelegate->setParentItem(slt.header);
         slt.headerDelegate->setFlag(
@@ -709,6 +722,7 @@ void TemporalIntervalPresenter::on_layerModelPutToFront(
       else
       {
         elt.presenter->putBehind();
+        elt.view->setZValue(1);
       }
     }
   }
@@ -860,6 +874,7 @@ void TemporalIntervalPresenter::setHeaderWidth(
     const SlotPresenter& slot,
     double w)
 {
+  w -= 1.;
   slot.header->setWidth(w);
   if (slot.handle)
     slot.handle->setWidth(w);

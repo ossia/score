@@ -3,6 +3,7 @@
 #include "ConditionView.hpp"
 
 #include <Process/Style/ScenarioStyle.hpp>
+#include <Scenario/Document/Event/EventModel.hpp>
 
 #include <QColor>
 #include <QGraphicsSceneMouseEvent>
@@ -33,8 +34,9 @@ static const QPainterPath conditionTrianglePath{[] {
   return p + s.createStroke(p);
 }()};
 
-ConditionView::ConditionView(QGraphicsItem* parent)
+ConditionView::ConditionView(const EventModel& model, QGraphicsItem* parent)
     : QGraphicsItem{parent}
+    , m_model{model}
 {
   this->setCacheMode(QGraphicsItem::NoCache);
   setFlag(ItemStacksBehindParent, true);
@@ -57,7 +59,7 @@ void ConditionView::paint(
   painter->setRenderHint(QPainter::Antialiasing, true);
 
   const QBrush& col = !m_selected
-      ? m_status.conditionStatusColor(style).getBrush()
+      ? ExecutionStatusProperty{m_model.status()}.conditionStatusColor(style).getBrush()
       : style.IntervalSelected.getBrush();
 
   style.ConditionPen.setBrush(col);
@@ -104,12 +106,6 @@ void ConditionView::changeHeight(qreal newH)
   m_strokedCpath = stk.createStroke(m_Cpath) + conditionTrianglePath;
 
   this->update();
-}
-
-void ConditionView::setStatus(ExecutionStatus c)
-{
-  m_status.set(c);
-  update();
 }
 
 void ConditionView::setSelected(bool selected)

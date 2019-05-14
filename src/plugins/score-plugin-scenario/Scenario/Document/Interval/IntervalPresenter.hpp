@@ -26,6 +26,7 @@ namespace Scenario
 class IntervalHeader;
 class IntervalModel;
 class IntervalView;
+class EventPresenter;
 
 struct LayerData
 {
@@ -112,7 +113,6 @@ protected:
   ZoomRatio m_zoomRatio{};
   IntervalView* m_view{};
   IntervalHeader* m_header{};
-
   const Process::ProcessPresenterContext& m_context;
 
   void updateChildren();
