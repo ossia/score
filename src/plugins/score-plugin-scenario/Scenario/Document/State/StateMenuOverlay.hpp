@@ -13,10 +13,10 @@
 namespace Scenario
 {
 
-class StateMenuOverlay final : public QGraphicsItem
+class StatePlusOverlay final : public QGraphicsItem
 {
 public:
-  StateMenuOverlay(StateView* parent) : QGraphicsItem{parent}
+  StatePlusOverlay(StateView* parent) : QGraphicsItem{parent}
   {
     this->setAcceptHoverEvents(true);
   }
@@ -76,7 +76,7 @@ private:
   {
     auto st = static_cast<StateView*>(parentItem());
     st->presenter().select();
-    if(auto p = event->pos(); p.x() > 4 && p.y() < 6)
+    if(auto p = event->pos(); p.x() > 4 && p.y() < 10)
     {
       st->startCreateMode();
     }
@@ -87,14 +87,14 @@ private:
   void hoverEnterEvent(QGraphicsSceneHoverEvent* event) override
   {
     auto p = event->pos();
-    m_big = p.x() > 4 && p.y() < 6;
+    m_big = p.x() > 4 && p.y() < 10;
     update();
   }
 
   void hoverMoveEvent(QGraphicsSceneHoverEvent* event) override
   {
     auto p = event->pos();
-    m_big = p.x() > 4 && p.y() < 6;
+    m_big = p.x() > 4 && p.y() < 10;
     update();
   }
   void hoverLeaveEvent(QGraphicsSceneHoverEvent* event) override

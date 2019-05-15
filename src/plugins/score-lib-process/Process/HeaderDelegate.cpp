@@ -15,7 +15,7 @@
 #include <Effect/EffectLayer.hpp>
 namespace Process
 {
-QImage makeGlyphs(const QString& glyph, const QPen& pen)
+QPixmap makeGlyphs(const QString& glyph, const QPen& pen)
 {
   QImage path;
 
@@ -44,7 +44,7 @@ QImage makeGlyphs(const QString& glyph, const QPen& pen)
     p.drawGlyphRun(QPointF{0, 0}, r[0]);
   }
 
-  return path;
+  return QPixmap::fromImage(path);
 }
 
 static double portY()
@@ -69,31 +69,6 @@ static double minPortWidth()
   return 20.;
 }
 
-static const QImage& fromGlyphGray() noexcept
-{
-  static const QImage gl{
-      makeGlyphs("I:", Process::Style::instance().GrayTextPen)};
-  return gl;
-}
-static const QImage& toGlyphGray() noexcept
-{
-  static const QImage gl{
-      makeGlyphs("O:", Process::Style::instance().GrayTextPen)};
-  return gl;
-}
-static const QImage& fromGlyphWhite() noexcept
-{
-  static const QImage gl{
-      makeGlyphs("I:", Process::Style::instance().IntervalHeaderTextPen)};
-  return gl;
-}
-static const QImage& toGlyphWhite() noexcept
-{
-  static const QImage gl{
-      makeGlyphs("O:", Process::Style::instance().IntervalHeaderTextPen)};
-  return gl;
-}
-
 DefaultHeaderDelegate::DefaultHeaderDelegate(const Process::LayerPresenter& p)
     : HeaderDelegate{p}
 {
@@ -102,8 +77,7 @@ DefaultHeaderDelegate::DefaultHeaderDelegate(const Process::LayerPresenter& p)
     ui_btn->setPos({0, 2});
 
   con(p.model(), &Process::ProcessModel::prettyNameChanged, this, [=] {
-    updateName();
-    updatePorts();
+    updateText();
     update();
   });
 
@@ -121,14 +95,12 @@ DefaultHeaderDelegate::DefaultHeaderDelegate(const Process::LayerPresenter& p)
       this,
       [=](bool b) {
         m_sel = b;
-        updateName();
-        updatePorts();
+        updateText();
         update();
       },
       Qt::QueuedConnection);
 
-  updateName();
-  updatePorts();
+  updateText();
 }
 
 DefaultHeaderDelegate::~DefaultHeaderDelegate() {}
@@ -138,20 +110,30 @@ void DefaultHeaderDelegate::updateBench(double d)
   const auto& style = Process::Style::instance();
   m_bench = makeGlyphs(
       QString::number(d, 'g', 3),
-      m_sel ? style.IntervalHeaderTextPen : style.GrayTextPen);
+      m_sel ? style.IntervalHeaderTextPen : style.SlotHeaderTextPen);
   update();
 }
 
-void DefaultHeaderDelegate::updateName()
+void DefaultHeaderDelegate::updateText()
 {
   if (presenter)
   {
-    const auto& style = Process::Style::instance();
-    m_line = makeGlyphs(
-        presenter->model().prettyName(),
-        m_sel ? style.IntervalHeaderTextPen : style.GrayTextPen);
+    auto& style = Process::Style::instance();
+    auto& model = presenter->model();
+    const QPen& pen = m_sel ? style.IntervalHeaderTextPen : textPen(style, model);
+    m_line = makeGlyphs(model.prettyName(), pen);
+    m_fromGlyph = makeGlyphs("I:", pen);
+    m_toGlyph = makeGlyphs("O:", pen);
     update();
+    updatePorts();
   }
+}
+
+const QPen& DefaultHeaderDelegate::textPen(Style& style, const Process::ProcessModel& model) const noexcept
+{
+  score::ModelMetadata* parent_col = model.parent()->template findChild<score::ModelMetadata*>({}, Qt::FindDirectChildrenOnly);
+  style.SlotHeaderTextPen.setColor(parent_col->getColor().getBrush().color().lighter(180));
+  return style.SlotHeaderTextPen;
 }
 
 void DefaultHeaderDelegate::setSize(QSizeF sz)
@@ -239,50 +221,43 @@ void DefaultHeaderDelegate::paint(
   const auto w = boundingRect().width();
   if (w > minPortWidth())
   {
-    if (m_inPorts.empty())
+    const bool no_in = m_inPorts.empty();
+    const bool no_out = m_outPorts.empty();
+    if (no_in && no_out)
     {
-      painter->drawImage(QPointF{start, SCORE_YPOS(1., -1.)}, m_line);
-      painter->drawImage(QPointF{w - 32., SCORE_YPOS(1., -1.)}, m_bench);
-      if (m_sel)
-      {
-        painter->drawImage(
+      painter->drawPixmap(QPointF{start, SCORE_YPOS(1., -1.)}, m_line);
+      painter->drawPixmap(QPointF{w - 32., SCORE_YPOS(1., -1.)}, m_bench);
+    }
+    else if(no_in)
+    {
+      painter->drawPixmap(QPointF{start, SCORE_YPOS(1., -1.)}, m_line);
+      painter->drawPixmap(QPointF{w - 32., SCORE_YPOS(1., -1.)}, m_bench);
+      painter->drawPixmap(
             QPointF{start + 8. + m_line.width(),
                     textY() + SCORE_YPOS(0., -2.)},
-            toGlyphWhite());
-      }
-      else
-      {
-        painter->drawImage(
-            QPointF{start + 8. + m_line.width(),
-                    textY() + SCORE_YPOS(0., -2.)},
-            toGlyphGray());
-      }
+            m_toGlyph);
+    }
+    else if(no_out)
+    {
+      double startText = start + 16. + m_inPorts.size() * 10.;
+      painter->drawPixmap(QPointF{startText, SCORE_YPOS(1., -1.)}, m_line);
+      painter->drawPixmap(QPointF{w - 32., SCORE_YPOS(1., -1.)}, m_bench);
+      painter->drawPixmap(
+          QPointF{start + 4., textY() + SCORE_YPOS(0., -2.)},
+          m_fromGlyph);
     }
     else
     {
       double startText = start + 16. + m_inPorts.size() * 10.;
-      painter->drawImage(QPointF{startText, SCORE_YPOS(1., -1.)}, m_line);
-      painter->drawImage(QPointF{w - 32., SCORE_YPOS(1., -1.)}, m_bench);
-      if (m_sel)
-      {
-        painter->drawImage(
+      painter->drawPixmap(QPointF{startText, SCORE_YPOS(1., -1.)}, m_line);
+      painter->drawPixmap(QPointF{w - 32., SCORE_YPOS(1., -1.)}, m_bench);
+        painter->drawPixmap(
             QPointF{start + 4., textY() + SCORE_YPOS(0., -2.)},
-            fromGlyphWhite());
-        painter->drawImage(
+            m_fromGlyph);
+        painter->drawPixmap(
             QPointF{startText + 8. + m_line.width(),
                     textY() + SCORE_YPOS(0., -2.)},
-            toGlyphWhite());
-      }
-      else
-      {
-        painter->drawImage(
-            QPointF{start + 4., textY() + SCORE_YPOS(0., -2.)},
-            fromGlyphGray());
-        painter->drawImage(
-            QPointF{startText + 8. + m_line.width(),
-                    textY() + SCORE_YPOS(0., -2.)},
-            toGlyphGray());
-      }
+            m_toGlyph);
     }
   }
 }

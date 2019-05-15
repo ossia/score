@@ -53,28 +53,30 @@ public:
     const auto& model = layer.model();
     using model_t = std::remove_reference_t<decltype(model)>;
 
-    con(model, &model_t::minChanged, this, [=] { updateName(); });
-    con(model, &model_t::maxChanged, this, [=] { updateName(); });
+    con(model, &model_t::minChanged, this, [=] { updateText(); });
+    con(model, &model_t::maxChanged, this, [=] { updateText(); });
 
-    updateName();
+    updateText();
   }
 
-  void updateName() override
+  void updateText() override
   {
     if (presenter)
     {
-      const auto& style = Process::Style::instance();
+      auto& style = Process::Style::instance();
       using model_t
           = std::remove_reference_t<decltype(std::declval<Layer_T>().model())>;
       auto& model = static_cast<const model_t&>(presenter->model());
+      const QPen& pen = m_sel ? style.IntervalHeaderTextPen : textPen(style, model);
 
-      QString txt = presenter->model().prettyName();
+      QString txt = model.prettyName();
       txt += "  Min: ";
       txt += QString::number(model.min());
       txt += "  Max: ";
       txt += QString::number(model.max());
-      m_line = Process::makeGlyphs(
-          txt, m_sel ? style.IntervalHeaderTextPen : style.GrayTextPen);
+      m_line = Process::makeGlyphs(txt, pen);
+      m_fromGlyph = Process::makeGlyphs("I:", pen);
+      m_toGlyph = Process::makeGlyphs("O:", pen);
       update();
       updatePorts();
     }

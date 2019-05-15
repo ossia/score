@@ -222,23 +222,23 @@ void IntervalView::setWarning(bool warning)
 
 const QBrush& IntervalView::intervalColor(const Process::Style& skin) const
 {
-  if(m_dropTarget)
+  if(Q_UNLIKELY(m_dropTarget))
   {
     return skin.IntervalDropTarget.getBrush();
   }
-  else if (m_selected)
+  else if (Q_UNLIKELY(m_selected))
   {
     return skin.IntervalSelected.getBrush();
   }
-  else if (m_warning)
+  else if (Q_UNLIKELY(m_warning))
   {
     return skin.IntervalWarning.getBrush();
   }
-  else if (!m_validInterval || m_state == IntervalExecutionState::Disabled)
+  else if (Q_UNLIKELY(!m_validInterval || m_state == IntervalExecutionState::Disabled))
   {
     return skin.IntervalInvalid.getBrush();
   }
-  else if (m_state == IntervalExecutionState::Muted)
+  else if (Q_UNLIKELY(m_state == IntervalExecutionState::Muted))
   {
     return skin.IntervalMuted.getBrush();
   }

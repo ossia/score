@@ -249,7 +249,7 @@ void StateView::updateOverlay()
       if(m_overlay)
         return;
 
-      m_overlay = new StateMenuOverlay{this};
+      m_overlay = new StatePlusOverlay{this};
       m_overlay->setPos(0, -14);
     }
     else

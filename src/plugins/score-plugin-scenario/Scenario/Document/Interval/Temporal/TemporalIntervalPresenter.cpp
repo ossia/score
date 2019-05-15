@@ -57,9 +57,9 @@ TemporalIntervalPresenter::TemporalIntervalPresenter(
                         new TemporalIntervalHeader{*this},
                         ctx,
                         parent}
-    , m_handles{handles}
     , startEvent{start}
     , endEvent{end}
+    , m_handles{handles}
 {
   m_header->setPos(5, -IntervalHeader::headerHeight());
   TemporalIntervalView& v = *view();
@@ -133,7 +133,15 @@ TemporalIntervalPresenter::TemporalIntervalPresenter(
 
   con(metadata,
       &score::ModelMetadata::ColorChanged,
-      m_header, &IntervalHeader::on_textChanged);
+      m_header, [this] {
+    m_view->update();
+    m_header->on_textChanged();
+    for(auto& slot : m_slots)
+    {
+      if(slot.headerDelegate)
+        slot.headerDelegate->updateText();
+    }
+  });
 
   m_header->on_textChanged();
   v.setExecutionState(m_model.executionState());
@@ -677,7 +685,7 @@ void TemporalIntervalPresenter::updatePositions()
 
     if (slot.handle)
     {
-      slot.handle->setPos(QPointF{1, currentSlotY});
+      slot.handle->setPos(QPointF{1., currentSlotY});
       slot.handle->setSlotIndex(i);
       currentSlotY += SlotHandle::handleHeight();
     }

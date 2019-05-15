@@ -42,6 +42,7 @@ TemporalIntervalHeader::TemporalIntervalHeader(TemporalIntervalPresenter& pres)
     , m_selected{false}
     , m_hovered{false}
     , m_overlay{false}
+    , m_executing{false}
 {
   this->setCacheMode(QGraphicsItem::NoCache);
   this->setAcceptDrops(true);
@@ -122,7 +123,7 @@ void TemporalIntervalHeader::paint(
     auto& style = Process::Style::instance();
     painter->setRenderHint(QPainter::Antialiasing, true);
     painter->setPen(style.NoPen);
-    painter->setBrush(style.SlotHeader.getBrush());
+    painter->setBrush(itv.muted() ? style.MutedIntervalHeaderBackground : style.SlotHeader.getBrush());
 
     updateShape();
     painter->drawPolygon(m_poly);

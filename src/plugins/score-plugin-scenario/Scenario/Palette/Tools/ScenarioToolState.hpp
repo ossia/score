@@ -220,7 +220,7 @@ protected:
         tryFun(tn_fun, itemToTimeSyncId(item));
         break;
 
-      case StateMenuOverlay::static_type():
+      case StatePlusOverlay::static_type():
         tryFun(st_fun, itemToStateId(item->parentItem()));
         break;
       case StateView::static_type():
