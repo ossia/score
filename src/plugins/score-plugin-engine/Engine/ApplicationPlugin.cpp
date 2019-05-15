@@ -402,6 +402,8 @@ void ApplicationPlugin::on_documentChanged(
     auto& doc_plugin = olddoc->context().plugin<DeviceDocumentPlugin>();
     doc_plugin.setConnection(false);
     */
+    if(auto widg = m_speedToolbar->findChild<Scenario::SpeedWidget*>())
+      delete widg;
   }
 
   if (newdoc)
