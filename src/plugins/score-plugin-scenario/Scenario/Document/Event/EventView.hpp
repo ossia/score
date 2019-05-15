@@ -48,7 +48,7 @@ public:
 
   QRectF boundingRect() const override
   {
-    return {-1, -10., 6, m_height};
+    return {-1, 0., 6, m_height};
   }
 
   void paint(
