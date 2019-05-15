@@ -42,13 +42,13 @@ private:
     {
       p->setRenderHint(QPainter::Antialiasing, true);
 
-      static QPen pen(score::Skin::instance().Tender3.color());
+      static QPen pen(score::Skin::instance().Smooth2.color());
       pen.setWidth(2.);
-      static QBrush br(score::Skin::instance().Tender3.color().lighter());
-      static QPen pen2(score::Skin::instance().Tender3.color().lighter());
+      static QBrush br(score::Skin::instance().Smooth2.color().lighter());
+      static QPen pen2(score::Skin::instance().Smooth2.color().lighter());
       pen.setWidth(2.);
       static QBrush br2(
-          score::Skin::instance().Tender3.color().lighter().lighter());
+          score::Skin::instance().Smooth2.color().lighter().lighter());
       p->setPen(pen);
 
       const auto h = boundingRect().height();

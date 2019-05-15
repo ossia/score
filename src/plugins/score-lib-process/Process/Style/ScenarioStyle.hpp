@@ -98,6 +98,8 @@ struct SCORE_LIB_PROCESS_EXPORT Style
   QPen IntervalBraceInvalid;
   QPen IntervalBrace;
 
+  QBrush MutedIntervalHeaderBackground;
+
   QPen IntervalHeaderSeparator;
   QPen FullViewIntervalHeaderSeparator;
 
@@ -143,7 +145,7 @@ struct SCORE_LIB_PROCESS_EXPORT Style
   QBrush DataPortBrush;
   QBrush MidiPortBrush;
 
-  QPen GrayTextPen;
+  QPen SlotHeaderTextPen;
 
   QPen SlotHeaderPen;
   QBrush SlotHeaderBrush;

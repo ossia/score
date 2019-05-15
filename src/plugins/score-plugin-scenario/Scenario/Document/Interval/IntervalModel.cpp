@@ -184,7 +184,18 @@ void IntervalModel::setExecutionState(IntervalExecutionState s)
   if (s != m_executionState)
   {
     m_executionState = s;
-    executionStateChanged(s);
+    executionStateChanged(executionState());
+  }
+}
+
+IntervalExecutionState IntervalModel::executionState() const
+{
+  switch(m_executionState)
+  {
+    case IntervalExecutionState::Enabled:
+      return m_muted ? IntervalExecutionState::Muted : IntervalExecutionState::Enabled;
+    default:
+      return m_executionState;
   }
 }
 
@@ -350,6 +361,7 @@ void IntervalModel::setMuted(bool m)
   {
     m_muted = m;
     mutedChanged(m);
+    executionStateChanged(executionState());
   }
 }
 

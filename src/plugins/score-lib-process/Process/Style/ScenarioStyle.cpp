@@ -17,7 +17,7 @@ Style::Style(score::Skin& s) noexcept
     , IntervalLoop{&s.Warn1}
     , IntervalWarning{&s.Warn2}
     , IntervalInvalid{&s.Warn3}
-    , IntervalMuted{&s.Tender2}
+    , IntervalMuted{&s.Gray}
     , IntervalDefaultLabel{&s.Gray}
     , IntervalDefaultBackground{&s.Transparent1}
     ,
@@ -71,6 +71,7 @@ Style::Style(score::Skin& s) noexcept
     , TimeRulerBackground{&s.Background1}
     , TimeRuler{&s.Base1}
     , LocalTimeRuler{&s.Gray}
+
 
     , SlotHeader{&s.Base5}
 
@@ -145,6 +146,7 @@ void Style::update(const score::Skin&)
 
   IntervalBrace = QPen{
       IntervalBase.getBrush(), 2, Qt::SolidLine, Qt::FlatCap, Qt::MiterJoin};
+
   IntervalBraceSelected = IntervalBrace;
   IntervalBraceSelected.setBrush(IntervalSelected.getBrush());
   IntervalBraceWarning = IntervalBrace;
@@ -152,6 +154,8 @@ void Style::update(const score::Skin&)
   IntervalBraceInvalid = IntervalBrace;
   IntervalBraceInvalid.setBrush(IntervalInvalid.getBrush());
   IntervalHeaderTextPen = QPen{IntervalHeaderText.getBrush().color()};
+
+  MutedIntervalHeaderBackground = skin.HalfDark;
 
   // don't: IntervalSolidPen.setCosmetic(true);
   // IntervalDashPen.setCosmetic(true);
@@ -228,8 +232,8 @@ void Style::update(const score::Skin&)
   DataPortBrush = DataPortPen.brush().color().darker();
   MidiPortBrush = MidiPortPen.brush().color().darker();
 
-  GrayTextPen.setBrush(TimenodeDefault.getBrush());
-  GrayTextPen.setCosmetic(true);
+  SlotHeaderTextPen.setBrush(TimenodeDefault.getBrush());
+  SlotHeaderTextPen.setCosmetic(true);
 
   SlotHeaderPen = QPen{IntervalHeaderSideBorder.getBrush(),
                        1,

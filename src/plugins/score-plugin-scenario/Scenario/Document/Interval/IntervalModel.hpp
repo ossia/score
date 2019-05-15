@@ -84,7 +84,7 @@ public:
   void setHeightPercentage(double arg);
   void setExecutionState(IntervalExecutionState);
 
-  IntervalExecutionState executionState() const { return m_executionState; }
+  IntervalExecutionState executionState() const;
 
   // Full view properties:
   ZoomRatio zoom() const;

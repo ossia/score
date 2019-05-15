@@ -22,7 +22,7 @@ class QWidget;
 
 namespace Scenario
 {
-class StateMenuOverlay;
+class StatePlusOverlay;
 class StatePresenter;
 
 class SCORE_PLUGIN_SCENARIO_EXPORT StateView final : public QObject,
@@ -80,7 +80,7 @@ private:
   void setDilatation(bool);
   void updateOverlay();
   StatePresenter& m_presenter;
-  StateMenuOverlay* m_overlay{};
+  StatePlusOverlay* m_overlay{};
   ExecutionStatusProperty m_status{};
 
   bool m_dilated : 1;

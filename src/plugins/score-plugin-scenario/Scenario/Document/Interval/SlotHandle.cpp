@@ -47,7 +47,7 @@ void SlotHandle::setSlotIndex(int v)
 
 QRectF SlotHandle::boundingRect() const
 {
-  return {-0.5, 0., m_width - 1., handleHeight()};
+  return {-0.5, 0., m_width, handleHeight()};
 }
 
 void SlotHandle::paint(
