@@ -1,12 +1,12 @@
 QWidget {
-    font: 9pt "Ubuntu";
+    font: 8pt "Ubuntu";
 }
 
 QMenu {
-    font: 9pt "Ubuntu";
+    font: 8pt "Ubuntu";
 }
 
 QMenuBar {
-    font: 9pt "Ubuntu";
+    font: 8pt "Ubuntu";
     font-weight: bold;
 }
