@@ -114,11 +114,19 @@ Skin::Skin() noexcept : SansFont{"Ubuntu"}, MonoFont
   // MonoFont.setHintingPreference(QFont::PreferVerticalHinting);
 
   Bold10Pt = SansFont;
+#if defined(_WIN32)
+  Bold10Pt.setPointSize(8);
+#else
   Bold10Pt.setPointSize(10);
+#endif
   Bold10Pt.setBold(true);
 
   Bold12Pt = Bold10Pt;
+#if defined(_WIN32)
+  Bold12Pt.setPointSize(10);
+#else
   Bold12Pt.setPointSize(12);
+#endif
 
   Medium7Pt = SansFont;
   Medium7Pt.setPointSize(7);
@@ -132,13 +140,21 @@ Skin::Skin() noexcept : SansFont{"Ubuntu"}, MonoFont
   Medium8Pt.setKerning(false);
 
   Medium10Pt = SansFont;
+#if defined(_WIN32)
+  Medium10Pt.setPointSize(8);
+#else
   Medium10Pt.setPointSize(10);
+#endif
   // Medium7Pt.setStyleStrategy(QFont::NoAntialias);
   // Medium7Pt.setHintingPreference(QFont::HintingPreference::PreferFullHinting);
   Medium10Pt.setKerning(false);
 
   Medium12Pt = SansFont;
+#if defined(_WIN32)
+  Medium12Pt.setPointSize(10);
+#else
   Medium12Pt.setPointSize(12);
+#endif
   // Medium12Pt.setStyleStrategy(QFont::NoAntialias);
   Medium12Pt.setKerning(false);
 
@@ -146,7 +162,11 @@ Skin::Skin() noexcept : SansFont{"Ubuntu"}, MonoFont
   SliderExtBrush = QColor("#666");
   SliderTextPen = QColor("silver");
   SliderFont = SansFont;
+#if defined(_WIN32)
+  SliderFont.setPointSize(7);
+#else
   SliderFont.setPointSize(10);
+#endif
   SliderFont.setWeight(QFont::DemiBold);
 }
 
