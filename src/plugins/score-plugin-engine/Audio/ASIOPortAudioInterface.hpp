@@ -152,7 +152,7 @@ public:
     addBufferSizeWidget(*w, m, v);
     addSampleRateWidget(*w, m, v);
 
-    con(m, &Model::changed, &v, [=, &m] {
+    con(m, &Model::changed, w, [=, &m] {
       setCard(card_list, m.getCardOut());
     });
     return w;

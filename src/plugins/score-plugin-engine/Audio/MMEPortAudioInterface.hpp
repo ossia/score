@@ -264,7 +264,7 @@ public:
 
       updateRates();
     }
-    con(m, &Model::changed, &v, [=, &m] {
+    con(m, &Model::changed, w, [=, &m] {
       setCardIn(card_in, m.getCardIn());
       setCardOut(card_out, m.getCardOut());
     });
