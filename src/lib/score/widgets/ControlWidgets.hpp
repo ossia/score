@@ -7,7 +7,7 @@
 #include <score_lib_base_export.h>
 
 #include <array>
-namespace Control
+namespace score
 {
 struct SCORE_LIB_BASE_EXPORT ToggleButton : public QPushButton
 {
@@ -37,12 +37,14 @@ protected:
 struct SCORE_LIB_BASE_EXPORT SpeedSlider : public score::Slider
 {
 public:
-  using Slider::Slider;
+  SpeedSlider(QWidget* parent = nullptr);
   bool moving = false;
   bool showText = true;
 
 protected:
   void paintEvent(QPaintEvent* event) override;
+
+  void mousePressEvent(QMouseEvent*) override;
 };
 
 struct SCORE_LIB_BASE_EXPORT VolumeSlider : public score::DoubleSlider

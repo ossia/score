@@ -319,18 +319,18 @@ QWidget* VSTFloatSlider::make_widget(
     QWidget* parent,
     QObject* context)
 {
-  auto sl = new Control::ValueDoubleSlider{parent};
+  auto sl = new score::ValueDoubleSlider{parent};
   sl->min = 0.;
   sl->max = 1.;
   sl->setValue(ossia::convert<double>(inlet.value()));
 
   QObject::connect(
-      sl, &Control::ValueDoubleSlider::sliderMoved, context, [=, &inlet, &ctx] {
+      sl, &score::ValueDoubleSlider::sliderMoved, context, [=, &inlet, &ctx] {
         sl->moving = true;
         ctx.dispatcher.submit<SetVSTControl>(inlet, sl->value());
       });
   QObject::connect(
-      sl, &Control::ValueDoubleSlider::sliderReleased, context, [&ctx, sl]() {
+      sl, &score::ValueDoubleSlider::sliderReleased, context, [&ctx, sl]() {
         ctx.dispatcher.commit();
         sl->moving = false;
       });

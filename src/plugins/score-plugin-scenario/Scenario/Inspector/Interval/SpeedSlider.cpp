@@ -60,11 +60,8 @@ SpeedWidget::SpeedWidget(
   }
 
   // Slider
-  auto speedSlider = new Control::SpeedSlider{this};
+  auto speedSlider = new score::SpeedSlider{this};
   speedSlider->showText = showText;
-  speedSlider->setTickInterval(100);
-  speedSlider->setMinimum(-100);
-  speedSlider->setMaximum(500);
   speedSlider->setValue(m_model.duration.speed() * 100.);
 
   con(model.duration, &IntervalDurations::speedChanged, this, [=](double s) {
@@ -73,12 +70,18 @@ SpeedWidget::SpeedWidget(
       speedSlider->setValue(r);
   });
 
-  lay->addWidget(speedSlider, 0, 0, 1, 5);
+  if(withButtons)
+  {
+    lay->addWidget(speedSlider, 0, 0, 1, 5);
 
-  for (int i = 0; i < 5; i++)
-    lay->setColumnStretch(i, 0);
-  lay->setColumnStretch(5, 10);
-
+    for (int i = 0; i < 5; i++)
+      lay->setColumnStretch(i, 0);
+    lay->setColumnStretch(5, 10);
+  }
+  else
+  {
+    lay->addWidget(speedSlider, 0, 0, 1, 1);
+  }
   connect(speedSlider, &QSlider::valueChanged, this, setSpeedFun);
 }
 

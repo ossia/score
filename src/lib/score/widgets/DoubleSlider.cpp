@@ -105,6 +105,6 @@ void Slider::paintWithText(const QString& s)
 
   p.setPen(skin.SliderTextPen);
   p.setFont(skin.SliderFont);
-  p.drawText(QRectF{0., 3.5, (width() - 16.), height() - 5.}, s, QTextOption(Qt::AlignRight));
+  p.drawText(QRectF{4., 2., (width() - 16.), height() - 4.}, s, QTextOption(Qt::AlignLeft));
 }
 }

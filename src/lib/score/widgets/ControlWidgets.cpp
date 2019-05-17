@@ -1,13 +1,16 @@
 #include <score/widgets/ControlWidgets.hpp>
 #include <score/widgets/SearchLineEdit.hpp>
 #include <ossia/network/dataspace/gain.hpp>
-
+#include <QMouseEvent>
 #include <QPainter>
 #include <QStyle>
 #include <QStyleOptionButton>
+#include <QGuiApplication>
 #include <QStyleOptionSlider>
-
+#include <QTimer>
+#include <QWindow>
 #include <cmath>
+#include <score/graphics/DefaultGraphicsSliderImpl.hpp>
 
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(score::SearchLineEdit)
@@ -27,12 +30,8 @@ SearchLineEdit::SearchLineEdit(QWidget* parent) : QLineEdit{parent}
 }
 
 SearchLineEdit::~SearchLineEdit() {
-
-}
 }
 
-namespace Control
-{
 SCORE_LIB_BASE_EXPORT
 const QPalette& transparentPalette()
 {
@@ -98,6 +97,14 @@ void ValueSlider::paintEvent(QPaintEvent* event)
   paintWithText(QString::number(value()));
 }
 
+SpeedSlider::SpeedSlider(QWidget* parent)
+  : Slider{parent}
+{
+  setTickInterval(100);
+  setMinimum(-100);
+  setMaximum(500);
+}
+
 void SpeedSlider::paintEvent(QPaintEvent*)
 {
   QString text;
@@ -106,6 +113,45 @@ void SpeedSlider::paintEvent(QPaintEvent*)
 
   text += QString::number(double(value()) * 0.01, 'f', 2);
   paintWithText(text);
+}
+
+void SpeedSlider::mousePressEvent(QMouseEvent* ev)
+{
+  if(ev->button() == Qt::LeftButton)
+    return Slider::mousePressEvent(ev);
+
+  if(qApp->keyboardModifiers() & Qt::CTRL)
+  {
+    setValue(100);
+  }
+  else
+  {
+    QTimer::singleShot(0, [&, &self=*this, pos = ev->screenPos()] {
+      auto w = new score::DoubleSpinboxWithEnter;
+      w->setWindowFlag(Qt::Tool);
+      w->setWindowFlag(Qt::FramelessWindowHint);
+      w->setRange(-1., 5.);
+      w->setDecimals(2);
+      w->setValue(self.value() / 100.);
+      w->show();
+      w->move(pos.x(), pos.y());
+      QTimer::singleShot(5, w, [w] { w->setFocus(); });
+      QObject::connect(
+          w,
+          SignalUtils::QDoubleSpinBox_valueChanged_double(),
+          &self,
+          [=, &self](double v) {
+            self.setValue(v * 100.);
+          });
+
+      QObject::connect(
+          w,
+          &DoubleSpinboxWithEnter::editingFinished,
+          w,
+          &QObject::deleteLater);
+    });
+  }
+  ev->ignore();
 }
 
 void VolumeSlider::paintEvent(QPaintEvent*)

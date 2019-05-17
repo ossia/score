@@ -23,9 +23,9 @@ inline QGraphicsItem* wrapWidget(QWidget* widg)
 {
   widg->setMaximumWidth(150);
   widg->setContentsMargins(0, 0, 0, 0);
-  widg->setPalette(Control::transparentPalette());
+  widg->setPalette(score::transparentPalette());
   widg->setAutoFillBackground(false);
-  widg->setStyleSheet(Control::transparentStylesheet());
+  widg->setStyleSheet(score::transparentStylesheet());
 
   auto wrap = new QGraphicsProxyWidget{};
   wrap->setWidget(widg);
@@ -48,7 +48,7 @@ struct FloatSlider
     auto max = slider.getMax();
     if (max - min == 0)
       max = min + 1;
-    auto sl = new Control::ValueDoubleSlider{parent};
+    auto sl = new score::ValueDoubleSlider{parent};
     sl->setOrientation(Qt::Horizontal);
     sl->setContentsMargins(0, 0, 0, 0);
     sl->min = min;
@@ -156,7 +156,7 @@ struct LogFloatSlider
     auto max = std::log2(slider.getMax());
     if (max - min == 0)
       max = min + 1;
-    auto sl = new Control::ValueLogDoubleSlider{parent};
+    auto sl = new score::ValueLogDoubleSlider{parent};
     sl->setOrientation(Qt::Horizontal);
     sl->setContentsMargins(0, 0, 0, 0);
     sl->min = min;
@@ -257,7 +257,7 @@ struct IntSlider
     auto max = slider.getMax();
     if (max - min == 0)
       max = min + 1;
-    auto sl = new Control::ValueSlider{parent};
+    auto sl = new score::ValueSlider{parent};
     sl->setOrientation(Qt::Horizontal);
     sl->setRange(min, max);
     sl->setValue(ossia::convert<int>(inlet.value()));
@@ -503,7 +503,7 @@ struct ChooserToggle
       QWidget* parent,
       QObject* context)
   {
-    auto sl = new Control::ToggleButton{slider.alternatives, parent};
+    auto sl = new score::ToggleButton{slider.alternatives, parent};
     sl->setCheckable(true);
     bool b = ossia::convert<bool>(inlet.value());
     if (b && !sl->isChecked())
