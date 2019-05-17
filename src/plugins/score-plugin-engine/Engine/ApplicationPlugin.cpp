@@ -386,14 +386,6 @@ void ApplicationPlugin::on_documentChanged(
     score::Document* olddoc,
     score::Document* newdoc)
 {
-  if (context.applicationSettings.gui)
-  {
-    auto cld
-        = m_speedToolbar->findChildren<Scenario::SpeedWidget*>("SpeedSlider");
-    if (!cld.empty())
-      cld[0]->deleteLater();
-  }
-
   if (olddoc)
   {
     // Disable the local tree for this document by removing
@@ -402,8 +394,10 @@ void ApplicationPlugin::on_documentChanged(
     auto& doc_plugin = olddoc->context().plugin<DeviceDocumentPlugin>();
     doc_plugin.setConnection(false);
     */
-    if(auto widg = m_speedToolbar->findChild<Scenario::SpeedWidget*>())
-      delete widg;
+
+    if (m_speedSliderAct)
+      m_speedToolbar->removeAction(m_speedSliderAct);
+    // TODO check whether the widget gets deleted
   }
 
   if (newdoc)
@@ -423,7 +417,7 @@ void ApplicationPlugin::on_documentChanged(
     {
       auto slider = new Scenario::SpeedWidget{
           root.baseInterval(), newdoc->context(), false, true, m_speedToolbar};
-      m_speedToolbar->addWidget(slider);
+      m_speedSliderAct = m_speedToolbar->addWidget(slider);
     }
 
     // Setup audio & devices
