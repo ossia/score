@@ -297,13 +297,13 @@ score::GUIElements ApplicationPlugin::makeGUIElements()
       false);
   {
     auto bar = new QToolBar;
-    auto sl = new Control::VolumeSlider{bar};
+    auto sl = new score::VolumeSlider{bar};
     sl->setMaximumSize(100, 20);
     sl->setValue(0.5);
     sl->setStatusTip("Change the master volume");
     bar->addWidget(sl);
     bar->addAction(m_audioEngineAct);
-    connect(sl, &Control::VolumeSlider::valueChanged, this, [=](double v) {
+    connect(sl, &score::VolumeSlider::valueChanged, this, [=](double v) {
       if (m_clock)
       {
         if (auto& st = m_clock->context.execState)
@@ -417,6 +417,7 @@ void ApplicationPlugin::on_documentChanged(
     {
       auto slider = new Scenario::SpeedWidget{
           root.baseInterval(), newdoc->context(), false, true, m_speedToolbar};
+      slider->setMinimumWidth(400);
       m_speedSliderAct = m_speedToolbar->addWidget(slider);
     }
 
