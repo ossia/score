@@ -86,6 +86,7 @@ private:
   std::unique_ptr<Execution::Clock> m_clock;
   QAction* m_audioEngineAct{};
   QToolBar* m_speedToolbar{};
+  QAction* m_speedSliderAct{};
   bool m_playing{false}, m_paused{false};
 
   bool m_updating_audio = false;
