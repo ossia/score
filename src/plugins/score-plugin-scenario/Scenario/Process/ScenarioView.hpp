@@ -25,8 +25,9 @@ class ScenarioPresenter;
 class ScenarioView final : public Process::LayerView
 {
 public:
-  ScenarioView(const ProcessModel& m, QGraphicsItem* parent);
+  ScenarioView(QGraphicsItem* parent);
   ~ScenarioView();
+  void init(ScenarioPresenter* p) { m_scenario = p; }
 
   void paint_impl(QPainter* painter) const override;
 
@@ -74,7 +75,7 @@ protected:
   void dropEvent(QGraphicsSceneDragDropEvent* event) override;
 
 private:
-  const ProcessModel& m_scenario;
+  ScenarioPresenter* m_scenario{};
   QRectF m_selectArea{};
   QPointF m_previousPoint{};
   ossia::optional<QRectF> m_dragLine{};

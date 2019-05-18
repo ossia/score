@@ -5,6 +5,7 @@
 #include <Process/LayerView.hpp>
 #include <Process/ProcessMimeSerialization.hpp>
 #include <Scenario/Application/Menus/ScenarioCopy.hpp>
+#include <Scenario/Process/ScenarioPresenter.hpp>
 
 #include <QApplication>
 #include <QColor>
@@ -25,8 +26,8 @@
 
 namespace Scenario
 {
-ScenarioView::ScenarioView(const ProcessModel& m, QGraphicsItem* parent)
-    : LayerView{parent}, m_scenario{m}
+ScenarioView::ScenarioView(QGraphicsItem* parent)
+    : LayerView{parent}
 {
   this->setFlags(
       ItemIsSelectable | ItemIsFocusable | ItemClipsChildrenToShape);
@@ -109,7 +110,7 @@ void ScenarioView::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 {
   if (event->buttons() & Qt::MiddleButton)
   {
-    auto obj = copySelectedScenarioElements(m_scenario);
+    auto obj = copySelectedScenarioElements(m_scenario->model());
     if (!obj.empty())
     {
       QDrag d{this};
@@ -167,15 +168,22 @@ void ScenarioView::contextMenuEvent(QGraphicsSceneContextMenuEvent* event)
 void ScenarioView::keyPressEvent(QKeyEvent* event)
 {
   QGraphicsItem::keyPressEvent(event);
-  if (event->key() == Qt::Key_Escape)
+
+  switch(event->key())
   {
-    escPressed();
-  }
-  else if (
-      event->key() == Qt::Key_Shift || event->key() == Qt::Key_Control
-      || event->key() == Qt::Key_Alt)
-  {
-    keyPressed(event->key());
+  case Qt::Key_Escape:
+      escPressed();
+      break;
+  case Qt::Key_Shift:
+  case Qt::Key_Control:
+  case Qt::Key_Alt:
+  case Qt::Key_Up:
+  case Qt::Key_Down:
+  case Qt::Key_Left:
+  case Qt::Key_Right:
+      keyPressed(event->key());
+  default:
+      break;
   }
 
   event->accept();
@@ -184,12 +192,20 @@ void ScenarioView::keyPressEvent(QKeyEvent* event)
 void ScenarioView::keyReleaseEvent(QKeyEvent* event)
 {
   QGraphicsItem::keyReleaseEvent(event);
-  if (event->key() == Qt::Key_Shift || event->key() == Qt::Key_Control
-      || event->key() == Qt::Key_Alt)
-  {
-    keyReleased(event->key());
-  }
 
+  switch(event->key())
+  {
+  case Qt::Key_Shift:
+  case Qt::Key_Control:
+  case Qt::Key_Alt:
+  case Qt::Key_Up:
+  case Qt::Key_Down:
+  case Qt::Key_Left:
+  case Qt::Key_Right:
+      keyReleased(event->key());
+  default:
+      break;
+  }
   event->accept();
 }
 
