@@ -10,7 +10,7 @@
 </style>
 <sodipodi:namedview  bordercolor="#666666" borderopacity="1" gridtolerance="10" guidetolerance="10" id="namedview3565" inkscape:current-layer="g3571" inkscape:cx="17.775325" inkscape:cy="17.999935" inkscape:pageopacity="0" inkscape:pageshadow="2" inkscape:window-height="480" inkscape:window-maximized="0" inkscape:window-width="774" inkscape:window-x="343" inkscape:window-y="126" inkscape:zoom="6.5425158" objecttolerance="10" pagecolor="#ffffff" showgrid="false">
 	</sodipodi:namedview>
-<g id="g3571" transform="matrix(1.25,0,0,-1.25,0,36.07175)" inkscape:groupmode="layer" inkscape:label="boutons_iscore">
+<g id="g3571" transform="matrix(1.25,0,0,-1.25,0,36.07175)" inkscape:groupmode="layer" inkscape:label="boutons_score">
 	<path id="path3573" inkscape:connector-curvature="0" class="st0" d="M0.5,0.5h27.9v27.9H0.5C0.5,28.4,0.5,0.5,0.5,0.5z"/>
 	<path id="path3575" inkscape:connector-curvature="0" d="M0,0h28.9v28.9H0V0z M1,27.9h26.9V1H1V27.9z"/>
 	<path id="path3579" inkscape:connector-curvature="0" d="M6.6,10.6l-4.5,3.6l4.5,3.6V10.6z"/>

@@ -1,5 +1,5 @@
 #pragma once
-#include <Device/Loading/IScoreDeviceLoader.hpp>
+#include <Device/Loading/ScoreDeviceLoader.hpp>
 #include <Device/Loading/JamomaDeviceLoader.hpp>
 #include <Device/Protocol/ProtocolList.hpp>
 #include <Explorer/Commands/Add/AddDevice.hpp>
@@ -61,7 +61,7 @@ class OSCLibraryHandler final : public Library::LibraryInterface
   {
     Device::Node n{Device::DeviceSettings{}, nullptr};
     bool ok
-        = (path.endsWith(".json") && Device::loadDeviceFromIScoreJSON(path, n))
+        = (path.endsWith(".json") && Device::loadDeviceFromScoreJSON(path, n))
           || (path.endsWith(".xml") && Device::loadDeviceFromXML(path, n))
           || (path.endsWith(".device")
               && Device::loadDeviceFromJamomaJSON(path, n));

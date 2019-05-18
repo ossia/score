@@ -1,4 +1,4 @@
-#include <IscoreIntegrationTests.hpp>
+#include <ScoreIntegrationTests.hpp>
 #include <Mocks/MockDevice.hpp>
 
 class TestStatesDragDrop: public TestBase

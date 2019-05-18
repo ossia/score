@@ -30,9 +30,9 @@
 ****************************************************************************/
 
 Custom class wizard example configuration file. -->
-<wizard version="1" kind="project" id="A.i-scorePlugin" category="B.CustomProjects">
-    <description>Creates an i-score plug-in.</description>
-    <displayname>i-score plug-in</displayname>;
+<wizard version="1" kind="project" id="A.scorePlugin" category="B.CustomProjects">
+    <description>Creates an score plug-in.</description>
+    <displayname>score plug-in</displayname>;
     <displaycategory>Custom Projects</displaycategory>
     <files>
         <file source="plugin.cpp" target="%ClassName%.cpp" openeditor="true"/>
@@ -43,7 +43,7 @@ Custom class wizard example configuration file. -->
     <fieldpagetitle>Plug-in parameters</fieldpagetitle>
     <fields>
         <field name="ClassName">
-            <fieldcontrol class="QLineEdit" validator="^[a-zA-Z0-9_]+$" defaulttext="MyIScorePlugin" placeholdertext="Enter a class name"/>
+            <fieldcontrol class="QLineEdit" validator="^[a-zA-Z0-9_]+$" defaulttext="MyScorePlugin" placeholdertext="Enter a class name"/>
             <fielddescription>Plug-in name:</fielddescription>
         </field>
         <field name="AUTOCONNECT">

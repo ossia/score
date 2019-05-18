@@ -11,7 +11,7 @@
 #include "Widgets/DeviceEditDialog.hpp"
 
 #include <Device/Address/AddressSettings.hpp>
-#include <Device/Loading/IScoreDeviceLoader.hpp>
+#include <Device/Loading/ScoreDeviceLoader.hpp>
 #include <Device/Loading/JamomaDeviceLoader.hpp>
 #include <Device/Protocol/DeviceInterface.hpp>
 #include <Device/Protocol/DeviceSettings.hpp>

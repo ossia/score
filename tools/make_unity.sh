@@ -2,15 +2,15 @@
 # note: useful snippets:
 #  find . -name '*.h' | sed 's/\.\//\/opt\/score-scan-build\//g' | xargs -n 1 dirname | sort | uniq | awk '{ print "    -I" $1 " \\" }'
 #  find . -name '*.hpp' | sed 's/\.\//\/opt\/score-scan-build\//g' | xargs -n 1 dirname | sort | uniq | awk '{ print "    -I" $1 " \\" }'
-#   ls | grep score | awk '{ print "    -I~/i-score/base/plugins/" $1 " \\" }'
+#   ls | grep score | awk '{ print "    -I~/score/base/plugins/" $1 " \\" }'
 
 SCORE_ROOT=/opt/score-static
 
-ls $HOME/i-score/API/OSSIA/ossia/**/*.cpp | grep -v phidget | awk '{ print "#include \"" $1  "\""} ' > /tmp/out.cpp
-ls $HOME/i-score/API/OSSIA/ossia-c/**/*.cpp | awk '{ print "#include \"" $1  "\""} ' >> /tmp/out.cpp
-ls $HOME/i-score/API/OSSIA/ossia-qt/**/*.cpp | awk '{ print "#include \"" $1  "\""} ' >> /tmp/out.cpp
-ls $HOME/i-score/base/lib/**/*.cpp | grep -v Test | awk '{ print "#include \"" $1  "\""} ' >> /tmp/out.cpp
-ls $HOME/i-score/base/plugins/**/*.cpp | grep -v Test | grep -v ExpressionParser | awk '{ print "#include \"" $1  "\""} ' >> /tmp/out.cpp
+ls $HOME/score/API/OSSIA/ossia/**/*.cpp | grep -v phidget | awk '{ print "#include \"" $1  "\""} ' > /tmp/out.cpp
+ls $HOME/score/API/OSSIA/ossia-c/**/*.cpp | awk '{ print "#include \"" $1  "\""} ' >> /tmp/out.cpp
+ls $HOME/score/API/OSSIA/ossia-qt/**/*.cpp | awk '{ print "#include \"" $1  "\""} ' >> /tmp/out.cpp
+ls $HOME/score/base/lib/**/*.cpp | grep -v Test | awk '{ print "#include \"" $1  "\""} ' >> /tmp/out.cpp
+ls $HOME/score/base/plugins/**/*.cpp | grep -v Test | grep -v ExpressionParser | awk '{ print "#include \"" $1  "\""} ' >> /tmp/out.cpp
 echo $SCORE_ROOT/**/mocs_compilation.cpp  | sort | uniq | sed 's/ /\n/g' | grep -v addon | while read -r file ; do
   if grep some_compilers $file; then
     ;
@@ -19,12 +19,12 @@ echo $SCORE_ROOT/**/mocs_compilation.cpp  | sort | uniq | sed 's/ /\n/g' | grep 
    fi
 done
 
-echo "$HOME/i-score/base/app/Application.cpp" | awk '{ print "#include \"" $1  "\""} ' >> /tmp/out.cpp
-echo "$HOME/i-score/API/3rdparty/ModernMIDI/ModernMIDI/midi_input.cpp" | awk '{ print "#include \"" $1  "\""} ' >> /tmp/out.cpp
-echo "$HOME/i-score/API/3rdparty/ModernMIDI/ModernMIDI/midi_output.cpp" | awk '{ print "#include \"" $1  "\""} ' >> /tmp/out.cpp
-echo "$HOME/i-score/API/3rdparty/ModernMIDI/ModernMIDI/midi_utils.cpp" | awk '{ print "#include \"" $1  "\""} ' >> /tmp/out.cpp
-echo "$HOME/i-score/API/3rdparty/ModernMIDI/ModernMIDI/music_theory.cpp" | awk '{ print "#include \"" $1  "\""} ' >> /tmp/out.cpp
-echo "$HOME/i-score/API/3rdparty/ModernMIDI/third_party/rtmidi/RtMidi.cpp" | awk '{ print "#include \"" $1  "\""} ' >> /tmp/out.cpp
+echo "$HOME/score/base/app/Application.cpp" | awk '{ print "#include \"" $1  "\""} ' >> /tmp/out.cpp
+echo "$HOME/score/API/3rdparty/ModernMIDI/ModernMIDI/midi_input.cpp" | awk '{ print "#include \"" $1  "\""} ' >> /tmp/out.cpp
+echo "$HOME/score/API/3rdparty/ModernMIDI/ModernMIDI/midi_output.cpp" | awk '{ print "#include \"" $1  "\""} ' >> /tmp/out.cpp
+echo "$HOME/score/API/3rdparty/ModernMIDI/ModernMIDI/midi_utils.cpp" | awk '{ print "#include \"" $1  "\""} ' >> /tmp/out.cpp
+echo "$HOME/score/API/3rdparty/ModernMIDI/ModernMIDI/music_theory.cpp" | awk '{ print "#include \"" $1  "\""} ' >> /tmp/out.cpp
+echo "$HOME/score/API/3rdparty/ModernMIDI/third_party/rtmidi/RtMidi.cpp" | awk '{ print "#include \"" $1  "\""} ' >> /tmp/out.cpp
 
 # -enable-checker alpha.clone.CloneChecker \ too much false positive for now
 CC="clang -O3 -flto" CXX="clang++ -O3 -flto" scan-build -o html \
@@ -77,7 +77,7 @@ CC="clang -O3 -flto" CXX="clang++ -O3 -flto" scan-build -o html \
     -DHAS_LV2=1 \
     -DLILV_SHARED=1 \
     -c /tmp/out.cpp \
-    "$HOME/i-score/base/plugins/score-lib-state/State/ExpressionParser.cpp" \
+    "$HOME/score/base/plugins/score-lib-state/State/ExpressionParser.cpp" \
     -I/usr/include/qt \
     -I/usr/include/qt/QtCore \
     -I/usr/include/qt/QtGui \
@@ -91,60 +91,60 @@ CC="clang -O3 -flto" CXX="clang++ -O3 -flto" scan-build -o html \
     -I/usr/include/qt/QtQuickControls2 \
     -I/usr/include/qt/QtXml \
     -I/usr/include/lilv-0 \
-    -I$HOME/i-score/API/OSSIA \
-    -I$HOME/i-score/API/3rdparty/asio/asio/include \
-    -I$HOME/i-score/API/3rdparty/flat_hash_map \
-    -I$HOME/i-score/API/3rdparty/hopscotch-map/src \
-    -I$HOME/i-score/API/3rdparty/SmallFunction/smallfun/include \
-    -I$HOME/i-score/API/3rdparty/brigand/include \
-    -I$HOME/i-score/API/3rdparty/chobo-shl/include \
-    -I$HOME/i-score/API/3rdparty/exprtk \
-    -I$HOME/i-score/API/3rdparty/frozen/include \
-    -I$HOME/i-score/API/3rdparty/GSL/include \
-    -I$HOME/i-score/API/3rdparty/ModernMIDI \
-    -I$HOME/i-score/API/3rdparty/readerwriterqueue \
-    -I$HOME/i-score/API/3rdparty/fmt \
-    -I$HOME/i-score/API/3rdparty/oscpack \
-    -I$HOME/i-score/API/3rdparty/nano-signal-slot/include \
-    -I$HOME/i-score/API/3rdparty/Servus/ \
-    -I$HOME/i-score/API/3rdparty/pybind11/include \
-    -I$HOME/i-score/API/3rdparty/rapidjson/include \
-    -I$HOME/i-score/API/3rdparty/spdlog/include \
-    -I$HOME/i-score/API/3rdparty/variant/include \
-    -I$HOME/i-score/API/3rdparty/websocketpp/ \
-    -I$HOME/i-score/3rdparty/QProgressIndicator \
-    -I$HOME/i-score/3rdparty/QRecentFilesMenu \
-    -I$HOME/i-score/3rdparty/Qt-Color-Widgets \
-    -I$HOME/i-score/3rdparty/quazip \
-    -I$HOME/i-score/base/app \
-    -I$HOME/i-score/base/lib \
-    -I$HOME/i-score/base/addons/iscore-addon-pd \
-    -I$HOME/i-score/base/addons/iscore-addon-shaders \
-    -I$HOME/i-score/base/addons/iscore-addon-shaders/3rdparty/libisf \
-    -I$HOME/i-score/base/plugins/ \
-    -I$HOME/i-score/base/plugins/score-lib-device \
-    -I$HOME/i-score/base/plugins/score-lib-inspector \
-    -I$HOME/i-score/base/plugins/score-lib-process \
-    -I$HOME/i-score/base/plugins/score-lib-state \
-    -I$HOME/i-score/base/plugins/score-plugin-automation \
-    -I$HOME/i-score/base/plugins/score-plugin-curve \
-    -I$HOME/i-score/base/plugins/score-plugin-deviceexplorer \
-    -I$HOME/i-score/base/plugins/score-plugin-engine \
-    -I$HOME/i-score/base/plugins/score-plugin-fx \
-    -I$HOME/i-score/base/plugins/score-plugin-inspector \
-    -I$HOME/i-score/base/plugins/score-plugin-js \
-    -I$HOME/i-score/base/plugins/score-plugin-library \
-    -I$HOME/i-score/base/plugins/score-plugin-loop \
-    -I$HOME/i-score/base/plugins/score-plugin-mapping \
-    -I$HOME/i-score/base/plugins/score-plugin-media \
-    -I$HOME/i-score/base/plugins/score-plugin-midi \
-    -I$HOME/i-score/base/plugins/score-plugin-pluginsettings \
-    -I$HOME/i-score/base/plugins/score-plugin-recording \
-    -I$HOME/i-score/base/plugins/score-plugin-scenario \
+    -I$HOME/score/API/OSSIA \
+    -I$HOME/score/API/3rdparty/asio/asio/include \
+    -I$HOME/score/API/3rdparty/flat_hash_map \
+    -I$HOME/score/API/3rdparty/hopscotch-map/src \
+    -I$HOME/score/API/3rdparty/SmallFunction/smallfun/include \
+    -I$HOME/score/API/3rdparty/brigand/include \
+    -I$HOME/score/API/3rdparty/chobo-shl/include \
+    -I$HOME/score/API/3rdparty/exprtk \
+    -I$HOME/score/API/3rdparty/frozen/include \
+    -I$HOME/score/API/3rdparty/GSL/include \
+    -I$HOME/score/API/3rdparty/ModernMIDI \
+    -I$HOME/score/API/3rdparty/readerwriterqueue \
+    -I$HOME/score/API/3rdparty/fmt \
+    -I$HOME/score/API/3rdparty/oscpack \
+    -I$HOME/score/API/3rdparty/nano-signal-slot/include \
+    -I$HOME/score/API/3rdparty/Servus/ \
+    -I$HOME/score/API/3rdparty/pybind11/include \
+    -I$HOME/score/API/3rdparty/rapidjson/include \
+    -I$HOME/score/API/3rdparty/spdlog/include \
+    -I$HOME/score/API/3rdparty/variant/include \
+    -I$HOME/score/API/3rdparty/websocketpp/ \
+    -I$HOME/score/3rdparty/QProgressIndicator \
+    -I$HOME/score/3rdparty/QRecentFilesMenu \
+    -I$HOME/score/3rdparty/Qt-Color-Widgets \
+    -I$HOME/score/3rdparty/quazip \
+    -I$HOME/score/base/app \
+    -I$HOME/score/base/lib \
+    -I$HOME/score/base/addons/score-addon-pd \
+    -I$HOME/score/base/addons/score-addon-shaders \
+    -I$HOME/score/base/addons/score-addon-shaders/3rdparty/libisf \
+    -I$HOME/score/base/plugins/ \
+    -I$HOME/score/base/plugins/score-lib-device \
+    -I$HOME/score/base/plugins/score-lib-inspector \
+    -I$HOME/score/base/plugins/score-lib-process \
+    -I$HOME/score/base/plugins/score-lib-state \
+    -I$HOME/score/base/plugins/score-plugin-automation \
+    -I$HOME/score/base/plugins/score-plugin-curve \
+    -I$HOME/score/base/plugins/score-plugin-deviceexplorer \
+    -I$HOME/score/base/plugins/score-plugin-engine \
+    -I$HOME/score/base/plugins/score-plugin-fx \
+    -I$HOME/score/base/plugins/score-plugin-inspector \
+    -I$HOME/score/base/plugins/score-plugin-js \
+    -I$HOME/score/base/plugins/score-plugin-library \
+    -I$HOME/score/base/plugins/score-plugin-loop \
+    -I$HOME/score/base/plugins/score-plugin-mapping \
+    -I$HOME/score/base/plugins/score-plugin-media \
+    -I$HOME/score/base/plugins/score-plugin-midi \
+    -I$HOME/score/base/plugins/score-plugin-pluginsettings \
+    -I$HOME/score/base/plugins/score-plugin-recording \
+    -I$HOME/score/base/plugins/score-plugin-scenario \
     -I$SCORE_ROOT/ \
     -I$SCORE_ROOT/API/OSSIA \
-    -I$SCORE_ROOT/base/addons/iscore-addon-pd \
-    -I$SCORE_ROOT/base/addons/iscore-addon-shaders \
+    -I$SCORE_ROOT/base/addons/score-addon-pd \
+    -I$SCORE_ROOT/base/addons/score-addon-shaders \
     -I$SCORE_ROOT/base/plugins/score-plugin-automation \
     -I$SCORE_ROOT/base/plugins/score-plugin-curve \
     -I$SCORE_ROOT/base/plugins/score-plugin-deviceexplorer \
@@ -168,13 +168,13 @@ CC="clang -O3 -flto" CXX="clang++ -O3 -flto" scan-build -o html \
     -I$SCORE_ROOT/API/3rdparty/Servus/servus/ServusQt_autogen \
     -I$SCORE_ROOT/API/OSSIA \
     -I$SCORE_ROOT/API/OSSIA/ossia_autogen \
-    -I$SCORE_ROOT/base/addons/iscore-addon-pd \
-    -I$SCORE_ROOT/base/addons/iscore-addon-pd/score_addon_pd_autogen \
-    -I$SCORE_ROOT/base/addons/iscore-addon-pd/Tests/Pd_DataflowTest_autogen \
-    -I$SCORE_ROOT/base/addons/iscore-addon-shaders \
-    -I$SCORE_ROOT/base/addons/iscore-addon-shaders/score_addon_shader_autogen \
-    -I$SCORE_ROOT/base/addons/iscore-addon-staticanalysis \
-    -I$SCORE_ROOT/base/addons/iscore-addon-staticanalysis/score_addon_staticanalysis_autogen \
+    -I$SCORE_ROOT/base/addons/score-addon-pd \
+    -I$SCORE_ROOT/base/addons/score-addon-pd/score_addon_pd_autogen \
+    -I$SCORE_ROOT/base/addons/score-addon-pd/Tests/Pd_DataflowTest_autogen \
+    -I$SCORE_ROOT/base/addons/score-addon-shaders \
+    -I$SCORE_ROOT/base/addons/score-addon-shaders/score_addon_shader_autogen \
+    -I$SCORE_ROOT/base/addons/score-addon-staticanalysis \
+    -I$SCORE_ROOT/base/addons/score-addon-staticanalysis/score_addon_staticanalysis_autogen \
     -I$SCORE_ROOT/base/addons/score-plugin-carrousel \
     -I$SCORE_ROOT/base/addons/score-plugin-carrousel/score_plugin_carrousel_autogen \
     -I$SCORE_ROOT/base/app/score_autogen \
