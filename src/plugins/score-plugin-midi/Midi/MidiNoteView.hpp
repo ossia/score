@@ -51,6 +51,7 @@ public:
       W_SIGNAL(noteChanged, arg_1, arg_2); // pitch, scaled between [0; 1]
   void noteChangeFinished() W_SIGNAL(noteChangeFinished);
   void noteScaled(double arg_1) W_SIGNAL(noteScaled, arg_1);
+  void deselectOtherNotes() W_SIGNAL(deselectOtherNotes)
 
 private:
   bool canEdit() const;

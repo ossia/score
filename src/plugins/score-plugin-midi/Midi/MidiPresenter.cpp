@@ -209,6 +209,10 @@ void Presenter::setupNote(NoteView& v)
 {
   con(v.note, &Note::noteChanged, &v, [&] { updateNote(v); });
 
+  con(v, &NoteView::deselectOtherNotes, this, [&] {
+      for(NoteView* n : m_notes)
+          n->setSelected(false);
+  });
   con(v, &NoteView::noteChangeFinished, this, [&] {
     const auto [min, max] = this->m_layer.range();
     auto newPos = v.pos();
