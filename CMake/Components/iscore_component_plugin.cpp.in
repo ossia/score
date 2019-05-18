@@ -1,5 +1,5 @@
 #include "${PLUGIN_NAME}_plugin.hpp"
-#include <iscore/plugins/customfactory/FactorySetup.hpp>
+#include <score/plugins/customfactory/FactorySetup.hpp>
 ${FactoryFiles}
 
 
@@ -12,13 +12,13 @@ ${PLUGIN_NAME}::~${PLUGIN_NAME}()
 {
 }
 
-std::vector<std::unique_ptr<iscore::InterfaceBase>>
+std::vector<std::unique_ptr<score::InterfaceBase>>
     ${PLUGIN_NAME}::factories(
-        const iscore::ApplicationContext& ctx,
-        const iscore::InterfaceKey& key) const
+        const score::ApplicationContext& ctx,
+        const score::InterfaceKey& key) const
 {
     return instantiate_factories<
-            iscore::ApplicationContext,
+            score::ApplicationContext,
         ${FactoryCode}
     >(ctx, key);
 }

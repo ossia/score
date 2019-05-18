@@ -1,6 +1,6 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
-#include "IScoreDeviceLoader.hpp"
+#include "ScoreDeviceLoader.hpp"
 
 #include <Device/Address/AddressSettings.hpp>
 #include <Device/Address/ClipMode.hpp>
@@ -21,7 +21,7 @@
 namespace Device
 {
 
-bool loadDeviceFromIScoreJSON(const QString& filePath, Device::Node& node)
+bool loadDeviceFromScoreJSON(const QString& filePath, Device::Node& node)
 {
   QFile doc{filePath};
   if (!doc.open(QIODevice::ReadOnly))

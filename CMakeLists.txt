@@ -57,8 +57,8 @@ endif()
 include(3rdparty/libossia.cmake)
 
 enable_testing()
-include("${CMAKE_CURRENT_SOURCE_DIR}/CMake/IScoreFunctions.cmake")
-include("${CMAKE_CURRENT_SOURCE_DIR}/CMake/IScoreConfiguration.cmake")
+include("${CMAKE_CURRENT_SOURCE_DIR}/CMake/ScoreFunctions.cmake")
+include("${CMAKE_CURRENT_SOURCE_DIR}/CMake/ScoreConfiguration.cmake")
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 

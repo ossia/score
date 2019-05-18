@@ -26,25 +26,25 @@ class Dummy{};
 class %ClassName%:
 		public QObject,
 @if "%AUTOCONNECT%" == "true"
-		public iscore::Autoconnect_QtInterface,
+		public score::Autoconnect_QtInterface,
 @endif
 @if "%FACTORYFAMILY%" == "true"
-		public iscore::FactoryFamily_QtInterface,
+		public score::FactoryFamily_QtInterface,
 @endif
 @if "%FACTORYINTERFACE%" == "true"
-		public iscore::FactoryInterface_QtInterface,
+		public score::FactoryInterface_QtInterface,
 @endif
 @if "%DOCUMENTDELEGATE%" == "true"
-		public iscore::DocumentDelegateFactoryInterface_QtInterface,
+		public score::DocumentDelegateFactoryInterface_QtInterface,
 @endif
 @if "%PANEL%" == "true"
-		public iscore::PanelFactoryInterface_QtInterface,
+		public score::PanelFactoryInterface_QtInterface,
 @endif
 @if "%PLUGINCONTROL%" == "true"
-		public iscore::PluginControlInterface_QtInterface,
+		public score::PluginControlInterface_QtInterface,
 @endif
 @if "%SETTINGSDELEGATE%" == "true"
-		public iscore::SettingsDelegateFactoryInterface_QtInterface,
+		public score::SettingsDelegateFactoryInterface_QtInterface,
 @endif
 		private Dummy
 {
@@ -52,25 +52,25 @@ class %ClassName%:
 		Q_PLUGIN_METADATA(IID Autoconnect_QtInterface_iid)
 		Q_INTERFACES(
 @if "%AUTOCONNECT%" == "true"
-			iscore::Autoconnect_QtInterface
+			score::Autoconnect_QtInterface
 @endif
 @if "%FACTORYFAMILY%" == "true"
-			iscore::FactoryFamily_QtInterface
+			score::FactoryFamily_QtInterface
 @endif
 @if "%FACTORYINTERFACE%" == "true"
-			iscore::FactoryInterface_QtInterface
+			score::FactoryInterface_QtInterface
 @endif
 @if "%DOCUMENTDELEGATE%" == "true"
-			iscore::DocumentDelegateFactoryInterface_QtInterface
+			score::DocumentDelegateFactoryInterface_QtInterface
 @endif
 @if "%PANEL%" == "true"
-			iscore::PanelFactoryInterface_QtInterface
+			score::PanelFactoryInterface_QtInterface
 @endif
 @if "%PLUGINCONTROL%" == "true"
-			iscore::PluginControlInterface_QtInterface
+			score::PluginControlInterface_QtInterface
 @endif
 @if "%SETTINGSDELEGATE%" == "true"
-			iscore::SettingsDelegateFactoryInterface_QtInterface
+			score::SettingsDelegateFactoryInterface_QtInterface
 @endif
 		)
 
@@ -79,33 +79,33 @@ class %ClassName%:
 		virtual ~%ClassName%() = default;
 
 @if "%AUTOCONNECT%" == "true"
-		virtual QList<iscore::Autoconnect> autoconnect_list() const override;
+		virtual QList<score::Autoconnect> autoconnect_list() const override;
 @endif
 		
 @if "%FACTORYFAMILY%" == "true"
-		virtual QVector<iscore::FactoryFamily> factoryFamilies_make() override;
+		virtual QVector<score::FactoryFamily> factoryFamilies_make() override;
 @endif
 
 @if "%FACTORYINTERFACE%" == "true"
-		virtual QVector<iscore::FactoryInterface*> factories_make(QString factoryName) override;
+		virtual QVector<score::FactoryInterface*> factories_make(QString factoryName) override;
 @endif
 
 @if "%DOCUMENTDELEGATE%" == "true"
 		virtual QStringList document_list() const override;
-		virtual iscore::DocumentDelegateFactoryInterface* document_make(QString name) override;
+		virtual score::DocumentDelegateFactoryInterface* document_make(QString name) override;
 @endif
 		
 @if "%PANEL%" == "true"
 		virtual QStringList panel_list() const override;
-		virtual iscore::PanelFactoryInterface* panel_make (QString name) override;
+		virtual score::PanelFactoryInterface* panel_make (QString name) override;
 @endif
 
 @if "%PLUGINCONTROL%" == "true"
 		virtual QStringList control_list() const override;
-		virtual iscore::PluginControlInterface* control_make(QString) override;
+		virtual score::PluginControlInterface* control_make(QString) override;
 @endif
 		
 @if "%SETTINGSDELEGATE%" == "true"
-                virtual iscore::SettingsDelegateFactoryInterface* settings_make() override;
+                virtual score::SettingsDelegateFactoryInterface* settings_make() override;
 @endif
 };

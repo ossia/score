@@ -13,7 +13,7 @@ set(HEADERS
 "${CMAKE_CURRENT_SOURCE_DIR}/Device/Address/IOType.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Device/ItemModels/NodeBasedItemModel.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Device/ItemModels/NodeDisplayMethods.hpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Device/Loading/IScoreDeviceLoader.hpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Device/Loading/ScoreDeviceLoader.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Device/Loading/JamomaDeviceLoader.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Device/Node/DeviceNode.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Device/Node/NodeListMimeSerialization.hpp"
@@ -51,7 +51,7 @@ set(SRCS
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Device/QMenuView/qmenuview.cpp" # TODO move in 3rdparty
 "${CMAKE_CURRENT_SOURCE_DIR}/Device/Loading/JamomaDeviceLoader.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Device/Loading/IScoreDeviceLoader.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Device/Loading/ScoreDeviceLoader.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Device/Widgets/DeviceCompleter.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Device/Widgets/AddressAccessorEditWidget.cpp"

@@ -1,4 +1,4 @@
-#include <IscoreIntegrationTests.hpp>
+#include <ScoreIntegrationTests.hpp>
 #include <Mocks/MockDevice.hpp>
 #include <Curve/CurveModel.hpp>
 #include <Curve/Segment/Linear/LinearCurveSegmentModel.hpp>

@@ -6,5 +6,5 @@
 namespace Device
 {
 SCORE_LIB_DEVICE_EXPORT bool
-loadDeviceFromIScoreJSON(const QString& filePath, Device::Node& node);
+loadDeviceFromScoreJSON(const QString& filePath, Device::Node& node);
 }

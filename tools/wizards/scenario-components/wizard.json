@@ -2,10 +2,10 @@
     "version": 1,
     "kind": "file",
     "id": "A.ScenarioComponentSet",
-    "category": "O.i-score",
-    "trDescription": "Creates a set of components for an i-score Scenario",
+    "category": "O.score",
+    "trDescription": "Creates a set of components for an score Scenario",
     "trDisplayName": "Scenario Components",
-    "trDisplayCategory": "i-score",
+    "trDisplayCategory": "score",
     "icon": "../../global/genericfilewizard.png",
     "enabled": "%{JS: [ %{Plugins} ].indexOf('CppEditor') >= 0}",
 

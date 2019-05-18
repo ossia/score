@@ -5,7 +5,7 @@ include_directories("${SCORE_ROOT_SOURCE_DIR}/base")
 
 find_package(Qt5 5.3 REQUIRED COMPONENTS Core Test)
 
-function(addIScoreQtTest TESTNAME TESTSRCS)
+function(addScoreQtTest TESTNAME TESTSRCS)
                 add_executable(${TESTNAME} ${TESTSRCS})
                 target_link_libraries(${TESTNAME} PRIVATE Qt5::Core Qt5::Test score_lib_base scenario_process DeviceExplorerLibrary StateLibrary)
                 add_test(${TESTNAME}_target ${TESTNAME})
@@ -18,61 +18,61 @@ add_custom_target(ScenarioTestHeaders
 )
 
 # Commands
-addIScoreQtTest(AddProcessToIntervalTest
+addScoreQtTest(AddProcessToIntervalTest
                                                                 "${CMAKE_CURRENT_SOURCE_DIR}/Commands/AddProcessToIntervalTest.cpp")
-addIScoreQtTest(AddRackToIntervalTest
+addScoreQtTest(AddRackToIntervalTest
                                                                 "${CMAKE_CURRENT_SOURCE_DIR}/Commands/AddRackToIntervalTest.cpp")
-addIScoreQtTest(AddSlotToRackTest
+addScoreQtTest(AddSlotToRackTest
                                                                 "${CMAKE_CURRENT_SOURCE_DIR}/Commands/AddSlotToRackTest.cpp")
-addIScoreQtTest(AddLayerModelToSlotTest
+addScoreQtTest(AddLayerModelToSlotTest
                                                                 "${CMAKE_CURRENT_SOURCE_DIR}/Commands/AddLayerModelToSlotTest.cpp")
-addIscoreQtTest(SplitTimeSyncTest
+addScoreQtTest(SplitTimeSyncTest
                                                                 "${CMAKE_CURRENT_SOURCE_DIR}/Commands/SplitTimeSyncTest.cpp")
-addIscoreQtTest(MergeTimeSyncsTest
+addScoreQtTest(MergeTimeSyncsTest
                                                                 "${CMAKE_CURRENT_SOURCE_DIR}/Commands/MergeTimeSyncsTest.cpp")
 
 ## elementCreation
-addIScoreQtTest(CreateEventAfterEventTest
+addScoreQtTest(CreateEventAfterEventTest
                                                                 "${CMAKE_CURRENT_SOURCE_DIR}/Commands/ElementCreation/CreateEventAfterEventTest.cpp")
-addIScoreQtTest(CreateEventTest
+addScoreQtTest(CreateEventTest
                                                                 "${CMAKE_CURRENT_SOURCE_DIR}/Commands/ElementCreation/CreateEventTest.cpp")
-addIScoreQtTest(CreateEventAfterEventOnTimeSyncTest
+addScoreQtTest(CreateEventAfterEventOnTimeSyncTest
                                                                 "${CMAKE_CURRENT_SOURCE_DIR}/Commands/ElementCreation/CreateEventAfterEventOnTimeSyncTest.cpp")
-addIScoreQtTest(CreateIntervalTest
+addScoreQtTest(CreateIntervalTest
                                                                 "${CMAKE_CURRENT_SOURCE_DIR}/Commands/ElementCreation/CreateIntervalTest.cpp")
 
 ## elementDeletion
-addIscoreQtTest(RemoveEventTest
+addScoreQtTest(RemoveEventTest
                                                                 "${CMAKE_CURRENT_SOURCE_DIR}/Commands/ElementDeletion/RemoveEventTest.cpp")
-addIscoreQtTest(RemoveIntervalTest
+addScoreQtTest(RemoveIntervalTest
                                                                 "${CMAKE_CURRENT_SOURCE_DIR}/Commands/ElementDeletion/RemoveIntervalTest.cpp")
 
-addIScoreQtTest(HideRackInViewModelTest
+addScoreQtTest(HideRackInViewModelTest
                                                                 "${CMAKE_CURRENT_SOURCE_DIR}/Commands/HideRackInViewModelTest.cpp")
-addIScoreQtTest(ShowRackInViewModelTest
+addScoreQtTest(ShowRackInViewModelTest
                                                                 "${CMAKE_CURRENT_SOURCE_DIR}/Commands/ShowRackInViewModelTest.cpp")
 
-addIScoreQtTest(MoveEventTest
+addScoreQtTest(MoveEventTest
                                                                 "${CMAKE_CURRENT_SOURCE_DIR}/Commands/MoveEventTest.cpp")
-addIScoreQtTest(MoveIntervalTest
+addScoreQtTest(MoveIntervalTest
                                                                 "${CMAKE_CURRENT_SOURCE_DIR}/Commands/MoveIntervalTest.cpp")
 
-addIScoreQtTest(RemoveRackFromIntervalTest
+addScoreQtTest(RemoveRackFromIntervalTest
                                                                 "${CMAKE_CURRENT_SOURCE_DIR}/Commands/RemoveRackFromIntervalTest.cpp")
-addIScoreQtTest(RemoveSlotFromRackTest
+addScoreQtTest(RemoveSlotFromRackTest
                                                                 "${CMAKE_CURRENT_SOURCE_DIR}/Commands/RemoveSlotFromRackTest.cpp")
-addIScoreQtTest(RemoveProcessFromIntervalTest
+addScoreQtTest(RemoveProcessFromIntervalTest
                                                                 "${CMAKE_CURRENT_SOURCE_DIR}/Commands/RemoveProcessFromIntervalTest.cpp")
-addIScoreQtTest(RemoveLayerFromSlotTest # TODO Rename in RemoveLayerModel
+addScoreQtTest(RemoveLayerFromSlotTest # TODO Rename in RemoveLayerModel
                                                                 "${CMAKE_CURRENT_SOURCE_DIR}/Commands/RemoveLayerFromSlotTest.cpp")
-addIScoreQtTest(ResizeSlotVerticallyTest
+addScoreQtTest(ResizeSlotVerticallyTest
                                                                 "${CMAKE_CURRENT_SOURCE_DIR}/Commands/ResizeSlotVerticallyTest.cpp")
 
 ## Intervals
-addIScoreQtTest(IntervalModelTest
+addScoreQtTest(IntervalModelTest
                                                                 "${CMAKE_CURRENT_SOURCE_DIR}/Interval/IntervalModelTests.cpp")
 
 ## TimeSyncs
-addIScoreQtTest(TimeSyncModelTest
+addScoreQtTest(TimeSyncModelTest
                                                                 "${CMAKE_CURRENT_SOURCE_DIR}/TimeSync/TimeSyncModelTests.cpp")
 

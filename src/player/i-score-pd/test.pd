@@ -1,5 +1,5 @@
 #N canvas 542 363 450 300 10;
-#X obj 159 156 i-score;
+#X obj 159 156 score;
 #X obj 159 57 openpanel;
 #X msg 159 79 load \$1;
 #X obj 175 114 tgl 15 0 empty empty play/stop 17 7 0 10 -262144 -1

@@ -31,17 +31,17 @@ set(CPACK_SOURCE_IGNORE_FILES
 set(CPACK_INSTALL_CMAKE_PROJECTS)
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-include(IScoreDeploymentOSX)
+include(ScoreDeploymentOSX)
 elseif(${CMAKE_SYSTEM_NAME} MATCHES "Android")
-include(IScoreDeploymentAndroid)
+include(ScoreDeploymentAndroid)
 elseif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 if(GENERIC_LINUX_DEPLOYMENT_BUILD)
-include(IScoreDeploymentGenericLinux)
+include(ScoreDeploymentGenericLinux)
 else()
-include(IScoreDeploymentLinux)
+include(ScoreDeploymentLinux)
 endif()
 elseif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
-include(IScoreDeploymentWindows)
+include(ScoreDeploymentWindows)
 endif()
 
 

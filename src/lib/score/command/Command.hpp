@@ -61,7 +61,7 @@ protected:
  * and produces a file that includes them all and registers them.
  *
  * The CMake code used to achieve this is in the file
- * IScoreFunctions.cmake. See score_generate_command_list_file.
+ * ScoreFunctions.cmake. See score_generate_command_list_file.
  *
  */
 #define SCORE_COMMAND_DECL(parentNameFun, name, desc)                      \

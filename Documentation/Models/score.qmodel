@@ -12,7 +12,7 @@
          <uid>{198e72ef-f755-4f01-9e43-f99c1252508a}</uid>
         </MElement>
        </base-MElement>
-       <name>i-score</name>
+       <name>score</name>
        <children>
         <handles>
          <handles>
@@ -32,7 +32,7 @@
                       <uid>{f5d84afe-b64f-47f3-a25f-9ec3632e5e25}</uid>
                      </MElement>
                     </base-MElement>
-                    <name>i-score</name>
+                    <name>score</name>
                    </MObject>
                   </base-MObject>
                   <elements>
@@ -48,7 +48,7 @@
                           </DElement>
                          </base-DElement>
                          <object>{8ce90429-dd75-4029-b8c1-dbb88c9b00e2}</object>
-                         <name>iscore</name>
+                         <name>score</name>
                          <pos>x:215;y:180</pos>
                          <rect>x:-110;y:-85;w:220;h:170</rect>
                          <auto-sized>false</auto-sized>
@@ -491,7 +491,7 @@
                          <uid>{3dd3d570-ce65-4a28-9538-fe49a99394b2}</uid>
                         </DElement>
                        </base-DElement>
-                       <text>device, deviceexplorer, state, inspector, process, i-score are used everywhere.</text>
+                       <text>device, deviceexplorer, state, inspector, process, score are used everywhere.</text>
                        <pos>x:635;y:180</pos>
                        <rect>x:0;y:0;w:185;h:64</rect>
                        <auto-sized>false</auto-sized>
@@ -557,7 +557,7 @@
                          <uid>{4f5b0ff2-a208-4ed1-935b-6a8f2f965207}</uid>
                         </DElement>
                        </base-DElement>
-                       <text>Engine makes the link between i-score and OSSIA</text>
+                       <text>Engine makes the link between score and OSSIA</text>
                        <pos>x:110;y:795</pos>
                        <rect>x:0;y:0;w:175;h:48</rect>
                        <auto-sized>false</auto-sized>
@@ -602,7 +602,7 @@
                     <uid>{8ce90429-dd75-4029-b8c1-dbb88c9b00e2}</uid>
                    </MElement>
                   </base-MElement>
-                  <name>iscore</name>
+                  <name>score</name>
                   <children>
                    <handles>
                     <handles>
@@ -622,7 +622,7 @@
                                  <uid>{80e79089-33d4-4b6f-aa25-79a768937938}</uid>
                                 </MElement>
                                </base-MElement>
-                               <name>iscore</name>
+                               <name>score</name>
                               </MObject>
                              </base-MObject>
                              <elements>
@@ -645,7 +645,7 @@
                                     <visual-role>0</visual-role>
                                    </DObject>
                                   </base-DObject>
-                                  <namespace>iscore</namespace>
+                                  <namespace>score</namespace>
                                  </DClass>
                                 </instance>
                                </item>
@@ -667,7 +667,7 @@
                                     <visual-role>0</visual-role>
                                    </DObject>
                                   </base-DObject>
-                                  <namespace>iscore</namespace>
+                                  <namespace>score</namespace>
                                  </DClass>
                                 </instance>
                                </item>
@@ -689,7 +689,7 @@
                                     <visual-role>0</visual-role>
                                    </DObject>
                                   </base-DObject>
-                                  <namespace>iscore</namespace>
+                                  <namespace>score</namespace>
                                  </DClass>
                                 </instance>
                                </item>
@@ -711,7 +711,7 @@
                                     <visual-role>0</visual-role>
                                    </DObject>
                                   </base-DObject>
-                                  <namespace>iscore</namespace>
+                                  <namespace>score</namespace>
                                  </DClass>
                                 </instance>
                                </item>
@@ -733,7 +733,7 @@
                                     <visual-role>0</visual-role>
                                    </DObject>
                                   </base-DObject>
-                                  <namespace>iscore</namespace>
+                                  <namespace>score</namespace>
                                  </DClass>
                                 </instance>
                                </item>
@@ -755,7 +755,7 @@
                                     <visual-role>0</visual-role>
                                    </DObject>
                                   </base-DObject>
-                                  <namespace>iscore</namespace>
+                                  <namespace>score</namespace>
                                  </DClass>
                                 </instance>
                                </item>
@@ -777,7 +777,7 @@
                                     <visual-role>0</visual-role>
                                    </DObject>
                                   </base-DObject>
-                                  <namespace>iscore</namespace>
+                                  <namespace>score</namespace>
                                  </DClass>
                                 </instance>
                                </item>
@@ -838,7 +838,7 @@
                                     <visual-role>0</visual-role>
                                    </DObject>
                                   </base-DObject>
-                                  <namespace>iscore</namespace>
+                                  <namespace>score</namespace>
                                  </DClass>
                                 </instance>
                                </item>
@@ -975,7 +975,7 @@
                                     <visual-role>0</visual-role>
                                    </DObject>
                                   </base-DObject>
-                                  <namespace>iscore</namespace>
+                                  <namespace>score</namespace>
                                  </DClass>
                                 </instance>
                                </item>
@@ -997,7 +997,7 @@
                                     <visual-role>0</visual-role>
                                    </DObject>
                                   </base-DObject>
-                                  <namespace>iscore</namespace>
+                                  <namespace>score</namespace>
                                  </DClass>
                                 </instance>
                                </item>
@@ -1019,7 +1019,7 @@
                                     <visual-role>0</visual-role>
                                    </DObject>
                                   </base-DObject>
-                                  <namespace>iscore</namespace>
+                                  <namespace>score</namespace>
                                  </DClass>
                                 </instance>
                                </item>
@@ -1041,7 +1041,7 @@
                                     <visual-role>0</visual-role>
                                    </DObject>
                                   </base-DObject>
-                                  <namespace>iscore</namespace>
+                                  <namespace>score</namespace>
                                  </DClass>
                                 </instance>
                                </item>
@@ -1063,7 +1063,7 @@
                                     <visual-role>0</visual-role>
                                    </DObject>
                                   </base-DObject>
-                                  <namespace>iscore</namespace>
+                                  <namespace>score</namespace>
                                  </DClass>
                                 </instance>
                                </item>
@@ -1106,7 +1106,7 @@
                                     <visual-role>0</visual-role>
                                    </DObject>
                                   </base-DObject>
-                                  <namespace>iscore</namespace>
+                                  <namespace>score</namespace>
                                  </DClass>
                                 </instance>
                                </item>
@@ -1356,7 +1356,7 @@
                                     <visual-role>0</visual-role>
                                    </DObject>
                                   </base-DObject>
-                                  <namespace>iscore</namespace>
+                                  <namespace>score</namespace>
                                  </DClass>
                                 </instance>
                                </item>
@@ -1401,7 +1401,7 @@
                                     <visual-role>0</visual-role>
                                    </DObject>
                                   </base-DObject>
-                                  <namespace>iscore</namespace>
+                                  <namespace>score</namespace>
                                  </DClass>
                                 </instance>
                                </item>
@@ -1503,7 +1503,7 @@ device explorer, etc</text>
                                     <uid>{c9900c62-2d72-42b1-a030-0100f30b1a26}</uid>
                                    </DElement>
                                   </base-DElement>
-                                  <text>Reachable from everywhere through iscore::AppContext()</text>
+                                  <text>Reachable from everywhere through score::AppContext()</text>
                                   <pos>x:25;y:295</pos>
                                   <rect>x:0;y:0;w:130;h:64</rect>
                                   <auto-sized>false</auto-sized>
@@ -1645,7 +1645,7 @@ from this</text>
                                     <visual-role>0</visual-role>
                                    </DObject>
                                   </base-DObject>
-                                  <namespace>iscore</namespace>
+                                  <namespace>score</namespace>
                                  </DClass>
                                 </instance>
                                </item>
@@ -1775,7 +1775,7 @@ add data to it.</text>
                                         </relations>
                                        </MObject>
                                       </base-MObject>
-                                      <namespace>iscore</namespace>
+                                      <namespace>score</namespace>
                                      </MClass>
                                     </instance>
                                    </target>
@@ -1798,7 +1798,7 @@ add data to it.</text>
                                         <name>Menu</name>
                                        </MObject>
                                       </base-MObject>
-                                      <namespace>iscore</namespace>
+                                      <namespace>score</namespace>
                                      </MClass>
                                     </instance>
                                    </target>
@@ -1821,7 +1821,7 @@ add data to it.</text>
                                         <name>Toolbar</name>
                                        </MObject>
                                       </base-MObject>
-                                      <namespace>iscore</namespace>
+                                      <namespace>score</namespace>
                                      </MClass>
                                     </instance>
                                    </target>
@@ -1874,7 +1874,7 @@ add data to it.</text>
                                         <name>ApplicationComponents</name>
                                        </MObject>
                                       </base-MObject>
-                                      <namespace>iscore</namespace>
+                                      <namespace>score</namespace>
                                      </MClass>
                                     </instance>
                                    </target>
@@ -2013,7 +2013,7 @@ add data to it.</text>
                                         </relations>
                                        </MObject>
                                       </base-MObject>
-                                      <namespace>iscore</namespace>
+                                      <namespace>score</namespace>
                                      </MClass>
                                     </instance>
                                    </target>
@@ -2101,7 +2101,7 @@ add data to it.</text>
                                         </relations>
                                        </MObject>
                                       </base-MObject>
-                                      <namespace>iscore</namespace>
+                                      <namespace>score</namespace>
                                      </MClass>
                                     </instance>
                                    </target>
@@ -2159,7 +2159,7 @@ add data to it.</text>
                                         </relations>
                                        </MObject>
                                       </base-MObject>
-                                      <namespace>iscore</namespace>
+                                      <namespace>score</namespace>
                                      </MClass>
                                     </instance>
                                    </target>
@@ -2328,7 +2328,7 @@ add data to it.</text>
                                         </relations>
                                        </MObject>
                                       </base-MObject>
-                                      <namespace>iscore</namespace>
+                                      <namespace>score</namespace>
                                      </MClass>
                                     </instance>
                                    </target>
@@ -2413,7 +2413,7 @@ add data to it.</text>
                                         </relations>
                                        </MObject>
                                       </base-MObject>
-                                      <namespace>iscore</namespace>
+                                      <namespace>score</namespace>
                                      </MClass>
                                     </instance>
                                    </target>
@@ -2523,7 +2523,7 @@ add data to it.</text>
                                         </relations>
                                        </MObject>
                                       </base-MObject>
-                                      <namespace>iscore</namespace>
+                                      <namespace>score</namespace>
                                      </MClass>
                                     </instance>
                                    </target>
@@ -2706,7 +2706,7 @@ add data to it.</text>
                                                    </relations>
                                                   </MObject>
                                                  </base-MObject>
-                                                 <namespace>iscore</namespace>
+                                                 <namespace>score</namespace>
                                                 </MClass>
                                                </instance>
                                               </target>
@@ -2759,7 +2759,7 @@ add data to it.</text>
                                                    <name>Interface</name>
                                                   </MObject>
                                                  </base-MObject>
-                                                 <namespace>iscore</namespace>
+                                                 <namespace>score</namespace>
                                                 </MClass>
                                                </instance>
                                               </target>
@@ -2812,7 +2812,7 @@ add data to it.</text>
                                                    <name>PanelDelegate</name>
                                                   </MObject>
                                                  </base-MObject>
-                                                 <namespace>iscore</namespace>
+                                                 <namespace>score</namespace>
                                                 </MClass>
                                                </instance>
                                               </target>
@@ -2911,7 +2911,7 @@ add data to it.</text>
                                         </relations>
                                        </MObject>
                                       </base-MObject>
-                                      <namespace>iscore</namespace>
+                                      <namespace>score</namespace>
                                      </MClass>
                                     </instance>
                                    </target>
@@ -3024,7 +3024,7 @@ add data to it.</text>
                                                      <flags>1</flags>
                                                     </MElement>
                                                    </base-MElement>
-                                                   <name>Iscore</name>
+                                                   <name>Score</name>
                                                    <children>
                                                     <handles>
                                                      <handles>
@@ -3065,7 +3065,7 @@ add data to it.</text>
                                                                          <name>Component</name>
                                                                         </MObject>
                                                                        </base-MObject>
-                                                                       <namespace>iscore</namespace>
+                                                                       <namespace>score</namespace>
                                                                       </MClass>
                                                                      </instance>
                                                                     </target>
@@ -3210,7 +3210,7 @@ add data to it.</text>
                                                                          </relations>
                                                                         </MObject>
                                                                        </base-MObject>
-                                                                       <namespace>iscore</namespace>
+                                                                       <namespace>score</namespace>
                                                                       </MClass>
                                                                      </instance>
                                                                     </target>
@@ -3282,7 +3282,7 @@ add data to it.</text>
                                                                                     <name>SettingsDelegateModel</name>
                                                                                    </MObject>
                                                                                   </base-MObject>
-                                                                                  <namespace>iscore</namespace>
+                                                                                  <namespace>score</namespace>
                                                                                  </MClass>
                                                                                 </instance>
                                                                                </target>
@@ -3354,7 +3354,7 @@ add data to it.</text>
                                                                                                <name>DocumentPlugin</name>
                                                                                               </MObject>
                                                                                              </base-MObject>
-                                                                                             <namespace>iscore</namespace>
+                                                                                             <namespace>score</namespace>
                                                                                             </MClass>
                                                                                            </instance>
                                                                                           </target>
@@ -4758,7 +4758,7 @@ add data to it.</text>
                                     <uid>{4a7e05dd-eb79-4541-9f58-770bd5a27d1e}</uid>
                                    </DElement>
                                   </base-DElement>
-                                  <text>Main i-score 
+                                  <text>Main score 
 GraphicsScene</text>
                                   <pos>x:1095;y:120</pos>
                                   <rect>x:0;y:0;w:92;h:48</rect>
@@ -6035,7 +6035,7 @@ and a Trigger</text>
                                                      <flags>1</flags>
                                                     </MElement>
                                                    </base-MElement>
-                                                   <name>Iscore-Plugin-Scenario</name>
+                                                   <name>Score-Plugin-Scenario</name>
                                                    <children>
                                                     <handles>
                                                      <handles>
@@ -10744,7 +10744,7 @@ to show the part of each process</text>
                                     <uid>{a7298158-6d39-40f2-b6eb-594523d8c000}</uid>
                                    </DElement>
                                   </base-DElement>
-                                  <text>Extends iscore::DocumentContext
+                                  <text>Extends score::DocumentContext
 with features useful when in the process tree.
 Should be passed from parent to child process.
 Its instance is in Scenario::ScenarioDocumentPresenter.</text>
@@ -10856,7 +10856,7 @@ They are located in StateModels.</text>
                                                      <flags>1</flags>
                                                     </MElement>
                                                    </base-MElement>
-                                                   <name>Iscore-Lib-Process</name>
+                                                   <name>Score-Lib-Process</name>
                                                    <children>
                                                     <handles>
                                                      <handles>
@@ -12245,7 +12245,7 @@ or an AddressSettings.</text>
                                     <uid>{0a4905d6-071c-4b5f-b883-9f2e77feadba}</uid>
                                    </DElement>
                                   </base-DElement>
-                                  <text>Interface between an i-score device 
+                                  <text>Interface between an score device 
 that can be serialized &amp; is just plain data, 
 and the OSSIA tree that has pointers &amp; stuff like this.</text>
                                   <pos>x:195;y:465</pos>
@@ -12535,7 +12535,7 @@ a given protocol</text>
                                                      <flags>1</flags>
                                                     </MElement>
                                                    </base-MElement>
-                                                   <name>Iscore-Lib-Device</name>
+                                                   <name>Score-Lib-Device</name>
                                                    <children>
                                                     <handles>
                                                      <handles>
@@ -13603,7 +13603,7 @@ which we don't want to depend on. </text>
                                                      <flags>1</flags>
                                                     </MElement>
                                                    </base-MElement>
-                                                   <name>Iscore-Lib-State</name>
+                                                   <name>Score-Lib-State</name>
                                                    <children>
                                                     <handles>
                                                      <handles>
@@ -14769,7 +14769,7 @@ data type (int, float, char, etc)</text>
                                                      <flags>1</flags>
                                                     </MElement>
                                                    </base-MElement>
-                                                   <name>Iscore-Plugin-Deviceexplorer</name>
+                                                   <name>Score-Plugin-Deviceexplorer</name>
                                                    <children>
                                                     <handles>
                                                      <handles>

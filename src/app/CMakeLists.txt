@@ -118,4 +118,4 @@ else()
 endif()
 
 include(UnityApp.cmake)
-include(IScoreDeployment)
+include(ScoreDeployment)

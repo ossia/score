@@ -6,7 +6,7 @@ if [[ "$1" == "" ]];
 fi
 
 FAUST_SRC=$1
-FAUST_ARCH=/home/jcelerier/i-score/base/plugins/score-plugin-media/Media/Effect/Faust/faust-score-arch.cpp
+FAUST_ARCH=/home/jcelerier/score/base/plugins/score-plugin-media/Media/Effect/Faust/faust-score-arch.cpp
 faust -a "$FAUST_ARCH" "$FAUST_SRC" -o /tmp/__score_faust_source.cpp
 
 FAUST_AUTHOR=$(grep 'author: ' /tmp/__score_faust_source.cpp | sed 's/author: "//' | sed 's/"//' | awk '{print $1}')

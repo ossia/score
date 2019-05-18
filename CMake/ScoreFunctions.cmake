@@ -1,4 +1,4 @@
-include(IScoreTargetSetup)
+include(ScoreTargetSetup)
 
 ### Generate files of commands ###
 function(score_write_file FileName Content)
