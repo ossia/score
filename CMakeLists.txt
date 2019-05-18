@@ -1,11 +1,11 @@
 cmake_minimum_required(VERSION 3.9 FATAL_ERROR)
 set(CMAKE_MODULE_PATH
     "${CMAKE_MODULE_PATH}"
-    "${CMAKE_CURRENT_SOURCE_DIR}/CMake"
+    "${CMAKE_CURRENT_SOURCE_DIR}/cmake"
     "${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules"
     "${CMAKE_CURRENT_SOURCE_DIR}/cmake/Configurations"
     "${CMAKE_CURRENT_SOURCE_DIR}/cmake/Configurations/travis"
-    "${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/libossia/CMake"
+    "${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/libossia/cmake"
     "${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/libossia/cmake/cmake-modules")
 
 list(APPEND CMAKE_PREFIX_PATH "${CMAKE_MODULE_PATH}")
@@ -13,7 +13,7 @@ if(APPLE AND EXISTS /usr/local/opt/qt5)
   list(APPEND CMAKE_PREFIX_PATH "/usr/local/opt/qt5")
 endif()
 
-set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/CMake"
+set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake"
     "${CMAKE_MODULE_PATH}")
 
 set(CMAKE_PREFIX_PATH
