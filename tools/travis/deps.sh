@@ -45,7 +45,7 @@ case "$TRAVIS_OS_NAME" in
     wait wget || true
 
     tar xaf cmake-linux.tgz
-    mv cmake-*-x86_64 cmake
+    mv cmake-*-x86_64 cmake-latest
   ;;
   osx)
     set +e
