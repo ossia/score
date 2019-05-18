@@ -534,30 +534,75 @@ void ScenarioPresenter::selectUp()
     const auto n_states = selection.selectedStates.size();
     const auto n_syncs = selection.selectedTimeSyncs.size();
 
-    if(n_states != 1)
-        return;
-    if(n_itvs || n_ev || n_syncs)
-        return;
-
-    const auto& sel_state = *selection.selectedStates.front();
-    const auto& parent_ts = Scenario::parentTimeSync(sel_state, m_layer);
-    const auto states = Scenario::getStates(parent_ts, m_layer);
-    double min = -1.;
-    const auto* cur_state = &sel_state;
-    for(StateModel* state : states)
+    if(n_states == 1)
     {
-        const auto h = state->heightPercentage();
-        if(h < sel_state.heightPercentage() && h > min) {
-            cur_state = state;
-            min = h;
+        if(n_itvs || n_ev || n_syncs)
+            return;
+
+        const auto& sel_state = *selection.selectedStates.front();
+        const auto& parent_ts = Scenario::parentTimeSync(sel_state, m_layer);
+        const auto states = Scenario::getStates(parent_ts, m_layer);
+        double min = -1.;
+        const auto* cur_state = &sel_state;
+        for(StateModel* state : states)
+        {
+            const auto h = state->heightPercentage();
+            if(h < sel_state.heightPercentage() && h > min) {
+                cur_state = state;
+                min = h;
+            }
+        }
+
+        if(cur_state != &sel_state) {
+            score::SelectionDispatcher{m_context.context.selectionStack}.setAndCommit({cur_state});
+        }
+        else {
+            score::SelectionDispatcher{m_context.context.selectionStack}.setAndCommit({&parent_ts});
         }
     }
+    else
+    {
+        auto sel = m_context.context.selectionStack.currentSelection();
+        if(sel.empty())
+            return;
+        for(auto& ptr : sel) {
+            if(!ptr)
+                continue;
+            auto proc = qobject_cast<const Process::ProcessModel*>(ptr);
+            if(!proc)
+                continue;
 
-    if(cur_state != &sel_state) {
-        score::SelectionDispatcher{m_context.context.selectionStack}.setAndCommit({cur_state});
-    }
-    else {
-        score::SelectionDispatcher{m_context.context.selectionStack}.setAndCommit({&parent_ts});
+            auto parent = ptr->parent();
+            if(!parent)
+                continue;
+            if(auto gp = parent->parent(); gp != &m_layer)
+                continue;
+
+            auto itv = qobject_cast<IntervalModel*>(parent);
+            if(!itv)
+                continue;
+
+            const auto& rack = itv->smallView();
+            std::size_t i = 0;
+            for(const Slot& slot : rack)
+            {
+                if(ossia::contains(slot.processes, proc->id()))
+                {
+                    if(i > 0)  // at minimum zero since we're in a slot
+                    {
+                        if(const auto& prev_proc = rack[i-1].frontProcess)
+                        {
+                            score::SelectionDispatcher{m_context.context.selectionStack}.setAndCommit({&itv->processes.at(*prev_proc)});
+                        }
+                    }
+                    else if(i == 0)
+                    {
+                        score::SelectionDispatcher{m_context.context.selectionStack}.setAndCommit({itv});
+                    }
+                }
+                i++;
+            }
+        }
     }
 }
 
@@ -593,29 +638,84 @@ void ScenarioPresenter::selectDown()
         }
 
         score::SelectionDispatcher{m_context.context.selectionStack}.setAndCommit({cur_state});
-        return;
     }
-    if(n_states != 1)
-        return;
-    if(n_itvs || n_ev || n_syncs)
-        return;
-
-    const auto& sel_state = *selection.selectedStates.front();
-    const auto& parent_ts = Scenario::parentTimeSync(sel_state, m_layer);
-    const auto states = Scenario::getStates(parent_ts, m_layer);
-    double max = std::numeric_limits<double>::max();
-    const auto* cur_state = &sel_state;
-    for(StateModel* state : states)
+    else if(n_itvs == 1)
     {
-        const auto h = state->heightPercentage();
-        if(h > sel_state.heightPercentage() && h < max) {
-            cur_state = state;
-            max = h;
+        // Select the process in the first slot, if any
+        const IntervalModel& itv = *selection.selectedIntervals.front();
+        if(itv.processes.empty())
+            return;
+        if(!itv.smallViewVisible())
+            return;
+        auto& slot = itv.getSmallViewSlot(0);
+        auto& front = slot.frontProcess;
+        if(front)
+        {
+            auto& proc = itv.processes.at(*front);
+            score::SelectionDispatcher{m_context.context.selectionStack}.setAndCommit({&proc});
         }
     }
+    else if(n_states == 1) {
+        if(n_itvs || n_ev || n_syncs)
+            return;
 
-    if(cur_state != &sel_state)
-        score::SelectionDispatcher{m_context.context.selectionStack}.setAndCommit({cur_state});
+        const auto& sel_state = *selection.selectedStates.front();
+        const auto& parent_ts = Scenario::parentTimeSync(sel_state, m_layer);
+        const auto states = Scenario::getStates(parent_ts, m_layer);
+        double max = std::numeric_limits<double>::max();
+        const auto* cur_state = &sel_state;
+        for(StateModel* state : states)
+        {
+            const auto h = state->heightPercentage();
+            if(h > sel_state.heightPercentage() && h < max) {
+                cur_state = state;
+                max = h;
+            }
+        }
+
+        if(cur_state != &sel_state)
+            score::SelectionDispatcher{m_context.context.selectionStack}.setAndCommit({cur_state});
+    }
+    else
+    {
+        auto sel = m_context.context.selectionStack.currentSelection();
+        if(sel.empty())
+            return;
+        for(auto& ptr : sel) {
+            if(!ptr)
+                continue;
+            auto proc = qobject_cast<const Process::ProcessModel*>(ptr);
+            if(!proc)
+                continue;
+
+            auto parent = ptr->parent();
+            if(!parent)
+                continue;
+            if(auto gp = parent->parent(); gp != &m_layer)
+                continue;
+
+            auto itv = qobject_cast<IntervalModel*>(parent);
+            if(!itv)
+                continue;
+
+            const auto& rack = itv->smallView();
+            std::size_t i = 0;
+            for(const Slot& slot : rack)
+            {
+                if(ossia::contains(slot.processes, proc->id()))
+                {
+                    if(i < rack.size() - 1)  // at minimum zero since we're in a slot
+                    {
+                        if(const auto& next_proc = rack[i+1].frontProcess)
+                        {
+                            score::SelectionDispatcher{m_context.context.selectionStack}.setAndCommit({&itv->processes.at(*next_proc)});
+                        }
+                    }
+                }
+                i++;
+            }
+        }
+    }
 }
 
 void ScenarioPresenter::doubleClick(QPointF pt)
