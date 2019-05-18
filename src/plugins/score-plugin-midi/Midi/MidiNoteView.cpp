@@ -7,6 +7,7 @@
 
 #include <QCursor>
 #include <QGraphicsSceneMouseEvent>
+#include <QGuiApplication>
 #include <QPainter>
 
 #include <wobjectimpl.h>
@@ -148,6 +149,10 @@ bool NoteView::canEdit() const
 static QPointF noteview_origpoint;
 void NoteView::mousePressEvent(QGraphicsSceneMouseEvent* event)
 {
+  if(!(QGuiApplication::keyboardModifiers() & Qt::CTRL) && !isSelected())
+      deselectOtherNotes();
+  setSelected(true);
+
   if (canEdit())
   {
     if (event->pos().x() >= this->boundingRect().width() - 2)
