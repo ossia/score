@@ -163,6 +163,7 @@ public:
     widg->setContentsMargins(3, 2, 3, 2);
     widg->setMinimumHeight(60);
     widg->setMaximumHeight(60);
+    widg->setMinimumWidth(250);
 
     auto l = new score::MarginLess<QVBoxLayout>{widg};
 
