@@ -162,7 +162,7 @@ export QTDIR=$(find /usr/local -type d -name 'Qt-5.*')
     cd usr/ ; find . -type f -exec sed -i -e "s|$QTDIR/lib|././/lib|g" {} \; ; cd ..
 )
 
-cp score/CMake/Deployment/Linux/AppImage/qt.conf $APP.AppDir/usr/bin/
+cp score/cmake/Deployment/Linux/AppImage/qt.conf $APP.AppDir/usr/bin/
 mkdir -p score.AppDir/usr/bin/lib/
 
 export APPIMAGE=Score.AppImage

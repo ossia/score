@@ -61,7 +61,7 @@ install(FILES
 # Qt conf file
 install(
   FILES
-    "${SCORE_ROOT_SOURCE_DIR}/CMake/Deployment/Windows/qt.conf"
+    "${SCORE_ROOT_SOURCE_DIR}/cmake/Deployment/Windows/qt.conf"
     "${SCORE_ROOT_SOURCE_DIR}/src/lib/resources/score.ico"
   DESTINATION
     ${SCORE_BIN_INSTALL_DIR})
