@@ -4,6 +4,7 @@
 
 #include <Scenario/Application/Drops/ScenarioDropHandler.hpp>
 #include <Scenario/Application/Menus/ScenarioContextMenuManager.hpp>
+#include <Scenario/Application/Menus/ScenarioCopy.hpp>
 #include <Scenario/Application/ScenarioActions.hpp>
 #include <Scenario/Application/ScenarioApplicationPlugin.hpp>
 #include <Scenario/Commands/Comment/SetCommentText.hpp>
@@ -39,6 +40,7 @@ ScenarioPresenter::ScenarioPresenter(
     , m_selectionDispatcher{context.selectionStack}
     , m_sm{m_context, *this}
 {
+  m_view->init(this);
   /////// Setup of existing data
   // For each interval & event, display' em
   for (const auto& state_model : scenario.states)
@@ -87,11 +89,23 @@ ScenarioPresenter::ScenarioPresenter(
   scenario.comments.removed.connect<&ScenarioPresenter::on_commentRemoved>(
       this);
 
-  connect(
-      m_view,
-      &ScenarioView::keyPressed,
-      this,
-      &ScenarioPresenter::keyPressed);
+  connect(m_view, &ScenarioView::keyPressed,
+          this, [this] (int k) {
+      keyPressed(k);
+      switch(k)
+      {
+      case Qt::Key_Left:
+          return selectLeft();
+      case Qt::Key_Right:
+          return selectRight();
+      case Qt::Key_Up:
+          return selectUp();
+      case Qt::Key_Down:
+          return selectDown();
+      default:
+          break;
+      }
+  });
   connect(
       m_view,
       &ScenarioView::keyReleased,
@@ -425,6 +439,183 @@ void ScenarioPresenter::on_intervalExecutionTimer()
       }
     }
   }
+}
+
+void ScenarioPresenter::selectLeft()
+{
+    CategorisedScenario selection{this->m_layer};
+
+    const auto n_itvs = selection.selectedIntervals.size();
+    const auto n_ev = selection.selectedEvents.size();
+    const auto n_states = selection.selectedStates.size();
+    const auto n_syncs = selection.selectedTimeSyncs.size();
+    switch(n_itvs + n_ev + n_states + n_syncs)
+    {
+    case 1:
+    {
+        if(n_itvs == 1)
+        {
+            auto& itv = *selection.selectedIntervals.front();
+            auto& left_state = Scenario::startState(itv, m_layer);
+            score::SelectionDispatcher{m_context.context.selectionStack}.setAndCommit({&left_state});
+        }
+        else if(n_states == 1)
+        {
+            const Scenario::StateModel& st = *selection.selectedStates.front();
+            if(st.previousInterval())
+            {
+                auto& left_itv = Scenario::previousInterval(st, m_layer);
+                score::SelectionDispatcher{m_context.context.selectionStack}.setAndCommit({&left_itv});
+            }
+        }
+        break;
+    }
+    default:
+        break;
+    }
+}
+
+
+void ScenarioPresenter::selectRight()
+{
+    CategorisedScenario selection{this->m_layer};
+
+    const auto n_itvs = selection.selectedIntervals.size();
+    const auto n_ev = selection.selectedEvents.size();
+    const auto n_states = selection.selectedStates.size();
+    const auto n_syncs = selection.selectedTimeSyncs.size();
+    switch(n_itvs + n_ev + n_states + n_syncs)
+    {
+    case 1:
+    {
+        if(n_itvs == 1)
+        {
+            auto& itv = *selection.selectedIntervals.front();
+            auto& left_state = Scenario::endState(itv, m_layer);
+            score::SelectionDispatcher{m_context.context.selectionStack}.setAndCommit({&left_state});
+        }
+        else if(n_states == 1)
+        {
+            const Scenario::StateModel& st = *selection.selectedStates.front();
+            if(st.nextInterval())
+            {
+                auto& left_itv = Scenario::nextInterval(st, m_layer);
+                score::SelectionDispatcher{m_context.context.selectionStack}.setAndCommit({&left_itv});
+            }
+        }
+        break;
+    }
+    default:
+        break;
+    }
+}
+
+// TODO MOVEME
+template<typename Scenario_T>
+ossia::small_vector<StateModel*, 8> getStates(const TimeSyncModel& ts, const Scenario_T& scenario)
+{
+    ossia::small_vector<StateModel*, 8> states;
+    states.reserve(ts.events().size() * 2);
+    for(auto& ev : ts.events()) {
+        auto& e = scenario.event(ev);
+        for(auto& state : e.states()) {
+            states.push_back(&scenario.state(state));
+        }
+    }
+    return states;
+}
+
+void ScenarioPresenter::selectUp()
+{
+    CategorisedScenario selection{this->m_layer};
+
+    const auto n_itvs = selection.selectedIntervals.size();
+    const auto n_ev = selection.selectedEvents.size();
+    const auto n_states = selection.selectedStates.size();
+    const auto n_syncs = selection.selectedTimeSyncs.size();
+
+    if(n_states != 1)
+        return;
+    if(n_itvs || n_ev || n_syncs)
+        return;
+
+    const auto& sel_state = *selection.selectedStates.front();
+    const auto& parent_ts = Scenario::parentTimeSync(sel_state, m_layer);
+    const auto states = Scenario::getStates(parent_ts, m_layer);
+    double min = -1.;
+    const auto* cur_state = &sel_state;
+    for(StateModel* state : states)
+    {
+        const auto h = state->heightPercentage();
+        if(h < sel_state.heightPercentage() && h > min) {
+            cur_state = state;
+            min = h;
+        }
+    }
+
+    if(cur_state != &sel_state) {
+        score::SelectionDispatcher{m_context.context.selectionStack}.setAndCommit({cur_state});
+    }
+    else {
+        score::SelectionDispatcher{m_context.context.selectionStack}.setAndCommit({&parent_ts});
+    }
+}
+
+
+void ScenarioPresenter::selectDown()
+{
+    CategorisedScenario selection{this->m_layer};
+
+    const auto n_itvs = selection.selectedIntervals.size();
+    const auto n_ev = selection.selectedEvents.size();
+    const auto n_states = selection.selectedStates.size();
+    const auto n_syncs = selection.selectedTimeSyncs.size();
+
+    if(n_syncs == 1) {
+        // Select the topmost state
+        if(n_itvs || n_ev || n_states)
+            return;
+
+        const auto& sel_sync = *selection.selectedTimeSyncs.front();
+        const auto states = Scenario::getStates(sel_sync, m_layer);
+        if(states.empty())
+            return;
+
+        double max = std::numeric_limits<double>::max();
+        const StateModel* cur_state = states.front();
+        for(StateModel* state : states)
+        {
+            const auto h = state->heightPercentage();
+            if(h < max) {
+                cur_state = state;
+                max = h;
+            }
+        }
+
+        score::SelectionDispatcher{m_context.context.selectionStack}.setAndCommit({cur_state});
+        return;
+    }
+    if(n_states != 1)
+        return;
+    if(n_itvs || n_ev || n_syncs)
+        return;
+
+    const auto& sel_state = *selection.selectedStates.front();
+    const auto& parent_ts = Scenario::parentTimeSync(sel_state, m_layer);
+    const auto states = Scenario::getStates(parent_ts, m_layer);
+    double max = std::numeric_limits<double>::max();
+    const auto* cur_state = &sel_state;
+    for(StateModel* state : states)
+    {
+        const auto h = state->heightPercentage();
+        if(h > sel_state.heightPercentage() && h < max) {
+            cur_state = state;
+            max = h;
+        }
+    }
+
+    if(cur_state != &sel_state)
+        score::SelectionDispatcher{m_context.context.selectionStack}.setAndCommit({cur_state});
 }
 
 void ScenarioPresenter::doubleClick(QPointF pt)

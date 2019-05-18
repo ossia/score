@@ -140,6 +140,12 @@ public:
   void on_intervalExecutionTimer();
 
 private:
+
+  void selectLeft();
+  void selectRight();
+  void selectUp();
+  void selectDown();
+
   void doubleClick(QPointF);
   void on_focusChanged() override;
 
