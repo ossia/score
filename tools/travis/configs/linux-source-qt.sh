@@ -2,6 +2,19 @@
 set +eux
 export CC=/usr/bin/clang-8
 export CXX=/usr/bin/clang++-8
+echo " ===== pwd ====="
+pwd
+echo " ===== ls  ====="
+ls
+echo " ===== ls .. ====="
+ls ..
+echo " ===== ls ../.. ====="
+ls ../..
+echo " ===== ls ../cmake ====="
+ls ../cmake
+echo " ===== find ====="
+find ../cmake -name cmake -type f
+
 export CMAKE_BIN=$(readlink -f "$(find ../cmake/bin -name cmake -type f )")
 export CMAKE_COMMON_FLAGS="-GNinja -DPORTAUDIO_ONLY_DYNAMIC=1 -DOSSIA_USE_FAST_LINKER=1"
 QT_ENV_SCRIPT=$(find /opt -name 'qt*-env.sh')

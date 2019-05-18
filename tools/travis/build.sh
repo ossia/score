@@ -9,5 +9,5 @@ export CTEST_OUTPUT_ON_FAILURE=1
 mkdir -p build
 cd build
 
-export CONFIG_FOLDER=$(pwd)/../tools/travis/configs/
-source "$CONFIG_FOLDER/$CONF.sh"
+export CONFIG_FOLDER="$(pwd)/../tools/travis/configs"
+source "$(pwd)/../tools/travis/configs/$CONF.sh"
