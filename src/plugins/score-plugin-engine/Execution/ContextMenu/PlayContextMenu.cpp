@@ -90,9 +90,40 @@ PlayContextMenu::PlayContextMenu(
         const auto& ctx = m_ctx.documents.currentDocument()->context();
         auto& r_ctx = ctx.plugin<Execution::DocumentPlugin>().context();
 
-        auto ossia_state
-            = Engine::score_to_ossia::state(scenar.state(id), r_ctx);
+        auto& score_state = scenar.state(id);
+
+        // Make the state blink
+        auto old_status = score_state.status();
+        Scenario::ExecutionStatus new_status{};
+        switch(old_status) {
+        case Scenario::ExecutionStatus::Editing:
+        case Scenario::ExecutionStatus::Waiting:
+            new_status = Scenario::ExecutionStatus::Happened;
+            break;
+        case Scenario::ExecutionStatus::Pending:
+        case Scenario::ExecutionStatus::Happened:
+        case Scenario::ExecutionStatus::Disposed:
+            new_status = Scenario::ExecutionStatus::Waiting;
+            break;
+        }
+
+        // If the status changes again in the meantime we don't want to revert back to the old status
+        auto has_changed = std::make_shared<bool>(false);
+        score_state.setStatus(new_status);
+        auto con = connect(&score_state, &Scenario::StateModel::statusChanged, this, [has_changed] {
+            *has_changed = true;
+        });
+
+        // Send our state
+        auto ossia_state = Engine::score_to_ossia::state(score_state, r_ctx);
         ossia_state.launch();
+
+        // Revert the ui color
+        QTimer::singleShot(250, &score_state, [&score_state,old_status,con,has_changed] {
+            if(!(*has_changed))
+                score_state.setStatus(old_status);
+            QObject::disconnect(con);
+        });
       });
 
   con(exec_signals,
