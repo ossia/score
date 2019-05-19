@@ -15,7 +15,7 @@ public:
   ~ResizeableItem();
 
   void sizeChanged(QSizeF sz)
-  W_SIGNAL(sizeChanged, sz);
+  E_SIGNAL(SCORE_LIB_BASE_EXPORT, sizeChanged, sz)
 };
 
 class SCORE_LIB_BASE_EXPORT RectItem

@@ -14,6 +14,7 @@ void RectItem::setRect(const QRectF& r)
 {
   prepareGeometryChange();
   m_rect = r;
+  sizeChanged({r.width(), r.height()});
 }
 
 void RectItem::setHighlight(bool b)
