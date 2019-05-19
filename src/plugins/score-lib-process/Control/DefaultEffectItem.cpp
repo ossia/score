@@ -92,6 +92,7 @@ void DefaultEffectItem::setupInlet(
 
   item->setPos(0, pos_y);
   item->setRect(QRectF{0., 0, 170., h});
+  this->setRect(this->childrenBoundingRect());
 }
 
 void DefaultEffectItem::on_controlAdded(const Id<Process::Port>& id)
