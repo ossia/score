@@ -190,6 +190,32 @@ ScenarioApplicationPlugin::ScenarioApplicationPlugin(
       }
     });
   }
+
+  {
+    m_levelUp = new QAction{this};
+    connect(m_levelUp, &QAction::triggered,
+            this, [this] {
+      auto doc = this->currentDocument();
+      if (!doc)
+        return;
+
+      ScenarioDocumentPresenter* pres
+          = IDocument::presenterDelegate<ScenarioDocumentPresenter>(*doc);
+      if (!pres)
+        return;
+
+      const auto cst_pres = pres->presenters().intervalPresenter();
+      const QObject* itv = &cst_pres->model();
+      while(itv) {
+        itv = itv->parent();
+        if(auto itv_ = qobject_cast<const IntervalModel*>(itv))
+        {
+          pres->setDisplayedInterval(const_cast<IntervalModel&>(*itv_));
+          return;
+        }
+      }
+    });
+  }
 }
 
 void ScenarioApplicationPlugin::initialize()
@@ -215,11 +241,13 @@ auto ScenarioApplicationPlugin::makeGUIElements() -> GUIElements
   actions.add<Actions::ShowCables>(m_showCables);
   actions.add<Actions::FoldIntervals>(m_foldIntervals);
   actions.add<Actions::UnfoldIntervals>(m_unfoldIntervals);
+  actions.add<Actions::LevelUp>(m_levelUp);
 
   score::Menu& menu = context.menus.get().at(score::Menus::View());
   menu.menu()->addAction(m_showCables);
   menu.menu()->addAction(m_foldIntervals);
   menu.menu()->addAction(m_unfoldIntervals);
+  menu.menu()->addAction(m_levelUp);
 
   return e;
 }
