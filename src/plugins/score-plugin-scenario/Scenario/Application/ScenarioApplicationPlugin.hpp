@@ -100,5 +100,6 @@ private:
   QAction* m_showCables{};
   QAction* m_foldIntervals{};
   QAction* m_unfoldIntervals{};
+  QAction* m_levelUp{};
 };
 }

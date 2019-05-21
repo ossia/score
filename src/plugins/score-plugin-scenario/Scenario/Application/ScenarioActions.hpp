@@ -244,6 +244,11 @@ SCORE_DECLARE_ACTION(
     "Unfold intervals",
     Scenario,
     Qt::CTRL + Qt::ALT + Qt::Key_U)
+SCORE_DECLARE_ACTION(
+    LevelUp,
+    "Go to parent interval",
+    Scenario,
+    Qt::CTRL + Qt::ALT + Qt::Key_Up)
 
 SCORE_DECLARE_ACTION(Duplicate, "&Duplicate", Scenario, Qt::ALT + Qt::Key_D)
 
