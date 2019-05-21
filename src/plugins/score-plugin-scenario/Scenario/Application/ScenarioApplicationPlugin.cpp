@@ -11,8 +11,6 @@
 
 #include <score/plugins/documentdelegate/DocumentDelegateView.hpp>
 #include <score/tools/std/Optional.hpp>
-// This part is somewhat similar to what moc does
-// with moc_.. stuff generation.
 #include "Menus/TransportActions.hpp"
 #include "ScenarioApplicationPlugin.hpp"
 
@@ -130,31 +128,68 @@ ScenarioApplicationPlugin::ScenarioApplicationPlugin(
   {
     m_objectActions.setupContextMenu(m_layerCtxMenuManager);
   }
-  // Dataflow
-  m_showCables = new QAction{this};
-  m_showCables->setCheckable(true);
-  m_showCables->setChecked(true);
-  connect(m_showCables, &QAction::toggled, this, [this](bool c) {
-    auto doc = this->currentDocument();
-    if (doc)
-    {
-      Dataflow::CableItem::g_cables_enabled = c;
-      ScenarioDocumentPresenter* plug
-          = score::IDocument::try_get<ScenarioDocumentPresenter>(*doc);
 
-      auto& p = doc->context().plugin<Process::DocumentPlugin>();
-      for (const auto& port : p.ports())
+  {
+    // Dataflow
+    m_showCables = new QAction{this};
+    m_showCables->setCheckable(true);
+    m_showCables->setChecked(true);
+    connect(m_showCables, &QAction::toggled, this, [this](bool c) {
+      auto doc = this->currentDocument();
+      if (doc)
       {
-        Dataflow::PortItem& item = *port.second;
-        item.resetPortVisible();
-      }
+        Dataflow::CableItem::g_cables_enabled = c;
+        ScenarioDocumentPresenter* plug
+            = score::IDocument::try_get<ScenarioDocumentPresenter>(*doc);
 
-      for (Dataflow::CableItem& cable : plug->cableItems)
-      {
-        cable.check();
+        auto& p = doc->context().plugin<Process::DocumentPlugin>();
+        for (const auto& port : p.ports())
+        {
+          Dataflow::PortItem& item = *port.second;
+          item.resetPortVisible();
+        }
+
+        for (Dataflow::CableItem& cable : plug->cableItems)
+        {
+          cable.check();
+        }
       }
-    }
-  });
+    });
+  }
+
+  {
+    // Fold / unfold intervals
+    m_foldIntervals = new QAction{this};
+    connect(m_foldIntervals, &QAction::triggered,
+            this, [this] {
+
+      auto doc = this->currentDocument();
+      if (!doc)
+        return;
+      auto scenario = focusedScenarioInterface(doc->context());
+      if(!scenario)
+        return;
+      for(IntervalModel& itv : scenario->getIntervals())
+      {
+        itv.setSmallViewVisible(false);
+      }
+    });
+    m_unfoldIntervals = new QAction{this};
+    connect(m_unfoldIntervals, &QAction::triggered,
+            this, [this] {
+
+      auto doc = this->currentDocument();
+      if (!doc)
+        return;
+      auto scenario = focusedScenarioInterface(doc->context());
+      if(!scenario)
+        return;
+      for(IntervalModel& itv : scenario->getIntervals())
+      {
+        itv.setSmallViewVisible(true);
+      }
+    });
+  }
 }
 
 void ScenarioApplicationPlugin::initialize()
@@ -178,9 +213,13 @@ auto ScenarioApplicationPlugin::makeGUIElements() -> GUIElements
   // Dataflow
   auto& actions = e.actions;
   actions.add<Actions::ShowCables>(m_showCables);
+  actions.add<Actions::FoldIntervals>(m_foldIntervals);
+  actions.add<Actions::UnfoldIntervals>(m_unfoldIntervals);
 
   score::Menu& menu = context.menus.get().at(score::Menus::View());
   menu.menu()->addAction(m_showCables);
+  menu.menu()->addAction(m_foldIntervals);
+  menu.menu()->addAction(m_unfoldIntervals);
 
   return e;
 }

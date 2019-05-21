@@ -234,6 +234,17 @@ SCORE_DECLARE_ACTION(
     "&Decapsulate",
     Scenario,
     Qt::SHIFT + Qt::CTRL + Qt::Key_D)
+SCORE_DECLARE_ACTION(
+    FoldIntervals,
+    "Fold intervals",
+    Scenario,
+    Qt::CTRL + Qt::ALT + Qt::Key_F)
+SCORE_DECLARE_ACTION(
+    UnfoldIntervals,
+    "Unfold intervals",
+    Scenario,
+    Qt::CTRL + Qt::ALT + Qt::Key_U)
+
 SCORE_DECLARE_ACTION(Duplicate, "&Duplicate", Scenario, Qt::ALT + Qt::Key_D)
 
 // Navigation
