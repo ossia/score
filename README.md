@@ -2,11 +2,13 @@
 
 [![join the chat at https://gitter.im/OSSIA/score](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/OSSIA/score?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge) [![Downloads](https://img.shields.io/github/downloads/OSSIA/score/total.svg)](https://github.com/OSSIA/score/releases) [![Version](https://img.shields.io/github/release/OSSIA/score.svg)](https://github.com/OSSIA/score/releases)
 
-ossia score is an interactive intermedia sequencer - read more on http://ossia.io, come ask questions on the [forum](http://forum.ossia.io/c/score) or hang out in a chat with us !
+**ossia score** is a sequencer for audio-visual artists. 
 
-With *score* you can sequence OSC, MIDI, etc. parameters between multiple software and hardware, to create interactive and intermedia **score**s.
+Sequence **OSC/MIDI/DMX/sound files** and more, between multiple software and hardware, and create ***interactive*** and ***intermedia*** scores.
 
-#### Download the [latest release here](https://github.com/OSSIA/score/releases/) and read the Releases section in this README.
+Read more on http://ossia.io, come ask questions on the [forum](http://forum.ossia.io/c/score) or hang out in a [chat](https://gitter.im/OSSIA/score) with us !
+
+### Download the [latest release here](https://github.com/OSSIA/score/releases/) and read the Releases section in this README.
 
 ![ossia score screenshot](/docs/score.png?raw=true)
 
@@ -14,13 +16,13 @@ With *score* you can sequence OSC, MIDI, etc. parameters between multiple softwa
 
 Releases are available for [Windows, Linux (via AppImage) and Mac OS X](https://github.com/OSSIA/score/releases/latest).
 
-* Windows : install and run.
-* OS X : extract and run ossia score.app.
-* Linux : make executable (right click -> permissions or `chmod +x`) and run the AppImage.
+* Windows: install and run.
+* OS X: extract and run ossia score.app.
+* Linux: make executable (right click -> permissions or `chmod +x`) and run the AppImage.
 
 ## Build status
-* Linux, OS X : [![Travis Status](https://travis-ci.org/OSSIA/score.svg?branch=master)](https://travis-ci.org/OSSIA/score)
-* Windows : [![Appveyor Status](https://ci.appveyor.com/api/projects/status/github/OSSIA/score?branch=master&svg=true)](https://ci.appveyor.com/project/JeanMichalCelerier/score)
+* Linux, OS X: [![Travis Status](https://travis-ci.org/OSSIA/score.svg?branch=master)](https://travis-ci.org/OSSIA/score)
+* Windows: [![Appveyor Status](https://ci.appveyor.com/api/projects/status/github/OSSIA/score?branch=master&svg=true)](https://ci.appveyor.com/project/JeanMichalCelerier/score)
 * [![OpenHub](https://www.openhub.net/p/score/widgets/project_thin_badge?format=gif)](https://www.openhub.net/p/score)
 * ossia score uses [CppDepend](https://www.cppdepend.com/) to ensure consistent code quality improvements ; please check it out !
 
