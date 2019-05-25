@@ -56,11 +56,13 @@ using ExecutionCommandQueue
 //! Useful structures when creating the execution elements.
 struct SCORE_LIB_PROCESS_EXPORT Context
 {
+#if !defined(_MSC_VER)
   Context() = delete;
   Context(const Context&) = delete;
   Context& operator=(const Context&) = delete;
   Context(Context&&) = delete;
   Context& operator=(Context&&) = delete;
+#endif
 
   const score::DocumentContext& doc;
   const std::atomic_bool& created;

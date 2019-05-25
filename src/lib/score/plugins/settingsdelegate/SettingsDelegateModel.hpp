@@ -6,7 +6,7 @@
 
 #include <QObject>
 #include <QSettings>
-
+#include <wobjectdefs.h>
 #include <score_lib_base_export.h>
 
 namespace score

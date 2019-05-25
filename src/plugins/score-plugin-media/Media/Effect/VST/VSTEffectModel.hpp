@@ -108,7 +108,7 @@ public:
     vis.writeTo(*this);
   }
 
-  VSTControlInlet* getControl(const Id<Process::Port>& p);
+  VSTControlInlet* getControl(const Id<Process::Port>& p) const;
   QString prettyName() const noexcept override;
   bool hasExternalUI() const noexcept;
 

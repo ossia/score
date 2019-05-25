@@ -4,7 +4,7 @@
 
 namespace Audio
 {
-#if 1 || defined(OSSIA_AUDIO_PORTAUDIO) && __has_include(<pa_linux_alsa.h>)
+#if defined(OSSIA_AUDIO_PORTAUDIO) && __has_include(<pa_linux_alsa.h>)
 class ALSAFactory final : public QObject, public AudioFactory
 {
   SCORE_CONCRETE("3533ee88-9a8d-486c-b20b-6c966cf4eaa0")
