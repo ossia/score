@@ -172,9 +172,9 @@ void Style::update(const score::Skin&)
   TimenodeBrush = QBrush{Qt::black};
   TimenodePen.setCosmetic(true);
 
-  MinimapPen = QPen{QColor("#99aaaaaa"), 1, Qt::SolidLine};
+  MinimapPen = QPen{QColor("#a3a3a3"), 2, Qt::SolidLine};
   MinimapPen.setCosmetic(true);
-  MinimapBrush = QBrush{QColor::fromRgbF(0.31, 0.35, 0.44, 0.5)};
+  MinimapBrush = QBrush{QColor("#3D3D3D")};
 
   StateTemporalPointBrush = QBrush{Qt::black};
   StateTemporalPointPen.setCosmetic(true);
