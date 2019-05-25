@@ -182,7 +182,7 @@ void VSTEffectModel::removeControl(const Id<Process::Port>& id)
   delete ctrl;
 }
 
-VSTControlInlet* VSTEffectModel::getControl(const Id<Process::Port>& p)
+VSTControlInlet* VSTEffectModel::getControl(const Id<Process::Port>& p) const
 {
   for (auto e : m_inlets)
     if (e->id() == p)

@@ -67,12 +67,6 @@ SCORE_LIB_STATE_EXPORT QString toString(const Relation&);
 
 struct SCORE_LIB_STATE_EXPORT Pulse
 {
-  Pulse() noexcept = default;
-  Pulse(const Pulse&) noexcept = default;
-  Pulse(Pulse&&) noexcept = default;
-  Pulse& operator=(const Pulse&) noexcept = default;
-  Pulse& operator=(Pulse&&) noexcept = default;
-
   State::Address address;
 
   friend bool operator==(const Pulse& lhs, const Pulse& rhs)

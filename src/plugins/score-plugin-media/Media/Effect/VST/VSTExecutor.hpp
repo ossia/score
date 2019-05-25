@@ -24,6 +24,10 @@ public:
       const Execution::Context& ctx,
       const Id<score::Component>& id,
       QObject* parent);
+
+private:
+	template<typename Node_T>
+	void setupNode(Node_T& node);
 };
 using VSTEffectComponentFactory
     = Execution::ProcessComponentFactory_T<VSTEffectComponent>;
