@@ -93,10 +93,29 @@ void Minimap::paint(
 {
   auto& sk = Process::Style::instance();
   painter->setRenderHint(QPainter::Antialiasing, false);
-  painter->setPen(sk.MinimapPen);
+  painter->setPen(sk.NoPen);
   painter->setBrush(sk.MinimapBrush);
   painter->drawRect(
       QRectF{m_leftHandle, 1., m_rightHandle - m_leftHandle, m_height - 2.});
+
+  painter->setPen(sk.MinimapPen);
+
+  const float line_length = 5;
+  const QPointF top_left{m_leftHandle + 1., 1.};
+  painter->drawLine(top_left, top_left + QPointF{line_length,0});
+  painter->drawLine(top_left, top_left + QPointF{0, line_length});
+
+  const QPointF top_right{m_rightHandle - 1., 1.};
+  painter->drawLine(top_right, top_right + QPointF{-line_length,0});
+  painter->drawLine(top_right, top_right + QPointF{0, line_length});
+
+  const QPointF bottom_left{m_leftHandle + 1., m_height - 2.};
+  painter->drawLine(bottom_left, bottom_left + QPointF{line_length,0});
+  painter->drawLine(bottom_left, bottom_left + QPointF{0, -line_length});
+
+  const QPointF bottom_right{m_rightHandle - 1., m_height - 2.};
+  painter->drawLine(bottom_right, bottom_right + QPointF{-line_length,0});
+  painter->drawLine(bottom_right, bottom_right + QPointF{0, -line_length});
 }
 
 #if defined(__APPLE__)
