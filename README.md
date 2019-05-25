@@ -1,5 +1,4 @@
-ossia score
-=======
+<img src="https://i.imgur.com/BL6J8Jh.png" width="500">
 
 [![join the chat at https://gitter.im/OSSIA/score](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/OSSIA/score?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge) [![Downloads](https://img.shields.io/github/downloads/OSSIA/score/total.svg)](https://github.com/OSSIA/score/releases) [![Version](https://img.shields.io/github/release/OSSIA/score.svg)](https://github.com/OSSIA/score/releases)
 
