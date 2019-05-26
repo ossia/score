@@ -76,18 +76,24 @@ void QGraphicsSelectablePixmapToggle::toggle()
 
 void QGraphicsSelectablePixmapToggle::setSelected(bool selected)
 {
-  m_selected = selected;
-  setPixmap(m_toggled ?
+  if(selected != m_selected)
+  {
+    m_selected = selected;
+    setPixmap(m_toggled ?
                 (m_selected ? m_pressed_selected : m_pressed)
               : (m_selected ? m_released_selected : m_released));
+  }
 }
 
 void QGraphicsSelectablePixmapToggle::setState(bool toggled)
 {
-  m_toggled = toggled;
-  setPixmap(m_toggled ?
+  if(toggled != m_toggled)
+  {
+    m_toggled = toggled;
+    setPixmap(m_toggled ?
                 (m_selected ? m_pressed_selected : m_pressed)
               : (m_selected ? m_released_selected : m_released));
+  }
 }
 
 void QGraphicsSelectablePixmapToggle::mousePressEvent(QGraphicsSceneMouseEvent* event)
@@ -129,8 +135,11 @@ void QGraphicsPixmapToggle::toggle()
 
 void QGraphicsPixmapToggle::setState(bool toggled)
 {
-  m_toggled = toggled;
-  setPixmap(m_toggled ? m_pressed : m_released);
+  if(toggled != m_toggled)
+  {
+    m_toggled = toggled;
+    setPixmap(m_toggled ? m_pressed : m_released);
+  }
 }
 
 void QGraphicsPixmapToggle::mousePressEvent(QGraphicsSceneMouseEvent* event)

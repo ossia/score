@@ -103,9 +103,11 @@ void TemporalIntervalHeader::paint(
   }
 
   x = std::max(x, 10.);
+  bool moved = false;
   if (std::abs(m_previous_x - x) > 0.1)
   {
     m_previous_x = x;
+    moved = true;
   }
 
   double rack_button_offset = 0.;
@@ -118,6 +120,9 @@ void TemporalIntervalHeader::paint(
       m_previous_x + rack_button_offset,
       -1. + (IntervalHeader::headerHeight() - m_textRectCache.height()) / 2.};
 
+  if(moved)
+    updateButtons();
+
   if(m_selected)
   {
     auto& style = Process::Style::instance();
@@ -125,14 +130,12 @@ void TemporalIntervalHeader::paint(
     painter->setPen(style.NoPen);
     painter->setBrush(itv.muted() ? style.MutedIntervalHeaderBackground : style.SlotHeader.getBrush());
 
-    updateShape();
     painter->drawPolygon(m_poly);
     //painter->setPen(Qt::red);
     //painter->drawPath(shape());
     painter->setRenderHint(QPainter::Antialiasing, false);
   }
 
-  updateButtons();
   painter->drawImage(p, m_line);
 }
 
@@ -200,6 +203,8 @@ void TemporalIntervalHeader::enableOverlay(bool b)
       });
 
       m_rackButton->setSelected(b);
+      updateButtons();
+      update();
       m_overlay = true;
   }
 
@@ -252,6 +257,7 @@ void TemporalIntervalHeader::enableOverlay(bool b)
     }
 
     updateButtons();
+    update();
     m_overlay = true;
   }
 }
@@ -303,8 +309,6 @@ void TemporalIntervalHeader::updateShape() noexcept
          << QPointF{5., 0.}
          << QPointF{m_previous_x + text_width + buttons_width, 0.}
          << QPointF{m_previous_x + text_width + buttons_width + 5., qreal(IntervalHeader::headerHeight()) - 0.5};
-
-  update();
 }
 
 void TemporalIntervalHeader::setState(IntervalHeader::State s)
@@ -319,6 +323,7 @@ void TemporalIntervalHeader::setState(IntervalHeader::State s)
 
 void TemporalIntervalHeader::on_textChanged()
 {
+  prepareGeometryChange();
   const auto& skin = Process::Style::instance();
   const auto& font = skin.skin.Bold10Pt;
   const auto& model = m_presenter.model().metadata();
@@ -367,6 +372,8 @@ void TemporalIntervalHeader::on_textChanged()
       p.drawGlyphRun(QPointF{0, 0}, r[0]);
     }
   }
+  updateButtons();
+  update();
 }
 
 void TemporalIntervalHeader::hoverEnterEvent(QGraphicsSceneHoverEvent* h)

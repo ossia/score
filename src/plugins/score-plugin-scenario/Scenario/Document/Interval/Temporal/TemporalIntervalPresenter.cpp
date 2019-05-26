@@ -930,6 +930,7 @@ void TemporalIntervalPresenter::on_defaultDurationChanged(const TimeVal& val)
   m_view->updateCounterPos();
   m_header->setWidth(w - 10.);
   ((TemporalIntervalHeader*)m_header)->updateButtons();
+  ((TemporalIntervalHeader*)m_header)->update();
   updateBraces();
 
   for (const SlotPresenter& slot : m_slots)
