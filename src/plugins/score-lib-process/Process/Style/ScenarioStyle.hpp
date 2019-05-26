@@ -80,6 +80,7 @@ struct SCORE_LIB_PROCESS_EXPORT Style
   score::ColorRef ProcessPanelBackground;
 
   score::ColorRef TimeRulerBackground;
+  score::ColorRef MinimapBackground;
   score::ColorRef TimeRuler;
   score::ColorRef LocalTimeRuler;
 

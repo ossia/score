@@ -53,6 +53,7 @@ public:
   QBrush Warn3;
 
   QBrush Background1;
+  QBrush Background2;
 
   QBrush Transparent1;
   QBrush Transparent2;

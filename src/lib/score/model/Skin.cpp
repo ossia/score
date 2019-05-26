@@ -72,7 +72,8 @@ Skin::Skin() noexcept : SansFont{"Ubuntu"}, MonoFont
         SCORE_INSERT_COLOR(Base4),        SCORE_INSERT_COLOR(Base5),
         SCORE_INSERT_COLOR(Warn1),
         SCORE_INSERT_COLOR(Warn2),        SCORE_INSERT_COLOR(Warn3),
-        SCORE_INSERT_COLOR(Background1),  SCORE_INSERT_COLOR(Transparent1),
+        SCORE_INSERT_COLOR(Background1),  SCORE_INSERT_COLOR(Background2),
+        SCORE_INSERT_COLOR(Transparent1),
         SCORE_INSERT_COLOR(Transparent2), SCORE_INSERT_COLOR(Transparent3),
         SCORE_INSERT_COLOR(Smooth1),      SCORE_INSERT_COLOR(Smooth2),
         SCORE_INSERT_COLOR(Smooth3),      SCORE_INSERT_COLOR(Tender1),
@@ -214,6 +215,7 @@ void Skin::load(const QJsonObject& obj)
   SCORE_CONVERT_COLOR(Warn3);
 
   SCORE_CONVERT_COLOR(Background1);
+  SCORE_CONVERT_COLOR(Background2);
 
   SCORE_CONVERT_COLOR(Transparent1);
   SCORE_CONVERT_COLOR(Transparent2);
@@ -258,6 +260,7 @@ QVector<QPair<QColor, QString>> Skin::getColors() const
   SCORE_MAKE_PAIR_COLOR(Warn2);
   SCORE_MAKE_PAIR_COLOR(Warn3);
   SCORE_MAKE_PAIR_COLOR(Background1);
+  SCORE_MAKE_PAIR_COLOR(Background2);
   SCORE_MAKE_PAIR_COLOR(Transparent1);
   SCORE_MAKE_PAIR_COLOR(Transparent2);
   SCORE_MAKE_PAIR_COLOR(Transparent3);
