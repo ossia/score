@@ -2,7 +2,7 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include <Process/Style/ScenarioStyle.hpp>
 #include <Scenario/Document/Minimap/Minimap.hpp>
-
+#include <score/graphics/GraphicsItem.hpp>
 #include <ossia/detail/math.hpp>
 
 #include <QApplication>
@@ -10,6 +10,7 @@
 #include <QGraphicsView>
 #include <QPainter>
 #include <QWidget>
+#include <QGraphicsView>
 
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Scenario::Minimap)
@@ -100,20 +101,24 @@ void Minimap::paint(
 
   painter->setPen(sk.MinimapPen);
 
+  QGraphicsView* view = ::getView(*this);
+  double offset = (view && view->devicePixelRatioF() > 1.) ? 0.5 : 0.;
+
+
   const float line_length = 5;
-  const QPointF top_left{m_leftHandle + 1., 1.};
+  const QPointF top_left{m_leftHandle + 1. - offset, 1.5};
   painter->drawLine(top_left, top_left + QPointF{line_length,0});
   painter->drawLine(top_left, top_left + QPointF{0, line_length});
 
-  const QPointF top_right{m_rightHandle - 1., 1.};
+  const QPointF top_right{m_rightHandle - 1 + offset, 1.5};
   painter->drawLine(top_right, top_right + QPointF{-line_length,0});
   painter->drawLine(top_right, top_right + QPointF{0, line_length});
 
-  const QPointF bottom_left{m_leftHandle + 1., m_height - 2.};
+  const QPointF bottom_left{m_leftHandle + 1. - offset, m_height - 2. + offset};
   painter->drawLine(bottom_left, bottom_left + QPointF{line_length,0});
   painter->drawLine(bottom_left, bottom_left + QPointF{0, -line_length});
 
-  const QPointF bottom_right{m_rightHandle - 1., m_height - 2.};
+  const QPointF bottom_right{m_rightHandle - 1. + offset, m_height - 2. + offset};
   painter->drawLine(bottom_right, bottom_right + QPointF{-line_length,0});
   painter->drawLine(bottom_right, bottom_right + QPointF{0, -line_length});
 }
