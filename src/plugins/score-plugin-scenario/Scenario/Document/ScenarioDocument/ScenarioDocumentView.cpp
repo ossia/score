@@ -258,12 +258,14 @@ ScenarioDocumentView::ScenarioDocumentView(
   m_view.setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 
   auto& skin = score::Skin::instance();
-  con(skin, &score::Skin::changed, this, [&]() {
+  con(skin, &score::Skin::changed, this, [&] {
     auto& skin = Process::Style::instance();
     m_timeRulerView.setBackgroundBrush(skin.TimeRulerBackground.getBrush());
-    m_minimapView.setBackgroundBrush(skin.TimeRulerBackground.getBrush());
+    m_minimapView.setBackgroundBrush(skin.MinimapBackground.getBrush());
     m_view.setBackgroundBrush(skin.Background.getBrush());
   });
+
+  skin.changed();
 
   m_widget->setObjectName("ScenarioViewer");
 

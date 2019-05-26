@@ -68,7 +68,8 @@ Style::Style(score::Skin& s) noexcept
     , Background{&s.Background1}
     , ProcessPanelBackground{&s.Transparent1}
 
-    , TimeRulerBackground{&s.Background1}
+    , TimeRulerBackground{&s.Background2}
+    , MinimapBackground{&s.Background1}
     , TimeRuler{&s.Base1}
     , LocalTimeRuler{&s.Gray}
 
