@@ -9,7 +9,13 @@
 #include <QPixmapCache>
 #include <QSurfaceFormat>
 #include <qnamespace.h>
-
+/*
+#if __has_include(<valgrind/callgrind.h>)
+#include <valgrind/callgrind.h>
+#include <QMessageBox>
+#include <QTimer>
+#endif
+*/
 #if defined(__linux__)
 #include <dlfcn.h>
 #endif
@@ -160,6 +166,19 @@ int main(int argc, char** argv)
   Application app(argc, argv);
 
   app.init();
+
+#if __has_include(<valgrind/callgrind.h>)
+  /*
+  QTimer::singleShot(5000, [] {
+    QMessageBox::information(nullptr, "debug start", "debug start", QMessageBox::Ok);
+    CALLGRIND_START_INSTRUMENTATION;
+    QTimer::singleShot(10000, [] {
+      CALLGRIND_STOP_INSTRUMENTATION;
+      CALLGRIND_DUMP_STATS;
+      QMessageBox::information(nullptr, "debug stop", "debug stop", QMessageBox::Ok);
+    });
+  });*/
+#endif
   int res = app.exec();
 
 #if defined(__APPLE__)
