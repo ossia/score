@@ -862,11 +862,13 @@ void JSONObjectReader::read<Media::VST::VSTControlInlet>(
     const Media::VST::VSTControlInlet& p)
 {
   obj["FxNum"] = p.fxNum;
+  obj["Value"] = p.value();
 }
 template <>
 void JSONObjectWriter::write<Media::VST::VSTControlInlet>(
     Media::VST::VSTControlInlet& p)
 {
   p.fxNum = obj["FxNum"].toInt();
+  p.setValue(obj["Value"].toDouble());
 }
 #endif
