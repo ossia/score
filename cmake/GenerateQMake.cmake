@@ -15,6 +15,7 @@ macro(_qmake_addDefine define)
 endmacro()
 
 macro(_qmake_addLib lib)
+message("The lib: ${lib}")
   if("${lib}" MATCHES "^\\$<.*>")
     # ignore
   elseif("${lib}" MATCHES "Threads::Threads")
@@ -29,7 +30,6 @@ macro(_qmake_addLib lib)
     set(QMAKE "${QMAKE}LIBS += -l${lib}\n")
   endif()
 endmacro()
-
 
 function(GenerateQMake targets)
   set(QMAKE "TARGET = ossia-score
