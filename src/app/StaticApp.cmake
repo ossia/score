@@ -1,6 +1,12 @@
 if(SCORE_STATIC_QT)
   find_package(Qt5 5.3 REQUIRED COMPONENTS Core Network Svg Xml Qml Quick QuickControls2 Gui Widgets WebSockets)
 
+  if(WIN32)
+    set(QT_PRL_PREFIX "")
+  else()
+    set(QT_PRL_PREFIX "${CMAKE_STATIC_LIBRARY_PREFIX}")
+  endif()
+
   get_filename_component(QT_ROOT_FOLDER "${_qt5_root_dir}/../.." ABSOLUTE)
   set(QT_LIB_FOLDER "${QT_ROOT_FOLDER}/lib")
 
@@ -15,8 +21,12 @@ if(SCORE_STATIC_QT)
           string(REGEX REPLACE "QMAKE_PRL_LIBS[ \t]*=[ \t]*([^\n]*)" "\\1" _static_depends ${_prl_strings})
           string(REGEX REPLACE "[ \t]+" ";" _static_depends ${_static_depends})
           set(_search_paths ${QT_LIB_FOLDER})
+          if((MINGW OR MSYS) AND OSSIA_SDK)
+            set(_search_paths ${_search_paths} ${OSSIA_SDK}/llvm/x86_64-w64-mingw32/lib)
+          endif()
 
           foreach(_flag ${_static_depends})
+              string(REPLACE "$$[QT_INSTALL_LIBS]" "${_qt5_install_libs}" _flag "${_flag}")
               if(_flag MATCHES "^-l(.*)$")
                   set(_lib "${CMAKE_MATCH_1}")
                   if(_lib MATCHES "^pthread$")
@@ -71,16 +81,16 @@ if(SCORE_STATIC_QT)
   endfunction()
 
   # First we generate _FOO_STATIC_RELEASE_LIB_DEPENDENCIES variables by parsing the .prl files
-  process_qt_plugin("plugins/imageformats/${CMAKE_STATIC_LIBRARY_PREFIX}qsvg.prl" qsvg_plugin)
-  process_qt_plugin("plugins/imageformats/${CMAKE_STATIC_LIBRARY_PREFIX}qjpeg.prl" qjpeg_plugin)
-  process_qt_plugin("plugins/iconengines/${CMAKE_STATIC_LIBRARY_PREFIX}qsvgicon.prl" qsvgicon_plugin)
-  process_qt_plugin("qml/QtQuick.2/${CMAKE_STATIC_LIBRARY_PREFIX}qtquick2plugin.prl" qtquick2_plugin)
+  process_qt_plugin("plugins/imageformats/${QT_PRL_PREFIX}qsvg.prl" qsvg_plugin)
+  process_qt_plugin("plugins/imageformats/${QT_PRL_PREFIX}qjpeg.prl" qjpeg_plugin)
+  process_qt_plugin("plugins/iconengines/${QT_PRL_PREFIX}qsvgicon.prl" qsvgicon_plugin)
+  process_qt_plugin("qml/QtQuick.2/${QT_PRL_PREFIX}qtquick2plugin.prl" qtquick2_plugin)
 
   if(APPLE)
   elseif(WIN32)
   elseif(UNIX)
-    process_qt_plugin("plugins/platforms/${CMAKE_STATIC_LIBRARY_PREFIX}qxcb.prl" qxcb_plugin)
-    process_qt_plugin("plugins/xcbglintegrations/${CMAKE_STATIC_LIBRARY_PREFIX}qxcb-glx-integration.prl" qxcbglx_plugin)
+    process_qt_plugin("plugins/platforms/${QT_PRL_PREFIX}qxcb.prl" qxcb_plugin)
+    process_qt_plugin("plugins/xcbglintegrations/${QT_PRL_PREFIX}qxcb-glx-integration.prl" qxcbglx_plugin)
   endif()
 
   set(QT_LIBS_VARIABLES
