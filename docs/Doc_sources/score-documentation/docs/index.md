@@ -42,6 +42,8 @@ This section provides short technical highlights on different operations in *Sco
 ##### [Use the learn function](howtos/namespace_learning.md)
 #### Edit
 ##### [Update stored state](howtos/update_state.md)
+#### Play
+##### [Control speed and transport](howtos/control_score_speed.md)
 
 ## Further documentation
 

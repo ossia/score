@@ -23,6 +23,8 @@ pages:
       - 'Use the learn function': 'howtos/namespace_learning.md'
    - Edit:
       - 'Update stored state': 'howtos/update_state.md'
+   - Play:
+      - 'Control speed and transport': 'howtos/control_score_speed.md'
    
 use_directory_urls: false
 
