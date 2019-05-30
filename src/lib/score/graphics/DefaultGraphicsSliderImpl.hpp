@@ -69,7 +69,7 @@ struct DefaultGraphicsSliderImpl
 #if defined(__linux__)
     static const auto dpi_adjust = widget->devicePixelRatioF() > 1 ? 0 : -1;
 #elif defined(_WIN32)
-    static const constexpr auto dpi_adjust = -4;
+    static const constexpr auto dpi_adjust = 0;
 #else
     static const constexpr auto dpi_adjust = -2;
 #endif
