@@ -26,8 +26,10 @@ rm -rf 3rdparty/libossia/3rdparty/concurrentqueue/test
 rm -rf 3rdparty/libossia/3rdparty/tbb/examples
 rm -rf 3rdparty/libossia/3rdparty/exprtk/*test*
 rm -rf 3rdparty/libossia/3rdparty/purr-data
-rm -rf Documentation/Doc_sources
-rm -rf Documentation/Doxygen
+rm -rf 3rdparty/libossia/3rdparty/boost*
+rm -rf docs/Doc_sources
+rm -rf docs/Doxygen
+rm -rf docs/score.png
 rm -rf cmake-build-*
 find . -name '*.user' -exec rm {} \;
 find . -name '*.user.*' -exec rm {} \;
