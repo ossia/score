@@ -417,7 +417,7 @@ void ApplicationPlugin::on_documentChanged(
     {
       auto slider = new Scenario::SpeedWidget{
           root.baseInterval(), newdoc->context(), false, true, m_speedToolbar};
-      slider->setMinimumWidth(400);
+      slider->setMinimumWidth(50);
       m_speedSliderAct = m_speedToolbar->addWidget(slider);
     }
 

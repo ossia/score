@@ -22,6 +22,7 @@ public:
   ~SpeedWidget() override;
 
 private:
+  QSize sizeHint() const override;
   const IntervalModel& m_model;
 };
 }

@@ -87,3 +87,11 @@ SpeedWidget::SpeedWidget(
 
 SpeedWidget::~SpeedWidget() {}
 }
+
+
+QSize Scenario::SpeedWidget::sizeHint() const
+{
+  auto sz = QWidget::sizeHint();
+  sz.setWidth(200);
+  return sz;
+}
