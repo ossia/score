@@ -77,9 +77,6 @@ endif()
 add_definitions(-DQT_DISABLE_DEPRECATED_BEFORE=0x050800)
 add_definitions(-DQT_NO_KEYWORDS)
 
-find_package(Boost REQUIRED)
-include_directories(SYSTEM "${Boost_INCLUDE_DIRS}")
-
 if(UNIX AND NOT APPLE AND DEPLOYMENT_BUILD)
   set(SCORE_BUILD_FOR_PACKAGE_MANAGER ON)
 endif()
