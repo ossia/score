@@ -163,11 +163,7 @@ Skin::Skin() noexcept : SansFont{"Ubuntu"}, MonoFont
   SliderExtBrush = QColor("#666");
   SliderTextPen = QColor("silver");
   SliderFont = SansFont;
-#if defined(_WIN32)
-  SliderFont.setPointSize(7);
-#else
   SliderFont.setPointSize(10);
-#endif
   SliderFont.setWeight(QFont::DemiBold);
 }
 
