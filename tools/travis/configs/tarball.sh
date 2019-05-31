@@ -1,7 +1,7 @@
 #!/bin/bash
 cd ..
 rm -rf .git
-rm *.tar.xz
+rm -rf *.tar.xz
 find . -name '.git' -exec rm -rf {} \;
 rm -rf 3rdparty/libossia/.git
 rm -rf 3rdparty/libossia/3rdparty/CicmWrapper
@@ -16,7 +16,7 @@ mv pd-license.txt 3rdparty/libossia/3rdparty/pure-data/LICENSE.txt
 mv 3rdparty/libossia/3rdparty/pybind11/LICENSE pybind11-license.txt
 rm -rf 3rdparty/libossia/3rdparty/pybind11
 mkdir -p 3rdparty/libossia/3rdparty/pybind11
-mv  pybind11-license.txt 3rdparty/libossia/3rdparty/pybind11/LICENSE
+mv pybind11-license.txt 3rdparty/libossia/3rdparty/pybind11/LICENSE
 
 rm -rf 3rdparty/libossia/3rdparty/jni_hpp
 rm -rf 3rdparty/libossia/3rdparty/max-sdk
