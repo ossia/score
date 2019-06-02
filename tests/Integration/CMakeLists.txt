@@ -36,12 +36,14 @@ function(add_score_test _name _file)
     setup_target_for_coverage(
         score_test_coverage
         score_testapp
+        "/usr;/opt;libossia/3rdparty;moc_;ui_;.moc;qrc_"
         coverage_out)
 
     if(TARGET score_testapp_unity)
         setup_target_for_coverage(
             score_test_coverage_unity
             score_testapp_unity
+            "/usr;/opt;libossia/3rdparty;moc_;ui_;.moc;qrc_"
             coverage)
     endif()
   endif()
