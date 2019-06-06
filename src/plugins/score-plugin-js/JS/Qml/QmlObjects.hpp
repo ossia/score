@@ -10,7 +10,7 @@
 #include <QVector>
 
 #include <rtmidi17/message.hpp>
-#include <wobjectdefs.h>
+#include <verdigris>
 namespace JS
 {
 class Inlet : public QObject

@@ -2,7 +2,7 @@
 #include <Process/LayerPresenter.hpp>
 #include <Process/LayerView.hpp>
 
-#include <wobjectdefs.h>
+#include <verdigris>
 
 class QAction;
 namespace Process

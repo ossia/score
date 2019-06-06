@@ -11,7 +11,7 @@
 
 #include <nano_signal_slot.hpp>
 #include <score_plugin_scenario_export.h>
-#include <wobjectdefs.h>
+#include <verdigris>
 
 namespace Process
 {

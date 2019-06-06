@@ -24,7 +24,7 @@
 #include <score/model/Identifier.hpp>
 #include <score/tools/std/Optional.hpp>
 
-#include <wobjectdefs.h>
+#include <verdigris>
 
 namespace Scenario
 {

@@ -5,7 +5,7 @@
 #include <QStack>
 
 #include <tsl/hopscotch_map.h>
-#include <wobjectdefs.h>
+#include <verdigris>
 
 class IdentifiedObjectAbstract;
 

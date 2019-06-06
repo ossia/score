@@ -1,7 +1,7 @@
 #pragma once
 #include <QMetaType>
 
-#include <wobjectdefs.h>
+#include <verdigris>
 
 enum ExpandMode : int8_t
 {

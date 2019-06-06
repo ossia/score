@@ -4,7 +4,7 @@
 #include <QGraphicsItem>
 #include <QString>
 
-#include <wobjectdefs.h>
+#include <verdigris>
 
 #include <functional>
 

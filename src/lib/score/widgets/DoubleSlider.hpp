@@ -6,7 +6,7 @@
 #include <QSlider>
 
 #include <score_lib_base_export.h>
-#include <wobjectdefs.h>
+#include <verdigris>
 
 #include <limits>
 

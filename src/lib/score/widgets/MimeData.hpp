@@ -1,6 +1,6 @@
 #pragma once
 #include <QMimeData>
 
-#include <wobjectdefs.h>
+#include <verdigris>
 
 W_REGISTER_ARGTYPE(QMimeData)

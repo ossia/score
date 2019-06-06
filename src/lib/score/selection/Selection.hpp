@@ -3,7 +3,7 @@
 
 #include <QPointer>
 
-#include <wobjectdefs.h>
+#include <verdigris>
 
 /**
  * A selection is a set of objects.

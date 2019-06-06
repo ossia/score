@@ -12,7 +12,7 @@
 
 #include <Control/Widgets.hpp>
 #include <Process/Inspector/GenericProcessInspector.hpp>
-#include <wobjectdefs.h>
+#include <verdigris>
 
 namespace Media::VST
 {

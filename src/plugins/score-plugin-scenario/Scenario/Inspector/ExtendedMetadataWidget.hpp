@@ -1,7 +1,7 @@
 #pragma once
 #include <QWidget>
 
-#include <wobjectdefs.h>
+#include <verdigris>
 
 #include <utility>
 #include <vector>

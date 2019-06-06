@@ -7,7 +7,7 @@
 #include <Interpolation/Commands/ChangeAddress.hpp>
 #include <Interpolation/InterpolationProcess.hpp>
 #include <Interpolation/InterpolationView.hpp>
-#include <wobjectdefs.h>
+#include <verdigris>
 
 namespace Interpolation
 {

@@ -6,7 +6,7 @@
 
 #include <score/tools/std/HashMap.hpp>
 
-#include <wobjectdefs.h>
+#include <verdigris>
 namespace Curve
 {
 namespace Settings

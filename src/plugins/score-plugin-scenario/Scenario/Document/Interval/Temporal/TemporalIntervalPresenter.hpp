@@ -2,7 +2,7 @@
 #include <Scenario/Document/Interval/IntervalPresenter.hpp>
 
 #include <score_plugin_scenario_export.h>
-#include <wobjectdefs.h>
+#include <verdigris>
 class QGraphicsItem;
 class QObject;
 namespace Process

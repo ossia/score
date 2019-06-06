@@ -6,7 +6,7 @@
 #include <QStack>
 #include <QString>
 
-#include <wobjectdefs.h>
+#include <verdigris>
 
 namespace score
 {

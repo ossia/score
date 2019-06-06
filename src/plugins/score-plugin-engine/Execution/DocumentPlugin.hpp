@@ -13,7 +13,7 @@
 #include <ossia/network/generic/generic_device.hpp>
 #include <ossia/network/local/local.hpp>
 
-#include <wobjectdefs.h>
+#include <verdigris>
 
 #include <memory>
 

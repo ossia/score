@@ -6,7 +6,7 @@
 
 #include <QtQml/QJSEngine>
 
-#include <wobjectdefs.h>
+#include <verdigris>
 namespace ossia
 {
 struct execution_state;

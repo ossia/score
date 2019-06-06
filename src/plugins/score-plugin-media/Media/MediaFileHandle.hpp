@@ -9,7 +9,7 @@
 
 #include <nano_signal_slot.hpp>
 #include <score_plugin_media_export.h>
-#include <wobjectdefs.h>
+#include <verdigris>
 #include <score/tools/std/StringHash.hpp>
 #include <score/tools/Todo.hpp>
 

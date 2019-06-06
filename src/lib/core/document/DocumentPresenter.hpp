@@ -2,7 +2,7 @@
 
 #include <QObject>
 
-#include <wobjectdefs.h>
+#include <verdigris>
 
 class Selection;
 namespace score

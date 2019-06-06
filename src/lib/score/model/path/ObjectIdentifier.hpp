@@ -4,7 +4,7 @@
 
 #include <ossia/detail/config.hpp>
 
-#include <wobjectdefs.h>
+#include <verdigris>
 
 /**
  * @brief The ObjectIdentifier class

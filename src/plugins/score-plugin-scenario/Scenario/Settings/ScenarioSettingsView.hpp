@@ -4,7 +4,7 @@
 #include <score/plugins/settingsdelegate/SettingsDelegateView.hpp>
 #include <score/widgets/SpinBoxes.hpp>
 
-#include <wobjectdefs.h>
+#include <verdigris>
 
 class QComboBox;
 class QSpinBox;

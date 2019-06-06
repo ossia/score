@@ -4,7 +4,7 @@
 #include <QWidget>
 
 #include <score_lib_device_export.h>
-#include <wobjectdefs.h>
+#include <verdigris>
 
 class QLineEdit;
 namespace score

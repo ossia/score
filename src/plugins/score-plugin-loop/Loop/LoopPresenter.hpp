@@ -14,7 +14,7 @@
 #include <QDebug>
 #include <QPoint>
 
-#include <wobjectdefs.h>
+#include <verdigris>
 
 namespace Loop
 {

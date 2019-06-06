@@ -13,7 +13,7 @@
 #include <QLabel>
 #include <QWidget>
 
-#include <wobjectdefs.h>
+#include <verdigris>
 
 namespace State
 {

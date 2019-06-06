@@ -4,7 +4,7 @@
 #include <QList>
 #include <QTreeView>
 
-#include <wobjectdefs.h>
+#include <verdigris>
 class QAction;
 class QItemSelection;
 class QPoint;

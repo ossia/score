@@ -4,7 +4,7 @@
 #include <QObject>
 
 #include <score_plugin_deviceexplorer_export.h>
-#include <wobjectdefs.h>
+#include <verdigris>
 namespace State
 {
 struct Address;

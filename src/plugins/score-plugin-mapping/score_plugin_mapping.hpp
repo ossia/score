@@ -9,7 +9,7 @@
 
 #include <QObject>
 
-#include <wobjectdefs.h>
+#include <verdigris>
 
 #include <utility>
 #include <vector>

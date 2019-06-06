@@ -3,7 +3,7 @@
 #include <Dataflow/UI/PortItem.hpp>
 #include <Media/Effect/VST/VSTEffectModel.hpp>
 
-#include <wobjectdefs.h>
+#include <verdigris>
 
 namespace Media::VST
 {

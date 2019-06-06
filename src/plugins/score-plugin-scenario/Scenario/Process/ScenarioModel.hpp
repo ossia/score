@@ -24,7 +24,7 @@
 #include <QString>
 #include <QVector>
 
-#include <wobjectdefs.h>
+#include <verdigris>
 namespace Scenario
 {
 /**

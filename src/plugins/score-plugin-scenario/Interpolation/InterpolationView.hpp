@@ -4,7 +4,7 @@
 
 #include <QTextLayout>
 
-#include <wobjectdefs.h>
+#include <verdigris>
 
 namespace Interpolation
 {

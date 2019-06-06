@@ -3,7 +3,7 @@
 
 #include <QRect>
 
-#include <wobjectdefs.h>
+#include <verdigris>
 
 class QGraphicsItem;
 class QPainter;

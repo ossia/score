@@ -1,7 +1,7 @@
 #pragma once
 #include <QGraphicsScene>
 
-#include <wobjectdefs.h>
+#include <verdigris>
 
 namespace Scenario
 {

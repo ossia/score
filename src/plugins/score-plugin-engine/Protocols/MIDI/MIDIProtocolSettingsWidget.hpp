@@ -4,7 +4,7 @@
 
 #include <ossia/network/midi/midi.hpp>
 
-#include <wobjectdefs.h>
+#include <verdigris>
 
 class QComboBox;
 class QCheckBox;

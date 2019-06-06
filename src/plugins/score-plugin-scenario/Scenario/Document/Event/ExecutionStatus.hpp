@@ -3,7 +3,7 @@
 
 #include <QObject>
 
-#include <wobjectdefs.h>
+#include <verdigris>
 class QColor;
 namespace Process {
 struct Style;

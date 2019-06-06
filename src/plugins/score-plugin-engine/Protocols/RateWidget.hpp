@@ -7,7 +7,7 @@
 #include <QHBoxLayout>
 #include <QSpinBox>
 
-#include <wobjectdefs.h>
+#include <verdigris>
 
 namespace Protocols
 {

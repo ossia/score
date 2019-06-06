@@ -4,7 +4,7 @@
 #include <Device/Protocol/ProtocolSettingsWidget.hpp>
 #include <Protocols/DefaultProtocolFactory.hpp>
 
-#include <wobjectdefs.h>
+#include <verdigris>
 
 Q_DECLARE_METATYPE(std::vector<ossia::net::node_base*>)
 W_REGISTER_ARGTYPE(std::vector<ossia::net::node_base*>)

@@ -7,7 +7,7 @@
 #include <QComboBox>
 #include <QStyledItemDelegate>
 
-#include <wobjectdefs.h>
+#include <verdigris>
 
 namespace Explorer
 {

@@ -5,7 +5,7 @@
 #include <QString>
 
 #include <score_lib_state_export.h>
-#include <wobjectdefs.h>
+#include <verdigris>
 
 #include <memory>
 

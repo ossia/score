@@ -3,7 +3,7 @@
 
 #include <ossia/network/base/device.hpp>
 
-#include <wobjectdefs.h>
+#include <verdigris>
 
 namespace ossia::oscquery
 {

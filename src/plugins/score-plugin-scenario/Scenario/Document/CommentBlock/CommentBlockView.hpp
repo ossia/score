@@ -4,7 +4,7 @@
 #include <QGraphicsItem>
 #include <QObject>
 #include <QPointF>
-#include <wobjectdefs.h>
+#include <verdigris>
 namespace score
 {
 class TextItem;

@@ -6,7 +6,7 @@
 #include <QObject>
 
 #include <score_plugin_scenario_export.h>
-#include <wobjectdefs.h>
+#include <verdigris>
 namespace Scenario
 {
 class ScenarioInterface;

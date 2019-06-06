@@ -6,7 +6,7 @@
 
 #include <ossia/audio/audio_protocol.hpp>
 
-#include <wobjectdefs.h>
+#include <verdigris>
 class QLineEdit;
 namespace Dataflow
 {

@@ -12,7 +12,7 @@
 #include <QTextLayout>
 #include <qnamespace.h>
 
-#include <wobjectdefs.h>
+#include <verdigris>
 
 class QGraphicsSceneMouseEvent;
 class QPainter;

@@ -2,7 +2,7 @@
 #include <score/plugins/settingsdelegate/SettingsDelegateView.hpp>
 
 #include <Execution/Settings/ExecutorModel.hpp>
-#include <wobjectdefs.h>
+#include <verdigris>
 class QSpinBox;
 class QComboBox;
 class QCheckBox;

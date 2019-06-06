@@ -23,7 +23,7 @@
 #include <QVector>
 
 #include <nano_signal_slot.hpp>
-#include <wobjectdefs.h>
+#include <verdigris>
 
 class DataStream;
 class JSONObject;

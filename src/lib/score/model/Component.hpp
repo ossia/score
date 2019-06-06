@@ -8,7 +8,7 @@
 #include <QByteArray>
 #include <QJsonObject>
 
-#include <wobjectdefs.h>
+#include <verdigris>
 
 #include <utility>
 namespace score

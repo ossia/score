@@ -7,7 +7,7 @@
 #include <QtWebSockets/QWebSocket>
 #include <QtWebSockets/QWebSocketServer>
 
-#include <wobjectdefs.h>
+#include <verdigris>
 
 class WebSocketView final : public QObject
 {

@@ -1,7 +1,7 @@
 #pragma once
 #include <QMetaType>
 
-#include <wobjectdefs.h>
+#include <verdigris>
 namespace Scenario
 {
 enum class IntervalExecutionState : uint8_t

@@ -8,7 +8,7 @@
 
 #include <ossia/detail/pod_vector.hpp>
 
-#include <wobjectdefs.h>
+#include <verdigris>
 
 Q_DECLARE_METATYPE(std::size_t)
 W_REGISTER_ARGTYPE(std::size_t)

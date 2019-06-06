@@ -4,7 +4,7 @@
 
 #include <InterpState/InterpStateProcess.hpp>
 #include <InterpState/InterpStateView.hpp>
-#include <wobjectdefs.h>
+#include <verdigris>
 
 namespace InterpState
 {

@@ -3,7 +3,7 @@
 #include <score/plugins/settingsdelegate/SettingsDelegateModel.hpp>
 
 #include <score_plugin_media_export.h>
-#include <wobjectdefs.h>
+#include <verdigris>
 namespace Media::Settings
 {
 class SCORE_PLUGIN_MEDIA_EXPORT Model : public score::SettingsDelegateModel

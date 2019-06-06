@@ -4,7 +4,7 @@
 #include <score/plugins/qt_interfaces/FactoryInterface_QtInterface.hpp>
 #include <score/plugins/qt_interfaces/PluginRequirements_QtInterface.hpp>
 
-#include <wobjectdefs.h>
+#include <verdigris>
 
 class score_plugin_fx final : public score::FactoryInterface_QtInterface,
                               public score::Plugin_QtInterface

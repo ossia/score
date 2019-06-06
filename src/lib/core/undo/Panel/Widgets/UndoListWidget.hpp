@@ -2,7 +2,7 @@
 
 #include <QListWidget>
 
-#include <wobjectdefs.h>
+#include <verdigris>
 
 namespace score
 {

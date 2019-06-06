@@ -13,7 +13,7 @@
 #include <QTimer>
 #include <QVariant>
 
-#include <wobjectdefs.h>
+#include <verdigris>
 
 class QObject;
 class QWidget;

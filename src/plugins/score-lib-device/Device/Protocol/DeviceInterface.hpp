@@ -6,7 +6,7 @@
 
 #include <nano_observer.hpp>
 #include <score_lib_device_export.h>
-#include <wobjectdefs.h>
+#include <verdigris>
 namespace ossia
 {
 class value;

@@ -1,7 +1,7 @@
 #pragma once
 #include <score/plugins/application/GUIApplicationPlugin.hpp>
 
-#include <wobjectdefs.h>
+#include <verdigris>
 #if defined(HAS_LV2) // TODO instead add a proper preprocessor macro that
                          // also works in static case
 #include <Media/Effect/LV2/LV2Context.hpp>

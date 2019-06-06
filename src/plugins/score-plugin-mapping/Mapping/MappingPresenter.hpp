@@ -5,7 +5,7 @@
 #include <Mapping/MappingView.hpp>
 #include <Process/ProcessContext.hpp>
 
-#include <wobjectdefs.h>
+#include <verdigris>
 
 namespace Mapping
 {

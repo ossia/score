@@ -7,7 +7,7 @@
 #include <QtGlobal>
 
 #include <score_lib_process_export.h>
-#include <wobjectdefs.h>
+#include <verdigris>
 
 class QPainter;
 class QStyleOptionGraphicsItem;

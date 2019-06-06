@@ -12,7 +12,7 @@
 
 #include <Control/DefaultEffectItem.hpp>
 #include <Effect/EffectFactory.hpp>
-#include <wobjectdefs.h>
+#include <verdigris>
 
 #include <faust/dsp/poly-llvm-dsp.h>
 namespace Media::Faust

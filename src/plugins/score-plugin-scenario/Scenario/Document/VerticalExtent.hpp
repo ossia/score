@@ -2,7 +2,7 @@
 #include <QDebug>
 #include <QPointF>
 
-#include <wobjectdefs.h>
+#include <verdigris>
 
 namespace Scenario
 {

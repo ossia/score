@@ -7,7 +7,7 @@
 #include <score/tools/std/Optional.hpp>
 
 #include <score_plugin_curve_export.h>
-#include <wobjectdefs.h>
+#include <verdigris>
 
 class QObject;
 namespace Curve

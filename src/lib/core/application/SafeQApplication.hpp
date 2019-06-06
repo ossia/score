@@ -3,7 +3,7 @@
 #include <QFileInfo>
 #include <QMessageBox>
 
-#include <wobjectdefs.h>
+#include <verdigris>
 
 #include <cstdio>
 

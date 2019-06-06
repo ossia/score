@@ -2,7 +2,7 @@
 #include <QMetaType>
 #include <QPointF>
 
-#include <wobjectdefs.h>
+#include <verdigris>
 
 namespace Process
 {

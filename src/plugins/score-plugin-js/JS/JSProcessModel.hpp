@@ -7,7 +7,7 @@
 #include <QQmlEngine>
 
 #include <score_plugin_js_export.h>
-#include <wobjectdefs.h>
+#include <verdigris>
 
 #include <memory>
 namespace JS

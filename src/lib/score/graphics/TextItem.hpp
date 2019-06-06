@@ -8,7 +8,7 @@
 #include <QPen>
 
 #include <score_lib_base_export.h>
-#include <wobjectdefs.h>
+#include <verdigris>
 namespace score
 {
 class SCORE_LIB_BASE_EXPORT TextItem final : public QGraphicsTextItem

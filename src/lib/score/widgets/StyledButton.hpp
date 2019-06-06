@@ -1,6 +1,6 @@
 #pragma once
 #include <QPushButton>
-#include <wobjectdefs.h>
+#include <verdigris>
 #include <score_lib_base_export.h>
 
 namespace score

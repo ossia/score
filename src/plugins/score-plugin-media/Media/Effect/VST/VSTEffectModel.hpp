@@ -16,7 +16,7 @@
 #include <Control/DefaultEffectItem.hpp>
 #include <Effect/EffectFactory.hpp>
 #include <score_plugin_media_export.h>
-#include <wobjectdefs.h>
+#include <verdigris>
 namespace Media::VST
 {
 class VSTEffectModel;

@@ -5,7 +5,7 @@
 
 #include <ossia/dataflow/node_process.hpp>
 
-#include <wobjectdefs.h>
+#include <verdigris>
 
 namespace Execution
 {

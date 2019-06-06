@@ -4,7 +4,7 @@
 
 #include <QDialog>
 
-#include <wobjectdefs.h>
+#include <verdigris>
 
 namespace Media::LV2
 {

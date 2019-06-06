@@ -8,7 +8,7 @@
 
 #include <QVector>
 
-#include <wobjectdefs.h>
+#include <verdigris>
 
 class DataStream;
 class JSONObject;

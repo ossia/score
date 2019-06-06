@@ -6,7 +6,7 @@
 
 #include <QString>
 
-#include <wobjectdefs.h>
+#include <verdigris>
 
 class JSEdit;
 class QWidget;

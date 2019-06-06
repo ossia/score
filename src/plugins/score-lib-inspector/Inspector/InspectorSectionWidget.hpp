@@ -9,7 +9,7 @@
 #include <QWidget>
 
 #include <score_lib_inspector_export.h>
-#include <wobjectdefs.h>
+#include <verdigris>
 class QMenu;
 
 namespace Inspector
