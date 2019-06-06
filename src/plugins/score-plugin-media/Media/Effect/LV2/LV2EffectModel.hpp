@@ -13,7 +13,7 @@
 #include <Control/DefaultEffectItem.hpp>
 #include <Effect/EffectFactory.hpp>
 #include <lilv/lilvmm.hpp>
-#include <wobjectdefs.h>
+#include <verdigris>
 
 namespace Media::LV2
 {

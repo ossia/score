@@ -2,7 +2,7 @@
 #include <Recording/Record/RecordProviderFactory.hpp>
 #include <Recording/Record/RecordTools.hpp>
 
-#include <wobjectdefs.h>
+#include <verdigris>
 namespace Recording
 {
 struct RecordedMessage

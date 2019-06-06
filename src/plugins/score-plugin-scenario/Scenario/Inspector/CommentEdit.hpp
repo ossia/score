@@ -1,7 +1,7 @@
 #pragma once
 #include <QTextEdit>
 
-#include <wobjectdefs.h>
+#include <verdigris>
 
 namespace Scenario
 {

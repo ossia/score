@@ -7,7 +7,7 @@
 
 #include <score/selection/SelectionDispatcher.hpp>
 
-#include <wobjectdefs.h>
+#include <verdigris>
 namespace Process
 {
 class DefaultHeaderDelegate;

@@ -1,7 +1,7 @@
 #pragma once
 #include <Inspector/InspectorWidgetBase.hpp>
 
-#include <wobjectdefs.h>
+#include <verdigris>
 
 #include <list>
 #include <set>

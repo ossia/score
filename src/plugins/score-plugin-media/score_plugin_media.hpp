@@ -7,7 +7,7 @@
 
 #include <QObject>
 
-#include <wobjectdefs.h>
+#include <verdigris>
 
 class score_plugin_media final : public score::Plugin_QtInterface,
                                  public score::FactoryInterface_QtInterface,

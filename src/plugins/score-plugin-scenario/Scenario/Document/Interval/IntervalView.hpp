@@ -11,7 +11,7 @@
 #include <qnamespace.h>
 
 #include <score_plugin_scenario_export.h>
-#include <wobjectdefs.h>
+#include <verdigris>
 class QGraphicsSceneMouseEvent;
 
 namespace Process

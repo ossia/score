@@ -21,7 +21,7 @@
 #include <QWidget>
 
 #include <score_plugin_scenario_export.h>
-#include <wobjectdefs.h>
+#include <verdigris>
 namespace Dataflow
 {
 class CableWidget final : public Inspector::InspectorWidgetBase

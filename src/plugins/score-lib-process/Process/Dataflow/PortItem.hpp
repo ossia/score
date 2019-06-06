@@ -2,7 +2,7 @@
 #include <QGraphicsItem>
 #include <QObject>
 
-#include <wobjectdefs.h>
+#include <verdigris>
 
 #include <functional>
 #if defined(_MSC_VER)

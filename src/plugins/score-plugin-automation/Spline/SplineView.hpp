@@ -4,7 +4,7 @@
 #include <ossia/editor/automation/tinysplinecpp.h>
 
 #include <Spline/SplineModel.hpp>
-#include <wobjectdefs.h>
+#include <verdigris>
 namespace Spline
 {
 class View final : public Process::LayerView

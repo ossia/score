@@ -11,7 +11,7 @@
 #include <QPair>
 #include <QString>
 
-#include <wobjectdefs.h>
+#include <verdigris>
 
 #include <vector>
 

@@ -3,7 +3,7 @@
 #include <score/plugins/qt_interfaces/FactoryInterface_QtInterface.hpp>
 #include <score/plugins/qt_interfaces/PluginRequirements_QtInterface.hpp>
 
-#include <wobjectdefs.h>
+#include <verdigris>
 
 class score_plugin_library : public score::Plugin_QtInterface,
                              public score::FactoryInterface_QtInterface,

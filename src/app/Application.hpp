@@ -8,7 +8,7 @@
 
 #include <QApplication>
 
-#include <wobjectdefs.h>
+#include <verdigris>
 
 #include <memory>
 

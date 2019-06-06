@@ -10,7 +10,7 @@
 #include <QGroupBox>
 #include <QWidget>
 
-#include <wobjectdefs.h>
+#include <verdigris>
 
 #include <memory>
 

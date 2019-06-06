@@ -5,7 +5,7 @@
 
 #include <QObject>
 
-#include <wobjectdefs.h>
+#include <verdigris>
 
 #include <vector>
 

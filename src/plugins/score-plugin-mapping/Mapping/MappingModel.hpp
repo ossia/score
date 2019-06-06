@@ -11,7 +11,7 @@
 #include <QString>
 
 #include <score_plugin_mapping_export.h>
-#include <wobjectdefs.h>
+#include <verdigris>
 namespace Process
 {
 class Inlet;

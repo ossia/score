@@ -7,7 +7,7 @@
 #include <QString>
 
 #include <score_plugin_deviceexplorer_export.h>
-#include <wobjectdefs.h>
+#include <verdigris>
 
 class QComboBox;
 class QFormLayout;

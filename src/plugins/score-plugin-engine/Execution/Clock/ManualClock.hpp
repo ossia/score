@@ -12,7 +12,7 @@
 #include <Execution/Clock/ClockFactory.hpp>
 #include <Execution/Clock/DefaultClock.hpp>
 #include <Execution/DocumentPlugin.hpp>
-#include <wobjectdefs.h>
+#include <verdigris>
 namespace Execution
 {
 namespace ManualClock

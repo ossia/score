@@ -13,7 +13,7 @@
 #include <core/document/Document.hpp>
 
 #include <score_plugin_deviceexplorer_export.h>
-#include <wobjectdefs.h>
+#include <verdigris>
 namespace Explorer
 {
 class SCORE_PLUGIN_DEVICEEXPLORER_EXPORT DeviceDocumentPlugin final

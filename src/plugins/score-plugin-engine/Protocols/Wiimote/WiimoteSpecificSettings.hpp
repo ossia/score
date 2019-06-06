@@ -2,7 +2,7 @@
 
 #include <QMetaType>
 
-#include <wobjectdefs.h>
+#include <verdigris>
 
 namespace Protocols
 {

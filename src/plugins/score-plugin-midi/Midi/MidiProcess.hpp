@@ -5,7 +5,7 @@
 
 #include <score/tools/Clamp.hpp>
 
-#include <wobjectdefs.h>
+#include <verdigris>
 
 namespace Midi
 {

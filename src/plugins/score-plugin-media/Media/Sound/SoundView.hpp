@@ -12,7 +12,7 @@
 #include <QPointer>
 //#include <QFuture>
 //#include <QFutureWatcher>
-#include <wobjectdefs.h>
+#include <verdigris>
 namespace Media
 {
 namespace Sound

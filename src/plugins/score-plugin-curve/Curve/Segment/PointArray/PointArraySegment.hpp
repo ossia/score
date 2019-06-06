@@ -9,7 +9,7 @@
 #include <QVariant>
 #include <QVector>
 
-#include <wobjectdefs.h>
+#include <verdigris>
 
 #include <memory>
 #include <utility>

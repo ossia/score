@@ -4,7 +4,7 @@
 #include <QComboBox>
 
 #include <score_lib_state_export.h>
-#include <wobjectdefs.h>
+#include <verdigris>
 
 namespace State
 {

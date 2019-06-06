@@ -23,7 +23,7 @@
 #include <QVBoxLayout>
 #include <QWidget>
 
-#include <wobjectdefs.h>
+#include <verdigris>
 
 namespace score
 {

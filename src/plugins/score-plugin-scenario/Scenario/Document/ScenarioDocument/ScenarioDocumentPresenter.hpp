@@ -15,7 +15,7 @@
 #include <QPoint>
 #include <QRect>
 
-#include <wobjectdefs.h>
+#include <verdigris>
 
 #include <memory>
 

@@ -9,7 +9,7 @@
 #include <score/widgets/SpinBoxes.hpp>
 
 #include <score_plugin_library_export.h>
-#include <wobjectdefs.h>
+#include <verdigris>
 
 #define SETTINGS_UI_PATH_HPP(Control)                                 \
 public:                                                               \

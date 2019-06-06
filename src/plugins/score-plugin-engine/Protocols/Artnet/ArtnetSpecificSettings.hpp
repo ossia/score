@@ -3,7 +3,7 @@
 #if defined(OSSIA_PROTOCOL_ARTNET)
 #include <QMetaType>
 
-#include <wobjectdefs.h>
+#include <verdigris>
 
 namespace Protocols
 {

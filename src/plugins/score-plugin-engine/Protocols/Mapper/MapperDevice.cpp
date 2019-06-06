@@ -28,7 +28,7 @@
 #include <QQmlEngine>
 #include <QThread>
 
-#include <wobjectdefs.h>
+#include <verdigris>
 #include <wobjectimpl.h>
 
 #include <iomanip>

@@ -5,7 +5,7 @@
 #include <Device/Protocol/DeviceSettings.hpp>
 #include <Device/Protocol/ProtocolSettingsWidget.hpp>
 
-#include <wobjectdefs.h>
+#include <verdigris>
 
 class QLineEdit;
 class QComboBox;

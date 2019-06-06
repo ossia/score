@@ -9,7 +9,7 @@
 #include <QUuid>
 
 #include <score_lib_process_export.h>
-#include <wobjectdefs.h>
+#include <verdigris>
 
 namespace ossia
 {

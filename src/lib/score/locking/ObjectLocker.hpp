@@ -4,7 +4,7 @@
 #include <QByteArray>
 #include <QObject>
 
-#include <wobjectdefs.h>
+#include <verdigris>
 
 #include <vector>
 namespace score

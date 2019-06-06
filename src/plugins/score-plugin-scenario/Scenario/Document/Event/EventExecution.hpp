@@ -5,7 +5,7 @@
 #include <ossia/editor/expression/expression.hpp>
 #include <ossia/editor/scenario/time_event.hpp>
 
-#include <wobjectdefs.h>
+#include <verdigris>
 namespace ossia
 {
 class time_event;

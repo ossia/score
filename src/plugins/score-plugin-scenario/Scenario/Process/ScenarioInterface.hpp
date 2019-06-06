@@ -6,7 +6,7 @@
 #include <score/tools/std/IndirectContainer.hpp>
 
 #include <score_plugin_scenario_export.h>
-#include <wobjectdefs.h>
+#include <verdigris>
 class OngoingCommandDispatcher;
 namespace Scenario
 {

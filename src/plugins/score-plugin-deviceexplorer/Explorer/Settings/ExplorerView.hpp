@@ -2,7 +2,7 @@
 #include <score/plugins/ProjectSettings/ProjectSettingsView.hpp>
 #include <score/plugins/settingsdelegate/SettingsDelegateView.hpp>
 
-#include <wobjectdefs.h>
+#include <verdigris>
 class QCheckBox;
 namespace Explorer::Settings
 {

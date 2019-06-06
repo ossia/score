@@ -4,7 +4,7 @@
 
 #include <QState>
 
-#include <wobjectdefs.h>
+#include <verdigris>
 
 class QGraphicsItem;
 

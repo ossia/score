@@ -8,7 +8,7 @@
 
 #include <Color/GradientMetadata.hpp>
 #include <score_plugin_automation_export.h>
-#include <wobjectdefs.h>
+#include <verdigris>
 
 namespace Gradient
 {

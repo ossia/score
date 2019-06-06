@@ -3,7 +3,7 @@
 #include <score/plugins/settingsdelegate/SettingsDelegateModel.hpp>
 
 #include <score_plugin_deviceexplorer_export.h>
-#include <wobjectdefs.h>
+#include <verdigris>
 namespace Explorer::Settings
 {
 struct DeviceLogLevel

@@ -2,7 +2,7 @@
 #include <Process/LayerView.hpp>
 
 #include <Color/GradientModel.hpp>
-#include <wobjectdefs.h>
+#include <verdigris>
 namespace Gradient
 {
 class View final : public Process::LayerView

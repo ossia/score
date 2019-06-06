@@ -6,7 +6,7 @@
 
 #include <score/selection/SelectionDispatcher.hpp>
 
-#include <wobjectdefs.h>
+#include <verdigris>
 
 #include <list>
 #include <vector>

@@ -7,7 +7,7 @@
 #include <score/serialization/VisitorInterface.hpp>
 #include <score/tools/std/Optional.hpp>
 
-#include <wobjectdefs.h>
+#include <verdigris>
 
 #include <vector>
 

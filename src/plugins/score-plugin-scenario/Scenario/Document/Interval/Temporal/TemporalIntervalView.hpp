@@ -14,7 +14,7 @@
 #include <QString>
 #include <QtGlobal>
 
-#include <wobjectdefs.h>
+#include <verdigris>
 namespace Process
 {
 class LayerPresenter;

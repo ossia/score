@@ -8,7 +8,7 @@
 #include <qnamespace.h>
 
 #include <score_lib_inspector_export.h>
-#include <wobjectdefs.h>
+#include <verdigris>
 
 #include <list>
 #include <memory>

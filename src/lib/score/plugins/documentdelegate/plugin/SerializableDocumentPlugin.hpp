@@ -1,7 +1,7 @@
 #pragma once
 #include <score/plugins/documentdelegate/plugin/DocumentPluginBase.hpp>
 
-#include <wobjectdefs.h>
+#include <verdigris>
 
 namespace score
 {

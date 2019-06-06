@@ -3,7 +3,7 @@
 #include <QPainterPath>
 
 #include <score_lib_base_export.h>
-#include <wobjectdefs.h>
+#include <verdigris>
 
 #include <memory>
 class QGraphicsObject;

@@ -7,7 +7,7 @@
 #include <QString>
 #include <QVariant>
 
-#include <wobjectdefs.h>
+#include <verdigris>
 
 #include <algorithm>
 #include <iterator>

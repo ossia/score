@@ -12,7 +12,7 @@
 #include <QByteArray>
 #include <QString>
 
-#include <wobjectdefs.h>
+#include <verdigris>
 
 class DataStream;
 class JSONObject;

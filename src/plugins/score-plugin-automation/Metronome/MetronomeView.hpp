@@ -6,7 +6,7 @@
 #include <QString>
 #include <QTextLayout>
 
-#include <wobjectdefs.h>
+#include <verdigris>
 
 class QGraphicsItem;
 class QPainter;

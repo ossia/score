@@ -8,7 +8,7 @@
 #include <QStringBuilder>
 #include <QTime>
 
-#include <wobjectdefs.h>
+#include <verdigris>
 
 #include <chrono>
 #if defined(_MSC_VER)

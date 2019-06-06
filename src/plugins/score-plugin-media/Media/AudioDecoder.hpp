@@ -5,7 +5,7 @@
 
 #include <QThread>
 
-#include <wobjectdefs.h>
+#include <verdigris>
 
 #include <atomic>
 #include <vector>

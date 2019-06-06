@@ -7,7 +7,7 @@
 
 #include <Metronome/MetronomeModel.hpp>
 #include <Metronome/MetronomeView.hpp>
-#include <wobjectdefs.h>
+#include <verdigris>
 
 namespace Metronome
 {

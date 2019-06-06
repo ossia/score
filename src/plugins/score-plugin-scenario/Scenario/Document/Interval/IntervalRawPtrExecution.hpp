@@ -1,7 +1,7 @@
 #pragma once
 #include <Scenario/Document/Interval/IntervalExecution.hpp>
 
-#include <wobjectdefs.h>
+#include <verdigris>
 
 namespace Execution
 {

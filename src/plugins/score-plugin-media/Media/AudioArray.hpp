@@ -1,7 +1,7 @@
 #pragma once
 #include <score/tools/Todo.hpp>
 #include <ossia/dataflow/nodes/media.hpp>
-#include <wobjectdefs.h>
+#include <verdigris>
 
 namespace Media
 {

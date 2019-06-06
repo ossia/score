@@ -2,7 +2,7 @@
 #include <score/model/IdentifiedObject.hpp>
 #include <score/selection/Selectable.hpp>
 
-#include <wobjectdefs.h>
+#include <verdigris>
 
 namespace Midi
 {

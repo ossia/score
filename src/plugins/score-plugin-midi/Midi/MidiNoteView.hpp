@@ -4,7 +4,7 @@
 #include <QGraphicsItem>
 #include <QObject>
 
-#include <wobjectdefs.h>
+#include <verdigris>
 
 namespace Midi
 {

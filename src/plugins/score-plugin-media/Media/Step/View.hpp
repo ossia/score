@@ -6,7 +6,7 @@
 #include <QGraphicsSceneMouseEvent>
 #include <QPainter>
 
-#include <wobjectdefs.h>
+#include <verdigris>
 
 namespace Media
 {

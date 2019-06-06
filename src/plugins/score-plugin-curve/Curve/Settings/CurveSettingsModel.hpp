@@ -2,7 +2,7 @@
 #include <score/plugins/settingsdelegate/SettingsDelegateModel.hpp>
 
 #include <score_plugin_curve_export.h>
-#include <wobjectdefs.h>
+#include <verdigris>
 
 namespace Curve
 {

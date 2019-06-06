@@ -4,7 +4,7 @@
 
 #include <QGraphicsItem>
 
-#include <wobjectdefs.h>
+#include <verdigris>
 
 namespace Scenario
 {

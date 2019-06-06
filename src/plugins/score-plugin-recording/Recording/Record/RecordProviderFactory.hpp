@@ -9,7 +9,7 @@
 #include <score/serialization/VisitorCommon.hpp>
 
 #include <score_plugin_recording_export.h>
-#include <wobjectdefs.h>
+#include <verdigris>
 
 namespace Scenario
 {

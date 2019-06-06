@@ -15,7 +15,7 @@
 #include <qnamespace.h>
 
 #include <score_plugin_deviceexplorer_export.h>
-#include <wobjectdefs.h>
+#include <verdigris>
 class QMimeData;
 class QObject;
 namespace score

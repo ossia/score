@@ -11,7 +11,7 @@
 #include <QtGlobal>
 
 #include <score_plugin_scenario_export.h>
-#include <wobjectdefs.h>
+#include <verdigris>
 
 class QGraphicsSceneDragDropEvent;
 class QGraphicsSceneMouseEvent;

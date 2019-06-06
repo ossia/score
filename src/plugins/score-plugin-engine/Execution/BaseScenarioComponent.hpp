@@ -4,7 +4,7 @@
 #include <QObject>
 
 #include <score_plugin_engine_export.h>
-#include <wobjectdefs.h>
+#include <verdigris>
 
 #include <memory>
 namespace ossia

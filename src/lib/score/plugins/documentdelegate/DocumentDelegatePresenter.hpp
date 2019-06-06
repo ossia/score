@@ -3,7 +3,7 @@
 #include <QString>
 
 #include <score_lib_base_export.h>
-#include <wobjectdefs.h>
+#include <verdigris>
 
 class Selection;
 namespace score

@@ -5,7 +5,7 @@
 #include <QPainter>
 #include <QPainterPath>
 
-#include <wobjectdefs.h>
+#include <verdigris>
 
 namespace Midi
 {

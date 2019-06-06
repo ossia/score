@@ -2,7 +2,7 @@
 #include <QString>
 #include <QWidget>
 
-#include <wobjectdefs.h>
+#include <verdigris>
 
 class QCheckBox;
 class QPushButton;

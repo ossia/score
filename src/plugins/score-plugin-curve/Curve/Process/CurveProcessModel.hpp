@@ -9,7 +9,7 @@
 #include <QString>
 
 #include <score_plugin_curve_export.h>
-#include <wobjectdefs.h>
+#include <verdigris>
 
 namespace Curve
 {

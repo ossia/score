@@ -8,7 +8,7 @@
 #include <score/serialization/JSONVisitor.hpp>
 #include <score/serialization/VisitorCommon.hpp>
 
-#include <wobjectdefs.h>
+#include <verdigris>
 namespace Media
 {
 namespace Sound

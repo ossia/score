@@ -5,7 +5,7 @@
 #include <QList>
 #include <QRect>
 
-#include <wobjectdefs.h>
+#include <verdigris>
 
 class QPainter;
 class QStyleOptionGraphicsItem;

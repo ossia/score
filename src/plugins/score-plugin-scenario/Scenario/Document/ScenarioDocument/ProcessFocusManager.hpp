@@ -5,7 +5,7 @@
 #include <QPointer>
 
 #include <score_plugin_scenario_export.h>
-#include <wobjectdefs.h>
+#include <verdigris>
 namespace score
 {
 struct FocusManager;

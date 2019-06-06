@@ -8,7 +8,7 @@
 #include <Process/ProcessMimeSerialization.hpp>
 #include <State/MessageListSerialization.hpp>
 
-#include <wobjectdefs.h>
+#include <verdigris>
 
 namespace Automation
 {

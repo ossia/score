@@ -14,7 +14,7 @@
 
 #include <ossia/editor/scenario/time_event.hpp>
 
-#include <wobjectdefs.h>
+#include <verdigris>
 
 #include <memory>
 

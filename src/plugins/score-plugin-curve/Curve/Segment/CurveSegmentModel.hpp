@@ -17,7 +17,7 @@
 #include <QVariant>
 
 #include <score_plugin_curve_export.h>
-#include <wobjectdefs.h>
+#include <verdigris>
 
 #include <functional>
 #include <vector>

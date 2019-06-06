@@ -3,7 +3,7 @@
 
 #include <QPointF>
 
-#include <wobjectdefs.h>
+#include <verdigris>
 // A coordinate : (t, y)
 namespace Scenario
 {

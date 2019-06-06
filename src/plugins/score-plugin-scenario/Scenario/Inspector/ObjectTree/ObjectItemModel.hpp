@@ -17,7 +17,7 @@
 #include <QTreeView>
 #include <QVBoxLayout>
 
-#include <wobjectdefs.h>
+#include <verdigris>
 class QToolButton;
 class QGraphicsSceneMouseEvent;
 namespace Scenario

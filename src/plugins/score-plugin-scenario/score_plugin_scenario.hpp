@@ -13,7 +13,7 @@
 #include <QObject>
 #include <QStringList>
 
-#include <wobjectdefs.h>
+#include <verdigris>
 
 #include <utility>
 #include <vector>

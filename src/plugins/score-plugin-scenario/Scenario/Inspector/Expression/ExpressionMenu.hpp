@@ -6,7 +6,7 @@
 #include <QMenu>
 #include <QObject>
 
-#include <wobjectdefs.h>
+#include <verdigris>
 
 namespace Scenario
 {

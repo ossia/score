@@ -3,7 +3,7 @@
 
 #include <score/plugins/settingsdelegate/SettingsDelegateView.hpp>
 
-#include <wobjectdefs.h>
+#include <verdigris>
 class QCheckBox;
 class QDoubleSpinBox;
 namespace Curve

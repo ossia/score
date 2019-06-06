@@ -7,7 +7,7 @@
 
 #include <Execution/Clock/ClockFactory.hpp>
 #include <score_plugin_engine_export.h>
-#include <wobjectdefs.h>
+#include <verdigris>
 
 namespace Execution
 {

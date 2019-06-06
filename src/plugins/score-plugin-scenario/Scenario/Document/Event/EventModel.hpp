@@ -16,7 +16,7 @@
 #include <QVector>
 
 #include <score_plugin_scenario_export.h>
-#include <wobjectdefs.h>
+#include <verdigris>
 class DataStream;
 class JSONObject;
 class QObject;
