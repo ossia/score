@@ -11,10 +11,40 @@
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/document/DocumentContext.hpp>
 #include <score/widgets/TextLabel.hpp>
+#include <score/widgets/SpinBoxes.hpp>
+#include <Process/Dataflow/ControlWidgets.hpp>
 
 #include <QCheckBox>
 namespace Scenario
 {
+class TimeSignatureWidget : public QLineEdit
+{
+public:
+  TimeSignatureWidget()
+  {
+    setValidator(new WidgetFactory::TimeSignatureValidator{this});
+    setContentsMargins(0, 0, 0, 0);
+  }
+
+  void setSignature(optional<Control::time_signature> t)
+  {
+    if(t)
+    {
+      setText(QString{"%1/%2"}.arg(t->first).arg(t->second));
+    }
+    else
+    {
+      setText(QString{"0/0"});
+    }
+  }
+
+  optional<Control::time_signature> signature() const
+  {
+    return Control::get_time_signature(this->text().toStdString());
+  }
+
+};
+
 TimeSyncInspectorWidget::TimeSyncInspectorWidget(
     const TimeSyncModel& object,
     const score::DocumentContext& ctx,
@@ -60,12 +90,50 @@ TimeSyncInspectorWidget::TimeSyncInspectorWidget(
     if(t != m_autotrigger->isChecked())
       m_autotrigger->setChecked(t);
   });
+
+  // Synchronization
+  auto tempo = new score::SpinBox<double>{this};
+  tempo->setRange(20., 400.);
+  tempo->setValue(m_model.tempo());
+
+  QObject::connect(
+      tempo, qOverload<double>(&score::SpinBox<double>::valueChanged), this, [&ctx, &object] (double v) {
+    CommandDispatcher<>{ctx.commandStack}.submit<Scenario::Command::SetTimeSyncTempo>(object, v);
+      });
+
+  QObject::connect(
+      &m_model,
+      &TimeSyncModel::tempoChanged,
+      tempo,
+      [=] (double t) {
+    if(t != tempo->value())
+      tempo->setValue(t);
+  });
+
+
+  auto sig = new TimeSignatureWidget;
+  sig->setSignature(m_model.signature());
+
+  QObject::connect(
+      sig, &QLineEdit::editingFinished, this, [&ctx, &object, sig] {
+    CommandDispatcher<>{ctx.commandStack}.submit<Scenario::Command::SetTimeSyncSignature>(object, Control::get_time_signature(sig->text().toStdString()));
+      });
+
+  QObject::connect(
+      &m_model,
+      &TimeSyncModel::signatureChanged,
+      sig,
+      [=] (auto s) {
+    if(s != sig->signature())
+      sig->setSignature(s);
+  });
+
   m_trigwidg = new TriggerInspectorWidget{
       ctx,
       ctx.app.interfaces<Command::TriggerCommandFactoryList>(),
       m_model,
       this};
-  updateAreaLayout({m_date, m_autotrigger, new TextLabel{tr("Trigger")}, m_trigwidg});
+  updateAreaLayout({m_date, m_autotrigger, tempo, sig, new TextLabel{tr("Trigger")}, m_trigwidg});
 
   // display data
   updateDisplayedValues();

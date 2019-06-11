@@ -11,7 +11,7 @@ namespace Command
 class ScenarioPasteContent final : public score::AggregateCommand
 {
   SCORE_COMMAND_DECL(
-      ScenarioCommandFactoryName(),
+      CommandFactoryName(),
       ScenarioPasteContent,
       "Paste content in scenario")
 };

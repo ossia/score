@@ -17,7 +17,7 @@ namespace Command
 class CreateCommentBlock final : public score::Command
 {
   SCORE_COMMAND_DECL(
-      ScenarioCommandFactoryName(),
+      CommandFactoryName(),
       CreateCommentBlock,
       "Create a comment block")
 public:
@@ -43,7 +43,7 @@ private:
 class RemoveCommentBlock final : public score::Command
 {
   SCORE_COMMAND_DECL(
-      ScenarioCommandFactoryName(),
+      CommandFactoryName(),
       RemoveCommentBlock,
       "Remove a comment block")
 public:

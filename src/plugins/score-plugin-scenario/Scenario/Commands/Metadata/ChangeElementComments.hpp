@@ -16,7 +16,7 @@ class ChangeElementComments final : public score::Command
 public:
   const CommandGroupKey& parentKey() const noexcept override
   {
-    return ScenarioCommandFactoryName();
+    return CommandFactoryName();
   }
   static const CommandKey& static_key() noexcept
   {

@@ -10,7 +10,7 @@ namespace Dataflow
 class SCORE_PLUGIN_SCENARIO_EXPORT CreateCable final : public score::Command
 {
   SCORE_COMMAND_DECL(
-      Scenario::Command::ScenarioCommandFactoryName(),
+      Scenario::Command::CommandFactoryName(),
       CreateCable,
       "Create cable")
 
@@ -40,7 +40,7 @@ private:
 class UpdateCable final : public score::Command
 {
   SCORE_COMMAND_DECL(
-      Scenario::Command::ScenarioCommandFactoryName(),
+      Scenario::Command::CommandFactoryName(),
       UpdateCable,
       "Update cable")
 
@@ -62,7 +62,7 @@ private:
 class RemoveCable final : public score::Command
 {
   SCORE_COMMAND_DECL(
-      Scenario::Command::ScenarioCommandFactoryName(),
+      Scenario::Command::CommandFactoryName(),
       RemoveCable,
       "Remove cable")
 

@@ -807,30 +807,30 @@ struct ComboBox
   }
 };
 
+struct TimeSignatureValidator final : public QValidator
+{
+  using QValidator::QValidator;
+  State validate(QString& str, int&) const override
+  {
+    auto p = Control::get_time_signature(str.toStdString());
+    if (!p)
+      return State::Invalid;
+
+    return State::Acceptable;
+  }
+};
+
 struct TimeSignatureChooser
 {
 
-  template <typename U>
   static auto make_widget(
-      const U& slider,
+      const unused_t& slider,
       Process::ControlInlet& inlet,
       const score::DocumentContext& ctx,
       QWidget* parent,
       QObject* context)
   {
     auto sl = new QLineEdit;
-    struct TimeSignatureValidator final : public QValidator
-    {
-      using QValidator::QValidator;
-      State validate(QString& str, int&) const override
-      {
-        auto p = Control::get_time_signature(str.toStdString());
-        if (!p)
-          return State::Invalid;
-
-        return State::Acceptable;
-      }
-    };
 
     sl->setValidator(new TimeSignatureValidator{sl});
     sl->setContentsMargins(0, 0, 0, 0);

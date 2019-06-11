@@ -12,7 +12,7 @@ class ProcessModel;
 class ChangeAddress final : public score::Command
 {
   SCORE_COMMAND_DECL(
-      Scenario::Command::ScenarioCommandFactoryName(),
+      Scenario::Command::CommandFactoryName(),
       ChangeAddress,
       "Change Interpolation Address")
 public:
@@ -48,7 +48,7 @@ void ChangeInterpolationAddress(
 class SetTween final : public score::PropertyCommand
 {
   SCORE_COMMAND_DECL(
-      Scenario::Command::ScenarioCommandFactoryName(),
+      Scenario::Command::CommandFactoryName(),
       SetTween,
       "Set interpolation tween")
 public:

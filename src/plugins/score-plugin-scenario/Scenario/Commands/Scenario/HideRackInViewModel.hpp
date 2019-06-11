@@ -22,7 +22,7 @@ namespace Command
  */
 class HideRack final : public score::Command
 {
-  SCORE_COMMAND_DECL(ScenarioCommandFactoryName(), HideRack, "Hide rack")
+  SCORE_COMMAND_DECL(CommandFactoryName(), HideRack, "Hide rack")
 public:
   HideRack(const Scenario::IntervalModel& interval);
 

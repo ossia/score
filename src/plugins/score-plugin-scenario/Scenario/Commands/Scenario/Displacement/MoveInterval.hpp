@@ -22,7 +22,7 @@ namespace Command
 class MoveInterval final : public score::Command
 {
   SCORE_COMMAND_DECL(
-      ScenarioCommandFactoryName(),
+      CommandFactoryName(),
       MoveInterval,
       "Move a interval")
 public:

@@ -21,7 +21,7 @@ namespace Command
 class SCORE_PLUGIN_SCENARIO_EXPORT CreateState final : public score::Command
 {
   SCORE_COMMAND_DECL(
-      ScenarioCommandFactoryName(),
+      CommandFactoryName(),
       CreateState,
       "Create a state")
 public:

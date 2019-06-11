@@ -24,7 +24,7 @@ namespace Command
 {
 class SCORE_PLUGIN_SCENARIO_EXPORT MergeEvents final : public score::Command
 {
-  SCORE_COMMAND_DECL(ScenarioCommandFactoryName(), MergeEvents, "Merge events")
+  SCORE_COMMAND_DECL(CommandFactoryName(), MergeEvents, "Merge events")
 public:
   MergeEvents(
       const ProcessModel& scenario,
@@ -51,7 +51,7 @@ private:
 class MergeEventMacro final : public score::AggregateCommand
 {
   SCORE_COMMAND_DECL(
-      ScenarioCommandFactoryName(),
+      CommandFactoryName(),
       MergeEventMacro,
       "Merge events")
 };

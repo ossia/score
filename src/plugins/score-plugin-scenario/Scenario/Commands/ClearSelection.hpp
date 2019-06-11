@@ -13,7 +13,7 @@ namespace Command
 class ClearSelection final : public score::AggregateCommand
 {
   SCORE_COMMAND_DECL(
-      ScenarioCommandFactoryName(),
+      CommandFactoryName(),
       ClearSelection,
       "Clear selection")
 };

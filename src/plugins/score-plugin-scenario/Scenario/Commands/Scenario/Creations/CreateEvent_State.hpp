@@ -25,7 +25,7 @@ class SCORE_PLUGIN_SCENARIO_EXPORT CreateEvent_State final
     : public score::Command
 {
   SCORE_COMMAND_DECL(
-      ScenarioCommandFactoryName(),
+      CommandFactoryName(),
       CreateEvent_State,
       "Create an event and a state")
 public:

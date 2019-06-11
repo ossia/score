@@ -23,7 +23,7 @@ class SCORE_PLUGIN_SCENARIO_EXPORT AddStateProcessToState final
     : public score::Command
 {
   SCORE_COMMAND_DECL(
-      ScenarioCommandFactoryName(),
+      CommandFactoryName(),
       AddStateProcessToState,
       "Add a state process")
 public:

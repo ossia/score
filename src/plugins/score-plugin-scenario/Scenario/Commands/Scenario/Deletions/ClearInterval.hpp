@@ -29,7 +29,7 @@ namespace Command
 class SCORE_PLUGIN_SCENARIO_EXPORT ClearInterval final : public score::Command
 {
   SCORE_COMMAND_DECL(
-      ScenarioCommandFactoryName(),
+      CommandFactoryName(),
       ClearInterval,
       "Clear a interval")
 public:

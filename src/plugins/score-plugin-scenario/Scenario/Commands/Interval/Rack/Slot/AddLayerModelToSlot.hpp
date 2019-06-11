@@ -30,7 +30,7 @@ class SCORE_PLUGIN_SCENARIO_EXPORT AddLayerModelToSlot final
     : public score::Command
 {
   SCORE_COMMAND_DECL(
-      ScenarioCommandFactoryName(),
+      CommandFactoryName(),
       AddLayerModelToSlot,
       "Add a layer to a slot")
 public:

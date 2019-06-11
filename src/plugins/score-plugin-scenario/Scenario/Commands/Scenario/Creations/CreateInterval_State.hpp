@@ -26,7 +26,7 @@ class SCORE_PLUGIN_SCENARIO_EXPORT CreateInterval_State final
     : public score::Command
 {
   SCORE_COMMAND_DECL(
-      ScenarioCommandFactoryName(),
+      CommandFactoryName(),
       CreateInterval_State,
       "Create an interval and a state")
 public:

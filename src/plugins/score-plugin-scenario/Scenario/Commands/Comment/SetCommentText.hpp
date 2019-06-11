@@ -17,7 +17,7 @@ namespace Command
 class SetCommentText final : public score::Command
 {
   SCORE_COMMAND_DECL(
-      ScenarioCommandFactoryName(),
+      CommandFactoryName(),
       SetCommentText,
       "Set Text in comment block")
 public:

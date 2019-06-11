@@ -36,7 +36,7 @@ class MoveEvent final : public SerializableMoveEvent
 public:
   const CommandGroupKey& parentKey() const noexcept override
   {
-    return ScenarioCommandFactoryName();
+    return CommandFactoryName();
   }
   const CommandKey& key() const noexcept override
   {

@@ -25,7 +25,7 @@ class SCORE_PLUGIN_SCENARIO_EXPORT InsertContentInInterval final
     : public score::Command
 {
   SCORE_COMMAND_DECL(
-      ScenarioCommandFactoryName(),
+      CommandFactoryName(),
       InsertContentInInterval,
       "Insert content in a interval")
 public:

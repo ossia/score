@@ -32,7 +32,7 @@ namespace Command
 class SCORE_PLUGIN_SCENARIO_EXPORT CreateInterval final : public score::Command
 {
   SCORE_COMMAND_DECL(
-      ScenarioCommandFactoryName(),
+      CommandFactoryName(),
       CreateInterval,
       "Create an interval")
 public:

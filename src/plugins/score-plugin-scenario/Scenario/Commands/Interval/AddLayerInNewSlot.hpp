@@ -27,7 +27,7 @@ class SCORE_PLUGIN_SCENARIO_EXPORT AddLayerInNewSlot final
     : public score::Command
 {
   SCORE_COMMAND_DECL(
-      ScenarioCommandFactoryName(),
+      CommandFactoryName(),
       AddLayerInNewSlot,
       "Add a new layer")
 public:

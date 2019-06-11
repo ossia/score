@@ -20,7 +20,7 @@ class SCORE_PLUGIN_SCENARIO_EXPORT DuplicateInterval final
     : public score::Command
 {
   SCORE_COMMAND_DECL(
-      ScenarioCommandFactoryName(),
+      CommandFactoryName(),
       DuplicateInterval,
       "Duplicate an interval")
 public:

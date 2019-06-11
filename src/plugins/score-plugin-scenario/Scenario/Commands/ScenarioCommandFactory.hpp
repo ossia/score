@@ -11,7 +11,7 @@ namespace Command
 {
 
 SCORE_PLUGIN_SCENARIO_EXPORT const CommandGroupKey&
-ScenarioCommandFactoryName();
+CommandFactoryName();
 }
 
 } // namespace Scenario

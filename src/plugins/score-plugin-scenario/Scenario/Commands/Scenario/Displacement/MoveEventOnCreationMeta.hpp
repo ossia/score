@@ -23,7 +23,7 @@ class SCORE_PLUGIN_SCENARIO_EXPORT MoveEventOnCreationMeta final
     : public SerializableMoveEvent
 {
   SCORE_COMMAND_DECL(
-      ScenarioCommandFactoryName(),
+      CommandFactoryName(),
       MoveEventOnCreationMeta,
       "Move an event on creation")
 public:

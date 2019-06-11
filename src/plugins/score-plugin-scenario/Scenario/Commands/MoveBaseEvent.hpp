@@ -47,7 +47,7 @@ private:
 public:
   const CommandGroupKey& parentKey() const noexcept override
   {
-    return CommandFactoryName<SimpleScenario_T>();
+    return ::CommandFactoryName<SimpleScenario_T>();
   }
   const CommandKey& key() const noexcept override { return static_key(); }
   QString description() const override

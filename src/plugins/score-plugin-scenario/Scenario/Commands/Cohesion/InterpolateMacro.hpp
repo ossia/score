@@ -19,7 +19,7 @@ class AddMultipleProcessesToMultipleIntervalsMacro final
     : public score::AggregateCommand
 {
   SCORE_COMMAND_DECL(
-      ScenarioCommandFactoryName(),
+      CommandFactoryName(),
       AddMultipleProcessesToMultipleIntervalsMacro,
       "Add processes to intervals")
 };
@@ -28,7 +28,7 @@ class AddMultipleProcessesToIntervalMacro final
     : public score::AggregateCommand
 {
   SCORE_COMMAND_DECL(
-      ScenarioCommandFactoryName(),
+      CommandFactoryName(),
       AddMultipleProcessesToIntervalMacro,
       "Add processes to interval")
 
