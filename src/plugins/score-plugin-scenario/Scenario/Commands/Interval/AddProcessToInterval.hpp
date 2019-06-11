@@ -40,7 +40,7 @@ class SCORE_PLUGIN_SCENARIO_EXPORT AddProcessToInterval final
     : public score::Command
 {
   SCORE_COMMAND_DECL(
-      ScenarioCommandFactoryName(),
+      CommandFactoryName(),
       AddProcessToInterval,
       "Add a process to a interval")
 
@@ -70,7 +70,7 @@ class SCORE_PLUGIN_SCENARIO_EXPORT LoadProcessInInterval final
     : public score::Command
 {
   SCORE_COMMAND_DECL(
-      ScenarioCommandFactoryName(),
+      CommandFactoryName(),
       LoadProcessInInterval,
       "Load a process in an interval")
 
@@ -95,7 +95,7 @@ class SCORE_PLUGIN_SCENARIO_EXPORT AddProcessInNewBoxMacro final
     : public score::AggregateCommand
 {
   SCORE_COMMAND_DECL(
-      ScenarioCommandFactoryName(),
+      CommandFactoryName(),
       AddProcessInNewBoxMacro,
       "Add a process in a new box")
 
@@ -107,7 +107,7 @@ class SCORE_PLUGIN_SCENARIO_EXPORT DropProcessInIntervalMacro final
     : public score::AggregateCommand
 {
   SCORE_COMMAND_DECL(
-      ScenarioCommandFactoryName(),
+      CommandFactoryName(),
       DropProcessInIntervalMacro,
       "Drop a process in an interval")
 };

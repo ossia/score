@@ -18,7 +18,7 @@ namespace Command
 class SetCondition final : public score::Command
 {
   SCORE_COMMAND_DECL(
-      ScenarioCommandFactoryName(),
+      CommandFactoryName(),
       SetCondition,
       "Set an Event's condition")
 public:
@@ -39,7 +39,7 @@ private:
 class SetOffsetBehavior final : public score::PropertyCommand
 {
   SCORE_COMMAND_DECL(
-      ScenarioCommandFactoryName(),
+      CommandFactoryName(),
       SetOffsetBehavior,
       "Set offset behavior")
 public:

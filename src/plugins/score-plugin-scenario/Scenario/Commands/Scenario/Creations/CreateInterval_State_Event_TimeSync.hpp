@@ -28,7 +28,7 @@ class SCORE_PLUGIN_SCENARIO_EXPORT CreateInterval_State_Event_TimeSync final
     : public score::Command
 {
   SCORE_COMMAND_DECL(
-      ScenarioCommandFactoryName(),
+      CommandFactoryName(),
       CreateInterval_State_Event_TimeSync,
       "Create an interval, a state, an event and a sync")
 public:

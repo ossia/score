@@ -43,6 +43,14 @@ TimeSyncComponent::TimeSyncComponent(
       &Scenario::TimeSyncModel::triggerChanged,
       this,
       &TimeSyncComponent::updateTrigger);
+  con(element,
+      &Scenario::TimeSyncModel::signatureChanged,
+      this,
+      &TimeSyncComponent::updateTriggerTime);
+  con(element,
+      &Scenario::TimeSyncModel::tempoChanged,
+      this,
+      &TimeSyncComponent::updateTriggerTime);
 }
 
 void TimeSyncComponent::cleanup()
@@ -79,7 +87,10 @@ void TimeSyncComponent::onSetup(
   m_ossia_node = ptr;
   m_ossia_node->set_expression(std::move(exp));
   if (m_score_node)
+  {
+    updateTriggerTime();
     m_ossia_node->set_autotrigger(m_score_node->autotrigger());
+  }
 }
 
 std::shared_ptr<ossia::time_sync> TimeSyncComponent::OSSIATimeSync() const
@@ -106,6 +117,21 @@ void TimeSyncComponent::updateTrigger()
     if (was_observing)
       e->observe_expression(true);
   });
+}
+
+void TimeSyncComponent::updateTriggerTime()
+{
+  ossia::time_value t = ossia::Infinite;
+
+  if (const auto sig = m_score_node->signature())
+  {
+    const auto tempo = m_score_node->tempo();
+    const double ratio = double(sig->first) / double(sig->second);
+    const double whole_dur = 240. / tempo;
+    const ossia::time_value whole_time = this->system().time(TimeVal{1000. * whole_dur});
+    t = whole_time * ratio;
+  }
+  this->in_exec([e = m_ossia_node, t] { e->set_sync_rate(t); });
 }
 
 void TimeSyncComponent::on_GUITrigger()

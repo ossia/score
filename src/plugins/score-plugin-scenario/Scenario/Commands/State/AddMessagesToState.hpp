@@ -26,7 +26,7 @@ class SCORE_PLUGIN_SCENARIO_EXPORT AddMessagesToState final
     : public score::Command
 {
   SCORE_COMMAND_DECL(
-      ScenarioCommandFactoryName(),
+      CommandFactoryName(),
       AddMessagesToState,
       "Add messages to state")
 public:

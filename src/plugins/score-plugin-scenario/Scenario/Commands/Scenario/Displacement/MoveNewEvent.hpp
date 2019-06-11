@@ -31,7 +31,7 @@ namespace Command
 class SCORE_PLUGIN_SCENARIO_EXPORT MoveNewEvent final : public score::Command
 {
   SCORE_COMMAND_DECL(
-      ScenarioCommandFactoryName(),
+      CommandFactoryName(),
       MoveNewEvent,
       "Move a new event")
 public:

@@ -24,7 +24,7 @@ class SCORE_PLUGIN_SCENARIO_EXPORT MoveEventMeta final
     : public SerializableMoveEvent
 {
   SCORE_COMMAND_DECL(
-      ScenarioCommandFactoryName(),
+      CommandFactoryName(),
       MoveEventMeta,
       "Move an event")
 
@@ -87,7 +87,7 @@ class SCORE_PLUGIN_SCENARIO_EXPORT MoveTopEventMeta final
     : public SerializableMoveEvent
 {
   SCORE_COMMAND_DECL(
-      ScenarioCommandFactoryName(),
+      CommandFactoryName(),
       MoveTopEventMeta,
       "Move an event")
 

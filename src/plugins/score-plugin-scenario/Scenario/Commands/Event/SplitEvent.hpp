@@ -25,7 +25,7 @@ namespace Command
 class SplitEvent final : public score::Command
 {
   SCORE_COMMAND_DECL(
-      ScenarioCommandFactoryName(),
+      CommandFactoryName(),
       SplitEvent,
       "Split an event")
 
@@ -61,7 +61,7 @@ private:
 class SplitWholeEvent final : public score::Command
 {
   SCORE_COMMAND_DECL(
-      ScenarioCommandFactoryName(),
+      CommandFactoryName(),
       SplitWholeEvent,
       "Split an event")
 public:
@@ -83,7 +83,7 @@ private:
 class SplitStateMacro final : public score::AggregateCommand
 {
   SCORE_COMMAND_DECL(
-      ScenarioCommandFactoryName(),
+      CommandFactoryName(),
       SplitStateMacro,
       "Split state from node")
 };

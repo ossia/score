@@ -26,7 +26,7 @@ class SCORE_PLUGIN_SCENARIO_EXPORT AddOnlyProcessToInterval final
     : public score::Command
 {
   SCORE_COMMAND_DECL(
-      ScenarioCommandFactoryName(),
+      CommandFactoryName(),
       AddOnlyProcessToInterval,
       "Add a process")
 public:
@@ -75,7 +75,7 @@ class SCORE_PLUGIN_SCENARIO_EXPORT LoadOnlyProcessInInterval final
     : public score::Command
 {
   SCORE_COMMAND_DECL(
-      ScenarioCommandFactoryName(),
+      CommandFactoryName(),
       LoadOnlyProcessInInterval,
       "Load a process")
 public:
@@ -112,7 +112,7 @@ class SCORE_PLUGIN_SCENARIO_EXPORT DuplicateOnlyProcessToInterval final
     : public score::Command
 {
   SCORE_COMMAND_DECL(
-      ScenarioCommandFactoryName(),
+      CommandFactoryName(),
       DuplicateOnlyProcessToInterval,
       "Duplicate a process")
 public:

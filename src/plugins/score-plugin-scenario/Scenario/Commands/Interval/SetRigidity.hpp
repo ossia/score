@@ -22,7 +22,7 @@ namespace Command
 class SCORE_PLUGIN_SCENARIO_EXPORT SetRigidity final : public score::Command
 {
   SCORE_COMMAND_DECL(
-      ScenarioCommandFactoryName(),
+      CommandFactoryName(),
       SetRigidity,
       "Change interval rigidity")
 

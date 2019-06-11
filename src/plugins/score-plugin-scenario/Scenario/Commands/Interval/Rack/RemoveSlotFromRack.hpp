@@ -21,7 +21,7 @@ namespace Command
 class RemoveSlotFromRack final : public score::Command
 {
   SCORE_COMMAND_DECL(
-      ScenarioCommandFactoryName(),
+      CommandFactoryName(),
       RemoveSlotFromRack,
       "Remove a slot")
 public:

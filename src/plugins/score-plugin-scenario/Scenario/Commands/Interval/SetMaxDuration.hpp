@@ -22,7 +22,7 @@ namespace Command
 class SetMaxDuration final : public score::Command
 {
   SCORE_COMMAND_DECL(
-      ScenarioCommandFactoryName(),
+      CommandFactoryName(),
       SetMaxDuration,
       "Set interval maximum")
 public:

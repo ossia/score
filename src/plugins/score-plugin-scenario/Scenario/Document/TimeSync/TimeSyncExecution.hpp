@@ -42,6 +42,7 @@ public:
 
 private:
   void updateTrigger();
+  void updateTriggerTime();
   void on_GUITrigger();
   std::shared_ptr<ossia::time_sync> m_ossia_node;
   QPointer<const Scenario::TimeSyncModel> m_score_node;

@@ -27,7 +27,7 @@ namespace Command
 class CreateSequence final : public score::AggregateCommand
 {
   SCORE_COMMAND_DECL(
-      ScenarioCommandFactoryName(),
+      CommandFactoryName(),
       CreateSequence,
       "CreateSequence")
 
@@ -62,7 +62,7 @@ private:
 class CreateSequenceProcesses final : public score::Command
 {
   SCORE_COMMAND_DECL(
-      ScenarioCommandFactoryName(),
+      CommandFactoryName(),
       CreateSequenceProcesses,
       "CreateSequenceData")
 

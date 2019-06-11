@@ -21,7 +21,7 @@ class SCORE_PLUGIN_SCENARIO_EXPORT RemoveStateProcess final
     : public score::Command
 {
   SCORE_COMMAND_DECL(
-      ScenarioCommandFactoryName(),
+      CommandFactoryName(),
       RemoveStateProcess,
       "Remove a state process")
 public:

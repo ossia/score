@@ -281,7 +281,7 @@ score_plugin_scenario::make_commands()
   using namespace Scenario::Command;
   using namespace Interpolation;
   std::pair<const CommandGroupKey, CommandGeneratorMap> cmds{
-      ScenarioCommandFactoryName(), CommandGeneratorMap{}};
+      CommandFactoryName(), CommandGeneratorMap{}};
 
   ossia::for_each_type<
 #include <score_plugin_scenario_commands.hpp>

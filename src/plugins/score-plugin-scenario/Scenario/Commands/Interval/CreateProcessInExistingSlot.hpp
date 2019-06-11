@@ -8,7 +8,7 @@ namespace Command
 class CreateProcessInExistingSlot final : public score::AggregateCommand
 {
   SCORE_COMMAND_DECL(
-      ScenarioCommandFactoryName(),
+      CommandFactoryName(),
       CreateProcessInExistingSlot,
       "Create a process in an existing slot")
 };

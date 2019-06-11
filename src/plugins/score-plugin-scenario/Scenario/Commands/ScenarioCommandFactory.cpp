@@ -9,7 +9,7 @@ namespace Scenario
 namespace Command
 {
 
-const CommandGroupKey& ScenarioCommandFactoryName()
+const CommandGroupKey& CommandFactoryName()
 {
   static const CommandGroupKey key{"ScenarioApplicationPlugin"};
   return key;
@@ -20,11 +20,11 @@ const CommandGroupKey& ScenarioCommandFactoryName()
 template <>
 const CommandGroupKey& CommandFactoryName<Scenario::ProcessModel>()
 {
-  return Scenario::Command::ScenarioCommandFactoryName();
+  return Scenario::Command::CommandFactoryName();
 }
 
 template <>
 const CommandGroupKey& CommandFactoryName<Scenario::BaseScenario>()
 {
-  return Scenario::Command::ScenarioCommandFactoryName();
+  return Scenario::Command::CommandFactoryName();
 }

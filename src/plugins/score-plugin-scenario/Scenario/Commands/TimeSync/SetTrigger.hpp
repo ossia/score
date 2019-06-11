@@ -16,7 +16,7 @@ namespace Command
 class SCORE_PLUGIN_SCENARIO_EXPORT SetTrigger final : public score::Command
 {
   SCORE_COMMAND_DECL(
-      ScenarioCommandFactoryName(),
+      CommandFactoryName(),
       SetTrigger,
       "Change a trigger")
 public:

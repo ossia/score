@@ -19,7 +19,7 @@ namespace Command
 class InsertContentInState final : public score::Command
 {
   SCORE_COMMAND_DECL(
-      ScenarioCommandFactoryName(),
+      CommandFactoryName(),
       InsertContentInState,
       "Insert content in a state")
 

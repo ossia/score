@@ -18,7 +18,7 @@ namespace Command
 class ChangeSlotPosition final : public score::Command
 {
   SCORE_COMMAND_DECL(
-      ScenarioCommandFactoryName(),
+      CommandFactoryName(),
       ChangeSlotPosition,
       "Change slot position")
 public:
@@ -61,7 +61,7 @@ protected:
 class MoveLayerInNewSlot final : public SlotCommand
 {
   SCORE_COMMAND_DECL(
-      ScenarioCommandFactoryName(),
+      CommandFactoryName(),
       MoveLayerInNewSlot,
       "Move layer in new slot")
 public:
@@ -70,7 +70,7 @@ public:
 
 class MergeSlots final : public SlotCommand
 {
-  SCORE_COMMAND_DECL(ScenarioCommandFactoryName(), MergeSlots, "Merge slots")
+  SCORE_COMMAND_DECL(CommandFactoryName(), MergeSlots, "Merge slots")
 
 public:
   MergeSlots(const IntervalModel&, int pos1, int pos2);
@@ -79,7 +79,7 @@ public:
 class MergeLayerInSlot final : public SlotCommand
 {
   SCORE_COMMAND_DECL(
-      ScenarioCommandFactoryName(),
+      CommandFactoryName(),
       MergeLayerInSlot,
       "Merge layer")
 

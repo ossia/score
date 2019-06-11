@@ -3,6 +3,7 @@
 #include <Scenario/Document/Event/ExecutionStatus.hpp>
 #include <Scenario/Document/VerticalExtent.hpp>
 #include <State/Expression.hpp>
+#include <Process/Dataflow/TimeSignature.hpp>
 
 #include <score/model/Component.hpp>
 #include <score/model/EntityImpl.hpp>
@@ -77,6 +78,12 @@ public:
   bool autotrigger() const noexcept;
   void setAutotrigger(bool t);
 
+  optional<Control::time_signature> signature() const noexcept;
+  void setSignature(optional<Control::time_signature> sig);
+
+  double tempo() const noexcept;
+  void setTempo(double);
+
 public:
   void extentChanged(const Scenario::VerticalExtent& arg_1)
       E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, extentChanged, arg_1)
@@ -96,12 +103,22 @@ public:
   void triggeredByGui() const
       E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, triggeredByGui)
 
+  void signatureChanged(optional<Control::time_signature> sig)
+    E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, signatureChanged, sig)
+
+  void tempoChanged(double t)
+  E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, tempoChanged, t)
+
+  PROPERTY(double, tempo READ tempo WRITE setTempo NOTIFY tempoChanged)
+  PROPERTY(optional<Control::time_signature>, signature READ signature WRITE setSignature NOTIFY signatureChanged)
 private:
   TimeVal m_date{std::chrono::seconds{0}};
   State::Expression m_expression;
 
   EventIdVec m_events;
   VerticalExtent m_extent;
+  double m_tempo{120.};
+  optional<Control::time_signature> m_signature;
 
   bool m_active{false};
   bool m_autotrigger{false};
@@ -113,3 +130,6 @@ TR_TEXT_METADATA(, Scenario::TimeSyncModel, PrettyName_k, "Sync")
 
 Q_DECLARE_METATYPE(Id<Scenario::TimeSyncModel>)
 W_REGISTER_ARGTYPE(Id<Scenario::TimeSyncModel>)
+
+Q_DECLARE_METATYPE(optional<Control::time_signature>)
+W_REGISTER_ARGTYPE(optional<Control::time_signature>)

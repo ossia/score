@@ -138,4 +138,32 @@ void TimeSyncModel::setAutotrigger(bool a)
   autotriggerChanged(a);
 }
 
+optional<Control::time_signature> TimeSyncModel::signature() const noexcept
+{
+  return m_signature;
+}
+
+void TimeSyncModel::setSignature(optional<Control::time_signature> sig)
+{
+  if(m_signature != sig)
+  {
+    m_signature = sig;
+    signatureChanged(sig);
+  }
+}
+
+double TimeSyncModel::tempo() const noexcept
+{
+  return m_tempo;
+}
+
+void TimeSyncModel::setTempo(double d)
+{
+  if(m_tempo != d)
+  {
+    m_tempo = d;
+    tempoChanged(d);
+  }
+}
+
 }

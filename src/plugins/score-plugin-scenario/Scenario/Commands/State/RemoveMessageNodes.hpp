@@ -19,7 +19,7 @@ namespace Command
 class RemoveMessageNodes final : public score::Command
 {
   SCORE_COMMAND_DECL(
-      ScenarioCommandFactoryName(),
+      CommandFactoryName(),
       RemoveMessageNodes,
       "Remove user messages")
 

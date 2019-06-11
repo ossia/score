@@ -15,7 +15,7 @@ namespace Command
 {
 class ClearState final : public score::Command
 {
-  SCORE_COMMAND_DECL(ScenarioCommandFactoryName(), ClearState, "Clear a state")
+  SCORE_COMMAND_DECL(CommandFactoryName(), ClearState, "Clear a state")
 public:
   ClearState(const StateModel& path);
   void undo(const score::DocumentContext& ctx) const override;

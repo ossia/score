@@ -63,7 +63,7 @@ class SCORE_PLUGIN_SCENARIO_EXPORT CreateAutomationFromStates final
     : public CreateProcessAndLayers
 {
   SCORE_COMMAND_DECL(
-      ScenarioCommandFactoryName(),
+      CommandFactoryName(),
       CreateAutomationFromStates,
       "CreateAutomationFromStates")
 public:
@@ -92,7 +92,7 @@ class SCORE_PLUGIN_SCENARIO_EXPORT CreateGradient final
     : public CreateProcessAndLayers
 {
   SCORE_COMMAND_DECL(
-      ScenarioCommandFactoryName(),
+      CommandFactoryName(),
       CreateGradient,
       "CreateGradientFromStates")
 public:
@@ -121,7 +121,7 @@ class SCORE_PLUGIN_SCENARIO_EXPORT CreateInterpolationFromStates final
     : public CreateProcessAndLayers
 {
   SCORE_COMMAND_DECL(
-      ScenarioCommandFactoryName(),
+      CommandFactoryName(),
       CreateInterpolationFromStates,
       "CreateInterpolationFromStates")
 public:

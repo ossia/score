@@ -25,7 +25,7 @@ class SCORE_PLUGIN_SCENARIO_EXPORT ScenarioPasteElements final
     : public score::Command
 {
   SCORE_COMMAND_DECL(
-      ScenarioCommandFactoryName(),
+      CommandFactoryName(),
       ScenarioPasteElements,
       "Paste elements in scenario")
 public:

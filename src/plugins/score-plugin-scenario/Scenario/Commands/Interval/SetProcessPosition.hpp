@@ -20,7 +20,7 @@ namespace Command
 class PutProcessBefore final : public score::Command
 {
   SCORE_COMMAND_DECL(
-      ScenarioCommandFactoryName(),
+      CommandFactoryName(),
       PutProcessBefore,
       "Set process position")
 
@@ -53,7 +53,7 @@ private:
 class PutStateProcessBefore final : public score::Command
 {
   SCORE_COMMAND_DECL(
-      ScenarioCommandFactoryName(),
+      CommandFactoryName(),
       PutStateProcessBefore,
       "Set process position")
 

@@ -19,12 +19,12 @@ namespace Command
 class SCORE_PLUGIN_SCENARIO_EXPORT Encapsulate final
     : public score::AggregateCommand
 {
-  SCORE_COMMAND_DECL(ScenarioCommandFactoryName(), Encapsulate, "Encapsulate")
+  SCORE_COMMAND_DECL(CommandFactoryName(), Encapsulate, "Encapsulate")
 };
 class SCORE_PLUGIN_SCENARIO_EXPORT Decapsulate final
     : public score::AggregateCommand
 {
-  SCORE_COMMAND_DECL(ScenarioCommandFactoryName(), Decapsulate, "Decapsulate")
+  SCORE_COMMAND_DECL(CommandFactoryName(), Decapsulate, "Decapsulate")
 };
 }
 

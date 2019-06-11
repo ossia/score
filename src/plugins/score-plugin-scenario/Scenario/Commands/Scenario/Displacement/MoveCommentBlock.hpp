@@ -16,7 +16,7 @@ namespace Command
 class MoveCommentBlock final : public score::Command
 {
   SCORE_COMMAND_DECL(
-      ScenarioCommandFactoryName(),
+      CommandFactoryName(),
       MoveCommentBlock,
       "Move a comment block")
 public:

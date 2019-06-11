@@ -26,7 +26,7 @@ namespace Command
 class RemoveProcessFromInterval final : public score::Command
 {
   SCORE_COMMAND_DECL(
-      ScenarioCommandFactoryName(),
+      CommandFactoryName(),
       RemoveProcessFromInterval,
       "Remove a process")
 public:

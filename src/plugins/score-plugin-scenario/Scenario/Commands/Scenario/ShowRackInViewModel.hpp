@@ -20,7 +20,7 @@ namespace Command
  */
 class SCORE_PLUGIN_SCENARIO_EXPORT ShowRack final : public score::Command
 {
-  SCORE_COMMAND_DECL(ScenarioCommandFactoryName(), ShowRack, "Show a rack")
+  SCORE_COMMAND_DECL(CommandFactoryName(), ShowRack, "Show a rack")
 public:
   ShowRack(const Scenario::IntervalModel& vm);
 

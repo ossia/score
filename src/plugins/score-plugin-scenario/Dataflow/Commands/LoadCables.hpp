@@ -10,7 +10,7 @@ namespace Dataflow
 class LoadCables final : public score::Command
 {
   SCORE_COMMAND_DECL(
-      Scenario::Command::ScenarioCommandFactoryName(),
+      Scenario::Command::CommandFactoryName(),
       LoadCables,
       "Remove cable")
 

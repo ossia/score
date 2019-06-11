@@ -22,7 +22,7 @@ class SCORE_PLUGIN_SCENARIO_EXPORT ResizeSlotVertically final
     : public score::Command
 {
   SCORE_COMMAND_DECL(
-      ScenarioCommandFactoryName(),
+      CommandFactoryName(),
       ResizeSlotVertically,
       "Resize a slot")
 public:

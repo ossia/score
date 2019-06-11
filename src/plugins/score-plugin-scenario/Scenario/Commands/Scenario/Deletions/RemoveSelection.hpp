@@ -37,7 +37,7 @@ class SCORE_PLUGIN_SCENARIO_EXPORT RemoveSelection final
     : public score::Command
 {
   SCORE_COMMAND_DECL(
-      ScenarioCommandFactoryName(),
+      CommandFactoryName(),
       RemoveSelection,
       "Remove selected elements")
 public:

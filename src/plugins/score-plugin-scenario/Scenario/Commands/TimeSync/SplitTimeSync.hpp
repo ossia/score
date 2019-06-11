@@ -21,7 +21,7 @@ namespace Command
 class SplitTimeSync final : public score::Command
 {
   SCORE_COMMAND_DECL(
-      ScenarioCommandFactoryName(),
+      CommandFactoryName(),
       SplitTimeSync,
       "Desynchronize")
 public:
@@ -46,7 +46,7 @@ private:
 class SplitWholeSync final : public score::Command
 {
   SCORE_COMMAND_DECL(
-      ScenarioCommandFactoryName(),
+      CommandFactoryName(),
       SplitWholeSync,
       "Desynchronize")
 public:

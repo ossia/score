@@ -17,7 +17,7 @@ namespace Command
 class CreationMetaCommand final : public score::AggregateCommand
 {
   SCORE_COMMAND_DECL(
-      ScenarioCommandFactoryName(),
+      CommandFactoryName(),
       CreationMetaCommand,
       "Create elements in scenario")
 public:

@@ -8,7 +8,7 @@ namespace Scenario
 class SnapshotStatesMacro final : public score::AggregateCommand
 {
   SCORE_COMMAND_DECL(
-      Scenario::Command::ScenarioCommandFactoryName(),
+      Scenario::Command::CommandFactoryName(),
       SnapshotStatesMacro,
       "SnapshotStatesMacro")
 };

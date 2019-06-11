@@ -1,4 +1,6 @@
 #pragma once
+#include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
+#include <score/command/PropertyCommand.hpp>
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
 #include <State/Expression.hpp>
 
@@ -13,10 +15,11 @@ namespace Scenario
 class TimeSyncModel;
 namespace Command
 {
+using TimeSyncModel = ::Scenario::TimeSyncModel;
 class SCORE_PLUGIN_SCENARIO_EXPORT SetAutoTrigger final : public score::Command
 {
   SCORE_COMMAND_DECL(
-      ScenarioCommandFactoryName(),
+      CommandFactoryName(),
       SetAutoTrigger,
       "Change a trigger")
 public:
@@ -35,3 +38,6 @@ private:
 };
 }
 }
+
+PROPERTY_COMMAND_T(Scenario::Command, SetTimeSyncTempo, TimeSyncModel::p_tempo, "Set tempo")
+PROPERTY_COMMAND_T(Scenario::Command, SetTimeSyncSignature, TimeSyncModel::p_signature, "Set signature")

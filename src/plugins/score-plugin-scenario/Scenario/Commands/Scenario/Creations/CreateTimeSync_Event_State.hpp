@@ -26,7 +26,7 @@ class SCORE_PLUGIN_SCENARIO_EXPORT CreateTimeSync_Event_State final
     : public score::Command
 {
   SCORE_COMMAND_DECL(
-      ScenarioCommandFactoryName(),
+      CommandFactoryName(),
       CreateTimeSync_Event_State,
       "Create a timesync, an event and a state")
 public:

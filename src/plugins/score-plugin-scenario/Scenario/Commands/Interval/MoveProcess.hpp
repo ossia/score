@@ -17,7 +17,7 @@ namespace Scenario::Command
 class MoveProcess final : public score::Command
 {
   SCORE_COMMAND_DECL(
-      ScenarioCommandFactoryName(),
+      CommandFactoryName(),
       MoveProcess,
       "Move a process")
 public:

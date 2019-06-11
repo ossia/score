@@ -20,7 +20,7 @@ class AddTrigger final : public score::Command
 public:
   const CommandGroupKey& parentKey() const noexcept override
   {
-    return CommandFactoryName<Scenario_T>();
+    return ::CommandFactoryName<Scenario_T>();
   }
   const CommandKey& key() const noexcept override { return static_key(); }
   QString description() const override { return QObject::tr("Add a trigger"); }

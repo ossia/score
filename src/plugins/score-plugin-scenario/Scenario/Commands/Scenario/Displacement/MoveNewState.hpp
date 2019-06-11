@@ -25,7 +25,7 @@ namespace Command
 class SCORE_PLUGIN_SCENARIO_EXPORT MoveNewState final : public score::Command
 {
   SCORE_COMMAND_DECL(
-      ScenarioCommandFactoryName(),
+      CommandFactoryName(),
       MoveNewState,
       "Move a new state")
 public:
