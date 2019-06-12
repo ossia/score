@@ -311,6 +311,24 @@ void DeviceDocumentPlugin::setupConnections(
   }
 }
 
+void DeviceDocumentPlugin::reconnect(const QString& device)
+{
+  if(device.isEmpty())
+  {
+    m_list.apply([&](Device::DeviceInterface& dev) {
+      if(!dev.connected())
+          dev.reconnect();
+    });
+  }
+  else
+  {
+    m_list.apply([&](Device::DeviceInterface& dev) {
+      if(!dev.connected() && dev.settings().name == device)
+          dev.reconnect();
+    });
+  }
+}
+
 void DeviceDocumentPlugin::on_valueUpdated(
     const State::Address& addr,
     const ossia::value& v)

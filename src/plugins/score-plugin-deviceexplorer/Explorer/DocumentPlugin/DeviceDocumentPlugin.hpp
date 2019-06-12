@@ -66,6 +66,8 @@ public:
 
   void setupConnections(Device::DeviceInterface&, bool enabled);
 
+  void reconnect(const QString&);
+
 private:
   void initDevice(Device::DeviceInterface&);
   void on_valueUpdated(const State::Address& addr, const ossia::value& v);

@@ -61,6 +61,7 @@
 #include <LocalTree/LocalTreeDocumentPlugin.hpp>
 #include <wobjectimpl.h>
 
+#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <algorithm>
 #include <vector>
 SCORE_DECLARE_ACTION(
@@ -971,6 +972,24 @@ void ApplicationPlugin::initLocalTreeNodes(LocalTree::DocumentPlugin& lt)
             docs->setCurrentIndex(std::clamp(val, 0, docs->count() - 1));
           }
         }
+      });
+    });
+  }
+
+  {
+    auto node = root.create_child("reconnect");
+    auto address = node->create_parameter(ossia::val_type::STRING);
+    address->set_value("");
+    address->set_access(ossia::access_mode::BI);
+    address->add_callback([&](const ossia::value& v) {
+      auto val = QString::fromStdString(v.get<std::string>());
+      ossia::qt::run_async(this, [=, device = std::move(val)] {
+        auto doc = currentDocument();
+        if(!doc)
+          return;
+
+        auto& plug = doc->context().plugin<Explorer::DeviceDocumentPlugin>();
+        plug.reconnect(device);
       });
     });
   }
