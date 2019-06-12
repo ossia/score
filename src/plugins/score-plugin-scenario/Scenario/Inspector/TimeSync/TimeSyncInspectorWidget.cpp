@@ -22,7 +22,6 @@ class TimeSignatureWidget : public QLineEdit
 public:
   TimeSignatureWidget()
   {
-    setValidator(new WidgetFactory::TimeSignatureValidator{this});
     setContentsMargins(0, 0, 0, 0);
   }
 
