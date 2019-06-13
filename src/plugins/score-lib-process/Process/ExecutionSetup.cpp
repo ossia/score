@@ -194,11 +194,10 @@ void set_destination_impl(
       });
     }
   }
-  else
+  else if(auto ad = address.address.toString_unsafe().toStdString(); ossia::traversal::is_pattern(ad))
   {
     // OPTIMIZEME
-    QString ad = address.address.toString_unsafe();
-    auto path = ossia::traversal::make_path(ad.toStdString());
+    auto path = ossia::traversal::make_path(ad);
     if (path)
     {
       append([=, g = plug.execGraph, p = *path]() mutable {
