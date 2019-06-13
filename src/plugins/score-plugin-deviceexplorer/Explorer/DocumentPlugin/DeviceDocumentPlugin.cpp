@@ -68,9 +68,10 @@ struct print_node_rec
 
 void DeviceDocumentPlugin::asyncConnect(Device::DeviceInterface& newdev)
 {
-  if (newdev.capabilities().asyncConnect)
+  const auto w = score::GUIAppContext().mainWindow;
+  if (newdev.capabilities().asyncConnect && w)
   {
-    score::GUIAppContext().mainWindow->setEnabled(false);
+    w->setEnabled(false);
 
     QMessageBox b(
         QMessageBox::Icon{},
@@ -91,7 +92,8 @@ void DeviceDocumentPlugin::asyncConnect(Device::DeviceInterface& newdev)
     });
     newdev.reconnect();
     b.exec();
-    score::GUIAppContext().mainWindow->setEnabled(true);
+
+    w->setEnabled(true);
   }
   else
   {
