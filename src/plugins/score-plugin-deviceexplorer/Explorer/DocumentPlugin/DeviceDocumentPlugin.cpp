@@ -13,7 +13,9 @@
 #include <Explorer/Listening/ListeningHandlerFactoryList.hpp>
 #include <State/Address.hpp>
 
+#include <Explorer/Commands/ReplaceDevice.hpp>
 #include <score/application/ApplicationContext.hpp>
+#include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/document/DocumentContext.hpp>
 #include <score/model/tree/TreeNode.hpp>
 #include <score/plugins/InterfaceList.hpp>
@@ -313,20 +315,51 @@ void DeviceDocumentPlugin::setupConnections(
   }
 }
 
+int index(const DeviceDocumentPlugin& model, const QString& name)
+{
+  for(int i = 0; i < model.rootNode().childCount(); i++) {
+
+    const Device::Node& n = model.rootNode().childAt(i);
+    if(n.is<Device::DeviceSettings>())
+    {
+      auto& d = n.get<Device::DeviceSettings>();
+      if(d.name == name)
+        return i;
+    }
+  }
+  return -1;
+}
 void DeviceDocumentPlugin::reconnect(const QString& device)
 {
+  auto f = [this] (Device::DeviceInterface& dev) {
+    dev.reconnect();
+    QTimer::singleShot(500, [this, &dev] {
+      auto new_node = dev.refresh();
+
+      auto device_index = index(*this, dev.settings().name);
+      if(device_index != -1) {
+        auto cmd = new Explorer::Command::ReplaceDevice{
+            *this, device_index, std::move(new_node)};
+
+        CommandDispatcher<>{this->context().commandStack}.submit(cmd);
+      }
+    });
+  };
+
   if(device.isEmpty())
   {
-    m_list.apply([&](Device::DeviceInterface& dev) {
+    m_list.apply([&, f](Device::DeviceInterface& dev) {
       if(!dev.connected())
-          dev.reconnect();
+      {
+          f(dev);
+      }
     });
   }
   else
   {
     m_list.apply([&](Device::DeviceInterface& dev) {
       if(!dev.connected() && dev.settings().name == device)
-          dev.reconnect();
+        f(dev);
     });
   }
 }
