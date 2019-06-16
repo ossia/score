@@ -140,6 +140,19 @@ ApplicationPlugin::ApplicationPlugin(const score::ApplicationContext& app)
       {
         auto obj = doc.object();
         addVST(obj["Path"].toString(), obj);
+        int id = obj["Request"].toInt();
+
+        m_processes[id].process->close();
+        if(m_processes[id].process->state() == QProcess::ProcessState::NotRunning)
+        {
+            m_processes[id] = {};
+        }
+        else
+        {
+            connect(m_processes[id].process.get(), qOverload<int, QProcess::ExitStatus >(&QProcess::finished), this, [this, id] {
+                m_processes[id] = {};
+            });
+        }
       }
       ws->deleteLater();
     });
@@ -230,6 +243,7 @@ void ApplicationPlugin::addVST(const QString& path, const QJsonObject& obj)
   qDebug() << "Loaded VST " << path << "successfully";
   vstChanged();
 }
+
 void ApplicationPlugin::rescanVSTs(const QStringList& paths)
 {
   // 1. List all plug-ins in new paths
@@ -265,7 +279,7 @@ void ApplicationPlugin::rescanVSTs(const QStringList& paths)
         dir,
         QStringList{Media::VST::default_filter},
         QDir::Files,
-        QDirIterator::Subdirectories);
+        QDirIterator::Subdirectories | QDirIterator::FollowSymlinks);
     while (it.hasNext())
       newPlugins.insert(it.next());
 #endif
@@ -290,24 +304,63 @@ void ApplicationPlugin::rescanVSTs(const QStringList& paths)
   vstChanged();
 
   // 3. Add remaining plug-ins
-
   m_processes.clear();
   m_processes.reserve(newPlugins.size());
   int i = 0;
   for (const QString& path : newPlugins)
   {
-    m_processes.emplace_back(path, std::make_unique<QProcess>());
-    m_processes.back().second->start(
-#if defined(__APPLE__)
-        qApp->applicationDirPath() + "/ossia-score-vstpuppet"
-#else
-        "ossia-score-vstpuppet"
-#endif
-        ,
-        {path},
-        QProcess::ReadOnly);
+    auto proc = std::make_unique<QProcess>();
+    proc->setProgram(
+            #if defined(__APPLE__)
+                    qApp->applicationDirPath() + "/ossia-score-vstpuppet"
+            #else
+                    "ossia-score-vstpuppet"
+            #endif
+    );
+    proc->setArguments({path, QString::number(i)});
+    m_processes.push_back({path, std::move(proc), false});
     i++;
   }
+  scanVSTsEvent();
+}
+
+void ApplicationPlugin::scanVSTsEvent()
+{
+    constexpr int max_in_flight = 8;
+    int in_flight = 0;
+
+    for(auto& proc : m_processes)
+    {
+        // Already scanned processes
+        if(!proc.process)
+            continue;
+
+        if(!proc.scanning)
+        {
+            proc.process->start(QProcess::ReadOnly);
+            proc.scanning = true;
+            proc.timer.start();
+        }
+        else
+        {
+            if(proc.timer.elapsed() > 10000)
+            {
+                addInvalidVST(proc.path);
+                proc.process.reset();
+
+                in_flight--;
+                continue;
+            }
+        }
+
+        in_flight++;
+
+        if(in_flight == max_in_flight)
+        {
+            QTimer::singleShot(1000, this, &ApplicationPlugin::scanVSTsEvent);
+            return;
+        }
+    }
 }
 #endif
 
