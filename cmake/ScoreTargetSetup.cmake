@@ -344,12 +344,11 @@ function(setup_score_common_lib_features TheTarget)
 
   if(SCORE_STATIC_PLUGINS)
     target_compile_definitions(${TheTarget} PRIVATE "${Target_upper}_EXPORTS")
-  else()
-    set_target_properties(${TheTarget} PROPERTIES
-      CXX_VISIBILITY_PRESET hidden
-      VISIBILITY_INLINES_HIDDEN 1
-      )
   endif()
+  set_target_properties(${TheTarget} PROPERTIES
+    CXX_VISIBILITY_PRESET hidden
+    VISIBILITY_INLINES_HIDDEN 1
+  )
 
 
   if(OSSIA_STATIC_EXPORT)

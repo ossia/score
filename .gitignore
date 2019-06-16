@@ -48,3 +48,5 @@ tools/sdk/Raspberry/qemu-arm-static
 
 Documentation/Doc_sources/score-documentation/site
 
+
+*.user.*
