@@ -5,7 +5,9 @@
 
 #include <ossia/dataflow/graph/graph_interface.hpp>
 #include <ossia/dataflow/graph_edge.hpp>
+#include <ossia/dataflow/node_process.hpp>
 #include <ossia/dataflow/port.hpp>
+#include <ossia/dataflow/nodes/dummy.hpp>
 
 #include <fmt/format.h>
 
@@ -120,7 +122,10 @@ get_nodes(const std::vector<std::pair<
 {
   std::vector<ossia::node_ptr> v;
   for (const auto& f : fx)
+  {
+    SCORE_ASSERT(f.second);
     v.push_back(f.second.node());
+  }
   return v;
 }
 static void check_exec_order(
@@ -266,6 +271,84 @@ void EffectProcessComponentBase::register_new_last_node(
   }
 }
 
+class DummyProcessComponent : public Execution::ProcessComponent
+{
+  COMPONENT_METADATA("2875d036-b9d0-4b43-aa9d-926bb2902edc")
+public:
+  DummyProcessComponent(
+      Process::ProcessModel& element,
+      const Execution::Context& ctx,
+      const Id<score::Component>& id,
+      QObject* parent)
+    : Execution::ProcessComponent{element, ctx, id, "Dummy", parent}
+  {
+    auto N_i = element.inlets().size();
+    auto N_o = element.outlets().size();
+    if(N_i == 0 || N_o == 0)
+      return;
+
+    auto& i = element.inlets().front();
+    auto& o = element.outlets().front();
+    std::size_t index_i = 0;
+    std::size_t index_o = 0;
+    if(i->type != o->type)
+    {
+      this->node = std::make_shared<ossia::nodes::dummy_node>();
+    }
+    else
+    {
+      switch(i->type)
+      {
+        case Process::PortType::Audio:
+          this->node = std::make_shared<ossia::nodes::dummy_audio_node>();
+          break;
+        case Process::PortType::Midi:
+          this->node = std::make_shared<ossia::nodes::dummy_midi_node>();
+          break;
+        case Process::PortType::Message:
+          this->node = std::make_shared<ossia::nodes::dummy_value_node>();
+          break;
+      }
+      index_i = 1;
+      index_o = 1;
+    }
+
+    for(; index_i < N_i; index_i++)
+    {
+      switch(element.inlets()[index_i]->type)
+      {
+        case Process::PortType::Audio:
+          this->node->inputs().push_back(new ossia::inlet(ossia::audio_port{}));
+          break;
+        case Process::PortType::Midi:
+          this->node->inputs().push_back(new ossia::inlet(ossia::midi_port{}));
+          break;
+        case Process::PortType::Message:
+          this->node->inputs().push_back(new ossia::inlet(ossia::value_port{}));
+          break;
+      }
+    }
+    for(; index_o < N_o; index_o++)
+    {
+      switch(element.inlets()[index_o]->type)
+      {
+        case Process::PortType::Audio:
+          this->node->outputs().push_back(new ossia::outlet(ossia::audio_port{}));
+          break;
+        case Process::PortType::Midi:
+          this->node->outputs().push_back(new ossia::outlet(ossia::midi_port{}));
+          break;
+        case Process::PortType::Message:
+          this->node->outputs().push_back(new ossia::outlet(ossia::value_port{}));
+          break;
+      }
+    }
+
+    m_ossia_process = std::make_shared<ossia::node_process>(node);
+  }
+
+};
+
 Execution::ProcessComponent* EffectProcessComponentBase::make(
     const Id<score::Component>& id,
     Execution::ProcessComponentFactory& factory,
@@ -281,213 +364,222 @@ Execution::ProcessComponent* EffectProcessComponentBase::make(
 
   std::shared_ptr<ProcessComponent> fx
       = factory.make(effect, system(), id, this);
-  if (fx)
+  if (!fx)
   {
-    SCORE_ASSERT(fx->node);
-    QObject::connect(
+    fx = std::make_shared<DummyProcessComponent>(effect, system(), id, this);
+  }
+
+  SCORE_ASSERT(fx->node);
+  QObject::connect(
         &effect.selection,
         &Selectable::changed,
         fx.get(),
         [this, n = fx->node](bool ok) {
-          in_exec([=] { n->set_logging(ok); });
-        });
+    in_exec([=] { n->set_logging(ok); });
+  });
 
-    const auto idx_ = process().effectPosition(effect.id());
-    SCORE_ASSERT(idx_ != -1);
-    const std::size_t idx = idx_;
-    if (m_fxes.size() < (idx + 1))
-    {
-      m_fxes.resize(idx + 1);
-      m_fxes[idx] = std::make_pair(effect.id(), RegisteredEffect{fx, {}, {}});
-    }
-    else
-    {
-      m_fxes.insert(
+  const auto idx_ = process().effectPosition(effect.id());
+  SCORE_ASSERT(idx_ != -1);
+  const std::size_t idx = idx_;
+  if (m_fxes.size() < (idx + 1))
+  {
+    m_fxes.resize(idx + 1);
+    m_fxes[idx] = std::make_pair(effect.id(), RegisteredEffect{fx, {}, {}});
+  }
+  else
+  {
+    m_fxes.insert(
           m_fxes.begin() + idx,
           std::make_pair(effect.id(), RegisteredEffect{fx, {}, {}}));
-    }
+  }
+  std::cerr << std::endl;
+  qDebug() << "Adding : " << ((void*)this) << typeid(effect).name() << bool(fx) << idx_;
+  qDebug() << "printing fxes: ";
+  for(auto& fx : m_fxes)
+  {
+    qDebug() << fx.second.comp.get();
+  }
 
-    commands.push_back(
+  commands.push_back(
         [idx, proc = echain, n = fx->node] { proc->add_node(idx, n); });
 
-    auto& this_fx = m_fxes[idx].second;
+  auto& this_fx = m_fxes[idx].second;
 
-    SCORE_ASSERT(this_fx.node()->inputs().size() > 0);
-    SCORE_ASSERT(this_fx.node()->outputs().size() > 0);
-    this_fx.registeredInlets = effect.inlets();
-    this_fx.registeredOutlets = effect.outlets();
+  SCORE_ASSERT(this_fx.node()->inputs().size() > 0);
+  SCORE_ASSERT(this_fx.node()->outputs().size() > 0);
+  this_fx.registeredInlets = effect.inlets();
+  this_fx.registeredOutlets = effect.outlets();
 
-    if (idx == 0)
+  if (idx == 0)
+  {
+    // unregister and re-register previous first node if any
+    if (m_fxes.size() > 1)
     {
-      // unregister and re-register previous first node if any
-      if (m_fxes.size() > 1)
-      {
-        unregister_old_first_node(m_fxes[1], commands);
-      }
-
-      // register new first node ; first inlet is process's ; last inlets are
-      // node's
-      this_fx.registeredInlets[0] = process().inlet.get();
-
-      // connect out to next in
-      if (m_fxes.size() > 1)
-      {
-        // there's an effect after
-        reg(this_fx, commands);
-        commands.push_back(
-            [g = ctx.execGraph, n1 = fx->node, n2 = m_fxes[1].second.node()] {
-              move_edges(*n2->inputs()[0], n1->inputs()[0], n1, *g);
-
-              auto edge = ossia::make_edge(
-                  ossia::immediate_strict_connection{},
-                  n1->outputs()[0],
-                  n2->inputs()[0],
-                  n1,
-                  n2);
-              g->connect(std::move(edge));
-            });
-      }
-      else
-      {
-        auto old = m_passthrough;
-        if(old)
-        {
-          commands.push_back([
-                             g = ctx.execGraph,
-                             echain,
-                             proc = m_ossia_process,
-                             pt = old,
-                             new_node = fx->node] () mutable {
-            // passthrough has been put in position 2
-            // by proc->add_node(idx, n);
-            // so we remove it
-            echain->nodes.resize(1);
-            proc->node = new_node;
-
-            if(!pt->inputs().empty() && !new_node->inputs().empty())
-              move_edges(*pt->inputs()[0], new_node->inputs()[0], new_node, *g);
-            // no need to copy outs : done in IntervalExecution (c.f. nodeChanged signal)
-          });
-
-          system().context().setup.unregister_node(process().inlets(), process().outlets(), old, commands);
-          m_passthrough.reset();
-        }
-        else {
-          commands.push_back([
-                             proc = m_ossia_process,
-                             new_node = fx->node] () mutable {
-            proc->node = new_node;
-          });
-        }
-
-        // only effect, goes to end of process
-        this_fx.registeredOutlets[0] = process().outlet.get();
-        reg(this_fx, commands);
-
-        // set as process node
-        nodeChanged(old, fx->node, commands);
-      }
+      unregister_old_first_node(m_fxes[1], commands);
     }
-    else if (idx == (process().effects().size() - 1))
+
+    // register new first node ; first inlet is process's ; last inlets are
+    // node's
+    this_fx.registeredInlets[0] = process().inlet.get();
+
+    // connect out to next in
+    if (m_fxes.size() > 1)
     {
-      // unregister previous last node if any
-      if (idx >= 1)
-      {
-        unregister_old_last_node(m_fxes[idx - 1], commands);
-      }
-
-      // register new last node
-      this_fx.registeredOutlets[0] = process().outlet.get();
-
-      // connect in to prev out
-      if (m_fxes.size() > 1)
-      {
-        reg(this_fx, commands);
-
-        // there's an effect before
-        auto& old_last_comp = m_fxes[idx - 1];
-        if (old_last_comp.second)
-        {
-          commands.push_back([g = ctx.execGraph,
-                              n1 = old_last_comp.second.node(),
-                              n2 = this_fx.node()] {
-            // unnecessary : done in IntervalExecution (c.f. nodeChanged signal)
-            //move_edges(*n1->outputs()[0], n2->outputs()[0], n2, *g);
-            auto edge = ossia::make_edge(
-                ossia::immediate_strict_connection{},
-                n1->outputs()[0],
-                n2->inputs()[0],
-                n1,
-                n2);
-            g->connect(std::move(edge));
-          });
-        }
-      }
-      else
-      {
-        // only effect
-        this_fx.registeredInlets[0] = process().inlet.get();
-        reg(this_fx, commands);
-      }
-
-      // set as process node
-      auto old = m_ossia_process->node;
+      // there's an effect after
+      reg(this_fx, commands);
       commands.push_back(
-          [proc = m_ossia_process, node = fx->node] { proc->node = node; });
-      nodeChanged(old, fx->node, commands);
+            [g = ctx.execGraph, n1 = fx->node, n2 = m_fxes[1].second.node()] {
+        move_edges(*n2->inputs()[0], n1->inputs()[0], n1, *g);
+
+        auto edge = ossia::make_edge(
+              ossia::immediate_strict_connection{},
+              n1->outputs()[0],
+            n2->inputs()[0],
+            n1,
+            n2);
+        g->connect(std::move(edge));
+      });
     }
     else
     {
-      // register node with effect's inlets
-      reg(this_fx, commands);
-
-      // unlink before and after and link this one in-between
-      auto& prev = m_fxes[idx - 1];
-      if (prev.second)
+      auto old = m_passthrough;
+      if(old)
       {
-        commands.push_back(
-            [g = ctx.execGraph, n1 = prev.second.node(), n2 = this_fx.node()] {
-              auto& o_prev = n1->outputs()[0];
-              if (!o_prev->targets.empty())
-              {
-                auto cbl = o_prev->targets[0];
-                g->disconnect(cbl);
-              }
+        commands.push_back([
+                           g = ctx.execGraph,
+                           echain,
+                           proc = m_ossia_process,
+                           pt = old,
+                           new_node = fx->node] () mutable {
+          // passthrough has been put in position 2
+          // by proc->add_node(idx, n);
+          // so we remove it
+          echain->nodes.resize(1);
+          proc->node = new_node;
 
-              auto edge = ossia::make_edge(
-                  ossia::immediate_strict_connection{},
-                  n1->outputs()[0],
-                  n2->inputs()[0],
-                  n1,
-                  n2);
-              g->connect(std::move(edge));
-            });
+          if(!pt->inputs().empty() && !new_node->inputs().empty())
+            move_edges(*pt->inputs()[0], new_node->inputs()[0], new_node, *g);
+          // no need to copy outs : done in IntervalExecution (c.f. nodeChanged signal)
+        });
+
+        system().context().setup.unregister_node(process().inlets(), process().outlets(), old, commands);
+        m_passthrough.reset();
+      }
+      else {
+        commands.push_back([
+                           proc = m_ossia_process,
+                           new_node = fx->node] () mutable {
+          proc->node = new_node;
+        });
       }
 
-      if (m_fxes.size() > (idx + 1))
-      {
-        auto& next = m_fxes[idx + 1];
+      // only effect, goes to end of process
+      this_fx.registeredOutlets[0] = process().outlet.get();
+      reg(this_fx, commands);
 
-        if (next.second)
+      // set as process node
+      nodeChanged(old, fx->node, commands);
+    }
+  }
+  else if (idx == (process().effects().size() - 1))
+  {
+    // unregister previous last node if any
+    if (idx >= 1)
+    {
+      unregister_old_last_node(m_fxes[idx - 1], commands);
+    }
+
+    // register new last node
+    this_fx.registeredOutlets[0] = process().outlet.get();
+
+    // connect in to prev out
+    if (m_fxes.size() > 1)
+    {
+      reg(this_fx, commands);
+
+      // there's an effect before
+      auto& old_last_comp = m_fxes[idx - 1];
+      if (old_last_comp.second)
+      {
+        commands.push_back([g = ctx.execGraph,
+                           n1 = old_last_comp.second.node(),
+                           n2 = this_fx.node()] {
+          // unnecessary : done in IntervalExecution (c.f. nodeChanged signal)
+          //move_edges(*n1->outputs()[0], n2->outputs()[0], n2, *g);
+          auto edge = ossia::make_edge(
+                ossia::immediate_strict_connection{},
+                n1->outputs()[0],
+              n2->inputs()[0],
+              n1,
+              n2);
+          g->connect(std::move(edge));
+        });
+      }
+    }
+    else
+    {
+      // only effect
+      this_fx.registeredInlets[0] = process().inlet.get();
+      reg(this_fx, commands);
+    }
+
+    // set as process node
+    auto old = m_ossia_process->node;
+    commands.push_back(
+          [proc = m_ossia_process, node = fx->node] { proc->node = node; });
+    nodeChanged(old, fx->node, commands);
+  }
+  else
+  {
+    // register node with effect's inlets
+    reg(this_fx, commands);
+
+    // unlink before and after and link this one in-between
+    auto& prev = m_fxes[idx - 1];
+    if (prev.second)
+    {
+      commands.push_back(
+            [g = ctx.execGraph, n1 = prev.second.node(), n2 = this_fx.node()] {
+        auto& o_prev = n1->outputs()[0];
+        if (!o_prev->targets.empty())
         {
-          commands.push_back([g = ctx.execGraph,
-                              n2 = this_fx.node(),
-                              n3 = next.second.node()] {
-            auto& i_next = n3->inputs()[0];
-            if (!i_next->sources.empty())
-            {
-              auto cbl = i_next->sources[0];
-              g->disconnect(cbl);
-            }
-            auto edge = ossia::make_edge(
+          auto cbl = o_prev->targets[0];
+          g->disconnect(cbl);
+        }
+
+        auto edge = ossia::make_edge(
+              ossia::immediate_strict_connection{},
+              n1->outputs()[0],
+            n2->inputs()[0],
+            n1,
+            n2);
+        g->connect(std::move(edge));
+      });
+    }
+
+    if (m_fxes.size() > (idx + 1))
+    {
+      auto& next = m_fxes[idx + 1];
+
+      if (next.second)
+      {
+        commands.push_back([g = ctx.execGraph,
+                           n2 = this_fx.node(),
+                           n3 = next.second.node()] {
+          auto& i_next = n3->inputs()[0];
+          if (!i_next->sources.empty())
+          {
+            auto cbl = i_next->sources[0];
+            g->disconnect(cbl);
+          }
+          auto edge = ossia::make_edge(
                 ossia::immediate_strict_connection{},
                 n2->outputs()[0],
-                n3->inputs()[0],
-                n2,
-                n3);
-            g->connect(std::move(edge));
-          });
-        }
+              n3->inputs()[0],
+              n2,
+              n3);
+          g->connect(std::move(edge));
+        });
       }
     }
   }
