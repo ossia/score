@@ -31,6 +31,7 @@ project(score LANGUAGES C CXX)
 
 cmake_policy(VERSION 3.9)
 cmake_policy(SET CMP0025 NEW)
+cmake_policy(SET CMP0063 NEW)
 
 set(SCORE_VERSION_MAJOR 2)
 set(SCORE_VERSION_MINOR 4)
@@ -51,7 +52,7 @@ else()
 endif()
 
 if(MSYS OR MINGW)
-  find_package(ZLIB REQUIRED)
+  find_package(ZLIB )
 endif()
 
 include(3rdparty/libossia.cmake)
