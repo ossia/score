@@ -392,13 +392,6 @@ Execution::ProcessComponent* EffectProcessComponentBase::make(
           m_fxes.begin() + idx,
           std::make_pair(effect.id(), RegisteredEffect{fx, {}, {}}));
   }
-  std::cerr << std::endl;
-  qDebug() << "Adding : " << ((void*)this) << typeid(effect).name() << bool(fx) << idx_;
-  qDebug() << "printing fxes: ";
-  for(auto& fx : m_fxes)
-  {
-    qDebug() << fx.second.comp.get();
-  }
 
   commands.push_back(
         [idx, proc = echain, n = fx->node] { proc->add_node(idx, n); });
