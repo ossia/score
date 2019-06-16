@@ -162,7 +162,9 @@ bool ApplicationPlugin::handleStartup()
     if (context.applicationSettings.autoplay)
     {
       // TODO what happens if we load multiple documents ?
-      on_play(true);
+        QTimer::singleShot(context.applicationSettings.waitAfterLoad * 1000, this, [=] {
+            on_play(true);
+        });
       return true;
     }
   }

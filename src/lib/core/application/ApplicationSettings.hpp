@@ -30,6 +30,9 @@ struct SCORE_LIB_BASE_EXPORT ApplicationSettings
   //! List of scenarios that should be loaded
   QStringList loadList;
 
+  //! Seconds to wait before playing
+  int waitAfterLoad = 0;
+
   void parse(QStringList args, int& argc, char** argv);
 };
 
