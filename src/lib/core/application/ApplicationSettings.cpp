@@ -37,6 +37,13 @@ void ApplicationSettings::parse(QStringList cargs, int& argc, char** argv)
       QCoreApplication::translate("main", "Auto-play the loaded scenario"));
   parser.addOption(autoplayOpt);
 
+  QCommandLineOption waitLoadOpt(
+              "wait",
+              QCoreApplication::translate("main", "Wait N seconds after loading, before playing."),
+              "N",
+              "0");
+  parser.addOption(waitLoadOpt);
+
   if (cargs.contains("--help") || cargs.contains("--version"))
   {
     QCoreApplication app(argc, argv);
@@ -56,6 +63,9 @@ void ApplicationSettings::parse(QStringList cargs, int& argc, char** argv)
   if (!gui)
     tryToRestore = false;
   autoplay = parser.isSet(autoplayOpt) && args.size() == 1;
+
+  if(parser.isSet(waitLoadOpt))
+      waitAfterLoad = parser.value(waitLoadOpt).toInt();
 
   if (!args.empty() && QFile::exists(args[0]))
   {
