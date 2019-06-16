@@ -11,6 +11,7 @@
 
 #if defined(HAS_VST2)
 #include <Media/Effect/VST/VSTLoader.hpp>
+#include <QElapsedTimer>
 #endif
 
 #include <ossia/detail/hash_map.hpp>
@@ -66,12 +67,23 @@ public:
 
   const std::thread::id m_tid{std::this_thread::get_id()};
   auto mainThreadId() const noexcept { return m_tid; }
-  std::vector<std::pair<QString, std::unique_ptr<QProcess>>> m_processes;
+
+  struct ScanningProcess
+  {
+      QString path;
+      std::unique_ptr<QProcess> process;
+      bool scanning{};
+      QElapsedTimer timer;
+  };
+
+  std::vector<ScanningProcess> m_processes;
 
   QWebSocketServer m_wsServer;
 
   void addInvalidVST(const QString& path);
   void addVST(const QString& path, const QJsonObject& json);
+
+  void scanVSTsEvent();
 #endif
 };
 

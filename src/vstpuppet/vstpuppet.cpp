@@ -105,7 +105,7 @@ static QString getString(AEffect* fx, AEffectOpcodes op, int param)
   return QString::fromUtf8(paramName);
 }
 
-QString load_vst(const QString& path)
+QString load_vst(const QString& path, int id)
 {
   try
   {
@@ -130,6 +130,7 @@ QString load_vst(const QString& path)
         obj["Version"] = getString(p, effGetVendorVersion, 0);
         obj["Synth"] = bool(p->flags & effFlagsIsSynth);
         obj["Path"] = path;
+        obj["Request"] = id;
 
         p->dispatcher(p, AEffectOpcodes::effClose, 0, 0, nullptr, 0.f);
         return QJsonDocument{obj}.toJson();
@@ -147,6 +148,10 @@ int main(int argc, char** argv)
 {
   if (argc > 1)
   {
+    int id = 0;
+    if(argc > 2) {
+        id = QString(argv[2]).toInt();
+    }
     QGuiApplication app(argc, argv);
     QWindow w;
     w.setWidth(1);
@@ -170,7 +175,7 @@ int main(int argc, char** argv)
     };
 
     QTimer::singleShot(32, [&] {
-      json_ret = load_vst(argv[1]);
+      json_ret = load_vst(argv[1], id);
       std::cout << json_ret.toStdString();
       vst_ready = true;
       onReady();
