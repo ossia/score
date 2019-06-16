@@ -1,5 +1,6 @@
 set(CMAKE_BUILD_TYPE RelWithDebInfo CACHE INTERNAL "")
 set(SCORE_COTIRE True)
+set(DEPLOYMENT_BUILD True)
 
 set(SCORE_AUDIO_PLUGINS True CACHE INTERNAL "")
 include(default-plugins)

@@ -7,8 +7,6 @@
 #include <ossia/dataflow/port.hpp>
 #include <ossia/network/domain/domain.hpp>
 
-#include <faust/dsp/poly-llvm-dsp.h>
-
 namespace Media
 {
 namespace Faust

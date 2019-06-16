@@ -14,7 +14,7 @@
 
 #include <Control/DefaultEffectItem.hpp>
 #include <Effect/EffectFactory.hpp>
-#include <faust/dsp/poly-llvm-dsp.h>
+
 namespace FaustDSP
 {
 template <typename DSP>
