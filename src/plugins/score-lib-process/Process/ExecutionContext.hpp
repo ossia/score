@@ -49,7 +49,7 @@ using time_function = smallfun::function<ossia::time_value(const TimeVal&)>;
 using reverse_time_function
     = smallfun::function<TimeVal(const ossia::time_value&)>;
 using ExecutionCommand
-    = smallfun::function<void(), 128, alignof(std::function<void()>)>;
+    = smallfun::function<void(), 128, std::max(alignof(std::function<void()>), alignof(double))>;
 using ExecutionCommandQueue
     = moodycamel::ReaderWriterQueue<ExecutionCommand, 1024>;
 
