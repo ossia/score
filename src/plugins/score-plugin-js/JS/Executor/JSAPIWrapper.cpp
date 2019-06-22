@@ -11,7 +11,7 @@
 #include <ossia/dataflow/execution_state.hpp>
 #include <ossia/detail/apply.hpp>
 #include <ossia/network/value/value.hpp>
-
+#include <ossia/network/common/path.hpp>
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(JS::ExecStateWrapper)
 namespace JS
