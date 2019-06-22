@@ -3,6 +3,7 @@
 
 #include <ossia/dataflow/dataflow_fwd.hpp>
 #include <ossia/detail/hash_map.hpp>
+#include <ossia/network/common/path.hpp>
 
 #include <QtQml/QJSEngine>
 
