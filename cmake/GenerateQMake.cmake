@@ -15,10 +15,11 @@ macro(_qmake_addDefine define)
 endmacro()
 
 macro(_qmake_addLib lib)
-message("The lib: ${lib}")
   if("${lib}" MATCHES "^\\$<.*>")
     # ignore
   elseif("${lib}" MATCHES "Threads::Threads")
+    # ignore
+  elseif("${lib}" MATCHES "Boost::Boost")
     # ignore
   elseif("${lib}" MATCHES "-.*")
     set(QMAKE "${QMAKE}LIBS += ${lib}\n")
