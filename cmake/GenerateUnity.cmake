@@ -19,7 +19,7 @@ macro(_unity_addLib lib)
       # ignore
   elseif("${lib}" MATCHES "^Qt5::")
     # ignore
-  elseif("${lib}" MATCHES "^[A-Za-z0-9]::")
+  elseif("${lib}" MATCHES "^[A-Za-z0-9]+::")
     # ignore
   elseif("${lib}" MATCHES "^score_")
     # ignore
@@ -114,7 +114,6 @@ function(GenerateUnity targets)
         # ignore
       else()
         unset(_lib)
-
 
         get_target_property(_includes ${lib} INTERFACE_INCLUDE_DIRECTORIES)
         get_target_property(_defines ${lib} INTERFACE_COMPILE_DEFINITIONS)
