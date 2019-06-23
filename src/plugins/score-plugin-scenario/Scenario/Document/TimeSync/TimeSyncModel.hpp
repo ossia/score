@@ -78,11 +78,13 @@ public:
   bool autotrigger() const noexcept;
   void setAutotrigger(bool t);
 
+#if defined(SCORE_MUSICAL)
   optional<Control::time_signature> signature() const noexcept;
   void setSignature(optional<Control::time_signature> sig);
 
   double tempo() const noexcept;
   void setTempo(double);
+#endif
 
 public:
   void extentChanged(const Scenario::VerticalExtent& arg_1)
@@ -103,6 +105,7 @@ public:
   void triggeredByGui() const
       E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, triggeredByGui)
 
+#if defined(SCORE_MUSICAL)
   void signatureChanged(optional<Control::time_signature> sig)
     E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, signatureChanged, sig)
 
@@ -111,15 +114,18 @@ public:
 
   PROPERTY(double, tempo READ tempo WRITE setTempo NOTIFY tempoChanged)
   PROPERTY(optional<Control::time_signature>, signature READ signature WRITE setSignature NOTIFY signatureChanged)
+#endif
 private:
   TimeVal m_date{std::chrono::seconds{0}};
   State::Expression m_expression;
 
   EventIdVec m_events;
   VerticalExtent m_extent;
+
+#if defined(SCORE_MUSICAL)
   double m_tempo{120.};
   optional<Control::time_signature> m_signature;
-
+#endif
   bool m_active{false};
   bool m_autotrigger{false};
 };

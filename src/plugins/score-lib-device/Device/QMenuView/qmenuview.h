@@ -44,7 +44,7 @@ J'ai apporté quelques modifications en plus.
 #include <qmenu.h>
 #include <qscopedpointer.h>
 #include <qstring.h>
-#include <wobjectdefs.h>
+#include <verdigris>
 #include <score_lib_device_export.h>
 // TODO put me in 3rdparty
 
