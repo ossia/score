@@ -138,6 +138,7 @@ void TimeSyncModel::setAutotrigger(bool a)
   autotriggerChanged(a);
 }
 
+#if defined(SCORE_MUSICAL)
 optional<Control::time_signature> TimeSyncModel::signature() const noexcept
 {
   return m_signature;
@@ -165,5 +166,6 @@ void TimeSyncModel::setTempo(double d)
     tempoChanged(d);
   }
 }
+#endif
 
 }

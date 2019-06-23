@@ -109,6 +109,7 @@ T safe_cast(U* other)
 { // there is also a static_cast since compilers
   // must ensure that the downcast is possible, which it
   // does not with dynamic_cast
+  [[maybe_unused]]
   auto check = static_cast<T>(other);
   auto res = dynamic_cast<T>(other);
   SCORE_ASSERT(res);
@@ -118,6 +119,7 @@ T safe_cast(U* other)
 template <typename T, typename U>
 T safe_cast(U&& other) try
 {
+  [[maybe_unused]]
   auto&& check = static_cast<T>(other);
   auto&& res = dynamic_cast<T>(other);
   return res;

@@ -43,6 +43,7 @@ TimeSyncComponent::TimeSyncComponent(
       &Scenario::TimeSyncModel::triggerChanged,
       this,
       &TimeSyncComponent::updateTrigger);
+#if defined(SCORE_MUSICAL)
   con(element,
       &Scenario::TimeSyncModel::signatureChanged,
       this,
@@ -51,6 +52,7 @@ TimeSyncComponent::TimeSyncComponent(
       &Scenario::TimeSyncModel::tempoChanged,
       this,
       &TimeSyncComponent::updateTriggerTime);
+#endif
 }
 
 void TimeSyncComponent::cleanup()
@@ -121,6 +123,7 @@ void TimeSyncComponent::updateTrigger()
 
 void TimeSyncComponent::updateTriggerTime()
 {
+#if defined(SCORE_MUSICAL)
   ossia::time_value t = ossia::Infinite;
 
   if (const auto sig = m_score_node->signature())
@@ -132,6 +135,7 @@ void TimeSyncComponent::updateTriggerTime()
     t = whole_time * ratio;
   }
   this->in_exec([e = m_ossia_node, t] { e->set_sync_rate(t); });
+#endif
 }
 
 void TimeSyncComponent::on_GUITrigger()

@@ -39,5 +39,7 @@ private:
 }
 }
 
+#if defined(SCORE_MUSICAL)
 PROPERTY_COMMAND_T(Scenario::Command, SetTimeSyncTempo, TimeSyncModel::p_tempo, "Set tempo")
 PROPERTY_COMMAND_T(Scenario::Command, SetTimeSyncSignature, TimeSyncModel::p_signature, "Set signature")
+#endif

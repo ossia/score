@@ -91,6 +91,7 @@ TimeSyncInspectorWidget::TimeSyncInspectorWidget(
   });
 
   // Synchronization
+#if defined(SCORE_MUSICAL)
   auto tempo = new score::SpinBox<double>{this};
   tempo->setRange(20., 400.);
   tempo->setValue(m_model.tempo());
@@ -126,13 +127,17 @@ TimeSyncInspectorWidget::TimeSyncInspectorWidget(
     if(s != sig->signature())
       sig->setSignature(s);
   });
-
+#endif
   m_trigwidg = new TriggerInspectorWidget{
       ctx,
       ctx.app.interfaces<Command::TriggerCommandFactoryList>(),
       m_model,
       this};
-  updateAreaLayout({m_date, m_autotrigger, tempo, sig, new TextLabel{tr("Trigger")}, m_trigwidg});
+  updateAreaLayout({m_date, m_autotrigger,
+                  #if defined(SCORE_MUSICAL)
+                    tempo, sig,
+                  #endif
+                    new TextLabel{tr("Trigger")}, m_trigwidg});
 
   // display data
   updateDisplayedValues();

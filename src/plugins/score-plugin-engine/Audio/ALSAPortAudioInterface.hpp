@@ -1,7 +1,7 @@
 #pragma once
 #include <Audio/PortAudioInterface.hpp>
 #include <Audio/AudioInterface.hpp>
-
+class QComboBox;
 namespace Audio
 {
 #if defined(OSSIA_AUDIO_PORTAUDIO) && __has_include(<pa_linux_alsa.h>)
