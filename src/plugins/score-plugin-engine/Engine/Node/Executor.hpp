@@ -218,6 +218,7 @@ public:
     setup_node<Info>(node, element, ctx, this);
   }
 
-  ~Executor() {}
+  ~Executor() {
+  }
 };
 }

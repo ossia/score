@@ -254,7 +254,7 @@ QPointF ScenarioPresenter::fromScenarioPoint(const Scenario::Point& pt) const no
   return ConvertFromScenarioPoint(pt, zoomRatio(), view().height());
 }
 
-void ScenarioPresenter::setWidth(qreal width)
+void ScenarioPresenter::setWidth(qreal width, qreal defaultWidth)
 {
   m_view->setWidth(width);
 }

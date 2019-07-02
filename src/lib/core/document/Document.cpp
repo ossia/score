@@ -87,14 +87,16 @@ void Document::init()
   con(m_selectionStack,
       &SelectionStack::currentSelectionChanged,
       this,
-      [&](const Selection& s) {
+      [&](const Selection& old, const Selection& s) {
+        Selection oldfiltered = old;
+        oldfiltered.removeAll(nullptr);
         Selection filtered = s;
         filtered.removeAll(nullptr);
         for (auto& panel : m_context.app.panels())
         {
           panel.setNewSelection(filtered);
         }
-        m_presenter->setNewSelection(filtered);
+        m_presenter->setNewSelection(oldfiltered, filtered);
       });
 
   m_documentUpdateTimer.setInterval(16);

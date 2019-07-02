@@ -66,7 +66,7 @@ public:
     view->m_model = &m;
   }
 
-  void setWidth(qreal val) override { m_view->setWidth(val); }
+  void setWidth(qreal width, qreal defaultWidth) override { m_view->setWidth(width); }
   void setHeight(qreal val) override { m_view->setHeight(val); }
 
   void putToFront() override { m_view->setVisible(true); }

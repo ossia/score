@@ -38,6 +38,7 @@ DefaultEffectItem::DefaultEffectItem(
 
     setupInlet(*inlet, doc);
   }
+  updateRect();
 
   QObject::connect(
       &effect,
@@ -92,14 +93,13 @@ void DefaultEffectItem::setupInlet(
 
   item->setPos(0, pos_y);
   item->setRect(QRectF{0., 0, 170., h});
-  this->setRect(this->childrenBoundingRect());
+  updateRect();
 }
 
 void DefaultEffectItem::on_controlAdded(const Id<Process::Port>& id)
 {
   auto inlet = safe_cast<Process::ControlInlet*>(m_effect.inlet(id));
   setupInlet(*inlet, m_ctx);
-  this->setRect(this->childrenBoundingRect());
 }
 
 void DefaultEffectItem::on_controlRemoved(const Process::Port& port)
@@ -119,7 +119,7 @@ void DefaultEffectItem::on_controlRemoved(const Process::Port& port)
         auto item = it->first;
         item->moveBy(0., -h);
       }
-      this->setRect(this->childrenBoundingRect());
+      updateRect();
       return;
     }
   }
@@ -133,7 +133,7 @@ void DefaultEffectItem::reset()
     this->scene()->removeItem(child);
     delete child;
   }
-  this->setRect(this->childrenBoundingRect());
+  updateRect();
   m_ports.clear();
 
   for (auto& e : m_effect.inlets())
@@ -141,6 +141,17 @@ void DefaultEffectItem::reset()
     if (auto inlet = qobject_cast<Process::ControlInlet*>(e))
       setupInlet(*inlet, m_ctx);
   }
-  this->setRect(this->childrenBoundingRect());
+  updateRect();
+}
+
+void DefaultEffectItem::updateRect()
+{
+  const auto r = this->childrenBoundingRect();
+  if(r.height() != 0.) {
+    this->setRect(r);
+  }
+  else {
+    this->setRect({0., 0., 140, 0});
+  }
 }
 }

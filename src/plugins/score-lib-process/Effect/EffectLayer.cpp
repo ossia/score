@@ -72,7 +72,7 @@ EffectLayerPresenter::EffectLayerPresenter(
 }
 EffectLayerPresenter::~EffectLayerPresenter() {}
 
-void EffectLayerPresenter::setWidth(qreal val)
+void EffectLayerPresenter::setWidth(qreal val, qreal defaultWidth)
 {
   m_view->setWidth(val);
 }

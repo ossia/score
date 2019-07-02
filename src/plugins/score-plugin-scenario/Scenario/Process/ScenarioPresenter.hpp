@@ -63,7 +63,7 @@ public:
   Scenario::Point toScenarioPoint(QPointF pt) const noexcept;
   QPointF fromScenarioPoint(const Scenario::Point& pt) const noexcept;
 
-  void setWidth(qreal width) override;
+  void setWidth(qreal width, qreal defaultWidth) override;
   void setHeight(qreal height) override;
   void putToFront() override;
   void putBehind() override;

@@ -94,7 +94,7 @@ void SimpleTextItem::updateImpl()
 
     if (r.size() > 0)
     {
-      double ratio = 1.;
+      double ratio = 2.;
       if (auto v = getView(*this))
         ratio = v->devicePixelRatioF();
       m_line = QImage(

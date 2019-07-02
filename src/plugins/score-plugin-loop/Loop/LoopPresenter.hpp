@@ -42,7 +42,7 @@ public:
       Scenario::TemporalIntervalPresenter>::event;
   using QObject::event;
 
-  void setWidth(qreal width) override;
+  void setWidth(qreal width, qreal defaultWidth) override;
   void setHeight(qreal height) override;
 
   void putToFront() override;

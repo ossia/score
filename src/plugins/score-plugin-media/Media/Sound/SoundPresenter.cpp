@@ -39,7 +39,7 @@ LayerPresenter::LayerPresenter(
   connect(m_view, &LayerView::dropReceived, this, &LayerPresenter::onDrop);
 }
 
-void LayerPresenter::setWidth(qreal val)
+void LayerPresenter::setWidth(qreal val, qreal defaultWidth)
 {
   m_view->setWidth(val);
   m_view->recompute(m_ratio);

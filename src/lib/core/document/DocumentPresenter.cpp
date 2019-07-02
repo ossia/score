@@ -28,8 +28,8 @@ DocumentPresenter::DocumentPresenter(
 {
 }
 
-void DocumentPresenter::setNewSelection(const Selection& s)
+void DocumentPresenter::setNewSelection(const Selection& old, const Selection& s)
 {
-  m_presenter->setNewSelection(s);
+  m_presenter->setNewSelection(old, s);
 }
 }

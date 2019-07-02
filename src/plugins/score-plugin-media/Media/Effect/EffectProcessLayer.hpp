@@ -137,8 +137,11 @@ public:
       const Effect::ProcessModel& object,
       const Process::LayerContext& ctx,
       QObject* parent,
+      QGraphicsItem* parentItem,
       EffectUi& ui)
-      : QObject{parent}, m_effect{effect}
+      : QObject{parent},
+        QGraphicsItem{parentItem},
+        m_effect{effect}
   {
     const auto& doc = ctx.context;
     const auto& pixmaps = Process::Pixmaps::instance();
@@ -281,7 +284,7 @@ public:
       auto& fx_ui = *fx_ui_;
 
       // Title
-      auto title = new EffectTitleItem{effect, object, ctx, this, fx_ui};
+      auto title = new EffectTitleItem{effect, object, ctx, this, this, fx_ui};
       fx_ui.title = title;
       fx_ui.title->setParentItem(root_item);
 
@@ -463,7 +466,7 @@ public:
     m_view->setup(static_cast<const Effect::ProcessModel&>(model), m_context);
   }
 
-  void setWidth(qreal val) override { m_view->setWidth(val); }
+  void setWidth(qreal width, qreal defaultWidth) override { m_view->setWidth(width); }
   void setHeight(qreal val) override { m_view->setHeight(val); }
 
   void putToFront() override { m_view->setVisible(true); }

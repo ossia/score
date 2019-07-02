@@ -42,11 +42,14 @@ bool SelectionStack::canReselect() const
 
 void SelectionStack::clear()
 {
+  auto old = currentSelection();
+
   m_unselectable.clear();
   m_reselectable.clear();
   m_unselectable.push(Selection{});
   pruneConnections();
-  currentSelectionChanged(m_unselectable.top());
+
+  currentSelectionChanged(old, m_unselectable.top());
 }
 
 void SelectionStack::clearAllButLast()
@@ -66,6 +69,7 @@ void SelectionStack::push(const Selection& selection)
 {
   if (selection != m_unselectable.top())
   {
+    auto old = currentSelection();
     auto s = selection;
     auto it = s.begin();
     while (it != s.end())
@@ -98,25 +102,27 @@ void SelectionStack::push(const Selection& selection)
     m_reselectable.clear();
 
     pruneConnections();
-    currentSelectionChanged(s);
+    currentSelectionChanged(old, s);
   }
 }
 
 void SelectionStack::unselect()
 {
+  auto old = currentSelection();
   m_reselectable.push(m_unselectable.pop());
 
   if (m_unselectable.empty())
     m_unselectable.push(Selection{});
 
-  currentSelectionChanged(m_unselectable.top());
+  currentSelectionChanged(old, m_unselectable.top());
 }
 
 void SelectionStack::reselect()
 {
+  auto old = currentSelection();
   m_unselectable.push(m_reselectable.pop());
 
-  currentSelectionChanged(m_unselectable.top());
+  currentSelectionChanged(old, m_unselectable.top());
 }
 
 void SelectionStack::deselect()
@@ -195,7 +201,7 @@ void SelectionStack::prune(IdentifiedObjectAbstract* p)
     m_unselectable.push(Selection{});
 
   pruneConnections();
-  currentSelectionChanged(m_unselectable.top());
+  currentSelectionChanged(m_unselectable.top(), m_unselectable.top());
 }
 
 void SelectionStack::pruneConnections()

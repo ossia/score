@@ -44,7 +44,7 @@ public:
 
   virtual void setFullView();
 
-  virtual void setWidth(qreal width) = 0;
+  virtual void setWidth(qreal width, qreal defaultWidth) = 0;
   virtual void setHeight(qreal height) = 0;
 
   virtual void putToFront() = 0;

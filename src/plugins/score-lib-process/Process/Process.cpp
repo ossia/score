@@ -192,6 +192,9 @@ void ProcessModel::setSlotHeight(double v) noexcept
 
 ProcessModel* parentProcess(QObject* obj) noexcept
 {
+  if(obj)
+    obj = obj->parent();
+
   while (obj && !qobject_cast<ProcessModel*>(obj))
   {
     obj = obj->parent();
@@ -204,6 +207,9 @@ ProcessModel* parentProcess(QObject* obj) noexcept
 
 const ProcessModel* parentProcess(const QObject* obj) noexcept
 {
+  if(obj)
+    obj = obj->parent();
+
   while (obj && !qobject_cast<const ProcessModel*>(obj))
   {
     obj = obj->parent();
