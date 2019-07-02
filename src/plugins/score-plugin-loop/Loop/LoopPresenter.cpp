@@ -178,7 +178,7 @@ void LayerPresenter::on_intervalExecutionTimer()
     m_intervalPresenter->view()->update();
 }
 
-void LayerPresenter::setWidth(qreal width)
+void LayerPresenter::setWidth(qreal width, qreal defaultWidth)
 {
   m_view->setWidth(width);
 }

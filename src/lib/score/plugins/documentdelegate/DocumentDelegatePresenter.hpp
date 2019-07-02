@@ -24,7 +24,7 @@ public:
   virtual ~DocumentDelegatePresenter();
 
 public:
-  virtual void setNewSelection(const Selection& s) = 0;
+  virtual void setNewSelection(const Selection& old, const Selection& s) = 0;
   W_SLOT(setNewSelection);
 
 protected:

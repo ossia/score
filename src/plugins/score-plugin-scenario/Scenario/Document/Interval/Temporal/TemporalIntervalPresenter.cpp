@@ -590,7 +590,7 @@ void TemporalIntervalPresenter::updateProcessShape(
     data.presenter->setHeight(m_model.smallView().at(slot).height);
 
     auto width = m_model.duration.defaultDuration().toPixels(m_zoomRatio);
-    data.presenter->setWidth(width);
+    data.presenter->setWidth(width, width);
     data.presenter->parentGeometryChanged();
     data.view->update();
   }
@@ -939,7 +939,7 @@ void TemporalIntervalPresenter::on_defaultDurationChanged(const TimeVal& val)
 
     for (const LayerData& proc : slot.processes)
     {
-      proc.presenter->setWidth(w);
+      proc.presenter->setWidth(w, w);
     }
   }
 }

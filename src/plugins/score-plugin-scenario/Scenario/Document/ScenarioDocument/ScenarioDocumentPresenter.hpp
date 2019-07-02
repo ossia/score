@@ -78,7 +78,7 @@ public:
   void setMillisPerPixel(ZoomRatio newFactor);
   void updateRect(const QRectF& rect);
 
-  void setNewSelection(const Selection& s) override;
+  void setNewSelection(const Selection& old, const Selection& s) override;
 
   void setDisplayedInterval(Scenario::IntervalModel& interval);
 

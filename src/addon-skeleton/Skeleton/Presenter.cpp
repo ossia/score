@@ -13,7 +13,7 @@ Presenter::Presenter(
 {
 }
 
-void Presenter::setWidth(qreal val)
+void Presenter::setWidth(qreal val, qreal defaultWidth)
 {
   m_view->setWidth(val);
 }

@@ -25,6 +25,8 @@ private:
   void on_controlAdded(const Id<Process::Port>& p);
   void on_controlRemoved(const Process::Port& p);
   void reset();
+  void updateRect();
+
   const Process::ProcessModel& m_effect;
   const score::DocumentContext& m_ctx;
 

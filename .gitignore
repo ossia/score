@@ -44,7 +44,7 @@ cppcheck-html
 
 src/addons/*
 i-score*.pri
-tools/sdk/Raspberry/qemu-arm-static
+*/qemu-arm-static
 
 Documentation/Doc_sources/score-documentation/site
 

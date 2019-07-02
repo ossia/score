@@ -28,7 +28,7 @@ public:
 
   DocumentDelegatePresenter* presenterDelegate() const { return m_presenter; }
 
-  void setNewSelection(const Selection& s);
+  void setNewSelection(const Selection& old, const Selection& s);
 
   DocumentView& m_view;
   const DocumentModel& m_model;

@@ -58,7 +58,7 @@ public:
       const Process::ProcessPresenterContext& ctx,
       QObject* parent);
 
-  void setWidth(qreal width) override;
+  void setWidth(qreal width, qreal defaultWidth) override;
   void setHeight(qreal height) override;
 
   void putToFront() override;

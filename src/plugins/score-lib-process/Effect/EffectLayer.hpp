@@ -35,7 +35,7 @@ public:
       QObject* parent);
   ~EffectLayerPresenter() override;
 
-  void setWidth(qreal val) override;
+  void setWidth(qreal width, qreal defaultWidth) override;
   void setHeight(qreal val) override;
   void putToFront() override;
   void putBehind() override;

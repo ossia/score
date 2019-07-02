@@ -48,7 +48,7 @@ void ActionManager::reset(score::Document* doc)
         doc->selectionStack(),
         &SelectionStack::currentSelectionChanged,
         this,
-        [=](const auto&) { this->selectionChanged(mdoc); },
+        [=] { this->selectionChanged(mdoc); },
         Qt::QueuedConnection);
   }
 

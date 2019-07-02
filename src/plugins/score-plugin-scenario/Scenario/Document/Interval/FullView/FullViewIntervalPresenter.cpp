@@ -307,7 +307,8 @@ void FullViewIntervalPresenter::updateProcessShape(
   data.presenter->setHeight(data.model->getSlotHeight());
 
   auto width = m_model.duration.guiDuration().toPixels(m_zoomRatio);
-  data.presenter->setWidth(width);
+  auto dwidth = m_model.duration.defaultDuration().toPixels(m_zoomRatio);
+  data.presenter->setWidth(width, dwidth);
 
   slot.header->setWidth(width);
 
@@ -475,7 +476,7 @@ void FullViewIntervalPresenter::on_defaultDurationChanged(const TimeVal& val)
                  SlotHeader::headerHeight()});
     for (const LayerData& proc : slot.processes)
     {
-      proc.presenter->setWidth(w);
+      proc.presenter->setWidth(w, w);
     }
   }
 
@@ -519,7 +520,7 @@ void FullViewIntervalPresenter::on_guiDurationChanged(const TimeVal& val)
   {
     slot.handle->setWidth(w);
     if (!slot.processes.empty())
-      slot.processes.front().presenter->setWidth(w);
+      slot.processes.front().presenter->setWidth(w, w);
   }
 }
 

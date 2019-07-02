@@ -64,7 +64,7 @@ public:
 
   ~DefaultLayerPresenter() override {}
 
-  void setWidth(qreal width) override { m_view->setWidth(width); }
+  void setWidth(qreal width, qreal defaultWidth) override { m_view->setWidth(width); }
   void setHeight(qreal height) override { m_view->setHeight(height); }
 
   void putToFront() override { m_view->setVisible(true); }

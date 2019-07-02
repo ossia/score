@@ -77,7 +77,7 @@ public:
     m_curve.editionSettings().setTool(Curve::Tool::Select);
   }
 
-  void setWidth(qreal width) final override
+  void setWidth(qreal width, qreal defaultWidth) final override
   {
     m_view->setWidth(width);
     m_curve.view().setRect(m_view->boundingRect());

@@ -160,7 +160,7 @@ void Presenter::fillContextMenu(
   });
 }
 
-void Presenter::setWidth(qreal val)
+void Presenter::setWidth(qreal val, qreal defaultWidth)
 {
   m_view->setWidth(val);
   m_view->setDefaultWidth(m_layer.duration().toPixels(m_zr));

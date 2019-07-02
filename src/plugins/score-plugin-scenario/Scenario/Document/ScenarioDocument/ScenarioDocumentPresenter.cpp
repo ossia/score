@@ -743,10 +743,22 @@ void ScenarioDocumentPresenter::on_viewModelFocused(
   }
 }
 
-void ScenarioDocumentPresenter::setNewSelection(const Selection& s)
+void ScenarioDocumentPresenter::setNewSelection(const Selection& old, const Selection& s)
 {
   static QMetaObject::Connection cur_proc_connection;
   auto process = m_focusManager.focusedModel();
+
+  for(auto& e : old)
+  {
+    const auto it = ossia::find(s, e);
+    if(it == s.end())
+    {
+      if(auto proc = qobject_cast<const Process::ProcessModel*>(e))
+      {
+        proc->selection.set(false);
+      }
+    }
+  }
 
   // OPTIMIZEME
   for (auto& cable : model().cables)
@@ -809,10 +821,10 @@ void ScenarioDocumentPresenter::setNewSelection(const Selection& s)
 
     if (newProc)
     {
-      if (newProc == *s.begin())
+      if (auto p = qobject_cast<const Process::ProcessModel*>(*s.begin()))
       {
         // the process itself is being selected
-        newProc->selection.set(true);
+        p->selection.set(true);
       }
       else
       {

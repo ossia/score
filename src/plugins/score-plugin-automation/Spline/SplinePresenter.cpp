@@ -39,7 +39,7 @@ Presenter::Presenter(
       m_view, &View::askContextMenu, this, &Presenter::contextMenuRequested);
 }
 
-void Presenter::setWidth(qreal val)
+void Presenter::setWidth(qreal val, qreal defaultWidth)
 {
   m_view->setWidth(val);
 }
