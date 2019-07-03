@@ -42,6 +42,12 @@ SCORE_LIB_BASE_EXPORT void JSONValueReader::read(const QPointF& pt)
 }
 
 template <>
+SCORE_LIB_BASE_EXPORT void JSONValueReader::read(const QSizeF& pt)
+{
+  val = makeJsonArray({pt.width(), pt.height()});
+}
+
+template <>
 SCORE_LIB_BASE_EXPORT void JSONValueReader::read(const QColor& p)
 {
   auto pt = p.toRgb();
@@ -58,9 +64,16 @@ SCORE_LIB_BASE_EXPORT void JSONValueWriter::write(QColor& pt)
 template <>
 SCORE_LIB_BASE_EXPORT void JSONValueWriter::write(QPointF& pt)
 {
-  auto arr = val.toArray();
+  const auto arr = val.toArray();
   pt.setX(arr[0].toDouble());
   pt.setY(arr[1].toDouble());
+}
+template <>
+SCORE_LIB_BASE_EXPORT void JSONValueWriter::write(QSizeF& pt)
+{
+  const auto arr = val.toArray();
+  pt.setWidth(arr[0].toDouble());
+  pt.setWidth(arr[1].toDouble());
 }
 
 template <>

@@ -95,6 +95,7 @@ void EmptyRectItem::setRect(const QRectF& r)
 {
   prepareGeometryChange();
   m_rect = r;
+  sizeChanged({r.width(), r.height()});
 }
 
 QRectF EmptyRectItem::boundingRect() const

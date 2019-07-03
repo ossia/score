@@ -110,8 +110,15 @@ void removeSelection(
       }
 
       if (remove_it)
-        cleaner.submit(new Scenario::Command::RemoveProcessFromInterval(
-            *(IntervalModel*)proc->parent(), proc->id()));
+      {
+        // TODO the qobject_cast is needed because some processes have non-interval parents
+        // (e.g in Nodal)
+        // How do we fix this generically ?
+        if(auto itv = qobject_cast<IntervalModel*>(proc->parent()))
+        {
+          cleaner.submit(new Scenario::Command::RemoveProcessFromInterval(*itv, proc->id()));
+        }
+      }
     }
   }
 
