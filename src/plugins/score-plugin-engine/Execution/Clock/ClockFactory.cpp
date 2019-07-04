@@ -10,7 +10,8 @@
 #include <core/document/DocumentView.hpp>
 
 #include <Execution/DocumentPlugin.hpp>
-
+#include <QMessageBox>
+#include <QApplication>
 namespace Execution
 {
 
@@ -25,11 +26,18 @@ Clock::Clock(const Context& ctx)
 
 void Clock::play(const TimeVal& t)
 {
-  play_impl(t, scenario);
-  if (auto v = score::IDocument::get<Scenario::ScenarioDocumentPresenter>(
-          context.doc.document))
+  try
   {
-    v->startTimeBar(scenario.baseInterval().interval());
+    play_impl(t, scenario);
+    if (auto v = score::IDocument::get<Scenario::ScenarioDocumentPresenter>(
+            context.doc.document))
+    {
+      v->startTimeBar(scenario.baseInterval().interval());
+    }
+  }
+  catch(const std::runtime_error& e)
+  {
+    QMessageBox::warning(qApp->activeWindow(), QObject::tr("Error !"), e.what());
   }
 }
 
