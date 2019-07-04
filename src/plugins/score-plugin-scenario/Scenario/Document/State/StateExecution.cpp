@@ -61,14 +61,6 @@ ProcessComponent* StateComponentBase::make(
       auto oproc = plug->OSSIAProcessPtr();
       m_processes.emplace(proc.id(), plug);
 
-      const auto& outlets = proc.outlets();
-      ossia::pod_vector<std::size_t> propagated_outlets;
-      for (std::size_t i = 0; i < outlets.size(); i++)
-      {
-        if (outlets[i]->propagate())
-          propagated_outlets.push_back(i);
-      }
-
       if (auto& onode = plug->node)
         ctx.setup.register_node(proc, onode);
 
@@ -90,7 +82,7 @@ ProcessComponent* StateComponentBase::make(
       std::weak_ptr<ossia::time_process> oproc_weak = oproc;
       std::weak_ptr<ossia::graph_interface> g_weak = plug->system().execGraph;
 
-      in_exec([cst = m_ev, oproc_weak, g_weak, propagated_outlets] {
+      in_exec([cst = m_ev, oproc_weak, g_weak] {
         if (auto oproc = oproc_weak.lock())
           if (auto g = g_weak.lock())
           {
