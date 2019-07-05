@@ -49,22 +49,25 @@ CreateState::CreateState(
 void CreateState::undo(const score::DocumentContext& ctx) const
 {
   auto& scenar = m_path.find(ctx);
+  auto& event = scenar.events.at(m_event);
 
   ScenarioCreate<StateModel>::undo(m_newState, scenar);
-  updateEventExtent(m_event, scenar);
+
+  event.recomputeExtent();
 }
 
 void CreateState::redo(const score::DocumentContext& ctx) const
 {
   auto& scenar = m_path.find(ctx);
+  auto& event = scenar.events.at(m_event);
 
   // Create the end state
   ScenarioCreate<StateModel>::redo(
-      m_newState, scenar.events.at(m_event), m_stateY, scenar);
+      m_newState, event, m_stateY, scenar);
 
   scenar.states.at(m_newState).metadata().setName(m_createdName);
 
-  updateEventExtent(m_event, scenar);
+  event.recomputeExtent();
 }
 
 void CreateState::serializeImpl(DataStreamInput& s) const

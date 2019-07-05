@@ -63,7 +63,8 @@ void MoveNewEvent::redo(const score::DocumentContext& ctx) const
   m_cmd.redo(ctx);
   if (!m_yLocked)
   {
-    updateIntervalVerticalPos(m_y, m_intervalId, m_cmd.path().find(ctx));
+    auto& scenar = m_cmd.path().find(ctx);
+    scenar.intervals.at(m_intervalId).requestHeightChange(m_y);
   }
 }
 

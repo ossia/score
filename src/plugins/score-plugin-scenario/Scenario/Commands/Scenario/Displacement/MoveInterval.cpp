@@ -42,7 +42,7 @@ void MoveInterval::undo(const score::DocumentContext& ctx) const
   auto& scenar = m_path.find(ctx);
   for (const auto& cstr : m_selectedIntervals)
   {
-    updateIntervalVerticalPos(cstr.second, cstr.first, scenar);
+    scenar.intervals.at(cstr.first).requestHeightChange(cstr.second);
   }
 }
 
@@ -51,8 +51,7 @@ void MoveInterval::redo(const score::DocumentContext& ctx) const
   auto& scenar = m_path.find(ctx);
   for (const auto& cstr : m_selectedIntervals)
   {
-    updateIntervalVerticalPos(
-        cstr.second + m_newHeight - m_oldHeight, cstr.first, scenar);
+    scenar.intervals.at(cstr.first).requestHeightChange(cstr.second + m_newHeight - m_oldHeight);
   }
 }
 

@@ -38,26 +38,30 @@ CreateInterval_State::CreateInterval_State(
 
 void CreateInterval_State::undo(const score::DocumentContext& ctx) const
 {
+  auto& scenar = m_command.scenarioPath().find(ctx);
+  auto& ev = scenar.events.at(m_endEvent);
   m_command.undo(ctx);
 
   ScenarioCreate<StateModel>::undo(
-      m_newState, m_command.scenarioPath().find(ctx));
-  updateEventExtent(m_endEvent, m_command.scenarioPath().find(ctx));
+      m_newState, scenar);
+
+  ev.recomputeExtent();
 }
 
 void CreateInterval_State::redo(const score::DocumentContext& ctx) const
 {
   auto& scenar = m_command.scenarioPath().find(ctx);
+  auto& ev = scenar.events.at(m_endEvent);
 
   // Create the end state
   ScenarioCreate<StateModel>::redo(
-      m_newState, scenar.events.at(m_endEvent), m_stateY, scenar);
+      m_newState, ev, m_stateY, scenar);
 
   scenar.states.at(m_newState).metadata().setName(m_createdName);
 
   // The interval between
   m_command.redo(ctx);
-  updateEventExtent(m_endEvent, scenar);
+  ev.recomputeExtent();
 }
 
 void CreateInterval_State::serializeImpl(DataStreamInput& s) const

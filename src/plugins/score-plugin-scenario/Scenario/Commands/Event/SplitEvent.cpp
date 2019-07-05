@@ -63,7 +63,7 @@ void SplitEvent::undo(const score::DocumentContext& ctx) const
 
   ScenarioCreate<EventModel>::undo(m_newEvent, m_scenarioPath.find(ctx));
 
-  updateEventExtent(m_originalEvent, scenar);
+  originalEvent.recomputeExtent();
 }
 
 void SplitEvent::redo(const score::DocumentContext& ctx) const
@@ -88,8 +88,8 @@ void SplitEvent::redo(const score::DocumentContext& ctx) const
     scenar.states.at(st).setEventId(m_newEvent);
   }
 
-  updateEventExtent(m_newEvent, scenar);
-  updateEventExtent(m_originalEvent, scenar);
+  originalEvent.recomputeExtent();
+  newEvent.recomputeExtent();
 }
 
 void SplitEvent::serializeImpl(DataStreamInput& s) const
@@ -118,56 +118,56 @@ void SplitWholeEvent::undo(const score::DocumentContext& ctx) const
   auto& scenar
       = static_cast<Scenario::ProcessModel&>(*m_path.find(ctx).parent());
 
-  auto& orignalEv = scenar.event(m_originalEvent);
+  auto& originalEvent = scenar.event(m_originalEvent);
   for (const auto& id : m_newEvents)
   {
-    auto& newEv = scenar.event(id);
+    auto& newEvent = scenar.event(id);
 
-    SCORE_ASSERT(newEv.states().size() == 1);
-    const auto& stateId = newEv.states().front();
+    SCORE_ASSERT(newEvent.states().size() == 1);
+    const auto& stateId = newEvent.states().front();
     {
       auto& st = scenar.state(stateId);
-      newEv.removeState(stateId);
-      orignalEv.addState(stateId);
+      newEvent.removeState(stateId);
+      originalEvent.addState(stateId);
       st.setEventId(m_originalEvent);
     }
 
     ScenarioCreate<EventModel>::undo(id, scenar);
   }
 
-  updateEventExtent(m_originalEvent, scenar);
+  originalEvent.recomputeExtent();
 }
 
 void SplitWholeEvent::redo(const score::DocumentContext& ctx) const
 {
   auto& scenar
       = static_cast<Scenario::ProcessModel&>(*m_path.find(ctx).parent());
-  auto& originalEv = scenar.event(m_originalEvent);
-  auto& originalTS = scenar.timeSyncs.at(originalEv.timeSync());
-  auto originalStates = originalEv.states();
+  auto& originalEvent = scenar.event(m_originalEvent);
+  auto& originalTS = scenar.timeSyncs.at(originalEvent.timeSync());
+  auto originalStates = originalEvent.states();
 
   std::size_t k = 1;
   for (const auto& id : m_newEvents)
   {
     // TODO set the correct position here.
-    auto& tn = ScenarioCreate<EventModel>::redo(
-        id, originalTS, originalEv.extent(), scenar);
+    EventModel& ev = ScenarioCreate<EventModel>::redo(
+        id, originalTS, originalEvent.extent(), scenar);
 
-    tn.setCondition(originalEv.condition());
+    ev.setCondition(originalEvent.condition());
 
     const auto& stateId = originalStates[k];
     auto& st = scenar.state(stateId);
-    originalEv.removeState(stateId);
+    originalEvent.removeState(stateId);
 
-    tn.addState(stateId);
+    ev.addState(stateId);
 
     st.setEventId(id);
 
-    updateEventExtent(id, scenar);
+    ev.recomputeExtent();
     k++;
   }
 
-  updateEventExtent(m_originalEvent, scenar);
+  originalEvent.recomputeExtent();
 }
 
 void SplitWholeEvent::serializeImpl(DataStreamInput& s) const

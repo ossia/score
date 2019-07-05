@@ -193,9 +193,9 @@ void MoveEventMeta::updateY(Scenario::ProcessModel& scenar, double y) const
       st.setHeightPercentage(y);
     }
     if (st.previousInterval())
-      updateIntervalVerticalPos(y, *st.previousInterval(), scenar);
+      scenar.intervals.at(*st.previousInterval()).requestHeightChange(y);
     if (st.nextInterval())
-      updateIntervalVerticalPos(y, *st.nextInterval(), scenar);
+      scenar.intervals.at(*st.nextInterval()).requestHeightChange(y);
   }
 }
 

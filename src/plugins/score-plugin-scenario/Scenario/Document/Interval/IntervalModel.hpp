@@ -136,6 +136,8 @@ public:
   void setMuted(bool m);
 
 public:
+  void requestHeightChange(double y)
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, requestHeightChange, y)
   void heightPercentageChanged(double arg_1)
       E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, heightPercentageChanged, arg_1)
 

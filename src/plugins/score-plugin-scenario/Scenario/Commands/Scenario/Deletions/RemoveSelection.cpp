@@ -336,14 +336,11 @@ void RemoveSelection::undo(const score::DocumentContext& ctx) const
     cmd.undo(ctx);
   }
 
-  for (auto& tn : scenar.timeSyncs)
-  {
-    updateTimeSyncExtent(tn.id(), scenar);
-  }
   for (auto& ev : scenar.events)
   {
-    updateEventExtent(ev.id(), scenar);
+    ev.recomputeExtent();
   }
+  // This will also recompute timesync extents
 
   Dataflow::restoreCables(m_cables, ctx);
 }
@@ -415,14 +412,11 @@ void RemoveSelection::redo(const score::DocumentContext& ctx) const
     }
   }
 
-  for (auto& tn : scenar.timeSyncs)
-  {
-    updateTimeSyncExtent(tn.id(), scenar);
-  }
   for (auto& ev : scenar.events)
   {
-    updateEventExtent(ev.id(), scenar);
+    ev.recomputeExtent();
   }
+  // This will also recompute timesync extents
 }
 
 void RemoveSelection::serializeImpl(DataStreamInput& s) const

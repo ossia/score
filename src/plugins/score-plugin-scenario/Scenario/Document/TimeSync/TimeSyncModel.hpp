@@ -87,6 +87,8 @@ public:
 #endif
 
 public:
+  void recomputeExtent()
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, recomputeExtent)
   void extentChanged(const Scenario::VerticalExtent& arg_1)
       E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, extentChanged, arg_1)
   void dateChanged(const TimeVal& arg_1)

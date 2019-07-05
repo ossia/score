@@ -87,8 +87,10 @@ public:
   const QBrush& color(const Process::Style&) const noexcept;
 
 public:
-  void extentChanged(const VerticalExtent& arg_1)
-      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, extentChanged, arg_1)
+  void recomputeExtent()
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, recomputeExtent)
+  void extentChanged(const Scenario::VerticalExtent& extent)
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, extentChanged, extent)
   void dateChanged(const TimeVal& arg_1)
       E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, dateChanged, arg_1)
   void conditionChanged(const State::Expression& arg_1)
