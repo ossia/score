@@ -46,8 +46,6 @@ public:
   void hoverEnter() E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, hoverEnter)
   void hoverLeave() E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, hoverLeave)
 
-  void askUpdate() E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, askUpdate)
-
 private:
   void updateStateView();
 

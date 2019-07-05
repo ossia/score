@@ -841,12 +841,6 @@ void ScenarioPresenter::on_stateCreated(const StateModel& state)
       st_pres, &StatePresenter::pressed, m_view, &ScenarioView::pressedAsked);
   connect(st_pres, &StatePresenter::moved, m_view, &ScenarioView::movedAsked);
   connect(st_pres, &StatePresenter::released, m_view, &ScenarioView::released);
-
-  connect(
-      st_pres,
-      &StatePresenter::askUpdate,
-      this,
-      &ScenarioPresenter::on_askUpdate);
 }
 
 void ScenarioPresenter::on_intervalCreated(const IntervalModel& interval)

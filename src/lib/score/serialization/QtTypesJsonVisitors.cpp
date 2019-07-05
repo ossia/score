@@ -73,7 +73,7 @@ SCORE_LIB_BASE_EXPORT void JSONValueWriter::write(QSizeF& pt)
 {
   const auto arr = val.toArray();
   pt.setWidth(arr[0].toDouble());
-  pt.setWidth(arr[1].toDouble());
+  pt.setHeight(arr[1].toDouble());
 }
 
 template <>
