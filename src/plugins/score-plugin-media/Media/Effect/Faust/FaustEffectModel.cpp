@@ -155,7 +155,7 @@ void FaustEffectModel::reloadFx(llvm_dsp_factory* fac, llvm_dsp* obj)
     faust_factory = fac;
     faust_object = obj;
     // Try to reuse controls
-    Faust::UpdateUI<decltype(*this)> ui{*this};
+    Faust::UpdateUI<decltype(*this), true> ui{*this};
     faust_object->buildUserInterface(&ui);
 
     for (std::size_t i = ui.i; i < m_inlets.size(); i++)
@@ -174,7 +174,7 @@ void FaustEffectModel::reloadFx(llvm_dsp_factory* fac, llvm_dsp* obj)
     faust_factory = fac;
     faust_object = obj;
     // Try to reuse controls
-    Faust::UpdateUI<decltype(*this)> ui{*this};
+    Faust::UpdateUI<decltype(*this), false> ui{*this};
     faust_object->buildUserInterface(&ui);
   }
   else
@@ -217,7 +217,7 @@ void FaustEffectModel::reloadMidi(dsp_poly_factory* fac, dsp_poly* obj)
     faust_poly_factory = fac;
     faust_poly_object = obj;
     // Try to reuse controls
-    Faust::UpdateUI<decltype(*this)> ui{*this};
+    Faust::UpdateUI<decltype(*this), true> ui{*this};
     faust_poly_object->buildUserInterface(&ui);
 
     for (std::size_t i = ui.i; i < m_inlets.size(); i++)
@@ -236,7 +236,7 @@ void FaustEffectModel::reloadMidi(dsp_poly_factory* fac, dsp_poly* obj)
     faust_poly_factory = fac;
     faust_poly_object = obj;
     // Try to reuse controls
-    Faust::UpdateUI<decltype(*this)> ui{*this};
+    Faust::UpdateUI<decltype(*this), false> ui{*this};
     faust_poly_object->buildUserInterface(&ui);
   }
   else
