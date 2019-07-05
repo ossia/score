@@ -98,7 +98,7 @@ struct UI : ::UI
   }
 };
 
-template <typename Proc>
+template <typename Proc, bool SetInit>
 struct UpdateUI : ::UI
 {
   Proc& fx;
@@ -154,7 +154,8 @@ struct UpdateUI : ::UI
       if (auto inlet = dynamic_cast<Process::Toggle*>(fx.inlets()[i]))
       {
         inlet->setCustomData(label);
-        inlet->setValue(bool(*zone));
+        if constexpr(SetInit)
+            inlet->setValue(bool(*zone));
       }
       else
       {
@@ -191,7 +192,8 @@ struct UpdateUI : ::UI
       {
         inlet->setCustomData(label);
         inlet->setDomain(ossia::make_domain(min, max));
-        inlet->setValue(init);
+        if constexpr(SetInit)
+            inlet->setValue(init);
       }
       else
       {
