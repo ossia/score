@@ -450,11 +450,11 @@ void ScenarioPasteElementsAfter::redo(const score::DocumentContext& ctx) const
 
   for (const auto& event : addedEvents)
   {
-    updateEventExtent(event->id(), scenario);
+    event->recomputeExtent();
   }
   for (const auto& timesync : addedTimeSyncs)
   {
-    updateTimeSyncExtent(timesync->id(), scenario);
+    timesync->recomputeExtent();
   }
 
   ScenarioDocumentModel& model

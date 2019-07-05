@@ -18,6 +18,7 @@
 
 namespace Scenario
 {
+class ProcessModel;
 /**
  * @brief The displacementPolicy class
  * This class allows to implement multiple displacement behaviors.

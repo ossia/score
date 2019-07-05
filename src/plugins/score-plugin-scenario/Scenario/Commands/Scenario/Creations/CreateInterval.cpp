@@ -60,8 +60,7 @@ void CreateInterval::undo(const score::DocumentContext& ctx) const
   {
     auto& sst = scenar.states.at(m_startStateId);
     if (sst.previousInterval())
-      updateIntervalVerticalPos(
-          m_startStatePos, *sst.previousInterval(), scenar);
+      scenar.intervals.at(*sst.previousInterval()).requestHeightChange(m_startStatePos);
     else
       sst.setHeightPercentage(m_startStatePos);
   }
@@ -76,11 +75,10 @@ void CreateInterval::redo(const score::DocumentContext& ctx) const
   ScenarioCreate<IntervalModel>::redo(
       m_createdIntervalId, sst, est, sst.heightPercentage(), scenar);
 
-  auto& cst = scenar.intervals.at(m_createdIntervalId);
-  cst.metadata().setName(m_createdName);
+  auto& itv = scenar.intervals.at(m_createdIntervalId);
+  itv.metadata().setName(m_createdName);
 
-  updateIntervalVerticalPos(
-      est.heightPercentage(), m_createdIntervalId, scenar);
+  itv.requestHeightChange(est.heightPercentage());
 }
 
 void CreateInterval::serializeImpl(DataStreamInput& s) const

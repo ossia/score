@@ -145,17 +145,27 @@ PlayContextMenu::PlayContextMenu(
 
         // and the parent interval of this scenario;
         // this is what needs executing.
-        auto parent_interval = safe_cast<Scenario::IntervalModel*>(
-            dynamic_cast<const QObject*>(&scenar)->parent());
+        auto parent = dynamic_cast<const QObject*>(&scenar)->parent();
+        IntervalModel* parentItv{};
+        while(parent)
+        {
+          if((parentItv = qobject_cast<Scenario::IntervalModel*>(parent)))
+            break;
+          else
+            parent = parent->parent();
+        }
 
-        // We start playing the parent scenario.
-        // TODO: this also plays the other processes of the interval? Maybe
-        // remove them, too ?
-        plug.on_play(
-            *parent_interval,
-            true,
-            PlayFromIntervalScenarioPruner{scenar, cst_to_play, t},
-            t);
+        if(parentItv)
+        {
+          // We start playing the parent scenario.
+          // TODO: this also plays the other processes of the interval? Maybe
+          // remove them, too ?
+          plug.on_play(
+                *parentItv,
+                true,
+                PlayFromIntervalScenarioPruner{scenar, cst_to_play, t},
+                t);
+        }
       });
 
   /// Record signals ///

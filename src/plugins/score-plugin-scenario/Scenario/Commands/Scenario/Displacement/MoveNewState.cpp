@@ -40,7 +40,7 @@ void MoveNewState::undo(const score::DocumentContext& ctx) const
     scenar.intervals.at(*next).setHeightPercentage(m_oldy);
   }
 
-  updateEventExtent(state.eventId(), scenar);
+  scenar.events.at(state.eventId()).recomputeExtent();
 }
 
 void MoveNewState::redo(const score::DocumentContext& ctx) const
@@ -57,7 +57,7 @@ void MoveNewState::redo(const score::DocumentContext& ctx) const
     scenar.intervals.at(*next).setHeightPercentage(m_y);
   }
 
-  updateEventExtent(state.eventId(), scenar);
+  scenar.events.at(state.eventId()).recomputeExtent();
 }
 
 void MoveNewState::serializeImpl(DataStreamInput& s) const

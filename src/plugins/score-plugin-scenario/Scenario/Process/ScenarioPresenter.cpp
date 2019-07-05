@@ -23,7 +23,17 @@
 W_OBJECT_IMPL(Scenario::ScenarioPresenter)
 namespace Scenario
 {
-struct VerticalExtent;
+void updateTimeSyncExtent(TimeSyncModel& id, const Scenario::ProcessModel& s);
+
+// Will call updateTimeSyncExtent
+void updateEventExtent(EventModel& id, const Scenario::ProcessModel& s, double h);
+
+// Will call updateEventExtent
+void updateIntervalVerticalPos(
+    IntervalModel& id,
+    double y,
+    const Scenario::ProcessModel& s,
+    double view_height);
 
 ScenarioPresenter::ScenarioPresenter(
     Scenario::EditionSettings& e,
@@ -266,7 +276,7 @@ void ScenarioPresenter::setHeight(qreal height)
   {
     for(auto& ev : m_layer.events)
     {
-      updateEventExtent(ev.id(), m_layer);
+      updateEventExtent(ev, m_layer, height);
     }
   }
 }
@@ -752,6 +762,12 @@ void ScenarioPresenter::on_eventCreated(const EventModel& event_model)
   m_viewInterface.on_eventMoved(*ev_pres);
 
   con(event_model,
+      &EventModel::recomputeExtent,
+      this,
+      [this, &event_model] {
+    updateEventExtent(const_cast<EventModel&>(event_model), m_layer, m_view->height());
+  });
+  con(event_model,
       &EventModel::extentChanged,
       this,
       [=](const VerticalExtent&) { m_viewInterface.on_eventMoved(*ev_pres); });
@@ -780,6 +796,12 @@ void ScenarioPresenter::on_timeSyncCreated(const TimeSyncModel& timeSync_model)
 
   m_viewInterface.on_timeSyncMoved(*tn_pres);
 
+  con(timeSync_model,
+      &TimeSyncModel::recomputeExtent,
+      this,
+      [this, &timeSync_model] {
+    updateTimeSyncExtent(const_cast<TimeSyncModel&>(timeSync_model), m_layer);
+  });
   con(timeSync_model,
       &TimeSyncModel::extentChanged,
       this,
@@ -839,9 +861,17 @@ void ScenarioPresenter::on_intervalCreated(const IntervalModel& interval)
 
   m_viewInterface.on_intervalMoved(*cst_pres);
 
-  auto updateHeight = [&, sev = startEvent.id(), eev = endEvent.id()] {
-    updateEventExtent(sev, const_cast<Scenario::ProcessModel&>(m_layer));
-    updateEventExtent(eev, const_cast<Scenario::ProcessModel&>(m_layer));
+  con(interval,
+      &IntervalModel::requestHeightChange,
+      this,
+      [this, &interval] (double y) {
+    updateIntervalVerticalPos(const_cast<IntervalModel&>(interval), y, m_layer, m_view->height());
+  });
+  auto updateHeight = [&] {
+    auto& scenario = const_cast<Scenario::ProcessModel&>(m_layer);
+    auto h = m_view->height();
+    updateEventExtent(const_cast<EventModel&>(startEvent), scenario, h);
+    updateEventExtent(const_cast<EventModel&>(endEvent), scenario, h);
   };
   con(interval, &IntervalModel::rackChanged,
       this, updateHeight);

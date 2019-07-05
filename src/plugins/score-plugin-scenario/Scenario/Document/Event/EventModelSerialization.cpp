@@ -27,7 +27,7 @@ template <>
 SCORE_PLUGIN_SCENARIO_EXPORT void
 DataStreamReader::read(const Scenario::EventModel& ev)
 {
-  m_stream << ev.m_timeSync << ev.m_states << ev.m_condition << ev.m_extent
+  m_stream << ev.m_timeSync << ev.m_states << ev.m_condition
            << ev.m_date << ev.m_offset;
 
   insertDelimiter();
@@ -37,7 +37,7 @@ template <>
 SCORE_PLUGIN_SCENARIO_EXPORT void
 DataStreamWriter::write(Scenario::EventModel& ev)
 {
-  m_stream >> ev.m_timeSync >> ev.m_states >> ev.m_condition >> ev.m_extent
+  m_stream >> ev.m_timeSync >> ev.m_states >> ev.m_condition
       >> ev.m_date >> ev.m_offset;
 
   checkDelimiter();
@@ -52,7 +52,6 @@ JSONObjectReader::read(const Scenario::EventModel& ev)
 
   obj[strings.Condition] = toJsonObject(ev.m_condition);
 
-  obj[strings.Extent] = toJsonValue(ev.m_extent);
   obj[strings.Date] = toJsonValue(ev.m_date);
   obj[strings.Offset] = (int32_t)ev.m_offset;
 }
@@ -67,7 +66,6 @@ JSONObjectWriter::write(Scenario::EventModel& ev)
 
   fromJsonObject(obj[strings.Condition], ev.m_condition);
 
-  ev.m_extent = fromJsonValue<Scenario::VerticalExtent>(obj[strings.Extent]);
   ev.m_date = fromJsonValue<TimeVal>(obj[strings.Date]);
   ev.m_offset
       = static_cast<Scenario::OffsetBehavior>(obj[strings.Offset].toInt());
