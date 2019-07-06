@@ -742,7 +742,7 @@ std::function<void()> EffectProcessComponentBase::removing(
       }
     });
 #else
-    in_exec([f = std::move(commands), g = ctx.execGraph, proc = echain] {
+    in_exec([f = std::move(commands)] {
       for (auto& cmd : f)
         cmd();
     });

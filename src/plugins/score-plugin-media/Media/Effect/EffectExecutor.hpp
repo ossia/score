@@ -21,7 +21,7 @@ class EffectProcessComponentBase : public ::Execution::ProcessComponent_T<
 public:
   using parent_t = Execution::Component;
   using model_t = Process::ProcessModel;
-  using component_t = ProcessComponent;
+  using component_t = ::Execution::ProcessComponent;
   using component_factory_list_t = Execution::ProcessComponentFactoryList;
   EffectProcessComponentBase(
       Media::Effect::ProcessModel& element,
@@ -31,20 +31,20 @@ public:
 
   ~EffectProcessComponentBase() override;
 
-  ProcessComponent* make(
+  ::Execution::ProcessComponent* make(
       const Id<score::Component>& id,
       Execution::ProcessComponentFactory& factory,
       Process::ProcessModel& process);
 
-  ProcessComponent*
+  ::Execution::ProcessComponent*
   make(const Id<score::Component>& id, Process::ProcessModel& process)
   {
     return nullptr;
   }
-  void added(ProcessComponent& e);
+  void added(::Execution::ProcessComponent& e);
 
   std::function<void()>
-  removing(const Process::ProcessModel& e, ProcessComponent& c);
+  removing(const Process::ProcessModel& e, ::Execution::ProcessComponent& c);
   template <typename Component_T, typename Element, typename Fun>
   void removed(const Element& elt, const Component_T& comp, Fun f)
   {
@@ -65,7 +65,7 @@ public:
 
   struct RegisteredEffect
   {
-    std::shared_ptr<ProcessComponent> comp;
+    std::shared_ptr<::Execution::ProcessComponent> comp;
 
     Process::Inlets registeredInlets;
     Process::Outlets registeredOutlets;
