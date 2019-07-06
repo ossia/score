@@ -35,10 +35,16 @@ class ScenarioRemover final : public score::ObjectRemover
         if (auto itv = qobject_cast<IntervalModel*>(p))
         {
           d.submit<RemoveProcessFromInterval>(*itv, proc->id());
+          return true;
         }
         else if (auto st = qobject_cast<StateModel*>(p))
         {
           d.submit<RemoveStateProcess>(*st, proc->id());
+          return true;
+        }
+        else
+        {
+          return false;
         }
       }
     }
