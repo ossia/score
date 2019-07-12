@@ -127,6 +127,10 @@ public:
       E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, controlAdded, arg_1)
   void controlRemoved(const Process::Port& arg_1)
       E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, controlRemoved, arg_1)
+  void controlOutletAdded(const Id<Process::Port>& arg_1)
+      E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, controlOutletAdded, arg_1)
+  void controlOutletRemoved(const Process::Port& arg_1)
+      E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, controlOutletRemoved, arg_1)
 
   void benchmark(double arg_1)
       E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, benchmark, arg_1)

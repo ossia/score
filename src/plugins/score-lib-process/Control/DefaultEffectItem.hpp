@@ -18,12 +18,14 @@ public:
       const score::DocumentContext& doc,
       QGraphicsItem* root);
 
-  void
-  setupInlet(Process::ControlInlet& inlet, const score::DocumentContext& doc);
+  void setupInlet(Process::ControlInlet& inlet, const score::DocumentContext& doc);
+  void setupOutlet(Process::ControlOutlet& inlet, const score::DocumentContext& doc);
 
 private:
   void on_controlAdded(const Id<Process::Port>& p);
   void on_controlRemoved(const Process::Port& p);
+  void on_controlOutletAdded(const Id<Process::Port>& p);
+  void on_controlOutletRemoved(const Process::Port& p);
   void reset();
   void updateRect();
 

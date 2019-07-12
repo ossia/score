@@ -50,6 +50,11 @@ public:
       const score::DocumentContext& ctx,
       QGraphicsItem* parent,
       QObject* context);
+  virtual QGraphicsItem* makeControlItem(
+      Process::ControlOutlet& port,
+      const score::DocumentContext& ctx,
+      QGraphicsItem* parent,
+      QObject* context);
 
   virtual QWidget* makeControlWidget(
       Process::ControlInlet& port,
