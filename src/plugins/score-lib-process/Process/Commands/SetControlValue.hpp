@@ -52,4 +52,49 @@ private:
   Path<Process::ControlInlet> m_path;
   ossia::value m_old, m_new;
 };
+
+class SCORE_LIB_PROCESS_EXPORT SetControlOutletValue final : public score::Command
+{
+  SCORE_COMMAND_DECL(
+      Process::CommandFactoryName(),
+      SetControlOutletValue,
+      "Set a control")
+
+public:
+  SetControlOutletValue(const Process::ControlOutlet& obj, ossia::value newval)
+      : m_path{obj}, m_old{obj.value()}, m_new{newval}
+  {
+  }
+
+  virtual ~SetControlOutletValue() {}
+
+  void undo(const score::DocumentContext& ctx) const final override
+  {
+    m_path.find(ctx).setValue(m_old);
+  }
+
+  void redo(const score::DocumentContext& ctx) const final override
+  {
+    m_path.find(ctx).setValue(m_new);
+  }
+
+  void update(const Process::ControlOutlet& obj, ossia::value newval)
+  {
+    m_new = std::move(newval);
+  }
+
+protected:
+  void serializeImpl(DataStreamInput& stream) const final override
+  {
+    stream << m_path << m_old << m_new;
+  }
+  void deserializeImpl(DataStreamOutput& stream) final override
+  {
+    stream >> m_path >> m_old >> m_new;
+  }
+
+private:
+  Path<Process::ControlOutlet> m_path;
+  ossia::value m_old, m_new;
+};
 }

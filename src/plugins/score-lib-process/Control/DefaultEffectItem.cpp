@@ -30,6 +30,18 @@ DefaultEffectItem::DefaultEffectItem(
       this,
       &DefaultEffectItem::on_controlRemoved);
 
+  QObject::connect(
+        &effect,
+        &Process::ProcessModel::controlOutletAdded,
+        this,
+        &DefaultEffectItem::on_controlOutletAdded);
+
+  QObject::connect(
+        &effect,
+        &Process::ProcessModel::controlOutletRemoved,
+        this,
+        &DefaultEffectItem::on_controlOutletRemoved);
+
   for (auto& e : effect.inlets())
   {
     auto inlet = qobject_cast<Process::ControlInlet*>(e);
@@ -38,6 +50,14 @@ DefaultEffectItem::DefaultEffectItem(
 
     setupInlet(*inlet, doc);
   }
+  for (auto& e : effect.outlets())
+  {
+    auto outlet = qobject_cast<Process::ControlOutlet*>(e);
+    if (!outlet)
+      continue;
+
+    setupOutlet(*outlet, doc);
+  }
   updateRect();
 
   QObject::connect(
@@ -45,7 +65,11 @@ DefaultEffectItem::DefaultEffectItem(
       &Process::ProcessModel::inletsChanged,
       this,
       &DefaultEffectItem::reset);
-  // TODO same for outlets if we have control outlets one day
+  QObject::connect(
+        &effect,
+        &Process::ProcessModel::outletsChanged,
+        this,
+        &DefaultEffectItem::reset);
 }
 
 void DefaultEffectItem::setupInlet(
@@ -96,6 +120,54 @@ void DefaultEffectItem::setupInlet(
   updateRect();
 }
 
+void DefaultEffectItem::setupOutlet(
+    Process::ControlOutlet& outlet,
+    const score::DocumentContext& doc)
+{
+  con(outlet, &Process::ControlOutlet::domainChanged, this, [this, &outlet] {
+    on_controlOutletRemoved(outlet);
+    on_controlOutletAdded(outlet.id());
+  });
+  // TODO put them in the correct order
+  auto item = new score::EmptyRectItem{this};
+  double pos_y = this->childrenBoundingRect().height();
+
+  auto& portFactory
+      = score::AppContext().interfaces<Process::PortFactoryList>();
+  Process::PortFactory* fact = portFactory.get(outlet.concreteKey());
+  auto port = fact->makeItem(outlet, doc, item, this);
+  m_ports.push_back({item, port});
+
+  auto lab = new score::SimpleTextItem{Process::Style::instance().EventDefault,
+                                       item};
+  if (outlet.customData().isEmpty())
+    lab->setText(tr("Control"));
+  else
+    lab->setText(outlet.customData());
+  connect(
+      &outlet,
+      &Process::ControlOutlet::customDataChanged,
+      item,
+      [=](const QString& txt) { lab->setText(txt); });
+  lab->setPos(15, 2);
+
+  QGraphicsItem* widg = fact->makeControlItem(outlet, doc, item, this);
+
+  widg->setParentItem(item);
+  widg->setPos(15, lab->boundingRect().height());
+
+  auto h = std::max(
+      20.,
+      (qreal)(
+          widg->boundingRect().height() + lab->boundingRect().height() + 2.));
+
+  port->setPos(7., h / 2.);
+
+  item->setPos(0, pos_y);
+  item->setRect(QRectF{0., 0, 170., h});
+  updateRect();
+}
+
 void DefaultEffectItem::on_controlAdded(const Id<Process::Port>& id)
 {
   auto inlet = safe_cast<Process::ControlInlet*>(m_effect.inlet(id));
@@ -103,6 +175,35 @@ void DefaultEffectItem::on_controlAdded(const Id<Process::Port>& id)
 }
 
 void DefaultEffectItem::on_controlRemoved(const Process::Port& port)
+{
+  for (auto it = m_ports.begin(); it != m_ports.end(); ++it)
+  {
+    auto ptr = it->second;
+    if (&ptr->port() == &port)
+    {
+      auto parent_item = it->first;
+      auto h = parent_item->boundingRect().height();
+      delete parent_item;
+      m_ports.erase(it);
+
+      for (; it != m_ports.end(); ++it)
+      {
+        auto item = it->first;
+        item->moveBy(0., -h);
+      }
+      updateRect();
+      return;
+    }
+  }
+}
+
+void DefaultEffectItem::on_controlOutletAdded(const Id<Process::Port>& id)
+{
+  auto outlet = safe_cast<Process::ControlOutlet*>(m_effect.outlet(id));
+  setupOutlet(*outlet, m_ctx);
+}
+
+void DefaultEffectItem::on_controlOutletRemoved(const Process::Port& port)
 {
   for (auto it = m_ports.begin(); it != m_ports.end(); ++it)
   {
@@ -140,6 +241,11 @@ void DefaultEffectItem::reset()
   {
     if (auto inlet = qobject_cast<Process::ControlInlet*>(e))
       setupInlet(*inlet, m_ctx);
+  }
+  for (auto& e : m_effect.outlets())
+  {
+    if (auto outlet = qobject_cast<Process::ControlOutlet*>(e))
+      setupOutlet(*outlet, m_ctx);
   }
   updateRect();
 }
