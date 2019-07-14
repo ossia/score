@@ -145,6 +145,58 @@ private:
   QRectF handleRect() const;
 };
 
+class SCORE_LIB_BASE_EXPORT QGraphicsKnob final : public QObject,
+                                                    public QGraphicsItem
+{
+  W_OBJECT(QGraphicsKnob)
+  Q_INTERFACES(QGraphicsItem)
+  friend struct DefaultGraphicsKnobImpl;
+
+  double m_value{};
+  QRectF m_rect{};
+
+public:
+  double min{}, max{};
+
+private:
+  bool m_grab{};
+
+public:
+  QGraphicsKnob(QGraphicsItem* parent);
+
+  static constexpr double map(double v) { return v; }
+  static constexpr double unmap(double v) { return v; }
+
+  void setRect(const QRectF& r);
+  void setValue(double v);
+  double value() const;
+  QRectF boundingRect() const override;
+
+  bool moving = false;
+
+public:
+  void valueChanged(double arg_1)
+      E_SIGNAL(SCORE_LIB_BASE_EXPORT, valueChanged, arg_1)
+  void sliderMoved() E_SIGNAL(SCORE_LIB_BASE_EXPORT, sliderMoved)
+  void sliderReleased() E_SIGNAL(SCORE_LIB_BASE_EXPORT, sliderReleased)
+
+private:
+  void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
+  void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override;
+  void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override;
+  void mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event) override;
+
+
+  void paint(
+      QPainter* painter,
+      const QStyleOptionGraphicsItem* option,
+      QWidget* widget) override;
+  bool isInHandle(QPointF p);
+  double getHandleX() const;
+  QRectF sliderRect() const;
+  QRectF handleRect() const;
+};
+
 class SCORE_LIB_BASE_EXPORT QGraphicsLogSlider final : public QObject,
                                                        public QGraphicsItem
 {
