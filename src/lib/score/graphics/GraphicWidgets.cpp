@@ -21,8 +21,10 @@ W_OBJECT_IMPL(score::QGraphicsPixmapToggle)
 W_OBJECT_IMPL(score::QGraphicsSlider)
 W_OBJECT_IMPL(score::QGraphicsKnob)
 W_OBJECT_IMPL(score::QGraphicsLogSlider)
+W_OBJECT_IMPL(score::QGraphicsLogKnob)
 W_OBJECT_IMPL(score::QGraphicsIntSlider)
 W_OBJECT_IMPL(score::QGraphicsComboSlider)
+W_OBJECT_IMPL(score::QGraphicsEnum)
 W_OBJECT_IMPL(score::DoubleSpinboxWithEnter)
 namespace score
 {
@@ -304,34 +306,10 @@ void QGraphicsKnob::paint(
   DefaultGraphicsKnobImpl::paint(
       *this,
       score::Skin::instance(),
-      QString::number(min + value() * (max - min), 'f', 3),
+      QString::number(min + value() * (max - min), 'f', 2),
       painter,
       widget);
 }
-
-bool QGraphicsKnob::isInHandle(QPointF p)
-{
-  return handleRect().contains(p);
-}
-
-double QGraphicsKnob::getHandleX() const
-{
-  return 4 + sliderRect().width() * m_value;
-}
-
-QRectF QGraphicsKnob::sliderRect() const
-{
-  return m_rect.adjusted(4, 3, -4, -3);
-}
-
-QRectF QGraphicsKnob::handleRect() const
-{
-  return {getHandleX() - 4., 1., 8., m_rect.height() - 1};
-}
-
-
-
-
 
 
 QGraphicsLogSlider::QGraphicsLogSlider(QGraphicsItem* parent)
@@ -414,6 +392,73 @@ QRectF QGraphicsLogSlider::handleRect() const
 {
   return {getHandleX() - 4., 1., 8., m_rect.height() - 1};
 }
+
+
+
+
+QGraphicsLogKnob::QGraphicsLogKnob(QGraphicsItem* parent) : QGraphicsItem{parent}
+{
+  this->setAcceptedMouseButtons(Qt::LeftButton | Qt::RightButton);
+}
+
+void QGraphicsLogKnob::setRect(const QRectF& r)
+{
+  prepareGeometryChange();
+  m_rect = r;
+}
+
+void QGraphicsLogKnob::setValue(double v)
+{
+  m_value = ossia::clamp(v, 0., 1.);
+  update();
+}
+
+double QGraphicsLogKnob::value() const
+{
+  return m_value;
+}
+
+
+void QGraphicsLogKnob::mousePressEvent(QGraphicsSceneMouseEvent* event)
+{
+  DefaultGraphicsKnobImpl::mousePressEvent(*this, event);
+}
+
+void QGraphicsLogKnob::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
+{
+  DefaultGraphicsKnobImpl::mouseMoveEvent(*this, event);
+}
+
+void QGraphicsLogKnob::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
+{
+  DefaultGraphicsKnobImpl::mouseReleaseEvent(*this, event);
+}
+
+void QGraphicsLogKnob::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event)
+{
+  DefaultGraphicsKnobImpl::mouseDoubleClickEvent(*this, event);
+}
+
+QRectF QGraphicsLogKnob::boundingRect() const
+{
+  return m_rect;
+}
+
+void QGraphicsLogKnob::paint(
+    QPainter* painter,
+    const QStyleOptionGraphicsItem* option,
+    QWidget* widget)
+{
+  DefaultGraphicsKnobImpl::paint(
+      *this,
+      score::Skin::instance(),
+      QString::number(std::exp2(min + value() * (max - min)), 'f', 3),
+      painter,
+      widget);
+}
+
+
+
 
 QGraphicsIntSlider::QGraphicsIntSlider(QGraphicsItem* parent)
     : QGraphicsItem{parent}
@@ -661,4 +706,124 @@ QRectF QGraphicsComboSlider::handleRect() const
 {
   return {getHandleX() - 4., 1., 8., m_rect.height() - 1};
 }
+
+
+
+QGraphicsEnum::QGraphicsEnum(QGraphicsItem* parent)
+    : QGraphicsItem{parent}
+{
+  this->setAcceptedMouseButtons(Qt::LeftButton);
+}
+
+void QGraphicsEnum::setRect(const QRectF& r)
+{
+  prepareGeometryChange();
+  m_rect = r;
+  m_smallRect = r.adjusted(2, 2, -2, -2);
+}
+
+void QGraphicsEnum::setValue(int v)
+{
+  m_value = ossia::clamp(v, 0, array.size() - 1);
+  update();
+}
+
+int QGraphicsEnum::value() const
+{
+  return m_value;
+}
+
+void QGraphicsEnum::mousePressEvent(QGraphicsSceneMouseEvent* event)
+{
+  event->accept();
+  int row = 0;
+  int col = 0;
+  const double w = m_smallRect.width() / columns - 2;
+  const double h = m_smallRect.height() / rows - 2;
+  int i = 0;
+  for(const QString& str : array)
+  {
+    QRectF rect{col * w, row * h, w, h};
+    if(rect.contains(event->pos()))
+    {
+      m_clicking = i;
+      update();
+      return;
+    }
+
+    col++;
+    if(col == columns)
+    {
+      row++;
+      col = 0;
+    }
+    i++;
+  }
+
+  m_clicking = -1;
+  update();
+}
+
+void QGraphicsEnum::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
+{
+  event->accept();
+}
+
+void QGraphicsEnum::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
+{
+  event->accept();
+  if(m_clicking != -1)
+  {
+    m_value = m_clicking;
+    m_clicking = -1;
+    currentIndexChanged(m_value);
+  }
+  update();
+}
+
+QRectF QGraphicsEnum::boundingRect() const
+{
+  return m_rect;
+}
+
+void QGraphicsEnum::paint(
+    QPainter* painter,
+    const QStyleOptionGraphicsItem* option,
+    QWidget* widget)
+{
+  auto& style = score::Skin::instance();
+
+  static QPen border(style.Base1.color(), 1);
+  static QPen borderClicking(style.Smooth3.color(), 1);
+  static QPen text{style.Base1.color()};
+  static QFont textFont{style.MonoFontSmall};
+  static QPen currentText(style.Smooth2.color());
+  static QBrush bg(style.SliderBrush);
+
+  int row = 0;
+  int col = 0;
+  const double w = m_smallRect.width() / columns - 2;
+  const double h = m_smallRect.height() / rows - 2;
+
+  painter->setBrush(bg);
+  int i = 0;
+  for(const QString& str : array)
+  {
+    QRectF rect{col * w, row * h, w, h};
+    painter->setPen(i != m_clicking ? border : borderClicking);
+    painter->drawRect(rect);
+
+    painter->setPen(i != m_value ? text : currentText);
+    painter->setFont(textFont);
+    painter->drawText(rect, str, QTextOption(Qt::AlignCenter));
+    col++;
+    if(col == columns)
+    {
+      row++;
+      col = 0;
+    }
+    i++;
+  }
+}
+
 }

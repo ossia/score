@@ -43,6 +43,12 @@ PortItem::PortItem(
   this->setFlag(QGraphicsItem::ItemSendsScenePositionChanges, true);
   this->setToolTip(p.customData());
 
+  con(p.selection, &Selectable::changed,
+      this, [this] (bool b) {
+    for(const auto& cable : cables) {
+      cable->setZValue(b || cable->model().selection.get() ? 999999 : -1);
+    }
+  });
   auto& plug = ctx.plugin<Process::DocumentPlugin>();
   plug.ports().insert({&p, this});
 
@@ -167,11 +173,6 @@ void PortItem::mousePressEvent(QGraphicsSceneMouseEvent* event)
         contextMenuRequested(event->scenePos(), event->screenPos());
         break;
       case Qt::LeftButton:
-      {
-        for(const auto& cable : cables) {
-          cable->setZValue(10);
-        }
-      }
       default:
         break;
     }

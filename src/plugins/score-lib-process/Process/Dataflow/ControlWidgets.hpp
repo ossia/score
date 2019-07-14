@@ -97,7 +97,7 @@ struct FloatSlider
   }
 
   template <typename T, typename Control_T>
-  static QGraphicsItem* make_item(
+  static auto make_item(
       const T& slider,
       Control_T& inlet,
       const score::DocumentContext& ctx,
@@ -111,7 +111,7 @@ struct FloatSlider
     auto sl = new score::QGraphicsKnob{nullptr};
     sl->min = min;
     sl->max = max;
-    sl->setRect({0., 0., 30., 30.});
+    sl->setRect({0., 0., 40., 40.});
     sl->setValue((ossia::convert<double>(inlet.value()) - min) / (max - min));
 
     QObject::connect(
@@ -214,15 +214,15 @@ struct LogFloatSlider
     auto max = std::log2(slider.getMax());
     if (max - min == 0)
       max = min + 1;
-    auto sl = new score::QGraphicsLogSlider{nullptr};
+    auto sl = new score::QGraphicsLogKnob{nullptr};
     sl->min = min;
     sl->max = max;
-    sl->setRect({0., 0., 150., 15.});
+    sl->setRect({0., 0., 40., 40.});
     sl->setValue(to01(min, max, ossia::convert<double>(inlet.value())));
 
     QObject::connect(
         sl,
-        &score::QGraphicsLogSlider::sliderMoved,
+        &score::QGraphicsLogKnob::sliderMoved,
         context,
         [=, &inlet, &ctx] {
           sl->moving = true;
@@ -230,7 +230,7 @@ struct LogFloatSlider
               inlet, from01(min, max, sl->value()));
         });
     QObject::connect(
-        sl, &score::QGraphicsLogSlider::sliderReleased, context, [&ctx, sl]() {
+        sl, &score::QGraphicsLogKnob::sliderReleased, context, [&ctx, sl]() {
           ctx.dispatcher.commit();
           sl->moving = false;
         });
@@ -655,7 +655,7 @@ struct Enum
   }
 
   template <typename T, typename Control_T>
-  static QGraphicsItem* make_item(
+  static auto make_item(
       const T& slider,
       Control_T& inlet,
       const score::DocumentContext& ctx,
@@ -664,8 +664,8 @@ struct Enum
   {
     const auto& values = slider.getValues();
     using val_t = std::remove_reference_t<decltype(values[0])>;
-    auto sl = new score::QGraphicsComboSlider{values, nullptr};
-    sl->setRect({0., 0., 150., 15.});
+    auto sl = new score::QGraphicsEnum{values, nullptr};
+    sl->setRect({0., 0., 70, 70});
 
     auto set_index = [values, sl](const ossia::value& val) {
       auto v = ossia::convert<std::string>(val);
@@ -679,18 +679,9 @@ struct Enum
     set_index(inlet.value());
 
     QObject::connect(
-        sl,
-        &score::QGraphicsComboSlider::sliderMoved,
-        context,
-        [values, sl, &inlet, &ctx] {
-          sl->moving = true;
-          ctx.dispatcher.submit<SetControlValue<Control_T>>(
-              inlet, toStd(values[sl->value()]));
-        });
-    QObject::connect(
-        sl, &score::QGraphicsComboSlider::sliderReleased, context, [sl, &ctx] {
+        sl, &score::QGraphicsEnum::currentIndexChanged, context, [sl, &inlet, &ctx] (int idx) {
+          ctx.dispatcher.submit<SetControlValue<Control_T>>(inlet, toStd(sl->array[idx]));
           ctx.dispatcher.commit();
-          sl->moving = false;
         });
 
     QObject::connect(
@@ -698,9 +689,6 @@ struct Enum
         &Control_T::valueChanged,
         sl,
         [=](const ossia::value& val) {
-          if (sl->moving)
-            return;
-
           set_index(val);
         });
 

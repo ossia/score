@@ -40,10 +40,9 @@ Skin::~Skin()
 {
   delete m_colorMap;
 }
-Skin::Skin() noexcept : SansFont{"Ubuntu"}, MonoFont
-{
-  "APCCourier-Bold", 10, QFont::Black
-}
+Skin::Skin() noexcept : SansFont{"Ubuntu"}
+, MonoFont{"APCCourier-Bold", 10, QFont::Black}
+, MonoFontSmall{"APCCourier-Bold", 8, QFont::Black}
 #if defined(_WIN32)
 , SansFontSmall
 {

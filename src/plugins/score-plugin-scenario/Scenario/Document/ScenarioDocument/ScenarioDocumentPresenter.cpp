@@ -757,13 +757,15 @@ void ScenarioDocumentPresenter::setNewSelection(const Selection& old, const Sele
       {
         proc->selection.set(false);
       }
+      else if(auto port = qobject_cast<const Process::Port*>(e))
+      {
+        port->selection.set(false);
+      }
+      else if(auto cable = qobject_cast<const Process::Cable*>(e))
+      {
+        cable->selection.set(false);
+      }
     }
-  }
-
-  // OPTIMIZEME
-  for (auto& cable : model().cables)
-  {
-    cable.selection.set(false);
   }
 
   // Manages the selection (different case if we're
@@ -842,18 +844,13 @@ void ScenarioDocumentPresenter::setNewSelection(const Selection& old, const Sele
           [&] { m_selectionDispatcher.setAndCommit(Selection{}); },
           Qt::UniqueConnection);
     }
-    else
+
+    for(auto& elt : s)
     {
-      if (ossia::all_of(
-              s, [](const QPointer<const IdentifiedObjectAbstract>& obj) {
-                return bool(qobject_cast<const Process::Cable*>(obj.data()));
-              }))
-      {
-        for (auto& cable : model().cables)
-        {
-          cable.selection.set(s.contains(&cable));
-        }
-      }
+      if(auto cable = qobject_cast<const Process::Cable*>(elt.data()))
+        cable->selection.set(true);
+      else if(auto port = qobject_cast<const Process::Port*>(elt.data()))
+        port->selection.set(true);
     }
   }
 

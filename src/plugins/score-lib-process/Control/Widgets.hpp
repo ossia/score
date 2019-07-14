@@ -33,6 +33,7 @@ struct FloatSlider final : ossia::safe_nodes::control_in,
 {
   static const constexpr bool must_validate = false;
   using type = float;
+  using port_type = Process::FloatSlider;
   const float min{};
   const float max{};
   const float init{};
@@ -69,6 +70,7 @@ struct LogFloatSlider final : ossia::safe_nodes::control_in,
 {
   static const constexpr bool must_validate = false;
   using type = float;
+  using port_type = Process::LogFloatSlider;
   const float min{};
   const float max{};
   const float init{};
@@ -104,6 +106,7 @@ struct IntSlider final : ossia::safe_nodes::control_in,
                          WidgetFactory::IntSlider
 {
   using type = int;
+  using port_type = Process::IntSlider;
   const int min{};
   const int max{};
   const int init{};
@@ -137,6 +140,7 @@ struct IntSpinBox final : ossia::safe_nodes::control_in,
 {
   static const constexpr bool must_validate = false;
   using type = int;
+  using port_type = Process::IntSpinBox;
   const int min{};
   const int max{};
   const int init{};
@@ -173,6 +177,7 @@ struct Toggle final : ossia::safe_nodes::control_in, WidgetFactory::Toggle
   }
 
   using type = bool;
+  using port_type = Process::Toggle;
   const bool init{};
   auto create_inlet(Id<Process::Port> id, QObject* parent) const
   {
@@ -200,6 +205,7 @@ struct ChooserToggle final : ossia::safe_nodes::control_in,
   {
   }
   using type = bool;
+  using port_type = Process::ChooserToggle;
   std::array<const char*, 2> alternatives;
   const bool init{};
 
@@ -238,6 +244,7 @@ struct LineEdit final : ossia::safe_nodes::control_in, WidgetFactory::LineEdit
   }
 
   using type = std::string;
+  using port_type = Process::LineEdit;
   const QLatin1Literal init{};
   auto create_inlet(Id<Process::Port> id, QObject* parent) const
   {
@@ -251,6 +258,7 @@ struct ComboBox final : ossia::safe_nodes::control_in, WidgetFactory::ComboBox
 {
   static const constexpr bool must_validate = false;
   using type = T;
+  using port_type = Process::ControlInlet;
   const std::size_t init{};
   const std::array<std::pair<const char*, T>, N> values;
 
@@ -280,6 +288,7 @@ template <typename ArrT>
 struct EnumBase : ossia::safe_nodes::control_in, WidgetFactory::Enum
 {
   using type = std::string;
+  using port_type = Process::Enum;
   const std::size_t init{};
   const ArrT values;
 
@@ -345,6 +354,7 @@ struct TimeSignatureChooser final : ossia::safe_nodes::control_in,
 {
   static const constexpr bool must_validate = true;
   using type = time_signature;
+  using port_type = Process::TimeSignatureChooser;
   const std::string_view init;
   template <std::size_t M, std::size_t N>
   constexpr TimeSignatureChooser(const char (&name)[M], const char (&in)[N])

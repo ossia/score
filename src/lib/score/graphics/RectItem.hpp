@@ -59,7 +59,7 @@ public:
   void paint(
       QPainter* painter,
       const QStyleOptionGraphicsItem* option,
-      QWidget* widget) final override;
+      QWidget* widget) override;
 
 public:
   void clicked() E_SIGNAL(SCORE_LIB_BASE_EXPORT, clicked)
@@ -70,6 +70,7 @@ private:
   void mousePressEvent(QGraphicsSceneMouseEvent* event) final override;
   void mouseMoveEvent(QGraphicsSceneMouseEvent* event) final override;
   void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) final override;
+protected:
   QRectF m_rect{};
 };
 }

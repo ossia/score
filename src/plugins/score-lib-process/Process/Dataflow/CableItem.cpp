@@ -36,7 +36,10 @@ CableItem::CableItem(
   this->setFlag(QGraphicsItem::ItemClipsToShape);
   plug.cables().insert({&c, this});
 
-  con(c.selection, &Selectable::changed, this, [=](bool b) { update(); });
+  con(c.selection, &Selectable::changed, this, [=](bool b) {
+    setZValue(b ? 999999 : -1);
+    update();
+  });
 
   auto& p = plug.ports();
   if (auto src_port = c.source().try_find(ctx))

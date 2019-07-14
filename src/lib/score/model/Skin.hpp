@@ -22,6 +22,7 @@ public:
 
   QFont SansFont;
   QFont MonoFont;
+  QFont MonoFontSmall;
   QFont SansFontSmall;
 
   QFont Bold10Pt;
