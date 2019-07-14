@@ -108,20 +108,20 @@ struct FloatSlider
     auto max = slider.getMax();
     if (max - min == 0)
       max = min + 1;
-    auto sl = new score::QGraphicsSlider{nullptr};
+    auto sl = new score::QGraphicsKnob{nullptr};
     sl->min = min;
     sl->max = max;
-    sl->setRect({0., 0., 150., 15.});
+    sl->setRect({0., 0., 30., 30.});
     sl->setValue((ossia::convert<double>(inlet.value()) - min) / (max - min));
 
     QObject::connect(
-        sl, &score::QGraphicsSlider::sliderMoved, context, [=, &inlet, &ctx] {
+        sl, &score::QGraphicsKnob::sliderMoved, context, [=, &inlet, &ctx] {
           sl->moving = true;
           ctx.dispatcher.submit<SetControlValue<Control_T>>(
               inlet, min + sl->value() * (max - min));
         });
     QObject::connect(
-        sl, &score::QGraphicsSlider::sliderReleased, context, [&ctx, sl]() {
+        sl, &score::QGraphicsKnob::sliderReleased, context, [&ctx, sl]() {
           ctx.dispatcher.commit();
           sl->moving = false;
         });

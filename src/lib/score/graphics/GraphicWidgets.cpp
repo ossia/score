@@ -2,6 +2,7 @@
 
 #include <score/actions/ActionManager.hpp>
 #include <score/graphics/DefaultGraphicsSliderImpl.hpp>
+#include <score/graphics/DefaultGraphicsKnobImpl.hpp>
 #include <score/model/Skin.hpp>
 
 #include <QDebug>
@@ -10,12 +11,15 @@
 #include <QGraphicsScene>
 #include <QWidget>
 #include <QWindow>
+#include <QApplication>
+#include <QScreen>
 
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(score::QGraphicsPixmapButton)
 W_OBJECT_IMPL(score::QGraphicsSelectablePixmapToggle)
 W_OBJECT_IMPL(score::QGraphicsPixmapToggle)
 W_OBJECT_IMPL(score::QGraphicsSlider)
+W_OBJECT_IMPL(score::QGraphicsKnob)
 W_OBJECT_IMPL(score::QGraphicsLogSlider)
 W_OBJECT_IMPL(score::QGraphicsIntSlider)
 W_OBJECT_IMPL(score::QGraphicsComboSlider)
@@ -239,6 +243,96 @@ QRectF QGraphicsSlider::handleRect() const
 {
   return {getHandleX() - 4., 1., 8., m_rect.height() - 1};
 }
+
+
+
+
+
+QGraphicsKnob::QGraphicsKnob(QGraphicsItem* parent) : QGraphicsItem{parent}
+{
+  this->setAcceptedMouseButtons(Qt::LeftButton | Qt::RightButton);
+}
+
+void QGraphicsKnob::setRect(const QRectF& r)
+{
+  prepareGeometryChange();
+  m_rect = r;
+}
+
+void QGraphicsKnob::setValue(double v)
+{
+  m_value = ossia::clamp(v, 0., 1.);
+  update();
+}
+
+double QGraphicsKnob::value() const
+{
+  return m_value;
+}
+
+
+void QGraphicsKnob::mousePressEvent(QGraphicsSceneMouseEvent* event)
+{
+  DefaultGraphicsKnobImpl::mousePressEvent(*this, event);
+}
+
+void QGraphicsKnob::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
+{
+  DefaultGraphicsKnobImpl::mouseMoveEvent(*this, event);
+}
+
+void QGraphicsKnob::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
+{
+  DefaultGraphicsKnobImpl::mouseReleaseEvent(*this, event);
+}
+
+void QGraphicsKnob::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event)
+{
+  DefaultGraphicsKnobImpl::mouseDoubleClickEvent(*this, event);
+}
+
+QRectF QGraphicsKnob::boundingRect() const
+{
+  return m_rect;
+}
+
+void QGraphicsKnob::paint(
+    QPainter* painter,
+    const QStyleOptionGraphicsItem* option,
+    QWidget* widget)
+{
+  DefaultGraphicsKnobImpl::paint(
+      *this,
+      score::Skin::instance(),
+      QString::number(min + value() * (max - min), 'f', 3),
+      painter,
+      widget);
+}
+
+bool QGraphicsKnob::isInHandle(QPointF p)
+{
+  return handleRect().contains(p);
+}
+
+double QGraphicsKnob::getHandleX() const
+{
+  return 4 + sliderRect().width() * m_value;
+}
+
+QRectF QGraphicsKnob::sliderRect() const
+{
+  return m_rect.adjusted(4, 3, -4, -3);
+}
+
+QRectF QGraphicsKnob::handleRect() const
+{
+  return {getHandleX() - 4., 1., 8., m_rect.height() - 1};
+}
+
+
+
+
+
 
 QGraphicsLogSlider::QGraphicsLogSlider(QGraphicsItem* parent)
     : QGraphicsItem{parent}
