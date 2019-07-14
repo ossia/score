@@ -15,57 +15,113 @@
 #include <Control/Widgets.hpp>
 #include <Effect/EffectLayer.hpp>
 #include <Engine/Node/Process.hpp>
+#include <type_traits>
 
 namespace Control
 {
-
-struct UISetup
+template <typename T, typename = void>
+struct HasCustomUI : std::false_type
 {
-  template <typename Info, typename Model, typename View>
-  static void
-  init(const Model& object, View& self, const score::DocumentContext& doc)
+};
+template <typename T>
+struct HasCustomUI<T, std::void_t<decltype(&T::item)>> : std::true_type
+{
+};
+
+template<typename Info>
+struct CustomUISetup
+{
+  const Process::Inlets& inlets;
+  QGraphicsItem& parent;
+  QObject& context;
+  const score::DocumentContext& doc;
+
+  template <std::size_t N>
+  auto& getControl() noexcept
   {
-    if constexpr (ossia::safe_nodes::info_functions<Info>::control_count > 0)
-    {
-      std::size_t i = 0;
-      double pos_y = 0.;
-      auto& portFactory
-          = score::AppContext().interfaces<Process::PortFactoryList>();
-      ossia::for_each_in_tuple(
-          ossia::safe_nodes::get_controls<Info>{}(), [&](const auto& ctrl) {
-            auto item = new score::EmptyRectItem{&self};
-            item->setPos(0, pos_y);
-            auto inlet = static_cast<Process::ControlInlet*>(
-                object.inlets()
-                    [ossia::safe_nodes::info_functions<Info>::control_start
-                     + i]);
+    constexpr int i = ossia::safe_nodes::info_functions<Info>::control_start + N;
+    constexpr const auto& ctrl = std::get<N>(Info::Metadata::controls);
+    using port_type = typename std::remove_reference_t<decltype(ctrl)>::port_type;
+    return static_cast<port_type&>(*inlets[i]);
+  }
 
-            Process::PortFactory* fact = portFactory.get(inlet->concreteKey());
-            auto port = fact->makeItem(*inlet, doc, item, &self);
+  template <std::size_t... C>
+  void make(const std::index_sequence<C...>&) noexcept
+  {
+    Info::item(getControl<C>()..., parent, context, doc);
+  }
 
-            const auto& style = Process::Style::instance();
-            auto lab = new score::SimpleTextItem{style.EventWaiting, item};
-            lab->setText(ctrl.name);
-            lab->setPos(15, 2);
+  CustomUISetup(
+      const Process::Inlets& inlets,
+      QGraphicsItem& parent,
+      QObject& context,
+      const score::DocumentContext& doc)
+    : inlets{inlets}, parent{parent}, context{context}, doc{doc}
+  {
+    make(std::make_index_sequence<ossia::safe_nodes::info_functions<Info>::control_count>{});
+  }
+};
 
-            QGraphicsItem* widg
-                = ctrl.make_item(ctrl, *inlet, doc, nullptr, &self);
-            widg->setParentItem(item);
-            widg->setPos(15, lab->boundingRect().height());
+struct AutoUISetup
+{
+  const Process::Inlets& inlets;
+  QGraphicsItem& parent;
+  QObject& context;
+  const score::DocumentContext& doc;
+  const Process::PortFactoryList& portFactory = doc.app.interfaces<Process::PortFactoryList>();
 
-            auto h = std::max(
-                20.,
-                (qreal)(
-                    widg->boundingRect().height()
-                    + lab->boundingRect().height() + 2.));
-            item->setRect(QRectF{0., 0., 170., h});
-            port->setPos(7., h / 2.);
+  std::size_t i = 0;
+  double pos_y = 0.;
 
-            pos_y += h;
+  template <typename Info>
+  AutoUISetup(
+      Info&&,
+      const Process::Inlets& inlets,
+      QGraphicsItem& parent,
+      QObject& context,
+      const score::DocumentContext& doc)
+    : inlets{inlets}, parent{parent}, context{context}, doc{doc}
+  {
+    i = ossia::safe_nodes::info_functions<Info>::control_start;
+    ossia::for_each_in_tuple(Info::Metadata::controls, *this);
+  }
 
-            i++;
-          });
-    }
+  // Create a single control
+  template<typename T>
+  void operator()(const T& ctrl)
+  {
+    auto item = new score::EmptyRectItem{&parent};
+    item->setPos(0, pos_y);
+    auto inlet = static_cast<Process::ControlInlet*>(inlets[i]);
+
+    // Port
+    Process::PortFactory* fact = portFactory.get(inlet->concreteKey());
+    auto port = fact->makeItem(*inlet, doc, item, &context);
+
+    // Text
+    const auto& style = Process::Style::instance();
+    auto lab = new score::SimpleTextItem{style.EventWaiting, item};
+    lab->setText(ctrl.name);
+    lab->setPos(15, 2);
+
+    // Control
+    QGraphicsItem* widg
+        = ctrl.make_item(ctrl, *inlet, doc, nullptr, &context);
+    widg->setParentItem(item);
+    widg->setPos(15, lab->boundingRect().height());
+
+    // Positioning
+    auto h = std::max(
+          20.,
+          (qreal)(
+            widg->boundingRect().height()
+            + lab->boundingRect().height() + 2.));
+    item->setRect(QRectF{0., 0., 170., h});
+    port->setPos(7., h / 2.);
+
+    pos_y += h;
+
+    i++;
   }
 };
 
@@ -99,12 +155,17 @@ private:
       const Process::ProcessPresenterContext& context,
       QObject* parent) const final override
   {
-    auto& proc = safe_cast<const ControlProcess<Info>&>(lm);
     auto view = safe_cast<Process::EffectLayerView*>(v);
-    auto pres = new Process::EffectLayerPresenter{proc, view, context, parent};
+    auto pres = new Process::EffectLayerPresenter{lm, view, context, parent};
 
-    Control::UISetup::init<Info>(
-        static_cast<const ControlProcess<Info>&>(proc), *view, context);
+    if constexpr (HasCustomUI<Info>::value)
+    {
+      Control::CustomUISetup<Info>{lm.inlets(), *view, *view, context};
+    }
+    else if constexpr (ossia::safe_nodes::info_functions<Info>::control_count > 0)
+    {
+      Control::AutoUISetup{Info{}, lm.inlets(), *view, *view, context};
+    }
 
     return pres;
   }
@@ -115,8 +176,16 @@ private:
       QGraphicsItem* parent) const final override
   {
     auto rootItem = new score::EmptyRectItem{parent};
-    Control::UISetup::init<Info>(
-        static_cast<const ControlProcess<Info>&>(proc), *rootItem, ctx);
+
+    if constexpr (HasCustomUI<Info>::value)
+    {
+      Control::CustomUISetup<Info>{proc.inlets(), *rootItem, *rootItem, ctx};
+    }
+    else if constexpr (ossia::safe_nodes::info_functions<Info>::control_count > 0)
+    {
+      Control::AutoUISetup{Info{}, proc.inlets(), *rootItem, *rootItem, ctx};
+    }
+
     rootItem->setRect(rootItem->childrenBoundingRect());
     return rootItem;
   }

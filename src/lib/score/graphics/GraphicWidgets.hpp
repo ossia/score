@@ -186,15 +186,57 @@ private:
   void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override;
   void mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event) override;
 
+  void paint(
+      QPainter* painter,
+      const QStyleOptionGraphicsItem* option,
+      QWidget* widget) override;
+};
+
+class SCORE_LIB_BASE_EXPORT QGraphicsLogKnob final : public QObject,
+                                                    public QGraphicsItem
+{
+  W_OBJECT(QGraphicsLogKnob)
+  Q_INTERFACES(QGraphicsItem)
+  friend struct DefaultGraphicsKnobImpl;
+
+  double m_value{};
+  QRectF m_rect{};
+
+public:
+  double min{}, max{};
+
+private:
+  bool m_grab{};
+
+public:
+  QGraphicsLogKnob(QGraphicsItem* parent);
+
+  static double map(double v) { return std::exp2(v); }
+  static double unmap(double v) { return std::log2(v); }
+
+  void setRect(const QRectF& r);
+  void setValue(double v);
+  double value() const;
+  QRectF boundingRect() const override;
+
+  bool moving = false;
+
+public:
+  void valueChanged(double arg_1)
+      E_SIGNAL(SCORE_LIB_BASE_EXPORT, valueChanged, arg_1)
+  void sliderMoved() E_SIGNAL(SCORE_LIB_BASE_EXPORT, sliderMoved)
+  void sliderReleased() E_SIGNAL(SCORE_LIB_BASE_EXPORT, sliderReleased)
+
+private:
+  void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
+  void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override;
+  void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override;
+  void mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event) override;
 
   void paint(
       QPainter* painter,
       const QStyleOptionGraphicsItem* option,
       QWidget* widget) override;
-  bool isInHandle(QPointF p);
-  double getHandleX() const;
-  QRectF sliderRect() const;
-  QRectF handleRect() const;
 };
 
 class SCORE_LIB_BASE_EXPORT QGraphicsLogSlider final : public QObject,
@@ -308,19 +350,17 @@ public:
   QGraphicsComboSlider(
       const std::array<const char*, N>& arr,
       QGraphicsItem* parent)
-      : QGraphicsItem{parent}
+      : QGraphicsComboSlider{parent}
   {
     array.reserve(N);
     for (auto str : arr)
       array.push_back(str);
-
-    this->setAcceptedMouseButtons(Qt::LeftButton);
   }
 
   QGraphicsComboSlider(QStringList arr, QGraphicsItem* parent)
-      : QGraphicsItem{parent}, array{std::move(arr)}
+      : QGraphicsComboSlider{parent}
   {
-    this->setAcceptedMouseButtons(Qt::LeftButton);
+    array = std::move(arr);
   }
 
   QGraphicsComboSlider(QGraphicsItem* parent);
@@ -351,4 +391,59 @@ private:
   QRectF sliderRect() const;
   QRectF handleRect() const;
 };
+
+class SCORE_LIB_BASE_EXPORT QGraphicsEnum final
+    : public QObject
+    , public QGraphicsItem
+{
+  W_OBJECT(QGraphicsEnum)
+  Q_INTERFACES(QGraphicsItem)
+
+  int m_value{};
+  int m_clicking{-1};
+  QRectF m_rect{};
+  QRectF m_smallRect{};
+
+public:
+  QStringList array;
+  int rows{1};
+  int columns{1};
+
+  template <std::size_t N>
+  QGraphicsEnum(
+      const std::array<const char*, N>& arr,
+      QGraphicsItem* parent)
+      : QGraphicsEnum{parent}
+  {
+    array.reserve(N);
+    for (auto str : arr)
+      array.push_back(str);
+  }
+  QGraphicsEnum(QStringList arr, QGraphicsItem* parent)
+      : QGraphicsEnum{parent}
+  {
+    array = std::move(arr);
+  }
+  QGraphicsEnum(QGraphicsItem* parent);
+
+  void setRect(const QRectF& r);
+  void setValue(int v);
+  int value() const;
+  QRectF boundingRect() const override;
+
+public:
+  void currentIndexChanged(int arg_1)
+      E_SIGNAL(SCORE_LIB_BASE_EXPORT, currentIndexChanged, arg_1)
+
+private:
+  void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
+  void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override;
+  void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override;
+
+  void paint(
+      QPainter* painter,
+      const QStyleOptionGraphicsItem* option,
+      QWidget* widget) override;
+};
+
 }

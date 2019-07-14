@@ -3,6 +3,8 @@
 
 #include <ossia/detail/math.hpp>
 
+#include <QApplication>
+#include <QDesktopWidget>
 #include <QDoubleSpinBox>
 #include <QEventLoop>
 #include <QGraphicsSceneMouseEvent>
@@ -29,11 +31,11 @@ struct DefaultGraphicsKnobImpl
       QWidget* widget)
   {
     static const QPen darkPen{skin.HalfDark.color()};
-    static const QPen grayPen{skin.Gray.color()};
+    static const QPen grayPen{skin.HalfLight.color()};
 
     painter->setRenderHint(QPainter::Antialiasing, true);
 
-    constexpr const double adj = 8.;
+    constexpr const double adj = 6.;
     constexpr const double space = 50.;
     constexpr const double start = (270. - space) * 16.;
     constexpr const double totalSpan = (360. - 2. * space) * 16.;
@@ -45,7 +47,7 @@ struct DefaultGraphicsKnobImpl
     painter->setPen(QPen(skin.Background1.color(), 1));
     painter->setBrush(QBrush(skin.Background1.color()));
     painter->drawChord(r, start, -totalSpan);
-    painter->setPen(QPen(skin.Base1.color(), 1));
+    painter->setPen(QPen(skin.Base1.color(), 3, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
 
     const double valueSpan = -self.m_value * totalSpan;
     painter->drawArc(r, start, valueSpan);
@@ -62,9 +64,9 @@ struct DefaultGraphicsKnobImpl
 
     // Draw text
     painter->setPen(grayPen);
-    painter->setFont(skin.SansFontSmall);
+    painter->setFont(skin.MonoFont);
     painter->drawText(
-        QRectF{0., srect.height() - 10, srect.width(), 10.},
+        QRectF{0., srect.height() - 8, srect.width(), 10.},
         text,
         QTextOption(Qt::AlignCenter));
 
@@ -80,7 +82,7 @@ struct DefaultGraphicsKnobImpl
       self.setCursor(QCursor(Qt::BlankCursor));
       origValue = self.m_value;
       currentDelta = 0.;
-      currentGeometry = qApp->activeWindow()->windowHandle()->screen()->availableGeometry();
+      currentGeometry = qApp->primaryScreen()->availableGeometry();
     }
 
     event->accept();
@@ -133,11 +135,11 @@ struct DefaultGraphicsKnobImpl
       if (self.m_grab)
       {
         auto delta = (event->screenPos().y() - event->lastScreenPos().y());
+        double ratio = qApp->keyboardModifiers() & Qt::CTRL ? .2 : 1.;
         if(std::abs(delta) < 500)
-          currentDelta += delta;
+          currentDelta += ratio * delta;
 
-        double ratio = qApp->keyboardModifiers() & Qt::CTRL ? .5 : 1.;
-        double v = origValue + -ratio * currentDelta / currentGeometry.height();
+        double v = origValue - currentDelta / currentGeometry.height();
         double curPos = ossia::clamp(v, 0., 1.);
         if (curPos != self.m_value)
         {
