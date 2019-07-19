@@ -73,4 +73,20 @@ private:
 protected:
   QRectF m_rect{};
 };
+
+class SCORE_LIB_BASE_EXPORT BackgroundItem : public QGraphicsItem
+{
+public:
+  using QGraphicsItem::QGraphicsItem;
+
+  void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;
+  void setRect(const QRectF& r);
+  QRectF boundingRect() const final override;
+
+private:
+  void mousePressEvent(QGraphicsSceneMouseEvent* event) final override;
+  void mouseMoveEvent(QGraphicsSceneMouseEvent* event) final override;
+  void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) final override;
+  QRectF m_rect{};
+};
 }
