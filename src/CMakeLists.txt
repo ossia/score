@@ -24,3 +24,7 @@ add_subdirectory(app)
 if(SCORE_PLAYER)
   add_subdirectory(player)
 endif()
+
+if(SCORE_FX_DESIGNER)
+  add_subdirectory(fxdesigner)
+endif()
