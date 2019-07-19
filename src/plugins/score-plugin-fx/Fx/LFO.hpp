@@ -10,6 +10,76 @@
 #include <random>
 #include <tuple>
 #include <utility>
+/*
+template<typename Node>
+struct Spec
+{
+  using info = ossia::safe_nodes::info_functions<Node>;
+  ossia::safe_nodes::safe_node<Node>& node;
+
+  template<std::size_t N, typename T, typename M>
+  const auto& get(typename T::Controls)
+  {
+    return node.get_control_accessor<N + info::control_start>(node.inputs());
+  }
+  template<std::size_t N, typename T, typename M>
+  const ossia::value_port& get(typename T::ValueIns)
+  {
+    return node.inputs()[N + info::audio_in_count + info::midi_in_count];
+  }
+  template<std::size_t N, typename T, typename M>
+  ossia::value_port& get(typename T::ValueOuts)
+  {
+    return *node.outputs()[N + info::audio_out_count + info::midi_out_count]->data.template target<ossia::value_port>();
+  }
+  template<std::size_t N, typename T, typename M>
+  const ossia::audio_port& get(typename T::AudioIns)
+  {
+    return node.inputs()[N];
+  }
+  template<std::size_t N, typename T, typename M>
+  ossia::audio_port& get(typename T::AudioOuts)
+  {
+    return node.outputs()[N];
+  }
+  template<std::size_t N, typename T, typename M>
+  const ossia::midi_port& get(typename T::MidiIns)
+  {
+    return node.inputs()[N + info::audio_in_count];
+  }
+  template<std::size_t N, typename T, typename M>
+  ossia::midi_port& get(typename T::MidiOuts)
+  {
+    return node.outputs()[N + info::audio_in_count];
+  }
+};
+
+#define _get(Kind, Member) spec.get<offsetof(Metadata::Kind, Member), Metadata, decltype(std::declval<Metadata::Kind>().Member)>(Metadata::Kind{})
+*/
+/* UB:  :'(
+template<std::size_t M, typename T>
+auto struct_idx()
+{
+  auto& [a0, a1, a2, a3, a4, a5] = *((T*)nullptr);
+  if(M == (std::intptr_t)(char*)&a0) return 0;
+  if(M == (std::intptr_t)(char*)&a1) return 1;
+  if(M == (std::intptr_t)(char*)&a2) return 2;
+  if(M == (std::intptr_t)(char*)&a3) return 3;
+  if(M == (std::intptr_t)(char*)&a4) return 4;
+  if(M == (std::intptr_t)(char*)&a5) return 5;
+  return -1;
+}
+
+  static void test(Spec<Node> spec)
+  {
+
+    const std::string& type = _get(Controls, waveform);
+    ossia::value_port& out = _get(ValueOuts, out);
+
+    return struct_idx<offsetof(foo, c), foo>();
+  }
+
+*/
 namespace Nodes
 {
 
@@ -30,6 +100,23 @@ struct Node
         = make_uuid("0697b807-f588-49b5-926c-f97701edd0d8");
 
     static const constexpr value_out value_outs[]{"out"};
+
+    struct Controls
+    {
+      const Control::LogFloatSlider frequency = Control::Widgets::LFOFreqChooser();
+      const Control::FloatSlider amplitude{"Ampl.", 0., 1000., 0.};
+      const Control::FloatSlider fine_ampl{"Fine", 0., 1., 1.};
+      const Control::FloatSlider offset{"Offset", -1000., 1000., 0.};
+      const Control::FloatSlider fine_offset {"Fine", -1., 1., 0.};
+      const Control::FloatSlider jitter{"Jitter", 0., 1., 0.};
+      const Control::FloatSlider phase{"Phase", -1., 1., 0.};
+      const decltype(Control::Widgets::WaveformChooser()) waveform = Control::Widgets::WaveformChooser();
+    };
+
+    struct ValueOuts
+    {
+      const value_out out{"out"};
+    };
 
     static const constexpr auto controls = std::make_tuple(
         Control::Widgets::LFOFreqChooser(),
@@ -52,7 +139,8 @@ struct Node
   using control_policy = ossia::safe_nodes::precise_tick;
 
   static void
-  run(float freq,
+  run(
+      float freq,
       float ampl,
       float ampl_fine,
       float offset,
@@ -198,18 +286,6 @@ struct Node
   }
 
 
-  class BackgroundItem : public score::EmptyRectItem
-  {
-  public:
-    void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override
-    {
-      painter->setRenderHint(QPainter::Antialiasing, true);
-      painter->setPen(Qt::transparent);
-      painter->setBrush(Process::Style::instance().SlotOverlayBorder.getBrush());
-      painter->drawRoundedRect(m_rect, 3, 3);
-      painter->setRenderHint(QPainter::Antialiasing, false);
-    }
-  };
 
   static void item(
       Process::LogFloatSlider& freq,
@@ -229,6 +305,14 @@ struct Node
     const auto w = 70;
 
     const auto c0 = 10;
+
+    auto c0_bg = new score::BackgroundItem{&parent};
+    c0_bg->setRect({0., 0., 170., 130.});
+    auto c1_bg = new score::BackgroundItem{&parent};
+    c1_bg->setRect({170., 0., 70., 130.});
+    auto c2_bg = new score::BackgroundItem{&parent};
+    c2_bg->setRect({240., 0., 130., 130.});
+
     auto freq_item = makeControl(std::get<0>(Metadata::controls), freq, parent, context, doc, portFactory);
     freq_item.root.setPos(c0, 0);
 

@@ -1,4 +1,5 @@
 #include <score/graphics/RectItem.hpp>
+#include <score/model/Skin.hpp>
 
 #include <QGraphicsSceneEvent>
 #include <QPainter>
@@ -132,4 +133,38 @@ void EmptyRectItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
   clicked();
   event->accept();
 }
+
+void BackgroundItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+{
+  auto& style = score::Skin::instance();
+  painter->setRenderHint(QPainter::Antialiasing, true);
+  painter->setPen(style.NoPen);
+  painter->setBrush(style.Transparent2);
+  painter->drawRoundedRect(m_rect.adjusted(2., 2., -2., -2.), 3, 3);
+  painter->setRenderHint(QPainter::Antialiasing, false);
+}
+
+
+void BackgroundItem::setRect(const QRectF& r)
+{
+  prepareGeometryChange();
+  m_rect = r;
+  update();
+}
+
+
+QRectF BackgroundItem::boundingRect() const
+{
+  return m_rect;
+}
+
+
+void BackgroundItem::mousePressEvent(QGraphicsSceneMouseEvent* event) { event->accept(); }
+
+
+void BackgroundItem::mouseMoveEvent(QGraphicsSceneMouseEvent* event) { event->accept(); }
+
+
+void BackgroundItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* event) { event->accept(); }
+
 }
