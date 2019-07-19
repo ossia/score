@@ -37,6 +37,8 @@ option(DEFINE_SCORE_SCENARIO_DEBUG_RECTS "Enable to have debug rects around elem
 option(SCORE_SPLIT_DEBUG "Split debug information" ON)
 option(SCORE_COVERAGE "Enable coverage" OFF)
 
+option(SCORE_FX_DESIGNER "FX GUI designer" OFF)
+
 include("${SCORE_CONFIGURATION}")
 
 set(CMAKE_DEBUG_POSTFIX "")
