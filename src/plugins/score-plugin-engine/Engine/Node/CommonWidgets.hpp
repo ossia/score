@@ -108,13 +108,21 @@ constexpr auto DurationChooser()
   return Control::ComboBox<float, std::size(durations)>(
       "Duration", 2, durations);
 }
-constexpr auto FreqChooser()
+constexpr auto FreqSlider()
 {
   return Control::LogFloatSlider("Frequency", 1.f, 20000.f, 200.f);
 }
-constexpr auto LFOFreqChooser()
+constexpr auto LFOFreqSlider()
 {
   return Control::LogFloatSlider("Frequency", 0.01f, 100.f, 1.f);
+}
+constexpr auto FreqKnob()
+{
+  return Control::LogFloatKnob("Frequency", 1.f, 20000.f, 200.f);
+}
+constexpr auto LFOFreqKnob()
+{
+  return Control::LogFloatKnob("Frequency", 0.01f, 100.f, 1.f);
 }
 constexpr auto TimeSigChooser()
 {

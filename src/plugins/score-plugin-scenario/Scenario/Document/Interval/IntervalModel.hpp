@@ -188,7 +188,7 @@ public:
           heightPercentageChanged)
 
 private:
-  void on_addProcess(const Process::ProcessModel&);
+  void on_addProcess(Process::ProcessModel&);
   void on_removingProcess(const Process::ProcessModel&);
   void initConnections();
 

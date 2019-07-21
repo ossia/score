@@ -9,38 +9,84 @@
 #include <score/plugins/qt_interfaces/CommandFactory_QtInterface.hpp>
 #include <score/plugins/qt_interfaces/FactoryInterface_QtInterface.hpp>
 #include <score/plugins/qt_interfaces/GUIApplicationPlugin_QtInterface.hpp>
+#include <score/widgets/Layout.hpp>
 #include <score/selection/Selectable.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/serialization/JSONValueVisitor.hpp>
 #include <score/serialization/JSONVisitor.hpp>
 #include <score/serialization/VisitorCommon.hpp>
+#include <score/serialization/VariantSerialization.hpp>
 #include <score/tools/IdentifierGeneration.hpp>
+#include <score/command/PropertyCommand.hpp>
 
 #include <core/application/MinimalApplication.hpp>
 #include <core/document/DocumentModel.hpp>
 #include <score/plugins/PluginInstances.hpp>
 #include <core/presenter/DocumentManager.hpp>
+#include <Inspector/InspectorWidgetFactoryInterface.hpp>
+#include <score/command/Dispatchers/CommandDispatcher.hpp>
 
+#include <ossia/detail/apply.hpp>
 #include <QDropEvent>
 #include <QGraphicsScene>
 #include <QGraphicsView>
 #include <QHBoxLayout>
 #include <QJsonDocument>
+#include <QLineEdit>
 #include <QListWidget>
-
+#include <QMimeData>
 #include <wobjectimpl.h>
 
+#include <QCheckBox>
+#include <QSpinBox>
+#include <QInputDialog>
+#include <QMessageBox>
+#include <variant>
 #include <verdigris>
+
 namespace fxd
 {
-enum WidgetType
-{
-  Background,
-  Knob,
-  Slider,
-  Enum
-};
+struct BackgroundWidget {
+  static const constexpr QSizeF defaultSize{200., 200.};
+  static const constexpr bool keepRatio{false};
 
+  friend bool operator==(const BackgroundWidget& lhs, const BackgroundWidget& rhs) { return true; }
+  friend bool operator!=(const BackgroundWidget& lhs, const BackgroundWidget& rhs) { return false; }
+};
+struct KnobWidget {
+  static const constexpr QSizeF defaultSize{40., 40.};
+  static const constexpr bool keepRatio{true};
+
+  friend bool operator==(const KnobWidget& lhs, const KnobWidget& rhs) { return true; }
+  friend bool operator!=(const KnobWidget& lhs, const KnobWidget& rhs) { return false; }
+};
+struct SliderWidget {
+  static const constexpr QSizeF defaultSize{150., 15.};
+  static const constexpr bool keepRatio{true};
+
+  friend bool operator==(const SliderWidget& lhs, const SliderWidget& rhs) { return true; }
+  friend bool operator!=(const SliderWidget& lhs, const SliderWidget& rhs) { return false; }
+};
+struct EnumWidget {
+  static const constexpr QSizeF defaultSize{150., 50.};
+  static const constexpr bool keepRatio{false};
+
+  QStringList alternatives{"foo", "bar", "baz"};
+  int rows{1};
+  int columns{3};
+  friend bool operator==(const EnumWidget& lhs, const EnumWidget& rhs) { return lhs.alternatives == rhs.alternatives && lhs.rows == rhs.rows && lhs.columns == rhs.columns; }
+  friend bool operator!=(const EnumWidget& lhs, const EnumWidget& rhs) { return !(lhs == rhs); }
+};
+using WidgetImpl = eggs::variant<BackgroundWidget, KnobWidget, SliderWidget, EnumWidget>;
+}
+Q_DECLARE_METATYPE(fxd::WidgetImpl)
+W_REGISTER_ARGTYPE(fxd::WidgetImpl)
+JSON_METADATA(fxd::BackgroundWidget, "Background")
+JSON_METADATA(fxd::KnobWidget, "Knob")
+JSON_METADATA(fxd::SliderWidget, "Slider")
+JSON_METADATA(fxd::EnumWidget, "Enum")
+namespace fxd
+{
 class Widget : public IdentifiedObject<Widget>
 {
   W_OBJECT(Widget)
@@ -55,6 +101,13 @@ public:
   ~Widget() {}
   Widget(Id<Widget> c, QObject* parent) : IdentifiedObject{c, "Widget", parent}
   {
+    selection.setParent(this);
+    connect(this, &Widget::dataChanged,
+            this, [this] (const WidgetImpl& t) {
+      eggs::variants::apply([this] (const auto& t) {
+        setSize(t.defaultSize);
+      }, t);
+    });
   }
 
   Widget(DataStream::Deserializer& vis, QObject* parent)
@@ -78,120 +131,284 @@ public:
     vis.writeTo(*this);
   }
 
-  QString name() const { return m_name; }
+  INLINE_PROPERTY_CREF(QString, name, {}, name, setName, nameChanged)
+  //INLINE_PROPERTY_VALUE(int, widgetType, {}, widgetType, setWidgetType, widgetTypeChanged)
+  INLINE_PROPERTY_VALUE(int, controlIndex, {}, controlIndex, setControlIndex, controlIndexChanged)
+  INLINE_PROPERTY_VALUE(bool, enableText, {true}, enableText, setTextEnabled, textEnabledChanged)
+  INLINE_PROPERTY_VALUE(QPointF, pos, {}, pos, setPos, posChanged)
+  INLINE_PROPERTY_VALUE(QSizeF, size, {}, size, setSize, sizeChanged)
+  INLINE_PROPERTY_VALUE(WidgetImpl, data, {}, data, setData, dataChanged)
+  INLINE_PROPERTY_VALUE(QString, fxCode, {}, fxCode, setFxCode, fxCodeChanged)
 
-  int widgetType() const { return m_widgetType; }
-
-  QPointF pos() const { return m_pos; }
-
-  QSizeF size() const { return m_size; }
-
-  QVariant data() const { return m_data; }
-
-  void setName(QString name)
+  QString code(QString variable) const
   {
-    if (m_name == name)
-      return;
+    struct
+    {
+      const Widget& self;
+      QString& variable;
 
-    m_name = name;
-    nameChanged(m_name);
+      QString code;
+      void operator()(BackgroundWidget) noexcept
+      {
+        code += QString("    auto %1 = new score::BackgroundItem{&parent};\n")
+              .arg(variable);
+        code += QString("    c0_bg->setRect({%1, %2, %3, %4});\n")
+              .arg(self.pos().x())
+              .arg(self.pos().y())
+              .arg(self.size().width())
+              .arg(self.size().height())
+            ;
+      }
+      void operator()(SliderWidget) noexcept
+      {
+
+        code += QString("    auto %1_item = %2("
+                        "std::get<%3>(Metadata::controls), "
+                        "%1, "
+                        "parent, context, doc, portFactory);\n")
+            .arg(variable)
+            .arg(self.enableText() ? "makeControl" : "makeControlNoText")
+            .arg(self.controlIndex());
+        code += QString("    %1_item.root.setPos(%2, %3);\n")
+            .arg(variable)
+            .arg(self.pos().x())
+            .arg(self.pos().y());
+      }
+      void operator()(KnobWidget) noexcept
+      {
+        operator()(SliderWidget{});
+      }
+      void operator()(EnumWidget) noexcept
+      {
+
+      }
+      void operator()() noexcept
+      {
+
+      }
+    } op{*this, variable};
+    ossia::apply(op, data());
+    return op.code;
   }
 
-  void setWidgetType(int widgetType)
+  bool keepRatio() const
   {
-    if (m_widgetType == widgetType)
-      return;
-
-    m_widgetType = widgetType;
-    widgetTypeChanged(m_widgetType);
+    return eggs::variants::apply([this] (const auto& t) {
+      return t.keepRatio;
+    }, m_data);
   }
-
-  void setPos(QPointF pos)
-  {
-    if (m_pos == pos)
-      return;
-
-    m_pos = pos;
-    posChanged(m_pos);
-  }
-
-  void setSize(QSizeF size)
-  {
-    if (m_size == size)
-      return;
-
-    m_size = size;
-    sizeChanged(m_size);
-  }
-
-  void setData(QVariant data)
-  {
-    if (m_data == data)
-      return;
-
-    m_data = data;
-    dataChanged(m_data);
-  }
-
-  void nameChanged(QString name) W_SIGNAL(nameChanged, name)
-
-  void widgetTypeChanged(int widgetType)
-  W_SIGNAL(widgetTypeChanged, widgetType)
-
-  void posChanged(QPointF pos) W_SIGNAL(posChanged, pos)
-
-  void sizeChanged(QSizeF size) W_SIGNAL(sizeChanged, size)
-
-  void dataChanged(QVariant data)
-  W_SIGNAL(dataChanged, data)
-
-  private
-    : W_PROPERTY(QString, name READ name WRITE setName NOTIFY nameChanged)
-    W_PROPERTY(
-    int,
-      widgetType READ widgetType WRITE setWidgetType NOTIFY
-      widgetTypeChanged)
-    W_PROPERTY(
-    QPointF,
-      pos READ pos WRITE setPos NOTIFY posChanged)
-    W_PROPERTY(
-    QSizeF,
-      size READ size WRITE setSize NOTIFY sizeChanged)
-    W_PROPERTY(
-    QVariant,
-      data READ data WRITE setData NOTIFY dataChanged)
-
-    QString m_name{};
-  int m_widgetType{};
-  QPointF m_pos{};
-  QSizeF m_size{};
-  QVariant m_data{};
 };
 
-class FxModel;
-inline FxModel* fxModel{};
-class FxModel : public QObject
+
+class DocumentModel final : public score::DocumentDelegateModel,
+                            public Nano::Observer
 {
+  W_OBJECT(DocumentModel)
+  SCORE_SERIALIZE_FRIENDS
 public:
-  FxModel() { fxModel = this; }
+  DocumentModel(const score::DocumentContext& ctx, QObject* parent)
+      : score::DocumentDelegateModel{Id<score::DocumentDelegateModel>(
+                                         score::id_generator::getFirstId()),
+                                     "FXDocument",
+                                     parent}
+      , m_context{ctx}
+  {
+  QFile f("/home/jcelerier/score/src/plugins/score-plugin-fx/Fx/LFO.hpp");
+  f.open(QIODevice::ReadOnly);
+  loadCode(f.readAll());
+  }
+
+
+  void loadCode(QString code)
+  {
+    QString controls_start = code.mid(code.indexOf("make_tuple(") + strlen("make_tuple(")).simplified();
+    auto controls = controls_start.mid(0, controls_start.indexOf(";")).split(", Control::");
+    int i = 0;
+    for(QString& control : controls)
+    {
+      control.remove(QRegularExpression(".*::"));
+
+      /**
+         TODO :
+         ::DurationChooser(
+         ::FloatSlider(
+         ::IntSlider(
+         ::LFOFreqKnob(
+         ::LFOFreqSlider(
+         ::LineEdit(
+         ::MidiChannel(
+         ::MidiSpinbox(
+         ::MusicalDurationChooser(
+         ::OctaveSlider(
+         ::QuantificationChooser(
+         ::TempoChooser(
+         ::TimeSigChooser(
+         ::WaveformChooser(
+         ::ChooserToggle{
+         ::FloatKnob{
+         ::FloatSlider{
+         ::IntSlider{
+       */
+
+
+      auto widget = new Widget{getStrongId(widgets), this};
+      widget->setControlIndex(i);
+      widget->setName(QString("control_%1").arg(i));
+      widget->setFxCode(control);
+      if(control.contains("Knob"))
+      {
+        widget->setData(KnobWidget{});
+      }
+      else if(control.contains("FloatSlider"))
+      {
+        widget->setData(SliderWidget{});
+      }
+      else if(control.contains("Waveform"))
+      {
+        widget->setData(EnumWidget{{"Sin","Triangle",  "Saw", "Square", "Sample & Hold", "Noise 1", "Noise 2", "Noise 3"}, 2, 4});
+      }
+      widgets.add(widget);
+      i++;
+    }
+  }
+
+  template <typename Impl>
+  DocumentModel(Impl& vis, const score::DocumentContext& ctx, QObject* parent)
+      : score::DocumentDelegateModel{vis, parent}, m_context{ctx}
+  {
+    vis.writeTo(*this);
+  }
+
+  ~DocumentModel() override {}
+
+  void serialize(const VisitorVariant& vis) const override
+  {
+    serialize_dyn(vis, *this);
+  }
 
   score::EntityMap<Widget> widgets;
+private:
+  const score::DocumentContext& m_context;
 };
+
+auto& fxModel(const score::DocumentContext& ctx)
+{
+  return static_cast<DocumentModel&>(ctx.document.model().modelDelegate());
+}
 
 }
 W_OBJECT_IMPL(fxd::Widget)
 
 template <>
+void DataStreamReader::read(const fxd::BackgroundWidget& w)
+{
+  insertDelimiter();
+}
+
+template <>
+void DataStreamWriter::write(fxd::BackgroundWidget& w)
+{
+  checkDelimiter();
+}
+
+template <>
+void JSONObjectReader::read(const fxd::BackgroundWidget& w)
+{
+}
+
+template <>
+void JSONObjectWriter::write(fxd::BackgroundWidget& w)
+{
+}
+
+
+template <>
+void DataStreamReader::read(const fxd::SliderWidget& w)
+{
+  insertDelimiter();
+}
+
+template <>
+void DataStreamWriter::write(fxd::SliderWidget& w)
+{
+  checkDelimiter();
+}
+
+template <>
+void JSONObjectReader::read(const fxd::SliderWidget& w)
+{
+}
+
+template <>
+void JSONObjectWriter::write(fxd::SliderWidget& w)
+{
+}
+
+
+template <>
+void DataStreamReader::read(const fxd::EnumWidget& w)
+{
+  m_stream << w.alternatives << w.columns << w.rows;
+  insertDelimiter();
+}
+
+template <>
+void DataStreamWriter::write(fxd::EnumWidget& w)
+{
+  m_stream >> w.alternatives >> w.columns >> w.rows;
+  checkDelimiter();
+}
+
+template <>
+void JSONObjectReader::read(const fxd::EnumWidget& w)
+{
+  obj["Alternatives"] = toJsonArray(w.alternatives);
+  obj["Columns"] = w.columns;
+  obj["Rows"] = w.rows;
+}
+
+template <>
+void JSONObjectWriter::write(fxd::EnumWidget& w)
+{
+  fromJsonArray(obj["Alternatives"].toArray(), w.alternatives);
+  w.columns = obj["Columns"].toInt();
+  w.rows = obj["Rows"].toInt();
+}
+
+
+template <>
+void DataStreamReader::read(const fxd::KnobWidget& w)
+{
+  insertDelimiter();
+}
+
+template <>
+void DataStreamWriter::write(fxd::KnobWidget& w)
+{
+  checkDelimiter();
+}
+
+template <>
+void JSONObjectReader::read(const fxd::KnobWidget& w)
+{
+}
+
+template <>
+void JSONObjectWriter::write(fxd::KnobWidget& w)
+{
+}
+
+template <>
 void DataStreamReader::read(const fxd::Widget& w)
 {
-  m_stream << w.m_name << w.m_widgetType << w.m_pos << w.m_size << w.m_data;
+  m_stream << w.m_name << w.m_pos << w.m_size << w.m_data;
   insertDelimiter();
 }
 
 template <>
 void DataStreamWriter::write(fxd::Widget& w)
 {
-  m_stream >> w.m_name >> w.m_widgetType >> w.m_pos >> w.m_size >> w.m_data;
+  m_stream >> w.m_name >> w.m_pos >> w.m_size >> w.m_data;
   checkDelimiter();
 }
 
@@ -199,23 +416,67 @@ template <>
 void JSONObjectReader::read(const fxd::Widget& w)
 {
   obj["Name"] = w.m_name;
-  obj["Type"] = w.m_widgetType;
   obj["Pos"] = toJsonValue(w.m_pos);
   obj["Size"] = toJsonValue(w.m_size);
-  // TODO  obj["Data"] = toJsonValue(w.m_data);
+  obj["Data"] = toJsonObject(w.m_data);
 }
 
 template <>
 void JSONObjectWriter::write(fxd::Widget& w)
 {
   w.m_name = obj["Name"].toString();
-  w.m_widgetType = obj["Type"].toInt();
   w.m_pos = fromJsonValue<QPointF>(obj["Pos"]);
   w.m_size = fromJsonValue<QSizeF>(obj["Size"]);
-  // TODO  w.m_data      = fromJsonValue<QVariant>(obj["Data"]);
+  w.m_data = fromJsonObject<decltype(w.m_data)>(obj["Data"]);
 }
 
-#include <QMimeData>
+template <>
+void DataStreamReader::read(const fxd::DocumentModel& doc)
+{
+  const auto& widgets = doc.widgets;
+  m_stream << (int32_t)widgets.size();
+
+  for (const auto& widget : widgets)
+  {
+    readFrom(widget);
+  }
+
+  insertDelimiter();
+}
+
+template <>
+void DataStreamWriter::write(fxd::DocumentModel& doc)
+{
+  int32_t widget_count;
+  m_stream >> widget_count;
+
+  for (; widget_count-- > 0;)
+  {
+    auto wmodel = new fxd::Widget{*this, &doc};
+    doc.widgets.add(wmodel);
+  }
+  checkDelimiter();
+}
+
+template <>
+void JSONObjectReader::read(const fxd::DocumentModel& doc)
+{
+  obj["Widgets"] = toJsonArray(doc.widgets);
+}
+
+template <>
+void JSONObjectWriter::write(fxd::DocumentModel& doc)
+{
+  const auto& widgets = obj["Widgets"].toArray();
+  for (const auto& json_vref : widgets)
+  {
+    auto wmodel = new fxd::Widget{
+        JSONObject::Deserializer{json_vref.toObject()}, &doc};
+
+    doc.widgets.add(wmodel);
+  }
+}
+
 
 namespace fxd
 {
@@ -227,16 +488,10 @@ public:
     setDragEnabled(true);
     setDragDropMode(DragOnly);
     setMaximumWidth(300);
-    auto bg = new QListWidgetItem{
-        "Background",
-        this,
-        int(QListWidgetItem::UserType + WidgetType::Background)};
-    auto knob = new QListWidgetItem{
-        "Knob", this, int(QListWidgetItem::UserType + WidgetType::Knob)};
-    auto slider = new QListWidgetItem{
-        "Slider", this, int(QListWidgetItem::UserType + WidgetType::Slider)};
-    auto enumer = new QListWidgetItem{
-        "Enum", this, int(QListWidgetItem::UserType + WidgetType::Enum)};
+    auto bg = new QListWidgetItem{"Background", this};
+    auto knob = new QListWidgetItem{"Knob", this};
+    auto slider = new QListWidgetItem{"Slider", this};
+    auto enumer = new QListWidgetItem{"Enum", this};
   }
 };
 
@@ -249,23 +504,23 @@ class AddWidget final : public score::Command
 {
   SCORE_COMMAND_DECL(CommandFactoryName(), AddWidget, "Add a widget")
 public:
-  AddWidget(const FxModel& model, Id<Widget> id, WidgetType type, QPointF pos)
-      : m_id{id}, m_type{type}, m_pos{pos}
+  AddWidget(const DocumentModel& model, Id<Widget> id, WidgetImpl type, QPointF pos)
+      : m_document{model}, m_id{id}, m_type{type}, m_pos{pos}
   {
   }
 
   void undo(const score::DocumentContext& ctx) const override
   {
-    fxModel->widgets.remove(m_id);
+    fxModel(ctx).widgets.remove(m_id);
   }
 
   void redo(const score::DocumentContext& ctx) const override
   {
-    auto w = new Widget{m_id, fxModel};
+    auto& doc = m_document.find(ctx);
+    auto w = new Widget{m_id, &doc};
     w->setPos(m_pos);
-    w->setSize(QSizeF{100., 100.});
-    w->setWidgetType(m_type);
-    fxModel->widgets.add(w);
+    w->setData(m_type);
+    doc.widgets.add(w);
   }
 
 protected:
@@ -273,11 +528,28 @@ protected:
   void deserializeImpl(DataStreamOutput& s) override {}
 
 private:
+  Path<DocumentModel> m_document;
   Id<Widget> m_id;
-  WidgetType m_type{};
+  WidgetImpl m_type{};
   QPointF m_pos{};
 };
 
+WidgetImpl implForIndex(int row)
+{
+  switch(row)
+  {
+    case 0:
+      return BackgroundWidget{};
+    case 1:
+      return KnobWidget{};
+    case 2:
+      return SliderWidget{};
+    case 3:
+      return EnumWidget{};
+    default:
+      return {};
+  }
+}
 class View : public QGraphicsView
 {
 public:
@@ -302,10 +574,11 @@ public:
       QMap<int, QVariant> roles;
       s >> row >> col >> roles;
 
+      auto& fxmodel = fxModel(score::GUIAppContext().documents.currentDocument()->context());
       auto cmd = new AddWidget(
-          *fxModel,
-          getStrongId(fxModel->widgets),
-          (WidgetType)row,
+          fxmodel,
+          getStrongId(fxmodel.widgets),
+          implForIndex(row),
           mapToScene(ev->pos()));
 
       score::GUIAppContext()
@@ -317,42 +590,6 @@ public:
     ev->accept();
   }
 };
-
-class DocumentModel final : public score::DocumentDelegateModel,
-                            public Nano::Observer
-{
-  W_OBJECT(DocumentModel)
-  SCORE_SERIALIZE_FRIENDS
-public:
-  DocumentModel(const score::DocumentContext& ctx, QObject* parent)
-      : score::DocumentDelegateModel{Id<score::DocumentDelegateModel>(
-                                         score::id_generator::getFirstId()),
-                                     "FXDocument",
-                                     parent}
-      , m_context{ctx}
-  {
-  }
-
-  template <typename Impl>
-  DocumentModel(Impl& vis, const score::DocumentContext& ctx, QObject* parent)
-      : score::DocumentDelegateModel{vis, parent}, m_context{ctx}
-  {
-    vis.writeTo(*this);
-  }
-
-  ~DocumentModel() override {}
-
-  void serialize(const VisitorVariant& vis) const override
-  {
-    serialize_dyn(vis, *this);
-  }
-
-private:
-  const score::DocumentContext& m_context;
-
-  FxModel m_model;
-};
-
   class MoveHandle : public QObject, public QGraphicsItem
   {
     W_OBJECT(MoveHandle)
@@ -361,17 +598,25 @@ private:
     {
       setCursor(Qt::SizeAllCursor);
       setFlag(ItemIsMovable, true);
+      setFlag(ItemIsSelectable, true);
       setFlag(ItemSendsScenePositionChanges, true);
     }
+    void setRect(QRectF r)
+    {
+      prepareGeometryChange();
+      m_rect = r;
+      update();
+    }
+
     QRectF boundingRect() const override
     {
-      return {0., 0., 12., 12.};
+      return m_rect;
     }
     void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override
     {
-      painter->setPen(Qt::white);
-      painter->drawLine(QPointF{0., 6.}, QPointF{12., 6.});
-      painter->drawLine(QPointF{6., 0.}, QPointF{6., 12.});
+      painter->setPen(Qt::red);
+      painter->setBrush(Qt::transparent);
+      painter->drawRect(m_rect);
     }
 
     QVariant itemChange(GraphicsItemChange change, const QVariant& value) override
@@ -381,11 +626,17 @@ private:
         case GraphicsItemChange::ItemScenePositionHasChanged:
           positionChanged(value.toPointF());
           break;
+        case GraphicsItemChange::ItemSelectedHasChanged:
+          selectionChanged(value.toBool());
+          break;
       }
       return QGraphicsItem::itemChange(change, value);
     }
 
     void positionChanged(QPointF p) W_SIGNAL(positionChanged, p)
+    void selectionChanged(bool b) W_SIGNAL(selectionChanged, b)
+    private:
+      QRectF m_rect;
   };
   class ResizeHandle : public QObject, public QGraphicsItem
   {
@@ -393,7 +644,8 @@ private:
   public:
     ResizeHandle()
     {
-      setCursor(Qt::SizeAllCursor);
+      setCursor(Qt::SizeFDiagCursor);
+      setFlag(ItemIsSelectable, true);
       setFlag(ItemIsMovable, true);
       setFlag(ItemSendsScenePositionChanges, true);
     }
@@ -404,8 +656,9 @@ private:
     void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override
     {
       painter->setPen(Qt::white);
-      painter->drawLine(QPointF{11., 0.}, QPointF{12., 12.});
-      painter->drawLine(QPointF{0., 11.}, QPointF{12., 12.});
+      //painter->drawLine(QPointF{11., 0.}, QPointF{12., 12.});
+      //painter->drawLine(QPointF{0., 11.}, QPointF{12., 12.});
+      painter->drawRect(boundingRect());
     }
 
     QVariant itemChange(GraphicsItemChange change, const QVariant& value) override
@@ -419,7 +672,14 @@ private:
       return QGraphicsItem::itemChange(change, value);
     }
 
+    void mouseReleaseEvent(QGraphicsSceneMouseEvent* ev)
+    {
+      QGraphicsItem::mouseReleaseEvent(ev);
+      released();
+    }
+
     void positionChanged(QPointF p) W_SIGNAL(positionChanged, p)
+    void released() W_SIGNAL(released)
   };
 
 class DocumentView final : public score::DocumentDelegateView, public Nano::Observer
@@ -444,8 +704,9 @@ public:
 
     lay->addWidget(&m_view);
 
-    fxModel->widgets.mutable_added.connect<&DocumentView::on_widgetAdded>(
-        *this);
+    for(auto& widget : fxModel(ctx).widgets)
+      on_widgetAdded(widget);
+    fxModel(ctx).widgets.mutable_added.connect<&DocumentView::on_widgetAdded>(*this);
 
     auto item = new QGraphicsRectItem;
     item->setRect(0, 0, 800, 400);
@@ -458,62 +719,78 @@ public:
   void on_widgetAdded(Widget& w)
   {
     QGraphicsItem* item{};
-    switch (w.widgetType())
+    struct
     {
-      case WidgetType::Background:
+      Widget& w;
+      QGraphicsItem*& item;
+      DocumentView& self;
+      void operator()(const BackgroundWidget&)
       {
         auto it = new score::BackgroundItem;
         it->setZValue(1);
         item = it;
         it->setRect(QRectF{QPointF{}, w.size()});
-        createHandles(w, it);
-        break;
+        self.createHandles(w, it);
       }
-      case WidgetType::Knob:
+
+      void operator()(const KnobWidget&)
       {
         auto it = new score::QGraphicsKnob{nullptr};
         it->setZValue(10);
         item = it;
         it->setRect(QRectF{QPointF{}, w.size()});
-        createHandles(w, it);
-        break;
+        self.createHandles(w, it);
       }
-      case WidgetType::Slider:
+
+      void operator()(const SliderWidget&)
       {
         auto it = new score::QGraphicsSlider{nullptr};
         it->setZValue(10);
         item = it;
         it->setRect(QRectF{QPointF{}, w.size()});
-        createHandles(w, it);
-        break;
+        self.createHandles(w, it);
       }
-      case WidgetType::Enum:
+
+      void operator()(const EnumWidget& e)
       {
-        auto it = new score::QGraphicsEnum{nullptr};
+        auto it = new score::QGraphicsEnum{e.alternatives, nullptr};
+        it->rows = e.rows;
+        it->columns = e.columns;
         it->setZValue(10);
         item = it;
         it->setRect(QRectF{QPointF{}, w.size()});
-        createHandles(w, it);
-        break;
+        self.createHandles(w, it);
       }
-    }
+    } vis{w, item, *this};
 
+    eggs::variants::apply(vis, w.data());
     m_scene.addItem(item);
     item->setPos(w.pos());
-
   }
 
 template<typename T>
 void createHandles(Widget& w, T* item)
 {
   auto mhandle = new MoveHandle;
-  mhandle->setZValue(100);
+  mhandle->setZValue(50);
+  mhandle->setRect({QPointF{}, w.size()});
   auto rhandle = new ResizeHandle;
   rhandle->setZValue(100);
+
   // Move handle
   {
     m_scene.addItem(mhandle);
-    mhandle->setPos(w.pos() + QPointF{-3, -3});
+    mhandle->setPos(w.pos());
+    connect(mhandle, &MoveHandle::selectionChanged,
+            this, [=, &w] (bool b) {
+      if(b)
+      {
+      score::GUIAppContext()
+          .documents.currentDocument()
+          ->selectionStack().pushNewSelection({&w});
+      }
+
+    });
     connect(mhandle, &MoveHandle::positionChanged,
             this, [=, &w] (QPointF pos) {
       if(w.resizing)
@@ -530,14 +807,30 @@ void createHandles(Widget& w, T* item)
   {
     m_scene.addItem(rhandle);
     rhandle->setPos(w.pos() + QPointF{w.size().width(), w.size().height()});
+    connect(rhandle, &ResizeHandle::released,
+            this, [=, &w] {
+      w.moving = true;
+      rhandle->setPos(w.pos() + QPointF{w.size().width(), w.size().height()});
+      w.moving = false;
+    });
     connect(rhandle, &ResizeHandle::positionChanged,
             this, [=, &w] (QPointF pos) {
       if(w.moving)
         return;
-      w.resizing = true;
       auto p = item->mapFromScene(pos);
+      if(p.x() < 10 || p.y() < 10)
+        return;
+
+      w.resizing = true;
+      if(w.keepRatio())
+      {
+        double curRatio = w.size().width() / w.size().height();
+        p = {curRatio * p.y(), p.y()};
+      }
+
       w.setSize({p.x(), p.y()});
       item->setRect({QPointF{}, p});
+      mhandle->setRect({QPointF{}, p});
       w.resizing = false;
     });
   }
@@ -652,34 +945,253 @@ class DocumentFactory final : public score::DocumentDelegateFactory
     });
   }
 };
+
+/// Code display
+void showCode()
+{
+  auto doc = score::GUIAppContext().documents.currentDocument();
+  if(!doc)
+    return;
+
+  auto& fx = fxModel(doc->context());
+
+  QString code;
+  int unnamed_count = 0;
+
+  for(const Widget& widget : fx.widgets)
+  {
+    QString name = widget.name();
+    if(name.isEmpty())
+      name = QString("item%1").arg(unnamed_count++);
+
+    code += widget.code(name) + "\n";
+  }
+
+  QInputDialog::getMultiLineText(nullptr, "code", "", code);
 }
+
+/// Inspectors
+
+#define INSPECTOR_FACTORY(Factory, InspModel, InspObject, Uuid)               \
+  class Factory final : public Inspector::InspectorWidgetFactory              \
+  {                                                                           \
+    SCORE_CONCRETE(Uuid)                                                      \
+  public:                                                                     \
+    Factory() = default;                                                      \
+                                                                              \
+    QWidget* make(                                                            \
+        const InspectedObjects& sourceElements,                               \
+        const score::DocumentContext& doc,                                    \
+        QWidget* parent) const override                                       \
+    {                                                                         \
+      return new InspObject{                                                  \
+          safe_cast<const InspModel&>(*sourceElements.first()), doc, parent}; \
+    }                                                                         \
+                                                                              \
+    bool matches(const InspectedObjects& objects) const override              \
+    {                                                                         \
+      return dynamic_cast<const InspModel*>(objects.first());                 \
+    }                                                                         \
+  };
+
+template <typename T, typename U>
+struct WidgetFactory
+{
+  const U& object;
+  const score::DocumentContext& ctx;
+  Inspector::Layout& layout;
+  QWidget* parent;
+
+  QString prettyText(QString str)
+  {
+    SCORE_ASSERT(!str.isEmpty());
+    str[0] = str[0].toUpper();
+    for (int i = 1; i < str.size(); i++)
+    {
+      if (str[i].isUpper())
+      {
+        str.insert(i, ' ');
+        i++;
+      }
+    }
+    return QObject::tr(str.toUtf8().constData());
+  }
+
+  void setup()
+  {
+    if (auto widg = make((object.*(T::get()))()); widg != nullptr)
+      layout.addRow(prettyText(T::name), (QWidget*)widg);
+  }
+
+  void setup(QString txt)
+  {
+    if (auto widg = make((object.*(T::get()))()); widg != nullptr)
+      layout.addRow(txt, (QWidget*)widg);
+  }
+
+  template <typename X>
+  auto make(X*) = delete;
+
+  auto make(bool c)
+  {
+    using cmd =
+        typename score::PropertyCommand_T<T>::template command<void>::type;
+    auto cb = new QCheckBox{parent};
+    cb->setCheckState(c ? Qt::Checked : Qt::Unchecked);
+
+    QObject::connect(
+        cb,
+        &QCheckBox::stateChanged,
+        parent,
+        [& object = this->object, &ctx = this->ctx](int state) {
+          bool cur = (object.*(T::get()))();
+          if ((state == Qt::Checked && !cur)
+              || (state == Qt::Unchecked && cur))
+          {
+            CommandDispatcher<> disp{ctx.commandStack};
+            disp.submit(
+                new cmd{object, state == Qt::Checked ? true : false});
+          }
+        });
+
+    QObject::connect(&object, T::notify(), parent, [cb](bool cs) {
+      if (cs != cb->checkState())
+        cb->setCheckState(cs ? Qt::Checked : Qt::Unchecked);
+    });
+    return cb;
+  }
+
+  auto make(int c)
+  {
+    using cmd =
+        typename score::PropertyCommand_T<T>::template command<void>::type;
+    auto sb = new QSpinBox{parent};
+    sb->setValue(c);
+    sb->setRange(0, 100);
+
+    QObject::connect(
+        sb,
+        SignalUtils::QSpinBox_valueChanged_int(),
+        parent,
+        [& object = this->object, &ctx = this->ctx](int state) {
+          int cur = (object.*(T::get()))();
+          if (state != cur)
+          {
+            CommandDispatcher<> disp{ctx.commandStack};
+            disp.submit(new cmd{object, state});
+          }
+        });
+
+    QObject::connect(&object, T::notify(), parent, [sb](int cs) {
+      if (cs != sb->value())
+        sb->setValue(cs);
+    });
+    return sb;
+  }
+
+  auto make(const QString& cur)
+  {
+    using cmd =
+        typename score::PropertyCommand_T<T>::template command<void>::type;
+    auto l = new QLineEdit{cur, parent};
+    l->setSizePolicy(QSizePolicy::Policy{}, QSizePolicy::MinimumExpanding);
+    QObject::connect(
+        l,
+        &QLineEdit::editingFinished,
+        parent,
+        [l, &object = this->object, &ctx = this->ctx]() {
+          const auto& cur = (object.*(T::get()))();
+          if (l->text() != cur)
+          {
+            CommandDispatcher<> disp{ctx.commandStack};
+            disp.submit(new cmd{object, l->text()});
+          }
+        });
+
+    QObject::connect(&object, T::notify(), parent, [l](const QString& txt) {
+      if (txt != l->text())
+        l->setText(txt);
+    });
+    return l;
+  }
+};
+
+template <typename T, typename U>
+auto setup_inspector(
+    T,
+    const U& sc,
+    const score::DocumentContext& doc,
+    Inspector::Layout& layout,
+    QWidget* parent)
+{
+  WidgetFactory<T, U>{sc, doc, layout, parent}.setup();
+}
+
+template <typename T, typename U>
+auto setup_inspector(
+    T,
+    QString txt,
+    const U& sc,
+    const score::DocumentContext& doc,
+    Inspector::Layout& layout,
+    QWidget* parent)
+{
+  WidgetFactory<T, U>{sc, doc, layout, parent}.setup(txt);
+}
+
+class WidgetInspector : public QWidget
+{
+public:
+  WidgetInspector(
+      const Widget& sc,
+      const score::DocumentContext& doc,
+      QWidget* parent)
+      : QWidget{parent}
+  {
+    auto lay = new Inspector::Layout{this};
+    lay->addWidget(new QLabel{sc.fxCode()});
+    setup_inspector(Widget::p_name{}, sc, doc, *lay, this);
+    setup_inspector(Widget::p_enableText{}, sc, doc, *lay, this);
+    setup_inspector(Widget::p_controlIndex{}, sc, doc, *lay, this);
+  }
+};
+
+INSPECTOR_FACTORY(
+    WidgetInspectorFactory,
+    fxd::Widget,
+    fxd::WidgetInspector,
+    "a703d205-3488-4f0e-817d-19fac52e2046")
+}
+
+PROPERTY_COMMAND_T(
+    fxd,
+    SetName,
+    Widget::p_name,
+    "Set name")
+
+SCORE_COMMAND_DECL_T(fxd::SetName)
+
+PROPERTY_COMMAND_T(
+    fxd,
+    SetIndex,
+    Widget::p_controlIndex,
+    "Set index")
+
+SCORE_COMMAND_DECL_T(fxd::SetIndex)
+
+PROPERTY_COMMAND_T(
+    fxd,
+    SetEnableText,
+    Widget::p_enableText,
+    "Set text")
+
+SCORE_COMMAND_DECL_T(fxd::SetEnableText)
 
 W_OBJECT_IMPL(fxd::MoveHandle)
 W_OBJECT_IMPL(fxd::ResizeHandle)
 W_OBJECT_IMPL(fxd::DocumentModel)
 W_OBJECT_IMPL(fxd::DocumentPresenter)
 W_OBJECT_IMPL(fxd::DocumentView)
-template <>
-void DataStreamReader::read(const fxd::DocumentModel& obj)
-{
-  insertDelimiter();
-}
-
-template <>
-void DataStreamWriter::write(fxd::DocumentModel& doc)
-{
-  checkDelimiter();
-}
-
-template <>
-void JSONObjectReader::read(const fxd::DocumentModel& doc)
-{
-}
-
-template <>
-void JSONObjectWriter::write(fxd::DocumentModel& doc)
-{
-}
 
 class score_addon_fxdesigner final
     : public score::Plugin_QtInterface,
@@ -700,7 +1212,9 @@ private:
   {
     return instantiate_factories<
         score::ApplicationContext,
-        FW<score::DocumentDelegateFactory, fxd::DocumentFactory>>(ctx, key);
+        FW<score::DocumentDelegateFactory, fxd::DocumentFactory>
+        , FW<Inspector::InspectorWidgetFactory, fxd::WidgetInspectorFactory>
+        >(ctx, key);
   }
 
   std::pair<const CommandGroupKey, CommandGeneratorMap> make_commands()
@@ -719,7 +1233,22 @@ int main(int argc, char** argv)
 {
   score_addon_fxdesigner addon;
   score::staticPlugins().push_back(&addon);
+
+  QCoreApplication::setOrganizationName("OSSIA");
+  QCoreApplication::setOrganizationDomain("ossia.io");
+  QCoreApplication::setApplicationName("FX Designer");
+
+  QSettings s;
+  s.setValue("PluginSettings/Whitelist",
+             QStringList{"score_plugin_inspector"}
+             );
+
   score::MinimalGUIApplication app{argc, argv};
+
+  auto toolbar = app.view().findChildren<QToolBar*>(QString{}, Qt::FindDirectChildrenOnly).first();
+  auto act = new QAction(QObject::tr("Code"));
+  toolbar->addAction(act);
+  QObject::connect(act, &QAction::triggered, fxd::showCode);
 
   QFile f(
       "/home/jcelerier/score/src/plugins/score-plugin-scenario/Scenario/"

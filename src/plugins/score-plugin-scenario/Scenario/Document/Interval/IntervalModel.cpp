@@ -63,7 +63,7 @@ IntervalModel::~IntervalModel()
 }
 void IntervalModel::initConnections()
 {
-  processes.added.connect<&IntervalModel::on_addProcess>(this);
+  processes.mutable_added.connect<&IntervalModel::on_addProcess>(this);
   processes.removing.connect<&IntervalModel::on_removingProcess>(this);
 }
 
@@ -486,10 +486,13 @@ void IntervalModel::swapSlots(int pos1, int pos2, Slot::RackView v)
   slotsSwapped(pos1, pos2, v);
 }
 
-void IntervalModel::on_addProcess(const Process::ProcessModel& p)
+void IntervalModel::on_addProcess(Process::ProcessModel& p)
 {
   m_fullView.push_back(FullSlot{p.id()});
   slotAdded({m_fullView.size() - 1, Slot::FullView});
+  con(metadata(), &score::ModelMetadata::ColorChanged,
+      &p.metadata(), &score::ModelMetadata::setColor);
+  p.metadata().setColor(metadata().getColor());
 }
 
 void IntervalModel::on_removingProcess(const Process::ProcessModel& p)

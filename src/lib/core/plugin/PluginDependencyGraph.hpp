@@ -87,7 +87,10 @@ public:
     {
       boost::topological_sort(m_graph, std::back_inserter(topo_order));
       for (auto e : topo_order)
-        m_sorted.push_back(*m_graph[e].addon);
+      {
+        if(m_graph[e].addon)
+          m_sorted.push_back(*m_graph[e].addon);
+      }
     }
     catch (const std::exception& e)
     {

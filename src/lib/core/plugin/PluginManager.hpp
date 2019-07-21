@@ -180,7 +180,5 @@ void loadPlugins(Registrar_T& registrar, const Context_T& context)
     registerPlugins(add, registrar, context);
   }
 }
-
-QStringList pluginsBlacklist();
 }
 }

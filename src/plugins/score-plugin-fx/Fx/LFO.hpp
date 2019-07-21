@@ -101,31 +101,14 @@ struct Node
 
     static const constexpr value_out value_outs[]{"out"};
 
-    struct Controls
-    {
-      const Control::LogFloatSlider frequency = Control::Widgets::LFOFreqChooser();
-      const Control::FloatSlider amplitude{"Ampl.", 0., 1000., 0.};
-      const Control::FloatSlider fine_ampl{"Fine", 0., 1., 1.};
-      const Control::FloatSlider offset{"Offset", -1000., 1000., 0.};
-      const Control::FloatSlider fine_offset {"Fine", -1., 1., 0.};
-      const Control::FloatSlider jitter{"Jitter", 0., 1., 0.};
-      const Control::FloatSlider phase{"Phase", -1., 1., 0.};
-      const decltype(Control::Widgets::WaveformChooser()) waveform = Control::Widgets::WaveformChooser();
-    };
-
-    struct ValueOuts
-    {
-      const value_out out{"out"};
-    };
-
     static const constexpr auto controls = std::make_tuple(
-        Control::Widgets::LFOFreqChooser(),
-        Control::FloatSlider{"Ampl.", 0., 1000., 0.},
-        Control::FloatSlider{"Fine", 0., 1., 1.},
-        Control::FloatSlider{"Offset", -1000., 1000., 0.},
-        Control::FloatSlider{"Fine", -1., 1., 0.},
-        Control::FloatSlider{"Jitter", 0., 1., 0.},
-        Control::FloatSlider{"Phase", -1., 1., 0.},
+        Control::Widgets::LFOFreqKnob(),
+        Control::FloatKnob{"Ampl.", 0., 1000., 0.},
+        Control::FloatKnob{"Fine", 0., 1., 1.},
+        Control::FloatKnob{"Offset", -1000., 1000., 0.},
+        Control::FloatKnob{"Fine", -1., 1., 0.},
+        Control::FloatKnob{"Jitter", 0., 1., 0.},
+        Control::FloatKnob{"Phase", -1., 1., 0.},
         Control::Widgets::WaveformChooser());
   };
 
@@ -296,6 +279,7 @@ struct Node
       Process::FloatSlider& jitter,
       Process::FloatSlider& phase,
       Process::Enum& type,
+      const Process::ProcessModel& process,
       QGraphicsItem& parent,
       QObject& context,
       const score::DocumentContext& doc)

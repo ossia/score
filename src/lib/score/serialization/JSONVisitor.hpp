@@ -647,6 +647,15 @@ inline void fromJsonArray(QJsonArray&& json_arr, QStringList& arr)
   }
 }
 
+inline
+QJsonArray toJsonArray(const QStringList& array)
+{
+  QJsonArray arr;
+  for (auto& v : array)
+    arr.push_back(v);
+  return arr;
+}
+
 template <typename T>
 QJsonArray toJsonArray(const std::vector<T*>& array)
 {

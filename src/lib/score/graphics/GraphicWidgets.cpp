@@ -166,7 +166,9 @@ void QGraphicsPixmapToggle::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
   event->accept();
 }
 
-QGraphicsSlider::QGraphicsSlider(QGraphicsItem* parent) : QGraphicsItem{parent}
+QGraphicsSlider::QGraphicsSlider(QGraphicsItem* parent)
+  : QGraphicsItem{parent}
+  , m_rect{0., 0., 150., 15.}
 {
   this->setAcceptedMouseButtons(Qt::LeftButton | Qt::RightButton);
 }
@@ -250,7 +252,9 @@ QRectF QGraphicsSlider::handleRect() const
 
 
 
-QGraphicsKnob::QGraphicsKnob(QGraphicsItem* parent) : QGraphicsItem{parent}
+QGraphicsKnob::QGraphicsKnob(QGraphicsItem* parent)
+  : QGraphicsItem{parent}
+  , m_rect{0., 0., 40., 40.}
 {
   this->setAcceptedMouseButtons(Qt::LeftButton | Qt::RightButton);
 }
@@ -314,6 +318,7 @@ void QGraphicsKnob::paint(
 
 QGraphicsLogSlider::QGraphicsLogSlider(QGraphicsItem* parent)
     : QGraphicsItem{parent}
+    , m_rect{0., 0., 150., 15.}
 {
   this->setAcceptedMouseButtons(Qt::LeftButton | Qt::RightButton);
 }
@@ -396,7 +401,9 @@ QRectF QGraphicsLogSlider::handleRect() const
 
 
 
-QGraphicsLogKnob::QGraphicsLogKnob(QGraphicsItem* parent) : QGraphicsItem{parent}
+QGraphicsLogKnob::QGraphicsLogKnob(QGraphicsItem* parent)
+  : QGraphicsItem{parent}
+  , m_rect{0., 0., 40., 40.}
 {
   this->setAcceptedMouseButtons(Qt::LeftButton | Qt::RightButton);
 }

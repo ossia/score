@@ -25,7 +25,7 @@ struct Node
 
     static const constexpr auto controls = std::make_tuple(
         Control::Widgets::MusicalDurationChooser(),
-        Control::Widgets::LFOFreqChooser(),
+        Control::Widgets::LFOFreqSlider(),
         Control::ChooserToggle{"Quantify", {"Free", "Sync"}, false},
         Control::Widgets::TempoChooser());
   };
