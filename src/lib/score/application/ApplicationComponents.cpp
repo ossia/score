@@ -18,6 +18,7 @@ ApplicationComponentsData::~ApplicationComponentsData()
   for (auto& sub_map : commands)
     for (auto& pr : sub_map.second)
       delete pr.second;
+  commands.clear();
   /*
    for(auto& elt : settings)
    {
@@ -28,11 +29,13 @@ ApplicationComponentsData::~ApplicationComponentsData()
   {
     delete elt;
   }
+  guiAppPlugins.clear();
 
   for (auto& elt : appPlugins)
   {
     delete elt;
   }
+  appPlugins.clear();
 
   const auto& static_plugs = score::staticPlugins();
   for (auto& elt : addons)
@@ -50,6 +53,7 @@ ApplicationComponentsData::~ApplicationComponentsData()
       }
     }
   }
+  addons.clear();
 }
 
 Command*

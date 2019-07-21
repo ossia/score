@@ -17,64 +17,27 @@ class Inlet : public QObject
 {
   W_OBJECT(Inlet)
 
-  QString m_address;
-
 public:
   using QObject::QObject;
   virtual ~Inlet() override;
   virtual Process::Inlet* make(Id<Process::Port>&& id, QObject*) = 0;
-
-  QString address() const { return m_address; }
-
   virtual bool is_control() const { return false; }
 
-public:
-  void setAddress(QString address)
-  {
-    if (m_address == address)
-      return;
-
-    m_address = address;
-    addressChanged(m_address);
-  };
-  W_SLOT(setAddress)
-public:
-  void addressChanged(QString address) W_SIGNAL(addressChanged, address);
-
-  W_PROPERTY(
-      QString,
-      address READ address WRITE setAddress NOTIFY addressChanged)
+  W_INLINE_PROPERTY_CREF(QString, address, {}, address, setAddress, addressChanged)
 };
+
 class Outlet : public QObject
 {
   W_OBJECT(Outlet)
-
-  QString m_address;
 
 public:
   using QObject::QObject;
   virtual ~Outlet() override;
   virtual Process::Outlet* make(Id<Process::Port>&& id, QObject*) = 0;
 
-  QString address() const { return m_address; }
-
-public:
-  void setAddress(QString address)
-  {
-    if (m_address == address)
-      return;
-
-    m_address = address;
-    addressChanged(m_address);
-  };
-  W_SLOT(setAddress)
-public:
-  void addressChanged(QString address) W_SIGNAL(addressChanged, address);
-
-  W_PROPERTY(
-      QString,
-      address READ address WRITE setAddress NOTIFY addressChanged)
+  W_INLINE_PROPERTY_CREF(QString, address, {}, address, setAddress, addressChanged)
 };
+
 struct ValueMessage
 {
   W_GADGET(ValueMessage)
@@ -144,9 +107,6 @@ class FloatSlider : public ValueInlet
 public:
   using ValueInlet::ValueInlet;
   virtual ~FloatSlider() override;
-  qreal getMin() const { return m_min; }
-  qreal getMax() const { return m_max; }
-  qreal init() const { return m_init; }
   bool is_control() const override { return true; }
 
   Process::Inlet* make(Id<Process::Port>&& id, QObject* parent) override
@@ -155,50 +115,9 @@ public:
         (float)m_min, (float)m_max, (float)m_init, objectName(), id, parent};
   }
 
-public:
-  void minChanged(qreal arg_1) W_SIGNAL(minChanged, arg_1);
-  void maxChanged(qreal arg_1) W_SIGNAL(maxChanged, arg_1);
-  void initChanged(qreal arg_1) W_SIGNAL(initChanged, arg_1);
-
-public:
-  void setMin(qreal m)
-  {
-    if (m != m_min)
-    {
-      m_min = m;
-      minChanged(m);
-    }
-  };
-  W_SLOT(setMin)
-
-  void setMax(qreal m)
-  {
-    if (m != m_max)
-    {
-      m_max = m;
-      maxChanged(m);
-    }
-  };
-  W_SLOT(setMax)
-
-  void setInit(qreal m)
-  {
-    if (m != m_init)
-    {
-      m_init = m;
-      initChanged(m);
-    }
-  };
-  W_SLOT(setInit)
-
-private:
-  qreal m_min{0.};
-  qreal m_max{1.};
-  qreal m_init{0.5};
-
-  W_PROPERTY(qreal, init READ init WRITE setInit NOTIFY initChanged)
-  W_PROPERTY(qreal, max READ getMax WRITE setMax NOTIFY maxChanged)
-  W_PROPERTY(qreal, min READ getMin WRITE setMin NOTIFY minChanged)
+  W_INLINE_PROPERTY_VALUE(qreal, init, {0.5}, init, setInit, initChanged)
+  W_INLINE_PROPERTY_VALUE(qreal, min,  {0.}, getMin, setMin, minChanged)
+  W_INLINE_PROPERTY_VALUE(qreal, max,  {1.}, getMax, setMax, maxChanged)
 };
 
 class IntSlider : public ValueInlet
@@ -208,9 +127,6 @@ class IntSlider : public ValueInlet
 public:
   using ValueInlet::ValueInlet;
   virtual ~IntSlider() override;
-  int getMin() const { return m_min; }
-  int getMax() const { return m_max; }
-  int init() const { return m_init; }
   bool is_control() const override { return true; }
 
   Process::Inlet* make(Id<Process::Port>&& id, QObject* parent) override
@@ -219,50 +135,9 @@ public:
         m_min, m_max, m_init, objectName(), id, parent};
   }
 
-public:
-  void minChanged(int arg_1) W_SIGNAL(minChanged, arg_1);
-  void maxChanged(int arg_1) W_SIGNAL(maxChanged, arg_1);
-  void initChanged(int arg_1) W_SIGNAL(initChanged, arg_1);
-
-public:
-  void setMin(int m)
-  {
-    if (m != m_min)
-    {
-      m_min = m;
-      minChanged(m);
-    }
-  };
-  W_SLOT(setMin)
-
-  void setMax(int m)
-  {
-    if (m != m_max)
-    {
-      m_max = m;
-      maxChanged(m);
-    }
-  };
-  W_SLOT(setMax)
-
-  void setInit(int m)
-  {
-    if (m != m_init)
-    {
-      m_init = m;
-      initChanged(m);
-    }
-  };
-  W_SLOT(setInit)
-
-private:
-  int m_min{0};
-  int m_max{127};
-  int m_init{0};
-
-  W_PROPERTY(int, init READ init WRITE setInit NOTIFY initChanged)
-  W_PROPERTY(int, max READ getMax WRITE setMax NOTIFY maxChanged)
-  W_PROPERTY(int, min READ getMin WRITE setMin NOTIFY minChanged)
+  W_INLINE_PROPERTY_VALUE(int, init, {0}, init, setInit, initChanged)
+  W_INLINE_PROPERTY_VALUE(int, min,  {0}, getMin, setMin, minChanged)
+  W_INLINE_PROPERTY_VALUE(int, max,  {127}, getMax, setMax, maxChanged)
 };
 
 class Enum : public ValueInlet
@@ -272,8 +147,6 @@ class Enum : public ValueInlet
 public:
   using ValueInlet::ValueInlet;
   virtual ~Enum() override;
-  int index() const { return m_index; }
-  QStringList choices() const { return m_choices; }
   bool is_control() const override { return true; }
 
   Process::Inlet* make(Id<Process::Port>&& id, QObject* parent) override
@@ -292,39 +165,8 @@ public:
     return {};
   }
 
-public:
-  void choicesChanged(QStringList arg_1) W_SIGNAL(choicesChanged, arg_1);
-  void indexChanged(int arg_1) W_SIGNAL(indexChanged, arg_1);
-
-public:
-  void setChoices(const QStringList& m)
-  {
-    if (m != m_choices)
-    {
-      m_choices = m;
-      choicesChanged(m);
-    }
-  };
-  W_SLOT(setChoices)
-
-  void setIndex(int m)
-  {
-    if (m != m_index)
-    {
-      m_index = m;
-      indexChanged(m);
-    }
-  };
-  W_SLOT(setIndex)
-
-private:
-  QStringList m_choices{};
-  int m_index{};
-
-  W_PROPERTY(int, index READ index WRITE setIndex NOTIFY indexChanged)
-  W_PROPERTY(
-      QStringList,
-      choices READ choices WRITE setChoices NOTIFY choicesChanged)
+  W_INLINE_PROPERTY_VALUE(int, index, {}, index, setIndex, indexChanged)
+  W_INLINE_PROPERTY_CREF(QStringList, choices, {}, choices, setChoices,choicesChanged)
 };
 
 class Toggle : public ValueInlet
@@ -334,31 +176,13 @@ class Toggle : public ValueInlet
 public:
   using ValueInlet::ValueInlet;
   virtual ~Toggle() override;
-  bool checked() const { return m_checked; }
   bool is_control() const override { return true; }
   Process::Inlet* make(Id<Process::Port>&& id, QObject* parent) override
   {
     return new Process::Toggle{m_checked, objectName(), id, parent};
   }
 
-public:
-  void checkedChanged(bool arg_1) W_SIGNAL(checkedChanged, arg_1);
-
-public:
-  void setChecked(bool m)
-  {
-    if (m != m_checked)
-    {
-      m_checked = m;
-      checkedChanged(m);
-    }
-  };
-  W_SLOT(setChecked)
-
-private:
-  bool m_checked{};
-
-  W_PROPERTY(bool, checked READ checked WRITE setChecked NOTIFY checkedChanged)
+  W_INLINE_PROPERTY_VALUE(bool, checked, {}, checked, setChecked, checkedChanged)
 };
 
 class LineEdit : public ValueInlet
@@ -368,31 +192,13 @@ class LineEdit : public ValueInlet
 public:
   using ValueInlet::ValueInlet;
   virtual ~LineEdit() override;
-  QString text() const { return m_text; }
   bool is_control() const override { return true; }
   Process::Inlet* make(Id<Process::Port>&& id, QObject* parent) override
   {
     return new Process::LineEdit{m_text, objectName(), id, parent};
   }
 
-public:
-  void textChanged(QString arg_1) W_SIGNAL(textChanged, arg_1);
-
-public:
-  void setText(QString m)
-  {
-    if (m != m_text)
-    {
-      m_text = m;
-      textChanged(m);
-    }
-  };
-  W_SLOT(setText)
-
-private:
-  QString m_text{};
-
-  W_PROPERTY(QString, text READ text WRITE setText NOTIFY textChanged)
+  W_INLINE_PROPERTY_CREF(QString, text, {}, text, setText, textChanged)
 };
 
 class ValueOutlet : public Outlet

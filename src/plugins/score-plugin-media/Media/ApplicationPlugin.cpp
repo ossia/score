@@ -142,16 +142,19 @@ ApplicationPlugin::ApplicationPlugin(const score::ApplicationContext& app)
         addVST(obj["Path"].toString(), obj);
         int id = obj["Request"].toInt();
 
-        m_processes[id].process->close();
-        if(m_processes[id].process->state() == QProcess::ProcessState::NotRunning)
+        if(m_processes[id].process)
         {
-            m_processes[id] = {};
-        }
-        else
-        {
-            connect(m_processes[id].process.get(), qOverload<int, QProcess::ExitStatus >(&QProcess::finished), this, [this, id] {
-                m_processes[id] = {};
-            });
+          m_processes[id].process->close();
+          if(m_processes[id].process->state() == QProcess::ProcessState::NotRunning)
+          {
+              m_processes[id] = {};
+          }
+          else
+          {
+              connect(m_processes[id].process.get(), qOverload<int, QProcess::ExitStatus >(&QProcess::finished), this, [this, id] {
+                  m_processes[id] = {};
+              });
+          }
         }
       }
       ws->deleteLater();

@@ -18,6 +18,7 @@
 #include <QDebug>
 #include <QDir>
 #include <QJsonDocument>
+#include <QRegularExpression>
 #include <QSettings>
 #include <QStandardPaths>
 #include <QVariant>
@@ -137,16 +138,39 @@ QStringList addonsDir()
   return l;
 }
 
+QStringList pluginsBlacklist()
+{
+  QSettings s;
+  return s.value("PluginSettings/Blacklist", QStringList{}).toStringList();
+}
+QStringList pluginsWhitelist()
+{
+  QSettings s;
+  return s.value("PluginSettings/Whitelist", QStringList{}).toStringList();
+}
+
+static bool isBlacklisted(const QString& str)
+{
+  auto whitelist = pluginsWhitelist();
+  auto blacklist = pluginsBlacklist();
+
+  if(!whitelist.isEmpty())
+  {
+    if(ossia::none_of(whitelist, [&] (const QString& wl) { return str.contains(wl); }))
+      return true;
+  }
+  return ossia::any_of(blacklist, [&] (const QString& bl) { return str.contains(bl); });
+}
+
 std::pair<score::Plugin_QtInterface*, PluginLoadingError> loadPlugin(
     const QString& fileName,
     const std::vector<score::Addon>& availablePlugins)
 {
   using namespace score::PluginLoader;
 #if !defined(QT_STATIC) && QT_CONFIG(library)
-  auto blacklist = pluginsBlacklist();
 
   // Check if it is blacklisted
-  if (blacklist.contains(fileName))
+  if (isBlacklisted(fileName))
   {
     return std::make_pair(nullptr, PluginLoadingError::Blacklisted);
   }
@@ -330,10 +354,5 @@ void loadAddonsInAllFolders(std::vector<score::Addon>& availablePlugins)
   }
 }
 
-QStringList pluginsBlacklist()
-{
-  QSettings s("OSSIA", "score");
-  return s.value("PluginSettings/Blacklist", QStringList{}).toStringList();
-}
 }
 }

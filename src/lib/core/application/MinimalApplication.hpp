@@ -117,6 +117,8 @@ public:
     return m_presenter->components();
   }
 
+  score::View& view() const { return *m_view; }
+
   int exec() { return m_app->exec(); }
 
   QApplication* m_app{};

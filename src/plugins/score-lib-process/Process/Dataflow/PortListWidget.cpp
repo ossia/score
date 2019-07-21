@@ -9,6 +9,7 @@
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/document/DocumentContext.hpp>
 #include <score/widgets/ClearLayout.hpp>
+#include <score/widgets/MarginLess.hpp>
 #include <score/widgets/TextLabel.hpp>
 
 #include <QCheckBox>

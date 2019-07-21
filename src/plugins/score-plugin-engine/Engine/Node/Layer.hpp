@@ -32,6 +32,7 @@ template<typename Info>
 struct CustomUISetup
 {
   const Process::Inlets& inlets;
+  const Process::ProcessModel& process;
   QGraphicsItem& parent;
   QObject& context;
   const score::DocumentContext& doc;
@@ -48,15 +49,16 @@ struct CustomUISetup
   template <std::size_t... C>
   void make(const std::index_sequence<C...>&) noexcept
   {
-    Info::item(getControl<C>()..., parent, context, doc);
+    Info::item(getControl<C>()..., process, parent, context, doc);
   }
 
   CustomUISetup(
       const Process::Inlets& inlets,
+      const Process::ProcessModel& process,
       QGraphicsItem& parent,
       QObject& context,
       const score::DocumentContext& doc)
-    : inlets{inlets}, parent{parent}, context{context}, doc{doc}
+    : inlets{inlets}, process{process}, parent{parent}, context{context}, doc{doc}
   {
     make(std::make_index_sequence<ossia::safe_nodes::info_functions<Info>::control_count>{});
   }
@@ -160,7 +162,7 @@ private:
 
     if constexpr (HasCustomUI<Info>::value)
     {
-      Control::CustomUISetup<Info>{lm.inlets(), *view, *view, context};
+      Control::CustomUISetup<Info>{lm.inlets(), lm, *view, *view, context};
     }
     else if constexpr (ossia::safe_nodes::info_functions<Info>::control_count > 0)
     {
@@ -179,7 +181,7 @@ private:
 
     if constexpr (HasCustomUI<Info>::value)
     {
-      Control::CustomUISetup<Info>{proc.inlets(), *rootItem, *rootItem, ctx};
+      Control::CustomUISetup<Info>{proc.inlets(), proc, *rootItem, *rootItem, ctx};
     }
     else if constexpr (ossia::safe_nodes::info_functions<Info>::control_count > 0)
     {

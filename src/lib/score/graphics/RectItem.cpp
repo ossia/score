@@ -139,7 +139,7 @@ void BackgroundItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* op
   auto& style = score::Skin::instance();
   painter->setRenderHint(QPainter::Antialiasing, true);
   painter->setPen(style.NoPen);
-  painter->setBrush(style.Transparent2);
+  painter->setBrush(style.Transparent3);
   painter->drawRoundedRect(m_rect.adjusted(2., 2., -2., -2.), 3, 3);
   painter->setRenderHint(QPainter::Antialiasing, false);
 }

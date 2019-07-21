@@ -28,8 +28,10 @@
 #include <score_lib_process_export.h>
 namespace Control
 {
-struct FloatSlider final : ossia::safe_nodes::control_in,
-                           WidgetFactory::FloatSlider
+template<typename T>
+struct FloatControl final
+    : ossia::safe_nodes::control_in
+    , WidgetFactory::FloatControl<T>
 {
   static const constexpr bool must_validate = false;
   using type = float;
@@ -39,7 +41,7 @@ struct FloatSlider final : ossia::safe_nodes::control_in,
   const float init{};
 
   template <std::size_t N>
-  constexpr FloatSlider(const char (&name)[N], float v1, float v2, float v3)
+  constexpr FloatControl(const char (&name)[N], float v1, float v2, float v3)
       : ossia::safe_nodes::control_in{name}, min{v1}, max{v2}, init{v3}
   {
   }
@@ -65,8 +67,10 @@ struct FloatSlider final : ossia::safe_nodes::control_in,
   ossia::value toValue(float v) const { return v; }
 };
 
-struct LogFloatSlider final : ossia::safe_nodes::control_in,
-                              WidgetFactory::LogFloatSlider
+template<typename T>
+struct LogFloatControl final
+    : ossia::safe_nodes::control_in
+    , WidgetFactory::LogFloatControl<T>
 {
   static const constexpr bool must_validate = false;
   using type = float;
@@ -76,7 +80,7 @@ struct LogFloatSlider final : ossia::safe_nodes::control_in,
   const float init{};
 
   template <std::size_t N>
-  constexpr LogFloatSlider(const char (&name)[N], float v1, float v2, float v3)
+  constexpr LogFloatControl(const char (&name)[N], float v1, float v2, float v3)
       : ossia::safe_nodes::control_in{name}, min{v1}, max{v2}, init{v3}
   {
   }
@@ -101,6 +105,11 @@ struct LogFloatSlider final : ossia::safe_nodes::control_in,
   }
   ossia::value toValue(float v) const { return v; }
 };
+
+using FloatSlider = FloatControl<score::QGraphicsSlider>;
+using FloatKnob = FloatControl<score::QGraphicsKnob>;
+using LogFloatSlider = LogFloatControl<score::QGraphicsLogSlider>;
+using LogFloatKnob = LogFloatControl<score::QGraphicsLogKnob>;
 
 struct IntSlider final : ossia::safe_nodes::control_in,
                          WidgetFactory::IntSlider

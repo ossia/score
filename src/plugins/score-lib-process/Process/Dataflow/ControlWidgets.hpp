@@ -40,7 +40,8 @@ typename std::conditional<
   Process::SetControlOutletValue
 >::type;
 
-struct FloatSlider
+template<typename ControlUI>
+struct FloatControl
 {
   template <typename T, typename Control_T>
   static auto make_widget(
@@ -108,20 +109,20 @@ struct FloatSlider
     auto max = slider.getMax();
     if (max - min == 0)
       max = min + 1;
-    auto sl = new score::QGraphicsKnob{nullptr};
+    auto sl = new ControlUI{nullptr};
     sl->min = min;
     sl->max = max;
     sl->setRect({0., 0., 40., 40.});
     sl->setValue((ossia::convert<double>(inlet.value()) - min) / (max - min));
 
     QObject::connect(
-        sl, &score::QGraphicsKnob::sliderMoved, context, [=, &inlet, &ctx] {
+        sl, &ControlUI::sliderMoved, context, [=, &inlet, &ctx] {
           sl->moving = true;
           ctx.dispatcher.submit<SetControlValue<Control_T>>(
               inlet, min + sl->value() * (max - min));
         });
     QObject::connect(
-        sl, &score::QGraphicsKnob::sliderReleased, context, [&ctx, sl]() {
+        sl, &ControlUI::sliderReleased, context, [&ctx, sl]() {
           ctx.dispatcher.commit();
           sl->moving = false;
         });
@@ -139,7 +140,8 @@ struct FloatSlider
   }
 };
 
-struct LogFloatSlider
+template<typename ControlUI>
+struct LogFloatControl
 {
 
   static float from01(float min, float max, float val)
@@ -214,7 +216,7 @@ struct LogFloatSlider
     auto max = std::log2(slider.getMax());
     if (max - min == 0)
       max = min + 1;
-    auto sl = new score::QGraphicsLogKnob{nullptr};
+    auto sl = new ControlUI{nullptr};
     sl->min = min;
     sl->max = max;
     sl->setRect({0., 0., 40., 40.});
@@ -222,7 +224,7 @@ struct LogFloatSlider
 
     QObject::connect(
         sl,
-        &score::QGraphicsLogKnob::sliderMoved,
+        &ControlUI::sliderMoved,
         context,
         [=, &inlet, &ctx] {
           sl->moving = true;
@@ -230,7 +232,7 @@ struct LogFloatSlider
               inlet, from01(min, max, sl->value()));
         });
     QObject::connect(
-        sl, &score::QGraphicsLogKnob::sliderReleased, context, [&ctx, sl]() {
+        sl, &ControlUI::sliderReleased, context, [&ctx, sl]() {
           ctx.dispatcher.commit();
           sl->moving = false;
         });
@@ -876,4 +878,9 @@ struct XYZEdit
 {
   // TODO
 };
+
+using FloatSlider = FloatControl<score::QGraphicsSlider>;
+using LogFloatSlider = FloatControl<score::QGraphicsLogSlider>;
+using FloatKnob = FloatControl<score::QGraphicsKnob>;
+using LogFloatKnob = FloatControl<score::QGraphicsLogKnob>;
 }
