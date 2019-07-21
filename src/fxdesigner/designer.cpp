@@ -45,6 +45,11 @@
 #include <verdigris>
 #include <QFileDialog>
 
+// TODO : implement remaining objects
+// TODO : add ports
+// TODO : add text and connect it
+// TODO : add alternatives to inspector
+
 namespace fxd
 {
 struct BackgroundWidget {
@@ -75,6 +80,14 @@ struct SpinboxWidget {
   friend bool operator==(const SpinboxWidget& lhs, const SpinboxWidget& rhs) { return true; }
   friend bool operator!=(const SpinboxWidget& lhs, const SpinboxWidget& rhs) { return false; }
 };
+struct ComboWidget {
+  static const constexpr QSizeF defaultSize{150., 15.};
+  static const constexpr bool keepRatio{true};
+  QStringList alternatives{"foo", "bar", "baz"};
+
+  friend bool operator==(const ComboWidget& lhs, const ComboWidget& rhs) { return true; }
+  friend bool operator!=(const ComboWidget& lhs, const ComboWidget& rhs) { return false; }
+};
 struct EnumWidget {
   static const constexpr QSizeF defaultSize{150., 50.};
   static const constexpr bool keepRatio{false};
@@ -85,7 +98,7 @@ struct EnumWidget {
   friend bool operator==(const EnumWidget& lhs, const EnumWidget& rhs) { return lhs.alternatives == rhs.alternatives && lhs.rows == rhs.rows && lhs.columns == rhs.columns; }
   friend bool operator!=(const EnumWidget& lhs, const EnumWidget& rhs) { return !(lhs == rhs); }
 };
-using WidgetImpl = eggs::variant<BackgroundWidget, KnobWidget, SliderWidget, SpinboxWidget, EnumWidget>;
+using WidgetImpl = eggs::variant<BackgroundWidget, KnobWidget, SliderWidget, SpinboxWidget, ComboWidget, EnumWidget>;
 }
 Q_DECLARE_METATYPE(fxd::WidgetImpl)
 W_REGISTER_ARGTYPE(fxd::WidgetImpl)
@@ -94,6 +107,7 @@ JSON_METADATA(fxd::KnobWidget, "Knob")
 JSON_METADATA(fxd::SliderWidget, "Slider")
 JSON_METADATA(fxd::SpinboxWidget, "SpinBox")
 JSON_METADATA(fxd::EnumWidget, "Enum")
+JSON_METADATA(fxd::ComboWidget, "Combo")
 namespace fxd
 {
 class Widget : public IdentifiedObject<Widget>
@@ -141,7 +155,6 @@ public:
   }
 
   INLINE_PROPERTY_CREF(QString, name, {}, name, setName, nameChanged)
-  //INLINE_PROPERTY_VALUE(int, widgetType, {}, widgetType, setWidgetType, widgetTypeChanged)
   INLINE_PROPERTY_VALUE(int, controlIndex, {}, controlIndex, setControlIndex, controlIndexChanged)
   INLINE_PROPERTY_VALUE(bool, enableText, {true}, enableText, setTextEnabled, textEnabledChanged)
   INLINE_PROPERTY_VALUE(QPointF, pos, {}, pos, setPos, posChanged)
@@ -187,6 +200,10 @@ public:
         operator()(SliderWidget{});
       }
       void operator()(SpinboxWidget) noexcept
+      {
+        operator()(SliderWidget{});
+      }
+      void operator()(ComboWidget) noexcept
       {
         operator()(SliderWidget{});
       }
@@ -239,24 +256,8 @@ public:
 
       /**
          TODO :
-         ::DurationChooser(
-         ::FloatSlider(
-         ::IntSlider(
-         ::LFOFreqKnob(
-         ::LFOFreqSlider(
          ::LineEdit(
-         ::MidiChannel(
-         ::MidiSpinbox(
-         ::MusicalDurationChooser(
-         ::OctaveSlider(
-         ::QuantificationChooser(
-         ::TempoChooser(
-         ::TimeSigChooser(
-         ::WaveformChooser(
          ::ChooserToggle{
-         ::FloatKnob{
-         ::FloatSlider{
-         ::IntSlider{
        */
 
 
@@ -272,13 +273,29 @@ public:
       {
         widget->setData(SliderWidget{});
       }
+      else if(control.contains("TempoChooser"))
+      {
+        widget->setData(SliderWidget{});
+      }
       else if(control.contains("Spin"))
       {
         widget->setData(SpinboxWidget{});
       }
-      else if(control.contains("Waveform"))
+      else if(control.contains("MidiChannem"))
+      {
+        widget->setData(SpinboxWidget{});
+      }
+      else if(control.contains("TimeSigChooser"))
+      {
+        // TODO
+      }
+      else if(control.contains("WaveformChooser"))
       {
         widget->setData(EnumWidget{{"Sin","Triangle",  "Saw", "Square", "Sample & Hold", "Noise 1", "Noise 2", "Noise 3"}, 2, 4});
+      }
+      else if(control.contains("Chooser"))
+      {
+        widget->setData(ComboWidget{});
       }
       widgets.add(widget);
       i++;
@@ -410,6 +427,7 @@ template <>
 void JSONObjectWriter::write(fxd::KnobWidget& w)
 {
 }
+
 template <>
 void DataStreamReader::read(const fxd::SpinboxWidget& w)
 {
@@ -431,6 +449,33 @@ template <>
 void JSONObjectWriter::write(fxd::SpinboxWidget& w)
 {
 }
+
+template <>
+void DataStreamReader::read(const fxd::ComboWidget& w)
+{
+  m_stream << w.alternatives;
+  insertDelimiter();
+}
+
+template <>
+void DataStreamWriter::write(fxd::ComboWidget& w)
+{
+  m_stream >> w.alternatives;
+  checkDelimiter();
+}
+
+template <>
+void JSONObjectReader::read(const fxd::ComboWidget& w)
+{
+  obj["Alternatives"] = toJsonArray(w.alternatives);
+}
+
+template <>
+void JSONObjectWriter::write(fxd::ComboWidget& w)
+{
+  fromJsonArray(obj["Alternatives"].toArray(), w.alternatives);
+}
+
 
 template <>
 void DataStreamReader::read(const fxd::Widget& w)
@@ -526,6 +571,7 @@ public:
     new QListWidgetItem{"Knob", this};
     new QListWidgetItem{"Slider", this};
     new QListWidgetItem{"SpinBox", this};
+    new QListWidgetItem{"ComboBox", this};
     new QListWidgetItem{"Enum", this};
   }
 };
@@ -582,6 +628,8 @@ WidgetImpl implForIndex(int row)
     case 3:
       return SpinboxWidget{};
     case 4:
+      return ComboWidget{};
+    case 5:
       return EnumWidget{};
     default:
       return {};
@@ -790,6 +838,14 @@ public:
       void operator()(const SpinboxWidget&)
       {
         auto it = new score::QGraphicsIntSlider{nullptr};
+        it->setZValue(10);
+        item = it;
+        it->setRect(QRectF{QPointF{}, w.size()});
+        self.createHandles(w, it);
+      }
+      void operator()(const ComboWidget&)
+      {
+        auto it = new score::QGraphicsComboSlider{nullptr};
         it->setZValue(10);
         item = it;
         it->setRect(QRectF{QPointF{}, w.size()});
