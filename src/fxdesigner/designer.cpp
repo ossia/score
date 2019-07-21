@@ -43,6 +43,7 @@
 #include <QMessageBox>
 #include <variant>
 #include <verdigris>
+#include <QFileDialog>
 
 namespace fxd
 {
@@ -67,6 +68,13 @@ struct SliderWidget {
   friend bool operator==(const SliderWidget& lhs, const SliderWidget& rhs) { return true; }
   friend bool operator!=(const SliderWidget& lhs, const SliderWidget& rhs) { return false; }
 };
+struct SpinboxWidget {
+  static const constexpr QSizeF defaultSize{150., 15.};
+  static const constexpr bool keepRatio{true};
+
+  friend bool operator==(const SpinboxWidget& lhs, const SpinboxWidget& rhs) { return true; }
+  friend bool operator!=(const SpinboxWidget& lhs, const SpinboxWidget& rhs) { return false; }
+};
 struct EnumWidget {
   static const constexpr QSizeF defaultSize{150., 50.};
   static const constexpr bool keepRatio{false};
@@ -77,13 +85,14 @@ struct EnumWidget {
   friend bool operator==(const EnumWidget& lhs, const EnumWidget& rhs) { return lhs.alternatives == rhs.alternatives && lhs.rows == rhs.rows && lhs.columns == rhs.columns; }
   friend bool operator!=(const EnumWidget& lhs, const EnumWidget& rhs) { return !(lhs == rhs); }
 };
-using WidgetImpl = eggs::variant<BackgroundWidget, KnobWidget, SliderWidget, EnumWidget>;
+using WidgetImpl = eggs::variant<BackgroundWidget, KnobWidget, SliderWidget, SpinboxWidget, EnumWidget>;
 }
 Q_DECLARE_METATYPE(fxd::WidgetImpl)
 W_REGISTER_ARGTYPE(fxd::WidgetImpl)
 JSON_METADATA(fxd::BackgroundWidget, "Background")
 JSON_METADATA(fxd::KnobWidget, "Knob")
 JSON_METADATA(fxd::SliderWidget, "Slider")
+JSON_METADATA(fxd::SpinboxWidget, "SpinBox")
 JSON_METADATA(fxd::EnumWidget, "Enum")
 namespace fxd
 {
@@ -161,7 +170,6 @@ public:
       }
       void operator()(SliderWidget) noexcept
       {
-
         code += QString("    auto %1_item = %2("
                         "std::get<%3>(Metadata::controls), "
                         "%1, "
@@ -175,6 +183,10 @@ public:
             .arg(self.pos().y());
       }
       void operator()(KnobWidget) noexcept
+      {
+        operator()(SliderWidget{});
+      }
+      void operator()(SpinboxWidget) noexcept
       {
         operator()(SliderWidget{});
       }
@@ -213,9 +225,6 @@ public:
                                      parent}
       , m_context{ctx}
   {
-  QFile f("/home/jcelerier/score/src/plugins/score-plugin-fx/Fx/LFO.hpp");
-  f.open(QIODevice::ReadOnly);
-  loadCode(f.readAll());
   }
 
 
@@ -259,9 +268,13 @@ public:
       {
         widget->setData(KnobWidget{});
       }
-      else if(control.contains("FloatSlider"))
+      else if(control.contains("Slider"))
       {
         widget->setData(SliderWidget{});
+      }
+      else if(control.contains("Spin"))
+      {
+        widget->setData(SpinboxWidget{});
       }
       else if(control.contains("Waveform"))
       {
@@ -397,6 +410,27 @@ template <>
 void JSONObjectWriter::write(fxd::KnobWidget& w)
 {
 }
+template <>
+void DataStreamReader::read(const fxd::SpinboxWidget& w)
+{
+  insertDelimiter();
+}
+
+template <>
+void DataStreamWriter::write(fxd::SpinboxWidget& w)
+{
+  checkDelimiter();
+}
+
+template <>
+void JSONObjectReader::read(const fxd::SpinboxWidget& w)
+{
+}
+
+template <>
+void JSONObjectWriter::write(fxd::SpinboxWidget& w)
+{
+}
 
 template <>
 void DataStreamReader::read(const fxd::Widget& w)
@@ -488,10 +522,11 @@ public:
     setDragEnabled(true);
     setDragDropMode(DragOnly);
     setMaximumWidth(300);
-    auto bg = new QListWidgetItem{"Background", this};
-    auto knob = new QListWidgetItem{"Knob", this};
-    auto slider = new QListWidgetItem{"Slider", this};
-    auto enumer = new QListWidgetItem{"Enum", this};
+    new QListWidgetItem{"Background", this};
+    new QListWidgetItem{"Knob", this};
+    new QListWidgetItem{"Slider", this};
+    new QListWidgetItem{"SpinBox", this};
+    new QListWidgetItem{"Enum", this};
   }
 };
 
@@ -545,6 +580,8 @@ WidgetImpl implForIndex(int row)
     case 2:
       return SliderWidget{};
     case 3:
+      return SpinboxWidget{};
+    case 4:
       return EnumWidget{};
     default:
       return {};
@@ -745,6 +782,14 @@ public:
       void operator()(const SliderWidget&)
       {
         auto it = new score::QGraphicsSlider{nullptr};
+        it->setZValue(10);
+        item = it;
+        it->setRect(QRectF{QPointF{}, w.size()});
+        self.createHandles(w, it);
+      }
+      void operator()(const SpinboxWidget&)
+      {
+        auto it = new score::QGraphicsIntSlider{nullptr};
         it->setZValue(10);
         item = it;
         it->setRect(QRectF{QPointF{}, w.size()});
@@ -1246,9 +1291,25 @@ int main(int argc, char** argv)
   score::MinimalGUIApplication app{argc, argv};
 
   auto toolbar = app.view().findChildren<QToolBar*>(QString{}, Qt::FindDirectChildrenOnly).first();
-  auto act = new QAction(QObject::tr("Code"));
-  toolbar->addAction(act);
-  QObject::connect(act, &QAction::triggered, fxd::showCode);
+
+  {
+    auto act = new QAction(QObject::tr("Load code"));
+    toolbar->addAction(act);
+    QObject::connect(act, &QAction::triggered, [] {
+
+      QFileDialog::getOpenFileContent("Header (*.hpp, *.h)", [] (const QString& name, const QByteArray& data) {
+
+        fxd::DocumentModel& fxmodel = fxd::fxModel(score::GUIAppContext().documents.currentDocument()->context());
+        fxmodel.loadCode(QString::fromUtf8(data));
+      });
+    });
+  }
+
+  {
+    auto act = new QAction(QObject::tr("Print code"));
+    toolbar->addAction(act);
+    QObject::connect(act, &QAction::triggered, fxd::showCode);
+  }
 
   QFile f(
       "/home/jcelerier/score/src/plugins/score-plugin-scenario/Scenario/"
