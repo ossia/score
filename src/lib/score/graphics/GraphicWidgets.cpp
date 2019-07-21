@@ -802,20 +802,27 @@ void QGraphicsEnum::paint(
 
   int row = 0;
   int col = 0;
-  const double w = m_smallRect.width() / columns - 2;
-  const double h = m_smallRect.height() / rows - 2;
+  int spacing = 0;
+  const double w = m_smallRect.width() / columns - 2 - spacing * (columns-1);
+  const double h = m_smallRect.height() / rows - 2 - spacing * (columns-1);
+  QPixmap pm_on{"/home/alevy/Desktop/sample_and_hold_on.png"};
+  QPixmap pm_off{"/home/alevy/Desktop/sample_and_hold_off.png"};
 
   painter->setBrush(bg);
   int i = 0;
+  const double offset_pixmap_x = 0.5 * (w - 41);
+  const double offset_pixmap_y = 0.5 * (h - 21);
+
   for(const QString& str : array)
   {
-    QRectF rect{col * w, row * h, w, h};
-    painter->setPen(i != m_clicking ? border : borderClicking);
-    painter->drawRect(rect);
+    QRectF rect{col * (w + spacing), row * (h + spacing), w, h};
+   // painter->setPen(style.NoPen);//border);//i != m_clicking ? border : borderClicking);
+   // painter->drawRect(rect);
 
-    painter->setPen(i != m_value ? text : currentText);
-    painter->setFont(textFont);
-    painter->drawText(rect, str, QTextOption(Qt::AlignCenter));
+    painter->setPen(i != m_clicking ? (i != m_value ? text : currentText) : borderClicking);
+    //painter->setFont(textFont);
+    //painter->drawText(rect, str, QTextOption(Qt::AlignCenter));
+    painter->drawPixmap(rect.x() + offset_pixmap_x, rect.y() + offset_pixmap_y, 41, 21, i != m_value ? pm_off : pm_on);
     col++;
     if(col == columns)
     {

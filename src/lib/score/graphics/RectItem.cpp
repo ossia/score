@@ -136,10 +136,10 @@ void EmptyRectItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 
 void BackgroundItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
-  auto& style = score::Skin::instance();
+ auto& style = score::Skin::instance();
   painter->setRenderHint(QPainter::Antialiasing, true);
-  painter->setPen(style.NoPen);
-  painter->setBrush(style.Transparent2);
+  painter->setPen(QColor("#003D6E").lighter());//style.NoPen);
+  painter->setBrush(style.NoBrush);//QColor("#265278").darker());
   painter->drawRoundedRect(m_rect.adjusted(2., 2., -2., -2.), 3, 3);
   painter->setRenderHint(QPainter::Antialiasing, false);
 }
@@ -166,5 +166,39 @@ void BackgroundItem::mouseMoveEvent(QGraphicsSceneMouseEvent* event) { event->ac
 
 
 void BackgroundItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* event) { event->accept(); }
+
+
+void BorderItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+{
+ auto& style = score::Skin::instance();
+  painter->setRenderHint(QPainter::Antialiasing, true);
+  painter->setPen(style.NoPen);//QColor("#265278"));
+  painter->setBrush(QColor("#003D6E").darker(120));//style.NoBrush);
+  painter->drawRoundedRect(m_rect.adjusted(2., 2., -2., -2.), 3, 3);
+  painter->setRenderHint(QPainter::Antialiasing, false);
+}
+
+
+void BorderItem::setRect(const QRectF& r)
+{
+  prepareGeometryChange();
+  m_rect = r;
+  update();
+}
+
+
+QRectF BorderItem::boundingRect() const
+{
+  return m_rect;
+}
+
+
+void BorderItem::mousePressEvent(QGraphicsSceneMouseEvent* event) { event->accept(); }
+
+
+void BorderItem::mouseMoveEvent(QGraphicsSceneMouseEvent* event) { event->accept(); }
+
+
+void BorderItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* event) { event->accept(); }
 
 }

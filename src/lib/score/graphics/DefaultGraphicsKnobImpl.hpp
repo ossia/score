@@ -44,8 +44,8 @@ struct DefaultGraphicsKnobImpl
     const QRectF r = srect.adjusted(adj, adj, -adj, -adj);
 
     // Draw knob
-    painter->setPen(QPen(skin.Background1.color(), 1));
-    painter->setBrush(QBrush(skin.Background1.color()));
+    painter->setPen(QPen(/*skin.Background1.color()*/QColor{"#03C3DD"}.darker(500), 1));
+    painter->setBrush(QBrush(QColor{"#03C3DD"}.darker(500)));//skin.Background1.color()));
     painter->drawChord(r, start, -totalSpan);
     painter->setPen(QPen(skin.Base1.color(), 3, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
 

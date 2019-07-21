@@ -84,6 +84,7 @@ void SimpleTextItem::updateImpl()
   }
   else
   {
+    m_font.setBold(true);
     QTextLayout layout(m_string, m_font);
     layout.beginLayout();
     auto line = layout.createLine();
@@ -106,7 +107,7 @@ void SimpleTextItem::updateImpl()
 
       QPainter p{&m_line};
       auto& skin = score::Skin::instance();
-      skin.TextItemPen.setBrush(m_color.getBrush());
+      skin.TextItemPen.setBrush(QColor{"#A0A0A0"});//m_color.getBrush());
 
       p.setPen(skin.TextItemPen);
       p.setBrush(skin.NoBrush);

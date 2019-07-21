@@ -114,7 +114,7 @@ constexpr auto FreqChooser()
 }
 constexpr auto LFOFreqChooser()
 {
-  return Control::LogFloatSlider("Frequency", 0.01f, 100.f, 1.f);
+  return Control::LogFloatSlider("Freq.", 0.01f, 100.f, 1.f);
 }
 constexpr auto TimeSigChooser()
 {

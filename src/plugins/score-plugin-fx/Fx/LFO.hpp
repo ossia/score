@@ -231,21 +231,25 @@ struct Node
   {
     auto item = new score::EmptyRectItem{&parent};
 
+    //auto bg = new score::BackgroundItem{item};
+    //bg->setRect({0., 0., 70., 70});
+
     // Port
     Process::PortFactory* fact = portFactory.get(inlet.concreteKey());
     auto port = fact->makeItem(inlet, doc, item, &context);
-    port->setPos(0, 10);
+    port->setPos(0,10);//0.5 * 55.);
 
     // Text
     const auto& style = Process::Style::instance();
     auto lab = new score::SimpleTextItem{style.EventWaiting, item};
     lab->setText(ctrl.name);
-    lab->setPos(10, 2);
+    lab->setPos(10, 5);
 
-    // Control
+    // Control center aligned
     auto widg = ctrl.make_item(ctrl, inlet, doc, nullptr, &context);
+    const auto control_x = 0.5 * (10 + lab->boundingRect().width() - widg->boundingRect().width());
     widg->setParentItem(item);
-    widg->setPos(0, lab->boundingRect().height());
+    widg->setPos(control_x, 5 + lab->boundingRect().height());
 
     // Create a single control
     struct ControlItem {
@@ -301,48 +305,50 @@ struct Node
       const score::DocumentContext& doc)
   {
     const Process::PortFactoryList& portFactory = doc.app.interfaces<Process::PortFactoryList>();
-    const auto h = 60;
+
+    const auto h = 70;
     const auto w = 70;
 
-    const auto c0 = 10;
-
-    auto c0_bg = new score::BackgroundItem{&parent};
-    c0_bg->setRect({0., 0., 170., 130.});
-    auto c1_bg = new score::BackgroundItem{&parent};
-    c1_bg->setRect({170., 0., 70., 130.});
-    auto c2_bg = new score::BackgroundItem{&parent};
-    c2_bg->setRect({240., 0., 130., 130.});
+    const auto c0 = 3.;
+    const auto c1 = c0 + 230;
+    const auto c2 = c1 + 70;
+    const auto bg_height = 140.;
+    auto c0_bg = new score::BorderItem{&parent};
+    c0_bg->setRect({c0, 0., 220., bg_height});
+    auto c1_bg = new score::BorderItem{&parent};
+    c1_bg->setRect({c1 - 15., 0., 70., bg_height});
+    auto c2_bg = new score::BorderItem{&parent};
+    c2_bg->setRect({c2 - 15., 0., 130., bg_height});
 
     auto freq_item = makeControl(std::get<0>(Metadata::controls), freq, parent, context, doc, portFactory);
-    freq_item.root.setPos(c0, 0);
+    freq_item.root.setPos(0.5 * (c0 + 220 - w), 0);
 
     auto type_item = makeControlNoText(std::get<7>(Metadata::controls), type, parent, context, doc, portFactory);
-    type_item.root.setPos(c0, h);
+    type_item.root.setPos(c0 + 10., h);
     type_item.control.rows = 2;
     type_item.control.columns = 4;
-    type_item.control.setRect(QRectF{0, 0, 150, 40});
+    type_item.control.setRect(QRectF{0, 0, 200, 70});
     type_item.control.setPos(10, 0);
-    type_item.port.setPos(0, 17);
+    type_item.port.setPos(0, 20);
 
-    const auto c1 = 180;
+    const auto offset_y = 5;
     auto ampl_item = makeControl(std::get<1>(Metadata::controls), ampl, parent, context, doc, portFactory);
-    ampl_item.root.setPos(c1, 0);
+    ampl_item.root.setPos(c1, offset_y);
 
     auto ampl_fine_item = makeControl(std::get<2>(Metadata::controls), ampl_fine, parent, context, doc, portFactory);
-    ampl_fine_item.root.setPos(c1 + w, 0);
+    ampl_fine_item.root.setPos(c1 + w, offset_y);
 
     auto offset_item = makeControl(std::get<3>(Metadata::controls), offset, parent, context, doc, portFactory);
-    offset_item.root.setPos(c1, h);
+    offset_item.root.setPos(c1, h + offset_y);
 
     auto offset_fine_item = makeControl(std::get<4>(Metadata::controls), offset_fine, parent, context, doc, portFactory);
-    offset_fine_item.root.setPos(c1 + w, h);
+    offset_fine_item.root.setPos(c1 + w, h + offset_y);
 
-    const auto c2 = 250;
     auto jitter_item = makeControl(std::get<5>(Metadata::controls), jitter, parent, context, doc, portFactory);
-    jitter_item.root.setPos(c2 + w, 0);
+    jitter_item.root.setPos(c2 + w, offset_y);
 
     auto phase_item = makeControl(std::get<6>(Metadata::controls), phase, parent, context, doc, portFactory);
-    phase_item.root.setPos(c2 + w, h);
+    phase_item.root.setPos(c2 + w, h + offset_y);
   }
 
   // With metaclasses, we should instead create structs with named members but where types are either controls, ports, items, inlets...
