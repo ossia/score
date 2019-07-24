@@ -49,35 +49,37 @@ PortItem::PortItem(
       cable->setZValue(b || cable->model().selection.get() ? 999999 : -1);
     }
   });
-  auto& plug = ctx.plugin<Process::DocumentPlugin>();
-  plug.ports().insert({&p, this});
-
-  Path<Process::Port> path = p;
-  for (auto c : plug.cables())
+  auto plug = ctx.findPlugin<Process::DocumentPlugin>();
+  if(plug)
   {
-    if (c.first->source().unsafePath() == path.unsafePath())
+    plug->ports().insert({&p, this});
+
+    Path<Process::Port> path = p;
+    for (auto c : plug->cables())
     {
-      c.second->setSource(this);
-      cables.push_back(c.second);
+      if (c.first->source().unsafePath() == path.unsafePath())
+      {
+        c.second->setSource(this);
+        cables.push_back(c.second);
+      }
+      else if (c.first->sink().unsafePath() == path.unsafePath())
+      {
+        c.second->setTarget(this);
+        cables.push_back(c.second);
+      }
     }
-    else if (c.first->sink().unsafePath() == path.unsafePath())
-    {
-      c.second->setTarget(this);
-      cables.push_back(c.second);
-    }
+
+    QObject::connect(
+        this,
+        &Dataflow::PortItem::contextMenuRequested,
+        this,
+        [&](QPointF sp, QPoint p) {
+          auto menu = new QMenu{};
+          setupMenu(*menu, ctx);
+          menu->exec(p);
+          menu->deleteLater();
+        });
   }
-
-  QObject::connect(
-      this,
-      &Dataflow::PortItem::contextMenuRequested,
-      this,
-      [&](QPointF sp, QPoint p) {
-        auto menu = new QMenu{};
-        setupMenu(*menu, ctx);
-        menu->exec(p);
-        menu->deleteLater();
-      });
-
   setVisible(CableItem::g_cables_enabled);
 }
 
@@ -91,8 +93,10 @@ PortItem::~PortItem()
       cable->setTarget(nullptr);
   }
   auto& ctx = m_context;
-  auto& plug = ctx.plugin<Process::DocumentPlugin>();
-  auto& p = plug.ports();
+  auto plug = ctx.findPlugin<Process::DocumentPlugin>();
+  if(!plug)
+    return;
+  auto& p = plug->ports();
   auto it = p.find(&m_port);
   if (it != p.end())
     p.erase(it);
