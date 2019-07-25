@@ -104,7 +104,10 @@ void DocumentView::createHandles(Widget& w, score::SimpleTextItem* item)
 {
   auto mhandle = new MoveHandle;
   mhandle->setZValue(50);
-  mhandle->setRect({QPointF{}, w.size()});
+  mhandle->setRect({QPointF{}, item->boundingRect().size()});
+  con(w, &Widget::dataChanged, mhandle, [mhandle, item, &w] {
+    mhandle->setRect({QPointF{}, item->boundingRect().size()});
+  });
 
   // Move handle
   {
@@ -115,6 +118,10 @@ void DocumentView::createHandles(Widget& w, score::SimpleTextItem* item)
       if(b)
       {
         m_context.selectionStack.pushNewSelection({&w});
+      }
+      else
+      {
+        m_context.selectionStack.deselectObjects({&w});
       }
     });
 

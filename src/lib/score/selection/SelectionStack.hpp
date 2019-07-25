@@ -39,6 +39,9 @@ public:
   // Push a new set of empty selection.
   void deselect();
 
+  // Push a new selection without these objects
+  void deselectObjects(const Selection& toDeselect);
+
   Selection currentSelection() const;
 
   void pushNewSelection(const Selection& s)
