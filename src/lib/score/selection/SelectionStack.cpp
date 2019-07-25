@@ -130,6 +130,16 @@ void SelectionStack::deselect()
   push(Selection{});
 }
 
+void SelectionStack::deselectObjects(const Selection& toDeselect)
+{
+  Selection s = currentSelection();
+  for(auto& obj : toDeselect)
+  {
+    s.removeAll(obj);
+  }
+  pushNewSelection(std::move(s));
+}
+
 Selection SelectionStack::currentSelection() const
 {
   return canUnselect() ? m_unselectable.top() : Selection{};

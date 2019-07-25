@@ -310,7 +310,7 @@ WidgetInspector::WidgetInspector(const Widget& sc, const score::DocumentContext&
   : QWidget{parent}
 {
   auto lay = new Inspector::Layout{this};
-  lay->addWidget(new QLabel{sc.fxCode()});
+  lay->addRow(new QLabel{sc.fxCode()});
   setup_inspector(Widget::p_name{}, sc, doc, *lay, this);
   setup_inspector(Widget::p_controlIndex{}, sc, doc, *lay, this);
   setup_inspector(Widget::p_data{}, sc, doc, *lay, this);
