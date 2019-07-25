@@ -99,6 +99,49 @@ struct WidgetImplFactory
   }
 };
 
+struct WidgetImplUpdateFactory
+{
+  const Widget& widget;
+  QWidget& parent;
+  const score::DocumentContext& context;
+
+  void operator()(BackgroundWidget) noexcept
+  {
+  }
+  void operator()(const TextWidget& txt) noexcept
+  {
+    auto l = qobject_cast<QLineEdit*>(parent.children()[1]);
+    if(txt.text != l->text())
+      l->setText(txt.text);
+  }
+  void operator()(SliderWidget) noexcept
+  {
+  }
+  void operator()(KnobWidget) noexcept
+  {
+  }
+  void operator()(SpinboxWidget) noexcept
+  {
+  }
+  void operator()(ComboWidget) noexcept
+  {
+  }
+  void operator()(EnumWidget e) noexcept
+  {
+    auto row = qobject_cast<QSpinBox*>(parent.children()[1]->children()[1]);
+    if(e.rows != row->value())
+      row->setValue(e.rows);
+    auto col = qobject_cast<QSpinBox*>(parent.children()[1]->children()[2]);
+    if(e.columns != col->value())
+      col->setValue(e.columns);
+  }
+  void operator()() noexcept
+  {
+  }
+};
+
+
+
 template <typename T>
 struct WidgetFactory
 {
@@ -232,10 +275,8 @@ struct WidgetFactory
       auto& obj = this->object;
       auto& ctx = this->ctx;
       QObject::connect(&object, T::notify(), parent,
-                       [wrap, wraplay, &obj, &ctx] (const WidgetImpl& v) {
-        score::clearLayout(wraplay);
-        auto widg = ossia::apply(WidgetImplFactory{obj, *wrap, ctx}, v);
-        wraplay->addWidget(widg);
+                       [wrap, &obj, &ctx] (const WidgetImpl& v) {
+        ossia::apply(WidgetImplUpdateFactory{obj, *wrap, ctx}, v);
       });
     }
     return wrap;
