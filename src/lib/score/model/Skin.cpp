@@ -26,16 +26,15 @@ namespace score
 struct Skin::color_map
 {
   color_map(
-      std::initializer_list<boost::bimap<QString, QBrush*>::value_type> list)
+      std::initializer_list<boost::bimap<QString, Brush*>::value_type> list)
       : the_map(list.begin(), list.end())
   {
   }
 
-  boost::bimap<QString, QBrush*> the_map;
-  decltype(boost::bimap<QString, QBrush*>{}.left)& left{the_map.left};
-  decltype(boost::bimap<QString, QBrush*>{}.right)& right{the_map.right};
+  boost::bimap<QString, Brush*> the_map;
+  decltype(boost::bimap<QString, Brush*>{}.left)& left{the_map.left};
+  decltype(boost::bimap<QString, Brush*>{}.right)& right{the_map.right};
 };
-
 Skin::~Skin()
 {
   delete m_colorMap;
@@ -179,7 +178,7 @@ Skin& score::Skin::instance() noexcept
   } while (0)
 void Skin::load(const QJsonObject& obj)
 {
-  auto fromColor = [&](const QString& key, QBrush& col) {
+  auto fromColor = [&](const QString& key, Brush& col) {
     auto arr = obj[key].toArray();
     if (arr.size() == 3)
       col = QColor(arr[0].toInt(), arr[1].toInt(), arr[2].toInt());
@@ -312,28 +311,266 @@ static bool pulse(QBrush& ref, bool pulse)
 
 void Skin::timerEvent(QTimerEvent* event)
 {
-  pulse(Pulse1, m_pulseDirection);
-  auto invert = pulse(Pulse2, m_pulseDirection);
+  pulse(Pulse1.main.brush, m_pulseDirection);
+  auto invert = pulse(Pulse2.main.brush, m_pulseDirection);
   if (invert)
     m_pulseDirection = !m_pulseDirection;
 }
 
-const QBrush* Skin::fromString(const QString& s) const
+const Brush* Skin::fromString(const QString& s) const
 {
   auto it = m_colorMap->left.find(s);
   return it != m_colorMap->left.end() ? it->second : nullptr;
 }
 
-QBrush* Skin::fromString(const QString& s)
+Brush* Skin::fromString(const QString& s)
 {
   auto it = m_colorMap->left.find(s);
   return it != m_colorMap->left.end() ? it->second : nullptr;
 }
 
-QString Skin::toString(const QBrush* c) const
+QString Skin::toString(const Brush* c) const
 {
-  auto it = m_colorMap->right.find(const_cast<QBrush*>(c));
+  auto it = m_colorMap->right.find(const_cast<Brush*>(c));
   return it != m_colorMap->right.end() ? it->second : nullptr;
+}
+
+Brush::Brush() noexcept { }
+Brush::Brush(const Brush& other) noexcept
+  : main{other.main}
+  , darker{other.darker}
+  , darker300{other.darker300}
+  , lighter{other.lighter}
+  , lighter180{other.lighter180}
+{
+
+}
+Brush::Brush(Brush&& other) noexcept
+  : main{other.main}
+  , darker{other.darker}
+  , darker300{other.darker300}
+  , lighter{other.lighter}
+  , lighter180{other.lighter180}
+{
+
+}
+Brush& Brush::operator=(const Brush& other) noexcept
+{
+  main = other.main;
+  darker = other.darker;
+  darker300 = other.darker300;
+  lighter = other.lighter;
+  lighter180 = other.lighter180;
+
+  return *this;
+}
+Brush& Brush::operator=(Brush&& other) noexcept
+{
+  main = other.main;
+  darker = other.darker;
+  darker300 = other.darker300;
+  lighter = other.lighter;
+  lighter180 = other.lighter180;
+  return *this;
+}
+Brush::~Brush() = default;
+
+Brush::Brush(const QBrush& b) noexcept
+  : main{b}
+  , darker{b.color().darker()}
+  , darker300{b.color().darker(300)}
+  , lighter{b.color().lighter()}
+  , lighter180{b.color().lighter(180)}
+{
+
+}
+
+Brush& Brush::operator=(const QBrush& b) noexcept
+{
+  main = b;
+  darker = b.color().darker();
+  darker300 = b.color().darker(300);
+  lighter = b.color().lighter();
+  lighter180 = b.color().lighter(180);
+  return *this;
+}
+
+BrushSet::BrushSet() noexcept
+{
+
+}
+
+BrushSet::BrushSet(const BrushSet& other) noexcept
+  : brush{other.brush}
+  , pen_cosmetic{other.pen_cosmetic}
+  , pen0{other.pen0}
+  , pen0_solid_round{other.pen0_solid_round}
+  , pen1{other.pen1}
+  , pen1_solid_flat_miter{other.pen1_solid_flat_miter}
+  , pen1_5{other.pen1_5}
+  , pen2{other.pen2}
+  , pen2_solid_round_round{other.pen2_solid_round_round}
+  , pen2_solid_flat_miter{other.pen2_solid_flat_miter}
+  , pen2_dashed_flat_miter{other.pen2_dashed_flat_miter}
+  , pen2_dotted_square_miter{other.pen2_dotted_square_miter}
+  , pen3{other.pen3}
+  , pen3_solid_flat_miter{other.pen3_solid_flat_miter}
+  , pen3_solid_round_round{other.pen3_solid_round_round}
+  , pen3_dashed_flat_miter{other.pen3_dashed_flat_miter}
+{
+
+}
+
+BrushSet::BrushSet(BrushSet&& other) noexcept
+  : brush{other.brush}
+  , pen_cosmetic{other.pen_cosmetic}
+  , pen0{other.pen0}
+  , pen0_solid_round{other.pen0_solid_round}
+  , pen1{other.pen1}
+  , pen1_solid_flat_miter{other.pen1_solid_flat_miter}
+  , pen1_5{other.pen1_5}
+  , pen2{other.pen2}
+  , pen2_solid_round_round{other.pen2_solid_round_round}
+  , pen2_solid_flat_miter{other.pen2_solid_flat_miter}
+  , pen2_dashed_flat_miter{other.pen2_dashed_flat_miter}
+  , pen2_dotted_square_miter{other.pen2_dotted_square_miter}
+  , pen3{other.pen3}
+  , pen3_solid_flat_miter{other.pen3_solid_flat_miter}
+  , pen3_solid_round_round{other.pen3_solid_round_round}
+  , pen3_dashed_flat_miter{other.pen3_dashed_flat_miter}
+{
+
+}
+
+BrushSet& BrushSet::operator=(const BrushSet& other) noexcept
+{
+  brush = other.brush;
+  pen_cosmetic = other.pen_cosmetic;
+  pen0 = other.pen0;
+  pen0_solid_round = other.pen0_solid_round;
+  pen1 = other.pen1;
+  pen1_solid_flat_miter = other.pen1_solid_flat_miter;
+  pen1_5 = other.pen1_5;
+  pen2 = other.pen2;
+  pen2_solid_round_round = other.pen2_solid_round_round;
+  pen2_solid_flat_miter = other.pen2_solid_flat_miter;
+  pen2_dashed_flat_miter = other.pen2_dashed_flat_miter;
+  pen2_dotted_square_miter = other.pen2_dotted_square_miter;
+  pen3 = other.pen3;
+  pen3_solid_flat_miter = other.pen3_solid_flat_miter;
+  pen3_solid_round_round = other.pen3_solid_round_round;
+  pen3_dashed_flat_miter = other.pen3_dashed_flat_miter;
+  return *this;
+}
+
+BrushSet& BrushSet::operator=(BrushSet&& other) noexcept
+{
+  brush = other.brush;
+  pen_cosmetic = other.pen_cosmetic;
+  pen0 = other.pen0;
+  pen0_solid_round = other.pen0_solid_round;
+  pen1 = other.pen1;
+  pen1_solid_flat_miter = other.pen1_solid_flat_miter;
+  pen1_5 = other.pen1_5;
+  pen2 = other.pen2;
+  pen2_solid_round_round = other.pen2_solid_round_round;
+  pen2_solid_flat_miter = other.pen2_solid_flat_miter;
+  pen2_dashed_flat_miter = other.pen2_dashed_flat_miter;
+  pen2_dotted_square_miter = other.pen2_dotted_square_miter;
+  pen3 = other.pen3;
+  pen3_solid_flat_miter = other.pen3_solid_flat_miter;
+  pen3_solid_round_round = other.pen3_solid_round_round;
+  pen3_dashed_flat_miter = other.pen3_dashed_flat_miter;
+  return *this;
+}
+
+BrushSet::~BrushSet()
+{
+
+}
+
+BrushSet::BrushSet(const QBrush& b) noexcept
+  : brush{b}
+{
+  setupPens();
+}
+
+BrushSet& BrushSet::operator=(const QBrush& b) noexcept
+{
+  brush = b;
+  setupPens();
+  return *this;
+}
+
+void BrushSet::setupPens()
+{
+  pen_cosmetic.setBrush(brush);
+  pen_cosmetic.setCosmetic(true);
+
+  pen0.setBrush(brush);
+  pen0.setWidth(0);
+
+  pen0_solid_round.setBrush(brush);
+  pen0_solid_round.setWidth(0);
+  pen0_solid_round.setCapStyle(Qt::RoundCap);
+  pen0_solid_round.setJoinStyle(Qt::RoundJoin);
+
+  pen1.setBrush(brush);
+  pen1.setWidth(1);
+
+  pen1_solid_flat_miter.setBrush(brush);
+  pen1_solid_flat_miter.setWidth(1);
+  pen1_solid_flat_miter.setCapStyle(Qt::FlatCap);
+  pen1_solid_flat_miter.setJoinStyle(Qt::MiterJoin);
+
+  pen1_5.setBrush(brush);
+  pen1_5.setWidthF(1.5);
+
+  pen2.setBrush(brush);
+  pen2.setWidth(2);
+
+  pen2_solid_round_round.setBrush(brush);
+  pen2_solid_round_round.setWidth(2);
+  pen2_solid_round_round.setCapStyle(Qt::RoundCap);
+  pen2_solid_round_round.setJoinStyle(Qt::RoundJoin);
+
+  pen2_solid_flat_miter.setBrush(brush);
+  pen2_solid_flat_miter.setWidth(2);
+  pen2_solid_flat_miter.setCapStyle(Qt::FlatCap);
+  pen2_solid_flat_miter.setJoinStyle(Qt::MiterJoin);
+
+  pen2_dashed_flat_miter.setBrush(brush);
+  pen2_dashed_flat_miter.setWidth(2);
+  pen2_dashed_flat_miter.setStyle(Qt::DashLine);
+  pen2_dashed_flat_miter.setCapStyle(Qt::FlatCap);
+  pen2_dashed_flat_miter.setJoinStyle(Qt::MiterJoin);
+
+  pen2_dotted_square_miter.setBrush(brush);
+  pen2_dotted_square_miter.setWidth(2);
+  pen2_dotted_square_miter.setStyle(Qt::DotLine);
+  pen2_dotted_square_miter.setCapStyle(Qt::SquareCap);
+  pen2_dotted_square_miter.setJoinStyle(Qt::MiterJoin);
+
+  pen3.setBrush(brush);
+  pen3.setWidth(3);
+
+  pen3_solid_round_round.setBrush(brush);
+  pen3_solid_round_round.setWidth(3);
+  pen3_solid_round_round.setCapStyle(Qt::RoundCap);
+  pen3_solid_round_round.setJoinStyle(Qt::RoundJoin);
+
+  pen3_solid_flat_miter.setBrush(brush);
+  pen3_solid_flat_miter.setWidth(3);
+  pen3_solid_flat_miter.setCapStyle(Qt::FlatCap);
+  pen3_solid_flat_miter.setJoinStyle(Qt::MiterJoin);
+
+  pen3_dashed_flat_miter.setBrush(brush);
+  pen3_dashed_flat_miter.setWidth(3);
+  pen3_dashed_flat_miter.setStyle(Qt::CustomDashLine);
+  pen3_dashed_flat_miter.setDashPattern({2., 4.});
+  pen3_dashed_flat_miter.setCapStyle(Qt::FlatCap);
+  pen3_dashed_flat_miter.setJoinStyle(Qt::MiterJoin);
+
 }
 
 #undef SCORE_INSERT_COLOR

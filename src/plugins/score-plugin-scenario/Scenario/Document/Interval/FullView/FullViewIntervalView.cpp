@@ -244,7 +244,7 @@ void FullViewIntervalView::paint(
 
   if (!playedSolidPath.isEmpty())
   {
-    skin.IntervalPlayPen.setBrush(skin.IntervalPlayFill.getBrush());
+    skin.IntervalPlayPen.setBrush(skin.IntervalPlayFill);
 
     painter.setPen(skin.IntervalPlayPen);
     painter.drawPath(playedSolidPath);
@@ -255,7 +255,7 @@ void FullViewIntervalView::paint(
     if (this->m_waiting)
     {
       skin.IntervalWaitingDashPen.setBrush(
-          skin.IntervalWaitingDashFill.getBrush());
+          skin.IntervalWaitingDashFill);
       painter.setPen(skin.IntervalWaitingDashPen);
       painter.drawPath(waitingDashedPath);
     }
@@ -265,11 +265,11 @@ void FullViewIntervalView::paint(
   {
     if (this->m_waiting)
     {
-      skin.IntervalPlayDashPen.setBrush(skin.IntervalPlayDashFill.getBrush());
+      skin.IntervalPlayDashPen.setBrush(skin.IntervalPlayDashFill);
     }
     else
     {
-      skin.IntervalPlayDashPen.setBrush(skin.IntervalPlayFill.getBrush());
+      skin.IntervalPlayDashPen.setBrush(skin.IntervalPlayFill);
     }
 
     painter.setPen(skin.IntervalPlayDashPen);

@@ -32,6 +32,7 @@ ossia::nodes::spline_point View::mapFromCanvas(const QPointF& point) const
 
 void View::paint_impl(QPainter* p) const
 {
+  // TODO optimize painting here
   if (m_spline.points.empty())
     return;
 
@@ -40,7 +41,7 @@ void View::paint_impl(QPainter* p) const
 
   painter.setRenderHint(QPainter::Antialiasing);
 
-  auto& segmt = skin.ConditionPen;
+  QPen segmt = skin.ConditionPen;
   segmt.setColor(qRgb(220, 170, 20));
 
   QPainterPath path;

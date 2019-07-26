@@ -9,7 +9,7 @@
 
 namespace Scenario
 {
-score::ColorRef ExecutionStatusProperty::eventStatusColor(const Process::Style& col) const noexcept
+const QBrush& ExecutionStatusProperty::eventStatusColor(const Process::Style& col) const noexcept
 {
   switch (status)
   {
@@ -24,11 +24,11 @@ score::ColorRef ExecutionStatusProperty::eventStatusColor(const Process::Style& 
     case ExecutionStatus::Disposed:
       return col.EventDisposed;
     default:
-      return score::ColorRef(&score::Skin::instance().Warn3);
+      return score::ColorRef(&score::Skin::Warn3);
   }
 }
 
-score::ColorRef ExecutionStatusProperty::stateStatusColor(const Process::Style& col) const noexcept
+const QBrush& ExecutionStatusProperty::stateStatusColor(const Process::Style& col) const noexcept
 {
   switch (status)
   {
@@ -43,11 +43,11 @@ score::ColorRef ExecutionStatusProperty::stateStatusColor(const Process::Style& 
     case ExecutionStatus::Disposed:
       return col.EventDisposed;
     default:
-      return score::ColorRef(&score::Skin::instance().Warn3);
+      return score::ColorRef(&score::Skin::Warn3);
   }
 }
 
-score::ColorRef ExecutionStatusProperty::conditionStatusColor(const Process::Style& col) const noexcept
+const QBrush& ExecutionStatusProperty::conditionStatusColor(const Process::Style& col) const noexcept
 {
   switch (status)
   {
@@ -62,7 +62,7 @@ score::ColorRef ExecutionStatusProperty::conditionStatusColor(const Process::Sty
     case ExecutionStatus::Disposed:
       return col.EventDisposed;
     default:
-      return score::ColorRef(&score::Skin::instance().Warn3);
+      return score::ColorRef(&score::Skin::Warn3);
   }
 }
 }

@@ -1,5 +1,6 @@
 #pragma once
 #include <score/model/ColorReference.hpp>
+#include <score/model/Skin.hpp>
 
 #include <QBrush>
 #include <QColor>
@@ -7,10 +8,6 @@
 #include <qnamespace.h>
 
 #include <score_lib_process_export.h>
-namespace score
-{
-class Skin;
-}
 namespace Process
 {
 struct SCORE_LIB_PROCESS_EXPORT Style
@@ -27,141 +24,248 @@ struct SCORE_LIB_PROCESS_EXPORT Style
   static Style& instance() noexcept;
   score::Skin& skin;
 
-  score::ColorRef IntervalBase;
-  score::ColorRef IntervalSelected;
-  score::ColorRef IntervalDropTarget;
-  score::ColorRef IntervalPlayFill;
-  score::ColorRef IntervalPlayDashFill;
-  score::ColorRef IntervalWaitingDashFill;
-  score::ColorRef IntervalLoop;
-  score::ColorRef IntervalWarning;
-  score::ColorRef IntervalInvalid;
-  score::ColorRef IntervalMuted;
-  score::ColorRef IntervalDefaultLabel;
-  score::ColorRef IntervalDefaultBackground;
+  static const QBrush& IntervalBase(const score::Brush& b)
+  { return b.main.brush; }
+  static const QBrush& IntervalSelected(const score::Brush& b)
+  { return b.main.brush; }
+  static const QBrush& IntervalDropTarget(const score::Brush& b)
+  { return b.main.brush; }
+  static const QBrush& IntervalPlayFill(const score::Brush& b)
+  { return b.main.brush; }
+  static const QBrush& IntervalPlayDashFill(const score::Brush& b)
+  { return b.main.brush; }
+  static const QBrush& IntervalWaitingDashFill(const score::Brush& b)
+  { return b.main.brush; }
+  static const QBrush& IntervalLoop(const score::Brush& b)
+  { return b.main.brush; }
+  static const QBrush& IntervalWarning(const score::Brush& b)
+  { return b.main.brush; }
+  static const QBrush& IntervalInvalid(const score::Brush& b)
+  { return b.main.brush; }
+  static const QBrush& IntervalMuted(const score::Brush& b)
+  { return b.main.brush; }
+  static const QBrush& IntervalDefaultLabel(const score::Brush& b)
+  { return b.main.brush; }
+  static const QBrush& IntervalDefaultBackground(const score::Brush& b)
+  { return b.main.brush; }
 
-  score::ColorRef RackSideBorder;
+  static const QBrush& RackSideBorder(const score::Brush& b)
+  { return b.main.brush; }
 
-  score::ColorRef IntervalFullViewParentSelected;
+  static const QBrush& IntervalFullViewParentSelected(const score::Brush& b)
+  { return b.main.brush; }
 
-  score::ColorRef IntervalHeaderText;
-  score::ColorRef IntervalHeaderBottomLine;
-  score::ColorRef IntervalHeaderRackHidden;
-  score::ColorRef IntervalHeaderSideBorder;
+  static const QBrush& IntervalHeaderText(const score::Brush& b)
+  { return b.main.brush; }
+  static const QBrush& IntervalHeaderBottomLine(const score::Brush& b)
+  { return b.main.brush; }
+  static const QBrush& IntervalHeaderRackHidden(const score::Brush& b)
+  { return b.main.brush; }
+  static const QBrush& IntervalHeaderSideBorder(const score::Brush& b)
+  { return b.main.brush; }
 
-  score::ColorRef ProcessViewBorder;
+  static const QBrush& ProcessViewBorder(const score::Brush& b)
+  { return b.main.brush; }
 
-  score::ColorRef SlotFocus;
-  score::ColorRef SlotOverlayBorder;
-  score::ColorRef SlotOverlay;
-  score::ColorRef SlotHandle;
+  static const QBrush& SlotFocus(const score::Brush& b)
+  { return b.main.brush; }
+  static const QBrush& SlotOverlayBorder(const score::Brush& b)
+  { return b.main.brush; }
+  static const QBrush& SlotOverlay(const score::Brush& b)
+  { return b.main.brush; }
+  static const QBrush& SlotHandle(const score::Brush& b)
+  { return b.main.brush; }
 
-  score::ColorRef TimenodeDefault;
-  score::ColorRef TimenodeSelected;
+  static const QBrush& TimenodeDefault(const score::Brush& b)
+  { return b.main.brush; }
+  static const QBrush& TimenodeSelected(const score::Brush& b)
+  { return b.main.brush; }
 
-  score::ColorRef EventDefault;
-  score::ColorRef EventWaiting;
-  score::ColorRef EventPending;
-  score::ColorRef EventHappened;
-  score::ColorRef EventDisposed;
-  score::ColorRef EventSelected;
+  static const QBrush& EventDefault(const score::Brush& b)
+  { return b.main.brush; }
+  static const QBrush& EventWaiting(const score::Brush& b)
+  { return b.main.brush; }
+  static const QBrush& EventPending(const score::Brush& b)
+  { return b.main.brush; }
+  static const QBrush& EventHappened(const score::Brush& b)
+  { return b.main.brush; }
+  static const QBrush& EventDisposed(const score::Brush& b)
+  { return b.main.brush; }
+  static const QBrush& EventSelected(const score::Brush& b)
+  { return b.main.brush; }
 
-  score::ColorRef ConditionDefault;
-  score::ColorRef ConditionWaiting;
-  score::ColorRef ConditionDisabled;
-  score::ColorRef ConditionFalse;
-  score::ColorRef ConditionTrue;
+  static const QBrush& ConditionDefault(const score::Brush& b)
+  { return b.main.brush; }
+  static const QBrush& ConditionWaiting(const score::Brush& b)
+  { return b.main.brush; }
+  static const QBrush& ConditionDisabled(const score::Brush& b)
+  { return b.main.brush; }
+  static const QBrush& ConditionFalse(const score::Brush& b)
+  { return b.main.brush; }
+  static const QBrush& ConditionTrue(const score::Brush& b)
+  { return b.main.brush; }
 
-  score::ColorRef StateOutline;
-  score::ColorRef StateSelected;
-  score::ColorRef StateDot;
+  static const QBrush& StateOutline(const score::Brush& b)
+  { return b.main.brush; }
+  static const QBrush& StateSelected(const score::Brush& b)
+  { return b.main.brush; }
+  static const QBrush& StateDot(const score::Brush& b)
+  { return b.main.brush; }
 
-  score::ColorRef Background;
-  score::ColorRef ProcessPanelBackground;
+  static const QBrush& Background(const score::Brush& b)
+  { return b.main.brush; }
+  static const QBrush& ProcessPanelBackground(const score::Brush& b)
+  { return b.main.brush; }
+  const QBrush& ProcessPanelBackground()
+  { return ProcessPanelBackground(skin.Transparent1); }
 
-  score::ColorRef TimeRulerBackground;
-  score::ColorRef MinimapBackground;
-  score::ColorRef TimeRuler;
-  score::ColorRef LocalTimeRuler;
+  static const QBrush& TimeRulerBackground(const score::Brush& b)
+  { return b.main.brush; }
+  static const QBrush& MinimapBackground(const score::Brush& b)
+  { return b.main.brush; }
+  static const QBrush& TimeRuler(const score::Brush& b)
+  { return b.main.brush; }
+  static const QBrush& LocalTimeRuler(const score::Brush& b)
+  { return b.main.brush; }
 
-  score::ColorRef SlotHeader;
+  static const QBrush& SlotHeader(const score::Brush& b)
+  { return b.main.brush; }
 
-  QPen IntervalSolidPen;
-  QPen IntervalDashPen;
-  QPen IntervalRackPen;
-  QPen IntervalPlayPen;
-  QPen IntervalPlayDashPen;
-  QPen IntervalWaitingDashPen;
-  QPen IntervalHeaderTextPen;
+  static const QPen& IntervalSolidPen(const score::Brush& b)
+  { return b.main.pen1; }
+  static const QPen& IntervalDashPen(const score::Brush& b)
+  { return b.main.pen1; }
+  static const QPen& IntervalRackPen(const score::Brush& b)
+  { return b.main.pen1; }
+  static const QPen& IntervalPlayPen(const score::Brush& b)
+  { return b.main.pen1; }
+  static const QPen& IntervalPlayDashPen(const score::Brush& b)
+  { return b.main.pen1; }
+  static const QPen& IntervalWaitingDashPen(const score::Brush& b)
+  { return b.main.pen1; }
+  static const QPen& IntervalHeaderTextPen(const score::Brush& b)
+  { return b.main.pen1; }
 
-  QPen IntervalBraceSelected;
-  QPen IntervalBraceWarning;
-  QPen IntervalBraceInvalid;
-  QPen IntervalBrace;
+  static const QPen& IntervalBraceSelected(const score::Brush& b)
+  { return b.main.pen1; }
+  static const QPen& IntervalBraceWarning(const score::Brush& b)
+  { return b.main.pen1; }
+  static const QPen& IntervalBraceInvalid(const score::Brush& b)
+  { return b.main.pen1; }
+  static const QPen& IntervalBrace(const score::Brush& b)
+  { return b.main.pen1; }
 
-  QBrush MutedIntervalHeaderBackground;
+  static const QBrush& MutedIntervalHeaderBackground(const score::Brush& b)
+  { return b.main.brush; }
 
-  QPen IntervalHeaderSeparator;
-  QPen FullViewIntervalHeaderSeparator;
+  static const QPen& IntervalHeaderSeparator(const score::Brush& b)
+  { return b.main.pen1; }
+  static const QPen& FullViewIntervalHeaderSeparator(const score::Brush& b)
+  { return b.main.pen1; }
 
-  QPen ConditionPen;
-  QPen ConditionTrianglePen;
+  static const QPen& ConditionPen(const score::Brush& b)
+  { return b.main.pen1; }
+  static const QPen& ConditionTrianglePen(const score::Brush& b)
+  { return b.main.pen1; }
 
-  QPen TimenodePen;
-  QBrush TimenodeBrush;
+  static const QPen& TimenodePen(const score::Brush& b)
+  { return b.main.pen1; }
+  static const QBrush& TimenodeBrush(const score::Brush& b)
+  { return b.main.brush; }
 
-  QPen MinimapPen;
-  QBrush MinimapBrush;
+  static const QPen& MinimapPen(const score::Brush& b)
+  { return b.main.pen1; }
+  static const QBrush& MinimapBrush(const score::Brush& b)
+  { return b.main.brush; }
 
-  QBrush StateTemporalPointBrush;
-  QPen StateTemporalPointPen;
-  QBrush StateBrush;
+  static const QBrush& StateTemporalPointBrush(const score::Brush& b)
+  { return b.main.brush; }
+  static const QPen& StateTemporalPointPen(const score::Brush& b)
+  { return b.main.pen1; }
+  static const QBrush& StateBrush(const score::Brush& b)
+  { return b.main.brush; }
 
-  QPen EventPen;
-  QBrush EventBrush;
+  static const QPen& EventPen(const score::Brush& b)
+  { return b.main.pen1; }
+  static const QBrush& EventBrush(const score::Brush& b)
+  { return b.main.brush; }
 
-  QPen TimeRulerLargePen, TimeRulerSmallPen;
+  static const QPen& TimeRulerLargePen(const score::Brush& b)
+  { return b.main.pen1; }
+  static const QPen& TimeRulerSmallPen(const score::Brush& b)
+  { return b.main.pen1; }
 
-  QPen SlotHandlePen;
+  static const QPen& SlotHandlePen(const score::Brush& b)
+  { return b.main.pen1; }
 
-  QPen CommentBlockPen;
-  QPen CommentBlockSelectedPen;
-  QPen MiniScenarioPen;
-  QPen SeparatorPen;
-  QBrush SeparatorBrush;
-  QBrush DefaultBrush;
+  static const QPen& CommentBlockPen(const score::Brush& b)
+  { return b.main.pen1; }
+  static const QPen& CommentBlockSelectedPen(const score::Brush& b)
+  { return b.main.pen1; }
+  static const QPen& MiniScenarioPen(const score::Brush& b)
+  { return b.main.pen1; }
+  static const QPen& SeparatorPen(const score::Brush& b)
+  { return b.main.pen1; }
+  static const QBrush& SeparatorBrush(const score::Brush& b)
+  { return b.main.brush; }
+  static const QBrush& DefaultBrush(const score::Brush& b)
+  { return b.main.brush; }
 
-  QPen AudioCablePen;
-  QPen DataCablePen;
-  QPen MidiCablePen;
+  static const QPen& AudioCablePen(const score::Brush& b)
+  { return b.main.pen1; }
+  static const QPen& DataCablePen(const score::Brush& b)
+  { return b.main.pen1; }
+  static const QPen& MidiCablePen(const score::Brush& b)
+  { return b.main.pen1; }
 
-  QPen SelectedAudioCablePen;
-  QPen SelectedDataCablePen;
-  QPen SelectedMidiCablePen;
+  static const QPen& SelectedAudioCablePen(const score::Brush& b)
+  { return b.main.pen1; }
+  static const QPen& SelectedDataCablePen(const score::Brush& b)
+  { return b.main.pen1; }
+  static const QPen& SelectedMidiCablePen(const score::Brush& b)
+  { return b.main.pen1; }
 
-  QPen AudioPortPen;
-  QPen DataPortPen;
-  QPen MidiPortPen;
-  QBrush AudioPortBrush;
-  QBrush DataPortBrush;
-  QBrush MidiPortBrush;
+  static const QPen& AudioPortPen(const score::Brush& b)
+  { return b.main.pen1; }
+  static const QPen& DataPortPen(const score::Brush& b)
+  { return b.main.pen1; }
+  static const QPen& MidiPortPen(const score::Brush& b)
+  { return b.main.pen1; }
+  static const QBrush& AudioPortBrush(const score::Brush& b)
+  { return b.main.brush; }
+  static const QBrush& DataPortBrush(const score::Brush& b)
+  { return b.main.brush; }
+  static const QBrush& MidiPortBrush(const score::Brush& b)
+  { return b.main.brush; }
 
-  QPen SlotHeaderTextPen;
+  static const QPen& SlotHeaderTextPen(const score::Brush& b)
+  { return b.main.pen1; }
 
-  QPen SlotHeaderPen;
-  QBrush SlotHeaderBrush;
+  static const QPen SlotHeaderPen(const score::Brush& b)
+  { return b.main.pen1; }
+  static const QBrush SlotHeaderBrush(const score::Brush& b)
+  { return b.main.brush; }
 
-  QPen RectPen;
-  QPen RectHighlightPen;
-  QBrush RectBrush;
-  QBrush RectHighlightBrush;
+  static const QPen RectPen(const score::Brush& b)
+  { return b.main.pen1; }
+  static const QPen RectHighlightPen(const score::Brush& b)
+  { return b.main.pen1; }
+  static const QBrush RectBrush(const score::Brush& b)
+  { return b.main.brush; }
+  static const QBrush RectHighlightBrush(const score::Brush& b)
+  { return b.main.brush; }
 
-  QBrush LoopBrush;
+  static const QBrush LoopBrush(const score::Brush& b)
+  { return b.main.brush; }
 
-  const QPen TransparentPen;
-  const QBrush TransparentBrush;
-  const QPen NoPen;
-  const QBrush NoBrush;
+  static const QPen TransparentPen(const score::Brush& b)
+  { return b.main.pen1; }
+  static const QBrush TransparentBrush(const score::Brush& b)
+  { return b.main.brush; }
+  static const QPen NoPen(const score::Brush& b)
+  { return b.main.pen1; }
+  static const QBrush NoBrush(const score::Brush& b)
+  { return b.main.brush; }
 
 private:
   Style() noexcept;

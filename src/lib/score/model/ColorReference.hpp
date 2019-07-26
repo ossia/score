@@ -38,17 +38,17 @@ public:
   constexpr ColorRef& operator=(const ColorRef& other) noexcept = default;
   constexpr ColorRef& operator=(ColorRef&& other) noexcept = default;
 
-  ColorRef(QBrush Skin::*s) : ref{&(score::Skin::instance().*s)} {}
+  ColorRef(Brush Skin::* s) : ref{&(score::Skin::instance().*s)} {}
 
-  constexpr ColorRef(const QBrush* col) noexcept : ref{col} {}
+  constexpr ColorRef(const Brush* col) noexcept : ref{col} {}
 
-  void setColor(QBrush Skin::*s) noexcept
+  void setColor(Brush Skin::*s) noexcept
   {
     // Set color by reference
     ref = &(score::Skin::instance().*s);
   }
 
-  const QBrush& getBrush() const
+  const Brush& getBrush() const
   {
     SCORE_ASSERT(ref);
     return *ref;
@@ -60,7 +60,7 @@ public:
   static optional<ColorRef> SimilarColor(QColor other) noexcept;
 
 private:
-  const QBrush* ref{};
+  const Brush* ref{};
 };
 }
 
