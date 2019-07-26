@@ -11,6 +11,61 @@
 class QJsonObject;
 namespace score
 {
+struct BrushSet
+{
+  BrushSet() noexcept;
+  BrushSet(const BrushSet&) noexcept;
+  BrushSet(BrushSet&&) noexcept;
+  BrushSet& operator=(const BrushSet&) noexcept;
+  BrushSet& operator=(BrushSet&&) noexcept;
+  ~BrushSet();
+
+  BrushSet(const QBrush& b) noexcept;
+
+  BrushSet& operator=(const QBrush& b) noexcept;
+
+  QBrush brush;
+  QPen pen_cosmetic;
+  QPen pen0;
+  QPen pen0_solid_round;
+  QPen pen1;
+  QPen pen1_solid_flat_miter;
+  QPen pen1_5;
+  QPen pen2;
+  QPen pen2_solid_round_round;
+  QPen pen2_solid_flat_miter;
+  QPen pen2_dashed_flat_miter;
+  QPen pen2_dotted_square_miter;
+  QPen pen3;
+  QPen pen3_solid_flat_miter;
+  QPen pen3_solid_round_round;
+  QPen pen3_dashed_flat_miter;
+
+  void setupPens();
+};
+
+struct Brush
+{
+  Brush() noexcept;
+  Brush(const Brush&) noexcept;
+  Brush(Brush&&) noexcept;
+  Brush& operator=(const Brush&) noexcept;
+  Brush& operator=(Brush&&) noexcept;
+  ~Brush();
+
+  Brush(const QBrush& b) noexcept;
+  Brush& operator=(const QBrush& b) noexcept;
+
+  operator const QBrush&() const noexcept { return main.brush; }
+  QColor color() const noexcept { return main.brush.color(); }
+
+  BrushSet main;
+  BrushSet darker;
+  BrushSet darker300;
+  BrushSet lighter;
+  BrushSet lighter180;
+};
+
 class SCORE_LIB_BASE_EXPORT Skin : public QObject
 {
   W_OBJECT(Skin)
@@ -32,44 +87,44 @@ public:
   QFont Medium10Pt;
   QFont Medium12Pt;
 
-  QBrush Dark;
-  QBrush HalfDark;
-  QBrush Gray;
-  QBrush HalfLight;
-  QBrush Light;
+  Brush Dark;
+  Brush HalfDark;
+  Brush Gray;
+  Brush HalfLight;
+  Brush Light;
 
-  QBrush Emphasis1;
-  QBrush Emphasis2;
-  QBrush Emphasis3;
-  QBrush Emphasis4;
+  Brush Emphasis1;
+  Brush Emphasis2;
+  Brush Emphasis3;
+  Brush Emphasis4;
 
-  QBrush Base1;
-  QBrush Base2;
-  QBrush Base3;
-  QBrush Base4;
-  QBrush Base5;
+  Brush Base1;
+  Brush Base2;
+  Brush Base3;
+  Brush Base4;
+  Brush Base5;
 
-  QBrush Warn1;
-  QBrush Warn2;
-  QBrush Warn3;
+  Brush Warn1;
+  Brush Warn2;
+  Brush Warn3;
 
-  QBrush Background1;
-  QBrush Background2;
+  Brush Background1;
+  Brush Background2;
 
-  QBrush Transparent1;
-  QBrush Transparent2;
-  QBrush Transparent3;
+  Brush Transparent1;
+  Brush Transparent2;
+  Brush Transparent3;
 
-  QBrush Smooth1;
-  QBrush Smooth2;
-  QBrush Smooth3;
+  Brush Smooth1;
+  Brush Smooth2;
+  Brush Smooth3;
 
-  QBrush Tender1;
-  QBrush Tender2;
-  QBrush Tender3;
+  Brush Tender1;
+  Brush Tender2;
+  Brush Tender3;
 
-  QBrush Pulse1;
-  QBrush Pulse2;
+  Brush Pulse1;
+  Brush Pulse2;
 
   const QPen TransparentPen;
   const QBrush TransparentBrush;
@@ -84,9 +139,9 @@ public:
   QPen SliderTextPen;
   QFont SliderFont;
 
-  const QBrush* fromString(const QString& s) const;
-  QBrush* fromString(const QString& s);
-  QString toString(const QBrush*) const;
+  const Brush* fromString(const QString& s) const;
+  Brush* fromString(const QString& s);
+  QString toString(const Brush*) const;
 
   QVector<QPair<QColor, QString>> getColors() const;
   QVector<QPair<QColor, QString>> getDefaultPaletteColors() const;
@@ -100,7 +155,7 @@ private:
 
   struct color_map;
   color_map* m_colorMap{};
-  QVector<QPair<QString, QBrush>> m_defaultPalette;
+  QVector<QPair<QString, Brush>> m_defaultPalette;
 
   bool m_pulseDirection{false};
 };

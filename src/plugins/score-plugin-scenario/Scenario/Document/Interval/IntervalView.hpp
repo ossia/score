@@ -77,7 +77,7 @@ public:
   void setWarning(bool warning);
 
   void setExecutionState(IntervalExecutionState);
-  const QBrush& intervalColor(const Process::Style& skin) const;
+  const score::Brush& intervalColor(const Process::Style& skin) const;
 
   void updateLabelPos();
   void updateCounterPos();

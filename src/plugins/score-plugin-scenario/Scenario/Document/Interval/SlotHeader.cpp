@@ -230,7 +230,7 @@ void SlotDragOverlay::paint(
     QWidget* widget)
 {
   const auto& style = Process::Style::instance();
-  auto c = style.IntervalBase.getBrush().color();
+  auto c = style.IntervalBase.color();
   c.setAlphaF(0.2);
   painter->fillRect(interval.view()->boundingRect(), c);
   painter->fillRect(m_drawnRect, QColor::fromRgbF(0.6, 0.6, 1., 0.8));

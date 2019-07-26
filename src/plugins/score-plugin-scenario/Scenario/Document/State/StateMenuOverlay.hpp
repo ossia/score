@@ -42,7 +42,7 @@ public:
 
     painter->setRenderHint(QPainter::Antialiasing, true);
 
-    const auto& pending_brush = skin.EventPending.getBrush();
+    const auto& pending_brush = skin.EventPending;
     painter->setBrush(pending_brush);
     const auto bright = pending_brush.color();
     QPen p{bright.darker(300)};
