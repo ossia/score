@@ -11,7 +11,7 @@
 namespace Media
 {
 
-using rms_sample_t = uint16_t;
+using rms_sample_t = int16_t;
 struct RMSData : public QObject
 {
   W_OBJECT(RMSData)
@@ -36,6 +36,8 @@ public:
   // interleaved
   void decode(ossia::drwav_handle& audio);
   double sampleRateRatio(double expectedRate) const noexcept;
+
+  void setHandle(ossia::drwav_handle& audio);
 
   ossia::small_vector<float, 8> frame(int64_t start_sample, int64_t end_sample) const noexcept;
 
@@ -62,6 +64,8 @@ private:
 
   QByteArray m_ramData;
   QBuffer m_ramBuffer;
+
+  ossia::drwav_handle* m_drwavHandle{};
 };
 
 }

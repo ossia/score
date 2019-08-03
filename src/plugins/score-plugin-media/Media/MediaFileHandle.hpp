@@ -22,6 +22,11 @@ namespace Media
 {
 struct RMSData;
 class SoundComponentSetup;
+static constexpr float abs_max(float f1, float f2) noexcept
+{
+  return (std::abs(f1) < std::abs(f2)) ? f2 : f1;
+}
+
 struct SCORE_PLUGIN_MEDIA_EXPORT AudioFileHandle final : public QObject
 {
 public:
@@ -58,6 +63,8 @@ public:
   Nano::Signal<void()> on_finishedDecoding;
 
   void updateSampleRate(int);
+
+  ossia::small_vector<float, 8> frame(int64_t start_frame, int64_t end_frame) const noexcept;
 
 private:
   void load_ffmpeg(int rate);

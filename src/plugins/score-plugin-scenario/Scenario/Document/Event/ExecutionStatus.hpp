@@ -42,9 +42,9 @@ struct ExecutionStatusProperty
       status = e;
     }
   }
-  const QBrush& eventStatusColor(const Process::Style&) const noexcept;
-  const QBrush& stateStatusColor(const Process::Style&) const noexcept;
-  const QBrush& conditionStatusColor(const Process::Style&) const noexcept;
+  const score::Brush& eventStatusColor(const Process::Style&) const noexcept;
+  const score::Brush& stateStatusColor(const Process::Style&) const noexcept;
+  const score::Brush& conditionStatusColor(const Process::Style&) const noexcept;
 };
 }
 

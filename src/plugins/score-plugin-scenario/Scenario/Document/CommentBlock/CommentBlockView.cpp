@@ -48,10 +48,10 @@ void CommentBlockView::paint(
   auto& skin = Process::Style::instance();
 
   if(!m_selected)
-    painter->setPen(skin.CommentBlockPen);
+    painter->setPen(skin.CommentBlockPen());
   else
-    painter->setPen(skin.CommentBlockSelectedPen);
-  painter->setBrush(skin.TransparentBrush);
+    painter->setPen(skin.CommentBlockSelectedPen());
+  painter->setBrush(skin.TransparentBrush());
   painter->drawRoundedRect(boundingRect(), 5., 5.);
 }
 

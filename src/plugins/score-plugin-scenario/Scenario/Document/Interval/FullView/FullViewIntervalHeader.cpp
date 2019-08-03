@@ -52,7 +52,7 @@ void FullViewIntervalHeader::paint(
   painter->setRenderHint(QPainter::Antialiasing, false);
 
   const auto& skin = Process::Style::instance();
-  painter->setPen(skin.IntervalHeaderSeparator);
+  painter->setPen(skin.IntervalHeaderSeparator());
   painter->drawLine(
       QPointF{0., (double)IntervalHeaderHeight},
       QPointF{m_width, (double)IntervalHeaderHeight});

@@ -166,7 +166,7 @@ public:
 
     rm_btn->setPos({20, 4});
 
-    auto label = new score::SimpleTextItem{skin.IntervalBase, this};
+    auto label = new score::SimpleTextItem{&score::Skin::Base1, this};
     label->setText(effect.prettyName());
     label->setFont(skin.skin.Bold10Pt);
     label->setPos({35, 4});
@@ -360,7 +360,7 @@ private:
   {
     if (m_invalid)
     {
-      p->fillRect(boundingRect(), Process::Style::instance().AudioPortBrush);
+      p->fillRect(boundingRect(), Process::Style::instance().AudioPortBrush().brush);
     }
 
     if (m_lit)
@@ -368,8 +368,8 @@ private:
       int idx = *m_lit;
 
       p->setRenderHint(QPainter::Antialiasing, false);
-      p->setPen(Process::Style::instance().TransparentPen);
-      p->setBrush(Process::Style::instance().StateDot.getBrush());
+      p->setPen(Process::Style::instance().TransparentPen());
+      p->setBrush(Process::Style::instance().StateDot());
       p->drawRoundedRect(
           QRectF(2.5 + idx * 180, 15, 5, boundingRect().height() - 30), 4, 4);
       p->setRenderHint(QPainter::Antialiasing, false);

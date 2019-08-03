@@ -36,7 +36,7 @@ EventModel::EventModel(
     , m_offset{OffsetBehavior::True}
 {
   metadata().setInstanceName(*this);
-  metadata().setColor(Process::Style::instance().EventDefault);
+  metadata().setColor(&score::Skin::Emphasis4);
 }
 
 VerticalExtent EventModel::extent() const noexcept
@@ -97,7 +97,7 @@ const QBrush& EventModel::color(const Process::Style& skin) const noexcept
   if (m_status.get() == ExecutionStatus::Editing)
     return metadata().getColor().getBrush();
   else
-    return m_status.eventStatusColor(skin).getBrush();
+    return m_status.eventStatusColor(skin);
 }
 
 void EventModel::translate(const TimeVal& deltaTime)

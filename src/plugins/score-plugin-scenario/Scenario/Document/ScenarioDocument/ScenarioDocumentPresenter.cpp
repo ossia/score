@@ -447,8 +447,7 @@ void ScenarioDocumentPresenter::on_horizontalPositionChanged(int dx)
 
   QRectF visible_scene_rect = view().visibleSceneRect();
 
-  view().timeRuler().setStartPoint(
-      TimeVal::fromMsecs(visible_scene_rect.x() * m_zoomRatio));
+  view().timeRuler().setStartPoint(std::chrono::nanoseconds(int64_t(1e6 * visible_scene_rect.x() * m_zoomRatio)));
   const auto dur = c.duration.guiDuration();
   c.setMidTime(
       dur * (visible_scene_rect.center().x() / dur.toPixels(m_zoomRatio)));
@@ -607,7 +606,7 @@ void ScenarioDocumentPresenter::updateMinimap()
   // Compute min handle spacing.
   // The maximum zoom in the main view should be 10 pixels for one millisecond.
   // Given the viewWidth and the guiDuration, compute the distance required.
-  minimap.setMinDistance(20 * viewWidth / cstDur.msec());
+  minimap.setMinDistance(2 * viewWidth / cstDur.msec());
 
   // Compute handle positions.
   const auto vp_x1 = visibleSceneRect.left();

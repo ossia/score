@@ -6,6 +6,7 @@
 
 #include <Process/Style/ScenarioStyle.hpp>
 #include <Scenario/Document/Interval/IntervalView.hpp>
+#include <score/graphics/GraphicsItem.hpp>
 
 #include <QColor>
 #include <QCursor>
@@ -36,7 +37,12 @@ FullViewIntervalView::FullViewIntervalView(
 
 FullViewIntervalView::~FullViewIntervalView() {}
 
-void FullViewIntervalView::updatePaths()
+void FullViewIntervalView::updatePaths() { }
+void FullViewIntervalView::drawPaths(
+      QPainter& p,
+      QRectF visibleRect,
+      const score::Brush& defaultColor,
+      const Process::Style& skin)
 {
   solidPath = QPainterPath{};
   dashedPath = QPainterPath{};
@@ -49,6 +55,12 @@ void FullViewIntervalView::updatePaths()
   const qreal def_w = defaultWidth();
   const qreal play_w = m_waiting ? playWidth() : 0.;
   const qreal gui_w = m_guiWidth;
+  const auto& solidPen = skin.IntervalSolidPen(defaultColor);
+  const auto& dashPen = skin.IntervalDashPen(defaultColor);
+
+  const auto& solidPlayPen = skin.IntervalSolidPen(skin.IntervalPlayFill());
+  const auto dashPlayPen = skin.IntervalDashPen(skin.IntervalPlayFill());
+  const auto& waitingPlayPen = skin.IntervalDashPen(skin.IntervalWaitingDashFill());
 
   // Paths
   if (play_w <= 0.)
@@ -57,25 +69,30 @@ void FullViewIntervalView::updatePaths()
     {
       if (min_w != 0.)
       {
-        solidPath.lineTo(min_w, 0.);
+        p.setPen(solidPen);
+        p.drawLine(QPointF{0, 0}, QPointF{min_w, 0.});
       }
 
       // TODO end state should be hidden
-      dashedPath.moveTo(min_w, 0.);
-      dashedPath.lineTo(gui_w, 0.);
+      {
+        p.setPen(dashPen);
+        p.drawLine(QPointF{min_w, 0}, QPointF{def_w, 0.});
+      }
     }
     else if (min_w == max_w) // TODO rigid()
     {
-      solidPath.lineTo(def_w, 0.);
+      p.setPen(solidPen);
+      p.drawLine(QPointF{0, 0}, QPointF{def_w, 0.});
     }
     else
     {
       if (min_w != 0.)
       {
-        solidPath.lineTo(min_w, 0.);
+        p.setPen(solidPen);
+        p.drawLine(QPointF{0, 0}, QPointF{min_w, 0.});
       }
-      dashedPath.moveTo(min_w, 0.);
-      dashedPath.lineTo(max_w, 0.);
+      p.setPen(dashPen);
+      p.drawLine(QPointF{min_w, 0}, QPointF{max_w, 0.});
     }
   }
   else
@@ -84,58 +101,78 @@ void FullViewIntervalView::updatePaths()
     {
       if (min_w != 0.)
       {
-        playedSolidPath.lineTo(std::min(play_w, min_w), 0.);
-        // if(play_w < min_w)
+        const auto min_pt = std::min(play_w, min_w);
+        p.setPen(solidPlayPen);
+        p.drawLine(QPointF{0, 0}, QPointF{min_pt, 0.});
+
+        if(min_pt < min_w)
         {
-          solidPath.lineTo(min_w, 0.);
+          p.setPen(solidPen);
+          p.drawLine(QPointF{min_pt, 0}, QPointF{min_w, 0.});
         }
       }
 
       if (play_w > min_w)
       {
-        playedDashedPath.moveTo(min_w, 0.);
-        playedDashedPath.lineTo(std::min(def_w, play_w), 0.);
+        const auto min_pt = std::min(def_w, play_w);
 
-        waitingDashedPath.moveTo(min_w, 0.);
-        waitingDashedPath.lineTo(def_w, 0.);
+        if(min_pt < def_w)
+        {
+          p.setPen(waitingPlayPen);
+          p.drawLine(QPointF{min_w, 0.}, QPointF{def_w, 0.});
+        }
+
+        p.setPen(dashPlayPen);
+        p.drawLine(QPointF{min_w, 0.}, QPointF{min_pt, 0.});
       }
       else
       {
-        dashedPath.moveTo(min_w, 0.);
-        dashedPath.lineTo(gui_w, 0.);
+        p.setPen(dashPen);
+        p.drawLine(QPointF{min_w, 0}, QPointF{def_w, 0.});
       }
     }
     else if (min_w == max_w) // TODO rigid()
     {
-      playedSolidPath.lineTo(std::min(play_w, def_w), 0.);
-      // if(play_w < def_w)
+      const auto min_pt = std::min(play_w, def_w);
+      p.setPen(solidPlayPen);
+      p.drawLine(QPointF{0, 0}, QPointF{min_pt, 0.});
+
+      if(min_pt < def_w)
       {
-        solidPath.lineTo(def_w, 0.);
+        p.setPen(solidPen);
+        p.drawLine(QPointF{min_pt, 0}, QPointF{def_w, 0.});
       }
     }
     else
     {
       if (min_w != 0.)
       {
-        playedSolidPath.lineTo(std::min(play_w, min_w), 0.);
-        // if(play_w < min_w)
+        const auto min_pt = std::min(play_w, min_w);
+        p.setPen(solidPlayPen);
+        p.drawLine(QPointF{0, 0}, QPointF{min_pt, 0.});
+        if(min_pt < min_w)
         {
+          p.setPen(solidPen);
+          p.drawLine(QPointF{min_pt, 0}, QPointF{min_w, 0.});
           solidPath.lineTo(min_w, 0.);
         }
       }
 
       if (play_w > min_w)
       {
-        playedDashedPath.moveTo(min_w, 0.);
-        playedDashedPath.lineTo(play_w, 0.);
+        if(max_w > play_w)
+        {
+          p.setPen(waitingPlayPen);
+          p.drawLine(QPointF{min_w, 0.}, QPointF{max_w, 0.});
+        }
 
-        waitingDashedPath.moveTo(min_w, 0.);
-        waitingDashedPath.lineTo(max_w, 0.);
+        p.setPen(dashPlayPen);
+        p.drawLine(QPointF{min_w, 0.}, QPointF{play_w, 0.});
       }
       else
       {
-        dashedPath.moveTo(min_w, 0.);
-        dashedPath.lineTo(max_w, 0.);
+        p.setPen(dashPen);
+        p.drawLine(QPointF{min_w, 0.}, QPointF{max_w, 0.});
       }
     }
   }
@@ -143,6 +180,7 @@ void FullViewIntervalView::updatePaths()
 
 void FullViewIntervalView::updatePlayPaths()
 {
+  /*
   playedSolidPath = QPainterPath{};
   playedDashedPath = QPainterPath{};
   waitingDashedPath = QPainterPath{};
@@ -196,6 +234,7 @@ void FullViewIntervalView::updatePlayPaths()
       }
     }
   }
+  */
 }
 
 void FullViewIntervalView::updateOverlayPos() {}
@@ -219,34 +258,69 @@ void FullViewIntervalView::paint(
     const QStyleOptionGraphicsItem* option,
     QWidget* widget)
 {
+  auto view = ::getView(*this);
+  if(!view)
+    return;
+
+  auto rect = boundingRect();
+  QPointF sceneDrawableTopLeft = view->mapToScene(-10, 0);
+  QPointF sceneDrawableBottomRight = view->mapToScene(view->width() + 10, view->height() + 10);
+  QPointF itemDrawableTopLeft = this->mapFromScene(sceneDrawableTopLeft);
+  QPointF itemDrawableBottomRight = this->mapFromScene(sceneDrawableBottomRight);
+
+  itemDrawableTopLeft.rx() = std::max(itemDrawableTopLeft.x(), 0.);
+  itemDrawableTopLeft.ry() = std::max(itemDrawableTopLeft.y(), 0.);
+
+  itemDrawableBottomRight.rx() = std::min(itemDrawableBottomRight.x(), boundingRect().width());
+  itemDrawableBottomRight.ry() = std::min(itemDrawableBottomRight.y(), boundingRect().height());
+  if(itemDrawableTopLeft.x() > boundingRect().width())
+  {
+    return;
+  }
+  if(itemDrawableBottomRight.y() > boundingRect().height())
+  {
+    return;
+  }
+
+  QPointF sceneTopLeft = this->mapToScene(QPointF{0, 0});
+  QPointF sceneBottomRight = this->mapToScene(boundingRect().bottomRight());
+  QPointF viewTopLeft = view->mapFromScene(sceneTopLeft);
+  QPointF viewBottomRight = view->mapFromScene(sceneBottomRight);
+
+  if(itemDrawableTopLeft.y() > 20)
+  {
+    return;
+  }
+
+
   auto& painter = *p;
   auto& skin = Process::Style::instance();
   painter.setRenderHint(QPainter::Antialiasing, false);
 
   const auto& defaultColor = this->intervalColor(skin);
 
-  skin.IntervalSolidPen.setBrush(defaultColor);
-  skin.IntervalDashPen.setBrush(defaultColor);
+  const auto visibleRect = QRectF{itemDrawableTopLeft, itemDrawableBottomRight};
+  drawPaths(painter, visibleRect, defaultColor, skin);
+/*
+  auto& solidPen = skin.IntervalSolidPen(defaultColor);
+  auto& dashPen = skin.IntervalDashPen(defaultColor);
 
   // Drawing
   if (!solidPath.isEmpty())
   {
-    painter.setPen(skin.IntervalSolidPen);
+    painter.setPen(solidPen);
     painter.drawPath(solidPath);
   }
 
   if (!dashedPath.isEmpty())
   {
-    painter.setPen(skin.IntervalDashPen);
+    painter.setPen(dashPen);
     painter.drawPath(dashedPath);
-    skin.IntervalDashPen.setDashOffset(0);
   }
 
   if (!playedSolidPath.isEmpty())
   {
-    skin.IntervalPlayPen.setBrush(skin.IntervalPlayFill);
-
-    painter.setPen(skin.IntervalPlayPen);
+    painter.setPen(skin.IntervalSolidPen(skin.IntervalPlayFill()));
     painter.drawPath(playedSolidPath);
   }
 
@@ -254,9 +328,7 @@ void FullViewIntervalView::paint(
   {
     if (this->m_waiting)
     {
-      skin.IntervalWaitingDashPen.setBrush(
-          skin.IntervalWaitingDashFill);
-      painter.setPen(skin.IntervalWaitingDashPen);
+      painter.setPen(skin.IntervalDashPen(skin.IntervalWaitingDashFill()));
       painter.drawPath(waitingDashedPath);
     }
   }
@@ -265,16 +337,15 @@ void FullViewIntervalView::paint(
   {
     if (this->m_waiting)
     {
-      skin.IntervalPlayDashPen.setBrush(skin.IntervalPlayDashFill);
+      painter.setPen(skin.IntervalDashPen(skin.IntervalPlayFill()));
     }
     else
     {
-      skin.IntervalPlayDashPen.setBrush(skin.IntervalPlayFill);
+      painter.setPen(skin.IntervalSolidPen(skin.IntervalPlayFill()));
     }
 
-    painter.setPen(skin.IntervalPlayDashPen);
     painter.drawPath(playedDashedPath);
-  }
+  }*/
 #if defined(SCORE_SCENARIO_DEBUG_RECTS)
   p.setPen(Qt::red);
   p.drawRect(boundingRect());

@@ -23,7 +23,7 @@ namespace fxd {
 
     QGraphicsItem* operator()(const TextWidget& txt)
     {
-      auto it = new score::SimpleTextItem{Process::Style::instance().EventWaiting, nullptr};
+      auto it = new score::SimpleTextItem{&score::Skin::HalfLight, nullptr};
       it->setZValue(20);
       it->setText(txt.text);
       QObject::connect(&w, &Widget::dataChanged,

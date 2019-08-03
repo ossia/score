@@ -44,7 +44,8 @@ IntervalModel::IntervalModel(
 {
   initConnections();
   metadata().setInstanceName(*this);
-  metadata().setColor(Process::Style::instance().IntervalDefaultBackground);
+  const score::Brush& defaultBrush = Process::Style::instance().IntervalDefaultBackground();
+  metadata().setColor(&defaultBrush);
   setHeightPercentage(yPos);
 
   inlet->type = Process::PortType::Audio;

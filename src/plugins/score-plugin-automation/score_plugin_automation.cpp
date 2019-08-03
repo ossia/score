@@ -67,7 +67,7 @@ public:
       using model_t
           = std::remove_reference_t<decltype(std::declval<Layer_T>().model())>;
       auto& model = static_cast<const model_t&>(presenter->model());
-      const QPen& pen = m_sel ? style.IntervalHeaderTextPen : textPen(style, model);
+      const QPen& pen = m_sel ? style.IntervalHeaderTextPen() : textPen(style, model);
 
       QString txt = model.prettyName();
       txt += "  Min: ";

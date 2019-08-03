@@ -78,7 +78,7 @@ ProcessGraphicsView::~ProcessGraphicsView() {}
 
 void ProcessGraphicsView::drawBackground(QPainter* painter, const QRectF& rect)
 {
-  painter->fillRect(rect, Process::Style::instance().Background);
+  painter->fillRect(rect, Process::Style::instance().Background());
 }
 
 void ProcessGraphicsView::scrollHorizontal(double dx)
@@ -260,9 +260,9 @@ ScenarioDocumentView::ScenarioDocumentView(
   auto& skin = score::Skin::instance();
   con(skin, &score::Skin::changed, this, [&] {
     auto& skin = Process::Style::instance();
-    m_timeRulerView.setBackgroundBrush(skin.TimeRulerBackground);
-    m_minimapView.setBackgroundBrush(skin.MinimapBackground);
-    m_view.setBackgroundBrush(skin.Background);
+    m_timeRulerView.setBackgroundBrush(skin.TimeRulerBackground());
+    m_minimapView.setBackgroundBrush(skin.MinimapBackground());
+    m_view.setBackgroundBrush(skin.Background());
   });
 
   skin.changed();

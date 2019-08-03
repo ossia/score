@@ -31,8 +31,9 @@ static const constexpr qreal timeRulerHeight = 30.;
 static const constexpr qreal textPosition = SCORE_YPOS(-22.75, -27.75);
 
 static const constexpr std::
-    array<std::pair<double, std::chrono::microseconds>, 22>
-        graduations{{{0.1, std::chrono::seconds(120)},
+    array<std::pair<double, std::chrono::nanoseconds>, 28>
+        graduations{{
+                     {0.1, std::chrono::seconds(120)},
                      {0.2, std::chrono::seconds(60)},
                      {0.5, std::chrono::seconds(30)},
 
@@ -59,7 +60,17 @@ static const constexpr std::
 
                      {100000, std::chrono::microseconds(100)},
                      {200000, std::chrono::microseconds(50)},
-                     {500000, std::chrono::microseconds(20)}}};
+                     {500000, std::chrono::microseconds(20)},
+
+                     {1000000, std::chrono::nanoseconds(1000)},
+                     {2000000, std::chrono::nanoseconds(500)},
+                     {5000000, std::chrono::nanoseconds(200)},
+
+                     {10000000, std::chrono::nanoseconds(100)},
+                     {20000000, std::chrono::nanoseconds(50)},
+                     {50000000, std::chrono::nanoseconds(20)},
+                    }
+                   };
 
 TimeRuler::TimeRuler(QGraphicsView* v)
     : m_width{800}
@@ -88,15 +99,13 @@ void TimeRuler::paint(
   if (m_width > 0.)
   {
     auto& painter = *p;
-    auto& style = Process::Style::instance();
+    const auto& style = Process::Style::instance();
     painter.setRenderHint(QPainter::Antialiasing, false);
-    painter.setPen(style.TimeRulerLargePen);
+    painter.setPen(style.TimeRulerLargePen());
     painter.drawLine(QPointF{0., 0.}, QPointF{m_width, 0.});
-    painter.setPen(style.TimeRulerSmallPen);
-    painter.setBrush(style.TimeRuler.getBrush());
+    painter.setPen(style.TimeRulerSmallPen());
+    painter.setBrush(style.TimeRuler());
     painter.drawPath(m_path);
-
-    // painter.setFont(score::Skin::instance().MonoFont);
 
     for (const Mark& mark : m_marks)
     {
@@ -112,12 +121,11 @@ void TimeRuler::setWidth(qreal newWidth)
   createRulerPath();
 }
 
-void TimeRuler::setStartPoint(TimeVal dur)
+void TimeRuler::setStartPoint(std::chrono::nanoseconds dur)
 {
-  ossia::time_value v{(int64_t)dur.msec()};
-  if (m_startPoint != v)
+  if (m_startPoint != dur)
   {
-    m_startPoint = v;
+    m_startPoint = dur;
     computeGraduationSpacing();
   }
 }
@@ -146,15 +154,20 @@ void TimeRuler::computeGraduationSpacing()
     if (pixPerSec > graduations[i].first
         && pixPerSec < graduations[i + 1].first)
     {
-      m_graduationDelta = graduations[i].second.count() / 1000.;
+      m_graduationDelta = graduations[i].second.count() / double(1e6);
       m_graduationsSpacing
-          = pixPerSec * graduations[i].second.count() / 1000000.;
+          = pixPerSec * graduations[i].second.count() / double(1e9);
       break;
     }
   }
 
   auto oldFormat = m_timeFormat;
-  if (i > 7)
+  if (i > 16)
+  {
+    m_timeFormat = Format::Microseconds;
+    m_intervalsBetweenMark = 10;
+  }
+  else if (i > 7)
   {
     m_timeFormat = Format::Milliseconds;
     m_intervalsBetweenMark = 10;
@@ -194,13 +207,14 @@ void TimeRuler::createRulerPath()
   }
 
   // If we are between two graduations, we adjust our origin.
-  double big_delta = m_graduationDelta * 5. * 2.;
-  double prev_big_grad_msec
-      = std::floor(m_startPoint.impl / big_delta) * big_delta;
+  int64_t start_nsec = m_startPoint.count();
+  double big_delta = m_graduationDelta * 5. * 2. * 1e6;
+  double prev_big_grad_nsec
+      = std::floor(start_nsec / big_delta) * big_delta;
 
-  double startTime = m_startPoint.impl - prev_big_grad_msec;
-  std::chrono::microseconds time{1000 * (int64_t)prev_big_grad_msec};
-  double t = -startTime * m_pixelPerMillis;
+  double startTime = start_nsec - prev_big_grad_nsec;
+  std::chrono::nanoseconds time{(int64_t)(prev_big_grad_nsec)};
+  double t = -startTime * (m_pixelPerMillis / 1e6);
 
   double i = 0;
 
@@ -214,7 +228,7 @@ void TimeRuler::createRulerPath()
     }
 
     t += m_graduationsSpacing;
-    time += std::chrono::microseconds((int64_t)(1000. * m_graduationDelta));
+    time += std::chrono::nanoseconds((int64_t)(1000000. * m_graduationDelta));
     i++;
   }
   update();
@@ -237,7 +251,53 @@ std::tuple<Durations...> break_down_durations(DurationIn d)
   return retval;
 }
 
-QGlyphRun TimeRuler::getGlyphs(std::chrono::microseconds t)
+void layoutTimeText(TimeRuler::Format format, QTextLayout& layout, std::chrono::nanoseconds t)
+{
+  switch(format)
+  {
+    case TimeRuler::Format::Seconds:
+    {
+      auto clean_duration
+          = break_down_durations<std::chrono::minutes, std::chrono::seconds>(
+              t);
+      layout.setText(QString::fromStdString(fmt::format(
+          "{0}:{1:02}",
+          std::get<0>(clean_duration).count(),
+          std::get<1>(clean_duration).count())));
+      break;
+    }
+    case TimeRuler::Format::Milliseconds:
+    {
+      auto [m, s, milli] = break_down_durations<
+          std::chrono::minutes,
+          std::chrono::seconds,
+          std::chrono::milliseconds>(t);
+      layout.setText(QString::fromStdString(fmt::format(
+          "{0}:{1:02}.{2:03}",
+          m.count(),
+          s.count(),
+          milli.count())));
+    break;
+    }
+    case TimeRuler::Format::Microseconds:
+    {
+        auto [m, s, milli, micro] = break_down_durations<
+          std::chrono::minutes,
+          std::chrono::seconds,
+          std::chrono::milliseconds,
+          std::chrono::microseconds>(t);
+      layout.setText(QString::fromStdString(fmt::format(
+          "{0}:{1:02}.{2:03}{3:03}",
+            m.count(),
+            s.count(),
+            milli.count(),
+            micro.count())));
+    break;
+    }
+  }
+}
+
+QGlyphRun TimeRuler::getGlyphs(std::chrono::nanoseconds t)
 {
   auto it
       = ossia::find_if(m_stringCache, [&](auto& v) { return v.first == t; });
@@ -247,28 +307,8 @@ QGlyphRun TimeRuler::getGlyphs(std::chrono::microseconds t)
   }
   else
   {
-    if (m_timeFormat == Format::Seconds)
-    {
-      auto clean_duration
-          = break_down_durations<std::chrono::minutes, std::chrono::seconds>(
-              t);
-      m_layout.setText(QString::fromStdString(fmt::format(
-          "{0}:{1:02}",
-          std::get<0>(clean_duration).count(),
-          std::get<1>(clean_duration).count())));
-    }
-    else if (m_timeFormat == Format::Milliseconds)
-    {
-      auto clean_duration = break_down_durations<
-          std::chrono::minutes,
-          std::chrono::seconds,
-          std::chrono::milliseconds>(t);
-      m_layout.setText(QString::fromStdString(fmt::format(
-          "{0}:{1:02}.{2:03}",
-          std::get<0>(clean_duration).count(),
-          std::get<1>(clean_duration).count(),
-          std::get<2>(clean_duration).count())));
-    }
+    layoutTimeText(m_timeFormat, m_layout, t);
+
     m_layout.beginLayout();
     auto line = m_layout.createLine();
     m_layout.endLayout();

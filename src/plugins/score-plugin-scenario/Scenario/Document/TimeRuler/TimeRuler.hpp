@@ -41,7 +41,8 @@ public:
   enum class Format
   {
     Seconds,
-    Milliseconds
+    Milliseconds,
+    Microseconds,
   };
 
   TimeRuler(QGraphicsView*);
@@ -59,7 +60,7 @@ public:
 
   qreal width() const { return m_width; }
 
-  void setStartPoint(TimeVal dur);
+  void setStartPoint(std::chrono::nanoseconds dur);
   void setPixelPerMillis(double factor);
 
 public:
@@ -79,11 +80,11 @@ private:
   struct Mark
   {
     double pos;
-    std::chrono::microseconds time;
+    std::chrono::nanoseconds time;
     QGlyphRun text;
   };
 
-  ossia::time_value m_startPoint{};
+  std::chrono::nanoseconds m_startPoint{};
 
   double m_pixelPerMillis{0.01};
 
@@ -100,8 +101,8 @@ private:
 
   QWidget* m_viewport{};
 
-  QGlyphRun getGlyphs(std::chrono::microseconds);
+  QGlyphRun getGlyphs(std::chrono::nanoseconds);
   QTextLayout m_layout;
-  std::deque<std::pair<std::chrono::microseconds, QGlyphRun>> m_stringCache;
+  std::deque<std::pair<std::chrono::nanoseconds, QGlyphRun>> m_stringCache;
 };
 }

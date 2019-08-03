@@ -60,19 +60,16 @@ void ConditionView::paint(
   auto& style = Process::Style::instance();
   painter->setRenderHint(QPainter::Antialiasing, true);
 
-  const QBrush& col = !m_selected
-      ? ExecutionStatusProperty{m_model.status()}.conditionStatusColor(style).getBrush()
-      : style.IntervalSelected.getBrush();
+  const score::Brush& col = !m_selected
+      ? ExecutionStatusProperty{m_model.status()}.conditionStatusColor(style)
+      : style.IntervalSelected();
 
-  style.ConditionPen.setBrush(col);
-  style.ConditionTrianglePen.setBrush(col);
-
-  painter->setPen(style.ConditionPen);
-  painter->setBrush(style.TransparentBrush);
+  painter->setPen(style.ConditionPen(col));
+  painter->setBrush(style.NoBrush());
   painter->drawPath(m_Cpath);
 
 #if !defined(SCORE_IEEE_SKIN)
-  painter->setPen(style.ConditionTrianglePen);
+  painter->setPen(style.ConditionTrianglePen(col));
   painter->setBrush(col);
 
   painter->fillPath(conditionTrianglePath, col);
@@ -115,11 +112,8 @@ void ConditionView::setHeight(qreal newH)
   m_Cpath.lineTo(0., m_height + ConditionCHeight / 2.);
   m_Cpath.arcTo(bottomRect, -180., 120.);
 
-  auto& style = Process::Style::instance();
   QPainterPathStroker stk;
   stk.setWidth(1.);
-  stk.setCapStyle(style.ConditionPen.capStyle());
-  stk.setJoinStyle(style.ConditionPen.joinStyle());
   m_strokedCpath = stk.createStroke(m_Cpath);
 
   this->update();

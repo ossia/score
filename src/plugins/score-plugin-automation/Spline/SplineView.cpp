@@ -41,8 +41,7 @@ void View::paint_impl(QPainter* p) const
 
   painter.setRenderHint(QPainter::Antialiasing);
 
-  QPen segmt = skin.ConditionPen;
-  segmt.setColor(qRgb(220, 170, 20));
+  QPen segmt = skin.skin.Emphasis2.main.pen2;
 
   QPainterPath path;
   auto p0 = m_spl.evaluate(0).result();
@@ -71,7 +70,7 @@ void View::paint_impl(QPainter* p) const
   // Remaining points
   for (std::size_t i = 1U; i < pts; i++)
   {
-    painter.setPen(skin.TimenodePen);
+    painter.setPen(skin.skin.Emphasis3.darker.pen2_dotted_square_miter);
     QPointF p = mapToCanvas(m_spline.points[i]);
     painter.drawLine(fp, p);
 
@@ -80,7 +79,7 @@ void View::paint_impl(QPainter* p) const
     else
       painter.setBrush(QColor(170, 220, 220));
 
-    painter.setPen(QPen(Qt::transparent));
+    painter.setPen(skin.TransparentPen());
     painter.drawEllipse(QRectF{
         p.x() - pointSize, p.y() - pointSize, pointSize * 2., pointSize * 2.});
     fp = p;

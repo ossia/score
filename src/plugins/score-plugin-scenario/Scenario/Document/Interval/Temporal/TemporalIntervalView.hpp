@@ -60,5 +60,13 @@ private:
 
   void updatePaths() final override;
   void updatePlayPaths() final override;
+  void drawDashedPath(
+      QPainter& p,
+      QRectF visibleRect,
+      const Process::Style& skin);
+  void drawPlayDashedPath(
+      QPainter& p,
+      QRectF visibleRect,
+      const Process::Style& skin);
 };
 }

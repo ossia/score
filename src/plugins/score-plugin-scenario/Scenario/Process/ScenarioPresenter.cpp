@@ -430,23 +430,47 @@ void ScenarioPresenter::on_askUpdate()
 
 void ScenarioPresenter::on_intervalExecutionTimer()
 {
+  // TODO optimize me by storing a list of the currently running intervals
+  // TOOD loop
+
   for (TemporalIntervalPresenter& cst : m_intervals)
   {
+    auto& v = *cst.view();
+    auto& dur = cst.model().duration;
+
     auto pp = cst.model().duration.playPercentage();
 
     if (double w = cst.on_playPercentageChanged(pp))
     {
-      auto& v = *cst.view();
       const auto r = v.boundingRect();
 
       if (r.width() > 7.)
       {
-        v.update({r.x() + v.playWidth() - w, r.y(), 2. * w, 6.});
+        QRectF toUpdate = {r.x() + v.playWidth() - w, r.y(), 2. * w, 6.};
+        if(!dur.isRigid())
+        {
+          double new_w = dur.isMaxInfinite()
+              ? v.defaultWidth() - v.playWidth() + 2. * w
+              : v.maxWidth() - v.playWidth() + 2. * w;
+          toUpdate.setWidth(new_w);
+        }
+        v.update(toUpdate);
       }
       else if (pp == 0.)
       {
         v.update();
       }
+    }
+    else if(!dur.isRigid())
+    {
+      // We need to update in that case because
+      // of the pulsing color of the interval
+      const auto r = v.boundingRect();
+      double new_w = dur.isMaxInfinite()
+          ? v.defaultWidth() - v.minWidth() + 4.
+          : v.maxWidth() - v.minWidth() + 4.;
+      QRectF toUpdate = {r.x() + v.minWidth() - 2., r.y(), new_w, 6.};
+      v.update(toUpdate);
     }
   }
 }

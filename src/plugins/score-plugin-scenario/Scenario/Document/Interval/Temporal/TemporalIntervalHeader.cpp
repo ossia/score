@@ -127,8 +127,8 @@ void TemporalIntervalHeader::paint(
   {
     auto& style = Process::Style::instance();
     painter->setRenderHint(QPainter::Antialiasing, true);
-    painter->setPen(style.NoPen);
-    painter->setBrush(itv.muted() ? style.MutedIntervalHeaderBackground : style.SlotHeader.getBrush());
+    painter->setPen(style.NoPen());
+    painter->setBrush(itv.muted() ? style.MutedIntervalHeaderBackground() : style.SlotHeader());
 
     painter->drawPolygon(m_poly);
     //painter->setPen(Qt::red);
@@ -360,12 +360,12 @@ void TemporalIntervalHeader::on_textChanged()
 
       QPainter p{&m_line};
       if(m_hovered || m_selected)
-          p.setPen(skin.IntervalBraceSelected);
+          p.setPen(skin.IntervalBraceSelected());
       else
       {
         const auto& col = model.getColor();
-        if(col == skin.IntervalDefaultBackground)
-          p.setPen(skin.IntervalHeaderTextPen);
+        if(&col.getBrush() == &skin.IntervalDefaultBackground())
+          p.setPen(skin.IntervalHeaderTextPen());
         else
           p.setPen(QPen(col.getBrush().color()));
       }

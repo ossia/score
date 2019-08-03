@@ -37,8 +37,8 @@ void SeparatorItem::paint(
   const Q_DECL_RELAXED_CONSTEXPR QRectF rect{1., 1., 4., 9.};
 
   painter->setRenderHint(QPainter::Antialiasing, true);
-  painter->setPen(skin.SeparatorPen);
-  painter->setBrush(skin.SeparatorBrush);
+  painter->setPen(skin.SeparatorPen());
+  painter->setBrush(skin.SeparatorBrush());
   painter->drawLine(rect.bottomLeft(), rect.topRight());
 
   painter->setRenderHint(QPainter::Antialiasing, false);
@@ -49,7 +49,7 @@ ClickableLabelItem::ClickableLabelItem(
     ClickHandler&& onClick,
     const QString& text,
     QGraphicsItem* parent)
-    : score::SimpleTextItem{Process::Style::instance().StateOutline, parent}
+    : score::SimpleTextItem{score::ColorRef{&score::Skin::Light}, parent}
     , m_onClick{std::move(onClick)}
 {
   setText(text);
@@ -73,12 +73,12 @@ void ClickableLabelItem::mousePressEvent(QGraphicsSceneMouseEvent* event)
 
 void ClickableLabelItem::hoverEnterEvent(QGraphicsSceneHoverEvent* event)
 {
-  this->setColor(Process::Style::instance().IntervalSelected);
+  this->setColor(score::ColorRef{&score::Skin::Base2});
 }
 
 void ClickableLabelItem::hoverLeaveEvent(QGraphicsSceneHoverEvent* event)
 {
-  this->setColor(Process::Style::instance().StateOutline);
+  this->setColor(score::ColorRef{&score::Skin::Light});
 }
 
 int ClickableLabelItem::index() const

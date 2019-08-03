@@ -7,6 +7,7 @@
 
 #include <ossia/detail/math.hpp>
 #include <Media/RMSData.hpp>
+#include <Media/MediaFileHandle.hpp>
 #include <wobjectimpl.h>
 #include <ossia/dataflow/nodes/sound_mmap.hpp>
 W_OBJECT_IMPL(Media::RMSData)
@@ -93,6 +94,8 @@ void RMSData::decodeLast(const std::vector<gsl::span<const ossia::audio_sample> 
 
 void RMSData::decode(ossia::drwav_handle& audio)
 {
+  m_drwavHandle = &audio;
+
   // store the data in interleaved format, it's much easier...
   const int64_t channels = audio.channels;
   const int64_t max_frames = audio.totalPCMFrameCount;
@@ -124,6 +127,11 @@ double RMSData::sampleRateRatio(double expectedRate) const noexcept
   return header->sampleRate / expectedRate;
 }
 
+void RMSData::setHandle(ossia::drwav_handle& audio)
+{
+  m_drwavHandle = &audio;
+}
+
 ossia::small_vector<float, 8> RMSData::frame(int64_t start_frame, int64_t end_frame) const noexcept
 {
   ossia::small_vector<float, 8> sum;
@@ -148,22 +156,25 @@ ossia::small_vector<float, 8> RMSData::frame(int64_t start_frame, int64_t end_fr
   rms_sample_t* begin = (data + start_idx);
   rms_sample_t* end = (data + end_idx);
 
+  constexpr float size_factor  = 1. / std::numeric_limits<rms_sample_t>::max();
   if(begin == end && start_frame < end_frame) {
-    // TODO go fetch the actual samples.
+    // Note: we should not enter this case -
+    // instead AudioFileHandle::frame would be used
     for(std::size_t k = 0; k < channels; k++)
-      sum[k] = begin[k];
-
+      sum[k] = begin[k] * size_factor;
     return sum;
   }
 
   for(; begin < end; begin += channels) {
     for(std::size_t k = 0; k < channels; k++)
-      sum[k] += begin[k] * begin[k];
+    {
+      const int64_t val = begin[k];
+      sum[k] = abs_max(sum[k], val);
+    }
   }
 
-  const float n = std::max(int64_t(1), (end_idx-start_idx));
   for(std::size_t k = 0; k < channels; k++)
-    sum[k] = std::sqrt(sum[k] / n);
+    sum[k] *= size_factor;
 
   return sum;
 }
@@ -175,8 +186,8 @@ rms_sample_t RMSData::computeChannelRMS(gsl::span<const ossia::audio_sample> cha
   auto end = begin + buffer_size;
 
   for(auto it = begin; it < end; ++it)
-    val += (*it)*(*it);
-  return ossia::clamp(sqrt(val / buffer_size), 0.f, 1.f) * std::numeric_limits<rms_sample_t>::max();
+    val = abs_max(val, *it);
+  return val * std::numeric_limits<rms_sample_t>::max();
 }
 
 
@@ -190,22 +201,23 @@ void RMSData::computeChannelRMS(ossia::drwav_handle& wav, rms_sample_t* bytes, i
   auto max = drwav_read_pcm_frames_f32(&wav, buffer_size, floats);
 
   for(int c = 0; c < channels; c++)
-    val[c] = floats[c] * floats[c];
+    val[c] = floats[c];
 
   for(decltype(max) i = 1; i < max; i++)
   {
     for(int c = 0; c < channels; c++)
     {
       const float f = floats[i * channels + c];
-      val[c] += f * f;
+      val[c] = abs_max(val[c], f);
     }
   }
 
   for(int c = 0; c < channels; c++)
   {
-    bytes[c] = ossia::clamp(sqrt(val[c] / buffer_size), 0.f, 1.f) * std::numeric_limits<rms_sample_t>::max();
+    bytes[c] = val[c] * std::numeric_limits<rms_sample_t>::max();
   }
 }
+
 
 void RMSData::computeRMS(const std::vector<gsl::span<const ossia::audio_sample> >& audio, int buffer_size)
 {
