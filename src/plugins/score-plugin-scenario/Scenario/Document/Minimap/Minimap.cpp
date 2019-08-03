@@ -94,12 +94,12 @@ void Minimap::paint(
 {
   auto& sk = Process::Style::instance();
   painter->setRenderHint(QPainter::Antialiasing, false);
-  painter->setPen(sk.NoPen);
-  painter->setBrush(sk.MinimapBrush);
+  painter->setPen(sk.NoPen());
+  painter->setBrush(sk.MinimapBrush());
   painter->drawRect(
       QRectF{m_leftHandle, 1., m_rightHandle - m_leftHandle, m_height - 2.});
 
-  painter->setPen(sk.MinimapPen);
+  painter->setPen(sk.MinimapPen());
 
   QGraphicsView* view = ::getView(*this);
   const double offset = (view && view->devicePixelRatioF() > 1.) ? 0.5 : 0.;

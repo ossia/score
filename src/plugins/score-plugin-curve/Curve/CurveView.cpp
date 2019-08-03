@@ -138,7 +138,7 @@ void View::setValueTooltip(QPointF pos, const QString& s) noexcept
       tooltip->setZValue(100);
       const auto& style = Process::Style::instance();
       tooltip->setFont(score::Skin::instance().Bold10Pt);
-      tooltip->setBrush(style.IntervalBase);
+      tooltip->setBrush(style.IntervalBase());
     }
 
     tooltip->setText(m_tooltip);

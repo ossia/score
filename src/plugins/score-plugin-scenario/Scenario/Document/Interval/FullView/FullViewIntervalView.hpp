@@ -24,6 +24,11 @@ public:
 
   ~FullViewIntervalView() override;
 
+  void drawPaths(
+      QPainter& p,
+      QRectF visibleRect,
+      const score::Brush& defaultColor,
+      const Process::Style& skin);
   void updatePaths() final override;
   void updatePlayPaths() final override;
   void updateOverlayPos();

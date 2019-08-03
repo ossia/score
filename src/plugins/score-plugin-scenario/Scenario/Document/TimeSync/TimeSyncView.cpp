@@ -70,14 +70,13 @@ void TimeSyncView::paint(
 
   if (isSelected())
   {
-    skin.TimenodePen.setBrush(skin.TimenodeSelected.getBrush());
+    painter->setPen(skin.TimenodePen(skin.TimenodeSelected()));
   }
   else
   {
-    skin.TimenodePen.setBrush(m_color.getBrush());
+    painter->setPen(skin.TimenodePen(m_color.getBrush()));
   }
 
-  painter->setPen(skin.TimenodePen);
   painter->drawLine(QPointF(0., 0.), QPointF(0., height));
 
 #if defined(SCORE_SCENARIO_DEBUG_RECTS)

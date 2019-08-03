@@ -30,7 +30,7 @@ TimeSyncModel::TimeSyncModel(
 {
   m_expression = State::defaultFalseExpression();
   metadata().setInstanceName(*this);
-  metadata().setColor(Process::Style::instance().TimenodeDefault);
+  metadata().setColor(&score::Skin::Gray);
 }
 
 void TimeSyncModel::addEvent(const Id<EventModel>& eventId)

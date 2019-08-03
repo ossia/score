@@ -220,8 +220,7 @@ struct Node
     port->setPos(0, 10);
 
     // Text
-    const auto& style = Process::Style::instance();
-    auto lab = new score::SimpleTextItem{style.EventWaiting, item};
+    auto lab = new score::SimpleTextItem{&score::Skin::HalfLight, item};
     lab->setText(ctrl.name);
     lab->setPos(10, 2);
 

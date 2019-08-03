@@ -9,60 +9,60 @@
 
 namespace Scenario
 {
-const QBrush& ExecutionStatusProperty::eventStatusColor(const Process::Style& col) const noexcept
+const score::Brush& ExecutionStatusProperty::eventStatusColor(const Process::Style& col) const noexcept
 {
   switch (status)
   {
     case ExecutionStatus::Editing:
-      return col.EventDefault;
+      return col.EventDefault();
     case ExecutionStatus::Waiting:
-      return col.EventWaiting;
+      return col.EventWaiting();
     case ExecutionStatus::Pending:
-      return col.EventPending;
+      return col.EventPending();
     case ExecutionStatus::Happened:
-      return col.EventHappened;
+      return col.EventHappened();
     case ExecutionStatus::Disposed:
-      return col.EventDisposed;
+      return col.EventDisposed();
     default:
-      return score::ColorRef(&score::Skin::Warn3);
+      return col.skin.Warn3;
   }
 }
 
-const QBrush& ExecutionStatusProperty::stateStatusColor(const Process::Style& col) const noexcept
+const score::Brush& ExecutionStatusProperty::stateStatusColor(const Process::Style& col) const noexcept
 {
   switch (status)
   {
     case ExecutionStatus::Editing:
-      return col.StateOutline;
+      return col.StateOutline();
     case ExecutionStatus::Waiting:
-      return col.EventWaiting;
+      return col.EventWaiting();
     case ExecutionStatus::Pending:
-      return col.EventPending;
+      return col.EventPending();
     case ExecutionStatus::Happened:
-      return col.EventHappened;
+      return col.EventHappened();
     case ExecutionStatus::Disposed:
-      return col.EventDisposed;
+      return col.EventDisposed();
     default:
-      return score::ColorRef(&score::Skin::Warn3);
+      return col.skin.Warn3;
   }
 }
 
-const QBrush& ExecutionStatusProperty::conditionStatusColor(const Process::Style& col) const noexcept
+const score::Brush& ExecutionStatusProperty::conditionStatusColor(const Process::Style& col) const noexcept
 {
   switch (status)
   {
     case ExecutionStatus::Editing:
-      return col.ConditionDefault;
+      return col.ConditionDefault();
     case ExecutionStatus::Waiting:
-      return col.EventWaiting;
+      return col.EventWaiting();
     case ExecutionStatus::Pending:
-      return col.EventPending;
+      return col.EventPending();
     case ExecutionStatus::Happened:
-      return col.EventHappened;
+      return col.EventHappened();
     case ExecutionStatus::Disposed:
-      return col.EventDisposed;
+      return col.EventDisposed();
     default:
-      return score::ColorRef(&score::Skin::Warn3);
+      return col.skin.Warn3;
   }
 }
 }

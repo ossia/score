@@ -110,7 +110,7 @@ void DefaultHeaderDelegate::updateBench(double d)
   const auto& style = Process::Style::instance();
   m_bench = makeGlyphs(
       QString::number(d, 'g', 3),
-      m_sel ? style.IntervalHeaderTextPen : style.SlotHeaderTextPen);
+      m_sel ? style.IntervalHeaderTextPen() : style.SlotHeaderTextPen());
   update();
 }
 
@@ -120,7 +120,7 @@ void DefaultHeaderDelegate::updateText()
   {
     auto& style = Process::Style::instance();
     auto& model = presenter->model();
-    const QPen& pen = m_sel ? style.IntervalHeaderTextPen : textPen(style, model);
+    const QPen& pen = m_sel ? style.IntervalHeaderTextPen() : textPen(style, model);
     m_line = makeGlyphs(model.prettyName(), pen);
     m_fromGlyph = makeGlyphs("I:", pen);
     m_toGlyph = makeGlyphs("O:", pen);

@@ -20,7 +20,7 @@ struct BrushSet
   BrushSet& operator=(BrushSet&&) noexcept;
   ~BrushSet();
 
-  BrushSet(const QBrush& b) noexcept;
+  explicit BrushSet(const QBrush& b) noexcept;
 
   BrushSet& operator=(const QBrush& b) noexcept;
 
@@ -53,7 +53,7 @@ struct Brush
   Brush& operator=(Brush&&) noexcept;
   ~Brush();
 
-  Brush(const QBrush& b) noexcept;
+  explicit Brush(const QBrush& b) noexcept;
   Brush& operator=(const QBrush& b) noexcept;
 
   operator const QBrush&() const noexcept { return main.brush; }
@@ -89,7 +89,9 @@ public:
 
   Brush Dark;
   Brush HalfDark;
+  Brush DarkGray;
   Brush Gray;
+  Brush LightGray;
   Brush HalfLight;
   Brush Light;
 
@@ -123,6 +125,18 @@ public:
   Brush Tender2;
   Brush Tender3;
 
+  Brush Cable1;
+  Brush Cable2;
+  Brush Cable3;
+
+  Brush SelectedCable1;
+  Brush SelectedCable2;
+  Brush SelectedCable3;
+
+  Brush Port1;
+  Brush Port2;
+  Brush Port3;
+
   Brush Pulse1;
   Brush Pulse2;
 
@@ -145,6 +159,9 @@ public:
 
   QVector<QPair<QColor, QString>> getColors() const;
   QVector<QPair<QColor, QString>> getDefaultPaletteColors() const;
+
+  // In [0; 25[
+  int PulseIndex{};
 
 public:
   void changed() E_SIGNAL(SCORE_LIB_BASE_EXPORT, changed)

@@ -66,8 +66,8 @@ void SlotHeader::paint(
   painter->fillRect(QRectF{0., 0., m_width, headerHeight() - 1}, m_presenter.model().metadata().getColor().getBrush().color().darker());
   if (m_width > 20)
   {
-    painter->setPen(style.SlotHeaderPen);
-    painter->setBrush(style.NoBrush);
+    painter->setPen(style.SlotHeaderPen());
+    painter->setBrush(style.NoBrush());
     // Grip
     double r = 4.5;
     double centerX = 9.;
@@ -230,7 +230,7 @@ void SlotDragOverlay::paint(
     QWidget* widget)
 {
   const auto& style = Process::Style::instance();
-  auto c = style.IntervalBase.color();
+  auto c = style.IntervalBase().color();
   c.setAlphaF(0.2);
   painter->fillRect(interval.view()->boundingRect(), c);
   painter->fillRect(m_drawnRect, QColor::fromRgbF(0.6, 0.6, 1., 0.8));

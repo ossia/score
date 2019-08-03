@@ -150,16 +150,16 @@ void PortItem::paint(
   switch (m_port.type)
   {
     case Process::PortType::Audio:
-      painter->setPen(style.AudioPortPen);
-      painter->setBrush(style.AudioPortBrush);
+      painter->setPen(style.AudioPortPen());
+      painter->setBrush(style.AudioPortBrush().brush);
       break;
     case Process::PortType::Message:
-      painter->setPen(style.DataPortPen);
-      painter->setBrush(style.DataPortBrush);
+      painter->setPen(style.DataPortPen());
+      painter->setBrush(style.DataPortBrush().brush);
       break;
     case Process::PortType::Midi:
-      painter->setPen(style.MidiPortPen);
-      painter->setBrush(style.MidiPortBrush);
+      painter->setPen(style.MidiPortPen());
+      painter->setBrush(style.MidiPortBrush().brush);
       break;
   }
 

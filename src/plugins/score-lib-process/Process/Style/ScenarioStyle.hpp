@@ -24,251 +24,149 @@ struct SCORE_LIB_PROCESS_EXPORT Style
   static Style& instance() noexcept;
   score::Skin& skin;
 
-  static const QBrush& IntervalBase(const score::Brush& b)
-  { return b.main.brush; }
-  static const QBrush& IntervalSelected(const score::Brush& b)
-  { return b.main.brush; }
-  static const QBrush& IntervalDropTarget(const score::Brush& b)
-  { return b.main.brush; }
-  static const QBrush& IntervalPlayFill(const score::Brush& b)
-  { return b.main.brush; }
-  static const QBrush& IntervalPlayDashFill(const score::Brush& b)
-  { return b.main.brush; }
-  static const QBrush& IntervalWaitingDashFill(const score::Brush& b)
-  { return b.main.brush; }
-  static const QBrush& IntervalLoop(const score::Brush& b)
-  { return b.main.brush; }
-  static const QBrush& IntervalWarning(const score::Brush& b)
-  { return b.main.brush; }
-  static const QBrush& IntervalInvalid(const score::Brush& b)
-  { return b.main.brush; }
-  static const QBrush& IntervalMuted(const score::Brush& b)
-  { return b.main.brush; }
-  static const QBrush& IntervalDefaultLabel(const score::Brush& b)
-  { return b.main.brush; }
-  static const QBrush& IntervalDefaultBackground(const score::Brush& b)
-  { return b.main.brush; }
 
-  static const QBrush& RackSideBorder(const score::Brush& b)
-  { return b.main.brush; }
+  const QPen& TransparentPen() const noexcept { return skin.NoPen; }
+  const QPen& NoPen() const noexcept { return skin.NoPen; }
+  const QBrush& TransparentBrush() const noexcept { return skin.NoBrush; }
+  const QBrush& NoBrush() const noexcept { return skin.NoBrush; }
 
-  static const QBrush& IntervalFullViewParentSelected(const score::Brush& b)
-  { return b.main.brush; }
+  const score::Brush& IntervalBase() const noexcept { return skin.Base1; }
+  const score::Brush& IntervalSelected() const noexcept { return skin.Base2; }
+  const score::Brush& IntervalDropTarget() const noexcept { return skin.Warn1; }
+  const score::Brush& IntervalPlayFill() const noexcept { return skin.Base3; }
+  const score::Brush& IntervalPlayDashFill() const noexcept { return skin.Pulse1; }
+  const score::Brush& IntervalWaitingDashFill() const noexcept { return skin.Pulse2; }
+  const score::Brush& IntervalLoop() const noexcept { return skin.Warn1; }
+  const score::Brush& IntervalWarning() const noexcept { return skin.Warn2; }
+  const score::Brush& IntervalInvalid() const noexcept { return skin.Warn3; }
+  const score::Brush& IntervalMuted() const noexcept { return skin.Gray; }
+  const score::Brush& IntervalDefaultLabel() const noexcept { return skin.Gray; }
+  const score::Brush& IntervalDefaultBackground() const noexcept { return skin.Transparent1; }
 
-  static const QBrush& IntervalHeaderText(const score::Brush& b)
-  { return b.main.brush; }
-  static const QBrush& IntervalHeaderBottomLine(const score::Brush& b)
-  { return b.main.brush; }
-  static const QBrush& IntervalHeaderRackHidden(const score::Brush& b)
-  { return b.main.brush; }
-  static const QBrush& IntervalHeaderSideBorder(const score::Brush& b)
-  { return b.main.brush; }
+  const score::Brush& RackSideBorder() const noexcept { return skin.Base1; }
 
-  static const QBrush& ProcessViewBorder(const score::Brush& b)
-  { return b.main.brush; }
+  const score::Brush& IntervalFullViewParentSelected() const noexcept { return skin.Emphasis1; }
 
-  static const QBrush& SlotFocus(const score::Brush& b)
-  { return b.main.brush; }
-  static const QBrush& SlotOverlayBorder(const score::Brush& b)
-  { return b.main.brush; }
-  static const QBrush& SlotOverlay(const score::Brush& b)
-  { return b.main.brush; }
-  static const QBrush& SlotHandle(const score::Brush& b)
-  { return b.main.brush; }
+  const score::Brush& IntervalHeaderText() const noexcept { return skin.Light; }
+  const score::Brush& IntervalHeaderBottomLine() const noexcept { return skin.Transparent1; }
+  const score::Brush& IntervalHeaderRackHidden() const noexcept { return skin.Transparent1; }
+  const score::Brush& IntervalHeaderSideBorder() const noexcept { return skin.Base1; }
 
-  static const QBrush& TimenodeDefault(const score::Brush& b)
-  { return b.main.brush; }
-  static const QBrush& TimenodeSelected(const score::Brush& b)
-  { return b.main.brush; }
+  const score::Brush& ProcessViewBorder() const noexcept { return skin.Gray; }
 
-  static const QBrush& EventDefault(const score::Brush& b)
-  { return b.main.brush; }
-  static const QBrush& EventWaiting(const score::Brush& b)
-  { return b.main.brush; }
-  static const QBrush& EventPending(const score::Brush& b)
-  { return b.main.brush; }
-  static const QBrush& EventHappened(const score::Brush& b)
-  { return b.main.brush; }
-  static const QBrush& EventDisposed(const score::Brush& b)
-  { return b.main.brush; }
-  static const QBrush& EventSelected(const score::Brush& b)
-  { return b.main.brush; }
+  const score::Brush& SlotFocus() const noexcept { return skin.Base2; }
+  const score::Brush& SlotOverlayBorder() const noexcept { return skin.Dark; }
+  const score::Brush& SlotOverlay() const noexcept { return skin.Transparent2; }
+  const score::Brush& SlotHandle() const noexcept { return skin.Transparent3; }
 
-  static const QBrush& ConditionDefault(const score::Brush& b)
-  { return b.main.brush; }
-  static const QBrush& ConditionWaiting(const score::Brush& b)
-  { return b.main.brush; }
-  static const QBrush& ConditionDisabled(const score::Brush& b)
-  { return b.main.brush; }
-  static const QBrush& ConditionFalse(const score::Brush& b)
-  { return b.main.brush; }
-  static const QBrush& ConditionTrue(const score::Brush& b)
-  { return b.main.brush; }
+  const score::Brush& TimenodeDefault() const noexcept { return skin.Gray; }
+  const score::Brush& TimenodeSelected() const noexcept { return skin.Base2; }
 
-  static const QBrush& StateOutline(const score::Brush& b)
-  { return b.main.brush; }
-  static const QBrush& StateSelected(const score::Brush& b)
-  { return b.main.brush; }
-  static const QBrush& StateDot(const score::Brush& b)
-  { return b.main.brush; }
+  const score::Brush& EventDefault() const noexcept { return skin.Emphasis4; }
+  const score::Brush& EventWaiting() const noexcept { return skin.HalfLight; }
+  const score::Brush& EventPending() const noexcept { return skin.Warn1; }
+  const score::Brush& EventHappened() const noexcept { return skin.Base3; }
+  const score::Brush& EventDisposed() const noexcept { return skin.Warn3; }
+  const score::Brush& EventSelected() const noexcept { return skin.Base2; }
 
-  static const QBrush& Background(const score::Brush& b)
-  { return b.main.brush; }
-  static const QBrush& ProcessPanelBackground(const score::Brush& b)
-  { return b.main.brush; }
-  const QBrush& ProcessPanelBackground()
-  { return ProcessPanelBackground(skin.Transparent1); }
+  const score::Brush& ConditionDefault() const noexcept { return skin.Smooth3; }
+  const score::Brush& ConditionWaiting() const noexcept { return skin.Gray; }
+  const score::Brush& ConditionDisabled() const noexcept { return skin.Base1; }
+  const score::Brush& ConditionFalse() const noexcept { return skin.Smooth1; }
+  const score::Brush& ConditionTrue() const noexcept { return skin.Smooth2; }
 
-  static const QBrush& TimeRulerBackground(const score::Brush& b)
-  { return b.main.brush; }
-  static const QBrush& MinimapBackground(const score::Brush& b)
-  { return b.main.brush; }
-  static const QBrush& TimeRuler(const score::Brush& b)
-  { return b.main.brush; }
-  static const QBrush& LocalTimeRuler(const score::Brush& b)
-  { return b.main.brush; }
+  const score::Brush& StateOutline() const noexcept { return skin.Light; }
+  const score::Brush& StateSelected() const noexcept { return skin.Base2; }
+  const score::Brush& StateDot() const noexcept { return skin.Base1; }
 
-  static const QBrush& SlotHeader(const score::Brush& b)
-  { return b.main.brush; }
+  const score::Brush& Background() const noexcept { return skin.Background1; }
+  const score::Brush& ProcessPanelBackground() const noexcept { return skin.Transparent1; }
 
-  static const QPen& IntervalSolidPen(const score::Brush& b)
-  { return b.main.pen1; }
-  static const QPen& IntervalDashPen(const score::Brush& b)
-  { return b.main.pen1; }
-  static const QPen& IntervalRackPen(const score::Brush& b)
-  { return b.main.pen1; }
-  static const QPen& IntervalPlayPen(const score::Brush& b)
-  { return b.main.pen1; }
-  static const QPen& IntervalPlayDashPen(const score::Brush& b)
-  { return b.main.pen1; }
-  static const QPen& IntervalWaitingDashPen(const score::Brush& b)
-  { return b.main.pen1; }
-  static const QPen& IntervalHeaderTextPen(const score::Brush& b)
-  { return b.main.pen1; }
 
-  static const QPen& IntervalBraceSelected(const score::Brush& b)
-  { return b.main.pen1; }
-  static const QPen& IntervalBraceWarning(const score::Brush& b)
-  { return b.main.pen1; }
-  static const QPen& IntervalBraceInvalid(const score::Brush& b)
-  { return b.main.pen1; }
-  static const QPen& IntervalBrace(const score::Brush& b)
-  { return b.main.pen1; }
+  const score::Brush& TimeRulerBackground() const noexcept { return skin.Background2; }
+  const score::Brush& MinimapBackground() const noexcept { return skin.Background1; }
+  const score::Brush& TimeRuler() const noexcept { return skin.Base1; }
+  const score::Brush& LocalTimeRuler() const noexcept { return skin.Gray; }
 
-  static const QBrush& MutedIntervalHeaderBackground(const score::Brush& b)
-  { return b.main.brush; }
+  const score::Brush& SlotHeader() const noexcept { return skin.Base5; }
 
-  static const QPen& IntervalHeaderSeparator(const score::Brush& b)
-  { return b.main.pen1; }
-  static const QPen& FullViewIntervalHeaderSeparator(const score::Brush& b)
-  { return b.main.pen1; }
+  const score::Brush& SeparatorBrush() const noexcept { return skin.Base1; }
+  const QBrush& SlotHeaderBrush() const noexcept { return skin.NoBrush; }
 
-  static const QPen& ConditionPen(const score::Brush& b)
-  { return b.main.pen1; }
-  static const QPen& ConditionTrianglePen(const score::Brush& b)
-  { return b.main.pen1; }
+  // TODO white
+  const QPen& CommentBlockPen() const noexcept { return skin.Light.main.pen1; }
+  const QPen& CommentBlockSelectedPen() const noexcept { return skin.Light.main.pen2; }
 
-  static const QPen& TimenodePen(const score::Brush& b)
-  { return b.main.pen1; }
-  static const QBrush& TimenodeBrush(const score::Brush& b)
-  { return b.main.brush; }
+  const QPen& SeparatorPen() const noexcept { return skin.Light.main.pen2; }
 
-  static const QPen& MinimapPen(const score::Brush& b)
-  { return b.main.pen1; }
-  static const QBrush& MinimapBrush(const score::Brush& b)
-  { return b.main.brush; }
 
-  static const QBrush& StateTemporalPointBrush(const score::Brush& b)
-  { return b.main.brush; }
-  static const QPen& StateTemporalPointPen(const score::Brush& b)
-  { return b.main.pen1; }
-  static const QBrush& StateBrush(const score::Brush& b)
-  { return b.main.brush; }
+  const QPen& RectPen() const noexcept { return skin.Emphasis1.main.pen2_solid_round_round; }
+  const QPen& RectHighlightPen() const noexcept { return skin.Emphasis1.lighter.pen2_solid_round_round; }
+  const QBrush& RectBrush() const noexcept { return skin.NoBrush; }
+  const QBrush& RectHighlightBrush() const noexcept { return skin.NoBrush; }
 
-  static const QPen& EventPen(const score::Brush& b)
-  { return b.main.pen1; }
-  static const QBrush& EventBrush(const score::Brush& b)
-  { return b.main.brush; }
+  static const QPen& IntervalSolidPen(const score::Brush& b) noexcept { return b.main.pen3_solid_flat_miter; }
+  static const QPen& IntervalDashPen(const score::Brush& b) noexcept { return b.main.pen3_dashed_flat_miter; }
+  static const QPen& IntervalRackPen(const score::Brush& b) noexcept { return b.main.pen_cosmetic; }
+  static const QPen& IntervalPlayLinePen(const score::Brush& b) noexcept { return b.main.pen_cosmetic; }
+  const QPen& IntervalHeaderTextPen() const noexcept { return IntervalHeaderText().main.pen1; }
 
-  static const QPen& TimeRulerLargePen(const score::Brush& b)
-  { return b.main.pen1; }
-  static const QPen& TimeRulerSmallPen(const score::Brush& b)
-  { return b.main.pen1; }
+  const QPen& IntervalBrace() const noexcept { return IntervalBase().main.pen2_solid_flat_miter; }
+  const QPen& IntervalBraceSelected() const noexcept { return IntervalSelected().main.pen2_solid_flat_miter; }
+  const QPen& IntervalBraceWarning() const noexcept { return IntervalWarning().main.pen2_solid_flat_miter; }
+  const QPen& IntervalBraceInvalid() const noexcept { return IntervalInvalid().main.pen2_solid_flat_miter; }
 
-  static const QPen& SlotHandlePen(const score::Brush& b)
-  { return b.main.pen1; }
+  const score::Brush& MutedIntervalHeaderBackground() const noexcept { return skin.HalfDark; }
 
-  static const QPen& CommentBlockPen(const score::Brush& b)
-  { return b.main.pen1; }
-  static const QPen& CommentBlockSelectedPen(const score::Brush& b)
-  { return b.main.pen1; }
-  static const QPen& MiniScenarioPen(const score::Brush& b)
-  { return b.main.pen1; }
-  static const QPen& SeparatorPen(const score::Brush& b)
-  { return b.main.pen1; }
-  static const QBrush& SeparatorBrush(const score::Brush& b)
-  { return b.main.brush; }
-  static const QBrush& DefaultBrush(const score::Brush& b)
-  { return b.main.brush; }
+  const QPen& IntervalHeaderSeparator() const noexcept { return IntervalHeaderSideBorder().main.pen2_solid_flat_miter; }
+  const QPen& FullViewIntervalHeaderSeparator() const noexcept { return IntervalHeaderSideBorder().main.pen2_dashed_flat_miter; }
 
-  static const QPen& AudioCablePen(const score::Brush& b)
-  { return b.main.pen1; }
-  static const QPen& DataCablePen(const score::Brush& b)
-  { return b.main.pen1; }
-  static const QPen& MidiCablePen(const score::Brush& b)
-  { return b.main.pen1; }
+  static const QPen& ConditionPen(const score::Brush& b) noexcept { return b.main.pen2; }
+  static const QPen& ConditionTrianglePen(const score::Brush& b) noexcept { return b.main.pen_cosmetic; }
 
-  static const QPen& SelectedAudioCablePen(const score::Brush& b)
-  { return b.main.pen1; }
-  static const QPen& SelectedDataCablePen(const score::Brush& b)
-  { return b.main.pen1; }
-  static const QPen& SelectedMidiCablePen(const score::Brush& b)
-  { return b.main.pen1; }
+  static const QPen& TimenodePen(const score::Brush& b) noexcept { return b.main.pen2_dotted_square_miter; }
 
-  static const QPen& AudioPortPen(const score::Brush& b)
-  { return b.main.pen1; }
-  static const QPen& DataPortPen(const score::Brush& b)
-  { return b.main.pen1; }
-  static const QPen& MidiPortPen(const score::Brush& b)
-  { return b.main.pen1; }
-  static const QBrush& AudioPortBrush(const score::Brush& b)
-  { return b.main.brush; }
-  static const QBrush& DataPortBrush(const score::Brush& b)
-  { return b.main.brush; }
-  static const QBrush& MidiPortBrush(const score::Brush& b)
-  { return b.main.brush; }
+  const QPen& MinimapPen() const noexcept { return skin.LightGray.main.pen_cosmetic; }
+  const score::Brush& MinimapBrush() const noexcept { return skin.DarkGray; }
 
-  static const QPen& SlotHeaderTextPen(const score::Brush& b)
-  { return b.main.pen1; }
 
-  static const QPen SlotHeaderPen(const score::Brush& b)
-  { return b.main.pen1; }
-  static const QBrush SlotHeaderBrush(const score::Brush& b)
-  { return b.main.brush; }
+  static const QPen& StateTemporalPointPen(const score::Brush& b) noexcept { return b.main.pen_cosmetic; }
 
-  static const QPen RectPen(const score::Brush& b)
-  { return b.main.pen1; }
-  static const QPen RectHighlightPen(const score::Brush& b)
-  { return b.main.pen1; }
-  static const QBrush RectBrush(const score::Brush& b)
-  { return b.main.brush; }
-  static const QBrush RectHighlightBrush(const score::Brush& b)
-  { return b.main.brush; }
+  static const QPen& EventPen(const score::Brush& b) noexcept { return b.main.pen_cosmetic; }
 
-  static const QBrush LoopBrush(const score::Brush& b)
-  { return b.main.brush; }
+  const QPen& TimeRulerLargePen() const noexcept { return TimeRuler().main.pen2; }
+  const QPen& TimeRulerSmallPen() const noexcept { return TimeRuler().main.pen1; }
 
-  static const QPen TransparentPen(const score::Brush& b)
-  { return b.main.pen1; }
-  static const QBrush TransparentBrush(const score::Brush& b)
-  { return b.main.brush; }
-  static const QPen NoPen(const score::Brush& b)
-  { return b.main.pen1; }
-  static const QBrush NoBrush(const score::Brush& b)
-  { return b.main.brush; }
+  const QPen& SlotHandlePen() const noexcept { return ProcessViewBorder().main.pen0; }
 
+  static const QPen& MiniScenarioPen(const score::Brush& b) noexcept { return b.main.pen_cosmetic; }
+
+  const score::Brush& DefaultBrush() const noexcept { return skin.Base1; }
+
+  const QPen& AudioCablePen() const noexcept { return skin.Cable1.main.pen3_solid_round_round; }
+  const QPen& DataCablePen() const noexcept  { return skin.Cable2.main.pen3_solid_round_round; }
+  const QPen& MidiCablePen() const noexcept  { return skin.Cable3.main.pen3_solid_round_round; }
+
+  const QPen& SelectedAudioCablePen() const noexcept { return skin.SelectedCable1.lighter.pen3_solid_round_round; }
+  const QPen& SelectedDataCablePen() const noexcept  { return skin.SelectedCable2.lighter.pen3_solid_round_round; }
+  const QPen& SelectedMidiCablePen() const noexcept  { return skin.SelectedCable3.lighter.pen3_solid_round_round; }
+
+  const QPen& AudioPortPen() const noexcept { return skin.Port1.main.pen1_5; }
+  const QPen& DataPortPen() const noexcept  { return skin.Port2.main.pen1_5; }
+  const QPen& MidiPortPen() const noexcept  { return skin.Port3.main.pen1_5; }
+
+  const score::BrushSet& AudioPortBrush() const noexcept { return skin.Port1.darker; }
+  const score::BrushSet& DataPortBrush() const noexcept  { return skin.Port2.darker; }
+  const score::BrushSet& MidiPortBrush() const noexcept  { return skin.Port3.darker; }
+
+  const QPen& SlotHeaderTextPen() const noexcept { return TimenodeDefault().main.pen_cosmetic; }
+  const QPen& SlotHeaderPen() const noexcept { return IntervalHeaderSideBorder().main.pen1_solid_flat_miter; }
+
+
+  const score::Brush& LoopBrush() const noexcept { return skin.Tender3; }
 private:
   Style() noexcept;
+  ~Style();
   void update(const score::Skin& skin);
 };
 }

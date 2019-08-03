@@ -365,7 +365,8 @@ public:
         &wheel, &color_widgets::ColorWheel::colorChanged, this, [&](QColor c) {
           if (list.currentItem())
           {
-            s.fromString(list.currentItem()->text())->setColor(c);
+            if(auto brush = s.fromString(list.currentItem()->text()))
+              *brush = score::Brush{QBrush{c}};
             QPixmap p{16, 16};
             p.fill(c);
             list.currentItem()->setIcon(p);

@@ -22,7 +22,7 @@ void LayerView::paint_impl(QPainter* p) const
 {
   //QColor(85, 75, 0, 200)
   auto& style = Process::Style::instance();
-  p->fillRect(boundingRect(), style.LoopBrush);
+  p->fillRect(boundingRect(), style.LoopBrush());
 }
 
 void LayerView::contextMenuEvent(QGraphicsSceneContextMenuEvent* event)

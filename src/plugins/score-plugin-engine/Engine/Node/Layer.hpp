@@ -101,8 +101,7 @@ struct AutoUISetup
     auto port = fact->makeItem(*inlet, doc, item, &context);
 
     // Text
-    const auto& style = Process::Style::instance();
-    auto lab = new score::SimpleTextItem{style.EventWaiting, item};
+    auto lab = new score::SimpleTextItem{&score::Skin::HalfLight, item};
     lab->setText(ctrl.name);
     lab->setPos(15, 2);
 

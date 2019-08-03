@@ -43,23 +43,23 @@ void IntervalBrace::paint(
 {
   auto& skin = Process::Style::instance();
   painter->setRenderHint(QPainter::Antialiasing, true);
-  painter->setBrush(skin.DefaultBrush);
+  painter->setBrush(skin.NoBrush());
 
   if (m_parent.isSelected())
   {
-    painter->setPen(skin.IntervalBraceSelected);
+    painter->setPen(skin.IntervalBraceSelected());
   }
   else if (m_parent.warning())
   {
-    painter->setPen(skin.IntervalBraceWarning);
+    painter->setPen(skin.IntervalBraceWarning());
   }
   else if (!m_parent.isValid())
   {
-    painter->setPen(skin.IntervalBraceInvalid);
+    painter->setPen(skin.IntervalBraceInvalid());
   }
   else
   {
-    painter->setPen(skin.IntervalBrace);
+    painter->setPen(skin.IntervalBrace());
   }
 
   painter->drawPath(m_path);

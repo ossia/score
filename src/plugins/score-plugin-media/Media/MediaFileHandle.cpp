@@ -163,6 +163,85 @@ void AudioFileHandle::updateSampleRate(int rate)
   }
 }
 
+ossia::small_vector<float, 8> AudioFileHandle::frame(int64_t start_frame, int64_t end_frame) const noexcept
+{
+  struct
+  {
+    int64_t start_frame;
+    int64_t end_frame;
+    ossia::small_vector<float, 8> sum;
+
+    void operator()() const noexcept
+    {
+
+    }
+
+    void operator()(const libav_ptr& r) noexcept
+    {
+      const int channels = r->data.size();
+      sum.resize(channels);
+      if(end_frame - start_frame > 0)
+      {
+        for(int c = 0; c < channels; c++)
+        {
+          const auto& vals = r->data[c];
+          sum[c] = vals[start_frame];
+          for(int64_t i = start_frame + 1; i < end_frame; i++)
+            sum[c] = abs_max(sum[c], (float)vals[i]);
+          sum[c] = sum[c];
+        }
+      }
+      else
+      {
+        qDebug() << start_frame << end_frame << end_frame - start_frame;
+      }
+    }
+
+    void operator()(const mmap_ptr& r) noexcept
+    {
+      auto& wav = *r->wav;
+      const int channels = wav.channels;
+      sum.resize(channels);
+
+      if(end_frame - start_frame > 1)
+      {
+        const int64_t buffer_size = end_frame - start_frame;
+
+        float* floats = (float*)alloca(sizeof(float) * buffer_size * channels);
+        drwav_seek_to_pcm_frame(&wav, start_frame);
+        auto max = drwav_read_pcm_frames_f32(&wav, buffer_size, floats);
+
+        for(int c = 0; c < channels; c++)
+          sum[c] = floats[c];
+
+        for(decltype(max) i = 1; i < max; i++)
+        {
+          for(int c = 0; c < channels; c++)
+          {
+            const float f = floats[i * channels + c];
+            sum[c] = abs_max(sum[c], f);
+          }
+        }
+      }
+      else
+      {
+        float* val = (float*)alloca(sizeof(float) * channels);
+        drwav_seek_to_pcm_frame(&wav, start_frame);
+        drwav_read_pcm_frames_f32(&wav, 1, val);
+
+        for(int c = 0; c < channels; c++)
+        {
+          sum[c] = val[c];
+        }
+      }
+    }
+  } _{start_frame, end_frame, {}};
+
+  ossia::apply(_, m_impl);
+  return _.sum;
+
+}
+
 void AudioFileHandle::load_ffmpeg(int rate)
 {
   qDebug() << "AudioFileHandle::load_ffmpeg(): " << m_file << rate;
@@ -277,6 +356,10 @@ void AudioFileHandle::load_drwav()
   if(!m_rms->exists())
   {
     m_rms->decode(*r.wav);
+  }
+  else
+  {
+    m_rms->setHandle(*r.wav);
   }
 
   QFileInfo fi{r.file};

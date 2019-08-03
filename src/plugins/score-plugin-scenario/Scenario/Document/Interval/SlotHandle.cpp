@@ -60,7 +60,7 @@ void SlotHandle::paint(
   //painter->setPen(Qt::red);
   //painter->setBrush(Qt::blue);
   //painter->drawRect(boundingRect());
-  painter->fillRect(boundingRect(), style.ProcessViewBorder);
+  painter->fillRect(boundingRect(), style.ProcessViewBorder());
 }
 
 void SlotHandle::setWidth(qreal width)

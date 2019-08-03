@@ -90,27 +90,24 @@ void StateView::paint(
 {
   painter->setRenderHint(QPainter::Antialiasing, true);
   auto& skin = Process::Style::instance();
-  painter->setPen(skin.NoPen);
-  skin.StateTemporalPointBrush
-      = m_selected ? skin.StateSelected.getBrush() : skin.StateDot.getBrush();
-
-  auto status = m_status.get();
-  if (status != ExecutionStatus::Editing)
-    skin.StateTemporalPointBrush = m_status.stateStatusColor(skin).getBrush();
+  painter->setPen(skin.NoPen());
 
   if (m_containMessage)
   {
-    painter->setBrush(skin.StateOutline.getBrush());
+    painter->setBrush(skin.StateOutline());
     if (m_dilated)
       painter->drawPath(fullDilated);
     else
       painter->drawPath(fullNonDilated);
   }
 
-  skin.StateTemporalPointPen.setBrush(skin.StateTemporalPointBrush);
+  auto& brush =
+      (m_status.get() != ExecutionStatus::Editing)
+      ? m_status.stateStatusColor(skin)
+      : (m_selected ? skin.StateSelected() : skin.StateDot());
 
-  painter->setBrush(skin.StateTemporalPointBrush);
-  painter->setPen(skin.StateTemporalPointPen);
+  painter->setBrush(brush);
+  painter->setPen(skin.StateTemporalPointPen(brush));
   if (m_dilated)
     painter->drawPath(smallDilated);
   else

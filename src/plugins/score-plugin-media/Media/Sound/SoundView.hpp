@@ -20,6 +20,7 @@ namespace Sound
 class LayerView;
 struct ComputedWaveform
 {
+  enum Mode { RMS, Mean, Sample } mode{};
   double zoom{};
 
   int x0{};
@@ -50,6 +51,7 @@ private:
   W_SLOT(on_recompute);
 
 private:
+  friend struct WaveformComputerImpl;
   void drawWaveFormsOnImage(
       const AudioFileHandle& data,
       ZoomRatio ratio,

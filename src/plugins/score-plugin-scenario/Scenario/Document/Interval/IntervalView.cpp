@@ -224,27 +224,27 @@ const score::Brush& IntervalView::intervalColor(const Process::Style& skin) cons
 {
   if(Q_UNLIKELY(m_dropTarget))
   {
-    return skin.IntervalDropTarget;
+    return skin.IntervalDropTarget();
   }
   else if (Q_UNLIKELY(m_selected))
   {
-    return skin.IntervalSelected;
+    return skin.IntervalSelected();
   }
   else if (Q_UNLIKELY(m_warning))
   {
-    return skin.IntervalWarning;
+    return skin.IntervalWarning();
   }
   else if (Q_UNLIKELY(!m_validInterval || m_state == IntervalExecutionState::Disabled))
   {
-    return skin.IntervalInvalid;
+    return skin.IntervalInvalid();
   }
   else if (Q_UNLIKELY(m_state == IntervalExecutionState::Muted))
   {
-    return skin.IntervalMuted;
+    return skin.IntervalMuted();
   }
   else
   {
-    return skin.IntervalBase.getBrush();
+    return skin.IntervalBase();
   }
 }
 

@@ -77,7 +77,7 @@ void EventView::paint(
   const auto rect = QRectF(QPointF(-1.3, 0.), QPointF(1.3, m_height));
   if (Q_UNLIKELY(isSelected()))
   {
-    painter->fillRect(rect, skin.EventSelected.getBrush());
+    painter->fillRect(rect, skin.EventSelected());
   }
   else
   {

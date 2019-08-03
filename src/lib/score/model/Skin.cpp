@@ -61,22 +61,25 @@ Skin::Skin() noexcept : SansFont{"Ubuntu"}
 , TransparentPen{Qt::transparent}, TransparentBrush{Qt::transparent},
     NoPen{Qt::NoPen}, NoBrush{Qt::NoBrush}, TextBrush{QColor("#1f2a30")},
     m_colorMap(new color_map{
-        SCORE_INSERT_COLOR(Dark),         SCORE_INSERT_COLOR(HalfDark),
-        SCORE_INSERT_COLOR(Gray),         SCORE_INSERT_COLOR(HalfLight),
-        SCORE_INSERT_COLOR(Light),        SCORE_INSERT_COLOR(Emphasis1),
-        SCORE_INSERT_COLOR(Emphasis2),    SCORE_INSERT_COLOR(Emphasis3),
-        SCORE_INSERT_COLOR(Emphasis4),    SCORE_INSERT_COLOR(Base1),
-        SCORE_INSERT_COLOR(Base2),        SCORE_INSERT_COLOR(Base3),
-        SCORE_INSERT_COLOR(Base4),        SCORE_INSERT_COLOR(Base5),
+        SCORE_INSERT_COLOR(Dark),           SCORE_INSERT_COLOR(HalfDark),  SCORE_INSERT_COLOR(DarkGray),
+        SCORE_INSERT_COLOR(Gray),           SCORE_INSERT_COLOR(LightGray), SCORE_INSERT_COLOR(HalfLight),
+        SCORE_INSERT_COLOR(Light),          SCORE_INSERT_COLOR(Emphasis1),
+        SCORE_INSERT_COLOR(Emphasis2),      SCORE_INSERT_COLOR(Emphasis3),
+        SCORE_INSERT_COLOR(Emphasis4),      SCORE_INSERT_COLOR(Base1),
+        SCORE_INSERT_COLOR(Base2),          SCORE_INSERT_COLOR(Base3),
+        SCORE_INSERT_COLOR(Base4),          SCORE_INSERT_COLOR(Base5),
         SCORE_INSERT_COLOR(Warn1),
-        SCORE_INSERT_COLOR(Warn2),        SCORE_INSERT_COLOR(Warn3),
-        SCORE_INSERT_COLOR(Background1),  SCORE_INSERT_COLOR(Background2),
+        SCORE_INSERT_COLOR(Warn2),          SCORE_INSERT_COLOR(Warn3),
+        SCORE_INSERT_COLOR(Background1),    SCORE_INSERT_COLOR(Background2),
         SCORE_INSERT_COLOR(Transparent1),
-        SCORE_INSERT_COLOR(Transparent2), SCORE_INSERT_COLOR(Transparent3),
-        SCORE_INSERT_COLOR(Smooth1),      SCORE_INSERT_COLOR(Smooth2),
-        SCORE_INSERT_COLOR(Smooth3),      SCORE_INSERT_COLOR(Tender1),
-        SCORE_INSERT_COLOR(Tender2),      SCORE_INSERT_COLOR(Tender3),
-        SCORE_INSERT_COLOR(Pulse1),       SCORE_INSERT_COLOR(Pulse2)}),
+        SCORE_INSERT_COLOR(Transparent2),   SCORE_INSERT_COLOR(Transparent3),
+        SCORE_INSERT_COLOR(Smooth1),        SCORE_INSERT_COLOR(Smooth2),
+        SCORE_INSERT_COLOR(Smooth3),        SCORE_INSERT_COLOR(Tender1),
+        SCORE_INSERT_COLOR(Tender2),        SCORE_INSERT_COLOR(Tender3),
+        SCORE_INSERT_COLOR(Cable1),         SCORE_INSERT_COLOR(Cable2),         SCORE_INSERT_COLOR(Cable3),
+        SCORE_INSERT_COLOR(SelectedCable1), SCORE_INSERT_COLOR(SelectedCable2), SCORE_INSERT_COLOR(SelectedCable3),
+        SCORE_INSERT_COLOR(Port1),           SCORE_INSERT_COLOR(Port2),          SCORE_INSERT_COLOR(Port3),
+        SCORE_INSERT_COLOR(Pulse1),         SCORE_INSERT_COLOR(Pulse2)}),
     m_defaultPalette{
        SCORE_INSERT_COLOR_CUSTOM("#3F51B5", "Indigo"),
        SCORE_INSERT_COLOR_CUSTOM("#2196F3", "Blue"),
@@ -189,7 +192,9 @@ void Skin::load(const QJsonObject& obj)
 
   SCORE_CONVERT_COLOR(Dark);
   SCORE_CONVERT_COLOR(HalfDark);
+  SCORE_CONVERT_COLOR(DarkGray);
   SCORE_CONVERT_COLOR(Gray);
+  SCORE_CONVERT_COLOR(LightGray);
   SCORE_CONVERT_COLOR(HalfLight);
   SCORE_CONVERT_COLOR(Light);
 
@@ -223,6 +228,10 @@ void Skin::load(const QJsonObject& obj)
   SCORE_CONVERT_COLOR(Tender2);
   SCORE_CONVERT_COLOR(Tender3);
 
+  SCORE_CONVERT_COLOR(Cable1);         SCORE_CONVERT_COLOR(Cable2);         SCORE_CONVERT_COLOR(Cable3);
+  SCORE_CONVERT_COLOR(SelectedCable1); SCORE_CONVERT_COLOR(SelectedCable2); SCORE_CONVERT_COLOR(SelectedCable3);
+  SCORE_CONVERT_COLOR(Port1);           SCORE_CONVERT_COLOR(Port2);          SCORE_CONVERT_COLOR(Port3);
+
   SCORE_CONVERT_COLOR(Pulse1);
   SCORE_CONVERT_COLOR(Pulse2);
 
@@ -238,7 +247,9 @@ QVector<QPair<QColor, QString>> Skin::getColors() const
 
   SCORE_MAKE_PAIR_COLOR(Dark);
   SCORE_MAKE_PAIR_COLOR(HalfDark);
+  SCORE_MAKE_PAIR_COLOR(DarkGray);
   SCORE_MAKE_PAIR_COLOR(Gray);
+  SCORE_MAKE_PAIR_COLOR(LightGray);
   SCORE_MAKE_PAIR_COLOR(HalfLight);
   SCORE_MAKE_PAIR_COLOR(Light);
   SCORE_MAKE_PAIR_COLOR(Emphasis1);
@@ -264,6 +275,9 @@ QVector<QPair<QColor, QString>> Skin::getColors() const
   SCORE_MAKE_PAIR_COLOR(Tender1);
   SCORE_MAKE_PAIR_COLOR(Tender2);
   SCORE_MAKE_PAIR_COLOR(Tender3);
+  SCORE_MAKE_PAIR_COLOR(Cable1);         SCORE_MAKE_PAIR_COLOR(Cable2);         SCORE_MAKE_PAIR_COLOR(Cable3);
+  SCORE_MAKE_PAIR_COLOR(SelectedCable1); SCORE_MAKE_PAIR_COLOR(SelectedCable2); SCORE_MAKE_PAIR_COLOR(SelectedCable3);
+  SCORE_MAKE_PAIR_COLOR(Port1);           SCORE_MAKE_PAIR_COLOR(Port2);          SCORE_MAKE_PAIR_COLOR(Port3);
   SCORE_MAKE_PAIR_COLOR(Pulse1);
   SCORE_MAKE_PAIR_COLOR(Pulse2);
 
@@ -280,7 +294,7 @@ QVector<QPair<QColor, QString>> Skin::getDefaultPaletteColors() const
   return vec_color;
 }
 
-static bool pulse(QBrush& ref, bool pulse)
+static bool pulse(QBrush& ref, bool pulse, int& idx)
 {
   bool invert = false;
   auto col = ref.color();
@@ -288,20 +302,24 @@ static bool pulse(QBrush& ref, bool pulse)
   if (pulse)
   {
     alpha += 0.02;
-    if (alpha >= 1)
+    idx++;
+    if (alpha >= 1 || idx > 24)
     {
       invert = true;
       alpha = 1;
+      idx = 24;
     }
     col.setAlphaF(alpha);
   }
   else
   {
     alpha -= 0.02;
-    if (alpha <= 0.5)
+    idx--;
+    if (alpha <= 0.5 || idx < 0)
     {
       invert = true;
       alpha = 0.5;
+      idx = 0;
     }
     col.setAlphaF(alpha);
   }
@@ -311,8 +329,9 @@ static bool pulse(QBrush& ref, bool pulse)
 
 void Skin::timerEvent(QTimerEvent* event)
 {
-  pulse(Pulse1.main.brush, m_pulseDirection);
-  auto invert = pulse(Pulse2.main.brush, m_pulseDirection);
+  int tmp{12};
+  pulse(Pulse1.main.brush, m_pulseDirection, this->PulseIndex);
+  auto invert = pulse(Pulse2.main.brush, m_pulseDirection, tmp);
   if (invert)
     m_pulseDirection = !m_pulseDirection;
 }

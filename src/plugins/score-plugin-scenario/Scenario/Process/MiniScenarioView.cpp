@@ -29,13 +29,9 @@ void MiniScenarioView::paint_impl(QPainter* p) const
   auto& skin = Process::Style::instance();
   const auto h = height() - 8;
 
-  auto& pen = skin.MiniScenarioPen;
   for (const Scenario::IntervalModel& c : m_scenario.intervals)
   {
-    auto col = c.metadata().getColor().getBrush().color();
-    col.setAlphaF(1.0);
-    pen.setColor(col);
-    p->setPen(pen);
+    p->setPen(skin.MiniScenarioPen(c.metadata().getColor().getBrush()));
     auto def = c.duration.defaultDuration().toPixels(zoom());
     auto st = c.date().toPixels(zoom());
     auto y = c.heightPercentage();

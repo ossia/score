@@ -26,6 +26,8 @@ SCORE_LIB_BASE_EXPORT void deleteGraphicsItem(QGraphicsItem* item);
 
 SCORE_LIB_BASE_EXPORT
 QGraphicsView* getView(const QGraphicsItem& self);
+SCORE_LIB_BASE_EXPORT
+QGraphicsView* getView(const QPainter& painter);
 
 template <typename T>
 struct graphics_item_ptr

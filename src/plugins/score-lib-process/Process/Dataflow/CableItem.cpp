@@ -107,13 +107,13 @@ void CableItem::paint(
       switch (m_type)
       {
         case Process::PortType::Message:
-          painter->setPen(style.DataCablePen);
+          painter->setPen(style.DataCablePen());
           break;
         case Process::PortType::Audio:
-          painter->setPen(style.AudioCablePen);
+          painter->setPen(style.AudioCablePen());
           break;
         case Process::PortType::Midi:
-          painter->setPen(style.MidiCablePen);
+          painter->setPen(style.MidiCablePen());
           break;
       }
     }
@@ -122,18 +122,18 @@ void CableItem::paint(
       switch (m_type)
       {
         case Process::PortType::Message:
-          painter->setPen(style.SelectedDataCablePen);
+          painter->setPen(style.SelectedDataCablePen());
           break;
         case Process::PortType::Audio:
-          painter->setPen(style.SelectedAudioCablePen);
+          painter->setPen(style.SelectedAudioCablePen());
           break;
         case Process::PortType::Midi:
-          painter->setPen(style.SelectedMidiCablePen);
+          painter->setPen(style.SelectedMidiCablePen());
           break;
       }
     }
 
-    painter->setBrush(style.TransparentBrush);
+    painter->setBrush(style.TransparentBrush());
     painter->drawPath(m_path);
     painter->setRenderHint(QPainter::Antialiasing, false);
   }

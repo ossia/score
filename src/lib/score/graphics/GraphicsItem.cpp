@@ -5,6 +5,7 @@
 #include <score/plugins/UuidKey.hpp>
 
 #include <QGraphicsItem>
+#include <QGraphicsView>
 #include <QGraphicsScene>
 
 void deleteGraphicsObject(QGraphicsObject* item)
@@ -45,4 +46,11 @@ QGraphicsView* getView(const QGraphicsItem& self)
   if (v.empty())
     return nullptr;
   return v.first();
+}
+
+QGraphicsView* getView(const QPainter& painter)
+{
+  auto widg = static_cast<QWidget*>(painter.device());
+  SCORE_ASSERT(widg);
+  return static_cast<QGraphicsView*>(widg->parent());
 }
