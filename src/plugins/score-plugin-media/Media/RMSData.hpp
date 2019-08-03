@@ -37,8 +37,6 @@ public:
   void decode(ossia::drwav_handle& audio);
   double sampleRateRatio(double expectedRate) const noexcept;
 
-  void setHandle(ossia::drwav_handle& audio);
-
   ossia::small_vector<float, 8> frame(int64_t start_sample, int64_t end_sample) const noexcept;
 
   int64_t frames_count = 0;
@@ -65,7 +63,6 @@ private:
   QByteArray m_ramData;
   QBuffer m_ramBuffer;
 
-  ossia::drwav_handle* m_drwavHandle{};
 };
 
 }

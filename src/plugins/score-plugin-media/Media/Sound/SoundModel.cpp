@@ -20,7 +20,7 @@ ProcessModel::ProcessModel(
                             Metadata<ObjectKey_k, ProcessModel>::get(),
                             parent}
     , outlet{Process::make_outlet(Id<Process::Port>(0), this)}
-    , m_file{std::make_shared<AudioFileHandle>()}
+    , m_file{std::make_shared<AudioFile>()}
 {
   outlet->setPropagate(true);
   outlet->type = Process::PortType::Audio;
@@ -37,7 +37,7 @@ void ProcessModel::setFile(const QString& file)
   {
     m_file->on_mediaChanged.disconnect<&ProcessModel::on_mediaChanged>(*this);
 
-    m_file = AudioFileHandleManager::instance().get(file, score::IDocument::documentContext(*this));
+    m_file = AudioFileManager::instance().get(file, score::IDocument::documentContext(*this));
 
     m_file->on_mediaChanged.connect<&ProcessModel::on_mediaChanged>(*this);
     on_mediaChanged();
@@ -45,12 +45,12 @@ void ProcessModel::setFile(const QString& file)
   }
 }
 
-std::shared_ptr<AudioFileHandle>& ProcessModel::file()
+std::shared_ptr<AudioFile>& ProcessModel::file()
 {
   return m_file;
 }
 
-const std::shared_ptr<AudioFileHandle>& ProcessModel::file() const
+const std::shared_ptr<AudioFile>& ProcessModel::file() const
 {
   return m_file;
 }

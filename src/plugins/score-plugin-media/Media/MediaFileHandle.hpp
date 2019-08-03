@@ -1,19 +1,22 @@
 #pragma once
 #include <Media/AudioDecoder.hpp>
 
-#include <ossia/detail/small_vector.hpp>
-#include <ossia/detail/hash_map.hpp>
-#include <eggs/variant.hpp>
-
-#include <QFile>
-
-#include <nano_signal_slot.hpp>
-#include <score_plugin_media_export.h>
-#include <verdigris>
 #include <score/tools/std/StringHash.hpp>
 #include <score/tools/Todo.hpp>
 
+#include <ossia/detail/small_vector.hpp>
+#include <ossia/detail/hash_map.hpp>
+#include <ossia/audio/drwav_handle.hpp>
+
+#include <QFile>
+
+#include <eggs/variant.hpp>
+#include <nano_signal_slot.hpp>
+#include <verdigris>
+
 #include <array>
+#include <score_plugin_media_export.h>
+
 namespace score
 {
 struct DocumentContext;
@@ -27,13 +30,13 @@ static constexpr float abs_max(float f1, float f2) noexcept
   return (std::abs(f1) < std::abs(f2)) ? f2 : f1;
 }
 
-struct SCORE_PLUGIN_MEDIA_EXPORT AudioFileHandle final : public QObject
+struct SCORE_PLUGIN_MEDIA_EXPORT AudioFile final : public QObject
 {
 public:
   static bool isSupported(const QFile& f);
 
-  AudioFileHandle();
-  ~AudioFileHandle() override;
+  AudioFile();
+  ~AudioFile() override;
 
   void load(const QString&, const QString&);
 
@@ -64,20 +67,15 @@ public:
 
   void updateSampleRate(int);
 
-  ossia::small_vector<float, 8> frame(int64_t start_frame, int64_t end_frame) const noexcept;
+  // Note : this is a copy, because it's not thread safe.
+  auto handle() const noexcept { return m_impl; }
 
-private:
-  void load_ffmpeg(int rate);
-  void load_drwav();
-
-  friend class SoundComponentSetup;
 
   struct MmapReader
   {
-    QFile file;
+    std::shared_ptr<QFile> file;
     void* data{};
-    ossia::drwav_handle* wav{};
-    ~MmapReader();
+    ossia::drwav_handle wav;
   };
 
   struct LibavReader
@@ -90,36 +88,51 @@ private:
   };
 
   using libav_ptr = std::shared_ptr<LibavReader>;
-  using mmap_ptr = std::shared_ptr<MmapReader>;
+  using mmap_ptr = MmapReader;
   using impl_t = eggs::variant<
     mmap_ptr,
     libav_ptr
   >;
 
+  struct Handle : impl_t
+  {
+    using impl_t::impl_t;
+    ossia::small_vector<float, 8> absmax_frame(int64_t start_frame, int64_t end_frame) noexcept;
+    ossia::small_vector<std::pair<float, float>, 8> minmax_frame(int64_t start_frame, int64_t end_frame) noexcept;
+  };
+
+private:
+  void load_ffmpeg(int rate);
+  void load_drwav();
+
+  friend class SoundComponentSetup;
+
   QString m_originalFile;
   QString m_file;
   QString m_fileName;
 
-  impl_t m_impl;
-
   RMSData* m_rms{};
   int m_sampleRate{};
+
+  Handle m_impl;
 };
 
-class SCORE_PLUGIN_MEDIA_EXPORT AudioFileHandleManager final
+class SCORE_PLUGIN_MEDIA_EXPORT AudioFileManager final
     : public QObject
 {
 public:
-  AudioFileHandleManager() noexcept;
-  ~AudioFileHandleManager() noexcept;
+  AudioFileManager() noexcept;
+  ~AudioFileManager() noexcept;
 
-  static AudioFileHandleManager& instance() noexcept;
-  std::shared_ptr<AudioFileHandle> get(const QString&, const score::DocumentContext&);
+  static AudioFileManager& instance() noexcept;
+  std::shared_ptr<AudioFile> get(const QString&, const score::DocumentContext&);
 
 private:
-  ossia::fast_hash_map<QString, std::shared_ptr<AudioFileHandle>> m_handles;
+  ossia::fast_hash_map<QString, std::shared_ptr<AudioFile>> m_handles;
 };
 }
 
-Q_DECLARE_METATYPE(std::shared_ptr<Media::AudioFileHandle>)
-W_REGISTER_ARGTYPE(std::shared_ptr<Media::AudioFileHandle>)
+Q_DECLARE_METATYPE(std::shared_ptr<Media::AudioFile>)
+W_REGISTER_ARGTYPE(std::shared_ptr<Media::AudioFile>)
+Q_DECLARE_METATYPE(const Media::AudioFile*)
+W_REGISTER_ARGTYPE(const Media::AudioFile*)
