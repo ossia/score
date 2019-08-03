@@ -94,11 +94,9 @@ void RMSData::decodeLast(const std::vector<gsl::span<const ossia::audio_sample> 
 
 void RMSData::decode(ossia::drwav_handle& audio)
 {
-  m_drwavHandle = &audio;
-
   // store the data in interleaved format, it's much easier...
-  const int64_t channels = audio.channels;
-  const int64_t max_frames = audio.totalPCMFrameCount;
+  const int64_t channels = audio.channels();
+  const int64_t max_frames = audio.totalPCMFrameCount();
   constexpr const auto buffer_size = rms_buffer_size;
 
   const int64_t len = sizeof(rms_sample_t) * channels;
@@ -125,11 +123,6 @@ void RMSData::decode(ossia::drwav_handle& audio)
 double RMSData::sampleRateRatio(double expectedRate) const noexcept
 {
   return header->sampleRate / expectedRate;
-}
-
-void RMSData::setHandle(ossia::drwav_handle& audio)
-{
-  m_drwavHandle = &audio;
 }
 
 ossia::small_vector<float, 8> RMSData::frame(int64_t start_frame, int64_t end_frame) const noexcept
@@ -194,11 +187,11 @@ rms_sample_t RMSData::computeChannelRMS(gsl::span<const ossia::audio_sample> cha
 
 void RMSData::computeChannelRMS(ossia::drwav_handle& wav, rms_sample_t* bytes, int64_t buffer_size)
 {
-  const int channels = wav.channels;
+  const int channels = wav.channels();
   float* val = (float*)alloca(sizeof(float) * channels);
 
   float* floats = (float*)alloca(sizeof(float) * buffer_size  * channels);
-  auto max = drwav_read_pcm_frames_f32(&wav, buffer_size, floats);
+  auto max = wav.read_pcm_frames_f32(buffer_size, floats);
 
   for(int c = 0; c < channels; c++)
     val[c] = floats[c];

@@ -6,6 +6,7 @@
 
 #include <ossia/detail/pod_vector.hpp>
 #include <ossia/detail/math.hpp>
+#include <ossia/detail/hash.hpp>
 
 #include <QGraphicsSceneContextMenuEvent>
 #include <QGraphicsView>
@@ -21,14 +22,121 @@
 #include <wobjectimpl.h>
 #include <score/widgets/DoubleSlider.hpp>
 #include <score/tools/std/Invoke.hpp>
+#include <readerwriterqueue.h>
 
-W_REGISTER_ARGTYPE(const Media::AudioFileHandle*)
 W_OBJECT_IMPL(Media::Sound::LayerView)
 W_OBJECT_IMPL(Media::Sound::WaveformComputer)
+namespace std
+{
+template<>
+class hash<std::pair<int, int>>
+{
+public:
+  std::size_t operator()(const std::pair<int, int>& p) const
+  {
+    std::size_t seed = 0;
+    ossia::hash_combine(seed, p.first);
+    ossia::hash_combine(seed, p.second);
+    return seed;
+  }
+};
+}
 namespace Media
 {
 namespace Sound
 {
+struct QImagePool
+{
+  struct Images
+  {
+    QVector<QImage*> images;
+    std::chrono::steady_clock::time_point last_touched;
+  };
+
+  static const constexpr int max_count = 100;
+  using pool_t = ossia::fast_hash_map<std::pair<int, int>, Images>;
+  pool_t pool;
+  std::mutex m_mtx;
+
+  static QImagePool& instance() noexcept
+  {
+    static QImagePool pool;
+    return pool;
+  }
+
+  static inline int hit = 0;
+  static inline int miss = 0;
+  QImage* request(int w, int h)
+  {
+    std::lock_guard _{m_mtx};
+    auto it = pool.find({w, h});
+    if(it != pool.end())
+    {
+      auto& vec = it->second.images;
+      if(!vec.empty())
+      {
+        auto img = vec.back();
+        vec.pop_front();
+        img->fill(Qt::transparent);
+        it->second.last_touched = std::chrono::steady_clock::now();
+        hit++;
+        return img;
+      }
+    }
+
+    auto img = new QImage(w, h, QImage::Format_ARGB32_Premultiplied);
+    img->fill(Qt::transparent);
+    miss++;
+    return img;
+  }
+
+  void giveBack(const QVector<QImage*>& imgs)
+  {
+    qDebug() << hit << miss << " success : " << double(hit) / double(miss);
+    for(auto img : imgs)
+    {
+      QVector<QImage*> to_delete;
+
+      {
+        std::lock_guard _{m_mtx};
+        to_delete = gc();
+        Images& images = pool[std::make_pair(img->width(), img->height())];
+        images.images.push_back(img);
+        images.last_touched = std::chrono::steady_clock::now();
+      }
+
+      for(auto img : to_delete)
+        delete img;
+    }
+  }
+
+  QVector<QImage*> gc()
+  {
+    if(pool.empty())
+      return {};
+
+    int count = 0;
+    auto oldest = pool.begin();
+    auto oldest_t = oldest->second.last_touched;
+    for(auto it = oldest; it != pool.end(); ++it)
+    {
+      if(it->second.last_touched < oldest->second.last_touched) {
+        oldest = it;
+        oldest_t = it->second.last_touched;
+      }
+      count += it->second.images.size();
+    }
+
+    if(count < max_count)
+      return {};
+    auto res = std::move(oldest->second.images);
+    oldest->second.last_touched = std::chrono::steady_clock::now();
+    return res;
+  }
+
+};
+
+static const constexpr auto dpi = 2.0;
 LayerView::LayerView(QGraphicsItem* parent)
     : Process::LayerView{parent}, m_cpt{new WaveformComputer{*this}}
 {
@@ -45,12 +153,13 @@ LayerView::LayerView(QGraphicsItem* parent)
       m_cpt,
       &WaveformComputer::ready,
       this,
-      [=](QVector<QImage> img, ComputedWaveform wf) {
-        m_image = std::move(img);
+      [=](QVector<QImage*> img, ComputedWaveform wf) {
         {
-          m_pixmap.resize(m_image.size());
-          for(int i = 0; i < m_image.size(); i++)
-            m_pixmap[i].convertFromImage(m_image[i]);
+          m_pixmap.resize(img.size());
+          for(int i = 0; i < img.size(); i++)
+            m_pixmap[i].convertFromImage(*img[i]);
+
+          QImagePool::instance().giveBack(img);
         }
         m_wf = wf;
 
@@ -65,7 +174,7 @@ LayerView::~LayerView()
   delete m_cpt;
 }
 
-void LayerView::setData(const std::shared_ptr<AudioFileHandle>& data)
+void LayerView::setData(const std::shared_ptr<AudioFile>& data)
 {
   if (m_data)
   {
@@ -198,11 +307,12 @@ WaveformComputer::WaveformComputer(LayerView& layer)
   , m_view{*getView(m_layer)}
 {
   connect(this, &WaveformComputer::recompute,
-      this, [=] (const std::shared_ptr<AudioFileHandle>& arg_1, double arg_2, bool cols) {
+      this, [=] (const std::shared_ptr<AudioFile>& arg_1, double arg_2, bool cols) {
     int64_t n = ++m_redraw_count;
 
      QMetaObject::invokeMethod(this, [=] { on_recompute(arg_1, arg_2, cols, n); }, Qt::QueuedConnection);
   }, Qt::DirectConnection);
+  startTimer(16, Qt::CoarseTimer);
 
   this->moveToThread(&m_drawThread);
   m_drawThread.start();
@@ -219,7 +329,8 @@ void WaveformComputer::stop()
 
 struct WaveformComputerImpl
 {
-  const AudioFileHandle& data;
+  AudioFile& data;
+  AudioFile::Handle& handle;
   ZoomRatio ratio;
   bool cols;
   int64_t redraw_number;
@@ -227,35 +338,48 @@ struct WaveformComputerImpl
 
   struct SizeInfos {
     int nchannels;
-    float samples_per_pixels;
+    float logical_samples_per_pixels;
+    float physical_samples_per_pixels;
     double rate_ratio;
 
-  float h;
-  int h_int;
-  float h_ratio;
-  float half_h;
-  int half_h_int;
-  float half_h_ratio;
 
-  int32_t w;
-  int32_t x0;
-  int32_t xf;
-  int32_t rightmost_sample;
-  int32_t width;
-  int32_t max_pixel;
+    float logical_h;
+    int logical_h_int;
+    float logical_h_ratio;
+    float logical_half_h;
+    int logical_half_h_int;
+    float logical_half_h_ratio;
+
+    int32_t logical_w;
+    int32_t logical_x0;
+    int32_t logical_xf;
+    int32_t logical_width;
+    int32_t logical_max_pixel;
+
+    float physical_h;
+    int physical_h_int;
+    float physical_h_ratio;
+    float physical_half_h;
+    int physical_half_h_int;
+    float physical_half_h_ratio;
+
+    int32_t physical_w;
+    int32_t physical_x0;
+    int32_t physical_xf;
+    int32_t physical_width;
+    int32_t physical_max_pixel;
+
+
+    int32_t rightmost_sample;
   };
 
-  static constexpr const auto r = qRgba(255, 0, 0, 255);
-  static constexpr const auto g = qRgba(0, 255, 0, 255);
-  static constexpr const auto b = qRgba(0, 0, 255, 255);
   static constexpr const auto orange = qRgba(250, 180, 15, 255);
-  static constexpr const auto transporange = qRgba(125, 90, 7, 127);
   static constexpr const auto gray = qRgba(20, 81, 120, 255);
-  static constexpr const auto transpgray = qRgba(5, 35, 55, 127);
-  const unsigned int main_color = cols ? orange : gray;
-  const unsigned int border_color = cols ? transporange : transpgray;
-   QPen pen = [this] { QPen p; p.setColor(main_color); p.setCosmetic(true); p.setWidth(0); return p; }();
+  const QPen orange_pen = [] { QPen p; p.setColor(orange);  p.setWidth(1); return p; }();
+  const QPen gray_pen = [] { QPen p; p.setColor(gray);  p.setWidth(1); return p; }();
 
+  const unsigned int main_color = cols ? orange : gray;
+  const QPen& main_pen = cols ? orange_pen : gray_pen;
 
   struct QPainterCleanup
   {
@@ -283,21 +407,53 @@ struct WaveformComputerImpl
     }
   };
 
+
+  bool initImages(QVector<QImage*>& images, const SizeInfos& infos) const noexcept
+  {
+    auto& pool = QImagePool::instance();
+    images.resize(infos.nchannels);
+    for(int i = 0; i < infos.nchannels; i++)
+    {
+      images[i] = pool.request(
+            infos.physical_width,
+            infos.physical_h);
+      images[i]->setDevicePixelRatio(2.);
+
+      if(computer.m_redraw_count > redraw_number)
+        return false;
+    }
+    return true;
+  }
+
+  bool initImages(QVector<QImage*>& images, const SizeInfos& infos, QPainter* p, QPainterCleanup& _) const noexcept
+  {
+    auto& pool = QImagePool::instance();
+    images.resize(infos.nchannels);
+    for(int i = 0; i < infos.nchannels; i++)
+    {
+      images[i] = pool.request(
+            infos.physical_width,
+            infos.physical_h);
+
+      if(computer.m_redraw_count > redraw_number)
+        return false;
+
+      p[i].begin(images[i]);
+      p[i].setPen(this->main_pen);
+      p[i].setRenderHint(QPainter::Antialiasing, true);
+      _.init++;
+    }
+    return true;
+  }
+/*
   void compute_rms(const SizeInfos infos, const RMSData& rms)
   {
-    QVector<QImage> images;
-    images.resize(infos.nchannels);
-    for(QImage& image : images)
-    {
-      image = QImage(
-            infos.width,
-            infos.h,
-            QImage::Format_ARGB32_Premultiplied);
-      image.fill(Qt::transparent);
-    }
+    QVector<QImage*> images;
+    if(!initImages(images, infos))
+      return;
 
-    for(int32_t x_samples = infos.x0, x_pixels = x_samples - infos.x0
-        ;       x_samples < infos.xf && x_pixels < infos.max_pixel
+    for(int32_t x_samples = infos.logical_x0, x_pixels = x_samples - infos.logical_x0
+        ;       x_samples < infos.logical_xf && x_pixels < infos.logical_max_pixel
         ;       x_samples++, x_pixels++
         )
     {
@@ -305,8 +461,8 @@ struct WaveformComputerImpl
         return;
 
       const auto rms_sample = rms.frame(
-            (x_samples)     * infos.samples_per_pixels * infos.rate_ratio,
-            (x_samples + 1) * infos.samples_per_pixels * infos.rate_ratio
+            (x_samples)     * infos.logical_samples_per_pixels * infos.rate_ratio,
+            (x_samples + 1) * infos.logical_samples_per_pixels * infos.rate_ratio
             );
 
       for(int k = 0; k < infos.nchannels; k++)
@@ -314,16 +470,16 @@ struct WaveformComputerImpl
         QImage& image = images[k];
         auto dat = reinterpret_cast<uint32_t*>(image.bits());
 
-        const int value = infos.half_h_int + int(rms_sample[k] * infos.half_h_ratio);
+        const int value = infos.logical_half_h_int + int(rms_sample[k] * infos.logical_half_h_ratio);
 
         auto [y, end_y] =
-            value < infos.half_h_int
-            ? std::tuple<int, int>{value, infos.half_h_int}
-            : std::tuple<int, int>{infos.half_h_int, value};
+            value < infos.logical_half_h_int
+            ? std::tuple<int, int>{value, infos.logical_half_h_int}
+            : std::tuple<int, int>{infos.logical_half_h_int, value};
 
         for(; y <= end_y; y++)
         {
-          dat[x_pixels + y * infos.width] = r;
+          dat[x_pixels + y * infos.logical_width] = main_color;
         }
       }
     }
@@ -331,50 +487,33 @@ struct WaveformComputerImpl
     ComputedWaveform result;
     result.mode = ComputedWaveform::RMS;
     result.zoom = ratio;
-    result.x0 = infos.x0;
-    result.xf = infos.x0 + infos.max_pixel;
+    result.x0 = infos.logical_x0;
+    result.xf = infos.logical_x0 + infos.logical_max_pixel;
 
     computer.ready(images, result);
   }
+*/
 
-  bool initImages(QVector<QImage>& images, const SizeInfos& infos, QPainter* p, QPainterCleanup& _) const noexcept
-  {
-    images.resize(infos.nchannels);
-    for(int i = 0; i < infos.nchannels; i++)
-    {
-      images[i] = QImage(
-            infos.width,
-            infos.h,
-            QImage::Format_ARGB32_Premultiplied);
-      images[i].fill(Qt::transparent);
-
-      if(computer.m_redraw_count > redraw_number)
-        return false;
-
-      p[i].begin(&images[i]);
-      p[i].setPen(this->pen);
-      _.init++;
-    }
-    return true;
-  }
-
-  void compute_mean(const SizeInfos infos)
+  void compute_mean_absmax(const SizeInfos infos)
   {
     QPainter* p = (QPainter*) alloca(sizeof(QPainter) * infos.nchannels);
-    pen.setColor(g);
-    QVector<QImage> images;
+    QVector<QImage*> images;
 
     {
       QPainterCleanup _{p, infos.nchannels};
 
-      ossia::small_vector<QPointF, 8> pPos(infos.nchannels);
+      ossia::small_vector<QPointF, 8> pPosTop(infos.nchannels);
+      ossia::small_vector<QPointF, 8> pPosBottom(infos.nchannels);
 
       if(!initImages(images, infos, p, _))
         return;
 
-      for(int32_t x_samples = infos.x0, x_pixels = x_samples - infos.x0
-          ;       x_samples < infos.xf && x_pixels < infos.max_pixel
-          ;       x_samples++, x_pixels++
+      const float increment = 1.;
+      const double pix_increment = 1.;
+      const float pix_ratio = infos.physical_samples_per_pixels * infos.rate_ratio;
+      for(int32_t x_samples = infos.physical_x0, x_pixels = x_samples - infos.physical_x0
+          ;     x_samples < infos.physical_xf && x_pixels < infos.physical_max_pixel
+          ;     x_samples++, x_pixels++
           )
       {
         if(computer.m_redraw_count > redraw_number)
@@ -382,16 +521,73 @@ struct WaveformComputerImpl
           return;
         }
 
-        const auto mean_sample = data.frame(
-              (x_samples)     * infos.samples_per_pixels * infos.rate_ratio,
-              (x_samples + 1) * infos.samples_per_pixels * infos.rate_ratio
-              );
+        int64_t start_sample =  x_samples * pix_ratio;
+        int64_t end_sample =  (x_samples + 1) * pix_ratio;
+        const auto mean_sample = handle.absmax_frame(start_sample, end_sample);
+
 
         for(int k = 0; k < infos.nchannels; k++)
         {
-          const int value = infos.half_h_int + int(mean_sample[k] * infos.half_h_ratio);
-          p[k].drawLine(pPos[k], QPointF(x_pixels, value));
-          pPos[k] = QPointF(x_pixels, value);
+          const int max_value = infos.physical_half_h_int + int(mean_sample[k] * infos.physical_half_h_ratio);
+          p[k].drawLine(pPosTop[k], QPointF(x_pixels, max_value));
+          pPosTop[k] = QPointF(x_pixels, max_value);
+        }
+      }
+    }
+
+
+    ComputedWaveform result;
+    result.mode = ComputedWaveform::Mean;
+    result.zoom = ratio;
+    result.x0 = infos.logical_x0;
+    result.xf = infos.logical_x0 + infos.logical_max_pixel;
+
+    computer.ready(std::move(images), result);
+  }
+
+  void compute_mean_minmax(const SizeInfos infos)
+  {
+    QPainter* p = (QPainter*) alloca(sizeof(QPainter) * infos.nchannels);
+    QVector<QImage*> images;
+
+    {
+      QPainterCleanup _{p, infos.nchannels};
+
+      ossia::small_vector<QPointF, 8> pPosTop(infos.nchannels);
+      ossia::small_vector<QPointF, 8> pPosBottom(infos.nchannels);
+
+      if(!initImages(images, infos, p, _))
+        return;
+
+      const float increment = 1.;
+      const double pix_increment = 1.;
+      const float pix_ratio = infos.physical_samples_per_pixels * infos.rate_ratio;
+      for(int32_t x_samples = infos.physical_x0, x_pixels = x_samples - infos.physical_x0
+          ;     x_samples < infos.physical_xf && x_pixels < infos.physical_max_pixel
+          ;     x_samples++, x_pixels++
+          )
+      {
+        if(computer.m_redraw_count > redraw_number)
+        {
+          return;
+        }
+
+        int64_t start_sample =  x_samples * pix_ratio;
+        int64_t end_sample =  (x_samples + 1) * pix_ratio;
+        const auto mean_sample = handle.minmax_frame(start_sample, end_sample);
+
+
+        for(int k = 0; k < infos.nchannels; k++)
+        {
+          const int max_value = infos.physical_half_h_int + int(mean_sample[k].second * infos.physical_half_h_ratio);
+//          p[k].drawLine(pPosTop[k], QPointF(x_pixels, max_value));
+//          pPosTop[k] = QPointF(x_pixels, max_value);
+
+          const int min_value = infos.physical_half_h_int + int(mean_sample[k].first * infos.physical_half_h_ratio);
+//          p[k].drawLine(pPosBottom[k], QPointF(x_pixels, min_value));
+//          pPosBottom[k] = QPointF(x_pixels, min_value);
+
+          p[k].drawLine(QPointF(x_pixels, max_value), QPointF(x_pixels, min_value));
         }
       }
     }
@@ -399,57 +595,51 @@ struct WaveformComputerImpl
     ComputedWaveform result;
     result.mode = ComputedWaveform::Mean;
     result.zoom = ratio;
-    result.x0 = infos.x0;
-    result.xf = infos.x0 + infos.max_pixel;
+    result.x0 = infos.logical_x0;
+    result.xf = infos.logical_x0 + infos.logical_max_pixel;
 
     computer.ready(std::move(images), result);
   }
 
   void compute_sample(const SizeInfos infos)
   {
-    pen.setColor(b);
-    QPainter* p = (QPainter*) alloca(sizeof(QPainter) * infos.nchannels);
-    QVector<QImage> images;
-    {
-      QPainterCleanup _{p, infos.nchannels};
+    QVector<QImage*> images;
+    if(!initImages(images, infos))
+      return;
 
-      if(!initImages(images, infos, p, _))
+    const float pix_ratio = infos.physical_samples_per_pixels * infos.rate_ratio;
+    int64_t oldbegin = 0, oldend = 0;
+    for(int32_t x_samples = infos.physical_x0, x_pixels = x_samples - infos.physical_x0
+        ;       x_samples < infos.physical_xf && x_pixels < infos.physical_max_pixel
+        ;       x_samples++, x_pixels ++
+        )
+    {
+      if(computer.m_redraw_count > redraw_number)
         return;
 
-      int64_t oldbegin = 0, oldend = 0;
-      for(int32_t x_samples = infos.x0, x_pixels = x_samples - infos.x0
-          ;       x_samples < infos.xf && x_pixels < infos.max_pixel
-          ;       x_samples++, x_pixels++
-          )
+      int64_t begin = (x_samples)   * pix_ratio;
+      int64_t end = (x_samples + 1) * pix_ratio;
+      if(begin == oldend && end == begin)
+        continue;
+      oldbegin = begin;
+      oldend = end;
+      const auto mean_sample = this->handle.absmax_frame(begin, end);
+
+      for(int k = 0; k < infos.nchannels; k++)
       {
-        if(computer.m_redraw_count > redraw_number)
-          return;
+        QImage& image = *images[k];
+        auto dat = reinterpret_cast<uint32_t*>(image.bits());
+        const int v = infos.physical_half_h_int + int(mean_sample[k] * infos.physical_half_h_ratio);
+        const int value = ossia::clamp(v, int(-infos.physical_half_h_ratio + 1), int(infos.physical_half_h_ratio - 1));
 
-        int64_t begin = (x_samples)     * infos.samples_per_pixels * infos.rate_ratio;
-        int64_t end = (x_samples + 1)   * infos.samples_per_pixels * infos.rate_ratio;
-        if(begin == oldend && end == begin)
-          continue;
-        oldbegin = begin;
-        oldend = end;
-        const auto mean_sample = data.frame(begin, end);
+        auto [y, end_y] =
+            value < infos.physical_half_h_int
+            ? std::tuple<int, int>{value, infos.physical_half_h_int}
+          : std::tuple<int, int>{infos.physical_half_h_int, value};
 
-        for(int k = 0; k < infos.nchannels; k++)
+        for(; y < end_y; y++)
         {
-          QImage& image = images[k];
-          auto dat = reinterpret_cast<uint32_t*>(image.bits());
-          const int value = infos.half_h_int + int(mean_sample[k] * infos.half_h_ratio);
-
-          auto [y, end_y] =
-              value < infos.half_h_int
-              ? std::tuple<int, int>{value, infos.half_h_int}
-              : std::tuple<int, int>{infos.half_h_int, value};
-
-          for(; y <= end_y; y++)
-          {
-            dat[x_pixels + y * infos.width] = r;
-          }
-          /*
-          p[k].drawLine(QPointF(x_pixels, value), QPointF(x_pixels, infos.half_h));*/
+          dat[x_pixels + y * infos.physical_width] = main_color;
         }
       }
     }
@@ -457,8 +647,8 @@ struct WaveformComputerImpl
     ComputedWaveform result;
     result.mode = ComputedWaveform::Sample;
     result.zoom = ratio;
-    result.x0 = infos.x0;
-    result.xf = infos.x0 + infos.max_pixel;
+    result.x0 = infos.logical_x0;
+    result.xf = infos.logical_x0 + infos.logical_max_pixel;
 
     computer.ready(std::move(images), result);
   }
@@ -474,15 +664,15 @@ struct WaveformComputerImpl
       return;
 
     // Height of each channel
-    infos.h = m_layer.height() / (float)infos.nchannels;
-    if(infos.h < 1.)
+    infos.logical_h = m_layer.height() / (float)infos.nchannels;
+    if(infos.logical_h < 1.)
       return;
-    infos.w = m_layer.width();
-    if(infos.w <= 1.)
+    infos.logical_w = m_layer.width();
+    if(infos.logical_w <= 1.)
       return;
 
     // leftmost point
-    infos.x0 = std::max(std::floor(m_layer.mapFromScene(m_view.mapToScene(0, 0)).x()), 0.);
+    infos.logical_x0 = std::max(std::floor(m_layer.mapFromScene(m_view.mapToScene(0, 0)).x()), 0.);
 
     auto& rms = data.rms();
     if (rms.frames_count == 0)
@@ -492,59 +682,71 @@ struct WaveformComputerImpl
     const auto audioSampleRate = data.sampleRate();
     // There may be a ratio because the waveform could have been computed at a different samplerate.
     infos.rate_ratio = data.rms().sampleRateRatio(audioSampleRate);
-    infos.samples_per_pixels = 0.001 * ratio * audioSampleRate;
+    infos.logical_samples_per_pixels = 0.001 * ratio * audioSampleRate;
 
-    if(infos.samples_per_pixels <= 1e-6)
+    if(infos.logical_samples_per_pixels <= 1e-6)
       return;
 
     LayerView& layer = computer.m_layer;
     QGraphicsView& view = computer.m_view;
-    infos.xf = std::floor(layer.mapFromScene(view.mapToScene(view.width(), 0)).x());
-    infos.rightmost_sample = (int32_t) (data.decodedSamples() / infos.samples_per_pixels);
-    infos.xf = std::min(infos.xf, infos.rightmost_sample);
+    infos.logical_xf = std::floor(layer.mapFromScene(view.mapToScene(view.width(), 0)).x());
+    infos.rightmost_sample = (int32_t) (data.decodedSamples() / infos.logical_samples_per_pixels);
+    infos.logical_xf = std::min(infos.logical_xf, infos.rightmost_sample);
 
-    infos.width = std::min(infos.w, (infos.xf - infos.x0));
-    infos.max_pixel = std::min((int32_t)infos.width, (int32_t) infos.rightmost_sample);
+    infos.logical_width = std::min(infos.logical_w, (infos.logical_xf - infos.logical_x0));
+    infos.logical_max_pixel = std::min((int32_t)infos.logical_width, (int32_t) infos.rightmost_sample);
 
     // height
-    infos.h_int = infos.h;
-    infos.h_ratio = -infos.h;
-    infos.half_h = infos.h / 2.f;
-    infos.half_h_int = infos.half_h;
-    infos.half_h_ratio = 10 -infos.half_h;
+    infos.logical_h_int = infos.logical_h;
+    infos.logical_h_ratio = -infos.logical_h;
+    infos.logical_half_h = infos.logical_h / 2.f;
+    infos.logical_half_h_int = infos.logical_half_h;
+    infos.logical_half_h_ratio = 10 -infos.logical_half_h;
 
-    if(infos.width <= 1.)
+    if(infos.logical_width <= 1.)
       return;
 
-    if(infos.samples_per_pixels <= 1.)
+    infos.physical_samples_per_pixels = infos.logical_samples_per_pixels / dpi;
+
+    infos.physical_h = dpi * infos.logical_h;
+    infos.physical_h_int = dpi * infos.logical_h_int;
+    infos.physical_h_ratio = dpi * infos.logical_h_ratio;
+    infos.physical_half_h = dpi * infos.logical_half_h;
+    infos.physical_half_h_int = dpi * infos.logical_half_h_int;
+    infos.physical_half_h_ratio = dpi * infos.logical_half_h_ratio;
+
+    infos.physical_w = dpi * infos.logical_w;
+    infos.physical_x0 = dpi * infos.logical_x0;
+    infos.physical_xf = dpi * infos.logical_xf;
+    infos.physical_width = dpi * infos.logical_width;
+    infos.physical_max_pixel = dpi * infos.logical_max_pixel;
+
+    if(infos.physical_width * infos.physical_h > 3840 * 2160 * 3)
+      return;
+    if(infos.physical_width < 4 || infos.physical_h < 2)
+      return;
+
+    if(infos.logical_samples_per_pixels <= 1.)
     {
       // Show lines in that case
       compute_sample(infos);
     }
-    else if(infos.samples_per_pixels <= 16. * rms.header_ptr()->bufferSize)
+    else if(infos.logical_samples_per_pixels <= 10.)
     {
       // Show mean if one pixel is smaller than a rms sample
-      compute_mean(infos);
+      compute_mean_absmax(infos);
     }
     else
     {
       // Show rms
-      compute_rms(infos, rms);
+      compute_mean_minmax(infos);
+      //compute_rms(infos, rms);
     }
   }
 };
 
-void WaveformComputer::drawWaveFormsOnImage(
-      const AudioFileHandle& data,
-      ZoomRatio ratio,
-      bool cols,
-      int64_t redraw_number)
-{
-  WaveformComputerImpl impl{data, ratio, cols, redraw_number, *this};
-  impl.compute();
-}
 void WaveformComputer::on_recompute(
-    std::shared_ptr<AudioFileHandle> data_qp,
+    std::shared_ptr<AudioFile> data_qp,
     ZoomRatio ratio,
     bool cols,
     int64_t n)
@@ -556,12 +758,40 @@ void WaveformComputer::on_recompute(
     return;
 
   auto& data = *data_qp;
-  m_zoom = ratio;
 
   if (data.channels() == 0)
     return;
+  m_zoom = ratio;
+  m_cols = cols;
+  m_file = data_qp;
+  m_n = n;
+  last_request = std::chrono::steady_clock::now();
+  /*
+  auto t =
+  if(t - last_request < std::chrono::milliseconds(8))
+  {
+    std::cerr << std::chrono::duration_cast<std::chrono::nanoseconds>(t - last_request).count() << std::endl;
+    return;
+  }*/
 
-  drawWaveFormsOnImage(data, ratio, cols, n);
+  // ! TODO DPI
+
+}
+
+void WaveformComputer::timerEvent(QTimerEvent* event)
+{
+  if(!m_file)
+    return;
+  if(m_n == m_processed_n)
+    return;
+  if(std::chrono::steady_clock::now() - last_request < std::chrono::milliseconds(16))
+    return;
+
+  qDebug() << "yea";
+  auto dataHandle = m_file->handle();
+  WaveformComputerImpl impl{*m_file, dataHandle, m_zoom, m_cols, m_n, *this};
+  impl.compute();
+  m_processed_n = m_n;
 }
 }
 }

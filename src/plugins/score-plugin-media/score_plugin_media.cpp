@@ -53,6 +53,7 @@ score_plugin_media::score_plugin_media()
 {
   qRegisterMetaType<Media::Sound::ComputedWaveform>();
   qRegisterMetaType<QVector<QImage>>();
+  qRegisterMetaType<QVector<QImage*>>();
 }
 
 score_plugin_media::~score_plugin_media() {}

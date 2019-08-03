@@ -20,7 +20,7 @@ DroppedAudioFiles::DroppedAudioFiles(const QMimeData& mime)
   for (const auto& url : mime.urls())
   {
     QString filename = url.toLocalFile();
-    if (!AudioFileHandle::isSupported(QFile{filename}))
+    if (!AudioFile::isSupported(QFile{filename}))
       continue;
     auto& audioSettings = score::GUIAppContext().settings<Audio::Settings::Model>();
     AudioDecoder dec(audioSettings.getRate());

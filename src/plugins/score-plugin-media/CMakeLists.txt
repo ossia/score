@@ -22,6 +22,11 @@ endif()
 if(UNIX AND NOT APPLE)
   find_package(ZLIB QUIET)
 endif()
+
+if(Faust_FOUND)
+  set(Faust_FOUND NOT "${SCORE_CONFIGURATION}" MATCHES ".*anitize.*")
+endif()
+
 # Files & main target
 set(HDRS ${HDRS}
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/AudioArray.hpp"
@@ -247,7 +252,7 @@ if(TARGET Lilv)
     endif()
 endif()
 
-if(${Faust_FOUND})
+if(Faust_FOUND)
   target_compile_definitions(${PROJECT_NAME} PUBLIC HAS_FAUST)
   target_link_libraries(${PROJECT_NAME} PUBLIC ${FAUST_LIBRARIES})
   target_include_directories(${PROJECT_NAME} PRIVATE ${FAUST_INCLUDE_DIR})
@@ -255,7 +260,7 @@ endif()
 
 setup_score_plugin(${PROJECT_NAME})
 
-if(${Faust_FOUND})
+if(Faust_FOUND)
   message("Downloading Faust libs...")
   ExternalProject_Add(
       faustlibs

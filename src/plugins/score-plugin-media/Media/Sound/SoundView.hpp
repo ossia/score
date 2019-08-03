@@ -40,27 +40,29 @@ public:
   void stop();
 
 public:
-  void recompute(const std::shared_ptr<AudioFileHandle> &arg_1, double arg_2, bool cols)
+  void recompute(const std::shared_ptr<AudioFile> &arg_1, double arg_2, bool cols)
       W_SIGNAL(recompute, arg_1, arg_2, cols);
   void
-  ready(QVector<QImage> img, ComputedWaveform wf)
+  ready(QVector<QImage*> img, ComputedWaveform wf)
       W_SIGNAL(ready, img, wf);
 
 private:
-  void on_recompute(std::shared_ptr<AudioFileHandle> data, double ratio, bool cols, int64_t n);
+  void on_recompute(std::shared_ptr<AudioFile> data, double ratio, bool cols, int64_t n);
   W_SLOT(on_recompute);
 
 private:
   friend struct WaveformComputerImpl;
-  void drawWaveFormsOnImage(
-      const AudioFileHandle& data,
-      ZoomRatio ratio,
-      bool cols,
-      int64_t n);
   ZoomRatio m_zoom{};
 
   std::atomic_int64_t m_redraw_count = std::numeric_limits<int64_t>::lowest();
   QThread m_drawThread;
+  std::chrono::steady_clock::time_point last_request = std::chrono::steady_clock::now();
+
+  std::shared_ptr<AudioFile> m_file{};
+  bool m_cols{};
+  int64_t m_n{};
+  int64_t m_processed_n{-1};
+  void timerEvent(QTimerEvent* event) override;
 };
 
 class LayerView final : public Process::LayerView
@@ -71,7 +73,7 @@ public:
   explicit LayerView(QGraphicsItem* parent);
   ~LayerView();
 
-  void setData(const std::shared_ptr<AudioFileHandle>& data);
+  void setData(const std::shared_ptr<AudioFile>& data);
   void setFrontColors(bool);
   void recompute(ZoomRatio ratio);
 
@@ -89,7 +91,7 @@ private:
   void on_finishedDecoding();
   void on_newData();
 
-  std::shared_ptr<AudioFileHandle> m_data;
+  std::shared_ptr<AudioFile> m_data;
   int m_numChan{};
   int m_sampleRate{};
 
@@ -97,7 +99,6 @@ private:
   void printAction(long);
 
   std::vector<QPixmap> m_pixmap;
-  QVector<QImage> m_image;
   WaveformComputer* m_cpt{};
 
   ComputedWaveform m_wf{};
@@ -112,3 +113,5 @@ private:
 Q_DECLARE_METATYPE(Media::Sound::ComputedWaveform)
 W_REGISTER_ARGTYPE(Media::Sound::ComputedWaveform)
 W_REGISTER_ARGTYPE(QVector<QImage>)
+Q_DECLARE_METATYPE(QVector<QImage*>)
+W_REGISTER_ARGTYPE(QVector<QImage*>)

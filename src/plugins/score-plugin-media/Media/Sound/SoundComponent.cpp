@@ -26,11 +26,11 @@ public:
       Execution::SoundComponent& component;
       void operator()() const noexcept
       { return ; }
-      void operator()(const std::shared_ptr<Media::AudioFileHandle::LibavReader>& r) const noexcept
+      void operator()(const std::shared_ptr<Media::AudioFile::LibavReader>& r) const noexcept
       {
         construct_ffmpeg(r, component);
       }
-      void operator()(const std::shared_ptr<Media::AudioFileHandle::MmapReader>& r) const noexcept
+      void operator()(const Media::AudioFile::MmapReader& r) const noexcept
       {
         construct_drwav(r, component);
       }
@@ -40,7 +40,7 @@ public:
   }
 
   static void construct_ffmpeg(
-      const std::shared_ptr<Media::AudioFileHandle::LibavReader>& r,
+      const std::shared_ptr<Media::AudioFile::LibavReader>& r,
       Execution::SoundComponent& component)
   {
     auto node = std::make_shared<ossia::nodes::sound_ref>();
@@ -67,7 +67,7 @@ public:
   }
 
   static void construct_drwav(
-      const std::shared_ptr<Media::AudioFileHandle::MmapReader>& r,
+      const Media::AudioFile::MmapReader& r,
       Execution::SoundComponent& component)
   {
     auto node = std::make_shared<ossia::nodes::sound_mmap>();
@@ -104,11 +104,11 @@ public:
       Execution::SoundComponent& component;
       void operator()() const noexcept
       { return ; }
-      void operator()(const std::shared_ptr<Media::AudioFileHandle::LibavReader>& r) const noexcept
+      void operator()(const std::shared_ptr<Media::AudioFile::LibavReader>& r) const noexcept
       {
         recompute_ffmpeg(r, component);
       }
-      void operator()(const std::shared_ptr<Media::AudioFileHandle::MmapReader>& r) const noexcept
+      void operator()(const Media::AudioFile::MmapReader& r) const noexcept
       {
         recompute_drwav(r, component);
       }
@@ -118,7 +118,7 @@ public:
 
   }
   static void recompute_ffmpeg(
-      const std::shared_ptr<Media::AudioFileHandle::LibavReader>& r,
+      const std::shared_ptr<Media::AudioFile::LibavReader>& r,
       Execution::SoundComponent& component)
   {
     auto& p = component.process();
@@ -135,17 +135,17 @@ public:
     });
   }
   static void recompute_drwav(
-      const std::shared_ptr<Media::AudioFileHandle::MmapReader>& r,
+      const Media::AudioFile::MmapReader& r,
       Execution::SoundComponent& component)
   {
     Sound::ProcessModel& p = component.process();
 
     component.in_exec([n = std::dynamic_pointer_cast<ossia::nodes::sound_mmap>(
                  component.OSSIAProcess().node),
-             data = r->wav,
+             data = r.wav,
              upmix = p.upmixChannels(),
              start = p.startChannel(),
-             startOff = p.startOffset()] {
+             startOff = p.startOffset()] () mutable {
       n->set_sound(std::move(data));
       n->set_start(start);
       n->set_start_offset(startOff);
