@@ -9,6 +9,7 @@
 #include <Scenario/Commands/Interval/AddLayerInNewSlot.hpp>
 #include <Scenario/Commands/Interval/AddOnlyProcessToInterval.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
+#include <score/widgets/TextLabel.hpp>
 
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 

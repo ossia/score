@@ -18,6 +18,7 @@
 #include <QInputDialog>
 #include <QMessageBox>
 #include <QFileDialog>
+#include <QProcess>
 
 // TODO : implement remaining objects
 // TODO set port pos in code
@@ -193,6 +194,9 @@ W_OBJECT_IMPL(fxd::DocumentPresenter)
 
 int main(int argc, char** argv)
 {
+  fxd::global_midi_port.type = Process::PortType::Midi;
+  fxd::global_audio_port.type = Process::PortType::Audio;
+
   score_addon_fxdesigner addon;
   score::staticPlugins().push_back(&addon);
 
@@ -217,7 +221,50 @@ int main(int argc, char** argv)
       QFileDialog::getOpenFileContent("Header (*.hpp, *.h)", [] (const QString& name, const QByteArray& data) {
 
         fxd::DocumentModel& fxmodel = fxd::fxModel(score::GUIAppContext().documents.currentDocument()->context());
-        fxmodel.loadCode(QString::fromUtf8(data));
+
+        // Extract metadata
+
+        auto code = QString::fromUtf8(data);
+        QString metadata_start = code.mid(code.indexOf("struct Metadata")).simplified();
+
+        auto metadata = metadata_start.mid(0, metadata_start.indexOf(" };") + 4);
+
+        // Read file used to parse
+        QFile src{":/parser.cpp"};
+        src.open(QIODevice::ReadOnly);
+        QString str = src.readAll();
+
+        str.replace("$$METADATA$$", metadata);
+        {
+          QFile dst{"/tmp/parser.cpp"};
+          dst.open(QIODevice::WriteOnly);
+          dst.write(str.toUtf8());
+        }
+        QProcess p;
+        p.setWorkingDirectory("/tmp");
+        p.setProgram("/usr/bin/clang++");
+        p.setArguments(QStringList()
+                       << "/tmp/parser.cpp"
+                       << "-I/usr/include/qt"
+                       << "-I/usr/include/qt/QtCore"
+                       << "-fPIC"
+                       << "-lQt5Core"
+                       << "-std=c++2a"
+                       );
+        p.start();
+        p.waitForFinished();
+        if(p.exitCode() == 0)
+        {
+          p.setProgram("/tmp/a.out");
+          p.start();
+          p.waitForFinished();
+
+          fxmodel.loadCode(QJsonDocument::fromJson(p.readAllStandardOutput()));
+          //qDebug() << "ouptut : < " << QJsonDocument::fromJson(p.readAllStandardOutput());
+          //qDebug() << "err : < " << p.readAllStandardError();
+        }
+
+        //fxmodel.loadCode(QString::fromUtf8(data));
       });
     });
   }

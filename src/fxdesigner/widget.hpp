@@ -11,9 +11,12 @@
 #include <score/document/DocumentContext.hpp>
 #include <core/document/Document.hpp>
 #include <core/document/DocumentModel.hpp>
+#include <Process/Dataflow/Port.hpp>
+#include <Process/Dataflow/PortType.hpp>
 #include <ossia/detail/apply.hpp>
 #include <variant>
 #include <verdigris>
+#include <QJsonDocument>
 #include <QGraphicsItem>
 #include <QRegularExpression>
 
@@ -82,6 +85,14 @@ struct EnumWidget {
   friend bool operator==(const EnumWidget& lhs, const EnumWidget& rhs) { return lhs.alternatives == rhs.alternatives && lhs.rows == rhs.rows && lhs.columns == rhs.columns; }
   friend bool operator!=(const EnumWidget& lhs, const EnumWidget& rhs) { return !(lhs == rhs); }
 };
+struct EmptyWidget {
+  static const constexpr QSizeF defaultSize{10., 10.};
+  static const constexpr bool keepRatio{true};
+  static const constexpr bool hasPort{false};
+
+  friend bool operator==(const EmptyWidget& lhs, const EmptyWidget& rhs) { return true; }
+  friend bool operator!=(const EmptyWidget& lhs, const EmptyWidget& rhs) { return false; }
+};
 using WidgetImpl = eggs::variant<
   BackgroundWidget
 , TextWidget
@@ -90,6 +101,7 @@ using WidgetImpl = eggs::variant<
 , SpinboxWidget
 , ComboWidget
 , EnumWidget
+, EmptyWidget
 >;
 }
 Q_DECLARE_METATYPE(fxd::WidgetImpl)
@@ -101,6 +113,7 @@ JSON_METADATA(fxd::SliderWidget, "Slider")
 JSON_METADATA(fxd::SpinboxWidget, "SpinBox")
 JSON_METADATA(fxd::EnumWidget, "Enum")
 JSON_METADATA(fxd::ComboWidget, "Combo")
+JSON_METADATA(fxd::EmptyWidget, "Empty")
 
 namespace fxd
 {
@@ -136,6 +149,7 @@ public:
   INLINE_PROPERTY_VALUE(QSizeF, size, {}, size, setSize, sizeChanged)
   INLINE_PROPERTY_VALUE(WidgetImpl, data, {}, data, setData, dataChanged)
   INLINE_PROPERTY_VALUE(QString, fxCode, {}, fxCode, setFxCode, fxCodeChanged)
+  INLINE_PROPERTY_VALUE(Process::PortType, portType, {}, portType, setPortType, portTypeChanged)
 };
 
 
@@ -172,7 +186,8 @@ public:
   }
 
   score::EntityMap<Widget> widgets;
-private:
+  void loadCode(QJsonDocument code);
+  private:
   const score::DocumentContext& m_context;
 };
 
@@ -187,6 +202,11 @@ inline const CommandGroupKey& CommandFactoryName()
   return key;
 }
 
+
+inline Process::Inlet global_message_port{Id<Process::Port>{1}, nullptr};
+inline Process::Inlet global_midi_port{Id<Process::Port>{2}, nullptr};
+inline Process::Inlet global_audio_port{Id<Process::Port>{3}, nullptr};
+inline Process::ControlInlet global_control_port{Id<Process::Port>{4}, nullptr};
 }
 
 PROPERTY_COMMAND_T(
@@ -212,3 +232,5 @@ PROPERTY_COMMAND_T(
     "Set data")
 
 SCORE_COMMAND_DECL_T(fxd::SetData)
+
+W_REGISTER_ARGTYPE(Process::PortType)

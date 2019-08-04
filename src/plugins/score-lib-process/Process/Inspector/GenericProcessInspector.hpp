@@ -3,6 +3,7 @@
 #include <Process/Dataflow/PortListWidget.hpp>
 #include <Process/Inspector/ProcessInspectorWidgetDelegate.hpp>
 #include <Process/Inspector/ProcessInspectorWidgetDelegateFactory.hpp>
+#include <score/widgets/MarginLess.hpp>
 namespace Process
 {
 

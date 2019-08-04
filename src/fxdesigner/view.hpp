@@ -115,7 +115,7 @@ public:
               this, [=, &w] (bool b) {
         if(b)
         {
-          m_context.selectionStack.pushNewSelection({&w});
+          context.selectionStack.pushNewSelection({&w});
         }
       });
 
@@ -178,8 +178,8 @@ public:
   QWidget* getWidget() override;
 
   void on_widgetRemoved(const Widget& w);
+  const score::DocumentContext& context;
 private:
-  const score::DocumentContext& m_context;
   std::unordered_map<Id<Widget>, WidgetUI> m_widgets;
   QWidget m_widget;
   WidgetList m_list;
