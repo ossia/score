@@ -196,10 +196,7 @@ struct FrameComputer
       for(int c = 0; c < channels; c++)
       {
         const auto& vals = r->data[c];
-        for(int c = 0; c < channels; c++)
-        {
-          sum[c] = fun.init(vals[c]);
-        }
+        sum[c] = fun.init(vals[start_frame]);
       }
     }
   }
@@ -210,18 +207,17 @@ struct FrameComputer
     const int channels = wav.channels();
     sum.resize(channels);
 
-    if(end_frame - start_frame > 1)
+    if(end_frame - start_frame > 0)
     {
       const int64_t buffer_size = end_frame - start_frame;
 
       float* floats = (float*)alloca(sizeof(float) * buffer_size * channels);
-      if(! wav.seek_to_pcm_frame(start_frame))
-      {
-        qDebug() << "error ! cannot seek to " << start_frame << "over " << wav.totalPCMFrameCount();
+      if(Q_UNLIKELY(! wav.seek_to_pcm_frame(start_frame)))
         return;
-      }
 
       auto max = wav.read_pcm_frames_f32(buffer_size, floats);
+      if(Q_UNLIKELY(max == 0))
+        return;
 
       for(int c = 0; c < channels; c++)
       {
@@ -240,9 +236,11 @@ struct FrameComputer
     else
     {
       float* val = (float*)alloca(sizeof(float) * channels);
-      if(! wav.seek_to_pcm_frame(start_frame))
+      if(Q_UNLIKELY(! wav.seek_to_pcm_frame(start_frame)))
         return;
-      wav.read_pcm_frames_f32(1, val);
+      int max = wav.read_pcm_frames_f32(1, val);
+      if(Q_UNLIKELY(max == 0))
+        return;
 
       for(int c = 0; c < channels; c++)
       {
@@ -251,6 +249,56 @@ struct FrameComputer
     }
   }
 };
+
+struct SingleFrameComputer
+{
+  int64_t start_frame;
+  ossia::small_vector<float, 8> sum;
+
+  void operator()() const noexcept
+  {
+
+  }
+
+  void operator()(const AudioFile::libav_ptr& r) noexcept
+  {
+    const int channels = r->data.size();
+    sum.resize(channels);
+    for(int c = 0; c < channels; c++)
+    {
+      const auto& vals = r->data[c];
+      sum[c] = vals[start_frame];
+    }
+  }
+
+  void operator()(AudioFile::mmap_ptr& r) noexcept
+  {
+    auto& wav = r.wav;
+    const int channels = wav.channels();
+    sum.resize(channels);
+
+    float* val = (float*)alloca(sizeof(float) * channels);
+    if(Q_UNLIKELY(! wav.seek_to_pcm_frame(start_frame)))
+      return;
+
+    int max = wav.read_pcm_frames_f32(1, val);
+    if(Q_UNLIKELY(max == 0))
+      return;
+
+    for(int c = 0; c < channels; c++)
+    {
+      sum[c] = val[c];
+    }
+  }
+};
+
+ossia::small_vector<float, 8> AudioFile::Handle::frame(int64_t start_frame) noexcept
+{
+  SingleFrameComputer _{start_frame};
+  ossia::apply(_, *this);
+  return _.sum;
+}
+
 ossia::small_vector<float, 8> AudioFile::Handle::absmax_frame(int64_t start_frame, int64_t end_frame) noexcept
 {
   struct AbsMax

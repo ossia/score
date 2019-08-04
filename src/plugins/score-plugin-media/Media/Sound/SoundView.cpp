@@ -69,13 +69,14 @@ struct QImagePool
   QImage* request(int w, int h)
   {
     std::lock_guard _{m_mtx};
+    //cacheStats();
     auto it = pool.find({w, h});
     if(it != pool.end())
     {
       auto& vec = it->second.images;
       if(!vec.empty())
       {
-        auto img = vec.back();
+        auto img = vec.front();
         vec.pop_front();
         img->fill(Qt::transparent);
         it->second.last_touched = std::chrono::steady_clock::now();
@@ -92,7 +93,6 @@ struct QImagePool
 
   void giveBack(const QVector<QImage*>& imgs)
   {
-    qDebug() << hit << miss << " success : " << double(hit) / double(miss);
     for(auto img : imgs)
     {
       QVector<QImage*> to_delete;
@@ -101,6 +101,7 @@ struct QImagePool
         std::lock_guard _{m_mtx};
         to_delete = gc();
         Images& images = pool[std::make_pair(img->width(), img->height())];
+        SCORE_ASSERT(!images.images.contains(img));
         images.images.push_back(img);
         images.last_touched = std::chrono::steady_clock::now();
       }
@@ -130,13 +131,33 @@ struct QImagePool
     if(count < max_count)
       return {};
     auto res = std::move(oldest->second.images);
+    SCORE_ASSERT(oldest->second.images.isEmpty());
     oldest->second.last_touched = std::chrono::steady_clock::now();
     return res;
   }
 
+  void cacheStats()
+  {
+    std::size_t bytes = 0;
+    int images = 0;
+    for(auto& pair : pool)
+    {
+      for(QImage* img : pair.second.images)
+      {
+        bytes += img->sizeInBytes();
+        images ++;
+      }
+    }
+
+    qDebug() << QString("%1 images: %2 megabytes ; hit/miss ratio : %3 / %4 = %5")
+                .arg(images)
+                .arg(bytes / (1024 * 1024))
+                .arg(hit)
+                .arg(miss)
+                .arg(double(hit) / miss);
+  }
 };
 
-static const constexpr auto dpi = 2.0;
 LayerView::LayerView(QGraphicsItem* parent)
     : Process::LayerView{parent}, m_cpt{new WaveformComputer{*this}}
 {
@@ -155,11 +176,18 @@ LayerView::LayerView(QGraphicsItem* parent)
       this,
       [=](QVector<QImage*> img, ComputedWaveform wf) {
         {
-          m_pixmap.resize(img.size());
-          for(int i = 0; i < img.size(); i++)
-            m_pixmap[i].convertFromImage(*img[i]);
+          QImagePool::instance().giveBack(m_images);
+          m_images = std::move(img);
 
-          QImagePool::instance().giveBack(img);
+          // We display the image at the device ratio of the view
+          auto view = ::getView(*this);
+          if(view)
+          {
+            for(auto image : m_images)
+            {
+              image->setDevicePixelRatio(view->devicePixelRatioF());
+            }
+          }
         }
         m_wf = wf;
 
@@ -236,10 +264,15 @@ void LayerView::paint_impl(QPainter* painter) const
 {
   if(m_zoom == 0.)
     return;
-
-  int channels = m_pixmap.size();
-  if(channels == 0.)
+  if (!m_data)
     return;
+
+  int channels = m_images.size();
+  if(channels == 0.)
+  {
+    m_cpt->recompute(m_data, m_zoom, m_frontColors);
+    return;
+  }
 
   auto ratio = m_wf.zoom / m_zoom;
 
@@ -251,7 +284,7 @@ void LayerView::paint_impl(QPainter* painter) const
   painter->setRenderHint(QPainter::SmoothPixmapTransform, 0);
   for(int i = 0; i < channels; i++)
   {
-    painter->drawPixmap(x0, h * i, w, h, m_pixmap[i]);
+    painter->drawImage(QRectF{x0, h * i, w, h},* m_images[i]);
   }
   painter->setRenderHint(QPainter::SmoothPixmapTransform, 1);
 }
@@ -417,8 +450,9 @@ struct WaveformComputerImpl
       images[i] = pool.request(
             infos.physical_width,
             infos.physical_h);
-      images[i]->setDevicePixelRatio(2.);
 
+      // No need to set device pixel ratio here, since we
+      // change pixels directly
       if(computer.m_redraw_count > redraw_number)
         return false;
     }
@@ -434,6 +468,9 @@ struct WaveformComputerImpl
       images[i] = pool.request(
             infos.physical_width,
             infos.physical_h);
+
+      // When painting on the image, we paint at retina resolution
+      images[i]->setDevicePixelRatio(1.);
 
       if(computer.m_redraw_count > redraw_number)
         return false;
@@ -502,14 +539,11 @@ struct WaveformComputerImpl
     {
       QPainterCleanup _{p, infos.nchannels};
 
-      ossia::small_vector<QPointF, 8> pPosTop(infos.nchannels);
-      ossia::small_vector<QPointF, 8> pPosBottom(infos.nchannels);
+      ossia::small_vector<QPointF, 8> prev_pos(infos.nchannels);
 
       if(!initImages(images, infos, p, _))
         return;
 
-      const float increment = 1.;
-      const double pix_increment = 1.;
       const float pix_ratio = infos.physical_samples_per_pixels * infos.rate_ratio;
       for(int32_t x_samples = infos.physical_x0, x_pixels = x_samples - infos.physical_x0
           ;     x_samples < infos.physical_xf && x_pixels < infos.physical_max_pixel
@@ -525,16 +559,14 @@ struct WaveformComputerImpl
         int64_t end_sample =  (x_samples + 1) * pix_ratio;
         const auto mean_sample = handle.absmax_frame(start_sample, end_sample);
 
-
         for(int k = 0; k < infos.nchannels; k++)
         {
           const int max_value = infos.physical_half_h_int + int(mean_sample[k] * infos.physical_half_h_ratio);
-          p[k].drawLine(pPosTop[k], QPointF(x_pixels, max_value));
-          pPosTop[k] = QPointF(x_pixels, max_value);
+          p[k].drawLine(prev_pos[k], QPointF(x_pixels, max_value));
+          prev_pos[k] = QPointF(x_pixels, max_value);
         }
       }
     }
-
 
     ComputedWaveform result;
     result.mode = ComputedWaveform::Mean;
@@ -547,20 +579,15 @@ struct WaveformComputerImpl
 
   void compute_mean_minmax(const SizeInfos infos)
   {
-    QPainter* p = (QPainter*) alloca(sizeof(QPainter) * infos.nchannels);
+    //QPainter* p = (QPainter*) alloca(sizeof(QPainter) * infos.nchannels);
     QVector<QImage*> images;
 
     {
-      QPainterCleanup _{p, infos.nchannels};
+      //QPainterCleanup _{p, infos.nchannels};
 
-      ossia::small_vector<QPointF, 8> pPosTop(infos.nchannels);
-      ossia::small_vector<QPointF, 8> pPosBottom(infos.nchannels);
-
-      if(!initImages(images, infos, p, _))
+      if(!initImages(images, infos/*, p, _*/))
         return;
 
-      const float increment = 1.;
-      const double pix_increment = 1.;
       const float pix_ratio = infos.physical_samples_per_pixels * infos.rate_ratio;
       for(int32_t x_samples = infos.physical_x0, x_pixels = x_samples - infos.physical_x0
           ;     x_samples < infos.physical_xf && x_pixels < infos.physical_max_pixel
@@ -576,18 +603,18 @@ struct WaveformComputerImpl
         int64_t end_sample =  (x_samples + 1) * pix_ratio;
         const auto mean_sample = handle.minmax_frame(start_sample, end_sample);
 
-
         for(int k = 0; k < infos.nchannels; k++)
         {
+          const int min_value = infos.physical_half_h_int + int(mean_sample[k].first  * infos.physical_half_h_ratio);
           const int max_value = infos.physical_half_h_int + int(mean_sample[k].second * infos.physical_half_h_ratio);
-//          p[k].drawLine(pPosTop[k], QPointF(x_pixels, max_value));
-//          pPosTop[k] = QPointF(x_pixels, max_value);
 
-          const int min_value = infos.physical_half_h_int + int(mean_sample[k].first * infos.physical_half_h_ratio);
-//          p[k].drawLine(pPosBottom[k], QPointF(x_pixels, min_value));
-//          pPosBottom[k] = QPointF(x_pixels, min_value);
-
-          p[k].drawLine(QPointF(x_pixels, max_value), QPointF(x_pixels, min_value));
+          QImage& image = *images[k];
+          auto dat = reinterpret_cast<uint32_t*>(image.bits());
+          for(int y = max_value; y <= min_value; y++)
+          {
+            dat[x_pixels + y * infos.physical_width] = main_color;
+          }
+          //p[k].drawLine(QPointF(x_pixels, max_value), QPointF(x_pixels, min_value));
         }
       }
     }
@@ -608,7 +635,7 @@ struct WaveformComputerImpl
       return;
 
     const float pix_ratio = infos.physical_samples_per_pixels * infos.rate_ratio;
-    int64_t oldbegin = 0, oldend = 0;
+    int64_t oldbegin = 0;
     for(int32_t x_samples = infos.physical_x0, x_pixels = x_samples - infos.physical_x0
         ;       x_samples < infos.physical_xf && x_pixels < infos.physical_max_pixel
         ;       x_samples++, x_pixels ++
@@ -618,24 +645,26 @@ struct WaveformComputerImpl
         return;
 
       int64_t begin = (x_samples)   * pix_ratio;
-      int64_t end = (x_samples + 1) * pix_ratio;
-      if(begin == oldend && end == begin)
+      if(begin == oldbegin)
         continue;
       oldbegin = begin;
-      oldend = end;
-      const auto mean_sample = this->handle.absmax_frame(begin, end);
 
+      const auto frame = this->handle.frame(begin);
+
+      SCORE_ASSERT(x_pixels >= 0 && x_pixels < infos.physical_width);
       for(int k = 0; k < infos.nchannels; k++)
       {
         QImage& image = *images[k];
         auto dat = reinterpret_cast<uint32_t*>(image.bits());
-        const int v = infos.physical_half_h_int + int(mean_sample[k] * infos.physical_half_h_ratio);
-        const int value = ossia::clamp(v, int(-infos.physical_half_h_ratio + 1), int(infos.physical_half_h_ratio - 1));
+        const int v = infos.physical_half_h_int + int(frame[k] * infos.physical_half_h_ratio);
+        const int value = ossia::clamp(v, int(0), int(infos.physical_h - 1));
 
         auto [y, end_y] =
             value < infos.physical_half_h_int
             ? std::tuple<int, int>{value, infos.physical_half_h_int}
           : std::tuple<int, int>{infos.physical_half_h_int, value};
+        SCORE_ASSERT(y >= 0 && y < infos.physical_h);
+        SCORE_ASSERT(end_y >= 0 && end_y <= infos.physical_h);
 
         for(; y < end_y; y++)
         {
@@ -706,20 +735,21 @@ struct WaveformComputerImpl
     if(infos.logical_width <= 1.)
       return;
 
-    infos.physical_samples_per_pixels = infos.logical_samples_per_pixels / dpi;
+    const auto dpr = m_view.devicePixelRatioF();
+    infos.physical_samples_per_pixels = infos.logical_samples_per_pixels / dpr;
 
-    infos.physical_h = dpi * infos.logical_h;
-    infos.physical_h_int = dpi * infos.logical_h_int;
-    infos.physical_h_ratio = dpi * infos.logical_h_ratio;
-    infos.physical_half_h = dpi * infos.logical_half_h;
-    infos.physical_half_h_int = dpi * infos.logical_half_h_int;
-    infos.physical_half_h_ratio = dpi * infos.logical_half_h_ratio;
+    infos.physical_h = dpr * infos.logical_h;
+    infos.physical_h_int = dpr * infos.logical_h_int;
+    infos.physical_h_ratio = dpr * infos.logical_h_ratio;
+    infos.physical_half_h = dpr * infos.logical_half_h;
+    infos.physical_half_h_int = dpr * infos.logical_half_h_int;
+    infos.physical_half_h_ratio = dpr * infos.logical_half_h_ratio;
 
-    infos.physical_w = dpi * infos.logical_w;
-    infos.physical_x0 = dpi * infos.logical_x0;
-    infos.physical_xf = dpi * infos.logical_xf;
-    infos.physical_width = dpi * infos.logical_width;
-    infos.physical_max_pixel = dpi * infos.logical_max_pixel;
+    infos.physical_w = dpr * infos.logical_w;
+    infos.physical_x0 = dpr * infos.logical_x0;
+    infos.physical_xf = dpr * infos.logical_xf;
+    infos.physical_width = dpr * infos.logical_width;
+    infos.physical_max_pixel = dpr * infos.logical_max_pixel;
 
     if(infos.physical_width * infos.physical_h > 3840 * 2160 * 3)
       return;
@@ -766,16 +796,6 @@ void WaveformComputer::on_recompute(
   m_file = data_qp;
   m_n = n;
   last_request = std::chrono::steady_clock::now();
-  /*
-  auto t =
-  if(t - last_request < std::chrono::milliseconds(8))
-  {
-    std::cerr << std::chrono::duration_cast<std::chrono::nanoseconds>(t - last_request).count() << std::endl;
-    return;
-  }*/
-
-  // ! TODO DPI
-
 }
 
 void WaveformComputer::timerEvent(QTimerEvent* event)
@@ -784,10 +804,13 @@ void WaveformComputer::timerEvent(QTimerEvent* event)
     return;
   if(m_n == m_processed_n)
     return;
-  if(std::chrono::steady_clock::now() - last_request < std::chrono::milliseconds(16))
+
+  // TODO if we haven't rendered for 24 ms maybe render the last thing ?
+  using namespace std::literals;
+  const auto now = std::chrono::steady_clock::now();
+  if(now - last_request < 16ms && !(now - last_request > 32ms))
     return;
 
-  qDebug() << "yea";
   auto dataHandle = m_file->handle();
   WaveformComputerImpl impl{*m_file, dataHandle, m_zoom, m_cols, m_n, *this};
   impl.compute();

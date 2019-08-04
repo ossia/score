@@ -97,6 +97,7 @@ public:
   struct Handle : impl_t
   {
     using impl_t::impl_t;
+    ossia::small_vector<float, 8> frame(int64_t start_frame) noexcept;
     ossia::small_vector<float, 8> absmax_frame(int64_t start_frame, int64_t end_frame) noexcept;
     ossia::small_vector<std::pair<float, float>, 8> minmax_frame(int64_t start_frame, int64_t end_frame) noexcept;
   };
