@@ -11,7 +11,7 @@
 class QJsonObject;
 namespace score
 {
-struct BrushSet
+struct SCORE_LIB_BASE_EXPORT BrushSet
 {
   BrushSet() noexcept;
   BrushSet(const BrushSet&) noexcept;
@@ -44,7 +44,7 @@ struct BrushSet
   void setupPens();
 };
 
-struct Brush
+struct SCORE_LIB_BASE_EXPORT Brush
 {
   Brush() noexcept;
   Brush(const Brush&) noexcept;

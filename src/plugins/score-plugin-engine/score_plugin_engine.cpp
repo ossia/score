@@ -191,10 +191,6 @@ score_plugin_engine::factories(
          Audio::JackFactory
 #endif
 #if defined(OSSIA_AUDIO_PORTAUDIO)
-#if !defined(_WIN32) && !defined(__linux__)
-         ,
-         Audio::PortAudioFactory
-#endif
 #if __has_include(<pa_asio.h>)
          ,
          Audio::ASIOFactory
@@ -214,6 +210,19 @@ score_plugin_engine::factories(
 #if __has_include(<pa_linux_alsa.h>)
          ,
          Audio::ALSAFactory
+#endif
+#if __has_include(<pa_mac_core.h>)
+         ,
+         Audio::CoreAudioFactory
+#endif
+#if !__has_include(<pa_asio.h>) && \
+    !__has_include(<pa_win_wdmks.h>) && \
+    !__has_include(<pa_win_wasapi.h>) && \
+    !__has_include(<pa_win_wmme.h>) && \
+    !__has_include(<pa_linux_alsa.h>) && \
+    !__has_include(<pa_mac_core.h>)
+         ,
+         Audio::PortAudioFactory
 #endif
 #endif
 #if defined(OSSIA_AUDIO_SDL)

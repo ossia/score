@@ -25,10 +25,23 @@ namespace Media
 {
 struct RMSData;
 class SoundComponentSetup;
-static constexpr float abs_max(float f1, float f2) noexcept
+#if defined(__clang__)
+static constexpr inline float abs_max(float f1, float f2) noexcept
 {
-  return (std::abs(f1) < std::abs(f2)) ? f2 : f1;
+    const int mul = (f2 >= 0.f) ? 1 : -1;
+    if(f1 < mul * f2)
+      return f2;
+      else
+      return f1;
 }
+#else
+static constexpr inline float abs_max(float f1, float f2) noexcept
+{
+    return f2 >= 0.f
+            ? f1 < f2 ? f2 : f1
+            : f1 < -f2 ? f2 : f1;
+}
+#endif
 
 struct SCORE_PLUGIN_MEDIA_EXPORT AudioFile final : public QObject
 {
