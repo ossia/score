@@ -213,10 +213,12 @@ ScenarioDocumentPresenter::ScenarioDocumentPresenter(
 
 ScenarioDocumentPresenter::~ScenarioDocumentPresenter()
 {
-  auto& p = context().plugin<Process::DocumentPlugin>();
-  p.cables().clear();
-  p.ports().clear();
-  cableItems.remove_all();
+  if(auto p = context().findPlugin<Process::DocumentPlugin>())
+  {
+    p->cables().clear();
+    p->ports().clear();
+    cableItems.remove_all();
+  }
 }
 
 IntervalModel& ScenarioDocumentPresenter::displayedInterval() const

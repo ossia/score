@@ -618,8 +618,8 @@ struct WaveformComputerImpl
 
         for(int k = 0; k < infos.nchannels; k++)
         {
-          const int min_value = infos.physical_half_h_int + int(mean_sample[k].first  * infos.physical_half_h_ratio);
-          const int max_value = infos.physical_half_h_int + int(mean_sample[k].second * infos.physical_half_h_ratio);
+          const int min_value = ossia::clamp(infos.physical_half_h_int + int(mean_sample[k].first  * infos.physical_half_h_ratio), int(0), infos.physical_h_int - 1);
+          const int max_value = ossia::clamp(infos.physical_half_h_int + int(mean_sample[k].second  * infos.physical_half_h_ratio), int(0), infos.physical_h_int - 1);
 
           QImage& image = *images[k];
           auto dat = reinterpret_cast<uint32_t*>(image.bits());
@@ -679,7 +679,7 @@ struct WaveformComputerImpl
         SCORE_ASSERT(y >= 0 && y < infos.physical_h);
         SCORE_ASSERT(end_y >= 0 && end_y <= infos.physical_h);
 
-        for(; y < end_y; y++)
+        for(; y <= end_y; y++)
         {
           dat[x_pixels + y * infos.physical_width] = main_color;
         }

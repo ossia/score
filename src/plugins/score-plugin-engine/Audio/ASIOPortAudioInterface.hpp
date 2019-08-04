@@ -1,6 +1,7 @@
 #pragma once
 #include <Audio/PortAudioInterface.hpp>
 #include <Audio/AudioInterface.hpp>
+#include <Audio/Settings/Model.hpp>
 
 #if __has_include(<pa_asio.h>)
 #include <pa_asio.h>

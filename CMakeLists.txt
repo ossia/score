@@ -52,11 +52,11 @@ else()
 endif()
 
 if(MSYS OR MINGW)
-  find_package(ZLIB )
+  find_package(ZLIB)
 endif()
 
 include(3rdparty/libossia.cmake)
-
+find_package(Boost REQUIRED)
 enable_testing()
 include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/ScoreFunctions.cmake")
 include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/ScoreConfiguration.cmake")
