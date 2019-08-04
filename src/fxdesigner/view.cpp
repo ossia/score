@@ -50,7 +50,7 @@ void View::dropEvent(QDropEvent* ev)
 
 DocumentView::DocumentView(const score::DocumentContext& ctx, QObject* parent)
   : score::DocumentDelegateView{parent}
-  , m_context{ctx}
+  , context{ctx}
   , m_widget{}
   , m_scene{}
   , m_view{&m_scene, nullptr}
@@ -80,18 +80,16 @@ DocumentView::DocumentView(const score::DocumentContext& ctx, QObject* parent)
 
 void DocumentView::on_widgetAdded(Widget& w)
 {
-  WidgetUI ui{w};
+  auto [it, ok] = this->m_widgets.insert({w.id(), WidgetUI{w}});
+  WidgetUI& ui = it->second;;
 
   ui.control = w.makeItem(*this);
   m_scene.addItem(ui.control);
-  ui.control->setPos(w.pos());
 
-  auto [it, ok] = this->m_widgets.insert({w.id(), ui});
   if(eggs::variants::apply([] (auto t) { return t.hasPort; }, w.data()))
   {
     auto& ui = it->second;
-    static Process::ControlInlet p{Id<Process::Port>{}, nullptr};
-    ui.port = new Dataflow::PortItem{p, m_context, nullptr};
+    ui.port = new Dataflow::PortItem{global_control_port, context, nullptr};
     ui.port->setZValue(40);
     ui.port->setPos(ui.control->pos() + QPointF{ui.control->boundingRect().width() / 2., ui.control->boundingRect().height() + 10});
     w.setPortPos(ui.port->pos());
@@ -117,11 +115,11 @@ void DocumentView::createHandles(Widget& w, score::SimpleTextItem* item)
             this, [=, &w] (bool b) {
       if(b)
       {
-        m_context.selectionStack.pushNewSelection({&w});
+        context.selectionStack.pushNewSelection({&w});
       }
       else
       {
-        m_context.selectionStack.deselectObjects({&w});
+        context.selectionStack.deselectObjects({&w});
       }
     });
 
@@ -153,7 +151,7 @@ void DocumentView::createHandles(Widget& w, Dataflow::PortItem* item)
             this, [=, &w] (bool b) {
       if(b)
       {
-        m_context.selectionStack.pushNewSelection({&w});
+        context.selectionStack.pushNewSelection({&w});
       }
     });
 

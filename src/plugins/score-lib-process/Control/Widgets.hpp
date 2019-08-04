@@ -1,30 +1,7 @@
 #pragma once
-#include <Process/Commands/SetControlValue.hpp>
-#include <Process/Dataflow/ControlWidgets.hpp>
-#include <Process/Dataflow/Port.hpp>
 #include <Process/Dataflow/WidgetInlets.hpp>
-#include <State/Value.hpp>
-
-#include <score/command/Dispatchers/CommandDispatcher.hpp>
-#include <score/document/DocumentContext.hpp>
-#include <score/graphics/GraphicWidgets.hpp>
-#include <score/widgets/ControlWidgets.hpp>
-#include <score/widgets/DoubleSlider.hpp>
-#include <score/widgets/MarginLess.hpp>
-#include <score/widgets/SignalUtils.hpp>
-#include <score/widgets/TextLabel.hpp>
 
 #include <ossia/dataflow/safe_nodes/port.hpp>
-#include <ossia/network/domain/domain.hpp>
-
-#include <QApplication>
-#include <QCheckBox>
-#include <QFormLayout>
-#include <QGraphicsProxyWidget>
-#include <QLineEdit>
-#include <QPainter>
-#include <QPushButton>
-
 #include <score_lib_process_export.h>
 namespace Control
 {

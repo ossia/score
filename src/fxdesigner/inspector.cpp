@@ -51,6 +51,10 @@ struct WidgetImplFactory
   {
     return nullptr;
   }
+  QWidget* operator()(EmptyWidget) noexcept
+  {
+    return nullptr;
+  }
   QWidget* operator()(EnumWidget e) noexcept
   {
     auto widg = new QWidget;
@@ -124,6 +128,9 @@ struct WidgetImplUpdateFactory
   {
   }
   void operator()(ComboWidget) noexcept
+  {
+  }
+  void operator()(EmptyWidget) noexcept
   {
   }
   void operator()(EnumWidget e) noexcept

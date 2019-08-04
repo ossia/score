@@ -3,6 +3,8 @@
 #include <Process/Style/ScenarioStyle.hpp>
 #include <score/graphics/GraphicWidgets.hpp>
 #include <score/graphics/RectItem.hpp>
+#include <QJsonDocument>
+#include <QPen>
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(fxd::Widget)
 
@@ -16,6 +18,7 @@ namespace fxd {
     {
       auto it = new score::BackgroundItem;
       it->setZValue(1);
+      it->setPos(w.pos());
       it->setRect(QRectF{QPointF{}, w.size()});
       self.createHandles(w, it);
       return it;
@@ -25,6 +28,7 @@ namespace fxd {
     {
       auto it = new score::SimpleTextItem{&score::Skin::HalfLight, nullptr};
       it->setZValue(20);
+      it->setPos(w.pos());
       it->setText(txt.text);
       QObject::connect(&w, &Widget::dataChanged,
           &self, [it] (const WidgetImpl& impl) {
@@ -38,6 +42,7 @@ namespace fxd {
     {
       auto it = new score::QGraphicsKnob{nullptr};
       it->setZValue(10);
+      it->setPos(w.pos());
       it->setRect(QRectF{QPointF{}, w.size()});
       self.createHandles(w, it);
       return it;
@@ -47,6 +52,7 @@ namespace fxd {
     {
       auto it = new score::QGraphicsSlider{nullptr};
       it->setZValue(10);
+      it->setPos(w.pos());
       it->setRect(QRectF{QPointF{}, w.size()});
       self.createHandles(w, it);
       return it;
@@ -55,6 +61,7 @@ namespace fxd {
     {
       auto it = new score::QGraphicsIntSlider{nullptr};
       it->setZValue(10);
+      it->setPos(w.pos());
       it->setRect(QRectF{QPointF{}, w.size()});
       self.createHandles(w, it);
       return it;
@@ -63,6 +70,7 @@ namespace fxd {
     {
       auto it = new score::QGraphicsComboSlider{c.alternatives, nullptr};
       it->setZValue(10);
+      it->setPos(w.pos());
       it->setRect(QRectF{QPointF{}, w.size()});
       self.createHandles(w, it);
       return it;
@@ -74,6 +82,7 @@ namespace fxd {
       it->rows = e.rows;
       it->columns = e.columns;
       it->setZValue(10);
+      it->setPos(w.pos());
       it->setRect(QRectF{QPointF{}, w.size()});
       QObject::connect(&w, &Widget::dataChanged,
           &self, [it] (const WidgetImpl& impl) {
@@ -82,6 +91,27 @@ namespace fxd {
         it->columns = e.columns;
         it->update();
       });
+      self.createHandles(w, it);
+      return it;
+    }
+
+    QGraphicsItem* operator()(const EmptyWidget&)
+    {
+      Dataflow::PortItem* it{};
+      switch(w.portType())
+      {
+        case Process::PortType::Audio:
+          it = new Dataflow::PortItem{global_audio_port, self.context, nullptr};
+          break;
+        case Process::PortType::Midi:
+          it = new Dataflow::PortItem{global_midi_port, self.context, nullptr};
+          break;
+        case Process::PortType::Message:
+          it = new Dataflow::PortItem{global_message_port, self.context, nullptr};
+          break;
+      }
+      it->setZValue(10);
+      it->setPos(w.pos());
       self.createHandles(w, it);
       return it;
     }
@@ -188,7 +218,10 @@ QString Widget::code(QString variable) const
     void operator()(EnumWidget) noexcept
     {
       // TODO
-
+    }
+    void operator()(EmptyWidget) noexcept
+    {
+      // TODO
     }
     void operator()() noexcept
     {
@@ -214,64 +247,191 @@ bool Widget::keepRatio() const
 }
 
 
+void createWidget(Widget* widget, int i, QPointF pos, QString control, QString code, QJsonObject obj = {})
+{
+  widget->setControlIndex(i);
+  widget->setName(QString("control_%1").arg(i));
+  widget->setFxCode(code);
+  widget->setPos(pos);
 
+  /**
+       TODO :
+       ::LineEdit(
+       ::ChooserToggle{
+     */
+  if(control.contains("Knob"))
+  {
+    widget->setData(KnobWidget{});
+  }
+  else if(control.contains("Slider"))
+  {
+    widget->setData(SliderWidget{});
+  }
+  else if(control.contains("TempoChooser"))
+  {
+    widget->setData(SliderWidget{});
+  }
+  else if(control.contains("Spin"))
+  {
+    widget->setData(SpinboxWidget{});
+  }
+  else if(control.contains("MidiChannel"))
+  {
+    widget->setData(SpinboxWidget{});
+  }
+  else if(control.contains("TimeSigChooser"))
+  {
+    // TODO
+  }
+  else if(control.contains("WaveformChooser"))
+  {
+    widget->setData(EnumWidget{{"Sin", "Triangle",  "Saw", "Square", "Sample & Hold", "Noise 1", "Noise 2", "Noise 3"}, 2, 4});
+  }
+  else if(control.contains("Chooser"))
+  {
+    widget->setData(ComboWidget{});
+  }
+  else if(control.contains("Enum"))
+  {
+    QStringList values;
+    const auto& val = obj["Values"].toArray();
+    for(const auto& v : val)
+    {
+      if(const auto& str = v.toString(); !str.isEmpty())
+        values.push_back(str);
+    }
+
+    widget->setData(EnumWidget{values, 2, std::max(1, values.size() / 2)});
+  }
+  else
+  {
+    qDebug() << "ERROR: " << control << code;
+  }
+}
+
+void DocumentModel::loadCode(QJsonDocument code)
+{
+  const auto obj = code.object();
+  if(obj.isEmpty())
+    return;
+
+  int i = 0;
+  qreal x = 0;
+  qreal y = 0;
+
+  auto add_widget = [&] (Widget* widget) {
+    widgets.add(widget);
+
+    x += widget->size().width();
+    if(x > 600)
+    {
+      x = 0;
+      y += 50;
+    }
+
+    i++;
+  };
+
+  auto add_port = [&] (const auto port, const auto portType)
+  {
+    auto name = port.toString();
+    auto widget = new Widget{getStrongId(widgets), this};
+    widget->setData(EmptyWidget{});
+    widget->setControlIndex(-1);
+    widget->setName(QString("port_%1").arg(i));
+    widget->setFxCode(name);
+    widget->setPos({x,y});
+    widget->setSize(QSizeF{13, 13});
+    widget->setPortType(portType);
+
+    add_widget(widget);
+    return widget;
+  };
+
+  auto controls = code["Controls"].toArray();
+  for(const auto& ctrl_ : controls)
+  {
+    const auto& ctrl = ctrl_.toObject();
+
+    auto widget = new Widget{getStrongId(widgets), this};
+
+    createWidget(widget, i, {x, y}, ctrl["Type"].toString(), ctrl["Name"].toString(), ctrl);
+
+    add_widget(widget);
+  }
+
+  {
+    auto ports = code["ValueIns"].toArray();
+    for(auto port : ports)
+    {
+      Widget* widget = add_port(port, Process::PortType::Message);
+    }
+  }
+
+  {
+    auto ports = code["ValueOuts"].toArray();
+    for(auto port : ports)
+    {
+      Widget* widget = add_port(port, Process::PortType::Message);
+    }
+  }
+
+
+  {
+    auto ports = code["MidiIns"].toArray();
+    for(auto port : ports)
+    {
+      Widget* widget = add_port(port, Process::PortType::Midi);
+    }
+  }
+
+  {
+    auto ports = code["MidiOuts"].toArray();
+    for(auto port : ports)
+    {
+      Widget* widget = add_port(port, Process::PortType::Midi);
+    }
+  }
+
+
+  {
+    auto ports = code["AudioIns"].toArray();
+    for(auto port : ports)
+    {
+      Widget* widget = add_port(port, Process::PortType::Audio);
+    }
+  }
+
+  {
+    auto ports = code["AudioOuts"].toArray();
+    for(auto port : ports)
+    {
+      Widget* widget = add_port(port, Process::PortType::Audio);
+    }
+  }
+}
 void DocumentModel::loadCode(QString code)
 {
   QString controls_start = code.mid(code.indexOf("make_tuple(") + strlen("make_tuple(")).simplified();
   auto controls = controls_start.mid(0, controls_start.indexOf(";")).split(", Control::");
   int i = 0;
+  qreal x = 0;
+  qreal y = 0;
   for(QString& control : controls)
   {
     control.remove(QRegularExpression(".*::"));
 
-    qDebug() << control;
-    /**
-         TODO :
-         ::LineEdit(
-         ::ChooserToggle{
-       */
-
-    // TODO parse pretty name
-
-
     auto widget = new Widget{getStrongId(widgets), this};
-    widget->setControlIndex(i);
-    widget->setName(QString("control_%1").arg(i));
-    widget->setFxCode(control);
-
-    if(control.contains("Knob"))
-    {
-      widget->setData(KnobWidget{});
-    }
-    else if(control.contains("Slider"))
-    {
-      widget->setData(SliderWidget{});
-    }
-    else if(control.contains("TempoChooser"))
-    {
-      widget->setData(SliderWidget{});
-    }
-    else if(control.contains("Spin"))
-    {
-      widget->setData(SpinboxWidget{});
-    }
-    else if(control.contains("MidiChannel"))
-    {
-      widget->setData(SpinboxWidget{});
-    }
-    else if(control.contains("TimeSigChooser"))
-    {
-      // TODO
-    }
-    else if(control.contains("WaveformChooser"))
-    {
-      widget->setData(EnumWidget{{"Sin", "Triangle",  "Saw", "Square", "Sample & Hold", "Noise 1", "Noise 2", "Noise 3"}, 2, 4});
-    }
-    else if(control.contains("Chooser"))
-    {
-      widget->setData(ComboWidget{});
-    }
+    createWidget(widget, i, {x, y}, control, control);
     widgets.add(widget);
+
+    x += widget->size().width();
+    if(x > 600)
+    {
+      x = 0;
+      y += 50;
+    }
+
     i++;
   }
 }
@@ -400,6 +560,27 @@ template <>
 void JSONObjectWriter::write(fxd::SpinboxWidget& w)
 {
 }
+template <>
+void DataStreamReader::read(const fxd::EmptyWidget& w)
+{
+  insertDelimiter();
+}
+
+template <>
+void DataStreamWriter::write(fxd::EmptyWidget& w)
+{
+  checkDelimiter();
+}
+
+template <>
+void JSONObjectReader::read(const fxd::EmptyWidget& w)
+{
+}
+
+template <>
+void JSONObjectWriter::write(fxd::EmptyWidget& w)
+{
+}
 
 template <>
 void DataStreamReader::read(const fxd::ComboWidget& w)
@@ -453,18 +634,17 @@ void JSONObjectWriter::write(fxd::TextWidget& w)
   w.text = obj["Text"].toString();
 }
 
-
 template <>
 void DataStreamReader::read(const fxd::Widget& w)
 {
-  m_stream << w.m_name << w.m_pos << w.m_size << w.m_data;
+  m_stream << w.m_name << w.m_controlIndex << w.m_pos << w.m_portPos << w.m_size << w.m_data << w.m_fxCode << w.m_portType;
   insertDelimiter();
 }
 
 template <>
 void DataStreamWriter::write(fxd::Widget& w)
 {
-  m_stream >> w.m_name >> w.m_pos >> w.m_size >> w.m_data;
+  m_stream >> w.m_name >> w.m_controlIndex >> w.m_pos >> w.m_portPos >> w.m_size >> w.m_data >> w.m_fxCode >> w.m_portType;
   checkDelimiter();
 }
 
@@ -472,18 +652,27 @@ template <>
 void JSONObjectReader::read(const fxd::Widget& w)
 {
   obj["Name"] = w.m_name;
+  obj["Index"] = w.m_controlIndex;
   obj["Pos"] = toJsonValue(w.m_pos);
+  obj["PortPos"] = toJsonValue(w.m_portPos);
   obj["Size"] = toJsonValue(w.m_size);
   obj["Data"] = toJsonObject(w.m_data);
+  obj["FxCode"] = w.m_fxCode;
+  obj["PortType"] = (int)w.m_portType;
+
 }
 
 template <>
 void JSONObjectWriter::write(fxd::Widget& w)
 {
   w.m_name = obj["Name"].toString();
+  w.m_controlIndex = obj["Index"].toInt();
   w.m_pos = fromJsonValue<QPointF>(obj["Pos"]);
+  w.m_portPos = fromJsonValue<QPointF>(obj["PortPos"]);
   w.m_size = fromJsonValue<QSizeF>(obj["Size"]);
   w.m_data = fromJsonObject<decltype(w.m_data)>(obj["Data"]);
+  w.m_fxCode = obj["FxCode"].toString();
+  w.m_portType = static_cast<Process::PortType>(obj["PortType"].toInt());
 }
 
 template <>
