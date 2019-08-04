@@ -98,7 +98,8 @@ private:
   ZoomRatio m_zoom{};
   void printAction(long);
 
-  std::vector<QPixmap> m_pixmap;
+  QVector<QImage*> m_images;
+  //std::vector<QPixmap> m_pixmap;
   WaveformComputer* m_cpt{};
 
   ComputedWaveform m_wf{};
