@@ -64,6 +64,17 @@ struct QImagePool
     return pool;
   }
 
+  ~QImagePool()
+  {
+    for(auto& pair : pool)
+    {
+      for(QImage* img : pair.second.images)
+      {
+        delete img;
+      }
+    }
+  }
+
   static inline int hit = 0;
   static inline int miss = 0;
   QImage* request(int w, int h)
@@ -200,6 +211,8 @@ LayerView::~LayerView()
   m_cpt->stop();
   m_cpt->moveToThread(this->thread());
   delete m_cpt;
+
+  QImagePool::instance().giveBack(m_images);
 }
 
 void LayerView::setData(const std::shared_ptr<AudioFile>& data)
