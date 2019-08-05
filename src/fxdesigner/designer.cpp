@@ -11,6 +11,7 @@
 
 #include <core/application/MinimalApplication.hpp>
 #include <score/plugins/PluginInstances.hpp>
+#include <score/plugins/panel/PanelDelegate.hpp>
 
 #include <QJsonDocument>
 #include <wobjectimpl.h>
@@ -40,6 +41,7 @@ public:
       : DocumentDelegatePresenter{parent_presenter,
                                   delegate_model,
                                   delegate_view}
+      , m_ctx{ctx}
   {
   }
 
@@ -71,9 +73,17 @@ public:
       }
     }
     m_curSel = s;
+
+    if(m_curSel.empty())
+    {
+      // "select" the document model
+      m_ctx.selectionStack.pushNewSelection({&this->m_model});
+    }
   }
 
 private:
+
+  const score::DocumentContext& m_ctx;
   Selection m_curSel;
 };
 
@@ -170,7 +180,7 @@ private:
     return instantiate_factories<
         score::ApplicationContext,
         FW<score::DocumentDelegateFactory, fxd::DocumentFactory>
-        , FW<Inspector::InspectorWidgetFactory, fxd::WidgetInspectorFactory>
+        , FW<Inspector::InspectorWidgetFactory, fxd::WidgetInspectorFactory, fxd::DocumentInspectorFactory>
         >(ctx, key);
   }
 
@@ -276,9 +286,7 @@ int main(int argc, char** argv)
   }
 
   // TODO move skin to lib..
-  QFile f(
-      "/home/jcelerier/score/src/plugins/score-plugin-scenario/Scenario/"
-      "resources/DefaultSkin.json");
+  QFile f("./DefaultSkin.json");
   f.open(QIODevice::ReadOnly);
   auto skin = QJsonDocument::fromJson(f.readAll()).object();
   score::Skin::instance().load(skin);
@@ -289,5 +297,13 @@ int main(int argc, char** argv)
            .interfaces<score::DocumentDelegateList>()
            .begin());
 
+
+  for(score::PanelDelegate& panel : app.context().panels())
+  {
+    if(panel.defaultPanelStatus().dock == Qt::RightDockWidgetArea)
+    {
+      panel.widget()->setFixedWidth(400);
+    }
+  }
   return app.exec();
 }

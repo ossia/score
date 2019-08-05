@@ -48,8 +48,9 @@ public:
   {
     auto& doc = m_document.find(ctx);
     auto w = new Widget{m_id, &doc};
-    w->setPos(m_pos);
     w->setData(m_type);
+    w->setDefaultPortPos();
+    w->setPos(m_pos);
     doc.widgets.add(w);
   }
 
@@ -78,6 +79,7 @@ class DocumentView final
     : public score::DocumentDelegateView
     , public Nano::Observer
 {
+  W_OBJECT(DocumentView)
 public:
   struct WidgetUI
   {
@@ -98,6 +100,8 @@ public:
   void createHandles(Widget& w, score::SimpleTextItem* item);
   void createHandles(Widget& w, Dataflow::PortItem* item);
 
+  void handleItemSelection(Widget& w, bool b);
+
   template<typename T>
   void createHandles(Widget& w, T* item)
   {
@@ -107,50 +111,51 @@ public:
     auto rhandle = new ResizeHandle;
     rhandle->setZValue(100);
 
+    con(w, &Widget::portPosChanged,
+        this, [this, &w] (QPointF portPos) {
+      auto& ui = this->m_widgets.at(w.id());
+
+      if(ui.port)
+      {
+        ui.port->setPos(portPos);
+        if(ui.portHandle)
+          ui.portHandle->setPos(portPos);
+      }
+    });
+
+    con(w, &Widget::posChanged, mhandle, [mhandle, rhandle, item, &w] (QPointF pos) {
+      item->setPos(pos);
+      mhandle->setPos(pos);
+      rhandle->setPos(w.pos() + QPointF{w.size().width(), w.size().height()});
+    });
+    con(w, &Widget::sizeChanged, mhandle, [mhandle, rhandle, item, &w] (QSizeF p) {
+      item->setRect({QPointF{}, p});
+      mhandle->setRect({QPointF{}, p});
+    });
+
     // Move handle
     {
       m_scene.addItem(mhandle);
       mhandle->setPos(w.pos());
       connect(mhandle, &MoveHandle::selectionChanged,
-              this, [=, &w] (bool b) {
-        if(b)
-        {
-          context.selectionStack.pushNewSelection({&w});
-        }
-      });
+              this, [=, &w] (bool b) { handleItemSelection(w, b); });
 
       connect(mhandle, &MoveHandle::positionChanged,
               this, [=, &w] (QPointF pos) {
         if(w.resizing)
           return;
-        w.moving = true;
-        auto curpos = w.pos();
-
-        w.setPos(pos);
-        item->setPos(pos);
-        auto& ui = this->m_widgets.at(w.id());
-        if(ui.port)
-        {
-          auto portDelta = ui.portHandle->pos() - curpos;
-          ui.port->setPos(pos + portDelta);
-          ui.portHandle->setPos(ui.port->pos());
-          w.setPortPos(ui.port->pos());
-        }
-        rhandle->setPos(w.pos() + QPointF{w.size().width(), w.size().height()});
-        w.moving = false;
+        this->context.dispatcher.submit<SetPos>(w, pos);
       });
     }
+
+    connect(mhandle, &MoveHandle::released, this, [=] {
+      this->context.dispatcher.commit();
+    });
 
     // Resize handle
     {
       m_scene.addItem(rhandle);
       rhandle->setPos(w.pos() + QPointF{w.size().width(), w.size().height()});
-      connect(rhandle, &ResizeHandle::released,
-              this, [=, &w] {
-        w.moving = true;
-        rhandle->setPos(w.pos() + QPointF{w.size().width(), w.size().height()});
-        w.moving = false;
-      });
       connect(rhandle, &ResizeHandle::positionChanged,
               this, [=, &w] (QPointF pos) {
         if(w.moving)
@@ -159,23 +164,30 @@ public:
         if(p.x() < 10 || p.y() < 10)
           return;
 
-        w.resizing = true;
         if(w.keepRatio())
         {
           double curRatio = w.size().width() / w.size().height();
           p = {curRatio * p.y(), p.y()};
         }
 
-        w.setSize({p.x(), p.y()});
-        item->setRect({QPointF{}, p});
-        mhandle->setRect({QPointF{}, p});
-        w.resizing = false;
+        this->context.dispatcher.submit<SetSize>(w, QSizeF{p.x(), p.y()});
+      });
+
+      connect(rhandle, &ResizeHandle::released,
+              this, [=, &w] {
+        this->context.dispatcher.commit();
+        w.moving = true;
+        rhandle->setPos(w.pos() + QPointF{w.size().width(), w.size().height()});
+        w.moving = false;
       });
     }
   }
 
   ~DocumentView() override;
   QWidget* getWidget() override;
+
+  QSizeF backgroundRectSize() { return m_rect.boundingRect().size(); }
+  void backgroundRectSize(QSizeF sz) { if(sz != backgroundRectSize()) m_rect.setRect({0, 0, sz.width(), sz.height()}); }
 
   void on_widgetRemoved(const Widget& w);
   const score::DocumentContext& context;
@@ -185,6 +197,7 @@ private:
   WidgetList m_list;
   QGraphicsScene m_scene;
   View m_view;
+  QGraphicsRectItem m_rect;
 };
 
 

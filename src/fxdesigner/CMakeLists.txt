@@ -19,3 +19,7 @@ target_link_libraries(fx_designer PRIVATE
   score_lib_process
   score_plugin_inspector
 )
+
+file(
+  COPY ${CMAKE_SOURCE_DIR}/src/plugins/score-plugin-scenario/Scenario/resources/DefaultSkin.json
+  DESTINATION ${CMAKE_BINARY_DIR})
