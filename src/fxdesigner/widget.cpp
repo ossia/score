@@ -246,13 +246,24 @@ bool Widget::keepRatio() const
   }, m_data);
 }
 
+void Widget::setDefaultPortPos() noexcept
+{
+  return eggs::variants::apply([this] (const auto& t)
+  {
+    using type = std::remove_reference_t<decltype(t)>;
+    if constexpr(type::hasPort)
+    {
+      this->m_portPos = type::defaultPortPos;
+    }
+  }, m_data);
+}
+
 
 void createWidget(Widget* widget, int i, QPointF pos, QString control, QString code, QJsonObject obj = {})
 {
   widget->setControlIndex(i);
   widget->setName(QString("control_%1").arg(i));
   widget->setFxCode(code);
-  widget->setPos(pos);
 
   /**
        TODO :
@@ -307,6 +318,9 @@ void createWidget(Widget* widget, int i, QPointF pos, QString control, QString c
   {
     qDebug() << "ERROR: " << control << code;
   }
+
+  widget->setDefaultPortPos();
+  widget->setPos(pos);
 }
 
 void DocumentModel::loadCode(QJsonDocument code)
@@ -686,6 +700,8 @@ void DataStreamReader::read(const fxd::DocumentModel& doc)
     readFrom(widget);
   }
 
+  m_stream << doc.m_rectSize;
+
   insertDelimiter();
 }
 
@@ -700,6 +716,9 @@ void DataStreamWriter::write(fxd::DocumentModel& doc)
     auto wmodel = new fxd::Widget{*this, &doc};
     doc.widgets.add(wmodel);
   }
+
+  m_stream >> doc.m_rectSize;
+
   checkDelimiter();
 }
 
@@ -707,6 +726,7 @@ template <>
 void JSONObjectReader::read(const fxd::DocumentModel& doc)
 {
   obj["Widgets"] = toJsonArray(doc.widgets);
+  obj["RectSize"] = toJsonValue(doc.m_rectSize);
 }
 
 template <>
@@ -720,4 +740,5 @@ void JSONObjectWriter::write(fxd::DocumentModel& doc)
 
     doc.widgets.add(wmodel);
   }
+  doc.m_rectSize = fromJsonValue<QSizeF>(obj["RectSize"]);
 }

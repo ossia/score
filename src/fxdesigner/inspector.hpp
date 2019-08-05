@@ -39,9 +39,23 @@ public:
       QWidget* parent);
 };
 
+class DocumentInspector : public QWidget
+{
+public:
+  DocumentInspector(
+      const DocumentModel& sc,
+      const score::DocumentContext& doc,
+      QWidget* parent);
+};
 INSPECTOR_FACTORY(
     WidgetInspectorFactory,
     fxd::Widget,
     fxd::WidgetInspector,
     "a703d205-3488-4f0e-817d-19fac52e2046")
+
+INSPECTOR_FACTORY(
+    DocumentInspectorFactory,
+    fxd::DocumentModel,
+    fxd::DocumentInspector,
+    "fa22746e-39a9-4a42-92da-531e91fcd3af")
 }

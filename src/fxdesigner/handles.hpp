@@ -63,6 +63,7 @@ public:
     return QGraphicsItem::itemChange(change, value);
   }
 
+  void released() W_SIGNAL(released)
   void positionChanged(QPointF p) W_SIGNAL(positionChanged, p)
   void selectionChanged(bool b) W_SIGNAL(selectionChanged, b)
 
@@ -82,6 +83,11 @@ public:
       m_hover = false;
       event->accept();
       update();
+    }
+    void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override
+    {
+      QGraphicsItem::mouseReleaseEvent(event);
+      released();
     }
 
     QRectF m_rect{};

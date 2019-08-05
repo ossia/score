@@ -1,7 +1,9 @@
 #include "view.hpp"
 
 #include <Process/Dataflow/Port.hpp>
-
+#include <core/document/DocumentModel.hpp>
+#include <wobjectimpl.h>
+W_OBJECT_IMPL(fxd::DocumentView)
 namespace fxd
 {
 
@@ -70,18 +72,23 @@ DocumentView::DocumentView(const score::DocumentContext& ctx, QObject* parent)
   fxModel(ctx).widgets.mutable_added.connect<&DocumentView::on_widgetAdded>(*this);
   fxModel(ctx).widgets.removing.connect<&DocumentView::on_widgetRemoved>(*this);
 
-  auto item = new QGraphicsRectItem;
-  item->setRect(0, 0, 800, 400);
-  item->setBrush(skin.Transparent1);
-  item->setPen(QPen(skin.Base1.color(), 3));
-  m_scene.addItem(item);
-  m_view.centerOn(item);
+  m_rect.setBrush(skin.Transparent1);
+  m_rect.setPen(QPen(skin.Base1.color(), 3));
+
+  auto& model = ctx.model<fxd::DocumentModel>();
+  con(model, &DocumentModel::rectSizeChanged,
+      this, [this] (const QSizeF& sz) { m_rect.setRect(0, 0, sz.width(), sz.height()); });
+  const QSizeF& sz = model.rectSize();
+  m_rect.setRect(0, 0, sz.width(), sz.height());
+
+  m_scene.addItem(&m_rect);
+  m_view.centerOn(&m_rect);
 }
 
 void DocumentView::on_widgetAdded(Widget& w)
 {
   auto [it, ok] = this->m_widgets.insert({w.id(), WidgetUI{w}});
-  WidgetUI& ui = it->second;;
+  WidgetUI& ui = it->second;
 
   ui.control = w.makeItem(*this);
   m_scene.addItem(ui.control);
@@ -91,8 +98,7 @@ void DocumentView::on_widgetAdded(Widget& w)
     auto& ui = it->second;
     ui.port = new Dataflow::PortItem{global_control_port, context, nullptr};
     ui.port->setZValue(40);
-    ui.port->setPos(ui.control->pos() + QPointF{ui.control->boundingRect().width() / 2., ui.control->boundingRect().height() + 10});
-    w.setPortPos(ui.port->pos());
+    ui.port->setPos(ui.widget.portPos());
     createHandles(w, ui.port);
     m_scene.addItem(ui.port);
   }
@@ -102,9 +108,14 @@ void DocumentView::createHandles(Widget& w, score::SimpleTextItem* item)
 {
   auto mhandle = new MoveHandle;
   mhandle->setZValue(50);
+  mhandle->setPos(w.portPos());
   mhandle->setRect({QPointF{}, item->boundingRect().size()});
-  con(w, &Widget::dataChanged, mhandle, [mhandle, item, &w] {
+  con(w, &Widget::dataChanged, mhandle, [mhandle, item] {
     mhandle->setRect({QPointF{}, item->boundingRect().size()});
+  });
+  con(w, &Widget::posChanged, mhandle, [mhandle, item] (QPointF pos) {
+    item->setPos(pos);
+    mhandle->setPos(pos);
   });
 
   // Move handle
@@ -112,26 +123,16 @@ void DocumentView::createHandles(Widget& w, score::SimpleTextItem* item)
     m_scene.addItem(mhandle);
     mhandle->setPos(w.pos());
     connect(mhandle, &MoveHandle::selectionChanged,
-            this, [=, &w] (bool b) {
-      if(b)
-      {
-        context.selectionStack.pushNewSelection({&w});
-      }
-      else
-      {
-        context.selectionStack.deselectObjects({&w});
-      }
-    });
+            this, [=, &w] (bool b) { handleItemSelection(w, b); });
 
     connect(mhandle, &MoveHandle::positionChanged,
             this, [=, &w] (QPointF pos) {
       if(w.resizing)
         return;
-      w.moving = true;
-      w.setPos(pos);
-      item->setPos(pos);
-      w.moving = false;
+      this->context.dispatcher.submit<SetPos>(w, pos);
     });
+    connect(mhandle, &MoveHandle::released,
+            this, [=] { this->context.dispatcher.commit(); });
   }
 }
 
@@ -148,19 +149,34 @@ void DocumentView::createHandles(Widget& w, Dataflow::PortItem* item)
     m_scene.addItem(mhandle);
     mhandle->setPos(item->pos());
     connect(mhandle, &MoveHandle::selectionChanged,
-            this, [=, &w] (bool b) {
-      if(b)
-      {
-        context.selectionStack.pushNewSelection({&w});
-      }
-    });
+            this, [=, &w] (bool b) { handleItemSelection(w, b); });
 
     connect(mhandle, &MoveHandle::positionChanged,
             this, [=, &w] (QPointF pos) {
-      item->setPos(pos);
+      if(w.moving)
+        return;
+
+     this->context.dispatcher.submit<SetPortPos>(w, pos);
+    });
+    connect(mhandle, &MoveHandle::released,
+            this, [=] {
+      this->context.dispatcher.commit();
     });
   }
 }
+
+void DocumentView::handleItemSelection(Widget& w, bool b)
+{
+  if(b)
+  {
+    context.selectionStack.pushNewSelection({&w});
+  }
+  else
+  {
+    context.selectionStack.deselectObjects({&w});
+  }
+}
+
 void DocumentView::on_widgetRemoved(const Widget& w)
 {
 }

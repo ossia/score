@@ -149,10 +149,10 @@ struct WidgetImplUpdateFactory
 
 
 
-template <typename T>
+template <typename T, typename Object_T>
 struct WidgetFactory
 {
-  const Widget& object;
+  const Object_T& object;
   const score::DocumentContext& ctx;
   Inspector::Layout& layout;
   QWidget* parent;
@@ -172,15 +172,26 @@ struct WidgetFactory
     return QObject::tr(str.toUtf8().constData());
   }
 
+  static auto currentValue(const Object_T& object) noexcept {
+    return (object.*(T::get()))();
+  }
+
+  static void command(const score::DocumentContext& ctx, const Object_T& object, const typename T::param_type & value)
+  {
+    using cmd = typename score::PropertyCommand_T<T>::template command<void>::type;
+    CommandDispatcher<> disp{ctx.commandStack};
+    disp.submit(new cmd{object, value});
+  }
+
   void setup()
   {
-    if (auto widg = make((object.*(T::get()))()); widg != nullptr)
+    if (auto widg = make(currentValue(object)); widg != nullptr)
       layout.addRow(prettyText(T::name), (QWidget*)widg);
   }
 
   void setup(QString txt)
   {
-    if (auto widg = make((object.*(T::get()))()); widg != nullptr)
+    if (auto widg = make(currentValue(object)); widg != nullptr)
       layout.addRow(txt, (QWidget*)widg);
   }
 
@@ -189,8 +200,6 @@ struct WidgetFactory
 
   auto make(bool c)
   {
-    using cmd =
-        typename score::PropertyCommand_T<T>::template command<void>::type;
     auto cb = new QCheckBox{parent};
     cb->setCheckState(c ? Qt::Checked : Qt::Unchecked);
 
@@ -199,13 +208,11 @@ struct WidgetFactory
         &QCheckBox::stateChanged,
         parent,
         [& object = this->object, &ctx = this->ctx](int state) {
-          bool cur = (object.*(T::get()))();
+          bool cur = currentValue();
           if ((state == Qt::Checked && !cur)
               || (state == Qt::Unchecked && cur))
           {
-            CommandDispatcher<> disp{ctx.commandStack};
-            disp.submit(
-                new cmd{object, state == Qt::Checked ? true : false});
+            command(ctx, object, state == Qt::Checked ? true : false);
           }
         });
 
@@ -218,8 +225,6 @@ struct WidgetFactory
 
   auto make(int c)
   {
-    using cmd =
-        typename score::PropertyCommand_T<T>::template command<void>::type;
     auto sb = new QSpinBox{parent};
     sb->setValue(c);
     sb->setRange(0, 100);
@@ -229,11 +234,10 @@ struct WidgetFactory
         SignalUtils::QSpinBox_valueChanged_int(),
         parent,
         [& object = this->object, &ctx = this->ctx](int state) {
-          int cur = (object.*(T::get()))();
+          int cur = currentValue(object);
           if (state != cur)
           {
-            CommandDispatcher<> disp{ctx.commandStack};
-            disp.submit(new cmd{object, state});
+            command(ctx, object, state);
           }
         });
 
@@ -246,8 +250,6 @@ struct WidgetFactory
 
   auto make(const QString& cur)
   {
-    using cmd =
-        typename score::PropertyCommand_T<T>::template command<void>::type;
     auto l = new QLineEdit{cur, parent};
     l->setSizePolicy(QSizePolicy::Policy{}, QSizePolicy::MinimumExpanding);
     QObject::connect(
@@ -255,11 +257,10 @@ struct WidgetFactory
         &QLineEdit::editingFinished,
         parent,
         [l, &object = this->object, &ctx = this->ctx]() {
-          const auto& cur = (object.*(T::get()))();
+          const auto& cur = currentValue(object);
           if (l->text() != cur)
           {
-            CommandDispatcher<> disp{ctx.commandStack};
-            disp.submit(new cmd{object, l->text()});
+            command(ctx, object, l->text());
           }
         });
 
@@ -268,6 +269,76 @@ struct WidgetFactory
         l->setText(txt);
     });
     return l;
+  }
+
+  auto make(const QPointF& pos)
+  {
+    auto x = new QSpinBox; x->setRange(0, 1000); x->setValue(pos.x());
+    this->layout.addRow("x", x);
+    auto y = new QSpinBox; y->setRange(0, 1000); y->setValue(pos.y());
+    this->layout.addRow("y", y);
+
+    QObject::connect(x, SignalUtils::QSpinBox_valueChanged_int(),
+                     parent, [&object=this->object, &ctx = this->ctx] (int v) {
+      QPointF cur = currentValue(object);
+      if(cur.x() != v)
+      {
+        cur.setX(v);
+        command(ctx, object, cur);
+      }
+    });
+
+    QObject::connect(y, SignalUtils::QSpinBox_valueChanged_int(),
+                     parent, [&object=this->object, &ctx = this->ctx] (int v) {
+      QPointF cur = currentValue(object);
+      if(cur.y() != v)
+      {
+        cur.setY(v);
+        command(ctx, object, cur);
+      }
+    });
+
+    QObject::connect(&object, T::notify(), parent, [x, y] (const QPointF& v) {
+      if (v.x() != x->value())
+        x->setValue(v.x());
+      if (v.y() != y->value())
+        y->setValue(v.y());
+    });
+    return nullptr;
+  }
+  auto make(const QSizeF& sz)
+  {
+    auto x = new QSpinBox; x->setRange(0, 1000); x->setValue(sz.width());
+    this->layout.addRow("w", x);
+    auto y = new QSpinBox; y->setRange(0, 1000); y->setValue(sz.height());
+    this->layout.addRow("h", y);
+
+    QObject::connect(x, SignalUtils::QSpinBox_valueChanged_int(),
+                     parent, [&object=this->object, &ctx = this->ctx] (int v) {
+      QSizeF cur = currentValue(object);
+      if(cur.width() != v)
+      {
+        cur.setWidth(v);
+        command(ctx, object, cur);
+      }
+    });
+    QObject::connect(y, SignalUtils::QSpinBox_valueChanged_int(),
+                     parent, [&object=this->object, &ctx = this->ctx] (int v) {
+      QSizeF cur = currentValue(object);
+      if(cur.height() != v)
+      {
+        cur.setHeight(v);
+        command(ctx, object, cur);
+      }
+    });
+
+    QObject::connect(&object, T::notify(), parent, [x, y] (const QSizeF& v) {
+      if (v.width() != x->value())
+        x->setValue(v.width());
+      if (v.height() != y->value())
+        y->setValue(v.height());
+    });
+    return nullptr;
   }
 
 
@@ -289,28 +360,16 @@ struct WidgetFactory
     return wrap;
   }
 };
-
-template <typename T>
-auto setup_inspector(
-    T,
-    const Widget& sc,
-    const score::DocumentContext& doc,
-    Inspector::Layout& layout,
-    QWidget* parent)
+template <typename T, typename U, typename... Args>
+auto setup_inspector(T, const U& obj, Args&&... args)
 {
-  WidgetFactory<T>{sc, doc, layout, parent}.setup();
+  WidgetFactory<T, U>{obj, args...}.setup();
 }
 
-template <typename T>
-auto setup_inspector(
-    T,
-    QString txt,
-    const Widget& sc,
-    const score::DocumentContext& doc,
-    Inspector::Layout& layout,
-    QWidget* parent)
+template <typename T, typename U, typename... Args>
+auto setup_inspector(T, const U& obj, QString txt, Args&&... args)
 {
-  WidgetFactory<T>{sc, doc, layout, parent}.setup(txt);
+  WidgetFactory<T, U>{obj, args...}.setup(txt);
 }
 
 WidgetInspector::WidgetInspector(const Widget& sc, const score::DocumentContext& doc, QWidget* parent)
@@ -319,8 +378,16 @@ WidgetInspector::WidgetInspector(const Widget& sc, const score::DocumentContext&
   auto lay = new Inspector::Layout{this};
   lay->addRow(new QLabel{sc.fxCode()});
   setup_inspector(Widget::p_name{}, sc, doc, *lay, this);
+  setup_inspector(Widget::p_pos{}, sc, doc, *lay, this);
   setup_inspector(Widget::p_controlIndex{}, sc, doc, *lay, this);
   setup_inspector(Widget::p_data{}, sc, doc, *lay, this);
+}
+
+DocumentInspector::DocumentInspector(const DocumentModel& sc, const score::DocumentContext& doc, QWidget* parent)
+  : QWidget{parent}
+{
+  auto lay = new Inspector::Layout{this};
+  setup_inspector(DocumentModel::p_rectSize{}, sc, doc, *lay, this);
 }
 
 }
