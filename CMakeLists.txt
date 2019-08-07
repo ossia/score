@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.9 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.13 FATAL_ERROR)
 set(CMAKE_MODULE_PATH
     "${CMAKE_MODULE_PATH}"
     "${CMAKE_CURRENT_SOURCE_DIR}/cmake"
@@ -29,9 +29,10 @@ include("${SCORE_CONFIGURATION}")
 
 project(score LANGUAGES C CXX)
 
-cmake_policy(VERSION 3.9)
+cmake_policy(VERSION 3.13)
 cmake_policy(SET CMP0025 NEW)
 cmake_policy(SET CMP0063 NEW)
+cmake_policy(SET CMP0079 NEW)
 
 set(SCORE_VERSION_MAJOR 2)
 set(SCORE_VERSION_MINOR 4)
@@ -65,19 +66,21 @@ set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 find_package(Qt5 5.12 REQUIRED
-             COMPONENTS Core
-                        Widgets
-                        Gui
-                        Network
-                        Xml
-                        Svg
-                        Test
-                        Qml
-                        WebSockets)
-find_package(Qt5 5.12 COMPONENTS
-  Quick
-  QuickControls2
-  SerialPort)
+             COMPONENTS
+               Core
+               Widgets
+               Gui
+               Network
+               Xml
+#             OPTIONAL_COMPONENTS
+#               Quick
+#               QuickControls2
+#               SerialPort
+#               Svg
+#               WebSockets
+#               Qml
+#               Test
+)
 
 set(3RDPARTY_FOLDER "${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/")
 set(SCORE_ROOT_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}")

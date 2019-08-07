@@ -10,7 +10,11 @@
 
 namespace score
 {
+static const constexpr QRectF defaultSliderSize{0., 0., 40., 20.};
+static const constexpr QRectF defaultKnobSize{0., 0., 30., 30.};
+
 struct DefaultGraphicsSliderImpl;
+
 class SCORE_LIB_BASE_EXPORT QGraphicsPixmapButton final
     : public QObject,
       public QGraphicsPixmapItem
@@ -93,15 +97,32 @@ protected:
   void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override;
 };
 
-class SCORE_LIB_BASE_EXPORT QGraphicsSlider final : public QObject,
-                                                    public QGraphicsItem
+template<typename T>
+struct SCORE_LIB_BASE_EXPORT QGraphicsSliderBase
+    : public QGraphicsItem
+{
+  QGraphicsSliderBase(QGraphicsItem* parent);
+
+  bool isInHandle(QPointF p);
+  double getHandleX() const;
+  QRectF sliderRect() const;
+  QRectF handleRect() const;
+
+  void setRect(const QRectF& r);
+  QRectF boundingRect() const override;
+
+  QRectF m_rect{defaultSliderSize};
+};
+
+class SCORE_LIB_BASE_EXPORT QGraphicsSlider final
+    : public QObject
+    , public QGraphicsSliderBase<QGraphicsSlider>
 {
   W_OBJECT(QGraphicsSlider)
-  Q_INTERFACES(QGraphicsItem)
   friend struct DefaultGraphicsSliderImpl;
+  friend struct QGraphicsSliderBase<QGraphicsSlider>;
 
   double m_value{};
-  QRectF m_rect{};
 
 public:
   double min{}, max{};
@@ -115,10 +136,8 @@ public:
   static constexpr double map(double v) { return v; }
   static constexpr double unmap(double v) { return v; }
 
-  void setRect(const QRectF& r);
   void setValue(double v);
   double value() const;
-  QRectF boundingRect() const override;
 
   bool moving = false;
 
@@ -134,15 +153,10 @@ private:
   void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override;
   void mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event) override;
 
-
   void paint(
       QPainter* painter,
       const QStyleOptionGraphicsItem* option,
       QWidget* widget) override;
-  bool isInHandle(QPointF p);
-  double getHandleX() const;
-  QRectF sliderRect() const;
-  QRectF handleRect() const;
 };
 
 class SCORE_LIB_BASE_EXPORT QGraphicsKnob final : public QObject,
@@ -153,7 +167,7 @@ class SCORE_LIB_BASE_EXPORT QGraphicsKnob final : public QObject,
   friend struct DefaultGraphicsKnobImpl;
 
   double m_value{};
-  QRectF m_rect{};
+  QRectF m_rect{defaultKnobSize};
 
 public:
   double min{}, max{};
@@ -200,7 +214,7 @@ class SCORE_LIB_BASE_EXPORT QGraphicsLogKnob final : public QObject,
   friend struct DefaultGraphicsKnobImpl;
 
   double m_value{};
-  QRectF m_rect{};
+  QRectF m_rect{defaultKnobSize};
 
 public:
   double min{}, max{};
@@ -239,15 +253,16 @@ private:
       QWidget* widget) override;
 };
 
-class SCORE_LIB_BASE_EXPORT QGraphicsLogSlider final : public QObject,
-                                                       public QGraphicsItem
+class SCORE_LIB_BASE_EXPORT QGraphicsLogSlider final
+    : public QObject
+    , public QGraphicsSliderBase<QGraphicsLogSlider>
 {
   W_OBJECT(QGraphicsLogSlider)
   Q_INTERFACES(QGraphicsItem)
   friend struct DefaultGraphicsSliderImpl;
+  friend struct QGraphicsSliderBase<QGraphicsLogSlider>;
 
   double m_value{};
-  QRectF m_rect{};
 
 public:
   double min{}, max{};
@@ -258,7 +273,6 @@ private:
 public:
   QGraphicsLogSlider(QGraphicsItem* parent);
 
-  void setRect(const QRectF& r);
   void setValue(double v);
   double value() const;
 
@@ -278,31 +292,26 @@ private:
   void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override;
   void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override;
   void mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event) override;
-  QRectF boundingRect() const override;
   void paint(
       QPainter* painter,
       const QStyleOptionGraphicsItem* option,
       QWidget* widget) override;
-  bool isInHandle(QPointF p);
-  double getHandleX() const;
-  QRectF sliderRect() const;
-  QRectF handleRect() const;
 };
 
-class SCORE_LIB_BASE_EXPORT QGraphicsIntSlider final : public QObject,
-                                                       public QGraphicsItem
+class SCORE_LIB_BASE_EXPORT QGraphicsIntSlider final
+    : public QObject
+    , public QGraphicsSliderBase<QGraphicsIntSlider>
 {
   W_OBJECT(QGraphicsIntSlider)
   Q_INTERFACES(QGraphicsItem)
   friend struct DefaultGraphicsSliderImpl;
-  QRectF m_rect{};
+  friend struct QGraphicsSliderBase<QGraphicsIntSlider>;
   int m_value{}, m_min{}, m_max{};
   bool m_grab{};
 
 public:
   QGraphicsIntSlider(QGraphicsItem* parent);
 
-  void setRect(const QRectF& r);
   void setValue(int v);
   void setRange(int min, int max);
   int value() const;
@@ -319,24 +328,21 @@ private:
   void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
   void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override;
   void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override;
-  QRectF boundingRect() const override;
   void paint(
       QPainter* painter,
       const QStyleOptionGraphicsItem* option,
       QWidget* widget) override;
-  bool isInHandle(QPointF p);
   double getHandleX() const;
-  QRectF sliderRect() const;
-  QRectF handleRect() const;
 };
 
-class SCORE_LIB_BASE_EXPORT QGraphicsComboSlider final : public QObject,
-                                                         public QGraphicsItem
+class SCORE_LIB_BASE_EXPORT QGraphicsCombo final
+    : public QObject
+    , public QGraphicsItem
 {
-  W_OBJECT(QGraphicsComboSlider)
+  W_OBJECT(QGraphicsCombo)
   Q_INTERFACES(QGraphicsItem)
-  friend struct DefaultGraphicsSliderImpl;
-  QRectF m_rect{};
+  friend struct DefaultComboImpl;
+  QRectF m_rect{defaultSliderSize};
 
 public:
   QStringList array;
@@ -347,23 +353,23 @@ private:
 
 public:
   template <std::size_t N>
-  QGraphicsComboSlider(
+  QGraphicsCombo(
       const std::array<const char*, N>& arr,
       QGraphicsItem* parent)
-      : QGraphicsComboSlider{parent}
+      : QGraphicsCombo{parent}
   {
     array.reserve(N);
     for (auto str : arr)
       array.push_back(str);
   }
 
-  QGraphicsComboSlider(QStringList arr, QGraphicsItem* parent)
-      : QGraphicsComboSlider{parent}
+  QGraphicsCombo(QStringList arr, QGraphicsItem* parent)
+      : QGraphicsCombo{parent}
   {
     array = std::move(arr);
   }
 
-  QGraphicsComboSlider(QGraphicsItem* parent);
+  QGraphicsCombo(QGraphicsItem* parent);
 
   void setRect(const QRectF& r);
   void setValue(int v);
@@ -386,10 +392,6 @@ private:
       QPainter* painter,
       const QStyleOptionGraphicsItem* option,
       QWidget* widget) override;
-  bool isInHandle(QPointF p);
-  double getHandleX() const;
-  QRectF sliderRect() const;
-  QRectF handleRect() const;
 };
 
 class SCORE_LIB_BASE_EXPORT QGraphicsEnum final
@@ -401,13 +403,13 @@ class SCORE_LIB_BASE_EXPORT QGraphicsEnum final
 
   int m_value{};
   int m_clicking{-1};
-  QRectF m_rect{};
-  QRectF m_smallRect{};
+  QRectF m_rect;
+  QRectF m_smallRect;
 
 public:
   QStringList array;
   int rows{1};
-  int columns{1};
+  int columns{4};
 
   template <std::size_t N>
   QGraphicsEnum(

@@ -3,7 +3,7 @@ project(score_plugin_engine LANGUAGES CXX)
 score_common_setup()
 
 # Packages
-find_package(Qt5 5.3 REQUIRED COMPONENTS Core Widgets)
+find_package(Qt5 5.3 REQUIRED COMPONENTS Core Widgets Network)
 
 # Files & main target
 set(HDRS
@@ -362,7 +362,7 @@ endif()
 
 target_link_libraries(${PROJECT_NAME}
         PUBLIC
-          Qt5::Core Qt5::Widgets
+          Qt5::Core Qt5::Widgets Qt5::Network
           score_lib_base score_lib_device score_lib_process
           score_plugin_scenario score_plugin_curve score_plugin_automation score_plugin_deviceexplorer
           score_plugin_mapping

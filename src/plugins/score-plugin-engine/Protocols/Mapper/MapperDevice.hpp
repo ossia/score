@@ -1,4 +1,6 @@
 #pragma once
+
+#if __has_include(<QQmlEngine>)
 #include <Device/Protocol/DeviceInterface.hpp>
 #include <Device/Protocol/DeviceSettings.hpp>
 #include <Device/Protocol/ProtocolSettingsWidget.hpp>
@@ -66,3 +68,4 @@ protected:
 
 Q_DECLARE_METATYPE(Protocols::MapperSpecificSettings)
 W_REGISTER_ARGTYPE(Protocols::MapperSpecificSettings)
+#endif

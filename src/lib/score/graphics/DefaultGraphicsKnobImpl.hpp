@@ -1,5 +1,6 @@
 #pragma once
 #include <score/widgets/SignalUtils.hpp>
+#include <score/model/Skin.hpp>
 
 #include <ossia/detail/math.hpp>
 
@@ -22,15 +23,14 @@ struct DefaultGraphicsKnobImpl
   static inline double currentDelta{};
   static inline QRectF currentGeometry{};
 
-  template <typename T, typename U>
+  template <typename T>
   static void paint(
       T& self,
-      const U& skin,
+      const score::Skin& skin,
       const QString& text,
       QPainter* painter,
       QWidget* widget)
   {
-    static const QPen darkPen{skin.HalfDark.color()};
     static const QPen grayPen{skin.HalfLight.color()};
 
     painter->setRenderHint(QPainter::Antialiasing, true);
@@ -42,18 +42,39 @@ struct DefaultGraphicsKnobImpl
 
     const QRectF srect = self.boundingRect();
     const QRectF r = srect.adjusted(adj, adj, -adj, -adj);
+    const double rw = r.width();
 
     // Draw knob
-    painter->setPen(QPen(skin.Background1.color(), 1));
-    painter->setBrush(QBrush(skin.Background1.color()));
+    painter->setPen(skin.Background1.main.pen1);
+    painter->setBrush(skin.Background1.main.brush);
     painter->drawChord(r, start, -totalSpan);
-    painter->setPen(QPen(skin.Base1.color(), 3, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin));
 
     const double valueSpan = -self.m_value * totalSpan;
+    double textDelta = 0.;
+    if(rw >= 30.)
+    {
+      painter->setPen(skin.Base1.main.pen3_solid_round_round);
+      textDelta = -10;
+    }
+    else if(rw >= 20.)
+    {
+      painter->setPen(skin.Base1.main.pen2_solid_round_round);
+      textDelta = -9;
+    }
+    else if(rw >= 10.)
+    {
+      painter->setPen(skin.Base1.main.pen1_5);
+      textDelta = -8;
+    }
+    else if(rw >= 5.)
+    {
+      painter->setPen(skin.Base1.main.pen1);
+      textDelta = -7;
+    }
     painter->drawArc(r, start, valueSpan);
 
     // Draw knob indicator
-    const double r1 = 0.5 * r.width();
+    const double r1 = 0.5 * rw;
     const double x0 = r.center().x();
     const double y0 = r.center().y();
     const double theta = - 0.0174533 * (start + valueSpan) / 16.;
@@ -63,10 +84,10 @@ struct DefaultGraphicsKnobImpl
     painter->drawLine(QPointF{x0, y0}, QPointF{x1, y1});
 
     // Draw text
-    painter->setPen(grayPen);
-    painter->setFont(skin.MonoFont);
+    painter->setPen(skin.Base1.lighter180.pen1);
+    painter->setFont(skin.SansFontSmall);
     painter->drawText(
-        QRectF{0., srect.height() - 8, srect.width(), 10.},
+        QRectF{0., srect.height() + textDelta, srect.width(), 10.},
         text,
         QTextOption(Qt::AlignCenter));
 
@@ -107,15 +128,17 @@ struct DefaultGraphicsKnobImpl
       if(v <= 0.)
       {
         currentDelta = origValue * currentGeometry.height();
+        v = 0.;
       }
       else if(v >= 1.)
       {
         currentDelta = (origValue - 1.) * currentGeometry.height();
+        v = 1.;
       }
-      double curPos = ossia::clamp(v, 0., 1.);
-      if (curPos != self.m_value)
+
+      if (v != self.m_value)
       {
-        self.m_value = curPos;
+        self.m_value = v;
         self.valueChanged(self.m_value);
         self.sliderMoved();
         self.update();
@@ -127,11 +150,10 @@ struct DefaultGraphicsKnobImpl
   template <typename T>
   static void mouseReleaseEvent(T& self, QGraphicsSceneMouseEvent* event)
   {
-    QCursor::setPos(event->buttonDownScreenPos(Qt::LeftButton));
-
-    self.unsetCursor();
     if (event->button() == Qt::LeftButton)
     {
+      QCursor::setPos(event->buttonDownScreenPos(Qt::LeftButton));
+      self.unsetCursor();
       if (self.m_grab)
       {
         auto delta = (event->screenPos().y() - event->lastScreenPos().y());

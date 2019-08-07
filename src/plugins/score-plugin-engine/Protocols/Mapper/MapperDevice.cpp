@@ -1,6 +1,7 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 
+#if __has_include(<QQmlEngine>)
 #include <Explorer/DeviceList.hpp>
 #include <Explorer/DeviceLogging.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
@@ -740,3 +741,4 @@ W_REGISTER_ARGTYPE(ossia::net::mapper_parameter*)
 W_OBJECT_IMPL(Protocols::MapperDevice)
 W_OBJECT_IMPL(ossia::net::observable_device_roots)
 W_OBJECT_IMPL(ossia::net::mapper_protocol)
+#endif

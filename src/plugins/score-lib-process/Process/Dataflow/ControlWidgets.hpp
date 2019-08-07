@@ -9,7 +9,7 @@
 #include <score/widgets/ControlWidgets.hpp>
 
 #include <ossia/network/value/value_conversion.hpp>
-
+#include <ossia/detail/math.hpp>
 #include <QGraphicsItem>
 #include <QGraphicsProxyWidget>
 #include <QLineEdit>
@@ -112,7 +112,6 @@ struct FloatControl
     auto sl = new ControlUI{nullptr};
     sl->min = min;
     sl->max = max;
-    sl->setRect({0., 0., 40., 40.});
     sl->setValue((ossia::convert<double>(inlet.value()) - min) / (max - min));
 
     QObject::connect(
@@ -143,7 +142,9 @@ struct FloatControl
 template<typename ControlUI>
 struct LogFloatControl
 {
+  static_assert(std::numeric_limits<float>::is_iec559, "IEEE 754 required");
 
+  /*
   static float from01(float min, float max, float val)
   {
     return std::exp2(min + val * (max - min));
@@ -152,6 +153,17 @@ struct LogFloatControl
   {
     return (std::log2(val) - min) / (max - min);
   }
+  */
+  static float to01(float min, float range, float val)
+  {
+    return ossia::log_to_normalized(min, range, val);
+  }
+
+  static float from01(float min, float range, float val)
+  {
+    return ossia::normalized_to_log(min, range, val);
+  }
+
   template <typename T, typename Control_T>
   static auto make_widget(
       const T& slider,
@@ -160,16 +172,18 @@ struct LogFloatControl
       QWidget* parent,
       QObject* context)
   {
-    auto min = std::log2(slider.getMin());
-    auto max = std::log2(slider.getMax());
-    if (max - min == 0)
-      max = min + 1;
+    auto min = slider.getMin();
+    auto max = slider.getMax();
+    if(max == min)
+      max += 1;
+
+    auto range = max - min;
     auto sl = new score::ValueLogDoubleSlider{parent};
     sl->setOrientation(Qt::Horizontal);
     sl->setContentsMargins(0, 0, 0, 0);
     sl->min = min;
     sl->max = max;
-    sl->setValue(to01(min, max, ossia::convert<double>(inlet.value())));
+    sl->setValue(to01(min, range, ossia::convert<double>(inlet.value())));
 
     QObject::connect(
         sl,
@@ -178,7 +192,7 @@ struct LogFloatControl
         [=, &inlet, &ctx](int v) {
           sl->moving = true;
           ctx.dispatcher.submit<SetControlValue<Control_T>>(
-              inlet, from01(min, max, v / score::DoubleSlider::max));
+              inlet, from01(min, range, v / score::DoubleSlider::max));
         });
     QObject::connect(
         sl, &score::DoubleSlider::sliderReleased, context, [=, &inlet, &ctx] {
@@ -186,7 +200,7 @@ struct LogFloatControl
               inlet,
               from01(
                   min,
-                  max,
+                  range,
                   ((QSlider*)sl)->value() / score::DoubleSlider::max));
           ctx.dispatcher.commit();
           sl->moving = false;
@@ -212,15 +226,17 @@ struct LogFloatControl
       QWidget* parent,
       QObject* context)
   {
-    auto min = std::log2(slider.getMin());
-    auto max = std::log2(slider.getMax());
-    if (max - min == 0)
-      max = min + 1;
+    auto min = slider.getMin();
+    auto max = slider.getMax();
+    if(max == min)
+      max += 1;
+
+    auto range = max - min;
+
     auto sl = new ControlUI{nullptr};
     sl->min = min;
     sl->max = max;
-    sl->setRect({0., 0., 40., 40.});
-    sl->setValue(to01(min, max, ossia::convert<double>(inlet.value())));
+    sl->setValue(to01(min, range, ossia::convert<double>(inlet.value())));
 
     QObject::connect(
         sl,
@@ -229,7 +245,7 @@ struct LogFloatControl
         [=, &inlet, &ctx] {
           sl->moving = true;
           ctx.dispatcher.submit<SetControlValue<Control_T>>(
-              inlet, from01(min, max, sl->value()));
+              inlet, from01(min, range, sl->value()));
         });
     QObject::connect(
         sl, &ControlUI::sliderReleased, context, [&ctx, sl]() {
@@ -243,7 +259,7 @@ struct LogFloatControl
         sl,
         [=](ossia::value val) {
           if (!sl->moving)
-            sl->setValue(to01(min, max, ossia::convert<double>(val)));
+            sl->setValue(to01(min, range, ossia::convert<double>(val)));
         });
 
     return sl;
@@ -310,7 +326,6 @@ struct IntSlider
 
     auto sl = new score::QGraphicsIntSlider{nullptr};
     sl->setRange(min, max);
-    sl->setRect({0., 0., 150., 15.});
     sl->setValue(ossia::convert<int>(inlet.value()));
 
     QObject::connect(
@@ -394,7 +409,6 @@ struct IntSpinBox
 
     auto sl = new score::QGraphicsIntSlider{nullptr};
     sl->setRange(min, max);
-    sl->setRect({0., 0., 150., 15.});
     sl->setValue(ossia::convert<int>(inlet.value()));
 
     QObject::connect(
@@ -667,7 +681,6 @@ struct Enum
     const auto& values = slider.getValues();
     using val_t = std::remove_reference_t<decltype(values[0])>;
     auto sl = new score::QGraphicsEnum{values, nullptr};
-    sl->setRect({0., 0., 70, 70});
 
     auto set_index = [values, sl](const ossia::value& val) {
       auto v = ossia::convert<std::string>(val);
@@ -760,8 +773,7 @@ struct ComboBox
     for (std::size_t i = 0; i < N; i++)
       arr.push_back(values[i].first);
 
-    auto sl = new score::QGraphicsComboSlider{arr, nullptr};
-    sl->setRect({0., 0., 150., 15.});
+    auto sl = new score::QGraphicsCombo{arr, nullptr};
 
     auto set_index = [values, sl](const ossia::value& val) {
       auto it = ossia::find_if(
@@ -775,7 +787,7 @@ struct ComboBox
 
     QObject::connect(
         sl,
-        &score::QGraphicsComboSlider::sliderMoved,
+        &score::QGraphicsCombo::sliderMoved,
         context,
         [values, sl, &inlet, &ctx] {
           sl->moving = true;
@@ -783,7 +795,7 @@ struct ComboBox
               inlet, values[sl->value()].second);
         });
     QObject::connect(
-        sl, &score::QGraphicsComboSlider::sliderReleased, context, [sl, &ctx] {
+        sl, &score::QGraphicsCombo::sliderReleased, context, [sl, &ctx] {
           ctx.dispatcher.commit();
           sl->moving = false;
         });
@@ -880,7 +892,7 @@ struct XYZEdit
 };
 
 using FloatSlider = FloatControl<score::QGraphicsSlider>;
-using LogFloatSlider = FloatControl<score::QGraphicsLogSlider>;
+using LogFloatSlider = LogFloatControl<score::QGraphicsLogSlider>;
 using FloatKnob = FloatControl<score::QGraphicsKnob>;
-using LogFloatKnob = FloatControl<score::QGraphicsLogKnob>;
+using LogFloatKnob = LogFloatControl<score::QGraphicsLogKnob>;
 }

@@ -68,7 +68,7 @@ namespace fxd {
     }
     QGraphicsItem* operator()(const ComboWidget& c)
     {
-      auto it = new score::QGraphicsComboSlider{c.alternatives, nullptr};
+      auto it = new score::QGraphicsCombo{c.alternatives, nullptr};
       it->setZValue(10);
       it->setPos(w.pos());
       it->setRect(QRectF{QPointF{}, w.size()});

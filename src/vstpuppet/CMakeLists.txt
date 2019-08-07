@@ -1,5 +1,7 @@
 project(vstpuppet CXX)
-
+if(NOT TARGET Qt5::WebSockets)
+  return()
+endif()
 add_executable(ossia-score-vstpuppet vstpuppet.cpp "${SCORE_SRC}/plugins/score-plugin-media/Media/Effect/VST/VSTLoader.cpp")
 target_compile_definitions(ossia-score-vstpuppet PUBLIC HAS_VST2)
 target_link_libraries(
