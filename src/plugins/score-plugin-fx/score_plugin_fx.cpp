@@ -18,11 +18,13 @@
 #include <Fx/Quantifier.hpp>
 #include <Fx/TestNode.hpp>
 #include <Fx/VelToNote.hpp>
-
 #include <score/plugins/FactorySetup.hpp>
 
 #include <score_plugin_engine.hpp>
 
+#if defined(SCORE_DEBUG)
+#include <Fx/DebugFx.hpp>
+#endif
 namespace Control
 {
 }
@@ -34,6 +36,9 @@ std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_fx::factories(
     const score::InterfaceKey& key) const
 {
   return Control::instantiate_fx<
+    #if defined(SCORE_DEBUG)
+      Nodes::Debug::Node,
+    #endif
       Nodes::Arpeggiator::Node,
       Nodes::PulseToNote::Node,
       Nodes::ClassicalBeat::Node,

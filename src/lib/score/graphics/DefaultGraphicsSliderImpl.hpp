@@ -1,5 +1,6 @@
 #pragma once
 #include <score/widgets/SignalUtils.hpp>
+#include <score/model/Skin.hpp>
 
 #include <ossia/detail/math.hpp>
 
@@ -22,8 +23,6 @@ struct SCORE_LIB_BASE_EXPORT DoubleSpinboxWithEnter final
 public:
   using QDoubleSpinBox::QDoubleSpinBox;
 
-  void ok() W_SIGNAL(ok);
-
 public:
   bool event(QEvent* event) override
   {
@@ -40,29 +39,32 @@ public:
           break;
       }
     }
+    else if(event->type() == QEvent::FocusOut)
+    {
+      editingFinished();
+    }
     return QDoubleSpinBox::event(event);
   }
 };
 
 struct DefaultGraphicsSliderImpl
 {
-  template <typename T, typename U>
+  template <typename T>
   static void paint(
       T& self,
-      const U& skin,
+      const score::Skin& skin,
       const QString& text,
       QPainter* painter,
       QWidget* widget)
   {
     painter->setRenderHint(QPainter::Antialiasing, true);
 
-    static const QPen darkPen{skin.HalfDark.color()};
-    static const QPen grayPen{skin.Gray.color()};
-    painter->setPen(darkPen);
-    painter->setBrush(skin.Dark);
+    painter->setPen(skin.NoPen);
+    painter->setBrush(skin.Background1.main.brush);
 
     // Draw rect
-    const auto srect = self.sliderRect();
+    const QRectF brect = self.boundingRect();
+    const QRectF srect = self.sliderRect();
     painter->drawRoundedRect(srect, 1, 1);
 
     // Draw text
@@ -73,18 +75,25 @@ struct DefaultGraphicsSliderImpl
 #else
     static const constexpr auto dpi_adjust = -2;
 #endif
-    painter->setPen(grayPen);
+    painter->setPen(skin.Base1.lighter180.pen1);
     painter->setFont(skin.SansFontSmall);
+    const auto textrect = brect.adjusted(2, srect.height() + 3 + dpi_adjust, -2, -1);
     painter->drawText(
-        srect.adjusted(6, dpi_adjust, -6, -1),
+        textrect,
         text,
-        self.getHandleX() > srect.width() / 2 ? QTextOption()
-                                              : QTextOption(Qt::AlignRight));
+        QTextOption(Qt::AlignCenter));
 
     // Draw handle
-    painter->setBrush(skin.HalfLight);
     painter->setRenderHint(QPainter::Antialiasing, false);
-    painter->drawRect(self.handleRect());
+    painter->fillRect(self.handleRect(), skin.Base1);
+
+    // painter->setPen(QPen(Qt::green, 1));
+    // painter->setBrush(QBrush(Qt::transparent));
+    // painter->drawRect(textrect);
+    //
+    // painter->setPen(QPen(Qt::red, 1));
+    // painter->setBrush(QBrush(Qt::transparent));
+    // painter->drawRect(self.boundingRect());
   }
 
   template <typename T>

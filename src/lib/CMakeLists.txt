@@ -2,7 +2,7 @@ project(score_lib_base LANGUAGES CXX)
 score_common_setup()
 
 # Packages
-find_package(Qt5 5.7 REQUIRED COMPONENTS Core Widgets Svg )
+find_package(Qt5 5.7 REQUIRED COMPONENTS Core Widgets OPTIONAL_COMPONENTS Svg)
 
 # Files & main target
 qt5_add_resources(QRCS "${CMAKE_CURRENT_SOURCE_DIR}/resources/score.qrc")
@@ -386,11 +386,17 @@ set(SRCS
 add_library(score_lib_base ${SRCS} ${HEADERS} ${QRCS})
 target_link_libraries(score_lib_base
     PUBLIC Qt5::Core Qt5::Widgets ossia # Qt5::Qml Qt5::QuickWidgets
-    PRIVATE Qt5::Svg )
+    )
+if(TARGET Qt5::Svg)
+  target_link_libraries(score_lib_base
+    PRIVATE Qt5::Svg
+  )
+endif()
 target_include_directories(score_lib_base PUBLIC 3rdparty/QProgressIndicator)
 target_include_directories(score_lib_base PUBLIC 3rdparty/Qt-Color-Widgets)
 target_include_directories(score_lib_base PUBLIC 3rdparty/Qt-Color-Widgets/src)
 target_include_directories(score_lib_base PUBLIC 3rdparty/Qt-Color-Widgets/QtColorWidgets)
+target_include_directories(score_lib_base PUBLIC ${OSSIA_3RDPARTY_FOLDER}/verdigris/src)
 
 set_property(TARGET score_lib_base PROPERTY COTIRE_CXX_PREFIX_HEADER_INIT "${CMAKE_CURRENT_SOURCE_DIR}/score/prefix.hpp")
 setup_score_library(score_lib_base)

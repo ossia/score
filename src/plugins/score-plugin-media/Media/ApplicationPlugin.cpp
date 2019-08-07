@@ -8,6 +8,7 @@
 #if defined(HAS_VST2)
 #include <Media/Effect/VST/VSTEffectModel.hpp>
 #include <Media/Effect/VST/VSTLoader.hpp>
+#include <QWebSocket>
 #endif
 #include <Device/Protocol/DeviceInterface.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
@@ -19,7 +20,6 @@
 #include <QDirIterator>
 #include <QFileInfo>
 #include <QProcess>
-#include <QWebSocket>
 
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Media::ApplicationPlugin)

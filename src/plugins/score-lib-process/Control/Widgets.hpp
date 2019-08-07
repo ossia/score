@@ -51,7 +51,7 @@ struct LogFloatControl final
 {
   static const constexpr bool must_validate = false;
   using type = float;
-  using port_type = Process::LogFloatSlider;
+  using port_type = Process::LogFloatSlider; // TODO BUG
   const float min{};
   const float max{};
   const float init{};

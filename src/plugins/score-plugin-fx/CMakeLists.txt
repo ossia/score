@@ -18,6 +18,7 @@ set(HDRS
   "${CMAKE_CURRENT_SOURCE_DIR}/Fx/EmptyMapping.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Fx/MathGenerator.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Fx/MathMapping.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Fx/DebugFx.hpp"
 
   "${CMAKE_CURRENT_SOURCE_DIR}/score_plugin_fx.hpp"
  )

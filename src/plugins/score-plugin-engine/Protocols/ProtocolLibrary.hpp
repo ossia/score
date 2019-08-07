@@ -15,9 +15,11 @@
 #include <ossia-qt/js_utilities.hpp>
 
 #include <QFileInfo>
+#if __has_include(<QQmlEngine>)
 #include <QQmlComponent>
 #include <QQmlEngine>
 #include <QQmlProperty>
+#endif
 #if defined(OSSIA_PROTOCOL_OSC)
 #include <Protocols/OSC/OSCProtocolFactory.hpp>
 #endif
@@ -108,6 +110,7 @@ class OSCLibraryHandler final : public Library::LibraryInterface
   }
 };
 
+#if __has_include(<QQmlEngine>)
 class QMLLibraryHandler final : public Library::LibraryInterface
 {
   SCORE_CONCRETE("fee42cea-ff1a-48ef-a0da-922773081779")
@@ -197,4 +200,5 @@ class QMLLibraryHandler final : public Library::LibraryInterface
     return true;
   }
 };
+#endif
 }

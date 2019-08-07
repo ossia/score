@@ -3,8 +3,9 @@ score_common_setup()
 
 # Packages
 # TODO make a check to see what libs aren't necessary
-find_package(Qt5 5.3 REQUIRED COMPONENTS Core Widgets Xml Svg Test)
+find_package(Qt5 5.3 REQUIRED COMPONENTS Core Widgets OPTIONAL_COMPONENTS Svg)
 
+find_package(Qt5 5.3 OPTIONAL_COMPONENTS Svg)
 if(SCORE_WEBSOCKETS)
 find_package(Qt5 5.3 REQUIRED COMPONENTS WebSockets)
 endif()
@@ -599,12 +600,18 @@ score_generate_command_list_file(score_plugin_scenario "${HDRS}")
 
 target_link_libraries(score_plugin_scenario
   PUBLIC
-    Qt5::Core Qt5::Widgets Qt5::Svg
-        score_lib_base
+    Qt5::Core Qt5::Widgets
+    score_lib_base
     score_lib_process score_lib_device score_plugin_deviceexplorer
     score_lib_state score_plugin_curve score_plugin_automation
     score_lib_inspector score_plugin_library Threads::Threads)
 
+
+if(TARGET Qt5::Svg)
+  target_link_libraries(score_lib_base
+    PRIVATE Qt5::Svg
+  )
+endif()
 if(SCORE_WEBSOCKETS)
 target_link_libraries(score_plugin_scenario PRIVATE Qt5::WebSockets)
 endif()

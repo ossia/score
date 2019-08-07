@@ -9,7 +9,9 @@
 #include <QGraphicsScene>
 #include <QMimeData>
 #include <QPainter>
+#if __has_include(<QSvgGenerator>)
 #include <QSvgGenerator>
+#endif
 namespace Scenario
 {
 
@@ -24,6 +26,7 @@ SnapshotAction::SnapshotAction(QGraphicsScene& scene, QWidget* parent)
 
 void SnapshotAction::takeScreenshot(QGraphicsScene& scene)
 {
+#if __has_include(<QSvgGenerator>)
   // Create a SVG from the scene
   QBuffer b;
   QSvgGenerator p;
@@ -53,5 +56,6 @@ void SnapshotAction::takeScreenshot(QGraphicsScene& scene)
   screenshot.open(QFile::WriteOnly);
   screenshot.write(b.buffer());
   screenshot.close();
+#endif
 }
 }

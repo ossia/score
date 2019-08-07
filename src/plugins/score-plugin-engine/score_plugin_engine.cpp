@@ -89,7 +89,9 @@ W_OBJECT_IMPL(Execution::ManualClock::TimeWidget)
 
 score_plugin_engine::score_plugin_engine()
 {
+#if __has_include(<QQmlEngine>)
   qmlRegisterType<Protocols::Mapper>("Ossia", 1, 0, "Mapper");
+#endif
   qRegisterMetaType<Execution::ClockFactory::ConcreteKey>("ClockKey");
   qRegisterMetaTypeStreamOperators<Execution::ClockFactory::ConcreteKey>(
       "ClockKey");
@@ -131,8 +133,10 @@ score_plugin_engine::factories(
   return instantiate_factories<
       score::ApplicationContext,
       FW<Device::ProtocolFactory,
-         Protocols::LocalProtocolFactory,
-         Protocols::MapperProtocolFactory
+         Protocols::LocalProtocolFactory
+    #if __has_include(<QQmlEngine>)
+      , Protocols::MapperProtocolFactory
+    #endif
 
 #if defined(OSSIA_PROTOCOL_OSC)
          ,
@@ -243,8 +247,11 @@ score_plugin_engine::factories(
          LocalTree::MappingComponentFactory>,
       FW<score::PanelDelegateFactory, Audio::PanelDelegateFactory>,
       FW<Library::LibraryInterface,
-         Protocols::OSCLibraryHandler,
-         Protocols::QMLLibraryHandler>,
+         Protocols::OSCLibraryHandler
+#if __has_include(<QQmlEngine>)
+       , Protocols::QMLLibraryHandler
+#endif
+      >,
       FW<Execution::ClockFactory
          // , Execution::ControlClockFactory
          ,

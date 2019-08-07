@@ -2,22 +2,20 @@
 #include <score/plugins/application/GUIApplicationPlugin.hpp>
 
 #include <verdigris>
-#if defined(HAS_LV2) // TODO instead add a proper preprocessor macro that
-                         // also works in static case
+#if defined(HAS_LV2)
 #include <Media/Effect/LV2/LV2Context.hpp>
-
 #include <lilv/lilvmm.hpp>
 #endif
 
 #if defined(HAS_VST2)
 #include <Media/Effect/VST/VSTLoader.hpp>
 #include <QElapsedTimer>
+#include <QWebSocketServer>
 #endif
 
 #include <ossia/detail/hash_map.hpp>
 
 #include <QProcess>
-#include <QWebSocketServer>
 #include <score_plugin_media_export.h>
 
 #include <thread>
