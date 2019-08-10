@@ -39,7 +39,7 @@ struct SCORE_LIB_PROCESS_EXPORT Style
   const score::Brush& IntervalLoop() const noexcept { return skin.Warn1; }
   const score::Brush& IntervalWarning() const noexcept { return skin.Warn2; }
   const score::Brush& IntervalInvalid() const noexcept { return skin.Warn3; }
-  const score::Brush& IntervalMuted() const noexcept { return skin.Gray; }
+  const score::Brush& IntervalMuted() const noexcept { return skin.HalfDark; }
   const score::Brush& IntervalDefaultLabel() const noexcept { return skin.Gray; }
   const score::Brush& IntervalDefaultBackground() const noexcept { return skin.Transparent1; }
 

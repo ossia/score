@@ -27,7 +27,7 @@ IntervalView::IntervalView(IntervalPresenter& presenter, QGraphicsItem* parent)
     : QGraphicsItem{parent}
     , m_leftBrace{*this, this}
     , m_rightBrace{*this, this}
-    , m_counterItem{score::ColorRef(&score::Skin::Light), this}
+    , m_counterItem{score::Skin::instance().Light.main, this}
     , m_presenter{presenter}
     , m_selected{false}
     , m_infinite{false}

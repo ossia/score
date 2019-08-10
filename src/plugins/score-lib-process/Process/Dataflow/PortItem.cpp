@@ -162,6 +162,7 @@ void PortItem::paint(
       painter->setBrush(style.MidiPortBrush().brush);
       break;
   }
+  painter->setBrush(Qt::NoBrush);
 
   painter->drawPolygon(m_diam == 8. ? smallEllipsePath : largeEllipsePath);
   painter->setRenderHint(QPainter::Antialiasing, false);

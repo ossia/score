@@ -220,7 +220,15 @@ struct Node
     port->setPos(0, 10);
 
     // Text
-    auto lab = new score::SimpleTextItem{&score::Skin::HalfLight, item};
+    const auto& brush = [&] () -> const score::Brush& {
+      switch(inlet.type)
+      {
+          case Process::PortType::Audio: return score::Skin::instance().Port1;
+          case Process::PortType::Message: return score::Skin::instance().Port2;
+          case Process::PortType::Midi: return score::Skin::instance().Port3;
+          default: return score::Skin::instance().Warn1;
+      };}().main;
+    auto lab = new score::SimpleTextItem{brush, item};
     lab->setText(ctrl.name);
     lab->setPos(10, 2);
 

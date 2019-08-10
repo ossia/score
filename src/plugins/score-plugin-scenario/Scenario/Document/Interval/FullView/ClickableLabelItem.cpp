@@ -49,7 +49,7 @@ ClickableLabelItem::ClickableLabelItem(
     ClickHandler&& onClick,
     const QString& text,
     QGraphicsItem* parent)
-    : score::SimpleTextItem{score::ColorRef{&score::Skin::Light}, parent}
+    : score::SimpleTextItem{score::Skin::instance().Light.main, parent}
     , m_onClick{std::move(onClick)}
 {
   setText(text);
@@ -73,12 +73,12 @@ void ClickableLabelItem::mousePressEvent(QGraphicsSceneMouseEvent* event)
 
 void ClickableLabelItem::hoverEnterEvent(QGraphicsSceneHoverEvent* event)
 {
-  this->setColor(score::ColorRef{&score::Skin::Base2});
+  this->setColor(score::Skin::instance().Base2.main);
 }
 
 void ClickableLabelItem::hoverLeaveEvent(QGraphicsSceneHoverEvent* event)
 {
-  this->setColor(score::ColorRef{&score::Skin::Light});
+  this->setColor(score::Skin::instance().Light.main);
 }
 
 int ClickableLabelItem::index() const

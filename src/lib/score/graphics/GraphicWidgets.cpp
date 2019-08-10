@@ -829,7 +829,7 @@ void QGraphicsCombo::paint(
   painter->drawRoundedRect(brect, 1, 1);
 
   // Draw text
-  painter->setPen(skin.Base1.lighter180.pen1);
+  painter->setPen(skin.Base4.lighter180.pen1);
   painter->setFont(skin.Medium8Pt);
   painter->drawText(
       brect,
@@ -924,12 +924,13 @@ void QGraphicsEnum::paint(
 {
   auto& style = score::Skin::instance();
 
-  static QPen border(style.Base1.color(), 1);
-  static QPen borderClicking(style.Smooth3.color(), 1);
-  static QPen text{style.Base1.color()};
-  static QFont textFont{style.MonoFontSmall};
-  static QPen currentText(style.Smooth2.color());
-  static QBrush bg(style.SliderBrush);
+  const QPen& border = style.Base4.darker300.pen1;
+  const QPen& borderClicking = style.Smooth3.main.pen1;
+  const QPen& text = style.Base4.lighter.pen1;
+  const QFont& textFont = style.MonoFontSmall;
+  const QPen& currentText = style.Smooth2.main.pen1;
+  const QBrush& bg = style.SliderBrush;
+  const QBrush& noBrush = style.NoBrush;
 
   int row = 0;
   int col = 0;
@@ -938,13 +939,22 @@ void QGraphicsEnum::paint(
 
   painter->setBrush(bg);
   int i = 0;
+  QRectF clickRect{};
   for(const QString& str : array)
   {
     QRectF rect{col * w, row * h, w, h};
-    painter->setPen(i != m_clicking ? border : borderClicking);
-    painter->drawRect(rect);
+    if(i == m_clicking)
+    {
+      clickRect = rect;
+      painter->setPen(currentText);
+    }
+    else
+    {
+      painter->setPen( border );
+      painter->drawRect(rect);
+      painter->setPen(i != m_value ? text : currentText);
+    }
 
-    painter->setPen(i != m_value ? text : currentText);
     painter->setFont(textFont);
     painter->drawText(rect, str, QTextOption(Qt::AlignCenter));
     col++;
@@ -954,6 +964,14 @@ void QGraphicsEnum::paint(
       col = 0;
     }
     i++;
+  }
+
+  if(m_clicking >= 0)
+  {
+    painter->setPen( borderClicking );
+    painter->setBrush( noBrush );
+    painter->drawRect( clickRect );
+
   }
 }
 

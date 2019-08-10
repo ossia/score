@@ -26,7 +26,7 @@ namespace fxd {
 
     QGraphicsItem* operator()(const TextWidget& txt)
     {
-      auto it = new score::SimpleTextItem{&score::Skin::HalfLight, nullptr};
+      auto it = new score::SimpleTextItem{score::Skin::instance().HalfLight.main, nullptr};
       it->setZValue(20);
       it->setPos(w.pos());
       it->setText(txt.text);

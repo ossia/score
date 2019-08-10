@@ -122,7 +122,9 @@ public:
 
 ALSAFactory::ALSAFactory()
 {
-  rescan();
+  QString res = qgetenv("SCORE_DISABLE_ALSA");
+  if(res.isEmpty())
+    rescan();
 }
 
 ALSAFactory::~ALSAFactory()

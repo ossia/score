@@ -43,7 +43,7 @@ TimeSyncPresenter::TimeSyncPresenter(
   con(m_model.metadata(),
       &score::ModelMetadata::ColorChanged,
       this,
-      [=](const score::ColorRef& c) { m_view->changeColor(c); });
+      [=](const score::ColorRef& c) { m_view->changeColor(c.getBrush()); });
   con(m_model.metadata(),
       &score::ModelMetadata::LabelChanged,
       this,
@@ -54,7 +54,7 @@ TimeSyncPresenter::TimeSyncPresenter(
     m_triggerView->setToolTip(m_model.expression().toString());
   });
 
-  m_view->changeColor(m_model.metadata().getColor());
+  m_view->changeColor(m_model.metadata().getColor().getBrush());
   m_view->setLabel(m_model.metadata().getLabel());
   m_view->setTriggerActive(m_model.active());
   // TODO find a correct way to handle validity of model elements.

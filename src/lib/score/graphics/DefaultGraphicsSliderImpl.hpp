@@ -75,7 +75,7 @@ struct DefaultGraphicsSliderImpl
 #else
     static const constexpr auto dpi_adjust = -2;
 #endif
-    painter->setPen(skin.Base1.lighter180.pen1);
+    painter->setPen(skin.Base4.lighter180.pen1);
     painter->setFont(skin.SansFontSmall);
     const auto textrect = brect.adjusted(2, srect.height() + 3 + dpi_adjust, -2, -1);
     painter->drawText(
@@ -85,7 +85,7 @@ struct DefaultGraphicsSliderImpl
 
     // Draw handle
     painter->setRenderHint(QPainter::Antialiasing, false);
-    painter->fillRect(self.handleRect(), skin.Base1);
+    painter->fillRect(self.handleRect(), skin.Base4);
 
     // painter->setPen(QPen(Qt::green, 1));
     // painter->setBrush(QBrush(Qt::transparent));
