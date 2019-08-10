@@ -155,6 +155,7 @@ static void setQApplicationSettings(QApplication& m_app)
 #endif
 
   QFontDatabase::addApplicationFont(":/APCCourierBold.otf"); // APCCourier-Bold
+
   QFontDatabase::addApplicationFont(":/Ubuntu-R.ttf");       // Ubuntu Regular
   QFontDatabase::addApplicationFont(":/Ubuntu-B.ttf");       // Ubuntu Bold
   QFontDatabase::addApplicationFont(":/Ubuntu-L.ttf");       // Ubuntu Light

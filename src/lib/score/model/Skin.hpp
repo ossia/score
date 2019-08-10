@@ -11,19 +11,10 @@
 class QJsonObject;
 namespace score
 {
+struct Brush;
+class Skin;
 struct SCORE_LIB_BASE_EXPORT BrushSet
 {
-  BrushSet() noexcept;
-  BrushSet(const BrushSet&) noexcept;
-  BrushSet(BrushSet&&) noexcept;
-  BrushSet& operator=(const BrushSet&) noexcept;
-  BrushSet& operator=(BrushSet&&) noexcept;
-  ~BrushSet();
-
-  explicit BrushSet(const QBrush& b) noexcept;
-
-  BrushSet& operator=(const QBrush& b) noexcept;
-
   QBrush brush;
   QPen pen_cosmetic;
   QPen pen0;
@@ -42,10 +33,34 @@ struct SCORE_LIB_BASE_EXPORT BrushSet
   QPen pen3_dashed_flat_miter;
 
   void setupPens();
+
+private:
+  BrushSet() noexcept;
+  BrushSet(const BrushSet&) noexcept;
+  BrushSet(BrushSet&&) noexcept;
+  BrushSet& operator=(const BrushSet&) noexcept;
+  BrushSet& operator=(BrushSet&&) noexcept;
+  ~BrushSet();
+
+  explicit BrushSet(const QBrush& b) noexcept;
+
+  BrushSet& operator=(const QBrush& b) noexcept;
+  friend struct Brush;
 };
 
 struct SCORE_LIB_BASE_EXPORT Brush
 {
+  operator const QBrush&() const noexcept { return main.brush; }
+  QColor color() const noexcept { return main.brush.color(); }
+
+  BrushSet main;
+  BrushSet darker;
+  BrushSet darker300;
+  BrushSet lighter;
+  BrushSet lighter180;
+
+  void reload(QColor color) noexcept;
+private:
   Brush() noexcept;
   Brush(const Brush&) noexcept;
   Brush(Brush&&) noexcept;
@@ -56,14 +71,8 @@ struct SCORE_LIB_BASE_EXPORT Brush
   explicit Brush(const QBrush& b) noexcept;
   Brush& operator=(const QBrush& b) noexcept;
 
-  operator const QBrush&() const noexcept { return main.brush; }
-  QColor color() const noexcept { return main.brush.color(); }
-
-  BrushSet main;
-  BrushSet darker;
-  BrushSet darker300;
-  BrushSet lighter;
-  BrushSet lighter180;
+  friend class Skin;
+  friend class QPair<QString, Brush>;
 };
 
 class SCORE_LIB_BASE_EXPORT Skin : public QObject
@@ -99,6 +108,7 @@ public:
   Brush Emphasis2;
   Brush Emphasis3;
   Brush Emphasis4;
+  Brush Emphasis5;
 
   Brush Base1;
   Brush Base2;

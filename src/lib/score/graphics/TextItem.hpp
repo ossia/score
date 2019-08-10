@@ -24,10 +24,10 @@ protected:
   void focusOutEvent(QFocusEvent* event) override;
 };
 
-class SCORE_LIB_BASE_EXPORT SimpleTextItem : public QGraphicsItem
+class SCORE_LIB_BASE_EXPORT SimpleTextItem : public QObject, public QGraphicsItem
 {
 public:
-  SimpleTextItem(const score::ColorRef& col, QGraphicsItem*);
+  SimpleTextItem(const score::BrushSet& col, QGraphicsItem*);
 
   QRectF boundingRect() const final override;
   void paint(
@@ -38,18 +38,23 @@ public:
   void setFont(QFont f);
   void setText(QString s);
   void setText(std::string_view s);
-  void setColor(score::ColorRef c);
+  void setColor(const score::BrushSet& c);
 
 private:
+  SimpleTextItem() = delete;
+  SimpleTextItem(const SimpleTextItem&) = delete;
+  SimpleTextItem(SimpleTextItem&&) = delete;
+  SimpleTextItem& operator=(const SimpleTextItem&) = delete;
+  SimpleTextItem& operator=(SimpleTextItem&&) = delete;
   void updateImpl();
   QRectF m_rect;
-  score::ColorRef m_color;
+  const score::BrushSet* m_color{};
   QFont m_font;
   QString m_string;
   QImage m_line;
 };
 
-class SCORE_LIB_BASE_EXPORT QGraphicsTextButton : public QObject,
+class SCORE_LIB_BASE_EXPORT QGraphicsTextButton :// public QObject,
                                                   public score::SimpleTextItem
 {
   W_OBJECT(QGraphicsTextButton)

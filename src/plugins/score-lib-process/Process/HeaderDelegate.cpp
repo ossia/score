@@ -132,7 +132,11 @@ void DefaultHeaderDelegate::updateText()
 const QPen& DefaultHeaderDelegate::textPen(Style& style, const Process::ProcessModel& model) const noexcept
 {
   score::ModelMetadata* parent_col = model.parent()->template findChild<score::ModelMetadata*>({}, Qt::FindDirectChildrenOnly);
-  return parent_col->getColor().getBrush().lighter180.pen_cosmetic;
+  auto& b = parent_col->getColor().getBrush();
+  if(&b == &style.IntervalDefaultBackground())
+    return style.skin.HalfLight.main.pen_cosmetic;
+  else
+    return b.lighter180.pen_cosmetic;
 }
 
 void DefaultHeaderDelegate::setSize(QSizeF sz)

@@ -63,7 +63,8 @@ void SlotHeader::paint(
   const auto& style = Process::Style::instance();
 
 
-  painter->fillRect(QRectF{0., 0., m_width, headerHeight() - 1}, m_presenter.model().metadata().getColor().getBrush().color().darker());
+  auto& brush = m_presenter.model().metadata().getColor().getBrush().darker.brush;
+  painter->fillRect(QRectF{0., 0., m_width, headerHeight() - 1}, brush);
   if (m_width > 20)
   {
     painter->setPen(style.SlotHeaderPen());
@@ -79,7 +80,6 @@ void SlotHeader::paint(
     painter->drawLine(centerX - r, centerY + 3, centerX + r, centerY + 3);
 
     painter->setRenderHint(QPainter::Antialiasing, true);
-
   }
 }
 

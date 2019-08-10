@@ -366,7 +366,7 @@ public:
           if (list.currentItem())
           {
             if(auto brush = s.fromString(list.currentItem()->text()))
-              *brush = score::Brush{QBrush{c}};
+              brush->reload(c);
             QPixmap p{16, 16};
             p.fill(c);
             list.currentItem()->setIcon(p);
@@ -378,6 +378,30 @@ public:
                             .arg(c.blue()));
           }
         });
+
+    connect(&hexa, &QLineEdit::textChanged,
+            this, [this, &s] (const QString& txt) {
+      auto item = list.currentItem();
+      if(!item)
+        return;
+      if(!QColor::isValidColor(txt))
+        return;
+      auto c = QColor(txt);
+      auto brush = s.fromString(item->text());
+      if(brush->color() != c)
+      {
+        QPixmap p{16, 16};
+        p.fill(c);
+        item->setIcon(p);
+        brush->reload(c);
+        rgb.setText(QString("%1, %2, %3")
+                        .arg(c.red())
+                        .arg(c.green())
+                        .arg(c.blue()));
+        s.changed();
+        wheel.setColor(c);
+      }
+    });
 
     connect(&save, &QPushButton::clicked, this, [] {
       auto f = QFileDialog::getSaveFileName(

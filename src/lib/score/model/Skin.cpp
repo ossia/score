@@ -41,7 +41,8 @@ Skin::~Skin()
 }
 Skin::Skin() noexcept : SansFont{"Ubuntu"}
 , MonoFont{"APCCourier-Bold", 10, QFont::Black}
-, MonoFontSmall{"APCCourier-Bold", 8, QFont::Black}
+, MonoFontSmall{"APCCourier-Bold", 7, QFont::Normal}
+
 #if defined(_WIN32)
 , SansFontSmall
 {
@@ -63,9 +64,11 @@ Skin::Skin() noexcept : SansFont{"Ubuntu"}
     m_colorMap(new color_map{
         SCORE_INSERT_COLOR(Dark),           SCORE_INSERT_COLOR(HalfDark),  SCORE_INSERT_COLOR(DarkGray),
         SCORE_INSERT_COLOR(Gray),           SCORE_INSERT_COLOR(LightGray), SCORE_INSERT_COLOR(HalfLight),
-        SCORE_INSERT_COLOR(Light),          SCORE_INSERT_COLOR(Emphasis1),
+        SCORE_INSERT_COLOR(Light),
+        SCORE_INSERT_COLOR(Emphasis1),
         SCORE_INSERT_COLOR(Emphasis2),      SCORE_INSERT_COLOR(Emphasis3),
-        SCORE_INSERT_COLOR(Emphasis4),      SCORE_INSERT_COLOR(Base1),
+        SCORE_INSERT_COLOR(Emphasis4),      SCORE_INSERT_COLOR(Emphasis5),
+        SCORE_INSERT_COLOR(Base1),
         SCORE_INSERT_COLOR(Base2),          SCORE_INSERT_COLOR(Base3),
         SCORE_INSERT_COLOR(Base4),          SCORE_INSERT_COLOR(Base5),
         SCORE_INSERT_COLOR(Warn1),
@@ -103,6 +106,8 @@ Skin::Skin() noexcept : SansFont{"Ubuntu"}
        SCORE_INSERT_COLOR_CUSTOM("#000000", "Black")
     }
 {
+  MonoFont.setFamilies({"APCCourier-Bold"});
+  MonoFontSmall.setFamilies({"Ubuntu"});
   for(auto& c : m_defaultPalette)
     m_colorMap->left.insert({c.first, &c.second});
 
@@ -202,6 +207,7 @@ void Skin::load(const QJsonObject& obj)
   SCORE_CONVERT_COLOR(Emphasis2);
   SCORE_CONVERT_COLOR(Emphasis3);
   SCORE_CONVERT_COLOR(Emphasis4);
+  SCORE_CONVERT_COLOR(Emphasis5);
 
   SCORE_CONVERT_COLOR(Base1);
   SCORE_CONVERT_COLOR(Base2);
@@ -256,6 +262,7 @@ QVector<QPair<QColor, QString>> Skin::getColors() const
   SCORE_MAKE_PAIR_COLOR(Emphasis2);
   SCORE_MAKE_PAIR_COLOR(Emphasis3);
   SCORE_MAKE_PAIR_COLOR(Emphasis4);
+  SCORE_MAKE_PAIR_COLOR(Emphasis5);
   SCORE_MAKE_PAIR_COLOR(Base1);
   SCORE_MAKE_PAIR_COLOR(Base2);
   SCORE_MAKE_PAIR_COLOR(Base3);
@@ -352,6 +359,11 @@ QString Skin::toString(const Brush* c) const
 {
   auto it = m_colorMap->right.find(const_cast<Brush*>(c));
   return it != m_colorMap->right.end() ? it->second : nullptr;
+}
+
+void Brush::reload(QColor color) noexcept
+{
+  *this = Brush{QBrush{color}};
 }
 
 Brush::Brush() noexcept { }

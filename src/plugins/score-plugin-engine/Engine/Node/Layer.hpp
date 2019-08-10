@@ -101,7 +101,7 @@ struct AutoUISetup
     auto port = fact->makeItem(*inlet, doc, item, &context);
 
     // Text
-    auto lab = new score::SimpleTextItem{&score::Skin::HalfLight, item};
+    auto lab = new score::SimpleTextItem{score::Skin::instance().HalfLight.main, item};
     lab->setText(ctrl.name);
     lab->setPos(15, 2);
 

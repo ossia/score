@@ -34,20 +34,16 @@ void RectItem::paint(
     const QStyleOptionGraphicsItem* option,
     QWidget* widget)
 {
-  static const auto pen = QPen{QColor(qRgba(80, 100, 140, 100)),
-                               2,
-                               Qt::SolidLine,
-                               Qt::RoundCap,
-                               Qt::RoundJoin};
-  static const auto highlight_pen = QPen{QColor(qRgba(100, 120, 180, 100)),
-                                         2,
-                                         Qt::SolidLine,
-                                         Qt::RoundCap,
-                                         Qt::RoundJoin};
-  static const auto brush = QBrush{Qt::transparent};
+  const auto& skin = score::Skin::instance();
+
+  const auto& nobrush = skin.NoBrush;
+  const auto& brush = skin.Emphasis5;
+
+  const auto& pen = brush.main.pen2_solid_round_round;
+  const auto& highlight_pen = brush.lighter.pen2_solid_round_round;
 
   painter->setRenderHint(QPainter::Antialiasing, true);
-  painter->setBrush(brush);
+  painter->setBrush(nobrush);
   painter->setPen(!m_highlight ? pen : highlight_pen);
   painter->drawRoundedRect(m_rect, 5, 5);
   painter->setRenderHint(QPainter::Antialiasing, false);

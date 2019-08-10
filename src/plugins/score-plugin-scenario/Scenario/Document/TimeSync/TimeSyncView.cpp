@@ -28,8 +28,8 @@ namespace Scenario
 TimeSyncView::TimeSyncView(TimeSyncPresenter& presenter, QGraphicsItem* parent)
     : QGraphicsItem{parent}
     , m_presenter{presenter}
-    , m_color{presenter.model().metadata().getColor()}
-    , m_text{m_color, this}
+    , m_color{&presenter.model().metadata().getColor().getBrush()}
+    , m_text{m_color->main, this}
 {
   this->setCacheMode(QGraphicsItem::NoCache);
   this->setParentItem(parent);
@@ -74,7 +74,7 @@ void TimeSyncView::paint(
   }
   else
   {
-    painter->setPen(skin.TimenodePen(m_color.getBrush()));
+    painter->setPen(skin.TimenodePen(*m_color));
   }
 
   painter->drawLine(QPointF(0., 0.), QPointF(0., height));
@@ -123,9 +123,9 @@ void TimeSyncView::setSelected(bool selected)
   update();
 }
 
-void TimeSyncView::changeColor(score::ColorRef newColor)
+void TimeSyncView::changeColor(const score::Brush& newColor)
 {
-  m_color = newColor;
+  m_color = &newColor;
   this->update();
 }
 

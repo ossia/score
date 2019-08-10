@@ -53,22 +53,22 @@ struct DefaultGraphicsKnobImpl
     double textDelta = 0.;
     if(rw >= 30.)
     {
-      painter->setPen(skin.Base1.main.pen3_solid_round_round);
+      painter->setPen(skin.Base4.main.pen3_solid_round_round);
       textDelta = -10;
     }
     else if(rw >= 20.)
     {
-      painter->setPen(skin.Base1.main.pen2_solid_round_round);
+      painter->setPen(skin.Base4.main.pen2_solid_round_round);
       textDelta = -9;
     }
     else if(rw >= 10.)
     {
-      painter->setPen(skin.Base1.main.pen1_5);
+      painter->setPen(skin.Base4.main.pen1_5);
       textDelta = -8;
     }
     else if(rw >= 5.)
     {
-      painter->setPen(skin.Base1.main.pen1);
+      painter->setPen(skin.Base4.main.pen1);
       textDelta = -7;
     }
     painter->drawArc(r, start, valueSpan);
@@ -84,7 +84,7 @@ struct DefaultGraphicsKnobImpl
     painter->drawLine(QPointF{x0, y0}, QPointF{x1, y1});
 
     // Draw text
-    painter->setPen(skin.Base1.lighter180.pen1);
+    painter->setPen(skin.Base4.lighter180.pen1);
     painter->setFont(skin.SansFontSmall);
     painter->drawText(
         QRectF{0., srect.height() + textDelta, srect.width(), 10.},

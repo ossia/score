@@ -56,7 +56,7 @@ public:
 
   bool isSelected() const { return m_selected; }
 
-  void changeColor(score::ColorRef);
+  void changeColor(const score::Brush&);
   void setLabel(const QString& label);
 
 protected:
@@ -69,7 +69,7 @@ private:
   VerticalExtent m_extent;
 
   QPointF m_clickedPoint{};
-  score::ColorRef m_color;
+  const score::Brush* m_color{};
   bool m_selected{};
 
   score::SimpleTextItem m_text;

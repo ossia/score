@@ -8,6 +8,7 @@
 #include <QGraphicsView>
 #include <QPainter>
 #include <QTextLayout>
+#include <QTimer>
 
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(score::TextItem)
@@ -27,8 +28,10 @@ void TextItem::focusOutEvent(QFocusEvent* event)
   focusOut();
 }
 
-SimpleTextItem::SimpleTextItem(const score::ColorRef& col, QGraphicsItem* p)
-    : QGraphicsItem{p}, m_color{col}
+SimpleTextItem::SimpleTextItem(
+      const score::BrushSet& col,
+      QGraphicsItem* p)
+    : QGraphicsItem{p}, m_color{&col}
 {
 }
 
@@ -67,9 +70,9 @@ void SimpleTextItem::setText(std::string_view s)
   updateImpl();
 }
 
-void SimpleTextItem::setColor(score::ColorRef c)
+void SimpleTextItem::setColor(const score::BrushSet& c)
 {
-  m_color = c;
+  m_color = &c;
   updateImpl();
 }
 
@@ -106,19 +109,20 @@ void SimpleTextItem::updateImpl()
 
       QPainter p{&m_line};
       auto& skin = score::Skin::instance();
-      skin.TextItemPen.setBrush(m_color.getBrush());
 
-      p.setPen(skin.TextItemPen);
+      if(m_color)
+        p.setPen(m_color->pen1);
       p.setBrush(skin.NoBrush);
       p.drawGlyphRun(QPointF{0, 0}, r[0]);
     }
   }
 
+  QTimer::singleShot(100, this, [=] { updateImpl(); });
   update();
 }
 
 QGraphicsTextButton::QGraphicsTextButton(QString text, QGraphicsItem* parent)
-    : SimpleTextItem{score::ColorRef(&score::Skin::instance().Base1), parent}
+    : SimpleTextItem{score::Skin::instance().Base1.main, parent}
 {
   setText(std::move(text));
 }

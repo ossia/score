@@ -90,8 +90,8 @@ void DefaultEffectItem::setupInlet(
   auto port = fact->makeItem(inlet, doc, item, this);
   m_ports.push_back({item, port});
 
-  auto lab = new score::SimpleTextItem{&score::Skin::Emphasis4,
-                                       item};
+  const score::Skin& skin = score::Skin::instance();
+  auto lab = new score::SimpleTextItem{skin.Base4.lighter180, item};
   if (inlet.customData().isEmpty())
     lab->setText(tr("Control"));
   else
@@ -138,7 +138,8 @@ void DefaultEffectItem::setupOutlet(
   auto port = fact->makeItem(outlet, doc, item, this);
   m_ports.push_back({item, port});
 
-  auto lab = new score::SimpleTextItem{&score::Skin::Emphasis4, item};
+  const score::Skin& skin = score::Skin::instance();
+  auto lab = new score::SimpleTextItem{skin.Emphasis4.main, item};
   if (outlet.customData().isEmpty())
     lab->setText(tr("Control"));
   else
