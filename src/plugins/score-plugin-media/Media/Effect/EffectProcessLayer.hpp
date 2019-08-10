@@ -372,12 +372,17 @@ private:
     if (m_lit)
     {
       int idx = *m_lit;
+      double w = 2.5;
+      for(int i = 0; i < idx; i++)
+      {
+        w += 10 + m_effects[i]->root_item->boundingRect().width();
+      }
 
       p->setRenderHint(QPainter::Antialiasing, false);
       p->setPen(Process::Style::instance().TransparentPen());
       p->setBrush(Process::Style::instance().StateDot());
       p->drawRoundedRect(
-          QRectF(2.5 + idx * 180, 15, 5, boundingRect().height() - 30), 4, 4);
+          QRectF(w, 15, 5, boundingRect().height() - 30), 4, 4);
       p->setRenderHint(QPainter::Antialiasing, false);
     }
   }
@@ -410,6 +415,10 @@ private:
   void dragEnterEvent(QGraphicsSceneDragDropEvent* ev) override
   {
     dragMoveEvent(ev);
+    for(auto& item : m_effects)
+    {
+      item->root_item->setZValue(-1);
+    }
   }
   void dragMoveEvent(QGraphicsSceneDragDropEvent* ev) override
   {
@@ -422,11 +431,20 @@ private:
     m_lit = {};
     ev->accept();
     update();
+
+    for(auto& item : m_effects)
+    {
+      item->root_item->setZValue(1);
+    }
   }
   void dropEvent(QGraphicsSceneDragDropEvent* ev) override
   {
     dropReceived(ev->pos(), *ev->mimeData());
     m_lit = {};
+    for(auto& item : m_effects)
+    {
+      item->root_item->setZValue(1);
+    }
   }
 
   std::vector<std::shared_ptr<EffectUi>> m_effects;
