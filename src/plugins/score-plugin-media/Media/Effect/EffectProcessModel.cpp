@@ -117,6 +117,7 @@ void ProcessModel::insertEffect(Process::ProcessModel* eff, int pos)
 void ProcessModel::removeEffect(const Id<Process::ProcessModel>& e)
 {
   m_effects.remove(e);
+  checkChaining();
   // TODO adjust and check ports
   // TODO introduce a dummy effect if the ports don't match
   effectsChanged();
@@ -135,6 +136,7 @@ void ProcessModel::moveEffect(const Id<Process::ProcessModel>& e, int new_pos)
     m_effects.move(e, new_pos);
     effectsChanged();
   }
+  checkChaining();
 }
 
 int ProcessModel::effectPosition(const Id<Process::ProcessModel>& e) const
