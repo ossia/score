@@ -109,7 +109,16 @@ Skin::Skin() noexcept : SansFont{"Ubuntu"}
   MonoFont.setFamilies({"APCCourier-Bold"});
   MonoFontSmall.setFamilies({"Ubuntu"});
   for(auto& c : m_defaultPalette)
+  {
     m_colorMap->left.insert({c.first, &c.second});
+  }
+
+  // make the "lighter" of black more light.
+  {
+    Brush& blackBrush = m_defaultPalette.back().second;
+    blackBrush.lighter = Gray.main;
+    blackBrush.lighter180 = HalfLight.main;
+  }
 
   this->startTimer(32, Qt::CoarseTimer);
 #if QT_VERSION >= QT_VERSION_CHECK(5, 10, 0)
@@ -241,6 +250,13 @@ void Skin::load(const QJsonObject& obj)
   SCORE_CONVERT_COLOR(Pulse1);
   SCORE_CONVERT_COLOR(Pulse2);
 
+  // make the "lighter" of black more light.
+  {
+    Transparent1.darker = Transparent1.lighter180;
+    Transparent1.darker300 = Transparent1.lighter;
+    Transparent1.lighter = Gray.main;
+    Transparent1.lighter180 = HalfLight.main;
+  }
   changed();
 }
 
@@ -409,7 +425,7 @@ Brush::~Brush() = default;
 Brush::Brush(const QBrush& b) noexcept
   : main{b}
   , darker{b.color().darker()}
-  , darker300{b.color().darker(300)}
+  , darker300{b.color().darker(150)}
   , lighter{b.color().lighter()}
   , lighter180{b.color().lighter(180)}
 {
@@ -420,7 +436,7 @@ Brush& Brush::operator=(const QBrush& b) noexcept
 {
   main = b;
   darker = b.color().darker();
-  darker300 = b.color().darker(300);
+  darker300 = b.color().darker(150);
   lighter = b.color().lighter();
   lighter180 = b.color().lighter(180);
   return *this;

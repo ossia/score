@@ -31,8 +31,6 @@ struct DefaultGraphicsKnobImpl
       QPainter* painter,
       QWidget* widget)
   {
-    static const QPen grayPen{skin.HalfLight.color()};
-
     painter->setRenderHint(QPainter::Antialiasing, true);
 
     constexpr const double adj = 6.;
@@ -45,8 +43,8 @@ struct DefaultGraphicsKnobImpl
     const double rw = r.width();
 
     // Draw knob
-    painter->setPen(skin.Background1.main.pen1);
-    painter->setBrush(skin.Background1.main.brush);
+    painter->setPen(skin.Emphasis2.main.pen1);
+    painter->setBrush(skin.Emphasis2.main.brush);
     painter->drawChord(r, start, -totalSpan);
 
     const double valueSpan = -self.m_value * totalSpan;

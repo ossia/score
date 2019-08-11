@@ -1,26 +1,8 @@
 #pragma once
-#include <Scenario/Document/BaseScenario/BaseScenario.hpp>
-#include <Scenario/Document/Event/ConditionView.hpp>
-#include <Scenario/Document/Event/EventModel.hpp>
-#include <Scenario/Document/Event/EventPresenter.hpp>
-#include <Scenario/Document/Event/EventView.hpp>
-#include <Scenario/Document/Interval/IntervalHeader.hpp>
-#include <Scenario/Document/Interval/IntervalModel.hpp>
-#include <Scenario/Document/Interval/IntervalPresenter.hpp>
-#include <Scenario/Document/Interval/IntervalView.hpp>
-#include <Scenario/Document/Interval/Slot.hpp>
-#include <Scenario/Document/Interval/SlotHandle.hpp>
-#include <Scenario/Document/Interval/Temporal/Braces/LeftBrace.hpp>
-#include <Scenario/Document/State/StateModel.hpp>
-#include <Scenario/Document/State/StatePresenter.hpp>
-#include <Scenario/Document/State/StateView.hpp>
-#include <Scenario/Document/State/StateMenuOverlay.hpp>
-#include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
-#include <Scenario/Document/TimeSync/TimeSyncPresenter.hpp>
-#include <Scenario/Document/TimeSync/TimeSyncView.hpp>
-#include <Scenario/Document/TimeSync/TriggerView.hpp>
 #include <Scenario/Palette/ScenarioPaletteBaseTransitions.hpp>
 #include <Scenario/Palette/ScenarioPoint.hpp>
+#include <Scenario/Palette/Tools/ObjectMapper.hpp>
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentViewConstants.hpp>
 
 #include <score/model/Identifier.hpp>
 #include <score/statemachine/GraphicsSceneTool.hpp>
@@ -65,7 +47,9 @@ QList<Id<typename PresenterContainer::model_type>> getCollidingModels(
 namespace Scenario
 {
 template <typename ToolPalette_T>
-class ToolBase : public GraphicsSceneTool<Scenario::Point>
+class ToolBase
+    : public GraphicsSceneTool<Scenario::Point>
+    , public ObjectMapper
 {
 public:
   ToolBase(const ToolPalette_T& palette)
@@ -74,96 +58,6 @@ public:
   }
 
 protected:
-  OptionalId<EventModel> itemToEventId(const QGraphicsItem* pressedItem) const
-  {
-    const auto& event
-        = static_cast<const EventView*>(pressedItem)->presenter().model();
-    return event.parent() == &this->m_palette.model()
-               ? event.id()
-               : OptionalId<EventModel>{};
-  }
-  OptionalId<EventModel>
-  itemToConditionId(const QGraphicsItem* pressedItem) const
-  {
-    const auto& event
-        = static_cast<const EventView*>(pressedItem->parentItem())
-              ->presenter()
-              .model();
-    return event.parent() == &this->m_palette.model()
-               ? event.id()
-               : OptionalId<EventModel>{};
-  }
-  OptionalId<TimeSyncModel>
-  itemToTimeSyncId(const QGraphicsItem* pressedItem) const
-  {
-    const auto& timesync
-        = static_cast<const TimeSyncView*>(pressedItem)->presenter().model();
-    return timesync.parent() == &this->m_palette.model()
-               ? timesync.id()
-               : OptionalId<TimeSyncModel>{};
-  }
-  OptionalId<TimeSyncModel>
-  itemToTriggerId(const QGraphicsItem* pressedItem) const
-  {
-    const auto& timesync
-        = static_cast<const TimeSyncView*>(pressedItem->parentItem())
-              ->presenter()
-              .model();
-    return timesync.parent() == &this->m_palette.model()
-               ? timesync.id()
-               : OptionalId<TimeSyncModel>{};
-  }
-  OptionalId<IntervalModel>
-  itemToIntervalId(const QGraphicsItem* pressedItem) const
-  {
-    const auto& interval
-        = static_cast<const IntervalView*>(pressedItem)->presenter().model();
-    return interval.parent() == &this->m_palette.model()
-               ? interval.id()
-               : OptionalId<IntervalModel>{};
-  }
-
-  OptionalId<StateModel> itemToStateId(const QGraphicsItem* pressedItem) const
-  {
-    const auto& state
-        = static_cast<const StateView*>(pressedItem)->presenter().model();
-
-    return state.parent() == &this->m_palette.model()
-               ? state.id()
-               : OptionalId<StateModel>{};
-  }
-  optional<SlotPath>
-  itemToIntervalFromHandle(const QGraphicsItem* pressedItem) const
-  {
-    auto handle = static_cast<const SlotHandle*>(pressedItem);
-    const auto& cst = handle->presenter().model();
-
-    if (cst.parent() == &this->m_palette.model())
-    {
-      auto fv = isInFullView(cst) ? Slot::FullView : Slot::SmallView;
-      return SlotPath{cst, handle->slotIndex(), fv};
-    }
-    else
-    {
-      return ossia::none;
-    }
-  }
-  optional<SlotPath>
-  itemToIntervalFromHeader(const QGraphicsItem* pressedItem) const
-  {
-    auto handle = static_cast<const SlotHeader*>(pressedItem);
-    const auto& cst = handle->presenter().model();
-
-    if (cst.parent() == &this->m_palette.model())
-    {
-      auto fv = isInFullView(cst) ? Slot::FullView : Slot::SmallView;
-      return SlotPath{cst, handle->slotIndex(), fv};
-    }
-    else
-    {
-      return ossia::none;
-    }
-  }
 
   template <
       typename EventFun,
@@ -200,62 +94,58 @@ protected:
     // Each time :
     // Check if it is an event / timesync / interval /state
     // The itemToXXXId methods check that we are in the correct scenario, too.
+    auto parent = &this->m_palette.model();
+
     switch (item->type())
     {
-      case ConditionView::static_type():
-        tryFun(ev_fun, itemToConditionId(item));
+      case ItemType::Condition:
+        tryFun(ev_fun, itemToConditionId(item, parent));
         break;
-      case EventView::static_type():
-        tryFun(ev_fun, itemToEventId(item));
-        break;
-
-      case IntervalView::static_type():
-        tryFun(cst_fun, itemToIntervalId(item));
+      case ItemType::Event:
+        tryFun(ev_fun, itemToEventId(item, parent));
         break;
 
-      case TriggerView::static_type():
-        tryFun(tn_fun, itemToTriggerId(item));
+      case ItemType::Interval:
+        tryFun(cst_fun, itemToIntervalId(item, parent));
         break;
-      case TimeSyncView::static_type():
-        tryFun(tn_fun, itemToTimeSyncId(item));
+      case ItemType::IntervalHeader:
+        tryFun(cst_fun, itemToIntervalId(item->parentItem(), parent));
+        break;
+      case ItemType::LeftBrace:
+        tryFun(lbrace_fun, itemToIntervalId(item->parentItem(), parent));
+        break;
+      case ItemType::RightBrace:
+        tryFun(rbrace_fun, itemToIntervalId(item->parentItem(), parent));
         break;
 
-      case StatePlusOverlay::static_type():
-        tryFun(st_fun, itemToStateId(item->parentItem()));
+      case ItemType::Trigger:
+        tryFun(tn_fun, itemToTriggerId(item, parent));
         break;
-      case StateView::static_type():
-        tryFun(st_fun, itemToStateId(item));
+      case ItemType::TimeSync:
+        tryFun(tn_fun, itemToTimeSyncId(item, parent));
         break;
 
-      case SlotHandle::static_type(): // Slot handle
+      case ItemType::StateOverlay:
+        tryFun(st_fun, itemToStateId(item->parentItem(), parent));
+        break;
+      case ItemType::State:
+        tryFun(st_fun, itemToStateId(item, parent));
+        break;
+
+      case ItemType::SlotFooter:
       {
-        auto slot = itemToIntervalFromHandle(item);
-        if (slot)
-        {
+        if (auto slot = itemToIntervalFromFooter(item, parent))
           handle_fun(*slot);
-        }
         else
-        {
           nothing_fun();
-        }
         break;
       }
-
-      case IntervalHeader::static_type(): // Interval header
+      case ItemType::SlotFooterDelegate:
       {
-        tryFun(cst_fun, itemToIntervalId(item->parentItem()));
-        break;
-      }
-
-      case LeftBraceView::static_type(): // Interval Left Brace
-      {
-        tryFun(lbrace_fun, itemToIntervalId(item->parentItem()));
-        break;
-      }
-
-      case RightBraceView::static_type(): // Interval Right Brace
-      {
-        tryFun(rbrace_fun, itemToIntervalId(item->parentItem()));
+        if (auto slot = itemToIntervalFromFooter(item->parentItem(), parent))
+          handle_fun(*slot);
+        else
+          nothing_fun();
         break;
       }
 

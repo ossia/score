@@ -102,7 +102,7 @@ struct FloatControl
       const T& slider,
       Control_T& inlet,
       const score::DocumentContext& ctx,
-      QWidget* parent,
+      QGraphicsItem* parent,
       QObject* context)
   {
     auto min = slider.getMin();
@@ -223,7 +223,7 @@ struct LogFloatControl
       const T& slider,
       Control_T& inlet,
       const score::DocumentContext& ctx,
-      QWidget* parent,
+      QGraphicsItem* parent,
       QObject* context)
   {
     auto min = slider.getMin();
@@ -316,7 +316,7 @@ struct IntSlider
       const T& slider,
       Control_T& inlet,
       const score::DocumentContext& ctx,
-      QWidget* parent,
+      QGraphicsItem* parent,
       QObject* context)
   {
     auto min = slider.getMin();
@@ -399,7 +399,7 @@ struct IntSpinBox
       const T& slider,
       Control_T& inlet,
       const score::DocumentContext& ctx,
-      QWidget* parent,
+      QGraphicsItem* parent,
       QObject* context)
   {
     auto min = slider.getMin();
@@ -472,10 +472,10 @@ struct Toggle
       const T& slider,
       Control_T& inlet,
       const score::DocumentContext& ctx,
-      QWidget* parent,
+      QGraphicsItem* parent,
       QObject* context)
   {
-    return wrapWidget(make_widget(slider, inlet, ctx, parent, context));
+    return wrapWidget(make_widget(slider, inlet, ctx, nullptr, context));
   }
 };
 
@@ -508,10 +508,10 @@ struct Button
       const T& slider,
       Control_T& inlet,
       const score::DocumentContext& ctx,
-      QWidget* parent,
+      QGraphicsItem* parent,
       QObject* context)
   {
-    return wrapWidget(make_widget(slider, inlet, ctx, parent, context));
+    return wrapWidget(make_widget(slider, inlet, ctx, nullptr, context));
   }
 };
 struct ChooserToggle
@@ -525,6 +525,7 @@ struct ChooserToggle
       QWidget* parent,
       QObject* context)
   {
+    SCORE_ASSERT(slider.alternatives.size() == 2);
     auto sl = new score::ToggleButton{slider.alternatives, parent};
     sl->setCheckable(true);
     bool b = ossia::convert<bool>(inlet.value());
@@ -560,10 +561,10 @@ struct ChooserToggle
       const T& slider,
       Control_T& inlet,
       const score::DocumentContext& ctx,
-      QWidget* parent,
+      QGraphicsItem* parent,
       QObject* context)
   {
-    return wrapWidget(make_widget(slider, inlet, ctx, parent, context));
+    return wrapWidget(make_widget(slider, inlet, ctx, nullptr, context));
   }
 };
 
@@ -604,10 +605,10 @@ struct LineEdit
       const T& slider,
       Control_T& inlet,
       const score::DocumentContext& ctx,
-      QWidget* parent,
+      QGraphicsItem* parent,
       QObject* context)
   {
-    return wrapWidget(make_widget(slider, inlet, ctx, parent, context));
+    return wrapWidget(make_widget(slider, inlet, ctx, nullptr, context));
   }
 };
 
@@ -675,7 +676,7 @@ struct Enum
       const T& slider,
       Control_T& inlet,
       const score::DocumentContext& ctx,
-      QWidget* parent,
+      QGraphicsItem* parent,
       QObject* context)
   {
     const auto& values = slider.getValues();
@@ -762,7 +763,7 @@ struct ComboBox
       const U& slider,
       Control_T& inlet,
       const score::DocumentContext& ctx,
-      QWidget* parent,
+      QGraphicsItem* parent,
       QObject* context)
   {
     const auto N = slider.count();
@@ -874,10 +875,10 @@ struct TimeSignatureChooser
       const U& slider,
       Control_T& inlet,
       const score::DocumentContext& ctx,
-      QWidget* parent,
+      QGraphicsItem* parent,
       QObject* context)
   {
-    return wrapWidget(make_widget(slider, inlet, ctx, parent, context));
+    return wrapWidget(make_widget(slider, inlet, ctx, nullptr, context));
   }
 };
 

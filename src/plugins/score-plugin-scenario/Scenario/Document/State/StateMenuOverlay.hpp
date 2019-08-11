@@ -23,7 +23,7 @@ public:
 
   static constexpr int static_type()
   {
-    return QGraphicsItem::UserType + ItemType::StateOverlay;
+    return ItemType::StateOverlay;
   }
 
   int type() const override { return static_type(); }

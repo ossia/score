@@ -20,7 +20,7 @@ public:
   const IntervalPresenter& presenter() const { return m_presenter; }
   static constexpr int static_type()
   {
-    return QGraphicsItem::UserType + ItemType::SlotHeader;
+    return ItemType::SlotHeader;
   }
   int type() const override { return static_type(); }
 
@@ -51,6 +51,43 @@ private:
   const IntervalPresenter& m_presenter;
   qreal m_width{};
   // double m_menupos{};
+  int m_slotIndex{};
+};
+
+class SlotFooter final : public QGraphicsItem
+{
+public:
+  SlotFooter(
+      const IntervalPresenter& slotView,
+      int slotIndex,
+      QGraphicsItem* parent);
+
+  const IntervalPresenter& presenter() const { return m_presenter; }
+  static constexpr int static_type()
+  {
+    return ItemType::SlotFooter;
+  }
+  int type() const override;
+
+  int slotIndex() const;
+  void setSlotIndex(int);
+  static constexpr double footerHeight() { return 13.; }
+
+  QRectF boundingRect() const override;
+  void paint(
+      QPainter* painter,
+      const QStyleOptionGraphicsItem* option,
+      QWidget* widget) override;
+
+  void setWidth(qreal width);
+
+private:
+  void mousePressEvent(QGraphicsSceneMouseEvent* event) final override;
+  void mouseMoveEvent(QGraphicsSceneMouseEvent* event) final override;
+  void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) final override;
+
+  const IntervalPresenter& m_presenter;
+  qreal m_width{};
   int m_slotIndex{};
 };
 

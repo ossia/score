@@ -18,7 +18,7 @@ public:
   E_SIGNAL(SCORE_LIB_BASE_EXPORT, sizeChanged, sz)
 };
 
-class SCORE_LIB_BASE_EXPORT RectItem
+class SCORE_LIB_BASE_EXPORT RectItem final
     : public ResizeableItem
 {
   W_OBJECT(RectItem)
@@ -74,7 +74,8 @@ protected:
   QRectF m_rect{};
 };
 
-class SCORE_LIB_BASE_EXPORT BackgroundItem : public QGraphicsItem
+class SCORE_LIB_BASE_EXPORT BackgroundItem final
+    : public QGraphicsItem
 {
 public:
   using QGraphicsItem::QGraphicsItem;
@@ -89,4 +90,15 @@ private:
   void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) final override;
   QRectF m_rect{};
 };
+
+class SCORE_LIB_BASE_EXPORT EmptyItem final : public QGraphicsItem
+{
+public:
+  explicit EmptyItem(QGraphicsItem* parent);
+
+private:
+  QRectF boundingRect() const override;
+  void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) override;
+};
+
 }

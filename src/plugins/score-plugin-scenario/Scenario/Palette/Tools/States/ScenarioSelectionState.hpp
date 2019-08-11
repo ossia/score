@@ -2,6 +2,9 @@
 #include <Scenario/Process/ScenarioGlobalCommandManager.hpp>
 #include <score/statemachine/CommonSelectionState.hpp>
 #include <Scenario/Document/Interval/Temporal/TemporalIntervalView.hpp>
+#include <Scenario/Document/TimeSync/TimeSyncView.hpp>
+#include <Scenario/Document/State/StateView.hpp>
+#include <Scenario/Document/Event/EventView.hpp>
 #include <QPointF>
 
 namespace Scenario

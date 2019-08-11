@@ -10,8 +10,8 @@
 
 namespace score
 {
-static const constexpr QRectF defaultSliderSize{0., 0., 40., 20.};
-static const constexpr QRectF defaultKnobSize{0., 0., 30., 30.};
+static const constexpr QRectF defaultSliderSize{0., 0., 60., 20.};
+static const constexpr QRectF defaultKnobSize{0., 0., 35., 35.};
 
 struct DefaultGraphicsSliderImpl;
 

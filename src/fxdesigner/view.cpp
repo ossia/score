@@ -58,7 +58,7 @@ DocumentView::DocumentView(const score::DocumentContext& ctx, QObject* parent)
   , m_view{&m_scene, nullptr}
 {
   auto& skin = score::Skin::instance();
-  m_view.setBackgroundBrush(skin.Background2);
+  m_view.setBackgroundBrush(skin.DarkGray);
   m_view.setMinimumSize(400, 400);
   m_view.setSceneRect({-100., -100., 1000., 1000.});
 

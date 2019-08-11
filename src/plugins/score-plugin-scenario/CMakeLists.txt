@@ -251,6 +251,7 @@ set(HDRS
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Palette/Tools/PlayToolState.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Palette/Tools/ScenarioRollbackStrategy.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Palette/Tools/ScenarioToolState.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Palette/Tools/ObjectMapper.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Palette/Tools/SmartTool.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Palette/Tools/States/MoveAndMergeState.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Palette/Tools/States/MoveStates.hpp"
@@ -350,6 +351,7 @@ set(SRCS ${SRCS}
 
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Palette/Tools/ScenarioRollbackStrategy.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Palette/Tools/ObjectMapper.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/CommandAPI.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/Interval/SetProcessPosition.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/Interval/AddProcessToInterval.cpp"

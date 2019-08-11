@@ -41,7 +41,7 @@ void View::paint_impl(QPainter* p) const
 
   painter.setRenderHint(QPainter::Antialiasing);
 
-  QPen segmt = skin.skin.Emphasis2.main.pen2;
+  QPen segmt = skin.skin.Base4.main.pen2;
 
   QPainterPath path;
   auto p0 = m_spl.evaluate(0).result();

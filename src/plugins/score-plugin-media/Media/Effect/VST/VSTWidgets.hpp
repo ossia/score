@@ -21,7 +21,7 @@ class VSTEffectItem final : public score::EmptyRectItem
 {
   QGraphicsItem* rootItem{};
   std::vector<std::pair<VSTControlInlet*, score::EmptyRectItem*>> controlItems;
-
+  double currentColumnX() const;
 public:
   VSTEffectItem(
       const VSTEffectModel& effect,
@@ -34,7 +34,7 @@ public:
       Process::ControlInlet& inlet,
       const score::DocumentContext& doc)
   {
-    auto item = new score::EmptyRectItem{this};
+    auto item = new score::EmptyItem{this};
 
     double pos_y = this->childrenBoundingRect().height();
 
@@ -43,24 +43,19 @@ public:
     Process::PortFactory* fact = portFactory.get(inlet.concreteKey());
     auto port = fact->makeItem(inlet, doc, item, this);
 
-    auto lab = new score::SimpleTextItem{&score::Skin::Emphasis4, item};
+
+    auto lab = new score::SimpleTextItem{score::Skin::instance().Port2.main, item};
     lab->setText(inlet.customData());
-    lab->setPos(15, 2);
+    lab->setPos(20., 2.);
+    const qreal labelHeight = 10;
 
     QGraphicsItem* widg = T::make_item(control, inlet, doc, nullptr, this);
     widg->setParentItem(item);
-    widg->setPos(15, lab->boundingRect().height());
+    widg->setPos(18., labelHeight + 5.);
 
-    auto h = std::max(
-        20.,
-        (qreal)(
-            widg->boundingRect().height() + lab->boundingRect().height()
-            + 2.));
-
-    port->setPos(7., h / 2.);
+    port->setPos(8., 4.);
 
     item->setPos(0, pos_y);
-    item->setRect(QRectF{0., 0, 170., h});
   }
   void setupInlet(
       const VSTEffectModel& fx,
@@ -68,13 +63,15 @@ public:
       const score::DocumentContext& doc);
 };
 
-class VSTGraphicsSlider final : public QObject, public QGraphicsItem
+class VSTGraphicsSlider final
+    : public QObject
+    , public score::QGraphicsSliderBase<VSTGraphicsSlider>
 {
   W_OBJECT(VSTGraphicsSlider)
   Q_INTERFACES(QGraphicsItem)
+  friend struct QGraphicsSliderBase<VSTGraphicsSlider>;
 
   double m_value{};
-  QRectF m_rect;
   AEffect* fx{};
   int num{};
 
@@ -90,7 +87,6 @@ public:
   static double map(double v) { return v; }
   static double unmap(double v) { return v; }
 
-  void setRect(QRectF r);
   void setValue(double v);
   double value() const;
 
@@ -106,15 +102,10 @@ private:
   void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override;
   void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override;
   void mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event) override;
-  QRectF boundingRect() const override;
   void paint(
       QPainter* painter,
       const QStyleOptionGraphicsItem* option,
       QWidget* widget) override;
-  bool isInHandle(QPointF p);
-  double getHandleX() const;
-  QRectF sliderRect() const;
-  QRectF handleRect() const;
 };
 
 struct VSTFloatSlider : ossia::safe_nodes::control_in
@@ -129,7 +120,7 @@ struct VSTFloatSlider : ossia::safe_nodes::control_in
       AEffect* fx,
       VSTControlInlet& inlet,
       const score::DocumentContext& ctx,
-      QWidget* parent,
+      QGraphicsItem* parent,
       QObject* context);
 };
 

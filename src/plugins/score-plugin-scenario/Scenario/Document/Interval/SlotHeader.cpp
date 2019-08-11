@@ -63,7 +63,7 @@ void SlotHeader::paint(
   const auto& style = Process::Style::instance();
 
 
-  auto& brush = m_presenter.model().metadata().getColor().getBrush().darker.brush;
+  auto& brush = m_presenter.model().metadata().getColor().getBrush().darker300.brush;
   painter->fillRect(QRectF{0., 0., m_width, headerHeight() - 1}, brush);
   if (m_width > 20)
   {
@@ -152,9 +152,13 @@ void SlotHeader::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
     mime->setData(score::mime::layerdata(), QJsonDocument{json}.toJson());
     slot_header_drag->setMimeData(mime);
 
-    auto view = m_presenter.getSlots()[m_slotIndex].processes.front().view;
-    slot_header_drag->setPixmap(view->pixmap().scaledToWidth(50));
-    slot_header_drag->setHotSpot(QPoint(5, 5));
+    auto& slot = m_presenter.getSlots()[m_slotIndex];
+    if(!slot.processes.empty())
+    {
+      auto view = slot.processes.front().view;
+      slot_header_drag->setPixmap(view->pixmap().scaledToWidth(50));
+      slot_header_drag->setHotSpot(QPoint(5, 5));
+    }
 
     QObject::connect(
         slot_header_drag.get(),
@@ -212,6 +216,107 @@ void SlotHeader::hoverLeaveEvent(QGraphicsSceneHoverEvent* event)
     unsetCursor();
 }
 
+
+SlotFooter::SlotFooter(
+    const IntervalPresenter& slotView,
+    int slotIndex,
+    QGraphicsItem* parent)
+    : QGraphicsItem{parent}
+    , m_presenter{slotView}
+    , m_width{slotView.view()->boundingRect().width()}
+    , m_slotIndex{slotIndex}
+{
+  this->setCacheMode(QGraphicsItem::NoCache);
+  this->setAcceptHoverEvents(true);
+  this->setFlag(ItemClipsToShape);
+  this->setFlag(ItemClipsChildrenToShape);
+  this->setAcceptedMouseButtons(Qt::LeftButton | Qt::RightButton);
+  this->setZValue(ZPos::Header);
+  this->setCursor(Qt::SizeVerCursor);
+}
+
+int SlotFooter::type() const
+{
+  return static_type();
+}
+
+int SlotFooter::slotIndex() const
+{
+  return m_slotIndex;
+}
+
+void SlotFooter::setSlotIndex(int v)
+{
+  m_slotIndex = v;
+}
+
+QRectF SlotFooter::boundingRect() const
+{
+  return {0., 0., m_width, footerHeight()};
+}
+
+void SlotFooter::paint(
+    QPainter* painter,
+    const QStyleOptionGraphicsItem* option,
+    QWidget* widget)
+{
+  painter->setRenderHint(QPainter::Antialiasing, false);
+
+  auto& brush = m_presenter.model().metadata().getColor().getBrush();
+  painter->fillRect(QRectF{0., 0., m_width, footerHeight()-1.}, brush.darker300.brush);
+  painter->fillRect(QRectF{0., footerHeight()-1., m_width, 1.}, brush.lighter180.brush);
+}
+
+void SlotFooter::setWidth(qreal width)
+{
+  prepareGeometryChange();
+  m_width = width;
+  update();
+}
+
+void SlotFooter::mousePressEvent(QGraphicsSceneMouseEvent* event)
+{
+  if(m_presenter.model().smallViewVisible())
+    m_presenter.pressed(event->scenePos());
+  event->accept();
+}
+
+void SlotFooter::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
+{
+  if(m_presenter.model().smallViewVisible())
+  {
+    static bool moving = false;
+
+    if (!moving)
+    {
+      moving = true;
+      auto p = event->scenePos();
+      m_presenter.moved(p);
+
+      auto view = getView(*this);
+      if (view)
+        view->ensureVisible(p.x(), p.y(), 1, 1);
+      moving = false;
+    }
+  }
+  event->accept();
+}
+
+void SlotFooter::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
+{
+  if(m_presenter.model().smallViewVisible())
+    m_presenter.released(event->scenePos());
+
+  event->accept();
+}
+
+
+
+
+
+
+
+
 SlotDragOverlay::SlotDragOverlay(const IntervalPresenter& c, Slot::RackView v)
     : interval{c}, view{v}
 {
@@ -265,7 +370,7 @@ void SlotDragOverlay::onDrag(QPointF pos)
     {
       const auto next_height = itv.getSlotHeight({i, view})
                                + SlotHeader::headerHeight()
-                               + SlotHandle::handleHeight();
+                               + SlotFooter::footerHeight();
       if (y > height - 2.5 && y < height + 2.5)
       {
         m_drawnRect = {0, height - 2.5, rect.width(), 5};
@@ -341,7 +446,7 @@ void SlotDragOverlay::dropEvent(QGraphicsSceneDragDropEvent* event)
     {
       const auto next_height = itv.getSlotHeight({i, view})
                                + SlotHeader::headerHeight()
-                               + SlotHandle::handleHeight();
+                               + SlotFooter::footerHeight();
       if (y > height - 2.5 && y < height + 2.5)
       {
         m_drawnRect = {0, height - 2.5, rect.width(), 5};

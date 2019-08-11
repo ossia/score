@@ -24,7 +24,7 @@ public:
 
   static constexpr int static_type()
   {
-    return QGraphicsItem::UserType + ItemType::IntervalHeader;
+    return ItemType::IntervalHeader;
   }
   int type() const override { return static_type(); }
 

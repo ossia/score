@@ -13,10 +13,14 @@ struct SlotPresenter
 {
   SlotHeader* header{};
   Process::HeaderDelegate* headerDelegate{};
-  SlotHandle* handle{};
+  SlotFooter* footer{};
+  Process::FooterDelegate* footerDelegate{};
   std::vector<LayerData> processes;
 
-  double headerHeight() const
+  void cleanupHeaderFooter();
+  void cleanup(QGraphicsScene* sc);
+
+  double headerHeight() const noexcept
   {
     if (!header)
       return SlotHeader::headerHeight();
@@ -26,5 +30,11 @@ struct SlotPresenter
 
     return headerDelegate->boundingRect().height();
   }
+
+  double footerHeight() const noexcept
+  {
+    return SlotFooter::footerHeight();
+  }
 };
+
 }

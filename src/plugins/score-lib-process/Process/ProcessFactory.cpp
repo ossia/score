@@ -114,9 +114,19 @@ bool LayerFactory::hasExternalUI(
 }
 
 HeaderDelegate*
-LayerFactory::makeHeaderDelegate(const LayerPresenter& pres) const
+LayerFactory::makeHeaderDelegate(
+    const ProcessModel& model,
+    const score::DocumentContext& ctx,
+    const LayerPresenter* pres) const
 {
-  return new DefaultHeaderDelegate{pres};
+  return new DefaultHeaderDelegate{model, ctx, pres};
+}
+FooterDelegate*
+LayerFactory::makeFooterDelegate(
+    const ProcessModel& model,
+    const score::DocumentContext& ctx) const
+{
+  return new DefaultFooterDelegate{model, ctx};
 }
 
 QWidget* LayerFactory::makeExternalUI(

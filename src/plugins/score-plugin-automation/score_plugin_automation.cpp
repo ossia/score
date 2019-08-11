@@ -47,11 +47,11 @@ template <typename Layer_T>
 class MinMaxHeaderDelegate final : public Process::DefaultHeaderDelegate
 {
 public:
-  MinMaxHeaderDelegate(const Layer_T& layer)
-      : Process::DefaultHeaderDelegate{layer}
+  using model_t = std::remove_reference_t<decltype(std::declval<Layer_T>().model())>;
+  MinMaxHeaderDelegate(const Process::ProcessModel& m, const score::DocumentContext& doc, const Layer_T* layer)
+      : Process::DefaultHeaderDelegate{m, doc, layer}
   {
-    const auto& model = layer.model();
-    using model_t = std::remove_reference_t<decltype(model)>;
+    const auto& model = static_cast<model_t&>(m_model);
 
     con(model, &model_t::minChanged, this, [=] { updateText(); });
     con(model, &model_t::maxChanged, this, [=] { updateText(); });
@@ -61,25 +61,19 @@ public:
 
   void updateText() override
   {
-    if (presenter)
-    {
-      auto& style = Process::Style::instance();
-      using model_t
-          = std::remove_reference_t<decltype(std::declval<Layer_T>().model())>;
-      auto& model = static_cast<const model_t&>(presenter->model());
-      const QPen& pen = m_sel ? style.IntervalHeaderTextPen() : textPen(style, model);
+    auto& style = Process::Style::instance();
+    const auto& model = static_cast<model_t&>(m_model);
 
-      QString txt = model.prettyName();
-      txt += "  Min: ";
-      txt += QString::number(model.min());
-      txt += "  Max: ";
-      txt += QString::number(model.max());
-      m_line = Process::makeGlyphs(txt, pen);
-      m_fromGlyph = Process::makeGlyphs("I:", pen);
-      m_toGlyph = Process::makeGlyphs("O:", pen);
-      update();
-      updatePorts();
-    }
+    const QPen& pen = m_sel ? style.IntervalHeaderTextPen() : textPen(style, model);
+
+    QString txt = model.prettyName();
+    txt += "  Min: ";
+    txt += QString::number(model.min());
+    txt += "  Max: ";
+    txt += QString::number(model.max());
+    m_line = Process::makeGlyphs(txt, pen);
+    update();
+    updatePorts();
   }
 };
 using AutomationFactory = Process::ProcessFactory_T<Automation::ProcessModel>;

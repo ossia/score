@@ -128,7 +128,7 @@ public:
       mhandle->setPos(pos);
       rhandle->setPos(w.pos() + QPointF{w.size().width(), w.size().height()});
     });
-    con(w, &Widget::sizeChanged, mhandle, [mhandle, rhandle, item, &w] (QSizeF p) {
+    con(w, &Widget::sizeChanged, mhandle, [mhandle, item] (QSizeF p) {
       item->setRect({QPointF{}, p});
       mhandle->setRect({QPointF{}, p});
     });

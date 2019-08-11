@@ -13,7 +13,6 @@ class GraphicsShapeItem;
 namespace Scenario
 {
 class EventModel;
-class SlotHandle;
 class SlotHeader;
 class DefaultHeaderDelegate;
 class TemporalIntervalHeader;
@@ -67,8 +66,13 @@ public:
 
 private:
   double rackHeight() const;
+  double smallRackHeight() const;
+
   void createSlot(int pos, const Slot& slt);
+  void createSmallSlot(int pos, const Slot& aSlt);
+
   void createLayer(int slot, const Process::ProcessModel& proc);
+
   void updateProcessShape(int slot, const LayerData& data);
   void removeLayer(const Process::ProcessModel& proc);
   void on_slotRemoved(int pos);

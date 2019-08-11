@@ -60,7 +60,7 @@ struct DefaultGraphicsSliderImpl
     painter->setRenderHint(QPainter::Antialiasing, true);
 
     painter->setPen(skin.NoPen);
-    painter->setBrush(skin.Background1.main.brush);
+    painter->setBrush(skin.Emphasis2.main.brush);
 
     // Draw rect
     const QRectF brect = self.boundingRect();

@@ -8,7 +8,6 @@
 #include <QGraphicsView>
 #include <QPainter>
 #include <QTextLayout>
-#include <QTimer>
 
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(score::TextItem)
@@ -117,7 +116,6 @@ void SimpleTextItem::updateImpl()
     }
   }
 
-  QTimer::singleShot(100, this, [=] { updateImpl(); });
   update();
 }
 

@@ -135,7 +135,7 @@ void BackgroundItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* op
   auto& style = score::Skin::instance();
   painter->setRenderHint(QPainter::Antialiasing, true);
   painter->setPen(style.NoPen);
-  painter->setBrush(style.Base5);
+  painter->setBrush(style.Background2);
   painter->drawRoundedRect(m_rect.adjusted(2., 2., -2., -2.), 3, 3);
   painter->setRenderHint(QPainter::Antialiasing, false);
 }
@@ -162,5 +162,20 @@ void BackgroundItem::mouseMoveEvent(QGraphicsSceneMouseEvent* event) { event->ac
 
 
 void BackgroundItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* event) { event->accept(); }
+
+EmptyItem::EmptyItem(QGraphicsItem* parent): QGraphicsItem{parent}
+{
+  setFlag(ItemHasNoContents, true);
+}
+
+QRectF EmptyItem::boundingRect() const
+{
+  return {};
+}
+
+void EmptyItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+{
+
+}
 
 }

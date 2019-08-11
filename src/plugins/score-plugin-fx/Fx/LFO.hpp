@@ -202,7 +202,6 @@ struct Node
     s.phase += (tk.date - tk.prev_date);
   }
 
-
   template<typename C, typename T>
   static auto makeControl(
       C& ctrl,
@@ -212,34 +211,27 @@ struct Node
       const score::DocumentContext& doc,
       const Process::PortFactoryList& portFactory)
   {
-    auto item = new score::EmptyRectItem{&parent};
+    auto item = new score::EmptyItem{&parent};
 
     // Port
     Process::PortFactory* fact = portFactory.get(inlet.concreteKey());
     auto port = fact->makeItem(inlet, doc, item, &context);
-    port->setPos(0, 10);
+    port->setPos(0, 2.);
 
     // Text
-    const auto& brush = [&] () -> const score::Brush& {
-      switch(inlet.type)
-      {
-          case Process::PortType::Audio: return score::Skin::instance().Port1;
-          case Process::PortType::Message: return score::Skin::instance().Port2;
-          case Process::PortType::Midi: return score::Skin::instance().Port3;
-          default: return score::Skin::instance().Warn1;
-      };}().main;
+    const auto& brush = Process::portBrush(inlet.type).main;
     auto lab = new score::SimpleTextItem{brush, item};
     lab->setText(ctrl.name);
-    lab->setPos(10, 2);
+    lab->setPos(12, 0);
 
     // Control
     auto widg = ctrl.make_item(ctrl, inlet, doc, nullptr, &context);
     widg->setParentItem(item);
-    widg->setPos(0, lab->boundingRect().height());
+    widg->setPos(0, 12.);
 
     // Create a single control
     struct ControlItem {
-      score::EmptyRectItem& root;
+      QGraphicsItem& root;
       Dataflow::PortItem& port;
       score::SimpleTextItem& text;
       decltype(*widg)& control;
@@ -256,7 +248,7 @@ struct Node
       const score::DocumentContext& doc,
       const Process::PortFactoryList& portFactory)
   {
-    auto item = new score::EmptyRectItem{&parent};
+    auto item = new score::EmptyItem{&parent};
 
     // Control
     auto widg = ctrl.make_item(ctrl, inlet, doc, nullptr, &context);
@@ -268,7 +260,7 @@ struct Node
 
     // Create a single control
     struct ControlItem {
-      score::EmptyRectItem& root;
+      score::EmptyItem& root;
       Dataflow::PortItem& port;
       decltype(*widg)& control;
     };

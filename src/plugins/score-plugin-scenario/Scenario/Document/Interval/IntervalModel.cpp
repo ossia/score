@@ -402,7 +402,7 @@ double IntervalModel::getHeight() const noexcept
   double h = 0.;
   for(const auto& slot : m_smallView)
   {
-    h += slot.height + SlotHeader::headerHeight() + SlotHandle::handleHeight();
+    h += slot.height + SlotHeader::headerHeight() + SlotFooter::footerHeight();
   }
   return h;
 }
@@ -458,8 +458,7 @@ void IntervalModel::swapSlots(int pos1, int pos2, Slot::RackView v)
     if (pos1 < N && pos2 < N)
     {
       if (pos1 < pos2)
-      {
-        auto val = *(v.begin() + pos1);
+      { auto val = *(v.begin() + pos1);
 
         v.insert(v.begin() + pos2, val);
         v.erase(v.begin() + pos1);

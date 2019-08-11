@@ -260,6 +260,7 @@ void IntervalComponentBase::executionStarted()
   for (Process::ProcessModel& proc : interval().processes)
   {
     proc.startExecution();
+    proc.benchmark(-1.);
   }
 }
 
@@ -269,6 +270,7 @@ void IntervalComponentBase::executionStopped()
   for (Process::ProcessModel& proc : interval().processes)
   {
     proc.stopExecution();
+    proc.benchmark(-1.);
   }
 }
 

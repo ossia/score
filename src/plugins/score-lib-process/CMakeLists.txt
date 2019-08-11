@@ -69,6 +69,7 @@ set(PROCESS_HDRS
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Effect/EffectFactory.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Effect/EffectLayer.hpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Effect/EffectPainting.hpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Execution/ProcessComponent.hpp"
 
