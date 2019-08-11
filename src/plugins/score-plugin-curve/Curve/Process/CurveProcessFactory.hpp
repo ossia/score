@@ -55,9 +55,15 @@ public:
   const Curve::Style& style() const override { return m_colors.style(); }
 
   Process::HeaderDelegate*
-  makeHeaderDelegate(const Process::LayerPresenter& pres) const override
+  makeHeaderDelegate(
+      const Process::ProcessModel& model,
+      const score::DocumentContext& ctx,
+      const Process::LayerPresenter* pres) const override
   {
-    return new HeaderDelegate_T{*safe_cast<const LayerPresenter_T*>(&pres)};
+    const LayerPresenter_T* p{};
+    if(pres)
+      p = safe_cast<const LayerPresenter_T*>(pres);
+    return new HeaderDelegate_T{model, ctx, p};
   }
 
 private:

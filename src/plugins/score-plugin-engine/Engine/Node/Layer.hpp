@@ -92,7 +92,7 @@ struct AutoUISetup
   template<typename T>
   void operator()(const T& ctrl)
   {
-    auto item = new score::EmptyRectItem{&parent};
+    auto item = new score::EmptyItem{&parent};
     item->setPos(0, pos_y);
     auto inlet = static_cast<Process::ControlInlet*>(inlets[i]);
 
@@ -101,26 +101,21 @@ struct AutoUISetup
     auto port = fact->makeItem(*inlet, doc, item, &context);
 
     // Text
-    auto lab = new score::SimpleTextItem{score::Skin::instance().HalfLight.main, item};
+    auto lab = new score::SimpleTextItem{score::Skin::instance().Port2.main, item};
     lab->setText(ctrl.name);
-    lab->setPos(15, 2);
+    lab->setPos(20., 2.);
+    const qreal labelHeight = 10;
 
     // Control
     QGraphicsItem* widg
         = ctrl.make_item(ctrl, *inlet, doc, nullptr, &context);
     widg->setParentItem(item);
-    widg->setPos(15, lab->boundingRect().height());
+    widg->setPos(18., labelHeight + 5.);
 
     // Positioning
-    auto h = std::max(
-          20.,
-          (qreal)(
-            widg->boundingRect().height()
-            + lab->boundingRect().height() + 2.));
-    item->setRect(QRectF{0., 0., 170., h});
-    port->setPos(7., h / 2.);
+    port->setPos(8., 4.);
 
-    pos_y += h;
+    pos_y += 20.;
 
     i++;
   }

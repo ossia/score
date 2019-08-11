@@ -457,6 +457,12 @@ void LV2EffectModel::readPlugin()
       app_plug.lv2_context->sampleRate,
       app_plug.lv2_host_context.features);
 
+  if(!effectContext.instance)
+  {
+    qDebug() << "Could not load LV2 plug-in";
+    return;
+  }
+
   effectContext.data.data_access
       = lilv_instance_get_descriptor(effectContext.instance)->extension_data;
 }
@@ -576,7 +582,10 @@ LV2EffectComponent::LV2EffectComponent(
 void LV2EffectComponent::lazy_init()
 {
   auto& ctx = system();
-  auto& proc = process();
+  Media::LV2::LV2EffectModel& proc = process();
+
+  if(!proc.effectContext.instance)
+    return;
 
   auto& host
       = ctx.context().doc.app.applicationPlugin<Media::ApplicationPlugin>();

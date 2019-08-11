@@ -186,47 +186,14 @@ FullViewIntervalPresenter::~FullViewIntervalPresenter()
 {
   auto view = Scenario::view(this);
   auto sc = view->scene();
+  for (auto& slt : m_slots)
+  {
+    slt.cleanup(sc);
+  }
+
   if (sc)
   {
-    for (auto& slt : m_slots)
-    {
-      if (slt.header)
-      {
-        sc->removeItem(slt.header);
-        delete slt.header;
-      }
-      if (slt.handle)
-      {
-        sc->removeItem(slt.handle);
-        delete slt.handle;
-      }
-      for (auto& layer : slt.processes)
-      {
-        // The presenter will delete their views
-        delete layer.presenter;
-      }
-    }
-
     sc->removeItem(view);
-  }
-  else
-  {
-    for (auto& slt : m_slots)
-    {
-      if (slt.header)
-      {
-        delete slt.header;
-      }
-      if (slt.handle)
-      {
-        delete slt.handle;
-      }
-      for (auto& layer : slt.processes)
-      {
-        // The presenter will delete their views
-        delete layer.presenter;
-      }
-    }
   }
 
   delete view;
@@ -236,7 +203,7 @@ void FullViewIntervalPresenter::createSlot(int pos, const FullSlot& slt)
 {
   SlotPresenter p;
   p.header = new SlotHeader{*this, pos, m_view};
-  p.handle = new SlotHandle{*this, pos, m_view};
+  p.footer = new SlotFooter{*this, pos, m_view};
 
   const auto& proc = m_model.processes.at(slt.process);
 
@@ -250,12 +217,20 @@ void FullViewIntervalPresenter::createSlot(int pos, const FullSlot& slt)
   proc_pres->on_zoomRatioChanged(m_zoomRatio);
   proc_pres->setFullView();
 
-  p.headerDelegate = factory->makeHeaderDelegate(*proc_pres);
-  p.headerDelegate->setParentItem(p.header);
-  p.headerDelegate->setFlag(QGraphicsItem::GraphicsItemFlag::ItemClipsToShape);
-  p.headerDelegate->setFlag(
-      QGraphicsItem::GraphicsItemFlag::ItemClipsChildrenToShape);
-  p.headerDelegate->setPos(30, 0);
+  {
+    p.headerDelegate = factory->makeHeaderDelegate(proc, m_context, proc_pres);
+    p.headerDelegate->setParentItem(p.header);
+    p.headerDelegate->setFlag(QGraphicsItem::GraphicsItemFlag::ItemClipsToShape);
+    p.headerDelegate->setFlag(QGraphicsItem::GraphicsItemFlag::ItemClipsChildrenToShape);
+    p.headerDelegate->setPos(30, 0);
+  }
+  {
+    p.footerDelegate = factory->makeFooterDelegate(proc, m_context);
+    p.footerDelegate->setParentItem(p.footer);
+    p.footerDelegate->setFlag(QGraphicsItem::GraphicsItemFlag::ItemClipsToShape);
+    p.footerDelegate->setFlag(QGraphicsItem::GraphicsItemFlag::ItemClipsChildrenToShape);
+    p.footerDelegate->setPos(30, 0);
+  }
 
   m_slots.insert(m_slots.begin() + pos, std::move(p));
   auto& slot = m_slots.at(pos);
@@ -311,12 +286,15 @@ void FullViewIntervalPresenter::updateProcessShape(
   data.presenter->setWidth(width, dwidth);
 
   slot.header->setWidth(width);
+  slot.footer->setWidth(width);
 
   slot.headerDelegate->setSize(QSizeF{
       std::max(
           0., width - SlotHeader::handleWidth() - SlotHeader::menuWidth()),
-      slot.header->headerHeight()});
+      SlotHeader::headerHeight()});
   slot.headerDelegate->setX(30);
+  slot.footerDelegate->setSize(QSizeF{width, SlotFooter::footerHeight()});
+  slot.footerDelegate->setX(30);
 
   data.presenter->parentGeometryChanged();
 }
@@ -331,17 +309,7 @@ void FullViewIntervalPresenter::updateProcessShape(int slot)
 void FullViewIntervalPresenter::on_slotRemoved(int pos)
 {
   SlotPresenter& slot = m_slots.at(pos);
-  if (!slot.processes.empty())
-  {
-    QPointer<Process::LayerView> view_p{slot.processes.front().view};
-    delete slot.processes.front().presenter;
-    if (view_p)
-      deleteGraphicsItem(slot.processes.front().view);
-  }
-  deleteGraphicsItem(slot.header);
-  slot.header = nullptr;
-  deleteGraphicsItem(slot.handle);
-  slot.handle = nullptr;
+  slot.cleanup(this->view()->scene());
 
   m_slots.erase(m_slots.begin() + pos);
 }
@@ -371,26 +339,23 @@ void FullViewIntervalPresenter::updatePositions()
       const LayerData& proc = slot.processes.front();
 
       assert(slot.header);
-      if (slot.header)
-      {
         slot.header->setPos(QPointF{0, currentSlotY});
         slot.header->setSlotIndex(i);
-      }
       currentSlotY += slot.headerHeight();
 
       proc.view->setPos(0, currentSlotY);
       proc.view->update();
 
       currentSlotY += proc.model->getSlotHeight();
-
-      slot.handle->setPos(0, currentSlotY);
-      slot.handle->setSlotIndex(i);
-      currentSlotY += SlotHandle::handleHeight();
+      assert(slot.footer);
+      slot.footer->setPos(QPointF{0, currentSlotY});
+      slot.footer->setSlotIndex(i);
+      currentSlotY += slot.footerHeight();
     }
     else
     {
       currentSlotY += SlotHeader::headerHeight();
-      currentSlotY += SlotHandle::handleHeight();
+      currentSlotY += SlotFooter::footerHeight();
     }
   }
 
@@ -410,7 +375,7 @@ double FullViewIntervalPresenter::rackHeight() const
     if (!slot.processes.empty())
       height += slot.processes.front().model->getSlotHeight();
 
-    height += SlotHandle::handleHeight() + slot.headerHeight();
+    height += slot.headerHeight() + slot.footerHeight();
   }
   return height;
 }
@@ -454,7 +419,7 @@ void FullViewIntervalPresenter::selectedSlot(int i) const
   SCORE_ASSERT(size_t(i) < m_slots.size());
   auto& slot = m_slots[i];
 
-  m_context.focusDispatcher.focus(m_slots[i].headerDelegate->presenter);
+  m_context.focusDispatcher.focus(m_slots[i].headerDelegate->m_presenter);
   disp.setAndCommit({slot.processes.front().model});
 }
 
@@ -468,8 +433,7 @@ void FullViewIntervalPresenter::on_defaultDurationChanged(const TimeVal& val)
   for (const SlotPresenter& slot : m_slots)
   {
     slot.header->setWidth(w);
-    if (slot.handle)
-      slot.handle->setWidth(w);
+    slot.footer->setWidth(w);
     if (slot.headerDelegate)
       slot.headerDelegate->setSize(
           QSizeF{w - SlotHeader::handleWidth() - SlotHeader::menuWidth(),
@@ -518,7 +482,6 @@ void FullViewIntervalPresenter::on_guiDurationChanged(const TimeVal& val)
   static_cast<FullViewIntervalView*>(m_view)->setGuiWidth(w);
   for (const SlotPresenter& slot : m_slots)
   {
-    slot.handle->setWidth(w);
     if (!slot.processes.empty())
       slot.processes.front().presenter->setWidth(w, w);
   }

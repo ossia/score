@@ -40,7 +40,7 @@ public:
 
   static constexpr int static_type()
   {
-    return QGraphicsItem::UserType + ItemType::Interval;
+    return ItemType::Interval;
   }
   int type() const final override { return static_type(); }
 

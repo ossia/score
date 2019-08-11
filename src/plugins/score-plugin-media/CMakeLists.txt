@@ -5,7 +5,10 @@ score_common_setup()
 
 # Packages
 find_package(Qt5 5.3 REQUIRED COMPONENTS Core Widgets)# Concurrent)
-set(ENV{PKG_CONFIG_PATH} "$ENV{PKG_CONFIG_PATH}:/opt/ffmpeg/lib/pkgconfig" )
+find_package(Qt5 5.3 OPTIONAL_COMPONENTS WebSockets)
+if(OSSIA_SDK)
+  set(ENV{PKG_CONFIG_PATH} "$ENV{PKG_CONFIG_PATH}:${OSSIA_SDK}/ffmpeg/lib/pkgconfig" )
+endif()
 find_package(FFmpeg COMPONENTS  AVCODEC AVFORMAT AVUTIL SWRESAMPLE)
 if(NOT FFmpeg_FOUND)
     return()
@@ -104,6 +107,7 @@ set(SRCS
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/EffectProcessModel.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/Inspector/EffectInspector.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/EffectExecutor.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/EffectProcessLayer.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/Settings/Model.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/Settings/Presenter.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/Settings/View.cpp"

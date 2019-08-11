@@ -33,7 +33,7 @@ public:
 
   static constexpr int static_type()
   {
-    return QGraphicsItem::UserType + ItemType::Condition;
+    return ItemType::Condition;
   }
   int type() const override { return static_type(); }
 

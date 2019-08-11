@@ -134,9 +134,9 @@ const TimeVal& ProcessModel::duration() const noexcept
   return m_duration;
 }
 
-void ProcessModel::startExecution() {}
+void ProcessModel::startExecution() { }
 
-void ProcessModel::stopExecution() {}
+void ProcessModel::stopExecution() { }
 
 void ProcessModel::reset() {}
 

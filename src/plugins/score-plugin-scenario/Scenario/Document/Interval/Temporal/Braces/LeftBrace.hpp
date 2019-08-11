@@ -19,7 +19,7 @@ public:
 
   static constexpr int static_type()
   {
-    return QGraphicsItem::UserType + ItemType::LeftBrace;
+    return ItemType::LeftBrace;
   }
   int type() const override { return static_type(); }
 };
@@ -36,7 +36,7 @@ public:
 
   static constexpr int static_type()
   {
-    return QGraphicsItem::UserType + ItemType::RightBrace;
+    return ItemType::RightBrace;
   }
   int type() const override { return static_type(); }
 };

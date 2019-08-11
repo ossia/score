@@ -260,7 +260,7 @@ ScenarioDocumentView::ScenarioDocumentView(
   auto& skin = score::Skin::instance();
   con(skin, &score::Skin::changed, this, [&] {
     auto& skin = Process::Style::instance();
-    m_timeRulerView.setBackgroundBrush(skin.TimeRulerBackground());
+    m_timeRulerView.setBackgroundBrush(skin.MinimapBackground());
     m_minimapView.setBackgroundBrush(skin.MinimapBackground());
     m_view.setBackgroundBrush(skin.Background());
   });

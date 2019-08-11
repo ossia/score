@@ -5,7 +5,7 @@
 #include <Inspector/InspectorSectionWidget.hpp>
 #include <Scenario/Inspector/CommentEdit.hpp>
 #include <Scenario/Inspector/ExtendedMetadataWidget.hpp>
-
+#include <Process/Style/ScenarioStyle.hpp>
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/model/ModelMetadata.hpp>
 #include <score/widgets/MarginLess.hpp>
@@ -97,8 +97,7 @@ MetadataWidget::MetadataWidget(
 
     m_palette_widget->setColorSize(QSize(20, 20));
     m_palette_widget->setColorSizePolicy(Swatch::ColorSizePolicy::Fixed);
-    m_palette_widget->setSelection(QPen(QColor(0, 0, 0), 2));
-    m_palette_widget->setBorder(QPen(Qt::transparent));
+    m_palette_widget->setSelection(QPen(QColor(0, 0, 0), 2)); m_palette_widget->setBorder(QPen(Qt::transparent));
 
     int forced_rows = 2;
     m_palette_widget->setForcedRows(forced_rows);
@@ -109,7 +108,12 @@ MetadataWidget::MetadataWidget(
     connect(m_palette_widget, &Swatch::selectedChanged, this, [=](int idx) {
       auto colors = color_palette.palette(0).colors();
 
-      if (idx >= 0 && idx < colors.size())
+      if(idx == colors.size() - 1)
+      {
+        const score::Brush& defaultBrush = Process::Style::instance().IntervalDefaultBackground();
+        colorChanged(&defaultBrush);
+      }
+      else if (idx >= 0 && idx < colors.size())
       {
         auto col_1 = colors.at(idx).second;
         auto col = score::ColorRef::ColorFromString(col_1);

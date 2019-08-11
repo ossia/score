@@ -47,7 +47,6 @@
 #include <score_plugin_media_commands_files.hpp>
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Media::Step::View)
-W_OBJECT_IMPL(Media::Effect::EffectTitleItem)
 
 score_plugin_media::score_plugin_media()
 {

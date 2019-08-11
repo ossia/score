@@ -377,7 +377,6 @@ void TemporalIntervalView::paint(
   if(!view)
     return;
   auto& painter = *p;
-  auto rect = boundingRect();
   QPointF sceneDrawableTopLeft = view->mapToScene(-10, 0);
   QPointF sceneDrawableBottomRight = view->mapToScene(view->width() + 10, view->height() + 10);
   QPointF itemDrawableTopLeft = this->mapFromScene(sceneDrawableTopLeft);
@@ -397,41 +396,18 @@ void TemporalIntervalView::paint(
     return;
   }
 
-  QPointF sceneTopLeft = this->mapToScene(QPointF{0, 0});
-  QPointF sceneBottomRight = this->mapToScene(boundingRect().bottomRight());
-  QPointF viewTopLeft = view->mapFromScene(sceneTopLeft);
-  QPointF viewBottomRight = view->mapFromScene(sceneBottomRight);
-
   painter.setRenderHint(QPainter::Antialiasing, false);
   auto& skin = Process::Style::instance();
 
-  const qreal def_w = defaultWidth();
-
-  const auto visibleRect = QRectF{itemDrawableTopLeft, itemDrawableBottomRight};
+  QRectF visibleRect = QRectF{itemDrawableTopLeft, itemDrawableBottomRight};
   auto& c = presenter().model();
   if (c.smallViewVisible())
   {
     // Background
-    rect.adjust(0, 0, 0, SlotHandle::handleHeight() - 4 );
-    rect.setWidth(def_w);
+    visibleRect.adjust(0.5, 2., -0.5, -2.);
 
     painter.fillRect(visibleRect,
                      m_presenter.model().metadata().getColor().getBrush());
-
-    painter.setRenderHint(QPainter::Antialiasing, true);
-    if(viewTopLeft.x() >= 0)
-    {
-      auto& left_st = static_cast<TemporalIntervalPresenter&>(m_presenter).startEvent;
-      const auto& left_b = left_st.color(skin);
-      painter.fillRect(QRectF{0., 0., 0.5, height()}, left_b);
-    }
-    if(viewBottomRight.x() < view->width())
-    {
-      auto& right_st = static_cast<TemporalIntervalPresenter&>(m_presenter).endEvent;
-      const auto& right_b = right_st.color(skin);
-      painter.fillRect(QRectF{def_w - 0.5, 0., 0.5, height()}, right_b);
-    }
-    painter.setRenderHint(QPainter::Antialiasing, false);
   }
 
   // Colors
@@ -446,46 +422,13 @@ void TemporalIntervalView::paint(
 
   drawDashedPath(painter, visibleRect, skin);
 
-  // if (!dashedPath.isEmpty())
-  // {
-  //   painter.setPen(skin.IntervalDashPen(defaultColor));
-  //   painter.drawPath(dashedPath);
-  // }
-
   if (!playedSolidPath.isEmpty())
   {
     painter.setPen(skin.IntervalSolidPen(skin.IntervalPlayFill()));
     painter.drawPath(playedSolidPath);
   }
-  else
-  {
-    // qDebug() << " no solid played path" << playedSolidPath.boundingRect();
-  }
 
-  drawPlayDashedPath(painter, visibleRect, skin);/*
-  if (!waitingDashedPath.isEmpty())
-  {
-    if (this->m_waiting)
-    {
-      painter.setPen(skin.IntervalDashPen(skin.IntervalWaitingDashFill()));
-      painter.drawPath(waitingDashedPath);
-    }
-  }
-
-  if (!playedDashedPath.isEmpty())
-  {
-    if (this->m_waiting)
-    {
-      painter.setPen(skin.IntervalDashPen(skin.IntervalPlayFill()));
-    }
-    else
-    {
-      painter.setPen(skin.IntervalSolidPen(skin.IntervalPlayFill()));
-    }
-
-    painter.drawPath(playedDashedPath);
-  }*/
-
+  drawPlayDashedPath(painter, visibleRect, skin);
 #if defined(SCORE_SCENARIO_DEBUG_RECTS)
   painter.setPen(Qt::darkRed);
   painter.setBrush(Qt::NoBrush);

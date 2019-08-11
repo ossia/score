@@ -46,6 +46,7 @@ private:
 
   BrushSet& operator=(const QBrush& b) noexcept;
   friend struct Brush;
+  friend class Skin;
 };
 
 struct SCORE_LIB_BASE_EXPORT Brush

@@ -378,7 +378,7 @@ void DocumentModel::loadCode(QJsonDocument code)
     auto ports = code["ValueIns"].toArray();
     for(auto port : ports)
     {
-      Widget* widget = add_port(port, Process::PortType::Message);
+      add_port(port, Process::PortType::Message);
     }
   }
 
@@ -386,7 +386,7 @@ void DocumentModel::loadCode(QJsonDocument code)
     auto ports = code["ValueOuts"].toArray();
     for(auto port : ports)
     {
-      Widget* widget = add_port(port, Process::PortType::Message);
+      add_port(port, Process::PortType::Message);
     }
   }
 
@@ -395,7 +395,7 @@ void DocumentModel::loadCode(QJsonDocument code)
     auto ports = code["MidiIns"].toArray();
     for(auto port : ports)
     {
-      Widget* widget = add_port(port, Process::PortType::Midi);
+      add_port(port, Process::PortType::Midi);
     }
   }
 
@@ -403,7 +403,7 @@ void DocumentModel::loadCode(QJsonDocument code)
     auto ports = code["MidiOuts"].toArray();
     for(auto port : ports)
     {
-      Widget* widget = add_port(port, Process::PortType::Midi);
+      add_port(port, Process::PortType::Midi);
     }
   }
 
@@ -412,7 +412,7 @@ void DocumentModel::loadCode(QJsonDocument code)
     auto ports = code["AudioIns"].toArray();
     for(auto port : ports)
     {
-      Widget* widget = add_port(port, Process::PortType::Audio);
+      add_port(port, Process::PortType::Audio);
     }
   }
 
@@ -420,7 +420,7 @@ void DocumentModel::loadCode(QJsonDocument code)
     auto ports = code["AudioOuts"].toArray();
     for(auto port : ports)
     {
-      Widget* widget = add_port(port, Process::PortType::Audio);
+      add_port(port, Process::PortType::Audio);
     }
   }
 }

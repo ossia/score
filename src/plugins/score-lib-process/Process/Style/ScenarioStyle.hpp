@@ -83,7 +83,7 @@ struct SCORE_LIB_PROCESS_EXPORT Style
   const score::Brush& ProcessPanelBackground() const noexcept { return skin.Transparent1; }
 
 
-  const score::Brush& TimeRulerBackground() const noexcept { return skin.Background2; }
+  const score::Brush& TimeRulerBackground() const noexcept { return skin.DarkGray; }
   const score::Brush& MinimapBackground() const noexcept { return skin.Background1; }
   const score::Brush& TimeRuler() const noexcept { return skin.Base1; }
   const score::Brush& LocalTimeRuler() const noexcept { return skin.Gray; }

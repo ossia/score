@@ -3,7 +3,6 @@
 #include <QObject>
 
 #include <verdigris>
-
 #include <functional>
 #if defined(_MSC_VER)
 #include <Process/Dataflow/Port.hpp>
@@ -20,6 +19,7 @@ class ControlInlet;
 }
 namespace score
 {
+struct Brush;
 struct DocumentContext;
 class Command;
 }
@@ -79,9 +79,11 @@ protected:
   Process::Port& m_port;
   double m_diam = 6.;
   bool m_visible{true};
+  bool m_inlet{true};
 
   friend class Dataflow::CableItem;
 };
+
 }
 
 namespace score

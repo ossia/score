@@ -339,7 +339,7 @@ QGraphicsItem* PortFactory::makeControlItem(
       float getMin() const { return min; }
       float getMax() const { return max; }
     } info{min, max};
-    return WidgetFactory::FloatSlider::make_item(info, port, ctx, nullptr, context);
+    return WidgetFactory::FloatSlider::make_item(info, port, ctx, parent, context);
   }
   else
   {
@@ -348,7 +348,7 @@ QGraphicsItem* PortFactory::makeControlItem(
       static float getMin() { return 0.; }
       static float getMax() { return 1.; }
     };
-    return WidgetFactory::FloatSlider::make_item(SliderInfo{}, port, ctx, nullptr, context);
+    return WidgetFactory::FloatSlider::make_item(SliderInfo{}, port, ctx, parent, context);
   }
 }
 

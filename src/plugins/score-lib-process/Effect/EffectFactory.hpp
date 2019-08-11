@@ -90,7 +90,7 @@ private:
                                          context,
                                          parent};
 
-    auto rect = new score::RectItem{v};
+    auto rect = new score::EmptyRectItem{v};
     auto item = makeItem(lm, context, rect);
     item->setParentItem(rect);
     return pres;

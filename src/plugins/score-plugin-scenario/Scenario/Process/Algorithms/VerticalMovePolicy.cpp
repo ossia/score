@@ -34,6 +34,12 @@ void updateTimeSyncExtent(
       max = ev.extent().bottom();
   }
 
+  if(max - min > 3.)
+  {
+    min += 1.;
+    max -= 1.;
+  }
+
   tn.setExtent({min, max});
 }
 
@@ -57,7 +63,7 @@ void updateEventExtent(EventModel& ev, const Scenario::ProcessModel& s, double v
     if (const auto& itv_id = st.previousInterval())
     {
       const IntervalModel& itv = s.intervals.at(*itv_id);
-      const double h = itv.getHeight() / view_height;
+      const double h = (1. + itv.getHeight()) / view_height;
       if(itv.smallViewVisible() && st.heightPercentage() + h > max)
       {
         max = st.heightPercentage() + h;
@@ -66,7 +72,7 @@ void updateEventExtent(EventModel& ev, const Scenario::ProcessModel& s, double v
     if (const auto& itv_id = st.nextInterval())
     {
       const IntervalModel& itv = s.intervals.at(*itv_id);
-      const double h = itv.getHeight() / view_height;
+      const double h = (1. + itv.getHeight()) / view_height;
       if(itv.smallViewVisible() && st.heightPercentage() + h > max)
       {
         max = st.heightPercentage() + h;

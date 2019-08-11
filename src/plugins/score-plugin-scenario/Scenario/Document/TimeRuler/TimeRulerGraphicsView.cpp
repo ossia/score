@@ -31,7 +31,7 @@ TimeRulerGraphicsView::TimeRulerGraphicsView(QGraphicsScene* scene)
   setViewportUpdateMode(QGraphicsView::NoViewportUpdate);
   setAlignment(Qt::AlignTop | Qt::AlignLeft);
 
-  setBackgroundBrush(Process::Style::instance().TimeRulerBackground());
+  setBackgroundBrush(Process::Style::instance().MinimapBackground());
 
   setOptimizationFlag(QGraphicsView::DontSavePainterState, true);
 #if defined(__APPLE__)

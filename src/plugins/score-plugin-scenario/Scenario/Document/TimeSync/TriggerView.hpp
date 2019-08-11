@@ -28,7 +28,7 @@ public:
 
   static constexpr int static_type()
   {
-    return QGraphicsItem::UserType + ItemType::Trigger;
+    return ItemType::Trigger;
   }
   int type() const override { return static_type(); }
 

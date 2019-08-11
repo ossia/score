@@ -30,13 +30,105 @@ void onCreateCable(
     Dataflow::PortItem* p1,
     Dataflow::PortItem* p2);
 
+std::array<QImage, 3> SmallEllipsesIn;
+std::array<QImage, 3> LargeEllipsesIn;
+
+std::array<QImage, 3> SmallEllipsesOut;
+std::array<QImage, 3> LargeEllipsesOut;
+
+static const QImage& portImage(Process::PortType t, bool inlet, bool small) noexcept
+{
+  int n;
+  switch(t) {
+    case Process::PortType::Audio: n = 0; break;
+    case Process::PortType::Midi: n = 2; break;
+    default: n = 1; break;
+  };
+
+  if(inlet)
+  {
+    if(small)
+    {
+      return SmallEllipsesIn[n];
+    }
+    else
+    {
+      return LargeEllipsesIn[n];
+    }
+  }
+  else
+  {
+    if(small)
+    {
+      return SmallEllipsesOut[n];
+    }
+    else
+    {
+      return LargeEllipsesOut[n];
+    }
+  }
+}
+
+// TODO move in ProcessStyle
+static bool initEllipses(Process::Style& skin)
+{
+  static constexpr qreal smallRadius = 3.;
+  static constexpr qreal largeRadius = 5.;
+  static constexpr QRectF smallEllipse{3., 3., 2. * smallRadius, 2. * smallRadius};
+  static constexpr QRectF largeEllipse{1., 1., 2. * largeRadius, 2. * largeRadius};
+  const qreal dpi = qApp->devicePixelRatio();
+  const qreal sz = dpi * 13.;
+
+#define DRAW_ELLIPSE(Image, Pen, Brush, Ellipse) \
+  do { \
+    Image = QImage(sz, sz, QImage::Format_ARGB32_Premultiplied); \
+    Image.fill(Qt::transparent); \
+    Image.setDevicePixelRatio(dpi); \
+    QPainter p(&Image); \
+    p.setRenderHint(QPainter::Antialiasing, true); \
+    p.setPen(Pen); \
+    p.setBrush(Brush); \
+    p.drawEllipse(Ellipse); \
+  } while(0)
+
+  const auto& audiopen = skin.AudioPortPen();
+  const auto& datapen = skin.DataPortPen();
+  const auto& midipen = skin.MidiPortPen();
+  const auto& audiobrush = skin.skin.Port1.main.brush;
+  const auto& databrush = skin.skin.Port2.main.brush;
+  const auto& midibrush = skin.skin.Port3.main.brush;
+  const auto& nobrush = skin.NoBrush();
+  DRAW_ELLIPSE(SmallEllipsesIn[0], audiopen, nobrush, smallEllipse);
+  DRAW_ELLIPSE(SmallEllipsesIn[1], datapen, nobrush, smallEllipse);
+  DRAW_ELLIPSE(SmallEllipsesIn[2], midipen, nobrush, smallEllipse);
+  DRAW_ELLIPSE(SmallEllipsesOut[0], audiopen, audiobrush, smallEllipse);
+  DRAW_ELLIPSE(SmallEllipsesOut[1], datapen, databrush, smallEllipse);
+  DRAW_ELLIPSE(SmallEllipsesOut[2], midipen, midibrush, smallEllipse);
+
+  DRAW_ELLIPSE(LargeEllipsesIn[0], audiopen, nobrush, largeEllipse);
+  DRAW_ELLIPSE(LargeEllipsesIn[1], datapen, nobrush, largeEllipse);
+  DRAW_ELLIPSE(LargeEllipsesIn[2], midipen, nobrush, largeEllipse);
+  DRAW_ELLIPSE(LargeEllipsesOut[0], audiopen, audiobrush, largeEllipse);
+  DRAW_ELLIPSE(LargeEllipsesOut[1], datapen, databrush, largeEllipse);
+  DRAW_ELLIPSE(LargeEllipsesOut[2], midipen, midibrush, largeEllipse);
+
+#undef DRAW_ELLIPSE
+  return true;
+}
+
+
 PortItem* PortItem::clickedPort;
 PortItem::PortItem(
     Process::Port& p,
     const score::DocumentContext& ctx,
     QGraphicsItem* parent)
-  : QGraphicsItem{parent}, m_context{ctx}, m_port{p}, m_diam{8.}
+  : QGraphicsItem{parent}
+  , m_context{ctx}
+  , m_port{p}
+  , m_diam{8.}
+  , m_inlet{bool(qobject_cast<Process::Inlet*>(&p))}
 {
+  static bool init = initEllipses(Process::Style::instance());
   this->setCursor(QCursor());
   this->setAcceptDrops(true);
   this->setAcceptHoverEvents(true);
@@ -119,30 +211,17 @@ void PortItem::resetPortVisible()
 QRectF PortItem::boundingRect() const
 {
   constexpr auto max_diam = 13.;
-  return {-max_diam / 2., -max_diam / 2., max_diam, max_diam};
+  return {0., 0., max_diam, max_diam};
 }
-
 void PortItem::paint(
     QPainter* painter,
     const QStyleOptionGraphicsItem* option,
     QWidget* widget)
 {
-  static constexpr qreal smallRadius = 4.;
-  static constexpr qreal largeRadius = 6.;
-  static constexpr QRectF smallEllipse{
-      -smallRadius, -smallRadius, 2. * smallRadius, 2. * smallRadius};
-  static const QPolygonF smallEllipsePath{[] {
-    QPainterPath p;
-    p.addEllipse(smallEllipse);
-    return p.simplified().toFillPolygon();
-  }()};
-  static constexpr QRectF largeEllipse{
-      -largeRadius, -largeRadius, 2. * largeRadius, 2. * largeRadius};
-  static const QPolygonF largeEllipsePath{[] {
-    QPainterPath p;
-    p.addEllipse(largeEllipse);
-    return p.simplified().toFillPolygon();
-  }()};
+  const QImage& img = portImage(m_port.type, m_inlet, m_diam == 8.);
+  painter->drawImage(0, 0, img);
+
+  /*
 
   painter->setRenderHint(QPainter::Antialiasing, true);
 
@@ -151,21 +230,20 @@ void PortItem::paint(
   {
     case Process::PortType::Audio:
       painter->setPen(style.AudioPortPen());
-      painter->setBrush(style.AudioPortBrush().brush);
+      painter->setBrush(m_inlet ? style.AudioPortBrush().brush : style.skin.NoBrush);
       break;
     case Process::PortType::Message:
       painter->setPen(style.DataPortPen());
-      painter->setBrush(style.DataPortBrush().brush);
+      painter->setBrush(m_inlet ? style.DataPortBrush().brush : style.skin.NoBrush);
       break;
     case Process::PortType::Midi:
       painter->setPen(style.MidiPortPen());
-      painter->setBrush(style.MidiPortBrush().brush);
+      painter->setBrush(m_inlet ? style.MidiPortBrush().brush : style.skin.NoBrush);
       break;
   }
-  painter->setBrush(Qt::NoBrush);
 
   painter->drawPolygon(m_diam == 8. ? smallEllipsePath : largeEllipsePath);
-  painter->setRenderHint(QPainter::Antialiasing, false);
+  painter->setRenderHint(QPainter::Antialiasing, false);*/
 }
 
 void PortItem::mousePressEvent(QGraphicsSceneMouseEvent* event)
@@ -245,7 +323,7 @@ void PortItem::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
   {
     QDrag* d{new QDrag{this}};
     QMimeData* m = new QMimeData;
-    portDragLineCoords = QLineF{scenePos(), event->scenePos()};
+    portDragLineCoords = QLineF{scenePos() + QPointF{6., 6.}, event->scenePos() + QPointF{6., 6.}};
     portDragLine = new DragLine{portDragLineCoords};
 
     scene()->installEventFilter(drag_move_filter = new DragMoveFilter{});
@@ -349,4 +427,20 @@ QVariant PortItem::itemChange(
 
   return QGraphicsItem::itemChange(change, value);
 }
+}
+
+namespace Process
+{
+const score::Brush& portBrush(Process::PortType type)
+{
+  const auto& skin = score::Skin::instance();
+  switch(type)
+  {
+  case Process::PortType::Audio: return skin.Port1;
+  case Process::PortType::Message: return skin.Port2;
+  case Process::PortType::Midi: return skin.Port3;
+  default: return skin.Warn1;
+  }
+}
+
 }

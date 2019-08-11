@@ -120,12 +120,15 @@ private:
   }
 
   HeaderDelegate*
-  makeHeaderDelegate(const Process::LayerPresenter& pres) const override
+  makeHeaderDelegate(
+      const ProcessModel& model,
+      const score::DocumentContext& ctx,
+      const LayerPresenter* pres) const override
   {
     if constexpr (std::is_same_v<HeaderDelegate_T, default_t>)
-      return LayerFactory::makeHeaderDelegate(pres);
+      return LayerFactory::makeHeaderDelegate(model, ctx, pres);
     else
-      return new HeaderDelegate_T{*safe_cast<const LayerPresenter_T*>(&pres)};
+      return new HeaderDelegate_T{model, ctx, safe_cast<const LayerPresenter_T*>(&pres)};
   }
 };
 

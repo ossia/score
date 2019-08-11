@@ -1,5 +1,4 @@
 #pragma once
-
 namespace Scenario
 {
 // SPace at the left of the main box in the main scenario view.
@@ -11,11 +10,13 @@ class ItemType
 public:
   enum Type
   {
-    Interval = 1,
+    Type = 1,
+    UserType = 65536, // See QGraphicsItem
+    Interval,
     LeftBrace,
     RightBrace,
-    SlotHandle,
     SlotHeader,
+    SlotFooter,
     SlotOverlay,
     IntervalHeader,
     TimeSync,
@@ -24,7 +25,9 @@ public:
     State,
     Comment,
     Condition,
-    StateOverlay
+    StateOverlay,
+
+    SlotFooterDelegate = UserType + 10000
   };
 };
 

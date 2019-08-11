@@ -29,7 +29,7 @@ public:
 
   static constexpr int static_type()
   {
-    return QGraphicsItem::UserType + ItemType::TimeSync;
+    return ItemType::TimeSync;
   }
   int type() const override { return static_type(); }
 
