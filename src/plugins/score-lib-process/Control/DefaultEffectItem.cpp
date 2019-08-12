@@ -2,6 +2,8 @@
 
 #include <Process/Dataflow/PortFactory.hpp>
 #include <Process/Dataflow/PortItem.hpp>
+#include <Effect/EffectLayout.hpp>
+
 #include <Process/Style/ScenarioStyle.hpp>
 
 #include <score/graphics/TextItem.hpp>
@@ -48,13 +50,14 @@ DefaultEffectItem::DefaultEffectItem(
         this,
         &DefaultEffectItem::on_controlOutletRemoved);
 
+  auto& portFactory = score::AppContext().interfaces<Process::PortFactoryList>();
   for (auto& e : effect.inlets())
   {
     auto inlet = qobject_cast<Process::ControlInlet*>(e);
     if (!inlet)
       continue;
 
-    setupInlet(*inlet, doc);
+    setupInlet(*inlet, portFactory, doc);
   }
   for (auto& e : effect.outlets())
   {
@@ -62,7 +65,7 @@ DefaultEffectItem::DefaultEffectItem(
     if (!outlet)
       continue;
 
-    setupOutlet(*outlet, doc);
+    setupOutlet(*outlet, portFactory, doc);
   }
   updateRect();
 
@@ -83,81 +86,34 @@ DefaultEffectItem::~DefaultEffectItem()
 
 }
 
-static const constexpr int MaxRows = 4;
-double DefaultEffectItem::currentColumnX() const
-{
-  int N = MaxRows * (m_ports.size() / MaxRows);
-  qreal x = 0;
-  for(int i = 0; i < N; )
-  {
-    qreal w = 0;
-    for(int j = i; j < i + MaxRows && j < N; j++)
-    {
-      w = std::max(w, m_ports[j].rect.width());
-    }
-    x += w;
-    i += MaxRows;
-  }
-  return x;
-}
-
-
 template<typename T>
 void DefaultEffectItem::setupPort(
     T& port,
+    const Process::PortFactoryList& portFactory,
     const score::DocumentContext& doc)
 {
   int i = m_ports.size();
-  int row = i % MaxRows;
-  // TODO put them in the correct order
-  auto item = new score::EmptyRectItem{this};
 
-  auto& portFactory
-      = score::AppContext().interfaces<Process::PortFactoryList>();
-  Process::PortFactory* fact = portFactory.get(port.concreteKey());
-  auto portItem = fact->makeItem(port, doc, item, this);
-
-  auto lab = new score::SimpleTextItem{Process::portBrush(port.type).main, item};
-  if (port.customData().isEmpty())
-    lab->setText(tr("Control"));
-  else
-    lab->setText(port.customData());
-  connect(
-      &port,
-      &Process::ControlInlet::customDataChanged,
-      item,
-      [=](const QString& txt) { lab->setText(txt); });
-
-  QGraphicsItem* widg = fact->makeControlItem(port, doc, item, this);
-  widg->setParentItem(item);
-  const qreal labelHeight = 10;
-  const qreal labelWidth = lab->boundingRect().width();
-  const auto wrect = widg->boundingRect();
-  const qreal widgetHeight = wrect.height();
-  const qreal widgetWidth = wrect.width();
-
-  auto h = std::max(
-      20.,
-      (qreal)(widgetHeight + labelHeight + 7.));
-  auto w = std::max(90., std::max(25. + labelWidth, widgetWidth));
-
-  portItem->setPos(8., 4.);
-  lab->setPos(20., 2);
-  widg->setPos(18., labelHeight + 5.);
-
-  const auto itemRect = QRectF{0., 0, w, h};
-  item->setPos(currentColumnX(), row * h);
-  item->setRect(itemRect);
-
+  auto csetup = Process::controlSetup(
+   [ ] (auto& factory, auto& inlet, const auto& doc, auto item, auto parent)
+   { return factory.makeItem(inlet, doc, item, parent); },
+   [ ] (auto& factory, auto& inlet, const auto& doc, auto item, auto parent)
+   { return factory.makeControlItem(inlet, doc, item, parent); },
+   [&] (int j) { return m_ports[j].rect.size(); },
+   [&] { return port.customData(); }
+  );
+  auto [item, portItem, widg, lab, itemRect]
+      = Process::createControl(i, csetup, port, portFactory, doc, this, this);
   m_ports.push_back(Port{item, portItem, itemRect});
   updateRect();
 }
 
 void DefaultEffectItem::setupInlet(
     Process::ControlInlet& inlet,
+    const Process::PortFactoryList& portFactory,
     const score::DocumentContext& doc)
 {
-  setupPort(inlet, doc);
+  setupPort(inlet, portFactory, doc);
   con(inlet, &Process::ControlInlet::domainChanged, this, [this, &inlet] {
     on_controlRemoved(inlet);
     on_controlAdded(inlet.id());
@@ -166,9 +122,10 @@ void DefaultEffectItem::setupInlet(
 
 void DefaultEffectItem::setupOutlet(
     Process::ControlOutlet& outlet,
+    const Process::PortFactoryList& portFactory,
     const score::DocumentContext& doc)
 {
-  setupPort(outlet, doc);
+  setupPort(outlet, portFactory, doc);
   con(outlet, &Process::ControlOutlet::domainChanged, this, [this, &outlet] {
     on_controlOutletRemoved(outlet);
     on_controlOutletAdded(outlet.id());
@@ -177,8 +134,9 @@ void DefaultEffectItem::setupOutlet(
 
 void DefaultEffectItem::on_controlAdded(const Id<Process::Port>& id)
 {
+  auto& portFactory = m_ctx.app.interfaces<Process::PortFactoryList>();
   auto inlet = safe_cast<Process::ControlInlet*>(m_effect.inlet(id));
-  setupInlet(*inlet, m_ctx);
+  setupInlet(*inlet, portFactory, m_ctx);
 }
 
 void DefaultEffectItem::on_controlRemoved(const Process::Port& port)
@@ -206,8 +164,9 @@ void DefaultEffectItem::on_controlRemoved(const Process::Port& port)
 
 void DefaultEffectItem::on_controlOutletAdded(const Id<Process::Port>& id)
 {
+  auto& portFactory = m_ctx.app.interfaces<Process::PortFactoryList>();
   auto outlet = safe_cast<Process::ControlOutlet*>(m_effect.outlet(id));
-  setupOutlet(*outlet, m_ctx);
+  setupOutlet(*outlet, portFactory, m_ctx);
 }
 
 void DefaultEffectItem::on_controlOutletRemoved(const Process::Port& port)
@@ -244,15 +203,16 @@ void DefaultEffectItem::reset()
   updateRect();
   m_ports.clear();
 
+  auto& portFactory = m_ctx.app.interfaces<Process::PortFactoryList>();
   for (auto& e : m_effect.inlets())
   {
     if (auto inlet = qobject_cast<Process::ControlInlet*>(e))
-      setupInlet(*inlet, m_ctx);
+      setupInlet(*inlet, portFactory, m_ctx);
   }
   for (auto& e : m_effect.outlets())
   {
     if (auto outlet = qobject_cast<Process::ControlOutlet*>(e))
-      setupOutlet(*outlet, m_ctx);
+      setupOutlet(*outlet, portFactory, m_ctx);
   }
   updateRect();
 }
@@ -264,7 +224,7 @@ void DefaultEffectItem::updateRect()
     this->setRect(r);
   }
   else {
-    this->setRect({0., 0., 140, 0});
+    this->setRect({0., 0., 100, 100});
   }
 }
 }

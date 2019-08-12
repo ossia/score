@@ -9,6 +9,7 @@
 #include <Media/Commands/VSTCommands.hpp>
 #include <Media/Effect/Settings/Model.hpp>
 #include <Media/Effect/VST/VSTControl.hpp>
+#include <Effect/EffectLayout.hpp>
 #include <Scenario/Commands/Interval/AddLayerInNewSlot.hpp>
 #include <Scenario/Commands/Interval/AddOnlyProcessToInterval.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
@@ -142,87 +143,50 @@ VSTEffectItem::VSTEffectItem(
   }
 }
 
-static const constexpr int MaxRows = 4;
-double VSTEffectItem::currentColumnX() const
-{
-  int N = MaxRows * (controlItems.size() / MaxRows);
-  qreal x = 0;
-  for(int i = 0; i < N; )
-  {
-    qreal w = 0;
-    for(int j = i; j < i + MaxRows && j < N; j++)
-    {
-      w = std::max(w, controlItems[j].second->boundingRect().width());
-    }
-    x += w;
-    i += MaxRows;
-  }
-  return x;
-}
-
 void VSTEffectItem::setupInlet(
     const VSTEffectModel& fx,
     VSTControlInlet& inlet,
     const score::DocumentContext& doc)
 {
+  if(!fx.fx)
+    return;
+
   int i = controlItems.size();
-  int row = i % MaxRows;
-  auto item = new score::EmptyRectItem{this};
 
-  auto port_item = VSTControlPortFactory{}.makeItem(inlet, doc, item, this);
-  static const auto close_off = score::get_pixmap(":/icons/close_off.png");
-  static const auto close_on = score::get_pixmap(":/icons/close_on.png");
+  auto csetup = Process::controlSetup(
+   [ ] (auto& factory, auto& inlet, const auto& doc, auto item, auto parent)
+   { return factory.makeItem(inlet, doc, item, parent); },
+   [&] (auto& factory, auto& inlet, const auto& doc, auto item, auto parent)
+   { return VSTFloatSlider::make_item(fx.fx->fx, inlet, doc, item, parent); },
+   [&] (int j) { return controlItems[j].second->boundingRect().size(); },
+   [&] { return inlet.customData(); },
+   [ ] (auto&&...) -> auto& { static VSTControlPortFactory f; return f; }
+  );
 
-  auto lab = new score::SimpleTextItem{score::Skin::instance().Port2.main, item};
-  lab->setText(inlet.customData());
-  lab->setPos(20., 2.);
-  const qreal labelHeight = 10;
+  // TODO useless, find a way to remove
+  static const auto& portFactory = score::GUIAppContext().interfaces<Process::PortFactoryList>();
+  auto ctl = Process::createControl(i, csetup, inlet, portFactory, doc, this, this);
 
-  double h = 20.;
-  if (fx.fx)
+  if (fx.fx->fx->numParams >= 10)
   {
-    QGraphicsItem* widg
-        = VSTFloatSlider::make_item(fx.fx->fx, inlet, doc, nullptr, this);
-    widg->setParentItem(item);
-    widg->setPos(18., labelHeight + 5.);
-
-    h = std::max(
-        20.,
-        (qreal)(
-            widg->boundingRect().height() + lab->boundingRect().height()
-            + 2.));
-
-    if (fx.fx->fx->numParams >= 10)
-    {
-      auto rm_item
-          = new score::QGraphicsPixmapButton{close_on, close_off, item};
-      connect(
+    static const auto close_off = score::get_pixmap(":/icons/close_off.png");
+    static const auto close_on = score::get_pixmap(":/icons/close_on.png");
+    auto rm_item
+        = new score::QGraphicsPixmapButton{close_on, close_off, ctl.item};
+    connect(
           rm_item,
           &score::QGraphicsPixmapButton::clicked,
           this,
           [&doc, &fx, id = inlet.id()] {
-            QTimer::singleShot(0, [&doc, &fx, id] {
-              CommandDispatcher<> disp{doc.commandStack};
-              disp.submit<RemoveVSTControl>(fx, id);
-            });
-          });
+      QTimer::singleShot(0, [&doc, &fx, id] {
+        CommandDispatcher<> disp{doc.commandStack};
+        disp.submit<RemoveVSTControl>(fx, id);
+      });
+    });
 
-      rm_item->setPos(8., 16.);
-    }
-
-    port_item->setPos(8., 4.);
-
-    const qreal labelWidth = lab->boundingRect().width();
-    const auto wrect = widg->boundingRect();
-    const qreal widgetHeight = wrect.height();
-    const qreal widgetWidth = wrect.width();
-    auto w = std::max(90., std::max(25. + labelWidth, widgetWidth));
-    const auto itemRect = QRectF{0., 0, w, h};
-    item->setPos(currentColumnX(), row * h);
-    item->setRect(itemRect);
+    rm_item->setPos(8., 16.);
   }
-
-  controlItems.push_back({&inlet, item});
+  controlItems.push_back({&inlet, ctl.item});
 }
 
 ERect VSTWindow::getRect(AEffect& e)

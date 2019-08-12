@@ -21,7 +21,6 @@ class VSTEffectItem final : public score::EmptyRectItem
 {
   QGraphicsItem* rootItem{};
   std::vector<std::pair<VSTControlInlet*, score::EmptyRectItem*>> controlItems;
-  double currentColumnX() const;
 public:
   VSTEffectItem(
       const VSTEffectModel& effect,
