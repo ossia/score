@@ -776,6 +776,7 @@ void QGraphicsCombo::paint(
   painter->drawRoundedRect(brect, 1, 1);
 
   // Draw text
+  painter->setRenderHint(QPainter::Antialiasing, false);
   painter->setPen(skin.Base4.lighter180.pen1);
   painter->setFont(skin.Medium8Pt);
   painter->drawText(
@@ -790,7 +791,7 @@ QGraphicsEnum::QGraphicsEnum(QGraphicsItem* parent)
     : QGraphicsItem{parent}
 {
   this->setAcceptedMouseButtons(Qt::LeftButton);
-  setRect({0, 0, 150, 30});
+  setRect({0, 0, 150, 45});
 }
 
 void QGraphicsEnum::setRect(const QRectF& r)
@@ -816,12 +817,13 @@ void QGraphicsEnum::mousePressEvent(QGraphicsSceneMouseEvent* event)
   event->accept();
   int row = 0;
   int col = 0;
-  const double w = m_smallRect.width() / columns - 2;
-  const double h = m_smallRect.height() / rows - 2;
+  int actual_rows = std::ceil(double(array.size()) / columns);
+  const double w = m_smallRect.width() / columns;
+  const double h = m_smallRect.height() / actual_rows;
   int i = 0;
   for(const QString& str : array)
   {
-    QRectF rect{col * w, row * h, w, h};
+    QRectF rect{2. + col * w, 2. + row * h, w - 1., h - 1.};
     if(rect.contains(event->pos()))
     {
       m_clicking = i;
@@ -869,27 +871,30 @@ void QGraphicsEnum::paint(
     const QStyleOptionGraphicsItem* option,
     QWidget* widget)
 {
+  painter->setRenderHint(QPainter::Antialiasing, false);
   auto& style = score::Skin::instance();
 
-  const QPen& border = style.Base4.darker300.pen1;
-  const QPen& borderClicking = style.Smooth3.main.pen1;
-  const QPen& text = style.Base4.lighter.pen1;
+  // const QPen& border = style.Base4.darker300.pen1;
+  // const QPen& borderClicking = style.Smooth3.main.pen1;
+  const QPen& text = style.Gray.main.pen1;
   const QFont& textFont = style.MonoFontSmall;
-  const QPen& currentText = style.Smooth2.main.pen1;
+  const QPen& currentText = style.Base4.lighter180.pen1;
   const QBrush& bg = style.SliderBrush;
-  const QBrush& noBrush = style.NoBrush;
+  const QPen& noPen = style.NoPen;
+  // const QBrush& noBrush = style.NoBrush;
 
+  int actual_rows = std::ceil(double(array.size()) / columns);
   int row = 0;
   int col = 0;
-  const double w = m_smallRect.width() / columns - 2;
-  const double h = m_smallRect.height() / rows - 2;
+  const double w = m_smallRect.width() / columns;
+  const double h = m_smallRect.height() / actual_rows ;
 
   painter->setBrush(bg);
   int i = 0;
   QRectF clickRect{};
   for(const QString& str : array)
   {
-    QRectF rect{col * w, row * h, w, h};
+    QRectF rect{2. + col * w, 2. + row * h, w - 1., h - 1.};
     if(i == m_clicking)
     {
       clickRect = rect;
@@ -897,7 +902,7 @@ void QGraphicsEnum::paint(
     }
     else
     {
-      painter->setPen( border );
+      painter->setPen( noPen );
       painter->drawRect(rect);
       painter->setPen(i != m_value ? text : currentText);
     }
@@ -911,14 +916,6 @@ void QGraphicsEnum::paint(
       col = 0;
     }
     i++;
-  }
-
-  if(m_clicking >= 0)
-  {
-    painter->setPen( borderClicking );
-    painter->setBrush( noBrush );
-    painter->drawRect( clickRect );
-
   }
 }
 
