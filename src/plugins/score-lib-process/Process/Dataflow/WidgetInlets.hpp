@@ -84,7 +84,7 @@ UUID_METADATA(
 
 namespace Process
 {
-struct FloatSlider final : public Process::ControlInlet
+struct FloatSlider : public Process::ControlInlet
 {
   MODEL_METADATA_IMPL(FloatSlider)
   using base_type = Process::ControlInlet;
@@ -110,7 +110,7 @@ struct FloatSlider final : public Process::ControlInlet
   using Process::ControlInlet::ControlInlet;
 };
 
-struct LogFloatSlider final : public Process::ControlInlet
+struct LogFloatSlider : public Process::ControlInlet
 {
   MODEL_METADATA_IMPL(LogFloatSlider)
   using base_type = Process::ControlInlet;
@@ -136,7 +136,7 @@ struct LogFloatSlider final : public Process::ControlInlet
   using Process::ControlInlet::ControlInlet;
 };
 
-struct IntSlider final : public Process::ControlInlet
+struct IntSlider : public Process::ControlInlet
 {
   MODEL_METADATA_IMPL(IntSlider)
   using base_type = Process::ControlInlet;
@@ -162,7 +162,7 @@ struct IntSlider final : public Process::ControlInlet
   using Process::ControlInlet::ControlInlet;
 };
 
-struct IntSpinBox final : public Process::ControlInlet
+struct IntSpinBox : public Process::ControlInlet
 {
   MODEL_METADATA_IMPL(IntSpinBox)
   using base_type = Process::ControlInlet;
@@ -188,7 +188,7 @@ struct IntSpinBox final : public Process::ControlInlet
   using Process::ControlInlet::ControlInlet;
 };
 
-struct Toggle final : public Process::ControlInlet
+struct Toggle : public Process::ControlInlet
 {
   MODEL_METADATA_IMPL(Toggle)
   using base_type = Process::ControlInlet;
@@ -206,18 +206,18 @@ struct Toggle final : public Process::ControlInlet
   using Process::ControlInlet::ControlInlet;
 };
 
-struct ChooserToggle final : public Process::ControlInlet
+struct ChooserToggle : public Process::ControlInlet
 {
   MODEL_METADATA_IMPL(ChooserToggle)
   using base_type = Process::ControlInlet;
   using control_type = WidgetFactory::ChooserToggle;
   ChooserToggle(
-      QStringList values,
+      QStringList alternatives,
       bool init,
       const QString& name,
       Id<Process::Port> id,
       QObject* parent)
-      : ControlInlet{id, parent}, alternatives{values}
+      : ControlInlet{id, parent}
   {
     type = Process::PortType::Message;
     hidden = true;
@@ -228,11 +228,18 @@ struct ChooserToggle final : public Process::ControlInlet
     setCustomData(name);
   }
 
-  QStringList alternatives;
+  QStringList alternatives() const noexcept
+  {
+    const auto& dom = *this->domain().get().v.target<ossia::domain_base<std::string>>();
+    auto it = dom.values.begin();
+    auto& s1 = *it;
+    auto& s2 = *(++it);
+    return {QString::fromStdString(s1), QString::fromStdString(s2)};
+  }
   using Process::ControlInlet::ControlInlet;
 };
 
-struct LineEdit final : public Process::ControlInlet
+struct LineEdit : public Process::ControlInlet
 {
   MODEL_METADATA_IMPL(LineEdit)
   using base_type = Process::ControlInlet;
@@ -253,7 +260,7 @@ struct LineEdit final : public Process::ControlInlet
   using Process::ControlInlet::ControlInlet;
 };
 
-struct ComboBox final : public Process::ControlInlet
+struct ComboBox : public Process::ControlInlet
 {
   using control_type = WidgetFactory::ComboBox;
   using base_type = Process::ControlInlet;
@@ -281,7 +288,7 @@ struct ComboBox final : public Process::ControlInlet
   using Process::ControlInlet::ControlInlet;
 };
 
-struct Enum final : public Process::ControlInlet
+struct Enum : public Process::ControlInlet
 {
   MODEL_METADATA_IMPL(Enum)
   using base_type = Process::ControlInlet;
@@ -327,7 +334,7 @@ struct Enum final : public Process::ControlInlet
   using Process::ControlInlet::ControlInlet;
 };
 
-struct TimeSignatureChooser final : public Process::ControlInlet
+struct TimeSignatureChooser : public Process::ControlInlet
 {
   MODEL_METADATA_IMPL(TimeSignatureChooser)
   using base_type = Process::ControlInlet;
@@ -351,7 +358,7 @@ struct TimeSignatureChooser final : public Process::ControlInlet
   using Process::ControlInlet::ControlInlet;
 };
 
-struct Button final : public Process::ControlInlet
+struct Button : public Process::ControlInlet
 {
   MODEL_METADATA_IMPL(Button)
   using base_type = Process::ControlInlet;
