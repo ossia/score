@@ -106,8 +106,10 @@ Skin::Skin() noexcept : SansFont{"Ubuntu"}
        SCORE_INSERT_COLOR_CUSTOM("#000000", "Black")
     }
 {
+#if QT_VERSION >= QT_VERSION_CHECK(5, 13, 0)
   MonoFont.setFamilies({"APCCourier-Bold"});
   MonoFontSmall.setFamilies({"Ubuntu"});
+#endif
   for(auto& c : m_defaultPalette)
   {
     m_colorMap->left.insert({c.first, &c.second});
