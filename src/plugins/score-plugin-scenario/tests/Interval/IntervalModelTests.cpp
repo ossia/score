@@ -10,7 +10,6 @@
 
 #include <score/model/path/Path.hpp>
 
-#include <QtTest/QtTest>
 
 class IntervalModelTests : public QObject
 {

@@ -4,7 +4,7 @@
 #include <score/plugins/panel/PanelDelegate.hpp>
 #include <score/selection/Selection.hpp>
 #include <score/selection/SelectionStack.hpp>
-#include <score/tools/Todo.hpp>
+#include <score/tools/Bind.hpp>
 
 #include <core/document/Document.hpp>
 #include <core/document/DocumentBackupManager.hpp>
@@ -12,18 +12,19 @@
 #include <core/document/DocumentPresenter.hpp>
 #include <core/document/DocumentView.hpp>
 
+#include <score/model/Identifier.hpp>
+
 #include <QObject>
+#include <QWidget>
+#include <wobjectimpl.h>
 
 #include <algorithm>
 #include <iterator>
 #include <vector>
 
-class QWidget;
-class Selection;
-#include <score/model/Identifier.hpp>
 
-#include <wobjectimpl.h>
 W_OBJECT_IMPL(score::Document)
+class Selection;
 namespace score
 {
 DocumentContext::DocumentContext(Document& d)

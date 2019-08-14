@@ -10,7 +10,7 @@ class TimeSyncModel;
 class IntervalModel;
 class StateModel;
 
-struct ObjectMapper {
+struct SCORE_PLUGIN_SCENARIO_EXPORT ObjectMapper {
 
   static OptionalId<EventModel> itemToEventId(const QGraphicsItem* pressedItem, const QObject* parentModel) noexcept;
   static OptionalId<EventModel> itemToConditionId(const QGraphicsItem* pressedItem, const QObject* parentModel) noexcept;

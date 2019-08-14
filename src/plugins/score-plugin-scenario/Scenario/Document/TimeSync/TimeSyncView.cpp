@@ -11,11 +11,10 @@
 #include <score/model/ModelMetadata.hpp>
 
 #include <QBrush>
-#include <QCursor>
 #include <QGraphicsScene>
-#include <QGraphicsSceneEvent>
 #include <QPainter>
 #include <QPen>
+#include <QCursor>
 #include <qnamespace.h>
 
 #include <algorithm>

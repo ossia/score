@@ -1,9 +1,8 @@
 #pragma once
-#include <score/tools/Todo.hpp>
-
+#include <QString>
+#include <string>
+#include <cstdint>
 #include <score_lib_base_export.h>
-
-#include <array>
 
 class JSONObject;
 namespace score
@@ -27,7 +26,23 @@ public:
 public:
   constexpr uuid() noexcept : data{{}} {}
 
-  constexpr uuid(const uuid& other) noexcept : data{other.data} {}
+  constexpr uuid(const uuid& other) noexcept
+    : data{other.data[0],
+           other.data[1],
+           other.data[2],
+           other.data[3],
+           other.data[4],
+           other.data[5],
+           other.data[6],
+           other.data[7],
+           other.data[8],
+           other.data[9],
+           other.data[10],
+           other.data[11],
+           other.data[12],
+           other.data[13],
+           other.data[14],
+           other.data[15]} {}
 
   constexpr uuid(uint8_t* other) noexcept
       : data{other[0],
@@ -49,11 +64,11 @@ public:
   {
   }
 
-  constexpr auto begin() noexcept { return data.data(); }
-  constexpr auto end() noexcept { return data.data() + data.size(); }
+  constexpr auto begin() noexcept { return &data[0]; }
+  constexpr auto end() noexcept { return &data[0] + 16; }
 
-  constexpr auto begin() const noexcept { return data.data(); }
-  constexpr auto end() const noexcept { return data.data() + data.size(); }
+  constexpr auto begin() const noexcept { return  &data[0]; }
+  constexpr auto end() const noexcept { return &data[0] + 16; }
 
   constexpr size_type size() const noexcept { return static_size(); }
 
@@ -140,7 +155,7 @@ public:
 
 public:
   // or should it be array<uint8_t, 16>
-  std::array<uint8_t, 16> data;
+  uint8_t data[16];
 };
 
 constexpr inline bool operator==(uuid const& lhs, uuid const& rhs) noexcept

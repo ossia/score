@@ -20,9 +20,7 @@
 #include <score/graphics/GraphicsSliderBaseImpl.hpp>
 #include <score/widgets/Pixmap.hpp>
 
-#include <QAction>
 #include <QGraphicsScene>
-#include <QMenu>
 
 #include <Engine/Node/CommonWidgets.hpp>
 #include <wobjectimpl.h>

@@ -6,13 +6,11 @@
 #include <score/selection/FocusManager.hpp>
 #include <score/selection/Selectable.hpp>
 #include <score/selection/Selection.hpp>
-#include <score/tools/Todo.hpp>
+#include <score/tools/ForEach.hpp>
 
 #include <ossia/detail/flat_set.hpp>
 
-#include <QList>
 #include <QPointer>
-#include <QVector>
 #include <qnamespace.h>
 
 #include <wobjectimpl.h>

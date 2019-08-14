@@ -1,9 +1,8 @@
 #pragma once
 #include <score/model/Skin.hpp>
-#include <score/tools/Todo.hpp>
 #include <score/tools/std/Optional.hpp>
+#include <score/tools/Debug.hpp>
 
-#include <QBrush>
 #include <QColor>
 
 #include <eggs/variant.hpp>

@@ -9,13 +9,8 @@
 #include <score/widgets/MarginLess.hpp>
 #include <score/widgets/SetIcons.hpp>
 
-#include <QBoxLayout>
+#include <QVBoxLayout>
 #include <QDebug>
-#include <QPushButton>
-#include <QStringList>
-#include <QToolButton>
-#include <QtGlobal>
-
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Scenario::ExpressionEditorWidget)
 W_OBJECT_IMPL(Scenario::ExpressionMenu)

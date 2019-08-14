@@ -1,7 +1,6 @@
 #pragma once
 
 #include <QPoint>
-#include <QStateMachine>
 
 namespace Scenario
 {

@@ -14,13 +14,10 @@
 #include <score/widgets/TextLabel.hpp>
 #include <Inspector/InspectorLayout.hpp>
 
-#include <QColor>
-#include <QFormLayout>
 #include <QLineEdit>
 #include <QPixmap>
 #include <QString>
 #include <QToolButton>
-#include <QVBoxLayout>
 #include <QWidget>
 
 #include <verdigris>

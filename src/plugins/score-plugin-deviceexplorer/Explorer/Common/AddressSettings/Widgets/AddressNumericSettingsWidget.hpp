@@ -10,13 +10,6 @@
 #include <ossia/network/dataspace/dataspace_visitors.hpp>
 #include <ossia/network/value/value_conversion.hpp>
 
-#include <QComboBox>
-#include <QDebug>
-#include <QFormLayout>
-#include <QGridLayout>
-#include <QLabel>
-#include <QLineEdit>
-#include <QSpinBox>
 
 namespace Explorer
 {

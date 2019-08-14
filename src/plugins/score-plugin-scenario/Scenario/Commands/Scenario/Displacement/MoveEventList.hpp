@@ -4,7 +4,6 @@
 #include <score/plugins/Interface.hpp>
 #include <score/plugins/InterfaceList.hpp>
 
-#include <QVector>
 
 namespace Scenario
 {

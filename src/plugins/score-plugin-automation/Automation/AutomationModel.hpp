@@ -9,7 +9,6 @@
 
 #include <score/serialization/VisitorInterface.hpp>
 
-#include <QByteArray>
 #include <QString>
 
 #include <verdigris>

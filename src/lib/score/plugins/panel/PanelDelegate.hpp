@@ -2,8 +2,7 @@
 #include <score/document/DocumentContext.hpp>
 #include <score/tools/std/Optional.hpp>
 
-#include <QObject>
-#include <QShortcut>
+#include <QKeySequence>
 
 #include <score_lib_base_export.h>
 class Selection;

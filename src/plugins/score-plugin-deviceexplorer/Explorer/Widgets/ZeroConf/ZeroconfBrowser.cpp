@@ -6,21 +6,16 @@
 
 #include <score/widgets/MarginLess.hpp>
 
-#include <QAbstractItemModel>
 #include <QAbstractItemView>
 #include <QAction>
-#include <QDebug>
 #include <QDialog>
+#include <QDebug>
 #include <QDialogButtonBox>
-#include <QFlags>
 #include <QGridLayout>
-#include <QHostAddress>
-#include <QHostInfo>
 #include <QLineEdit>
 #include <QList>
 #include <QListView>
 #include <QSpinBox>
-#include <QVariant>
 
 #include <asio/io_service.hpp>
 #include <asio/ip/resolver_service.hpp>

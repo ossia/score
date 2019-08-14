@@ -11,11 +11,10 @@
 #include <score/widgets/ClearLayout.hpp>
 #include <score/widgets/MarginLess.hpp>
 #include <score/widgets/TextLabel.hpp>
+#include <score/tools/Bind.hpp>
 
 #include <QCheckBox>
-#include <QFormLayout>
 #include <QToolButton>
-#include <QVBoxLayout>
 namespace Process
 {
 PortListWidget::PortListWidget(

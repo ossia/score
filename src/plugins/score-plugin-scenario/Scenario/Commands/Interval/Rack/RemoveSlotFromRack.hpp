@@ -7,7 +7,6 @@
 #include <score/model/path/Path.hpp>
 #include <score/tools/std/Optional.hpp>
 
-#include <QByteArray>
 
 namespace Scenario
 {

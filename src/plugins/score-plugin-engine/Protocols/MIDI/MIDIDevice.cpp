@@ -12,7 +12,6 @@
 #include <ossia/network/midi/midi.hpp>
 
 #include <QMimeData>
-#include <QString>
 
 #include <Engine/OSSIA2score.hpp>
 

@@ -21,8 +21,6 @@
 #include <ossia/network/domain/domain.hpp>
 #include <ossia/network/value/value_conversion.hpp>
 
-#include <QString>
-#include <QStringList>
 
 #include <Color/GradientModel.hpp>
 #include <Metronome/MetronomeModel.hpp>

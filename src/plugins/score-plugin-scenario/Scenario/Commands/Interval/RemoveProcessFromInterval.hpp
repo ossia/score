@@ -9,8 +9,6 @@
 #include <score/tools/std/Optional.hpp>
 
 #include <QByteArray>
-#include <QPair>
-#include <QVector>
 struct DataStreamInput;
 struct DataStreamOutput;
 namespace Process

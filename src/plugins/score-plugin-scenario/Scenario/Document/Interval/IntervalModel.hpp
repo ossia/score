@@ -19,8 +19,6 @@
 
 #include <QObject>
 #include <QPointer>
-#include <QString>
-#include <QVector>
 
 #include <nano_signal_slot.hpp>
 #include <verdigris>

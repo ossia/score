@@ -9,7 +9,6 @@
 
 #include <score/document/DocumentInterface.hpp>
 
-#include <QtTest/QTest>
 
 using namespace score;
 using namespace Scenario::Command;

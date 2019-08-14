@@ -1,18 +1,13 @@
 #include <Audio/GenericPortAudioInterface.hpp>
 #include <score/widgets/SignalUtils.hpp>
-#include <QApplication>
 #include <QComboBox>
 #include <QFormLayout>
-#include <QLabel>
-#include <QListWidget>
-#include <QMenu>
-#include <QPushButton>
 #include <QWidget>
-#include <QWindow>
 
 #include <Audio/AudioInterface.hpp>
 #include <Audio/Settings/Model.hpp>
 #include <Audio/Settings/View.hpp>
+#include <score/tools/Bind.hpp>
 
 
 namespace Audio

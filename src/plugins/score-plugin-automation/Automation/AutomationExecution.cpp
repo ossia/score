@@ -7,6 +7,7 @@
 #include <Process/ExecutionContext.hpp>
 #include <Process/ExecutionFunctions.hpp>
 
+#include <score/tools/Bind.hpp>
 #include <ossia/dataflow/nodes/automation.hpp>
 #include <ossia/network/dataspace/dataspace_visitors.hpp> // temporary
 namespace Automation

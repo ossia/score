@@ -1,12 +1,11 @@
 #pragma once
 #include <Process/Focus/FocusDispatcher.hpp>
 #include <Process/ProcessContext.hpp>
+#include <score/tools/Bind.hpp>
 
-#include <QApplication>
-#include <QDebug>
+#include <QGuiApplication>
 #include <QPointF>
 #include <QScreen>
-#include <QTimer>
 
 #include <chrono>
 template <
@@ -25,7 +24,7 @@ public:
       , m_context{context}
       , m_currentTool{palette.editionSettings().tool()}
   {
-    auto screens = QApplication::screens();
+    auto screens = QGuiApplication::screens();
     if (!screens.empty())
     {
       m_frameTime = 1000000. / screens.front()->refreshRate();

@@ -6,7 +6,6 @@
 #include <score/model/Identifier.hpp>
 #include <score/model/path/Path.hpp>
 
-#include <QTextDocument>
 
 namespace Scenario
 {

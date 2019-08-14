@@ -6,7 +6,6 @@
 #include <ossia/editor/expression/expression.hpp>
 #include <ossia/editor/scenario/time_value.hpp>
 
-#include <QStringList>
 
 #include <score_plugin_scenario_export.h>
 

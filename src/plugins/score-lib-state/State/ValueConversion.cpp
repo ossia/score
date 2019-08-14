@@ -13,10 +13,7 @@
 #include <boost/lexical_cast.hpp>
 #include <boost/tokenizer.hpp>
 
-#include <QJsonArray>
-#include <QList>
 #include <QLocale>
-#include <QMetaType>
 #include <QObject>
 #include <QStringList>
 #include <QVector2D>

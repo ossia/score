@@ -8,22 +8,20 @@
 #include <State/Widgets/UnitWidget.hpp>
 
 #include <score/widgets/SignalUtils.hpp>
+#include <score/tools/Debug.hpp>
 
 #include <ossia-qt/metatypes.hpp>
 #include <ossia/network/base/node_attributes.hpp>
 
-#include <QBoxLayout>
+
 #include <QCheckBox>
 #include <QComboBox>
 #include <QFormLayout>
 #include <QInputDialog>
-#include <QLabel>
 #include <QLineEdit>
-#include <QMap>
 #include <QPushButton>
 #include <QString>
 #include <QStringList>
-#include <QVariant>
 
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Explorer::AccessModeComboBox)

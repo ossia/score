@@ -1,11 +1,10 @@
 #pragma once
-
 #include <score/plugins/Interface.hpp>
-
-#include <QString>
-
 #include <score_lib_inspector_export.h>
+
+class QWidget;
 class IdentifiedObjectAbstract;
+
 namespace score
 {
 struct DocumentContext;

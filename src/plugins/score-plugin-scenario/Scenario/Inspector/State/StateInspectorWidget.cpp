@@ -33,22 +33,10 @@
 #include <score/widgets/TextLabel.hpp>
 
 #include <QAbstractProxyModel>
-#include <QApplication>
-#include <QFormLayout>
-#include <QHBoxLayout>
 #include <QHeaderView>
-#include <QLabel>
-#include <QLineEdit>
-#include <QMenu>
-#include <QObject>
 #include <QPushButton>
-#include <QSizePolicy>
-#include <QString>
 #include <QTableView>
-#include <QTimer>
-#include <QVector>
 #include <QWidget>
-#include <QtAlgorithms>
 
 #include <algorithm>
 namespace Scenario

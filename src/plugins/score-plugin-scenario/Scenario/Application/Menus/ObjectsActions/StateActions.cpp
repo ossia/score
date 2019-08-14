@@ -13,12 +13,14 @@
 #include <score/actions/ActionManager.hpp>
 #include <score/actions/MenuManager.hpp>
 #include <score/widgets/SetIcons.hpp>
+#include <score/tools/ObjectMatches.hpp>
 
 #include <core/application/ApplicationSettings.hpp>
 #include <core/document/Document.hpp>
 
 #include <QAction>
 #include <QMainWindow>
+#include <QToolBar>
 #include <QMenu>
 namespace Scenario
 {

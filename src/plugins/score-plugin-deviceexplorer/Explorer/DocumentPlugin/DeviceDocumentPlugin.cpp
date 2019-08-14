@@ -22,20 +22,18 @@
 #include <score/plugins/StringFactoryKey.hpp>
 #include <score/plugins/documentdelegate/plugin/DocumentPlugin.hpp>
 #include <score/serialization/VisitorCommon.hpp>
+#include <score/tools/Bind.hpp>
 
 #include <QApplication>
-#include <QJsonArray>
-#include <QJsonObject>
-#include <QMainWindow>
 #include <QMessageBox>
 #include <QObject>
 #include <QPushButton>
 #include <QString>
+#include <QMainWindow>
 
 #include <wobjectimpl.h>
 
 #include <algorithm>
-#include <iostream>
 #include <stdexcept>
 #include <vector>
 W_OBJECT_IMPL(Explorer::DeviceDocumentPlugin)
@@ -60,7 +58,7 @@ struct print_node_rec
 {
   void visit(const Device::Node& addr)
   {
-    std::cerr << Device::address(addr).toString().toStdString() << std::endl;
+    qDebug() << Device::address(addr).toString();;
     for (auto& child : addr)
     {
       visit(child);

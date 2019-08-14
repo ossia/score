@@ -14,7 +14,6 @@
 #include <core/view/Window.hpp>
 
 #include <QDesktopServices>
-#include <QMessageBox>
 #include <QUrl>
 
 SCORE_DECLARE_ACTION(

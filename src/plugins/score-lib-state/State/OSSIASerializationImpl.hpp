@@ -13,10 +13,6 @@
 #include <ossia/network/dataspace/dataspace.hpp>
 #include <ossia/network/domain/domain.hpp>
 
-#include <QDataStream>
-#include <QJsonArray>
-#include <QJsonValue>
-#include <QtGlobal>
 
 #include <score_lib_state_export.h>
 JSON_METADATA(ossia::impulse, "Impulse")

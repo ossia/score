@@ -15,7 +15,6 @@
 #include <score/tools/std/Optional.hpp>
 
 #include <QState>
-#include <QStateMachine>
 
 namespace Curve
 {

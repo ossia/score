@@ -6,9 +6,6 @@
 #include <State/Value.hpp>
 
 #include <QAbstractItemModel>
-#include <QList>
-#include <QPair>
-#include <QStack>
 #include <QString>
 #include <QStringList>
 #include <QVariant>

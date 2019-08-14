@@ -9,9 +9,6 @@
 
 #include <QChar>
 #include <QFormLayout>
-#include <QLineEdit>
-#include <QString>
-class QWidget;
 
 namespace Explorer
 {

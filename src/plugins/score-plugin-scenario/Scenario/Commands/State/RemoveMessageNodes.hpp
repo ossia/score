@@ -5,7 +5,6 @@
 #include <score/command/Command.hpp>
 #include <score/model/path/Path.hpp>
 
-#include <QList>
 
 struct DataStreamInput;
 struct DataStreamOutput;

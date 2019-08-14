@@ -3,13 +3,9 @@
 #include <Media/Commands/InsertEffect.hpp>
 
 #include <score/document/DocumentContext.hpp>
+#include <score/tools/Bind.hpp>
 
-#include <QDialog>
-#include <QDialogButtonBox>
-#include <QFileDialog>
-#include <QInputDialog>
 #include <QListWidget>
-#include <QPlainTextEdit>
 #include <QPushButton>
 #include <QVBoxLayout>
 

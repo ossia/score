@@ -10,8 +10,6 @@
 #include <score/widgets/TextLabel.hpp>
 #include <Inspector/InspectorLayout.hpp>
 
-#include <QBoxLayout>
-#include <QLayoutItem>
 #include <QScrollArea>
 
 #include <wobjectimpl.h>

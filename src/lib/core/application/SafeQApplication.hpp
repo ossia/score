@@ -1,6 +1,5 @@
 #pragma once
 #include <QApplication>
-#include <QFileInfo>
 #include <QMessageBox>
 
 #include <verdigris>
@@ -8,9 +7,7 @@
 #include <cstdio>
 
 #ifdef __APPLE__
-#include <QFileOpenEvent>
 #endif
-#include <score/tools/Todo.hpp>
 
 #include <score_lib_base_export.h>
 

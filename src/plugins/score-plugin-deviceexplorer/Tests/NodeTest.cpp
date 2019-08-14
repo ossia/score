@@ -9,8 +9,6 @@
 #include <ossia/network/base/node_attributes.hpp>
 
 #include <QObject>
-#include <QString>
-#include <QtTest/QtTest>
 
 #include <algorithm>
 class NodeTest : public QObject

@@ -1,8 +1,7 @@
 #include "TimeBar.hpp"
 
 #include <Process/Style/ScenarioStyle.hpp>
-
-#include <QApplication>
+#include <QGuiApplication>
 #include <QScreen>
 namespace Scenario
 {

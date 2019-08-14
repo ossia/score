@@ -29,9 +29,6 @@
 #include <score/model/IdentifiedObjectMap.hpp>
 #include <score/model/Identifier.hpp>
 
-#include <QPoint>
-#include <QRect>
-#include <QtGlobal>
 
 namespace Scenario
 {

@@ -2,7 +2,6 @@
 #include <Loop/LoopProcessModel.hpp>
 #include <Process/Inspector/ProcessInspectorWidgetDelegate.hpp>
 
-#include <QVBoxLayout>
 
 namespace Loop
 {

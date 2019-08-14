@@ -1,7 +1,7 @@
 #pragma once
 #include <score/model/path/ObjectIdentifier.hpp>
+#include <score/tools/SafeCast.hpp>
 
-#include <QHash>
 #include <QObject>
 #include <QPointer>
 #include <QString>

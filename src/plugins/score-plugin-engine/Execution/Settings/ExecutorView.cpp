@@ -4,10 +4,9 @@
 
 #include <score/widgets/SignalUtils.hpp>
 
-#include <QCheckBox>
 #include <QComboBox>
+#include <QCheckBox>
 #include <QFormLayout>
-#include <QSpinBox>
 
 namespace Execution
 {

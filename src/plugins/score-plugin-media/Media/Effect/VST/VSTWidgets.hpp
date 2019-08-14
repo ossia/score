@@ -8,7 +8,6 @@
 #include <score/graphics/TextItem.hpp>
 
 #include <QDialog>
-#include <QTimer>
 
 #include <Control/Widgets.hpp>
 #include <Process/Inspector/GenericProcessInspector.hpp>

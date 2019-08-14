@@ -3,6 +3,7 @@
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <Process/ExecutionContext.hpp>
 #include <Scenario/Execution/score2OSSIA.hpp>
+#include <score/tools/Bind.hpp>
 
 #include <ossia/dataflow/nodes/step.hpp>
 #include <ossia/detail/pod_vector.hpp>

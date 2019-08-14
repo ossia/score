@@ -22,10 +22,6 @@
 #include <score/serialization/JSONValueVisitor.hpp>
 #include <score/serialization/JSONVisitor.hpp>
 
-#include <QJsonObject>
-#include <QJsonValue>
-#include <QPoint>
-#include <QVariant>
 
 #include <algorithm>
 #include <vector>

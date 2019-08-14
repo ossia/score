@@ -18,6 +18,8 @@
 #include <State/MessageListSerialization.hpp>
 
 #include <score/actions/ActionManager.hpp>
+#include <QMenu>
+#include <QAction>
 
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Scenario::ScenarioPresenter)

@@ -14,7 +14,7 @@
 #include <score/model/path/Path.hpp>
 #include <score/tools/Clamp.hpp>
 
-#include <QApplication>
+#include <QGuiApplication>
 
 namespace Curve
 {

@@ -17,9 +17,9 @@
 #include <wobjectimpl.h>
 
 #include <QInputDialog>
-#include <QMessageBox>
 #include <QFileDialog>
 #include <QProcess>
+#include <QToolBar>
 
 // TODO : implement remaining objects
 // TODO set port pos in code
@@ -184,7 +184,7 @@ private:
         >(ctx, key);
   }
 
-  std::pair<const CommandGroupKey, CommandGeneratorMap> make_commands()
+  std::pair<const CommandGroupKey, CommandGeneratorMap> make_commands() override
   {
     std::pair<const CommandGroupKey, CommandGeneratorMap> cmds{
         fxd::CommandFactoryName(), CommandGeneratorMap{}};

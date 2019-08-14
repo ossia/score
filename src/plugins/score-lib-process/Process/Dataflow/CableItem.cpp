@@ -4,13 +4,13 @@
 #include <Process/Dataflow/PortItem.hpp>
 #include <Process/DocumentPlugin.hpp>
 #include <Process/Style/ScenarioStyle.hpp>
+#include <score/tools/Bind.hpp>
 
 #include <score/document/DocumentContext.hpp>
 
-#include <QFormLayout>
-#include <QGraphicsSceneMoveEvent>
-#include <QMenu>
 #include <QPainter>
+#include <QCursor>
+#include <QGraphicsSceneMouseEvent>
 
 #include <tsl/hopscotch_map.h>
 #include <wobjectimpl.h>

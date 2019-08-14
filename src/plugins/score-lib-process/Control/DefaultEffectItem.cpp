@@ -7,11 +7,10 @@
 #include <Process/Style/ScenarioStyle.hpp>
 
 #include <score/graphics/TextItem.hpp>
-
-#include <QGraphicsScene>
+#include <score/tools/Bind.hpp>
 
 #include <Control/Widgets.hpp>
-
+#include <QGraphicsScene>
 namespace Media::Effect
 {
 struct DefaultEffectItem::Port

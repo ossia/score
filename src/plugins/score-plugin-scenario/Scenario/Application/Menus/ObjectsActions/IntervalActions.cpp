@@ -31,10 +31,9 @@
 #include <core/presenter/DocumentManager.hpp>
 
 #include <QAction>
-#include <QApplication>
-#include <QMainWindow>
 #include <QMenu>
 #include <QToolBar>
+#include <QMainWindow>
 namespace Scenario
 {
 // TODO you're better than this

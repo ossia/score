@@ -1,5 +1,4 @@
 #pragma once
-#include <QBrush>
 #include <QGraphicsItem>
 #include <qnamespace.h>
 

@@ -6,7 +6,6 @@
 #include <ossia/context.hpp>
 #include <ossia/detail/logger.hpp>
 
-#include <QQmlEngine>
 
 #include <spdlog/sinks/android_sink.h>
 

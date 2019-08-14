@@ -9,11 +9,7 @@
 
 #include <QAbstractItemModel>
 #include <QContextMenuEvent>
-#include <QHeaderView>
 #include <QLabel>
-#include <QLineEdit>
-#include <QMenu>
-#include <QPushButton>
 #include <QTreeView>
 #include <QVBoxLayout>
 

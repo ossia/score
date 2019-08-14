@@ -5,9 +5,9 @@
 #include <score/graphics/GraphicsItem.hpp>
 
 #include <QGraphicsSceneMouseEvent>
-#include <QGraphicsView>
 #include <QPainter>
 #include <QTextLayout>
+#include <QGraphicsView>
 
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(score::TextItem)

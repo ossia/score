@@ -5,11 +5,11 @@
 #include <score/widgets/MarginLess.hpp>
 #include <score/widgets/StyleSheets.hpp>
 #include <score/widgets/TextLabel.hpp>
+#include <score/tools/Bind.hpp>
 
 #include <QGridLayout>
 #include <QPushButton>
 #include <QSlider>
-#include <QVBoxLayout>
 #include <QWidget>
 
 namespace Scenario

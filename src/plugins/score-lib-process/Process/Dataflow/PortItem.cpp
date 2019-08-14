@@ -7,6 +7,7 @@
 #include <score/document/DocumentInterface.hpp>
 #include <score/model/path/PathSerialization.hpp>
 #include <score/selection/SelectionDispatcher.hpp>
+#include <score/tools/Bind.hpp>
 
 #include <QApplication>
 #include <QCursor>
@@ -14,10 +15,8 @@
 #include <QGraphicsSceneHoverEvent>
 #include <QMenu>
 #include <QGraphicsScene>
-#include <QGraphicsView>
 #include <QMimeData>
 #include <QPainter>
-#include <QMouseEvent>
 
 #include <tsl/hopscotch_map.h>
 #include <wobjectimpl.h>
@@ -128,6 +127,7 @@ PortItem::PortItem(
   , m_diam{8.}
   , m_inlet{bool(qobject_cast<Process::Inlet*>(&p))}
 {
+  [[maybe_unused]]
   static bool init = initEllipses(Process::Style::instance());
   this->setCursor(QCursor());
   this->setAcceptDrops(true);

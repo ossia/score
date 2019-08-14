@@ -8,23 +8,18 @@
 #include <QAbstractItemView>
 #include <QAbstractProxyModel>
 #include <QAction>
-#include <QByteArray>
 #include <QDrag>
 #include <QFile>
-#include <QHeaderView>
-#include <QIODevice>
 #include <QMenu>
-#include <QObject>
 #include <QPainter>
 #include <QSettings>
 #include <QString>
-#include <QVariant>
+#include <QHeaderView>
+#include <QKeyEvent>
 #include <qnamespace.h>
 #include <qtypetraits.h>
 
-#include <iostream> //DEBUG
 W_REGISTER_ARGTYPE(QItemSelection)
-#include <QMouseEvent>
 
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Explorer::DeviceExplorerView)
@@ -289,7 +284,7 @@ QModelIndexList DeviceExplorerView::selectedIndexes() const
 
       if (!index.isValid())
       {
-        std::cerr << " !!! invalid index in selection !!!\n";
+        qDebug() << " !!! invalid index in selection !!!";
       }
 
       l0.append(index);

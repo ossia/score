@@ -3,6 +3,8 @@
 #include <Process/Dataflow/Port.hpp>
 #include <core/document/DocumentModel.hpp>
 #include <wobjectimpl.h>
+#include <QMimeData>
+#include <QVBoxLayout>
 W_OBJECT_IMPL(fxd::DocumentView)
 namespace fxd
 {

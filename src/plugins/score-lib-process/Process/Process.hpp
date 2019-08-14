@@ -18,7 +18,6 @@
 
 #include <ossia/detail/small_vector.hpp>
 
-#include <QByteArray>
 #include <QString>
 
 #include <score_lib_process_export.h>

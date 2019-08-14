@@ -15,7 +15,6 @@
 #include <ossia/editor/scenario/time_event.hpp>
 #include <ossia/network/base/device.hpp>
 
-#include <QString>
 
 #include <Audio/AudioPanel.hpp>
 #include <Audio/DummyInterface.hpp>

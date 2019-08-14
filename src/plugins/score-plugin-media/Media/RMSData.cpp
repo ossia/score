@@ -1,4 +1,3 @@
-#include <score/tools/Todo.hpp>
 #define DR_WAV_IMPLEMENTATION
 #define DR_WAV_NO_STDIO
 #include <dr_wav.h>
@@ -10,6 +9,10 @@
 #include <Media/MediaFileHandle.hpp>
 #include <wobjectimpl.h>
 #include <ossia/dataflow/nodes/sound_mmap.hpp>
+
+#include <QCryptographicHash>
+#include <QDir>
+#include <QStandardPaths>
 W_OBJECT_IMPL(Media::RMSData)
 namespace Media
 {

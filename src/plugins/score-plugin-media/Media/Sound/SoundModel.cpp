@@ -1,6 +1,5 @@
 #include <Media/Sound/SoundModel.hpp>
 
-#include <QFile>
 
 #include <wobjectimpl.h>
 

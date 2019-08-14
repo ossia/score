@@ -8,9 +8,7 @@
 #include <core/application/OpenDocumentsFile.hpp>
 
 #include <QFile>
-#include <QMap>
 #include <QSettings>
-#include <QStringList>
 #include <QVariant>
 
 score::DocumentBackupManager::DocumentBackupManager(score::Document& doc)

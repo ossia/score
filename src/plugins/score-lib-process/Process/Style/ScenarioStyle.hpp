@@ -3,7 +3,6 @@
 #include <score/model/Skin.hpp>
 
 #include <QBrush>
-#include <QColor>
 #include <QPen>
 #include <qnamespace.h>
 

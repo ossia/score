@@ -9,9 +9,6 @@
 #include <score/graphics/RectItem.hpp>
 #include <score/graphics/TextItem.hpp>
 
-#include <QGraphicsProxyWidget>
-#include <QGraphicsSceneMouseEvent>
-#include <QPainter>
 
 #include <Control/Widgets.hpp>
 #include <Effect/EffectLayer.hpp>

@@ -4,7 +4,6 @@
 
 #include <QDialog>
 #include <QList>
-#include <QString>
 
 #include <score_plugin_deviceexplorer_export.h>
 #include <verdigris>

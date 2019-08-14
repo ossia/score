@@ -3,8 +3,6 @@
 
 #include <nano_signal_slot.hpp>
 
-#include <array>
-#include <iostream>
 #include <utility>
 
 namespace score

@@ -9,7 +9,6 @@
 
 #include <QByteArray>
 #include <QMimeData>
-#include <QStringList>
 
 #include <score_lib_process_export.h>
 

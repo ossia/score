@@ -8,8 +8,6 @@
 #include <score/statemachine/GraphicsSceneTool.hpp>
 
 #include <QGraphicsItem>
-#include <QState>
-#include <QStateMachine>
 
 #include <chrono>
 

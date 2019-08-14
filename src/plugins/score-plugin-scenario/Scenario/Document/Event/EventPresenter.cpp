@@ -22,13 +22,10 @@
 #include <score/model/ModelMetadata.hpp>
 #include <score/selection/Selectable.hpp>
 #include <score/serialization/MimeVisitor.hpp>
-#include <score/tools/Todo.hpp>
+#include <score/tools/Bind.hpp>
 
 #include <QGraphicsItem>
 #include <QMimeData>
-#include <QRect>
-#include <QSize>
-#include <QStringList>
 
 #include <wobjectimpl.h>
 

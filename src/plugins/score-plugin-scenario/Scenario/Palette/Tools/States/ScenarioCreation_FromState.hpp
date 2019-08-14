@@ -16,7 +16,6 @@
 #include <Scenario/Palette/Transitions/TimeSyncTransitions.hpp>
 #include <Scenario/Process/Algorithms/Accessors.hpp>
 
-#include <QApplication>
 #include <QFinalState>
 
 namespace Scenario

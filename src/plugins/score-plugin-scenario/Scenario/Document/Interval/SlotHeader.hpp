@@ -54,7 +54,7 @@ private:
   int m_slotIndex{};
 };
 
-class SlotFooter final : public QGraphicsItem
+class SlotFooter : public QGraphicsItem
 {
 public:
   SlotFooter(
@@ -81,14 +81,34 @@ public:
 
   void setWidth(qreal width);
 
+  const IntervalPresenter& m_presenter;
+  qreal m_width{};
+  int m_slotIndex{};
+};
+
+class AmovibleSlotFooter final : public SlotFooter
+{
+public:
+  AmovibleSlotFooter(
+      const IntervalPresenter& slotView,
+      int slotIndex,
+      QGraphicsItem* parent);
+
 private:
   void mousePressEvent(QGraphicsSceneMouseEvent* event) final override;
   void mouseMoveEvent(QGraphicsSceneMouseEvent* event) final override;
   void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) final override;
+};
 
-  const IntervalPresenter& m_presenter;
-  qreal m_width{};
-  int m_slotIndex{};
+class FixedSlotFooter final : public SlotFooter
+{
+public:
+  using SlotFooter::SlotFooter;
+
+private:
+  void mousePressEvent(QGraphicsSceneMouseEvent* event) final override;
+  void mouseMoveEvent(QGraphicsSceneMouseEvent* event) final override;
+  void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) final override;
 };
 
 class SlotDragOverlay final : public QObject, public QGraphicsItem

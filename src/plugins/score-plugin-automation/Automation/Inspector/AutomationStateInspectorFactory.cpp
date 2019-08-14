@@ -7,7 +7,6 @@
 #include <Automation/State/AutomationState.hpp>
 #include <Inspector/InspectorWidgetFactoryInterface.hpp>
 
-#include <QString>
 
 namespace Automation
 {

@@ -17,9 +17,6 @@
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/tools/std/Optional.hpp>
 
-#include <QByteArray>
-#include <QMap>
-#include <QPair>
 
 template <typename T>
 class Reader;

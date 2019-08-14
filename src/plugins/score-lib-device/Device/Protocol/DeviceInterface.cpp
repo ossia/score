@@ -4,6 +4,7 @@
 
 #include <Device/Address/AddressSettings.hpp>
 #include <Device/Node/DeviceNode.hpp>
+#include <score/tools/std/String.hpp>
 
 #include <ossia-qt/name_utils.hpp>
 #include <ossia/detail/logger.hpp>

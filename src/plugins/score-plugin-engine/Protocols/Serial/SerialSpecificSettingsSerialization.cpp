@@ -8,8 +8,6 @@
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/serialization/JSONVisitor.hpp>
 
-#include <QJsonObject>
-#include <QJsonValue>
 #include <QString>
 
 template <>

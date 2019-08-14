@@ -10,7 +10,6 @@
 #include <QDialogButtonBox>
 #include <QGridLayout>
 #include <QHBoxLayout>
-#include <QLabel>
 #include <QLineEdit>
 #include <QPushButton>
 #include <QString>

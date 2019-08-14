@@ -12,7 +12,6 @@
 
 #include <ossia/detail/algorithms.hpp>
 
-#include <QPointer>
 
 #include <algorithm>
 

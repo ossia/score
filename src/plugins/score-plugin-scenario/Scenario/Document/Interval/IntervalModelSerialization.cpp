@@ -18,8 +18,6 @@
 #include <score/tools/std/Optional.hpp>
 
 #include <QJsonArray>
-#include <QJsonObject>
-#include <QJsonValue>
 
 #include <algorithm>
 

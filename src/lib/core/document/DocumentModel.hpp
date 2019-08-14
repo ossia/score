@@ -4,7 +4,6 @@
 
 #include <QByteArray>
 #include <QJsonObject>
-#include <QString>
 #include <QVariant>
 
 #include <verdigris>

@@ -3,6 +3,7 @@
 #include "GradientExecution.hpp"
 
 #include <Process/ExecutionContext.hpp>
+#include <score/tools/Bind.hpp>
 
 #include <ossia/dataflow/nodes/gradient.hpp>
 namespace Gradient

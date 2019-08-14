@@ -6,11 +6,8 @@
 #include <Process/LayerView.hpp>
 #include <Process/Style/ScenarioStyle.hpp>
 
-#include <QFlags>
-#include <QFont>
 #include <QGraphicsItem>
 #include <QPainter>
-#include <QRect>
 #include <qnamespace.h>
 
 #include <wobjectimpl.h>

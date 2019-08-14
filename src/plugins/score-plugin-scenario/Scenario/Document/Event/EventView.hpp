@@ -12,7 +12,6 @@
 #include <QPoint>
 #include <QRect>
 #include <QString>
-#include <QtGlobal>
 
 #include <score_plugin_scenario_export.h>
 #include <verdigris>

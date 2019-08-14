@@ -2,6 +2,7 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include <Process/Dataflow/Port.hpp>
 
+#include <score/tools/Bind.hpp>
 #include <ossia/editor/state/destination_qualifiers.hpp>
 
 #include <QColor>

@@ -3,7 +3,6 @@
 
 #include <ossia/network/base/node.hpp>
 
-#include <QTimer>
 
 #include <LocalTree/BaseCallbackWrapper.hpp>
 #include <LocalTree/TypeConversion.hpp>

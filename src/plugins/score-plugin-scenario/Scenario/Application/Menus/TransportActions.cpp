@@ -14,10 +14,10 @@
 #include <core/application/ApplicationSettings.hpp>
 
 #include <QAction>
-#include <QApplication>
-#include <QMainWindow>
 #include <QString>
 #include <QToolBar>
+#include <QMainWindow>
+#include <QMenu>
 #include <qnamespace.h>
 class QMenu;
 

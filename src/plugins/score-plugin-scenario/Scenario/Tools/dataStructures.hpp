@@ -14,8 +14,6 @@ needed
 #include <score/tools/std/HashMap.hpp>
 
 #include <QByteArray>
-#include <QMap>
-#include <QPair>
 
 #include <score_plugin_scenario_export.h>
 

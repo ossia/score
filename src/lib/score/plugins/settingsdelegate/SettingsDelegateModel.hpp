@@ -1,6 +1,5 @@
 #pragma once
 #include <score/command/SettingsCommand.hpp>
-#include <score/tools/Todo.hpp>
 
 #include <ossia/detail/algorithms.hpp>
 

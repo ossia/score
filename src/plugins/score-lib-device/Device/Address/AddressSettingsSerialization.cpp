@@ -15,14 +15,6 @@
 #include <ossia/network/dataspace/dataspace.hpp>
 #include <ossia/network/dataspace/dataspace_visitors.hpp>
 
-#include <QDataStream>
-#include <QJsonArray>
-#include <QJsonObject>
-#include <QJsonValue>
-#include <QMap>
-#include <QString>
-#include <QStringList>
-#include <QtGlobal>
 
 template <>
 void DataStreamReader::read(const Device::AddressSettingsCommon& n)

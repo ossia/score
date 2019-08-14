@@ -6,7 +6,6 @@
 
 #include <score/model/Skin.hpp>
 
-#include <QGraphicsSceneMouseEvent>
 #include <QPainter>
 
 #include <wobjectimpl.h>

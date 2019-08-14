@@ -7,7 +7,6 @@
 #include <QCommandLineParser>
 #include <QCoreApplication>
 #include <QFile>
-#include <QList>
 #include <QObject>
 #include <QString>
 

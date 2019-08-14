@@ -7,6 +7,7 @@
 
 #include <score/plugins/Interface.hpp>
 #include <score/serialization/VisitorCommon.hpp>
+#include <score/tools/ObjectMatches.hpp>
 
 #include <score_plugin_recording_export.h>
 #include <verdigris>

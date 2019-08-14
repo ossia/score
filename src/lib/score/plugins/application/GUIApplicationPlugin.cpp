@@ -7,7 +7,6 @@
 #include <core/presenter/DocumentManager.hpp>
 #include <core/presenter/Presenter.hpp>
 
-#include <QApplication>
 
 class QAction;
 class QObject;

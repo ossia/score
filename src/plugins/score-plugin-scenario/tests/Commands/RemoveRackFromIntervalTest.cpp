@@ -5,7 +5,6 @@
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/Interval/Rack/RackModel.hpp>
 
-#include <QtTest/QtTest>
 
 using namespace score;
 using namespace Scenario::Command;

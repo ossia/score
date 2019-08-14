@@ -4,12 +4,9 @@
 
 #include "StateMachineUtils.hpp"
 
+#include <QGuiApplication>
 #include <QAbstractState>
-#include <QAbstractTransition>
-#include <QApplication>
 #include <QFinalState>
-#include <QGraphicsItem>
-#include <QKeyEventTransition>
 #include <qcoreevent.h>
 #include <qnamespace.h>
 

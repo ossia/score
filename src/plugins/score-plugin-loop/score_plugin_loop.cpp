@@ -24,6 +24,8 @@
 #include <score/tools/std/HashMap.hpp>
 #include <score/tools/std/Optional.hpp>
 
+#include <QMenu>
+
 #include <score_plugin_loop_commands_files.hpp>
 #include <string.h>
 

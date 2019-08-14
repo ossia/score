@@ -5,7 +5,6 @@
 #include <ossia/detail/math.hpp>
 
 #include <QDoubleSpinBox>
-#include <QEventLoop>
 #include <QGraphicsSceneMouseEvent>
 #include <QKeyEvent>
 #include <QPainter>

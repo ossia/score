@@ -26,8 +26,6 @@
 #include <score/tools/IdentifierGeneration.hpp>
 #include <score/tools/std/Optional.hpp>
 
-#include <QByteArray>
-#include <QObject>
 #include <QString>
 
 #include <vector>

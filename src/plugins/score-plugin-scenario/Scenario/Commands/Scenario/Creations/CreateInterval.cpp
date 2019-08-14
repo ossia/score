@@ -20,10 +20,6 @@
 #include <score/tools/IdentifierGeneration.hpp>
 #include <score/tools/RandomNameProvider.hpp>
 
-#include <QDataStream>
-#include <QList>
-#include <QVector>
-#include <QtGlobal>
 
 #include <algorithm>
 #include <vector>

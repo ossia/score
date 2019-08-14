@@ -12,7 +12,6 @@
 #include <score/command/Dispatchers/SingleOngoingCommandDispatcher.hpp>
 #include <score/locking/ObjectLocker.hpp>
 
-#include <QApplication>
 #include <QFinalState>
 namespace Scenario
 {

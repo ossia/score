@@ -13,6 +13,7 @@
 #include <vector>
 
 #include <type_traits>
+#include <score_lib_base_export.h>
 
 namespace score
 {

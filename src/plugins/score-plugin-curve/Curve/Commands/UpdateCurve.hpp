@@ -4,6 +4,7 @@
 
 #include <score/command/Command.hpp>
 #include <score/model/path/Path.hpp>
+#include <score/tools/Unused.hpp>
 
 #include <vector>
 

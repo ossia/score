@@ -13,8 +13,6 @@
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/serialization/VisitorCommon.hpp>
 
-#include <QJsonArray>
-#include <QJsonValue>
 
 #include <algorithm>
 

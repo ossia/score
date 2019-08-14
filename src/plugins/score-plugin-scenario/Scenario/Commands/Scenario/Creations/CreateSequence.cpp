@@ -33,7 +33,6 @@
 #include <score/model/tree/TreeNodeSerialization.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/tools/IdentifierGeneration.hpp>
-#include <score/tools/Todo.hpp>
 #include <score/tools/std/Optional.hpp>
 
 #include <ossia/editor/state/destination_qualifiers.hpp>
@@ -43,8 +42,6 @@
 
 #include <QByteArray>
 #include <QList>
-#include <QString>
-#include <QtGlobal>
 
 #include <algorithm>
 #include <iterator>

@@ -16,12 +16,9 @@
 
 #include <ossia/detail/hash_map.hpp>
 
-#include <QBoxLayout>
 #include <QComboBox>
-#include <QLabel>
 #include <QLineEdit>
 #include <QPushButton>
-#include <QStringList>
 #include <QToolButton>
 
 #include <wobjectimpl.h>

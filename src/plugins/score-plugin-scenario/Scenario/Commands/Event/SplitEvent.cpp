@@ -17,8 +17,6 @@
 #include <score/tools/IdentifierGeneration.hpp>
 #include <score/tools/RandomNameProvider.hpp>
 
-#include <QDataStream>
-#include <QtGlobal>
 
 #include <vector>
 

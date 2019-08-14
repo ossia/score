@@ -15,10 +15,9 @@
 #include <score/model/EntityMap.hpp>
 #include <score/model/Identifier.hpp>
 #include <score/selection/Selectable.hpp>
-#include <score/tools/Todo.hpp>
+#include <score/tools/Bind.hpp>
 #include <score/tools/std/Optional.hpp>
 
-#include <QPainter>
 #include <qnamespace.h>
 
 #include <wobjectimpl.h>

@@ -2,7 +2,6 @@
 #include <Media/AudioDecoder.hpp>
 
 #include <score/tools/std/StringHash.hpp>
-#include <score/tools/Todo.hpp>
 
 #include <ossia/detail/small_vector.hpp>
 #include <ossia/detail/hash_map.hpp>
@@ -72,7 +71,7 @@ public:
 
   bool empty() const { return channels() == 0 || samples() == 0; }
 
-  const RMSData& rms() const { SCORE_ASSERT(m_rms); return *m_rms; }
+  const RMSData& rms() const;
 
   Nano::Signal<void()> on_mediaChanged;
   Nano::Signal<void()> on_newData;

@@ -30,11 +30,6 @@
 
 #include <ossia/detail/algorithms.hpp>
 
-#include <QDataStream>
-#include <QHash>
-#include <QJsonArray>
-#include <QJsonValue>
-#include <QtGlobal>
 
 #include <algorithm>
 #include <cstddef>

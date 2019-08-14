@@ -1,12 +1,10 @@
 #include "AudioDecoder.hpp"
 
-#include <score/tools/Todo.hpp>
 
-#include <QApplication>
-#include <QDebug>
-#include <QTimer>
-
+#include <score/tools/Debug.hpp>
 #include <eggs/variant.hpp>
+#include <QHash>
+#include <QDebug>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

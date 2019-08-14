@@ -3,8 +3,6 @@
 #include <score/model/path/Path.hpp>
 #include <score/model/path/PathSerialization.hpp>
 
-#include <QByteArray>
-#include <QObject>
 #include <QString>
 #include <QVariant>
 

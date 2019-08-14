@@ -4,14 +4,11 @@
 
 #include <Process/Style/ScenarioStyle.hpp>
 
-#include <QEvent>
-#include <QFlags>
-#include <QGraphicsSceneEvent>
 #include <QKeyEvent>
 #include <QPainter>
-#include <QTextLayout>
 #include <qnamespace.h>
 
+#include <QGraphicsSceneMouseEvent>
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Curve::View)
 namespace Curve

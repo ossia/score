@@ -11,9 +11,6 @@
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/serialization/JSONVisitor.hpp>
 
-#include <QJsonArray>
-#include <QJsonObject>
-#include <QJsonValue>
 
 #include <sys/types.h>
 

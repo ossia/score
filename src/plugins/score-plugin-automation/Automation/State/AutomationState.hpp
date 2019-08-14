@@ -4,7 +4,6 @@
 #include <Process/State/ProcessStateDataInterface.hpp>
 #include <State/Message.hpp>
 
-#include <QString>
 
 #include <vector>
 

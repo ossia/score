@@ -11,7 +11,6 @@
 #include <score/graphics/GraphicsItem.hpp>
 #include <score/model/Identifier.hpp>
 
-#include <QDebug>
 #include <QPoint>
 
 #include <verdigris>

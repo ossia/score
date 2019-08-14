@@ -15,9 +15,7 @@
 
 #include <QCursor>
 #include <QDrag>
-#include <QGraphicsSceneEvent>
 #include <QMimeData>
-#include <QtGlobal>
 
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Scenario::IntervalView)

@@ -2,7 +2,6 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "CurveEditionSettings.hpp"
 
-#include <QDebug>
 
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Curve::EditionSettings)

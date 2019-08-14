@@ -12,12 +12,15 @@
 #include <Scenario/Process/ScenarioView.hpp>
 
 #include <core/presenter/DocumentManager.hpp>
+#include <score/tools/ObjectMatches.hpp>
 
 #include <ossia/editor/state/state_element.hpp>
 
 #include <Engine/ApplicationPlugin.hpp>
 #include <Execution/ContextMenu/PlayFromIntervalInScenario.hpp>
 #include <Execution/DocumentPlugin.hpp>
+
+#include <QMenu>
 namespace Execution
 {
 

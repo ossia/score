@@ -8,9 +8,6 @@
 #include <score/model/path/Path.hpp>
 #include <score/tools/std/Optional.hpp>
 
-#include <QByteArray>
-#include <QMap>
-#include <QVector>
 
 #include <score_plugin_scenario_export.h>
 

@@ -6,7 +6,6 @@
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
 
-#include <QtTest/QTest>
 
 using namespace score;
 using namespace Scenario::Command;
