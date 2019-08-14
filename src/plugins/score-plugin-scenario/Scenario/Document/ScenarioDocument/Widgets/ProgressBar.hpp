@@ -2,7 +2,6 @@
 
 #include <QGraphicsItem>
 #include <QRect>
-#include <QtGlobal>
 
 class QPainter;
 class QStyleOptionGraphicsItem;

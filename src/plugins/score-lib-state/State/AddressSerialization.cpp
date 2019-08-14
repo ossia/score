@@ -11,12 +11,6 @@
 #include <ossia/editor/state/destination_qualifiers.hpp>
 #include <ossia/network/dataspace/dataspace_visitors.hpp>
 
-#include <QDataStream>
-#include <QJsonObject>
-#include <QJsonValue>
-#include <QString>
-#include <QStringList>
-#include <QtGlobal>
 
 /// Address ///
 template <>

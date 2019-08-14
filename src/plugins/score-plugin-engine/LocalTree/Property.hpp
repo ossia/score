@@ -3,10 +3,10 @@
 #include <State/ValueConversion.hpp>
 
 #include <score/tools/std/Invoke.hpp>
+#include <score/tools/Debug.hpp>
 
 #include <ossia/network/base/node.hpp>
 
-#include <QTimer>
 
 #include <LocalTree/BaseCallbackWrapper.hpp>
 #include <LocalTree/TypeConversion.hpp>

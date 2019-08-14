@@ -13,8 +13,6 @@
 #include <ossia/detail/small_vector.hpp>
 #include <ossia/network/value/value.hpp>
 
-#include <QPointer>
-#include <QUuid>
 
 #include <score_lib_process_export.h>
 #include <verdigris>

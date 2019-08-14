@@ -10,13 +10,8 @@
 
 #include <score/widgets/MarginLess.hpp>
 
-#include <QCheckBox>
-#include <QFileDialog>
 #include <QFormLayout>
-#include <QGridLayout>
-#include <QLabel>
 #include <QLineEdit>
-#include <QPushButton>
 #include <QSpinBox>
 #include <QVariant>
 

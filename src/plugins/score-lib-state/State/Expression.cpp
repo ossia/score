@@ -6,8 +6,9 @@
 #include <State/Relation.hpp>
 #include <State/ValueConversion.hpp>
 
-#include <QMap>
 #include <QStringBuilder>
+#include <QMap>
+#include <QDebug>
 namespace State
 {
 QString Message::toString() const

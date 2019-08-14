@@ -10,6 +10,7 @@
 #include <score/model/Identifier.hpp>
 #include <score/model/path/Path.hpp>
 #include <score/tools/std/Optional.hpp>
+#include <score/tools/Unused.hpp>
 
 #include <score_plugin_scenario_export.h>
 

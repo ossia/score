@@ -6,7 +6,6 @@
 #include <ossia/dataflow/node_process.hpp>
 #include <ossia/network/value/value.hpp>
 
-#include <QPointer>
 namespace ossia
 {
 class curve_abstract;

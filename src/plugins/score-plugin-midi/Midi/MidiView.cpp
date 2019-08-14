@@ -7,9 +7,9 @@
 #include <score/graphics/GraphicsItem.hpp>
 
 #include <QGraphicsScene>
+#include <QGraphicsView>
 #include <QGraphicsSceneContextMenuEvent>
 #include <QGraphicsSceneMouseEvent>
-#include <QGraphicsView>
 #include <QKeyEvent>
 #include <QPainter>
 

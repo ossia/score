@@ -3,7 +3,6 @@
 #include <Device/Protocol/ProtocolSettingsWidget.hpp>
 
 #include <QNetworkAccessManager>
-#include <QNetworkRequest>
 
 class ZeroconfBrowser;
 class QLineEdit;

@@ -1,11 +1,6 @@
 #pragma once
 #include <ossia/audio/sdl_protocol.hpp>
 
-#include <QComboBox>
-#include <QFormLayout>
-#include <QListWidget>
-#include <QMenu>
-#include <QPushButton>
 #include <QWidget>
 
 #include <Audio/AudioInterface.hpp>

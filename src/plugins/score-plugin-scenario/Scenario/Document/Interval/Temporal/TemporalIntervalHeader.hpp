@@ -6,10 +6,7 @@
 
 #include <ossia/detail/optional.hpp>
 
-#include <QGlyphRun>
-#include <QGraphicsItem>
 #include <QRect>
-#include <QTextLayout>
 #include <qnamespace.h>
 
 #include <verdigris>

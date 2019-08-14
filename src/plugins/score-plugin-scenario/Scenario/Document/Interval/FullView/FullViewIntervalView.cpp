@@ -8,14 +8,9 @@
 #include <Scenario/Document/Interval/IntervalView.hpp>
 #include <score/graphics/GraphicsItem.hpp>
 
-#include <QColor>
-#include <QCursor>
-#include <QGraphicsItem>
-#include <QGraphicsScene>
 #include <QGraphicsView>
+#include <QGraphicsItem>
 #include <QPainter>
-#include <QPen>
-#include <QtGlobal>
 #include <qnamespace.h>
 
 #include <wobjectimpl.h>
@@ -54,7 +49,6 @@ void FullViewIntervalView::drawPaths(
   const qreal max_w = maxWidth();
   const qreal def_w = defaultWidth();
   const qreal play_w = m_waiting ? playWidth() : 0.;
-  const qreal gui_w = m_guiWidth;
   const auto& solidPen = skin.IntervalSolidPen(defaultColor);
   const auto& dashPen = skin.IntervalDashPen(defaultColor);
 
@@ -180,61 +174,6 @@ void FullViewIntervalView::drawPaths(
 
 void FullViewIntervalView::updatePlayPaths()
 {
-  /*
-  playedSolidPath = QPainterPath{};
-  playedDashedPath = QPainterPath{};
-  waitingDashedPath = QPainterPath{};
-
-  const qreal min_w = minWidth();
-  const qreal max_w = maxWidth();
-  const qreal def_w = defaultWidth();
-  const qreal play_w = playWidth();
-
-  // Paths
-  if (play_w <= 0.)
-  {
-    return;
-  }
-  else
-  {
-    if (infinite())
-    {
-      if (min_w != 0.)
-      {
-        playedSolidPath.lineTo(std::min(play_w, min_w), 0.);
-      }
-
-      if (play_w > min_w)
-      {
-        playedDashedPath.moveTo(min_w, 0.);
-        playedDashedPath.lineTo(std::min(def_w, play_w), 0.);
-
-        waitingDashedPath.moveTo(min_w, 0.);
-        waitingDashedPath.lineTo(def_w, 0.);
-      }
-    }
-    else if (min_w == max_w) // TODO rigid()
-    {
-      playedSolidPath.lineTo(std::min(play_w, def_w), 0.);
-    }
-    else
-    {
-      if (min_w != 0.)
-      {
-        playedSolidPath.lineTo(std::min(play_w, min_w), 0.);
-      }
-
-      if (play_w > min_w)
-      {
-        playedDashedPath.moveTo(min_w, 0.);
-        playedDashedPath.lineTo(play_w, 0.);
-
-        waitingDashedPath.moveTo(min_w, 0.);
-        waitingDashedPath.lineTo(max_w, 0.);
-      }
-    }
-  }
-  */
 }
 
 void FullViewIntervalView::updateOverlayPos() {}
@@ -262,7 +201,6 @@ void FullViewIntervalView::paint(
   if(!view)
     return;
 
-  auto rect = boundingRect();
   QPointF sceneDrawableTopLeft = view->mapToScene(-10, 0);
   QPointF sceneDrawableBottomRight = view->mapToScene(view->width() + 10, view->height() + 10);
   QPointF itemDrawableTopLeft = this->mapFromScene(sceneDrawableTopLeft);
@@ -282,11 +220,6 @@ void FullViewIntervalView::paint(
     return;
   }
 
-  QPointF sceneTopLeft = this->mapToScene(QPointF{0, 0});
-  QPointF sceneBottomRight = this->mapToScene(boundingRect().bottomRight());
-  QPointF viewTopLeft = view->mapFromScene(sceneTopLeft);
-  QPointF viewBottomRight = view->mapFromScene(sceneBottomRight);
-
   if(itemDrawableTopLeft.y() > 20)
   {
     return;
@@ -301,51 +234,7 @@ void FullViewIntervalView::paint(
 
   const auto visibleRect = QRectF{itemDrawableTopLeft, itemDrawableBottomRight};
   drawPaths(painter, visibleRect, defaultColor, skin);
-/*
-  auto& solidPen = skin.IntervalSolidPen(defaultColor);
-  auto& dashPen = skin.IntervalDashPen(defaultColor);
 
-  // Drawing
-  if (!solidPath.isEmpty())
-  {
-    painter.setPen(solidPen);
-    painter.drawPath(solidPath);
-  }
-
-  if (!dashedPath.isEmpty())
-  {
-    painter.setPen(dashPen);
-    painter.drawPath(dashedPath);
-  }
-
-  if (!playedSolidPath.isEmpty())
-  {
-    painter.setPen(skin.IntervalSolidPen(skin.IntervalPlayFill()));
-    painter.drawPath(playedSolidPath);
-  }
-
-  if (!waitingDashedPath.isEmpty())
-  {
-    if (this->m_waiting)
-    {
-      painter.setPen(skin.IntervalDashPen(skin.IntervalWaitingDashFill()));
-      painter.drawPath(waitingDashedPath);
-    }
-  }
-
-  if (!playedDashedPath.isEmpty())
-  {
-    if (this->m_waiting)
-    {
-      painter.setPen(skin.IntervalDashPen(skin.IntervalPlayFill()));
-    }
-    else
-    {
-      painter.setPen(skin.IntervalSolidPen(skin.IntervalPlayFill()));
-    }
-
-    painter.drawPath(playedDashedPath);
-  }*/
 #if defined(SCORE_SCENARIO_DEBUG_RECTS)
   p.setPen(Qt::red);
   p.drawRect(boundingRect());

@@ -31,19 +31,13 @@
 #include <QCoreApplication>
 #include <QDir>
 #include <QFile>
-#include <QFileInfo>
 #include <QFont>
 #include <QFontDatabase>
-#include <QIODevice>
-#include <QMetaType>
 #include <QPainter>
 #include <QPixmap>
-#include <QScreen>
 #include <QSplashScreen>
 #include <QString>
 #include <QStringList>
-#include <QStyle>
-#include <QStyleFactory>
 #include <qnamespace.h>
 
 #include <spdlog/spdlog.h>
@@ -167,7 +161,7 @@ static void setQApplicationSettings(QApplication& m_app)
   m_app.setStyle(new PhantomStyle);
 
   auto pal = qApp->palette();
-  pal.setBrush(QPalette::Background, QColor("#1A2024"));
+  pal.setBrush(QPalette::Window, QColor("#1A2024"));
   pal.setBrush(QPalette::Base, QColor("#12171A"));          // lineedit bg
   pal.setBrush(QPalette::Button, QColor("#12171A"));        // lineedit bg
   pal.setBrush(QPalette::AlternateBase, QColor("#1f2a30")); // alternate bg

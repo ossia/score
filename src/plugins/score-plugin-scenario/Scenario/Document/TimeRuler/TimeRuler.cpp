@@ -12,11 +12,9 @@
 
 #include <ossia/detail/algorithms.hpp>
 
-#include <QBrush>
-#include <QGraphicsSceneEvent>
+#include <QGraphicsSceneMouseEvent>
 #include <QGraphicsView>
 #include <QPainter>
-#include <QPen>
 #include <QTextLayout>
 #include <qnamespace.h>
 

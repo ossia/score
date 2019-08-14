@@ -12,6 +12,7 @@
 #include <score/document/DocumentContext.hpp>
 #include <score/widgets/TextLabel.hpp>
 #include <score/widgets/SpinBoxes.hpp>
+#include <score/tools/Bind.hpp>
 #include <Process/Dataflow/ControlWidgets.hpp>
 
 #include <QCheckBox>

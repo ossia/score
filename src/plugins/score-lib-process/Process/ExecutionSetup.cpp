@@ -259,11 +259,14 @@ void SetupContext::register_node_impl(
         g->add_node(std::move(node));
     });
 
-    const std::size_t n_inlets = proc_inlets.size();
-    const std::size_t n_outlets = proc_outlets.size();
+    const std::size_t proc_n_inlets = proc_inlets.size();
+    const std::size_t proc_n_outlets = proc_outlets.size();
 
-    SCORE_ASSERT(node->inputs().size() >= n_inlets);
-    SCORE_ASSERT(node->outputs().size() >= n_outlets);
+    const std::size_t ossia_n_inlets = node->inputs().size();
+    const std::size_t ossia_n_outlets = node->outputs().size();
+
+    std::size_t n_inlets = std::min(proc_n_inlets, ossia_n_inlets);
+    std::size_t n_outlets = std::min(proc_n_outlets, ossia_n_outlets);
 
     auto& runtime_connection = runtime_connections[node];
 

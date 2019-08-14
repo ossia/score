@@ -4,14 +4,15 @@
 #include <Process/HeaderDelegate.hpp>
 #include <Process/Process.hpp>
 #include <Process/Style/ScenarioStyle.hpp>
+#include <score/tools/Bind.hpp>
 
 #include <score/graphics/YPos.hpp>
 
-#include <QApplication>
 #include <QPainter>
 #include <QTextLayout>
+#include <QCursor>
 #include <QTextLine>
-
+#include <QGuiApplication>
 #include <Effect/EffectLayer.hpp>
 namespace Process
 {
@@ -52,10 +53,6 @@ static double portY()
   return SCORE_YPOS(1., 1.);
 }
 
-static double textY()
-{
-  return 1.5;
-}
 static double minPortWidth()
 {
   return 20.;

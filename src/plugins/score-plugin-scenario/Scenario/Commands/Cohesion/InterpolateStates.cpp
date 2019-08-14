@@ -31,8 +31,6 @@
 
 #include <ossia/editor/state/destination_qualifiers.hpp>
 
-#include <QObject>
-#include <QString>
 
 #include <algorithm>
 #include <iterator>

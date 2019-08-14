@@ -5,6 +5,7 @@
 #include <Scenario/Process/ScenarioPresenter.hpp>
 #include <Scenario/Process/ScenarioView.hpp>
 #include <QFileInfo>
+#include <QUrl>
 namespace Scenario
 {
 

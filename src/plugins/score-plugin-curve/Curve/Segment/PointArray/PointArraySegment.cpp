@@ -17,8 +17,6 @@
 
 #include <ossia/detail/pod_vector.hpp>
 
-#include <QDebug>
-
 #include <wobjectimpl.h>
 
 #include <cstddef>

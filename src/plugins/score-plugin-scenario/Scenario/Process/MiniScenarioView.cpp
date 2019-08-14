@@ -6,7 +6,6 @@
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
 
-#include <QGraphicsScene>
 #include <QPainter>
 namespace Scenario
 {

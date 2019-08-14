@@ -8,8 +8,6 @@
 #include <score/model/ModelMetadata.hpp>
 #include <score/model/Skin.hpp>
 
-#include <QBrush>
-#include <QFont>
 #include <QPainter>
 #include <qnamespace.h>
 

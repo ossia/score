@@ -11,10 +11,7 @@
 #include <score/model/ModelMetadata.hpp>
 #include <score/model/path/ObjectIdentifier.hpp>
 
-#include <QMap>
-#include <QObject>
 #include <QString>
-#include <QtAlgorithms>
 
 #include <wobjectimpl.h>
 

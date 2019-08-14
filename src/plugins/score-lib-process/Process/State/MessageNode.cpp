@@ -9,7 +9,6 @@
 #include <score/model/tree/TreeNode.hpp>
 #include <score/serialization/JSONVisitor.hpp>
 
-#include <QStringBuilder>
 
 #include <algorithm>
 namespace Process

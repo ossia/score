@@ -7,8 +7,6 @@
 #include <score/widgets/MarginLess.hpp>
 #include <score/widgets/SetIcons.hpp>
 
-#include <QBoxLayout>
-#include <QIcon>
 
 SelectionButton::SelectionButton(
     const QString& text,

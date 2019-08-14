@@ -16,6 +16,7 @@
 #include <score/document/DocumentInterface.hpp>
 #include <score/model/IdentifiedObject.hpp>
 #include <score/model/Identifier.hpp>
+#include <score/tools/Bind.hpp>
 
 #include <QAbstractItemModel>
 #include <QObject>

@@ -8,8 +8,8 @@
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/widgets/MarginLess.hpp>
 #include <score/widgets/SignalUtils.hpp>
+#include <score/tools/Bind.hpp>
 
-#include <QComboBox>
 #include <QFormLayout>
 
 namespace Midi

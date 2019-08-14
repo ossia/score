@@ -7,6 +7,8 @@
 #include <Process/ExecutionContext.hpp>
 #include <Process/ExecutionFunctions.hpp>
 
+#include <score/tools/Bind.hpp>
+
 #include <ossia/dataflow/nodes/mapping.hpp>
 #include <ossia/editor/mapper/detail/mapper_visitor.hpp>
 namespace Mapping

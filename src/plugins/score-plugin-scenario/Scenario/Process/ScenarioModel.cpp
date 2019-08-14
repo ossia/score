@@ -28,15 +28,9 @@
 #include <score/selection/SelectionDispatcher.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/tools/IdentifierGeneration.hpp>
-#include <score/tools/Todo.hpp>
 
 #include <core/document/Document.hpp>
 
-#include <QDataStream>
-#include <QDebug>
-#include <QIODevice>
-#include <QMap>
-#include <QtGlobal>
 
 #include <wobjectimpl.h>
 

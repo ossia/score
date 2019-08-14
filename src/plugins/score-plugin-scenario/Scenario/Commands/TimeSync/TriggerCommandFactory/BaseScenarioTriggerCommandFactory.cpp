@@ -13,7 +13,6 @@
 #include <score/model/path/PathSerialization.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
 
-#include <QByteArray>
 
 namespace Scenario
 {

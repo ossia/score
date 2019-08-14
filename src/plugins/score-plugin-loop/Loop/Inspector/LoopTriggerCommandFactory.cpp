@@ -13,7 +13,6 @@
 #include <score/model/path/PathSerialization.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
 
-#include <QByteArray>
 
 bool LoopTriggerCommandFactory::matches(
     const Scenario::TimeSyncModel& tn) const

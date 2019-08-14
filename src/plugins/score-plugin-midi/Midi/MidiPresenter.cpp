@@ -19,6 +19,7 @@
 
 #include <core/document/Document.hpp>
 #include <core/document/DocumentModel.hpp>
+#include <score/tools/Bind.hpp>
 
 #include <ossia/detail/math.hpp>
 
@@ -26,8 +27,8 @@
 #include <boost/range/adaptor/transformed.hpp>
 #include <boost/range/algorithm/copy.hpp>
 
-#include <QAction>
 #include <QApplication>
+#include <QAction>
 #include <QInputDialog>
 #include <QMenu>
 

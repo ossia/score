@@ -2,7 +2,6 @@
 #include <score/document/DocumentInterface.hpp>
 #include <score/tools/Metadata.hpp>
 
-#include <QDataStream>
 
 /**
  * @brief Used to know if two types are in an inheritance relationship.

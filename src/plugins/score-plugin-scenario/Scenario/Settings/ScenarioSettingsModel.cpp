@@ -6,7 +6,6 @@
 #include <score/plugins/InterfaceList.hpp>
 
 #include <QFile>
-#include <QFileInfo>
 #include <QJsonDocument>
 #include <QSettings>
 

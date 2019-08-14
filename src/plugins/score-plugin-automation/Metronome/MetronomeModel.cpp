@@ -24,10 +24,6 @@
 #include <ossia/editor/state/destination_qualifiers.hpp>
 #include <ossia/network/dataspace/dataspace_visitors.hpp>
 
-#include <QDebug>
-#include <QJsonObject>
-#include <QJsonValue>
-#include <QPoint>
 
 #include <Metronome/MetronomeProcessMetadata.hpp>
 #include <wobjectimpl.h>

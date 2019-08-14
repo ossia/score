@@ -9,12 +9,6 @@
 #include <score/plugins/StringFactoryKeySerialization.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
 
-#include <QByteArray>
-#include <QDataStream>
-#include <QList>
-#include <QPair>
-#include <QStack>
-#include <QtGlobal>
 
 template <typename T>
 class Reader;

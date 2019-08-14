@@ -21,61 +21,20 @@
 #include <ossia/detail/small_vector.hpp>
 #include <ossia/detail/string_map.hpp>
 
-#include <QAbstractItemModel>
-#include <QAction>
-#include <QApplication>
-#include <QBoxLayout>
-#include <QByteArray>
-#include <QColor>
-#include <QComboBox>
-#include <QDataStream>
-#include <QDebug>
-#include <QFlags>
-#include <QFormLayout>
-#include <QGraphicsItem>
-#include <QGridLayout>
-#include <QIODevice>
-#include <QJsonArray>
-#include <QJsonObject>
-#include <QJsonValue>
-#include <QLabel>
-#include <QLayout>
-#include <QLineEdit>
-#include <QList>
-#include <QMap>
-#include <QMenu>
-#include <QMetaType>
-#include <QObject>
-#include <QPainter>
-#include <QPair>
-#include <QPen>
-#include <QPoint>
-#include <QPointer>
-#include <QPushButton>
-#include <QRect>
-#include <QSize>
-#include <QString>
-#include <QStringList>
-#include <QVariant>
-#include <QVector>
 #include <QWidget>
-#include <QtGlobal>
+#include <QGraphicsItem>
 
 #include <cmath>
-#include <wobjectimpl.h>
 
-#include <algorithm>
 #include <array>
 #include <cstdint>
-#include <exception>
 #include <functional>
-#include <iterator>
 #include <memory>
 #include <numeric>
-#include <stdexcept>
 #include <string>
-#include <typeinfo>
 #include <utility>
 #include <vector>
 
+#include <verdigris>
+#include <wobjectimpl.h>
 #endif

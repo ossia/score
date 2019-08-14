@@ -9,7 +9,6 @@
 
 #include <ossia/detail/pod_vector.hpp>
 
-#include <QPointer>
 //#include <QFuture>
 //#include <QFutureWatcher>
 #include <verdigris>

@@ -12,7 +12,6 @@
 #include <score/widgets/TextLabel.hpp>
 
 #include <QGridLayout>
-#include <QLabel>
 
 namespace Scenario
 {

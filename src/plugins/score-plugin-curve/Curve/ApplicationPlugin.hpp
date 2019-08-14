@@ -3,7 +3,6 @@
 
 #include <score/plugins/application/GUIApplicationPlugin.hpp>
 
-#include <QMainWindow>
 namespace Curve
 {
 

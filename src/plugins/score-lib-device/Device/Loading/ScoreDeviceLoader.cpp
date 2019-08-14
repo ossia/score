@@ -13,7 +13,6 @@
 
 #include <ossia/network/domain/domain.hpp>
 
-#include <QDebug>
 #include <QFile>
 #include <QIODevice>
 #include <QJsonDocument>

@@ -13,6 +13,7 @@
 #include <score/model/Identifier.hpp>
 #include <score/model/path/Path.hpp>
 #include <score/model/path/PathSerialization.hpp>
+#include <score/tools/Unused.hpp>
 
 /*
  * Command to change a interval duration by moving event. Vertical move is

@@ -14,10 +14,6 @@
 #include <score/widgets/TextLabel.hpp>
 
 #include <QComboBox>
-#include <QHBoxLayout>
-#include <QLineEdit>
-#include <QPushButton>
-#include <QVBoxLayout>
 #include <QWidget>
 
 #include <score_plugin_scenario_export.h>

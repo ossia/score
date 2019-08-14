@@ -8,6 +8,7 @@
 #include <score/command/Command.hpp>
 #include <score/command/Dispatchers/ICommandDispatcher.hpp>
 #include <score/command/SettingsCommand.hpp>
+#include <score/tools/Bind.hpp>
 
 #include <QApplication>
 #include <QStyle>

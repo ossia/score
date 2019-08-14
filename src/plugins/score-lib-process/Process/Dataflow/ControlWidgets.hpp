@@ -7,14 +7,15 @@
 #include <score/graphics/GraphicWidgets.hpp>
 #include <score/graphics/GraphicsItem.hpp>
 #include <score/widgets/ControlWidgets.hpp>
+#include <score/tools/Unused.hpp>
 
 #include <ossia/network/value/value_conversion.hpp>
 #include <ossia/detail/math.hpp>
 #include <QGraphicsItem>
 #include <QGraphicsProxyWidget>
 #include <QLineEdit>
-#include <QPalette>
 
+#include <QCheckBox>
 #include <score_lib_process_export.h>
 
 namespace WidgetFactory
@@ -507,7 +508,18 @@ struct Button
 };
 struct ChooserToggle
 {
-
+  template<typename T>
+  static constexpr auto getAlternatives(const T& t) -> decltype(auto)
+  {
+      if constexpr(std::is_member_function_pointer_v<decltype(&T::alternatives)>)
+      {
+          return t.alternatives();
+      }
+      else
+      {
+          return t.alternatives;
+      }
+  }
   template <typename T, typename Control_T>
   static auto make_widget(
       const T& slider,
@@ -516,8 +528,9 @@ struct ChooserToggle
       QWidget* parent,
       QObject* context)
   {
-    SCORE_ASSERT(slider.alternatives.size() == 2);
-    auto sl = new score::ToggleButton{slider.alternatives, parent};
+    const auto& alts = getAlternatives(slider);
+    SCORE_ASSERT(alts.size() == 2);
+    auto sl = new score::ToggleButton{alts, parent};
     sl->setCheckable(true);
     bool b = ossia::convert<bool>(inlet.value());
     if (b && !sl->isChecked())

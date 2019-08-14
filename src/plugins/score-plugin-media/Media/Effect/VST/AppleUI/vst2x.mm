@@ -6,14 +6,9 @@
 #include <CoreFoundation/CFBundle.h>
 #include <iostream>
 #include <QMacCocoaViewContainer>
-#include <QDialog>
 #include "vstwindow.h"
 #include <QApplication>
-#include <QHBoxLayout>
-#include <QDebug>
-#include <QMainWindow>
 #include <Media/Effect/VST/VSTEffectModel.hpp>
-#include <QTimer>
 
 namespace Media::VST
 {

@@ -19,7 +19,6 @@
 #include <score/selection/SelectionStack.hpp>
 
 #include <QList>
-#include <QPointer>
 
 #include <algorithm>
 #include <vector>

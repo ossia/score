@@ -13,9 +13,7 @@ int main() {}
 
 #include <ossia/editor/state/message.hpp>
 
-#include <QMetaType>
 #include <QObject>
-#include <QtTest/QtTest>
 
 using namespace score;
 class PortSerializationTest : public QObject

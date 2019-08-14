@@ -5,7 +5,6 @@
 #include <score/selection/Selection.hpp>
 #include <score/selection/SelectionDispatcher.hpp>
 
-#include <QList>
 #include <QWidget>
 
 #include <multi_index/hashed_index.hpp>

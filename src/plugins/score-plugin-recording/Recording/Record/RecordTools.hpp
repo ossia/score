@@ -10,8 +10,6 @@
 #include <score/command/Dispatchers/MacroCommandDispatcher.hpp>
 #include <score/tools/std/HashMap.hpp>
 
-#include <QObject>
-#include <QTimer>
 
 #include <chrono>
 #include <memory>

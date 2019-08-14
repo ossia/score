@@ -25,12 +25,7 @@
 #include <score/tools/IdentifierGeneration.hpp>
 #include <score/tools/MapCopy.hpp>
 
-#include <QDataStream>
 #include <QList>
-#include <QPointer>
-#include <QSet>
-#include <QString>
-#include <QtGlobal>
 
 #include <algorithm>
 #include <iterator>

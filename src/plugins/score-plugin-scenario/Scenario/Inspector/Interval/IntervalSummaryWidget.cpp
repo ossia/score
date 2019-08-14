@@ -10,7 +10,6 @@
 #include <score/document/DocumentContext.hpp>
 #include <score/widgets/TextLabel.hpp>
 
-#include <QLabel>
 
 namespace Scenario
 {

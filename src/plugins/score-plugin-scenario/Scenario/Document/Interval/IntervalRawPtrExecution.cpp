@@ -14,6 +14,7 @@
 #include <score/document/DocumentContext.hpp>
 #include <score/model/Identifier.hpp>
 #include <score/tools/IdentifierGeneration.hpp>
+#include <score/tools/Bind.hpp>
 
 #include <ossia/dataflow/graph/graph_interface.hpp>
 #include <ossia/dataflow/graph_edge.hpp>

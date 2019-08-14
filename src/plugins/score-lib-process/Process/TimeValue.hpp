@@ -4,9 +4,8 @@
 #include <score/serialization/IsTemplate.hpp>
 #include <score/tools/std/Optional.hpp>
 
-#include <QMetaType>
-#include <QStringBuilder>
 #include <QTime>
+#include <QStringBuilder>
 
 #include <verdigris>
 

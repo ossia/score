@@ -6,6 +6,7 @@
 
 #include <score/application/GUIApplicationContext.hpp>
 #include <score/widgets/SignalUtils.hpp>
+#include <score/tools/Bind.hpp>
 
 #include <QFileDialog>
 #include <QFormLayout>

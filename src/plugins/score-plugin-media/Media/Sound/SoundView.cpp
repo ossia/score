@@ -1,7 +1,6 @@
 #include "SoundView.hpp"
 #include <Media/RMSData.hpp>
 #include <score/graphics/GraphicsItem.hpp>
-#include <score/tools/Todo.hpp>
 #include <score/tools/std/Invoke.hpp>
 
 #include <ossia/detail/pod_vector.hpp>
@@ -11,14 +10,13 @@
 #include <QGraphicsSceneContextMenuEvent>
 #include <QGraphicsView>
 #include <QPainter>
+#include <QDebug>
 #include <QScrollBar>
 #include <QTimer>
-#include <QApplication>
 #include <cmath>
-#include <QDialog>
-#include <QHBoxLayout>
 
-//#include <QFormLayout>
+#include <score/tools/Debug.hpp>
+
 #include <wobjectimpl.h>
 #include <score/widgets/DoubleSlider.hpp>
 #include <score/tools/std/Invoke.hpp>

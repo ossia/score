@@ -26,7 +26,7 @@
 #include <core/undo/UndoApplicationPlugin.hpp>
 #include <core/view/Window.hpp>
 
-#include <QApplication>
+#include <QGuiApplication>
 #include <QModelIndex>
 namespace score
 {

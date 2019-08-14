@@ -11,8 +11,6 @@
 #include <ossia/network/generic/generic_device.hpp>
 #include <ossia/network/generic/generic_parameter.hpp>
 
-#include <QString>
-#include <QVariant>
 
 #include <memory>
 

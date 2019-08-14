@@ -7,7 +7,6 @@
 #include <score/model/path/Path.hpp>
 #include <score/tools/std/Optional.hpp>
 
-#include <QByteArray>
 
 #include <score_plugin_scenario_export.h>
 struct DataStreamInput;

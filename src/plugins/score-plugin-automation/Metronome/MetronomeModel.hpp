@@ -6,7 +6,6 @@
 #include <score/model/Identifier.hpp>
 #include <score/serialization/VisitorInterface.hpp>
 
-#include <QByteArray>
 #include <QObject>
 #include <QString>
 

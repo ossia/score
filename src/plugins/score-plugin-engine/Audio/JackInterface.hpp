@@ -3,12 +3,8 @@
 
 #include <ossia/audio/jack_protocol.hpp>
 
-#include <QComboBox>
 #include <QFormLayout>
 #include <QLabel>
-#include <QListWidget>
-#include <QMenu>
-#include <QPushButton>
 #include <QSpinBox>
 #include <QWidget>
 
@@ -16,6 +12,7 @@
 #include <Audio/Settings/Model.hpp>
 #include <Audio/Settings/View.hpp>
 #include <score/command/Dispatchers/SettingsCommandDispatcher.hpp>
+#include <score/tools/Bind.hpp>
 
 namespace Audio
 {
@@ -64,13 +61,13 @@ public:
     {
       if (!ossia::has_jackd_process())
       {
-        std::cerr << "JACK server not running?" << std::endl;
+        qDebug() << "JACK server not running?";
         throw std::runtime_error("Audio error: no JACK server");
       }
     }
 #endif
 
-    std::cerr << "JACK: " << WeakJack::instance().available() << std::endl;
+    qDebug() << "JACK: " << WeakJack::instance().available();
     std::shared_ptr<ossia::jack_client> client = m_client.lock();
     if(!client)
       m_client = (client = std::make_shared<ossia::jack_client>("ossia score"));

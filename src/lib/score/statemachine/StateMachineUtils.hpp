@@ -3,7 +3,6 @@
 
 #include <QAbstractTransition>
 #include <QEvent>
-#include <QState>
 
 /**
  * This file contains base types for the events and transitions of

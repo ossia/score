@@ -2,7 +2,6 @@
 #include <score/plugins/application/GUIApplicationPlugin.hpp>
 #include <score/plugins/documentdelegate/plugin/DocumentPlugin.hpp>
 
-#include <QString>
 
 namespace score
 {

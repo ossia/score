@@ -6,6 +6,7 @@
 #include <Scenario/Execution/score2OSSIA.hpp>
 
 #include <ossia/dataflow/safe_nodes/executor.hpp>
+#include <score/tools/Bind.hpp>
 
 #include <QTimer>
 

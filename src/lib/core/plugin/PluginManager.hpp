@@ -12,7 +12,6 @@
 
 #include <core/plugin/PluginDependencyGraph.hpp>
 
-#include <QObject>
 #include <QString>
 #include <QStringList>
 

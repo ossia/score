@@ -3,7 +3,6 @@
 #include <score/plugins/qt_interfaces/PluginRequirements_QtInterface.hpp>
 
 #include <QImage>
-#include <QObject>
 
 namespace score
 {

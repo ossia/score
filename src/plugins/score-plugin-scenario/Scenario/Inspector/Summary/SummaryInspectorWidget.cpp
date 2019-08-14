@@ -12,7 +12,6 @@
 #include <Scenario/Inspector/TimeSync/TimeSyncSummaryWidget.hpp>
 #include <Scenario/Process/ScenarioInterface.hpp>
 
-#include <QLabel>
 
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Scenario::SummaryInspectorWidget)

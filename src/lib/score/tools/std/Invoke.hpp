@@ -1,7 +1,6 @@
 #pragma once
-#include <QAbstractEventDispatcher>
-#include <QCoreApplication>
 #include <QEvent>
+#include <QCoreApplication>
 
 #include <score_lib_base_export.h>
 namespace score

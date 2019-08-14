@@ -7,12 +7,11 @@
 #include <score/plugins/documentdelegate/DocumentDelegateView.hpp>
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/command/PropertyCommand.hpp>
+#include <score/tools/Bind.hpp>
 #include <QListWidget>
-#include <QMimeData>
 #include <QDropEvent>
 #include <QGraphicsScene>
 #include <QGraphicsView>
-#include <QHBoxLayout>
 #include <score/graphics/TextItem.hpp>
 
 namespace Dataflow
@@ -83,11 +82,14 @@ class DocumentView final
 public:
   struct WidgetUI
   {
+#if (__cplusplus <= 201703L) && !defined(_MSC_VER)
     WidgetUI() = delete;
     WidgetUI(const WidgetUI&) = default;
     WidgetUI(WidgetUI&&) = default;
     WidgetUI& operator=(const WidgetUI&) = delete;
     WidgetUI& operator=(WidgetUI&&) = delete;
+#endif
+
     Widget& widget;
     QGraphicsItem* control{};
     Dataflow::PortItem* port{};

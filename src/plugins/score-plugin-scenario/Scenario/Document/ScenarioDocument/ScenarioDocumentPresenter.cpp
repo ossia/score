@@ -41,20 +41,15 @@
 #include <score/selection/SelectionStack.hpp>
 #include <score/statemachine/GraphicsSceneToolPalette.hpp>
 #include <score/tools/Clamp.hpp>
-#include <score/tools/Todo.hpp>
+#include <score/tools/Bind.hpp>
 #include <score/widgets/DoubleSlider.hpp>
 
 #include <core/view/Window.hpp>
 
 #include <ossia/detail/math.hpp>
 
-#include <QMainWindow>
-#include <QPolygon>
-#include <QScrollBar>
 #include <QSize>
-#include <QString>
-#include <QWidget>
-#include <QtGlobal>
+#include <QScrollBar>
 
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Scenario::ScenarioDocumentPresenter)

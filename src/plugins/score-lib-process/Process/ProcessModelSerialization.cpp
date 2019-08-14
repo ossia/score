@@ -14,8 +14,6 @@
 #include <score/serialization/JSONValueVisitor.hpp>
 #include <score/serialization/JSONVisitor.hpp>
 
-#include <QJsonObject>
-#include <QJsonValue>
 
 template <>
 SCORE_LIB_PROCESS_EXPORT void

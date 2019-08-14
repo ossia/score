@@ -7,10 +7,9 @@
 #include <Process/State/ProcessStateDataInterface.hpp>
 #include <State/Message.hpp>
 
-#include <score/tools/Todo.hpp>
+#include <score/tools/Bind.hpp>
 #include <score/widgets/TextLabel.hpp>
 
-#include <QLabel>
 #include <QVBoxLayout>
 
 #include <list>

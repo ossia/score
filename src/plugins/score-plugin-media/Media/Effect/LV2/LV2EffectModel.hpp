@@ -7,8 +7,6 @@
 
 #include <ossia/dataflow/node_process.hpp>
 
-#include <QInputDialog>
-#include <QJsonDocument>
 
 #include <Control/DefaultEffectItem.hpp>
 #include <Effect/EffectFactory.hpp>

@@ -13,8 +13,6 @@
 #include <score/model/tree/TreeNodeSerialization.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
 
-#include <QAbstractItemModel>
-#include <QString>
 
 #include <algorithm>
 #include <vector>

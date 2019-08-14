@@ -3,7 +3,6 @@
 #include <score/actions/Menu.hpp>
 #include <score/selection/Selection.hpp>
 
-#include <QPoint>
 class QAction;
 class QMenu;
 namespace Process

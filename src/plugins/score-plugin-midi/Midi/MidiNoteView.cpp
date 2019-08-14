@@ -5,10 +5,10 @@
 #include <Midi/MidiStyle.hpp>
 #include <Midi/MidiView.hpp>
 
-#include <QCursor>
 #include <QGraphicsSceneMouseEvent>
 #include <QGuiApplication>
 #include <QPainter>
+#include <QCursor>
 
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Midi::NoteView)

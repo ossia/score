@@ -4,8 +4,6 @@
 
 #include <ossia/detail/for_each.hpp>
 
-#include <QDebug>
-
 #include <eggs/variant.hpp>
 
 /**

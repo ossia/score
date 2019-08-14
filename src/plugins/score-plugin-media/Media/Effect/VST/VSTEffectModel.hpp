@@ -9,9 +9,6 @@
 
 #include <ossia/detail/hash_map.hpp>
 
-#include <QFileDialog>
-#include <QJsonDocument>
-#include <QTimer>
 
 #include <Control/DefaultEffectItem.hpp>
 #include <Effect/EffectFactory.hpp>

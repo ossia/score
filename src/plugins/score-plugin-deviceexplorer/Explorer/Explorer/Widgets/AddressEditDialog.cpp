@@ -18,12 +18,8 @@
 
 #include <ossia/network/domain/domain.hpp>
 
-#include <QComboBox>
-#include <QDebug>
 #include <QDialogButtonBox>
-#include <QFlags>
 #include <QFormLayout>
-#include <QLineEdit>
 #include <QString>
 #include <qnamespace.h>
 

@@ -8,7 +8,6 @@
 #include <score/model/tree/TreePath.hpp>
 #include <score/model/tree/VariantBasedNode.hpp>
 
-#include <QList>
 #include <QString>
 #include <QStringList>
 

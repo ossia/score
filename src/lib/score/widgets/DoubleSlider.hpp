@@ -1,7 +1,6 @@
 #pragma once
 #include <score/tools/Clamp.hpp>
 
-#include <QDebug>
 #include <QProxyStyle>
 #include <QSlider>
 

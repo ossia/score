@@ -7,12 +7,8 @@
 #include <score/model/ColorReference.hpp>
 #include <score/widgets/MimeData.hpp>
 
-#include <QColor>
 #include <QPainter>
-#include <QPoint>
 #include <QRect>
-#include <QString>
-#include <QtGlobal>
 
 #include <verdigris>
 namespace Process

@@ -3,6 +3,7 @@
 #include <Midi/MidiNote.hpp>
 
 #include <score/model/path/Path.hpp>
+#include <score/tools/Unused.hpp>
 
 namespace Midi
 {

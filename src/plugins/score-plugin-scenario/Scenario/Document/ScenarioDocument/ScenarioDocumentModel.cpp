@@ -38,14 +38,11 @@
 #include <score/selection/SelectionDispatcher.hpp>
 #include <score/selection/SelectionStack.hpp>
 #include <score/tools/IdentifierGeneration.hpp>
-#include <score/tools/Todo.hpp>
 #include <score/tools/std/Optional.hpp>
 
 #include <core/document/Document.hpp>
 
-#include <QApplication>
 #include <QFileInfo>
-#include <QList>
 #include <QObject>
 
 #include <wobjectimpl.h>

@@ -21,8 +21,6 @@
 
 #include <boost/range/adaptor/reversed.hpp>
 
-#include <QDataStream>
-#include <QtGlobal>
 
 #include <algorithm>
 

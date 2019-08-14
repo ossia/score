@@ -12,7 +12,6 @@
 #include <score/document/DocumentContext.hpp>
 #include <score/plugins/StringFactoryKey.hpp>
 
-#include <QString>
 
 class QObject;
 class QWidget;

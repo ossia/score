@@ -7,7 +7,6 @@
 #include <score/model/path/Path.hpp>
 
 #include <QJsonObject>
-#include <QMap>
 
 struct DataStreamInput;
 struct DataStreamOutput;

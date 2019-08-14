@@ -1,9 +1,5 @@
 #pragma once
-#include <QApplication>
-#include <QDebug>
-#include <QFile>
 #include <QPixmap>
-#include <QScreen>
 
 #include <score_lib_base_export.h>
 

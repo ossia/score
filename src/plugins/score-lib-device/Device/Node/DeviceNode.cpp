@@ -9,12 +9,9 @@
 #include <State/Value.hpp>
 
 #include <score/model/tree/TreeNode.hpp>
-#include <score/tools/Todo.hpp>
 
 #include <ossia/editor/state/destination_qualifiers.hpp>
 
-#include <QByteArray>
-#include <QDebug>
 
 #include <eggs/variant/variant.hpp>
 

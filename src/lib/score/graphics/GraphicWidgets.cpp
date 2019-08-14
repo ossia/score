@@ -5,16 +5,12 @@
 #include <score/graphics/DefaultGraphicsSliderImpl.hpp>
 #include <score/graphics/DefaultGraphicsKnobImpl.hpp>
 #include <score/model/Skin.hpp>
+#include <score/tools/ForEach.hpp>
 
-#include <QDebug>
-#include <QDoubleSpinBox>
-#include <QGraphicsProxyWidget>
 #include <QGraphicsScene>
+#include <QGraphicsProxyWidget>
 #include <QWidget>
 #include <QListView>
-#include <QWindow>
-#include <QApplication>
-#include <QScreen>
 
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(score::QGraphicsPixmapButton)
@@ -820,8 +816,8 @@ void QGraphicsEnum::mousePressEvent(QGraphicsSceneMouseEvent* event)
   int actual_rows = std::ceil(double(array.size()) / columns);
   const double w = m_smallRect.width() / columns;
   const double h = m_smallRect.height() / actual_rows;
-  int i = 0;
-  for(const QString& str : array)
+
+  for(int i = 0; i < array.size(); i++)
   {
     QRectF rect{2. + col * w, 2. + row * h, w - 1., h - 1.};
     if(rect.contains(event->pos()))
@@ -837,7 +833,6 @@ void QGraphicsEnum::mousePressEvent(QGraphicsSceneMouseEvent* event)
       row++;
       col = 0;
     }
-    i++;
   }
 
   m_clicking = -1;

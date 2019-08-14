@@ -3,8 +3,6 @@
 #include <Curve/CurveView.hpp>
 #include <Process/LayerView.hpp>
 
-#include <QString>
-#include <QTextLayout>
 
 #include <verdigris>
 

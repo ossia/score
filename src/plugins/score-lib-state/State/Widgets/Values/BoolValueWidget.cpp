@@ -8,7 +8,6 @@
 
 #include <QComboBox>
 #include <QGridLayout>
-#include <QString>
 
 namespace State
 {

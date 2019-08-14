@@ -5,12 +5,12 @@
 #include <Scenario/Document/Event/EventExecution.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Execution/score2OSSIA.hpp>
+#include <score/tools/Bind.hpp>
 
 #include <ossia/detail/logger.hpp>
 #include <ossia/editor/expression/expression.hpp>
 #include <ossia/editor/scenario/time_event.hpp>
 
-#include <QDebug>
 
 #include <wobjectimpl.h>
 

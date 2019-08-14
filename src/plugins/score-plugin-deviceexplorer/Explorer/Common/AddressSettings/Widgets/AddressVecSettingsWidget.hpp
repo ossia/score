@@ -9,7 +9,6 @@
 #include <ossia/network/dataspace/dataspace_visitors.hpp>
 
 #include <QComboBox>
-#include <QFormLayout>
 namespace Explorer
 {
 template <std::size_t N>

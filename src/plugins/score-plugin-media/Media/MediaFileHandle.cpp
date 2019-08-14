@@ -10,6 +10,7 @@
 #include <Audio/Settings/Model.hpp>
 #include <ossia/dataflow/nodes/sound_mmap.hpp>
 
+#include <score/tools/Bind.hpp>
 #include <core/document/Document.hpp>
 #include <ossia/detail/apply.hpp>
 
@@ -146,6 +147,12 @@ int64_t AudioFile::channels() const
   { return r.wav.channels(); }
   } _;
   return ossia::apply(_, m_impl);
+}
+
+const RMSData& AudioFile::rms() const
+{
+  SCORE_ASSERT(m_rms);
+  return *m_rms;
 }
 
 void AudioFile::updateSampleRate(int rate)
@@ -294,7 +301,7 @@ struct SingleFrameComputer
 
 ossia::small_vector<float, 8> AudioFile::Handle::frame(int64_t start_frame) noexcept
 {
-  SingleFrameComputer _{start_frame};
+  SingleFrameComputer _{start_frame, {}};
   ossia::apply(_, *this);
   return _.sum;
 }
@@ -306,7 +313,7 @@ ossia::small_vector<float, 8> AudioFile::Handle::absmax_frame(int64_t start_fram
     static float init(float v) noexcept { return v; }
     float operator()(float f1, float f2) const noexcept { return abs_max(f1, f2); }
   };
-  FrameComputer<AbsMax, float> _{start_frame, end_frame, {}};
+  FrameComputer<AbsMax, float> _{start_frame, end_frame, {}, {}};
   ossia::apply(_, *this);
   return _.sum;
 }
@@ -323,7 +330,7 @@ ossia::small_vector<std::pair<float, float>, 8> AudioFile::Handle::minmax_frame(
     }
   };
 
-  FrameComputer<MinMax, std::pair<float, float>> _{start_frame, end_frame, {}};
+  FrameComputer<MinMax, std::pair<float, float>> _{start_frame, end_frame, {}, {}};
   ossia::apply(_, *this);
   return _.sum;
 }

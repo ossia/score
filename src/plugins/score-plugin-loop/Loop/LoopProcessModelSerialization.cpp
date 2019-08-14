@@ -8,8 +8,6 @@
 #include <score/serialization/JSONValueVisitor.hpp>
 #include <score/serialization/JSONVisitor.hpp>
 
-#include <QJsonObject>
-#include <QJsonValue>
 
 template <>
 void DataStreamReader::read(const Loop::ProcessModel& proc)

@@ -10,7 +10,6 @@
 #include <Scenario/Palette/ScenarioPoint.hpp>
 
 #include <QApplication>
-#include <QKeyEvent>
 namespace Scenario
 {
 PlayToolState::PlayToolState(const Scenario::ToolPalette& sm)

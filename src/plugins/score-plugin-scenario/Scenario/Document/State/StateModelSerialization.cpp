@@ -15,11 +15,8 @@
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/serialization/JSONValueVisitor.hpp>
 #include <score/serialization/JSONVisitor.hpp>
-#include <score/tools/Todo.hpp>
 
 #include <QJsonArray>
-#include <QJsonObject>
-#include <QJsonValue>
 
 #include <algorithm>
 

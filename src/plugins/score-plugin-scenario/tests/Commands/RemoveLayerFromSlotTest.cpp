@@ -2,7 +2,6 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include <Scenario/Commands/Interval/RemoveLayerModelFromSlot.hpp>
 
-#include <QtTest/QtTest>
 
 using namespace score;
 using namespace Scenario::Command;

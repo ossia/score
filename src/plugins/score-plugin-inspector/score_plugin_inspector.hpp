@@ -3,7 +3,6 @@
 #include <score/plugins/qt_interfaces/FactoryInterface_QtInterface.hpp>
 #include <score/plugins/qt_interfaces/PluginRequirements_QtInterface.hpp>
 
-#include <QObject>
 
 #include <verdigris>
 

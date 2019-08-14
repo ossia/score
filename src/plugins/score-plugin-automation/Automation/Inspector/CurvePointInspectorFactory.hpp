@@ -1,7 +1,6 @@
 #pragma once
 #include <Inspector/InspectorWidgetFactoryInterface.hpp>
 
-#include <QList>
 
 namespace Automation
 {

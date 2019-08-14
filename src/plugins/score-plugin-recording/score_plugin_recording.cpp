@@ -9,7 +9,6 @@
 #include <score/tools/ForEachType.hpp>
 #include <score/tools/std/HashMap.hpp>
 
-#include <QString>
 
 #include <score_plugin_engine.hpp>
 #include <score_plugin_recording_commands_files.hpp>

@@ -15,10 +15,8 @@
 #include <score/widgets/SignalUtils.hpp>
 #include <score/widgets/TextLabel.hpp>
 
-#include <QBoxLayout>
 #include <QLabel>
-#include <QObject>
-#include <QSpinBox>
+#include <QVBoxLayout>
 #include <QWidget>
 
 #include <list>

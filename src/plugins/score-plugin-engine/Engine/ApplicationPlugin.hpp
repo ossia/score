@@ -5,7 +5,6 @@
 #include <score/plugins/application/GUIApplicationPlugin.hpp>
 #include <score/plugins/documentdelegate/plugin/DocumentPlugin.hpp>
 
-#include <QString>
 
 #include <Execution/ContextMenu/PlayContextMenu.hpp>
 #include <score_plugin_engine_export.h>

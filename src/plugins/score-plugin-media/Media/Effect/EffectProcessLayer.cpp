@@ -28,7 +28,6 @@
 #include <QGraphicsSceneMouseEvent>
 #include <QJsonDocument>
 #include <QPainter>
-#include <QWindow>
 #include <QUrl>
 
 namespace score::mime

@@ -12,8 +12,6 @@
 
 #include <boost/operators.hpp>
 
-#include <QPointer>
-#include <QTabWidget>
 #include <QVBoxLayout>
 
 #include <wobjectimpl.h>

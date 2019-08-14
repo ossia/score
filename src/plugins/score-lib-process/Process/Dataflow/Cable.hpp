@@ -5,7 +5,6 @@
 #include <score/model/path/Path.hpp>
 #include <score/selection/Selectable.hpp>
 
-#include <QPointer>
 #include <QUuid>
 
 #include <score_lib_process_export.h>

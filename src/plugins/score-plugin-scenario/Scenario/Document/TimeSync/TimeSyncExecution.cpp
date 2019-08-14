@@ -11,8 +11,8 @@
 #include <ossia/editor/expression/expression.hpp>
 #include <ossia/editor/scenario/time_sync.hpp>
 #include <ossia/editor/state/state.hpp>
+#include <score/tools/Bind.hpp>
 
-#include <QDebug>
 
 #include <exception>
 

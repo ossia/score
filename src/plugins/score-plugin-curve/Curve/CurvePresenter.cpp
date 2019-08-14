@@ -28,19 +28,14 @@
 #include <score/plugins/InterfaceList.hpp>
 #include <score/plugins/StringFactoryKey.hpp>
 #include <score/selection/Selectable.hpp>
-#include <score/tools/Todo.hpp>
 #include <score/tools/std/Optional.hpp>
+#include <score/tools/Bind.hpp>
 
 #include <QAction>
-#include <QActionGroup>
-#include <QApplication>
 #include <QMenu>
-#include <QPointer>
-#include <QSet>
 #include <QSize>
 #include <QString>
 #include <QVariant>
-#include <QtAlgorithms>
 #include <qnamespace.h>
 
 #include <wobjectimpl.h>

@@ -7,7 +7,6 @@
 #include <Scenario/Document/Interval/Rack/RackModel.hpp>
 #include <Scenario/Document/Interval/Slot.hpp>
 
-#include <QtTest/QtTest>
 
 using namespace score;
 using namespace Scenario::Command;

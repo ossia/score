@@ -1,6 +1,7 @@
 #pragma once
 #include <Audio/PortAudioInterface.hpp>
 #include <Audio/AudioInterface.hpp>
+#include <QObject>
 class QComboBox;
 namespace Audio
 {

@@ -28,20 +28,14 @@
 #include <score/plugins/documentdelegate/plugin/DocumentPlugin.hpp>
 #include <score/selection/SelectionDispatcher.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
-#include <score/tools/Todo.hpp>
+#include <score/tools/Bind.hpp>
 #include <score/widgets/MarginLess.hpp>
 #include <score/widgets/Separator.hpp>
 #include <score/widgets/SignalUtils.hpp>
 #include <score/widgets/TextLabel.hpp>
 
-#include <QBoxLayout>
-#include <QColor>
 #include <QComboBox>
-#include <QDebug>
 #include <QFormLayout>
-#include <QLabel>
-#include <QLayout>
-#include <QMenu>
 #include <QString>
 #include <QWidget>
 

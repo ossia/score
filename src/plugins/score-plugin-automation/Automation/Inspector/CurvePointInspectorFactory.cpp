@@ -6,7 +6,6 @@
 
 #include <Curve/Point/CurvePointModel.hpp>
 
-#include <QString>
 namespace Automation
 {
 QWidget* PointInspectorFactory::make(

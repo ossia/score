@@ -3,7 +3,6 @@
 #pragma once
 #include <score/plugins/Interface.hpp>
 #include <score/tools/ForEachType.hpp>
-#include <score/tools/Todo.hpp>
 #include <score/tools/std/HashMap.hpp>
 #include <score/tools/std/IndirectContainer.hpp>
 #include <score/tools/std/Pointer.hpp>
@@ -11,7 +10,6 @@
 #include <ossia/detail/algorithms.hpp>
 #include <ossia/detail/hash_map.hpp>
 
-#include <QMetaType>
 
 #include <score_lib_base_export.h>
 
@@ -59,6 +57,7 @@ public:
   virtual void optimize() noexcept = 0;
 };
 
+SCORE_LIB_BASE_EXPORT void debug_types(const score::InterfaceBase* orig, const score::InterfaceBase* repl) noexcept;
 /**
  * @brief InterfaceList Default implementation of InterfaceListBase
  *
@@ -110,8 +109,7 @@ public:
       }
       else
       {
-        qDebug() << "Warning: replacing" << typeid(*it->second).name()
-                 << "with" << typeid(result).name();
+        score::debug_types(it->second.get(), result);
         it->second = std::move(pf);
       }
     }

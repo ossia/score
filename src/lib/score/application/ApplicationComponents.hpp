@@ -4,11 +4,9 @@
 #include <score/plugins/Addon.hpp>
 #include <score/plugins/Interface.hpp>
 #include <score/plugins/StringFactoryKey.hpp>
-#include <score/tools/Todo.hpp>
 #include <score/tools/std/HashMap.hpp>
 #include <score/tools/std/IndirectContainer.hpp>
 
-#include <QByteArray>
 
 #include <score_lib_base_export.h>
 

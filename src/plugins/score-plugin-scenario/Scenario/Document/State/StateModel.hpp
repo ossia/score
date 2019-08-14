@@ -11,7 +11,6 @@
 #include <score/selection/Selectable.hpp>
 #include <score/serialization/VisitorInterface.hpp>
 #include <score/tools/Metadata.hpp>
-#include <score/tools/Todo.hpp>
 #include <score/tools/std/Optional.hpp>
 
 #include <nano_signal_slot.hpp>

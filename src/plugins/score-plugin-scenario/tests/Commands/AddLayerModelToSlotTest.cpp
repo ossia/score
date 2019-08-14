@@ -14,7 +14,6 @@
 
 #include <core/command/CommandStack.hpp>
 
-#include <QtTest/QtTest>
 
 using namespace score;
 using namespace Scenario::Command;

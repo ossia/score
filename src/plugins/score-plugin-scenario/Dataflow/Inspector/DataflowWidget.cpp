@@ -2,8 +2,8 @@
 #include <Dataflow/Inspector/DataflowWidget.hpp>
 
 #include <score/widgets/SignalUtils.hpp>
+#include <score/tools/Bind.hpp>
 
-#include <QFormLayout>
 
 #include <wobjectimpl.h>
 namespace Dataflow
