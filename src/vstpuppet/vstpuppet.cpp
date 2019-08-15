@@ -5,6 +5,7 @@
 #include <QJsonObject>
 #include <QUrl>
 #include <QTimer>
+#include <QFile>
 #include <QWebSocket>
 #include <iostream>
 #include <set>

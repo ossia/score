@@ -1,4 +1,6 @@
 project(vstpuppet CXX)
+find_package(Qt5 5.12 OPTIONAL_COMPONENTS WebSockets)
+
 if(NOT TARGET Qt5::WebSockets)
   return()
 endif()
