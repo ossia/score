@@ -49,7 +49,7 @@ DefaultEffectItem::DefaultEffectItem(
         this,
         &DefaultEffectItem::on_controlOutletRemoved);
 
-  auto& portFactory = score::AppContext().interfaces<Process::PortFactoryList>();
+  auto& portFactory = doc.app.interfaces<Process::PortFactoryList>();
   for (auto& e : effect.inlets())
   {
     auto inlet = qobject_cast<Process::ControlInlet*>(e);
