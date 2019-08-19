@@ -1,6 +1,7 @@
 #if defined(HAS_VST2)
 #include "VSTWidgets.hpp"
 
+#include <Process/Style/Pixmaps.hpp>
 #include <Automation/AutomationModel.hpp>
 #include <Automation/Commands/SetAutomationMax.hpp>
 #include <Dataflow/Commands/CreateModulation.hpp>
@@ -167,10 +168,8 @@ void VSTEffectItem::setupInlet(
 
   if (fx.fx->fx->numParams >= 10)
   {
-    static const auto close_off = score::get_pixmap(":/icons/close_off.png");
-    static const auto close_on = score::get_pixmap(":/icons/close_on.png");
-    auto rm_item
-        = new score::QGraphicsPixmapButton{close_on, close_off, ctl.item};
+    const auto& pixmaps = Process::Pixmaps::instance();
+    auto rm_item = new score::QGraphicsPixmapButton{pixmaps.close_on, pixmaps.close_off, ctl.item};
     connect(
           rm_item,
           &score::QGraphicsPixmapButton::clicked,

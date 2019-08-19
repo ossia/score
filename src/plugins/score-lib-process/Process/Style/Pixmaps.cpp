@@ -8,8 +8,8 @@ namespace Process
 Pixmaps::Pixmaps()
     : show_ui_off{score::get_pixmap(":/icons/undock_on.png")}
     , show_ui_on{score::get_pixmap(":/icons/undock_off.png")}
-    , rm_process_off{score::get_pixmap(":/icons/close_on.png")}
-    , rm_process_on{score::get_pixmap(":/icons/close_off.png")}
+    , close_off{score::get_pixmap(":/icons/close_on.png")}
+    , close_on{score::get_pixmap(":/icons/close_off.png")}
 {
 }
 
