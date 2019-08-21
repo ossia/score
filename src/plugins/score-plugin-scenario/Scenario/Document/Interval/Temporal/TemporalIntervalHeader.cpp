@@ -130,12 +130,13 @@ void TemporalIntervalHeader::paint(
     painter->setBrush(itv.muted() ? style.MutedIntervalHeaderBackground() : style.SlotHeader());
 
     painter->drawPolygon(m_poly);
-    //painter->setPen(Qt::red);
-    //painter->drawPath(shape());
     painter->setRenderHint(QPainter::Antialiasing, false);
   }
 
   painter->drawImage(p, m_line);
+  //painter->setPen(Qt::red);
+  //painter->setBrush(Qt::transparent);
+  //painter->drawPath(shape());
 }
 
 void TemporalIntervalHeader::updateButtons()
