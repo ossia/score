@@ -62,7 +62,7 @@ TemporalIntervalPresenter::TemporalIntervalPresenter(
     , endEvent{end}
     , m_handles{handles}
 {
-  m_header->setPos(5, -IntervalHeader::headerHeight());
+  m_header->setPos(15, -IntervalHeader::headerHeight());
   TemporalIntervalView& v = *view();
   auto head = header();
   con(v,
@@ -953,7 +953,7 @@ void TemporalIntervalPresenter::on_defaultDurationChanged(const TimeVal& val)
   const auto w = val.toPixels(m_zoomRatio);
   m_view->setDefaultWidth(w);
   m_view->updateCounterPos();
-  m_header->setWidth(w - 10.);
+  m_header->setWidth(w - 20.);
   ((TemporalIntervalHeader*)m_header)->updateButtons();
   ((TemporalIntervalHeader*)m_header)->update();
   updateBraces();
