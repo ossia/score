@@ -11,6 +11,7 @@
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 
 #include <score/graphics/GraphicsItem.hpp>
+#include <score/graphics/GraphicsSliderBaseImpl.hpp>
 #include <score/model/Skin.hpp>
 #include <score/widgets/Pixmap.hpp>
 #include <score/tools/Bind.hpp>
