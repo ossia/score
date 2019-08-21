@@ -25,4 +25,8 @@ score-plugin-scenario
  score-plugin-midi
  score-plugin-recording
 
+ score-addon-nodal
+ score-addon-controlsurface
+ score-addon-remotecontrol
+
  )

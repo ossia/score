@@ -135,4 +135,69 @@ auto createControl(
   return Controls{item, portItem, widg, lab, itemRect};
 }
 
+
+template<typename C, typename T>
+static auto makeControl(
+    C& ctrl,
+    T& inlet,
+    QGraphicsItem& parent,
+    QObject& context,
+    const score::DocumentContext& doc,
+    const Process::PortFactoryList& portFactory)
+{
+  auto item = new score::EmptyItem{&parent};
+
+  // Port
+  Process::PortFactory* fact = portFactory.get(inlet.concreteKey());
+  auto port = fact->makeItem(inlet, doc, item, &context);
+  port->setPos(0, 2.);
+
+  // Text
+  const auto& brush = Process::portBrush(inlet.type).main;
+  auto lab = new score::SimpleTextItem{brush, item};
+  lab->setText(ctrl.name);
+  lab->setPos(12, 0);
+
+  // Control
+  auto widg = ctrl.make_item(ctrl, inlet, doc, nullptr, &context);
+  widg->setParentItem(item);
+  widg->setPos(0, 12.);
+
+  // Create a single control
+  struct ControlItem {
+    QGraphicsItem& root;
+    Dataflow::PortItem& port;
+    score::SimpleTextItem& text;
+    decltype(*widg)& control;
+  };
+  return ControlItem{*item, *port, *lab, *widg};
+}
+
+template<typename C, typename T>
+static auto makeControlNoText(
+    C& ctrl,
+    T& inlet,
+    QGraphicsItem& parent,
+    QObject& context,
+    const score::DocumentContext& doc,
+    const Process::PortFactoryList& portFactory)
+{
+  auto item = new score::EmptyItem{&parent};
+
+  // Control
+  auto widg = ctrl.make_item(ctrl, inlet, doc, nullptr, &context);
+  widg->setParentItem(item);
+
+  // Port
+  Process::PortFactory* fact = portFactory.get(inlet.concreteKey());
+  auto port = fact->makeItem(inlet, doc, item, &context);
+
+  // Create a single control
+  struct ControlItem {
+    score::EmptyItem& root;
+    Dataflow::PortItem& port;
+    decltype(*widg)& control;
+  };
+  return ControlItem{*item, *port, *widg};
+}
 }

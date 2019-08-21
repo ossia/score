@@ -1,0 +1,62 @@
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <script type="text/javascript">
+        var ws;
+        var triggers = [];
+
+        function updateUI() {
+            var div = document.getElementById("buttons");
+            div.innerHTML = '';
+
+            triggers.forEach(element => {
+                var button = document.createElement("button");
+                button.innerHTML = element.Name;
+
+                div.appendChild(button);
+
+                button.addEventListener("click", function () {
+                    ws.send(JSON.stringify({
+                        Message: "Trigger",
+                        Path: element.Path
+                    }))
+                });
+            });
+        }
+
+        function connectToWS() {
+            var endpoint = document.getElementById("endpoint").value;
+            if (ws !== undefined) {
+                ws.close()
+            }
+
+            ws = new WebSocket(endpoint);
+
+            ws.onmessage = function (event) {
+                var obj = JSON.parse(event.data);
+                if (obj.Message === "TriggerAdded") {
+                    triggers.push(obj);
+                } else if (obj.Message === "TriggerRemoved") {
+                    triggers = triggers.filter(element => {
+                        return element.Path === obj.Path;
+                    });
+                }
+
+                updateUI();
+            }
+        }
+    </script>
+</head>
+
+<body>
+    <form>
+        IP: <input type="text" id="endpoint" name="endpoint" value="ws://127.0.0.1:10212" style="width: 200px"><br>
+        <input type="button" onclick="connectToWS()" value="Connect" />
+    </form>
+    <br /><br />
+
+    <div id="buttons"></div>
+</body>
+
+</html>
