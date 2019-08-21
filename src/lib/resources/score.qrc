@@ -151,61 +151,6 @@
         <file>icons/sequence_on@2x.png</file>
         <file>icons/snapshot_off@2x.png</file>
         <file>icons/snapshot_on@2x.png</file>
-        <file>icons_svg/add_off.svg</file>
-        <file>icons_svg/add_on.svg</file>
-        <file>icons_svg/clip_duration_off.svg</file>
-        <file>icons_svg/clip_duration_on.svg</file>
-        <file>icons_svg/close_off.svg</file>
-        <file>icons_svg/close_on.svg</file>
-        <file>icons_svg/condition_add_off.svg</file>
-        <file>icons_svg/condition_add_on.svg</file>
-        <file>icons_svg/condition_off.svg</file>
-        <file>icons_svg/condition_on.svg</file>
-        <file>icons_svg/condition_remove_off.svg</file>
-        <file>icons_svg/condition_remove_on.svg</file>
-        <file>icons_svg/create_curve_off.svg</file>
-        <file>icons_svg/create_curve_on.svg</file>
-        <file>icons_svg/create_off.svg</file>
-        <file>icons_svg/create_on.svg</file>
-        <file>icons_svg/delete_off.svg</file>
-        <file>icons_svg/delete_on.svg</file>
-        <file>icons_svg/edit_off.svg</file>
-        <file>icons_svg/edit_on.svg</file>
-        <file>icons_svg/end_off.svg</file>
-        <file>icons_svg/end_on.svg</file>
-        <file>icons_svg/fast_forward_off.svg</file>
-        <file>icons_svg/fast_forward_on.svg</file>
-        <file>icons_svg/fast_rewind_off.svg</file>
-        <file>icons_svg/fast_rewind_on.svg</file>
-        <file>icons_svg/grow_shrink_off.svg</file>
-        <file>icons_svg/grow_shrink_on.svg</file>
-        <file>icons_svg/interpolate_off.svg</file>
-        <file>icons_svg/interpolate_on.svg</file>
-        <file>icons_svg/move_off.svg</file>
-        <file>icons_svg/move_on.svg</file>
-        <file>icons_svg/next_off.svg</file>
-        <file>icons_svg/next_on.svg</file>
-        <file>icons_svg/pause_off.svg</file>
-        <file>icons_svg/pause_on.svg</file>
-        <file>icons_svg/play_off.svg</file>
-        <file>icons_svg/play_on.svg</file>
-        <file>icons_svg/prev_off.svg</file>
-        <file>icons_svg/prev_on.svg</file>
-        <file>icons_svg/record_off.svg</file>
-        <file>icons_svg/record_on.svg</file>
-        <file>icons_svg/reinitialize_off.svg</file>
-        <file>icons_svg/reinitialize_on.svg</file>
-        <file>icons_svg/scale_off.svg</file>
-        <file>icons_svg/scale_on.svg</file>
-        <file>icons_svg/select_and_move_off.svg</file>
-        <file>icons_svg/select_and_move_on.svg</file>
-        <file>icons_svg/sequence_off.svg</file>
-        <file>icons_svg/sequence_on.svg</file>
-        <file>icons_svg/snapshot_off.svg</file>
-        <file>icons_svg/snapshot_on.svg</file>
-        <file>icons_svg/start_off.svg</file>
-        <file>icons_svg/start_on.svg</file>
-        <file>icons_svg/stop_off.svg</file>
         <file>desktopqqc2style/Desktop/Button.qml</file>
         <file>desktopqqc2style/Desktop/CheckBox.qml</file>
         <file>desktopqqc2style/Desktop/CheckDelegate.qml</file>
@@ -425,8 +370,5 @@
         <file>rc/radio_unchecked_focus.png</file>
         <file>rc/radio_unchecked.png</file>
         <file>icons/blank.png</file>
-    </qresource>
-    <qresource prefix="/qdarkstyle">
-        <file>qdarkstyle.qss</file>
     </qresource>
 </RCC>
