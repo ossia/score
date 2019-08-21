@@ -1,19 +1,6 @@
 <RCC>
     <qresource prefix="/">
-        <file>images/exit.svg</file>
-        <file>images/trigger.svg</file>
-        <file>images/loop.svg</file>
-        <file>images/forward.svg</file>
         <file>DefaultSkin.json</file>
-        <file>DarkSkin.json</file>
-        <file>IEEESkin.json</file>
-        <file>images/state.svg</file>
-        <file>images/cond.svg</file>
-        <file>images/interval.svg</file>
-        <file>images/process.svg</file>
-        <file>images/state-empty.svg</file>
-        <file>images/event.svg</file>
-        <file>images/timenode.svg</file>
         <file>images/arrow.png</file>
         <file>images/trigger.png</file>
         <file>images/trigger@2x.png</file>
@@ -21,5 +8,19 @@
         <file>images/trigger-selected.png</file>
         <file>images/trigger-hovered.png</file>
         <file>images/trigger-hovered@2x.png</file>
+        <file>images/event.png</file>
+        <file>images/event@2x.png</file>
+        <file>images/interval.png</file>
+        <file>images/interval@2x.png</file>
+        <file>images/state.png</file>
+        <file>images/state-empty.png</file>
+        <file>images/state-empty@2x.png</file>
+        <file>images/state@2x.png</file>
+        <file>images/process.png</file>
+        <file>images/cond.png</file>
+        <file>images/process@2x.png</file>
+        <file>images/cond@2x.png</file>
+        <file>images/timenode@2x.png</file>
+        <file>images/timenode.png</file>
     </qresource>
 </RCC>

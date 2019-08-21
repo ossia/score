@@ -38,8 +38,9 @@ void disableAppRestore()
 #endif
 
 #if defined(QT_STATIC)
-Q_IMPORT_PLUGIN(QSvgPlugin)
+#include <QtPlugin>
 Q_IMPORT_PLUGIN(QJpegPlugin)
+Q_IMPORT_PLUGIN(QSvgPlugin)
 Q_IMPORT_PLUGIN(QSvgIconPlugin)
 
 #if !defined(__EMSCRIPTEN__)

@@ -523,19 +523,19 @@ QVariant ObjectItemModel::data(const QModelIndex& index, int role) const
     {
       if (qobject_cast<Scenario::IntervalModel*>(sel))
       {
-        static const QIcon icon(":/images/interval.svg");
+        static const QIcon icon(":/images/interval.png");
         return icon;
       }
       else if (auto ev = qobject_cast<Scenario::EventModel*>(sel))
       {
         if (ev->condition() == State::Expression{})
         {
-          static const QIcon icon(":/images/event.svg");
+          static const QIcon icon(":/images/event.png");
           return icon;
         }
         else
         {
-          static const QIcon icon(":/images/cond.svg");
+          static const QIcon icon(":/images/cond.png");
           return icon;
         }
       }
@@ -543,12 +543,12 @@ QVariant ObjectItemModel::data(const QModelIndex& index, int role) const
       {
         if (!tn->active())
         {
-          static const QIcon icon(":/images/timenode.svg");
+          static const QIcon icon(":/images/timenode.png");
           return icon;
         }
         else
         {
-          static const QIcon icon(":/images/trigger.svg");
+          static const QIcon icon(":/images/trigger.png");
           return icon;
         }
       }
@@ -556,18 +556,18 @@ QVariant ObjectItemModel::data(const QModelIndex& index, int role) const
       {
         if (st->messages().rootNode().hasChildren())
         {
-          static const QIcon icon(":/images/state.svg");
+          static const QIcon icon(":/images/state.png");
           return icon;
         }
         else
         {
-          static const QIcon icon(":/images/state-empty.svg");
+          static const QIcon icon(":/images/state-empty.png");
           return icon;
         }
       }
       else if (qobject_cast<Process::ProcessModel*>(sel))
       {
-        static const QIcon icon(":/images/process.svg");
+        static const QIcon icon(":/images/process.png");
         return icon;
       }
     }
