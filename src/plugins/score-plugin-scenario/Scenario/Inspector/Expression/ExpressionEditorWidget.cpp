@@ -27,6 +27,27 @@ ExpressionEditorWidget::ExpressionEditorWidget(
 
 State::Expression ExpressionEditorWidget::expression()
 {
+
+  switch(m_relations.size())
+  {
+    case 0:
+      return {};
+    case 1:
+      return m_relations[0]->relation();
+    case 2:
+    {
+      SCORE_ASSERT(m_relations[1]->binOperator());
+      State::Expression root;
+      State::Expression& op = root.emplace_back(*m_relations[1]->binOperator(), nullptr);
+      op.emplace_back(m_relations[0]->relation(), &op);
+      op.emplace_back(m_relations[1]->relation(), &op);
+      return root;
+    }
+    default:
+      SCORE_ABORT;
+      return {};
+  }
+  /*
   State::Expression exp{};
 
   State::Expression* lastRel{};
@@ -96,7 +117,7 @@ State::Expression ExpressionEditorWidget::expression()
     }
   }
   //    qDebug() << "-----------" << exp.toString() << "-----------";
-  return exp;
+  return exp;*/
 }
 
 void ExpressionEditorWidget::setExpression(State::Expression e)
@@ -123,8 +144,13 @@ void ExpressionEditorWidget::on_editFinished()
 {
   auto ex = currentExpr();
   auto e = State::parseExpression(ex);
-  if (m_expression == ex || (!e && !ex.isEmpty()))
+  if (m_expression == ex)
     return;
+  if (!e && !ex.isEmpty())
+  {
+    qDebug() << "invalid expression ! " << ex;
+    return;
+  }
 
   m_expression = ex;
   editingFinished();
@@ -255,13 +281,13 @@ void ExpressionEditorWidget::removeTerm(int index)
   if (m_relations.size() > 1)
   {
     const int n = m_relations.size();
-    for (int i = index; i < n; i++)
+    for (int i = index + 1; i < n; i++)
     {
-      m_relations.at(i)->id--;
+      m_relations.at(i)->decreaseId();
     }
     delete m_relations.at(index);
     m_relations.erase(m_relations.begin() + index);
-    m_relations[0]->enableRemoveButton(true);
+    m_relations[0]->enableRemoveButton(m_relations.size() > 1);
     // TODO the model should be updated here.
   }
   else if (m_relations.size() == 1)

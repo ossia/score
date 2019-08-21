@@ -298,16 +298,6 @@ QComboBox
     min-width: 10px;
 }
 
-/*QComboBox
-{
-    color:white;
-    background-color: qlineargradient(x1:0, y1:0, x2:1,y2:1, stop: 1 rgba(228, 41, 81, 100), stop: 0 rgba(234, 107, 101, 100));
-    border-color: rgba(255,255,255,200);
-    border-width: 1px;
-    border-style: solid;
-    padding: 1px 0px 1px 3px;
-}*/
-
 QPushButton:checked{
     background-color: #4A4949;
     border-color: #6A6969;

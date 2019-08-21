@@ -13,11 +13,13 @@
 #include <score/widgets/SetIcons.hpp>
 #include <score/widgets/SignalUtils.hpp>
 #include <score/widgets/TextLabel.hpp>
+#include <score/model/Skin.hpp>
 
 #include <ossia/detail/hash_map.hpp>
 
 #include <QComboBox>
 #include <QLineEdit>
+#include <QPainter>
 #include <QPushButton>
 #include <QToolButton>
 
@@ -41,6 +43,36 @@ static const auto& ExpressionEditorComparators()
   return map;
 }
 
+class SimpleComboBox : public QComboBox
+{
+public:
+  SimpleComboBox(QWidget* parent)
+    : QComboBox{parent}
+  {
+    setMinimumSize(20, 16);
+    setMaximumSize(40, 16);
+    setFont(score::Skin::instance().MonoFontSmall);
+    setStyleSheet(
+            "QComboBox { padding: 0px 0px 0px 0px; border-style: none; }\n"
+            "QComboBox::down-arrow { image: none; }"
+            );
+    setFrame(false);
+  }
+  void paintEvent (QPaintEvent *ev)
+  {
+      QPainter p;
+      p.begin (this);
+      QStyleOptionComboBox opt;
+      opt.initFrom (this);
+      //style()->drawPrimitive (QStyle::PE_PanelButtonBevel, &opt, &p, this);
+      //style()->drawPrimitive (QStyle::PE_FrameLineEdit, &opt, &p, this);
+      //style()->drawPrimitive (QStyle::PE_, &opt, &p, this);
+      style()->drawPrimitive (QStyle::PE_PanelButtonCommand, &opt, &p, this);
+      style()->drawItemText (&p, rect(), Qt::AlignCenter, palette(), isEnabled(), currentText());
+      p.end();
+  }
+};
+
 SimpleExpressionEditorWidget::SimpleExpressionEditorWidget(
     const score::DocumentContext& doc,
     int index,
@@ -50,13 +82,12 @@ SimpleExpressionEditorWidget::SimpleExpressionEditorWidget(
 {
   auto mainLay = new score::MarginLess<QHBoxLayout>{this};
 
-  m_binOperator = new QComboBox{this};
+  m_binOperator = new SimpleComboBox{this};
 
   m_address = new Device::AddressAccessorEditWidget{doc, this};
   m_ok = new TextLabel{QStringLiteral("/!\\ "), this};
 
-  m_comparator = new QComboBox{this};
-
+  m_comparator = new SimpleComboBox{this};
   m_value = new QLineEdit{this};
 
   auto btnWidg = new QWidget{this};
@@ -161,6 +192,21 @@ SimpleExpressionEditorWidget::SimpleExpressionEditorWidget(
   QSizePolicy sp_retain = m_binOperator->sizePolicy();
   sp_retain.setRetainSizeWhenHidden(true);
   m_binOperator->setSizePolicy(sp_retain);
+
+  if (id == 0)
+  {
+    m_binOperator->setVisible(false);
+  }
+  else
+  {
+    m_binOperator->setCurrentIndex(1);
+  }
+}
+
+void SimpleExpressionEditorWidget::decreaseId()
+{
+  id--;
+  SCORE_ASSERT(id >= 0);
 
   if (id == 0)
     m_binOperator->setVisible(false);
