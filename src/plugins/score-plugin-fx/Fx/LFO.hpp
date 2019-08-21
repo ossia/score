@@ -202,73 +202,6 @@ struct Node
     s.phase += (tk.date - tk.prev_date);
   }
 
-  template<typename C, typename T>
-  static auto makeControl(
-      C& ctrl,
-      T& inlet,
-      QGraphicsItem& parent,
-      QObject& context,
-      const score::DocumentContext& doc,
-      const Process::PortFactoryList& portFactory)
-  {
-    auto item = new score::EmptyItem{&parent};
-
-    // Port
-    Process::PortFactory* fact = portFactory.get(inlet.concreteKey());
-    auto port = fact->makeItem(inlet, doc, item, &context);
-    port->setPos(0, 2.);
-
-    // Text
-    const auto& brush = Process::portBrush(inlet.type).main;
-    auto lab = new score::SimpleTextItem{brush, item};
-    lab->setText(ctrl.name);
-    lab->setPos(12, 0);
-
-    // Control
-    auto widg = ctrl.make_item(ctrl, inlet, doc, nullptr, &context);
-    widg->setParentItem(item);
-    widg->setPos(0, 12.);
-
-    // Create a single control
-    struct ControlItem {
-      QGraphicsItem& root;
-      Dataflow::PortItem& port;
-      score::SimpleTextItem& text;
-      decltype(*widg)& control;
-    };
-    return ControlItem{*item, *port, *lab, *widg};
-  }
-
-  template<typename C, typename T>
-  static auto makeControlNoText(
-      C& ctrl,
-      T& inlet,
-      QGraphicsItem& parent,
-      QObject& context,
-      const score::DocumentContext& doc,
-      const Process::PortFactoryList& portFactory)
-  {
-    auto item = new score::EmptyItem{&parent};
-
-    // Control
-    auto widg = ctrl.make_item(ctrl, inlet, doc, nullptr, &context);
-    widg->setParentItem(item);
-
-    // Port
-    Process::PortFactory* fact = portFactory.get(inlet.concreteKey());
-    auto port = fact->makeItem(inlet, doc, item, &context);
-
-    // Create a single control
-    struct ControlItem {
-      score::EmptyItem& root;
-      Dataflow::PortItem& port;
-      decltype(*widg)& control;
-    };
-    return ControlItem{*item, *port, *widg};
-  }
-
-
-
   static void item(
       Process::LogFloatSlider& freq,
       Process::FloatSlider& ampl,
@@ -283,18 +216,19 @@ struct Node
       QObject& context,
       const score::DocumentContext& doc)
   {
+    using namespace Process;
     const Process::PortFactoryList& portFactory = doc.app.interfaces<Process::PortFactoryList>();
     const auto h = 60;
-    const auto w = 70;
+    const auto w = 50;
 
     const auto c0 = 10;
 
     auto c0_bg = new score::BackgroundItem{&parent};
     c0_bg->setRect({0., 0., 170., 130.});
     auto c1_bg = new score::BackgroundItem{&parent};
-    c1_bg->setRect({170., 0., 70., 130.});
+    c1_bg->setRect({170., 0., 100., 130.});
     auto c2_bg = new score::BackgroundItem{&parent};
-    c2_bg->setRect({240., 0., 130., 130.});
+    c2_bg->setRect({270., 0., 60., 130.});
 
     auto freq_item = makeControl(std::get<0>(Metadata::controls), freq, parent, context, doc, portFactory);
     freq_item.root.setPos(c0, 0);
@@ -320,7 +254,7 @@ struct Node
     auto offset_fine_item = makeControl(std::get<4>(Metadata::controls), offset_fine, parent, context, doc, portFactory);
     offset_fine_item.root.setPos(c1 + w, h);
 
-    const auto c2 = 250;
+    const auto c2 = 230;
     auto jitter_item = makeControl(std::get<5>(Metadata::controls), jitter, parent, context, doc, portFactory);
     jitter_item.root.setPos(c2 + w, 0);
 

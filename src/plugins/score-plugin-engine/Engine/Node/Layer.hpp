@@ -25,7 +25,6 @@ template <typename T>
 struct HasCustomUI<T, std::void_t<decltype(&T::item)>> : std::true_type
 {
 };
-
 template<typename Info>
 struct CustomUISetup
 {

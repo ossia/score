@@ -23,6 +23,40 @@ bool updateExpr(State& self, const std::string& expr)
   return self.ok;
 }
 
+static void mathItem(
+    const std::tuple<Control::LineEdit, Control::FloatSlider,Control::FloatSlider,Control::FloatSlider>& controls,
+    Process::LineEdit& edit,
+    Process::FloatSlider& a,
+    Process::FloatSlider& b,
+    Process::FloatSlider& c,
+    const Process::ProcessModel& process,
+    QGraphicsItem& parent,
+    QObject& context,
+    const score::DocumentContext& doc)
+{
+  using namespace Process;
+  const Process::PortFactoryList& portFactory = doc.app.interfaces<Process::PortFactoryList>();
+
+  const auto c0 = 10;
+
+  auto c0_bg = new score::BackgroundItem{&parent};
+  c0_bg->setRect({0., 0., 220., 75.});
+
+  auto edit_item = makeControl(std::get<0>(controls), edit, parent, context, doc, portFactory);
+  edit_item.root.setPos(c0, 5);
+  ((QGraphicsProxyWidget&)edit_item.control).setMinimumWidth(200);
+  ((QGraphicsProxyWidget&)edit_item.control).setMaximumWidth(200);
+  ((QGraphicsProxyWidget&)edit_item.control).widget()->setMinimumWidth(200);
+  ((QGraphicsProxyWidget&)edit_item.control).widget()->setMaximumWidth(200);
+
+  auto a_item = makeControl(std::get<1>(controls), a, parent, context, doc, portFactory);
+  a_item.root.setPos(c0, 40);
+  auto b_item = makeControl(std::get<2>(controls), b, parent, context, doc, portFactory);
+  b_item.root.setPos(c0 + 70, 40);
+  auto c_item = makeControl(std::get<3>(controls), c, parent, context, doc, portFactory);
+  c_item.root.setPos(c0 + 140, 40);
+}
+
 namespace MathGenerator
 {
 struct Node
@@ -37,6 +71,7 @@ struct Node
     static const constexpr auto kind = Process::ProcessCategory::Generator;
     static const constexpr auto description
         = "Generate a signal from a math expression.\n"
+          "Available variables: a,b,c, t (samples), dt (delta), pos (position in parent)\n"
           "See the documentation at http://www.partow.net/programming/exprtk";
     static const constexpr auto uuid
         = make_uuid("d757bd0d-c0a1-4aec-bf72-945b722ab85b");
@@ -98,6 +133,12 @@ struct Node
     auto res = self.expr.value();
     output.write_value(res, tk.tick_start());
   }
+
+  template<typename... Args>
+  static void item(Args&&... args)
+  {
+    Nodes::mathItem(Metadata::controls, std::forward<Args>(args)...);
+  }
 };
 }
 
@@ -115,6 +156,7 @@ struct Node
     static const constexpr auto kind = Process::ProcessCategory::Generator;
     static const constexpr auto description
         = "Generate an audio signal from a math expression.\n"
+          "Available variables: a,b,c, t (samples), fs (sampling frequency)\n"
           "See the documentation at http://www.partow.net/programming/exprtk";
     static const constexpr auto uuid
         = make_uuid("eae294b3-afeb-4fba-bbe4-337998d3748a");
@@ -185,6 +227,12 @@ struct Node
         cur[tk.offset + i] = self.expr.value();
       }
     }
+  }
+
+  template<typename... Args>
+  static void item(Args&&... args)
+  {
+    Nodes::mathItem(Metadata::controls, std::forward<Args>(args)...);
   }
 };
 }

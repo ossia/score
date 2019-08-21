@@ -15,6 +15,7 @@ struct Node
     static const constexpr auto kind = Process::ProcessCategory::Mapping;
     static const constexpr auto description
         = "Applies a math expression to an input.\n"
+          "Available variables: a,b,c, t (samples), dt (delta), pos (position in parent), x (value)\n"
           "See the documentation at http://www.partow.net/programming/exprtk";
     static const constexpr auto tags = std::array<const char*, 0>{};
     static const constexpr auto uuid
@@ -85,6 +86,12 @@ struct Node
       output.write_value(res, v.timestamp);
     }
   }
+
+  template<typename... Args>
+  static void item(Args&&... args)
+  {
+    Nodes::mathItem(Metadata::controls, std::forward<Args>(args)...);
+  }
 };
 }
 
@@ -102,6 +109,8 @@ struct Node
     static const constexpr auto kind = Process::ProcessCategory::AudioEffect;
     static const constexpr auto description
         = "Applies a math expression to an audio input.\n"
+          "Available variables: a,b,c, t (samples), fs (sampling frequency), \n"
+          "x (value), px (previous value)\n"
           "See the documentation at http://www.partow.net/programming/exprtk";
     static const constexpr auto uuid
         = make_uuid("13e1f4b0-1c2c-40e6-93ad-dfc91aac5335");
@@ -183,6 +192,23 @@ struct Node
       }
     }
   }
+
+  template<typename... Args>
+  static void item(Args&&... args)
+  {
+    Nodes::mathItem(Metadata::controls, std::forward<Args>(args)...);
+  }
 };
 }
+}
+
+namespace Control{
+template <>
+struct HasCustomUI<Nodes::MathAudioFilter::Node> : std::true_type { };
+template <>
+struct HasCustomUI<Nodes::MathAudioGenerator::Node> : std::true_type { };
+template <>
+struct HasCustomUI<Nodes::MathMapping::Node> : std::true_type { };
+template <>
+struct HasCustomUI<Nodes::MathGenerator::Node> : std::true_type { };
 }
