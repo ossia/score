@@ -367,7 +367,7 @@ void TemporalIntervalView::paint(
     const QStyleOptionGraphicsItem* so,
     QWidget*)
 {
-  auto view = ::getView(*p);
+  auto view = ::getView(*this);
   if(!view)
     return;
   auto& painter = *p;

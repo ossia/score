@@ -48,6 +48,7 @@ QGraphicsView* getView(const QGraphicsItem& self)
   return v.first();
 }
 
+// TODO apparently crashes on macOS... investigate
 QGraphicsView* getView(const QPainter& painter)
 {
   auto widg = static_cast<QWidget*>(painter.device());
