@@ -92,6 +92,10 @@ AddressAccessorEditWidget::AddressAccessorEditWidget(
     {
       m_address.address = *res;
     }
+    else
+    {
+      m_address.address = State::AddressAccessor{};
+    }
 
     addressChanged(m_address);
   });
