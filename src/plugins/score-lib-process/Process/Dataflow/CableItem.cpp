@@ -26,10 +26,6 @@ CableItem::CableItem(
     : QGraphicsItem{parent}
     , m_cable{c}
     , m_context{ctx}
-    , a1{int8_t(abs(qrand()) % 40 - 20)}
-    , a2{int8_t(abs(qrand()) % 40 - 20)}
-    , a3{int8_t(abs(qrand()) % 40 - 20)}
-    , a4{int8_t(abs(qrand()) % 40 - 20)}
 {
   auto& plug = ctx.plugin<Process::DocumentPlugin>();
   this->setCursor(Qt::CrossCursor);
@@ -157,15 +153,21 @@ void CableItem::resize()
     p1 = mapFromScene(p1);
     p2 = mapFromScene(p2);
 
-    auto first = p1.x() < p2.x() ? p1 : p2;
-    auto last = p1.x() >= p2.x() ? p1 : p2;
+    bool x_dir = p1.x() > p2.x();
+    auto first = x_dir ? p1 : p2;
+    auto last = !x_dir ? p1 : p2;
+
+    int half_length = std::floor(0.5 * (last.x() - first.x()));
+
+    auto y_direction = last.y() > first.y() ? 1 : -1;
+    auto offset_y = y_direction * half_length / 10.f;
 
     m_path.moveTo(first.x(), first.y());
     m_path.cubicTo(
-        first.x() + a1,
-        last.y() + a2,
-        first.x() + a3,
-        last.y() + a4,
+        first.x() + half_length,
+        first.y() + offset_y,
+        last.x() - half_length,
+        last.y() - offset_y,
         last.x(),
         last.y());
   }

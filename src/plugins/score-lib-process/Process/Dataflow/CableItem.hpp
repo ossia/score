@@ -64,6 +64,5 @@ private:
   QPointer<PortItem> m_p1, m_p2;
   QPainterPath m_path;
   Process::PortType m_type{};
-  int8_t a1{}, a2{}, a3{}, a4{};
 };
 }
