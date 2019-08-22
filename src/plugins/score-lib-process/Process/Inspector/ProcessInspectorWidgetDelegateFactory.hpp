@@ -2,7 +2,7 @@
 #include <Inspector/InspectorWidgetFactoryInterface.hpp>
 
 #include <score/plugins/Interface.hpp>
-
+#include <score/tools/SafeCast.hpp>
 #include <score_lib_process_export.h>
 namespace Process
 {
