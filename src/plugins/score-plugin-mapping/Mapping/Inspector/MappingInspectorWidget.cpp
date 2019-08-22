@@ -164,9 +164,6 @@ void InspectorWidget::on_sourceAddressChange(
   if (newAddr.address == process().sourceAddress())
     return;
 
-  if (newAddr.address.address.path.isEmpty())
-    return;
-
   auto cmd = new ChangeSourceAddress{process(), newAddr};
 
   m_dispatcher.submit(cmd);
@@ -199,9 +196,6 @@ void InspectorWidget::on_targetAddressChange(
 {
   // Various checks
   if (newAddr.address == process().targetAddress())
-    return;
-
-  if (newAddr.address.address.path.isEmpty())
     return;
 
   auto cmd = new ChangeTargetAddress{process(), newAddr};
