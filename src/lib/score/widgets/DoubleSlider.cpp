@@ -2,6 +2,7 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "DoubleSlider.hpp"
 #include <score/model/Skin.hpp>
+#include <score/tools/Clamp.hpp>
 #include <QPainter>
 
 #include <wobjectimpl.h>

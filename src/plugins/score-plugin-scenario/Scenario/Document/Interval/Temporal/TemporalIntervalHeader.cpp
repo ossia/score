@@ -167,52 +167,62 @@ void TemporalIntervalHeader::updateButtons()
   updateShape();
 }
 
-void TemporalIntervalHeader::enableOverlay(bool b)
+void TemporalIntervalHeader::updateOverlay()
 {
+  auto& itv = m_presenter.model();
+
+  bool overlayVisible = m_selected || m_hovered;
+
+  bool hadRackButton = m_rackButton;
+  bool hadAdd = m_add;
+  bool hadMute = m_mute;
+  bool hadSpeed = m_speed;
+
+  if(hadSpeed)
+    overlayVisible |= bool(m_speed->spinbox);
+
+  bool needsRackButton = !itv.processes.empty();
+  bool needsMute = overlayVisible;
+  bool needsAdd = overlayVisible;
+  bool needsSpeed = overlayVisible && m_executing;
+
   prepareGeometryChange();
 
   m_overlay = false;
 
-  delete m_rackButton;
-  m_rackButton = nullptr;
 
-  delete m_add;
-  m_add = nullptr;
-
-  delete m_mute;
-  m_mute = nullptr;
-
-  delete m_speed;
-  m_speed = nullptr;
-
-  auto& itv = m_presenter.model();
-
-  // Show-hide rack
-  if(!itv.processes.empty())
+  /// Show-hide rack ///
+  if(hadRackButton && !needsRackButton)
   {
-      static const auto pix_unroll = score::get_pixmap(":/icons/rack_button_off.png");
-      static const auto pix_unroll_selected = score::get_pixmap(":/icons/rack_button_off_selected.png");
+    delete m_rackButton;
+    m_rackButton = nullptr;
+  }
+  else if(!hadRackButton && needsRackButton)
+  {
+    static const auto pix_unroll = score::get_pixmap(":/icons/rack_button_off.png");
+    static const auto pix_unroll_selected = score::get_pixmap(":/icons/rack_button_off_selected.png");
 
-      static const auto pix_rolled = score::get_pixmap(":/icons/rack_button_on.png");
-      static const auto pix_rolled_selected = score::get_pixmap(":/icons/rack_button_on_selected.png");
+    static const auto pix_rolled = score::get_pixmap(":/icons/rack_button_on.png");
+    static const auto pix_rolled_selected = score::get_pixmap(":/icons/rack_button_on_selected.png");
 
-      m_rackButton = new score::QGraphicsSelectablePixmapToggle{pix_rolled, pix_rolled_selected, pix_unroll, pix_unroll_selected, this};
+    m_rackButton = new score::QGraphicsSelectablePixmapToggle{pix_rolled, pix_rolled_selected, pix_unroll, pix_unroll_selected, this};
 
-      connect(m_rackButton, &score::QGraphicsSelectablePixmapToggle::toggled, &m_presenter, [=] {
-          ((TemporalIntervalPresenter&)m_presenter).changeRackState();
-      });
+    connect(m_rackButton, &score::QGraphicsSelectablePixmapToggle::toggled, &m_presenter, [=] {
+        ((TemporalIntervalPresenter&)m_presenter).changeRackState();
+    });
 
-      m_rackButton->setSelected(b);
-      updateButtons();
-      update();
-      m_overlay = true;
+    m_rackButton->setSelected(overlayVisible);
+    m_overlay = true;
   }
 
-  if (b)
+  /// Mute ///
+  if(hadMute && !needsMute)
   {
-    auto& durations = const_cast<IntervalDurations&>(itv.duration);
-
-    // Mute
+    delete m_mute;
+    m_mute = nullptr;
+  }
+  else if(!hadMute && needsMute)
+  {
     static const auto pix_unmuted
         = score::get_pixmap(":/icons/process_on.png");
     static const auto pix_muted = score::get_pixmap(":/icons/process_off.png");
@@ -229,50 +239,69 @@ void TemporalIntervalHeader::enableOverlay(bool b)
         &IntervalModel::mutedChanged,
         m_mute,
         [=](bool b) { m_mute->setState(b); });
+  }
 
+  /// Add process ///
+  if(hadAdd && !needsAdd)
+  {
+    delete m_add;
+    m_add = nullptr;
+  }
+  else if(!hadAdd && needsAdd)
+  {
     // Add process
     static const auto pix_add_on = score::get_pixmap(":/icons/process_add_off.png");
     m_add = new score::QGraphicsPixmapButton{pix_add_on, pix_add_on, this};
     connect(m_add, &score::QGraphicsPixmapButton::clicked,
             this, [this] {
       m_view->requestOverlayMenu({});
-    });;
-
-    // Speed slider
-    if(m_executing)
-    {
-      m_speed = new score::QGraphicsSlider{this};
-      m_speed->min = -1.;
-      m_speed->max = 5.;
-      m_speed->setRect({0., 0., 60., headerHeight() * 0.8});
-      m_speed->setValue((durations.speed() - m_speed->min) / (m_speed->max - m_speed->min));
-      connect(m_speed, &score::QGraphicsSlider::sliderMoved,
-              this, [this, min=m_speed->min, max=m_speed->max, &durations] {
-        durations.setSpeed(m_speed->value() * (max - min) + min);
-      });
-      connect(m_speed, &score::QGraphicsSlider::sliderReleased,
-              this, [this, min=m_speed->min, max=m_speed->max, &durations] {
-        durations.setSpeed(m_speed->value() * (max - min) + min);
-      });
-    }
-
-    updateButtons();
-    update();
-    m_overlay = true;
+    });
   }
+
+  /// Speed slider ///
+  if(hadSpeed && !needsSpeed)
+  {
+    delete m_speed;
+    m_speed = nullptr;
+  }
+  else if(!hadSpeed && needsSpeed)
+  {
+    auto& durations = const_cast<IntervalDurations&>(itv.duration);
+    m_speed = new score::QGraphicsSlider{this};
+    m_speed->min = -1.;
+    m_speed->max = 5.;
+    m_speed->setRect({0., 0., 60., headerHeight() * 0.8});
+    m_speed->setValue((durations.speed() - m_speed->min) / (m_speed->max - m_speed->min));
+    connect(m_speed, &score::QGraphicsSlider::sliderMoved,
+            this, [this, min=m_speed->min, max=m_speed->max, &durations] {
+      durations.setSpeed(m_speed->value() * (max - min) + min);
+    });
+    connect(m_speed, &score::QGraphicsSlider::sliderReleased,
+            this, [this, min=m_speed->min, max=m_speed->max, &durations] {
+      durations.setSpeed(m_speed->value() * (max - min) + min);
+    });
+  }
+
+  if(m_speed || m_add || m_mute || m_rackButton)
+  {
+    updateButtons();
+  }
+
+  m_overlay |= overlayVisible;
+  update();
 }
 
 void TemporalIntervalHeader::setSelected(bool b)
 {
   m_selected = b;
-  enableOverlay(m_selected || m_hovered);
+  updateOverlay();
   on_textChanged();
 }
 
 void TemporalIntervalHeader::setExecuting(bool b)
 {
   m_executing = b;
-  enableOverlay(m_selected || m_hovered);
+  updateOverlay();
 }
 
 void TemporalIntervalHeader::setLabel(const QString& label)
@@ -318,7 +347,7 @@ void TemporalIntervalHeader::setState(IntervalHeader::State s)
 
   m_state = s;
   on_textChanged();
-  enableOverlay(m_selected || m_hovered);
+  updateOverlay();
 }
 
 void TemporalIntervalHeader::on_textChanged()
@@ -380,7 +409,7 @@ void TemporalIntervalHeader::hoverEnterEvent(QGraphicsSceneHoverEvent* h)
 {
   QGraphicsItem::hoverEnterEvent(h);
   m_hovered = true;
-  enableOverlay(m_selected || m_hovered);
+  updateOverlay();
   intervalHoverEnter();
   on_textChanged();
 }
@@ -389,7 +418,7 @@ void TemporalIntervalHeader::hoverLeaveEvent(QGraphicsSceneHoverEvent* h)
 {
   QGraphicsItem::hoverLeaveEvent(h);
   m_hovered = false;
-  enableOverlay(m_selected || m_hovered);
+  updateOverlay();
   intervalHoverLeave();
   on_textChanged();
 }

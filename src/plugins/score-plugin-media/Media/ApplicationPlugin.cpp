@@ -315,6 +315,9 @@ void ApplicationPlugin::rescanVSTs(const QStringList& paths)
   int i = 0;
   for (const QString& path : newPlugins)
   {
+    if(path.contains("linvst.so"))
+      continue;
+
     auto proc = std::make_unique<QProcess>();
     proc->setProgram(
             #if defined(__APPLE__)

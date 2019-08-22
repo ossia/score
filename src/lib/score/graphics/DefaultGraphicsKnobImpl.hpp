@@ -169,48 +169,54 @@ struct DefaultGraphicsKnobImpl
     }
     else if (event->button() == Qt::RightButton)
     {
-      QTimer::singleShot(0, [&, pos = event->scenePos()] {
-        auto w = new DoubleSpinboxWithEnter;
-        w->setRange(self.map(self.min), self.map(self.max));
-
-        w->setDecimals(6);
-        w->setValue(self.map(self.m_value * (self.max - self.min) + self.min));
-        auto obj = self.scene()->addWidget(
-            w, Qt::WindowStaysOnTopHint | Qt::FramelessWindowHint);
-        obj->setPos(pos);
-
-        QTimer::singleShot(0, w, [w] { w->setFocus(); });
-
-        QObject::connect(
-            w,
-            SignalUtils::QDoubleSpinBox_valueChanged_double(),
-            &self,
-            [=, &self](double v) {
-              self.m_value
-                  = (self.unmap(v) - self.min) / (self.max - self.min);
-              self.valueChanged(self.m_value);
-              self.sliderMoved();
-              self.update();
-            });
-
-        QObject::connect(
-            w,
-            &DoubleSpinboxWithEnter::editingFinished,
-            &self,
-            [obj, &self]() mutable {
-              if (obj != nullptr)
-              {
-                self.sliderReleased();
-                QTimer::singleShot(0, obj, [scene = self.scene(), obj] {
-                  scene->removeItem(obj);
-                  delete obj;
-                });
-              }
-              obj = nullptr;
-            });
-      });
+      contextMenuEvent(self, event->scenePos());
     }
     event->accept();
+  }
+
+  template <typename T>
+  static void contextMenuEvent(T& self, QPointF pos)
+  {
+    QTimer::singleShot(0, [&, pos] {
+      auto w = new DoubleSpinboxWithEnter;
+      w->setRange(self.map(self.min), self.map(self.max));
+
+      w->setDecimals(6);
+      w->setValue(self.map(self.m_value * (self.max - self.min) + self.min));
+      auto obj = self.scene()->addWidget(
+          w, Qt::WindowStaysOnTopHint | Qt::FramelessWindowHint);
+      obj->setPos(pos);
+
+      QTimer::singleShot(0, w, [w] { w->setFocus(); });
+
+      QObject::connect(
+          w,
+          SignalUtils::QDoubleSpinBox_valueChanged_double(),
+          &self,
+          [=, &self](double v) {
+            self.m_value
+                = (self.unmap(v) - self.min) / (self.max - self.min);
+            self.valueChanged(self.m_value);
+            self.sliderMoved();
+            self.update();
+          });
+
+      QObject::connect(
+          w,
+          &DoubleSpinboxWithEnter::editingFinished,
+          &self,
+          [obj, &self]() mutable {
+            if (obj != nullptr)
+            {
+              self.sliderReleased();
+              QTimer::singleShot(0, obj, [scene = self.scene(), obj] {
+                scene->removeItem(obj);
+                delete obj;
+              });
+            }
+            obj = nullptr;
+          });
+    });
   }
 
   template <typename T>
