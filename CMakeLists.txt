@@ -36,7 +36,7 @@ cmake_policy(SET CMP0079 NEW)
 
 set(SCORE_VERSION_MAJOR 2)
 set(SCORE_VERSION_MINOR 5)
-set(SCORE_VERSION_PATCH 0)
+set(SCORE_VERSION_PATCH 1)
 set(SCORE_VERSION_EXTRA "")
 set(SCORE_CODENAME "An illustrated guide to buying Greenland")
 

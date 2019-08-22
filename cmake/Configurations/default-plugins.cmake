@@ -27,7 +27,7 @@ score-plugin-scenario
 
  score-addon-nodal
  score-addon-controlsurface
-# score-addon-remotecontrol
+ score-addon-remotecontrol
 
 
  )
