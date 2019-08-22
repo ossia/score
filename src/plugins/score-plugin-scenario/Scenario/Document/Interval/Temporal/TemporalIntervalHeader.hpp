@@ -32,7 +32,7 @@ public:
       const QStyleOptionGraphicsItem* option,
       QWidget* widget) override;
   void updateButtons();
-  void enableOverlay(bool b);
+  void updateOverlay();
   void setSelected(bool b);
   void setExecuting(bool b);
   void setLabel(const QString& label);

@@ -1,7 +1,10 @@
 #pragma once
 #include <score/widgets/SignalUtils.hpp>
+#include <score/widgets/DoubleSpinBox.hpp>
 
 #include <QGraphicsPixmapItem>
+#include <QGraphicsProxyWidget>
+#include <QPointer>
 
 #include <cmath>
 #include <score_lib_base_export.h>
@@ -12,6 +15,7 @@ namespace score
 static const constexpr QRectF defaultSliderSize{0., 0., 60., 20.};
 static const constexpr QRectF defaultKnobSize{0., 0., 35., 35.};
 
+struct DoubleSpinboxWithEnter;
 struct DefaultGraphicsSliderImpl;
 
 class SCORE_LIB_BASE_EXPORT QGraphicsPixmapButton final
@@ -101,6 +105,7 @@ struct SCORE_LIB_BASE_EXPORT QGraphicsSliderBase
     : public QGraphicsItem
 {
   QGraphicsSliderBase(QGraphicsItem* parent);
+  ~QGraphicsSliderBase();
 
   bool isInHandle(QPointF p);
   double getHandleX() const;
@@ -111,6 +116,8 @@ struct SCORE_LIB_BASE_EXPORT QGraphicsSliderBase
   QRectF boundingRect() const override;
 
   QRectF m_rect{defaultSliderSize};
+  QPointer<DoubleSpinboxWithEnter> spinbox{};
+  QPointer<QGraphicsProxyWidget> spinboxProxy{};
 };
 
 class SCORE_LIB_BASE_EXPORT QGraphicsSlider final
@@ -150,6 +157,7 @@ private:
   void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
   void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override;
   void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override;
+  void contextMenuEvent(QGraphicsSceneContextMenuEvent* event) override;
   void mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event) override;
 
   void paint(
@@ -197,6 +205,7 @@ private:
   void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
   void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override;
   void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override;
+  void contextMenuEvent(QGraphicsSceneContextMenuEvent* event) override;
   void mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event) override;
 
   void paint(
@@ -244,6 +253,7 @@ private:
   void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
   void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override;
   void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override;
+  void contextMenuEvent(QGraphicsSceneContextMenuEvent* event) override;
   void mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event) override;
 
   void paint(
@@ -290,6 +300,7 @@ private:
   void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
   void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override;
   void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override;
+  void contextMenuEvent(QGraphicsSceneContextMenuEvent* event) override;
   void mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event) override;
   void paint(
       QPainter* painter,

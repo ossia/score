@@ -23,7 +23,6 @@ W_OBJECT_IMPL(score::QGraphicsLogKnob)
 W_OBJECT_IMPL(score::QGraphicsIntSlider)
 W_OBJECT_IMPL(score::QGraphicsCombo)
 W_OBJECT_IMPL(score::QGraphicsEnum)
-W_OBJECT_IMPL(score::DoubleSpinboxWithEnter)
 namespace score
 {
 
@@ -199,6 +198,11 @@ void QGraphicsSlider::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
   DefaultGraphicsSliderImpl::mouseReleaseEvent(*this, event);
 }
 
+void QGraphicsSlider::contextMenuEvent(QGraphicsSceneContextMenuEvent* event)
+{
+  event->accept();
+}
+
 void QGraphicsSlider::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event)
 {
   DefaultGraphicsSliderImpl::mouseDoubleClickEvent(*this, event);
@@ -261,6 +265,11 @@ void QGraphicsKnob::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
   DefaultGraphicsKnobImpl::mouseReleaseEvent(*this, event);
 }
 
+void QGraphicsKnob::contextMenuEvent(QGraphicsSceneContextMenuEvent* event)
+{
+  event->accept();
+}
+
 void QGraphicsKnob::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event)
 {
   DefaultGraphicsKnobImpl::mouseDoubleClickEvent(*this, event);
@@ -315,6 +324,11 @@ void QGraphicsLogSlider::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 void QGraphicsLogSlider::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 {
   DefaultGraphicsSliderImpl::mouseReleaseEvent(*this, event);
+}
+
+void QGraphicsLogSlider::contextMenuEvent(QGraphicsSceneContextMenuEvent* event)
+{
+  event->accept();
 }
 
 void QGraphicsLogSlider::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event)
@@ -373,6 +387,11 @@ void QGraphicsLogKnob::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 void QGraphicsLogKnob::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 {
   DefaultGraphicsKnobImpl::mouseReleaseEvent(*this, event);
+}
+
+void QGraphicsLogKnob::contextMenuEvent(QGraphicsSceneContextMenuEvent* event)
+{
+  event->accept();
 }
 
 void QGraphicsLogKnob::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* event)

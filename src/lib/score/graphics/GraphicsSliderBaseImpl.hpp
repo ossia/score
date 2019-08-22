@@ -12,6 +12,13 @@ QGraphicsSliderBase<T>::QGraphicsSliderBase(QGraphicsItem* parent)
 }
 
 template<typename T>
+QGraphicsSliderBase<T>::~QGraphicsSliderBase()
+{
+  if(spinbox || spinboxProxy)
+    delete spinboxProxy;
+}
+
+template<typename T>
 QRectF QGraphicsSliderBase<T>::boundingRect() const
 {
   return m_rect;

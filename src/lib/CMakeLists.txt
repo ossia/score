@@ -206,6 +206,7 @@ set(HEADERS
     "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/ControlWidgets.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/CommandSpinBox.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/DoubleSlider.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/DoubleSpinBox.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/JS/JSEdit.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/Layout.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/MarginLess.hpp"
@@ -330,6 +331,7 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/ClearLayout.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/ControlWidgets.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/DoubleSlider.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/DoubleSpinBox.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/SetIcons.cpp"
 # "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/QmlContainerPanel.cpp" # TODO MOVEME
 "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/Separator.cpp"
