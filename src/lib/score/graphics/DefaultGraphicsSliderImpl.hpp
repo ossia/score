@@ -9,6 +9,7 @@
 #include <QKeyEvent>
 #include <QPainter>
 #include <QTimer>
+#include <QPointer>
 
 #include <score_lib_base_export.h>
 #include <verdigris>
