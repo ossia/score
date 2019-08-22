@@ -26,6 +26,7 @@
 #include <Scenario/Process/ScenarioModel.hpp>
 #include <Scenario/Process/ScenarioPresenter.hpp>
 #include <Scenario/Process/ScenarioView.hpp>
+#include <Scenario/Process/ScenarioSelection.hpp>
 
 #include <score/actions/ActionManager.hpp>
 #include <score/actions/Menu.hpp>
@@ -365,7 +366,7 @@ void ObjectMenuActions::setupContextMenu(
                                          const LayerContext& ctx) {
     auto& scenario = *safe_cast<const ScenarioPresenter*>(&ctx.presenter);
     auto sel = ctx.context.selectionStack.currentSelection();
-    if (!sel.empty())
+    if (Scenario::selectionHasScenarioElements(sel))
     {
       auto objectMenu = menu.addMenu(tr("Object"));
 
@@ -398,7 +399,7 @@ void ObjectMenuActions::setupContextMenu(
   scenario_object.functions.push_back(
       [this](QMenu& menu, QPoint, QPointF, const LayerContext& ctx) {
         auto sel = ctx.context.selectionStack.currentSelection();
-        if (!sel.empty())
+        if (Scenario::selectionHasScenarioElements(sel))
         {
           auto objectMenu = menu.addMenu(tr("Object"));
 

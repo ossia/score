@@ -10,6 +10,7 @@
 #include <Scenario/Process/ScenarioModel.hpp>
 #include <Scenario/Process/ScenarioPresenter.hpp>
 #include <Scenario/Process/ScenarioView.hpp>
+#include <Scenario/Process/ScenarioSelection.hpp>
 
 #include <core/presenter/DocumentManager.hpp>
 #include <score/tools/ObjectMatches.hpp>
@@ -236,7 +237,7 @@ void PlayContextMenu::setupContextMenu(Process::LayerContextMenuManager& ctxm)
       [this](QMenu& menu, QPoint, QPointF, const Process::LayerContext& ctx) {
         using namespace score;
         auto sel = ctx.context.selectionStack.currentSelection();
-        if (sel.empty())
+        if (!Scenario::selectionHasScenarioElements(sel))
           return;
 
         if (ossia::any_of(sel, matches<Scenario::IntervalModel>{}))
@@ -251,7 +252,7 @@ void PlayContextMenu::setupContextMenu(Process::LayerContextMenuManager& ctxm)
       [this](QMenu& menu, QPoint, QPointF, const Process::LayerContext& ctx) {
         using namespace score;
         auto sel = ctx.context.selectionStack.currentSelection();
-        if (sel.empty())
+        if (!Scenario::selectionHasScenarioElements(sel))
           return;
 
         if (ossia::any_of(sel, matches<Scenario::StateModel>{}))
@@ -275,16 +276,17 @@ void PlayContextMenu::setupContextMenu(Process::LayerContextMenuManager& ctxm)
     menu.addAction(m_playFromHere);
 
     auto sel = ctx.context.selectionStack.currentSelection();
-    if (!sel.empty())
-      return;
 
-    menu.addAction(m_recordAutomations);
-    menu.addAction(m_recordMessages);
+    if (!Scenario::selectionHasScenarioElements(sel))
+    {
+      menu.addAction(m_recordAutomations);
+      menu.addAction(m_recordMessages);
 
-    auto data = QVariant::fromValue(
-        Scenario::ScenarioRecordInitData{&pres, scenept});
-    m_recordAutomations->setData(data);
-    m_recordMessages->setData(data);
+      auto data = QVariant::fromValue(
+          Scenario::ScenarioRecordInitData{&pres, scenept});
+      m_recordAutomations->setData(data);
+      m_recordMessages->setData(data);
+    }
   });
 }
 }

@@ -287,6 +287,7 @@ set(HDRS
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Process/ScenarioProcessMetadata.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Process/ScenarioViewInterface.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Process/ScenarioPresenter.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Process/ScenarioSelection.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Process/ScenarioView.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Process/MiniScenarioView.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Settings/ScenarioSettingsFactory.hpp"
