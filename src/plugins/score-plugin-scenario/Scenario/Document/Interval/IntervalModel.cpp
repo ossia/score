@@ -41,6 +41,10 @@ IntervalModel::IntervalModel(
     : Entity{id, Metadata<ObjectKey_k, IntervalModel>::get(), parent}
     , inlet{Process::make_inlet(Id<Process::Port>(0), this)}
     , outlet{Process::make_outlet(Id<Process::Port>(0), this)}
+    , m_executionState{}
+    , m_smallViewShown{}
+    , m_muted{}
+    , m_executing{}
 {
   initConnections();
   metadata().setInstanceName(*this);
@@ -142,6 +146,8 @@ double IntervalModel::heightPercentage() const
 // Should go in an "execution" object.
 void IntervalModel::startExecution()
 {
+  m_executing = true;
+  executingChanged(true);
   for (Process::ProcessModel& proc : processes)
   {
     proc.startExecution(); // prevents editing
@@ -149,7 +155,8 @@ void IntervalModel::startExecution()
 }
 void IntervalModel::stopExecution()
 {
-  // duration.setPlayPercentage(0);
+  m_executing = false;
+  executingChanged(false);
   duration.setSpeed(1.0);
   for (Process::ProcessModel& proc : processes)
   {

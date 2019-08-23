@@ -120,8 +120,7 @@ protected:
   score::SimpleTextItem m_counterItem;
 
   IntervalPresenter& m_presenter;
-  QPainterPath solidPath, dashedPath, playedSolidPath, playedDashedPath,
-      waitingDashedPath;
+  QPainterPath solidPath, playedSolidPath;
 
   double m_defaultWidth{};
   double m_maxWidth{};

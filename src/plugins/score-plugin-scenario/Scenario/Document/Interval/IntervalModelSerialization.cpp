@@ -152,10 +152,12 @@ DataStreamWriter::write(Scenario::IntervalModel& interval)
   m_stream >> interval.m_smallView >> interval.m_fullView;
 
   // Common data
+  bool sv;
   m_stream >> interval.duration >> interval.m_startState >> interval.m_endState
 
       >> interval.m_date >> interval.m_heightPercentage >> interval.m_zoom
-      >> interval.m_center >> interval.m_smallViewShown;
+      >> interval.m_center >> sv;
+  interval.m_smallViewShown = sv;
 
   checkDelimiter();
 }

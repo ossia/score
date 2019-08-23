@@ -135,13 +135,11 @@ void TemporalIntervalView::updatePaths()
 {
   solidPath = QPainterPath{};
   playedSolidPath = QPainterPath{};
-  playedDashedPath = QPainterPath{};
-  waitingDashedPath = QPainterPath{};
 
   const qreal min_w = minWidth();
   const qreal max_w = maxWidth();
   const qreal def_w = defaultWidth();
-  const qreal play_w = m_waiting ? playWidth() : 0.;
+  const qreal play_w = playWidth();
 
   // Paths
   if (play_w <= 0.)
@@ -167,8 +165,6 @@ void TemporalIntervalView::updatePaths()
       {
         solidPath.lineTo(min_w, 0.);
       }
-      // - dashedPath.moveTo(min_w, 0.);
-      // - dashedPath.lineTo(max_w, 0.);
     }
   }
   else
@@ -183,52 +179,18 @@ void TemporalIntervalView::updatePaths()
           solidPath.lineTo(min_w, 0.);
         }
       }
-
-      if (play_w > min_w)
-      {
-        playedDashedPath.moveTo(min_w, 0.);
-        playedDashedPath.lineTo(std::min(def_w, play_w), 0.);
-
-        waitingDashedPath.moveTo(min_w, 0.);
-        waitingDashedPath.lineTo(def_w, 0.);
-      }
-      else
-      {
-        // - dashedPath.moveTo(min_w, 0.);
-        // - dashedPath.lineTo(def_w, 0.);
-      }
     }
     else if (min_w == max_w) // TODO rigid()
     {
       playedSolidPath.lineTo(std::min(play_w, def_w), 0.);
-      // if(play_w < def_w)
-      {
-        solidPath.lineTo(def_w, 0.);
-      }
+      solidPath.lineTo(def_w, 0.);
     }
     else
     {
       if (min_w != 0.)
       {
         playedSolidPath.lineTo(std::min(play_w, min_w), 0.);
-        // if(play_w < min_w)
-        {
-          solidPath.lineTo(min_w, 0.);
-        }
-      }
-
-      if (play_w > min_w)
-      {
-        playedDashedPath.moveTo(min_w, 0.);
-        playedDashedPath.lineTo(play_w, 0.);
-
-        waitingDashedPath.moveTo(min_w, 0.);
-        waitingDashedPath.lineTo(max_w, 0.);
-      }
-      else
-      {
-        // - dashedPath.moveTo(min_w, 0.);
-        // - dashedPath.lineTo(max_w, 0.);
+        solidPath.lineTo(min_w, 0.);
       }
     }
   }
@@ -254,7 +216,7 @@ void TemporalIntervalView::drawDashedPath(
   const qreal min_w = minWidth();
   const qreal max_w = maxWidth();
   const qreal def_w = defaultWidth();
-  const qreal play_w = m_waiting ? playWidth() : 0.;
+  const qreal play_w = playWidth();
 
   auto& pixmaps = intervalPixmaps(skin);
   auto& dash_pixmap = !this->m_selected ? pixmaps.dashed : pixmaps.dashedSelected;
@@ -281,20 +243,22 @@ void TemporalIntervalView::drawPlayDashedPath(
   const qreal min_w = minWidth();
   const qreal max_w = maxWidth();
   const qreal def_w = defaultWidth();
-  const qreal play_w = m_waiting ? playWidth() : 0.;
-
-  auto& pixmaps = intervalPixmaps(skin);
+  const qreal play_w = playWidth();
 
 
   // Paths
   if (play_w <= min_w)
     return;
+  if(presenter().model().duration.isRigid())
+    return;
 
   double actual_min = std::max(min_w, visibleRect.left());
   double actual_max = std::min(infinite() ? def_w : max_w, visibleRect.right());
 
+  auto& pixmaps = intervalPixmaps(skin);
+
   // waiting
-  const int idx = skin.skin.PulseIndex;
+  const int idx = m_waiting ? skin.skin.PulseIndex : 0;
   draw_dashes(actual_min, actual_max, p, visibleRect, pixmaps.playDashed[idx]);
 
   // played
@@ -308,8 +272,6 @@ void TemporalIntervalView::drawPlayDashedPath(
 void TemporalIntervalView::updatePlayPaths()
 {
   playedSolidPath = QPainterPath{};
-  playedDashedPath = QPainterPath{};
-  waitingDashedPath = QPainterPath{};
 
   const qreal min_w = minWidth();
   const qreal max_w = maxWidth();
@@ -329,15 +291,6 @@ void TemporalIntervalView::updatePlayPaths()
       {
         playedSolidPath.lineTo(std::min(play_w, min_w), 0.);
       }
-
-//      if (play_w > min_w)
-//      {
-//        playedDashedPath.moveTo(min_w, 0.);
-//        playedDashedPath.lineTo(std::min(def_w, play_w), 0.);
-//
-//        waitingDashedPath.moveTo(min_w, 0.);
-//        waitingDashedPath.lineTo(def_w, 0.);
-//      }
     }
     else if (min_w == max_w) // TODO rigid()
     {
@@ -349,15 +302,6 @@ void TemporalIntervalView::updatePlayPaths()
       {
         playedSolidPath.lineTo(std::min(play_w, min_w), 0.);
       }
-
-//      if (play_w > min_w)
-//      {
-//        playedDashedPath.moveTo(min_w, 0.);
-//        playedDashedPath.lineTo(play_w, 0.);
-//
-//        waitingDashedPath.moveTo(min_w, 0.);
-//        waitingDashedPath.lineTo(max_w, 0.);
-//      }
     }
   }
 }

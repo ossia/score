@@ -40,15 +40,12 @@ void FullViewIntervalView::drawPaths(
       const Process::Style& skin)
 {
   solidPath = QPainterPath{};
-  dashedPath = QPainterPath{};
   playedSolidPath = QPainterPath{};
-  playedDashedPath = QPainterPath{};
-  waitingDashedPath = QPainterPath{};
 
   const qreal min_w = minWidth();
   const qreal max_w = maxWidth();
   const qreal def_w = defaultWidth();
-  const qreal play_w = m_waiting ? playWidth() : 0.;
+  const qreal play_w = playWidth();
   const auto& solidPen = skin.IntervalSolidPen(defaultColor);
   const auto& dashPen = skin.IntervalDashPen(defaultColor);
 
