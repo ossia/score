@@ -139,11 +139,11 @@ double IntervalView::setPlayWidth(double width)
 {
   const auto v = std::abs(m_playWidth - width);
   if (v > 1.
-      || (width > 0
-          && (playedSolidPath.isEmpty() || playedDashedPath.isEmpty())))
+      || (width > 0 && (playedSolidPath.isEmpty())))
   {
     m_playWidth = width;
     updatePlayPaths();
+    update();
     return v;
   }
   return 0.;

@@ -178,12 +178,11 @@ public:
 
   void mutedChanged(bool arg_1)
       E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, mutedChanged, arg_1)
+  void executingChanged(bool arg_1)
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, executingChanged, arg_1)
 
   PROPERTY(double, muted READ muted WRITE setMuted NOTIFY mutedChanged)
-  PROPERTY(
-      double,
-      heightPercentage READ heightPercentage WRITE setHeightPercentage NOTIFY
-          heightPercentageChanged)
+  PROPERTY(double, heightPercentage READ heightPercentage WRITE setHeightPercentage NOTIFY heightPercentageChanged)
 
 private:
   void on_addProcess(Process::ProcessModel&);
@@ -204,9 +203,10 @@ private:
 
   ZoomRatio m_zoom{-1};
   TimeVal m_center{};
-  IntervalExecutionState m_executionState{};
-  bool m_smallViewShown{};
-  bool m_muted{};
+  IntervalExecutionState m_executionState : 2;
+  bool m_smallViewShown : 1;
+  bool m_muted : 1;
+  bool m_executing : 1;
 };
 
 SCORE_PLUGIN_SCENARIO_EXPORT
