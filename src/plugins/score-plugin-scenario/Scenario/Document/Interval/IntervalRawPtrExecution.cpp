@@ -288,7 +288,7 @@ ProcessComponent* IntervalRawPtrComponentBase::make(
       m_processes.emplace(proc.id(), plug);
 
       const auto& outlets = proc.outlets();
-      ossia::int_vector propagated_outlets;
+      ossia::pod_vector<std::size_t> propagated_outlets;
       for (std::size_t i = 0; i < outlets.size(); i++)
       {
         if (outlets[i]->propagate())
@@ -327,7 +327,7 @@ ProcessComponent* IntervalRawPtrComponentBase::make(
                 {
                   ossia::graph_node& n = *oproc->node;
                   const auto& outs = n.outputs();
-                  for (int propagated : propagated_outlets)
+                  for (std::size_t propagated : propagated_outlets)
                   {
                     if(propagated >= outs.size())
                       continue;
@@ -355,7 +355,7 @@ ProcessComponent* IntervalRawPtrComponentBase::make(
           [cst_node_weak, g_weak, oproc_weak, &proc](
               const auto& old_node, const auto& new_node, auto& commands) {
             const auto& outlets = proc.outlets();
-            ossia::int_vector propagated_outlets;
+            ossia::pod_vector<std::size_t> propagated_outlets;
             for (std::size_t i = 0; i < outlets.size(); i++)
             {
               if (outlets[i]->propagate())
@@ -437,11 +437,10 @@ std::function<void()> IntervalRawPtrComponentBase::removing(
   auto it = m_processes.find(e.id());
   if (it != m_processes.end())
   {
-    auto c_ptr = c.shared_from_this();
     if (m_ossia_interval)
     {
-      in_exec([cstr = m_ossia_interval, c_ptr] {
-        cstr->remove_time_process(c_ptr->OSSIAProcessPtr().get());
+      in_exec([cstr = m_ossia_interval, proc = c.OSSIAProcessPtr()] {
+        cstr->remove_time_process(proc.get());
       });
     }
     c.cleanup();
