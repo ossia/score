@@ -90,9 +90,12 @@ EmptyRectItem::EmptyRectItem(QGraphicsItem* parent)
 }
 void EmptyRectItem::setRect(const QRectF& r)
 {
-  prepareGeometryChange();
-  m_rect = r;
-  sizeChanged({r.width(), r.height()});
+  if(r != m_rect)
+  {
+    prepareGeometryChange();
+    m_rect = r;
+    sizeChanged({r.width(), r.height()});
+  }
 }
 
 QRectF EmptyRectItem::boundingRect() const
@@ -105,6 +108,9 @@ void EmptyRectItem::paint(
     const QStyleOptionGraphicsItem* option,
     QWidget* widget)
 {
+  // painter->setPen(Qt::blue);
+  // painter->setBrush(Qt::transparent);
+  // painter->drawRect(boundingRect());
 }
 
 void EmptyRectItem::hoverEnterEvent(QGraphicsSceneHoverEvent* event)

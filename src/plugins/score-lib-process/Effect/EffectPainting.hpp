@@ -98,6 +98,9 @@ protected:
 
     // Footer
     painter->fillRect(QRectF{1., h - FooterHeight, w - 2., FooterHeight}, brush.brush);
+    //painter->setPen(Qt::green);
+    //painter->setBrush(Qt::transparent);
+    //painter->drawRect(rect);
   }
 
 

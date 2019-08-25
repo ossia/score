@@ -35,6 +35,7 @@ public:
   qreal width() const noexcept { return m_size.width(); }
 
 private:
+  void updateSize();
   void setSize(QSizeF sz);
 
   bool isInSelectionCorner(QPointF f, QRectF r) const;

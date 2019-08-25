@@ -21,7 +21,7 @@ class VSTEffectItem final : public score::EmptyRectItem
   QGraphicsItem* rootItem{};
   std::vector<std::pair<VSTControlInlet*, score::EmptyRectItem*>> controlItems;
 public:
-  VSTEffectItem(
+   VSTEffectItem(
       const VSTEffectModel& effect,
       const score::DocumentContext& doc,
       QGraphicsItem* root);
@@ -30,6 +30,9 @@ public:
       const VSTEffectModel& fx,
       VSTControlInlet& inlet,
       const score::DocumentContext& doc);
+
+private:
+  void updateRect();
 };
 
 class VSTGraphicsSlider final

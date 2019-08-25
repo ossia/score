@@ -82,15 +82,11 @@ NodeItem::NodeItem(const Node& model, const Process::LayerContext& ctx, QGraphic
   {
     if(auto fx = factory->makeItem(model.process(), ctx.context, this))
     {
-        m_fx = fx;
-        m_size = m_fx->boundingRect().size();
-        connect(fx, &score::ResizeableItem::sizeChanged,
-                this, [this] {
-           prepareGeometryChange();
-           const auto r = m_fx->boundingRect();
-           m_size = r.size();
-           update();
-        });
+      m_fx = fx;
+      m_size = m_fx->boundingRect().size();
+      connect(fx, &score::ResizeableItem::sizeChanged,
+              this, &NodeItem::updateSize);
+      updateSize();
     }
     else if(auto fx = factory->makeLayerView(model.process(), this))
     {
@@ -126,10 +122,46 @@ NodeItem::NodeItem(const Node& model, const Process::LayerContext& ctx, QGraphic
           setPos(p);
   });
 
-  ::bind(model, Node::p_size{}, this, [this] (QSizeF s) {
-    if(s != m_size)
-      setSize(s);
-  });
+  // TODO review the resizing heuristic...
+  if(m_presenter)
+  {
+    ::bind(model, Node::p_size{}, this, [this] (QSizeF s) {
+      if(s != m_size)
+        setSize(s);
+    });
+  }
+}
+
+void NodeItem::updateSize()
+{
+  if(!m_fx)
+    return;
+
+  auto sz = m_fx->boundingRect().size();
+  if(sz != m_size)
+  {
+    prepareGeometryChange();
+    m_size = sz;
+    if(m_ui)
+    {
+      m_ui->setParentItem(nullptr);
+    }
+
+    const auto r = boundingRect();
+
+    for(auto& outlet : m_outlets)
+    {
+      outlet->setPos(outlet->pos().x(), r.height() + OutletY0);
+    }
+
+    qDebug() << "setting size;: " << m_size << m_ui;
+    if(m_ui)
+    {
+      m_ui->setParentItem(this);
+      m_ui->setPos({m_size.width() + TopButtonX0, TopButtonY0});
+    }
+    update();
+  }
 }
 
 void NodeItem::setSize(QSizeF sz)
@@ -141,6 +173,11 @@ void NodeItem::setSize(QSizeF sz)
     prepareGeometryChange();
     m_size = sz;
 
+    if(m_ui)
+    {
+      m_ui->setParentItem(nullptr);
+    }
+
     m_presenter->setWidth(sz.width(), sz.width());
     m_presenter->setHeight(sz.height());
     m_presenter->on_zoomRatioChanged(m_ratio / sz.width());
@@ -150,6 +187,7 @@ void NodeItem::setSize(QSizeF sz)
     resetOutlets(m_model.process());
     if(m_ui)
     {
+      m_ui->setParentItem(this);
       m_ui->setPos({m_size.width() + TopButtonX0, TopButtonY0});
     }
   }

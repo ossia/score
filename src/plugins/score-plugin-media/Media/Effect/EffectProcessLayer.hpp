@@ -20,6 +20,8 @@ public:
   const std::vector<std::shared_ptr<EffectItem>>& effects() const;
 
 private:
+  friend class EffectItem;
+  void recomputeItemPositions() const;
   void paint_impl(QPainter* p) const override;
   void mousePressEvent(QGraphicsSceneMouseEvent* ev) override;
   void mouseMoveEvent(QGraphicsSceneMouseEvent* ev) override;
