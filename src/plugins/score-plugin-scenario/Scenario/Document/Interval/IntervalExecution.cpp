@@ -359,7 +359,7 @@ ProcessComponent* IntervalComponentBase::make(
           [cst_node_weak, g_weak, oproc_weak, &proc](
               const auto& old_node, const auto& new_node, auto& commands) {
             const auto& outlets = proc.outlets();
-            ossia::int_vector propagated_outlets;
+            ossia::pod_vector<std::size_t> propagated_outlets;
             for (std::size_t i = 0; i < outlets.size(); i++)
             {
               if (outlets[i]->propagate())
