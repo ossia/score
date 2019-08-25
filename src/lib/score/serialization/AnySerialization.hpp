@@ -28,6 +28,7 @@ struct SCORE_LIB_BASE_EXPORT any_serializer
   virtual void apply(JSONValue::Serializer&, const ossia::any&) = 0;
   virtual void apply(DataStream::Deserializer&, ossia::any&) = 0;
   virtual void apply(JSONValue::Deserializer&, ossia::any&) = 0;
+  void cast_error(const char*);
 };
 
 template <typename T>
@@ -35,11 +36,19 @@ struct any_serializer_t final : public any_serializer
 {
   void apply(DataStream::Serializer& s, const ossia::any& val) override
   {
-    s.stream() << ossia::any_cast<T>(val);
+    try {
+      s.stream() << ossia::any_cast<T>(val);
+    } catch(const std::exception& e) {
+      cast_error(e.what());
+    }
   }
   void apply(JSONValue::Serializer& s, const ossia::any& val) override
   {
-    s.val = toJsonValue(ossia::any_cast<T>(val));
+    try {
+      s.val = toJsonValue(ossia::any_cast<T>(val));
+    } catch(const std::exception& e) {
+      cast_error(e.what());
+    }
   }
   void apply(DataStream::Deserializer& s, ossia::any& val) override
   {
