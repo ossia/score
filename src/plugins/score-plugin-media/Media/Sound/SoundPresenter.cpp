@@ -43,13 +43,11 @@ LayerPresenter::LayerPresenter(
 void LayerPresenter::setWidth(qreal val, qreal defaultWidth)
 {
   m_view->setWidth(val);
-  m_view->recompute(m_ratio);
 }
 
 void LayerPresenter::setHeight(qreal val)
 {
   m_view->setHeight(val);
-  m_view->recompute(m_ratio);
 }
 
 void LayerPresenter::putToFront()

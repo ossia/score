@@ -37,12 +37,15 @@ void ChangeAudioFile::undo(const score::DocumentContext& ctx) const
     snd.setFile(m_old);
     if (auto itv = qobject_cast<Scenario::IntervalModel*>(snd.parent()))
     {
-      if (auto fact
-          = ctx.app.interfaces<Scenario::IntervalResizerList>().find(*itv))
+      if(itv->processes.size() == 1)
       {
-        auto cmd = fact->make(*itv, m_olddur);
-        cmd->redo(ctx);
-        delete cmd;
+        if (auto fact
+            = ctx.app.interfaces<Scenario::IntervalResizerList>().find(*itv))
+        {
+          auto cmd = fact->make(*itv, m_olddur);
+          cmd->redo(ctx);
+          delete cmd;
+        }
       }
     }
   }
@@ -56,12 +59,15 @@ void ChangeAudioFile::redo(const score::DocumentContext& ctx) const
     snd.setFile(m_new);
     if (auto itv = qobject_cast<Scenario::IntervalModel*>(snd.parent()))
     {
-      if (auto fact
-          = ctx.app.interfaces<Scenario::IntervalResizerList>().find(*itv))
+      if(itv->processes.size() == 1)
       {
-        auto cmd = fact->make(*itv, m_newdur);
-        cmd->redo(ctx);
-        delete cmd;
+        if (auto fact
+            = ctx.app.interfaces<Scenario::IntervalResizerList>().find(*itv))
+        {
+          auto cmd = fact->make(*itv, m_newdur);
+          cmd->redo(ctx);
+          delete cmd;
+        }
       }
     }
   }

@@ -201,6 +201,7 @@ LayerView::LayerView(QGraphicsItem* parent)
         m_wf = wf;
 
         update();
+        //) << "ready!";
       });
 }
 
@@ -218,6 +219,7 @@ void LayerView::setData(const std::shared_ptr<AudioFile>& data)
   if (m_data)
   {
     QObject::disconnect(&m_data->rms(), nullptr, this, nullptr);
+    m_data->on_finishedDecoding.disconnect<&LayerView::on_finishedDecoding>(*this);
   }
 
   SCORE_ASSERT(data);
@@ -238,6 +240,7 @@ void LayerView::setData(const std::shared_ptr<AudioFile>& data)
         this,
         &LayerView::on_newData,
         Qt::QueuedConnection);
+    m_data->on_finishedDecoding.connect<&LayerView::on_finishedDecoding>(*this);
     on_newData();
   }
   m_sampleRate = data->sampleRate();
@@ -261,6 +264,7 @@ void LayerView::recompute(ZoomRatio ratio)
   if (m_data)
   {
     m_cpt->recompute(m_data, m_zoom, m_frontColors);
+    m_recomputed = true;
   }
 }
 
@@ -281,7 +285,8 @@ void LayerView::paint_impl(QPainter* painter) const
   int channels = m_images.size();
   if(channels == 0.)
   {
-    m_cpt->recompute(m_data, m_zoom, m_frontColors);
+    if(!m_recomputed)
+      m_cpt->recompute(m_data, m_zoom, m_frontColors);
     return;
   }
 
@@ -310,11 +315,13 @@ void LayerView::scrollValueChanged(int sbvalue)
 void LayerView::on_finishedDecoding()
 {
   recompute(m_zoom);
+  //qDebug() << "finished decoding ! " ;
 }
 
 void LayerView::on_newData()
 {
   recompute(m_zoom);
+  //qDebug() << "new data ! " ;
 }
 
 void LayerView::mousePressEvent(QGraphicsSceneMouseEvent* ev)
@@ -345,6 +352,18 @@ void LayerView::dropEvent(QGraphicsSceneDragDropEvent* event)
     dropReceived(event->pos(), *event->mimeData());
 }
 
+void LayerView::heightChanged(qreal r)
+{
+  Process::LayerView::heightChanged(r);
+  recompute(m_zoom);
+}
+
+void LayerView::widthChanged(qreal w)
+{
+  Process::LayerView::widthChanged(w);
+  recompute(m_zoom);
+}
+
 
 WaveformComputer::WaveformComputer(LayerView& layer)
   : m_layer{layer}
@@ -354,6 +373,7 @@ WaveformComputer::WaveformComputer(LayerView& layer)
       this, [=] (const std::shared_ptr<AudioFile>& arg_1, double arg_2, bool cols) {
     int64_t n = ++m_redraw_count;
 
+     // qDebug() << "count: " << n;
      QMetaObject::invokeMethod(this, [=] { on_recompute(arg_1, arg_2, cols, n); }, Qt::QueuedConnection);
   }, Qt::DirectConnection);
   startTimer(16, Qt::CoarseTimer);
@@ -826,6 +846,7 @@ void WaveformComputer::timerEvent(QTimerEvent* event)
   WaveformComputerImpl impl{*m_file, dataHandle, m_zoom, m_cols, m_n, *this};
   impl.compute();
   m_processed_n = m_n;
+  //qDebug() << "finished processing" << m_processed_n;
 }
 }
 }

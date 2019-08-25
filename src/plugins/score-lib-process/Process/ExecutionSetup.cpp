@@ -158,6 +158,24 @@ void SetupContext::unregister_node(
   proc_map.erase(node.get());
 }
 
+void SetupContext::register_node(
+    const Process::ProcessModel& proc,
+    const std::shared_ptr<ossia::graph_node>& node,
+    std::vector<ExecutionCommand>& vec)
+{
+  register_node(proc.inlets(), proc.outlets(), node, vec);
+  proc_map[node.get()] = &proc;
+}
+
+void SetupContext::unregister_node(
+    const Process::ProcessModel& proc,
+    const std::shared_ptr<ossia::graph_node>& node,
+    std::vector<ExecutionCommand>& vec)
+{
+  unregister_node(proc.inlets(), proc.outlets(), node, vec);
+  proc_map.erase(node.get());
+}
+
 template <typename T, typename Impl>
 void set_destination_impl(
     const Context& plug,

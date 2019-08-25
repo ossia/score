@@ -2,13 +2,16 @@
 
 #include <ossia/dataflow/nodes/sound_ref.hpp>
 #include <Process/ExecutionContext.hpp>
+#include <Process/ExecutionSetup.hpp>
 #include <Scenario/Execution/score2OSSIA.hpp>
+
 #include <score/tools/Bind.hpp>
 
 #include <ossia/dataflow/execution_state.hpp>
 #include <ossia/dataflow/nodes/sound.hpp>
 #include <ossia/dataflow/nodes/sound_ref.hpp>
 #include <ossia/dataflow/nodes/sound_mmap.hpp>
+#include <ossia/dataflow/nodes/dummy.hpp>
 #include <ossia/detail/pod_vector.hpp>
 
 namespace Media
@@ -26,7 +29,9 @@ public:
     {
       Execution::SoundComponent& component;
       void operator()() const noexcept
-      { return ; }
+      {
+        construct_dummy(component);
+      }
       void operator()(const std::shared_ptr<Media::AudioFile::LibavReader>& r) const noexcept
       {
         construct_ffmpeg(r, component);
@@ -40,29 +45,31 @@ public:
     ossia::apply(_, handle->m_impl);
   }
 
+  // Note : we need to construct a dummy node in case there is nothing,
+  // because else the parent interval will destroy the component so
+  // even if the sound is created afterwards there won't be any component anymore
+  static void construct_dummy(
+      Execution::SoundComponent& component)
+  {
+    auto node = std::make_shared<ossia::nodes::dummy_node>();
+    component.node = node;
+    if(component.m_ossia_process)
+      component.m_ossia_process->node = node;
+    else
+      component.m_ossia_process = std::make_shared<ossia::node_process>(node);
+  }
+
   static void construct_ffmpeg(
       const std::shared_ptr<Media::AudioFile::LibavReader>& r,
       Execution::SoundComponent& component)
   {
     auto node = std::make_shared<ossia::nodes::sound_ref>();
     component.node = node;
-    component.m_ossia_process = std::make_shared<ossia::node_process>(node);
+    if(component.m_ossia_process)
+      component.m_ossia_process->node = node;
+    else
+      component.m_ossia_process = std::make_shared<ossia::node_process>(node);
 
-    auto& element = component.process();
-
-    con(element, &Media::Sound::ProcessModel::fileChanged,
-        &component, &Execution::SoundComponent::recompute);
-    element.file()->on_finishedDecoding.connect<&Execution::SoundComponent::recompute>(component);
-
-    con(element, &Media::Sound::ProcessModel::startChannelChanged, &component, [=,&element,&component] {
-      component.in_exec([node, start = element.startChannel()] { node->set_start(start); });
-    });
-    con(element, &Media::Sound::ProcessModel::upmixChannelsChanged, &component, [=,&element,&component] {
-      component.in_exec([node, upmix = element.upmixChannels()] { node->set_upmix(upmix); });
-    });
-    con(element, &Media::Sound::ProcessModel::startOffsetChanged, &component, [=,&element,&component] {
-      component.in_exec([node, off = element.startOffset()] { node->set_start_offset(off); });
-    });
 
     recompute_ffmpeg(r, component);
   }
@@ -73,23 +80,11 @@ public:
   {
     auto node = std::make_shared<ossia::nodes::sound_mmap>();
     component.node = node;
-    component.m_ossia_process = std::make_shared<ossia::node_process>(node);
+    if(component.m_ossia_process)
+      component.m_ossia_process->node = node;
+    else
+      component.m_ossia_process = std::make_shared<ossia::node_process>(node);
 
-    auto& element = component.process();
-
-    con(element, &Media::Sound::ProcessModel::fileChanged,
-        &component, &Execution::SoundComponent::recompute);
-    element.file()->on_finishedDecoding.connect<&Execution::SoundComponent::recompute>(component);
-
-    con(element, &Media::Sound::ProcessModel::startChannelChanged, &component, [=,&element,&component] {
-      component.in_exec([node, start = element.startChannel()] { node->set_start(start); });
-    });
-    con(element, &Media::Sound::ProcessModel::upmixChannelsChanged, &component, [=,&element,&component] {
-      component.in_exec([node, upmix = element.upmixChannels()] { node->set_upmix(upmix); });
-    });
-    con(element, &Media::Sound::ProcessModel::startOffsetChanged, &component, [=,&element,&component] {
-      component.in_exec([node, off = element.startOffset()] { node->set_start_offset(off); });
-    });
 
     recompute_drwav(r, component);
   }
@@ -123,17 +118,35 @@ public:
       Execution::SoundComponent& component)
   {
     auto& p = component.process();
-    component.in_exec([n = std::dynamic_pointer_cast<ossia::nodes::sound_ref>(
-                 component.OSSIAProcess().node),
-             data = r->handle,
-             upmix = p.upmixChannels(),
-             start = p.startChannel(),
-             startOff = p.startOffset()] {
-      n->set_sound(std::move(data));
-      n->set_start(start);
-      n->set_start_offset(startOff);
-      n->set_upmix(upmix);
-    });
+    auto old_node = component.node;
+    auto n = std::dynamic_pointer_cast<ossia::nodes::sound_ref>(old_node);
+    if(n)
+    {
+      component.in_exec([n,
+               data = r->handle,
+               upmix = p.upmixChannels(),
+               start = p.startChannel(),
+               startOff = p.startOffset()] {
+        n->set_sound(std::move(data));
+        n->set_start(start);
+        n->set_start_offset(startOff);
+        n->set_upmix(upmix);
+      });
+    }
+    else
+    {
+      construct_ffmpeg(r, component);
+      std::vector<Execution::ExecutionCommand> commands;
+      component.system().setup.unregister_node(component.process(), old_node, commands);
+      component.system().setup.register_node(component.process(), component.node, commands);
+      component.nodeChanged(old_node, component.node, commands);
+
+      // TODO add a "exec all commands macro
+      component.in_exec([f = std::move(commands)] {
+        for (auto& cmd : f)
+          cmd();
+      });
+    }
   }
   static void recompute_drwav(
       const Media::AudioFile::MmapReader& r,
@@ -141,17 +154,36 @@ public:
   {
     Sound::ProcessModel& p = component.process();
 
-    component.in_exec([n = std::dynamic_pointer_cast<ossia::nodes::sound_mmap>(
-                 component.OSSIAProcess().node),
-             data = r.wav,
-             upmix = p.upmixChannels(),
-             start = p.startChannel(),
-             startOff = p.startOffset()] () mutable {
-      n->set_sound(std::move(data));
-      n->set_start(start);
-      n->set_start_offset(startOff);
-      n->set_upmix(upmix);
-    });
+    auto old_node = component.node;
+    auto n = std::dynamic_pointer_cast<ossia::nodes::sound_mmap>(old_node);
+    if(n)
+    {
+      component.in_exec([n = std::dynamic_pointer_cast<ossia::nodes::sound_mmap>(
+                        component.OSSIAProcess().node),
+                        data = r.wav,
+                        upmix = p.upmixChannels(),
+                        start = p.startChannel(),
+                        startOff = p.startOffset()] () mutable {
+        n->set_sound(std::move(data));
+        n->set_start(start);
+        n->set_start_offset(startOff);
+        n->set_upmix(upmix);
+      });
+    }
+    else
+    {
+      construct_drwav(r, component);
+      std::vector<Execution::ExecutionCommand> commands;
+      component.system().setup.unregister_node(component.process(), old_node, commands);
+      component.system().setup.register_node(component.process(), component.node, commands);
+      component.nodeChanged(old_node, component.node, commands);
+
+      // TODO add a "exec all commands macro
+      component.in_exec([f = std::move(commands)] {
+        for (auto& cmd : f)
+          cmd();
+      });
+    }
 
   }
 };
@@ -171,8 +203,48 @@ SoundComponent::SoundComponent(
               id,
               "Executor::SoundComponent",
               parent}
+    , m_recomputer{*this}
 {
   Media::SoundComponentSetup{}.construct(*this);
+  connect(&element, &Media::Sound::ProcessModel::fileChanged,
+          this, &SoundComponent::on_fileChanged);
+
+
+  con(element, &Media::Sound::ProcessModel::startChannelChanged, this, [=,&element] {
+    if(auto node = std::dynamic_pointer_cast<ossia::nodes::sound_ref>(this->node))
+      in_exec([node, start = element.startChannel()] { node->set_start(start); });
+    else if(auto node = std::dynamic_pointer_cast<ossia::nodes::sound_mmap>(this->node))
+      in_exec([node, start = element.startChannel()] { node->set_start(start); });
+  });
+  con(element, &Media::Sound::ProcessModel::upmixChannelsChanged, this, [=,&element] {
+    if(auto node = std::dynamic_pointer_cast<ossia::nodes::sound_ref>(this->node))
+      in_exec([node, upmix = element.upmixChannels()] { node->set_upmix(upmix); });
+    else if(auto node = std::dynamic_pointer_cast<ossia::nodes::sound_mmap>(this->node))
+      in_exec([node, upmix = element.upmixChannels()] { node->set_upmix(upmix); });
+  });
+  con(element, &Media::Sound::ProcessModel::startOffsetChanged, this, [=,&element] {
+    if(auto node = std::dynamic_pointer_cast<ossia::nodes::sound_ref>(this->node))
+      in_exec([node, off = element.startOffset()] { node->set_start_offset(off); });
+    else if(auto node = std::dynamic_pointer_cast<ossia::nodes::sound_mmap>(this->node))
+      in_exec([node, off = element.startOffset()] { node->set_start_offset(off); });
+  });
+
+  if(auto& file = element.file())
+  {
+    file->on_finishedDecoding.connect<&SoundComponent::Recomputer::recompute>(m_recomputer);
+  }
+}
+void SoundComponent::on_fileChanged()
+{
+  m_recomputer.~Recomputer();
+  new (&m_recomputer) Recomputer{*this};
+
+  recompute();
+
+  if(auto& file = process().file())
+  {
+    file->on_finishedDecoding.connect<&SoundComponent::Recomputer::recompute>(m_recomputer);
+  }
 }
 
 void SoundComponent::recompute()
@@ -180,5 +252,8 @@ void SoundComponent::recompute()
   Media::SoundComponentSetup{}.recompute(*this);
 }
 
-SoundComponent::~SoundComponent() {}
+SoundComponent::~SoundComponent()
+{
 }
+}
+

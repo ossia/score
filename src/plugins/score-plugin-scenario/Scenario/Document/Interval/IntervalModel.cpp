@@ -74,6 +74,10 @@ void IntervalModel::initConnections()
 
 IntervalModel::IntervalModel(DataStream::Deserializer& vis, QObject* parent)
     : Entity{vis, parent}
+    , m_executionState{}
+    , m_smallViewShown{}
+    , m_muted{}
+    , m_executing{}
 {
   initConnections();
   vis.writeTo(*this);
@@ -81,6 +85,10 @@ IntervalModel::IntervalModel(DataStream::Deserializer& vis, QObject* parent)
 
 IntervalModel::IntervalModel(JSONObject::Deserializer& vis, QObject* parent)
     : Entity{vis, parent}
+    , m_executionState{}
+    , m_smallViewShown{}
+    , m_muted{}
+    , m_executing{}
 {
   initConnections();
   vis.writeTo(*this);
@@ -88,6 +96,10 @@ IntervalModel::IntervalModel(JSONObject::Deserializer& vis, QObject* parent)
 
 IntervalModel::IntervalModel(DataStream::Deserializer&& vis, QObject* parent)
     : Entity{vis, parent}
+    , m_executionState{}
+    , m_smallViewShown{}
+    , m_muted{}
+    , m_executing{}
 {
   initConnections();
   vis.writeTo(*this);
@@ -95,6 +107,10 @@ IntervalModel::IntervalModel(DataStream::Deserializer&& vis, QObject* parent)
 
 IntervalModel::IntervalModel(JSONObject::Deserializer&& vis, QObject* parent)
     : Entity{vis, parent}
+    , m_executionState{}
+    , m_smallViewShown{}
+    , m_muted{}
+    , m_executing{}
 {
   initConnections();
   vis.writeTo(*this);

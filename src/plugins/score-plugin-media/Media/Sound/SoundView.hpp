@@ -64,7 +64,9 @@ private:
   void timerEvent(QTimerEvent* event) override;
 };
 
-class LayerView final : public Process::LayerView
+class LayerView final
+    : public Process::LayerView
+    , public Nano::Observer
 {
   W_OBJECT(LayerView)
 
@@ -76,6 +78,7 @@ public:
   void setFrontColors(bool);
   void recompute(ZoomRatio ratio);
 
+  void on_finishedDecoding();
 private:
   void contextMenuEvent(QGraphicsSceneContextMenuEvent* event) override;
   void paint_impl(QPainter*) const override;
@@ -85,9 +88,11 @@ private:
   void dragMoveEvent(QGraphicsSceneDragDropEvent* event) override;
   void dropEvent(QGraphicsSceneDragDropEvent* event) override;
 
+  void heightChanged(qreal) override;
+  void widthChanged(qreal) override;
+
   void scrollValueChanged(int);
 
-  void on_finishedDecoding();
   void on_newData();
 
   std::shared_ptr<AudioFile> m_data;
@@ -104,6 +109,7 @@ private:
   ComputedWaveform m_wf{};
 
   bool m_frontColors{true};
+  bool m_recomputed{false};
 
   friend class FilterWidget;
 };

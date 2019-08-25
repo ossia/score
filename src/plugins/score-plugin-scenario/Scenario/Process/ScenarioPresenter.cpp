@@ -902,6 +902,11 @@ void ScenarioPresenter::on_intervalCreated(const IntervalModel& interval)
   con(interval, &IntervalModel::slotResized,
       this, updateHeight);
 
+  con(interval, &IntervalModel::slotAdded,
+      this, updateHeight);
+  con(interval, &IntervalModel::slotRemoved,
+      this, updateHeight);
+
   connect(
       cst_pres,
       &TemporalIntervalPresenter::heightPercentageChanged,

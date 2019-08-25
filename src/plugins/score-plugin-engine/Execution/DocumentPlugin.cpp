@@ -122,7 +122,7 @@ DocumentPlugin::DocumentPlugin(
       this,
       &DocumentPlugin::on_finished,
       Qt::QueuedConnection);
-  connect(this, &DocumentPlugin::sig_bench, this, &DocumentPlugin::slot_bench);
+  connect(this, &DocumentPlugin::sig_bench, this, &DocumentPlugin::slot_bench, Qt::QueuedConnection);
 }
 
 DocumentPlugin::~DocumentPlugin()
