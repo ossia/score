@@ -154,7 +154,6 @@ void NodeItem::updateSize()
       outlet->setPos(outlet->pos().x(), r.height() + OutletY0);
     }
 
-    qDebug() << "setting size;: " << m_size << m_ui;
     if(m_ui)
     {
       m_ui->setParentItem(this);
