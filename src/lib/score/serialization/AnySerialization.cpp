@@ -11,4 +11,10 @@ score::hash_map<std::string, std::unique_ptr<any_serializer>>& anySerializers()
 }
 
 any_serializer::~any_serializer() {}
+
+void any_serializer::cast_error(const char* err)
+{
+  qWarning() << "Could not read boost::any" << err;
+
+}
 }
