@@ -44,15 +44,18 @@ static qreal m_litHeight{};
 class EffectItem final
     : public ::Effect::ItemBase
 {
+  const View& m_view;
   const Process::ProcessModel& m_model;
   const Process::LayerContext& m_context;
 public:
   EffectItem(
+      const View& view,
       const Process::ProcessModel& effect,
       const Process::LayerContext& ctx,
       const Process::LayerFactoryList& fact,
       QGraphicsItem* parent)
     : ::Effect::ItemBase{effect, ctx.context, parent}
+    , m_view{view}
     , m_model{effect}
     , m_context{ctx}
   {
@@ -72,15 +75,10 @@ public:
 
     /// Rects
     // TODO bind
-    auto update_rects = [=] {
-      setSize(m_fx->boundingRect().size());
-    };
     connect(m_fx, &score::ResizeableItem::sizeChanged,
-            this, update_rects);
+            this, &EffectItem::updateSize);
 
-    update_rects();
-
-    // Inlets
+    // In & out ports
     resetInlets();
     resetOutlets();
     con(effect, &Process::ProcessModel::inletsChanged,
@@ -88,6 +86,14 @@ public:
     con(effect,
         &Process::ProcessModel::outletsChanged,
         this, &EffectItem::resetOutlets);
+
+    updateSize();
+  }
+
+private:
+  void updateSize()
+  {
+    setSize(m_fx->boundingRect().size());
   }
 
   void setSize(QSizeF sz)
@@ -98,6 +104,20 @@ public:
       m_size = sz;
       if(m_ui)
       {
+        m_ui->setParentItem(nullptr);
+      }
+
+      const auto r = boundingRect();
+
+      for(auto& outlet : m_outlets)
+      {
+        outlet->setPos(outlet->pos().x(), r.height() + OutletY0);
+      }
+      m_view.recomputeItemPositions();
+
+      if(m_ui)
+      {
+        m_ui->setParentItem(this);
         m_ui->setPos({m_size.width() + TopButtonX0, TopButtonY0});
       }
       update();
@@ -124,6 +144,7 @@ public:
     }
 
     m_label->setPos(QPointF{x, 0.});
+    updateSize();
   }
 
   void resetOutlets()
@@ -145,6 +166,7 @@ public:
 
       x += PortSpacing;
     }
+    updateSize();
   }
 
   void paint(
@@ -161,6 +183,7 @@ public:
     score::SelectionDispatcher{m_context.context.selectionStack}.setAndCommit({&m_model});
     event->accept();
   }
+
   void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override
   {
     auto min_dist
@@ -206,7 +229,7 @@ void View::setup(const ProcessModel& object, const Process::LayerContext& ctx)
   double pos_x = 10;
   for (auto& effect : object.effects())
   {
-    auto fx = std::make_shared<EffectItem>(effect, ctx, fact, this);
+    auto fx = std::make_shared<EffectItem>(*this, effect, ctx, fact, this);
     fx->setPos(pos_x, 2);
     pos_x += 10 + fx->size().width();
     m_effects.push_back(std::move(fx));
@@ -238,6 +261,16 @@ void View::setInvalid(bool b)
 const std::vector<std::shared_ptr<EffectItem> >& View::effects() const
 {
   return m_effects;
+}
+
+void View::recomputeItemPositions() const
+{
+  double pos_x = 10;
+  for (auto& fx : m_effects)
+  {
+    fx->setPos(pos_x, 2);
+    pos_x += 10 + fx->size().width();
+  }
 }
 
 void View::paint_impl(QPainter* p) const

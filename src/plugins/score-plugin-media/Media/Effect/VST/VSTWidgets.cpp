@@ -100,7 +100,6 @@ VSTEffectItem::VSTEffectItem(
       [&](const Id<Process::Port>& id) {
         auto inlet = safe_cast<VSTControlInlet*>(effect.inlet(id));
         setupInlet(effect, *inlet, doc);
-        sizeChanged(rootItem->childrenBoundingRect().size());
       });
 
   QObject::connect(
@@ -114,17 +113,18 @@ VSTEffectItem::VSTEffectItem(
             controlItems, [&](auto p) { return p.first == inlet; });
         if (it != controlItems.end())
         {
-          double pos_y = it->second->pos().y();
           delete it->second;
           it = controlItems.erase(it);
-          for (; it != controlItems.end(); ++it)
+          int i = std::distance(controlItems.begin(), it);
+          for (; it != controlItems.end(); ++it, ++i)
           {
-            auto rect = it->second;
-            rect->setPos(0, pos_y);
-            pos_y += rect->boundingRect().height();
+            score::EmptyRectItem* rect = it->second;
+            QPointF pos = Process::currentWigetPos(i, [&] (int j) { return controlItems[j].second->boundingRect().size(); });
+
+            rect->setPos(pos);
           }
         }
-        sizeChanged(rootItem->childrenBoundingRect().size());
+        updateRect();
       });
 
   //{
@@ -140,6 +140,7 @@ VSTEffectItem::VSTEffectItem(
     auto inlet = safe_cast<VSTControlInlet*>(effect.inlets()[i]);
     setupInlet(effect, *inlet, doc);
   }
+  updateRect();
 }
 
 void VSTEffectItem::setupInlet(
@@ -184,6 +185,15 @@ void VSTEffectItem::setupInlet(
     rm_item->setPos(8., 16.);
   }
   controlItems.push_back({&inlet, ctl.item});
+  updateRect();
+}
+
+void VSTEffectItem::updateRect()
+{
+  QRectF cr = childrenBoundingRect();
+  cr.setWidth(std::max(100., cr.width()));
+  cr.setHeight(std::max(10., cr.height()));
+  setRect(cr);
 }
 
 ERect VSTWindow::getRect(AEffect& e)
