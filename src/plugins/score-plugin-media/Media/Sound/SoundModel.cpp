@@ -109,6 +109,7 @@ void ProcessModel::on_mediaChanged()
   {
     setUpmixChannels(2);
   }
+
   fileChanged();
 }
 

@@ -357,7 +357,7 @@ void AudioFile::load_ffmpeg(int rate)
 
     m_rms->load(m_file, info->channels, rate, info->duration());
 
-    if(!m_rms->exists())
+    // TODO remove comment when rms works again if(!m_rms->exists())
     {
       connect(&r.decoder, &AudioDecoder::newData,
               this, [=] {

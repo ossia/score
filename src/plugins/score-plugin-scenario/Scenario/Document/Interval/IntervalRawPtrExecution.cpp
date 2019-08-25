@@ -326,14 +326,18 @@ ProcessComponent* IntervalRawPtrComponentBase::make(
                 if (oproc->node)
                 {
                   ossia::graph_node& n = *oproc->node;
+                  const auto& outs = n.outputs();
                   for (int propagated : propagated_outlets)
                   {
-                    const auto& outlet = n.outputs()[propagated]->data;
+                    if(propagated >= outs.size())
+                      continue;
+
+                    const auto& outlet = outs[propagated]->data;
                     if (outlet.target<ossia::audio_port>())
                     {
                       auto cable = ossia::make_edge(
                           ossia::immediate_glutton_connection{},
-                          n.outputs()[propagated],
+                          outs[propagated],
                           cst->node->inputs()[0],
                           oproc->node,
                           cst->node);
@@ -391,14 +395,18 @@ ProcessComponent* IntervalRawPtrComponentBase::make(
               if (new_node)
               {
                 ossia::graph_node& n = *new_node;
+                const auto& outs = n.outputs();
                 for (int propagated : propagated_outlets)
                 {
-                  const auto& outlet = n.outputs()[propagated]->data;
+                  if(propagated >= outs.size())
+                    continue;
+
+                  const auto& outlet = outs[propagated]->data;
                   if (outlet.target<ossia::audio_port>())
                   {
                     auto cable = ossia::make_edge(
                         ossia::immediate_glutton_connection{},
-                        n.outputs()[propagated],
+                        outs[propagated],
                         cst_node->inputs()[0],
                         new_node,
                         cst_node);
