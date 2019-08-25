@@ -5,6 +5,7 @@
 #include <eggs/variant.hpp>
 #include <QHash>
 #include <QDebug>
+#include <cmath>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
