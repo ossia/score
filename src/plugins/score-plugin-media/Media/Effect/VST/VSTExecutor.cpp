@@ -4,6 +4,7 @@
 #include <Media/Effect/VST/VSTControl.hpp>
 #include <Media/Effect/VST/VSTNode.hpp>
 #include <Process/ExecutionContext.hpp>
+#include <Process/ExecutionSetup.hpp>
 
 #include <ossia/dataflow/execution_state.hpp>
 #include <ossia/dataflow/fx_node.hpp>
@@ -20,69 +21,73 @@ namespace Execution
 template<typename Node_T>
 void VSTEffectComponent::setupNode(Node_T& node)
 {
-	const auto& proc = this->process();
-	node->controls.reserve(proc.controls.size());
-	const auto& inlets = proc.inlets();
-	for (std::size_t i = 3; i < inlets.size(); i++)
-	{
-		auto ctrl = safe_cast<Media::VST::VSTControlInlet*>(inlets[i]);
-		auto inlet = ossia::make_inlet<ossia::value_port>();
+  const auto& proc = this->process();
+  node->controls.reserve(proc.controls.size());
+  const auto& inlets = proc.inlets();
+  for (std::size_t i = 3; i < inlets.size(); i++)
+  {
+    auto ctrl = safe_cast<Media::VST::VSTControlInlet*>(inlets[i]);
+    auto inlet = ossia::make_inlet<ossia::value_port>();
 
-		node->controls.push_back({ ctrl->fxNum,
-								  ctrl->value(),
-								  inlet->data.target<ossia::value_port>() });
-		node->inputs().push_back(std::move(inlet));
-	}
+    node->controls.push_back({ ctrl->fxNum,
+                  ctrl->value(),
+                  inlet->data.target<ossia::value_port>() });
+    node->inputs().push_back(std::move(inlet));
+  }
 
-	std::weak_ptr<std::remove_reference_t<decltype(*node)>> wp = node;
-	connect(
-		&proc,
-		&Media::VST::VSTEffectModel::controlAdded,
-		this,
-		[this, &proc, wp](const Id<Process::Port>& id) {
-			auto ctrl = proc.getControl(id);
-			if (!ctrl)
-				return;
-			if (auto n = wp.lock())
-			{
-				in_exec([n, val = ctrl->value(), num = ctrl->fxNum]{
-				  auto inlet = ossia::make_inlet<ossia::value_port>();
+  std::weak_ptr<std::remove_reference_t<decltype(*node)>> wp = node;
+  connect(
+    &proc,
+    &Media::VST::VSTEffectModel::controlAdded,
+    this,
+    [this, &proc, wp](const Id<Process::Port>& id) {
+      auto ctrl = proc.getControl(id);
+      if (!ctrl)
+        return;
+      if (auto n = wp.lock())
+      {
+        Execution::SetupContext& setup = system().context().setup;
+        auto inlet = ossia::make_inlet<ossia::value_port>();
+        in_exec([n, inlet, val = ctrl->value(), num = ctrl->fxNum]{
+          n->controls.push_back(
+            {num, val, inlet->data.target<ossia::value_port>()});
+          n->inputs().push_back(inlet);
+          });
 
-				  n->controls.push_back(
-					  {num, val, inlet->data.target<ossia::value_port>()});
-				  n->inputs().push_back(inlet);
-					});
-			}
-		});
-	connect(
-		&proc,
-		&Media::VST::VSTEffectModel::controlRemoved,
-		this,
-		[this, wp](const Process::Port& port) {
-			if (auto n = wp.lock())
-			{
-				in_exec(
-					[n,
-					num = static_cast<const Media::VST::VSTControlInlet&>(port)
-					.fxNum]{
-		   auto it = ossia::find_if(
-			   n->controls, [&](auto& c) { return c.idx == num; });
-		   if (it != n->controls.end())
-		   {
-			 auto port = it->port;
-			 n->controls.erase(it);
-			 auto port_it = ossia::find_if(n->inputs(), [&](auto& p) {
-			   return p->data.target() == port;
-			 });
-			 if (port_it != n->inputs().end())
-			 {
-			   port->clear();
-			   n->inputs().erase(port_it);
-			 }
-		   }
-					});
-			}
-		});
+        setup.register_inlet(*ctrl, inlet, n);
+      }
+    });
+  connect(
+    &proc,
+    &Media::VST::VSTEffectModel::controlRemoved,
+    this,
+    [this, wp](const Process::Port& port) {
+    if (auto n = wp.lock())
+    {
+      Execution::SetupContext& setup = system().context().setup;
+      in_exec(
+            [n,
+            num = static_cast<const Media::VST::VSTControlInlet&>(port)
+            .fxNum]{
+        auto it = ossia::find_if(
+              n->controls, [&](auto& c) { return c.idx == num; });
+        if (it != n->controls.end())
+        {
+          auto port = it->port;
+          n->controls.erase(it);
+          auto port_it = ossia::find_if(n->inputs(), [&](auto& p) {
+            return p->data.target() == port;
+          });
+          if (port_it != n->inputs().end())
+          {
+            port->clear();
+            n->inputs().erase(port_it);
+          }
+        }
+      });
+      setup.unregister_inlet(static_cast<const Process::Inlet&>(port), n);
+    }
+    });
 }
 
 VSTEffectComponent::VSTEffectComponent(
@@ -110,7 +115,7 @@ VSTEffectComponent::VSTEffectComponent(
     {
       auto n = Media::VST::make_vst_fx<true, false>(
           proc.fx, ctx.execState->sampleRate);
-	  setupNode(n);
+    setupNode(n);
       node = std::move(n);
     }
   }
@@ -120,14 +125,14 @@ VSTEffectComponent::VSTEffectComponent(
     {
       auto n = Media::VST::make_vst_fx<false, true>(
           proc.fx, ctx.execState->sampleRate);
-	  setupNode(n);
+    setupNode(n);
       node = std::move(n);
     }
     else
     {
       auto n = Media::VST::make_vst_fx<false, false>(
           proc.fx, ctx.execState->sampleRate);
-	  setupNode(n);
+    setupNode(n);
       node = std::move(n);
     }
   }

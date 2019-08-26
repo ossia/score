@@ -13,15 +13,29 @@ namespace Media
 namespace VST
 {
 using time_signature = std::pair<uint16_t, uint16_t>;
-template <bool UseDouble, bool IsSynth>
-class vst_node final : public ossia::graph_node
+
+class vst_node_base : public ossia::graph_node
 {
-private:
+protected:
+  explicit vst_node_base(std::shared_ptr<AEffectWrapper>&& ptr)
+    : fx{std::move(ptr)}
+  {
+    m_inlets.reserve(10);
+    controls.reserve(10);
+  }
+
   std::shared_ptr<AEffectWrapper> fx{};
   double m_tempo{120};
   time_signature m_sig{4, 4};
 
-  void dispatch(
+  struct vst_control
+  {
+    int idx{};
+    float value{};
+    ossia::value_port* port{};
+  };
+
+  inline void dispatch(
       int32_t opcode,
       int32_t index = 0,
       intptr_t value = 0,
@@ -32,33 +46,111 @@ private:
   }
 
 public:
-  struct vst_control
-  {
-    int idx{};
-    float value{};
-    ossia::value_port* port{};
-  };
   ossia::small_vector<vst_control, 16> controls;
 
-  vst_node(std::shared_ptr<AEffectWrapper> dat, int sampleRate)
-      : fx{std::move(dat)}
+  void setControls()
   {
-    m_inlets.reserve(10);
-    controls.reserve(10);
+    auto& tempo
+        = inputs()[1]->data.template target<ossia::value_port>()->get_data();
+    if (!tempo.empty())
+    {
+      m_tempo = ossia::convert<double>(tempo.rbegin()->value);
+    }
+    auto& ts
+        = inputs()[2]->data.template target<ossia::value_port>()->get_data();
+    if (!ts.empty())
+    {
+      auto str = ts.rbegin()->value.template target<std::string>();
+      if (str)
+      {
+        if (auto sig = Control::get_time_signature(*str))
+          m_sig = *sig;
+      }
+    }
+    for (vst_control& p : controls)
+    {
+      const auto& vec = p.port->get_data();
+      if (vec.empty())
+        continue;
+      if (auto t = last(vec).template target<float>())
+      {
+        p.value = ossia::clamp<float>(*t, 0.f, 1.f);
+        fx->fx->setParameter(fx->fx, p.idx, p.value);
+      }
+    }
+  }
+
+  auto& prepareInput(std::size_t samples)
+  {
+    auto& ip = m_inlets[0]->data.template target<ossia::audio_port>()->samples;
+    if (ip.size() < 2)
+      ip.resize(2);
+    if (ip[0].size() < samples)
+    {
+      ip[0].resize(samples);
+    }
+    if (ip[1].size() < samples)
+    {
+      ip[1].resize(samples);
+    }
+    return ip;
+  }
+
+  auto& prepareOutput(std::size_t samples)
+  {
+    auto& op
+        = m_outlets[0]->data.template target<ossia::audio_port>()->samples;
+    op.resize(2);
+    for (auto& chan : op)
+      chan.resize(samples);
+    return op;
+  }
+
+  void setupTimeInfo(const ossia::token_request& tk, ossia::exec_state_facade st)
+  {
+    auto& time_info = fx->info;
+    time_info.samplePos = tk.date.impl;
+    time_info.sampleRate = st.sampleRate();
+    time_info.nanoSeconds = st.currentDate() - st.startDate();
+    time_info.tempo = m_tempo;
+    time_info.ppqPos
+        = (tk.date.impl / st.sampleRate()) * (60. / time_info.tempo);
+    time_info.barStartPos = 0.;
+    time_info.cycleStartPos = 0.;
+    time_info.cycleEndPos = 0.;
+    time_info.timeSigNumerator = m_sig.first;
+    time_info.timeSigDenominator = m_sig.second;
+    time_info.smpteOffset = 0;
+    time_info.smpteFrameRate = 0;
+    time_info.samplesToNextClock = 0;
+    time_info.flags = kVstTransportPlaying & kVstNanosValid & kVstPpqPosValid
+                      & kVstTempoValid & kVstTimeSigValid & kVstClockValid;
+  }
+};
+
+template <bool UseDouble, bool IsSynth>
+class vst_node final : public vst_node_base
+{
+public:
+  vst_node(std::shared_ptr<AEffectWrapper> dat, int sampleRate)
+      : vst_node_base{std::move(dat)}
+  {
+    // Midi or audio input
     if constexpr (IsSynth)
       m_inlets.push_back(ossia::make_inlet<ossia::midi_port>());
     else
       m_inlets.push_back(ossia::make_inlet<ossia::audio_port>());
 
-    m_inlets.push_back(ossia::make_inlet<ossia::value_port>()); // tempo
-    m_inlets.push_back(
-        ossia::make_inlet<ossia::value_port>()); // time signature
+    // tempo
+    m_inlets.push_back(ossia::make_inlet<ossia::value_port>());
+    // time signature
+    m_inlets.push_back(ossia::make_inlet<ossia::value_port>());
 
+    // audio output
     m_outlets.push_back(ossia::make_outlet<ossia::audio_port>());
 
     dispatch(effSetSampleRate, 0, sampleRate, nullptr, sampleRate);
-    dispatch(
-        effSetBlockSize, 0, 4096, nullptr, 4096); // Generalize what's in pd
+    dispatch(effSetBlockSize, 0, 4096, nullptr, 4096); // Generalize what's in pd
     dispatch(
         effSetProcessPrecision,
         0,
@@ -123,38 +215,6 @@ public:
     }
   }
 
-  void setControls()
-  {
-    auto& tempo
-        = inputs()[1]->data.template target<ossia::value_port>()->get_data();
-    if (!tempo.empty())
-    {
-      m_tempo = ossia::convert<double>(tempo.rbegin()->value);
-    }
-    auto& ts
-        = inputs()[2]->data.template target<ossia::value_port>()->get_data();
-    if (!ts.empty())
-    {
-      auto str = ts.rbegin()->value.template target<std::string>();
-      if (str)
-      {
-        if (auto sig = Control::get_time_signature(*str))
-          m_sig = *sig;
-      }
-    }
-    for (vst_control& p : controls)
-    {
-      const auto& vec = p.port->get_data();
-      if (vec.empty())
-        continue;
-      if (auto t = last(vec).template target<float>())
-      {
-        p.value = ossia::clamp<float>(*t, 0.f, 1.f);
-        fx->fx->setParameter(fx->fx, p.idx, p.value);
-      }
-    }
-  }
-
   // Note: the function that does the actual tick is passed as an argument
   // since some plug-ins only store pointers to VstEvents struct,
   // which would go out of scope if this function was just called like this.
@@ -199,53 +259,7 @@ public:
     f();
   }
 
-  auto& prepareInput(std::size_t samples)
-  {
-    auto& ip = m_inlets[0]->data.template target<ossia::audio_port>()->samples;
-    if (ip.size() < 2)
-      ip.resize(2);
-    if (ip[0].size() < samples)
-    {
-      ip[0].resize(samples);
-    }
-    if (ip[1].size() < samples)
-    {
-      ip[1].resize(samples);
-    }
-    return ip;
-  }
 
-  auto& prepareOutput(std::size_t samples)
-  {
-    auto& op
-        = m_outlets[0]->data.template target<ossia::audio_port>()->samples;
-    op.resize(2);
-    for (auto& chan : op)
-      chan.resize(samples);
-    return op;
-  }
-
-  void
-  setupTimeInfo(const ossia::token_request& tk, ossia::exec_state_facade st)
-  {
-    auto& time_info = fx->info;
-    time_info.samplePos = tk.date.impl;
-    time_info.sampleRate = st.sampleRate();
-    time_info.nanoSeconds = st.currentDate() - st.startDate();
-    time_info.tempo = m_tempo;
-    time_info.ppqPos
-        = (tk.date.impl / st.sampleRate()) * (60. / time_info.tempo);
-    time_info.barStartPos = 0.;
-    time_info.cycleStartPos = 0.;
-    time_info.cycleEndPos = 0.;
-    time_info.timeSigNumerator = m_sig.first;
-    time_info.timeSigDenominator = m_sig.second;
-    time_info.smpteOffset = 0;
-    time_info.smpteFrameRate = 0;
-    time_info.samplesToNextClock = 0;
-    time_info.flags = kVstTransportPlaying & kVstNanosValid & kVstPpqPosValid
-                      & kVstTempoValid & kVstTimeSigValid & kVstClockValid;
-  }
   void
   run(ossia::token_request tk, ossia::exec_state_facade st) noexcept override
   {

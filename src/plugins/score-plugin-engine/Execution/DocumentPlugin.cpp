@@ -172,7 +172,7 @@ void DocumentPlugin::on_finished()
   {
     for (auto& con : v.second)
     {
-      QObject::disconnect(con);
+      QObject::disconnect(con.second);
     }
   }
   m_setup_ctx.runtime_connections.clear();

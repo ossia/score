@@ -74,6 +74,15 @@ void Model::setDriver(Audio::AudioFactory::ConcreteKey val)
 
   QSettings s;
   s.setValue(Parameters::Driver.key, QVariant::fromValue(m_Driver));
+  // Special case for dummy driver: set reasonable values
+  if(m_Driver == Audio::AudioFactory::ConcreteKey{score::uuids::string_generator::compute("13dabcc3-9cda-422f-a8c7-5fef5c220677")})
+  {
+    m_Rate = 44100;
+    s.setValue(Parameters::Rate.key, QVariant::fromValue(m_Rate));
+
+    m_BufferSize = 1024;
+    s.setValue(Parameters::BufferSize.key, QVariant::fromValue(m_BufferSize));
+  }
 }
 
 SCORE_SETTINGS_PARAMETER_CPP(QString, Model, CardIn)

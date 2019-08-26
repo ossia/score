@@ -290,19 +290,20 @@ void SetupContext::register_node_impl(
 
     for (std::size_t i = 0; i < n_inlets; i++)
     {
-      runtime_connection.push_back(connect(
+      Process::Inlet* score_port = proc_inlets[i];
+      runtime_connection[score_port->id()] = connect(
           proc_inlets[i],
           &Process::Port::addressChanged,
           this,
           [this,
            port = node->inputs()[i]](const State::AddressAccessor& address) {
             set_destination(address, port);
-          }));
+          });
       SCORE_ASSERT(node->inputs()[i]);
       set_destination_impl(
-          context, proc_inlets[i]->address(), node->inputs()[i], exec);
+          context, score_port->address(), node->inputs()[i], exec);
 
-      inlets.insert({proc_inlets[i], std::make_pair(node, node->inputs()[i])});
+      inlets.insert({score_port, std::make_pair(node, node->inputs()[i])});
 
       exec([this, port = node->inputs()[i]] {
         context.execState->register_inlet(*port);
@@ -311,20 +312,21 @@ void SetupContext::register_node_impl(
 
     for (std::size_t i = 0; i < n_outlets; i++)
     {
-      runtime_connection.push_back(connect(
-          proc_outlets[i],
+      Process::Outlet* score_port = proc_outlets[i];
+      runtime_connection[score_port->id()] = connect(
+          score_port,
           &Process::Port::addressChanged,
           this,
           [this,
            port = node->outputs()[i]](const State::AddressAccessor& address) {
             set_destination(address, port);
-          }));
+          });
       SCORE_ASSERT(node->outputs()[i]);
       set_destination_impl(
-          context, proc_outlets[i]->address(), node->outputs()[i], exec);
+          context, score_port->address(), node->outputs()[i], exec);
 
       outlets.insert(
-          {proc_outlets[i], std::make_pair(node, node->outputs()[i])});
+          {score_port, std::make_pair(node, node->outputs()[i])});
     }
   }
 }
@@ -351,34 +353,116 @@ void SetupContext::register_node(
 }
 
 void SetupContext::register_inlet(
-    Process::Inlet& proc_inlet,
-    const ossia::inlet_ptr& port,
+    Process::Inlet& proc_port,
+    const ossia::inlet_ptr& ossia_port,
     const std::shared_ptr<ossia::graph_node>& node)
 {
   if (node)
   {
     auto& runtime_connection = runtime_connections[node];
-    SCORE_ASSERT(port);
-    runtime_connection.push_back(connect(
-        &proc_inlet,
-        &Process::Port::addressChanged,
-        this,
-        [this, port](const State::AddressAccessor& address) {
-          set_destination(address, port);
-        }));
-    set_destination(proc_inlet.address(), port);
+    SCORE_ASSERT(ossia_port);
+    auto& con = runtime_connection[proc_port.id()];
+    QObject::disconnect(con);
+    con = connect(
+          &proc_port,
+          &Process::Port::addressChanged,
+          this,
+          [this, ossia_port](const State::AddressAccessor& address) {
+      set_destination(address, ossia_port);
+    });
+    set_destination(proc_port.address(), ossia_port);
 
-    inlets.insert({&proc_inlet, std::make_pair(node, port)});
+    inlets.insert({&proc_port, std::make_pair(node, ossia_port)});
 
-    std::weak_ptr<ossia::graph_interface> wg = context.execGraph;
     std::weak_ptr<ossia::execution_state> ws = context.execState;
-    context.executionQueue.enqueue([wg, ws, port, node] {
+    context.executionQueue.enqueue([ws, ossia_port] {
       if (auto state = ws.lock())
-        state->register_inlet(*port);
-      if (auto g = wg.lock())
-        g->add_node(std::move(node));
+        state->register_inlet(*ossia_port);
     });
   }
+}
+
+void SetupContext::register_outlet(
+    Process::Outlet& proc_port,
+    const ossia::outlet_ptr& ossia_port,
+    const std::shared_ptr<ossia::graph_node>& node)
+{
+  if (node)
+  {
+    auto& runtime_connection = runtime_connections[node];
+    SCORE_ASSERT(ossia_port);
+    auto& con = runtime_connection[proc_port.id()];
+    QObject::disconnect(con);
+    con = connect(
+          &proc_port,
+          &Process::Port::addressChanged,
+          this,
+          [this, ossia_port](const State::AddressAccessor& address) {
+      set_destination(address, ossia_port);
+    });
+    set_destination(proc_port.address(), ossia_port);
+
+    outlets.insert({&proc_port, std::make_pair(node, ossia_port)});
+
+    // Unneeded : the execution_state only needs inlets to be registered,
+    // in order to set up data value queues from the network thread
+
+    // std::weak_ptr<ossia::execution_state> ws = context.execState;
+    // context.executionQueue.enqueue([ws, ossia_port] {
+    //   if (auto state = ws.lock())
+    //     state->register_outlet(*ossia_port);
+    // });
+  }
+}
+
+void SetupContext::unregister_inlet(
+    const Process::Inlet& proc_port,
+    const std::shared_ptr<ossia::graph_node>& node)
+{
+  if (node)
+  {
+    auto& runtime_connection = runtime_connections[node];
+    auto it = runtime_connection.find(proc_port.id());
+    if(it != runtime_connection.end())
+    {
+      QObject::disconnect(it->second);
+      runtime_connection.erase(it);
+    }
+
+    auto ossia_port_it = inlets.find(const_cast<Process::Inlet*>(&proc_port));
+    if(ossia_port_it != inlets.end())
+    {
+      std::weak_ptr<ossia::execution_state> ws = context.execState;
+      context.executionQueue.enqueue([ws, ossia_port=ossia_port_it.value().second] {
+        if (auto state = ws.lock())
+          state->unregister_inlet(*ossia_port);
+      });
+
+      inlets.erase(ossia_port_it);
+    }
+  }
+  else
+  {
+    inlets.erase(const_cast<Process::Inlet*>(&proc_port));
+  }
+}
+
+void SetupContext::unregister_outlet(
+    const Process::Outlet& proc_port,
+    const std::shared_ptr<ossia::graph_node>& node)
+{
+  if (node)
+  {
+    auto& runtime_connection = runtime_connections[node];
+    auto it = runtime_connection.find(proc_port.id());
+    if(it != runtime_connection.end())
+    {
+      QObject::disconnect(it->second);
+      runtime_connection.erase(it);
+    }
+  }
+
+  outlets.erase(const_cast<Process::Outlet*>(&proc_port));
 }
 
 void SetupContext::unregister_node(
@@ -397,7 +481,7 @@ void SetupContext::unregister_node(
 
     for (const auto& con : runtime_connections[node])
     {
-      QObject::disconnect(con);
+      QObject::disconnect(con.second);
     }
     runtime_connections.erase(node);
 
@@ -427,7 +511,7 @@ void SetupContext::unregister_node(
 
     for (const auto& con : runtime_connections[node])
     {
-      QObject::disconnect(con);
+      QObject::disconnect(con.second);
     }
     runtime_connections.erase(node);
 
@@ -449,7 +533,7 @@ void SetupContext::unregister_node_soft(
   {
     for (const auto& con : runtime_connections[node])
     {
-      QObject::disconnect(con);
+      QObject::disconnect(con.second);
     }
     runtime_connections.erase(node);
 

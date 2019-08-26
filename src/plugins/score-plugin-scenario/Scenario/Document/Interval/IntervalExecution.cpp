@@ -431,6 +431,8 @@ ProcessComponent* IntervalComponentBase::make(
   {
     qDebug() << "Error while creating a process";
   }
+
+  qDebug() << "Could not create process for " << proc.metaObject()->className();
   return nullptr;
 }
 

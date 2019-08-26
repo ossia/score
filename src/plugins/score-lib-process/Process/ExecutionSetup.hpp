@@ -42,10 +42,6 @@ struct SCORE_LIB_PROCESS_EXPORT SetupContext final : public QObject
       const Process::Inlets& inlets,
       const Process::Outlets& outlets,
       const std::shared_ptr<ossia::graph_node>& node);
-  void register_inlet(
-      Process::Inlet& inlet,
-      const ossia::inlet_ptr& exec,
-      const std::shared_ptr<ossia::graph_node>& node);
   void unregister_node(
       const Process::Inlets& inlets,
       const Process::Outlets& outlets,
@@ -54,12 +50,28 @@ struct SCORE_LIB_PROCESS_EXPORT SetupContext final : public QObject
       const Process::Inlets& inlets,
       const Process::Outlets& outlets,
       const std::shared_ptr<ossia::graph_node>& node);
+
   void set_destination(
       const State::AddressAccessor& address,
       const ossia::inlet_ptr&);
   void set_destination(
       const State::AddressAccessor& address,
       const ossia::outlet_ptr&);
+
+  void register_inlet(
+      Process::Inlet& inlet,
+      const ossia::inlet_ptr& exec,
+      const std::shared_ptr<ossia::graph_node>& node);
+  void register_outlet(
+      Process::Outlet& outlet,
+      const ossia::outlet_ptr& exec,
+      const std::shared_ptr<ossia::graph_node>& node);
+  void unregister_inlet(
+      const Process::Inlet& inlet,
+      const std::shared_ptr<ossia::graph_node>& node);
+  void unregister_outlet(
+      const Process::Outlet& outlet,
+      const std::shared_ptr<ossia::graph_node>& node);
 
   // Deferred versions, stored in a vec
   void register_node(
@@ -96,7 +108,8 @@ struct SCORE_LIB_PROCESS_EXPORT SetupContext final : public QObject
 
   score::hash_map<
       std::shared_ptr<ossia::graph_node>,
-      std::vector<QMetaObject::Connection>>
+      score::hash_map<Id<Process::Port>, QMetaObject::Connection>
+  >
       runtime_connections;
   score::hash_map<const ossia::graph_node*, const Process::ProcessModel*>
       proc_map;

@@ -5,6 +5,7 @@
 #include <Media/Effect/Faust/FaustUtils.hpp>
 #include <Process/Dataflow/PortFactory.hpp>
 #include <Process/ExecutionContext.hpp>
+#include <Process/ExecutionSetup.hpp>
 
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/tools/IdentifierGeneration.hpp>
@@ -452,7 +453,28 @@ FaustEffectComponent::FaustEffectComponent(
   };
   do_reload();
   connect(&proc, &Media::Faust::FaustEffectModel::changed,
-          this, do_reload);
+          this, [=] {
+    auto& ctx = system();
+    Execution::SetupContext& setup = ctx.setup;
+    auto old_node = this->node;
+
+    if(old_node)
+    {
+      setup.unregister_node(process(), this->node);
+    }
+    do_reload();
+    if(this->node)
+    {
+      setup.register_node(process(), this->node);
+      std::vector<ExecutionCommand> commands;
+      nodeChanged(old_node, this->node, commands);
+      // TODO add a "exec all commands macro
+      in_exec([f = std::move(commands)] {
+        for (auto& cmd : f)
+          cmd();
+      });
+    }
+  });
 }
 
 void FaustEffectComponent::reloadSynth()

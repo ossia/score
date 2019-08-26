@@ -80,6 +80,7 @@ void VSTGraphicsSlider::paint(
     QWidget* widget)
 {
   char str[256]{};
+  m_value = fx->getParameter(fx, num);
   fx->dispatcher(fx, effGetParamDisplay, num, 0, str, m_value);
   score::DefaultGraphicsSliderImpl::paint(
       *this, score::Skin::instance(), QString::fromUtf8(str), painter, widget);
