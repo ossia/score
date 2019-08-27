@@ -179,10 +179,10 @@ struct DefaultGraphicsKnobImpl
   {
     QTimer::singleShot(0, [&, pos] {
       auto w = new DoubleSpinboxWithEnter;
-      w->setRange(self.map(self.min), self.map(self.max));
+      w->setRange(self.min, self.max);
 
       w->setDecimals(6);
-      w->setValue(self.map(self.m_value * (self.max - self.min) + self.min));
+      w->setValue(self.map(self.m_value));
       auto obj = self.scene()->addWidget(
           w, Qt::WindowStaysOnTopHint | Qt::FramelessWindowHint);
       obj->setPos(pos);
@@ -194,8 +194,7 @@ struct DefaultGraphicsKnobImpl
           SignalUtils::QDoubleSpinBox_valueChanged_double(),
           &self,
           [=, &self](double v) {
-            self.m_value
-                = (self.unmap(v) - self.min) / (self.max - self.min);
+            self.m_value = self.unmap(v);
             self.valueChanged(self.m_value);
             self.sliderMoved();
             self.update();

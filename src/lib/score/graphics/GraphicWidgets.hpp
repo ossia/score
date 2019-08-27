@@ -233,8 +233,8 @@ private:
 public:
   QGraphicsLogKnob(QGraphicsItem* parent);
 
-  static double map(double v) { return std::exp2(v); }
-  static double unmap(double v) { return std::log2(v); }
+  double map(double v) const noexcept;
+  double unmap(double v) const noexcept;
 
   void setRect(const QRectF& r);
   void setValue(double v);
@@ -285,8 +285,8 @@ public:
   void setValue(double v);
   double value() const;
 
-  static double map(double v) { return std::exp2(v); }
-  static double unmap(double v) { return std::log2(v); }
+  double map(double v) const noexcept;
+  double unmap(double v) const noexcept;
 
   bool moving = false;
 
