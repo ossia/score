@@ -311,6 +311,12 @@ double QGraphicsLogSlider::value() const
   return m_value;
 }
 
+double QGraphicsLogSlider::map(double v) const noexcept
+{ return ossia::normalized_to_log(min, max-min, v); }
+
+double QGraphicsLogSlider::unmap(double v) const noexcept
+{ return ossia::log_to_normalized(min, max-min, v); }
+
 void QGraphicsLogSlider::mousePressEvent(QGraphicsSceneMouseEvent* event)
 {
   DefaultGraphicsSliderImpl::mousePressEvent(*this, event);
@@ -373,6 +379,11 @@ double QGraphicsLogKnob::value() const
   return m_value;
 }
 
+double QGraphicsLogKnob::map(double v) const noexcept
+{ return ossia::normalized_to_log(min, max-min, v); }
+
+double QGraphicsLogKnob::unmap(double v) const noexcept
+{ return ossia::log_to_normalized(min, max-min, v); }
 
 void QGraphicsLogKnob::mousePressEvent(QGraphicsSceneMouseEvent* event)
 {
