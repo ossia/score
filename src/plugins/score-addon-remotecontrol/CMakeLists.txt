@@ -1,11 +1,11 @@
-cmake_minimum_required(VERSION 3.1)
 project(score_addon_remotecontrol LANGUAGES CXX)
 
 find_package(Qt5 5.12 REQUIRED COMPONENTS WebSockets)
-###  General initialization of always necessary stuff (AUTOMOC, etc) ###
+
+# General initialization
 score_common_setup()
 
-### Files & main target ###
+# Source files
 set(HDRS
   "RemoteControl/Scenario/Event.hpp"
   "RemoteControl/Scenario/State.hpp"

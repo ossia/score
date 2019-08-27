@@ -139,8 +139,8 @@ private:
 public:
   QGraphicsSlider(QGraphicsItem* parent);
 
-  static constexpr double map(double v) { return v; }
-  static constexpr double unmap(double v) { return v; }
+  double unmap(double v) const noexcept { return (v - min) / (max - min); }
+  double map(double v) const noexcept { return (v * (max - min)) + min; }
 
   void setValue(double v);
   double value() const;
@@ -185,8 +185,8 @@ private:
 public:
   QGraphicsKnob(QGraphicsItem* parent);
 
-  static constexpr double map(double v) { return v; }
-  static constexpr double unmap(double v) { return v; }
+  double unmap(double v) const noexcept { return (v - min) / (max - min); }
+  double map(double v) const noexcept { return (v * (max - min)) + min; }
 
   void setRect(const QRectF& r);
   void setValue(double v);
