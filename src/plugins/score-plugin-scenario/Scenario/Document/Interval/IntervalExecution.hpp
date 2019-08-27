@@ -70,7 +70,6 @@ struct interval_duration_data
 class SCORE_PLUGIN_SCENARIO_EXPORT IntervalComponentBase
     : public Scenario::GenericIntervalComponent<const Context>
 {
-  W_OBJECT(IntervalComponentBase)
   COMMON_COMPONENT_METADATA("4d644678-1924-49bf-8c82-89841581d23f")
 public:
   using parent_t = Execution::Component;
@@ -131,6 +130,7 @@ public:
 
 protected:
   void on_processAdded(Process::ProcessModel& score_proc);
+  void recomputePropagate(const Process::ProcessModel& process, const Process::Port& port);
 
   std::shared_ptr<ossia::time_interval> m_ossia_interval;
   score::hash_map<Id<Process::ProcessModel>, std::shared_ptr<ProcessComponent>>

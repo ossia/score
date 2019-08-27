@@ -23,6 +23,7 @@ std::vector<ProcessDropHandler::ProcessDrop> ProcessDropHandler::getDrops(
   if (!commonFormats.isEmpty())
   {
     // Try to check if the handler has special code for handling mime data
+
     res = drop(mime, ctx);
     if (!res.empty())
       return res;

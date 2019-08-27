@@ -141,6 +141,7 @@ set(HDRS
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/Interval/IntervalModel.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/Interval/IntervalPresenter.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/Interval/IntervalView.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/Interval/IntervalExecutionHelpers.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/Interval/IntervalExecution.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/Interval/IntervalRawPtrExecution.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/Interval/ExecutionState.hpp"

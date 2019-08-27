@@ -24,12 +24,17 @@ public:
   std::vector<ProcessDrop>
   drop(const QMimeData& mime, const score::DocumentContext& ctx) const
       noexcept override
+  try
   {
     Mime<Process::ProcessData>::Deserializer des{mime};
 
     ProcessDrop p;
     p.creation = des.deserialize();
     return {p};
+  }
+  catch(...)
+  {
+    return {};
   }
 };
 
