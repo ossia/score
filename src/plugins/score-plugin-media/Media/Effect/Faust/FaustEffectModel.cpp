@@ -337,6 +337,7 @@ void FaustEffectModel::reload()
     }
   }
 
+  metadata().setLabel(m_declareName);
   inletsChanged();
   outletsChanged();
   changed();

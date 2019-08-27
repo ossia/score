@@ -7,7 +7,6 @@
 #include <ossia/dataflow/graph/graph_interface.hpp>
 #include <ossia/dataflow/graph_edge.hpp>
 #include <ossia/editor/scenario/time_interval.hpp>
-#include <bit>
 
 namespace Execution
 {

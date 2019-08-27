@@ -43,7 +43,18 @@ protected:
 
     auto& skin = score::Skin::instance();
     m_label = new score::SimpleTextItem{skin.Light.main, this};
-    m_label->setText(process.prettyShortName());
+
+    if(const auto& label = process.metadata().getLabel(); !label.isEmpty())
+      m_label->setText(label);
+    else
+      m_label->setText(process.prettyShortName());
+
+    con(process.metadata(), &score::ModelMetadata::LabelChanged,
+        this, [&] (const QString& label) {
+      if(!label.isEmpty()) m_label->setText(label);
+      else m_label->setText(process.prettyShortName());
+    });
+
     m_label->setFont(skin.Bold10Pt);
     m_label->setPos({12., 0});
 
