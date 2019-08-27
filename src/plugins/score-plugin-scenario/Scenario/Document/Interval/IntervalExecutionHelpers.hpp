@@ -113,7 +113,7 @@ struct AddProcess
     if (!oproc->node)
       return;
 
-    connectPropagated(oproc->node, cst->node, *g, propagated_outlets);
+    connectPropagated(oproc->node, cst_ptr->node, *g, propagated_outlets);
   }
 };
 

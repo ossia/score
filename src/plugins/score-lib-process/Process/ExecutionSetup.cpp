@@ -185,6 +185,9 @@ void set_destination_impl(
 {
   if (address.address.device.isEmpty())
     return;
+  auto& g = plug.execGraph;
+  if(!g)
+    return;
 
   auto& qual = address.qualifiers.get();
   if (auto n = findNode(*plug.execState, address.address))
@@ -192,7 +195,7 @@ void set_destination_impl(
     auto p = n->get_parameter();
     if (p)
     {
-      append([=, g = plug.execGraph] {
+      append([=] {
         port->address = p;
         if (ossia::value_port* dat
             = port->data.template target<ossia::value_port>())
@@ -206,19 +209,20 @@ void set_destination_impl(
     }
     else
     {
-      append([=, g = plug.execGraph] {
+      append([=] {
         port->address = n;
         g->mark_dirty();
       });
     }
   }
-  else if(auto ad = address.address.toString_unsafe().toStdString(); ossia::traversal::is_pattern(ad))
+  else if(auto ad = address.address.toString_unsafe().toStdString();
+          ossia::traversal::is_pattern(ad))
   {
     // OPTIMIZEME
     auto path = ossia::traversal::make_path(ad);
     if (path)
     {
-      append([=, g = plug.execGraph, p = *path]() mutable {
+      append([=, p = *path]() mutable {
         port->address = std::move(p);
         if (ossia::value_port* dat
             = port->data.template target<ossia::value_port>())
@@ -231,7 +235,7 @@ void set_destination_impl(
     }
     else
     {
-      append([=, g = plug.execGraph] {
+      append([=] {
         port->address = {};
         if (ossia::value_port* dat
             = port->data.template target<ossia::value_port>())
