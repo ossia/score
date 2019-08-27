@@ -5,6 +5,7 @@
 #include <Process/ExecutionSetup.hpp>
 #include <Process/Process.hpp>
 #include <Process/TimeValue.hpp>
+#include <Scenario/Document/Interval/IntervalExecutionHelpers.hpp>
 #include <Scenario/Document/Interval/IntervalDurations.hpp>
 #include <Scenario/Document/Interval/IntervalExecution.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
@@ -18,16 +19,12 @@
 
 #include <ossia/dataflow/graph/graph_interface.hpp>
 #include <ossia/dataflow/graph_edge.hpp>
-#include <ossia/detail/pod_vector.hpp>
-#include <ossia/editor/loop/loop.hpp>
-#include <ossia/editor/scenario/scenario.hpp>
 #include <ossia/editor/scenario/time_interval.hpp>
 #include <ossia/editor/scenario/time_value.hpp>
 
 #include <wobjectimpl.h>
 
 #include <utility>
-W_OBJECT_IMPL(Execution::IntervalComponentBase)
 W_OBJECT_IMPL(Execution::IntervalComponent)
 
 namespace Execution
@@ -291,19 +288,11 @@ ProcessComponent* IntervalComponentBase::make(
       m_processes.emplace(proc.id(), plug);
       SCORE_ASSERT(m_processes[proc.id()] == plug);
 
-      const auto& outlets = proc.outlets();
-      ossia::pod_vector<std::size_t> propagated_outlets;
-      for (std::size_t i = 0; i < outlets.size(); i++)
-      {
-        if (outlets[i]->propagate())
-          propagated_outlets.push_back(i);
-      }
-
+      // Node registration
       if (auto& onode = plug->node)
         ctx.setup.register_node(proc, onode);
 
-      auto cst = m_ossia_interval;
-
+      // Selection
       QObject::connect(
           &proc.selection,
           &Selectable::changed,
@@ -314,112 +303,22 @@ ProcessComponent* IntervalComponentBase::make(
                 n->set_logging(ok);
             });
           });
+
+      // Audio propagation
+      auto reconnectOutlets = ReconnectOutlets<IntervalComponentBase>{*this, proc, oproc, system().execGraph};
+
+      connect(& proc, &Process::ProcessModel::outletsChanged,
+              this, reconnectOutlets);
+      reconnectOutlets();
+
+      // Logging
       if (oproc->node)
         oproc->node->set_logging(proc.selection.get());
 
-      std::weak_ptr<ossia::time_process> oproc_weak = oproc;
-      std::weak_ptr<ossia::graph_interface> g_weak = plug->system().execGraph;
-      std::weak_ptr<ossia::graph_node> cst_node_weak = cst->node;
+      in_exec(AddProcess{m_ossia_interval, m_ossia_interval.get(), oproc, system().execGraph, propagatedOutlets(proc.outlets())});
 
-      in_exec(
-          [cst = m_ossia_interval, oproc_weak, g_weak, propagated_outlets] {
-            if (auto oproc = oproc_weak.lock())
-              if (auto g = g_weak.lock())
-              {
-                cst->add_time_process(oproc);
-                if (oproc->node)
-                {
-                  ossia::graph_node& n = *oproc->node;
-                  const auto& outs = n.outputs();
-                  for (std::size_t propagated : propagated_outlets)
-                  {
-                    if(propagated >= outs.size())
-                      continue;
-
-                    const auto& outlet = outs[propagated]->data;
-                    if (outlet.target<ossia::audio_port>())
-                    {
-                      auto cable = ossia::make_edge(
-                          ossia::immediate_glutton_connection{},
-                          outs[propagated],
-                          cst->node->inputs()[0],
-                          oproc->node,
-                          cst->node);
-                      g->connect(cable);
-                    }
-                  }
-                }
-              }
-          });
-
-      connect(
-          plug.get(),
-          &ProcessComponent::nodeChanged,
-          this,
-          [cst_node_weak, g_weak, oproc_weak, &proc](
-              const auto& old_node, const auto& new_node, auto& commands) {
-            const auto& outlets = proc.outlets();
-            ossia::pod_vector<std::size_t> propagated_outlets;
-            for (std::size_t i = 0; i < outlets.size(); i++)
-            {
-              if (outlets[i]->propagate())
-                propagated_outlets.push_back(i);
-            }
-
-            commands.push_back([cst_node_weak,
-                                g_weak,
-                                propagated_outlets,
-                                old_node,
-                                new_node] {
-              auto cst_node = cst_node_weak.lock();
-              if (!cst_node)
-                return;
-              auto g = g_weak.lock();
-              if (!g)
-                return;
-
-              // Remove edges from the old node
-              if (old_node)
-              {
-                ossia::graph_node& n = *old_node;
-                for (auto& outlet : n.outputs())
-                {
-                  auto targets = outlet->targets;
-                  for (auto e : targets)
-                  {
-                    if (e->in_node.get() == cst_node.get())
-                    {
-                      g->disconnect(e);
-                    }
-                  }
-                }
-              }
-
-              // Add edges to the new node
-              if (new_node)
-              {
-                ossia::graph_node& n = *new_node;
-                const auto& outs = n.outputs();
-                for (int propagated : propagated_outlets)
-                {
-                  if(propagated >= outs.size())
-                    continue;
-
-                  const auto& outlet = outs[propagated]->data;
-                  if (outlet.target<ossia::audio_port>())
-                  {
-                    auto cable = ossia::make_edge(
-                        ossia::immediate_glutton_connection{},
-                        outs[propagated],
-                        cst_node->inputs()[0],
-                        new_node,
-                        cst_node);
-                    g->connect(cable);
-                  }
-                }
-              }
-            });
-          });
+      connect(plug.get(), &ProcessComponent::nodeChanged,
+              this, HandleNodeChange{m_ossia_interval->node, oproc, system().execGraph, proc});
       return plug.get();
     }
   }
@@ -435,6 +334,8 @@ ProcessComponent* IntervalComponentBase::make(
   qDebug() << "Could not create process for " << proc.metaObject()->className();
   return nullptr;
 }
+
+
 
 std::function<void()> IntervalComponentBase::removing(
     const Process::ProcessModel& e,
