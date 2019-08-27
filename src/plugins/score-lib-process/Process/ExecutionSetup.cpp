@@ -183,11 +183,28 @@ void set_destination_impl(
     const T& port,
     Impl&& append)
 {
-  if (address.address.device.isEmpty())
-    return;
+  auto& s = plug.execState;
   auto& g = plug.execGraph;
   if(!g)
     return;
+
+  if (address.address.device.isEmpty())
+  {
+    append([=] {
+      if(port->address)
+      {
+        s->unregister_port(*port);
+        port->address = {};
+        if (ossia::value_port* dat = port->data.template target<ossia::value_port>())
+        {
+          dat->type = {};
+          dat->index = {};
+        }
+        g->mark_dirty();
+      }
+    });
+    return;
+  }
 
   auto& qual = address.qualifiers.get();
   if (auto n = findNode(*plug.execState, address.address))
@@ -196,6 +213,7 @@ void set_destination_impl(
     if (p)
     {
       append([=] {
+        s->unregister_port(*port);
         port->address = p;
         if (ossia::value_port* dat
             = port->data.template target<ossia::value_port>())
@@ -204,13 +222,16 @@ void set_destination_impl(
             dat->type = qual.unit;
           dat->index = qual.accessors;
         }
+        s->register_port(*port);
         g->mark_dirty();
       });
     }
     else
     {
       append([=] {
+        s->unregister_port(*port);
         port->address = n;
+        s->register_port(*port);
         g->mark_dirty();
       });
     }
@@ -223,6 +244,7 @@ void set_destination_impl(
     if (path)
     {
       append([=, p = *path]() mutable {
+        s->unregister_port(*port);
         port->address = std::move(p);
         if (ossia::value_port* dat
             = port->data.template target<ossia::value_port>())
@@ -230,12 +252,14 @@ void set_destination_impl(
           dat->type = {};
           dat->index.clear();
         }
+        s->register_port(*port);
         g->mark_dirty();
       });
     }
     else
     {
       append([=] {
+        s->unregister_port(*port);
         port->address = {};
         if (ossia::value_port* dat
             = port->data.template target<ossia::value_port>())
@@ -243,6 +267,8 @@ void set_destination_impl(
           dat->type = {};
           dat->index.clear();
         }
+        s->register_port(*port);
+        g->mark_dirty();
       });
     }
   }
@@ -310,7 +336,7 @@ void SetupContext::register_node_impl(
       inlets.insert({score_port, std::make_pair(node, node->inputs()[i])});
 
       exec([this, port = node->inputs()[i]] {
-        context.execState->register_inlet(*port);
+        context.execState->register_port(*port);
       });
     }
 
@@ -381,7 +407,7 @@ void SetupContext::register_inlet(
     std::weak_ptr<ossia::execution_state> ws = context.execState;
     context.executionQueue.enqueue([ws, ossia_port] {
       if (auto state = ws.lock())
-        state->register_inlet(*ossia_port);
+        state->register_port(*ossia_port);
     });
   }
 }
@@ -439,7 +465,7 @@ void SetupContext::unregister_inlet(
       std::weak_ptr<ossia::execution_state> ws = context.execState;
       context.executionQueue.enqueue([ws, ossia_port=ossia_port_it.value().second] {
         if (auto state = ws.lock())
-          state->unregister_inlet(*ossia_port);
+          state->unregister_port(*ossia_port);
       });
 
       inlets.erase(ossia_port_it);

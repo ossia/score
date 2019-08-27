@@ -153,9 +153,6 @@ QWidget* PortWidgetSetup::makeAddressWidget(
         if (newAddr.address == port.address())
           return;
 
-        if (newAddr.address.address.path.isEmpty())
-          return;
-
         CommandDispatcher<>{ctx.dispatcher}.submit(
             new Process::ChangePortAddress{port, newAddr.address});
       });
