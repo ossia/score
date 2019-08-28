@@ -103,6 +103,41 @@ public:
   Process::Inlet* inlet(const Id<Process::Port>&) const noexcept;
   Process::Outlet* outlet(const Id<Process::Port>&) const noexcept;
 
+  // Clip duration things
+  bool loops() const noexcept
+  { return m_loops; }
+  void setLoops(bool b) {
+    if(b != m_loops) {
+      m_loops = b;
+      loopsChanged(b);
+    }
+  }
+  void loopsChanged(bool b)
+      E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, loopsChanged, b)
+
+  TimeVal startOffset() const noexcept
+  { return m_startOffset; }
+  void setStartOffset(TimeVal b) {
+    if(b != m_startOffset) {
+      m_startOffset = b;
+      startOffsetChanged(b);
+    }
+  }
+  void startOffsetChanged(TimeVal b)
+      E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, startOffsetChanged, b)
+
+  TimeVal loopDuration() const noexcept
+  { return m_loopDuration; }
+  void setLoopDuration(TimeVal b) {
+    if(b != m_loopDuration) {
+      m_loopDuration = b;
+      startOffsetChanged(b);
+    }
+  }
+  void loopDurationChanged(TimeVal b)
+  E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, loopDurationChanged, b)
+
+
   // FIXME ugh
   QWidget* externalUI{};
 
@@ -154,8 +189,11 @@ protected:
   Process::Outlets m_outlets;
 
 private:
-  TimeVal m_duration;
+  TimeVal m_duration{};
   double m_slotHeight{}; //! Height in full view
+  TimeVal m_startOffset{};
+  TimeVal m_loopDuration{};
+  bool m_loops{};
 };
 
 SCORE_LIB_PROCESS_EXPORT
