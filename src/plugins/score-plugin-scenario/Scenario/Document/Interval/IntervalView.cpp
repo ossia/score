@@ -13,6 +13,7 @@
 #include <Scenario/Process/ScenarioInterface.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
 
+#include <score/widgets/MimeData.hpp>
 #include <QCursor>
 #include <QDrag>
 #include <QMimeData>
