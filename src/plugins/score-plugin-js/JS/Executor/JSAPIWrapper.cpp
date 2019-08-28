@@ -104,7 +104,7 @@ QVariant ExecStateWrapper::read(const QString& address)
             mv[QString::fromStdString(addr->get_node().osc_address())]
                 = addr->value().apply(ossia::qt::ossia_to_qvariant{});
           }
-        });
+        }, ossia::do_nothing_for_nodes{});
     if (unique)
       return var;
     else
@@ -124,7 +124,7 @@ void ExecStateWrapper::write(const QString& address, const QVariant& value)
         devices.exec_devices(),
         [&](ossia::net::parameter_base* addr, bool unique) {
           devices.insert(*addr, ossia::typed_value{val});
-        });
+        }, ossia::do_nothing_for_nodes{});
   }
 }
 }
