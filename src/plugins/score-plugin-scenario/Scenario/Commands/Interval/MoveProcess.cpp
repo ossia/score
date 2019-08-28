@@ -7,6 +7,7 @@
 #include <Scenario/Process/ScenarioInterface.hpp>
 #include <Scenario/Settings/ScenarioSettingsModel.hpp>
 
+#include <score/application/ApplicationContext.hpp>
 #include <score/document/ChangeId.hpp>
 #include <score/model/path/ObjectPath.hpp>
 #include <score/model/path/PathSerialization.hpp>

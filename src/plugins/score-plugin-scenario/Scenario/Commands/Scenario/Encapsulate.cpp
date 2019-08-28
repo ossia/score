@@ -6,6 +6,7 @@
 #include <Scenario/Process/Algorithms/Accessors.hpp>
 #include <Scenario/Process/ScenarioGlobalCommandManager.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
+#include <score/command/Dispatchers/CommandDispatcher.hpp>
 namespace Scenario
 {
 

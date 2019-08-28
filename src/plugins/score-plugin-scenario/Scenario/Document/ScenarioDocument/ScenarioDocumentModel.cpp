@@ -2,53 +2,17 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 
 #include "ScenarioDocumentModel.hpp"
-
-#include <Process/LayerPresenter.hpp>
-#include <Process/Process.hpp>
-#include <Scenario/Application/ScenarioApplicationPlugin.hpp>
 #include <Scenario/Commands/Interval/AddOnlyProcessToInterval.hpp>
-#include <Scenario/Commands/Interval/Rack/AddSlotToRack.hpp>
-#include <Scenario/Commands/Interval/Rack/Slot/AddLayerModelToSlot.hpp>
-#include <Scenario/Commands/Interval/Rack/Slot/ResizeSlotVertically.hpp>
-#include <Scenario/Commands/Scenario/ShowRackInViewModel.hpp>
 #include <Scenario/Document/BaseScenario/BaseScenario.hpp>
-#include <Scenario/Document/DisplayedElements/DisplayedElementsModel.hpp>
-#include <Scenario/Document/DisplayedElements/DisplayedElementsProviderList.hpp>
-#include <Scenario/Document/Event/EventModel.hpp>
-#include <Scenario/Document/Interval/IntervalDurations.hpp>
-#include <Scenario/Document/Interval/IntervalModel.hpp>
-#include <Scenario/Document/Interval/Slot.hpp>
-#include <Scenario/Document/Interval/Temporal/TemporalIntervalPresenter.hpp>
-#include <Scenario/Document/ScenarioDocument/ProcessFocusManager.hpp>
-#include <Scenario/Document/ScenarioDocument/ScenarioDocumentPresenter.hpp>
-#include <Scenario/Document/State/StateModel.hpp>
-#include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
-#include <Scenario/Process/ScenarioModel.hpp>
-#include <Scenario/Process/ScenarioProcessMetadata.hpp>
 #include <Scenario/Settings/ScenarioSettingsModel.hpp>
-
-#include <score/application/ApplicationContext.hpp>
-#include <score/document/DocumentContext.hpp>
-#include <score/document/DocumentInterface.hpp>
-#include <score/model/EntityMap.hpp>
-#include <score/model/IdentifiedObject.hpp>
-#include <score/model/Identifier.hpp>
-#include <score/plugins/StringFactoryKey.hpp>
-#include <score/plugins/documentdelegate/DocumentDelegateModel.hpp>
-#include <score/selection/SelectionDispatcher.hpp>
-#include <score/selection/SelectionStack.hpp>
+#include <Scenario/Process/ScenarioModel.hpp>
 #include <score/tools/IdentifierGeneration.hpp>
-#include <score/tools/std/Optional.hpp>
-
-#include <core/document/Document.hpp>
+#include <score/selection/SelectionDispatcher.hpp>
 
 #include <QFileInfo>
-#include <QObject>
-
 #include <wobjectimpl.h>
 
-#include <algorithm>
-#include <chrono>
+
 W_OBJECT_IMPL(Scenario::ScenarioDocumentModel)
 namespace Process
 {

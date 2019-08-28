@@ -1,6 +1,7 @@
 #if !defined(SCORE_ALL_UNITY) && !defined(__MINGW32__)
 
 #include <Scenario/Instantiations.hpp>
+#include <Scenario/PresenterInstantiations.hpp>
 
 template class SCORE_PLUGIN_SCENARIO_EXPORT
     score::EntityMap<Scenario::IntervalModel>;
