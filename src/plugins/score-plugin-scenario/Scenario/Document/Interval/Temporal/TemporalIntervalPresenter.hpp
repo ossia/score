@@ -47,7 +47,6 @@ public:
   void updateScaling() override;
   void updateHeight();
 
-  int indexOfSlot(const Process::LayerPresenter&);
   void on_zoomRatioChanged(ZoomRatio val) override;
 
   void changeRackState();

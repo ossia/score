@@ -88,8 +88,8 @@ void ScenarioViewInterface::on_intervalMoved(
   cstr_view.setMinWidth(
       cstr_model.duration.minDuration().toPixels(msPerPixel));
   cstr_view.setMaxWidth(
-      cstr_model.duration.maxDuration().isInfinite(),
-      cstr_model.duration.maxDuration().isInfinite()
+      cstr_model.duration.isMaxInfinite(),
+      cstr_model.duration.isMaxInfinite()
           ? -1
           : cstr_model.duration.maxDuration().toPixels(msPerPixel));
 

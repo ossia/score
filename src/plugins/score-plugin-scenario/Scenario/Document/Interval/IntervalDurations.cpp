@@ -82,7 +82,7 @@ void IntervalDurations::setMaxDuration(const TimeVal& arg)
     m_maxDuration = arg;
     maxDurationChanged(arg);
 
-    if (m_guiDuration < m_maxDuration && !m_maxDuration.isInfinite())
+    if (m_guiDuration < m_maxDuration && !m_isMaxInfinite)
       setGuiDuration(m_maxDuration * 1.1);
 
     checkConsistency();
@@ -208,21 +208,24 @@ IntervalDurations::Algorithms::changeAllDurations(
     const auto delta = time - d.defaultDuration();
     d.m_defaultDuration = time;
 
+    // FIXME ! why is there m_isMaxInfinite and m_maxDuration.isInfinite() ?!
     if(!d.m_isMinNull)
       d.m_minDuration += delta;
-    d.m_maxDuration += delta;
+
+    if(!d.m_isMaxInfinite)
+      d.m_maxDuration += delta;
 
     if(d.m_minDuration < TimeVal::zero())
       d.m_minDuration = TimeVal::zero();
 
-    if(d.m_maxDuration <= d.m_defaultDuration)
+    if(d.m_maxDuration <= d.m_defaultDuration && !d.m_isMaxInfinite)
 //      d.m_maxDuration = TimeVal{std::nextafter(d.m_defaultDuration.msec(), d.m_defaultDuration.msec() * 2.)};
       d.m_maxDuration = d.m_defaultDuration * 1.05; //TimeVal{std::nextafter(d.m_defaultDuration.msec(), d.m_defaultDuration.msec() * 2.)};
 
     if (d.m_guiDuration < d.m_defaultDuration)
       d.m_guiDuration = time * 1.1;
 
-    if (d.m_guiDuration < d.m_maxDuration && !d.m_maxDuration.isInfinite())
+    if (d.m_guiDuration < d.m_maxDuration && !d.m_isMaxInfinite)
       d.m_guiDuration = d.m_maxDuration * 1.1;
 
 

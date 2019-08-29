@@ -7,6 +7,7 @@
 
 #include <Process/TimeValue.hpp>
 #include <Process/ZoomHelper.hpp>
+#include <Scenario/Document/Interval/LayerData.hpp>
 #include <Scenario/Document/Interval/IntervalDurations.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/Interval/Temporal/Braces/LeftBrace.hpp>
@@ -18,6 +19,7 @@
 #include <score/tools/Bind.hpp>
 #include <score/tools/std/Optional.hpp>
 
+#include <QDebug>
 #include <qnamespace.h>
 
 #include <wobjectimpl.h>
@@ -111,7 +113,7 @@ void IntervalPresenter::on_minDurationChanged(const TimeVal& min)
 void IntervalPresenter::on_maxDurationChanged(const TimeVal& max)
 {
   auto x = max.toPixels(m_zoomRatio);
-  m_view->setMaxWidth(max.isInfinite(), max.isInfinite() ? -1 : x);
+  m_view->setMaxWidth(m_model.duration.isMaxInfinite(), m_model.duration.isMaxInfinite() ? -1 : x);
   m_view->rightBrace().setX(x + 2);
   updateBraces();
 }

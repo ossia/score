@@ -42,8 +42,6 @@
 #include <QMenu>
 #include <QPoint>
 
-#include <algorithm>
-
 namespace Scenario
 {
 void ScenarioContextMenuManager::createProcessSelectorContextMenu(
@@ -71,29 +69,6 @@ void ScenarioContextMenuManager::createProcessSelectorContextMenu(
       cmd.redo(ctx);
     });
     menu.addAction(procAct);
-  }
-}
-
-void ScenarioContextMenuManager::createLayerContextMenuForProcess(
-    QMenu& menu,
-    QPoint pos,
-    QPointF scenepos,
-    const Process::LayerContextMenuManager& lcmmgr,
-    Process::LayerPresenter& pres)
-{
-  using namespace score;
-
-  // Fill with slot actions
-  if (auto small_view
-      = dynamic_cast<TemporalIntervalPresenter*>(pres.parent()))
-  {
-    auto& context = pres.context().context;
-    // if (context.selectionStack.currentSelection().toList().isEmpty())
-    {
-      // auto slotSubmenu = menu.addMenu(tr("Slot"));
-      ScenarioContextMenuManager::createProcessSelectorContextMenu(
-          context, menu, *small_view, small_view->indexOfSlot(pres));
-    }
   }
 }
 }

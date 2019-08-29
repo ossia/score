@@ -9,6 +9,7 @@
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/Interval/IntervalPresenter.hpp>
 #include <Scenario/Document/Interval/IntervalView.hpp>
+#include <Scenario/Document/Interval/LayerData.hpp>
 #include <Scenario/Document/Interval/Temporal/TemporalIntervalPresenter.hpp>
 
 #include <score/model/path/PathSerialization.hpp>
@@ -105,7 +106,7 @@ void SlotHeader::mousePressEvent(QGraphicsSceneMouseEvent* event)
   }
   else if (
       boundingRect().contains(event->pos())
-      && m_presenter.getSlots()[m_slotIndex].processes.size() > 1)
+      && m_presenter.getSlots()[m_slotIndex].layers.size() > 1)
   {
     if (const auto tip
         = dynamic_cast<const TemporalIntervalPresenter*>(&m_presenter))
@@ -153,10 +154,10 @@ void SlotHeader::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
     slot_header_drag->setMimeData(mime);
 
     auto& slot = m_presenter.getSlots()[m_slotIndex];
-    if(!slot.processes.empty())
+    if(!slot.layers.empty())
     {
-      auto view = slot.processes.front().view;
-      slot_header_drag->setPixmap(view->pixmap().scaledToWidth(50));
+      auto& view = slot.layers.front();
+      slot_header_drag->setPixmap(view.pixmap().scaledToWidth(50));
       slot_header_drag->setHotSpot(QPoint(5, 5));
     }
 

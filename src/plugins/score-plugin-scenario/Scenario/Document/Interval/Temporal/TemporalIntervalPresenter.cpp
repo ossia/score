@@ -23,6 +23,7 @@
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/Interval/IntervalPresenter.hpp>
 #include <Scenario/Document/Interval/SlotHandle.hpp>
+#include <Scenario/Document/Interval/LayerData.hpp>
 #include <Scenario/Document/Interval/Temporal/TemporalIntervalView.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
@@ -551,17 +552,17 @@ void TemporalIntervalPresenter::createLayer(
     int slot,
     const Process::ProcessModel& proc)
 {
+  SCORE_ABORT;
   if (m_model.smallViewVisible())
   {
     const auto& procKey = proc.concreteKey();
 
     auto factory = m_context.processList.findDefaultFactory(procKey);
     auto proc_view = factory->makeLayerView(proc, m_view);
-    auto proc_pres
-        = factory->makeLayerPresenter(proc, proc_view, m_context, this);
+    auto proc_pres = factory->makeLayerPresenter(proc, proc_view, m_context, this);
     proc_pres->on_zoomRatioChanged(m_zoomRatio);
-    m_slots.at(slot).processes.push_back(
-        LayerData{&proc, proc_pres, proc_view});
+    m_slots.at(slot).layers.push_back(
+        LayerData{&proc});
 
     auto con_id = con(
         proc,
@@ -572,11 +573,11 @@ void TemporalIntervalPresenter::createLayer(
           for (const SlotPresenter& slot : m_slots)
           {
             auto it
-                = ossia::find_if(slot.processes, [&](const LayerData& elt) {
-                    return elt.model->id() == proc.id();
+                = ossia::find_if(slot.layers, [&](const LayerData& ld) {
+                    return ld.model().id() == proc.id();
                   });
 
-            if (it != slot.processes.end())
+            if (it != slot.layers.end())
               updateProcessShape(i, *it);
             i++;
           }
@@ -603,16 +604,16 @@ void TemporalIntervalPresenter::createLayer(
 
 void TemporalIntervalPresenter::updateProcessShape(
     int slot,
-    const LayerData& data)
+    const LayerData& ld)
 {
   if (m_model.smallViewVisible())
   {
-    data.presenter->setHeight(m_model.smallView().at(slot).height);
+    ld.setHeight(m_model.smallView().at(slot).height);
 
     auto width = m_model.duration.defaultDuration().toPixels(m_zoomRatio);
-    data.presenter->setWidth(width, width);
-    data.presenter->parentGeometryChanged();
-    data.view->update();
+    ld.setWidth(width, width);
+    ld.parentGeometryChanged();
+    ld.update();
   }
 }
 
@@ -622,17 +623,11 @@ void TemporalIntervalPresenter::removeLayer(const Process::ProcessModel& proc)
   {
     for (SlotPresenter& slot : m_slots)
     {
-      ossia::remove_erase_if(slot.processes, [&](const LayerData& elt) {
-        bool to_delete = elt.model->id() == proc.id();
+      ossia::remove_erase_if(slot.layers, [&](LayerData& ld) {
+        bool to_delete = ld.model().id() == proc.id();
 
         if (to_delete)
-        {
-          // No need to delete the view, the process presenters already do it.
-          QPointer<Process::LayerView> view_p{elt.view};
-          delete elt.presenter;
-          if (view_p)
-            deleteGraphicsItem(elt.view);
-        }
+          ld.cleanup();
 
         return to_delete;
       });
@@ -658,9 +653,9 @@ void TemporalIntervalPresenter::updateProcessesShape()
   {
     for (int i = 0; i < (int)m_slots.size(); i++)
     {
-      for (const LayerData& proc : m_slots[i].processes)
+      for (const LayerData& ld : m_slots[i].layers)
       {
-        updateProcessShape(i, proc);
+        updateProcessShape(i, ld);
       }
     }
   }
@@ -679,7 +674,7 @@ void TemporalIntervalPresenter::updatePositions()
   const bool sv = m_model.smallViewVisible();
   for (int i = 0; i < (int)m_slots.size(); i++)
   {
-    const SlotPresenter& slot = m_slots[i];
+    SlotPresenter& slot = m_slots[i];
     const Slot& model = m_model.smallView()[i];
 
     if (slot.header)
@@ -691,10 +686,10 @@ void TemporalIntervalPresenter::updatePositions()
 
     if(sv)
     {
-      for (const LayerData& proc : slot.processes)
+      for (LayerData& ld : slot.layers)
       {
-        proc.view->setPos(QPointF{0, currentSlotY});
-        proc.view->update();
+        ld.updatePositions(currentSlotY, 0);
+        ld.update();
       }
       currentSlotY += model.height;
     }
@@ -727,16 +722,16 @@ void TemporalIntervalPresenter::on_layerModelPutToFront(
     // switching...
     SlotPresenter& slt = m_slots.at(slot);
     slt.cleanupHeaderFooter();
-    for (const LayerData& elt : slt.processes)
+    for (const LayerData& ld : slt.layers)
     {
-      if (elt.model->id() == proc.id())
+      if (ld.model().id() == proc.id())
       {
         auto factory = m_context.processList.findDefaultFactory(
-            elt.model->concreteKey());
-        elt.presenter->putToFront();
-        elt.view->setZValue(2);
+            ld.model().concreteKey());
+        ld.putToFront();
+        ld.setZValue(2);
         {
-        slt.headerDelegate = factory->makeHeaderDelegate(*elt.model, m_context, elt.presenter);
+        slt.headerDelegate = factory->makeHeaderDelegate(ld.model(), m_context, ld.mainPresenter());
         slt.headerDelegate->setParentItem(slt.header);
         slt.headerDelegate->setFlag(QGraphicsItem::GraphicsItemFlag::ItemClipsToShape);
         slt.headerDelegate->setFlag(QGraphicsItem::GraphicsItemFlag::ItemClipsChildrenToShape);
@@ -744,7 +739,7 @@ void TemporalIntervalPresenter::on_layerModelPutToFront(
         }
 
         {
-        slt.footerDelegate = factory->makeFooterDelegate(*elt.model, m_context);
+        slt.footerDelegate = factory->makeFooterDelegate(ld.model(), m_context);
         slt.footerDelegate->setParentItem(slt.footer);
         slt.footerDelegate->setFlag(QGraphicsItem::GraphicsItemFlag::ItemClipsToShape);
         slt.footerDelegate->setFlag(QGraphicsItem::GraphicsItemFlag::ItemClipsChildrenToShape);
@@ -756,8 +751,8 @@ void TemporalIntervalPresenter::on_layerModelPutToFront(
       }
       else
       {
-        elt.presenter->putBehind();
-        elt.view->setZValue(1);
+        ld.putBehind();
+        ld.setZValue(1);
       }
     }
   }
@@ -769,11 +764,11 @@ void TemporalIntervalPresenter::on_layerModelPutToBack(
 {
   if (m_model.smallViewVisible())
   {
-    for (const LayerData& elt : m_slots.at(slot).processes)
+    for (const LayerData& ld : m_slots.at(slot).layers)
     {
-      if (elt.model->id() == proc.id())
+      if (ld.model().id() == proc.id())
       {
-        elt.presenter->putBehind();
+        ld.putBehind();
         return;
       }
     }
@@ -825,17 +820,18 @@ void TemporalIntervalPresenter::updateScaling()
   updateHeight();
 }
 
-void TemporalIntervalPresenter::on_zoomRatioChanged(ZoomRatio val)
+void TemporalIntervalPresenter::on_zoomRatioChanged(ZoomRatio ratio)
 {
-  IntervalPresenter::on_zoomRatioChanged(val);
+  IntervalPresenter::on_zoomRatioChanged(ratio);
+  auto guiWidth = m_model.duration.guiDuration().toPixels(ratio);
 
-  for (const SlotPresenter& slot : m_slots)
+  for (SlotPresenter& slot : m_slots)
   {
     if (slot.headerDelegate)
-      slot.headerDelegate->on_zoomRatioChanged(val);
-    for (const LayerData& proc : slot.processes)
+      slot.headerDelegate->on_zoomRatioChanged(ratio);
+    for (LayerData& ld : slot.layers)
     {
-      proc.presenter->on_zoomRatioChanged(val);
+      ld.on_zoomRatioChanged(m_context, ratio, guiWidth, m_view, this);
     }
   }
 
@@ -854,7 +850,7 @@ void TemporalIntervalPresenter::selectedSlot(int i) const
   score::SelectionDispatcher disp{m_context.selectionStack};
   SCORE_ASSERT(size_t(i) < m_slots.size());
   auto& slot = m_slots[i];
-  if (slot.processes.empty())
+  if (slot.layers.empty())
   {
     disp.setAndCommit({&m_model});
   }
@@ -889,15 +885,15 @@ void TemporalIntervalPresenter::requestSlotMenu(
   if (const auto& proc = m_model.getSmallViewSlot(slot).frontProcess)
   {
     const SlotPresenter& slt = m_slots.at(slot);
-    for (auto& p : slt.processes)
+    for (auto& p : slt.layers)
     {
-      if (p.model->id() == proc)
+      if (p.model().id() == proc)
       {
         auto menu = new QMenu;
         auto& reg = score::GUIAppContext()
                         .guiApplicationPlugin<ScenarioApplicationPlugin>()
                         .layerContextMenuRegistrar();
-        p.presenter->fillContextMenu(*menu, pos, sp, reg);
+        p.fillContextMenu(*menu, pos, sp, reg);
         menu->exec(pos);
         menu->close();
         menu->deleteLater();
@@ -938,18 +934,14 @@ void TemporalIntervalPresenter::requestProcessSelectorMenu(
   if (const auto& proc = m_model.getSmallViewSlot(slot).frontProcess)
   {
     const SlotPresenter& slt = m_slots.at(slot);
-    for (auto& p : slt.processes)
+    for (auto& p : slt.layers)
     {
-      if (p.model->id() == proc)
+      if (p.model().id() == proc)
       {
         auto menu = new QMenu;
-        auto& reg = score::GUIAppContext()
-                        .guiApplicationPlugin<ScenarioApplicationPlugin>()
-                        .layerContextMenuRegistrar();
-        ScenarioContextMenuManager::createLayerContextMenuForProcess(
-            *menu, pos, sp, reg, *p.presenter);
+        ScenarioContextMenuManager::createProcessSelectorContextMenu(
+              context(), *menu, *this, slot);
         menu->exec(pos);
-        // menu->close();
         menu->deleteLater();
         break;
       }
@@ -971,29 +963,11 @@ void TemporalIntervalPresenter::on_defaultDurationChanged(const TimeVal& val)
   {
     setHeaderWidth(slot, w);
 
-    for (const LayerData& proc : slot.processes)
+    for (const LayerData& ld : slot.layers)
     {
-      proc.presenter->setWidth(w, w);
+      ld.setWidth(w, w);
     }
   }
-}
-
-int TemporalIntervalPresenter::indexOfSlot(const Process::LayerPresenter& proc)
-{
-  if (m_model.smallViewVisible())
-  {
-    for (int i = 0; i < (int)m_slots.size(); ++i)
-    {
-      const auto& p = m_slots[i].processes;
-      for (int j = 0; j < (int)p.size(); j++)
-      {
-        if (p[j].presenter == &proc)
-          return i;
-      }
-    }
-  }
-
-  SCORE_ABORT;
 }
 
 void TemporalIntervalPresenter::on_processesChanged(

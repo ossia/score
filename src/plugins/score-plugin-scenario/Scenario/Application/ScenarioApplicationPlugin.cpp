@@ -27,6 +27,7 @@
 #include <Scenario/Document/DisplayedElements/DisplayedElementsPresenter.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/Interval/Slot.hpp>
+#include <Scenario/Document/Interval/LayerData.hpp>
 #include <Scenario/Document/ScenarioDocument/ProcessFocusManager.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
 #include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
@@ -365,7 +366,7 @@ void ScenarioApplicationPlugin::on_documentChanged(
       if (!cst_pres->getSlots().empty())
       {
         focusManager->focus(
-            cst_pres->getSlots().front().processes.front().presenter);
+            cst_pres->getSlots().front().layers.front().mainPresenter());
       }
     }
   }

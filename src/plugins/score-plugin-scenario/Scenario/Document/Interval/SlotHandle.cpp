@@ -1,10 +1,10 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
-#include "IntervalPresenter.hpp"
 #include "SlotPresenter.hpp"
 
 #include <Process/LayerView.hpp>
 #include <Process/LayerPresenter.hpp>
+#include <Scenario/Document/Interval/LayerData.hpp>
 #include <score/graphics/GraphicsItem.hpp>
 
 #include <QPointer>
@@ -52,14 +52,10 @@ void SlotPresenter::cleanup(QGraphicsScene* sc)
     footer = nullptr;
   }
 
-  for (LayerData& layer : processes)
+  for (LayerData& ld : layers)
   {
-    // The presenter will delete their views
-    QPointer<Process::LayerView> view_p{layer.view};
-    delete layer.presenter;
-    if (view_p)
-      delete layer.view;
+    ld.cleanup();
   }
-  processes.clear();
+  layers.clear();
 }
 }

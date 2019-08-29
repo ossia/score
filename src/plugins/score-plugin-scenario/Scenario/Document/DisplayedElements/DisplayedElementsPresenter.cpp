@@ -14,6 +14,7 @@
 #include <Scenario/Document/Interval/IntervalDurations.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/Interval/IntervalView.hpp>
+#include <Scenario/Document/Interval/LayerData.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentPresenter.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentView.hpp>
@@ -182,9 +183,9 @@ void DisplayedElementsPresenter::showInterval()
   auto& rack = m_intervalPresenter->getSlots();
   if (!rack.empty())
   {
-    auto& procs = rack.front().processes;
+    auto& procs = rack.front().layers;
     if (!procs.empty())
-      requestFocusedPresenterChange(procs.front().presenter);
+      requestFocusedPresenterChange(procs.front().mainPresenter());
     // TODO else ??
   }
 

@@ -10,6 +10,7 @@ set(PROCESS_HDRS
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Commands/ProcessCommandFactory.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Commands/EditPort.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Commands/SetControlValue.hpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Process/Commands/Properties.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Instantiations.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/ExecutionFunctions.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/ExpandMode.hpp"
