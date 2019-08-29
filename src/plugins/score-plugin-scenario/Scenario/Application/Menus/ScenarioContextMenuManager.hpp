@@ -31,12 +31,5 @@ public:
       QMenu& menu,
       const TemporalIntervalPresenter& slotp,
       int slot_index);
-
-  static void createLayerContextMenuForProcess(
-      QMenu& menu,
-      QPoint pos,
-      QPointF scenepos,
-      const Process::LayerContextMenuManager& lcmmgr,
-      Process::LayerPresenter& pres);
 };
 }

@@ -42,7 +42,7 @@ IntervalSummaryWidget::IntervalSummaryWidget(
                           ? QStringLiteral("0")
                           : object.duration.minDuration().toString())
                    % tr(" to ")
-                   % (object.duration.maxDuration().isInfinite()
+                   % (object.duration.isMaxInfinite()
                           ? QStringLiteral("inf")
                           : object.duration.maxDuration().toString());
     auto l4 = new TextLabel{text};

@@ -44,13 +44,14 @@ void FullViewIntervalView::drawPaths(
 
   const qreal min_w = minWidth();
   const qreal max_w = maxWidth();
+  const qreal gui_w = m_guiWidth;
   const qreal def_w = defaultWidth();
   const qreal play_w = playWidth();
   const auto& solidPen = skin.IntervalSolidPen(defaultColor);
   const auto& dashPen = skin.IntervalDashPen(defaultColor);
 
   const auto& solidPlayPen = skin.IntervalSolidPen(skin.IntervalPlayFill());
-  const auto dashPlayPen = skin.IntervalDashPen(skin.IntervalPlayFill());
+  const auto& dashPlayPen = skin.IntervalDashPen(skin.IntervalPlayFill());
   const auto& waitingPlayPen = skin.IntervalDashPen(skin.IntervalWaitingDashFill());
 
   // Paths
@@ -67,7 +68,7 @@ void FullViewIntervalView::drawPaths(
       // TODO end state should be hidden
       {
         p.setPen(dashPen);
-        p.drawLine(QPointF{min_w, 0}, QPointF{def_w, 0.});
+        p.drawLine(QPointF{min_w, 0}, QPointF{gui_w, 0.});
       }
     }
     else if (min_w == max_w) // TODO rigid()
@@ -225,6 +226,8 @@ void FullViewIntervalView::paint(
 
   auto& painter = *p;
   auto& skin = Process::Style::instance();
+
+  painter.setBrush(skin.NoBrush());
   painter.setRenderHint(QPainter::Antialiasing, false);
 
   const auto& defaultColor = this->intervalColor(skin);
@@ -233,8 +236,8 @@ void FullViewIntervalView::paint(
   drawPaths(painter, visibleRect, defaultColor, skin);
 
 #if defined(SCORE_SCENARIO_DEBUG_RECTS)
-  p.setPen(Qt::red);
-  p.drawRect(boundingRect());
+  painter.setPen(Qt::red);
+  painter.drawRect(boundingRect());
 #endif
 }
 

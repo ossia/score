@@ -41,7 +41,7 @@ void ScenarioValidityChecker::checkValidity(const ProcessModel& scenar)
     SCORE_ASSERT(
         (qFuzzyCompare(dur.defaultDuration().msec(), dur.maxDuration().msec()))
           || dur.defaultDuration() < dur.maxDuration()
-          || dur.maxDuration().isInfinite());
+          || dur.isMaxInfinite());
 
     for(auto& slot : interval.smallView())
     {

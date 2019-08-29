@@ -9,6 +9,23 @@
 
 namespace score
 {
+/**
+ * @brief The TimeSpinBox class
+ *
+ * Adapted for the score usage in various duration widgets.
+ */
+class TimeSpinBox final : public QTimeEdit
+{
+public:
+  TimeSpinBox(QWidget* parent = nullptr) : QTimeEdit(parent)
+  {
+    setDisplayFormat(QStringLiteral("h.mm.ss.zzz"));
+    setAlignment(Qt::AlignRight);
+  }
+
+  void wheelEvent(QWheelEvent* event) override { event->ignore(); }
+};
+
 template <typename T>
 /**
  * @brief The TemplatedSpinBox class
@@ -91,20 +108,4 @@ public:
   }
 };
 
-/**
- * @brief The TimeSpinBox class
- *
- * Adapted for the score usage in various duration widgets.
- */
-class TimeSpinBox final : public QTimeEdit
-{
-public:
-  TimeSpinBox(QWidget* parent = nullptr) : QTimeEdit(parent)
-  {
-    setDisplayFormat(QStringLiteral("h.mm.ss.zzz"));
-    setAlignment(Qt::AlignRight);
-  }
-
-  void wheelEvent(QWheelEvent* event) override { event->ignore(); }
-};
 }

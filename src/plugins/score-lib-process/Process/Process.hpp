@@ -106,36 +106,24 @@ public:
   // Clip duration things
   bool loops() const noexcept
   { return m_loops; }
-  void setLoops(bool b) {
-    if(b != m_loops) {
-      m_loops = b;
-      loopsChanged(b);
-    }
-  }
+  void setLoops(bool b);
   void loopsChanged(bool b)
       E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, loopsChanged, b)
+  PROPERTY(bool, loops READ loops WRITE setLoops NOTIFY loopsChanged)
 
   TimeVal startOffset() const noexcept
   { return m_startOffset; }
-  void setStartOffset(TimeVal b) {
-    if(b != m_startOffset) {
-      m_startOffset = b;
-      startOffsetChanged(b);
-    }
-  }
+  void setStartOffset(TimeVal b);
   void startOffsetChanged(TimeVal b)
       E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, startOffsetChanged, b)
+  PROPERTY(TimeVal, startOffset READ startOffset WRITE setStartOffset NOTIFY startOffsetChanged)
 
   TimeVal loopDuration() const noexcept
   { return m_loopDuration; }
-  void setLoopDuration(TimeVal b) {
-    if(b != m_loopDuration) {
-      m_loopDuration = b;
-      startOffsetChanged(b);
-    }
-  }
+  void setLoopDuration(TimeVal b);
   void loopDurationChanged(TimeVal b)
   E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, loopDurationChanged, b)
+  PROPERTY(TimeVal, loopDuration READ loopDuration WRITE setLoopDuration NOTIFY loopDurationChanged)
 
 
   // FIXME ugh

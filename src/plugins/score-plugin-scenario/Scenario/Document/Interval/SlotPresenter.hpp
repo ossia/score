@@ -15,7 +15,7 @@ struct SlotPresenter
   Process::HeaderDelegate* headerDelegate{};
   SlotFooter* footer{};
   Process::FooterDelegate* footerDelegate{};
-  std::vector<LayerData> processes;
+  std::vector<LayerData> layers;
 
   void cleanupHeaderFooter();
   void cleanup(QGraphicsScene* sc);

@@ -36,6 +36,9 @@ ProcessModel::ProcessModel(
     , m_duration{std::move(duration)}
     , m_slotHeight{300}
 {
+  m_loops = true;
+  m_loopDuration = TimeVal::fromMsecs(1000);
+  m_startOffset = TimeVal::fromMsecs(150);
   con(metadata(), &score::ModelMetadata::NameChanged, this, [=] {
     prettyNameChanged();
   });
@@ -178,6 +181,33 @@ Process::Outlet* ProcessModel::outlet(const Id<Process::Port>& p) const
     if (e->id() == p)
       return e;
   return nullptr;
+}
+
+void ProcessModel::setLoops(bool b)
+{
+  if(b != m_loops)
+  {
+    m_loops = b;
+    loopsChanged(b);
+  }
+}
+
+void ProcessModel::setStartOffset(TimeVal b)
+{
+  if(b != m_startOffset)
+  {
+    m_startOffset = b;
+    startOffsetChanged(b);
+  }
+}
+
+void ProcessModel::setLoopDuration(TimeVal b)
+{
+  if(b != m_loopDuration)
+  {
+    m_loopDuration = b;
+    loopDurationChanged(b);
+  }
 }
 
 double ProcessModel::getSlotHeight() const noexcept

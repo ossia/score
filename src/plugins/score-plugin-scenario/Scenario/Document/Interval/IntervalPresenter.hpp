@@ -14,9 +14,6 @@
 namespace Process
 {
 struct ProcessPresenterContext;
-class ProcessModel;
-class LayerPresenter;
-class LayerView;
 }
 
 namespace Scenario
@@ -24,27 +21,6 @@ namespace Scenario
 class IntervalHeader;
 class IntervalModel;
 class IntervalView;
-class EventPresenter;
-
-struct LayerData
-{
-  LayerData() = default;
-  LayerData(const LayerData&) = default;
-  LayerData(LayerData&&) = default;
-  LayerData& operator=(const LayerData&) = default;
-  LayerData& operator=(LayerData&&) = default;
-  LayerData(
-      const Process::ProcessModel* m,
-      Process::LayerPresenter* p,
-      Process::LayerView* v)
-      : model(m), presenter(p), view(v)
-  {
-  }
-
-  const Process::ProcessModel* model{};
-  Process::LayerPresenter* presenter{};
-  Process::LayerView* view{};
-};
 
 class SCORE_PLUGIN_SCENARIO_EXPORT IntervalPresenter : public QObject,
                                                        public Nano::Observer
@@ -105,6 +81,9 @@ public:
       heightPercentageChanged) // The vertical position
 
 protected:
+  void updateChildren();
+  void updateBraces();
+
   // Process presenters are in the slot presenters.
   const IntervalModel& m_model;
 
@@ -113,8 +92,6 @@ protected:
   IntervalHeader* m_header{};
   const Process::ProcessPresenterContext& m_context;
 
-  void updateChildren();
-  void updateBraces();
   std::vector<SlotPresenter> m_slots;
 };
 
