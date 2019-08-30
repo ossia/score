@@ -29,7 +29,7 @@ void DefaultClock::prepareExecution(const TimeVal& t, BaseScenarioElement& bs)
 
     // Send the first state
     const auto& oc = comp.OSSIAInterval();
-    oc->get_start_event().tick(ossia::Zero, 0., ossia::Zero);
+    oc->get_start_event().tick(ossia::Zero, ossia::Zero);
     context.execGraph->state(*context.execState);
 
     if (t != TimeVal::zero())
@@ -82,7 +82,7 @@ ControlClock::ControlClock(const Execution::Context& ctx)
   m_clock.set_exec_status_callback([=](ossia::clock::exec_status c) {
     if (c == ossia::clock::exec_status::STOPPED)
     {
-      scenario.endEvent().OSSIAEvent()->tick(ossia::Zero, 0., ossia::Zero);
+      scenario.endEvent().OSSIAEvent()->tick(ossia::Zero, ossia::Zero);
       context.execGraph->state(*context.execState);
       context.execState->commit();
 

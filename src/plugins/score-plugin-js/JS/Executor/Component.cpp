@@ -83,7 +83,7 @@ struct js_process final : public ossia::node_process
   {
     QMetaObject::invokeMethod(js().m_object, "resume", Qt::DirectConnection);
   }
-  void transport(ossia::time_value date, double pos) override
+  void transport_impl(ossia::time_value date, double pos) override
   {
     QMetaObject::invokeMethod(
         js().m_object,
@@ -92,7 +92,7 @@ struct js_process final : public ossia::node_process
         Q_ARG(QVariant, double(date)),
         Q_ARG(QVariant, pos));
   }
-  void offset(ossia::time_value date, double pos) override
+  void offset_impl(ossia::time_value date, double pos) override
   {
     QMetaObject::invokeMethod(
         js().m_object,

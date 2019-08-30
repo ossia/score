@@ -22,13 +22,13 @@ struct node_graph_process final : public ossia::time_process
     m_lastDate = ossia::Zero;
   }
 
-  void state(
-      ossia::time_value from, ossia::time_value to, double relative_position,
+  void state_impl(
+      ossia::time_value from, ossia::time_value to, ossia::time_value parent_duration,
       ossia::time_value tick_offset, double speed) override
   {
     for (auto& process : processes)
     {
-      process->state(from, to, relative_position, tick_offset, speed);
+      process->state(from, to, parent_duration, tick_offset, speed);
     }
     m_lastDate = to;
   }
@@ -81,7 +81,7 @@ struct node_graph_process final : public ossia::time_process
     }
   }
 
-  void offset(time_value date, double pos) override
+  void offset_impl(time_value date, double pos) override
   {
     for (auto& process : processes)
     {
@@ -93,7 +93,7 @@ struct node_graph_process final : public ossia::time_process
     }
   }
 
-  void transport(ossia::time_value date, double pos) override
+  void transport_impl(ossia::time_value date, double pos) override
   {
     for (auto& process : processes)
     {
