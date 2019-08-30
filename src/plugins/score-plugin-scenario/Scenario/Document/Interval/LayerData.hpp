@@ -69,7 +69,6 @@ public:
   Process::LayerPresenter* mainPresenter() const noexcept;
   Process::LayerView* mainView() const noexcept;
 
-
   void cleanup();
   void addView(
       Process::LayerFactory& factory,
@@ -77,6 +76,10 @@ public:
       const Process::ProcessPresenterContext& context,
       QGraphicsItem* parentItem,
       QObject* parent);
+  void setupView(Layer& layer,
+                 int idx,
+                 qreal parentWidth, qreal parent_default_width,
+                 qreal w, qreal h);
 
   std::size_t count() const noexcept { return m_layers.size(); }
   void removeView(int i);
@@ -97,14 +100,16 @@ public:
   void on_zoomRatioChanged(
       const Process::ProcessPresenterContext& lst,
       ZoomRatio r,
-      qreal parentWidth,
+      qreal parentWidth, qreal parent_default_width,
+      qreal slot_height,
       QGraphicsItem* parentItem,
       QObject* parent);
 
   void updateLoops(
       const Process::ProcessPresenterContext& lst,
       ZoomRatio r,
-      qreal parentWidth,
+      qreal parentWidth, qreal parent_default_width,
+      qreal slot_height,
       QGraphicsItem* parentItem,
       QObject* parent);
 

@@ -119,11 +119,13 @@ void LayerData::putBehind() const
 void LayerData::on_zoomRatioChanged(
     const Process::ProcessPresenterContext& ctx,
     ZoomRatio r,
-    qreal parentWidth,
+    qreal parent_width,
+    qreal parent_default_width,
+    qreal slot_height,
     QGraphicsItem* parentItem,
     QObject* parent)
 {
-  updateLoops(ctx, r, parentWidth, parentItem, parent);
+  updateLoops(ctx, r, parent_width, parent_default_width, slot_height, parentItem, parent);
 
   for (const auto& p : m_layers)
   {
@@ -132,18 +134,38 @@ void LayerData::on_zoomRatioChanged(
   }
 }
 
+
+void LayerData::setupView(
+    LayerData::Layer& layer,
+    int idx,
+    qreal parent_width,
+    qreal parent_default_width,
+    qreal view_width,
+    qreal view_height)
+{
+  layer.view->setX(m_layers.front().view->pos().x());
+
+  layer.container->setX(view_width * idx);
+  layer.container->setRect({0., 0., view_width, view_height});
+
+  layer.presenter->setWidth(parent_width, parent_default_width);
+  layer.presenter->setHeight(view_height);
+  layer.presenter->parentGeometryChanged();
+}
+
 void LayerData::updateLoops(
     const Process::ProcessPresenterContext& ctx,
     ZoomRatio r,
-    qreal parentWidth,
+    qreal parent_width,
+    qreal parent_default_width,
+    qreal slot_height,
     QGraphicsItem* parentItem,
     QObject* parent)
 {
   if (m_model->loops())
   {
-    auto view_width = m_model->loopDuration().toPixels(r);
-    auto num_views
-        = std::max((int)1, (int)std::ceil(parentWidth / view_width));
+    const auto view_width = m_model->loopDuration().toPixels(r);
+    const auto num_views = std::max((int)1, (int)std::ceil(parent_width / view_width));
     if ((int)m_layers.size() < num_views)
     {
       int missing = num_views - m_layers.size();
@@ -153,23 +175,38 @@ void LayerData::updateLoops(
       for(int i = 0; i < missing; i++)
       {
         addView(*f, r, ctx, parentItem, parent);
-        m_layers.back().container->setX(view_width * m_layers.size());
-        m_layers.back().container->setRect({0., 0., view_width, m_layers.front().container->rect().height()});
-
-        const auto view_w = m_layers.front().view->boundingRect().width();
-        m_layers.back().presenter->setWidth(view_w, view_w);
-        m_layers.back().presenter->setHeight(m_layers.front().view->boundingRect().height());
-        m_layers.back().view->setX(m_layers.front().view->pos().x());
-        m_layers.back().presenter->parentGeometryChanged();
       }
     }
     else
     {
-      for(int i = (int) m_layers.size() - 1; i > num_views; i--)
+      for(int i = int(m_layers.size()) - 1; i > num_views; i--)
         removeView(i);
     }
 
-    updateXPositions(view_width);
+    // Update sizes for everyone
+    for(int i = 0; i <int(m_layers.size()); i++)
+    {
+      setupView(m_layers[i], i, parent_width, parent_default_width, view_width, slot_height);
+    }
+  }
+  else
+  {
+    if(m_layers.empty())
+    {
+      // Initial case
+      auto f = ctx.processList.findDefaultFactory(m_model->concreteKey());
+      SCORE_ASSERT(f);
+
+      addView(*f, r, ctx, parentItem, parent);
+    }
+    else
+    {
+      for(int i =  int(m_layers.size()) - 1; i > 0; i--)
+        removeView(i);
+    }
+
+    // Update sizes for first layer
+    setupView(m_layers.front(), 0, parent_width, parent_default_width, parent_width, slot_height);
   }
 }
 
@@ -283,6 +320,9 @@ QRectF LayerRectItem::boundingRect() const
 
 void LayerRectItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
+  //painter->setPen(Qt::blue);
+  //painter->setBrush(Qt::NoBrush);
+  //painter->drawRect(m_rect);
   painter->setPen(score::Skin::instance().DarkGray.main.pen_cosmetic);
   painter->drawLine(m_rect.width(), 0., m_rect.width(), m_rect.height());
 }

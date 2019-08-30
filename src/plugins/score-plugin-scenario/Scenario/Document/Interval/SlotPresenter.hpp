@@ -7,7 +7,7 @@
 
 namespace Scenario
 {
-struct LayerData;
+class LayerData;
 class SlotHeader;
 struct SlotPresenter
 {

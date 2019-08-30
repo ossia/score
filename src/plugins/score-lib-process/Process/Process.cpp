@@ -35,10 +35,8 @@ ProcessModel::ProcessModel(
     : Entity{id, name, parent}
     , m_duration{std::move(duration)}
     , m_slotHeight{300}
+    , m_loopDuration{TimeVal::fromMsecs(1000)}
 {
-  m_loops = true;
-  m_loopDuration = TimeVal::fromMsecs(1000);
-  m_startOffset = TimeVal::fromMsecs(150);
   con(metadata(), &score::ModelMetadata::NameChanged, this, [=] {
     prettyNameChanged();
   });
@@ -203,6 +201,10 @@ void ProcessModel::setStartOffset(TimeVal b)
 
 void ProcessModel::setLoopDuration(TimeVal b)
 {
+  auto ms = b.msec();
+  if(ms < 1000)
+    ms = 1000;
+  b = TimeVal::fromMsecs(ms);
   if(b != m_loopDuration)
   {
     m_loopDuration = b;

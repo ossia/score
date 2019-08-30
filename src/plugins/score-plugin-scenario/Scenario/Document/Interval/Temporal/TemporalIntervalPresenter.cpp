@@ -824,15 +824,20 @@ void TemporalIntervalPresenter::on_zoomRatioChanged(ZoomRatio ratio)
 {
   IntervalPresenter::on_zoomRatioChanged(ratio);
   auto guiWidth = m_model.duration.guiDuration().toPixels(ratio);
+  auto defWidth = m_model.duration.defaultDuration().toPixels(ratio);
 
+  int i = 0;
   for (SlotPresenter& slot : m_slots)
   {
+    const auto slot_height = m_model.smallView()[i].height;
+
     if (slot.headerDelegate)
       slot.headerDelegate->on_zoomRatioChanged(ratio);
     for (LayerData& ld : slot.layers)
     {
-      ld.on_zoomRatioChanged(m_context, ratio, guiWidth, m_view, this);
+      ld.on_zoomRatioChanged(m_context, ratio, guiWidth, defWidth, slot_height, m_view, this);
     }
+    i++;
   }
 
   updateProcessesShape();
