@@ -110,6 +110,7 @@ TemporalIntervalView::TemporalIntervalView(
     QGraphicsItem* parent)
     : IntervalView{presenter, parent}
 {
+  this->setFlag(ItemClipsChildrenToShape, true);
   this->setCacheMode(QGraphicsItem::NoCache);
   this->setParentItem(parent);
 

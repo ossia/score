@@ -549,21 +549,53 @@ void TemporalIntervalPresenter::createSmallSlot(int pos, const Slot& slt)
 }
 
 void TemporalIntervalPresenter::createLayer(
-    int slot,
+    int slot_i,
     const Process::ProcessModel& proc)
 {
-  SCORE_ABORT;
   if (m_model.smallViewVisible())
   {
-    const auto& procKey = proc.concreteKey();
+    auto& layers = m_slots.at(slot_i).layers;
+    LayerData& ld = layers.emplace_back(&proc);
 
-    auto factory = m_context.processList.findDefaultFactory(procKey);
-    auto proc_view = factory->makeLayerView(proc, m_view);
-    auto proc_pres = factory->makeLayerPresenter(proc, proc_view, m_context, this);
-    proc_pres->on_zoomRatioChanged(m_zoomRatio);
-    m_slots.at(slot).layers.push_back(
-        LayerData{&proc});
+    const auto def_width = m_model.duration.defaultDuration().toPixels(m_zoomRatio);
+    const auto slot_height = m_model.smallView().at(slot_i).height;
 
+    ld.updateLoops(m_context, m_zoomRatio, def_width, def_width, slot_height, m_view, this);
+
+    con(proc, &Process::ProcessModel::loopsChanged,
+        this, [this, slot_i] (bool b) {
+      SCORE_ASSERT(slot_i < m_slots.size());
+      auto& slt = this->m_slots[slot_i];
+
+      SCORE_ASSERT(!slt.layers.empty());
+      LayerData& ld = slt.layers.front();
+      const auto def_width = m_model.duration.defaultDuration().toPixels(m_zoomRatio);
+      const auto slot_height = m_model.smallView().at(slot_i).height;
+      ld.updateLoops(m_context, m_zoomRatio, def_width, def_width, slot_height, this->m_view, this);
+    });
+
+    con(proc, &Process::ProcessModel::startOffsetChanged,
+        this, [this, slot_i] {
+      SCORE_ASSERT(slot_i < m_slots.size());
+      auto& slot = this->m_slots[slot_i];
+
+      SCORE_ASSERT(!slot.layers.empty());
+      auto& ld = slot.layers.front();
+
+      ld.updateStartOffset(-ld.model().startOffset().toPixels(m_zoomRatio));
+    });
+    con(proc, &Process::ProcessModel::loopDurationChanged,
+        this, [this, slot_i] {
+      SCORE_ASSERT(slot_i < m_slots.size());
+      auto& slot = this->m_slots[slot_i];
+
+      SCORE_ASSERT(!slot.layers.empty());
+      auto& ld = slot.layers.front();
+      auto view_width = ld.model().loopDuration().toPixels(m_zoomRatio);
+      ld.updateXPositions(view_width);
+      ld.updateContainerWidths(view_width);
+    });
+/*
     auto con_id = con(
         proc,
         &Process::ProcessModel::durationChanged,
@@ -587,15 +619,15 @@ void TemporalIntervalPresenter::createLayer(
         &IdentifiedObjectAbstract::identified_object_destroying,
         this,
         [=] { QObject::disconnect(con_id); });
-
-    auto frontLayer = m_model.smallView().at(slot).frontProcess;
+*/
+    auto frontLayer = m_model.smallView().at(slot_i).frontProcess;
     if (frontLayer && (*frontLayer == proc.id()))
     {
-      on_layerModelPutToFront(slot, proc);
+      on_layerModelPutToFront(slot_i, proc);
     }
     else
     {
-      on_layerModelPutToBack(slot, proc);
+      on_layerModelPutToBack(slot_i, proc);
     }
 
     updatePositions();
@@ -608,7 +640,9 @@ void TemporalIntervalPresenter::updateProcessShape(
 {
   if (m_model.smallViewVisible())
   {
-    ld.setHeight(m_model.smallView().at(slot).height);
+    const auto h = m_model.smallView().at(slot).height;
+    ld.setHeight(h);
+    ld.updateContainerHeights(h);
 
     auto width = m_model.duration.defaultDuration().toPixels(m_zoomRatio);
     ld.setWidth(width, width);
@@ -627,7 +661,10 @@ void TemporalIntervalPresenter::removeLayer(const Process::ProcessModel& proc)
         bool to_delete = ld.model().id() == proc.id();
 
         if (to_delete)
+        {
+          LayerData::disconnect(ld.model(), *this);
           ld.cleanup();
+        }
 
         return to_delete;
       });
@@ -640,6 +677,10 @@ void TemporalIntervalPresenter::on_slotRemoved(int pos)
   if (pos < (int)m_slots.size())
   {
     SlotPresenter& slot = m_slots[pos];
+    for(auto& layer : slot.layers)
+    {
+      LayerData::disconnect(layer.model(), *this);
+    }
     slot.cleanup(this->view()->scene());
     m_slots.erase(m_slots.begin() + pos);
 
@@ -823,8 +864,7 @@ void TemporalIntervalPresenter::updateScaling()
 void TemporalIntervalPresenter::on_zoomRatioChanged(ZoomRatio ratio)
 {
   IntervalPresenter::on_zoomRatioChanged(ratio);
-  auto guiWidth = m_model.duration.guiDuration().toPixels(ratio);
-  auto defWidth = m_model.duration.defaultDuration().toPixels(ratio);
+  auto def_width = m_model.duration.defaultDuration().toPixels(ratio);
 
   int i = 0;
   for (SlotPresenter& slot : m_slots)
@@ -835,7 +875,7 @@ void TemporalIntervalPresenter::on_zoomRatioChanged(ZoomRatio ratio)
       slot.headerDelegate->on_zoomRatioChanged(ratio);
     for (LayerData& ld : slot.layers)
     {
-      ld.on_zoomRatioChanged(m_context, ratio, guiWidth, defWidth, slot_height, m_view, this);
+      ld.on_zoomRatioChanged(m_context, ratio, def_width, def_width, slot_height, m_view, this);
     }
     i++;
   }
@@ -964,13 +1004,17 @@ void TemporalIntervalPresenter::on_defaultDurationChanged(const TimeVal& val)
   ((TemporalIntervalHeader*)m_header)->update();
   updateBraces();
 
-  for (const SlotPresenter& slot : m_slots)
+  int i = 0;
+  for (SlotPresenter& slot : m_slots)
   {
     setHeaderWidth(slot, w);
+    const auto slot_height = m_model.smallView()[i].height;
+    i++;
 
-    for (const LayerData& ld : slot.layers)
+    for (LayerData& ld : slot.layers)
     {
       ld.setWidth(w, w);
+      ld.updateLoops(m_context, m_zoomRatio, w, w, slot_height, m_view, this);
     }
   }
 }

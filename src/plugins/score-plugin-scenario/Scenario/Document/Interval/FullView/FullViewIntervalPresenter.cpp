@@ -200,68 +200,27 @@ FullViewIntervalPresenter::~FullViewIntervalPresenter()
   delete view;
 }
 
-void FullViewIntervalPresenter::createSlot(int pos, const FullSlot& slt)
+void FullViewIntervalPresenter::createSlot(int slot_i, const FullSlot& slt)
 {
   // Create the slot
   {
     SlotPresenter p;
-    p.header = new SlotHeader{*this, pos, m_view};
-    p.footer = new AmovibleSlotFooter{*this, pos, m_view};
-    m_slots.insert(m_slots.begin() + pos, std::move(p));
+    p.header = new SlotHeader{*this, slot_i, m_view};
+    p.footer = new AmovibleSlotFooter{*this, slot_i, m_view};
+    m_slots.insert(m_slots.begin() + slot_i, std::move(p));
   }
 
   const auto& proc = m_model.processes.at(slt.process);
-  const auto& procKey = proc.concreteKey();
-
-  auto factory = m_context.processList.findDefaultFactory(procKey);
-
-  // TODO disconnect when the slot is removed
-  QObject::disconnect(&proc, &Process::ProcessModel::loopsChanged, this, nullptr);
-  QObject::disconnect(&proc, &Process::ProcessModel::startOffsetChanged, this, nullptr);
-  QObject::disconnect(&proc, &Process::ProcessModel::loopDurationChanged, this, nullptr);
-  con(proc, &Process::ProcessModel::loopsChanged,
-      this, [this, pos, factory] (bool b) {
-    SCORE_ASSERT(pos < m_slots.size());
-    auto& slt = this->m_slots[pos];
-
-    SCORE_ASSERT(!slt.layers.empty());
-    LayerData& ld = slt.layers.front();
-    const auto gui_width = m_model.duration.guiDuration().toPixels(m_zoomRatio);
-    const auto def_width = m_model.duration.defaultDuration().toPixels(m_zoomRatio);
-    const auto slot_height = ld.model().getSlotHeight();
-    ld.updateLoops(m_context, m_zoomRatio, gui_width, def_width, slot_height, this->m_view, this);
-  });
-
-  con(proc, &Process::ProcessModel::startOffsetChanged,
-      this, [this, pos] {
-    SCORE_ASSERT(pos < m_slots.size());
-    auto& slot = this->m_slots[pos];
-
-    SCORE_ASSERT(!slot.layers.empty());
-    auto& ld = slot.layers.front();
-
-    ld.updateStartOffset(-ld.model().startOffset().toPixels(m_zoomRatio));
-  });
-  con(proc, &Process::ProcessModel::loopDurationChanged,
-      this, [this, pos] {
-    SCORE_ASSERT(pos < m_slots.size());
-    auto& slot = this->m_slots[pos];
-
-    SCORE_ASSERT(!slot.layers.empty());
-    auto& ld = slot.layers.front();
-    auto view_width = ld.model().loopDuration().toPixels(m_zoomRatio);
-    ld.updateXPositions(view_width);
-    ld.updateContainerWidths(view_width);
-  });
 
   // Create a layer container
-  auto& slot = m_slots.at(pos);
-  slot.layers.push_back(LayerData{&proc});
-  auto& ld = slot.layers.back();
+  auto& slot = m_slots.at(slot_i);
+  auto& ld = slot.layers.emplace_back(&proc);
 
   // Create layers
-  auto gui_width = m_model.duration.guiDuration().toPixels(m_zoomRatio);
-  auto def_width = m_model.duration.defaultDuration().toPixels(m_zoomRatio);
+  const auto factory = m_context.processList.findDefaultFactory(proc.concreteKey());
+
+  const auto gui_width = m_model.duration.guiDuration().toPixels(m_zoomRatio);
+  const auto def_width = m_model.duration.defaultDuration().toPixels(m_zoomRatio);
   const auto slot_height = ld.model().getSlotHeight();
   ld.updateLoops(m_context, m_zoomRatio, gui_width, def_width, slot_height, m_view, this);
 
@@ -280,7 +239,47 @@ void FullViewIntervalPresenter::createSlot(int pos, const FullSlot& slt)
     slot.footerDelegate->setPos(30, 0);
   }
 
+  // Connect loop things
 
+  LayerData::disconnect(proc, *this);
+
+  con(proc, &Process::ProcessModel::loopsChanged,
+      this, [this, slot_i] (bool b) {
+    SCORE_ASSERT(slot_i < m_slots.size());
+    auto& slt = this->m_slots[slot_i];
+
+    SCORE_ASSERT(!slt.layers.empty());
+    LayerData& ld = slt.layers.front();
+    const auto gui_width = m_model.duration.guiDuration().toPixels(m_zoomRatio);
+    const auto def_width = m_model.duration.defaultDuration().toPixels(m_zoomRatio);
+    const auto slot_height = ld.model().getSlotHeight();
+    ld.updateLoops(m_context, m_zoomRatio, gui_width, def_width, slot_height, this->m_view, this);
+  });
+
+  con(proc, &Process::ProcessModel::startOffsetChanged,
+      this, [this, slot_i] {
+    SCORE_ASSERT(slot_i < m_slots.size());
+    auto& slot = this->m_slots[slot_i];
+
+    SCORE_ASSERT(!slot.layers.empty());
+    auto& ld = slot.layers.front();
+
+    ld.updateStartOffset(-ld.model().startOffset().toPixels(m_zoomRatio));
+  });
+  con(proc, &Process::ProcessModel::loopDurationChanged,
+      this, [this, slot_i] {
+    SCORE_ASSERT(slot_i < m_slots.size());
+    auto& slot = this->m_slots[slot_i];
+
+    SCORE_ASSERT(!slot.layers.empty());
+    auto& ld = slot.layers.front();
+    auto view_width = ld.model().loopDuration().toPixels(m_zoomRatio);
+    ld.updateXPositions(view_width);
+    ld.updateContainerWidths(view_width);
+  });
+
+
+/*
   auto con_id = con(
       proc,
       &Process::ProcessModel::durationChanged,
@@ -299,8 +298,9 @@ void FullViewIntervalPresenter::createSlot(int pos, const FullSlot& slt)
       &IdentifiedObjectAbstract::identified_object_destroying,
       this,
       [=] { QObject::disconnect(con_id); });
+  */
 
-  updateProcessShape(pos);
+  updateProcessShape(slot_i);
 }
 
 void FullViewIntervalPresenter::requestSlotMenu(
@@ -358,9 +358,7 @@ void FullViewIntervalPresenter::on_slotRemoved(int pos)
   SlotPresenter& slot = m_slots.at(pos);
   for(const LayerData& proc : slot.layers)
   {
-    QObject::disconnect(&proc.model(), &Process::ProcessModel::loopsChanged, this, nullptr);
-    QObject::disconnect(&proc.model(), &Process::ProcessModel::startOffsetChanged, this, nullptr);
-    QObject::disconnect(&proc.model(), &Process::ProcessModel::loopDurationChanged, this, nullptr);
+    proc.disconnect(proc.model(), *this);
   }
   slot.cleanup(this->view()->scene());
 

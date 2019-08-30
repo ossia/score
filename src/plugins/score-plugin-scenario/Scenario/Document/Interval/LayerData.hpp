@@ -145,6 +145,17 @@ public:
   const Process::ProcessModel& model() const noexcept { return *m_model; }
 
   const std::vector<Layer>& layers() const noexcept { return m_layers; }
+
+
+  static void disconnect(const Process::ProcessModel& proc, QObject& intervalPresenter)
+  {
+    QObject::disconnect(&proc, &Process::ProcessModel::loopsChanged,
+                        &intervalPresenter, nullptr);
+    QObject::disconnect(&proc, &Process::ProcessModel::startOffsetChanged,
+                        &intervalPresenter, nullptr);
+    QObject::disconnect(&proc, &Process::ProcessModel::loopDurationChanged,
+                        &intervalPresenter, nullptr);
+  }
 private:
   const Process::ProcessModel* m_model{};
 
