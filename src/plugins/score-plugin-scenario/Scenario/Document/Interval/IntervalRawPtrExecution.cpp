@@ -305,6 +305,25 @@ ProcessComponent* IntervalRawPtrComponentBase::make(
             });
           });
 
+      // Looping
+      oproc->set_loops(proc.loops());
+      con(proc, &Process::ProcessModel::loopsChanged,
+          this, [this, p=oproc] (bool b) {
+        in_exec([=] { p->set_loops(b); });
+      });
+
+      oproc->set_loop_duration(system().time(proc.loopDuration()));
+      con(proc, &Process::ProcessModel::loopDurationChanged,
+          this, [this, p=oproc] (TimeVal t) {
+        in_exec([p, t=system().time(t)] { p->set_loop_duration(t); });
+      });
+
+      oproc->set_start_offset(system().time(proc.startOffset()));
+      con(proc, &Process::ProcessModel::startOffsetChanged,
+          this, [this, p=oproc] (TimeVal t) {
+        in_exec([p, t=system().time(t)] { p->set_start_offset(t); });
+      });
+
       // Audio propagation
       auto reconnectOutlets = ReconnectOutlets<IntervalRawPtrComponentBase>{*this, proc, oproc, system().execGraph};
 

@@ -28,8 +28,10 @@ class LayerRectItem
 public:
   LayerRectItem(QGraphicsItem* parent);
 
-  void setRect(const QRectF& r);
-  QRectF rect() const noexcept;
+  void setSize(const QSizeF& r);
+  void setWidth(qreal r);
+  void setHeight(qreal r);
+  QSizeF size() const noexcept;
 
 private:
   QRectF boundingRect() const;
@@ -46,7 +48,7 @@ private:
   void mouseReleaseEvent(QGraphicsSceneMouseEvent* event);
 
 private:
-  QRectF m_rect{};
+  QSizeF m_size{};
 };
 
 
@@ -124,13 +126,15 @@ public:
   Process::GraphicsShapeItem* makeSlotHeaderDelegate() const;
 
   // View API
+  /*
   void updatePositions(qreal y, qreal instancewidth);
 
   void updateXPositions(qreal instancewidth) const;
 
+  void updateContainerWidths(qreal w) const;
+*/
   void updateYPositions(qreal y);
 
-  void updateContainerWidths(qreal w) const;
 
   void updateContainerHeights(qreal h) const;
 

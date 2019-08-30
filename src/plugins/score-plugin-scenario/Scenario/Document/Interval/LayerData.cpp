@@ -146,7 +146,7 @@ void LayerData::setupView(
   layer.view->setX(m_layers.front().view->pos().x());
 
   layer.container->setX(view_width * idx);
-  layer.container->setRect({0., 0., view_width, view_height});
+  layer.container->setSize({view_width, view_height});
 
   layer.presenter->setWidth(parent_width, parent_default_width);
   layer.presenter->setHeight(view_height);
@@ -165,7 +165,9 @@ void LayerData::updateLoops(
   if (m_model->loops())
   {
     const auto view_width = m_model->loopDuration().toPixels(r);
+    // TODO here it should be different between fullview and temporal (parent_width vs default_width)
     const auto num_views = std::max((int)1, (int)std::ceil(parent_width / view_width));
+    qDebug() << num_views;
     if ((int)m_layers.size() < num_views)
     {
       int missing = num_views - m_layers.size();
@@ -179,7 +181,7 @@ void LayerData::updateLoops(
     }
     else
     {
-      for(int i = int(m_layers.size()) - 1; i > num_views; i--)
+      for(int i = int(m_layers.size()) - 1; i >= num_views; i--)
         removeView(i);
     }
 
@@ -208,6 +210,13 @@ void LayerData::updateLoops(
     // Update sizes for first layer
     setupView(m_layers.front(), 0, parent_width, parent_default_width, parent_width, slot_height);
   }
+
+  auto& last = m_layers.back();
+  auto w = parent_width - last.container->x();
+  if(w > 0)
+  {
+    last.container->setWidth(w);
+  }
 }
 
 void LayerData::parentGeometryChanged() const
@@ -229,7 +238,7 @@ Process::GraphicsShapeItem* LayerData::makeSlotHeaderDelegate() const
 {
   return mainPresenter()->makeSlotHeaderDelegate();
 }
-
+/*
 void LayerData::updatePositions(qreal y, qreal instancewidth)
 {
   m_slotY = y;
@@ -253,6 +262,16 @@ void LayerData::updateXPositions(qreal instancewidth) const
   }
 }
 
+void LayerData::updateContainerWidths(qreal w) const
+{
+  if(m_layers.empty())
+    return;
+
+  for (const auto& p : m_layers)
+    p.container->setRect({0., 0., w, p.container->rect().height()});
+}
+
+*/
 void LayerData::updateYPositions(qreal y)
 {
   m_slotY = y;
@@ -260,16 +279,10 @@ void LayerData::updateYPositions(qreal y)
     p.container->setY(y);
 }
 
-void LayerData::updateContainerWidths(qreal w) const
-{
-  for (const auto& p : m_layers)
-    p.container->setRect({0., 0., w, p.container->rect().height()});
-}
-
 void LayerData::updateContainerHeights(qreal h) const
 {
   for (const auto& p : m_layers)
-    p.container->setRect({0., 0., p.container->rect().width(), h});
+    p.container->setSize({p.container->size().width(), h});
 }
 
 void LayerData::updateStartOffset(double x) const
@@ -301,21 +314,46 @@ LayerRectItem::LayerRectItem(QGraphicsItem* parent)
   //this->setFlag(ItemHasNoContents, true);
 }
 
-void LayerRectItem::setRect(const QRectF& r)
+void LayerRectItem::setSize(const QSizeF& r)
 {
-  if(r != m_rect)
+  if(r != m_size)
   {
     prepareGeometryChange();
-    m_rect = r;
-    sizeChanged({r.width(), r.height()});
+    m_size = r;
+    sizeChanged(m_size);
+
+    if(r.width() <= 2 && isVisible()) setVisible(false);
+    else if(r.width() > 2 && !isVisible()) setVisible(true);
   }
 }
 
-QRectF LayerRectItem::rect() const noexcept { return m_rect; }
+void LayerRectItem::setWidth(qreal w)
+{
+  if(w != m_size.width())
+  {
+    prepareGeometryChange();
+    m_size.setWidth(w);
+    sizeChanged(m_size);
+
+    if(w <= 2 && isVisible()) setVisible(false);
+    else if(w > 2 && !isVisible()) setVisible(true);
+  }
+}
+void LayerRectItem::setHeight(qreal h)
+{
+  if(h != m_size.height())
+  {
+    prepareGeometryChange();
+    m_size.setHeight(h);
+    sizeChanged(m_size);
+  }
+}
+
+QSizeF LayerRectItem::size() const noexcept { return m_size; }
 
 QRectF LayerRectItem::boundingRect() const
 {
-  return m_rect;
+  return {0., 0., m_size.width(), m_size.height()};
 }
 
 void LayerRectItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
@@ -324,7 +362,7 @@ void LayerRectItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* opt
   //painter->setBrush(Qt::NoBrush);
   //painter->drawRect(m_rect);
   painter->setPen(score::Skin::instance().DarkGray.main.pen_cosmetic);
-  painter->drawLine(m_rect.width(), 0., m_rect.width(), m_rect.height());
+  painter->drawLine(m_size.width(), 0., m_size.width(), m_size.height());
 }
 
 void LayerRectItem::hoverEnterEvent(QGraphicsSceneHoverEvent* event)

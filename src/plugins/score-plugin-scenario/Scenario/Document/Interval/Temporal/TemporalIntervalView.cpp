@@ -110,7 +110,6 @@ TemporalIntervalView::TemporalIntervalView(
     QGraphicsItem* parent)
     : IntervalView{presenter, parent}
 {
-  this->setFlag(ItemClipsChildrenToShape, true);
   this->setCacheMode(QGraphicsItem::NoCache);
   this->setParentItem(parent);
 
@@ -343,9 +342,10 @@ void TemporalIntervalView::paint(
   if (c.smallViewVisible())
   {
     // Background
-    visibleRect.adjust(0.5, 2., -0.5, -2.);
+    auto vr = visibleRect;
+    vr.adjust(0.5, 2., -0.5 + (m_maxWidth > m_defaultWidth ? m_defaultWidth - m_maxWidth : 0.) , -2.);
 
-    painter.fillRect(visibleRect,
+    painter.fillRect(vr,
                      m_presenter.model().metadata().getColor().getBrush());
   }
 

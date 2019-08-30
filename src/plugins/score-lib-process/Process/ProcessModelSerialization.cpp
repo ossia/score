@@ -19,7 +19,7 @@ template <>
 SCORE_LIB_PROCESS_EXPORT void
 DataStreamReader::read(const Process::ProcessModel& process)
 {
-  m_stream << process.m_duration << process.m_slotHeight;
+  m_stream << process.m_duration << process.m_slotHeight << process.m_startOffset << process.m_loopDuration << process.m_loops;
 }
 
 // We only load the members of the process here.
@@ -27,7 +27,7 @@ template <>
 SCORE_LIB_PROCESS_EXPORT void
 DataStreamWriter::write(Process::ProcessModel& process)
 {
-  m_stream >> process.m_duration >> process.m_slotHeight;
+  m_stream >> process.m_duration >> process.m_slotHeight >> process.m_startOffset >> process.m_loopDuration >> process.m_loops;
 }
 
 template <>
@@ -36,6 +36,9 @@ JSONObjectReader::read(const Process::ProcessModel& process)
 {
   obj[strings.Duration] = toJsonValue(process.duration());
   obj[strings.Height] = process.getSlotHeight();
+  obj["StartOffset"] = toJsonValue(process.startOffset());
+  obj["LoopDuration"] = toJsonValue(process.loopDuration());
+  obj["Loops"] = process.loops();
 }
 
 template <>
@@ -48,4 +51,8 @@ JSONObjectWriter::write(Process::ProcessModel& process)
     process.m_slotHeight = obj[strings.Height].toDouble();
   else
     process.m_slotHeight = 300;
+
+  process.m_startOffset = fromJsonValue<TimeVal>(obj["StartOffset"]);
+  process.m_loopDuration = fromJsonValue<TimeVal>(obj["LoopDuration"]);
+  process.m_loops = obj["Loops"].toBool();
 }

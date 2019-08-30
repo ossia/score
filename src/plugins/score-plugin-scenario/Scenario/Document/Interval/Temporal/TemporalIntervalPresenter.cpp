@@ -587,13 +587,13 @@ void TemporalIntervalPresenter::createLayer(
     con(proc, &Process::ProcessModel::loopDurationChanged,
         this, [this, slot_i] {
       SCORE_ASSERT(slot_i < m_slots.size());
-      auto& slot = this->m_slots[slot_i];
+      auto& slt = this->m_slots[slot_i];
 
-      SCORE_ASSERT(!slot.layers.empty());
-      auto& ld = slot.layers.front();
-      auto view_width = ld.model().loopDuration().toPixels(m_zoomRatio);
-      ld.updateXPositions(view_width);
-      ld.updateContainerWidths(view_width);
+      SCORE_ASSERT(!slt.layers.empty());
+      LayerData& ld = slt.layers.front();
+      const auto def_width = m_model.duration.defaultDuration().toPixels(m_zoomRatio);
+      const auto slot_height = m_model.smallView().at(slot_i).height;
+      ld.updateLoops(m_context, m_zoomRatio, def_width, def_width, slot_height, this->m_view, this);
     });
 /*
     auto con_id = con(
@@ -729,7 +729,7 @@ void TemporalIntervalPresenter::updatePositions()
     {
       for (LayerData& ld : slot.layers)
       {
-        ld.updatePositions(currentSlotY, 0);
+        ld.updateYPositions(currentSlotY);
         ld.update();
       }
       currentSlotY += model.height;
