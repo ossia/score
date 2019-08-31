@@ -31,7 +31,7 @@ public:
   EffectLayerPresenter(
       const Process::ProcessModel& model,
       EffectLayerView* view,
-      const Process::ProcessPresenterContext& ctx,
+      const Process::Context& ctx,
       QObject* parent);
   ~EffectLayerPresenter() override;
 

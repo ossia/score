@@ -30,7 +30,7 @@ public:
   LayerPresenter(
       const Loop::ProcessModel&,
       LayerView* view,
-      const Process::ProcessPresenterContext& ctx,
+      const Process::Context& ctx,
       QObject* parent);
 
   ~LayerPresenter();

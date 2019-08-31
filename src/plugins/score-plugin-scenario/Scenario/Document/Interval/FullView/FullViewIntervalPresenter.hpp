@@ -26,7 +26,7 @@ public:
 
   FullViewIntervalPresenter(
       const IntervalModel& viewModel,
-      const Process::ProcessPresenterContext& ctx,
+      const Process::Context& ctx,
       QGraphicsItem* parentobject,
       QObject* parent);
 

@@ -214,7 +214,7 @@ struct Node
       const Process::ProcessModel& process,
       QGraphicsItem& parent,
       QObject& context,
-      const Process::ProcessPresenterContext& doc)
+      const Process::Context& doc)
   {
     using namespace Process;
     const Process::PortFactoryList& portFactory = doc.app.interfaces<Process::PortFactoryList>();

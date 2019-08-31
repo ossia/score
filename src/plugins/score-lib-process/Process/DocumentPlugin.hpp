@@ -8,17 +8,12 @@
 
 namespace Process
 {
-struct SCORE_LIB_PROCESS_EXPORT DocumentPlugin final
-    : public score::DocumentPlugin
+class SCORE_LIB_PROCESS_EXPORT DataflowManager final
+    : public QObject
 {
 public:
-  DocumentPlugin(
-      const score::DocumentContext& ctx,
-      Id<score::DocumentPlugin> id,
-      QObject* parent)
-      : score::DocumentPlugin{ctx, id, "Process", parent}
-  {
-  }
+  DataflowManager();
+  ~DataflowManager();
 
   using cable_map = ossia::ptr_map<Process::Cable*, Dataflow::CableItem*>;
   using port_map = ossia::ptr_map<Process::Port*, Dataflow::PortItem*>;

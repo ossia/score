@@ -15,7 +15,7 @@ class CableItem;
 
 namespace Process
 {
-struct ProcessPresenterContext;
+struct Context;
 }
 namespace Dataflow
 {
@@ -30,7 +30,7 @@ public:
   static bool g_cables_enabled;
   CableItem(
       Process::Cable& c,
-      const Process::ProcessPresenterContext& ctx,
+      const Process::Context& ctx,
       QGraphicsItem* parent = nullptr);
   ~CableItem() override;
   const Id<Process::Cable>& id() const { return m_cable.id(); }
@@ -63,7 +63,7 @@ private:
   void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override;
 
   Process::Cable& m_cable;
-  const Process::ProcessPresenterContext& m_context;
+  const Process::Context& m_context;
   QPointer<PortItem> m_p1, m_p2;
   QPainterPath m_path;
   Process::PortType m_type{};

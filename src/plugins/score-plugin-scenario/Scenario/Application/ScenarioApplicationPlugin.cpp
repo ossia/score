@@ -131,16 +131,20 @@ ScenarioApplicationPlugin::ScenarioApplicationPlugin(
       {
         Dataflow::CableItem::g_cables_enabled = c;
 
-        auto& p = doc->context().plugin<Process::DocumentPlugin>();
-        for (const auto& port : p.ports())
+        ScenarioDocumentPresenter* plug
+            = score::IDocument::try_get<ScenarioDocumentPresenter>(*doc);
+        if(plug)
         {
-          Dataflow::PortItem& item = *port.second;
-          item.resetPortVisible();
-        }
+          for (const auto& port : plug->context().dataflow.ports())
+          {
+            Dataflow::PortItem& item = *port.second;
+            item.resetPortVisible();
+          }
 
-        for (auto& cable : p.cables())
-        {
-          cable.second->check();
+          for (auto& cable : plug->context().dataflow.cables())
+          {
+            cable.second->check();
+          }
         }
       }
     });

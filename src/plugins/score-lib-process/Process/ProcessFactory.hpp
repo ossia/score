@@ -24,7 +24,7 @@ class FooterDelegate;
 class LayerView;
 class MiniLayer;
 class ProcessModel;
-struct ProcessPresenterContext;
+struct Context;
 
 /**
  * @brief The ProcessFactory class
@@ -65,7 +65,7 @@ public:
   virtual Process::LayerPresenter* makeLayerPresenter(
       const Process::ProcessModel&,
       Process::LayerView*,
-      const Process::ProcessPresenterContext& context,
+      const Process::Context& context,
       QObject* parent) const;
 
   virtual Process::LayerView*
@@ -76,7 +76,7 @@ public:
 
   virtual score::ResizeableItem* makeItem(
       const Process::ProcessModel&,
-      const Process::ProcessPresenterContext& ctx,
+      const Process::Context& ctx,
       QGraphicsItem* parent) const;
 
   virtual bool hasExternalUI(
@@ -90,12 +90,12 @@ public:
   virtual HeaderDelegate*
   makeHeaderDelegate(
       const ProcessModel& model,
-      const Process::ProcessPresenterContext& ctx,
+      const Process::Context& ctx,
       const LayerPresenter* pres) const;
   virtual FooterDelegate*
   makeFooterDelegate(
       const ProcessModel& model,
-      const Process::ProcessPresenterContext& ctx) const;
+      const Process::Context& ctx) const;
 
   bool matches(const Process::ProcessModel& p) const;
   virtual bool matches(const UuidKey<Process::ProcessModel>&) const = 0;

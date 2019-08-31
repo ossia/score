@@ -9,7 +9,7 @@ class ScenarioDocumentPresenter;
 class BaseElementContext
 {
 public:
-  const Process::ProcessPresenterContext& context;
+  const Process::Context& context;
   ScenarioDocumentPresenter& presenter;
 };
 }

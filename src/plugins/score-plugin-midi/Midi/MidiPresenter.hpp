@@ -18,7 +18,7 @@ public:
   explicit Presenter(
       const Midi::ProcessModel& model,
       View* view,
-      const Process::ProcessPresenterContext& ctx,
+      const Process::Context& ctx,
       QObject* parent);
   ~Presenter() override;
 

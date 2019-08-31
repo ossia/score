@@ -247,7 +247,7 @@ void AutomatablePortItem::dropEvent(QGraphicsSceneDragDropEvent* event)
 
 PortItem* AutomatablePortFactory::makeItem(
     Process::Inlet& port,
-    const Process::ProcessPresenterContext& ctx,
+    const Process::Context& ctx,
     QGraphicsItem* parent,
     QObject* context)
 {
@@ -257,7 +257,7 @@ PortItem* AutomatablePortFactory::makeItem(
 
 PortItem* AutomatablePortFactory::makeItem(
     Process::Outlet& port,
-    const Process::ProcessPresenterContext& ctx,
+    const Process::Context& ctx,
     QGraphicsItem* parent,
     QObject* context)
 {

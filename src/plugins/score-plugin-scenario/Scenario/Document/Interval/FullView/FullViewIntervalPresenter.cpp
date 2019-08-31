@@ -65,7 +65,7 @@ void FullViewIntervalPresenter::stopSlotDrag() const
 
 FullViewIntervalPresenter::FullViewIntervalPresenter(
     const IntervalModel& interval,
-    const Process::ProcessPresenterContext& ctx,
+    const Process::Context& ctx,
     QGraphicsItem* parentobject,
     QObject* parent)
     : IntervalPresenter{interval,

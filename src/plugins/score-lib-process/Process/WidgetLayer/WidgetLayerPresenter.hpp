@@ -22,7 +22,7 @@ public:
   explicit Presenter(
       const Process::ProcessModel& model,
       View* view,
-      const Process::ProcessPresenterContext& ctx,
+      const Process::Context& ctx,
       QObject* parent)
       : LayerPresenter{ctx, parent}, m_layer{model}, m_view{view}
   {

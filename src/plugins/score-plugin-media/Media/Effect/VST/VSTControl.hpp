@@ -5,6 +5,10 @@
 
 #include <verdigris>
 
+namespace Process
+{
+struct Context;
+}
 namespace Media::VST
 {
 
@@ -79,13 +83,13 @@ public:
 
   Dataflow::PortItem* makeItem(
       Process::Inlet& port,
-      const Process::ProcessPresenterContext& ctx,
+      const Process::Context& ctx,
       QGraphicsItem* parent,
       QObject* context) override;
 
   Dataflow::PortItem* makeItem(
       Process::Outlet& port,
-      const Process::ProcessPresenterContext& ctx,
+      const Process::Context& ctx,
       QGraphicsItem* parent,
       QObject* context) override;
 

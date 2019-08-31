@@ -81,7 +81,7 @@ ScenarioDocumentPresenter::ScenarioDocumentPresenter(
     , m_scenarioPresenter{*this}
     , m_selectionDispatcher{ctx.selectionStack}
     , m_focusManager{ctx.document.focusManager()}
-    , m_context{ctx, m_focusDispatcher}
+    , m_context{ctx, m_dataflow, m_focusDispatcher}
 
 {
   using namespace score;
@@ -208,11 +208,8 @@ ScenarioDocumentPresenter::ScenarioDocumentPresenter(
 
 ScenarioDocumentPresenter::~ScenarioDocumentPresenter()
 {
-  if(auto p = context().findPlugin<Process::DocumentPlugin>())
-  {
-    p->cables().clear();
-    p->ports().clear();
-  }
+  m_dataflow.cables().clear();
+  m_dataflow.ports().clear();
 }
 
 IntervalModel& ScenarioDocumentPresenter::displayedInterval() const
@@ -255,12 +252,9 @@ void ScenarioDocumentPresenter::setMillisPerPixel(ZoomRatio newRatio)
   view().timeRuler().setPixelPerMillis(1.0 / m_zoomRatio);
   m_scenarioPresenter.on_zoomRatioChanged(m_zoomRatio);
 
-  if(auto p = context().findPlugin<Process::DocumentPlugin>())
+  for (auto& cbl : m_dataflow.cables())
   {
-    for (auto& cbl : p->cables())
-    {
-      cbl.second->resize();
-    }
+    cbl.second->resize();
   }
 }
 
@@ -504,11 +498,18 @@ void ScenarioDocumentPresenter::on_viewReady()
 void ScenarioDocumentPresenter::on_cableAdded(Process::Cable& c)
 {
   auto it = new Dataflow::CableItem{c, m_context, nullptr};
-  view().scene().addItem(it);
+  if(!it->parentItem())
+    view().scene().addItem(it);
 }
 
 void ScenarioDocumentPresenter::on_cableRemoving(const Process::Cable& c)
 {
+  auto it = m_dataflow.cables().find(const_cast<Process::Cable*>(&c));
+  if(it != m_dataflow.cables().end())
+  {
+    delete it->second;
+    m_dataflow.cables().erase(it);
+  }
 }
 
 void ScenarioDocumentPresenter::on_minimapChanged(double l, double r)
@@ -559,7 +560,7 @@ void ScenarioDocumentPresenter::updateRect(const QRectF& rect)
   view().view().setSceneRect(rect);
 }
 
-const Process::ProcessPresenterContext&
+const Process::Context&
 ScenarioDocumentPresenter::context() const
 {
   return m_context;

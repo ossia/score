@@ -17,7 +17,7 @@ namespace Gradient
 Presenter::Presenter(
     const Gradient::ProcessModel& layer,
     View* view,
-    const Process::ProcessPresenterContext& ctx,
+    const Process::Context& ctx,
     QObject* parent)
     : LayerPresenter{ctx, parent}, m_layer{layer}, m_view{view}
 {

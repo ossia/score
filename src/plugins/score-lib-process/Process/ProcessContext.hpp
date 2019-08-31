@@ -5,26 +5,30 @@
 class FocusDispatcher;
 namespace Process
 {
+class DataflowManager;
 class LayerPresenter;
 
-struct ProcessPresenterContext : public score::DocumentContext
+struct Context : public score::DocumentContext
 {
-  ProcessPresenterContext(
+  Context(
       const score::DocumentContext& doc,
+      DataflowManager& dfm,
       FocusDispatcher& d)
       : score::DocumentContext{doc}
+      , dataflow{dfm}
       , focusDispatcher{d}
       , processList{doc.app.interfaces<Process::LayerFactoryList>()}
   {
   }
 
+  DataflowManager& dataflow;
   FocusDispatcher& focusDispatcher;
   const Process::LayerFactoryList& processList;
 };
 
 struct LayerContext
 {
-  const ProcessPresenterContext& context;
+  const Context& context;
   Process::LayerPresenter& presenter;
 };
 }

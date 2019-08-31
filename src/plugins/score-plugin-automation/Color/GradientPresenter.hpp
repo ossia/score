@@ -134,7 +134,7 @@ public:
   explicit Presenter(
       const Gradient::ProcessModel& model,
       Gradient::View* view,
-      const Process::ProcessPresenterContext& ctx,
+      const Process::Context& ctx,
       QObject* parent);
 
   void setWidth(qreal width, qreal defaultWidth) override;

@@ -32,7 +32,7 @@ public:
   LayerPresenter_T* makeLayerPresenter(
       const Process::ProcessModel& lm,
       Process::LayerView* v,
-      const Process::ProcessPresenterContext& context,
+      const Process::Context& context,
       QObject* parent) const final override
   {
     return new LayerPresenter_T{m_colors.style(),
@@ -57,7 +57,7 @@ public:
   Process::HeaderDelegate*
   makeHeaderDelegate(
       const Process::ProcessModel& model,
-      const Process::ProcessPresenterContext& ctx,
+      const Process::Context& ctx,
       const Process::LayerPresenter* pres) const override
   {
     const LayerPresenter_T* p{};

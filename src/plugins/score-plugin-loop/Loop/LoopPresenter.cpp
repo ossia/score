@@ -57,7 +57,7 @@ namespace Loop
 LayerPresenter::LayerPresenter(
     const ProcessModel& layer,
     LayerView* view,
-    const Process::ProcessPresenterContext& ctx,
+    const Process::Context& ctx,
     QObject* parent)
     : Process::LayerPresenter{ctx, parent}
     , BaseScenarioPresenter<

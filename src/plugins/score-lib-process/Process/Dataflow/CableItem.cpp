@@ -24,13 +24,13 @@ bool CableItem::g_cables_enabled = true;
 
 CableItem::CableItem(
     Process::Cable& c,
-    const Process::ProcessPresenterContext& ctx,
+    const Process::Context& ctx,
     QGraphicsItem* parent)
     : QGraphicsItem{parent}
     , m_cable{c}
     , m_context{ctx}
 {
-  auto& plug = ctx.plugin<Process::DocumentPlugin>();
+  auto& plug = ctx.dataflow;
   this->setCursor(Qt::CrossCursor);
   this->setFlag(QGraphicsItem::ItemClipsToShape);
   plug.cables().insert({&c, this});
@@ -74,12 +74,6 @@ CableItem::~CableItem()
   {
     ossia::remove_erase(m_p2->cables, this);
   }
-
-  auto& plug = m_context.plugin<Process::DocumentPlugin>();
-  auto& c = plug.cables();
-  auto it = c.find(&m_cable);
-  if (it != c.end())
-    c.erase(it);
 }
 
 QRectF CableItem::boundingRect() const

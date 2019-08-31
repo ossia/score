@@ -13,7 +13,7 @@
 
 namespace Process
 {
-struct ProcessPresenterContext;
+struct Context;
 }
 
 namespace Scenario
@@ -32,7 +32,7 @@ public:
       const IntervalModel& model,
       IntervalView* view,
       IntervalHeader* header,
-      const Process::ProcessPresenterContext& ctx,
+      const Process::Context& ctx,
       QObject* parent);
   virtual ~IntervalPresenter();
   virtual void updateScaling();
@@ -51,7 +51,7 @@ public:
 
   const Id<IntervalModel>& id() const;
 
-  const Process::ProcessPresenterContext& context() const { return m_context; }
+  const Process::Context& context() const { return m_context; }
 
   void on_minDurationChanged(const TimeVal&);
   void on_maxDurationChanged(const TimeVal&);
@@ -90,7 +90,7 @@ protected:
   ZoomRatio m_zoomRatio{};
   IntervalView* m_view{};
   IntervalHeader* m_header{};
-  const Process::ProcessPresenterContext& m_context;
+  const Process::Context& m_context;
 
   std::vector<SlotPresenter> m_slots;
 };

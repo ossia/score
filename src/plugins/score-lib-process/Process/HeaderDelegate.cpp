@@ -60,7 +60,7 @@ static double minPortWidth()
 
 DefaultHeaderDelegate::DefaultHeaderDelegate(
     const Process::ProcessModel& m,
-    const Process::ProcessPresenterContext& doc,
+    const Process::Context& doc,
     const Process::LayerPresenter* p)
     : HeaderDelegate{m, doc, p}
 {
@@ -203,7 +203,7 @@ void DefaultHeaderDelegate::paint(
 
 DefaultFooterDelegate::DefaultFooterDelegate(
     const Process::ProcessModel& model,
-    const Process::ProcessPresenterContext& context)
+    const Process::Context& context)
     : FooterDelegate{model, context}
 {
   setCursor(Qt::SizeVerCursor);
@@ -272,7 +272,7 @@ void DefaultFooterDelegate::paint(
 
 FooterDelegate::FooterDelegate(
     const Process::ProcessModel& model,
-    const Process::ProcessPresenterContext& context)
+    const Process::Context& context)
   : m_model{model}
   , m_context{context}
 {

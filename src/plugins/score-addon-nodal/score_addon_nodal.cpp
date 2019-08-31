@@ -20,19 +20,25 @@
 #include <score/plugins/documentdelegate/DocumentDelegateModel.hpp>
 #include <score/graphics/RectItem.hpp>
 #include <score/model/Skin.hpp>
+#include <Process/DocumentPlugin.hpp>
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 
 #include <QGraphicsView>
 #include <QGraphicsScene>
 #include <QHBoxLayout>
 namespace Nodal
 {
-class Panel final : public QGraphicsView
+class Panel final
+    : public QGraphicsView
+    , public Nano::Observer
 {
 public:
   QGraphicsScene m_scene;
+
+
   Panel(const score::DocumentContext& ctx, QWidget* parent)
       : QGraphicsView{parent}
-      , m_ctx{ctx, m_focusDispatcher}
+      , m_context{ctx, m_dataflow, m_focusDispatcher}
   {
     auto& skin = score::Skin::instance();
     con(skin, &score::Skin::changed, this, [this] {
@@ -58,53 +64,78 @@ public:
   #endif
 
     setScene(&m_scene);
+
+
+    auto& cables = safe_cast<Scenario::ScenarioDocumentModel&>(ctx.document.model().modelDelegate()).cables;
+    cables.mutable_added.connect<&Panel::on_cableAdded>(*this);
+    cables.removing.connect<&Panel::on_cableRemoving>(*this);
+
     auto focus = reinterpret_cast<const score::FocusManager*const *>(&ctx.focus);
     connect(*focus, &score::FocusManager::changed,
-            this, [&] {
-      delete m_item;
-      m_item = nullptr;
+            this, &Panel::on_focusChanged);
+  }
 
-      if(auto focus = ctx.focus.get())
+  void on_focusChanged()
+  {
+    delete m_item;
+    m_item = nullptr;
+
+    if(auto focus = m_context.focus.get())
+    {
+      m_item = new score::EmptyRectItem{nullptr};
+      m_scene.addItem(m_item);
+
+      auto parent = dynamic_cast<Scenario::IntervalModel*>(focus->parent());
+
+      int i = 0;
+
+      for(auto node : m_nodes)
       {
-        m_item = new score::EmptyRectItem{nullptr};
-        m_scene.addItem(m_item);
-
-        auto parent = dynamic_cast<Scenario::IntervalModel*>(focus->parent());
-
-        int i = 0;
-
-        for(auto node : m_nodes)
-        {
-          node->release();
-          delete node;
-        }
-
-        m_nodes.clear();
-        m_nodeItems.clear();
-
-        for(auto& proc : parent->processes)
-        {
-          auto node = new Node{
-              Node::no_ownership{}
-              , proc
-              , Id<Node>{i++}
-              , &ctx.document.model().modelDelegate()};
-
-          m_nodes.push_back(node);
-
-          auto item = new NodeItem{*node, m_ctx, m_item};
-          m_nodeItems.push_back(item);
-          item->setZoomRatio(1000);
-        }
-
-
+        node->release();
+        delete node;
       }
-    });
+
+      m_nodes.clear();
+      m_nodeItems.clear();
+
+      for(auto& proc : parent->processes)
+      {
+        auto node = new Nodal::Node{
+            Nodal::Node::no_ownership{}
+            , proc
+            , Id<Nodal::Node>{i++}
+            , &m_context.document.model().modelDelegate()};
+        node->setSize({200, 100});
+
+        m_nodes.push_back(node);
+
+        auto item = new NodeItem{*node, m_context, m_item};
+        m_nodeItems.push_back(item);
+        item->setZoomRatio(item->width());
+      }
+    }
+  }
+  void on_cableAdded(Process::Cable& c)
+  {
+    // TODO only show cables that are in this interval
+    auto it = new Dataflow::CableItem{c, m_context, nullptr};
+    m_scene.addItem(it);
+  }
+
+  void on_cableRemoving(const Process::Cable& c)
+  {
+    auto it = m_dataflow.cables().find(const_cast<Process::Cable*>(&c));
+    if(it != m_dataflow.cables().end())
+    {
+      delete it->second;
+      m_dataflow.cables().erase(it);
+    }
   }
 
   Process::LayerPresenter* m_presenter{};
+  Process::DataflowManager m_dataflow;
   FocusDispatcher m_focusDispatcher;
-  Process::ProcessPresenterContext m_ctx;
+  Process::Context m_context;
   QGraphicsItem* m_item{};
   std::vector<Nodal::Node*> m_nodes;
   std::vector<Nodal::NodeItem*> m_nodeItems;

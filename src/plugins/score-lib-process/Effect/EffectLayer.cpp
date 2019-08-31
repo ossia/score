@@ -54,7 +54,7 @@ void EffectLayerView::contextMenuEvent(QGraphicsSceneContextMenuEvent* ev)
 EffectLayerPresenter::EffectLayerPresenter(
     const ProcessModel& model,
     EffectLayerView* view,
-    const ProcessPresenterContext& ctx,
+    const Context& ctx,
     QObject* parent)
     : LayerPresenter{ctx, parent}, m_layer{model}, m_view{view}
 {

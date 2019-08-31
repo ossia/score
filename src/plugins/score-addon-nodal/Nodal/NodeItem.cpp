@@ -71,7 +71,7 @@ void NodeItem::resetOutlets(
   }
 }
 
-NodeItem::NodeItem(const Node& model, const Process::ProcessPresenterContext& ctx, QGraphicsItem* parent)
+NodeItem::NodeItem(const Node& model, const Process::Context& ctx, QGraphicsItem* parent)
   : ItemBase{model.process(), ctx, parent}
   , m_model{model}
   , m_context{ctx}

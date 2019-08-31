@@ -30,7 +30,7 @@ IntervalPresenter::IntervalPresenter(
     const IntervalModel& model,
     IntervalView* view,
     IntervalHeader* header,
-    const Process::ProcessPresenterContext& ctx,
+    const Process::Context& ctx,
     QObject* parent)
     : QObject{parent}
     , m_model{model}

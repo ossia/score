@@ -28,7 +28,7 @@ public:
   Process::LayerPresenter* makeLayerPresenter(
       const Process::ProcessModel&,
       Process::LayerView*,
-      const Process::ProcessPresenterContext& context,
+      const Process::Context& context,
       QObject* parent) const override;
 
   Process::LayerView* makeLayerView(

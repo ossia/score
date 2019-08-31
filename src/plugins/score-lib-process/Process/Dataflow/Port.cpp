@@ -246,7 +246,7 @@ PortFactory::~PortFactory() {}
 
 Dataflow::PortItem* PortFactory::makeItem(
     Inlet& port,
-    const Process::ProcessPresenterContext& ctx,
+    const Process::Context& ctx,
     QGraphicsItem* parent,
     QObject* context)
 {
@@ -255,7 +255,7 @@ Dataflow::PortItem* PortFactory::makeItem(
 
 Dataflow::PortItem* PortFactory::makeItem(
     Outlet& port,
-    const Process::ProcessPresenterContext& ctx,
+    const Process::Context& ctx,
     QGraphicsItem* parent,
     QObject* context)
 {
