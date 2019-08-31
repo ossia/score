@@ -76,7 +76,7 @@ public:
 
   virtual score::ResizeableItem* makeItem(
       const Process::ProcessModel&,
-      const score::DocumentContext& ctx,
+      const Process::ProcessPresenterContext& ctx,
       QGraphicsItem* parent) const;
 
   virtual bool hasExternalUI(
@@ -90,12 +90,12 @@ public:
   virtual HeaderDelegate*
   makeHeaderDelegate(
       const ProcessModel& model,
-      const score::DocumentContext& ctx,
+      const Process::ProcessPresenterContext& ctx,
       const LayerPresenter* pres) const;
   virtual FooterDelegate*
   makeFooterDelegate(
       const ProcessModel& model,
-      const score::DocumentContext& ctx) const;
+      const Process::ProcessPresenterContext& ctx) const;
 
   bool matches(const Process::ProcessModel& p) const;
   virtual bool matches(const UuidKey<Process::ProcessModel>&) const = 0;

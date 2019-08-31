@@ -98,7 +98,7 @@ private:
 
   score::ResizeableItem* makeItem(
       const Process::ProcessModel& proc,
-      const score::DocumentContext& ctx,
+      const Process::ProcessPresenterContext& ctx,
       QGraphicsItem* parent) const override
   {
     return new Item_T{safe_cast<const Model_T&>(proc), ctx, parent};

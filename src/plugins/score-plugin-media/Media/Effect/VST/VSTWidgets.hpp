@@ -23,13 +23,13 @@ class VSTEffectItem final : public score::EmptyRectItem
 public:
    VSTEffectItem(
       const VSTEffectModel& effect,
-      const score::DocumentContext& doc,
+      const Process::ProcessPresenterContext& doc,
       QGraphicsItem* root);
 
   void setupInlet(
       const VSTEffectModel& fx,
       VSTControlInlet& inlet,
-      const score::DocumentContext& doc);
+      const Process::ProcessPresenterContext& doc);
 
 private:
   void updateRect();

@@ -54,7 +54,7 @@ void View::dropEvent(QDropEvent* ev)
 
 DocumentView::DocumentView(const score::DocumentContext& ctx, QObject* parent)
   : score::DocumentDelegateView{parent}
-  , context{ctx}
+  , context{ctx, m_focus}
   , m_widget{}
   , m_scene{}
   , m_view{&m_scene, nullptr}

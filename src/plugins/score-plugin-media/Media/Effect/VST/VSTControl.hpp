@@ -79,13 +79,13 @@ public:
 
   Dataflow::PortItem* makeItem(
       Process::Inlet& port,
-      const score::DocumentContext& ctx,
+      const Process::ProcessPresenterContext& ctx,
       QGraphicsItem* parent,
       QObject* context) override;
 
   Dataflow::PortItem* makeItem(
       Process::Outlet& port,
-      const score::DocumentContext& ctx,
+      const Process::ProcessPresenterContext& ctx,
       QGraphicsItem* parent,
       QObject* context) override;
 

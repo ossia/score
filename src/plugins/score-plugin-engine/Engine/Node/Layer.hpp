@@ -32,7 +32,7 @@ struct CustomUISetup
   const Process::ProcessModel& process;
   QGraphicsItem& parent;
   QObject& context;
-  const score::DocumentContext& doc;
+  const Process::ProcessPresenterContext& doc;
 
   template <std::size_t N>
   auto& getControl() noexcept
@@ -54,7 +54,7 @@ struct CustomUISetup
       const Process::ProcessModel& process,
       QGraphicsItem& parent,
       QObject& context,
-      const score::DocumentContext& doc)
+      const Process::ProcessPresenterContext& doc)
     : inlets{inlets}, process{process}, parent{parent}, context{context}, doc{doc}
   {
     make(std::make_index_sequence<ossia::safe_nodes::info_functions<Info>::control_count>{});
@@ -66,7 +66,7 @@ struct AutoUISetup
   const Process::Inlets& inlets;
   QGraphicsItem& parent;
   QObject& context;
-  const score::DocumentContext& doc;
+  const Process::ProcessPresenterContext& doc;
   const Process::PortFactoryList& portFactory = doc.app.interfaces<Process::PortFactoryList>();
 
   std::size_t i = 0;
@@ -79,7 +79,7 @@ struct AutoUISetup
       const Process::Inlets& inlets,
       QGraphicsItem& parent,
       QObject& context,
-      const score::DocumentContext& doc)
+      const Process::ProcessPresenterContext& doc)
     : inlets{inlets}, parent{parent}, context{context}, doc{doc}
   {
     i = ossia::safe_nodes::info_functions<Info>::control_start;
@@ -153,7 +153,7 @@ private:
 
   score::ResizeableItem* makeItem(
       const Process::ProcessModel& proc,
-      const score::DocumentContext& ctx,
+      const Process::ProcessPresenterContext& ctx,
       QGraphicsItem* parent) const final override
   {
     auto rootItem = new score::EmptyRectItem{parent};

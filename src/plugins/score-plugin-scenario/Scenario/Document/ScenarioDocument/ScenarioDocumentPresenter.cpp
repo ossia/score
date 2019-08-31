@@ -212,7 +212,6 @@ ScenarioDocumentPresenter::~ScenarioDocumentPresenter()
   {
     p->cables().clear();
     p->ports().clear();
-    cableItems.remove_all();
   }
 }
 
@@ -256,9 +255,12 @@ void ScenarioDocumentPresenter::setMillisPerPixel(ZoomRatio newRatio)
   view().timeRuler().setPixelPerMillis(1.0 / m_zoomRatio);
   m_scenarioPresenter.on_zoomRatioChanged(m_zoomRatio);
 
-  for (auto& cbl : cableItems)
+  if(auto p = context().findPlugin<Process::DocumentPlugin>())
   {
-    cbl.resize();
+    for (auto& cbl : p->cables())
+    {
+      cbl.second->resize();
+    }
   }
 }
 
@@ -503,15 +505,10 @@ void ScenarioDocumentPresenter::on_cableAdded(Process::Cable& c)
 {
   auto it = new Dataflow::CableItem{c, m_context, nullptr};
   view().scene().addItem(it);
-  cableItems.insert(it);
-  connect(it, &Dataflow::CableItem::clicked, this, [&] {
-    m_selectionDispatcher.setAndCommit({&c});
-  });
 }
 
 void ScenarioDocumentPresenter::on_cableRemoving(const Process::Cable& c)
 {
-  cableItems.erase(c.id());
 }
 
 void ScenarioDocumentPresenter::on_minimapChanged(double l, double r)

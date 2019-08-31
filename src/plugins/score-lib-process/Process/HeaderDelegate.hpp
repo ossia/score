@@ -15,7 +15,10 @@ class SCORE_LIB_PROCESS_EXPORT HeaderDelegate
       public Process::GraphicsShapeItem
 {
 public:
-  HeaderDelegate(const Process::ProcessModel& m, const score::DocumentContext& doc, const Process::LayerPresenter* p)
+  HeaderDelegate(
+      const Process::ProcessModel& m,
+      const Process::ProcessPresenterContext& doc,
+      const Process::LayerPresenter* p)
       : m_model{m}
       , m_context{doc}
       , m_presenter{const_cast<Process::LayerPresenter*>(p)}
@@ -27,7 +30,7 @@ public:
   virtual void updateText() = 0;
 
   const Process::ProcessModel& m_model;
-  const score::DocumentContext& m_context;
+  const Process::ProcessPresenterContext& m_context;
   QPointer<Process::LayerPresenter> m_presenter;
 };
 
@@ -35,7 +38,10 @@ class SCORE_LIB_PROCESS_EXPORT DefaultHeaderDelegate
     : public Process::HeaderDelegate
 {
 public:
-  DefaultHeaderDelegate(const Process::ProcessModel& m, const score::DocumentContext& doc, const Process::LayerPresenter* p);
+  DefaultHeaderDelegate(
+      const Process::ProcessModel& m,
+      const Process::ProcessPresenterContext& doc,
+      const Process::LayerPresenter* p);
   ~DefaultHeaderDelegate() override;
 
   void updateText() override;
@@ -64,7 +70,7 @@ class SCORE_LIB_PROCESS_EXPORT FooterDelegate
       public QGraphicsItem
 {
 public:
-  FooterDelegate(const Process::ProcessModel& m, const score::DocumentContext& doc);
+  FooterDelegate(const Process::ProcessModel& m, const Process::ProcessPresenterContext& doc);
 
   ~FooterDelegate() override;
 
@@ -73,7 +79,7 @@ public:
 
 protected:
   const Process::ProcessModel& m_model;
-  const score::DocumentContext& m_context;
+  const Process::ProcessPresenterContext& m_context;
   QSizeF m_size{};
 
   void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
@@ -87,7 +93,7 @@ class SCORE_LIB_PROCESS_EXPORT DefaultFooterDelegate
     : public Process::FooterDelegate
 {
 public:
-  DefaultFooterDelegate(const Process::ProcessModel& m, const score::DocumentContext& doc);
+  DefaultFooterDelegate(const Process::ProcessModel& m, const Process::ProcessPresenterContext& doc);
   ~DefaultFooterDelegate() override;
 
   void setSize(QSizeF sz) final override;

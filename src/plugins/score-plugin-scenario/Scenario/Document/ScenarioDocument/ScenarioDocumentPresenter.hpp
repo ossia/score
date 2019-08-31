@@ -1,5 +1,4 @@
 #pragma once
-#include <Process/Dataflow/CableItem.hpp>
 #include <Process/Focus/FocusDispatcher.hpp>
 #include <Process/ProcessContext.hpp>
 #include <Process/ZoomHelper.hpp>
@@ -86,8 +85,6 @@ public:
   void on_viewModelFocused(const Process::ProcessModel* vm);
 
   DisplayedElementsModel displayedElements;
-
-  IdContainer<Dataflow::CableItem, Process::Cable> cableItems;
 
   void setLargeView();
 

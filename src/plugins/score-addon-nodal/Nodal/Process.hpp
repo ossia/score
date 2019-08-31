@@ -20,6 +20,13 @@ public:
       const Id<Node>& id,
       QObject* parent);
 
+  struct no_ownership { };
+  Node(
+      no_ownership,
+      Process::ProcessModel& proc,
+      const Id<Node>& id,
+      QObject* parent);
+
   Node(DataStreamWriter& vis, QObject* parent)
     : score::Entity<Node>{vis, parent}
   {
@@ -49,6 +56,8 @@ public:
 
   void setPosition(const QPointF& v);
   void setSize(const QSizeF& v);
+
+  void release();
 
   void positionChanged(QPointF p) W_SIGNAL(positionChanged, p);
   void sizeChanged(QSizeF p) W_SIGNAL(sizeChanged, p);

@@ -10,6 +10,7 @@ class PortItem;
 namespace Process
 {
 class PortFactoryList;
+struct ProcessPresenterContext;
 }
 
 namespace Media::Effect
@@ -19,26 +20,23 @@ class SCORE_LIB_PROCESS_EXPORT DefaultEffectItem final : public score::EmptyRect
 public:
   DefaultEffectItem(
       const Process::ProcessModel& effect,
-      const score::DocumentContext& doc,
+      const Process::ProcessPresenterContext& doc,
       QGraphicsItem* root);
   ~DefaultEffectItem();
 
   void setupInlet(
       Process::ControlInlet& inlet,
-      const Process::PortFactoryList& portFactory,
-      const score::DocumentContext& doc);
+      const Process::PortFactoryList& portFactory);
   void setupOutlet(
       Process::ControlOutlet& inlet,
-      const Process::PortFactoryList& portFactory,
-      const score::DocumentContext& doc);
+      const Process::PortFactoryList& portFactory);
 
 
 private:
   template<typename T>
   void setupPort(
       T& port,
-      const Process::PortFactoryList& portFactory,
-      const score::DocumentContext& doc);
+      const Process::PortFactoryList& portFactory);
 
   void on_controlAdded(const Id<Process::Port>& p);
   void on_controlRemoved(const Process::Port& p);
@@ -48,7 +46,7 @@ private:
   void updateRect();
 
   const Process::ProcessModel& m_effect;
-  const score::DocumentContext& m_ctx;
+  const Process::ProcessPresenterContext& m_ctx;
 
   struct Port;
   std::vector<Port> m_ports;

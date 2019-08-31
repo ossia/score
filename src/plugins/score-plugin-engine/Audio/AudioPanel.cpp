@@ -16,6 +16,7 @@
 #include <qlabel.h>
 namespace Audio
 {
+// TODO MOVEME
 class AudioSlider : public QWidget, public Nano::Observer
 {
 public:

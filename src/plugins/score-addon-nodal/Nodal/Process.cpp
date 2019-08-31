@@ -22,6 +22,13 @@ Node::Node(std::unique_ptr<Process::ProcessModel> proc,
   SCORE_ASSERT(m_impl);
   m_impl->setParent(this);
 }
+Node::Node(no_ownership,
+           Process::ProcessModel& proc,
+           const Id<Node>& id, QObject* parent)
+  : score::Entity<Node>{id, QStringLiteral("Node"), parent}
+  , m_impl{&proc}
+{
+}
 
 Node::~Node()
 {
@@ -50,6 +57,11 @@ void Node::setSize(const QSizeF& v)
     m_size = v;
     sizeChanged(v);
   }
+}
+
+void Node::release()
+{
+  m_impl.release();
 }
 
 

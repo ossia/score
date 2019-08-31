@@ -57,7 +57,7 @@ public:
   Process::HeaderDelegate*
   makeHeaderDelegate(
       const Process::ProcessModel& model,
-      const score::DocumentContext& ctx,
+      const Process::ProcessPresenterContext& ctx,
       const Process::LayerPresenter* pres) const override
   {
     const LayerPresenter_T* p{};
