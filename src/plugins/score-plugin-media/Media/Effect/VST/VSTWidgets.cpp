@@ -88,7 +88,7 @@ void VSTGraphicsSlider::paint(
 
 VSTEffectItem::VSTEffectItem(
     const VSTEffectModel& effect,
-    const score::DocumentContext& doc,
+    const Process::ProcessPresenterContext& doc,
     QGraphicsItem* root)
     : score::EmptyRectItem{root}
 {
@@ -147,7 +147,7 @@ VSTEffectItem::VSTEffectItem(
 void VSTEffectItem::setupInlet(
     const VSTEffectModel& fx,
     VSTControlInlet& inlet,
-    const score::DocumentContext& doc)
+    const Process::ProcessPresenterContext& doc)
 {
   if(!fx.fx)
     return;

@@ -1,6 +1,7 @@
 #include <Process/Dataflow/CableItem.hpp>
 #include <Process/Dataflow/PortItem.hpp>
 #include <Process/DocumentPlugin.hpp>
+#include <Process/ProcessContext.hpp>
 #include <Process/Style/ScenarioStyle.hpp>
 
 #include <score/document/DocumentContext.hpp>
@@ -119,7 +120,7 @@ static bool initEllipses(Process::Style& skin)
 PortItem* PortItem::clickedPort;
 PortItem::PortItem(
     Process::Port& p,
-    const score::DocumentContext& ctx,
+    const Process::ProcessPresenterContext& ctx,
     QGraphicsItem* parent)
   : QGraphicsItem{parent}
   , m_context{ctx}

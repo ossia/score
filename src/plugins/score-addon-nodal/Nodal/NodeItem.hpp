@@ -25,7 +25,7 @@ class Node;
 class NodeItem : public Effect::ItemBase
 {
 public:
-  NodeItem(const Node& model, const Process::LayerContext& ctx, QGraphicsItem* parent);
+  NodeItem(const Node& model, const Process::ProcessPresenterContext& ctx, QGraphicsItem* parent);
   const Id<Node>& id() const noexcept;
   ~NodeItem();
 
@@ -59,7 +59,7 @@ private:
   Process::LayerPresenter* m_presenter{};
 
   std::vector<Dataflow::PortItem*> m_inlets, m_outlets;
-  const Process::LayerContext& m_context;
+  const Process::ProcessPresenterContext& m_context;
 
   ZoomRatio m_ratio{1.};
   double m_playPercentage{};

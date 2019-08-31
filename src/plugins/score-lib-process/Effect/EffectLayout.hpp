@@ -77,7 +77,7 @@ auto createControl(
     const ControlSetup<Args...>& setup,
     T& port,
     const Process::PortFactoryList& portFactory,
-    const score::DocumentContext& doc,
+    const Process::ProcessPresenterContext& doc,
     QGraphicsItem* parentItem,
     QObject* parent)
 {
@@ -142,7 +142,7 @@ static auto makeControl(
     T& inlet,
     QGraphicsItem& parent,
     QObject& context,
-    const score::DocumentContext& doc,
+    const Process::ProcessPresenterContext& doc,
     const Process::PortFactoryList& portFactory)
 {
   auto item = new score::EmptyItem{&parent};
@@ -179,7 +179,7 @@ static auto makeControlNoText(
     T& inlet,
     QGraphicsItem& parent,
     QObject& context,
-    const score::DocumentContext& doc,
+    const Process::ProcessPresenterContext& doc,
     const Process::PortFactoryList& portFactory)
 {
   auto item = new score::EmptyItem{&parent};

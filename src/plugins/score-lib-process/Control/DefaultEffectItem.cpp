@@ -5,6 +5,7 @@
 #include <Effect/EffectLayout.hpp>
 
 #include <Process/Style/ScenarioStyle.hpp>
+#include <Process/ProcessContext.hpp>
 
 #include <score/graphics/TextItem.hpp>
 #include <score/tools/Bind.hpp>
@@ -21,7 +22,7 @@ struct DefaultEffectItem::Port
 };
 DefaultEffectItem::DefaultEffectItem(
     const Process::ProcessModel& effect,
-    const score::DocumentContext& doc,
+    const Process::ProcessPresenterContext& doc,
     QGraphicsItem* root)
     : score::EmptyRectItem{root}, m_effect{effect}, m_ctx{doc}
 {
@@ -56,7 +57,7 @@ DefaultEffectItem::DefaultEffectItem(
     if (!inlet)
       continue;
 
-    setupInlet(*inlet, portFactory, doc);
+    setupInlet(*inlet, portFactory);
   }
   for (auto& e : effect.outlets())
   {
@@ -64,7 +65,7 @@ DefaultEffectItem::DefaultEffectItem(
     if (!outlet)
       continue;
 
-    setupOutlet(*outlet, portFactory, doc);
+    setupOutlet(*outlet, portFactory);
   }
   updateRect();
 
@@ -88,8 +89,7 @@ DefaultEffectItem::~DefaultEffectItem()
 template<typename T>
 void DefaultEffectItem::setupPort(
     T& port,
-    const Process::PortFactoryList& portFactory,
-    const score::DocumentContext& doc)
+    const Process::PortFactoryList& portFactory)
 {
   int i = m_ports.size();
 
@@ -102,18 +102,18 @@ void DefaultEffectItem::setupPort(
    [&] { return port.customData(); }
   );
   auto [item, portItem, widg, lab, itemRect]
-      = Process::createControl(i, csetup, port, portFactory, doc, this, this);
+      = Process::createControl(i, csetup, port, portFactory, m_ctx, this, this);
   m_ports.push_back(Port{item, portItem, itemRect});
   updateRect();
 }
 
 void DefaultEffectItem::setupInlet(
     Process::ControlInlet& inlet,
-    const Process::PortFactoryList& portFactory,
-    const score::DocumentContext& doc)
+    const Process::PortFactoryList& portFactory)
 {
-  setupPort(inlet, portFactory, doc);
-  con(inlet, &Process::ControlInlet::domainChanged, this, [this, &inlet] {
+  setupPort(inlet, portFactory);
+  con(inlet, &Process::ControlInlet::domainChanged,
+      this, [this, &inlet] {
     on_controlRemoved(inlet);
     on_controlAdded(inlet.id());
   });
@@ -121,11 +121,11 @@ void DefaultEffectItem::setupInlet(
 
 void DefaultEffectItem::setupOutlet(
     Process::ControlOutlet& outlet,
-    const Process::PortFactoryList& portFactory,
-    const score::DocumentContext& doc)
+    const Process::PortFactoryList& portFactory)
 {
-  setupPort(outlet, portFactory, doc);
-  con(outlet, &Process::ControlOutlet::domainChanged, this, [this, &outlet] {
+  setupPort(outlet, portFactory);
+  con(outlet, &Process::ControlOutlet::domainChanged,
+      this, [this, &outlet] {
     on_controlOutletRemoved(outlet);
     on_controlOutletAdded(outlet.id());
   });
@@ -135,7 +135,7 @@ void DefaultEffectItem::on_controlAdded(const Id<Process::Port>& id)
 {
   auto& portFactory = m_ctx.app.interfaces<Process::PortFactoryList>();
   auto inlet = safe_cast<Process::ControlInlet*>(m_effect.inlet(id));
-  setupInlet(*inlet, portFactory, m_ctx);
+  setupInlet(*inlet, portFactory);
 }
 
 void DefaultEffectItem::on_controlRemoved(const Process::Port& port)
@@ -165,7 +165,7 @@ void DefaultEffectItem::on_controlOutletAdded(const Id<Process::Port>& id)
 {
   auto& portFactory = m_ctx.app.interfaces<Process::PortFactoryList>();
   auto outlet = safe_cast<Process::ControlOutlet*>(m_effect.outlet(id));
-  setupOutlet(*outlet, portFactory, m_ctx);
+  setupOutlet(*outlet, portFactory);
 }
 
 void DefaultEffectItem::on_controlOutletRemoved(const Process::Port& port)
@@ -206,12 +206,12 @@ void DefaultEffectItem::reset()
   for (auto& e : m_effect.inlets())
   {
     if (auto inlet = qobject_cast<Process::ControlInlet*>(e))
-      setupInlet(*inlet, portFactory, m_ctx);
+      setupInlet(*inlet, portFactory);
   }
   for (auto& e : m_effect.outlets())
   {
     if (auto outlet = qobject_cast<Process::ControlOutlet*>(e))
-      setupOutlet(*outlet, portFactory, m_ctx);
+      setupOutlet(*outlet, portFactory);
   }
   updateRect();
 }

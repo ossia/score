@@ -122,7 +122,7 @@ private:
   HeaderDelegate*
   makeHeaderDelegate(
       const ProcessModel& model,
-      const score::DocumentContext& ctx,
+      const Process::ProcessPresenterContext& ctx,
       const LayerPresenter* pres) const override
   {
     if constexpr (std::is_same_v<HeaderDelegate_T, default_t>)

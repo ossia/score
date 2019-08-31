@@ -245,7 +245,7 @@ void FullViewIntervalPresenter::createSlot(int slot_i, const FullSlot& slt)
 
   con(proc, &Process::ProcessModel::loopsChanged,
       this, [this, slot_i] (bool b) {
-    SCORE_ASSERT(slot_i < m_slots.size());
+    SCORE_ASSERT(slot_i < int(m_slots.size()));
     auto& slt = this->m_slots[slot_i];
 
     SCORE_ASSERT(!slt.layers.empty());
@@ -258,7 +258,7 @@ void FullViewIntervalPresenter::createSlot(int slot_i, const FullSlot& slt)
 
   con(proc, &Process::ProcessModel::startOffsetChanged,
       this, [this, slot_i] {
-    SCORE_ASSERT(slot_i < m_slots.size());
+    SCORE_ASSERT(slot_i < int(m_slots.size()));
     auto& slot = this->m_slots[slot_i];
 
     SCORE_ASSERT(!slot.layers.empty());
@@ -268,7 +268,7 @@ void FullViewIntervalPresenter::createSlot(int slot_i, const FullSlot& slt)
   });
   con(proc, &Process::ProcessModel::loopDurationChanged,
       this, [this, slot_i] {
-    SCORE_ASSERT(slot_i < m_slots.size());
+    SCORE_ASSERT(slot_i < int(m_slots.size()));
     auto& slt = this->m_slots[slot_i];
 
     SCORE_ASSERT(!slt.layers.empty());

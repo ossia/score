@@ -100,7 +100,7 @@ Process::MiniLayer* LayerFactory::makeMiniLayer(
 }
 
 score::ResizeableItem* LayerFactory::makeItem(const ProcessModel&,
-    const score::DocumentContext& ctx,
+    const Process::ProcessPresenterContext& ctx,
     QGraphicsItem* parent) const
 {
   return nullptr;
@@ -116,7 +116,7 @@ bool LayerFactory::hasExternalUI(
 HeaderDelegate*
 LayerFactory::makeHeaderDelegate(
     const ProcessModel& model,
-    const score::DocumentContext& ctx,
+    const Process::ProcessPresenterContext& ctx,
     const LayerPresenter* pres) const
 {
   return new DefaultHeaderDelegate{model, ctx, pres};
@@ -124,7 +124,7 @@ LayerFactory::makeHeaderDelegate(
 FooterDelegate*
 LayerFactory::makeFooterDelegate(
     const ProcessModel& model,
-    const score::DocumentContext& ctx) const
+    const Process::ProcessPresenterContext& ctx) const
 {
   return new DefaultFooterDelegate{model, ctx};
 }

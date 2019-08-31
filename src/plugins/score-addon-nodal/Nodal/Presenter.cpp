@@ -160,7 +160,7 @@ const Id<Process::ProcessModel>& Presenter::modelId() const
 
 void Presenter::on_created(const Node& n)
 {
-  auto item = new NodeItem{n, m_context, m_view};
+  auto item = new NodeItem{n, m_context.context, m_view};
   item->setPos(n.position());
   const auto r = m_ratio * m_defaultW;
   item->setZoomRatio(r);

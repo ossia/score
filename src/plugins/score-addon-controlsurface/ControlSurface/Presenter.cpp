@@ -108,7 +108,7 @@ const Id<Process::ProcessModel>& Presenter::modelId() const
 void Presenter::setupInlet(
     Process::ControlInlet& port,
     const Process::PortFactoryList& portFactory,
-    const score::DocumentContext& doc)
+    const Process::ProcessPresenterContext& doc)
 {
   // Main item creation
   int i = m_ports.size();

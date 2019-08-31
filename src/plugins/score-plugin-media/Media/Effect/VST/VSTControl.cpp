@@ -80,7 +80,7 @@ VSTControlPortFactory::load(const VisitorVariant& vis, QObject* parent)
 
 Dataflow::PortItem* VSTControlPortFactory::makeItem(
     Process::Inlet& port,
-    const score::DocumentContext& ctx,
+    const Process::ProcessPresenterContext& ctx,
     QGraphicsItem* parent,
     QObject* context)
 {
@@ -91,7 +91,7 @@ Dataflow::PortItem* VSTControlPortFactory::makeItem(
 
 Dataflow::PortItem* VSTControlPortFactory::makeItem(
     Process::Outlet& port,
-    const score::DocumentContext& ctx,
+    const Process::ProcessPresenterContext& ctx,
     QGraphicsItem* parent,
     QObject* context)
 {

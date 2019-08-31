@@ -39,7 +39,7 @@ void NodeItem::resetInlets(
     if (port->hidden)
       continue;
     Process::PortFactory* fact = portFactory.get(port->concreteKey());
-    Dataflow::PortItem* item = fact->makeItem(*port, m_context.context, this, this);
+    Dataflow::PortItem* item = fact->makeItem(*port, m_context, this, this);
     item->setPos(x, InletY0);
     m_inlets.push_back(item);
 
@@ -63,7 +63,7 @@ void NodeItem::resetOutlets(
     if (port->hidden)
       continue;
     Process::PortFactory* fact = portFactory.get(port->concreteKey());
-    auto item = fact->makeItem(*port, m_context.context, this, this);
+    auto item = fact->makeItem(*port, m_context, this, this);
     item->setPos(x, h);
     m_outlets.push_back(item);
 
@@ -71,16 +71,16 @@ void NodeItem::resetOutlets(
   }
 }
 
-NodeItem::NodeItem(const Node& model, const Process::LayerContext& ctx, QGraphicsItem* parent)
-  : ItemBase{model.process(), ctx.context, parent}
+NodeItem::NodeItem(const Node& model, const Process::ProcessPresenterContext& ctx, QGraphicsItem* parent)
+  : ItemBase{model.process(), ctx, parent}
   , m_model{model}
   , m_context{ctx}
 {
   // Body
-  auto& fact = ctx.context.app.interfaces<Process::LayerFactoryList>();
+  auto& fact = ctx.app.interfaces<Process::LayerFactoryList>();
   if (auto factory = fact.findDefaultFactory(model.process()))
   {
-    if(auto fx = factory->makeItem(model.process(), ctx.context, this))
+    if(auto fx = factory->makeItem(model.process(), ctx, this))
     {
       m_fx = fx;
       m_size = m_fx->boundingRect().size();
@@ -91,7 +91,7 @@ NodeItem::NodeItem(const Node& model, const Process::LayerContext& ctx, QGraphic
     else if(auto fx = factory->makeLayerView(model.process(), this))
     {
       m_fx = fx;
-      m_presenter = factory->makeLayerPresenter(model.process(), fx, ctx.context, this);
+      m_presenter = factory->makeLayerPresenter(model.process(), fx, ctx, this);
       m_size = m_model.size();
       m_presenter->setWidth(m_size.width(), m_size.width());
       m_presenter->setHeight(m_size.height());
@@ -102,7 +102,7 @@ NodeItem::NodeItem(const Node& model, const Process::LayerContext& ctx, QGraphic
 
   if (!m_fx)
   {
-    m_fx = new Media::Effect::DefaultEffectItem{model.process(), ctx.context, this};
+    m_fx = new Media::Effect::DefaultEffectItem{model.process(), ctx, this};
     m_size = m_fx->boundingRect().size();
   }
 
@@ -275,9 +275,9 @@ void NodeItem::mousePressEvent(QGraphicsSceneMouseEvent* event)
   }
 
   if(m_presenter)
-    m_context.context.focusDispatcher.focus(m_presenter);
+    m_context.focusDispatcher.focus(m_presenter);
 
-  score::SelectionDispatcher{m_context.context.selectionStack}.setAndCommit({&m_model.process()});
+  score::SelectionDispatcher{m_context.selectionStack}.setAndCommit({&m_model.process()});
   event->accept();
 }
 
@@ -290,12 +290,12 @@ void NodeItem::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
     case Interaction::Resize:
     {
       const auto sz = origNodeSize + QSizeF{p.x() - origp.x(), p.y() - origp.y()};
-      m_context.context.dispatcher.submit<ResizeNode>(m_model, sz.expandedTo({10, 10}));
+      m_context.dispatcher.submit<ResizeNode>(m_model, sz.expandedTo({10, 10}));
       break;
     }
     case Interaction::Move:
     {
-      m_context.context.dispatcher.submit<MoveNode>(m_model, m_model.position() + (p - origp));
+      m_context.dispatcher.submit<MoveNode>(m_model, m_model.position() + (p - origp));
       break;
     }
   }
@@ -305,7 +305,7 @@ void NodeItem::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 void NodeItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 {
   mouseMoveEvent(event);
-  m_context.context.dispatcher.commit();
+  m_context.dispatcher.commit();
   event->accept();
 }
 

@@ -44,7 +44,7 @@ private:
   void setupInlet(
       Process::ControlInlet& inlet,
       const Process::PortFactoryList& portFactory,
-      const score::DocumentContext& doc);
+      const Process::ProcessPresenterContext& doc);
   void on_controlAdded(const Id<Process::Port>& id);
   void on_controlRemoved(const Process::Port& p);
 

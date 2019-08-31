@@ -3,10 +3,13 @@
 #include <Process/Dataflow/Cable.hpp>
 #include <Process/Dataflow/PortItem.hpp>
 #include <Process/DocumentPlugin.hpp>
+#include <Process/ProcessContext.hpp>
 #include <Process/Style/ScenarioStyle.hpp>
 #include <score/tools/Bind.hpp>
 
+
 #include <score/document/DocumentContext.hpp>
+#include <score/selection/SelectionStack.hpp>
 
 #include <QPainter>
 #include <QCursor>
@@ -21,7 +24,7 @@ bool CableItem::g_cables_enabled = true;
 
 CableItem::CableItem(
     Process::Cable& c,
-    const score::DocumentContext& ctx,
+    const Process::ProcessPresenterContext& ctx,
     QGraphicsItem* parent)
     : QGraphicsItem{parent}
     , m_cable{c}
@@ -260,7 +263,7 @@ QPainterPath CableItem::opaqueArea() const
 
 void CableItem::mousePressEvent(QGraphicsSceneMouseEvent* event)
 {
-  clicked();
+  m_context.selectionStack.pushNewSelection({&m_cable});
   event->accept();
 }
 

@@ -3,6 +3,7 @@
 #include "handles.hpp"
 
 #include <Process/Dataflow/PortItem.hpp>
+#include <Process/ProcessContext.hpp>
 #include <core/presenter/DocumentManager.hpp>
 #include <score/plugins/documentdelegate/DocumentDelegateView.hpp>
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
@@ -13,6 +14,7 @@
 #include <QGraphicsScene>
 #include <QGraphicsView>
 #include <score/graphics/TextItem.hpp>
+#include <Process/Focus/FocusDispatcher.hpp>
 
 namespace Dataflow
 {
@@ -192,7 +194,10 @@ public:
   void backgroundRectSize(QSizeF sz) { if(sz != backgroundRectSize()) m_rect.setRect({0, 0, sz.width(), sz.height()}); }
 
   void on_widgetRemoved(const Widget& w);
-  const score::DocumentContext& context;
+private:
+  FocusDispatcher m_focus;
+public:
+  Process::ProcessPresenterContext context;
 private:
   std::unordered_map<Id<Widget>, WidgetUI> m_widgets;
   QWidget m_widget;
