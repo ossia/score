@@ -81,7 +81,15 @@ CableItem::~CableItem()
 
 QRectF CableItem::boundingRect() const
 {
-  return m_path.boundingRect();
+  static const QPainterPathStroker cable_stroker{[] {
+    QPen pen;
+    pen.setCapStyle(Qt::PenCapStyle::RoundCap);
+    pen.setJoinStyle(Qt::PenJoinStyle::RoundJoin);
+    pen.setWidthF(3.);
+    return pen;
+  }()};
+
+  return cable_stroker.createStroke(m_path).boundingRect();
 }
 
 bool CableItem::contains(const QPointF& point) const
@@ -239,7 +247,15 @@ QPainterPath CableItem::shape() const
 
 QPainterPath CableItem::opaqueArea() const
 {
-  return m_path;
+  static const QPainterPathStroker cable_stroker{[] {
+    QPen pen;
+    pen.setCapStyle(Qt::PenCapStyle::RoundCap);
+    pen.setJoinStyle(Qt::PenJoinStyle::RoundJoin);
+    pen.setWidthF(3.);
+    return pen;
+  }()};
+
+  return cable_stroker.createStroke(m_path);
 }
 
 void CableItem::mousePressEvent(QGraphicsSceneMouseEvent* event)

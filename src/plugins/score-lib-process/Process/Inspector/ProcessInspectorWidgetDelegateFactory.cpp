@@ -91,6 +91,7 @@ public:
       // Start offset
       {
         auto so = new score::TimeSpinBox;
+        so->setMinimumTime(QTime{0,0,0,0});
         so->setTime(process.startOffset().toQTime());
         connect(so, &score::TimeSpinBox::timeChanged,
                 this, [&] (const QTime& time) {
@@ -111,6 +112,7 @@ public:
       // Loop duration
       {
         auto so = new score::TimeSpinBox;
+        so->setMinimumTime(QTime{0, 0, 0, 10});
         so->setTime(process.loopDuration().toQTime());
         connect(so, &score::TimeSpinBox::timeChanged,
                 this, [&] (const QTime& time) {

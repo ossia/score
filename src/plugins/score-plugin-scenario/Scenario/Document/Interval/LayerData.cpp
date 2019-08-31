@@ -167,7 +167,6 @@ void LayerData::updateLoops(
     const auto view_width = m_model->loopDuration().toPixels(r);
     // TODO here it should be different between fullview and temporal (parent_width vs default_width)
     const auto num_views = std::max((int)1, (int)std::ceil(parent_width / view_width));
-    qDebug() << num_views;
     if ((int)m_layers.size() < num_views)
     {
       int missing = num_views - m_layers.size();

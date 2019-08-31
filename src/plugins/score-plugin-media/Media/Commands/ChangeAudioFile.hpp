@@ -32,6 +32,7 @@ private:
   QString m_old, m_new;
   TimeVal m_olddur{};
   TimeVal m_newdur{};
+  TimeVal m_oldloop{};
 };
 }
 

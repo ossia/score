@@ -129,7 +129,7 @@ PortItem::PortItem(
 {
   [[maybe_unused]]
   static bool init = initEllipses(Process::Style::instance());
-  this->setCursor(QCursor());
+  this->setCursor(QCursor(Qt::PointingHandCursor));
   this->setAcceptDrops(true);
   this->setAcceptHoverEvents(true);
   this->setFlag(QGraphicsItem::ItemSendsScenePositionChanges, true);
