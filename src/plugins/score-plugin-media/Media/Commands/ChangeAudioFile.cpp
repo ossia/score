@@ -17,6 +17,7 @@ ChangeAudioFile::ChangeAudioFile(
   : m_model{model}, m_new{text}
 {
   m_old = model.file()->originalFile();
+  m_oldloop = model.loopDuration();
   if (auto p = qobject_cast<Scenario::IntervalModel*>(model.parent()))
   {
     m_olddur = p->duration.defaultDuration();
@@ -48,6 +49,7 @@ void ChangeAudioFile::undo(const score::DocumentContext& ctx) const
         }
       }
     }
+    snd.setLoopDuration(m_olddur);
   }
 }
 
@@ -70,16 +72,17 @@ void ChangeAudioFile::redo(const score::DocumentContext& ctx) const
         }
       }
     }
+    snd.setLoopDuration(m_newdur);
   }
 }
 
 void ChangeAudioFile::serializeImpl(DataStreamInput& s) const
 {
-  s << m_model << m_old << m_new << m_olddur << m_newdur;
+  s << m_model << m_old << m_new << m_olddur << m_newdur << m_oldloop;
 }
 
 void ChangeAudioFile::deserializeImpl(DataStreamOutput& s)
 {
-  s >> m_model >> m_old >> m_new >> m_olddur >> m_newdur;
+  s >> m_model >> m_old >> m_new >> m_olddur >> m_newdur >> m_oldloop;
 }
 }

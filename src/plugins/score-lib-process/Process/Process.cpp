@@ -35,7 +35,7 @@ ProcessModel::ProcessModel(
     : Entity{id, name, parent}
     , m_duration{std::move(duration)}
     , m_slotHeight{300}
-    , m_loopDuration{TimeVal::fromMsecs(1000)}
+    , m_loopDuration{m_duration}
 {
   con(metadata(), &score::ModelMetadata::NameChanged, this, [=] {
     prettyNameChanged();
