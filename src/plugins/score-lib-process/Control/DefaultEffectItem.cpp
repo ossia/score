@@ -22,7 +22,7 @@ struct DefaultEffectItem::Port
 };
 DefaultEffectItem::DefaultEffectItem(
     const Process::ProcessModel& effect,
-    const Process::ProcessPresenterContext& doc,
+    const Process::Context& doc,
     QGraphicsItem* root)
     : score::EmptyRectItem{root}, m_effect{effect}, m_ctx{doc}
 {

@@ -37,7 +37,7 @@ public:
       Scenario::EditionSettings&,
       const Scenario::ProcessModel& model,
       Process::LayerView* view,
-      const Process::ProcessPresenterContext& context,
+      const Process::Context& context,
       QObject* parent);
   ~ScenarioPresenter();
 

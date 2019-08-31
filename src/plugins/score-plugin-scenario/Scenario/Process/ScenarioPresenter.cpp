@@ -41,7 +41,7 @@ ScenarioPresenter::ScenarioPresenter(
     Scenario::EditionSettings& e,
     const Scenario::ProcessModel& scenario,
     Process::LayerView* view,
-    const Process::ProcessPresenterContext& context,
+    const Process::Context& context,
     QObject* parent)
     : LayerPresenter{context, parent}
     , m_layer{scenario}

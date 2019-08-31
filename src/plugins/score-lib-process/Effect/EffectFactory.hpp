@@ -82,7 +82,7 @@ private:
   LayerPresenter* makeLayerPresenter(
       const Process::ProcessModel& lm,
       Process::LayerView* v,
-      const Process::ProcessPresenterContext& context,
+      const Process::Context& context,
       QObject* parent) const final override
   {
     auto pres = new EffectLayerPresenter{safe_cast<const Model_T&>(lm),
@@ -98,7 +98,7 @@ private:
 
   score::ResizeableItem* makeItem(
       const Process::ProcessModel& proc,
-      const Process::ProcessPresenterContext& ctx,
+      const Process::Context& ctx,
       QGraphicsItem* parent) const override
   {
     return new Item_T{safe_cast<const Model_T&>(proc), ctx, parent};

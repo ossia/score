@@ -8,7 +8,7 @@ namespace Skeleton
 {
 Presenter::Presenter(
     const Model& layer, View* view,
-    const Process::ProcessPresenterContext& ctx, QObject* parent)
+    const Process::Context& ctx, QObject* parent)
     : Process::LayerPresenter{ctx, parent}, m_model{layer}, m_view{view}
 {
 }

@@ -120,7 +120,7 @@ static bool initEllipses(Process::Style& skin)
 PortItem* PortItem::clickedPort;
 PortItem::PortItem(
     Process::Port& p,
-    const Process::ProcessPresenterContext& ctx,
+    const Process::Context& ctx,
     QGraphicsItem* parent)
   : QGraphicsItem{parent}
   , m_context{ctx}
@@ -142,13 +142,12 @@ PortItem::PortItem(
       cable->setZValue(b || cable->model().selection.get() ? 999999 : -1);
     }
   });
-  auto plug = ctx.findPlugin<Process::DocumentPlugin>();
-  if(plug)
   {
-    plug->ports().insert({&p, this});
+    auto& plug = ctx.dataflow;
+    plug.ports().insert({&p, this});
 
     Path<Process::Port> path = p;
-    for (auto c : plug->cables())
+    for (auto c : plug.cables())
     {
       if (c.first->source().unsafePath() == path.unsafePath())
       {
@@ -185,11 +184,8 @@ PortItem::~PortItem()
     if (cable->target() == this)
       cable->setTarget(nullptr);
   }
-  auto& ctx = m_context;
-  auto plug = ctx.findPlugin<Process::DocumentPlugin>();
-  if(!plug)
-    return;
-  auto& p = plug->ports();
+  auto& plug = m_context.dataflow;
+  auto& p = plug.ports();
   auto it = p.find(&m_port);
   if (it != p.end())
     p.erase(it);

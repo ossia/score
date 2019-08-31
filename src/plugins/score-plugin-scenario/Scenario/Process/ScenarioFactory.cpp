@@ -68,7 +68,7 @@ ScenarioTemporalLayerFactory::concreteKey() const noexcept
 Process::LayerPresenter* ScenarioTemporalLayerFactory::makeLayerPresenter(
     const Process::ProcessModel& lm,
     Process::LayerView* view,
-    const Process::ProcessPresenterContext& context,
+    const Process::Context& context,
     QObject* parent) const
 {
   if (auto vm = dynamic_cast<const Scenario::ProcessModel*>(&lm))

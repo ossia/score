@@ -331,7 +331,7 @@
  * * score::GuiApplicationContext : extends ApplicationContext, available in
  * the GUI software (not in the command-line & embedded players)
  * * score::DocumentContext
- * * Scenario::ProcessPresenterContext
+ * * Scenario::Context
  * * Various execution contexts, for audio, etc.
  *
  * A context is simply a class that references other classes useful in a given

@@ -31,7 +31,7 @@ void LayerData::cleanup()
 void LayerData::addView(
     Process::LayerFactory& factory,
     ZoomRatio zoomRatio,
-    const Process::ProcessPresenterContext& context,
+    const Process::Context& context,
     QGraphicsItem* parentItem,
     QObject* parent)
 {
@@ -117,7 +117,7 @@ void LayerData::putBehind() const
 }
 
 void LayerData::on_zoomRatioChanged(
-    const Process::ProcessPresenterContext& ctx,
+    const Process::Context& ctx,
     ZoomRatio r,
     qreal parent_width,
     qreal parent_default_width,
@@ -154,7 +154,7 @@ void LayerData::setupView(
 }
 
 void LayerData::updateLoops(
-    const Process::ProcessPresenterContext& ctx,
+    const Process::Context& ctx,
     ZoomRatio r,
     qreal parent_width,
     qreal parent_default_width,

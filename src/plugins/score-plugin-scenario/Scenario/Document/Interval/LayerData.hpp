@@ -11,7 +11,7 @@ class QGraphicsItem;
 class QObject;
 namespace Process
 {
-struct ProcessPresenterContext;
+struct Context;
 class ProcessModel;
 class LayerPresenter;
 class LayerView;
@@ -75,7 +75,7 @@ public:
   void addView(
       Process::LayerFactory& factory,
       ZoomRatio zoomRatio,
-      const Process::ProcessPresenterContext& context,
+      const Process::Context& context,
       QGraphicsItem* parentItem,
       QObject* parent);
   void setupView(Layer& layer,
@@ -100,7 +100,7 @@ public:
   void putBehind() const;
 
   void on_zoomRatioChanged(
-      const Process::ProcessPresenterContext& lst,
+      const Process::Context& lst,
       ZoomRatio r,
       qreal parentWidth, qreal parent_default_width,
       qreal slot_height,
@@ -108,7 +108,7 @@ public:
       QObject* parent);
 
   void updateLoops(
-      const Process::ProcessPresenterContext& lst,
+      const Process::Context& lst,
       ZoomRatio r,
       qreal parentWidth, qreal parent_default_width,
       qreal slot_height,

@@ -16,7 +16,7 @@ public:
 
   DisplayedElementsPresenterContainer make_presenters(
       const IntervalModel& m,
-      const Process::ProcessPresenterContext& ctx,
+      const Process::Context& ctx,
       QGraphicsItem* view_parent,
       QObject* parent) const override;
 };

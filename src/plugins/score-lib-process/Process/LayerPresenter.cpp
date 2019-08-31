@@ -12,7 +12,7 @@ namespace Process
 LayerPresenter::~LayerPresenter() = default;
 
 LayerPresenter::LayerPresenter(
-      const ProcessPresenterContext& ctx,
+      const Context& ctx,
       QObject* parent)
   : QObject{parent}, m_context{ctx, *this}
 {

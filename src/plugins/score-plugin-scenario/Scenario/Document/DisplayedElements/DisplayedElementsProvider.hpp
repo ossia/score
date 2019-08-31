@@ -6,7 +6,7 @@
 class QGraphicsItem;
 namespace Process
 {
-struct ProcessPresenterContext;
+struct Context;
 }
 namespace Scenario
 {
@@ -23,7 +23,7 @@ public:
   virtual bool matches(const IntervalModel& cst) const = 0;
   bool matches(
       const IntervalModel& cst,
-      const Process::ProcessPresenterContext& ctx,
+      const Process::Context& ctx,
       QGraphicsItem* view_parent,
       QObject* parent) const
   {
@@ -33,7 +33,7 @@ public:
   virtual DisplayedElementsContainer make(IntervalModel& cst) const = 0;
   virtual DisplayedElementsPresenterContainer make_presenters(
       const IntervalModel& m,
-      const Process::ProcessPresenterContext& ctx,
+      const Process::Context& ctx,
       QGraphicsItem* view_parent,
       QObject* parent) const = 0;
 };

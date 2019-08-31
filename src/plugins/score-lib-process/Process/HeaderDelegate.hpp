@@ -17,7 +17,7 @@ class SCORE_LIB_PROCESS_EXPORT HeaderDelegate
 public:
   HeaderDelegate(
       const Process::ProcessModel& m,
-      const Process::ProcessPresenterContext& doc,
+      const Process::Context& doc,
       const Process::LayerPresenter* p)
       : m_model{m}
       , m_context{doc}
@@ -30,7 +30,7 @@ public:
   virtual void updateText() = 0;
 
   const Process::ProcessModel& m_model;
-  const Process::ProcessPresenterContext& m_context;
+  const Process::Context& m_context;
   QPointer<Process::LayerPresenter> m_presenter;
 };
 
@@ -40,7 +40,7 @@ class SCORE_LIB_PROCESS_EXPORT DefaultHeaderDelegate
 public:
   DefaultHeaderDelegate(
       const Process::ProcessModel& m,
-      const Process::ProcessPresenterContext& doc,
+      const Process::Context& doc,
       const Process::LayerPresenter* p);
   ~DefaultHeaderDelegate() override;
 
@@ -70,7 +70,7 @@ class SCORE_LIB_PROCESS_EXPORT FooterDelegate
       public QGraphicsItem
 {
 public:
-  FooterDelegate(const Process::ProcessModel& m, const Process::ProcessPresenterContext& doc);
+  FooterDelegate(const Process::ProcessModel& m, const Process::Context& doc);
 
   ~FooterDelegate() override;
 
@@ -79,7 +79,7 @@ public:
 
 protected:
   const Process::ProcessModel& m_model;
-  const Process::ProcessPresenterContext& m_context;
+  const Process::Context& m_context;
   QSizeF m_size{};
 
   void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
@@ -93,7 +93,7 @@ class SCORE_LIB_PROCESS_EXPORT DefaultFooterDelegate
     : public Process::FooterDelegate
 {
 public:
-  DefaultFooterDelegate(const Process::ProcessModel& m, const Process::ProcessPresenterContext& doc);
+  DefaultFooterDelegate(const Process::ProcessModel& m, const Process::Context& doc);
   ~DefaultFooterDelegate() override;
 
   void setSize(QSizeF sz) final override;

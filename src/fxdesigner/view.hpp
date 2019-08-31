@@ -3,6 +3,7 @@
 #include "handles.hpp"
 
 #include <Process/Dataflow/PortItem.hpp>
+#include <Process/DocumentPlugin.hpp>
 #include <Process/ProcessContext.hpp>
 #include <core/presenter/DocumentManager.hpp>
 #include <score/plugins/documentdelegate/DocumentDelegateView.hpp>
@@ -195,9 +196,10 @@ public:
 
   void on_widgetRemoved(const Widget& w);
 private:
+  Process::DataflowManager m_dataflow;
   FocusDispatcher m_focus;
 public:
-  Process::ProcessPresenterContext context;
+  Process::Context context;
 private:
   std::unordered_map<Id<Widget>, WidgetUI> m_widgets;
   QWidget m_widget;

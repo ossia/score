@@ -31,7 +31,7 @@ public:
       const Curve::Style& style,
       const Model_T& lm,
       LayerView_T* view,
-      const Process::ProcessPresenterContext& ctx,
+      const Process::Context& ctx,
       QObject* parent)
       : LayerPresenter{ctx, parent}
       , m_layer{lm}

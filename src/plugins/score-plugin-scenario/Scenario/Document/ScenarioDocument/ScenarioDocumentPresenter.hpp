@@ -1,5 +1,6 @@
 #pragma once
 #include <Process/Focus/FocusDispatcher.hpp>
+#include <Process/DocumentPlugin.hpp>
 #include <Process/ProcessContext.hpp>
 #include <Process/ZoomHelper.hpp>
 #include <Scenario/Document/DisplayedElements/DisplayedElementsModel.hpp>
@@ -63,7 +64,7 @@ public:
   const DisplayedElementsPresenter& presenters() const;
   const ScenarioDocumentModel& model() const;
   ScenarioDocumentView& view() const;
-  const Process::ProcessPresenterContext& context() const;
+  const Process::Context& context() const;
   Process::ProcessFocusManager& focusManager() const;
 
   // The height in pixels of the displayed interval with its rack.
@@ -132,7 +133,8 @@ private:
   mutable Process::ProcessFocusManager m_focusManager;
   QPointer<IntervalModel> m_focusedInterval{};
 
-  Process::ProcessPresenterContext m_context;
+  Process::DataflowManager m_dataflow;
+  Process::Context m_context;
 
   // State machine
   std::unique_ptr<GraphicsSceneToolPalette> m_stateMachine;

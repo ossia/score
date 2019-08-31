@@ -32,7 +32,7 @@ struct CustomUISetup
   const Process::ProcessModel& process;
   QGraphicsItem& parent;
   QObject& context;
-  const Process::ProcessPresenterContext& doc;
+  const Process::Context& doc;
 
   template <std::size_t N>
   auto& getControl() noexcept
@@ -54,7 +54,7 @@ struct CustomUISetup
       const Process::ProcessModel& process,
       QGraphicsItem& parent,
       QObject& context,
-      const Process::ProcessPresenterContext& doc)
+      const Process::Context& doc)
     : inlets{inlets}, process{process}, parent{parent}, context{context}, doc{doc}
   {
     make(std::make_index_sequence<ossia::safe_nodes::info_functions<Info>::control_count>{});
@@ -66,7 +66,7 @@ struct AutoUISetup
   const Process::Inlets& inlets;
   QGraphicsItem& parent;
   QObject& context;
-  const Process::ProcessPresenterContext& doc;
+  const Process::Context& doc;
   const Process::PortFactoryList& portFactory = doc.app.interfaces<Process::PortFactoryList>();
 
   std::size_t i = 0;
@@ -79,7 +79,7 @@ struct AutoUISetup
       const Process::Inlets& inlets,
       QGraphicsItem& parent,
       QObject& context,
-      const Process::ProcessPresenterContext& doc)
+      const Process::Context& doc)
     : inlets{inlets}, parent{parent}, context{context}, doc{doc}
   {
     i = ossia::safe_nodes::info_functions<Info>::control_start;
@@ -133,7 +133,7 @@ private:
   Process::LayerPresenter* makeLayerPresenter(
       const Process::ProcessModel& lm,
       Process::LayerView* v,
-      const Process::ProcessPresenterContext& context,
+      const Process::Context& context,
       QObject* parent) const final override
   {
     auto view = safe_cast<Process::EffectLayerView*>(v);
@@ -153,7 +153,7 @@ private:
 
   score::ResizeableItem* makeItem(
       const Process::ProcessModel& proc,
-      const Process::ProcessPresenterContext& ctx,
+      const Process::Context& ctx,
       QGraphicsItem* parent) const final override
   {
     auto rootItem = new score::EmptyRectItem{parent};

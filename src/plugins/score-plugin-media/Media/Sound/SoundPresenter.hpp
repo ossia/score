@@ -16,7 +16,7 @@ public:
   explicit LayerPresenter(
       const ProcessModel& model,
       LayerView* view,
-      const Process::ProcessPresenterContext& ctx,
+      const Process::Context& ctx,
       QObject* parent);
 
   void setWidth(qreal width, qreal defaultWidth) override;

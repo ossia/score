@@ -50,7 +50,7 @@ TemporalIntervalPresenter::TemporalIntervalPresenter(
     const IntervalModel& interval,
     const EventModel& start,
     const EventModel& end,
-    const Process::ProcessPresenterContext& ctx,
+    const Process::Context& ctx,
     bool handles,
     QGraphicsItem* parentobject,
     QObject* parent)

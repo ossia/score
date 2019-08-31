@@ -14,7 +14,7 @@ class PortItem;
 }
 namespace Process
 {
-struct ProcessPresenterContext;
+struct Context;
 class SCORE_LIB_PROCESS_EXPORT PortFactory : public score::InterfaceBase
 {
   SCORE_INTERFACE(Process::Port, "4d461658-5c27-4a12-ba97-3d9392561ece")
@@ -24,12 +24,12 @@ public:
   virtual Process::Port* load(const VisitorVariant&, QObject* parent) = 0;
   virtual Dataflow::PortItem* makeItem(
       Process::Inlet& port,
-      const Process::ProcessPresenterContext& ctx,
+      const Process::Context& ctx,
       QGraphicsItem* parent,
       QObject* context);
   virtual Dataflow::PortItem* makeItem(
       Process::Outlet& port,
-      const Process::ProcessPresenterContext& ctx,
+      const Process::Context& ctx,
       QGraphicsItem* parent,
       QObject* context);
 

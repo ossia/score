@@ -13,6 +13,10 @@
 #include <Process/Inspector/GenericProcessInspector.hpp>
 #include <verdigris>
 
+namespace Process
+{
+struct Context;
+}
 namespace Media::VST
 {
 
@@ -23,13 +27,13 @@ class VSTEffectItem final : public score::EmptyRectItem
 public:
    VSTEffectItem(
       const VSTEffectModel& effect,
-      const Process::ProcessPresenterContext& doc,
+      const Process::Context& doc,
       QGraphicsItem* root);
 
   void setupInlet(
       const VSTEffectModel& fx,
       VSTControlInlet& inlet,
-      const Process::ProcessPresenterContext& doc);
+      const Process::Context& doc);
 
 private:
   void updateRect();

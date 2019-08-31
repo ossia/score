@@ -31,7 +31,7 @@ private:
   Presenter<Model_T, Widget_T>* makeLayerPresenter(
       const Process::ProcessModel& lm,
       Process::LayerView* v,
-      const Process::ProcessPresenterContext& context,
+      const Process::Context& context,
       QObject* parent) const final override
   {
     return new Presenter<Model_T, Widget_T>{

@@ -18,7 +18,7 @@ public:
       const Curve::Style& style,
       const ProcessModel& layer,
       LayerView* view,
-      const Process::ProcessPresenterContext& context,
+      const Process::Context& context,
       QObject* parent)
       : CurveProcessPresenter{style, layer, view, context, parent}
   {

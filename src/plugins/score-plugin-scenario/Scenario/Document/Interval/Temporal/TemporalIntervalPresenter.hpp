@@ -37,7 +37,7 @@ public:
       const IntervalModel& viewModel,
       const EventModel& start,
       const EventModel& end,
-      const Process::ProcessPresenterContext& ctx,
+      const Process::Context& ctx,
       bool handles,
       QGraphicsItem* parentobject,
       QObject* parent);

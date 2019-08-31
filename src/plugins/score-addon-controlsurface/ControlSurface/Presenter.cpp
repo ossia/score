@@ -28,7 +28,7 @@ struct Presenter::Port
 
 Presenter::Presenter(
     const Model& layer, View* view,
-    const Process::ProcessPresenterContext& ctx, QObject* parent)
+    const Process::Context& ctx, QObject* parent)
     : Process::LayerPresenter{ctx, parent}, m_model{layer}, m_view{view}
 {
   connect(view, &View::addressesDropped,
@@ -108,7 +108,7 @@ const Id<Process::ProcessModel>& Presenter::modelId() const
 void Presenter::setupInlet(
     Process::ControlInlet& port,
     const Process::PortFactoryList& portFactory,
-    const Process::ProcessPresenterContext& doc)
+    const Process::Context& doc)
 {
   // Main item creation
   int i = m_ports.size();

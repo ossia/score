@@ -16,7 +16,7 @@ class Port;
 class Inlet;
 class Outlet;
 class ControlInlet;
-struct ProcessPresenterContext;
+struct Context;
 }
 namespace score
 {
@@ -38,7 +38,7 @@ class SCORE_LIB_PROCESS_EXPORT PortItem : public QObject, public QGraphicsItem
 public:
   PortItem(
       Process::Port& p,
-      const Process::ProcessPresenterContext& ctx,
+      const Process::Context& ctx,
       QGraphicsItem* parent);
   ~PortItem() override;
   Process::Port& port() const { return m_port; }
@@ -75,7 +75,7 @@ protected:
   QVariant
   itemChange(GraphicsItemChange change, const QVariant& value) final override;
 
-  const Process::ProcessPresenterContext& m_context;
+  const Process::Context& m_context;
   std::vector<QPointer<CableItem>> cables;
   Process::Port& m_port;
   double m_diam = 6.;

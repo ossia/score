@@ -105,7 +105,7 @@ private:
   LayerPresenter_T* makeLayerPresenter(
       const Process::ProcessModel& lm,
       Process::LayerView* v,
-      const Process::ProcessPresenterContext& context,
+      const Process::Context& context,
       QObject* parent) const final override
   {
     return new LayerPresenter_T{safe_cast<const Model_T&>(lm),
@@ -122,7 +122,7 @@ private:
   HeaderDelegate*
   makeHeaderDelegate(
       const ProcessModel& model,
-      const Process::ProcessPresenterContext& ctx,
+      const Process::Context& ctx,
       const LayerPresenter* pres) const override
   {
     if constexpr (std::is_same_v<HeaderDelegate_T, default_t>)
