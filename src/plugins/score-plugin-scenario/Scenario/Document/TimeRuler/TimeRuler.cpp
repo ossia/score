@@ -29,8 +29,12 @@ static const constexpr qreal timeRulerHeight = 30.;
 static const constexpr qreal textPosition = SCORE_YPOS(-22.75, -27.75);
 
 static const constexpr std::
-    array<std::pair<double, std::chrono::nanoseconds>, 28>
+    array<std::pair<double, std::chrono::nanoseconds>, 32>
         graduations{{
+                     {0.0, std::chrono::seconds(1920)},
+                     {0.0125, std::chrono::seconds(960)},
+                     {0.025, std::chrono::seconds(480)},
+                     {0.05, std::chrono::seconds(240)},
                      {0.1, std::chrono::seconds(120)},
                      {0.2, std::chrono::seconds(60)},
                      {0.5, std::chrono::seconds(30)},
@@ -79,7 +83,11 @@ TimeRuler::TimeRuler(QGraphicsView* v)
 {
   setY(-27);
 
-  m_layout.setFont(score::Skin::instance().MonoFont);
+  auto font = score::Skin::instance().MonoFont;
+  font.setWeight(QFont::Normal);
+  font.setPointSizeF(9);
+  font.setBold(false);
+  m_layout.setFont(font);
 
   this->setCacheMode(QGraphicsItem::NoCache);
   this->setX(10);
@@ -153,8 +161,7 @@ void TimeRuler::computeGraduationSpacing()
         && pixPerSec < graduations[i + 1].first)
     {
       m_graduationDelta = graduations[i].second.count() / double(1e6);
-      m_graduationsSpacing
-          = pixPerSec * graduations[i].second.count() / double(1e9);
+      m_graduationsSpacing = pixPerSec * graduations[i].second.count() / double(1e9);
       break;
     }
   }
@@ -170,10 +177,15 @@ void TimeRuler::computeGraduationSpacing()
     m_timeFormat = Format::Milliseconds;
     m_intervalsBetweenMark = 10;
   }
-  else
+  else if (i >= 1)
   {
     m_timeFormat = Format::Seconds;
   }
+  else
+  {
+    m_timeFormat = Format::Hours;
+  }
+
   if (oldFormat != m_timeFormat)
     m_stringCache.clear();
 
@@ -253,6 +265,16 @@ void layoutTimeText(TimeRuler::Format format, QTextLayout& layout, std::chrono::
 {
   switch(format)
   {
+    case TimeRuler::Format::Hours:
+    {
+      auto clean_duration
+          = break_down_durations<std::chrono::minutes>(
+            t);
+      layout.setText(QString::fromStdString(fmt::format(
+                                              "{0}:00",
+                                              std::get<0>(clean_duration).count())));
+      break;
+    }
     case TimeRuler::Format::Seconds:
     {
       auto clean_duration

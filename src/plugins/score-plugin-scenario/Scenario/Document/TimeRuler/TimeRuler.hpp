@@ -34,6 +34,7 @@ class SCORE_PLUGIN_SCENARIO_EXPORT TimeRuler final : public QObject,
 public:
   enum class Format
   {
+    Hours,
     Seconds,
     Milliseconds,
     Microseconds,
