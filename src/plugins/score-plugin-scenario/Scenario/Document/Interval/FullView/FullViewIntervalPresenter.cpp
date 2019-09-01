@@ -534,7 +534,7 @@ void FullViewIntervalPresenter::on_rackChanged()
     case IntervalModel::ViewMode::Nodal:
     {
       m_nodal = new NodalIntervalView{*this, m_context, m_view};
-      break;
+      return;
     }
   }
   // Update view

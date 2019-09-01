@@ -140,7 +140,6 @@ void NodeItem::updateSize()
     return;
 
   auto sz = m_fx->boundingRect().size();
-  qDebug() << "size: " << sz;
   if (sz != m_contentSize)
   {
     prepareGeometryChange();
