@@ -25,8 +25,7 @@ template <>
 SCORE_PLUGIN_SCENARIO_EXPORT void
 DataStreamReader::read(const Scenario::TimeSyncModel& timesync)
 {
-  m_stream << timesync.m_date << timesync.m_events << timesync.m_extent
-           << timesync.m_active << timesync.m_expression;
+  m_stream << timesync.m_date << timesync.m_events << timesync.m_active << timesync.m_expression;
 
   insertDelimiter();
 }
@@ -35,8 +34,7 @@ template <>
 SCORE_PLUGIN_SCENARIO_EXPORT void
 DataStreamWriter::write(Scenario::TimeSyncModel& timesync)
 {
-  m_stream >> timesync.m_date >> timesync.m_events >> timesync.m_extent
-      >> timesync.m_active >> timesync.m_expression;
+  m_stream >> timesync.m_date >> timesync.m_events >> timesync.m_active >> timesync.m_expression;
 
   checkDelimiter();
 }
@@ -47,7 +45,6 @@ JSONObjectReader::read(const Scenario::TimeSyncModel& timesync)
 {
   obj[strings.Date] = toJsonValue(timesync.date());
   obj[strings.Events] = toJsonArray(timesync.m_events);
-  obj[strings.Extent] = toJsonValue(timesync.m_extent);
   obj[strings.AutoTrigger] = toJsonValue(timesync.m_autotrigger);
 
   QJsonObject trig;
@@ -61,9 +58,6 @@ SCORE_PLUGIN_SCENARIO_EXPORT void
 JSONObjectWriter::write(Scenario::TimeSyncModel& timesync)
 {
   timesync.m_date = fromJsonValue<TimeVal>(obj[strings.Date]);
-  timesync.m_extent
-      = fromJsonValue<Scenario::VerticalExtent>(obj[strings.Extent]);
-
   fromJsonValueArray(obj[strings.Events].toArray(), timesync.m_events);
 
   State::Expression t;

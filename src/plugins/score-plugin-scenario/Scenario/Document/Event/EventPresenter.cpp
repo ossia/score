@@ -87,6 +87,32 @@ EventPresenter::EventPresenter(
 
 EventPresenter::~EventPresenter() {}
 
+VerticalExtent EventPresenter::extent() const noexcept
+{
+  return m_extent;
+}
+
+void EventPresenter::setExtent(const VerticalExtent& extent)
+{
+  if (extent != m_extent)
+  {
+    m_extent = extent;
+    extentChanged(m_extent);
+  }
+}
+
+void EventPresenter::addState(StatePresenter* ev)
+{
+  m_states.push_back(ev);
+}
+
+void EventPresenter::removeState(StatePresenter* ev)
+{
+  auto it = ossia::find(m_states, ev);
+  if(it != m_states.end())
+     m_states.erase(it);
+}
+
 const Id<EventModel>& EventPresenter::id() const
 {
   return m_model.id();

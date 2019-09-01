@@ -44,8 +44,6 @@ void CreateInterval_State::undo(const score::DocumentContext& ctx) const
 
   ScenarioCreate<StateModel>::undo(
       m_newState, scenar);
-
-  ev.recomputeExtent();
 }
 
 void CreateInterval_State::redo(const score::DocumentContext& ctx) const
@@ -61,7 +59,6 @@ void CreateInterval_State::redo(const score::DocumentContext& ctx) const
 
   // The interval between
   m_command.redo(ctx);
-  ev.recomputeExtent();
 }
 
 void CreateInterval_State::serializeImpl(DataStreamInput& s) const

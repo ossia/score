@@ -47,7 +47,7 @@ void CreateTimeSync_Event_State::redo(const score::DocumentContext& ctx) const
 
   // Create the node
   ScenarioCreate<TimeSyncModel>::redo(
-      m_newTimeSync, {0.4, 0.6}, m_date, scenar);
+      m_newTimeSync,  m_date, scenar);
 
   // And the event
   m_command.redo(ctx);

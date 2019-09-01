@@ -49,11 +49,8 @@ CreateState::CreateState(
 void CreateState::undo(const score::DocumentContext& ctx) const
 {
   auto& scenar = m_path.find(ctx);
-  auto& event = scenar.events.at(m_event);
 
   ScenarioCreate<StateModel>::undo(m_newState, scenar);
-
-  event.recomputeExtent();
 }
 
 void CreateState::redo(const score::DocumentContext& ctx) const
@@ -66,8 +63,6 @@ void CreateState::redo(const score::DocumentContext& ctx) const
       m_newState, event, m_stateY, scenar);
 
   scenar.states.at(m_newState).metadata().setName(m_createdName);
-
-  event.recomputeExtent();
 }
 
 void CreateState::serializeImpl(DataStreamInput& s) const

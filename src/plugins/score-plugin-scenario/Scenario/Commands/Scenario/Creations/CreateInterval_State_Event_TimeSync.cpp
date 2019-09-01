@@ -52,7 +52,6 @@ void CreateInterval_State_Event_TimeSync::redo(
   // Create the end timesync
   ScenarioCreate<TimeSyncModel>::redo(
       m_newTimeSync,
-      {m_command.endStateY(), m_command.endStateY()},
       m_date,
       scenar);
 

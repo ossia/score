@@ -2,7 +2,7 @@
 
 #include <score/graphics/GraphicsItem.hpp>
 #include <score/model/Identifier.hpp>
-
+#include <Scenario/Document/VerticalExtent.hpp>
 #include <QPoint>
 
 #include <score_plugin_scenario_export.h>
@@ -16,6 +16,7 @@ class QObject;
 namespace Scenario
 {
 class EventModel;
+class EventPresenter;
 class TimeSyncModel;
 class TimeSyncView;
 class TriggerView;
@@ -37,9 +38,20 @@ public:
   TimeSyncView* view() const;
 
   TriggerView& trigger() const noexcept;
-  void on_eventAdded(const Id<EventModel>& eventId);
   void handleDrop(const QPointF& pos, const QMimeData& mime);
 
+  void addEvent(EventPresenter* ev);
+  void removeEvent(EventPresenter* ev);
+
+  const VerticalExtent& extent() const noexcept;
+  void setExtent(const VerticalExtent& extent);
+
+  void recomputeExtent()
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, recomputeExtent)
+  void extentChanged(const Scenario::VerticalExtent& arg_1)
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, extentChanged, arg_1)
+
+  const std::vector<EventPresenter*>& events() const noexcept { return m_events; }
 public:
   void pressed(const QPointF& arg_1)
       E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, pressed, arg_1)
@@ -48,14 +60,12 @@ public:
   void released(const QPointF& arg_1)
       E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, released, arg_1)
 
-  void eventAdded(
-      const Id<EventModel>& eventId,
-      const Id<TimeSyncModel>& timeSyncId)
-      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, eventAdded, eventId, timeSyncId)
-
 private:
   const TimeSyncModel& m_model;
+  std::vector<EventPresenter*> m_events;
   graphics_item_ptr<TimeSyncView> m_view;
   TriggerView* m_triggerView{};
+  VerticalExtent m_extent;
+
 };
 }

@@ -5,7 +5,6 @@
 #include <Process/Style/ScenarioStyle.hpp>
 #include <Process/TimeValue.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
-#include <Scenario/Document/VerticalExtent.hpp>
 #include <Scenario/Process/ScenarioInterface.hpp>
 
 #include <score/document/DocumentInterface.hpp>
@@ -20,12 +19,10 @@ namespace Scenario
 {
 TimeSyncModel::TimeSyncModel(
     const Id<TimeSyncModel>& id,
-    const VerticalExtent& extent,
     const TimeVal& date,
     QObject* parent)
     : Entity{id, Metadata<ObjectKey_k, TimeSyncModel>::get(), parent}
     , m_date{date}
-    , m_extent{extent}
 {
   m_expression = State::defaultFalseExpression();
   metadata().setInstanceName(*this);
@@ -88,20 +85,6 @@ const TimeSyncModel::EventIdVec& TimeSyncModel::events() const noexcept
 void TimeSyncModel::setEvents(const TimeSyncModel::EventIdVec& events)
 {
   m_events = events;
-}
-
-const VerticalExtent& TimeSyncModel::extent() const noexcept
-{
-  return m_extent;
-}
-
-void TimeSyncModel::setExtent(const VerticalExtent& extent)
-{
-  if (extent != m_extent)
-  {
-    m_extent = extent;
-    extentChanged(m_extent);
-  }
 }
 
 void TimeSyncModel::setExpression(const State::Expression& expression)

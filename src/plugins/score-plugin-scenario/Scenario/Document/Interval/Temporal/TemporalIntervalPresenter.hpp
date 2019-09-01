@@ -30,13 +30,8 @@ public:
     return IntervalPresenter::id();
   } // To please boost::const_mem_fun
 
-  const EventModel& startEvent;
-  const EventModel& endEvent;
-
   TemporalIntervalPresenter(
       const IntervalModel& viewModel,
-      const EventModel& start,
-      const EventModel& end,
       const Process::Context& ctx,
       bool handles,
       QGraphicsItem* parentobject,

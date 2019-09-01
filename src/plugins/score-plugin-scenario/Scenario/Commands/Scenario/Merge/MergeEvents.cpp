@@ -69,8 +69,6 @@ void MergeEvents::undo(const score::DocumentContext& ctx) const
     // ScenarioValidityChecker::checkValidity(scenar);
   }
 
-  globalEvent.recomputeExtent();
-
   // ScenarioValidityChecker::checkValidity(scenar);
 }
 
@@ -96,7 +94,6 @@ void MergeEvents::redo(const score::DocumentContext& ctx) const
   ts.removeEvent(m_movingEventId);
 
   scenar.events.remove(m_movingEventId);
-  destinationEvent.recomputeExtent();
   // ScenarioValidityChecker::checkValidity(scenar);
 }
 

@@ -24,32 +24,16 @@ namespace Scenario
 EventModel::EventModel(
     const Id<EventModel>& id,
     const Id<TimeSyncModel>& timesync,
-    const VerticalExtent& extent,
     const TimeVal& date,
     QObject* parent)
     : Entity{id, Metadata<ObjectKey_k, EventModel>::get(), parent}
     , m_timeSync{timesync}
     , m_condition{}
-    , m_extent{extent}
     , m_date{date}
     , m_offset{OffsetBehavior::True}
 {
   metadata().setInstanceName(*this);
   metadata().setColor(&score::Skin::Emphasis4);
-}
-
-VerticalExtent EventModel::extent() const noexcept
-{
-  return m_extent;
-}
-
-void EventModel::setExtent(const VerticalExtent& extent)
-{
-  if (extent != m_extent)
-  {
-    m_extent = extent;
-    extentChanged(m_extent);
-  }
 }
 
 const TimeVal& EventModel::date() const noexcept

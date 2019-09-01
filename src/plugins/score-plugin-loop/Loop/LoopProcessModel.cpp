@@ -59,10 +59,6 @@ ProcessModel::ProcessModel(
   interval().metadata().setName("pattern");
   BaseScenarioContainer::startState().setHeightPercentage(height);
   BaseScenarioContainer::endState().setHeightPercentage(height);
-  BaseScenarioContainer::startEvent().setExtent({height, 0.2});
-  BaseScenarioContainer::endEvent().setExtent({height, 0.2});
-  BaseScenarioContainer::startTimeSync().setExtent({height, 1});
-  BaseScenarioContainer::endTimeSync().setExtent({height, 1});
 
   metadata().setInstanceName(*this);
 

@@ -3,11 +3,15 @@
 #include "VerticalMovePolicy.hpp"
 
 #include <Scenario/Document/Event/EventModel.hpp>
+#include <Scenario/Document/Event/EventPresenter.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
+#include <Scenario/Document/State/StatePresenter.hpp>
 #include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
+#include <Scenario/Document/TimeSync/TimeSyncPresenter.hpp>
 #include <Scenario/Document/VerticalExtent.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
+#include <Scenario/Process/ScenarioPresenter.hpp>
 
 #include <score/model/EntityMap.hpp>
 #include <score/model/Identifier.hpp>
@@ -19,19 +23,17 @@
 
 namespace Scenario
 {
-void updateTimeSyncExtent(
-    TimeSyncModel& tn,
-    const Scenario::ProcessModel& s)
+
+void updateTimeSyncExtent(TimeSyncPresenter& tn)
 {
   double min = std::numeric_limits<double>::max();
   double max = std::numeric_limits<double>::lowest();
-  for (const auto& ev_id : tn.events())
+  for (const EventPresenter* ev : tn.events())
   {
-    const auto& ev = s.events.at(ev_id);
-    if (ev.extent().top() < min)
-      min = ev.extent().top();
-    if (ev.extent().bottom() > max)
-      max = ev.extent().bottom();
+    if (ev->extent().top() < min)
+      min = ev->extent().top();
+    if (ev->extent().bottom() > max)
+      max = ev->extent().bottom();
   }
 
   if(max - min > 3.)
@@ -43,17 +45,21 @@ void updateTimeSyncExtent(
   tn.setExtent({min, max});
 }
 
-void updateEventExtent(EventModel& ev, const Scenario::ProcessModel& s, double view_height)
+void updateEventExtent(
+    ScenarioPresenter& pres,
+    EventPresenter& ev,
+    double view_height)
 {
   if(view_height <= 2.)
     return;
 
+  auto& s = pres.model();
   double min = std::numeric_limits<double>::max();
   double max = std::numeric_limits<double>::lowest();
 
-  for (const auto& state_id : ev.states())
+  for (StatePresenter* stp: ev.states())
   {
-    const auto& st = s.states.at(state_id);
+    auto& st = stp->model();
 
     if (st.heightPercentage() < min)
       min = st.heightPercentage();
@@ -62,18 +68,23 @@ void updateEventExtent(EventModel& ev, const Scenario::ProcessModel& s, double v
 
     if (const auto& itv_id = st.previousInterval())
     {
-      const IntervalModel& itv = s.intervals.at(*itv_id);
-      const double h = (1. + itv.getHeight()) / view_height;
-      if(itv.smallViewVisible() && st.heightPercentage() + h > max)
+      auto itv = s.intervals.find(*itv_id);
+      if(itv == s.intervals.end())
+        return;
+
+      const double h = (1. + itv->getHeight()) / view_height;
+      if(itv->smallViewVisible() && st.heightPercentage() + h > max)
       {
         max = st.heightPercentage() + h;
       }
     }
     if (const auto& itv_id = st.nextInterval())
     {
-      const IntervalModel& itv = s.intervals.at(*itv_id);
-      const double h = (1. + itv.getHeight()) / view_height;
-      if(itv.smallViewVisible() && st.heightPercentage() + h > max)
+      auto itv = s.intervals.find(*itv_id);
+      if(itv == s.intervals.end())
+        return;
+      const double h = (1. + itv->getHeight()) / view_height;
+      if(itv->smallViewVisible() && st.heightPercentage() + h > max)
       {
         max = st.heightPercentage() + h;
       }
@@ -83,18 +94,20 @@ void updateEventExtent(EventModel& ev, const Scenario::ProcessModel& s, double v
   ev.setExtent({min, max});
   // TODO we could maybe skip this in case where the event
   // grows ?
-  updateTimeSyncExtent(s.timeSyncs.at(ev.timeSync()), s);
+  updateTimeSyncExtent(pres.timeSync(ev.model().timeSync()));
 }
 
 void updateIntervalVerticalPos(
+    ScenarioPresenter& pres,
     IntervalModel& itv,
     double y,
-    const Scenario::ProcessModel& s,
     double view_height)
 {
+  // TODO why isn't this a command
   if(view_height <= 2.)
     return;
 
+  auto& s = pres.model();
   // First make the list of all the intervals to update
   static ossia::flat_set<IntervalModel*> intervalsToUpdate;
   static ossia::flat_set<StateModel*> statesToUpdate;
@@ -133,7 +146,7 @@ void updateIntervalVerticalPos(
   for (auto& state : statesToUpdate)
   {
     state->setHeightPercentage(y);
-    updateEventExtent(s.events.at(state->eventId()), s, view_height);
+    updateEventExtent(pres, pres.event(state->eventId()), view_height);
   }
 
   intervalsToUpdate.clear();

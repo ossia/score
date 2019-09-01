@@ -26,22 +26,19 @@ BaseScenarioContainer::BaseScenarioContainer(QObject* parentObject)
     : m_parent{parentObject}
 {
   m_startNode = new TimeSyncModel{Scenario::startId<TimeSyncModel>(),
-                                  {0.2, 0.8},
                                   TimeVal::zero(),
                                   m_parent};
   m_startNode->metadata().setName("Sync.start");
   m_endNode = new TimeSyncModel{
-      Scenario::endId<TimeSyncModel>(), {0.2, 0.8}, TimeVal::zero(), m_parent};
+      Scenario::endId<TimeSyncModel>(), TimeVal::zero(), m_parent};
   m_endNode->metadata().setName("Sync.end");
   m_startEvent = new EventModel{Scenario::startId<EventModel>(),
                                 m_startNode->id(),
-                                {0.1, 0.15},
                                 TimeVal::zero(),
                                 m_parent};
   m_startEvent->metadata().setName("Event.start");
   m_endEvent = new EventModel{Scenario::endId<EventModel>(),
                               m_endNode->id(),
-                              {0.4, 0.6},
                               TimeVal::zero(),
                               m_parent};
   m_endEvent->metadata().setName("Event.end");

@@ -48,11 +48,10 @@ void ScenarioCreate<TimeSyncModel>::undo(
 
 TimeSyncModel& ScenarioCreate<TimeSyncModel>::redo(
     const Id<TimeSyncModel>& id,
-    const VerticalExtent& extent,
     const TimeVal& date,
     Scenario::ProcessModel& s)
 {
-  auto timeSync = new TimeSyncModel{id, extent, date, &s};
+  auto timeSync = new TimeSyncModel{id, date, &s};
   s.timeSyncs.add(timeSync);
 
   return *timeSync;
@@ -70,10 +69,9 @@ void ScenarioCreate<EventModel>::undo(
 EventModel& ScenarioCreate<EventModel>::redo(
     const Id<EventModel>& id,
     TimeSyncModel& timesync,
-    const VerticalExtent& extent,
     Scenario::ProcessModel& s)
 {
-  auto ev = new EventModel{id, timesync.id(), extent, timesync.date(), &s};
+  auto ev = new EventModel{id, timesync.id(), timesync.date(), &s};
 
   s.events.add(ev);
   timesync.addEvent(id);

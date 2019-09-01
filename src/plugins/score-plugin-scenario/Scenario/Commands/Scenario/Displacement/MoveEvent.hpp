@@ -112,7 +112,6 @@ public:
   void undo(const score::DocumentContext& ctx) const override
   {
     auto& scenario = m_path.find(ctx);
-    auto& ev = scenario.events.at(m_eventId);
 
     // update positions using old stored dates
     DisplacementPolicy::revertPositions(
@@ -123,15 +122,12 @@ public:
         },
         m_savedElementsProperties);
 
-    ev.recomputeExtent();
-
     // Dataflow::restoreCables(m_savedElementsProperties.cables, ctx);
   }
 
   void redo(const score::DocumentContext& ctx) const override
   {
     auto& scenario = m_path.find(ctx);
-    auto& ev = scenario.events.at(m_eventId);
 
     // update positions using new stored dates
     DisplacementPolicy::updatePositions(
@@ -140,8 +136,6 @@ public:
           p.setParentDuration(m_mode, t);
         },
         m_savedElementsProperties);
-
-    ev.recomputeExtent();
   }
 
   const Path<Scenario::ProcessModel>& path() const override { return m_path; }

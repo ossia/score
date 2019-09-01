@@ -36,7 +36,6 @@ public:
 
   static TimeSyncModel& redo(
       const Id<TimeSyncModel>& id,
-      const VerticalExtent& extent,
       const TimeVal& date,
       Scenario::ProcessModel& s);
 };
@@ -50,7 +49,6 @@ public:
   static EventModel& redo(
       const Id<EventModel>& id,
       TimeSyncModel& timesync,
-      const VerticalExtent& extent,
       Scenario::ProcessModel& s);
 };
 

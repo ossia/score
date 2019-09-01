@@ -480,13 +480,15 @@ void ObjectMenuActions::pasteElementsAfter(
   if (!pres)
     return;
 
-  auto& sm = static_cast<const Scenario::ProcessModel&>(pres->model());
+  auto sp = dynamic_cast<ScenarioPresenter*>(pres);
+  if(!sp)
+    return;
 
   // TODO check json validity
-  if (auto ts = furthestHierarchicallySelectedTimeSync(sm))
+  if (auto ts = furthestHierarchicallySelectedTimeSync(*sp))
   {
     // TODO is there a way to compute the actual scale ?
-    auto cmd = new Command::ScenarioPasteElementsAfter{sm, *ts, obj, 1.0};
+    auto cmd = new Command::ScenarioPasteElementsAfter{sp->model(), *ts, obj, 1.0};
     dispatcher().submit(cmd);
   }
 }

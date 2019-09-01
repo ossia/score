@@ -42,10 +42,10 @@ void ScenarioViewInterface::on_eventMoved(const EventPresenter& ev)
 {
   auto h = m_presenter.m_view->boundingRect().height();
 
-  ev.view()->setExtent(ev.model().extent() * h);
+  ev.view()->setExtent(ev.extent() * h);
 
   ev.view()->setPos({ev.model().date().toPixels(m_presenter.m_zoomRatio),
-                     ev.model().extent().top() * h});
+                     ev.extent().top() * h});
 
   // We also have to move all the relevant states
   for (const auto& state : ev.model().states())
@@ -99,11 +99,11 @@ void ScenarioViewInterface::on_intervalMoved(
 void ScenarioViewInterface::on_timeSyncMoved(const TimeSyncPresenter& timesync)
 {
   auto h = m_presenter.m_view->boundingRect().height();
-  timesync.view()->setExtent(timesync.model().extent() * h);
+  timesync.view()->setExtent(timesync.extent() * h);
 
   timesync.view()->setPos(
       {timesync.model().date().toPixels(m_presenter.m_zoomRatio),
-       timesync.model().extent().top() * h});
+       timesync.extent().top() * h});
 
   m_presenter.m_view->update();
 }

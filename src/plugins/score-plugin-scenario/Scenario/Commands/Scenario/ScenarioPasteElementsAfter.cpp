@@ -314,17 +314,27 @@ ScenarioPasteElementsAfter::ScenarioPasteElementsAfter(
   }
 
   // Same for y.
-  auto delta_y = attach_sync.extent().bottom();
+  qreal delta_y = 0;
+  for(auto& ev : attach_sync.events())
+  {
+    for(auto& state : scenario.events.at(ev).states())
+    {
+      auto h = scenario.states.at(state).heightPercentage();
+      if(h > delta_y)
+        delta_y = h;
+    }
+  }
 
+  delta_y *= 1.1;
   for (IntervalModel* cst : intervals)
   {
     cst->setHeightPercentage(
-        clamp(cst->heightPercentage() * ratio + delta_y, 0., 1.));
+        clamp(delta_y, 0., 1.));
   }
   for (StateModel* state : states)
   {
     state->setHeightPercentage(
-        clamp(state->heightPercentage() * ratio + delta_y, 0., 1.));
+        clamp(delta_y, 0., 1.));
   }
 
   // We reserialize here in order to not have dangling pointers and bad cache
@@ -441,15 +451,6 @@ void ScenarioPasteElementsAfter::redo(const score::DocumentContext& ctx) const
     auto cst
         = new IntervalModel(JSONObject::Deserializer{interval}, &scenario);
     scenario.intervals.add(cst);
-  }
-
-  for (const auto& event : addedEvents)
-  {
-    event->recomputeExtent();
-  }
-  for (const auto& timesync : addedTimeSyncs)
-  {
-    timesync->recomputeExtent();
   }
 
   ScenarioDocumentModel& model
