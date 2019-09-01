@@ -27,7 +27,7 @@
 namespace Process
 {
 
-void NodeItem::resetInlets(Process::ProcessModel& effect)
+void NodeItem::resetInlets(const Process::ProcessModel& effect)
 {
   qDeleteAll(m_inlets);
   m_inlets.clear();
@@ -49,7 +49,7 @@ void NodeItem::resetInlets(Process::ProcessModel& effect)
   m_label->setPos(QPointF{x + 2., 0.});
 }
 
-void NodeItem::resetOutlets(Process::ProcessModel& effect)
+void NodeItem::resetOutlets(const  Process::ProcessModel& effect)
 {
   qDeleteAll(m_outlets);
   m_outlets.clear();
@@ -71,7 +71,7 @@ void NodeItem::resetOutlets(Process::ProcessModel& effect)
 }
 
 NodeItem::NodeItem(
-    Process::ProcessModel& model,
+    const Process::ProcessModel& model,
     const Process::Context& ctx,
     QGraphicsItem* parent)
     : ItemBase{model, ctx, parent}, m_model{model}, m_context{ctx}

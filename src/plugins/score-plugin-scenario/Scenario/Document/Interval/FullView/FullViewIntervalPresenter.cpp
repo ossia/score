@@ -23,6 +23,7 @@
 #include <Scenario/Document/Interval/SlotHeader.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentPresenter.hpp>
 
+#include <Process/Dataflow/NodeItem.hpp>
 #include <Scenario/Application/Drops/ScenarioDropHandler.hpp>
 #include <score/document/DocumentInterface.hpp>
 #include <score/graphics/GraphicsItem.hpp>
@@ -35,6 +36,58 @@
 W_OBJECT_IMPL(Scenario::FullViewIntervalPresenter)
 namespace Scenario
 {
+
+class NodalIntervalView
+    : public score::EmptyRectItem
+    , public Nano::Observer
+{
+public:
+  NodalIntervalView(IntervalPresenter& pres, const Process::Context& ctx, QGraphicsItem* parent)
+    : score::EmptyRectItem{parent}
+    , m_context{ctx}
+  {
+    //setFlag(ItemHasNoContents, false);
+    //setRect(QRectF{0, 0, 1000, 1000});
+    auto& itv = pres.model();
+    for(auto& proc : itv.processes)
+    {
+      auto item = new Process::NodeItem{proc, m_context, this};
+      m_nodeItems.push_back(item);
+      item->setZoomRatio(item->width());
+    }
+    itv.processes.added.connect<&NodalIntervalView::on_processAdded>(*this);
+    itv.processes.removing.connect<&NodalIntervalView::on_processRemoving>(*this);
+  }
+
+  void on_processAdded(const Process::ProcessModel& proc)
+  {
+    auto item = new Process::NodeItem{proc, m_context, this};
+    m_nodeItems.push_back(item);
+    item->setZoomRatio(item->width());
+  }
+
+  void on_processRemoving(const Process::ProcessModel& model)
+  {
+    for(auto it = m_nodeItems.begin(); it != m_nodeItems.end(); ++it)
+    {
+      if(&(*it)->model() == &model)
+      {
+        delete (*it);
+        m_nodeItems.erase(it);
+        return;
+      }
+    }
+  }
+/*
+  void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) override
+  {
+    painter->fillRect(m_rect, Qt::blue);
+  }
+*/
+private:
+  const Process::Context& m_context;
+  std::vector<Process::NodeItem*> m_nodeItems;
+};
 
 static SlotDragOverlay* full_slot_drag_overlay{};
 void FullViewIntervalPresenter::startSlotDrag(int curslot, QPointF pos) const
@@ -170,8 +223,6 @@ FullViewIntervalPresenter::FullViewIntervalPresenter(
 
 
   // Initial state
-  const auto& slts = interval.fullView();
-  m_slots.reserve(slts.size());
   on_rackChanged();
 }
 
@@ -194,6 +245,9 @@ FullViewIntervalPresenter::~FullViewIntervalPresenter()
 
 void FullViewIntervalPresenter::createSlot(int slot_i, const FullSlot& slt)
 {
+  if(m_nodal)
+    return;
+
   // Create the slot
   {
     SlotPresenter p;
@@ -301,6 +355,9 @@ void FullViewIntervalPresenter::requestSlotMenu(
     QPoint pos,
     QPointF sp) const
 {
+  if(m_nodal)
+    return;
+
   auto menu = new QMenu;
   auto& reg = score::GUIAppContext()
                   .guiApplicationPlugin<ScenarioApplicationPlugin>()
@@ -317,6 +374,9 @@ void FullViewIntervalPresenter::updateProcessShape(
     const LayerData& ld,
     const SlotPresenter& slot)
 {
+  if(m_nodal)
+    return;
+
   const auto h = ld.model().getSlotHeight();
   ld.setHeight(h);
   ld.updateContainerHeights(h); // TODO merge with setHeight
@@ -341,6 +401,9 @@ void FullViewIntervalPresenter::updateProcessShape(
 
 void FullViewIntervalPresenter::updateProcessShape(int slot)
 {
+  if(m_nodal)
+    return;
+
   auto& slt = m_slots.at(slot);
   if (!slt.layers.empty())
     updateProcessShape(slt.layers.front(), slt);
@@ -348,6 +411,9 @@ void FullViewIntervalPresenter::updateProcessShape(int slot)
 
 void FullViewIntervalPresenter::on_slotRemoved(int pos)
 {
+  if(m_nodal)
+    return;
+
   SlotPresenter& slot = m_slots.at(pos);
   for(const LayerData& proc : slot.layers)
   {
@@ -360,6 +426,9 @@ void FullViewIntervalPresenter::on_slotRemoved(int pos)
 
 void FullViewIntervalPresenter::updateProcessesShape()
 {
+  if(m_nodal)
+    return;
+
   for (int i = 0; i < (int)m_slots.size(); i++)
   {
     updateProcessShape(i);
@@ -368,6 +437,9 @@ void FullViewIntervalPresenter::updateProcessesShape()
 
 void FullViewIntervalPresenter::updatePositions()
 {
+  if(m_nodal)
+    return;
+
   using namespace std;
   // Vertical shape
   m_view->setHeight(rackHeight() + IntervalHeader::headerHeight());
@@ -413,6 +485,9 @@ void FullViewIntervalPresenter::updatePositions()
 
 double FullViewIntervalPresenter::rackHeight() const
 {
+  if(m_nodal)
+    return 1000.;
+
   qreal height = 0;
   for (const SlotPresenter& slot : m_slots)
   {
@@ -435,16 +510,31 @@ void FullViewIntervalPresenter::on_rackChanged()
     }
   }
 
-  // Recreate
-  m_slots.reserve(m_model.fullView().size());
+  delete m_nodal;
+  m_nodal = nullptr;
 
-  int i = 0;
-  for (const auto& slt : m_model.fullView())
+  switch(m_model.viewMode())
   {
-    createSlot(i, slt);
-    i++;
-  }
+    case IntervalModel::ViewMode::Temporal:
+    {
+      // Recreate
+      m_slots.reserve(m_model.fullView().size());
 
+      int i = 0;
+      for (const auto& slt : m_model.fullView())
+      {
+        createSlot(i, slt);
+        i++;
+      }
+
+      break;
+    }
+    case IntervalModel::ViewMode::Nodal:
+    {
+      m_nodal = new NodalIntervalView{*this, m_context, m_view};
+      break;
+    }
+  }
   // Update view
   updatePositions();
 }
@@ -481,6 +571,10 @@ void FullViewIntervalPresenter::on_defaultDurationChanged(const TimeVal& val)
 void FullViewIntervalPresenter::on_zoomRatioChanged(ZoomRatio ratio)
 {
   IntervalPresenter::on_zoomRatioChanged(ratio);
+
+  if(m_nodal)
+    return;
+
   auto gui_width = m_model.duration.guiDuration().toPixels(ratio);
   auto def_width = m_model.duration.defaultDuration().toPixels(ratio);
 
@@ -498,6 +592,18 @@ void FullViewIntervalPresenter::on_zoomRatioChanged(ZoomRatio ratio)
   updateProcessesShape();
 }
 
+void FullViewIntervalPresenter::requestModeChange(bool state)
+{
+  auto mode = state ? IntervalModel::ViewMode::Nodal : IntervalModel::ViewMode::Temporal;
+  ((IntervalModel&)m_model).setViewMode(mode);
+  on_modeChanged(mode);
+}
+
+void FullViewIntervalPresenter::on_modeChanged(IntervalModel::ViewMode m)
+{
+  on_rackChanged();
+}
+
 void FullViewIntervalPresenter::on_guiDurationChanged(const TimeVal& val)
 {
   const auto gui_width = val.toPixels(m_zoomRatio);
@@ -505,6 +611,10 @@ void FullViewIntervalPresenter::on_guiDurationChanged(const TimeVal& val)
   m_header->setWidth(gui_width);
 
   static_cast<FullViewIntervalView*>(m_view)->setGuiWidth(gui_width);
+
+  if(m_nodal)
+    return;
+
   for (SlotPresenter& slot : m_slots)
   {
     if (!slot.layers.empty())

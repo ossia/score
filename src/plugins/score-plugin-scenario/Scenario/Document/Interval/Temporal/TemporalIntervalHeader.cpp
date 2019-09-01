@@ -6,6 +6,7 @@
 #include "TemporalIntervalPresenter.hpp"
 
 #include <Process/Style/ScenarioStyle.hpp>
+#include <Process/Style/Pixmaps.hpp>
 #include <Scenario/Document/Interval/IntervalHeader.hpp>
 #include <Scenario/Document/Interval/Temporal/TemporalIntervalView.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
@@ -190,6 +191,7 @@ void TemporalIntervalHeader::updateOverlay()
 
   m_overlay = false;
 
+  const auto& pixmaps = Process::Pixmaps::instance();
 
   /// Show-hide rack ///
   if(hadRackButton && !needsRackButton)
@@ -199,13 +201,7 @@ void TemporalIntervalHeader::updateOverlay()
   }
   else if(!hadRackButton && needsRackButton)
   {
-    static const auto pix_unroll = score::get_pixmap(":/icons/rack_button_off.png");
-    static const auto pix_unroll_selected = score::get_pixmap(":/icons/rack_button_off_selected.png");
-
-    static const auto pix_rolled = score::get_pixmap(":/icons/rack_button_on.png");
-    static const auto pix_rolled_selected = score::get_pixmap(":/icons/rack_button_on_selected.png");
-
-    m_rackButton = new score::QGraphicsSelectablePixmapToggle{pix_rolled, pix_rolled_selected, pix_unroll, pix_unroll_selected, this};
+    m_rackButton = new score::QGraphicsSelectablePixmapToggle{pixmaps.roll, pixmaps.roll_selected, pixmaps.unroll, pixmaps.unroll_selected, this};
 
     connect(m_rackButton, &score::QGraphicsSelectablePixmapToggle::toggled, &m_presenter, [=] {
         ((TemporalIntervalPresenter&)m_presenter).changeRackState();
@@ -223,11 +219,7 @@ void TemporalIntervalHeader::updateOverlay()
   }
   else if(!hadMute && needsMute)
   {
-    static const auto pix_unmuted
-        = score::get_pixmap(":/icons/process_on.png");
-    static const auto pix_muted = score::get_pixmap(":/icons/process_off.png");
-
-    m_mute = new score::QGraphicsPixmapToggle{pix_muted, pix_unmuted, this};
+    m_mute = new score::QGraphicsPixmapToggle{pixmaps.muted, pixmaps.unmuted, this};
     if (itv.muted())
       m_mute->toggle();
     connect(
@@ -250,8 +242,7 @@ void TemporalIntervalHeader::updateOverlay()
   else if(!hadAdd && needsAdd)
   {
     // Add process
-    static const auto pix_add_on = score::get_pixmap(":/icons/process_add_off.png");
-    m_add = new score::QGraphicsPixmapButton{pix_add_on, pix_add_on, this};
+    m_add = new score::QGraphicsPixmapButton{pixmaps.add, pixmaps.add, this};
     connect(m_add, &score::QGraphicsPixmapButton::clicked,
             this, [this] {
       m_view->requestOverlayMenu({});

@@ -103,6 +103,7 @@ public:
       }
     }
   }
+
   void on_cableAdded(Process::Cable& c)
   {
     // TODO only show cables that are in this interval

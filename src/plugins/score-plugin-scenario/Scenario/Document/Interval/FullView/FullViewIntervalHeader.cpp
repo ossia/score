@@ -3,8 +3,12 @@
 #include "FullViewIntervalHeader.hpp"
 
 #include <Process/Style/ScenarioStyle.hpp>
+#include <Process/Style/Pixmaps.hpp>
 #include <Scenario/Document/Interval/IntervalHeader.hpp>
+#include <Scenario/Document/Interval/IntervalView.hpp>
+#include <Scenario/Document/Interval/FullView/FullViewIntervalPresenter.hpp>
 
+#include <score/graphics/GraphicWidgets.hpp>
 #include <score/graphics/GraphicsItem.hpp>
 #include <score/widgets/WidgetWrapper.hpp>
 #include <score/tools/Bind.hpp>
@@ -21,6 +25,10 @@ class QWidget;
 
 namespace Scenario
 {
+static constexpr qreal fullViewHeaderButtonX = 10.;
+static constexpr qreal fullViewHeaderButtonY = 4.;
+static constexpr qreal fullViewHeaderBarX = 30.;
+static constexpr qreal fullViewHeaderBarY = 4.;
 FullViewIntervalHeader::FullViewIntervalHeader(
     const score::DocumentContext& ctx,
     QGraphicsItem* parent)
@@ -28,7 +36,14 @@ FullViewIntervalHeader::FullViewIntervalHeader(
 {
   this->setCacheMode(QGraphicsItem::NoCache);
   this->setFlag(QGraphicsItem::ItemClipsChildrenToShape, false);
-  m_bar.setPos(10., 4.);
+  m_bar.setPos(fullViewHeaderBarX, fullViewHeaderBarY);
+
+  auto& pixmaps = Process::Pixmaps::instance();
+  auto temporalButton = new score::QGraphicsPixmapToggle{pixmaps.unmuted, pixmaps.muted, this};
+  connect(temporalButton, &score::QGraphicsPixmapToggle::toggled,
+          this, [this] (bool state) {
+    ((FullViewIntervalPresenter&)m_view->presenter()).requestModeChange(state);
+  });
 
   con(m_bar, &AddressBarItem::needRedraw, this, [&]() { update(); });
 }
@@ -65,11 +80,11 @@ void FullViewIntervalHeader::paint(
 
   const double text_left
       = view->mapFromScene(
-                mapToScene(QPointF{10., 0.}))
+                mapToScene(QPointF{fullViewHeaderBarX, 0.}))
             .x();
   const double text_right = text_left + textWidth;
-  double x = 10.;
-  const constexpr double min_x = 10.;
+  double x = fullViewHeaderBarX;
+  const constexpr double min_x = fullViewHeaderBarX;
   const double max_x = view->width() - 30.;
 
   if (text_left <= min_x)
@@ -85,6 +100,8 @@ void FullViewIntervalHeader::paint(
   x = std::max(x, 5.);
 
   if (std::abs(m_bar.pos().x() - x) > 0.1)
-    m_bar.setPos(x, 4.);
+  {
+    m_bar.setPos(x, fullViewHeaderBarY);
+  }
 }
 }
