@@ -98,10 +98,10 @@ private:
 
   void setSize(QSizeF sz)
   {
-    if(sz != m_size)
+    if(sz != m_contentSize)
     {
       prepareGeometryChange();
-      m_size = sz;
+      m_contentSize = sz;
       if(m_ui)
       {
         m_ui->setParentItem(nullptr);
@@ -118,7 +118,7 @@ private:
       if(m_ui)
       {
         m_ui->setParentItem(this);
-        m_ui->setPos({m_size.width() + TopButtonX0, TopButtonY0});
+        m_ui->setPos({m_contentSize.width() + TopButtonX0, TopButtonY0});
       }
       update();
     }

@@ -27,7 +27,7 @@ public:
   static const constexpr qreal OutletY0 = -12.; // Add to height
   static const constexpr qreal TopButtonX0 = -12.;
   static const constexpr qreal TopButtonY0 = 2.;
-  QSizeF size() const noexcept { return m_size; }
+  QSizeF size() const noexcept { return m_contentSize; }
 
 protected:
   ItemBase(const Process::ProcessModel& process, const score::DocumentContext& ctx, QGraphicsItem* parent)
@@ -75,9 +75,11 @@ protected:
     }
   }
 
+  qreal width() const { return m_contentSize.width(); }
+  qreal height() const { return TitleHeight + m_contentSize.height() + FooterHeight; }
   QRectF boundingRect() const final override
   {
-    return {0., 0., m_size.width(), TitleHeight + m_size.height() + FooterHeight};
+    return {0., 0., m_contentSize.width(), TitleHeight + m_contentSize.height() + FooterHeight};
   }
 
   static void paintNode(QPainter* painter, bool selected, bool hovered, QRectF rect)
@@ -138,7 +140,7 @@ protected:
   QGraphicsItem* m_ui{};
   score::SimpleTextItem* m_label{};
 
-  QSizeF m_size{};
+  QSizeF m_contentSize{};
   bool m_hover{false};
   bool m_selected{false};
 

@@ -83,7 +83,6 @@ NodeItem::NodeItem(
     if (auto fx = factory->makeItem(model, ctx, this))
     {
       m_fx = fx;
-      m_size = m_fx->boundingRect().size();
       connect(
           fx,
           &score::ResizeableItem::sizeChanged,
@@ -95,9 +94,9 @@ NodeItem::NodeItem(
     {
       m_fx = fx;
       m_presenter = factory->makeLayerPresenter(model, fx, ctx, this);
-      m_size = m_model.size();
-      m_presenter->setWidth(m_size.width(), m_size.width());
-      m_presenter->setHeight(m_size.height());
+      m_contentSize = m_model.size();
+      m_presenter->setWidth(m_contentSize.width(), m_contentSize.width());
+      m_presenter->setHeight(m_contentSize.height());
       m_presenter->on_zoomRatioChanged(1.);
       m_presenter->parentGeometryChanged();
     }
@@ -106,7 +105,7 @@ NodeItem::NodeItem(
   if (!m_fx)
   {
     m_fx = new Media::Effect::DefaultEffectItem{model, ctx, this};
-    m_size = m_fx->boundingRect().size();
+    m_contentSize = m_fx->boundingRect().size();
   }
 
   resetInlets(model);
@@ -114,7 +113,7 @@ NodeItem::NodeItem(
 
   if (m_ui)
   {
-    m_ui->setPos({m_size.width() + TopButtonX0, TopButtonY0});
+    m_ui->setPos({m_contentSize.width() + TopButtonX0, TopButtonY0});
   }
 
   // Positions / size
@@ -129,7 +128,7 @@ NodeItem::NodeItem(
   if (m_presenter)
   {
     ::bind(model, Process::ProcessModel::p_size{}, this, [this](QSizeF s) {
-      if (s != m_size)
+      if (s != m_contentSize)
         setSize(s);
     });
   }
@@ -141,10 +140,11 @@ void NodeItem::updateSize()
     return;
 
   auto sz = m_fx->boundingRect().size();
-  if (sz != m_size)
+  qDebug() << "size: " << sz;
+  if (sz != m_contentSize)
   {
     prepareGeometryChange();
-    m_size = sz;
+    m_contentSize = sz;
     if (m_ui)
     {
       m_ui->setParentItem(nullptr);
@@ -160,7 +160,7 @@ void NodeItem::updateSize()
     if (m_ui)
     {
       m_ui->setParentItem(this);
-      m_ui->setPos({m_size.width() + TopButtonX0, TopButtonY0});
+      m_ui->setPos({m_contentSize.width() + TopButtonX0, TopButtonY0});
     }
     update();
   }
@@ -174,7 +174,7 @@ void NodeItem::setSize(QSizeF sz)
     // item
     //      - maybe set it without a command in that case ?
     prepareGeometryChange();
-    m_size = sz;
+    m_contentSize = sz;
 
     if (m_ui)
     {
@@ -191,7 +191,7 @@ void NodeItem::setSize(QSizeF sz)
     if (m_ui)
     {
       m_ui->setParentItem(this);
-      m_ui->setPos({m_size.width() + TopButtonX0, TopButtonY0});
+      m_ui->setPos({m_contentSize.width() + TopButtonX0, TopButtonY0});
     }
   }
 }
@@ -213,7 +213,7 @@ void NodeItem::setZoomRatio(ZoomRatio r)
     if (r != m_ratio)
     {
       m_ratio = r;
-      m_presenter->on_zoomRatioChanged(m_ratio / m_size.width());
+      m_presenter->on_zoomRatioChanged(m_ratio / m_contentSize.width());
       // TODO investigate why this is necessary for scenario:
       m_presenter->parentGeometryChanged();
     }
@@ -223,7 +223,7 @@ void NodeItem::setZoomRatio(ZoomRatio r)
 void NodeItem::setPlayPercentage(float f)
 {
   m_playPercentage = f;
-  update({0., 14., m_size.width() * f, 14.});
+  update({0., 14., m_contentSize.width() * f, 14.});
 }
 
 bool NodeItem::isInSelectionCorner(QPointF p, QRectF r) const
@@ -236,15 +236,16 @@ void NodeItem::paint(
     const QStyleOptionGraphicsItem* option,
     QWidget* widget)
 {
-  ItemBase::paintNode(painter, m_selected, m_hover, {QPointF{}, m_size});
+  ItemBase::paintNode(painter, m_selected, m_hover, boundingRect());
 
   if (m_presenter)
   {
     auto& style = Process::Style::instance();
-    static QBrush b = style.skin.Emphasis1.darker.brush; // TODO erk
-    b.setStyle(Qt::BrushStyle::BDiagPattern);
-    painter->fillRect(
-        QRectF{m_size.width() - 10., m_size.height() - 10., 10., 10.}, b);
+    const auto h = height();
+    const auto w = width();
+    painter->setPen(style.IntervalWarning().main.pen0_solid_round);
+    painter->drawLine(w - 8., h - 3., w - 3., h - 3.);
+    painter->drawLine(w - 3., h - 8., w - 3., h - 3.);
   }
 
   // Exec
@@ -253,7 +254,7 @@ void NodeItem::paint(
     auto& style = Process::Style::instance();
     painter->setPen(style.IntervalPlayFill().main.pen1_solid_flat_miter);
     painter->drawLine(
-        QPointF{0., 14.}, QPointF{m_size.width() * m_playPercentage, 14.});
+        QPointF{0., 14.}, QPointF{width() * m_playPercentage, 14.});
   }
 }
 

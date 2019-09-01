@@ -18,6 +18,12 @@ struct SCORE_LIB_PROCESS_EXPORT Pixmaps
   const QPixmap close_off;
   const QPixmap close_on;
 
+  const QPixmap nodal_off;
+  const QPixmap nodal_on;
+
+  const QPixmap timeline_off;
+  const QPixmap timeline_on;
+
   const QPixmap unmuted;
   const QPixmap muted;
 
