@@ -18,10 +18,10 @@ class LayerPresenter;
 struct LayerContext;
 }
 
-namespace Nodal
+namespace Process
 {
 class TitleItem;
-class NodeItem : public Effect::ItemBase
+class SCORE_LIB_PROCESS_EXPORT NodeItem : public Effect::ItemBase
 {
 public:
   NodeItem(Process::ProcessModel& model, const Process::Context& ctx, QGraphicsItem* parent);

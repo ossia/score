@@ -86,7 +86,7 @@ Presenter::Presenter(
                 this, [&] {
       {
         float p = ossia::clamp((float)dur.playPercentage(), 0.f, 1.f);
-        for (NodeItem& node : m_nodes)
+        for (Process::NodeItem& node : m_nodes)
         {
           node.setPlayPercentage(p);
         }
@@ -96,7 +96,7 @@ Presenter::Presenter(
 
   connect(&m_model, &Model::resetExecution,
           this, [this] {
-    for (NodeItem& node : m_nodes)
+    for (Process::NodeItem& node : m_nodes)
     {
       node.setPlayPercentage(0.f);
     }
@@ -113,7 +113,7 @@ void Presenter::setWidth(qreal val, qreal defaultWidth)
   m_view->setWidth(val);
   m_defaultW = defaultWidth;
   const auto r = m_ratio * m_defaultW;
-  for(NodeItem& node : m_nodes)
+  for(Process::NodeItem& node : m_nodes)
   {
     node.setZoomRatio(r);
   }
@@ -138,7 +138,7 @@ void Presenter::on_zoomRatioChanged(ZoomRatio ratio)
 {
   m_ratio = ratio;
   const auto r = m_ratio * m_defaultW;
-  for(NodeItem& node : m_nodes)
+  for(Process::NodeItem& node : m_nodes)
   {
     node.setZoomRatio(r);
   }
@@ -158,16 +158,16 @@ const Id<Process::ProcessModel>& Presenter::modelId() const
   return m_model.id();
 }
 
-void Presenter::on_created(Node& n)
+void Presenter::on_created(Process::ProcessModel& n)
 {
-  auto item = new NodeItem{n, m_context.context, m_view};
+  auto item = new Process::NodeItem{n, m_context.context, m_view};
   item->setPos(n.position());
   const auto r = m_ratio * m_defaultW;
   item->setZoomRatio(r);
   m_nodes.insert(item);
 }
 
-void Presenter::on_removing(const Node& n)
+void Presenter::on_removing(const Process::ProcessModel& n)
 {
   m_nodes.erase(n.id());
 }

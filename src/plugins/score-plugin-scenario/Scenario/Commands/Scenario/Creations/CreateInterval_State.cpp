@@ -39,7 +39,6 @@ CreateInterval_State::CreateInterval_State(
 void CreateInterval_State::undo(const score::DocumentContext& ctx) const
 {
   auto& scenar = m_command.scenarioPath().find(ctx);
-  auto& ev = scenar.events.at(m_endEvent);
   m_command.undo(ctx);
 
   ScenarioCreate<StateModel>::undo(

@@ -115,7 +115,7 @@ DataStreamReader::read(const Scenario::IntervalModel& interval)
   m_stream << interval.duration << interval.m_startState << interval.m_endState
 
            << interval.m_date << interval.m_heightPercentage << interval.m_zoom
-           << interval.m_center << interval.m_smallViewShown;
+           << interval.m_center << interval.m_viewMode << interval.m_smallViewShown;
 
   insertDelimiter();
 }
@@ -152,11 +152,13 @@ DataStreamWriter::write(Scenario::IntervalModel& interval)
   m_stream >> interval.m_smallView >> interval.m_fullView;
 
   // Common data
-  bool sv;
+  Scenario::IntervalModel::ViewMode vm{Scenario::IntervalModel::ViewMode::Temporal};
+  bool sv{};
   m_stream >> interval.duration >> interval.m_startState >> interval.m_endState
 
       >> interval.m_date >> interval.m_heightPercentage >> interval.m_zoom
-      >> interval.m_center >> sv;
+      >> interval.m_center >> vm >> sv;
+  interval.m_viewMode = vm;
   interval.m_smallViewShown = sv;
 
   checkDelimiter();
@@ -190,7 +192,9 @@ JSONObjectReader::read(const Scenario::IntervalModel& interval)
 
   obj[strings.Zoom] = interval.m_zoom;
   obj[strings.Center] = toJsonValue(interval.m_center);
+  obj["ViewMode"] = (int) interval.m_viewMode;
   obj[strings.SmallViewShown] = interval.m_smallViewShown;
+
 }
 
 template <>
@@ -267,6 +271,7 @@ JSONObjectWriter::write(Scenario::IntervalModel& interval)
 
   interval.m_date = fromJsonValue<TimeVal>(obj[strings.StartDate]);
   interval.m_heightPercentage = obj[strings.HeightPercentage].toDouble();
+  interval.m_viewMode = static_cast<Scenario::IntervalModel::ViewMode>(obj["ViewMode"].toInt());
 
   auto zit = obj.find(strings.Zoom);
   if (zit != obj.end())
@@ -274,4 +279,5 @@ JSONObjectWriter::write(Scenario::IntervalModel& interval)
   auto cit = obj.find(strings.Center);
   if (cit != obj.end() && cit->isDouble())
     interval.m_center = fromJsonValue<TimeVal>(*cit);
+
 }

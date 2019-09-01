@@ -97,7 +97,7 @@ public:
       {
         m_nodes.push_back(&proc);
 
-        auto item = new NodeItem{proc, m_context, m_item};
+        auto item = new Process::NodeItem{proc, m_context, m_item};
         m_nodeItems.push_back(item);
         item->setZoomRatio(item->width());
       }
@@ -126,7 +126,7 @@ public:
   Process::Context m_context;
   QGraphicsItem* m_item{};
   std::vector<Process::ProcessModel*> m_nodes;
-  std::vector<Nodal::NodeItem*> m_nodeItems;
+  std::vector<Process::NodeItem*> m_nodeItems;
 };
 class PanelDelegate final : public score::PanelDelegate
 {

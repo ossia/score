@@ -41,6 +41,7 @@ IntervalModel::IntervalModel(
     : Entity{id, Metadata<ObjectKey_k, IntervalModel>::get(), parent}
     , inlet{Process::make_inlet(Id<Process::Port>(0), this)}
     , outlet{Process::make_outlet(Id<Process::Port>(0), this)}
+    , m_viewMode{ViewMode::Temporal}
     , m_executionState{}
     , m_smallViewShown{}
     , m_muted{}
@@ -220,6 +221,20 @@ IntervalExecutionState IntervalModel::executionState() const
       return m_muted ? IntervalExecutionState::Muted : IntervalExecutionState::Enabled;
     default:
       return m_executionState;
+  }
+}
+
+IntervalModel::ViewMode IntervalModel::viewMode() const noexcept
+{
+  return m_viewMode;
+}
+
+void IntervalModel::setViewMode(IntervalModel::ViewMode v)
+{
+  if(v != m_viewMode)
+  {
+    m_viewMode = v;
+    viewModeChanged(v);
   }
 }
 
