@@ -74,6 +74,7 @@ private:
 
   Presenter* m_presenter{};
   QTabWidget* m_tabWidget{};
+  QTabWidget* m_bottomTabs{};
   QLabel* m_status{};
 
 };

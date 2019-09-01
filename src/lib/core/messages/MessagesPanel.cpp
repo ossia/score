@@ -178,7 +178,7 @@ QWidget* MessagesPanelDelegate::widget()
 const score::PanelStatus& MessagesPanelDelegate::defaultPanelStatus() const
 {
   static const score::PanelStatus status{false, false,
-                                         Qt::BottomDockWidgetArea,
+                                         Qt::LeftDockWidgetArea,
                                          0,
                                          QObject::tr("Messages"),
                                          QObject::tr("Ctrl+Shift+M")};

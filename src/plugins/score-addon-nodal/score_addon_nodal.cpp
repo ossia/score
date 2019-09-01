@@ -86,30 +86,18 @@ public:
       m_scene.addItem(m_item);
 
       auto parent = dynamic_cast<Scenario::IntervalModel*>(focus->parent());
+      if(!parent)
+        return;
 
-      int i = 0;
-
-      for(auto node : m_nodes)
-      {
-        node->release();
-        delete node;
-      }
 
       m_nodes.clear();
       m_nodeItems.clear();
 
       for(auto& proc : parent->processes)
       {
-        auto node = new Nodal::Node{
-            Nodal::Node::no_ownership{}
-            , proc
-            , Id<Nodal::Node>{i++}
-            , &m_context.document.model().modelDelegate()};
-        node->setSize({200, 100});
+        m_nodes.push_back(&proc);
 
-        m_nodes.push_back(node);
-
-        auto item = new NodeItem{*node, m_context, m_item};
+        auto item = new NodeItem{proc, m_context, m_item};
         m_nodeItems.push_back(item);
         item->setZoomRatio(item->width());
       }
@@ -137,7 +125,7 @@ public:
   FocusDispatcher m_focusDispatcher;
   Process::Context m_context;
   QGraphicsItem* m_item{};
-  std::vector<Nodal::Node*> m_nodes;
+  std::vector<Process::ProcessModel*> m_nodes;
   std::vector<Nodal::NodeItem*> m_nodeItems;
 };
 class PanelDelegate final : public score::PanelDelegate
@@ -226,9 +214,6 @@ score_addon_nodal::make_commands()
       Nodal::CommandFactoryName(), CommandGeneratorMap{}};
 
   ossia::for_each_type<
-#include <QGraphicsView>
-#include <QHBoxLayout>
-#include <QScrollArea>
 #include <score_addon_nodal_commands.hpp>
       >(score::commands::FactoryInserter{cmds.second});
 

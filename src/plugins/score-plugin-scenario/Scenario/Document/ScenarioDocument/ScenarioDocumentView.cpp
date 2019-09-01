@@ -200,6 +200,8 @@ ScenarioDocumentView::ScenarioDocumentView(
   m_view.setStatusTip("Main score view. Drop things in here.");
   m_timeRulerView.setStatusTip("The time ruler keeps track of time. Scroll by dragging it.");
   m_minimapView.setStatusTip("A minimap which shows an overview of the topmost score");
+  m_view.setSizePolicy(QSizePolicy{QSizePolicy::Expanding, QSizePolicy::Expanding});
+
 
   m_widget->addAction(new SnapshotAction{m_scene, m_widget});
 

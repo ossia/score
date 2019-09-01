@@ -761,7 +761,7 @@ struct WaveformComputerImpl
     infos.logical_h_ratio = -infos.logical_h;
     infos.logical_half_h = infos.logical_h / 2.f;
     infos.logical_half_h_int = infos.logical_half_h;
-    infos.logical_half_h_ratio = 10 -infos.logical_half_h;
+    infos.logical_half_h_ratio = 1 -infos.logical_half_h;
 
     if(infos.logical_width <= 1.)
       return;

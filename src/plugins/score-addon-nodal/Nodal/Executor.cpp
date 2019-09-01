@@ -153,14 +153,13 @@ void NodalExecutorBase::reg(
 Execution::ProcessComponent* NodalExecutorBase::make(
     const Id<score::Component>& id,
     Execution::ProcessComponentFactory& factory,
-    Nodal::Node& node)
+    Process::ProcessModel& proc)
 {
   std::vector<Execution::ExecutionCommand> commands;
-  auto& proc = node.process();
   auto comp = factory.make(proc, this->system(), id, this);
   if (comp)
   {
-    reg(m_nodes[node.id()] = {comp}, commands);
+    reg(m_nodes[proc.id()] = {comp}, commands);
     auto child_n = comp->node;
     auto child_p = comp->OSSIAProcessPtr();
     if(child_n && child_p)
@@ -188,7 +187,7 @@ void NodalExecutorBase::added(::Execution::ProcessComponent& e)
 }
 
 std::function<void()> NodalExecutorBase::removing(
-    const Nodal::Node& e,
+    const Process::ProcessModel& e,
     ::Execution::ProcessComponent& c)
 {
   std::vector<Execution::ExecutionCommand> commands;

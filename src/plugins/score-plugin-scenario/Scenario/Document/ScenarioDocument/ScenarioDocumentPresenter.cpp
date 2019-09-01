@@ -349,7 +349,7 @@ void ScenarioDocumentPresenter::stopTimeBar()
   bar.setInterval(nullptr);
 }
 static bool window_size_set = false;
-void ScenarioDocumentPresenter::on_windowSizeChanged(QSize)
+void ScenarioDocumentPresenter::on_windowSizeChanged(QSize sz)
 {
   if (m_zoomRatio == -1)
     return;

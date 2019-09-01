@@ -32,18 +32,17 @@ void CreateNode::redo(const score::DocumentContext& ctx) const
   auto fac
       = ctx.app.interfaces<Process::ProcessFactoryList>().get(m_uuid);
   SCORE_ASSERT(fac);
-  auto proc = std::unique_ptr<Process::ProcessModel>{fac->make(
+  auto proc = fac->make(
         nodal.duration(),
         m_data,
-        Id<Process::ProcessModel>{},
-        nullptr)};
+        m_createdNodeId,
+        &nodal);
 
   SCORE_ASSERT(proc);
   // todo handle these asserts
-  auto node = new Node{std::move(proc), m_createdNodeId, &nodal};
-  node->setSize({100, 100});
-  node->setPosition(m_pos);
-  nodal.nodes.add(node);
+  proc->setSize({100, 100});
+  proc->setPosition(m_pos);
+  nodal.nodes.add(proc);
 }
 
 void CreateNode::serializeImpl(DataStreamInput& s) const

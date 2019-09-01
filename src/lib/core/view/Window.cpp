@@ -29,6 +29,7 @@
 
 #include <wobjectimpl.h>
 
+#include <QSplitter>
 #include <algorithm>
 #include <iterator>
 #include <set>
@@ -81,7 +82,7 @@ View::View(QObject* parent) : QMainWindow{}, m_tabWidget{new QTabWidget}
 
   // setUnifiedTitleAndToolBarOnMac(true);
 
-  setDockOptions(QMainWindow::AllowNestedDocks | QMainWindow::VerticalTabs);
+  setDockOptions(QMainWindow::VerticalTabs | QMainWindow::ForceTabbedDocks);
   setCorner(Qt::BottomLeftCorner, Qt::LeftDockWidgetArea);
   setCorner(Qt::BottomRightCorner, Qt::RightDockWidgetArea);
 
@@ -99,6 +100,20 @@ View::View(QObject* parent) : QMainWindow{}, m_tabWidget{new QTabWidget}
   m_tabWidget->tabBar()->setDocumentMode(true);
   m_tabWidget->tabBar()->setDrawBase(false);
   m_tabWidget->tabBar()->setAutoHide(true);
+
+  m_bottomTabs = new QTabWidget;
+  m_bottomTabs->setVisible(false);
+  m_bottomTabs->setTabPosition(QTabWidget::South);
+  m_bottomTabs->setTabsClosable(false);
+
+  m_bottomTabs->setContentsMargins(0, 0, 0, 0);
+  m_bottomTabs->tabBar()->setDocumentMode(false);
+  m_bottomTabs->tabBar()->setDrawBase(false);
+  m_bottomTabs->tabBar()->setAutoHide(true);
+  m_bottomTabs->tabBar()->setContentsMargins(0, 0, 0, 0);
+
+
+  lay->addWidget(m_bottomTabs);
   connect(
       m_tabWidget,
       &QTabWidget::currentChanged,
@@ -198,12 +213,20 @@ void View::setupPanel(PanelDelegate* v)
     }
   }
   using namespace std;
-  auto dial
-      = new QDockWidget{v->defaultPanelStatus().prettyName.toUpper(), this};
+  auto w = v->widget();
+
+  if(v->defaultPanelStatus().dock == Qt::BottomDockWidgetArea)
+  {
+    m_bottomTabs->addTab(w, v->defaultPanelStatus().prettyName);
+    if (!v->defaultPanelStatus().shown)
+      w->hide();
+    return;
+  }
+
+  auto dial = new QDockWidget{v->defaultPanelStatus().prettyName.toUpper(), this};
   if(v->defaultPanelStatus().fixed)
     dial->setFeatures(QDockWidget::DockWidgetFeature::DockWidgetClosable);
 
-  auto w = v->widget();
   dial->setWidget(w);
   dial->setStatusTip(w->statusTip());
   dial->toggleViewAction()->setShortcut(v->defaultPanelStatus().shortcut);
@@ -225,11 +248,11 @@ void View::setupPanel(PanelDelegate* v)
         // Find the one with the biggest priority
         auto it = ossia::max_element(m_leftPanels, PanelComparator{});
 
-        it->second->raise();
         if (dial != it->second)
         {
           // dial is not on top
           tabifyDockWidget(dial, it->second);
+          it->second->raise();
         }
         else
         {
@@ -238,6 +261,7 @@ void View::setupPanel(PanelDelegate* v)
               m_leftPanels, [=](auto elt) { return elt.second != dial; });
           SCORE_ASSERT(it != m_leftPanels.end());
           tabifyDockWidget(it->second, dial);
+          dial->raise();
         }
       }
       break;
@@ -283,6 +307,7 @@ void View::setupPanel(PanelDelegate* v)
     }
   }
   // TODO why isn't there a title and how to access it ?
+
   if(auto title = dial->titleBarWidget())
     title->setStatusTip(w->statusTip());
 

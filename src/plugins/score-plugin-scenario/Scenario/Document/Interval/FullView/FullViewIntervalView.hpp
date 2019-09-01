@@ -44,6 +44,8 @@ public:
   void setSelected(bool selected);
 
 private:
+  void drawDashedPath(QPainter& p, QRectF visibleRect, const Process::Style& skin);
+  void drawPlayDashedPath(QPainter& p, QRectF visibleRect, const Process::Style& skin);
   double m_guiWidth{};
 };
 }

@@ -9,7 +9,6 @@
 #include <score/model/Identifier.hpp>
 namespace Nodal
 {
-class Node;
 class Model;
 class View;
 class Presenter final
@@ -17,7 +16,7 @@ class Presenter final
     , public Nano::Observer
 {
 public:
-  using Node = Nodal::Node;
+  using Node = Process::ProcessModel;
 
   explicit Presenter(
       const Model& model, View* view,
@@ -37,7 +36,7 @@ public:
   const Process::ProcessModel& model() const override;
   const Id<Process::ProcessModel>& modelId() const override;
 
-  void on_created(const Node& n);
+  void on_created(Node& n);
   void on_removing(const Node& n);
 
 private:

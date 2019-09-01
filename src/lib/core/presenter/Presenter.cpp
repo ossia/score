@@ -151,7 +151,9 @@ void Presenter::setupGUI()
 
     {
       auto bw = new QWidget;
+      bw->setFixedHeight(45);
       bw->setContentsMargins(0, 0, 0, 0);
+
       auto bl = new score::MarginLess<QGridLayout>{bw};
       view()->centralWidget()->layout()->addWidget(bw);
 

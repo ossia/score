@@ -189,6 +189,7 @@ void LayerData::updateLoops(
     {
       setupView(m_layers[i], i, parent_width, parent_default_width, view_width, slot_height);
     }
+    m_layers.front().container->setFlag(QGraphicsItem::ItemHasNoContents, false);
   }
   else
   {
@@ -208,6 +209,7 @@ void LayerData::updateLoops(
 
     // Update sizes for first layer
     setupView(m_layers.front(), 0, parent_width, parent_default_width, parent_width, slot_height);
+    m_layers.front().container->setFlag(QGraphicsItem::ItemHasNoContents, true);
   }
 
   auto& last = m_layers.back();
