@@ -88,7 +88,17 @@ QMenu
     border: 1px solid #666666;
     color: silver;
     margin: 0px;
+    padding-top: 2px;
+    padding-bottom: 2px;
 }
+
+QMenu::separator {
+  margin: 4px;
+  height: 1px;
+  background-color: #666666;
+  color: #F0F0F0;
+}
+
 QTabWidget:focus, QSlider:focus
 {
     border: none;
