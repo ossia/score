@@ -1,5 +1,6 @@
 #pragma once
 #include <Scenario/Document/Interval/FullView/FullViewIntervalView.hpp>
+#include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/Interval/IntervalPresenter.hpp>
 #include <Scenario/Document/Interval/Slot.hpp>
 #include <Scenario/Document/Interval/SlotHandle.hpp>
@@ -16,6 +17,7 @@ namespace Scenario
 {
 class SlotView;
 class SlotHandle;
+class NodalIntervalView;
 class SCORE_PLUGIN_SCENARIO_EXPORT FullViewIntervalPresenter final
     : public IntervalPresenter
 {
@@ -35,6 +37,8 @@ public:
   void updateHeight();
   void on_zoomRatioChanged(ZoomRatio val) override;
 
+  void requestModeChange(bool);
+
   const std::vector<SlotPresenter>& getSlots() const { return m_slots; }
 
 public:
@@ -49,6 +53,7 @@ private:
   void updateScaling() override;
   void selectedSlot(int) const override;
 
+  void on_modeChanged(IntervalModel::ViewMode);
   void on_defaultDurationChanged(const TimeVal&);
   void on_guiDurationChanged(const TimeVal&);
   void createSlot(int pos, const FullSlot& slt);
@@ -61,5 +66,7 @@ private:
 
   double rackHeight() const;
   void on_rackChanged();
+
+  NodalIntervalView* m_nodal{};
 };
 }

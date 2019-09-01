@@ -24,7 +24,7 @@ class TitleItem;
 class SCORE_LIB_PROCESS_EXPORT NodeItem : public Effect::ItemBase
 {
 public:
-  NodeItem(Process::ProcessModel& model, const Process::Context& ctx, QGraphicsItem* parent);
+  NodeItem(const Process::ProcessModel& model, const Process::Context& ctx, QGraphicsItem* parent);
   const Id<Process::ProcessModel>& id() const noexcept;
   ~NodeItem();
 
@@ -33,6 +33,7 @@ public:
 
   qreal width() const noexcept { return m_size.width(); }
 
+  const Process::ProcessModel& model() const noexcept { return m_model; }
 private:
   void updateSize();
   void setSize(QSizeF sz);
@@ -48,10 +49,10 @@ private:
   void hoverMoveEvent(QGraphicsSceneHoverEvent* event) override;
   void hoverLeaveEvent(QGraphicsSceneHoverEvent* event) override;
 
-  void resetInlets(Process::ProcessModel& effect);
-  void resetOutlets(Process::ProcessModel& effect);
+  void resetInlets(const Process::ProcessModel& effect);
+  void resetOutlets(const Process::ProcessModel& effect);
 
-  Process::ProcessModel& m_model;
+  const Process::ProcessModel& m_model;
 
   //Body
   QGraphicsItem* m_fx{};
