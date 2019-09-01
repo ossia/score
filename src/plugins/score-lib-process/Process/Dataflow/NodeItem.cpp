@@ -1,34 +1,33 @@
-#include <Nodal/NodeItem.hpp>
-#include <Nodal/Process.hpp>
-#include <Process/Style/ScenarioStyle.hpp>
-#include <Process/ProcessFactory.hpp>
-#include <Process/ProcessList.hpp>
-#include <score/application/GUIApplicationContext.hpp>
-#include <QGraphicsSceneMouseEvent>
-#include <Control/DefaultEffectItem.hpp>
-#include <score/document/DocumentContext.hpp>
+#include <Process/Commands/Properties.hpp>
+#include <Process/Dataflow/NodeItem.hpp>
 #include <Process/Dataflow/PortFactory.hpp>
-#include <Effect/EffectLayer.hpp>
 #include <Process/Dataflow/PortItem.hpp>
 #include <Process/Focus/FocusDispatcher.hpp>
-#include <Nodal/Commands.hpp>
-#include <Nodal/Process.hpp>
-#include <score/selection/SelectionDispatcher.hpp>
+#include <Process/ProcessFactory.hpp>
+#include <Process/ProcessList.hpp>
+#include <Process/Style/ScenarioStyle.hpp>
+
+#include <score/application/GUIApplicationContext.hpp>
+#include <score/command/Dispatchers/CommandDispatcher.hpp>
+#include <score/document/DocumentContext.hpp>
 #include <score/graphics/TextItem.hpp>
+#include <score/selection/SelectionDispatcher.hpp>
+#include <score/tools/Bind.hpp>
+
+#include <QCursor>
+#include <QGraphicsSceneMouseEvent>
+#include <QKeyEvent>
+#include <QPainter>
+
+#include <Control/DefaultEffectItem.hpp>
+#include <Effect/EffectLayer.hpp>
 #include <Effect/EffectPainting.hpp>
 #include <wobjectimpl.h>
-#include <score/tools/Bind.hpp>
-#include <score/command/Dispatchers/CommandDispatcher.hpp>
-#include <QPainter>
-#include <QKeyEvent>
-#include <QCursor>
-#include <Process/Commands/Properties.hpp>
 
-namespace Nodal
+namespace Process
 {
 
-void NodeItem::resetInlets(
-    Process::ProcessModel& effect)
+void NodeItem::resetInlets(Process::ProcessModel& effect)
 {
   qDeleteAll(m_inlets);
   m_inlets.clear();
@@ -50,8 +49,7 @@ void NodeItem::resetInlets(
   m_label->setPos(QPointF{x + 2., 0.});
 }
 
-void NodeItem::resetOutlets(
-    Process::ProcessModel& effect)
+void NodeItem::resetOutlets(Process::ProcessModel& effect)
 {
   qDeleteAll(m_outlets);
   m_outlets.clear();
@@ -72,24 +70,28 @@ void NodeItem::resetOutlets(
   }
 }
 
-NodeItem::NodeItem(Process::ProcessModel& model, const Process::Context& ctx, QGraphicsItem* parent)
-  : ItemBase{model, ctx, parent}
-  , m_model{model}
-  , m_context{ctx}
+NodeItem::NodeItem(
+    Process::ProcessModel& model,
+    const Process::Context& ctx,
+    QGraphicsItem* parent)
+    : ItemBase{model, ctx, parent}, m_model{model}, m_context{ctx}
 {
   // Body
   auto& fact = ctx.app.interfaces<Process::LayerFactoryList>();
   if (auto factory = fact.findDefaultFactory(model))
   {
-    if(auto fx = factory->makeItem(model, ctx, this))
+    if (auto fx = factory->makeItem(model, ctx, this))
     {
       m_fx = fx;
       m_size = m_fx->boundingRect().size();
-      connect(fx, &score::ResizeableItem::sizeChanged,
-              this, &NodeItem::updateSize);
+      connect(
+          fx,
+          &score::ResizeableItem::sizeChanged,
+          this,
+          &NodeItem::updateSize);
       updateSize();
     }
-    else if(auto fx = factory->makeLayerView(model, this))
+    else if (auto fx = factory->makeLayerView(model, this))
     {
       m_fx = fx;
       m_presenter = factory->makeLayerPresenter(model, fx, ctx, this);
@@ -110,7 +112,7 @@ NodeItem::NodeItem(Process::ProcessModel& model, const Process::Context& ctx, QG
   resetInlets(model);
   resetOutlets(model);
 
-  if(m_ui)
+  if (m_ui)
   {
     m_ui->setPos({m_size.width() + TopButtonX0, TopButtonY0});
   }
@@ -118,16 +120,16 @@ NodeItem::NodeItem(Process::ProcessModel& model, const Process::Context& ctx, QG
   // Positions / size
   m_fx->setPos({0, Effect::ItemBase::TitleHeight});
 
-  ::bind(model, Process::ProcessModel::p_position{}, this, [this] (QPointF p) {
-      if(p != pos())
-          setPos(p);
+  ::bind(model, Process::ProcessModel::p_position{}, this, [this](QPointF p) {
+    if (p != pos())
+      setPos(p);
   });
 
   // TODO review the resizing heuristic...
-  if(m_presenter)
+  if (m_presenter)
   {
-    ::bind(model, Process::ProcessModel::p_size{}, this, [this] (QSizeF s) {
-      if(s != m_size)
+    ::bind(model, Process::ProcessModel::p_size{}, this, [this](QSizeF s) {
+      if (s != m_size)
         setSize(s);
     });
   }
@@ -135,27 +137,27 @@ NodeItem::NodeItem(Process::ProcessModel& model, const Process::Context& ctx, QG
 
 void NodeItem::updateSize()
 {
-  if(!m_fx)
+  if (!m_fx)
     return;
 
   auto sz = m_fx->boundingRect().size();
-  if(sz != m_size)
+  if (sz != m_size)
   {
     prepareGeometryChange();
     m_size = sz;
-    if(m_ui)
+    if (m_ui)
     {
       m_ui->setParentItem(nullptr);
     }
 
     const auto r = boundingRect();
 
-    for(auto& outlet : m_outlets)
+    for (auto& outlet : m_outlets)
     {
       outlet->setPos(outlet->pos().x(), r.height() + OutletY0);
     }
 
-    if(m_ui)
+    if (m_ui)
     {
       m_ui->setParentItem(this);
       m_ui->setPos({m_size.width() + TopButtonX0, TopButtonY0});
@@ -166,14 +168,15 @@ void NodeItem::updateSize()
 
 void NodeItem::setSize(QSizeF sz)
 {
-  if(m_presenter)
+  if (m_presenter)
   {
-    // TODO: find a way to indicate to a model what will be the size of the item
+    // TODO: find a way to indicate to a model what will be the size of the
+    // item
     //      - maybe set it without a command in that case ?
     prepareGeometryChange();
     m_size = sz;
 
-    if(m_ui)
+    if (m_ui)
     {
       m_ui->setParentItem(nullptr);
     }
@@ -185,7 +188,7 @@ void NodeItem::setSize(QSizeF sz)
 
     resetInlets(m_model);
     resetOutlets(m_model);
-    if(m_ui)
+    if (m_ui)
     {
       m_ui->setParentItem(this);
       m_ui->setPos({m_size.width() + TopButtonX0, TopButtonY0});
@@ -205,9 +208,9 @@ NodeItem::~NodeItem()
 
 void NodeItem::setZoomRatio(ZoomRatio r)
 {
-  if(m_presenter)
+  if (m_presenter)
   {
-    if(r != m_ratio)
+    if (r != m_ratio)
     {
       m_ratio = r;
       m_presenter->on_zoomRatioChanged(m_ratio / m_size.width());
@@ -228,44 +231,47 @@ bool NodeItem::isInSelectionCorner(QPointF p, QRectF r) const
   return p.x() > r.width() - 10. && p.y() > r.height() - 10.;
 }
 
-void NodeItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+void NodeItem::paint(
+    QPainter* painter,
+    const QStyleOptionGraphicsItem* option,
+    QWidget* widget)
 {
   const auto rect = boundingRect();
 
   ItemBase::paintNode(painter, m_selected, m_hover, rect);
 
-  if(m_presenter)
+  if (m_presenter)
   {
     auto& style = Process::Style::instance();
     static QBrush b = style.skin.Emphasis1.darker.brush; // TODO erk
     b.setStyle(Qt::BrushStyle::BDiagPattern);
-    painter->fillRect(QRectF{
-                        rect.width() - 10.,
-                        rect.height() - 10.,
-                        10., 10.
-                      },
-                      b);
+    painter->fillRect(
+        QRectF{rect.width() - 10., rect.height() - 10., 10., 10.}, b);
   }
 
   // Exec
-  if(m_playPercentage != 0.)
+  if (m_playPercentage != 0.)
   {
     auto& style = Process::Style::instance();
     painter->setPen(style.IntervalSolidPen(style.IntervalPlayFill()));
-    painter->drawLine(QPointF{0.f, 14.f}, QPointF{rect.width() * m_playPercentage, 14.});
+    painter->drawLine(
+        QPointF{0.f, 14.f}, QPointF{rect.width() * m_playPercentage, 14.});
   }
 }
 
-namespace {
-enum Interaction {
-  Move, Resize
+namespace
+{
+enum Interaction
+{
+  Move,
+  Resize
 } nodeItemInteraction{};
 QSizeF origNodeSize{};
 }
 
 void NodeItem::mousePressEvent(QGraphicsSceneMouseEvent* event)
 {
-  if(m_presenter && isInSelectionCorner(event->pos(), boundingRect()))
+  if (m_presenter && isInSelectionCorner(event->pos(), boundingRect()))
   {
     nodeItemInteraction = Interaction::Resize;
     origNodeSize = m_model.size();
@@ -275,10 +281,11 @@ void NodeItem::mousePressEvent(QGraphicsSceneMouseEvent* event)
     nodeItemInteraction = Interaction::Move;
   }
 
-  if(m_presenter)
+  if (m_presenter)
     m_context.focusDispatcher.focus(m_presenter);
 
-  score::SelectionDispatcher{m_context.selectionStack}.setAndCommit({&m_model});
+  score::SelectionDispatcher{m_context.selectionStack}.setAndCommit(
+      {&m_model});
   event->accept();
 }
 
@@ -286,17 +293,20 @@ void NodeItem::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 {
   auto origp = mapToItem(parentItem(), event->buttonDownPos(Qt::LeftButton));
   auto p = mapToItem(parentItem(), event->pos());
-  switch(nodeItemInteraction)
+  switch (nodeItemInteraction)
   {
     case Interaction::Resize:
     {
-      const auto sz = origNodeSize + QSizeF{p.x() - origp.x(), p.y() - origp.y()};
-      m_context.dispatcher.submit<Process::ResizeNode>(m_model, sz.expandedTo({10, 10}));
+      const auto sz
+          = origNodeSize + QSizeF{p.x() - origp.x(), p.y() - origp.y()};
+      m_context.dispatcher.submit<Process::ResizeNode>(
+          m_model, sz.expandedTo({10, 10}));
       break;
     }
     case Interaction::Move:
     {
-      m_context.dispatcher.submit<Process::MoveNode>(m_model, m_model.position() + (p - origp));
+      m_context.dispatcher.submit<Process::MoveNode>(
+          m_model, m_model.position() + (p - origp));
       break;
     }
   }
@@ -310,9 +320,9 @@ void NodeItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
   event->accept();
 }
 
-void NodeItem::hoverEnterEvent(QGraphicsSceneHoverEvent *event)
+void NodeItem::hoverEnterEvent(QGraphicsSceneHoverEvent* event)
 {
-  if(isInSelectionCorner(event->pos(), boundingRect()))
+  if (isInSelectionCorner(event->pos(), boundingRect()))
   {
     setCursor(Qt::SizeFDiagCursor);
   }
@@ -324,9 +334,9 @@ void NodeItem::hoverEnterEvent(QGraphicsSceneHoverEvent *event)
   ItemBase::hoverEnterEvent(event);
 }
 
-void NodeItem::hoverMoveEvent(QGraphicsSceneHoverEvent *event)
+void NodeItem::hoverMoveEvent(QGraphicsSceneHoverEvent* event)
 {
-  if(isInSelectionCorner(event->pos(), boundingRect()))
+  if (isInSelectionCorner(event->pos(), boundingRect()))
   {
     setCursor(Qt::SizeFDiagCursor);
   }
@@ -337,7 +347,7 @@ void NodeItem::hoverMoveEvent(QGraphicsSceneHoverEvent *event)
   ItemBase::hoverMoveEvent(event);
 }
 
-void NodeItem::hoverLeaveEvent(QGraphicsSceneHoverEvent *event)
+void NodeItem::hoverLeaveEvent(QGraphicsSceneHoverEvent* event)
 {
   unsetCursor();
   ItemBase::hoverLeaveEvent(event);

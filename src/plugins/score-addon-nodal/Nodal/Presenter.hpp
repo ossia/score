@@ -1,6 +1,6 @@
 #pragma once
 #include <Nodal/Process.hpp>
-#include <Nodal/NodeItem.hpp>
+#include <Process/Dataflow/NodeItem.hpp>
 
 #include <Process/Focus/FocusDispatcher.hpp>
 #include <Process/LayerPresenter.hpp>
@@ -16,8 +16,6 @@ class Presenter final
     , public Nano::Observer
 {
 public:
-  using Node = Process::ProcessModel;
-
   explicit Presenter(
       const Model& model, View* view,
       const Process::Context& ctx, QObject* parent);
@@ -36,11 +34,11 @@ public:
   const Process::ProcessModel& model() const override;
   const Id<Process::ProcessModel>& modelId() const override;
 
-  void on_created(Node& n);
-  void on_removing(const Node& n);
+  void on_created(Process::ProcessModel& n);
+  void on_removing(const Process::ProcessModel& n);
 
 private:
-  IdContainer<NodeItem, Node> m_nodes;
+  IdContainer<Process::NodeItem, Process::ProcessModel> m_nodes;
 
   const Model& m_model;
   qreal m_defaultW{};

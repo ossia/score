@@ -15,7 +15,6 @@ set(HDRS
     Nodal/Layer.hpp
     Nodal/CommandFactory.hpp
     Nodal/Commands.hpp
-    Nodal/NodeItem.hpp
 
     score_addon_nodal.hpp
 )
@@ -27,7 +26,6 @@ set(SRCS
     Nodal/Process.cpp
     Nodal/View.cpp
     Nodal/Commands.cpp
-    Nodal/NodeItem.cpp
 
     score_addon_nodal.cpp
 )

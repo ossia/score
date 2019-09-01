@@ -84,6 +84,17 @@ public:
 
   IntervalExecutionState executionState() const;
 
+  // Mode
+  enum ViewMode
+  {
+    Temporal = 0,
+    Nodal = 1
+  };
+  ViewMode viewMode() const noexcept;
+  void setViewMode(ViewMode v);
+  void viewModeChanged(ViewMode v)
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, viewModeChanged, v)
+
   // Full view properties:
   ZoomRatio zoom() const;
   void setZoom(const ZoomRatio& zoom);
@@ -203,6 +214,7 @@ private:
 
   ZoomRatio m_zoom{-1};
   TimeVal m_center{};
+  ViewMode m_viewMode: 2;
   IntervalExecutionState m_executionState : 2;
   bool m_smallViewShown : 1;
   bool m_muted : 1;
@@ -220,6 +232,7 @@ DEFAULT_MODEL_METADATA(Scenario::IntervalModel, "Interval")
 Q_DECLARE_METATYPE(Id<Scenario::IntervalModel>)
 Q_DECLARE_METATYPE(Path<Scenario::IntervalModel>)
 Q_DECLARE_METATYPE(QPointer<const Scenario::IntervalModel>)
+Q_DECLARE_METATYPE(Scenario::IntervalModel::ViewMode)
 
 W_REGISTER_ARGTYPE(Id<Scenario::IntervalModel>)
 W_REGISTER_ARGTYPE(OptionalId<Scenario::IntervalModel>)
@@ -227,4 +240,5 @@ W_REGISTER_ARGTYPE(Path<Scenario::IntervalModel>)
 W_REGISTER_ARGTYPE(QPointer<const Scenario::IntervalModel>)
 W_REGISTER_ARGTYPE(Scenario::IntervalModel)
 W_REGISTER_ARGTYPE(Scenario::IntervalModel&)
+W_REGISTER_ARGTYPE(Scenario::IntervalModel::ViewMode)
 TR_TEXT_METADATA(, Scenario::IntervalModel, PrettyName_k, "Interval")
