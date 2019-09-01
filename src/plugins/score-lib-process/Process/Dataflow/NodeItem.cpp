@@ -223,7 +223,7 @@ void NodeItem::setZoomRatio(ZoomRatio r)
 void NodeItem::setPlayPercentage(float f)
 {
   m_playPercentage = f;
-  update();
+  update({0., 14., m_size.width() * f, 14.});
 }
 
 bool NodeItem::isInSelectionCorner(QPointF p, QRectF r) const
@@ -236,9 +236,7 @@ void NodeItem::paint(
     const QStyleOptionGraphicsItem* option,
     QWidget* widget)
 {
-  const auto rect = boundingRect();
-
-  ItemBase::paintNode(painter, m_selected, m_hover, rect);
+  ItemBase::paintNode(painter, m_selected, m_hover, {QPointF{}, m_size});
 
   if (m_presenter)
   {
@@ -246,16 +244,16 @@ void NodeItem::paint(
     static QBrush b = style.skin.Emphasis1.darker.brush; // TODO erk
     b.setStyle(Qt::BrushStyle::BDiagPattern);
     painter->fillRect(
-        QRectF{rect.width() - 10., rect.height() - 10., 10., 10.}, b);
+        QRectF{m_size.width() - 10., m_size.height() - 10., 10., 10.}, b);
   }
 
   // Exec
   if (m_playPercentage != 0.)
   {
     auto& style = Process::Style::instance();
-    painter->setPen(style.IntervalSolidPen(style.IntervalPlayFill()));
+    painter->setPen(style.IntervalPlayFill().main.pen1_solid_flat_miter);
     painter->drawLine(
-        QPointF{0.f, 14.f}, QPointF{rect.width() * m_playPercentage, 14.});
+        QPointF{0., 14.}, QPointF{m_size.width() * m_playPercentage, 14.});
   }
 }
 

@@ -22,6 +22,11 @@ namespace Dataflow
 {
 bool CableItem::g_cables_enabled = true;
 
+static bool canCreateCable(Process::Cable& c, Process::DataflowManager& plug)
+{
+  auto it = plug.cables().find(&c);
+  return it == plug.cables().end() || it->second == nullptr;
+}
 CableItem::CableItem(
     Process::Cable& c,
     const Process::Context& ctx,
@@ -33,6 +38,9 @@ CableItem::CableItem(
   auto& plug = ctx.dataflow;
   this->setCursor(Qt::CrossCursor);
   this->setFlag(QGraphicsItem::ItemClipsToShape);
+
+
+  SCORE_ASSERT(canCreateCable(c, plug));
   plug.cables().insert({&c, this});
 
   con(c.selection, &Selectable::changed, this, [=](bool b) {
@@ -74,6 +82,11 @@ CableItem::~CableItem()
   {
     ossia::remove_erase(m_p2->cables, this);
   }
+  auto& plug = m_context.dataflow;
+  auto& p = plug.cables();
+  auto it = p.find(&m_cable);
+  if (it != p.end())
+    it.value() = nullptr;
 }
 
 QRectF CableItem::boundingRect() const

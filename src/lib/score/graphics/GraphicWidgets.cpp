@@ -34,6 +34,8 @@ QGraphicsPixmapButton::QGraphicsPixmapButton(
     , m_pressed{std::move(pressed)}
     , m_released{std::move(released)}
 {
+  // TODO https://bugreports.qt.io/browse/QTBUG-77970
+  setShapeMode(QGraphicsPixmapItem::BoundingRectShape);
 }
 
 void QGraphicsPixmapButton::mousePressEvent(QGraphicsSceneMouseEvent* event)
@@ -66,6 +68,8 @@ QGraphicsSelectablePixmapToggle::QGraphicsSelectablePixmapToggle(
     , m_released{std::move(released)}
     , m_released_selected{std::move(released_selected)}
 {
+  // TODO https://bugreports.qt.io/browse/QTBUG-77970
+  setShapeMode(QGraphicsPixmapItem::BoundingRectShape);
   setCursor(Qt::CrossCursor);
 }
 
@@ -127,6 +131,8 @@ QGraphicsPixmapToggle::QGraphicsPixmapToggle(
     , m_pressed{std::move(pressed)}
     , m_released{std::move(released)}
 {
+  // TODO https://bugreports.qt.io/browse/QTBUG-77970
+  setShapeMode(QGraphicsPixmapItem::BoundingRectShape);
   setCursor(Qt::CrossCursor);
 }
 
@@ -899,14 +905,11 @@ void QGraphicsEnum::paint(
   painter->setRenderHint(QPainter::Antialiasing, false);
   auto& style = score::Skin::instance();
 
-  // const QPen& border = style.Base4.darker300.pen1;
-  // const QPen& borderClicking = style.Smooth3.main.pen1;
   const QPen& text = style.Gray.main.pen1;
   const QFont& textFont = style.MonoFontSmall;
   const QPen& currentText = style.Base4.lighter180.pen1;
   const QBrush& bg = style.SliderBrush;
   const QPen& noPen = style.NoPen;
-  // const QBrush& noBrush = style.NoBrush;
 
   int actual_rows = std::ceil(double(array.size()) / columns);
   int row = 0;
@@ -947,3 +950,4 @@ void QGraphicsEnum::paint(
 }
 
 W_OBJECT_IMPL(score::ComboBoxWithEnter)
+

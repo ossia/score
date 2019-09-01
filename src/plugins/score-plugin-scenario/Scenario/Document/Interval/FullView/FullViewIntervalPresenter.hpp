@@ -40,6 +40,7 @@ public:
   void requestModeChange(bool);
 
   const std::vector<SlotPresenter>& getSlots() const { return m_slots; }
+  double on_playPercentageChanged(double t);
 
 public:
   void intervalSelected(IntervalModel& arg_1)

@@ -144,7 +144,9 @@ double IntervalView::setPlayWidth(double width)
   {
     m_playWidth = width;
     updatePlayPaths();
-    update();
+    // Already called in DisplayedElementsPresenter::on_intervalExecutionTimer() and
+    // ScenarioPresenter::on_intervalExecutionTimer()
+    // update();
     return v;
   }
   return 0.;
