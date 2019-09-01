@@ -4,23 +4,13 @@
 #include <score/command/AggregateCommand.hpp>
 #include <score/command/PropertyCommand.hpp>
 #include <Dataflow/Commands/CableHelpers.hpp>
+#include <Process/ProcessList.hpp>
+#include <score/application/ApplicationContext.hpp>
+#include <score/document/DocumentContext.hpp>
 
-PROPERTY_COMMAND_T(
-    Nodal,
-    MoveNode,
-    Node::p_position,
-    "Move node")
-SCORE_COMMAND_DECL_T(Nodal::MoveNode)
-PROPERTY_COMMAND_T(
-    Nodal,
-    ResizeNode,
-    Node::p_size,
-    "Resize node")
-SCORE_COMMAND_DECL_T(Nodal::ResizeNode)
 namespace Nodal
 {
 class Model;
-class Node;
 
 class DropNodesMacro final : public score::AggregateCommand
 {
@@ -46,7 +36,7 @@ public:
   void undo(const score::DocumentContext& ctx) const override;
   void redo(const score::DocumentContext& ctx) const override;
 
-  const Id<Nodal::Node>& nodeId() const noexcept { return m_createdNodeId; }
+  const Id<Process::ProcessModel>& nodeId() const noexcept { return m_createdNodeId; }
 protected:
   void serializeImpl(DataStreamInput&) const override;
   void deserializeImpl(DataStreamOutput&) override;
@@ -57,7 +47,7 @@ private:
   UuidKey<Process::ProcessModel> m_uuid;
   QString m_data;
 
-  Id<Nodal::Node> m_createdNodeId;
+  Id<Process::ProcessModel> m_createdNodeId;
 };
 
 
@@ -72,7 +62,7 @@ class RemoveNode final : public score::Command
 public:
   RemoveNode(
       const Nodal::Model& p,
-      const Nodal::Node& n
+      const Process::ProcessModel& n
       )
   : m_path{p}
   , m_id{n.id()}
@@ -81,7 +71,7 @@ public:
     DataStream::Serializer s1{&m_block};
     s1.readFrom(n);
 
-    m_cables = Dataflow::saveCables({const_cast<Node*>(&n)}, score::IDocument::documentContext(p));
+    m_cables = Dataflow::saveCables({const_cast<Process::ProcessModel*>(&n)}, score::IDocument::documentContext(p));
   }
 
 private:
@@ -89,7 +79,10 @@ private:
   {
     DataStream::Deserializer s{m_block};
     auto& proc = m_path.find(ctx);
-    auto node = new Node{s, &proc};
+
+    auto& fact = ctx.app.interfaces<Process::ProcessFactoryList>();
+
+    auto node = deserialize_interface(fact, s, &proc);
     proc.nodes.add(node);
 
     Dataflow::restoreCables(m_cables, ctx);
@@ -114,7 +107,7 @@ private:
   }
 
   Path<Nodal::Model> m_path;
-  Id<Nodal::Node> m_id;
+  Id<Process::ProcessModel> m_id;
   QByteArray m_block;
   Dataflow::SerializedCables m_cables;
 };

@@ -9,63 +9,9 @@
 #include <score/document/DocumentContext.hpp>
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 
-W_OBJECT_IMPL(Nodal::Node)
 W_OBJECT_IMPL(Nodal::Model)
 namespace Nodal
 {
-
-Node::Node(std::unique_ptr<Process::ProcessModel> proc,
-           const Id<Node>& id, QObject* parent)
-  : score::Entity<Node>{id, QStringLiteral("Node"), parent}
-  , m_impl{std::move(proc)}
-{
-  SCORE_ASSERT(m_impl);
-  m_impl->setParent(this);
-}
-Node::Node(no_ownership,
-           Process::ProcessModel& proc,
-           const Id<Node>& id, QObject* parent)
-  : score::Entity<Node>{id, QStringLiteral("Node"), parent}
-  , m_impl{&proc}
-{
-}
-
-Node::~Node()
-{
-
-}
-
-QPointF Node::position() const noexcept { return m_position; }
-
-QSizeF Node::size() const noexcept { return m_size; }
-
-Process::ProcessModel& Node::process() const noexcept { return *m_impl; }
-
-void Node::setPosition(const QPointF& v)
-{
-  if(v != m_position)
-  {
-    m_position = v;
-    positionChanged(v);
-  }
-}
-
-void Node::setSize(const QSizeF& v)
-{
-  if(v != m_size)
-  {
-    m_size = v;
-    sizeChanged(v);
-  }
-}
-
-void Node::release()
-{
-  m_impl.release();
-}
-
-
-
 
 
 Model::Model(
@@ -93,20 +39,20 @@ QString Model::prettyName() const noexcept
 
 void Model::setDurationAndScale(const TimeVal& newDuration) noexcept
 {
-  for(Node& n : this->nodes)
-    n.process().setParentDuration(ExpandMode::Scale, newDuration);
+  for(Process::ProcessModel& n : this->nodes)
+    n.setParentDuration(ExpandMode::Scale, newDuration);
 }
 
 void Model::setDurationAndGrow(const TimeVal& newDuration) noexcept
 {
-  for(Node& n : this->nodes)
-    n.process().setParentDuration(ExpandMode::GrowShrink, newDuration);
+  for(Process::ProcessModel& n : this->nodes)
+    n.setParentDuration(ExpandMode::GrowShrink, newDuration);
 }
 
 void Model::setDurationAndShrink(const TimeVal& newDuration) noexcept
 {
-  for(Node& n : this->nodes)
-    n.process().setParentDuration(ExpandMode::GrowShrink, newDuration);
+  for(Process::ProcessModel& n : this->nodes)
+    n.setParentDuration(ExpandMode::GrowShrink, newDuration);
 }
 
 void Model::startExecution()
@@ -134,7 +80,7 @@ bool NodeRemover::remove(const Selection& s, const score::DocumentContext& ctx)
       {
         auto f = [&ctx, parent, model] {
           CommandDispatcher<>{ctx.commandStack}.submit<RemoveNode>(
-                *parent, *static_cast<Node*>(model->parent()));
+                *parent, *static_cast<Process::ProcessModel*>(model->parent()));
         };
         score::invoke(f);
         return true;
@@ -144,60 +90,6 @@ bool NodeRemover::remove(const Selection& s, const score::DocumentContext& ctx)
   return false;
 }
 
-}
-
-template <>
-void DataStreamReader::read(const Nodal::Node& proc)
-{
-  m_stream << *proc.m_impl
-           << proc.m_position
-           << proc.m_size;
-  insertDelimiter();
-}
-
-template <>
-void DataStreamWriter::write(Nodal::Node& node)
-{
-  static auto& pl = components.interfaces<Process::ProcessFactoryList>();
-  auto proc = deserialize_interface(pl, *this, &node);
-  if (proc)
-  {
-    // TODO why isn't AddProcess used here ?!
-    node.m_impl.reset(proc);
-  }
-  else
-  {
-    SCORE_TODO;
-  }
-  m_stream >> node.m_position >> node.m_size;
-
-  checkDelimiter();
-}
-
-template <>
-void JSONObjectReader::read(const Nodal::Node& proc)
-{
-  obj["Process"] = toJsonObject(*proc.m_impl);
-  obj["Pos"] = toJsonValue(proc.m_position);
-  obj["Size"] = toJsonValue(proc.m_size);
-}
-
-template <>
-void JSONObjectWriter::write(Nodal::Node& node)
-{
-  static auto& pl = components.interfaces<Process::ProcessFactoryList>();
-
-  {
-    const auto& json_vref = obj["Process"];
-    JSONObject::Deserializer deserializer{json_vref.toObject()};
-    auto proc = deserialize_interface(pl, deserializer, &node);
-    if (proc)
-      node.m_impl.reset(proc);
-    else
-      SCORE_TODO;
-  }
-   node.m_position = fromJsonValue<QPointF>(obj["Pos"]);
-   node.m_size = fromJsonValue<QSizeF>(obj["Size"]);
 }
 
 template <>
@@ -222,12 +114,21 @@ void DataStreamWriter::write(Nodal::Model& process)
   process.outlet = Process::make_outlet(*this, &process);
 
   // Nodes
+  static auto& pl = components.interfaces<Process::ProcessFactoryList>();
   int32_t process_count = 0;
   m_stream >> process_count;
   for (; process_count-- > 0;)
   {
-    auto node = new Nodal::Node{*this, &process};
-    process.nodes.add(node);
+    auto proc = deserialize_interface(pl, *this, &process);
+    if (proc)
+    {
+      // TODO why isn't AddProcess used here ?!
+      process.nodes.add(proc);
+    }
+    else
+    {
+      SCORE_TODO;
+    }
   }
   checkDelimiter();
 }
@@ -262,13 +163,16 @@ void JSONObjectWriter::write(Nodal::Model& proc)
       proc.outlet->type = Process::PortType::Audio;
     }
   }
+
+  static auto& pl = components.interfaces<Process::ProcessFactoryList>();
   const auto& nodes = obj["Nodes"].toArray();
   for (const auto& json_vref : nodes)
   {
-    auto node = new Nodal::Node{
-        JSONObject::Deserializer{json_vref.toObject()}, &proc};
-
-    proc.nodes.add(node);
+    JSONObject::Deserializer deserializer{json_vref.toObject()};
+    auto p = deserialize_interface(pl, deserializer, &proc);
+    if (p)
+      proc.nodes.add(p);
+    else
+      SCORE_TODO;
   }
-
 }

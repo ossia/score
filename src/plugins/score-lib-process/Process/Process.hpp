@@ -80,6 +80,21 @@ public:
   void setDuration(const TimeVal& other) noexcept;
   const TimeVal& duration() const noexcept;
 
+  /// Nodal things
+  QPointF position() const noexcept;
+  QSizeF size() const noexcept;
+
+  void setPosition(const QPointF& v);
+  void setSize(const QSizeF& v);
+
+  void positionChanged(QPointF p)
+    E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, positionChanged, p)
+  void sizeChanged(QSizeF p)
+    E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, sizeChanged, p)
+
+  PROPERTY(QPointF, position READ position WRITE setPosition NOTIFY positionChanged)
+  PROPERTY(QSizeF, size READ size WRITE setSize NOTIFY sizeChanged)
+
   /// Execution
   virtual void startExecution();
   virtual void stopExecution();
@@ -181,6 +196,8 @@ private:
   double m_slotHeight{}; //! Height in full view
   TimeVal m_startOffset{};
   TimeVal m_loopDuration{};
+  QPointF m_position{};
+  QSizeF m_size{};
   bool m_loops{};
 };
 
@@ -195,7 +212,9 @@ Q_DECLARE_METATYPE(Id<Process::ProcessModel>)
 W_REGISTER_ARGTYPE(Id<Process::ProcessModel>)
 W_REGISTER_ARGTYPE(OptionalId<Process::ProcessModel>)
 
+Q_DECLARE_METATYPE(Process::ProcessModel*)
 Q_DECLARE_METATYPE(const Process::ProcessModel*)
+W_REGISTER_ARGTYPE(Process::ProcessModel*)
 W_REGISTER_ARGTYPE(const Process::ProcessModel*)
 W_REGISTER_ARGTYPE(QPointer<const Process::ProcessModel>)
 W_REGISTER_ARGTYPE(QPointer<Process::ProcessModel>)

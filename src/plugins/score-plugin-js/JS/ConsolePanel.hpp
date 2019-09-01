@@ -28,6 +28,7 @@
 #include <QLineEdit>
 #include <QPlainTextEdit>
 #include <QVBoxLayout>
+#include <QScrollBar>
 
 #include <Engine/ApplicationPlugin.hpp>
 #include <wobjectimpl.h>
@@ -185,6 +186,7 @@ public:
     m_widget->setLayout(lay);
     m_edit = new QPlainTextEdit{m_widget};
     m_edit->setTextInteractionFlags(Qt::TextBrowserInteraction);
+
     lay->addWidget(m_edit, 1);
     m_lineEdit = new QLineEdit{m_widget};
     lay->addWidget(m_lineEdit, 0);
@@ -204,6 +206,7 @@ public:
           m_edit->appendPlainText(res.toString() + "\n");
         }
         m_lineEdit->clear();
+        m_edit->verticalScrollBar()->setValue(m_edit->verticalScrollBar()->maximum());
       }
     });
   }

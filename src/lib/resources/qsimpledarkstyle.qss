@@ -22,7 +22,6 @@
  * THE SOFTWARE.
  */
 QProgressBar:horizontal {
-    /*border: 1px solid #3A3939;*/
     text-align: center;
     padding: 1px;
     background: #12171A;
@@ -31,10 +30,8 @@ QProgressBar::chunk:horizontal {
     background-color: qlineargradient(spread:reflect, x1:1, y1:0.545, x2:1, y2:0, stop:0 rgba(28, 66, 111, 255), stop:1 rgba(37, 87, 146, 255));
 }
 
-
 QToolTip
 {
-    /*border: 1px solid #3A3939;*/
     background-color: rgb(90, 102, 117);
     color: white;
     padding: 1px;
@@ -232,20 +229,6 @@ QToolBar {
 
 }
 
-/*
-QToolBar::handle:horizontal {
-    image: url(:/qss_icons/rc/Hmovetoolbar.png);
-}
-QToolBar::handle:vertical {
-    image: url(:/qss_icons/rc/Vmovetoolbar.png);
-}
-QToolBar::separator:horizontal {
-    image: url(:/qss_icons/rc/Hsepartoolbar.png);
-}
-QToolBar::separator:vertical {
-    image: url(:/qss_icons/rc/Vsepartoolbar.png);
-}
-*/
 QToolButton#qt_toolbar_ext_button {
     background: #58595a
 }
@@ -543,7 +526,7 @@ QTabBar QToolButton::right-arrow:disabled {
 QDockWidget {
     titlebar-close-icon: url(:/qss_icons/icons/blank.png);
     titlebar-normal-icon: url(:/qss_icons/icons/blank.png);
-    background-color: #666666;
+
     color: #ccc;
     margin: 0px;
     font: "Helvetica";
@@ -554,9 +537,6 @@ QDockWidget::title {
     text-align: center;
     background-color: transparent;
     color: silver;
-    /*background-image: url(:/qss_icons/icons/close_on.png);
-    background-repeat: repeat-x;
-    background-position: center;*/
     padding: 0px;
     padding-top: 5px;
 
@@ -564,7 +544,6 @@ QDockWidget::title {
 
 QDockWidget > QWidget {
     border: none;
-    /*background-color: #666666;*/
 }
 
 QDockWidget::close-button, QDockWidget::float-button {
@@ -604,24 +583,40 @@ QListView
 {
     border: 1px solid #444;
     background-color: #12171A;
+    alternate-background-color: #1B1D22;
 }
-
 QListView::item:!selected:hover, QTreeView::item:!selected:hover  {
-    background: #416681;/*rgba(115, 193, 19, 0.3);*/
+    background: #416681;
     outline: 0;
     color: #FFFFFF
 }
 
+QListView::item:pressed {
+    background: #03c3dd;
+    color: #FFFFFF
+}
+
+QListView:focus{
+    border: 1px solid  #27435e;
+}
+
+QListView::item:!selected:hover{
+    background-color: #27435e;
+    color: #ffffff;
+}
+
+QListView::item:selected:active, QListView::item:selected:!active{
+    background-color: #1c384c;
+    color: #ffffff;
+}
 
 QSlider::groove:horizontal {
-   /* border: 1px solid #3A3939;*/
     height: 8px;
     background: #12171A;
     margin: 2px 0;
     border-radius: 2px;
 }
 QSlider::groove:horizontal:disabled {
-   /* border: 1px solid #3A3939;*/
     height: 8px;
     background: #3A3939;
     margin: 2px 0;
@@ -631,7 +626,6 @@ QSlider::groove:horizontal:disabled {
 QSlider::handle:horizontal {
     background: QLinearGradient( x1: 0, y1: 0, x2: 0, y2: 1,
       stop: 0.0 silver, stop: 0.2 #a8a8a8, stop: 1 #727272);
-    /*border: 1px solid #3A3939;*/
     width: 14px;
     height: 14px;
     margin: -4px 0;
@@ -641,14 +635,12 @@ QSlider::handle:horizontal {
 QSlider::handle:horizontal:disabled {
     background: QLinearGradient( x1: 0, y1: 0, x2: 0, y2: 1,
       stop: 0.0 silver, stop: 0.2 #a8a8a8, stop: 1 #727272);
-    /*border: 1px solid #3A3939;*/
     width: 7px;
     height: 3px;
     border-radius: 1px;
 }
 
 QSlider::groove:vertical {
-    /*border: 1px solid #3A3939;*/
     width: 8px;
     background: #12171A;
     margin: 0 0px;
@@ -658,7 +650,6 @@ QSlider::groove:vertical {
 QSlider::handle:vertical {
     background: QLinearGradient( x1: 0, y1: 0, x2: 0, y2: 1, stop: 0.0 silver,
       stop: 0.2 #a8a8a8, stop: 1 #727272);
-    /*border: 1px solid #3A3939;*/
     width: 14px;
     height: 14px;
     margin: 0 -4px;
@@ -677,9 +668,7 @@ QToolBar QToolButton  {
     margin: 0px;
     padding: 0px;
 }
-/*QToolButton:disabled {
-   background-color: #333333;
-}*/
+
 QToolButton[popupMode="1"] { /* only for MenuButtonPopup */
     padding-right: 20px; /* make way for the popup button */
     border: 1px transparent #666666;
@@ -833,10 +822,6 @@ QToolBox::tab {
     color: #b1b1b1;
     background-color: #1A2024;
     border-color: transparent;
-/*    border: 1px solid #415491;
-    border-bottom: 1px transparent #1A2024;
-    border-top-left-radius: 5px;
-    border-top-right-radius: 5px;*/
 }
 
  QToolBox::tab:selected { /* italicize selected tabs */
@@ -897,27 +882,6 @@ QComboBox#BinOpComboBox {
 QWidget#ConditionSectionWidget {
     border: 1px solid red;
     background-color: #666666;
-}
-
-QListView::item:pressed {
-/*    background: #78879b;
-    color: #FFFFFF;*/
-    background: #03c3dd;/* #416681;*/
-    color: #FFFFFF
-}
-
-QListView:focus{
-    border: 1px solid  #27435e;
-}
-
-QListView::item:!selected:hover{
-    background-color: #27435e;
-    color: #ffffff;
-}
-
-QListView::item:selected:active, QListView::item:selected:!active{
-    background-color: #1c384c;/*#73C1C6;*/
-    color: #ffffff;
 }
 
 

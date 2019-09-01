@@ -14,10 +14,10 @@
 template<typename Entities, typename Presenter>
 void bind(const Entities& model, Presenter& presenter)
 {
-  for (const auto& entity : model)
+  for (auto& entity : model)
     presenter.on_created(entity);
 
-  model.added.template connect<&Presenter::on_created>(presenter);
+  model.mutable_added.template connect<&Presenter::on_created>(presenter);
   model.removed.template connect<&Presenter::on_removing>(presenter);
 }
 
@@ -63,7 +63,7 @@ Presenter::Presenter(
           {
             if (proc.setup)
             {
-              proc.setup((*fx).process(), disp);
+              proc.setup(*fx, disp);
             }
           }
         }
@@ -158,7 +158,7 @@ const Id<Process::ProcessModel>& Presenter::modelId() const
   return m_model.id();
 }
 
-void Presenter::on_created(const Node& n)
+void Presenter::on_created(Node& n)
 {
   auto item = new NodeItem{n, m_context.context, m_view};
   item->setPos(n.position());

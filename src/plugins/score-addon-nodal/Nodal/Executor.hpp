@@ -14,7 +14,7 @@ class NodalExecutorBase
   COMPONENT_METADATA("e85e0114-2a7e-4569-8a1d-f00c9fd22960")
 public:
   using parent_t = Execution::Component;
-  using model_t = Nodal::Node;
+  using model_t = Process::ProcessModel;
   using component_t = ::Execution::ProcessComponent;
   using component_factory_list_t = Execution::ProcessComponentFactoryList;
 
@@ -29,22 +29,22 @@ public:
     std::shared_ptr<Execution::ProcessComponent> comp;
   };
 
-  ossia::fast_hash_map<Id<Nodal::Node>, RegisteredNode> m_nodes;
+  ossia::fast_hash_map<Id<Process::ProcessModel>, RegisteredNode> m_nodes;
 
   ::Execution::ProcessComponent* make(
       const Id<score::Component>& id,
       Execution::ProcessComponentFactory& factory,
-      Nodal::Node& process);
+      Process::ProcessModel& process);
 
   ::Execution::ProcessComponent*
-  make(const Id<score::Component>& id, Nodal::Node& process)
+  make(const Id<score::Component>& id, Process::ProcessModel& process)
   {
     return nullptr;
   }
   void added(::Execution::ProcessComponent& e);
 
   std::function<void()>
-  removing(const Nodal::Node& e, ::Execution::ProcessComponent& c);
+  removing(const Process::ProcessModel& e, ::Execution::ProcessComponent& c);
 
   template <typename Component_T, typename Element, typename Fun>
   void removed(const Element& elt, const Component_T& comp, Fun f)
@@ -57,8 +57,8 @@ public:
   auto& models() const
   {
     static_assert(
-        std::is_same<Models, Nodal::Node>::value,
-        "Node component must be passed Nodal::Node as child.");
+        std::is_same<Models, Process::ProcessModel>::value,
+        "Node component must be passed Process::ProcessModel as child.");
 
     return process().nodes;
   }
@@ -75,7 +75,7 @@ class HierarchyManager
 {
 public:
   using ParentComponent_T = NodalExecutorBase;
-  using ChildModel_T = Nodal::Node;
+  using ChildModel_T = Process::ProcessModel;
   using ChildComponent_T = ::Execution::ProcessComponent;
   using ChildComponentFactoryList_T = Execution::ProcessComponentFactoryList;
   using hierarchy_t = HierarchyManager;
@@ -111,11 +111,11 @@ public:
 
   const auto& children() const { return m_children; }
 
-  void add(Nodal::Node& model)
+  void add(Process::ProcessModel& model)
   {
     // Will return a factory for the given process if available
     auto id = getStrongId(model.components());
-    if (auto factory = m_componentFactory.factory(model.process()))
+    if (auto factory = m_componentFactory.factory(model))
     {
       // The subclass should provide this function to construct
       // the correct component relative to this process.

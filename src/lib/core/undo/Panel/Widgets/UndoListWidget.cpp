@@ -8,8 +8,6 @@
 
 #include <QItemSelectionModel>
 
-#include <wobjectimpl.h>
-W_OBJECT_IMPL(score::UndoListWidget)
 namespace score
 {
 UndoListWidget::UndoListWidget(score::CommandStack& s) : m_stack{s}

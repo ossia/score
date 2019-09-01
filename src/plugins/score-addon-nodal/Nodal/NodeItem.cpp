@@ -22,6 +22,7 @@
 #include <QPainter>
 #include <QKeyEvent>
 #include <QCursor>
+#include <Process/Commands/Properties.hpp>
 
 namespace Nodal
 {
@@ -71,16 +72,16 @@ void NodeItem::resetOutlets(
   }
 }
 
-NodeItem::NodeItem(const Node& model, const Process::Context& ctx, QGraphicsItem* parent)
-  : ItemBase{model.process(), ctx, parent}
+NodeItem::NodeItem(Process::ProcessModel& model, const Process::Context& ctx, QGraphicsItem* parent)
+  : ItemBase{model, ctx, parent}
   , m_model{model}
   , m_context{ctx}
 {
   // Body
   auto& fact = ctx.app.interfaces<Process::LayerFactoryList>();
-  if (auto factory = fact.findDefaultFactory(model.process()))
+  if (auto factory = fact.findDefaultFactory(model))
   {
-    if(auto fx = factory->makeItem(model.process(), ctx, this))
+    if(auto fx = factory->makeItem(model, ctx, this))
     {
       m_fx = fx;
       m_size = m_fx->boundingRect().size();
@@ -88,10 +89,10 @@ NodeItem::NodeItem(const Node& model, const Process::Context& ctx, QGraphicsItem
               this, &NodeItem::updateSize);
       updateSize();
     }
-    else if(auto fx = factory->makeLayerView(model.process(), this))
+    else if(auto fx = factory->makeLayerView(model, this))
     {
       m_fx = fx;
-      m_presenter = factory->makeLayerPresenter(model.process(), fx, ctx, this);
+      m_presenter = factory->makeLayerPresenter(model, fx, ctx, this);
       m_size = m_model.size();
       m_presenter->setWidth(m_size.width(), m_size.width());
       m_presenter->setHeight(m_size.height());
@@ -102,12 +103,12 @@ NodeItem::NodeItem(const Node& model, const Process::Context& ctx, QGraphicsItem
 
   if (!m_fx)
   {
-    m_fx = new Media::Effect::DefaultEffectItem{model.process(), ctx, this};
+    m_fx = new Media::Effect::DefaultEffectItem{model, ctx, this};
     m_size = m_fx->boundingRect().size();
   }
 
-  resetInlets(model.process());
-  resetOutlets(model.process());
+  resetInlets(model);
+  resetOutlets(model);
 
   if(m_ui)
   {
@@ -117,7 +118,7 @@ NodeItem::NodeItem(const Node& model, const Process::Context& ctx, QGraphicsItem
   // Positions / size
   m_fx->setPos({0, Effect::ItemBase::TitleHeight});
 
-  ::bind(model, Node::p_position{}, this, [this] (QPointF p) {
+  ::bind(model, Process::ProcessModel::p_position{}, this, [this] (QPointF p) {
       if(p != pos())
           setPos(p);
   });
@@ -125,7 +126,7 @@ NodeItem::NodeItem(const Node& model, const Process::Context& ctx, QGraphicsItem
   // TODO review the resizing heuristic...
   if(m_presenter)
   {
-    ::bind(model, Node::p_size{}, this, [this] (QSizeF s) {
+    ::bind(model, Process::ProcessModel::p_size{}, this, [this] (QSizeF s) {
       if(s != m_size)
         setSize(s);
     });
@@ -182,8 +183,8 @@ void NodeItem::setSize(QSizeF sz)
     m_presenter->on_zoomRatioChanged(m_ratio / sz.width());
     m_presenter->parentGeometryChanged();
 
-    resetInlets(m_model.process());
-    resetOutlets(m_model.process());
+    resetInlets(m_model);
+    resetOutlets(m_model);
     if(m_ui)
     {
       m_ui->setParentItem(this);
@@ -192,7 +193,7 @@ void NodeItem::setSize(QSizeF sz)
   }
 }
 
-const Id<Node>& NodeItem::id() const noexcept
+const Id<Process::ProcessModel>& NodeItem::id() const noexcept
 {
   return m_model.id();
 }
@@ -277,7 +278,7 @@ void NodeItem::mousePressEvent(QGraphicsSceneMouseEvent* event)
   if(m_presenter)
     m_context.focusDispatcher.focus(m_presenter);
 
-  score::SelectionDispatcher{m_context.selectionStack}.setAndCommit({&m_model.process()});
+  score::SelectionDispatcher{m_context.selectionStack}.setAndCommit({&m_model});
   event->accept();
 }
 
@@ -290,12 +291,12 @@ void NodeItem::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
     case Interaction::Resize:
     {
       const auto sz = origNodeSize + QSizeF{p.x() - origp.x(), p.y() - origp.y()};
-      m_context.dispatcher.submit<ResizeNode>(m_model, sz.expandedTo({10, 10}));
+      m_context.dispatcher.submit<Process::ResizeNode>(m_model, sz.expandedTo({10, 10}));
       break;
     }
     case Interaction::Move:
     {
-      m_context.dispatcher.submit<MoveNode>(m_model, m_model.position() + (p - origp));
+      m_context.dispatcher.submit<Process::MoveNode>(m_model, m_model.position() + (p - origp));
       break;
     }
   }

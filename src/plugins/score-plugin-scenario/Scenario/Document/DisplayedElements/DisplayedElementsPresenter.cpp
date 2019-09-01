@@ -25,6 +25,7 @@
 #include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
 #include <Scenario/Document/TimeSync/TimeSyncPresenter.hpp>
 #include <Scenario/Document/TimeSync/TimeSyncView.hpp>
+#include <Scenario/Document/TimeSync/TriggerView.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
 
 #include <score/graphics/GraphicsProxyObject.hpp>
@@ -167,6 +168,7 @@ void DisplayedElementsPresenter::on_displayedIntervalChanged(
   elts.startState->view()->disableOverlay();
   elts.endState->view()->disableOverlay();
 
+
   showInterval();
 
   on_zoomRatioChanged(m_intervalPresenter->zoomRatio());
@@ -208,7 +210,7 @@ void DisplayedElementsPresenter::on_displayedIntervalDurationChanged(TimeVal t)
 }
 
 const double deltaX = 10.;
-const double deltaY = 20.;
+const double deltaY = 25.;
 void DisplayedElementsPresenter::on_displayedIntervalHeightChanged(double size)
 {
   auto cur_rect = m_model.view().view().sceneRect();

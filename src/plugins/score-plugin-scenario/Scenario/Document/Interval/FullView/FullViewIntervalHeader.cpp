@@ -48,13 +48,8 @@ void FullViewIntervalHeader::paint(
     const QStyleOptionGraphicsItem* option,
     QWidget* widget)
 {
+  // TODO find a better way to update this ?
   painter->setRenderHint(QPainter::Antialiasing, false);
-
-  const auto& skin = Process::Style::instance();
-  painter->setPen(skin.IntervalHeaderSeparator());
-  painter->drawLine(
-      QPointF{0., (double)IntervalHeaderHeight},
-      QPointF{m_width, (double)IntervalHeaderHeight});
 
   double textWidth = m_bar.width();
 

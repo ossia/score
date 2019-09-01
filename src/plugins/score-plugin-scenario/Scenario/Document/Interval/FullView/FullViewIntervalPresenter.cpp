@@ -74,6 +74,7 @@ FullViewIntervalPresenter::FullViewIntervalPresenter(
                         ctx,
                         parent}
 {
+  m_header->setPos(0, -IntervalHeader::headerHeight());
   // Address bar
   auto& addressBar = static_cast<FullViewIntervalHeader*>(m_header)->bar();
   addressBar.setTargetObject(score::IDocument::unsafe_path(interval));
@@ -86,15 +87,6 @@ FullViewIntervalPresenter::FullViewIntervalPresenter(
       &Selectable::changed,
       (FullViewIntervalView*)m_view,
       &FullViewIntervalView::setSelected);
-
-  // Header
-  const auto& metadata = m_model.metadata();
-  con(metadata,
-      &score::ModelMetadata::NameChanged,
-      m_header,
-      &IntervalHeader::on_textChanged);
-  m_header->on_textChanged();
-  m_header->show();
 
   // Time
   con(interval.duration,
@@ -381,7 +373,7 @@ void FullViewIntervalPresenter::updatePositions()
   m_view->setHeight(rackHeight() + IntervalHeader::headerHeight());
 
   // Set the slots position graphically in order.
-  qreal currentSlotY = IntervalHeader::headerHeight();
+  qreal currentSlotY = 2.;
 
   for (int i = 0; i < (int)m_slots.size(); i++)
   {

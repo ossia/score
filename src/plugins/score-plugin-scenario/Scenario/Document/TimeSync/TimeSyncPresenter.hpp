@@ -36,6 +36,7 @@ public:
   const TimeSyncModel& model() const;
   TimeSyncView* view() const;
 
+  TriggerView& trigger() const noexcept;
   void on_eventAdded(const Id<EventModel>& eventId);
   void handleDrop(const QPointF& pos, const QMimeData& mime);
 

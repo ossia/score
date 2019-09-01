@@ -21,12 +21,11 @@ struct LayerContext;
 namespace Nodal
 {
 class TitleItem;
-class Node;
 class NodeItem : public Effect::ItemBase
 {
 public:
-  NodeItem(const Node& model, const Process::Context& ctx, QGraphicsItem* parent);
-  const Id<Node>& id() const noexcept;
+  NodeItem(Process::ProcessModel& model, const Process::Context& ctx, QGraphicsItem* parent);
+  const Id<Process::ProcessModel>& id() const noexcept;
   ~NodeItem();
 
   void setZoomRatio(ZoomRatio r);
@@ -52,7 +51,7 @@ private:
   void resetInlets(Process::ProcessModel& effect);
   void resetOutlets(Process::ProcessModel& effect);
 
-  const Node& m_model;
+  Process::ProcessModel& m_model;
 
   //Body
   QGraphicsItem* m_fx{};

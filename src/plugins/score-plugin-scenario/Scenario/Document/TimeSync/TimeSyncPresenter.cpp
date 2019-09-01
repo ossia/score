@@ -100,6 +100,11 @@ TimeSyncView* TimeSyncPresenter::view() const
   return m_view;
 }
 
+TriggerView& TimeSyncPresenter::trigger() const noexcept
+{
+  return *m_triggerView;
+}
+
 void TimeSyncPresenter::on_eventAdded(const Id<EventModel>& eventId)
 {
   eventAdded(eventId, m_model.id());
