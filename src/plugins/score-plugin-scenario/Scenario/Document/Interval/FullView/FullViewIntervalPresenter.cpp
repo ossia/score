@@ -44,26 +44,37 @@ class NodalIntervalView
 public:
   NodalIntervalView(IntervalPresenter& pres, const Process::Context& ctx, QGraphicsItem* parent)
     : score::EmptyRectItem{parent}
+    , m_presenter{pres}
     , m_context{ctx}
   {
     //setFlag(ItemHasNoContents, false);
     //setRect(QRectF{0, 0, 1000, 1000});
     auto& itv = pres.model();
+    const auto r = m_presenter.zoomRatio() * m_presenter.model().duration.defaultDuration().toPixels(m_presenter.zoomRatio());
     for(auto& proc : itv.processes)
     {
       auto item = new Process::NodeItem{proc, m_context, this};
       m_nodeItems.push_back(item);
-      item->setZoomRatio(item->width());
+      item->setZoomRatio(r);
     }
     itv.processes.added.connect<&NodalIntervalView::on_processAdded>(*this);
     itv.processes.removing.connect<&NodalIntervalView::on_processRemoving>(*this);
   }
 
+  void on_playPercentageChanged(double t)
+  {
+    for(Process::NodeItem* node : m_nodeItems)
+    {
+      node->setPlayPercentage(t);
+    }
+  }
   void on_processAdded(const Process::ProcessModel& proc)
   {
     auto item = new Process::NodeItem{proc, m_context, this};
+    const auto r = m_presenter.zoomRatio() * m_presenter.model().duration.defaultDuration().toPixels(m_presenter.zoomRatio());
+
     m_nodeItems.push_back(item);
-    item->setZoomRatio(item->width());
+    item->setZoomRatio(r);
   }
 
   void on_processRemoving(const Process::ProcessModel& model)
@@ -78,6 +89,15 @@ public:
       }
     }
   }
+
+  void on_zoomRatioChanged(ZoomRatio ratio)
+  {
+    const auto r = m_presenter.zoomRatio() * m_presenter.model().duration.defaultDuration().toPixels(ratio);
+    for(Process::NodeItem* node : m_nodeItems)
+    {
+      node->setZoomRatio(r);
+    }
+  }
 /*
   void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) override
   {
@@ -85,6 +105,7 @@ public:
   }
 */
 private:
+  const IntervalPresenter& m_presenter;
   const Process::Context& m_context;
   std::vector<Process::NodeItem*> m_nodeItems;
 };
@@ -286,7 +307,6 @@ void FullViewIntervalPresenter::createSlot(int slot_i, const FullSlot& slt)
   }
 
   // Connect loop things
-
   LayerData::disconnect(proc, *this);
 
   con(proc, &Process::ProcessModel::loopsChanged,
@@ -324,28 +344,6 @@ void FullViewIntervalPresenter::createSlot(int slot_i, const FullSlot& slt)
     const auto slot_height = ld.model().getSlotHeight();
     ld.updateLoops(m_context, m_zoomRatio, gui_width, def_width, slot_height, this->m_view, this);
   });
-
-
-/*
-  auto con_id = con(
-      proc,
-      &Process::ProcessModel::durationChanged,
-      this,
-      [&](const TimeVal&) {
-        int i = 0;
-        auto it = ossia::find_if(m_slots, [&](const SlotPresenter& elt) {
-          return elt.layers.front().model().id() == proc.id();
-        });
-        if (it != m_slots.end())
-          updateProcessShape(it->layers.front(), *it);
-        i++;
-      });
-
-  con(proc,
-      &IdentifiedObjectAbstract::identified_object_destroying,
-      this,
-      [=] { QObject::disconnect(con_id); });
-  */
 
   updateProcessShape(slot_i);
 }
@@ -486,7 +484,7 @@ void FullViewIntervalPresenter::updatePositions()
 double FullViewIntervalPresenter::rackHeight() const
 {
   if(m_nodal)
-    return 1000.;
+    return 100.;
 
   qreal height = 0;
   for (const SlotPresenter& slot : m_slots)
@@ -597,6 +595,15 @@ void FullViewIntervalPresenter::requestModeChange(bool state)
   auto mode = state ? IntervalModel::ViewMode::Nodal : IntervalModel::ViewMode::Temporal;
   ((IntervalModel&)m_model).setViewMode(mode);
   on_modeChanged(mode);
+}
+
+double FullViewIntervalPresenter::on_playPercentageChanged(double t)
+{
+  if(m_nodal)
+  {
+    m_nodal->on_playPercentageChanged(ossia::clamp(t, 0., 1.));
+  }
+  return IntervalPresenter::on_playPercentageChanged(t);
 }
 
 void FullViewIntervalPresenter::on_modeChanged(IntervalModel::ViewMode m)

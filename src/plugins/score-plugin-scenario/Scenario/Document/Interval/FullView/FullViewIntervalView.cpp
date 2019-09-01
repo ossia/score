@@ -172,6 +172,39 @@ void FullViewIntervalView::drawPaths(
 
 void FullViewIntervalView::updatePlayPaths()
 {
+  playedSolidPath = QPainterPath{};
+
+  const qreal min_w = minWidth();
+  const qreal max_w = maxWidth();
+  const qreal def_w = defaultWidth();
+  const qreal play_w = playWidth();
+
+  // Paths
+  if (play_w <= 0.)
+  {
+    return;
+  }
+  else
+  {
+    if (infinite())
+    {
+      if (min_w != 0.)
+      {
+        playedSolidPath.lineTo(std::min(play_w, min_w), 0.);
+      }
+    }
+    else if (min_w == max_w) // TODO rigid()
+    {
+      playedSolidPath.lineTo(std::min(play_w, def_w), 0.);
+    }
+    else
+    {
+      if (min_w != 0.)
+      {
+        playedSolidPath.lineTo(std::min(play_w, min_w), 0.);
+      }
+    }
+  }
 }
 
 void FullViewIntervalView::updateOverlayPos() {}

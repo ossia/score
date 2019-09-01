@@ -254,7 +254,8 @@ void ScenarioDocumentPresenter::setMillisPerPixel(ZoomRatio newRatio)
 
   for (auto& cbl : m_dataflow.cables())
   {
-    cbl.second->resize();
+    if(cbl.second)
+      cbl.second->resize();
   }
 }
 

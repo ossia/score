@@ -26,6 +26,7 @@
 #include <QGraphicsView>
 #include <QGraphicsScene>
 #include <QHBoxLayout>
+/*
 namespace Nodal
 {
 class Panel final
@@ -180,7 +181,7 @@ class PanelDelegateFactory final : public score::PanelDelegateFactory
 };
 }
 
-
+*/
 score_addon_nodal::score_addon_nodal()
 {
 }
@@ -200,8 +201,8 @@ score_addon_nodal::factories(
       FW<Process::InspectorWidgetDelegateFactory, Nodal::InspectorFactory>,
       FW<Execution::ProcessComponentFactory,
          Nodal::ProcessExecutorComponentFactory>,
-      FW<score::ObjectRemover, Nodal::NodeRemover>,
-      FW<score::PanelDelegateFactory, Nodal::PanelDelegateFactory>
+      FW<score::ObjectRemover, Nodal::NodeRemover>
+      //, FW<score::PanelDelegateFactory, Nodal::PanelDelegateFactory>
       //, FW<LocalTree::ProcessComponentFactory,
       //   Nodal::LocalTreeProcessComponentFactory>
       >(ctx, key);

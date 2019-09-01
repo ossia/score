@@ -144,6 +144,7 @@ PortItem::PortItem(
   });
   {
     auto& plug = ctx.dataflow;
+    SCORE_ASSERT(plug.ports().find(&p) == plug.ports().end());
     plug.ports().insert({&p, this});
 
     Path<Process::Port> path = p;
@@ -151,13 +152,31 @@ PortItem::PortItem(
     {
       if (c.first->source().unsafePath() == path.unsafePath())
       {
-        c.second->setSource(this);
-        cables.push_back(c.second);
+        if(c.second)
+        {
+          c.second->setSource(this);
+          cables.push_back(c.second);
+        }
+        else
+        {
+          auto it = new Dataflow::CableItem{*c.first, m_context, nullptr};
+          if(!it->parentItem() && scene())
+            scene()->addItem(it);
+        }
       }
       else if (c.first->sink().unsafePath() == path.unsafePath())
       {
-        c.second->setTarget(this);
-        cables.push_back(c.second);
+        if(c.second)
+        {
+          c.second->setTarget(this);
+          cables.push_back(c.second);
+        }
+        else
+        {
+          auto it = new Dataflow::CableItem{*c.first, m_context, nullptr};
+          if(!it->parentItem() && scene())
+            scene()->addItem(it);
+        }
       }
     }
 
