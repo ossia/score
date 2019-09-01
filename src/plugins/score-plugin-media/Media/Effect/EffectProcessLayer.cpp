@@ -279,6 +279,10 @@ void View::paint_impl(QPainter* p) const
   {
     p->fillRect(boundingRect(), Process::Style::instance().AudioPortBrush().brush);
   }
+  else
+  {
+    p->fillRect(boundingRect(), score::Skin::instance().Background2.main.brush);
+  }
 
   if (m_lit)
   {
