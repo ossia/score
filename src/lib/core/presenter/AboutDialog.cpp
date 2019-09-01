@@ -332,7 +332,7 @@ void AboutDialog::paintEvent(QPaintEvent* event)
   // write copyright
   {
     auto copyright_text = QString(
-        "Copyright © Ossia " + QString::number(QDate::currentDate().year()));
+        "Copyright © ossia 2014-" + QString::number(QDate::currentDate().year())) + "\nossia score is distributed under the GNU General Public License 3.0";
 
     painter.setFont(m_montserratFont);
     painter.drawText(
