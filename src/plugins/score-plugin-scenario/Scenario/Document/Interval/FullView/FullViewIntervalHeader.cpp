@@ -3,12 +3,10 @@
 #include "FullViewIntervalHeader.hpp"
 
 #include <Process/Style/ScenarioStyle.hpp>
-#include <Process/Style/Pixmaps.hpp>
 #include <Scenario/Document/Interval/IntervalHeader.hpp>
 #include <Scenario/Document/Interval/IntervalView.hpp>
 #include <Scenario/Document/Interval/FullView/FullViewIntervalPresenter.hpp>
 
-#include <score/graphics/GraphicWidgets.hpp>
 #include <score/graphics/GraphicsItem.hpp>
 #include <score/widgets/WidgetWrapper.hpp>
 #include <score/tools/Bind.hpp>
@@ -35,23 +33,6 @@ FullViewIntervalHeader::FullViewIntervalHeader(
   this->setCacheMode(QGraphicsItem::NoCache);
   this->setFlag(QGraphicsItem::ItemClipsChildrenToShape, false);
   m_bar.setPos(fullViewHeaderBarX, fullViewHeaderBarY);
-
-  auto& pixmaps = Process::Pixmaps::instance();
-  auto nodalButton = new score::QGraphicsPixmapToggle{pixmaps.nodal_on, pixmaps.nodal_off, &m_bar};
-  auto timelineButton = new score::QGraphicsPixmapToggle{pixmaps.timeline_on, pixmaps.timeline_off, &m_bar};
-  timelineButton->toggle();
-  connect(nodalButton, &score::QGraphicsPixmapToggle::toggled,
-          this, [=] (bool state) {
-    ((FullViewIntervalPresenter&)m_view->presenter()).requestModeChange(state);
-    timelineButton->toggle();
-  });
-  connect(timelineButton, &score::QGraphicsPixmapToggle::toggled,
-          this, [=] (bool state) {
-    ((FullViewIntervalPresenter&)m_view->presenter()).requestModeChange(!state);
-    nodalButton->toggle();
-  });
-  nodalButton->setPos(-50, -4);
-  timelineButton->setPos(-30, -4);
 
   con(m_bar, &AddressBarItem::needRedraw, this, [&]() { update(); });
 }

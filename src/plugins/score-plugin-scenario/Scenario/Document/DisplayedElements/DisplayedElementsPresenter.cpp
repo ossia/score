@@ -171,7 +171,7 @@ void DisplayedElementsPresenter::on_displayedIntervalChanged(
 
   showInterval();
 
-  on_zoomRatioChanged(m_intervalPresenter->zoomRatio());
+  on_zoomRatioChanged(m.zoom());
 
   con(ctx.execTimer,
       &QTimer::timeout,
