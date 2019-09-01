@@ -24,8 +24,10 @@
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentPresenter.hpp>
 
 #include <Process/Dataflow/NodeItem.hpp>
+#include <Process/Style/Pixmaps.hpp>
 #include <Scenario/Application/Drops/ScenarioDropHandler.hpp>
 #include <score/document/DocumentInterface.hpp>
+#include <score/graphics/GraphicWidgets.hpp>
 #include <score/graphics/GraphicsItem.hpp>
 #include <score/tools/Bind.hpp>
 
@@ -104,8 +106,7 @@ public:
     painter->fillRect(m_rect, Qt::blue);
   }
 */
-private:
-  const IntervalPresenter& m_presenter;
+private: const IntervalPresenter& m_presenter;
   const Process::Context& m_context;
   std::vector<Process::NodeItem*> m_nodeItems;
 };
@@ -149,6 +150,7 @@ FullViewIntervalPresenter::FullViewIntervalPresenter(
                         parent}
 {
   m_header->setPos(0, -IntervalHeader::headerHeight());
+
   // Address bar
   auto& addressBar = static_cast<FullViewIntervalHeader*>(m_header)->bar();
   addressBar.setTargetObject(score::IDocument::unsafe_path(interval));
@@ -161,6 +163,36 @@ FullViewIntervalPresenter::FullViewIntervalPresenter(
       &Selectable::changed,
       (FullViewIntervalView*)m_view,
       &FullViewIntervalView::setSelected);
+
+  // Address bar items
+  {
+    auto& pixmaps = Process::Pixmaps::instance();
+    auto nodalButton = new score::QGraphicsPixmapToggle{pixmaps.nodal_on, pixmaps.nodal_off, &addressBar};
+    auto timelineButton = new score::QGraphicsPixmapToggle{pixmaps.timeline_on, pixmaps.timeline_off, &addressBar};
+    switch(interval.viewMode())
+    {
+      case IntervalModel::Temporal:
+        timelineButton->toggle();
+        break;
+      case IntervalModel::Nodal:
+        nodalButton->toggle();
+        break;
+    }
+
+    connect(nodalButton, &score::QGraphicsPixmapToggle::toggled,
+            this, [=] (bool state) {
+      ((FullViewIntervalPresenter&)m_view->presenter()).requestModeChange(state);
+      timelineButton->toggle();
+    });
+    connect(timelineButton, &score::QGraphicsPixmapToggle::toggled,
+            this, [=] (bool state) {
+      ((FullViewIntervalPresenter&)m_view->presenter()).requestModeChange(!state);
+      nodalButton->toggle();
+    });
+    nodalButton->setPos(-50, -4);
+    timelineButton->setPos(-30, -4);
+  }
+
 
   // Time
   con(interval.duration,
@@ -488,7 +520,7 @@ void FullViewIntervalPresenter::updatePositions()
 double FullViewIntervalPresenter::rackHeight() const
 {
   if(m_nodal)
-    return 100.;
+    return 0.;
 
   qreal height = 0;
   for (const SlotPresenter& slot : m_slots)
@@ -575,7 +607,10 @@ void FullViewIntervalPresenter::on_zoomRatioChanged(ZoomRatio ratio)
   IntervalPresenter::on_zoomRatioChanged(ratio);
 
   if(m_nodal)
+  {
+    m_nodal->on_zoomRatioChanged(ratio);
     return;
+  }
 
   auto gui_width = m_model.duration.guiDuration().toPixels(ratio);
   auto def_width = m_model.duration.defaultDuration().toPixels(ratio);
