@@ -70,7 +70,7 @@ LayerPresenter::LayerPresenter(
 {
   using namespace Scenario;
   m_intervalPresenter = new TemporalIntervalPresenter{
-      layer.interval(), layer.startEvent(), layer.endEvent(), ctx, false, view, this};
+      layer.interval(), ctx, false, view, this};
   m_startStatePresenter = new StatePresenter{
       layer.BaseScenarioContainer::startState(), ctx, m_view, this};
   m_endStatePresenter = new StatePresenter{
@@ -98,8 +98,8 @@ LayerPresenter::LayerPresenter(
     connect(elt, &elt_t::released, this, &LayerPresenter::released);
   });
 
-  con(m_endEventPresenter->model(),
-      &EventModel::extentChanged,
+  con(*m_endEventPresenter,
+      &EventPresenter::extentChanged,
       this,
       [=](const VerticalExtent&) {
         m_viewUpdater.updateEvent(*m_endEventPresenter);
@@ -110,8 +110,8 @@ LayerPresenter::LayerPresenter(
       [=](const TimeVal&) {
         m_viewUpdater.updateEvent(*m_endEventPresenter);
       });
-  con(m_endNodePresenter->model(),
-      &TimeSyncModel::extentChanged,
+  con(*m_endNodePresenter,
+      &TimeSyncPresenter::extentChanged,
       this,
       [=](const VerticalExtent&) {
         m_viewUpdater.updateTimeSync(*m_endNodePresenter);
@@ -145,6 +145,13 @@ LayerPresenter::LayerPresenter(
   m_endStatePresenter->view()->disableOverlay();
 
   m_intervalPresenter->view()->unsetCursor();
+
+
+
+  con(layer.startEvent(), &EventModel::statusChanged, m_intervalPresenter,
+      [this] { m_intervalPresenter->view()->update(); });
+  con(layer.endEvent(), &EventModel::statusChanged, m_intervalPresenter,
+      [this] { m_intervalPresenter->view()->update(); });
 }
 
 void LayerPresenter::on_addProcess(const Process::ProcessModel& p)

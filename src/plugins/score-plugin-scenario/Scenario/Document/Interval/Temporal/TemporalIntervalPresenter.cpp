@@ -48,8 +48,6 @@ namespace Scenario
 {
 TemporalIntervalPresenter::TemporalIntervalPresenter(
     const IntervalModel& interval,
-    const EventModel& start,
-    const EventModel& end,
     const Process::Context& ctx,
     bool handles,
     QGraphicsItem* parentobject,
@@ -59,8 +57,6 @@ TemporalIntervalPresenter::TemporalIntervalPresenter(
                         new TemporalIntervalHeader{*this},
                         ctx,
                         parent}
-    , startEvent{start}
-    , endEvent{end}
     , m_handles{handles}
 {
   m_header->setPos(15, -IntervalHeader::headerHeight());
@@ -116,13 +112,6 @@ TemporalIntervalPresenter::TemporalIntervalPresenter(
         m_view->update();
       },
       Qt::QueuedConnection);
-
-  // Events
-
-  con(startEvent, &EventModel::statusChanged, m_view,
-      [this] { m_view->update(); });
-  con(endEvent, &EventModel::statusChanged, m_view,
-      [this] { m_view->update(); });
 
   // Metadata
   const auto& metadata = m_model.metadata();

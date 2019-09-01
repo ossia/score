@@ -171,4 +171,18 @@ private:
 
   QMetaObject::Connection m_con;
 };
+
+const StateModel*
+furthestSelectedState(const Scenario::ProcessModel& scenario);
+const EventModel*
+furthestSelectedEvent(const Scenario::ScenarioPresenter& scenario);
+const TimeSyncModel*
+furthestSelectedSync(const Scenario::ScenarioPresenter& scenario);
+
+const StateModel* furthestSelectedStateWithoutFollowingInterval(
+    const Scenario::ProcessModel& scenario);
+
+// furthest selected state or event are taken into account
+const TimeSyncModel*
+furthestHierarchicallySelectedTimeSync(const Scenario::ScenarioPresenter& scenario);
 }

@@ -1,7 +1,6 @@
 #pragma once
 #include <Process/TimeValue.hpp>
 #include <Scenario/Document/Event/ExecutionStatus.hpp>
-#include <Scenario/Document/VerticalExtent.hpp>
 #include <State/Expression.hpp>
 
 #include <score/model/Component.hpp>
@@ -45,7 +44,6 @@ public:
   EventModel(
       const Id<EventModel>&,
       const Id<TimeSyncModel>& timesync,
-      const VerticalExtent& extent,
       const TimeVal& date,
       QObject* parent);
 
@@ -69,13 +67,11 @@ public:
   // Other properties
   const State::Expression& condition() const noexcept;
   OffsetBehavior offsetBehavior() const noexcept;
-  VerticalExtent extent() const noexcept;
   const TimeVal& date() const noexcept;
   void translate(const TimeVal& deltaTime);
   ExecutionStatus status() const noexcept;
 
   void setCondition(const State::Expression& arg);
-  void setExtent(const Scenario::VerticalExtent& extent);
   void setDate(const TimeVal& date);
   void setStatus(
       Scenario::ExecutionStatus status,
@@ -85,10 +81,6 @@ public:
   const QBrush& color(const Process::Style&) const noexcept;
 
 public:
-  void recomputeExtent()
-      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, recomputeExtent)
-  void extentChanged(const Scenario::VerticalExtent& extent)
-      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, extentChanged, extent)
   void dateChanged(const TimeVal& arg_1)
       E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, dateChanged, arg_1)
   void conditionChanged(const State::Expression& arg_1)
@@ -103,7 +95,6 @@ private:
   Id<TimeSyncModel> m_timeSync;
   StateIdVec m_states;
   State::Expression m_condition;
-  VerticalExtent m_extent;
   TimeVal m_date{TimeVal::zero()};
 
   ExecutionStatusProperty m_status{};

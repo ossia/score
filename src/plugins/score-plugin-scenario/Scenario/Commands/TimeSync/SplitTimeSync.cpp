@@ -49,8 +49,6 @@ void SplitTimeSync::undo(const score::DocumentContext& ctx) const
   }
 
   ScenarioCreate<TimeSyncModel>::undo(m_newTimeSyncId, scenar);
-
-  originalTN.recomputeExtent();
 }
 
 void SplitTimeSync::redo(const score::DocumentContext& ctx) const
@@ -62,7 +60,6 @@ void SplitTimeSync::redo(const score::DocumentContext& ctx) const
   // TODO set the correct position here.
   TimeSyncModel& tn = ScenarioCreate<TimeSyncModel>::redo(
       m_newTimeSyncId,
-      VerticalExtent{}, // TODO
       originalTN.date(),
       scenar);
 
@@ -74,9 +71,6 @@ void SplitTimeSync::redo(const score::DocumentContext& ctx) const
     originalTN.removeEvent(eventId);
     tn.addEvent(eventId);
   }
-
-  originalTN.recomputeExtent();
-  tn.recomputeExtent();
 }
 
 void SplitTimeSync::serializeImpl(DataStreamInput& s) const
@@ -128,8 +122,6 @@ void SplitWholeSync::undo(const score::DocumentContext& ctx) const
 
     ScenarioCreate<TimeSyncModel>::undo(id, scenar);
   }
-
-  originalTN.recomputeExtent();
 }
 
 void SplitWholeSync::redo(const score::DocumentContext& ctx) const
@@ -146,7 +138,6 @@ void SplitWholeSync::redo(const score::DocumentContext& ctx) const
     // TODO set the correct position here.
     TimeSyncModel& tn = ScenarioCreate<TimeSyncModel>::redo(
         id,
-        VerticalExtent{}, // TODO
         originalTN.date(),
         scenar);
 
@@ -155,12 +146,9 @@ void SplitWholeSync::redo(const score::DocumentContext& ctx) const
 
     originalTN.removeEvent(originalEvents[k]);
     tn.addEvent(originalEvents[k]);
-    tn.recomputeExtent();
 
     k++;
   }
-
-  originalTN.recomputeExtent();
 }
 
 void SplitWholeSync::serializeImpl(DataStreamInput& s) const

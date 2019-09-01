@@ -71,7 +71,6 @@ void MergeTimeSyncs::undo(const score::DocumentContext& ctx) const
 
   // ScenarioValidityChecker::checkValidity(scenar);
   m_moveCommand->undo(ctx);
-  globalTn.recomputeExtent();
   // ScenarioValidityChecker::checkValidity(scenar);
 }
 
@@ -95,7 +94,6 @@ void MergeTimeSyncs::redo(const score::DocumentContext& ctx) const
   destinationTn.setExpression(movingTn.expression());
 
   scenar.timeSyncs.remove(m_movingTnId);
-  destinationTn.recomputeExtent();
   // ScenarioValidityChecker::checkValidity(scenar);
 }
 

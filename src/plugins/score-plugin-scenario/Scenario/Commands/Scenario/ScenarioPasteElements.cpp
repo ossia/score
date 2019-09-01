@@ -406,15 +406,6 @@ void ScenarioPasteElements::redo(const score::DocumentContext& ctx) const
     scenario.intervals.add(cst);
   }
 
-  for (const auto& event : addedEvents)
-  {
-    event->recomputeExtent();
-  }
-  for (const auto& timesync : addedTimeSyncs)
-  {
-    timesync->recomputeExtent();
-  }
-
   ScenarioDocumentModel& model
       = score::IDocument::modelDelegate<ScenarioDocumentModel>(ctx.document);
   for (const auto& cable_id : m_cables.keys())

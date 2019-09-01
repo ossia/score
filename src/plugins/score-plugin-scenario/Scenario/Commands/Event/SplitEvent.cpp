@@ -60,8 +60,6 @@ void SplitEvent::undo(const score::DocumentContext& ctx) const
   }
 
   ScenarioCreate<EventModel>::undo(m_newEvent, m_scenarioPath.find(ctx));
-
-  originalEvent.recomputeExtent();
 }
 
 void SplitEvent::redo(const score::DocumentContext& ctx) const
@@ -71,7 +69,6 @@ void SplitEvent::redo(const score::DocumentContext& ctx) const
   ScenarioCreate<EventModel>::redo(
       m_newEvent,
       scenar.timeSyncs.at(originalEvent.timeSync()),
-      originalEvent.extent(),
       scenar);
 
   auto& newEvent = scenar.events.at(m_newEvent);
@@ -85,9 +82,6 @@ void SplitEvent::redo(const score::DocumentContext& ctx) const
     newEvent.addState(st);
     scenar.states.at(st).setEventId(m_newEvent);
   }
-
-  originalEvent.recomputeExtent();
-  newEvent.recomputeExtent();
 }
 
 void SplitEvent::serializeImpl(DataStreamInput& s) const
@@ -132,8 +126,6 @@ void SplitWholeEvent::undo(const score::DocumentContext& ctx) const
 
     ScenarioCreate<EventModel>::undo(id, scenar);
   }
-
-  originalEvent.recomputeExtent();
 }
 
 void SplitWholeEvent::redo(const score::DocumentContext& ctx) const
@@ -149,7 +141,7 @@ void SplitWholeEvent::redo(const score::DocumentContext& ctx) const
   {
     // TODO set the correct position here.
     EventModel& ev = ScenarioCreate<EventModel>::redo(
-        id, originalTS, originalEvent.extent(), scenar);
+        id, originalTS, scenar);
 
     ev.setCondition(originalEvent.condition());
 
@@ -160,12 +152,8 @@ void SplitWholeEvent::redo(const score::DocumentContext& ctx) const
     ev.addState(stateId);
 
     st.setEventId(id);
-
-    ev.recomputeExtent();
     k++;
   }
-
-  originalEvent.recomputeExtent();
 }
 
 void SplitWholeEvent::serializeImpl(DataStreamInput& s) const

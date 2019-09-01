@@ -41,7 +41,6 @@ public:
   /** The class **/
   TimeSyncModel(
       const Id<TimeSyncModel>& id,
-      const VerticalExtent& extent,
       const TimeVal& date,
       QObject* parent);
 
@@ -53,9 +52,6 @@ public:
   }
 
   // Data of the TimeSync
-  const VerticalExtent& extent() const noexcept;
-  void setExtent(const VerticalExtent& extent);
-
   const TimeVal& date() const noexcept;
   void setDate(const TimeVal&);
 
@@ -85,10 +81,6 @@ public:
 #endif
 
 public:
-  void recomputeExtent()
-      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, recomputeExtent)
-  void extentChanged(const Scenario::VerticalExtent& arg_1)
-      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, extentChanged, arg_1)
   void dateChanged(const TimeVal& arg_1)
       E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, dateChanged, arg_1)
 
@@ -120,8 +112,6 @@ private:
   State::Expression m_expression;
 
   EventIdVec m_events;
-  VerticalExtent m_extent;
-
 #if defined(SCORE_MUSICAL)
   double m_tempo{120.};
   optional<Control::time_signature> m_signature;

@@ -49,7 +49,6 @@ void CreateInterval_State_Event::redo(const score::DocumentContext& ctx) const
   ScenarioCreate<EventModel>::redo(
       m_newEvent,
       scenar.timeSync(m_endTimeSync),
-      {m_command.endStateY(), m_command.endStateY()},
       scenar);
 
   scenar.events.at(m_newEvent).metadata().setName(m_createdName);

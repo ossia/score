@@ -230,19 +230,6 @@ intervalsBeforeTimeSync(
     const Scenario::ProcessModel&,
     const Id<TimeSyncModel>& timeSyncId);
 
-const StateModel*
-furthestSelectedState(const Scenario::ProcessModel& scenario);
-const EventModel*
-furthestSelectedEvent(const Scenario::ProcessModel& scenario);
-const TimeSyncModel*
-furthestSelectedSync(const Scenario::ProcessModel& scenario);
-
-const StateModel* furthestSelectedStateWithoutFollowingInterval(
-    const Scenario::ProcessModel& scenario);
-
-// furthest selected state or event are taken into account
-const TimeSyncModel*
-furthestHierarchicallySelectedTimeSync(const Scenario::ProcessModel& scenario);
 
 inline auto& intervals(const Scenario::ProcessModel& scenar)
 {

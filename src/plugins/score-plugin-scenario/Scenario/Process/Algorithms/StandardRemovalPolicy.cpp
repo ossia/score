@@ -73,8 +73,6 @@ void StandardRemovalPolicy::removeState(
     ev.removeState(state.id());
 
     scenario.states.remove(&state);
-
-    ev.recomputeExtent();
   }
 }
 

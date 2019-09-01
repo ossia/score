@@ -25,16 +25,19 @@
 W_OBJECT_IMPL(Scenario::ScenarioPresenter)
 namespace Scenario
 {
-void updateTimeSyncExtent(TimeSyncModel& id, const Scenario::ProcessModel& s);
+void updateTimeSyncExtent(TimeSyncPresenter& tn);
 
 // Will call updateTimeSyncExtent
-void updateEventExtent(EventModel& id, const Scenario::ProcessModel& s, double h);
+void updateEventExtent(
+    ScenarioPresenter& pres,
+    EventPresenter& ev,
+    double view_height);
 
 // Will call updateEventExtent
 void updateIntervalVerticalPos(
-    IntervalModel& id,
+    ScenarioPresenter& pres,
+    IntervalModel& itv,
     double y,
-    const Scenario::ProcessModel& s,
     double view_height);
 
 ScenarioPresenter::ScenarioPresenter(
@@ -55,9 +58,9 @@ ScenarioPresenter::ScenarioPresenter(
   m_view->init(this);
   /////// Setup of existing data
   // For each interval & event, display' em
-  for (const auto& state_model : scenario.states)
+  for (const auto& tn_model : scenario.timeSyncs)
   {
-    on_stateCreated(state_model);
+    on_timeSyncCreated(tn_model);
   }
 
   for (const auto& event_model : scenario.events)
@@ -65,9 +68,14 @@ ScenarioPresenter::ScenarioPresenter(
     on_eventCreated(event_model);
   }
 
-  for (const auto& tn_model : scenario.timeSyncs)
+  for (const auto& state_model : scenario.states)
   {
-    on_timeSyncCreated(tn_model);
+    on_stateCreated(state_model);
+  }
+
+  for (const auto& interval : scenario.intervals)
+  {
+    on_intervalCreated(interval);
   }
 
   for (const auto& cmt_model : scenario.comments)
@@ -75,10 +83,6 @@ ScenarioPresenter::ScenarioPresenter(
     on_commentCreated(cmt_model);
   }
 
-  for (const auto& interval : scenario.intervals)
-  {
-    on_intervalCreated(interval);
-  }
 
   /////// Connections
   scenario.intervals.added.connect<&ScenarioPresenter::on_intervalCreated>(
@@ -276,9 +280,9 @@ void ScenarioPresenter::setHeight(qreal height)
   m_view->setHeight(height);
   if(height > 10)
   {
-    for(auto& ev : m_layer.events)
+    for(auto& ev : m_events)
     {
-      updateEventExtent(ev, m_layer, height);
+      updateEventExtent(*this, ev, height);
     }
   }
 }
@@ -400,11 +404,19 @@ void ScenarioPresenter::removeElement(Map& map, const Id& id)
 
 void ScenarioPresenter::on_stateRemoved(const StateModel& state)
 {
+  EventPresenter& ev = m_events.at(state.eventId());
+  ev.removeState(&m_states.at(state.id()));
+  updateEventExtent(*this, ev, m_view->height());
+
   removeElement(m_states, state.id());
 }
 
 void ScenarioPresenter::on_eventRemoved(const EventModel& event)
 {
+  TimeSyncPresenter& ts = m_timeSyncs.at(event.timeSync());
+  ts.removeEvent(&m_events.at(event.id()));
+  updateTimeSyncExtent(ts);
+
   removeElement(m_events, event.id());
 }
 
@@ -784,17 +796,19 @@ void ScenarioPresenter::on_eventCreated(const EventModel& event_model)
   auto ev_pres = new EventPresenter{event_model, m_view, this};
   m_events.insert(ev_pres);
 
+  TimeSyncPresenter& ts = m_timeSyncs.at(event_model.timeSync());
+  ts.addEvent(ev_pres);
   ev_pres->view()->setWidthScale(m_graphicalScale);
   m_viewInterface.on_eventMoved(*ev_pres);
 
-  con(event_model,
-      &EventModel::recomputeExtent,
+  con(*ev_pres,
+      &EventPresenter::recomputeExtent,
       this,
-      [this, &event_model] {
-    updateEventExtent(const_cast<EventModel&>(event_model), m_layer, m_view->height());
+      [this, ev_pres] {
+    updateEventExtent(*this, *ev_pres, m_view->height());
   });
-  con(event_model,
-      &EventModel::extentChanged,
+  con(*ev_pres,
+      &EventPresenter::extentChanged,
       this,
       [=](const VerticalExtent&) { m_viewInterface.on_eventMoved(*ev_pres); });
   con(event_model, &EventModel::dateChanged, this, [=](const TimeVal&) {
@@ -822,14 +836,14 @@ void ScenarioPresenter::on_timeSyncCreated(const TimeSyncModel& timeSync_model)
 
   m_viewInterface.on_timeSyncMoved(*tn_pres);
 
-  con(timeSync_model,
-      &TimeSyncModel::recomputeExtent,
+  con(*tn_pres,
+      &TimeSyncPresenter::recomputeExtent,
       this,
-      [this, &timeSync_model] {
-    updateTimeSyncExtent(const_cast<TimeSyncModel&>(timeSync_model), m_layer);
+      [tn_pres] {
+    updateTimeSyncExtent(*tn_pres);
   });
-  con(timeSync_model,
-      &TimeSyncModel::extentChanged,
+  con(*tn_pres,
+      &TimeSyncPresenter::extentChanged,
       this,
       [=](const VerticalExtent&) {
         m_viewInterface.on_timeSyncMoved(*tn_pres);
@@ -858,9 +872,14 @@ void ScenarioPresenter::on_stateCreated(const StateModel& state)
   st_pres->view()->setScale(m_graphicalScale);
   m_viewInterface.on_stateMoved(*st_pres);
 
-  con(state, &StateModel::heightPercentageChanged, this, [=]() {
+  EventPresenter& ev_pres = m_events.at(state.eventId());
+  ev_pres.addState(st_pres);
+
+  con(state, &StateModel::heightPercentageChanged, this, [this, st_pres, &ev_pres] {
     m_viewInterface.on_stateMoved(*st_pres);
+    updateEventExtent(*this, ev_pres, m_view->height());
   });
+  updateEventExtent(*this, ev_pres, m_view->height());
 
   // For the state machine
   connect(
@@ -871,11 +890,8 @@ void ScenarioPresenter::on_stateCreated(const StateModel& state)
 
 void ScenarioPresenter::on_intervalCreated(const IntervalModel& interval)
 {
-  auto& startEvent = Scenario::startEvent(interval, m_layer);
-  auto& endEvent = Scenario::endEvent(interval, m_layer);
-
   auto cst_pres = new TemporalIntervalPresenter{
-      interval, startEvent, endEvent, m_context.context, true, m_view, this};
+      interval, m_context.context, true, m_view, this};
   m_intervals.insert(cst_pres);
   cst_pres->on_zoomRatioChanged(m_zoomRatio);
 
@@ -885,14 +901,26 @@ void ScenarioPresenter::on_intervalCreated(const IntervalModel& interval)
       &IntervalModel::requestHeightChange,
       this,
       [this, &interval] (double y) {
-    updateIntervalVerticalPos(const_cast<IntervalModel&>(interval), y, m_layer, m_view->height());
+    updateIntervalVerticalPos(*this, const_cast<IntervalModel&>(interval), y, m_view->height());
   });
+
+  auto& startEvent = Scenario::startEvent(interval, m_layer);
+  auto& endEvent = Scenario::endEvent(interval, m_layer);
+  auto& startEventPres = m_events.at(startEvent.id());
+  auto& endEventPres = m_events.at(endEvent.id());
+
+  con(startEvent, &EventModel::statusChanged, cst_pres,
+      [cst_pres] { cst_pres->view()->update(); });
+  con(endEvent, &EventModel::statusChanged, cst_pres,
+      [cst_pres] { cst_pres->view()->update(); });
+
   auto updateHeight = [&] {
-    auto& scenario = const_cast<Scenario::ProcessModel&>(m_layer);
     auto h = m_view->height();
-    updateEventExtent(const_cast<EventModel&>(startEvent), scenario, h);
-    updateEventExtent(const_cast<EventModel&>(endEvent), scenario, h);
+    updateEventExtent(*this, startEventPres, h);
+    updateEventExtent(*this, endEventPres, h);
   };
+  updateEventExtent(*this, startEventPres, m_view->height());
+  updateEventExtent(*this, endEventPres, m_view->height());
   con(interval, &IntervalModel::rackChanged,
       this, updateHeight);
 
@@ -1015,5 +1043,227 @@ void ScenarioPresenter::updateAllElements()
   {
     m_viewInterface.on_commentMoved(comment);
   }
+}
+
+
+
+const StateModel* furthestSelectedState(const Scenario::ProcessModel& scenar)
+{
+  const StateModel* furthest{};
+  {
+    TimeVal max_t = TimeVal::zero();
+    double max_y = 0;
+    for (StateModel& elt : scenar.states)
+    {
+      if (elt.selection.get())
+      {
+        auto date = scenar.events.at(elt.eventId()).date();
+        if (!furthest || date > max_t)
+        {
+          max_t = date;
+          max_y = elt.heightPercentage();
+          furthest = &elt;
+        }
+        else if (date == max_t && elt.heightPercentage() > max_y)
+        {
+          max_y = elt.heightPercentage();
+          furthest = &elt;
+        }
+      }
+    }
+    if (furthest)
+    {
+      return furthest;
+    }
+  }
+
+  // If there is no furthest state, we instead go for a interval
+  const IntervalModel* furthest_interval{};
+  {
+    TimeVal max_t = TimeVal::zero();
+    double max_y = 0;
+    for (IntervalModel& cst : scenar.intervals)
+    {
+      if (cst.selection.get())
+      {
+        auto date = cst.duration.defaultDuration();
+        if (!furthest_interval || date > max_t)
+        {
+          max_t = date;
+          max_y = cst.heightPercentage();
+          furthest_interval = &cst;
+        }
+        else if (date == max_t && cst.heightPercentage() > max_y)
+        {
+          max_y = cst.heightPercentage();
+          furthest_interval = &cst;
+        }
+      }
+    }
+
+    if (furthest_interval)
+    {
+      return &scenar.states.at(furthest_interval->endState());
+    }
+  }
+
+  return nullptr;
+}
+
+const EventModel* furthestSelectedEvent(const Scenario::ScenarioPresenter& scenar)
+{
+  const EventModel* furthest{};
+  {
+    TimeVal max_t = TimeVal::zero();
+    double max_y = 0;
+    for (EventPresenter& ev : scenar.getEvents())
+    {
+      const EventModel& elt = ev.model();
+      if (elt.selection.get())
+      {
+        const auto extent = ev.extent();
+        auto date = elt.date();
+        if (!furthest || date > max_t)
+        {
+          max_t = date;
+          max_y = extent.bottom();
+          furthest = &elt;
+        }
+        else if (date == max_t && extent.bottom() > max_y)
+        {
+          max_y = extent.bottom();
+          furthest = &elt;
+        }
+      }
+    }
+  }
+  return furthest;
+}
+
+const TimeSyncModel* furthestSelectedSync(const Scenario::ScenarioPresenter& scenar)
+{
+  const TimeSyncModel* furthest{};
+  {
+    TimeVal max_t = TimeVal::zero();
+    double max_y = 0;
+    for (TimeSyncPresenter& ts : scenar.getTimeSyncs())
+    {
+      const TimeSyncModel& elt = ts.model();
+      if (elt.selection.get())
+      {
+        const auto extent = ts.extent();
+        auto date = elt.date();
+        if (!furthest || date > max_t)
+        {
+          max_t = date;
+          max_y = extent.bottom();
+          furthest = &elt;
+        }
+        else if (date == max_t && extent.bottom() > max_y)
+        {
+          max_y = extent.bottom();
+          furthest = &elt;
+        }
+      }
+    }
+  }
+  return furthest;
+}
+
+const StateModel* furthestSelectedStateWithoutFollowingInterval(
+    const Scenario::ProcessModel& scenar)
+{
+  const StateModel* furthest_state{};
+  {
+    TimeVal max_t = TimeVal::zero();
+    double max_y = 0;
+    const auto& sc_events = scenar.events;
+    for (StateModel& state : scenar.states)
+    {
+      if (state.selection.get() && !state.nextInterval())
+      {
+        auto date = sc_events.at(state.eventId()).date();
+        if (!furthest_state || date > max_t)
+        {
+          max_t = date;
+          max_y = state.heightPercentage();
+          furthest_state = &state;
+        }
+        else if (date == max_t && state.heightPercentage() > max_y)
+        {
+          max_y = state.heightPercentage();
+          furthest_state = &state;
+        }
+      }
+    }
+    if (furthest_state)
+    {
+      return furthest_state;
+    }
+  }
+
+  // If there is no furthest state, we instead go for a interval
+  const IntervalModel* furthest_interval{};
+  {
+    TimeVal max_t = TimeVal::zero();
+    double max_y = 0;
+    for (IntervalModel& cst : scenar.intervals)
+    {
+      if (cst.selection.get())
+      {
+        const auto& state = scenar.states.at(cst.endState());
+        if (state.nextInterval())
+          continue;
+
+        auto date = cst.duration.defaultDuration();
+        if (!furthest_interval || date > max_t)
+        {
+          max_t = date;
+          max_y = cst.heightPercentage();
+          furthest_interval = &cst;
+        }
+        else if (date == max_t && cst.heightPercentage() > max_y)
+        {
+          max_y = cst.heightPercentage();
+          furthest_interval = &cst;
+        }
+      }
+    }
+
+    if (furthest_interval)
+    {
+      return &scenar.states.at(furthest_interval->endState());
+    }
+  }
+
+  return nullptr;
+}
+
+const TimeSyncModel*
+furthestHierarchicallySelectedTimeSync(const ScenarioPresenter& scenario)
+{
+  const Scenario::TimeSyncModel* attach_sync{};
+  auto& model = scenario.model();
+
+  if (auto furthestState = furthestSelectedState(model))
+  {
+    attach_sync = &Scenario::parentTimeSync(*furthestState, model);
+  }
+  else
+  {
+    if (auto furthestEvent = furthestSelectedEvent(scenario))
+    {
+      attach_sync = &Scenario::parentTimeSync(*furthestEvent, model);
+    }
+    else
+    {
+      attach_sync = furthestSelectedSync(scenario);
+    }
+  }
+
+  if (!attach_sync)
+    attach_sync = &model.startTimeSync();
+
+  return attach_sync;
 }
 }

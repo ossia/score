@@ -35,11 +35,6 @@ TimeSyncPresenter::TimeSyncPresenter(
     m_triggerView->setSelected(b);
   });
 
-  con(m_model,
-      &TimeSyncModel::newEvent,
-      this,
-      &TimeSyncPresenter::on_eventAdded);
-
   con(m_model.metadata(),
       &score::ModelMetadata::ColorChanged,
       this,
@@ -85,6 +80,33 @@ TimeSyncPresenter::TimeSyncPresenter(
 
 TimeSyncPresenter::~TimeSyncPresenter() {}
 
+
+const VerticalExtent& TimeSyncPresenter::extent() const noexcept
+{
+  return m_extent;
+}
+
+void TimeSyncPresenter::setExtent(const VerticalExtent& extent)
+{
+  if (extent != m_extent)
+  {
+    m_extent = extent;
+    extentChanged(m_extent);
+  }
+}
+
+void TimeSyncPresenter::addEvent(EventPresenter* ev)
+{
+  m_events.push_back(ev);
+}
+
+void TimeSyncPresenter::removeEvent(EventPresenter* ev)
+{
+  auto it = ossia::find(m_events, ev);
+  if(it != m_events.end())
+     m_events.erase(it);
+}
+
 const Id<TimeSyncModel>& TimeSyncPresenter::id() const
 {
   return m_model.id();
@@ -103,11 +125,6 @@ TimeSyncView* TimeSyncPresenter::view() const
 TriggerView& TimeSyncPresenter::trigger() const noexcept
 {
   return *m_triggerView;
-}
-
-void TimeSyncPresenter::on_eventAdded(const Id<EventModel>& eventId)
-{
-  eventAdded(eventId, m_model.id());
 }
 
 void TimeSyncPresenter::handleDrop(const QPointF& pos, const QMimeData& mime)
