@@ -31,7 +31,7 @@ public:
   void setZoomRatio(ZoomRatio r);
   void setPlayPercentage(float f);
 
-  qreal width() const noexcept { return m_size.width(); }
+  qreal width() const noexcept { return m_contentSize.width(); }
 
   const Process::ProcessModel& model() const noexcept { return m_model; }
 private:

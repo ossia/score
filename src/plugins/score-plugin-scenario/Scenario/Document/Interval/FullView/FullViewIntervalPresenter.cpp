@@ -177,17 +177,17 @@ FullViewIntervalPresenter::FullViewIntervalPresenter(
 
   // Slots
   con(m_model, &IntervalModel::rackChanged, this, [=](Slot::RackView t) {
-    if (t == Slot::FullView)
+    if (t == Slot::FullView && !m_nodal)
       on_rackChanged();
   });
 
   con(m_model, &IntervalModel::slotAdded, this, [=](const SlotId& s) {
-    if (s.fullView())
+    if (s.fullView() && !m_nodal)
       on_rackChanged();
   });
 
   con(m_model, &IntervalModel::slotRemoved, this, [=](const SlotId& s) {
-    if (s.fullView())
+    if (s.fullView() && !m_nodal)
       on_rackChanged();
   });
 
@@ -195,12 +195,12 @@ FullViewIntervalPresenter::FullViewIntervalPresenter(
       &IntervalModel::slotsSwapped,
       this,
       [=](int i, int j, Slot::RackView v) {
-        if (v == Slot::FullView)
+        if (v == Slot::FullView && !m_nodal)
           on_rackChanged();
       });
 
   con(m_model, &IntervalModel::slotResized, this, [this](const SlotId& s) {
-    if (s.fullView())
+    if (s.fullView() && !m_nodal)
       this->updatePositions();
   });
 
@@ -227,6 +227,10 @@ FullViewIntervalPresenter::FullViewIntervalPresenter(
       [=] {
         m_view->setExecuting(false);
         m_view->setPlayWidth(0.);
+        if(m_nodal)
+        {
+          m_nodal->on_playPercentageChanged(0.);
+        }
         m_view->updatePaths();
         m_view->update();
       },

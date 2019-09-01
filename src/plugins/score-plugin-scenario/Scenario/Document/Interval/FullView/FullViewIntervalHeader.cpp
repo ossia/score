@@ -25,10 +25,8 @@ class QWidget;
 
 namespace Scenario
 {
-static constexpr qreal fullViewHeaderButtonX = 10.;
-static constexpr qreal fullViewHeaderButtonY = 4.;
-static constexpr qreal fullViewHeaderBarX = 30.;
-static constexpr qreal fullViewHeaderBarY = 4.;
+static constexpr qreal fullViewHeaderBarX = 55.;
+static constexpr qreal fullViewHeaderBarY = 2.;
 FullViewIntervalHeader::FullViewIntervalHeader(
     const score::DocumentContext& ctx,
     QGraphicsItem* parent)
@@ -39,11 +37,21 @@ FullViewIntervalHeader::FullViewIntervalHeader(
   m_bar.setPos(fullViewHeaderBarX, fullViewHeaderBarY);
 
   auto& pixmaps = Process::Pixmaps::instance();
-  auto temporalButton = new score::QGraphicsPixmapToggle{pixmaps.unmuted, pixmaps.muted, this};
-  connect(temporalButton, &score::QGraphicsPixmapToggle::toggled,
-          this, [this] (bool state) {
+  auto nodalButton = new score::QGraphicsPixmapToggle{pixmaps.nodal_on, pixmaps.nodal_off, &m_bar};
+  auto timelineButton = new score::QGraphicsPixmapToggle{pixmaps.timeline_on, pixmaps.timeline_off, &m_bar};
+  timelineButton->toggle();
+  connect(nodalButton, &score::QGraphicsPixmapToggle::toggled,
+          this, [=] (bool state) {
     ((FullViewIntervalPresenter&)m_view->presenter()).requestModeChange(state);
+    timelineButton->toggle();
   });
+  connect(timelineButton, &score::QGraphicsPixmapToggle::toggled,
+          this, [=] (bool state) {
+    ((FullViewIntervalPresenter&)m_view->presenter()).requestModeChange(!state);
+    nodalButton->toggle();
+  });
+  nodalButton->setPos(-50, -4);
+  timelineButton->setPos(-30, -4);
 
   con(m_bar, &AddressBarItem::needRedraw, this, [&]() { update(); });
 }
