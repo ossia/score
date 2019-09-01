@@ -70,11 +70,6 @@ int ProcessModel::startChannel() const
   return m_startChannel;
 }
 
-qint32 ProcessModel::startOffset() const
-{
-  return m_startOffset;
-}
-
 void ProcessModel::setUpmixChannels(int upmixChannels)
 {
   if (m_upmixChannels == upmixChannels)
@@ -91,15 +86,6 @@ void ProcessModel::setStartChannel(int startChannel)
 
   m_startChannel = startChannel;
   startChannelChanged(m_startChannel);
-}
-
-void ProcessModel::setStartOffset(qint32 startOffset)
-{
-  if (m_startOffset == startOffset)
-    return;
-
-  m_startOffset = startOffset;
-  startOffsetChanged(m_startOffset);
 }
 
 void ProcessModel::on_mediaChanged()
@@ -124,7 +110,7 @@ template <>
 void DataStreamReader::read(const Media::Sound::ProcessModel& proc)
 {
   m_stream << proc.m_file->originalFile() << *proc.outlet << proc.m_upmixChannels
-           << proc.m_startChannel << proc.m_startOffset << proc.m_endOffset;
+           << proc.m_startChannel;
 
   insertDelimiter();
 }
@@ -137,8 +123,7 @@ void DataStreamWriter::write(Media::Sound::ProcessModel& proc)
   proc.setFile(s);
   proc.outlet = make_outlet(*this, &proc);
 
-  m_stream >> proc.m_upmixChannels >> proc.m_startChannel >> proc.m_startOffset
-      >> proc.m_endOffset;
+  m_stream >> proc.m_upmixChannels >> proc.m_startChannel;
   checkDelimiter();
 }
 
@@ -149,8 +134,6 @@ void JSONObjectReader::read(const Media::Sound::ProcessModel& proc)
   obj["Outlet"] = toJsonObject(*proc.outlet);
   obj["Upmix"] = proc.m_upmixChannels;
   obj["Start"] = proc.m_startChannel;
-  obj["StartOffset"] = proc.m_startOffset;
-  obj["EndOffset"] = proc.m_endOffset;
 }
 
 template <>
@@ -161,6 +144,8 @@ void JSONObjectWriter::write(Media::Sound::ProcessModel& proc)
   proc.outlet = Process::make_outlet(writer, &proc);
   proc.m_upmixChannels = obj["Upmix"].toInt();
   proc.m_startChannel = obj["Start"].toInt();
-  proc.m_startOffset = obj["StartOffset"].toInt();
-  proc.m_endOffset = obj["EndOffset"].toInt();
+
+  if(int off = obj["StartOffset"].toInt(); off != 0)
+    proc.m_startOffset = TimeVal::fromMsecs(1000. * off / proc.file()->sampleRate());
+
 }

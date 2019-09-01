@@ -52,11 +52,9 @@ public:
 
   int upmixChannels() const;
   int startChannel() const;
-  qint32 startOffset() const;
 
   void setUpmixChannels(int upmixChannels);
   void setStartChannel(int startChannel);
-  void setStartOffset(qint32 startOffset);
 
   void on_mediaChanged();
 
@@ -68,8 +66,6 @@ public:
       W_SIGNAL(upmixChannelsChanged, upmixChannels);
   void startChannelChanged(int startChannel)
       W_SIGNAL(startChannelChanged, startChannel);
-  void startOffsetChanged(qint32 startOffset)
-      W_SIGNAL(startOffsetChanged, startOffset);
 
   PROPERTY(
       int,
@@ -81,11 +77,6 @@ public:
       upmixChannels READ upmixChannels WRITE setUpmixChannels NOTIFY
           upmixChannelsChanged,
       W_Final)
-  PROPERTY(
-      int,
-      startOffset READ startOffset WRITE setStartOffset NOTIFY
-          startOffsetChanged,
-      W_Final)
 
 private:
   void init();
@@ -93,8 +84,6 @@ private:
   std::shared_ptr<AudioFile> m_file;
   int m_upmixChannels{};
   int m_startChannel{};
-  qint32 m_startOffset{};
-  qint32 m_endOffset{};
 };
 }
 }

@@ -46,11 +46,5 @@ PROPERTY_COMMAND_T(
     ChangeUpmix,
     Sound::ProcessModel::p_upmixChannels,
     "Change upmix channels")
-PROPERTY_COMMAND_T(
-    Media,
-    ChangeStartOffset,
-    Sound::ProcessModel::p_startOffset,
-    "Change start offset")
 SCORE_COMMAND_DECL_T(Media::ChangeStart)
 SCORE_COMMAND_DECL_T(Media::ChangeUpmix)
-SCORE_COMMAND_DECL_T(Media::ChangeStartOffset)

@@ -125,11 +125,9 @@ public:
       component.in_exec([n,
                data = r->handle,
                upmix = p.upmixChannels(),
-               start = p.startChannel(),
-               startOff = p.startOffset()] {
+               start = p.startChannel()] {
         n->set_sound(std::move(data));
         n->set_start(start);
-        n->set_start_offset(startOff);
         n->set_upmix(upmix);
       });
     }
@@ -162,11 +160,9 @@ public:
                         component.OSSIAProcess().node),
                         data = r.wav,
                         upmix = p.upmixChannels(),
-                        start = p.startChannel(),
-                        startOff = p.startOffset()] () mutable {
+                        start = p.startChannel()] () mutable {
         n->set_sound(std::move(data));
         n->set_start(start);
-        n->set_start_offset(startOff);
         n->set_upmix(upmix);
       });
     }
@@ -222,13 +218,6 @@ SoundComponent::SoundComponent(
     else if(auto node = std::dynamic_pointer_cast<ossia::nodes::sound_mmap>(this->node))
       in_exec([node, upmix = element.upmixChannels()] { node->set_upmix(upmix); });
   });
-  con(element, &Media::Sound::ProcessModel::startOffsetChanged, this, [=,&element] {
-    if(auto node = std::dynamic_pointer_cast<ossia::nodes::sound_ref>(this->node))
-      in_exec([node, off = element.startOffset()] { node->set_start_offset(off); });
-    else if(auto node = std::dynamic_pointer_cast<ossia::nodes::sound_mmap>(this->node))
-      in_exec([node, off = element.startOffset()] { node->set_start_offset(off); });
-  });
-
   if(auto& file = element.file())
   {
     file->on_finishedDecoding.connect<&SoundComponent::Recomputer::recompute>(m_recomputer);
