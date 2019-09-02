@@ -90,7 +90,8 @@ do_worker(LV2_Worker_Schedule_Handle ptr, uint32_t s, const void* data)
 {
   auto& c = *static_cast<LV2::GlobalContext*>(ptr);
   LV2::EffectContext* cur = c.host.current;
-  if (cur->worker && !cur->worker_response)
+
+  if (cur && cur->worker && !cur->worker_response)
   {
     auto& w = *cur->worker;
     if (w.work)
