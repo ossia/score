@@ -4,7 +4,6 @@
 
 #include <Process/ZoomHelper.hpp>
 
-#include <algorithm>
 
 ZoomRatio ZoomPolicy::sliderPosToZoomRatio(
     double sliderPos,

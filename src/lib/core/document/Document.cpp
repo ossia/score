@@ -18,8 +18,6 @@
 #include <QWidget>
 #include <wobjectimpl.h>
 
-#include <algorithm>
-#include <iterator>
 #include <vector>
 
 

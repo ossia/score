@@ -15,6 +15,7 @@
 
 #include <eggs/variant/variant.hpp>
 
+#include <QDebug>
 #include <vector>
 
 #if !defined(SCORE_ALL_UNITY)

@@ -12,6 +12,7 @@
 
 #include <Engine/ApplicationPlugin.hpp>
 #include <LocalTree/LocalTreeDocumentPlugin.hpp>
+#include <QDebug>
 namespace Device
 {
 class DeviceInterface;

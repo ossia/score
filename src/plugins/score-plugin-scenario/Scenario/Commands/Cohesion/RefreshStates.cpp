@@ -18,7 +18,6 @@
 #include <score/document/DocumentInterface.hpp>
 #include <score/selection/SelectionStack.hpp>
 
-#include <algorithm>
 #include <vector>
 
 namespace Scenario

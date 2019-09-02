@@ -54,7 +54,6 @@
 #include <QApplication>
 #include <qnamespace.h>
 
-#include <algorithm>
 #include <utility>
 
 #include <type_traits>

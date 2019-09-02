@@ -10,6 +10,7 @@
 
 #include <score/document/DocumentContext.hpp>
 #include <score/selection/SelectionStack.hpp>
+#include <ossia/detail/algorithms.hpp>
 
 #include <QPainter>
 #include <QCursor>

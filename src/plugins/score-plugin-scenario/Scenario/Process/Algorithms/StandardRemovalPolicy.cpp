@@ -17,6 +17,7 @@
 #include <score/tools/MapCopy.hpp>
 #include <score/tools/std/Optional.hpp>
 
+#include <QDebug>
 
 namespace Scenario
 {

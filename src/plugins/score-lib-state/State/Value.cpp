@@ -14,6 +14,7 @@
 #include <ossia/network/dataspace/dataspace.hpp>
 #include <ossia/network/dataspace/dataspace_visitors.hpp>
 #include <ossia/network/value/value.hpp>
+#include <QDebug>
 
 #include <wobjectimpl.h>
 // W_GADGET_IMPL(State::Unit)

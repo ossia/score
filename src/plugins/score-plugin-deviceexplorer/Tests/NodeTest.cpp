@@ -10,7 +10,6 @@
 
 #include <QObject>
 
-#include <algorithm>
 class NodeTest : public QObject
 {
   Q_OBJECT

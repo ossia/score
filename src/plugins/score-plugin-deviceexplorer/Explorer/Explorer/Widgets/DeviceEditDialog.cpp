@@ -10,6 +10,7 @@
 #include <score/plugins/StringFactoryKey.hpp>
 #include <score/widgets/SignalUtils.hpp>
 #include <score/widgets/TextLabel.hpp>
+#include <ossia/detail/algorithms.hpp>
 
 #include <QComboBox>
 #include <QDialogButtonBox>

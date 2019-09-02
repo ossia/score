@@ -21,7 +21,6 @@
 
 #include <cstddef>
 #include <functional>
-#include <iterator>
 W_OBJECT_IMPL(Curve::PointArraySegment)
 namespace Curve
 {

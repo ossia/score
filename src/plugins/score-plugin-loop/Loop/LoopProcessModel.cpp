@@ -32,7 +32,6 @@
 
 #include <wobjectimpl.h>
 
-#include <algorithm>
 #include <tuple>
 W_OBJECT_IMPL(Loop::ProcessModel)
 namespace Loop

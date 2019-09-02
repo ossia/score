@@ -8,7 +8,6 @@
 
 #include <score_lib_base_export.h>
 
-#include <algorithm>
 #include <vector>
 
 #include <initializer_list>

@@ -4,6 +4,9 @@
 #include <score/model/IdentifiedObject.hpp>
 #include <score/plugins/UuidKey.hpp>
 #include <score/tools/IdentifierGeneration.hpp>
+#include <ossia/detail/algorithms.hpp>
+
+#include <QVariant>
 
 namespace Curve
 {

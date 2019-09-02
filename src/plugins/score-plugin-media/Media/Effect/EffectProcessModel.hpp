@@ -8,6 +8,7 @@
 #include <score/serialization/JSONVisitor.hpp>
 #include <score/serialization/VisitorCommon.hpp>
 #include <score/tools/std/IndirectContainer.hpp>
+#include <ossia/detail/algorithms.hpp>
 
 #include <score_plugin_media_export.h>
 #include <verdigris>

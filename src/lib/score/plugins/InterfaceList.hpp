@@ -2,15 +2,10 @@
 #define SCORE_INTERFACELIST_2018_10_22
 #pragma once
 #include <score/plugins/Interface.hpp>
-#include <score/tools/ForEachType.hpp>
-#include <score/tools/std/HashMap.hpp>
 #include <score/tools/std/IndirectContainer.hpp>
 #include <score/tools/std/Pointer.hpp>
 
-#include <ossia/detail/algorithms.hpp>
 #include <ossia/detail/hash_map.hpp>
-
-
 #include <score_lib_base_export.h>
 
 namespace score
@@ -159,7 +154,9 @@ protected:
 private:
   void optimize() noexcept final override
   {
-    score::optimize_hash_map(this->map);
+    //score::optimize_hash_map(this->map);
+    this->map.max_load_factor(0.1f);
+    this->map.reserve(map.size());
   }
 
   InterfaceList(const InterfaceList&) = delete;
@@ -190,13 +187,14 @@ public:
   auto make(Fun f, Args&&... args) const noexcept
   {
     using val_t = decltype(*this->begin());
-    auto it = ossia::find_if(*this, [&](const val_t& elt) {
-      return elt.matches(std::forward<Args>(args)...);
-    });
-
-    return (it != this->end())
-               ? ((*it).*f)(std::forward<Args>(args)...)
-               : decltype(((*it).*f)(std::forward<Args>(args)...)){};
+    for(const val_t& elt : *this)
+    {
+      if(elt.matches(std::forward<Args>(args)...))
+      {
+        return (elt.*f)(std::forward<Args>(args)...);
+      }
+    }
+    return decltype((std::declval<val_t>().*f)(std::forward<Args>(args)...)){};
   }
 };
 }

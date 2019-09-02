@@ -14,7 +14,6 @@
 #include <score/tools/std/Optional.hpp>
 
 
-#include <algorithm>
 
 namespace Scenario
 {

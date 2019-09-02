@@ -23,7 +23,6 @@
 #include <score/serialization/JSONVisitor.hpp>
 
 
-#include <algorithm>
 #include <vector>
 
 #if !defined(SCORE_ALL_UNITY)

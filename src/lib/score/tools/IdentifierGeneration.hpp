@@ -3,13 +3,9 @@
 #include <score/tools/std/ArrayView.hpp>
 #include <score/tools/std/Optional.hpp>
 
-#include <ossia/detail/algorithms.hpp>
-
 #include <sys/types.h>
 
-#include <algorithm>
 #include <cstddef>
-#include <iterator>
 #include <vector>
 
 #include <type_traits>
@@ -40,14 +36,21 @@ struct SCORE_LIB_BASE_EXPORT random_id_generator
   {
     typename Vector::value_type id{};
 
-    auto end = std::end(ids);
+    constexpr auto fnd = [] (const auto& ids, const auto& id) noexcept {
+      for(auto& elt : ids)
+        if(elt == id)
+          return true;
+      return false;
+    };
+
     do
     {
       id = typename Vector::value_type{getRandomId()};
-    } while (ossia::find(ids, id) != end);
+    } while (fnd(ids, id));
 
     return id;
   }
+
 };
 
 /**

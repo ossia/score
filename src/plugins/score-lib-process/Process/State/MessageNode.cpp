@@ -9,8 +9,9 @@
 #include <score/model/tree/TreeNode.hpp>
 #include <score/serialization/JSONVisitor.hpp>
 
+#include <QDebug>
+#include <score/model/IdentifierDebug.hpp>
 
-#include <algorithm>
 namespace Process
 {
 

@@ -18,7 +18,6 @@
 
 #include <ossia/network/dataspace/dataspace_visitors.hpp>
 
-#include <algorithm>
 class QObject;
 namespace Automation
 {

@@ -13,7 +13,6 @@
 
 #include <score_lib_device_export.h>
 
-#include <algorithm>
 
 class DataStream;
 class JSONObject;

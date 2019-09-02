@@ -10,7 +10,6 @@
 #include <score_lib_base_export.h>
 #include <verdigris>
 
-#include <algorithm>
 #include <set>
 #include <vector>
 class QRecentFilesMenu;

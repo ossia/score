@@ -10,6 +10,7 @@
 #include <score/plugins/qt_interfaces/PluginRequirements_QtInterface.hpp>
 #include <score/tools/exceptions/MissingCommand.hpp>
 #include <score/tools/std/String.hpp>
+#include <ossia/detail/algorithms.hpp>
 
 namespace score
 {

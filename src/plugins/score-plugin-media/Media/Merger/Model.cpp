@@ -3,6 +3,7 @@
 #include <Process/Dataflow/Port.hpp>
 #include <Process/Dataflow/PortFactory.hpp>
 
+#include <score/application/ApplicationComponents.hpp>
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Media::Merger::Model)
 namespace Media

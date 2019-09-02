@@ -20,7 +20,7 @@
 #include <score/actions/ActionManager.hpp>
 #include <QMenu>
 #include <QAction>
-
+#include <QDebug>
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Scenario::ScenarioPresenter)
 namespace Scenario

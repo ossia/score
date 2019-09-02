@@ -15,7 +15,6 @@
 
 #include <wobjectimpl.h>
 
-#include <algorithm>
 W_OBJECT_IMPL(score::SelectionStack)
 W_OBJECT_IMPL(Selectable)
 W_OBJECT_IMPL(score::FocusManager)

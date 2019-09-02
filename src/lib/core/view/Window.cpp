@@ -30,8 +30,6 @@
 #include <wobjectimpl.h>
 
 #include <QSplitter>
-#include <algorithm>
-#include <iterator>
 #include <set>
 W_OBJECT_IMPL(score::View)
 namespace score

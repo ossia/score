@@ -37,8 +37,6 @@
 #include <QVariant>
 #include <QVector>
 
-#include <algorithm>
-#include <iterator>
 #include <stdexcept>
 #include <vector>
 

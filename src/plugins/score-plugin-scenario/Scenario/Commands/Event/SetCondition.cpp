@@ -11,7 +11,6 @@
 #include <score/model/tree/TreeNodeSerialization.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
 
-#include <algorithm>
 
 namespace Scenario
 {

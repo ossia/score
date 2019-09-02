@@ -17,7 +17,6 @@
 #include <QCursor>
 #include <qnamespace.h>
 
-#include <algorithm>
 
 class QStyleOptionGraphicsItem;
 class QWidget;

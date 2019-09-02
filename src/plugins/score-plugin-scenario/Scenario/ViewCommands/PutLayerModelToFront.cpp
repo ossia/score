@@ -7,7 +7,6 @@
 #include <score/model/Identifier.hpp>
 #include <score/model/path/Path.hpp>
 
-#include <algorithm>
 namespace Scenario
 {
 PutLayerModelToFront::PutLayerModelToFront(

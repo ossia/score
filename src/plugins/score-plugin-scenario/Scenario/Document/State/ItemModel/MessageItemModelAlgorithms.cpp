@@ -18,7 +18,6 @@
 #include <QStringList>
 #include <QVector>
 
-#include <algorithm>
 #include <set>
 #include <vector>
 namespace Process

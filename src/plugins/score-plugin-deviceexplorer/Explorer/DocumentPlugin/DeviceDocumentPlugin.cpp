@@ -25,6 +25,7 @@
 #include <score/tools/Bind.hpp>
 
 #include <QApplication>
+#include <QDebug>
 #include <QMessageBox>
 #include <QObject>
 #include <QPushButton>
@@ -33,7 +34,6 @@
 
 #include <wobjectimpl.h>
 
-#include <algorithm>
 #include <stdexcept>
 #include <vector>
 W_OBJECT_IMPL(Explorer::DeviceDocumentPlugin)

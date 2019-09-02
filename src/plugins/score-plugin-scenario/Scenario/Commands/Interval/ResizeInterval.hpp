@@ -6,6 +6,7 @@
 #include <score/plugins/InterfaceList.hpp>
 
 #include <score_plugin_scenario_export.h>
+#include <ossia/detail/algorithms.hpp>
 
 /** README
  *

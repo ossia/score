@@ -22,9 +22,7 @@
 #include <score/tools/IdentifierGeneration.hpp>
 
 
-#include <algorithm>
 #include <functional>
-#include <iterator>
 #include <map>
 #include <utility>
 #include <vector>

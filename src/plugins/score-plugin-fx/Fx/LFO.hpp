@@ -3,7 +3,6 @@
 
 #include <Engine/Node/PdNode.hpp>
 
-#include <algorithm>
 #include <array>
 #include <bitset>
 #include <map>

@@ -28,7 +28,6 @@
 #include <cmath>
 #include <wobjectimpl.h>
 
-#include <algorithm>
 W_OBJECT_IMPL(Scenario::TemporalIntervalHeader)
 
 namespace Scenario

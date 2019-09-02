@@ -38,7 +38,6 @@
 #include <QTableView>
 #include <QWidget>
 
-#include <algorithm>
 namespace Scenario
 {
 class MessageListProxy final : public QAbstractProxyModel

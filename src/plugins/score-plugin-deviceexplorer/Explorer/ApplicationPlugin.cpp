@@ -16,7 +16,6 @@
 
 #include <QDockWidget>
 
-#include <algorithm>
 #include <vector>
 
 struct VisitorVariant;

@@ -15,6 +15,7 @@
 
 #include <QFile>
 #include <QIODevice>
+#include <QDebug>
 #include <QJsonDocument>
 
 namespace Device

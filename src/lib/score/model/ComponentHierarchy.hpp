@@ -6,6 +6,7 @@
 
 #include <nano_observer.hpp>
 
+#include <score/application/ApplicationComponents.hpp>
 #include <vector>
 
 namespace score

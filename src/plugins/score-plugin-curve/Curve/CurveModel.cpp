@@ -31,7 +31,6 @@
 #include <multi_index_container.hpp>
 #include <wobjectimpl.h>
 
-#include <algorithm>
 W_OBJECT_IMPL(Curve::Model)
 
 namespace Curve

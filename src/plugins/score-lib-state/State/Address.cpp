@@ -18,7 +18,6 @@
 
 #include <wobjectimpl.h>
 
-#include <algorithm>
 W_GADGET_IMPL(State::DestinationQualifiers)
 namespace State
 {

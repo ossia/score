@@ -20,10 +20,10 @@
 #include <QFileInfo>
 #include <QFileSystemWatcher>
 #include <QQmlComponent>
+#include <QDebug>
 
 #include <wobjectimpl.h>
 
-#include <algorithm>
 #include <vector>
 W_OBJECT_IMPL(JS::ProcessModel)
 namespace JS

@@ -14,6 +14,7 @@
 #include <core/document/Document.hpp>
 #include <ossia/detail/apply.hpp>
 
+#include <QDebug>
 #include <QFileInfo>
 
 #define DR_WAV_NO_STDIO

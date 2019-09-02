@@ -3,6 +3,7 @@
 #include <score/document/DocumentContext.hpp>
 #include <score/application/ApplicationContext.hpp>
 #include <core/presenter/DocumentManager.hpp>
+#include <QSet>
 
 namespace Library
 {

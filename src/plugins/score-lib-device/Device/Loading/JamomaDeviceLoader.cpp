@@ -8,6 +8,7 @@
 
 #include <QFile>
 #include <QJsonDocument>
+#include <QDebug>
 #include <qdom.h>
 
 namespace Device

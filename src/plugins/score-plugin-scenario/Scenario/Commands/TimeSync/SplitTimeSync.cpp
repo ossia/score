@@ -15,7 +15,6 @@
 #include <score/tools/IdentifierGeneration.hpp>
 
 
-#include <algorithm>
 #include <vector>
 
 namespace Scenario

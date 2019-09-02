@@ -53,7 +53,6 @@
 #include <QGraphicsView>
 #include <qnamespace.h>
 
-#include <algorithm>
 
 namespace Scenario
 {

@@ -3,7 +3,6 @@
 
 #include <type_traits>
 
-#include <QDebug>
 #include <QPointer>
 
 namespace score
@@ -173,12 +172,4 @@ template <typename T>
 uint qHash(const Id<T>& id, uint seed)
 {
   return qHash(*id.val(), seed);
-}
-
-template <typename tag>
-QDebug operator<<(QDebug dbg, const Id<tag>& c)
-{
-  dbg.nospace() << c.val();
-
-  return dbg.space();
 }

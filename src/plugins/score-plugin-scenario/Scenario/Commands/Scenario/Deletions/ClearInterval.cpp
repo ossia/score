@@ -17,7 +17,6 @@
 #include <score/tools/MapCopy.hpp>
 
 
-#include <algorithm>
 
 namespace Scenario
 {

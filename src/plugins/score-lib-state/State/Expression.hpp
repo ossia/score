@@ -10,7 +10,6 @@
 
 #include <QString>
 
-#include <algorithm>
 #include <cstddef>
 #include <vector>
 

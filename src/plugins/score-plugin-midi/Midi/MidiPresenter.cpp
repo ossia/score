@@ -27,6 +27,7 @@
 #include <boost/range/adaptor/transformed.hpp>
 #include <boost/range/algorithm/copy.hpp>
 
+#include <ossia/detail/algorithms.hpp>
 #include <QApplication>
 #include <QAction>
 #include <QInputDialog>

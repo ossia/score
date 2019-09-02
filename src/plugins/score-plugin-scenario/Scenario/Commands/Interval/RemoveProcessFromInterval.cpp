@@ -24,7 +24,6 @@
 #include <boost/range/adaptor/reversed.hpp>
 
 
-#include <algorithm>
 
 // MOVEME
 template <>

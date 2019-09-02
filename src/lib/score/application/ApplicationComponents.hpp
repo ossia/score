@@ -11,8 +11,6 @@
 
 #include <score_lib_base_export.h>
 
-#include <algorithm>
-#include <iterator>
 #include <utility>
 #include <vector>
 

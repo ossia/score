@@ -19,6 +19,7 @@
 #include <core/view/QRecentFilesMenu.h>
 #include <core/view/Window.hpp>
 
+#include <ossia/detail/algorithms.hpp>
 #include <QMenu>
 #include <QMenuBar>
 #include <QObject>
@@ -28,7 +29,6 @@
 #include <sys/types.h>
 #include <wobjectimpl.h>
 
-#include <algorithm>
 #include <cstdint>
 #include <functional>
 #include <utility>

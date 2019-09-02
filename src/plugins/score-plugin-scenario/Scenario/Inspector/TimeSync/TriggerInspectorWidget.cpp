@@ -16,7 +16,6 @@
 #include <QPushButton>
 
 #include <QVBoxLayout>
-#include <algorithm>
 
 namespace Scenario
 {

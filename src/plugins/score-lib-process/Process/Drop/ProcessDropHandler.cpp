@@ -2,6 +2,7 @@
 
 #include <QFile>
 #include <QUrl>
+#include <QSet>
 #include <QFileInfo>
 namespace Process
 {

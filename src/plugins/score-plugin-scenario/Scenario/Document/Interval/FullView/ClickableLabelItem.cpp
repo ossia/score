@@ -13,7 +13,6 @@
 
 #include <wobjectimpl.h>
 
-#include <algorithm>
 W_OBJECT_IMPL(Scenario::ClickableLabelItem)
 
 namespace Scenario

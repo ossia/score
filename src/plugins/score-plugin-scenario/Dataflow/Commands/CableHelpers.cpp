@@ -2,6 +2,8 @@
 
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 
+#include <QDebug>
+#include <score/model/IdentifierDebug.hpp>
 #include <ossia/detail/ptr_set.hpp>
 
 namespace Dataflow

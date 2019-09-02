@@ -32,8 +32,6 @@
 #include <ossia/editor/state/destination_qualifiers.hpp>
 
 
-#include <algorithm>
-#include <iterator>
 #include <utility>
 #include <vector>
 

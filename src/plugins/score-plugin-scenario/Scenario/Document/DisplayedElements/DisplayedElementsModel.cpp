@@ -13,7 +13,6 @@
 #include <ossia/detail/algorithms.hpp>
 
 
-#include <algorithm>
 
 namespace Scenario
 {

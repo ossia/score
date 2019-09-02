@@ -1,6 +1,7 @@
 #pragma once
 #include <Process/Drop/ProcessDropHandler.hpp>
 #include <Scenario/Application/Drops/ScenarioDropHandler.hpp>
+#include <QSet>
 namespace score
 {
 struct DocumentContext;

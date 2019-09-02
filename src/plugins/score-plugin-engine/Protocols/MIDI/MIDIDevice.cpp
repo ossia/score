@@ -13,6 +13,7 @@
 
 #include <QMimeData>
 
+#include <QDebug>
 #include <Engine/OSSIA2score.hpp>
 
 #include <memory>

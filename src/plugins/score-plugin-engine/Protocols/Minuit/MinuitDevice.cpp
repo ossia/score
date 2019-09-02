@@ -14,6 +14,7 @@
 
 
 #include <wobjectimpl.h>
+#include <QDebug>
 
 #include <memory>
 

@@ -28,6 +28,7 @@
 #include <QHeaderView>
 #include <QAction>
 #include <QMenu>
+#include <QDebug>
 
 #include <Effect/EffectFactory.hpp>
 

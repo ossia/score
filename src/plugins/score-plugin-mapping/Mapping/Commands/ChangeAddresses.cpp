@@ -19,7 +19,6 @@
 #include <ossia/network/value/value_conversion.hpp>
 
 
-#include <algorithm>
 namespace Mapping
 {
 ChangeSourceAddress::ChangeSourceAddress(

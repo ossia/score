@@ -32,9 +32,7 @@
 #include <ossia/detail/algorithms.hpp>
 
 
-#include <algorithm>
 #include <cstddef>
-#include <iterator>
 #include <limits>
 #include <vector>
 
