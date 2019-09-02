@@ -11,14 +11,8 @@
 #include <score/document/DocumentContext.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/serialization/JSONVisitor.hpp>
+#include <score/model/EntitySerialization.hpp>
 
-
-#include <algorithm>
-
-template <typename T>
-class Reader;
-template <typename T>
-class Writer;
 
 template <>
 SCORE_PLUGIN_SCENARIO_EXPORT void

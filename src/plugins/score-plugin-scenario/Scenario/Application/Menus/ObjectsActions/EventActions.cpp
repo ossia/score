@@ -14,6 +14,7 @@
 #include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
 #include <Scenario/Process/Algorithms/Accessors.hpp>
 
+#include <score/serialization/DataStreamVisitor.hpp>
 #include <score/actions/ActionManager.hpp>
 #include <score/actions/MenuManager.hpp>
 #include <score/model/path/PathSerialization.hpp>

@@ -20,6 +20,7 @@
 
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/command/Dispatchers/MacroCommandDispatcher.hpp>
+#include <score/model/EntitySerialization.hpp>
 #include <score/widgets/TextLabel.hpp>
 #include <score/tools/Bind.hpp>
 

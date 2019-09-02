@@ -1,5 +1,6 @@
 #pragma once
 #include <score/model/Component.hpp>
+#if defined(SCORE_SERIALIZABLE_COMPONENTS)
 #include <score/plugins/InterfaceList.hpp>
 #include <score/plugins/SerializableInterface.hpp>
 
@@ -181,3 +182,4 @@ auto deserialize_component(score::Components& comps, Fun f)
 SCORE_LIB_BASE_EXPORT
 void deserializeRemainingComponents(score::Components& comps, QObject* obj);
 }
+#endif

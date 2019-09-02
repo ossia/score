@@ -20,6 +20,7 @@
 #include <score/serialization/VisitorCommon.hpp>
 #include <score/tools/MapCopy.hpp>
 #include <score/tools/std/Optional.hpp>
+#include <score/model/EntitySerialization.hpp>
 
 
 #include <sys/types.h>

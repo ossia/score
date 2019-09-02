@@ -10,9 +10,6 @@
 #include <score/plugins/SerializableInterface.hpp>
 #include <score/selection/Selectable.hpp>
 #include <score/selection/Selection.hpp>
-#include <score/serialization/DataStreamVisitor.hpp>
-#include <score/serialization/JSONVisitor.hpp>
-#include <score/serialization/VisitorCommon.hpp>
 #include <score/serialization/VisitorInterface.hpp>
 #include <score/tools/Metadata.hpp>
 

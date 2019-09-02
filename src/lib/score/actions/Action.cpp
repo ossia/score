@@ -6,7 +6,7 @@
 #include <score/selection/SelectionStack.hpp>
 
 #include <core/presenter/DocumentManager.hpp>
-
+#include <ossia/detail/algorithms.hpp>
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(score::CustomActionCondition)
 namespace score

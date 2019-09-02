@@ -2,6 +2,7 @@
 #include <Scenario/Application/Menus/ScenarioCopy.hpp>
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
 
+#include <QObject>
 #include <score/command/AggregateCommand.hpp>
 namespace score
 {

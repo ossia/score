@@ -13,6 +13,8 @@
 #include <score/model/path/PathSerialization.hpp>
 #include <score/plugins/StringFactoryKey.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
+#include <score/plugins/SerializableHelpers.hpp>
+#include <score/model/EntitySerialization.hpp>
 #include <score/serialization/JSONValueVisitor.hpp>
 #include <score/serialization/JSONVisitor.hpp>
 #include <score/tools/std/Optional.hpp>

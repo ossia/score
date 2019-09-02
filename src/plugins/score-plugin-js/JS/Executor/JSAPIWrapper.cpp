@@ -8,7 +8,11 @@
 
 #include <ossia-qt/js_utilities.hpp>
 #include <ossia/dataflow/dataflow.hpp>
+#include <ossia/dataflow/audio_port.hpp>
+#include <ossia/dataflow/value_port.hpp>
+#include <ossia/dataflow/midi_port.hpp>
 #include <ossia/dataflow/execution_state.hpp>
+#include <ossia/dataflow/typed_value.hpp>
 #include <ossia/detail/apply.hpp>
 #include <ossia/network/value/value.hpp>
 #include <wobjectimpl.h>

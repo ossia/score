@@ -9,6 +9,8 @@
 #include <score/document/DocumentContext.hpp>
 #include <score/model/path/PathSerialization.hpp>
 #include <score/tools/IdentifierGeneration.hpp>
+#include <score/plugins/SerializableHelpers.hpp>
+#include <score/model/EntitySerialization.hpp>
 namespace Scenario
 {
 namespace Command

@@ -10,6 +10,7 @@
 
 #include <score/command/Command.hpp>
 #include <score/model/path/Path.hpp>
+#include <score/serialization/DataStreamVisitor.hpp>
 #include <score/model/path/PathSerialization.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
 

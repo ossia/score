@@ -7,7 +7,9 @@
 
 #include <QFile>
 #include <QJsonDocument>
+#include <QJsonObject>
 #include <QSettings>
+#include <QDebug>
 
 namespace Scenario
 {

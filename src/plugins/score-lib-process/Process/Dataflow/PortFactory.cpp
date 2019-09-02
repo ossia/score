@@ -1,4 +1,5 @@
 #include <Process/Dataflow/PortFactory.hpp>
+#include <score/plugins/SerializableHelpers.hpp>
 
 namespace Process
 {

@@ -16,15 +16,6 @@ class JSONValue;
 class JSONValueReader;
 class JSONValueWriter;
 
-class JSONValue
-{
-public:
-  using Serializer = JSONValueReader;
-  using Deserializer = JSONValueWriter;
-
-  // TODO this one isn't part of serialize_dyn, etc.
-  static constexpr SerializationIdentifier type() { return 3; }
-};
 
 class SCORE_LIB_BASE_EXPORT JSONValueReader : public AbstractVisitor
 {

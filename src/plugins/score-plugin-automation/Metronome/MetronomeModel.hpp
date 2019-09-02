@@ -9,6 +9,7 @@
 #include <QObject>
 #include <QString>
 
+#include <score/serialization/VisitorCommon.hpp>
 #include <Metronome/MetronomeProcessMetadata.hpp>
 #include <score_plugin_automation_export.h>
 #include <verdigris>

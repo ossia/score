@@ -14,8 +14,8 @@
 #include <QGraphicsItem>
 #include <QGraphicsProxyWidget>
 #include <QLineEdit>
-
 #include <QCheckBox>
+#include <ossia/detail/algorithms.hpp>
 #include <score_lib_process_export.h>
 
 namespace WidgetFactory

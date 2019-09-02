@@ -31,3 +31,13 @@ bind(T& t, const Property&, const U* tgt, Slot&& slot, Args&&... args)
       std::forward<Slot>(slot),
       std::forward<Args>(args)...);
 }
+
+template<typename Entities, typename Presenter>
+void bind(const Entities& model, Presenter& presenter)
+{
+  for (auto& entity : model)
+    presenter.on_created(entity);
+
+  model.mutable_added.template connect<&Presenter::on_created>(presenter);
+  model.removed.template connect<&Presenter::on_removing>(presenter);
+}

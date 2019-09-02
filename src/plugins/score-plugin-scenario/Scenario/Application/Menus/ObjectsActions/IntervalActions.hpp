@@ -2,7 +2,10 @@
 
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 
+#include <QObject>
 #include <score_plugin_scenario_export.h>
+
+#include <score/plugins/UuidKey.hpp>
 class QAction;
 namespace score
 {

@@ -1,4 +1,5 @@
 #include "MergeEvents.hpp"
+#include <score/model/EntitySerialization.hpp>
 
 namespace Scenario
 {

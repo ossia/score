@@ -1,6 +1,9 @@
 #pragma once
 #include <score/command/Dispatchers/ICommandDispatcher.hpp>
 #include <score/command/Dispatchers/SendStrategy.hpp>
+#include <score/tools/Debug.hpp>
+#include <score/tools/SafeCast.hpp>
+#include <memory>
 
 /**
  * @brief The OngoingCommandDispatcher class

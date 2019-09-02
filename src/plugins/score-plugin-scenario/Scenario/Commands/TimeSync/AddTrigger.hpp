@@ -3,6 +3,7 @@
 #include <Scenario/Commands/Interval/SetRigidity.hpp>
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
 #include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
+#include <score/serialization/DataStreamVisitor.hpp>
 #include <State/Expression.hpp>
 
 #include <score/command/Command.hpp>

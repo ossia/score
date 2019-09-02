@@ -66,6 +66,7 @@ public:
 
   const auto& children() const { return m_children; }
 
+#if defined(SCORE_SERIALIZABLE_COMPONENTS)
   void add(ChildModel_T& element)
   {
     add(element,
@@ -96,8 +97,10 @@ public:
       m_children.emplace_back(ChildPair{&element, comp});
     }
   }
-
   void add(ChildModel_T& model, score::not_serializable_tag)
+#else
+  void add(ChildModel_T& model)
+#endif
   {
     // The subclass should provide this function to construct
     // the correct component relative to this process.
@@ -207,11 +210,14 @@ public:
 
   void add(ChildModel_T& element)
   {
+#if defined(SCORE_SERIALIZABLE_COMPONENTS)
     add_impl(
         element,
         typename score::is_component_serializable<ChildComponent_T>::type{});
+#else
+    add_impl(element);
+#endif
   }
-
   void remove(const ChildModel_T& model)
   {
     auto it = ossia::find_if(
@@ -236,6 +242,7 @@ public:
   ~PolymorphicComponentHierarchyManager() { clear(); }
 
 private:
+#if defined(SCORE_SERIALIZABLE_COMPONENTS)
   // TODO remove these useless templates when MSVC grows some brains
   template <typename TheChild>
   void add_impl(TheChild& model, score::serializable_tag)
@@ -270,6 +277,10 @@ private:
 
   template <typename TheChild>
   void add_impl(TheChild& model, score::not_serializable_tag)
+#else
+  template <typename TheChild>
+  void add_impl(TheChild& model)
+#endif
   {
     // Will return a factory for the given process if available
     auto id = getStrongId(model.components());

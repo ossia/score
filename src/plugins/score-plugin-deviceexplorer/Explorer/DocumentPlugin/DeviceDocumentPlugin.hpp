@@ -7,8 +7,6 @@
 #include <Explorer/Listening/ListeningHandler.hpp>
 
 #include <score/plugins/documentdelegate/plugin/DocumentPlugin.hpp>
-#include <score/serialization/DataStreamVisitor.hpp>
-#include <score/serialization/JSONVisitor.hpp>
 
 #include <core/document/Document.hpp>
 
@@ -23,7 +21,7 @@ class SCORE_PLUGIN_DEVICEEXPLORER_EXPORT DeviceDocumentPlugin final
   W_OBJECT(DeviceDocumentPlugin)
   SCORE_SERIALIZE_FRIENDS
 
-  MODEL_METADATA_IMPL(DeviceDocumentPlugin)
+  MODEL_METADATA_IMPL_HPP(DeviceDocumentPlugin)
 public:
   explicit DeviceDocumentPlugin(
       const score::DocumentContext& ctx,

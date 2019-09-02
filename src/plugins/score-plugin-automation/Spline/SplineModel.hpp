@@ -6,6 +6,7 @@
 #include <ossia/dataflow/nodes/spline.hpp>
 
 #include <Spline/SplineMetadata.hpp>
+#include <score/serialization/VisitorCommon.hpp>
 #include <score_plugin_automation_export.h>
 #include <verdigris>
 

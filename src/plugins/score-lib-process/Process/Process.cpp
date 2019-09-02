@@ -9,6 +9,7 @@
 #include <score/model/IdentifiedObject.hpp>
 #include <score/model/Identifier.hpp>
 #include <score/model/ModelMetadata.hpp>
+#include <score/model/EntitySerialization.hpp>
 #include <score/tools/Bind.hpp>
 
 #include <ossia/detail/algorithms.hpp>

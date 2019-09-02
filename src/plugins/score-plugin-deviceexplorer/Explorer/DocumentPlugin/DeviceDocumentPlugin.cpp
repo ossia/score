@@ -39,6 +39,7 @@
 W_OBJECT_IMPL(Explorer::DeviceDocumentPlugin)
 namespace Explorer
 {
+MODEL_METADATA_IMPL_CPP(DeviceDocumentPlugin)
 DeviceDocumentPlugin::DeviceDocumentPlugin(
     const score::DocumentContext& ctx,
     Id<DocumentPlugin> id,

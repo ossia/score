@@ -3,6 +3,7 @@
 
 #include <score/model/Identifier.hpp>
 #include <score/serialization/VisitorInterface.hpp>
+#include <score/serialization/VisitorCommon.hpp>
 #include <score/tools/std/Optional.hpp>
 
 #include <QVariant>

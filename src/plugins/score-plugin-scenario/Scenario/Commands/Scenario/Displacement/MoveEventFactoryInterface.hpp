@@ -7,6 +7,7 @@
 #include <score/plugins/Interface.hpp>
 #include <score/plugins/StringFactoryKey.hpp>
 
+#include <memory>
 #include <score_plugin_scenario_export.h>
 
 namespace score

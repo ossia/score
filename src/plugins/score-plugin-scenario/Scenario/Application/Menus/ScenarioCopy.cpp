@@ -15,6 +15,7 @@
 #include <Scenario/Process/ScenarioModel.hpp>
 
 #include <score/document/DocumentContext.hpp>
+#include <score/model/EntitySerialization.hpp>
 #include <score/model/EntityMap.hpp>
 #include <score/model/Identifier.hpp>
 #include <score/serialization/VisitorCommon.hpp>

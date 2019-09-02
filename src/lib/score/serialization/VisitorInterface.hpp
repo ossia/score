@@ -76,3 +76,27 @@ class JSONObjectReader;
 class JSONObjectWriter;
 class JSONValueReader;
 class JSONValueWriter;
+
+class DataStream
+{
+public:
+  using Serializer = DataStreamReader;
+  using Deserializer = DataStreamWriter;
+  static constexpr SerializationIdentifier type() { return 2; }
+};
+class JSONObject
+{
+public:
+  using Serializer = JSONObjectReader;
+  using Deserializer = JSONObjectWriter;
+  static constexpr SerializationIdentifier type() { return 1; }
+};
+class JSONValue
+{
+public:
+  using Serializer = JSONValueReader;
+  using Deserializer = JSONValueWriter;
+
+  // TODO this one isn't part of serialize_dyn, etc.
+  static constexpr SerializationIdentifier type() { return 3; }
+};

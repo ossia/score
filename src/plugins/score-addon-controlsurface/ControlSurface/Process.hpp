@@ -5,6 +5,7 @@
 #include <ControlSurface/Metadata.hpp>
 
 #include <State/Message.hpp>
+#include <ossia/detail/hash_map.hpp>
 
 namespace Device
 {

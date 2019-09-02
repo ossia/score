@@ -23,6 +23,7 @@
 #include <Process/DocumentPlugin.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 
+#include <score/model/EntitySerialization.hpp>
 #include <QGraphicsView>
 #include <QGraphicsScene>
 #include <QHBoxLayout>

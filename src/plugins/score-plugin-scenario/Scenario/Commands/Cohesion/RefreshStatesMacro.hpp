@@ -2,7 +2,7 @@
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
 
 #include <score/command/AggregateCommand.hpp>
-
+#include <QObject>
 namespace Scenario
 {
 namespace Command

@@ -1,4 +1,5 @@
 #include <Process/Dataflow/WidgetInlets.hpp>
+#include <score/plugins/SerializableHelpers.hpp>
 
 template <>
 SCORE_LIB_PROCESS_EXPORT void

@@ -8,6 +8,7 @@
 #include <score/model/Identifier.hpp>
 #include <score/model/path/Path.hpp>
 
+#include <memory>
 #include <score_plugin_scenario_export.h>
 struct DataStreamInput;
 struct DataStreamOutput;
