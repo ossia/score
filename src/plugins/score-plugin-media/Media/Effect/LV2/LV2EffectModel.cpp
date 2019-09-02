@@ -437,7 +437,7 @@ void LV2EffectModel::readPlugin()
   for (int port_id : data.control_out_ports)
   {
     auto port = new Process::ControlOutlet{Id<Process::Port>{out_id++}, this};
-
+    port->hidden = true;
     port->setDomain(State::Domain{
         ossia::make_domain(fParamMin[port_id], fParamMax[port_id])});
     port->setValue(fParamInit[port_id]);

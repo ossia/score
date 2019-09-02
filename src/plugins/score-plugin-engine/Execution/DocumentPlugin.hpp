@@ -88,7 +88,7 @@ private:
   void registerDevice(ossia::net::device_base*);
   void unregisterDevice(ossia::net::device_base*);
   mutable ExecutionCommandQueue m_execQueue;
-  mutable ExecutionCommandQueue m_editionQueue;
+  mutable EditionCommandQueue m_editionQueue;
   Context m_ctx;
   SetupContext m_setup_ctx;
   BaseScenarioElement m_base;
