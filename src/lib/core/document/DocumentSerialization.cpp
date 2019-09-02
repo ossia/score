@@ -8,6 +8,7 @@
 #include <score/document/DocumentContext.hpp>
 #include <score/model/IdentifiedObject.hpp>
 #include <score/model/Identifier.hpp>
+#include <score/plugins/SerializableHelpers.hpp>
 #include <score/plugins/application/GUIApplicationPlugin.hpp>
 #include <score/plugins/documentdelegate/DocumentDelegateFactory.hpp>
 #include <score/plugins/documentdelegate/DocumentDelegateModel.hpp>
@@ -16,7 +17,6 @@
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/serialization/JSONValueVisitor.hpp>
 #include <score/serialization/JSONVisitor.hpp>
-#include <score/plugins/SerializableHelpers.hpp>
 #include <score/tools/IdentifierGeneration.hpp>
 #include <score/tools/std/Optional.hpp>
 

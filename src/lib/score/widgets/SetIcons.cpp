@@ -3,11 +3,13 @@
 #include "SetIcons.hpp"
 
 #include <score/widgets/Pixmap.hpp>
-#include <tsl/hopscotch_map.h>
+
+#include <QDebug>
+#include <QFile>
 #include <QGuiApplication>
 #include <QScreen>
-#include <QFile>
-#include <QDebug>
+
+#include <tsl/hopscotch_map.h>
 
 namespace std
 {

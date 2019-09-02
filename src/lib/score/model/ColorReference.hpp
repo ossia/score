@@ -1,7 +1,7 @@
 #pragma once
 #include <score/model/Skin.hpp>
-#include <score/tools/std/Optional.hpp>
 #include <score/tools/Debug.hpp>
+#include <score/tools/std/Optional.hpp>
 
 #include <QColor>
 
@@ -37,7 +37,7 @@ public:
   constexpr ColorRef& operator=(const ColorRef& other) noexcept = default;
   constexpr ColorRef& operator=(ColorRef&& other) noexcept = default;
 
-  ColorRef(Brush Skin::* s) : ref{&(score::Skin::instance().*s)} {}
+  ColorRef(Brush Skin::*s) : ref{&(score::Skin::instance().*s)} {}
 
   constexpr ColorRef(const Brush* col) noexcept : ref{col} {}
 
@@ -53,7 +53,10 @@ public:
     return *ref;
   }
 
-  QString name() const noexcept { return score::Skin::instance().toString(ref); }
+  QString name() const noexcept
+  {
+    return score::Skin::instance().toString(ref);
+  }
 
   static optional<ColorRef> ColorFromString(const QString&) noexcept;
   static optional<ColorRef> SimilarColor(QColor other) noexcept;

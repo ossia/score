@@ -5,9 +5,9 @@
 #include <score/graphics/GraphicsItem.hpp>
 
 #include <QGraphicsSceneMouseEvent>
+#include <QGraphicsView>
 #include <QPainter>
 #include <QTextLayout>
-#include <QGraphicsView>
 
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(score::TextItem)
@@ -27,9 +27,7 @@ void TextItem::focusOutEvent(QFocusEvent* event)
   focusOut();
 }
 
-SimpleTextItem::SimpleTextItem(
-      const score::BrushSet& col,
-      QGraphicsItem* p)
+SimpleTextItem::SimpleTextItem(const score::BrushSet& col, QGraphicsItem* p)
     : QGraphicsItem{p}, m_color{&col}
 {
 }
@@ -109,7 +107,7 @@ void SimpleTextItem::updateImpl()
       QPainter p{&m_line};
       auto& skin = score::Skin::instance();
 
-      if(m_color)
+      if (m_color)
         p.setPen(m_color->pen1);
       p.setBrush(skin.NoBrush);
       p.drawGlyphRun(QPointF{0, 0}, r[0]);

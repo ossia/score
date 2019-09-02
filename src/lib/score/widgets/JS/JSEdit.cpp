@@ -32,13 +32,13 @@
 
 #include "JSEdit.hpp"
 
+#include <QMimeData>
+#include <QPainter>
+#include <QSyntaxHighlighter>
+#include <QTextBlockUserData>
 
 #include <wobjectimpl.h>
 
-#include <QSyntaxHighlighter>
-#include <QTextBlockUserData>
-#include <QPainter>
-#include <QMimeData>
 #include <array>
 
 W_OBJECT_IMPL(JSEdit)

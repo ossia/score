@@ -1,5 +1,6 @@
 #pragma once
 #include <score/command/SettingsCommand.hpp>
+#include <score/plugins/StringFactoryKey.hpp>
 #include <score/tools/std/HashMap.hpp>
 
 #include <memory>

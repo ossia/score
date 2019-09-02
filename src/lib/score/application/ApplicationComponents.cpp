@@ -10,6 +10,7 @@
 #include <score/plugins/qt_interfaces/PluginRequirements_QtInterface.hpp>
 #include <score/tools/exceptions/MissingCommand.hpp>
 #include <score/tools/std/String.hpp>
+
 #include <ossia/detail/algorithms.hpp>
 
 namespace score
@@ -72,7 +73,8 @@ ApplicationComponents::instantiateUndoCommand(const CommandData& cmd) const
   }
 
 #if defined(SCORE_DEBUG)
-  qDebug() << "ALERT: Command" << cmd.parentKey.toString() << "::" << cmd.commandKey.toString()
+  qDebug() << "ALERT: Command" << cmd.parentKey.toString()
+           << "::" << cmd.commandKey.toString()
            << "could not be instantiated.";
   SCORE_ABORT;
 #else

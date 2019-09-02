@@ -1,12 +1,9 @@
 #pragma once
 #include <QString>
-
-#include <functional>
 #include <string>
 
 class OpaqueString
 {
-  friend struct std::hash<OpaqueString>;
   friend bool operator==(const OpaqueString& lhs, const OpaqueString& rhs)
   {
     return lhs.impl == rhs.impl;
@@ -46,15 +43,3 @@ public:
 protected:
   std::string impl;
 };
-
-namespace std
-{
-template <>
-struct hash<OpaqueString>
-{
-  std::size_t operator()(const OpaqueString& kagi) const noexcept
-  {
-    return std::hash<std::string>()(kagi.impl);
-  }
-};
-}

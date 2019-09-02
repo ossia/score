@@ -2,9 +2,9 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "ClearLayout.hpp"
 
+#include <QApplication>
 #include <QLayout>
 #include <QLayoutItem>
-#include <QApplication>
 #include <QWidget>
 
 void score::clearLayout(QLayout* layout)

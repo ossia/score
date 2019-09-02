@@ -3,9 +3,9 @@
 #include <QPainterPath>
 
 #include <score_lib_base_export.h>
-#include <verdigris>
 
 #include <memory>
+#include <verdigris>
 class QGraphicsObject;
 class QGraphicsItem;
 class QGraphicsView;

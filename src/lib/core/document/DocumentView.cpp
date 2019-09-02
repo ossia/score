@@ -8,7 +8,6 @@
 #include <core/document/Document.hpp>
 #include <core/document/DocumentView.hpp>
 
-
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(score::DocumentView)
 namespace score

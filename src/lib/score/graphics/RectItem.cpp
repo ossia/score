@@ -1,9 +1,9 @@
 #include <score/graphics/RectItem.hpp>
 #include <score/model/Skin.hpp>
 
+#include <QGraphicsSceneMouseEvent>
 #include <QPainter>
 
-#include <QGraphicsSceneMouseEvent>
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(score::RectItem)
 W_OBJECT_IMPL(score::ResizeableItem)
@@ -72,25 +72,19 @@ void RectItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
   event->accept();
 }
 
-ResizeableItem::ResizeableItem(QGraphicsItem* parent)
-  : QGraphicsItem{parent}
+ResizeableItem::ResizeableItem(QGraphicsItem* parent) : QGraphicsItem{parent}
 {
-
 }
 
-ResizeableItem::~ResizeableItem()
-{
+ResizeableItem::~ResizeableItem() {}
 
-}
-
-EmptyRectItem::EmptyRectItem(QGraphicsItem* parent)
-  : ResizeableItem{parent}
+EmptyRectItem::EmptyRectItem(QGraphicsItem* parent) : ResizeableItem{parent}
 {
   this->setFlag(ItemHasNoContents, true);
 }
 void EmptyRectItem::setRect(const QRectF& r)
 {
-  if(r != m_rect)
+  if (r != m_rect)
   {
     prepareGeometryChange();
     m_rect = r;
@@ -136,7 +130,10 @@ void EmptyRectItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
   event->accept();
 }
 
-void BackgroundItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+void BackgroundItem::paint(
+    QPainter* painter,
+    const QStyleOptionGraphicsItem* option,
+    QWidget* widget)
 {
   auto& style = score::Skin::instance();
   painter->setRenderHint(QPainter::Antialiasing, true);
@@ -146,7 +143,6 @@ void BackgroundItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* op
   painter->setRenderHint(QPainter::Antialiasing, false);
 }
 
-
 void BackgroundItem::setRect(const QRectF& r)
 {
   prepareGeometryChange();
@@ -154,22 +150,27 @@ void BackgroundItem::setRect(const QRectF& r)
   update();
 }
 
-
 QRectF BackgroundItem::boundingRect() const
 {
   return m_rect;
 }
 
+void BackgroundItem::mousePressEvent(QGraphicsSceneMouseEvent* event)
+{
+  event->accept();
+}
 
-void BackgroundItem::mousePressEvent(QGraphicsSceneMouseEvent* event) { event->accept(); }
+void BackgroundItem::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
+{
+  event->accept();
+}
 
+void BackgroundItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
+{
+  event->accept();
+}
 
-void BackgroundItem::mouseMoveEvent(QGraphicsSceneMouseEvent* event) { event->accept(); }
-
-
-void BackgroundItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* event) { event->accept(); }
-
-EmptyItem::EmptyItem(QGraphicsItem* parent): QGraphicsItem{parent}
+EmptyItem::EmptyItem(QGraphicsItem* parent) : QGraphicsItem{parent}
 {
   setFlag(ItemHasNoContents, true);
 }
@@ -179,9 +180,11 @@ QRectF EmptyItem::boundingRect() const
   return {};
 }
 
-void EmptyItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+void EmptyItem::paint(
+    QPainter* painter,
+    const QStyleOptionGraphicsItem* option,
+    QWidget* widget)
 {
-
 }
 
 }

@@ -49,9 +49,9 @@ public:
     score::serialize_dyn(vis, *this);                                    \
   }
 
-#define MODEL_METADATA_IMPL_HPP(Model_T)                                  \
-  static key_type static_concreteKey() noexcept;                          \
-  key_type concreteKey() const noexcept override;                         \
+#define MODEL_METADATA_IMPL_HPP(Model_T)          \
+  static key_type static_concreteKey() noexcept;  \
+  key_type concreteKey() const noexcept override; \
   void serialize_impl(const VisitorVariant& vis) const noexcept override;
 
 #define MODEL_METADATA_IMPL_CPP(Model_T)                                 \

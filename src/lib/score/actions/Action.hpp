@@ -141,11 +141,12 @@ struct ActionContainer
 private:
   inline bool canAddAction(const ActionKey& other) const noexcept
   {
-    for(auto& act : container)
-      if(act.key() == other)
+    for (auto& act : container)
+      if (act.key() == other)
         return false;
     return true;
   }
+
 public:
   std::vector<Action> container;
 
@@ -210,8 +211,8 @@ struct SCORE_LIB_BASE_EXPORT ActionCondition
 private:
   inline bool canAddAction(const ActionKey& other) const noexcept
   {
-    for(const auto& act : m_actions)
-      if(act == other)
+    for (const auto& act : m_actions)
+      if (act == other)
         return false;
     return true;
   }

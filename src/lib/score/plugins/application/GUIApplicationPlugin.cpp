@@ -7,7 +7,6 @@
 #include <core/presenter/DocumentManager.hpp>
 #include <core/presenter/Presenter.hpp>
 
-
 class QAction;
 class QObject;
 namespace score

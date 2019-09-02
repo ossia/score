@@ -1,7 +1,9 @@
 #pragma once
 #include <score/command/CommandFactoryKey.hpp>
-#include <score/tools/std/HashMap.hpp>
+#include <score/plugins/StringFactoryKey.hpp>
 #include <score/tools/Debug.hpp>
+#include <score/tools/std/HashMap.hpp>
+
 #include <QByteArray>
 
 #include <score_lib_base_export.h>

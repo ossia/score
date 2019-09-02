@@ -1,4 +1,5 @@
 #pragma once
+#include <score/application/ApplicationComponents.hpp>
 #include <score/model/ComponentSerialization.hpp>
 #include <score/tools/IdentifierGeneration.hpp>
 
@@ -6,7 +7,6 @@
 
 #include <nano_observer.hpp>
 
-#include <score/application/ApplicationComponents.hpp>
 #include <vector>
 
 namespace score

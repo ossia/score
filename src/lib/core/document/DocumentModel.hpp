@@ -6,9 +6,8 @@
 #include <QJsonObject>
 #include <QVariant>
 
-#include <verdigris>
-
 #include <vector>
+#include <verdigris>
 class QObject;
 #include <score/model/Identifier.hpp>
 

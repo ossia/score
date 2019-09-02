@@ -1,5 +1,6 @@
 #pragma once
 #include <score/command/CommandFactoryKey.hpp>
+#include <score/plugins/StringFactoryKey.hpp>
 
 #include <score_lib_base_export.h>
 namespace score

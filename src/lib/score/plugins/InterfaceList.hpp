@@ -6,6 +6,7 @@
 #include <score/tools/std/Pointer.hpp>
 
 #include <ossia/detail/hash_map.hpp>
+
 #include <score_lib_base_export.h>
 
 namespace score
@@ -52,7 +53,9 @@ public:
   virtual void optimize() noexcept = 0;
 };
 
-SCORE_LIB_BASE_EXPORT void debug_types(const score::InterfaceBase* orig, const score::InterfaceBase* repl) noexcept;
+SCORE_LIB_BASE_EXPORT void debug_types(
+    const score::InterfaceBase* orig,
+    const score::InterfaceBase* repl) noexcept;
 /**
  * @brief InterfaceList Default implementation of InterfaceListBase
  *
@@ -154,7 +157,7 @@ protected:
 private:
   void optimize() noexcept final override
   {
-    //score::optimize_hash_map(this->map);
+    // score::optimize_hash_map(this->map);
     this->map.max_load_factor(0.1f);
     this->map.reserve(map.size());
   }
@@ -187,9 +190,9 @@ public:
   auto make(Fun f, Args&&... args) const noexcept
   {
     using val_t = decltype(*this->begin());
-    for(const val_t& elt : *this)
+    for (const val_t& elt : *this)
     {
-      if(elt.matches(std::forward<Args>(args)...))
+      if (elt.matches(std::forward<Args>(args)...))
       {
         return (elt.*f)(std::forward<Args>(args)...);
       }

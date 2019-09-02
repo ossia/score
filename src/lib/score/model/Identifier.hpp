@@ -1,9 +1,9 @@
 #pragma once
 #include <score/tools/std/Optional.hpp>
 
-#include <type_traits>
-
 #include <QPointer>
+
+#include <type_traits>
 
 namespace score
 {

@@ -9,6 +9,7 @@
 #include <qnamespace.h>
 
 #include <score_lib_base_export.h>
+
 #include <verdigris>
 namespace score
 {
@@ -46,31 +47,49 @@ public:
   void setLabel(const QString&) noexcept;
   void setExtendedMetadata(const QVariantMap&) noexcept;
 
-  void NameChanged(const QString& arg)
-      E_SIGNAL(SCORE_LIB_BASE_EXPORT, NameChanged, arg)
-  void CommentChanged(const QString& arg)
-      E_SIGNAL(SCORE_LIB_BASE_EXPORT, CommentChanged, arg)
-  void ColorChanged(score::ColorRef arg)
-      E_SIGNAL(SCORE_LIB_BASE_EXPORT, ColorChanged, arg)
-  void LabelChanged(const QString& arg)
-      E_SIGNAL(SCORE_LIB_BASE_EXPORT, LabelChanged, arg)
-  void ExtendedMetadataChanged(const QVariantMap& arg)
-      E_SIGNAL(SCORE_LIB_BASE_EXPORT, ExtendedMetadataChanged, arg)
-  void metadataChanged() E_SIGNAL(SCORE_LIB_BASE_EXPORT, metadataChanged)
+  void NameChanged(const QString& arg) E_SIGNAL(
+      SCORE_LIB_BASE_EXPORT,
+      NameChanged,
+      arg) void CommentChanged(const QString& arg)
+      E_SIGNAL(SCORE_LIB_BASE_EXPORT, CommentChanged, arg) void ColorChanged(
+          score::ColorRef arg)
+          E_SIGNAL(SCORE_LIB_BASE_EXPORT, ColorChanged, arg) void LabelChanged(
+              const QString& arg)
+              E_SIGNAL(
+                  SCORE_LIB_BASE_EXPORT,
+                  LabelChanged,
+                  arg) void ExtendedMetadataChanged(const QVariantMap& arg)
+                  E_SIGNAL(
+                      SCORE_LIB_BASE_EXPORT,
+                      ExtendedMetadataChanged,
+                      arg) void metadataChanged()
+                      E_SIGNAL(SCORE_LIB_BASE_EXPORT, metadataChanged)
 
-  PROPERTY(QString, name READ getName WRITE setName NOTIFY NameChanged)
-  PROPERTY(
-      QString,
-      comment READ getComment WRITE setComment NOTIFY CommentChanged)
-  PROPERTY(ColorRef, color READ getColor WRITE setColor NOTIFY ColorChanged)
-  PROPERTY(QString, label READ getLabel WRITE setLabel NOTIFY LabelChanged)
-  PROPERTY(
-      QVariantMap,
-      extendedMetadata READ getExtendedMetadata WRITE setExtendedMetadata
-          NOTIFY ExtendedMetadataChanged)
+                          PROPERTY(
+                              QString,
+                              name READ getName WRITE setName NOTIFY
+                                  NameChanged)
+                              PROPERTY(
+                                  QString,
+                                  comment READ getComment WRITE setComment
+                                      NOTIFY CommentChanged)
+                                  PROPERTY(
+                                      ColorRef,
+                                      color READ getColor WRITE setColor NOTIFY
+                                          ColorChanged)
+                                      PROPERTY(
+                                          QString,
+                                          label READ getLabel WRITE setLabel
+                                              NOTIFY LabelChanged)
+                                          PROPERTY(
+                                              QVariantMap,
+                                              extendedMetadata READ
+                                                  getExtendedMetadata WRITE
+                                                      setExtendedMetadata NOTIFY
+                                                          ExtendedMetadataChanged)
 
-private:
-  QString m_scriptingName;
+                                              private
+      : QString m_scriptingName;
   QString m_comment;
   ColorRef m_color;
   QString m_label;

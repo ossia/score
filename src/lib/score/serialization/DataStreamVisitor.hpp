@@ -1,10 +1,10 @@
 #pragma once
-#include <score/serialization/VisitorInterface.hpp>
-#include <score/serialization/VisitorTags.hpp>
-#include <score/tools/std/Optional.hpp>
-#include <score/tools/std/HashMap.hpp>
 #include <score/model/Identifier.hpp>
 #include <score/plugins/UuidKey.hpp>
+#include <score/serialization/VisitorInterface.hpp>
+#include <score/serialization/VisitorTags.hpp>
+#include <score/tools/std/HashMap.hpp>
+#include <score/tools/std/Optional.hpp>
 
 #include <ossia/detail/flat_set.hpp>
 #include <ossia/detail/small_vector.hpp>
@@ -15,14 +15,14 @@
 #include <QVector3D>
 #include <QVector4D>
 
+#include <score_lib_base_export.h>
 #include <sys/types.h>
 
 #include <string>
 #include <vector>
+#include <verdigris>
 
 #include <type_traits>
-#include <verdigris>
-#include <score_lib_base_export.h>
 template <typename model>
 class IdentifiedObject;
 namespace score

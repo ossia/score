@@ -8,7 +8,6 @@
 
 #include <wobjectimpl.h>
 
-
 #if !defined(SCORE_ALL_UNITY)
 template class SCORE_LIB_BASE_EXPORT score::EntityMap<score::Component>;
 #if defined(SCORE_SERIALIZABLE_COMPONENTS)
@@ -18,7 +17,6 @@ template class SCORE_LIB_BASE_EXPORT
     tsl::hopscotch_map<UuidKey<score::SerializableComponent>, QJsonObject>;
 #endif
 #endif
-
 
 W_OBJECT_IMPL(score::Component)
 namespace score

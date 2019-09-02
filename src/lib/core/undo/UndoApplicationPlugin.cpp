@@ -4,9 +4,9 @@
 
 #include <score/actions/Menu.hpp>
 #include <score/plugins/application/GUIApplicationPlugin.hpp>
-#include <score/widgets/SetIcons.hpp>
 #include <score/tools/Bind.hpp>
 #include <score/tools/ForEach.hpp>
+#include <score/widgets/SetIcons.hpp>
 
 #include <core/command/CommandStack.hpp>
 #include <core/document/Document.hpp>

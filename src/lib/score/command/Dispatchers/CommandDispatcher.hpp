@@ -1,6 +1,7 @@
 #pragma once
 #include <score/command/Dispatchers/ICommandDispatcher.hpp>
 #include <score/command/Dispatchers/SendStrategy.hpp>
+
 #include <memory>
 template <typename SendStrategy = SendStrategy::Simple>
 /**

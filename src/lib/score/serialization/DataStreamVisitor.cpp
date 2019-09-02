@@ -5,6 +5,7 @@
 #include <score/application/ApplicationContext.hpp>
 
 #include <QIODevice>
+
 #include <stdexcept>
 
 DataStreamReader::DataStreamReader() : components{score::AppComponents()} {}

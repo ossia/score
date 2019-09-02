@@ -4,13 +4,13 @@
 
 #if defined(SCORE_SERIALIZABLE_COMPONENTS)
 #include <score/tools/std/HashMap.hpp>
+
 #include <QByteArray>
 #include <QJsonObject>
 #endif
 
-#include <verdigris>
-
 #include <utility>
+#include <verdigris>
 namespace score
 {
 struct lazy_init_t
@@ -71,7 +71,6 @@ using JSONComponents
     = score::hash_map<UuidKey<score::SerializableComponent>, QJsonObject>;
 #endif
 }
-
 
 #if defined(SCORE_SERIALIZABLE_COMPONENTS)
 #if !defined(SCORE_ALL_UNITY) && !defined(__MINGW32__)

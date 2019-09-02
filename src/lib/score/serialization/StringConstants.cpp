@@ -1,130 +1,130 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
-#include <score/tools/Debug.hpp>
 #include "StringConstants.hpp"
+
+#include <score/tools/Debug.hpp>
 namespace score
 {
 SCORE_LIB_BASE_EXPORT const StringConstants& StringConstant()
 {
-  static const StringConstants strings{
-    QStringLiteral("k")
-        , QStringLiteral("v")
-        , QStringLiteral("id")
-        , QStringLiteral("none")
-        , QStringLiteral("Identifiers")
-        , QStringLiteral("Type")
-        , QStringLiteral("Value")
-        , QStringLiteral("Address")
-        , QStringLiteral("Message")
-        , QStringLiteral("value")
-        , QStringLiteral("address")
-        , QStringLiteral("LHS")
-        , QStringLiteral("Op")
-        , QStringLiteral("RHS")
-        , QStringLiteral("Previous")
-        , QStringLiteral("Following")
-        , QStringLiteral("User")
-        , QStringLiteral("Priorities")
-        , QStringLiteral("Process")
-        , QStringLiteral("Name")
-        , QStringLiteral("ObjectName")
-        , QStringLiteral("ObjectId")
-        , QStringLiteral("Children")
-        , QStringLiteral("Min")
-        , QStringLiteral("Max")
-        , QStringLiteral("Values")
-        , QStringLiteral("Device")
-        , QStringLiteral("Path")
-        , QStringLiteral("ioType")
-        , QStringLiteral("ClipMode")
-        , QStringLiteral("Unit")
-        , QStringLiteral("unit")
-        , QStringLiteral("RepetitionFilter")
-        , QStringLiteral("RefreshRate")
-        , QStringLiteral("Priority")
-        , QStringLiteral("Tags")
-        , QStringLiteral("Domain")
-        , QStringLiteral("Protocol")
-        , QStringLiteral("Duration")
-        , QStringLiteral("Metadata")
-        , QStringLiteral("true")
-        , QStringLiteral("false")
-        , QStringLiteral("True")
-        , QStringLiteral("False")
-        , QStringLiteral("yes")
-        , QStringLiteral("no")
-        , QStringLiteral("Yes")
-        , QStringLiteral("No")
-        , QStringLiteral("Start")
-        , QStringLiteral("End")
-        , QStringLiteral("ScriptingName")
-        , QStringLiteral("Comment")
-        , QStringLiteral("Color")
-        , QStringLiteral("Label")
-        , QStringLiteral("Extended")
-        , QStringLiteral("Touched")
-        , QStringLiteral("uuid")
-        , QStringLiteral("Description")
-        , QStringLiteral("Components")
-        , QStringLiteral("Parents")
-        , QStringLiteral("Accessors")
-        , QStringLiteral("Data")
-        , QStringLiteral("Power")
-        , QStringLiteral("DefaultDuration")
-        , QStringLiteral("MinDuration")
-        , QStringLiteral("MaxDuration")
-        , QStringLiteral("GuiDuration")
-        , QStringLiteral("Rigidity")
-        , QStringLiteral("MinNull")
-        , QStringLiteral("MaxInf")
-        , QStringLiteral("Processes")
-        , QStringLiteral("Rackes")
-        , QStringLiteral("FullView")
-        , QStringLiteral("Slots")
-        , QStringLiteral("StartState")
-        , QStringLiteral("EndState")
-        , QStringLiteral("Date")
-        , QStringLiteral("StartDate")
-        , QStringLiteral("PreviousConstraint")
-        , QStringLiteral("NextConstraint")
-        , QStringLiteral("Events")
-        , QStringLiteral("Extent")
-        , QStringLiteral("Active")
-        , QStringLiteral("Expression")
-        , QStringLiteral("Trigger")
-        , QStringLiteral("Event")
-        , QStringLiteral("HeightPercentage")
-        , QStringLiteral("Messages")
-        , QStringLiteral("StateProcesses")
-        , QStringLiteral("TimeNode")
-        , QStringLiteral("States")
-        , QStringLiteral("Condition")
-        , QStringLiteral("Offset")
-        , QStringLiteral("Segments")
-        , QStringLiteral("SmallViewRack")
-        , QStringLiteral("FullViewRack")
-        , QStringLiteral("Zoom")
-        , QStringLiteral("Center")
-        , QStringLiteral("SmallViewShown")
-        , QStringLiteral("Height")
-        , QStringLiteral("Width")
-        , QStringLiteral("Inlet")
-        , QStringLiteral("Outlet")
-        , QStringLiteral("Inlets")
-        , QStringLiteral("Outlets")
-        , QStringLiteral("Hidden")
-        , QStringLiteral("Custom")
-        , QStringLiteral("Exposed")
-        , QStringLiteral("Propagate")
-        , QStringLiteral("Source")
-        , QStringLiteral("Sink")
-        , QStringLiteral("AutoTrigger")
-        , QStringLiteral("Text")
-        , QStringLiteral("Host")
-        , QStringLiteral("Rate")
-        , QStringLiteral("Pitch")
-        , QStringLiteral("Velocity")
-        , QStringLiteral("Channel")
+  static const StringConstants strings{QStringLiteral("k"),
+                                       QStringLiteral("v"),
+                                       QStringLiteral("id"),
+                                       QStringLiteral("none"),
+                                       QStringLiteral("Identifiers"),
+                                       QStringLiteral("Type"),
+                                       QStringLiteral("Value"),
+                                       QStringLiteral("Address"),
+                                       QStringLiteral("Message"),
+                                       QStringLiteral("value"),
+                                       QStringLiteral("address"),
+                                       QStringLiteral("LHS"),
+                                       QStringLiteral("Op"),
+                                       QStringLiteral("RHS"),
+                                       QStringLiteral("Previous"),
+                                       QStringLiteral("Following"),
+                                       QStringLiteral("User"),
+                                       QStringLiteral("Priorities"),
+                                       QStringLiteral("Process"),
+                                       QStringLiteral("Name"),
+                                       QStringLiteral("ObjectName"),
+                                       QStringLiteral("ObjectId"),
+                                       QStringLiteral("Children"),
+                                       QStringLiteral("Min"),
+                                       QStringLiteral("Max"),
+                                       QStringLiteral("Values"),
+                                       QStringLiteral("Device"),
+                                       QStringLiteral("Path"),
+                                       QStringLiteral("ioType"),
+                                       QStringLiteral("ClipMode"),
+                                       QStringLiteral("Unit"),
+                                       QStringLiteral("unit"),
+                                       QStringLiteral("RepetitionFilter"),
+                                       QStringLiteral("RefreshRate"),
+                                       QStringLiteral("Priority"),
+                                       QStringLiteral("Tags"),
+                                       QStringLiteral("Domain"),
+                                       QStringLiteral("Protocol"),
+                                       QStringLiteral("Duration"),
+                                       QStringLiteral("Metadata"),
+                                       QStringLiteral("true"),
+                                       QStringLiteral("false"),
+                                       QStringLiteral("True"),
+                                       QStringLiteral("False"),
+                                       QStringLiteral("yes"),
+                                       QStringLiteral("no"),
+                                       QStringLiteral("Yes"),
+                                       QStringLiteral("No"),
+                                       QStringLiteral("Start"),
+                                       QStringLiteral("End"),
+                                       QStringLiteral("ScriptingName"),
+                                       QStringLiteral("Comment"),
+                                       QStringLiteral("Color"),
+                                       QStringLiteral("Label"),
+                                       QStringLiteral("Extended"),
+                                       QStringLiteral("Touched"),
+                                       QStringLiteral("uuid"),
+                                       QStringLiteral("Description"),
+                                       QStringLiteral("Components"),
+                                       QStringLiteral("Parents"),
+                                       QStringLiteral("Accessors"),
+                                       QStringLiteral("Data"),
+                                       QStringLiteral("Power"),
+                                       QStringLiteral("DefaultDuration"),
+                                       QStringLiteral("MinDuration"),
+                                       QStringLiteral("MaxDuration"),
+                                       QStringLiteral("GuiDuration"),
+                                       QStringLiteral("Rigidity"),
+                                       QStringLiteral("MinNull"),
+                                       QStringLiteral("MaxInf"),
+                                       QStringLiteral("Processes"),
+                                       QStringLiteral("Rackes"),
+                                       QStringLiteral("FullView"),
+                                       QStringLiteral("Slots"),
+                                       QStringLiteral("StartState"),
+                                       QStringLiteral("EndState"),
+                                       QStringLiteral("Date"),
+                                       QStringLiteral("StartDate"),
+                                       QStringLiteral("PreviousConstraint"),
+                                       QStringLiteral("NextConstraint"),
+                                       QStringLiteral("Events"),
+                                       QStringLiteral("Extent"),
+                                       QStringLiteral("Active"),
+                                       QStringLiteral("Expression"),
+                                       QStringLiteral("Trigger"),
+                                       QStringLiteral("Event"),
+                                       QStringLiteral("HeightPercentage"),
+                                       QStringLiteral("Messages"),
+                                       QStringLiteral("StateProcesses"),
+                                       QStringLiteral("TimeNode"),
+                                       QStringLiteral("States"),
+                                       QStringLiteral("Condition"),
+                                       QStringLiteral("Offset"),
+                                       QStringLiteral("Segments"),
+                                       QStringLiteral("SmallViewRack"),
+                                       QStringLiteral("FullViewRack"),
+                                       QStringLiteral("Zoom"),
+                                       QStringLiteral("Center"),
+                                       QStringLiteral("SmallViewShown"),
+                                       QStringLiteral("Height"),
+                                       QStringLiteral("Width"),
+                                       QStringLiteral("Inlet"),
+                                       QStringLiteral("Outlet"),
+                                       QStringLiteral("Inlets"),
+                                       QStringLiteral("Outlets"),
+                                       QStringLiteral("Hidden"),
+                                       QStringLiteral("Custom"),
+                                       QStringLiteral("Exposed"),
+                                       QStringLiteral("Propagate"),
+                                       QStringLiteral("Source"),
+                                       QStringLiteral("Sink"),
+                                       QStringLiteral("AutoTrigger"),
+                                       QStringLiteral("Text"),
+                                       QStringLiteral("Host"),
+                                       QStringLiteral("Rate"),
+                                       QStringLiteral("Pitch"),
+                                       QStringLiteral("Velocity"),
+                                       QStringLiteral("Channel")
 
   };
   return strings;

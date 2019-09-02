@@ -3,9 +3,9 @@
 #include <QSlider>
 
 #include <score_lib_base_export.h>
-#include <verdigris>
 
 #include <limits>
+#include <verdigris>
 
 namespace score
 {

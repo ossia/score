@@ -7,7 +7,6 @@
 #include <core/command/CommandStack.hpp>
 #include <core/document/Document.hpp>
 
-
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(score::CommandStack)
 namespace score

@@ -1,6 +1,6 @@
 #pragma once
-#include <QEvent>
 #include <QCoreApplication>
+#include <QEvent>
 
 #include <score_lib_base_export.h>
 namespace score

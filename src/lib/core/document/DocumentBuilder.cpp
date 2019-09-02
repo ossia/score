@@ -18,8 +18,8 @@
 #include <core/view/Window.hpp>
 
 #include <QByteArray>
-#include <QMessageBox>
 #include <QDebug>
+#include <QMessageBox>
 #include <QObject>
 #include <QString>
 #include <QVariant>

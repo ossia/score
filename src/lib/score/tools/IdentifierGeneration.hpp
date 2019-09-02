@@ -3,13 +3,13 @@
 #include <score/tools/std/ArrayView.hpp>
 #include <score/tools/std/Optional.hpp>
 
+#include <score_lib_base_export.h>
 #include <sys/types.h>
 
 #include <cstddef>
 #include <vector>
 
 #include <type_traits>
-#include <score_lib_base_export.h>
 
 namespace score
 {
@@ -36,9 +36,10 @@ struct SCORE_LIB_BASE_EXPORT random_id_generator
   {
     typename Vector::value_type id{};
 
-    constexpr auto fnd = [] (const auto& ids, const auto& id) noexcept {
-      for(auto& elt : ids)
-        if(elt == id)
+    constexpr auto fnd = [](const auto& ids, const auto& id) noexcept
+    {
+      for (auto& elt : ids)
+        if (elt == id)
           return true;
       return false;
     };
@@ -50,7 +51,6 @@ struct SCORE_LIB_BASE_EXPORT random_id_generator
 
     return id;
   }
-
 };
 
 /**

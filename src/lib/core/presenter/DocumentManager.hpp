@@ -8,10 +8,10 @@
 #include <QString>
 
 #include <score_lib_base_export.h>
-#include <verdigris>
 
 #include <set>
 #include <vector>
+#include <verdigris>
 class QRecentFilesMenu;
 namespace score
 {
@@ -119,8 +119,8 @@ public:
   void documentChanged(score::Document* arg_1)
       E_SIGNAL(SCORE_LIB_BASE_EXPORT, documentChanged, arg_1)
 
-private:
-  void prepareNewDocument(const score::GUIApplicationContext& ctx);
+          private
+      : void prepareNewDocument(const score::GUIApplicationContext& ctx);
 
   /**
    * @brief checkAndUpdateJson
@@ -147,7 +147,6 @@ private:
 
 SCORE_LIB_BASE_EXPORT
 Id<score::DocumentModel> getStrongId(const std::vector<score::Document*>& v);
-
 
 SCORE_LIB_BASE_EXPORT
 Id<score::DocumentPlugin>

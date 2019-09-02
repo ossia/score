@@ -5,18 +5,16 @@
 #include <boost/assign/list_of.hpp>
 #include <boost/bimap.hpp>
 
-#include <QJsonObject>
 #include <QJsonArray>
+#include <QJsonObject>
 
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(score::Skin)
-
 
 #define SCORE_INSERT_COLOR(Col) \
   {                             \
 #Col, &Col                  \
   }
-
 
 #define SCORE_INSERT_COLOR_CUSTOM(Hex, Name) \
   qMakePair(QStringLiteral(Name), QColor(Hex))
@@ -39,9 +37,13 @@ Skin::~Skin()
 {
   delete m_colorMap;
 }
-Skin::Skin() noexcept : SansFont{"Ubuntu"}
-, MonoFont{"APCCourier-Bold", 10, QFont::Black}
-, MonoFontSmall{"APCCourier-Bold", 7, QFont::Normal}
+Skin::Skin() noexcept
+    : SansFont{"Ubuntu"}
+    , MonoFont{"APCCourier-Bold", 10, QFont::Black}
+    , MonoFontSmall
+{
+  "APCCourier-Bold", 7, QFont::Normal
+}
 
 #if defined(_WIN32)
 , SansFontSmall
@@ -62,55 +64,53 @@ Skin::Skin() noexcept : SansFont{"Ubuntu"}
 , TransparentPen{Qt::transparent}, TransparentBrush{Qt::transparent},
     NoPen{Qt::NoPen}, NoBrush{Qt::NoBrush}, TextBrush{QColor("#1f2a30")},
     m_colorMap(new color_map{
-        SCORE_INSERT_COLOR(Dark),           SCORE_INSERT_COLOR(HalfDark),  SCORE_INSERT_COLOR(DarkGray),
-        SCORE_INSERT_COLOR(Gray),           SCORE_INSERT_COLOR(LightGray), SCORE_INSERT_COLOR(HalfLight),
-        SCORE_INSERT_COLOR(Light),
-        SCORE_INSERT_COLOR(Emphasis1),
+        SCORE_INSERT_COLOR(Dark),           SCORE_INSERT_COLOR(HalfDark),
+        SCORE_INSERT_COLOR(DarkGray),       SCORE_INSERT_COLOR(Gray),
+        SCORE_INSERT_COLOR(LightGray),      SCORE_INSERT_COLOR(HalfLight),
+        SCORE_INSERT_COLOR(Light),          SCORE_INSERT_COLOR(Emphasis1),
         SCORE_INSERT_COLOR(Emphasis2),      SCORE_INSERT_COLOR(Emphasis3),
         SCORE_INSERT_COLOR(Emphasis4),      SCORE_INSERT_COLOR(Emphasis5),
-        SCORE_INSERT_COLOR(Base1),
-        SCORE_INSERT_COLOR(Base2),          SCORE_INSERT_COLOR(Base3),
-        SCORE_INSERT_COLOR(Base4),          SCORE_INSERT_COLOR(Base5),
-        SCORE_INSERT_COLOR(Warn1),
+        SCORE_INSERT_COLOR(Base1),          SCORE_INSERT_COLOR(Base2),
+        SCORE_INSERT_COLOR(Base3),          SCORE_INSERT_COLOR(Base4),
+        SCORE_INSERT_COLOR(Base5),          SCORE_INSERT_COLOR(Warn1),
         SCORE_INSERT_COLOR(Warn2),          SCORE_INSERT_COLOR(Warn3),
         SCORE_INSERT_COLOR(Background1),    SCORE_INSERT_COLOR(Background2),
-        SCORE_INSERT_COLOR(Transparent1),
-        SCORE_INSERT_COLOR(Transparent2),   SCORE_INSERT_COLOR(Transparent3),
-        SCORE_INSERT_COLOR(Smooth1),        SCORE_INSERT_COLOR(Smooth2),
-        SCORE_INSERT_COLOR(Smooth3),        SCORE_INSERT_COLOR(Tender1),
-        SCORE_INSERT_COLOR(Tender2),        SCORE_INSERT_COLOR(Tender3),
-        SCORE_INSERT_COLOR(Cable1),         SCORE_INSERT_COLOR(Cable2),         SCORE_INSERT_COLOR(Cable3),
-        SCORE_INSERT_COLOR(SelectedCable1), SCORE_INSERT_COLOR(SelectedCable2), SCORE_INSERT_COLOR(SelectedCable3),
-        SCORE_INSERT_COLOR(Port1),           SCORE_INSERT_COLOR(Port2),          SCORE_INSERT_COLOR(Port3),
+        SCORE_INSERT_COLOR(Transparent1),   SCORE_INSERT_COLOR(Transparent2),
+        SCORE_INSERT_COLOR(Transparent3),   SCORE_INSERT_COLOR(Smooth1),
+        SCORE_INSERT_COLOR(Smooth2),        SCORE_INSERT_COLOR(Smooth3),
+        SCORE_INSERT_COLOR(Tender1),        SCORE_INSERT_COLOR(Tender2),
+        SCORE_INSERT_COLOR(Tender3),        SCORE_INSERT_COLOR(Cable1),
+        SCORE_INSERT_COLOR(Cable2),         SCORE_INSERT_COLOR(Cable3),
+        SCORE_INSERT_COLOR(SelectedCable1), SCORE_INSERT_COLOR(SelectedCable2),
+        SCORE_INSERT_COLOR(SelectedCable3), SCORE_INSERT_COLOR(Port1),
+        SCORE_INSERT_COLOR(Port2),          SCORE_INSERT_COLOR(Port3),
         SCORE_INSERT_COLOR(Pulse1),         SCORE_INSERT_COLOR(Pulse2)}),
-    m_defaultPalette{
-       SCORE_INSERT_COLOR_CUSTOM("#3F51B5", "Indigo"),
-       SCORE_INSERT_COLOR_CUSTOM("#2196F3", "Blue"),
-       SCORE_INSERT_COLOR_CUSTOM("#03A9F4", "LightBlue"),
-       SCORE_INSERT_COLOR_CUSTOM("#00BCD4", "Cyan"),
-       SCORE_INSERT_COLOR_CUSTOM("#009688", "Teal"),
-       SCORE_INSERT_COLOR_CUSTOM("#4CAF50", "Green"),
-       SCORE_INSERT_COLOR_CUSTOM("#8BC34A", "LightGreen"),
-       SCORE_INSERT_COLOR_CUSTOM("#CDDC39", "Lime"),
-       SCORE_INSERT_COLOR_CUSTOM("#FFEB3B", "Yellow"),
-       SCORE_INSERT_COLOR_CUSTOM("#FFC107", "Amber"),
-       SCORE_INSERT_COLOR_CUSTOM("#FF9800", "Orange"),
-       SCORE_INSERT_COLOR_CUSTOM("#FF5722", "DeepOrange"),
-       SCORE_INSERT_COLOR_CUSTOM("#F44336", "Red"),
-       SCORE_INSERT_COLOR_CUSTOM("#E91E63", "Pink"),
-       SCORE_INSERT_COLOR_CUSTOM("#9C27B0", "Purple"),
-       SCORE_INSERT_COLOR_CUSTOM("#673AB7", "DeepPurple"),
-       SCORE_INSERT_COLOR_CUSTOM("#455A64", "BlueGrey"),
-       SCORE_INSERT_COLOR_CUSTOM("#9E9E9E", "Grey"),
-       SCORE_INSERT_COLOR_CUSTOM("#FFFFFF", "White"),
-       SCORE_INSERT_COLOR_CUSTOM("#000000", "Black")
-    }
+    m_defaultPalette{SCORE_INSERT_COLOR_CUSTOM("#3F51B5", "Indigo"),
+                     SCORE_INSERT_COLOR_CUSTOM("#2196F3", "Blue"),
+                     SCORE_INSERT_COLOR_CUSTOM("#03A9F4", "LightBlue"),
+                     SCORE_INSERT_COLOR_CUSTOM("#00BCD4", "Cyan"),
+                     SCORE_INSERT_COLOR_CUSTOM("#009688", "Teal"),
+                     SCORE_INSERT_COLOR_CUSTOM("#4CAF50", "Green"),
+                     SCORE_INSERT_COLOR_CUSTOM("#8BC34A", "LightGreen"),
+                     SCORE_INSERT_COLOR_CUSTOM("#CDDC39", "Lime"),
+                     SCORE_INSERT_COLOR_CUSTOM("#FFEB3B", "Yellow"),
+                     SCORE_INSERT_COLOR_CUSTOM("#FFC107", "Amber"),
+                     SCORE_INSERT_COLOR_CUSTOM("#FF9800", "Orange"),
+                     SCORE_INSERT_COLOR_CUSTOM("#FF5722", "DeepOrange"),
+                     SCORE_INSERT_COLOR_CUSTOM("#F44336", "Red"),
+                     SCORE_INSERT_COLOR_CUSTOM("#E91E63", "Pink"),
+                     SCORE_INSERT_COLOR_CUSTOM("#9C27B0", "Purple"),
+                     SCORE_INSERT_COLOR_CUSTOM("#673AB7", "DeepPurple"),
+                     SCORE_INSERT_COLOR_CUSTOM("#455A64", "BlueGrey"),
+                     SCORE_INSERT_COLOR_CUSTOM("#9E9E9E", "Grey"),
+                     SCORE_INSERT_COLOR_CUSTOM("#FFFFFF", "White"),
+                     SCORE_INSERT_COLOR_CUSTOM("#000000", "Black")}
 {
 #if QT_VERSION >= QT_VERSION_CHECK(5, 13, 0)
   MonoFont.setFamilies({"APCCourier-Bold"});
   MonoFontSmall.setFamilies({"Ubuntu"});
 #endif
-  for(auto& c : m_defaultPalette)
+  for (auto& c : m_defaultPalette)
   {
     m_colorMap->left.insert({c.first, &c.second});
   }
@@ -245,9 +245,15 @@ void Skin::load(const QJsonObject& obj)
   SCORE_CONVERT_COLOR(Tender2);
   SCORE_CONVERT_COLOR(Tender3);
 
-  SCORE_CONVERT_COLOR(Cable1);         SCORE_CONVERT_COLOR(Cable2);         SCORE_CONVERT_COLOR(Cable3);
-  SCORE_CONVERT_COLOR(SelectedCable1); SCORE_CONVERT_COLOR(SelectedCable2); SCORE_CONVERT_COLOR(SelectedCable3);
-  SCORE_CONVERT_COLOR(Port1);           SCORE_CONVERT_COLOR(Port2);          SCORE_CONVERT_COLOR(Port3);
+  SCORE_CONVERT_COLOR(Cable1);
+  SCORE_CONVERT_COLOR(Cable2);
+  SCORE_CONVERT_COLOR(Cable3);
+  SCORE_CONVERT_COLOR(SelectedCable1);
+  SCORE_CONVERT_COLOR(SelectedCable2);
+  SCORE_CONVERT_COLOR(SelectedCable3);
+  SCORE_CONVERT_COLOR(Port1);
+  SCORE_CONVERT_COLOR(Port2);
+  SCORE_CONVERT_COLOR(Port3);
 
   SCORE_CONVERT_COLOR(Pulse1);
   SCORE_CONVERT_COLOR(Pulse2);
@@ -300,9 +306,15 @@ QVector<QPair<QColor, QString>> Skin::getColors() const
   SCORE_MAKE_PAIR_COLOR(Tender1);
   SCORE_MAKE_PAIR_COLOR(Tender2);
   SCORE_MAKE_PAIR_COLOR(Tender3);
-  SCORE_MAKE_PAIR_COLOR(Cable1);         SCORE_MAKE_PAIR_COLOR(Cable2);         SCORE_MAKE_PAIR_COLOR(Cable3);
-  SCORE_MAKE_PAIR_COLOR(SelectedCable1); SCORE_MAKE_PAIR_COLOR(SelectedCable2); SCORE_MAKE_PAIR_COLOR(SelectedCable3);
-  SCORE_MAKE_PAIR_COLOR(Port1);           SCORE_MAKE_PAIR_COLOR(Port2);          SCORE_MAKE_PAIR_COLOR(Port3);
+  SCORE_MAKE_PAIR_COLOR(Cable1);
+  SCORE_MAKE_PAIR_COLOR(Cable2);
+  SCORE_MAKE_PAIR_COLOR(Cable3);
+  SCORE_MAKE_PAIR_COLOR(SelectedCable1);
+  SCORE_MAKE_PAIR_COLOR(SelectedCable2);
+  SCORE_MAKE_PAIR_COLOR(SelectedCable3);
+  SCORE_MAKE_PAIR_COLOR(Port1);
+  SCORE_MAKE_PAIR_COLOR(Port2);
+  SCORE_MAKE_PAIR_COLOR(Port3);
   SCORE_MAKE_PAIR_COLOR(Pulse1);
   SCORE_MAKE_PAIR_COLOR(Pulse2);
 
@@ -313,7 +325,7 @@ QVector<QPair<QColor, QString>> Skin::getDefaultPaletteColors() const
   QVector<QPair<QColor, QString>> vec_color;
   vec_color.reserve(18);
 
-  for(auto& c : m_defaultPalette)
+  for (auto& c : m_defaultPalette)
     vec_color.push_back({c.second.color(), c.first});
 
   return vec_color;
@@ -384,24 +396,22 @@ void Brush::reload(QColor color) noexcept
   *this = Brush{QBrush{color}};
 }
 
-Brush::Brush() noexcept { }
+Brush::Brush() noexcept {}
 Brush::Brush(const Brush& other) noexcept
-  : main{other.main}
-  , darker{other.darker}
-  , darker300{other.darker300}
-  , lighter{other.lighter}
-  , lighter180{other.lighter180}
+    : main{other.main}
+    , darker{other.darker}
+    , darker300{other.darker300}
+    , lighter{other.lighter}
+    , lighter180{other.lighter180}
 {
-
 }
 Brush::Brush(Brush&& other) noexcept
-  : main{other.main}
-  , darker{other.darker}
-  , darker300{other.darker300}
-  , lighter{other.lighter}
-  , lighter180{other.lighter180}
+    : main{other.main}
+    , darker{other.darker}
+    , darker300{other.darker300}
+    , lighter{other.lighter}
+    , lighter180{other.lighter180}
 {
-
 }
 Brush& Brush::operator=(const Brush& other) noexcept
 {
@@ -425,13 +435,12 @@ Brush& Brush::operator=(Brush&& other) noexcept
 Brush::~Brush() = default;
 
 Brush::Brush(const QBrush& b) noexcept
-  : main{b}
-  , darker{b.color().darker()}
-  , darker300{b.color().darker(150)}
-  , lighter{b.color().lighter()}
-  , lighter180{b.color().lighter(180)}
+    : main{b}
+    , darker{b.color().darker()}
+    , darker300{b.color().darker(150)}
+    , lighter{b.color().lighter()}
+    , lighter180{b.color().lighter(180)}
 {
-
 }
 
 Brush& Brush::operator=(const QBrush& b) noexcept
@@ -444,51 +453,46 @@ Brush& Brush::operator=(const QBrush& b) noexcept
   return *this;
 }
 
-BrushSet::BrushSet() noexcept
-{
-
-}
+BrushSet::BrushSet() noexcept {}
 
 BrushSet::BrushSet(const BrushSet& other) noexcept
-  : brush{other.brush}
-  , pen_cosmetic{other.pen_cosmetic}
-  , pen0{other.pen0}
-  , pen0_solid_round{other.pen0_solid_round}
-  , pen1{other.pen1}
-  , pen1_solid_flat_miter{other.pen1_solid_flat_miter}
-  , pen1_5{other.pen1_5}
-  , pen2{other.pen2}
-  , pen2_solid_round_round{other.pen2_solid_round_round}
-  , pen2_solid_flat_miter{other.pen2_solid_flat_miter}
-  , pen2_dashed_flat_miter{other.pen2_dashed_flat_miter}
-  , pen2_dotted_square_miter{other.pen2_dotted_square_miter}
-  , pen3{other.pen3}
-  , pen3_solid_flat_miter{other.pen3_solid_flat_miter}
-  , pen3_solid_round_round{other.pen3_solid_round_round}
-  , pen3_dashed_flat_miter{other.pen3_dashed_flat_miter}
+    : brush{other.brush}
+    , pen_cosmetic{other.pen_cosmetic}
+    , pen0{other.pen0}
+    , pen0_solid_round{other.pen0_solid_round}
+    , pen1{other.pen1}
+    , pen1_solid_flat_miter{other.pen1_solid_flat_miter}
+    , pen1_5{other.pen1_5}
+    , pen2{other.pen2}
+    , pen2_solid_round_round{other.pen2_solid_round_round}
+    , pen2_solid_flat_miter{other.pen2_solid_flat_miter}
+    , pen2_dashed_flat_miter{other.pen2_dashed_flat_miter}
+    , pen2_dotted_square_miter{other.pen2_dotted_square_miter}
+    , pen3{other.pen3}
+    , pen3_solid_flat_miter{other.pen3_solid_flat_miter}
+    , pen3_solid_round_round{other.pen3_solid_round_round}
+    , pen3_dashed_flat_miter{other.pen3_dashed_flat_miter}
 {
-
 }
 
 BrushSet::BrushSet(BrushSet&& other) noexcept
-  : brush{other.brush}
-  , pen_cosmetic{other.pen_cosmetic}
-  , pen0{other.pen0}
-  , pen0_solid_round{other.pen0_solid_round}
-  , pen1{other.pen1}
-  , pen1_solid_flat_miter{other.pen1_solid_flat_miter}
-  , pen1_5{other.pen1_5}
-  , pen2{other.pen2}
-  , pen2_solid_round_round{other.pen2_solid_round_round}
-  , pen2_solid_flat_miter{other.pen2_solid_flat_miter}
-  , pen2_dashed_flat_miter{other.pen2_dashed_flat_miter}
-  , pen2_dotted_square_miter{other.pen2_dotted_square_miter}
-  , pen3{other.pen3}
-  , pen3_solid_flat_miter{other.pen3_solid_flat_miter}
-  , pen3_solid_round_round{other.pen3_solid_round_round}
-  , pen3_dashed_flat_miter{other.pen3_dashed_flat_miter}
+    : brush{other.brush}
+    , pen_cosmetic{other.pen_cosmetic}
+    , pen0{other.pen0}
+    , pen0_solid_round{other.pen0_solid_round}
+    , pen1{other.pen1}
+    , pen1_solid_flat_miter{other.pen1_solid_flat_miter}
+    , pen1_5{other.pen1_5}
+    , pen2{other.pen2}
+    , pen2_solid_round_round{other.pen2_solid_round_round}
+    , pen2_solid_flat_miter{other.pen2_solid_flat_miter}
+    , pen2_dashed_flat_miter{other.pen2_dashed_flat_miter}
+    , pen2_dotted_square_miter{other.pen2_dotted_square_miter}
+    , pen3{other.pen3}
+    , pen3_solid_flat_miter{other.pen3_solid_flat_miter}
+    , pen3_solid_round_round{other.pen3_solid_round_round}
+    , pen3_dashed_flat_miter{other.pen3_dashed_flat_miter}
 {
-
 }
 
 BrushSet& BrushSet::operator=(const BrushSet& other) noexcept
@@ -533,13 +537,9 @@ BrushSet& BrushSet::operator=(BrushSet&& other) noexcept
   return *this;
 }
 
-BrushSet::~BrushSet()
-{
+BrushSet::~BrushSet() {}
 
-}
-
-BrushSet::BrushSet(const QBrush& b) noexcept
-  : brush{b}
+BrushSet::BrushSet(const QBrush& b) noexcept : brush{b}
 {
   setupPens();
 }
@@ -619,7 +619,6 @@ void BrushSet::setupPens()
   pen3_dashed_flat_miter.setDashPattern({2., 4.});
   pen3_dashed_flat_miter.setCapStyle(Qt::FlatCap);
   pen3_dashed_flat_miter.setJoinStyle(Qt::MiterJoin);
-
 }
 
 #undef SCORE_INSERT_COLOR

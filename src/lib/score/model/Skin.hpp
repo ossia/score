@@ -7,6 +7,7 @@
 #include <QVector>
 
 #include <score_lib_base_export.h>
+
 #include <verdigris>
 class QJsonObject;
 namespace score
@@ -61,6 +62,7 @@ struct SCORE_LIB_BASE_EXPORT Brush
   BrushSet lighter180;
 
   void reload(QColor color) noexcept;
+
 private:
   Brush() noexcept;
   Brush(const Brush&) noexcept;
@@ -177,8 +179,7 @@ public:
 public:
   void changed() E_SIGNAL(SCORE_LIB_BASE_EXPORT, changed)
 
-private:
-  void timerEvent(QTimerEvent* event) override;
+      private : void timerEvent(QTimerEvent* event) override;
   Skin() noexcept;
 
   struct color_map;

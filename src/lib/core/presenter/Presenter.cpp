@@ -20,6 +20,7 @@
 #include <core/view/Window.hpp>
 
 #include <ossia/detail/algorithms.hpp>
+
 #include <QMenu>
 #include <QMenuBar>
 #include <QObject>

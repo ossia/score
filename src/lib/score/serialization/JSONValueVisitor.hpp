@@ -16,7 +16,6 @@ class JSONValue;
 class JSONValueReader;
 class JSONValueWriter;
 
-
 class SCORE_LIB_BASE_EXPORT JSONValueReader : public AbstractVisitor
 {
 public:

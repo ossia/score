@@ -1,19 +1,17 @@
 #pragma once
 
-#include <core/document/Document.hpp>
-
 #include <score/model/Identifier.hpp>
 
-#include <score_lib_base_export.h>
-
+#include <core/document/Document.hpp>
 
 #include <QMainWindow>
 #include <QPair>
 #include <QString>
 
-#include <verdigris>
+#include <score_lib_base_export.h>
 
 #include <vector>
+#include <verdigris>
 
 class QCloseEvent;
 class QDockWidget;
@@ -48,19 +46,18 @@ public:
   void restoreLayout();
   void closeEvent(QCloseEvent*) override;
 
-
 public:
-  void activeDocumentChanged(const Id<DocumentModel>& arg_1)
-      E_SIGNAL(SCORE_LIB_BASE_EXPORT, activeDocumentChanged, arg_1)
-  void closeRequested(const Id<DocumentModel>& arg_1)
+  void activeDocumentChanged(const Id<DocumentModel>& arg_1) E_SIGNAL(
+      SCORE_LIB_BASE_EXPORT,
+      activeDocumentChanged,
+      arg_1) void closeRequested(const Id<DocumentModel>& arg_1)
       E_SIGNAL(SCORE_LIB_BASE_EXPORT, closeRequested, arg_1)
 
-  void ready() E_SIGNAL(SCORE_LIB_BASE_EXPORT, ready)
-  void sizeChanged(QSize arg_1)
-      E_SIGNAL(SCORE_LIB_BASE_EXPORT, sizeChanged, arg_1)
+          void ready() E_SIGNAL(SCORE_LIB_BASE_EXPORT, ready) void sizeChanged(
+              QSize arg_1) E_SIGNAL(SCORE_LIB_BASE_EXPORT, sizeChanged, arg_1)
 
-public:
-  void on_fileNameChanged(DocumentView* d, const QString& newName);
+              public
+      : void on_fileNameChanged(DocumentView* d, const QString& newName);
   W_SLOT(on_fileNameChanged);
 
 private:
@@ -76,6 +73,5 @@ private:
   QTabWidget* m_tabWidget{};
   QTabWidget* m_bottomTabs{};
   QLabel* m_status{};
-
 };
 }

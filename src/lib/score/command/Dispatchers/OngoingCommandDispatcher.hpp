@@ -3,6 +3,7 @@
 #include <score/command/Dispatchers/SendStrategy.hpp>
 #include <score/tools/Debug.hpp>
 #include <score/tools/SafeCast.hpp>
+
 #include <memory>
 
 /**

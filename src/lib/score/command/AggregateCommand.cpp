@@ -11,7 +11,6 @@
 #include <boost/concept/usage.hpp>
 #include <boost/range/adaptor/reversed.hpp>
 
-
 namespace score
 {
 AggregateCommand::~AggregateCommand()

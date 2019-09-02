@@ -2,6 +2,7 @@
 #include <QObject>
 
 #include <score_lib_base_export.h>
+
 #include <verdigris>
 
 /**

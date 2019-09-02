@@ -5,7 +5,6 @@
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/serialization/JSONVisitor.hpp>
 
-
 template <>
 SCORE_LIB_BASE_EXPORT void DataStreamReader::read(const ObjectPath& path)
 {

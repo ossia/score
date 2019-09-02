@@ -11,9 +11,9 @@
 #include <QMenuBar>
 
 #include <score_lib_base_export.h>
-#include <verdigris>
 
 #include <vector>
+#include <verdigris>
 class QObject;
 
 namespace score

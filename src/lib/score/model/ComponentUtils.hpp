@@ -1,11 +1,10 @@
 #pragma once
 #include <score/model/Component.hpp>
+
 #include <ossia/detail/algorithms.hpp>
 
 namespace score
 {
-
-
 
 /**
  * @brief component Fetch a Component from Components by type

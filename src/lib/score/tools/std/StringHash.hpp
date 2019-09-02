@@ -1,6 +1,7 @@
 #pragma once
-#include <QString>
 #include <QHashFunctions>
+#include <QString>
+
 #include <functional>
 
 #include <ossia-config.hpp>

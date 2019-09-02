@@ -1,16 +1,18 @@
+#include <score/graphics/DefaultGraphicsSliderImpl.hpp>
 #include <score/widgets/ControlWidgets.hpp>
 #include <score/widgets/SearchLineEdit.hpp>
+
 #include <ossia/network/dataspace/gain.hpp>
+
+#include <QAction>
+#include <QGuiApplication>
 #include <QMouseEvent>
 #include <QPainter>
 #include <QStyle>
 #include <QStyleOptionButton>
 #include <QTimer>
-#include <QAction>
-#include <QGuiApplication>
-#include <cmath>
-#include <score/graphics/DefaultGraphicsSliderImpl.hpp>
 
+#include <cmath>
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(score::SearchLineEdit)
 namespace score
@@ -28,8 +30,7 @@ SearchLineEdit::SearchLineEdit(QWidget* parent) : QLineEdit{parent}
   connect(act, &QAction::triggered, [&]() { search(); });
 }
 
-SearchLineEdit::~SearchLineEdit() {
-}
+SearchLineEdit::~SearchLineEdit() {}
 
 SCORE_LIB_BASE_EXPORT
 const QPalette& transparentPalette()
@@ -96,8 +97,7 @@ void ValueSlider::paintEvent(QPaintEvent* event)
   paintWithText(QString::number(value()));
 }
 
-SpeedSlider::SpeedSlider(QWidget* parent)
-  : Slider{parent}
+SpeedSlider::SpeedSlider(QWidget* parent) : Slider{parent}
 {
   setTickInterval(100);
   setMinimum(-100);
@@ -108,7 +108,7 @@ void SpeedSlider::paintEvent(QPaintEvent*)
 {
   QString text;
   text.reserve(16);
-    text += (showText) ? "speed: × " : "× ";
+  text += (showText) ? "speed: × " : "× ";
 
   text += QString::number(double(value()) * 0.01, 'f', 2);
   paintWithText(text);
@@ -116,16 +116,16 @@ void SpeedSlider::paintEvent(QPaintEvent*)
 
 void SpeedSlider::mousePressEvent(QMouseEvent* ev)
 {
-  if(ev->button() == Qt::LeftButton)
+  if (ev->button() == Qt::LeftButton)
     return Slider::mousePressEvent(ev);
 
-  if(qApp->keyboardModifiers() & Qt::CTRL)
+  if (qApp->keyboardModifiers() & Qt::CTRL)
   {
     setValue(100);
   }
   else
   {
-    QTimer::singleShot(0, [&, &self=*this, pos = ev->screenPos()] {
+    QTimer::singleShot(0, [&, &self = *this, pos = ev->screenPos()] {
       auto w = new score::DoubleSpinboxWithEnter;
       w->setWindowFlag(Qt::Tool);
       w->setWindowFlag(Qt::FramelessWindowHint);
@@ -139,9 +139,7 @@ void SpeedSlider::mousePressEvent(QMouseEvent* ev)
           w,
           SignalUtils::QDoubleSpinBox_valueChanged_double(),
           &self,
-          [=, &self](double v) {
-            self.setValue(v * 100.);
-          });
+          [=, &self](double v) { self.setValue(v * 100.); });
 
       QObject::connect(
           w,
@@ -168,8 +166,8 @@ void ValueDoubleSlider::paintEvent(QPaintEvent* event)
 
 void ValueLogDoubleSlider::paintEvent(QPaintEvent* event)
 {
-  paintWithText(
-      QString::number(ossia::normalized_to_log(min, max - min, value()), 'f', 3));
+  paintWithText(QString::number(
+      ossia::normalized_to_log(min, max - min, value()), 'f', 3));
 }
 
 ComboSlider::ComboSlider(const QStringList& arr, QWidget* parent)

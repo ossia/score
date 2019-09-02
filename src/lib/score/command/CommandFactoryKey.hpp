@@ -1,12 +1,12 @@
 #pragma once
-#include <score/plugins/StringFactoryKey.hpp>
 class CommandTag
 {
 };
 class CommandParentTag
 {
 };
-
+template <typename Tag>
+class StringKey;
 using CommandKey = StringKey<CommandTag>;
 using CommandGroupKey = StringKey<CommandParentTag>;
 
