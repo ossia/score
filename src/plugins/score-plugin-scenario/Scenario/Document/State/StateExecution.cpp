@@ -9,6 +9,7 @@
 #include <ossia/dataflow/nodes/state.hpp>
 #include <ossia/detail/pod_vector.hpp>
 #include <ossia/editor/scenario/time_event.hpp>
+#include <QDebug>
 
 namespace Execution
 {

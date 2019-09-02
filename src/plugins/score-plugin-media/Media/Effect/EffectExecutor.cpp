@@ -10,6 +10,7 @@
 #include <ossia/dataflow/nodes/dummy.hpp>
 
 #include <fmt/format.h>
+#include <QDebug>
 
 namespace ossia
 {

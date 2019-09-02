@@ -17,6 +17,7 @@
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/tools/std/Optional.hpp>
 
+#include <QDebug>
 
 template <typename T>
 class Reader;

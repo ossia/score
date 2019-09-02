@@ -13,7 +13,6 @@
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/tools/IdentifierGeneration.hpp>
 
-#include <algorithm>
 #include <vector>
 
 namespace Scenario

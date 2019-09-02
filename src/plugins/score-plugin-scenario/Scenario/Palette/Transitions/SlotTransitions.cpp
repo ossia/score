@@ -6,7 +6,6 @@
 
 #include <score/model/path/Path.hpp>
 
-#include <algorithm>
 
 class QEvent;
 

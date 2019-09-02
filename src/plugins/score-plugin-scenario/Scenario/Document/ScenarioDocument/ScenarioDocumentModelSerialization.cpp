@@ -12,7 +12,6 @@
 
 #include <QJsonDocument>
 
-#include <algorithm>
 namespace score
 {
 class DocumentDelegateModel;

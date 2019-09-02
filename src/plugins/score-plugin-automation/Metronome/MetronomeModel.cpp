@@ -28,7 +28,6 @@
 #include <Metronome/MetronomeProcessMetadata.hpp>
 #include <wobjectimpl.h>
 
-#include <algorithm>
 W_OBJECT_IMPL(Metronome::ProcessModel)
 namespace Process
 {

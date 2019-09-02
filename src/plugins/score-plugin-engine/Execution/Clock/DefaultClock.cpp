@@ -13,6 +13,7 @@
 #include <Engine/OSSIA2score.hpp>
 #include <Execution/BaseScenarioComponent.hpp>
 #include <Execution/Settings/ExecutorModel.hpp>
+#include <QDebug>
 
 namespace Execution
 {

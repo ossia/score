@@ -30,7 +30,6 @@
 #include <QJsonArray>
 #include <QJsonObject>
 
-#include <algorithm>
 #include <vector>
 namespace Scenario
 {

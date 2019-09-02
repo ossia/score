@@ -11,7 +11,6 @@
 
 #include <QByteArray>
 
-#include <algorithm>
 
 namespace Scenario
 {

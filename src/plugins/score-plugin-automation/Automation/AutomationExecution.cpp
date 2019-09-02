@@ -10,6 +10,8 @@
 #include <score/tools/Bind.hpp>
 #include <ossia/dataflow/nodes/automation.hpp>
 #include <ossia/network/dataspace/dataspace_visitors.hpp> // temporary
+#include <QDebug>
+
 namespace Automation
 {
 namespace RecreateOnPlay

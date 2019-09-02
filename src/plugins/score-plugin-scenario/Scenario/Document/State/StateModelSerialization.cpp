@@ -20,7 +20,6 @@
 
 #include <QJsonArray>
 
-#include <algorithm>
 
 namespace Scenario
 {

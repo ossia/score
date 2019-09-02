@@ -60,7 +60,6 @@
 #include <wobjectimpl.h>
 
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
-#include <algorithm>
 #include <vector>
 SCORE_DECLARE_ACTION(
     RestartAudio,

@@ -18,8 +18,8 @@
 #include <ossia/detail/algorithms.hpp>
 
 
-#include <algorithm>
 #include <vector>
+#include <QDebug>
 
 namespace Explorer
 {

@@ -48,9 +48,7 @@
 
 #include <wobjectimpl.h>
 
-#include <algorithm>
 #include <iostream>
-#include <iterator>
 #include <string>
 #include <vector>
 W_OBJECT_IMPL(Explorer::DeviceExplorerModel)

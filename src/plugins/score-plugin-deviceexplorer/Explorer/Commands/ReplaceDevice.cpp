@@ -14,7 +14,6 @@
 #include <score/serialization/DataStreamVisitor.hpp>
 
 
-#include <algorithm>
 #include <vector>
 
 namespace Explorer

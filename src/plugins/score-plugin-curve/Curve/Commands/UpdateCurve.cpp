@@ -9,7 +9,6 @@
 #include <score/model/path/PathSerialization.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
 
-#include <algorithm>
 
 namespace Curve
 {

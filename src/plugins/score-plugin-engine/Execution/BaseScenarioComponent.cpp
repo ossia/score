@@ -32,7 +32,6 @@
 #include <Engine/OSSIA2score.hpp>
 #include <wobjectimpl.h>
 
-#include <algorithm>
 #include <vector>
 W_OBJECT_IMPL(Execution::BaseScenarioElement)
 

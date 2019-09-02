@@ -12,6 +12,8 @@
 #include <QFileInfo>
 #include <QMimeData>
 #include <QUrl>
+#include <QDebug>
+#include <QSet>
 
 #include <rtmidi17/reader.hpp>
 

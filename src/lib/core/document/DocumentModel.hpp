@@ -8,8 +8,6 @@
 
 #include <verdigris>
 
-#include <algorithm>
-#include <iterator>
 #include <vector>
 class QObject;
 #include <score/model/Identifier.hpp>

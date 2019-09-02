@@ -22,7 +22,6 @@
 #include <QFormLayout>
 #include <QWidget>
 
-#include <algorithm>
 #include <list>
 #include <vector>
 

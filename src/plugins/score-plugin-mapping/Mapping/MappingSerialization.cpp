@@ -12,7 +12,6 @@
 #include <score/serialization/VisitorCommon.hpp>
 
 
-#include <algorithm>
 
 template <>
 void DataStreamReader::read(const Mapping::ProcessModel& autom)

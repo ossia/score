@@ -4,6 +4,7 @@
 #include <ossia/network/base/node.hpp>
 
 #include <LocalTree/BaseProperty.hpp>
+#include <QDebug>
 namespace LocalTree
 {
 

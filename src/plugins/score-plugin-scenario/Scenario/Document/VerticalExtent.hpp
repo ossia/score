@@ -1,5 +1,4 @@
 #pragma once
-#include <QDebug>
 #include <QPointF>
 
 #include <verdigris>
@@ -44,11 +43,6 @@ struct VerticalExtent final : public QPointF
   Q_DECL_CONSTEXPR double bottom() const { return QPointF::y(); }
 };
 
-inline QDebug operator<<(const QDebug& d, const VerticalExtent& ve)
-{
-  d << static_cast<QPointF>(ve);
-  return d;
-}
 }
 Q_DECLARE_METATYPE(Scenario::VerticalExtent)
 W_REGISTER_ARGTYPE(Scenario::VerticalExtent)

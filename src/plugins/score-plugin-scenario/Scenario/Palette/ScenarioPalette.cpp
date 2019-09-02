@@ -20,7 +20,6 @@
 #include <score/tools/std/Optional.hpp>
 
 
-#include <algorithm>
 #include <vector>
 
 namespace Scenario

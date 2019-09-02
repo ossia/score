@@ -16,7 +16,6 @@
 
 #include <QByteArray>
 
-#include <algorithm>
 #include <vector>
 
 namespace Scenario

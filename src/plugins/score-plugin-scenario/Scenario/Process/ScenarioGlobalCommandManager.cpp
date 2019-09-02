@@ -28,8 +28,8 @@
 #include <score/selection/SelectionStack.hpp>
 #include <score/tools/std/Optional.hpp>
 
+#include <QSet>
 
-#include <algorithm>
 
 namespace score
 {

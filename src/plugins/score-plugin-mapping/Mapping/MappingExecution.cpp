@@ -11,6 +11,7 @@
 
 #include <ossia/dataflow/nodes/mapping.hpp>
 #include <ossia/editor/mapper/detail/mapper_visitor.hpp>
+#include <QDebug>
 namespace Mapping
 {
 namespace RecreateOnPlay

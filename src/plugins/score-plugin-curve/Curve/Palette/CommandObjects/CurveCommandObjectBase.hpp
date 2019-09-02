@@ -13,7 +13,6 @@
 
 #include <score_plugin_curve_export.h>
 
-#include <algorithm>
 #include <vector>
 
 namespace score

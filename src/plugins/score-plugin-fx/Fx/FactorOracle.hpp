@@ -4,6 +4,7 @@
 
 #include <Engine/Node/PdNode.hpp>
 
+#include <QDebug>
 #include <random>
 #if !defined(NDEBUG) && !defined(_MSC_VER) && !defined(__clang__)
 #include <debug/vector>

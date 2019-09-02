@@ -11,6 +11,7 @@
 #endif
 #include <ossia/network/base/device.hpp>
 #include <ossia/network/local/local.hpp>
+#include <QDebug>
 
 #include <ossia-config.hpp>
 

@@ -26,7 +26,6 @@
 #include <Metronome/MetronomeModel.hpp>
 #include <Spline/SplineModel.hpp>
 
-#include <algorithm>
 
 namespace Automation
 {

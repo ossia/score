@@ -27,6 +27,7 @@
 #include <QAction>
 #include <QMenu>
 #include <QToolBar>
+#include <QSet>
 namespace Scenario
 {
 EventActions::EventActions(ScenarioApplicationPlugin* parent)

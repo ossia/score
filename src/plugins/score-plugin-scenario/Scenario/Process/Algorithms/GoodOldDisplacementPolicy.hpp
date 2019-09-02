@@ -8,7 +8,6 @@
 #include <QString>
 #include <QVector>
 
-#include <algorithm>
 #include <vector>
 
 namespace Scenario

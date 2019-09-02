@@ -39,7 +39,6 @@
 
 #include <wobjectimpl.h>
 
-#include <algorithm>
 #include <vector>
 W_OBJECT_IMPL(Execution::ScenarioComponentBase)
 

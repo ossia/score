@@ -15,7 +15,6 @@
 
 #include <wobjectimpl.h>
 
-#include <algorithm>
 #include <cstddef>
 #include <vector>
 W_OBJECT_IMPL(Scenario::AddressBarItem)

@@ -20,9 +20,7 @@
 #include <QVector3D>
 #include <QVector4D>
 
-#include <algorithm>
 #include <array>
-#include <iterator>
 
 namespace State
 {

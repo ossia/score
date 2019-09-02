@@ -18,7 +18,6 @@
 
 #include <wobjectimpl.h>
 
-#include <algorithm>
 W_OBJECT_IMPL(Scenario::EventView)
 
 namespace Scenario

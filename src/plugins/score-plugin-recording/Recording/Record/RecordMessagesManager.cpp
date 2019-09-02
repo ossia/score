@@ -43,7 +43,6 @@
 
 #include <wobjectimpl.h>
 
-#include <algorithm>
 #include <utility>
 
 #include <type_traits>

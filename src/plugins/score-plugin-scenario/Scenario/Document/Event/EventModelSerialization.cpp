@@ -16,7 +16,6 @@
 #include <score/serialization/JSONVisitor.hpp>
 
 
-#include <algorithm>
 
 template <>
 SCORE_PLUGIN_SCENARIO_EXPORT void

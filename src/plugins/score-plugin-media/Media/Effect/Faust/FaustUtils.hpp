@@ -6,6 +6,7 @@
 #include <ossia/dataflow/nodes/faust/faust_utils.hpp>
 #include <ossia/dataflow/port.hpp>
 #include <ossia/network/domain/domain.hpp>
+#include <QDebug>
 
 namespace Media
 {

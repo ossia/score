@@ -6,6 +6,7 @@
 
 #include <QFileSystemModel>
 #include <QMimeData>
+#include <QSet>
 
 #include <tsl/hopscotch_map.h>
 #include <tsl/hopscotch_set.h>

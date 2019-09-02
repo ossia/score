@@ -27,9 +27,8 @@
 #include <score/tools/MapCopy.hpp>
 
 #include <QList>
+#include <QSet>
 
-#include <algorithm>
-#include <iterator>
 
 namespace Scenario
 {

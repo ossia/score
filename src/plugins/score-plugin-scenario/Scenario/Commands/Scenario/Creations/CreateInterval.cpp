@@ -21,7 +21,6 @@
 #include <score/tools/RandomNameProvider.hpp>
 
 
-#include <algorithm>
 #include <vector>
 
 namespace Scenario

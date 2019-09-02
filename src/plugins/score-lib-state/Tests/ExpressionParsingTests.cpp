@@ -48,7 +48,6 @@ using namespace score;
 #include <State/ExpressionParser.cpp>
 #include <State/ValueConversion.hpp>
 
-#include <iterator>
 #include <list>
 #include <string>
 #include <vector>

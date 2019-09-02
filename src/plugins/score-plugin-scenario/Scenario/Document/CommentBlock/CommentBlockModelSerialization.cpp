@@ -13,7 +13,6 @@
 #include <score/tools/std/Optional.hpp>
 
 
-#include <algorithm>
 
 template <typename T>
 class Reader;

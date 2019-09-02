@@ -23,6 +23,7 @@
 #include <ossia/editor/scenario/time_value.hpp>
 
 #include <wobjectimpl.h>
+#include <QDebug>
 
 #include <utility>
 W_OBJECT_IMPL(Execution::IntervalComponent)

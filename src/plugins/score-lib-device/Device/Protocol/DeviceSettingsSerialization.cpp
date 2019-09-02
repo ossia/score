@@ -13,6 +13,7 @@
 #include <score/serialization/JSONValueVisitor.hpp>
 #include <score/serialization/JSONVisitor.hpp>
 
+#include <QDebug>
 
 template <>
 SCORE_LIB_DEVICE_EXPORT void

@@ -78,7 +78,6 @@
 
 #include <wobjectimpl.h>
 
-#include <algorithm>
 #include <set>
 #include <stdexcept>
 W_OBJECT_IMPL(Explorer::DeviceExplorerWidget)

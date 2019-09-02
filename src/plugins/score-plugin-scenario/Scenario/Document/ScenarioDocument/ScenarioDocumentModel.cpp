@@ -8,8 +8,9 @@
 #include <Scenario/Process/ScenarioModel.hpp>
 #include <score/tools/IdentifierGeneration.hpp>
 #include <score/selection/SelectionDispatcher.hpp>
-
+#include <score/model/IdentifierDebug.hpp>
 #include <QFileInfo>
+#include <QDebug>
 #include <wobjectimpl.h>
 
 

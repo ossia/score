@@ -14,7 +14,6 @@
 #include <ossia/network/dataspace/dataspace_visitors.hpp>
 
 
-#include <algorithm>
 
 template <>
 void DataStreamReader::read(const Automation::ProcessModel& autom)

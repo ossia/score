@@ -1,5 +1,4 @@
 #pragma once
-#include <score/application/ApplicationComponents.hpp>
 #include <score/serialization/JSONValueVisitor.hpp>
 #include <score/serialization/StringConstants.hpp>
 #include <score/tools/ForEach.hpp>
@@ -36,6 +35,10 @@ class variant;
 }
 }
 
+namespace score
+{
+class ApplicationComponents;
+}
 class SCORE_LIB_BASE_EXPORT JSONObjectReader : public AbstractVisitor
 {
 public:

@@ -30,7 +30,6 @@
 
 #include <wobjectimpl.h>
 
-#include <algorithm>
 W_OBJECT_IMPL(Scenario::MessageItemModel)
 namespace Scenario
 {

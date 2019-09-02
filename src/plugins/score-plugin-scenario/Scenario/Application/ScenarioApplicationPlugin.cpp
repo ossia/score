@@ -57,7 +57,6 @@
 #include <string.h>
 #include <wobjectimpl.h>
 
-#include <algorithm>
 W_OBJECT_IMPL(Scenario::ScenarioExecution)
 W_OBJECT_IMPL(Scenario::ScenarioApplicationPlugin)
 SCORE_DECLARE_ACTION(

@@ -16,7 +16,6 @@
 #include <QJsonObject>
 #include <QString>
 
-#include <algorithm>
 #include <array>
 #include <cstddef>
 

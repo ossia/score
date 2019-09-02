@@ -18,7 +18,6 @@
 
 #include <wobjectimpl.h>
 
-#include <algorithm>
 #include <stdexcept>
 W_OBJECT_IMPL(Process::ProcessModel)
 

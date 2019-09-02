@@ -19,6 +19,7 @@
 
 #include <QByteArray>
 #include <QMessageBox>
+#include <QDebug>
 #include <QObject>
 #include <QString>
 #include <QVariant>

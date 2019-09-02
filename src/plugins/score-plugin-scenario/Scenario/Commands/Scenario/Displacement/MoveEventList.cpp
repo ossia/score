@@ -7,7 +7,6 @@
 
 #include <qiterator.h>
 
-#include <algorithm>
 #include <stdexcept>
 
 namespace Scenario

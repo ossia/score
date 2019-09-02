@@ -21,7 +21,6 @@
 
 #include <sys/types.h>
 
-#include <iterator>
 #include <stdexcept>
 #include <typeinfo>
 

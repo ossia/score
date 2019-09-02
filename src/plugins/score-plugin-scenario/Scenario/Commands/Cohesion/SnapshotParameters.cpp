@@ -20,7 +20,6 @@
 
 #include <QList>
 
-#include <algorithm>
 #include <vector>
 
 namespace Scenario

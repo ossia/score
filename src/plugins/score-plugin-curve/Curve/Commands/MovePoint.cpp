@@ -13,7 +13,6 @@
 #include <score/serialization/DataStreamVisitor.hpp>
 
 
-#include <algorithm>
 
 namespace Curve
 {

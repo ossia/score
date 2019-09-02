@@ -43,8 +43,6 @@
 #include <QByteArray>
 #include <QList>
 
-#include <algorithm>
-#include <iterator>
 #include <list>
 #include <utility>
 #include <vector>

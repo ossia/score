@@ -10,7 +10,6 @@
 
 #include <core/document/DocumentModel.hpp>
 
-#include <algorithm>
 
 namespace Scenario
 {

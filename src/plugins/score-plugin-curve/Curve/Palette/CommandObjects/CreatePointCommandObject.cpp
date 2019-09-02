@@ -16,7 +16,6 @@
 
 #include <QVariant>
 
-#include <algorithm>
 
 namespace score
 {

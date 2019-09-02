@@ -26,7 +26,6 @@
 #include <multi_index/member.hpp>
 #include <multi_index_container.hpp>
 
-#include <algorithm>
 #include <vector>
 
 namespace bmi = multi_index;

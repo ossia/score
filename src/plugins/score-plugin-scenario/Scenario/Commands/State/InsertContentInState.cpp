@@ -14,7 +14,6 @@
 #include <score/serialization/VisitorCommon.hpp>
 
 
-#include <algorithm>
 
 namespace Scenario
 {

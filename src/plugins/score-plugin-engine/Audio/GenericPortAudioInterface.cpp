@@ -8,6 +8,7 @@
 #include <Audio/Settings/Model.hpp>
 #include <Audio/Settings/View.hpp>
 #include <score/tools/Bind.hpp>
+#include <QDebug>
 
 
 namespace Audio

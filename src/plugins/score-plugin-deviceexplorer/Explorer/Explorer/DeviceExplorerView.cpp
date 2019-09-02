@@ -18,6 +18,7 @@
 #include <QKeyEvent>
 #include <qnamespace.h>
 #include <qtypetraits.h>
+#include <QDebug>
 
 W_REGISTER_ARGTYPE(QItemSelection)
 
