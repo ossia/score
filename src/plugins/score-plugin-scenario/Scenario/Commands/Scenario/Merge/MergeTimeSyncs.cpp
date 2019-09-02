@@ -3,6 +3,7 @@
 #include <Process/TimeValueSerialization.hpp>
 
 #include <score/model/tree/TreeNodeSerialization.hpp>
+#include <score/model/EntitySerialization.hpp>
 
 namespace Scenario
 {

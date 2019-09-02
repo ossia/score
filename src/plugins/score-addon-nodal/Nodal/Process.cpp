@@ -6,6 +6,7 @@
 #include <Nodal/Commands.hpp>
 #include <score/tools/std/Invoke.hpp>
 
+#include <score/model/EntitySerialization.hpp>
 #include <score/document/DocumentContext.hpp>
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 

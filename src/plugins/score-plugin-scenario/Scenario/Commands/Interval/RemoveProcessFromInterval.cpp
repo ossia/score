@@ -15,7 +15,9 @@
 #include <score/model/path/PathSerialization.hpp>
 #include <score/model/path/RelativePath.hpp>
 #include <score/plugins/StringFactoryKey.hpp>
+#include <score/model/EntitySerialization.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
+#include <score/plugins/SerializableHelpers.hpp>
 
 #include <ossia/detail/pod_vector.hpp>
 

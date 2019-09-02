@@ -7,6 +7,7 @@
 
 #include <score/document/DocumentInterface.hpp>
 #include <score/model/IdentifiedObjectAbstract.hpp>
+#include <score/model/ModelMetadata.hpp>
 #include <score/selection/SelectionDispatcher.hpp>
 #include <score/widgets/MarginLess.hpp>
 

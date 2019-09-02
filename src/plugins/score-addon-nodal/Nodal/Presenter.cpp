@@ -7,19 +7,10 @@
 #include <Process/Drop/ProcessDropHandler.hpp>
 #include <score/command/Dispatchers/MacroCommandDispatcher.hpp>
 #include <Process/ProcessMimeSerialization.hpp>
+#include <score/model/EntitySerialization.hpp>
 #include <QTimer>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <ossia/detail/math.hpp>
-// TODO use me
-template<typename Entities, typename Presenter>
-void bind(const Entities& model, Presenter& presenter)
-{
-  for (auto& entity : model)
-    presenter.on_created(entity);
-
-  model.mutable_added.template connect<&Presenter::on_created>(presenter);
-  model.removed.template connect<&Presenter::on_removing>(presenter);
-}
 
 namespace Nodal
 {

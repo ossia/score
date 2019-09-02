@@ -1,8 +1,10 @@
 #pragma once
-#include <score/model/EntityBase.hpp>
 #include <score/serialization/VisitorInterface.hpp>
 #include <score/serialization/VisitorTags.hpp>
 #include <score/tools/std/Optional.hpp>
+#include <score/tools/std/HashMap.hpp>
+#include <score/model/Identifier.hpp>
+#include <score/plugins/UuidKey.hpp>
 
 #include <ossia/detail/flat_set.hpp>
 #include <ossia/detail/small_vector.hpp>
@@ -19,9 +21,14 @@
 #include <vector>
 
 #include <type_traits>
-
+#include <verdigris>
+#include <score_lib_base_export.h>
+template <typename model>
+class IdentifiedObject;
 namespace score
 {
+template <typename model>
+class Entity;
 class ApplicationComponents;
 }
 #if defined(SCORE_DEBUG_DELIMITERS)
@@ -135,16 +142,6 @@ DataStreamOutput& operator>>(DataStreamOutput& s, T& obj)
   s.stream >> obj;
   return s;
 }
-
-class DataStreamReader;
-class DataStreamWriter;
-class DataStream
-{
-public:
-  using Serializer = DataStreamReader;
-  using Deserializer = DataStreamWriter;
-  static constexpr SerializationIdentifier type() { return 2; }
-};
 
 class SCORE_LIB_BASE_EXPORT DataStreamReader : public AbstractVisitor
 {

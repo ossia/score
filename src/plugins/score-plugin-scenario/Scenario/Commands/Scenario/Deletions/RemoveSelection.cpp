@@ -19,6 +19,7 @@
 #include <score/model/IdentifiedObjectAbstract.hpp>
 #include <score/model/IdentifiedObjectMap.hpp>
 #include <score/model/Identifier.hpp>
+#include <score/model/EntitySerialization.hpp>
 #include <score/model/path/Path.hpp>
 #include <score/model/path/PathSerialization.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>

@@ -11,10 +11,12 @@
 
 #if !defined(SCORE_ALL_UNITY)
 template class SCORE_LIB_BASE_EXPORT score::EntityMap<score::Component>;
+#if defined(SCORE_SERIALIZABLE_COMPONENTS)
 template class SCORE_LIB_BASE_EXPORT
     tsl::hopscotch_map<UuidKey<score::SerializableComponent>, QByteArray>;
 template class SCORE_LIB_BASE_EXPORT
     tsl::hopscotch_map<UuidKey<score::SerializableComponent>, QJsonObject>;
+#endif
 #endif
 
 
@@ -22,9 +24,9 @@ W_OBJECT_IMPL(score::Component)
 namespace score
 {
 Component::~Component() = default;
+#if defined(SCORE_SERIALIZABLE_COMPONENTS)
 DataStreamSerializedComponents::~DataStreamSerializedComponents() = default;
 JSONSerializedComponents::~JSONSerializedComponents() = default;
-
 DataStreamSerializedComponents::DataStreamSerializedComponents(
     const Id<Component>& id,
     DataStreamComponents obj,
@@ -134,8 +136,10 @@ void deserializeRemainingComponents(score::Components& comps, QObject* obj)
       comps.remove(ser);
   }
 }
+#endif
 }
 
+#if defined(SCORE_SERIALIZABLE_COMPONENTS)
 template <>
 SCORE_LIB_BASE_EXPORT void
 DataStreamReader::read<score::SerializableComponent>(
@@ -148,3 +152,4 @@ JSONObjectReader::read<score::SerializableComponent>(
     const score::SerializableComponent&)
 {
 }
+#endif

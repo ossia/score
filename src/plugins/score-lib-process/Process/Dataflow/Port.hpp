@@ -7,8 +7,7 @@
 #include <score/model/path/Path.hpp>
 #include <score/plugins/SerializableInterface.hpp>
 #include <score/selection/Selectable.hpp>
-#include <score/serialization/DataStreamVisitor.hpp>
-#include <score/serialization/JSONVisitor.hpp>
+#include <score/serialization/VisitorInterface.hpp>
 
 #include <ossia/detail/small_vector.hpp>
 #include <ossia/network/value/value.hpp>
@@ -67,9 +66,6 @@ public:
   const QString& exposed() const;
   const QString& description() const;
 
-  const score::Components& components() const { return m_components; }
-  score::Components& components() { return m_components; }
-
 public:
   void setCustomData(const QString& customData);
   W_SLOT(setCustomData);
@@ -114,14 +110,13 @@ private:
   QString m_exposed;
   QString m_description;
   State::AddressAccessor m_address;
-  score::Components m_components;
 };
 
 class SCORE_LIB_PROCESS_EXPORT Inlet : public Port
 {
   W_OBJECT(Inlet)
 public:
-  MODEL_METADATA_IMPL(Inlet)
+  MODEL_METADATA_IMPL_HPP(Inlet)
   Inlet() = delete;
   ~Inlet() override;
   Inlet(const Inlet&) = delete;
@@ -139,7 +134,7 @@ class SCORE_LIB_PROCESS_EXPORT ControlInlet : public Inlet
 
   SCORE_SERIALIZE_FRIENDS
 public:
-  MODEL_METADATA_IMPL(ControlInlet)
+  MODEL_METADATA_IMPL_HPP(ControlInlet)
   using Inlet::Inlet;
   ~ControlInlet() override;
 
@@ -193,7 +188,7 @@ class SCORE_LIB_PROCESS_EXPORT Outlet : public Port
 
   SCORE_SERIALIZE_FRIENDS
 public:
-  MODEL_METADATA_IMPL(Outlet)
+  MODEL_METADATA_IMPL_HPP(Outlet)
   Outlet() = delete;
   ~Outlet() override;
   Outlet(const Outlet&) = delete;
@@ -228,7 +223,7 @@ class SCORE_LIB_PROCESS_EXPORT ControlOutlet final : public Outlet
 
   SCORE_SERIALIZE_FRIENDS
 public:
-  MODEL_METADATA_IMPL(ControlOutlet)
+  MODEL_METADATA_IMPL_HPP(ControlOutlet)
   using Outlet::Outlet;
   ~ControlOutlet() override;
 

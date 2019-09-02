@@ -66,7 +66,9 @@ static void loadDefaultPlugins(
   using namespace score;
   r.registerFactory(std::make_unique<DocumentDelegateList>());
   r.registerFactory(std::make_unique<ValidityCheckerList>());
+#if defined(SCORE_SERIALIZABLE_COMPONENTS)
   r.registerFactory(std::make_unique<SerializableComponentFactoryList>());
+#endif
   r.registerFactory(std::make_unique<ObjectRemoverList>());
   auto panels = std::make_unique<PanelDelegateFactoryList>();
   panels->insert(std::make_unique<UndoPanelDelegateFactory>());

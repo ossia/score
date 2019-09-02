@@ -9,6 +9,7 @@
 #include <Explorer/Explorer/DeviceExplorerModel.hpp>
 #include <score/document/DocumentContext.hpp>
 #include <score/plugins/SerializableInterface.hpp>
+#include <score/plugins/SerializableHelpers.hpp>
 
 namespace ControlSurface
 {

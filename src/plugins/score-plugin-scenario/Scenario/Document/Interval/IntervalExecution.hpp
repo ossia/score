@@ -42,6 +42,7 @@ class IntervalComponent;
 
 namespace score
 {
+#if defined(SCORE_SERIALIZABLE_COMPONENTS)
 template <>
 struct is_component_serializable<Execution::IntervalComponentBase>
 {
@@ -53,6 +54,7 @@ struct is_component_serializable<Execution::IntervalComponent>
 {
   using type = score::not_serializable_tag;
 };
+#endif
 }
 
 namespace Execution

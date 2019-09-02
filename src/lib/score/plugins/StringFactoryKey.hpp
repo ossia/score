@@ -38,19 +38,3 @@ struct hash<StringKey<T>>
   }
 };
 }
-
-#include <score/serialization/DataStreamVisitor.hpp>
-#include <score/serialization/JSONValueVisitor.hpp>
-template <typename U>
-struct TSerializer<DataStream, StringKey<U>>
-{
-  static void readFrom(DataStream::Serializer& s, const StringKey<U>& key)
-  {
-    s.stream() << key.toString();
-  }
-
-  static void writeTo(DataStream::Deserializer& s, StringKey<U>& key)
-  {
-    s.stream() >> key.toString();
-  }
-};

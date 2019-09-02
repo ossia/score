@@ -6,6 +6,7 @@
 #include <Scenario/Process/ScenarioGlobalCommandManager.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
 
+#include <score/model/EntitySerialization.hpp>
 #include <score/tools/MapCopy.hpp>
 namespace Loop
 {

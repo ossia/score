@@ -1,6 +1,8 @@
 #pragma once
 #include <Device/Node/DeviceNode.hpp>
 #include <Device/Protocol/DeviceSettings.hpp>
+#include <ossia/detail/callback_container.hpp>
+#include <ossia/network/base/value_callback.hpp>
 
 #include <ossia-qt/device_metatype.hpp>
 

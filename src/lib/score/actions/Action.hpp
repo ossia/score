@@ -138,17 +138,21 @@ struct MetaAction
  */
 struct ActionContainer
 {
+private:
+  inline bool canAddAction(const ActionKey& other) const noexcept
+  {
+    for(auto& act : container)
+      if(act.key() == other)
+        return false;
+    return true;
+  }
 public:
   std::vector<Action> container;
 
   template <typename Action_T>
   void add(QAction* ptr)
   {
-    SCORE_ASSERT(
-        ossia::find_if(
-            container,
-            [](auto ac) { return ac.key() == MetaAction<Action_T>::key(); })
-        == container.end());
+    SCORE_ASSERT(canAddAction(MetaAction<Action_T>::key()));
     container.emplace_back(MetaAction<Action_T>::make(ptr));
   }
 };
@@ -197,18 +201,20 @@ struct SCORE_LIB_BASE_EXPORT ActionCondition
   template <typename Action_T>
   void add()
   {
-    SCORE_ASSERT(
-        ossia::find_if(
-            m_actions,
-            [](auto ac) { return ac == MetaAction<Action_T>::key(); })
-        == m_actions.end());
-
+    SCORE_ASSERT(canAddAction(MetaAction<Action_T>::key()));
     m_actions.emplace_back(MetaAction<Action_T>::key());
   }
 
   StringKey<ActionCondition> key() const;
 
 private:
+  inline bool canAddAction(const ActionKey& other) const noexcept
+  {
+    for(const auto& act : m_actions)
+      if(act == other)
+        return false;
+    return true;
+  }
   StringKey<ActionCondition> m_key;
   std::vector<ActionKey> m_actions;
 };

@@ -4,6 +4,8 @@
 #include <Process/Process.hpp>
 #include <Process/ProcessList.hpp>
 
+#include <score/plugins/SerializableHelpers.hpp>
+#include <score/model/EntitySerialization.hpp>
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/tools/Clamp.hpp>
 

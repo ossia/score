@@ -6,6 +6,7 @@
 
 #include <ossia/detail/flat_map.hpp>
 
+#include <score/serialization/VisitorCommon.hpp>
 #include <Color/GradientMetadata.hpp>
 #include <score_plugin_automation_export.h>
 #include <verdigris>

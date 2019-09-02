@@ -1,5 +1,6 @@
 #pragma once
 #include <score/application/GUIApplicationContext.hpp>
+#include <score/document/DocumentContext.hpp>
 #include <score/plugins/Interface.hpp>
 #include <score/plugins/InterfaceList.hpp>
 

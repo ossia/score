@@ -1,5 +1,6 @@
 #pragma once
 #include <Curve/Segment/CurveSegmentModel.hpp>
+#include <score/serialization/VisitorCommon.hpp>
 
 namespace Curve
 {

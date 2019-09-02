@@ -1,6 +1,5 @@
 #pragma once
 #include <score/application/ApplicationComponents.hpp>
-#include <score/model/IdentifiedObject.hpp>
 #include <score/serialization/JSONValueVisitor.hpp>
 #include <score/serialization/StringConstants.hpp>
 #include <score/tools/ForEach.hpp>
@@ -22,16 +21,6 @@ template <typename T>
 T fromJsonObject(QJsonValue&& json);
 template <typename T>
 T fromJsonObject(QJsonValueRef json);
-
-class JSONObjectReader;
-class JSONObjectWriter;
-class JSONObject
-{
-public:
-  using Serializer = JSONObjectReader;
-  using Deserializer = JSONObjectWriter;
-  static constexpr SerializationIdentifier type() { return 1; }
-};
 
 template <class>
 class TreeNode;

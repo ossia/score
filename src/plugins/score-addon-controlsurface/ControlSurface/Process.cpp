@@ -3,11 +3,13 @@
 #include <wobjectimpl.h>
 
 #include <Process/Dataflow/Port.hpp>
+#include <Process/Dataflow/PortFactory.hpp>
 #include <Process/Dataflow/WidgetInlets.hpp>
-
 #include <Explorer/Explorer/DeviceExplorerModel.hpp>
 
 #include <Curve/CurveModel.hpp>
+
+#include <ossia/network/base/node_attributes.hpp>
 
 W_OBJECT_IMPL(ControlSurface::Model)
 namespace ControlSurface
@@ -99,6 +101,7 @@ void Model::setupControl(
       Process::ControlInlet* ctl, const State::AddressAccessor& addr)
 {
   m_outputAddresses[ctl->id()] = addr;
+  ctl->hidden = true;
 
   inlets().push_back(ctl);
   controlAdded(ctl->id());
@@ -207,21 +210,35 @@ void Model::setDurationAndShrink(const TimeVal& newDuration) noexcept
 template <>
 void DataStreamReader::read(const ControlSurface::Model& proc)
 {
+  readPorts(*this, proc.m_inlets, proc.m_outlets);
   insertDelimiter();
 }
 
 template <>
 void DataStreamWriter::write(ControlSurface::Model& proc)
 {
+  writePorts(
+      *this,
+      components.interfaces<Process::PortFactoryList>(),
+      proc.m_inlets,
+      proc.m_outlets,
+      &proc);
   checkDelimiter();
 }
 
 template <>
 void JSONObjectReader::read(const ControlSurface::Model& proc)
 {
+  readPorts(obj, proc.m_inlets, proc.m_outlets);
 }
 
 template <>
 void JSONObjectWriter::write(ControlSurface::Model& proc)
 {
+  writePorts(
+      obj,
+      components.interfaces<Process::PortFactoryList>(),
+      proc.m_inlets,
+      proc.m_outlets,
+      &proc);
 }

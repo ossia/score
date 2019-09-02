@@ -3,6 +3,7 @@
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 
 #include <score_plugin_scenario_export.h>
+#include <QObject>
 class QAction;
 namespace Process
 {

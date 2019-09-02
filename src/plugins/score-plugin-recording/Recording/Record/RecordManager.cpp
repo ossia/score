@@ -47,6 +47,7 @@
 
 #include <core/document/Document.hpp>
 
+#include <ossia/network/dataspace/dataspace.hpp>
 #include <ossia/network/value/value.hpp>
 #include <ossia/network/value/value_conversion.hpp>
 

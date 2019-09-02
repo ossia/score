@@ -8,6 +8,7 @@
 #include <State/Unit.hpp>
 
 #include <score/serialization/VisitorInterface.hpp>
+#include <score/serialization/VisitorCommon.hpp>
 
 #include <QString>
 

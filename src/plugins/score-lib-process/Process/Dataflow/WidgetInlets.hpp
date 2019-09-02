@@ -1,6 +1,6 @@
 #pragma once
 #include <Process/Dataflow/ControlWidgets.hpp>
-
+#include <score/serialization/VisitorCommon.hpp>
 #include <ossia/network/domain/domain.hpp>
 
 namespace Process

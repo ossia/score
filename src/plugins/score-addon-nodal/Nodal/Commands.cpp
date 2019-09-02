@@ -3,6 +3,7 @@
 #include <score/tools/IdentifierGeneration.hpp>
 #include <score/document/DocumentContext.hpp>
 #include <Process/ProcessList.hpp>
+#include <score/model/EntitySerialization.hpp>
 
 namespace Nodal
 {

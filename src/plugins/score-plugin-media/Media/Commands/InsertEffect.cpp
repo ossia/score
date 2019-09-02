@@ -1,7 +1,8 @@
 #include "InsertEffect.hpp"
 
+#include <score/plugins/SerializableHelpers.hpp>
+#include <score/model/EntitySerialization.hpp>
 #include <score/document/ChangeId.hpp>
-
 namespace Media
 {
 InsertEffect::InsertEffect(

@@ -1,7 +1,7 @@
 #pragma once
 #include <score/plugins/StringFactoryKey.hpp>
 #include <score/tools/std/HashMap.hpp>
-
+#include <score/tools/Debug.hpp>
 #include <QPoint>
 #include <QPointF>
 

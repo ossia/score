@@ -16,6 +16,7 @@
 #include <score/document/DocumentContext.hpp>
 #include <score/document/DocumentInterface.hpp>
 #include <score/model/EntityMap.hpp>
+#include <score/model/EntitySerialization.hpp>
 #include <score/model/path/ObjectPath.hpp>
 #include <score/model/path/PathSerialization.hpp>
 #include <score/plugins/documentdelegate/DocumentDelegateModel.hpp>

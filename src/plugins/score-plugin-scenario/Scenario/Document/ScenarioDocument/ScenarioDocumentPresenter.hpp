@@ -126,6 +126,7 @@ private:
   void updateMinimap();
   double displayedDuration() const;
 
+  Process::DataflowManager m_dataflow;
   DisplayedElementsPresenter m_scenarioPresenter;
 
   score::SelectionDispatcher m_selectionDispatcher;
@@ -133,7 +134,6 @@ private:
   mutable Process::ProcessFocusManager m_focusManager;
   QPointer<IntervalModel> m_focusedInterval{};
 
-  Process::DataflowManager m_dataflow;
   Process::Context m_context;
 
   // State machine

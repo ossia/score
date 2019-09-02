@@ -6,6 +6,7 @@
 #include <score/document/ChangeId.hpp>
 #include <score/model/path/PathSerialization.hpp>
 #include <score/tools/IdentifierGeneration.hpp>
+#include <score/model/EntitySerialization.hpp>
 namespace Scenario::Command
 {
 

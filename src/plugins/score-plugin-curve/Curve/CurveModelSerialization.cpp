@@ -10,6 +10,7 @@
 #include <score/plugins/StringFactoryKey.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/serialization/JSONVisitor.hpp>
+#include <score/plugins/SerializableHelpers.hpp>
 
 
 #include <sys/types.h>

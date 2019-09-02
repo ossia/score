@@ -16,6 +16,7 @@
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/serialization/JSONValueVisitor.hpp>
 #include <score/serialization/JSONVisitor.hpp>
+#include <score/plugins/SerializableHelpers.hpp>
 #include <score/tools/IdentifierGeneration.hpp>
 #include <score/tools/std/Optional.hpp>
 

@@ -123,6 +123,7 @@ private:
         &SimpleHierarchicalScenarioComponent::remove>(this);
   }
 
+#if defined(SCORE_SERIALIZABLE_COMPONENTS)
   template <typename elt_t>
   void add(elt_t& element)
   {
@@ -162,6 +163,10 @@ private:
 
   template <typename elt_t>
   void add(elt_t& element, score::not_serializable_tag)
+#else
+  template <typename elt_t>
+  void add(elt_t& element)
+#endif
   {
     // We can just create a new component directly
     using map_t = MatchingComponent<elt_t, true>;
@@ -335,6 +340,7 @@ private:
   template <typename elt_t>
   void add(elt_t& element)
   {
+#if defined(SCORE_SERIALIZABLE_COMPONENTS)
     using component_t = typename MatchingComponent<elt_t, true>::type;
     constexpr bool is_serializable
         = std::is_base_of<score::SerializableComponent, component_t>::value;
@@ -366,6 +372,7 @@ private:
       }
     }
     else
+#endif
     {
       // We can just create a new component directly
       using map_t = MatchingComponent<elt_t, true>;

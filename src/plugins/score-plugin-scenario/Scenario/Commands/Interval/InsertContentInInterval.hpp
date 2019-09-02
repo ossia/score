@@ -7,6 +7,7 @@
 #include <score/model/path/Path.hpp>
 
 #include <QJsonObject>
+#include <score/tools/std/HashMap.hpp>
 
 struct DataStreamInput;
 struct DataStreamOutput;

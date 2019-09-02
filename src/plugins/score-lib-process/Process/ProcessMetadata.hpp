@@ -3,6 +3,7 @@
 #include <Process/ProcessFlags.hpp>
 
 #include <score/plugins/SerializableInterface.hpp>
+#include <score/serialization/VisitorCommon.hpp>
 #include <score/tools/Metadata.hpp>
 #include <score/tools/std/Optional.hpp>
 

@@ -2,6 +2,7 @@
 #include <Curve/Segment/CurveSegmentModel.hpp>
 
 #include <score/serialization/VisitorInterface.hpp>
+#include <score/serialization/VisitorCommon.hpp>
 
 #include <ossia/detail/flat_map.hpp>
 

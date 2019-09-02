@@ -18,6 +18,7 @@
 #include <score/model/EntityMap.hpp>
 #include <score/model/path/ObjectPath.hpp>
 #include <score/model/path/PathSerialization.hpp>
+#include <score/model/EntitySerialization.hpp>
 #include <score/plugins/documentdelegate/DocumentDelegateModel.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/serialization/JSONVisitor.hpp>

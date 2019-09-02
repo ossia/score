@@ -20,7 +20,9 @@
 #include <score/plugins/InterfaceList.hpp>
 #include <score/plugins/StringFactoryKey.hpp>
 #include <score/plugins/StringFactoryKeySerialization.hpp>
+#include <score/model/EntitySerialization.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
+#include <score/plugins/SerializableHelpers.hpp>
 #include <score/tools/IdentifierGeneration.hpp>
 
 #include <algorithm>

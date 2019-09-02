@@ -9,6 +9,7 @@
 #include <ossia/dataflow/execution_state.hpp>
 #include <ossia/dataflow/graph/graph_interface.hpp>
 #include <ossia/dataflow/graph_node.hpp>
+#include <ossia/dataflow/graph_edge.hpp>
 #include <ossia/editor/state/destination_qualifiers.hpp>
 
 namespace Execution

@@ -9,6 +9,7 @@
 
 #include <QJsonArray>
 #include <QJsonDocument>
+#include <QJsonObject>
 #include <QJsonValue>
 #include <QPoint>
 #include <QTransform>

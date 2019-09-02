@@ -3,7 +3,7 @@
 #include "JamomaDeviceLoader.hpp"
 
 #include <score/tools/std/StringHash.hpp>
-
+#include <ossia/network/base/node_attributes.hpp>
 #include <ossia/network/domain/domain.hpp>
 
 #include <QFile>

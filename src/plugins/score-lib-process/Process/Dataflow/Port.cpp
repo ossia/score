@@ -7,6 +7,7 @@
 #include <Process/Dataflow/PortListWidget.hpp>
 #include <Control/Widgets.hpp>
 #include <score/model/path/PathSerialization.hpp>
+#include <score/plugins/SerializableHelpers.hpp>
 
 #include <ossia-qt/value_metatypes.hpp>
 
@@ -18,7 +19,10 @@ W_OBJECT_IMPL(Process::ControlInlet)
 W_OBJECT_IMPL(Process::ControlOutlet)
 namespace Process
 {
-
+MODEL_METADATA_IMPL_CPP(Inlet)
+MODEL_METADATA_IMPL_CPP(Outlet)
+MODEL_METADATA_IMPL_CPP(ControlInlet)
+MODEL_METADATA_IMPL_CPP(ControlOutlet)
 Port::~Port() {}
 
 Port::Port(Id<Port> c, const QString& name, QObject* parent)

@@ -8,7 +8,7 @@
 #include <score/tools/Metadata.hpp>
 
 #include <ossia/detail/any_map.hpp>
-#include <ossia/network/base/node_attributes.hpp>
+//#include <ossia/network/base/node_attributes.hpp>
 #include <ossia/network/common/parameter_properties.hpp>
 
 #include <QString>

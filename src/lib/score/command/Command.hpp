@@ -4,9 +4,12 @@
 #include <QByteArray>
 #include <QString>
 
+struct DataStreamInput;
+struct DataStreamOutput;
 namespace score
 {
 struct ApplicationContext;
+struct DocumentContext;
 /**
  * @brief The Command class
  *

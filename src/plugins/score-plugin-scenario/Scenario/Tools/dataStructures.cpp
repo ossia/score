@@ -11,6 +11,8 @@
 #include <score/application/ApplicationContext.hpp>
 #include <score/model/Identifier.hpp>
 #include <score/model/path/PathSerialization.hpp>
+#include <score/model/EntitySerialization.hpp>
+#include <score/plugins/SerializableHelpers.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
 
 

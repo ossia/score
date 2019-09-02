@@ -12,7 +12,7 @@
 #include <QLabel>
 #include <QTreeView>
 #include <QVBoxLayout>
-
+#include <nano_observer.hpp>
 #include <verdigris>
 class QToolButton;
 class QGraphicsSceneMouseEvent;

@@ -5,6 +5,7 @@
 #include <score/plugins/Interface.hpp>
 #include <score/plugins/StringFactoryKey.hpp>
 #include <score/tools/std/HashMap.hpp>
+#include <score/tools/SafeCast.hpp>
 #include <score/tools/std/IndirectContainer.hpp>
 
 

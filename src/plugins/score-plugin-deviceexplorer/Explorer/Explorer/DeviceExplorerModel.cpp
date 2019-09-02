@@ -35,6 +35,7 @@
 
 #include <ossia/editor/state/destination_qualifiers.hpp>
 #include <ossia/network/domain/domain.hpp>
+#include <ossia/network/base/node_attributes.hpp>
 
 #include <QAbstractProxyModel>
 #include <QApplication>

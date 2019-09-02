@@ -4,8 +4,6 @@
 
 #include <score/tools/std/HashMap.hpp>
 
-#include <ossia/dataflow/graph_edge.hpp>
-#include <ossia/dataflow/port.hpp>
 #include <ossia/detail/small_vector.hpp>
 
 #include <QMetaObject>

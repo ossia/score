@@ -11,6 +11,7 @@ class IntervalRawPtrComponent;
 
 namespace score
 {
+#if defined(SCORE_SERIALIZABLE_COMPONENTS)
 template <>
 struct is_component_serializable<Execution::IntervalRawPtrComponentBase>
 {
@@ -22,6 +23,7 @@ struct is_component_serializable<Execution::IntervalRawPtrComponent>
 {
   using type = score::not_serializable_tag;
 };
+#endif
 }
 
 namespace Execution

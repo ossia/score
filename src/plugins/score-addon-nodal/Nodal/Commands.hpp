@@ -6,6 +6,7 @@
 #include <Dataflow/Commands/CableHelpers.hpp>
 #include <Process/ProcessList.hpp>
 #include <score/application/ApplicationContext.hpp>
+#include <score/plugins/SerializableHelpers.hpp>
 #include <score/document/DocumentContext.hpp>
 
 namespace Nodal
