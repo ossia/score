@@ -130,7 +130,7 @@ void SelectionStack::deselect()
 void SelectionStack::deselectObjects(const Selection& toDeselect)
 {
   Selection s = currentSelection();
-  for(auto& obj : toDeselect)
+  for (auto& obj : toDeselect)
   {
     s.removeAll(obj);
   }

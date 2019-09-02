@@ -1,5 +1,6 @@
 #pragma once
 #include <score/tools/opaque/OpaqueString.hpp>
+
 #include <score_lib_base_export.h>
 // TODO rename file.
 template <typename Tag>
@@ -34,7 +35,7 @@ struct hash<StringKey<T>>
 {
   std::size_t operator()(const StringKey<T>& kagi) const noexcept
   {
-    return std::hash<OpaqueString>()(static_cast<const OpaqueString&>(kagi));
+    return std::hash<std::string>()(kagi.toString());
   }
 };
 }

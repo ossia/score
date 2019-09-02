@@ -36,6 +36,7 @@
 #include <QScopedPointer>
 
 #include <score_lib_base_export.h>
+
 #include <verdigris>
 
 class JSEditPrivate;
@@ -86,11 +87,10 @@ public:
 
 public:
   void editingFinished(QString arg_1)
-      E_SIGNAL(SCORE_LIB_BASE_EXPORT, editingFinished, arg_1)
-  void focused() E_SIGNAL(SCORE_LIB_BASE_EXPORT, focused)
+      E_SIGNAL(SCORE_LIB_BASE_EXPORT, editingFinished, arg_1) void focused()
+          E_SIGNAL(SCORE_LIB_BASE_EXPORT, focused)
 
-public:
-  void updateSidebar();
+              public : void updateSidebar();
   W_SLOT(updateSidebar);
   void
   mark(const QString& str, Qt::CaseSensitivity sens = Qt::CaseInsensitive);

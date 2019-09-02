@@ -15,6 +15,5 @@ any_serializer::~any_serializer() {}
 void any_serializer::cast_error(const char* err)
 {
   qWarning() << "Could not read boost::any" << err;
-
 }
 }

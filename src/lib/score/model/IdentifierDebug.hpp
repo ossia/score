@@ -1,6 +1,7 @@
 #pragma once
-#include <QDebug>
 #include <score/model/Identifier.hpp>
+
+#include <QDebug>
 
 template <typename tag>
 QDebug operator<<(QDebug dbg, const Id<tag>& c)

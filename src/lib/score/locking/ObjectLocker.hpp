@@ -4,9 +4,8 @@
 #include <QByteArray>
 #include <QObject>
 
-#include <verdigris>
-
 #include <vector>
+#include <verdigris>
 namespace score
 {
 /**

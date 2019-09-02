@@ -151,12 +151,14 @@ static bool isBlacklisted(const QString& str)
   auto whitelist = pluginsWhitelist();
   auto blacklist = pluginsBlacklist();
 
-  if(!whitelist.isEmpty())
+  if (!whitelist.isEmpty())
   {
-    if(ossia::none_of(whitelist, [&] (const QString& wl) { return str.contains(wl); }))
+    if (ossia::none_of(
+            whitelist, [&](const QString& wl) { return str.contains(wl); }))
       return true;
   }
-  return ossia::any_of(blacklist, [&] (const QString& bl) { return str.contains(bl); });
+  return ossia::any_of(
+      blacklist, [&](const QString& bl) { return str.contains(bl); });
 }
 
 std::pair<score::Plugin_QtInterface*, PluginLoadingError> loadPlugin(

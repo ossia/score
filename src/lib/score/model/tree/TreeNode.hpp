@@ -1,6 +1,7 @@
 #pragma once
-#include <ossia/detail/algorithms.hpp>
 #include <score/tools/Debug.hpp>
+
+#include <ossia/detail/algorithms.hpp>
 
 #include <list>
 #include <vector>

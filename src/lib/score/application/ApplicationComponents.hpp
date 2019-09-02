@@ -4,10 +4,9 @@
 #include <score/plugins/Addon.hpp>
 #include <score/plugins/Interface.hpp>
 #include <score/plugins/StringFactoryKey.hpp>
-#include <score/tools/std/HashMap.hpp>
 #include <score/tools/SafeCast.hpp>
+#include <score/tools/std/HashMap.hpp>
 #include <score/tools/std/IndirectContainer.hpp>
-
 
 #include <score_lib_base_export.h>
 

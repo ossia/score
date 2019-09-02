@@ -2,7 +2,6 @@
 #include <score/command/SettingsCommand.hpp>
 #include <score/plugins/documentdelegate/plugin/DocumentPlugin.hpp>
 
-
 #include <score_lib_base_export.h>
 namespace score
 {

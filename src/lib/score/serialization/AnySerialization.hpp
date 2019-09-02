@@ -36,17 +36,23 @@ struct any_serializer_t final : public any_serializer
 {
   void apply(DataStream::Serializer& s, const ossia::any& val) override
   {
-    try {
+    try
+    {
       s.stream() << ossia::any_cast<T>(val);
-    } catch(const std::exception& e) {
+    }
+    catch (const std::exception& e)
+    {
       cast_error(e.what());
     }
   }
   void apply(JSONValue::Serializer& s, const ossia::any& val) override
   {
-    try {
+    try
+    {
       s.val = toJsonValue(ossia::any_cast<T>(val));
-    } catch(const std::exception& e) {
+    }
+    catch (const std::exception& e)
+    {
       cast_error(e.what());
     }
   }

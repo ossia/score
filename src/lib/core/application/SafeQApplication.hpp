@@ -2,9 +2,8 @@
 #include <QApplication>
 #include <QMessageBox>
 
-#include <verdigris>
-
 #include <cstdio>
+#include <verdigris>
 
 #ifdef __APPLE__
 #endif

@@ -1,8 +1,10 @@
 #pragma once
 #include <QString>
-#include <string>
-#include <cstdint>
+
 #include <score_lib_base_export.h>
+
+#include <cstdint>
+#include <string>
 
 class JSONObject;
 namespace score
@@ -27,22 +29,24 @@ public:
   constexpr uuid() noexcept : data{{}} {}
 
   constexpr uuid(const uuid& other) noexcept
-    : data{other.data[0],
-           other.data[1],
-           other.data[2],
-           other.data[3],
-           other.data[4],
-           other.data[5],
-           other.data[6],
-           other.data[7],
-           other.data[8],
-           other.data[9],
-           other.data[10],
-           other.data[11],
-           other.data[12],
-           other.data[13],
-           other.data[14],
-           other.data[15]} {}
+      : data{other.data[0],
+             other.data[1],
+             other.data[2],
+             other.data[3],
+             other.data[4],
+             other.data[5],
+             other.data[6],
+             other.data[7],
+             other.data[8],
+             other.data[9],
+             other.data[10],
+             other.data[11],
+             other.data[12],
+             other.data[13],
+             other.data[14],
+             other.data[15]}
+  {
+  }
 
   constexpr uuid(uint8_t* other) noexcept
       : data{other[0],
@@ -67,7 +71,7 @@ public:
   constexpr auto begin() noexcept { return &data[0]; }
   constexpr auto end() noexcept { return &data[0] + 16; }
 
-  constexpr auto begin() const noexcept { return  &data[0]; }
+  constexpr auto begin() const noexcept { return &data[0]; }
   constexpr auto end() const noexcept { return &data[0] + 16; }
 
   constexpr size_type size() const noexcept { return static_size(); }

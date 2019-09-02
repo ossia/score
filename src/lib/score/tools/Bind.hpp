@@ -1,5 +1,6 @@
 #pragma once
 #include <qobjectdefs.h>
+
 #include <utility>
 
 /**
@@ -32,7 +33,7 @@ bind(T& t, const Property&, const U* tgt, Slot&& slot, Args&&... args)
       std::forward<Args>(args)...);
 }
 
-template<typename Entities, typename Presenter>
+template <typename Entities, typename Presenter>
 void bind(const Entities& model, Presenter& presenter)
 {
   for (auto& entity : model)

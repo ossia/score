@@ -6,7 +6,6 @@
 #include <score/plugins/StringFactoryKeySerialization.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
 
-
 template <typename T>
 class Reader;
 template <typename T>

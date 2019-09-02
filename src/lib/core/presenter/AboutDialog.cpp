@@ -3,10 +3,11 @@
 #include <score/widgets/Pixmap.hpp>
 
 #include <QGuiApplication>
-#include <QScreen>
-#include <QUrl>
 #include <QListWidget>
 #include <QPlainTextEdit>
+#include <QScreen>
+#include <QUrl>
+
 #include <score_git_info.hpp>
 #if __has_include(<score_licenses.hpp>)
 #include <score_licenses.hpp>
@@ -15,6 +16,7 @@
 #include <QDate>
 #include <QDesktopServices>
 #include <QPainter>
+
 #include <map>
 namespace score
 {
@@ -186,12 +188,9 @@ AboutDialog::AboutDialog(QWidget* parent)
   //! reset the _score_license_written CMake variable to zero
   //! (it will then add the missing license which have been added in a more
   //! recent commit - see score/src/lib/CMakeLists.txt at the end
-  map["phantomstyle"]
-      = License{"https://github.com/randrew/phantomstyle",
-                phantomstyle_LICENSE};
-  map["hsluvc"]
-      = License{"",
-      hsluv_LICENSE};
+  map["phantomstyle"] = License{"https://github.com/randrew/phantomstyle",
+                                phantomstyle_LICENSE};
+  map["hsluvc"] = License{"", hsluv_LICENSE};
 
   // software list
   auto softwareList = new QListWidget{this};
@@ -306,14 +305,14 @@ void AboutDialog::paintEvent(QPaintEvent* event)
   // write version and commit
   {
     auto version_text = QStringLiteral("Version: %1.%2.%3")
-        .arg(SCORE_VERSION_MAJOR)
-        .arg(SCORE_VERSION_MINOR)
-        .arg(SCORE_VERSION_PATCH);
-    if (std::string_view(SCORE_VERSION_EXTRA).size() != 0) {
+                            .arg(SCORE_VERSION_MAJOR)
+                            .arg(SCORE_VERSION_MINOR)
+                            .arg(SCORE_VERSION_PATCH);
+    if (std::string_view(SCORE_VERSION_EXTRA).size() != 0)
+    {
       version_text += QStringLiteral("-%4").arg(SCORE_VERSION_EXTRA);
     }
-    version_text += QStringLiteral(" “%5”\n")
-        .arg(SCORE_CODENAME);
+    version_text += QStringLiteral(" “%5”\n").arg(SCORE_CODENAME);
 
     QString commit{GIT_COMMIT};
 

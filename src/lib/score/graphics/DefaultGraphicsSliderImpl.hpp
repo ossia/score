@@ -1,17 +1,18 @@
 #pragma once
-#include <score/widgets/SignalUtils.hpp>
-#include <score/widgets/DoubleSpinBox.hpp>
 #include <score/model/Skin.hpp>
+#include <score/widgets/DoubleSpinBox.hpp>
+#include <score/widgets/SignalUtils.hpp>
 
 #include <ossia/detail/math.hpp>
 
 #include <QGraphicsSceneMouseEvent>
 #include <QKeyEvent>
 #include <QPainter>
-#include <QTimer>
 #include <QPointer>
+#include <QTimer>
 
 #include <score_lib_base_export.h>
+
 #include <verdigris>
 namespace score
 {
@@ -46,11 +47,9 @@ struct DefaultGraphicsSliderImpl
 #endif
     painter->setPen(skin.Base4.lighter180.pen1);
     painter->setFont(skin.SansFontSmall);
-    const auto textrect = brect.adjusted(2, srect.height() + 3 + dpi_adjust, -2, -1);
-    painter->drawText(
-        textrect,
-        text,
-        QTextOption(Qt::AlignCenter));
+    const auto textrect
+        = brect.adjusted(2, srect.height() + 3 + dpi_adjust, -2, -1);
+    painter->drawText(textrect, text, QTextOption(Qt::AlignCenter));
 
     // Draw handle
     painter->fillRect(self.handleRect(), skin.Base4);
@@ -116,7 +115,8 @@ struct DefaultGraphicsSliderImpl
       if (self.m_grab)
       {
         const auto srect = self.sliderRect();
-        double curPos = ossia::clamp(event->pos().x(), 0., srect.width()) / srect.width();
+        double curPos = ossia::clamp(event->pos().x(), 0., srect.width())
+                        / srect.width();
         if (curPos != self.m_value)
         {
           self.m_value = curPos;
@@ -137,7 +137,7 @@ struct DefaultGraphicsSliderImpl
   template <typename T>
   static void contextMenuEvent(T& self, QPointF pos)
   {
-    QTimer::singleShot(0, [&,pos] {
+    QTimer::singleShot(0, [&, pos] {
       auto w = new DoubleSpinboxWithEnter;
       self.spinbox = w;
       w->setRange(self.min, self.max);
@@ -163,10 +163,7 @@ struct DefaultGraphicsSliderImpl
           });
 
       QObject::connect(
-          w,
-          &DoubleSpinboxWithEnter::editingFinished,
-          &self,
-          [obj, &self] {
+          w, &DoubleSpinboxWithEnter::editingFinished, &self, [obj, &self] {
             if (self.spinbox)
             {
               self.sliderReleased();

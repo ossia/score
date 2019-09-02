@@ -4,9 +4,9 @@
 
 #include "StateMachineUtils.hpp"
 
-#include <QGuiApplication>
 #include <QAbstractState>
 #include <QFinalState>
+#include <QGuiApplication>
 #include <qcoreevent.h>
 #include <qnamespace.h>
 

@@ -5,6 +5,7 @@
 #include <QStack>
 
 #include <tsl/hopscotch_map.h>
+
 #include <verdigris>
 
 class IdentifiedObjectAbstract;
@@ -47,10 +48,16 @@ public:
   void pushNewSelection(const Selection& s)
       E_SIGNAL(SCORE_LIB_BASE_EXPORT, pushNewSelection, s)
 
-  void currentSelectionChanged(const Selection& old, const Selection& current)
-      E_SIGNAL(SCORE_LIB_BASE_EXPORT, currentSelectionChanged, old, current)
+          void currentSelectionChanged(
+              const Selection& old,
+              const Selection& current)
+              E_SIGNAL(
+                  SCORE_LIB_BASE_EXPORT,
+                  currentSelectionChanged,
+                  old,
+                  current)
 
-  void prune(IdentifiedObjectAbstract* p);
+                  void prune(IdentifiedObjectAbstract* p);
   W_INVOKABLE(prune)
 
 private:

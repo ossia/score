@@ -3,8 +3,10 @@
 #include <score/tools/Version.hpp>
 
 #include <QJsonObject>
-#include <vector>
+
 #include <score_lib_base_export.h>
+
+#include <vector>
 
 namespace score
 {

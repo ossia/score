@@ -29,7 +29,7 @@ struct SCORE_LIB_BASE_EXPORT PanelStatus
       QString name,
       const QKeySequence& sc);
 
-  const bool shown;              // Controls if it is shown by default.
+  const bool shown; // Controls if it is shown by default.
   const bool fixed;
   const Qt::DockWidgetArea dock; // Which dock.
   const int priority;            // Higher priority will come up first.

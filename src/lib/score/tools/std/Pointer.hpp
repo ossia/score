@@ -1,5 +1,6 @@
 #pragma once
 #include <score/tools/Debug.hpp>
+
 #include <memory>
 
 #ifdef SCORE_DEBUG

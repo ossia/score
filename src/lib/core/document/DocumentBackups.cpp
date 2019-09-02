@@ -6,6 +6,7 @@
 
 #include <core/application/OpenDocumentsFile.hpp>
 
+#include <QApplication>
 #include <QFile>
 #include <QMap>
 #include <QMessageBox>
@@ -13,7 +14,6 @@
 #include <QSettings>
 #include <QString>
 #include <QVariant>
-#include <QApplication>
 
 bool score::DocumentBackups::canRestoreDocuments()
 {

@@ -6,7 +6,9 @@
 #include <score/selection/SelectionStack.hpp>
 
 #include <core/presenter/DocumentManager.hpp>
+
 #include <ossia/detail/algorithms.hpp>
+
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(score::CustomActionCondition)
 namespace score
@@ -142,12 +144,12 @@ void Action::updateTexts()
   QString clearText = m_text;
   clearText.remove('&');
   clearText.append(QString(" (%1)").arg(m_impl->shortcut().toString()));
-  if(m_impl->toolTip().isEmpty())
+  if (m_impl->toolTip().isEmpty())
     m_impl->setToolTip(clearText);
-  if(m_impl->whatsThis().isEmpty())
-     m_impl->setWhatsThis(clearText);
-  if(m_impl->statusTip().isEmpty())
-     m_impl->setStatusTip(clearText);
+  if (m_impl->whatsThis().isEmpty())
+    m_impl->setWhatsThis(clearText);
+  if (m_impl->statusTip().isEmpty())
+    m_impl->setStatusTip(clearText);
 }
 
 DocumentActionCondition::~DocumentActionCondition() {}

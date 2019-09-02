@@ -1,6 +1,8 @@
 #pragma once
 #include <QLineEdit>
+
 #include <score_lib_base_export.h>
+
 #include <verdigris>
 
 namespace score

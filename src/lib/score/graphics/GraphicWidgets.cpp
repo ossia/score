@@ -1,16 +1,16 @@
 #include "GraphicWidgets.hpp"
 
 #include <score/actions/ActionManager.hpp>
-#include <score/graphics/GraphicsSliderBaseImpl.hpp>
-#include <score/graphics/DefaultGraphicsSliderImpl.hpp>
 #include <score/graphics/DefaultGraphicsKnobImpl.hpp>
+#include <score/graphics/DefaultGraphicsSliderImpl.hpp>
+#include <score/graphics/GraphicsSliderBaseImpl.hpp>
 #include <score/model/Skin.hpp>
 #include <score/tools/ForEach.hpp>
 
-#include <QGraphicsScene>
 #include <QGraphicsProxyWidget>
-#include <QWidget>
+#include <QGraphicsScene>
 #include <QListView>
+#include <QWidget>
 
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(score::QGraphicsPixmapButton)
@@ -76,49 +76,52 @@ QGraphicsSelectablePixmapToggle::QGraphicsSelectablePixmapToggle(
 void QGraphicsSelectablePixmapToggle::toggle()
 {
   m_toggled = !m_toggled;
-  setPixmap(m_toggled ?
-                (m_selected ? m_pressed_selected : m_pressed)
-              : (m_selected ? m_released_selected : m_released));
+  setPixmap(
+      m_toggled ? (m_selected ? m_pressed_selected : m_pressed)
+                : (m_selected ? m_released_selected : m_released));
 }
 
 void QGraphicsSelectablePixmapToggle::setSelected(bool selected)
 {
-  if(selected != m_selected)
+  if (selected != m_selected)
   {
     m_selected = selected;
-    setPixmap(m_toggled ?
-                (m_selected ? m_pressed_selected : m_pressed)
-              : (m_selected ? m_released_selected : m_released));
+    setPixmap(
+        m_toggled ? (m_selected ? m_pressed_selected : m_pressed)
+                  : (m_selected ? m_released_selected : m_released));
   }
 }
 
 void QGraphicsSelectablePixmapToggle::setState(bool toggled)
 {
-  if(toggled != m_toggled)
+  if (toggled != m_toggled)
   {
     m_toggled = toggled;
-    setPixmap(m_toggled ?
-                (m_selected ? m_pressed_selected : m_pressed)
-              : (m_selected ? m_released_selected : m_released));
+    setPixmap(
+        m_toggled ? (m_selected ? m_pressed_selected : m_pressed)
+                  : (m_selected ? m_released_selected : m_released));
   }
 }
 
-void QGraphicsSelectablePixmapToggle::mousePressEvent(QGraphicsSceneMouseEvent* event)
+void QGraphicsSelectablePixmapToggle::mousePressEvent(
+    QGraphicsSceneMouseEvent* event)
 {
   m_toggled = !m_toggled;
-  setPixmap(m_toggled ?
-                (m_selected ? m_pressed_selected : m_pressed)
-              : (m_selected ? m_released_selected : m_released));
+  setPixmap(
+      m_toggled ? (m_selected ? m_pressed_selected : m_pressed)
+                : (m_selected ? m_released_selected : m_released));
   toggled(m_toggled);
   event->accept();
 }
 
-void QGraphicsSelectablePixmapToggle::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
+void QGraphicsSelectablePixmapToggle::mouseMoveEvent(
+    QGraphicsSceneMouseEvent* event)
 {
   event->accept();
 }
 
-void QGraphicsSelectablePixmapToggle::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
+void QGraphicsSelectablePixmapToggle::mouseReleaseEvent(
+    QGraphicsSceneMouseEvent* event)
 {
   event->accept();
 }
@@ -144,7 +147,7 @@ void QGraphicsPixmapToggle::toggle()
 
 void QGraphicsPixmapToggle::setState(bool toggled)
 {
-  if(toggled != m_toggled)
+  if (toggled != m_toggled)
   {
     m_toggled = toggled;
     setPixmap(m_toggled ? m_pressed : m_released);
@@ -170,11 +173,13 @@ void QGraphicsPixmapToggle::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 }
 
 template void QGraphicsSliderBase<QGraphicsSlider>::setRect(const QRectF& r);
-template void QGraphicsSliderBase<QGraphicsLogSlider>::setRect(const QRectF& r);
-template void QGraphicsSliderBase<QGraphicsIntSlider>::setRect(const QRectF& r);
+template void
+QGraphicsSliderBase<QGraphicsLogSlider>::setRect(const QRectF& r);
+template void
+QGraphicsSliderBase<QGraphicsIntSlider>::setRect(const QRectF& r);
 
 QGraphicsSlider::QGraphicsSlider(QGraphicsItem* parent)
-  : QGraphicsSliderBase{parent}
+    : QGraphicsSliderBase{parent}
 {
 }
 
@@ -227,13 +232,7 @@ void QGraphicsSlider::paint(
       widget);
 }
 
-
-
-
-
-
-QGraphicsKnob::QGraphicsKnob(QGraphicsItem* parent)
-  : QGraphicsItem{parent}
+QGraphicsKnob::QGraphicsKnob(QGraphicsItem* parent) : QGraphicsItem{parent}
 {
   this->setAcceptedMouseButtons(Qt::LeftButton | Qt::RightButton);
 }
@@ -254,7 +253,6 @@ double QGraphicsKnob::value() const
 {
   return m_value;
 }
-
 
 void QGraphicsKnob::mousePressEvent(QGraphicsSceneMouseEvent* event)
 {
@@ -299,7 +297,6 @@ void QGraphicsKnob::paint(
       widget);
 }
 
-
 QGraphicsLogSlider::QGraphicsLogSlider(QGraphicsItem* parent)
     : QGraphicsSliderBase{parent}
 {
@@ -318,10 +315,14 @@ double QGraphicsLogSlider::value() const
 }
 
 double QGraphicsLogSlider::map(double v) const noexcept
-{ return ossia::normalized_to_log(min, max-min, v); }
+{
+  return ossia::normalized_to_log(min, max - min, v);
+}
 
 double QGraphicsLogSlider::unmap(double v) const noexcept
-{ return ossia::log_to_normalized(min, max-min, v); }
+{
+  return ossia::log_to_normalized(min, max - min, v);
+}
 
 void QGraphicsLogSlider::mousePressEvent(QGraphicsSceneMouseEvent* event)
 {
@@ -338,7 +339,8 @@ void QGraphicsLogSlider::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
   DefaultGraphicsSliderImpl::mouseReleaseEvent(*this, event);
 }
 
-void QGraphicsLogSlider::contextMenuEvent(QGraphicsSceneContextMenuEvent* event)
+void QGraphicsLogSlider::contextMenuEvent(
+    QGraphicsSceneContextMenuEvent* event)
 {
   event->accept();
 }
@@ -356,14 +358,14 @@ void QGraphicsLogSlider::paint(
   DefaultGraphicsSliderImpl::paint(
       *this,
       score::Skin::instance(),
-      QString::number(ossia::normalized_to_log(min, max - min, value()), 'f', 3),
+      QString::number(
+          ossia::normalized_to_log(min, max - min, value()), 'f', 3),
       painter,
       widget);
 }
 
-
 QGraphicsLogKnob::QGraphicsLogKnob(QGraphicsItem* parent)
-  : QGraphicsItem{parent}
+    : QGraphicsItem{parent}
 {
   this->setAcceptedMouseButtons(Qt::LeftButton | Qt::RightButton);
 }
@@ -386,10 +388,14 @@ double QGraphicsLogKnob::value() const
 }
 
 double QGraphicsLogKnob::map(double v) const noexcept
-{ return ossia::normalized_to_log(min, max-min, v); }
+{
+  return ossia::normalized_to_log(min, max - min, v);
+}
 
 double QGraphicsLogKnob::unmap(double v) const noexcept
-{ return ossia::log_to_normalized(min, max-min, v); }
+{
+  return ossia::log_to_normalized(min, max - min, v);
+}
 
 void QGraphicsLogKnob::mousePressEvent(QGraphicsSceneMouseEvent* event)
 {
@@ -429,13 +435,11 @@ void QGraphicsLogKnob::paint(
   DefaultGraphicsKnobImpl::paint(
       *this,
       score::Skin::instance(),
-      QString::number(ossia::normalized_to_log(min, max - min, value()), 'f', 3),
+      QString::number(
+          ossia::normalized_to_log(min, max - min, value()), 'f', 3),
       painter,
       widget);
 }
-
-
-
 
 QGraphicsIntSlider::QGraphicsIntSlider(QGraphicsItem* parent)
     : QGraphicsSliderBase{parent}
@@ -536,27 +540,19 @@ void QGraphicsIntSlider::paint(
 
 double QGraphicsIntSlider::getHandleX() const
 {
-  return sliderRect().width()
-               * ((double(m_value) - m_min) / (m_max - m_min));
+  return sliderRect().width() * ((double(m_value) - m_min) / (m_max - m_min));
 }
 
-
-
-struct SCORE_LIB_BASE_EXPORT ComboBoxWithEnter final
-    : public QComboBox
+struct SCORE_LIB_BASE_EXPORT ComboBoxWithEnter final : public QComboBox
 {
   W_OBJECT(ComboBoxWithEnter)
 
 public:
-  ComboBoxWithEnter(QWidget* parent = nullptr):
-    QComboBox{parent}
-  {
-  }
+  ComboBoxWithEnter(QWidget* parent = nullptr) : QComboBox{parent} {}
 
   void editingFinished() W_SIGNAL(editingFinished)
 
-private:
-  bool eventFilter(QObject* watched, QEvent* event) override
+      private : bool eventFilter(QObject* watched, QEvent* event) override
   {
     if (event->type() == QEvent::FocusOut)
     {
@@ -594,12 +590,12 @@ private:
   {
     QComboBox::focusOutEvent(event);
     auto lv = findChildren<QListView*>().front();
-    if(lv)
+    if (lv)
     {
       lv->installEventFilter(this);
       QTimer::singleShot(100, this, [this] {
         auto lv = findChildren<QListView*>().front();
-        if(!lv->hasFocus())
+        if (!lv->hasFocus())
         {
           editingFinished();
         }
@@ -612,14 +608,14 @@ private:
   }
 };
 
-
 struct DefaultComboImpl
 {
   static inline double origValue{};
   static inline double currentDelta{};
   static inline QRectF currentGeometry{};
 
-  static void mousePressEvent(QGraphicsCombo& self, QGraphicsSceneMouseEvent* event)
+  static void
+  mousePressEvent(QGraphicsCombo& self, QGraphicsSceneMouseEvent* event)
   {
     currentDelta = 0.;
     if (event->button() == Qt::LeftButton)
@@ -633,31 +629,32 @@ struct DefaultComboImpl
     event->accept();
   }
 
-  static void mouseMoveEvent(QGraphicsCombo& self, QGraphicsSceneMouseEvent* event)
+  static void
+  mouseMoveEvent(QGraphicsCombo& self, QGraphicsSceneMouseEvent* event)
   {
     if ((event->buttons() & Qt::LeftButton) && self.m_grab)
     {
       auto delta = (event->screenPos().y() - event->lastScreenPos().y());
       double ratio = qApp->keyboardModifiers() & Qt::CTRL ? 0.2 : 1.;
-      if(std::abs(delta) < 500)
+      if (std::abs(delta) < 500)
       {
         currentDelta += ratio * delta;
       }
 
       const double max = currentGeometry.height();
 
-      if(event->screenPos().y() <= 0)
+      if (event->screenPos().y() <= 0)
         QCursor::setPos(QPoint(event->screenPos().x(), max));
-      else if(event->screenPos().y() >= max)
+      else if (event->screenPos().y() >= max)
         QCursor::setPos(QPoint(event->screenPos().x(), 0));
 
       double v = origValue - currentDelta / max;
-      if(v <= 0.)
+      if (v <= 0.)
       {
         currentDelta = origValue * max;
         v = 0.;
       }
-      else if(v >= 1.)
+      else if (v >= 1.)
       {
         currentDelta = ((origValue - 1.) * max);
         v = 1.;
@@ -675,7 +672,8 @@ struct DefaultComboImpl
     event->accept();
   }
 
-  static void mouseReleaseEvent(QGraphicsCombo& self, QGraphicsSceneMouseEvent* event)
+  static void
+  mouseReleaseEvent(QGraphicsCombo& self, QGraphicsSceneMouseEvent* event)
   {
     if (event->button() == Qt::LeftButton)
     {
@@ -686,7 +684,7 @@ struct DefaultComboImpl
       {
         auto delta = (event->screenPos().y() - event->lastScreenPos().y());
         double ratio = qApp->keyboardModifiers() & Qt::CTRL ? 0.2 : 1.;
-        if(std::abs(delta) < 500)
+        if (std::abs(delta) < 500)
           currentDelta += ratio * delta;
 
         double v = origValue - currentDelta / currentGeometry.height();
@@ -746,8 +744,7 @@ struct DefaultComboImpl
   }
 };
 
-QGraphicsCombo::QGraphicsCombo(QGraphicsItem* parent)
-    : QGraphicsItem{parent}
+QGraphicsCombo::QGraphicsCombo(QGraphicsItem* parent) : QGraphicsItem{parent}
 {
   this->setAcceptedMouseButtons(Qt::LeftButton | Qt::RightButton);
 }
@@ -811,16 +808,10 @@ void QGraphicsCombo::paint(
   painter->setRenderHint(QPainter::Antialiasing, false);
   painter->setPen(skin.Base4.lighter180.pen1);
   painter->setFont(skin.Medium8Pt);
-  painter->drawText(
-      brect,
-      array[value()],
-      QTextOption(Qt::AlignCenter));
+  painter->drawText(brect, array[value()], QTextOption(Qt::AlignCenter));
 }
 
-
-
-QGraphicsEnum::QGraphicsEnum(QGraphicsItem* parent)
-    : QGraphicsItem{parent}
+QGraphicsEnum::QGraphicsEnum(QGraphicsItem* parent) : QGraphicsItem{parent}
 {
   this->setAcceptedMouseButtons(Qt::LeftButton);
   setRect({0, 0, 150, 45});
@@ -853,10 +844,10 @@ void QGraphicsEnum::mousePressEvent(QGraphicsSceneMouseEvent* event)
   const double w = m_smallRect.width() / columns;
   const double h = m_smallRect.height() / actual_rows;
 
-  for(int i = 0; i < array.size(); i++)
+  for (int i = 0; i < array.size(); i++)
   {
     QRectF rect{2. + col * w, 2. + row * h, w - 1., h - 1.};
-    if(rect.contains(event->pos()))
+    if (rect.contains(event->pos()))
     {
       m_clicking = i;
       update();
@@ -864,7 +855,7 @@ void QGraphicsEnum::mousePressEvent(QGraphicsSceneMouseEvent* event)
     }
 
     col++;
-    if(col == columns)
+    if (col == columns)
     {
       row++;
       col = 0;
@@ -883,7 +874,7 @@ void QGraphicsEnum::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 void QGraphicsEnum::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 {
   event->accept();
-  if(m_clicking != -1)
+  if (m_clicking != -1)
   {
     m_value = m_clicking;
     m_clicking = -1;
@@ -915,22 +906,22 @@ void QGraphicsEnum::paint(
   int row = 0;
   int col = 0;
   const double w = m_smallRect.width() / columns;
-  const double h = m_smallRect.height() / actual_rows ;
+  const double h = m_smallRect.height() / actual_rows;
 
   painter->setBrush(bg);
   int i = 0;
   QRectF clickRect{};
-  for(const QString& str : array)
+  for (const QString& str : array)
   {
     QRectF rect{2. + col * w, 2. + row * h, w - 1., h - 1.};
-    if(i == m_clicking)
+    if (i == m_clicking)
     {
       clickRect = rect;
       painter->setPen(currentText);
     }
     else
     {
-      painter->setPen( noPen );
+      painter->setPen(noPen);
       painter->drawRect(rect);
       painter->setPen(i != m_value ? text : currentText);
     }
@@ -938,7 +929,7 @@ void QGraphicsEnum::paint(
     painter->setFont(textFont);
     painter->drawText(rect, str, QTextOption(Qt::AlignCenter));
     col++;
-    if(col == columns)
+    if (col == columns)
     {
       row++;
       col = 0;
@@ -950,4 +941,3 @@ void QGraphicsEnum::paint(
 }
 
 W_OBJECT_IMPL(score::ComboBoxWithEnter)
-

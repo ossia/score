@@ -1,6 +1,5 @@
 #pragma once
 #include <score/plugins/StringFactoryKey.hpp>
-
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/serialization/JSONValueVisitor.hpp>
 template <typename U>

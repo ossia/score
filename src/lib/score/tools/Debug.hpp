@@ -1,19 +1,18 @@
 ﻿#pragma once
 
 #if defined(SCORE_DEBUG)
-  #include <QDebug>
+#include <QDebug>
 
-  #ifdef _WIN32
-    #include <debugapi.h>
-    #define DEBUG_BREAK DebugBreak()
-  #else
-    #include <csignal>
-    #define DEBUG_BREAK std::raise(SIGTRAP)
-  #endif
+#ifdef _WIN32
+#include <debugapi.h>
+#define DEBUG_BREAK DebugBreak()
 #else
-  #include <stdexcept>
+#include <csignal>
+#define DEBUG_BREAK std::raise(SIGTRAP)
 #endif
-
+#else
+#include <stdexcept>
+#endif
 
 #if defined(SCORE_DEBUG)
 #define SCORE_TODO                    \
@@ -46,12 +45,12 @@
 
 #else
 #define SCORE_TODO \
-  do                     \
-{                      \
+  do               \
+  {                \
   } while (0)
 #define SCORE_TODO_(Str) \
   do                     \
-{                      \
+  {                      \
   } while (0)
 #define SCORE_BREAKPOINT \
   do                     \

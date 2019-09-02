@@ -2,10 +2,12 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "MessagesPanel.hpp"
 
+#include <score/tools/Bind.hpp>
+
 #include <core/application/SafeQApplication.hpp>
+
 #include <ossia-qt/invoke.hpp>
 #include <ossia/detail/logger.hpp>
-#include <score/tools/Bind.hpp>
 
 #include <QDockWidget>
 #include <QFileInfo>
@@ -177,7 +179,8 @@ QWidget* MessagesPanelDelegate::widget()
 
 const score::PanelStatus& MessagesPanelDelegate::defaultPanelStatus() const
 {
-  static const score::PanelStatus status{false, false,
+  static const score::PanelStatus status{false,
+                                         false,
                                          Qt::LeftDockWidgetArea,
                                          0,
                                          QObject::tr("Messages"),

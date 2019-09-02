@@ -10,6 +10,7 @@
 #include <boost/graph/topological_sort.hpp>
 
 #include <QDebug>
+
 #include <chrono>
 #include <exception>
 #include <memory>
@@ -87,7 +88,7 @@ public:
       boost::topological_sort(m_graph, std::back_inserter(topo_order));
       for (auto e : topo_order)
       {
-        if(m_graph[e].addon)
+        if (m_graph[e].addon)
           m_sorted.push_back(*m_graph[e].addon);
       }
     }

@@ -37,11 +37,11 @@ QString RandomNameProvider::generateRandomName()
   return words.at(std::abs(
              score::random_id_generator::getRandomId() % (words.size() - 1)))
          + QString::number(
-               std::abs(score::random_id_generator::getRandomId() % 99))
+             std::abs(score::random_id_generator::getRandomId() % 99))
          + words.at(std::abs(
-               score::random_id_generator::getRandomId() % (words.size() - 1)))
+             score::random_id_generator::getRandomId() % (words.size() - 1)))
          + QString::number(
-               std::abs(score::random_id_generator::getRandomId() % 99));
+             std::abs(score::random_id_generator::getRandomId() % 99));
 }
 
 QString RandomNameProvider::generateShortRandomName()
@@ -51,5 +51,5 @@ QString RandomNameProvider::generateShortRandomName()
   return words.at(std::abs(
              score::random_id_generator::getRandomId() % (words.size() - 1)))
          + QString::number(
-               std::abs(score::random_id_generator::getRandomId() % 99));
+             std::abs(score::random_id_generator::getRandomId() % 99));
 }

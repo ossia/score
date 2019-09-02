@@ -26,8 +26,7 @@ public:
 
   void changed() E_SIGNAL(SCORE_LIB_BASE_EXPORT, changed)
 
-private:
-  QPointer<const IdentifiedObjectAbstract> m_obj{};
+      private : QPointer<const IdentifiedObjectAbstract> m_obj{};
 };
 
 struct SCORE_LIB_BASE_EXPORT FocusFacade

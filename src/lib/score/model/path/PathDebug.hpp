@@ -1,5 +1,6 @@
 #pragma once
 #include <score/model/path/Path.hpp>
+
 #include <QDebug>
 
 template <typename T>

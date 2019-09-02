@@ -1,6 +1,6 @@
 #pragma once
-#include <score/widgets/SignalUtils.hpp>
 #include <score/model/Skin.hpp>
+#include <score/widgets/SignalUtils.hpp>
 
 #include <ossia/detail/math.hpp>
 
@@ -8,8 +8,8 @@
 #include <QGraphicsSceneMouseEvent>
 #include <QGuiApplication>
 #include <QPainter>
-#include <QTimer>
 #include <QScreen>
+#include <QTimer>
 
 namespace score
 {
@@ -45,22 +45,22 @@ struct DefaultGraphicsKnobImpl
 
     const double valueSpan = -self.m_value * totalSpan;
     double textDelta = 0.;
-    if(rw >= 30.)
+    if (rw >= 30.)
     {
       painter->setPen(skin.Base4.main.pen3_solid_round_round);
       textDelta = -10;
     }
-    else if(rw >= 20.)
+    else if (rw >= 20.)
     {
       painter->setPen(skin.Base4.main.pen2_solid_round_round);
       textDelta = -9;
     }
-    else if(rw >= 10.)
+    else if (rw >= 10.)
     {
       painter->setPen(skin.Base4.main.pen1_5);
       textDelta = -8;
     }
-    else if(rw >= 5.)
+    else if (rw >= 5.)
     {
       painter->setPen(skin.Base4.main.pen1);
       textDelta = -7;
@@ -71,7 +71,7 @@ struct DefaultGraphicsKnobImpl
     const double r1 = 0.5 * rw;
     const double x0 = r.center().x();
     const double y0 = r.center().y();
-    const double theta = - 0.0174533 * (start + valueSpan) / 16.;
+    const double theta = -0.0174533 * (start + valueSpan) / 16.;
     const double x1 = r.center().x() + r1 * cos(theta);
     const double y1 = r.center().y() + r1 * sin(theta);
 
@@ -110,21 +110,22 @@ struct DefaultGraphicsKnobImpl
     {
       auto delta = (event->screenPos().y() - event->lastScreenPos().y());
       double ratio = qApp->keyboardModifiers() & Qt::CTRL ? .2 : 1.;
-      if(std::abs(delta) < 500)
+      if (std::abs(delta) < 500)
         currentDelta += ratio * delta;
 
-      if(event->screenPos().y() <= 0)
-        QCursor::setPos(QPoint(event->screenPos().x(), currentGeometry.height()));
-      else if(event->screenPos().y() >= currentGeometry.height())
+      if (event->screenPos().y() <= 0)
+        QCursor::setPos(
+            QPoint(event->screenPos().x(), currentGeometry.height()));
+      else if (event->screenPos().y() >= currentGeometry.height())
         QCursor::setPos(QPoint(event->screenPos().x(), 0));
 
       double v = origValue - currentDelta / currentGeometry.height();
-      if(v <= 0.)
+      if (v <= 0.)
       {
         currentDelta = origValue * currentGeometry.height();
         v = 0.;
       }
-      else if(v >= 1.)
+      else if (v >= 1.)
       {
         currentDelta = (origValue - 1.) * currentGeometry.height();
         v = 1.;
@@ -152,7 +153,7 @@ struct DefaultGraphicsKnobImpl
       {
         auto delta = (event->screenPos().y() - event->lastScreenPos().y());
         double ratio = qApp->keyboardModifiers() & Qt::CTRL ? .2 : 1.;
-        if(std::abs(delta) < 500)
+        if (std::abs(delta) < 500)
           currentDelta += ratio * delta;
 
         double v = origValue - currentDelta / currentGeometry.height();

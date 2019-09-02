@@ -1,8 +1,9 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "UndoListWidget.hpp"
-#include <score/tools/Bind.hpp>
+
 #include <score/command/Command.hpp>
+#include <score/tools/Bind.hpp>
 
 #include <core/command/CommandStack.hpp>
 

@@ -1,9 +1,8 @@
 #pragma once
-#include <QGridLayout>
 #include <QFormLayout>
-#include <QVBoxLayout>
-
+#include <QGridLayout>
 #include <QLabel>
+#include <QVBoxLayout>
 
 namespace score
 {

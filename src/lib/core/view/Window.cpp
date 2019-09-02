@@ -14,22 +14,22 @@
 
 #include <ossia/detail/algorithms.hpp>
 
-#include <QLabel>
 #include <QCloseEvent>
 #include <QDockWidget>
 #include <QEvent>
-#include <QTabWidget>
+#include <QGuiApplication>
+#include <QLabel>
+#include <QScreen>
+#include <QSplitter>
 #include <QTabBar>
+#include <QTabWidget>
 #include <QVBoxLayout>
 #include <QWidget>
-#include <QGuiApplication>
-#include <QScreen>
 #include <qcoreevent.h>
 #include <qnamespace.h>
 
 #include <wobjectimpl.h>
 
-#include <QSplitter>
 #include <set>
 W_OBJECT_IMPL(score::View)
 namespace score
@@ -110,7 +110,6 @@ View::View(QObject* parent) : QMainWindow{}, m_tabWidget{new QTabWidget}
   m_bottomTabs->tabBar()->setAutoHide(true);
   m_bottomTabs->tabBar()->setContentsMargins(0, 0, 0, 0);
 
-
   lay->addWidget(m_bottomTabs);
   connect(
       m_tabWidget,
@@ -145,7 +144,6 @@ View::View(QObject* parent) : QMainWindow{}, m_tabWidget{new QTabWidget}
     closeRequested(
         m_documents.at(m_tabWidget->widget(index))->document().model().id());
   });
-
 }
 void View::setPresenter(Presenter* p)
 {
@@ -165,8 +163,8 @@ void View::addDocumentView(DocumentView* doc)
 class HelperPanelDelegate : public PanelDelegate
 {
 public:
-  HelperPanelDelegate(const score::GUIApplicationContext& ctx):
-    PanelDelegate{ctx}
+  HelperPanelDelegate(const score::GUIApplicationContext& ctx)
+      : PanelDelegate{ctx}
   {
     widg = new QWidget;
     widg->setContentsMargins(3, 2, 3, 2);
@@ -185,14 +183,16 @@ public:
     l->addStretch(12);
   }
 
-  QWidget* widget() override
-  {
-    return widg;
-  }
+  QWidget* widget() override { return widg; }
 
   const PanelStatus& defaultPanelStatus() const override
   {
-    static const PanelStatus stat{true, true, Qt::RightDockWidgetArea, -100000, "Info", QKeySequence::HelpContents};
+    static const PanelStatus stat{true,
+                                  true,
+                                  Qt::RightDockWidgetArea,
+                                  -100000,
+                                  "Info",
+                                  QKeySequence::HelpContents};
     return stat;
   }
   QWidget* widg{};
@@ -203,7 +203,8 @@ void View::setupPanel(PanelDelegate* v)
   {
     // First time we get there, register the additional helper panel
     static int ok = false;
-    if(!ok) {
+    if (!ok)
+    {
       ok = true;
       static HelperPanelDelegate hd(v->context());
       m_status = hd.status;
@@ -213,7 +214,7 @@ void View::setupPanel(PanelDelegate* v)
   using namespace std;
   auto w = v->widget();
 
-  if(v->defaultPanelStatus().dock == Qt::BottomDockWidgetArea)
+  if (v->defaultPanelStatus().dock == Qt::BottomDockWidgetArea)
   {
     m_bottomTabs->addTab(w, v->defaultPanelStatus().prettyName);
     if (!v->defaultPanelStatus().shown)
@@ -221,8 +222,9 @@ void View::setupPanel(PanelDelegate* v)
     return;
   }
 
-  auto dial = new QDockWidget{v->defaultPanelStatus().prettyName.toUpper(), this};
-  if(v->defaultPanelStatus().fixed)
+  auto dial
+      = new QDockWidget{v->defaultPanelStatus().prettyName.toUpper(), this};
+  if (v->defaultPanelStatus().fixed)
     dial->setFeatures(QDockWidget::DockWidgetFeature::DockWidgetClosable);
 
   dial->setWidget(w);
@@ -306,7 +308,7 @@ void View::setupPanel(PanelDelegate* v)
   }
   // TODO why isn't there a title and how to access it ?
 
-  if(auto title = dial->titleBarWidget())
+  if (auto title = dial->titleBarWidget())
     title->setStatusTip(w->statusTip());
 
   if (!v->defaultPanelStatus().shown)
@@ -397,11 +399,11 @@ void View::resizeEvent(QResizeEvent* e)
 }
 bool score::View::event(QEvent* event)
 {
-  if(event->type() == QEvent::StatusTip)
+  if (event->type() == QEvent::StatusTip)
   {
-    auto tip = ((QStatusTipEvent*) event)->tip();
+    auto tip = ((QStatusTipEvent*)event)->tip();
     auto idx = tip.indexOf(QChar('\n'));
-    if(idx != -1)
+    if (idx != -1)
     {
       tip.insert(idx, "</b>\n");
       tip.push_front("<b>");
@@ -418,4 +420,3 @@ bool score::View::event(QEvent* event)
   return QMainWindow::event(event);
 }
 }
-

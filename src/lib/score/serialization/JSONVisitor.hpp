@@ -651,8 +651,7 @@ inline void fromJsonArray(QJsonArray&& json_arr, QStringList& arr)
   }
 }
 
-inline
-QJsonArray toJsonArray(const QStringList& array)
+inline QJsonArray toJsonArray(const QStringList& array)
 {
   QJsonArray arr;
   for (auto& v : array)

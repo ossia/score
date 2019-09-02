@@ -1,8 +1,10 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "DoubleSlider.hpp"
+
 #include <score/model/Skin.hpp>
 #include <score/tools/Clamp.hpp>
+
 #include <QPainter>
 
 #include <wobjectimpl.h>
@@ -106,6 +108,9 @@ void Slider::paintWithText(const QString& s)
 
   p.setPen(skin.SliderTextPen);
   p.setFont(skin.SliderFont);
-  p.drawText(QRectF{4., 2., (width() - 16.), height() - 4.}, s, QTextOption(Qt::AlignLeft));
+  p.drawText(
+      QRectF{4., 2., (width() - 16.), height() - 4.},
+      s,
+      QTextOption(Qt::AlignLeft));
 }
 }
