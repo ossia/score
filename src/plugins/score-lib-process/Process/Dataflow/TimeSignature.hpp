@@ -1,5 +1,6 @@
 #pragma once
 #include <ossia/detail/optional.hpp>
+#include <ossia/editor/scenario/time_signature.hpp>
 
 #include <string>
 #include <utility>
@@ -8,7 +9,7 @@
 
 namespace Control
 {
-using time_signature = std::pair<uint16_t, uint16_t>;
+using time_signature = ossia::time_signature;
 inline ossia::optional<time_signature>
 get_time_signature(const std::string_view& v)
 {
@@ -30,7 +31,7 @@ get_time_signature(const std::string_view& v)
         int denom_n = std::stoi(std::string(denom));
 
         if (num_n >= 1 && num_n <= 512 && is_valid_denom(denom_n))
-          return time_signature(num_n, denom_n);
+          return time_signature{(uint16_t)num_n, (uint16_t)denom_n};
       }
     }
   }

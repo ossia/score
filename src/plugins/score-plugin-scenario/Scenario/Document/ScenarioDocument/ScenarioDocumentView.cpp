@@ -25,6 +25,9 @@
 #include <QRect>
 #include <QWidget>
 #include <QVBoxLayout>
+#include <QGLWidget>
+#include <QOpenGLWidget>
+#include <QOpenGLFunctions>
 
 #if defined(SCORE_WEBSOCKETS)
 #include "WebSocketView.hpp"
@@ -43,15 +46,21 @@ ProcessGraphicsView::ProcessGraphicsView(
     : QGraphicsView{scene, parent}, m_app{ctx}
 {
   m_lastwheel = std::chrono::steady_clock::now();
+  setViewport(new QGLWidget);
   setAlignment(Qt::AlignTop | Qt::AlignLeft);
-  setViewportUpdateMode(QGraphicsView::SmartViewportUpdate);
+  setFrameStyle(0);
+  setDragMode(QGraphicsView::NoDrag);
+
+#if !defined(__EMSCRIPTEN__)
+  setOptimizationFlag(QGraphicsView::DontSavePainterState, true);
+  setOptimizationFlag(QGraphicsView::DontAdjustForAntialiasing, true);
+#endif
+  /*
+  setViewportUpdateMode(QGraphicsView::NoViewportUpdate);
   setRenderHints(
       QPainter::Antialiasing | QPainter::SmoothPixmapTransform
       | QPainter::TextAntialiasing);
-
-  setFrameStyle(0);
   // setCacheMode(QGraphicsView::CacheBackground);
-  setDragMode(QGraphicsView::NoDrag);
 
 #if !defined(__EMSCRIPTEN__)
   setOptimizationFlag(QGraphicsView::DontSavePainterState, true);
@@ -59,18 +68,25 @@ ProcessGraphicsView::ProcessGraphicsView(
   setAttribute(Qt::WA_PaintOnScreen, true);
   setAttribute(Qt::WA_OpaquePaintEvent, true);
 #endif
+  startTimer(32);
+
 #if defined(__APPLE__)
   // setRenderHints(0);
   // setOptimizationFlag(QGraphicsView::IndirectPainting, true);
-#endif
+#endif*/
+}
+
+void ProcessGraphicsView::timerEvent(QTimerEvent* event)
+{
+  //viewport()->update();
 }
 
 ProcessGraphicsView::~ProcessGraphicsView() {}
-
-void ProcessGraphicsView::drawBackground(QPainter* painter, const QRectF& rect)
-{
-  painter->fillRect(rect, Process::Style::instance().Background());
-}
+//
+//void ProcessGraphicsView::drawBackground(QPainter* painter, const QRectF& rect)
+//{
+//  painter->fillRect(rect, Process::Style::instance().Background());
+//}
 
 void ProcessGraphicsView::scrollHorizontal(double dx)
 {
@@ -294,3 +310,4 @@ QRectF ScenarioDocumentView::visibleSceneRect() const
                 m_view.mapToScene(viewRect.bottomRight())};
 }
 }
+

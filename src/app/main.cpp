@@ -113,6 +113,7 @@ static void setup_opengl()
   QSurfaceFormat fmt = QSurfaceFormat::defaultFormat();
   fmt.setMajorVersion(4);
   fmt.setMinorVersion(1);
+  fmt.setProfile(QSurfaceFormat::CoreProfile);
   fmt.setSamples(1);
   fmt.setDefaultFormat(fmt);
 #else
@@ -137,6 +138,7 @@ static void setup_app_flags()
 #endif
 
 #if !defined(__EMSCRIPTEN__)
+  QCoreApplication::setAttribute(Qt::AA_ShareOpenGLContexts, true);
   QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling, true);
   QCoreApplication::setAttribute(Qt::AA_UseHighDpiPixmaps, true);
   QCoreApplication::setAttribute(Qt::AA_CompressHighFrequencyEvents);

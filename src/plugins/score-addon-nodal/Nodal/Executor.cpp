@@ -19,18 +19,14 @@ struct node_graph_process final : public ossia::time_process
 {
   node_graph_process()
   {
-    m_lastDate = ossia::Zero;
   }
 
-  void state_impl(
-      ossia::time_value from, ossia::time_value to, ossia::time_value parent_duration,
-      ossia::time_value tick_offset, double speed) override
+  void state_impl(ossia::token_request req) override
   {
     for (auto& process : processes)
     {
-      process->state(from, to, parent_duration, tick_offset, speed);
+      process->state(req);
     }
-    m_lastDate = to;
   }
 
   void add_process(std::shared_ptr<ossia::time_process>&& p, std::shared_ptr<ossia::graph_node>&& n)
@@ -112,7 +108,6 @@ struct node_graph_process final : public ossia::time_process
   }
   ossia::flat_set<std::shared_ptr<ossia::graph_node>> nodes;
   ossia::flat_set<std::shared_ptr<ossia::time_process>> processes;
-  ossia::time_value m_lastDate{ossia::Infinite};
 
 };
 }

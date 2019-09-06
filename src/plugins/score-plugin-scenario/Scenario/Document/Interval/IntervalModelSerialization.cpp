@@ -21,6 +21,83 @@
 
 #include <QJsonArray>
 
+// MOVEME
+template <typename T, typename U>
+struct TSerializer<DataStream, ossia::fast_hash_map<T, U>>
+{
+  using type = ossia::fast_hash_map<T, U>;
+  using pair_type = typename type::value_type;
+  static void readFrom(DataStream::Serializer& s, const type& obj)
+  {
+    std::size_t sz = obj.size();
+    s.stream() << sz;
+    for(const auto& pair : obj)
+    {
+      s.stream() << pair;
+    }
+  }
+
+  static void writeTo(DataStream::Deserializer& s, type& obj)
+  {
+    std::size_t sz; s.stream() >> sz;
+    for(std::size_t i = 0; i < sz; i++) {
+      pair_type v;
+      s.stream() >> v;
+      obj.insert(std::move(v));
+    }
+  }
+};
+
+template <typename T, typename U>
+struct TSerializer<JSONValue, ossia::fast_hash_map<T, U>>
+{
+  using type = ossia::fast_hash_map<T, U>;
+  using pair_type = typename type::value_type;
+  static void readFrom(JSONValue::Serializer& s, const type& obj)
+  {
+    QJsonArray arr;
+    for(const auto& pair : obj)
+    {
+      arr.push_back(toJsonValue(pair));
+    }
+    s.val = std::move(arr);
+  }
+
+  static void writeTo(JSONValue::Deserializer& s, type& obj)
+  {
+    const auto arr = s.val.toArray();
+    for(const auto& e : arr) {
+      obj.insert(fromJsonValue<pair_type>(e));
+    }
+  }
+};
+
+template <>
+SCORE_PLUGIN_SCENARIO_EXPORT void
+DataStreamReader::read(const ossia::time_signature& slot)
+{
+  m_stream << slot.upper << slot.lower;
+}
+
+template <>
+SCORE_PLUGIN_SCENARIO_EXPORT void DataStreamWriter::write(ossia::time_signature& slot)
+{
+  m_stream >> slot.upper >> slot.lower;
+}
+template <>
+SCORE_PLUGIN_SCENARIO_EXPORT void
+JSONValueReader::read(const ossia::time_signature& slot)
+{
+  val = QJsonArray{slot.upper, slot.lower};
+}
+template <>
+SCORE_PLUGIN_SCENARIO_EXPORT void JSONValueWriter::write(ossia::time_signature& slot)
+{
+  const auto& arr = val.toArray();
+  slot.upper = arr[0].toInt();
+  slot.lower = arr[1].toInt();
+}
+
 
 template <>
 SCORE_PLUGIN_SCENARIO_EXPORT void
@@ -113,10 +190,14 @@ DataStreamReader::read(const Scenario::IntervalModel& interval)
   m_stream << interval.m_smallView << interval.m_fullView;
 
   // Common data
-  m_stream << interval.duration << interval.m_startState << interval.m_endState
 
-           << interval.m_date << interval.m_heightPercentage << interval.m_zoom
-           << interval.m_center << interval.m_viewMode << interval.m_smallViewShown;
+  m_stream << interval.m_signatures
+           << interval.duration << interval.m_startState << interval.m_endState
+
+           << interval.m_date << interval.m_heightPercentage
+           << interval.m_zoom << interval.m_center
+           << interval.m_viewMode << interval.m_smallViewShown
+           << interval.m_hasTempo << interval.m_hasSignature;
 
   insertDelimiter();
 }
@@ -155,12 +236,21 @@ DataStreamWriter::write(Scenario::IntervalModel& interval)
   // Common data
   Scenario::IntervalModel::ViewMode vm{Scenario::IntervalModel::ViewMode::Temporal};
   bool sv{};
-  m_stream >> interval.duration >> interval.m_startState >> interval.m_endState
+  bool ht{};
+  bool hs{};
+  m_stream
+      >> interval.m_signatures
+      >> interval.duration >> interval.m_startState >> interval.m_endState
 
-      >> interval.m_date >> interval.m_heightPercentage >> interval.m_zoom
-      >> interval.m_center >> vm >> sv;
+      >> interval.m_date >> interval.m_heightPercentage
+      >> interval.m_zoom >> interval.m_center
+      >> vm >> sv
+      >> ht >> hs
+      ;
   interval.m_viewMode = vm;
   interval.m_smallViewShown = sv;
+  interval.m_hasTempo = ht;
+  interval.m_hasSignature = hs;
 
   checkDelimiter();
 }
@@ -180,10 +270,14 @@ JSONObjectReader::read(const Scenario::IntervalModel& interval)
   obj[strings.SmallViewRack] = toJsonArray(interval.smallView());
   obj[strings.FullViewRack] = toJsonArray(interval.fullView());
 
+
   // Common data
+
   // The fields will go in the same level as the
   // rest of the interval
   readFrom(interval.duration);
+
+  obj["Signatures"] = toJsonValue(interval.m_signatures);
 
   obj[strings.StartState] = toJsonValue(interval.m_startState);
   obj[strings.EndState] = toJsonValue(interval.m_endState);
@@ -195,6 +289,9 @@ JSONObjectReader::read(const Scenario::IntervalModel& interval)
   obj[strings.Center] = toJsonValue(interval.m_center);
   obj["ViewMode"] = (int) interval.m_viewMode;
   obj[strings.SmallViewShown] = interval.m_smallViewShown;
+
+  obj["HasTempo"] = interval.m_hasTempo;
+  obj["HasSignature"] = interval.m_hasSignature;
 
 }
 
@@ -265,6 +362,9 @@ JSONObjectWriter::write(Scenario::IntervalModel& interval)
   }
 
   writeTo(interval.duration);
+
+  interval.m_signatures = fromJsonValue<Scenario::TimeSignatureMap>(obj["Signatures"].toArray());
+
   interval.m_startState
       = fromJsonValue<Id<Scenario::StateModel>>(obj[strings.StartState]);
   interval.m_endState
@@ -280,5 +380,8 @@ JSONObjectWriter::write(Scenario::IntervalModel& interval)
   auto cit = obj.find(strings.Center);
   if (cit != obj.end() && cit->isDouble())
     interval.m_center = fromJsonValue<TimeVal>(*cit);
+
+  interval.m_hasTempo = obj["HasTempo"] .toBool();
+  interval.m_hasSignature = obj["HasSignature"] .toBool();
 
 }

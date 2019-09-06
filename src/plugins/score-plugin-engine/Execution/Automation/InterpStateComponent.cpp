@@ -32,7 +32,7 @@ private:
     {
       auto val = ossia::apply(
           ossia::detail::compute_value_visitor{
-              t.position, dest.value.get().get_value_type()},
+              t.position(), dest.value.get().get_value_type()},
           drive);
       e.insert(dest.address(), ossia::typed_value{std::move(val)});
     }

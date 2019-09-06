@@ -26,8 +26,7 @@ struct Node
     static const constexpr auto controls = std::make_tuple(
         Control::Widgets::MusicalDurationChooser(),
         Control::Widgets::LFOFreqSlider(),
-        Control::ChooserToggle{"Quantify", {"Free", "Sync"}, false},
-        Control::Widgets::TempoChooser());
+        Control::ChooserToggle{"Quantify", {"Free", "Sync"}, false});
   };
 
   static constexpr int64_t
@@ -56,7 +55,6 @@ struct Node
   run(float quantif,
       float freq,
       bool val,
-      float tempo,
       ossia::value_port& res,
       ossia::token_request tk,
       ossia::exec_state_facade st)
@@ -64,7 +62,7 @@ struct Node
     if (tk.date > tk.prev_date)
     {
       const auto period
-          = get_period(val, quantif, freq, tempo, st.sampleRate());
+          = get_period(val, quantif, freq, tk.tempo, st.sampleRate());
       const auto next = next_date(tk.prev_date, period);
       if (tk.in_range(next))
       {

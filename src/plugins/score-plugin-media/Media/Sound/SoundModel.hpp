@@ -50,18 +50,23 @@ public:
   std::shared_ptr<AudioFile>& file();
   const std::shared_ptr<AudioFile>& file() const;
 
-  int upmixChannels() const;
-  int startChannel() const;
+  int upmixChannels() const noexcept;
+  int startChannel() const noexcept;
+  double nativeTempo() const noexcept;
 
   void setUpmixChannels(int upmixChannels);
   void setStartChannel(int startChannel);
+  void setNativeTempo(double);
 
   void on_mediaChanged();
 
   std::unique_ptr<Process::Outlet> outlet;
 
 public:
-  void fileChanged() W_SIGNAL(fileChanged);
+  void fileChanged()
+      W_SIGNAL(fileChanged);
+  void nativeTempoChanged(double t)
+      W_SIGNAL(nativeTempoChanged, t);
   void upmixChannelsChanged(int upmixChannels)
       W_SIGNAL(upmixChannelsChanged, upmixChannels);
   void startChannelChanged(int startChannel)
@@ -84,6 +89,7 @@ private:
   std::shared_ptr<AudioFile> m_file;
   int m_upmixChannels{};
   int m_startChannel{};
+  double m_nativeTempo{};
 };
 }
 }

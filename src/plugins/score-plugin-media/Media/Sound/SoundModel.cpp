@@ -30,6 +30,12 @@ ProcessModel::ProcessModel(
 
 ProcessModel::~ProcessModel() {}
 
+double estimateTempo(const AudioFile& file)
+{
+  // TODO
+  return 120.;
+}
+
 void ProcessModel::setFile(const QString& file)
 {
   if (file != m_file->originalFile())
@@ -39,6 +45,8 @@ void ProcessModel::setFile(const QString& file)
     m_file = AudioFileManager::instance().get(file, score::IDocument::documentContext(*this));
 
     m_file->on_mediaChanged.connect<&ProcessModel::on_mediaChanged>(*this);
+
+    setNativeTempo(estimateTempo(*m_file));
     on_mediaChanged();
     prettyNameChanged();
   }
@@ -60,14 +68,19 @@ QString ProcessModel::prettyName() const noexcept
                          : m_file->fileName();
 }
 
-int ProcessModel::upmixChannels() const
+int ProcessModel::upmixChannels() const noexcept
 {
   return m_upmixChannels;
 }
 
-int ProcessModel::startChannel() const
+int ProcessModel::startChannel() const noexcept
 {
   return m_startChannel;
+}
+
+double ProcessModel::nativeTempo() const noexcept
+{
+  return m_nativeTempo;
 }
 
 void ProcessModel::setUpmixChannels(int upmixChannels)
@@ -86,6 +99,15 @@ void ProcessModel::setStartChannel(int startChannel)
 
   m_startChannel = startChannel;
   startChannelChanged(m_startChannel);
+}
+
+void ProcessModel::setNativeTempo(double t)
+{
+  if(t != m_nativeTempo)
+  {
+    m_nativeTempo = t;
+    nativeTempoChanged(t);
+  }
 }
 
 void ProcessModel::on_mediaChanged()
@@ -110,7 +132,7 @@ template <>
 void DataStreamReader::read(const Media::Sound::ProcessModel& proc)
 {
   m_stream << proc.m_file->originalFile() << *proc.outlet << proc.m_upmixChannels
-           << proc.m_startChannel;
+           << proc.m_startChannel << proc.m_nativeTempo;
 
   insertDelimiter();
 }
@@ -123,7 +145,7 @@ void DataStreamWriter::write(Media::Sound::ProcessModel& proc)
   proc.setFile(s);
   proc.outlet = make_outlet(*this, &proc);
 
-  m_stream >> proc.m_upmixChannels >> proc.m_startChannel;
+  m_stream >> proc.m_upmixChannels >> proc.m_startChannel >> proc.m_nativeTempo;
   checkDelimiter();
 }
 
@@ -134,6 +156,7 @@ void JSONObjectReader::read(const Media::Sound::ProcessModel& proc)
   obj["Outlet"] = toJsonObject(*proc.outlet);
   obj["Upmix"] = proc.m_upmixChannels;
   obj["Start"] = proc.m_startChannel;
+  obj["Tempo"] = proc.m_nativeTempo;
 }
 
 template <>
@@ -144,6 +167,7 @@ void JSONObjectWriter::write(Media::Sound::ProcessModel& proc)
   proc.outlet = Process::make_outlet(writer, &proc);
   proc.m_upmixChannels = obj["Upmix"].toInt();
   proc.m_startChannel = obj["Start"].toInt();
+  proc.m_nativeTempo = obj["Tempo"].toDouble();
 
   if(int off = obj["StartOffset"].toInt(); off != 0)
     proc.m_startOffset = TimeVal::fromMsecs(1000. * off / proc.file()->sampleRate());

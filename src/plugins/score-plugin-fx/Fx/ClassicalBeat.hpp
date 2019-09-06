@@ -57,7 +57,7 @@ struct Node
       }
 
       const auto period
-          = get_period(1. / sig.second, (double)tempo, st.sampleRate());
+          = get_period(1. / sig.lower, (double)tempo, st.sampleRate());
       const auto next = next_date(tk.prev_date, period);
       if (next.impl < tk.date.impl)
       {

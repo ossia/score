@@ -78,6 +78,15 @@ IntervalRawPtrComponentBase::IntervalRawPtrComponentBase(
             cst->set_max_duration(t);
           });
       });
+
+  con(interval(), &Scenario::IntervalModel::mutedChanged, this, [&](bool b) {
+    if(m_ossia_interval)
+      in_exec([b, itv = m_ossia_interval] {
+        itv->mute(b);
+      });
+  });
+
+  // TODO tempo, etc
 }
 
 IntervalRawPtrComponent::~IntervalRawPtrComponent() {}
@@ -89,10 +98,6 @@ void IntervalRawPtrComponent::init()
     if (interval().muted())
       OSSIAInterval()->mute(true);
     init_hierarchy();
-
-    con(interval(), &Scenario::IntervalModel::mutedChanged, this, [=](bool b) {
-      in_exec([b, itv = OSSIAInterval()] { itv->mute(b); });
-    });
 
     /* TODO put the include at the right place
     if (context().doc.app.settings<Settings::Model>().getScoreOrder())

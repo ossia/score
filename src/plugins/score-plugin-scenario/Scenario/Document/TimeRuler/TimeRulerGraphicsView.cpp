@@ -5,6 +5,7 @@
 #include <Process/Style/ScenarioStyle.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentViewConstants.hpp>
 
+#include <QGLWidget>
 #include <QWheelEvent>
 
 namespace Scenario
@@ -18,22 +19,25 @@ TimeRulerGraphicsView::TimeRulerGraphicsView(QGraphicsScene* scene)
       | QPainter::TextAntialiasing);
   //#if !defined(SCORE_OPENGL)
 
-#if !defined(__EMSCRIPTEN__)
-  setAttribute(Qt::WA_OpaquePaintEvent, true);
-  setAttribute(Qt::WA_PaintOnScreen, true);
-#endif
-  //#endif
+  setViewport(new QGLWidget);
+  setAlignment(Qt::AlignTop | Qt::AlignLeft);
   setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
   setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
   setFocusPolicy(Qt::NoFocus);
   setSceneRect(ScenarioLeftSpace, -70, 800, 35);
   setFixedHeight(40);
   setViewportUpdateMode(QGraphicsView::NoViewportUpdate);
-  setAlignment(Qt::AlignTop | Qt::AlignLeft);
-
   setBackgroundBrush(Process::Style::instance().MinimapBackground());
-
   setOptimizationFlag(QGraphicsView::DontSavePainterState, true);
+
+
+//#if !defined(__EMSCRIPTEN__)
+//  setAttribute(Qt::WA_OpaquePaintEvent, true);
+//  setAttribute(Qt::WA_PaintOnScreen, true);
+//#endif
+  //#endif
+
+
 #if defined(__APPLE__)
   setRenderHints(0);
   setOptimizationFlag(QGraphicsView::IndirectPainting, true);
