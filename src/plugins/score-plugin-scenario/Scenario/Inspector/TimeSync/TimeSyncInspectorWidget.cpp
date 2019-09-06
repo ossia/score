@@ -30,7 +30,7 @@ public:
   {
     if(t)
     {
-      setText(QString{"%1/%2"}.arg(t->first).arg(t->second));
+      setText(QString{"%1/%2"}.arg(t->upper).arg(t->lower));
     }
     else
     {

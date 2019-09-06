@@ -38,6 +38,100 @@
 W_OBJECT_IMPL(Scenario::FullViewIntervalPresenter)
 namespace Scenario
 {
+  class TimeSignatureItem
+      : public QObject
+      , public QGraphicsItem
+  {
+    double m_width{100.};
+    const IntervalPresenter& m_itv;
+  public:
+    TimeSignatureItem(const IntervalPresenter& itv, QGraphicsItem* parent)
+      : QGraphicsItem{parent}
+      , m_itv{itv}
+    {
+
+
+    }
+
+    void setWidth(double w)
+    {
+      prepareGeometryChange();
+      m_width = w;
+    }
+
+    QRectF boundingRect() const final override
+    {
+      return {0., 0., m_width, 10.};
+    }
+
+    void paint(
+        QPainter* painter,
+        const QStyleOptionGraphicsItem* option,
+        QWidget* widget) override
+    {
+      painter->setPen(Qt::white);
+
+      enum MaxZoomLevel {
+        None = 0,
+        Whole = 1,
+        Half = 2,
+        Quarter = 4,
+        Eighth = 8,
+        Sixteenth = 16,
+        Thirtysecond = 32,
+        Sixteenfourth = 64
+      };
+      auto zoomLevel = Whole;
+      double spacing = m_itv.zoomRatio();
+
+      for(auto& [time, sig] : m_itv.model().timeSignatureMap())
+      {
+
+      }
+    }
+  };
+
+  class TimeSignatureHandle
+      : public QObject
+      , public QGraphicsItem
+  {
+  public:
+    TimeSignatureHandle(const IntervalModel& itv, QGraphicsItem* parent)
+      : QGraphicsItem{parent}
+    {
+
+    }
+
+    QRectF boundingRect() const final override
+    {
+      return {0., 0., 10., 15.};
+    }
+
+    void paint(
+        QPainter* painter,
+        const QStyleOptionGraphicsItem* option,
+        QWidget* widget) override
+    {
+      painter->fillRect(boundingRect(), Qt::gray);
+    }
+
+    void mousePressEvent(QGraphicsSceneMouseEvent* mv) override
+    {
+      mv->accept();
+
+    }
+    void mouseMoveEvent(QGraphicsSceneMouseEvent* mv) override
+    {
+      mv->accept();
+
+    }
+    void mouseReleaseEvent(QGraphicsSceneMouseEvent* mv) override
+    {
+      mv->accept();
+
+    }
+
+  };
 
 class NodalIntervalView
     : public score::EmptyRectItem
@@ -138,6 +232,48 @@ void FullViewIntervalPresenter::stopSlotDrag() const
   full_slot_drag_overlay = nullptr;
 }
 
+class LightTimebar : public QGraphicsItem
+{
+public:
+  LightTimebar()
+  {
+    setZValue(-10);
+  }
+
+  QRectF boundingRect() const
+  {
+    return {0,0,1,1000};
+  }
+
+  void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+  {
+    painter->setPen(score::Skin::instance().DarkGray.lighter.pen_cosmetic);
+    painter->drawLine(0, 0, 0, boundingRect().bottom());
+  }
+};
+
+class LighterTimebar : public QGraphicsItem
+{
+public:
+  LighterTimebar()
+  {
+    setZValue(-10);
+  }
+
+  QRectF boundingRect() const
+  {
+    return {0,0,1,1000};
+  }
+
+  void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+  {
+    painter->setPen(score::Skin::instance().Background1.lighter180.pen_cosmetic);
+    painter->drawLine(0, 0, 0, boundingRect().bottom());
+  }
+};
+
+std::array<LightTimebar, 200> lightBars;
+std::array<LighterTimebar, 600> lighterBars;
 FullViewIntervalPresenter::FullViewIntervalPresenter(
     const IntervalModel& interval,
     const Process::Context& ctx,
@@ -150,6 +286,10 @@ FullViewIntervalPresenter::FullViewIntervalPresenter(
                         parent}
 {
   m_header->setPos(0, -IntervalHeader::headerHeight());
+  for(auto& bar : lightBars)
+    bar.setParentItem(m_view);
+  for(auto& bar : lighterBars)
+    bar.setParentItem(m_view);
 
   // Address bar
   auto& addressBar = static_cast<FullViewIntervalHeader*>(m_header)->bar();
@@ -286,16 +426,18 @@ FullViewIntervalPresenter::FullViewIntervalPresenter(
 FullViewIntervalPresenter::~FullViewIntervalPresenter()
 {
   auto view = Scenario::view(this);
-  auto sc = view->scene();
+  QGraphicsScene* sc = view->scene();
+
+  for(auto& bar : lightBars)
+    sc->removeItem(&bar);
+  for(auto& bar : lighterBars)
+    sc->removeItem(&bar);
+
   for (auto& slt : m_slots)
-  {
     slt.cleanup(sc);
-  }
 
   if (sc)
-  {
     sc->removeItem(view);
-  }
 
   delete view;
 }
@@ -612,6 +754,19 @@ void FullViewIntervalPresenter::on_zoomRatioChanged(ZoomRatio ratio)
     return;
   }
 
+
+  double tempo = 120.;
+  double whole = TimeVal(1000. * 240. / tempo).toPixels(ratio);
+  for(int i = 0; i < lighterBars.size(); i+=4)
+  {
+    lighterBars[i  ].setPos((i+1) * whole, 10.);
+    lighterBars[i+1].setPos((i+2) * whole, 10.);
+    lighterBars[i+2].setPos((i+3) * whole, 10.);
+  }
+  for(int i = 0; i < lightBars.size(); i++)
+  {
+    lightBars[i].setPos(4 * i * whole, 10.);
+  }
   auto gui_width = m_model.duration.guiDuration().toPixels(ratio);
   auto def_width = m_model.duration.defaultDuration().toPixels(ratio);
 

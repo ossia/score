@@ -3,6 +3,7 @@
 #include <Process/Instantiations.hpp>
 #include <Process/Process.hpp>
 #include <Process/TimeValue.hpp>
+#include <Process/Dataflow/TimeSignature.hpp>
 #include <Scenario/Document/Interval/ExecutionState.hpp>
 #include <Scenario/Document/Interval/IntervalDurations.hpp>
 #include <Scenario/Document/Interval/Slot.hpp>
@@ -16,7 +17,7 @@
 #include <score/selection/Selectable.hpp>
 #include <score/tools/Metadata.hpp>
 #include <score/tools/std/Optional.hpp>
-
+#include <ossia/detail/hash_map.hpp>
 #include <QObject>
 #include <QPointer>
 
@@ -30,6 +31,7 @@ namespace Scenario
 {
 class StateModel;
 
+using TimeSignatureMap = ossia::fast_hash_map<TimeVal, Control::time_signature>;
 class SCORE_PLUGIN_SCENARIO_EXPORT IntervalModel final
     : public score::Entity<IntervalModel>,
       public Nano::Observer
@@ -105,8 +107,8 @@ public:
   void setSmallViewVisible(bool);
   bool smallViewVisible() const;
 
-  const Rack& smallView() const { return m_smallView; }
-  const FullRack& fullView() const { return m_fullView; }
+  const Rack& smallView() const noexcept { return m_smallView; }
+  const FullRack& fullView() const noexcept { return m_fullView; }
 
   void clearSmallView();
   void clearFullView();
@@ -141,8 +143,30 @@ public:
   const FullSlot& getFullViewSlot(int slot) const;
   FullSlot& getFullViewSlot(int slot);
 
-  bool muted() const { return m_muted; }
+  bool muted() const noexcept { return m_muted; }
   void setMuted(bool m);
+
+  // Tempo stuff
+  bool hasTempo() const noexcept { return m_hasTempo; }
+  bool hasTimeSignature() const noexcept { return m_hasSignature; }
+
+  void setHasTempo(bool b);
+  void setHasTimeSignature(bool b);
+
+  void addSignature(TimeVal t, Control::time_signature sig);
+  void removeSignature(TimeVal t);
+  void setTimeSignatureMap(const TimeSignatureMap& map);
+  const TimeSignatureMap& timeSignatureMap() const noexcept { return m_signatures; }
+
+  void hasTempoChanged(bool arg_1)
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, hasTempoChanged, arg_1)
+  void hasTimeSignatureChanged(bool arg_1)
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, hasTimeSignatureChanged, arg_1)
+  void timeSignaturesChanged(const TimeSignatureMap& arg_1)
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, timeSignaturesChanged, arg_1)
+
+  PROPERTY(bool, tempo READ hasTempo WRITE setHasTempo NOTIFY hasTempoChanged)
+  PROPERTY(bool, timeSignature READ hasTimeSignature WRITE setHasTimeSignature NOTIFY hasTimeSignatureChanged)
 
 public:
   void requestHeightChange(double y)
@@ -206,6 +230,8 @@ private:
   Rack m_smallView;
   FullRack m_fullView;
 
+  TimeSignatureMap m_signatures;
+
   Id<StateModel> m_startState;
   Id<StateModel> m_endState;
 
@@ -214,11 +240,14 @@ private:
 
   ZoomRatio m_zoom{-1};
   TimeVal m_center{};
-  ViewMode m_viewMode: 2;
   IntervalExecutionState m_executionState : 2;
+  ViewMode m_viewMode: 1;
   bool m_smallViewShown : 1;
   bool m_muted : 1;
   bool m_executing : 1;
+
+  bool m_hasTempo : 1;
+  bool m_hasSignature : 1;
 };
 
 SCORE_PLUGIN_SCENARIO_EXPORT
@@ -241,4 +270,8 @@ W_REGISTER_ARGTYPE(QPointer<const Scenario::IntervalModel>)
 W_REGISTER_ARGTYPE(Scenario::IntervalModel)
 W_REGISTER_ARGTYPE(Scenario::IntervalModel&)
 W_REGISTER_ARGTYPE(Scenario::IntervalModel::ViewMode)
+
+Q_DECLARE_METATYPE(Scenario::TimeSignatureMap)
+W_REGISTER_ARGTYPE(Scenario::TimeSignatureMap)
+
 TR_TEXT_METADATA(, Scenario::IntervalModel, PrettyName_k, "Interval")

@@ -125,7 +125,7 @@ struct Node
 
     self.cur_time = tk.date.impl;
     self.cur_deltatime = tk.date.impl - tk.prev_date.impl;
-    self.cur_pos = tk.position;
+    self.cur_pos = tk.position();
     self.p1 = a;
     self.p2 = b;
     self.p3 = c;

@@ -10,7 +10,7 @@
 #include <QJsonObject>
 #include <QSettings>
 #include <QDebug>
-
+#include <QDebug>
 namespace Scenario
 {
 namespace Settings
@@ -122,6 +122,7 @@ TimeVal Model::getDefaultDuration() const
 void Model::setDefaultDuration(TimeVal val)
 {
   val = std::max(val, TimeVal{std::chrono::milliseconds{100}});
+
   if (val == m_DefaultDuration)
     return;
 
@@ -130,6 +131,7 @@ void Model::setDefaultDuration(TimeVal val)
   QSettings s;
   s.setValue(
       Parameters::DefaultDuration.key, QVariant::fromValue(m_DefaultDuration));
+
   DefaultDurationChanged(val);
 }
 

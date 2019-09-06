@@ -47,6 +47,8 @@ IntervalModel::IntervalModel(
     , m_smallViewShown{}
     , m_muted{}
     , m_executing{}
+    , m_hasTempo{}
+    , m_hasSignature{}
 {
   initConnections();
   metadata().setInstanceName(*this);
@@ -57,6 +59,8 @@ IntervalModel::IntervalModel(
   inlet->type = Process::PortType::Audio;
   outlet->type = Process::PortType::Audio;
   outlet->setPropagate(true);
+
+  m_signatures[TimeVal::zero()] = {4,4};
 }
 
 IntervalModel::~IntervalModel()
@@ -80,9 +84,14 @@ IntervalModel::IntervalModel(DataStream::Deserializer& vis, QObject* parent)
     , m_smallViewShown{}
     , m_muted{}
     , m_executing{}
+    , m_hasTempo{}
+    , m_hasSignature{}
 {
   initConnections();
   vis.writeTo(*this);
+  if(m_signatures.empty()) {
+    m_signatures[TimeVal::zero()] = {4,4};
+  }
 }
 
 IntervalModel::IntervalModel(JSONObject::Deserializer& vis, QObject* parent)
@@ -91,9 +100,14 @@ IntervalModel::IntervalModel(JSONObject::Deserializer& vis, QObject* parent)
     , m_smallViewShown{}
     , m_muted{}
     , m_executing{}
+    , m_hasTempo{}
+    , m_hasSignature{}
 {
   initConnections();
   vis.writeTo(*this);
+  if(m_signatures.empty()) {
+    m_signatures[TimeVal::zero()] = {4,4};
+  }
 }
 
 IntervalModel::IntervalModel(DataStream::Deserializer&& vis, QObject* parent)
@@ -102,9 +116,14 @@ IntervalModel::IntervalModel(DataStream::Deserializer&& vis, QObject* parent)
     , m_smallViewShown{}
     , m_muted{}
     , m_executing{}
+    , m_hasTempo{}
+    , m_hasSignature{}
 {
   initConnections();
   vis.writeTo(*this);
+  if(m_signatures.empty()) {
+    m_signatures[TimeVal::zero()] = {4,4};
+  }
 }
 
 IntervalModel::IntervalModel(JSONObject::Deserializer&& vis, QObject* parent)
@@ -113,9 +132,53 @@ IntervalModel::IntervalModel(JSONObject::Deserializer&& vis, QObject* parent)
     , m_smallViewShown{}
     , m_muted{}
     , m_executing{}
+    , m_hasTempo{}
+    , m_hasSignature{}
 {
   initConnections();
   vis.writeTo(*this);
+  if(m_signatures.empty()) {
+    m_signatures[TimeVal::zero()] = {4,4};
+  }
+}
+void IntervalModel::setHasTempo(bool b)
+{
+  if(b != m_hasTempo)
+  {
+    m_hasTempo = b;
+    hasTempoChanged(b);
+  }
+}
+
+void IntervalModel::setHasTimeSignature(bool b)
+{
+  if(b != m_hasSignature)
+  {
+    m_hasSignature = b;
+    hasTimeSignatureChanged(b);
+  }
+}
+
+void IntervalModel::addSignature(TimeVal t, Control::time_signature sig)
+{
+  m_signatures[t] = sig;
+  timeSignaturesChanged(m_signatures);
+}
+
+void IntervalModel::removeSignature(TimeVal t)
+{
+  m_signatures.erase(t);
+  timeSignaturesChanged(m_signatures);
+}
+
+void IntervalModel::setTimeSignatureMap(const TimeSignatureMap& map)
+{
+  if(map != m_signatures)
+  {
+    m_signatures = map;
+    timeSignaturesChanged(map);
+  }
+
 }
 
 const Id<StateModel>& IntervalModel::startState() const

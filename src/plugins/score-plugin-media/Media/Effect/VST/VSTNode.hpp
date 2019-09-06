@@ -7,12 +7,11 @@
 #include <ossia/dataflow/graph_node.hpp>
 #include <ossia/dataflow/port.hpp>
 #include <ossia/detail/pod_vector.hpp>
-
+#include <ossia/editor/scenario/time_signature.hpp>
 namespace Media
 {
 namespace VST
 {
-using time_signature = std::pair<uint16_t, uint16_t>;
 
 class vst_node_base : public ossia::graph_node
 {
@@ -25,9 +24,6 @@ protected:
   }
 
   std::shared_ptr<AEffectWrapper> fx{};
-  double m_tempo{120};
-  time_signature m_sig{4, 4};
-
   struct vst_control
   {
     int idx{};
@@ -50,23 +46,6 @@ public:
 
   void setControls()
   {
-    auto& tempo
-        = inputs()[1]->data.template target<ossia::value_port>()->get_data();
-    if (!tempo.empty())
-    {
-      m_tempo = ossia::convert<double>(tempo.rbegin()->value);
-    }
-    auto& ts
-        = inputs()[2]->data.template target<ossia::value_port>()->get_data();
-    if (!ts.empty())
-    {
-      auto str = ts.rbegin()->value.template target<std::string>();
-      if (str)
-      {
-        if (auto sig = Control::get_time_signature(*str))
-          m_sig = *sig;
-      }
-    }
     for (vst_control& p : controls)
     {
       const auto& vec = p.port->get_data();
@@ -112,19 +91,19 @@ public:
     time_info.samplePos = tk.date.impl;
     time_info.sampleRate = st.sampleRate();
     time_info.nanoSeconds = st.currentDate() - st.startDate();
-    time_info.tempo = m_tempo;
+    time_info.tempo = tk.tempo;
     time_info.ppqPos
         = (tk.date.impl / st.sampleRate()) * (60. / time_info.tempo);
     time_info.barStartPos = 0.;
     time_info.cycleStartPos = 0.;
     time_info.cycleEndPos = 0.;
-    time_info.timeSigNumerator = m_sig.first;
-    time_info.timeSigDenominator = m_sig.second;
+    time_info.timeSigNumerator = tk.signature.upper;
+    time_info.timeSigDenominator = tk.signature.lower;
     time_info.smpteOffset = 0;
     time_info.smpteFrameRate = 0;
     time_info.samplesToNextClock = 0;
-    time_info.flags = kVstTransportPlaying & kVstNanosValid & kVstPpqPosValid
-                      & kVstTempoValid & kVstTimeSigValid & kVstClockValid;
+    time_info.flags = kVstTransportPlaying | kVstNanosValid | kVstPpqPosValid
+                      | kVstTempoValid | kVstTimeSigValid | kVstClockValid;
   }
 };
 
@@ -266,8 +245,8 @@ public:
     if (!muted() && tk.date > tk.prev_date)
     {
       const std::size_t samples = tk.date - tk.prev_date;
-      setControls();
-      setupTimeInfo(tk, st);
+      this->setControls();
+      this->setupTimeInfo(tk, st);
 
       if constexpr (UseDouble)
       {

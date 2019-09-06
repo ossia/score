@@ -352,9 +352,9 @@ struct TimeSignatureChooser final : ossia::safe_nodes::control_in,
   {
     std::string s;
     s.reserve(8);
-    s += std::to_string(v.first);
+    s += std::to_string(v.upper);
     s += '/';
-    s += std::to_string(v.second);
+    s += std::to_string(v.lower);
     return ossia::value{std::move(s)};
   }
 

@@ -78,6 +78,15 @@ IntervalComponentBase::IntervalComponentBase(
             cst->set_max_duration(t);
           });
       });
+
+  con(interval(), &Scenario::IntervalModel::mutedChanged, this, [&] (bool b) {
+    if(m_ossia_interval)
+      in_exec([b, itv = m_ossia_interval] {
+        itv->mute(b);
+      });
+  });
+
+  // TODO tempo, etc
 }
 
 IntervalComponent::~IntervalComponent() {}
@@ -89,10 +98,6 @@ void IntervalComponent::init()
     if (interval().muted())
       OSSIAInterval()->mute(true);
     init_hierarchy();
-
-    con(interval(), &Scenario::IntervalModel::mutedChanged, this, [=](bool b) {
-      in_exec([b, itv = OSSIAInterval()] { itv->mute(b); });
-    });
 
     /* TODO put the include at the right place
     if (context().doc.app.settings<Settings::Model>().getScoreOrder())
@@ -170,6 +175,37 @@ interval_duration_data IntervalComponentBase::makeDurations() const
           interval().duration.speed()};
 }
 
+static optional<ossia::tempo_curve> tempoCurve(const Scenario::IntervalModel& itv, const Execution::Context& ctx)
+{
+  // TODO
+  if(itv.hasTempo())
+  {
+    ossia::tempo_curve t;
+    t.set_x0(0);
+    t.set_y0(120.);
+    return optional<ossia::tempo_curve>{std::move(t)};
+  }
+  else
+  {
+    return ossia::none;
+  }
+}
+static optional<ossia::time_signature_map> timeSignatureMap(const Scenario::IntervalModel& itv, const Execution::Context& ctx)
+{
+  if(itv.hasTimeSignature())
+  {
+    ossia::time_signature_map ret;
+    for(const auto& [time, sig] : itv.timeSignatureMap())
+    {
+      ret[ctx.time(time)] = sig;
+    }
+    return ret;
+  }
+  else
+  {
+    return ossia::none;
+  }
+}
 void IntervalComponent::onSetup(
     std::shared_ptr<IntervalComponent> self,
     std::shared_ptr<ossia::time_interval> ossia_cst,
@@ -180,6 +216,8 @@ void IntervalComponent::onSetup(
   m_ossia_interval->set_min_duration(dur.minDuration);
   m_ossia_interval->set_max_duration(dur.maxDuration);
   m_ossia_interval->set_speed(dur.speed);
+  m_ossia_interval->set_tempo_curve(tempoCurve(interval(), context()));
+  m_ossia_interval->set_time_signature_map(timeSignatureMap(interval(), context()));
 
   std::weak_ptr<IntervalComponent> weak_self = self;
   in_exec([weak_self, ossia_cst, &edit = system().editionQueue] {

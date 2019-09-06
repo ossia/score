@@ -343,7 +343,7 @@ void js_node::run(ossia::token_request tk, ossia::exec_state_facade) noexcept
       Qt::DirectConnection,
       Q_ARG(QVariant, double(tk.prev_date)),
       Q_ARG(QVariant, double(tk.date)),
-      Q_ARG(QVariant, tk.position),
+      Q_ARG(QVariant, tk.position()),
       Q_ARG(QVariant, double(tk.offset)));
 
   for (int i = 0; i < m_valOutlets.size(); i++)

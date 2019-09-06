@@ -68,13 +68,17 @@ private:
   void keyReleaseEvent(QKeyEvent* event) override;
   void focusOutEvent(QFocusEvent* event) override;
   void leaveEvent(QEvent* event) override;
-  void drawBackground(QPainter* painter, const QRectF& rect) override;
+  //void drawBackground(QPainter* painter, const QRectF& rect) override;
 
   const score::GUIApplicationContext& m_app;
 
   std::chrono::steady_clock::time_point m_lastwheel;
   bool m_hZoom{false};
   bool m_vZoom{false};
+
+  // QObject interface
+protected:
+  void timerEvent(QTimerEvent* event) override;
 };
 
 class SCORE_PLUGIN_SCENARIO_EXPORT ScenarioDocumentView final

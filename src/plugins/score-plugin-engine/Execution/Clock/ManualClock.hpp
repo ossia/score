@@ -70,7 +70,8 @@ private:
       using namespace ossia;
       ossia::time_interval& itv = *scenario.baseInterval().OSSIAInterval();
       ossia::time_value time{val};
-      itv.tick_offset(time, 0_tv);
+      ossia::token_request tok{};
+      itv.tick_offset(time, 0_tv, tok);
     });
     m_widg->show();
 
