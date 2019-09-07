@@ -77,11 +77,11 @@ struct node_graph_process final : public ossia::time_process
     }
   }
 
-  void offset_impl(time_value date, double pos) override
+  void offset_impl(time_value date) override
   {
     for (auto& process : processes)
     {
-      process->offset(date, pos);
+      process->offset(date);
     }
     for (auto& node : nodes)
     {
@@ -89,11 +89,11 @@ struct node_graph_process final : public ossia::time_process
     }
   }
 
-  void transport_impl(ossia::time_value date, double pos) override
+  void transport_impl(ossia::time_value date) override
   {
     for (auto& process : processes)
     {
-      process->transport(date, pos);
+      process->transport(date);
     }
     for (auto& node : nodes)
     {

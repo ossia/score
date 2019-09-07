@@ -222,11 +222,11 @@ void IntervalComponent::onSetup(
   std::weak_ptr<IntervalComponent> weak_self = self;
   in_exec([weak_self, ossia_cst, &edit = system().editionQueue] {
     ossia_cst->set_stateless_callback(
-        smallfun::function<void(double, ossia::time_value), 32>{
-            [weak_self, &edit](double position, ossia::time_value date) {
-              edit.enqueue([weak_self, position, date] {
+        smallfun::function<void(ossia::time_value), 32>{
+            [weak_self, &edit](ossia::time_value date) {
+              edit.enqueue([weak_self, date] {
                 if (auto self = weak_self.lock())
-                  self->slot_callback(position, date);
+                  self->slot_callback(date);
               });
             }});
   });
@@ -240,7 +240,7 @@ void IntervalComponent::onSetup(
   init();
 }
 
-void IntervalComponent::slot_callback(double position, ossia::time_value date)
+void IntervalComponent::slot_callback(ossia::time_value date)
 {
   if (m_ossia_interval)
   {

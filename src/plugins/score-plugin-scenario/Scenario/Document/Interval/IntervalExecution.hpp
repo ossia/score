@@ -150,12 +150,6 @@ public:
       : PolymorphicComponentHierarchyManager{score::lazy_init_t{},
                                              std::forward<Args>(args)...}
   {
-    connect(
-        this,
-        &IntervalComponent::sig_callback,
-        this,
-        &IntervalComponent::slot_callback,
-        Qt::QueuedConnection);
   }
 
   IntervalComponent(const IntervalComponent&) = delete;
@@ -180,11 +174,7 @@ public:
       interval_duration_data dur);
 
 public:
-  void sig_callback(double position, ossia::time_value date)
-      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, sig_callback, position, date)
-
-public:
-  void slot_callback(double position, ossia::time_value date);
+  void slot_callback(ossia::time_value date);
   W_SLOT(slot_callback);
 };
 }
