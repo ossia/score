@@ -43,6 +43,7 @@ public:
   static QHash<QString, AudioInfo>& database();
 
   int32_t sampleRate{};
+  int32_t channels{};
   std::size_t decoded{};
 
 public:

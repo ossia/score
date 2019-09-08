@@ -7,8 +7,12 @@
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/serialization/JSONVisitor.hpp>
 #include <score/serialization/VisitorCommon.hpp>
+#include <ossia/dataflow/audio_stretch_mode.hpp>
 
 #include <verdigris>
+
+Q_DECLARE_METATYPE(ossia::audio_stretch_mode)
+W_REGISTER_ARGTYPE(ossia::audio_stretch_mode)
 namespace Media
 {
 namespace Sound
@@ -53,10 +57,12 @@ public:
   int upmixChannels() const noexcept;
   int startChannel() const noexcept;
   double nativeTempo() const noexcept;
+  ossia::audio_stretch_mode stretchMode() const noexcept;
 
   void setUpmixChannels(int upmixChannels);
   void setStartChannel(int startChannel);
   void setNativeTempo(double);
+  void setStretchMode(ossia::audio_stretch_mode);
 
   void on_mediaChanged();
 
@@ -71,6 +77,8 @@ public:
       W_SIGNAL(upmixChannelsChanged, upmixChannels);
   void startChannelChanged(int startChannel)
       W_SIGNAL(startChannelChanged, startChannel);
+  void stretchModeChanged(ossia::audio_stretch_mode mode)
+      W_SIGNAL(stretchModeChanged, mode);
 
   PROPERTY(
       int,
@@ -82,6 +90,16 @@ public:
       upmixChannels READ upmixChannels WRITE setUpmixChannels NOTIFY
           upmixChannelsChanged,
       W_Final)
+  PROPERTY(
+      double,
+      nativeTempo READ nativeTempo WRITE setNativeTempo NOTIFY
+      nativeTempoChanged,
+      W_Final)
+  PROPERTY(
+      ossia::audio_stretch_mode,
+      stretchMode READ stretchMode WRITE setStretchMode NOTIFY
+      stretchModeChanged,
+      W_Final)
 
 private:
   void init();
@@ -89,6 +107,7 @@ private:
   std::shared_ptr<AudioFile> m_file;
   int m_upmixChannels{};
   int m_startChannel{};
+  ossia::audio_stretch_mode m_mode{};
   double m_nativeTempo{};
 };
 }

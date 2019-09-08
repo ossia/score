@@ -561,6 +561,7 @@ void AudioDecoder::decode(const QString& path, audio_handle hdl)
 
   decoded = 0;
   sampleRate = info.rate;
+  channels = info.channels;
   auto& data = hdl->data;
   data.resize(info.channels);
 
@@ -591,6 +592,7 @@ AudioDecoder::decode_synchronous(const QString& path, int rate)
     return ossia::none;
 
   dec.sampleRate = res->rate;
+  dec.channels = res->channels;
 
   auto hdl = std::make_shared<ossia::audio_data>();
   hdl->data.resize(res->channels);
