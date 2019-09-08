@@ -266,6 +266,12 @@ if(Faust_FOUND)
   target_include_directories(${PROJECT_NAME} PRIVATE ${FAUST_INCLUDE_DIR})
 endif()
 
+# Rubberband and sample rate conversion
+target_include_directories(${PROJECT_NAME}
+    PRIVATE
+      ${OSSIA_3RDPARTY_FOLDER}/r8brain-free-src
+      ${OSSIA_3RDPARTY_FOLDER}/rubberband/rubberband
+)
 setup_score_plugin(${PROJECT_NAME})
 
 if(Faust_FOUND)

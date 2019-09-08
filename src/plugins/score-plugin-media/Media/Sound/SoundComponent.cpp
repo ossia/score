@@ -1,6 +1,5 @@
 #include "SoundComponent.hpp"
 
-#include <ossia/dataflow/nodes/sound_ref.hpp>
 #include <Process/ExecutionContext.hpp>
 #include <Process/ExecutionSetup.hpp>
 #include <Scenario/Execution/score2OSSIA.hpp>
@@ -122,11 +121,14 @@ public:
     auto n = std::dynamic_pointer_cast<ossia::nodes::sound_ref>(old_node);
     if(n)
     {
+
       component.in_exec([n,
                data = r->handle,
+               channels = r->decoder.channels,
+               sampleRate = r->decoder.sampleRate,
                upmix = p.upmixChannels(),
                start = p.startChannel()] {
-        n->set_sound(std::move(data));
+        n->set_sound(std::move(data), channels, sampleRate);
         n->set_start(start);
         n->set_upmix(upmix);
       });

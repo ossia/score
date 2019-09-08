@@ -83,6 +83,11 @@ double ProcessModel::nativeTempo() const noexcept
   return m_nativeTempo;
 }
 
+ossia::audio_stretch_mode ProcessModel::stretchMode() const noexcept
+{
+  return m_mode;
+}
+
 void ProcessModel::setUpmixChannels(int upmixChannels)
 {
   if (m_upmixChannels == upmixChannels)
@@ -107,6 +112,15 @@ void ProcessModel::setNativeTempo(double t)
   {
     m_nativeTempo = t;
     nativeTempoChanged(t);
+  }
+}
+
+void ProcessModel::setStretchMode(ossia::audio_stretch_mode t)
+{
+  if(t != m_mode)
+  {
+    m_mode = t;
+    stretchModeChanged(t);
   }
 }
 
