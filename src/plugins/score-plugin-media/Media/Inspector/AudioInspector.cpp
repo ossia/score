@@ -23,16 +23,29 @@ InspectorWidget::InspectorWidget(
 {
   m_start.setRange(0, 512);
   m_upmix.setRange(0, 512);
+  m_mode.addItems({
+                    tr("Raw"),
+                    tr("Timestretch"),
+                    tr("Timestretch (percussive)"),
+                    tr("Repitch")
+                  });
+
 
   setObjectName("SoundInspectorWidget");
 
   auto lay = new QFormLayout;
 
   ::bind(process(), Sound::ProcessModel::p_startChannel{}, this, [&](int v) {
-    m_start.setValue(v);
+    if(m_start.value() != v)
+      m_start.setValue(v);
   });
   ::bind(process(), Sound::ProcessModel::p_upmixChannels{}, this, [&](int v) {
-    m_upmix.setValue(v);
+    if(m_upmix.value() != v)
+      m_upmix.setValue(v);
+  });
+  ::bind(process(), Sound::ProcessModel::p_stretchMode{}, this, [&](ossia::audio_stretch_mode v) {
+    if(m_mode.currentIndex() != (int) v)
+      m_mode.setCurrentIndex((int) v);
   });
   con(process(), &Sound::ProcessModel::fileChanged, this, [&] {
     m_edit.setText(object.file()->originalFile());
@@ -42,13 +55,20 @@ InspectorWidget::InspectorWidget(
     m_dispatcher.submit(new ChangeAudioFile(object, m_edit.text()));
   });
   con(m_start, &QSpinBox::editingFinished, this, [&]() {
+    if(m_upmix.value() != process().startChannel())
     m_dispatcher.submit(new ChangeStart(object, m_start.value()));
   });
   con(m_upmix, &QSpinBox::editingFinished, this, [&]() {
-    m_dispatcher.submit(new ChangeUpmix(object, m_upmix.value()));
+    if(m_upmix.value() != process().upmixChannels())
+      m_dispatcher.submit(new ChangeUpmix(object, m_upmix.value()));
+  });
+  con(m_mode, qOverload<int>(&QComboBox::currentIndexChanged), this, [&](int idx) {
+    if(idx != (int) process().stretchMode())
+      m_dispatcher.submit(new ChangeStretchMode(object, (ossia::audio_stretch_mode)idx));
   });
 
   lay->addRow(tr("Path"), &m_edit);
+  lay->addRow(tr("Stretch mode"), &m_mode);
   lay->addRow(tr("Start channel"), &m_start);
   lay->addRow(tr("Upmix channels"), &m_upmix);
   this->setLayout(lay);

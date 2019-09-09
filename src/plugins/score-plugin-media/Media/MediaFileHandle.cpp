@@ -55,6 +55,7 @@ enum class DecodingMethod {
 
 static DecodingMethod needsDecoding(const QString& path, int rate)
 {
+  return DecodingMethod::Libav;
   if(path.endsWith("wav", Qt::CaseInsensitive))
   {
     QFile f(path);

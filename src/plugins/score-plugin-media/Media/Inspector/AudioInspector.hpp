@@ -7,6 +7,7 @@
 
 #include <QLineEdit>
 #include <QSpinBox>
+#include <QComboBox>
 
 namespace Media
 {
@@ -26,6 +27,7 @@ private:
   QLineEdit m_edit;
   QSpinBox m_start;
   QSpinBox m_upmix;
+  QComboBox m_mode;
 };
 }
 }
