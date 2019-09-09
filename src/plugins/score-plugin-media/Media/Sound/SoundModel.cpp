@@ -146,7 +146,7 @@ template <>
 void DataStreamReader::read(const Media::Sound::ProcessModel& proc)
 {
   m_stream << proc.m_file->originalFile() << *proc.outlet << proc.m_upmixChannels
-           << proc.m_startChannel << proc.m_nativeTempo;
+           << proc.m_startChannel << proc.m_mode << proc.m_nativeTempo;
 
   insertDelimiter();
 }
@@ -159,7 +159,7 @@ void DataStreamWriter::write(Media::Sound::ProcessModel& proc)
   proc.setFile(s);
   proc.outlet = make_outlet(*this, &proc);
 
-  m_stream >> proc.m_upmixChannels >> proc.m_startChannel >> proc.m_nativeTempo;
+  m_stream >> proc.m_upmixChannels >> proc.m_startChannel >> proc.m_mode >> proc.m_nativeTempo;
   checkDelimiter();
 }
 
@@ -170,6 +170,7 @@ void JSONObjectReader::read(const Media::Sound::ProcessModel& proc)
   obj["Outlet"] = toJsonObject(*proc.outlet);
   obj["Upmix"] = proc.m_upmixChannels;
   obj["Start"] = proc.m_startChannel;
+  obj["Mode"] = (int)proc.m_mode;
   obj["Tempo"] = proc.m_nativeTempo;
 }
 
@@ -181,6 +182,7 @@ void JSONObjectWriter::write(Media::Sound::ProcessModel& proc)
   proc.outlet = Process::make_outlet(writer, &proc);
   proc.m_upmixChannels = obj["Upmix"].toInt();
   proc.m_startChannel = obj["Start"].toInt();
+  proc.m_mode = (ossia::audio_stretch_mode)obj["Mode"].toInt();
   proc.m_nativeTempo = obj["Tempo"].toDouble();
 
   if(int off = obj["StartOffset"].toInt(); off != 0)

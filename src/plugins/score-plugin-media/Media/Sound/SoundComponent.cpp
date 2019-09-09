@@ -121,16 +121,19 @@ public:
     auto n = std::dynamic_pointer_cast<ossia::nodes::sound_ref>(old_node);
     if(n)
     {
-
       component.in_exec([n,
                data = r->handle,
                channels = r->decoder.channels,
                sampleRate = r->decoder.sampleRate,
+               tempo = component.process().nativeTempo(),
+               mode = component.process().stretchMode(),
                upmix = p.upmixChannels(),
                start = p.startChannel()] {
         n->set_sound(std::move(data), channels, sampleRate);
         n->set_start(start);
         n->set_upmix(upmix);
+        n->set_stretch_mode(mode);
+        n->set_native_tempo(tempo);
       });
     }
     else
@@ -161,6 +164,9 @@ public:
       component.in_exec([n = std::dynamic_pointer_cast<ossia::nodes::sound_mmap>(
                         component.OSSIAProcess().node),
                         data = r.wav,
+                        channels = r.wav.channels(),
+                        tempo = component.process().nativeTempo(),
+                        mode = component.process().stretchMode(),
                         upmix = p.upmixChannels(),
                         start = p.startChannel()] () mutable {
         n->set_sound(std::move(data));
@@ -219,6 +225,18 @@ SoundComponent::SoundComponent(
       in_exec([node, upmix = element.upmixChannels()] { node->set_upmix(upmix); });
     else if(auto node = std::dynamic_pointer_cast<ossia::nodes::sound_mmap>(this->node))
       in_exec([node, upmix = element.upmixChannels()] { node->set_upmix(upmix); });
+  });
+  con(element, &Media::Sound::ProcessModel::nativeTempoChanged, this, [=,&element] {
+    if(auto node = std::dynamic_pointer_cast<ossia::nodes::sound_ref>(this->node))
+      in_exec([node, tempo = element.nativeTempo()] { node->set_native_tempo(tempo); });
+    else if(auto node = std::dynamic_pointer_cast<ossia::nodes::sound_mmap>(this->node))
+      in_exec([node, tempo = element.nativeTempo()] { node->set_native_tempo(tempo); });
+  });
+  con(element, &Media::Sound::ProcessModel::stretchModeChanged, this, [=,&element] {
+    if(auto node = std::dynamic_pointer_cast<ossia::nodes::sound_ref>(this->node))
+      in_exec([node, mode = element.stretchMode()] { node->set_stretch_mode(mode); });
+    else if(auto node = std::dynamic_pointer_cast<ossia::nodes::sound_mmap>(this->node))
+      in_exec([node, mode = element.stretchMode()] { node->set_stretch_mode(mode); });
   });
   if(auto& file = element.file())
   {

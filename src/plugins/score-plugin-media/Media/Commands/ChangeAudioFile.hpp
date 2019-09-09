@@ -46,5 +46,11 @@ PROPERTY_COMMAND_T(
     ChangeUpmix,
     Sound::ProcessModel::p_upmixChannels,
     "Change upmix channels")
+PROPERTY_COMMAND_T(
+    Media,
+    ChangeStretchMode,
+    Sound::ProcessModel::p_stretchMode,
+    "Change stretch mode")
 SCORE_COMMAND_DECL_T(Media::ChangeStart)
 SCORE_COMMAND_DECL_T(Media::ChangeUpmix)
+SCORE_COMMAND_DECL_T(Media::ChangeStretchMode)

@@ -52,6 +52,8 @@ score_plugin_media::score_plugin_media()
   qRegisterMetaType<Media::Sound::ComputedWaveform>();
   qRegisterMetaType<QVector<QImage>>();
   qRegisterMetaType<QVector<QImage*>>();
+  qRegisterMetaType<ossia::audio_stretch_mode>();
+  qRegisterMetaTypeStreamOperators<ossia::audio_stretch_mode>();
 }
 
 score_plugin_media::~score_plugin_media() {}
