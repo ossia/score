@@ -50,7 +50,7 @@ QSet<QString> DropHandler::mimeTypes() const noexcept
 QSet<QString> DropHandler::fileExtensions() const noexcept
 {
   return {
-      "wav", "aif", "aiff", "flac", "ogg", "mp3", "ape", "wv", "m4a", "wma"};
+      "wav", "aif", "aiff", "flac", "ogg", "mp3", "ape", "wv", "m4a", "wma", "w64"};
 }
 
 std::vector<Process::ProcessDropHandler::ProcessDrop> DropHandler::drop(

@@ -394,7 +394,7 @@ void WaveformComputer::stop()
 struct WaveformComputerImpl
 {
   AudioFile& data;
-  AudioFile::Handle& handle;
+  AudioFile::ViewHandle& handle;
   ZoomRatio ratio;
   bool cols;
   int64_t redraw_number;

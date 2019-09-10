@@ -55,8 +55,7 @@ enum class DecodingMethod {
 
 static DecodingMethod needsDecoding(const QString& path, int rate)
 {
-  return DecodingMethod::Libav;
-  if(path.endsWith("wav", Qt::CaseInsensitive))
+  if(path.endsWith("wav", Qt::CaseInsensitive) || path.endsWith("w64", Qt::CaseInsensitive))
   {
     QFile f(path);
     auto sr = readSampleRate(f);
@@ -185,15 +184,15 @@ struct FrameComputer
 
   }
 
-  void operator()(const AudioFile::libav_ptr& r) noexcept
+  void operator()(const AudioFile::LibavView& r) noexcept
   {
-    const int channels = r->data.size();
+    const int channels = r.data.size();
     sum.resize(channels);
     if(end_frame - start_frame > 0)
     {
       for(int c = 0; c < channels; c++)
       {
-        const auto& vals = r->data[c];
+        const auto& vals = r.data[c];
         sum[c] = fun.init(vals[start_frame]);
         for(int64_t i = start_frame + 1; i < end_frame; i++)
           sum[c] = fun(sum[c], (float)vals[i]);
@@ -204,16 +203,16 @@ struct FrameComputer
     {
       for(int c = 0; c < channels; c++)
       {
-        const auto& vals = r->data[c];
+        const auto& vals = r.data[c];
         sum[c] = fun.init(vals[start_frame]);
       }
     }
   }
 
-  void operator()(AudioFile::mmap_ptr& r) noexcept
+  void operator()(AudioFile::MmapView& r) noexcept
   {
     auto& wav = r.wav;
-    const int channels = wav.channels();
+    const int channels = wav.channels;
     sum.resize(channels);
 
     if(end_frame - start_frame > 0)
@@ -221,10 +220,10 @@ struct FrameComputer
       const int64_t buffer_size = end_frame - start_frame;
 
       float* floats = (float*)alloca(sizeof(float) * buffer_size * channels);
-      if(Q_UNLIKELY(! wav.seek_to_pcm_frame(start_frame)))
+      if(Q_UNLIKELY(! drwav_seek_to_pcm_frame(&wav, start_frame)))
         return;
 
-      auto max = wav.read_pcm_frames_f32(buffer_size, floats);
+      auto max = drwav_read_pcm_frames_f32(&wav, buffer_size, floats);
       if(Q_UNLIKELY(max == 0))
         return;
 
@@ -245,9 +244,9 @@ struct FrameComputer
     else
     {
       float* val = (float*)alloca(sizeof(float) * channels);
-      if(Q_UNLIKELY(! wav.seek_to_pcm_frame(start_frame)))
+      if(Q_UNLIKELY(! drwav_seek_to_pcm_frame(&wav, start_frame)))
         return;
-      int max = wav.read_pcm_frames_f32(1, val);
+      int max = drwav_read_pcm_frames_f32(&wav, 1, val);
       if(Q_UNLIKELY(max == 0))
         return;
 
@@ -269,28 +268,28 @@ struct SingleFrameComputer
 
   }
 
-  void operator()(const AudioFile::libav_ptr& r) noexcept
+  void operator()(const AudioFile::LibavView& r) noexcept
   {
-    const int channels = r->data.size();
+    const int channels = r.data.size();
     sum.resize(channels);
     for(int c = 0; c < channels; c++)
     {
-      const auto& vals = r->data[c];
+      const auto& vals = r.data[c];
       sum[c] = vals[start_frame];
     }
   }
 
-  void operator()(AudioFile::mmap_ptr& r) noexcept
+  void operator()(AudioFile::MmapView& r) noexcept
   {
     auto& wav = r.wav;
-    const int channels = wav.channels();
+    const int channels = wav.channels;
     sum.resize(channels);
 
     float* val = (float*)alloca(sizeof(float) * channels);
-    if(Q_UNLIKELY(! wav.seek_to_pcm_frame(start_frame)))
+    if(Q_UNLIKELY(! drwav_seek_to_pcm_frame(&wav, start_frame)))
       return;
 
-    int max = wav.read_pcm_frames_f32(1, val);
+    int max = drwav_read_pcm_frames_f32(&wav, 1, val);
     if(Q_UNLIKELY(max == 0))
       return;
 
@@ -301,14 +300,14 @@ struct SingleFrameComputer
   }
 };
 
-ossia::small_vector<float, 8> AudioFile::Handle::frame(int64_t start_frame) noexcept
+ossia::small_vector<float, 8> AudioFile::ViewHandle::frame(int64_t start_frame) noexcept
 {
   SingleFrameComputer _{start_frame, {}};
   ossia::apply(_, *this);
   return _.sum;
 }
 
-ossia::small_vector<float, 8> AudioFile::Handle::absmax_frame(int64_t start_frame, int64_t end_frame) noexcept
+ossia::small_vector<float, 8> AudioFile::ViewHandle::absmax_frame(int64_t start_frame, int64_t end_frame) noexcept
 {
   struct AbsMax
   {
@@ -321,7 +320,7 @@ ossia::small_vector<float, 8> AudioFile::Handle::absmax_frame(int64_t start_fram
 }
 
 
-ossia::small_vector<std::pair<float, float>, 8> AudioFile::Handle::minmax_frame(int64_t start_frame, int64_t end_frame) noexcept
+ossia::small_vector<std::pair<float, float>, 8> AudioFile::ViewHandle::minmax_frame(int64_t start_frame, int64_t end_frame) noexcept
 {
   struct MinMax
   {
@@ -501,6 +500,28 @@ std::shared_ptr<AudioFile> AudioFileManager::get(
   r->load(path, abspath);
   m_handles.insert({abspath, r});
   return r;
+}
+
+AudioFile::ViewHandle::ViewHandle(const AudioFile::Handle& handle)
+{
+  struct
+  {
+    view_impl_t& self;
+  void operator()() const noexcept
+  {  }
+  void operator()(const libav_ptr& r) const noexcept
+  { self = LibavView{r->data}; }
+  void operator()(const mmap_ptr& r) const noexcept
+  {
+    if(r.wav)
+    {
+      self = MmapView{*r.wav.wav()};
+    }
+  }
+  } _{*this};
+
+  ossia::apply(_, handle);
+
 }
 
 }

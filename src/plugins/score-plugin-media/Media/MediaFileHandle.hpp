@@ -79,9 +79,6 @@ public:
 
   void updateSampleRate(int);
 
-  // Note : this is a copy, because it's not thread safe.
-  auto handle() const noexcept { return m_impl; }
-
 
   struct MmapReader
   {
@@ -106,16 +103,42 @@ public:
     libav_ptr
   >;
 
+  struct MmapView
+  {
+    // Copy for thread-safety reasons
+    drwav wav;
+  };
+
+  struct LibavView
+  {
+    ossia::small_vector<audio_sample*, 8> data;
+  };
+
   struct Handle : impl_t
   {
     using impl_t::impl_t;
     Handle(mmap_ptr&& ptr): impl_t{std::move(ptr)} { }
     Handle(libav_ptr&& ptr): impl_t{std::move(ptr)} { }
+    Handle& operator=(mmap_ptr&& ptr) { ((impl_t&)*this) = std::move(ptr); return *this; }
+    Handle& operator=(libav_ptr&& ptr) { ((impl_t&)*this) = std::move(ptr); return *this; }
+  };
+
+  using view_impl_t = eggs::variant<
+    MmapView,
+    LibavView
+  >;
+  struct ViewHandle : view_impl_t
+  {
+    using view_impl_t::view_impl_t;
+    ViewHandle(const Handle&);
 
     ossia::small_vector<float, 8> frame(int64_t start_frame) noexcept;
     ossia::small_vector<float, 8> absmax_frame(int64_t start_frame, int64_t end_frame) noexcept;
     ossia::small_vector<std::pair<float, float>, 8> minmax_frame(int64_t start_frame, int64_t end_frame) noexcept;
   };
+
+  // Note : this is a copy, because it's not thread safe.
+  ViewHandle handle() const noexcept { return m_impl; }
 
 private:
   void load_ffmpeg(int rate);

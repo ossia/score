@@ -155,6 +155,8 @@ public:
       const Media::AudioFile::MmapReader& r,
       Execution::SoundComponent& component)
   {
+    if(!r.wav)
+      return;
     Sound::ProcessModel& p = component.process();
 
     auto old_node = component.node;
