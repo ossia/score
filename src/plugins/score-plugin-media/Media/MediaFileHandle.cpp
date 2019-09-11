@@ -8,7 +8,6 @@
 #include <score/serialization/JSONVisitor.hpp>
 #include <score/tools/File.hpp>
 #include <Audio/Settings/Model.hpp>
-#include <ossia/dataflow/nodes/sound_mmap.hpp>
 
 #include <score/tools/Bind.hpp>
 #include <core/document/Document.hpp>
