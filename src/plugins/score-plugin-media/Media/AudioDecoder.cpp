@@ -66,6 +66,12 @@ constexpr audio_sample convert_sample<float, 32>(float i)
   return i;
 }
 
+template <>
+constexpr audio_sample convert_sample<double, 64>(double i)
+{
+  return i;
+}
+
 template <
     typename SampleFormat,
     std::size_t Channels,
@@ -231,7 +237,21 @@ using decoder_t = eggs::variant<
    Decoder<float,   8, 32, true>,
    Decoder<float,   8, 32, false>,*/
     Decoder<float, dynamic_channels, 32, true>,
-    Decoder<float, dynamic_channels, 32, false>>;
+    Decoder<float, dynamic_channels, 32, false>,
+
+   Decoder<double, 1, 64, true>,
+   Decoder<double, 2, 64, true>,
+   Decoder<double, 2, 64, false>, /*
+      Decoder<float,   4, 32, true>,
+      Decoder<float,   4, 32, false>,
+      Decoder<float,   6, 32, true>,
+      Decoder<float,   6, 32, false>,
+      Decoder<float,   8, 32, true>,
+      Decoder<float,   8, 32, false>,*/
+   Decoder<double, dynamic_channels, 64, true>,
+   Decoder<double, dynamic_channels, 64, false>
+
+>;
 
 template <std::size_t N>
 decoder_t make_N_decoder(AVStream& stream)
@@ -269,6 +289,18 @@ decoder_t make_N_decoder(AVStream& stream)
         return Decoder<int32_t, N, 24, true>{};
       default:
         break;
+    }
+  }
+  else if (size == 64)
+  {
+    switch ((AVSampleFormat)stream.codecpar->format)
+    {
+      case AVSampleFormat::AV_SAMPLE_FMT_DBL:
+        return Decoder<double, N, 64, false>{};
+      case AVSampleFormat::AV_SAMPLE_FMT_DBLP:
+        return Decoder<double, N, 64, true>{};
+      default:
+        return {};
     }
   }
   return {};
@@ -312,6 +344,18 @@ decoder_t make_dynamic_decoder(AVStream& stream)
         break;
     }
   }
+  else if (size == 64)
+  {
+    switch ((AVSampleFormat)stream.codecpar->format)
+    {
+      case AVSampleFormat::AV_SAMPLE_FMT_DBL:
+        return Decoder<double, dynamic_channels, 64, false>{};
+      case AVSampleFormat::AV_SAMPLE_FMT_DBLP:
+        return Decoder<double, dynamic_channels, 64, true>{};
+      default:
+        return {};
+    }
+  }
 
   return {};
 }
@@ -342,6 +386,10 @@ decoder_t make_N_decoder<1>(AVStream& stream)
   else if (size == 24)
   {
     return Decoder<int32_t, 1, 24, true>{};
+  }
+  else if (size == 64)
+  {
+    return Decoder<double, 1, 64, true>{};
   }
 
   return {};
@@ -742,10 +790,10 @@ void AudioDecoder::on_startDecode(QString path, audio_handle hdl)
         SwrContext* swr = swr_alloc_set_opts(
             nullptr,
             AV_CH_LAYOUT_MONO,
-            AV_SAMPLE_FMT_DBL,
+            AV_SAMPLE_FMT_FLT,
             m_targetSampleRate,
             AV_CH_LAYOUT_MONO,
-            AV_SAMPLE_FMT_DBL,
+            AV_SAMPLE_FMT_FLT,
             sampleRate,
             0,
             nullptr);

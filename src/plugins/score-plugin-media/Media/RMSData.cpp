@@ -8,7 +8,6 @@
 #include <Media/RMSData.hpp>
 #include <Media/MediaFileHandle.hpp>
 #include <wobjectimpl.h>
-#include <ossia/dataflow/nodes/sound_mmap.hpp>
 
 #include <QCryptographicHash>
 #include <QDir>
