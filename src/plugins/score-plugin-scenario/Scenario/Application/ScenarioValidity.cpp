@@ -42,6 +42,12 @@ void ScenarioValidityChecker::checkValidity(const ProcessModel& scenar)
         (qFuzzyCompare(dur.defaultDuration().msec(), dur.maxDuration().msec()))
           || dur.defaultDuration() < dur.maxDuration()
           || dur.maxDuration().isInfinite());
+
+    for(auto& slot : interval.smallView())
+    {
+      SCORE_ASSERT(slot.frontProcess);
+      SCORE_ASSERT(interval.processes.find(*slot.frontProcess) != interval.processes.end());
+    }
     /*
     if (dur.isRigid())
     {
