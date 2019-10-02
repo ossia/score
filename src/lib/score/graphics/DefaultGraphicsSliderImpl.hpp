@@ -140,7 +140,6 @@ struct DefaultGraphicsSliderImpl
     QTimer::singleShot(0, [&,pos] {
       auto w = new DoubleSpinboxWithEnter;
       self.spinbox = w;
-      qDebug() << self.min << self.max << self.m_value;
       w->setRange(self.min, self.max);
 
       w->setDecimals(6);
