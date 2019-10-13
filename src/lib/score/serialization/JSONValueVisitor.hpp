@@ -40,29 +40,25 @@ public:
   template <typename T>
   void readFrom(const T& obj)
   {
-    readFrom_impl(obj, typename serialization_tag<T>::type{});
+    using tag = typename serialization_tag<T>::type;
+
+    if constexpr(std::is_same_v<tag, visitor_template_tag>)
+    {
+      TSerializer<JSONValue, T>::readFrom(*this, obj);
+    }
+    else if constexpr(std::is_same_v<tag, visitor_enum_tag>)
+    {
+      check_enum_size<T> _;
+      val = (int32_t)obj;
+    }
+    else
+    {
+      read(obj);
+    }
   }
 
   template <typename T>
   void read(const T&);
-
-  template <typename T>
-  void readFrom_impl(const T& obj, visitor_template_tag)
-  {
-    TSerializer<JSONValue, T>::readFrom(*this, obj);
-  }
-
-  template <typename T>
-  void readFrom_impl(const T& obj, visitor_default_tag)
-  {
-    read(obj);
-  }
-
-  template <typename T>
-  void readFrom_impl(const T& obj, visitor_enum_tag)
-  {
-    val = (int32_t)obj;
-  }
 
   QJsonValue val;
   const score::StringConstants& strings{score::StringConstant()};

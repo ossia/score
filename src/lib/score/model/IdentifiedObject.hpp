@@ -21,6 +21,7 @@ public:
   static const constexpr bool identified_object_tag = true;
   using model_type = model;
   using id_type = Id<model>;
+  using object_type = IdentifiedObject<model>;
 
   IdentifiedObject(id_type id, const QString& name, QObject* parent) noexcept
       : IdentifiedObjectAbstract{name, parent}, m_id{std::move(id)}

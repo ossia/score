@@ -171,6 +171,19 @@ public:
   }
 
   //! Called by code that wants to serialize.
+
+  template <typename T>
+  void readFrom(const score::Entity<T>& obj)
+  {
+    TSerializer<DataStream, score::Entity<T>>::readFrom(*this, obj);
+  }
+
+  template <typename T>
+  void readFrom(const IdentifiedObject<T>& obj)
+  {
+    TSerializer<DataStream, IdentifiedObject<T>>::readFrom(*this, obj);
+  }
+
   template <typename T>
   void readFrom(const T& obj)
   {
@@ -192,7 +205,7 @@ public:
       }
       else
       {
-        TSerializer<DataStream, IdentifiedObject<T>>::readFrom(*this, obj);
+        TSerializer<DataStream, typename T::object_type>::readFrom(*this, obj);
       }
 
       if constexpr (is_custom_serialized<T>::value || is_template<T>::value)
@@ -208,7 +221,7 @@ public:
       }
       else
       {
-        TSerializer<DataStream, score::Entity<T>>::readFrom(*this, obj);
+        TSerializer<DataStream, typename T::entity_type>::readFrom(*this, obj);
       }
 
       if constexpr (is_custom_serialized<T>::value || is_template<T>::value)
@@ -266,6 +279,7 @@ public:
     }
     else if constexpr(std::is_same_v<tag, visitor_enum_tag>)
     {
+      check_enum_size<T> _;
       m_stream << (int32_t)obj;
     }
     else
@@ -358,7 +372,23 @@ public:
   template <typename T>
   void writeTo(T& obj)
   {
-    writeTo_impl(obj, typename serialization_tag<T>::type{});
+    using tag = typename serialization_tag<T>::type;
+
+    if constexpr(std::is_same_v<tag, visitor_template_tag>)
+    {
+      TSerializer<DataStream, T>::writeTo(*this, obj);
+    }
+    else if constexpr(std::is_same_v<tag, visitor_enum_tag>)
+    {
+      check_enum_size<T> _;
+      int32_t e;
+      m_stream >> e;
+      obj = static_cast<T>(e);
+    }
+    else
+    {
+      write(obj);
+    }
   }
 
   /**
@@ -371,32 +401,11 @@ public:
 
   auto& stream() { return m_stream; }
 
-private:
-  template <typename T>
-  void writeTo_impl(T& obj, visitor_template_tag)
-  {
-    TSerializer<DataStream, T>::writeTo(*this, obj);
-  }
-
-  template <typename T, typename OtherTag>
-  void writeTo_impl(T& obj, OtherTag)
-  {
-    write(obj);
-  }
-
-  template <typename T>
-  void writeTo_impl(T& elt, visitor_enum_tag)
-  {
-    int32_t e;
-    m_stream >> e;
-    elt = static_cast<T>(e);
-  }
-
-  QDataStream m_stream_impl;
-
-public:
   const score::ApplicationComponents& components;
   DataStreamOutput m_stream{m_stream_impl};
+
+private:
+  QDataStream m_stream_impl;
 };
 
 template <

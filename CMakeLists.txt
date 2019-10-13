@@ -109,16 +109,16 @@ if(EXISTS Documentation/Models/score.qmodel)
   add_custom_target(Docs SOURCES Documentation/Models/score.qmodel)
 endif()
 
-if(INTEGRATION_TESTING)
+if(1)
   file(COPY
-       "${CMAKE_CURRENT_SOURCE_DIR}/Tests/testdata"
+       "${CMAKE_CURRENT_SOURCE_DIR}/tests/testdata"
        DESTINATION
-       "${CMAKE_CURRENT_BINARY_DIR}/Tests/Integration/")
+       "${CMAKE_CURRENT_BINARY_DIR}/tests/Integration/")
 
-  include_directories("${CMAKE_CURRENT_SOURCE_DIR}/Tests")
-  file(GLOB_RECURSE TESTS_HDRS "${CMAKE_CURRENT_SOURCE_DIR}/Tests/*.hpp")
+  include_directories("${CMAKE_CURRENT_SOURCE_DIR}/tests")
+  file(GLOB_RECURSE TESTS_HDRS "${CMAKE_CURRENT_SOURCE_DIR}/tests/*.hpp")
   add_custom_target(MocksHeaders SOURCES ${TESTS_HDRS})
-  setup_score_tests(Tests/Integration)
+  setup_score_tests(tests/Integration)
 endif()
 
 include(GenerateQMake)

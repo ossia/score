@@ -2,6 +2,8 @@
 #include <score/serialization/IsTemplate.hpp>
 
 #include <type_traits>
+#include <limits>
+#include <cinttypes>
 
 // Inherit from this to have
 // the type treated as a value in the serialization context. Useful
@@ -207,4 +209,15 @@ template <typename T>
 struct serialization_tag<T, std::enable_if_t<std::is_enum<T>::value>>
 {
   using type = visitor_enum_tag;
+};
+
+template<typename T>
+struct check_enum_size
+{
+  using type_limits = std::numeric_limits<std::underlying_type_t<T>>;
+  using int_limits = std::numeric_limits<int32_t>;
+  static_assert(
+      type_limits::min() >= int_limits::min() &&
+      type_limits::max() <= int_limits::max()
+  );
 };
