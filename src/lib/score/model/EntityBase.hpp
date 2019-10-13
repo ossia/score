@@ -27,6 +27,7 @@ class Entity : public IdentifiedObject<T>
 {
 public:
   static const constexpr bool entity_tag = true;
+  using entity_type = Entity<T>;
 
   Entity(Id<T> id, const QString& name, QObject* parent) noexcept
       : IdentifiedObject<T>{std::move(id), name, parent}

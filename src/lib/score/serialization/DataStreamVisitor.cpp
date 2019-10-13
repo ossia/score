@@ -7,35 +7,31 @@
 #include <QIODevice>
 #include <stdexcept>
 
-template <typename T>
-class Reader;
-template <typename T>
-class Writer;
-
 DataStreamReader::DataStreamReader() : components{score::AppComponents()} {}
 
 DataStreamReader::DataStreamReader(QByteArray* array)
     : m_stream_impl{array, QIODevice::WriteOnly}
     , components{score::AppComponents()}
 {
-  m_stream_impl.setVersion(QDataStream::Qt_5_3);
+  m_stream_impl.setVersion(QDataStream::Qt_5_12);
 }
 
 DataStreamReader::DataStreamReader(QIODevice* dev)
-    : m_stream_impl{dev}, components{score::AppComponents()}
+    : m_stream_impl{dev}
+    , components{score::AppComponents()}
 {
 }
 
 DataStreamWriter::DataStreamWriter() : components{score::AppComponents()} {}
 
 DataStreamWriter::DataStreamWriter(const QByteArray& array)
-    : m_stream_impl{array}, components{score::AppComponents()}
+    : components{score::AppComponents()}, m_stream_impl{array}
 {
-  m_stream_impl.setVersion(QDataStream::Qt_5_3);
+  m_stream_impl.setVersion(QDataStream::Qt_5_12);
 }
 
 DataStreamWriter::DataStreamWriter(QIODevice* dev)
-    : m_stream_impl{dev}, components{score::AppComponents()}
+    : components{score::AppComponents()}, m_stream_impl{dev}
 {
 }
 

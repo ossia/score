@@ -10,6 +10,21 @@
 #include <wobjectimpl.h>
 #include <QtTest/QTest>
 #include <score_integration.hpp>
+#include <ossia/detail/hash_map.hpp>
+#include <ossia/detail/flat_map.hpp>
+#include <ossia/detail/any_map.hpp>
+
+
+static_assert(is_template<UuidKey<struct tag>>::value);
+static_assert(is_template<std::vector<float>>::value);
+static_assert(is_template<std::array<float, 2>>::value);
+static_assert(is_template<tsl::hopscotch_map<int, int>>::value);
+static_assert(is_template<std::map<int, int>>::value);
+static_assert(is_template<std::unordered_map<int, int>>::value);
+static_assert(is_template<ossia::fast_hash_map<int, int>>::value);
+static_assert(is_template<ossia::any_map>::value);
+static_assert(is_template<ossia::flat_map<int, int>>::value);
+static_assert(is_template<ossia::flat_set<int>>::value);
 
 //////// Test basic objects ////////
 struct foo : public IdentifiedObject<foo>
@@ -31,13 +46,17 @@ struct foo : public IdentifiedObject<foo>
 template <>
 void DataStreamReader::read(const foo& pt)
 {
+  SCORE_DEBUG_INSERT_DELIMITER
   m_stream << pt.foo_var;
+  SCORE_DEBUG_INSERT_DELIMITER
 }
 
 template <>
 void DataStreamWriter::write(foo& pt)
 {
+  SCORE_DEBUG_CHECK_DELIMITER
   m_stream >> pt.foo_var;
+  SCORE_DEBUG_CHECK_DELIMITER
 }
 
 template <>
@@ -73,13 +92,17 @@ struct bar : public score::Entity<bar>
 template <>
 void DataStreamReader::read(const bar& pt)
 {
+  SCORE_DEBUG_INSERT_DELIMITER
   m_stream << pt.bar_var;
+  SCORE_DEBUG_INSERT_DELIMITER
 }
 
 template <>
 void DataStreamWriter::write(bar& pt)
 {
+  SCORE_DEBUG_CHECK_DELIMITER
   m_stream >> pt.bar_var;
+  SCORE_DEBUG_CHECK_DELIMITER
 }
 
 template <>
@@ -135,13 +158,17 @@ struct base
 template <>
 void DataStreamReader::read(const base& pt)
 {
+  SCORE_DEBUG_INSERT_DELIMITER
   m_stream << pt.base_var;
+  SCORE_DEBUG_INSERT_DELIMITER
 }
 
 template <>
 void DataStreamWriter::write(base& pt)
 {
+  SCORE_DEBUG_CHECK_DELIMITER
   m_stream >> pt.base_var;
+  SCORE_DEBUG_CHECK_DELIMITER
 }
 
 template <>
@@ -192,13 +219,17 @@ struct derived_factory
 template <>
 void DataStreamReader::read(const derived& pt)
 {
+  SCORE_DEBUG_INSERT_DELIMITER
   m_stream << pt.derived_var;
+  SCORE_DEBUG_INSERT_DELIMITER
 }
 
 template <>
 void DataStreamWriter::write(derived& pt)
 {
+  SCORE_DEBUG_CHECK_DELIMITER
   m_stream >> pt.derived_var;
+  SCORE_DEBUG_CHECK_DELIMITER
 }
 
 template <>
@@ -250,13 +281,17 @@ struct derived2_factory
 template <>
 void DataStreamReader::read(const derived2& pt)
 {
+  SCORE_DEBUG_INSERT_DELIMITER
   m_stream << pt.derived2_var;
+  SCORE_DEBUG_INSERT_DELIMITER
 }
 
 template <>
 void DataStreamWriter::write(derived2& pt)
 {
+  SCORE_DEBUG_CHECK_DELIMITER
   m_stream >> pt.derived2_var;
+  SCORE_DEBUG_CHECK_DELIMITER
 }
 
 template <>
@@ -300,12 +335,16 @@ struct TSerializer<DataStream, trait<T>>
 {
   static void readFrom(DataStream::Serializer& s, const trait<T>& v)
   {
+    SCORE_DEBUG_INSERT_DELIMITER
     s.stream() << v.trait_var;
+    SCORE_DEBUG_INSERT_DELIMITER
   }
 
   static void writeTo(DataStream::Deserializer& s, trait<T>& v)
   {
+    SCORE_DEBUG_CHECK_DELIMITER
     s.stream() >> v.trait_var;
+    SCORE_DEBUG_CHECK_DELIMITER
   }
 };
 
@@ -351,13 +390,17 @@ public:
 template <>
 void DataStreamReader::read(const crtp& pt)
 {
+  SCORE_DEBUG_INSERT_DELIMITER
   m_stream << pt.crtp_var;
+  SCORE_DEBUG_INSERT_DELIMITER
 }
 
 template <>
 void DataStreamWriter::write(crtp& pt)
 {
+  SCORE_DEBUG_CHECK_DELIMITER
   m_stream >> pt.crtp_var;
+  SCORE_DEBUG_CHECK_DELIMITER;
 }
 
 template <>
@@ -400,12 +443,16 @@ struct TSerializer<DataStream, trait2<T>>
 {
   static void readFrom(DataStream::Serializer& s, const trait2<T>& v)
   {
+    SCORE_DEBUG_INSERT_DELIMITER
     s.stream() << v.trait2_var;
+    SCORE_DEBUG_INSERT_DELIMITER
   }
 
   static void writeTo(DataStream::Deserializer& s, trait2<T>& v)
   {
+    SCORE_DEBUG_CHECK_DELIMITER
     s.stream() >> v.trait2_var;
+    SCORE_DEBUG_CHECK_DELIMITER
   }
 };
 
@@ -451,13 +498,17 @@ public:
 template <>
 void DataStreamReader::read(const crtp2& pt)
 {
+  SCORE_DEBUG_INSERT_DELIMITER
   m_stream << pt.crtp2_var;
+  SCORE_DEBUG_INSERT_DELIMITER
 }
 
 template <>
 void DataStreamWriter::write(crtp2& pt)
 {
+  SCORE_DEBUG_CHECK_DELIMITER
   m_stream >> pt.crtp2_var;
+  SCORE_DEBUG_CHECK_DELIMITER
 }
 
 template <>
@@ -673,7 +724,8 @@ private:
     }
 
     {
-      crtp obj(DataStreamWriter{score::marshall<DataStream>(f)}, nullptr);
+      auto marshalled = score::marshall<DataStream>(f);
+      crtp obj(DataStreamWriter{marshalled}, nullptr);
       QCOMPARE(obj.id().val(), 1234);
       QCOMPARE(obj.objectName(), QString("crtp_objname"));
       QCOMPARE(obj.trait_var, 4567);

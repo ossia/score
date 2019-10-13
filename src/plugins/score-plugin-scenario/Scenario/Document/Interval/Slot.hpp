@@ -6,7 +6,7 @@ namespace Scenario
 {
 struct SCORE_PLUGIN_SCENARIO_EXPORT Slot
 {
-  enum RackView
+  enum RackView : bool
   {
     SmallView,
     FullView

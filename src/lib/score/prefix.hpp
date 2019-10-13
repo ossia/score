@@ -4,7 +4,7 @@
 #pragma GCC system_header
 #pragma clang system_header
 
-/////////////
+////////////
 #include <score/command/AggregateCommand.hpp>
 #include <score/model/EntityImpl.hpp>
 #include <score/model/path/Path.hpp>
@@ -13,6 +13,7 @@
 #include <score/model/tree/VariantBasedNode.hpp>
 #include <score/selection/Selection.hpp>
 #include <score/selection/SelectionDispatcher.hpp>
+#include <score/serialization/IsTemplate.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/serialization/JSONValueVisitor.hpp>
 #include <score/serialization/JSONVisitor.hpp>

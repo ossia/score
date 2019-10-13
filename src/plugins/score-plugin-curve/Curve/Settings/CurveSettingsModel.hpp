@@ -9,7 +9,7 @@ namespace Curve
 namespace Settings
 {
 
-enum Mode
+enum Mode : bool
 {
   Parameter,
   Message
