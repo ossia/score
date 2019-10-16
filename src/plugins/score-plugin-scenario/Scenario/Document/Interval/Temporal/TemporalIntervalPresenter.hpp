@@ -86,6 +86,8 @@ private:
   void on_rackVisibleChanged(bool);
   void on_defaultDurationChanged(const TimeVal&);
 
+  void on_doubleClick();
+
   void startSlotDrag(int slot, QPointF) const override;
   void stopSlotDrag() const override;
 

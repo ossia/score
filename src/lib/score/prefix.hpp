@@ -4,6 +4,15 @@
 #pragma GCC system_header
 #pragma clang system_header
 
+#if defined(_MSC_VER)
+#if !defined(WIN32_LEAN_AND_MEAN)
+#define WIN32_LEAN_AND_MEAN
+#endif
+#if !defined(NOMINMAX)
+#define NOMINMAX
+#endif
+#include <windows.h>
+#endif
 ////////////
 #include <score/command/AggregateCommand.hpp>
 #include <score/model/EntityImpl.hpp>

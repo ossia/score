@@ -188,7 +188,7 @@ public:
   void readFrom(const T& obj)
   {
     using tag = typename serialization_tag<T>::type;
-    constexpr bool has_base = base_kind<T>::value;
+    static constexpr bool has_base = base_kind<T>::value;
     if constexpr(std::is_same_v<tag, visitor_template_tag>)
     {
       if constexpr (has_base)
