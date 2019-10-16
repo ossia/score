@@ -204,15 +204,7 @@ TemporalIntervalPresenter::TemporalIntervalPresenter(
       });
 
   // Go to full-view on double click
-  connect(head, &TemporalIntervalHeader::doubleClicked, this, [this]() {
-    using namespace score::IDocument;
-
-    ScenarioDocumentPresenter* base
-        = get<ScenarioDocumentPresenter>(*documentFromObject(m_model));
-
-    if (base)
-      base->setDisplayedInterval(const_cast<IntervalModel&>(m_model));
-  });
+  connect(head, &TemporalIntervalHeader::doubleClicked, this, &TemporalIntervalPresenter::on_doubleClick);
 
   // Slots & racks
   con(m_model,
@@ -309,6 +301,41 @@ TemporalIntervalPresenter::~TemporalIntervalPresenter()
   delete view;
 }
 
+void Scenario::TemporalIntervalPresenter::on_doubleClick()
+{
+  auto& document = *score::IDocument::documentFromObject(this->m_model);
+  auto base = score::IDocument::get<ScenarioDocumentPresenter>(document);
+
+  if (base)
+    base->setDisplayedInterval(const_cast<IntervalModel&>(this->m_model));
+}
+
+struct RequestOverlayMenuCallback
+{
+  const Process::ProcessFactoryList& fact;
+  TemporalIntervalPresenter& self;
+  void operator()(const AddProcessDialog::Key& key, QString dat) {
+    using namespace Scenario::Command;
+
+    if (fact.get(key)->flags() & Process::ProcessFlags::PutInNewSlot)
+    {
+      Macro m{new AddProcessInNewSlot, self.context()};
+
+      if (auto p = m.createProcess(self.model(), key, dat))
+      {
+        m.createSlot(self.model());
+        m.addLayerToLastSlot(self.model(), *p);
+        m.commit();
+      }
+    }
+    else
+    {
+      CommandDispatcher<> d{self.context().commandStack};
+      d.submit<AddProcessToInterval>(self.model(), key, dat);
+    }
+  }
+};
+
 void TemporalIntervalPresenter::on_requestOverlayMenu(QPointF)
 {
   auto& fact = m_context.app.interfaces<Process::ProcessFactoryList>();
@@ -316,30 +343,12 @@ void TemporalIntervalPresenter::on_requestOverlayMenu(QPointF)
                                      Process::ProcessFlags::SupportsTemporal,
                                      QApplication::activeWindow()};
 
-  dialog->on_okPressed = [&](const auto& key, QString dat) {
-    using namespace Scenario::Command;
-
-    if (fact.get(key)->flags() & Process::ProcessFlags::PutInNewSlot)
-    {
-      Macro m{new AddProcessInNewSlot, m_context};
-
-      if (auto p = m.createProcess(this->model(), key, dat))
-      {
-        m.createSlot(this->model());
-        m.addLayerToLastSlot(this->model(), *p);
-        m.commit();
-      }
-    }
-    else
-    {
-      CommandDispatcher<> d{m_context.commandStack};
-      d.submit<AddProcessToInterval>(this->model(), key, dat);
-    }
-  };
+  dialog->on_okPressed = RequestOverlayMenuCallback{fact, *this};
 
   dialog->launchWindow();
   dialog->deleteLater();
 }
+
 
 double TemporalIntervalPresenter::rackHeight() const
 {

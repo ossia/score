@@ -1122,6 +1122,23 @@ void ObjectWidget::selectionChanged(
   }
 }
 
+struct ContextMenuCallback
+{
+  const score::DocumentContext& m_ctx;
+  const IntervalModel& cst;
+  void operator()(const AddProcessDialog::Key& proc, QString dat) {
+    using namespace Scenario::Command;
+    Macro m{new AddProcessInNewSlot, m_ctx};
+
+    if (auto p = m.createProcess(cst, proc, dat))
+    {
+      m.createSlot(cst);
+      m.addLayerToLastSlot(cst, *p);
+      m.commit();
+    }
+  }
+};
+
 void ObjectWidget::contextMenuEvent(QContextMenuEvent* ev)
 {
   auto point = ev->pos();
@@ -1138,21 +1155,11 @@ void ObjectWidget::contextMenuEvent(QContextMenuEvent* ev)
     {
       auto addproc = new QAction{tr("Add process"), m};
       m->addAction(addproc);
-      connect(addproc, &QAction::triggered, this, [=] {
+      connect(addproc, &QAction::triggered, this, [this, &cst] {
         auto& fact = m_ctx.app.interfaces<Process::ProcessFactoryList>();
         auto dialog = new AddProcessDialog{
             fact, Process::ProcessFlags::SupportsTemporal, this};
-        dialog->on_okPressed = [&](const auto& proc, QString dat) {
-          using namespace Scenario::Command;
-          Macro m{new AddProcessInNewSlot, m_ctx};
-
-          if (auto p = m.createProcess(*cst, proc, dat))
-          {
-            m.createSlot(*cst);
-            m.addLayerToLastSlot(*cst, *p);
-            m.commit();
-          }
-        };
+        dialog->on_okPressed = ContextMenuCallback{m_ctx, *cst};
 
         dialog->launchWindow();
         dialog->deleteLater();

@@ -25,53 +25,53 @@ Model::~Model()
 {
 }
 
-template<typename T>
-struct SliderWithOutputAddress final : public T
-{
-  static auto static_concreteKey() noexcept
-  {
-    return Metadata<ConcreteKey_k, SliderWithOutputAddress<T>>::get();
-  }
-  auto concreteKey() const noexcept override
-  {
-    return static_concreteKey();
-  }
-  void serialize_impl(const VisitorVariant& vis) const noexcept override
-  {
-    score::serialize_dyn(vis, *this);
-  }
-
-  W_OBJECT(SliderWithOutputAddress<T>)
-  using base_type = Process::ControlInlet;
-  using control_type = WidgetFactory::IntSlider;
-  template<typename... Args>
-  SliderWithOutputAddress(Args&&... args)
-    : T{std::forward<Args>(args)...}
-  {
-  }
-
-  void setOutputAddress(const State::AddressAccessor& addr)
-  {
-    if(addr != m_outputAddr)
-    {
-      m_outputAddr = addr;
-      outputAddressChanged(m_outputAddr);
-    }
-  }
-
-  const State::AddressAccessor& outputAddress() const noexcept
-  {
-    return m_outputAddr;
-  }
-
-  void outputAddressChanged(const State::AddressAccessor& addr)
-  W_SIGNAL(outputAddressChanged, addr)
-
-private:
-  State::AddressAccessor m_outputAddr;
-};
-
-W_OBJECT_IMPL(SliderWithOutputAddress<T>, template<typename T>)
+// template<typename T>
+// struct SliderWithOutputAddress final : public T
+// {
+//   static auto static_concreteKey() noexcept
+//   {
+//     return Metadata<ConcreteKey_k, SliderWithOutputAddress<T>>::get();
+//   }
+//   auto concreteKey() const noexcept override
+//   {
+//     return static_concreteKey();
+//   }
+//   void serialize_impl(const VisitorVariant& vis) const noexcept override
+//   {
+//     score::serialize_dyn(vis, *this);
+//   }
+//
+//   W_OBJECT(SliderWithOutputAddress<T>)
+//   using base_type = Process::ControlInlet;
+//   using control_type = WidgetFactory::IntSlider;
+//   template<typename... Args>
+//   SliderWithOutputAddress(Args&&... args)
+//     : T{std::forward<Args>(args)...}
+//   {
+//   }
+//
+//   void setOutputAddress(const State::AddressAccessor& addr)
+//   {
+//     if(addr != m_outputAddr)
+//     {
+//       m_outputAddr = addr;
+//       outputAddressChanged(m_outputAddr);
+//     }
+//   }
+//
+//   const State::AddressAccessor& outputAddress() const noexcept
+//   {
+//     return m_outputAddr;
+//   }
+//
+//   void outputAddressChanged(const State::AddressAccessor& addr)
+//   W_SIGNAL(outputAddressChanged, addr)
+//
+// private:
+//   State::AddressAccessor m_outputAddr;
+// };
+//
+// W_OBJECT_IMPL(SliderWithOutputAddress<T>, template<typename T>)
 //UUID_METADATA(, WidgetInletFactory<SliderWithOutputAddress<IntSlider>>, SliderWithOutputAddress<Process::IntSlider>, "a8e60bde-5e81-4b37-ba58-a9047da6a850");
 Process::ControlInlet* makeControlFromType(
       const Id<Process::Port>& id,
