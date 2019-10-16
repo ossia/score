@@ -1,9 +1,9 @@
 environment:
-  QTDIR: C:/Qt/5.12/msvc2017_64
+  QTDIR: C:/Qt/5.13/msvc2017_64
 
 configuration: Release
 
-image: Visual Studio 2019 Preview
+image: Visual Studio 2019
 platform: x64
 
 install:
@@ -17,8 +17,8 @@ install:
 build_script:
   - dir C:\
   - dir C:\Qt
-  - dir C:\Qt\5.12
-  - dir C:\Qt\5.12\msvc2017_64
+  - dir C:\Qt\5.13
+  - dir C:\Qt\5.13\msvc2017_64
   - git submodule update --init --recursive
   - mkdir build
   - cd build
