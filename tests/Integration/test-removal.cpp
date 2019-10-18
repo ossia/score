@@ -53,7 +53,7 @@ auto do_remove(
     }
     const score::DocumentContext& ctx;
     std::vector<score::Command*> cmds;
-  } macro{ctx};
+  } macro{ctx, {}};
 
   Scenario::Command::setupRemoveMacro(scenar, sel, macro);
 
