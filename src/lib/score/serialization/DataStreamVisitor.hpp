@@ -279,7 +279,7 @@ public:
     }
     else if constexpr(std::is_same_v<tag, visitor_enum_tag>)
     {
-      check_enum_size<T> _;
+      static_assert(check_enum_size<T>::value);
       m_stream << (int32_t)obj;
     }
     else
@@ -380,7 +380,7 @@ public:
     }
     else if constexpr(std::is_same_v<tag, visitor_enum_tag>)
     {
-      check_enum_size<T> _;
+      static_assert(check_enum_size<T>::value);
       int32_t e;
       m_stream >> e;
       obj = static_cast<T>(e);

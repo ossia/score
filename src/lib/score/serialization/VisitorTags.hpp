@@ -216,8 +216,8 @@ struct check_enum_size
 {
   using type_limits = std::numeric_limits<std::underlying_type_t<T>>;
   using int_limits = std::numeric_limits<int32_t>;
-  static_assert(
+  static constexpr bool value =
       type_limits::min() >= int_limits::min() &&
       type_limits::max() <= int_limits::max()
-  );
+  ;
 };

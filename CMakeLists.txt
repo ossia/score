@@ -44,9 +44,13 @@ set(SCORE_VERSION
     "${SCORE_VERSION_MAJOR}.${SCORE_VERSION_MINOR}.${SCORE_VERSION_PATCH}")
 
 if(MSVC)
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /EHsc /std:c++latest")
+  # TODO check /experimental:preprocessor at some point
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /EHsc /std:c++latest /permissive- /volatile:iso")
   add_definitions(/D_HAS_AUTO_PTR_ETC=1
-                  /D_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS=1)
+                  /D_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS=1
+                  /DNOMINMAX
+                  /DWIN32_LEAN_AND_MEAN
+                  )
 else()
   set(CMAKE_CXX_STANDARD 20)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++2a -fno-stack-protector")
@@ -109,7 +113,7 @@ if(EXISTS Documentation/Models/score.qmodel)
   add_custom_target(Docs SOURCES Documentation/Models/score.qmodel)
 endif()
 
-if(1)
+if(INTEGRATION_TESTING)
   file(COPY
        "${CMAKE_CURRENT_SOURCE_DIR}/tests/testdata"
        DESTINATION
