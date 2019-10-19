@@ -71,7 +71,7 @@ static DecodingMethod needsDecoding(const QString& path, int rate)
 
 AudioFile::AudioFile()
 {
-  m_impl = {};
+  m_impl = Handle{};
   m_rms = new RMSData{};
 }
 
@@ -351,7 +351,7 @@ void AudioFile::load_ffmpeg(int rate)
     auto info = AudioDecoder::probe(m_file);
     if(!info)
     {
-      m_impl = {};
+      m_impl = Handle{};
       return;
     }
 
@@ -406,7 +406,7 @@ void AudioFile::load_ffmpeg(int rate)
   }
   else
   {
-    m_impl = {};
+    m_impl = Handle{};
   }
   qDebug() << "AudioFileHandle::on_mediaChanged(): " << m_file;
   on_mediaChanged();
@@ -425,18 +425,18 @@ void AudioFile::load_drwav()
 
   bool ok = r.file->open(QIODevice::ReadOnly);
   if(!ok) {
-    m_impl = {};
+    m_impl = Handle{};
     on_mediaChanged();
   }
 
   r.data = r.file->map(0, r.file->size());
   if(!r.data) {
-    m_impl = {};
+    m_impl = Handle{};
     on_mediaChanged();
   }
   r.wav.open_memory(r.data, r.file->size());
   if(!r.wav) {
-    m_impl = {};
+    m_impl = Handle{};
     on_mediaChanged();
   }
 
