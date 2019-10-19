@@ -87,7 +87,7 @@ public:
   IntervalExecutionState executionState() const;
 
   // Mode
-  enum ViewMode
+  enum ViewMode : bool
   {
     Temporal = 0,
     Nodal = 1
