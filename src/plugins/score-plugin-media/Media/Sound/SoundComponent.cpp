@@ -174,6 +174,8 @@ public:
         n->set_sound(std::move(data));
         n->set_start(start);
         n->set_upmix(upmix);
+        n->set_stretch_mode(mode);
+        n->set_native_tempo(tempo);
       });
     }
     else
