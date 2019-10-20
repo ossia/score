@@ -23,7 +23,13 @@ set(CMAKE_PREFIX_PATH
     "${CMAKE_PREFIX_PATH}")
 
 if(NOT SCORE_CONFIGURATION)
-  set(SCORE_CONFIGURATION developer)
+  if(${CMAKE_BUILD_TYPE} MATCHES Debug)
+    set(SCORE_CONFIGURATION static-debug)
+  elseif(${CMAKE_BUILD_TYPE} MATCHES Release)
+    set(SCORE_CONFIGURATION static-release)
+  else()
+    set(SCORE_CONFIGURATION developer)
+  endif()
 endif()
 include("${SCORE_CONFIGURATION}")
 
