@@ -59,7 +59,7 @@ if(MSVC)
                   )
 else()
   set(CMAKE_CXX_STANDARD 20)
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++2a -fno-stack-protector")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++2a -fno-stack-protector -detailed-preprocessing-record ")
 endif()
 
 if(MSYS OR MINGW)
