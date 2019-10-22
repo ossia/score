@@ -62,11 +62,11 @@ public:
 protected:
   void serializeImpl(DataStreamInput& s) const override
   {
-    s << m_path << m_oldVal << m_newVal << m_newInfinite;
+    s << m_path << m_oldVal << m_newVal << m_newInfinite << m_oldInfinite;
   }
   void deserializeImpl(DataStreamOutput& s) override
   {
-    s >> m_path >> m_oldVal >> m_newVal >> m_newInfinite;
+    s >> m_path >> m_oldVal >> m_newVal >> m_newInfinite >> m_oldInfinite;
   }
 
 private:
