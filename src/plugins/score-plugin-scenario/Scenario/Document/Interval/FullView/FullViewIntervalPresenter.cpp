@@ -33,6 +33,7 @@
 #include <score/graphics/GraphicWidgets.hpp>
 #include <score/graphics/GraphicsItem.hpp>
 #include <score/tools/Bind.hpp>
+#include <ossia/detail/algorithms.hpp>
 
 #include <QGraphicsScene>
 #include <QMenu>
@@ -42,8 +43,17 @@ W_OBJECT_IMPL(Scenario::FullViewIntervalPresenter)
 W_OBJECT_IMPL(Scenario::TimeSignatureHandle)
 namespace Scenario
 {
-static TimeSignatureItem* timebar{};
+struct Timebars
+{
+  TimeSignatureItem timebar;
+
+  std::array<LightTimebar, 200> lightBars;
+  std::array<LighterTimebar, 600> lighterBars;
+};
+
 static SlotDragOverlay* full_slot_drag_overlay{};
+
+
 void FullViewIntervalPresenter::startSlotDrag(int curslot, QPointF pos) const
 {
   // Create an overlay object
@@ -80,15 +90,20 @@ FullViewIntervalPresenter::FullViewIntervalPresenter(
                         new FullViewIntervalHeader{ctx, parentobject},
                         ctx,
                         parent}
+
+    , m_timebars{new Timebars{{*this, m_view}, {}, {}}}
 {
   m_header->setPos(0, -IntervalHeader::headerHeight());
-  delete timebar;
-  timebar = new TimeSignatureItem{*this, m_view};
 
-  for(auto& bar : lightBars)
+  for(auto& bar : m_timebars->lightBars)
+  {
     bar.setParentItem(m_view);
-  for(auto& bar : lighterBars)
+  }
+
+  for(auto& bar : m_timebars->lighterBars)
+  {
     bar.setParentItem(m_view);
+  }
 
   // Address bar
   auto& addressBar = static_cast<FullViewIntervalHeader*>(m_header)->bar();
@@ -227,17 +242,13 @@ FullViewIntervalPresenter::~FullViewIntervalPresenter()
   auto view = Scenario::view(this);
   QGraphicsScene* sc = view->scene();
 
-  for(auto& bar : lightBars)
-    sc->removeItem(&bar);
-  for(auto& bar : lighterBars)
-    sc->removeItem(&bar);
-
   for (auto& slt : m_slots)
     slt.cleanup(sc);
 
   if (sc)
     sc->removeItem(view);
 
+  delete m_timebars;
   delete view;
 }
 
@@ -553,20 +564,8 @@ void FullViewIntervalPresenter::on_zoomRatioChanged(ZoomRatio ratio)
     return;
   }
 
-  timebar->setZoomRatio(ratio);
+  updateTimeBars();
 
-  double tempo = 120.;
-  double whole = TimeVal(1000. * 240. / tempo).toPixels(ratio);
-  for(int i = 0; i < lighterBars.size(); i+=4)
-  {
-    lighterBars[i  ].setPos((i+1) * whole, 10.);
-    lighterBars[i+1].setPos((i+2) * whole, 10.);
-    lighterBars[i+2].setPos((i+3) * whole, 10.);
-  }
-  for(int i = 0; i < lightBars.size(); i++)
-  {
-    lightBars[i].setPos(4 * i * whole, 10.);
-  }
   auto gui_width = m_model.duration.guiDuration().toPixels(ratio);
   auto def_width = m_model.duration.defaultDuration().toPixels(ratio);
 
@@ -598,6 +597,48 @@ double FullViewIntervalPresenter::on_playPercentageChanged(double t)
     m_nodal->on_playPercentageChanged(ossia::clamp(t, 0., 1.));
   }
   return IntervalPresenter::on_playPercentageChanged(t);
+}
+
+void FullViewIntervalPresenter::on_visibleRectChanged(QRectF r)
+{
+  if(r != m_sceneRect)
+  {
+    m_sceneRect = r;
+    updateTimeBars();
+  }
+}
+
+void FullViewIntervalPresenter::updateTimeBars()
+{
+  // TODO we should use the interval view rect instead of the scene rect as reference
+
+  TimeVal x0_time = TimeVal::fromMsecs(m_zoomRatio * m_sceneRect.x());
+  TimeVal x1_time = TimeVal::fromMsecs(m_zoomRatio * (m_sceneRect.x() + m_sceneRect.width()));
+
+  // Find the measure before x0_time
+
+  const auto& measures = m_model.timeSignatureMap();
+  auto last_before = ossia::last_before(measures, x0_time);
+
+  qDebug() << x0_time // <<x1_time
+           << last_before->second.upper;
+  m_timebars->timebar.setZoomRatio(m_zoomRatio);
+
+  double tempo = 120.;
+  double whole = TimeVal(1000. * 240. / tempo).toPixels(m_zoomRatio);
+  auto& lightBars = m_timebars->lightBars;
+  auto& lighterBars = m_timebars->lighterBars;
+
+  for(int i = 0; i < lighterBars.size(); i+=4)
+  {
+    lighterBars[i  ].setPos((i+1) * whole, 10.);
+    lighterBars[i+1].setPos((i+2) * whole, 10.);
+    lighterBars[i+2].setPos((i+3) * whole, 10.);
+  }
+  for(int i = 0; i < lightBars.size(); i++)
+  {
+    lightBars[i].setPos(4 * i * whole, 10.);
+  }
 }
 
 void FullViewIntervalPresenter::on_modeChanged(IntervalModel::ViewMode m)

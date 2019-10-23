@@ -60,6 +60,9 @@ public:
   void verticalZoom(QPointF pixDelta, QPointF pos)
       E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, verticalZoom, pixDelta, pos)
 
+  void visibleRectChanged(QRectF r)
+  E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, visibleRectChanged, r)
+
 private:
   void resizeEvent(QResizeEvent* ev) override;
   void scrollContentsBy(int dx, int dy) override;

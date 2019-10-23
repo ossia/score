@@ -18,6 +18,7 @@ namespace Scenario
 class SlotView;
 class SlotHandle;
 class NodalIntervalView;
+struct Timebars;
 class SCORE_PLUGIN_SCENARIO_EXPORT FullViewIntervalPresenter final
     : public IntervalPresenter
 {
@@ -42,11 +43,13 @@ public:
   const std::vector<SlotPresenter>& getSlots() const { return m_slots; }
   double on_playPercentageChanged(double t);
 
+  void on_visibleRectChanged(QRectF);
 public:
   void intervalSelected(IntervalModel& arg_1)
       E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, intervalSelected, arg_1)
 
 private:
+  void updateTimeBars();
   void startSlotDrag(int slot, QPointF) const override;
   void stopSlotDrag() const override;
 
@@ -69,5 +72,8 @@ private:
   void on_rackChanged();
 
   NodalIntervalView* m_nodal{};
+  QRectF m_sceneRect{};
+
+  Timebars* m_timebars;
 };
 }
