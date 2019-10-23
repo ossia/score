@@ -108,6 +108,12 @@ ScenarioDocumentPresenter::ScenarioDocumentPresenter(
       this,
       &ScenarioDocumentPresenter::on_windowSizeChanged,
       Qt::QueuedConnection);
+
+  con(view().view(),
+      &ProcessGraphicsView::visibleRectChanged, this, [&] (QRectF rect) {
+    if(auto p = presenters().intervalPresenter())
+      p->on_visibleRectChanged(rect);
+  });
   con(view().view(),
       &ProcessGraphicsView::horizontalZoom,
       this,

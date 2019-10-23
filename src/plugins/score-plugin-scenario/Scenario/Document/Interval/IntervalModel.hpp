@@ -17,7 +17,7 @@
 #include <score/selection/Selectable.hpp>
 #include <score/tools/Metadata.hpp>
 #include <score/tools/std/Optional.hpp>
-#include <ossia/detail/hash_map.hpp>
+#include <ossia/detail/flat_map.hpp>
 #include <QObject>
 #include <QPointer>
 
@@ -31,7 +31,7 @@ namespace Scenario
 {
 class StateModel;
 
-using TimeSignatureMap = ossia::fast_hash_map<TimeVal, Control::time_signature>;
+using TimeSignatureMap = ossia::flat_map<TimeVal, Control::time_signature>;
 class SCORE_PLUGIN_SCENARIO_EXPORT IntervalModel final
     : public score::Entity<IntervalModel>,
       public Nano::Observer

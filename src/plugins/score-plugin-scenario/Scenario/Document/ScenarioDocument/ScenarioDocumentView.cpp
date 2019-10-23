@@ -100,6 +100,8 @@ void ProcessGraphicsView::resizeEvent(QResizeEvent* ev)
 {
   QGraphicsView::resizeEvent(ev);
   sizeChanged(size());
+
+  visibleRectChanged(QRectF{this->mapToScene(QPoint{}), this->mapToScene(this->rect().bottomRight())});
 }
 
 void ProcessGraphicsView::scrollContentsBy(int dx, int dy)
@@ -109,6 +111,8 @@ void ProcessGraphicsView::scrollContentsBy(int dx, int dy)
   this->scene()->update();
   if (dx != 0)
     scrolled(dx);
+
+  visibleRectChanged(QRectF{this->mapToScene(QPoint{}), this->mapToScene(this->rect().bottomRight())});
 }
 
 void ProcessGraphicsView::wheelEvent(QWheelEvent* event)

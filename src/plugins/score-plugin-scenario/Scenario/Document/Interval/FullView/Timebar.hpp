@@ -15,6 +15,11 @@ public:
     setZValue(-10);
   }
 
+  ~LightTimebar()
+  {
+
+  }
+
   QRectF boundingRect() const
   {
     return {0,0,1,1000};
@@ -35,6 +40,11 @@ public:
     setZValue(-10);
   }
 
+  ~LighterTimebar()
+  {
+
+  }
+
   QRectF boundingRect() const
   {
     return {0,0,1,1000};
@@ -46,8 +56,5 @@ public:
     painter->drawLine(0, 0, 0, boundingRect().bottom());
   }
 };
-
-static std::array<LightTimebar, 200> lightBars;
-static std::array<LighterTimebar, 600> lighterBars;
 
 }

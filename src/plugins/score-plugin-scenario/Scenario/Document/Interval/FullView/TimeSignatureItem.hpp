@@ -168,6 +168,7 @@ private:
     void setZoomRatio(ZoomRatio r)
     {
       m_ratio = r;
+
       auto it = m_handles.begin();
       auto handle_it = m_itv.model().timeSignatureMap().begin();
       while(it != m_handles.end())
@@ -180,7 +181,6 @@ private:
         ++it;
         ++handle_it;
       }
-
     }
 
     void setWidth(double w)
