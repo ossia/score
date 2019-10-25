@@ -36,6 +36,7 @@
 #include <ossia/detail/algorithms.hpp>
 
 #include <QGraphicsScene>
+#include <QGraphicsView>
 #include <QMenu>
 
 #include <wobjectimpl.h>
@@ -611,11 +612,20 @@ void FullViewIntervalPresenter::on_visibleRectChanged(QRectF r)
 void FullViewIntervalPresenter::updateTimeBars()
 {
   // TODO we should use the interval view rect instead of the scene rect as reference
+  //QGraphicsView* vp = m_view->scene()->views().front();
+  auto scene_x0 = m_view->mapToScene(QPointF{}).x();
+  // auto view_x0 = vp->mapFromScene(m_view->mapToScene(QPointF{})).x();
+  // auto top_left = vp->mapFromScene(m_view->mapToScene(QPointF{}));
+  // auto bottom_right = top_left + QPoint{vp->viewport()->width(), vp->viewport()->height()};
+  // m_sceneRect = QRectF{top_left, bottom_right};
 
-  TimeVal x0_time = TimeVal::fromMsecs(m_zoomRatio * m_sceneRect.x());
-  TimeVal x1_time = TimeVal::fromMsecs(m_zoomRatio * (m_sceneRect.x() + m_sceneRect.width()));
+  // x0_time: time of the currently visible leftmost pixel
+  TimeVal x0_time = TimeVal::fromMsecs(m_zoomRatio * (m_sceneRect.x() - scene_x0));
 
-  // Find the measure before x0_time
+  // TimeVal x1_time = TimeVal::fromMsecs(m_zoomRatio * (m_sceneRect.x() - scene_x0 + m_sceneRect.width()));
+
+  // Find the last measure change before x0_time.
+  // Find the first measure we see
 
   const auto& measures = m_model.timeSignatureMap();
   auto last_before = ossia::last_before(measures, x0_time);
@@ -625,19 +635,63 @@ void FullViewIntervalPresenter::updateTimeBars()
   m_timebars->timebar.setZoomRatio(m_zoomRatio);
 
   double tempo = 120.;
-  double whole = TimeVal(1000. * 240. / tempo).toPixels(m_zoomRatio);
+  TimeVal whole = TimeVal(1000. * 240. / tempo);
+  TimeVal quarter = TimeVal::fromMsecs(whole.msec() / 4);
+  double whole_pixels = whole.toPixels(m_zoomRatio);
+  double quarter_pixels = quarter.toPixels(m_zoomRatio);
+
+  double q = std::floor((x0_time - last_before->first).msec() / quarter.msec());
+  double q_pixels = TimeVal::fromMsecs(q).toPixels(m_zoomRatio);
+  double last_quarter_before = last_before->first.msec() + q * quarter.msec();
+  double last_quarter_pixels = TimeVal::fromMsecs(last_quarter_before).toPixels(m_zoomRatio);
+
+  qDebug() << "q:" << q << last_quarter_pixels;
+
+
   auto& lightBars = m_timebars->lightBars;
   auto& lighterBars = m_timebars->lighterBars;
 
-  for(int i = 0; i < lighterBars.size(); i+=4)
-  {
-    lighterBars[i  ].setPos((i+1) * whole, 10.);
-    lighterBars[i+1].setPos((i+2) * whole, 10.);
-    lighterBars[i+2].setPos((i+3) * whole, 10.);
-  }
+ // for(int i = 0; i < lighterBars.size(); i+=4)
+ // {
+ //   lighterBars[i  ].setPos((i+1) * whole, 10.);
+ //   lighterBars[i+1].setPos((i+2) * whole, 10.);
+ //   lighterBars[i+2].setPos((i+3) * whole, 10.);
+ // }
   for(int i = 0; i < lightBars.size(); i++)
   {
-    lightBars[i].setPos(4 * i * whole, 10.);
+    //lightBars[i].setPos(i * whole / 4, 10.);
+    double bar_x_pos = last_quarter_pixels + (i) * quarter_pixels;
+    if(last_before == measures.end())
+    {
+      lightBars[i].setPos(last_quarter_pixels + (i) * quarter_pixels, 10.);
+
+    }
+    else
+    {
+      auto next = last_before + 1;
+      if(next == measures.end())
+      {
+
+        lightBars[i].setPos(last_quarter_pixels + (i) * quarter_pixels, 10.);
+      }
+      else
+      {
+        if(bar_x_pos >= next->first.toPixels(m_zoomRatio))
+        {
+          last_before = next;
+          lightBars[i].setPos(last_before->first.toPixels(m_zoomRatio), 10.);
+
+          q = std::floor((x0_time - last_before->first).msec() / quarter.msec());
+          last_quarter_before = last_before->first.msec() + q * quarter.msec();
+          last_quarter_pixels = TimeVal::fromMsecs(last_quarter_before).toPixels(m_zoomRatio);
+
+          continue;
+        }
+
+      }
+      lightBars[i].setPos(last_quarter_pixels + (i) * quarter_pixels, 10.);
+
+    }
   }
 }
 

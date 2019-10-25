@@ -61,7 +61,7 @@ IntervalModel::IntervalModel(
   outlet->setPropagate(true);
 
   m_signatures[TimeVal::zero()] = {4,4};
-  m_signatures[TimeVal::fromMsecs(5000)] = {5,4};
+  m_signatures[TimeVal::fromMsecs(5300)] = {5,4};
   m_signatures[TimeVal::fromMsecs(12000)] = {12,8};
   m_signatures[TimeVal::fromMsecs(16000)] = {2,2};
 }
