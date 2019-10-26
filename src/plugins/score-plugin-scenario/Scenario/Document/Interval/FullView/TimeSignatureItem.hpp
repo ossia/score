@@ -6,10 +6,13 @@
 #include <Scenario/Document/Interval/IntervalPresenter.hpp>
 #include <QGraphicsSceneMouseEvent>
 #include <QMenu>
+#include <QTextLayout>
+#include <QApplication>
 #include <score/tools/Bind.hpp>
 #include <Scenario/Commands/Signature/SignatureCommands.hpp>
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
-
+#include <Process/Style/Pixmaps.hpp>
+#include <Process/Style/ScenarioStyle.hpp>
 namespace Scenario
 {
 
@@ -31,7 +34,11 @@ public:
 
   QRectF boundingRect() const final override
   {
-    return {0., 0., 10., 15.};
+    return {
+      std::min(-m_rect.width() / 2., -6.5),
+          -8.,
+          std::max(13., m_rect.width()),
+          std::max(20., m_rect.height())};
   }
 
   void paint(
@@ -39,13 +46,12 @@ public:
       const QStyleOptionGraphicsItem* option,
       QWidget* widget) override
   {
-    painter->fillRect(boundingRect(), Qt::gray);
-    painter->drawText(QPointF{}, QString{"%1/%2"}.arg(m_sig.upper).arg(m_sig.lower));
+    painter->drawPixmap(QPointF{-6.5, 2.}, Process::Pixmaps::instance().metricHandle);
+    painter->drawPixmap(QPointF{-m_rect.width() / 2. - 1., -8.}, m_signature);
   }
 
   void mousePressEvent(QGraphicsSceneMouseEvent* mv) override
   {
-    pressed = true;
     mv->accept();
     if(mv->button() != Qt::LeftButton)
     {
@@ -53,6 +59,7 @@ public:
     }
     else
     {
+      pressed = true;
       m_origItemX = this->x();
       m_pressX = mv->scenePos().x();
       press();
@@ -80,6 +87,7 @@ public:
     if(sig != m_sig)
     {
       m_sig = sig;
+      updateImpl();
     }
     update();
   }
@@ -95,10 +103,55 @@ public:
   bool pressed{};
 
 private:
+  void updateImpl()
+  {
+    prepareGeometryChange();
+
+    auto& skin = score::Skin::instance();
+    auto& m_font = skin.MonoFontSmall;
+
+    {
+      const auto str = QString{"%1/%2"}.arg(m_sig.upper).arg(m_sig.lower);
+      QTextLayout layout(str, m_font);
+      layout.beginLayout();
+      auto line = layout.createLine();
+      layout.endLayout();
+
+      m_rect = line.naturalTextRect();
+      auto r = line.glyphRuns();
+
+      if (r.size() > 0)
+      {
+        double ratio = qApp->devicePixelRatio();
+        auto m_line = QImage(
+            m_rect.width() * ratio,
+            m_rect.height() * ratio,
+            QImage::Format_ARGB32_Premultiplied);
+        m_line.setDevicePixelRatio(ratio);
+        m_line.fill(Qt::transparent);
+
+        {
+          QPainter p{&m_line};
+          p.setRenderHint(QPainter::Antialiasing, false);
+          p.setRenderHint(QPainter::TextAntialiasing, false);
+
+          p.setPen(skin.Light.main.pen0);
+          p.setBrush(skin.NoBrush);
+          p.drawGlyphRun(QPointF{0, 0}, r[0]);
+        }
+        m_signature = QPixmap::fromImage(m_line);
+      }
+    }
+
+    update();
+  }
+
   double m_origItemX{};
   double m_pressX{};
   TimeVal m_time{};
-  Control::time_signature m_sig{};
+  Control::time_signature m_sig{0,0};
+  QPixmap m_signature;
+  QRectF m_rect;
 };
 
   class TimeSignatureItem
@@ -117,7 +170,9 @@ private:
       : QGraphicsItem{parent}
       , m_itv{itv}
     {
+      setZValue(200);
       setFlag(ItemHasNoContents, true);
+      setFlag(ItemClipsChildrenToShape, false);
 
       con(itv.model(), &IntervalModel::timeSignaturesChanged,
           this, &TimeSignatureItem::handlesChanged);
@@ -255,12 +310,13 @@ private:
       auto it = signatures.find(handle.time());
       signatures.erase(it);
 
-      m_itv.context().dispatcher.submit<Scenario::Command::SetTimeSignatures>(m_itv.model(), signatures);
+      CommandDispatcher<> disp{m_itv.context().commandStack};
+      disp.submit<Scenario::Command::SetTimeSignatures>(m_itv.model(), signatures);
     }
 
     QRectF boundingRect() const final override
     {
-      return {0., 0., m_width, 10.};
+      return {0., 0., m_width, 17.};
     }
 
     void paint(
@@ -268,7 +324,6 @@ private:
         const QStyleOptionGraphicsItem* option,
         QWidget* widget) override
     {
-
     }
 
     void requestNewHandle(QPointF pos)

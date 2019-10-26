@@ -581,6 +581,8 @@ void FullViewIntervalPresenter::on_zoomRatioChanged(ZoomRatio ratio)
   auto gui_width = m_model.duration.guiDuration().toPixels(ratio);
   auto def_width = m_model.duration.defaultDuration().toPixels(ratio);
 
+  m_timebars->timebar.setWidth(gui_width);
+
   for (auto& slot : m_slots)
   {
     if (slot.headerDelegate)
@@ -712,6 +714,7 @@ void FullViewIntervalPresenter::on_guiDurationChanged(const TimeVal& val)
   const auto gui_width = val.toPixels(m_zoomRatio);
   const auto def_width = m_model.duration.defaultDuration().toPixels(m_zoomRatio);
   m_header->setWidth(gui_width);
+  m_timebars->timebar.setWidth(gui_width);
 
   static_cast<FullViewIntervalView*>(m_view)->setGuiWidth(gui_width);
 

@@ -34,8 +34,10 @@ struct SCORE_LIB_PROCESS_EXPORT Pixmaps
 
   const QPixmap add;
 
+  const QPixmap metricHandle;
+
 private:
-  Pixmaps();
+  Pixmaps() noexcept;
   ~Pixmaps();
 };
 }
