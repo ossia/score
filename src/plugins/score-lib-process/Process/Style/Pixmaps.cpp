@@ -2,10 +2,13 @@
 
 #include <score/widgets/Pixmap.hpp>
 
+#include <QApplication>
+#include <QPainter>
+
 namespace Process
 {
 
-Pixmaps::Pixmaps()
+Pixmaps::Pixmaps() noexcept
     : show_ui_off{score::get_pixmap(":/icons/undock_on.png")}
     , show_ui_on{score::get_pixmap(":/icons/undock_off.png")}
 
@@ -27,7 +30,28 @@ Pixmaps::Pixmaps()
     , roll_selected{score::get_pixmap(":/icons/rack_button_on_selected.png")}
 
     , add{score::get_pixmap(":/icons/process_add_off.png")}
+
+    , metricHandle{[] {
+           double dpr = qApp->devicePixelRatio();
+           QImage img(13 * dpr, 8 * dpr, QImage::Format_ARGB32_Premultiplied);
+           img.fill(Qt::transparent);
+
+           QPainter p(&img);
+           QPainterPath path;
+           path.lineTo(12 * dpr, 0);
+           path.lineTo(6 * dpr, 7 * dpr);
+           path.lineTo(0, 0);
+           path.closeSubpath();
+
+           p.setRenderHint(QPainter::Antialiasing, true);
+           p.fillPath(path, Qt::blue);
+           p.end();
+
+           img.setDevicePixelRatio(dpr);
+           return QPixmap::fromImage(img);
+      }()}
 {
+
 }
 
 Pixmaps::~Pixmaps() {}
