@@ -31,6 +31,8 @@ SETTINGS_PARAMETER_IMPL(SnapshotOnCreate){
 SETTINGS_PARAMETER_IMPL(AutoSequence){QStringLiteral("Scenario/AutoSequence"),
                                       false};
 SETTINGS_PARAMETER_IMPL(TimeBar){QStringLiteral("Scenario/TimeBar"), true};
+SETTINGS_PARAMETER_IMPL(MeasureBars){QStringLiteral("Scenario/MeasureBars"), true};
+SETTINGS_PARAMETER_IMPL(MagneticMeasures){QStringLiteral("Scenario/MagneticMeasures"), true};
 
 static auto list()
 {
@@ -140,5 +142,7 @@ SCORE_SETTINGS_PARAMETER_CPP(qreal, Model, SlotHeight)
 SCORE_SETTINGS_PARAMETER_CPP(bool, Model, SnapshotOnCreate)
 SCORE_SETTINGS_PARAMETER_CPP(bool, Model, AutoSequence)
 SCORE_SETTINGS_PARAMETER_CPP(bool, Model, TimeBar)
+SCORE_SETTINGS_PARAMETER_CPP(bool, Model, MeasureBars)
+SCORE_SETTINGS_PARAMETER_CPP(bool, Model, MagneticMeasures)
 }
 }

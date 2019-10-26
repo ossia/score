@@ -199,7 +199,9 @@ ScenarioDocumentPresenter::ScenarioDocumentPresenter(
   con(m_context.coarseUpdateTimer, &QTimer::timeout, this, [&] {
     auto pctg = displayedInterval().duration.playPercentage();
     auto& itv = *presenters().intervalPresenter()->view();
-    view().timeBar().setPos(pctg * itv.defaultWidth() + itv.pos().x(), 0);
+    auto x = pctg * itv.defaultWidth() + itv.pos().x();
+    if(x != view().timeBar().x())
+      view().timeBar().setPos(x, 0);
   });
 
   setDisplayedInterval(model().baseInterval());

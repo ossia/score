@@ -34,6 +34,7 @@
 #include <score/graphics/GraphicsItem.hpp>
 #include <score/tools/Bind.hpp>
 #include <ossia/detail/algorithms.hpp>
+#include <Scenario/Settings/ScenarioSettingsModel.hpp>
 
 #include <QGraphicsScene>
 #include <QGraphicsView>
@@ -161,6 +162,16 @@ FullViewIntervalPresenter::FullViewIntervalPresenter(
         on_guiDurationChanged(val);
         updateChildren();
       });
+
+  auto& settings = m_context.app.settings<Scenario::Settings::Model>();
+  con(m_model, &IntervalModel::timeSignaturesChanged, this, [=] {
+    updateTimeBars();
+  });
+  ::bind(settings, Settings::Model::p_MeasureBars{}, this, [=] (bool show) {
+    for(auto& bar : this->m_timebars->lightBars) bar.setVisible(show);
+    for(auto& bar : this->m_timebars->lighterBars) bar.setVisible(show);
+  });
+
 
   // Slots
   con(m_model, &IntervalModel::rackChanged, this, [=](Slot::RackView t) {
@@ -609,20 +620,50 @@ void FullViewIntervalPresenter::on_visibleRectChanged(QRectF r)
   }
 }
 
+
+template<typename Bars, typename It>
+void draw_bars(const TimeSignatureMap& measures, Bars& bars, It last_before, double m_zoomRatio, double last_quarter_pixels, double main_division_pixels)
+{
+  int k = 0;
+  for(std::size_t i = 0; i < bars.size(); i++)
+  {
+    const double bar_x_pos = last_quarter_pixels + k * main_division_pixels;
+    SCORE_ASSERT(last_before != measures.end());
+
+    auto next = last_before + 1;
+    if(next == measures.end())
+    {
+      bars[i].setPos(bar_x_pos, 10.);
+      k++;
+      continue;
+    }
+    else
+    {
+      if(bar_x_pos >= next->first.toPixels(m_zoomRatio))
+      {
+        last_before = next;
+        last_quarter_pixels = last_before->first.toPixels(m_zoomRatio);
+
+        bars[i].setPos(last_quarter_pixels, 10.);
+
+        k = 0;
+        continue;
+      }
+    }
+
+    bars[i].setPos(bar_x_pos, 10.);
+    k++;
+  }
+}
 void FullViewIntervalPresenter::updateTimeBars()
 {
-  // TODO we should use the interval view rect instead of the scene rect as reference
-  //QGraphicsView* vp = m_view->scene()->views().front();
+  if(m_zoomRatio <= 0)
+    return;
+
   auto scene_x0 = m_view->mapToScene(QPointF{}).x();
-  // auto view_x0 = vp->mapFromScene(m_view->mapToScene(QPointF{})).x();
-  // auto top_left = vp->mapFromScene(m_view->mapToScene(QPointF{}));
-  // auto bottom_right = top_left + QPoint{vp->viewport()->width(), vp->viewport()->height()};
-  // m_sceneRect = QRectF{top_left, bottom_right};
 
   // x0_time: time of the currently visible leftmost pixel
   TimeVal x0_time = TimeVal::fromMsecs(m_zoomRatio * (m_sceneRect.x() - scene_x0));
-
-  // TimeVal x1_time = TimeVal::fromMsecs(m_zoomRatio * (m_sceneRect.x() - scene_x0 + m_sceneRect.width()));
 
   // Find the last measure change before x0_time.
   // Find the first measure we see
@@ -630,69 +671,35 @@ void FullViewIntervalPresenter::updateTimeBars()
   const auto& measures = m_model.timeSignatureMap();
   auto last_before = ossia::last_before(measures, x0_time);
 
-  qDebug() << x0_time // <<x1_time
-           << last_before->second.upper;
   m_timebars->timebar.setZoomRatio(m_zoomRatio);
 
-  double tempo = 120.;
-  TimeVal whole = TimeVal(1000. * 240. / tempo);
-  TimeVal quarter = TimeVal::fromMsecs(whole.msec() / 4);
-  double whole_pixels = whole.toPixels(m_zoomRatio);
-  double quarter_pixels = quarter.toPixels(m_zoomRatio);
+  // We want to find the subdivision that will result in the smallest bars being at least 20 pixels.
+  // We have to solve : main_division_pixels > pixels_width_min.
+  // This gives : subdivision < whole_duration / (zoom_ratio * pixels_width_min)
 
-  double q = std::floor((x0_time - last_before->first).msec() / quarter.msec());
-  double q_pixels = TimeVal::fromMsecs(q).toPixels(m_zoomRatio);
-  double last_quarter_before = last_before->first.msec() + q * quarter.msec();
+  const double pixels_width_min = 30.;
+
+  const double tempo = 120.;
+  const double whole = 1000. * 240. / tempo;
+
+  const int res = whole / (pixels_width_min * m_zoomRatio);
+  const int pow2 = std::pow(2, std::floor(log2(res)));
+
+  const TimeVal main_division = TimeVal::fromMsecs(whole / pow2);
+  const double main_division_pixels = main_division.toPixels(m_zoomRatio);
+  const double sub_division_pixels = main_division_pixels / 4;
+
+  const double q = std::floor((x0_time - last_before->first).msec() / main_division.msec());
+  const double last_quarter_before = last_before->first.msec() + q * main_division.msec();
+
+  // Where we start counting from
   double last_quarter_pixels = TimeVal::fromMsecs(last_quarter_before).toPixels(m_zoomRatio);
-
-  qDebug() << "q:" << q << last_quarter_pixels;
-
 
   auto& lightBars = m_timebars->lightBars;
   auto& lighterBars = m_timebars->lighterBars;
 
- // for(int i = 0; i < lighterBars.size(); i+=4)
- // {
- //   lighterBars[i  ].setPos((i+1) * whole, 10.);
- //   lighterBars[i+1].setPos((i+2) * whole, 10.);
- //   lighterBars[i+2].setPos((i+3) * whole, 10.);
- // }
-  for(int i = 0; i < lightBars.size(); i++)
-  {
-    //lightBars[i].setPos(i * whole / 4, 10.);
-    double bar_x_pos = last_quarter_pixels + (i) * quarter_pixels;
-    if(last_before == measures.end())
-    {
-      lightBars[i].setPos(last_quarter_pixels + (i) * quarter_pixels, 10.);
-
-    }
-    else
-    {
-      auto next = last_before + 1;
-      if(next == measures.end())
-      {
-
-        lightBars[i].setPos(last_quarter_pixels + (i) * quarter_pixels, 10.);
-      }
-      else
-      {
-        if(bar_x_pos >= next->first.toPixels(m_zoomRatio))
-        {
-          last_before = next;
-          lightBars[i].setPos(last_before->first.toPixels(m_zoomRatio), 10.);
-
-          q = std::floor((x0_time - last_before->first).msec() / quarter.msec());
-          last_quarter_before = last_before->first.msec() + q * quarter.msec();
-          last_quarter_pixels = TimeVal::fromMsecs(last_quarter_before).toPixels(m_zoomRatio);
-
-          continue;
-        }
-
-      }
-      lightBars[i].setPos(last_quarter_pixels + (i) * quarter_pixels, 10.);
-
-    }
-  }
+  draw_bars(measures, lighterBars, last_before, m_zoomRatio, last_quarter_pixels, sub_division_pixels);
+  draw_bars(measures, lightBars, last_before, m_zoomRatio, last_quarter_pixels, main_division_pixels);
 }
 
 void FullViewIntervalPresenter::on_modeChanged(IntervalModel::ViewMode m)

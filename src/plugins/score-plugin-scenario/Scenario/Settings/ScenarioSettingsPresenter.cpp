@@ -27,6 +27,8 @@ Presenter::Presenter(Model& m, View& v, QObject* parent)
   SETTINGS_PRESENTER(SlotHeight);
   SETTINGS_PRESENTER(AutoSequence);
   SETTINGS_PRESENTER(TimeBar);
+  SETTINGS_PRESENTER(MeasureBars);
+  SETTINGS_PRESENTER(MagneticMeasures);
   SETTINGS_PRESENTER(DefaultDuration);
 
   con(v, &View::zoomChanged, this, [&](auto val) {
