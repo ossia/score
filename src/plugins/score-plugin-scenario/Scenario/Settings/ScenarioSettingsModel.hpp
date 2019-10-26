@@ -21,7 +21,9 @@ class SCORE_PLUGIN_SCENARIO_EXPORT Model final
   TimeVal m_DefaultDuration{std::chrono::seconds{30}};
   bool m_SnapshotOnCreate{};
   bool m_AutoSequence{};
-  bool m_TimeBar{};
+  bool m_TimeBar{false};
+  bool m_MeasureBars{true};
+  bool m_MagneticMeasures{true};
 
 public:
   Model(QSettings& set, const score::ApplicationContext& ctx);
@@ -51,6 +53,8 @@ public:
       bool,
       AutoSequence)
   SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_SCENARIO_EXPORT, bool, TimeBar)
+  SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_SCENARIO_EXPORT, bool, MeasureBars)
+  SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_SCENARIO_EXPORT, bool, MagneticMeasures)
 
 public:
   void SkinChanged(const QString& arg_1)
@@ -69,5 +73,7 @@ SCORE_SETTINGS_PARAMETER(Model, DefaultDuration)
 SCORE_SETTINGS_PARAMETER(Model, SnapshotOnCreate)
 SCORE_SETTINGS_PARAMETER(Model, AutoSequence)
 SCORE_SETTINGS_PARAMETER(Model, TimeBar)
+SCORE_SETTINGS_PARAMETER(Model, MeasureBars)
+SCORE_SETTINGS_PARAMETER(Model, MagneticMeasures)
 }
 }

@@ -522,9 +522,13 @@ View::View() : m_widg{new QWidget}
   lay->addRow(tr("Auto-Sequence"), m_sequence);
 
   SETTINGS_UI_TOGGLE_SETUP("Time Bar", TimeBar);
+  SETTINGS_UI_TOGGLE_SETUP("Show musical metrics", MeasureBars);
+  SETTINGS_UI_TOGGLE_SETUP("Magnetism on musical metrics", MagneticMeasures);
 }
 
 SETTINGS_UI_TOGGLE_IMPL(TimeBar)
+SETTINGS_UI_TOGGLE_IMPL(MeasureBars)
+SETTINGS_UI_TOGGLE_IMPL(MagneticMeasures)
 
 void View::setSkin(const QString& val)
 {

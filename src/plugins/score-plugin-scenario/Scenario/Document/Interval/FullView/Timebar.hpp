@@ -12,7 +12,7 @@ class LightTimebar : public QGraphicsItem
 public:
   LightTimebar()
   {
-    setZValue(-10);
+    setZValue(-9);
   }
 
   ~LightTimebar()
