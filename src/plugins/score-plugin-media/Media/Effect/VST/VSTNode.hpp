@@ -87,14 +87,15 @@ public:
 
   void setupTimeInfo(const ossia::token_request& tk, ossia::exec_state_facade st)
   {
+    static const constexpr double ppq_reference = 960.;
+
     auto& time_info = fx->info;
     time_info.samplePos = tk.date.impl;
     time_info.sampleRate = st.sampleRate();
     time_info.nanoSeconds = st.currentDate() - st.startDate();
+    time_info.ppqPos = tk.musical_position * ppq_reference;
     time_info.tempo = tk.tempo;
-    time_info.ppqPos
-        = (tk.date.impl / st.sampleRate()) * (60. / time_info.tempo);
-    time_info.barStartPos = 0.;
+    time_info.barStartPos = tk.musical_last_bar * ppq_reference;
     time_info.cycleStartPos = 0.;
     time_info.cycleEndPos = 0.;
     time_info.timeSigNumerator = tk.signature.upper;
@@ -103,7 +104,7 @@ public:
     time_info.smpteFrameRate = 0;
     time_info.samplesToNextClock = 0;
     time_info.flags = kVstTransportPlaying | kVstNanosValid | kVstPpqPosValid
-                      | kVstTempoValid | kVstTimeSigValid | kVstClockValid;
+                      | kVstTempoValid | kVstBarsValid | kVstTimeSigValid | kVstClockValid;
   }
 };
 
