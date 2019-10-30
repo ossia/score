@@ -11,6 +11,7 @@
 #include <ossia/dataflow/nodes/sound_ref.hpp>
 #include <ossia/dataflow/nodes/sound_mmap.hpp>
 #include <ossia/dataflow/nodes/dummy.hpp>
+#include <ossia/dataflow/nodes/sound_ref.hpp>
 #include <ossia/detail/pod_vector.hpp>
 
 namespace Media
@@ -67,7 +68,7 @@ public:
     if(component.m_ossia_process)
       component.m_ossia_process->node = node;
     else
-      component.m_ossia_process = std::make_shared<ossia::node_process>(node);
+      component.m_ossia_process = std::make_shared<ossia::sound_process>(node);
 
 
     recompute_ffmpeg(r, component);
@@ -82,7 +83,7 @@ public:
     if(component.m_ossia_process)
       component.m_ossia_process->node = node;
     else
-      component.m_ossia_process = std::make_shared<ossia::node_process>(node);
+      component.m_ossia_process = std::make_shared<ossia::sound_process>(node);
 
 
     recompute_drwav(r, component);
@@ -217,31 +218,26 @@ SoundComponent::SoundComponent(
   connect(&element, &Media::Sound::ProcessModel::fileChanged,
           this, &SoundComponent::on_fileChanged);
 
+  auto node_action = [this] (auto f) {
+    if(auto node = std::dynamic_pointer_cast<ossia::nodes::sound_ref>(this->node))
+      in_exec([node, f] { f(*node); });
+    else if(auto node = std::dynamic_pointer_cast<ossia::nodes::sound_mmap>(this->node))
+      in_exec([node, f] { f(*node); });
+  };
 
   con(element, &Media::Sound::ProcessModel::startChannelChanged, this, [=,&element] {
-    if(auto node = std::dynamic_pointer_cast<ossia::nodes::sound_ref>(this->node))
-      in_exec([node, start = element.startChannel()] { node->set_start(start); });
-    else if(auto node = std::dynamic_pointer_cast<ossia::nodes::sound_mmap>(this->node))
-      in_exec([node, start = element.startChannel()] { node->set_start(start); });
+    node_action([start = element.startChannel()] (auto& node) { node.set_start(start); });
   });
   con(element, &Media::Sound::ProcessModel::upmixChannelsChanged, this, [=,&element] {
-    if(auto node = std::dynamic_pointer_cast<ossia::nodes::sound_ref>(this->node))
-      in_exec([node, upmix = element.upmixChannels()] { node->set_upmix(upmix); });
-    else if(auto node = std::dynamic_pointer_cast<ossia::nodes::sound_mmap>(this->node))
-      in_exec([node, upmix = element.upmixChannels()] { node->set_upmix(upmix); });
+    node_action([start = element.upmixChannels()] (auto& node) { node.set_upmix(start); });
   });
   con(element, &Media::Sound::ProcessModel::nativeTempoChanged, this, [=,&element] {
-    if(auto node = std::dynamic_pointer_cast<ossia::nodes::sound_ref>(this->node))
-      in_exec([node, tempo = element.nativeTempo()] { node->set_native_tempo(tempo); });
-    else if(auto node = std::dynamic_pointer_cast<ossia::nodes::sound_mmap>(this->node))
-      in_exec([node, tempo = element.nativeTempo()] { node->set_native_tempo(tempo); });
+    node_action([start = element.nativeTempo()] (auto& node) { node.set_native_tempo(start); });
   });
   con(element, &Media::Sound::ProcessModel::stretchModeChanged, this, [=,&element] {
-    if(auto node = std::dynamic_pointer_cast<ossia::nodes::sound_ref>(this->node))
-      in_exec([node, mode = element.stretchMode()] { node->set_stretch_mode(mode); });
-    else if(auto node = std::dynamic_pointer_cast<ossia::nodes::sound_mmap>(this->node))
-      in_exec([node, mode = element.stretchMode()] { node->set_stretch_mode(mode); });
+    node_action([start = element.stretchMode()] (auto& node) { node.set_stretch_mode(start); });
   });
+
   if(auto& file = element.file())
   {
     file->on_finishedDecoding.connect<&SoundComponent::Recomputer::recompute>(m_recomputer);

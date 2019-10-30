@@ -404,7 +404,7 @@ struct WaveformComputerImpl
     int nchannels;
     float logical_samples_per_pixels;
     float physical_samples_per_pixels;
-    double rate_ratio;
+    static constexpr const double rate_ratio = 1.;
 
 
     float logical_h;
@@ -434,6 +434,7 @@ struct WaveformComputerImpl
     int32_t physical_max_pixel;
 
 
+    int32_t decoded_samples;
     int32_t rightmost_sample;
   };
 
@@ -626,12 +627,17 @@ struct WaveformComputerImpl
           )
       {
         if(computer.m_redraw_count > redraw_number)
-        {
           return;
-        }
 
         int64_t start_sample =  x_samples * pix_ratio;
+        if(start_sample >= infos.decoded_samples)
+          break;
+
         int64_t end_sample =  (x_samples + 1) * pix_ratio;
+
+        if(end_sample >= infos.decoded_samples)
+          end_sample = infos.rightmost_sample;
+
         const auto mean_sample = handle.minmax_frame(start_sample, end_sample);
 
         for(int k = 0; k < infos.nchannels; k++)
@@ -645,7 +651,6 @@ struct WaveformComputerImpl
           {
             dat[x_pixels + y * infos.physical_width] = main_color;
           }
-          //p[k].drawLine(QPointF(x_pixels, max_value), QPointF(x_pixels, min_value));
         }
       }
     }
@@ -740,8 +745,10 @@ struct WaveformComputerImpl
 
     // rightmost point
     const auto audioSampleRate = data.sampleRate();
+    // not applicable if we source the direct MediaFileHnadle data which is always resampled,
+    // only if we user the RMS cache :
     // There may be a ratio because the waveform could have been computed at a different samplerate.
-    infos.rate_ratio = data.rms().sampleRateRatio(audioSampleRate);
+    // infos.rate_ratio =  data.rms().sampleRateRatio(audioSampleRate);
     infos.logical_samples_per_pixels = 0.001 * ratio * audioSampleRate;
 
     if(infos.logical_samples_per_pixels <= 1e-6)
@@ -750,7 +757,8 @@ struct WaveformComputerImpl
     LayerView& layer = computer.m_layer;
     QGraphicsView& view = computer.m_view;
     infos.logical_xf = std::floor(layer.mapFromScene(view.mapToScene(view.width(), 0)).x());
-    infos.rightmost_sample = (int32_t) (data.decodedSamples() / infos.logical_samples_per_pixels);
+    infos.decoded_samples = data.decodedSamples();
+    infos.rightmost_sample = (int32_t) (infos.decoded_samples / infos.logical_samples_per_pixels);
     infos.logical_xf = std::min(infos.logical_xf, infos.rightmost_sample);
 
     infos.logical_width = std::min(infos.logical_w, (infos.logical_xf - infos.logical_x0));

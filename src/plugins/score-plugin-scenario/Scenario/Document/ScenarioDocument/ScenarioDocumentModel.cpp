@@ -35,6 +35,9 @@ ScenarioDocumentModel::ScenarioDocumentModel(
       = ctx.app.settings<Scenario::Settings::Model>().getDefaultDuration();
 
   m_baseScenario->interval().duration.setRigid(false);
+  m_baseScenario->interval().setHasTimeSignature(true);
+  m_baseScenario->interval().setHasTempo(true);
+
   IntervalDurations::Algorithms::changeAllDurations(
       m_baseScenario->interval(), dur);
   m_baseScenario->interval().duration.setMaxInfinite(true);
@@ -98,6 +101,13 @@ void ScenarioDocumentModel::finishLoading()
     }
   }
   m_savedCables = QJsonArray{};
+
+  // Root scenario always has time signatures
+  if(!m_baseScenario->interval().hasTimeSignature())
+  {
+    m_baseScenario->interval().setHasTimeSignature(true);
+    m_baseScenario->interval().setHasTempo(true);
+  }
 }
 
 ScenarioDocumentModel::~ScenarioDocumentModel() {}
