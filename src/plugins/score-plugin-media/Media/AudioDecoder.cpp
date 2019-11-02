@@ -709,7 +709,8 @@ void AudioDecoder::decodeFrame(Decoder dec, audio_array& data, AVFrame& frame)
 #endif
 }
 
-void AudioDecoder::decodeRemaining(audio_array& data)
+template <typename Decoder>
+void AudioDecoder::decodeRemaining(Decoder dec, audio_array& data, AVFrame& frame)
 {
 #if SCORE_HAS_LIBAV
   const std::size_t channels = data.size();
@@ -729,6 +730,25 @@ void AudioDecoder::decodeRemaining(audio_array& data)
     }
     decoded += res;
   }
+  else
+  {
+/*
+    const std::size_t channels = data.size();
+    const std::size_t max_samples = data[0].size();
+    if (decoded + frame.nb_samples > max_samples)
+    {
+      qDebug() << "ERROR" << decoded + frame.nb_samples << ">" << max_samples;
+      return;
+    }
+
+    dec(data, decoded, frame.extended_data, frame.nb_samples);
+    decoded += frame.nb_samples;
+    */
+  }
+
+  // TODO it should be zeros, but check to be sure..
+  if(decoded < data[0].size())
+    decoded = data[0].size();
 #endif
 }
 void AudioDecoder::on_startDecode(QString path, audio_handle hdl)
@@ -866,9 +886,10 @@ void AudioDecoder::on_startDecode(QString path, audio_handle hdl)
           }
 
           // Flush
-          avcodec_send_packet(codec_ctx.get(), nullptr);
+           ret = avcodec_send_packet(codec_ctx.get(), nullptr);
 
-          decodeRemaining(data);
+           decodeRemaining(dec, data, *frame);
+           newData();
         },
         decoder);
 

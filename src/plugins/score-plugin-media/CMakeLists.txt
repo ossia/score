@@ -81,6 +81,13 @@ set(HDRS ${HDRS}
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Merger/Inspector.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Merger/Model.hpp"
 
+    "${CMAKE_CURRENT_SOURCE_DIR}/Media/Metro/MetroCommands.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Media/Metro/MetroMetadata.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Media/Metro/MetroExecutor.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Media/Metro/MetroFactory.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Media/Metro/MetroInspector.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Media/Metro/MetroModel.hpp"
+
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/MediaFileHandle.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/RMSData.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/AudioDecoder.hpp"
@@ -118,6 +125,8 @@ set(SRCS
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Merger/Executor.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Merger/Model.cpp"
 
+    "${CMAKE_CURRENT_SOURCE_DIR}/Media/Metro/MetroExecutor.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Media/Metro/MetroModel.cpp"
 
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/MediaFileHandle.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/RMSData.cpp"

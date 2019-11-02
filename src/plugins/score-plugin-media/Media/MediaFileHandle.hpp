@@ -42,6 +42,12 @@ static constexpr inline float abs_max(float f1, float f2) noexcept
 }
 #endif
 
+enum class DecodingMethod {
+  Invalid,
+  Mmap,
+  Libav
+};
+
 struct SCORE_PLUGIN_MEDIA_EXPORT AudioFile final : public QObject
 {
 public:
@@ -51,6 +57,7 @@ public:
   ~AudioFile() override;
 
   void load(const QString&, const QString&);
+  void load(const QString&, const QString&, DecodingMethod d);
 
   //! The text passed to the load function
   QString originalFile() const { return m_originalFile; }
@@ -106,7 +113,7 @@ public:
   struct MmapView
   {
     // Copy for thread-safety reasons
-    drwav wav;
+    ossia::drwav_handle wav;
   };
 
   struct LibavView
