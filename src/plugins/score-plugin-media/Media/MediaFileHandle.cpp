@@ -46,15 +46,8 @@ static int64_t readSampleRate(QFile& file)
 // TODO if it's smaller than e.g. 1 megabyte, it would be worth
 // loading it in memory entirely..
 // TODO might make sense to do resampling during execution if it's nott too expensive?
-enum class DecodingMethod {
-  Invalid,
-  Mmap,
-  Libav
-};
-
 static DecodingMethod needsDecoding(const QString& path, int rate)
 {
-  return DecodingMethod::Libav;
   if(path.endsWith("wav", Qt::CaseInsensitive) || path.endsWith("w64", Qt::CaseInsensitive))
   {
     QFile f(path);
@@ -89,6 +82,30 @@ void AudioFile::load(
   const auto rate = audioSettings.getRate();
 
   switch(needsDecoding(m_file, rate))
+  {
+    case DecodingMethod::Libav:
+      load_ffmpeg(rate);
+      break;
+    case DecodingMethod::Mmap:
+      load_drwav();
+      break;
+    default:
+      break;
+  }
+}
+
+void AudioFile::load(
+    const QString& path,
+    const QString& abspath,
+    DecodingMethod d)
+{
+  m_originalFile = path;
+  m_file = abspath;
+
+  const auto& audioSettings = score::GUIAppContext().settings<Audio::Settings::Model>();
+  const auto rate = audioSettings.getRate();
+
+  switch(d)
   {
     case DecodingMethod::Libav:
       load_ffmpeg(rate);
@@ -212,7 +229,7 @@ struct FrameComputer
   void operator()(AudioFile::MmapView& r) noexcept
   {
     auto& wav = r.wav;
-    const int channels = wav.channels;
+    const int channels = wav.channels();
     sum.resize(channels);
 
     if(end_frame - start_frame > 0)
@@ -220,10 +237,10 @@ struct FrameComputer
       const int64_t buffer_size = end_frame - start_frame;
 
       float* floats = (float*)alloca(sizeof(float) * buffer_size * channels);
-      if(Q_UNLIKELY(! drwav_seek_to_pcm_frame(&wav, start_frame)))
+      if(Q_UNLIKELY(! wav.seek_to_pcm_frame(start_frame)))
         return;
 
-      auto max = drwav_read_pcm_frames_f32(&wav, buffer_size, floats);
+      auto max = wav.read_pcm_frames_f32(buffer_size, floats);
       if(Q_UNLIKELY(max == 0))
         return;
 
@@ -244,9 +261,9 @@ struct FrameComputer
     else
     {
       float* val = (float*)alloca(sizeof(float) * channels);
-      if(Q_UNLIKELY(! drwav_seek_to_pcm_frame(&wav, start_frame)))
+      if(Q_UNLIKELY(! wav.seek_to_pcm_frame(start_frame)))
         return;
-      int max = drwav_read_pcm_frames_f32(&wav, 1, val);
+      int max = wav.read_pcm_frames_f32(1, val);
       if(Q_UNLIKELY(max == 0))
         return;
 
@@ -282,14 +299,14 @@ struct SingleFrameComputer
   void operator()(AudioFile::MmapView& r) noexcept
   {
     auto& wav = r.wav;
-    const int channels = wav.channels;
+    const int channels = wav.channels();
     sum.resize(channels);
 
     float* val = (float*)alloca(sizeof(float) * channels);
-    if(Q_UNLIKELY(! drwav_seek_to_pcm_frame(&wav, start_frame)))
+    if(Q_UNLIKELY(! wav.seek_to_pcm_frame(start_frame)))
       return;
 
-    int max = drwav_read_pcm_frames_f32(&wav, 1, val);
+    int max = wav.read_pcm_frames_f32(1, val);
     if(Q_UNLIKELY(max == 0))
       return;
 
@@ -515,7 +532,7 @@ AudioFile::ViewHandle::ViewHandle(const AudioFile::Handle& handle)
   {
     if(r.wav)
     {
-      self = MmapView{*r.wav.wav()};
+      self = MmapView{r.wav};
     }
   }
   } _{*this};

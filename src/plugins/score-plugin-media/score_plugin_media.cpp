@@ -15,6 +15,9 @@
 #include <Media/Step/Executor.hpp>
 #include <Media/Step/Factory.hpp>
 #include <Media/Step/Inspector.hpp>
+#include <Media/Metro/MetroExecutor.hpp>
+#include <Media/Metro/MetroFactory.hpp>
+#include <Media/Metro/MetroInspector.hpp>
 #include <Scenario/Application/ScenarioApplicationPlugin.hpp>
 
 
@@ -98,6 +101,7 @@ score_plugin_media::factories(
          Media::Sound::ProcessFactory,
          Media::Effect::ProcessFactory,
          Media::Step::ProcessFactory,
+         Media::Metro::ProcessFactory,
          Media::Merger::ProcessFactory
 #if defined(HAS_FAUST)
          ,
@@ -121,11 +125,13 @@ score_plugin_media::factories(
     #if defined(HAS_VST2)
        , Media::VST::VSTInspectorFactory
     #endif
-       , Media::Step::InspectorFactory,
-         Media::Merger::InspectorFactory>,
+       , Media::Step::InspectorFactory
+       // , Media::Metro::InspectorFactory
+       , Media::Merger::InspectorFactory>,
       FW<Process::LayerFactory,
          Media::Sound::LayerFactory,
          Media::Effect::LayerFactory,
+         Media::Metro::LayerFactory,
          Media::Step::LayerFactory,
          Media::Merger::LayerFactory
 #if defined(HAS_VST2)
@@ -164,6 +170,7 @@ score_plugin_media::factories(
          Execution::SoundComponentFactory,
          Media::EffectProcessComponentFactory,
          Execution::StepComponentFactory,
+         Execution::MetroComponentFactory,
          Execution::MergerComponentFactory
 #if defined(HAS_VST2)
          ,

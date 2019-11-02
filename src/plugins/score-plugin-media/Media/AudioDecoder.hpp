@@ -66,7 +66,9 @@ private:
 
   template <typename Decoder>
   void decodeFrame(Decoder dec, audio_array& data, AVFrame& frame);
-  void decodeRemaining(audio_array& data);
+
+  template <typename Decoder>
+  void decodeRemaining(Decoder dec, audio_array& data, AVFrame& frame);
   std::vector<SwrContext*> resampler;
   void initResample();
 };
