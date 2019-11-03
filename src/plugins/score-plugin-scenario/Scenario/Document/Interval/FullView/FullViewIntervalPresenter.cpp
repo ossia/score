@@ -45,12 +45,14 @@ W_OBJECT_IMPL(Scenario::FullViewIntervalPresenter)
 W_OBJECT_IMPL(Scenario::TimeSignatureHandle)
 namespace Scenario
 {
+  using LightBars = std::array<LightTimebar, 200>;
+  using LighterBars = std::array<LighterTimebar, 600>;
 struct Timebars
 {
   TimeSignatureItem timebar;
 
-  std::array<LightTimebar, 200> lightBars;
-  std::array<LighterTimebar, 600> lighterBars;
+  LightBars lightBars;
+  LighterBars lighterBars;
 };
 
 static SlotDragOverlay* full_slot_drag_overlay{};
@@ -622,14 +624,13 @@ void FullViewIntervalPresenter::on_visibleRectChanged(QRectF r)
   }
 }
 
-
-template<typename Bars, typename It>
-void draw_bars(const TimeSignatureMap& measures, Bars& bars, It last_before, double m_zoomRatio, double last_quarter_pixels, double main_division_pixels)
+void draw_main_bars(const TimeSignatureMap& measures, LightBars& bars, TimeSignatureMap::const_iterator last_before,
+               double zoom, double last_quarter_pixels, double division_pixels, double pow2)
 {
   int k = 0;
   for(std::size_t i = 0; i < bars.size(); i++)
   {
-    const double bar_x_pos = last_quarter_pixels + k * main_division_pixels;
+    const double bar_x_pos = last_quarter_pixels + k * division_pixels;
     SCORE_ASSERT(last_before != measures.end());
 
     auto next = last_before + 1;
@@ -641,10 +642,47 @@ void draw_bars(const TimeSignatureMap& measures, Bars& bars, It last_before, dou
     }
     else
     {
-      if(bar_x_pos >= next->first.toPixels(m_zoomRatio))
+      if(bar_x_pos >= next->first.toPixels(zoom))
       {
         last_before = next;
-        last_quarter_pixels = last_before->first.toPixels(m_zoomRatio);
+
+        const auto sig_upper = last_before->second.upper;
+        const auto sig_lower = last_before->second.lower;
+        const double pixels_width_min = 30.;
+
+        const double tempo = 120.;
+
+        // Duration of a quarter note in milliseconds
+        const double quarter = 60000. / tempo;
+
+        // Duration of a bar in milliseconds.
+        const double whole = quarter * (4. * double(sig_upper) / sig_lower);
+
+        double main_div_source{};
+        double sub_div_source{};
+
+        if(pow2 >= 1. && pow2 <= 2.) // between bars and 8th notes
+        {
+          main_div_source = whole * pow2;
+          sub_div_source = quarter;
+        }
+        else if(pow2 > 2 && pow2 <= 8) // between 16th and 32th notes
+        {
+          main_div_source = quarter * pow2; // main is quarter notes
+          sub_div_source = quarter;
+        }
+        else
+        {
+          // Else we just divide by 2
+          // -> ratio of 2 between main and sub
+          main_div_source = whole;
+          sub_div_source = whole / 2.;
+        }
+
+        const TimeVal main_division = TimeVal::fromMsecs(main_div_source / pow2);
+        division_pixels = main_division.toPixels(zoom);
+
+        last_quarter_pixels = last_before->first.toPixels(zoom);
 
         bars[i].setPos(last_quarter_pixels, 10.);
 
@@ -657,6 +695,81 @@ void draw_bars(const TimeSignatureMap& measures, Bars& bars, It last_before, dou
     k++;
   }
 }
+
+void draw_sub_bars(
+      const TimeSignatureMap& measures,
+      LighterBars& bars, TimeSignatureMap::const_iterator last_before,
+      double zoom, double last_quarter_pixels, double division_pixels)
+{
+  int k = 0;
+  for(std::size_t i = 0; i < bars.size(); i++)
+  {
+    const double bar_x_pos = last_quarter_pixels + k * division_pixels;
+    SCORE_ASSERT(last_before != measures.end());
+
+    auto next = last_before + 1;
+    if(next == measures.end())
+    {
+      bars[i].setPos(bar_x_pos, 10.);
+      k++;
+      continue;
+    }
+    else
+    {
+      if(bar_x_pos >= next->first.toPixels(zoom))
+      {
+        last_before = next;
+/*
+        const auto sig_upper = last_before->second.upper;
+        const auto sig_lower = last_before->second.lower;
+        const double pixels_width_min = 30.;
+
+        const double tempo = 120.;
+
+        const double quarter = 1000. * 60. / tempo;
+        const double whole = quarter * (4. * double(sig_upper) / sig_lower);
+
+        const double res = whole / (pixels_width_min * zoom);
+        const double pow2 = std::pow(2, std::floor(log2(res)));
+
+        double main_div_source{};
+        double sub_div_source{};
+        if(pow2 == 1)
+        {
+          // Special case where our main division is the bar and subdivision is the quarter
+          // -> ratio of 4 between main and sub
+
+          main_div_source = whole;
+          sub_div_source = quarter;
+        }
+        else
+        {
+          // Else we just divide by 2
+          // -> ratio of 2 between main and sub
+          main_div_source = whole;
+          sub_div_source = whole / 2.;
+        }
+
+        const TimeVal sub_division = TimeVal::fromMsecs(sub_div_source / pow2);
+        const TimeVal main_division = TimeVal::fromMsecs(main_div_source / pow2);
+
+        division_pixels = main_division.toPixels(zoom);
+*/
+
+        last_quarter_pixels = last_before->first.toPixels(zoom);
+
+        bars[i].setPos(last_quarter_pixels, 10.);
+
+        k = 0;
+        continue;
+      }
+    }
+
+    bars[i].setPos(bar_x_pos, 10.);
+    k++;
+  }
+}
+
 void FullViewIntervalPresenter::updateTimeBars()
 {
   if(m_zoomRatio <= 0)
@@ -675,21 +788,51 @@ void FullViewIntervalPresenter::updateTimeBars()
 
   m_timebars->timebar.setZoomRatio(m_zoomRatio);
 
-  // We want to find the subdivision that will result in the smallest bars being at least 20 pixels.
+  // We want to find the subdivision that will result in the smallest bars being at least pixels_width_min pixels.
   // We have to solve : main_division_pixels > pixels_width_min.
   // This gives : subdivision < whole_duration / (zoom_ratio * pixels_width_min)
 
+  const auto sig_upper = last_before->second.upper;
+  const auto sig_lower = last_before->second.lower;
   const double pixels_width_min = 30.;
 
   const double tempo = 120.;
-  const double whole = 1000. * 240. / tempo;
 
-  const int res = whole / (pixels_width_min * m_zoomRatio);
-  const int pow2 = std::pow(2, std::floor(log2(res)));
 
-  const TimeVal main_division = TimeVal::fromMsecs(whole / pow2);
+  // Duration of a quarter note in milliseconds
+  const double quarter = 60000. / tempo;
+
+  // Duration of a bar in milliseconds.
+  const double whole = quarter * (4. * double(sig_upper) / sig_lower);
+
+  const double res = whole / (pixels_width_min * m_zoomRatio);
+  const double pow2 = std::pow(2, std::floor(log2(res)));
+
+  double main_div_source{};
+  double sub_div_source{};
+
+  if(pow2 >= 1. && pow2 <= 2.) // between bars and 8th notes
+  {
+    main_div_source = whole * pow2;
+    sub_div_source = quarter;
+  }
+  else if(pow2 > 2 && pow2 <= 8) // between 16th and 32th notes
+  {
+    main_div_source = quarter * pow2; // main is quarter notes
+    sub_div_source = quarter;
+  }
+  else
+  {
+    // Else we just divide by 2
+    // -> ratio of 2 between main and sub
+    main_div_source = whole;
+    sub_div_source = whole / 2.;
+  }
+
+  const TimeVal sub_division = TimeVal::fromMsecs(sub_div_source / pow2);
+  const TimeVal main_division = TimeVal::fromMsecs(main_div_source / pow2);
   const double main_division_pixels = main_division.toPixels(m_zoomRatio);
-  const double sub_division_pixels = main_division_pixels / 4;
+  const double sub_division_pixels = sub_division.toPixels(m_zoomRatio);
 
   const double q = std::floor((x0_time - last_before->first).msec() / main_division.msec());
   const double last_quarter_before = last_before->first.msec() + q * main_division.msec();
@@ -700,8 +843,8 @@ void FullViewIntervalPresenter::updateTimeBars()
   auto& lightBars = m_timebars->lightBars;
   auto& lighterBars = m_timebars->lighterBars;
 
-  draw_bars(measures, lighterBars, last_before, m_zoomRatio, last_quarter_pixels, sub_division_pixels);
-  draw_bars(measures, lightBars, last_before, m_zoomRatio, last_quarter_pixels, main_division_pixels);
+  draw_sub_bars(measures, lighterBars, last_before, m_zoomRatio, last_quarter_pixels, sub_division_pixels);
+  draw_main_bars(measures, lightBars, last_before, m_zoomRatio, last_quarter_pixels, main_division_pixels, pow2);
 }
 
 void FullViewIntervalPresenter::on_modeChanged(IntervalModel::ViewMode m)

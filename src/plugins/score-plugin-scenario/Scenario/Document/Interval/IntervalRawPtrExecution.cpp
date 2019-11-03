@@ -19,6 +19,7 @@
 
 #include <ossia/dataflow/graph/graph_interface.hpp>
 #include <ossia/dataflow/graph_edge.hpp>
+#include <ossia/dataflow/execution_state.hpp>
 #include <ossia/editor/scenario/time_interval.hpp>
 #include <ossia/editor/scenario/time_value.hpp>
 
@@ -186,6 +187,9 @@ void IntervalRawPtrComponent::onSetup(
   m_ossia_interval->set_min_duration(dur.minDuration);
   m_ossia_interval->set_max_duration(dur.maxDuration);
   m_ossia_interval->set_speed(dur.speed);
+  m_ossia_interval->set_tempo_curve(tempoCurve(interval(), context()));
+  m_ossia_interval->set_time_signature_map(timeSignatureMap(interval(), context()));
+  m_ossia_interval->set_quarter_duration(this->system().execState->sampleRate / 2.);
 
   std::weak_ptr<IntervalRawPtrComponent> weak_self = self;
   in_exec([weak_self, ossia_cst, &edit = system().editionQueue] {
