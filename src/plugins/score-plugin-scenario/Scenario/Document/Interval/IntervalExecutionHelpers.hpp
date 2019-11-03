@@ -7,9 +7,46 @@
 #include <ossia/dataflow/graph/graph_interface.hpp>
 #include <ossia/dataflow/graph_edge.hpp>
 #include <ossia/editor/scenario/time_interval.hpp>
-
+#include <Scenario/Document/Interval/IntervalModel.hpp>
 namespace Execution
 {
+
+
+inline optional<ossia::tempo_curve> tempoCurve(
+    const Scenario::IntervalModel& itv,
+    const Execution::Context& ctx)
+{
+  // TODO
+  if(itv.hasTempo())
+  {
+    ossia::tempo_curve t;
+    t.set_x0(0);
+    t.set_y0(120.);
+    return optional<ossia::tempo_curve>{std::move(t)};
+  }
+  else
+  {
+    return ossia::none;
+  }
+}
+inline optional<ossia::time_signature_map> timeSignatureMap(
+    const Scenario::IntervalModel& itv,
+    const Execution::Context& ctx)
+{
+  if(itv.hasTimeSignature())
+  {
+    ossia::time_signature_map ret;
+    for(const auto& [time, sig] : itv.timeSignatureMap())
+    {
+      ret[ctx.time(time)] = sig;
+    }
+    return ret;
+  }
+  else
+  {
+    return ossia::none;
+  }
+}
 
 inline auto propagatedOutlets(const Process::Outlets& outlets) noexcept
 {

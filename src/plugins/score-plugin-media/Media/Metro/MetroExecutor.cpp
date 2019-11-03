@@ -10,6 +10,9 @@
 #include <ossia/detail/pod_vector.hpp>
 #include <ossia/editor/scenario/time_value.hpp>
 #include <Media/MediaFileHandle.hpp>
+#include <QApplication>
+#include <Library/LibrarySettings.hpp>
+#include <score/application/ApplicationContext.hpp>
 
 namespace ossia::nodes
 {
@@ -56,7 +59,7 @@ public:
   {
     if (tk.date > tk.prev_date)
     {
-      if(tk.musical_end_last_bar != tk.musical_start_last_bar)
+      if(tk.musical_end_last_bar != tk.musical_start_last_bar || tk.prev_date == 0)
       {
         // There is a bar change in this tick, start the hi sound
         double musical_tick_duration = tk.musical_end_position - tk.musical_start_position;
@@ -71,9 +74,9 @@ public:
             sound.fade_total = std::min(500L, sound.dur - sound.pos);
             sound.fade_remaining = sound.fade_total;
           }
-          in_flight.push_back({&hi_sound, 0, hi_dur, hi_start_sample, 0, 0});
+          if(hi_dur > 0)
+            in_flight.push_back({&hi_sound, 0, hi_dur, hi_start_sample, 0, 0});
         }
-
       }
       else
       {
@@ -96,7 +99,8 @@ public:
               sound.fade_total = std::min(500L, sound.dur - sound.pos);
               sound.fade_remaining = sound.fade_total;
             }
-            in_flight.push_back({&lo_sound, 0, lo_dur, lo_start_sample, 0, 0});
+            if(lo_dur > 0)
+              in_flight.push_back({&lo_sound, 0, lo_dur, lo_start_sample, 0, 0});
           }
         }
       }
@@ -168,14 +172,13 @@ public:
 };
 }
 
-#include <QApplication>
 namespace Execution
 {
 struct MetronomeSounds
 {
-  static inline const QString root = "/home/jcelerier/Documents/ossia score library/Util/";
+  const QString root = score::AppContext().settings<Library::Settings::Model>().getPath() + "/Util/";
   const std::unique_ptr<Media::AudioFile> tick{
-    [] {
+    [this] {
       auto f = std::make_unique<Media::AudioFile>();
       f->load(root + "/metro_tick.wav", root + "/metro_tick.wav", Media::DecodingMethod::Libav);
 
@@ -188,7 +191,7 @@ struct MetronomeSounds
     }()
   };
   const std::unique_ptr<Media::AudioFile> tock{
-    [] {
+    [this] {
       auto f = std::make_unique<Media::AudioFile>();
       f->load(root + "/metro_tock.wav", root + "/metro_tock.wav", Media::DecodingMethod::Libav);
 
@@ -204,6 +207,10 @@ struct MetronomeSounds
   const Media::AudioFile::ViewHandle tick_handle{tick->handle()};
   const Media::AudioFile::ViewHandle tock_handle{tock->handle()};
 
+  operator bool() const noexcept
+  {
+    return tick_handle.target<Media::AudioFile::LibavView>() && tock_handle.target<Media::AudioFile::LibavView>();
+  }
 };
 
 MetroComponent::MetroComponent(
@@ -219,17 +226,22 @@ MetroComponent::MetroComponent(
           parent}
 {
   static const MetronomeSounds sounds;
-  const auto& tick_sound{sounds.tick_handle.target<Media::AudioFile::LibavView>()->data};
-  const auto& tock_sound{sounds.tock_handle.target<Media::AudioFile::LibavView>()->data};
+  if(sounds)
+  {
 
-  auto node = std::make_shared<ossia::nodes::audio_metronome>(tick_sound,
-                                                        tock_sound,
-                                                        sounds.tick->decodedSamples(),
-                                                        sounds.tock->decodedSamples()
-                                                        );
+    const auto& tick_sound{sounds.tick_handle.target<Media::AudioFile::LibavView>()->data};
+    const auto& tock_sound{sounds.tock_handle.target<Media::AudioFile::LibavView>()->data};
 
-  this->node = node;
-  m_ossia_process = std::make_shared<ossia::node_process>(node);
+    auto node = std::make_shared<ossia::nodes::audio_metronome>(tick_sound,
+                                                                tock_sound,
+                                                                sounds.tick->decodedSamples(),
+                                                                sounds.tock->decodedSamples()
+                                                                );
+
+    this->node = node;
+    m_ossia_process = std::make_shared<ossia::node_process>(node);
+
+  }
 }
 
 void MetroComponent::recompute()

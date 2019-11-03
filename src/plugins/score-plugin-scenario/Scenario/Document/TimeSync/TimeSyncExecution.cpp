@@ -129,7 +129,7 @@ void TimeSyncComponent::updateTriggerTime()
   if (const auto sig = m_score_node->signature())
   {
     const auto tempo = m_score_node->tempo();
-    const double ratio = double(sig->first) / double(sig->second);
+    const double ratio = double(sig->upper) / double(sig->lower);
     const double whole_dur = 240. / tempo;
     const ossia::time_value whole_time = this->system().time(TimeVal{1000. * whole_dur});
     t = whole_time * ratio;

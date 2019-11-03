@@ -620,6 +620,8 @@ if(TARGET Qt5::Svg)
   target_link_libraries(score_lib_base
     PRIVATE Qt5::Svg
   )
+
+target_compile_definitions(score_plugin_scenario PRIVATE SCORE_MUSICAL)
 endif()
 if(SCORE_WEBSOCKETS)
 target_link_libraries(score_plugin_scenario PRIVATE Qt5::WebSockets)

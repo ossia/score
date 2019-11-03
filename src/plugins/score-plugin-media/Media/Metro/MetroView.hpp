@@ -22,6 +22,7 @@ public:
 private:
   void paint_impl(QPainter* p) const override
   {
+  // TODO paint the current time
   }
 };
 }
