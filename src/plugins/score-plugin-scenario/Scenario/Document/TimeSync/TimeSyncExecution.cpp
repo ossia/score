@@ -12,6 +12,7 @@
 #include <ossia/editor/scenario/time_sync.hpp>
 #include <ossia/editor/state/state.hpp>
 #include <score/tools/Bind.hpp>
+#include <ossia/dataflow/execution_state.hpp>
 
 
 #include <exception>
@@ -43,16 +44,11 @@ TimeSyncComponent::TimeSyncComponent(
       &Scenario::TimeSyncModel::triggerChanged,
       this,
       &TimeSyncComponent::updateTrigger);
-#if defined(SCORE_MUSICAL)
+
   con(element,
-      &Scenario::TimeSyncModel::signatureChanged,
+      &Scenario::TimeSyncModel::musicalSyncChanged,
       this,
       &TimeSyncComponent::updateTriggerTime);
-  con(element,
-      &Scenario::TimeSyncModel::tempoChanged,
-      this,
-      &TimeSyncComponent::updateTriggerTime);
-#endif
 }
 
 void TimeSyncComponent::cleanup()
@@ -123,19 +119,9 @@ void TimeSyncComponent::updateTrigger()
 
 void TimeSyncComponent::updateTriggerTime()
 {
-#if defined(SCORE_MUSICAL)
-  ossia::time_value t = ossia::Infinite;
-
-  if (const auto sig = m_score_node->signature())
-  {
-    const auto tempo = m_score_node->tempo();
-    const double ratio = double(sig->upper) / double(sig->lower);
-    const double whole_dur = 240. / tempo;
-    const ossia::time_value whole_time = this->system().time(TimeVal{1000. * whole_dur});
-    t = whole_time * ratio;
-  }
-  this->in_exec([e = m_ossia_node, t] { e->set_sync_rate(t); });
-#endif
+  const auto sync = m_score_node->musicalSync();
+  const auto quarter_duration = this->system().execState->sampleRate / 2.;
+  this->in_exec([e = m_ossia_node, sync, quarter_duration] { e->set_sync_rate(sync, quarter_duration); });
 }
 
 void TimeSyncComponent::on_GUITrigger()

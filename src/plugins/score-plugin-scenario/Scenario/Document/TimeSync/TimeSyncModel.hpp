@@ -72,13 +72,8 @@ public:
   bool autotrigger() const noexcept;
   void setAutotrigger(bool t);
 
-#if defined(SCORE_MUSICAL)
-  optional<Control::time_signature> signature() const noexcept;
-  void setSignature(optional<Control::time_signature> sig);
-
-  double tempo() const noexcept;
-  void setTempo(double);
-#endif
+  Control::musical_sync musicalSync() const noexcept;
+  void setMusicalSync(Control::musical_sync sig);
 
 public:
   void dateChanged(const TimeVal& arg_1)
@@ -97,25 +92,17 @@ public:
   void triggeredByGui() const
       E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, triggeredByGui)
 
-#if defined(SCORE_MUSICAL)
-  void signatureChanged(optional<Control::time_signature> sig)
-    E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, signatureChanged, sig)
+  double musicalSyncChanged(Control::musical_sync sync)
+  E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, musicalSyncChanged, sync)
 
-  void tempoChanged(double t)
-  E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, tempoChanged, t)
+  PROPERTY(Control::musical_sync, musicalSync READ musicalSync WRITE setMusicalSync NOTIFY musicalSyncChanged)
 
-  PROPERTY(double, tempo READ tempo WRITE setTempo NOTIFY tempoChanged)
-  PROPERTY(optional<Control::time_signature>, signature READ signature WRITE setSignature NOTIFY signatureChanged)
-#endif
 private:
   TimeVal m_date{std::chrono::seconds{0}};
   State::Expression m_expression;
 
   EventIdVec m_events;
-#if defined(SCORE_MUSICAL)
-  double m_tempo{120.};
-  optional<Control::time_signature> m_signature;
-#endif
+  Control::musical_sync m_musicalSync{1.};
   bool m_active{false};
   bool m_autotrigger{false};
 };

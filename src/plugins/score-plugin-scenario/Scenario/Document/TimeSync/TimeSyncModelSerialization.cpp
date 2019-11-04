@@ -24,7 +24,9 @@ template <>
 SCORE_PLUGIN_SCENARIO_EXPORT void
 DataStreamReader::read(const Scenario::TimeSyncModel& timesync)
 {
-  m_stream << timesync.m_date << timesync.m_events << timesync.m_active << timesync.m_expression;
+  m_stream << timesync.m_date << timesync.m_events
+           << timesync.m_musicalSync
+           << timesync.m_active << timesync.m_expression;
 
   insertDelimiter();
 }
@@ -33,7 +35,9 @@ template <>
 SCORE_PLUGIN_SCENARIO_EXPORT void
 DataStreamWriter::write(Scenario::TimeSyncModel& timesync)
 {
-  m_stream >> timesync.m_date >> timesync.m_events >> timesync.m_active >> timesync.m_expression;
+  m_stream >> timesync.m_date >> timesync.m_events
+      >> timesync.m_musicalSync
+      >> timesync.m_active >> timesync.m_expression;
 
   checkDelimiter();
 }
@@ -44,6 +48,7 @@ JSONObjectReader::read(const Scenario::TimeSyncModel& timesync)
 {
   obj[strings.Date] = toJsonValue(timesync.date());
   obj[strings.Events] = toJsonArray(timesync.m_events);
+  obj["MusicalSync"] = timesync.m_musicalSync;
   obj[strings.AutoTrigger] = toJsonValue(timesync.m_autotrigger);
 
   QJsonObject trig;
@@ -58,6 +63,7 @@ JSONObjectWriter::write(Scenario::TimeSyncModel& timesync)
 {
   timesync.m_date = fromJsonValue<TimeVal>(obj[strings.Date]);
   fromJsonValueArray(obj[strings.Events].toArray(), timesync.m_events);
+  timesync.m_musicalSync = obj["MusicalSync"].toDouble();
 
   State::Expression t;
   const auto& trig_obj = obj[strings.Trigger].toObject();

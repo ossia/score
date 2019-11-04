@@ -93,40 +93,22 @@ TimeSyncInspectorWidget::TimeSyncInspectorWidget(
 
   // Synchronization
 #if defined(SCORE_MUSICAL)
-  auto tempo = new score::SpinBox<double>{this};
-  tempo->setRange(20., 400.);
-  tempo->setValue(m_model.tempo());
+  auto musicalSync = new score::SpinBox<double>{this};
+  musicalSync->setRange(0., 64.);
+  musicalSync->setValue(m_model.musicalSync());
 
   QObject::connect(
-      tempo, qOverload<double>(&score::SpinBox<double>::valueChanged), this, [&ctx, &object] (double v) {
-    CommandDispatcher<>{ctx.commandStack}.submit<Scenario::Command::SetTimeSyncTempo>(object, v);
+      musicalSync, qOverload<double>(&score::SpinBox<double>::valueChanged), this, [&ctx, &object] (double v) {
+    CommandDispatcher<>{ctx.commandStack}.submit<Scenario::Command::SetTimeSyncMusicalSync>(object, v);
       });
 
   QObject::connect(
       &m_model,
-      &TimeSyncModel::tempoChanged,
-      tempo,
+      &TimeSyncModel::musicalSyncChanged,
+      musicalSync,
       [=] (double t) {
-    if(t != tempo->value())
-      tempo->setValue(t);
-  });
-
-
-  auto sig = new TimeSignatureWidget;
-  sig->setSignature(m_model.signature());
-
-  QObject::connect(
-      sig, &QLineEdit::editingFinished, this, [&ctx, &object, sig] {
-    CommandDispatcher<>{ctx.commandStack}.submit<Scenario::Command::SetTimeSyncSignature>(object, Control::get_time_signature(sig->text().toStdString()));
-      });
-
-  QObject::connect(
-      &m_model,
-      &TimeSyncModel::signatureChanged,
-      sig,
-      [=] (auto s) {
-    if(s != sig->signature())
-      sig->setSignature(s);
+    if(t != musicalSync->value())
+      musicalSync->setValue(t);
   });
 #endif
   m_trigwidg = new TriggerInspectorWidget{
@@ -135,9 +117,7 @@ TimeSyncInspectorWidget::TimeSyncInspectorWidget(
       m_model,
       this};
   updateAreaLayout({m_date, m_autotrigger,
-                  #if defined(SCORE_MUSICAL)
-                    tempo, sig,
-                  #endif
+                    musicalSync,
                     new TextLabel{tr("Trigger")}, m_trigwidg});
 
   // display data
