@@ -16,17 +16,12 @@
 
 namespace ossia::nodes
 {
-class audio_metronome : public ossia::nonowning_graph_node
+class audio_metronome final : public ossia::nonowning_graph_node
 {
 public:
   const ossia::small_vector<audio_sample*, 8>& hi_sound;
   const ossia::small_vector<audio_sample*, 8>& lo_sound;
   const int64_t hi_dur{}, lo_dur{};
-
-  bool hi_flight{}, lo_flight{};
-  int64_t hi_pos{}, lo_pos{};
-  int64_t hi_fade_pos{}, lo_fade_pos{};
-  int64_t hi_fade_rem{}, lo_fade_rem{};
 
   ossia::outlet audio_out{ossia::audio_port{}};
 

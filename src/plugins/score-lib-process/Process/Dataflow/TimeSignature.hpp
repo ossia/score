@@ -9,6 +9,7 @@
 
 namespace Control
 {
+using musical_sync = double;
 using time_signature = ossia::time_signature;
 inline ossia::optional<time_signature>
 get_time_signature(const std::string_view& v)

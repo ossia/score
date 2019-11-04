@@ -39,7 +39,6 @@ private:
 }
 }
 
-#if defined(SCORE_MUSICAL)
-PROPERTY_COMMAND_T(Scenario::Command, SetTimeSyncTempo, TimeSyncModel::p_tempo, "Set tempo")
-PROPERTY_COMMAND_T(Scenario::Command, SetTimeSyncSignature, TimeSyncModel::p_signature, "Set signature")
-#endif
+PROPERTY_COMMAND_T(Scenario::Command, SetTimeSyncMusicalSync, TimeSyncModel::p_musicalSync, "Set sync")
+
+SCORE_COMMAND_DECL_T(Scenario::Command::SetTimeSyncMusicalSync)

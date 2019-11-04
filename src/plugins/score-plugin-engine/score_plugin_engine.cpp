@@ -255,7 +255,7 @@ score_plugin_engine::factories(
          // , Execution::ControlClockFactory
          ,
          Dataflow::ClockFactory
-         // , Engine::ManualClock::ClockFactory
+         , ManualClock::ClockFactory
          >>(ctx, key);
 }
 

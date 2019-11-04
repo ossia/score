@@ -120,34 +120,18 @@ void TimeSyncModel::setAutotrigger(bool a)
   autotriggerChanged(a);
 }
 
-#if defined(SCORE_MUSICAL)
-optional<Control::time_signature> TimeSyncModel::signature() const noexcept
+Control::musical_sync TimeSyncModel::musicalSync() const noexcept
 {
-  return m_signature;
+  return m_musicalSync;
 }
 
-void TimeSyncModel::setSignature(optional<Control::time_signature> sig)
+void TimeSyncModel::setMusicalSync(Control::musical_sync s)
 {
-  if(m_signature != sig)
+  if(m_musicalSync != s)
   {
-    m_signature = sig;
-    signatureChanged(sig);
+    m_musicalSync = s;
+    musicalSyncChanged(s);
   }
 }
-
-double TimeSyncModel::tempo() const noexcept
-{
-  return m_tempo;
-}
-
-void TimeSyncModel::setTempo(double d)
-{
-  if(m_tempo != d)
-  {
-    m_tempo = d;
-    tempoChanged(d);
-  }
-}
-#endif
 
 }
