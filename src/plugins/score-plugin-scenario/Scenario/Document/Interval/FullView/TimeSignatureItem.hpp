@@ -70,7 +70,10 @@ public:
   {
     double delta = mv->scenePos().x() - m_pressX;
     if(delta != 0)
-      move(m_origItemX + delta);
+    {
+      int res = (m_origItemX + delta) / 30;
+      move(res * 10);
+    }
     mv->accept();
   }
 
