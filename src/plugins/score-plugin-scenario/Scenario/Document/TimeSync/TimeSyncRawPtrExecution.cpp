@@ -11,6 +11,7 @@
 #include <ossia/editor/scenario/time_sync.hpp>
 #include <ossia/editor/state/state.hpp>
 #include <score/tools/Bind.hpp>
+#include <ossia/dataflow/execution_state.hpp>
 
 
 #include <exception>
@@ -35,9 +36,19 @@ TimeSyncRawPtrComponent::TimeSyncRawPtrComponent(
       this,
       &TimeSyncRawPtrComponent::updateTrigger);
   con(element,
+      &Scenario::TimeSyncModel::autotriggerChanged,
+      this,
+      [=] (bool b) { in_exec([ts = m_ossia_node,b] { ts->set_autotrigger(b); }); });
+  con(element,
       &Scenario::TimeSyncModel::triggerChanged,
       this,
       [this](const State::Expression& expr) { this->updateTrigger(); });
+
+
+  con(element,
+      &Scenario::TimeSyncModel::musicalSyncChanged,
+      this,
+      &TimeSyncRawPtrComponent::updateTriggerTime);
 }
 
 void TimeSyncRawPtrComponent::cleanup()
@@ -73,6 +84,11 @@ void TimeSyncRawPtrComponent::onSetup(
 {
   m_ossia_node = ptr;
   m_ossia_node->set_expression(std::move(exp));
+  if (m_score_node)
+  {
+    updateTriggerTime();
+    m_ossia_node->set_autotrigger(m_score_node->autotrigger());
+  }
 }
 
 ossia::time_sync* TimeSyncRawPtrComponent::OSSIATimeSync() const
@@ -99,6 +115,13 @@ void TimeSyncRawPtrComponent::updateTrigger()
     if (old)
       e->observe_expression(true);
   });
+}
+
+void TimeSyncRawPtrComponent::updateTriggerTime()
+{
+  const auto sync = m_score_node->musicalSync();
+  const auto quarter_duration = this->system().execState->sampleRate / 2.;
+  this->in_exec([e = m_ossia_node, sync, quarter_duration] { e->set_sync_rate(sync, quarter_duration); });
 }
 
 void TimeSyncRawPtrComponent::on_GUITrigger()
