@@ -318,7 +318,8 @@ private:
 
       // Find leftmost signature
       const auto msecs = TimeVal::fromMsecs(x * m_ratio);
-      const auto new_time = m_magnetic.getPosition(msecs);
+
+      const auto new_time = m_magnetic.getPosition(&m_itv.model(), msecs);
 
       // Replace it in the signatures
       TimeSignatureMap signatures = m_origHandles;

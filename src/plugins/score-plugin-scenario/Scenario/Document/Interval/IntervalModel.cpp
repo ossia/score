@@ -12,6 +12,9 @@
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentPresenter.hpp>
 
+#include <Curve/CurveModel.hpp>
+#include <Curve/Segment/Linear/LinearSegment.hpp>
+
 #include <Scenario/Document/BaseScenario/BaseScenario.hpp>
 #include <score/application/ApplicationContext.hpp>
 #include <score/document/DocumentContext.hpp>
@@ -42,8 +45,8 @@ IntervalModel::IntervalModel(
     : Entity{id, Metadata<ObjectKey_k, IntervalModel>::get(), parent}
     , inlet{Process::make_inlet(Id<Process::Port>(0), this)}
     , outlet{Process::make_outlet(Id<Process::Port>(0), this)}
-    , m_viewMode{ViewMode::Temporal}
     , m_executionState{}
+    , m_viewMode{ViewMode::Temporal}
     , m_smallViewShown{}
     , m_muted{}
     , m_executing{}
@@ -64,6 +67,13 @@ IntervalModel::IntervalModel(
   m_signatures[TimeVal::fromMsecs(5300)] = {5,4};
   m_signatures[TimeVal::fromMsecs(12000)] = {12,8};
   m_signatures[TimeVal::fromMsecs(16000)] = {2,2};
+
+  m_tempoCurve = new Curve::Model{Id<Curve::Model>{}, this};
+  auto s1 = new Curve::LinearSegment{Id<Curve::SegmentModel>{}, m_tempoCurve};
+  s1->setStart({0., 120. / 500.});
+  s1->setEnd({1., 120. / 500.});
+
+  m_tempoCurve->addSegment(s1);
 }
 
 IntervalModel::~IntervalModel()
@@ -84,6 +94,7 @@ void IntervalModel::initConnections()
 IntervalModel::IntervalModel(DataStream::Deserializer& vis, QObject* parent)
     : Entity{vis, parent}
     , m_executionState{}
+    , m_viewMode{ViewMode::Temporal}
     , m_smallViewShown{}
     , m_muted{}
     , m_executing{}
@@ -100,6 +111,7 @@ IntervalModel::IntervalModel(DataStream::Deserializer& vis, QObject* parent)
 IntervalModel::IntervalModel(JSONObject::Deserializer& vis, QObject* parent)
     : Entity{vis, parent}
     , m_executionState{}
+    , m_viewMode{ViewMode::Temporal}
     , m_smallViewShown{}
     , m_muted{}
     , m_executing{}
@@ -116,6 +128,7 @@ IntervalModel::IntervalModel(JSONObject::Deserializer& vis, QObject* parent)
 IntervalModel::IntervalModel(DataStream::Deserializer&& vis, QObject* parent)
     : Entity{vis, parent}
     , m_executionState{}
+    , m_viewMode{ViewMode::Temporal}
     , m_smallViewShown{}
     , m_muted{}
     , m_executing{}
@@ -132,6 +145,7 @@ IntervalModel::IntervalModel(DataStream::Deserializer&& vis, QObject* parent)
 IntervalModel::IntervalModel(JSONObject::Deserializer&& vis, QObject* parent)
     : Entity{vis, parent}
     , m_executionState{}
+    , m_viewMode{ViewMode::Temporal}
     , m_smallViewShown{}
     , m_muted{}
     , m_executing{}

@@ -172,7 +172,7 @@ public:
           return;
         }
 
-        this->currentPoint.date = stateMachine.magnetic().getPosition(this->currentPoint.date);
+        this->currentPoint.date = stateMachine.magnetic().getPosition(&stateMachine.model(), this->currentPoint.date);
 
         if (this->clickedEvent != this->m_parentSM.model().startEvent().id()
             && this->currentPoint.date <= this->m_clickedPoint.date)

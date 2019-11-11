@@ -16,6 +16,7 @@
 #include <Scenario/Palette/Transitions/TimeSyncTransitions.hpp>
 #include <Scenario/Process/Algorithms/Accessors.hpp>
 
+#include <QApplication>
 #include <QFinalState>
 
 namespace Scenario
@@ -174,7 +175,7 @@ public:
           return;
         }
 
-        this->currentPoint.date = stateMachine.magnetic().getPosition(this->currentPoint.date);
+        this->currentPoint.date = stateMachine.magnetic().getPosition(&stateMachine.model(), this->currentPoint.date);
 
         if (this->currentPoint.date <= this->m_clickedPoint.date)
         {

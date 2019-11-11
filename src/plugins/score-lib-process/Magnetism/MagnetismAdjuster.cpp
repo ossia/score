@@ -16,6 +16,7 @@ MagnetismAdjuster::~MagnetismAdjuster() noexcept
 }
 
 TimeVal MagnetismAdjuster::getPosition(
+    const QObject* obj,
     TimeVal original) noexcept
 {
   // For all magnetism handlers registered,
@@ -25,7 +26,7 @@ TimeVal MagnetismAdjuster::getPosition(
   {
     if(it->first)
     {
-      results.push_back(it->second(original));
+      results.push_back(it->second(obj, original));
       ++it;
     }
     else

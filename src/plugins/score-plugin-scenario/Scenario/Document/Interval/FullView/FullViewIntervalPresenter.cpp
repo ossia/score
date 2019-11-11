@@ -600,13 +600,50 @@ void FullViewIntervalPresenter::on_zoomRatioChanged(ZoomRatio ratio)
   updateProcessesShape();
 }
 
-TimeVal FullViewIntervalPresenter::magneticPosition(TimeVal t) const noexcept
+TimeVal FullViewIntervalPresenter::magneticPosition(const QObject* o, TimeVal t) const noexcept
 {
   if(!m_settings.getMagneticMeasures() || !m_settings.getMeasureBars())
     return t;
 
+  // t is the time in the context of obj
+  // we have to find its closest parent interval with a time signature definition
+  // and compute its time delta
+  TimeVal timeDelta = TimeVal::zero();
+  const IntervalModel* model = &m_model;
+  while(o)
+  {
+    if(o == &m_model)
+    {
+      break;
+    }
+    else
+    {
+      if(auto itv = dynamic_cast<const Scenario::IntervalModel*>(o))
+      {
+        if(itv->hasTimeSignature())
+        {
+          // This interval is the local origin of times
+          model = itv;
+          break;
+        }
+        else
+        {
+          // Skip the interval and go directly to its parent process
+          timeDelta += itv->date();
+          o = itv->parent();
+          continue;
+        }
+      }
+      else
+      {
+        o = o->parent();
+        continue;
+      }
+    }
+  }
+
   // Find leftmost signature
-  const double msecs = t.msec();
+  const double msecs = (t + timeDelta).msec();
   const auto& sig = m_model.timeSignatureMap();
 
   auto leftmost_sig = sig.lower_bound(TimeVal::fromMsecs(msecs));
@@ -621,7 +658,7 @@ TimeVal FullViewIntervalPresenter::magneticPosition(TimeVal t) const noexcept
   {
     const double rounded_date = std::round((msecs - orig_date) / division) * division + orig_date;
 
-    return TimeVal::fromMsecs(rounded_date);
+    return TimeVal::fromMsecs(rounded_date) - timeDelta;
   }
   else
   {
@@ -785,6 +822,7 @@ void FullViewIntervalPresenter::updateTimeBars()
   const auto sig_lower = last_before->second.lower;
   const double pixels_width_min = 30.;
 
+//  const double tempo = this->m_model.hasTempo() ? this->m_model.tempoCurve()->;
   const double tempo = 120.;
 
 

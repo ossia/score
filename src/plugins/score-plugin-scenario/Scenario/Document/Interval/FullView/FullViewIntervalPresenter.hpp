@@ -39,7 +39,7 @@ public:
   void updateHeight();
   void on_zoomRatioChanged(ZoomRatio val) override;
 
-  TimeVal magneticPosition(TimeVal t) const noexcept;
+  TimeVal magneticPosition(const QObject* obj, TimeVal t) const noexcept;
 
   void requestModeChange(bool);
 

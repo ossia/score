@@ -180,7 +180,7 @@ public:
           ;
         }
 
-        this->currentPoint.date = stateMachine.magnetic().getPosition(this->currentPoint.date);
+        this->currentPoint.date = stateMachine.magnetic().getPosition(&stateMachine.model(), this->currentPoint.date);
 
         this->m_dispatcher.template submit<MoveNewEvent>(
             this->m_scenario,
