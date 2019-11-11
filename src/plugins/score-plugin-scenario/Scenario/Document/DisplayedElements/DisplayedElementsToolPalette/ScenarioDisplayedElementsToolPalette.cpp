@@ -45,6 +45,7 @@ ScenarioDisplayedElementsToolPalette::ScenarioDisplayedElementsToolPalette(
           m_model.interval().parent())}
     , m_presenter{pres}
     , m_context{pres.context(), m_presenter}
+    , m_magnetic{(Process::MagnetismAdjuster&)m_context.context.app.interfaces<Process::MagnetismAdjuster>()}
     , m_view{*view}
     , m_editionSettings{m_context.context.app
                             .guiApplicationPlugin<ScenarioApplicationPlugin>()

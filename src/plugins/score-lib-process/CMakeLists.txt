@@ -51,6 +51,7 @@ set(PROCESS_HDRS
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/ZoomHelper.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Layer/LayerContextMenu.hpp"
 
+"${CMAKE_CURRENT_SOURCE_DIR}/Magnetism/MagnetismAdjuster.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Actions/ProcessActions.hpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/ExecutionContext.hpp"
@@ -124,6 +125,7 @@ set(PROCESS_SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/WidgetLayer/WidgetLayerView.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Execution/ProcessComponent.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Effect/EffectLayer.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Magnetism/MagnetismAdjuster.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Control/Widgets.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Control/DefaultEffectItem.cpp"

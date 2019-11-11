@@ -12,6 +12,7 @@
 #include <score/command/Dispatchers/SingleOngoingCommandDispatcher.hpp>
 #include <score/locking/ObjectLocker.hpp>
 
+#include <QApplication>
 #include <QFinalState>
 namespace Scenario
 {
@@ -99,6 +100,8 @@ public:
           date = m_intervalInitialPoint.date;
         if (this->m_pressedPrevious)
           date = std::max(date, *this->m_pressedPrevious);
+
+        date = stateMachine.magnetic().getPosition(date);
         date = std::max(date, TimeVal{});
 
         this->m_movingDispatcher.submit(
@@ -197,6 +200,9 @@ public:
           auto& cstr = scenar.interval(*this->clickedInterval);
           auto date
               = this->currentPoint.date - *m_initialDate + *m_initialDuration;
+
+          date = stateMachine.magnetic().getPosition(date);
+
           this->m_dispatcher.submit(cstr, date, false);
         }
       });
@@ -294,6 +300,8 @@ public:
         SCORE_ASSERT(!tn.events().empty());
         const auto& ev_id = tn.events().front();
         auto date = this->currentPoint.date;
+
+        date = stateMachine.magnetic().getPosition(date);
 
         if (!stateMachine.editionSettings().sequence())
         {

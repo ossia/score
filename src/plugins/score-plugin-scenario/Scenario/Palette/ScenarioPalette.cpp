@@ -12,6 +12,7 @@
 #include <Scenario/Process/ScenarioModel.hpp>
 #include <Scenario/Process/ScenarioPresenter.hpp>
 #include <Scenario/Process/ScenarioView.hpp>
+#include <Magnetism/MagnetismAdjuster.hpp>
 
 #include <score/command/Command.hpp>
 #include <score/model/Identifier.hpp>
@@ -32,6 +33,7 @@ ToolPalette::ToolPalette(
     , m_presenter{presenter}
     , m_model{static_cast<const Scenario::ProcessModel&>(m_presenter.model())}
     , m_context{lay}
+    , m_magnetic{(Process::MagnetismAdjuster&)lay.context.app.interfaces<Process::MagnetismAdjuster>()}
     , m_createTool{*this}
     , m_selectTool{*this}
     , m_playTool{*this}

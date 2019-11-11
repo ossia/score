@@ -1,5 +1,6 @@
 #pragma once
 
+#include <Magnetism/MagnetismAdjuster.hpp>
 #include <Scenario/Commands/Scenario/Merge/MergeEvents.hpp>
 #include <Scenario/Commands/Scenario/Merge/MergeTimeSyncs.hpp>
 #include <Scenario/Palette/ScenarioPaletteBaseStates.hpp>
@@ -9,6 +10,7 @@
 #include <Scenario/Palette/Transitions/StateTransitions.hpp>
 #include <Scenario/Palette/Transitions/TimeSyncTransitions.hpp>
 #include <Scenario/Process/Algorithms/Accessors.hpp>
+#include <score/locking/ObjectLocker.hpp>
 
 #include <score/command/Dispatchers/SingleOngoingCommandDispatcher.hpp>
 //#include <Scenario/Application/ScenarioValidity.hpp>
@@ -182,6 +184,9 @@ public:
         TimeVal date = this->m_pressedPrevious
                            ? std::max(adjDate, *this->m_pressedPrevious)
                            : adjDate;
+
+        date = stateMachine.magnetic().getPosition(date);
+
         date = std::max(date, TimeVal{});
 
         if (this->clickedState)

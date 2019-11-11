@@ -27,6 +27,7 @@
 #include <Scenario/Document/TimeSync/TimeSyncView.hpp>
 #include <Scenario/Document/TimeSync/TriggerView.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
+#include <Magnetism/MagnetismAdjuster.hpp>
 
 #include <score/graphics/GraphicsProxyObject.hpp>
 #include <score/model/EntityMap.hpp>
@@ -84,6 +85,9 @@ BaseGraphicsObject& DisplayedElementsPresenter::view() const
 void DisplayedElementsPresenter::on_displayedIntervalChanged(
     const IntervalModel& m)
 {
+  auto& magnetismHandler = (Process::MagnetismAdjuster&)m_model.context().app.interfaces<Process::MagnetismAdjuster>();
+  magnetismHandler.unregisterHandler(m_intervalPresenter);
+
   disconnect(
       &m_model.context().execTimer,
       &QTimer::timeout,
@@ -167,7 +171,7 @@ void DisplayedElementsPresenter::on_displayedIntervalChanged(
 
   elts.startState->view()->disableOverlay();
   elts.endState->view()->disableOverlay();
-
+  magnetismHandler.registerHandler(*m_intervalPresenter);
 
   showInterval();
 
