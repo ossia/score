@@ -14,6 +14,7 @@
 #include <Scenario/Palette/ScenarioPoint.hpp>
 #include <Scenario/Palette/Tools/SmartTool.hpp>
 #include <Scenario/Palette/Tools/States/ScenarioMoveStatesWrapper.hpp>
+#include <Magnetism/MagnetismAdjuster.hpp>
 
 #include <score/application/ApplicationContext.hpp>
 #include <score/model/Identifier.hpp>
@@ -36,6 +37,7 @@ ToolPalette::ToolPalette(
     , m_model{model}
     , m_presenter{presenter}
     , m_context{ctx}
+    , m_magnetic{(Process::MagnetismAdjuster&)m_context.context.app.interfaces<Process::MagnetismAdjuster>()}
     , m_view{view}
     , m_editionSettings{m_context.context.app
                             .guiApplicationPlugin<
@@ -122,6 +124,7 @@ DisplayedElementsToolPalette::DisplayedElementsToolPalette(
           m_model.interval().parent())}
     , m_presenter{pres}
     , m_context{pres.context(), m_presenter}
+    , m_magnetic{(Process::MagnetismAdjuster&)m_context.context.app.interfaces<Process::MagnetismAdjuster>()}
     , m_view{*view}
     , m_editionSettings{m_context.context.app
                             .guiApplicationPlugin<

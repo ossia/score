@@ -73,6 +73,7 @@ set(HDRS
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/Metadata/SetExtendedMetadata.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/MoveBaseEvent.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/ScenarioCommandFactory.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/Signature/SignatureCommands.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/Scenario/Creations/CreateCommentBlock.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/Scenario/Creations/CreateInterval.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/Scenario/Creations/CreateInterval_State_Event.hpp"

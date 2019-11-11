@@ -191,6 +191,8 @@ public:
           return;
         }
 
+        this->currentPoint.date = stateMachine.magnetic().getPosition(this->currentPoint.date);
+
         if (this->currentPoint.date <= this->m_clickedPoint.date)
         {
           this->currentPoint.date

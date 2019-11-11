@@ -17,6 +17,11 @@ class CommandStack;
 class ObjectLocker;
 }
 
+namespace Process
+{
+class MagnetismAdjuster;
+}
+
 namespace Scenario
 {
 class EditionSettings;
@@ -37,6 +42,7 @@ public:
   Scenario::EditionSettings& editionSettings() const;
 
   const Process::LayerContext& context() const { return m_context; }
+  Process::MagnetismAdjuster& magnetic() const { return m_magnetic; }
 
   const Scenario::ProcessModel& model() const { return m_model; }
 
@@ -54,6 +60,7 @@ private:
   ScenarioPresenter& m_presenter;
   const Scenario::ProcessModel& m_model;
   Process::LayerContext& m_context;
+  Process::MagnetismAdjuster& m_magnetic;
 
   CreationTool<ProcessModel, Scenario::ToolPalette> m_createTool;
   SmartTool<

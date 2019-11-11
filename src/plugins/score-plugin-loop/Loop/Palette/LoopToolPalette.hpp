@@ -49,6 +49,7 @@ public:
   const LayerPresenter& presenter() const;
   const Loop::ProcessModel& model() const;
   const Process::LayerContext& context() const;
+  Process::MagnetismAdjuster& magnetic() const { return m_magnetic; }
   const Scenario::EditionSettings& editionSettings() const;
 
   void activate(Scenario::Tool);
@@ -64,6 +65,7 @@ private:
   const Loop::ProcessModel& m_model;
   LayerPresenter& m_presenter;
   Process::LayerContext& m_context;
+  Process::MagnetismAdjuster& m_magnetic;
   LayerView& m_view;
   const Scenario::EditionSettings& m_editionSettings;
 
@@ -98,6 +100,7 @@ public:
   const Scenario::DisplayedElementsPresenter& presenter() const;
   const Loop::ProcessModel& model() const;
   const Scenario::BaseElementContext& context() const;
+  Process::MagnetismAdjuster& magnetic() const { return m_magnetic; }
   const Scenario::EditionSettings& editionSettings() const;
 
   void activate(Scenario::Tool);
@@ -114,6 +117,7 @@ private:
   const Loop::ProcessModel& m_scenarioModel;
   Scenario::ScenarioDocumentPresenter& m_presenter;
   Scenario::BaseElementContext m_context;
+  Process::MagnetismAdjuster& m_magnetic;
   QGraphicsItem& m_view;
   const Scenario::EditionSettings& m_editionSettings;
 

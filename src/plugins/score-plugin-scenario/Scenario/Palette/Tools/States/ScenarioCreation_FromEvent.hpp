@@ -180,6 +180,8 @@ public:
           ;
         }
 
+        this->currentPoint.date = stateMachine.magnetic().getPosition(this->currentPoint.date);
+
         this->m_dispatcher.template submit<MoveNewEvent>(
             this->m_scenario,
             this->createdIntervals.last(),

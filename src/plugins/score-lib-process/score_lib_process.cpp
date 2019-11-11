@@ -4,6 +4,7 @@
 #include <Process/LayerPresenter.hpp>
 #include <Process/ProcessFactory.hpp>
 #include <Process/ProcessList.hpp>
+#include <Magnetism/MagnetismAdjuster.hpp>
 
 #include <score/plugins/FactorySetup.hpp>
 #include <score/plugins/application/GUIApplicationPlugin.hpp>
@@ -34,7 +35,9 @@ score_lib_process::factoryFamilies()
       Process::PortFactoryList,
       Process::LayerFactoryList,
       Process::ProcessFactoryList,
-      Process::ProcessDropHandlerList>();
+      Process::ProcessDropHandlerList,
+      Process::MagnetismAdjuster
+      >();
 }
 
 std::pair<const CommandGroupKey, CommandGeneratorMap>

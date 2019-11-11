@@ -15,6 +15,7 @@ class DefaultHeaderDelegate;
 }
 namespace Scenario
 {
+namespace Settings { class Model; }
 class SlotView;
 class SlotHandle;
 class NodalIntervalView;
@@ -37,6 +38,8 @@ public:
 
   void updateHeight();
   void on_zoomRatioChanged(ZoomRatio val) override;
+
+  TimeVal magneticPosition(TimeVal t) const noexcept;
 
   void requestModeChange(bool);
 
@@ -74,6 +77,10 @@ private:
   NodalIntervalView* m_nodal{};
   QRectF m_sceneRect{};
 
-  Timebars* m_timebars;
+  Timebars* m_timebars{};
+  TimeVal m_magneticDivision{};
+
+  const Scenario::Settings::Model& m_settings;
+
 };
 }

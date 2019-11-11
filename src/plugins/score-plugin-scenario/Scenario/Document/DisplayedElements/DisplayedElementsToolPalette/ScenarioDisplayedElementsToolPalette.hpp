@@ -12,6 +12,11 @@
 
 class BaseGraphicsObject;
 
+namespace Process
+{
+class MagnetismAdjuster;
+}
+
 namespace Scenario
 {
 class EditionSettings;
@@ -38,6 +43,7 @@ public:
   const DisplayedElementsPresenter& presenter() const;
   const Scenario::ProcessModel& model() const;
   const BaseElementContext& context() const;
+  Process::MagnetismAdjuster& magnetic() const { return m_magnetic; }
   const Scenario::EditionSettings& editionSettings() const;
 
   void activate(Scenario::Tool);
@@ -54,6 +60,7 @@ private:
   const Scenario::ProcessModel& m_scenarioModel;
   ScenarioDocumentPresenter& m_presenter;
   BaseElementContext m_context;
+  Process::MagnetismAdjuster& m_magnetic;
   QGraphicsItem& m_view;
   const Scenario::EditionSettings& m_editionSettings;
 

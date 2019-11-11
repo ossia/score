@@ -96,6 +96,7 @@ FullViewIntervalPresenter::FullViewIntervalPresenter(
                         parent}
 
     , m_timebars{new Timebars{{*this, m_view}, {}, {}}}
+    , m_settings{ctx.app.settings<Scenario::Settings::Model>()}
 {
   m_header->setPos(0, -IntervalHeader::headerHeight());
 
@@ -599,6 +600,35 @@ void FullViewIntervalPresenter::on_zoomRatioChanged(ZoomRatio ratio)
   updateProcessesShape();
 }
 
+TimeVal FullViewIntervalPresenter::magneticPosition(TimeVal t) const noexcept
+{
+  if(!m_settings.getMagneticMeasures() || !m_settings.getMeasureBars())
+    return t;
+
+  // Find leftmost signature
+  const double msecs = t.msec();
+  const auto& sig = m_model.timeSignatureMap();
+
+  auto leftmost_sig = sig.lower_bound(TimeVal::fromMsecs(msecs));
+  if(leftmost_sig != sig.begin())
+    leftmost_sig--;
+
+  const auto orig_date = leftmost_sig->first.msec();
+
+  // Snap to grid
+  const auto division = m_magneticDivision.msec();
+  if(division > 0)
+  {
+    const double rounded_date = std::round((msecs - orig_date) / division) * division + orig_date;
+
+    return TimeVal::fromMsecs(rounded_date);
+  }
+  else
+  {
+    return t;
+  }
+}
+
 void FullViewIntervalPresenter::requestModeChange(bool state)
 {
   auto mode = state ? IntervalModel::ViewMode::Nodal : IntervalModel::ViewMode::Temporal;
@@ -624,7 +654,7 @@ void FullViewIntervalPresenter::on_visibleRectChanged(QRectF r)
   }
 }
 
-void draw_main_bars(const TimeSignatureMap& measures, LightBars& bars, TimeSignatureMap::const_iterator last_before,
+static void draw_main_bars(const TimeSignatureMap& measures, LightBars& bars, TimeSignatureMap::const_iterator last_before,
                double zoom, double last_quarter_pixels, double division_pixels, double pow2)
 {
   int k = 0;
@@ -648,7 +678,6 @@ void draw_main_bars(const TimeSignatureMap& measures, LightBars& bars, TimeSigna
 
         const auto sig_upper = last_before->second.upper;
         const auto sig_lower = last_before->second.lower;
-        const double pixels_width_min = 30.;
 
         const double tempo = 120.;
 
@@ -659,24 +688,20 @@ void draw_main_bars(const TimeSignatureMap& measures, LightBars& bars, TimeSigna
         const double whole = quarter * (4. * double(sig_upper) / sig_lower);
 
         double main_div_source{};
-        double sub_div_source{};
 
         if(pow2 >= 1. && pow2 <= 2.) // between bars and 8th notes
         {
           main_div_source = whole * pow2;
-          sub_div_source = quarter;
         }
         else if(pow2 > 2 && pow2 <= 8) // between 16th and 32th notes
         {
           main_div_source = quarter * pow2; // main is quarter notes
-          sub_div_source = quarter;
         }
         else
         {
           // Else we just divide by 2
           // -> ratio of 2 between main and sub
           main_div_source = whole;
-          sub_div_source = whole / 2.;
         }
 
         const TimeVal main_division = TimeVal::fromMsecs(main_div_source / pow2);
@@ -696,7 +721,7 @@ void draw_main_bars(const TimeSignatureMap& measures, LightBars& bars, TimeSigna
   }
 }
 
-void draw_sub_bars(
+static void draw_sub_bars(
       const TimeSignatureMap& measures,
       LighterBars& bars, TimeSignatureMap::const_iterator last_before,
       double zoom, double last_quarter_pixels, double division_pixels)
@@ -719,42 +744,6 @@ void draw_sub_bars(
       if(bar_x_pos >= next->first.toPixels(zoom))
       {
         last_before = next;
-/*
-        const auto sig_upper = last_before->second.upper;
-        const auto sig_lower = last_before->second.lower;
-        const double pixels_width_min = 30.;
-
-        const double tempo = 120.;
-
-        const double quarter = 1000. * 60. / tempo;
-        const double whole = quarter * (4. * double(sig_upper) / sig_lower);
-
-        const double res = whole / (pixels_width_min * zoom);
-        const double pow2 = std::pow(2, std::floor(log2(res)));
-
-        double main_div_source{};
-        double sub_div_source{};
-        if(pow2 == 1)
-        {
-          // Special case where our main division is the bar and subdivision is the quarter
-          // -> ratio of 4 between main and sub
-
-          main_div_source = whole;
-          sub_div_source = quarter;
-        }
-        else
-        {
-          // Else we just divide by 2
-          // -> ratio of 2 between main and sub
-          main_div_source = whole;
-          sub_div_source = whole / 2.;
-        }
-
-        const TimeVal sub_division = TimeVal::fromMsecs(sub_div_source / pow2);
-        const TimeVal main_division = TimeVal::fromMsecs(main_div_source / pow2);
-
-        division_pixels = main_division.toPixels(zoom);
-*/
 
         last_quarter_pixels = last_before->first.toPixels(zoom);
 
@@ -843,6 +832,7 @@ void FullViewIntervalPresenter::updateTimeBars()
   auto& lightBars = m_timebars->lightBars;
   auto& lighterBars = m_timebars->lighterBars;
 
+  m_magneticDivision = sub_division;
   draw_sub_bars(measures, lighterBars, last_before, m_zoomRatio, last_quarter_pixels, sub_division_pixels);
   draw_main_bars(measures, lightBars, last_before, m_zoomRatio, last_quarter_pixels, main_division_pixels, pow2);
 }

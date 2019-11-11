@@ -33,6 +33,7 @@ public:
   const DisplayedElementsPresenter& presenter() const;
   const BaseScenario& model() const;
   const BaseElementContext& context() const;
+  Process::MagnetismAdjuster& magnetic() const { return m_magnetic; }
   const Scenario::EditionSettings& editionSettings() const;
 
   void activate(Scenario::Tool);
@@ -48,6 +49,8 @@ private:
 
   ScenarioDocumentPresenter& m_presenter;
   BaseElementContext m_context;
+  Process::MagnetismAdjuster& m_magnetic;
+
   Scenario::SmartTool<
       BaseScenario,
       BaseScenarioDisplayedElementsToolPalette,

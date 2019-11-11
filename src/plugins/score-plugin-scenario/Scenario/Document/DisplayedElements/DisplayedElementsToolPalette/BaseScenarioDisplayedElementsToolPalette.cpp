@@ -41,6 +41,7 @@ BaseScenarioDisplayedElementsToolPalette::
     : GraphicsSceneToolPalette{pres.view().scene()}
     , m_presenter{pres}
     , m_context{pres.context(), m_presenter}
+    , m_magnetic{(Process::MagnetismAdjuster&)m_context.context.app.interfaces<Process::MagnetismAdjuster>()}
     , m_state{*this}
     , m_inputDisp{m_presenter, *this, m_context}
 {
