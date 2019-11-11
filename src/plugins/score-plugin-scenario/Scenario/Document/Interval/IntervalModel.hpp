@@ -27,6 +27,10 @@
 class DataStream;
 class JSONObject;
 
+namespace Curve
+{
+class Model;
+}
 namespace Scenario
 {
 class StateModel;
@@ -152,6 +156,7 @@ public:
 
   void setHasTempo(bool b);
   void setHasTimeSignature(bool b);
+  Curve::Model* tempoCurve() const noexcept { return m_tempoCurve; }
 
   void addSignature(TimeVal t, Control::time_signature sig);
   void removeSignature(TimeVal t);
@@ -240,6 +245,7 @@ private:
 
   ZoomRatio m_zoom{-1};
   TimeVal m_center{};
+  Curve::Model* m_tempoCurve{};
   IntervalExecutionState m_executionState : 2;
   ViewMode m_viewMode: 1;
   bool m_smallViewShown : 1;

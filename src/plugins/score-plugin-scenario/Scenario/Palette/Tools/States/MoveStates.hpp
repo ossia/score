@@ -101,7 +101,7 @@ public:
         if (this->m_pressedPrevious)
           date = std::max(date, *this->m_pressedPrevious);
 
-        date = stateMachine.magnetic().getPosition(date);
+        date = stateMachine.magnetic().getPosition(&stateMachine.model(), date);
         date = std::max(date, TimeVal{});
 
         this->m_movingDispatcher.submit(
@@ -201,7 +201,7 @@ public:
           auto date
               = this->currentPoint.date - *m_initialDate + *m_initialDuration;
 
-          date = stateMachine.magnetic().getPosition(date);
+          date = stateMachine.magnetic().getPosition(&stateMachine.model(), date);
 
           this->m_dispatcher.submit(cstr, date, false);
         }
@@ -301,7 +301,7 @@ public:
         const auto& ev_id = tn.events().front();
         auto date = this->currentPoint.date;
 
-        date = stateMachine.magnetic().getPosition(date);
+        date = stateMachine.magnetic().getPosition(&stateMachine.model(), date);
 
         if (!stateMachine.editionSettings().sequence())
         {

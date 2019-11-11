@@ -185,7 +185,7 @@ public:
                            ? std::max(adjDate, *this->m_pressedPrevious)
                            : adjDate;
 
-        date = stateMachine.magnetic().getPosition(date);
+        date = stateMachine.magnetic().getPosition(&stateMachine.model(), date);
 
         date = std::max(date, TimeVal{});
 
