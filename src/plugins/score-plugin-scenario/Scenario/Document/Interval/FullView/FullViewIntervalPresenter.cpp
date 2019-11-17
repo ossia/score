@@ -35,20 +35,31 @@
 #include <score/tools/Bind.hpp>
 #include <ossia/detail/algorithms.hpp>
 #include <Scenario/Settings/ScenarioSettingsModel.hpp>
-
 #include <QGraphicsScene>
 #include <QGraphicsView>
 #include <QMenu>
+#include <Automation/AutomationColors.hpp>
 
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Scenario::FullViewIntervalPresenter)
 W_OBJECT_IMPL(Scenario::TimeSignatureHandle)
+W_OBJECT_IMPL(Scenario::LineTextItem)
+
 namespace Scenario
 {
+  static int timeSignatureHeight = 20;
+  static double timeSignatureBarY = -45.;
   using LightBars = std::array<LightTimebar, 200>;
   using LighterBars = std::array<LighterTimebar, 600>;
+
 struct Timebars
 {
+  Timebars(FullViewIntervalPresenter& self):
+    timebar{self, self.view()}
+  {
+    timebar.setPos(0, -47);
+  }
+
   TimeSignatureItem timebar;
 
   LightBars lightBars;
@@ -94,10 +105,10 @@ FullViewIntervalPresenter::FullViewIntervalPresenter(
                         new FullViewIntervalHeader{ctx, parentobject},
                         ctx,
                         parent}
-
-    , m_timebars{new Timebars{{*this, m_view}, {}, {}}}
+    , m_timebars{new Timebars{*this}}
     , m_settings{ctx.app.settings<Scenario::Settings::Model>()}
 {
+  m_view->setPos(0, 0);
   m_header->setPos(0, -IntervalHeader::headerHeight());
 
   for(auto& bar : m_timebars->lightBars)
@@ -703,7 +714,7 @@ static void draw_main_bars(const TimeSignatureMap& measures, LightBars& bars, Ti
     auto next = last_before + 1;
     if(next == measures.end())
     {
-      bars[i].setPos(bar_x_pos, 10.);
+      bars[i].setPos(bar_x_pos, timeSignatureBarY);
       k++;
       continue;
     }
@@ -746,14 +757,14 @@ static void draw_main_bars(const TimeSignatureMap& measures, LightBars& bars, Ti
 
         last_quarter_pixels = last_before->first.toPixels(zoom);
 
-        bars[i].setPos(last_quarter_pixels, 10.);
+        bars[i].setPos(last_quarter_pixels, timeSignatureBarY);
 
         k = 0;
         continue;
       }
     }
 
-    bars[i].setPos(bar_x_pos, 10.);
+    bars[i].setPos(bar_x_pos, timeSignatureBarY);
     k++;
   }
 }
@@ -772,7 +783,7 @@ static void draw_sub_bars(
     auto next = last_before + 1;
     if(next == measures.end())
     {
-      bars[i].setPos(bar_x_pos, 10.);
+      bars[i].setPos(bar_x_pos, timeSignatureBarY);
       k++;
       continue;
     }
@@ -784,14 +795,14 @@ static void draw_sub_bars(
 
         last_quarter_pixels = last_before->first.toPixels(zoom);
 
-        bars[i].setPos(last_quarter_pixels, 10.);
+        bars[i].setPos(last_quarter_pixels, timeSignatureBarY);
 
         k = 0;
         continue;
       }
     }
 
-    bars[i].setPos(bar_x_pos, 10.);
+    bars[i].setPos(bar_x_pos, timeSignatureBarY);
     k++;
   }
 }
@@ -800,6 +811,38 @@ void FullViewIntervalPresenter::updateTimeBars()
 {
   if(m_zoomRatio <= 0)
     return;
+
+  if(!m_model.hasTimeSignature() || !this->m_settings.getMeasureBars())
+  {
+    auto& lightbars = this->m_timebars->lightBars;
+    if(lightbars.front().isVisible())
+    {
+      for(auto& bar : lightbars)
+      {
+        bar.setVisible(false);
+      }
+      for(auto& bar : this->m_timebars->lighterBars)
+      {
+        bar.setVisible(false);
+      }
+    }
+    return;
+  }
+  else
+  {
+    auto& lightbars = this->m_timebars->lightBars;
+    if(!lightbars.front().isVisible())
+    {
+      for(auto& bar : lightbars)
+      {
+        bar.setVisible(true);
+      }
+      for(auto& bar : this->m_timebars->lighterBars)
+      {
+        bar.setVisible(true);
+      }
+    }
+  }
 
   auto scene_x0 = m_view->mapToScene(QPointF{}).x();
 

@@ -56,7 +56,7 @@ private:
   void hoverMoveEvent(QGraphicsSceneHoverEvent*) override;
   void hoverLeaveEvent(QGraphicsSceneHoverEvent*) override;
 
-  static const constexpr double m_height{40.};
+  static const constexpr double m_height{15.};
 
   QGraphicsView* m_viewport{};
   double m_leftHandle{};

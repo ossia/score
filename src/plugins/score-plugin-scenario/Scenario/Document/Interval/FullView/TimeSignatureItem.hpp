@@ -7,6 +7,7 @@
 #include <QGraphicsSceneMouseEvent>
 #include <QMenu>
 #include <QTextLayout>
+#include <verdigris>
 #include <QApplication>
 #include <score/tools/Bind.hpp>
 #include <Scenario/Commands/Signature/SignatureCommands.hpp>
@@ -17,6 +18,58 @@
 namespace Scenario
 {
 
+class LineTextItem final
+    : public QGraphicsTextItem
+{
+  W_OBJECT(LineTextItem)
+public:
+  LineTextItem(QGraphicsItem* parent) noexcept
+    : QGraphicsTextItem{parent}
+  {
+    setFlags(QGraphicsItem::ItemIsFocusable | QGraphicsItem::ItemIsSelectable | flags());
+    setTextInteractionFlags(Qt::TextEditorInteraction);
+    setDefaultTextColor(Qt::black);
+  }
+
+  void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) override
+  {
+    painter->setRenderHint(QPainter::Antialiasing, true);
+    painter->setPen(Qt::black);
+    painter->setBrush(Qt::white);
+    painter->drawRect(boundingRect());
+
+    QGraphicsTextItem::paint(painter, option, widget);
+    painter->setRenderHint(QPainter::Antialiasing, false);
+  }
+
+  void keyPressEvent(QKeyEvent* ev) override
+  {
+    ev->accept();
+    switch(ev->key())
+    {
+      case Qt::Key_Enter:
+      case Qt::Key_Return:
+        done(toPlainText());
+        return;
+      case Qt::Key_Escape:
+        done({});
+        return;
+      default:
+        QGraphicsTextItem::keyPressEvent(ev);
+    }
+
+  }
+
+  void focusOutEvent(QFocusEvent* event) override
+  {
+    done(toPlainText());
+    QGraphicsTextItem::focusOutEvent(event);
+  }
+
+  void done(QString s) W_SIGNAL(done, s)
+};
+
+
 class TimeSignatureHandle
     : public QObject
     , public QGraphicsItem
@@ -26,6 +79,7 @@ public:
   TimeSignatureHandle(const IntervalModel& itv, QGraphicsItem* parent)
     : QGraphicsItem{parent}
   {
+  setFlag(ItemIsSelectable, true);
 
   }
 
@@ -35,10 +89,9 @@ public:
 
   QRectF boundingRect() const final override
   {
-    return {
-      std::min(-m_rect.width() / 2., -6.5),
-          -8.,
-          std::max(13., m_rect.width()),
+    return {0.,
+          0.,
+          std::max(20., m_rect.width()),
           std::max(20., m_rect.height())};
   }
 
@@ -47,8 +100,11 @@ public:
       const QStyleOptionGraphicsItem* option,
       QWidget* widget) override
   {
-    painter->drawPixmap(QPointF{-6.5, 2.}, Process::Pixmaps::instance().metricHandle);
-    painter->drawPixmap(QPointF{-m_rect.width() / 2. - 1., -8.}, m_signature);
+    if(m_visible)
+    {
+      painter->drawPixmap(QPointF{0., 2.}, Process::Pixmaps::instance().metricHandle);
+      painter->drawPixmap(QPointF{10., 3.}, m_signature);
+    }
   }
 
   void setSignature(TimeVal time, Control::time_signature sig)
@@ -69,16 +125,17 @@ public:
   void press() W_SIGNAL(press);
   void release() W_SIGNAL(release);
   void remove() W_SIGNAL(remove);
+  void signatureChange(Control::time_signature sig) W_SIGNAL(signatureChange, sig);
 
   bool pressed{};
 
-private:
+protected:
   void updateImpl()
   {
     prepareGeometryChange();
 
     auto& skin = score::Skin::instance();
-    auto& m_font = skin.MonoFontSmall;
+    auto& m_font = skin.Medium8Pt;
 
     {
       const auto str = QString{"%1/%2"}.arg(m_sig.upper).arg(m_sig.lower);
@@ -120,6 +177,7 @@ private:
   Control::time_signature m_sig{0,0};
   QPixmap m_signature;
   QRectF m_rect;
+  bool m_visible{true};
 };
 
 class FixedHandle final : public TimeSignatureHandle
@@ -150,6 +208,39 @@ private:
       m_pressX = mv->scenePos().x();
       press();
     }
+    QGraphicsItem::mousePressEvent(mv);
+  }
+
+  void mouseDoubleClickEvent(QGraphicsSceneMouseEvent* mv) override
+  {
+    m_visible = false;
+    prepareGeometryChange();
+    update();
+
+    auto& skin = score::Skin::instance();
+    auto& font = skin.Medium8Pt;
+
+    auto item = new LineTextItem{this};
+    item->setTextInteractionFlags(Qt::TextEditable);
+    item->setPlainText(QString{"%1/%2"}.arg(m_sig.upper).arg(m_sig.lower));
+
+    item->setFont(font);
+    item->setFocus(Qt::OtherFocusReason);
+
+    connect(item, &LineTextItem::done,
+            this, [this, item] (const QString& s) {
+      if(auto sig = Control::get_time_signature(s.toStdString()))
+      {
+        signatureChange(*sig);
+      }
+      item->deleteLater();
+
+      m_visible = true;
+      prepareGeometryChange();
+      update();
+    }, Qt::QueuedConnection);
+
+    mv->accept();
   }
 
   void mouseMoveEvent(QGraphicsSceneMouseEvent* mv) override
@@ -160,6 +251,8 @@ private:
       move(m_origItemX, delta);
     }
     mv->accept();
+
+    QGraphicsItem::mouseMoveEvent(mv);
   }
 
   void mouseReleaseEvent(QGraphicsSceneMouseEvent* mv) override
@@ -167,6 +260,7 @@ private:
     mouseMoveEvent(mv);
     pressed = false;
     release();
+    QGraphicsItem::mouseReleaseEvent(mv);
   }
 };
 
@@ -226,6 +320,11 @@ private:
 
       handle->setPos(time.toPixels(m_ratio), 0.);
       handle->setSignature(time, sig);
+
+      con(*handle, &TimeSignatureHandle::signatureChange,
+          this, [=] (Control::time_signature sig){
+        handle->setSignature(handle->time(), sig);
+      });
 
       m_handles.push_back(handle);
     }

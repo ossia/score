@@ -15,10 +15,14 @@ Model::Model(
                             id,
                             Metadata<ObjectKey_k, ProcessModel>::get(),
                             parent}
-    , outlet{Process::make_outlet(Id<Process::Port>(0), this)}
+    , audio_outlet{Process::make_outlet(Id<Process::Port>(0), this)}
+    , bang_outlet{Process::make_outlet(Id<Process::Port>(1), this)}
 {
-  outlet->type = Process::PortType::Audio;
-  outlet->setPropagate(true);
+  audio_outlet->type = Process::PortType::Audio;
+  audio_outlet->setPropagate(true);
+
+  bang_outlet->type = Process::PortType::Message;
+
   metadata().setInstanceName(*this);
   init();
 }
@@ -26,24 +30,27 @@ Model::Model(
 Model::~Model() {}
 
 }
+
 template <>
 void DataStreamReader::read(const Media::Metro::Model& proc)
 {
-  m_stream << *proc.outlet;
+  m_stream << *proc.audio_outlet << *proc.bang_outlet;
   insertDelimiter();
 }
 
 template <>
 void DataStreamWriter::write(Media::Metro::Model& proc)
 {
-  proc.outlet = Process::make_outlet(*this, &proc);
+  proc.audio_outlet = Process::make_outlet(*this, &proc);
+  proc.bang_outlet = Process::make_outlet(*this, &proc);
   checkDelimiter();
 }
 
 template <>
 void JSONObjectReader::read(const Media::Metro::Model& proc)
 {
-  obj["Outlet"] = toJsonObject(*proc.outlet);
+  obj["Outlet"] = toJsonObject(*proc.audio_outlet);
+  obj["BangOutlet"] = toJsonObject(*proc.bang_outlet);
 }
 
 template <>
@@ -51,6 +58,10 @@ void JSONObjectWriter::write(Media::Metro::Model& proc)
 {
   {
     JSONObjectWriter writer{obj["Outlet"].toObject()};
-    proc.outlet = Process::make_outlet(writer, &proc);
+    proc.audio_outlet = Process::make_outlet(writer, &proc);
+  }
+  {
+    JSONObjectWriter writer{obj["BangOutlet"].toObject()};
+    proc.bang_outlet = Process::make_outlet(writer, &proc);
   }
 }

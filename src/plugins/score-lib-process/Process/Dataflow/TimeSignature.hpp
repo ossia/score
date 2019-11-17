@@ -6,6 +6,7 @@
 #include <utility>
 
 #include <string_view>
+#include <verdigris>
 
 namespace Control
 {
@@ -42,3 +43,6 @@ get_time_signature(const std::string_view& v)
   return {};
 }
 }
+
+Q_DECLARE_METATYPE(Control::time_signature)
+W_REGISTER_ARGTYPE(Control::time_signature)

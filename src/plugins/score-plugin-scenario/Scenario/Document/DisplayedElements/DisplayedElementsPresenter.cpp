@@ -214,7 +214,7 @@ void DisplayedElementsPresenter::on_displayedIntervalDurationChanged(TimeVal t)
 }
 
 const double deltaX = 10.;
-const double deltaY = 25.;
+const double deltaY = 45.;
 void DisplayedElementsPresenter::on_displayedIntervalHeightChanged(double size)
 {
   auto cur_rect = m_model.view().view().sceneRect();

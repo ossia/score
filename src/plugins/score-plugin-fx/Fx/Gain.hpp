@@ -1,8 +1,6 @@
 #pragma once
 #include <Engine/Node/PdNode.hpp>
-#if defined(__AVX__) && __has_include(<immintrin.h>)
-#include <immintrin.h>
-#endif
+
 namespace Nodes::Gain
 {
 struct Node
@@ -30,41 +28,28 @@ struct Node
   run(const ossia::audio_port& p1,
       float g,
       ossia::audio_port& p2,
-      ossia::token_request,
-      ossia::exec_state_facade)
+      ossia::token_request t,
+      ossia::exec_state_facade st)
   {
     const auto chans = p1.samples.size();
     p2.samples.resize(chans);
+    const int64_t N = t.physical_write_duration(st.modelToSamples());
+    const int64_t first_pos = t.physical_start(st.modelToSamples());
+
     const double gain = g;
-#if defined(__AVX__) && __has_include(<immintrin.h>)
-    const auto gain256 = _mm256_set1_pd(gain);
-#endif
     for (std::size_t i = 0; i < chans; i++)
     {
       auto& in = p1.samples[i];
       auto& out = p2.samples[i];
 
-      const auto samples = in.size();
+      const int64_t samples = in.size();
+      int64_t max = std::min(N, samples);
+
       out.resize(samples);
 
-      std::size_t j = 0;
-
-#if defined(__AVX__) && __has_include(<immintrin.h>)
-      if (samples >= 4)
+      for (int64_t j = first_pos; j < max; j++)
       {
-        for (; j < samples - 4; j += 4)
-        {
-          _mm256_store_pd(
-              &out[j], _mm256_mul_pd(_mm256_load_pd(&in[j]), gain256));
-        }
-      }
-#endif
-
-      {
-        for (; j < samples; j++)
-        {
-          out[j] = in[j] * gain;
-        }
+        out[j] = in[j] * gain;
       }
     }
   }

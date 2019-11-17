@@ -106,7 +106,7 @@ QString ProcessModel::prettyName() const noexcept
 
 QString ProcessModel::prettyValue(double x, double y) const noexcept
 {
-  return QString::number((y * (max() - min()) - min()), 'f', 3);
+  return QString::number((y * (max() - min()) + min()), 'f', 3);
 }
 
 void ProcessModel::setDurationAndScale(const TimeVal& newDuration) noexcept

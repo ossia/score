@@ -16,6 +16,7 @@
 #include <Process/Dataflow/ControlWidgets.hpp>
 
 #include <QCheckBox>
+#include <wobjectimpl.h>
 namespace Scenario
 {
 class QuantificationWidget : public QComboBox

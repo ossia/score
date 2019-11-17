@@ -1,8 +1,10 @@
 #pragma once
 #include <Curve/CurveStyle.hpp>
+#include <score_plugin_automation_export.h>
+
 namespace Automation
 {
-class Colors
+class SCORE_PLUGIN_AUTOMATION_EXPORT Colors
 {
 public:
   Colors(const score::Skin& s);

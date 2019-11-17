@@ -23,6 +23,7 @@
 #include <score/tools/IdentifierGeneration.hpp>
 #include <score/model/EntitySerialization.hpp>
 #include <score/tools/Bind.hpp>
+#include <Scenario/Document/Tempo/TempoProcess.hpp>
 
 #include <core/document/Document.hpp>
 #include <core/document/DocumentPresenter.hpp>
@@ -35,7 +36,6 @@ W_OBJECT_IMPL(Scenario::IntervalModel)
 
 namespace Scenario
 {
-
 class StateModel;
 class TimeSyncModel;
 IntervalModel::IntervalModel(
@@ -50,7 +50,6 @@ IntervalModel::IntervalModel(
     , m_smallViewShown{}
     , m_muted{}
     , m_executing{}
-    , m_hasTempo{}
     , m_hasSignature{}
 {
   initConnections();
@@ -62,18 +61,6 @@ IntervalModel::IntervalModel(
   inlet->type = Process::PortType::Audio;
   outlet->type = Process::PortType::Audio;
   outlet->setPropagate(true);
-
-  m_signatures[TimeVal::zero()] = {4,4};
-  m_signatures[TimeVal::fromMsecs(5300)] = {5,4};
-  m_signatures[TimeVal::fromMsecs(12000)] = {12,8};
-  m_signatures[TimeVal::fromMsecs(16000)] = {2,2};
-
-  m_tempoCurve = new Curve::Model{Id<Curve::Model>{}, this};
-  auto s1 = new Curve::LinearSegment{Id<Curve::SegmentModel>{}, m_tempoCurve};
-  s1->setStart({0., 120. / 500.});
-  s1->setEnd({1., 120. / 500.});
-
-  m_tempoCurve->addSegment(s1);
 }
 
 IntervalModel::~IntervalModel()
@@ -98,7 +85,6 @@ IntervalModel::IntervalModel(DataStream::Deserializer& vis, QObject* parent)
     , m_smallViewShown{}
     , m_muted{}
     , m_executing{}
-    , m_hasTempo{}
     , m_hasSignature{}
 {
   initConnections();
@@ -115,7 +101,6 @@ IntervalModel::IntervalModel(JSONObject::Deserializer& vis, QObject* parent)
     , m_smallViewShown{}
     , m_muted{}
     , m_executing{}
-    , m_hasTempo{}
     , m_hasSignature{}
 {
   initConnections();
@@ -132,7 +117,6 @@ IntervalModel::IntervalModel(DataStream::Deserializer&& vis, QObject* parent)
     , m_smallViewShown{}
     , m_muted{}
     , m_executing{}
-    , m_hasTempo{}
     , m_hasSignature{}
 {
   initConnections();
@@ -149,21 +133,12 @@ IntervalModel::IntervalModel(JSONObject::Deserializer&& vis, QObject* parent)
     , m_smallViewShown{}
     , m_muted{}
     , m_executing{}
-    , m_hasTempo{}
     , m_hasSignature{}
 {
   initConnections();
   vis.writeTo(*this);
   if(m_signatures.empty()) {
     m_signatures[TimeVal::zero()] = {4,4};
-  }
-}
-void IntervalModel::setHasTempo(bool b)
-{
-  if(b != m_hasTempo)
-  {
-    m_hasTempo = b;
-    hasTempoChanged(b);
   }
 }
 
@@ -175,6 +150,19 @@ void IntervalModel::setHasTimeSignature(bool b)
     hasTimeSignatureChanged(b);
   }
 }
+
+Curve::Model* IntervalModel::tempoCurve() const noexcept
+{
+  for(auto& proc : processes)
+  {
+    if(auto tempo = qobject_cast<TempoProcess*>(&proc))
+    {
+      return &tempo->curve();
+    }
+  }
+  return nullptr;
+}
+
 
 void IntervalModel::addSignature(TimeVal t, Control::time_signature sig)
 {

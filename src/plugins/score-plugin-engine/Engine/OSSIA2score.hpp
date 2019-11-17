@@ -8,6 +8,6 @@ namespace Engine::ossia_to_score
 inline ::TimeVal defaultTime(ossia::time_value t)
 {
   return t.infinite() ? ::TimeVal::infinite()
-                      : ::TimeVal::fromMsecs(double(t) / 1000.);
+                      : ::TimeVal::fromMsecs(double(t.impl) / 1000.);
 }
 }

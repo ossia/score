@@ -78,6 +78,7 @@ public:
   virtual optional<double> verticalParameter() const;
   virtual optional<double> horizontalParameter() const;
 
+  virtual ossia::curve_segment<double> makeDoubleFunction() const = 0;
   virtual ossia::curve_segment<float> makeFloatFunction() const = 0;
   virtual ossia::curve_segment<int> makeIntFunction() const = 0;
 

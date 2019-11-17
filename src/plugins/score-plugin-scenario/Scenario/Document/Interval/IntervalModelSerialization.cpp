@@ -147,7 +147,7 @@ DataStreamReader::read(const Scenario::IntervalModel& interval)
            << interval.m_date << interval.m_heightPercentage
            << interval.m_zoom << interval.m_center
            << interval.m_viewMode << interval.m_smallViewShown
-           << interval.m_hasTempo << interval.m_hasSignature;
+           << interval.m_hasSignature;
 
   insertDelimiter();
 }
@@ -186,7 +186,6 @@ DataStreamWriter::write(Scenario::IntervalModel& interval)
   // Common data
   Scenario::IntervalModel::ViewMode vm{Scenario::IntervalModel::ViewMode::Temporal};
   bool sv{};
-  bool ht{};
   bool hs{};
   m_stream
       >> interval.m_signatures
@@ -195,11 +194,10 @@ DataStreamWriter::write(Scenario::IntervalModel& interval)
       >> interval.m_date >> interval.m_heightPercentage
       >> interval.m_zoom >> interval.m_center
       >> vm >> sv
-      >> ht >> hs
+      >> hs
       ;
   interval.m_viewMode = vm;
   interval.m_smallViewShown = sv;
-  interval.m_hasTempo = ht;
   interval.m_hasSignature = hs;
 
   checkDelimiter();
@@ -240,7 +238,6 @@ JSONObjectReader::read(const Scenario::IntervalModel& interval)
   obj["ViewMode"] = (int) interval.m_viewMode;
   obj[strings.SmallViewShown] = interval.m_smallViewShown;
 
-  obj["HasTempo"] = interval.m_hasTempo;
   obj["HasSignature"] = interval.m_hasSignature;
 
 }
@@ -331,7 +328,6 @@ JSONObjectWriter::write(Scenario::IntervalModel& interval)
   if (cit != obj.end() && cit->isDouble())
     interval.m_center = fromJsonValue<TimeVal>(*cit);
 
-  interval.m_hasTempo = obj["HasTempo"] .toBool();
   interval.m_hasSignature = obj["HasSignature"] .toBool();
 
 }

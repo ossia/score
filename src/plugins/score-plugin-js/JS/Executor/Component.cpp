@@ -37,7 +37,7 @@ public:
 
   void setScript(const QString& val);
 
-  void run(ossia::token_request t, ossia::exec_state_facade) noexcept override;
+  void run(const ossia::token_request& t, ossia::exec_state_facade) noexcept override;
 
   QQmlEngine m_engine;
   QList<std::pair<ControlInlet*, ossia::inlet_ptr>> m_ctrlInlets;
@@ -89,7 +89,7 @@ struct js_process final : public ossia::node_process
         js().m_object,
         "transport",
         Qt::DirectConnection,
-        Q_ARG(QVariant, double(date)));
+        Q_ARG(QVariant, double(date.impl)));
   }
   void offset_impl(ossia::time_value date) override
   {
@@ -97,7 +97,7 @@ struct js_process final : public ossia::node_process
         js().m_object,
         "offset",
         Qt::DirectConnection,
-        Q_ARG(QVariant, double(date)));
+        Q_ARG(QVariant, double(date.impl)));
   }
 };
 Component::Component(
@@ -259,7 +259,7 @@ void js_node::setScript(const QString& val)
   }
 }
 
-void js_node::run(ossia::token_request tk, ossia::exec_state_facade) noexcept
+void js_node::run(const ossia::token_request& tk, ossia::exec_state_facade estate) noexcept
 {
   // if (t.date == ossia::Zero)
   //   return;
@@ -339,17 +339,17 @@ void js_node::run(ossia::token_request tk, ossia::exec_state_facade) noexcept
       m_object,
       "onTick",
       Qt::DirectConnection,
-      Q_ARG(QVariant, double(tk.prev_date)),
-      Q_ARG(QVariant, double(tk.date)),
+      Q_ARG(QVariant, double(tk.prev_date.impl)),
+      Q_ARG(QVariant, double(tk.date.impl)),
       Q_ARG(QVariant, tk.position()),
-      Q_ARG(QVariant, double(tk.offset)));
+      Q_ARG(QVariant, double(tk.offset.impl)));
 
   for (int i = 0; i < m_valOutlets.size(); i++)
   {
     auto& dat = *m_valOutlets[i].second->data.target<ossia::value_port>();
     const auto& v = m_valOutlets[i].first->value();
     if (!v.isNull() && v.isValid())
-      dat.write_value(ossia::qt::qt_to_ossia{}(v), tk.tick_start());
+      dat.write_value(ossia::qt::qt_to_ossia{}(v), estate.physical_start(tk));
     for (auto& v : m_valOutlets[i].first->values)
     {
       dat.write_value(
@@ -374,6 +374,7 @@ void js_node::run(ossia::token_request tk, ossia::exec_state_facade) noexcept
     m_midOutlets[i].first->clear();
   }
 
+  auto tick_start = estate.physical_start(tk);
   for (int out = 0; out < m_audOutlets.size(); out++)
   {
     auto& src = m_audOutlets[out].first->audio();
@@ -382,10 +383,10 @@ void js_node::run(ossia::token_request tk, ossia::exec_state_facade) noexcept
     snk.resize(src.size());
     for (int chan = 0; chan < src.size(); chan++)
     {
-      snk[chan].resize(src[chan].size() + int64_t(tk.offset));
+      snk[chan].resize(src[chan].size() + tick_start);
 
       for (int j = 0; j < src[chan].size(); j++)
-        snk[chan][j + int64_t(tk.offset)] = src[chan][j];
+        snk[chan][j + tick_start] = src[chan][j];
     }
   }
 

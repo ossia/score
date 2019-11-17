@@ -131,7 +131,7 @@ struct Node
     self.p3 = c;
 
     auto res = self.expr.value();
-    output.write_value(res, tk.tick_start());
+    output.write_value(res, st.physical_start(tk));
   }
 
   template<typename... Args>
@@ -206,25 +206,28 @@ struct Node
       ossia::exec_state_facade st,
       State& self)
   {
-    if (tk.date > tk.prev_date)
+    if (tk.forward())
     {
-      auto count = tk.date - tk.prev_date;
       if (!updateExpr(self, expr))
         return;
 
+      const auto samplesRatio = st.modelToSamples();
+      const auto start = st.physical_start(tk);
+      const auto count = tk.physical_write_duration(samplesRatio);
+
       output.samples.resize(1);
       auto& cur = output.samples[0];
-      if ((int64_t)cur.size() < tk.offset + count)
-        cur.resize(tk.offset + count);
+      cur.resize(st.bufferSize());
 
       self.p1 = a;
       self.p2 = b;
       self.p3 = c;
       self.fs = st.sampleRate();
+      const auto start_sample = (tk.prev_date * samplesRatio).impl;
       for (int64_t i = 0; i < count; i++)
       {
-        self.cur_time = tk.prev_date + i;
-        cur[tk.offset + i] = self.expr.value();
+        self.cur_time = start_sample + i;
+        cur[start + i] = self.expr.value();
       }
     }
   }

@@ -27,7 +27,7 @@ public:
   }
 
   void
-  run(ossia::token_request , ossia::exec_state_facade st) noexcept override
+  run(const ossia::token_request& , ossia::exec_state_facade st) noexcept override
   {
     *audio_out.data.target<ossia::audio_port>() = *audio_in.data.target<ossia::audio_port>();
   }

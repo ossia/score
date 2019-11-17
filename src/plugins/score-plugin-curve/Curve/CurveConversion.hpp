@@ -24,6 +24,13 @@ struct CurveTraits<float>
   static const constexpr auto fun = &Curve::SegmentModel::makeFloatFunction;
 };
 
+// TODO
+template <>
+struct CurveTraits<double>
+{
+  static const constexpr auto fun = &Curve::SegmentModel::makeDoubleFunction;
+};
+
 template <
     typename X_T,
     typename Y_T,

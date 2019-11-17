@@ -225,7 +225,6 @@ ScenarioDocumentView::ScenarioDocumentView(
 
   m_widget->addAction(new SnapshotAction{m_scene, m_widget});
 
-  m_timeRulerView.setFixedHeight(20);
   m_timeRulerScene.addItem(&m_timeRuler);
   // Transport
   /// Zoom

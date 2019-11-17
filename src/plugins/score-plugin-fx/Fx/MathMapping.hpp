@@ -166,28 +166,32 @@ struct Node
   {
     if (tk.date > tk.prev_date)
     {
-      auto count = tk.date - tk.prev_date;
       if (!updateExpr(self, expr))
         return;
 
-      if (input.samples.empty()
-          || (int64_t)input.samples[0].size() < tk.offset + count)
+      const auto samplesRatio = st.modelToSamples();
+      const auto start = st.physical_start(tk);
+      const auto count = tk.physical_write_duration(samplesRatio);
+
+      if (input.samples.empty())
         return;
+
+      const auto min_count = std::min((int64_t)input.samples[0].size() - start, count);
 
       output.samples.resize(1);
       auto& out = output.samples[0];
-      if ((int64_t)out.size() < tk.offset + count)
-        out.resize(tk.offset + count);
+      out.resize(st.bufferSize());
 
       self.p1 = a;
       self.p2 = b;
       self.p3 = c;
       self.fs = st.sampleRate();
-      for (int64_t i = 0; i < count; i++)
+      const auto start_sample = (tk.prev_date * samplesRatio).impl;
+      for (int64_t i = 0; i < min_count; i++)
       {
-        self.cur_in = input.samples[0][tk.offset + i];
-        self.cur_time = tk.prev_date + i;
-        out[tk.offset + i] = self.expr.value();
+        self.cur_in = input.samples[0][start + i];
+        self.cur_time = start_sample + i;
+        out[start + i] = self.expr.value();
         self.prev_in = self.cur_in;
       }
     }

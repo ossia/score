@@ -241,11 +241,11 @@ public:
 
 
   void
-  run(ossia::token_request tk, ossia::exec_state_facade st) noexcept override
+  run(const ossia::token_request& tk, ossia::exec_state_facade st) noexcept override
   {
     if (!muted() && tk.date > tk.prev_date)
     {
-      const std::size_t samples = tk.date - tk.prev_date;
+      const std::size_t samples = tk.physical_write_duration(st.modelToSamples());
       this->setControls();
       this->setupTimeInfo(tk, st);
 

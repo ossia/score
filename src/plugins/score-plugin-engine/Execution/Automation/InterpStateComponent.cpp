@@ -26,7 +26,7 @@ public:
 
 private:
   void
-  run(ossia::token_request t, ossia::exec_state_facade e) noexcept override
+  run(const ossia::token_request& t, ossia::exec_state_facade e) noexcept override
   {
     for (auto& [dest, drive] : m_drives)
     {

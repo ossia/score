@@ -83,9 +83,9 @@ struct Node
       auto next
           = period
             * std::floor(
-                  1 + tk.prev_date / period); // date de la prochaine note qui
+                  1 + tk.prev_date.impl * st.modelToSamples() / period); // date de la prochaine note qui
                                               // doit être envoyée
-      if (next < tk.date)
+      if (next < tk.date.impl * st.modelToSamples())
       {
         out.messages.push_back(rtmidi::message::note_off(1, self.lastnote, 0));
 
@@ -110,8 +110,8 @@ struct Node
       {
         // durée max d'une note
         auto period = whole_samples / duration;
-        auto next = period * (1 + tk.prev_date / period);
-        if (next < tk.date)
+        auto next = period * (1 + tk.prev_date.impl * st.modelToSamples() / period);
+        if (next < tk.date.impl * st.modelToSamples())
         {
           // date de la prochaine note qui doit être coupée
 
