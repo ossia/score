@@ -33,18 +33,18 @@ Pixmaps::Pixmaps() noexcept
 
     , metricHandle{[] {
            double dpr = qApp->devicePixelRatio();
-           QImage img(13 * dpr, 8 * dpr, QImage::Format_ARGB32_Premultiplied);
+           QImage img(10 * dpr, 10 * dpr, QImage::Format_ARGB32_Premultiplied);
            img.fill(Qt::transparent);
 
            QPainter p(&img);
            QPainterPath path;
-           path.lineTo(12 * dpr, 0);
-           path.lineTo(6 * dpr, 7 * dpr);
+           path.lineTo(10 * dpr, 0);
+           path.lineTo(0, 10 * dpr);
            path.lineTo(0, 0);
            path.closeSubpath();
 
            p.setRenderHint(QPainter::Antialiasing, true);
-           p.fillPath(path, Qt::blue);
+           p.fillPath(path, score::Skin::instance().Gray);
            p.end();
 
            img.setDevicePixelRatio(dpr);

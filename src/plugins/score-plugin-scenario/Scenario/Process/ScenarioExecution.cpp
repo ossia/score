@@ -607,7 +607,7 @@ void ScenarioComponentBase::timeSyncCallback(
 
     // Fix Timenode
     auto& curTnProp = m_properties.timesyncs[tn->scoreTimeSync().id()];
-    curTnProp.date = double(date);
+    curTnProp.date = double(date.impl);
     curTnProp.date_max = curTnProp.date;
     curTnProp.date_min = curTnProp.date;
     curTnProp.status = Scenario::ExecutionStatus::Happened;

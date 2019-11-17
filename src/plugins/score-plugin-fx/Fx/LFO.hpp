@@ -136,6 +136,7 @@ struct Node
       State& s)
   {
     auto& waveform_map = Control::Widgets::waveformMap();
+    const auto samples = tk.physical_write_duration(st.modelToSamples());
 
     if (auto it = waveform_map.find(type); it != waveform_map.end())
     {
@@ -153,7 +154,7 @@ struct Node
           = phase + (float(ossia::two_pi) * freq * ph) / st.sampleRate();
 
       auto add_val = [&](auto new_val) {
-        out.write_value(ampl * new_val + offset, tk.tick_start());
+        out.write_value(ampl * new_val + offset, st.physical_start(tk));
       };
       switch (it->second)
       {
@@ -176,7 +177,7 @@ struct Node
                 + (float(ossia::two_pi) * freq * s.phase) / st.sampleRate();
           auto end_phi = phase
                          + (float(ossia::two_pi) * freq
-                            * (s.phase + tk.date - tk.prev_date))
+                            * (s.phase + samples))
                                / st.sampleRate();
           auto start_s = std::sin(start_phi);
           auto end_s = std::sin(end_phi);
@@ -198,7 +199,7 @@ struct Node
       }
     }
 
-    s.phase += (tk.date - tk.prev_date);
+    s.phase += samples;
   }
 
   static void item(

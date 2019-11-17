@@ -107,6 +107,7 @@ public:
   }
 
   // This will throw if execution is attempted.
+  ossia::curve_segment<double> makeDoubleFunction() const override { return {}; }
   ossia::curve_segment<float> makeFloatFunction() const override { return {}; }
   ossia::curve_segment<int> makeIntFunction() const override { return {}; }
   void reset();

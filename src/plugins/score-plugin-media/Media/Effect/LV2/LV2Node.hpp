@@ -277,14 +277,14 @@ struct lv2_node final : public ossia::graph_node
 
   ~lv2_node() override { lilv_instance_deactivate(fInstance); }
 
-  void run(ossia::token_request tk, ossia::exec_state_facade) noexcept override
+  void run(const ossia::token_request& tk, ossia::exec_state_facade st) noexcept override
   {
     if (tk.date > tk.prev_date)
     {
       data.host.current = &data.effect;
       preProcess();
 
-      const std::size_t samples = tk.date - tk.prev_date;
+      const std::size_t samples = tk.physical_write_duration(st.modelToSamples());
       const auto audio_ins = data.audio_in_ports.size();
       const auto audio_outs = data.audio_out_ports.size();
       ossia::small_vector<ossia::float_vector, 2> in_vec;
@@ -341,7 +341,7 @@ struct lv2_node final : public ossia::graph_node
         }
       }
 
-      postProcess(tk.offset);
+      postProcess(tk.physical_start(st.modelToSamples()));
     }
   }
 };

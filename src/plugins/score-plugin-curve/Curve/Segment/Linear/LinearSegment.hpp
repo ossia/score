@@ -53,6 +53,7 @@ public:
 
   QVariant toSegmentSpecificData() const override;
 
+  ossia::curve_segment<double> makeDoubleFunction() const override;
   ossia::curve_segment<float> makeFloatFunction() const override;
   ossia::curve_segment<int> makeIntFunction() const override;
 };

@@ -120,7 +120,7 @@ void TimeSyncComponent::updateTrigger()
 void TimeSyncComponent::updateTriggerTime()
 {
   const auto sync = m_score_node->musicalSync();
-  const auto quarter_duration = this->system().execState->sampleRate / 2.;
+  const auto quarter_duration = 705600000. / 2.;
   this->in_exec([e = m_ossia_node, sync, quarter_duration] { e->set_sync_rate(sync, quarter_duration); });
 }
 

@@ -96,6 +96,10 @@ public:
   {
     return ossia::curve_segment_ease<Y, Easing_T>{};
   }
+  ossia::curve_segment<double> makeDoubleFunction() const override
+  {
+    return makeFunction<double>();
+  }
   ossia::curve_segment<float> makeFloatFunction() const override
   {
     return makeFunction<float>();

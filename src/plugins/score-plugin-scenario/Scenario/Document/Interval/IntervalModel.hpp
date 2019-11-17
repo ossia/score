@@ -151,26 +151,21 @@ public:
   void setMuted(bool m);
 
   // Tempo stuff
-  bool hasTempo() const noexcept { return m_hasTempo; }
   bool hasTimeSignature() const noexcept { return m_hasSignature; }
-
-  void setHasTempo(bool b);
   void setHasTimeSignature(bool b);
-  Curve::Model* tempoCurve() const noexcept { return m_tempoCurve; }
+
+  Curve::Model* tempoCurve() const noexcept;
 
   void addSignature(TimeVal t, Control::time_signature sig);
   void removeSignature(TimeVal t);
   void setTimeSignatureMap(const TimeSignatureMap& map);
   const TimeSignatureMap& timeSignatureMap() const noexcept { return m_signatures; }
 
-  void hasTempoChanged(bool arg_1)
-      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, hasTempoChanged, arg_1)
   void hasTimeSignatureChanged(bool arg_1)
       E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, hasTimeSignatureChanged, arg_1)
   void timeSignaturesChanged(const TimeSignatureMap& arg_1)
       E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, timeSignaturesChanged, arg_1)
 
-  PROPERTY(bool, tempo READ hasTempo WRITE setHasTempo NOTIFY hasTempoChanged)
   PROPERTY(bool, timeSignature READ hasTimeSignature WRITE setHasTimeSignature NOTIFY hasTimeSignatureChanged)
 
 public:
@@ -245,14 +240,12 @@ private:
 
   ZoomRatio m_zoom{-1};
   TimeVal m_center{};
-  Curve::Model* m_tempoCurve{};
   IntervalExecutionState m_executionState : 2;
   ViewMode m_viewMode: 1;
   bool m_smallViewShown : 1;
   bool m_muted : 1;
   bool m_executing : 1;
 
-  bool m_hasTempo : 1;
   bool m_hasSignature : 1;
 };
 

@@ -12,6 +12,7 @@ class LightTimebar : public QGraphicsItem
 public:
   LightTimebar()
   {
+    setFlag(ItemStacksBehindParent);
     setZValue(-9);
   }
 
@@ -22,7 +23,7 @@ public:
 
   QRectF boundingRect() const
   {
-    return {0,0,1,1000};
+    return {0,0,1,10000};
   }
 
   void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
@@ -37,6 +38,7 @@ class LighterTimebar : public QGraphicsItem
 public:
   LighterTimebar()
   {
+    setFlag(ItemStacksBehindParent);
     setZValue(-10);
   }
 
@@ -47,7 +49,7 @@ public:
 
   QRectF boundingRect() const
   {
-    return {0,0,1,1000};
+    return {0,0,1,10000};
   }
 
   void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)

@@ -57,6 +57,11 @@ QVariant LinearSegment::toSegmentSpecificData() const
   return QVariant::fromValue(data_type{});
 }
 
+ossia::curve_segment<double> LinearSegment::makeDoubleFunction() const
+{
+  return ossia::curve_segment_linear<double>{};
+}
+
 ossia::curve_segment<float> LinearSegment::makeFloatFunction() const
 {
   return ossia::curve_segment_linear<float>{};

@@ -7,6 +7,7 @@
 
 #include <verdigris>
 
+#include <wobjectimpl.h>
 namespace Media::Metro
 {
 

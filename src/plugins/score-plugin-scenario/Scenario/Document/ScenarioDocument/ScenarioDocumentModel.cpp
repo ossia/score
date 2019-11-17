@@ -12,6 +12,7 @@
 #include <QFileInfo>
 #include <QDebug>
 #include <wobjectimpl.h>
+#include <Scenario/Document/Tempo/TempoProcess.hpp>
 
 
 W_OBJECT_IMPL(Scenario::ScenarioDocumentModel)
@@ -31,24 +32,40 @@ ScenarioDocumentModel::ScenarioDocumentModel(
     , m_context{ctx}
     , m_baseScenario{new BaseScenario{Id<BaseScenario>{0}, this}}
 {
-  auto dur
-      = ctx.app.settings<Scenario::Settings::Model>().getDefaultDuration();
+  auto& itv = m_baseScenario->interval();
+  // Set default durations
+  auto dur = ctx.app.settings<Scenario::Settings::Model>().getDefaultDuration();
 
-  m_baseScenario->interval().duration.setRigid(false);
-  m_baseScenario->interval().setHasTimeSignature(true);
-  m_baseScenario->interval().setHasTempo(true);
+  itv.duration.setRigid(false);
 
   IntervalDurations::Algorithms::changeAllDurations(
-      m_baseScenario->interval(), dur);
-  m_baseScenario->interval().duration.setMaxInfinite(true);
+      itv, dur);
+  itv.duration.setMaxInfinite(true);
   m_baseScenario->endEvent().setDate(
-      m_baseScenario->interval().duration.defaultDuration());
+      itv.duration.defaultDuration());
   m_baseScenario->endTimeSync().setDate(
-      m_baseScenario->interval().duration.defaultDuration());
+      itv.duration.defaultDuration());
+
+
+  // Set time signatures
+  {
+    itv.setHasTimeSignature(true);
+
+    auto tempo = new TempoProcess{dur, getStrongId(itv.processes), &itv};
+    itv.processes.add(tempo);
+
+    TimeSignatureMap signatures;
+    signatures[TimeVal::zero()] = {4,4};
+    signatures[TimeVal::fromMsecs(5300)] = {5,4};
+    signatures[TimeVal::fromMsecs(12000)] = {12,8};
+    signatures[TimeVal::fromMsecs(16000)] = {2,2};
+    itv.setTimeSignatureMap(signatures);
+  }
+
 
   auto& doc_metadata
       = score::IDocument::documentContext(*parent).document.metadata();
-  m_baseScenario->interval().metadata().setName(doc_metadata.fileName());
+  itv.metadata().setName(doc_metadata.fileName());
 
   connect(
       &doc_metadata,
@@ -57,22 +74,22 @@ ScenarioDocumentModel::ScenarioDocumentModel(
       [&](const QString& newName) {
         QFileInfo info(newName);
 
-        m_baseScenario->interval().metadata().setName(info.baseName());
+        itv.metadata().setName(info.baseName());
       });
 
   using namespace Scenario::Command;
 
   AddOnlyProcessToInterval cmd1{
-      m_baseScenario->interval(),
+      itv,
       Metadata<ConcreteKey_k, Scenario::ProcessModel>::get(),
       QString{}};
   cmd1.redo(ctx);
-  m_baseScenario->interval().processes.begin()->setSlotHeight(1500);
+  itv.processes.begin()->setSlotHeight(1500);
 
   // Select the first state
   score::SelectionDispatcher d{ctx.selectionStack};
   auto scenar = qobject_cast<Scenario::ProcessModel*>(
-      &*m_baseScenario->interval().processes.begin());
+      &*itv.processes.begin());
   if (scenar)
     d.setAndCommit({&scenar->startEvent()});
 }
@@ -101,13 +118,6 @@ void ScenarioDocumentModel::finishLoading()
     }
   }
   m_savedCables = QJsonArray{};
-
-  // Root scenario always has time signatures
-  if(!m_baseScenario->interval().hasTimeSignature())
-  {
-    m_baseScenario->interval().setHasTimeSignature(true);
-    m_baseScenario->interval().setHasTempo(true);
-  }
 }
 
 ScenarioDocumentModel::~ScenarioDocumentModel() {}

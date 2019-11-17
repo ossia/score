@@ -188,7 +188,7 @@ void IntervalComponent::onSetup(
   m_ossia_interval->set_speed(dur.speed);
   m_ossia_interval->set_tempo_curve(tempoCurve(interval(), context()));
   m_ossia_interval->set_time_signature_map(timeSignatureMap(interval(), context()));
-  m_ossia_interval->set_quarter_duration(this->system().execState->sampleRate / 2.);
+  m_ossia_interval->set_quarter_duration(705600000. / 2.); // In our ideal musical world, a "quarter" is half a logical second
 
   std::weak_ptr<IntervalComponent> weak_self = self;
   in_exec([weak_self, ossia_cst, &edit = system().editionQueue] {

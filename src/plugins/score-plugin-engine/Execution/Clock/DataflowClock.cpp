@@ -11,6 +11,8 @@
 
 #include <Audio/Settings/Model.hpp>
 #include <Execution/Settings/ExecutorModel.hpp>
+
+#include <flicks.h>
 namespace Dataflow
 {
 Clock::Clock(const Execution::Context& ctx)
@@ -156,24 +158,21 @@ ClockFactory::make(const Execution::Context& ctx)
 Execution::time_function
 ClockFactory::makeTimeFunction(const score::DocumentContext& ctx) const
 {
-  auto rate = ctx.app.settings<Audio::Settings::Model>().getRate();
   return [=](const TimeVal& v) -> ossia::time_value {
-    // Go from milliseconds to samples
+    // Go from milliseconds to flicks
     // 1000 ms = sr samples
     // x ms    = k samples
     return v.isInfinite() ? ossia::Infinite
-                          : ossia::time_value{int64_t(
-                                std::llround(rate * v.msec() / 1000.))};
+                          : ossia::time_value{int64_t(std::llround(v.msec() * 705600.))};
   };
 }
 
 Execution::reverse_time_function
 ClockFactory::makeReverseTimeFunction(const score::DocumentContext& ctx) const
 {
-  auto rate = ctx.app.settings<Audio::Settings::Model>().getRate();
   return [=](const ossia::time_value& v) -> TimeVal {
     return v.infinite() ? TimeVal::infinite()
-                        : TimeVal::fromMsecs(1000. * v.impl / rate);
+                        : TimeVal::fromMsecs(v.impl / 705600.);
   };
 }
 

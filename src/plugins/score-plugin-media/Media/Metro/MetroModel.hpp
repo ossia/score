@@ -37,9 +37,13 @@ public:
     init();
   }
 
-  void init() { m_outlets.push_back(outlet.get()); }
+  void init() {
+    m_outlets.push_back(audio_outlet.get());
+    m_outlets.push_back(bang_outlet.get());
+  }
 
-  std::unique_ptr<Process::Outlet> outlet;
+  std::unique_ptr<Process::Outlet> audio_outlet;
+  std::unique_ptr<Process::Outlet> bang_outlet;
 };
 }
 }

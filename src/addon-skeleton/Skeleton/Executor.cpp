@@ -15,7 +15,7 @@ public:
   }
 
   void
-  run(ossia::token_request tk, ossia::exec_state_facade s) noexcept override
+  run(const ossia::token_request& tk, ossia::exec_state_facade s) noexcept override
   {
   }
 

@@ -254,7 +254,7 @@ struct Node
       const scale_array& scale,
       int transp,
       ossia::midi_port& midi_out,
-      const ossia::time_value& offset,
+      const int64_t offset,
       State& self)
   {
     for (const auto& msg : midi_in.messages)
@@ -280,7 +280,7 @@ struct Node
               midi_out.messages.back().timestamp = offset;
               midi_out.messages.push_back(res);
               midi_out.messages.back().timestamp
-                  = offset + ossia::time_value{1};
+                  = offset + 1;
               const_cast<Note&>(it->second) = note;
             }
             else
@@ -316,7 +316,7 @@ struct Node
       const scale_array& scale,
       int transp,
       ossia::midi_port& midi_out,
-      const ossia::time_value& offset,
+      const int64_t offset,
       State& self)
   {
     for (auto& notes : self.map)
@@ -332,7 +332,7 @@ struct Node
           midi_out.messages.back().timestamp = offset;
           midi_out.messages.push_back(
               rtmidi::message::note_on(note.chan, note.pitch, note.vel));
-          midi_out.messages.back().timestamp = offset + ossia::time_value{1};
+          midi_out.messages.back().timestamp = offset + 1;
         }
       }
     }
@@ -356,6 +356,8 @@ struct Node
 
     const auto new_scale_idx = get_scale(scale);
 
+    const auto tick_start = st.physical_start(tk);
+
     auto apply = [&](auto f) {
       if (new_scale_idx != scale::custom)
       {
@@ -363,7 +365,7 @@ struct Node
           scales.at(new_scale_idx)[new_base],
           new_transpose,
           midi_out,
-          tk.offset,
+          tick_start,
           self);
       }
       else
@@ -376,7 +378,7 @@ struct Node
             arr[oct * 12 + i] = (scale[i] == '1');
           }
         }
-        f(midi_in, arr, new_transpose, midi_out, tk.offset, self);
+        f(midi_in, arr, new_transpose, midi_out, tick_start, self);
       }
     };
 

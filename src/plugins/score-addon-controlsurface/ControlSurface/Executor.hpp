@@ -35,7 +35,7 @@ public:
     }
   };
 
-  void run(token_request, exec_state_facade) noexcept override
+  void run(const token_request&, exec_state_facade) noexcept override
   {
     // TODO take input port data into account.
     const int n = controls.size();

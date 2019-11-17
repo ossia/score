@@ -551,8 +551,14 @@ void TemporalIntervalPresenter::createLayer(
 
     ld.updateLoops(m_context, m_zoomRatio, def_width, def_width, slot_height, m_view, this);
 
+    // TODO we should remove the connection when the layer is removed.
+    // Maybe put the QMetaObject::Connection in a small struct - or just
+    // call QObject::disconnect(process, *, this, *); if it does not break other things ?
     con(proc, &Process::ProcessModel::loopsChanged,
         this, [this, slot_i] (bool b) {
+      if (!m_model.smallViewVisible())
+        return;
+
       SCORE_ASSERT(slot_i < int(m_slots.size()));
       auto& slt = this->m_slots[slot_i];
 
@@ -565,6 +571,9 @@ void TemporalIntervalPresenter::createLayer(
 
     con(proc, &Process::ProcessModel::startOffsetChanged,
         this, [this, slot_i] {
+      if (!m_model.smallViewVisible())
+        return;
+
       SCORE_ASSERT(slot_i < int(m_slots.size()));
       auto& slot = this->m_slots[slot_i];
 
@@ -575,6 +584,9 @@ void TemporalIntervalPresenter::createLayer(
     });
     con(proc, &Process::ProcessModel::loopDurationChanged,
         this, [this, slot_i] {
+      if (!m_model.smallViewVisible())
+        return;
+
       SCORE_ASSERT(slot_i < int(m_slots.size()));
       auto& slt = this->m_slots[slot_i];
 

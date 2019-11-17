@@ -221,6 +221,8 @@ void DocumentPlugin::makeGraph()
 
   execState->bufferSize = audiosettings.getBufferSize();
   execState->sampleRate = audiosettings.getRate();
+  execState->modelToSamplesRatio = audiosettings.getRate() / 705600000.;
+  execState->samplesToModelRatio = 705600000. / audiosettings.getRate();
   execState->samples_since_start = 0;
   execState->start_date = 0; // TODO set it in the first callback
   execState->cur_date = execState->start_date;

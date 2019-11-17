@@ -8,6 +8,10 @@
 #include <ossia/dataflow/graph_edge.hpp>
 #include <ossia/editor/scenario/time_interval.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
+#include <Scenario/Document/Tempo/TempoProcess.hpp>
+#include <ossia/editor/curve/curve.hpp>
+#include <Curve/CurveConversion.hpp>
+
 namespace Execution
 {
 
@@ -17,11 +21,27 @@ inline optional<ossia::tempo_curve> tempoCurve(
     const Execution::Context& ctx)
 {
   // TODO
-  if(itv.hasTempo())
+  if(auto curve = itv.tempoCurve())
   {
+    // TODO recompute whenever tempo changes
+    const auto defaultdur = itv.duration.defaultDuration().msec();
+    auto scale_x = [&ctx, defaultdur](double val) -> int64_t {
+      return ctx.time(TimeVal::fromMsecs(val * defaultdur)).impl;
+    };
+    auto scale_y = [=](double val) -> double {
+      using namespace Scenario;
+      return val * (TempoProcess::max - TempoProcess::min) + TempoProcess::min;
+    };
+
     ossia::tempo_curve t;
-    t.set_x0(0);
-    t.set_y0(120.);
+
+    auto segt_data = curve->sortedSegments();
+    if (segt_data.size() != 0)
+    {
+      t = std::move(*Engine::score_to_ossia::curve<int64_t, double>(
+          scale_x, scale_y, segt_data, {}));
+    }
+
     return optional<ossia::tempo_curve>{std::move(t)};
   }
   else

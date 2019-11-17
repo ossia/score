@@ -200,9 +200,9 @@ struct Node
         {
           // Find next time that matches the requested quantification
           const auto start_q = whole_samples * start;
-          auto perf_date = int64_t(start_q * int64_t(1 + tk.date / start_q));
+          auto perf_date = int64_t(start_q * int64_t(1 + tk.date.impl * st.modelToSamples() / start_q));
           int64_t actual_date
-              = (1. - precision) * tk.date + precision * perf_date;
+              = (1. - precision) * tk.date.impl * st.modelToSamples() + precision * perf_date;
           ossia::time_value next_date{actual_date};
           self.to_start.push_back({note, next_date});
         }
@@ -223,7 +223,7 @@ struct Node
       {
         auto no
             = rtmidi::message::note_on(chan, note.note.pitch, note.note.vel);
-        no.timestamp = note.date - tk.prev_date;
+        no.timestamp = tk.to_physical_time_in_tick(note.date, st.modelToSamples());
         p2.messages.push_back(no);
 
         if (duration > 0.f)
@@ -255,7 +255,7 @@ struct Node
       {
         auto noff
             = rtmidi::message::note_off(chan, note.note.pitch, note.note.vel);
-        noff.timestamp = note.date - tk.prev_date;
+        noff.timestamp = (note.date - tk.prev_date).impl * st.modelToSamples();
         p2.messages.push_back(noff);
         it = self.running_notes.erase(it);
       }

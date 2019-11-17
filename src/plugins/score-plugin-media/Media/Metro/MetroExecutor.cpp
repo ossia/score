@@ -24,6 +24,7 @@ public:
   const int64_t hi_dur{}, lo_dur{};
 
   ossia::outlet audio_out{ossia::audio_port{}};
+  ossia::outlet bang_out{ossia::value_port{}};
 
   struct played_sound
   {
@@ -33,7 +34,6 @@ public:
     int64_t start_sample{};
     int64_t fade_total{};
     int64_t fade_remaining{};
-
   };
 
   ossia::small_vector<played_sound, 8> in_flight;
@@ -48,18 +48,19 @@ public:
     , lo_dur{lo_dur}
   {
     m_outlets.push_back(&audio_out);
+    m_outlets.push_back(&bang_out);
   }
 
-  void run(token_request tk, exec_state_facade st) noexcept override
+  void run(const token_request& tk, exec_state_facade st) noexcept override
   {
-    if (tk.date > tk.prev_date)
+    if (tk.forward())
     {
-      if(tk.musical_end_last_bar != tk.musical_start_last_bar || tk.prev_date == 0)
+      if(tk.musical_end_last_bar != tk.musical_start_last_bar || tk.prev_date == 0_tv)
       {
         // There is a bar change in this tick, start the hi sound
         double musical_tick_duration = tk.musical_end_position - tk.musical_start_position;
         double musical_bar_start = tk.musical_end_last_bar - tk.musical_start_position;
-        int64_t samples_tick_duration = (st.bufferSize() - tk.offset);
+        int64_t samples_tick_duration = tk.physical_write_duration(st.modelToSamples());
         if(samples_tick_duration > 0)
         {
           double ratio = musical_bar_start / musical_tick_duration;
@@ -69,8 +70,12 @@ public:
             sound.fade_total = std::min(500L, sound.dur - sound.pos);
             sound.fade_remaining = sound.fade_total;
           }
+
           if(hi_dur > 0)
+          {
+            bang_out.data.target<value_port>()->write_value(ossia::impulse{}, hi_start_sample);
             in_flight.push_back({&hi_sound, 0, hi_dur, hi_start_sample, 0, 0});
+          }
         }
       }
       else
@@ -84,7 +89,7 @@ public:
           // end_position is date
           double musical_tick_duration = tk.musical_end_position - tk.musical_start_position;
           double musical_bar_start = (end_quarter + tk.musical_start_last_bar) - tk.musical_start_position;
-          int64_t samples_tick_duration = (st.bufferSize() - tk.offset);
+          int64_t samples_tick_duration = tk.physical_write_duration(st.modelToSamples());
           if(samples_tick_duration > 0)
           {
             double ratio = musical_bar_start / musical_tick_duration;
@@ -94,8 +99,12 @@ public:
               sound.fade_total = std::min(500L, sound.dur - sound.pos);
               sound.fade_remaining = sound.fade_total;
             }
+
             if(lo_dur > 0)
+            {
+              bang_out.data.target<value_port>()->write_value(ossia::impulse{}, lo_start_sample);
               in_flight.push_back({&lo_sound, 0, lo_dur, lo_start_sample, 0, 0});
+            }
           }
         }
       }
@@ -119,7 +128,9 @@ public:
 
       const float* const src = sound[0] + pos;
 
-      int64_t count = st.bufferSize() - tk.offset - start_sample;
+      const auto tick_start = st.physical_start(tk);
+
+      int64_t count = st.bufferSize() - tick_start - start_sample;
       if(pos + count < dur)
       {
         pos += count;
@@ -134,7 +145,7 @@ public:
       for(auto dst : {ap[0].data(), ap[1].data()})
       {
         fade_remaining = fade_remaining_prev;
-        double* start = dst + tk.offset + start_sample;
+        double* start = dst + tick_start + start_sample;
         for(int i = 0; i < count; i++)
         {
           const double fade = (fade_total == 0 ? 1. : double(--fade_remaining) / fade_total);
@@ -223,7 +234,6 @@ MetroComponent::MetroComponent(
   static const MetronomeSounds sounds;
   if(sounds)
   {
-
     const auto& tick_sound{sounds.tick_handle.target<Media::AudioFile::LibavView>()->data};
     const auto& tock_sound{sounds.tock_handle.target<Media::AudioFile::LibavView>()->data};
 
@@ -235,7 +245,6 @@ MetroComponent::MetroComponent(
 
     this->node = node;
     m_ossia_process = std::make_shared<ossia::node_process>(node);
-
   }
 }
 

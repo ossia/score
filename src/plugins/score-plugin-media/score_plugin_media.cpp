@@ -21,6 +21,7 @@
 #include <Scenario/Application/ScenarioApplicationPlugin.hpp>
 
 
+#include <wobjectimpl.h>
 #if defined(HAS_LV2)
 #include <Media/Effect/LV2/LV2EffectModel.hpp>
 #include <Media/Effect/LV2/LV2Library.hpp>

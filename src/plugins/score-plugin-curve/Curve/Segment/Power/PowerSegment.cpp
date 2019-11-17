@@ -134,6 +134,11 @@ ossia::curve_segment<Y> PowerSegment::makeFunction() const
     };
   }
 }
+ossia::curve_segment<double> PowerSegment::makeDoubleFunction() const
+{
+  return makeFunction<double>();
+}
+
 ossia::curve_segment<float> PowerSegment::makeFloatFunction() const
 {
   return makeFunction<float>();

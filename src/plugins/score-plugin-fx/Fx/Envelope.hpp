@@ -54,7 +54,7 @@ struct Node
       ossia::value_port& rms_port,
       ossia::value_port& peak_port,
       ossia::token_request tk,
-      ossia::exec_state_facade)
+      ossia::exec_state_facade e)
   {
     switch (audio.samples.size())
     {
@@ -64,8 +64,8 @@ struct Node
       {
         auto [rms, peak] = get(audio.samples[0]);
 
-        rms_port.write_value(rms, tk.tick_start());
-        peak_port.write_value(peak, tk.tick_start());
+        rms_port.write_value(rms, e.physical_start(tk));
+        peak_port.write_value(peak, e.physical_start(tk));
         break;
       }
       default:
@@ -80,8 +80,8 @@ struct Node
           rms_vec.push_back(rms);
           peak_vec.push_back(peak);
         }
-        rms_port.write_value(rms_vec, tk.tick_start());
-        peak_port.write_value(peak_vec, tk.tick_start());
+        rms_port.write_value(rms_vec, e.physical_start(tk));
+        peak_port.write_value(peak_vec, e.physical_start(tk));
       }
       break;
     }

@@ -30,6 +30,7 @@
 #include <Scenario/Document/DisplayedElements/ScenarioDisplayedElementsProvider.hpp>
 #include <Scenario/Document/Event/EventExecution.hpp>
 #include <Scenario/Document/Event/ExecutionStatus.hpp>
+#include <Scenario/Document/Tempo/TempoFactory.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentFactory.hpp>
 #include <Scenario/Document/ScenarioRemover.hpp>
 #include <Scenario/ExecutionChecker/CSPCoherencyCheckerList.hpp>
@@ -164,9 +165,14 @@ score_plugin_scenario::factories(
   return instantiate_factories<
       score::ApplicationContext,
       FW<Process::ProcessModelFactory,
-         ScenarioFactory,
-         Interpolation::InterpolationFactory>,
-      FW<Process::LayerFactory, Interpolation::InterpolationLayerFactory>,
+      ScenarioFactory
+      , Scenario::TempoFactory
+      , Interpolation::InterpolationFactory
+      >,
+      FW<Process::LayerFactory
+      , Interpolation::InterpolationLayerFactory
+      , Scenario::TempoLayerFactory
+      >,
       FW<MoveEventFactoryInterface, MoveEventClassicFactory>,
       FW<DisplayedElementsToolPaletteFactory,
          BaseScenarioDisplayedElementsToolPaletteFactory,

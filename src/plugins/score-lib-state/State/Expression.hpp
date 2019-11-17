@@ -28,15 +28,35 @@ enum class UnaryOperator
 };
 
 struct SCORE_LIB_STATE_EXPORT ExprData
-    : public score::
-          VariantBasedNode<Relation, Pulse, BinaryOperator, UnaryOperator>
+    : public score::VariantBasedNode<Relation, Pulse, BinaryOperator, UnaryOperator>
 {
   // SCORE_SERIALIZE_FRIENDS
 
   ExprData() = default;
-  template <typename T>
-  ExprData(T data) : VariantBasedNode{std::move(data)}
+  ExprData(const ExprData&) = default;
+  ExprData(ExprData&&) = default;
+  ExprData& operator=(const ExprData&) = default;
+  ExprData& operator=(ExprData&&) = default;
+  ExprData(Relation data) : VariantBasedNode{std::move(data)}
   {
+  }
+
+  ExprData(Pulse data) : VariantBasedNode{std::move(data)}
+  {
+  }
+
+  ExprData(BinaryOperator data) : VariantBasedNode{std::move(data)}
+  {
+  }
+
+  ExprData(UnaryOperator data) : VariantBasedNode{std::move(data)}
+  {
+  }
+
+  ExprData(score::VariantBasedNode<Relation, Pulse, BinaryOperator, UnaryOperator> data)
+    : VariantBasedNode{std::move(data)}
+  {
+
   }
 
   friend bool operator==(const ExprData& lhs, const ExprData& rhs)

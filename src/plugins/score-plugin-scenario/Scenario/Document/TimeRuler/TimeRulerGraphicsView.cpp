@@ -24,8 +24,8 @@ TimeRulerGraphicsView::TimeRulerGraphicsView(QGraphicsScene* scene)
   setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
   setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
   setFocusPolicy(Qt::NoFocus);
-  setSceneRect(ScenarioLeftSpace, -70, 800, 35);
-  setFixedHeight(40);
+  setSceneRect(ScenarioLeftSpace, -70, 800, 28);
+  setFixedHeight(10);
   setViewportUpdateMode(QGraphicsView::NoViewportUpdate);
   setBackgroundBrush(Process::Style::instance().MinimapBackground());
   setOptimizationFlag(QGraphicsView::DontSavePainterState, true);
@@ -49,6 +49,7 @@ MinimapGraphicsView::MinimapGraphicsView(QGraphicsScene* s)
 {
   setViewportUpdateMode(QGraphicsView::FullViewportUpdate);
   setSceneRect({0, 0, 2000, 100});
+  setFixedHeight(15);
 
   setDragMode(DragMode::NoDrag);
 }
