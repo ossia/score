@@ -25,6 +25,15 @@ template <typename T>
 struct HasCustomUI<T, std::void_t<decltype(&T::item)>> : std::true_type
 {
 };
+template <typename T, typename = void>
+struct HasCustomLayer : std::false_type
+{
+};
+template <typename T>
+struct HasCustomLayer<T, std::void_t<typename T::Layer>> : std::true_type
+{
+};
+
 template<typename Info>
 struct CustomUISetup
 {
@@ -125,9 +134,13 @@ private:
 
   Process::LayerView* makeLayerView(
       const Process::ProcessModel& proc,
+      const Process::Context& context,
       QGraphicsItem* parent) const final override
   {
-    return new Process::EffectLayerView{parent};
+    if constexpr (HasCustomLayer<Info>::value)
+        return new typename Info::Layer{proc, context, parent};
+    else
+        return new Process::EffectLayerView{parent};
   }
 
   Process::LayerPresenter* makeLayerPresenter(
@@ -136,19 +149,27 @@ private:
       const Process::Context& context,
       QObject* parent) const final override
   {
-    auto view = safe_cast<Process::EffectLayerView*>(v);
-    auto pres = new Process::EffectLayerPresenter{lm, view, context, parent};
-
-    if constexpr (HasCustomUI<Info>::value)
+    if constexpr (HasCustomLayer<Info>::value)
     {
-      Control::CustomUISetup<Info>{lm.inlets(), lm, *view, *view, context};
+      auto view = static_cast<typename Info::Layer*>(v);
+      return new Process::EffectLayerPresenter{lm, view, context, parent};
     }
-    else if constexpr (ossia::safe_nodes::info_functions<Info>::control_count > 0)
+    else
     {
-      Control::AutoUISetup{Info{}, lm.inlets(), *view, *view, context};
-    }
+      auto view = safe_cast<Process::EffectLayerView*>(v);
+      auto pres = new Process::EffectLayerPresenter{lm, view, context, parent};
 
-    return pres;
+      if constexpr (HasCustomUI<Info>::value)
+      {
+        Control::CustomUISetup<Info>{lm.inlets(), lm, *view, *view, context};
+      }
+      else if constexpr (ossia::safe_nodes::info_functions<Info>::control_count > 0)
+      {
+        Control::AutoUISetup{Info{}, lm.inlets(), *view, *view, context};
+      }
+
+      return pres;
+    }
   }
 
   score::ResizeableItem* makeItem(

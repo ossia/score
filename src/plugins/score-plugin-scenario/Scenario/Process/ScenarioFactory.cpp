@@ -38,6 +38,7 @@ ScenarioTemporalLayerFactory::ScenarioTemporalLayerFactory(
 
 Process::LayerView* ScenarioTemporalLayerFactory::makeLayerView(
     const Process::ProcessModel& p,
+    const Process::Context& context,
     QGraphicsItem* parent) const
 {
     return new ScenarioView{parent};

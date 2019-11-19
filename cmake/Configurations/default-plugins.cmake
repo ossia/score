@@ -29,5 +29,7 @@ score-plugin-scenario
  score-addon-controlsurface
  score-addon-remotecontrol
 
+ score-plugin-ui
+
 
  )

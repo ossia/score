@@ -34,13 +34,12 @@ struct setup_Impl0
       using namespace ossia::safe_nodes;
       constexpr auto idx = Idx_T::value;
 
-      using control_type = typename std::
-          tuple_element<idx, decltype(get_controls<Info_T>{}())>::type;
+      using control_type = typename std::tuple_element<idx, decltype(Info_T::Metadata::controls)>::type;
       using control_value_type = typename control_type::type;
 
       if (auto node = weak_node.lock())
       {
-        constexpr const auto ctrl = std::get<idx>(get_controls<Info_T>{}());
+        constexpr const auto ctrl = std::get<idx>(Info_T::Metadata::controls);
         if (auto v = ctrl.fromValue(val))
           ctx.executionQueue.enqueue(control_updater<control_value_type>{
               std::get<idx>(node->controls), std::move(*v)});
@@ -59,12 +58,12 @@ struct setup_Impl0
       constexpr auto idx = Idx_T::value;
 
       using control_type = typename std::
-          tuple_element<idx, decltype(get_controls<Info_T>{}())>::type;
+          tuple_element<idx, decltype(Info_T::Metadata::controls)>::type;
       using control_value_type = typename control_type::type;
 
       if (auto node = weak_node.lock())
       {
-        constexpr const auto ctrl = std::get<idx>(get_controls<Info_T>{}());
+        constexpr const auto ctrl = std::get<idx>(Info_T::Metadata::controls);
         ctx.executionQueue.enqueue(control_updater<control_value_type>{
             std::get<idx>(node->controls), ctrl.fromValue(val)});
       }
@@ -78,10 +77,10 @@ struct setup_Impl0
     using Info = Info_T;
     constexpr int idx = T::value;
 
-    constexpr const auto ctrl = std::get<idx>(get_controls<Info_T>{}());
+    constexpr const auto ctrl = std::get<idx>(Info_T::Metadata::controls);
     constexpr const auto control_start = info_functions<Info>::control_start;
     using control_type = typename std::
-        tuple_element<idx, decltype(get_controls<Info_T>{}())>::type;
+        tuple_element<idx, decltype(Info_T::Metadata::controls)>::type;
     auto inlet = static_cast<Process::ControlInlet*>(
         element.inlets()[control_start + idx]);
 
@@ -122,9 +121,87 @@ struct setup_Impl1
   void operator()(T)
   {
     using namespace ossia::safe_nodes;
-    constexpr const auto ctrl = std::get<T::value>(get_controls<Info>{}());
+    constexpr const auto ctrl = std::get<T::value>(Info::Metadata::controls);
 
     element.setControl(T::value, ctrl.toValue(std::get<T::value>(arr)));
+  }
+};
+
+template <typename Info, typename Element, typename Node_T>
+struct setup_Impl1_Out
+{
+  typename Node_T::control_outs_values_type& arr;
+  Element& element;
+
+  template <typename T>
+  void operator()(T)
+  {
+    using namespace ossia::safe_nodes;
+    constexpr const auto ctrl = std::get<T::value>(Info::Metadata::control_outs);
+
+    element.setControlOut(T::value, ctrl.toValue(std::get<T::value>(arr)));
+  }
+};
+
+template<typename Info, typename Node_T, typename Element_T>
+struct ExecutorGuiUpdate
+{
+  std::weak_ptr<Node_T> weak_node;
+  Element_T& element;
+
+  void handle_controls(Node_T& node) const noexcept
+  {
+    using namespace ossia::safe_nodes;
+    // TODO disconnect the connection ? it will be disconnected shortly
+    // after...
+    typename Node_T::controls_values_type arr;
+    bool ok = false;
+    while (node.cqueue.try_dequeue(arr))
+    {
+      ok = true;
+    }
+    if (ok)
+    {
+      constexpr const auto control_count
+          = info_functions<Info>::control_count;
+
+      ossia::for_each_in_range<control_count>(
+          setup_Impl1<Info, Element_T, Node_T>{arr, element});
+    }
+  }
+
+  void handle_control_outs(Node_T& node) const noexcept
+  {
+    using namespace ossia::safe_nodes;
+    // TODO disconnect the connection ? it will be disconnected shortly
+    // after...
+    typename Node_T::control_outs_values_type arr;
+    bool ok = false;
+    while (node.control_outs_queue.try_dequeue(arr))
+    {
+      ok = true;
+    }
+    if (ok)
+    {
+      constexpr const auto control_out_count
+          = info_functions<Info>::control_out_count;
+
+      ossia::for_each_in_range<control_out_count>(
+            setup_Impl1_Out<Info, Element_T, Node_T>{arr, element});
+    }
+  }
+
+  void operator()() const noexcept
+  {
+    using namespace ossia::safe_nodes;
+    if (auto node = weak_node.lock())
+    {
+      if constexpr(info_functions<Info>::control_count > 0)
+          handle_controls(*node);
+
+      if constexpr(info_functions<Info>::control_out_count > 0)
+          handle_control_outs(*node);
+    }
   }
 };
 
@@ -136,43 +213,26 @@ void setup_node(
     QObject* parent)
 {
   using namespace ossia::safe_nodes;
-  constexpr const auto control_count = info_functions<Info>::control_count;
 
   (void)parent;
-  if constexpr (control_count > 0)
+  if constexpr (info_functions<Info>::control_count > 0)
   {
     // Initialize all the controls in the node with the current value.
     //
     // And update the node when the UI changes
-    ossia::for_each_in_range<control_count>(
+    ossia::for_each_in_range<info_functions<Info>::control_count>(
         setup_Impl0<Info, Node_T, Element_T>{element, ctx, node_ptr, parent});
+  }
 
+  if constexpr (info_functions<Info>::control_count > 0 ||
+                info_functions<Info>::control_out_count > 0 )
+  {
     // Update the value in the UI
     std::weak_ptr<Node_T> weak_node = node_ptr;
     con(ctx.doc.coarseUpdateTimer,
         &QTimer::timeout,
         parent,
-        [weak_node, &element] {
-          if (auto node = weak_node.lock())
-          {
-            // TODO disconnect the connection ? it will be disconnected shortly
-            // after...
-            typename Node_T::controls_values_type arr;
-            bool ok = false;
-            while (node->cqueue.try_dequeue(arr))
-            {
-              ok = true;
-            }
-            if (ok)
-            {
-              constexpr const auto control_count
-                  = info_functions<Info>::control_count;
-
-              ossia::for_each_in_range<control_count>(
-                  setup_Impl1<Info, Element_T, Node_T>{arr, element});
-            }
-          }
-        },
+        ExecutorGuiUpdate<Info, Node_T, Element_T>{weak_node, element},
         Qt::QueuedConnection);
   }
 }

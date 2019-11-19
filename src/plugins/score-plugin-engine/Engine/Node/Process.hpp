@@ -167,8 +167,8 @@ struct PortSetup
       p->setCustomData(QString::fromUtf8(in.name.data(), in.name.size()));
       ins.push_back(p);
     }
-    ossia::for_each_in_tuple(
-        ossia::safe_nodes::get_controls<Node_T>{}(), [&](const auto& ctrl) {
+    ossia::for_each_in_tuple(Node_T::Metadata::controls,
+                             [&](const auto& ctrl) {
           if (auto p = ctrl.create_inlet(Id<Process::Port>(inlet++), &self))
           {
             p->hidden = true;
@@ -200,6 +200,14 @@ struct PortSetup
       p->setCustomData(QString::fromUtf8(out.name.data(), out.name.size()));
       outs.push_back(p);
     }
+    ossia::for_each_in_tuple(Node_T::Metadata::control_outs,
+                             [&](const auto& ctrl) {
+          if (auto p = ctrl.create_outlet(Id<Process::Port>(outlet++), &self))
+          {
+            p->hidden = true;
+            outs.push_back(p);
+          }
+        });
   }
 };
 
@@ -229,6 +237,25 @@ public:
         = ossia::safe_nodes::info_functions<Info>::control_start;
 
     static_cast<Process::ControlInlet*>(m_inlets[start + i])
+        ->setValue(std::move(v));
+  }
+
+  ossia::value controlOut(std::size_t i) const
+  {
+    static_assert(ossia::safe_nodes::info_functions<Info>::control_out_count != 0);
+    constexpr auto start
+        = ossia::safe_nodes::info_functions<Info>::control_out_start;
+
+    return static_cast<Process::ControlOutlet*>(m_outlets[start + i])->value();
+  }
+
+  void setControlOut(std::size_t i, ossia::value v)
+  {
+    static_assert(ossia::safe_nodes::info_functions<Info>::control_out_count != 0);
+    constexpr auto start
+        = ossia::safe_nodes::info_functions<Info>::control_out_start;
+
+    static_cast<Process::ControlOutlet*>(m_outlets[start + i])
         ->setValue(std::move(v));
   }
 

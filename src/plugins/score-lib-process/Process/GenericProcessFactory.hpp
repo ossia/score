@@ -91,6 +91,7 @@ private:
 
   LayerView_T* makeLayerView(
       const Process::ProcessModel& viewmodel,
+      const Process::Context& context,
       QGraphicsItem* parent) const final override
   {
     if constexpr (std::is_constructible_v<

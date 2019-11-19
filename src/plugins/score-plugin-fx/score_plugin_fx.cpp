@@ -36,9 +36,7 @@
 #if defined(SCORE_DEBUG)
 #include <Fx/DebugFx.hpp>
 #endif
-namespace Control
-{
-}
+
 score_plugin_fx::score_plugin_fx() = default;
 score_plugin_fx::~score_plugin_fx() = default;
 
@@ -68,7 +66,8 @@ std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_fx::factories(
       Nodes::EmptyMidiMapping::Node,
       Nodes::EmptyAudioMapping::Node,
       Nodes::FactorOracle::Node,
-      Nodes::PitchToValue::Node>(ctx, key);
+      Nodes::PitchToValue::Node
+      >(ctx, key);
 }
 
 auto score_plugin_fx::required() const -> std::vector<score::PluginKey>

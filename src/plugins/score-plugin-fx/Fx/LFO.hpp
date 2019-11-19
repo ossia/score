@@ -114,7 +114,7 @@ struct Node
   // Idea: save internal state for rewind... ? -> require Copyable
   struct State
   {
-    int64_t phase{};
+    double phase{};
     std::mt19937 rd;
   };
 
@@ -135,8 +135,9 @@ struct Node
       ossia::exec_state_facade st,
       State& s)
   {
+    constexpr const double sine_ratio = ossia::two_pi / 705600000.;
     auto& waveform_map = Control::Widgets::waveformMap();
-    const auto samples = tk.physical_write_duration(st.modelToSamples());
+    const auto elapsed = tk.logical_read_duration().impl;
 
     if (auto it = waveform_map.find(type); it != waveform_map.end())
     {
@@ -150,8 +151,7 @@ struct Node
       offset += offset_fine;
 
       using namespace Control::Widgets;
-      const auto phi
-          = phase + (float(ossia::two_pi) * freq * ph) / st.sampleRate();
+      const auto phi = phase + ph;
 
       auto add_val = [&](auto new_val) {
         out.write_value(ampl * new_val + offset, st.physical_start(tk));
@@ -172,13 +172,9 @@ struct Node
           break;
         case SampleAndHold:
         {
-          auto start_phi
-              = phase
-                + (float(ossia::two_pi) * freq * s.phase) / st.sampleRate();
-          auto end_phi = phase
-                         + (float(ossia::two_pi) * freq
-                            * (s.phase + samples))
-                               / st.sampleRate();
+          auto start_phi = phase + phi;
+          auto end_phi = phase + phi + (elapsed * freq  * sine_ratio);
+
           auto start_s = std::sin(start_phi);
           auto end_s = std::sin(end_phi);
           if ((start_s > 0 && end_s <= 0) || (start_s <= 0 && end_s > 0))
@@ -199,7 +195,7 @@ struct Node
       }
     }
 
-    s.phase += samples;
+    s.phase += (elapsed * freq  * sine_ratio);
   }
 
   static void item(
