@@ -8,7 +8,7 @@ class QAction;
 namespace Process
 {
 
-class SCORE_LIB_PROCESS_EXPORT EffectLayerView final
+class SCORE_LIB_PROCESS_EXPORT EffectLayerView
     : public Process::LayerView
 {
 public:
@@ -30,7 +30,7 @@ class SCORE_LIB_PROCESS_EXPORT EffectLayerPresenter final
 public:
   EffectLayerPresenter(
       const Process::ProcessModel& model,
-      EffectLayerView* view,
+      Process::LayerView* view,
       const Process::Context& ctx,
       QObject* parent);
   ~EffectLayerPresenter() override;
@@ -51,7 +51,7 @@ public:
 
 private:
   const Process::ProcessModel& m_layer;
-  EffectLayerView* m_view{};
+  Process::LayerView* m_view{};
 };
 
 SCORE_LIB_PROCESS_EXPORT

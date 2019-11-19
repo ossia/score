@@ -73,7 +73,9 @@ private:
     return Metadata<ConcreteKey_k, Model_T>::get();
   }
 
-  LayerView* makeLayerView(const Process::ProcessModel&, QGraphicsItem* parent)
+  LayerView* makeLayerView(const Process::ProcessModel&,
+                           const Process::Context& context,
+                           QGraphicsItem* parent)
       const final override
   {
     return new EffectLayerView{parent};

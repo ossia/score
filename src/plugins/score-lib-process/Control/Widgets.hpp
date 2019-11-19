@@ -5,6 +5,34 @@
 #include <score_lib_process_export.h>
 namespace Control
 {
+
+struct OutControl final
+    : ossia::safe_nodes::control_out
+{
+  static const constexpr bool must_validate = false;
+  using type = ossia::value;
+  using port_type = Process::ControlOutlet;
+
+  template <std::size_t N>
+  constexpr OutControl(const char (&name)[N])
+      : ossia::safe_nodes::control_out{name}
+  {
+  }
+
+  auto create_outlet(Id<Process::Port> id, QObject* parent) const
+  {
+    return new Process::ControlOutlet{
+        id,
+        parent};
+  }
+
+  const ossia::value& fromValue(const ossia::value& v) const
+  {
+    return v;
+  }
+  const ossia::value& toValue(const ossia::value& v) const { return v; }
+};
+
 template<typename T>
 struct FloatControl final
     : ossia::safe_nodes::control_in

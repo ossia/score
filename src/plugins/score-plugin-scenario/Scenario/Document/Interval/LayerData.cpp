@@ -38,7 +38,7 @@ void LayerData::addView(
   auto container = new LayerRectItem{parentItem};
   container->setFlag(QGraphicsItem::ItemClipsChildrenToShape);
   container->setY(m_slotY);
-  auto view = factory.makeLayerView(*m_model, container);
+  auto view = factory.makeLayerView(*m_model, context, container);
   view->setPos(-m_model->startOffset().toPixels(zoomRatio), 0.);
 
   auto presenter = factory.makeLayerPresenter(*m_model, view, context, parent);

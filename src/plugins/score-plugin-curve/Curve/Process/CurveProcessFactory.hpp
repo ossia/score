@@ -24,6 +24,7 @@ public:
 
   LayerView_T* makeLayerView(
       const Process::ProcessModel& viewmodel,
+      const Process::Context& context,
       QGraphicsItem* parent) const final override
   {
     return new LayerView_T{parent};

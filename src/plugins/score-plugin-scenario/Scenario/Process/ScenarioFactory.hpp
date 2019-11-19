@@ -33,6 +33,7 @@ public:
 
   Process::LayerView* makeLayerView(
       const Process::ProcessModel& viewmodel,
+      const Process::Context& context,
       QGraphicsItem* parent) const override;
 
   Process::MiniLayer* makeMiniLayer(

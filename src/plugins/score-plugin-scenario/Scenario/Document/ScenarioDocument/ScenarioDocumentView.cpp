@@ -46,7 +46,13 @@ ProcessGraphicsView::ProcessGraphicsView(
     : QGraphicsView{scene, parent}, m_app{ctx}
 {
   m_lastwheel = std::chrono::steady_clock::now();
-  setViewport(new QGLWidget);
+  QGLFormat fmt;
+  fmt.setSamples(16);
+  fmt.setDoubleBuffer(false);
+  fmt.setAlpha(false);
+  fmt.setDepth(false);
+  fmt.setDirectRendering(true);
+  setViewport(new QGLWidget{fmt});
   setAlignment(Qt::AlignTop | Qt::AlignLeft);
   setFrameStyle(0);
   setDragMode(QGraphicsView::NoDrag);

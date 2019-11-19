@@ -87,6 +87,7 @@ LayerPresenter* LayerFactory::makeLayerPresenter(
 
 LayerView* LayerFactory::makeLayerView(
     const ProcessModel& view,
+    const Process::Context& context,
     QGraphicsItem* parent) const
 {
   return new DefaultLayerView{parent};

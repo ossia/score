@@ -90,7 +90,7 @@ NodeItem::NodeItem(
           &NodeItem::updateSize);
       updateSize();
     }
-    else if (auto fx = factory->makeLayerView(model, this))
+    else if (auto fx = factory->makeLayerView(model, ctx, this))
     {
       m_fx = fx;
       m_presenter = factory->makeLayerPresenter(model, fx, ctx, this);

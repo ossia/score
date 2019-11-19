@@ -69,7 +69,9 @@ public:
       QObject* parent) const;
 
   virtual Process::LayerView*
-  makeLayerView(const Process::ProcessModel&, QGraphicsItem* parent) const;
+  makeLayerView(const Process::ProcessModel&,
+                const Process::Context& context,
+                QGraphicsItem* parent) const;
 
   virtual Process::MiniLayer*
   makeMiniLayer(const Process::ProcessModel&, QGraphicsItem* parent) const;

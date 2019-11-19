@@ -114,7 +114,7 @@ static void setup_opengl()
   fmt.setMajorVersion(4);
   fmt.setMinorVersion(1);
   fmt.setProfile(QSurfaceFormat::CoreProfile);
-  fmt.setSamples(1);
+  fmt.setSamples(16);
   fmt.setDefaultFormat(fmt);
 #else
   QSurfaceFormat fmt;
