@@ -1,7 +1,5 @@
 #pragma once
 #include <Engine/Node/PdNode.hpp>
-
-#include <numeric>
 namespace Nodes
 {
 namespace ClassicalBeat
@@ -33,41 +31,12 @@ struct Node
     using namespace ossia;
     if (tk.forward())
     {
-      if((tk.musical_end_last_bar != tk.musical_start_last_bar) || tk.prev_date == 0_tv)
-      {
-        // There is a bar change in this tick, start the hi sound
-        double musical_tick_duration = tk.musical_end_position - tk.musical_start_position;
-        double musical_bar_start = tk.musical_end_last_bar - tk.musical_start_position;
-        int64_t samples_tick_duration = tk.physical_write_duration(st.modelToSamples());
-        if(samples_tick_duration > 0)
-        {
-          double ratio = musical_bar_start / musical_tick_duration;
-          const int64_t hi_start_sample = samples_tick_duration * ratio;
-          res.write_value(ossia::impulse{}, hi_start_sample);
-        }
-      }
-      else
-      {
-        int64_t start_quarter = std::floor(tk.musical_start_position - tk.musical_start_last_bar);
-        int64_t end_quarter = std::floor(tk.musical_end_position - tk.musical_start_last_bar);
-        if(start_quarter != end_quarter)
-        {
-          // There is a quarter change in this tick, start the lo sound
-          // start_position is prev_date
-          // end_position is date
-          double musical_tick_duration = tk.musical_end_position - tk.musical_start_position;
-          double musical_bar_start = (end_quarter + tk.musical_start_last_bar) - tk.musical_start_position;
-          int64_t samples_tick_duration = tk.physical_write_duration(st.modelToSamples());
-          if(samples_tick_duration > 0)
-          {
-            double ratio = musical_bar_start / musical_tick_duration;
-            const int64_t lo_start_sample = samples_tick_duration * ratio;
-            res.write_value(ossia::impulse{}, lo_start_sample);
-          }
-        }
-      }
+      tk.metronome(
+            st.modelToSamples(),
+            [&] (int64_t start_sample) { res.write_value(ossia::impulse{}, start_sample); },
+            [&] (int64_t start_sample) { res.write_value(ossia::impulse{}, start_sample); }
+      );
     }
-
   }
 };
 }

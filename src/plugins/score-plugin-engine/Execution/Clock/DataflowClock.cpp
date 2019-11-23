@@ -1,5 +1,5 @@
 #include "DataflowClock.hpp"
-
+#include <ossia/detail/flicks.hpp>
 #include <Device/Protocol/DeviceInterface.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <Scenario/Document/Interval/IntervalExecution.hpp>
@@ -163,7 +163,7 @@ ClockFactory::makeTimeFunction(const score::DocumentContext& ctx) const
     // 1000 ms = sr samples
     // x ms    = k samples
     return v.isInfinite() ? ossia::Infinite
-                          : ossia::time_value{int64_t(std::llround(v.msec() * 705600.))};
+                          : ossia::time_value{int64_t(std::llround(v.msec() * ossia::flicks_per_millisecond<double>))};
   };
 }
 
@@ -171,8 +171,10 @@ Execution::reverse_time_function
 ClockFactory::makeReverseTimeFunction(const score::DocumentContext& ctx) const
 {
   return [=](const ossia::time_value& v) -> TimeVal {
+    static const constexpr double ratio = 1. / ossia::flicks_per_millisecond<double>;
+
     return v.infinite() ? TimeVal::infinite()
-                        : TimeVal::fromMsecs(v.impl / 705600.);
+                        : TimeVal::fromMsecs(v.impl * ratio);
   };
 }
 

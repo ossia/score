@@ -69,10 +69,8 @@ struct ScenarioBeingCopied
         }
         else
         {
-          cables.emplace_back(
-              fromJsonValue<std::pair<Id<Process::Cable>, Process::CableData>>(
-                  element.toObject())
-                  .second);
+          const auto data = fromJsonValue<Process::CableData>(element.toArray()[1]);
+          cables.emplace_back(data);
         }
       }
     }

@@ -24,6 +24,7 @@
 #include <ossia/dataflow/graph/graph_interface.hpp>
 #include <ossia/dataflow/graph_edge.hpp>
 #include <ossia/dataflow/port.hpp>
+#include <ossia/detail/flicks.hpp>
 #include <ossia/detail/logger.hpp>
 #include <ossia/editor/scenario/time_interval.hpp>
 #include <ossia/network/common/path.hpp>
@@ -221,8 +222,8 @@ void DocumentPlugin::makeGraph()
 
   execState->bufferSize = audiosettings.getBufferSize();
   execState->sampleRate = audiosettings.getRate();
-  execState->modelToSamplesRatio = audiosettings.getRate() / 705600000.;
-  execState->samplesToModelRatio = 705600000. / audiosettings.getRate();
+  execState->modelToSamplesRatio = audiosettings.getRate() / ossia::flicks_per_second<double>;
+  execState->samplesToModelRatio = ossia::flicks_per_second<double> / audiosettings.getRate();
   execState->samples_since_start = 0;
   execState->start_date = 0; // TODO set it in the first callback
   execState->cur_date = execState->start_date;
