@@ -25,7 +25,8 @@
 #include <Scenario/Document/Interval/FullView/NodalIntervalView.hpp>
 #include <Scenario/Document/Interval/FullView/Timebar.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentPresenter.hpp>
-
+#include <score/actions/Toolbar.hpp>
+#include <score/actions/ToolbarManager.hpp>
 #include <Process/Dataflow/NodeItem.hpp>
 #include <Process/Style/Pixmaps.hpp>
 #include <Scenario/Application/Drops/ScenarioDropHandler.hpp>
@@ -38,6 +39,7 @@
 #include <QGraphicsScene>
 #include <QGraphicsView>
 #include <QMenu>
+#include <QToolBar>
 #include <Automation/AutomationColors.hpp>
 
 #include <wobjectimpl.h>
@@ -134,27 +136,6 @@ FullViewIntervalPresenter::FullViewIntervalPresenter(
       (FullViewIntervalView*)m_view,
       &FullViewIntervalView::setSelected);
 
-  // Address bar items
-  {
-    auto& pixmaps = Process::Pixmaps::instance();
-    auto nodalButton = new score::QGraphicsPixmapToggle{pixmaps.nodal_off, pixmaps.timeline_off, &addressBar};
-    switch(interval.viewMode())
-    {
-      case IntervalModel::Temporal:
-        break;
-      case IntervalModel::Nodal:
-        nodalButton->toggle();
-        break;
-    }
-
-    connect(nodalButton, &score::QGraphicsPixmapToggle::toggled,
-            this, [=] (bool state) {
-      ((FullViewIntervalPresenter&)m_view->presenter()).requestModeChange(state);
-    });
-    nodalButton->setPos(-50, -8);
-  }
-
-
   // Time
   con(interval.duration,
       &IntervalDurations::defaultDurationChanged,
@@ -180,6 +161,31 @@ FullViewIntervalPresenter::FullViewIntervalPresenter(
     for(auto& bar : this->m_timebars->lighterBars) bar.setVisible(show);
   });
 
+
+  {
+    // Nodal stuff
+    auto actions = ctx.app.toolbars.get().at(StringKey<score::Toolbar>("UISetup")).toolbar()->actions();
+
+    auto timeline_act = actions[0];
+    auto nodal_act = actions[1];
+    auto grp = qobject_cast<QActionGroup*>(timeline_act->parent());
+    switch(interval.viewMode())
+    {
+      case Scenario::IntervalModel::Temporal:
+        timeline_act->setChecked(true);
+        nodal_act->setChecked(false);
+        break;
+      case Scenario::IntervalModel::Nodal:
+        timeline_act->setChecked(false);
+        nodal_act->setChecked(true);
+        break;
+    }
+
+    connect(grp, &QActionGroup::triggered,
+            this, [=] (QAction* act){
+      requestModeChange(act != timeline_act);
+    });
+  }
 
   // Slots
   con(m_model, &IntervalModel::rackChanged, this, [=](Slot::RackView t) {
@@ -814,10 +820,9 @@ void FullViewIntervalPresenter::updateTimeBars()
 
   if(!m_model.hasTimeSignature() || !this->m_settings.getMeasureBars())
   {
-    auto& lightbars = this->m_timebars->lightBars;
-    if(lightbars.front().isVisible())
+    if(this->m_timebars->timebar.isEnabled())
     {
-      for(auto& bar : lightbars)
+      for(auto& bar : this->m_timebars->lightBars)
       {
         bar.setVisible(false);
       }
@@ -825,16 +830,16 @@ void FullViewIntervalPresenter::updateTimeBars()
       {
         bar.setVisible(false);
       }
+      this->m_timebars->timebar.setEnabled(false);
       this->m_timebars->timebar.setVisible(false);
     }
     return;
   }
   else
   {
-    auto& lightbars = this->m_timebars->lightBars;
-    if(!lightbars.front().isVisible())
+    if(!this->m_timebars->timebar.isEnabled())
     {
-      for(auto& bar : lightbars)
+      for(auto& bar : this->m_timebars->lightBars)
       {
         bar.setVisible(true);
       }
@@ -842,6 +847,7 @@ void FullViewIntervalPresenter::updateTimeBars()
       {
         bar.setVisible(true);
       }
+      this->m_timebars->timebar.setEnabled(true);
       this->m_timebars->timebar.setVisible(true);
     }
   }

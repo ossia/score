@@ -9,6 +9,8 @@
 #include <Loop/LoopProcessModel.hpp>
 #include <Process/ExecutionContext.hpp>
 #include <Process/TimeValue.hpp>
+#include <Process/Style/Pixmaps.hpp>
+
 #include <Protocols/Audio/AudioDevice.hpp>
 #include <Scenario/Application/ScenarioActions.hpp>
 #include <Scenario/Application/ScenarioApplicationPlugin.hpp>
@@ -28,7 +30,7 @@
 #include <score/widgets/DoubleSlider.hpp>
 #include <score/widgets/SetIcons.hpp>
 #include <score/tools/Bind.hpp>
-
+#include <score/actions/ToolbarManager.hpp>
 #include <core/application/ApplicationInterface.hpp>
 #include <core/application/ApplicationSettings.hpp>
 #include <core/document/Document.hpp>
@@ -60,6 +62,7 @@
 #include <wobjectimpl.h>
 
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
+#include <Scenario/Settings/ScenarioSettingsModel.hpp>
 #include <vector>
 SCORE_DECLARE_ACTION(
     RestartAudio,
@@ -235,52 +238,121 @@ void ApplicationPlugin::initialize()
   catch (...)
   {
   }
+
+  // Update the clock widget
+  // See TransportActions::makeGUIElements
+  auto& toolbars = this->context.toolbars.get();
+  auto transport_toolbar = toolbars.find(StringKey<score::Toolbar>("Transport"));
+  if(transport_toolbar != toolbars.end())
+  {
+    const auto& tb = transport_toolbar->second.toolbar();
+    if(tb)
+    {
+      auto cld = tb->children();
+      if(!cld.empty())
+      {
+        auto label = tb->findChild<QLabel*>("TimeLabel");
+        if(label)
+          setupTimingWidget(label);
+
+        m_speedSlider = dynamic_cast<Scenario::SpeedWidget*>(cld.back());
+      }
+    }
+  }
 }
 
+QWidget* ApplicationPlugin::setupTimingWidget(QLabel* time_label) const
+{
+  auto timer = new QTimer{time_label};
+  connect(timer, &QTimer::timeout, this, [=] {
+    if (m_clock)
+    {
+      auto& itv = m_clock->scenario.baseInterval().scoreInterval().duration;
+      auto time = (itv.defaultDuration() * itv.playPercentage()).toQTime();
+      time_label->setText(time.toString("HH:mm:ss.zzz"));
+    }
+    else
+    {
+      time_label->setText("00:00:00.000");
+    }
+  });
+  timer->start(1000 / 20);
+  return time_label;
+
+}
 score::GUIElements ApplicationPlugin::makeGUIElements()
 {
   GUIElements e;
 
   auto& toolbars = e.toolbars;
 
-  toolbars.reserve(2);
+  toolbars.reserve(4);
 
-  // The toolbar with the time
+  // The toolbar with the interval controls
   {
-    auto bar = new QToolBar;
-    auto time_label = new QLabel;
-    QFont time_font("Ubuntu", 18, QFont::Weight::DemiBold);
-    time_label->setFont(time_font);
-    time_label->setStyleSheet(
-        "QLabel { font: 18pt \"Ubuntu\"; font-weight: 600; }");
-    time_label->setText("00:00:00.000");
-    bar->addWidget(time_label);
-    auto timer = new QTimer{this};
-    connect(timer, &QTimer::timeout, this, [=] {
-      if (m_clock)
-      {
-        auto& itv = m_clock->scenario.baseInterval().scoreInterval().duration;
-        auto time = (itv.defaultDuration() * itv.playPercentage()).toQTime();
-        time_label->setText(time.toString("HH:mm:ss.zzz"));
-      }
-      else
-      {
-        time_label->setText("00:00:00.000");
-      }
-    });
-    timer->start(1000 / 20);
+    auto ui_toolbar = new QToolBar(tr("Interval"));
     toolbars.emplace_back(
-        bar, StringKey<score::Toolbar>("Timing"), Qt::BottomToolBarArea, 60);
-  }
-
-  // The toolbar with the speed
-  {
-    m_speedToolbar = new QToolBar;
-    toolbars.emplace_back(
-        m_speedToolbar,
-        StringKey<score::Toolbar>("Speed"),
+        ui_toolbar,
+        StringKey<score::Toolbar>("UISetup"),
         Qt::BottomToolBarArea,
-        300);
+        10);
+
+    auto actgrp = new QActionGroup{ui_toolbar};
+    {
+      auto timeline_act = new QAction{tr("Timeline interval"), actgrp};
+      timeline_act->setCheckable(true);
+      timeline_act->setStatusTip(tr("Change between nodal and timeline mode"));
+      setIcons(timeline_act
+               , QStringLiteral(":/icons/timeline_on.png")
+               , QStringLiteral(":/icons/timeline_off.png")
+               , QStringLiteral(":/icons/timeline_off.png")
+               );
+
+      ui_toolbar->addAction(timeline_act);
+      actgrp->addAction(timeline_act);
+    }
+
+    {
+      auto nodal_act = new QAction{tr("Nodal interval"), actgrp};
+      nodal_act->setCheckable(true);
+      nodal_act->setStatusTip(tr("Change between nodal and timeline mode"));
+      setIcons(nodal_act
+               , QStringLiteral(":/icons/nodal_on.png")
+               , QStringLiteral(":/icons/nodal_off.png")
+               , QStringLiteral(":/icons/nodal_disabled.png")
+               );
+
+      ui_toolbar->addAction(nodal_act);
+      actgrp->addAction(nodal_act);
+    }
+
+    {
+      auto musical_act = new QAction{tr("Enable musical mode"), this};
+      musical_act->setCheckable(true);
+      musical_act->setStatusTip(tr("Enable musical mode"));
+      setIcons(musical_act
+               , QStringLiteral(":/icons/music_on.png")
+               , QStringLiteral(":/icons/music_off.png")
+               , QStringLiteral(":/icons/music_off.png")
+               );
+      connect(musical_act, &QAction::toggled, this, [this] (bool ok) {
+        auto& settings = this->context.settings<Scenario::Settings::Model>();
+        settings.setMeasureBars(ok);
+        settings.setMagneticMeasures(ok);
+
+        if(auto doc = this->currentDocument())
+        {
+          auto& mod = doc->model().modelDelegate();
+          auto scenar = dynamic_cast<Scenario::ScenarioDocumentModel*>(&mod);
+          if (scenar)
+          {
+            auto& itv = scenar->baseInterval();
+            itv.setHasTimeSignature(ok);
+          }
+        }
+      });
+      ui_toolbar->addAction(musical_act);
+    }
   }
 
   // The toolbar with the volume control
@@ -296,7 +368,7 @@ score::GUIElements ApplicationPlugin::makeGUIElements()
       QStringLiteral(":/icons/engine_disabled.png"),
       false);
   {
-    auto bar = new QToolBar;
+    auto bar = new QToolBar(tr("Volume"));
     auto sl = new score::VolumeSlider{bar};
     sl->setMaximumSize(100, 20);
     sl->setValue(0.5);
@@ -395,8 +467,8 @@ void ApplicationPlugin::on_documentChanged(
     doc_plugin.setConnection(false);
     */
 
-    if (m_speedSliderAct)
-      m_speedToolbar->removeAction(m_speedSliderAct);
+    if (m_speedSlider)
+      m_speedSlider->unsetInterval();
     // TODO check whether the widget gets deleted
   }
 
@@ -415,10 +487,8 @@ void ApplicationPlugin::on_documentChanged(
 
     if (context.applicationSettings.gui)
     {
-      auto slider = new Scenario::SpeedWidget{
-          root.baseInterval(), newdoc->context(), false, true, m_speedToolbar};
-      slider->setMinimumWidth(50);
-      m_speedSliderAct = m_speedToolbar->addWidget(slider);
+      if (m_speedSlider)
+        m_speedSlider->setInterval(root.baseInterval());
     }
 
     // Setup audio & devices

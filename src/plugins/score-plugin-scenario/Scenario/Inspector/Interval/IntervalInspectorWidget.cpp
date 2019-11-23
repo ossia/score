@@ -70,7 +70,8 @@ IntervalInspectorWidget::IntervalInspectorWidget(
   lay->addRow(fullview);
 
   // Speed
-  auto speedWidg = new SpeedWidget{m_model, ctx, true, true, this};
+  auto speedWidg = new SpeedWidget{true, true, this};
+  speedWidg->setInterval(m_model);
   lay->addRow(tr("Speed"), speedWidg);
 
   // signature

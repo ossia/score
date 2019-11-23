@@ -338,6 +338,10 @@
         <file>icons/timeline_off@2x.png</file>
         <file>icons/timeline_on.png</file>
         <file>icons/timeline_on@2x.png</file>
+        <file>icons/music_off.png</file>
+        <file>icons/music_off@2x.png</file>
+        <file>icons/music_on.png</file>
+        <file>icons/music_on@2x.png</file>
     </qresource>
     <qresource prefix="/qss_icons">
         <file>rc/up_arrow_disabled.png</file>

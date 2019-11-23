@@ -10,7 +10,10 @@
 #include <score_plugin_engine_export.h>
 
 #include <memory>
-
+namespace Scenario
+{
+class SpeedWidget;
+}
 namespace Scenario
 {
 class IntervalModel;
@@ -32,6 +35,7 @@ namespace ossia
 class audio_engine;
 }
 
+class QLabel;
 namespace Engine
 {
 using exec_setup_fun = std::function<
@@ -77,6 +81,7 @@ private:
   void initialize() override;
   void on_transport(TimeVal t);
   void initLocalTreeNodes(LocalTree::DocumentPlugin&);
+  QWidget* setupTimingWidget(QLabel*) const;
 
   std::unique_ptr<Execution::Clock> makeClock(const Execution::Context&);
 
@@ -84,8 +89,7 @@ private:
 
   std::unique_ptr<Execution::Clock> m_clock;
   QAction* m_audioEngineAct{};
-  QToolBar* m_speedToolbar{};
-  QAction* m_speedSliderAct{};
+  Scenario::SpeedWidget* m_speedSlider{};
   bool m_playing{false}, m_paused{false};
 
   bool m_updating_audio = false;

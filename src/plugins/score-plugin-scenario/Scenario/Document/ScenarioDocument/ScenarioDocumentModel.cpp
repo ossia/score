@@ -50,6 +50,8 @@ ScenarioDocumentModel::ScenarioDocumentModel(
       = score::IDocument::documentContext(*parent).document.metadata();
   itv.metadata().setName(doc_metadata.fileName());
 
+  itv.addSignature(TimeVal::zero(), {4,4});
+
   connect(
       &doc_metadata,
       &score::DocumentMetadata::fileNameChanged,
