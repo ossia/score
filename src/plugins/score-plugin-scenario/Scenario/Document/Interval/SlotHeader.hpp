@@ -98,6 +98,8 @@ private:
   void mousePressEvent(QGraphicsSceneMouseEvent* event) final override;
   void mouseMoveEvent(QGraphicsSceneMouseEvent* event) final override;
   void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) final override;
+
+  bool m_fullView{};
 };
 
 class FixedSlotFooter final : public SlotFooter

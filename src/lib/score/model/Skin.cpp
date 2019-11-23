@@ -110,6 +110,13 @@ Skin::Skin() noexcept
   MonoFont.setFamilies({"APCCourier-Bold"});
   MonoFontSmall.setFamilies({"Ubuntu"});
 #endif
+
+  for(QFont* font : {&SansFont, &SansFontSmall, &MonoFont, &MonoFontSmall})
+  {
+    font->setStyleStrategy(QFont::OpenGLCompatible);
+    font->setHintingPreference(QFont::PreferVerticalHinting);
+  }
+
   for (auto& c : m_defaultPalette)
   {
     m_colorMap->left.insert({c.first, &c.second});
@@ -123,13 +130,6 @@ Skin::Skin() noexcept
   }
 
   this->startTimer(32, Qt::CoarseTimer);
-#if QT_VERSION >= QT_VERSION_CHECK(5, 10, 0)
-  // SansFont.setStyleHint(QFont::SansSerif, QFont::PreferNoShaping);
-#endif
-  // MonoFont.setStyleHint(QFont::Monospace,
-  // (QFont::StyleStrategy)(QFont::PreferBitmap | QFont::NoSubpixelAntialias |
-  // QFont::ForceIntegerMetrics));
-  // MonoFont.setHintingPreference(QFont::PreferVerticalHinting);
 
   Bold10Pt = SansFont;
 #if defined(_WIN32)
@@ -148,14 +148,9 @@ Skin::Skin() noexcept
 
   Medium7Pt = SansFont;
   Medium7Pt.setPointSize(7);
-  // Medium7Pt.setStyleStrategy(QFont::NoAntialias);
-  // Medium7Pt.setHintingPreference(QFont::HintingPreference::PreferFullHinting);
-  Medium7Pt.setKerning(false);
 
   Medium8Pt = SansFont;
   Medium8Pt.setPointSize(8);
-  // Medium8Pt.setStyleStrategy(QFont::PreferBitmap);
-  Medium8Pt.setKerning(false);
 
   Medium10Pt = SansFont;
 #if defined(_WIN32)
@@ -163,9 +158,6 @@ Skin::Skin() noexcept
 #else
   Medium10Pt.setPointSize(10);
 #endif
-  // Medium7Pt.setStyleStrategy(QFont::NoAntialias);
-  // Medium7Pt.setHintingPreference(QFont::HintingPreference::PreferFullHinting);
-  Medium10Pt.setKerning(false);
 
   Medium12Pt = SansFont;
 #if defined(_WIN32)
@@ -173,8 +165,6 @@ Skin::Skin() noexcept
 #else
   Medium12Pt.setPointSize(12);
 #endif
-  // Medium12Pt.setStyleStrategy(QFont::NoAntialias);
-  Medium12Pt.setKerning(false);
 
   SliderBrush = QColor("#252930");
   SliderExtBrush = QColor("#666");

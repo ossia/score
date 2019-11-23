@@ -46,23 +46,6 @@ ScenarioDocumentModel::ScenarioDocumentModel(
   m_baseScenario->endTimeSync().setDate(
       itv.duration.defaultDuration());
 
-
-  // Set time signatures
-  {
-    itv.setHasTimeSignature(true);
-
-    auto tempo = new TempoProcess{dur, getStrongId(itv.processes), &itv};
-    itv.processes.add(tempo);
-
-    TimeSignatureMap signatures;
-    signatures[TimeVal::zero()] = {4,4};
-    signatures[TimeVal::fromMsecs(5300)] = {5,4};
-    signatures[TimeVal::fromMsecs(12000)] = {12,8};
-    signatures[TimeVal::fromMsecs(16000)] = {2,2};
-    itv.setTimeSignatureMap(signatures);
-  }
-
-
   auto& doc_metadata
       = score::IDocument::documentContext(*parent).document.metadata();
   itv.metadata().setName(doc_metadata.fileName());

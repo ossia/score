@@ -108,7 +108,9 @@ struct Node
         Control::FloatKnob{"Fine", -1., 1., 0.},
         Control::FloatKnob{"Jitter", 0., 1., 0.},
         Control::FloatKnob{"Phase", -1., 1., 0.},
-        Control::Widgets::WaveformChooser());
+        Control::Widgets::WaveformChooser(),
+        Control::Widgets::QuantificationChooser()
+          );
   };
 
   // Idea: save internal state for rewind... ? -> require Copyable
@@ -128,18 +130,30 @@ struct Node
       float offset,
       float offset_fine,
       float jitter,
-      float phase,
+      float custom_phase,
       const std::string& type,
+      float quantif,
       ossia::value_port& out,
       ossia::token_request tk,
       ossia::exec_state_facade st,
       State& s)
   {
     constexpr const double sine_ratio = ossia::two_pi / 705600000.;
-    auto& waveform_map = Control::Widgets::waveformMap();
+    const auto& waveform_map = Control::Widgets::waveformMap();
     const auto elapsed = tk.logical_read_duration().impl;
 
-    if (auto it = waveform_map.find(type); it != waveform_map.end())
+    if(quantif)
+    {
+      // Determine the frequency with the quantification
+      // if(tk.musical_end_last_bar != tk.musical_start_last_bar)
+      // {
+      //   s.phase = 0;
+      // }
+      freq = 1. / quantif;
+    }
+    const auto ph_delta = elapsed * freq * sine_ratio;
+
+    if (const auto it = waveform_map.find(type); it != waveform_map.end())
     {
       auto ph = s.phase;
       if (jitter > 0)
@@ -151,32 +165,28 @@ struct Node
       offset += offset_fine;
 
       using namespace Control::Widgets;
-      const auto phi = phase + ph;
 
-      auto add_val = [&](auto new_val) {
+      const auto add_val = [&](auto new_val) {
         out.write_value(ampl * new_val + offset, st.physical_start(tk));
       };
       switch (it->second)
       {
         case Sin:
-          add_val(std::sin(phi));
+          add_val(std::sin(custom_phase + ph));
           break;
         case Triangle:
-          add_val(std::asin(std::sin(phi)));
+          add_val(std::asin(std::sin(custom_phase + ph)));
           break;
         case Saw:
-          add_val(std::atan(std::tan(phi)));
+          add_val(std::atan(std::tan(custom_phase + ph)));
           break;
         case Square:
-          add_val((std::sin(phi) > 0.f) ? 1.f : -1.f);
+          add_val((std::sin(custom_phase + ph) > 0.f) ? 1.f : -1.f);
           break;
         case SampleAndHold:
         {
-          auto start_phi = phase + phi;
-          auto end_phi = phase + phi + (elapsed * freq  * sine_ratio);
-
-          auto start_s = std::sin(start_phi);
-          auto end_s = std::sin(end_phi);
+          const auto start_s = std::sin(custom_phase + ph);
+          const auto end_s = std::sin(custom_phase + ph + ph_delta);
           if ((start_s > 0 && end_s <= 0) || (start_s <= 0 && end_s > 0))
           {
             add_val(std::uniform_real_distribution<float>(-1., 1.)(s.rd));
@@ -195,7 +205,7 @@ struct Node
       }
     }
 
-    s.phase += (elapsed * freq  * sine_ratio);
+    s.phase += ph_delta;
   }
 
   static void item(
@@ -207,6 +217,7 @@ struct Node
       Process::FloatSlider& jitter,
       Process::FloatSlider& phase,
       Process::Enum& type,
+      Process::ComboBox& quantif,
       const Process::ProcessModel& process,
       QGraphicsItem& parent,
       QObject& context,
@@ -218,6 +229,8 @@ struct Node
     const auto w = 50;
 
     const auto c0 = 10;
+    const auto c1 = 180;
+    const auto c2 = 230;
 
     auto c0_bg = new score::BackgroundItem{&parent};
     c0_bg->setRect({0., 0., 170., 130.});
@@ -229,6 +242,10 @@ struct Node
     auto freq_item = makeControl(std::get<0>(Metadata::controls), freq, parent, context, doc, portFactory);
     freq_item.root.setPos(c0, 0);
 
+    auto quant_item = makeControlNoText(std::get<8>(Metadata::controls), quantif, parent, context, doc, portFactory);
+    quant_item.root.setPos(90, 25);
+    quant_item.port.setPos(-10, 2);
+
     auto type_item = makeControlNoText(std::get<7>(Metadata::controls), type, parent, context, doc, portFactory);
     type_item.root.setPos(c0, h);
     type_item.control.rows = 2;
@@ -237,7 +254,6 @@ struct Node
     type_item.control.setPos(10, 0);
     type_item.port.setPos(0, 17);
 
-    const auto c1 = 180;
     auto ampl_item = makeControl(std::get<1>(Metadata::controls), ampl, parent, context, doc, portFactory);
     ampl_item.root.setPos(c1, 0);
 
@@ -250,7 +266,6 @@ struct Node
     auto offset_fine_item = makeControl(std::get<4>(Metadata::controls), offset_fine, parent, context, doc, portFactory);
     offset_fine_item.root.setPos(c1 + w, h);
 
-    const auto c2 = 230;
     auto jitter_item = makeControl(std::get<5>(Metadata::controls), jitter, parent, context, doc, portFactory);
     jitter_item.root.setPos(c2 + w, 0);
 

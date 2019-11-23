@@ -89,9 +89,6 @@ IntervalModel::IntervalModel(DataStream::Deserializer& vis, QObject* parent)
 {
   initConnections();
   vis.writeTo(*this);
-  if(m_signatures.empty()) {
-    m_signatures[TimeVal::zero()] = {4,4};
-  }
 }
 
 IntervalModel::IntervalModel(JSONObject::Deserializer& vis, QObject* parent)
@@ -105,9 +102,6 @@ IntervalModel::IntervalModel(JSONObject::Deserializer& vis, QObject* parent)
 {
   initConnections();
   vis.writeTo(*this);
-  if(m_signatures.empty()) {
-    m_signatures[TimeVal::zero()] = {4,4};
-  }
 }
 
 IntervalModel::IntervalModel(DataStream::Deserializer&& vis, QObject* parent)
@@ -121,9 +115,6 @@ IntervalModel::IntervalModel(DataStream::Deserializer&& vis, QObject* parent)
 {
   initConnections();
   vis.writeTo(*this);
-  if(m_signatures.empty()) {
-    m_signatures[TimeVal::zero()] = {4,4};
-  }
 }
 
 IntervalModel::IntervalModel(JSONObject::Deserializer&& vis, QObject* parent)
@@ -137,9 +128,6 @@ IntervalModel::IntervalModel(JSONObject::Deserializer&& vis, QObject* parent)
 {
   initConnections();
   vis.writeTo(*this);
-  if(m_signatures.empty()) {
-    m_signatures[TimeVal::zero()] = {4,4};
-  }
 }
 
 void IntervalModel::setHasTimeSignature(bool b)
@@ -147,6 +135,9 @@ void IntervalModel::setHasTimeSignature(bool b)
   if(b != m_hasSignature)
   {
     m_hasSignature = b;
+    if(b && m_signatures.empty()) {
+      m_signatures[TimeVal::zero()] = {4,4};
+    }
     hasTimeSignatureChanged(b);
   }
 }

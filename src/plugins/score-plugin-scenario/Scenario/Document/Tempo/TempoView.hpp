@@ -56,5 +56,6 @@ public:
 
   }
 
+  void setFullView() override { m_curve.setBoundedMove(false); }
 };
 }
