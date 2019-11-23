@@ -22,7 +22,6 @@ public:
       , m_view{view}
   {
     putToFront();
-    auto& m = static_cast<const Metro::Model&>(model);
 
     connect(view, &View::pressed, this, [&] {
       m_context.context.focusDispatcher.focus(this);

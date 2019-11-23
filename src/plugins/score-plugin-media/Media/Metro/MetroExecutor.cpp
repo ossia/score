@@ -55,61 +55,34 @@ public:
   {
     if (tk.forward())
     {
-      double musical_tick_duration = tk.musical_end_position - tk.musical_start_position;
-      if(musical_tick_duration == 0)
-        return;
-
-      if(tk.musical_end_last_bar != tk.musical_start_last_bar || tk.prev_date == 0_tv)
-      {
-        // There is a bar change in this tick, start the hi sound
-        double musical_bar_start = tk.musical_end_last_bar - tk.musical_start_position;
-        int64_t samples_tick_duration = tk.physical_write_duration(st.modelToSamples());
-        if(samples_tick_duration > 0)
+      tk.metronome(st.modelToSamples(),
+                   [&] (int64_t hi_start_sample) {
+        for(auto& sound : in_flight)
         {
-          double ratio = musical_bar_start / musical_tick_duration;
-          const int64_t hi_start_sample = samples_tick_duration * ratio;
-          for(auto& sound : in_flight)
-          {
-            sound.fade_total = std::min(500L, sound.dur - sound.pos);
-            sound.fade_remaining = sound.fade_total;
-          }
+          sound.fade_total = std::min(500L, sound.dur - sound.pos);
+          sound.fade_remaining = sound.fade_total;
+        }
 
-          if(hi_dur > 0)
-          {
-            bang_out.data.target<value_port>()->write_value(ossia::impulse{}, hi_start_sample);
-            in_flight.push_back({&hi_sound, 0, hi_dur, hi_start_sample, 0, 0});
-          }
+        if(hi_dur > 0)
+        {
+          bang_out.data.target<value_port>()->write_value(ossia::impulse{}, hi_start_sample);
+          in_flight.push_back({&hi_sound, 0, hi_dur, hi_start_sample, 0, 0});
+        }
+      },
+      [&] (int64_t lo_start_sample) {
+        for(auto& sound : in_flight)
+        {
+          sound.fade_total = std::min(500L, sound.dur - sound.pos);
+          sound.fade_remaining = sound.fade_total;
+        }
+
+        if(lo_dur > 0)
+        {
+          bang_out.data.target<value_port>()->write_value(ossia::impulse{}, lo_start_sample);
+          in_flight.push_back({&lo_sound, 0, lo_dur, lo_start_sample, 0, 0});
         }
       }
-      else
-      {
-        int64_t start_quarter = std::floor(tk.musical_start_position - tk.musical_start_last_bar);
-        int64_t end_quarter = std::floor(tk.musical_end_position - tk.musical_start_last_bar);
-        if(start_quarter != end_quarter)
-        {
-          // There is a quarter change in this tick, start the lo sound
-          // start_position is prev_date
-          // end_position is date
-          double musical_bar_start = (end_quarter + tk.musical_start_last_bar) - tk.musical_start_position;
-          int64_t samples_tick_duration = tk.physical_write_duration(st.modelToSamples());
-          if(samples_tick_duration > 0)
-          {
-            double ratio = musical_bar_start / musical_tick_duration;
-            const int64_t lo_start_sample = samples_tick_duration * ratio;
-            for(auto& sound : in_flight)
-            {
-              sound.fade_total = std::min(500L, sound.dur - sound.pos);
-              sound.fade_remaining = sound.fade_total;
-            }
-
-            if(lo_dur > 0)
-            {
-              bang_out.data.target<value_port>()->write_value(ossia::impulse{}, lo_start_sample);
-              in_flight.push_back({&lo_sound, 0, lo_dur, lo_start_sample, 0, 0});
-            }
-          }
-        }
-      }
+      );
     }
 
     auto& ap = audio_out.data.target<audio_port>()->samples;

@@ -1,5 +1,6 @@
 #pragma once
 #include <ossia/detail/math.hpp>
+#include <ossia/detail/flicks.hpp>
 
 #include <Engine/Node/PdNode.hpp>
 
@@ -138,19 +139,27 @@ struct Node
       ossia::exec_state_facade st,
       State& s)
   {
-    constexpr const double sine_ratio = ossia::two_pi / 705600000.;
+    constexpr const double sine_ratio = ossia::two_pi / ossia::flicks_per_second<double>;
     const auto& waveform_map = Control::Widgets::waveformMap();
     const auto elapsed = tk.logical_read_duration().impl;
 
     if(quantif)
     {
       // Determine the frequency with the quantification
-      // if(tk.musical_end_last_bar != tk.musical_start_last_bar)
-      // {
-      //   s.phase = 0;
-      // }
-      freq = 1. / quantif;
+      if(tk.unexpected_bar_change())
+      {
+        s.phase = 0;
+      }
+
+      // If quantif == 1, we quantize to the bar
+      //   => f = 0.5 hz
+      // If quantif == 1/4, we quantize to the quarter
+      //   => f = 2hz
+      // -> sin(elapsed * freq * 2 * pi / fps)
+      // -> sin(elapsed * 4 * 2 * pi / fps)
+      freq = 1. / (2. * quantif);
     }
+
     const auto ph_delta = elapsed * freq * sine_ratio;
 
     if (const auto it = waveform_map.find(type); it != waveform_map.end())
@@ -158,7 +167,7 @@ struct Node
       auto ph = s.phase;
       if (jitter > 0)
       {
-        ph += std::normal_distribution<float>(0., 5000.)(s.rd) * jitter;
+        ph += std::normal_distribution<float>(0., 0.25)(s.rd) * jitter;
       }
 
       ampl += ampl_fine;

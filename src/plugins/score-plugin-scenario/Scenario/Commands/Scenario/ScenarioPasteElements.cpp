@@ -158,6 +158,8 @@ ScenarioPasteElements::ScenarioPasteElements(
     {
       auto& source_vec = cd.source.unsafePath().vec();
       auto& sink_vec = cd.sink.unsafePath().vec();
+      SCORE_ASSERT(!source_vec.empty());
+      SCORE_ASSERT(!sink_vec.empty());
       int32_t source_itv_id = source_vec.front().id();
       int32_t sink_itv_id = sink_vec.front().id();
 

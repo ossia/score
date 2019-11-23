@@ -137,12 +137,10 @@ FullViewIntervalPresenter::FullViewIntervalPresenter(
   // Address bar items
   {
     auto& pixmaps = Process::Pixmaps::instance();
-    auto nodalButton = new score::QGraphicsPixmapToggle{pixmaps.nodal_on, pixmaps.nodal_off, &addressBar};
-    auto timelineButton = new score::QGraphicsPixmapToggle{pixmaps.timeline_on, pixmaps.timeline_off, &addressBar};
+    auto nodalButton = new score::QGraphicsPixmapToggle{pixmaps.nodal_off, pixmaps.timeline_off, &addressBar};
     switch(interval.viewMode())
     {
       case IntervalModel::Temporal:
-        timelineButton->toggle();
         break;
       case IntervalModel::Nodal:
         nodalButton->toggle();
@@ -152,15 +150,8 @@ FullViewIntervalPresenter::FullViewIntervalPresenter(
     connect(nodalButton, &score::QGraphicsPixmapToggle::toggled,
             this, [=] (bool state) {
       ((FullViewIntervalPresenter&)m_view->presenter()).requestModeChange(state);
-      timelineButton->toggle();
     });
-    connect(timelineButton, &score::QGraphicsPixmapToggle::toggled,
-            this, [=] (bool state) {
-      ((FullViewIntervalPresenter&)m_view->presenter()).requestModeChange(!state);
-      nodalButton->toggle();
-    });
-    nodalButton->setPos(-50, -4);
-    timelineButton->setPos(-30, -4);
+    nodalButton->setPos(-50, -8);
   }
 
 

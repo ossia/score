@@ -89,10 +89,9 @@ public:
 
   QRectF boundingRect() const final override
   {
-    return {0.,
-          0.,
-          std::max(20., m_rect.width()),
-          std::max(20., m_rect.height())};
+    return {0., 0.,
+          std::max(20., 12. + m_rect.width()),
+          std::max(20., 3. + m_rect.height())};
   }
 
   void paint(
@@ -323,8 +322,12 @@ private:
 
       con(*handle, &TimeSignatureHandle::signatureChange,
           this, [=] (Control::time_signature sig){
-        handle->setSignature(handle->time(), sig);
-      });
+        auto signatures = m_itv.model().timeSignatureMap();
+
+        signatures.at(handle->time()) = sig;
+
+        m_itv.context().dispatcher.submit<Scenario::Command::SetTimeSignatures>(m_itv.model(), signatures);
+      }, Qt::QueuedConnection);
 
       m_handles.push_back(handle);
     }
