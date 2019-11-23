@@ -1,10 +1,12 @@
 #pragma once
 #include <QWidget>
+#include <QPointer>
 
 #include <score_plugin_scenario_export.h>
 namespace score
 {
 struct DocumentContext;
+struct SpeedSlider;
 }
 
 namespace Scenario
@@ -14,15 +16,17 @@ class SCORE_PLUGIN_SCENARIO_EXPORT SpeedWidget final : public QWidget
 {
 public:
   SpeedWidget(
-      const IntervalModel& model,
-      const score::DocumentContext&,
       bool withButtons,
       bool showText,
       QWidget* parent);
   ~SpeedWidget() override;
 
+  void setInterval(const IntervalModel&);
+  void unsetInterval();
+
 private:
   QSize sizeHint() const override;
-  const IntervalModel& m_model;
+  QPointer<const IntervalModel> m_model;
+  score::SpeedSlider* m_slider{};
 };
 }

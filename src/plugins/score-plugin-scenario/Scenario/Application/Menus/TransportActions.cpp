@@ -6,6 +6,7 @@
 #include <Scenario/Application/ScenarioApplicationPlugin.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 
+#include <Scenario/Inspector/Interval/SpeedSlider.hpp>
 #include <score/actions/ActionManager.hpp>
 #include <score/actions/Menu.hpp>
 #include <score/actions/MenuManager.hpp>
@@ -19,6 +20,7 @@
 #include <QMainWindow>
 #include <QMenu>
 #include <qnamespace.h>
+#include <QLabel>
 class QMenu;
 
 namespace Scenario
@@ -205,10 +207,25 @@ void TransportActions::makeGUIElements(score::GUIElements& ref)
   // plus everything in the play menu
   {
     auto bar = new QToolBar{tr("Transport")};
+    {
+      auto time_label = new QLabel;
+      time_label->setObjectName("TimeLabel");
+      QFont time_font("Ubuntu", 18, QFont::Weight::DemiBold);
+      time_label->setFont(time_font);
+      time_label->setStyleSheet(
+          "QLabel { font: 18pt \"Ubuntu\"; font-weight: 600; }");
+      time_label->setText("00:00:00.000");
+      bar->addWidget(time_label);
+    }
+
     bar->addAction(m_play);
     bar->addAction(m_playGlobal);
     bar->addAction(m_stop);
     bar->addAction(m_stopAndInit);
+
+    bar->addWidget(new Scenario::SpeedWidget{false, true, bar});
+
+    qDebug() << bar->children();
 
     ref.toolbars.emplace_back(
         bar,

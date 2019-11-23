@@ -16,12 +16,10 @@ namespace Scenario
 {
 
 SpeedWidget::SpeedWidget(
-    const Scenario::IntervalModel& model,
-    const score::DocumentContext&,
     bool withButtons,
     bool showText,
     QWidget* parent)
-    : QWidget{parent}, m_model{model}
+    : QWidget{parent}
 {
   setObjectName("SpeedSlider");
 
@@ -30,11 +28,14 @@ SpeedWidget::SpeedWidget(
   lay->setVerticalSpacing(1);
 
   auto setSpeedFun = [=](double val) {
-    auto& dur = ((IntervalModel&)(m_model)).duration;
-    auto s = double(val) / 100.0;
-    if (dur.speed() != s)
+    if(m_model)
     {
-      dur.setSpeed(s);
+      auto& dur = ((IntervalModel&)(*m_model)).duration;
+      auto s = double(val) / 100.0;
+      if (dur.speed() != s)
+      {
+        dur.setSpeed(s);
+      }
     }
   };
 
@@ -60,19 +61,13 @@ SpeedWidget::SpeedWidget(
   }
 
   // Slider
-  auto speedSlider = new score::SpeedSlider{this};
-  speedSlider->showText = showText;
-  speedSlider->setValue(m_model.duration.speed() * 100.);
-
-  con(model.duration, &IntervalDurations::speedChanged, this, [=](double s) {
-    double r = s * 100;
-    if (!qFuzzyCompare(r, speedSlider->value()))
-      speedSlider->setValue(r);
-  });
+  m_slider = new score::SpeedSlider{this};
+  m_slider->showText = showText;
+  m_slider->setValue(100.);
 
   if(withButtons)
   {
-    lay->addWidget(speedSlider, 0, 0, 1, 5);
+    lay->addWidget(m_slider, 0, 0, 1, 5);
 
     for (int i = 0; i < 5; i++)
       lay->setColumnStretch(i, 0);
@@ -80,18 +75,46 @@ SpeedWidget::SpeedWidget(
   }
   else
   {
-    lay->addWidget(speedSlider, 0, 0, 1, 1);
+    lay->addWidget(m_slider, 0, 0, 1, 1);
   }
-  connect(speedSlider, &QSlider::valueChanged, this, setSpeedFun);
+  connect(m_slider, &QSlider::valueChanged, this, setSpeedFun);
 }
 
 SpeedWidget::~SpeedWidget() {}
+
+void SpeedWidget::setInterval(const IntervalModel& m)
+{
+  if(m_model)
+  {
+    QObject::disconnect(&m_model->duration, nullptr, this, nullptr);
+  }
+
+  m_model = &m;
+  m_slider->setValue(m.duration.speed() * 100.);
+
+  con(m.duration, &IntervalDurations::speedChanged, this, [=](double s) {
+    double r = s * 100;
+    if (!qFuzzyCompare(r, m_slider->value()))
+      m_slider->setValue(r);
+  });
 }
 
+void SpeedWidget::unsetInterval()
+{
+  if(m_model)
+  {
+    QObject::disconnect(&m_model->duration, nullptr, this, nullptr);
+  }
 
-QSize Scenario::SpeedWidget::sizeHint() const
+  m_model = nullptr;
+}
+
+QSize SpeedWidget::sizeHint() const
 {
   auto sz = QWidget::sizeHint();
   sz.setWidth(200);
   return sz;
 }
+}
+
+
