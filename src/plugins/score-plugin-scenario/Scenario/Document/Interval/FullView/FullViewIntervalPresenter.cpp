@@ -628,6 +628,9 @@ TimeVal FullViewIntervalPresenter::magneticPosition(const QObject* o, TimeVal t)
   {
     if(o == &m_model)
     {
+      if(!m_model.hasTimeSignature())
+        return t;
+
       break;
     }
     else

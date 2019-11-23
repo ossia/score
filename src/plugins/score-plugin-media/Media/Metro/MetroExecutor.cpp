@@ -55,10 +55,13 @@ public:
   {
     if (tk.forward())
     {
+      double musical_tick_duration = tk.musical_end_position - tk.musical_start_position;
+      if(musical_tick_duration == 0)
+        return;
+
       if(tk.musical_end_last_bar != tk.musical_start_last_bar || tk.prev_date == 0_tv)
       {
         // There is a bar change in this tick, start the hi sound
-        double musical_tick_duration = tk.musical_end_position - tk.musical_start_position;
         double musical_bar_start = tk.musical_end_last_bar - tk.musical_start_position;
         int64_t samples_tick_duration = tk.physical_write_duration(st.modelToSamples());
         if(samples_tick_duration > 0)
@@ -87,7 +90,6 @@ public:
           // There is a quarter change in this tick, start the lo sound
           // start_position is prev_date
           // end_position is date
-          double musical_tick_duration = tk.musical_end_position - tk.musical_start_position;
           double musical_bar_start = (end_quarter + tk.musical_start_last_bar) - tk.musical_start_position;
           int64_t samples_tick_duration = tk.physical_write_duration(st.modelToSamples());
           if(samples_tick_duration > 0)
