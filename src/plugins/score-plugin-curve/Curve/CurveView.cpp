@@ -93,7 +93,13 @@ void View::contextMenuEvent(QGraphicsSceneContextMenuEvent* ev)
   contextMenuRequested(ev->screenPos(), ev->scenePos());
 }
 
-void View::setRect(const QRectF& theRect)
+void View::setDefaultWidth(double w) noexcept
+{
+  m_defaultW = w;
+  update();
+}
+
+void View::setRect(const QRectF& theRect) noexcept
 {
   prepareGeometryChange();
   m_rect = theRect;
@@ -117,10 +123,10 @@ void View::setValueTooltip(QPointF pos, const QString& s) noexcept
     // Compute position
     auto textrect = getTextRect(m_tooltip);
 
-    QPointF pos = QPointF{m_tooltipPos.x() * m_rect.width(),
+    QPointF pos = QPointF{m_tooltipPos.x() * m_defaultW,
                           (1. - m_tooltipPos.y()) * m_rect.height()};
     pos += {10., 10.};
-    if (pos.x() + textrect.width() > 0.95 * m_rect.width())
+    if (pos.x() + textrect.width() > 0.95 * m_defaultW)
     {
       pos.rx() -= (textrect.width() + 20);
     }

@@ -6,6 +6,7 @@
 #include <Process/ProcessMimeSerialization.hpp>
 #include <Process/Style/ScenarioStyle.hpp>
 #include <Scenario/Application/Menus/ScenarioCopy.hpp>
+#include <Scenario/Document/Interval/FullView/FullViewIntervalPresenter.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/Interval/IntervalPresenter.hpp>
 #include <Scenario/Document/Interval/IntervalView.hpp>
@@ -279,20 +280,21 @@ AmovibleSlotFooter::AmovibleSlotFooter(
     int slotIndex,
     QGraphicsItem* parent):
   SlotFooter{slotView, slotIndex, parent}
+, m_fullView{qobject_cast<const FullViewIntervalPresenter*>(&m_presenter)}
 {
   this->setCursor(Qt::SizeVerCursor);
 }
 
 void AmovibleSlotFooter::mousePressEvent(QGraphicsSceneMouseEvent* event)
 {
-  if(m_presenter.model().smallViewVisible())
+  if(m_presenter.model().smallViewVisible() || m_fullView)
     m_presenter.pressed(event->scenePos());
   event->accept();
 }
 
 void AmovibleSlotFooter::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 {
-  if(m_presenter.model().smallViewVisible())
+  if(m_presenter.model().smallViewVisible() || m_fullView)
   {
     static bool moving = false;
 
@@ -313,7 +315,7 @@ void AmovibleSlotFooter::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 
 void AmovibleSlotFooter::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 {
-  if(m_presenter.model().smallViewVisible())
+  if(m_presenter.model().smallViewVisible() || m_fullView)
     m_presenter.released(event->scenePos());
 
   event->accept();

@@ -80,6 +80,7 @@ public:
   {
     m_view->setWidth(width);
     m_curve.view().setRect(m_view->boundingRect());
+    m_curve.view().setDefaultWidth(defaultWidth);
   }
 
   void setHeight(qreal height) final override
@@ -112,7 +113,9 @@ public:
     QRectF rect = m_view->boundingRect(); // for the height
     m_curve.view().setRect(rect);
 
-    rect.setWidth(m_layer.duration().toPixels(m_zoomRatio));
+    const auto dw = m_layer.duration().toPixels(m_zoomRatio);
+    m_curve.view().setDefaultWidth(dw);
+    rect.setWidth(dw);
     m_curve.setRect(rect);
   }
 

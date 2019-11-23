@@ -272,7 +272,7 @@ struct ComboBox final : ossia::safe_nodes::control_in, WidgetFactory::ComboBox
 {
   static const constexpr bool must_validate = false;
   using type = T;
-  using port_type = Process::ControlInlet;
+  using port_type = Process::ComboBox;
   const std::size_t init{};
   const std::array<std::pair<const char*, T>, N> values;
 
@@ -287,11 +287,11 @@ struct ComboBox final : ossia::safe_nodes::control_in, WidgetFactory::ComboBox
 
   auto create_inlet(Id<Process::Port> id, QObject* parent) const
   {
-    auto p = new Process::ControlInlet(id, parent);
-    p->type = Process::PortType::Message;
-    p->setValue(values[init].second);
-    p->setCustomData(QString::fromUtf8(name.data(), name.size()));
-    return p;
+    std::vector<std::pair<QString, ossia::value>> vec;
+    for(auto& v : values)
+      vec.emplace_back(v.first, v.second);
+
+    return new Process::ComboBox(vec, values[init].second, QString::fromUtf8(name.data(), name.size()), id, parent);
   }
 
   T fromValue(const ossia::value& v) const { return ossia::convert<T>(v); }

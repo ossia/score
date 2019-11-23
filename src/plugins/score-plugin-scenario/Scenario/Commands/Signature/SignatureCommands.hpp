@@ -4,14 +4,14 @@
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 
-
 #include <score/command/Command.hpp>
+#include <score/command/PropertyCommand.hpp>
 #include <score/model/path/Path.hpp>
 #include <score/model/path/PathSerialization.hpp>
 #include <score/serialization/MapSerialization.hpp>
+
 namespace Scenario
 {
-class IntervalModel;
 namespace Command
 {
 class SetTimeSignatures final : public score::Command
@@ -59,5 +59,10 @@ private:
   TimeSignatureMap m_oldVal;
   TimeSignatureMap m_newVal;
 };
+
+using IntervalModel = ::Scenario::IntervalModel;
 }
 }
+
+PROPERTY_COMMAND_T(Scenario::Command, SetHasTimeSignature, IntervalModel::p_timeSignature, "Change time signature")
+SCORE_COMMAND_DECL_T(Scenario::Command::SetHasTimeSignature)

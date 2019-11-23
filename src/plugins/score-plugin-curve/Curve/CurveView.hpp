@@ -25,7 +25,8 @@ public:
   explicit View(QGraphicsItem* parent) noexcept;
   ~View() override;
 
-  void setRect(const QRectF& theRect);
+  void setDefaultWidth(double w) noexcept;
+  void setRect(const QRectF& theRect) noexcept;
   QRectF boundingRect() const override;
 
   void paint(
@@ -72,5 +73,6 @@ private:
   QRectF m_selectArea;
   QPointF m_tooltipPos;
   QString m_tooltip;
+  double m_defaultW{};
 };
 }

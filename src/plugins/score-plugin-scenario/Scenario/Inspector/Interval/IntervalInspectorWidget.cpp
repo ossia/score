@@ -12,6 +12,7 @@
 #include <Scenario/Inspector/MetadataWidget.hpp>
 #include <Scenario/Inspector/SelectionButton.hpp>
 #include <Scenario/Process/ScenarioInterface.hpp>
+#include <Scenario/Commands/Signature/SignatureCommands.hpp>
 
 #include <score/document/DocumentContext.hpp>
 #include <score/widgets/MarginLess.hpp>
@@ -19,7 +20,7 @@
 #include <score/widgets/StyledButton.hpp>
 #include <score/widgets/StyleSheets.hpp>
 #include <score/widgets/TextLabel.hpp>
-
+#include <QCheckBox>
 namespace Scenario
 {
 IntervalInspectorWidget::IntervalInspectorWidget(
@@ -71,6 +72,18 @@ IntervalInspectorWidget::IntervalInspectorWidget(
   // Speed
   auto speedWidg = new SpeedWidget{m_model, ctx, true, true, this};
   lay->addRow(tr("Speed"), speedWidg);
+
+  // signature
+  auto sigWidg = new QCheckBox{this};
+  sigWidg->setChecked(this->m_model.hasTimeSignature());
+  lay->addRow(tr("Time signature"), sigWidg);
+  connect(sigWidg, &QCheckBox::toggled,
+          this, [=] (bool b) {
+    if(b != this->m_model.hasTimeSignature())
+    {
+      this->commandDispatcher()->submit<Command::SetHasTimeSignature>(m_model, b);
+    }
+  });
 
   // Durations
   auto& ctrl = ctx.app.guiApplicationPlugin<ScenarioApplicationPlugin>();

@@ -181,6 +181,9 @@ FullViewIntervalPresenter::FullViewIntervalPresenter(
   con(m_model, &IntervalModel::timeSignaturesChanged, this, [=] {
     updateTimeBars();
   });
+  con(m_model, &IntervalModel::hasTimeSignatureChanged, this, [=] {
+    updateTimeBars();
+  });
   ::bind(settings, Settings::Model::p_MeasureBars{}, this, [=] (bool show) {
     for(auto& bar : this->m_timebars->lightBars) bar.setVisible(show);
     for(auto& bar : this->m_timebars->lighterBars) bar.setVisible(show);
@@ -653,6 +656,9 @@ TimeVal FullViewIntervalPresenter::magneticPosition(const QObject* o, TimeVal t)
     }
   }
 
+  if(!o)
+    return t;
+
   // Find leftmost signature
   const double msecs = (t + timeDelta).msec();
   const auto& sig = m_model.timeSignatureMap();
@@ -825,6 +831,7 @@ void FullViewIntervalPresenter::updateTimeBars()
       {
         bar.setVisible(false);
       }
+      this->m_timebars->timebar.setVisible(false);
     }
     return;
   }
@@ -841,6 +848,7 @@ void FullViewIntervalPresenter::updateTimeBars()
       {
         bar.setVisible(true);
       }
+      this->m_timebars->timebar.setVisible(true);
     }
   }
 
