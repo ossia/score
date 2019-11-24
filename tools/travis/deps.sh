@@ -34,7 +34,7 @@ case "$TRAVIS_OS_NAME" in
         qt513base qt513declarative \
         libgl1-mesa-dev \
         libavcodec-dev libavutil-dev libavfilter-dev libavformat-dev libswresample-dev \
-        portaudio19-dev clang-8 lld-8 \
+        portaudio19-dev clang-9 lld-9 \
         libbluetooth-dev \
         libsdl2-dev libsdl2-2.0-0 libglu1-mesa-dev libglu1-mesa \
         libgles2-mesa-dev \
