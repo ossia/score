@@ -62,7 +62,8 @@ before_install:
 - "./tools/travis/deps.sh"
 
 script:
-- travis_wait 30 bash ./tools/travis/build.sh
+- "./tools/travis/build.sh"
+# - travis_wait 30 bash ./tools/travis/build.sh
 
 after_success:
 - "./tools/travis/deploy.sh"
