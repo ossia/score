@@ -1,5 +1,5 @@
 #include <Media/Sound/SoundModel.hpp>
-
+#include <QRegularExpression>
 
 #include <wobjectimpl.h>
 
@@ -32,7 +32,25 @@ ProcessModel::~ProcessModel() {}
 
 double estimateTempo(const AudioFile& file)
 {
-  // TODO
+  auto handle = file.unsafe_handle();
+  if (auto file = handle.target<AudioFile::MmapReader>())
+  {
+    auto acid = file->wav.acid();
+    if(acid.tempo != 0.f) {
+     return acid.tempo;
+    }
+  }
+
+  auto path = file.absoluteFileName();
+  static const QRegularExpression e{"([0-9]+) ?(bpm|BPM|Bpm)"};
+  const auto res = e.match(path);
+  if(res.isValid())
+  {
+    qDebug() << res.captured(1);
+    return res.captured(1).toInt();
+  }
+
+  // Return current tempo ? Ask the user ?
   return 120.;
 }
 

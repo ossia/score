@@ -47,6 +47,11 @@ InspectorWidget::InspectorWidget(
     if(m_mode.currentIndex() != (int) v)
       m_mode.setCurrentIndex((int) v);
   });
+  ::bind(process(), Sound::ProcessModel::p_nativeTempo{}, this, [&](double t) {
+    if(m_tempo.value() != t)
+      m_tempo.setValue(t);
+  });
+
   con(process(), &Sound::ProcessModel::fileChanged, this, [&] {
     m_edit.setText(object.file()->originalFile());
   });
@@ -55,7 +60,7 @@ InspectorWidget::InspectorWidget(
     m_dispatcher.submit(new ChangeAudioFile(object, m_edit.text()));
   });
   con(m_start, &QSpinBox::editingFinished, this, [&]() {
-    if(m_upmix.value() != process().startChannel())
+    if(m_start.value() != process().startChannel())
     m_dispatcher.submit(new ChangeStart(object, m_start.value()));
   });
   con(m_upmix, &QSpinBox::editingFinished, this, [&]() {
@@ -66,11 +71,16 @@ InspectorWidget::InspectorWidget(
     if(idx != (int) process().stretchMode())
       m_dispatcher.submit(new ChangeStretchMode(object, (ossia::audio_stretch_mode)idx));
   });
+  con(m_tempo, &score::SpinBox<double>::editingFinished, this, [&]() {
+    if(m_tempo.value() != process().nativeTempo())
+      m_dispatcher.submit(new ChangeTempo(object, m_tempo.value()));
+  });
 
   lay->addRow(tr("Path"), &m_edit);
   lay->addRow(tr("Stretch mode"), &m_mode);
   lay->addRow(tr("Start channel"), &m_start);
   lay->addRow(tr("Upmix channels"), &m_upmix);
+  lay->addRow(tr("File tempo"), &m_tempo);
   this->setLayout(lay);
 }
 }
