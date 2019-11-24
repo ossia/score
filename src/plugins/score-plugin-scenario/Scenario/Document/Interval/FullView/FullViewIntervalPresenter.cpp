@@ -35,6 +35,7 @@
 #include <score/graphics/GraphicsItem.hpp>
 #include <score/tools/Bind.hpp>
 #include <ossia/detail/algorithms.hpp>
+#include <ossia/detail/flicks.hpp>
 #include <Scenario/Settings/ScenarioSettingsModel.hpp>
 #include <QGraphicsScene>
 #include <QGraphicsView>
@@ -733,7 +734,7 @@ static void draw_main_bars(const TimeSignatureMap& measures, LightBars& bars, Ti
         const auto sig_upper = last_before->second.upper;
         const auto sig_lower = last_before->second.lower;
 
-        const double tempo = 120.;
+        const double tempo = ossia::root_tempo;
 
         // Duration of a quarter note in milliseconds
         const double quarter = 60000. / tempo;
@@ -874,7 +875,7 @@ void FullViewIntervalPresenter::updateTimeBars()
   const double pixels_width_min = 30.;
 
 //  const double tempo = this->m_model.hasTempo() ? this->m_model.tempoCurve()->;
-  const double tempo = 120.;
+  const double tempo = ossia::root_tempo;
 
 
   // Duration of a quarter note in milliseconds

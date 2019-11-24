@@ -21,7 +21,7 @@ TempoProcess::TempoProcess(
         Id<Curve::SegmentModel>(1), m_curve);
 
   s1->setStart({0., (120. - this->min) / (this->max - this->min)});
-  s1->setEnd({1., (100. - this->min) / (this->max - this->min)});
+  s1->setEnd({1., (120. - this->min) / (this->max - this->min)});
 
   m_curve->addSegment(s1);
 
