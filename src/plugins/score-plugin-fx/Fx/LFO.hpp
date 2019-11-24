@@ -259,7 +259,7 @@ struct Node
     type_item.root.setPos(c0, h);
     type_item.control.rows = 2;
     type_item.control.columns = 4;
-    type_item.control.setRect(QRectF{0, 0, 150, 40});
+    type_item.control.setRect(QRectF{0, 0, 136, 48});
     type_item.control.setPos(10, 0);
     type_item.port.setPos(0, 17);
 

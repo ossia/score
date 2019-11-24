@@ -151,7 +151,7 @@ public:
 
   Process::Inlet* make(Id<Process::Port>&& id, QObject* parent) override
   {
-    return new Process::Enum{m_choices, current(), objectName(), id, parent};
+    return new Process::Enum{m_choices, {}, current(), objectName(), id, parent};
   }
 
   auto getValues() const { return choices(); }

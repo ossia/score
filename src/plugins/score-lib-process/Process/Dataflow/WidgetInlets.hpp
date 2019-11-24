@@ -294,13 +294,15 @@ struct Enum : public Process::ControlInlet
   using base_type = Process::ControlInlet;
   using control_type = WidgetFactory::Enum;
   QStringList values;
+  std::vector<QString> pixmaps;
   Enum(
       const ossia::flat_set<std::string>& dom,
+      std::vector<QString> pixmaps,
       std::string init,
       const QString& name,
       Id<Process::Port> id,
       QObject* parent)
-      : ControlInlet{id, parent}
+      : ControlInlet{id, parent}, pixmaps{pixmaps}
   {
     for (auto& val : dom)
       values.push_back(QString::fromStdString(val));
@@ -314,11 +316,12 @@ struct Enum : public Process::ControlInlet
 
   Enum(
       const QStringList& values,
+      std::vector<QString> pixmaps,
       std::string init,
       const QString& name,
       Id<Process::Port> id,
       QObject* parent)
-      : ControlInlet{id, parent}, values{values}
+    : ControlInlet{id, parent}, values{values}, pixmaps{pixmaps}
   {
     type = Process::PortType::Message;
     hidden = true;

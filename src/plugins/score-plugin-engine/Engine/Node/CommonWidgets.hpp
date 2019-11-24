@@ -99,7 +99,18 @@ static constexpr auto WaveformChooser()
           "Sample & Hold",
           "Noise 1",
           "Noise 2",
-          "Noise 3"));
+          "Noise 3"),
+      std::array<const char*, 16>{
+          ":/icons/waves/sin_off.png",             ":/icons/waves/sin_on.png",
+          ":/icons/waves/triangle_off.png",        ":/icons/waves/triangle_on.png",
+          ":/icons/waves/saw_off.png",             ":/icons/waves/saw_on.png",
+          ":/icons/waves/square_off.png",          ":/icons/waves/square_on.png",
+          ":/icons/waves/sample_and_hold_off.png", ":/icons/waves/sample_and_hold_on.png",
+          ":/icons/waves/noise1_off.png",          ":/icons/waves/noise1_on.png",
+          ":/icons/waves/noise2_off.png",          ":/icons/waves/noise2_on.png",
+          ":/icons/waves/noise3_off.png",          ":/icons/waves/noise3_on.png"
+      }
+        );
 }
 constexpr auto QuantificationChooser()
 {

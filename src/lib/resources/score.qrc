@@ -342,6 +342,38 @@
         <file>icons/music_off@2x.png</file>
         <file>icons/music_on.png</file>
         <file>icons/music_on@2x.png</file>
+        <file>icons/waves/noise1_off.png</file>
+        <file>icons/waves/noise1_on.png</file>
+        <file>icons/waves/noise2_off.png</file>
+        <file>icons/waves/noise2_on.png</file>
+        <file>icons/waves/noise3_off.png</file>
+        <file>icons/waves/noise3_on.png</file>
+        <file>icons/waves/sample_and_hold_off.png</file>
+        <file>icons/waves/sample_and_hold_on.png</file>
+        <file>icons/waves/saw_off.png</file>
+        <file>icons/waves/saw_on.png</file>
+        <file>icons/waves/sin_off.png</file>
+        <file>icons/waves/sin_on.png</file>
+        <file>icons/waves/square_off.png</file>
+        <file>icons/waves/square_on.png</file>
+        <file>icons/waves/saw_on@2x.png</file>
+        <file>icons/waves/sample_and_hold_on@2x.png</file>
+        <file>icons/waves/square_on@2x.png</file>
+        <file>icons/waves/saw_off@2x.png</file>
+        <file>icons/waves/sample_and_hold_off@2x.png</file>
+        <file>icons/waves/square_off@2x.png</file>
+        <file>icons/waves/noise3_on@2x.png</file>
+        <file>icons/waves/noise2_on@2x.png</file>
+        <file>icons/waves/noise1_on@2x.png</file>
+        <file>icons/waves/triangle_on@2x.png</file>
+        <file>icons/waves/sin_on@2x.png</file>
+        <file>icons/waves/sin_off@2x.png</file>
+        <file>icons/waves/triangle_off@2x.png</file>
+        <file>icons/waves/noise1_off@2x.png</file>
+        <file>icons/waves/noise2_off@2x.png</file>
+        <file>icons/waves/noise3_off@2x.png</file>
+        <file>icons/waves/triangle_on.png</file>
+        <file>icons/waves/triangle_off.png</file>
     </qresource>
     <qresource prefix="/qss_icons">
         <file>rc/up_arrow_disabled.png</file>
