@@ -53,6 +53,15 @@ static const constexpr std::array<std::pair<const char*, float>, 12>
                    {"Dotted 16th", 3. / 32.},
                    {"Dotted 32th", 3. / 64.}}};
 
+static const constexpr std::array<std::pair<const char*, int>, 5>
+  arpeggios{{
+      {"Forward", 0},
+      {"Backward", 1},
+      {"F->B", 2},
+      {"B->F", 3},
+      {"Chord", 4}
+ }};
+
 enum Waveform
 {
   Sin,
@@ -96,6 +105,11 @@ constexpr auto QuantificationChooser()
 {
   return Control::ComboBox<float, std::size(notes)>(
       "Quantification", 2, notes);
+}
+constexpr auto ArpeggioChooser()
+{
+  return Control::ComboBox<int, std::size(arpeggios)>(
+        "Arpeggios", 0, arpeggios);
 }
 
 constexpr auto MusicalDurationChooser()

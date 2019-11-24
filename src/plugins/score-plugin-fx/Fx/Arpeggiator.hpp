@@ -24,28 +24,30 @@ struct Node
     static const constexpr midi_in midi_ins[]{"in"};
     static const constexpr midi_out midi_outs[]{"out"};
     static const constexpr auto controls = std::make_tuple(
-        Control::FloatSlider("Spacing", 0, 8, 1),
-        Control::FloatSlider("Tempo", 60, 300, 120),
-        Control::IntSlider("Quantification", 1, 32, 8),
-        Control::IntSlider("Duration", 1, 32, 16));
+        Control::Widgets::ArpeggioChooser(),
+        Control::IntSlider("Octave", 1, 7, 1),
+        Control::IntSlider("Quantification", 1, 32, 8)
+    );
   };
+
+  using byte = unsigned char;
+  using chord = ossia::small_vector<std::pair<byte, byte>, 5>;
 
   struct State
   {
-    ossia::flat_set<int> notes;
-    std::array<int, 127> notesMap;
+    ossia::flat_map<byte, byte> notes;
+    ossia::small_vector<chord, 10> arpeggio;
 
-    int lastnote{};
+    chord previous_chord;
     int index{};
   };
 
   using control_policy = ossia::safe_nodes::precise_tick;
   static void
   run(const ossia::midi_port& midi,
-      float spacing,
-      float tempo,
+      int arpeggio,
+      float octave,
       int quantif,
-      int duration,
       ossia::midi_port& out,
       ossia::token_request tk,
       ossia::exec_state_facade st,
@@ -59,7 +61,7 @@ struct Node
       {
         if (note.get_message_type() == rtmidi::message_type::NOTE_ON)
         {
-          self.notes.insert(note.bytes[1]);
+          self.notes.insert({note.bytes[1], note.bytes[2]});
         }
         else if (note.get_message_type() == rtmidi::message_type::NOTE_OFF)
         {
@@ -67,58 +69,93 @@ struct Node
         }
       }
 
-      // Compute for all octaves
-      for (std::size_t i = 0; i < self.notesMap.size(); ++i)
+      auto notes_to_arpeggio = [&] (int size_mult) {
+        self.arpeggio.clear();
+        self.arpeggio.reserve(self.notes.container.size() * size_mult);
+        for(std::pair note : self.notes.container)
+        {
+          self.arpeggio.push_back(chord{note});
+        }
+      };
+
+      switch(arpeggio)
       {
-        self.notesMap[i] = self.notes.container[i % self.notes.size()]
-                           + std::floor(i / self.notes.size()) * 12;
+        case 0:
+          notes_to_arpeggio(1);
+          break;
+        case 1:
+          notes_to_arpeggio(1);
+          std::reverse(self.arpeggio.begin(), self.arpeggio.end());
+          break;
+        case 2:
+          notes_to_arpeggio(2);
+          self.arpeggio.insert(self.arpeggio.end(), self.arpeggio.begin(), self.arpeggio.end());
+          std::reverse(self.arpeggio.begin() + self.notes.container.size(), self.arpeggio.end());
+          break;
+        case 3:
+          notes_to_arpeggio(2);
+          self.arpeggio.insert(self.arpeggio.end(), self.arpeggio.begin(), self.arpeggio.end());
+          std::reverse(self.arpeggio.begin(), self.arpeggio.begin() + self.notes.container.size());
+          break;
+        case 4:
+          self.arpeggio.clear();
+          self.arpeggio.resize(1);
+          for(std::pair note : self.notes.container)
+          {
+            self.arpeggio[0].push_back(note);
+          }
+          break;
+      }
+
+      std::size_t orig_size = self.arpeggio.size();
+
+      for(int i = 1; i < octave; i++)
+      {
+        for(std::size_t j = 0; j < orig_size; j++)
+        {
+          self.arpeggio.push_back(self.arpeggio[j]);
+          for(std::pair<byte,byte>& note : self.arpeggio.back())
+            note.first *= octave;
+        }
       }
     }
 
-    // We have to have a rhythmic cursor which outputs notes at a regular pace.
-    // Check if we are in the interval for outputting a note.
-    auto whole_samples = (240.f / tempo) * st.sampleRate();
+    if(self.arpeggio.empty())
     {
-      auto period = whole_samples / quantif; // durée d'une note de l'arpège
-      auto next
-          = period
-            * std::floor(
-                  1 + tk.prev_date.impl * st.modelToSamples() / period); // date de la prochaine note qui
-                                              // doit être envoyée
-      if (next < tk.date.impl * st.modelToSamples())
+      if(!self.previous_chord.empty())
       {
-        out.messages.push_back(rtmidi::message::note_off(1, self.lastnote, 0));
-
-        // Send a note: have an index that goes around the array of notes.
-        // We are centered on the middle of the availble notes:
-        // - spacing == 0 -> the middlest note (closest to 64)
-        // - spacing == 1 -> ~1 octave
-        // etc..
-
-        int min_note = self.notesMap.size() / 2 - 3 * spacing;
-        int max_note = self.notesMap.size() / 2 + 3 * spacing;
-
-        self.index = (self.index + 1) % (max_note - min_note);
-
-        auto newnote = self.notesMap[self.index];
-
-        int velocity = 64; // todo take average instead
-        out.messages.push_back(rtmidi::message::note_on(1, newnote, velocity));
-        self.lastnote = newnote;
+        for(auto& note : self.previous_chord)
+          out.messages.push_back(rtmidi::message::note_off(1, note.first, 0));
+        self.previous_chord.clear();
       }
-      else
+
+      return;
+    }
+
+    if(self.index > self.arpeggio.size())
+      self.index = 0;
+
+    if(auto date = tk.get_quantification_date(quantif))
+    {
+      // Finish previous notes
+      for(auto& note : self.previous_chord)
       {
-        // durée max d'une note
-        auto period = whole_samples / duration;
-        auto next = period * (1 + tk.prev_date.impl * st.modelToSamples() / period);
-        if (next < tk.date.impl * st.modelToSamples())
-        {
-          // date de la prochaine note qui doit être coupée
-
-          out.messages.push_back(
-              rtmidi::message::note_off(1, self.lastnote, 64));
-        }
+        out.messages.push_back(rtmidi::message::note_off(1, note.first, 0));
       }
+      self.previous_chord.clear();
+
+      // Start the next note in the chord
+      auto& chord = self.arpeggio[self.index];
+
+      for(auto& note : chord)
+      {
+        out.messages.push_back(rtmidi::message::note_on(1, note.first, note.second));
+      }
+
+      // New chord to stop
+      self.previous_chord = chord;
+
+      self.index = (self.index + 1) % (self.arpeggio.size());
     }
   }
 };
