@@ -686,7 +686,10 @@ struct Enum
   {
     const auto& values = slider.getValues();
     using val_t = std::remove_reference_t<decltype(values[0])>;
-    auto sl = new score::QGraphicsEnum{values, nullptr};
+
+    auto sl = slider.pixmaps.empty() || slider.pixmaps[0] == nullptr
+        ? new score::QGraphicsEnum{values, nullptr}
+        : (score::QGraphicsEnum*)new score::QGraphicsPixmapEnum{values, slider.pixmaps, nullptr};
 
     auto set_index = [values, sl](const ossia::value& val) {
       auto v = ossia::convert<std::string>(val);

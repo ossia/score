@@ -305,12 +305,20 @@ struct EnumBase : ossia::safe_nodes::control_in, WidgetFactory::Enum
   using port_type = Process::Enum;
   const std::size_t init{};
   const ArrT values;
+  using Pixmaps_T = std::array<const char *, 2 * ArrT{}.size()>;
+  Pixmaps_T pixmaps;
 
   const auto& getValues() const { return values; }
 
   template <std::size_t N1>
   constexpr EnumBase(const char (&name)[N1], std::size_t i, const ArrT& v)
-      : ossia::safe_nodes::control_in{name}, init{i}, values{v}
+    : ossia::safe_nodes::control_in{name}, init{i}, values{v}, pixmaps{}
+  {
+  }
+
+  template <std::size_t N1>
+  constexpr EnumBase(const char (&name)[N1], std::size_t i, const ArrT& v, const Pixmaps_T& pixmaps)
+    : ossia::safe_nodes::control_in{name}, init{i}, values{v}, pixmaps{pixmaps}
   {
   }
 
@@ -322,11 +330,12 @@ struct EnumBase : ossia::safe_nodes::control_in, WidgetFactory::Enum
   auto create_inlet(Id<Process::Port> id, QObject* parent) const
   {
     return new Process::Enum{
-        ossia::flat_set<std::string>(values.begin(), values.end()),
-        values[init],
-        QString::fromUtf8(name.data(), name.size()),
-        id,
-        parent};
+      ossia::flat_set<std::string>(values.begin(), values.end()),
+      pixmaps[0] == nullptr ? std::vector<QString>{} : std::vector<QString>{pixmaps.begin(), pixmaps.end()},
+      values[init],
+      QString::fromUtf8(name.data(), name.size()),
+      id,
+      parent};
   }
 };
 
@@ -405,6 +414,11 @@ template <typename T1, typename T2>
 constexpr auto make_enum(const T1& t1, std::size_t s, const T2& t2)
 {
   return Control::Enum<T2>(t1, s, t2);
+}
+template <typename T1, typename T2, typename Pixmaps_T>
+constexpr auto make_enum(const T1& t1, std::size_t s, const T2& t2, const Pixmaps_T& pixmaps)
+{
+  return Control::Enum<T2>(t1, s, t2, pixmaps);
 }
 template <typename T1, typename T2>
 constexpr auto make_unvalidated_enum(const T1& t1, std::size_t s, const T2& t2)
