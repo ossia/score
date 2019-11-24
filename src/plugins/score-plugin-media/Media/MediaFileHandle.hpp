@@ -147,6 +147,8 @@ public:
   // Note : this is a copy, because it's not thread safe.
   ViewHandle handle() const noexcept { return m_impl; }
 
+  const Handle& unsafe_handle() const noexcept { return m_impl; }
+
 private:
   void load_ffmpeg(int rate);
   void load_drwav();

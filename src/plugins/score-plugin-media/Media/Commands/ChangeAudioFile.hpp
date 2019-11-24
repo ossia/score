@@ -51,6 +51,12 @@ PROPERTY_COMMAND_T(
     ChangeStretchMode,
     Sound::ProcessModel::p_stretchMode,
     "Change stretch mode")
+PROPERTY_COMMAND_T(
+    Media,
+    ChangeTempo,
+    Sound::ProcessModel::p_nativeTempo,
+    "Change file tempo")
 SCORE_COMMAND_DECL_T(Media::ChangeStart)
 SCORE_COMMAND_DECL_T(Media::ChangeUpmix)
+SCORE_COMMAND_DECL_T(Media::ChangeTempo)
 SCORE_COMMAND_DECL_T(Media::ChangeStretchMode)

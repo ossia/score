@@ -8,6 +8,7 @@
 #include <QLineEdit>
 #include <QSpinBox>
 #include <QComboBox>
+#include <score/widgets/SpinBoxes.hpp>
 
 namespace Media
 {
@@ -28,6 +29,8 @@ private:
   QSpinBox m_start;
   QSpinBox m_upmix;
   QComboBox m_mode;
+
+  score::SpinBox<double> m_tempo;
 };
 }
 }

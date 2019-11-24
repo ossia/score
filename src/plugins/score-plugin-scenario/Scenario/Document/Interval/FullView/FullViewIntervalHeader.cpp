@@ -23,7 +23,7 @@ class QWidget;
 
 namespace Scenario
 {
-static constexpr qreal fullViewHeaderBarX = 55.;
+static constexpr qreal fullViewHeaderBarX = 5.;
 static constexpr qreal fullViewHeaderBarY = 2.;
 FullViewIntervalHeader::FullViewIntervalHeader(
     const score::DocumentContext& ctx,
