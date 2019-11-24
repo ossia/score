@@ -260,11 +260,11 @@ static QPixmap writeVersionName()
   painter.setRenderHint(QPainter::TextAntialiasing, true);
   painter.setRenderHint(QPainter::HighQualityAntialiasing, true);
   painter.setPen(QPen(QColor("#0092CF")));
-  QFont f("Ubuntu", 8, QFont::Light);
+  QFont f("Ubuntu", 14, QFont::Light);
   f.setHintingPreference(QFont::HintingPreference::PreferFullHinting);
   f.setStyleStrategy(QFont::PreferAntialias);
   painter.setFont(f);
-  painter.drawText(QPointF(270, 265), QCoreApplication::applicationVersion());
+  painter.drawText(QPointF(250, 170), QCoreApplication::applicationVersion());
   painter.end();
 
   return QPixmap::fromImage(pixmap);
