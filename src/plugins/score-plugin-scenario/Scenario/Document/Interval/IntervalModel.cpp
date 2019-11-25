@@ -234,7 +234,10 @@ void IntervalModel::stopExecution()
 {
   m_executing = false;
   executingChanged(false);
-  duration.setSpeed(1.0);
+
+  if(!m_hasSignature)
+    duration.setSpeed(1.0);
+
   for (Process::ProcessModel& proc : processes)
   {
     proc.stopExecution();
@@ -244,7 +247,9 @@ void IntervalModel::stopExecution()
 void IntervalModel::reset()
 {
   duration.setPlayPercentage(0);
-  duration.setSpeed(1.0);
+
+  if(!m_hasSignature)
+    duration.setSpeed(1.0);
 
   for (Process::ProcessModel& proc : processes)
   {

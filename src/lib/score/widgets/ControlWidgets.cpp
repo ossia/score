@@ -11,7 +11,7 @@
 #include <QStyle>
 #include <QStyleOptionButton>
 #include <QTimer>
-
+#include <ossia/detail/flicks.hpp>
 #include <cmath>
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(score::SearchLineEdit)
@@ -108,9 +108,15 @@ void SpeedSlider::paintEvent(QPaintEvent*)
 {
   QString text;
   text.reserve(16);
-  text += (showText) ? "speed: × " : "× ";
+  text += (tempo)
+        ? ""
+        : (showText) ? "speed: × " : "× ";
 
-  text += QString::number(double(value()) * 0.01, 'f', 2);
+  double v = double(value()) * 0.01;
+  if(tempo)
+    v *= ossia::root_tempo;
+
+  text += QString::number(v, 'f', 2);
   paintWithText(text);
 }
 
@@ -129,18 +135,34 @@ void SpeedSlider::mousePressEvent(QMouseEvent* ev)
       auto w = new score::DoubleSpinboxWithEnter;
       w->setWindowFlag(Qt::Tool);
       w->setWindowFlag(Qt::FramelessWindowHint);
-      w->setRange(-1., 5.);
-      w->setDecimals(2);
-      w->setValue(self.value() / 100.);
+      if(tempo)
+      {
+        w->setRange(20., 500.);
+        w->setDecimals(1);
+        w->setValue(120. * self.value() / 100.);
+
+        QObject::connect(
+            w,
+            SignalUtils::QDoubleSpinBox_valueChanged_double(),
+            &self,
+            [=, &self](double v) { self.setValue(v * 100. / 120.); });
+      }
+      else
+      {
+        w->setRange(-1., 5.);
+        w->setDecimals(2);
+        w->setValue(self.value() / 100.);
+
+        QObject::connect(
+            w,
+            SignalUtils::QDoubleSpinBox_valueChanged_double(),
+            &self,
+            [=, &self](double v) { self.setValue(v * 100.); });
+      }
+
       w->show();
       w->move(pos.x(), pos.y());
       QTimer::singleShot(5, w, [w] { w->setFocus(); });
-      QObject::connect(
-          w,
-          SignalUtils::QDoubleSpinBox_valueChanged_double(),
-          &self,
-          [=, &self](double v) { self.setValue(v * 100.); });
-
       QObject::connect(
           w,
           &DoubleSpinboxWithEnter::editingFinished,
