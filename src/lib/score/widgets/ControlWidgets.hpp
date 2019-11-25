@@ -39,6 +39,7 @@ public:
   SpeedSlider(QWidget* parent = nullptr);
   bool moving = false;
   bool showText = true;
+  bool tempo = false;
 
 protected:
   void paintEvent(QPaintEvent* event) override;
