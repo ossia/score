@@ -95,6 +95,19 @@ operator<<(QDataStream& stream, const std::string& obj);
 SCORE_LIB_BASE_EXPORT QDataStream&
 operator>>(QDataStream& stream, std::string& obj);
 
+#if (QT_VERSION < QT_VERSION_CHECK(5, 14, 0))
+template <typename T>
+typename std::enable_if<std::is_enum<T>::value, QDataStream &>::type&
+operator<<(QDataStream &s, const T &t)
+{ return s << static_cast<typename std::underlying_type<T>::type>(t); }
+
+template <typename T>
+typename std::enable_if<std::is_enum<T>::value, QDataStream &>::type&
+operator>>(QDataStream &s, T &t)
+{ return s >> reinterpret_cast<typename std::underlying_type<T>::type &>(t); }
+#endif
+
+
 class QIODevice;
 class QStringList;
 
@@ -409,6 +422,7 @@ template <
     typename T,
     std::enable_if_t<
         !std::is_arithmetic<T>::value
+        && !std::is_enum<T>::value
         && !std::is_same<T, QStringList>::value>* = nullptr>
 QDataStream& operator<<(QDataStream& stream, const T& obj)
 {
@@ -421,6 +435,7 @@ template <
     typename T,
     std::enable_if_t<
         !std::is_arithmetic<T>::value
+        && !std::is_enum<T>::value
         && !std::is_same<T, QStringList>::value>* = nullptr>
 QDataStream& operator>>(QDataStream& stream, T& obj)
 {
