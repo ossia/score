@@ -137,6 +137,22 @@ inline QDataStream& operator>>(QDataStream& s, int64_t& val)
   return s;
 }
 #endif
+
+#if (QT_VERSION >= QT_VERSION_CHECK(5, 14, 0))
+#if defined(__APPLE__)
+inline QDataStream& operator<<(QDataStream& s, std::size_t val)
+{
+  s << (quint64)val;
+  return s;
+}
+inline QDataStream& operator>>(QDataStream& s, std::size_t& val)
+{
+  s >> (quint64&)val;
+  return s;
+}
+#endif
+#endif
+
 template <typename T>
 DataStreamInput& operator<<(DataStreamInput& s, const T& obj)
 {

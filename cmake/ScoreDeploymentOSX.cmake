@@ -85,6 +85,9 @@ install(CODE "
     file(WRITE \"\${CMAKE_INSTALL_PREFIX}/${qtconf_dest_dir}/qt.conf\" \"[Paths]
 Plugins = PlugIns
 Qml2Imports = Resources/qml
+
+[Platforms]
+CocoaArguments=fontengine=freetype
 \")
 " )
 
