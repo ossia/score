@@ -9,6 +9,7 @@
 #include "vstwindow.h"
 #include <QApplication>
 #include <Media/Effect/VST/VSTEffectModel.hpp>
+#include <QDebug>
 
 namespace Media::VST
 {

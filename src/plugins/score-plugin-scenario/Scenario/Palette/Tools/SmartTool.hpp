@@ -28,17 +28,20 @@ class SmartTool final : public ToolBase<ToolPalette_T>
 public:
   SmartTool(ToolPalette_T& sm) : ToolBase<ToolPalette_T>{sm}
   {
+    auto sub = new QState{&this->localSM()};
+    sub->setChildMode(QState::ParallelStates);
+
     // Selection
     m_state = new SelectionState<ToolPalette_T, View_T>{
         this->m_palette.context().context.selectionStack,
         this->m_palette,
         this->m_palette.presenter().view(),
-        &this->localSM()};
+        sub};
 
-    // this->localSM().setInitialState(m_state);
+    this->localSM().setInitialState(sub);
 
     // Other actions; they are in //.
-    auto actionsState = new QState(&this->localSM());
+    auto actionsState = new QState(sub);
     {
       auto waitState = new QState(actionsState);
       actionsState->setInitialState(waitState);
@@ -86,7 +89,6 @@ public:
       resizeSlot->addTransition(resizeSlot, finishedState(), waitState);
     }
 
-    this->localSM().setChildMode(QState::ParallelStates);
     this->localSM().start();
   }
 

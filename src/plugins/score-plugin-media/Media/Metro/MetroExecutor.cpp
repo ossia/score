@@ -59,7 +59,7 @@ public:
                    [&] (int64_t hi_start_sample) {
         for(auto& sound : in_flight)
         {
-          sound.fade_total = std::min(500L, sound.dur - sound.pos);
+          sound.fade_total = std::min((int64_t)500, sound.dur - sound.pos);
           sound.fade_remaining = sound.fade_total;
         }
 
@@ -72,7 +72,7 @@ public:
       [&] (int64_t lo_start_sample) {
         for(auto& sound : in_flight)
         {
-          sound.fade_total = std::min(500L, sound.dur - sound.pos);
+          sound.fade_total = std::min((int64_t)500, sound.dur - sound.pos);
           sound.fade_remaining = sound.fade_total;
         }
 
