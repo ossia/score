@@ -7,6 +7,8 @@
 #include <Midi/MidiExecutor.hpp>
 #include <Midi/MidiFactory.hpp>
 #include <Process/Dataflow/Port.hpp>
+#include <Patternist/PatternFactory.hpp>
+#include <Patternist/PatternExecutor.hpp>
 
 #include <score/plugins/FactorySetup.hpp>
 
@@ -22,9 +24,19 @@ score_plugin_midi::factories(
 {
   return instantiate_factories<
       score::ApplicationContext,
-      FW<Process::ProcessModelFactory, Midi::ProcessFactory>,
-      FW<Process::LayerFactory, Midi::LayerFactory>,
-      FW<Execution::ProcessComponentFactory, Midi::Executor::ComponentFactory>,
+      FW<Process::ProcessModelFactory
+      , Midi::ProcessFactory
+      , Patternist::ProcessFactory
+      >,
+      FW<Process::LayerFactory
+      , Midi::LayerFactory
+      , Patternist::LayerFactory
+      >,
+      FW<
+      Execution::ProcessComponentFactory
+      , Midi::Executor::ComponentFactory
+      , Patternist::ExecutorFactory
+      >,
       FW<Process::ProcessDropHandler, Midi::DropHandler>,
       FW<Inspector::InspectorWidgetFactory, Midi::InspectorFactory>>(ctx, key);
 }
