@@ -2,7 +2,7 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include <Midi/MidiProcess.hpp>
 #include <Process/Dataflow/Port.hpp>
-
+#include <cmath>
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Midi::ProcessModel)
 
@@ -29,8 +29,12 @@ ProcessModel::~ProcessModel() {}
 
 void ProcessModel::setChannel(int n)
 {
-  m_channel = clamp(n, 1, 16);
-  channelChanged(n);
+  n = std::clamp(n, 1, 16);
+  if(n != m_channel)
+  {
+    m_channel = n;
+    channelChanged(n);
+  }
 }
 
 int ProcessModel::channel() const

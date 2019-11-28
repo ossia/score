@@ -1,16 +1,8 @@
 project(score_plugin_midi LANGUAGES CXX)
 
-if(IOS)
-  return()
-endif()
-if(ANDROID)
-  return()
-endif()
 if(NOT OSSIA_PROTOCOL_MIDI)
   return()
 endif()
-# Packages
-find_package(Qt5 5.3 REQUIRED COMPONENTS Core Widgets)
 
 # Files & main target
 set(HEADER_FILES
@@ -32,6 +24,16 @@ set(HEADER_FILES
   "${CMAKE_CURRENT_SOURCE_DIR}/Midi/MidiExecutor.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Midi/MidiStyle.hpp"
 
+  Patternist/PatternModel.hpp
+  Patternist/PatternView.hpp
+  Patternist/PatternPresenter.hpp
+  Patternist/PatternFactory.hpp
+  Patternist/PatternExecutor.hpp
+  Patternist/PatternMetadata.hpp
+  Patternist/PatternCommandFactory.hpp
+  Patternist/Commands/AddLane.hpp
+  Patternist/Commands/PatternProperties.hpp
+
   "${CMAKE_CURRENT_SOURCE_DIR}/score_plugin_midi.hpp"
   )
 
@@ -50,6 +52,12 @@ set(SOURCE_FILES
   "${CMAKE_CURRENT_SOURCE_DIR}/Midi/MidiNoteView.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Midi/MidiNote.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Midi/MidiExecutor.cpp"
+
+  Patternist/PatternModel.cpp
+  Patternist/PatternView.cpp
+  Patternist/PatternPresenter.cpp
+  Patternist/PatternFactory.cpp
+  Patternist/PatternExecutor.cpp
 
   "${CMAKE_CURRENT_SOURCE_DIR}/score_plugin_midi.cpp"
   )
