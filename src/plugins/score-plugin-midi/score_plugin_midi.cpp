@@ -9,6 +9,7 @@
 #include <Process/Dataflow/Port.hpp>
 #include <Patternist/PatternFactory.hpp>
 #include <Patternist/PatternExecutor.hpp>
+#include <Patternist/PatternInspector.hpp>
 
 #include <score/plugins/FactorySetup.hpp>
 
@@ -38,13 +39,17 @@ score_plugin_midi::factories(
       , Patternist::ExecutorFactory
       >,
       FW<Process::ProcessDropHandler, Midi::DropHandler>,
-      FW<Inspector::InspectorWidgetFactory, Midi::InspectorFactory>>(ctx, key);
+      FW<Inspector::InspectorWidgetFactory
+      , Midi::InspectorFactory
+      , Patternist::InspectorFactory
+      >>(ctx, key);
 }
 
 std::pair<const CommandGroupKey, CommandGeneratorMap>
 score_plugin_midi::make_commands()
 {
   using namespace Midi;
+  using namespace Patternist;
   std::pair<const CommandGroupKey, CommandGeneratorMap> cmds{
       Midi::CommandFactoryName(), CommandGeneratorMap{}};
 

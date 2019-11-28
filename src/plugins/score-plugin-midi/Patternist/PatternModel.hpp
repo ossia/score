@@ -60,6 +60,8 @@ public:
   void setCurrentPattern(int n);
   int currentPattern() const noexcept;
 
+
+  void setPattern(int n, Pattern p);
   void setPatterns(const std::vector<Pattern>& n);
   const std::vector<Pattern>& patterns() const noexcept;
 

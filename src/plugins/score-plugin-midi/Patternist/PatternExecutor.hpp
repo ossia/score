@@ -13,7 +13,7 @@ class Executor final
           ProcessComponent_T<Patternist::ProcessModel, ossia::node_process>,
       public Nano::Observer
 {
-  COMPONENT_METADATA("6d5334a5-7b8c-45df-9805-11d1b4472cdf")
+  COMPONENT_METADATA("77ddab97-b6b7-41e1-b294-81415d6c9d3e")
 public:
   static const constexpr bool is_unique = true;
   Executor(

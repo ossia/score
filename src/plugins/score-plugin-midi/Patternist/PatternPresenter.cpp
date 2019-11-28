@@ -1,7 +1,8 @@
 #include "PatternPresenter.hpp"
 #include "PatternView.hpp"
-
+#include <Patternist/Commands/PatternProperties.hpp>
 #include <Process/Focus/FocusDispatcher.hpp>
+#include <score/command/Dispatchers/CommandDispatcher.hpp>
 namespace Patternist
 {
 
@@ -18,6 +19,15 @@ Presenter::Presenter(
 
   connect(m_view, &View::pressed, this, [&]() {
     m_context.context.focusDispatcher.focus(this);
+  });
+  connect(m_view, &View::toggled, this, [&](int lane, int index) {
+    auto cur = m_layer.patterns()[m_layer.currentPattern()];
+    bool b = cur.lanes[lane].pattern[index];
+
+    cur.lanes[lane].pattern[index] = !b;
+
+    CommandDispatcher<> disp{m_context.context.commandStack};
+    disp.submit<UpdatePattern>(m_layer, m_layer.currentPattern(), cur);
   });
 }
 

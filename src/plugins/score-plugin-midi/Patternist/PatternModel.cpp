@@ -100,6 +100,12 @@ int ProcessModel::currentPattern() const noexcept
   return m_currentPattern;
 }
 
+void ProcessModel::setPattern(int n, Pattern p)
+{
+  m_patterns[n] = p;
+  patternsChanged();
+}
+
 
 void ProcessModel::setPatterns(const std::vector<Pattern>& n)
 {

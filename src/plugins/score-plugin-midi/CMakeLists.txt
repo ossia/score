@@ -31,6 +31,7 @@ set(HEADER_FILES
   Patternist/PatternExecutor.hpp
   Patternist/PatternMetadata.hpp
   Patternist/PatternCommandFactory.hpp
+  Patternist/PatternInspector.hpp
   Patternist/Commands/AddLane.hpp
   Patternist/Commands/PatternProperties.hpp
 

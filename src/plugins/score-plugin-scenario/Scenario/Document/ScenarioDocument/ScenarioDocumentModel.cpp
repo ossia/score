@@ -51,6 +51,7 @@ ScenarioDocumentModel::ScenarioDocumentModel(
   itv.metadata().setName(doc_metadata.fileName());
 
   itv.addSignature(TimeVal::zero(), {4,4});
+  itv.setHasTimeSignature(true);
 
   connect(
       &doc_metadata,
