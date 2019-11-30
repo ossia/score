@@ -135,12 +135,13 @@ struct Node
     if(self.index > self.arpeggio.size())
       self.index = 0;
 
-    if(auto date = tk.get_quantification_date(quantif))
+    if(auto date = tk.get_physical_quantification_date(quantif, st.modelToSamples()))
     {
       // Finish previous notes
       for(auto& note : self.previous_chord)
       {
         out.messages.push_back(rtmidi::message::note_off(1, note.first, 0));
+        out.messages.back().timestamp = *date;
       }
       self.previous_chord.clear();
 
@@ -150,6 +151,7 @@ struct Node
       for(auto& note : chord)
       {
         out.messages.push_back(rtmidi::message::note_on(1, note.first, note.second));
+        out.messages.back().timestamp = *date;
       }
 
       // New chord to stop

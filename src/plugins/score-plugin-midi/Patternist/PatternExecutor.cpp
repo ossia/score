@@ -13,23 +13,27 @@ class pattern_node : public ossia::nonowning_graph_node
 {
 public:
   ossia::outlet out{ossia::midi_port{}};
-  int channel{1};
-  int current = 0;
   Pattern pattern;
+  ossia::flat_set<uint8_t> in_flight;
+
+  int current = 0;
+  uint8_t channel{1};
 
   pattern_node()
   {
+    in_flight.container.reserve(32);
     m_outlets.push_back(&out);
   }
 
   void run(const ossia::token_request & tk, ossia::exec_state_facade st) noexcept
   {
-    if(auto date = tk.get_quantification_date(pattern.division))
+    if(auto date = tk.get_physical_quantification_date(pattern.division, st.modelToSamples()))
     {
       auto& mess = out.data.target<ossia::midi_port>()->messages;
-      for(int note : in_flight)
+      for(uint8_t note : in_flight)
       {
         mess.push_back(rtmidi::message::note_off(channel, note, 0));
+        mess.back().timestamp = *date;
       }
       in_flight.clear();
 
@@ -38,15 +42,13 @@ public:
         if(lane.pattern[current])
         {
           mess.push_back(rtmidi::message::note_on(channel, lane.note, 64));
-          mess.back().timestamp = date->impl * st.modelToSamples() ;
+          mess.back().timestamp = *date;
           in_flight.insert(lane.note);
         }
       }
       current = (current+1) % pattern.length;
     }
   }
-
-  ossia::flat_set<int> in_flight;
 };
 
 Executor::Executor(

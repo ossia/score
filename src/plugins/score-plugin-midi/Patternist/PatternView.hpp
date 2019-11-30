@@ -11,6 +11,7 @@ class PortFactoryList;
 namespace score
 {
 struct DocumentContext;
+class QGraphicsIntSlider;
 }
 namespace Patternist
 {
@@ -25,7 +26,10 @@ public:
   ~View() override;
 
   void toggled(int lane, int index) W_SIGNAL(toggled, lane, index);
+  void noteChanged(int lane, int note) W_SIGNAL(noteChanged, lane, note);
+  void noteChangeFinished() W_SIGNAL(noteChangeFinished);
 private:
+  void updateLanes() ;
   void paint_impl(QPainter*) const override;
 
   void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
@@ -33,5 +37,7 @@ private:
   void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override;
 
   const Patternist::ProcessModel& m_model;
+
+  std::vector<score::QGraphicsIntSlider*> m_lanes;
 };
 }

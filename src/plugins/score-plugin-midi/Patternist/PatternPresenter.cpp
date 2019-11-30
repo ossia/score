@@ -29,6 +29,17 @@ Presenter::Presenter(
     CommandDispatcher<> disp{m_context.context.commandStack};
     disp.submit<UpdatePattern>(m_layer, m_layer.currentPattern(), cur);
   });
+  connect(m_view, &View::noteChanged, this, [&](int lane, int note) {
+    auto cur = m_layer.patterns()[m_layer.currentPattern()];
+    cur.lanes[lane].note = note;
+
+    auto& disp = m_context.context.dispatcher;
+    disp.submit<UpdatePattern>(m_layer, m_layer.currentPattern(), cur);
+  });
+  connect(m_view, &View::noteChangeFinished, this, [&]{
+    auto& disp = m_context.context.dispatcher;
+    disp.commit();
+  });
 }
 
 Presenter::~Presenter()
