@@ -67,25 +67,76 @@ public:
       m_rate.setValue(pat.division);
     });
 
-    con(m_channel, &QSpinBox::editingFinished, this, [&]() {
-      // m_dispatcher.submit<SetStepCount>(obj, m_channel.value());
-      // m_dispatcher.commit();
+
+
+    con(m_channel, qOverload<int>(&QSpinBox::valueChanged), this, [&]() {
+      m_dispatcher.submit<SetPatternChannel>(obj, m_channel.value());
     });
+    con(m_channel, &QSpinBox::editingFinished, this, [&]() {
+      m_dispatcher.commit();
+    });
+
+
+    con(m_lanes, qOverload<int>(&QSpinBox::valueChanged), this, [&]() {
+      int n = m_lanes.value();
+      if(n <= 0)
+        return;
+
+      auto p = obj.patterns()[obj.currentPattern()];
+      if(n < p.lanes.size())
+      {
+        p.lanes.resize(n);
+      }
+      else
+      {
+        auto last_lane = p.lanes.back();
+        while(p.lanes.size() < n)
+          p.lanes.push_back(last_lane);
+      }
+
+      m_dispatcher.submit<UpdatePattern>(obj, obj.currentPattern(), p);
+    });
+
     con(m_lanes, &QSpinBox::editingFinished, this, [&]() {
-      // m_dispatcher.submit<SetStepDuration>(obj, m_lanes.value());
-      // m_dispatcher.commit();
+      m_dispatcher.commit();
+    });
+
+
+    con(m_currentPattern, qOverload<int>(&QSpinBox::valueChanged), this, [&]() {
+      m_dispatcher.submit<SetCurrentPattern>(obj, m_currentPattern.value());
     });
     con(m_currentPattern, &QSpinBox::editingFinished, this, [&]() {
-      // m_dispatcher.submit<SetStepDuration>(obj, m_lanes.value());
-      // m_dispatcher.commit();
+      m_dispatcher.commit();
     });
-    con(m_duration, &QDoubleSpinBox::editingFinished, this, [&]() {
-      // m_dispatcher.submit<SetMin>(obj, m_duration.value());
-      // m_dispatcher.commit();
+
+
+    con(m_duration, qOverload<int>(&QSpinBox::valueChanged), this, [&]() {
+      int n = m_duration.value();
+      if(n <= 0)
+        return;
+
+      auto p = obj.patterns()[obj.currentPattern()];
+      p.length = n;
+      if(p.length > p.lanes[0].pattern.size())
+      {
+        for(auto& lane : p.lanes)
+        {
+          lane.pattern.resize(n);
+        }
+      }
+
+      m_dispatcher.submit<UpdatePattern>(obj, obj.currentPattern(), p);
     });
+    con(m_duration, &QSpinBox::editingFinished, this, [&]() {
+      m_dispatcher.commit();
+    });
+
+
     con(m_rate, &QDoubleSpinBox::editingFinished, this, [&]() {
-      // m_dispatcher.submit<SetMax>(obj, m_rate.value());
-      // m_dispatcher.commit();
+      auto p = obj.patterns()[obj.currentPattern()];
+      p.division = m_duration.value();
+      m_dispatcher.submit<UpdatePattern>(obj, obj.currentPattern(), p);
+      m_dispatcher.commit();
     });
 
     lay->addRow(tr("Channel"), &m_channel);
@@ -101,7 +152,7 @@ private:
   QSpinBox m_channel;
   QSpinBox m_currentPattern;
   QSpinBox m_lanes;
-  QDoubleSpinBox m_duration;
+  QSpinBox m_duration;
   QDoubleSpinBox m_rate;
 };
 class InspectorFactory final

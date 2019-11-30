@@ -8,8 +8,8 @@ namespace Patternist
 {
 struct Lane
 {
-  int note{};
   std::vector<bool> pattern;
+  uint8_t note{};
 
   bool operator==(const Lane& other) const noexcept
   {
@@ -72,6 +72,8 @@ public:
   void currentPatternChanged(int arg_1) W_SIGNAL(currentPatternChanged, arg_1);
   void patternsChanged() W_SIGNAL(patternsChanged);
 
+  PROPERTY(int, channel READ channel WRITE setChannel NOTIFY channelChanged, W_Final)
+  PROPERTY(int, currentPattern READ currentPattern WRITE setCurrentPattern NOTIFY currentPatternChanged, W_Final)
 private:
   void setDurationAndScale(const TimeVal& newDuration) noexcept override;
   void setDurationAndGrow(const TimeVal& newDuration) noexcept override;

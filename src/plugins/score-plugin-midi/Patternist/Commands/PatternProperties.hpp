@@ -1,13 +1,15 @@
 #pragma once
 #include <score/command/Command.hpp>
-#include <Patternist/PatternCommandFactory.hpp>
+#include <score/command/PropertyCommand.hpp>
+#include <Midi/Commands/CommandFactory.hpp>
 #include <Patternist/PatternModel.hpp>
 #include <score/model/path/PathSerialization.hpp>
 namespace Patternist
 {
+inline auto& CommandFactoryName() { return Midi::CommandFactoryName(); }
 class UpdatePattern final : public score::Command
 {
-  SCORE_COMMAND_DECL(Patternist::CommandFactoryName(), UpdatePattern, "Update a pattern")
+  SCORE_COMMAND_DECL(Midi::CommandFactoryName(), UpdatePattern, "Update a pattern")
 public:
   UpdatePattern(const ProcessModel& model, int p, const Pattern& pat)
     : m_model{model}, m_id{p}, m_old{model.patterns()[p]}, m_new{pat}
@@ -25,6 +27,10 @@ public:
     m_model.find(ctx).setPattern(m_id, m_new);
   }
 
+  void update(const ProcessModel& model, int p, const Pattern& pat)
+  {
+    m_new = pat;
+  }
 protected:
   void serializeImpl(DataStreamInput& s) const override
   {
@@ -44,3 +50,16 @@ private:
 };
 
 }
+PROPERTY_COMMAND_T(
+    Patternist,
+    SetPatternChannel,
+    ProcessModel::p_channel,
+    "Change channel")
+SCORE_COMMAND_DECL_T(Patternist::SetPatternChannel)
+PROPERTY_COMMAND_T(
+    Patternist,
+    SetCurrentPattern,
+    ProcessModel::p_currentPattern,
+    "Change pattern")
+SCORE_COMMAND_DECL_T(Patternist::SetCurrentPattern)
+

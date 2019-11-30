@@ -55,13 +55,14 @@ ProcessModel::ProcessModel(
   outlet->type = Process::PortType::Midi;
 
   Pattern pattern;
+  pattern.length = 4;
   pattern.lanes.push_back(Lane{
-                            64,
-                            {1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0}
+                            {1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0},
+                            64
                           });
   pattern.lanes.push_back(Lane{
-                            32,
-                            {0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0}
+                            {0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0},
+                            32
                           });
   m_patterns.push_back(pattern);
   metadata().setInstanceName(*this);
