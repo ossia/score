@@ -5,6 +5,7 @@
 #include <QComboBox>
 #include <QCheckBox>
 #include <QFormLayout>
+#include <QLabel>
 
 #include <Audio/Settings/Model.hpp>
 #include <Audio/Settings/View.hpp>
@@ -85,6 +86,10 @@ void View::setRate(int val)
           cb->setCurrentIndex(idx);
       }
     }
+    else if(auto label = m_curDriver->findChild<QLabel*>("Rate"))
+    {
+      label->setText(QString::number(val));
+    }
   }
 }
 
@@ -103,6 +108,10 @@ void View::setBufferSize(int val)
         if (idx != -1 && idx != cb->currentIndex())
           cb->setCurrentIndex(idx);
       }
+    }
+    else if(auto label = m_curDriver->findChild<QLabel*>("BufferSize"))
+    {
+      label->setText(QString::number(val));
     }
   }
 }

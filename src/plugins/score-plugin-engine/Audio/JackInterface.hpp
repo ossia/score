@@ -74,12 +74,16 @@ public:
 
     {
       auto rate = jack_get_sample_rate(*client);
-      lay->addRow(QObject::tr("Rate"), new QLabel{QString::number(rate)});
+      auto rate_label = new QLabel{QString::number(rate)};
+      rate_label->setObjectName("Rate");
+      lay->addRow(QObject::tr("Rate"), rate_label);
       m.setRate(rate);
     }
     {
       auto bs = jack_get_buffer_size(*client);
-      lay->addRow(QObject::tr("Buffer size"), new QLabel{QString::number(bs)});
+      auto bs_label = new QLabel{QString::number(bs)};
+      bs_label->setObjectName("BufferSize");
+      lay->addRow(QObject::tr("Buffer size"), bs_label);
       m.setBufferSize(bs);
     }
 
