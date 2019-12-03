@@ -18,7 +18,7 @@ ProcessModel::ProcessModel(
                             id,
                             Metadata<ObjectKey_k, ProcessModel>::get(),
                             parent}
-    , outlet{Process::make_outlet(Id<Process::Port>(0), this)}
+    , outlet{Process::make_audio_outlet(Id<Process::Port>(0), this)}
     , m_file{std::make_shared<AudioFile>()}
 {
   outlet->setPropagate(true);
@@ -175,7 +175,7 @@ void DataStreamWriter::write(Media::Sound::ProcessModel& proc)
   QString s;
   m_stream >> s;
   proc.setFile(s);
-  proc.outlet = make_outlet(*this, &proc);
+  proc.outlet = load_audio_outlet(*this, &proc);
 
   m_stream >> proc.m_upmixChannels >> proc.m_startChannel >> proc.m_mode >> proc.m_nativeTempo;
   checkDelimiter();
@@ -197,7 +197,7 @@ void JSONObjectWriter::write(Media::Sound::ProcessModel& proc)
 {
   proc.setFile(obj["File"].toString());
   JSONObjectWriter writer{obj["Outlet"].toObject()};
-  proc.outlet = Process::make_outlet(writer, &proc);
+  proc.outlet = Process::load_audio_outlet(writer, &proc);
   proc.m_upmixChannels = obj["Upmix"].toInt();
   proc.m_startChannel = obj["Start"].toInt();
   proc.m_mode = (ossia::audio_stretch_mode)obj["Mode"].toInt();

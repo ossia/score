@@ -44,7 +44,7 @@ ProcessModel::ProcessModel(
                         id,
                         Metadata<ObjectKey_k, ProcessModel>::get(),
                         parent}
-    , outlet{Process::make_outlet(Id<Process::Port>(0), this)}
+    , outlet{Process::make_value_outlet(Id<Process::Port>(0), this)}
 {
   outlet->type = Process::PortType::Message;
   // Named shall be enough ?
@@ -236,7 +236,7 @@ void DataStreamReader::read(const Metronome::ProcessModel& autom)
 template <>
 void DataStreamWriter::write(Metronome::ProcessModel& autom)
 {
-  autom.outlet = Process::make_outlet(*this, &autom);
+  autom.outlet = Process::load_outlet(*this, &autom);
   autom.setCurve(new Curve::Model{*this, &autom});
 
   double min, max;
@@ -262,10 +262,10 @@ template <>
 void JSONObjectWriter::write(Metronome::ProcessModel& autom)
 {
   JSONObjectWriter writer{obj["Outlet"].toObject()};
-  autom.outlet = Process::make_outlet(writer, &autom);
+  autom.outlet = Process::load_outlet(writer, &autom);
   if (!autom.outlet)
   {
-    autom.outlet = Process::make_outlet(Id<Process::Port>(0), &autom);
+    autom.outlet = Process::make_value_outlet(Id<Process::Port>(0), &autom);
     autom.outlet->type = Process::PortType::Message;
     autom.outlet->setAddress(fromJsonObject<State::AddressAccessor>(
         obj[strings.Address].toObject()));

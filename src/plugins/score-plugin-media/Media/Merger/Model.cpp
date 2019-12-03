@@ -21,7 +21,7 @@ Model::Model(
                             parent}
 {
   m_outlets.push_back(
-      Process::make_outlet(
+      Process::make_audio_outlet(
           Id<Process::Port>(std::numeric_limits<int16_t>::max()), this)
           .release());
   m_outlets.back()->type = Process::PortType::Audio;
@@ -48,7 +48,7 @@ void Model::setInCount(quint64 s)
       for (std::size_t i = 0; i < (m_inCount - old); i++)
       {
         m_inlets.push_back(
-            Process::make_inlet(Id<Process::Port>(int(old + i)), this)
+            Process::make_audio_inlet(Id<Process::Port>(int(old + i)), this)
                 .release());
         m_inlets.back()->type = Process::PortType::Audio;
       }

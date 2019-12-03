@@ -19,7 +19,7 @@ ProcessModel::ProcessModel(
                             id,
                             Metadata<ObjectKey_k, ProcessModel>::get(),
                             parent}
-    , outlet{Process::make_outlet(Id<Process::Port>(0), this)}
+    , outlet{Process::make_value_outlet(Id<Process::Port>(0), this)}
 {
   outlet->type = Process::PortType::Message;
   m_spline.points.push_back({0., 0.});
@@ -174,7 +174,7 @@ void DataStreamReader::read(const Spline::ProcessModel& autom)
 template <>
 void DataStreamWriter::write(Spline::ProcessModel& autom)
 {
-  autom.outlet = Process::make_outlet(*this, &autom);
+  autom.outlet = Process::load_outlet(*this, &autom);
   m_stream >> autom.m_spline >> autom.m_tween;
 
   checkDelimiter();
@@ -194,10 +194,10 @@ template <>
 void JSONObjectWriter::write(Spline::ProcessModel& autom)
 {
   JSONObjectWriter writer{obj["Outlet"].toObject()};
-  autom.outlet = Process::make_outlet(writer, &autom);
+  autom.outlet = Process::load_outlet(writer, &autom);
   if (!autom.outlet)
   {
-    autom.outlet = Process::make_outlet(Id<Process::Port>(0), &autom);
+    autom.outlet = Process::make_value_outlet(Id<Process::Port>(0), &autom);
     autom.outlet->type = Process::PortType::Message;
     autom.outlet->setAddress(fromJsonObject<State::AddressAccessor>(
         obj[strings.Address].toObject()));

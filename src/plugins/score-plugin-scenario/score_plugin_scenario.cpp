@@ -211,6 +211,7 @@ score_plugin_scenario::factories(
          Dataflow::InletFactory,
          Dataflow::ControlInletFactory,
          Dataflow::OutletFactory,
+         Dataflow::AudioOutletFactory,
          Dataflow::ControlOutletFactory,
          Dataflow::WidgetInletFactory<Process::FloatSlider>,
          Dataflow::WidgetInletFactory<Process::LogFloatSlider>,

@@ -45,8 +45,8 @@ ProcessModel::ProcessModel(
                             Metadata<ObjectKey_k, ProcessModel>::get(),
                             parent}
     , Scenario::BaseScenarioContainer{this}
-    , inlet{Process::make_inlet(Id<Process::Port>(0), this)}
-    , outlet{Process::make_outlet(Id<Process::Port>(0), this)}
+    , inlet{Process::make_audio_inlet(Id<Process::Port>(0), this)}
+    , outlet{Process::make_audio_outlet(Id<Process::Port>(0), this)}
 {
   Scenario::IntervalDurations::Algorithms::changeAllDurations(
       interval(), duration);
@@ -65,6 +65,12 @@ ProcessModel::ProcessModel(
   outlet->type = Process::PortType::Audio;
   outlet->setPropagate(true);
   init();
+}
+
+void ProcessModel::init()
+{
+  m_inlets.push_back(inlet.get());
+  m_outlets.push_back(outlet.get());
 }
 
 ProcessModel::~ProcessModel()

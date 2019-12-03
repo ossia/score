@@ -43,7 +43,7 @@ private:
   Id<TimeSyncModel> m_newTimeSyncId;
 };
 
-class SplitWholeSync final : public score::Command
+class SCORE_PLUGIN_SCENARIO_EXPORT SplitWholeSync final : public score::Command
 {
   SCORE_COMMAND_DECL(
       CommandFactoryName(),

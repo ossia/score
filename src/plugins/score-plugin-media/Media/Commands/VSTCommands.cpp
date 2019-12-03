@@ -88,7 +88,7 @@ void RemoveVSTControl::undo(const score::DocumentContext& ctx) const
   DataStreamWriter wr{m_control};
 
   vst.on_addControl_impl(qobject_cast<Media::VST::VSTControlInlet*>(
-      Process::make_inlet(wr, &vst).release()));
+      Process::load_inlet(wr, &vst).release()));
 
   Dataflow::restoreCables(m_cables, ctx);
 }

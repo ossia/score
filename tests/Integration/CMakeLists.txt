@@ -3,7 +3,7 @@ project(IntegrationTests)
 find_package(Qt5 5.12 COMPONENTS Test)
 enable_testing()
 include(CTest)
-
+set(CMAKE_AUTOMOC ON)
 function(add_integration_test TESTNAME TESTSRCS)
     add_executable(Integration_${TESTNAME} ${TESTSRCS} score_integration.hpp)
     target_link_libraries(Integration_${TESTNAME} PRIVATE ${SCORE_PLUGINS_LIST} Qt5::Test)
@@ -12,6 +12,7 @@ function(add_integration_test TESTNAME TESTSRCS)
 endFunction()
 
 add_integration_test(SerializationTest "${CMAKE_CURRENT_SOURCE_DIR}/SerializationTest.cpp")
+add_integration_test(PortSerializationTest "${CMAKE_CURRENT_SOURCE_DIR}/PortSerializationTest.cpp")
 # Commands
 
 # addIntegrationTest(Test1

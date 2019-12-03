@@ -195,9 +195,9 @@ void FaustEffectModel::reloadFx(llvm_dsp_factory* fac, llvm_dsp* obj)
 
     m_inlets.push_back(new Process::Inlet{getStrongId(m_inlets), this});
     m_inlets.front()->type = Process::PortType::Audio;
-    m_outlets.push_back(new Process::Outlet{getStrongId(m_outlets), this});
-    m_outlets.front()->type = Process::PortType::Audio;
-    m_outlets.front()->setPropagate(true);
+    auto out = new Process::AudioOutlet{getStrongId(m_outlets), this};
+    out->setPropagate(true);
+    m_outlets.push_back(out);
 
     Faust::UI<decltype(*this)> ui{*this};
     faust_object->buildUserInterface(&ui);
@@ -257,9 +257,10 @@ void FaustEffectModel::reloadMidi(dsp_poly_factory* fac, dsp_poly* obj)
 
     m_inlets.push_back(new Process::Inlet{getStrongId(m_inlets), this});
     m_inlets.front()->type = Process::PortType::Midi;
-    m_outlets.push_back(new Process::Outlet{getStrongId(m_outlets), this});
-    m_outlets.front()->type = Process::PortType::Audio;
-    m_outlets.front()->setPropagate(true);
+
+    auto out = new Process::AudioOutlet{getStrongId(m_outlets), this};
+    out->setPropagate(true);
+    m_outlets.push_back(out);
 
     Faust::UI<decltype(*this)> ui{*this};
     faust_poly_object->buildUserInterface(&ui);

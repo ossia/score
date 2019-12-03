@@ -73,8 +73,9 @@ inline auto propagatedOutlets(const Process::Outlets& outlets) noexcept
   ossia::pod_vector<std::size_t> propagated_outlets;
   for (std::size_t i = 0; i < outlets.size(); i++)
   {
-    if (outlets[i]->propagate())
-      propagated_outlets.push_back(i);
+    if(auto o = qobject_cast<Process::AudioOutlet*>(outlets[i]))
+      if (o->propagate())
+        propagated_outlets.push_back(i);
   }
   return propagated_outlets;
 }
@@ -224,15 +225,18 @@ struct ReconnectOutlets
   {
     for(Process::Outlet* outlet : proc.outlets())
     {
-      QObject::disconnect(outlet, &Process::Outlet::propagateChanged, &component, nullptr);
-      QObject::connect(outlet, &Process::Outlet::propagateChanged,
-                       &component, RecomputePropagate{
-                         component.system(),
-                         proc,
-                         component.OSSIAInterval()->node,
-                         oproc_weak,
-                         g_weak,
-                         outlet});
+      if(auto o = qobject_cast<Process::AudioOutlet*>(outlet))
+      {
+        QObject::disconnect(o, &Process::AudioOutlet::propagateChanged, &component, nullptr);
+        QObject::connect(o, &Process::AudioOutlet::propagateChanged,
+                         &component, RecomputePropagate{
+                           component.system(),
+                           proc,
+                           component.OSSIAInterval()->node,
+                           oproc_weak,
+                           g_weak,
+                           outlet});
+      }
     }
   }
 };

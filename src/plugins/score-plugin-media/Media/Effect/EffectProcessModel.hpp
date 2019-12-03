@@ -205,7 +205,7 @@ public:
   int effectPosition(const Id<Process::ProcessModel>& e) const;
 
   std::unique_ptr<Process::Inlet> inlet{};
-  std::unique_ptr<Process::Outlet> outlet{};
+  std::unique_ptr<Process::AudioOutlet> outlet{};
 
   void checkChaining();
   bool badChaining() const { return m_badChaining; }

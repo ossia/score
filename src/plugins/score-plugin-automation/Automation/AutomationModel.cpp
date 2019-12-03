@@ -51,7 +51,7 @@ ProcessModel::ProcessModel(
                         id,
                         Metadata<ObjectKey_k, ProcessModel>::get(),
                         parent}
-    , outlet{Process::make_outlet(Id<Process::Port>(0), this)}
+    , outlet{Process::make_value_outlet(Id<Process::Port>(0), this)}
     , m_min{0.}
     , m_max{1.}
     , m_startState{new ProcessState{*this, 0., this}}

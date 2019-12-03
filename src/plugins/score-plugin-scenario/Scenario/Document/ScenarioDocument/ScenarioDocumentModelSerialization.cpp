@@ -9,6 +9,7 @@
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/serialization/JSONVisitor.hpp>
 #include <score/serialization/VisitorCommon.hpp>
+#include <score/model/path/PathSerialization.hpp>
 
 #include <QJsonDocument>
 
@@ -25,43 +26,72 @@ template <typename model>
 class IdentifiedObject;
 
 template <>
-void DataStreamReader::read(const Scenario::ScenarioDocumentModel& obj)
+void DataStreamReader::read(const Scenario::ScenarioDocumentModel& model)
 {
-  readFrom(*obj.m_baseScenario);
+  readFrom(*model.m_baseScenario);
 
-  if (obj.cables.empty() && !obj.m_savedCables.empty())
-    m_stream << QJsonDocument(obj.m_savedCables).toBinaryData();
+  if (model.cables.empty() && !model.m_savedCables.empty())
+    m_stream << QJsonDocument(model.m_savedCables).toBinaryData();
   else
-    m_stream << QJsonDocument(toJsonArray(obj.cables)).toBinaryData();
+    m_stream << QJsonDocument(toJsonArray(model.cables)).toBinaryData();
+
+  std::vector<Path<Scenario::IntervalModel>> buses;
+  for(auto& bus : model.busIntervals)
+    buses.emplace_back(*bus);
+  m_stream << buses;
 
   insertDelimiter();
 }
 
 template <>
-void DataStreamWriter::write(Scenario::ScenarioDocumentModel& obj)
+void DataStreamWriter::write(Scenario::ScenarioDocumentModel& model)
 {
-  obj.m_baseScenario = new Scenario::BaseScenario{*this, &obj};
+  model.m_baseScenario = new Scenario::BaseScenario{*this, &model};
   QByteArray arr;
   m_stream >> arr;
-  obj.m_savedCables = QJsonDocument::fromBinaryData(arr).array();
+  model.m_savedCables = QJsonDocument::fromBinaryData(arr).array();
+
+  auto& ctx = safe_cast<score::Document*>(model.parent()->parent())->context();
+
+  std::vector<Path<Scenario::IntervalModel>> buses;
+  m_stream >> buses;
+  for(auto& path : buses)
+  {
+    model.busIntervals.push_back(&path.find(ctx));
+  }
+
 
   checkDelimiter();
 }
 
 template <>
-void JSONObjectReader::read(const Scenario::ScenarioDocumentModel& doc)
+void JSONObjectReader::read(const Scenario::ScenarioDocumentModel& model)
 {
-  obj["BaseScenario"] = toJsonObject(*doc.m_baseScenario);
-  obj["Cables"] = toJsonArray(doc.cables);
+  obj["BaseScenario"] = toJsonObject(*model.m_baseScenario);
+  obj["Cables"] = toJsonArray(model.cables);
+
+  QJsonArray buses;
+  for(auto& bus : model.busIntervals)
+    buses.push_back(toJsonObject(Path{*bus}));
+  obj["BusIntervals"] = buses;
 }
 
 template <>
-void JSONObjectWriter::write(Scenario::ScenarioDocumentModel& doc)
+void JSONObjectWriter::write(Scenario::ScenarioDocumentModel& model)
 {
-  doc.m_baseScenario = new Scenario::BaseScenario(
-      JSONObject::Deserializer{obj["BaseScenario"].toObject()}, &doc);
+  model.m_baseScenario = new Scenario::BaseScenario(
+      JSONObject::Deserializer{obj["BaseScenario"].toObject()}, &model);
 
-  doc.m_savedCables = obj["Cables"].toArray();
+  model.m_savedCables = obj["Cables"].toArray();
+
+  auto& ctx = safe_cast<score::Document*>(model.parent()->parent())->context();
+
+  const auto& buses = obj["BusIntervals"].toArray();
+  for(const QJsonValue& bus : buses)
+  {
+    auto path = fromJsonObject<Path<Scenario::IntervalModel>>(bus);
+    model.busIntervals.push_back(&path.find(ctx));
+  }
 }
 
 void Scenario::ScenarioDocumentModel::serialize(

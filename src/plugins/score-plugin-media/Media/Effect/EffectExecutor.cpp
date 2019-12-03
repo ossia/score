@@ -16,8 +16,8 @@ namespace ossia
 {
 class empty_audio_mapper final : public ossia::nonowning_graph_node
 {
-  ossia::inlet audio_in{ossia::audio_port{}};
-  ossia::outlet audio_out{ossia::audio_port{}};
+  ossia::audio_inlet audio_in;
+  ossia::audio_outlet audio_out;
 
 public:
   empty_audio_mapper()
@@ -29,7 +29,7 @@ public:
   void
   run(const ossia::token_request& , ossia::exec_state_facade st) noexcept override
   {
-    *audio_out.data.target<ossia::audio_port>() = *audio_in.data.target<ossia::audio_port>();
+    *audio_out = *audio_in;
   }
 
   // graph_node interface

@@ -6,11 +6,11 @@
 
 #include <core/document/Document.hpp>
 #include <core/document/DocumentModel.hpp>
-
+#include <score_plugin_scenario_export.h>
 namespace Scenario
 {
 
-class ScenarioValidityChecker final : public score::ValidityChecker
+class SCORE_PLUGIN_SCENARIO_EXPORT ScenarioValidityChecker final : public score::ValidityChecker
 {
   SCORE_CONCRETE("f2dd8bec-a81b-4b3b-a57c-535001fde131")
 public:

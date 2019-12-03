@@ -22,6 +22,7 @@
 #include <ossia/dataflow/execution_state.hpp>
 #include <ossia/editor/scenario/time_interval.hpp>
 #include <ossia/editor/scenario/time_value.hpp>
+#include <ossia/dataflow/nodes/forward_node.hpp>
 
 #include <wobjectimpl.h>
 #include <QDebug>
@@ -84,6 +85,21 @@ IntervalRawPtrComponentBase::IntervalRawPtrComponentBase(
     if(m_ossia_interval)
       in_exec([b, itv = m_ossia_interval] {
         itv->mute(b);
+      });
+  });
+
+  con(interval(), &Scenario::IntervalModel::busChanged, this, [&](bool b) {
+    if(m_ossia_interval)
+      in_exec([b, itv = m_ossia_interval] {
+        auto& audio_out = static_cast<ossia::nodes::interval*>(itv->node.get())->audio_out;
+        audio_out->has_gain = b;
+      });
+  });
+  con(*interval().outlet, &Process::AudioOutlet::gainChanged, this, [&](double g) {
+    if(m_ossia_interval)
+      in_exec([g, itv = m_ossia_interval] {
+        auto& audio_out = static_cast<ossia::nodes::interval*>(itv->node.get())->audio_out;
+        audio_out->gain = g;
       });
   });
 
@@ -183,6 +199,11 @@ void IntervalRawPtrComponent::onSetup(
     interval_duration_data dur)
 {
   m_ossia_interval = ossia_cst;
+
+  auto& audio_out = static_cast<ossia::nodes::interval*>(m_ossia_interval->node.get())->audio_out;
+  audio_out->has_gain = Scenario::isBus(*m_interval, context().doc);
+  audio_out->gain = m_interval->outlet->gain();
+  audio_out->pan = m_interval->outlet->pan();
 
   m_ossia_interval->set_min_duration(dur.minDuration);
   m_ossia_interval->set_max_duration(dur.maxDuration);

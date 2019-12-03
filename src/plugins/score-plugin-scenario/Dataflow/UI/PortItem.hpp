@@ -31,7 +31,7 @@ public:
   void dropEvent(QGraphicsSceneDragDropEvent* event) override;
 };
 
-class AutomatablePortFactory : public Process::PortFactory
+class SCORE_PLUGIN_SCENARIO_EXPORT AutomatablePortFactory : public Process::PortFactory
 {
 public:
   ~AutomatablePortFactory() override = default;
@@ -73,8 +73,9 @@ private:
 using InletFactory = AutomatablePortFactory_T<Process::Inlet>;
 using OutletFactory = AutomatablePortFactory_T<Process::Outlet>;
 using ControlOutletFactory = AutomatablePortFactory_T<Process::ControlOutlet>;
+using AudioOutletFactory = Process::PortFactory_T<Process::AudioOutlet>;
 
-struct ControlInletFactory final : public AutomatablePortFactory
+struct SCORE_PLUGIN_SCENARIO_EXPORT ControlInletFactory final : public AutomatablePortFactory
 {
   using Model_T = Process::ControlInlet;
   UuidKey<Process::Port> concreteKey() const noexcept override
@@ -106,7 +107,7 @@ public:
       QWidget* parent);
 };
 
-class PortInspectorFactory final : public Inspector::InspectorWidgetFactory
+class SCORE_PLUGIN_SCENARIO_EXPORT PortInspectorFactory final : public Inspector::InspectorWidgetFactory
 {
   SCORE_CONCRETE("1e7166bb-278a-49ce-b6a9-d662b8cd8dd2")
 public:

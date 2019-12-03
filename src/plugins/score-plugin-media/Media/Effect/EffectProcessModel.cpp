@@ -26,8 +26,8 @@ ProcessModel::ProcessModel(
                             id,
                             Metadata<ObjectKey_k, ProcessModel>::get(),
                             parent}
-    , inlet{Process::make_inlet(Id<Process::Port>(0), this)}
-    , outlet{Process::make_outlet(Id<Process::Port>(0), this)}
+    , inlet{Process::make_audio_inlet(Id<Process::Port>(0), this)}
+    , outlet{Process::make_audio_outlet(Id<Process::Port>(0), this)}
 {
   metadata().setInstanceName(*this);
   inlet->type = Process::PortType::Audio;
@@ -245,8 +245,8 @@ void DataStreamReader::read(const Media::Effect::ProcessModel& proc)
 template <>
 void DataStreamWriter::write(Media::Effect::ProcessModel& proc)
 {
-  proc.inlet = Process::make_inlet(*this, &proc);
-  proc.outlet = Process::make_outlet(*this, &proc);
+  proc.inlet = Process::load_inlet(*this, &proc);
+  proc.outlet = Process::load_audio_outlet(*this, &proc);
 
   int32_t n = 0;
   m_stream >> n;
@@ -277,11 +277,11 @@ void JSONObjectWriter::write(Media::Effect::ProcessModel& proc)
 {
   {
     JSONObjectWriter writer{obj["Inlet"].toObject()};
-    proc.inlet = Process::make_inlet(writer, &proc);
+    proc.inlet = Process::load_inlet(writer, &proc);
   }
   {
     JSONObjectWriter writer{obj["Outlet"].toObject()};
-    proc.outlet = Process::make_outlet(writer, &proc);
+    proc.outlet = Process::load_audio_outlet(writer, &proc);
   }
 
   const QJsonArray fx_array = obj["Effects"].toArray();

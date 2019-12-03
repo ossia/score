@@ -23,25 +23,9 @@ namespace score
 {
 
 template <typename Vis, typename T>
-void serialize_dyn_impl(Vis& v, const T& t);
-
-template <typename Vis, typename T>
-void serialize_recursive(Vis& v, const T& t, has_no_base)
-{
-  v.read(t);
-}
-
-template <typename Vis, typename T>
-void serialize_recursive(Vis& v, const T& t, has_base)
-{
-  serialize_dyn_impl(v, (const typename T::base_type&)t);
-  v.read(t);
-}
-
-template <typename Vis, typename T>
 void serialize_dyn_impl(Vis& v, const T& t)
 {
-  serialize_recursive(v, t, typename base_kind<T>::type{});
+  v.read(t);
 }
 
 template <typename TheClass>

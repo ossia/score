@@ -23,7 +23,11 @@ DataflowManager::~DataflowManager()
 
 }
 }
-score_lib_process::score_lib_process() = default;
+score_lib_process::score_lib_process()
+{
+  qRegisterMetaType<Process::pan_weight>();
+  qRegisterMetaTypeStreamOperators<Process::pan_weight>();
+}
 score_lib_process::~score_lib_process() = default;
 
 std::vector<std::unique_ptr<score::InterfaceListBase>>

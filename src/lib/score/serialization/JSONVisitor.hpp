@@ -77,97 +77,78 @@ public:
   {
     using tag = typename serialization_tag<T>::type;
     static constexpr bool has_base = base_kind<T>::value;
-    if constexpr(std::is_same_v<tag, visitor_template_tag>)
-    {
-      if constexpr (has_base)
-      {
-        readFrom((const typename T::base_type&)obj);
-      }
-      TSerializer<JSONObject, T>::readFrom(*this, obj);
-    }
-    else if constexpr(std::is_same_v<tag, visitor_object_tag>)
-    {
-      if constexpr (has_base)
-      {
-        readFrom((const typename T::base_type&)obj);
-      }
-      else
-      {
-        TSerializer<JSONObject, typename T::object_type>::readFrom(*this, obj);
-      }
 
-      if constexpr (is_custom_serialized<T>::value || is_template<T>::value)
-        TSerializer<JSONObject, T>::readFrom(*this, obj);
-      else
-        read(obj);
-    }
-    else if constexpr(std::is_same_v<tag, visitor_entity_tag>)
+    if constexpr (has_base)
     {
-      if constexpr (has_base)
-      {
-        readFrom((const typename T::base_type&)obj);
-      }
-      else
-      {
-        TSerializer<JSONObject, typename T::entity_type>::readFrom(*this, obj);
-      }
-
-      if constexpr (is_custom_serialized<T>::value || is_template<T>::value)
-        TSerializer<JSONObject, T>::readFrom(*this, obj);
-      else
-        read(obj);
-    }
-    else if constexpr(std::is_same_v<tag, visitor_abstract_tag>)
-    {
-      readFromAbstract(obj, [](JSONObjectReader& sub, const T& obj) {
-        // Read the implementation of the base object
-        sub.read(obj);
-      });
-    }
-    else if constexpr(std::is_same_v<tag, visitor_abstract_object_tag>)
-    {
-      readFromAbstract(obj, [](JSONObjectReader& sub, const T& obj) {
-        if constexpr (has_base)
-        {
-          sub.readFrom((const typename T::base_type&)obj);
-        }
-        else
-        {
-          TSerializer<JSONObject, IdentifiedObject<T>>::readFrom(sub, obj);
-        }
-
-        if constexpr (is_custom_serialized<T>::value || is_template<T>::value)
-          TSerializer<JSONObject, T>::readFrom(sub, obj);
-        else
-          sub.read(obj);
-      });
-    }
-    else if constexpr(std::is_same_v<tag, visitor_abstract_entity_tag>)
-    {
-      readFromAbstract(obj, [](JSONObjectReader& sub, const T& obj) {
-        if constexpr (has_base)
-        {
-          sub.readFrom((const typename T::base_type&)obj);
-        }
-        else
-        {
-          TSerializer<JSONObject, score::Entity<T>>::readFrom(sub, obj);
-        }
-
-        if constexpr (is_custom_serialized<T>::value || is_template<T>::value)
-          TSerializer<JSONObject, T>::readFrom(sub, obj);
-        else
-          sub.read(obj);
-      });
-    }
-    else if constexpr(std::is_same_v<tag, visitor_default_tag>)
-    {
-      //! Used to serialize general objects that won't fit in the other categories
-      read(obj);
+      readFrom((const typename T::base_type&)obj);
     }
     else
     {
-      static_assert(std::is_same_v<tag, void>, "Unhandled serialization case");
+
+        if constexpr(std::is_same_v<tag, visitor_template_tag>)
+        {
+          TSerializer<JSONObject, T>::readFrom(*this, obj);
+        }
+        else if constexpr(std::is_same_v<tag, visitor_object_tag>)
+        {
+          TSerializer<JSONObject, typename T::object_type>::readFrom(*this, obj);
+
+
+          if constexpr (is_custom_serialized<T>::value || is_template<T>::value)
+            TSerializer<JSONObject, T>::readFrom(*this, obj);
+          else
+            read(obj);
+        }
+        else if constexpr(std::is_same_v<tag, visitor_entity_tag>)
+        {
+          TSerializer<JSONObject, typename T::entity_type>::readFrom(*this, obj);
+
+          if constexpr (is_custom_serialized<T>::value || is_template<T>::value)
+            TSerializer<JSONObject, T>::readFrom(*this, obj);
+          else
+            read(obj);
+        }
+        else if constexpr(std::is_same_v<tag, visitor_abstract_tag>)
+        {
+          readFromAbstract(obj, [](JSONObjectReader& sub, const T& obj) {
+            // Read the implementation of the base object
+            sub.read(obj);
+          });
+        }
+        else if constexpr(std::is_same_v<tag, visitor_abstract_object_tag>)
+        {
+          readFromAbstract(obj, [](JSONObjectReader& sub, const T& obj) {
+              TSerializer<JSONObject, IdentifiedObject<T>>::readFrom(sub, obj);
+
+            if constexpr (is_custom_serialized<T>::value || is_template<T>::value)
+              TSerializer<JSONObject, T>::readFrom(sub, obj);
+            else
+              sub.read(obj);
+          });
+        }
+        else if constexpr(std::is_same_v<tag, visitor_abstract_entity_tag>)
+        {
+          readFromAbstract(obj, [](JSONObjectReader& sub, const T& obj) {
+
+            TSerializer<JSONObject, score::Entity<T>>::readFrom(sub, obj);
+
+
+            if constexpr (is_custom_serialized<T>::value || is_template<T>::value)
+              TSerializer<JSONObject, T>::readFrom(sub, obj);
+            else
+              sub.read(obj);
+          });
+        }
+        else if constexpr(std::is_same_v<tag, visitor_default_tag>)
+        {
+          //! Used to serialize general objects that won't fit in the other categories
+          read(obj);
+        }
+        else
+        {
+          static_assert(std::is_same_v<tag, void>, "Unhandled serialization case");
+        }
+
     }
   }
 

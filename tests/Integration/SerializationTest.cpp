@@ -6,6 +6,8 @@
 #include <score/plugins/SerializableInterface.hpp>
 #include <score/serialization/JSONVisitor.hpp>
 #include <score/serialization/VisitorCommon.hpp>
+#include <score/model/EntitySerialization.hpp>
+#include <score/plugins/SerializableHelpers.hpp>
 #include <score/model/Entity.hpp>
 #include <wobjectimpl.h>
 #include <QtTest/QTest>
@@ -281,6 +283,7 @@ struct derived2_factory
 template <>
 void DataStreamReader::read(const derived2& pt)
 {
+  read((derived&) pt);
   SCORE_DEBUG_INSERT_DELIMITER
   m_stream << pt.derived2_var;
   SCORE_DEBUG_INSERT_DELIMITER
@@ -297,6 +300,7 @@ void DataStreamWriter::write(derived2& pt)
 template <>
 void JSONObjectReader::read(const derived2& pt)
 {
+  read((derived&) pt);
   obj["derived2_var"] = pt.derived2_var;
 }
 
@@ -316,8 +320,7 @@ struct trait : public T
   friend struct TSerializer<DataStream, trait<T>>;
 
 public:
-  using base_type = T;
-  using id_type = decltype(std::declval<T>().id());
+  static const constexpr bool is_trait = true;
   using T::T;
   template <typename DeserializerVisitor>
   trait(DeserializerVisitor&& vis, QObject* parent)
@@ -330,11 +333,25 @@ public:
 };
 
 
+template <typename T, typename U = void>
+struct is_trait
+{
+  static constexpr bool value = false;
+};
+
+template <typename T>
+struct is_trait<T, std::enable_if_t<T::is_trait>>
+{
+  static constexpr bool value = true;
+};
 template <typename T>
 struct TSerializer<DataStream, trait<T>>
 {
   static void readFrom(DataStream::Serializer& s, const trait<T>& v)
   {
+    if constexpr(is_trait<T>::value)
+      TSerializer<DataStream, T>::readFrom(s, v);
+
     SCORE_DEBUG_INSERT_DELIMITER
     s.stream() << v.trait_var;
     SCORE_DEBUG_INSERT_DELIMITER
@@ -353,6 +370,9 @@ struct TSerializer<JSONObject, trait<T>>
 {
   static void readFrom(JSONObject::Serializer& s, const trait<T>& v)
   {
+    if constexpr(is_trait<T>::value)
+      TSerializer<JSONObject, T>::readFrom(s, v);
+
     s.obj["trait_var"] = v.trait_var;
   }
 
@@ -370,16 +390,15 @@ struct is_custom_serialized<trait<T>> : std::true_type
 struct crtp : public trait<score::Entity<crtp>>
 {
 public:
-  using base_type = trait<score::Entity<crtp>>;
   crtp(Id<crtp> id, QObject* parent)
-    : base_type{id, "crtp_objname", parent}
+    : trait<score::Entity<crtp>>{id, "crtp_objname", parent}
   {
 
   }
 
   template <typename DeserializerVisitor>
   crtp(DeserializerVisitor&& vis, QObject* parent)
-      : base_type{std::forward<DeserializerVisitor>(vis), parent}
+      : trait<score::Entity<crtp>>{std::forward<DeserializerVisitor>(vis), parent}
   {
     vis.writeTo(*this);
   }
@@ -390,6 +409,7 @@ public:
 template <>
 void DataStreamReader::read(const crtp& pt)
 {
+  TSerializer<DataStream, trait<score::Entity<crtp>>>::readFrom(*this, pt);
   SCORE_DEBUG_INSERT_DELIMITER
   m_stream << pt.crtp_var;
   SCORE_DEBUG_INSERT_DELIMITER
@@ -406,6 +426,7 @@ void DataStreamWriter::write(crtp& pt)
 template <>
 void JSONObjectReader::read(const crtp& pt)
 {
+  TSerializer<JSONObject, trait<score::Entity<crtp>>>::readFrom(*this, pt);
   obj["crtp_var"] = pt.crtp_var;
 }
 
@@ -424,8 +445,7 @@ struct trait2 : public T
   friend struct TSerializer<DataStream, trait2<T>>;
 
 public:
-  using base_type = T;
-  using id_type = decltype(std::declval<T>().id());
+  static const constexpr bool is_trait = true;
   using T::T;
   template <typename DeserializerVisitor>
   trait2(DeserializerVisitor&& vis, QObject* parent)
@@ -443,6 +463,8 @@ struct TSerializer<DataStream, trait2<T>>
 {
   static void readFrom(DataStream::Serializer& s, const trait2<T>& v)
   {
+    if constexpr(is_trait<T>::value)
+      TSerializer<DataStream, T>::readFrom(s, v);
     SCORE_DEBUG_INSERT_DELIMITER
     s.stream() << v.trait2_var;
     SCORE_DEBUG_INSERT_DELIMITER
@@ -461,6 +483,8 @@ struct TSerializer<JSONObject, trait2<T>>
 {
   static void readFrom(JSONObject::Serializer& s, const trait2<T>& v)
   {
+    if constexpr(is_trait<T>::value)
+      TSerializer<JSONObject, T>::readFrom(s, v);
     s.obj["trait2_var"] = v.trait2_var;
   }
 
@@ -478,16 +502,15 @@ struct is_custom_serialized<trait2<T>> : std::true_type
 struct crtp2 : public trait2<trait<score::Entity<crtp2>>>
 {
 public:
-  using base_type = trait2<trait<score::Entity<crtp2>>>;
   crtp2(Id<crtp2> id, QObject* parent)
-    : base_type{id, "crtp2_objname", parent}
+    : trait2<trait<score::Entity<crtp2>>>{id, "crtp2_objname", parent}
   {
 
   }
 
   template <typename DeserializerVisitor>
   crtp2(DeserializerVisitor&& vis, QObject* parent)
-      : base_type{std::forward<DeserializerVisitor>(vis), parent}
+      : trait2<trait<score::Entity<crtp2>>>{std::forward<DeserializerVisitor>(vis), parent}
   {
     vis.writeTo(*this);
   }
@@ -498,6 +521,7 @@ public:
 template <>
 void DataStreamReader::read(const crtp2& pt)
 {
+  TSerializer<DataStream, trait2<trait<score::Entity<crtp2>>>>::readFrom(*this, pt);
   SCORE_DEBUG_INSERT_DELIMITER
   m_stream << pt.crtp2_var;
   SCORE_DEBUG_INSERT_DELIMITER
@@ -514,6 +538,7 @@ void DataStreamWriter::write(crtp2& pt)
 template <>
 void JSONObjectReader::read(const crtp2& pt)
 {
+  TSerializer<JSONObject, trait2<trait<score::Entity<crtp2>>>>::readFrom(*this, pt);
   obj["crtp2_var"] = pt.crtp2_var;
 }
 
@@ -581,7 +606,9 @@ private:
       QCOMPARE(json["ObjectName"].toString(), QString("bar_objname"));
       QCOMPARE(json["bar_var"].toInt(), 4567);
       QVERIFY(json["Metadata"].isObject());
+#if defined(SCORE_SERIALIZABLE_COMPONENTS)
       QVERIFY(json["Components"].isArray());
+#endif
 
       bar obj(JSONObjectWriter{json}, nullptr);
       QCOMPARE(obj.id().val(), 1234);
@@ -613,7 +640,10 @@ private:
       QCOMPARE(json["base_var"].toInt(), 4567);
       QCOMPARE(json["derived_var"].toInt(), 8910);
       QVERIFY(json["Metadata"].isObject());
+
+#if defined(SCORE_SERIALIZABLE_COMPONENTS)
       QVERIFY(json["Components"].isArray());
+#endif
       QCOMPARE(json["uuid"].toString(), QString("8ea20ba2-4002-4dc2-a31c-ccf10b41fe0b"));
 
       auto& pl = m_app.components().interfaces<base_factories>();
@@ -663,7 +693,9 @@ private:
       QCOMPARE(json["derived_var"].toInt(), 8910);
       QCOMPARE(json["derived2_var"].toInt(), 555);
       QVERIFY(json["Metadata"].isObject());
+#if defined(SCORE_SERIALIZABLE_COMPONENTS)
       QVERIFY(json["Components"].isArray());
+#endif
       QCOMPARE(json["uuid"].toString(), QString("3f77dcba-f1eb-420b-ad76-994cfc439304"));
 
       auto& pl = m_app.components().interfaces<base_factories>();
@@ -714,8 +746,10 @@ private:
       QCOMPARE(json["trait_var"].toInt(), 4567);
       QCOMPARE(json["crtp_var"].toInt(), 8910);
       QVERIFY(json["Metadata"].isObject());
-      QVERIFY(json["Components"].isArray());
 
+#if defined(SCORE_SERIALIZABLE_COMPONENTS)
+      QVERIFY(json["Components"].isArray());
+#endif
       crtp obj(JSONObjectWriter{json}, nullptr);
       QCOMPARE(obj.id().val(), 1234);
       QCOMPARE(obj.objectName(), QString("crtp_objname"));
@@ -751,7 +785,10 @@ private:
       QCOMPARE(json["trait2_var"].toInt(), 111);
       QCOMPARE(json["crtp2_var"].toInt(), 8910);
       QVERIFY(json["Metadata"].isObject());
+
+#if defined(SCORE_SERIALIZABLE_COMPONENTS)
       QVERIFY(json["Components"].isArray());
+#endif
 
       crtp2 obj(JSONObjectWriter{json}, nullptr);
       QCOMPARE(obj.id().val(), 1234);

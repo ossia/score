@@ -119,6 +119,7 @@ if(EXISTS Documentation/Models/score.qmodel)
   add_custom_target(Docs SOURCES Documentation/Models/score.qmodel)
 endif()
 
+set(INTEGRATION_TESTING 1)
 if(INTEGRATION_TESTING)
   file(COPY
        "${CMAKE_CURRENT_SOURCE_DIR}/tests/testdata"

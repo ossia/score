@@ -33,17 +33,25 @@ private:
   State::AddressAccessor m_old, m_new;
 };
 
-class SCORE_LIB_PROCESS_EXPORT SetPortPropagate final
-    : public score::PropertyCommand
-{
-  SCORE_COMMAND_DECL(
-      Process::CommandFactoryName(),
-      SetPortPropagate,
-      "Set port propagation")
-public:
-  SetPortPropagate(const Process::Port& p, bool newval)
-      : score::PropertyCommand{p, "propagate", newval}
-  {
-  }
-};
 }
+
+PROPERTY_COMMAND_T(
+    Process,
+    SetPropagate,
+    AudioOutlet::p_propagate,
+    "Set port propagation")
+SCORE_COMMAND_DECL_T(Process::SetPropagate)
+
+PROPERTY_COMMAND_T(
+    Process,
+    SetGain,
+    AudioOutlet::p_gain,
+    "Set port gain")
+SCORE_COMMAND_DECL_T(Process::SetGain)
+
+PROPERTY_COMMAND_T(
+    Process,
+    SetPan,
+    AudioOutlet::p_pan,
+    "Set port pan")
+SCORE_COMMAND_DECL_T(Process::SetPan)

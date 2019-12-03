@@ -48,8 +48,8 @@ ProcessModel::ProcessModel(
                        id,
                        Metadata<ObjectKey_k, Scenario::ProcessModel>::get(),
                        parent}
-    , inlet{Process::make_inlet(Id<Process::Port>(0), this)}
-    , outlet{Process::make_outlet(Id<Process::Port>(0), this)}
+    , inlet{Process::make_audio_inlet(Id<Process::Port>(0), this)}
+    , outlet{Process::make_audio_outlet(Id<Process::Port>(0), this)}
     , m_startTimeSyncId{Scenario::startId<TimeSyncModel>()}
     , m_startEventId{Scenario::startId<EventModel>()}
     , m_startStateId{Scenario::startId<StateModel>()}

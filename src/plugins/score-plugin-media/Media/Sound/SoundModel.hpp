@@ -66,7 +66,7 @@ public:
 
   void on_mediaChanged();
 
-  std::unique_ptr<Process::Outlet> outlet;
+  std::unique_ptr<Process::AudioOutlet> outlet;
 
 public:
   void fileChanged()

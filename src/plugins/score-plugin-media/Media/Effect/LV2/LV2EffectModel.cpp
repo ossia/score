@@ -361,10 +361,9 @@ void LV2EffectModel::readPlugin()
 
   if (audio_out_size > 0)
   {
-    m_outlets.push_back(
-        new Process::Outlet{Id<Process::Port>{out_id++}, this});
-    m_outlets[0]->type = Process::PortType::Audio;
-    m_outlets[0]->setPropagate(true);
+    auto out = new Process::AudioOutlet{Id<Process::Port>{out_id++}, this};
+    out->setPropagate(true);
+    m_outlets.push_back(out);
   }
 
   // CV

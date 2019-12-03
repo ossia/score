@@ -52,3 +52,4 @@ T* findComponent(const score::Components& c) noexcept
     return (T*)nullptr;
   }
 }
+}

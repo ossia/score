@@ -190,10 +190,8 @@ void PortWidgetSetup::setupImpl(
   auto port_widg = PortWidgetSetup::makeAddressWidget(port, ctx, parent);
   lay.addRow(widg, port_widg);
 
-  if (auto outlet = qobject_cast<const Process::Outlet*>(&port))
+  if (auto outlet = qobject_cast<const Process::AudioOutlet*>(&port))
   {
-    if (port.type == Process::PortType::Audio)
-    {
       auto cb = new QCheckBox{parent};
       cb->setChecked(outlet->propagate());
       lay.addRow(QObject::tr("Propagate"), cb);
@@ -202,16 +200,15 @@ void PortWidgetSetup::setupImpl(
             if (ok != out.propagate())
             {
               CommandDispatcher<> d{ctx.commandStack};
-              d.submit<Process::SetPortPropagate>(out, ok);
+              d.submit<Process::SetPropagate>(out, ok);
             }
           });
-      con(*outlet, &Process::Outlet::propagateChanged, cb, [=](bool p) {
+      con(*outlet, &Process::AudioOutlet::propagateChanged, cb, [=](bool p) {
         if (p != cb->isChecked())
         {
           cb->setChecked(p);
         }
       });
-    }
   }
 }
 }

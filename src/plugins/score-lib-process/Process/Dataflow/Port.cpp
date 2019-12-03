@@ -15,12 +15,14 @@
 W_OBJECT_IMPL(Process::Port)
 W_OBJECT_IMPL(Process::Inlet)
 W_OBJECT_IMPL(Process::Outlet)
+W_OBJECT_IMPL(Process::AudioOutlet)
 W_OBJECT_IMPL(Process::ControlInlet)
 W_OBJECT_IMPL(Process::ControlOutlet)
 namespace Process
 {
 MODEL_METADATA_IMPL_CPP(Inlet)
 MODEL_METADATA_IMPL_CPP(Outlet)
+MODEL_METADATA_IMPL_CPP(AudioOutlet)
 MODEL_METADATA_IMPL_CPP(ControlInlet)
 MODEL_METADATA_IMPL_CPP(ControlOutlet)
 Port::~Port() {}
@@ -209,18 +211,77 @@ Outlet::Outlet(JSONObject::Deserializer&& vis, QObject* parent)
   vis.writeTo(*this);
 }
 
-bool Outlet::propagate() const
+AudioOutlet::~AudioOutlet() {}
+
+AudioOutlet::AudioOutlet(Id<Process::Port> c, QObject* parent)
+  : Outlet{std::move(c), parent}
+  , m_gain{1.}
+  , m_pan{ossia::sqrt_2 / 2., ossia::sqrt_2 / 2.}
+{
+  type = Process::PortType::Audio;
+}
+
+AudioOutlet::AudioOutlet(DataStream::Deserializer& vis, QObject* parent)
+  : Outlet{vis, parent}
+{
+  vis.writeTo(*this);
+}
+AudioOutlet::AudioOutlet(JSONObject::Deserializer& vis, QObject* parent)
+  : Outlet{vis, parent}
+{
+  vis.writeTo(*this);
+}
+AudioOutlet::AudioOutlet(DataStream::Deserializer&& vis, QObject* parent)
+  : Outlet{vis, parent}
+{
+  vis.writeTo(*this);
+}
+AudioOutlet::AudioOutlet(JSONObject::Deserializer&& vis, QObject* parent)
+  : Outlet{vis, parent}
+{
+  vis.writeTo(*this);
+}
+
+bool AudioOutlet::propagate() const
 {
   return m_propagate;
 }
 
-void Outlet::setPropagate(bool propagate)
+void AudioOutlet::setPropagate(bool propagate)
 {
   if (m_propagate == propagate)
     return;
 
   m_propagate = propagate;
   propagateChanged(m_propagate);
+}
+
+double AudioOutlet::gain() const
+{
+  return m_gain;
+}
+
+void AudioOutlet::setGain(double gain)
+{
+  if (m_gain == gain)
+    return;
+
+  m_gain = gain;
+  gainChanged(m_gain);
+}
+
+ossia::small_vector<double, 2> AudioOutlet::pan() const
+{
+  return m_pan;
+}
+
+void AudioOutlet::setPan(ossia::small_vector<double, 2> pan)
+{
+  if (m_pan == pan)
+    return;
+
+  m_pan = pan;
+  panChanged(m_pan);
 }
 
 ControlOutlet::~ControlOutlet() {}
@@ -364,7 +425,7 @@ Port* PortFactoryList::loadMissing(const VisitorVariant& vis, QObject* parent)
 
 PortFactoryList::~PortFactoryList() {}
 
-std::unique_ptr<Inlet> make_inlet(DataStreamWriter& wr, QObject* parent)
+std::unique_ptr<Inlet> load_inlet(DataStreamWriter& wr, QObject* parent)
 {
   static auto& il
       = score::AppComponents().interfaces<Process::PortFactoryList>();
@@ -372,7 +433,7 @@ std::unique_ptr<Inlet> make_inlet(DataStreamWriter& wr, QObject* parent)
   return std::unique_ptr<Process::Inlet>((Process::Inlet*)ptr);
 }
 
-std::unique_ptr<Inlet> make_inlet(JSONObjectWriter& wr, QObject* parent)
+std::unique_ptr<Inlet> load_inlet(JSONObjectWriter& wr, QObject* parent)
 {
   static auto& il
       = score::AppComponents().interfaces<Process::PortFactoryList>();
@@ -380,20 +441,50 @@ std::unique_ptr<Inlet> make_inlet(JSONObjectWriter& wr, QObject* parent)
   return std::unique_ptr<Process::Inlet>((Process::Inlet*)ptr);
 }
 
-std::unique_ptr<Outlet> make_outlet(DataStreamWriter& wr, QObject* parent)
+std::unique_ptr<Outlet> load_outlet(DataStreamWriter& wr, QObject* parent)
 {
   static auto& il
       = score::AppComponents().interfaces<Process::PortFactoryList>();
   auto ptr = deserialize_interface(il, wr, parent);
-  return std::unique_ptr<Process::Outlet>((Process::Outlet*)ptr);
+
+  auto out = std::unique_ptr<Process::Outlet>((Process::Outlet*)ptr);
+  if(out->type == Process::PortType::Audio)
+      SCORE_ASSERT(dynamic_cast<Process::AudioOutlet*>(out.get()));
+  return out;
 }
 
-std::unique_ptr<Outlet> make_outlet(JSONObjectWriter& wr, QObject* parent)
+std::unique_ptr<Outlet> load_outlet(JSONObjectWriter& wr, QObject* parent)
 {
   static auto& il
       = score::AppComponents().interfaces<Process::PortFactoryList>();
   auto ptr = deserialize_interface(il, wr, parent);
-  return std::unique_ptr<Process::Outlet>((Process::Outlet*)ptr);
+
+  auto out = std::unique_ptr<Process::Outlet>((Process::Outlet*)ptr);
+  if(out->type == Process::PortType::Audio)
+      SCORE_ASSERT(dynamic_cast<Process::AudioOutlet*>(out.get()));
+  return out;
+}
+
+std::unique_ptr<AudioOutlet> load_audio_outlet(DataStreamWriter& wr, QObject* parent)
+{
+  auto out = load_outlet(wr, parent);
+  if(auto p = dynamic_cast<AudioOutlet*>(out.get()))
+  {
+    auto res = out.release();
+    return std::unique_ptr<AudioOutlet>(static_cast<AudioOutlet*>(res));
+  }
+  return {};
+}
+
+std::unique_ptr<AudioOutlet> load_audio_outlet(JSONObjectWriter& wr, QObject* parent)
+{
+  auto out = load_outlet(wr, parent);
+  if(auto p = dynamic_cast<AudioOutlet*>(out.get()))
+  {
+    auto res = out.release();
+    return std::unique_ptr<AudioOutlet>(static_cast<AudioOutlet*>(res));
+  }
+  return {};
 }
 }
 
@@ -500,13 +591,11 @@ SCORE_LIB_PROCESS_EXPORT void
 DataStreamReader::read<Process::Outlet>(const Process::Outlet& p)
 {
   read((Process::Port&)p);
-  m_stream << p.m_propagate;
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void
 DataStreamWriter::write<Process::Outlet>(Process::Outlet& p)
 {
-  m_stream >> p.m_propagate;
 }
 
 template <>
@@ -514,14 +603,45 @@ SCORE_LIB_PROCESS_EXPORT void
 JSONObjectReader::read<Process::Outlet>(const Process::Outlet& p)
 {
   read((Process::Port&)p);
-  obj["Propagate"] = p.m_propagate;
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void
 JSONObjectWriter::write<Process::Outlet>(Process::Outlet& p)
 {
+}
+
+template <>
+SCORE_LIB_PROCESS_EXPORT void
+DataStreamReader::read<Process::AudioOutlet>(const Process::AudioOutlet& p)
+{
+  // read((Process::Outlet&)p);
+  m_stream << p.m_gain << p.m_pan << p.m_propagate;
+}
+template <>
+SCORE_LIB_PROCESS_EXPORT void
+DataStreamWriter::write<Process::AudioOutlet>(Process::AudioOutlet& p)
+{
+  m_stream >> p.m_gain >> p.m_pan >> p.m_propagate;
+}
+
+template <>
+SCORE_LIB_PROCESS_EXPORT void
+JSONObjectReader::read<Process::AudioOutlet>(const Process::AudioOutlet& p)
+{
+  // read((Process::Outlet&)p);
+  obj["Gain"] = p.m_gain;
+  obj["Pan"] = toJsonValueArray(p.m_pan);
+  obj["Propagate"] = p.m_propagate;
+}
+template <>
+SCORE_LIB_PROCESS_EXPORT void
+JSONObjectWriter::write<Process::AudioOutlet>(Process::AudioOutlet& p)
+{
+  p.m_gain = obj["Gain"].toDouble();
+  p.m_pan = fromJsonValueArray<ossia::small_vector<double, 2>>(obj["Pan"].toArray());
   p.m_propagate = obj["Propagate"].toBool();
 }
+
 
 template <>
 SCORE_LIB_PROCESS_EXPORT void

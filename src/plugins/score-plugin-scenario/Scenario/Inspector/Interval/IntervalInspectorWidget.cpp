@@ -6,6 +6,7 @@
 #include <Inspector/InspectorLayout.hpp>
 #include <Scenario/Application/ScenarioApplicationPlugin.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentPresenter.hpp>
 #include <Scenario/Inspector/Interval/SpeedSlider.hpp>
 #include <Scenario/Inspector/Interval/Widgets/DurationSectionWidget.hpp>
@@ -13,6 +14,7 @@
 #include <Scenario/Inspector/SelectionButton.hpp>
 #include <Scenario/Process/ScenarioInterface.hpp>
 #include <Scenario/Commands/Signature/SignatureCommands.hpp>
+#include <Scenario/Commands/Interval/MakeBus.hpp>
 
 #include <score/document/DocumentContext.hpp>
 #include <score/widgets/MarginLess.hpp>
@@ -68,6 +70,21 @@ IntervalInspectorWidget::IntervalInspectorWidget(
   });
 
   lay->addRow(fullview);
+
+  // Audio
+  ScenarioDocumentModel& doc = get<ScenarioDocumentModel>(*documentFromObject(m_model));
+  auto busWidg = new QCheckBox{this};
+  busWidg->setChecked(ossia::contains(doc.busIntervals, &m_model));
+  connect(busWidg, &QCheckBox::toggled,
+          this, [=, &ctx, &doc] (bool b) {
+    bool is_bus = ossia::contains(doc.busIntervals, &m_model);
+    if((b && !is_bus) || (!b && is_bus))
+    {
+        CommandDispatcher<> disp{ctx.commandStack};
+        disp.submit<Command::SetBus>(doc, m_model, b);
+    }
+  });
+  lay->addRow(tr("Audio bus"), busWidg);
 
   // Speed
   auto speedWidg = new SpeedWidget{true, true, this};

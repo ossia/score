@@ -40,7 +40,7 @@ class SCORE_PLUGIN_SCENARIO_EXPORT ProcessModel final
 
 public:
   std::unique_ptr<Process::Inlet> inlet;
-  std::unique_ptr<Process::Outlet> outlet;
+  std::unique_ptr<Process::AudioOutlet> outlet;
 
   ProcessModel(
       const TimeVal& duration,
