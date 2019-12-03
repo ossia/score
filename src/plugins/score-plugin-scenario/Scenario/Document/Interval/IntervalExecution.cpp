@@ -9,6 +9,7 @@
 #include <Scenario/Document/Interval/IntervalDurations.hpp>
 #include <Scenario/Document/Interval/IntervalExecution.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 #include <Scenario/Execution/score2OSSIA.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
 
@@ -16,12 +17,14 @@
 #include <score/model/Identifier.hpp>
 #include <score/tools/IdentifierGeneration.hpp>
 #include <score/tools/Bind.hpp>
+#include <score/document/DocumentInterface.hpp>
 
 #include <ossia/dataflow/graph/graph_interface.hpp>
 #include <ossia/dataflow/graph_edge.hpp>
 #include <ossia/dataflow/execution_state.hpp>
 #include <ossia/editor/scenario/time_interval.hpp>
 #include <ossia/editor/scenario/time_value.hpp>
+#include <ossia/dataflow/nodes/forward_node.hpp>
 
 #include <wobjectimpl.h>
 #include <QDebug>
@@ -87,6 +90,27 @@ IntervalComponentBase::IntervalComponentBase(
       });
   });
 
+  con(interval(), &Scenario::IntervalModel::busChanged, this, [&](bool b) {
+    if(m_ossia_interval)
+      in_exec([b, itv = m_ossia_interval] {
+        auto& audio_out = static_cast<ossia::nodes::interval*>(itv->node.get())->audio_out;
+        audio_out->has_gain = b;
+      });
+  });
+  con(*interval().outlet, &Process::AudioOutlet::gainChanged, this, [&](double g) {
+    if(m_ossia_interval)
+      in_exec([g, itv = m_ossia_interval] {
+        auto& audio_out = static_cast<ossia::nodes::interval*>(itv->node.get())->audio_out;
+        audio_out->gain = g;
+      });
+  });
+  con(*interval().outlet, &Process::AudioOutlet::panChanged, this, [&](ossia::pan_weight pan) {
+      if(m_ossia_interval)
+          in_exec([pan = std::move(pan), itv = m_ossia_interval] {
+              auto& audio_out = static_cast<ossia::nodes::interval*>(itv->node.get())->audio_out;
+              audio_out->pan = pan;
+          });
+  });
   // TODO tempo, etc
 }
 
@@ -182,6 +206,11 @@ void IntervalComponent::onSetup(
     interval_duration_data dur)
 {
   m_ossia_interval = ossia_cst;
+
+  auto& audio_out = static_cast<ossia::nodes::interval*>(m_ossia_interval->node.get())->audio_out;
+  audio_out->has_gain = Scenario::isBus(*m_interval, context().doc);
+  audio_out->gain = m_interval->outlet->gain();
+  audio_out->pan = m_interval->outlet->pan();
 
   m_ossia_interval->set_min_duration(dur.minDuration);
   m_ossia_interval->set_max_duration(dur.maxDuration);

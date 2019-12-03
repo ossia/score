@@ -27,8 +27,8 @@ ProcessModel::ProcessModel(
                                id,
                                Metadata<ObjectKey_k, ProcessModel>::get(),
                                parent}
-    , inlet{Process::make_inlet(Id<Process::Port>(0), this)}
-    , outlet{Process::make_outlet(Id<Process::Port>(0), this)}
+    , inlet{Process::make_value_inlet(Id<Process::Port>(0), this)}
+    , outlet{Process::make_value_outlet(Id<Process::Port>(0), this)}
     , m_sourceMin{0.}
     , m_sourceMax{1.}
     , m_targetMin{0.}

@@ -15,7 +15,7 @@ namespace Scenario
 class EventModel;
 namespace Command
 {
-class SetCondition final : public score::Command
+class SCORE_PLUGIN_SCENARIO_EXPORT SetCondition final : public score::Command
 {
   SCORE_COMMAND_DECL(
       CommandFactoryName(),

@@ -217,8 +217,21 @@ void View::setupPanel(PanelDelegate* v)
   if (v->defaultPanelStatus().dock == Qt::BottomDockWidgetArea)
   {
     m_bottomTabs->addTab(w, v->defaultPanelStatus().prettyName);
-    if (!v->defaultPanelStatus().shown)
-      w->hide();
+
+    auto& mw = v->context().menus.get().at(score::Menus::Windows());
+    auto toggle = new QAction{v->defaultPanelStatus().prettyName.toUpper(), this};
+    toggle->setCheckable(true);
+    toggle->setShortcut(v->defaultPanelStatus().shortcut);
+    addAction(toggle);
+    connect(toggle, &QAction::toggled, this, [=] (bool b) {
+        m_bottomTabs->setVisible(b);
+        m_bottomTabs->setCurrentWidget(w);
+    });
+
+    mw.menu()->addAction(toggle);
+
+    if(v->defaultPanelStatus().shown)
+        toggle->toggle();
     return;
   }
 

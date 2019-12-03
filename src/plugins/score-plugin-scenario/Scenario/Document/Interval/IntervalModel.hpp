@@ -48,7 +48,7 @@ class SCORE_PLUGIN_SCENARIO_EXPORT IntervalModel final
 
 public:
   std::unique_ptr<Process::Inlet> inlet;
-  std::unique_ptr<Process::Outlet> outlet;
+  std::unique_ptr<Process::AudioOutlet> outlet;
 
   /** Properties of the class **/
   score::EntityMap<Process::ProcessModel> processes;
@@ -216,6 +216,9 @@ public:
   void executingChanged(bool arg_1)
       E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, executingChanged, arg_1)
 
+  void busChanged(bool arg_1)
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, busChanged, arg_1)
+
   PROPERTY(double, muted READ muted WRITE setMuted NOTIFY mutedChanged)
   PROPERTY(double, heightPercentage READ heightPercentage WRITE setHeightPercentage NOTIFY heightPercentageChanged)
 
@@ -250,9 +253,13 @@ private:
 };
 
 SCORE_PLUGIN_SCENARIO_EXPORT
-bool isInFullView(const Scenario::IntervalModel& cstr);
+bool isInFullView(const Scenario::IntervalModel& cstr) noexcept;
 SCORE_PLUGIN_SCENARIO_EXPORT
-bool isInFullView(const Process::ProcessModel& cstr);
+bool isInFullView(const Process::ProcessModel& cstr) noexcept;
+
+SCORE_PLUGIN_SCENARIO_EXPORT
+bool isBus(const Scenario::IntervalModel& model, const score::DocumentContext& ctx) noexcept;
+
 }
 
 DEFAULT_MODEL_METADATA(Scenario::IntervalModel, "Interval")

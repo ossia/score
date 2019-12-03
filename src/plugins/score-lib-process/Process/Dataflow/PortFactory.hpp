@@ -1,6 +1,6 @@
 #pragma once
 #include <Process/Dataflow/Port.hpp>
-
+#include <score/serialization/VisitorCommon.hpp>
 #include <score/plugins/Interface.hpp>
 #include <score/plugins/InterfaceList.hpp>
 class QGraphicsItem;
@@ -72,6 +72,26 @@ public:
   using object_type = Process::Port;
   ~PortFactoryList();
   Process::Port* loadMissing(const VisitorVariant& vis, QObject* parent) const;
+};
+
+template <typename Model_T>
+class PortFactory_T final : public Process::PortFactory
+{
+public:
+  ~PortFactory_T() override = default;
+
+private:
+  UuidKey<Process::Port> concreteKey() const noexcept override
+  {
+    return Metadata<ConcreteKey_k, Model_T>::get();
+  }
+
+  Model_T* load(const VisitorVariant& vis, QObject* parent) override
+  {
+    return score::deserialize_dyn(vis, [&](auto&& deserializer) {
+      return new Model_T{deserializer, parent};
+    });
+  }
 };
 
 SCORE_LIB_PROCESS_EXPORT

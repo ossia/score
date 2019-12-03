@@ -95,8 +95,22 @@ void Slider::paint(QPainter& p)
   p.drawRoundedRect(rect(), round, round);
 
   p.setBrush(skin.SliderExtBrush);
-  p.drawRoundedRect(
-      QRect{1, 1, int(ratio * (width() - 2)), height() - 2}, round, round);
+  if(orientation() == Qt::Horizontal)
+  {
+    p.drawRoundedRect(
+        QRect{1, 1,
+              int(ratio * (width() - 2)),
+              (height() - 2)
+          }, round, round);
+  }
+  else
+  {
+    p.drawRoundedRect(
+        QRect{1, int((1. - ratio) * (height() - 2)),
+             (width() - 2),
+              int(ratio * (height() - 2))
+          }, round, round);
+  }
 }
 
 void Slider::paintWithText(const QString& s)

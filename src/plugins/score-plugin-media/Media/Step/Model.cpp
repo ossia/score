@@ -19,7 +19,7 @@ Model::Model(
                             id,
                             Metadata<ObjectKey_k, ProcessModel>::get(),
                             parent}
-    , outlet{Process::make_outlet(Id<Process::Port>(0), this)}
+    , outlet{Process::make_value_outlet(Id<Process::Port>(0), this)}
 {
   outlet->type = Process::PortType::Message;
   m_steps = {0.5f, 0.3f, 0.5f, 0.8f, 1.f, 0.f, 0.5f, 0.1f};
@@ -116,7 +116,7 @@ void DataStreamReader::read(const Media::Step::Model& proc)
 template <>
 void DataStreamWriter::write(Media::Step::Model& proc)
 {
-  proc.outlet = Process::make_outlet(*this, &proc);
+  proc.outlet = Process::load_outlet(*this, &proc);
   m_stream >> proc.m_steps >> proc.m_stepCount >> proc.m_stepDuration
       >> proc.m_min >> proc.m_max;
   checkDelimiter();
@@ -138,7 +138,7 @@ void JSONObjectWriter::write(Media::Step::Model& proc)
 {
   {
     JSONObjectWriter writer{obj["Outlet"].toObject()};
-    proc.outlet = Process::make_outlet(writer, &proc);
+    proc.outlet = Process::load_outlet(writer, &proc);
   }
 
   proc.m_steps

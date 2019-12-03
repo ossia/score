@@ -272,7 +272,7 @@ public:
   virtual ~AudioOutlet() override;
   Process::Outlet* make(Id<Process::Port>&& id, QObject* parent) override
   {
-    auto p = new Process::Outlet(id, parent);
+    auto p = new Process::AudioOutlet(id, parent);
     p->type = Process::PortType::Audio;
     if (id.val() == 0)
       p->setPropagate(true);

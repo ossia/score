@@ -611,9 +611,9 @@ void VSTEffectModel::create()
     }
   }
 
-  m_outlets.push_back(new Process::Outlet(Id<Process::Port>{}, this));
-  m_outlets[0]->type = Process::PortType::Audio;
-  m_outlets[0]->setPropagate(true);
+  auto out = new Process::AudioOutlet(Id<Process::Port>{}, this);
+  out->setPropagate(true);
+  m_outlets.push_back(out);
 }
 
 void VSTEffectModel::load()

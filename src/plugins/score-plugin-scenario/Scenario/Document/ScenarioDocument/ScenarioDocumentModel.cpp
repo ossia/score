@@ -117,4 +117,25 @@ IntervalModel& ScenarioDocumentModel::baseInterval() const
 {
   return m_baseScenario->interval();
 }
+
+void ScenarioDocumentModel::addBus(const Scenario::IntervalModel* itv)
+{
+  if(!ossia::contains(busIntervals, itv))
+  {
+    busIntervals.push_back(itv);
+    const_cast<IntervalModel*>(itv)->busChanged(true);
+    busesChanged();
+  }
+}
+
+void ScenarioDocumentModel::removeBus(const Scenario::IntervalModel* itv)
+{
+  if(ossia::contains(busIntervals, itv))
+  {
+    ossia::remove_erase(busIntervals, itv);
+    const_cast<IntervalModel*>(itv)->busChanged(false);
+    busesChanged();
+  }
+}
+
 }

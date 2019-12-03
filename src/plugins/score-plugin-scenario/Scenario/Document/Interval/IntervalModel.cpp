@@ -43,8 +43,8 @@ IntervalModel::IntervalModel(
     double yPos,
     QObject* parent)
     : Entity{id, Metadata<ObjectKey_k, IntervalModel>::get(), parent}
-    , inlet{Process::make_inlet(Id<Process::Port>(0), this)}
-    , outlet{Process::make_outlet(Id<Process::Port>(0), this)}
+    , inlet{Process::make_audio_inlet(Id<Process::Port>(0), this)}
+    , outlet{Process::make_audio_outlet(Id<Process::Port>(0), this)}
     , m_executionState{}
     , m_viewMode{ViewMode::Temporal}
     , m_smallViewShown{}
@@ -616,7 +616,7 @@ void IntervalModel::on_removingProcess(const Process::ProcessModel& p)
   }
 }
 
-bool isInFullView(const IntervalModel& cstr)
+bool isInFullView(const IntervalModel& cstr) noexcept
 {
   if(qobject_cast<BaseScenario*>(cstr.parent()))
     return true;
@@ -633,7 +633,7 @@ bool isInFullView(const IntervalModel& cstr)
   return false;
 }
 
-bool isInFullView(const Process::ProcessModel& cstr)
+bool isInFullView(const Process::ProcessModel& cstr) noexcept
 {
   return isInFullView(*static_cast<IntervalModel*>(cstr.parent()));
 }
@@ -651,4 +651,11 @@ SlotPath::try_find(const score::DocumentContext& ctx) const
   else
     return nullptr;
 }
+
+bool isBus(const IntervalModel& model, const score::DocumentContext& ctx) noexcept
+{
+   auto& buses = score::IDocument::get<Scenario::ScenarioDocumentModel>(ctx.document).busIntervals;
+   return ossia::contains(buses, &model);
+}
+
 }

@@ -127,7 +127,6 @@ void writeOutlets(
         auto p = new Process::Outlet(Id<Process::Inlet>(obj["id"].toInt()), parent);
         p->setAddress(fromJsonObject<State::AddressAccessor>(obj["Address"].toObject()));
         p->setCustomData(obj["Custom"].toString());
-        p->setPropagate(obj["Propagate"].toBool());
         auto cables = obj["Cables"].toArray();
         for(auto c : cables) {
           // TODO

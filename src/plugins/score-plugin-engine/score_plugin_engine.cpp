@@ -244,7 +244,7 @@ score_plugin_engine::factories(
          LocalTree::LoopComponentFactory,
          LocalTree::AutomationComponentFactory,
          LocalTree::MappingComponentFactory>,
-      // FIXME FW<score::PanelDelegateFactory, Audio::PanelDelegateFactory>,
+      FW<score::PanelDelegateFactory, Audio::PanelDelegateFactory>,
       FW<Library::LibraryInterface,
          Protocols::OSCLibraryHandler
 #if __has_include(<QQmlEngine>)

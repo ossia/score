@@ -51,6 +51,7 @@ set(HDRS
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/Interval/CreateProcessInExistingSlot.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/Interval/CreateProcessInNewSlot.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/Interval/InsertContentInInterval.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/Interval/MakeBus.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/Interval/Rack/AddSlotToRack.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/Interval/Rack/RemoveSlotFromRack.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Commands/Interval/Rack/Slot/AddLayerModelToSlot.hpp"

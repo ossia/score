@@ -29,6 +29,7 @@ namespace Process
 class Port;
 class Inlet;
 class Outlet;
+class AudioOutlet;
 class ProcessModelFactory;
 class LayerFactory;
 class ProcessModel;

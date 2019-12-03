@@ -23,8 +23,8 @@ public:
   const ossia::small_vector<audio_sample*, 8>& lo_sound;
   const int64_t hi_dur{}, lo_dur{};
 
-  ossia::outlet audio_out{ossia::audio_port{}};
-  ossia::outlet bang_out{ossia::value_port{}};
+  ossia::audio_outlet audio_out;
+  ossia::value_outlet bang_out;
 
   struct played_sound
   {

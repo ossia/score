@@ -58,7 +58,7 @@ private:
   QVector<Id<StateModel>> m_movingStates;
 };
 
-class SplitWholeEvent final : public score::Command
+class SCORE_PLUGIN_SCENARIO_EXPORT SplitWholeEvent final : public score::Command
 {
   SCORE_COMMAND_DECL(
       CommandFactoryName(),

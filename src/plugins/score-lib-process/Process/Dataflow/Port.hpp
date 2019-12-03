@@ -21,6 +21,7 @@ namespace Process
 class Port;
 class Inlet;
 class Outlet;
+class AudioOutlet;
 class ControlInlet;
 class ControlOutlet;
 }
@@ -37,6 +38,11 @@ UUID_METADATA(
 UUID_METADATA(
     SCORE_LIB_PROCESS_EXPORT,
     Process::Port,
+    Process::AudioOutlet,
+    "a1d97535-18ac-444a-8417-0cbc1692d897")
+UUID_METADATA(
+    SCORE_LIB_PROCESS_EXPORT,
+    Process::Port,
     Process::ControlInlet,
     "9a13fb32-269a-47bf-99a9-930188c1f19c")
 UUID_METADATA(
@@ -46,6 +52,9 @@ UUID_METADATA(
     "3620ea94-5991-41cf-89b3-11f842cc39d0")
 namespace Process
 {
+
+using pan_weight = ossia::small_vector<double, 2>;
+
 class Cable;
 class SCORE_LIB_PROCESS_EXPORT Port : public IdentifiedObject<Port>,
                                       public score::SerializableInterface<Port>
@@ -116,6 +125,7 @@ class SCORE_LIB_PROCESS_EXPORT Inlet : public Port
 {
   W_OBJECT(Inlet)
 public:
+  using base_type = Inlet;
   MODEL_METADATA_IMPL_HPP(Inlet)
   Inlet() = delete;
   ~Inlet() override;
@@ -188,6 +198,7 @@ class SCORE_LIB_PROCESS_EXPORT Outlet : public Port
 
   SCORE_SERIALIZE_FRIENDS
 public:
+  using base_type = Outlet;
   MODEL_METADATA_IMPL_HPP(Outlet)
   Outlet() = delete;
   ~Outlet() override;
@@ -198,23 +209,49 @@ public:
   Outlet(JSONObject::Deserializer& vis, QObject* parent);
   Outlet(DataStream::Deserializer&& vis, QObject* parent);
   Outlet(JSONObject::Deserializer&& vis, QObject* parent);
+};
+
+class SCORE_LIB_PROCESS_EXPORT AudioOutlet : public Outlet
+{
+  W_OBJECT(AudioOutlet)
+
+SCORE_SERIALIZE_FRIENDS
+public:
+  MODEL_METADATA_IMPL_HPP(AudioOutlet)
+  AudioOutlet() = delete;
+  ~AudioOutlet() override;
+  AudioOutlet(const AudioOutlet&) = delete;
+  AudioOutlet(Id<Process::Port> c, QObject* parent);
+
+  AudioOutlet(DataStream::Deserializer& vis, QObject* parent);
+  AudioOutlet(JSONObject::Deserializer& vis, QObject* parent);
+  AudioOutlet(DataStream::Deserializer&& vis, QObject* parent);
+  AudioOutlet(JSONObject::Deserializer&& vis, QObject* parent);
 
   bool propagate() const;
-
-public:
+  void setPropagate(bool propagate);
   void propagateChanged(bool propagate)
       E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, propagateChanged, propagate)
 
-public:
-  void setPropagate(bool propagate);
-  W_SLOT(setPropagate);
+  double gain() const;
+  void setGain(double g);
+  void gainChanged(double g)
+      E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, gainChanged, g)
 
+  pan_weight pan() const;
+  void setPan(pan_weight g);
+  void panChanged(pan_weight g)
+      E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, panChanged, g)
+
+
+  PROPERTY(bool, propagate READ propagate WRITE setPropagate NOTIFY propagateChanged)
+  PROPERTY(double, gain READ gain WRITE setGain NOTIFY gainChanged)
+  PROPERTY(pan_weight, pan READ pan WRITE setPan NOTIFY panChanged)
 private:
+  double m_gain{};
+  pan_weight m_pan;
   bool m_propagate{false};
 
-  W_PROPERTY(
-      bool,
-      propagate READ propagate WRITE setPropagate NOTIFY propagateChanged)
 };
 
 class SCORE_LIB_PROCESS_EXPORT ControlOutlet final : public Outlet
@@ -272,28 +309,62 @@ private:
 };
 
 inline std::unique_ptr<Inlet>
-make_inlet(const Id<Process::Port>& c, QObject* parent)
+make_value_inlet(const Id<Process::Port>& c, QObject* parent)
 {
   return std::make_unique<Inlet>(c, parent);
 }
 
 inline std::unique_ptr<Outlet>
-make_outlet(const Id<Process::Port>& c, QObject* parent)
+make_value_outlet(const Id<Process::Port>& c, QObject* parent)
 {
   return std::make_unique<Outlet>(c, parent);
 }
 
-SCORE_LIB_PROCESS_EXPORT
-std::unique_ptr<Inlet> make_inlet(DataStreamWriter& wr, QObject* parent);
+inline std::unique_ptr<Inlet>
+    make_midi_inlet(const Id<Process::Port>& c, QObject* parent)
+{
+  auto p = std::make_unique<Inlet>(c, parent);
+  p->type = Process::PortType::Midi;
+  return p;
+}
+inline std::unique_ptr<Outlet>
+    make_midi_outlet(const Id<Process::Port>& c, QObject* parent)
+{
+  auto p = std::make_unique<Outlet>(c, parent);
+  p->type = Process::PortType::Midi;
+  return p;
+}
+
+inline std::unique_ptr<Inlet>
+    make_audio_inlet(const Id<Process::Port>& c, QObject* parent)
+{
+  auto p = std::make_unique<Inlet>(c, parent);
+  p->type = Process::PortType::Audio;
+  return p;
+}
+inline std::unique_ptr<AudioOutlet>
+    make_audio_outlet(const Id<Process::Port>& c, QObject* parent)
+{
+  return std::make_unique<AudioOutlet>(c, parent);
+}
 
 SCORE_LIB_PROCESS_EXPORT
-std::unique_ptr<Inlet> make_inlet(JSONObjectWriter& wr, QObject* parent);
+std::unique_ptr<Inlet> load_inlet(DataStreamWriter& wr, QObject* parent);
 
 SCORE_LIB_PROCESS_EXPORT
-std::unique_ptr<Outlet> make_outlet(DataStreamWriter& wr, QObject* parent);
+std::unique_ptr<Inlet> load_inlet(JSONObjectWriter& wr, QObject* parent);
 
 SCORE_LIB_PROCESS_EXPORT
-std::unique_ptr<Outlet> make_outlet(JSONObjectWriter& wr, QObject* parent);
+std::unique_ptr<Outlet> load_outlet(DataStreamWriter& wr, QObject* parent);
+
+SCORE_LIB_PROCESS_EXPORT
+std::unique_ptr<Outlet> load_outlet(JSONObjectWriter& wr, QObject* parent);
+
+SCORE_LIB_PROCESS_EXPORT
+std::unique_ptr<AudioOutlet> load_audio_outlet(DataStreamWriter& wr, QObject* parent);
+
+SCORE_LIB_PROCESS_EXPORT
+std::unique_ptr<AudioOutlet> load_audio_outlet(JSONObjectWriter& wr, QObject* parent);
 
 using Inlets = ossia::small_vector<Process::Inlet*, 4>;
 using Outlets = ossia::small_vector<Process::Outlet*, 4>;
@@ -303,3 +374,5 @@ DEFAULT_MODEL_METADATA(Process::Port, "Port")
 
 W_REGISTER_ARGTYPE(Id<Process::Port>)
 W_REGISTER_ARGTYPE(Process::Port)
+
+W_REGISTER_ARGTYPE(Process::pan_weight)

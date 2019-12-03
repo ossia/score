@@ -19,8 +19,8 @@ Model::Model(
     const TimeVal& duration, const Id<Process::ProcessModel>& id,
     QObject* parent)
     : Process::ProcessModel{duration, id, "NodalProcess", parent}
-    , inlet{Process::make_inlet(Id<Process::Port>(0), this)}
-    , outlet{Process::make_outlet(Id<Process::Port>(0), this)}
+    , inlet{Process::make_audio_inlet(Id<Process::Port>(0), this)}
+    , outlet{Process::make_audio_outlet(Id<Process::Port>(0), this)}
 {
   metadata().setInstanceName(*this);
   inlet->type = Process::PortType::Audio;
@@ -111,8 +111,8 @@ template <>
 void DataStreamWriter::write(Nodal::Model& process)
 {
   // Ports
-  process.inlet = Process::make_inlet(*this, &process);
-  process.outlet = Process::make_outlet(*this, &process);
+  process.inlet = Process::load_inlet(*this, &process);
+  process.outlet = Process::load_audio_outlet(*this, &process);
 
   // Nodes
   static auto& pl = components.interfaces<Process::ProcessFactoryList>();
@@ -147,20 +147,20 @@ void JSONObjectWriter::write(Nodal::Model& proc)
 {
   {
     JSONObjectWriter writer{obj["Inlet"].toObject()};
-    proc.inlet = Process::make_inlet(writer, &proc);
+    proc.inlet = Process::load_inlet(writer, &proc);
     if (!proc.inlet)
     {
-      proc.inlet = Process::make_inlet(Id<Process::Port>(0), &proc);
+      proc.inlet = Process::make_audio_inlet(Id<Process::Port>(0), &proc);
       proc.inlet->type = Process::PortType::Audio;
     }
   }
   {
     JSONObjectWriter writer{obj["Outlet"].toObject()};
-    proc.outlet = Process::make_outlet(writer, &proc);
+    proc.outlet = Process::load_audio_outlet(writer, &proc);
 
     if (!proc.outlet)
     {
-      proc.outlet = Process::make_outlet(Id<Process::Port>(0), &proc);
+      proc.outlet = Process::make_audio_outlet(Id<Process::Port>(0), &proc);
       proc.outlet->type = Process::PortType::Audio;
     }
   }

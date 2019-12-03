@@ -50,7 +50,7 @@ ProcessModel::ProcessModel(
                             id,
                             Metadata<ObjectKey_k, ProcessModel>::get(),
                             parent}
-    , outlet{Process::make_outlet(Id<Process::Port>(0), this)}
+    , outlet{Process::make_midi_outlet(Id<Process::Port>(0), this)}
 {
   outlet->type = Process::PortType::Midi;
 
@@ -212,7 +212,7 @@ void DataStreamReader::read(const Patternist::ProcessModel& proc)
 template <>
 void DataStreamWriter::write(Patternist::ProcessModel& proc)
 {
-  proc.outlet = Process::make_outlet(*this, &proc);
+  proc.outlet = Process::load_outlet(*this, &proc);
   m_stream >> proc.m_channel >> proc.m_currentPattern >> proc.m_patterns;
 
   checkDelimiter();
@@ -232,7 +232,7 @@ void JSONObjectWriter::write(Patternist::ProcessModel& proc)
 {
   {
     JSONObjectWriter writer{obj["Outlet"].toObject()};
-    proc.outlet = Process::make_outlet(writer, &proc);
+    proc.outlet = Process::load_outlet(writer, &proc);
   }
   proc.m_channel = obj["Channel"].toInt();
   proc.m_currentPattern = obj["Pattern"].toInt();

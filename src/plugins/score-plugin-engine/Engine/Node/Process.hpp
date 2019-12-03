@@ -4,7 +4,7 @@
 #include <Process/Process.hpp>
 #include <Process/ProcessFactory.hpp>
 #include <Process/ProcessMetadata.hpp>
-
+#include <score/application/ApplicationComponents.hpp>
 #include <ossia/dataflow/safe_nodes/node.hpp>
 
 ////////// METADATA ////////////
@@ -179,7 +179,7 @@ struct PortSetup
     int outlet = 0;
     for (const auto& out : Node_T::Metadata::audio_outs)
     {
-      auto p = new Process::Outlet(Id<Process::Port>(outlet++), &self);
+      auto p = new Process::AudioOutlet(Id<Process::Port>(outlet++), &self);
       p->type = Process::PortType::Audio;
       p->setCustomData(QString::fromUtf8(out.name.data(), out.name.size()));
       if (outlet == 1)
