@@ -30,28 +30,33 @@ ProcessModel::ProcessModel(
 
 ProcessModel::~ProcessModel() {}
 
-double estimateTempo(const AudioFile& file)
+static optional<double> estimateTempo(const AudioFile& file)
 {
   auto handle = file.unsafe_handle();
-  if (auto file = handle.target<AudioFile::MmapReader>())
+  if (auto file = handle.target<AudioFile::mmap_ptr>())
   {
     auto acid = file->wav.acid();
     if(acid.tempo != 0.f) {
      return acid.tempo;
     }
   }
+  else if(auto file = handle.target<AudioFile::libav_ptr>())
+  {
+    if((*file)->tempo != 0.f) {
+     return (*file)->tempo;
+    }
+  }
 
   auto path = file.absoluteFileName();
   static const QRegularExpression e{"([0-9]+) ?(bpm|BPM|Bpm)"};
   const auto res = e.match(path);
-  if(res.isValid())
+  if(res.hasMatch())
   {
     qDebug() << res.captured(1);
     return res.captured(1).toInt();
   }
 
-  // Return current tempo ? Ask the user ?
-  return 120.;
+  return {};
 }
 
 void ProcessModel::setFile(const QString& file)
@@ -64,7 +69,11 @@ void ProcessModel::setFile(const QString& file)
 
     m_file->on_mediaChanged.connect<&ProcessModel::on_mediaChanged>(*this);
 
-    setNativeTempo(estimateTempo(*m_file));
+    if(auto tempo = estimateTempo(*m_file))
+    {
+      setNativeTempo(*tempo);
+      setStretchMode(ossia::audio_stretch_mode::RubberBandPercussive);
+    }
     on_mediaChanged();
     prettyNameChanged();
   }
