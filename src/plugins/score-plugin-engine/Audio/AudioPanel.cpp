@@ -64,6 +64,7 @@ protected:
     p.drawRect(QRect{1, int(y), (width() - 2), int(h)});
   }
 };
+
 class PanSliderWidget : public score::DoubleSlider
 {
 public:
@@ -173,9 +174,26 @@ public:
   AudioBusWidget(const Scenario::IntervalModel* param, const score::DocumentContext& ctx, QWidget* parent)
     : QWidget{parent}, m_context{ctx}, m_lay{this}, m_title{this}, m_gainSlider{this}, m_panSlider{this}, m_model{param}
   {
-    setStyleSheet("QWidget { font: 8pt \"Ubuntu\"; }");
+    setStyleSheet("QWidget { font: 7pt \"Ubuntu\"; }");
     setMinimumSize(60, 130);
     setMaximumSize(60, 130);
+
+    m_title.setFlat(true);
+    m_title.setStyleSheet("QPushButton { border: none }");
+    m_title.setText(m_model->metadata().getName());
+    m_gainSlider.setWhatsThis("Gain control");
+    m_gainSlider.setToolTip(m_gainSlider.whatsThis());
+    m_mute.setWhatsThis("Mute");
+    m_mute.setToolTip(m_mute.whatsThis());
+    m_mute.setCheckable(true);
+    m_upmix.setWhatsThis("Upmix mono -> stereo");
+    m_upmix.setToolTip(m_upmix.whatsThis());
+    m_upmix.setCheckable(true);
+    m_propagate.setWhatsThis("Propagate automatically sound to parent");
+    m_propagate.setToolTip(m_propagate.whatsThis());
+    m_propagate.setCheckable(true);
+    m_panSlider.setToolTip("Pan control");
+    m_panSlider.setWhatsThis(m_panSlider.whatsThis());
 
     m_lay.addWidget(&m_title,      0, 0, 1, 2, Qt::AlignLeft);
     m_lay.addWidget(&m_gainSlider, 1, 0, 6, 1);
@@ -185,14 +203,32 @@ public:
     m_lay.addWidget(&m_panSlider,  7, 0, 1, 2);
     m_lay.setMargin(1);
     m_lay.setSpacing(2);
-    m_title.setText(m_model->metadata().getName());
-    m_title.setWordWrap(true);
+
+    con(m_title, &QPushButton::clicked, this, [this] {
+        m_context.selectionStack.pushNewSelection({m_model});
+    });
 
     m_gainSlider.setValue(param->outlet->gain());
     con(m_gainSlider, &AudioSliderWidget::valueChanged, this, [this](double d) {
       m_context.dispatcher.submit<Process::SetGain>(*m_model->outlet, d);
     });
     con(m_gainSlider, &AudioSliderWidget::sliderReleased, this, [this] {
+        m_context.dispatcher.commit();
+    });
+
+    m_mute.setChecked(param->muted());
+    con(m_mute, &QPushButton::toggled, this, [this] {
+        const_cast<Scenario::IntervalModel*>(m_model)->setMuted(m_mute.isChecked());
+    });
+
+    m_upmix.setChecked(false);
+    con(m_upmix, &QPushButton::toggled, this, [this] {
+        // TODO
+    });
+
+    m_propagate.setChecked(m_model->outlet->propagate());
+    con(m_propagate, &QPushButton::toggled, this, [this] {
+        m_context.dispatcher.submit<Process::SetPropagate>(*m_model->outlet, !m_model->outlet->propagate());
         m_context.dispatcher.commit();
     });
 
@@ -215,7 +251,7 @@ private:
   const score::DocumentContext& m_context;
 
   score::MarginLess<QGridLayout> m_lay;
-  QLabel m_title;
+  QPushButton m_title;
   AudioSliderWidget m_gainSlider;
   PanSliderWidget m_panSlider;
   QPushButton m_mute{"M"};
@@ -233,21 +269,29 @@ class AudioPanel final : public QTabWidget
 public:
   const score::DocumentContext& ctx;
   QTabWidget m_tabs;
+  QFrame m_deviceArea;
   QWidget m_deviceWidget;
   score::MarginLess<QHBoxLayout> m_deviceLayout;
+  QFrame m_busArea;
   QWidget m_busWidget;
   score::MarginLess<QHBoxLayout> m_busLayout;
 
   AudioPanel(const score::DocumentContext& ctx, QWidget* parent)
       : QTabWidget{parent}
       , ctx{ctx}
-      , m_deviceWidget{this}
+      , m_deviceWidget{&m_deviceArea}
       , m_deviceLayout{&m_deviceWidget}
-      , m_busWidget{this}
+      , m_busWidget{&m_busArea}
       , m_busLayout{&m_busWidget}
   {
-    this->addTab(&m_busWidget, "Buses");
-    this->addTab(&m_deviceWidget, "Devices");
+    m_deviceArea.setStyleSheet("QWidget { background : black ; }" );
+    m_deviceArea.setMinimumHeight(300);
+
+    this->addTab(&m_busArea, "Buses");
+
+    m_busArea.setStyleSheet("QWidget { background : black ; }" );
+    m_busArea.setMinimumHeight(300);
+    this->addTab(&m_deviceArea, "Devices");
 
     setupDevice();
 
