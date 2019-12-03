@@ -414,13 +414,29 @@ void AudioFile::load_ffmpeg(int rate)
 
     m_sampleRate = rate;
 
+    QFileInfo fi{f};
+    if(fi.completeSuffix() == "wav")
+    {
+      // Do a quick pass if it'as a wav file to check for ACID tags
+      if(f.open(QIODevice::ReadOnly)) {
+        if(auto data = f.map(0, f.size()))
+        {
+          ossia::drwav_handle h;
+          h.open_memory(data, f.size());
+
+          ptr->tempo = h.acid().tempo;
+        }
+      }
+    }
+
+    // Assign pointers to the audio data
     r.data.resize(r.handle->data.size());
     for (std::size_t i = 0; i < r.handle->data.size(); i++)
       r.data[i] = r.handle->data[i].data();
 
-    QFileInfo fi{f};
     m_fileName = fi.fileName();
     m_impl = std::move(ptr);
+
   }
   else
   {

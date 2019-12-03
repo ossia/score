@@ -663,6 +663,8 @@ TimeVal FullViewIntervalPresenter::magneticPosition(const QObject* o, TimeVal t)
   // Find leftmost signature
   const double msecs = (t + timeDelta).msec();
   const auto& sig = m_model.timeSignatureMap();
+  if(sig.empty())
+      return t;
 
   auto leftmost_sig = sig.lower_bound(TimeVal::fromMsecs(msecs));
   if(leftmost_sig != sig.begin())

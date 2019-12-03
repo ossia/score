@@ -6,7 +6,6 @@ export QT_DIR=$OSSIA_SDK/qt5-static
 export NPROC=$(nproc)
 export PATH=$OSSIA_SDK/llvm/bin:$PATH
 export GIT=/opt/rh/rh-git29/root/usr/bin/git
-export CMAKE=cmake3
 export LD_LIBRARY_PATH=$OSSIA_SDK/llvm/lib:/opt/rh/rh-git29/root/usr/lib:/opt/rh/httpd24/root/usr/lib64
 export QTDIR=$OSSIA_SDK/qt5-static
 
@@ -16,6 +15,16 @@ export CFLAGS="-O3"
 export CXXFLAGS="-O3"
 
 ln -s /opt/rh/rh-git29/root/usr/bin/git /usr/bin/git || true
+
+(
+    wget -nv --no-check-certificate -c  https://github.com/Kitware/CMake/releases/download/v3.16.0/cmake-3.16.0-Linux-x86_64.tar.gz
+    tar xaf cmake-*.tar.gz
+)
+
+# Set-up paths
+export CMAKE_PATH=$(find $PWD/cmake-*/ -type d | head -n 1)bin
+export CMAKE=$CMAKE_PATH/cmake
+
 
 export BUILD_DIR=Score-build
 export APP=score

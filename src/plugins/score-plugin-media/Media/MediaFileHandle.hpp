@@ -101,6 +101,7 @@ public:
     AudioDecoder decoder;
     audio_handle handle;
     ossia::small_vector<audio_sample*, 8> data;
+    float tempo{};
   };
 
   using libav_ptr = std::shared_ptr<LibavReader>;

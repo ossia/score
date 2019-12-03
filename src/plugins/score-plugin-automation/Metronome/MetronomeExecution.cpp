@@ -42,8 +42,8 @@ std::shared_ptr<ossia::curve<double, float>> Component::on_curveChanged()
 {
   using namespace ossia;
 
-  const double min = 1000;    // process().min();
-  const double max = 1000000; // process().max();
+  const double min = 0;    // process().min();
+  const double max = 30; // process().max();
 
   auto scale_x = [](double val) -> double { return val; };
   auto scale_y = [=](double val) -> float { return val * (max - min) + min; };
