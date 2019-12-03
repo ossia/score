@@ -206,6 +206,16 @@ void ApplicationPlugin::setup_engine()
     try
     {
       audio = dev->make_engine(set, ctx);
+      if(!audio)
+          throw std::runtime_error{""};
+
+      m_updating_audio = true;
+      auto bs = audio->effective_buffer_size;
+      auto rate = audio->effective_sample_rate;
+      set.setBufferSize(bs);
+      set.setRate(rate);
+
+      m_updating_audio = false;
     }
     catch (...)
     {
