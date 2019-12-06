@@ -22,9 +22,8 @@
 #include <QRadioButton>
 #include <QTableWidget>
 
+#include <Audio/AudioApplicationPlugin.hpp>
 #include <Audio/Settings/Model.hpp>
-#include <Engine/ApplicationPlugin.hpp>
-#include <Execution/DocumentPlugin.hpp>
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Dataflow::AudioDevice)
 namespace Dataflow
@@ -95,7 +94,7 @@ bool AudioDevice::reconnect()
     auto& proto = static_cast<ossia::audio_protocol&>(m_dev.get_protocol());
 
     auto& engine = score::GUIAppContext()
-                       .guiApplicationPlugin<Engine::ApplicationPlugin>()
+                       .guiApplicationPlugin<Audio::ApplicationPlugin>()
                        .audio;
     if (!engine)
       return false;
@@ -273,11 +272,11 @@ public:
     updateType(m_type.currentIndex());
   }
   AudioAddressDialog(
-      const Device::DeviceSettings& dev,
+      Dataflow::AudioDevice& dev,
       const score::DocumentContext& ctx,
       QWidget* parent)
       : Device::AddressDialog{parent}
-      , m_device{*ctx.plugin<Execution::DocumentPlugin>().audio_device}
+      , m_device{dev}
       , m_layout{this}
       , m_nameEdit{this}
       , m_type{this}
@@ -292,7 +291,7 @@ public:
 
   AudioAddressDialog(
       const Device::AddressSettings& addr,
-      const Device::DeviceSettings& dev,
+      Dataflow::AudioDevice& dev,
       const score::DocumentContext& ctx,
       QWidget* parent)
       : AudioAddressDialog{dev, ctx, parent}
@@ -475,7 +474,7 @@ Device::AddressDialog* AudioProtocolFactory::makeAddAddressDialog(
     const score::DocumentContext& ctx,
     QWidget* parent)
 {
-  return new AudioAddressDialog{dev.settings(), ctx, parent};
+  return new AudioAddressDialog{(AudioDevice&)safe_cast<const AudioDevice&>(dev), ctx, parent};
 }
 
 Device::AddressDialog* AudioProtocolFactory::makeEditAddressDialog(
@@ -484,8 +483,7 @@ Device::AddressDialog* AudioProtocolFactory::makeEditAddressDialog(
     const score::DocumentContext& ctx,
     QWidget* parent)
 {
-
-  return new AudioAddressDialog{set, dev.settings(), ctx, parent};
+  return new AudioAddressDialog{set, (AudioDevice&)safe_cast<const AudioDevice&>(dev), ctx, parent};
 }
 
 Device::ProtocolSettingsWidget* AudioProtocolFactory::makeSettingsWidget()

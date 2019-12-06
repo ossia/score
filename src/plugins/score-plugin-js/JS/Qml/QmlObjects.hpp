@@ -254,8 +254,7 @@ public:
 
   Process::Inlet* make(Id<Process::Port>&& id, QObject* parent) override
   {
-    auto p = new Process::Inlet(id, parent);
-    p->type = Process::PortType::Audio;
+    auto p = new Process::AudioInlet(id, parent);
     return p;
   }
 
@@ -273,7 +272,6 @@ public:
   Process::Outlet* make(Id<Process::Port>&& id, QObject* parent) override
   {
     auto p = new Process::AudioOutlet(id, parent);
-    p->type = Process::PortType::Audio;
     if (id.val() == 0)
       p->setPropagate(true);
     return p;

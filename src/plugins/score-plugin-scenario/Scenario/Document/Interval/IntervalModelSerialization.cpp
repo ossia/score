@@ -158,7 +158,7 @@ DataStreamWriter::write(Scenario::IntervalModel& interval)
 {
   checkDelimiter();
   // Ports
-  interval.inlet = Process::load_inlet(*this, &interval);
+  interval.inlet = Process::load_audio_inlet(*this, &interval);
   interval.outlet = Process::load_audio_outlet(*this, &interval);
 
   // Processes
@@ -248,19 +248,11 @@ JSONObjectWriter::write(Scenario::IntervalModel& interval)
 {
   {
     JSONObjectWriter writer{obj["Inlet"].toObject()};
-    interval.inlet = Process::load_inlet(writer, &interval);
-    if (!interval.inlet)
-    {
-      interval.inlet = Process::make_audio_inlet(Id<Process::Port>(0), &interval);
-    }
+    interval.inlet = Process::load_audio_inlet(writer, &interval);
   }
   {
     JSONObjectWriter writer{obj["Outlet"].toObject()};
     interval.outlet = Process::load_audio_outlet(writer, &interval);
-    if (!interval.outlet)
-    {
-      interval.outlet = Process::make_audio_outlet(Id<Process::Port>(0), &interval);
-    }
   }
 
   static auto& pl = components.interfaces<Process::ProcessFactoryList>();

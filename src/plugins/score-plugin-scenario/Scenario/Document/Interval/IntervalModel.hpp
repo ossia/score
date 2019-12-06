@@ -47,7 +47,7 @@ class SCORE_PLUGIN_SCENARIO_EXPORT IntervalModel final
   friend struct SlotPath;
 
 public:
-  std::unique_ptr<Process::Inlet> inlet;
+  std::unique_ptr<Process::AudioInlet> inlet;
   std::unique_ptr<Process::AudioOutlet> outlet;
 
   /** Properties of the class **/

@@ -74,7 +74,6 @@ public:
 
   void on_stop();
 
-  std::unique_ptr<ossia::audio_engine> audio;
 
 private:
   void on_init();
@@ -88,7 +87,6 @@ private:
   Execution::PlayContextMenu m_playActions;
 
   std::unique_ptr<Execution::Clock> m_clock;
-  QAction* m_audioEngineAct{};
   Scenario::SpeedWidget* m_speedSlider{};
   bool m_playing{false}, m_paused{false};
 

@@ -19,11 +19,12 @@ ProcessModel::ProcessModel(
     , outlet{Process::make_midi_outlet(Id<Process::Port>(0), this)}
 {
   m_range = {60, 71};
-  outlet->type = Process::PortType::Midi;
 
   metadata().setInstanceName(*this);
   init();
 }
+
+void ProcessModel::init() { m_outlets.push_back(outlet.get()); }
 
 ProcessModel::~ProcessModel() {}
 
@@ -200,7 +201,7 @@ void DataStreamReader::read(const Midi::ProcessModel& proc)
 template <>
 void DataStreamWriter::write(Midi::ProcessModel& proc)
 {
-  proc.outlet = Process::load_outlet(*this, &proc);
+  proc.outlet = Process::load_midi_outlet(*this, &proc);
   m_stream >> proc.m_channel >> proc.m_range.first >> proc.m_range.second;
   int n;
   m_stream >> n;
@@ -226,14 +227,7 @@ void JSONObjectWriter::write(Midi::ProcessModel& proc)
 {
   {
     JSONObjectWriter writer{obj["Outlet"].toObject()};
-    proc.outlet = Process::load_outlet(writer, &proc);
-    if (!proc.outlet)
-    {
-      proc.outlet = Process::make_midi_outlet(Id<Process::Port>(0), &proc);
-      proc.outlet->type = Process::PortType::Midi;
-      proc.outlet->setAddress(fromJsonObject<State::AddressAccessor>(
-          obj[strings.Address].toObject()));
-    }
+    proc.outlet = Process::load_midi_outlet(writer, &proc);
   }
 
   for (const auto& json_vref : obj["Notes"].toArray())

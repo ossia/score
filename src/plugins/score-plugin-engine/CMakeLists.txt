@@ -29,6 +29,7 @@ set(HDRS
     "${CMAKE_CURRENT_SOURCE_DIR}/Audio/WASAPIPortAudioInterface.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Audio/WDMKSPortAudioInterface.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Audio/DummyInterface.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Audio/AudioApplicationPlugin.hpp"
 
     "${CMAKE_CURRENT_SOURCE_DIR}/Engine/ApplicationPlugin.hpp"
 
@@ -95,6 +96,7 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Audio/MMEPortAudioInterface.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Audio/WASAPIPortAudioInterface.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Audio/WDMKSPortAudioInterface.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Audio/AudioApplicationPlugin.cpp"
 
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Engine/ApplicationPlugin.cpp"

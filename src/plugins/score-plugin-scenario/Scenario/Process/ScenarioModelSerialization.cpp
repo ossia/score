@@ -99,7 +99,7 @@ template <>
 void DataStreamWriter::write(Scenario::ProcessModel& scenario)
 {
   // Ports
-  scenario.inlet = Process::load_inlet(*this, &scenario);
+  scenario.inlet = Process::load_audio_inlet(*this, &scenario);
   scenario.outlet = Process::load_audio_outlet(*this, &scenario);
 
   m_stream >> scenario.m_startTimeSyncId;
@@ -189,20 +189,11 @@ void JSONObjectWriter::write(Scenario::ProcessModel& scenario)
 {
   {
     JSONObjectWriter writer{obj["Inlet"].toObject()};
-    scenario.inlet = Process::load_inlet(writer, &scenario);
-    if (!scenario.inlet)
-    {
-      scenario.inlet = Process::make_audio_inlet(Id<Process::Port>(0), &scenario);
-    }
+    scenario.inlet = Process::load_audio_inlet(writer, &scenario);
   }
   {
     JSONObjectWriter writer{obj["Outlet"].toObject()};
     scenario.outlet = Process::load_audio_outlet(writer, &scenario);
-
-    if (!scenario.outlet)
-    {
-      scenario.outlet = Process::make_audio_outlet(Id<Process::Port>(0), &scenario);
-    }
   }
 
   scenario.m_startTimeSyncId

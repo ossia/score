@@ -73,7 +73,6 @@ private:
 using InletFactory = AutomatablePortFactory_T<Process::Inlet>;
 using OutletFactory = AutomatablePortFactory_T<Process::Outlet>;
 using ControlOutletFactory = AutomatablePortFactory_T<Process::ControlOutlet>;
-using AudioOutletFactory = Process::PortFactory_T<Process::AudioOutlet>;
 
 struct SCORE_PLUGIN_SCENARIO_EXPORT ControlInletFactory final : public AutomatablePortFactory
 {
@@ -96,6 +95,96 @@ struct SCORE_PLUGIN_SCENARIO_EXPORT ControlInletFactory final : public Automatab
       QWidget* parent,
       Inspector::Layout& lay,
       QObject* context) override;
+};
+
+struct SCORE_PLUGIN_SCENARIO_EXPORT AudioInletFactory final : public Process::PortFactory
+{
+    using Model_T = Process::AudioOutlet;
+    UuidKey<Process::Port> concreteKey() const noexcept override
+    {
+        return Metadata<ConcreteKey_k, Model_T>::get();
+    }
+
+    Model_T* load(const VisitorVariant& vis, QObject* parent) override
+    {
+        return score::deserialize_dyn(vis, [&](auto&& deserializer) {
+            return new Model_T{deserializer, parent};
+        });
+    }
+
+    void setupInletInspector(
+            Process::Inlet& port,
+            const score::DocumentContext& ctx,
+            QWidget* parent,
+            Inspector::Layout& lay,
+            QObject* context) override;
+};
+struct SCORE_PLUGIN_SCENARIO_EXPORT AudioOutletFactory final : public Process::PortFactory
+{
+    using Model_T = Process::AudioOutlet;
+    UuidKey<Process::Port> concreteKey() const noexcept override
+    {
+        return Metadata<ConcreteKey_k, Model_T>::get();
+    }
+
+    Model_T* load(const VisitorVariant& vis, QObject* parent) override
+    {
+        return score::deserialize_dyn(vis, [&](auto&& deserializer) {
+            return new Model_T{deserializer, parent};
+        });
+    }
+
+    void setupOutletInspector(
+            Process::Outlet& port,
+            const score::DocumentContext& ctx,
+            QWidget* parent,
+            Inspector::Layout& lay,
+            QObject* context) override;
+};
+
+struct SCORE_PLUGIN_SCENARIO_EXPORT MidiInletFactory final : public Process::PortFactory
+{
+    using Model_T = Process::MidiOutlet;
+    UuidKey<Process::Port> concreteKey() const noexcept override
+    {
+        return Metadata<ConcreteKey_k, Model_T>::get();
+    }
+
+    Model_T* load(const VisitorVariant& vis, QObject* parent) override
+    {
+        return score::deserialize_dyn(vis, [&](auto&& deserializer) {
+            return new Model_T{deserializer, parent};
+        });
+    }
+
+    void setupInletInspector(
+            Process::Inlet& port,
+            const score::DocumentContext& ctx,
+            QWidget* parent,
+            Inspector::Layout& lay,
+            QObject* context) override;
+};
+struct SCORE_PLUGIN_SCENARIO_EXPORT MidiOutletFactory final : public Process::PortFactory
+{
+    using Model_T = Process::MidiOutlet;
+    UuidKey<Process::Port> concreteKey() const noexcept override
+    {
+        return Metadata<ConcreteKey_k, Model_T>::get();
+    }
+
+    Model_T* load(const VisitorVariant& vis, QObject* parent) override
+    {
+        return score::deserialize_dyn(vis, [&](auto&& deserializer) {
+            return new Model_T{deserializer, parent};
+        });
+    }
+
+    void setupOutletInspector(
+            Process::Outlet& port,
+            const score::DocumentContext& ctx,
+            QWidget* parent,
+            Inspector::Layout& lay,
+            QObject* context) override;
 };
 
 class PortTooltip final : public QWidget

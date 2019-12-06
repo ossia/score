@@ -58,8 +58,6 @@ IntervalModel::IntervalModel(
   metadata().setColor(&defaultBrush);
   setHeightPercentage(yPos);
 
-  inlet->type = Process::PortType::Audio;
-  outlet->type = Process::PortType::Audio;
   outlet->setPropagate(true);
 }
 

@@ -1,4 +1,5 @@
 #include <Device/Widgets/AddressAccessorEditWidget.hpp>
+#include <Device/Widgets/DeviceModelProvider.hpp>
 #include <Inspector/InspectorLayout.hpp>
 #include <Process/Commands/EditPort.hpp>
 #include <Process/Dataflow/Port.hpp>
@@ -12,8 +13,10 @@
 #include <score/widgets/MarginLess.hpp>
 #include <score/widgets/TextLabel.hpp>
 #include <score/tools/Bind.hpp>
+#include <Device/ItemModels/NodeBasedItemModel.hpp>
 
 #include <QCheckBox>
+#include <QComboBox>
 #include <QToolButton>
 namespace Process
 {
@@ -160,6 +163,7 @@ QWidget* PortWidgetSetup::makeAddressWidget(
   return edit;
 }
 
+
 void PortWidgetSetup::setupImpl(
     const QString& txt,
     const Port& port,
@@ -169,8 +173,15 @@ void PortWidgetSetup::setupImpl(
 {
   auto widg = new QWidget;
   auto hl = new score::MarginLess<QHBoxLayout>{widg};
+
   auto lab = new TextLabel{txt, widg};
+  hl->addWidget(lab);
+
   auto advBtn = new QToolButton{widg};
+  hl->addWidget(advBtn);
+
+  auto port_widg = PortWidgetSetup::makeAddressWidget(port, ctx, parent);
+  lay.addRow(widg, port_widg);
 
   switch (port.type)
   {
@@ -183,32 +194,6 @@ void PortWidgetSetup::setupImpl(
     case Process::PortType::Message:
       advBtn->setText(QString::fromUtf8("⇢"));
       break;
-  }
-  hl->addWidget(advBtn);
-  hl->addWidget(lab);
-
-  auto port_widg = PortWidgetSetup::makeAddressWidget(port, ctx, parent);
-  lay.addRow(widg, port_widg);
-
-  if (auto outlet = qobject_cast<const Process::AudioOutlet*>(&port))
-  {
-      auto cb = new QCheckBox{parent};
-      cb->setChecked(outlet->propagate());
-      lay.addRow(QObject::tr("Propagate"), cb);
-      QObject::connect(
-          cb, &QCheckBox::toggled, parent, [&ctx, &out = *outlet](auto ok) {
-            if (ok != out.propagate())
-            {
-              CommandDispatcher<> d{ctx.commandStack};
-              d.submit<Process::SetPropagate>(out, ok);
-            }
-          });
-      con(*outlet, &Process::AudioOutlet::propagateChanged, cb, [=](bool p) {
-        if (p != cb->isChecked())
-        {
-          cb->setChecked(p);
-        }
-      });
   }
 }
 }

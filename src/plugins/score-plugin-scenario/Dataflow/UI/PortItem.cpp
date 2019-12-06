@@ -8,6 +8,7 @@
 #include <Device/Widgets/AddressAccessorEditWidget.hpp>
 #include <Inspector/InspectorLayout.hpp>
 #include <Process/Commands/EditPort.hpp>
+#include <Process/Dataflow/AudioPortComboBox.hpp>
 #include <Process/Dataflow/ControlWidgets.hpp>
 #include <Process/Dataflow/Port.hpp>
 #include <Process/Dataflow/PortListWidget.hpp>
@@ -23,11 +24,13 @@
 #include <score/document/DocumentInterface.hpp>
 #include <score/tools/IdentifierGeneration.hpp>
 #include <score/widgets/ControlWidgets.hpp>
+#include <score/widgets/MarginLess.hpp>
 #include <score/widgets/SignalUtils.hpp>
 
+#include <Device/ItemModels/NodeBasedItemModel.hpp>
+#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <ossia/editor/state/destination_qualifiers.hpp>
 #include <ossia/network/domain/domain.hpp>
-
 #include <QDialog>
 #include <QDialogButtonBox>
 #include <QGraphicsScene>
@@ -350,4 +353,140 @@ void ControlInletFactory::setupInletInspector(
     PortWidgetSetup::setupInLayout(port, ctx, lay, parent);
   }
 }
+
+
+
+QWidget* makeAddressCombo(
+    State::Address root,
+    const Device::Node& out_node,
+    const Process::Port& port,
+    const score::DocumentContext& ctx,
+    QWidget* parent)
+{
+  using namespace Device;
+  auto edit = new Process::AudioPortComboBox{root, out_node, parent};
+  edit->setAddress(port.address().address);
+
+  QObject::connect(
+      &port,
+      &Process::Port::addressChanged,
+      edit,
+      [edit](const State::AddressAccessor& addr) {
+        if (addr.address != edit->address().address)
+        {
+          edit->setAddress(addr.address);
+        }
+      });
+
+  QObject::connect(
+      edit,
+      &Process::AudioPortComboBox::addressChanged,
+      parent,
+      [&port, &ctx](const auto& newAddr) {
+        if (newAddr.address == port.address().address)
+          return;
+
+        CommandDispatcher<>{ctx.dispatcher}.submit(
+                    new Process::ChangePortAddress{port, State::AddressAccessor{newAddr.address, {}}});
+      });
+
+  return edit;
+}
+
+void AudioInletFactory::setupInletInspector(
+        Process::Inlet &port,
+        const score::DocumentContext &ctx,
+        QWidget *parent,
+        Inspector::Layout &lay,
+        QObject *context)
+{
+    auto& outlet = static_cast<Process::AudioInlet&>(port);
+
+    auto root = State::Address{"audio", {"in"}};
+    auto& device = *ctx.findPlugin<Explorer::DeviceDocumentPlugin>();
+    auto d = device.list().audioDevice();
+    const auto& node = d->getNode(root);
+
+    auto edit = makeAddressCombo(root, node, port, ctx, parent);
+    lay.addRow(edit);
+}
+
+void AudioOutletFactory::setupOutletInspector(
+        Process::Outlet &port,
+        const score::DocumentContext &ctx,
+        QWidget *parent,
+        Inspector::Layout &lay,
+        QObject *context)
+{
+    auto& outlet = static_cast<Process::AudioOutlet&>(port);
+
+    auto root = State::Address{"audio", {"out"}};
+    auto& device = *ctx.findPlugin<Explorer::DeviceDocumentPlugin>();
+    auto d = device.list().audioDevice();
+    const auto& node = d->getNode(root);
+
+    auto edit = makeAddressCombo(root, node, port, ctx, parent);
+    lay.addRow(edit);
+
+    auto cb = new QCheckBox{parent};
+    cb->setChecked(outlet.propagate());
+    lay.addRow(QObject::tr("Propagate"), cb);
+    QObject::connect(cb, &QCheckBox::toggled,
+                     &outlet, [&ctx, &out = outlet](auto ok) {
+          if (ok != out.propagate())
+          {
+            CommandDispatcher<> d{ctx.commandStack};
+            d.submit<Process::SetPropagate>(out, ok);
+          }
+        });
+    QObject::connect(&outlet, &Process::AudioOutlet::propagateChanged,
+        cb, [=](bool p) {
+      if (p != cb->isChecked())
+      {
+        cb->setChecked(p);
+      }
+    });
+}
+
+// FIXME
+static const constexpr auto midi_uuid = UuidKey<Device::ProtocolFactory>{"94a362a1-9411-4ee9-b94d-4bc79b1427cf"};
+
+void MidiInletFactory::setupInletInspector(
+        Process::Inlet &port,
+        const score::DocumentContext &ctx,
+        QWidget *parent,
+        Inspector::Layout &lay,
+        QObject *context)
+{
+    auto& p = static_cast<Process::MidiInlet&>(port);
+
+    auto& device = *ctx.findPlugin<Explorer::DeviceDocumentPlugin>();
+    std::vector<QString> midiDevices;
+
+    device.list().apply([&] (Device::DeviceInterface& dev) {
+            auto& set = dev.settings();
+            if(set.protocol == midi_uuid)
+                midiDevices.push_back(set.name);
+    });
+}
+
+void MidiOutletFactory::setupOutletInspector(
+        Process::Outlet &port,
+        const score::DocumentContext &ctx,
+        QWidget *parent,
+        Inspector::Layout &lay,
+        QObject *context)
+{
+    auto& p = static_cast<Process::MidiOutlet&>(port);
+
+    auto& device = *ctx.findPlugin<Explorer::DeviceDocumentPlugin>();
+    std::vector<QString> midiDevices;
+
+    device.list().apply([&] (Device::DeviceInterface& dev) {
+            auto& set = dev.settings();
+            if(set.protocol == midi_uuid)
+                midiDevices.push_back(set.name);
+    });
+}
+
 }

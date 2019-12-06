@@ -18,7 +18,6 @@ Model::Model(
     , audio_outlet{Process::make_audio_outlet(Id<Process::Port>(0), this)}
     , bang_outlet{Process::make_value_outlet(Id<Process::Port>(1), this)}
 {
-  audio_outlet->type = Process::PortType::Audio;
   audio_outlet->setPropagate(true);
 
   bang_outlet->type = Process::PortType::Message;

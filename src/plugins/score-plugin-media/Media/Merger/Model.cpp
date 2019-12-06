@@ -24,7 +24,6 @@ Model::Model(
       Process::make_audio_outlet(
           Id<Process::Port>(std::numeric_limits<int16_t>::max()), this)
           .release());
-  m_outlets.back()->type = Process::PortType::Audio;
   setInCount(8);
   metadata().setInstanceName(*this);
 }
@@ -50,7 +49,6 @@ void Model::setInCount(quint64 s)
         m_inlets.push_back(
             Process::make_audio_inlet(Id<Process::Port>(int(old + i)), this)
                 .release());
-        m_inlets.back()->type = Process::PortType::Audio;
       }
     }
     else if (old > m_inCount)

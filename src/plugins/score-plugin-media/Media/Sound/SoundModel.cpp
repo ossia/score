@@ -22,7 +22,6 @@ ProcessModel::ProcessModel(
     , m_file{std::make_shared<AudioFile>()}
 {
   outlet->setPropagate(true);
-  outlet->type = Process::PortType::Audio;
   metadata().setInstanceName(*this);
   init();
   setFile(data);

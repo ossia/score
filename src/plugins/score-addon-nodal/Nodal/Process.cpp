@@ -111,7 +111,7 @@ template <>
 void DataStreamWriter::write(Nodal::Model& process)
 {
   // Ports
-  process.inlet = Process::load_inlet(*this, &process);
+  process.inlet = Process::load_audio_inlet(*this, &process);
   process.outlet = Process::load_audio_outlet(*this, &process);
 
   // Nodes
@@ -147,22 +147,11 @@ void JSONObjectWriter::write(Nodal::Model& proc)
 {
   {
     JSONObjectWriter writer{obj["Inlet"].toObject()};
-    proc.inlet = Process::load_inlet(writer, &proc);
-    if (!proc.inlet)
-    {
-      proc.inlet = Process::make_audio_inlet(Id<Process::Port>(0), &proc);
-      proc.inlet->type = Process::PortType::Audio;
-    }
+    proc.inlet = Process::load_audio_inlet(writer, &proc);
   }
   {
     JSONObjectWriter writer{obj["Outlet"].toObject()};
     proc.outlet = Process::load_audio_outlet(writer, &proc);
-
-    if (!proc.outlet)
-    {
-      proc.outlet = Process::make_audio_outlet(Id<Process::Port>(0), &proc);
-      proc.outlet->type = Process::PortType::Audio;
-    }
   }
 
   static auto& pl = components.interfaces<Process::ProcessFactoryList>();

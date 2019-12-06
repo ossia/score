@@ -30,10 +30,8 @@ ProcessModel::ProcessModel(
     , outlet{Process::make_audio_outlet(Id<Process::Port>(0), this)}
 {
   metadata().setInstanceName(*this);
-  inlet->type = Process::PortType::Audio;
 
   outlet->setPropagate(true);
-  outlet->type = Process::PortType::Audio;
   init();
 }
 
@@ -245,7 +243,7 @@ void DataStreamReader::read(const Media::Effect::ProcessModel& proc)
 template <>
 void DataStreamWriter::write(Media::Effect::ProcessModel& proc)
 {
-  proc.inlet = Process::load_inlet(*this, &proc);
+  proc.inlet = Process::load_audio_inlet(*this, &proc);
   proc.outlet = Process::load_audio_outlet(*this, &proc);
 
   int32_t n = 0;
@@ -277,7 +275,7 @@ void JSONObjectWriter::write(Media::Effect::ProcessModel& proc)
 {
   {
     JSONObjectWriter writer{obj["Inlet"].toObject()};
-    proc.inlet = Process::load_inlet(writer, &proc);
+    proc.inlet = Process::load_audio_inlet(writer, &proc);
   }
   {
     JSONObjectWriter writer{obj["Outlet"].toObject()};

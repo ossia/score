@@ -258,8 +258,6 @@ private:
   QPushButton m_upmix{"U"};
   QPushButton m_propagate{"P"};
   const Scenario::IntervalModel* m_model{};
-
-  double m_actualGain{};
 };
 
 
@@ -284,13 +282,11 @@ public:
       , m_busWidget{&m_busArea}
       , m_busLayout{&m_busWidget}
   {
-    m_deviceArea.setStyleSheet("QWidget { background : black ; }" );
-    m_deviceArea.setMinimumHeight(300);
+    m_deviceArea.setMinimumHeight(150);
 
     this->addTab(&m_busArea, "Buses");
 
-    m_busArea.setStyleSheet("QWidget { background : black ; }" );
-    m_busArea.setMinimumHeight(300);
+    m_busArea.setMinimumHeight(150);
     this->addTab(&m_deviceArea, "Devices");
 
     setupDevice();

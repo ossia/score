@@ -16,7 +16,7 @@ class Model final : public Process::ProcessModel
   W_OBJECT(Model)
 
 public:
-  std::unique_ptr<Process::Inlet> inlet;
+  std::unique_ptr<Process::AudioInlet> inlet;
   std::unique_ptr<Process::AudioOutlet> outlet;
 
   Model(
