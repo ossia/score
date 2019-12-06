@@ -26,7 +26,7 @@ void DataStreamWriter::write(Loop::ProcessModel& proc)
   writeTo(static_cast<Scenario::BaseScenarioContainer&>(proc));
 
   // Ports
-  proc.inlet = Process::load_inlet(*this, &proc);
+  proc.inlet = Process::load_audio_inlet(*this, &proc);
   proc.outlet = Process::load_audio_outlet(*this, &proc);
 
   checkDelimiter();
@@ -46,21 +46,10 @@ void JSONObjectWriter::write(Loop::ProcessModel& proc)
   writeTo(static_cast<Scenario::BaseScenarioContainer&>(proc));
   {
     JSONObjectWriter writer{obj["Inlet"].toObject()};
-    proc.inlet = Process::load_inlet(writer, &proc);
-    if (!proc.inlet)
-    {
-      proc.inlet = Process::make_audio_inlet(Id<Process::Port>(0), &proc);
-      proc.inlet->type = Process::PortType::Audio;
-    }
+    proc.inlet = Process::load_audio_inlet(writer, &proc);
   }
   {
     JSONObjectWriter writer{obj["Outlet"].toObject()};
     proc.outlet = Process::load_audio_outlet(writer, &proc);
-
-    if (!proc.outlet)
-    {
-      proc.outlet = Process::make_audio_outlet(Id<Process::Port>(0), &proc);
-      proc.outlet->type = Process::PortType::Audio;
-    }
   }
 }

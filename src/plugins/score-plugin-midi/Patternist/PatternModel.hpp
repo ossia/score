@@ -50,7 +50,7 @@ public:
     init();
   }
 
-  void init() { m_outlets.push_back(outlet.get()); }
+  void init();
 
   ~ProcessModel() override;
 
@@ -65,7 +65,7 @@ public:
   void setPatterns(const std::vector<Pattern>& n);
   const std::vector<Pattern>& patterns() const noexcept;
 
-  std::unique_ptr<Process::Outlet> outlet;
+  std::unique_ptr<Process::MidiOutlet> outlet;
 
 public:
   void channelChanged(int arg_1) W_SIGNAL(channelChanged, arg_1);

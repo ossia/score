@@ -34,7 +34,7 @@ class SCORE_PLUGIN_LOOP_EXPORT ProcessModel final
   PROCESS_METADATA_IMPL(Loop::ProcessModel)
 
 public:
-  std::unique_ptr<Process::Inlet> inlet;
+  std::unique_ptr<Process::AudioInlet> inlet;
   std::unique_ptr<Process::AudioOutlet> outlet;
 
   explicit ProcessModel(

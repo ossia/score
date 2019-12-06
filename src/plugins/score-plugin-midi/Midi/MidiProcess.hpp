@@ -31,7 +31,7 @@ public:
     init();
   }
 
-  void init() { m_outlets.push_back(outlet.get()); }
+  void init();
 
   ~ProcessModel() override;
 
@@ -44,7 +44,7 @@ public:
 
   void setRange(int min, int max);
 
-  std::unique_ptr<Process::Outlet> outlet;
+  std::unique_ptr<Process::MidiOutlet> outlet;
 
   using Process::ProcessModel::setDuration;
 

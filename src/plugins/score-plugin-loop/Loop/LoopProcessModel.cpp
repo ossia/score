@@ -61,8 +61,6 @@ ProcessModel::ProcessModel(
 
   metadata().setInstanceName(*this);
 
-  inlet->type = Process::PortType::Audio;
-  outlet->type = Process::PortType::Audio;
   outlet->setPropagate(true);
   init();
 }

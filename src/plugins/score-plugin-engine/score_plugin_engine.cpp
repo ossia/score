@@ -29,6 +29,7 @@
 #include <Audio/WDMKSPortAudioInterface.hpp>
 #include <Audio/SDLInterface.hpp>
 #include <Audio/Settings/Factory.hpp>
+#include <Audio/AudioApplicationPlugin.hpp>
 #include <Engine/ApplicationPlugin.hpp>
 #include <Engine/Listening/PlayListeningHandlerFactory.hpp>
 #include <Execution/Clock/ClockFactory.hpp>

@@ -21,7 +21,10 @@ namespace Process
 class Port;
 class Inlet;
 class Outlet;
+class AudioInlet;
 class AudioOutlet;
+class MidiInlet;
+class MidiOutlet;
 class ControlInlet;
 class ControlOutlet;
 }
@@ -35,6 +38,21 @@ UUID_METADATA(
     Process::Port,
     Process::Outlet,
     "34e2c5a7-18c4-4759-b6cc-46feaeee06e2")
+UUID_METADATA(
+    SCORE_LIB_PROCESS_EXPORT,
+    Process::Port,
+    Process::MidiInlet,
+    "c18adc77-e0e0-4ddf-a46c-43cb0719a890")
+UUID_METADATA(
+    SCORE_LIB_PROCESS_EXPORT,
+    Process::Port,
+    Process::MidiOutlet,
+    "d8a3ed3d-b9c2-46f2-bdb3-d282a48481c6")
+UUID_METADATA(
+    SCORE_LIB_PROCESS_EXPORT,
+    Process::Port,
+    Process::AudioInlet,
+    "a1574bb0-cbd4-4c7d-9417-0c25cfd1187b")
 UUID_METADATA(
     SCORE_LIB_PROCESS_EXPORT,
     Process::Port,
@@ -68,6 +86,7 @@ public:
 
   void addCable(const Path<Process::Cable>& c);
   void removeCable(const Path<Process::Cable>& c);
+  void setCables(const std::vector<Path<Cable>>& c);
 
   const QString& customData() const;
   const State::AddressAccessor& address() const;
@@ -211,6 +230,24 @@ public:
   Outlet(JSONObject::Deserializer&& vis, QObject* parent);
 };
 
+class SCORE_LIB_PROCESS_EXPORT AudioInlet: public Inlet
+{
+  W_OBJECT(AudioInlet)
+
+  SCORE_SERIALIZE_FRIENDS
+public:
+  MODEL_METADATA_IMPL_HPP(AudioInlet)
+  AudioInlet() = delete;
+  ~AudioInlet() override;
+  AudioInlet(const AudioInlet&) = delete;
+  AudioInlet(Id<Process::Port> c, QObject* parent);
+
+  AudioInlet(DataStream::Deserializer& vis, QObject* parent);
+  AudioInlet(JSONObject::Deserializer& vis, QObject* parent);
+  AudioInlet(DataStream::Deserializer&& vis, QObject* parent);
+  AudioInlet(JSONObject::Deserializer&& vis, QObject* parent);
+};
+
 class SCORE_LIB_PROCESS_EXPORT AudioOutlet : public Outlet
 {
   W_OBJECT(AudioOutlet)
@@ -251,8 +288,45 @@ private:
   double m_gain{};
   pan_weight m_pan;
   bool m_propagate{false};
-
 };
+
+
+class SCORE_LIB_PROCESS_EXPORT MidiInlet: public Inlet
+{
+  W_OBJECT(MidiInlet)
+
+  SCORE_SERIALIZE_FRIENDS
+public:
+  MODEL_METADATA_IMPL_HPP(MidiInlet)
+  MidiInlet() = delete;
+  ~MidiInlet() override;
+  MidiInlet(const MidiInlet&) = delete;
+  MidiInlet(Id<Process::Port> c, QObject* parent);
+
+  MidiInlet(DataStream::Deserializer& vis, QObject* parent);
+  MidiInlet(JSONObject::Deserializer& vis, QObject* parent);
+  MidiInlet(DataStream::Deserializer&& vis, QObject* parent);
+  MidiInlet(JSONObject::Deserializer&& vis, QObject* parent);
+};
+
+class SCORE_LIB_PROCESS_EXPORT MidiOutlet : public Outlet
+{
+  W_OBJECT(MidiOutlet)
+
+SCORE_SERIALIZE_FRIENDS
+public:
+  MODEL_METADATA_IMPL_HPP(MidiOutlet)
+  MidiOutlet() = delete;
+  ~MidiOutlet() override;
+  MidiOutlet(const MidiOutlet&) = delete;
+  MidiOutlet(Id<Process::Port> c, QObject* parent);
+
+  MidiOutlet(DataStream::Deserializer& vis, QObject* parent);
+  MidiOutlet(JSONObject::Deserializer& vis, QObject* parent);
+  MidiOutlet(DataStream::Deserializer&& vis, QObject* parent);
+  MidiOutlet(JSONObject::Deserializer&& vis, QObject* parent);
+};
+
 
 class SCORE_LIB_PROCESS_EXPORT ControlOutlet final : public Outlet
 {
@@ -320,27 +394,21 @@ make_value_outlet(const Id<Process::Port>& c, QObject* parent)
   return std::make_unique<Outlet>(c, parent);
 }
 
-inline std::unique_ptr<Inlet>
+inline std::unique_ptr<MidiInlet>
     make_midi_inlet(const Id<Process::Port>& c, QObject* parent)
 {
-  auto p = std::make_unique<Inlet>(c, parent);
-  p->type = Process::PortType::Midi;
-  return p;
+  return std::make_unique<MidiInlet>(c, parent);
 }
-inline std::unique_ptr<Outlet>
+inline std::unique_ptr<MidiOutlet>
     make_midi_outlet(const Id<Process::Port>& c, QObject* parent)
 {
-  auto p = std::make_unique<Outlet>(c, parent);
-  p->type = Process::PortType::Midi;
-  return p;
+  return std::make_unique<MidiOutlet>(c, parent);
 }
 
-inline std::unique_ptr<Inlet>
+inline std::unique_ptr<AudioInlet>
     make_audio_inlet(const Id<Process::Port>& c, QObject* parent)
 {
-  auto p = std::make_unique<Inlet>(c, parent);
-  p->type = Process::PortType::Audio;
-  return p;
+  return std::make_unique<AudioInlet>(c, parent);
 }
 inline std::unique_ptr<AudioOutlet>
     make_audio_outlet(const Id<Process::Port>& c, QObject* parent)
@@ -361,10 +429,28 @@ SCORE_LIB_PROCESS_EXPORT
 std::unique_ptr<Outlet> load_outlet(JSONObjectWriter& wr, QObject* parent);
 
 SCORE_LIB_PROCESS_EXPORT
+std::unique_ptr<AudioInlet> load_audio_inlet(DataStreamWriter& wr, QObject* parent);
+
+SCORE_LIB_PROCESS_EXPORT
+std::unique_ptr<AudioInlet> load_audio_inlet(JSONObjectWriter& wr, QObject* parent);
+
+SCORE_LIB_PROCESS_EXPORT
 std::unique_ptr<AudioOutlet> load_audio_outlet(DataStreamWriter& wr, QObject* parent);
 
 SCORE_LIB_PROCESS_EXPORT
 std::unique_ptr<AudioOutlet> load_audio_outlet(JSONObjectWriter& wr, QObject* parent);
+
+SCORE_LIB_PROCESS_EXPORT
+std::unique_ptr<MidiInlet> load_midi_inlet(DataStreamWriter& wr, QObject* parent);
+
+SCORE_LIB_PROCESS_EXPORT
+std::unique_ptr<MidiInlet> load_midi_inlet(JSONObjectWriter& wr, QObject* parent);
+
+SCORE_LIB_PROCESS_EXPORT
+std::unique_ptr<MidiOutlet> load_midi_outlet(DataStreamWriter& wr, QObject* parent);
+
+SCORE_LIB_PROCESS_EXPORT
+std::unique_ptr<MidiOutlet> load_midi_outlet(JSONObjectWriter& wr, QObject* parent);
 
 using Inlets = ossia::small_vector<Process::Inlet*, 4>;
 using Outlets = ossia::small_vector<Process::Outlet*, 4>;

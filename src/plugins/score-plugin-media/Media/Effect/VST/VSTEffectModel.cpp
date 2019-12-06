@@ -585,8 +585,7 @@ void VSTEffectModel::create()
   }
   else
   {
-    m_inlets.push_back(new Process::Inlet(Id<Process::Port>{inlet_i++}, this));
-    m_inlets[0]->type = Process::PortType::Audio;
+    m_inlets.push_back(new Process::AudioInlet(Id<Process::Port>{inlet_i++}, this));
   }
 
   // Tempo

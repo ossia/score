@@ -141,15 +141,13 @@ struct PortSetup
     int inlet = 0;
     for (const auto& in : Node_T::Metadata::audio_ins)
     {
-      auto p = new Process::Inlet(Id<Process::Port>(inlet++), &self);
-      p->type = Process::PortType::Audio;
+      auto p = new Process::AudioInlet(Id<Process::Port>(inlet++), &self);
       p->setCustomData(QString::fromUtf8(in.name.data(), in.name.size()));
       ins.push_back(p);
     }
     for (const auto& in : Node_T::Metadata::midi_ins)
     {
-      auto p = new Process::Inlet(Id<Process::Port>(inlet++), &self);
-      p->type = Process::PortType::Midi;
+      auto p = new Process::MidiInlet(Id<Process::Port>(inlet++), &self);
       p->setCustomData(QString::fromUtf8(in.name.data(), in.name.size()));
       ins.push_back(p);
     }
@@ -180,7 +178,6 @@ struct PortSetup
     for (const auto& out : Node_T::Metadata::audio_outs)
     {
       auto p = new Process::AudioOutlet(Id<Process::Port>(outlet++), &self);
-      p->type = Process::PortType::Audio;
       p->setCustomData(QString::fromUtf8(out.name.data(), out.name.size()));
       if (outlet == 1)
         p->setPropagate(true);
@@ -188,8 +185,7 @@ struct PortSetup
     }
     for (const auto& out : Node_T::Metadata::midi_outs)
     {
-      auto p = new Process::Outlet(Id<Process::Port>(outlet++), &self);
-      p->type = Process::PortType::Midi;
+      auto p = new Process::MidiOutlet(Id<Process::Port>(outlet++), &self);
       p->setCustomData(QString::fromUtf8(out.name.data(), out.name.size()));
       outs.push_back(p);
     }
