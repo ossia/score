@@ -1,7 +1,7 @@
 ﻿#pragma once
 #include <score/plugins/InterfaceList.hpp>
 
-#include <score_plugin_engine_export.h>
+#include <score_plugin_audio_export.h>
 #include <verdigris>
 
 namespace ossia
@@ -22,7 +22,7 @@ class Model;
 class View;
 }
 
-class SCORE_PLUGIN_ENGINE_EXPORT AudioFactory : public score::InterfaceBase
+class SCORE_PLUGIN_AUDIO_EXPORT AudioFactory : public score::InterfaceBase
 {
   SCORE_INTERFACE(AudioFactory, "f08e5469-eb29-4c39-9115-1d110cee2369")
 public:

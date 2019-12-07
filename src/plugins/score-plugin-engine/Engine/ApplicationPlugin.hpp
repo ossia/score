@@ -89,9 +89,5 @@ private:
   std::unique_ptr<Execution::Clock> m_clock;
   Scenario::SpeedWidget* m_speedSlider{};
   bool m_playing{false}, m_paused{false};
-
-  bool m_updating_audio = false;
-  void restart_engine();
-  void setup_engine();
 };
 }

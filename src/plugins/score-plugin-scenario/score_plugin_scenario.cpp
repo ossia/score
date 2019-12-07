@@ -43,6 +43,8 @@
 #include <Scenario/Process/ScenarioExecution.hpp>
 #include <Scenario/Process/ScenarioFactory.hpp>
 #include <Scenario/Settings/ScenarioSettingsFactory.hpp>
+
+#include <LocalTree/ScenarioComponent.hpp>
 #include <State/Message.hpp>
 #include <State/Unit.hpp>
 #include <State/Value.hpp>
@@ -207,6 +209,9 @@ score_plugin_scenario::factories(
          Dataflow::CableInspectorFactory,
          Dataflow::PortInspectorFactory>,
       FW<score::ValidityChecker, ScenarioValidityChecker>,
+
+      FW<LocalTree::ProcessComponentFactory,
+         LocalTree::ScenarioComponentFactory>,
       FW<Process::PortFactory,
          Dataflow::InletFactory,
          Dataflow::OutletFactory,

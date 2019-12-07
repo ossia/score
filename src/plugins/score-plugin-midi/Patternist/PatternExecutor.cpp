@@ -3,7 +3,6 @@
 #include "PatternExecutor.hpp"
 
 #include <Patternist/PatternModel.hpp>
-#include <Scenario/Execution/score2OSSIA.hpp>
 #include <ossia/dataflow/port.hpp>
 #include <score/tools/Bind.hpp>
 

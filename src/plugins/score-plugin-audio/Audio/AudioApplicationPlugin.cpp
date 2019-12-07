@@ -34,6 +34,7 @@ ApplicationPlugin::ApplicationPlugin(const score::GUIApplicationContext& ctx)
           Qt::QueuedConnection);
   }
 }
+
 void ApplicationPlugin::initialize()
 {
   auto& set = context.settings<Audio::Settings::Model>();
@@ -53,12 +54,23 @@ void ApplicationPlugin::initialize()
   }
 }
 
+ApplicationPlugin::~ApplicationPlugin()
+{
+}
+
 void ApplicationPlugin::on_stop()
 {
   if (audio)
   {
     audio->reload(nullptr);
   }
+}
+
+void ApplicationPlugin::on_documentChanged(
+            score::Document *olddoc,
+            score::Document *newdoc)
+{
+    restart_engine();
 }
 
 score::GUIElements ApplicationPlugin::makeGUIElements()

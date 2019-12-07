@@ -8,6 +8,7 @@ find_package(Qt5 5.3 REQUIRED COMPONENTS Core Widgets Network Test Xml)
 # Files & main target
 ### Plugin ###
 set(HDRS
+    "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/DefaultProtocolFactory.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Commands/Add/AddAddress.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Commands/Add/AddDevice.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Commands/Add/LoadDevice.hpp"

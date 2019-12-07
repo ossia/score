@@ -2,9 +2,9 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "MidiProcessInspector.hpp"
 
-#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <Midi/Commands/SetOutput.hpp>
 
+#include <score/document/DocumentContext.hpp>
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/widgets/MarginLess.hpp>
 #include <score/widgets/SignalUtils.hpp>

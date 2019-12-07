@@ -59,6 +59,6 @@ score_generate_command_list_file(${PROJECT_NAME} "${HDRS}")
 
 target_link_libraries(${PROJECT_NAME} PUBLIC
                      Qt5::Core Qt5::Widgets Qt5::Qml
-                     score_lib_base score_plugin_engine score_lib_process score_lib_inspector score_lib_device score_plugin_deviceexplorer)
+                     score_lib_base score_plugin_engine score_lib_process score_lib_inspector score_lib_device score_plugin_deviceexplorer score_plugin_protocols)
 
 setup_score_plugin(${PROJECT_NAME})

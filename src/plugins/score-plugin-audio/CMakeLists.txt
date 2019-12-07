@@ -21,7 +21,7 @@ set(HDRS
     "${CMAKE_CURRENT_SOURCE_DIR}/Audio/WDMKSPortAudioInterface.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Audio/DummyInterface.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Audio/AudioApplicationPlugin.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Audio/AudioPanel.hpp"
+
     "${CMAKE_CURRENT_SOURCE_DIR}/score_plugin_audio.hpp"
     )
 set(SRCS
@@ -39,17 +39,23 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Audio/WDMKSPortAudioInterface.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Audio/AudioApplicationPlugin.cpp"
 
-"${CMAKE_CURRENT_SOURCE_DIR}/Audio/AudioPanel.cpp"
-
 "${CMAKE_CURRENT_SOURCE_DIR}/score_plugin_audio.cpp"
 )
 
-add_library(${PROJECT_NAME} ${SRCS} ${HDRS} ${MAPPER_SRCS})
+
+add_library(${PROJECT_NAME} ${SRCS} ${HDRS})
+
+if(OSSIA_PROTOCOL_AUDIO)
+    target_sources(${PROJECT_NAME} PRIVATE
+      "${CMAKE_CURRENT_SOURCE_DIR}/Audio/AudioDevice.hpp"
+      "${CMAKE_CURRENT_SOURCE_DIR}/Audio/AudioDevice.cpp"
+    )
+endif()
 
 target_link_libraries(${PROJECT_NAME}
         PUBLIC
           Qt5::Core Qt5::Widgets
-          score_lib_base score_lib_device 
+          score_lib_base score_lib_device score_lib_state score_plugin_scenario score_plugin_deviceexplorer
           ossia
 )
 

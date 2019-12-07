@@ -19,6 +19,7 @@
 #include <Media/Metro/MetroFactory.hpp>
 #include <Media/Metro/MetroInspector.hpp>
 #include <Scenario/Application/ScenarioApplicationPlugin.hpp>
+#include <Mixer/MixerPanel.hpp>
 
 
 #include <wobjectimpl.h>
@@ -194,6 +195,7 @@ score_plugin_media::factories(
 #endif
          >,
       FW<score::SettingsDelegateFactory, Media::Settings::Factory>,
+      FW<score::PanelDelegateFactory, Mixer::PanelDelegateFactory>,
       FW<score::ObjectRemover, Media::Effect::EffectRemover>>(ctx, key);
 }
 

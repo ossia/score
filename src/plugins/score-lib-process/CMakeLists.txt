@@ -45,6 +45,7 @@ set(PROCESS_HDRS
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Style/Pixmaps.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/TimeValue.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/TimeValueSerialization.hpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Process/TypeConversion.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/ProcessMimeSerialization.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Tools/ToolPalette.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Tools/ProcessGraphicsView.hpp"
@@ -81,6 +82,7 @@ set(PROCESS_HDRS
 "${CMAKE_CURRENT_SOURCE_DIR}/Control/Widgets.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Control/DefaultEffectItem.hpp"
 
+"${CMAKE_CURRENT_SOURCE_DIR}/LocalTree/ProcessComponent.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/score_lib_process.hpp"
 )
 set(PROCESS_SRCS
@@ -132,12 +134,15 @@ set(PROCESS_SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Control/Widgets.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Control/DefaultEffectItem.cpp"
 
+"${CMAKE_CURRENT_SOURCE_DIR}/LocalTree/LTProcessComponent.cpp"
+
 "${CMAKE_CURRENT_SOURCE_DIR}/score_lib_process.cpp"
 )
 
 add_library(score_lib_process ${PROCESS_HDRS} ${PROCESS_SRCS}  )
 target_link_libraries(score_lib_process  PUBLIC
-    Qt5::Core Qt5::Widgets score_lib_base score_lib_state score_lib_inspector score_lib_device)
+    Qt5::Core Qt5::Widgets score_lib_base score_lib_state
+    score_lib_inspector score_lib_device score_lib_localtree)
 target_compile_definitions(score_lib_process PUBLIC
     $<$<BOOL:${DEFINE_SCORE_SCENARIO_DEBUG_RECTS}>:SCORE_SCENARIO_DEBUG_RECTS>)
 

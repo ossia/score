@@ -12,7 +12,7 @@
 #endif
 #include <Device/Protocol/DeviceInterface.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
-#include <Protocols/Audio/AudioDevice.hpp>
+#include <Audio/AudioDevice.hpp>
 
 #include <score/tools/Bind.hpp>
 #include <ossia/audio/audio_protocol.hpp>

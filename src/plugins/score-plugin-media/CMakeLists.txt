@@ -93,6 +93,8 @@ set(HDRS ${HDRS}
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/AudioDecoder.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/ApplicationPlugin.hpp"
 
+    "${CMAKE_CURRENT_SOURCE_DIR}/Mixer/MixerPanel.hpp"
+
     "${CMAKE_CURRENT_SOURCE_DIR}/score_plugin_media.hpp"
 )
 
@@ -132,6 +134,8 @@ set(SRCS
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/RMSData.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/AudioDecoder.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/ApplicationPlugin.cpp"
+
+    "${CMAKE_CURRENT_SOURCE_DIR}/Mixer/MixerPanel.cpp"
 
     "${CMAKE_CURRENT_SOURCE_DIR}/score_plugin_media.cpp"
 )
@@ -215,7 +219,7 @@ add_library(${PROJECT_NAME}
 score_generate_command_list_file(${PROJECT_NAME} "${HDRS};${FAUST_HDRS};${LV2_HDRS};${VST_HDRS}")
 target_link_libraries(${PROJECT_NAME} PUBLIC
                      Qt5::Core Qt5::Widgets # Qt5::Concurrent
-                     score_lib_base score_plugin_loop score_plugin_engine score_plugin_library
+                     score_lib_base score_plugin_loop score_plugin_engine score_plugin_library score_plugin_audio
 )
 
 ### FFMPEG ###

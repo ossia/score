@@ -162,11 +162,17 @@ void DefaultHeaderDelegate::updatePorts()
   {
     if (port->hidden)
       continue;
-    auto fact = portFactory.get(port->concreteKey());
-    auto item = fact->makeItem(*port, m_context, this, this);
-    item->setPos(x, portY());
-    m_inPorts.push_back(item);
-    x += 10.;
+    if(auto fact = portFactory.get(port->concreteKey()))
+    {
+      auto item = fact->makeItem(*port, m_context, this, this);
+      item->setPos(x, portY());
+      m_inPorts.push_back(item);
+      x += 10.;
+    }
+    else
+    {
+      qWarning() << "Port factory for " << port << " not found !";
+    }
   }
 }
 
