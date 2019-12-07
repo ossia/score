@@ -1,9 +1,9 @@
+#include "CableInspector.hpp"
+
 #include <Dataflow/Commands/EditConnection.hpp>
-#include <Dataflow/Inspector/DataflowWidget.hpp>
 
 #include <score/widgets/SignalUtils.hpp>
 #include <score/tools/Bind.hpp>
-
 
 #include <wobjectimpl.h>
 namespace Dataflow

@@ -4,6 +4,7 @@
 #include <QPointF>
 
 #include <Process/Dataflow/PortFactory.hpp>
+#include <Process/Dataflow/PortItem.hpp>
 
 #include <score/graphics/RectItem.hpp>
 #include <score/graphics/TextItem.hpp>

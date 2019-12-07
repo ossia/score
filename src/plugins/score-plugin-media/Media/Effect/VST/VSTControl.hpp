@@ -1,9 +1,10 @@
 #pragma once
 #if defined(HAS_VST2)
-#include <Dataflow/UI/PortItem.hpp>
 #include <Media/Effect/VST/VSTEffectModel.hpp>
 
 #include <verdigris>
+
+#include <Dataflow/PortItem.hpp>
 
 namespace Process
 {

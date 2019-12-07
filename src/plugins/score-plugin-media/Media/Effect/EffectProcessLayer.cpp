@@ -6,7 +6,8 @@
 #include <Effect/EffectPainting.hpp>
 
 #include <Control/DefaultEffectItem.hpp>
-#include <Dataflow/UI/PortItem.hpp>
+#include <Process/Dataflow/PortFactory.hpp>
+#include <Process/Dataflow/PortItem.hpp>
 #include <Process/Drop/ProcessDropHandler.hpp>
 #include <Process/Focus/FocusDispatcher.hpp>
 #include <Process/ProcessMimeSerialization.hpp>
@@ -14,6 +15,7 @@
 #include <Process/WidgetLayer/WidgetProcessFactory.hpp>
 #include <Scenario/Application/Menus/ScenarioCopy.hpp>
 
+#include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/command/Dispatchers/MacroCommandDispatcher.hpp>
 #include <score/selection/SelectionDispatcher.hpp>
 

@@ -34,9 +34,9 @@ static optional<double> estimateTempo(const AudioFile& file)
   auto handle = file.unsafe_handle();
   if (auto file = handle.target<AudioFile::mmap_ptr>())
   {
-    auto acid = file->wav.acid();
-    if(acid.tempo != 0.f) {
-     return acid.tempo;
+    const auto tempo = file->wav.acid().tempo;
+    if(tempo != 0.f) {
+     return tempo;
     }
   }
   else if(auto file = handle.target<AudioFile::libav_ptr>())
@@ -51,7 +51,6 @@ static optional<double> estimateTempo(const AudioFile& file)
   const auto res = e.match(path);
   if(res.hasMatch())
   {
-    qDebug() << res.captured(1);
     return res.captured(1).toInt();
   }
 

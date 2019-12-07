@@ -5,7 +5,7 @@
 #include <Process/Dataflow/PortFactory.hpp>
 #include <State/Message.hpp>
 #include <State/Expression.hpp>
-#include <Dataflow/UI/PortItem.hpp>
+#include <Dataflow/PortItem.hpp>
 #include <score/serialization/VisitorCommon.hpp>
 
 #include <core/application/MockApplication.hpp>

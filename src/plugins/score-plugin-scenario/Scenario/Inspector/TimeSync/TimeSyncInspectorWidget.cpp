@@ -177,7 +177,6 @@ TimeSyncInspectorWidget::TimeSyncInspectorWidget(
   });
 
   // Synchronization
-#if defined(SCORE_MUSICAL)
   auto musicalSync = new QuantificationWidget{this};
   musicalSync->setQuantification(m_model.musicalSync());
 
@@ -188,7 +187,7 @@ TimeSyncInspectorWidget::TimeSyncInspectorWidget(
 
   con(m_model, &TimeSyncModel::musicalSyncChanged,
       musicalSync, &QuantificationWidget::setQuantification);
-#endif
+
   m_trigwidg = new TriggerInspectorWidget{
       ctx,
       ctx.app.interfaces<Command::TriggerCommandFactoryList>(),

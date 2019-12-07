@@ -11,18 +11,21 @@ score-plugin-library
 score-plugin-inspector
 
 score-plugin-deviceexplorer
-score-plugin-protocols
 
 score-plugin-curve
 score-plugin-mapping
 score-plugin-automation
 score-plugin-scenario
 
-score-plugin-audio
-
 score-plugin-loop
 
+
+score-plugin-protocols
+score-plugin-audio
+
 score-plugin-engine
+
+score-plugin-dataflow
 
 score-plugin-media
 score-plugin-fx

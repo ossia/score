@@ -259,11 +259,24 @@ void DefaultFooterDelegate::updatePorts()
   {
     if (port->hidden)
       continue;
-    auto fact = portFactory.get(port->concreteKey());
-    auto item = fact->makeItem(*port, m_context, this, this);
-    item->setPos(x, SCORE_YPOS(0., 0.));
-    m_outPorts.push_back(item);
-    x += 10.;
+    if(auto fact = portFactory.get(port->concreteKey()))
+    {
+      auto item = fact->makeItem(*port, m_context, this, this);
+      item->setPos(x, SCORE_YPOS(0., 0.));
+      m_outPorts.push_back(item);
+      x += 10.;
+    }
+    else
+    {
+      qWarning() << "Port factory for " << port << " not found !";
+      for(int i = 0; i < 16; i++)
+          qWarning() << port->concreteKey().impl().data[i];
+
+      for(auto& fact : portFactory)
+      {
+          qDebug() << &fact;
+      }
+    }
   }
 }
 

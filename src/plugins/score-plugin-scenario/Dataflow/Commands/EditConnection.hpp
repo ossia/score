@@ -37,7 +37,7 @@ private:
   Process::CableData m_dat;
 };
 
-class UpdateCable final : public score::Command
+class SCORE_PLUGIN_SCENARIO_EXPORT UpdateCable final : public score::Command
 {
   SCORE_COMMAND_DECL(
       Scenario::Command::CommandFactoryName(),
@@ -59,7 +59,7 @@ private:
   Process::CableType m_old, m_new;
 };
 
-class RemoveCable final : public score::Command
+class SCORE_PLUGIN_SCENARIO_EXPORT RemoveCable final : public score::Command
 {
   SCORE_COMMAND_DECL(
       Scenario::Command::CommandFactoryName(),

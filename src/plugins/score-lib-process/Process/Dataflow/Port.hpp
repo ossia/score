@@ -461,4 +461,5 @@ DEFAULT_MODEL_METADATA(Process::Port, "Port")
 W_REGISTER_ARGTYPE(Id<Process::Port>)
 W_REGISTER_ARGTYPE(Process::Port)
 
+Q_DECLARE_METATYPE(Process::pan_weight)
 W_REGISTER_ARGTYPE(Process::pan_weight)

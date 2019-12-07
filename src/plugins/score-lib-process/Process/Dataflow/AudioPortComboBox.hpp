@@ -20,17 +20,32 @@ public:
 
   const Device::FullAddressSettings& address() const;
 
-  QString addressString() const;
-
-public:
   void addressChanged(const Device::FullAddressSettings& arg_1)
       W_SIGNAL(addressChanged, arg_1)
 
 private:
-  void customContextMenuEvent(const QPoint& p);
-
   const State::Address m_root;
   Device::FullAddressSettings m_address;
   std::vector<QString> m_child;
 };
+/*
+class SCORE_LIB_PROCESS_EXPORT MidiPortComboBox final : public QComboBox
+{
+    W_OBJECT(MidiPortComboBox)
+public:
+  MidiPortComboBox(
+      const std::vector<QString>& devices,
+      QWidget* parent);
+
+  void setDevice(const QString& dev);
+
+  const QString& device() const;
+
+  void deviceChanged(const QString& arg_1)
+  W_SIGNAL(deviceChanged, arg_1)
+
+private:
+  QString m_device;
+  std::vector<QString> m_available;
+};*/
 }
