@@ -11,7 +11,7 @@ class score_plugin_protocols final :
                                   public score::FactoryInterface_QtInterface,
                                   public score::Plugin_QtInterface
 {
-  SCORE_PLUGIN_METADATA(1, "d4758f8d-64ac-41b4-8aaf-1cbd6f3feb91")
+  SCORE_PLUGIN_METADATA(1, "4fec0133-c8c4-4e5a-b211-3d007d98464b")
 public:
   score_plugin_protocols();
   virtual ~score_plugin_protocols();

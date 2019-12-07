@@ -267,27 +267,34 @@ class MixerPanel final : public QTabWidget
 public:
   const score::DocumentContext& ctx;
   QTabWidget m_tabs;
-  QFrame m_deviceArea;
+  QScrollArea m_deviceArea;
   QWidget m_deviceWidget;
   score::MarginLess<QHBoxLayout> m_deviceLayout;
-  QFrame m_busArea;
+  QScrollArea m_busArea;
   QWidget m_busWidget;
   score::MarginLess<QHBoxLayout> m_busLayout;
 
   MixerPanel(const score::DocumentContext& ctx, QWidget* parent)
       : QTabWidget{parent}
       , ctx{ctx}
+      , m_deviceArea{this}
       , m_deviceWidget{&m_deviceArea}
       , m_deviceLayout{&m_deviceWidget}
+      , m_busArea{this}
       , m_busWidget{&m_busArea}
       , m_busLayout{&m_busWidget}
   {
-    m_deviceArea.setMinimumHeight(150);
-
     this->addTab(&m_busArea, "Buses");
-
+    m_busArea.setWidget(&m_busWidget);
     m_busArea.setMinimumHeight(150);
+    m_busArea.setMinimumWidth(150);
+    m_busArea.setWidgetResizable(true);
+
     this->addTab(&m_deviceArea, "Devices");
+    m_deviceArea.setWidget(&m_deviceWidget);
+    m_deviceArea.setMinimumHeight(150);
+    m_deviceArea.setMinimumWidth(150);
+    m_deviceArea.setWidgetResizable(true);
 
     setupDevice();
 
@@ -329,7 +336,7 @@ public:
       }
     }
 
-    m_deviceWidget.setMinimumSize(i * 100, 135);
+    m_deviceWidget.setMinimumSize(i * 100, 150);
     m_deviceLayout.addStretch(1);
 
   }
@@ -345,7 +352,7 @@ public:
       m_busLayout.addWidget(w);
     }
 
-    m_busWidget.setMinimumSize(i * 100, 135);
+    m_busWidget.setMinimumSize(i * 100, 150);
     m_busLayout.addStretch(1);
 
   }

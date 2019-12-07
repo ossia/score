@@ -6,7 +6,6 @@
 #include <Automation/Commands/SetAutomationMax.hpp>
 #include <Dataflow/Commands/CreateModulation.hpp>
 #include <Dataflow/Commands/EditConnection.hpp>
-#include <Dataflow/UI/PortItem.hpp>
 #include <Media/Commands/VSTCommands.hpp>
 #include <Media/Effect/Settings/Model.hpp>
 #include <Media/Effect/VST/VSTControl.hpp>

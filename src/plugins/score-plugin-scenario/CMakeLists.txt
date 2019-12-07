@@ -337,9 +337,7 @@ set(HDRS
   "${CMAKE_CURRENT_SOURCE_DIR}/Dataflow/Commands/EditConnection.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Dataflow/Commands/LoadCables.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Dataflow/Commands/CableHelpers.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/Dataflow/Inspector/DataflowWidget.hpp"
 
-  "${CMAKE_CURRENT_SOURCE_DIR}/Dataflow/UI/PortItem.hpp"
 )
 qt5_add_resources(QRCS "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/resources/ScenarioResources.qrc")
 
@@ -619,9 +617,7 @@ set(SRCS ${SRCS}
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Dataflow/Commands/EditConnection.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Dataflow/Commands/CableHelpers.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Dataflow/Inspector/DataflowWidget.cpp"
 
-"${CMAKE_CURRENT_SOURCE_DIR}/Dataflow/UI/PortItem.cpp"
 )
 
 add_library(score_plugin_scenario ${SRCS} ${HDRS} ${QRCS})
@@ -634,15 +630,14 @@ target_link_libraries(score_plugin_scenario
     score_lib_base
     score_lib_process score_lib_device score_lib_localtree score_plugin_deviceexplorer
     score_lib_state score_plugin_curve score_plugin_automation
-    score_lib_inspector score_plugin_library Threads::Threads)
+    score_lib_inspector score_plugin_library
+    Threads::Threads)
 
 
 if(TARGET Qt5::Svg)
   target_link_libraries(score_lib_base
     PRIVATE Qt5::Svg
   )
-
-target_compile_definitions(score_plugin_scenario PRIVATE SCORE_MUSICAL)
 endif()
 if(SCORE_WEBSOCKETS)
 target_link_libraries(score_plugin_scenario PRIVATE Qt5::WebSockets)

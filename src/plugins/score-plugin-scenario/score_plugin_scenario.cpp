@@ -1,10 +1,7 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
-#include <Dataflow/Inspector/DataflowWidget.hpp>
-#include <Dataflow/UI/PortItem.hpp>
+
 #include <Inspector/InspectorWidgetFactoryInterface.hpp>
-#include <Process/Dataflow/PortListWidget.hpp>
-#include <Process/Dataflow/WidgetInlets.hpp>
 #include <Process/TimeValue.hpp>
 #include <Process/TimeValueSerialization.hpp>
 #include <Scenario/Application/Drops/AutomationDropHandler.hpp>
@@ -195,7 +192,6 @@ score_plugin_scenario::factories(
          Scenario::DropScenario,
          Scenario::DropScore,
          Scenario::DropProcessInScenario,
-         Scenario::DropPortInScenario,
          Scenario::DropLayerInScenario>,
       FW<Scenario::IntervalDropHandler,
          Scenario::DropProcessInInterval,
@@ -205,33 +201,11 @@ score_plugin_scenario::factories(
          ScenarioInspectorWidgetFactoryWrapper,
          Interpolation::StateInspectorFactory,
          ScenarioInspectorFactory,
-         Interpolation::InspectorFactory,
-         Dataflow::CableInspectorFactory,
-         Dataflow::PortInspectorFactory>,
+         Interpolation::InspectorFactory>,
       FW<score::ValidityChecker, ScenarioValidityChecker>,
 
       FW<LocalTree::ProcessComponentFactory,
          LocalTree::ScenarioComponentFactory>,
-      FW<Process::PortFactory,
-         Dataflow::InletFactory,
-         Dataflow::OutletFactory,
-         Dataflow::ControlInletFactory,
-         Dataflow::MidiInletFactory,
-         Dataflow::MidiOutletFactory,
-         Dataflow::AudioInletFactory,
-         Dataflow::AudioOutletFactory,
-         Dataflow::ControlOutletFactory,
-         Dataflow::WidgetInletFactory<Process::FloatSlider>,
-         Dataflow::WidgetInletFactory<Process::LogFloatSlider>,
-         Dataflow::WidgetInletFactory<Process::IntSlider>,
-         Dataflow::WidgetInletFactory<Process::IntSpinBox>,
-         Dataflow::WidgetInletFactory<Process::Toggle>,
-         Dataflow::WidgetInletFactory<Process::Button>,
-         Dataflow::WidgetInletFactory<Process::ChooserToggle>,
-         Dataflow::WidgetInletFactory<Process::LineEdit>,
-         Dataflow::WidgetInletFactory<Process::ComboBox>,
-         Dataflow::WidgetInletFactory<Process::Enum>,
-         Dataflow::WidgetInletFactory<Process::TimeSignatureChooser>>,
       FW<Execution::ProcessComponentFactory,
          Execution::ScenarioComponentFactory>,
       FW<Library::LibraryInterface,

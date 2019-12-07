@@ -17,7 +17,8 @@
 #include <Scenario/Commands/Interval/AddOnlyProcessToInterval.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <State/MessageListSerialization.hpp>
-
+#include <Protocols/MIDI/MIDIProtocolFactory.hpp>
+#include <Protocols/MIDI/MIDISpecificSettings.hpp>
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/command/Dispatchers/MacroCommandDispatcher.hpp>
 #include <score/document/DocumentContext.hpp>
@@ -393,6 +394,44 @@ QWidget* makeAddressCombo(
   return edit;
 }
 
+QWidget* makeMidiCombo(
+        QStringList devices,
+        const Process::Port& port,
+        const score::DocumentContext& ctx,
+        QWidget* parent)
+{
+    using namespace Device;
+    auto edit = new QComboBox{parent};
+    edit->addItems(devices);
+
+    edit->setCurrentText(port.address().address.device);
+
+    QObject::connect(
+                &port,
+                &Process::Port::addressChanged,
+                edit,
+                [edit](const State::AddressAccessor& addr) {
+        if (addr.address.device != edit->currentText())
+        {
+            edit->setCurrentText(addr.address.device);
+        }
+    });
+
+    QObject::connect(
+                edit,
+                &QComboBox::currentTextChanged,
+                parent,
+                [&port, &ctx](const auto& newDev) {
+        if (newDev == port.address().address.device)
+            return;
+
+        CommandDispatcher<>{ctx.dispatcher}.submit(
+                    new Process::ChangePortAddress{port, State::AddressAccessor{State::Address{newDev, {}}, {}}});
+    });
+
+    return edit;
+}
+
 void AudioInletFactory::setupInletInspector(
         Process::Inlet &port,
         const score::DocumentContext &ctx,
@@ -449,7 +488,7 @@ void AudioOutletFactory::setupOutletInspector(
 }
 
 // FIXME
-static const constexpr auto midi_uuid = UuidKey<Device::ProtocolFactory>{"94a362a1-9411-4ee9-b94d-4bc79b1427cf"};
+static const constexpr auto midi_uuid = Protocols::MIDIProtocolFactory::static_concreteKey();
 
 void MidiInletFactory::setupInletInspector(
         Process::Inlet &port,
@@ -461,13 +500,20 @@ void MidiInletFactory::setupInletInspector(
     auto& p = static_cast<Process::MidiInlet&>(port);
 
     auto& device = *ctx.findPlugin<Explorer::DeviceDocumentPlugin>();
-    std::vector<QString> midiDevices;
+    QStringList midiDevices;
+    midiDevices.push_back("");
 
     device.list().apply([&] (Device::DeviceInterface& dev) {
             auto& set = dev.settings();
             if(set.protocol == midi_uuid)
-                midiDevices.push_back(set.name);
+            {
+                const auto& midi_set = set.deviceSpecificSettings.value<Protocols::MIDISpecificSettings>();
+                if(midi_set.io == Protocols::MIDISpecificSettings::IO::Out)
+                  midiDevices.push_back(set.name);
+            }
     });
+
+    lay.addRow(makeMidiCombo(midiDevices, port, ctx, parent));
 }
 
 void MidiOutletFactory::setupOutletInspector(
@@ -480,13 +526,20 @@ void MidiOutletFactory::setupOutletInspector(
     auto& p = static_cast<Process::MidiOutlet&>(port);
 
     auto& device = *ctx.findPlugin<Explorer::DeviceDocumentPlugin>();
-    std::vector<QString> midiDevices;
+    QStringList midiDevices;
+    midiDevices.push_back("");
 
     device.list().apply([&] (Device::DeviceInterface& dev) {
             auto& set = dev.settings();
             if(set.protocol == midi_uuid)
-                midiDevices.push_back(set.name);
+            {
+                const auto& midi_set = set.deviceSpecificSettings.value<Protocols::MIDISpecificSettings>();
+                if(midi_set.io == Protocols::MIDISpecificSettings::IO::In)
+                  midiDevices.push_back(set.name);
+            }
     });
+
+    lay.addRow(makeMidiCombo(midiDevices, port, ctx, parent));
 }
 
 }

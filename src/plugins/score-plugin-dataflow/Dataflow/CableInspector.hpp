@@ -1,23 +1,13 @@
 #pragma once
-#include <Device/Widgets/AddressAccessorEditWidget.hpp>
-#include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
-#include <Explorer/Explorer/DeviceExplorerModel.hpp>
+#include <score/plugins/Interface.hpp>
 #include <Inspector/InspectorWidgetBase.hpp>
 #include <Inspector/InspectorWidgetFactoryInterface.hpp>
-#include <Process/Commands/EditPort.hpp>
-#include <Process/Dataflow/Port.hpp>
-
-#include <score/command/Dispatchers/CommandDispatcher.hpp>
-#include <score/document/DocumentContext.hpp>
-#include <score/widgets/ClearLayout.hpp>
-#include <score/widgets/MarginLess.hpp>
-#include <score/widgets/TextLabel.hpp>
-
 #include <QComboBox>
-#include <QWidget>
 
-#include <score_plugin_scenario_export.h>
-#include <verdigris>
+namespace Process
+{
+class Cable;
+}
 namespace Dataflow
 {
 class CableWidget final : public Inspector::InspectorWidgetBase

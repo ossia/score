@@ -53,20 +53,6 @@ private:
       const QMimeData& mime) override;
 };
 
-class DropPortInScenario final : public GhostIntervalDropHandler
-{
-  SCORE_CONCRETE("b71dd84e-e242-4451-bab5-970215c6b120")
-
-public:
-  DropPortInScenario();
-private:
-  bool canDrop(const QMimeData& mime) const noexcept override;
-  bool drop(
-      const Scenario::ScenarioPresenter&,
-      QPointF pos,
-      const QMimeData& mime) override;
-};
-
 class DropLayerInScenario final : public GhostIntervalDropHandler
 {
   SCORE_CONCRETE("0eb96d95-3f5f-4e7a-b806-d03d0ac88b48")

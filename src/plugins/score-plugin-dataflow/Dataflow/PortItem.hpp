@@ -5,8 +5,7 @@
 #include <Process/Dataflow/PortItem.hpp>
 #include <score/plugins/SerializableHelpers.hpp>
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
-
-#include <score_plugin_scenario_export.h>
+#include <score_plugin_dataflow_export.h>
 namespace Scenario
 {
 class IntervalModel;
@@ -15,7 +14,7 @@ namespace Dataflow
 {
 class CableItem;
 
-class SCORE_PLUGIN_SCENARIO_EXPORT AutomatablePortItem : public PortItem
+class SCORE_PLUGIN_DATAFLOW_EXPORT AutomatablePortItem : public PortItem
 {
 public:
   using PortItem::PortItem;
@@ -31,7 +30,7 @@ public:
   void dropEvent(QGraphicsSceneDragDropEvent* event) override;
 };
 
-class SCORE_PLUGIN_SCENARIO_EXPORT AutomatablePortFactory : public Process::PortFactory
+class SCORE_PLUGIN_DATAFLOW_EXPORT AutomatablePortFactory : public Process::PortFactory
 {
 public:
   ~AutomatablePortFactory() override = default;
@@ -74,7 +73,7 @@ using InletFactory = AutomatablePortFactory_T<Process::Inlet>;
 using OutletFactory = AutomatablePortFactory_T<Process::Outlet>;
 using ControlOutletFactory = AutomatablePortFactory_T<Process::ControlOutlet>;
 
-struct SCORE_PLUGIN_SCENARIO_EXPORT ControlInletFactory final : public AutomatablePortFactory
+struct SCORE_PLUGIN_DATAFLOW_EXPORT ControlInletFactory final : public AutomatablePortFactory
 {
   using Model_T = Process::ControlInlet;
   UuidKey<Process::Port> concreteKey() const noexcept override
@@ -97,9 +96,9 @@ struct SCORE_PLUGIN_SCENARIO_EXPORT ControlInletFactory final : public Automatab
       QObject* context) override;
 };
 
-struct SCORE_PLUGIN_SCENARIO_EXPORT AudioInletFactory final : public Process::PortFactory
+struct SCORE_PLUGIN_DATAFLOW_EXPORT AudioInletFactory final : public Process::PortFactory
 {
-    using Model_T = Process::AudioOutlet;
+    using Model_T = Process::AudioInlet;
     UuidKey<Process::Port> concreteKey() const noexcept override
     {
         return Metadata<ConcreteKey_k, Model_T>::get();
@@ -119,7 +118,7 @@ struct SCORE_PLUGIN_SCENARIO_EXPORT AudioInletFactory final : public Process::Po
             Inspector::Layout& lay,
             QObject* context) override;
 };
-struct SCORE_PLUGIN_SCENARIO_EXPORT AudioOutletFactory final : public Process::PortFactory
+struct SCORE_PLUGIN_DATAFLOW_EXPORT AudioOutletFactory final : public Process::PortFactory
 {
     using Model_T = Process::AudioOutlet;
     UuidKey<Process::Port> concreteKey() const noexcept override
@@ -142,9 +141,9 @@ struct SCORE_PLUGIN_SCENARIO_EXPORT AudioOutletFactory final : public Process::P
             QObject* context) override;
 };
 
-struct SCORE_PLUGIN_SCENARIO_EXPORT MidiInletFactory final : public Process::PortFactory
+struct SCORE_PLUGIN_DATAFLOW_EXPORT MidiInletFactory final : public Process::PortFactory
 {
-    using Model_T = Process::MidiOutlet;
+    using Model_T = Process::MidiInlet;
     UuidKey<Process::Port> concreteKey() const noexcept override
     {
         return Metadata<ConcreteKey_k, Model_T>::get();
@@ -164,7 +163,7 @@ struct SCORE_PLUGIN_SCENARIO_EXPORT MidiInletFactory final : public Process::Por
             Inspector::Layout& lay,
             QObject* context) override;
 };
-struct SCORE_PLUGIN_SCENARIO_EXPORT MidiOutletFactory final : public Process::PortFactory
+struct SCORE_PLUGIN_DATAFLOW_EXPORT MidiOutletFactory final : public Process::PortFactory
 {
     using Model_T = Process::MidiOutlet;
     UuidKey<Process::Port> concreteKey() const noexcept override
@@ -196,7 +195,7 @@ public:
       QWidget* parent);
 };
 
-class SCORE_PLUGIN_SCENARIO_EXPORT PortInspectorFactory final : public Inspector::InspectorWidgetFactory
+class SCORE_PLUGIN_DATAFLOW_EXPORT PortInspectorFactory final : public Inspector::InspectorWidgetFactory
 {
   SCORE_CONCRETE("1e7166bb-278a-49ce-b6a9-d662b8cd8dd2")
 public:

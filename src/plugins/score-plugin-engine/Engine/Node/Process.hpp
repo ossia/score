@@ -4,6 +4,7 @@
 #include <Process/Process.hpp>
 #include <Process/ProcessFactory.hpp>
 #include <Process/ProcessMetadata.hpp>
+#include <score/plugins/SerializableHelpers.hpp>
 #include <score/application/ApplicationComponents.hpp>
 #include <ossia/dataflow/safe_nodes/node.hpp>
 
