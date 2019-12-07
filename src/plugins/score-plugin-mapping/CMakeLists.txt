@@ -19,6 +19,7 @@ set(HDRS
   "${CMAKE_CURRENT_SOURCE_DIR}/Mapping/MappingProcessMetadata.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Mapping/MappingView.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Mapping/MappingExecution.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Mapping/LocalTree.hpp"
 
 )
 set(SRCS

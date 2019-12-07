@@ -6,12 +6,10 @@
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <Explorer/Explorer/DeviceExplorerModel.hpp>
 #include <Explorer/Settings/ExplorerModel.hpp>
-#include <Loop/LoopProcessModel.hpp>
 #include <Process/ExecutionContext.hpp>
 #include <Process/TimeValue.hpp>
 #include <Process/Style/Pixmaps.hpp>
 
-#include <Protocols/Audio/AudioDevice.hpp>
 #include <Scenario/Application/ScenarioActions.hpp>
 #include <Scenario/Application/ScenarioApplicationPlugin.hpp>
 #include <Scenario/Document/BaseScenario/BaseScenario.hpp>
@@ -20,6 +18,7 @@
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentPresenter.hpp>
 #include <Scenario/Execution/score2OSSIA.hpp>
 #include <Scenario/Inspector/Interval/SpeedSlider.hpp>
+#include <Loop/LoopProcessModel.hpp>
 
 #include <score/actions/ActionManager.hpp>
 #include <score/application/ApplicationContext.hpp>
@@ -385,7 +384,6 @@ void ApplicationPlugin::on_documentChanged(
       }
     }
   }
-  restart_engine();
 }
 
 void ApplicationPlugin::prepareNewDocument()
@@ -583,6 +581,7 @@ void ApplicationPlugin::on_stop()
     }
 
     QTimer::singleShot(50, this, [this] {
+        // FIXME uuuugh have an event in scenario instead (or better, move this in process)
       auto doc = currentDocument();
       if (!doc)
         return;

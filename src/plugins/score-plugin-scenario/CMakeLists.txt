@@ -309,6 +309,13 @@ set(HDRS
 
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Library/SlotLibraryHandler.hpp"
 
+
+  "${CMAKE_CURRENT_SOURCE_DIR}/LocalTree/ScenarioComponent.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/LocalTree/IntervalComponent.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/LocalTree/EventComponent.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/LocalTree/TimeSyncComponent.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/LocalTree/StateComponent.hpp"
+
   "${CMAKE_CURRENT_SOURCE_DIR}/tests/helpers/ForwardDeclaration.hpp"
 
 
@@ -589,6 +596,12 @@ set(SRCS ${SRCS}
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Inspector/Summary/SummaryInspectorWidget.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Inspector/ObjectTree/ObjectItemModel.cpp"
 
+"${CMAKE_CURRENT_SOURCE_DIR}/LocalTree/LTScenarioComponent.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/LocalTree/LTIntervalComponent.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/LocalTree/LTEventComponent.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/LocalTree/LTTimeSyncComponent.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/LocalTree/LTStateComponent.cpp"
+
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Tools/dataStructures.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Library/SlotLibraryHandler.cpp"
@@ -619,7 +632,7 @@ target_link_libraries(score_plugin_scenario
   PUBLIC
     Qt5::Core Qt5::Widgets Qt5::OpenGL
     score_lib_base
-    score_lib_process score_lib_device score_plugin_deviceexplorer
+    score_lib_process score_lib_device score_lib_localtree score_plugin_deviceexplorer
     score_lib_state score_plugin_curve score_plugin_automation
     score_lib_inspector score_plugin_library Threads::Threads)
 

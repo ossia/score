@@ -3,7 +3,6 @@
 #include "MidiExecutor.hpp"
 
 #include <Midi/MidiProcess.hpp>
-#include <Scenario/Execution/score2OSSIA.hpp>
 
 #include <ossia/dataflow/nodes/midi.hpp>
 namespace Midi

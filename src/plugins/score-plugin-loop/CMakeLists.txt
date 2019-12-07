@@ -24,6 +24,7 @@ set(HDRS
   "${CMAKE_CURRENT_SOURCE_DIR}/Loop/LoopView.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Loop/LoopViewUpdater.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Loop/Palette/LoopToolPalette.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Loop/LocalTree/LoopComponent.hpp"
 )
 set(SRCS
     "${CMAKE_CURRENT_SOURCE_DIR}/Loop/LoopProcessModelSerialization.cpp"
@@ -40,6 +41,8 @@ set(SRCS
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Loop/Inspector/LoopTriggerCommandFactory.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Loop/Inspector/LoopInspectorWidget.cpp"
+
+"${CMAKE_CURRENT_SOURCE_DIR}/Loop/LocalTree/LTLoopComponent.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/score_plugin_loop.cpp"
 )

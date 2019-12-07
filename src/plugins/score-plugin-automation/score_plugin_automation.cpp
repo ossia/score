@@ -12,6 +12,8 @@
 #include <Automation/Inspector/AutomationInspectorFactory.hpp>
 #include <Automation/Inspector/AutomationStateInspectorFactory.hpp>
 #include <Automation/Inspector/CurvePointInspectorFactory.hpp>
+#include <Automation/LocalTree.hpp>
+
 #include <Curve/Process/CurveProcessFactory.hpp>
 #include <Inspector/InspectorWidgetFactoryInterface.hpp>
 #include <Process/GenericProcessFactory.hpp>
@@ -138,6 +140,9 @@ score_plugin_automation::factories(
          Gradient::InspectorFactory,
          Spline::InspectorFactory,
          Metronome::InspectorFactory>,
+
+      FW<LocalTree::ProcessComponentFactory,
+         LocalTree::AutomationComponentFactory>,
 
       FW<Execution::ProcessComponentFactory,
          //, Interpolation::Executor::ComponentFactory,

@@ -4,7 +4,7 @@
 #include <Device/Protocol/DeviceInterface.hpp>
 #include <Device/Protocol/DeviceSettings.hpp>
 #include <Device/Protocol/ProtocolSettingsWidget.hpp>
-#include <Protocols/DefaultProtocolFactory.hpp>
+#include <Explorer/DefaultProtocolFactory.hpp>
 
 #include <verdigris>
 

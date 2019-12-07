@@ -8,7 +8,6 @@
 #include <score/plugins/StringFactoryKey.hpp>
 
 
-#include <Audio/AudioPanel.hpp>
 #include <Audio/DummyInterface.hpp>
 #include <Audio/JackInterface.hpp>
 #include <Audio/PortAudioInterface.hpp>
@@ -22,33 +21,36 @@
 #include <Audio/SDLInterface.hpp>
 #include <Audio/Settings/Factory.hpp>
 #include <Audio/AudioApplicationPlugin.hpp>
+#include <Audio/AudioDevice.hpp>
 
 #include <ossia-config.hpp>
 #include <wobjectimpl.h>
 
-score_plugin_engine::score_plugin_engine()
+score_plugin_audio::score_plugin_audio()
 {
   qRegisterMetaType<Audio::AudioFactory::ConcreteKey>("AudioKey");
   qRegisterMetaTypeStreamOperators<Audio::AudioFactory::ConcreteKey>(
       "AudioKey");
 }
 
-score_plugin_engine::~score_plugin_engine() {}
+score_plugin_audio::~score_plugin_audio() {}
 
-score::GUIApplicationPlugin* score_plugin_engine::make_guiApplicationPlugin(
+score::GUIApplicationPlugin* score_plugin_audio::make_guiApplicationPlugin(
     const score::GUIApplicationContext& app)
 {
-  return new Engine::ApplicationPlugin{app};
+  return new Audio::ApplicationPlugin{app};
 }
 
 std::vector<std::unique_ptr<score::InterfaceListBase>>
-score_plugin_engine::factoryFamilies()
+score_plugin_audio::factoryFamilies()
 {
-  return make_ptr_vector<Audio::AudioFactoryList>();
+  return make_ptr_vector<
+          score::InterfaceListBase,
+          Audio::AudioFactoryList>();
 }
 
 std::vector<std::unique_ptr<score::InterfaceBase>>
-score_plugin_engine::factories(
+score_plugin_audio::factories(
     const score::ApplicationContext& ctx,
     const score::InterfaceKey& key) const
 {
@@ -100,18 +102,22 @@ score_plugin_engine::factories(
          ,
          Audio::SDLFactory
 #endif
-         >
+         >,
+
+      FW<Device::ProtocolFactory
+        #if defined(OSSIA_PROTOCOL_AUDIO)
+                 , Dataflow::AudioProtocolFactory
+        #endif
+      >,
       FW<score::SettingsDelegateFactory,
-         Audio::Settings::Factory>,
-      FW<score::PanelDelegateFactory, Audio::PanelDelegateFactory>
+         Audio::Settings::Factory>
       >(ctx, key);
 }
 
-auto score_plugin_engine::required() const -> std::vector<score::PluginKey>
+auto score_plugin_audio::required() const -> std::vector<score::PluginKey>
 {
-  return {score_plugin_scenario::static_key(),
-          score_plugin_deviceexplorer::static_key()};
+  return {};
 }
 
 #include <score/plugins/PluginInstances.hpp>
-SCORE_EXPORT_PLUGIN(score_plugin_engine)
+SCORE_EXPORT_PLUGIN(score_plugin_audio)

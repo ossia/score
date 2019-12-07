@@ -6,6 +6,7 @@
 #include <Process/ProcessList.hpp>
 #include <Magnetism/MagnetismAdjuster.hpp>
 
+#include <LocalTree/ProcessComponent.hpp>
 #include <score/plugins/FactorySetup.hpp>
 #include <score/plugins/application/GUIApplicationPlugin.hpp>
 #include <score/plugins/documentdelegate/plugin/DocumentPluginCreator.hpp>
@@ -40,7 +41,8 @@ score_lib_process::factoryFamilies()
       Process::LayerFactoryList,
       Process::ProcessFactoryList,
       Process::ProcessDropHandlerList,
-      Process::MagnetismAdjuster
+      Process::MagnetismAdjuster,
+      LocalTree::ProcessComponentFactoryList
       >();
 }
 

@@ -15,8 +15,8 @@ class score_plugin_audio final : public score::ApplicationPlugin_QtInterface,
 {
   SCORE_PLUGIN_METADATA(1, "b29771b7-3f12-4255-af5d-4153b08e55cf")
 public:
-  score_plugin_engine();
-  virtual ~score_plugin_engine();
+  score_plugin_audio();
+  virtual ~score_plugin_audio();
 
 private:
   score::GUIApplicationPlugin*

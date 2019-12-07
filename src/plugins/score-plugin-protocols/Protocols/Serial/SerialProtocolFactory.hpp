@@ -2,7 +2,7 @@
 
 #include <ossia/detail/config.hpp>
 #if defined(OSSIA_PROTOCOL_SERIAL)
-#include <Protocols/DefaultProtocolFactory.hpp>
+#include <Explorer/DefaultProtocolFactory.hpp>
 
 namespace Protocols
 {

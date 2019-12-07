@@ -29,6 +29,6 @@ add_library(score_plugin_library ${SRCS} ${HDRS})
 target_link_libraries(score_plugin_library
   PUBLIC
       Qt5::Core Qt5::Widgets
-      score_lib_base score_lib_state score_plugin_deviceexplorer score_lib_process)
+      score_lib_base score_lib_process)
 
 setup_score_plugin(score_plugin_library)

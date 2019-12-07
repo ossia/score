@@ -10,6 +10,7 @@
 #include <Loop/LoopExecution.hpp>
 #include <Loop/LoopProcessFactory.hpp>
 #include <Loop/Palette/LoopToolPalette.hpp>
+#include <Loop/LocalTree/LoopComponent.hpp>
 #include <Process/Process.hpp>
 #include <Process/ProcessFactory.hpp>
 #include <Scenario/Application/ScenarioActions.hpp>
@@ -105,6 +106,7 @@ score_plugin_loop::factories(
       FW<Process::LayerFactory, Loop::LayerFactory>,
       FW<Inspector::InspectorWidgetFactory, Loop::InspectorFactory>,
       FW<TriggerCommandFactory, LoopTriggerCommandFactory>,
+      FW<LocalTree::ProcessComponentFactory, LocalTree::LoopComponentFactory>,
       FW<Scenario::DisplayedElementsToolPaletteFactory,
          Loop::DisplayedElementsToolPaletteFactory>,
       FW<Scenario::DisplayedElementsProvider, Loop::DisplayedElementsProvider>,

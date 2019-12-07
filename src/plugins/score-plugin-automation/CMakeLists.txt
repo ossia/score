@@ -44,6 +44,7 @@ set(HDRS
   "${CMAKE_CURRENT_SOURCE_DIR}/Automation/Inspector/CurvePointInspectorFactory.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Automation/Inspector/CurvePointInspectorWidget.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Automation/State/AutomationState.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Automation/LocalTree.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/score_plugin_automation.hpp"
 )
 set(SRCS

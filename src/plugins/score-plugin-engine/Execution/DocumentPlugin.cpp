@@ -5,7 +5,8 @@
 #include "BaseScenarioComponent.hpp"
 
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
-#include <Protocols/Audio/AudioDevice.hpp>
+#include <Audio/AudioDevice.hpp>
+#include <Audio/AudioApplicationPlugin.hpp>
 #include <Scenario/Application/ScenarioActions.hpp>
 #include <Scenario/Document/BaseScenario/BaseScenario.hpp>
 #include <Scenario/Document/Interval/IntervalExecution.hpp>
@@ -270,17 +271,17 @@ void DocumentPlugin::reload(Scenario::IntervalModel& cst)
 
   const score::DocumentContext& ctx = m_ctx.doc;
   auto& settings = ctx.app.settings<Execution::Settings::Model>();
-  auto& app = ctx.app.guiApplicationPlugin<Engine::ApplicationPlugin>();
 
   m_ctx.time = settings.makeTimeFunction(ctx);
   m_ctx.reverseTime = settings.makeReverseTimeFunction(ctx);
 
   makeGraph();
 
-  if (app.audio && audio_device)
+  auto& audio_app = ctx.app.guiApplicationPlugin<Audio::ApplicationPlugin>();
+  if (audio_app.audio && audio_device)
   {
     audioProto().stop();
-    app.audio->reload(&audioProto());
+    audio_app.audio->reload(&audioProto());
   }
 
   auto parent = dynamic_cast<Scenario::ScenarioInterface*>(cst.parent());

@@ -3,13 +3,13 @@
 #include <score/plugins/settingsdelegate/SettingsDelegateModel.hpp>
 
 #include <Audio/AudioInterface.hpp>
-#include <score_plugin_engine_export.h>
+#include <score_plugin_audio_export.h>
 #include <verdigris>
 
 namespace Audio::Settings
 {
 
-class SCORE_PLUGIN_ENGINE_EXPORT Model : public score::SettingsDelegateModel
+class SCORE_PLUGIN_AUDIO_EXPORT Model : public score::SettingsDelegateModel
 {
   W_OBJECT(Model)
 
@@ -25,15 +25,15 @@ class SCORE_PLUGIN_ENGINE_EXPORT Model : public score::SettingsDelegateModel
 public:
   Model(QSettings& set, const score::ApplicationContext& ctx);
 
-  void changed() E_SIGNAL(SCORE_PLUGIN_ENGINE_EXPORT, changed)
-  SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_ENGINE_EXPORT, Audio::AudioFactory::ConcreteKey, Driver)
-  SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_ENGINE_EXPORT, QString, CardIn)
-  SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_ENGINE_EXPORT, QString, CardOut)
-  SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_ENGINE_EXPORT, int, BufferSize)
-  SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_ENGINE_EXPORT, int, Rate)
-  SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_ENGINE_EXPORT, int, DefaultIn)
-  SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_ENGINE_EXPORT, int, DefaultOut)
-  SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_ENGINE_EXPORT, bool, AutoStereo)
+  void changed() E_SIGNAL(SCORE_PLUGIN_AUDIO_EXPORT, changed)
+  SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_AUDIO_EXPORT, Audio::AudioFactory::ConcreteKey, Driver)
+  SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_AUDIO_EXPORT, QString, CardIn)
+  SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_AUDIO_EXPORT, QString, CardOut)
+  SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_AUDIO_EXPORT, int, BufferSize)
+  SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_AUDIO_EXPORT, int, Rate)
+  SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_AUDIO_EXPORT, int, DefaultIn)
+  SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_AUDIO_EXPORT, int, DefaultOut)
+  SCORE_SETTINGS_PARAMETER_HPP(SCORE_PLUGIN_AUDIO_EXPORT, bool, AutoStereo)
 };
 
 SCORE_SETTINGS_PARAMETER(Model, Driver)
