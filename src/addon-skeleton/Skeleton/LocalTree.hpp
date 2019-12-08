@@ -1,6 +1,6 @@
 #pragma once
 #include <LocalTree/LocalTreeComponent.hpp>
-#include <LocalTree/Scenario/ProcessComponent.hpp>
+#include <LocalTree/ProcessComponent.hpp>
 
 namespace Skeleton
 {
@@ -13,7 +13,7 @@ class LocalTreeProcessComponent : public LocalTree::ProcessComponent_T<Model>
 public:
   LocalTreeProcessComponent(
       const Id<score::Component>& id, ossia::net::node_base& parent,
-      Skeleton::Model& scenario, LocalTree::DocumentPlugin& doc,
+      Skeleton::Model& scenario, const score::DocumentContext& doc,
       QObject* parent_obj);
 
   ~LocalTreeProcessComponent() override;
