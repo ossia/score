@@ -12,6 +12,7 @@
 #include <ossia/editor/curve/curve.hpp>
 #include <Curve/CurveConversion.hpp>
 
+
 namespace Execution
 {
 
@@ -151,6 +152,7 @@ inline void updatePropagated(
 
 struct AddProcess
 {
+  // Note : this looks a bit wtf, it is to handle RawPtrExecution
   std::shared_ptr<ossia::time_interval> cst;
   ossia::time_interval* cst_ptr{};
   std::weak_ptr<ossia::time_process> oproc_weak;
@@ -217,8 +219,11 @@ template<typename T>
 struct ReconnectOutlets
 {
   T& component;
+  std::weak_ptr<ossia::graph_node> fw_node;
+
   Process::ProcessModel& proc;
   std::weak_ptr<ossia::time_process> oproc_weak;
+
   std::weak_ptr<ossia::graph_interface> g_weak;
 
   void operator()() const noexcept
@@ -232,7 +237,7 @@ struct ReconnectOutlets
                          &component, RecomputePropagate{
                            component.system(),
                            proc,
-                           component.OSSIAInterval()->node,
+                           fw_node,
                            oproc_weak,
                            g_weak,
                            outlet});

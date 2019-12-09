@@ -52,10 +52,14 @@ ProcessGraphicsView::ProcessGraphicsView(
   fmt.setAlpha(false);
   fmt.setDepth(false);
   fmt.setDirectRendering(true);
-  setViewport(new QGLWidget{fmt});
+//  setViewport(new QGLWidget{fmt});
+//  setViewport(new QOpenGLWidget);
   setAlignment(Qt::AlignTop | Qt::AlignLeft);
   setFrameStyle(0);
   setDragMode(QGraphicsView::NoDrag);
+
+  setViewportUpdateMode(QGraphicsView::FullViewportUpdate);
+  setRenderHints(QPainter::Antialiasing | QPainter::HighQualityAntialiasing | QPainter::TextAntialiasing);
 
 #if !defined(__EMSCRIPTEN__)
   setOptimizationFlag(QGraphicsView::DontSavePainterState, true);
@@ -80,11 +84,15 @@ ProcessGraphicsView::ProcessGraphicsView(
   // setRenderHints(0);
   // setOptimizationFlag(QGraphicsView::IndirectPainting, true);
 #endif*/
+ // startTimer(16);
+
 }
 
 void ProcessGraphicsView::timerEvent(QTimerEvent* event)
 {
-  //viewport()->update();
+  QGraphicsView::timerEvent(event);
+//  viewport()->update();
+//  viewport()->repaint();
 }
 
 ProcessGraphicsView::~ProcessGraphicsView() {}

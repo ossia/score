@@ -636,17 +636,20 @@ void ScenarioDocumentPresenter::setDisplayedInterval(IntervalModel& interval)
   {
     if (&interval == &displayedElements.interval())
     {
-      auto pres
-          = score::IDocument::try_get<ScenarioDocumentPresenter>(ctx.document);
-      if (pres)
-        pres->selectTop();
+      selectTop();
       return;
     }
   }
 
   auto& provider = ctx.app.interfaces<DisplayedElementsProviderList>();
-  displayedElements.setDisplayedElements(
-      provider.make(&DisplayedElementsProvider::make, interval));
+  DisplayedElementsContainer elements = provider.make(&DisplayedElementsProvider::make, interval);
+  if(!elements.interval)
+  {
+    qWarning() << "could not put interval in fullview";
+    return;
+  }
+
+  displayedElements.setDisplayedElements(std::move(elements));
 
   m_focusManager.focusNothing();
 

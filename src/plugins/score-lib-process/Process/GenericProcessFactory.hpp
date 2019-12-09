@@ -95,6 +95,12 @@ private:
       QGraphicsItem* parent) const final override
   {
     if constexpr (std::is_constructible_v<
+                  LayerView_T,
+                  const Model_T&,
+                  const Process::Context&,
+                  QGraphicsItem*>)
+        return new LayerView_T{safe_cast<const Model_T&>(viewmodel), context, parent};
+    else if constexpr (std::is_constructible_v<
                       LayerView_T,
                       const Model_T&,
                       QGraphicsItem*>)

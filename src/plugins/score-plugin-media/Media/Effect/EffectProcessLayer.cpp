@@ -103,7 +103,7 @@ private:
     if(sz != m_contentSize)
     {
       prepareGeometryChange();
-      m_contentSize = sz;
+      m_contentSize = QSizeF{std::max(100., sz.width()), std::max(10., sz.height())};
       if(m_ui)
       {
         m_ui->setParentItem(nullptr);

@@ -15,7 +15,7 @@ TimeRulerGraphicsView::TimeRulerGraphicsView(QGraphicsScene* scene)
     : QGraphicsView{scene}
 {
   setRenderHints(
-      QPainter::Antialiasing | QPainter::SmoothPixmapTransform
+      QPainter::Antialiasing | QPainter::SmoothPixmapTransform | QPainter::HighQualityAntialiasing
       | QPainter::TextAntialiasing);
   //#if !defined(SCORE_OPENGL)
 

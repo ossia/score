@@ -234,8 +234,8 @@ void PortItem::paint(
     const QStyleOptionGraphicsItem* option,
     QWidget* widget)
 {
-  const QImage& img = portImage(m_port.type, m_inlet, m_diam == 8.);
-  painter->drawImage(0, 0, img);
+  const QPixmap& img = QPixmap::fromImage(portImage(m_port.type, m_inlet, m_diam == 8.));
+  painter->drawPixmap(0, 0, img);
 
   /*
 

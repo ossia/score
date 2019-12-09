@@ -34,29 +34,34 @@ QWidget* ScenarioInspectorWidgetFactoryWrapper::make(
 
   auto scenar = dynamic_cast<ScenarioInterface*>(sourceElements[0]->parent());
   auto abstr = safe_cast<const IdentifiedObjectAbstract*>(sourceElements[0]);
-  SCORE_ASSERT(scenar); // because else, matches should have return false
 
   for (auto elt : sourceElements)
   {
     if (auto st = qobject_cast<const StateModel*>(elt))
     {
-      if (auto ev = scenar->findEvent(st->eventId()))
+      if(scenar)
       {
-        auto tn = scenar->findTimeSync(ev->timeSync());
-        if (!tn)
-          continue;
-        states.insert(st);
-        events.insert(ev);
-        timesyncs.insert(tn);
+        if (auto ev = scenar->findEvent(st->eventId()))
+        {
+          auto tn = scenar->findTimeSync(ev->timeSync());
+          if (!tn)
+            continue;
+          states.insert(st);
+          events.insert(ev);
+          timesyncs.insert(tn);
+        }
       }
     }
     else if (auto ev = qobject_cast<const EventModel*>(elt))
     {
-      auto tn = scenar->findTimeSync(ev->timeSync());
-      if (!tn)
-        continue;
-      events.insert(ev);
-      timesyncs.insert(tn);
+      if(scenar)
+      {
+        auto tn = scenar->findTimeSync(ev->timeSync());
+        if (!tn)
+          continue;
+        events.insert(ev);
+        timesyncs.insert(tn);
+      }
     }
     else if (auto tn = qobject_cast<const TimeSyncModel*>(elt))
     {

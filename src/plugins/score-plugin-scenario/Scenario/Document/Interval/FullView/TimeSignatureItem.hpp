@@ -47,6 +47,20 @@ public:
     ev->accept();
     switch(ev->key())
     {
+      case Qt::Key_Left:
+      {
+        auto c = textCursor();
+        c.setPosition(std::max(0, c.position()-1));
+        setTextCursor(c);
+        return;
+      }
+      case Qt::Key_Right:
+      {
+        auto c = textCursor();
+        c.setPosition(std::min(toPlainText().size(), c.position()+1));
+        setTextCursor(c);
+        return;
+      }
       case Qt::Key_Enter:
       case Qt::Key_Return:
         done(toPlainText());
@@ -57,7 +71,12 @@ public:
       default:
         QGraphicsTextItem::keyPressEvent(ev);
     }
+  }
 
+  void keyReleaseEvent(QKeyEvent* ev) override
+  {
+    ev->accept();
+    QGraphicsTextItem::keyPressEvent(ev);
   }
 
   void focusOutEvent(QFocusEvent* event) override

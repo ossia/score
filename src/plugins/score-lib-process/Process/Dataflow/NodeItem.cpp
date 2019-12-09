@@ -108,6 +108,8 @@ NodeItem::NodeItem(
     m_contentSize = m_fx->boundingRect().size();
   }
 
+  m_contentSize = QSizeF{std::max(100., m_contentSize.width()), std::max(10., m_contentSize.height())};
+
   resetInlets(model);
   resetOutlets(model);
 
@@ -143,7 +145,7 @@ void NodeItem::updateSize()
   if (sz != m_contentSize)
   {
     prepareGeometryChange();
-    m_contentSize = sz;
+    m_contentSize = QSizeF{std::max(100., sz.width()), std::max(10., sz.height())};
     if (m_ui)
     {
       m_ui->setParentItem(nullptr);

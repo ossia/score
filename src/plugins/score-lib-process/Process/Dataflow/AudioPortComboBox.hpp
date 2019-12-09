@@ -21,7 +21,7 @@ public:
   const Device::FullAddressSettings& address() const;
 
   void addressChanged(const Device::FullAddressSettings& arg_1)
-      W_SIGNAL(addressChanged, arg_1)
+      E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, addressChanged, arg_1)
 
 private:
   const State::Address m_root;

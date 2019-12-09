@@ -355,7 +355,7 @@ ProcessComponent* IntervalRawPtrComponentBase::make(
       });
 
       // Audio propagation
-      auto reconnectOutlets = ReconnectOutlets<IntervalRawPtrComponentBase>{*this, proc, oproc, system().execGraph};
+      auto reconnectOutlets = ReconnectOutlets<IntervalRawPtrComponentBase>{*this, this->OSSIAInterval()->node, proc, oproc, system().execGraph};
 
       connect(& proc, &Process::ProcessModel::outletsChanged,
               this, reconnectOutlets);
