@@ -11,7 +11,8 @@
 #include <Process/Execution/ProcessComponent.hpp>
 #include <score/application/ApplicationContext.hpp>
 #include <ossia/detail/flat_set.hpp>
-
+#include <ossia/dataflow/nodes/forward_node.hpp>
+#include <Scenario/Document/Interval/IntervalExecutionHelpers.hpp>
 namespace ossia
 {
 
@@ -19,6 +20,7 @@ struct node_graph_process final : public looping_process<node_graph_process>
 {
   node_graph_process()
   {
+    node = std::make_shared<ossia::nodes::forward_node>();
   }
 
   void state_impl(const ossia::token_request& req)
@@ -27,6 +29,7 @@ struct node_graph_process final : public looping_process<node_graph_process>
     {
       process->state(req);
     }
+    node->requested_tokens.push_back(req);
   }
 
   void add_process(std::shared_ptr<ossia::time_process>&& p, std::shared_ptr<ossia::graph_node>&& n)
@@ -103,6 +106,7 @@ struct node_graph_process final : public looping_process<node_graph_process>
 
   void mute_impl(bool b) override
   {
+    node->set_mute(b);
     for (auto& node : nodes)
       node->set_mute(b);
   }
@@ -122,12 +126,40 @@ NodalExecutorBase::NodalExecutorBase(
 {
   // TODO load node
   m_ossia_process = std::make_shared<ossia::node_graph_process>();
+  this->node = m_ossia_process->node;
 }
 
 NodalExecutorBase::~NodalExecutorBase()
 {
 
 }
+
+
+struct AddNode
+{
+  std::weak_ptr<ossia::graph_node> fw_node;
+  std::weak_ptr<ossia::graph_node> process_node;
+  std::weak_ptr<ossia::graph_interface> g_weak;
+  ossia::pod_vector<std::size_t> propagated_outlets;
+
+  void operator()() const noexcept
+  {
+    auto fw = fw_node.lock();
+    if (!fw)
+      return;
+
+    auto oproc = process_node.lock();
+    if (!oproc)
+      return;
+
+    auto g = g_weak.lock();
+    if(!g)
+      return;
+
+
+    Execution::connectPropagated(oproc, fw, *g, propagated_outlets);
+  }
+};
 
 void NodalExecutorBase::unreg(
     const RegisteredNode& fx)
@@ -140,8 +172,26 @@ void NodalExecutorBase::reg(
     const RegisteredNode& fx,
     std::vector<Execution::ExecutionCommand>& vec)
 {
-  system().setup.register_node(
-              fx.comp->process().inlets(), fx.comp->process().outlets(), fx.comp->node, vec);
+  auto& proc = fx.comp->process();
+  system().setup.register_node(proc.inlets(), proc.outlets(), fx.comp->node, vec);
+
+  auto reconnectOutlets = Execution::ReconnectOutlets<NodalExecutorBase>{
+      *this,
+      this->node,
+      proc,
+      fx.comp->OSSIAProcessPtr(),
+      system().execGraph};
+
+  connect(& proc, &Process::ProcessModel::outletsChanged,
+          this, reconnectOutlets);
+  reconnectOutlets();
+
+  vec.emplace_back(AddNode{
+            this->node,
+            fx.comp->node,
+            system().execGraph,
+            Execution::propagatedOutlets(proc.outlets())});
+
 }
 
 

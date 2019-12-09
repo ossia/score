@@ -363,7 +363,7 @@ ProcessComponent* IntervalComponentBase::make(
       });
 
       // Audio propagation
-      auto reconnectOutlets = ReconnectOutlets<IntervalComponentBase>{*this, proc, oproc, system().execGraph};
+      auto reconnectOutlets = ReconnectOutlets<IntervalComponentBase>{*this, this->OSSIAInterval()->node, proc, oproc, system().execGraph};
 
       con(proc, &Process::ProcessModel::outletsChanged,
           this, reconnectOutlets);

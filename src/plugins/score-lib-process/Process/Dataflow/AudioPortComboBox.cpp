@@ -39,6 +39,7 @@ AudioPortComboBox::AudioPortComboBox(
   });
 
   m_child.push_back("None");
+  addItem("None");
   for(auto& child : node)
   {
     const QString& name = child.target<Device::AddressSettings>()->name;
