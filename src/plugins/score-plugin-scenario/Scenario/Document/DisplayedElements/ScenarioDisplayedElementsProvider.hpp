@@ -20,4 +20,19 @@ public:
       QGraphicsItem* view_parent,
       QObject* parent) const override;
 };
+
+class DefaultDisplayedElementsProvider final
+    : public DisplayedElementsProvider
+{
+  SCORE_CONCRETE("e998df19-1ce9-4f30-b0bb-1025425bd382")
+public:
+  bool matches(const IntervalModel& cst) const override;
+  DisplayedElementsContainer make(IntervalModel& cst) const override;
+
+  DisplayedElementsPresenterContainer make_presenters(
+      const IntervalModel& m,
+      const Process::Context& ctx,
+      QGraphicsItem* view_parent,
+      QObject* parent) const override;
+};
 }

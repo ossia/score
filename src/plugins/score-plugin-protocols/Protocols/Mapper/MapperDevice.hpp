@@ -26,6 +26,9 @@ class MapperProtocolFactory final : public Protocols::DefaultProtocolFactory
 {
   SCORE_CONCRETE("910e2d87-a087-430d-b725-c988fe2bea01")
 
+public:
+  ~MapperProtocolFactory();
+private:
   QString prettyName() const override;
 
   Device::DeviceInterface* makeDevice(

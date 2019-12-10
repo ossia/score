@@ -180,8 +180,10 @@ score_plugin_scenario::factories(
          ScenarioTriggerCommandFactory,
          BaseScenarioTriggerCommandFactory>,
       FW<DisplayedElementsProvider,
+         DefaultDisplayedElementsProvider,
          ScenarioDisplayedElementsProvider,
-         BaseScenarioDisplayedElementsProvider>,
+         BaseScenarioDisplayedElementsProvider
+      >,
       FW<score::DocumentDelegateFactory, Scenario::ScenarioDocumentFactory>,
       FW<score::SettingsDelegateFactory, Scenario::Settings::Factory>,
       FW<score::PanelDelegateFactory, Scenario::ObjectPanelDelegateFactory>,

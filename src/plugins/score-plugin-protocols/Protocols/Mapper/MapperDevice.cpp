@@ -608,6 +608,8 @@ private:
   Device::DeviceList* m_list{};
 };
 
+MapperProtocolFactory::~MapperProtocolFactory() {
+}
 QString MapperProtocolFactory::prettyName() const
 {
   return QObject::tr("Mapper");
