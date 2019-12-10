@@ -74,4 +74,59 @@ ScenarioDisplayedElementsProvider::make_presenters(
   }
   return {};
 }
+
+bool DefaultDisplayedElementsProvider::matches(const IntervalModel& cst) const
+{
+  return dynamic_cast<Scenario::ScenarioInterface*>(cst.parent());
+}
+
+DisplayedElementsContainer
+DefaultDisplayedElementsProvider::make(IntervalModel& cst) const
+{
+  if (auto parent_scenario
+      = dynamic_cast<Scenario::ScenarioInterface*>(cst.parent()))
+  {
+    const auto& sst = parent_scenario->state(cst.startState());
+    const auto& est = parent_scenario->state(cst.endState());
+    const auto& sev = parent_scenario->event(sst.eventId());
+    const auto& eev = parent_scenario->event(est.eventId());
+    return DisplayedElementsContainer{
+      cst,
+          sst,
+          est,
+          sev,
+          eev,
+          parent_scenario->timeSync(sev.timeSync()),
+          parent_scenario->timeSync(eev.timeSync())};
+  }
+
+  return {};
+}
+
+DisplayedElementsPresenterContainer
+DefaultDisplayedElementsProvider::make_presenters(
+    const IntervalModel& m,
+    const Process::Context& ctx,
+    QGraphicsItem* view_parent,
+    QObject* parent) const
+{
+  if (auto sm = dynamic_cast<Scenario::ScenarioInterface*>(m.parent()))
+  {
+    const auto& startState = sm->state(m.startState());
+    const auto& endState = sm->state(m.endState());
+    const auto& startEvent = sm->event(startState.eventId());
+    const auto& endEvent = sm->event(endState.eventId());
+    const auto& startNode = sm->timeSync(startEvent.timeSync());
+    const auto& endNode = sm->timeSync(endEvent.timeSync());
+    return DisplayedElementsPresenterContainer{
+      new FullViewIntervalPresenter{m, ctx, view_parent, parent},
+      new StatePresenter{startState, ctx, view_parent, parent},
+      new StatePresenter{endState, ctx, view_parent, parent},
+      new EventPresenter{startEvent, view_parent, parent},
+      new EventPresenter{endEvent, view_parent, parent},
+      new TimeSyncPresenter{startNode, view_parent, parent},
+      new TimeSyncPresenter{endNode, view_parent, parent}};
+  }
+  return {};
+}
 }

@@ -87,8 +87,38 @@ void Model::setDriver(Audio::AudioFactory::ConcreteKey val)
 
 SCORE_SETTINGS_PARAMETER_CPP(QString, Model, CardIn)
 SCORE_SETTINGS_PARAMETER_CPP(QString, Model, CardOut)
-SCORE_SETTINGS_PARAMETER_CPP(int, Model, BufferSize)
-SCORE_SETTINGS_PARAMETER_CPP(int, Model, Rate)
+
+int Model::getRate() const { return m_Rate; }
+
+void Model::setRate(int val)
+{
+  SCORE_ASSERT(val > 0);
+  if (val == m_Rate)
+    return;
+
+  m_Rate = val;
+
+  QSettings s;
+  s.setValue(Parameters::Rate.key, QVariant::fromValue(m_Rate));
+  RateChanged(val);
+}
+
+int Model::getBufferSize() const { return m_BufferSize; }
+
+void Model::setBufferSize(int val)
+{
+  SCORE_ASSERT(val > 0);
+  if (val == m_BufferSize)
+    return;
+
+  m_BufferSize = val;
+
+  QSettings s;
+  s.setValue(Parameters::BufferSize.key, QVariant::fromValue(m_BufferSize));
+  BufferSizeChanged(val);
+}
+
+
 SCORE_SETTINGS_PARAMETER_CPP(int, Model, DefaultIn)
 SCORE_SETTINGS_PARAMETER_CPP(int, Model, DefaultOut)
 SCORE_SETTINGS_PARAMETER_CPP(bool, Model, AutoStereo)
