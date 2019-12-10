@@ -73,7 +73,7 @@ public:
 
   IntervalModel& interval() const;
 
-  TimeSyncModel& startTimeSync() const final override;
+  TimeSyncModel& startTimeSync() const;
   TimeSyncModel& endTimeSync() const;
 
   EventModel& startEvent() const;

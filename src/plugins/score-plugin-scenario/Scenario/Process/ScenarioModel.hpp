@@ -120,7 +120,7 @@ public:
     return comments.at(cmtId);
   }
 
-  TimeSyncModel& startTimeSync() const final override
+  TimeSyncModel& startTimeSync() const
   {
     return timeSyncs.at(m_startTimeSyncId);
   }
