@@ -228,8 +228,9 @@ target_link_libraries(${PROJECT_NAME}
           ossia
 )
 
-setup_score_plugin(${PROJECT_NAME})
 if(TARGET Qt5::Qml)
     target_sources(${PROJECT_NAME} PRIVATE ${MAPPER_SRCS})
     target_link_libraries(${PROJECT_NAME} PRIVATE Qt5::Qml)
 endif()
+
+setup_score_plugin(${PROJECT_NAME})
