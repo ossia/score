@@ -52,7 +52,7 @@
 #include <wobjectimpl.h>
 score_plugin_protocols::score_plugin_protocols()
 {
-#if __has_include(<QQmlprotocols>)
+#if __has_include(<QQmlEngine>)
   qmlRegisterType<Protocols::Mapper>("Ossia", 1, 0, "Mapper");
 #endif
   qRegisterMetaType<std::vector<ossia::net::node_base*>>(
@@ -121,7 +121,7 @@ score_plugin_protocols::factories(
          >,
       FW<Library::LibraryInterface,
          Protocols::OSCLibraryHandler
-#if __has_include(<QQmlprotocols>)
+#if __has_include(<QQmlEngine>)
        , Protocols::QMLLibraryHandler
 #endif
       >>(ctx, key);
