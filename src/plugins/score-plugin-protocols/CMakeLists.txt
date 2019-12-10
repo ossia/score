@@ -3,7 +3,8 @@ project(score_plugin_protocols LANGUAGES CXX)
 score_common_setup()
 
 # Packages
-find_package(Qt5 5.3 REQUIRED COMPONENTS Core Widgets Network)
+find_package(Qt5 REQUIRED COMPONENTS Core Widgets Network)
+find_package(Qt5 OPTIONAL_COMPONENTS Qml)
 
 # Files & main target
 set(HDRS
@@ -170,7 +171,7 @@ set(MAPPER_SRCS
   "${CMAKE_CURRENT_SOURCE_DIR}/Protocols/Mapper/MapperDevice.cpp"
 )
 
-add_library(${PROJECT_NAME} ${SRCS} ${HDRS} ${MAPPER_SRCS})
+add_library(${PROJECT_NAME} ${SRCS} ${HDRS})
 
 if(OSSIA_PROTOCOL_OSC)
     target_sources(${PROJECT_NAME} PRIVATE ${OSC_HDRS} ${OSC_SRCS})
@@ -228,3 +229,7 @@ target_link_libraries(${PROJECT_NAME}
 )
 
 setup_score_plugin(${PROJECT_NAME})
+if(TARGET Qt5::Qml)
+    target_sources(${PROJECT_NAME} PRIVATE ${MAPPER_SRCS})
+    target_link_libraries(${PROJECT_NAME} PRIVATE Qt5::Qml)
+endif()

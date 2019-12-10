@@ -77,11 +77,11 @@ bool NodeRemover::remove(const Selection& s, const score::DocumentContext& ctx)
     auto first = s.begin()->data();
     if (auto model = qobject_cast<const Process::ProcessModel*>(first))
     {
-      if (auto parent = qobject_cast<Model*>(model->parent()->parent()))
+      if (auto parent = qobject_cast<Model*>(model->parent()))
       {
         auto f = [&ctx, parent, model] {
           CommandDispatcher<>{ctx.commandStack}.submit<RemoveNode>(
-                *parent, *static_cast<Process::ProcessModel*>(model->parent()));
+                *parent, *model);
         };
         score::invoke(f);
         return true;
