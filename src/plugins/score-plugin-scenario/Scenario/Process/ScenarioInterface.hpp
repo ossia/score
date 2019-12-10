@@ -37,8 +37,6 @@ public:
   virtual score::IndirectContainer<StateModel> getStates() const = 0;
   virtual score::IndirectContainer<EventModel> getEvents() const = 0;
   virtual score::IndirectContainer<TimeSyncModel> getTimeSyncs() const = 0;
-
-  virtual TimeSyncModel& startTimeSync() const = 0;
 };
 
 static const constexpr auto startId_val = 0;
