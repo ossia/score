@@ -27,6 +27,9 @@ struct SCORE_LIB_PROCESS_EXPORT Pixmaps
   const QPixmap unmuted;
   const QPixmap muted;
 
+  const QPixmap play;
+  const QPixmap stop;
+
   const QPixmap unroll;
   const QPixmap unroll_selected;
   const QPixmap roll;
