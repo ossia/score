@@ -92,7 +92,7 @@ void MessageTreeView::removeNodes()
   }
 
   auto cmd = new Command::RemoveMessageNodes(
-      model().stateModel, filterUniqueParents(nodes));
+      m_model, filterUniqueParents(nodes));
 
   CommandDispatcher<> dispatcher{
       score::IDocument::documentContext(m_model).commandStack};

@@ -75,11 +75,11 @@ AddMessagesToState::AddMessagesToState(
 
 void AddMessagesToState::undo(const score::DocumentContext& ctx) const
 {
-  auto& model = m_path.find(ctx).messages();
+  auto& sm = m_path.find(ctx);
+  auto& model = sm.messages();
   model = m_oldState;
 
   // Restore the state of the processes.
-  auto& sm = model.stateModel;
   for (const ProcessStateWrapper& prevProc : sm.previousProcesses())
   {
     prevProc.process().setMessages(

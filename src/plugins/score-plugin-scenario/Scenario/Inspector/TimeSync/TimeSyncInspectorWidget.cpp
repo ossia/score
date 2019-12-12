@@ -82,6 +82,10 @@ public:
                tr("1/16  "),
                tr("1/32  ")
              });
+    connect(this, qOverload<int>(&QComboBox::currentIndexChanged),
+            this, [=] (int idx) {
+      quantificationChanged(quantificationForIndex(idx));
+    });
   }
 
   double quantification() const noexcept
@@ -181,7 +185,8 @@ TimeSyncInspectorWidget::TimeSyncInspectorWidget(
   musicalSync->setQuantification(m_model.musicalSync());
 
   QObject::connect(
-      musicalSync, qOverload<double>(&QuantificationWidget::quantificationChanged), this, [&ctx, &object] (double v) {
+        musicalSync, &QuantificationWidget::quantificationChanged,
+        this, [&ctx, &object] (double v) {
     CommandDispatcher<>{ctx.commandStack}.submit<Scenario::Command::SetTimeSyncMusicalSync>(object, v);
       });
 

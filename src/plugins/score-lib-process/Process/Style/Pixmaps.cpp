@@ -24,6 +24,9 @@ Pixmaps::Pixmaps() noexcept
     , unmuted{score::get_pixmap(":/icons/process_on.png")}
     , muted{score::get_pixmap(":/icons/process_off.png")}
 
+    , play{score::get_pixmap(":/icons/play_off.png").scaled(15, 15)}
+    , stop{score::get_pixmap(":/icons/stop_off.png").scaled(15, 15)}
+
     , unroll{score::get_pixmap(":/icons/rack_button_off.png")}
     , unroll_selected{score::get_pixmap(":/icons/rack_button_off_selected.png")}
     , roll{score::get_pixmap(":/icons/rack_button_on.png")}
