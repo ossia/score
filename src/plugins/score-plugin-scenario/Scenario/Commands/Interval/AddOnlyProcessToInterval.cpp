@@ -49,6 +49,17 @@ AddOnlyProcessToInterval::AddOnlyProcessToInterval(
     , m_data{dat}
     , m_createdProcessId{std::move(processId)}
 {
+  // Find a good position for the process in the nodal graph
+  qreal min_y = 0;
+  for(const Process::ProcessModel& proc : cst.processes)
+  {
+    qreal bottom_y = proc.position().y() + proc.size().height() + 60;
+    if(bottom_y > min_y)
+      min_y = bottom_y;
+  }
+
+  min_y += 10;
+  m_graphpos = {10., min_y};
 }
 
 void AddOnlyProcessToInterval::undo(const score::DocumentContext& ctx) const
@@ -81,17 +92,18 @@ Process::ProcessModel& AddOnlyProcessToInterval::redo(
       &interval);
 
   AddProcess(interval, proc);
+  proc->setPosition(m_graphpos);
   return *proc;
 }
 
 void AddOnlyProcessToInterval::serializeImpl(DataStreamInput& s) const
 {
-  s << m_path << m_processName << m_data << m_createdProcessId;
+  s << m_path << m_processName << m_data << m_graphpos << m_createdProcessId;
 }
 
 void AddOnlyProcessToInterval::deserializeImpl(DataStreamOutput& s)
 {
-  s >> m_path >> m_processName >> m_data >> m_createdProcessId;
+  s >> m_path >> m_processName >> m_data >> m_graphpos >> m_createdProcessId;
 }
 
 LoadOnlyProcessInInterval::LoadOnlyProcessInInterval(
