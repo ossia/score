@@ -92,7 +92,8 @@ int Model::getRate() const { return m_Rate; }
 
 void Model::setRate(int val)
 {
-  SCORE_ASSERT(val > 0);
+  if (val <= 0)
+    val = 44100;
   if (val == m_Rate)
     return;
 
@@ -107,7 +108,8 @@ int Model::getBufferSize() const { return m_BufferSize; }
 
 void Model::setBufferSize(int val)
 {
-  SCORE_ASSERT(val > 0);
+  if (val <= 0)
+    val = 512;
   if (val == m_BufferSize)
     return;
 

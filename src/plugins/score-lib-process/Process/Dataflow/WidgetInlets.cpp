@@ -5,6 +5,7 @@ template <>
 SCORE_LIB_PROCESS_EXPORT void
 DataStreamReader::read<Process::FloatSlider>(const Process::FloatSlider& p)
 {
+  read((const Process::ControlInlet&) p);
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void
@@ -15,6 +16,7 @@ template <>
 SCORE_LIB_PROCESS_EXPORT void
 JSONObjectReader::read<Process::FloatSlider>(const Process::FloatSlider& p)
 {
+  read((const Process::ControlInlet&) p);
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void
@@ -26,6 +28,7 @@ template <>
 SCORE_LIB_PROCESS_EXPORT void DataStreamReader::read<Process::LogFloatSlider>(
     const Process::LogFloatSlider& p)
 {
+  read((const Process::ControlInlet&) p);
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void
@@ -36,6 +39,7 @@ template <>
 SCORE_LIB_PROCESS_EXPORT void JSONObjectReader::read<Process::LogFloatSlider>(
     const Process::LogFloatSlider& p)
 {
+  read((const Process::ControlInlet&) p);
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void
@@ -47,6 +51,7 @@ template <>
 SCORE_LIB_PROCESS_EXPORT void
 DataStreamReader::read<Process::IntSlider>(const Process::IntSlider& p)
 {
+  read((const Process::ControlInlet&) p);
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void
@@ -57,6 +62,7 @@ template <>
 SCORE_LIB_PROCESS_EXPORT void
 JSONObjectReader::read<Process::IntSlider>(const Process::IntSlider& p)
 {
+  read((const Process::ControlInlet&) p);
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void
@@ -68,6 +74,7 @@ template <>
 SCORE_LIB_PROCESS_EXPORT void
 DataStreamReader::read<Process::IntSpinBox>(const Process::IntSpinBox& p)
 {
+  read((const Process::ControlInlet&) p);
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void
@@ -78,6 +85,7 @@ template <>
 SCORE_LIB_PROCESS_EXPORT void
 JSONObjectReader::read<Process::IntSpinBox>(const Process::IntSpinBox& p)
 {
+  read((const Process::ControlInlet&) p);
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void
@@ -89,6 +97,7 @@ template <>
 SCORE_LIB_PROCESS_EXPORT void
 DataStreamReader::read<Process::Toggle>(const Process::Toggle& p)
 {
+  read((const Process::ControlInlet&) p);
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void
@@ -99,6 +108,7 @@ template <>
 SCORE_LIB_PROCESS_EXPORT void
 JSONObjectReader::read<Process::Toggle>(const Process::Toggle& p)
 {
+  read((const Process::ControlInlet&) p);
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void
@@ -110,6 +120,7 @@ template <>
 SCORE_LIB_PROCESS_EXPORT void
 DataStreamReader::read<Process::ChooserToggle>(const Process::ChooserToggle& p)
 {
+  read((const Process::ControlInlet&) p);
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void
@@ -120,6 +131,7 @@ template <>
 SCORE_LIB_PROCESS_EXPORT void
 JSONObjectReader::read<Process::ChooserToggle>(const Process::ChooserToggle& p)
 {
+  read((const Process::ControlInlet&) p);
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void
@@ -131,6 +143,7 @@ template <>
 SCORE_LIB_PROCESS_EXPORT void
 DataStreamReader::read<Process::LineEdit>(const Process::LineEdit& p)
 {
+  read((const Process::ControlInlet&) p);
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void
@@ -141,6 +154,7 @@ template <>
 SCORE_LIB_PROCESS_EXPORT void
 JSONObjectReader::read<Process::LineEdit>(const Process::LineEdit& p)
 {
+  read((const Process::ControlInlet&) p);
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void
@@ -152,6 +166,7 @@ template <>
 SCORE_LIB_PROCESS_EXPORT void
 DataStreamReader::read<Process::Enum>(const Process::Enum& p)
 {
+  read((const Process::ControlInlet&) p);
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void
@@ -162,6 +177,7 @@ template <>
 SCORE_LIB_PROCESS_EXPORT void
 JSONObjectReader::read<Process::Enum>(const Process::Enum& p)
 {
+  read((const Process::ControlInlet&) p);
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void
@@ -174,6 +190,7 @@ SCORE_LIB_PROCESS_EXPORT void
 DataStreamReader::read<Process::TimeSignatureChooser>(
     const Process::TimeSignatureChooser& p)
 {
+  read((const Process::ControlInlet&) p);
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void
@@ -186,6 +203,7 @@ SCORE_LIB_PROCESS_EXPORT void
 JSONObjectReader::read<Process::TimeSignatureChooser>(
     const Process::TimeSignatureChooser& p)
 {
+  read((const Process::ControlInlet&) p);
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void
@@ -198,6 +216,7 @@ template <>
 SCORE_LIB_PROCESS_EXPORT void
 DataStreamReader::read<Process::ComboBox>(const Process::ComboBox& p)
 {
+  read((const Process::ControlInlet&) p);
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void
@@ -208,6 +227,7 @@ template <>
 SCORE_LIB_PROCESS_EXPORT void
 JSONObjectReader::read<Process::ComboBox>(const Process::ComboBox& p)
 {
+  read((const Process::ControlInlet&) p);
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void
@@ -218,6 +238,7 @@ template <>
 SCORE_LIB_PROCESS_EXPORT void
 DataStreamReader::read<Process::Button>(const Process::Button& p)
 {
+  read((const Process::ControlInlet&) p);
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void
@@ -228,6 +249,7 @@ template <>
 SCORE_LIB_PROCESS_EXPORT void
 JSONObjectReader::read<Process::Button>(const Process::Button& p)
 {
+  read((const Process::ControlInlet&) p);
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void
