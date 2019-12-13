@@ -23,11 +23,12 @@ public:
   }
   ~ExecStateWrapper() override;
 
-public:
   QVariant read(const QString& address);
   W_SLOT(read);
   void write(const QString& address, const QVariant& value);
   W_SLOT(write);
+  void exec(const QString& code)
+  W_SIGNAL(exec, code);
 
 private:
   ossia::execution_state& devices;

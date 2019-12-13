@@ -1,4 +1,4 @@
-// This is an open source non-commercial project. Dear PVS-Studio, please check
+﻿// This is an open source non-commercial project. Dear PVS-Studio, please check
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "Component.hpp"
 
@@ -6,6 +6,8 @@
 
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <JS/JSProcessModel.hpp>
+#include <JS/ConsolePanel.hpp>
+
 #include <Scenario/Execution/score2OSSIA.hpp>
 #include <score/tools/Bind.hpp>
 
@@ -48,6 +50,7 @@ public:
   QList<std::pair<MidiInlet*, ossia::inlet_ptr>> m_midInlets;
   QList<std::pair<MidiOutlet*, ossia::outlet_ptr>> m_midOutlets;
   QObject* m_object{};
+  ExecStateWrapper* m_execFuncs{};
 
 private:
   void setupComponent(QQmlComponent& c);
@@ -156,14 +159,20 @@ Component::Component(
           proc->setScript(std::move(str));
         });
       });
+
+  connect(node->m_execFuncs, &ExecStateWrapper::exec,
+      this, [=] (const QString& code) {
+    auto& console = system().doc.app.panel<JS::PanelDelegate>();
+    console.evaluate(code);
+  }, Qt::QueuedConnection);
 }
 
 Component::~Component() {}
 
 js_node::js_node(ossia::execution_state& st)
 {
-  m_engine.rootContext()->setContextProperty(
-      "Device", new ExecStateWrapper{st, &m_engine});
+  m_execFuncs = new ExecStateWrapper{st, &m_engine};
+  m_engine.rootContext()->setContextProperty("Device", m_execFuncs);
 }
 
 void js_node::setupComponent(QQmlComponent& c)
