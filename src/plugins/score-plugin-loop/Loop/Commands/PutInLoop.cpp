@@ -26,7 +26,6 @@ void EncapsulateInLoop(
   {
     // Just move all the processes in the pattern
     const IntervalModel& source_itv = *cat.selectedIntervals.front();
-    auto itv_json = score::marshall<JSONObject>(source_itv);
 
     auto& loop = disp.createProcessInSlot<Loop::ProcessModel>(source_itv, {});
     for (auto proc : shallow_copy(source_itv.processes))
@@ -36,6 +35,8 @@ void EncapsulateInLoop(
         disp.moveProcess(source_itv, loop.intervals()[0], proc->id());
       }
     }
+    // TODO copy slots so that the processes are in the correct order
+
     disp.commit();
   }
   else

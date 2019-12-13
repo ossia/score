@@ -10,7 +10,7 @@
 #include <Scenario/Application/ScenarioApplicationPlugin.hpp>
 #include <Scenario/Commands/CommandAPI.hpp>
 #include <Scenario/Process/Algorithms/Accessors.hpp>
-
+#include <score/tools/MapCopy.hpp>
 #include <score/actions/ActionManager.hpp>
 #include <score/application/GUIApplicationContext.hpp>
 #include <score/plugins/panel/PanelDelegate.hpp>
@@ -31,6 +31,7 @@
 #include <QScrollBar>
 
 #include <Engine/ApplicationPlugin.hpp>
+#include <Loop/LoopProcessModel.hpp>
 #include <wobjectimpl.h>
 namespace JS
 {
@@ -105,6 +106,27 @@ public:
     m.commit();
   }
   W_SLOT(automate)
+
+  void putInLoop(QObject* interval)
+  {
+    auto itv = qobject_cast<Scenario::IntervalModel*>(interval);
+    if (!itv)
+      return;
+    Scenario::Command::Macro m{new ScriptMacro, ctx()};
+
+    auto& loop = m.createProcessInSlot<Loop::ProcessModel>(*itv, {});
+    for (auto proc : shallow_copy(itv->processes))
+    {
+      if (proc != &loop)
+      {
+        m.moveProcess(*itv, loop.intervals()[0], proc->id());
+      }
+    }
+    // TODO copy slots so that the processes are in the correct order
+
+    m.commit();
+  }
+  W_SLOT(putInLoop)
 
   void undo() { ctx().document.commandStack().undo(); }
   W_SLOT(undo)
@@ -191,24 +213,32 @@ public:
     m_lineEdit = new QLineEdit{m_widget};
     lay->addWidget(m_lineEdit, 0);
 
+    // TODO ctrl-space !
     connect(m_lineEdit, &QLineEdit::editingFinished, this, [=] {
       auto txt = m_lineEdit->text();
       if (!txt.isEmpty())
       {
-        m_edit->appendPlainText(">> " + txt);
-        auto res = m_engine.evaluate(txt);
-        if (res.isError())
-        {
-          m_edit->appendPlainText("ERROR: " + res.toString() + "\n");
-        }
-        else
-        {
-          m_edit->appendPlainText(res.toString() + "\n");
-        }
+        evaluate(txt);
         m_lineEdit->clear();
         m_edit->verticalScrollBar()->setValue(m_edit->verticalScrollBar()->maximum());
       }
     });
+  }
+
+  QJSEngine& engine() noexcept { return m_engine; }
+
+  void evaluate(const QString& txt)
+  {
+    m_edit->appendPlainText(">> " + txt);
+    auto res = m_engine.evaluate(txt);
+    if (res.isError())
+    {
+      m_edit->appendPlainText("ERROR: " + res.toString() + "\n");
+    }
+    else
+    {
+      m_edit->appendPlainText(res.toString() + "\n");
+    }
   }
 
 private:

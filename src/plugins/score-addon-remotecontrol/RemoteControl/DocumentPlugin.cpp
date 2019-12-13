@@ -20,6 +20,7 @@
 #include <RemoteControl/DocumentPlugin.hpp>
 #include <RemoteControl/Scenario/Scenario.hpp>
 #include <RemoteControl/Settings/Model.hpp>
+#include <JS/ConsolePanel.hpp>
 namespace RemoteControl
 {
 DocumentPlugin::DocumentPlugin(
@@ -136,6 +137,15 @@ Receiver::Receiver(const score::DocumentContext& doc, quint16 port)
       std::make_pair("Stop", [&](const QJsonObject&, const WSClient&) {
         doc.app.actions.action<Actions::Stop>().action()->trigger();
       }));
+  m_answers.insert(
+        std::make_pair("Console", [&](const QJsonObject& obj, const WSClient&) {
+    auto it = obj.find("Code");
+    if (it == obj.end())
+      return;
+    const auto& str = it->toString();
+    auto& console = doc.app.panel<JS::PanelDelegate>();
+    console.engine().evaluate(str);
+  }));
   m_answers.insert(std::make_pair(
       "EnableListening", [&](const QJsonObject& obj, const WSClient& c) {
         auto it = obj.find(score::StringConstant().Address);
