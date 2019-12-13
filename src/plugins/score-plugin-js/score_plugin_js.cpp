@@ -23,6 +23,9 @@
 #include <score_plugin_js_commands_files.hpp>
 
 #include <QFileInfo>
+
+W_OBJECT_IMPL(JS::EditJsContext)
+
 namespace JS
 {
 class LibraryHandler final : public Library::LibraryInterface

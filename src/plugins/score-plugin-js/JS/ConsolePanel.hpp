@@ -194,8 +194,6 @@ public:
   W_SLOT(stop)
 };
 
-W_OBJECT_IMPL(EditJsContext)
-
 class PanelDelegate final : public QObject, public score::PanelDelegate
 {
 public:

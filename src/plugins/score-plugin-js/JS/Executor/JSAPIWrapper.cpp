@@ -131,4 +131,5 @@ void ExecStateWrapper::write(const QString& address, const QVariant& value)
         }, ossia::do_nothing_for_nodes{});
   }
 }
+
 }
