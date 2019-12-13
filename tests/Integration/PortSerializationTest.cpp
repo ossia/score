@@ -1,8 +1,10 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 
+#include <Process/Dataflow/ControlWidgets.hpp>
 #include <Process/Dataflow/Port.hpp>
 #include <Process/Dataflow/PortFactory.hpp>
+#include <Process/Dataflow/WidgetInlets.hpp>
 #include <State/Message.hpp>
 #include <State/Expression.hpp>
 #include <Dataflow/PortItem.hpp>
@@ -30,9 +32,43 @@ public:
     pl.insert(std::make_unique<Dataflow::OutletFactory>());
     pl.insert(std::make_unique<Dataflow::AudioOutletFactory>());
     pl.insert(std::make_unique<Dataflow::ControlOutletFactory>());
+    pl.insert(std::make_unique<Dataflow::WidgetInletFactory<Process::LineEdit>>());
   }
 
 private Q_SLOTS:
+
+  void test_lineedit_json_upcast()
+  {
+    Process::LineEdit port{Id<Process::Port>{1234}, nullptr};
+    port.setAddress(*State::parseAddressAccessor("foo:/bar@[1]"));
+    port.setValue("foo bar");
+    {
+      auto json = marshall<JSONObject>((Process::Inlet&)port);
+      qDebug() << json;
+      auto new_port = deserialize_interface(pl, JSONObject::Deserializer{json}, nullptr);
+      auto ptr = dynamic_cast<Process::LineEdit*>(new_port);
+      QVERIFY(ptr);
+      QVERIFY(ptr->id() == port.id());
+      QVERIFY(ptr->address() == port.address());
+      QVERIFY(ptr->value() == port.value());
+    }
+  }
+  void test_lineedit_json_no_upcast()
+  {
+      Process::LineEdit port{Id<Process::Port>{1234}, nullptr};
+      port.setAddress(*State::parseAddressAccessor("foo:/bar@[1]"));
+      port.setValue("foo bar");
+      {
+          auto json = marshall<JSONObject>(port);
+          auto new_port = deserialize_interface(pl, JSONObject::Deserializer{json}, nullptr);
+          auto ptr = dynamic_cast<Process::LineEdit*>(new_port);
+          QVERIFY(ptr);
+          QVERIFY(ptr->id() == port.id());
+          QVERIFY(ptr->address() == port.address());
+          QVERIFY(ptr->value() == port.value());
+      }
+  }
+
   void test_controlinlet_json_upcast()
   {
     Process::ControlInlet port{Id<Process::Port>{1234}, nullptr};
