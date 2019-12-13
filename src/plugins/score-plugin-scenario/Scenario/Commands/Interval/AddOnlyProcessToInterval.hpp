@@ -67,6 +67,7 @@ private:
   Path<IntervalModel> m_path;
   UuidKey<Process::ProcessModel> m_processName;
   QString m_data;
+  QPointF m_graphpos;
 
   Id<Process::ProcessModel> m_createdProcessId{};
 };
