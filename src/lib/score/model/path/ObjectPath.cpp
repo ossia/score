@@ -26,6 +26,7 @@
 
 namespace std
 {
+
 SCORE_LIB_BASE_EXPORT std::size_t hash<ObjectIdentifier>::
 operator()(const ObjectIdentifier& path) const
 {
@@ -46,6 +47,49 @@ operator()(const ObjectPath& path) const
   return seed;
 }
 }
+
+
+template <typename Container>
+typename Container::value_type
+findById_weak_safe(const Container& c, int32_t id)
+{
+  auto it = std::find_if(
+      std::begin(c), std::end(c), [&id](typename Container::value_type model) {
+        return model->id_val() == id;
+      });
+
+  if (it != std::end(c))
+  {
+    return *it;
+  }
+
+  SCORE_BREAKPOINT;
+  throw std::runtime_error(
+      QString("findById : id %1 not found in vector of %2")
+          .arg(id)
+          .arg(typeid(c).name())
+          .toUtf8()
+          .constData());
+}
+
+template <typename Container>
+typename Container::value_type
+findById_weak_unsafe(const Container& c, int32_t id) noexcept
+{
+  auto it = std::find_if(
+      std::begin(c), std::end(c), [&id](typename Container::value_type model) {
+        return model->id_val() == id;
+      });
+
+  if (it != std::end(c))
+  {
+    return *it;
+  }
+
+  return nullptr;
+}
+
+
 
 ObjectPath ObjectPath::pathBetweenObjects(
     const QObject* const parent_obj,
@@ -123,10 +167,36 @@ QObject* ObjectPath::find_impl(const score::DocumentContext& ctx) const
 
   for (const auto& currentObjIdentifier : m_objectIdentifiers)
   {
-    auto found_children = obj->findChildren<IdentifiedObjectAbstract*>(
-        currentObjIdentifier.objectName(), Qt::FindDirectChildrenOnly);
+    const QObjectList &children = obj->children();
+    QObject* found = nullptr;
 
-    obj = findById_weak_safe(found_children, currentObjIdentifier.id());
+    for (int i = 0; i < children.size(); ++i)
+    {
+      obj = children.at(i);
+      if (obj->objectName() == currentObjIdentifier.objectName())
+      {
+        auto itf = safe_cast<IdentifiedObjectAbstract*>(obj);
+        if(itf->id_val() == currentObjIdentifier.id())
+        {
+          found = itf;
+          break;
+        }
+      }
+    }
+
+    if(found)
+    {
+      obj = found;
+    }
+    else
+    {
+      SCORE_BREAKPOINT;
+      throw std::runtime_error(
+          QString("findById : id %1 not found")
+              .arg(currentObjIdentifier.id())
+              .toUtf8()
+              .constData());
+    }
   }
 
   return obj;
@@ -140,13 +210,31 @@ QObject* ObjectPath::find_impl_unsafe(const score::DocumentContext& ctx) const
 
   for (const auto& currentObjIdentifier : m_objectIdentifiers)
   {
-    auto found_children = obj->findChildren<IdentifiedObjectAbstract*>(
-        currentObjIdentifier.objectName(), Qt::FindDirectChildrenOnly);
+    const QObjectList &children = obj->children();
+    QObject* found = nullptr;
 
-    obj = findById_weak_unsafe(found_children, currentObjIdentifier.id());
+    for (int i = 0; i < children.size(); ++i)
+    {
+      obj = children.at(i);
+      if (obj->objectName() == currentObjIdentifier.objectName())
+      {
+        auto itf = safe_cast<IdentifiedObjectAbstract*>(obj);
+        if(itf->id_val() == currentObjIdentifier.id())
+        {
+          found = itf;
+          break;
+        }
+      }
+    }
 
-    if (!obj)
+    if(found)
+    {
+      obj = found;
+    }
+    else
+    {
       return nullptr;
+    }
   }
 
   return obj;
