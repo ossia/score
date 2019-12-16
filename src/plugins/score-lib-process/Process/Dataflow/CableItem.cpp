@@ -45,7 +45,18 @@ CableItem::CableItem(
   plug.cables().insert({&c, this});
 
   con(c.selection, &Selectable::changed, this, [=](bool b) {
-    setZValue(b ? 999999 : -1);
+    if(b)
+    {
+      setZValue(999999);
+      m_p1->setHighlight(true);
+      m_p2->setHighlight(true);
+    }
+    else
+    {
+      setZValue(-1);
+      m_p1->setHighlight(false);
+      m_p2->setHighlight(false);
+    }
     update();
   });
 
@@ -90,22 +101,25 @@ CableItem::~CableItem()
     it.value() = nullptr;
 }
 
+static const QPainterPathStroker& cableStroker() {
+  static const QPainterPathStroker cable_stroker{[] {
+      QPen pen;
+      pen.setCapStyle(Qt::PenCapStyle::RoundCap);
+      pen.setJoinStyle(Qt::PenJoinStyle::RoundJoin);
+      pen.setWidthF(7.);
+      return pen;
+                                                 }()};
+  return cable_stroker;
+}
 QRectF CableItem::boundingRect() const
 {
-  static const QPainterPathStroker cable_stroker{[] {
-    QPen pen;
-    pen.setCapStyle(Qt::PenCapStyle::RoundCap);
-    pen.setJoinStyle(Qt::PenJoinStyle::RoundJoin);
-    pen.setWidthF(3.);
-    return pen;
-  }()};
-
-  return cable_stroker.createStroke(m_path).boundingRect();
+  return cableStroker().createStroke(m_path).boundingRect();
 }
 
 bool CableItem::contains(const QPointF& point) const
 {
-  return m_path.contains(point);
+  return cableStroker().createStroke(m_path).contains(point);
+  //return m_path.contains(point);
 }
 
 void CableItem::paint(
@@ -245,28 +259,12 @@ void CableItem::setTarget(PortItem* p)
 
 QPainterPath CableItem::shape() const
 {
-  static const QPainterPathStroker cable_stroker{[] {
-    QPen pen;
-    pen.setCapStyle(Qt::PenCapStyle::RoundCap);
-    pen.setJoinStyle(Qt::PenJoinStyle::RoundJoin);
-    pen.setWidthF(3.);
-    return pen;
-  }()};
-
-  return cable_stroker.createStroke(m_path);
+  return cableStroker().createStroke(m_path);
 }
 
 QPainterPath CableItem::opaqueArea() const
 {
-  static const QPainterPathStroker cable_stroker{[] {
-    QPen pen;
-    pen.setCapStyle(Qt::PenCapStyle::RoundCap);
-    pen.setJoinStyle(Qt::PenJoinStyle::RoundJoin);
-    pen.setWidthF(3.);
-    return pen;
-  }()};
-
-  return cable_stroker.createStroke(m_path);
+  return cableStroker().createStroke(m_path);
 }
 
 void CableItem::mousePressEvent(QGraphicsSceneMouseEvent* event)

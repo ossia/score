@@ -204,7 +204,7 @@ bool AutomatablePortItem::on_createAutomation(
 void AutomatablePortItem::dropEvent(QGraphicsSceneDragDropEvent* event)
 {
   prepareGeometryChange();
-  m_diam = 6.;
+  m_diam = 8.;
   update();
   auto& mime = *event->mimeData();
 

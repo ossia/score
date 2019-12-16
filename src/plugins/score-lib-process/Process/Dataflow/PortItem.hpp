@@ -31,6 +31,7 @@ class PortItem;
 namespace Dataflow
 {
 class CableItem;
+class DragMoveFilter;
 class SCORE_LIB_PROCESS_EXPORT PortItem : public QObject, public QGraphicsItem
 {
   W_OBJECT(PortItem)
@@ -49,7 +50,13 @@ public:
   void setPortVisible(bool b);
   void resetPortVisible();
 
-public:
+  void setHighlight(bool b);
+
+  using QGraphicsItem::dropEvent;
+  int type() const override
+  {
+    return QGraphicsItem::UserType + 700;
+  }
   void createCable(PortItem* src, PortItem* snk)
       E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, createCable, src, snk)
   void contextMenuRequested(QPointF scenepos, QPoint pos)
@@ -78,11 +85,15 @@ protected:
   const Process::Context& m_context;
   std::vector<QPointer<CableItem>> cables;
   Process::Port& m_port;
-  double m_diam = 6.;
+public:
+  double m_diam = 8.;
+private:
   bool m_visible{true};
   bool m_inlet{true};
+  bool m_highlight{true};
 
   friend class Dataflow::CableItem;
+
 };
 
 }
