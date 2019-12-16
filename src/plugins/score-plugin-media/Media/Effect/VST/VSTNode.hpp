@@ -61,7 +61,7 @@ public:
 
   auto& prepareInput(std::size_t samples)
   {
-    auto& ip = m_inlets[0]->data.template target<ossia::audio_port>()->samples;
+    auto& ip = m_inlets[0]->template target<ossia::audio_port>()->samples;
     if (ip.size() < 2)
       ip.resize(2);
     if (ip[0].size() < samples)
@@ -78,7 +78,7 @@ public:
   auto& prepareOutput(std::size_t samples)
   {
     auto& op
-        = m_outlets[0]->data.template target<ossia::audio_port>()->samples;
+        = m_outlets[0]->template target<ossia::audio_port>()->samples;
     op.resize(2);
     for (auto& chan : op)
       chan.resize(samples);
@@ -117,17 +117,17 @@ public:
   {
     // Midi or audio input
     if constexpr (IsSynth)
-      m_inlets.push_back(ossia::make_inlet<ossia::midi_port>());
+      m_inlets.push_back(new ossia::midi_inlet);
     else
-      m_inlets.push_back(ossia::make_inlet<ossia::audio_port>());
+      m_inlets.push_back(new ossia::audio_inlet);
 
     // tempo
-    m_inlets.push_back(ossia::make_inlet<ossia::value_port>());
+    m_inlets.push_back(new ossia::value_inlet);
     // time signature
-    m_inlets.push_back(ossia::make_inlet<ossia::value_port>());
+    m_inlets.push_back(new ossia::value_inlet);
 
     // audio output
-    m_outlets.push_back(ossia::make_outlet<ossia::audio_port>());
+    m_outlets.push_back(new ossia::audio_outlet);
 
     dispatch(effSetSampleRate, 0, sampleRate, nullptr, sampleRate);
     dispatch(effSetBlockSize, 0, 4096, nullptr, 4096); // Generalize what's in pd
@@ -202,7 +202,7 @@ public:
   void dispatchMidi(Fun&& f)
   {
     // copy midi data
-    auto& ip = m_inlets[0]->data.template target<ossia::midi_port>()->messages;
+    auto& ip = static_cast<ossia::midi_inlet*>(m_inlets[0])->data.messages;
     const auto n_mess = ip.size();
     if (n_mess == 0)
     {
@@ -299,9 +299,7 @@ public:
         {
           dispatchMidi([=] {
             float* dummy = (float*)alloca(sizeof(float) * samples);
-            auto& op = m_outlets[0]
-                           ->data.template target<ossia::audio_port>()
-                           ->samples;
+            auto& op = m_outlets[0]->template cast<ossia::audio_port>().samples;
             for (auto& vec : float_v)
               vec.resize(samples);
 
@@ -325,12 +323,8 @@ public:
         {
           // copy audio data
 
-          auto& ip = m_inlets[0]
-                         ->data.template target<ossia::audio_port>()
-                         ->samples;
-          auto& op = m_outlets[0]
-                         ->data.template target<ossia::audio_port>()
-                         ->samples;
+          auto& ip = m_inlets[0]->template cast<ossia::audio_port>().samples;
+          auto& op = m_outlets[0]->template cast<ossia::audio_port>().samples;
           if (ip.size() < 2)
             ip.resize(2);
 

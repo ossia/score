@@ -7,6 +7,25 @@
 
 namespace Process
 {
+template<typename Fun>
+static QPixmap drawPath(Fun fun)
+{
+  double dpr = qApp->devicePixelRatio();
+  QImage img(10 * dpr, 10 * dpr, QImage::Format_ARGB32_Premultiplied);
+  img.fill(Qt::transparent);
+
+  QPainter p(&img);
+  QPainterPath path;
+  fun(path, dpr);
+  path.closeSubpath();
+
+  p.setRenderHint(QPainter::Antialiasing, true);
+  p.fillPath(path, score::Skin::instance().Gray);
+  p.end();
+
+  img.setDevicePixelRatio(dpr);
+  return QPixmap::fromImage(img);
+}
 
 Pixmaps::Pixmaps() noexcept
     : show_ui_off{score::get_pixmap(":/icons/undock_on.png")}
@@ -34,25 +53,19 @@ Pixmaps::Pixmaps() noexcept
 
     , add{score::get_pixmap(":/icons/process_add_off.png")}
 
-    , metricHandle{[] {
-           double dpr = qApp->devicePixelRatio();
-           QImage img(10 * dpr, 10 * dpr, QImage::Format_ARGB32_Premultiplied);
-           img.fill(Qt::transparent);
-
-           QPainter p(&img);
-           QPainterPath path;
-           path.lineTo(10 * dpr, 0);
-           path.lineTo(0, 10 * dpr);
-           path.lineTo(0, 0);
-           path.closeSubpath();
-
-           p.setRenderHint(QPainter::Antialiasing, true);
-           p.fillPath(path, score::Skin::instance().Gray);
-           p.end();
-
-           img.setDevicePixelRatio(dpr);
-           return QPixmap::fromImage(img);
-      }()}
+    , metricHandle{drawPath([] (QPainterPath& path, double dpr) {
+                   path.lineTo(10 * dpr, 0);
+                   path.lineTo(0, 10 * dpr);
+                   path.lineTo(0, 0);
+                 })}
+    , portHandleClosed{drawPath([] (QPainterPath& path, double dpr) {
+                       path.lineTo(10 * dpr, 5 * dpr);
+                       path.lineTo(0, 10 * dpr);
+                     })}
+    , portHandleOpen{drawPath([] (QPainterPath& path, double dpr) {
+                     path.lineTo(5 * dpr, 10 * dpr);
+                     path.lineTo(10 * dpr, 0);
+                   })}
 {
 
 }

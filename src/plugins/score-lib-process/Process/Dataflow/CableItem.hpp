@@ -29,7 +29,7 @@ class SCORE_LIB_PROCESS_EXPORT CableItem final : public QObject,
 public:
   static bool g_cables_enabled;
   CableItem(
-      Process::Cable& c,
+      const Process::Cable& c,
       const Process::Context& ctx,
       QGraphicsItem* parent = nullptr);
   ~CableItem() override;
@@ -62,7 +62,7 @@ private:
   void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override;
   void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override;
 
-  Process::Cable& m_cable;
+  const Process::Cable& m_cable;
   const Process::Context& m_context;
   QPointer<PortItem> m_p1, m_p2;
   QPainterPath m_path;

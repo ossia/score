@@ -36,7 +36,7 @@ MiniLayer::~MiniLayer() = default;
 LayerView::LayerView(QGraphicsItem* parent) : QGraphicsItem{parent}
 {
   this->setCacheMode(QGraphicsItem::NoCache);
-  this->setFlag(ItemClipsChildrenToShape, true);
+  this->setFlag(ItemClipsChildrenToShape, false);
   this->setAcceptHoverEvents(true);
   this->setAcceptDrops(true);
 }

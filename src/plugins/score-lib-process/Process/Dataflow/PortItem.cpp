@@ -42,7 +42,7 @@ std::array<QPixmap, 3> LargeEllipsesInLight;
 std::array<QPixmap, 3> SmallEllipsesOutLight;
 std::array<QPixmap, 3> LargeEllipsesOutLight;
 
-static const QPixmap& portImage(Process::PortType t, bool inlet, bool small, bool light) noexcept
+const QPixmap& PortItem::portImage(Process::PortType t, bool inlet, bool small, bool light) noexcept
 {
   int n;
   switch(t) {
@@ -174,14 +174,14 @@ static bool initEllipses(Process::Style& skin)
 
 PortItem* PortItem::clickedPort;
 PortItem::PortItem(
-    Process::Port& p,
+    const Process::Port& p,
     const Process::Context& ctx,
     QGraphicsItem* parent)
   : QGraphicsItem{parent}
   , m_context{ctx}
   , m_port{p}
   , m_diam{8.}
-  , m_inlet{bool(qobject_cast<Process::Inlet*>(&p))}
+  , m_inlet{bool(qobject_cast<const Process::Inlet*>(&p))}
   , m_highlight{false}
 {
   [[maybe_unused]]

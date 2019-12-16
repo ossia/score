@@ -23,13 +23,13 @@ namespace Dataflow
 {
 bool CableItem::g_cables_enabled = true;
 
-static bool canCreateCable(Process::Cable& c, Process::DataflowManager& plug)
+static bool canCreateCable(const Process::Cable& c, Process::DataflowManager& plug)
 {
   auto it = plug.cables().find(&c);
   return it == plug.cables().end() || it->second == nullptr;
 }
 CableItem::CableItem(
-    Process::Cable& c,
+    const Process::Cable& c,
     const Process::Context& ctx,
     QGraphicsItem* parent)
     : QGraphicsItem{parent}

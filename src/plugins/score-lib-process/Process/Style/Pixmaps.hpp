@@ -39,6 +39,9 @@ struct SCORE_LIB_PROCESS_EXPORT Pixmaps
 
   const QPixmap metricHandle;
 
+  const QPixmap portHandleClosed;
+  const QPixmap portHandleOpen;
+
 private:
   Pixmaps() noexcept;
   ~Pixmaps();

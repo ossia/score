@@ -153,7 +153,7 @@ void DefaultHeaderDelegate::updatePorts()
   qDeleteAll(m_inPorts);
   m_inPorts.clear();
 
-  qreal x = m_ui ? 10. : 0.;
+  m_portEndX = m_ui ? 10. : 0.;
   const auto& inlets = m_model.inlets();
 
   auto& portFactory
@@ -165,9 +165,9 @@ void DefaultHeaderDelegate::updatePorts()
     if(auto fact = portFactory.get(port->concreteKey()))
     {
       auto item = fact->makeItem(*port, m_context, this, this);
-      item->setPos(x, portY());
+      item->setPos(m_portEndX, portY());
       m_inPorts.push_back(item);
-      x += 10.;
+      m_portEndX += ((QGraphicsItem*)item)->boundingRect().width() - 2.;
     }
     else
     {
@@ -192,7 +192,7 @@ void DefaultHeaderDelegate::paint(
     }
     else
     {
-      double startText = start + m_inPorts.size() * 10.;
+      double startText = start + m_portEndX;
       painter->drawImage(QPointF{startText, SCORE_YPOS(2., -1.)}, m_line);
     }
 
@@ -254,7 +254,7 @@ void DefaultFooterDelegate::updatePorts()
   auto& portFactory
       = score::AppContext().interfaces<Process::PortFactoryList>();
 
-  qreal x = 0.;
+  m_portEndX = 0.;
   for (Process::Outlet* port : m_model.outlets())
   {
     if (port->hidden)
@@ -262,9 +262,9 @@ void DefaultFooterDelegate::updatePorts()
     if(auto fact = portFactory.get(port->concreteKey()))
     {
       auto item = fact->makeItem(*port, m_context, this, this);
-      item->setPos(x, SCORE_YPOS(0., 0.));
+      item->setPos(m_portEndX, SCORE_YPOS(0., 0.));
       m_outPorts.push_back(item);
-      x += 10.;
+      m_portEndX += ((QGraphicsItem*)item)->boundingRect().width() - 2.;
     }
     else
     {

@@ -65,7 +65,7 @@ public:
 
         if(hi_dur > 0)
         {
-          bang_out.data.target<value_port>()->write_value(ossia::impulse{}, hi_start_sample);
+          bang_out.target<value_port>()->write_value(ossia::impulse{}, hi_start_sample);
           in_flight.push_back({&hi_sound, 0, hi_dur, hi_start_sample, 0, 0});
         }
       },
@@ -78,14 +78,14 @@ public:
 
         if(lo_dur > 0)
         {
-          bang_out.data.target<value_port>()->write_value(ossia::impulse{}, lo_start_sample);
+          bang_out.target<value_port>()->write_value(ossia::impulse{}, lo_start_sample);
           in_flight.push_back({&lo_sound, 0, lo_dur, lo_start_sample, 0, 0});
         }
       }
       );
     }
 
-    auto& ap = audio_out.data.target<audio_port>()->samples;
+    auto& ap = audio_out.target<audio_port>()->samples;
 
     auto render_sound = [&ap, &tk, &st] (
         const int64_t fade_total,

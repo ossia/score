@@ -27,11 +27,11 @@ void VSTEffectComponent::setupNode(Node_T& node)
   for (std::size_t i = 3; i < inlets.size(); i++)
   {
     auto ctrl = safe_cast<Media::VST::VSTControlInlet*>(inlets[i]);
-    auto inlet = ossia::make_inlet<ossia::value_port>();
+    auto inlet = new ossia::value_inlet;
 
     node->controls.push_back({ ctrl->fxNum,
                   ctrl->value(),
-                  inlet->data.target<ossia::value_port>() });
+                  inlet->target<ossia::value_port>() });
     node->inputs().push_back(std::move(inlet));
   }
 
@@ -47,10 +47,10 @@ void VSTEffectComponent::setupNode(Node_T& node)
       if (auto n = wp.lock())
       {
         Execution::SetupContext& setup = system().context().setup;
-        auto inlet = ossia::make_inlet<ossia::value_port>();
+        auto inlet = new ossia::value_inlet;
         in_exec([n, inlet, val = ctrl->value(), num = ctrl->fxNum]{
           n->controls.push_back(
-            {num, val, inlet->data.target<ossia::value_port>()});
+            {num, val, inlet->target<ossia::value_port>()});
           n->inputs().push_back(inlet);
           });
 
@@ -73,10 +73,10 @@ void VSTEffectComponent::setupNode(Node_T& node)
               n->controls, [&](auto& c) { return c.idx == num; });
         if (it != n->controls.end())
         {
-          auto port = it->port;
+          ossia::value_port* port = it->port;
           n->controls.erase(it);
           auto port_it = ossia::find_if(n->inputs(), [&](auto& p) {
-            return p->data.target() == port;
+            return p->template target<ossia::value_port>() == port;
           });
           if (port_it != n->inputs().end())
           {

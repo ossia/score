@@ -13,6 +13,7 @@
 #include <Process/Dataflow/Port.hpp>
 #include <Process/Dataflow/PortListWidget.hpp>
 #include <Process/Style/ScenarioStyle.hpp>
+#include <Process/Style/Pixmaps.hpp>
 #include <Scenario/Commands/Interval/AddLayerInNewSlot.hpp>
 #include <Scenario/Commands/Interval/AddOnlyProcessToInterval.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
@@ -33,6 +34,7 @@
 #include <ossia/editor/state/destination_qualifiers.hpp>
 #include <ossia/network/domain/domain.hpp>
 #include <QDialog>
+#include <QPainter>
 #include <QDialogButtonBox>
 #include <QGraphicsScene>
 #include <QGraphicsSceneDragDropEvent>
@@ -96,8 +98,8 @@ void onCreateCable(
   if (port1.type != port2.type)
     return;
 
-  auto o1 = qobject_cast<Process::Outlet*>(&port1);
-  auto i2 = qobject_cast<Process::Inlet*>(&port2);
+  auto o1 = qobject_cast<const Process::Outlet*>(&port1);
+  auto i2 = qobject_cast<const Process::Inlet*>(&port2);
   if (o1 && i2)
   {
     cd.source = port1;
@@ -105,8 +107,8 @@ void onCreateCable(
   }
   else
   {
-    auto o2 = qobject_cast<Process::Outlet*>(&port2);
-    auto i1 = qobject_cast<Process::Inlet*>(&port1);
+    auto o2 = qobject_cast<const Process::Outlet*>(&port2);
+    auto i1 = qobject_cast<const Process::Inlet*>(&port1);
     if (o2 && i1)
     {
       cd.source = port2;
@@ -139,7 +141,7 @@ void AutomatablePortItem::setupMenu(
 void AutomatablePortItem::on_createAutomation(
     const score::DocumentContext& ctx)
 {
-  QObject* obj = &m_port;
+  const QObject* obj = &m_port;
   while (obj)
   {
     auto parent = obj->parent();
@@ -165,7 +167,7 @@ bool AutomatablePortItem::on_createAutomation(
 {
   if (m_port.type != Process::PortType::Message)
     return false;
-  auto ctrl = qobject_cast<Process::ControlInlet*>(&m_port);
+  auto ctrl = qobject_cast<const Process::ControlInlet*>(&m_port);
   if (!ctrl)
     return false;
 
@@ -540,6 +542,119 @@ void MidiOutletFactory::setupOutletInspector(
     });
 
     lay.addRow(makeMidiCombo(midiDevices, port, ctx, parent));
+}
+
+AudioOutletItem::AudioOutletItem(Process::Port& p, const Process::Context& ctx, QGraphicsItem* parent):
+  AutomatablePortItem{p, ctx, parent}
+{
+
+}
+
+AudioOutletItem::~AudioOutletItem()
+{
+  if(m_subView)
+    delete m_subView;
+}
+
+QRectF AudioOutletItem::boundingRect() const
+{
+  return PortItem::boundingRect().adjusted(0,0,10,0);
+}
+
+void AudioOutletItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+{
+  const auto& pix = Process::Pixmaps::instance();
+  if(m_subView)
+  {
+    painter->drawPixmap(0, 0, pix.portHandleOpen);
+  }
+  else
+  {
+    painter->drawPixmap(0, 0, pix.portHandleClosed);
+  }
+  const QPixmap& img = portImage(m_port.type, m_inlet, m_diam == 8., m_highlight);
+  painter->drawPixmap(10, 0, img);
+}
+
+class AudioOutletMiniPanel : public QGraphicsItem
+{
+public:
+  AudioOutletMiniPanel(
+      const Process::AudioOutlet& port,
+      const Process::Context& ctx,
+      QGraphicsItem* parent)
+    : QGraphicsItem{parent}
+  {
+    auto gainPort = new AutomatablePortItem{port.gainInlet, ctx, this};
+    gainPort->setPos(10, 10);
+    auto panPort = new AutomatablePortItem{port.panInlet, ctx, this};
+    panPort->setPos(10, 25);
+  }
+
+  QRectF boundingRect() const override
+  {
+    return {0, 0, 70, 40};
+  }
+  void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override
+  {
+    auto& skin = score::Skin::instance();
+    painter->setPen(skin.Base5.lighter.pen1);
+    painter->setBrush(skin.Base5.darker.brush);
+    painter->drawRoundedRect(boundingRect(), 3, 3);
+
+    painter->setFont(skin.SansFontSmall);
+    painter->setPen(skin.Base4.lighter.pen1);
+    painter->drawText(QPointF{20, 20}, QObject::tr("Gain"));
+    painter->drawText(QPointF{20, 40}, QObject::tr("Pan"));
+  }
+};
+
+void AudioOutletItem::mousePressEvent(QGraphicsSceneMouseEvent* event)
+{
+  if(event->pos().x() < 10)
+  {
+    if(!m_subView)
+    {
+      m_subView = new AudioOutletMiniPanel{safe_cast<const Process::AudioOutlet&>(m_port), m_context, nullptr};
+      scene()->addItem(m_subView);
+      m_subView->setPos(this->mapToScene(0, -50));
+
+    }
+    else
+    {
+      delete m_subView;
+      m_subView = nullptr;
+    }
+  }
+
+  AutomatablePortItem::mousePressEvent(event);
+}
+
+void AudioOutletItem::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
+{
+  AutomatablePortItem::mouseMoveEvent(event);
+}
+
+void AudioOutletItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
+{
+  AutomatablePortItem::mouseReleaseEvent(event);
+}
+
+
+QVariant AudioOutletItem::itemChange(QGraphicsItem::GraphicsItemChange change, const QVariant& value)
+{
+  switch (change)
+  {
+    case QGraphicsItem::ItemScenePositionHasChanged:
+      if(m_subView)
+      {
+        m_subView->setPos(this->mapToScene(0, -50));
+      }
+    default:
+      break;
+  }
+
+  return AutomatablePortItem::itemChange(change, value);
 }
 
 }
