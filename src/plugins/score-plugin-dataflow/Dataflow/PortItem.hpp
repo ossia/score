@@ -29,6 +29,16 @@ public:
 
   void dropEvent(QGraphicsSceneDragDropEvent* event) override;
 };
+class SCORE_PLUGIN_DATAFLOW_EXPORT AudioOutletItem : public PortItem
+{
+public:
+  using PortItem::PortItem;
+  ~AudioOutletItem() override;
+
+
+
+  void dropEvent(QGraphicsSceneDragDropEvent* event) override;
+};
 
 class SCORE_PLUGIN_DATAFLOW_EXPORT AutomatablePortFactory : public Process::PortFactory
 {

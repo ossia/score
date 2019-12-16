@@ -280,6 +280,8 @@ public:
   void panChanged(pan_weight g)
       E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, panChanged, g)
 
+  Process::ControlInlet gainInlet{Id<Process::Port>{0}, this};
+  Process::ControlInlet panInlet{Id<Process::Port>{1}, this};
 
   PROPERTY(bool, propagate READ propagate WRITE setPropagate NOTIFY propagateChanged)
   PROPERTY(double, gain READ gain WRITE setGain NOTIFY gainChanged)
