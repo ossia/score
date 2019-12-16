@@ -517,16 +517,16 @@ void TemporalIntervalPresenter::createSmallSlot(int pos, const Slot& slt)
     {
       p.headerDelegate = factory->makeHeaderDelegate(*proc, m_context, nullptr);
       p.headerDelegate->setParentItem(p.header);
-      p.headerDelegate->setFlag(QGraphicsItem::GraphicsItemFlag::ItemClipsToShape);
-      p.headerDelegate->setFlag(QGraphicsItem::GraphicsItemFlag::ItemClipsChildrenToShape);
+      //p.headerDelegate->setFlag(QGraphicsItem::GraphicsItemFlag::ItemClipsToShape);
+      //p.headerDelegate->setFlag(QGraphicsItem::GraphicsItemFlag::ItemClipsChildrenToShape);
       p.headerDelegate->setPos(15, 0);
     }
 
     {
       p.footerDelegate = factory->makeFooterDelegate(*proc, m_context);
       p.footerDelegate->setParentItem(p.footer);
-      p.footerDelegate->setFlag(QGraphicsItem::GraphicsItemFlag::ItemClipsToShape);
-      p.footerDelegate->setFlag(QGraphicsItem::GraphicsItemFlag::ItemClipsChildrenToShape);
+      //p.footerDelegate->setFlag(QGraphicsItem::GraphicsItemFlag::ItemClipsToShape);
+      //p.footerDelegate->setFlag(QGraphicsItem::GraphicsItemFlag::ItemClipsChildrenToShape);
       p.footerDelegate->setPos(15, 0);
     }
 

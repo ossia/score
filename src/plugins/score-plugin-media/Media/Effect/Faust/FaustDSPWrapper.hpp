@@ -220,8 +220,8 @@ public:
         controls;
     exec_node()
     {
-      m_inlets.push_back(ossia::make_inlet<ossia::audio_port>());
-      m_outlets.push_back(ossia::make_outlet<ossia::audio_port>());
+      m_inlets.push_back(new ossia::audio_inlet);
+      m_outlets.push_back(new ossia::audio_outlet);
       Wrap<ossia::nodes::faust_exec_ui<exec_node>> ex{*this};
       dsp.buildUserInterface(&ex);
     }

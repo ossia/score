@@ -8,6 +8,7 @@
 #include <Process/Dataflow/Port.hpp>
 #endif
 #include <ossia/detail/ptr_set.hpp>
+#include <Process/Dataflow/PortType.hpp>
 
 #include <score_lib_process_export.h>
 namespace Process
@@ -31,18 +32,18 @@ class PortItem;
 namespace Dataflow
 {
 class CableItem;
-class DragMoveFilter;
+struct DragMoveFilter;
 class SCORE_LIB_PROCESS_EXPORT PortItem : public QObject, public QGraphicsItem
 {
   W_OBJECT(PortItem)
   Q_INTERFACES(QGraphicsItem)
 public:
   PortItem(
-      Process::Port& p,
+      const Process::Port& p,
       const Process::Context& ctx,
       QGraphicsItem* parent);
   ~PortItem() override;
-  Process::Port& port() const { return m_port; }
+  const Process::Port& port() const { return m_port; }
 
   static PortItem* clickedPort;
 
@@ -63,15 +64,15 @@ public:
       E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, contextMenuRequested, scenepos, pos)
 
 protected:
-  QRectF boundingRect() const final override;
+  QRectF boundingRect() const override;
   void paint(
       QPainter* painter,
       const QStyleOptionGraphicsItem* option,
-      QWidget* widget) final override;
+      QWidget* widget) override;
 
-  void mousePressEvent(QGraphicsSceneMouseEvent* event) final override;
-  void mouseMoveEvent(QGraphicsSceneMouseEvent* event) final override;
-  void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) final override;
+  void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
+  void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override;
+  void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override;
   void hoverEnterEvent(QGraphicsSceneHoverEvent* event) final override;
   void hoverMoveEvent(QGraphicsSceneHoverEvent* event) final override;
   void hoverLeaveEvent(QGraphicsSceneHoverEvent* event) final override;
@@ -80,20 +81,21 @@ protected:
   void dragMoveEvent(QGraphicsSceneDragDropEvent* event) final override;
   void dragLeaveEvent(QGraphicsSceneDragDropEvent* event) final override;
   QVariant
-  itemChange(GraphicsItemChange change, const QVariant& value) final override;
+  itemChange(GraphicsItemChange change, const QVariant& value) override;
 
   const Process::Context& m_context;
   std::vector<QPointer<CableItem>> cables;
-  Process::Port& m_port;
+  const Process::Port& m_port;
 public:
   double m_diam = 8.;
-private:
+protected:
   bool m_visible{true};
   bool m_inlet{true};
   bool m_highlight{true};
 
   friend class Dataflow::CableItem;
 
+  static const QPixmap& portImage(Process::PortType t, bool inlet, bool small, bool light) noexcept;
 };
 
 }

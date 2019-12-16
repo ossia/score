@@ -196,7 +196,7 @@ void set_destination_impl(
       {
         s->unregister_port(*port);
         port->address = {};
-        if (ossia::value_port* dat = port->data.template target<ossia::value_port>())
+        if (ossia::value_port* dat = port->template target<ossia::value_port>())
         {
           dat->type = {};
           dat->index = {};
@@ -216,8 +216,7 @@ void set_destination_impl(
       append([=] {
         s->unregister_port(*port);
         port->address = p;
-        if (ossia::value_port* dat
-            = port->data.template target<ossia::value_port>())
+        if (ossia::value_port* dat = port->template target<ossia::value_port>())
         {
           if (qual.unit)
             dat->type = qual.unit;
@@ -248,7 +247,7 @@ void set_destination_impl(
         s->unregister_port(*port);
         port->address = std::move(p);
         if (ossia::value_port* dat
-            = port->data.template target<ossia::value_port>())
+            = port->template target<ossia::value_port>())
         {
           dat->type = {};
           dat->index.clear();
@@ -263,7 +262,7 @@ void set_destination_impl(
         s->unregister_port(*port);
         port->address = {};
         if (ossia::value_port* dat
-            = port->data.template target<ossia::value_port>())
+            = port->template target<ossia::value_port>())
         {
           dat->type = {};
           dat->index.clear();

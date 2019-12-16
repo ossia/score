@@ -15,8 +15,8 @@ public:
   std::vector<std::pair<ossia::value*, bool>> controls;
   std::pair<ossia::value*, bool>& add_control()
   {
-    auto inletport = new ossia::inlet(ossia::value_port{});
-    auto outletport = new ossia::outlet(ossia::value_port{});
+    auto inletport = new ossia::value_inlet;
+    auto outletport = new ossia::value_outlet;
     controls.push_back({new ossia::value, false});
     m_inlets.push_back(inletport);
     m_outlets.push_back(outletport);
@@ -44,7 +44,7 @@ public:
       auto& ctl = controls[i];
       if(ctl.second)
       {
-        m_outlets[i]->data.target<ossia::value_port>()->write_value(std::move(*ctl.first), 0);
+        m_outlets[i]->target<ossia::value_port>()->write_value(std::move(*ctl.first), 0);
         ctl.second = false;
       }
     }

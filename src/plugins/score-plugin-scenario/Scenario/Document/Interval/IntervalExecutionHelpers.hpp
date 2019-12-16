@@ -11,7 +11,7 @@
 #include <Scenario/Document/Tempo/TempoProcess.hpp>
 #include <ossia/editor/curve/curve.hpp>
 #include <Curve/CurveConversion.hpp>
-
+#include <ossia/dataflow/graph_node.hpp>
 
 namespace Execution
 {
@@ -93,8 +93,7 @@ inline void connectPropagated(
     if(propagated >= outs.size())
       continue;
 
-    const auto& outlet = outs[propagated]->data;
-    if (outlet.target<ossia::audio_port>())
+    if (outs[propagated]->which() == ossia::audio_port::which)
     {
       auto cable = ossia::make_edge(
             ossia::immediate_glutton_connection{},
@@ -119,7 +118,7 @@ inline void updatePropagated(
 
   const ossia::outlet& outlet = *outs[port_idx];
 
-  if (!outlet.data.target<ossia::audio_port>())
+  if (!outlet.target<ossia::audio_port>())
     return;
 
   // Remove cables if depropagated, add cables if repropagated

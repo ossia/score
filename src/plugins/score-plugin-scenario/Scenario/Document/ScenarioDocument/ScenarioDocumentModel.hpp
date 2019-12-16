@@ -63,7 +63,7 @@ public:
   void removeBus(const IntervalModel*);
   std::vector<const IntervalModel*> busIntervals;
 
-  void busesChanged() E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, busesChanged);
+  void busesChanged() E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, busesChanged)
 
 private:
   void initializeNewDocument(const IntervalModel& viewmodel);

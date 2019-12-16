@@ -319,13 +319,13 @@ public:
       switch(element.inlets()[index_i]->type)
       {
         case Process::PortType::Audio:
-          this->node->inputs().push_back(new ossia::inlet(ossia::audio_port{}));
+          this->node->inputs().push_back(new ossia::audio_inlet);
           break;
         case Process::PortType::Midi:
-          this->node->inputs().push_back(new ossia::inlet(ossia::midi_port{}));
+          this->node->inputs().push_back(new ossia::midi_inlet);
           break;
         case Process::PortType::Message:
-          this->node->inputs().push_back(new ossia::inlet(ossia::value_port{}));
+          this->node->inputs().push_back(new ossia::value_inlet);
           break;
       }
     }
@@ -334,13 +334,13 @@ public:
       switch(element.inlets()[index_o]->type)
       {
         case Process::PortType::Audio:
-          this->node->outputs().push_back(new ossia::outlet(ossia::audio_port{}));
+          this->node->outputs().push_back(new ossia::audio_outlet);
           break;
         case Process::PortType::Midi:
-          this->node->outputs().push_back(new ossia::outlet(ossia::midi_port{}));
+          this->node->outputs().push_back(new ossia::midi_outlet);
           break;
         case Process::PortType::Message:
-          this->node->outputs().push_back(new ossia::outlet(ossia::value_port{}));
+          this->node->outputs().push_back(new ossia::value_outlet);
           break;
       }
     }

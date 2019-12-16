@@ -15,8 +15,8 @@ public:
   DataflowManager();
   ~DataflowManager();
 
-  using cable_map = ossia::ptr_map<Process::Cable*, Dataflow::CableItem*>;
-  using port_map = ossia::ptr_map<Process::Port*, Dataflow::PortItem*>;
+  using cable_map = ossia::ptr_map<const Process::Cable*, Dataflow::CableItem*>;
+  using port_map = ossia::ptr_map<const Process::Port*, Dataflow::PortItem*>;
 
   cable_map& cables() noexcept { return m_cableMap; }
   port_map& ports() noexcept { return m_portMap; }

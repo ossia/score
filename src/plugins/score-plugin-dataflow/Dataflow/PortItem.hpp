@@ -29,15 +29,29 @@ public:
 
   void dropEvent(QGraphicsSceneDragDropEvent* event) override;
 };
-class SCORE_PLUGIN_DATAFLOW_EXPORT AudioOutletItem : public PortItem
+class SCORE_PLUGIN_DATAFLOW_EXPORT AudioOutletItem : public AutomatablePortItem
 {
 public:
-  using PortItem::PortItem;
+  AudioOutletItem(
+      Process::Port& p,
+      const Process::Context& ctx,
+      QGraphicsItem* parent);
   ~AudioOutletItem() override;
 
+  QRectF boundingRect() const override;
 
+  void paint(
+      QPainter* painter,
+      const QStyleOptionGraphicsItem* option,
+      QWidget* widget) override;
 
-  void dropEvent(QGraphicsSceneDragDropEvent* event) override;
+  void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
+  void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override;
+  void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override;
+  QVariant
+  itemChange(GraphicsItemChange change, const QVariant& value) override;
+
+  QGraphicsItem* m_subView{};
 };
 
 class SCORE_PLUGIN_DATAFLOW_EXPORT AutomatablePortFactory : public Process::PortFactory
@@ -149,6 +163,11 @@ struct SCORE_PLUGIN_DATAFLOW_EXPORT AudioOutletFactory final : public Automatabl
             QWidget* parent,
             Inspector::Layout& lay,
             QObject* context) override;
+
+    PortItem* makeItem(Process::Outlet& port, const Process::Context& ctx, QGraphicsItem* parent, QObject* context) override
+    {
+      return new Dataflow::AudioOutletItem{port, ctx, parent};
+    }
 };
 
 struct SCORE_PLUGIN_DATAFLOW_EXPORT MidiInletFactory final : public AutomatablePortFactory

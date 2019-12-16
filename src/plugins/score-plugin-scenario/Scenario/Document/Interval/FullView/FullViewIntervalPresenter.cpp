@@ -309,15 +309,15 @@ void FullViewIntervalPresenter::createSlot(int slot_i, const FullSlot& slt)
   {
     slot.headerDelegate = factory->makeHeaderDelegate(proc, m_context, ld.mainPresenter());
     slot.headerDelegate->setParentItem(slot.header);
-    slot.headerDelegate->setFlag(QGraphicsItem::GraphicsItemFlag::ItemClipsToShape);
-    slot.headerDelegate->setFlag(QGraphicsItem::GraphicsItemFlag::ItemClipsChildrenToShape);
+    //slot.headerDelegate->setFlag(QGraphicsItem::GraphicsItemFlag::ItemClipsToShape);
+    //slot.headerDelegate->setFlag(QGraphicsItem::GraphicsItemFlag::ItemClipsChildrenToShape);
     slot.headerDelegate->setPos(30, 0);
   }
   {
     slot.footerDelegate = factory->makeFooterDelegate(proc, m_context);
     slot.footerDelegate->setParentItem(slot.footer);
-    slot.footerDelegate->setFlag(QGraphicsItem::GraphicsItemFlag::ItemClipsToShape);
-    slot.footerDelegate->setFlag(QGraphicsItem::GraphicsItemFlag::ItemClipsChildrenToShape);
+    //slot.footerDelegate->setFlag(QGraphicsItem::GraphicsItemFlag::ItemClipsToShape);
+    //slot.footerDelegate->setFlag(QGraphicsItem::GraphicsItemFlag::ItemClipsChildrenToShape);
     slot.footerDelegate->setPos(30, 0);
   }
 

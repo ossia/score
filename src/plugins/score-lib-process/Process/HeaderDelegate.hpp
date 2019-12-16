@@ -61,6 +61,7 @@ protected:
   QImage m_line, m_bench;
   QGraphicsItem* m_ui{};
   ossia::small_vector<Dataflow::PortItem*, 3> m_inPorts;
+  double m_portEndX{};
   bool m_sel{};
 };
 
@@ -105,6 +106,7 @@ protected:
       QWidget* widget) override;
 
   ossia::small_vector<Dataflow::PortItem*, 3> m_outPorts;
+  double m_portEndX{};
 };
 
 

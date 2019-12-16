@@ -40,34 +40,34 @@ struct lv2_node final : public ossia::graph_node
 
     if (audio_in_size > 0)
     {
-      m_inlets.push_back(ossia::make_inlet<ossia::audio_port>());
+      m_inlets.push_back(new ossia::audio_inlet);
     }
     if (audio_out_size > 0)
     {
-      m_outlets.push_back(ossia::make_outlet<ossia::audio_port>());
+      m_outlets.push_back(new ossia::audio_outlet);
     }
 
     for (std::size_t i = 0; i < cv_size; i++)
     {
-      m_inlets.push_back(ossia::make_inlet<ossia::audio_port>());
+      m_inlets.push_back(new ossia::audio_inlet);
     }
 
     for (std::size_t i = 0; i < midi_in_size; i++)
     {
-      m_inlets.push_back(ossia::make_inlet<ossia::midi_port>());
+      m_inlets.push_back(new ossia::midi_inlet);
     }
     for (std::size_t i = 0; i < midi_out_size; i++)
     {
-      m_outlets.push_back(ossia::make_outlet<ossia::midi_port>());
+      m_outlets.push_back(new ossia::midi_outlet);
     }
 
     for (std::size_t i = 0; i < control_in_size; i++)
     {
-      m_inlets.push_back(ossia::make_inlet<ossia::value_port>());
+      m_inlets.push_back(new ossia::value_inlet);
     }
     for (std::size_t i = 0; i < control_out_size; i++)
     {
-      m_outlets.push_back(ossia::make_outlet<ossia::value_port>());
+      m_outlets.push_back(new ossia::value_outlet);
     }
 
     fInControls.resize(control_in_size);
@@ -172,8 +172,8 @@ struct lv2_node final : public ossia::graph_node
     for (std::size_t i = 0; i < fMidiIns.size(); i++)
     {
       ossia::midi_port& ossia_port
-          = *this->inputs()[i + first_midi_idx]
-                 ->data.template target<ossia::midi_port>();
+          = this->inputs()[i + first_midi_idx]
+                 ->template cast<ossia::midi_port>();
       auto& lv2_port = fMidiIns[i];
       Iterator it{lv2_port.buf};
 
@@ -193,7 +193,7 @@ struct lv2_node final : public ossia::graph_node
     for (std::size_t i = control_start; i < control_in_size; i++)
     {
       auto& in
-          = m_inlets[i]->data.template target<ossia::value_port>()->get_data();
+          = m_inlets[i]->template cast<ossia::value_port>().get_data();
 
       if (!in.empty())
       {
@@ -231,8 +231,7 @@ struct lv2_node final : public ossia::graph_node
     for (std::size_t i = 0; i < fMidiOuts.size(); i++)
     {
       ossia::midi_port& ossia_port
-          = *this->outputs()[i + first_midi_idx]
-                 ->data.template target<ossia::midi_port>();
+          = this->outputs()[i + first_midi_idx]->template cast<ossia::midi_port>();
       auto& lv2_port = fMidiOuts[i];
       Iterator it{lv2_port.buf};
 
@@ -258,7 +257,7 @@ struct lv2_node final : public ossia::graph_node
     auto control_start = (audio_out_size > 0 ? 1 : 0) + midi_out_size;
     for (std::size_t i = control_start; i < control_out_size; i++)
     {
-      auto& out = *m_outlets[i]->data.template target<ossia::value_port>();
+      auto& out = m_outlets[i]->template cast<ossia::value_port>();
 
       out.write_value(fOutControls[i - control_start], offset);
     }
@@ -294,8 +293,7 @@ struct lv2_node final : public ossia::graph_node
 
       if (audio_ins > 0)
       {
-        const auto& audio_in
-            = *m_inlets[0]->data.template target<ossia::audio_port>();
+        const auto& audio_in = m_inlets[0]->template cast<ossia::audio_port>();
         for (std::size_t i = 0; i < audio_ins; i++)
         {
           in_vec[i].resize(samples);
@@ -327,8 +325,7 @@ struct lv2_node final : public ossia::graph_node
 
       if (audio_outs > 0)
       {
-        auto& audio_out
-            = *m_outlets[0]->data.template target<ossia::audio_port>();
+        auto& audio_out = static_cast<ossia::audio_outlet*>(m_outlets[0])->data;
         audio_out.samples.resize(audio_outs);
         for (std::size_t i = 0; i < audio_outs; i++)
         {

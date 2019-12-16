@@ -11,7 +11,7 @@ namespace Patternist
 class pattern_node : public ossia::nonowning_graph_node
 {
 public:
-  ossia::outlet out{ossia::midi_port{}};
+  ossia::midi_outlet out;
   Pattern pattern;
   ossia::flat_set<uint8_t> in_flight;
 
@@ -28,7 +28,7 @@ public:
   {
     if(auto date = tk.get_physical_quantification_date(pattern.division, st.modelToSamples()))
     {
-      auto& mess = out.data.target<ossia::midi_port>()->messages;
+      auto& mess = out.target<ossia::midi_port>()->messages;
       for(uint8_t note : in_flight)
       {
         mess.push_back(rtmidi::message::note_off(channel, note, 0));
