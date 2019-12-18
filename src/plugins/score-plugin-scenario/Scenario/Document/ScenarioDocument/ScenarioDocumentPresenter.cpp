@@ -314,28 +314,7 @@ void ScenarioDocumentPresenter::setLargeView()
 {
   auto& c = displayedInterval();
 
-  auto visible_rect = view().visibleSceneRect();
-  auto t = TimeVal::fromMsecs(m_zoomRatio * visible_rect.width());
-  TimeVal min_time
-      = (c.duration.isMaxInfinite() ? c.duration.defaultDuration()
-                                    : c.duration.maxDuration());
-
-  for (Process::ProcessModel& proc : c.processes)
-  {
-    if (proc.contentHasDuration())
-    {
-      auto d = proc.contentDuration();
-      if (d > min_time)
-        min_time = d;
-    }
-  }
-
-  if (t > min_time)
-    min_time = t;
-  if (c.duration.guiDuration() > min_time)
-    min_time = c.duration.guiDuration();
-  min_time = min_time * 1.1;
-  c.duration.setGuiDuration(min_time);
+  c.duration.setGuiDuration(c.contentDuration());
 
   updateMinimap();
   view().minimap().setLargeView();
@@ -375,22 +354,9 @@ void ScenarioDocumentPresenter::on_windowSizeChanged(QSize sz)
   if (visible_rect.width() > c.duration.guiDuration().toPixels(m_zoomRatio))
   {
     auto t = TimeVal::fromMsecs(m_zoomRatio * visible_rect.width());
-    TimeVal min_time
-        = (c.duration.isMaxInfinite() ? c.duration.defaultDuration()
-                                      : c.duration.maxDuration())
-          * 1.1;
+    auto min_time = c.contentDuration();
 
-    for (Process::ProcessModel& proc : c.processes)
-    {
-      if (proc.contentHasDuration())
-      {
-        auto d = proc.contentDuration();
-        if (d > min_time)
-          min_time = d;
-      }
-    }
-
-    c.duration.setGuiDuration(min_time > t ? min_time : t);
+    c.duration.setGuiDuration((min_time > t ? min_time : t));
   }
 
   updateMinimap();
@@ -419,19 +385,7 @@ void ScenarioDocumentPresenter::on_horizontalPositionChanged(int dx)
   }
   else if (dx > 0 && !m_zooming)
   {
-    TimeVal min_time
-        = (c.duration.isMaxInfinite() ? c.duration.defaultDuration()
-                                      : c.duration.maxDuration())
-          * 1.1;
-    for (Process::ProcessModel& proc : c.processes)
-    {
-      if (proc.contentHasDuration())
-      {
-        auto d = proc.contentDuration();
-        if (d > min_time)
-          min_time = d;
-      }
-    }
+    auto min_time = c.contentDuration();
     if (min_time < c.duration.guiDuration())
     {
       auto cur_rect = gv.mapToScene(gv.rect()).boundingRect();
@@ -496,7 +450,7 @@ void ScenarioDocumentPresenter::on_viewReady()
     }
     else
     {
-      view().minimap().setLargeView();
+      setLargeView();
     }
 
     if (!window_size_set)

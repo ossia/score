@@ -53,13 +53,8 @@ namespace Scenario
   private:
     //// ProcessModel ////
     void setDurationAndScale(const TimeVal& newDuration) noexcept override;
-
     void setDurationAndGrow(const TimeVal& newDuration) noexcept override;
-
     void setDurationAndShrink(const TimeVal& newDuration) noexcept override;
-
-    bool contentHasDuration() const noexcept override;
-    TimeVal contentDuration() const noexcept override;
 
     void setCurve_impl() override;
   };

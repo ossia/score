@@ -70,9 +70,6 @@ private:
   void setDurationAndGrow(const TimeVal& newDuration) noexcept override;
   void setDurationAndShrink(const TimeVal& newDuration) noexcept override;
 
-  bool contentHasDuration() const noexcept override;
-  TimeVal contentDuration() const noexcept override;
-
   void setCurve_impl() override;
 
   double m_min{};

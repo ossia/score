@@ -171,7 +171,6 @@ private:
   void setSelection(const Selection& s) const noexcept override;
   bool event(QEvent* e) override { return QObject::event(e); }
 
-  bool contentHasDuration() const noexcept override;
   TimeVal contentDuration() const noexcept override;
 
   template <typename Fun>

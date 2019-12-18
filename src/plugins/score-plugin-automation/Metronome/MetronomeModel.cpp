@@ -168,16 +168,6 @@ void ProcessModel::setDurationAndShrink(const TimeVal& newDuration) noexcept
   m_curve->changed();
 }
 
-bool ProcessModel::contentHasDuration() const noexcept
-{
-  return true;
-}
-
-TimeVal ProcessModel::contentDuration() const noexcept
-{
-  return duration() * std::min(1., m_curve->lastPointPos());
-}
-
 void ProcessModel::setCurve_impl() {}
 
 State::Address ProcessModel::address() const

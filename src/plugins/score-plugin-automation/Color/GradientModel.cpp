@@ -108,11 +108,6 @@ void ProcessModel::setDurationAndShrink(const TimeVal& newDuration) noexcept
   setDuration(newDuration);
 }
 
-bool ProcessModel::contentHasDuration() const noexcept
-{
-  return true;
-}
-
 TimeVal ProcessModel::contentDuration() const noexcept
 {
   auto lastPoint = 1.;
