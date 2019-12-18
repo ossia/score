@@ -151,11 +151,11 @@ struct DefaultGraphicsSliderImpl
 
       QTimer::singleShot(0, w, [w] { w->setFocus(); });
 
-      QObject::connect(
+      auto con = QObject::connect(
           w,
           SignalUtils::QDoubleSpinBox_valueChanged_double(),
           &self,
-          [=, &self](double v) {
+          [&self](double v) {
             self.m_value = self.unmap(v);
             self.valueChanged(self.m_value);
             self.sliderMoved();
@@ -163,10 +163,11 @@ struct DefaultGraphicsSliderImpl
           });
 
       QObject::connect(
-          w, &DoubleSpinboxWithEnter::editingFinished, &self, [obj, &self] {
+          w, &DoubleSpinboxWithEnter::editingFinished, &self, [obj, con, &self] {
             if (self.spinbox)
             {
               self.sliderReleased();
+              QObject::disconnect(con);
               QTimer::singleShot(0, &self, [&self, scene = self.scene(), obj] {
                 scene->removeItem(obj);
                 delete obj;

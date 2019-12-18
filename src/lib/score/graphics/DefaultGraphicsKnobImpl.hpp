@@ -190,11 +190,11 @@ struct DefaultGraphicsKnobImpl
 
       QTimer::singleShot(0, w, [w] { w->setFocus(); });
 
-      QObject::connect(
+      auto con = QObject::connect(
           w,
           SignalUtils::QDoubleSpinBox_valueChanged_double(),
           &self,
-          [=, &self](double v) {
+          [&self](double v) {
             self.m_value = self.unmap(v);
             self.valueChanged(self.m_value);
             self.sliderMoved();
@@ -205,10 +205,11 @@ struct DefaultGraphicsKnobImpl
           w,
           &DoubleSpinboxWithEnter::editingFinished,
           &self,
-          [obj, &self]() mutable {
+          [obj, con, &self]() mutable {
             if (obj != nullptr)
             {
               self.sliderReleased();
+              QObject::disconnect(con);
               QTimer::singleShot(0, obj, [scene = self.scene(), obj] {
                 scene->removeItem(obj);
                 delete obj;

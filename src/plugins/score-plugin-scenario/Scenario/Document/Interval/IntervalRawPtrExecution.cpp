@@ -92,14 +92,14 @@ IntervalRawPtrComponentBase::IntervalRawPtrComponentBase(
     if(m_ossia_interval)
       in_exec([b, itv = m_ossia_interval] {
         auto& audio_out = static_cast<ossia::nodes::interval*>(itv->node.get())->audio_out;
-        audio_out->has_gain = b;
+        audio_out.has_gain = b;
       });
   });
   con(*interval().outlet, &Process::AudioOutlet::gainChanged, this, [&](double g) {
     if(m_ossia_interval)
       in_exec([g, itv = m_ossia_interval] {
         auto& audio_out = static_cast<ossia::nodes::interval*>(itv->node.get())->audio_out;
-        audio_out->gain = g;
+        audio_out.gain = g;
       });
   });
 
@@ -201,9 +201,9 @@ void IntervalRawPtrComponent::onSetup(
   m_ossia_interval = ossia_cst;
 
   auto& audio_out = static_cast<ossia::nodes::interval*>(m_ossia_interval->node.get())->audio_out;
-  audio_out->has_gain = Scenario::isBus(*m_interval, context().doc);
-  audio_out->gain = m_interval->outlet->gain();
-  audio_out->pan = m_interval->outlet->pan();
+  audio_out.has_gain = Scenario::isBus(*m_interval, context().doc);
+  audio_out.gain = m_interval->outlet->gain();
+  audio_out.pan = m_interval->outlet->pan();
 
   m_ossia_interval->set_min_duration(dur.minDuration);
   m_ossia_interval->set_max_duration(dur.maxDuration);

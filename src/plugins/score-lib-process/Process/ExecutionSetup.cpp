@@ -14,6 +14,20 @@
 
 namespace Execution
 {
+static auto enqueue_in_context(SetupContext& self) noexcept
+{
+  return [&self](auto&& f) {
+    self.context.executionQueue.enqueue(std::move(f));
+  };
+}
+
+static auto enqueue_in_vector(std::vector<ExecutionCommand>& vec) noexcept
+{
+  return [&vec](auto&& f) {
+    vec.push_back(std::move(f));
+  };
+}
+
 ossia::net::node_base*
 findNode(const ossia::execution_state& st, const State::Address& addr)
 {
@@ -137,11 +151,81 @@ void SetupContext::connectCable(Process::Cable& cable)
     }
 
     m_cables[cable.id()] = edge;
-    context.executionQueue.enqueue([edge, graph = context.execGraph] {
+    context.executionQueue.enqueue([edge, graph = context.execGraph] () mutable {
       graph->connect(std::move(edge));
     });
   }
 }
+
+template <typename Impl>
+void SetupContext::register_inlet_impl(
+    Process::Inlet& proc_port,
+    const ossia::inlet_ptr& ossia_port,
+    const std::shared_ptr<ossia::graph_node>& node,
+    Impl&& impl)
+{
+  SCORE_ASSERT(node);
+  SCORE_ASSERT(ossia_port);
+
+  auto& runtime_connection = runtime_connections[node];
+  auto& con = runtime_connection[proc_port.id()];
+  QObject::disconnect(con);
+  con = connect(
+          &proc_port,
+          &Process::Port::addressChanged,
+          this,
+          [this, ossia_port](const State::AddressAccessor& address) {
+    set_destination(address, ossia_port);
+  });
+  set_destination_impl(context, proc_port.address(), ossia_port, impl);
+
+  inlets.insert({&proc_port, std::make_pair(node, ossia_port)});
+
+  std::weak_ptr<ossia::execution_state> ws = context.execState;
+  context.executionQueue.enqueue([ws, ossia_port] {
+    if (auto state = ws.lock())
+      state->register_port(*ossia_port);
+  });
+}
+
+template <typename Impl>
+void SetupContext::register_node_impl(
+    const Process::Inlets& proc_inlets,
+    const Process::Outlets& proc_outlets,
+    const std::shared_ptr<ossia::graph_node>& node,
+    Impl&& exec)
+{
+  if (node)
+  {
+    std::weak_ptr<ossia::graph_interface> wg = context.execGraph;
+    exec([wg, node]() mutable {
+      if (auto g = wg.lock())
+        g->add_node(std::move(node));
+    });
+
+    const std::size_t proc_n_inlets = proc_inlets.size();
+    const std::size_t proc_n_outlets = proc_outlets.size();
+
+    const std::size_t ossia_n_inlets = node->inputs().size();
+    const std::size_t ossia_n_outlets = node->outputs().size();
+
+    std::size_t n_inlets = std::min(proc_n_inlets, ossia_n_inlets);
+    std::size_t n_outlets = std::min(proc_n_outlets, ossia_n_outlets);
+
+    auto& runtime_connection = runtime_connections[node];
+
+    for (std::size_t i = 0; i < n_inlets; i++)
+    {
+      register_inlet_impl(*proc_inlets[i], node->inputs()[i], node, exec);
+    }
+
+    for (std::size_t i = 0; i < n_outlets; i++)
+    {
+      register_outlet_impl(*proc_outlets[i], node->outputs()[i], node, exec);
+    }
+  }
+}
+
 
 void SetupContext::register_node(
     const Process::ProcessModel& proc,
@@ -278,87 +362,29 @@ void SetupContext::set_destination(
     const State::AddressAccessor& address,
     const ossia::inlet_ptr& port)
 {
-  set_destination_impl(context, address, port, [this](auto&& f) {
-    context.executionQueue.enqueue(std::move(f));
-  });
+  set_destination_impl(context, address, port, enqueue_in_context(*this));
 }
 
 void SetupContext::set_destination(
     const State::AddressAccessor& address,
     const ossia::outlet_ptr& port)
 {
-  set_destination_impl(context, address, port, [this](auto&& f) {
-    context.executionQueue.enqueue(std::move(f));
-  });
+  set_destination_impl(context, address, port, enqueue_in_context(*this));
 }
 
-template <typename Impl>
-void SetupContext::register_node_impl(
-    const Process::Inlets& proc_inlets,
-    const Process::Outlets& proc_outlets,
-    const std::shared_ptr<ossia::graph_node>& node,
-    Impl&& exec)
+void SetupContext::register_inlet(
+    Process::Inlet& inlet,
+    const ossia::inlet_ptr& exec,
+    const std::shared_ptr<ossia::graph_node>& node)
 {
-  if (node)
-  {
-    std::weak_ptr<ossia::graph_interface> wg = context.execGraph;
-    exec([wg, node]() mutable {
-      if (auto g = wg.lock())
-        g->add_node(std::move(node));
-    });
-
-    const std::size_t proc_n_inlets = proc_inlets.size();
-    const std::size_t proc_n_outlets = proc_outlets.size();
-
-    const std::size_t ossia_n_inlets = node->inputs().size();
-    const std::size_t ossia_n_outlets = node->outputs().size();
-
-    std::size_t n_inlets = std::min(proc_n_inlets, ossia_n_inlets);
-    std::size_t n_outlets = std::min(proc_n_outlets, ossia_n_outlets);
-
-    auto& runtime_connection = runtime_connections[node];
-
-    for (std::size_t i = 0; i < n_inlets; i++)
-    {
-      Process::Inlet* score_port = proc_inlets[i];
-      runtime_connection[score_port->id()] = connect(
-          proc_inlets[i],
-          &Process::Port::addressChanged,
-          this,
-          [this,
-           port = node->inputs()[i]](const State::AddressAccessor& address) {
-            set_destination(address, port);
-          });
-      SCORE_ASSERT(node->inputs()[i]);
-      set_destination_impl(
-          context, score_port->address(), node->inputs()[i], exec);
-
-      inlets.insert({score_port, std::make_pair(node, node->inputs()[i])});
-
-      exec([this, port = node->inputs()[i]] {
-        context.execState->register_port(*port);
-      });
-    }
-
-    for (std::size_t i = 0; i < n_outlets; i++)
-    {
-      Process::Outlet* score_port = proc_outlets[i];
-      runtime_connection[score_port->id()] = connect(
-          score_port,
-          &Process::Port::addressChanged,
-          this,
-          [this,
-           port = node->outputs()[i]](const State::AddressAccessor& address) {
-            set_destination(address, port);
-          });
-      SCORE_ASSERT(node->outputs()[i]);
-      set_destination_impl(
-          context, score_port->address(), node->outputs()[i], exec);
-
-      outlets.insert(
-          {score_port, std::make_pair(node, node->outputs()[i])});
-    }
-  }
+  register_inlet_impl(inlet, exec, node, enqueue_in_context(*this));
+}
+void SetupContext::register_outlet(
+    Process::Outlet& outlet,
+    const ossia::outlet_ptr& exec,
+    const std::shared_ptr<ossia::graph_node>& node)
+{
+  register_outlet_impl(outlet, exec, node, enqueue_in_context(*this));
 }
 
 void SetupContext::register_node(
@@ -366,9 +392,7 @@ void SetupContext::register_node(
     const Process::Outlets& proc_outlets,
     const std::shared_ptr<ossia::graph_node>& node)
 {
-  register_node_impl(proc_inlets, proc_outlets, node, [this](auto&& f) {
-    context.executionQueue.enqueue(std::move(f));
-  });
+  register_node_impl(proc_inlets, proc_outlets, node, enqueue_in_context(*this));
 }
 
 void SetupContext::register_node(
@@ -377,72 +401,51 @@ void SetupContext::register_node(
     const std::shared_ptr<ossia::graph_node>& node,
     std::vector<ExecutionCommand>& vec)
 {
-  register_node_impl(proc_inlets, proc_outlets, node, [&](auto&& f) {
-    vec.push_back(std::move(f));
-  });
+  register_node_impl(proc_inlets, proc_outlets, node, enqueue_in_vector(vec));
 }
 
-void SetupContext::register_inlet(
-    Process::Inlet& proc_port,
-    const ossia::inlet_ptr& ossia_port,
-    const std::shared_ptr<ossia::graph_node>& node)
-{
-  if (node)
-  {
-    auto& runtime_connection = runtime_connections[node];
-    SCORE_ASSERT(ossia_port);
-    auto& con = runtime_connection[proc_port.id()];
-    QObject::disconnect(con);
-    con = connect(
-          &proc_port,
-          &Process::Port::addressChanged,
-          this,
-          [this, ossia_port](const State::AddressAccessor& address) {
-      set_destination(address, ossia_port);
-    });
-    set_destination(proc_port.address(), ossia_port);
-
-    inlets.insert({&proc_port, std::make_pair(node, ossia_port)});
-
-    std::weak_ptr<ossia::execution_state> ws = context.execState;
-    context.executionQueue.enqueue([ws, ossia_port] {
-      if (auto state = ws.lock())
-        state->register_port(*ossia_port);
-    });
-  }
-}
-
-void SetupContext::register_outlet(
+template <typename Impl>
+void SetupContext::register_outlet_impl(
     Process::Outlet& proc_port,
     const ossia::outlet_ptr& ossia_port,
-    const std::shared_ptr<ossia::graph_node>& node)
+    const std::shared_ptr<ossia::graph_node>& node,
+    Impl&& impl)
 {
-  if (node)
-  {
-    auto& runtime_connection = runtime_connections[node];
-    SCORE_ASSERT(ossia_port);
-    auto& con = runtime_connection[proc_port.id()];
-    QObject::disconnect(con);
-    con = connect(
+  SCORE_ASSERT(node);
+  SCORE_ASSERT(ossia_port);
+  auto& runtime_connection = runtime_connections[node];
+  auto& con = runtime_connection[proc_port.id()];
+  QObject::disconnect(con);
+  con = connect(
           &proc_port,
           &Process::Port::addressChanged,
           this,
           [this, ossia_port](const State::AddressAccessor& address) {
-      set_destination(address, ossia_port);
-    });
-    set_destination(proc_port.address(), ossia_port);
+    set_destination(address, ossia_port);
+  });
+  set_destination_impl(context, proc_port.address(), ossia_port, impl);
 
-    outlets.insert({&proc_port, std::make_pair(node, ossia_port)});
+  outlets.insert({&proc_port, std::make_pair(node, ossia_port)});
 
-    // Unneeded : the execution_state only needs inlets to be registered,
-    // in order to set up data value queues from the network thread
+  if (auto proc_audio = qobject_cast<Process::AudioOutlet*>(&proc_port))
+  {
+    auto ossia_audio = static_cast<ossia::audio_outlet*>(ossia_port);
 
-    // std::weak_ptr<ossia::execution_state> ws = context.execState;
-    // context.executionQueue.enqueue([ws, ossia_port] {
-    //   if (auto state = ws.lock())
-    //     state->register_outlet(*ossia_port);
-    // });
+    node->inputs().push_back(&ossia_audio->gain_inlet);
+    node->inputs().push_back(&ossia_audio->pan_inlet);
+
+    register_inlet_impl(proc_audio->gainInlet, &ossia_audio->gain_inlet, node, impl);
+    register_inlet_impl(proc_audio->panInlet, &ossia_audio->pan_inlet, node, impl);
   }
+
+  // Unneeded : the execution_state only needs inlets to be registered,
+  // in order to set up data value queues from the network thread
+
+  // std::weak_ptr<ossia::execution_state> ws = context.execState;
+  // context.executionQueue.enqueue([ws, ossia_port] {
+  //   if (auto state = ws.lock())
+  //     state->register_outlet(*ossia_port);
+  // });
 }
 
 void SetupContext::unregister_inlet(
@@ -489,6 +492,12 @@ void SetupContext::unregister_outlet(
     {
       QObject::disconnect(it->second);
       runtime_connection.erase(it);
+    }
+
+    if (auto proc_audio = qobject_cast<const Process::AudioOutlet*>(&proc_port))
+    {
+      unregister_inlet(proc_audio->gainInlet, node);
+      unregister_inlet(proc_audio->panInlet, node);
     }
   }
 

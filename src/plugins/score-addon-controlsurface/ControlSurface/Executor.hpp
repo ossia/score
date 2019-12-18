@@ -9,10 +9,11 @@
 
 namespace ossia
 {
-class control_surface_node : public ossia::graph_node
+class control_surface_node : public ossia::nonowning_graph_node
 {
 public:
   std::vector<std::pair<ossia::value*, bool>> controls;
+
   std::pair<ossia::value*, bool>& add_control()
   {
     auto inletport = new ossia::value_inlet;
