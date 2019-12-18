@@ -75,7 +75,6 @@ public:
   /// Duration
   void setParentDuration(ExpandMode mode, const TimeVal& t) noexcept;
 
-  virtual bool contentHasDuration() const noexcept;
   virtual TimeVal contentDuration() const noexcept;
 
   void setDuration(const TimeVal& other) noexcept;

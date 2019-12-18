@@ -117,11 +117,6 @@ void ProcessModel::setParentDuration(
   }
 }
 
-bool ProcessModel::contentHasDuration() const noexcept
-{
-  return false;
-}
-
 TimeVal ProcessModel::contentDuration() const noexcept
 {
   return TimeVal::zero();

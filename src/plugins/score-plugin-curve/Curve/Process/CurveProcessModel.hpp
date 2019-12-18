@@ -82,6 +82,11 @@ protected:
     m_curve->changed();
   }
 
+  TimeVal contentDuration() const noexcept override
+  {
+    return duration() * std::max(1., m_curve->lastPointPos());
+  }
+
   virtual void setCurve_impl() {}
 
   Model* m_curve{};

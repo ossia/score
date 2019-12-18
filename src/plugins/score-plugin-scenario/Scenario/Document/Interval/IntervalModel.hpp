@@ -154,6 +154,8 @@ public:
   bool hasTimeSignature() const noexcept { return m_hasSignature; }
   void setHasTimeSignature(bool b);
 
+  TimeVal contentDuration() const noexcept;
+
   Curve::Model* tempoCurve() const noexcept;
 
   void addSignature(TimeVal t, Control::time_signature sig);

@@ -14,16 +14,6 @@ namespace InterpState
 {
 ProcessModel::~ProcessModel() = default;
 
-bool ProcessModel::contentHasDuration() const noexcept
-{
-  return true;
-}
-
-TimeVal ProcessModel::contentDuration() const noexcept
-{
-  return duration() * std::min(1., m_curve->lastPointPos());
-}
-
 ProcessModel::ProcessModel(
     const TimeVal& duration,
     const Id<Process::ProcessModel>& id,

@@ -127,8 +127,6 @@ private:
   void setDurationAndScale(const TimeVal& newDuration) noexcept override;
   void setDurationAndGrow(const TimeVal& newDuration) noexcept override;
   void setDurationAndShrink(const TimeVal& newDuration) noexcept override;
-  bool contentHasDuration() const noexcept override;
-  TimeVal contentDuration() const noexcept override;
 
   /// States
   ProcessState* startStateData() const noexcept override;

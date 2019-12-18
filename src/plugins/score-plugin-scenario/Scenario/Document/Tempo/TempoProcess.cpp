@@ -98,16 +98,6 @@ void TempoProcess::setDurationAndShrink(const TimeVal& newDuration) noexcept
   m_curve->changed();
 }
 
-bool TempoProcess::contentHasDuration() const noexcept
-{
-  return true;
-}
-
-TimeVal TempoProcess::contentDuration() const noexcept
-{
-  return duration() * std::min(1., m_curve->lastPointPos());
-}
-
 void TempoProcess::setCurve_impl() { }
 
 }

@@ -242,12 +242,6 @@ const QVector<Id<IntervalModel>> intervalsBeforeTimeSync(
   return cstrs;
 }
 
-
-bool ProcessModel::contentHasDuration() const noexcept
-{
-  return true;
-}
-
 TimeVal ProcessModel::contentDuration() const noexcept
 {
   TimeVal max_tn_pos = TimeVal::zero();

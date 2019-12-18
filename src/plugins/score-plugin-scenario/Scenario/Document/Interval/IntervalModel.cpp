@@ -140,6 +140,24 @@ void IntervalModel::setHasTimeSignature(bool b)
   }
 }
 
+TimeVal IntervalModel::contentDuration() const noexcept
+{
+  TimeVal min_time
+      = (duration.isMaxInfinite() ? duration.defaultDuration()
+                                  : duration.maxDuration());
+
+  for (Process::ProcessModel& proc : processes)
+  {
+    if (!(proc.flags() & Process::TimeIndependent))
+    {
+      if (auto d = proc.contentDuration(); d > min_time)
+        min_time = d;
+    }
+  }
+
+  return min_time * 1.1;
+}
+
 Curve::Model* IntervalModel::tempoCurve() const noexcept
 {
   for(auto& proc : processes)
