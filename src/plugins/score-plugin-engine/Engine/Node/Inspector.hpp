@@ -129,53 +129,6 @@ struct inlet_visitor
 };
 
 template <typename Info>
-class ControlCommand final : public score::Command
-{
-  using Command::Command;
-  ControlCommand() = default;
-
-  ControlCommand(
-      const ControlProcess<Info>& obj,
-      int control,
-      ossia::value newval)
-      : m_path{obj}
-      , m_control{control}
-      , m_old{obj.control(control)}
-      , m_new{newval}
-  {
-  }
-
-  virtual ~ControlCommand() {}
-
-  void undo(const score::DocumentContext& ctx) const final override
-  {
-    m_path.find(ctx).setControl(m_control, m_old);
-  }
-
-  void redo(const score::DocumentContext& ctx) const final override
-  {
-    m_path.find(ctx).setControl(m_control, m_new);
-  }
-
-  void update(unused_t, ossia::value newval) { m_new = std::move(newval); }
-
-protected:
-  void serializeImpl(DataStreamInput& stream) const final override
-  {
-    stream << m_path << m_control << m_old << m_new;
-  }
-  void deserializeImpl(DataStreamOutput& stream) final override
-  {
-    stream >> m_path >> m_control >> m_old >> m_new;
-  }
-
-private:
-  Path<ControlProcess<Info>> m_path;
-  int m_control{};
-  ossia::value m_old, m_new;
-};
-
-template <typename Info>
 class InspectorWidget final
     : public Process::InspectorWidgetDelegate_T<ControlProcess<Info>>
 {

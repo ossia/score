@@ -60,10 +60,12 @@ struct SCORE_LIB_PROCESS_EXPORT SetupContext final : public QObject
       Process::Inlet& inlet,
       const ossia::inlet_ptr& exec,
       const std::shared_ptr<ossia::graph_node>& node);
+
   void register_outlet(
       Process::Outlet& outlet,
       const ossia::outlet_ptr& exec,
       const std::shared_ptr<ossia::graph_node>& node);
+
   void unregister_inlet(
       const Process::Inlet& inlet,
       const std::shared_ptr<ossia::graph_node>& node);
@@ -119,5 +121,20 @@ private:
       const Process::Outlets& outlets,
       const std::shared_ptr<ossia::graph_node>& node,
       Impl&&);
+
+  template <typename Impl>
+  void register_inlet_impl(
+      Process::Inlet& inlet,
+      const ossia::inlet_ptr& exec,
+      const std::shared_ptr<ossia::graph_node>& node,
+      Impl&&);
+
+  template <typename Impl>
+  void register_outlet_impl(
+      Process::Outlet& outlet,
+      const ossia::outlet_ptr& exec,
+      const std::shared_ptr<ossia::graph_node>& node,
+      Impl&&);
+
 };
 }
