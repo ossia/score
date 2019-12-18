@@ -21,6 +21,8 @@ namespace Process
 class Port;
 class Inlet;
 class Outlet;
+class ValueInlet;
+class ValueOutlet;
 class AudioInlet;
 class AudioOutlet;
 class MidiInlet;
@@ -38,6 +40,16 @@ UUID_METADATA(
     Process::Port,
     Process::Outlet,
     "34e2c5a7-18c4-4759-b6cc-46feaeee06e2")
+UUID_METADATA(
+    SCORE_LIB_PROCESS_EXPORT,
+    Process::Port,
+    Process::ValueInlet,
+    "769dd38a-bfb3-4dc6-b52a-b6abb7afe2a3")
+UUID_METADATA(
+    SCORE_LIB_PROCESS_EXPORT,
+    Process::Port,
+    Process::ValueOutlet,
+    "cff96158-cc72-46d7-99dc-b6038171375b")
 UUID_METADATA(
     SCORE_LIB_PROCESS_EXPORT,
     Process::Port,
@@ -146,8 +158,10 @@ class SCORE_LIB_PROCESS_EXPORT Inlet : public Port
 public:
   using base_type = Inlet;
   MODEL_METADATA_IMPL_HPP(Inlet)
-  Inlet() = delete;
+
   ~Inlet() override;
+protected:
+  Inlet() = delete;
   Inlet(const Inlet&) = delete;
   Inlet(Id<Process::Port> c, QObject* parent);
 
@@ -164,8 +178,10 @@ class SCORE_LIB_PROCESS_EXPORT ControlInlet : public Inlet
   SCORE_SERIALIZE_FRIENDS
 public:
   MODEL_METADATA_IMPL_HPP(ControlInlet)
-  using Inlet::Inlet;
+  ControlInlet() = delete;
   ~ControlInlet() override;
+  ControlInlet(const ControlInlet&) = delete;
+  ControlInlet(Id<Process::Port> c, QObject* parent);
 
   ControlInlet(DataStream::Deserializer& vis, QObject* parent);
   ControlInlet(JSONObject::Deserializer& vis, QObject* parent);
@@ -219,8 +235,10 @@ class SCORE_LIB_PROCESS_EXPORT Outlet : public Port
 public:
   using base_type = Outlet;
   MODEL_METADATA_IMPL_HPP(Outlet)
-  Outlet() = delete;
+
   ~Outlet() override;
+protected:
+  Outlet() = delete;
   Outlet(const Outlet&) = delete;
   Outlet(Id<Process::Port> c, QObject* parent);
 
@@ -337,7 +355,9 @@ class SCORE_LIB_PROCESS_EXPORT ControlOutlet final : public Outlet
   SCORE_SERIALIZE_FRIENDS
 public:
   MODEL_METADATA_IMPL_HPP(ControlOutlet)
-  using Outlet::Outlet;
+  ControlOutlet() = delete;
+  ControlOutlet(const Outlet&) = delete;
+  ControlOutlet(Id<Process::Port> c, QObject* parent);
   ~ControlOutlet() override;
 
   ControlOutlet(DataStream::Deserializer& vis, QObject* parent);
@@ -384,16 +404,54 @@ private:
   State::Domain m_domain;
 };
 
+
+class SCORE_LIB_PROCESS_EXPORT ValueInlet: public Inlet
+{
+  W_OBJECT(ValueInlet)
+
+  SCORE_SERIALIZE_FRIENDS
+public:
+  MODEL_METADATA_IMPL_HPP(ValueInlet)
+  ValueInlet() = delete;
+  ~ValueInlet() override;
+  ValueInlet(const ValueInlet&) = delete;
+  ValueInlet(Id<Process::Port> c, QObject* parent);
+
+  ValueInlet(DataStream::Deserializer& vis, QObject* parent);
+  ValueInlet(JSONObject::Deserializer& vis, QObject* parent);
+  ValueInlet(DataStream::Deserializer&& vis, QObject* parent);
+  ValueInlet(JSONObject::Deserializer&& vis, QObject* parent);
+};
+
+class SCORE_LIB_PROCESS_EXPORT ValueOutlet : public Outlet
+{
+  W_OBJECT(ValueOutlet)
+
+SCORE_SERIALIZE_FRIENDS
+public:
+  MODEL_METADATA_IMPL_HPP(ValueOutlet)
+  ValueOutlet() = delete;
+  ~ValueOutlet() override;
+  ValueOutlet(const ValueOutlet&) = delete;
+  ValueOutlet(Id<Process::Port> c, QObject* parent);
+
+  ValueOutlet(DataStream::Deserializer& vis, QObject* parent);
+  ValueOutlet(JSONObject::Deserializer& vis, QObject* parent);
+  ValueOutlet(DataStream::Deserializer&& vis, QObject* parent);
+  ValueOutlet(JSONObject::Deserializer&& vis, QObject* parent);
+};
+
+
 inline std::unique_ptr<Inlet>
 make_value_inlet(const Id<Process::Port>& c, QObject* parent)
 {
-  return std::make_unique<Inlet>(c, parent);
+  return std::make_unique<ValueInlet>(c, parent);
 }
 
 inline std::unique_ptr<Outlet>
 make_value_outlet(const Id<Process::Port>& c, QObject* parent)
 {
-  return std::make_unique<Outlet>(c, parent);
+  return std::make_unique<ValueOutlet>(c, parent);
 }
 
 inline std::unique_ptr<MidiInlet>
@@ -419,16 +477,16 @@ inline std::unique_ptr<AudioOutlet>
 }
 
 SCORE_LIB_PROCESS_EXPORT
-std::unique_ptr<Inlet> load_inlet(DataStreamWriter& wr, QObject* parent);
+std::unique_ptr<ValueInlet> load_value_inlet(DataStreamWriter& wr, QObject* parent);
 
 SCORE_LIB_PROCESS_EXPORT
-std::unique_ptr<Inlet> load_inlet(JSONObjectWriter& wr, QObject* parent);
+std::unique_ptr<ValueInlet> load_value_inlet(JSONObjectWriter& wr, QObject* parent);
 
 SCORE_LIB_PROCESS_EXPORT
-std::unique_ptr<Outlet> load_outlet(DataStreamWriter& wr, QObject* parent);
+std::unique_ptr<ValueOutlet> load_value_outlet(DataStreamWriter& wr, QObject* parent);
 
 SCORE_LIB_PROCESS_EXPORT
-std::unique_ptr<Outlet> load_outlet(JSONObjectWriter& wr, QObject* parent);
+std::unique_ptr<ValueOutlet> load_value_outlet(JSONObjectWriter& wr, QObject* parent);
 
 SCORE_LIB_PROCESS_EXPORT
 std::unique_ptr<AudioInlet> load_audio_inlet(DataStreamWriter& wr, QObject* parent);

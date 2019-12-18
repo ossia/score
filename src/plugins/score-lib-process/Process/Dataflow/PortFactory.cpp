@@ -67,36 +67,32 @@ void writeInlets(
     {
       if(!obj.contains("uuid")) {
         // Old format
-        auto p = new Process::Inlet(Id<Process::Inlet>(obj["id"].toInt()), parent);
-        p->setAddress(fromJsonObject<State::AddressAccessor>(obj["Address"].toObject()));
-        p->setCustomData(obj["Custom"].toString());
-        auto cables = obj["Cables"].toArray();
-        for(auto c : cables) {
-          // TODO
-        }
+        Process::Inlet* p{};
 
-        auto t = obj["type"].toInt();
-        switch(t) {
+        switch(obj["type"].toInt()) {
           case 0: // Message
-          {
-            p->type = Process::PortType::Message;
-            ports.push_back(p);
-            return;
-          }
+            p = new Process::ValueInlet(Id<Process::Inlet>(obj["id"].toInt()), parent);
+            break;
           case 1: // Audio
-          {
-            p->type = Process::PortType::Audio;
-            ports.push_back(p);
-            return;
-          }
+            p = new Process::AudioInlet(Id<Process::Inlet>(obj["id"].toInt()), parent);
+            break;
           case 2: // MIDI
-          {
-            p->type = Process::PortType::Midi;
-            ports.push_back(p);
-            return;
-          }
+            p = new Process::MidiInlet(Id<Process::Inlet>(obj["id"].toInt()), parent);
+            break;
            default:
             break;
+        }
+
+        if(p)
+        {
+          p->setAddress(fromJsonObject<State::AddressAccessor>(obj["Address"].toObject()));
+          p->setCustomData(obj["Custom"].toString());
+          auto cables = obj["Cables"].toArray();
+          for(auto c : cables) {
+            // TODO
+          }
+          ports.push_back(p);
+          return;
         }
       }
 
@@ -124,36 +120,32 @@ void writeOutlets(
     {
       if(!obj.contains("uuid")) {
         // Old format
-        auto p = new Process::Outlet(Id<Process::Inlet>(obj["id"].toInt()), parent);
-        p->setAddress(fromJsonObject<State::AddressAccessor>(obj["Address"].toObject()));
-        p->setCustomData(obj["Custom"].toString());
-        auto cables = obj["Cables"].toArray();
-        for(auto c : cables) {
-          // TODO
-        }
+        Process::Outlet* p{};
 
-        auto t = obj["type"].toInt();
-        switch(t) {
+        switch(obj["type"].toInt()) {
           case 0: // Message
-          {
-            p->type = Process::PortType::Message;
-            ports.push_back(p);
-            return;
-          }
+            p = new Process::ValueOutlet(Id<Process::Outlet>(obj["id"].toInt()), parent);
+            break;
           case 1: // Audio
-          {
-            p->type = Process::PortType::Audio;
-            ports.push_back(p);
-            return;
-          }
+            p = new Process::AudioOutlet(Id<Process::Outlet>(obj["id"].toInt()), parent);
+            break;
           case 2: // MIDI
-          {
-            p->type = Process::PortType::Midi;
-            ports.push_back(p);
-            return;
-          }
+            p = new Process::MidiOutlet(Id<Process::Outlet>(obj["id"].toInt()), parent);
+            break;
            default:
             break;
+        }
+
+        if(p)
+        {
+          p->setAddress(fromJsonObject<State::AddressAccessor>(obj["Address"].toObject()));
+          p->setCustomData(obj["Custom"].toString());
+          auto cables = obj["Cables"].toArray();
+          for(auto c : cables) {
+            // TODO
+          }
+          ports.push_back(p);
+          return;
         }
       }
 

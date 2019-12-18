@@ -7,11 +7,27 @@ score_common_setup()
 set(HDRS
     Dataflow/PortItem.hpp
     Dataflow/CableInspector.hpp
+    Dataflow/ControlInletItem.hpp
+    Dataflow/ControlOutletItem.hpp
+    Dataflow/MidiInletItem.hpp
+    Dataflow/MidiOutletItem.hpp
+    Dataflow/AudioInletItem.hpp
+    Dataflow/AudioOutletItem.hpp
+    Dataflow/PortInspectorFactory.hpp
+    Dataflow/SubportPanel.hpp
     Dataflow/DropPortInScenario.hpp
     score_plugin_dataflow.hpp
 )
 set(SRCS
     Dataflow/PortItem.cpp
+    Dataflow/ControlInletItem.cpp
+    Dataflow/ControlOutletItem.cpp
+    Dataflow/MidiInletItem.cpp
+    Dataflow/MidiOutletItem.cpp
+    Dataflow/AudioInletItem.cpp
+    Dataflow/AudioOutletItem.cpp
+    Dataflow/AudioOutletItem.cpp
+    Dataflow/SubportPanel.cpp
     Dataflow/CableInspector.cpp
     Dataflow/DropPortInScenario.cpp
     score_plugin_dataflow.cpp

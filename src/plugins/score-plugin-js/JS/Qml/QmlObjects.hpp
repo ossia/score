@@ -63,9 +63,7 @@ public:
 
   Process::Inlet* make(Id<Process::Port>&& id, QObject* parent) override
   {
-    auto p = new Process::Inlet(id, parent);
-    p->type = Process::PortType::Message;
-    return p;
+    return new Process::ValueInlet(id, parent);
   }
 
   void clear() { m_values.clear(); }
@@ -89,9 +87,7 @@ public:
 
   Process::Inlet* make(Id<Process::Port>&& id, QObject* parent) override
   {
-    auto p = new Process::Inlet(id, parent);
-    p->type = Process::PortType::Message;
-    return p;
+    return new Process::ControlInlet(id, parent);
   }
 
   void clear() { m_value = QVariant{}; }
@@ -220,9 +216,7 @@ public:
   }
   Process::Outlet* make(Id<Process::Port>&& id, QObject* parent) override
   {
-    auto p = new Process::Outlet(id, parent);
-    p->type = Process::PortType::Message;
-    return p;
+    return new Process::ValueOutlet(id, parent);
   }
 
 public:
@@ -254,8 +248,7 @@ public:
 
   Process::Inlet* make(Id<Process::Port>&& id, QObject* parent) override
   {
-    auto p = new Process::AudioInlet(id, parent);
-    return p;
+    return new Process::AudioInlet(id, parent);
   }
 
 private:
@@ -329,9 +322,7 @@ public:
 
   Process::Inlet* make(Id<Process::Port>&& id, QObject* parent) override
   {
-    auto p = new Process::Inlet(id, parent);
-    p->type = Process::PortType::Midi;
-    return p;
+    return new Process::MidiInlet(id, parent);
   }
 
 private:
@@ -347,9 +338,7 @@ public:
   virtual ~MidiOutlet() override;
   Process::Outlet* make(Id<Process::Port>&& id, QObject* parent) override
   {
-    auto p = new Process::Outlet(id, parent);
-    p->type = Process::PortType::Midi;
-    return p;
+    return new Process::MidiOutlet(id, parent);
   }
 
   void clear();

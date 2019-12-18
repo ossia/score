@@ -81,6 +81,17 @@
   } while (false)
 #endif
 
+#define SCORE_SOFT_ASSERT(arg)      \
+  do                                \
+  {                                 \
+    bool score_assert_b = !!(arg);  \
+    if (!score_assert_b)            \
+    {                               \
+      SCORE_BREAKPOINT;             \
+      qDebug() << "Error: " #arg;   \
+    }                               \
+  } while (false)
+
 #define SCORE_ABORT \
   do                \
   {                 \

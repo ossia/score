@@ -355,8 +355,7 @@ void LV2EffectModel::readPlugin()
   // AUDIO
   if (audio_in_size > 0)
   {
-    m_inlets.push_back(new Process::Inlet{Id<Process::Port>{in_id++}, this});
-    m_inlets[0]->type = Process::PortType::Audio;
+    m_inlets.push_back(new Process::AudioInlet{Id<Process::Port>{in_id++}, this});
   }
 
   if (audio_out_size > 0)
@@ -369,15 +368,13 @@ void LV2EffectModel::readPlugin()
   // CV
   for (std::size_t i = 0; i < cv_size; i++)
   {
-    m_inlets.push_back(new Process::Inlet{Id<Process::Port>{in_id++}, this});
-    m_inlets.back()->type = Process::PortType::Audio;
+    m_inlets.push_back(new Process::AudioInlet{Id<Process::Port>{in_id++}, this});
   }
 
   // MIDI
   for (int port_id : data.midi_in_ports)
   {
-    auto port = new Process::Inlet{Id<Process::Port>{in_id++}, this};
-    port->type = Process::PortType::Midi;
+    auto port = new Process::MidiInlet{Id<Process::Port>{in_id++}, this};
 
     Lilv::Port p = data.effect.plugin.get_port_by_index(port_id);
     Lilv::Node n = p.get_name();
@@ -388,7 +385,7 @@ void LV2EffectModel::readPlugin()
 
   for (int port_id : data.midi_out_ports)
   {
-    auto port = new Process::Outlet{Id<Process::Port>{out_id++}, this};
+    auto port = new Process::MidiOutlet{Id<Process::Port>{out_id++}, this};
     port->type = Process::PortType::Midi;
 
     Lilv::Port p = data.effect.plugin.get_port_by_index(port_id);

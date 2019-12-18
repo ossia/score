@@ -1,5 +1,13 @@
 #include "score_plugin_dataflow.hpp"
 #include <Dataflow/PortItem.hpp>
+#include <Dataflow/AudioInletItem.hpp>
+#include <Dataflow/AudioOutletItem.hpp>
+#include <Dataflow/ControlInletItem.hpp>
+#include <Dataflow/ControlOutletItem.hpp>
+#include <Dataflow/MidiInletItem.hpp>
+#include <Dataflow/MidiOutletItem.hpp>
+#include <Dataflow/PortInspectorFactory.hpp>
+#include <Dataflow/WidgetInletFactory.hpp>
 #include <Dataflow/DropPortInScenario.hpp>
 #include <Dataflow/CableInspector.hpp>
 #include <Process/Dataflow/PortListWidget.hpp>
@@ -42,9 +50,7 @@ score_plugin_dataflow::factories(
           Dataflow::WidgetInletFactory<Process::LineEdit>,
           Dataflow::WidgetInletFactory<Process::ComboBox>,
           Dataflow::WidgetInletFactory<Process::Enum>,
-          Dataflow::WidgetInletFactory<Process::TimeSignatureChooser>,
-          Dataflow::InletFactory,
-          Dataflow::OutletFactory
+          Dataflow::WidgetInletFactory<Process::TimeSignatureChooser>
       >
       >(ctx, key);
 }

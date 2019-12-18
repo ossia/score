@@ -4,6 +4,13 @@
 #include <Process/Dataflow/ControlWidgets.hpp>
 #include <Process/Dataflow/Port.hpp>
 #include <Process/Dataflow/PortFactory.hpp>
+#include <Dataflow/AudioInletItem.hpp>
+#include <Dataflow/AudioOutletItem.hpp>
+#include <Dataflow/ControlInletItem.hpp>
+#include <Dataflow/ControlOutletItem.hpp>
+#include <Dataflow/MidiInletItem.hpp>
+#include <Dataflow/MidiOutletItem.hpp>
+#include <Dataflow/WidgetInletFactory.hpp>
 #include <Process/Dataflow/WidgetInlets.hpp>
 #include <State/Message.hpp>
 #include <State/Expression.hpp>
@@ -27,9 +34,7 @@ class PortSerializationTest : public QObject
 public:
   PortSerializationTest()
   {
-    pl.insert(std::make_unique<Dataflow::InletFactory>());
     pl.insert(std::make_unique<Dataflow::ControlInletFactory>());
-    pl.insert(std::make_unique<Dataflow::OutletFactory>());
     pl.insert(std::make_unique<Dataflow::AudioOutletFactory>());
     pl.insert(std::make_unique<Dataflow::ControlOutletFactory>());
     pl.insert(std::make_unique<Dataflow::WidgetInletFactory<Process::LineEdit>>());
@@ -191,7 +196,7 @@ nullptr); auto ptr = dynamic_cast<Process::ControlInlet*>(new_port);
 
   void test_inlet_json_upcast()
   {
-    Process::Inlet port{Id<Process::Port>{1234}, nullptr};
+    Process::ValueInlet port{Id<Process::Port>{1234}, nullptr};
     port.setAddress(*State::parseAddressAccessor("foo:/bar@[1]"));
 
     {
@@ -205,7 +210,7 @@ nullptr); auto ptr = dynamic_cast<Process::ControlInlet*>(new_port);
 
   void test_outlet_json_upcast()
   {
-    Process::Outlet port{Id<Process::Port>{1234}, nullptr};
+    Process::ValueOutlet port{Id<Process::Port>{1234}, nullptr};
     port.setAddress(*State::parseAddressAccessor("foo:/bar@[1]"));
 
     {
@@ -219,7 +224,7 @@ nullptr); auto ptr = dynamic_cast<Process::ControlInlet*>(new_port);
 
   void test_inlet_datastream_upcast()
   {
-    Process::Inlet port{Id<Process::Port>{1234}, nullptr};
+    Process::ValueInlet port{Id<Process::Port>{1234}, nullptr};
     port.setAddress(*State::parseAddressAccessor("foo:/bar@[1]"));
 
     {
@@ -233,7 +238,7 @@ nullptr); auto ptr = dynamic_cast<Process::ControlInlet*>(new_port);
 
   void test_outlet_datastream_upcast()
   {
-    Process::Outlet port{Id<Process::Port>{1234}, nullptr};
+    Process::ValueOutlet port{Id<Process::Port>{1234}, nullptr};
     port.setAddress(*State::parseAddressAccessor("foo:/bar@[1]"));
 
     {

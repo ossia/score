@@ -580,8 +580,7 @@ void VSTEffectModel::create()
   int inlet_i = 0;
   if (fx->fx->flags & effFlagsIsSynth)
   {
-    m_inlets.push_back(new Process::Inlet(Id<Process::Port>{inlet_i++}, this));
-    m_inlets[0]->type = Process::PortType::Midi;
+    m_inlets.push_back(new Process::MidiInlet(Id<Process::Port>{inlet_i++}, this));
   }
   else
   {

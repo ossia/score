@@ -7,6 +7,7 @@
 #include <score_lib_process_export.h>
 namespace Process
 {
+class Port;
 class SCORE_LIB_PROCESS_EXPORT AudioPortComboBox final : public QComboBox
 {
   W_OBJECT(AudioPortComboBox)
@@ -28,6 +29,21 @@ private:
   Device::FullAddressSettings m_address;
   std::vector<QString> m_child;
 };
+
+SCORE_LIB_PROCESS_EXPORT
+QWidget* makeAddressCombo(
+    State::Address root,
+    const Device::Node& out_node,
+    const Process::Port& port,
+    const score::DocumentContext& ctx,
+    QWidget* parent);
+
+SCORE_LIB_PROCESS_EXPORT
+QWidget* makeMidiCombo(
+        QStringList devices,
+        const Process::Port& port,
+        const score::DocumentContext& ctx,
+        QWidget* parent);
 /*
 class SCORE_LIB_PROCESS_EXPORT MidiPortComboBox final : public QComboBox
 {

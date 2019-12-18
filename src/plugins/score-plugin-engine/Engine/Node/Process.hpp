@@ -154,15 +154,13 @@ struct PortSetup
     }
     for (const auto& in : Node_T::Metadata::value_ins)
     {
-      auto p = new Process::Inlet(Id<Process::Port>(inlet++), &self);
-      p->type = Process::PortType::Message;
+      auto p = new Process::ValueInlet(Id<Process::Port>(inlet++), &self);
       p->setCustomData(QString::fromUtf8(in.name.data(), in.name.size()));
       ins.push_back(p);
     }
     for (const auto& in : Node_T::Metadata::address_ins)
     {
-      auto p = new Process::Inlet(Id<Process::Port>(inlet++), &self);
-      p->type = Process::PortType::Message;
+      auto p = new Process::ValueInlet(Id<Process::Port>(inlet++), &self);
       p->setCustomData(QString::fromUtf8(in.name.data(), in.name.size()));
       ins.push_back(p);
     }
@@ -192,8 +190,7 @@ struct PortSetup
     }
     for (const auto& out : Node_T::Metadata::value_outs)
     {
-      auto p = new Process::Outlet(Id<Process::Port>(outlet++), &self);
-      p->type = Process::PortType::Message;
+      auto p = new Process::ValueOutlet(Id<Process::Port>(outlet++), &self);
       p->setCustomData(QString::fromUtf8(out.name.data(), out.name.size()));
       outs.push_back(p);
     }

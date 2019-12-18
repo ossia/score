@@ -29,7 +29,7 @@ void DataStreamReader::read(const Automation::ProcessModel& autom)
 template <>
 void DataStreamWriter::write(Automation::ProcessModel& autom)
 {
-  autom.outlet = Process::load_outlet(*this, &autom);
+  autom.outlet = Process::load_value_outlet(*this, &autom);
 
   autom.setCurve(new Curve::Model{*this, &autom});
 
@@ -59,14 +59,7 @@ template <>
 void JSONObjectWriter::write(Automation::ProcessModel& autom)
 {
   JSONObjectWriter writer{obj["Outlet"].toObject()};
-  autom.outlet = Process::load_outlet(writer, &autom);
-  if (!autom.outlet)
-  {
-    autom.outlet = Process::make_value_outlet(Id<Process::Port>(0), &autom);
-    autom.outlet->type = Process::PortType::Message;
-    autom.outlet->setAddress(fromJsonObject<State::AddressAccessor>(
-        obj[strings.Address].toObject()));
-  }
+  autom.outlet = Process::load_value_outlet(writer, &autom);
 
   JSONObject::Deserializer curve_deser{obj["Curve"].toObject()};
   autom.setCurve(new Curve::Model{curve_deser, &autom});

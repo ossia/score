@@ -28,8 +28,8 @@ void DataStreamReader::read(const Mapping::ProcessModel& autom)
 template <>
 void DataStreamWriter::write(Mapping::ProcessModel& autom)
 {
-  autom.inlet = Process::load_inlet(*this, &autom);
-  autom.outlet = Process::load_outlet(*this, &autom);
+  autom.inlet = Process::load_value_inlet(*this, &autom);
+  autom.outlet = Process::load_value_outlet(*this, &autom);
   autom.setCurve(new Curve::Model{*this, &autom});
 
   { // Source
@@ -70,25 +70,11 @@ void JSONObjectWriter::write(Mapping::ProcessModel& autom)
 {
   {
     JSONObjectWriter writer{obj["Inlet"].toObject()};
-    autom.inlet = Process::load_inlet(writer, &autom);
-    if (!autom.inlet)
-    {
-      autom.inlet = Process::make_value_inlet(Id<Process::Port>(0), &autom);
-      autom.inlet->type = Process::PortType::Message;
-      autom.inlet->setAddress(fromJsonObject<State::AddressAccessor>(
-          obj["SourceAddress"].toObject()));
-    }
+    autom.inlet = Process::load_value_inlet(writer, &autom);
   }
   {
     JSONObjectWriter writer{obj["Outlet"].toObject()};
-    autom.outlet = Process::load_outlet(writer, &autom);
-    if (!autom.outlet)
-    {
-      autom.outlet = Process::make_value_outlet(Id<Process::Port>(0), &autom);
-      autom.outlet->type = Process::PortType::Message;
-      autom.outlet->setAddress(fromJsonObject<State::AddressAccessor>(
-          obj["TargetAddress"].toObject()));
-    }
+    autom.outlet = Process::load_value_outlet(writer, &autom);
   }
 
   JSONObject::Deserializer curve_deser{obj["Curve"].toObject()};

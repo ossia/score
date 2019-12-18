@@ -46,7 +46,7 @@ template <>
 void DataStreamWriter::write(Media::Metro::Model& proc)
 {
   proc.audio_outlet = Process::load_audio_outlet(*this, &proc);
-  proc.bang_outlet = Process::load_outlet(*this, &proc);
+  proc.bang_outlet = Process::load_value_outlet(*this, &proc);
   checkDelimiter();
 }
 
@@ -66,6 +66,6 @@ void JSONObjectWriter::write(Media::Metro::Model& proc)
   }
   {
     JSONObjectWriter writer{obj["BangOutlet"].toObject()};
-    proc.bang_outlet = Process::load_outlet(writer, &proc);
+    proc.bang_outlet = Process::load_value_outlet(writer, &proc);
   }
 }
