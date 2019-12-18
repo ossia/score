@@ -15,6 +15,8 @@
 W_OBJECT_IMPL(Process::Port)
 W_OBJECT_IMPL(Process::Inlet)
 W_OBJECT_IMPL(Process::Outlet)
+W_OBJECT_IMPL(Process::ValueInlet)
+W_OBJECT_IMPL(Process::ValueOutlet)
 W_OBJECT_IMPL(Process::AudioInlet)
 W_OBJECT_IMPL(Process::AudioOutlet)
 W_OBJECT_IMPL(Process::MidiInlet)
@@ -25,6 +27,8 @@ namespace Process
 {
 MODEL_METADATA_IMPL_CPP(Inlet)
 MODEL_METADATA_IMPL_CPP(Outlet)
+MODEL_METADATA_IMPL_CPP(ValueInlet)
+MODEL_METADATA_IMPL_CPP(ValueOutlet)
 MODEL_METADATA_IMPL_CPP(AudioInlet)
 MODEL_METADATA_IMPL_CPP(AudioOutlet)
 MODEL_METADATA_IMPL_CPP(MidiInlet)
@@ -171,6 +175,10 @@ Inlet::Inlet(JSONObject::Deserializer&& vis, QObject* parent)
   vis.writeTo(*this);
 }
 
+ControlInlet::ControlInlet(Id<Process::Port> c, QObject* parent)
+    : Inlet{std::move(c), parent}
+{
+}
 ControlInlet::~ControlInlet() {}
 
 ControlInlet::ControlInlet(DataStream::Deserializer& vis, QObject* parent)
@@ -383,6 +391,11 @@ MidiOutlet::MidiOutlet(JSONObject::Deserializer&& vis, QObject* parent)
   vis.writeTo(*this);
 }
 
+ControlOutlet::ControlOutlet(Id<Process::Port> c, QObject* parent)
+    : Outlet{std::move(c), parent}
+{
+}
+
 ControlOutlet::~ControlOutlet() {}
 
 ControlOutlet::ControlOutlet(DataStream::Deserializer& vis, QObject* parent)
@@ -405,6 +418,67 @@ ControlOutlet::ControlOutlet(JSONObject::Deserializer&& vis, QObject* parent)
 {
   vis.writeTo(*this);
 }
+
+
+ValueInlet::~ValueInlet() {}
+
+ValueInlet::ValueInlet(Id<Process::Port> c, QObject* parent)
+  : Inlet{std::move(c), parent}
+{
+  type = Process::PortType::Message;
+}
+
+ValueInlet::ValueInlet(DataStream::Deserializer& vis, QObject* parent)
+  : Inlet{vis, parent}
+{
+  vis.writeTo(*this);
+}
+ValueInlet::ValueInlet(JSONObject::Deserializer& vis, QObject* parent)
+  : Inlet{vis, parent}
+{
+  vis.writeTo(*this);
+}
+ValueInlet::ValueInlet(DataStream::Deserializer&& vis, QObject* parent)
+  : Inlet{vis, parent}
+{
+  vis.writeTo(*this);
+}
+ValueInlet::ValueInlet(JSONObject::Deserializer&& vis, QObject* parent)
+  : Inlet{vis, parent}
+{
+  vis.writeTo(*this);
+}
+
+ValueOutlet::~ValueOutlet() {}
+
+ValueOutlet::ValueOutlet(Id<Process::Port> c, QObject* parent)
+  : Outlet{std::move(c), parent}
+{
+  type = Process::PortType::Message;
+}
+
+ValueOutlet::ValueOutlet(DataStream::Deserializer& vis, QObject* parent)
+  : Outlet{vis, parent}
+{
+  vis.writeTo(*this);
+}
+ValueOutlet::ValueOutlet(JSONObject::Deserializer& vis, QObject* parent)
+  : Outlet{vis, parent}
+{
+  vis.writeTo(*this);
+}
+ValueOutlet::ValueOutlet(DataStream::Deserializer&& vis, QObject* parent)
+  : Outlet{vis, parent}
+{
+  vis.writeTo(*this);
+}
+ValueOutlet::ValueOutlet(JSONObject::Deserializer&& vis, QObject* parent)
+  : Outlet{vis, parent}
+{
+  vis.writeTo(*this);
+}
+
+
 
 PortFactory::~PortFactory() {}
 
@@ -532,9 +606,11 @@ std::unique_ptr<Inlet> load_inlet(DataStreamWriter& wr, QObject* parent)
 
   auto in = std::unique_ptr<Process::Inlet>((Process::Inlet*)ptr);
   if(in->type == Process::PortType::Audio)
-      SCORE_ASSERT(dynamic_cast<Process::AudioInlet*>(in.get()));
+      SCORE_SOFT_ASSERT(dynamic_cast<Process::AudioInlet*>(in.get()));
   else if(in->type == Process::PortType::Midi)
-      SCORE_ASSERT(dynamic_cast<Process::MidiInlet*>(in.get()));
+      SCORE_SOFT_ASSERT(dynamic_cast<Process::MidiInlet*>(in.get()));
+  else if(in->type == Process::PortType::Message)
+    SCORE_SOFT_ASSERT(dynamic_cast<Process::ValueInlet*>(in.get()) || dynamic_cast<Process::ControlInlet*>(in.get()));
 
   return in;
 }
@@ -547,9 +623,11 @@ std::unique_ptr<Inlet> load_inlet(JSONObjectWriter& wr, QObject* parent)
 
   auto in = std::unique_ptr<Process::Inlet>((Process::Inlet*)ptr);
   if(in->type == Process::PortType::Audio)
-      SCORE_ASSERT(dynamic_cast<Process::AudioInlet*>(in.get()));
+      SCORE_SOFT_ASSERT(dynamic_cast<Process::AudioInlet*>(in.get()));
   else if(in->type == Process::PortType::Midi)
-      SCORE_ASSERT(dynamic_cast<Process::MidiInlet*>(in.get()));
+      SCORE_SOFT_ASSERT(dynamic_cast<Process::MidiInlet*>(in.get()));
+  else if(in->type == Process::PortType::Message)
+    SCORE_SOFT_ASSERT(dynamic_cast<Process::ValueInlet*>(in.get()) || dynamic_cast<Process::ControlInlet*>(in.get()));
 
   return in;
 }
@@ -562,9 +640,11 @@ std::unique_ptr<Outlet> load_outlet(DataStreamWriter& wr, QObject* parent)
 
   auto out = std::unique_ptr<Process::Outlet>((Process::Outlet*)ptr);
   if(out->type == Process::PortType::Audio)
-      SCORE_ASSERT(dynamic_cast<Process::AudioOutlet*>(out.get()));
+      SCORE_SOFT_ASSERT(dynamic_cast<Process::AudioOutlet*>(out.get()));
   else if(out->type == Process::PortType::Midi)
-      SCORE_ASSERT(dynamic_cast<Process::MidiOutlet*>(out.get()));
+      SCORE_SOFT_ASSERT(dynamic_cast<Process::MidiOutlet*>(out.get()));
+  else if(out->type == Process::PortType::Message)
+    SCORE_SOFT_ASSERT(dynamic_cast<Process::ValueOutlet*>(out.get()) || dynamic_cast<Process::ControlOutlet*>(out.get()));
   return out;
 }
 
@@ -576,9 +656,11 @@ std::unique_ptr<Outlet> load_outlet(JSONObjectWriter& wr, QObject* parent)
 
   auto out = std::unique_ptr<Process::Outlet>((Process::Outlet*)ptr);
   if(out->type == Process::PortType::Audio)
-      SCORE_ASSERT(dynamic_cast<Process::AudioOutlet*>(out.get()));
+      SCORE_SOFT_ASSERT(dynamic_cast<Process::AudioOutlet*>(out.get()));
   else if(out->type == Process::PortType::Midi)
-      SCORE_ASSERT(dynamic_cast<Process::MidiOutlet*>(out.get()));
+      SCORE_SOFT_ASSERT(dynamic_cast<Process::MidiOutlet*>(out.get()));
+  else if(out->type == Process::PortType::Message)
+    SCORE_SOFT_ASSERT(dynamic_cast<Process::ValueOutlet*>(out.get()) || dynamic_cast<Process::ControlOutlet*>(out.get()));
   return out;
 }
 
@@ -596,33 +678,53 @@ static auto copy_port(const Port& src, Port& dst)
 template<typename T, typename W>
 auto load_port_t(W& wr, QObject* parent)
 {
-    auto out = [&] {
-        if constexpr(std::is_base_of_v<Inlet, T>)
-          return load_inlet(wr, parent).release();
-        else if constexpr(std::is_base_of_v<Outlet, T>)
-          return load_outlet(wr, parent).release();
-        else
-          return nullptr;
-    }();
-
-    if(auto p = dynamic_cast<T*>(out))
-    {
-        return std::unique_ptr<T>(static_cast<T*>(out));
-    }
-    else if(out)
-    {
-        // Pre 2.0
-        auto new_p = std::make_unique<T>(out->id(), parent);
-        copy_port(*out, *new_p);
-        delete out;
-        return new_p;
-    }
+  auto out = [&] {
+    if constexpr(std::is_base_of_v<Inlet, T>)
+        return load_inlet(wr, parent).release();
+    else if constexpr(std::is_base_of_v<Outlet, T>)
+        return load_outlet(wr, parent).release();
     else
-    {
-        // This works with a specific id because it is only for pre 1.0 saves
-        return std::make_unique<T>(Id<Process::Port>(0), parent);
-    }
+    return nullptr;
+  }();
+
+  if(auto p = dynamic_cast<T*>(out))
+  {
+    return std::unique_ptr<T>(static_cast<T*>(out));
+  }
+  else if(out)
+  {
+    // Pre 2.0
+    auto new_p = std::make_unique<T>(out->id(), parent);
+    copy_port(*out, *new_p);
+    delete out;
+    return new_p;
+  }
+  else
+  {
+    // This works with a specific id because it is only for pre 1.0 saves
+    return std::make_unique<T>(Id<Process::Port>(0), parent);
+  }
 }
+std::unique_ptr<ValueInlet> load_value_inlet(DataStreamWriter& wr, QObject* parent)
+{
+  return load_port_t<ValueInlet>(wr, parent);
+}
+
+std::unique_ptr<ValueInlet> load_value_inlet(JSONObjectWriter& wr, QObject* parent)
+{
+  return load_port_t<ValueInlet>(wr, parent);
+}
+
+std::unique_ptr<ValueOutlet> load_value_outlet(DataStreamWriter& wr, QObject* parent)
+{
+  return load_port_t<ValueOutlet>(wr, parent);
+}
+
+std::unique_ptr<ValueOutlet> load_value_outlet(JSONObjectWriter& wr, QObject* parent)
+{
+  return load_port_t<ValueOutlet>(wr, parent);
+}
+
 std::unique_ptr<AudioInlet> load_audio_inlet(DataStreamWriter& wr, QObject* parent)
 {
     return load_port_t<AudioInlet>(wr, parent);
@@ -922,3 +1024,53 @@ JSONObjectWriter::write<Process::ControlOutlet>(Process::ControlOutlet& p)
   p.m_value = fromJsonValue<ossia::value>(obj[strings.Value]);
   p.m_domain = fromJsonObject<State::Domain>(obj[strings.Domain].toObject());
 }
+
+template <>
+SCORE_LIB_PROCESS_EXPORT void
+DataStreamReader::read<Process::ValueInlet>(const Process::ValueInlet& p)
+{
+    // read((Process::Outlet&)p);
+}
+template <>
+SCORE_LIB_PROCESS_EXPORT void
+DataStreamWriter::write<Process::ValueInlet>(Process::ValueInlet& p)
+{
+}
+
+template <>
+SCORE_LIB_PROCESS_EXPORT void
+JSONObjectReader::read<Process::ValueInlet>(const Process::ValueInlet& p)
+{
+    // read((Process::Outlet&)p);
+}
+template <>
+SCORE_LIB_PROCESS_EXPORT void
+JSONObjectWriter::write<Process::ValueInlet>(Process::ValueInlet& p)
+{
+}
+
+
+template <>
+SCORE_LIB_PROCESS_EXPORT void
+DataStreamReader::read<Process::ValueOutlet>(const Process::ValueOutlet& p)
+{
+    // read((Process::Outlet&)p);
+}
+template <>
+SCORE_LIB_PROCESS_EXPORT void
+DataStreamWriter::write<Process::ValueOutlet>(Process::ValueOutlet& p)
+{
+}
+
+template <>
+SCORE_LIB_PROCESS_EXPORT void
+JSONObjectReader::read<Process::ValueOutlet>(const Process::ValueOutlet& p)
+{
+    // read((Process::Outlet&)p);
+}
+template <>
+SCORE_LIB_PROCESS_EXPORT void
+JSONObjectWriter::write<Process::ValueOutlet>(Process::ValueOutlet& p)
+{
+}
+

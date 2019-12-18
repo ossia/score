@@ -257,9 +257,9 @@ inline const CommandGroupKey& CommandFactoryName()
 }
 
 
-inline Process::Inlet global_message_port{Id<Process::Port>{1}, nullptr};
-inline Process::Inlet global_midi_port{Id<Process::Port>{2}, nullptr};
-inline Process::Inlet global_audio_port{Id<Process::Port>{3}, nullptr};
+inline Process::ValueInlet global_message_port{Id<Process::Port>{1}, nullptr};
+inline Process::MidiInlet global_midi_port{Id<Process::Port>{2}, nullptr};
+inline Process::AudioInlet global_audio_port{Id<Process::Port>{3}, nullptr};
 inline Process::ControlInlet global_control_port{Id<Process::Port>{4}, nullptr};
 }
 W_REGISTER_ARGTYPE(Process::PortType)

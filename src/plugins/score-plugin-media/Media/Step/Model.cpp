@@ -116,7 +116,7 @@ void DataStreamReader::read(const Media::Step::Model& proc)
 template <>
 void DataStreamWriter::write(Media::Step::Model& proc)
 {
-  proc.outlet = Process::load_outlet(*this, &proc);
+  proc.outlet = Process::load_value_outlet(*this, &proc);
   m_stream >> proc.m_steps >> proc.m_stepCount >> proc.m_stepDuration
       >> proc.m_min >> proc.m_max;
   checkDelimiter();
@@ -138,7 +138,7 @@ void JSONObjectWriter::write(Media::Step::Model& proc)
 {
   {
     JSONObjectWriter writer{obj["Outlet"].toObject()};
-    proc.outlet = Process::load_outlet(writer, &proc);
+    proc.outlet = Process::load_value_outlet(writer, &proc);
   }
 
   proc.m_steps

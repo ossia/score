@@ -19,7 +19,11 @@ class VSTControlInlet final : public Process::Inlet
   SCORE_SERIALIZE_FRIENDS
 public:
   MODEL_METADATA_IMPL(VSTControlInlet)
-  using Process::Inlet::Inlet;
+  VSTControlInlet(Id<Process::Port> c, QObject* parent)
+    : Inlet{std::move(c), parent}
+  {
+  }
+
 
   VSTControlInlet(DataStream::Deserializer& vis, QObject* parent)
       : Inlet{vis, parent}

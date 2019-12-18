@@ -193,8 +193,7 @@ void FaustEffectModel::reloadFx(llvm_dsp_factory* fac, llvm_dsp* obj)
     m_inlets.clear();
     m_outlets.clear();
 
-    m_inlets.push_back(new Process::Inlet{getStrongId(m_inlets), this});
-    m_inlets.front()->type = Process::PortType::Audio;
+    m_inlets.push_back(new Process::AudioInlet{getStrongId(m_inlets), this});
     auto out = new Process::AudioOutlet{getStrongId(m_outlets), this};
     out->setPropagate(true);
     m_outlets.push_back(out);
@@ -255,8 +254,7 @@ void FaustEffectModel::reloadMidi(dsp_poly_factory* fac, dsp_poly* obj)
     m_inlets.clear();
     m_outlets.clear();
 
-    m_inlets.push_back(new Process::Inlet{getStrongId(m_inlets), this});
-    m_inlets.front()->type = Process::PortType::Midi;
+    m_inlets.push_back(new Process::MidiInlet{getStrongId(m_inlets), this});
 
     auto out = new Process::AudioOutlet{getStrongId(m_outlets), this};
     out->setPropagate(true);
