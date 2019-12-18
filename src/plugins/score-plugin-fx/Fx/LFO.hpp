@@ -104,9 +104,9 @@ struct Node
     static const constexpr auto controls = std::make_tuple(
         Control::Widgets::LFOFreqKnob(),
         Control::FloatKnob{"Ampl.", 0., 1000., 0.},
-        Control::FloatKnob{"Fine", 0., 1., 1.},
+        Control::FloatKnob{"Fine", 0., 1., 0.5},
         Control::FloatKnob{"Offset", -1000., 1000., 0.},
-        Control::FloatKnob{"Fine", -1., 1., 0.},
+        Control::FloatKnob{"Fine", -1., 1., 0.5},
         Control::FloatKnob{"Jitter", 0., 1., 0.},
         Control::FloatKnob{"Phase", -1., 1., 0.},
         Control::Widgets::WaveformChooser(),
