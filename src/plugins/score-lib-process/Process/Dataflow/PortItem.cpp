@@ -30,20 +30,93 @@ void onCreateCable(
     Dataflow::PortItem* p1,
     Dataflow::PortItem* p2);
 
-std::array<QPixmap, 3> SmallEllipsesIn;
-std::array<QPixmap, 3> LargeEllipsesIn;
+namespace
+{
+struct Ellipses
+{
+  std::array<QPixmap, 3> SmallEllipsesIn;
+  std::array<QPixmap, 3> LargeEllipsesIn;
 
-std::array<QPixmap, 3> SmallEllipsesOut;
-std::array<QPixmap, 3> LargeEllipsesOut;
+  std::array<QPixmap, 3> SmallEllipsesOut;
+  std::array<QPixmap, 3> LargeEllipsesOut;
 
-std::array<QPixmap, 3> SmallEllipsesInLight;
-std::array<QPixmap, 3> LargeEllipsesInLight;
+  std::array<QPixmap, 3> SmallEllipsesInLight;
+  std::array<QPixmap, 3> LargeEllipsesInLight;
 
-std::array<QPixmap, 3> SmallEllipsesOutLight;
-std::array<QPixmap, 3> LargeEllipsesOutLight;
+  std::array<QPixmap, 3> SmallEllipsesOutLight;
+  std::array<QPixmap, 3> LargeEllipsesOutLight;
 
+  Ellipses()
+  {
+    auto& skin = Process::Style::instance();
+    static constexpr qreal smallRadius = 3.;
+    static constexpr qreal largeRadius = 5.;
+    static constexpr QRectF smallEllipse{3., 3., 2. * smallRadius, 2. * smallRadius};
+    static constexpr QRectF largeEllipse{1., 1., 2. * largeRadius, 2. * largeRadius};
+    const qreal dpi = qApp->devicePixelRatio();
+    const qreal sz = dpi * 13.;
+
+#define DRAW_ELLIPSE(Image, Pen, Brush, Ellipse) \
+  do { \
+  QImage temp(sz, sz, QImage::Format_ARGB32_Premultiplied); \
+  temp.fill(Qt::transparent); \
+  temp.setDevicePixelRatio(dpi); \
+  QPainter p(&temp); \
+  p.setRenderHint(QPainter::Antialiasing, true); \
+  p.setPen(Pen); \
+  p.setBrush(Brush); \
+  p.drawEllipse(Ellipse); \
+  Image = QPixmap::fromImage(temp); \
+  } while(0)
+
+    const auto& audiopen = skin.AudioPortPen();
+    const auto& datapen = skin.DataPortPen();
+    const auto& midipen = skin.MidiPortPen();
+    const auto& audiopen_light = skin.skin.Port1.lighter180.pen1_5;
+    const auto& datapen_light = skin.skin.Port2.lighter180.pen1_5;
+    const auto& midipen_light = skin.skin.Port3.lighter180.pen1_5;
+    const auto& audiobrush = skin.skin.Port1.main.brush;
+    const auto& databrush = skin.skin.Port2.main.brush;
+    const auto& midibrush = skin.skin.Port3.main.brush;
+    const auto& audiobrush_light = skin.skin.Port1.lighter.brush;
+    const auto& databrush_light = skin.skin.Port2.lighter.brush;
+    const auto& midibrush_light = skin.skin.Port3.lighter.brush;
+    const auto& nobrush = skin.NoBrush();
+    DRAW_ELLIPSE(SmallEllipsesIn[0], audiopen, nobrush, smallEllipse);
+    DRAW_ELLIPSE(SmallEllipsesIn[1], datapen, nobrush, smallEllipse);
+    DRAW_ELLIPSE(SmallEllipsesIn[2], midipen, nobrush, smallEllipse);
+    DRAW_ELLIPSE(SmallEllipsesOut[0], audiopen, audiobrush, smallEllipse);
+    DRAW_ELLIPSE(SmallEllipsesOut[1], datapen, databrush, smallEllipse);
+    DRAW_ELLIPSE(SmallEllipsesOut[2], midipen, midibrush, smallEllipse);
+
+    DRAW_ELLIPSE(LargeEllipsesIn[0], audiopen, nobrush, largeEllipse);
+    DRAW_ELLIPSE(LargeEllipsesIn[1], datapen, nobrush, largeEllipse);
+    DRAW_ELLIPSE(LargeEllipsesIn[2], midipen, nobrush, largeEllipse);
+    DRAW_ELLIPSE(LargeEllipsesOut[0], audiopen, audiobrush, largeEllipse);
+    DRAW_ELLIPSE(LargeEllipsesOut[1], datapen, databrush, largeEllipse);
+    DRAW_ELLIPSE(LargeEllipsesOut[2], midipen, midibrush, largeEllipse);
+
+    DRAW_ELLIPSE(SmallEllipsesInLight[0], audiopen_light, nobrush, smallEllipse);
+    DRAW_ELLIPSE(SmallEllipsesInLight[1], datapen_light, nobrush, smallEllipse);
+    DRAW_ELLIPSE(SmallEllipsesInLight[2], midipen_light, nobrush, smallEllipse);
+    DRAW_ELLIPSE(SmallEllipsesOutLight[0], audiopen_light, audiobrush_light, smallEllipse);
+    DRAW_ELLIPSE(SmallEllipsesOutLight[1], datapen_light, databrush_light, smallEllipse);
+    DRAW_ELLIPSE(SmallEllipsesOutLight[2], midipen_light, midibrush_light, smallEllipse);
+
+    DRAW_ELLIPSE(LargeEllipsesInLight[0], audiopen_light, nobrush, largeEllipse);
+    DRAW_ELLIPSE(LargeEllipsesInLight[1], datapen_light, nobrush, largeEllipse);
+    DRAW_ELLIPSE(LargeEllipsesInLight[2], midipen_light, nobrush, largeEllipse);
+    DRAW_ELLIPSE(LargeEllipsesOutLight[0], audiopen_light, audiobrush_light, largeEllipse);
+    DRAW_ELLIPSE(LargeEllipsesOutLight[1], datapen_light, databrush_light, largeEllipse);
+    DRAW_ELLIPSE(LargeEllipsesOutLight[2], midipen_light, midibrush_light, largeEllipse);
+
+#undef DRAW_ELLIPSE
+  }
+};
+}
 const QPixmap& PortItem::portImage(Process::PortType t, bool inlet, bool small, bool light) noexcept
 {
+  static const Ellipses ellipses;
   int n;
   switch(t) {
     case Process::PortType::Audio: n = 0; break;
@@ -57,22 +130,22 @@ const QPixmap& PortItem::portImage(Process::PortType t, bool inlet, bool small, 
     {
       if(small)
       {
-        return SmallEllipsesInLight[n];
+        return ellipses.SmallEllipsesInLight[n];
       }
       else
       {
-        return LargeEllipsesInLight[n];
+        return ellipses.LargeEllipsesInLight[n];
       }
     }
     else
     {
       if(small)
       {
-        return SmallEllipsesOutLight[n];
+        return ellipses.SmallEllipsesOutLight[n];
       }
       else
       {
-        return LargeEllipsesOutLight[n];
+        return ellipses.LargeEllipsesOutLight[n];
       }
     }
   }
@@ -82,93 +155,25 @@ const QPixmap& PortItem::portImage(Process::PortType t, bool inlet, bool small, 
     {
       if(small)
       {
-        return SmallEllipsesIn[n];
+        return ellipses.SmallEllipsesIn[n];
       }
       else
       {
-        return LargeEllipsesIn[n];
+        return ellipses.LargeEllipsesIn[n];
       }
     }
     else
     {
       if(small)
       {
-        return SmallEllipsesOut[n];
+        return ellipses.SmallEllipsesOut[n];
       }
       else
       {
-        return LargeEllipsesOut[n];
+        return ellipses.LargeEllipsesOut[n];
       }
     }
   }
-}
-
-// TODO move in ProcessStyle
-static bool initEllipses(Process::Style& skin)
-{
-  static constexpr qreal smallRadius = 3.;
-  static constexpr qreal largeRadius = 5.;
-  static constexpr QRectF smallEllipse{3., 3., 2. * smallRadius, 2. * smallRadius};
-  static constexpr QRectF largeEllipse{1., 1., 2. * largeRadius, 2. * largeRadius};
-  const qreal dpi = qApp->devicePixelRatio();
-  const qreal sz = dpi * 13.;
-
-#define DRAW_ELLIPSE(Image, Pen, Brush, Ellipse) \
-  do { \
-    QImage temp(sz, sz, QImage::Format_ARGB32_Premultiplied); \
-    temp.fill(Qt::transparent); \
-    temp.setDevicePixelRatio(dpi); \
-    QPainter p(&temp); \
-    p.setRenderHint(QPainter::Antialiasing, true); \
-    p.setPen(Pen); \
-    p.setBrush(Brush); \
-    p.drawEllipse(Ellipse); \
-    Image = QPixmap::fromImage(temp); \
-  } while(0)
-
-  const auto& audiopen = skin.AudioPortPen();
-  const auto& datapen = skin.DataPortPen();
-  const auto& midipen = skin.MidiPortPen();
-  const auto& audiopen_light = skin.skin.Port1.lighter180.pen1_5;
-  const auto& datapen_light = skin.skin.Port2.lighter180.pen1_5;
-  const auto& midipen_light = skin.skin.Port3.lighter180.pen1_5;
-  const auto& audiobrush = skin.skin.Port1.main.brush;
-  const auto& databrush = skin.skin.Port2.main.brush;
-  const auto& midibrush = skin.skin.Port3.main.brush;
-  const auto& audiobrush_light = skin.skin.Port1.lighter.brush;
-  const auto& databrush_light = skin.skin.Port2.lighter.brush;
-  const auto& midibrush_light = skin.skin.Port3.lighter.brush;
-  const auto& nobrush = skin.NoBrush();
-  DRAW_ELLIPSE(SmallEllipsesIn[0], audiopen, nobrush, smallEllipse);
-  DRAW_ELLIPSE(SmallEllipsesIn[1], datapen, nobrush, smallEllipse);
-  DRAW_ELLIPSE(SmallEllipsesIn[2], midipen, nobrush, smallEllipse);
-  DRAW_ELLIPSE(SmallEllipsesOut[0], audiopen, audiobrush, smallEllipse);
-  DRAW_ELLIPSE(SmallEllipsesOut[1], datapen, databrush, smallEllipse);
-  DRAW_ELLIPSE(SmallEllipsesOut[2], midipen, midibrush, smallEllipse);
-
-  DRAW_ELLIPSE(LargeEllipsesIn[0], audiopen, nobrush, largeEllipse);
-  DRAW_ELLIPSE(LargeEllipsesIn[1], datapen, nobrush, largeEllipse);
-  DRAW_ELLIPSE(LargeEllipsesIn[2], midipen, nobrush, largeEllipse);
-  DRAW_ELLIPSE(LargeEllipsesOut[0], audiopen, audiobrush, largeEllipse);
-  DRAW_ELLIPSE(LargeEllipsesOut[1], datapen, databrush, largeEllipse);
-  DRAW_ELLIPSE(LargeEllipsesOut[2], midipen, midibrush, largeEllipse);
-
-  DRAW_ELLIPSE(SmallEllipsesInLight[0], audiopen_light, nobrush, smallEllipse);
-  DRAW_ELLIPSE(SmallEllipsesInLight[1], datapen_light, nobrush, smallEllipse);
-  DRAW_ELLIPSE(SmallEllipsesInLight[2], midipen_light, nobrush, smallEllipse);
-  DRAW_ELLIPSE(SmallEllipsesOutLight[0], audiopen_light, audiobrush_light, smallEllipse);
-  DRAW_ELLIPSE(SmallEllipsesOutLight[1], datapen_light, databrush_light, smallEllipse);
-  DRAW_ELLIPSE(SmallEllipsesOutLight[2], midipen_light, midibrush_light, smallEllipse);
-
-  DRAW_ELLIPSE(LargeEllipsesInLight[0], audiopen_light, nobrush, largeEllipse);
-  DRAW_ELLIPSE(LargeEllipsesInLight[1], datapen_light, nobrush, largeEllipse);
-  DRAW_ELLIPSE(LargeEllipsesInLight[2], midipen_light, nobrush, largeEllipse);
-  DRAW_ELLIPSE(LargeEllipsesOutLight[0], audiopen_light, audiobrush_light, largeEllipse);
-  DRAW_ELLIPSE(LargeEllipsesOutLight[1], datapen_light, databrush_light, largeEllipse);
-  DRAW_ELLIPSE(LargeEllipsesOutLight[2], midipen_light, midibrush_light, largeEllipse);
-
-#undef DRAW_ELLIPSE
-  return true;
 }
 
 
@@ -184,8 +189,6 @@ PortItem::PortItem(
   , m_inlet{bool(qobject_cast<const Process::Inlet*>(&p))}
   , m_highlight{false}
 {
-  [[maybe_unused]]
-  static bool init = initEllipses(Process::Style::instance());
   this->setCursor(QCursor(Qt::PointingHandCursor));
   this->setAcceptDrops(true);
   this->setAcceptHoverEvents(true);

@@ -10,6 +10,8 @@
 #include <Dataflow/ControlOutletItem.hpp>
 #include <Dataflow/MidiInletItem.hpp>
 #include <Dataflow/MidiOutletItem.hpp>
+#include <Dataflow/ValueInletItem.hpp>
+#include <Dataflow/ValueOutletItem.hpp>
 #include <Dataflow/WidgetInletFactory.hpp>
 #include <Process/Dataflow/WidgetInlets.hpp>
 #include <State/Message.hpp>
@@ -35,9 +37,15 @@ public:
   PortSerializationTest()
   {
     pl.insert(std::make_unique<Dataflow::ControlInletFactory>());
-    pl.insert(std::make_unique<Dataflow::AudioOutletFactory>());
     pl.insert(std::make_unique<Dataflow::ControlOutletFactory>());
+    pl.insert(std::make_unique<Dataflow::AudioInletFactory>());
+    pl.insert(std::make_unique<Dataflow::AudioOutletFactory>());
+    pl.insert(std::make_unique<Dataflow::MidiInletFactory>());
+    pl.insert(std::make_unique<Dataflow::MidiOutletFactory>());
+    pl.insert(std::make_unique<Dataflow::ValueInletFactory>());
+    pl.insert(std::make_unique<Dataflow::ValueOutletFactory>());
     pl.insert(std::make_unique<Dataflow::WidgetInletFactory<Process::LineEdit>>());
+    pl.insert(std::make_unique<Dataflow::WidgetInletFactory<Process::ComboBox>>());
   }
 
 private Q_SLOTS:
@@ -72,6 +80,114 @@ private Q_SLOTS:
           QVERIFY(ptr->address() == port.address());
           QVERIFY(ptr->value() == port.value());
       }
+  }
+
+  void test_lineedit_datastream_upcast()
+  {
+    Process::LineEdit port{Id<Process::Port>{1234}, nullptr};
+    port.setAddress(*State::parseAddressAccessor("foo:/bar@[1]"));
+    port.setValue("foo bar");
+    {
+      auto json = marshall<DataStream>((Process::Inlet&)port);
+      auto new_port = deserialize_interface(pl, DataStream::Deserializer{json}, nullptr);
+      auto ptr = dynamic_cast<Process::LineEdit*>(new_port);
+      QVERIFY(ptr);
+      QVERIFY(ptr->id() == port.id());
+      QVERIFY(ptr->address() == port.address());
+      QVERIFY(ptr->value() == port.value());
+    }
+  }
+  void test_lineedit_datastream_no_upcast()
+  {
+    Process::LineEdit port{Id<Process::Port>{1234}, nullptr};
+    port.setAddress(*State::parseAddressAccessor("foo:/bar@[1]"));
+    port.setValue("foo bar");
+    {
+      auto json = marshall<DataStream>(port);
+      auto new_port = deserialize_interface(pl, DataStream::Deserializer{json}, nullptr);
+      auto ptr = dynamic_cast<Process::LineEdit*>(new_port);
+      QVERIFY(ptr);
+      QVERIFY(ptr->id() == port.id());
+      QVERIFY(ptr->address() == port.address());
+      QVERIFY(ptr->value() == port.value());
+    }
+  }
+
+  void test_combobox_datastream_upcast()
+  {
+    Process::ComboBox port{
+      std::vector<std::pair<QString, ossia::value>>{{"foo", 1.23}, {"bar", 4.56}},
+      4.56, "Combobox",
+      Id<Process::Port>{1234}, nullptr};
+    port.setAddress(*State::parseAddressAccessor("foo:/bar@[1]"));
+    port.setValue("foo bar");
+    {
+      auto json = marshall<DataStream>((Process::Inlet&)port);
+      auto new_port = deserialize_interface(pl, DataStream::Deserializer{json}, nullptr);
+      auto ptr = dynamic_cast<Process::ComboBox*>(new_port);
+      QVERIFY(ptr);
+      QVERIFY(ptr->id() == port.id());
+      QVERIFY(ptr->address() == port.address());
+      QVERIFY(ptr->value() == port.value());
+      QVERIFY(ptr->alternatives == port.alternatives);
+    }
+  }
+  void test_combobox_datastream_no_upcast()
+  {
+    Process::ComboBox port{
+        std::vector<std::pair<QString, ossia::value>>{{"foo", 1.23}, {"bar", 4.56}},
+        4.56, "Combobox",
+        Id<Process::Port>{1234}, nullptr};;
+    port.setAddress(*State::parseAddressAccessor("foo:/bar@[1]"));
+    port.setValue("foo bar");
+    {
+      auto json = marshall<DataStream>(port);
+      auto new_port = deserialize_interface(pl, DataStream::Deserializer{json}, nullptr);
+      auto ptr = dynamic_cast<Process::ComboBox*>(new_port);
+      QVERIFY(ptr);
+      QVERIFY(ptr->id() == port.id());
+      QVERIFY(ptr->address() == port.address());
+      QVERIFY(ptr->value() == port.value());
+      QVERIFY(ptr->alternatives == port.alternatives);
+    }
+  }
+  void test_combobox_json_upcast()
+  {
+    Process::ComboBox port{
+      std::vector<std::pair<QString, ossia::value>>{{"foo", 1.23}, {"bar", 4.56}},
+      4.56, "Combobox",
+      Id<Process::Port>{1234}, nullptr};
+    port.setAddress(*State::parseAddressAccessor("foo:/bar@[1]"));
+    port.setValue("foo bar");
+    {
+      auto json = marshall<JSONObject>((Process::Inlet&)port);
+      auto new_port = deserialize_interface(pl, JSONObject::Deserializer{json}, nullptr);
+      auto ptr = dynamic_cast<Process::ComboBox*>(new_port);
+      QVERIFY(ptr);
+      QVERIFY(ptr->id() == port.id());
+      QVERIFY(ptr->address() == port.address());
+      QVERIFY(ptr->value() == port.value());
+      QVERIFY(ptr->alternatives == port.alternatives);
+    }
+  }
+  void test_combobox_json_no_upcast()
+  {
+    Process::ComboBox port{
+      std::vector<std::pair<QString, ossia::value>>{{"foo", 1.23}, {"bar", 4.56}},
+      4.56, "Combobox",
+      Id<Process::Port>{1234}, nullptr};;
+    port.setAddress(*State::parseAddressAccessor("foo:/bar@[1]"));
+    port.setValue("foo bar");
+    {
+      auto json = marshall<JSONObject>(port);
+      auto new_port = deserialize_interface(pl, JSONObject::Deserializer{json}, nullptr);
+      auto ptr = dynamic_cast<Process::ComboBox*>(new_port);
+      QVERIFY(ptr);
+      QVERIFY(ptr->id() == port.id());
+      QVERIFY(ptr->address() == port.address());
+      QVERIFY(ptr->value() == port.value());
+      QVERIFY(ptr->alternatives == port.alternatives);
+    }
   }
 
   void test_controlinlet_json_upcast()
@@ -202,7 +318,7 @@ nullptr); auto ptr = dynamic_cast<Process::ControlInlet*>(new_port);
     {
       auto json = marshall<JSONObject>((Process::Inlet&)port);
       auto new_port = deserialize_interface(pl, JSONObject::Deserializer{json}, nullptr);
-      auto ptr = dynamic_cast<Process::Inlet*>(new_port); QVERIFY(ptr);
+      auto ptr = dynamic_cast<Process::ValueInlet*>(new_port); QVERIFY(ptr);
       QVERIFY(ptr->id() == port.id());
       QVERIFY(ptr->address() == port.address());
     }
@@ -216,7 +332,7 @@ nullptr); auto ptr = dynamic_cast<Process::ControlInlet*>(new_port);
     {
       auto json = marshall<JSONObject>((Process::Outlet&)port);
       auto new_port = deserialize_interface(pl, JSONObject::Deserializer{json},nullptr);
-      auto ptr = dynamic_cast<Process::Outlet*>(new_port); QVERIFY(ptr);
+      auto ptr = dynamic_cast<Process::ValueOutlet*>(new_port); QVERIFY(ptr);
       QVERIFY(ptr->id() == port.id());
       QVERIFY(ptr->address() == port.address());
     }
@@ -230,7 +346,7 @@ nullptr); auto ptr = dynamic_cast<Process::ControlInlet*>(new_port);
     {
       auto json = marshall<DataStream>((Process::Inlet&)port);
       auto new_port = deserialize_interface(pl, DataStream::Deserializer{json}, nullptr);
-      auto ptr = dynamic_cast<Process::Inlet*>(new_port); QVERIFY(ptr);
+      auto ptr = dynamic_cast<Process::ValueInlet*>(new_port); QVERIFY(ptr);
       QVERIFY(ptr->id() == port.id());
       QVERIFY(ptr->address() == port.address());
     }
@@ -244,7 +360,7 @@ nullptr); auto ptr = dynamic_cast<Process::ControlInlet*>(new_port);
     {
       auto json = marshall<DataStream>((Process::Outlet&)port);
       auto new_port = deserialize_interface(pl, DataStream::Deserializer{json}, nullptr);
-      auto ptr = dynamic_cast<Process::Outlet*>(new_port); QVERIFY(ptr);
+      auto ptr = dynamic_cast<Process::ValueOutlet*>(new_port); QVERIFY(ptr);
       QVERIFY(ptr->id() == port.id());
       QVERIFY(ptr->address() == port.address());
     }

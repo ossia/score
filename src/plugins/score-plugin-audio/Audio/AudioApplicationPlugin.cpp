@@ -201,11 +201,13 @@ void ApplicationPlugin::setup_engine()
     }
     catch (...)
     {
+      /*
       QMessageBox::warning(
             nullptr,
             tr("Audio error"),
             tr("The desired audio settings could not be applied.\nPlease change "
                "them."));
+               */
     }
   }
 

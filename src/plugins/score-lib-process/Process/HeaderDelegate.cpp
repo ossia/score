@@ -269,13 +269,6 @@ void DefaultFooterDelegate::updatePorts()
     else
     {
       qWarning() << "Port factory for " << port << " not found !";
-      for(int i = 0; i < 16; i++)
-          qWarning() << port->concreteKey().impl().data[i];
-
-      for(auto& fact : portFactory)
-      {
-          qDebug() << &fact;
-      }
     }
   }
 }

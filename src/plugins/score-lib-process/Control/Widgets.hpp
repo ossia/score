@@ -1,6 +1,7 @@
 #pragma once
 #include <Process/Dataflow/WidgetInlets.hpp>
 
+#include <score/plugins/DeserializeKnownSubType.hpp>
 #include <ossia/dataflow/safe_nodes/port.hpp>
 #include <score_lib_process_export.h>
 namespace Control
@@ -21,9 +22,15 @@ struct OutControl final
 
   auto create_outlet(Id<Process::Port> id, QObject* parent) const
   {
-    return new Process::ControlOutlet{
-        id,
-        parent};
+    return new Process::ControlOutlet{id, parent};
+  }
+  auto create_outlet(DataStream::Deserializer& id, QObject* parent) const
+  {
+    return deserialize_known_interface<Process::ControlOutlet>(id, parent);
+  }
+  auto create_outlet(JSONObject::Deserializer&& id, QObject* parent) const
+  {
+    return deserialize_known_interface<Process::ControlOutlet>(id, parent);
   }
 
   const ossia::value& fromValue(const ossia::value& v) const
@@ -64,6 +71,14 @@ struct FloatControl final
         id,
         parent};
   }
+  auto create_inlet(DataStream::Deserializer& id, QObject* parent) const
+  {
+    return deserialize_known_interface<Process::FloatSlider>(id, parent);
+  }
+  auto create_inlet(JSONObject::Deserializer&& id, QObject* parent) const
+  {
+    return deserialize_known_interface<Process::FloatSlider>(id, parent);
+  }
 
   float fromValue(const ossia::value& v) const
   {
@@ -102,6 +117,14 @@ struct LogFloatControl final
         QString::fromUtf8(name.data(), name.size()),
         id,
         parent};
+  }
+  auto create_inlet(DataStream::Deserializer& id, QObject* parent) const
+  {
+    return deserialize_known_interface<Process::LogFloatSlider>(id, parent);
+  }
+  auto create_inlet(JSONObject::Deserializer&& id, QObject* parent) const
+  {
+    return deserialize_known_interface<Process::LogFloatSlider>(id, parent);
   }
 
   float fromValue(const ossia::value& v) const
@@ -147,6 +170,14 @@ struct IntSlider final : ossia::safe_nodes::control_in,
                                   id,
                                   parent};
   }
+  auto create_inlet(DataStream::Deserializer& id, QObject* parent) const
+  {
+    return deserialize_known_interface<Process::IntSlider>(id, parent);
+  }
+  auto create_inlet(JSONObject::Deserializer&& id, QObject* parent) const
+  {
+    return deserialize_known_interface<Process::IntSlider>(id, parent);
+  }
 };
 
 struct IntSpinBox final : ossia::safe_nodes::control_in,
@@ -180,6 +211,14 @@ struct IntSpinBox final : ossia::safe_nodes::control_in,
                                    id,
                                    parent};
   }
+  auto create_inlet(DataStream::Deserializer& id, QObject* parent) const
+  {
+    return deserialize_known_interface<Process::IntSpinBox>(id, parent);
+  }
+  auto create_inlet(JSONObject::Deserializer&& id, QObject* parent) const
+  {
+    return deserialize_known_interface<Process::IntSpinBox>(id, parent);
+  }
 };
 struct Toggle final : ossia::safe_nodes::control_in, WidgetFactory::Toggle
 {
@@ -197,6 +236,14 @@ struct Toggle final : ossia::safe_nodes::control_in, WidgetFactory::Toggle
   {
     return new Process::Toggle{
         init, QString::fromUtf8(name.data(), name.size()), id, parent};
+  }
+  auto create_inlet(DataStream::Deserializer& id, QObject* parent) const
+  {
+    return deserialize_known_interface<Process::Toggle>(id, parent);
+  }
+  auto create_inlet(JSONObject::Deserializer&& id, QObject* parent) const
+  {
+    return deserialize_known_interface<Process::Toggle>(id, parent);
   }
 
   bool fromValue(const ossia::value& v) const
@@ -238,6 +285,14 @@ struct ChooserToggle final : ossia::safe_nodes::control_in,
         id,
         parent};
   }
+  auto create_inlet(DataStream::Deserializer& id, QObject* parent) const
+  {
+    return deserialize_known_interface<Process::ChooserToggle>(id, parent);
+  }
+  auto create_inlet(JSONObject::Deserializer&& id, QObject* parent) const
+  {
+    return deserialize_known_interface<Process::ChooserToggle>(id, parent);
+  }
 };
 struct LineEdit final : ossia::safe_nodes::control_in, WidgetFactory::LineEdit
 {
@@ -264,6 +319,14 @@ struct LineEdit final : ossia::safe_nodes::control_in, WidgetFactory::LineEdit
   {
     return new Process::LineEdit{
         init, QString::fromUtf8(name.data(), name.size()), id, parent};
+  }
+  auto create_inlet(DataStream::Deserializer& id, QObject* parent) const
+  {
+    return deserialize_known_interface<Process::LineEdit>(id, parent);
+  }
+  auto create_inlet(JSONObject::Deserializer&& id, QObject* parent) const
+  {
+    return deserialize_known_interface<Process::LineEdit>(id, parent);
   }
 };
 
@@ -292,6 +355,14 @@ struct ComboBox final : ossia::safe_nodes::control_in, WidgetFactory::ComboBox
       vec.emplace_back(v.first, v.second);
 
     return new Process::ComboBox(vec, values[init].second, QString::fromUtf8(name.data(), name.size()), id, parent);
+  }
+  auto create_inlet(DataStream::Deserializer& id, QObject* parent) const
+  {
+    return deserialize_known_interface<Process::ComboBox>(id, parent);
+  }
+  auto create_inlet(JSONObject::Deserializer&& id, QObject* parent) const
+  {
+    return deserialize_known_interface<Process::ComboBox>(id, parent);
   }
 
   T fromValue(const ossia::value& v) const { return ossia::convert<T>(v); }
@@ -336,6 +407,14 @@ struct EnumBase : ossia::safe_nodes::control_in, WidgetFactory::Enum
       QString::fromUtf8(name.data(), name.size()),
       id,
       parent};
+  }
+  auto create_inlet(DataStream::Deserializer& id, QObject* parent) const
+  {
+    return deserialize_known_interface<Process::Enum>(id, parent);
+  }
+  auto create_inlet(JSONObject::Deserializer&& id, QObject* parent) const
+  {
+    return deserialize_known_interface<Process::Enum>(id, parent);
   }
 };
 
@@ -407,6 +486,14 @@ struct TimeSignatureChooser final : ossia::safe_nodes::control_in,
   {
     return new Process::TimeSignatureChooser{
         init.data(), QString::fromUtf8(name.data(), name.size()), id, parent};
+  }
+  auto create_inlet(DataStream::Deserializer& id, QObject* parent) const
+  {
+    return deserialize_known_interface<Process::TimeSignatureChooser>(id, parent);
+  }
+  auto create_inlet(JSONObject::Deserializer&& id, QObject* parent) const
+  {
+    return deserialize_known_interface<Process::TimeSignatureChooser>(id, parent);
   }
 };
 

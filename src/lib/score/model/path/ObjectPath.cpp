@@ -164,6 +164,7 @@ QObject* ObjectPath::find_impl(const score::DocumentContext& ctx) const
 {
   using namespace score;
   QObject* obj = &ctx.document.model();
+  SCORE_ASSERT(obj);
 
   for (const auto& currentObjIdentifier : m_objectIdentifiers)
   {
@@ -173,6 +174,7 @@ QObject* ObjectPath::find_impl(const score::DocumentContext& ctx) const
     for (int i = 0; i < children.size(); ++i)
     {
       obj = children.at(i);
+      SCORE_ASSERT(obj);
       if (obj->objectName() == currentObjIdentifier.objectName())
       {
         auto itf = safe_cast<IdentifiedObjectAbstract*>(obj);
@@ -187,6 +189,7 @@ QObject* ObjectPath::find_impl(const score::DocumentContext& ctx) const
     if(found)
     {
       obj = found;
+      SCORE_ASSERT(obj);
     }
     else
     {
@@ -207,6 +210,7 @@ QObject* ObjectPath::find_impl_unsafe(const score::DocumentContext& ctx) const
 {
   using namespace score;
   QObject* obj = &ctx.document.model();
+  SCORE_ASSERT(obj);
 
   for (const auto& currentObjIdentifier : m_objectIdentifiers)
   {

@@ -22,7 +22,7 @@ private:
   score::CommandStack& m_stack;
 
 public:
-  CommandStackFacade(score::CommandStack& stack);
+  explicit CommandStackFacade(score::CommandStack& stack);
 
   const score::DocumentContext& context() const;
 
