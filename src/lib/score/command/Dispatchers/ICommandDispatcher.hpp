@@ -2,6 +2,7 @@
 #include <score/command/Command.hpp>
 namespace score
 {
+class CommandStack;
 class CommandStackFacade;
 }
 
@@ -19,7 +20,9 @@ class CommandStackFacade;
 class ICommandDispatcher
 {
 public:
-  ICommandDispatcher(const score::CommandStackFacade& stack) : m_stack{stack}
+  explicit ICommandDispatcher(const score::CommandStack& stack) = delete;
+
+  explicit ICommandDispatcher(const score::CommandStackFacade& stack) : m_stack{stack}
   {
   }
 

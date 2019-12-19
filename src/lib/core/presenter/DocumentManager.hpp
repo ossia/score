@@ -60,10 +60,10 @@ public:
   setupDocument(const score::GUIApplicationContext& ctx, score::Document* doc);
 
   template <typename... Args>
-  void newDocument(const score::GUIApplicationContext& ctx, Args&&... args)
+  Document* newDocument(const score::GUIApplicationContext& ctx, Args&&... args)
   {
     prepareNewDocument(ctx);
-    setupDocument(
+    return setupDocument(
         ctx, m_builder.newDocument(ctx, std::forward<Args>(args)...));
   }
 

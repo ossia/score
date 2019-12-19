@@ -253,9 +253,10 @@ struct LineEdit : public Process::ControlInlet
   using Process::ControlInlet::ControlInlet;
 };
 
-struct ComboBox : public Process::ControlInlet
+struct SCORE_LIB_PROCESS_EXPORT ComboBox : public Process::ControlInlet
 {
   using control_type = WidgetFactory::ComboBox;
+  MODEL_METADATA_IMPL(ComboBox)
   std::vector<std::pair<QString, ossia::value>> alternatives;
   ComboBox(
       std::vector<std::pair<QString, ossia::value>> values,
@@ -277,10 +278,14 @@ struct ComboBox : public Process::ControlInlet
 
   const auto& getValues() const noexcept { return alternatives; }
   auto count() const noexcept { return alternatives.size(); }
-  using Process::ControlInlet::ControlInlet;
+
+  ComboBox(DataStream::Deserializer& vis, QObject* parent);
+  ComboBox(JSONObject::Deserializer& vis, QObject* parent);
+  ComboBox(DataStream::Deserializer&& vis, QObject* parent);
+  ComboBox(JSONObject::Deserializer&& vis, QObject* parent);
 };
 
-struct Enum : public Process::ControlInlet
+struct SCORE_LIB_PROCESS_EXPORT Enum : public Process::ControlInlet
 {
   MODEL_METADATA_IMPL(Enum)
   using control_type = WidgetFactory::Enum;
@@ -293,7 +298,7 @@ struct Enum : public Process::ControlInlet
       const QString& name,
       Id<Process::Port> id,
       QObject* parent)
-      : ControlInlet{id, parent}, pixmaps{pixmaps}
+    : ControlInlet{id, parent}, pixmaps{std::move(pixmaps)}
   {
     for (auto& val : dom)
       values.push_back(QString::fromStdString(val));
@@ -312,7 +317,7 @@ struct Enum : public Process::ControlInlet
       const QString& name,
       Id<Process::Port> id,
       QObject* parent)
-    : ControlInlet{id, parent}, values{values}, pixmaps{pixmaps}
+    : ControlInlet{id, parent}, values{values}, pixmaps{std::move(pixmaps)}
   {
     type = Process::PortType::Message;
     hidden = true;
@@ -325,7 +330,11 @@ struct Enum : public Process::ControlInlet
   }
 
   const QStringList& getValues() const { return values; }
-  using Process::ControlInlet::ControlInlet;
+
+  Enum(DataStream::Deserializer& vis, QObject* parent);
+  Enum(JSONObject::Deserializer& vis, QObject* parent);
+  Enum(DataStream::Deserializer&& vis, QObject* parent);
+  Enum(JSONObject::Deserializer&& vis, QObject* parent);
 };
 
 struct TimeSignatureChooser : public Process::ControlInlet

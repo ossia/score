@@ -69,7 +69,10 @@ AudioFile::AudioFile()
   m_rms = new RMSData{};
 }
 
-AudioFile::~AudioFile() {}
+AudioFile::~AudioFile()
+{
+  delete m_rms;
+}
 
 void AudioFile::load(
     const QString& path,

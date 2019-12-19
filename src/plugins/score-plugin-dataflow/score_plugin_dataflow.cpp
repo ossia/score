@@ -6,6 +6,8 @@
 #include <Dataflow/ControlOutletItem.hpp>
 #include <Dataflow/MidiInletItem.hpp>
 #include <Dataflow/MidiOutletItem.hpp>
+#include <Dataflow/ValueInletItem.hpp>
+#include <Dataflow/ValueOutletItem.hpp>
 #include <Dataflow/PortInspectorFactory.hpp>
 #include <Dataflow/WidgetInletFactory.hpp>
 #include <Dataflow/DropPortInScenario.hpp>
@@ -37,6 +39,8 @@ score_plugin_dataflow::factories(
           Dataflow::ControlInletFactory,
           Dataflow::MidiInletFactory,
           Dataflow::MidiOutletFactory,
+          Dataflow::ValueInletFactory,
+          Dataflow::ValueOutletFactory,
           Dataflow::AudioInletFactory,
           Dataflow::AudioOutletFactory,
           Dataflow::ControlOutletFactory,

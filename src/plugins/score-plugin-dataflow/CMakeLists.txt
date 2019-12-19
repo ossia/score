@@ -14,6 +14,8 @@ set(HDRS
     Dataflow/AudioInletItem.hpp
     Dataflow/AudioOutletItem.hpp
     Dataflow/PortInspectorFactory.hpp
+    Dataflow/ValueInletItem.hpp
+    Dataflow/ValueOutletItem.hpp
     Dataflow/SubportPanel.hpp
     Dataflow/DropPortInScenario.hpp
     score_plugin_dataflow.hpp
@@ -26,7 +28,8 @@ set(SRCS
     Dataflow/MidiOutletItem.cpp
     Dataflow/AudioInletItem.cpp
     Dataflow/AudioOutletItem.cpp
-    Dataflow/AudioOutletItem.cpp
+    Dataflow/ValueInletItem.cpp
+    Dataflow/ValueOutletItem.cpp
     Dataflow/SubportPanel.cpp
     Dataflow/CableInspector.cpp
     Dataflow/DropPortInScenario.cpp

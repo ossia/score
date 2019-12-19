@@ -122,6 +122,7 @@ set(HEADERS
     "${CMAKE_CURRENT_SOURCE_DIR}/score/plugins/ModelFactory.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/plugins/SerializableInterface.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/plugins/SerializableHelpers.hpp"
+    # "${CMAKE_CURRENT_SOURCE_DIR}/score/plugins/DeserializeKnownSubtype.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/plugins/StringFactoryKey.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/plugins/StringFactoryKeySerialization.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/plugins/UuidKey.hpp"

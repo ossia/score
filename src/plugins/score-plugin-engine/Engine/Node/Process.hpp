@@ -7,6 +7,7 @@
 #include <score/plugins/SerializableHelpers.hpp>
 #include <score/application/ApplicationComponents.hpp>
 #include <ossia/dataflow/safe_nodes/node.hpp>
+#include <score/plugins/DeserializeKnownSubType.hpp>
 
 ////////// METADATA ////////////
 namespace Control
@@ -203,6 +204,112 @@ struct PortSetup
           }
         });
   }
+
+  template <typename Node_T, typename T>
+  static void load(DataStream::Deserializer& s, T& self)
+  {
+    auto& ins = self.m_inlets;
+    auto& outs = self.m_outlets;
+    for ([[maybe_unused]] const auto& in : Node_T::Metadata::audio_ins)
+    {
+      ins.push_back(deserialize_known_interface<Process::AudioInlet>(s, &self));
+    }
+    for ([[maybe_unused]] const auto& in : Node_T::Metadata::midi_ins)
+    {
+      ins.push_back(deserialize_known_interface<Process::MidiInlet>(s, &self));
+    }
+    for ([[maybe_unused]] const auto& in : Node_T::Metadata::value_ins)
+    {
+      ins.push_back(deserialize_known_interface<Process::ValueInlet>(s, &self));
+    }
+    for ([[maybe_unused]] const auto& in : Node_T::Metadata::address_ins)
+    {
+      ins.push_back(deserialize_known_interface<Process::ValueInlet>(s, &self));
+    }
+    ossia::for_each_in_tuple(Node_T::Metadata::controls,
+                             [&](const auto& ctrl) {
+      if (auto p = ctrl.create_inlet(s, &self))
+      {
+        p->hidden = true;
+        ins.push_back(p);
+      }
+    });
+
+    for ([[maybe_unused]] const auto& out : Node_T::Metadata::audio_outs)
+    {
+      outs.push_back(deserialize_known_interface<Process::AudioOutlet>(s, &self));
+    }
+    for ([[maybe_unused]] const auto& out : Node_T::Metadata::midi_outs)
+    {
+      outs.push_back(deserialize_known_interface<Process::MidiOutlet>(s, &self));
+    }
+    for ([[maybe_unused]] const auto& out : Node_T::Metadata::value_outs)
+    {
+      outs.push_back(deserialize_known_interface<Process::ValueOutlet>(s, &self));
+    }
+    ossia::for_each_in_tuple(Node_T::Metadata::control_outs,
+                             [&](const auto& ctrl) {
+      if (auto p = ctrl.create_outlet(s, &self))
+      {
+        p->hidden = true;
+        outs.push_back(p);
+      }
+    });
+  }
+
+  template <typename Node_T, typename T>
+  static void load(const QJsonArray& inlets, const QJsonArray& outlets, T& self)
+  {
+    auto& ins = self.m_inlets;
+    auto& outs = self.m_outlets;
+    int inlet = 0;
+    for ([[maybe_unused]] const auto& in : Node_T::Metadata::audio_ins)
+    {
+      ins.push_back(deserialize_known_interface<Process::AudioInlet>(JSONObjectWriter{inlets[inlet++].toObject()}, &self));
+    }
+    for ([[maybe_unused]] const auto& in : Node_T::Metadata::midi_ins)
+    {
+      ins.push_back(deserialize_known_interface<Process::MidiInlet>(JSONObjectWriter{inlets[inlet++].toObject()}, &self));
+    }
+    for ([[maybe_unused]] const auto& in : Node_T::Metadata::value_ins)
+    {
+      ins.push_back(deserialize_known_interface<Process::ValueInlet>(JSONObjectWriter{inlets[inlet++].toObject()}, &self));
+    }
+    for ([[maybe_unused]] const auto& in : Node_T::Metadata::address_ins)
+    {
+      ins.push_back(deserialize_known_interface<Process::ValueInlet>(JSONObjectWriter{inlets[inlet++].toObject()}, &self));
+    }
+    ossia::for_each_in_tuple(Node_T::Metadata::controls,
+                             [&](const auto& ctrl) {
+      if (auto p = ctrl.create_inlet(JSONObjectWriter{inlets[inlet++].toObject()}, &self))
+      {
+        p->hidden = true;
+        ins.push_back(p);
+      }
+    });
+
+    int outlet = 0;
+    for ([[maybe_unused]] const auto& out : Node_T::Metadata::audio_outs)
+    {
+      outs.push_back(deserialize_known_interface<Process::AudioOutlet>(JSONObjectWriter{outlets[outlet++].toObject()}, &self));
+    }
+    for ([[maybe_unused]] const auto& out : Node_T::Metadata::midi_outs)
+    {
+      outs.push_back(deserialize_known_interface<Process::MidiOutlet>(JSONObjectWriter{outlets[outlet++].toObject()}, &self));
+    }
+    for ([[maybe_unused]] const auto& out : Node_T::Metadata::value_outs)
+    {
+      outs.push_back(deserialize_known_interface<Process::ValueOutlet>(JSONObjectWriter{outlets[outlet++].toObject()}, &self));
+    }
+    ossia::for_each_in_tuple(Node_T::Metadata::control_outs,
+                             [&](const auto& ctrl) {
+      if (auto p = ctrl.create_outlet(JSONObjectWriter{outlets[outlet++].toObject()}, &self))
+      {
+        p->hidden = true;
+        outs.push_back(p);
+      }
+    });
+  }
 };
 
 template <typename Info, typename>
@@ -306,22 +413,7 @@ struct TSerializer<DataStream, Model<Info, Control::is_control>>
   {
     using namespace Control;
 
-    auto& pl = s.components.template interfaces<Process::PortFactoryList>();
-    for (std::size_t i = 0;
-         i < ossia::safe_nodes::info_functions<Info>::inlet_size;
-         i++)
-    {
-      obj.m_inlets.push_back(
-          (Process::Inlet*)deserialize_interface(pl, s, &obj));
-    }
-
-    for (std::size_t i = 0;
-         i < ossia::safe_nodes::info_functions<Info>::outlet_size;
-         i++)
-    {
-      obj.m_outlets.push_back(
-          (Process::Outlet*)deserialize_interface(pl, s, &obj));
-    }
+    Control::PortSetup::load<Info>(s, obj);
     s.checkDelimiter();
   }
 };
@@ -340,26 +432,11 @@ struct TSerializer<JSONObject, Model<Info, Control::is_control>>
   static void writeTo(JSONObject::Deserializer& s, model_type& obj)
   {
     using namespace Control;
-    auto& pl = s.components.template interfaces<Process::PortFactoryList>();
 
-    auto inlets = s.obj["Inlets"].toArray();
-    auto outlets = s.obj["Outlets"].toArray();
+    const auto inlets = s.obj["Inlets"].toArray();
+    const auto outlets = s.obj["Outlets"].toArray();
 
-    for (std::size_t i = 0;
-         i < ossia::safe_nodes::info_functions<Info>::inlet_size;
-         i++)
-    {
-      obj.m_inlets.push_back((Process::Inlet*)deserialize_interface(
-          pl, JSONObjectWriter{inlets[i].toObject()}, &obj));
-    }
-
-    for (std::size_t i = 0;
-         i < ossia::safe_nodes::info_functions<Info>::outlet_size;
-         i++)
-    {
-      obj.m_outlets.push_back((Process::Outlet*)deserialize_interface(
-          pl, JSONObjectWriter{outlets[i].toObject()}, &obj));
-    }
+    Control::PortSetup::load<Info>(inlets, outlets, obj);
   }
 };
 
