@@ -67,7 +67,6 @@ if(MSYS OR MINGW)
 endif()
 
 include(3rdparty/libossia.cmake)
-find_package(Boost REQUIRED)
 enable_testing()
 include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/ScoreFunctions.cmake")
 include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/ScoreConfiguration.cmake")
