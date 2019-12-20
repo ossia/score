@@ -71,10 +71,14 @@ private:
   void keyReleaseEvent(QKeyEvent* event) override;
   void focusOutEvent(QFocusEvent* event) override;
   void leaveEvent(QEvent* event) override;
+  void mousePressEvent(QMouseEvent* event) override;
+  void mouseMoveEvent(QMouseEvent* event) override;
+  void mouseReleaseEvent(QMouseEvent* event) override;
   //void drawBackground(QPainter* painter, const QRectF& rect) override;
 
   const score::GUIApplicationContext& m_app;
 
+  int m_timer{};
   std::chrono::steady_clock::time_point m_lastwheel;
   bool m_hZoom{false};
   bool m_vZoom{false};

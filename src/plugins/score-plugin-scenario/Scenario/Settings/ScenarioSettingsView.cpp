@@ -5,6 +5,7 @@
 #include <score/model/Skin.hpp>
 #include <score/serialization/JSONVisitor.hpp>
 #include <score/widgets/SignalUtils.hpp>
+#include <core/view/StyleLoader.hpp>
 
 #include <QCheckBox>
 #include <QComboBox>
@@ -423,9 +424,8 @@ public:
       fl.write(doc.toJson());
     });
 
-    QFile css_f(":/qsimpledarkstyle.qss");
-    css_f.open(QFile::ReadOnly);
-    css.document()->setPlainText(css_f.readAll());
+    score::StyleLoader loader;
+    css.document()->setPlainText(loader.readStyleSheet());
     connect(css.document(), &QTextDocument::contentsChanged, this, [=] {
       qApp->setStyleSheet(css.document()->toPlainText());
     });

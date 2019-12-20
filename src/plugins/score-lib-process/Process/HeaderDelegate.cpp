@@ -8,6 +8,7 @@
 
 #include <score/graphics/YPos.hpp>
 
+#include <QDebug>
 #include <QPainter>
 #include <QTextLayout>
 #include <QCursor>

@@ -18,6 +18,7 @@
 #include <QString>
 #include <QToolBar>
 #include <QMainWindow>
+#include <QDebug>
 #include <QMenu>
 #include <qnamespace.h>
 #include <QLabel>

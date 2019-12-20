@@ -1,3 +1,4 @@
+#include <QDebug>
 #include "Port.hpp"
 
 #include "PortItem.hpp"
