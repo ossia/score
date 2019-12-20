@@ -48,6 +48,7 @@
 
 #include <ossia/detail/math.hpp>
 
+#include <QDebug>
 #include <QSize>
 #include <QScrollBar>
 
@@ -505,6 +506,7 @@ void ScenarioDocumentPresenter::on_minimapChanged(double l, double r)
   // Set viewport position
   auto newView = QRectF{newX, y, (qreal)w, (qreal)h};
   gv.ensureVisible(newView, 0., 0.);
+  gv.update();
 
   view().timeRuler().setWidth(gv.width());
 

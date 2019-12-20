@@ -13,6 +13,7 @@
 #include <score/tools/IdentifierGeneration.hpp>
 #include <score/tools/std/Optional.hpp>
 #include <score/widgets/Pixmap.hpp>
+#include <core/view/StyleLoader.hpp>
 
 #include <core/application/ApplicationRegistrar.hpp>
 #include <core/application/ApplicationSettings.hpp>
@@ -69,79 +70,6 @@ namespace score
 {
 class DocumentModel;
 
-struct StyleLoader : public QObject
-{
-  std::vector<QString> filesToRead;
-
-#if defined(SCORE_SOURCE_DIR)
-  std::vector<QFileSystemWatcher*> watchers;
-#endif
-
-  StyleLoader()
-  {
-#if defined(SCORE_SOURCE_DIR)
-    QString prefix = QString(SCORE_SOURCE_DIR) + "/src/lib/resources";
-    if(!QDir::root().exists(prefix))
-      prefix = ":";
-#else
-    QString prefix = ":";
-#endif
-  #if defined(_WIN32)
-    addFile(prefix + "/style/windows.qss");
-  #elif defined(__APPLE__)
-    addFile(prefix + "/style/macos.qss");
-  #else
-    addFile(prefix + "/style/linux.qss");
-  #endif
-    addFile(prefix + "/qsimpledarkstyle.qss");
-    addFile(prefix + "/style/spinbox.qss");
-    addFile(prefix + "/style/scrollbars.qss");
-    addFile(prefix + "/style/lineedit.qss");
-
-    on_styleChanged();
-  }
-
-  void addFile(const QString& str)
-  {
-    filesToRead.push_back(str);
-#if defined(SCORE_SOURCE_DIR)
-    watchers.push_back(new QFileSystemWatcher{this});
-    auto w = watchers.back();
-    connect(w, &QFileSystemWatcher::fileChanged,
-            this, [=] {
-      QTimer::singleShot(100, [=] {
-        on_styleChanged();
-        w->addPath(str);
-      });
-    });
-    w->addPath(str);
-#endif
-  }
-
-  void on_styleChanged()
-  {
-    auto readFile = [] (QString s) {
-      QFile f{s};
-
-      if(!f.open(QFile::ReadOnly))
-      {
-        qDebug() << "Warning : could not read style file: " << s;
-        return QByteArray{};
-      }
-
-      return f.readAll();
-    };
-
-    QByteArray ss;
-    for(const auto& path : filesToRead)
-    {
-      ss += readFile(path);
-    }
-
-    qApp->setStyleSheet(ss);
-  }
-};
-
 static void setQApplicationSettings(QApplication& m_app)
 {
 #if defined(SCORE_STATIC_PLUGINS)
@@ -157,7 +85,8 @@ static void setQApplicationSettings(QApplication& m_app)
       ":/Catamaran-Regular.ttf"); // Catamaran Regular
   QFontDatabase::addApplicationFont(":/Montserrat-Regular.ttf"); // Montserrat
 
-  static StyleLoader style;
+  static score::StyleLoader style;
+  style.on_styleChanged();
   m_app.setStyle(new PhantomStyle);
 
   auto pal = qApp->palette();

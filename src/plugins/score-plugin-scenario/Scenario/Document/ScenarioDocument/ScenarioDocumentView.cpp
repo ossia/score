@@ -16,8 +16,11 @@
 #include <score/widgets/MarginLess.hpp>
 #include <score/widgets/TextLabel.hpp>
 #include <score/tools/Bind.hpp>
+#include <core/document/Document.hpp>
+#include <core/command/CommandStack.hpp>
 
 #include <QAction>
+#include <QDebug>
 #include <QScrollBar>
 #include <QGraphicsScene>
 #include <QGraphicsView>
@@ -39,6 +42,7 @@ W_OBJECT_IMPL(Scenario::ScenarioDocumentView)
 W_OBJECT_IMPL(Scenario::ProcessGraphicsView)
 namespace Scenario
 {
+
 ProcessGraphicsView::ProcessGraphicsView(
     const score::GUIApplicationContext& ctx,
     QGraphicsScene* scene,
@@ -46,67 +50,50 @@ ProcessGraphicsView::ProcessGraphicsView(
     : QGraphicsView{scene, parent}, m_app{ctx}
 {
   m_lastwheel = std::chrono::steady_clock::now();
-  QGLFormat fmt;
-  fmt.setSamples(16);
-  fmt.setDoubleBuffer(false);
-  fmt.setAlpha(false);
-  fmt.setDepth(false);
-  fmt.setDirectRendering(true);
-//  setViewport(new QGLWidget{fmt});
-//  setViewport(new QOpenGLWidget);
+
+  setViewport(new QOpenGLWidget);
   setAlignment(Qt::AlignTop | Qt::AlignLeft);
   setFrameStyle(0);
   setDragMode(QGraphicsView::NoDrag);
 
-  setViewportUpdateMode(QGraphicsView::FullViewportUpdate);
-  setRenderHints(QPainter::Antialiasing | QPainter::HighQualityAntialiasing | QPainter::TextAntialiasing);
-
-#if !defined(__EMSCRIPTEN__)
-  setOptimizationFlag(QGraphicsView::DontSavePainterState, true);
-  setOptimizationFlag(QGraphicsView::DontAdjustForAntialiasing, true);
-#endif
-  /*
   setViewportUpdateMode(QGraphicsView::NoViewportUpdate);
   setRenderHints(
       QPainter::Antialiasing | QPainter::SmoothPixmapTransform
       | QPainter::TextAntialiasing);
-  // setCacheMode(QGraphicsView::CacheBackground);
+  //setCacheMode(QGraphicsView::CacheBackground);
 
 #if !defined(__EMSCRIPTEN__)
   setOptimizationFlag(QGraphicsView::DontSavePainterState, true);
   setOptimizationFlag(QGraphicsView::DontAdjustForAntialiasing, true);
-  setAttribute(Qt::WA_PaintOnScreen, true);
+  //setAttribute(Qt::WA_PaintOnScreen, true);
   setAttribute(Qt::WA_OpaquePaintEvent, true);
+  viewport()->setAttribute(Qt::WA_OpaquePaintEvent, true);
 #endif
-  startTimer(32);
+  /*startTimer(32);
 
 #if defined(__APPLE__)
   // setRenderHints(0);
   // setOptimizationFlag(QGraphicsView::IndirectPainting, true);
 #endif*/
- // startTimer(16);
+  m_timer = startTimer(8);
 
+  viewport()->setUpdatesEnabled(true);
 }
 
 void ProcessGraphicsView::timerEvent(QTimerEvent* event)
 {
   QGraphicsView::timerEvent(event);
-//  viewport()->update();
-//  viewport()->repaint();
+  update();
 }
 
 ProcessGraphicsView::~ProcessGraphicsView() {}
-//
-//void ProcessGraphicsView::drawBackground(QPainter* painter, const QRectF& rect)
-//{
-//  painter->fillRect(rect, Process::Style::instance().Background());
-//}
 
 void ProcessGraphicsView::scrollHorizontal(double dx)
 {
   if (auto bar = horizontalScrollBar())
   {
     bar->setValue(bar->value() + dx);
+    viewport()->update();
   }
 }
 
@@ -116,6 +103,8 @@ void ProcessGraphicsView::resizeEvent(QResizeEvent* ev)
   sizeChanged(size());
 
   visibleRectChanged(QRectF{this->mapToScene(QPoint{}), this->mapToScene(this->rect().bottomRight())});
+
+  viewport()->update();
 }
 
 void ProcessGraphicsView::scrollContentsBy(int dx, int dy)
@@ -127,6 +116,8 @@ void ProcessGraphicsView::scrollContentsBy(int dx, int dy)
     scrolled(dx);
 
   visibleRectChanged(QRectF{this->mapToScene(QPoint{}), this->mapToScene(this->rect().bottomRight())});
+
+  viewport()->update();
 }
 
 void ProcessGraphicsView::wheelEvent(QWheelEvent* event)
@@ -164,6 +155,8 @@ void ProcessGraphicsView::wheelEvent(QWheelEvent* event)
   };
   MyWheelEvent e{*event};
   QGraphicsView::wheelEvent(&e);
+
+  viewport()->update();
 }
 
 void ProcessGraphicsView::keyPressEvent(QKeyEvent* event)
@@ -178,6 +171,8 @@ void ProcessGraphicsView::keyPressEvent(QKeyEvent* event)
   event->ignore();
 
   QGraphicsView::keyPressEvent(event);
+
+  viewport()->update();
 }
 
 void ProcessGraphicsView::keyReleaseEvent(QKeyEvent* event)
@@ -192,6 +187,8 @@ void ProcessGraphicsView::keyReleaseEvent(QKeyEvent* event)
   event->ignore();
 
   QGraphicsView::keyReleaseEvent(event);
+
+  viewport()->update();
 }
 
 void ProcessGraphicsView::focusOutEvent(QFocusEvent* event)
@@ -202,6 +199,8 @@ void ProcessGraphicsView::focusOutEvent(QFocusEvent* event)
   event->ignore();
 
   QGraphicsView::focusOutEvent(event);
+
+  viewport()->update();
 }
 
 void ProcessGraphicsView::leaveEvent(QEvent* event)
@@ -210,6 +209,26 @@ void ProcessGraphicsView::leaveEvent(QEvent* event)
   m_vZoom = false;
   focusedOut();
   QGraphicsView::leaveEvent(event);
+
+  viewport()->update();
+}
+
+void ProcessGraphicsView::mousePressEvent(QMouseEvent* event)
+{
+  QGraphicsView::mousePressEvent(event);
+  viewport()->update();
+}
+
+void ProcessGraphicsView::mouseMoveEvent(QMouseEvent* event)
+{
+  QGraphicsView::mouseMoveEvent(event);
+  viewport()->update();
+}
+
+void ProcessGraphicsView::mouseReleaseEvent(QMouseEvent* event)
+{
+  QGraphicsView::mouseReleaseEvent(event);
+  viewport()->update();
 }
 
 ScenarioDocumentView::ScenarioDocumentView(
@@ -227,6 +246,9 @@ ScenarioDocumentView::ScenarioDocumentView(
     , m_bar{&m_baseObject}
 
 {
+  con(ctx.document.commandStack(), &score::CommandStack::stackChanged,
+      this, [&] { m_view.viewport()->update(); });
+
 #if defined(SCORE_WEBSOCKETS)
   auto wsview = new WebSocketView(m_scene, 9998, this);
 #endif

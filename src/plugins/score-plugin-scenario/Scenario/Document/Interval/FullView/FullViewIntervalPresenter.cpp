@@ -52,8 +52,6 @@ namespace Scenario
 {
   static int timeSignatureHeight = 20;
   static double timeSignatureBarY = -45.;
-  using LightBars = std::array<LightTimebar, 200>;
-  using LighterBars = std::array<LighterTimebar, 600>;
 
 struct Timebars
 {
@@ -114,15 +112,8 @@ FullViewIntervalPresenter::FullViewIntervalPresenter(
   m_view->setPos(0, 0);
   m_header->setPos(0, -IntervalHeader::headerHeight());
 
-  for(auto& bar : m_timebars->lightBars)
-  {
-    bar.setParentItem(m_view);
-  }
-
-  for(auto& bar : m_timebars->lighterBars)
-  {
-    bar.setParentItem(m_view);
-  }
+  m_timebars->lightBars.setParentItem(m_view);
+  m_timebars->lighterBars.setParentItem(m_view);
 
   // Address bar
   auto& addressBar = static_cast<FullViewIntervalHeader*>(m_header)->bar();
@@ -158,14 +149,16 @@ FullViewIntervalPresenter::FullViewIntervalPresenter(
     updateTimeBars();
   });
   ::bind(settings, Settings::Model::p_MeasureBars{}, this, [=] (bool show) {
-    for(auto& bar : this->m_timebars->lightBars) bar.setVisible(show);
-    for(auto& bar : this->m_timebars->lighterBars) bar.setVisible(show);
+    this->m_timebars->lightBars.setVisible(show);
+    this->m_timebars->lighterBars.setVisible(show);
   });
 
 
+  if(auto tb = ctx.app.toolbars.get().find(StringKey<score::Toolbar>("UISetup"));
+     tb != ctx.app.toolbars.get().end())
   {
     // Nodal stuff
-    auto actions = ctx.app.toolbars.get().at(StringKey<score::Toolbar>("UISetup")).toolbar()->actions();
+    auto actions = tb->second.toolbar()->actions();
 
     auto timeline_act = actions[0];
     auto nodal_act = actions[1];
@@ -712,18 +705,24 @@ void FullViewIntervalPresenter::on_visibleRectChanged(QRectF r)
 }
 
 static void draw_main_bars(const TimeSignatureMap& measures, LightBars& bars, TimeSignatureMap::const_iterator last_before,
-               double zoom, double last_quarter_pixels, double division_pixels, double pow2)
+               double zoom, double last_quarter_pixels, double division_pixels, double pow2, QRectF sceneRect)
 {
+  int i = 0;
   int k = 0;
-  for(std::size_t i = 0; i < bars.size(); i++)
+  const double y0 = sceneRect.y();
+  const double y1 = sceneRect.y() + sceneRect.height();
+
+  double bar_x_pos{};
+  while((bar_x_pos - last_quarter_pixels) < sceneRect.width())
   {
-    const double bar_x_pos = last_quarter_pixels + k * division_pixels;
+    bar_x_pos = last_quarter_pixels + k * division_pixels;
     SCORE_ASSERT(last_before != measures.end());
 
     auto next = last_before + 1;
     if(next == measures.end())
     {
-      bars[i].setPos(bar_x_pos, timeSignatureBarY);
+      bars[i] = QLineF(bar_x_pos, y0, bar_x_pos, y1);
+      i++;
       k++;
       continue;
     }
@@ -766,33 +765,42 @@ static void draw_main_bars(const TimeSignatureMap& measures, LightBars& bars, Ti
 
         last_quarter_pixels = last_before->first.toPixels(zoom);
 
-        bars[i].setPos(last_quarter_pixels, timeSignatureBarY);
+        bars[i] = QLineF(last_quarter_pixels, y0, last_quarter_pixels, y1);
 
+        i++;
         k = 0;
         continue;
       }
     }
 
-    bars[i].setPos(bar_x_pos, timeSignatureBarY);
+    bars[i] = QLineF(bar_x_pos, y0, bar_x_pos, y1);
+    i++;
     k++;
   }
+  bars.positions.resize(i - 1);
 }
 
 static void draw_sub_bars(
       const TimeSignatureMap& measures,
       LighterBars& bars, TimeSignatureMap::const_iterator last_before,
-      double zoom, double last_quarter_pixels, double division_pixels)
+      double zoom, double last_quarter_pixels, double division_pixels, QRectF sceneRect)
 {
+  int i = 0;
   int k = 0;
-  for(std::size_t i = 0; i < bars.size(); i++)
+  const double y0 = sceneRect.y();
+  const double y1 = sceneRect.y() + sceneRect.height();
+
+  double bar_x_pos{};
+  while((bar_x_pos - last_quarter_pixels) < sceneRect.width())
   {
-    const double bar_x_pos = last_quarter_pixels + k * division_pixels;
+    bar_x_pos = last_quarter_pixels + k * division_pixels;
     SCORE_ASSERT(last_before != measures.end());
 
     auto next = last_before + 1;
     if(next == measures.end())
     {
-      bars[i].setPos(bar_x_pos, timeSignatureBarY);
+      bars[i] = QLineF(bar_x_pos, y0, bar_x_pos, y1);
+      i++;
       k++;
       continue;
     }
@@ -804,16 +812,19 @@ static void draw_sub_bars(
 
         last_quarter_pixels = last_before->first.toPixels(zoom);
 
-        bars[i].setPos(last_quarter_pixels, timeSignatureBarY);
+        bars[i] = QLineF(last_quarter_pixels, y0, last_quarter_pixels, y1);
 
+        i++;
         k = 0;
         continue;
       }
     }
 
-    bars[i].setPos(bar_x_pos, timeSignatureBarY);
+    bars[i] = QLineF(bar_x_pos, y0, bar_x_pos, y1);
+    i++;
     k++;
   }
+  bars.positions.resize(i - 1);
 }
 
 void FullViewIntervalPresenter::updateTimeBars()
@@ -825,14 +836,8 @@ void FullViewIntervalPresenter::updateTimeBars()
   {
     if(this->m_timebars->timebar.isEnabled())
     {
-      for(auto& bar : this->m_timebars->lightBars)
-      {
-        bar.setVisible(false);
-      }
-      for(auto& bar : this->m_timebars->lighterBars)
-      {
-        bar.setVisible(false);
-      }
+      this->m_timebars->lightBars.setVisible(false);
+      this->m_timebars->lighterBars.setVisible(false);
       this->m_timebars->timebar.setEnabled(false);
       this->m_timebars->timebar.setVisible(false);
     }
@@ -842,20 +847,19 @@ void FullViewIntervalPresenter::updateTimeBars()
   {
     if(!this->m_timebars->timebar.isEnabled())
     {
-      for(auto& bar : this->m_timebars->lightBars)
-      {
-        bar.setVisible(true);
-      }
-      for(auto& bar : this->m_timebars->lighterBars)
-      {
-        bar.setVisible(true);
-      }
+      this->m_timebars->lightBars.setVisible(true);
+      this->m_timebars->lighterBars.setVisible(true);
       this->m_timebars->timebar.setEnabled(true);
       this->m_timebars->timebar.setVisible(true);
     }
   }
 
   auto scene_x0 = m_view->mapToScene(QPointF{}).x();
+
+  QGraphicsView* view = m_view->scene()->views()[0];
+  const auto viewRect =  view->viewport()->rect();
+  QRectF sceneRect{view->mapToScene(viewRect.topLeft()), view->mapToScene(viewRect.bottomRight())};
+  sceneRect.adjust(-100, timeSignatureBarY, 100, timeSignatureBarY);
 
   // x0_time: time of the currently visible leftmost pixel
   TimeVal x0_time = TimeVal::fromMsecs(m_zoomRatio * (m_sceneRect.x() - scene_x0));
@@ -925,8 +929,14 @@ void FullViewIntervalPresenter::updateTimeBars()
   auto& lighterBars = m_timebars->lighterBars;
 
   m_magneticDivision = sub_division;
-  draw_sub_bars(measures, lighterBars, last_before, m_zoomRatio, last_quarter_pixels, sub_division_pixels);
-  draw_main_bars(measures, lightBars, last_before, m_zoomRatio, last_quarter_pixels, main_division_pixels, pow2);
+
+  draw_sub_bars(measures, lighterBars, last_before, m_zoomRatio, last_quarter_pixels, sub_division_pixels, sceneRect);
+  draw_main_bars(measures, lightBars, last_before, m_zoomRatio, last_quarter_pixels, main_division_pixels, pow2, sceneRect);
+
+
+  this->m_timebars->lightBars.updateShapes();
+  this->m_timebars->lighterBars.updateShapes();
+
 }
 
 void FullViewIntervalPresenter::on_modeChanged(IntervalModel::ViewMode m)

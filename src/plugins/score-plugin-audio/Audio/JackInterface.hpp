@@ -7,6 +7,7 @@
 #include <QLabel>
 #include <QSpinBox>
 #include <QWidget>
+#include <QDebug>
 
 #include <Audio/AudioInterface.hpp>
 #include <Audio/Settings/Model.hpp>

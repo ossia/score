@@ -1,5 +1,5 @@
 if(NOT CMAKE_BUILD_TYPE)
-  set(CMAKE_BUILD_TYPE Release CACHE INTERNAL "")
+  set(CMAKE_BUILD_TYPE RelWithDebInfo CACHE INTERNAL "")
 endif()
 
 if(NOT DEFINED SCORE_COTIRE)
@@ -28,4 +28,4 @@ if(MSYS OR MINGW)
   set(SCORE_ENABLE_LTO False)
 endif()
 
-include(default-plugins)
+include(minimal-plugins)
