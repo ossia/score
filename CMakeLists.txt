@@ -40,11 +40,11 @@ cmake_policy(SET CMP0025 NEW)
 cmake_policy(SET CMP0063 NEW)
 cmake_policy(SET CMP0079 NEW)
 
-set(SCORE_VERSION_MAJOR 2)
-set(SCORE_VERSION_MINOR 5)
-set(SCORE_VERSION_PATCH 2)
-set(SCORE_VERSION_EXTRA "")
-set(SCORE_CODENAME "An illustrated guide to buying Greenland")
+set(SCORE_VERSION_MAJOR 3)
+set(SCORE_VERSION_MINOR 0)
+set(SCORE_VERSION_PATCH 0)
+set(SCORE_VERSION_EXTRA "alpha0")
+set(SCORE_CODENAME "La poutine aux lardons : épistémologie d'une culture culinaire")
 
 set(SCORE_VERSION
     "${SCORE_VERSION_MAJOR}.${SCORE_VERSION_MINOR}.${SCORE_VERSION_PATCH}")
