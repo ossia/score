@@ -49,6 +49,7 @@ case "$TRAVIS_OS_NAME" in
     set +e
 
     brew update
+    brew upgrade 
     brew install qt cmake portaudio ffmpeg ninja libsamplerate
 
 #    SDK_ARCHIVE=homebrew-cache.txz
