@@ -16,6 +16,7 @@ MoveNotes::MoveNotes(
     double t_delta)
     : m_model{model}
 {
+  // TODO change to indices
   m_before.reserve(to_move.size());
   m_after.reserve(to_move.size());
   for (auto& note_id : to_move)
@@ -70,6 +71,66 @@ void MoveNotes::serializeImpl(DataStreamInput& s) const
 }
 
 void MoveNotes::deserializeImpl(DataStreamOutput& s)
+{
+  s >> m_model >> m_before >> m_after;
+}
+
+ChangeNotesVelocity::ChangeNotesVelocity(
+    const ProcessModel& model,
+    const std::vector<Id<Note>>& to_move,
+    double vel_delta)
+  : m_model{model}
+{
+  m_before.reserve(to_move.size());
+  m_after.reserve(to_move.size());
+  for (auto& note_id : to_move)
+  {
+    auto& note = model.notes.at(note_id);
+    NoteData data = note.noteData();
+    m_before.push_back(qMakePair(note.id(), data));
+    data.m_velocity = qBound(0, int(data.m_velocity + vel_delta), 127);
+    m_after.push_back(qMakePair(note.id(), data));
+  }
+}
+
+void ChangeNotesVelocity::undo(const score::DocumentContext& ctx) const
+{
+  auto& model = m_model.find(ctx);
+  for (const auto& note : m_before)
+  {
+    auto& n = model.notes.at(note.first);
+    n.setVelocity(note.second.velocity());
+  }
+}
+
+void ChangeNotesVelocity::redo(const score::DocumentContext& ctx) const
+{
+  auto& model = m_model.find(ctx);
+  for (const auto& note : m_after)
+  {
+    auto& n = model.notes.at(note.first);
+    n.setVelocity(note.second.velocity());
+  }
+}
+
+void ChangeNotesVelocity::update(unused_t, unused_t, double vel_delta)
+{
+  m_after.clear();
+  m_after.reserve(m_before.size());
+  for (auto& elt : m_before)
+  {
+    NoteData data = elt.second;
+    data.m_velocity = qBound(0, int(data.m_velocity + vel_delta), 127);
+    m_after.push_back({elt.first, std::move(data)});
+  }
+}
+
+void ChangeNotesVelocity::serializeImpl(DataStreamInput& s) const
+{
+  s << m_model << m_before << m_after;
+}
+
+void ChangeNotesVelocity::deserializeImpl(DataStreamOutput& s)
 {
   s >> m_model >> m_before >> m_after;
 }
