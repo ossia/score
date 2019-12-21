@@ -5,6 +5,7 @@
 #include <QObject>
 #include <QApplication>
 #include <QDebug>
+#include <QTimer>
 #include <vector>
 
 namespace score

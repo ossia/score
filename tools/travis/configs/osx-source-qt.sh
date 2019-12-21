@@ -9,7 +9,7 @@ fi
 
 export CMAKE_BIN=$(find /opt/score-sdk -type f -perm +111 -name cmake)
 if [[ "x$CMAKE_BIN" == "x" ]]; then
-  export CMAKE_BIN=$(find /usr/local/bin -type f -perm +111 -name cmake)
+  export CMAKE_BIN=$(find /usr/local/bin -name cmake)
 fi
 export CC=clang
 export CXX=clang++
