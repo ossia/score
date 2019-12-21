@@ -89,9 +89,9 @@ public:
       QGraphicsItem* parent)
     : QGraphicsItem{parent}
   {
-    auto gainPort = new AutomatablePortItem{port.gainInlet, ctx, this};
+    auto gainPort = new AutomatablePortItem{*port.gainInlet, ctx, this};
     gainPort->setPos(10, 10);
-    auto panPort = new AutomatablePortItem{port.panInlet, ctx, this};
+    auto panPort = new AutomatablePortItem{*port.panInlet, ctx, this};
     panPort->setPos(10, 25);
   }
 

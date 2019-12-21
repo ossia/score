@@ -298,8 +298,8 @@ public:
   void panChanged(pan_weight g)
       E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, panChanged, g)
 
-  Process::ControlInlet gainInlet{Id<Process::Port>{0}, this};
-  Process::ControlInlet panInlet{Id<Process::Port>{1}, this};
+  std::unique_ptr<Process::ControlInlet> gainInlet;
+  std::unique_ptr<Process::ControlInlet> panInlet;
 
   PROPERTY(bool, propagate READ propagate WRITE setPropagate NOTIFY propagateChanged)
   PROPERTY(double, gain READ gain WRITE setGain NOTIFY gainChanged)
@@ -487,6 +487,18 @@ std::unique_ptr<ValueOutlet> load_value_outlet(DataStreamWriter& wr, QObject* pa
 
 SCORE_LIB_PROCESS_EXPORT
 std::unique_ptr<ValueOutlet> load_value_outlet(JSONObjectWriter& wr, QObject* parent);
+
+SCORE_LIB_PROCESS_EXPORT
+std::unique_ptr<ControlInlet> load_control_inlet(DataStreamWriter& wr, QObject* parent);
+
+SCORE_LIB_PROCESS_EXPORT
+std::unique_ptr<ControlInlet> load_control_inlet(JSONObjectWriter& wr, QObject* parent);
+
+SCORE_LIB_PROCESS_EXPORT
+std::unique_ptr<ControlOutlet> load_control_outlet(DataStreamWriter& wr, QObject* parent);
+
+SCORE_LIB_PROCESS_EXPORT
+std::unique_ptr<ControlOutlet> load_control_outlet(JSONObjectWriter& wr, QObject* parent);
 
 SCORE_LIB_PROCESS_EXPORT
 std::unique_ptr<AudioInlet> load_audio_inlet(DataStreamWriter& wr, QObject* parent);

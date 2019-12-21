@@ -434,8 +434,8 @@ void SetupContext::register_outlet_impl(
     node->inputs().push_back(&ossia_audio->gain_inlet);
     node->inputs().push_back(&ossia_audio->pan_inlet);
 
-    register_inlet_impl(proc_audio->gainInlet, &ossia_audio->gain_inlet, node, impl);
-    register_inlet_impl(proc_audio->panInlet, &ossia_audio->pan_inlet, node, impl);
+    register_inlet_impl(*proc_audio->gainInlet, &ossia_audio->gain_inlet, node, impl);
+    register_inlet_impl(*proc_audio->panInlet, &ossia_audio->pan_inlet, node, impl);
   }
 
   // Unneeded : the execution_state only needs inlets to be registered,
@@ -496,8 +496,8 @@ void SetupContext::unregister_outlet(
 
     if (auto proc_audio = qobject_cast<const Process::AudioOutlet*>(&proc_port))
     {
-      unregister_inlet(proc_audio->gainInlet, node);
-      unregister_inlet(proc_audio->panInlet, node);
+      unregister_inlet(*proc_audio->gainInlet, node);
+      unregister_inlet(*proc_audio->panInlet, node);
     }
   }
 
