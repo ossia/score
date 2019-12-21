@@ -6,6 +6,7 @@
 #include <score/model/path/Path.hpp>
 #include <score/tools/std/Optional.hpp>
 #include <QJsonObject>
+#include <QPointF>
 #include <score_plugin_scenario_export.h>
 struct DataStreamInput;
 struct DataStreamOutput;
