@@ -264,6 +264,8 @@ AudioOutlet::~AudioOutlet() {}
 
 AudioOutlet::AudioOutlet(Id<Process::Port> c, QObject* parent)
   : Outlet{std::move(c), parent}
+  , gainInlet{std::make_unique<ControlInlet>(Id<Process::Port>{0}, this)}
+  , panInlet{std::make_unique<ControlInlet>(Id<Process::Port>{1}, this)}
   , m_gain{1.}
   , m_pan{ossia::sqrt_2 / 2., ossia::sqrt_2 / 2.}
 {
@@ -726,6 +728,26 @@ std::unique_ptr<ValueOutlet> load_value_outlet(JSONObjectWriter& wr, QObject* pa
   return load_port_t<ValueOutlet>(wr, parent);
 }
 
+std::unique_ptr<ControlInlet> load_control_inlet(DataStreamWriter& wr, QObject* parent)
+{
+  return load_port_t<ControlInlet>(wr, parent);
+}
+
+std::unique_ptr<ControlInlet> load_control_inlet(JSONObjectWriter& wr, QObject* parent)
+{
+  return load_port_t<ControlInlet>(wr, parent);
+}
+
+std::unique_ptr<ControlOutlet> load_control_outlet(DataStreamWriter& wr, QObject* parent)
+{
+  return load_port_t<ControlOutlet>(wr, parent);
+}
+
+std::unique_ptr<ControlOutlet> load_control_outlet(JSONObjectWriter& wr, QObject* parent)
+{
+  return load_port_t<ControlOutlet>(wr, parent);
+}
+
 std::unique_ptr<AudioInlet> load_audio_inlet(DataStreamWriter& wr, QObject* parent)
 {
     return load_port_t<AudioInlet>(wr, parent);
@@ -943,12 +965,16 @@ SCORE_LIB_PROCESS_EXPORT void
 DataStreamReader::read<Process::AudioOutlet>(const Process::AudioOutlet& p)
 {
   // read((Process::Outlet&)p);
-  m_stream << p.m_gain << p.m_pan << p.m_propagate;
+  m_stream
+      << *p.gainInlet << *p.panInlet
+      << p.m_gain << p.m_pan << p.m_propagate;
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void
 DataStreamWriter::write<Process::AudioOutlet>(Process::AudioOutlet& p)
 {
+  p.gainInlet = Process::load_control_inlet(*this, &p);
+  p.panInlet = Process::load_control_inlet(*this, &p);
   m_stream >> p.m_gain >> p.m_pan >> p.m_propagate;
 }
 
@@ -957,14 +983,29 @@ SCORE_LIB_PROCESS_EXPORT void
 JSONObjectReader::read<Process::AudioOutlet>(const Process::AudioOutlet& p)
 {
   // read((Process::Outlet&)p);
+  obj["GainInlet"] = toJsonObject(*p.gainInlet);
+  obj["PanInlet"] = toJsonObject(*p.panInlet);
+
   obj["Gain"] = p.m_gain;
   obj["Pan"] = toJsonValueArray(p.m_pan);
   obj["Propagate"] = p.m_propagate;
+
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void
 JSONObjectWriter::write<Process::AudioOutlet>(Process::AudioOutlet& p)
 {
+  {
+    JSONObjectWriter writer{obj["GainInlet"].toObject()};
+    p.gainInlet = Process::load_control_inlet(writer, &p);
+  }
+  {
+    JSONObjectWriter writer{obj["PanInlet"].toObject()};
+    p.panInlet = Process::load_control_inlet(writer, &p);
+  }
+
+  p.gainInlet = Process::load_control_inlet(*this, &p);
+  p.panInlet = Process::load_control_inlet(*this, &p);
   p.m_gain = obj["Gain"].toDouble();
   p.m_pan = fromJsonValueArray<ossia::small_vector<double, 2>>(obj["Pan"].toArray());
   p.m_propagate = obj["Propagate"].toBool();
