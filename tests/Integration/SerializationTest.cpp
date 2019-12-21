@@ -15,6 +15,7 @@
 #include <ossia/detail/hash_map.hpp>
 #include <ossia/detail/flat_map.hpp>
 #include <ossia/detail/any_map.hpp>
+#include <unordered_map>
 
 
 static_assert(is_template<UuidKey<struct tag>>::value);

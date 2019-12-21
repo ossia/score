@@ -15,11 +15,13 @@ TimeRulerGraphicsView::TimeRulerGraphicsView(QGraphicsScene* scene)
     : QGraphicsView{scene}
 {
   setRenderHints(
-      QPainter::Antialiasing | QPainter::SmoothPixmapTransform | QPainter::HighQualityAntialiasing
+      QPainter::Antialiasing | QPainter::SmoothPixmapTransform
       | QPainter::TextAntialiasing);
   //#if !defined(SCORE_OPENGL)
 
+#if defined(SCORE_GL_UPDATE)
   setViewport(new QGLWidget);
+#endif
   setAlignment(Qt::AlignTop | Qt::AlignLeft);
   setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
   setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
@@ -52,6 +54,11 @@ MinimapGraphicsView::MinimapGraphicsView(QGraphicsScene* s)
   setFixedHeight(15);
 
   setDragMode(DragMode::NoDrag);
+
+#if defined(__APPLE__)
+  setRenderHints(0);
+  setOptimizationFlag(QGraphicsView::IndirectPainting, true);
+#endif
 }
 
 void MinimapGraphicsView::scrollContentsBy(int dx, int dy) {}

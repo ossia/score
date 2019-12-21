@@ -66,14 +66,6 @@ if(MSYS OR MINGW)
   find_package(ZLIB)
 endif()
 
-include(3rdparty/libossia.cmake)
-enable_testing()
-include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/ScoreFunctions.cmake")
-include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/ScoreConfiguration.cmake")
-
-set_property(GLOBAL PROPERTY USE_FOLDERS ON)
-
-set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 find_package(Qt5 5.12 REQUIRED
              COMPONENTS
                Core
@@ -90,6 +82,15 @@ find_package(Qt5 5.12 REQUIRED
 #               Qml
 #               Test
 )
+
+include(3rdparty/libossia.cmake)
+enable_testing()
+include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/ScoreFunctions.cmake")
+include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/ScoreConfiguration.cmake")
+
+set_property(GLOBAL PROPERTY USE_FOLDERS ON)
+
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 set(3RDPARTY_FOLDER "${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/")
 set(SCORE_ROOT_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}")

@@ -16,8 +16,8 @@ class QWidget;
 namespace Scenario
 {
 class SCORE_PLUGIN_SCENARIO_EXPORT TriggerView final
-    : public QGraphicsPixmapItem
-    , public QObject
+    : public QObject
+    , public QGraphicsPixmapItem
 {
   W_OBJECT(TriggerView)
   Q_INTERFACES(QGraphicsItem)

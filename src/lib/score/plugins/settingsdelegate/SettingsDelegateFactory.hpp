@@ -3,6 +3,7 @@
 #include <score/plugins/settingsdelegate/SettingsDelegateModel.hpp>
 #include <score/plugins/settingsdelegate/SettingsDelegatePresenter.hpp>
 #include <score/plugins/settingsdelegate/SettingsDelegateView.hpp>
+#include <score/tools/SafeCast.hpp>
 
 #include <score_lib_base_export.h>
 
