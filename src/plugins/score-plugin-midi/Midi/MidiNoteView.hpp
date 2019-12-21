@@ -46,12 +46,15 @@ public:
   QRectF computeRect() const noexcept;
   QPointF closestPos(QPointF note) const noexcept;
 
-public:
+  // TODO we should frankly not emit signals and just call the presenter directly...
+  // 5 signals * 1000 notes = a lot of wasted memory
   void noteChanged(int arg_1, double arg_2)
       W_SIGNAL(noteChanged, arg_1, arg_2); // pitch, scaled between [0; 1]
   void noteChangeFinished() W_SIGNAL(noteChangeFinished);
   void noteScaled(double arg_1) W_SIGNAL(noteScaled, arg_1);
   void deselectOtherNotes() W_SIGNAL(deselectOtherNotes)
+  void requestVelocityChange(double v) W_SIGNAL(requestVelocityChange, v)
+  void velocityChangeFinished() W_SIGNAL(velocityChangeFinished)
 
 private:
   bool canEdit() const;
@@ -68,5 +71,6 @@ private:
   qreal m_height{};
 
   bool m_scaling = false;
+  bool m_velocityChange = false;
 };
 }

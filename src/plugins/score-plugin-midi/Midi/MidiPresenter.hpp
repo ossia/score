@@ -48,7 +48,8 @@ private:
   View* m_view{};
   std::vector<NoteView*> m_notes;
 
-  SingleOngoingCommandDispatcher<MoveNotes> m_ongoing;
+  SingleOngoingCommandDispatcher<MoveNotes> m_moveDispatcher;
+  SingleOngoingCommandDispatcher<ChangeNotesVelocity> m_velocityDispatcher;
   ZoomRatio m_zr{};
   void fillContextMenu(
       QMenu& menu,

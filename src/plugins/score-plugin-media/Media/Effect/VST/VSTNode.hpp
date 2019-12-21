@@ -155,12 +155,13 @@ public:
     if constexpr (IsSynth)
     {
       // copy midi data
-      VstEvents* events
-          = (VstEvents*)alloca(sizeof(VstEvents) + sizeof(void*) * 16);
+      // should be 16 but some VSTs read a bit out of bounds apparently !
+      constexpr auto sz = sizeof(VstEvents) + sizeof(void*) * 16 * 2;
+      VstEvents* events = (VstEvents*)alloca(sz);
       events->numEvents = 16;
 
       VstMidiEvent ev[16] = {};
-      // std::memset(&e, 0, sizeof(VstMidiEvent));
+      std::memset(events, 0, sz);
 
       for (int i = 0; i < 16; i++)
       {
@@ -211,8 +212,9 @@ public:
     }
 
     // -2 since two are already available ?
-    VstEvents* events
-        = (VstEvents*)alloca(sizeof(VstEvents) + sizeof(void*) * n_mess);
+    const auto sz = sizeof(VstEvents) + sizeof(void*) * n_mess * 2;
+    VstEvents* events = (VstEvents*)alloca(sz);
+    std::memset(events, 0, sz);
     events->numEvents = n_mess;
 
     ossia::small_vector<VstMidiEvent, 16> vec;
@@ -228,9 +230,9 @@ public:
       e.deltaFrames = mess.timestamp;
       e.flags = kVstMidiEventIsRealtime;
 
-      for (std::size_t k = 0; k < std::min(mess.bytes.size(), (std::size_t)4);
-           k++)
-        e.midiData[k] = mess.bytes[k];
+      std::memcpy(e.midiData, mess.bytes.data(), std::min(mess.bytes.size(), (std::size_t)4));
+      // for (std::size_t k = 0, N = std::min(mess.bytes.size(), (std::size_t)4); k < N; k++)
+      //   e.midiData[k] = mess.bytes[k];
 
       events->events[i] = reinterpret_cast<VstEvent*>(&e);
       i++;

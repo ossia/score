@@ -153,11 +153,18 @@ void NoteView::mousePressEvent(QGraphicsSceneMouseEvent* event)
       deselectOtherNotes();
   setSelected(true);
 
+  m_velocityChange = false;
+  m_scaling = false;
+
   if (canEdit())
   {
     if (event->pos().x() >= this->boundingRect().width() - 2)
     {
       m_scaling = true;
+    }
+    else if(qApp->keyboardModifiers() & Qt::ShiftModifier)
+    {
+      m_velocityChange = true;
     }
     else
     {
@@ -172,10 +179,14 @@ void NoteView::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 {
   if (canEdit())
   {
-    if (m_scaling)
+    if (m_velocityChange && qApp->keyboardModifiers() & Qt::ShiftModifier)
+    {
+      double distance = event->scenePos().y() - event->buttonDownScenePos(Qt::LeftButton).y();
+      requestVelocityChange(distance);
+    }
+    else if (m_scaling)
     {
       this->setWidth(std::max(2., event->pos().x()));
-      event->accept();
     }
     else
     {
@@ -191,7 +202,13 @@ void NoteView::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 {
   if (canEdit())
   {
-    if (m_scaling)
+    if (m_velocityChange && qApp->keyboardModifiers() & Qt::ShiftModifier)
+    {
+      double distance = event->scenePos().y() - event->buttonDownScenePos(Qt::LeftButton).y();
+      requestVelocityChange(distance);
+      velocityChangeFinished();
+    }
+    else if (m_scaling)
     {
       noteScaled(m_width / ((View*)parentItem())->defaultWidth());
       event->accept();
@@ -204,6 +221,8 @@ void NoteView::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
       noteChangeFinished();
     }
   }
+  m_velocityChange = false;
+  m_scaling = false;
   event->accept();
 }
 }

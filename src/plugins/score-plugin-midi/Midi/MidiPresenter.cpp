@@ -46,7 +46,8 @@ Presenter::Presenter(
     : LayerPresenter{ctx, parent}
     , m_layer{layer}
     , m_view{view}
-    , m_ongoing{ctx.commandStack}
+    , m_moveDispatcher{ctx.commandStack}
+    , m_velocityDispatcher{ctx.commandStack}
     , m_zr{1.}
 {
   putToFront();
@@ -83,6 +84,8 @@ Presenter::Presenter(
 
   connect(m_view, &View::pressed, this, [&]() {
     m_context.context.focusDispatcher.focus(this);
+    for(NoteView* n : m_notes)
+        n->setSelected(false);
   });
   connect(m_view, &View::dropReceived, this, &Presenter::on_drop);
 
@@ -236,12 +239,12 @@ void Presenter::setupNote(NoteView& v)
       notes = {v.note.id()};
     }
 
-    m_ongoing.submit(
+    m_moveDispatcher.submit(
         m_layer,
         notes,
         note - v.note.pitch(),
         newPos.x() / m_view->defaultWidth() - v.note.start());
-    m_ongoing.commit();
+    m_moveDispatcher.commit();
   });
 
   con(v, &NoteView::noteScaled, this, [&](double newScale) {
@@ -255,6 +258,21 @@ void Presenter::setupNote(NoteView& v)
     auto dt = newScale - v.note.duration();
     CommandDispatcher<>{context().context.commandStack}.submit(
         new ScaleNotes{m_layer, notes, dt});
+  });
+
+  con(v, &NoteView::requestVelocityChange, this, [&](double velocityDelta) {
+    auto notes = selectedNotes();
+    auto it = ossia::find(notes, v.note.id());
+    if (it == notes.end())
+    {
+      notes = {v.note.id()};
+    }
+
+    m_velocityDispatcher.submit(m_layer, notes, velocityDelta / 5.);
+  });
+
+  con(v, &NoteView::velocityChangeFinished, this, [&] {
+    m_velocityDispatcher.commit();
   });
 }
 
