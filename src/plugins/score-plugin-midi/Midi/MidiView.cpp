@@ -12,6 +12,7 @@
 #include <QGraphicsSceneMouseEvent>
 #include <QKeyEvent>
 #include <QPainter>
+#include <QApplication>
 
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Midi::View)
@@ -187,7 +188,7 @@ void View::paint_impl(QPainter* p) const
                                    1.,
                                    0.,
                                    1.});
-      constexpr double text_w = 20.;
+      constexpr double text_w = 30.;
       const double next_w = m_bgCache.width() - text_w;
 
       x += m_bgCache.width() - text_w / 2.;
