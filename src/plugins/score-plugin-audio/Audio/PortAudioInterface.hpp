@@ -5,7 +5,6 @@
 namespace Audio
 {
 #if defined(OSSIA_AUDIO_PORTAUDIO)
-
 struct PortAudioScope
 {
   PortAudioScope() { Pa_Initialize(); }
