@@ -58,7 +58,8 @@ case "$TRAVIS_OS_NAME" in
     sudo mkdir -p /opt/score-sdk-osx
     sudo chmod -R a+rwx /opt/score-sdk-osx
     gtar xhaf $SDK_ARCHIVE --directory /opt/score-sdk-osx
-
+    rm -rf /Library/Developer/CommandLineTools
+    rm -rf /usr/local/include/c++
     set -e
   ;;
 esac
