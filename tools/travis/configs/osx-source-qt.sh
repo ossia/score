@@ -15,6 +15,6 @@ fi
 export CC=clang
 export CXX=clang++
 export CMAKE_PREFIX_PATH="$QT_PATH"
-export CMAKE_COMMON_FLAGS="-DCMAKE_PREFIX_PATH=$CMAKE_PREFIX_PATH -DCMAKE_INSTALL_PREFIX=$(pwd)/bundle -DCMAKE_OSX_DEPLOYMENT_TARGET=10.12 -DCMAKE_OSX_SYSROOT=/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.15.sdk"
+export CMAKE_COMMON_FLAGS="-DCMAKE_PREFIX_PATH=$CMAKE_PREFIX_PATH -DCMAKE_INSTALL_PREFIX=$(pwd)/bundle -DCMAKE_OSX_DEPLOYMENT_TARGET=10.14  -DCMAKE_OSX_SYSROOT=/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.15.sdk"
 
-export CMAKE_COMMON_FLAGS="$CMAKE_COMMON_FLAGS -DOSSIA_SDK=$SCORE_SDK"
+export CMAKE_COMMON_FLAGS="$CMAKE_COMMON_FLAGS -DOSSIA_SDK=$SCORE_SDK -DCMAKE_C_FLAGS=\"-march=ivybridge -mtune=haswell\" -DCMAKE_CXX_FLAGS=\"-march=ivybridge -mtune=haswell\""
