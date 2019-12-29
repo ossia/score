@@ -507,7 +507,7 @@ void ScenarioDocumentPresenter::on_minimapChanged(double l, double r)
   auto newView = QRectF{newX, y, (qreal)w, (qreal)h};
   gv.ensureVisible(newView, 0., 0.);
 
-#if defined(SCORE_GL_UPDATE)
+#if SCORE_GL_UPDATE
   gv.update();
 #endif
 

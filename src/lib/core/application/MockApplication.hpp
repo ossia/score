@@ -15,13 +15,13 @@ namespace testing
 struct MockApplication final : public score::ApplicationInterface
 {
 public:
+  static inline score::ApplicationComponentsData d0;
   MockApplication() { m_instance = this; }
 
   const score::ApplicationContext& context() const override { throw; }
 
   const score::ApplicationComponents& components() const override
   {
-    static score::ApplicationComponentsData d0;
     static score::ApplicationComponents d1{d0};
     return d1;
   }

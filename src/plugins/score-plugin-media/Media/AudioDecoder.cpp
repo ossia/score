@@ -499,9 +499,6 @@ ossia::optional<AudioInfo> AudioDecoder::probe(const QString& path)
   if (it == database().end())
   {
 #if SCORE_HAS_LIBAV
-    av_register_all();
-    avcodec_register_all();
-
     auto fmt_ctx = open_audio(path);
 
     if (avformat_find_stream_info(fmt_ctx.get(), nullptr) < 0)

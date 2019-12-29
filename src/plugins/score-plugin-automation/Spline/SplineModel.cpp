@@ -21,7 +21,6 @@ ProcessModel::ProcessModel(
                             parent}
     , outlet{Process::make_value_outlet(Id<Process::Port>(0), this)}
 {
-  outlet->type = Process::PortType::Message;
   m_spline.points.push_back({0., 0.});
 
   m_spline.points.push_back({0.4, 0.075});

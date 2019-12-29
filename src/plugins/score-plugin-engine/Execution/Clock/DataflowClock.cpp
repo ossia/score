@@ -103,7 +103,9 @@ void Clock::resume_impl(Execution::BaseScenarioElement& bs)
       else
       {
         bench.measure = false;
+        for(auto act : plug->actions()) act->startTick();
         tick(args...);
+        for(auto act : plug->actions()) act->endTick();
       }
 
       i++;
@@ -125,7 +127,9 @@ void Clock::resume_impl(Execution::BaseScenarioElement& bs)
         c();
       }
 
+      for(auto act : plug->actions()) act->startTick();
       tick(args...);
+      for(auto act : plug->actions()) act->endTick();
     });
   }
 

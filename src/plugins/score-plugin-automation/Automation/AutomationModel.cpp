@@ -57,8 +57,6 @@ ProcessModel::ProcessModel(
     , m_startState{new ProcessState{*this, 0., this}}
     , m_endState{new ProcessState{*this, 1., this}}
 {
-  outlet->type = Process::PortType::Message;
-
   // Named shall be enough ?
   setCurve(new Curve::Model{Id<Curve::Model>(45345), this});
 

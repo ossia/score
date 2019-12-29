@@ -23,6 +23,7 @@ W_OBJECT_IMPL(score::QGraphicsLogKnob)
 W_OBJECT_IMPL(score::QGraphicsIntSlider)
 W_OBJECT_IMPL(score::QGraphicsCombo)
 W_OBJECT_IMPL(score::QGraphicsEnum)
+W_OBJECT_IMPL(score::QGraphicsHSVChooser)
 namespace score
 {
 
@@ -980,6 +981,161 @@ void QGraphicsPixmapEnum::paint(
     }
     i++;
   }
+}
+
+QGraphicsHSVChooser::QGraphicsHSVChooser(QGraphicsItem* parent)
+{
+
+}
+
+void QGraphicsHSVChooser::setRect(const QRectF& r)
+{
+
+}
+
+void QGraphicsHSVChooser::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+{
+  static QImage hs_zone{100, 100, QImage::Format_ARGB32};
+  for(int j = 0; j < 100; j++)
+  {
+    for(int i = 0; i < 100; i++)
+    {
+      QColor col = QColor::fromHsvF(double(i) / 100., double(j) / 100., this->v);
+      hs_zone.setPixelColor(i, j, col);
+    }
+  }
+
+  static QImage v_zone{20, 100, QImage::Format_ARGB32};
+
+  for(int j = 0; j < 100; j++)
+  {
+    QColor col = QColor::fromHsvF(-1., 1., double(j) / 100.);
+    for(int i = 0; i < 20; i++)
+      v_zone.setPixelColor(i, j, col);
+  }
+
+  painter->drawImage(QPointF{0, 0}, hs_zone);
+  painter->drawImage(QPointF{110, 0}, v_zone);
+}
+
+std::array<float, 4> QGraphicsHSVChooser::value() const
+{
+  return m_value;
+}
+
+void QGraphicsHSVChooser::setValue(std::array<float, 4> v)
+{
+  m_value = v;
+  auto hsv = QColor::fromRgbF(v[0], v[1], v[2], v[3]).toHsv();
+
+  this->h = hsv.hueF();
+  this->s = hsv.saturationF();
+  this->v = hsv.valueF();
+  update();
+}
+
+void QGraphicsHSVChooser::mousePressEvent(QGraphicsSceneMouseEvent* event)
+{
+  const auto p = event->pos();
+  if(p.x() < 100.)
+  {
+    h = p.x() / 100.;
+    s = p.y() / 100.;
+    m_grab = true;
+  }
+  else if(p.x() >= 110 && p.x() < 130)
+  {
+    v = p.y() / 100.;
+    m_grab = true;
+  }
+
+  const auto rgba = QColor::fromHsvF(h, s, v, 1.);
+  auto new_v = m_value;
+  auto& [r, g, b, a] = new_v;
+  r = rgba.redF();
+  g = rgba.greenF();
+  b = rgba.blueF();
+  a = 1.;
+  if(new_v != m_value)
+  {
+    m_value = new_v;
+    valueChanged(m_value);
+    sliderMoved();
+    update();
+  }
+  event->accept();
+}
+
+void QGraphicsHSVChooser::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
+{
+  const auto p = event->pos();
+  if(m_grab)
+  {
+    if(p.x() < 100.)
+    {
+      h = p.x() / 100.;
+      s = p.y() / 100.;
+    }
+    else if(p.x() >= 110 && p.x() < 130)
+    {
+      v = p.y() / 100.;
+    }
+
+    const auto rgba = QColor::fromHsvF(h, s, v, 1.);
+    auto new_v = m_value;
+    auto& [r, g, b, a] = new_v;
+    r = rgba.redF();
+    g = rgba.greenF();
+    b = rgba.blueF();
+    a = 1.;
+    if(new_v != m_value)
+    {
+      m_value = new_v;
+      valueChanged(m_value);
+      sliderMoved();
+      update();
+    }
+  }
+  event->accept();
+}
+
+void QGraphicsHSVChooser::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
+{
+  if(m_grab)
+  {
+    const auto p = event->pos();
+    if(p.x() < 100.)
+    {
+      h = p.x() / 100.;
+      s = p.y() / 100.;
+    }
+    else if(p.x() >= 110 && p.x() < 130)
+    {
+      v = p.y() / 100.;
+    }
+    const auto rgba = QColor::fromHsvF(h, s, v, 1.);
+    auto new_v = m_value;
+    auto& [r, g, b, a] = new_v;
+    r = rgba.redF();
+    g = rgba.greenF();
+    b = rgba.blueF();
+    a = 1.;
+    if(new_v != m_value)
+    {
+      m_value = new_v;
+      valueChanged(m_value);
+      update();
+    }
+    sliderReleased();
+    m_grab = false;
+  }
+  event->accept();
+
+}
+
+QRectF QGraphicsHSVChooser::boundingRect() const
+{
+  return QRectF{0, 0, 140, 100};
 }
 
 }

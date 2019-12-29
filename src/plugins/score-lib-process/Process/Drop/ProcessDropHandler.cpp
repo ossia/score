@@ -67,7 +67,7 @@ std::vector<ProcessDropHandler::ProcessDrop> ProcessDropHandler::getDrops(
       QFile file{path};
       if (file.open(QIODevice::ReadOnly))
       {
-        data.push_back({QFileInfo{file}.fileName(), file.readAll()});
+        data.push_back({QFileInfo{file}.absoluteFilePath(), file.readAll()});
       }
     }
     res = dropData(data, ctx);

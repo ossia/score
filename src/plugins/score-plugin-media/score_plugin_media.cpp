@@ -52,8 +52,22 @@
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Media::Step::View)
 
+#if __has_include(<libavcodec/avcodec.h>)
+#define SCORE_HAS_LIBAV 1
+extern "C"
+{
+#include <libavcodec/avcodec.h>
+#include <libavformat/avformat.h>
+}
+#endif
+
 score_plugin_media::score_plugin_media()
 {
+#if SCORE_HAS_LIBAV
+    av_register_all();
+    avcodec_register_all();
+#endif
+
   qRegisterMetaType<Media::Sound::ComputedWaveform>();
   qRegisterMetaType<QVector<QImage>>();
   qRegisterMetaType<QVector<QImage*>>();

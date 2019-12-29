@@ -22,9 +22,7 @@ ProcessModel::ProcessModel(
                             Metadata<ObjectKey_k, ProcessModel>::get(),
                             parent}
     , outlet{Process::make_value_outlet(Id<Process::Port>(0), this)}
-
 {
-  outlet->type = Process::PortType::Message;
   m_colors.insert(std::make_pair(0.2, QColor(Qt::black)));
   m_colors.insert(std::make_pair(0.8, QColor(Qt::white)));
 

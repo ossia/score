@@ -66,6 +66,9 @@ public:
 
   void runAllCommands() const;
 
+  void registerAction(ExecutionAction& act);
+  const std::vector<ExecutionAction*>& actions() const noexcept { return m_actions; }
+
   const Execution::Settings::Model& settings;
 
   std::shared_ptr<ossia::graph_interface> execGraph;
@@ -85,19 +88,20 @@ public:
   W_SLOT(slot_bench);
 
 private:
+  void on_finished();
+  void timerEvent(QTimerEvent* event) override;
   void registerDevice(ossia::net::device_base*);
   void unregisterDevice(ossia::net::device_base*);
+  void makeGraph();
+
   mutable ExecutionCommandQueue m_execQueue;
   mutable EditionCommandQueue m_editionQueue;
   Context m_ctx;
   SetupContext m_setup_ctx;
   BaseScenarioElement m_base;
+  std::vector<ExecutionAction*> m_actions;
   std::atomic_bool m_created{};
 
-  void on_finished();
-
-  void timerEvent(QTimerEvent* event) override;
   int m_tid{};
-  void makeGraph();
 };
 }

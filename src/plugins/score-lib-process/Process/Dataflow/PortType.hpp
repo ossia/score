@@ -11,7 +11,8 @@ enum class PortType
 {
   Message,
   Audio,
-  Midi
+  Midi,
+  Texture
 };
 
 SCORE_LIB_PROCESS_EXPORT

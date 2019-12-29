@@ -103,6 +103,7 @@ public:
     // Initialize all the controls in the node with the current value.
     // And update the node when the UI changes
 
+    // TODO do it also when they change
     const auto& map = element.outputAddresses();
     int i = 0;
     for(auto& ctl : element.inlets())

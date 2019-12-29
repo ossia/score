@@ -31,10 +31,16 @@ class PortSerializationTest : public QObject
 {
   Q_OBJECT
   score::testing::MockApplication m;
-  Process::PortFactoryList pl;
+  bool temporise{};
+  Process::PortFactoryList& pl;
 
 public:
   PortSerializationTest()
+    : temporise{[&] { m.d0.factories.insert({
+                                              Process::PortFactory::static_interfaceKey(),
+                                              std::make_unique<Process::PortFactoryList>()});
+      return true;}()}
+    , pl{*dynamic_cast<Process::PortFactoryList*>(m.d0.factories.begin()->second.get())}
   {
     pl.insert(std::make_unique<Dataflow::ControlInletFactory>());
     pl.insert(std::make_unique<Dataflow::ControlOutletFactory>());
@@ -361,6 +367,65 @@ nullptr); auto ptr = dynamic_cast<Process::ControlInlet*>(new_port);
       auto json = marshall<DataStream>((Process::Outlet&)port);
       auto new_port = deserialize_interface(pl, DataStream::Deserializer{json}, nullptr);
       auto ptr = dynamic_cast<Process::ValueOutlet*>(new_port); QVERIFY(ptr);
+      QVERIFY(ptr->id() == port.id());
+      QVERIFY(ptr->address() == port.address());
+    }
+  }
+
+
+
+
+
+  void test_audiooutlet_json_upcast()
+  {
+    Process::AudioOutlet port{Id<Process::Port>{1234}, nullptr};
+    port.setAddress(*State::parseAddressAccessor("foo:/bar@[1]"));
+    {
+      auto json = marshall<JSONObject>((Process::Outlet&)port);
+      qDebug() << json;
+      auto new_port = deserialize_interface(pl, JSONObject::Deserializer{json}, nullptr);
+      auto ptr = dynamic_cast<Process::AudioOutlet*>(new_port);
+      QVERIFY(ptr);
+      QVERIFY(ptr->id() == port.id());
+      QVERIFY(ptr->address() == port.address());
+    }
+  }
+  void test_audiooutlet_json_no_upcast()
+  {
+      Process::AudioOutlet port{Id<Process::Port>{1234}, nullptr};
+      port.setAddress(*State::parseAddressAccessor("foo:/bar@[1]"));
+      {
+          auto json = marshall<JSONObject>(port);
+          auto new_port = deserialize_interface(pl, JSONObject::Deserializer{json}, nullptr);
+          auto ptr = dynamic_cast<Process::AudioOutlet*>(new_port);
+          QVERIFY(ptr);
+          QVERIFY(ptr->id() == port.id());
+          QVERIFY(ptr->address() == port.address());
+      }
+  }
+
+  void test_audiooutlet_datastream_upcast()
+  {
+    Process::AudioOutlet port{Id<Process::Port>{1234}, nullptr};
+    port.setAddress(*State::parseAddressAccessor("foo:/bar@[1]"));
+    {
+      auto json = marshall<DataStream>((Process::Outlet&)port);
+      auto new_port = deserialize_interface(pl, DataStream::Deserializer{json}, nullptr);
+      auto ptr = dynamic_cast<Process::AudioOutlet*>(new_port);
+      QVERIFY(ptr);
+      QVERIFY(ptr->id() == port.id());
+      QVERIFY(ptr->address() == port.address());
+    }
+  }
+  void test_audiooutlet_datastream_no_upcast()
+  {
+    Process::AudioOutlet port{Id<Process::Port>{1234}, nullptr};
+    port.setAddress(*State::parseAddressAccessor("foo:/bar@[1]"));
+    {
+      auto json = marshall<DataStream>(port);
+      auto new_port = deserialize_interface(pl, DataStream::Deserializer{json}, nullptr);
+      auto ptr = dynamic_cast<Process::AudioOutlet*>(new_port);
+      QVERIFY(ptr);
       QVERIFY(ptr->id() == port.id());
       QVERIFY(ptr->address() == port.address());
     }
