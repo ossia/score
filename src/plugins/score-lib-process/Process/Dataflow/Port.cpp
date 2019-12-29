@@ -1004,8 +1004,6 @@ JSONObjectWriter::write<Process::AudioOutlet>(Process::AudioOutlet& p)
     p.panInlet = Process::load_control_inlet(writer, &p);
   }
 
-  p.gainInlet = Process::load_control_inlet(*this, &p);
-  p.panInlet = Process::load_control_inlet(*this, &p);
   p.m_gain = obj["Gain"].toDouble();
   p.m_pan = fromJsonValueArray<ossia::small_vector<double, 2>>(obj["Pan"].toArray());
   p.m_propagate = obj["Propagate"].toBool();

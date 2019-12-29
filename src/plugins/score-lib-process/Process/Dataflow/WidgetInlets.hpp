@@ -16,6 +16,7 @@ struct LineEdit;
 struct Enum;
 struct TimeSignatureChooser;
 struct Button;
+struct HSVSlider;
 }
 UUID_METADATA(
     SCORE_LIB_PROCESS_EXPORT,
@@ -82,6 +83,12 @@ UUID_METADATA(
     Process::Button,
     "feb87e84-e0d2-428f-96ff-a123ac964f59")
 
+UUID_METADATA(
+    SCORE_LIB_PROCESS_EXPORT,
+    Process::Port,
+    Process::HSVSlider,
+    "8f38638e-9f9f-48b0-ae36-1cba86ef5703")
+
 namespace Process
 {
 struct FloatSlider : public Process::ControlInlet
@@ -97,7 +104,6 @@ struct FloatSlider : public Process::ControlInlet
       QObject* parent)
       : ControlInlet{id, parent}
   {
-    type = Process::PortType::Message;
     hidden = true;
     setValue(init);
     setDomain(ossia::make_domain(min, max));
@@ -122,7 +128,6 @@ struct LogFloatSlider : public Process::ControlInlet
       QObject* parent)
       : ControlInlet{id, parent}
   {
-    type = Process::PortType::Message;
     hidden = true;
     setValue(init);
     setDomain(ossia::make_domain(min, max));
@@ -147,7 +152,6 @@ struct IntSlider : public Process::ControlInlet
       QObject* parent)
       : ControlInlet{id, parent}
   {
-    type = Process::PortType::Message;
     hidden = true;
     setValue(init);
     setDomain(ossia::make_domain(min, max));
@@ -172,7 +176,6 @@ struct IntSpinBox : public Process::ControlInlet
       QObject* parent)
       : ControlInlet{id, parent}
   {
-    type = Process::PortType::Message;
     hidden = true;
     setValue(init);
     setDomain(ossia::make_domain(min, max));
@@ -191,7 +194,6 @@ struct Toggle : public Process::ControlInlet
   Toggle(bool init, const QString& name, Id<Process::Port> id, QObject* parent)
       : ControlInlet{id, parent}
   {
-    type = Process::PortType::Message;
     hidden = true;
     setValue(init);
     setDomain(State::Domain{ossia::domain_base<bool>{}});
@@ -213,7 +215,6 @@ struct ChooserToggle : public Process::ControlInlet
       QObject* parent)
       : ControlInlet{id, parent}
   {
-    type = Process::PortType::Message;
     hidden = true;
     setValue(
         init ? alternatives[1].toStdString() : alternatives[0].toStdString());
@@ -244,7 +245,6 @@ struct LineEdit : public Process::ControlInlet
       QObject* parent)
       : ControlInlet{id, parent}
   {
-    type = Process::PortType::Message;
     hidden = true;
     setValue(init.toStdString());
     setCustomData(name);
@@ -266,7 +266,6 @@ struct SCORE_LIB_PROCESS_EXPORT ComboBox : public Process::ControlInlet
       QObject* parent)
       : ControlInlet{id, parent}, alternatives{std::move(values)}
   {
-    type = Process::PortType::Message;
     hidden = true;
     setValue(init);
     std::vector<ossia::value> vals;
@@ -303,7 +302,6 @@ struct SCORE_LIB_PROCESS_EXPORT Enum : public Process::ControlInlet
     for (auto& val : dom)
       values.push_back(QString::fromStdString(val));
 
-    type = Process::PortType::Message;
     hidden = true;
     setValue(init);
     setDomain(State::Domain{ossia::domain_base<std::string>{dom}});
@@ -319,7 +317,6 @@ struct SCORE_LIB_PROCESS_EXPORT Enum : public Process::ControlInlet
       QObject* parent)
     : ControlInlet{id, parent}, values{values}, pixmaps{std::move(pixmaps)}
   {
-    type = Process::PortType::Message;
     hidden = true;
     setValue(init);
     ossia::domain_base<std::string> dom;
@@ -349,7 +346,6 @@ struct TimeSignatureChooser : public Process::ControlInlet
       : ControlInlet{id, parent}
   {
     using namespace std::literals;
-    type = Process::PortType::Message;
     hidden = true;
     setValue(init);
     setDomain(
@@ -367,7 +363,6 @@ struct Button : public Process::ControlInlet
   Button(const QString& name, Id<Process::Port> id, QObject* parent)
       : ControlInlet{id, parent}
   {
-    type = Process::PortType::Message;
     hidden = true;
     setValue(false);
     setDomain(State::Domain{ossia::domain_base<bool>{}});
@@ -376,4 +371,27 @@ struct Button : public Process::ControlInlet
 
   using Process::ControlInlet::ControlInlet;
 };
+
+
+struct HSVSlider : public Process::ControlInlet
+{
+  MODEL_METADATA_IMPL(HSVSlider)
+  using control_type = WidgetFactory::HSVSlider;
+  HSVSlider(
+      ossia::vec4f init,
+      const QString& name,
+      Id<Process::Port> id,
+      QObject* parent)
+      : ControlInlet{id, parent}
+  {
+    hidden = true;
+    setValue(init);
+    setCustomData(name);
+  }
+
+  auto getMin() const noexcept { return ossia::vec4f{0., 0., 0., 0.}; }
+  auto getMax() const noexcept { return ossia::vec4f{1., 1., 1., 1.}; }
+  using Process::ControlInlet::ControlInlet;
+};
+
 }

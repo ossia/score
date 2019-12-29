@@ -34,9 +34,6 @@ ProcessModel::ProcessModel(
     , m_targetMin{0.}
     , m_targetMax{1.}
 {
-  inlet->type = Process::PortType::Message;
-  outlet->type = Process::PortType::Message;
-
   setCurve(new Curve::Model{Id<Curve::Model>(45345), this});
 
   auto s1 = new Curve::DefaultCurveSegmentModel(

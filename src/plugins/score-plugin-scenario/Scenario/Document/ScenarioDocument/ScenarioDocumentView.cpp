@@ -51,7 +51,7 @@ ProcessGraphicsView::ProcessGraphicsView(
 {
   m_lastwheel = std::chrono::steady_clock::now();
 
-#if defined(SCORE_GL_UPDATE)
+#if SCORE_GL_UPDATE
   setViewport(new QOpenGLWidget);
   setViewportUpdateMode(QGraphicsView::FullViewportUpdate);
 #else
@@ -80,7 +80,7 @@ ProcessGraphicsView::ProcessGraphicsView(
   // setOptimizationFlag(QGraphicsView::IndirectPainting, true);
 #endif*/
 
-#if defined(SCORE_GL_UPDATE)
+#if SCORE_GL_UPDATE
   m_timer = startTimer(8);
   viewport()->setUpdatesEnabled(true);
 #endif
@@ -99,7 +99,7 @@ void ProcessGraphicsView::scrollHorizontal(double dx)
   if (auto bar = horizontalScrollBar())
   {
     bar->setValue(bar->value() + dx);
-#if defined(SCORE_GL_UPDATE)
+#if SCORE_GL_UPDATE
     viewport()->update();
 #endif
   }
@@ -112,7 +112,7 @@ void ProcessGraphicsView::resizeEvent(QResizeEvent* ev)
 
   visibleRectChanged(QRectF{this->mapToScene(QPoint{}), this->mapToScene(this->rect().bottomRight())});
 
-#if defined(SCORE_GL_UPDATE)
+#if SCORE_GL_UPDATE
   viewport()->update();
 #endif
 }
@@ -127,7 +127,7 @@ void ProcessGraphicsView::scrollContentsBy(int dx, int dy)
 
   visibleRectChanged(QRectF{this->mapToScene(QPoint{}), this->mapToScene(this->rect().bottomRight())});
 
-#if defined(SCORE_GL_UPDATE)
+#if SCORE_GL_UPDATE
   viewport()->update();
 #endif
 }
@@ -168,7 +168,7 @@ void ProcessGraphicsView::wheelEvent(QWheelEvent* event)
   MyWheelEvent e{*event};
   QGraphicsView::wheelEvent(&e);
 
-#if defined(SCORE_GL_UPDATE)
+#if SCORE_GL_UPDATE
   viewport()->update();
 #endif
 }
@@ -186,7 +186,7 @@ void ProcessGraphicsView::keyPressEvent(QKeyEvent* event)
 
   QGraphicsView::keyPressEvent(event);
 
-#if defined(SCORE_GL_UPDATE)
+#if SCORE_GL_UPDATE
   viewport()->update();
 #endif
 }
@@ -204,7 +204,7 @@ void ProcessGraphicsView::keyReleaseEvent(QKeyEvent* event)
 
   QGraphicsView::keyReleaseEvent(event);
 
-#if defined(SCORE_GL_UPDATE)
+#if SCORE_GL_UPDATE
   viewport()->update();
 #endif
 }
@@ -218,7 +218,7 @@ void ProcessGraphicsView::focusOutEvent(QFocusEvent* event)
 
   QGraphicsView::focusOutEvent(event);
 
-#if defined(SCORE_GL_UPDATE)
+#if SCORE_GL_UPDATE
   viewport()->update();
 #endif
 }
@@ -230,7 +230,7 @@ void ProcessGraphicsView::leaveEvent(QEvent* event)
   focusedOut();
   QGraphicsView::leaveEvent(event);
 
-#if defined(SCORE_GL_UPDATE)
+#if SCORE_GL_UPDATE
   viewport()->update();
 #endif
 }
@@ -238,7 +238,7 @@ void ProcessGraphicsView::leaveEvent(QEvent* event)
 void ProcessGraphicsView::mousePressEvent(QMouseEvent* event)
 {
   QGraphicsView::mousePressEvent(event);
-#if defined(SCORE_GL_UPDATE)
+#if SCORE_GL_UPDATE
   viewport()->update();
 #endif
 }
@@ -246,7 +246,7 @@ void ProcessGraphicsView::mousePressEvent(QMouseEvent* event)
 void ProcessGraphicsView::mouseMoveEvent(QMouseEvent* event)
 {
   QGraphicsView::mouseMoveEvent(event);
-#if defined(SCORE_GL_UPDATE)
+#if SCORE_GL_UPDATE
   viewport()->update();
 #endif
 }
@@ -254,7 +254,7 @@ void ProcessGraphicsView::mouseMoveEvent(QMouseEvent* event)
 void ProcessGraphicsView::mouseReleaseEvent(QMouseEvent* event)
 {
   QGraphicsView::mouseReleaseEvent(event);
-#if defined(SCORE_GL_UPDATE)
+#if SCORE_GL_UPDATE
   viewport()->update();
 #endif
 }

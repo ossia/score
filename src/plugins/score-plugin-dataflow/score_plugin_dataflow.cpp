@@ -54,7 +54,8 @@ score_plugin_dataflow::factories(
           Dataflow::WidgetInletFactory<Process::LineEdit>,
           Dataflow::WidgetInletFactory<Process::ComboBox>,
           Dataflow::WidgetInletFactory<Process::Enum>,
-          Dataflow::WidgetInletFactory<Process::TimeSignatureChooser>
+          Dataflow::WidgetInletFactory<Process::TimeSignatureChooser>,
+          Dataflow::WidgetInletFactory<Process::HSVSlider>
       >
       >(ctx, key);
 }

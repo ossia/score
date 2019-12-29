@@ -361,6 +361,11 @@ void DocumentPlugin::runAllCommands() const
     com();
 }
 
+void DocumentPlugin::registerAction(ExecutionAction& act)
+{
+  m_actions.push_back(&act);
+}
+
 void DocumentPlugin::slot_bench(ossia::bench_map b, int64_t ns)
 {
   for (const auto& p : b)

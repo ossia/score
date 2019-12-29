@@ -46,7 +46,6 @@ ProcessModel::ProcessModel(
                         parent}
     , outlet{Process::make_value_outlet(Id<Process::Port>(0), this)}
 {
-  outlet->type = Process::PortType::Message;
   // Named shall be enough ?
   setCurve(new Curve::Model{Id<Curve::Model>(45345), this});
   m_min = 0.;

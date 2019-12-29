@@ -26,7 +26,8 @@ enum ProcessCategory
   Synth,       // midi in and audio out
   Mapping,     // value in and value out
   Script,      // JS, PD, etc
-  Structure    // scenario, loop, etc
+  Structure,   // scenario, loop, etc
+  Visual,      // gfx processes
 };
 
 struct Descriptor

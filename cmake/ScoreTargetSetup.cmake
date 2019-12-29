@@ -203,6 +203,14 @@ function(score_set_linux_compile_options theTarget)
           "$<$<CONFIG:Debug>:-fdebug-types-section>"
           "$<$<CONFIG:Debug>:-ggnu-pubnames>"
         )
+
+      target_link_libraries(${theTarget} PUBLIC
+      -Wl,-z,defs
+      -Wl,-z,now
+      -Wl,--no-allow-shlib-undefined
+      -Wl,--no-undefined
+      -Wl,--unresolved-symbols,report-all
+      )
     endif()
     target_compile_options(${theTarget} PUBLIC
         # Debug options

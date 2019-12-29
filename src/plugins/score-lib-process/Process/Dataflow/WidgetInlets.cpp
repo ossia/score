@@ -313,6 +313,28 @@ JSONObjectWriter::write<Process::Button>(Process::Button& p)
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void
+DataStreamReader::read<Process::HSVSlider>(const Process::HSVSlider& p)
+{
+  read((const Process::ControlInlet&) p);
+}
+template <>
+SCORE_LIB_PROCESS_EXPORT void
+DataStreamWriter::write<Process::HSVSlider>(Process::HSVSlider& p)
+{
+}
+template <>
+SCORE_LIB_PROCESS_EXPORT void
+JSONObjectReader::read<Process::HSVSlider>(const Process::HSVSlider& p)
+{
+  read((const Process::ControlInlet&) p);
+}
+template <>
+SCORE_LIB_PROCESS_EXPORT void
+JSONObjectWriter::write<Process::HSVSlider>(Process::HSVSlider& p)
+{
+}
+template <>
+SCORE_LIB_PROCESS_EXPORT void
 DataStreamReader::read<QString>(const QString& p)
 {
   m_stream << p;
