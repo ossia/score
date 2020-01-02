@@ -22,6 +22,8 @@ public:
   virtual QSet<QString> acceptedFiles() const noexcept;
   virtual QSet<QString> acceptedMimeTypes() const noexcept;
 
+  virtual QWidget* previewWidget(const QString& path, QWidget* parent) const noexcept;
+
   virtual void
   setup(ProcessesItemModel& model, const score::GUIApplicationContext& ctx);
   virtual bool onDrop(

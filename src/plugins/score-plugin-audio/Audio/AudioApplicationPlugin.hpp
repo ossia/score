@@ -10,6 +10,7 @@ class audio_engine;
 
 namespace Audio
 {
+class AudioPreviewExecutor;
 class SCORE_PLUGIN_AUDIO_EXPORT ApplicationPlugin final
     : public QObject,
       public score::GUIApplicationPlugin
@@ -35,4 +36,6 @@ private:
       score::Document* olddoc,
       score::Document* newdoc) override;
 };
+
+
 }

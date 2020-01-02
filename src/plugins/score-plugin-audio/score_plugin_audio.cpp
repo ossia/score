@@ -22,6 +22,7 @@
 #include <Audio/Settings/Factory.hpp>
 #include <Audio/AudioApplicationPlugin.hpp>
 #include <Audio/AudioDevice.hpp>
+#include <Audio/AudioPreviewExecutor.hpp>
 
 #include <ossia-config.hpp>
 #include <wobjectimpl.h>
@@ -110,7 +111,11 @@ score_plugin_audio::factories(
         #endif
       >,
       FW<score::SettingsDelegateFactory,
-         Audio::Settings::Factory>
+         Audio::Settings::Factory
+      >,
+      FW<Execution::ExecutionAction,
+        Audio::AudioPreviewExecutor
+      >
       >(ctx, key);
 }
 

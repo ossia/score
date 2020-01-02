@@ -49,6 +49,7 @@ set(HDRS ${HDRS}
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Sound/SoundView.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Sound/Drop/SoundDrop.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Sound/SoundComponent.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Media/Sound/SoundLibraryHandler.hpp"
 
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Input/InputModel.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Input/InputFactory.hpp"

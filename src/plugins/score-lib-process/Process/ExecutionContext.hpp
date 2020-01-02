@@ -113,13 +113,6 @@ struct SCORE_LIB_PROCESS_EXPORT Context
 
 };
 
-class SCORE_LIB_PROCESS_EXPORT ExecutionAction
-{
-public:
-  virtual ~ExecutionAction();
-  virtual void startTick() = 0;
-  virtual void endTick() = 0;
-};
 
 }
 

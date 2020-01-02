@@ -58,6 +58,7 @@ set(PROCESS_HDRS
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/ExecutionContext.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/ExecutionSetup.hpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Process/ExecutionAction.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/ExecutionComponent.hpp"
 
 
@@ -120,6 +121,7 @@ set(PROCESS_SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Tools/ProcessPanelGraphicsProxy.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/ExecutionSetup.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Process/ExecutionAction.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Inspector/ProcessInspectorWidgetDelegateFactory.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Inspector/ProcessInspectorWidgetDelegate.cpp"

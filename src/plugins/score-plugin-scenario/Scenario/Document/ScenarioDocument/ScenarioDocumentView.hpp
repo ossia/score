@@ -36,7 +36,7 @@ struct GUIApplicationContext;
 namespace Scenario
 {
 #if defined(__linux__)
-#define SCORE_GL_UPDATE 0
+#define SCORE_GL_UPDATE 1
 #endif
 class Minimap;
 class ScenarioScene;

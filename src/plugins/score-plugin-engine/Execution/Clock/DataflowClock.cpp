@@ -11,6 +11,7 @@
 
 #include <Audio/Settings/Model.hpp>
 #include <Execution/Settings/ExecutorModel.hpp>
+#include <Process/ExecutionAction.hpp>
 
 #include <flicks.h>
 namespace Dataflow
@@ -35,10 +36,25 @@ void Clock::play_impl(const TimeVal& t, Execution::BaseScenarioElement& bs)
   resume_impl(bs);
 }
 
+static
+ossia::audio_protocol::fun_type get_pause_tick(const score::DocumentContext& doc)
+{
+  auto actions = doc.plugin<Execution::DocumentPlugin>().actions();
+  for (Execution::ExecutionAction& act: doc.app.interfaces<Execution::ExecutionActionList>())
+  {
+    actions.push_back(&act);
+  }
+
+  return [actions = std::move(actions)] (unsigned long samples, double sec) {
+    for(auto act : actions) act->startTick(samples, sec);
+    for(auto act : actions) act->endTick(samples, sec);
+  };
+}
+
 void Clock::pause_impl(Execution::BaseScenarioElement& bs)
 {
   m_paused = true;
-  m_plug.audioProto().set_tick([](auto&&...) {});
+  m_plug.audioProto().set_tick(get_pause_tick(this->context.doc));
   m_default.pause();
 }
 
@@ -66,6 +82,14 @@ void Clock::resume_impl(Execution::BaseScenarioElement& bs)
   else if (commit == Execution::Settings::CommitPolicies{}.Merged)
     opt.commit = ossia::tick_setup_options::Merged;
 
+
+  // Per-tick actions - some are per-document, other are global
+  auto actions = this->context.doc.plugin<Execution::DocumentPlugin>().actions();
+  for(Execution::ExecutionAction& act: this->context.doc.app.interfaces<Execution::ExecutionActionList>())
+  {
+    actions.push_back(&act);
+  }
+
   if (m_plug.settings.getBench() && m_plug.bench)
   {
     auto tick = ossia::make_tick(
@@ -74,7 +98,7 @@ void Clock::resume_impl(Execution::BaseScenarioElement& bs)
         *m_plug.execGraph,
         *m_cur->baseInterval().OSSIAInterval());
 
-    m_plug.audioProto().set_tick([tick, plug = &m_plug](auto&&... args) {
+    m_plug.audioProto().set_tick([tick, plug = &m_plug, actions = std::move(actions)](auto&&... args) {
       // Run some commands if they have been submitted.
       Execution::ExecutionCommand c;
       while (plug->context().executionQueue.try_dequeue(c))
@@ -88,7 +112,9 @@ void Clock::resume_impl(Execution::BaseScenarioElement& bs)
       {
         bench.measure = true;
         auto t0 = std::chrono::steady_clock::now();
+        for(auto act : actions) act->startTick(args...);
         tick(args...);
+        for(auto act : actions) act->endTick(args...);
         auto t1 = std::chrono::steady_clock::now();
         auto total
             = std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0)
@@ -103,9 +129,9 @@ void Clock::resume_impl(Execution::BaseScenarioElement& bs)
       else
       {
         bench.measure = false;
-        for(auto act : plug->actions()) act->startTick();
+        for(auto act : actions) act->startTick(args...);
         tick(args...);
-        for(auto act : plug->actions()) act->endTick();
+        for(auto act : actions) act->endTick(args...);
       }
 
       i++;
@@ -119,7 +145,7 @@ void Clock::resume_impl(Execution::BaseScenarioElement& bs)
         *m_plug.execGraph,
         *m_cur->baseInterval().OSSIAInterval());
 
-    m_plug.audioProto().set_tick([tick, plug = &m_plug](auto&&... args) {
+    m_plug.audioProto().set_tick([tick, plug = &m_plug, actions = std::move(actions)](auto&&... args) {
       // Run some commands if they have been submitted.
       Execution::ExecutionCommand c;
       while (plug->context().executionQueue.try_dequeue(c))
@@ -127,9 +153,9 @@ void Clock::resume_impl(Execution::BaseScenarioElement& bs)
         c();
       }
 
-      for(auto act : plug->actions()) act->startTick();
+      for(auto act : actions) act->startTick(args...);
       tick(args...);
-      for(auto act : plug->actions()) act->endTick();
+      for(auto act : actions) act->endTick(args...);
     });
   }
 
@@ -142,7 +168,7 @@ void Clock::stop_impl(Execution::BaseScenarioElement& bs)
   m_paused = false;
 
   auto& proto = m_plug.audioProto();
-  proto.set_tick([](unsigned long, double) {});
+  proto.set_tick(get_pause_tick(this->context.doc));
 
   m_plug.finished();
   m_default.stop();

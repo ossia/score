@@ -27,6 +27,11 @@ QSet<QString> LibraryInterface::acceptedMimeTypes() const noexcept
   return {};
 }
 
+QWidget* LibraryInterface::previewWidget(const QString& path, QWidget* parent) const noexcept
+{
+  return nullptr;
+}
+
 bool LibraryInterface::onDrop(
     FileSystemModel& model,
     const QMimeData& mime,

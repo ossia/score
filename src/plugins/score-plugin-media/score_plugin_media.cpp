@@ -12,6 +12,7 @@
 #include <Media/Sound/Drop/SoundDrop.hpp>
 #include <Media/Sound/SoundComponent.hpp>
 #include <Media/Sound/SoundFactory.hpp>
+#include <Media/Sound/SoundLibraryHandler.hpp>
 #include <Media/Step/Executor.hpp>
 #include <Media/Step/Factory.hpp>
 #include <Media/Step/Inspector.hpp>
@@ -176,6 +177,7 @@ score_plugin_media::factories(
          ,
          Media::Faust::LibraryHandler
 #endif
+         , Media::Sound::LibraryHandler
          >,
 
 #if defined(HAS_VST2)
