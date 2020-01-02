@@ -14,8 +14,10 @@ add_executable(${APPNAME} WIN32
 
   "${3RDPARTY_FOLDER}/phantomstyle/src/phantom/phantomcolor.cpp"
   "${3RDPARTY_FOLDER}/phantomstyle/src/phantom/phantomstyle.cpp"
+
 )
 #target_link_libraries(score-main PRIVATE ${APPNAME})
+
 
 target_include_directories(${APPNAME} PRIVATE "${3RDPARTY_FOLDER}/phantomstyle/src")
 

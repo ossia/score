@@ -4,6 +4,13 @@ score_common_setup()
 # Packages
 find_package(Qt5 5.7 REQUIRED COMPONENTS Core Widgets OPTIONAL_COMPONENTS Svg)
 
+file(GENERATE
+  OUTPUT
+    zipdownloader_export.h
+  CONTENT
+    "#pragma once\n#include <score_lib_base_export.h>\n#define ZIPDOWNLOADER_EXPORT SCORE_LIB_BASE_EXPORT\n"
+)
+
 # Files & main target
 qt5_add_resources(QRCS "${CMAKE_CURRENT_SOURCE_DIR}/resources/score.qrc")
 
@@ -252,6 +259,8 @@ set(HEADERS
 )
 
 set(SRCS
+"${3RDPARTY_FOLDER}/zipdownloader/src/miniz.cpp"
+"${3RDPARTY_FOLDER}/zipdownloader/src/zipdownloader.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/score/serialization/StringConstants.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/score/serialization/AnySerialization.cpp"
@@ -398,6 +407,9 @@ set(SRCS
 )
 
 add_library(score_lib_base ${SRCS} ${HEADERS} ${QRCS})
+
+target_include_directories(score_lib_base PUBLIC "${3RDPARTY_FOLDER}/zipdownloader/src")
+
 target_link_libraries(score_lib_base
     PUBLIC Qt5::Core Qt5::Widgets ossia # Qt5::Qml Qt5::QuickWidgets
     )

@@ -9,9 +9,12 @@
 #include <score/widgets/SetIcons.hpp>
 #include <score/actions/ActionManager.hpp>
 #include <core/application/ApplicationSettings.hpp>
-
+#include <core/presenter/DocumentManager.hpp>
+#include <Audio/AudioPreviewExecutor.hpp>
 #include <QMessageBox>
 #include <QToolBar>
+
+#include <Process/ExecutionAction.hpp>
 
 SCORE_DECLARE_ACTION(
     RestartAudio,
@@ -20,6 +23,22 @@ SCORE_DECLARE_ACTION(
     QKeySequence::UnknownKey)
 namespace Audio
 {
+namespace
+{
+static auto makeDefaultTick(const score::ApplicationContext& app)
+{
+  std::vector<Execution::ExecutionAction*> actions;
+  for (Execution::ExecutionAction& act: app.interfaces<Execution::ExecutionActionList>())
+  {
+    actions.push_back(&act);
+  }
+
+  return [actions = std::move(actions)] (unsigned long samples, double sec) {
+    for(auto act : actions) act->startTick(samples, sec);
+    for(auto act : actions) act->endTick(samples, sec);
+  };
+}
+}
 ApplicationPlugin::ApplicationPlugin(const score::GUIApplicationContext& ctx)
   : score::GUIApplicationPlugin{ctx}
 {
@@ -62,6 +81,11 @@ void ApplicationPlugin::on_stop()
 {
   if (audio)
   {
+    // TODO we should untie audio_engine and audio_protocol so that
+    // the audio_engine does not depend on a document running
+    // ossia::audio_protocol* p = audio->protocol;
+    // if(p)
+    //   p->set_tick(makeDefaultTick(this->context));
     audio->reload(nullptr);
   }
 }
@@ -128,6 +152,9 @@ score::GUIElements ApplicationPlugin::makeGUIElements()
   e.actions.add<Actions::RestartAudio>(m_audioEngineAct);
 
   connect(m_audioEngineAct, &QAction::triggered, this, [=](bool) {
+    auto& preview = AudioPreviewExecutor::instance();
+    preview.audio = nullptr;
+
     if (audio)
     {
       audio->stop();
@@ -147,7 +174,17 @@ score::GUIElements ApplicationPlugin::makeGUIElements()
           .audioDevice();
       if (!dev)
         return;
+
       dev->reconnect();
+      if(audio)
+      {
+        preview.audio = audio->protocol;
+        preview.audio->set_tick(makeDefaultTick(this->context));
+      }
+      else
+      {
+        preview.audio = nullptr;
+      }
     }
   });
 
@@ -171,23 +208,34 @@ void ApplicationPlugin::restart_engine()
 
     setup_engine();
 
+    auto& preview = AudioPreviewExecutor::instance();
+    preview.audio = nullptr;
     dev->reconnect();
+    if(audio)
+    {
+      preview.audio = audio->protocol;
+      preview.audio->set_tick(makeDefaultTick(this->context));
+    }
+    else
+    {
+      preview.audio = nullptr;
+    }
   }
 }
 
-
 void ApplicationPlugin::setup_engine()
 {
-  auto& ctx = score::AppContext();
-  auto& set = ctx.settings<Audio::Settings::Model>();
+  auto& set = this->context.settings<Audio::Settings::Model>();
   auto& engines = score::GUIAppContext().interfaces<Audio::AudioFactoryList>();
 
+  auto& preview = AudioPreviewExecutor::instance();
+  preview.audio = nullptr;
   audio.reset();
   if (auto dev = engines.get(set.getDriver()))
   {
     try
     {
-      audio = dev->make_engine(set, ctx);
+      audio = dev->make_engine(set, this->context);
       if(!audio)
         throw std::runtime_error{""};
 
@@ -213,6 +261,10 @@ void ApplicationPlugin::setup_engine()
 
   if (m_audioEngineAct)
     m_audioEngineAct->setChecked(bool(audio));
+  if(audio)
+  {
+    preview.audio = audio->protocol;
+  }
 }
 
 }

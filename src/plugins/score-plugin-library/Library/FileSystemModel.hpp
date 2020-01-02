@@ -22,17 +22,7 @@ public:
   {
     auto& lib_setup = ctx.interfaces<Library::LibraryInterfaceList>();
     // TODO refactor
-    QSet<QString> types{// Media
-                        "*.wav",
-                        "*.mp3",
-                        "*.mp4",
-                        "*.ogg",
-                        "*.flac",
-                        "*.aif",
-                        "*.aiff"
-
-                        // score-specific
-                        ,
+    QSet<QString> types{// score-specific
                         "*.score",
                         "*.cue",
                         "*.device",

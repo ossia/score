@@ -1,6 +1,7 @@
 #include <Process/Dataflow/PortFactory.hpp>
 #include <Process/DocumentPlugin.hpp>
 #include <Process/Drop/ProcessDropHandler.hpp>
+#include <Process/ExecutionAction.hpp>
 #include <Process/LayerPresenter.hpp>
 #include <Process/ProcessFactory.hpp>
 #include <Process/ProcessList.hpp>
@@ -42,6 +43,7 @@ score_lib_process::factoryFamilies()
       Process::ProcessFactoryList,
       Process::ProcessDropHandlerList,
       Process::MagnetismAdjuster,
+      Execution::ExecutionActionList,
       LocalTree::ProcessComponentFactoryList
       >();
 }

@@ -2,6 +2,7 @@
 #include "BaseScenarioComponent.hpp"
 
 #include <Process/Dataflow/Port.hpp>
+#include <Process/ExecutionAction.hpp>
 #include <Process/ExecutionContext.hpp>
 #include <Process/ExecutionSetup.hpp>
 

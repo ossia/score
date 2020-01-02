@@ -11,7 +11,10 @@
 #include <QFormLayout>
 #include <QStandardPaths>
 #include <QStyle>
-
+#include <QMessageBox>
+#include <QNetworkAccessManager>
+#include <QNetworkReply>
+#include <zipdownloader.hpp>
 #include <wobjectimpl.h>
 
 W_OBJECT_IMPL(Library::Settings::View)
@@ -37,12 +40,14 @@ static auto list()
 static void initSystemLibrary(QDir& lib_folder)
 {
   lib_folder.mkpath(".");
+  lib_folder.mkpath("./System");
   lib_folder.mkpath("./Scores");
   lib_folder.mkpath("./Medias");
   lib_folder.mkpath("./Presets");
   lib_folder.mkpath("./Devices");
   lib_folder.mkpath("./Cues");
   lib_folder.mkpath("./Addons");
+  lib_folder.mkpath("./Shaders");
 }
 
 Model::Model(QSettings& set, const score::ApplicationContext& ctx)
@@ -52,6 +57,17 @@ Model::Model(QSettings& set, const score::ApplicationContext& ctx)
   if (QDir dir{lib_folder}; !dir.exists())
   {
     initSystemLibrary(dir);
+
+    auto dl = QMessageBox::question(qApp->activeWindow(), tr("Download the user library ?"), tr("The user library has not been found. \n"
+                                                                                      "Do you want to download it from the internet ? \n\n"
+                                                                                      "Note: you can always download it later from : \n"
+                                                                                      "https://github.com/OSSIA/score-user-library"));
+    if(dl)
+    {
+      zdl::download_and_extract(
+            QUrl{"https://github.com/OSSIA/score-user-library/archive/master.zip"},
+            dir.absolutePath(), [] (const auto&) { }, [] { });
+    }
   }
 }
 

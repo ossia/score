@@ -15,10 +15,6 @@
 namespace Execution
 {
 
-ExecutionAction::~ExecutionAction()
-{
-
-}
 static auto enqueue_in_context(SetupContext& self) noexcept
 {
   return [&self](auto&& f) {

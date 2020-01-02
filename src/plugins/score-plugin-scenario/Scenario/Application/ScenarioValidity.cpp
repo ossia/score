@@ -33,7 +33,7 @@ void ScenarioValidityChecker::checkValidity(const ProcessModel& scenar)
     SCORE_ASSERT(es->previousInterval() == interval.id());
 
     auto& dur = interval.duration;
-    SCORE_ASSERT(dur.defaultDuration() > TimeVal{0});
+    SCORE_ASSERT(dur.defaultDuration() >= TimeVal{0});
 
     SCORE_ASSERT(!dur.minDuration().isInfinite());
     SCORE_ASSERT(dur.minDuration() >= TimeVal{0});

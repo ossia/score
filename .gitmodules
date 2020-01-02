@@ -16,3 +16,6 @@
 [submodule "3rdparty/phantomstyle"]
 	path = 3rdparty/phantomstyle
 	url = https://github.com/jcelerier/phantomstyle
+[submodule "3rdparty/zipdownloader"]
+	path = 3rdparty/zipdownloader
+	url = https://github.com/jcelerier/zipdownloader

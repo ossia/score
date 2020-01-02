@@ -53,6 +53,8 @@ private:
   QFileSystemModel* m_model{};
   QSortFilterProxyModel* m_proxy{};
   QTreeView m_tv;
+  QWidget m_preview;
+  QWidget* m_previewChild{};
 };
 }
 
