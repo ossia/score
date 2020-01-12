@@ -280,7 +280,9 @@ void DeviceInterface::addAddress(const FullAddressSettings& settings)
 {
   using namespace ossia;
   if (!m_capas.canAddNode)
+  {
     return; // TODO return bool instead, and check in the node update proxy ?
+  }
 
   if (auto dev = getDevice())
   {
@@ -383,14 +385,17 @@ void DeviceInterface::updateSettings(const Device::DeviceSettings& newsettings)
 
     m_settings = newsettings;
 
-    if (reconnect())
-    {
-      // We can recreate our stuff.
-      for (const auto& n : score_device.children())
+    reconnect();
+
+    auto con_handle = std::make_shared<QMetaObject::Connection>();
+    *con_handle = connect(this, &Device::DeviceInterface::deviceChanged,
+                          this, [this, con_handle, data=std::move(score_device)] (auto oldd, auto newd) {
+      if(newd)
       {
-        addNode(n);
+        recreate(std::move(data));
+        QObject::disconnect(*con_handle);
       }
-    }
+    });
   }
   else
   {
@@ -806,7 +811,9 @@ void DeviceInterface::setListening(const State::Address& addr, bool b)
     {
       auto n = findNodeFromPath(addr.path, *dev);
       if (!n)
+      {
         return;
+      }
 
       ossia_addr = n->get_parameter();
       if (!ossia_addr)
