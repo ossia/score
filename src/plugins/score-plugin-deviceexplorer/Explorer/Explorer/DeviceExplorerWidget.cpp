@@ -942,13 +942,21 @@ void DeviceExplorerWidget::reconnect()
   if (!m)
     return;
 
-  const auto& select = m->nodeFromModelIndex(m_ntView->selectedIndex());
+  const Device::Node& select = m->nodeFromModelIndex(m_ntView->selectedIndex());
   if (select.is<Device::DeviceSettings>())
   {
     auto& dev = m->deviceModel().list().device(
         select.get<Device::DeviceSettings>().name);
+    auto con_handle = std::make_shared<QMetaObject::Connection>();
+    *con_handle = con(dev, &Device::DeviceInterface::deviceChanged,
+        this, [&dev, con_handle, select] (auto oldd, auto newd){
+      if(newd)
+      {
+        dev.recreate(select);
+        QObject::disconnect(*con_handle);
+      }
+    });
     dev.reconnect();
-    dev.recreate(select);
   }
 }
 
