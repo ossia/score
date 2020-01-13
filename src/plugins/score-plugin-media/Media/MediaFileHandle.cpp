@@ -54,19 +54,7 @@ enum class DecodingMethod {
 
 static DecodingMethod needsDecoding(const QString& path, int rate)
 {
-  if(path.endsWith("wav", Qt::CaseInsensitive))
-  {
-    QFile f(path);
-    auto sr = readSampleRate(f);
-    if(sr == rate)
-      return DecodingMethod::Mmap;
-    else
-      return DecodingMethod::Libav;
-  }
-  else
-  {
     return DecodingMethod::Libav;
-  }
 }
 
 AudioFile::AudioFile()
