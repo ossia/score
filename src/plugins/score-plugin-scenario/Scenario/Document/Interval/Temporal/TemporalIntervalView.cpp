@@ -261,8 +261,11 @@ void TemporalIntervalView::paint(
     auto vr = visibleRect;
     vr.adjust(0.5, 2., -0.5 + (m_maxWidth > m_defaultWidth ? m_defaultWidth - m_maxWidth : 0.) , -2.);
 
-    painter.fillRect(vr,
-                     m_presenter.model().metadata().getColor().getBrush());
+    auto brush = m_presenter.model().metadata().getColor().getBrush().main.brush;
+    auto col = brush.color();
+    col.setAlphaF(0.6);
+    brush.setColor(col);
+    painter.fillRect(vr, brush);
   }
 
   // Colors

@@ -167,7 +167,7 @@ void TimeRuler::computeGraduationSpacing()
   }
 
   auto oldFormat = m_timeFormat;
-  if (i > 16)
+  if (i > 17)
   {
     m_timeFormat = Format::Microseconds;
     m_intervalsBetweenMark = 10;

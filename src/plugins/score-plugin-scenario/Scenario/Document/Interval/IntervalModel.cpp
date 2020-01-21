@@ -185,6 +185,9 @@ void IntervalModel::removeSignature(TimeVal t)
 
 void IntervalModel::setTimeSignatureMap(const TimeSignatureMap& map)
 {
+  qDebug() << "New map";
+  for(auto& [a,b]: map)
+    qDebug() << a.msec() << b.upper << "/" << b.lower;
   if(map != m_signatures)
   {
     m_signatures = map;
@@ -672,6 +675,43 @@ bool isBus(const IntervalModel& model, const score::DocumentContext& ctx) noexce
 {
    auto& buses = score::IDocument::get<Scenario::ScenarioDocumentModel>(ctx.document).busIntervals;
    return ossia::contains(buses, &model);
+}
+
+ParentTimeInfo closestParentWithMusicalMetrics(const IntervalModel* self)
+{
+  TimeVal delta = TimeVal::zero();
+  if(self->hasTimeSignature())
+    return {self, delta};
+
+  delta += self->date();
+  auto p = self->parent();
+  if (p)
+  {
+    p = p->parent();
+  }
+
+  while(p)
+  {
+    if(auto pi = qobject_cast<const IntervalModel*>(p))
+    {
+      if(pi->hasTimeSignature())
+      {
+        return {pi, delta};
+      }
+      else
+      {
+        delta += pi->date();
+        if((p = p->parent()))
+          p = p->parent();
+      }
+    }
+    else
+    {
+      if((p = p->parent()))
+        p = p->parent();
+    }
+  }
+  return {};
 }
 
 }

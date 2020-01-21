@@ -262,6 +262,17 @@ bool isInFullView(const Process::ProcessModel& cstr) noexcept;
 SCORE_PLUGIN_SCENARIO_EXPORT
 bool isBus(const Scenario::IntervalModel& model, const score::DocumentContext& ctx) noexcept;
 
+struct ParentTimeInfo
+{
+  const IntervalModel* parent;
+  TimeVal delta;
+};
+
+SCORE_PLUGIN_SCENARIO_EXPORT
+ParentTimeInfo closestParentWithMusicalMetrics(const IntervalModel*);
+
+SCORE_PLUGIN_SCENARIO_EXPORT
+TimeVal timeDelta(const IntervalModel* child, const IntervalModel* parent);
 }
 
 DEFAULT_MODEL_METADATA(Scenario::IntervalModel, "Interval")

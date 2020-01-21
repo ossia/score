@@ -195,6 +195,7 @@ protected:
   Control::time_signature m_sig{0,0};
   QPixmap m_signature;
   QRectF m_rect;
+  public:
   bool m_visible{true};
 };
 
@@ -296,56 +297,65 @@ private:
       setFlag(ItemHasNoContents, true);
       setFlag(ItemClipsChildrenToShape, false);
 
-      con(itv.model(), &IntervalModel::timeSignaturesChanged,
-          this, &TimeSignatureItem::handlesChanged);
       handlesChanged();
     }
 
     void createHandle(TimeVal time, Control::time_signature sig)
     {
+      assert(m_model);
       TimeSignatureHandle* handle{};
 
       if(time == TimeVal::zero())
       {
         // The first time handle cannot move or change
-        handle = new FixedHandle{m_itv.model(), this};
+        handle = new FixedHandle{*m_model, this};
       }
       else
       {
         // Other handles are free
-        handle = new MovableHandle{m_itv.model(), this};
+        handle = new MovableHandle{*m_model, this};
 
         con(*handle, &TimeSignatureHandle::press,
             this, [=] {
-          m_origHandles = this->m_itv.model().timeSignatureMap();
+          assert(m_model);
+          m_origHandles = m_model->timeSignatureMap();
           m_origTime = handle->time();
           m_origSig = handle->signature();
         });
         con(*handle, &TimeSignatureHandle::move,
             this, [=] (double originalPos, double delta) {
-          moveHandle(*handle, originalPos, delta);
+          assert(m_model);
+          if(handle->m_visible)
+            moveHandle(*handle, originalPos, delta);
         });
         con(*handle, &TimeSignatureHandle::release,
             this, [=] {
-          m_origHandles.clear();
-          m_itv.context().dispatcher.commit();
+          assert(m_model);
+          if(handle->m_visible)
+          {
+            m_origHandles.clear();
+            m_itv.context().dispatcher.commit();
+          }
         });
         con(*handle, &TimeSignatureHandle::remove,
             this, [=] {
-          removeHandle(*handle);
+          assert(m_model);
+          if(handle->m_visible)
+            removeHandle(*handle);
         }, Qt::QueuedConnection);
       }
 
-      handle->setPos(time.toPixels(m_ratio), 0.);
+      handle->setPos((time - m_timeDelta).toPixels(m_ratio), 0.);
       handle->setSignature(time, sig);
 
       con(*handle, &TimeSignatureHandle::signatureChange,
           this, [=] (Control::time_signature sig){
-        auto signatures = m_itv.model().timeSignatureMap();
+        assert(m_model);
+        auto signatures = m_model->timeSignatureMap();
 
         signatures.at(handle->time()) = sig;
 
-        m_itv.context().dispatcher.submit<Scenario::Command::SetTimeSignatures>(m_itv.model(), signatures);
+        m_itv.context().dispatcher.submit<Scenario::Command::SetTimeSignatures>(*m_model, signatures);
       }, Qt::QueuedConnection);
 
       m_handles.push_back(handle);
@@ -353,17 +363,20 @@ private:
 
     void setZoomRatio(ZoomRatio r)
     {
+      if (!m_model)
+        return;
+
       if(m_ratio != r)
       {
         m_ratio = r;
 
         auto it = m_handles.begin();
-        auto handle_it = m_itv.model().timeSignatureMap().begin();
+        auto handle_it = m_model->timeSignatureMap().begin();
         while(it != m_handles.end())
         {
           auto& [time, sig] = *handle_it;
 
-          (*it)->setPos(time.toPixels(m_ratio), 0.);
+          (*it)->setPos((time - m_timeDelta).toPixels(m_ratio), 0.);
           (*it)->setSignature(time, sig);
 
           ++it;
@@ -378,10 +391,38 @@ private:
       m_width = w;
     }
 
+    void setModel(const IntervalModel* model, TimeVal delta)
+    {
+      if(model != m_model)
+      {
+        if(m_model)
+          disconnect(m_model, &IntervalModel::timeSignaturesChanged,
+                     this, &TimeSignatureItem::handlesChanged);
+
+        m_model = model;
+
+        if(m_model)
+        {
+          connect(m_model, &IntervalModel::timeSignaturesChanged,
+              this, &TimeSignatureItem::handlesChanged);
+        }
+
+        for(auto h : m_handles)
+          delete h;
+        m_handles.clear();
+      }
+      m_timeDelta = delta;
+      handlesChanged();
+    }
+
+
   private:
     void handlesChanged()
     {
-      const auto& signatures = m_itv.model().timeSignatureMap();
+      if (!m_model)
+        return;
+
+      const auto& signatures = m_model->timeSignatureMap();
       if(m_handles.size() > signatures.size())
       {
         // Removed handles
@@ -423,7 +464,7 @@ private:
         auto handle_it = signatures.begin();
         while(it != m_handles.end())
         {
-          (*it)->setPos(handle_it->first.toPixels(m_ratio), 0.);
+          (*it)->setPos((handle_it->first - m_timeDelta).toPixels(m_ratio), 0.);
           (*it)->setSignature(handle_it->first, handle_it->second);
 
           ++it;
@@ -440,7 +481,7 @@ private:
       // Find leftmost signature
       const auto msecs = TimeVal::fromMsecs(x * m_ratio);
 
-      const auto new_time = m_magnetic.getPosition(&m_itv.model(), msecs);
+      const auto new_time = m_magnetic.getPosition(m_model, msecs);
 
       // Replace it in the signatures
       TimeSignatureMap signatures = m_origHandles;
@@ -452,17 +493,17 @@ private:
       handle.setX(new_time.msec() / m_ratio);
       handle.setSignature(new_time, handle.signature());
 
-      m_itv.context().dispatcher.submit<Scenario::Command::SetTimeSignatures>(m_itv.model(), signatures);
+      m_itv.context().dispatcher.submit<Scenario::Command::SetTimeSignatures>(*m_model, signatures);
     }
 
     void removeHandle(TimeSignatureHandle& handle)
     {
-      TimeSignatureMap signatures = m_itv.model().timeSignatureMap();
+      TimeSignatureMap signatures = m_model->timeSignatureMap();
       auto it = signatures.find(handle.time());
       signatures.erase(it);
 
       CommandDispatcher<> disp{m_itv.context().commandStack};
-      disp.submit<Scenario::Command::SetTimeSignatures>(m_itv.model(), signatures);
+      disp.submit<Scenario::Command::SetTimeSignatures>(*m_model, signatures);
     }
 
     QRectF boundingRect() const final override
@@ -479,10 +520,11 @@ private:
 
     void requestNewHandle(QPointF pos)
     {
-      auto signatures = m_itv.model().timeSignatureMap();
+      assert(m_model);
+      auto signatures = m_model->timeSignatureMap();
       signatures[TimeVal::fromMsecs(pos.x() * m_ratio)] = Control::time_signature{4, 4};
       CommandDispatcher<> disp{m_itv.context().commandStack};
-      disp.submit<Scenario::Command::SetTimeSignatures>(m_itv.model(), signatures);
+      disp.submit<Scenario::Command::SetTimeSignatures>(*m_model, signatures);
     }
 
     void contextMenuEvent(QGraphicsSceneContextMenuEvent* event) override
@@ -500,6 +542,8 @@ private:
     ZoomRatio m_ratio{1.};
 
     const IntervalPresenter& m_itv;
+    const IntervalModel* m_model{};
+    TimeVal m_timeDelta;
     Process::MagnetismAdjuster& m_magnetic;
 
     std::vector<TimeSignatureHandle*> m_handles;

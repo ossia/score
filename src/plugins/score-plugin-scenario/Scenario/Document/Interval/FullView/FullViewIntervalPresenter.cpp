@@ -705,7 +705,7 @@ void FullViewIntervalPresenter::on_visibleRectChanged(QRectF r)
 }
 
 static void draw_main_bars(const TimeSignatureMap& measures, LightBars& bars, TimeSignatureMap::const_iterator last_before,
-               double zoom, double last_quarter_pixels, double division_pixels, double pow2, QRectF sceneRect)
+               double zoom, double last_quarter_pixels, double division_pixels, double pow2, double delta_pixels, QRectF sceneRect)
 {
   int i = 0;
   int k = 0;
@@ -728,7 +728,7 @@ static void draw_main_bars(const TimeSignatureMap& measures, LightBars& bars, Ti
     }
     else
     {
-      if(bar_x_pos >= next->first.toPixels(zoom))
+      if(bar_x_pos >= (next->first.toPixels(zoom) - delta_pixels))
       {
         last_before = next;
 
@@ -763,7 +763,7 @@ static void draw_main_bars(const TimeSignatureMap& measures, LightBars& bars, Ti
         const TimeVal main_division = TimeVal::fromMsecs(main_div_source / pow2);
         division_pixels = main_division.toPixels(zoom);
 
-        last_quarter_pixels = last_before->first.toPixels(zoom);
+        last_quarter_pixels = last_before->first.toPixels(zoom) - delta_pixels;
 
         bars[i] = QLineF(last_quarter_pixels, y0, last_quarter_pixels, y1);
 
@@ -783,7 +783,7 @@ static void draw_main_bars(const TimeSignatureMap& measures, LightBars& bars, Ti
 static void draw_sub_bars(
       const TimeSignatureMap& measures,
       LighterBars& bars, TimeSignatureMap::const_iterator last_before,
-      double zoom, double last_quarter_pixels, double division_pixels, QRectF sceneRect)
+      double zoom, double last_quarter_pixels, double division_pixels, double delta_pixels, QRectF sceneRect)
 {
   int i = 0;
   int k = 0;
@@ -806,11 +806,11 @@ static void draw_sub_bars(
     }
     else
     {
-      if(bar_x_pos >= next->first.toPixels(zoom))
+      if(bar_x_pos >= (next->first.toPixels(zoom) - delta_pixels))
       {
         last_before = next;
 
-        last_quarter_pixels = last_before->first.toPixels(zoom);
+        last_quarter_pixels = last_before->first.toPixels(zoom) - delta_pixels;
 
         bars[i] = QLineF(last_quarter_pixels, y0, last_quarter_pixels, y1);
 
@@ -832,7 +832,11 @@ void FullViewIntervalPresenter::updateTimeBars()
   if(m_zoomRatio <= 0)
     return;
 
-  if(!m_model.hasTimeSignature() || !this->m_settings.getMeasureBars())
+  auto [model, timeDelta] = closestParentWithMusicalMetrics(&m_model);
+
+  this->m_timebars->timebar.setModel(model, timeDelta);
+
+  if(!model || !this->m_settings.getMeasureBars())
   {
     if(this->m_timebars->timebar.isEnabled())
     {
@@ -862,12 +866,12 @@ void FullViewIntervalPresenter::updateTimeBars()
   sceneRect.adjust(-100, timeSignatureBarY, 100, timeSignatureBarY);
 
   // x0_time: time of the currently visible leftmost pixel
-  TimeVal x0_time = TimeVal::fromMsecs(m_zoomRatio * (m_sceneRect.x() - scene_x0));
+  TimeVal x0_time = TimeVal::fromMsecs(m_zoomRatio * (m_sceneRect.x() - scene_x0)) + timeDelta;
 
   // Find the last measure change before x0_time.
   // Find the first measure we see
 
-  const auto& measures = m_model.timeSignatureMap();
+  const auto& measures = model->timeSignatureMap();
   auto last_before = ossia::last_before(measures, x0_time);
 
   m_timebars->timebar.setZoomRatio(m_zoomRatio);
@@ -880,9 +884,7 @@ void FullViewIntervalPresenter::updateTimeBars()
   const auto sig_lower = last_before->second.lower;
   const double pixels_width_min = 30.;
 
-//  const double tempo = this->m_model.hasTempo() ? this->m_model.tempoCurve()->;
   const double tempo = ossia::root_tempo;
-
 
   // Duration of a quarter note in milliseconds
   const double quarter = 60000. / tempo;
@@ -914,6 +916,8 @@ void FullViewIntervalPresenter::updateTimeBars()
     sub_div_source = whole / 2.;
   }
 
+  const double deltaPixels = timeDelta.toPixels(m_zoomRatio);
+
   const TimeVal sub_division = TimeVal::fromMsecs(sub_div_source / pow2);
   const TimeVal main_division = TimeVal::fromMsecs(main_div_source / pow2);
   const double main_division_pixels = main_division.toPixels(m_zoomRatio);
@@ -923,15 +927,15 @@ void FullViewIntervalPresenter::updateTimeBars()
   const double last_quarter_before = last_before->first.msec() + q * main_division.msec();
 
   // Where we start counting from
-  double last_quarter_pixels = TimeVal::fromMsecs(last_quarter_before).toPixels(m_zoomRatio);
+  double last_quarter_pixels = TimeVal::fromMsecs(last_quarter_before).toPixels(m_zoomRatio) - deltaPixels;
 
   auto& lightBars = m_timebars->lightBars;
   auto& lighterBars = m_timebars->lighterBars;
 
   m_magneticDivision = sub_division;
 
-  draw_sub_bars(measures, lighterBars, last_before, m_zoomRatio, last_quarter_pixels, sub_division_pixels, sceneRect);
-  draw_main_bars(measures, lightBars, last_before, m_zoomRatio, last_quarter_pixels, main_division_pixels, pow2, sceneRect);
+  draw_sub_bars(measures, lighterBars, last_before, m_zoomRatio, last_quarter_pixels, sub_division_pixels, deltaPixels, sceneRect);
+  draw_main_bars(measures, lightBars, last_before, m_zoomRatio, last_quarter_pixels, main_division_pixels, pow2, deltaPixels, sceneRect);
 
 
   this->m_timebars->lightBars.updateShapes();
