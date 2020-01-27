@@ -191,6 +191,37 @@ protected:
     update();
   }
 
+  void mouseDoubleClickEvent(QGraphicsSceneMouseEvent* mv) override
+  {
+    m_visible = false;
+    prepareGeometryChange();
+    update();
+
+    auto& skin = score::Skin::instance();
+    auto& font = skin.Medium8Pt;
+
+    auto item = new LineTextItem{this};
+    item->setTextInteractionFlags(Qt::TextEditable);
+    item->setPlainText(QString{"%1/%2"}.arg(m_sig.upper).arg(m_sig.lower));
+
+    item->setFont(font);
+    item->setFocus(Qt::OtherFocusReason);
+
+    connect(item, &LineTextItem::done,
+            this, [this, item] (const QString& s) {
+      if(auto sig = Control::get_time_signature(s.toStdString()))
+      {
+        signatureChange(*sig);
+      }
+      item->deleteLater();
+
+      m_visible = true;
+      prepareGeometryChange();
+      update();
+    }, Qt::QueuedConnection);
+
+    mv->accept();
+  }
   TimeVal m_time{};
   Control::time_signature m_sig{0,0};
   QPixmap m_signature;
@@ -228,38 +259,6 @@ private:
       press();
     }
     QGraphicsItem::mousePressEvent(mv);
-  }
-
-  void mouseDoubleClickEvent(QGraphicsSceneMouseEvent* mv) override
-  {
-    m_visible = false;
-    prepareGeometryChange();
-    update();
-
-    auto& skin = score::Skin::instance();
-    auto& font = skin.Medium8Pt;
-
-    auto item = new LineTextItem{this};
-    item->setTextInteractionFlags(Qt::TextEditable);
-    item->setPlainText(QString{"%1/%2"}.arg(m_sig.upper).arg(m_sig.lower));
-
-    item->setFont(font);
-    item->setFocus(Qt::OtherFocusReason);
-
-    connect(item, &LineTextItem::done,
-            this, [this, item] (const QString& s) {
-      if(auto sig = Control::get_time_signature(s.toStdString()))
-      {
-        signatureChange(*sig);
-      }
-      item->deleteLater();
-
-      m_visible = true;
-      prepareGeometryChange();
-      update();
-    }, Qt::QueuedConnection);
-
-    mv->accept();
   }
 
   void mouseMoveEvent(QGraphicsSceneMouseEvent* mv) override
