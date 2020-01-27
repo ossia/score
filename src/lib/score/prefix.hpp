@@ -13,7 +13,8 @@
 #endif
 #include <windows.h>
 #endif
-////////////
+
+//////////////
 #include <score/command/AggregateCommand.hpp>
 #include <score/model/EntityImpl.hpp>
 #include <score/model/path/Path.hpp>
