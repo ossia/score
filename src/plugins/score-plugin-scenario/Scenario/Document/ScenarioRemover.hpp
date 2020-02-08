@@ -9,6 +9,7 @@
 #include <Scenario/Commands/Scenario/Creations/CreateCommentBlock.hpp>
 #include <score/document/DocumentInterface.hpp>
 #include <score/model/ObjectRemover.hpp>
+#include <score/command/Dispatchers/CommandDispatcher.hpp>
 namespace Scenario
 {
 class ScenarioRemover final : public score::ObjectRemover
@@ -67,12 +68,9 @@ class ScenarioRemover final : public score::ObjectRemover
     }
 
     auto si = focusedScenarioInterface(ctx);
-    if (si && !selectedElements(si->getStates()).empty())
+    if (si)
     {
-      Scenario::clearContentFromSelection(
-          selectedElements(si->getIntervals()),
-          selectedElements(si->getStates()),
-          ctx);
+      Scenario::clearContentFromSelection(*si,  ctx);
       return true;
     }
 

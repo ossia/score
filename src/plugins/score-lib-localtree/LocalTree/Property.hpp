@@ -32,10 +32,10 @@ struct PropertyWrapper final : public BaseCallbackWrapper
   {
     QObject::connect(
         &m_model,
-        Property::notify(),
+        Property::notify,
         context,
         [=] {
-          auto newVal = converter_t::convert((m_model.*Property::get())());
+          auto newVal = converter_t::convert((m_model.*Property::get)());
           try
           {
             auto res = addr.value();
@@ -52,12 +52,12 @@ struct PropertyWrapper final : public BaseCallbackWrapper
         },
         Qt::QueuedConnection);
 
-    addr.set_value(converter_t::convert((m_model.*Property::get())()));
+    addr.set_value(converter_t::convert((m_model.*Property::get)()));
     callbackIt = addr.add_callback(
         [=, m = QPointer<model_t>{&m_model}](const ossia::value& v) {
           score::invoke([m, v] {
             if (m)
-              ((*m).*Property::set())(::State::convert::value<param_t>(v));
+              ((*m).*Property::set)(::State::convert::value<param_t>(v));
           });
         });
   }

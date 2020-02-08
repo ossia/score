@@ -442,10 +442,7 @@ QJsonObject ObjectMenuActions::cutSelectedElementsToJson()
   }
   else if (auto si = focusedScenarioInterface(ctx))
   {
-    Scenario::clearContentFromSelection(
-        selectedElements(si->getIntervals()),
-        selectedElements(si->getStates()),
-        ctx);
+    Scenario::clearContentFromSelection(*si, ctx);
   }
 
   return obj;

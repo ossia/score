@@ -29,8 +29,7 @@ void removeSelection(const BaseScenario&, const score::DocumentContext& ctx);
 
 // Clearing content should be available for other plug-ins, e.g. loop
 SCORE_PLUGIN_SCENARIO_EXPORT void clearContentFromSelection(
-    const QList<const IntervalModel*>& intervalsToRemove,
-    const QList<const StateModel*>& statesToRemove,
+    const Scenario::ScenarioInterface& iface,
     const score::DocumentContext& stack);
 
 void mergeTimeSyncs(

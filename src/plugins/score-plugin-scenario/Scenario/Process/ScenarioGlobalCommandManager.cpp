@@ -18,6 +18,8 @@
 #include <Scenario/Process/Algorithms/Accessors.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
 
+#include <Scenario/Commands/TimeSync/TriggerCommandFactory/TriggerCommandFactory.hpp>
+#include <Scenario/Commands/TimeSync/TriggerCommandFactory/TriggerCommandFactoryList.hpp>
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/command/Dispatchers/MacroCommandDispatcher.hpp>
 #include <score/document/DocumentContext.hpp>
@@ -42,29 +44,55 @@ using namespace score::IDocument; // for ::path
 namespace Scenario
 {
 void clearContentFromSelection(
-    const QList<const IntervalModel*>& intervalsToRemove,
-    const QList<const StateModel*>& statesToRemove,
+    const Scenario::ScenarioInterface& si,
     const score::DocumentContext& ctx)
 {
-  MacroCommandDispatcher<ClearSelection> cleaner{ctx.commandStack};
+  auto statesToRemove = selectedElements(si.getStates());
+  auto intervalsToRemove = selectedElements(si.getIntervals());
 
-  // Create a Clear command for each.
-
-  for (auto& state : statesToRemove)
+  if(!statesToRemove.empty() && !intervalsToRemove.empty())
   {
-    if (state->messages().rootNode().hasChildren())
+    MacroCommandDispatcher<ClearSelection> cleaner{ctx.commandStack};
+
+    // Create a Clear command for each.
+
+    for (auto& state : statesToRemove)
     {
-      cleaner.submit(new ClearState(*state));
+      if (state->messages().rootNode().hasChildren())
+      {
+        cleaner.submit(new ClearState(*state));
+      }
     }
+
+    for (auto& interval : intervalsToRemove)
+    {
+      cleaner.submit(new ClearInterval(*interval));
+      // if a state and an interval are selected then remove event too
+    }
+
+    cleaner.commit();
+    return;
   }
 
-  for (auto& interval : intervalsToRemove)
+  auto syncsToRemove = selectedElements(si.getTimeSyncs());
+  if(!syncsToRemove.empty())
   {
-    cleaner.submit(new ClearInterval(*interval));
-    // if a state and an interval are selected then remove event too
+    MacroCommandDispatcher<ClearSelection> cleaner{ctx.commandStack};
+    const auto& triggerCommands = ctx.app.interfaces<TriggerCommandFactoryList>();
+    for (auto& sync : syncsToRemove)
+    {
+      if (sync->active())
+      {
+        auto cmd = triggerCommands.make(&TriggerCommandFactory::make_removeTriggerCommand, *sync);
+        if(cmd)
+        {
+          cleaner.submit(std::move(cmd));
+        }
+      }
+    }
+    cleaner.commit();
+    return;
   }
-
-  cleaner.commit();
 }
 
 void removeSelection(

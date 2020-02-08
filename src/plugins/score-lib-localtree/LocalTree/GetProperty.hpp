@@ -25,10 +25,10 @@ struct GetPropertyWrapper final : public BaseProperty
   {
     QObject::connect(
         &m_model,
-        Property::notify(),
+        Property::notify,
         context,
-        [=] {
-          auto newVal = converter_t::convert((m_model.*Property::get())());
+        [&m=m_model, &addr=addr] {
+          auto newVal = converter_t::convert((m.*Property::get)());
           try
           {
             auto res = addr.value();
@@ -44,7 +44,7 @@ struct GetPropertyWrapper final : public BaseProperty
         },
         Qt::QueuedConnection);
 
-    addr.set_value(converter_t::convert((m_model.*Property::get())()));
+    addr.set_value(converter_t::convert((m_model.*Property::get)()));
   }
 };
 

@@ -225,17 +225,40 @@ protected:
     this->makeSnapshot();
     this->m_dispatcher
         .template commit<Scenario::Command::CreationMetaCommand>();
+
     // Select all the created elements
-    Selection s;
+    Selection sel;
     if (!this->createdStates.empty())
-      s.append(&m_parentSM.model().states.at(this->createdStates.back()));
+    {
+      auto& s = this->createdStates.back();
+      auto sp = m_parentSM.model().states.find(s);
+      if(sp == m_parentSM.model().states.end())
+      {
+        qDebug() << "Error: tried to select state but it did not exist";
+      }
+      else
+      {
+        sel.append(&(*sp));
+      }
+    }
+
     if (!this->createdIntervals.empty())
-      s.append(
-          &m_parentSM.model().intervals.at(this->createdIntervals.back()));
+    {
+      auto& i = this->createdIntervals.back();
+      auto ip = m_parentSM.model().intervals.find(i);
+      if(ip == m_parentSM.model().intervals.end())
+      {
+        qDebug() << "Error: tried to select interval but it did not exist";
+      }
+      else
+      {
+        sel.append(&(*ip));
+      }
+    }
 
     score::SelectionDispatcher d{
         this->m_parentSM.context().context.selectionStack};
-    d.setAndCommit(s);
+    d.setAndCommit(sel);
     this->clearCreatedIds();
     this->m_parentSM.editionSettings().setSequence(false);
   }
