@@ -47,13 +47,13 @@ void setupDefaultSettings(QSettings& set, const T& tuple, Model& model)
     if (!set.contains(e.key))
     {
       set.setValue(e.key, QVariant::fromValue(e.def));
-      (model.*param_type::set())(e.def);
+      (model.*param_type::set)(e.def);
     }
     else
     {
       // We fetch the value from the settings.
       auto val = set.value(e.key).template value<data_type>();
-      (model.*param_type::set())(val);
+      (model.*param_type::set)(val);
     }
   });
 }

@@ -23,11 +23,11 @@ template <
 QMetaObject::Connection
 bind(T& t, const Property&, const U* tgt, Slot&& slot, Args&&... args)
 {
-  slot((t.*(Property::get()))());
+  slot((t.*(Property::get))());
 
   return T::connect(
       &t,
-      Property::notify(),
+      Property::notify,
       tgt,
       std::forward<Slot>(slot),
       std::forward<Args>(args)...);

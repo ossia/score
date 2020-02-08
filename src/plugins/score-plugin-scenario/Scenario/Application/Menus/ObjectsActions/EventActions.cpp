@@ -252,12 +252,26 @@ void EventActions::removeTriggerFromTimeSync()
   if (selectedTimeSyncs.isEmpty())
   {
     auto selectedEvents = selectedElements(si->getEvents());
-    SCORE_ASSERT(!selectedEvents.empty());
-    // TODO maybe states, etc... ?
-
-    auto ev = selectedEvents.first();
-    auto& tn = Scenario::parentTimeSync(*ev, *si);
-    selectedTimeSyncs.append(&tn);
+    if(selectedEvents.empty())
+    {
+      auto selectedStates = selectedElements(si->getStates());
+      if(selectedStates.empty())
+      {
+        return;
+      }
+      else
+      {
+        auto st = selectedStates.first();
+        auto& tn = Scenario::parentTimeSync(*st, *si);
+        selectedTimeSyncs.append(&tn);
+      }
+    }
+    else
+    {
+      auto ev = selectedEvents.first();
+      auto& tn = Scenario::parentTimeSync(*ev, *si);
+      selectedTimeSyncs.append(&tn);
+    }
   }
 
   auto cmd = m_triggerCommandFactory.make(

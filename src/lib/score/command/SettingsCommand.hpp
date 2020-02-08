@@ -37,14 +37,14 @@ public:
   SettingsCommand(model_t& obj, parameter_pass_t newval)
       : m_model{obj}, m_new{newval}
   {
-    m_old = (m_model.*T::get())();
+    m_old = (m_model.*T::get)();
   }
 
   virtual ~SettingsCommand() = default;
 
-  void undo() const final override { (m_model.*T::set())(m_old); }
+  void undo() const final override { (m_model.*T::set)(m_old); }
 
-  void redo() const final override { (m_model.*T::set())(m_new); }
+  void redo() const final override { (m_model.*T::set)(m_new); }
 
   void update(model_t&, parameter_pass_t newval) { m_new = newval; }
 

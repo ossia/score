@@ -68,7 +68,7 @@ public:
 
   template <typename U>
   PropertyCommand_T(const model_t& obj, U&& newval)
-      : m_path{obj}, m_old{(obj.*T::get())()}, m_new{std::forward<U>(newval)}
+      : m_path{obj}, m_old{(obj.*T::get)()}, m_new{std::forward<U>(newval)}
   {
   }
 
@@ -82,12 +82,12 @@ public:
 
   void undo(const score::DocumentContext& ctx) const final override
   {
-    (m_path.find(ctx).*T::set())(m_old);
+    (m_path.find(ctx).*T::set)(m_old);
   }
 
   void redo(const score::DocumentContext& ctx) const final override
   {
-    (m_path.find(ctx).*T::set())(m_new);
+    (m_path.find(ctx).*T::set)(m_new);
   }
 
 private:
