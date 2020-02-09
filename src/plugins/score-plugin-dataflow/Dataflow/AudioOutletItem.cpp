@@ -76,7 +76,7 @@ void AudioOutletItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* o
   {
     painter->drawPixmap(0, 0, pix.portHandleClosed);
   }
-  const QPixmap& img = portImage(m_port.type, m_inlet, m_diam == 8., m_highlight);
+  const QPixmap& img = portImage(m_port.type(), m_inlet, m_diam == 8., m_highlight);
   painter->drawPixmap(10, 0, img);
 }
 

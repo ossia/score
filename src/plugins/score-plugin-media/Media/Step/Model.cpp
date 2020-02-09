@@ -21,7 +21,6 @@ Model::Model(
                             parent}
     , outlet{Process::make_value_outlet(Id<Process::Port>(0), this)}
 {
-  outlet->type = Process::PortType::Message;
   m_steps = {0.5f, 0.3f, 0.5f, 0.8f, 1.f, 0.f, 0.5f, 0.1f};
   m_stepDuration = 20000;
   m_stepCount = 8;

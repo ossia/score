@@ -90,7 +90,7 @@ auto createControl(
   auto portItem = setup.createPort(fact, port, doc, item, parent);
 
   // Create the label
-  auto lab = new score::SimpleTextItem{Process::portBrush(port.type).main, item};
+  auto lab = new score::SimpleTextItem{Process::portBrush(port.type()).main, item};
   if(auto name = setup.name(); name.size() > 0)
     lab->setText(std::move(name));
   else
@@ -154,7 +154,7 @@ static auto makeControl(
   port->setPos(0, 2.);
 
   // Text
-  const auto& brush = Process::portBrush(inlet.type).main;
+  const auto& brush = Process::portBrush(inlet.type()).main;
   auto lab = new score::SimpleTextItem{brush, item};
   lab->setText(ctrl.name);
   lab->setPos(12, 0);

@@ -386,7 +386,6 @@ void LV2EffectModel::readPlugin()
   for (int port_id : data.midi_out_ports)
   {
     auto port = new Process::MidiOutlet{Id<Process::Port>{out_id++}, this};
-    port->type = Process::PortType::Midi;
 
     Lilv::Port p = data.effect.plugin.get_port_by_index(port_id);
     Lilv::Node n = p.get_name();
@@ -596,7 +595,7 @@ void LV2EffectComponent::lazy_init()
     auto inlet = static_cast<Process::ControlInlet*>(proc.inlets()[i]);
     node->fInControls[i - proc.m_controlInStart]
         = ossia::convert<float>(inlet->value());
-    auto inl = node->inputs()[i];
+    auto inl = node->root_inputs()[i];
     connect(
         inlet,
         &Process::ControlInlet::valueChanged,

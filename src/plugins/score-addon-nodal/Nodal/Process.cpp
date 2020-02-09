@@ -23,8 +23,6 @@ Model::Model(
     , outlet{Process::make_audio_outlet(Id<Process::Port>(0), this)}
 {
   metadata().setInstanceName(*this);
-  inlet->type = Process::PortType::Audio;
-  outlet->type = Process::PortType::Audio;
   outlet->setPropagate(true);
   init();
 }

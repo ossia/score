@@ -172,7 +172,7 @@ struct lv2_node final : public ossia::graph_node
     for (std::size_t i = 0; i < fMidiIns.size(); i++)
     {
       ossia::midi_port& ossia_port
-          = this->inputs()[i + first_midi_idx]
+          = this->m_inlets[i + first_midi_idx]
                  ->template cast<ossia::midi_port>();
       auto& lv2_port = fMidiIns[i];
       Iterator it{lv2_port.buf};
@@ -231,7 +231,7 @@ struct lv2_node final : public ossia::graph_node
     for (std::size_t i = 0; i < fMidiOuts.size(); i++)
     {
       ossia::midi_port& ossia_port
-          = this->outputs()[i + first_midi_idx]->template cast<ossia::midi_port>();
+          = this->m_outlets[i + first_midi_idx]->template cast<ossia::midi_port>();
       auto& lv2_port = fMidiOuts[i];
       Iterator it{lv2_port.buf};
 

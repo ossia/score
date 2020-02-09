@@ -1,9 +1,12 @@
 #include "score_plugin_media.hpp"
 
 #include <Media/ApplicationPlugin.hpp>
-#include <Media/Effect/EffectExecutor.hpp>
-#include <Media/Effect/EffectProcessFactory.hpp>
-#include <Media/Effect/Inspector/EffectInspector.hpp>
+#include <Media/AudioChain/AudioChainExecutor.hpp>
+#include <Media/AudioChain/AudioChainFactory.hpp>
+#include <Media/AudioChain/Inspector/AudioChainInspector.hpp>
+#include <Media/SynthChain/SynthChainExecutor.hpp>
+#include <Media/SynthChain/SynthChainFactory.hpp>
+#include <Media/SynthChain/Inspector/SynthChainInspector.hpp>
 #include <Media/Effect/Settings/Factory.hpp>
 #include <Media/Inspector/Factory.hpp>
 #include <Media/Merger/Executor.hpp>
@@ -116,7 +119,8 @@ score_plugin_media::factories(
       score::ApplicationContext,
       FW<Process::ProcessModelFactory,
          Media::Sound::ProcessFactory,
-         Media::Effect::ProcessFactory,
+         Media::AudioChain::ProcessFactory,
+         Media::SynthChain::ProcessFactory,
          Media::Step::ProcessFactory,
          Media::Metro::ProcessFactory,
          Media::Merger::ProcessFactory
@@ -135,7 +139,7 @@ score_plugin_media::factories(
          >,
       FW<Inspector::InspectorWidgetFactory,
          Media::Sound::InspectorFactory,
-         Media::Effect::InspectorFactory
+         Media::AudioChain::InspectorFactory
     #if defined(HAS_FAUST)
        , Media::Faust::InspectorFactory
     #endif
@@ -147,7 +151,8 @@ score_plugin_media::factories(
        , Media::Merger::InspectorFactory>,
       FW<Process::LayerFactory,
          Media::Sound::LayerFactory,
-         Media::Effect::LayerFactory,
+         Media::AudioChain::LayerFactory,
+         Media::SynthChain::LayerFactory,
          Media::Metro::LayerFactory,
          Media::Step::LayerFactory,
          Media::Merger::LayerFactory
@@ -186,7 +191,8 @@ score_plugin_media::factories(
 
       FW<Execution::ProcessComponentFactory,
          Execution::SoundComponentFactory,
-         Media::EffectProcessComponentFactory,
+         Media::AudioChainComponentFactory,
+         Media::SynthChainComponentFactory,
          Execution::StepComponentFactory,
          Execution::MetroComponentFactory,
          Execution::MergerComponentFactory
@@ -212,7 +218,7 @@ score_plugin_media::factories(
          >,
       FW<score::SettingsDelegateFactory, Media::Settings::Factory>,
       FW<score::PanelDelegateFactory, Mixer::PanelDelegateFactory>,
-      FW<score::ObjectRemover, Media::Effect::EffectRemover>>(ctx, key);
+      FW<score::ObjectRemover, Media::EffectRemover>>(ctx, key);
 }
 
 #include <score/plugins/PluginInstances.hpp>

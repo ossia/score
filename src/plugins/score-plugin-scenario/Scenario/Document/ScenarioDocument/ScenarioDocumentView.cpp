@@ -30,6 +30,7 @@
 #include <QVBoxLayout>
 #include <QGLWidget>
 #include <QOpenGLWidget>
+#include <QOpenGLWindow>
 #include <QOpenGLFunctions>
 
 #if defined(SCORE_WEBSOCKETS)
@@ -69,7 +70,7 @@ ProcessGraphicsView::ProcessGraphicsView(
 #if !defined(__EMSCRIPTEN__)
   setOptimizationFlag(QGraphicsView::DontSavePainterState, true);
   setOptimizationFlag(QGraphicsView::DontAdjustForAntialiasing, true);
-  //setAttribute(Qt::WA_PaintOnScreen, true);
+  setAttribute(Qt::WA_PaintOnScreen, false);
   setAttribute(Qt::WA_OpaquePaintEvent, true);
   viewport()->setAttribute(Qt::WA_OpaquePaintEvent, true);
 #endif

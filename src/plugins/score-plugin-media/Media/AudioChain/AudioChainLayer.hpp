@@ -1,10 +1,13 @@
 #pragma once
-#include <Media/Effect/EffectProcessModel.hpp>
+#include <Media/ChainProcess.hpp>
 #include <Process/LayerPresenter.hpp>
 #include <Process/LayerView.hpp>
-namespace Media::Effect
+namespace Media
 {
 class EffectItem;
+}
+namespace Media
+{
 
 class View final : public Process::LayerView
 {
@@ -12,7 +15,7 @@ public:
   explicit View(QGraphicsItem* parent);
 
   void
-  setup(const Effect::ProcessModel& object, const Process::LayerContext& ctx);
+  setup(const Media::ChainProcess& object, const Process::LayerContext& ctx);
 
   int findDropPosition(QPointF pos) const;
   void setInvalid(bool b);
@@ -42,7 +45,7 @@ class Presenter final : public Process::LayerPresenter
 {
 public:
   explicit Presenter(
-      const Effect::ProcessModel& model,
+      const Media::ChainProcess& model,
       View* view,
       const Process::Context& ctx,
       QObject* parent);
@@ -62,7 +65,7 @@ public:
   void on_drop(const QMimeData& mime, int pos);
 
 private:
-  const Effect::ProcessModel& m_layer;
+  const Media::ChainProcess& m_layer;
   View* m_view{};
 };
 }

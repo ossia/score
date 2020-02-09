@@ -114,7 +114,7 @@ public:
       p.second = true; // we will send the first value
 
       const State::AddressAccessor& addr = map.at(ctl->id());
-      system().setup.set_destination(addr, node->outputs().back());
+      system().setup.set_destination(addr, node->root_outputs().back());
 
       std::weak_ptr<ossia::control_surface_node> weak_node = node;
       QObject::connect(

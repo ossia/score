@@ -1,228 +1,32 @@
-#include "EffectProcessLayer.hpp"
+#include "AudioChainLayer.hpp"
+#include <Media/ChainItem.hpp>
+#include <Process/Style/ScenarioStyle.hpp>
+
+#include <QFile>
+#include <QFileInfo>
+#include <QJsonDocument>
+#include <QTimer>
 
 #include <Media/Commands/InsertEffect.hpp>
 
-#include <Effect/EffectLayer.hpp>
-#include <Effect/EffectPainting.hpp>
-
-#include <Control/DefaultEffectItem.hpp>
-#include <Process/Dataflow/PortFactory.hpp>
-#include <Process/Dataflow/PortItem.hpp>
-#include <Process/Drop/ProcessDropHandler.hpp>
-#include <Process/Focus/FocusDispatcher.hpp>
 #include <Process/ProcessMimeSerialization.hpp>
-#include <Process/Style/ScenarioStyle.hpp>
-#include <Process/WidgetLayer/WidgetProcessFactory.hpp>
-#include <Scenario/Application/Menus/ScenarioCopy.hpp>
-
-#include <score/command/Dispatchers/CommandDispatcher.hpp>
-#include <score/command/Dispatchers/MacroCommandDispatcher.hpp>
-#include <score/selection/SelectionDispatcher.hpp>
+#include <Process/Focus/FocusDispatcher.hpp>
 
 #include <core/document/Document.hpp>
+#include <score/command/Dispatchers/CommandDispatcher.hpp>
+#include <score/command/Dispatchers/MacroCommandDispatcher.hpp>
+#include <score/command/Dispatchers/RuntimeDispatcher.hpp>
 
+#include <Process/Drop/ProcessDropHandler.hpp>
 #include <ossia/detail/thread.hpp>
-
-#include <QApplication>
-#include <QDrag>
-#include <QFileInfo>
-#include <QGraphicsScene>
-#include <QGraphicsSceneMouseEvent>
-#include <QJsonDocument>
-#include <QPainter>
-#include <QUrl>
-
-namespace score::mime
-{
-inline constexpr auto effect()
-{
-  return "application/x-score-fxdata";
-}
-}
-namespace Media::Effect
-{
+namespace {
 static optional<int> m_lit{};
-static qreal m_litHeight{};
-class EffectItem final
-    : public ::Effect::ItemBase
+}
+namespace Media
 {
-  const View& m_view;
-  const Process::ProcessModel& m_model;
-  const Process::LayerContext& m_context;
-public:
-  EffectItem(
-      const View& view,
-      const Process::ProcessModel& effect,
-      const Process::LayerContext& ctx,
-      const Process::LayerFactoryList& fact,
-      QGraphicsItem* parent)
-    : ::Effect::ItemBase{effect, ctx.context, parent}
-    , m_view{view}
-    , m_model{effect}
-    , m_context{ctx}
-  {
-    // Main item
-    if (auto factory = fact.findDefaultFactory(effect))
-    {
-      m_fx = factory->makeItem(m_model, m_context.context, this);
-    }
-
-    if (!m_fx)
-    {
-      m_fx = new DefaultEffectItem{m_model, m_context.context, this};
-    }
-
-    m_fx->setParentItem(this);
-    m_fx->setPos({0, TitleHeight});
-
-    /// Rects
-    // TODO bind
-    connect(m_fx, &score::ResizeableItem::sizeChanged,
-            this, &EffectItem::updateSize);
-
-    // In & out ports
-    resetInlets();
-    resetOutlets();
-    con(effect, &Process::ProcessModel::inletsChanged,
-        this, &EffectItem::resetInlets);
-    con(effect,
-        &Process::ProcessModel::outletsChanged,
-        this, &EffectItem::resetOutlets);
-
-    updateSize();
-  }
-
-private:
-  void updateSize()
-  {
-    setSize(m_fx->boundingRect().size());
-  }
-
-  void setSize(QSizeF sz)
-  {
-    if(sz != m_contentSize)
-    {
-      prepareGeometryChange();
-      m_contentSize = QSizeF{std::max(100., sz.width()), std::max(10., sz.height())};
-      if(m_ui)
-      {
-        m_ui->setParentItem(nullptr);
-      }
-
-      const auto r = boundingRect();
-
-      for(auto& outlet : m_outlets)
-      {
-        outlet->setPos(outlet->pos().x(), r.height() + OutletY0);
-      }
-      m_view.recomputeItemPositions();
-
-      if(m_ui)
-      {
-        m_ui->setParentItem(this);
-        m_ui->setPos({m_contentSize.width() + TopButtonX0, TopButtonY0});
-      }
-      update();
-    }
-  }
-
-  void resetInlets()
-  {
-    qDeleteAll(m_inlets);
-    m_inlets.clear();
-    qreal x = InletX0;
-    auto& portFactory
-        = score::AppContext().interfaces<Process::PortFactoryList>();
-    for (Process::Inlet* port : m_model.inlets())
-    {
-      if (port->hidden)
-        continue;
-      Process::PortFactory* fact = portFactory.get(port->concreteKey());
-      auto item = fact->makeItem(*port, m_context.context, this, this);
-      item->setPos(x, InletY0);
-      m_inlets.push_back(item);
-
-      x += PortSpacing;
-    }
-
-    m_label->setPos(QPointF{x, 0.});
-    updateSize();
-  }
-
-  void resetOutlets()
-  {
-    qDeleteAll(m_outlets);
-    m_outlets.clear();
-    qreal x = OutletX0;
-    const qreal h = boundingRect().height() + OutletY0;
-    auto& portFactory
-        = score::AppContext().interfaces<Process::PortFactoryList>();
-    for (Process::Outlet* port : m_model.outlets())
-    {
-      if (port->hidden)
-        continue;
-      Process::PortFactory* fact = portFactory.get(port->concreteKey());
-      auto item = fact->makeItem(*port, m_context.context, this, this);
-      item->setPos(x, h);
-      m_outlets.push_back(item);
-
-      x += PortSpacing;
-    }
-    updateSize();
-  }
-
-  void paint(
-      QPainter* painter,
-      const QStyleOptionGraphicsItem* option,
-      QWidget* widget) override
-  {
-    paintNode(painter, m_selected, m_hover, boundingRect());
-  }
-
-  void mousePressEvent(QGraphicsSceneMouseEvent* event) override
-  {
-    m_context.context.focusDispatcher.focus(&m_context.presenter);
-    score::SelectionDispatcher{m_context.context.selectionStack}.setAndCommit({&m_model});
-    event->accept();
-  }
-
-  void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override
-  {
-    auto min_dist
-        = (event->screenPos() - event->buttonDownScreenPos(Qt::LeftButton))
-              .manhattanLength()
-          >= QApplication::startDragDistance();
-    if (min_dist)
-    {
-      auto drag = new QDrag{this};
-      QMimeData* mime = new QMimeData;
-
-      auto json = Scenario::copyProcess(m_model);
-      json["Path"] = toJsonObject(score::IDocument::path(m_model));
-      m_litHeight = this->boundingRect().height();
-      mime->setData(score::mime::effect(), QJsonDocument{json}.toJson());
-      drag->setMimeData(mime);
-
-      drag->exec();
-
-      drag->deleteLater();
-    }
-
-    event->accept();
-  }
-  void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override
-  {
-    event->accept();
-  }
-
-  score::ResizeableItem* m_fx{};
-  std::vector<Dataflow::PortItem*> m_inlets;
-  std::vector<Dataflow::PortItem*> m_outlets;
-};
-
 View::View(QGraphicsItem* parent) : Process::LayerView{parent} {}
 
-void View::setup(const ProcessModel& object, const Process::LayerContext& ctx)
+void View::setup(const ChainProcess& object, const Process::LayerContext& ctx)
 {
   auto& doc = ctx.context;
   auto& fact = doc.app.interfaces<Process::LayerFactoryList>();
@@ -299,7 +103,7 @@ void View::paint_impl(QPainter* p) const
     p->setPen(Process::Style::instance().TransparentPen());
     p->setBrush(Process::Style::instance().StateDot());
     p->drawRoundedRect(
-          QRectF(w + 1., 2., 3., m_litHeight), 2., 2.);
+          QRectF(w + 1., 2., 3., EffectItem::litHeight), 2., 2.);
     p->setRenderHint(QPainter::Antialiasing, false);
   }
 }
@@ -368,7 +172,7 @@ void View::dropEvent(QGraphicsSceneDragDropEvent* ev)
   }
 }
 
-Presenter::Presenter(const ProcessModel& model, View* view, const Process::Context& ctx, QObject* parent)
+Presenter::Presenter(const ChainProcess& model, View* view, const Process::Context& ctx, QObject* parent)
   : LayerPresenter{ctx, parent}, m_layer{model}, m_view{view}
 {
   putToFront();
@@ -387,16 +191,16 @@ Presenter::Presenter(const ProcessModel& model, View* view, const Process::Conte
     on_drop(m, idx);
   });
 
-  auto& m = static_cast<const Effect::ProcessModel&>(model);
-  con(m, &Effect::ProcessModel::effectsChanged, this, [&] {
+  auto& m = static_cast<const AudioChain::ProcessModel&>(model);
+  con(m, &AudioChain::ProcessModel::effectsChanged, this, [&] {
     m_view->setup(
-          static_cast<const Effect::ProcessModel&>(model), m_context);
+          static_cast<const AudioChain::ProcessModel&>(model), m_context);
   });
-  con(m, &Effect::ProcessModel::badChainingChanged, this, [&](bool b) {
+  con(m, &AudioChain::ProcessModel::badChainingChanged, this, [&](bool b) {
     m_view->setInvalid(b);
   });
 
-  m_view->setup(static_cast<const Effect::ProcessModel&>(model), m_context);
+  m_view->setup(static_cast<const AudioChain::ProcessModel&>(model), m_context);
 }
 
 void Presenter::setWidth(qreal width, qreal defaultWidth) { m_view->setWidth(width); }

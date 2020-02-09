@@ -71,8 +71,8 @@ void Port::addCable(const Path<Cable>& c)
 }
 void Port::setCables(const std::vector<Path<Cable>>& c)
 {
-    m_cables = c;
-    cablesChanged();
+  m_cables = c;
+  cablesChanged();
 }
 
 void Port::removeCable(const Path<Cable>& c)
@@ -85,25 +85,25 @@ void Port::removeCable(const Path<Cable>& c)
   }
 }
 
-const QString& Port::customData() const
+const QString& Port::customData() const noexcept
 {
   return m_customData;
 }
-const QString& Port::exposed() const
+const QString& Port::exposed() const noexcept
 {
   return m_exposed;
 }
-const QString& Port::description() const
+const QString& Port::description() const noexcept
 {
   return m_description;
 }
 
-const State::AddressAccessor& Port::address() const
+const State::AddressAccessor& Port::address() const noexcept
 {
   return m_address;
 }
 
-const std::vector<Path<Cable>>& Port::cables() const
+const std::vector<Path<Cable>>& Port::cables() const noexcept
 {
   return m_cables;
 }
@@ -236,7 +236,6 @@ AudioInlet::~AudioInlet() {}
 AudioInlet::AudioInlet(Id<Process::Port> c, QObject* parent)
   : Inlet{std::move(c), parent}
 {
-  type = Process::PortType::Audio;
 }
 
 AudioInlet::AudioInlet(DataStream::Deserializer& vis, QObject* parent)
@@ -269,7 +268,6 @@ AudioOutlet::AudioOutlet(Id<Process::Port> c, QObject* parent)
   , m_gain{1.}
   , m_pan{ossia::sqrt_2 / 2., ossia::sqrt_2 / 2.}
 {
-  type = Process::PortType::Audio;
 }
 
 AudioOutlet::AudioOutlet(DataStream::Deserializer& vis, QObject* parent)
@@ -341,7 +339,6 @@ MidiInlet::~MidiInlet() {}
 MidiInlet::MidiInlet(Id<Process::Port> c, QObject* parent)
   : Inlet{std::move(c), parent}
 {
-  type = Process::PortType::Midi;
 }
 
 MidiInlet::MidiInlet(DataStream::Deserializer& vis, QObject* parent)
@@ -370,7 +367,6 @@ MidiOutlet::~MidiOutlet() {}
 MidiOutlet::MidiOutlet(Id<Process::Port> c, QObject* parent)
   : Outlet{std::move(c), parent}
 {
-  type = Process::PortType::Midi;
 }
 
 MidiOutlet::MidiOutlet(DataStream::Deserializer& vis, QObject* parent)
@@ -428,7 +424,6 @@ ValueInlet::~ValueInlet() {}
 ValueInlet::ValueInlet(Id<Process::Port> c, QObject* parent)
   : Inlet{std::move(c), parent}
 {
-  type = Process::PortType::Message;
 }
 
 ValueInlet::ValueInlet(DataStream::Deserializer& vis, QObject* parent)
@@ -457,7 +452,6 @@ ValueOutlet::~ValueOutlet() {}
 ValueOutlet::ValueOutlet(Id<Process::Port> c, QObject* parent)
   : Outlet{std::move(c), parent}
 {
-  type = Process::PortType::Message;
 }
 
 ValueOutlet::ValueOutlet(DataStream::Deserializer& vis, QObject* parent)
@@ -608,11 +602,11 @@ std::unique_ptr<Inlet> load_inlet(DataStreamWriter& wr, QObject* parent)
   auto ptr = deserialize_interface(il, wr, parent);
 
   auto in = std::unique_ptr<Process::Inlet>((Process::Inlet*)ptr);
-  if(in->type == Process::PortType::Audio)
+  if(in->type() == Process::PortType::Audio)
       SCORE_SOFT_ASSERT(dynamic_cast<Process::AudioInlet*>(in.get()));
-  else if(in->type == Process::PortType::Midi)
+  else if(in->type() == Process::PortType::Midi)
       SCORE_SOFT_ASSERT(dynamic_cast<Process::MidiInlet*>(in.get()));
-  else if(in->type == Process::PortType::Message)
+  else if(in->type() == Process::PortType::Message)
     SCORE_SOFT_ASSERT(dynamic_cast<Process::ValueInlet*>(in.get()) || dynamic_cast<Process::ControlInlet*>(in.get()));
 
   return in;
@@ -625,11 +619,11 @@ std::unique_ptr<Inlet> load_inlet(JSONObjectWriter& wr, QObject* parent)
   auto ptr = deserialize_interface(il, wr, parent);
 
   auto in = std::unique_ptr<Process::Inlet>((Process::Inlet*)ptr);
-  if(in->type == Process::PortType::Audio)
+  if(in->type() == Process::PortType::Audio)
       SCORE_SOFT_ASSERT(dynamic_cast<Process::AudioInlet*>(in.get()));
-  else if(in->type == Process::PortType::Midi)
+  else if(in->type() == Process::PortType::Midi)
       SCORE_SOFT_ASSERT(dynamic_cast<Process::MidiInlet*>(in.get()));
-  else if(in->type == Process::PortType::Message)
+  else if(in->type() == Process::PortType::Message)
     SCORE_SOFT_ASSERT(dynamic_cast<Process::ValueInlet*>(in.get()) || dynamic_cast<Process::ControlInlet*>(in.get()));
 
   return in;
@@ -642,11 +636,11 @@ std::unique_ptr<Outlet> load_outlet(DataStreamWriter& wr, QObject* parent)
   auto ptr = deserialize_interface(il, wr, parent);
 
   auto out = std::unique_ptr<Process::Outlet>((Process::Outlet*)ptr);
-  if(out->type == Process::PortType::Audio)
+  if(out->type() == Process::PortType::Audio)
       SCORE_SOFT_ASSERT(dynamic_cast<Process::AudioOutlet*>(out.get()));
-  else if(out->type == Process::PortType::Midi)
+  else if(out->type() == Process::PortType::Midi)
       SCORE_SOFT_ASSERT(dynamic_cast<Process::MidiOutlet*>(out.get()));
-  else if(out->type == Process::PortType::Message)
+  else if(out->type() == Process::PortType::Message)
     SCORE_SOFT_ASSERT(dynamic_cast<Process::ValueOutlet*>(out.get()) || dynamic_cast<Process::ControlOutlet*>(out.get()));
   return out;
 }
@@ -658,11 +652,11 @@ std::unique_ptr<Outlet> load_outlet(JSONObjectWriter& wr, QObject* parent)
   auto ptr = deserialize_interface(il, wr, parent);
 
   auto out = std::unique_ptr<Process::Outlet>((Process::Outlet*)ptr);
-  if(out->type == Process::PortType::Audio)
+  if(out->type() == Process::PortType::Audio)
       SCORE_SOFT_ASSERT(dynamic_cast<Process::AudioOutlet*>(out.get()));
-  else if(out->type == Process::PortType::Midi)
+  else if(out->type() == Process::PortType::Midi)
       SCORE_SOFT_ASSERT(dynamic_cast<Process::MidiOutlet*>(out.get()));
-  else if(out->type == Process::PortType::Message)
+  else if(out->type() == Process::PortType::Message)
     SCORE_SOFT_ASSERT(dynamic_cast<Process::ValueOutlet*>(out.get()) || dynamic_cast<Process::ControlOutlet*>(out.get()));
   return out;
 }
@@ -794,7 +788,7 @@ SCORE_LIB_PROCESS_EXPORT void
 DataStreamReader::read<Process::Port>(const Process::Port& p)
 {
   insertDelimiter();
-  m_stream << p.type << p.hidden << p.m_customData << p.m_exposed
+  m_stream << p.hidden << p.m_customData << p.m_exposed
            << p.m_description << p.m_address;
   insertDelimiter();
 }
@@ -803,7 +797,7 @@ SCORE_LIB_PROCESS_EXPORT void
 DataStreamWriter::write<Process::Port>(Process::Port& p)
 {
   checkDelimiter();
-  m_stream >> p.type >> p.hidden >> p.m_customData >> p.m_exposed
+  m_stream >> p.hidden >> p.m_customData >> p.m_exposed
       >> p.m_description >> p.m_address;
   checkDelimiter();
 }
@@ -812,7 +806,6 @@ template <>
 SCORE_LIB_PROCESS_EXPORT void
 JSONObjectReader::read<Process::Port>(const Process::Port& p)
 {
-  obj["Type"] = (int)p.type;
   obj["Hidden"] = (bool)p.hidden;
   obj["Custom"] = p.m_customData;
   obj["Exposed"] = p.m_exposed;
@@ -823,7 +816,6 @@ template <>
 SCORE_LIB_PROCESS_EXPORT void
 JSONObjectWriter::write<Process::Port>(Process::Port& p)
 {
-  p.type = (Process::PortType)obj["Type"].toInt();
   p.hidden = obj["Hidden"].toBool();
   p.m_customData = obj["Custom"].toString();
   p.m_exposed = obj["Exposed"].toString();

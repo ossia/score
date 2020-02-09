@@ -166,7 +166,6 @@ void FaustEffectModel::reloadFx(llvm_dsp_factory* fac, llvm_dsp* obj)
       delete m_inlets[i];
     }
     m_inlets.resize(ui.i);
-    m_inlets.front()->type = Process::PortType::Audio;
   }
   else if (
       !m_inlets.empty() && !m_outlets.empty() && !faust_factory
@@ -227,7 +226,6 @@ void FaustEffectModel::reloadMidi(dsp_poly_factory* fac, dsp_poly* obj)
       delete m_inlets[i];
     }
     m_inlets.resize(ui.i);
-    m_inlets.front()->type = Process::PortType::Midi;
   }
   else if (
       !m_inlets.empty() && !m_outlets.empty() && !faust_poly_factory
@@ -490,7 +488,7 @@ void FaustEffectComponent::reloadSynth()
   {
     auto inlet = static_cast<Process::ControlInlet*>(proc.inlets()[i]);
     *node->controls[i - 1].second = ossia::convert<float>(inlet->value());
-    auto inl = this->node->inputs()[i];
+    auto inl = this->node->root_inputs()[i];
     connect(
         inlet,
         &Process::ControlInlet::valueChanged,
@@ -528,7 +526,7 @@ void FaustEffectComponent::reloadFx()
   {
     auto inlet = static_cast<Process::ControlInlet*>(proc.inlets()[i]);
     *node->controls[i - 1].second = ossia::convert<float>(inlet->value());
-    auto inl = this->node->inputs()[i];
+    auto inl = this->node->root_inputs()[i];
     connect(
         inlet,
         &Process::ControlInlet::valueChanged,

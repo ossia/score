@@ -186,46 +186,46 @@ void js_node::setupComponent(QQmlComponent& c)
     {
       if (auto ctrl_in = qobject_cast<ControlInlet*>(n))
       {
-        inputs().push_back(new ossia::value_inlet);
-        m_ctrlInlets.push_back({ctrl_in, inputs().back()});
+        m_inlets.push_back(new ossia::value_inlet);
+        m_ctrlInlets.push_back({ctrl_in, m_inlets.back()});
         m_ctrlInlets.back().second->target<ossia::value_port>()->is_event
             = false;
       }
       else if (auto val_in = qobject_cast<ValueInlet*>(n))
       {
-        inputs().push_back(new ossia::value_inlet);
+        m_inlets.push_back(new ossia::value_inlet);
 
         if (!val_in->is_control())
         {
-          inputs().back()->target<ossia::value_port>()->is_event = true;
+          m_inlets.back()->target<ossia::value_port>()->is_event = true;
         }
 
-        m_valInlets.push_back({val_in, inputs().back()});
+        m_valInlets.push_back({val_in, m_inlets.back()});
       }
       else if (auto aud_in = qobject_cast<AudioInlet*>(n))
       {
-        inputs().push_back(new ossia::audio_inlet);
-        m_audInlets.push_back({aud_in, inputs().back()});
+        m_inlets.push_back(new ossia::audio_inlet);
+        m_audInlets.push_back({aud_in, m_inlets.back()});
       }
       else if (auto mid_in = qobject_cast<MidiInlet*>(n))
       {
-        inputs().push_back(new ossia::midi_inlet);
-        m_midInlets.push_back({mid_in, inputs().back()});
+        m_inlets.push_back(new ossia::midi_inlet);
+        m_midInlets.push_back({mid_in, m_inlets.back()});
       }
       else if (auto val_out = qobject_cast<ValueOutlet*>(n))
       {
-        outputs().push_back(new ossia::value_outlet);
-        m_valOutlets.push_back({val_out, outputs().back()});
+        m_outlets.push_back(new ossia::value_outlet);
+        m_valOutlets.push_back({val_out, m_outlets.back()});
       }
       else if (auto aud_out = qobject_cast<AudioOutlet*>(n))
       {
-        outputs().push_back(new ossia::audio_outlet);
-        m_audOutlets.push_back({aud_out, outputs().back()});
+        m_outlets.push_back(new ossia::audio_outlet);
+        m_audOutlets.push_back({aud_out, m_outlets.back()});
       }
       else if (auto mid_out = qobject_cast<MidiOutlet*>(n))
       {
-        outputs().push_back(new ossia::midi_outlet);
-        m_midOutlets.push_back({mid_out, outputs().back()});
+        m_outlets.push_back(new ossia::midi_outlet);
+        m_midOutlets.push_back({mid_out, m_outlets.back()});
       }
     }
   }

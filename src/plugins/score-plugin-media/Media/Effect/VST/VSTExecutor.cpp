@@ -32,7 +32,7 @@ void VSTEffectComponent::setupNode(Node_T& node)
     node->controls.push_back({ ctrl->fxNum,
                   ctrl->value(),
                   inlet->target<ossia::value_port>() });
-    node->inputs().push_back(std::move(inlet));
+    node->root_inputs().push_back(std::move(inlet));
   }
 
   std::weak_ptr<std::remove_reference_t<decltype(*node)>> wp = node;
@@ -51,7 +51,7 @@ void VSTEffectComponent::setupNode(Node_T& node)
         in_exec([n, inlet, val = ctrl->value(), num = ctrl->fxNum]{
           n->controls.push_back(
             {num, val, inlet->target<ossia::value_port>()});
-          n->inputs().push_back(inlet);
+          n->root_inputs().push_back(inlet);
           });
 
         setup.register_inlet(*ctrl, inlet, n);
@@ -75,13 +75,13 @@ void VSTEffectComponent::setupNode(Node_T& node)
         {
           ossia::value_port* port = it->port;
           n->controls.erase(it);
-          auto port_it = ossia::find_if(n->inputs(), [&](auto& p) {
+          auto port_it = ossia::find_if(n->root_inputs(), [&](auto& p) {
             return p->template target<ossia::value_port>() == port;
           });
-          if (port_it != n->inputs().end())
+          if (port_it != n->root_inputs().end())
           {
             port->clear();
-            n->inputs().erase(port_it);
+            n->root_inputs().erase(port_it);
           }
         }
       });
