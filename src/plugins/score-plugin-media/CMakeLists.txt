@@ -57,6 +57,7 @@ set(HDRS ${HDRS}
 
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/ChainProcess.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/ChainItem.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Media/ChainExecutor.hpp"
 
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/AudioChain/AudioChainFactory.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/AudioChain/AudioChainLayer.hpp"
