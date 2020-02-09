@@ -1,4 +1,4 @@
-#include "EffectExecutor.hpp"
+#include "SynthChainExecutor.hpp"
 
 #include <Process/ExecutionContext.hpp>
 #include <Process/ExecutionSetup.hpp>
@@ -74,12 +74,12 @@ struct formatter<ossia::graph_edge>
         "{}[{}] -> {}[{}]",
         *e.out_node,
         std::distance(
-            ossia::find(e.out_node->outputs(), e.out),
-            e.out_node->outputs().begin()),
+            ossia::find(e.out_node->root_outputs(), e.out),
+            e.out_node->root_outputs().begin()),
         *e.in_node,
         std::distance(
-            ossia::find(e.in_node->inputs(), e.in),
-            e.in_node->inputs().begin()));
+            ossia::find(e.in_node->root_inputs(), e.in),
+            e.in_node->root_inputs().begin()));
   }
 };
 }
@@ -101,10 +101,10 @@ static void check_exec_validity(
     if (it + 1 == proc.nodes.end())
       break;
 
-    auto& outputs = it->get()->outputs();
+    auto& outputs = it->get()->root_outputs();
     SCORE_ASSERT(outputs.size() >= 1);
 
-    auto& inputs = (it + 1)->get()->inputs();
+    auto& inputs = (it + 1)->get()->root_inputs();
     SCORE_ASSERT(inputs.size() >= 1);
 
     SCORE_ASSERT(outputs.front()->targets.size() == 1);
@@ -119,7 +119,7 @@ static void check_exec_validity(
 static std::vector<ossia::node_ptr>
 get_nodes(const std::vector<std::pair<
               Id<Process::ProcessModel>,
-              EffectProcessComponentBase::RegisteredEffect>>& fx)
+              SynthChainComponentBase::RegisteredEffect>>& fx)
 {
   std::vector<ossia::node_ptr> v;
   for (const auto& f : fx)
@@ -144,13 +144,13 @@ static void check_last_validity(
   else
     SCORE_ASSERT(proc.node == std::shared_ptr<ossia::graph_node>{});
 }
-EffectProcessComponentBase::EffectProcessComponentBase(
-    Media::Effect::ProcessModel& element,
+SynthChainComponentBase::SynthChainComponentBase(
+    Media::SynthChain::ProcessModel& element,
     const Execution::Context& ctx,
     const Id<score::Component>& id,
     QObject* parent)
     : Execution::ProcessComponent_T<
-          Media::Effect::ProcessModel,
+          Media::SynthChain::ProcessModel,
           ossia::node_chain_process>{element,
                                      ctx,
                                      id,
@@ -159,15 +159,15 @@ EffectProcessComponentBase::EffectProcessComponentBase(
 {
   m_ossia_process = std::make_shared<ossia::node_chain_process>();
   element.effects()
-      .orderChanged.connect<&EffectProcessComponentBase::on_orderChanged>(
+      .orderChanged.connect<&SynthChainComponentBase::on_orderChanged>(
           *this);
 }
 
-EffectProcessComponentBase::~EffectProcessComponentBase()
+SynthChainComponentBase::~SynthChainComponentBase()
 {
   process()
       .effects()
-      .orderChanged.disconnect<&EffectProcessComponentBase::on_orderChanged>(
+      .orderChanged.disconnect<&SynthChainComponentBase::on_orderChanged>(
           *this);
 }
 
@@ -198,10 +198,10 @@ static auto move_edges(
   }
 }
 
-void EffectProcessComponentBase::unregister_old_first_node(
+void SynthChainComponentBase::unregister_old_first_node(
     std::pair<
         Id<Process::ProcessModel>,
-        EffectProcessComponentBase::RegisteredEffect>& old_first,
+        SynthChainComponentBase::RegisteredEffect>& old_first,
     std::vector<Execution::ExecutionCommand>& commands)
 {
   if (old_first.second)
@@ -213,10 +213,10 @@ void EffectProcessComponentBase::unregister_old_first_node(
     reg(old_first.second, commands);
   }
 }
-void EffectProcessComponentBase::register_new_first_node(
+void SynthChainComponentBase::register_new_first_node(
     std::pair<
         Id<Process::ProcessModel>,
-        EffectProcessComponentBase::RegisteredEffect>& new_first,
+        SynthChainComponentBase::RegisteredEffect>& new_first,
     std::vector<Execution::ExecutionCommand>& commands)
 {
   if (new_first.second)
@@ -232,10 +232,10 @@ void EffectProcessComponentBase::register_new_first_node(
   }
 }
 
-void EffectProcessComponentBase::unregister_old_last_node(
+void SynthChainComponentBase::unregister_old_last_node(
     std::pair<
         Id<Process::ProcessModel>,
-        EffectProcessComponentBase::RegisteredEffect>& old_last,
+        SynthChainComponentBase::RegisteredEffect>& old_last,
     std::vector<Execution::ExecutionCommand>& commands)
 {
   if (old_last.second)
@@ -246,10 +246,10 @@ void EffectProcessComponentBase::unregister_old_last_node(
     reg(old_last.second, commands);
   }
 }
-void EffectProcessComponentBase::register_new_last_node(
+void SynthChainComponentBase::register_new_last_node(
     std::pair<
         Id<Process::ProcessModel>,
-        EffectProcessComponentBase::RegisteredEffect>& new_last,
+        SynthChainComponentBase::RegisteredEffect>& new_last,
     std::vector<Execution::ExecutionCommand>& commands)
 {
   if (new_last.second)
@@ -292,13 +292,13 @@ public:
     auto& o = element.outlets().front();
     std::size_t index_i = 0;
     std::size_t index_o = 0;
-    if(i->type != o->type)
+    if(i->type() != o->type())
     {
       this->node = std::make_shared<ossia::nodes::dummy_node>();
     }
     else
     {
-      switch(i->type)
+      switch(i->type())
       {
         case Process::PortType::Audio:
           this->node = std::make_shared<ossia::nodes::dummy_audio_node>();
@@ -316,31 +316,31 @@ public:
 
     for(; index_i < N_i; index_i++)
     {
-      switch(element.inlets()[index_i]->type)
+      switch(element.inlets()[index_i]->type())
       {
         case Process::PortType::Audio:
-          this->node->inputs().push_back(new ossia::audio_inlet);
+          this->node->root_inputs().push_back(new ossia::audio_inlet);
           break;
         case Process::PortType::Midi:
-          this->node->inputs().push_back(new ossia::midi_inlet);
+          this->node->root_inputs().push_back(new ossia::midi_inlet);
           break;
         case Process::PortType::Message:
-          this->node->inputs().push_back(new ossia::value_inlet);
+          this->node->root_inputs().push_back(new ossia::value_inlet);
           break;
       }
     }
     for(; index_o < N_o; index_o++)
     {
-      switch(element.inlets()[index_o]->type)
+      switch(element.inlets()[index_o]->type())
       {
         case Process::PortType::Audio:
-          this->node->outputs().push_back(new ossia::audio_outlet);
+          this->node->root_outputs().push_back(new ossia::audio_outlet);
           break;
         case Process::PortType::Midi:
-          this->node->outputs().push_back(new ossia::midi_outlet);
+          this->node->root_outputs().push_back(new ossia::midi_outlet);
           break;
         case Process::PortType::Message:
-          this->node->outputs().push_back(new ossia::value_outlet);
+          this->node->root_outputs().push_back(new ossia::value_outlet);
           break;
       }
     }
@@ -350,7 +350,7 @@ public:
 
 };
 
-Execution::ProcessComponent* EffectProcessComponentBase::make(
+Execution::ProcessComponent* SynthChainComponentBase::make(
     const Id<score::Component>& id,
     Execution::ProcessComponentFactory& factory,
     Process::ProcessModel& effect)
@@ -399,8 +399,8 @@ Execution::ProcessComponent* EffectProcessComponentBase::make(
 
   auto& this_fx = m_fxes[idx].second;
 
-  SCORE_ASSERT(this_fx.node()->inputs().size() > 0);
-  SCORE_ASSERT(this_fx.node()->outputs().size() > 0);
+  SCORE_ASSERT(this_fx.node()->root_inputs().size() > 0);
+  SCORE_ASSERT(this_fx.node()->root_outputs().size() > 0);
   this_fx.registeredInlets = effect.inlets();
   this_fx.registeredOutlets = effect.outlets();
 
@@ -423,12 +423,12 @@ Execution::ProcessComponent* EffectProcessComponentBase::make(
       reg(this_fx, commands);
       commands.push_back(
             [g = ctx.execGraph, n1 = fx->node, n2 = m_fxes[1].second.node()] {
-        move_edges(*n2->inputs()[0], n1->inputs()[0], n1, *g);
+        move_edges(*n2->root_inputs()[0], n1->root_inputs()[0], n1, *g);
 
         auto edge = ossia::make_edge(
               ossia::immediate_strict_connection{},
-              n1->outputs()[0],
-            n2->inputs()[0],
+              n1->root_outputs()[0],
+            n2->root_inputs()[0],
             n1,
             n2);
         g->connect(std::move(edge));
@@ -451,8 +451,8 @@ Execution::ProcessComponent* EffectProcessComponentBase::make(
           echain->nodes.resize(1);
           proc->node = new_node;
 
-          if(!pt->inputs().empty() && !new_node->inputs().empty())
-            move_edges(*pt->inputs()[0], new_node->inputs()[0], new_node, *g);
+          if(!pt->root_inputs().empty() && !new_node->root_inputs().empty())
+            move_edges(*pt->root_inputs()[0], new_node->root_inputs()[0], new_node, *g);
           // no need to copy outs : done in IntervalExecution (c.f. nodeChanged signal)
         });
 
@@ -499,11 +499,11 @@ Execution::ProcessComponent* EffectProcessComponentBase::make(
                            n1 = old_last_comp.second.node(),
                            n2 = this_fx.node()] {
           // unnecessary : done in IntervalExecution (c.f. nodeChanged signal)
-          //move_edges(*n1->outputs()[0], n2->outputs()[0], n2, *g);
+          //move_edges(*n1->root_outputs()[0], n2->root_outputs()[0], n2, *g);
           auto edge = ossia::make_edge(
                 ossia::immediate_strict_connection{},
-                n1->outputs()[0],
-              n2->inputs()[0],
+                n1->root_outputs()[0],
+              n2->root_inputs()[0],
               n1,
               n2);
           g->connect(std::move(edge));
@@ -534,7 +534,7 @@ Execution::ProcessComponent* EffectProcessComponentBase::make(
     {
       commands.push_back(
             [g = ctx.execGraph, n1 = prev.second.node(), n2 = this_fx.node()] {
-        auto& o_prev = n1->outputs()[0];
+        auto& o_prev = n1->root_outputs()[0];
         if (!o_prev->targets.empty())
         {
           auto cbl = o_prev->targets[0];
@@ -543,8 +543,8 @@ Execution::ProcessComponent* EffectProcessComponentBase::make(
 
         auto edge = ossia::make_edge(
               ossia::immediate_strict_connection{},
-              n1->outputs()[0],
-            n2->inputs()[0],
+              n1->root_outputs()[0],
+            n2->root_inputs()[0],
             n1,
             n2);
         g->connect(std::move(edge));
@@ -560,7 +560,7 @@ Execution::ProcessComponent* EffectProcessComponentBase::make(
         commands.push_back([g = ctx.execGraph,
                            n2 = this_fx.node(),
                            n3 = next.second.node()] {
-          auto& i_next = n3->inputs()[0];
+          auto& i_next = n3->root_inputs()[0];
           if (!i_next->sources.empty())
           {
             auto cbl = i_next->sources[0];
@@ -568,8 +568,8 @@ Execution::ProcessComponent* EffectProcessComponentBase::make(
           }
           auto edge = ossia::make_edge(
                 ossia::immediate_strict_connection{},
-                n2->outputs()[0],
-              n3->inputs()[0],
+                n2->root_outputs()[0],
+              n3->root_inputs()[0],
               n2,
               n3);
           g->connect(std::move(edge));
@@ -602,12 +602,12 @@ Execution::ProcessComponent* EffectProcessComponentBase::make(
   return fx.get();
 }
 
-void EffectProcessComponentBase::added(ProcessComponent& e)
+void SynthChainComponentBase::added(ProcessComponent& e)
 {
 
 }
 
-std::function<void()> EffectProcessComponentBase::removing(
+std::function<void()> SynthChainComponentBase::removing(
     const Process::ProcessModel& e,
     ProcessComponent& c)
 {
@@ -625,8 +625,8 @@ std::function<void()> EffectProcessComponentBase::removing(
   std::size_t idx = std::distance(m_fxes.begin(), it);
   auto& this_fx = it->second;
 
-  auto old_node_in = this_fx.node()->inputs();
-  auto old_node_out = this_fx.node()->outputs();
+  auto old_node_in = this_fx.node()->root_inputs();
+  auto old_node_out = this_fx.node()->root_outputs();
   // Remove all the chaining
   auto echain
       = std::dynamic_pointer_cast<ossia::node_chain_process>(m_ossia_process);
@@ -641,8 +641,8 @@ std::function<void()> EffectProcessComponentBase::removing(
       register_new_first_node(m_fxes[1], commands);
       commands.push_back(
           [g = ctx.execGraph, n1 = m_fxes[1].second.node(), n2 = this_fx.node()] {
-        if(!n2->inputs().empty() && !n1->inputs().empty())
-            move_edges(*n2->inputs()[0], n1->inputs()[0], n1, *g);
+        if(!n2->root_inputs().empty() && !n1->root_inputs().empty())
+            move_edges(*n2->root_inputs()[0], n1->root_inputs()[0], n1, *g);
       });
     }
     else if (m_fxes.size() == 1)
@@ -652,10 +652,10 @@ std::function<void()> EffectProcessComponentBase::removing(
       {
         commands.push_back(
               [g = ctx.execGraph, n1 = m_passthrough, n2 = this_fx.node()] {
-          if(!n2->inputs().empty() && !n1->inputs().empty())
-            move_edges(*n2->inputs()[0], n1->inputs()[0], n1, *g);
-          if(!n2->outputs().empty() && !n1->outputs().empty())
-            move_edges(*n2->outputs()[0], n1->outputs()[0], n1, *g);
+          if(!n2->root_inputs().empty() && !n1->root_inputs().empty())
+            move_edges(*n2->root_inputs()[0], n1->root_inputs()[0], n1, *g);
+          if(!n2->root_outputs().empty() && !n1->root_outputs().empty())
+            move_edges(*n2->root_outputs()[0], n1->root_outputs()[0], n1, *g);
         });
       }
     }
@@ -667,8 +667,8 @@ std::function<void()> EffectProcessComponentBase::removing(
       register_new_last_node(m_fxes[idx - 1], commands);
       commands.push_back(
           [g = ctx.execGraph, n1 = m_fxes[idx - 1].second.node(), n2 = this_fx.node()] {
-        if(!n2->outputs().empty() && !n1->outputs().empty())
-            move_edges(*n2->outputs()[0], n1->outputs()[0], n1, *g);
+        if(!n2->root_outputs().empty() && !n1->root_outputs().empty())
+            move_edges(*n2->root_outputs()[0], n1->root_outputs()[0], n1, *g);
       });
     }
     else if (m_fxes.size() == 1)
@@ -678,10 +678,10 @@ std::function<void()> EffectProcessComponentBase::removing(
       {
         commands.push_back(
               [g = ctx.execGraph, n1 = m_passthrough, n2 = this_fx.node()] {
-          if(!n2->inputs().empty() && !n1->inputs().empty())
-            move_edges(*n2->inputs()[0], n1->inputs()[0], n1, *g);
-          if(!n2->outputs().empty() && !n1->outputs().empty())
-            move_edges(*n2->outputs()[0], n1->outputs()[0], n1, *g);
+          if(!n2->root_inputs().empty() && !n1->root_inputs().empty())
+            move_edges(*n2->root_inputs()[0], n1->root_inputs()[0], n1, *g);
+          if(!n2->root_outputs().empty() && !n1->root_outputs().empty())
+            move_edges(*n2->root_outputs()[0], n1->root_outputs()[0], n1, *g);
         });
       }
     }
@@ -699,8 +699,8 @@ std::function<void()> EffectProcessComponentBase::removing(
                             n2 = next.second.node()] {
           auto edge = ossia::make_edge(
               ossia::immediate_strict_connection{},
-              n1->outputs()[0],
-              n2->inputs()[0],
+              n1->root_outputs()[0],
+              n2->root_inputs()[0],
               n1,
               n2);
           g->connect(std::move(edge));
@@ -754,7 +754,7 @@ std::function<void()> EffectProcessComponentBase::removing(
   return [=] { m_fxes.erase(it); };
 }
 
-void EffectProcessComponentBase::createPassthrough(std::vector<Execution::ExecutionCommand>& commands)
+void SynthChainComponentBase::createPassthrough(std::vector<Execution::ExecutionCommand>& commands)
 {
   if(m_passthrough)
     return;
@@ -773,7 +773,7 @@ void EffectProcessComponentBase::createPassthrough(std::vector<Execution::Execut
   nodeChanged(old_node, this->node, commands);
 }
 
-void EffectProcessComponentBase::on_orderChanged()
+void SynthChainComponentBase::on_orderChanged()
 {
   if (process().badChaining())
   {
@@ -841,7 +841,7 @@ void EffectProcessComponentBase::on_orderChanged()
         {
           if (it + 1 == proc->nodes.end())
             break;
-          auto cable = it->get()->outputs()[0]->targets[0];
+          auto cable = it->get()->root_outputs()[0]->targets[0];
           g->disconnect(cable);
         }
 
@@ -857,8 +857,8 @@ void EffectProcessComponentBase::on_orderChanged()
           const auto& n2 = *(it + 1);
           auto edge = ossia::make_edge(
               ossia::immediate_strict_connection{},
-              n1->outputs()[0],
-              n2->inputs()[0],
+              n1->root_outputs()[0],
+              n2->root_inputs()[0],
               n1,
               n2);
           g->connect(std::move(edge));
@@ -888,14 +888,14 @@ void EffectProcessComponentBase::on_orderChanged()
   }
 }
 
-void EffectProcessComponentBase::unreg(
-    const EffectProcessComponentBase::RegisteredEffect& fx)
+void SynthChainComponentBase::unreg(
+    const SynthChainComponentBase::RegisteredEffect& fx)
 {
   system().setup.unregister_node_soft(
       fx.registeredInlets, fx.registeredOutlets, fx.node());
 }
 
-void EffectProcessComponentBase::reg(
+void SynthChainComponentBase::reg(
     const RegisteredEffect& fx,
     std::vector<Execution::ExecutionCommand>& vec)
 {
@@ -903,12 +903,12 @@ void EffectProcessComponentBase::reg(
       fx.registeredInlets, fx.registeredOutlets, fx.node(), vec);
 }
 
-EffectProcessComponent::EffectProcessComponent(
-    Effect::ProcessModel& element,
+SynthChainComponent::SynthChainComponent(
+    SynthChain::ProcessModel& element,
     const Execution::Context& ctx,
     const Id<score::Component>& id, QObject* parent)
   : score::PolymorphicComponentHierarchy<
-    EffectProcessComponentBase,
+    SynthChainComponentBase,
     false>{score::lazy_init_t{}, element, ctx, id, parent}
 {
   if (!element.badChaining())
@@ -916,7 +916,7 @@ EffectProcessComponent::EffectProcessComponent(
 
   connect(
         &element,
-        &Media::Effect::ProcessModel::badChainingChanged,
+        &Media::SynthChain::ProcessModel::badChainingChanged,
         this,
         [&](bool b) {
     if (b)
@@ -940,7 +940,7 @@ EffectProcessComponent::EffectProcessComponent(
   }
 }
 
-void EffectProcessComponent::cleanup()
+void SynthChainComponent::cleanup()
 {
 #if !defined(NDEBUG)
   m_clearing = true;
@@ -949,5 +949,5 @@ void EffectProcessComponent::cleanup()
   ProcessComponent::cleanup();
 }
 
-EffectProcessComponent::~EffectProcessComponent() {}
+SynthChainComponent::~SynthChainComponent() {}
 }

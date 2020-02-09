@@ -55,12 +55,23 @@ set(HDRS ${HDRS}
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Input/InputFactory.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Input/InputMetadata.hpp"
 
-    "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/EffectProcessFactory.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/EffectProcessLayer.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/EffectProcessMetadata.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/EffectProcessModel.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/Inspector/EffectInspector.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/EffectExecutor.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Media/ChainProcess.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Media/ChainItem.hpp"
+
+    "${CMAKE_CURRENT_SOURCE_DIR}/Media/AudioChain/AudioChainFactory.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Media/AudioChain/AudioChainLayer.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Media/AudioChain/AudioChainMetadata.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Media/AudioChain/AudioChainModel.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Media/AudioChain/AudioChainExecutor.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Media/AudioChain/Inspector/AudioChainInspector.hpp"
+
+    "${CMAKE_CURRENT_SOURCE_DIR}/Media/SynthChain/SynthChainFactory.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Media/SynthChain/SynthChainLayer.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Media/SynthChain/SynthChainMetadata.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Media/SynthChain/SynthChainModel.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Media/SynthChain/SynthChainExecutor.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Media/SynthChain/Inspector/SynthChainInspector.hpp"
+
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/Settings/Model.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/Settings/Presenter.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/Settings/View.hpp"
@@ -114,10 +125,19 @@ set(SRCS
 
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Input/InputModel.cpp"
 
-    "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/EffectProcessModel.cpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/Inspector/EffectInspector.cpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/EffectExecutor.cpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/EffectProcessLayer.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Media/ChainProcess.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Media/ChainItem.cpp"
+
+    "${CMAKE_CURRENT_SOURCE_DIR}/Media/AudioChain/AudioChainModel.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Media/AudioChain/AudioChainExecutor.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Media/AudioChain/AudioChainLayer.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Media/AudioChain/Inspector/AudioChainInspector.cpp"
+
+    "${CMAKE_CURRENT_SOURCE_DIR}/Media/SynthChain/SynthChainModel.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Media/SynthChain/SynthChainExecutor.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Media/SynthChain/SynthChainLayer.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Media/SynthChain/Inspector/SynthChainInspector.cpp"
+
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/Settings/Model.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/Settings/Presenter.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/Settings/View.cpp"

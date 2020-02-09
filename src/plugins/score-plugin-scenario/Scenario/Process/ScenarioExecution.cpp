@@ -357,8 +357,8 @@ ScenarioComponentBase::make<IntervalComponent, Scenario::IntervalModel>(
 
         auto cable = ossia::make_edge(
             ossia::immediate_glutton_connection{},
-            ossia_cst->node->outputs()[0],
-            proc->node->inputs()[0],
+            ossia_cst->node->root_outputs()[0],
+            proc->node->root_inputs()[0],
             ossia_cst->node,
             proc->node);
         g->connect(cable);

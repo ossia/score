@@ -207,8 +207,8 @@ void SetupContext::register_node_impl(
     const std::size_t proc_n_inlets = proc_inlets.size();
     const std::size_t proc_n_outlets = proc_outlets.size();
 
-    const std::size_t ossia_n_inlets = node->inputs().size();
-    const std::size_t ossia_n_outlets = node->outputs().size();
+    const std::size_t ossia_n_inlets = node->root_inputs().size();
+    const std::size_t ossia_n_outlets = node->root_outputs().size();
 
     std::size_t n_inlets = std::min(proc_n_inlets, ossia_n_inlets);
     std::size_t n_outlets = std::min(proc_n_outlets, ossia_n_outlets);
@@ -217,12 +217,12 @@ void SetupContext::register_node_impl(
 
     for (std::size_t i = 0; i < n_inlets; i++)
     {
-      register_inlet_impl(*proc_inlets[i], node->inputs()[i], node, exec);
+      register_inlet_impl(*proc_inlets[i], node->root_inputs()[i], node, exec);
     }
 
     for (std::size_t i = 0; i < n_outlets; i++)
     {
-      register_outlet_impl(*proc_outlets[i], node->outputs()[i], node, exec);
+      register_outlet_impl(*proc_outlets[i], node->root_outputs()[i], node, exec);
     }
   }
 }
@@ -431,10 +431,10 @@ void SetupContext::register_outlet_impl(
   if (auto proc_audio = qobject_cast<Process::AudioOutlet*>(&proc_port))
   {
     auto ossia_audio = static_cast<ossia::audio_outlet*>(ossia_port);
-
+/*
     node->inputs().push_back(&ossia_audio->gain_inlet);
     node->inputs().push_back(&ossia_audio->pan_inlet);
-
+*/
     register_inlet_impl(*proc_audio->gainInlet, &ossia_audio->gain_inlet, node, impl);
     register_inlet_impl(*proc_audio->panInlet, &ossia_audio->pan_inlet, node, impl);
   }

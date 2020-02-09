@@ -1,4 +1,4 @@
-#include "EffectInspector.hpp"
+#include "AudioChainInspector.hpp"
 
 #include <Media/Commands/InsertEffect.hpp>
 
@@ -30,13 +30,11 @@
 #include <Process/ProcessList.hpp>
 #include <Effect/EffectLayer.hpp>
 #include <Scenario/DialogWidget/AddProcessDialog.hpp>
-namespace Media
-{
-namespace Effect
-{
 
+namespace Media::AudioChain
+{
 InspectorWidget::InspectorWidget(
-    const Effect::ProcessModel& object,
+    const AudioChain::ProcessModel& object,
     const score::DocumentContext& doc,
     QWidget* parent)
     : InspectorWidgetDelegate_T{object, parent}
@@ -49,7 +47,7 @@ InspectorWidget::InspectorWidget(
   m_list = new QListWidget;
   lay->addWidget(m_list);
   con(process(),
-      &Effect::ProcessModel::effectsChanged,
+      &AudioChain::ProcessModel::effectsChanged,
       this,
       &InspectorWidget::recreate);
 
@@ -185,5 +183,5 @@ void InspectorWidget::recreate()
     m_list->addItem(item);
   }
 }
-}
+
 }

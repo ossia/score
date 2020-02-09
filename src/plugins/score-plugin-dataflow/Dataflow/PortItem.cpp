@@ -57,7 +57,7 @@ void onCreateCable(
   if (!intersection_empty(port1.cables(), port2.cables()))
     return;
 
-  if (port1.type != port2.type)
+  if (port1.type() != port2.type())
     return;
 
   auto o1 = qobject_cast<const Process::Outlet*>(&port1);
@@ -127,7 +127,7 @@ bool AutomatablePortItem::on_createAutomation(
     std::function<void(score::Command*)> macro,
     const score::DocumentContext& ctx)
 {
-  if (m_port.type != Process::PortType::Message)
+  if (m_port.type() != Process::PortType::Message)
     return false;
   auto ctrl = qobject_cast<const Process::ControlInlet*>(&m_port);
   if (!ctrl)

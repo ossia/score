@@ -1,18 +1,16 @@
 #pragma once
 #include <Process/ProcessMetadata.hpp>
 
-namespace Media
-{
-namespace Effect
+namespace Media::AudioChain
 {
 class ProcessModel;
 }
-}
+
 
 PROCESS_METADATA(
     ,
-    Media::Effect::ProcessModel,
-    "d27bc0ed-a93e-434c-913d-ccab0b22b4e8",
+    Media::AudioChain::ProcessModel,
+    "63f54652-96b7-4cbc-b2c1-d6aa1a6cb341",
     "Effects",
     "Audio effect chain",
     Process::ProcessCategory::Structure,
@@ -26,4 +24,4 @@ PROCESS_METADATA(
         | Process::ProcessFlags::PutInNewSlot
         | Process::ProcessFlags::TimeIndependent)
 
-UNDO_NAME_METADATA(EMPTY_MACRO, Media::Effect::ProcessModel, "Effects")
+UNDO_NAME_METADATA(EMPTY_MACRO, Media::AudioChain::ProcessModel, "Effects")

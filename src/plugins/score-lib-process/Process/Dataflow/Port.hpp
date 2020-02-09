@@ -16,6 +16,11 @@
 #include <score_lib_process_export.h>
 #include <verdigris>
 
+#if __cpp_constexpr >= 201907
+#define VIRTUAL_CONSTEXPR constexpr
+#else
+#define VIRTUAL_CONSTEXPR
+#endif
 namespace Process
 {
 class Port;
@@ -93,18 +98,19 @@ class SCORE_LIB_PROCESS_EXPORT Port : public IdentifiedObject<Port>,
   SCORE_SERIALIZE_FRIENDS
 public:
   Selectable selection;
-  PortType type{};
   bool hidden{};
 
   void addCable(const Path<Process::Cable>& c);
   void removeCable(const Path<Process::Cable>& c);
   void setCables(const std::vector<Path<Cable>>& c);
 
-  const QString& customData() const;
-  const State::AddressAccessor& address() const;
-  const std::vector<Path<Cable>>& cables() const;
-  const QString& exposed() const;
-  const QString& description() const;
+  const QString& customData() const noexcept;
+  const State::AddressAccessor& address() const noexcept;
+  const std::vector<Path<Cable>>& cables() const noexcept;
+  const QString& exposed() const noexcept;
+  const QString& description() const noexcept;
+
+  virtual PortType type() const noexcept = 0;
 
 public:
   void setCustomData(const QString& customData);
@@ -188,6 +194,8 @@ public:
   ControlInlet(DataStream::Deserializer&& vis, QObject* parent);
   ControlInlet(JSONObject::Deserializer&& vis, QObject* parent);
 
+  VIRTUAL_CONSTEXPR PortType type() const noexcept override { return Process::PortType::Message; }
+
   const ossia::value& value() const noexcept { return m_value; }
   const State::Domain& domain() const noexcept { return m_domain; }
 
@@ -264,6 +272,8 @@ public:
   AudioInlet(JSONObject::Deserializer& vis, QObject* parent);
   AudioInlet(DataStream::Deserializer&& vis, QObject* parent);
   AudioInlet(JSONObject::Deserializer&& vis, QObject* parent);
+
+  VIRTUAL_CONSTEXPR PortType type() const noexcept override { return Process::PortType::Audio; }
 };
 
 class SCORE_LIB_PROCESS_EXPORT AudioOutlet : public Outlet
@@ -282,6 +292,8 @@ public:
   AudioOutlet(JSONObject::Deserializer& vis, QObject* parent);
   AudioOutlet(DataStream::Deserializer&& vis, QObject* parent);
   AudioOutlet(JSONObject::Deserializer&& vis, QObject* parent);
+
+  VIRTUAL_CONSTEXPR PortType type() const noexcept override { return Process::PortType::Audio; }
 
   bool propagate() const;
   void setPropagate(bool propagate);
@@ -327,6 +339,8 @@ public:
   MidiInlet(JSONObject::Deserializer& vis, QObject* parent);
   MidiInlet(DataStream::Deserializer&& vis, QObject* parent);
   MidiInlet(JSONObject::Deserializer&& vis, QObject* parent);
+
+  VIRTUAL_CONSTEXPR PortType type() const noexcept override { return Process::PortType::Midi; }
 };
 
 class SCORE_LIB_PROCESS_EXPORT MidiOutlet : public Outlet
@@ -345,6 +359,8 @@ public:
   MidiOutlet(JSONObject::Deserializer& vis, QObject* parent);
   MidiOutlet(DataStream::Deserializer&& vis, QObject* parent);
   MidiOutlet(JSONObject::Deserializer&& vis, QObject* parent);
+
+  VIRTUAL_CONSTEXPR PortType type() const noexcept override { return Process::PortType::Midi; }
 };
 
 
@@ -364,6 +380,8 @@ public:
   ControlOutlet(JSONObject::Deserializer& vis, QObject* parent);
   ControlOutlet(DataStream::Deserializer&& vis, QObject* parent);
   ControlOutlet(JSONObject::Deserializer&& vis, QObject* parent);
+
+  VIRTUAL_CONSTEXPR PortType type() const noexcept override { return Process::PortType::Message; }
 
   const ossia::value& value() const { return m_value; }
   const State::Domain& domain() const { return m_domain; }
@@ -421,6 +439,8 @@ public:
   ValueInlet(JSONObject::Deserializer& vis, QObject* parent);
   ValueInlet(DataStream::Deserializer&& vis, QObject* parent);
   ValueInlet(JSONObject::Deserializer&& vis, QObject* parent);
+
+  VIRTUAL_CONSTEXPR PortType type() const noexcept override { return Process::PortType::Message; }
 };
 
 class SCORE_LIB_PROCESS_EXPORT ValueOutlet : public Outlet
@@ -439,6 +459,8 @@ public:
   ValueOutlet(JSONObject::Deserializer& vis, QObject* parent);
   ValueOutlet(DataStream::Deserializer&& vis, QObject* parent);
   ValueOutlet(JSONObject::Deserializer&& vis, QObject* parent);
+
+  VIRTUAL_CONSTEXPR PortType type() const noexcept override { return Process::PortType::Message; }
 };
 
 

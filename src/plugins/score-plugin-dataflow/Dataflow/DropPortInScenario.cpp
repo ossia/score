@@ -15,7 +15,7 @@ bool DropPortInScenario::canDrop(const QMimeData& mime) const noexcept
   {
     auto base_port = Dataflow::PortItem::clickedPort;
     if (!base_port
-        || base_port->port().type != Process::PortType::Message
+        || base_port->port().type() != Process::PortType::Message
         || qobject_cast<const Process::Outlet*>(&base_port->port()))
       return false;
 
@@ -31,7 +31,7 @@ bool DropPortInScenario::drop(
   if (mime.formats().contains(score::mime::port()))
   {
     auto base_port = Dataflow::PortItem::clickedPort;
-    if (!base_port || base_port->port().type != Process::PortType::Message
+    if (!base_port || base_port->port().type() != Process::PortType::Message
         || qobject_cast<const Process::Outlet*>(&base_port->port()))
       return false;
 

@@ -87,7 +87,7 @@ inline void connectPropagated(
       ossia::graph_interface& g,
       const ossia::pod_vector<std::size_t>& propagated_outlets) noexcept
 {
-  const auto& outs = process_node->outputs();
+  const auto& outs = process_node->root_outputs();
   for (std::size_t propagated : propagated_outlets)
   {
     if(propagated >= outs.size())
@@ -97,7 +97,7 @@ inline void connectPropagated(
     {
       auto cable = ossia::make_edge(
             ossia::immediate_glutton_connection{},
-            outs[propagated], interval_node->inputs()[0],
+            outs[propagated], interval_node->root_inputs()[0],
             process_node, interval_node);
       g.connect(cable);
     }
@@ -111,7 +111,7 @@ inline void updatePropagated(
     std::size_t port_idx,
     bool is_propagated) noexcept
 {
-  const auto& outs = process_node->outputs();
+  const auto& outs = process_node->root_outputs();
 
   if(port_idx >= outs.size())
     return;
@@ -132,7 +132,7 @@ inline void updatePropagated(
 
     auto cable = ossia::make_edge(
           ossia::immediate_glutton_connection{},
-          outs[port_idx], interval_node->inputs()[0],
+          outs[port_idx], interval_node->root_inputs()[0],
         process_node, interval_node);
     g.connect(cable);
   }
@@ -273,7 +273,7 @@ struct HandleNodeChange
       if (old_node)
       {
         ossia::graph_node& n = *old_node;
-        for (auto& outlet : n.outputs())
+        for (auto& outlet : n.root_outputs())
         {
           auto targets = outlet->targets;
           for (auto e : targets)

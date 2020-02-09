@@ -183,7 +183,7 @@ void PortWidgetSetup::setupImpl(
   auto port_widg = PortWidgetSetup::makeAddressWidget(port, ctx, parent);
   lay.addRow(widg, port_widg);
 
-  switch (port.type)
+  switch (port.type())
   {
     case Process::PortType::Audio:
       advBtn->setText(QString::fromUtf8("〜"));

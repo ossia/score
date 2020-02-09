@@ -144,8 +144,8 @@ Component::Component(
 
   auto cable = ossia::make_edge(
       ossia::immediate_glutton_connection{},
-      m_ossia_interval->OSSIAInterval()->node->outputs()[0],
-      loop->node->inputs()[0],
+      m_ossia_interval->OSSIAInterval()->node->root_outputs()[0],
+      loop->node->root_inputs()[0],
       m_ossia_interval->OSSIAInterval()->node,
       loop->node);
 

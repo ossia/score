@@ -1,7 +1,7 @@
 #pragma once
 #include <Dataflow/Commands/CableHelpers.hpp>
 #include <Media/Commands/MediaCommandFactory.hpp>
-#include <Media/Effect/EffectProcessModel.hpp>
+#include <Media/AudioChain/AudioChainModel.hpp>
 #include <Process/ProcessList.hpp>
 
 #include <score/application/ApplicationContext.hpp>
@@ -33,7 +33,7 @@ class InsertEffect final : public score::Command
       "Insert effect")
 public:
   InsertEffect(
-      const Effect::ProcessModel& model,
+      const Media::ChainProcess& model,
       const UuidKey<Process::ProcessModel>& effectKind,
       QString d,
       std::size_t effectPos);
@@ -48,7 +48,7 @@ protected:
   void deserializeImpl(DataStreamOutput& s) override;
 
 private:
-  Path<Effect::ProcessModel> m_model;
+  Path<Media::ChainProcess> m_model;
   Id<Process::ProcessModel> m_id;
   UuidKey<Process::ProcessModel> m_effectKind;
   QString m_data;
@@ -60,7 +60,7 @@ class LoadEffect final : public score::Command
   SCORE_COMMAND_DECL(Media::CommandFactoryName(), LoadEffect, "Load effect")
 public:
   LoadEffect(
-      const Effect::ProcessModel& model,
+      const Media::ChainProcess& model,
       const QJsonObject& obj,
       std::size_t effectPos);
 
@@ -72,7 +72,7 @@ protected:
   void deserializeImpl(DataStreamOutput& s) override;
 
 private:
-  Path<Effect::ProcessModel> m_path;
+  Path<Media::ChainProcess> m_path;
   Id<Process::ProcessModel> m_id;
   QJsonObject m_data;
   quint64 m_pos{};
@@ -103,7 +103,7 @@ public:
 
   InsertGenericEffect() = default;
   InsertGenericEffect(
-      const Effect::ProcessModel& model,
+      const Media::ChainProcess& model,
       const QString& path,
       std::size_t effectPos)
       : m_model{model}
@@ -139,7 +139,7 @@ protected:
   }
 
 private:
-  Path<Effect::ProcessModel> m_model;
+  Path<Media::ChainProcess> m_model;
   Id<Process::ProcessModel> m_id;
   QString m_effect;
   quint64 m_pos{};
@@ -153,7 +153,7 @@ class RemoveEffect final : public score::Command
       "Remove effect")
 public:
   RemoveEffect(
-      const Effect::ProcessModel& model,
+      const Media::ChainProcess& model,
       const Process::ProcessModel& effect);
 
   void undo(const score::DocumentContext& ctx) const override;
@@ -164,7 +164,7 @@ protected:
   void deserializeImpl(DataStreamOutput& s) override;
 
 private:
-  Path<Effect::ProcessModel> m_model;
+  Path<Media::ChainProcess> m_model;
   Id<Process::ProcessModel> m_id;
   QByteArray m_savedEffect;
   Dataflow::SerializedCables m_cables;
@@ -176,7 +176,7 @@ class MoveEffect final : public score::Command
   SCORE_COMMAND_DECL(Media::CommandFactoryName(), MoveEffect, "Move effect")
 public:
   MoveEffect(
-      const Effect::ProcessModel& model,
+      const Media::ChainProcess& model,
       Id<Process::ProcessModel> id,
       int new_pos);
 
@@ -188,7 +188,7 @@ protected:
   void deserializeImpl(DataStreamOutput& s) override;
 
 private:
-  Path<Effect::ProcessModel> m_model;
+  Path<Media::ChainProcess> m_model;
   Id<Process::ProcessModel> m_id;
   int m_oldPos, m_newPos{};
 };

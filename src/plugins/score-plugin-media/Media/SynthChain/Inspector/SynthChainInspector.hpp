@@ -1,5 +1,5 @@
 #pragma once
-#include <Media/Effect/EffectProcessModel.hpp>
+#include <Media/SynthChain/SynthChainModel.hpp>
 #include <Process/Inspector/ProcessInspectorWidgetDelegate.hpp>
 #include <Process/Inspector/ProcessInspectorWidgetDelegateFactory.hpp>
 
@@ -9,9 +9,7 @@
 class QListWidget;
 class QPushButton;
 
-namespace Media
-{
-namespace Effect
+namespace Media::SynthChain
 {
 class InspectorWidget final
     : public Process::InspectorWidgetDelegate_T<ProcessModel>
@@ -23,10 +21,6 @@ public:
       QWidget* parent);
 
 private:
-  void add_score(std::size_t pos);
-  void add_lv2(std::size_t pos);
-  void add_vst2(std::size_t pos);
-  void add_faust(std::size_t pos);
   void recreate();
   QListWidget* m_list{};
   CommandDispatcher<> m_dispatcher;
@@ -41,7 +35,6 @@ class InspectorFactory final
     : public Process::
           InspectorWidgetDelegateFactory_T<ProcessModel, InspectorWidget>
 {
-  SCORE_CONCRETE("cc8ceff3-ef93-4b73-865a-a9f870d6e898")
+  SCORE_CONCRETE("44da7af5-420f-4471-8f09-1ce545c46005")
 };
-}
 }

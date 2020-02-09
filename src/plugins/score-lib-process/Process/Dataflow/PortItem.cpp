@@ -32,6 +32,8 @@ void onCreateCable(
 
 namespace
 {
+static QLineF portDragLineCoords{};
+static PortItem* magneticDropPort{};
 struct Ellipses
 {
   std::array<QPixmap, 3> SmallEllipsesIn;
@@ -255,6 +257,9 @@ PortItem::PortItem(
 
 PortItem::~PortItem()
 {
+  if(this == magneticDropPort)
+    magneticDropPort = nullptr;
+
   for (auto cable : cables)
   {
     if (cable->source() == this)
@@ -299,7 +304,7 @@ void PortItem::paint(
     const QStyleOptionGraphicsItem* option,
     QWidget* widget)
 {
-  const QPixmap& img = portImage(m_port.type, m_inlet, m_diam == 8., m_highlight);
+  const QPixmap& img = portImage(m_port.type(), m_inlet, m_diam == 8., m_highlight);
   painter->drawPixmap(0, 0, img);
 }
 
@@ -320,8 +325,6 @@ void PortItem::mousePressEvent(QGraphicsSceneMouseEvent* event)
   event->accept();
 }
 
-static QLineF portDragLineCoords{};
-static PortItem* magneticDropPort{};
 static void updateDragLineCoords(QGraphicsScene& scene, QPointF pt)
 {
   if(magneticDropPort)

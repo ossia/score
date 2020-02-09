@@ -1,22 +1,11 @@
 #pragma once
-#include <Media/Effect/EffectProcessMetadata.hpp>
-#include <Process/Dataflow/Port.hpp>
-#include <Process/Process.hpp>
-
-#include <score/model/ObjectRemover.hpp>
-#include <score/serialization/DataStreamVisitor.hpp>
-#include <score/serialization/JSONVisitor.hpp>
-#include <score/serialization/VisitorCommon.hpp>
 #include <score/tools/std/IndirectContainer.hpp>
 #include <ossia/detail/algorithms.hpp>
+#include <score/tools/Debug.hpp>
+#include <list>
 
-#include <score_plugin_media_export.h>
-#include <verdigris>
-namespace Media
+namespace score
 {
-namespace Effect
-{
-class ProcessModel;
 
 template <typename T>
 class EntityList
@@ -151,100 +140,4 @@ private:
   std::list<T*> m_list;
 };
 
-/**
- * @brief The Media::Effect::ProcessModel class
- *
- * This class represents an effect chain.
- * Each effect should provide a component that will create
- * the corresponding LibMediaStream effect.
- *
- * Chaining two effects blocks [A] -> [B] is akin to
- * doing :
- *
- * MakeEffectSound(MakeEffectSound(Original sound, A, 0, 0), B, 0, 0)
- *
- */
-class SCORE_PLUGIN_MEDIA_EXPORT ProcessModel final
-    : public Process::ProcessModel
-{
-  SCORE_SERIALIZE_FRIENDS
-  PROCESS_METADATA_IMPL(Media::Effect::ProcessModel)
-
-  W_OBJECT(ProcessModel)
-
-public:
-  explicit ProcessModel(
-      const TimeVal& duration,
-      const Id<Process::ProcessModel>& id,
-      QObject* parent);
-
-  ~ProcessModel() override;
-
-  template <typename Impl>
-  explicit ProcessModel(Impl& vis, QObject* parent)
-      : Process::ProcessModel{vis, parent}
-  {
-    vis.writeTo(*this);
-    init();
-  }
-
-  void init()
-  {
-    m_inlets.push_back(inlet.get());
-    m_outlets.push_back(outlet.get());
-  }
-  const EntityList<Process::ProcessModel>& effects() const
-  {
-    return m_effects;
-  }
-
-  void insertEffect(Process::ProcessModel* eff, int pos);
-  void removeEffect(const Id<Process::ProcessModel>&);
-  void moveEffect(const Id<Process::ProcessModel>&, int new_pos);
-
-  int effectPosition(const Id<Process::ProcessModel>& e) const;
-
-  std::unique_ptr<Process::AudioInlet> inlet{};
-  std::unique_ptr<Process::AudioOutlet> outlet{};
-
-  void checkChaining();
-  bool badChaining() const { return m_badChaining; }
-
-public:
-  void setBadChaining(bool badChaining)
-  {
-    if (m_badChaining == badChaining)
-      return;
-
-    m_badChaining = badChaining;
-    badChainingChanged(m_badChaining);
-  };
-  W_SLOT(setBadChaining)
-
-public:
-  void effectsChanged() W_SIGNAL(effectsChanged);
-
-  void badChainingChanged(bool badChaining)
-      W_SIGNAL(badChainingChanged, badChaining);
-
-private:
-  Selection selectableChildren() const noexcept override;
-  Selection selectedChildren() const noexcept override;
-  void setSelection(const Selection& s) const noexcept override;
-  // The actual effect instances
-  EntityList<Process::ProcessModel> m_effects;
-  bool m_badChaining{false};
-
-  W_PROPERTY(
-      bool,
-      badChaining READ badChaining WRITE setBadChaining NOTIFY
-          badChainingChanged)
-};
-
-class EffectRemover : public score::ObjectRemover
-{
-  SCORE_CONCRETE("d26887f9-f17c-4a8f-957c-77645144c8af")
-  bool remove(const Selection& s, const score::DocumentContext& ctx) override;
-};
-}
 }

@@ -1,5 +1,5 @@
 #pragma once
-#include <Media/Effect/EffectProcessModel.hpp>
+#include <Media/AudioChain/AudioChainModel.hpp>
 #include <Process/Execution/ProcessComponent.hpp>
 #include <Process/ExecutionContext.hpp>
 
@@ -12,8 +12,8 @@
 namespace Media
 {
 
-class EffectProcessComponentBase : public ::Execution::ProcessComponent_T<
-                                       Media::Effect::ProcessModel,
+class AudioChainComponentBase : public ::Execution::ProcessComponent_T<
+                                       Media::AudioChain::ProcessModel,
                                        ossia::node_chain_process>
 
 {
@@ -23,13 +23,13 @@ public:
   using model_t = Process::ProcessModel;
   using component_t = ::Execution::ProcessComponent;
   using component_factory_list_t = Execution::ProcessComponentFactoryList;
-  EffectProcessComponentBase(
-      Media::Effect::ProcessModel& element,
+  AudioChainComponentBase(
+      Media::AudioChain::ProcessModel& element,
       const ::Execution::Context& ctx,
       const Id<score::Component>& id,
       QObject* parent);
 
-  ~EffectProcessComponentBase() override;
+  ~AudioChainComponentBase() override;
 
   ::Execution::ProcessComponent* make(
       const Id<score::Component>& id,
@@ -87,28 +87,28 @@ protected:
   void unregister_old_first_node(
       std::pair<
           Id<Process::ProcessModel>,
-          EffectProcessComponentBase::RegisteredEffect>& new_first,
+          AudioChainComponentBase::RegisteredEffect>& new_first,
       std::vector<Execution::ExecutionCommand>& commands);
   void register_new_first_node(
       std::pair<
           Id<Process::ProcessModel>,
-          EffectProcessComponentBase::RegisteredEffect>& new_first,
+          AudioChainComponentBase::RegisteredEffect>& new_first,
       std::vector<Execution::ExecutionCommand>& commands);
   void unregister_old_last_node(
       std::pair<
           Id<Process::ProcessModel>,
-          EffectProcessComponentBase::RegisteredEffect>& new_first,
+          AudioChainComponentBase::RegisteredEffect>& new_first,
       std::vector<Execution::ExecutionCommand>& commands);
   void register_new_last_node(
       std::pair<
           Id<Process::ProcessModel>,
-          EffectProcessComponentBase::RegisteredEffect>& new_first,
+          AudioChainComponentBase::RegisteredEffect>& new_first,
       std::vector<Execution::ExecutionCommand>& commands);
 
   void register_node_again(
       std::pair<
           Id<Process::ProcessModel>,
-          EffectProcessComponentBase::RegisteredEffect>& new_first,
+          AudioChainComponentBase::RegisteredEffect>& new_first,
       std::vector<Execution::ExecutionCommand>& commands);
   void createPassthrough(std::vector<Execution::ExecutionCommand>&);
   void removePassthrough(std::vector<Execution::ExecutionCommand>&);
@@ -116,28 +116,28 @@ protected:
   std::shared_ptr<ossia::graph_node> m_passthrough{};
 };
 
-class EffectProcessComponent final
+class AudioChainComponent final
     : public score::
-          PolymorphicComponentHierarchy<EffectProcessComponentBase, false>
+          PolymorphicComponentHierarchy<AudioChainComponentBase, false>
 {
 public:
-  EffectProcessComponent(
-      Media::Effect::ProcessModel& element,
+  AudioChainComponent(
+      Media::AudioChain::ProcessModel& element,
       const ::Execution::Context& ctx,
       const Id<score::Component>& id,
       QObject* parent);
 
   void cleanup() override;
 
-  EffectProcessComponent(const EffectProcessComponent&) = delete;
-  EffectProcessComponent(EffectProcessComponent&&) = delete;
-  EffectProcessComponent& operator=(const EffectProcessComponent&) = delete;
-  EffectProcessComponent& operator=(EffectProcessComponent&&) = delete;
-  ~EffectProcessComponent();
+  AudioChainComponent(const AudioChainComponent&) = delete;
+  AudioChainComponent(AudioChainComponent&&) = delete;
+  AudioChainComponent& operator=(const AudioChainComponent&) = delete;
+  AudioChainComponent& operator=(AudioChainComponent&&) = delete;
+  ~AudioChainComponent();
 };
 
-using EffectProcessComponentFactory
-    = ::Execution::ProcessComponentFactory_T<EffectProcessComponent>;
+using AudioChainComponentFactory
+    = ::Execution::ProcessComponentFactory_T<AudioChainComponent>;
 }
 
 SCORE_CONCRETE_COMPONENT_FACTORY(

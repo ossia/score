@@ -20,8 +20,6 @@ Model::Model(
 {
   audio_outlet->setPropagate(true);
 
-  bang_outlet->type = Process::PortType::Message;
-
   metadata().setInstanceName(*this);
   init();
 }

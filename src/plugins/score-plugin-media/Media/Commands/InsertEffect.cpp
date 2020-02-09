@@ -6,7 +6,7 @@
 namespace Media
 {
 InsertEffect::InsertEffect(
-    const Effect::ProcessModel& model,
+    const Media::ChainProcess& model,
     const UuidKey<Process::ProcessModel>& effectKind,
     QString data,
     std::size_t effectPos)
@@ -53,7 +53,7 @@ void InsertEffect::deserializeImpl(DataStreamOutput& s)
 }
 
 LoadEffect::LoadEffect(
-    const Effect::ProcessModel& model,
+    const Media::ChainProcess& model,
     const QJsonObject& data,
     std::size_t effectPos)
     : m_path{model}
@@ -108,7 +108,7 @@ void LoadEffect::deserializeImpl(DataStreamOutput& s)
 }
 
 RemoveEffect::RemoveEffect(
-    const Effect::ProcessModel& model,
+    const Media::ChainProcess& model,
     const Process::ProcessModel& effect)
     : m_model{model}
     , m_id{effect.id()}
@@ -157,7 +157,7 @@ void RemoveEffect::deserializeImpl(DataStreamOutput& s)
 }
 
 MoveEffect::MoveEffect(
-    const Effect::ProcessModel& effect,
+    const Media::ChainProcess& effect,
     Id<Process::ProcessModel> id,
     int new_pos)
     : m_model{effect}, m_id{id}, m_newPos{new_pos}

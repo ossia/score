@@ -222,7 +222,7 @@ void CableItem::check()
     {
       setVisible(true);
     }
-    m_type = m_p1->port().type;
+    m_type = m_p1->port().type();
     if (auto c_o = m_p1->commonAncestorItem(m_p2))
       setParentItem(c_o);
     resize();

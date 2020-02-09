@@ -46,6 +46,8 @@ public:
     vis.writeTo(*this);
   }
 
+  VIRTUAL_CONSTEXPR Process::PortType type() const noexcept override { return Process::PortType::Message; }
+
   int fxNum{};
 
   float value() const { return m_value; }

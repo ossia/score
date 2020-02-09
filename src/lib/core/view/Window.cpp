@@ -30,6 +30,7 @@
 
 #include <wobjectimpl.h>
 
+#include <QOpenGLWidget>
 #include <set>
 W_OBJECT_IMPL(score::View)
 namespace score
@@ -72,6 +73,8 @@ setTitle(View& view, const score::Document* document, bool save_state) noexcept
 
 View::View(QObject* parent) : QMainWindow{}, m_tabWidget{new QTabWidget}
 {
+  setAutoFillBackground(false);
+  //setAttribute(Qt::WA_OpaquePaintEvent);
   setObjectName("View");
   this->setWindowIcon(QIcon("://ossia-score.png"));
   m_tabWidget->setObjectName("Documents");
