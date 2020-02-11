@@ -1,6 +1,6 @@
 <img src="https://i.imgur.com/BL6J8Jh.png" width="500">
 
-[![join the chat at https://gitter.im/OSSIA/score](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/OSSIA/score?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge) [![Downloads](https://img.shields.io/github/downloads/OSSIA/score/total.svg)](https://github.com/OSSIA/score/releases) [![Version](https://img.shields.io/github/release/OSSIA/score.svg)](https://github.com/OSSIA/score/releases)
+[![Financial Contributors on Open Collective](https://opencollective.com/ossia/all/badge.svg?label=financial+contributors)](https://opencollective.com/ossia) [![join the chat at https://gitter.im/OSSIA/score](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/OSSIA/score?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge) [![Downloads](https://img.shields.io/github/downloads/OSSIA/score/total.svg)](https://github.com/OSSIA/score/releases) [![Version](https://img.shields.io/github/release/OSSIA/score.svg)](https://github.com/OSSIA/score/releases)
 
 [**ossia score**](http://ossia.io) is a ***sequencer*** for audio-visual artists, designed to create ***interactive*** shows. 
 
@@ -52,3 +52,33 @@ sequencer
 
 Finally, one can write its own score plug-ins to add custom features to the software.
 An example plug-in with the most common classes reimplemented is provided [here](https://github.com/OSSIA/iscore-addon-tutorial).
+
+## Contributors
+
+### Code Contributors
+
+This project exists thanks to all the people who contribute. [[Contribute](CONTRIBUTING.md)].
+<a href="https://github.com/OSSIA/score/graphs/contributors"><img src="https://opencollective.com/ossia/contributors.svg?width=890&button=false" /></a>
+
+### Financial Contributors
+
+Become a financial contributor and help us sustain our community. [[Contribute](https://opencollective.com/ossia/contribute)]
+
+#### Individuals
+
+<a href="https://opencollective.com/ossia"><img src="https://opencollective.com/ossia/individuals.svg?width=890"></a>
+
+#### Organizations
+
+Support this project with your organization. Your logo will show up here with a link to your website. [[Contribute](https://opencollective.com/ossia/contribute)]
+
+<a href="https://opencollective.com/ossia/organization/0/website"><img src="https://opencollective.com/ossia/organization/0/avatar.svg"></a>
+<a href="https://opencollective.com/ossia/organization/1/website"><img src="https://opencollective.com/ossia/organization/1/avatar.svg"></a>
+<a href="https://opencollective.com/ossia/organization/2/website"><img src="https://opencollective.com/ossia/organization/2/avatar.svg"></a>
+<a href="https://opencollective.com/ossia/organization/3/website"><img src="https://opencollective.com/ossia/organization/3/avatar.svg"></a>
+<a href="https://opencollective.com/ossia/organization/4/website"><img src="https://opencollective.com/ossia/organization/4/avatar.svg"></a>
+<a href="https://opencollective.com/ossia/organization/5/website"><img src="https://opencollective.com/ossia/organization/5/avatar.svg"></a>
+<a href="https://opencollective.com/ossia/organization/6/website"><img src="https://opencollective.com/ossia/organization/6/avatar.svg"></a>
+<a href="https://opencollective.com/ossia/organization/7/website"><img src="https://opencollective.com/ossia/organization/7/avatar.svg"></a>
+<a href="https://opencollective.com/ossia/organization/8/website"><img src="https://opencollective.com/ossia/organization/8/avatar.svg"></a>
+<a href="https://opencollective.com/ossia/organization/9/website"><img src="https://opencollective.com/ossia/organization/9/avatar.svg"></a>
