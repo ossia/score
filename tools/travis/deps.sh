@@ -18,20 +18,20 @@ case "$TRAVIS_OS_NAME" in
     sudo apt-get update -qq
     sudo apt-get install wget software-properties-common
 
-    wget -nv https://github.com/Kitware/CMake/releases/download/v3.16.0-rc4/cmake-3.16.0-rc4-Linux-x86_64.tar.gz -O cmake-linux.tgz &
+    wget -nv https://github.com/Kitware/CMake/releases/download/v3.16.4/cmake-3.16.4-Linux-x86_64.tar.gz -O cmake-linux.tgz &
     echo 'deb http://apt.llvm.org/bionic/ llvm-toolchain-bionic-9 main' | sudo tee /etc/apt/sources.list.d/llvm.list
     sudo apt-key adv --recv-keys --keyserver keyserver.ubuntu.com 1397BC53640DB551
     sudo apt-key adv --recv-keys --keyserver keyserver.ubuntu.com 15CF4D18AF4F7421
 
     sudo add-apt-repository --yes ppa:ubuntu-toolchain-r/test
-    sudo add-apt-repository --yes ppa:beineri/opt-qt-5.13.2-bionic
+    sudo add-apt-repository --yes ppa:beineri/opt-qt-5.14.1-bionic
 
     sudo apt-get update -qq
     sudo apt-get install -qq --force-yes \
         g++-9 binutils libasound-dev ninja-build \
         gcovr lcov \
-        qt513-meta-minimal qt513svg qt513quickcontrols2 qt513websockets qt513serialport \
-        qt513base qt513declarative \
+        qt514-meta-minimal qt514svg qt514quickcontrols2 qt514websockets qt514serialport \
+        qt514base qt514declarative \
         libgl1-mesa-dev \
         libavcodec-dev libavutil-dev libavfilter-dev libavformat-dev libswresample-dev \
         portaudio19-dev clang-9 lld-9 \
