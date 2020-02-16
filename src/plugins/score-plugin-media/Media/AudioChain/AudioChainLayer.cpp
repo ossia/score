@@ -6,6 +6,7 @@
 #include <QFileInfo>
 #include <QJsonDocument>
 #include <QTimer>
+#include <QUrl>
 
 #include <Media/Commands/InsertEffect.hpp>
 

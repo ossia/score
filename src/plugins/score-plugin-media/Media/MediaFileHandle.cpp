@@ -33,13 +33,14 @@ static int64_t readSampleRate(QFile& file)
   if(!data) {
     return -1;
   }
-  auto wav = drwav_open_memory(data, file.size());
-  if(!wav) {
+  drwav w{};
+  ok = drwav_init_memory(&w, data, file.size(), &ossia::drwav_handle::drwav_allocs);
+  if(!ok) {
     return -1;
   }
 
-  auto sr = wav->sampleRate;
-  drwav_close(wav);
+  auto sr = w.sampleRate;
+  drwav_uninit(&w);
   return sr;
 }
 

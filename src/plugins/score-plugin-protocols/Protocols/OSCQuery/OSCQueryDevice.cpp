@@ -18,7 +18,7 @@
 
 #include <QDebug>
 #include <asio/io_service.hpp>
-#include <asio/ip/resolver_service.hpp>
+#include <asio/ip/basic_resolver.hpp>
 #include <asio/ip/tcp.hpp>
 #include <wobjectimpl.h>
 

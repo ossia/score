@@ -460,7 +460,7 @@ if(NOT _score_license_written)
   AddLicenseFile(license_text spdlog "${OSSIA_3RDPARTY_FOLDER}/spdlog/LICENSE")
   AddLicenseFile(license_text variant "${OSSIA_3RDPARTY_FOLDER}/variant/LICENSE.txt")
   AddLicenseFile(license_text verdigris "${OSSIA_3RDPARTY_FOLDER}/verdigris/LICENSE.LGPLv3")
-  AddLicenseFile(license_text whereami "${OSSIA_3RDPARTY_FOLDER}/whereami/LICENSE")
+  AddLicenseFile(license_text whereami "${OSSIA_3RDPARTY_FOLDER}/whereami/LICENSE.MIT")
   AddLicenseFile(license_text websocketpp "${OSSIA_3RDPARTY_FOLDER}/websocketpp/COPYING")
 
   AddLicenseFile(license_text qprogressindicator "${SCORE_SRC}/lib/3rdparty/QProgressIndicator/LICENSE")

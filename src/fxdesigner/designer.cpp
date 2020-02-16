@@ -204,9 +204,6 @@ W_OBJECT_IMPL(fxd::DocumentPresenter)
 
 int main(int argc, char** argv)
 {
-  fxd::global_midi_port.type = Process::PortType::Midi;
-  fxd::global_audio_port.type = Process::PortType::Audio;
-
   score_addon_fxdesigner addon;
   score::staticPlugins().push_back(&addon);
 

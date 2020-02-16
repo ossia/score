@@ -173,7 +173,7 @@ struct WidgetFactory
   }
 
   static auto currentValue(const Object_T& object) noexcept {
-    return (object.*(T::get()))();
+    return (object.*(T::get))();
   }
 
   static void command(const score::DocumentContext& ctx, const Object_T& object, const typename T::param_type & value)
@@ -241,7 +241,7 @@ struct WidgetFactory
           }
         });
 
-    QObject::connect(&object, T::notify(), parent, [sb](int cs) {
+    QObject::connect(&object, T::notify, parent, [sb](int cs) {
       if (cs != sb->value())
         sb->setValue(cs);
     });
@@ -264,7 +264,7 @@ struct WidgetFactory
           }
         });
 
-    QObject::connect(&object, T::notify(), parent, [l](const QString& txt) {
+    QObject::connect(&object, T::notify, parent, [l](const QString& txt) {
       if (txt != l->text())
         l->setText(txt);
     });
@@ -298,7 +298,7 @@ struct WidgetFactory
       }
     });
 
-    QObject::connect(&object, T::notify(), parent, [x, y] (const QPointF& v) {
+    QObject::connect(&object, T::notify, parent, [x, y] (const QPointF& v) {
       if (v.x() != x->value())
         x->setValue(v.x());
       if (v.y() != y->value())
@@ -332,7 +332,7 @@ struct WidgetFactory
       }
     });
 
-    QObject::connect(&object, T::notify(), parent, [x, y] (const QSizeF& v) {
+    QObject::connect(&object, T::notify, parent, [x, y] (const QSizeF& v) {
       if (v.width() != x->value())
         x->setValue(v.width());
       if (v.height() != y->value())
@@ -352,7 +352,7 @@ struct WidgetFactory
       wraplay->addWidget(widg);
       auto& obj = this->object;
       auto& ctx = this->ctx;
-      QObject::connect(&object, T::notify(), parent,
+      QObject::connect(&object, T::notify, parent,
                        [wrap, &obj, &ctx] (const WidgetImpl& v) {
         ossia::apply(WidgetImplUpdateFactory{obj, *wrap, ctx}, v);
       });
