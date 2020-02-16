@@ -18,6 +18,8 @@
 #include <score/document/DocumentInterface.hpp>
 #include <score/selection/SelectionDispatcher.hpp>
 
+#include <QDebug>
+
 namespace Scenario
 {
 
