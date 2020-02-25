@@ -81,11 +81,11 @@ TimeRuler::TimeRuler(QGraphicsView* v)
     , m_intervalsBetweenMark{1}
     , m_viewport{v->viewport()}
 {
-  setY(-27);
+  setY(-28.5);
 
   auto font = score::Skin::instance().MonoFont;
   font.setWeight(QFont::Normal);
-  font.setPointSizeF(9);
+  font.setPixelSize(11);
   font.setBold(false);
   m_layout.setFont(font);
 

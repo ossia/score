@@ -39,26 +39,26 @@ Skin::~Skin()
 }
 Skin::Skin() noexcept
     : SansFont{"Ubuntu"}
-    , MonoFont{"APCCourier-Bold", 10, QFont::Black}
+    , MonoFont{"APCCourier-Bold", int(10 * 96. / 72.), QFont::Black}
     , MonoFontSmall
 {
-  "APCCourier-Bold", 7, QFont::Normal
+  "APCCourier-Bold", int(7 * 96. / 72.), QFont::Normal
 }
 
 #if defined(_WIN32)
 , SansFontSmall
 {
-  "Ubuntu", 6
+  "Ubuntu", int(6 * 96. / 72.)
 }
 #elif defined(__APPLE__)
 , SansFontSmall
 {
-  "Ubuntu", 8
+  "Ubuntu", int(8 * 96. / 72.)
 }
 #else
 , SansFontSmall
 {
-  "Ubuntu", 7
+  "Ubuntu", int(7 * 96. / 72.)
 }
 #endif
 , TransparentPen{Qt::transparent}, TransparentBrush{Qt::transparent},
@@ -133,45 +133,71 @@ Skin::Skin() noexcept
 
   Bold10Pt = SansFont;
 #if defined(_WIN32)
-  Bold10Pt.setPointSize(8);
+  Bold10Pt.setPixelSize(8);
 #else
-  Bold10Pt.setPointSize(10);
+  Bold10Pt.setPixelSize(10 * 96./ 72.);
 #endif
   Bold10Pt.setBold(true);
 
   Bold12Pt = Bold10Pt;
 #if defined(_WIN32)
-  Bold12Pt.setPointSize(10);
+  Bold12Pt.setPixelSize(10);
 #else
-  Bold12Pt.setPointSize(12);
+  Bold12Pt.setPixelSize(12 * 96./ 72.);
 #endif
 
   Medium7Pt = SansFont;
-  Medium7Pt.setPointSize(7);
+  Medium7Pt.setPixelSize(7 * 96./ 72.);
 
   Medium8Pt = SansFont;
-  Medium8Pt.setPointSize(8);
+  Medium8Pt.setPixelSize(8 * 96./ 72.);
 
   Medium10Pt = SansFont;
 #if defined(_WIN32)
-  Medium10Pt.setPointSize(8);
+  Medium10Pt.setPixelSize(8);
 #else
-  Medium10Pt.setPointSize(10);
+  Medium10Pt.setPixelSize(10 * 96./ 72.);
 #endif
 
   Medium12Pt = SansFont;
 #if defined(_WIN32)
-  Medium12Pt.setPointSize(10);
+  Medium12Pt.setPixelSize(10);
 #else
-  Medium12Pt.setPointSize(12);
+  Medium12Pt.setPixelSize(12 * 96./ 72.);
 #endif
 
   SliderBrush = QColor("#252930");
   SliderExtBrush = QColor("#666");
   SliderTextPen = QColor("silver");
   SliderFont = SansFont;
-  SliderFont.setPointSize(10);
+  SliderFont.setPixelSize(10 * 96./ 72.);
   SliderFont.setWeight(QFont::DemiBold);
+
+  std::initializer_list<QFont*> mono_fonts = {
+     &MonoFont, &MonoFontSmall
+  };
+  std::initializer_list<QFont*> fonts = {
+    &SansFont, &MonoFont, &MonoFontSmall, &SansFontSmall,
+    &Bold10Pt, &Bold12Pt, &Medium7Pt, &Medium8Pt, &Medium10Pt, &Medium12Pt,
+    &SliderFont
+  };
+  for(QFont* font : fonts)
+  {
+    font->setHintingPreference(QFont::HintingPreference::PreferVerticalHinting);
+    font->setStyleHint(QFont::StyleHint::SansSerif);
+    font->setStyleStrategy(
+          QFont::StyleStrategy(
+            QFont::StyleStrategy::OpenGLCompatible |
+            QFont::StyleStrategy::PreferQuality |
+            QFont::StyleStrategy::PreferMatch |
+            QFont::StyleStrategy::NoFontMerging
+            )
+          );
+  }
+  for(QFont* font : mono_fonts)
+  {
+    font->setStyleHint(QFont::StyleHint::Monospace);
+  }
 }
 
 Skin& score::Skin::instance() noexcept

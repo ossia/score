@@ -58,7 +58,7 @@ protected:
       const QStyleOptionGraphicsItem* option,
       QWidget* widget) override;
 
-  QImage m_line, m_bench;
+  QPixmap m_line, m_bench;
   QGraphicsItem* m_ui{};
   ossia::small_vector<Dataflow::PortItem*, 3> m_inPorts;
   double m_portEndX{};
@@ -111,5 +111,5 @@ protected:
 
 
 SCORE_LIB_PROCESS_EXPORT
-QImage makeGlyphs(const QString& glyph, const QPen& pen);
+QPixmap makeGlyphs(const QString& glyph, const QPen& pen);
 }

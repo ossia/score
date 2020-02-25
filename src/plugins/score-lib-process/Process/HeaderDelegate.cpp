@@ -17,7 +17,7 @@
 #include <Effect/EffectLayer.hpp>
 namespace Process
 {
-QImage makeGlyphs(const QString& glyph, const QPen& pen)
+QPixmap makeGlyphs(const QString& glyph, const QPen& pen)
 {
   QImage path;
 
@@ -46,7 +46,7 @@ QImage makeGlyphs(const QString& glyph, const QPen& pen)
     p.drawGlyphRun(QPointF{0, 0}, r[0]);
   }
 
-  return path;
+  return QPixmap::fromImage(path);
 }
 
 static double portY()
@@ -106,7 +106,7 @@ void DefaultHeaderDelegate::updateBench(double d)
   }
   else
   {
-    m_bench = QImage{};
+    m_bench = QPixmap{};
   }
   update();
 }
@@ -189,16 +189,16 @@ void DefaultHeaderDelegate::paint(
   {
     if (m_inPorts.empty())
     {
-      painter->drawImage(QPointF{start, SCORE_YPOS(2., -1.)}, m_line);
+      painter->drawPixmap(QPointF{start, SCORE_YPOS(2., -1.)}, m_line);
     }
     else
     {
       double startText = start + m_portEndX;
-      painter->drawImage(QPointF{startText, SCORE_YPOS(2., -1.)}, m_line);
+      painter->drawPixmap(QPointF{startText, SCORE_YPOS(2., -1.)}, m_line);
     }
 
     if(!m_bench.isNull())
-      painter->drawImage(QPointF{w - 32., SCORE_YPOS(2., -1.)}, m_bench);
+      painter->drawPixmap(QPointF{w - 32., SCORE_YPOS(2., -1.)}, m_bench);
   }
 }
 
