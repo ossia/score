@@ -45,19 +45,22 @@ CableItem::CableItem(
   plug.cables().insert({&c, this});
 
   con(c.selection, &Selectable::changed, this, [=](bool b) {
-    if(b)
+    if(m_p1 && m_p2)
     {
-      setZValue(999999);
-      m_p1->setHighlight(true);
-      m_p2->setHighlight(true);
+      if(b)
+      {
+        setZValue(999999);
+        m_p1->setHighlight(true);
+        m_p2->setHighlight(true);
+      }
+      else
+      {
+        setZValue(-1);
+        m_p1->setHighlight(false);
+        m_p2->setHighlight(false);
+      }
+      update();
     }
-    else
-    {
-      setZValue(-1);
-      m_p1->setHighlight(false);
-      m_p2->setHighlight(false);
-    }
-    update();
   });
 
   auto& p = plug.ports();

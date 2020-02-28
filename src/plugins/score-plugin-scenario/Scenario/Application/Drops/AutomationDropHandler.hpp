@@ -98,6 +98,7 @@ class DropLayerInInterval final : public IntervalDropHandler
   bool drop(
       const score::DocumentContext& ctx,
       const Scenario::IntervalModel&,
+      QPointF p,
       const QMimeData& mime) override;
 
 public:
@@ -118,6 +119,7 @@ class DropProcessInInterval final : public IntervalDropHandler
   bool drop(
       const score::DocumentContext& ctx,
       const Scenario::IntervalModel&,
+      QPointF p,
       const QMimeData& mime) override;
 };
 
@@ -132,6 +134,7 @@ class AutomationDropHandler final : public IntervalDropHandler
   bool drop(
       const score::DocumentContext& ctx,
       const Scenario::IntervalModel&,
+      QPointF p,
       const QMimeData& mime) override;
 };
 }

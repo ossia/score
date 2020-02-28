@@ -46,7 +46,8 @@ public:
   AddProcessToInterval(
       const IntervalModel& interval,
       const UuidKey<Process::ProcessModel>& process,
-      const QString& dat);
+      const QString& dat,
+      const QPointF& pos);
   ~AddProcessToInterval();
 
   void undo(const score::DocumentContext& ctx) const override;

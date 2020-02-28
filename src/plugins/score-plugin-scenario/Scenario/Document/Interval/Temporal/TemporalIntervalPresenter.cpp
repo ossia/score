@@ -160,7 +160,7 @@ TemporalIntervalPresenter::TemporalIntervalPresenter(
       this,
       [=](const QPointF& pos, const QMimeData& mime) {
         m_context.app.interfaces<Scenario::IntervalDropHandlerList>().drop(
-            m_context, m_model, mime);
+            m_context, m_model, pos, mime);
       });
 
   // Time
@@ -190,7 +190,7 @@ TemporalIntervalPresenter::TemporalIntervalPresenter(
       this,
       [=](const QPointF& pos, const QMimeData& mime) {
         m_context.app.interfaces<Scenario::IntervalDropHandlerList>().drop(
-            m_context, m_model, mime);
+            m_context, m_model, pos, mime);
       });
 
   // Go to full-view on double click
@@ -311,7 +311,7 @@ struct RequestOverlayMenuCallback
     {
       Macro m{new AddProcessInNewSlot, self.context()};
 
-      if (auto p = m.createProcess(self.model(), key, dat))
+      if (auto p = m.createProcess(self.model(), key, dat, {}))
       {
         m.createSlot(self.model());
         m.addLayerToLastSlot(self.model(), *p);
@@ -321,7 +321,7 @@ struct RequestOverlayMenuCallback
     else
     {
       CommandDispatcher<> d{self.context().commandStack};
-      d.submit<AddProcessToInterval>(self.model(), key, dat);
+      d.submit<AddProcessToInterval>(self.model(), key, dat, QPointF{});
     }
   }
 };

@@ -27,7 +27,7 @@ void EncapsulateInLoop(
     // Just move all the processes in the pattern
     const IntervalModel& source_itv = *cat.selectedIntervals.front();
 
-    auto& loop = disp.createProcessInSlot<Loop::ProcessModel>(source_itv, {});
+    auto& loop = disp.createProcessInSlot<Loop::ProcessModel>(source_itv, {}, {});
     for (auto proc : shallow_copy(source_itv.processes))
     {
       if (proc != &loop)
@@ -50,14 +50,14 @@ void EncapsulateInLoop(
     auto& loop_parent_itv = *e.interval;
 
     auto& loop
-        = disp.createProcessInSlot<Loop::ProcessModel>(loop_parent_itv, {});
+        = disp.createProcessInSlot<Loop::ProcessModel>(loop_parent_itv, {}, {});
 
     auto& itv = loop.intervals()[0];
 
     {
       // Add a sub-scenario
       auto& sub_scenar
-          = disp.createProcessInSlot<Scenario::ProcessModel>(itv, {});
+          = disp.createProcessInSlot<Scenario::ProcessModel>(itv, {}, {});
 
       disp.pasteElements(sub_scenar, objects, Scenario::Point{{}, 0.1});
 

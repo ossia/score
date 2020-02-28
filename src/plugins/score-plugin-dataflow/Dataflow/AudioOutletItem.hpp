@@ -12,14 +12,14 @@ public:
       const Process::Context& ctx,
       QGraphicsItem* parent);
   ~AudioOutletItem() override;
-
+/*
   QRectF boundingRect() const override;
 
   void paint(
       QPainter* painter,
       const QStyleOptionGraphicsItem* option,
       QWidget* widget) override;
-
+*/
   void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
   void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override;
   void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override;

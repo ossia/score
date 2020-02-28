@@ -68,7 +68,7 @@ ScenarioDocumentModel::ScenarioDocumentModel(
   AddOnlyProcessToInterval cmd1{
       itv,
       Metadata<ConcreteKey_k, Scenario::ProcessModel>::get(),
-      QString{}};
+          QString{}, QPointF{}};
   cmd1.redo(ctx);
   itv.processes.begin()->setSlotHeight(1500);
 

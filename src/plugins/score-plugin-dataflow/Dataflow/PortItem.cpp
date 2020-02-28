@@ -136,7 +136,7 @@ bool AutomatablePortItem::on_createAutomation(
   auto make_cmd = new Scenario::Command::AddOnlyProcessToInterval{
       cst,
       Metadata<ConcreteKey_k, Automation::ProcessModel>::get(),
-      QString{}};
+      QString{}, {}};
   macro(make_cmd);
 
   auto lay_cmd
@@ -220,7 +220,6 @@ PortItem* AutomatablePortFactory::makeItem(
     QObject* context)
 {
   return new Dataflow::AutomatablePortItem{port, ctx, parent};
-  ;
 }
 
 PortItem* AutomatablePortFactory::makeItem(

@@ -42,6 +42,7 @@ TemporalIntervalView::TemporalIntervalView(
   this->setParentItem(parent);
 
   this->setZValue(ZPos::Interval);
+  this->setFlag(ItemClipsChildrenToShape);
 }
 
 TemporalIntervalView::~TemporalIntervalView() {}

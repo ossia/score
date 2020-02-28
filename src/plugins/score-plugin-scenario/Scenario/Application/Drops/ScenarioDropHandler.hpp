@@ -119,6 +119,7 @@ public:
   virtual bool drop(
       const score::DocumentContext& ctx,
       const Scenario::IntervalModel&,
+      QPointF pos,
       const QMimeData& mime)
       = 0;
 };
@@ -132,6 +133,7 @@ public:
   bool drop(
       const score::DocumentContext& ctx,
       const Scenario::IntervalModel&,
+      QPointF pos,
       const QMimeData& mime) const;
 };
 }

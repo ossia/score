@@ -34,12 +34,14 @@ public:
   AddOnlyProcessToInterval(
       const IntervalModel& cst,
       UuidKey<Process::ProcessModel> process,
-      const QString& dat);
+      const QString& dat,
+      QPointF pos);
   AddOnlyProcessToInterval(
       const IntervalModel& cst,
       Id<Process::ProcessModel> idToUse,
       UuidKey<Process::ProcessModel> process,
-      const QString& dat);
+      const QString& dat,
+      QPointF pos);
 
   void undo(const score::DocumentContext& ctx) const override;
   void redo(const score::DocumentContext& ctx) const override;

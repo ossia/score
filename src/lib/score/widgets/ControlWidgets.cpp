@@ -97,11 +97,33 @@ void ValueSlider::paintEvent(QPaintEvent* event)
   paintWithText(QString::number(value()));
 }
 
-SpeedSlider::SpeedSlider(QWidget* parent) : Slider{parent}
+/* Speed goes from -1 to 5 */
+constexpr double valueFromSpeed(double speed)
 {
-  setTickInterval(100);
-  setMinimum(-100);
-  setMaximum(500);
+  return (speed + 1.) / 6.;
+}
+constexpr double speedFromValue(double value)
+{
+  return value * 6. - 1.;
+}
+
+SpeedSlider::SpeedSlider(QWidget* parent) : DoubleSlider{parent}
+{
+}
+
+double SpeedSlider::speed() const noexcept
+{
+  return speedFromValue(value());
+}
+
+void SpeedSlider::setSpeed(double v)
+{
+  setValue(valueFromSpeed(v));
+}
+
+void SpeedSlider::setTempo(double t)
+{
+  setValue(valueFromSpeed(t / 120.));
 }
 
 void SpeedSlider::paintEvent(QPaintEvent*)
@@ -112,22 +134,28 @@ void SpeedSlider::paintEvent(QPaintEvent*)
         ? ""
         : (showText) ? "speed: × " : "× ";
 
-  double v = double(value()) * 0.01;
+  double v = speedFromValue(value());
   if(tempo)
+  {
     v *= ossia::root_tempo;
+    text += QString::number(v, 'f', 1);
+  }
+  else
+  {
+    text += QString::number(v, 'f', 2);
+  }
 
-  text += QString::number(v, 'f', 2);
   paintWithText(text);
 }
 
 void SpeedSlider::mousePressEvent(QMouseEvent* ev)
 {
   if (ev->button() == Qt::LeftButton)
-    return Slider::mousePressEvent(ev);
+    return DoubleSlider::mousePressEvent(ev);
 
   if (qApp->keyboardModifiers() & Qt::CTRL)
   {
-    setValue(100);
+    setValue(valueFromSpeed(1.));
   }
   else
   {
@@ -139,25 +167,27 @@ void SpeedSlider::mousePressEvent(QMouseEvent* ev)
       {
         w->setRange(20., 500.);
         w->setDecimals(1);
-        w->setValue(120. * self.value() / 100.);
+        w->setValue(speedFromValue(self.value()) * 120.);
 
         QObject::connect(
             w,
             SignalUtils::QDoubleSpinBox_valueChanged_double(),
             &self,
-            [=, &self](double v) { self.setValue(v * 100. / 120.); });
+            [=, &self](double v) {
+          self.setValue(valueFromSpeed(v / 120.));
+        });
       }
       else
       {
         w->setRange(-1., 5.);
         w->setDecimals(2);
-        w->setValue(self.value() / 100.);
+        w->setValue(speedFromValue(self.value()));
 
         QObject::connect(
             w,
             SignalUtils::QDoubleSpinBox_valueChanged_double(),
             &self,
-            [=, &self](double v) { self.setValue(v * 100.); });
+            [=, &self](double v) { self.setValue(valueFromSpeed(v)); });
       }
 
       w->show();

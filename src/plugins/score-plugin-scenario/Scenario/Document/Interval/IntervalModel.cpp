@@ -714,4 +714,19 @@ ParentTimeInfo closestParentWithMusicalMetrics(const IntervalModel* self)
   return {};
 }
 
+QPointF newProcessPosition(const IntervalModel& cst) noexcept
+{
+  // Find a good position for the process in the nodal graph
+  qreal min_y = 0;
+  for(const Process::ProcessModel& proc : cst.processes)
+  {
+    qreal bottom_y = proc.position().y() + proc.size().height() + 60;
+    if(bottom_y > min_y)
+      min_y = bottom_y;
+  }
+
+  min_y += 10;
+  return {10., min_y};
+}
+
 }

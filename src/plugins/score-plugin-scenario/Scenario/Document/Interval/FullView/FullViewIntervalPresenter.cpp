@@ -248,8 +248,16 @@ FullViewIntervalPresenter::FullViewIntervalPresenter(
       &IntervalView::dropReceived,
       this,
       [=](const QPointF& pos, const QMimeData& mime) {
-        m_context.app.interfaces<Scenario::IntervalDropHandlerList>().drop(
-            m_context, m_model, mime);
+    if(m_nodal)
+    {
+      m_context.app.interfaces<Scenario::IntervalDropHandlerList>().drop(
+          m_context, m_model, pos, mime);
+    }
+    else
+    {
+      m_context.app.interfaces<Scenario::IntervalDropHandlerList>().drop(
+          m_context, m_model, {}, mime);
+    }
       });
 
 
@@ -538,6 +546,11 @@ void FullViewIntervalPresenter::on_rackChanged()
     case IntervalModel::ViewMode::Nodal:
     {
       m_nodal = new NodalIntervalView{*this, m_context, m_view};
+
+      m_view->setHeight(3000);
+      updateChildren();
+      heightChanged();
+
       return;
     }
   }

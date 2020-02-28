@@ -19,3 +19,6 @@
 [submodule "3rdparty/zipdownloader"]
 	path = 3rdparty/zipdownloader
 	url = https://github.com/jcelerier/zipdownloader
+[submodule "3rdparty/magicitems"]
+	path = 3rdparty/magicitems
+	url = git@github.com:jcelerier/magicitems

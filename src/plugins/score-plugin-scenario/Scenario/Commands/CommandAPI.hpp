@@ -54,35 +54,40 @@ public:
   Process::ProcessModel* createProcess(
       const Scenario::IntervalModel& interval,
       const UuidKey<Process::ProcessModel>& key,
-      const QString& data);
+      const QString& data,
+      const QPointF& pos);
 
   template <typename T>
   T& createProcess(
       const Scenario::IntervalModel& interval,
-      const QString& data)
+      const QString& data,
+      const QPointF& pos)
   {
     return *safe_cast<T*>(this->createProcess(
-        interval, Metadata<ConcreteKey_k, T>::get(), data));
+        interval, Metadata<ConcreteKey_k, T>::get(), data, pos));
   }
 
   Process::ProcessModel* createProcessInSlot(
       const Scenario::IntervalModel& interval,
       const UuidKey<Process::ProcessModel>& key,
-      const QString& data);
+      const QString& data,
+      const QPointF& pos);
 
   template <typename T>
   T& createProcessInSlot(
       const Scenario::IntervalModel& interval,
-      const QString& data)
+      const QString& data,
+      const QPointF& pos)
   {
     return *safe_cast<T*>(this->createProcessInSlot(
-        interval, Metadata<ConcreteKey_k, T>::get(), data));
+        interval, Metadata<ConcreteKey_k, T>::get(), data, pos));
   }
 
   Process::ProcessModel* createProcessInNewSlot(
       const Scenario::IntervalModel& interval,
       const UuidKey<Process::ProcessModel>& key,
-      const QString& data);
+      const QString& data,
+      const QPointF& pos);
 
   template <typename T>
   T& createProcessInNewSlot(

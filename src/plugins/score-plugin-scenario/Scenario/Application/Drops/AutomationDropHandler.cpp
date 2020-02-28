@@ -224,7 +224,7 @@ public:
               [&](Scenario::Command::Macro& m,
               const IntervalModel& itv) -> Process::ProcessModel* {
             auto p = m.createProcessInNewSlot(
-              itv, proc.creation.key, proc.creation.customData);
+              itv, proc.creation.key, proc.creation.customData, {});
             if(auto& name = proc.creation.prettyName; !name.isEmpty())
               dropper.macro().submit(new Scenario::Command::ChangeElementName{*p, name});
            return p;
@@ -255,12 +255,12 @@ public:
 bool DropProcessInInterval::drop(
     const score::DocumentContext& ctx,
     const IntervalModel& cst,
+    QPointF pos,
     const QMimeData& mime)
 {
   if (mime.hasFormat("score/object-item-model-index"))
   {
-    auto dat = score::unmarshall<Path<Process::ProcessModel>>(
-                                                               mime.data("score/object-item-model-index"));
+    auto dat = score::unmarshall<Path<Process::ProcessModel>>(mime.data("score/object-item-model-index"));
     auto proc = dat.try_find(ctx);
     if (proc->parent() == &cst)
     {
@@ -284,7 +284,7 @@ bool DropProcessInInterval::drop(
             [&](Scenario::Command::Macro& m,
             const IntervalModel& itv) -> Process::ProcessModel* {
           return m.createProcessInNewSlot(
-            itv, proc.creation.key, proc.creation.customData);
+            itv, proc.creation.key, proc.creation.customData, pos);
     });
       if (p && proc.setup)
       {
@@ -490,6 +490,7 @@ void DropLayerInInterval::perform(
 bool DropLayerInInterval::drop(
     const score::DocumentContext& ctx,
     const IntervalModel& interval,
+    QPointF p,
     const QMimeData& mime)
 {
   if (mime.formats().contains(score::mime::layerdata()))
@@ -564,6 +565,7 @@ static void getAddressesRecursively(
 bool AutomationDropHandler::drop(
     const score::DocumentContext& ctx,
     const IntervalModel& cst,
+    QPointF p,
     const QMimeData& mime)
 {
   // TODO refactor with AddressEditWidget

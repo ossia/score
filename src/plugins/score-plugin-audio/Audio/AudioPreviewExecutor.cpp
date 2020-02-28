@@ -62,8 +62,8 @@ void AudioPreviewExecutor::endTick(unsigned long frameCount, double seconds)
       unsigned long out_i = 0;
       for(; i < max_n && out_i < frameCount; i++, out_i++)
       {
-        out_l[out_i] += 0.8f * in_mono[i];
-        out_r[out_i] += 0.8f * in_mono[i];
+        out_l[out_i] += 0.6f * in_mono[i];
+        out_r[out_i] += 0.6f * in_mono[i];
       }
 
       if(i == max_n)
@@ -84,8 +84,8 @@ void AudioPreviewExecutor::endTick(unsigned long frameCount, double seconds)
       unsigned long out_i = 0;
       for(; i < max_n && out_i < frameCount; i++, out_i++)
       {
-        out_l[out_i] += 0.8f * in_l[i];
-        out_r[out_i] += 0.8f * in_r[i];
+        out_l[out_i] += 0.6f * in_l[i];
+        out_r[out_i] += 0.6f * in_r[i];
       }
 
       if(i == max_n)

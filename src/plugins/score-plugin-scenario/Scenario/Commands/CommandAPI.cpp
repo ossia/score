@@ -82,9 +82,10 @@ IntervalModel& Macro::createInterval(
 Process::ProcessModel* Macro::createProcess(
     const IntervalModel& interval,
     const UuidKey<Process::ProcessModel>& key,
-    const QString& data)
+    const QString& data,
+    const QPointF& pos)
 {
-  auto process_cmd = new AddOnlyProcessToInterval{interval, key, data};
+  auto process_cmd = new AddOnlyProcessToInterval{interval, key, data, pos};
   m.submit(process_cmd);
   auto it = interval.processes.find(process_cmd->processId());
   if (it != interval.processes.end())
@@ -95,9 +96,10 @@ Process::ProcessModel* Macro::createProcess(
 Process::ProcessModel* Macro::createProcessInSlot(
     const IntervalModel& interval,
     const UuidKey<Process::ProcessModel>& key,
-    const QString& data)
+    const QString& data,
+    const QPointF& pos)
 {
-  auto process_cmd = new AddProcessToInterval{interval, key, data};
+  auto process_cmd = new AddProcessToInterval{interval, key, data, pos};
   m.submit(process_cmd);
   auto it = interval.processes.find(process_cmd->processId());
   if (it != interval.processes.end())
@@ -108,9 +110,10 @@ Process::ProcessModel* Macro::createProcessInSlot(
 Process::ProcessModel* Macro::createProcessInNewSlot(
     const IntervalModel& interval,
     const UuidKey<Process::ProcessModel>& key,
-    const QString& data)
+    const QString& data,
+    const QPointF& pos)
 {
-  if (auto proc = createProcess(interval, key, data))
+  if (auto proc = createProcess(interval, key, data, pos))
   {
     addLayerInNewSlot(interval, *proc);
     return proc;

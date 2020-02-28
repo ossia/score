@@ -260,11 +260,12 @@ IntervalDropHandlerList::~IntervalDropHandlerList() {}
 bool IntervalDropHandlerList::drop(
     const score::DocumentContext& ctx,
     const Scenario::IntervalModel& cst,
+    QPointF pos,
     const QMimeData& mime) const
 {
   for (auto& fact : *this)
   {
-    if (fact.drop(ctx, cst, mime))
+    if (fact.drop(ctx, cst, pos, mime))
       return true;
   }
 

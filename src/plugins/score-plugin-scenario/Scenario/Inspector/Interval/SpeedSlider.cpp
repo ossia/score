@@ -27,11 +27,12 @@ SpeedWidget::SpeedWidget(
   lay->setHorizontalSpacing(1);
   lay->setVerticalSpacing(1);
 
-  auto setSpeedFun = [=](double val) {
+  auto setSpeedFun = [=](double) {
     if(m_model)
     {
       auto& dur = ((IntervalModel&)(*m_model)).duration;
-      auto s = double(val) / 100.0;
+      auto s = m_slider->speed();
+      qDebug() << s;
       if (dur.speed() != s)
       {
         dur.setSpeed(s);
@@ -63,7 +64,6 @@ SpeedWidget::SpeedWidget(
   // Slider
   m_slider = new score::SpeedSlider{this};
   m_slider->showText = showText;
-  m_slider->setValue(100.);
 
   if(withButtons)
   {
@@ -90,12 +90,11 @@ void SpeedWidget::setInterval(const IntervalModel& m)
   }
 
   m_model = &m;
-  m_slider->setValue(m.duration.speed() * 100.);
+  m_slider->setSpeed(m.duration.speed());
 
   con(m.duration, &IntervalDurations::speedChanged, this, [=](double s) {
-    double r = s * 100;
-    if (!qFuzzyCompare(r, m_slider->value()))
-      m_slider->setValue(r);
+    if (!qFuzzyCompare(s, m_slider->speed()))
+      m_slider->setSpeed(s);
   });
 
   ::bind(m, IntervalModel::p_timeSignature{},

@@ -142,7 +142,7 @@ bool MessageRecorder::setup(
   auto cmd_proc = new Scenario::Command::AddOnlyProcessToInterval{
       box.interval,
       Metadata<ConcreteKey_k, Scenario::ProcessModel>::get(),
-      {}};
+      {}, {}};
 
   cmd_proc->redo(context.context);
   context.dispatcher.submit(cmd_proc);

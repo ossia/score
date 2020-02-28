@@ -201,7 +201,8 @@ CreateProcessAndLayers::CreateProcessAndLayers(
     : m_addProcessCmd{std::move(interval),
                       std::move(procId),
                       std::move(key),
-                      QString{}}
+                      QString{},
+                      QPointF{}}
 {
   m_slotsCmd.reserve(slotList.size());
   for (const auto& elt : slotList)

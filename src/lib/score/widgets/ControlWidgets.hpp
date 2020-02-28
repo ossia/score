@@ -33,7 +33,7 @@ protected:
   void paintEvent(QPaintEvent* event) override;
 };
 
-struct SCORE_LIB_BASE_EXPORT SpeedSlider : public score::Slider
+struct SCORE_LIB_BASE_EXPORT SpeedSlider : public score::DoubleSlider
 {
 public:
   SpeedSlider(QWidget* parent = nullptr);
@@ -41,9 +41,14 @@ public:
   bool showText = true;
   bool tempo = false;
 
+  double speed() const noexcept;
+  void setSpeed(double);
+  void setTempo(double);
 protected:
-  void paintEvent(QPaintEvent* event) override;
+  using score::DoubleSlider::setValue;
+  using score::DoubleSlider::value;
 
+  void paintEvent(QPaintEvent* event) override;
   void mousePressEvent(QMouseEvent*) override;
 };
 

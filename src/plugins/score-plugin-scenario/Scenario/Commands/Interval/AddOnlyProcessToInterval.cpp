@@ -34,8 +34,9 @@ namespace Command
 AddOnlyProcessToInterval::AddOnlyProcessToInterval(
     const IntervalModel& cst,
     UuidKey<Process::ProcessModel> process,
-    const QString& dat)
-    : AddOnlyProcessToInterval{cst, getStrongId(cst.processes), process, dat}
+    const QString& dat,
+    QPointF pos)
+    : AddOnlyProcessToInterval{cst, getStrongId(cst.processes), process, dat, pos}
 {
 }
 
@@ -43,23 +44,18 @@ AddOnlyProcessToInterval::AddOnlyProcessToInterval(
     const IntervalModel& cst,
     Id<Process::ProcessModel> processId,
     UuidKey<Process::ProcessModel> process,
-    const QString& dat)
+    const QString& dat,
+    QPointF pos)
     : m_path{cst}
     , m_processName{process}
     , m_data{dat}
+    , m_graphpos{pos}
     , m_createdProcessId{std::move(processId)}
 {
-  // Find a good position for the process in the nodal graph
-  qreal min_y = 0;
-  for(const Process::ProcessModel& proc : cst.processes)
+  if(m_graphpos == QPointF{})
   {
-    qreal bottom_y = proc.position().y() + proc.size().height() + 60;
-    if(bottom_y > min_y)
-      min_y = bottom_y;
+    m_graphpos = newProcessPosition(cst);
   }
-
-  min_y += 10;
-  m_graphpos = {10., min_y};
 }
 
 void AddOnlyProcessToInterval::undo(const score::DocumentContext& ctx) const

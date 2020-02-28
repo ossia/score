@@ -40,7 +40,7 @@ bool VSTControlPortItem::on_createAutomation(
     const score::DocumentContext& ctx)
 {
   auto make_cmd = new Scenario::Command::AddOnlyProcessToInterval{
-      cst, Metadata<ConcreteKey_k, Automation::ProcessModel>::get(), {}};
+      cst, Metadata<ConcreteKey_k, Automation::ProcessModel>::get(), {}, {}};
   macro(make_cmd);
 
   auto lay_cmd

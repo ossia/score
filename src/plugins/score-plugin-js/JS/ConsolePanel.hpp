@@ -114,7 +114,7 @@ public:
       return;
     Scenario::Command::Macro m{new ScriptMacro, ctx()};
 
-    auto& loop = m.createProcessInSlot<Loop::ProcessModel>(*itv, {});
+    auto& loop = m.createProcessInSlot<Loop::ProcessModel>(*itv, {}, {});
     for (auto proc : shallow_copy(itv->processes))
     {
       if (proc != &loop)

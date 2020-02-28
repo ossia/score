@@ -262,6 +262,9 @@ bool isInFullView(const Process::ProcessModel& cstr) noexcept;
 SCORE_PLUGIN_SCENARIO_EXPORT
 bool isBus(const Scenario::IntervalModel& model, const score::DocumentContext& ctx) noexcept;
 
+SCORE_PLUGIN_SCENARIO_EXPORT
+QPointF newProcessPosition(const Scenario::IntervalModel& model) noexcept;
+
 struct ParentTimeInfo
 {
   const IntervalModel* parent;

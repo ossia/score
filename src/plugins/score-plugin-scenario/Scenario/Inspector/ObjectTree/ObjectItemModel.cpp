@@ -1132,7 +1132,7 @@ struct ContextMenuCallback
     using namespace Scenario::Command;
     Macro m{new AddProcessInNewSlot, m_ctx};
 
-    if (auto p = m.createProcess(cst, proc, dat))
+    if (auto p = m.createProcess(cst, proc, dat, {}))
     {
       m.createSlot(cst);
       m.addLayerToLastSlot(cst, *p);
