@@ -10,6 +10,8 @@
 #include <random>
 #include <tuple>
 #include <utility>
+
+#include <rnd/random.hpp>
 /*
 template<typename Node>
 struct Spec
@@ -118,7 +120,7 @@ struct Node
   struct State
   {
     double phase{};
-    std::mt19937 rd;
+    rnd::pcg rd;
   };
 
   using control_policy = ossia::safe_nodes::precise_tick;

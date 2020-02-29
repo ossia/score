@@ -5,13 +5,14 @@
 
 #include <Engine/Node/PdNode.hpp>
 
-#include <random>
+#include <rnd/random.hpp>
 namespace Nodes
 {
 namespace PulseToNote
 {
 struct Node
 {
+  using Note = Control::Note;
   struct Metadata : Control::Meta_base
   {
     static const constexpr auto prettyName = "Pulse to Note";
@@ -35,20 +36,27 @@ struct Node
     static const constexpr value_in value_ins[]{{"in", true}};
     static const constexpr midi_out midi_outs[]{"out"};
     static const constexpr auto controls = std::make_tuple(
-        Control::Widgets::QuantificationChooser(),
+        Control::ComboBox<float, std::size(Control::Widgets::notes)>("Start quant.", 2, Control::Widgets::notes),
         Control::FloatSlider{"Tightness", 0.f, 1.f, 0.8f},
-        Control::Widgets::DurationChooser(),
+        Control::ComboBox<float, std::size(Control::Widgets::notes)>("End quant.", 2, Control::Widgets::notes),
         Control::Widgets::MidiSpinbox("Default pitch"),
         Control::Widgets::MidiSpinbox("Default vel."),
         Control::Widgets::OctaveSlider("Pitch shift", -5, 5),
         Control::Widgets::OctaveSlider("Pitch random", 0, 2),
         Control::Widgets::OctaveSlider("Vel. random", 0, 2),
-        Control::Widgets::MidiChannel("Channel"),
-        Control::Widgets::TempoChooser());
+        Control::Widgets::MidiChannel("Channel"));
   };
 
-  using State = Quantifier::Node::State;
-  using Note = Control::Note;
+  struct NoteIn
+  {
+    Note note{};
+    ossia::time_value date{};
+  };
+  struct State
+  {
+    std::vector<NoteIn> to_start;
+    std::vector<NoteIn> running_notes;
+  };
 
   using control_policy = ossia::safe_nodes::default_tick;
   struct val_visitor
@@ -117,20 +125,18 @@ struct Node
   run(const ossia::value_port& p1,
       const ossia::safe_nodes::timed_vec<float>& startq,
       const ossia::safe_nodes::timed_vec<float>& tightness,
-      const ossia::safe_nodes::timed_vec<float>& dur,
+      const ossia::safe_nodes::timed_vec<float>& endq,
       const ossia::safe_nodes::timed_vec<int>& basenote,
       const ossia::safe_nodes::timed_vec<int>& basevel,
       const ossia::safe_nodes::timed_vec<int>& shift_note,
       const ossia::safe_nodes::timed_vec<int>& note_random,
       const ossia::safe_nodes::timed_vec<int>& vel_random,
       const ossia::safe_nodes::timed_vec<int>& chan_vec,
-      const ossia::safe_nodes::timed_vec<float>& tempo_vec,
       ossia::midi_port& p2,
       ossia::token_request tk,
       ossia::exec_state_facade st,
       State& self)
   {
-    static std::mt19937 m;
     // TODO : when arrays like [ 1, 25, 12, 37, 10, 40 ] are received
     // send relevant chords
 
@@ -147,28 +153,24 @@ struct Node
 
     auto start = startq.rbegin()->second;
     double precision = tightness.rbegin()->second;
-    auto duration = dur.rbegin()->second;
+    auto end = endq.rbegin()->second;
     auto shiftnote = shift_note.rbegin()->second;
     auto base_note = midi_clamp(basenote.rbegin()->second);
     auto base_vel = midi_clamp(basevel.rbegin()->second);
     auto rand_note = note_random.rbegin()->second;
     auto rand_vel = vel_random.rbegin()->second;
     auto chan = chan_vec.rbegin()->second;
-    auto tempo = tempo_vec.rbegin()->second;
 
-    // how much time does a whole note last at this tempo given the current sr
-    const auto whole_dur = 240.f / tempo; // in seconds
-    const auto whole_samples = whole_dur * st.sampleRate();
-
+    const double sampleRatio = st.modelToSamples();
     for (auto& in : p1.get_data())
     {
       auto note = in.value.apply(val_visitor{self, base_note, base_vel});
 
       if (rand_note != 0)
         note.pitch
-            += std::uniform_int_distribution<int>(-rand_note, rand_note)(m);
+            += rnd::rand(-rand_note, rand_note);
       if (rand_vel != 0)
-        note.vel += std::uniform_int_distribution<int>(-rand_vel, rand_vel)(m);
+        note.vel += rnd::rand(-rand_vel, rand_vel);
 
       note.pitch = ossia::clamp((int)note.pitch + shiftnote, 0, 127);
       note.vel = ossia::clamp((int)note.vel, 0, 127);
@@ -177,86 +179,120 @@ struct Node
       {
         if (start == 0.f) // No quantification, start directly
         {
-          auto no = rtmidi::message::note_on(chan, note.pitch, note.vel);
+          auto& no = p2.note_on(chan, note.pitch, note.vel);
           no.timestamp = in.timestamp;
-
-          p2.messages.push_back(no);
-          if (duration > 0.f)
+          if (end > 0.f)
           {
-            auto end = tk.date + (int64_t)no.timestamp
-                       + (int64_t)(whole_samples * duration);
-            self.running_notes.push_back({note, end});
+            self.running_notes.push_back({note, tk.from_physical_time_in_tick(in.timestamp, sampleRatio)});
           }
-          else if (duration == 0.f)
+          else if (end == 0.f)
           {
             // Stop at the next sample
-            auto noff = rtmidi::message::note_off(chan, note.pitch, note.vel);
-            noff.timestamp = no.timestamp;
-            p2.messages.push_back(noff);
+            p2.note_off(chan, note.pitch, note.vel).timestamp = no.timestamp;
           }
           // else do nothing and just wait for a note off
         }
         else
         {
           // Find next time that matches the requested quantification
-          const auto start_q = whole_samples * start;
-          auto perf_date = int64_t(start_q * int64_t(1 + tk.date.impl * st.modelToSamples() / start_q));
-          int64_t actual_date
-              = (1. - precision) * tk.date.impl * st.modelToSamples() + precision * perf_date;
-          ossia::time_value next_date{actual_date};
-          self.to_start.push_back({note, next_date});
+          self.to_start.push_back({note, ossia::time_value{}});
         }
       }
       else
       {
         // Just stop
-        auto noff = rtmidi::message::note_off(chan, note.pitch, note.vel);
-        noff.timestamp = in.timestamp;
-        p2.messages.push_back(noff);
+        p2.note_off(chan, note.pitch, note.vel).timestamp = in.timestamp;
       }
     }
 
-    for (auto it = self.to_start.begin(); it != self.to_start.end();)
+    if(start != 0.f)
+    {
+      if(auto date = tk.get_quantification_date(1. / start))
+      {
+        start_all_notes(*date, tk.to_physical_time_in_tick(*date, sampleRatio), chan, end, p2, self);
+      }
+    }
+    else
+    {
+      start_all_notes(tk.prev_date, tk.to_physical_time_in_tick(tk.prev_date, sampleRatio), chan, end, p2, self);
+    }
+
+    if(end != 0.f)
+    {
+      if(auto date = tk.get_quantification_date(1. / end))
+      {
+        stop_notes(tk.to_physical_time_in_tick(*date, sampleRatio), chan, p2, self);
+      }
+    }
+    else
+    {
+      stop_notes(tk.to_physical_time_in_tick(tk.prev_date, sampleRatio), chan, p2, self);
+    }
+  }
+
+  static void start_all_notes(
+      ossia::time_value date,
+      ossia::physical_time date_phys,
+      int chan,
+      float endq,
+      ossia::midi_port& p2,
+      State& self) noexcept
+  {
+    for (auto& note : self.to_start)
+    {
+      p2.note_on(chan, note.note.pitch, note.note.vel).timestamp = date_phys;
+
+      if (endq > 0.f)
+      {
+        self.running_notes.push_back({{note.note}, date});
+      }
+      else if (endq == 0.f)
+      {
+        // Stop at the next sample
+        p2.note_off(chan, note.note.pitch, note.note.vel).timestamp = date_phys;
+      }
+    }
+    self.to_start.clear();
+  }
+
+  static void stop_notes(
+      ossia::physical_time date_phys,
+      int chan,
+      ossia::midi_port& p2,
+      State& self)
+  {
+    for(auto& note : self.running_notes)
+    {
+      p2.note_off(chan, note.note.pitch, note.note.vel).timestamp = date_phys;
+    }
+    self.running_notes.clear();
+/*
+    for (auto it = self.running_notes.begin(); it != self.running_notes.end();)
     {
       auto& note = *it;
-      if (note.date > tk.prev_date && note.date.impl < tk.date.impl)
+      // note.date is the date at which the note was started.
+
+      if (note.date.impl > tk.date.impl)
       {
-        auto no
-            = rtmidi::message::note_on(chan, note.note.pitch, note.note.vel);
-        no.timestamp = tk.to_physical_time_in_tick(note.date, st.modelToSamples());
-        p2.messages.push_back(no);
-
-        if (duration > 0.f)
-        {
-          auto end = note.date + (int64_t)(whole_samples * duration);
-          self.running_notes.push_back({note.note, end});
-        }
-        else if (duration == 0.f)
-        {
-          // Stop at the next sample
-          auto noff = rtmidi::message::note_off(
-              chan, note.note.pitch, note.note.vel);
-          noff.timestamp = no.timestamp;
-          p2.messages.push_back(noff);
-        }
-
-        it = self.to_start.erase(it);
+        // Note was started "in the future", stop it right now as it means we went back in time
+        p2.note_off(chan, note.note.pitch, note.note.vel).timestamp = tk.to_physical_time_in_tick(tk.prev_date, sampleRatio);
+        it = self.running_notes.erase(it);
+      }
+      else if(note.date.impl < tk.prev_date.impl)
+      {
+        // if we're
+        it = self.running_notes.erase(it);
       }
       else
       {
         ++it;
       }
-    }
 
-    for (auto it = self.running_notes.begin(); it != self.running_notes.end();)
-    {
-      auto& note = *it;
       if (note.date > tk.prev_date && note.date.impl < tk.date.impl)
       {
-        auto noff
-            = rtmidi::message::note_off(chan, note.note.pitch, note.note.vel);
-        noff.timestamp = (note.date - tk.prev_date).impl * st.modelToSamples();
-        p2.messages.push_back(noff);
+        p2.note_off(chan, note.note.pitch, note.note.vel)
+          .timestamp = (note.date - tk.prev_date).impl * st.modelToSamples();
+
         it = self.running_notes.erase(it);
       }
       else
@@ -264,6 +300,7 @@ struct Node
         ++it;
       }
     }
+*/
   }
 };
 }

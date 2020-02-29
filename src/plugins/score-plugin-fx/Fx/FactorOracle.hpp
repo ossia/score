@@ -5,7 +5,7 @@
 #include <Engine/Node/PdNode.hpp>
 
 #include <QDebug>
-#include <random>
+#include <rnd/random.hpp>
 #if !defined(NDEBUG) && !defined(_MSC_VER) && !defined(__clang__)
 #include <debug/vector>
 #define debug_vector_t __gnu_debug::vector
@@ -74,7 +74,7 @@ public:
   debug_vector_t<std::pair<int, ossia::value>> value_map;
   FactorOracle(int sz = 0)
       : m_forwardLink(sz + 1, debug_vector_t<int>{-1})
-      , m_rand_engine{std::random_device{}()}
+      , m_rand_engine{}
   {
     m_sp.impl.resize(1000);
     m_lrs.impl.resize(1000);
@@ -209,7 +209,7 @@ private:
   debug_vector_t<ossia::value> m_sequence;
   debug_vector_t<debug_vector_t<int>> m_forwardLink;
 
-  mutable std::minstd_rand m_rand_engine;
+  mutable rnd::pcg m_rand_engine;
 };
 
 struct Node

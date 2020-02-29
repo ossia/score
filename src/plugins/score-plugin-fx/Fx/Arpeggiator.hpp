@@ -140,8 +140,7 @@ struct Node
       // Finish previous notes
       for(auto& note : self.previous_chord)
       {
-        out.messages.push_back(rtmidi::message::note_off(1, note.first, 0));
-        out.messages.back().timestamp = *date;
+        out.note_off(1, note.first, 0).timestamp = *date;
       }
       self.previous_chord.clear();
 

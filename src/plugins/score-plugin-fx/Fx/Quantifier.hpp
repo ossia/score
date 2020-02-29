@@ -55,8 +55,6 @@ struct Node
       ossia::exec_state_facade st,
       State& self)
   {
-    static std::mt19937 m;
-
     auto start = startq.rbegin()->second;
     double precision = tightness.rbegin()->second;
     auto duration = dur.rbegin()->second;
