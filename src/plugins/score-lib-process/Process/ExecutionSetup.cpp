@@ -428,16 +428,9 @@ void SetupContext::register_outlet_impl(
 
   outlets.insert({&proc_port, std::make_pair(node, ossia_port)});
 
-  if (auto proc_audio = qobject_cast<Process::AudioOutlet*>(&proc_port))
-  {
-    auto ossia_audio = static_cast<ossia::audio_outlet*>(ossia_port);
-/*
-    node->inputs().push_back(&ossia_audio->gain_inlet);
-    node->inputs().push_back(&ossia_audio->pan_inlet);
-*/
-    register_inlet_impl(*proc_audio->gainInlet, &ossia_audio->gain_inlet, node, impl);
-    register_inlet_impl(*proc_audio->panInlet, &ossia_audio->pan_inlet, node, impl);
-  }
+  proc_port.mapExecution(*ossia_port, [&] (Process::Inlet& model_inl, ossia::inlet& ossia_inl) {
+    register_inlet_impl(model_inl, &ossia_inl, node, impl);
+  });
 
   // Unneeded : the execution_state only needs inlets to be registered,
   // in order to set up data value queues from the network thread
@@ -495,11 +488,9 @@ void SetupContext::unregister_outlet(
       runtime_connection.erase(it);
     }
 
-    if (auto proc_audio = qobject_cast<const Process::AudioOutlet*>(&proc_port))
-    {
-      unregister_inlet(*proc_audio->gainInlet, node);
-      unregister_inlet(*proc_audio->panInlet, node);
-    }
+    proc_port.forChildInlets([&] (Process::Inlet& model_inl) {
+      unregister_inlet(model_inl, node);
+    });
   }
 
   outlets.erase(const_cast<Process::Outlet*>(&proc_port));

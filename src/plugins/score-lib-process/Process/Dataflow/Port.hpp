@@ -11,7 +11,7 @@
 
 #include <ossia/detail/small_vector.hpp>
 #include <ossia/network/value/value.hpp>
-
+#include <smallfun.hpp>
 
 #include <score_lib_process_export.h>
 #include <verdigris>
@@ -21,6 +21,12 @@
 #else
 #define VIRTUAL_CONSTEXPR
 #endif
+
+namespace ossia
+{
+struct inlet;
+struct outlet;
+}
 namespace Process
 {
 class Port;
@@ -87,12 +93,14 @@ UUID_METADATA(
     "3620ea94-5991-41cf-89b3-11f842cc39d0")
 namespace Process
 {
-
+using Inlets = ossia::small_vector<Process::Inlet*, 4>;
+using Outlets = ossia::small_vector<Process::Outlet*, 4>;
 using pan_weight = ossia::small_vector<double, 2>;
 
 class Cable;
-class SCORE_LIB_PROCESS_EXPORT Port : public IdentifiedObject<Port>,
-                                      public score::SerializableInterface<Port>
+class SCORE_LIB_PROCESS_EXPORT Port
+    : public IdentifiedObject<Port>
+    , public score::SerializableInterface<Port>
 {
   W_OBJECT(Port)
   SCORE_SERIALIZE_FRIENDS
@@ -122,7 +130,6 @@ public:
   void setAddress(const State::AddressAccessor& address);
   W_SLOT(setAddress);
 
-public:
   void exposedChanged(const QString& addr)
       E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, exposedChanged, addr)
   void descriptionChanged(const QString& txt)
@@ -166,6 +173,9 @@ public:
   MODEL_METADATA_IMPL_HPP(Inlet)
 
   ~Inlet() override;
+
+  virtual void forChildInlets(const smallfun::function<void(Inlet&)>&) const noexcept;
+  virtual void mapExecution(ossia::inlet&, const smallfun::function<void(Inlet&, ossia::inlet&)>&) const noexcept;
 protected:
   Inlet() = delete;
   Inlet(const Inlet&) = delete;
@@ -245,6 +255,9 @@ public:
   MODEL_METADATA_IMPL_HPP(Outlet)
 
   ~Outlet() override;
+  virtual void forChildInlets(const smallfun::function<void(Inlet&)>&) const noexcept;
+  virtual void mapExecution(ossia::outlet&, const smallfun::function<void(Inlet&, ossia::inlet&)>&) const noexcept;
+
 protected:
   Outlet() = delete;
   Outlet(const Outlet&) = delete;
@@ -294,6 +307,9 @@ public:
   AudioOutlet(JSONObject::Deserializer&& vis, QObject* parent);
 
   VIRTUAL_CONSTEXPR PortType type() const noexcept override { return Process::PortType::Audio; }
+
+  void forChildInlets(const smallfun::function<void(Inlet&)>&) const noexcept override;
+  void mapExecution(ossia::outlet&, const smallfun::function<void(Inlet&, ossia::inlet&)>&) const noexcept override;
 
   bool propagate() const;
   void setPropagate(bool propagate);

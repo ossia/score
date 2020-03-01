@@ -141,9 +141,9 @@ public:
     : ArrowDialog{parent}
   {
     auto gainPort = new AutomatablePortItem{*port.gainInlet, ctx, this};
-    gainPort->setPos(magic("gainport", {3, 5}, {0, 0}, {15, 15}, [=] (auto p) { gainPort->setPos(p); }));
+    gainPort->setPos({3, 5});
     auto panPort = new AutomatablePortItem{*port.panInlet, ctx, this};
-    panPort->setPos(magic("panport", {3, 18}, {0, 0}, {15, 30}, [=] (auto p) { panPort->setPos(p); }));
+    panPort->setPos({3, 18});
   }
 
   QRectF boundingRect() const override
@@ -157,8 +157,8 @@ public:
 
     painter->setFont(skin.SansFontSmall);
     painter->setPen(skin.Base4.lighter.pen1);
-    painter->drawText(magic("gain", {15, 15}, {0, 0}, {30, 40}), QObject::tr("Gain"));
-    painter->drawText(magic("pan", {15, 28}, {0, 0}, {30, 40}), QObject::tr("Pan"));
+    painter->drawText(QPointF{15, 15}, QObject::tr("Gain"));
+    painter->drawText(QPointF{15, 28}, QObject::tr("Pan"));
   }
 };
 

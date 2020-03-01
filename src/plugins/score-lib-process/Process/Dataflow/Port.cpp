@@ -9,6 +9,7 @@
 #include <Control/Widgets.hpp>
 #include <score/model/path/PathSerialization.hpp>
 #include <score/plugins/SerializableHelpers.hpp>
+#include <ossia/dataflow/port.hpp>
 
 #include <ossia-qt/value_metatypes.hpp>
 
@@ -176,6 +177,14 @@ Inlet::Inlet(JSONObject::Deserializer&& vis, QObject* parent)
   vis.writeTo(*this);
 }
 
+void Inlet::forChildInlets(const smallfun::function<void (Inlet&)>& f) const noexcept
+{
+}
+
+void Inlet::mapExecution(ossia::inlet& exec, const smallfun::function<void (Inlet&, ossia::inlet&)>& f) const noexcept
+{
+}
+
 ControlInlet::ControlInlet(Id<Process::Port> c, QObject* parent)
     : Inlet{std::move(c), parent}
 {
@@ -229,6 +238,14 @@ Outlet::Outlet(JSONObject::Deserializer&& vis, QObject* parent)
     : Port{vis, parent}
 {
   vis.writeTo(*this);
+}
+
+void Outlet::forChildInlets(const smallfun::function<void (Inlet&)>& f) const noexcept
+{
+}
+
+void Outlet::mapExecution(ossia::outlet& exec, const smallfun::function<void (Inlet&, ossia::inlet&)>& f) const noexcept
+{
 }
 
 AudioInlet::~AudioInlet() {}
@@ -289,6 +306,19 @@ AudioOutlet::AudioOutlet(JSONObject::Deserializer&& vis, QObject* parent)
   : Outlet{vis, parent}
 {
   vis.writeTo(*this);
+}
+
+void AudioOutlet::forChildInlets(const smallfun::function<void (Inlet&)>& f) const noexcept
+{
+  f(*gainInlet);
+  f(*panInlet);
+}
+
+void AudioOutlet::mapExecution(ossia::outlet& exec, const smallfun::function<void (Inlet&, ossia::inlet&)>& f) const noexcept
+{
+  auto audio_exec = safe_cast<ossia::audio_outlet*>(&exec);
+  f(*gainInlet, audio_exec->gain_inlet);
+  f(*panInlet, audio_exec->pan_inlet);
 }
 
 bool AudioOutlet::propagate() const
@@ -599,77 +629,39 @@ std::unique_ptr<Inlet> load_inlet(DataStreamWriter& wr, QObject* parent)
 {
   static auto& il
       = score::AppComponents().interfaces<Process::PortFactoryList>();
-  auto ptr = deserialize_interface(il, wr, parent);
-
-  auto in = std::unique_ptr<Process::Inlet>((Process::Inlet*)ptr);
-  if(in->type() == Process::PortType::Audio)
-      SCORE_SOFT_ASSERT(dynamic_cast<Process::AudioInlet*>(in.get()));
-  else if(in->type() == Process::PortType::Midi)
-      SCORE_SOFT_ASSERT(dynamic_cast<Process::MidiInlet*>(in.get()));
-  else if(in->type() == Process::PortType::Message)
-    SCORE_SOFT_ASSERT(dynamic_cast<Process::ValueInlet*>(in.get()) || dynamic_cast<Process::ControlInlet*>(in.get()));
-
-  return in;
+  return std::unique_ptr<Process::Inlet>((Process::Inlet*)deserialize_interface(il, wr, parent));
 }
 
 std::unique_ptr<Inlet> load_inlet(JSONObjectWriter& wr, QObject* parent)
 {
   static auto& il
       = score::AppComponents().interfaces<Process::PortFactoryList>();
-  auto ptr = deserialize_interface(il, wr, parent);
-
-  auto in = std::unique_ptr<Process::Inlet>((Process::Inlet*)ptr);
-  if(in->type() == Process::PortType::Audio)
-      SCORE_SOFT_ASSERT(dynamic_cast<Process::AudioInlet*>(in.get()));
-  else if(in->type() == Process::PortType::Midi)
-      SCORE_SOFT_ASSERT(dynamic_cast<Process::MidiInlet*>(in.get()));
-  else if(in->type() == Process::PortType::Message)
-    SCORE_SOFT_ASSERT(dynamic_cast<Process::ValueInlet*>(in.get()) || dynamic_cast<Process::ControlInlet*>(in.get()));
-
-  return in;
+  return std::unique_ptr<Process::Inlet>((Process::Inlet*)deserialize_interface(il, wr, parent));
 }
 
 std::unique_ptr<Outlet> load_outlet(DataStreamWriter& wr, QObject* parent)
 {
   static auto& il
       = score::AppComponents().interfaces<Process::PortFactoryList>();
-  auto ptr = deserialize_interface(il, wr, parent);
-
-  auto out = std::unique_ptr<Process::Outlet>((Process::Outlet*)ptr);
-  if(out->type() == Process::PortType::Audio)
-      SCORE_SOFT_ASSERT(dynamic_cast<Process::AudioOutlet*>(out.get()));
-  else if(out->type() == Process::PortType::Midi)
-      SCORE_SOFT_ASSERT(dynamic_cast<Process::MidiOutlet*>(out.get()));
-  else if(out->type() == Process::PortType::Message)
-    SCORE_SOFT_ASSERT(dynamic_cast<Process::ValueOutlet*>(out.get()) || dynamic_cast<Process::ControlOutlet*>(out.get()));
-  return out;
+  return std::unique_ptr<Process::Outlet>((Process::Outlet*)deserialize_interface(il, wr, parent));
 }
 
 std::unique_ptr<Outlet> load_outlet(JSONObjectWriter& wr, QObject* parent)
 {
   static auto& il
       = score::AppComponents().interfaces<Process::PortFactoryList>();
-  auto ptr = deserialize_interface(il, wr, parent);
-
-  auto out = std::unique_ptr<Process::Outlet>((Process::Outlet*)ptr);
-  if(out->type() == Process::PortType::Audio)
-      SCORE_SOFT_ASSERT(dynamic_cast<Process::AudioOutlet*>(out.get()));
-  else if(out->type() == Process::PortType::Midi)
-      SCORE_SOFT_ASSERT(dynamic_cast<Process::MidiOutlet*>(out.get()));
-  else if(out->type() == Process::PortType::Message)
-    SCORE_SOFT_ASSERT(dynamic_cast<Process::ValueOutlet*>(out.get()) || dynamic_cast<Process::ControlOutlet*>(out.get()));
-  return out;
+  return std::unique_ptr<Process::Outlet>((Process::Outlet*)deserialize_interface(il, wr, parent));
 }
 
 static auto copy_port(const Port& src, Port& dst)
 {
-    dst.hidden = src.hidden;
-    dst.setCustomData(src.customData());
-    dst.setAddress(src.address());
-    dst.setExposed(src.exposed());
-    dst.setDescription(src.description());
-    for(auto& cable : src.cables())
-        dst.addCable(cable);
+  dst.hidden = src.hidden;
+  dst.setCustomData(src.customData());
+  dst.setAddress(src.address());
+  dst.setExposed(src.exposed());
+  dst.setDescription(src.description());
+  for(auto& cable : src.cables())
+    dst.addCable(cable);
 }
 
 template<typename T, typename W>
@@ -681,7 +673,7 @@ auto load_port_t(W& wr, QObject* parent)
     else if constexpr(std::is_base_of_v<Outlet, T>)
         return load_outlet(wr, parent).release();
     else
-    return nullptr;
+        return nullptr;
   }();
 
   if(auto p = dynamic_cast<T*>(out))
@@ -702,6 +694,7 @@ auto load_port_t(W& wr, QObject* parent)
     return std::make_unique<T>(Id<Process::Port>(0), parent);
   }
 }
+
 std::unique_ptr<ValueInlet> load_value_inlet(DataStreamWriter& wr, QObject* parent)
 {
   return load_port_t<ValueInlet>(wr, parent);

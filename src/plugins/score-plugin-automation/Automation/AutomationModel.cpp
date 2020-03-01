@@ -10,6 +10,8 @@
 #include <Curve/Segment/CurveSegmentModel.hpp>
 #include <Curve/Segment/Power/PowerSegment.hpp>
 #include <Process/Dataflow/Port.hpp>
+#include <Process/Dataflow/PortFactory.hpp>
+#include <Process/Dataflow/WidgetInlets.hpp>
 #include <State/Address.hpp>
 
 #include <score/document/DocumentInterface.hpp>
@@ -18,12 +20,151 @@
 #include <score/model/ModelMetadata.hpp>
 #include <score/tools/MapCopy.hpp>
 #include <score/tools/std/Optional.hpp>
-
+#include <score/plugins/SerializableHelpers.hpp>
 #include <ossia/editor/state/destination_qualifiers.hpp>
+#include <ossia/dataflow/port.hpp>
 
+namespace ossia
+{
+class minmax_float_outlet : public value_outlet
+{
+public:
+  minmax_float_outlet()
+  {
+    this->child_inlets.push_back(&min_inlet);
+    this->child_inlets.push_back(&max_inlet);
+  }
+
+  ossia::value_inlet min_inlet;
+  ossia::value_inlet max_inlet;
+};
+}
+namespace Process
+{
+class SCORE_LIB_PROCESS_EXPORT MinMaxFloatOutlet : public ValueOutlet
+{
+  W_OBJECT(MinMaxFloatOutlet)
+
+SCORE_SERIALIZE_FRIENDS
+public:
+  MODEL_METADATA_IMPL_HPP(MinMaxFloatOutlet)
+  MinMaxFloatOutlet() = delete;
+  ~MinMaxFloatOutlet() override;
+  MinMaxFloatOutlet(const MinMaxFloatOutlet&) = delete;
+  MinMaxFloatOutlet(Id<Process::Port> c, QObject* parent);
+
+  MinMaxFloatOutlet(DataStream::Deserializer& vis, QObject* parent);
+  MinMaxFloatOutlet(JSONObject::Deserializer& vis, QObject* parent);
+  MinMaxFloatOutlet(DataStream::Deserializer&& vis, QObject* parent);
+  MinMaxFloatOutlet(JSONObject::Deserializer&& vis, QObject* parent);
+
+  void forChildInlets(const smallfun::function<void (Inlet&)>& f) const noexcept override
+  {
+    f(*minInlet);
+    f(*maxInlet);
+  }
+
+  void mapExecution(ossia::outlet& e, const smallfun::function<void (Inlet&, ossia::inlet&)>& f) const noexcept override
+  {
+    auto exec = safe_cast<ossia::minmax_float_outlet*>(&e);
+    f(*minInlet, exec->min_inlet);
+    f(*maxInlet, exec->max_inlet);
+  }
+
+  VIRTUAL_CONSTEXPR PortType type() const noexcept override { return Process::PortType::Message; }
+
+  std::unique_ptr<Process::FloatSlider> minInlet;
+  std::unique_ptr<Process::FloatSlider> maxInlet;
+};
+}
+
+UUID_METADATA(
+    SCORE_LIB_PROCESS_EXPORT,
+    Process::Port,
+    Process::MinMaxFloatOutlet,
+    "047e4cc2-4d99-4e8b-bf98-206018d02274")
+W_OBJECT_IMPL(Process::MinMaxFloatOutlet)
+namespace Process
+{
+MODEL_METADATA_IMPL_CPP(MinMaxFloatOutlet)
+MinMaxFloatOutlet::MinMaxFloatOutlet(Id<Process::Port> c, QObject* parent)
+    : ValueOutlet{std::move(c), parent}
+    , minInlet{std::make_unique<FloatSlider>(Id<Process::Port>{0}, this)}
+    , maxInlet{std::make_unique<FloatSlider>(Id<Process::Port>{1}, this)}
+{
+}
+MinMaxFloatOutlet::~MinMaxFloatOutlet() {}
+
+MinMaxFloatOutlet::MinMaxFloatOutlet(DataStream::Deserializer& vis, QObject* parent)
+    : ValueOutlet{vis, parent}
+{
+  vis.writeTo(*this);
+}
+MinMaxFloatOutlet::MinMaxFloatOutlet(JSONObject::Deserializer& vis, QObject* parent)
+    : ValueOutlet{vis, parent}
+{
+  vis.writeTo(*this);
+}
+MinMaxFloatOutlet::MinMaxFloatOutlet(DataStream::Deserializer&& vis, QObject* parent)
+    : ValueOutlet{vis, parent}
+{
+  vis.writeTo(*this);
+}
+MinMaxFloatOutlet::MinMaxFloatOutlet(JSONObject::Deserializer&& vis, QObject* parent)
+    : ValueOutlet{vis, parent}
+{
+  vis.writeTo(*this);
+}
+
+}
+
+template <>
+SCORE_LIB_PROCESS_EXPORT void
+DataStreamReader::read<Process::MinMaxFloatOutlet>(const Process::MinMaxFloatOutlet& p)
+{
+  // read((Process::Inlet&)p);
+  m_stream
+      << *p.minInlet << *p.maxInlet;
+}
+
+template <>
+SCORE_LIB_PROCESS_EXPORT void
+DataStreamWriter::write<Process::MinMaxFloatOutlet>(Process::MinMaxFloatOutlet& p)
+{
+  static auto& il = components.interfaces<Process::PortFactoryList>();
+
+  p.minInlet.reset((Process::FloatSlider*)deserialize_interface(il, *this, &p));
+  p.maxInlet.reset((Process::FloatSlider*)deserialize_interface(il, *this, &p));
+}
+
+template <>
+SCORE_LIB_PROCESS_EXPORT void
+JSONObjectReader::read<Process::MinMaxFloatOutlet>(const Process::MinMaxFloatOutlet& p)
+{
+  // read((Process::Inlet&)p);
+  obj["MinInlet"] = toJsonObject(*p.minInlet);
+  obj["MaxInlet"] = toJsonObject(*p.maxInlet);
+}
+
+template <>
+SCORE_LIB_PROCESS_EXPORT void
+JSONObjectWriter::write<Process::MinMaxFloatOutlet>(Process::MinMaxFloatOutlet& p)
+{
+  static auto& il = components.interfaces<Process::PortFactoryList>();
+
+  {
+    JSONObjectWriter writer{obj["MinInlet"].toObject()};
+    p.minInlet.reset((Process::FloatSlider*)deserialize_interface(il, writer, &p));
+  }
+  {
+    JSONObjectWriter writer{obj["MaxInlet"].toObject()};
+    p.maxInlet.reset((Process::FloatSlider*)deserialize_interface(il, writer, &p));
+  }
+}
 
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Automation::ProcessModel)
+
 namespace Automation
 {
 
@@ -51,7 +192,7 @@ ProcessModel::ProcessModel(
                         id,
                         Metadata<ObjectKey_k, ProcessModel>::get(),
                         parent}
-    , outlet{Process::make_value_outlet(Id<Process::Port>(0), this)}
+    , outlet{std::make_unique<Process::MinMaxFloatOutlet>(Id<Process::Port>(0), this)}
     , m_min{0.}
     , m_max{1.}
     , m_startState{new ProcessState{*this, 0., this}}
