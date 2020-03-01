@@ -61,15 +61,15 @@ public:
 
   void forChildInlets(const smallfun::function<void (Inlet&)>& f) const noexcept override
   {
-    f(*minInlet);
-    f(*maxInlet);
+    // f(*minInlet);
+    // f(*maxInlet);
   }
 
   void mapExecution(ossia::outlet& e, const smallfun::function<void (Inlet&, ossia::inlet&)>& f) const noexcept override
   {
-    auto exec = safe_cast<ossia::minmax_float_outlet*>(&e);
-    f(*minInlet, exec->min_inlet);
-    f(*maxInlet, exec->max_inlet);
+    // auto exec = safe_cast<ossia::minmax_float_outlet*>(&e);
+    // f(*minInlet, exec->min_inlet);
+    // f(*maxInlet, exec->max_inlet);
   }
 
   VIRTUAL_CONSTEXPR PortType type() const noexcept override { return Process::PortType::Message; }

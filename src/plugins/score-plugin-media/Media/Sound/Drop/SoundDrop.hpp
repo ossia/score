@@ -7,7 +7,7 @@ namespace Media::Sound
 {
 struct DroppedAudioFiles
 {
-  DroppedAudioFiles(const QMimeData& mime);
+  DroppedAudioFiles(const score::DocumentContext& ctx, const QMimeData& mime);
 
   bool valid() const { return !files.empty() && maxDuration != TimeVal::zero(); }
 

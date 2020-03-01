@@ -55,7 +55,9 @@ public:
   double value() const;
 
 public:
-  void valueChanged(double arg_1)
-      E_SIGNAL(SCORE_LIB_BASE_EXPORT, valueChanged, arg_1)
+  void doubleValueChanged(double arg_1)
+      E_SIGNAL(SCORE_LIB_BASE_EXPORT, doubleValueChanged, arg_1)
+private:
+    using QSlider::valueChanged;
 };
 }

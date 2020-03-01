@@ -84,7 +84,7 @@ const Id<Process::ProcessModel>& LayerPresenter::modelId() const
 
 void LayerPresenter::onDrop(const QPointF& p, const QMimeData& mime)
 {
-  DroppedAudioFiles drops{mime};
+  DroppedAudioFiles drops{context().context, mime};
   if (!drops.valid() || drops.files.size() != 1)
   {
     return;

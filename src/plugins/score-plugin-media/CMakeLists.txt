@@ -27,7 +27,7 @@ if(UNIX AND NOT APPLE)
 endif()
 
 if(Faust_FOUND)
-  set(Faust_FOUND NOT "${SCORE_CONFIGURATION}" MATCHES ".*anitize.*")
+  set(Faust_FOUND NOT (("${SCORE_CONFIGURATION}" MATCHES ".*anitize.*") OR SCORE_SANITIZE))
 endif()
 
 # Files & main target

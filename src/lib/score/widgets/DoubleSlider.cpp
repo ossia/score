@@ -42,7 +42,7 @@ DoubleSlider::DoubleSlider(QWidget* parent) : Slider{Qt::Horizontal, parent}
   setMaximum(max + 1.);
 
   connect(this, &QSlider::valueChanged, this, [&](int val) {
-    valueChanged(double(val) / max);
+    doubleValueChanged(double(val) / max);
   });
 }
 
@@ -52,6 +52,7 @@ void DoubleSlider::setValue(double val)
   blockSignals(true);
   QSlider::setValue(val * max);
   blockSignals(false);
+  doubleValueChanged(val);
 }
 
 double DoubleSlider::value() const

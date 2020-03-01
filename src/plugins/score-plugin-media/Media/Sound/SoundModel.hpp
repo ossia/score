@@ -111,4 +111,6 @@ private:
   double m_nativeTempo{};
 };
 }
+
+optional<double> estimateTempo(const AudioFile& file);
 }

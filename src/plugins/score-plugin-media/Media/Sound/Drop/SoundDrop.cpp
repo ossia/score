@@ -15,7 +15,7 @@ namespace Media
 {
 namespace Sound
 {
-DroppedAudioFiles::DroppedAudioFiles(const QMimeData& mime)
+DroppedAudioFiles::DroppedAudioFiles(const score::DocumentContext& ctx, const QMimeData& mime)
 {
   for (const auto& url : mime.urls())
   {
@@ -29,7 +29,13 @@ DroppedAudioFiles::DroppedAudioFiles(const QMimeData& mime)
       auto info = *info_opt;
       if (info.channels > 0 && info.length > 0)
       {
-        const auto dur = info.duration();
+        const auto& file = AudioFileManager::instance().get(filename, ctx);
+
+        auto dur = info.duration();
+        if(auto tempo = estimateTempo(*file))
+        {
+          AudioDecoder::database()[filename].tempo = *tempo;
+        }
         files.emplace_back(std::make_pair(filename, dur));
         maxDuration = std::max(maxDuration, dur);
       }
@@ -59,7 +65,7 @@ std::vector<Process::ProcessDropHandler::ProcessDrop> DropHandler::drop(
 {
   std::vector<Process::ProcessDropHandler::ProcessDrop> vec;
 
-  DroppedAudioFiles drop{mime};
+  DroppedAudioFiles drop{ctx, mime};
   if (!drop.valid())
     return {};
 

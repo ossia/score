@@ -113,11 +113,10 @@ QStringList pluginsDir()
   l << QCoreApplication::applicationDirPath() + "/plugins"
     << QCoreApplication::applicationDirPath() + "../Frameworks/score/plugins";
 #endif
-  auto pwd = QDir{}.absolutePath() + "/plugins";
+  QString pwd = QDir{}.absolutePath() + "/plugins";
 
   if (pwd != l[0])
     l << pwd;
-  qDebug() << l;
   return l;
 }
 
@@ -334,7 +333,7 @@ void loadAddonsInAllFolders(std::vector<score::Addon>& availablePlugins)
     for (const QString& dirName :
          pluginsDir.entryList(QDir::Dirs | QDir::NoDotAndDotDot))
     {
-      auto folder = pluginsFolder + "/" + dirName;
+      QString folder = pluginsFolder + "/" + dirName;
       QFile addonFile{folder + "/localaddon.json"};
 
       // First look for a addon.json file

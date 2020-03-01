@@ -91,7 +91,12 @@ const Id<EventModel>& StateModel::eventId() const
 
 void StateModel::setEventId(const Id<EventModel>& id)
 {
-  m_eventId = id;
+  if(id != m_eventId)
+  {
+    auto old = m_eventId;
+    m_eventId = id;
+    eventChanged(old, id);
+  }
 }
 
 const OptionalId<IntervalModel>& StateModel::previousInterval() const

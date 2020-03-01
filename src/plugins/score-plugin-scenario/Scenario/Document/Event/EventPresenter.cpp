@@ -102,12 +102,16 @@ void EventPresenter::setExtent(const VerticalExtent& extent)
 
 void EventPresenter::addState(StatePresenter* ev)
 {
+  SCORE_ASSERT(!ossia::contains(m_states, ev));
   m_states.push_back(ev);
 }
 
 void EventPresenter::removeState(StatePresenter* ev)
 {
   auto it = ossia::find(m_states, ev);
+#if defined(SCORE_DEBUG)
+  SCORE_ASSERT(it != m_states.end());
+#endif
   if(it != m_states.end())
      m_states.erase(it);
 }

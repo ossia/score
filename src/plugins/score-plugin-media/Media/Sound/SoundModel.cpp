@@ -7,29 +7,7 @@
 W_OBJECT_IMPL(Media::Sound::ProcessModel)
 namespace Media
 {
-namespace Sound
-{
-ProcessModel::ProcessModel(
-    const TimeVal& duration,
-    const QString& data,
-    const Id<Process::ProcessModel>& id,
-    QObject* parent)
-    : Process::ProcessModel{duration,
-                            id,
-                            Metadata<ObjectKey_k, ProcessModel>::get(),
-                            parent}
-    , outlet{Process::make_audio_outlet(Id<Process::Port>(0), this)}
-    , m_file{std::make_shared<AudioFile>()}
-{
-  outlet->setPropagate(true);
-  metadata().setInstanceName(*this);
-  init();
-  setFile(data);
-}
-
-ProcessModel::~ProcessModel() {}
-
-static optional<double> estimateTempo(const AudioFile& file)
+optional<double> estimateTempo(const AudioFile& file)
 {
   auto handle = file.unsafe_handle();
   if (auto file = handle.target<AudioFile::mmap_ptr>())
@@ -56,6 +34,29 @@ static optional<double> estimateTempo(const AudioFile& file)
 
   return {};
 }
+
+namespace Sound
+{
+ProcessModel::ProcessModel(
+    const TimeVal& duration,
+    const QString& data,
+    const Id<Process::ProcessModel>& id,
+    QObject* parent)
+    : Process::ProcessModel{duration,
+                            id,
+                            Metadata<ObjectKey_k, ProcessModel>::get(),
+                            parent}
+    , outlet{Process::make_audio_outlet(Id<Process::Port>(0), this)}
+    , m_file{std::make_shared<AudioFile>()}
+{
+  outlet->setPropagate(true);
+  metadata().setInstanceName(*this);
+  init();
+  setFile(data);
+}
+
+ProcessModel::~ProcessModel() {}
+
 
 void ProcessModel::setFile(const QString& file)
 {

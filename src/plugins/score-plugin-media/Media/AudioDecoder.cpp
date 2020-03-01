@@ -9,6 +9,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <Media/Sound/SoundModel.hpp>
 
 #if __has_include(<libavcodec/avcodec.h>)
 #define SCORE_HAS_LIBAV 1

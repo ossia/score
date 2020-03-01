@@ -124,7 +124,7 @@ score::GUIElements ApplicationPlugin::makeGUIElements()
     sl->setStatusTip("Change the master volume");
     bar->addWidget(sl);
     bar->addAction(m_audioEngineAct);
-    connect(sl, &score::VolumeSlider::valueChanged, this, [=](double v) {
+    connect(sl, &score::VolumeSlider::doubleValueChanged, this, [=](double v) {
       if(!this->audio)
         return;
       if(!this->audio->protocol)

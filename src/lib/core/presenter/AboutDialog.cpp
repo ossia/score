@@ -304,7 +304,7 @@ void AboutDialog::paintEvent(QPaintEvent* event)
 
   // write version and commit
   {
-    auto version_text = QStringLiteral("Version: %1.%2.%3")
+    QString version_text = QStringLiteral("Version: %1.%2.%3")
                             .arg(SCORE_VERSION_MAJOR)
                             .arg(SCORE_VERSION_MINOR)
                             .arg(SCORE_VERSION_PATCH);
@@ -330,7 +330,7 @@ void AboutDialog::paintEvent(QPaintEvent* event)
 
   // write copyright
   {
-    auto copyright_text = QString(
+    QString copyright_text = QString(
         "Copyright © ossia 2014-" + QString::number(QDate::currentDate().year())) + "\nossia score is distributed under the GNU General Public License 3.0";
 
     painter.setFont(m_montserratFont);

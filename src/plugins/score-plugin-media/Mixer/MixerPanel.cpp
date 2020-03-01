@@ -149,7 +149,7 @@ public:
     label.setText(addr);
 
     slider.setValue(*param.value().target<float>());
-    con(slider, &AudioSliderWidget::valueChanged, this, [&](double d) {
+    con(slider, &AudioSliderWidget::doubleValueChanged, this, [&](double d) {
       param.push_value(d);
     });
     idx = param.add_callback([=](const ossia::value& v) {
@@ -209,7 +209,7 @@ public:
     });
 
     m_gainSlider.setValue(param->outlet->gain());
-    con(m_gainSlider, &AudioSliderWidget::valueChanged, this, [this](double d) {
+    con(m_gainSlider, &AudioSliderWidget::doubleValueChanged, this, [this](double d) {
       m_context.dispatcher.submit<Process::SetGain>(*m_model->outlet, d);
     });
     con(m_gainSlider, &AudioSliderWidget::sliderReleased, this, [this] {
@@ -233,7 +233,7 @@ public:
     });
 
     m_panSlider.setPan(param->outlet->pan());
-    con(m_panSlider, &PanSliderWidget::valueChanged, this, [this] (double d) {
+    con(m_panSlider, &PanSliderWidget::doubleValueChanged, this, [this] (double d) {
         double l = sin((1. - d) * ossia::half_pi);
         double r = sin(d * ossia::half_pi);
         m_context.dispatcher.submit<Process::SetPan>(*m_model->outlet, ossia::pan_weight{l, r});

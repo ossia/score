@@ -9,7 +9,7 @@ namespace score
 {
 QString OpenDocumentsFile::path()
 {
-  static QString path = [] {
+  static QString path = [] () -> QString {
     auto paths
         = QStandardPaths::standardLocations(QStandardPaths::TempLocation);
     return paths.first() + "/score_open_docs";

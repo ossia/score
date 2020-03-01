@@ -114,7 +114,15 @@ static void setup_opengl()
   fmt.setMajorVersion(4);
   fmt.setMinorVersion(1);
   fmt.setProfile(QSurfaceFormat::CoreProfile);
-  fmt.setSamples(16);
+
+  fmt.setDepthBufferSize(0);
+  fmt.setStencilBufferSize(0);
+  fmt.setAlphaBufferSize(8);
+
+  fmt.setSamples(1);
+  fmt.setSwapInterval(1);
+  fmt.setColorSpace(QSurfaceFormat::DefaultColorSpace);
+
   fmt.setDefaultFormat(fmt);
 #else
   QSurfaceFormat fmt;

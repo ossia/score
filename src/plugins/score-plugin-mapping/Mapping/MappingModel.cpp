@@ -93,7 +93,7 @@ void ProcessModel::init()
 
 QString ProcessModel::prettyName() const noexcept
 {
-  auto str = sourceAddress().toString_unsafe() + " -> "
+  QString str = sourceAddress().toString_unsafe() + " -> "
              + targetAddress().toString_unsafe();
   if (str != " -> ")
     return str;

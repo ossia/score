@@ -710,7 +710,7 @@ public:
     this->setFocusProxy(&m_edit);
 
     connect(
-        &m_slider, &score::DoubleSlider::valueChanged, this, [=](double v) {
+        &m_slider, &score::DoubleSlider::doubleValueChanged, this, [=](double v) {
           m_edit.setValue(min + v * (max - min));
         });
 

@@ -20,10 +20,11 @@ struct AudioInfo
   int64_t channels{};
   int64_t length{};
   int64_t max_arr_length{};
+  double tempo{120.};
 
   // Duration
   TimeVal duration() const noexcept {
-    return TimeVal::fromMsecs(1000. * double(length) / double(rate));
+    return TimeVal::fromMsecs(1000. * (double(length) / double(rate)) * (tempo / 120.));
   }
 };
 

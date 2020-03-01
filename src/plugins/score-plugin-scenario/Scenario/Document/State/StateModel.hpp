@@ -1,6 +1,7 @@
 #pragma once
 #include <Process/Instantiations.hpp>
 #include <Process/Process.hpp>
+#include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/Event/ExecutionStatus.hpp>
 #include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
 
@@ -118,6 +119,9 @@ public:
       E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, heightPercentageChanged)
   void statusChanged(Scenario::ExecutionStatus arg_1)
       E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, statusChanged, arg_1)
+
+  void eventChanged(Id<Scenario::EventModel> oldev, Id<Scenario::EventModel> newev)
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, eventChanged, oldev, newev)
 
 private:
   void statesUpdated_slt();

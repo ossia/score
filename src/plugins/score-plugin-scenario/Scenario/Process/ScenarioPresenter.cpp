@@ -406,8 +406,18 @@ void ScenarioPresenter::on_stateRemoved(const StateModel& state)
 {
   EventPresenter& ev = m_events.at(state.eventId());
   ev.removeState(&m_states.at(state.id()));
+
   updateEventExtent(*this, ev, m_view->height());
 
+#if defined(SCORE_DEBUG)
+  for(auto& ev : m_events)
+  {
+    for(auto st : ev.states())
+    {
+      SCORE_ASSERT(st->id() != state.id());
+    }
+  }
+#endif
   removeElement(m_states, state.id());
 }
 
@@ -873,11 +883,29 @@ void ScenarioPresenter::on_stateCreated(const StateModel& state)
   m_viewInterface.on_stateMoved(*st_pres);
 
   EventPresenter& ev_pres = m_events.at(state.eventId());
+/*
+  for(auto& ev : m_events)
+  {
+    for(auto st : ev.states())
+    {
+      SCORE_ASSERT(st->id() != state.id());
+    }
+  }*/
   ev_pres.addState(st_pres);
 
-  con(state, &StateModel::heightPercentageChanged, this, [this, st_pres, &ev_pres] {
+  con(state, &StateModel::heightPercentageChanged, this, [this, st_pres] {
     m_viewInterface.on_stateMoved(*st_pres);
-    updateEventExtent(*this, ev_pres, m_view->height());
+    updateEventExtent(*this, m_events.at(st_pres->model().eventId()), m_view->height());
+  });
+  con(state, &StateModel::eventChanged, this, [this, st_pres] (const auto& oldid, const auto& newid) {
+    EventPresenter& oldev = m_events.at(oldid);
+    EventPresenter& newev = m_events.at(newid);
+    const auto h = m_view->height();
+    oldev.removeState(st_pres);
+    newev.addState(st_pres);
+
+    updateEventExtent(*this, oldev, h);
+    updateEventExtent(*this, newev, h);
   });
   updateEventExtent(*this, ev_pres, m_view->height());
 

@@ -185,9 +185,9 @@ void IntervalModel::removeSignature(TimeVal t)
 
 void IntervalModel::setTimeSignatureMap(const TimeSignatureMap& map)
 {
-  qDebug() << "New map";
-  for(auto& [a,b]: map)
-    qDebug() << a.msec() << b.upper << "/" << b.lower;
+  // qDebug() << "New map";
+  // for(auto& [a,b]: map)
+  //   qDebug() << a.msec() << b.upper << "/" << b.lower;
   if(map != m_signatures)
   {
     m_signatures = map;

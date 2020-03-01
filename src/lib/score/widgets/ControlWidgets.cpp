@@ -113,7 +113,7 @@ SpeedSlider::SpeedSlider(QWidget* parent) : DoubleSlider{parent}
 
 double SpeedSlider::speed() const noexcept
 {
-  return speedFromValue(value());
+  return std::round(1000 * speedFromValue(value())) / 1000;
 }
 
 void SpeedSlider::setSpeed(double v)
@@ -123,7 +123,7 @@ void SpeedSlider::setSpeed(double v)
 
 void SpeedSlider::setTempo(double t)
 {
-  setValue(valueFromSpeed(t / 120.));
+  setValue(valueFromSpeed(t / ossia::root_tempo));
 }
 
 void SpeedSlider::paintEvent(QPaintEvent*)
@@ -134,7 +134,7 @@ void SpeedSlider::paintEvent(QPaintEvent*)
         ? ""
         : (showText) ? "speed: × " : "× ";
 
-  double v = speedFromValue(value());
+  double v = speed();
   if(tempo)
   {
     v *= ossia::root_tempo;
@@ -167,21 +167,21 @@ void SpeedSlider::mousePressEvent(QMouseEvent* ev)
       {
         w->setRange(20., 500.);
         w->setDecimals(1);
-        w->setValue(speedFromValue(self.value()) * 120.);
+        w->setValue(speed() * ossia::root_tempo);
 
         QObject::connect(
             w,
             SignalUtils::QDoubleSpinBox_valueChanged_double(),
             &self,
             [=, &self](double v) {
-          self.setValue(valueFromSpeed(v / 120.));
+          self.setValue(valueFromSpeed(v / ossia::root_tempo));
         });
       }
       else
       {
         w->setRange(-1., 5.);
         w->setDecimals(2);
-        w->setValue(speedFromValue(self.value()));
+        w->setValue(speed());
 
         QObject::connect(
             w,

@@ -32,7 +32,6 @@ SpeedWidget::SpeedWidget(
     {
       auto& dur = ((IntervalModel&)(*m_model)).duration;
       auto s = m_slider->speed();
-      qDebug() << s;
       if (dur.speed() != s)
       {
         dur.setSpeed(s);
@@ -77,7 +76,7 @@ SpeedWidget::SpeedWidget(
   {
     lay->addWidget(m_slider, 0, 0, 1, 1);
   }
-  connect(m_slider, &QSlider::valueChanged, this, setSpeedFun);
+  connect(m_slider, &score::SpeedSlider::doubleValueChanged, this, setSpeedFun);
 }
 
 SpeedWidget::~SpeedWidget() {}

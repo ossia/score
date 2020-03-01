@@ -283,7 +283,7 @@ AudioOutlet::AudioOutlet(Id<Process::Port> c, QObject* parent)
   , gainInlet{std::make_unique<ControlInlet>(Id<Process::Port>{0}, this)}
   , panInlet{std::make_unique<ControlInlet>(Id<Process::Port>{1}, this)}
   , m_gain{1.}
-  , m_pan{ossia::sqrt_2 / 2., ossia::sqrt_2 / 2.}
+  , m_pan{1., 1.}
 {
 }
 
