@@ -23,7 +23,7 @@
 #include <score/plugins/SerializableHelpers.hpp>
 #include <ossia/editor/state/destination_qualifiers.hpp>
 #include <ossia/dataflow/port.hpp>
-
+#include <wobjectimpl.h>
 namespace ossia
 {
 class minmax_float_outlet : public value_outlet
@@ -39,6 +39,7 @@ public:
   ossia::value_inlet max_inlet;
 };
 }
+
 namespace Process
 {
 class SCORE_LIB_PROCESS_EXPORT MinMaxFloatOutlet : public ValueOutlet
@@ -84,6 +85,7 @@ UUID_METADATA(
     Process::MinMaxFloatOutlet,
     "047e4cc2-4d99-4e8b-bf98-206018d02274")
 W_OBJECT_IMPL(Process::MinMaxFloatOutlet)
+
 namespace Process
 {
 MODEL_METADATA_IMPL_CPP(MinMaxFloatOutlet)

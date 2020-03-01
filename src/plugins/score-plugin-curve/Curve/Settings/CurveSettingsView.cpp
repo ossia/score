@@ -93,7 +93,7 @@ View::View() : m_widg{new QWidget}
   m_widg->setLayout(lay);
 }
 
-void View::setSimplificationRatio(double val)
+void View::setSimplificationRatio(int val)
 {
   if (val != m_sb->value())
     m_sb->setValue(val);

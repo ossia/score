@@ -17,7 +17,7 @@ struct WordList : public QStringList
     if (f.open(QFile::Text | QFile::ReadOnly))
     {
       QString list = f.readAll();
-      static_cast<QStringList&>(*this) = list.split("\n");
+      static_cast<QStringList&>(*this) = list.split("\n", Qt::KeepEmptyParts);
     }
     else
     {

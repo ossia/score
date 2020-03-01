@@ -28,4 +28,4 @@ if(MSYS OR MINGW)
   set(SCORE_ENABLE_LTO False)
 endif()
 
-include(minimal-plugins)
+include(default-plugins)

@@ -17,7 +17,7 @@ class View : public score::GlobalSettingsView
 public:
   View();
 
-  void setSimplificationRatio(double);
+  void setSimplificationRatio(int);
   void setSimplify(bool);
   void setMode(Mode);
   void setPlayWhileRecording(bool);

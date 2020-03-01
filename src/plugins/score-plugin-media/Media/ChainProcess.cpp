@@ -5,7 +5,7 @@
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 
 #include <Media/Commands/InsertEffect.hpp>
-
+#include <wobjectimpl.h>
 W_OBJECT_IMPL(Media::ChainProcess)
 namespace Media
 {

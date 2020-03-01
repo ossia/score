@@ -25,7 +25,7 @@ namespace Library::Settings
 
 namespace Parameters
 {
-SETTINGS_PARAMETER_IMPL(Path){QStringLiteral("Library/Path"), [] {
+SETTINGS_PARAMETER_IMPL(Path){QStringLiteral("Library/Path"), [] () -> QString {
                                 auto paths = QStandardPaths::standardLocations(
                                     QStandardPaths::DocumentsLocation);
                                 return paths[0] + "/ossia score library";

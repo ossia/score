@@ -20,7 +20,7 @@ public:
   }
   static const CommandKey& static_key() noexcept
   {
-    auto name = QString("ChangeElementExtendedMetadata_")
+    QString name = QString("ChangeElementExtendedMetadata_")
                 + Metadata<ObjectKey_k, T>::get();
     static const CommandKey kagi{std::move(name)};
     return kagi;

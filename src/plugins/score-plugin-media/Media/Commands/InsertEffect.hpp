@@ -89,7 +89,7 @@ public:
 
   static const CommandKey& static_key() noexcept
   {
-    auto name = QString("InsertEffect_") + Metadata<ObjectKey_k, T>::get();
+    QString name = QString("InsertEffect_") + Metadata<ObjectKey_k, T>::get();
     static const CommandKey kagi{std::move(name)};
     return kagi;
   }

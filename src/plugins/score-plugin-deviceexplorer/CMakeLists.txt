@@ -3,7 +3,7 @@ project(score_plugin_deviceexplorer LANGUAGES CXX)
 score_common_setup()
 
 # Packages
-find_package(Qt5 5.3 REQUIRED COMPONENTS Core Widgets Network Test Xml)
+find_package(Qt5 5.3 REQUIRED COMPONENTS Core Widgets Network Xml)
 
 # Files & main target
 ### Plugin ###

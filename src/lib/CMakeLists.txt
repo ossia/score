@@ -2,7 +2,7 @@ project(score_lib_base LANGUAGES CXX)
 score_common_setup()
 
 # Packages
-find_package(Qt5 5.7 REQUIRED COMPONENTS Core Widgets OPTIONAL_COMPONENTS Svg)
+find_package(Qt5 5.7 QUIET OPTIONAL_COMPONENTS Svg)
 
 file(GENERATE
   OUTPUT
