@@ -107,6 +107,9 @@ include_directories(SYSTEM "${OSSIA_3RDPARTY_FOLDER}/exprtk")
 include_directories(SYSTEM "${OSSIA_3RDPARTY_FOLDER}/multi_index/include")
 
 include_directories(SYSTEM "${3RDPARTY_FOLDER}/magicitems/include/")
+if(BOOST_ROOT)
+  include_directories(SYSTEM "${BOOST_ROOT}")
+endif()
 
 set(SCORE_LIBRARIES_LIST CACHE INTERNAL "List of libraries")
 set(SCORE_PLUGINS_LIST CACHE INTERNAL "List of plugins")

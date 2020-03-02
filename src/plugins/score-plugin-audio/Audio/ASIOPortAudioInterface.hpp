@@ -2,6 +2,7 @@
 #include <Audio/PortAudioInterface.hpp>
 #include <Audio/AudioInterface.hpp>
 #include <Audio/Settings/Model.hpp>
+#include <QPushButton>
 
 #if __has_include(<pa_asio.h>)
 #include <pa_asio.h>

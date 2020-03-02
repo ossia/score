@@ -44,23 +44,10 @@ Skin::Skin() noexcept
 {
   "APCCourier-Bold", int(7 * 96. / 72.), QFont::Normal
 }
-
-#if defined(_WIN32)
-, SansFontSmall
-{
-  "Ubuntu", int(6 * 96. / 72.)
-}
-#elif defined(__APPLE__)
-, SansFontSmall
-{
-  "Ubuntu", int(8 * 96. / 72.)
-}
-#else
 , SansFontSmall
 {
   "Ubuntu", int(7 * 96. / 72.)
 }
-#endif
 , TransparentPen{Qt::transparent}, TransparentBrush{Qt::transparent},
     NoPen{Qt::NoPen}, NoBrush{Qt::NoBrush}, TextBrush{QColor("#1f2a30")},
     m_colorMap(new color_map{
@@ -132,19 +119,11 @@ Skin::Skin() noexcept
   this->startTimer(32, Qt::CoarseTimer);
 
   Bold10Pt = SansFont;
-#if defined(_WIN32)
-  Bold10Pt.setPixelSize(8);
-#else
   Bold10Pt.setPixelSize(10 * 96./ 72.);
-#endif
   Bold10Pt.setBold(true);
 
   Bold12Pt = Bold10Pt;
-#if defined(_WIN32)
-  Bold12Pt.setPixelSize(10);
-#else
   Bold12Pt.setPixelSize(12 * 96./ 72.);
-#endif
 
   Medium7Pt = SansFont;
   Medium7Pt.setPixelSize(7 * 96./ 72.);
@@ -153,18 +132,10 @@ Skin::Skin() noexcept
   Medium8Pt.setPixelSize(8 * 96./ 72.);
 
   Medium10Pt = SansFont;
-#if defined(_WIN32)
-  Medium10Pt.setPixelSize(8);
-#else
   Medium10Pt.setPixelSize(10 * 96./ 72.);
-#endif
 
   Medium12Pt = SansFont;
-#if defined(_WIN32)
-  Medium12Pt.setPixelSize(10);
-#else
   Medium12Pt.setPixelSize(12 * 96./ 72.);
-#endif
 
   SliderBrush = QColor("#252930");
   SliderExtBrush = QColor("#666");
