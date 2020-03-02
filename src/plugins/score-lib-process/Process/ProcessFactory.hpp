@@ -60,6 +60,7 @@ class SCORE_LIB_PROCESS_EXPORT LayerFactory : public score::InterfaceBase
 {
   SCORE_INTERFACE(ProcessModel, "aeee61e4-89aa-42ec-aa33-bf4522ed710b")
 public:
+  static const constexpr bool ui_interface = true;
   ~LayerFactory() override;
 
   virtual Process::LayerPresenter* makeLayerPresenter(

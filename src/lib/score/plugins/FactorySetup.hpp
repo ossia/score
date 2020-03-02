@@ -1,6 +1,6 @@
 #pragma once
 #include <score/plugins/InterfaceList.hpp>
-
+#include <core/application/ApplicationSettings.hpp>
 #include <ossia/detail/for_each.hpp>
 
 #include <type_traits>
@@ -53,6 +53,13 @@ void fill_ptr_vector(
   });
 }
 
+
+template<typename T, typename Enable = void>
+struct has_ui : public std::false_type { };
+template<typename T>
+struct has_ui<T, std::enable_if_t<T::ui_interface>> {
+  static const constexpr bool value = T::ui_interface;
+};
 /**
  * \class FW_T
  * \brief Used to group base classes and concrete classes in a single argument
@@ -72,6 +79,14 @@ struct FW_T
       const score::InterfaceKey& fact,
       std::vector<std::unique_ptr<score::InterfaceBase>>& vec) noexcept
   {
+    if constexpr(has_ui<Factory_T>::value)
+    {
+      if(!ctx.applicationSettings.gui)
+      {
+        return false;
+      }
+    }
+
     if (fact == Factory_T::static_interfaceKey())
     {
       fill_ptr_vector<Context_T, score::InterfaceBase, Types_T...>(ctx, vec);

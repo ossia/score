@@ -516,6 +516,7 @@ void TemporalIntervalPresenter::createSmallSlot(int pos, const Slot& slt)
 
     {
       p.headerDelegate = factory->makeHeaderDelegate(*proc, m_context, nullptr);
+      p.headerDelegate->updateText();
       p.headerDelegate->setParentItem(p.header);
       //p.headerDelegate->setFlag(QGraphicsItem::GraphicsItemFlag::ItemClipsToShape);
       //p.headerDelegate->setFlag(QGraphicsItem::GraphicsItemFlag::ItemClipsChildrenToShape);

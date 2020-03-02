@@ -111,7 +111,7 @@ void View::paint_impl(QPainter* p) const
 
 void View::mousePressEvent(QGraphicsSceneMouseEvent* ev)
 {
-  if (ev && ev->button() == Qt::RightButton)
+  if (ev->button() == Qt::RightButton)
   {
     askContextMenu(ev->screenPos(), ev->scenePos());
   }

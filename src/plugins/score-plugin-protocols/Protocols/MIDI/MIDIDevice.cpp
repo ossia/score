@@ -38,8 +38,8 @@ bool MIDIDevice::reconnect()
 {
   disconnect();
   auto old = m_dev.get();
-  m_dev.reset();
   deviceChanged(old, nullptr);
+  m_dev.reset();
 
   MIDISpecificSettings set
       = settings().deviceSpecificSettings.value<MIDISpecificSettings>();

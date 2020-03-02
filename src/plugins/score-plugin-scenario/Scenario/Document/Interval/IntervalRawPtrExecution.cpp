@@ -16,6 +16,7 @@
 #include <score/model/Identifier.hpp>
 #include <score/tools/IdentifierGeneration.hpp>
 #include <score/tools/Bind.hpp>
+#include <core/application/ApplicationSettings.hpp>
 
 #include <ossia/dataflow/graph/graph_interface.hpp>
 #include <ossia/dataflow/graph_edge.hpp>
@@ -212,17 +213,20 @@ void IntervalRawPtrComponent::onSetup(
   m_ossia_interval->set_time_signature_map(timeSignatureMap(interval(), context()));
   m_ossia_interval->set_quarter_duration(ossia::quarter_duration<double>); // In our ideal musical world, a "quarter" is half a logical second
 
-  std::weak_ptr<IntervalRawPtrComponent> weak_self = self;
-  in_exec([weak_self, ossia_cst, &edit = system().editionQueue] {
-    ossia_cst->set_stateless_callback(
-        smallfun::function<void(ossia::time_value), 32>{
-            [weak_self, &edit](ossia::time_value date) {
-              edit.enqueue([weak_self, date] {
-                if (auto self = weak_self.lock())
-                  self->slot_callback(date);
-              });
-            }});
-  });
+  if(context().doc.app.applicationSettings.gui)
+  {
+    std::weak_ptr<IntervalRawPtrComponent> weak_self = self;
+    in_exec([weak_self, ossia_cst, &edit = system().editionQueue] {
+      ossia_cst->set_stateless_callback(
+          smallfun::function<void(ossia::time_value), 32>{
+              [weak_self, &edit](ossia::time_value date) {
+                edit.enqueue([weak_self, date] {
+                  if (auto self = weak_self.lock())
+                    self->slot_callback(date);
+                });
+              }});
+    });
+  }
 
   // set-up the interval ports
   system().setup.register_node(

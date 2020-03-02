@@ -4,7 +4,8 @@
 
 #include <score/model/Skin.hpp>
 #include <score/plugins/InterfaceList.hpp>
-
+#include <score/application/ApplicationContext.hpp>
+#include <core/application/ApplicationSettings.hpp>
 #include <QFile>
 #include <QJsonDocument>
 #include <QJsonObject>
@@ -61,6 +62,8 @@ QString Model::getSkin() const
 void Model::setSkin(const QString& skin)
 {
   if (m_Skin == skin)
+    return;
+  if(!score::AppContext().applicationSettings.gui)
     return;
 
   QFile f(skin);

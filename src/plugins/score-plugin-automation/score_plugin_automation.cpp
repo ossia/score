@@ -57,8 +57,6 @@ public:
 
     con(model, &model_t::minChanged, this, [=] { updateText(); });
     con(model, &model_t::maxChanged, this, [=] { updateText(); });
-
-    updateText();
   }
 
   void updateText() override

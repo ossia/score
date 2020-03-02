@@ -377,9 +377,11 @@ static void updateDragLineCoords(QGraphicsScene& scene, QPointF pt)
 
     portDragLineCoords.setP2(cur_center);
     magneticDropPort = cur_port;
-    magneticDropPort->m_diam = 12;
-    magneticDropPort->update();
-
+    if(magneticDropPort)
+    {
+      magneticDropPort->m_diam = 12;
+      magneticDropPort->update();
+    }
     return;
   }
   magneticDropPort = nullptr;

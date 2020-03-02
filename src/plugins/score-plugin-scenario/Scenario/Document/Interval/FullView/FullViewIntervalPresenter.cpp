@@ -309,6 +309,7 @@ void FullViewIntervalPresenter::createSlot(int slot_i, const FullSlot& slt)
 
   {
     slot.headerDelegate = factory->makeHeaderDelegate(proc, m_context, ld.mainPresenter());
+    slot.headerDelegate->updateText();
     slot.headerDelegate->setParentItem(slot.header);
     //slot.headerDelegate->setFlag(QGraphicsItem::GraphicsItemFlag::ItemClipsToShape);
     //slot.headerDelegate->setFlag(QGraphicsItem::GraphicsItemFlag::ItemClipsChildrenToShape);

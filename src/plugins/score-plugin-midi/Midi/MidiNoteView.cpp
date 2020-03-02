@@ -29,7 +29,7 @@ void NoteView::paint(
     const QStyleOptionGraphicsItem* option,
     QWidget* widget)
 {
-  static MidiStyle s;
+  static const MidiStyle s;
 
   painter->setRenderHint(QPainter::Antialiasing, false);
 

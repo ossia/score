@@ -89,8 +89,6 @@ DefaultHeaderDelegate::DefaultHeaderDelegate(
         update();
       },
       Qt::QueuedConnection);
-
-  updateText();
 }
 
 DefaultHeaderDelegate::~DefaultHeaderDelegate() {}
