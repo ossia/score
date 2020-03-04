@@ -43,7 +43,7 @@ cmake_policy(SET CMP0079 NEW)
 set(SCORE_VERSION_MAJOR 3)
 set(SCORE_VERSION_MINOR 0)
 set(SCORE_VERSION_PATCH 0)
-set(SCORE_VERSION_EXTRA "alpha0")
+set(SCORE_VERSION_EXTRA "alpha1")
 set(SCORE_CODENAME "La poutine aux lardons : épistémologie d'une culture culinaire")
 
 set(SCORE_VERSION

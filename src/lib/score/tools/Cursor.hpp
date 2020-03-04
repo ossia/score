@@ -19,7 +19,7 @@ inline void setCursorPos(QPointF pos) noexcept
   CGEventPost(kCGHIDEventTap, e);
   CFRelease(e);
 #else
-  QCursor::setPos(pos);
+  QCursor::setPos(pos.toPoint());
 #endif
 }
 inline void moveCursorPos(QPointF pos) noexcept
@@ -40,7 +40,7 @@ inline void moveCursorPos(QPointF pos) noexcept
   CGEventPost(kCGHIDEventTap, e);
   CFRelease(e);
 #else
-  QCursor::setPos(pos);
+  QCursor::setPos(pos.toPoint());
 #endif
 }
 }
