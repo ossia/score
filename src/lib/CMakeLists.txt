@@ -183,6 +183,7 @@ set(HEADERS
     "${CMAKE_CURRENT_SOURCE_DIR}/score/statemachine/StateMachineTools.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/statemachine/StateMachineUtils.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/tools/Clamp.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/score/tools/Cursor.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/tools/DeleteAll.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/tools/File.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/tools/ForEachType.hpp"

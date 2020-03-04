@@ -100,7 +100,7 @@ Skin::Skin() noexcept
 
   for(QFont* font : {&SansFont, &SansFontSmall, &MonoFont, &MonoFontSmall})
   {
-    font->setStyleStrategy(QFont::OpenGLCompatible);
+    font->setStyleStrategy(QFont::ForceOutline);
     font->setHintingPreference(QFont::PreferVerticalHinting);
   }
 

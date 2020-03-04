@@ -775,6 +775,7 @@ void TemporalIntervalPresenter::on_layerModelPutToFront(
         ld.setZValue(2);
         {
         slt.headerDelegate = factory->makeHeaderDelegate(ld.model(), m_context, ld.mainPresenter());
+        slt.headerDelegate->updateText();
         slt.headerDelegate->setParentItem(slt.header);
         slt.headerDelegate->setFlag(QGraphicsItem::GraphicsItemFlag::ItemClipsToShape);
         slt.headerDelegate->setFlag(QGraphicsItem::GraphicsItemFlag::ItemClipsChildrenToShape);

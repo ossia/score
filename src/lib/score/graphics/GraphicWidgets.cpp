@@ -645,9 +645,9 @@ struct DefaultComboImpl
       const double max = currentGeometry.height();
 
       if (event->screenPos().y() <= 0)
-        QCursor::setPos(QPoint(event->screenPos().x(), max));
+        score::setCursorPos(QPointF(event->screenPos().x(), max));
       else if (event->screenPos().y() >= max)
-        QCursor::setPos(QPoint(event->screenPos().x(), 0));
+        score::setCursorPos(QPointF(event->screenPos().x(), 0));
 
       double v = origValue - currentDelta / max;
       if (v <= 0.)
@@ -678,7 +678,7 @@ struct DefaultComboImpl
   {
     if (event->button() == Qt::LeftButton)
     {
-      QCursor::setPos(event->buttonDownScreenPos(Qt::LeftButton));
+      score::setCursorPos(event->buttonDownScreenPos(Qt::LeftButton));
       self.unsetCursor();
 
       if (self.m_grab)
