@@ -507,7 +507,7 @@ private:
 
     QRectF boundingRect() const final override
     {
-      return {0., 0., m_width, 17.};
+      return {0., 0., m_width, 1.};
     }
 
     void paint(
