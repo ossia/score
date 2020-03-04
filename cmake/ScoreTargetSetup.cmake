@@ -373,23 +373,25 @@ function(setup_score_common_lib_features TheTarget)
 
   get_target_property(_srcDir ${TheTarget} SOURCE_DIR)
   get_target_property(_binDir ${TheTarget} BINARY_DIR)
-  install(DIRECTORY "${_srcDir}/"
+
+  if(SCORE_INSTALL_HEADERS)
+    install(DIRECTORY "${_srcDir}/"
+            DESTINATION include/score
+            COMPONENT Devel
+            FILES_MATCHING
+            PATTERN "*.hpp"
+            PATTERN ".git" EXCLUDE
+            PATTERN "tests" EXCLUDE
+            PATTERN "Tests" EXCLUDE
+    )
+    install(FILES
+          ${_binDir}/${TheTarget}_export.h
+          ${_binDir}/${TheTarget}_commands.hpp
+          ${_binDir}/${TheTarget}_commands_files.hpp
           DESTINATION include/score
           COMPONENT Devel
-          FILES_MATCHING
-          PATTERN "*.hpp"
-          PATTERN ".git" EXCLUDE
-          PATTERN "tests" EXCLUDE
-          PATTERN "Tests" EXCLUDE
-  )
-  install(FILES
-        ${_binDir}/${TheTarget}_export.h
-        ${_binDir}/${TheTarget}_commands.hpp
-        ${_binDir}/${TheTarget}_commands_files.hpp
-        DESTINATION include/score
-        COMPONENT Devel
-        OPTIONAL)
-
+          OPTIONAL)
+  endif()
   string(TOUPPER "${TheTarget}" UPPERCASE_PLUGIN_NAME)
   target_include_directories(${TheTarget} INTERFACE "${CMAKE_CURRENT_SOURCE_DIR}")
   target_compile_definitions(${TheTarget} INTERFACE "${UPPERCASE_PLUGIN_NAME}")
