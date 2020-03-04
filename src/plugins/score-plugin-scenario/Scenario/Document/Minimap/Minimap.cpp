@@ -11,8 +11,9 @@
 #include <QPainter>
 #include <QWidget>
 #include <QGraphicsView>
-
 #include <wobjectimpl.h>
+#include <score/tools/Cursor.hpp>
+
 W_OBJECT_IMPL(Scenario::Minimap)
 namespace Scenario
 {
@@ -122,15 +123,8 @@ void Minimap::paint(
   painter->drawLine(bottom_right, bottom_right + QPointF{0., -line_length});
 }
 
-#if defined(__APPLE__)
-std::chrono::time_point<std::chrono::high_resolution_clock> t0, t1;
-#endif
 void Minimap::mousePressEvent(QGraphicsSceneMouseEvent* ev)
 {
-#if defined(__APPLE__)
-  t0 = std::chrono::high_resolution_clock::now();
-  t1 = std::chrono::high_resolution_clock::now();
-#endif
   m_gripLeft = false;
   m_gripRight = false;
   m_gripMid = false;
@@ -149,7 +143,7 @@ void Minimap::mousePressEvent(QGraphicsSceneMouseEvent* ev)
     return;
   }
 
-  m_startPos = ev->screenPos();
+  m_startPos = m_viewport->mapToGlobal(QPoint{0,0}) + ev->pos();
   m_relativeStartX
       = (ev->pos().x() - m_leftHandle) / (m_rightHandle - m_leftHandle);
   m_startY = ev->pos().y();
@@ -167,14 +161,6 @@ void Minimap::mousePressEvent(QGraphicsSceneMouseEvent* ev)
 }
 void Minimap::mouseMoveEvent(QGraphicsSceneMouseEvent* ev)
 {
-#if defined(__APPLE__)
-  t1 = std::chrono::high_resolution_clock::now();
-  if (t1 - t0 < std::chrono::milliseconds(16))
-  {
-    return;
-  }
-  t0 = t1;
-#endif
   const auto pos = ev->screenPos();
   if (m_gripLeft || m_gripRight || m_gripMid)
   {
@@ -198,7 +184,7 @@ void Minimap::mouseMoveEvent(QGraphicsSceneMouseEvent* ev)
       }
     }
 
-    QCursor::setPos(m_startPos);
+    score::moveCursorPos(m_startPos);
 
     visibleRectChanged(m_leftHandle, m_rightHandle);
 
@@ -229,7 +215,7 @@ void Minimap::mouseReleaseEvent(QGraphicsSceneMouseEvent* ev)
         m_rightHandle));
     pos.setY(m_startY);
 
-    QCursor::setPos(m_viewport->mapToGlobal(pos.toPoint()));
+    score::setCursorPos(QPointF{m_viewport->mapToGlobal(QPoint{0,0})} + pos);
     ev->accept();
     return;
   }

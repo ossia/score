@@ -3,6 +3,7 @@
 #include <score/widgets/SignalUtils.hpp>
 
 #include <ossia/detail/math.hpp>
+#include <score/tools/Cursor.hpp>
 
 #include <QDoubleSpinBox>
 #include <QGraphicsSceneMouseEvent>
@@ -114,10 +115,9 @@ struct DefaultGraphicsKnobImpl
         currentDelta += ratio * delta;
 
       if (event->screenPos().y() <= 0)
-        QCursor::setPos(
-            QPoint(event->screenPos().x(), currentGeometry.height()));
+        score::setCursorPos(QPointF(event->screenPos().x(), currentGeometry.height()));
       else if (event->screenPos().y() >= currentGeometry.height())
-        QCursor::setPos(QPoint(event->screenPos().x(), 0));
+        score::setCursorPos(QPointF(event->screenPos().x(), 0));
 
       double v = origValue - currentDelta / currentGeometry.height();
       if (v <= 0.)
@@ -147,7 +147,7 @@ struct DefaultGraphicsKnobImpl
   {
     if (event->button() == Qt::LeftButton)
     {
-      QCursor::setPos(event->buttonDownScreenPos(Qt::LeftButton));
+      score::setCursorPos(event->buttonDownScreenPos(Qt::LeftButton));
       self.unsetCursor();
       if (self.m_grab)
       {
