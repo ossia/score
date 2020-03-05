@@ -1,11 +1,13 @@
 #pragma once
 // See https://github.com/LMMS/lmms/issues/5194 for the rationale.
-#include <QPointF>
+// And https://soffes.blog/aggressively-hiding-the-cursor for the hiding
 #if defined(__APPLE__)
 #include <ApplicationServices/ApplicationServices.h>
-#else
-#include <QCursor>
 #endif
+
+#include <QPointF>
+#include <QCursor>
+#include <score_lib_base_export.h>
 namespace score
 {
 inline void setCursorPos(QPointF pos) noexcept
@@ -43,4 +45,23 @@ inline void moveCursorPos(QPointF pos) noexcept
   QCursor::setPos(pos.toPoint());
 #endif
 }
+
+
+#if defined(__APPLE__)
+SCORE_LIB_BASE_EXPORT
+void hideCursor(bool hasCursor);
+
+SCORE_LIB_BASE_EXPORT
+void showCursor();
+#else
+
+inline void hideCursor(bool hasCursor)
+{
+  QApplication::changeOverrideCursor(QCursor(Qt::BlankCursor));
+}
+inline void showCursor()
+{
+  QApplication::restoreOverrideCursor();
+}
+#endif
 }

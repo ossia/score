@@ -143,18 +143,32 @@ void Minimap::mousePressEvent(QGraphicsSceneMouseEvent* ev)
     return;
   }
 
+#if defined(__APPLE__)
+  CGEventRef event = CGEventCreate(nullptr);
+  CGPoint loc = CGEventGetLocation(event);
+  CFRelease(event);
+
+  m_startPos = {loc.x, loc.y};
+#else
   m_startPos = m_viewport->mapToGlobal(QPoint{0,0}) + ev->pos();
+#endif
+
   m_relativeStartX
       = (ev->pos().x() - m_leftHandle) / (m_rightHandle - m_leftHandle);
   m_startY = ev->pos().y();
 
   if (m_setCursor)
   {
-    QApplication::changeOverrideCursor(QCursor(Qt::BlankCursor));
+    score::hideCursor(true);
+    //QApplication::changeOverrideCursor(QCursor(Qt::BlankCursor));
   }
   else
   {
+#if defined(__APPLE__)
+    score::hideCursor(true);
+#else
     QApplication::setOverrideCursor(QCursor(Qt::BlankCursor));
+#endif
     m_setCursor = true;
   }
   ev->accept();
@@ -177,30 +191,32 @@ void Minimap::mouseMoveEvent(QGraphicsSceneMouseEvent* ev)
     {
       auto dy = 0.7 * (pos.y() - m_startPos.y());
 
-      if (!((m_leftHandle <= 0. && dx < 0)
-            || (m_rightHandle >= m_width && dx > 0)))
+      auto newLeftHandle = std::max(m_leftHandle + dx - dy, 0.);
+      auto newRightHandle = std::min(m_rightHandle + dx + dy, m_width);
+      if(m_leftHandle <= 5. && newLeftHandle <= 5.)
+        newRightHandle = m_rightHandle;
+      if(m_rightHandle >= m_width - 5. && newRightHandle >= m_width - 5.)
+        newLeftHandle = m_leftHandle;
+
+      if(newLeftHandle != m_leftHandle || newRightHandle != m_rightHandle)
       {
-        setHandles(m_leftHandle + dx - dy, m_rightHandle + dx + dy);
+        setHandles(newLeftHandle, newRightHandle);
       }
     }
 
     score::moveCursorPos(m_startPos);
+    score::hideCursor(true);
+    m_setCursor = true;
 
     visibleRectChanged(m_leftHandle, m_rightHandle);
-
-    ev->accept();
-    return;
   }
-  ev->ignore();
+  ev->accept();
 }
 
 void Minimap::mouseReleaseEvent(QGraphicsSceneMouseEvent* ev)
 {
-  if (m_setCursor)
-  {
-    QApplication::restoreOverrideCursor();
-    m_setCursor = false;
-  }
+  score::showCursor();
+  m_setCursor = false;
 
   if (m_gripLeft || m_gripRight || m_gripMid)
   {
@@ -216,10 +232,8 @@ void Minimap::mouseReleaseEvent(QGraphicsSceneMouseEvent* ev)
     pos.setY(m_startY);
 
     score::setCursorPos(QPointF{m_viewport->mapToGlobal(QPoint{0,0})} + pos);
-    ev->accept();
-    return;
   }
-  ev->ignore();
+  ev->accept();
 }
 
 void Minimap::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* ev)

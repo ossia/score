@@ -418,6 +418,15 @@ set(SRCS
 
 add_library(score_lib_base ${SRCS} ${HEADERS} ${QRCS})
 
+if(APPLE)
+    find_library(AppKit_FK AppKit)
+    target_sources(score_lib_base PRIVATE
+        "${CMAKE_CURRENT_SOURCE_DIR}/score/tools/Cursor.mm")
+    target_link_libraries(${PROJECT_NAME} PRIVATE
+        ${AppKit_FK}
+        )
+endif()
+
 target_include_directories(score_lib_base PUBLIC "${3RDPARTY_FOLDER}/zipdownloader/src")
 target_include_directories(score_lib_base PUBLIC "${OSSIA_3RDPARTY_FOLDER}/rnd/include")
 
