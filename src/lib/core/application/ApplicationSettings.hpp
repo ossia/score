@@ -21,6 +21,9 @@ struct SCORE_LIB_BASE_EXPORT ApplicationSettings
   //! If true, will show the GUI upon loading.
   bool gui = true;
 
+  //! If true, try to use opengl for rendering.
+  bool opengl = true;
+
   //! If true, will start playing after loading the scenarios
   bool autoplay = false;
 

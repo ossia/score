@@ -35,9 +35,6 @@ struct GUIApplicationContext;
 
 namespace Scenario
 {
-#if defined(__linux__)
-#define SCORE_GL_UPDATE 1
-#endif
 class Minimap;
 class ScenarioScene;
 class TimeRuler;
@@ -81,14 +78,12 @@ private:
 
   const score::GUIApplicationContext& m_app;
 
-  int m_timer{};
   std::chrono::steady_clock::time_point m_lastwheel;
   bool m_hZoom{false};
   bool m_vZoom{false};
+  bool m_opengl{false};
 
   // QObject interface
-protected:
-  void timerEvent(QTimerEvent* event) override;
 };
 
 class SCORE_PLUGIN_SCENARIO_EXPORT ScenarioDocumentView final
@@ -127,6 +122,7 @@ public:
   void setLargeView() W_SIGNAL(setLargeView);
 
 private:
+  void timerEvent(QTimerEvent* event) override;
   QWidget* m_widget{};
   ScenarioScene m_scene;
   ProcessGraphicsView m_view;
@@ -140,5 +136,6 @@ private:
   Minimap m_minimap;
 
   Scenario::TimeBar m_bar;
+  int m_timer{};
 };
 }

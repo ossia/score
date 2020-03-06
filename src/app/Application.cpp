@@ -47,6 +47,7 @@
 #include <algorithm>
 #include <vector>
 
+#include <QOpenGLContext>
 #if __has_include(<QQuickStyle>)
 #include <QQuickStyle>
 #endif
@@ -202,6 +203,12 @@ static QPixmap writeVersionName()
 
 void Application::init()
 {
+  if(m_applicationSettings.gui && m_applicationSettings.opengl)
+  {
+    QOpenGLContext ctx;
+
+    m_applicationSettings.opengl = ctx.create();
+  }
 #if defined(SCORE_STATIC_PLUGINS)
   score_init_static_plugins();
 #endif

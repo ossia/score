@@ -109,19 +109,30 @@ static void setup_faust_path()
 
 static void setup_opengl()
 {
+  {
+  QSurfaceFormat fmt = QSurfaceFormat::defaultFormat();
+  fmt.setSwapInterval(1);
+  fmt.setDefaultFormat(fmt);
+  }
+  return;
+
 #if !defined(__EMSCRIPTEN__)
   QSurfaceFormat fmt = QSurfaceFormat::defaultFormat();
   fmt.setMajorVersion(4);
   fmt.setMinorVersion(1);
   fmt.setProfile(QSurfaceFormat::CoreProfile);
 
-  fmt.setDepthBufferSize(0);
+  fmt.setDepthBufferSize(24);
   fmt.setStencilBufferSize(0);
+  fmt.setRedBufferSize(8);
+  fmt.setGreenBufferSize(8);
+  fmt.setBlueBufferSize(8);
   fmt.setAlphaBufferSize(8);
 
-  fmt.setSamples(1);
+  fmt.setRenderableType(QSurfaceFormat::OpenGL);
+  fmt.setSamples(0);
   fmt.setSwapInterval(1);
-  fmt.setColorSpace(QSurfaceFormat::DefaultColorSpace);
+  fmt.setColorSpace(QSurfaceFormat::sRGBColorSpace);
 
   fmt.setDefaultFormat(fmt);
 #else

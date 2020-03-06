@@ -15,6 +15,11 @@ namespace score
 {
 void ApplicationSettings::parse(QStringList cargs, int& argc, char** argv)
 {
+#if defined(__linux__)
+  opengl = true;
+#else
+  opengl = false;
+#endif
   QCommandLineParser parser;
   parser.setApplicationDescription(QObject::tr(
       "score - An interactive sequencer for the intermedia arts."));
@@ -26,6 +31,11 @@ void ApplicationSettings::parse(QStringList cargs, int& argc, char** argv)
   QCommandLineOption noGUI(
       "no-gui", QCoreApplication::translate("main", "Disable GUI"));
   parser.addOption(noGUI);
+
+  QCommandLineOption noGL(
+      "no-opengl", QCoreApplication::translate("main", "Disable OpenGL rendering"));
+  parser.addOption(noGL);
+
   QCommandLineOption noRestore(
       "no-restore",
       QCoreApplication::translate("main", "Disable auto-restore"));
@@ -60,6 +70,7 @@ void ApplicationSettings::parse(QStringList cargs, int& argc, char** argv)
 
   tryToRestore = !parser.isSet(noRestore);
   gui = !parser.isSet(noGUI);
+  opengl &= !parser.isSet(noGL);
   if (!gui)
     tryToRestore = false;
   autoplay = parser.isSet(autoplayOpt) && args.size() == 1;

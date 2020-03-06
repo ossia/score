@@ -77,6 +77,8 @@ DefaultHeaderDelegate::DefaultHeaderDelegate(
   con(m_model, &Process::ProcessModel::inletsChanged, this, [=] {
     updatePorts();
   });
+  updatePorts();
+
   con(m_model, &Process::ProcessModel::benchmark, this, [=](double d) {
     updateBench(d);
   });
@@ -113,9 +115,13 @@ void DefaultHeaderDelegate::updateText()
 {
   auto& style = Process::Style::instance();
   const QPen& pen = m_sel ? style.IntervalHeaderTextPen() : textPen(style, m_model);
-  m_line = makeGlyphs(m_model.prettyName(), pen);
-  update();
-  updatePorts();
+  if(&pen != m_lastPen || m_model.prettyName() != m_lastText)
+  {
+    m_line = makeGlyphs(m_model.prettyName(), pen);
+    m_lastPen = &pen;
+    m_lastText = m_model.prettyName();
+    update();
+  }
 }
 
 const QPen& DefaultHeaderDelegate::textPen(Style& style, const Process::ProcessModel& model) const noexcept

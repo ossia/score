@@ -30,7 +30,6 @@
 
 #include <wobjectimpl.h>
 
-#include <QOpenGLWidget>
 #include <set>
 W_OBJECT_IMPL(score::View)
 namespace score

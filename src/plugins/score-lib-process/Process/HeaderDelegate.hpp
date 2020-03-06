@@ -63,6 +63,9 @@ protected:
   ossia::small_vector<Dataflow::PortItem*, 3> m_inPorts;
   double m_portEndX{};
   bool m_sel{};
+
+  QString m_lastText;
+  const QPen* m_lastPen{};
 };
 
 

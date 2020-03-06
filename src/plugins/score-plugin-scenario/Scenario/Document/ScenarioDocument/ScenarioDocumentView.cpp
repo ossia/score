@@ -9,6 +9,7 @@
 #include <Scenario/Settings/ScenarioSettingsModel.hpp>
 
 #include <score/application/ApplicationContext.hpp>
+#include <core/application/ApplicationSettings.hpp>
 #include <score/graphics/GraphicsProxyObject.hpp>
 #include <score/model/Skin.hpp>
 #include <score/plugins/documentdelegate/DocumentDelegateView.hpp>
@@ -28,10 +29,10 @@
 #include <QRect>
 #include <QWidget>
 #include <QVBoxLayout>
-#include <QGLWidget>
 #include <QOpenGLWidget>
 #include <QOpenGLWindow>
 #include <QOpenGLFunctions>
+#include <QThread>
 
 #if defined(SCORE_WEBSOCKETS)
 #include "WebSocketView.hpp"
@@ -48,16 +49,12 @@ ProcessGraphicsView::ProcessGraphicsView(
     const score::GUIApplicationContext& ctx,
     QGraphicsScene* scene,
     QWidget* parent)
-    : QGraphicsView{scene, parent}, m_app{ctx}
+    : QGraphicsView{scene, parent}
+    , m_app{ctx}
+    , m_opengl{ctx.applicationSettings.opengl}
 {
   m_lastwheel = std::chrono::steady_clock::now();
 
-#if SCORE_GL_UPDATE
-  setViewport(new QOpenGLWidget);
-  setViewportUpdateMode(QGraphicsView::FullViewportUpdate);
-#else
-  setViewportUpdateMode(QGraphicsView::SmartViewportUpdate);
-#endif
   setAlignment(Qt::AlignTop | Qt::AlignLeft);
   setFrameStyle(0);
   setDragMode(QGraphicsView::NoDrag);
@@ -80,17 +77,6 @@ ProcessGraphicsView::ProcessGraphicsView(
   // setRenderHints(0);
   // setOptimizationFlag(QGraphicsView::IndirectPainting, true);
 #endif*/
-
-#if SCORE_GL_UPDATE
-  m_timer = startTimer(8);
-  viewport()->setUpdatesEnabled(true);
-#endif
-}
-
-void ProcessGraphicsView::timerEvent(QTimerEvent* event)
-{
-  QGraphicsView::timerEvent(event);
-  update();
 }
 
 ProcessGraphicsView::~ProcessGraphicsView() {}
@@ -100,9 +86,8 @@ void ProcessGraphicsView::scrollHorizontal(double dx)
   if (auto bar = horizontalScrollBar())
   {
     bar->setValue(bar->value() + dx);
-#if SCORE_GL_UPDATE
-    viewport()->update();
-#endif
+    if(m_opengl)
+      viewport()->update();
   }
 }
 
@@ -113,9 +98,8 @@ void ProcessGraphicsView::resizeEvent(QResizeEvent* ev)
 
   visibleRectChanged(QRectF{this->mapToScene(QPoint{}), this->mapToScene(this->rect().bottomRight())});
 
-#if SCORE_GL_UPDATE
-  viewport()->update();
-#endif
+  if(m_opengl)
+    viewport()->update();
 }
 
 void ProcessGraphicsView::scrollContentsBy(int dx, int dy)
@@ -128,9 +112,8 @@ void ProcessGraphicsView::scrollContentsBy(int dx, int dy)
 
   visibleRectChanged(QRectF{this->mapToScene(QPoint{}), this->mapToScene(this->rect().bottomRight())});
 
-#if SCORE_GL_UPDATE
-  viewport()->update();
-#endif
+  if(m_opengl)
+    viewport()->update();
 }
 
 void ProcessGraphicsView::wheelEvent(QWheelEvent* event)
@@ -169,9 +152,8 @@ void ProcessGraphicsView::wheelEvent(QWheelEvent* event)
   MyWheelEvent e{*event};
   QGraphicsView::wheelEvent(&e);
 
-#if SCORE_GL_UPDATE
-  viewport()->update();
-#endif
+  if(m_opengl)
+    viewport()->update();
 }
 
 void ProcessGraphicsView::keyPressEvent(QKeyEvent* event)
@@ -187,9 +169,8 @@ void ProcessGraphicsView::keyPressEvent(QKeyEvent* event)
 
   QGraphicsView::keyPressEvent(event);
 
-#if SCORE_GL_UPDATE
-  viewport()->update();
-#endif
+  if(m_opengl)
+    viewport()->update();
 }
 
 void ProcessGraphicsView::keyReleaseEvent(QKeyEvent* event)
@@ -205,9 +186,8 @@ void ProcessGraphicsView::keyReleaseEvent(QKeyEvent* event)
 
   QGraphicsView::keyReleaseEvent(event);
 
-#if SCORE_GL_UPDATE
-  viewport()->update();
-#endif
+  if(m_opengl)
+    viewport()->update();
 }
 
 void ProcessGraphicsView::focusOutEvent(QFocusEvent* event)
@@ -219,9 +199,8 @@ void ProcessGraphicsView::focusOutEvent(QFocusEvent* event)
 
   QGraphicsView::focusOutEvent(event);
 
-#if SCORE_GL_UPDATE
-  viewport()->update();
-#endif
+  if(m_opengl)
+    viewport()->update();
 }
 
 void ProcessGraphicsView::leaveEvent(QEvent* event)
@@ -231,33 +210,29 @@ void ProcessGraphicsView::leaveEvent(QEvent* event)
   focusedOut();
   QGraphicsView::leaveEvent(event);
 
-#if SCORE_GL_UPDATE
-  viewport()->update();
-#endif
+  if(m_opengl)
+    viewport()->update();
 }
 
 void ProcessGraphicsView::mousePressEvent(QMouseEvent* event)
 {
   QGraphicsView::mousePressEvent(event);
-#if SCORE_GL_UPDATE
-  viewport()->update();
-#endif
+  if(m_opengl)
+    viewport()->update();
 }
 
 void ProcessGraphicsView::mouseMoveEvent(QMouseEvent* event)
 {
   QGraphicsView::mouseMoveEvent(event);
-#if SCORE_GL_UPDATE
-  viewport()->update();
-#endif
+  if(m_opengl)
+    viewport()->update();
 }
 
 void ProcessGraphicsView::mouseReleaseEvent(QMouseEvent* event)
 {
   QGraphicsView::mouseReleaseEvent(event);
-#if SCORE_GL_UPDATE
-  viewport()->update();
-#endif
+  if(m_opengl)
+    viewport()->update();
 }
 
 ScenarioDocumentView::ScenarioDocumentView(
@@ -324,6 +299,9 @@ ScenarioDocumentView::ScenarioDocumentView(
   m_widget->setContentsMargins(0, 0, 0, 0);
 
   m_minimapScene.addItem(&m_minimap);
+  m_minimapScene.setItemIndexMethod(QGraphicsScene::NoIndex);
+
+  m_timeRulerScene.setItemIndexMethod(QGraphicsScene::NoIndex);
 
   lay->addWidget(&m_minimapView);
   lay->addWidget(&m_timeRulerView);
@@ -352,6 +330,36 @@ ScenarioDocumentView::ScenarioDocumentView(
                    .editionSettings();
     es.setTool(Scenario::Tool::Select);
   });
+
+  const bool opengl = ctx.app.applicationSettings.opengl;
+  if (opengl)
+  {
+    m_minimapView.setViewport(new QOpenGLWidget);
+    m_timeRulerView.setViewport(new QOpenGLWidget);
+    m_view.setViewport(new QOpenGLWidget);
+
+    m_minimapView.setViewportUpdateMode(QGraphicsView::NoViewportUpdate);
+    m_timeRulerView.setViewportUpdateMode(QGraphicsView::NoViewportUpdate);
+    m_view.setViewportUpdateMode(QGraphicsView::NoViewportUpdate);
+
+    m_minimapView.viewport()->setUpdatesEnabled(true);
+    m_timeRulerView.viewport()->setUpdatesEnabled(true);
+    m_view.viewport()->setUpdatesEnabled(true);
+
+    const auto tcount = QThread::idealThreadCount();
+    if(tcount <= 4)
+      m_timer = startTimer(30);
+    else if(tcount <= 8)
+      m_timer = startTimer(16);
+    else
+      m_timer = startTimer(8);
+  }
+  else
+  {
+    m_minimapView.setViewportUpdateMode(QGraphicsView::FullViewportUpdate);
+    m_view.setViewportUpdateMode(QGraphicsView::SmartViewportUpdate);
+    m_timeRulerView.setViewportUpdateMode(QGraphicsView::NoViewportUpdate);
+  }
 }
 
 ScenarioDocumentView::~ScenarioDocumentView() {}
@@ -375,7 +383,14 @@ QRectF ScenarioDocumentView::visibleSceneRect() const
 {
   const auto viewRect = m_view.viewport()->rect();
   return QRectF{m_view.mapToScene(viewRect.topLeft()),
-                m_view.mapToScene(viewRect.bottomRight())};
+        m_view.mapToScene(viewRect.bottomRight())};
+}
+
+void ScenarioDocumentView::timerEvent(QTimerEvent* event)
+{
+  m_minimapView.viewport()->update();
+  m_timeRulerView.viewport()->update();
+  m_view.viewport()->update();
 }
 }
 

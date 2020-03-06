@@ -4,8 +4,9 @@
 
 #include <Process/Style/ScenarioStyle.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentViewConstants.hpp>
-
-#include <QGLWidget>
+#include <score/application/ApplicationContext.hpp>
+#include <core/application/ApplicationSettings.hpp>
+#include <QOpenGLWidget>
 #include <QWheelEvent>
 
 namespace Scenario
@@ -15,20 +16,17 @@ TimeRulerGraphicsView::TimeRulerGraphicsView(QGraphicsScene* scene)
     : QGraphicsView{scene}
 {
   setRenderHints(
-      QPainter::Antialiasing | QPainter::SmoothPixmapTransform
-      | QPainter::TextAntialiasing);
-  //#if !defined(SCORE_OPENGL)
+        QPainter::Antialiasing
+        | QPainter::SmoothPixmapTransform
+        | QPainter::TextAntialiasing);
 
-#if defined(SCORE_GL_UPDATE)
-  setViewport(new QGLWidget);
-#endif
+
   setAlignment(Qt::AlignTop | Qt::AlignLeft);
   setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
   setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
   setFocusPolicy(Qt::NoFocus);
   setSceneRect(ScenarioLeftSpace, -70, 800, 28);
   setFixedHeight(10);
-  setViewportUpdateMode(QGraphicsView::NoViewportUpdate);
   setBackgroundBrush(Process::Style::instance().MinimapBackground());
   setOptimizationFlag(QGraphicsView::DontSavePainterState, true);
 
@@ -49,11 +47,16 @@ TimeRulerGraphicsView::TimeRulerGraphicsView(QGraphicsScene* scene)
 MinimapGraphicsView::MinimapGraphicsView(QGraphicsScene* s)
     : TimeRulerGraphicsView{s}
 {
-  setViewportUpdateMode(QGraphicsView::FullViewportUpdate);
+  setRenderHints(
+        QPainter::Antialiasing
+        | QPainter::SmoothPixmapTransform
+        | QPainter::TextAntialiasing);
   setSceneRect({0, 0, 2000, 100});
   setFixedHeight(15);
 
   setDragMode(DragMode::NoDrag);
+  setBackgroundBrush(Process::Style::instance().MinimapBackground());
+
 
 #if defined(__APPLE__)
   setRenderHints(0);
