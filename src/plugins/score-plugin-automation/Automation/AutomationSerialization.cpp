@@ -21,7 +21,7 @@ void DataStreamReader::read(const Automation::ProcessModel& autom)
   m_stream << *autom.outlet;
   readFrom(autom.curve());
 
-  m_stream << autom.min() << autom.max() << autom.tween();
+  m_stream << autom.tween();
 
   insertDelimiter();
 }
@@ -33,13 +33,10 @@ void DataStreamWriter::write(Automation::ProcessModel& autom)
 
   autom.setCurve(new Curve::Model{*this, &autom});
 
-  double min, max;
   bool tw;
 
-  m_stream >> min >> max >> tw;
+  m_stream >> tw;
 
-  autom.setMin(min);
-  autom.setMax(max);
   autom.setTween(tw);
 
   checkDelimiter();
@@ -50,8 +47,6 @@ void JSONObjectReader::read(const Automation::ProcessModel& autom)
 {
   obj["Outlet"] = toJsonObject(*autom.outlet);
   obj["Curve"] = toJsonObject(autom.curve());
-  obj[strings.Min] = autom.min();
-  obj[strings.Max] = autom.max();
   obj["Tween"] = autom.tween();
 }
 
@@ -64,7 +59,5 @@ void JSONObjectWriter::write(Automation::ProcessModel& autom)
   JSONObject::Deserializer curve_deser{obj["Curve"].toObject()};
   autom.setCurve(new Curve::Model{curve_deser, &autom});
 
-  autom.setMin(obj[strings.Min].toDouble());
-  autom.setMax(obj[strings.Max].toDouble());
   autom.setTween(obj["Tween"].toBool());
 }

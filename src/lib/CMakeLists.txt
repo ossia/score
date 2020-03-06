@@ -214,6 +214,7 @@ set(HEADERS
     "${CMAKE_CURRENT_SOURCE_DIR}/score/tools/std/String.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/tools/std/StringHash.hpp"
 
+    "${CMAKE_CURRENT_SOURCE_DIR}/score/graphics/ArrowDialog.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/graphics/GraphicWidgets.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/graphics/GraphicsItem.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/graphics/GraphicsSliderBaseImpl.hpp"
@@ -348,6 +349,7 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/score/tools/std/String.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/score/tools/RandomNameProvider.cpp"
 
+"${CMAKE_CURRENT_SOURCE_DIR}/score/graphics/ArrowDialog.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/score/graphics/GraphicsItem.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/score/graphics/GraphicWidgets.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/score/graphics/RectItem.cpp"

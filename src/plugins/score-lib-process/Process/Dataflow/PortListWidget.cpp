@@ -194,6 +194,9 @@ void PortWidgetSetup::setupImpl(
     case Process::PortType::Message:
       advBtn->setText(QString::fromUtf8("⇢"));
       break;
+    case Process::PortType::Texture:
+      advBtn->setText(QString::fromUtf8("📺"));
+      break;
   }
 }
 }

@@ -44,6 +44,7 @@ score_plugin_dataflow::factories(
           Dataflow::AudioInletFactory,
           Dataflow::AudioOutletFactory,
           Dataflow::ControlOutletFactory,
+          Dataflow::MinMaxFloatOutletFactory,
           Dataflow::WidgetInletFactory<Process::FloatSlider>,
           Dataflow::WidgetInletFactory<Process::LogFloatSlider>,
           Dataflow::WidgetInletFactory<Process::IntSlider>,

@@ -38,6 +38,7 @@ set(PROCESS_HDRS
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Dataflow/PortListWidget.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Dataflow/ControlWidgets.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Dataflow/WidgetInlets.hpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Process/Dataflow/MinMaxFloatPort.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Drop/ProcessDropHandler.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/State/MessageNode.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/State/ProcessStateDataInterface.hpp"
@@ -110,6 +111,7 @@ set(PROCESS_SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Dataflow/PortListWidget.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Dataflow/PortFactory.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Dataflow/WidgetInlets.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Process/Dataflow/MinMaxFloatPort.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Drop/ProcessDropHandler.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Layer/LayerContextMenu.cpp"
@@ -141,7 +143,7 @@ set(PROCESS_SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/score_lib_process.cpp"
 )
 
-add_library(score_lib_process ${PROCESS_HDRS} ${PROCESS_SRCS}  )
+add_library(score_lib_process ${PROCESS_HDRS} ${PROCESS_SRCS})
 target_link_libraries(score_lib_process  PUBLIC
     Qt5::Core Qt5::Widgets score_lib_base score_lib_state
     score_lib_inspector score_lib_device score_lib_localtree)
