@@ -3,10 +3,12 @@
 // And https://soffes.blog/aggressively-hiding-the-cursor for the hiding
 #if defined(__APPLE__)
 #include <ApplicationServices/ApplicationServices.h>
+#else
+#include <QGuiApplication>
+#include <QCursor>
 #endif
 
 #include <QPointF>
-#include <QCursor>
 #include <score_lib_base_export.h>
 namespace score
 {
@@ -57,11 +59,11 @@ void showCursor();
 
 inline void hideCursor(bool hasCursor)
 {
-  QApplication::changeOverrideCursor(QCursor(Qt::BlankCursor));
+  QGuiApplication::changeOverrideCursor(QCursor(Qt::BlankCursor));
 }
 inline void showCursor()
 {
-  QApplication::restoreOverrideCursor();
+  QGuiApplication::restoreOverrideCursor();
 }
 #endif
 }
