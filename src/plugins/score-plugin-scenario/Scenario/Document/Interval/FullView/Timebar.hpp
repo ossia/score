@@ -3,7 +3,7 @@
 #include <QGraphicsItem>
 #include <QPainter>
 #include <array>
-#include <GL/gl.h>
+
 namespace Scenario
 {
 class LightBars : public QGraphicsItem
