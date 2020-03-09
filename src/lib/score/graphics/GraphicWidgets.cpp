@@ -993,29 +993,77 @@ void QGraphicsHSVChooser::setRect(const QRectF& r)
 
 }
 
-void QGraphicsHSVChooser::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+namespace
 {
-  static QImage hs_zone{100, 100, QImage::Format_ARGB32};
+static QRgb hsvColors[100][100];
+static QRgb valueColors[100];
+static auto initHsvColors = [] {
   for(int j = 0; j < 100; j++)
   {
     for(int i = 0; i < 100; i++)
     {
-      QColor col = QColor::fromHsvF(double(i) / 100., double(j) / 100., this->v);
-      hs_zone.setPixelColor(i, j, col);
+      const QRgb col = QColor::fromHsvF(double(i) / 100., double(j) / 100., 1.).rgba();
+      hsvColors[i][j] = col;
+    }
+  }
+
+  for(int j = 0; j < 100; j++)
+  {
+    const QRgb col = QColor::fromHsvF(-1., 1., double(j) / 100.).rgba();
+    valueColors[j] = col;
+  }
+  return 0;
+}();
+}
+void QGraphicsHSVChooser::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+{
+  static QImage hs_zone{100, 100, QImage::Format_ARGB32};
+  {
+    auto img_data = hs_zone.bits();
+    for(int j = 0; j < 100; j++)
+    {
+      for(int i = 0; i < 100; i++)
+      {
+        const QRgb col = hsvColors[i][j];
+        img_data[0] = qBlue(col) * this->v;
+        img_data[1] = qGreen(col) * this->v;
+        img_data[2] = qRed(col) * this->v;
+        img_data[3] = 255;
+        img_data += 4;
+      }
     }
   }
 
   static QImage v_zone{20, 100, QImage::Format_ARGB32};
-
-  for(int j = 0; j < 100; j++)
   {
-    QColor col = QColor::fromHsvF(-1., 1., double(j) / 100.);
-    for(int i = 0; i < 20; i++)
-      v_zone.setPixelColor(i, j, col);
+    auto img_data = v_zone.bits();
+    for(int j = 0; j < 100; j++)
+    {
+      const QRgb col = valueColors[j];
+      for(int i = 0; i < 20; i++)
+      {
+        img_data[0] = qBlue(col);
+        img_data[1] = qGreen(col);
+        img_data[2] = qRed(col);
+        img_data[3] = 255;
+        img_data += 4;
+      }
+    }
   }
 
   painter->drawImage(QPointF{0, 0}, hs_zone);
   painter->drawImage(QPointF{110, 0}, v_zone);
+
+  const auto color = QColor::fromRgbF(m_value[0], m_value[1], m_value[2]).toHsv();
+  auto x = color.hsvHueF() * 100.;
+  auto y = color.hsvSaturationF() * 100.;
+  auto val_y = color.valueF() * 100.;
+
+  painter->setPen(score::Skin::instance().DarkGray.main.pen0);
+  painter->drawLine(QPointF{x, 0.}, QPointF{x, 100.});
+  painter->drawLine(QPointF{0, y}, QPointF{100., y});
+
+  painter->drawLine(QPointF{111., val_y}, QPointF{130., val_y});
 }
 
 std::array<float, 4> QGraphicsHSVChooser::value() const
@@ -1039,13 +1087,13 @@ void QGraphicsHSVChooser::mousePressEvent(QGraphicsSceneMouseEvent* event)
   const auto p = event->pos();
   if(p.x() < 100.)
   {
-    h = p.x() / 100.;
-    s = p.y() / 100.;
+    h = qBound(0., p.x() / 100., 1.);
+    s = qBound(0., p.y() / 100., 1.);
     m_grab = true;
   }
   else if(p.x() >= 110 && p.x() < 130)
   {
-    v = p.y() / 100.;
+    v = qBound(0., p.y() / 100., 1.);
     m_grab = true;
   }
 
@@ -1073,12 +1121,12 @@ void QGraphicsHSVChooser::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
   {
     if(p.x() < 100.)
     {
-      h = p.x() / 100.;
-      s = p.y() / 100.;
+      h = qBound(0., p.x() / 100., 1.);
+      s = qBound(0., p.y() / 100., 1.);
     }
     else if(p.x() >= 110 && p.x() < 130)
     {
-      v = p.y() / 100.;
+      v = qBound(0., p.y() / 100., 1.);
     }
 
     const auto rgba = QColor::fromHsvF(h, s, v, 1.);
@@ -1106,12 +1154,12 @@ void QGraphicsHSVChooser::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
     const auto p = event->pos();
     if(p.x() < 100.)
     {
-      h = p.x() / 100.;
-      s = p.y() / 100.;
+      h = qBound(0., p.x() / 100., 1.);
+      s = qBound(0., p.y() / 100., 1.);
     }
     else if(p.x() >= 110 && p.x() < 130)
     {
-      v = p.y() / 100.;
+      v = qBound(0., p.y() / 100., 1.);
     }
     const auto rgba = QColor::fromHsvF(h, s, v, 1.);
     auto new_v = m_value;

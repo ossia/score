@@ -219,7 +219,17 @@ PortItem::PortItem(
   });
   {
     auto& plug = ctx.dataflow;
-    SCORE_ASSERT(plug.ports().find(&p) == plug.ports().end());
+    // Note : ports can exist multiple times due to the loop thing.
+    // If a port already exists it becomes zombie-like.
+
+    auto it = plug.ports().find(&p);
+    if(it != plug.ports().end())
+    {
+      setVisible(false);
+      setEnabled(false);
+      return;
+    }
+
     plug.ports().insert({&p, this});
 
     Path<Process::Port> path = p;
