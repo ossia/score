@@ -9,6 +9,7 @@
 #include <Curve/Process/CurveProcessModel.hpp>
 #include <Curve/Segment/CurveSegmentModel.hpp>
 #include <Curve/Segment/Power/PowerSegment.hpp>
+#include <Process/Dataflow/Cable.hpp>
 #include <Process/Dataflow/MinMaxFloatPort.hpp>
 #include <Process/Dataflow/Port.hpp>
 #include <Process/Dataflow/PortFactory.hpp>
@@ -46,6 +47,13 @@ void ProcessModel::init()
         unitChanged(arg.qualifiers.get().unit);
         m_curve->changed();
       });
+  connect(
+        outlet.get(),
+        &Process::Port::cablesChanged,
+        this,
+        [=] {
+    prettyNameChanged();
+  });
 }
 
 ProcessModel::ProcessModel(
@@ -71,6 +79,7 @@ ProcessModel::ProcessModel(
   m_curve->addSegment(s1);
 
   metadata().setInstanceName(*this);
+
   init();
 }
 
@@ -96,6 +105,24 @@ ProcessModel::ProcessModel(DataStream::Deserializer& vis, QObject* parent)
 
 QString ProcessModel::prettyName() const noexcept
 {
+  if(const auto& cables = outlet->cables(); !cables.empty()) {
+    auto& doc = score::IDocument::documentContext(*this);
+    if(Process::Cable* cbl = cables.front().try_find(doc))
+      if(Process::Port* inlet = cbl->sink().try_find(doc))
+      {
+        QString name = inlet->customData();
+        auto process = qobject_cast<Process::ProcessModel*>(inlet->parent());
+        if(process)
+        {
+           name += " (" + process->prettyName() + ")";
+        }
+        //if(auto meta = process->findChild<score::ModelMetadata*>({}, Qt::FindDirectChildrenOnly))
+        //{
+        //  name += " (" + meta->getName() + ")";
+        //}
+        return name;
+      }
+  }
   auto res = address().toString_unsafe();
   if (!res.isEmpty())
     return res;
