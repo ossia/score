@@ -330,8 +330,10 @@ intptr_t vst_host_callback(
           {
             ossia::qt::run_async(vst, [=] {
               auto& ctx = score::IDocument::documentContext(*vst);
+              if(vst->controls.find(index) == vst->controls.end()) {
               CommandDispatcher<>{ctx.commandStack}.submit<CreateVSTControl>(
                   *vst, index, opt);
+              }
             });
           }
         }
