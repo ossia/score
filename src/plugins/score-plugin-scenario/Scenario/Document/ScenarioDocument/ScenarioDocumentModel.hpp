@@ -66,7 +66,6 @@ public:
   void busesChanged() E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, busesChanged)
 
 private:
-  void initializeNewDocument(const IntervalModel& viewmodel);
   const score::DocumentContext& m_context;
   BaseScenario* m_baseScenario{};
   QJsonArray m_savedCables;

@@ -50,9 +50,15 @@ public:
       connect(&m_playstop, &QPushButton::clicked,
               this, [&] {
         if(m_playstop.text() == "⏵")
+        {
+          setAutoPlay(true);
           startPlayback();
+        }
         else
+        {
           stopPlayback();
+          setAutoPlay(false);
+        }
       });
     }
 
@@ -92,7 +98,7 @@ public:
 private:
   QPushButton m_playstop{this};
   QLabel m_name{this};
-  static inline bool m_autoPlay{true};
+  static inline bool m_autoPlay{false};
 };
 
 class LibraryHandler final : public Library::LibraryInterface

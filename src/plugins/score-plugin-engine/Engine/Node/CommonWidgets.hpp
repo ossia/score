@@ -73,6 +73,7 @@ enum Waveform
   Noise2,
   Noise3
 };
+
 inline auto& waveformMap()
 {
   static const ossia::string_view_map<Waveform> waveform_map{
@@ -112,6 +113,34 @@ static constexpr auto WaveformChooser()
       }
         );
 }
+
+enum LoopMode {
+ Play,
+ Record,
+ Overdub,
+ Stop
+};
+constexpr auto LoopChooser()
+{
+  return Control::make_enum(
+      "Loop",
+      0U,
+      ossia::make_array(
+          "Play",
+          "Record",
+          "Overdub",
+          "Stop"
+          ));
+}
+constexpr LoopMode GetLoopMode(std::string_view str) noexcept
+{
+  if(str == "Play") return LoopMode::Play;
+  else if(str == "Record") return LoopMode::Record;
+  else if(str == "Overdub") return LoopMode::Overdub;
+  else if(str == "Stop") return LoopMode::Stop;
+  return LoopMode::Stop;
+}
+
 constexpr auto QuantificationChooser()
 {
   return Control::ComboBox<float, std::size(notes)>(

@@ -29,6 +29,7 @@
 #include <Fx/Quantifier.hpp>
 #include <Fx/TestNode.hpp>
 #include <Fx/VelToNote.hpp>
+#include <Fx/Looper.hpp>
 #include <score/plugins/FactorySetup.hpp>
 
 #include <score_plugin_engine.hpp>
@@ -66,7 +67,8 @@ std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_fx::factories(
       Nodes::EmptyMidiMapping::Node,
       Nodes::EmptyAudioMapping::Node,
       Nodes::FactorOracle::Node,
-      Nodes::PitchToValue::Node
+      Nodes::PitchToValue::Node,
+      Nodes::AudioLooper::Node
       >(ctx, key);
 }
 

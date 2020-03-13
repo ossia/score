@@ -82,6 +82,7 @@ ScenarioDocumentModel::ScenarioDocumentModel(
 
 void ScenarioDocumentModel::finishLoading()
 {
+  // Load cables
   const auto& cbl = m_savedCables;
   for (const auto& json_vref : cbl)
   {
@@ -104,14 +105,19 @@ void ScenarioDocumentModel::finishLoading()
     }
   }
   m_savedCables = QJsonArray{};
+
+  // Load buses
+  for(auto itv : this->busIntervals)
+  {
+    const_cast<IntervalModel*>(itv)->busChanged(true);
+    connect(itv, &Scenario::IntervalModel::identified_object_destroying,
+        this, [=] {
+      removeBus(itv);
+    });
+  }
 }
 
 ScenarioDocumentModel::~ScenarioDocumentModel() {}
-
-void ScenarioDocumentModel::initializeNewDocument(
-    const IntervalModel& Interval_model)
-{
-}
 
 IntervalModel& ScenarioDocumentModel::baseInterval() const
 {
@@ -124,6 +130,10 @@ void ScenarioDocumentModel::addBus(const Scenario::IntervalModel* itv)
   {
     busIntervals.push_back(itv);
     const_cast<IntervalModel*>(itv)->busChanged(true);
+    connect(itv, &Scenario::IntervalModel::identified_object_destroying,
+        this, [=] {
+      removeBus(itv);
+    });
     busesChanged();
   }
 }

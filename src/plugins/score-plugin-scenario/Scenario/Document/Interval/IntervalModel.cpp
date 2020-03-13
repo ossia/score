@@ -69,6 +69,7 @@ IntervalModel::~IntervalModel()
           visitor_entity_tag>::value,
       "");
   processes.clear();
+  identified_object_destroying(this);
 }
 void IntervalModel::initConnections()
 {
