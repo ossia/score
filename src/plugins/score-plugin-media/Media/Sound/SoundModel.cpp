@@ -2,7 +2,6 @@
 #include <QRegularExpression>
 
 #include <wobjectimpl.h>
-
 #include <Audio/Settings/Model.hpp>
 W_OBJECT_IMPL(Media::Sound::ProcessModel)
 namespace Media

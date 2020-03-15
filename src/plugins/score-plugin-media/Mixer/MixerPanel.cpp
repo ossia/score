@@ -80,14 +80,12 @@ public:
   {
       if(p.size() != 2)
       {
-        //qDebug() << "fu";
           setValue(0.5);
           return;
       }
 
-      //qDebug() << p[0] << p[1];
       //setValue(asin(p[1]) / ossia::half_pi);
-      setValue(-p[0] + p[1]);
+      setValue((1. + -p[0] + p[1]) / 2.);
   }
 
 protected:

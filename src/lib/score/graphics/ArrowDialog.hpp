@@ -6,7 +6,7 @@
 
 namespace score
 {
-class ArrowDialog : public QGraphicsItem
+class SCORE_LIB_BASE_EXPORT ArrowDialog : public QGraphicsItem
 {
 public:
   ArrowDialog(QGraphicsItem* parent);
