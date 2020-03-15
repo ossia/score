@@ -64,12 +64,12 @@ void AddressBarItem::setTargetObject(ObjectPath&& path)
         lab, &ClickableLabelItem::textChanged, this, &AddressBarItem::redraw);
 
     m_items.append(lab);
-    lab->setPos(currentWidth, SCORE_YPOS(0., -4.));
-    currentWidth += 5. + lab->boundingRect().width();
+    lab->setPos(currentWidth, -4.);
+    currentWidth += 4. + lab->boundingRect().width();
 
     auto sep = new SeparatorItem{this};
-    sep->setPos(currentWidth, SCORE_YPOS(0., 4.));
-    currentWidth += 5. + sep->boundingRect().width();
+    sep->setPos(currentWidth, -1.);
+    currentWidth += 4. + sep->boundingRect().width();
     m_items.append(sep);
   }
 
