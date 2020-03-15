@@ -29,7 +29,7 @@ public:
   AudioOutletMiniPanel(
       const Process::AudioOutlet& port,
       const Process::Context& ctx,
-      QGraphicsItem* parent)
+      QGraphicsScene* parent)
     : ArrowDialog{parent}
   {
     auto gainPort = new AutomatablePortItem{*port.gainInlet, ctx, this};
@@ -101,8 +101,7 @@ AudioOutletItem::AudioOutletItem(Process::Port& p, const Process::Context& ctx, 
 
 AudioOutletItem::~AudioOutletItem()
 {
-  if(m_subView)
-    delete m_subView;
+  delete m_subView;
 }
 
 void AudioOutletItem::mousePressEvent(QGraphicsSceneMouseEvent* event)
@@ -111,10 +110,9 @@ void AudioOutletItem::mousePressEvent(QGraphicsSceneMouseEvent* event)
   {
     if(!m_subView)
     {
-      m_subView = new AudioOutletMiniPanel{safe_cast<const Process::AudioOutlet&>(m_port), m_context, nullptr};
-      scene()->addItem(m_subView);
+      m_subView = new AudioOutletMiniPanel{safe_cast<const Process::AudioOutlet&>(m_port), m_context, this->scene()};
+      this->scene()->addItem(m_subView);
       m_subView->setPos(this->mapToScene(0, -42));
-
     }
     else
     {
@@ -167,7 +165,7 @@ public:
   MinMaxFloatOutletMiniPanel(
       const Process::MinMaxFloatOutlet& port,
       const Process::Context& ctx,
-      QGraphicsItem* parent)
+      QGraphicsScene* parent)
     : ArrowDialog{parent}
   {
     auto minPort = new AutomatablePortItem{*port.minInlet, ctx, this};
@@ -225,8 +223,7 @@ MinMaxFloatOutletItem::MinMaxFloatOutletItem(Process::Port& p, const Process::Co
 
 MinMaxFloatOutletItem::~MinMaxFloatOutletItem()
 {
-  if(m_subView)
-    delete m_subView;
+  delete m_subView;
 }
 
 void MinMaxFloatOutletItem::mousePressEvent(QGraphicsSceneMouseEvent* event)
@@ -234,7 +231,7 @@ void MinMaxFloatOutletItem::mousePressEvent(QGraphicsSceneMouseEvent* event)
   {
     if(!m_subView)
     {
-      m_subView = new MinMaxFloatOutletMiniPanel{safe_cast<const Process::MinMaxFloatOutlet&>(m_port), m_context, nullptr};
+      m_subView = new MinMaxFloatOutletMiniPanel{safe_cast<const Process::MinMaxFloatOutlet&>(m_port), m_context, this->scene()};
       scene()->addItem(m_subView);
       m_subView->setPos(this->mapToScene(0, -42));
     }

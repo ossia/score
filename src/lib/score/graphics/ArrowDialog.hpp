@@ -6,10 +6,10 @@
 
 namespace score
 {
-class SCORE_LIB_BASE_EXPORT ArrowDialog : public QGraphicsItem
+class SCORE_LIB_BASE_EXPORT ArrowDialog : public QObject, public QGraphicsItem
 {
 public:
-  ArrowDialog(QGraphicsItem* parent);
+  ArrowDialog(QGraphicsScene* parent);
 
   void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;
 

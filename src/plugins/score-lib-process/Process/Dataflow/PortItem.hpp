@@ -54,6 +54,10 @@ public:
   void setHighlight(bool b);
 
   using QGraphicsItem::dropEvent;
+  static constexpr int static_type() noexcept
+  {
+    return QGraphicsItem::UserType + 700;
+  }
   int type() const override
   {
     return QGraphicsItem::UserType + 700;

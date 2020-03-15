@@ -5,11 +5,13 @@
 #include <Scenario/Document/TimeRuler/TimeRuler.hpp>
 #include <Scenario/Document/TimeRuler/TimeRulerGraphicsView.hpp>
 
+#include <score/graphics/ArrowDialog.hpp>
 #include <score/graphics/GraphicsProxyObject.hpp>
 #include <score/plugins/documentdelegate/DocumentDelegateView.hpp>
 
 #include <QGraphicsView>
 #include <QPoint>
+#include <QPointer>
 
 #include <score_plugin_scenario_export.h>
 #include <verdigris>
@@ -49,6 +51,8 @@ public:
   ~ProcessGraphicsView() override;
 
   void scrollHorizontal(double dx);
+
+  QPointer<score::ArrowDialog> currentPopup{};
 
 public:
   void sizeChanged(const QSize& arg_1)

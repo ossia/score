@@ -19,7 +19,8 @@
 #include <score/tools/Bind.hpp>
 #include <core/document/Document.hpp>
 #include <core/command/CommandStack.hpp>
-
+#include <Process/Dataflow/PortItem.hpp>
+#include <Process/Dataflow/CableItem.hpp>
 #include <QAction>
 #include <QDebug>
 #include <QScrollBar>
@@ -216,6 +217,27 @@ void ProcessGraphicsView::leaveEvent(QEvent* event)
 
 void ProcessGraphicsView::mousePressEvent(QMouseEvent* event)
 {
+  if(auto dialog = this->scene()->activePanel())
+  {
+    const auto other = itemAt(event->pos());
+    switch(other->type())
+    {
+      case Dataflow::PortItem::static_type():
+      case Dataflow::CableItem::static_type():
+        break;
+
+      default:
+      {
+        const auto mapped_pos = other->mapToItem(dialog, QPointF{0, 0});
+        if(!dialog->contains(mapped_pos))
+        {
+          delete dialog;
+        }
+        break;
+      }
+    }
+  }
+
   QGraphicsView::mousePressEvent(event);
   if(m_opengl)
     viewport()->update();
@@ -224,6 +246,7 @@ void ProcessGraphicsView::mousePressEvent(QMouseEvent* event)
 void ProcessGraphicsView::mouseMoveEvent(QMouseEvent* event)
 {
   QGraphicsView::mouseMoveEvent(event);
+
   if(m_opengl)
     viewport()->update();
 }

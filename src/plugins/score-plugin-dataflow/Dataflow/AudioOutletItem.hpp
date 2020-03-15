@@ -2,7 +2,8 @@
 #include <score_plugin_dataflow_export.h>
 #include <Dataflow/PortItem.hpp>
 #include <Process/Dataflow/MinMaxFloatPort.hpp>
-
+#include <score/graphics/ArrowDialog.hpp>
+#include <QPointer>
 namespace Dataflow
 {
 class SCORE_PLUGIN_DATAFLOW_EXPORT AudioOutletItem : public AutomatablePortItem
@@ -20,7 +21,7 @@ public:
   QVariant
   itemChange(GraphicsItemChange change, const QVariant& value) override;
 
-  QGraphicsItem* m_subView{};
+  QPointer<score::ArrowDialog> m_subView{};
 };
 
 struct SCORE_PLUGIN_DATAFLOW_EXPORT AudioOutletFactory final : public AutomatablePortFactory
@@ -66,7 +67,7 @@ public:
   QVariant
   itemChange(GraphicsItemChange change, const QVariant& value) override;
 
-  QGraphicsItem* m_subView{};
+  QPointer<score::ArrowDialog> m_subView{};
 };
 
 struct SCORE_PLUGIN_DATAFLOW_EXPORT MinMaxFloatOutletFactory final : public AutomatablePortFactory

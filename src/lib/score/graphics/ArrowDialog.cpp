@@ -1,19 +1,25 @@
 #include "ArrowDialog.hpp"
 #include <QPainter>
+#include <QEvent>
+#include <QMouseEvent>
+#include <QGraphicsView>
+#include <QPointer>
 #include <ossia/detail/algorithms.hpp>
+#include <score/model/Skin.hpp>
 namespace score
 {
 
-ArrowDialog::ArrowDialog(QGraphicsItem* parent)
-  : QGraphicsItem{parent}
+ArrowDialog::ArrowDialog(QGraphicsScene* scene)
 {
-
+  this->setFlag(QGraphicsItem::ItemIsPanel);
+  scene->addItem(this);
+  scene->setActivePanel(this);
 }
 
 void ArrowDialog::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
   auto& skin = score::Skin::instance();
-  painter->setPen(skin.Base5.lighter.pen1);
+  painter->setPen(skin.LightGray.lighter.pen1);
   painter->setBrush(skin.Base5.darker.brush);
 
   painter->drawPath(getPath(boundingRect().size()));
