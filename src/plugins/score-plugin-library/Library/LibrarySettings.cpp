@@ -53,22 +53,25 @@ static void initSystemLibrary(QDir& lib_folder)
 Model::Model(QSettings& set, const score::ApplicationContext& ctx)
 {
   score::setupDefaultSettings(set, Parameters::list(), *this);
-  auto lib_folder = getPath();
-  if (QDir dir{lib_folder}; !dir.exists())
-  {
-    initSystemLibrary(dir);
 
-    auto dl = QMessageBox::question(qApp->activeWindow(), tr("Download the user library ?"), tr("The user library has not been found. \n"
-                                                                                      "Do you want to download it from the internet ? \n\n"
-                                                                                      "Note: you can always download it later from : \n"
-                                                                                      "https://github.com/OSSIA/score-user-library"));
-    if(dl)
+  QTimer::singleShot(5000, this, [this] {
+    auto lib_folder = getPath();
+    if (QDir dir{lib_folder}; !dir.exists())
     {
-      zdl::download_and_extract(
-            QUrl{"https://github.com/OSSIA/score-user-library/archive/master.zip"},
-            dir.absolutePath(), [] (const auto&) { }, [] { });
+      initSystemLibrary(dir);
+
+      auto dl = QMessageBox::question(qApp->activeWindow(), tr("Download the user library ?"), tr("The user library has not been found. \n"
+                                                                                                  "Do you want to download it from the internet ? \n\n"
+                                                                                                  "Note: you can always download it later from : \n"
+                                                                                                  "https://github.com/OSSIA/score-user-library"));
+      if(dl)
+      {
+        zdl::download_and_extract(
+              QUrl{"https://github.com/OSSIA/score-user-library/archive/master.zip"},
+              dir.absolutePath(), [] (const auto&) { }, [] { });
+      }
     }
-  }
+  });
 }
 
 SCORE_SETTINGS_PARAMETER_CPP(QString, Model, Path)
