@@ -578,10 +578,12 @@ void TemporalIntervalPresenter::createLayer(
       SCORE_ASSERT(slot_i < int(m_slots.size()));
       auto& slot = this->m_slots[slot_i];
 
-      SCORE_ASSERT(!slot.layers.empty());
-      auto& ld = slot.layers.front();
+      if(!slot.layers.empty())
+      {
+        auto& ld = slot.layers.front();
 
-      ld.updateStartOffset(-ld.model().startOffset().toPixels(m_zoomRatio));
+        ld.updateStartOffset(-ld.model().startOffset().toPixels(m_zoomRatio));
+      }
     });
     con(proc, &Process::ProcessModel::loopDurationChanged,
         this, [this, slot_i] {
@@ -591,11 +593,13 @@ void TemporalIntervalPresenter::createLayer(
       SCORE_ASSERT(slot_i < int(m_slots.size()));
       auto& slt = this->m_slots[slot_i];
 
-      SCORE_ASSERT(!slt.layers.empty());
-      LayerData& ld = slt.layers.front();
-      const auto def_width = m_model.duration.defaultDuration().toPixels(m_zoomRatio);
-      const auto slot_height = m_model.smallView().at(slot_i).height;
-      ld.updateLoops(m_context, m_zoomRatio, def_width, def_width, slot_height, this->m_view, this);
+      if(!slt.layers.empty())
+      {
+        LayerData& ld = slt.layers.front();
+        const auto def_width = m_model.duration.defaultDuration().toPixels(m_zoomRatio);
+        const auto slot_height = m_model.smallView().at(slot_i).height;
+        ld.updateLoops(m_context, m_zoomRatio, def_width, def_width, slot_height, this->m_view, this);
+      }
     });
 /*
     auto con_id = con(
@@ -769,29 +773,32 @@ void TemporalIntervalPresenter::on_layerModelPutToFront(
     {
       if (ld.model().id() == proc.id())
       {
-        auto factory = m_context.processList.findDefaultFactory(
-            ld.model().concreteKey());
-        ld.putToFront();
-        ld.setZValue(2);
+        if(auto pres = ld.mainPresenter())
         {
-        slt.headerDelegate = factory->makeHeaderDelegate(ld.model(), m_context, ld.mainPresenter());
-        slt.headerDelegate->updateText();
-        slt.headerDelegate->setParentItem(slt.header);
-        slt.headerDelegate->setFlag(QGraphicsItem::GraphicsItemFlag::ItemClipsToShape);
-        slt.headerDelegate->setFlag(QGraphicsItem::GraphicsItemFlag::ItemClipsChildrenToShape);
-        slt.headerDelegate->setPos(15, 0);
-        }
+          auto factory = m_context.processList.findDefaultFactory(
+                ld.model().concreteKey());
+          ld.putToFront();
+          ld.setZValue(2);
+          {
+            slt.headerDelegate = factory->makeHeaderDelegate(ld.model(), m_context, pres);
+            slt.headerDelegate->updateText();
+            slt.headerDelegate->setParentItem(slt.header);
+            slt.headerDelegate->setFlag(QGraphicsItem::GraphicsItemFlag::ItemClipsToShape);
+            slt.headerDelegate->setFlag(QGraphicsItem::GraphicsItemFlag::ItemClipsChildrenToShape);
+            slt.headerDelegate->setPos(15, 0);
+          }
 
-        {
-        slt.footerDelegate = factory->makeFooterDelegate(ld.model(), m_context);
-        slt.footerDelegate->setParentItem(slt.footer);
-        slt.footerDelegate->setFlag(QGraphicsItem::GraphicsItemFlag::ItemClipsToShape);
-        slt.footerDelegate->setFlag(QGraphicsItem::GraphicsItemFlag::ItemClipsChildrenToShape);
-        slt.footerDelegate->setPos(15, 0);
-        }
+          {
+            slt.footerDelegate = factory->makeFooterDelegate(ld.model(), m_context);
+            slt.footerDelegate->setParentItem(slt.footer);
+            slt.footerDelegate->setFlag(QGraphicsItem::GraphicsItemFlag::ItemClipsToShape);
+            slt.footerDelegate->setFlag(QGraphicsItem::GraphicsItemFlag::ItemClipsChildrenToShape);
+            slt.footerDelegate->setPos(15, 0);
+          }
 
-        setHeaderWidth(
-            slt, m_model.duration.defaultDuration().toPixels(m_zoomRatio));
+          setHeaderWidth(
+                slt, m_model.duration.defaultDuration().toPixels(m_zoomRatio));
+        }
       }
       else
       {

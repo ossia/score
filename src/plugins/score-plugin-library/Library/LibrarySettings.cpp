@@ -16,6 +16,7 @@
 #include <QNetworkReply>
 #include <zipdownloader.hpp>
 #include <wobjectimpl.h>
+#include <QTimer>
 
 W_OBJECT_IMPL(Library::Settings::View)
 W_OBJECT_IMPL(Library::Settings::Model)

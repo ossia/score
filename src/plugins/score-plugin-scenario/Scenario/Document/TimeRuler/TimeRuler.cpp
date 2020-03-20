@@ -79,7 +79,7 @@ TimeRuler::TimeRuler(QGraphicsView* v)
     , m_graduationsSpacing{10}
     , m_graduationDelta{10}
     , m_intervalsBetweenMark{1}
-    , m_viewport{v->viewport()}
+    , m_viewport{v}
 {
   setY(-28.5);
 
@@ -242,7 +242,7 @@ void TimeRuler::createRulerPath()
     i++;
   }
   update();
-  m_viewport->update();
+  m_viewport->viewport()->update();
 }
 
 // Taken from https://stackoverflow.com/a/42139394/1495627

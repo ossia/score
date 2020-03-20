@@ -94,7 +94,7 @@ private:
 
   QPainterPath m_path;
 
-  QWidget* m_viewport{};
+  QGraphicsView* m_viewport{};
 
   QGlyphRun getGlyphs(std::chrono::nanoseconds);
   QTextLayout m_layout;

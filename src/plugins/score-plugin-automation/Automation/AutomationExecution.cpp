@@ -135,6 +135,16 @@ void Component::recompute()
       return;
     }
   }
+  /*
+  auto segt_data = process().curve().sortedSegments();
+  if (segt_data.size() != 0)
+  {
+    in_exec([proc = std::dynamic_pointer_cast<ossia::nodes::float_automation>(
+        OSSIAProcess().node),
+        curve=Engine::score_to_ossia::floatCurve(segt_data, {})] () mutable { proc->set_behavior(std::move(curve)); });
+  }
+  */
+
 }
 
 template <typename Y_T>

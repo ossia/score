@@ -52,7 +52,7 @@ std::shared_ptr<ossia::curve<X_T, Y_T>> curve(
     curve->set_y0(scale_y(start.y()));
   }
 
-  for (auto score_segment : segments)
+  for (const auto& score_segment : segments)
   {
     auto end = score_segment->end();
     curve->add_point(
@@ -69,35 +69,37 @@ std::shared_ptr<ossia::curve<X_T, Y_T>> curve(
   return curve;
 }
 
-template <typename X_T, typename Y_T, typename XScaleFun, typename Segments>
-std::shared_ptr<ossia::curve_abstract> scalable_curve(
-    Y_T min,
-    Y_T max,
-    Y_T end,
-    XScaleFun scale_x,
+// Simpler curve, between [0; 1]
+template <typename Segments>
+ossia::curve<double, float> floatCurve(
     const Segments& segments,
-    const ossia::destination& tween)
+    const optional<ossia::destination>& tween)
 {
-  auto curve = std::make_shared<ossia::curve<X_T, Y_T>>();
+  ossia::curve<double, float> curve;
 
   auto start = segments[0]->start();
   if (start.x() == 0.)
   {
-    curve->set_x0(scale_x(start.x()));
-    curve->set_y0(start.y());
+    curve.set_x0(start.x());
+    curve.set_y0(start.y());
   }
 
-  curve->set_scale_bounds(min, max, end);
-  curve->set_y0_destination(tween);
-
-  for (auto score_segment : segments)
+  for (const auto& score_segment : segments)
   {
     auto end = score_segment->end();
-    curve->add_point(
-        (score_segment->*CurveTraits<Y_T>::fun)(), scale_x(end.x()), end.y());
+    curve.add_point(
+        (score_segment->*CurveTraits<float>::fun)(),
+        end.x(),
+        end.y());
+  }
+
+  if (tween)
+  {
+    curve.set_y0_destination(*tween);
   }
 
   return curve;
 }
+
 }
 }

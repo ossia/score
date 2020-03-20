@@ -43,15 +43,19 @@ MinMaxFloatOutlet::MinMaxFloatOutlet(JSONObject::Deserializer&& vis, QObject* pa
 
 void MinMaxFloatOutlet::forChildInlets(const smallfun::function<void (Inlet&)>& f) const noexcept
 {
+  /* TODO fix AutomationModel
   f(*minInlet);
   f(*maxInlet);
+  */
 }
 
 void MinMaxFloatOutlet::mapExecution(ossia::outlet& e, const smallfun::function<void (Inlet&, ossia::inlet&)>& f) const noexcept
 {
+  /* TODO fix AutomationModel
   auto exec = safe_cast<ossia::minmax_float_outlet*>(&e);
   f(*minInlet, exec->min_inlet);
   f(*maxInlet, exec->max_inlet);
+  */
 }
 
 }

@@ -4,6 +4,7 @@
 #include <score/plugins/DeserializeKnownSubType.hpp>
 #include <ossia/dataflow/safe_nodes/port.hpp>
 #include <score_lib_process_export.h>
+#include <ossia/dataflow/port.hpp>
 namespace Control
 {
 
@@ -80,6 +81,11 @@ struct FloatControl final
     return deserialize_known_interface<Process::FloatSlider>(id, parent);
   }
 
+  void setup_exec(ossia::value_inlet& v) const
+  {
+    v->domain = ossia::domain_base<float>(this->min, this->max);
+  }
+
   float fromValue(const ossia::value& v) const
   {
     return ossia::convert<float>(v);
@@ -125,6 +131,11 @@ struct LogFloatControl final
   auto create_inlet(JSONObject::Deserializer&& id, QObject* parent) const
   {
     return deserialize_known_interface<Process::LogFloatSlider>(id, parent);
+  }
+
+  void setup_exec(ossia::value_inlet& v) const
+  {
+    v->domain = ossia::domain_base<float>(this->min, this->max);
   }
 
   float fromValue(const ossia::value& v) const
@@ -178,6 +189,11 @@ struct IntSlider final : ossia::safe_nodes::control_in,
   {
     return deserialize_known_interface<Process::IntSlider>(id, parent);
   }
+
+  void setup_exec(ossia::value_inlet& v) const
+  {
+    v->domain = ossia::domain_base<int>(this->min, this->max);
+  }
 };
 
 struct IntSpinBox final : ossia::safe_nodes::control_in,
@@ -219,6 +235,10 @@ struct IntSpinBox final : ossia::safe_nodes::control_in,
   {
     return deserialize_known_interface<Process::IntSpinBox>(id, parent);
   }
+  void setup_exec(ossia::value_inlet& v) const
+  {
+    v->domain = ossia::domain_base<int>(this->min, this->max);
+  }
 };
 struct Toggle final : ossia::safe_nodes::control_in, WidgetFactory::Toggle
 {
@@ -251,6 +271,11 @@ struct Toggle final : ossia::safe_nodes::control_in, WidgetFactory::Toggle
     return ossia::convert<bool>(v);
   }
   ossia::value toValue(bool v) const { return v; }
+
+  void setup_exec(ossia::value_inlet& v) const
+  {
+    v->domain = ossia::domain_base<bool>();
+  }
 };
 
 struct ChooserToggle final : ossia::safe_nodes::control_in,
@@ -293,6 +318,10 @@ struct ChooserToggle final : ossia::safe_nodes::control_in,
   {
     return deserialize_known_interface<Process::ChooserToggle>(id, parent);
   }
+  void setup_exec(ossia::value_inlet& v) const
+  {
+    v->domain = ossia::domain_base<bool>();
+  }
 };
 struct LineEdit final : ossia::safe_nodes::control_in, WidgetFactory::LineEdit
 {
@@ -327,6 +356,9 @@ struct LineEdit final : ossia::safe_nodes::control_in, WidgetFactory::LineEdit
   auto create_inlet(JSONObject::Deserializer&& id, QObject* parent) const
   {
     return deserialize_known_interface<Process::LineEdit>(id, parent);
+  }
+  void setup_exec(ossia::value_inlet& v) const
+  {
   }
 };
 
@@ -367,6 +399,10 @@ struct ComboBox final : ossia::safe_nodes::control_in, WidgetFactory::ComboBox
 
   T fromValue(const ossia::value& v) const { return ossia::convert<T>(v); }
   ossia::value toValue(T v) const { return ossia::value{std::move(v)}; }
+
+  void setup_exec(ossia::value_inlet& v) const
+  {
+  }
 };
 
 template <typename ArrT>
@@ -415,6 +451,10 @@ struct EnumBase : ossia::safe_nodes::control_in, WidgetFactory::Enum
   auto create_inlet(JSONObject::Deserializer&& id, QObject* parent) const
   {
     return deserialize_known_interface<Process::Enum>(id, parent);
+  }
+
+  void setup_exec(ossia::value_inlet& v) const
+  {
   }
 };
 
@@ -495,6 +535,9 @@ struct TimeSignatureChooser final : ossia::safe_nodes::control_in,
   {
     return deserialize_known_interface<Process::TimeSignatureChooser>(id, parent);
   }
+  void setup_exec(ossia::value_inlet& v) const
+  {
+  }
 };
 
 template <typename T1, typename T2>
@@ -524,6 +567,9 @@ struct RGBAEdit final : ossia::safe_nodes::control_in, WidgetFactory::RGBAEdit
   static const constexpr bool must_validate = false;
   using type = std::array<float, 4>;
   std::array<float, 4> init{};
+  void setup_exec(ossia::value_inlet& v) const
+  {
+  }
 };
 
 // TODO XYZEdit
@@ -532,5 +578,8 @@ struct XYZEdit final : ossia::safe_nodes::control_in, WidgetFactory::XYZEdit
   static const constexpr bool must_validate = false;
   using type = std::array<float, 3>;
   std::array<float, 3> init{};
+  void setup_exec(ossia::value_inlet& v) const
+  {
+  }
 };
 }

@@ -58,18 +58,20 @@ void LayerData::removeView(int i)
 
 Process::LayerPresenter* LayerData::mainPresenter() const noexcept
 {
-  return m_layers.front().presenter;
+  return !m_layers.empty() ? m_layers.front().presenter : nullptr;
 }
 
 Process::LayerView* LayerData::mainView() const noexcept
 {
-  return m_layers.front().view;
+  return !m_layers.empty() ? m_layers.front().view : nullptr;
 }
 
 bool LayerData::focused() const
 {
   // TODO is this correct
-  return mainPresenter()->focused();
+  if(auto p = mainPresenter())
+    return p->focused();
+  return false;
 }
 
 void LayerData::setFocus(bool focus) const
@@ -165,8 +167,9 @@ void LayerData::updateLoops(
   if (m_model->loops())
   {
     const auto view_width = m_model->loopDuration().toPixels(r);
+
     // TODO here it should be different between fullview and temporal (parent_width vs default_width)
-    const auto num_views = std::max((int)1, (int)std::ceil(parent_width / view_width));
+    const auto num_views = (view_width < 4) ? 0 : std::max((int)1, (int)std::ceil(parent_width / view_width));
     if ((int)m_layers.size() < num_views)
     {
       int missing = num_views - m_layers.size();
@@ -189,7 +192,9 @@ void LayerData::updateLoops(
     {
       setupView(m_layers[i], i, parent_width, parent_default_width, view_width, slot_height);
     }
-    m_layers.front().container->setFlag(QGraphicsItem::ItemHasNoContents, false);
+
+    if(!m_layers.empty())
+      m_layers.front().container->setFlag(QGraphicsItem::ItemHasNoContents, false);
   }
   else
   {
@@ -209,14 +214,19 @@ void LayerData::updateLoops(
 
     // Update sizes for first layer
     setupView(m_layers.front(), 0, parent_width, parent_default_width, parent_width, slot_height);
-    m_layers.front().container->setFlag(QGraphicsItem::ItemHasNoContents, true);
+
+    if(!m_layers.empty())
+      m_layers.front().container->setFlag(QGraphicsItem::ItemHasNoContents, true);
   }
 
-  auto& last = m_layers.back();
-  auto w = parent_width - last.container->x();
-  if(w > 0)
+  if(!m_layers.empty())
   {
-    last.container->setWidth(w);
+    auto& last = m_layers.back();
+    auto w = parent_width - last.container->x();
+    if(w > 0)
+    {
+      last.container->setWidth(w);
+    }
   }
 }
 
@@ -232,12 +242,15 @@ void LayerData::fillContextMenu(
     QPointF scenepos,
     const Process::LayerContextMenuManager& mgr) const
 {
-  return mainPresenter()->fillContextMenu(m, pos, scenepos, mgr);
+  if(auto p = mainPresenter())
+    return p->fillContextMenu(m, pos, scenepos, mgr);
 }
 
 Process::GraphicsShapeItem* LayerData::makeSlotHeaderDelegate() const
 {
-  return mainPresenter()->makeSlotHeaderDelegate();
+  if(auto p = mainPresenter())
+    return p->makeSlotHeaderDelegate();
+  return nullptr;
 }
 /*
 void LayerData::updatePositions(qreal y, qreal instancewidth)
@@ -306,7 +319,9 @@ void LayerData::setZValue(qreal z) const
 
 QPixmap LayerData::pixmap() const noexcept
 {
-  return mainView()->pixmap();
+  if(auto v = mainView())
+    return v->pixmap();
+  return {};
 }
 
 LayerRectItem::LayerRectItem(QGraphicsItem* parent)
