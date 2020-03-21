@@ -8,30 +8,30 @@ The global workflow to create a top toolbar button icons:
 * 96 x 96 (px) with the suffix **_@2x** in the name
 
 ## Making the SVG
-A template file is available for each three states (**template_{disable;off;on}.svg**) made so that any new icon can be created by duplicating the template.
+A template file is available for each three states (**template_{disable;off;on}.svg**)  so that any new icon can be created by duplicating the template.
 
 ### General
 * Make with Inkscape if possible (to avoid weird conversion problem)
 * Size: 48px x 48px
 * Three different svgs per button: disabled/off/on
-* The icon should be centered and inside approximately a 25 x 25 (px) square (corresponding to the layer **inside** in the file **template.svg**
-* If possible, convert the object into paths (seems like there is sometimes a display error otherwise) 
+* The icon should be centered and inside approximately a 25 x 25 (px) square, corresponding to the layer **inside** in the template files
+* If possible, convert the objects into paths (seems like there is sometimes a display error otherwise) 
 
 ### Disabled state
 
-* Name: **button name**_disabled.svg
+* Name: *button name***_disabled.svg**
 * Contains one layer with the icon
 * Icon color: **#808080ff** (dark grey)
 
 ### Off state
 
-* Name: **button name**_off.svg
+* Name: *button name***_off.svg**
 * Contains one layer with the icon
 * Icon color: **#f0f0f0ff** (light grey)
 
 ### On state
 
-* Name: **button name**_on.svg
+* Name: *button name***_on.svg**
 * Contains two layers: one for the icon and the other for the background
 * The background has a contour of **1px** in **#000000ff** filled in **#f6a019ff**
 * Icon color: **#f0f0f0ff** (light grey)
