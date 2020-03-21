@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Generator: Adobe Illustrator 21.0.2, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
+
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   version="1.1"
+   id="Calque_1"
+   x="0px"
+   y="0px"
+   viewBox="0 0 64 64"
+   xml:space="preserve"
+   sodipodi:docname="playfromhere_on.svg"
+   width="64"
+   height="64"
+   inkscape:version="0.92.4 5da689c313, 2019-01-14"><metadata
+   id="metadata19"><rdf:RDF><cc:Work
+       rdf:about=""><dc:format>image/svg+xml</dc:format><dc:type
+         rdf:resource="http://purl.org/dc/dcmitype/StillImage" /><dc:title /></cc:Work></rdf:RDF></metadata><defs
+   id="defs17" /><sodipodi:namedview
+   pagecolor="#ffffff"
+   bordercolor="#666666"
+   borderopacity="1"
+   objecttolerance="10"
+   gridtolerance="10"
+   guidetolerance="10"
+   inkscape:pageopacity="0"
+   inkscape:pageshadow="2"
+   inkscape:window-width="1920"
+   inkscape:window-height="1015"
+   id="namedview15"
+   showgrid="false"
+   inkscape:snap-others="true"
+   inkscape:snap-bbox="true"
+   inkscape:snap-bbox-edge-midpoints="true"
+   inkscape:snap-bbox-midpoints="true"
+   inkscape:object-paths="true"
+   inkscape:snap-object-midpoints="true"
+   fit-margin-top="0"
+   fit-margin-left="0"
+   fit-margin-right="0"
+   fit-margin-bottom="0"
+   inkscape:zoom="8.9001173"
+   inkscape:cx="23.302437"
+   inkscape:cy="27.389036"
+   inkscape:window-x="0"
+   inkscape:window-y="0"
+   inkscape:window-maximized="1"
+   inkscape:current-layer="layer1" />
+<style
+   type="text/css"
+   id="style2">
+	.st0{display:none;fill:#3D3D3D;}
+	.st1{display:none;fill:#000100;}
+	.st2{fill:#808080;}
+	.st3{fill:none;stroke:#808080;stroke-width:2;stroke-linecap:square;stroke-miterlimit:1.5;}
+	.st4{fill:#808080;stroke:#808080;stroke-width:2;stroke-linecap:square;stroke-miterlimit:1.5;}
+</style>
+<g
+   inkscape:groupmode="layer"
+   id="layer2"
+   inkscape:label="bg"><rect
+     class="cls-1"
+     x="0"
+     y="0"
+     width="64"
+     height="64"
+     id="rect8"
+     style="stroke-width:2.2972002;stroke:#000000;stroke-opacity:1;fill:#f6a019;fill-opacity:1" /></g><rect
+   x="-109.5"
+   y="-392.20001"
+   class="st0"
+   width="576.40002"
+   height="576.40002"
+   id="rect4"
+   style="display:none;fill:#3d3d3d" />
+<path
+   class="st1"
+   d="m 477.3,194.60001 h -597.1 v -597.1 h 597.1 z m -576.399999,-20.7 H 456.6 v -555.7 H -99.099999 Z"
+   id="path6"
+   inkscape:connector-curvature="0"
+   style="display:none;fill:#000100" />
+
+
+
+<g
+   inkscape:groupmode="layer"
+   id="layer1"
+   inkscape:label="icon"
+   transform="translate(-119.8,-402.49999)"
+   style="display:inline"><circle
+     style="opacity:1;vector-effect:none;fill:#000000;fill-opacity:1;stroke:none;stroke-width:5.50145674;stroke-linecap:square;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;paint-order:stroke fill markers"
+     id="path835"
+     cx="141.27034"
+     cy="446.72021"
+     r="5.5" /><rect
+     style="opacity:1;vector-effect:none;fill:#000000;fill-opacity:1;stroke:none;stroke-width:11.57022381;stroke-linecap:square;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;paint-order:stroke fill markers"
+     id="rect837"
+     width="4"
+     height="24.059322"
+     x="139.27034"
+     y="426.81573" /><rect
+     style="display:inline;opacity:1;vector-effect:none;fill:#000000;fill-opacity:1;stroke:none;stroke-width:12.0415287;stroke-linecap:square;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;paint-order:stroke fill markers"
+     id="rect837-2"
+     width="4"
+     height="26.059322"
+     x="426.81573"
+     y="-166.82967"
+     transform="rotate(90)" /><path
+     class="st2"
+     d="m 155.82966,416.77977 20,12.09942 -19.9577,11.9725 v -24.07192 z"
+     id="path8-9"
+     inkscape:connector-curvature="0"
+     style="display:inline;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.10576415" /></g></svg>
