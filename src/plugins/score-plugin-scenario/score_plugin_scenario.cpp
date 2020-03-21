@@ -77,8 +77,8 @@ score_plugin_scenario::score_plugin_scenario()
 #endif
   using namespace Scenario;
   // QMetaType::registerComparators<ossia::value>();
-  QMetaType::registerComparators<State::Message>();
-  QMetaType::registerComparators<State::MessageList>();
+  //QMetaType::registerComparators<State::Message>();
+  //QMetaType::registerComparators<State::MessageList>();
 
   qRegisterMetaType<State::Expression>();
   qRegisterMetaTypeStreamOperators<State::Message>();

@@ -46,7 +46,7 @@ ScenarioPresenter::ScenarioPresenter(
     Process::LayerView* view,
     const Process::Context& context,
     QObject* parent)
-    : LayerPresenter{context, parent}
+    : LayerPresenter{scenario, view, context, parent}
     , m_layer{scenario}
     , m_view{static_cast<ScenarioView*>(view)}
     , m_viewInterface{*this}

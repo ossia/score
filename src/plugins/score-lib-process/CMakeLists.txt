@@ -51,8 +51,10 @@ set(PROCESS_HDRS
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Tools/ToolPalette.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Tools/ProcessGraphicsView.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Tools/ProcessPanelGraphicsProxy.hpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Process/Preset.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/ZoomHelper.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Layer/LayerContextMenu.hpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Process/Commands/LoadPreset.hpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Magnetism/MagnetismAdjuster.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Actions/ProcessActions.hpp"
@@ -113,8 +115,9 @@ set(PROCESS_SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Dataflow/WidgetInlets.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Dataflow/MinMaxFloatPort.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Drop/ProcessDropHandler.cpp"
-
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Layer/LayerContextMenu.cpp"
+
+"${CMAKE_CURRENT_SOURCE_DIR}/Process/Preset.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/State/MessageNode.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/State/ProcessStateDataInterface.cpp"

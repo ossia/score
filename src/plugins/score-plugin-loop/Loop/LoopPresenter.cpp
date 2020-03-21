@@ -59,7 +59,7 @@ LayerPresenter::LayerPresenter(
     LayerView* view,
     const Process::Context& ctx,
     QObject* parent)
-    : Process::LayerPresenter{ctx, parent}
+    : Process::LayerPresenter{layer, view, ctx, parent}
     , BaseScenarioPresenter<
           Loop::ProcessModel,
           Scenario::TemporalIntervalPresenter>{layer}

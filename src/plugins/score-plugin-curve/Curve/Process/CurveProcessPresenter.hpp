@@ -33,7 +33,7 @@ public:
       LayerView_T* view,
       const Process::Context& ctx,
       QObject* parent)
-      : LayerPresenter{ctx, parent}
+      : LayerPresenter{lm, view, ctx, parent}
       , m_layer{lm}
       , m_view{static_cast<LayerView_T*>(view)}
       , m_curve{ctx, style, m_layer.curve(), new View{m_view}, this}

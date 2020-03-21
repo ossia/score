@@ -178,6 +178,49 @@ Process::Outlet* ProcessModel::outlet(const Id<Process::Port>& p) const
   return nullptr;
 }
 
+void ProcessModel::loadPreset(const Preset& preset)
+{
+  auto ctrls = preset.data["Controls"].toArray();
+
+  for(const auto& json_val : ctrls) {
+    const auto& arr = json_val.toArray();
+    const auto& id = arr[0].toInt();
+    const auto& val = fromJsonValue<ossia::value>(arr[1]);
+
+    auto it = ossia::find_if(m_inlets, [&] (const auto& inl) { return inl->id().val() == id; });
+    if(it != m_inlets.end())
+    {
+      Process::Inlet& inlet = **it;
+      if(auto ctrl = qobject_cast<Process::ControlInlet*>(&inlet))
+      {
+        ctrl->setValue(val);
+      }
+    }
+  }
+}
+
+Preset ProcessModel::savePreset() const noexcept
+{
+  Preset p;
+  p.name = this->metadata().getName();
+  p.key.key = this->concreteKey();
+
+  QJsonArray values;
+  for(const auto& inlet : m_inlets)
+  {
+    if(auto ctrl = qobject_cast<Process::ControlInlet*>(inlet))
+    {
+      QJsonArray json_ctrl;
+      json_ctrl.push_back(ctrl->id().val());
+      json_ctrl.push_back(toJsonValue(ctrl->value()));
+      values.push_back(json_ctrl);
+    }
+  }
+  p.data["Controls"] = values;
+
+  return p;
+}
+
 void ProcessModel::setLoops(bool b)
 {
   if(b != m_loops)

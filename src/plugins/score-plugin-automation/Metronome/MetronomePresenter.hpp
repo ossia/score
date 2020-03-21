@@ -38,18 +38,7 @@ private:
   {
     auto& autom = this->model();
     // TODO refactor with AddressEditWidget
-    if (mime.formats().contains(score::mime::addressettings()))
-    {
-      Mime<Device::FullAddressSettings>::Deserializer des{mime};
-      Device::FullAddressSettings as = des.deserialize();
-
-      if (as.address.path.isEmpty())
-        return;
-
-      CommandDispatcher<> disp{context().context.commandStack};
-      disp.submit(new ChangeMetronomeAddress{autom, std::move(as.address)});
-    }
-    else if (mime.formats().contains(score::mime::messagelist()))
+    if (mime.formats().contains(score::mime::messagelist()))
     {
       Mime<State::MessageList>::Deserializer des{mime};
       State::MessageList ml = des.deserialize();

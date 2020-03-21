@@ -38,6 +38,8 @@ class SCORE_LIB_PROCESS_EXPORT LayerView : public QObject, public QGraphicsItem
   virtual QPixmap pixmap() noexcept;
 
   void dragEnterEvent(QGraphicsSceneDragDropEvent* event) override;
+  void dragLeaveEvent(QGraphicsSceneDragDropEvent* event) override;
+  void dropEvent(QGraphicsSceneDragDropEvent* event) override;
 
   void clearPressed()
   E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, clearPressed)
@@ -58,6 +60,8 @@ class SCORE_LIB_PROCESS_EXPORT LayerView : public QObject, public QGraphicsItem
   E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, askContextMenu, arg_1, arg_2)
   void dropReceived(const QPointF& pos, const QMimeData& arg_2)
   E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, dropReceived, pos, arg_2)
+  void presetDropReceived(const QPointF& pos, const QMimeData& arg_2)
+  E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, presetDropReceived, pos, arg_2)
 
   void keyPressed(int arg_1)
   E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, keyPressed, arg_1)
@@ -87,7 +91,7 @@ protected:
 private:
   qreal m_height{};
   qreal m_width{};
-
+  bool m_dropPresetOverlay{false};
 };
 
 class SCORE_LIB_PROCESS_EXPORT MiniLayer : public QGraphicsItem

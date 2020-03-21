@@ -19,11 +19,13 @@
 
 #include <score_lib_process_export.h>
 #include <verdigris>
-
+#include <Process/Preset.hpp>
 #include <vector>
 
 class ProcessStateDataInterface;
-
+namespace ossia {
+class value;
+}
 namespace Process
 {
 class Port;
@@ -39,6 +41,7 @@ class ProcessModel;
 class LayerFactory;
 using Inlets = ossia::small_vector<Process::Inlet*, 4>;
 using Outlets = ossia::small_vector<Process::Outlet*, 4>;
+
 
 /**
  * @brief The Process class
@@ -117,6 +120,9 @@ public:
 
   Process::Inlet* inlet(const Id<Process::Port>&) const noexcept;
   Process::Outlet* outlet(const Id<Process::Port>&) const noexcept;
+
+  virtual void loadPreset(const Preset& preset);
+  virtual Preset savePreset() const noexcept;
 
   // Clip duration things
   bool loops() const noexcept
@@ -218,3 +224,6 @@ W_REGISTER_ARGTYPE(Process::ProcessModel*)
 W_REGISTER_ARGTYPE(const Process::ProcessModel*)
 W_REGISTER_ARGTYPE(QPointer<const Process::ProcessModel>)
 W_REGISTER_ARGTYPE(QPointer<Process::ProcessModel>)
+
+Q_DECLARE_METATYPE(Process::Preset)
+W_REGISTER_ARGTYPE(Process::Preset)

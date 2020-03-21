@@ -7,48 +7,13 @@
 
 #include <QJsonDocument>
 
-namespace score
+namespace score::mime
 {
-namespace mime
-{
-inline constexpr const char* nodelist()
+inline constexpr const char* nodelist() noexcept
 {
   return "application/x-score-nodelist";
 }
-inline constexpr const char* addressettings()
-{
-  return "application/x-score-address-settings";
 }
-}
-}
-
-template <>
-struct Visitor<Reader<Mime<Device::FullAddressSettings>>>
-    : public MimeDataReader
-{
-  using MimeDataReader::MimeDataReader;
-  void serialize(const Device::FullAddressSettings& lst) const
-  {
-    m_mime.setData(
-        score::mime::addressettings(),
-        QJsonDocument(toJsonObject(lst)).toJson(QJsonDocument::Indented));
-  }
-};
-
-template <>
-struct Visitor<Writer<Mime<Device::FullAddressSettings>>>
-    : public MimeDataWriter
-{
-  using MimeDataWriter::MimeDataWriter;
-  auto deserialize()
-  {
-    auto obj
-        = QJsonDocument::fromJson(m_mime.data(score::mime::addressettings()))
-              .object();
-    return fromJsonObject<Device::FullAddressSettings>(obj);
-  }
-};
-
 template <>
 struct Visitor<Reader<Mime<Device::NodeList>>> : public MimeDataReader
 {

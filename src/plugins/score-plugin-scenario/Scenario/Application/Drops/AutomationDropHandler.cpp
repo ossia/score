@@ -589,13 +589,6 @@ bool AutomationDropHandler::drop(
 
     return true;
   }
-  else if (mime.formats().contains(score::mime::addressettings()))
-  {
-    Mime<Device::FullAddressSettings>::Deserializer des{mime};
-
-    CreateCurvesFromAddresses({&cst}, {des.deserialize()}, ctx.commandStack);
-    return true;
-  }
   else
   {
     return false;

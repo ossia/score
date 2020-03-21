@@ -131,6 +131,31 @@ void LayerView::dragEnterEvent(QGraphicsSceneDragDropEvent* event)
   {
     event->accept();
   }
+  else if (formats.contains(score::mime::processpreset()))
+  {
+    // TODO check if this is the right process
+    event->accept();
+    m_dropPresetOverlay = true;
+    update();
+  }
+}
+
+void LayerView::dragLeaveEvent(QGraphicsSceneDragDropEvent* event)
+{
+  m_dropPresetOverlay = false;
+  update();
+}
+
+void LayerView::dropEvent(QGraphicsSceneDragDropEvent* event)
+{
+  const auto& formats = event->mimeData()->formats();
+  if (formats.contains(score::mime::processpreset()))
+  {
+    event->accept();
+    presetDropReceived(event->pos(), *event->mimeData());
+    m_dropPresetOverlay = false;
+    update();
+  }
 }
 
 MiniLayer::MiniLayer(QGraphicsItem* parent) : QGraphicsItem{parent}

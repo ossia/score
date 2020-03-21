@@ -1528,8 +1528,7 @@ void SearchWidget::search()
 void SearchWidget::dragEnterEvent(QDragEnterEvent* event)
 {
   const auto& formats = event->mimeData()->formats();
-  if (formats.contains(score::mime::messagelist())
-      || formats.contains(score::mime::addressettings()))
+  if (formats.contains(score::mime::messagelist()))
   {
     event->accept();
   }
@@ -1540,18 +1539,7 @@ void SearchWidget::dropEvent(QDropEvent* ev)
   auto& mime = *ev->mimeData();
 
   // TODO refactor this with AutomationPresenter and AddressLineEdit
-  if (mime.formats().contains(score::mime::addressettings()))
-  {
-    Mime<Device::FullAddressSettings>::Deserializer des{mime};
-    Device::FullAddressSettings as = des.deserialize();
-
-    if (as.address.path.isEmpty())
-      return;
-
-    setText(as.address.toString());
-    returnPressed();
-  }
-  else if (mime.formats().contains(score::mime::nodelist()))
+  if (mime.formats().contains(score::mime::nodelist()))
   {
     Mime<Device::FreeNodeList>::Deserializer des{mime};
     Device::FreeNodeList nl = des.deserialize();

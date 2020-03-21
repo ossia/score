@@ -183,18 +183,7 @@ void AutomatablePortItem::dropEvent(QGraphicsSceneDragDropEvent* event)
   clickedPort = nullptr;
 
   CommandDispatcher<> disp{ctx.commandStack};
-  if (mime.formats().contains(score::mime::addressettings()))
-  {
-    Mime<Device::FullAddressSettings>::Deserializer des{mime};
-    Device::FullAddressSettings as = des.deserialize();
-
-    if (as.address.path.isEmpty())
-      return;
-
-    disp.submit(new Process::ChangePortAddress{
-        m_port, State::AddressAccessor{as.address}});
-  }
-  else if (mime.formats().contains(score::mime::messagelist()))
+  if (mime.formats().contains(score::mime::messagelist()))
   {
     Mime<State::MessageList>::Deserializer des{mime};
     State::MessageList ml = des.deserialize();

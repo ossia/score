@@ -13,17 +13,17 @@ namespace State
  */
 struct SCORE_LIB_STATE_EXPORT Message
 {
-  bool operator==(const Message& m) const
+  bool operator==(const Message& m) const noexcept
   {
     return address == m.address && value == m.value;
   }
 
-  bool operator!=(const Message& m) const
+  bool operator!=(const Message& m) const noexcept
   {
     return address != m.address || value != m.value;
   }
 
-  bool operator<(const Message& m) const { return false; }
+  // bool operator<(const Message& m) const noexcept { return address.toString() < m.address.toString(); }
 
   QString toString() const;
 

@@ -22,6 +22,7 @@
 #include <unordered_map>
 
 W_OBJECT_IMPL(Library::ProcessTreeView)
+W_OBJECT_IMPL(Library::PresetListView)
 namespace Library
 {
 class RecursiveFilterProxy final : public QSortFilterProxyModel
@@ -233,31 +234,61 @@ static void setup_treeview(QTreeView& tv)
 ProcessWidget::ProcessWidget(
     const score::GUIApplicationContext& ctx,
     QWidget* parent)
-    : QWidget{parent}, m_model{new ProcessesItemModel{ctx, this}}
+    : QWidget{parent}
+    , m_processModel{new ProcessesItemModel{ctx, this}}
+    , m_presetModel{new PresetItemModel{ctx, this}}
+    , m_split{Qt::Vertical, this}
 {
+  auto slay = new score::MarginLess<QVBoxLayout>{this};
+  slay->addWidget(&m_split);
   setStatusTip(QObject::tr("This panel shows the available processes.\n"
                            "They can be drag'n'dropped in the score, in intervals, "
                            "and sometimes in effect chains."));
-  auto lay = new score::MarginLess<QVBoxLayout>;
+  auto top_w = new QWidget;
+  auto lay = new score::MarginLess<QVBoxLayout>{top_w};
 
-  this->setLayout(lay);
+  {
+    auto processFilterProxy = new RecursiveFilterProxy{this};
+    processFilterProxy->setSourceModel(m_processModel);
+    processFilterProxy->setFilterKeyColumn(0);
+    lay->addWidget(new ItemModelFilterLineEdit{*processFilterProxy, m_tv, this});
+    lay->addWidget(&m_tv);
+    m_tv.setModel(processFilterProxy);
+    m_tv.setStatusTip(statusTip());
+    setup_treeview(m_tv);
+  }
 
-  auto m_proxy = new RecursiveFilterProxy{this};
-  m_proxy->setSourceModel(m_model);
-  m_proxy->setFilterKeyColumn(0);
-  lay->addWidget(new ItemModelFilterLineEdit{*m_proxy, m_tv, this});
-  lay->addWidget(&m_tv);
-  m_tv.setModel(m_proxy);
-  setup_treeview(m_tv);
+  auto presetFilterProxy = new PresetFilterProxy{this};
+  {
+    presetFilterProxy->setSourceModel(m_presetModel);
+    m_lv.setModel(presetFilterProxy);
+    m_lv.setAcceptDrops(true);
+    m_lv.setDragEnabled(true);
+  }
 
-  auto widg = new InfoWidget{this};
-  lay->addWidget(widg);
-  m_tv.setStatusTip(statusTip());
-  widg->setStatusTip(statusTip());
+  auto infoWidg = new InfoWidget{this};
+  infoWidg->setStatusTip(statusTip());
 
   con(m_tv, &ProcessTreeView::selected, this, [=](const auto& pdata) {
-    widg->setData(pdata);
+    infoWidg->setData(pdata);
+    if(pdata)
+      presetFilterProxy->currentFilter = pdata->key;
+    else
+      presetFilterProxy->currentFilter = {};
+    presetFilterProxy->invalidate();
   });
+
+  m_split.addWidget(top_w);
+  m_split.addWidget(&m_lv);
+  m_split.addWidget(infoWidg);
+  top_w->setMinimumHeight(100);
+  m_lv.setMinimumHeight(100);
+  m_split.setCollapsible(0, false);
+  m_split.setCollapsible(1, false);
+  m_split.setCollapsible(2, false);
+  m_split.setStretchFactor(0, 3);
+  m_split.setStretchFactor(1, 1);
+  m_split.setStretchFactor(2, 1);
 }
 
 ProcessWidget::~ProcessWidget() {}
@@ -418,4 +449,5 @@ void ProjectLibraryWidget::setRoot(QString path)
     m_tv.setModel(nullptr);
   }
 }
+
 }

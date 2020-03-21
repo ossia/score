@@ -4,6 +4,8 @@
 #include <score/tools/std/Optional.hpp>
 
 #include <QTreeView>
+#include <QListView>
+#include <QSplitter>
 class QFileSystemModel;
 class QSortFilterProxyModel;
 namespace score
@@ -24,6 +26,13 @@ public:
       const QItemSelection& deselected) override;
 };
 
+class PresetListView : public QListView
+{
+  W_OBJECT(PresetListView)
+public:
+  using QListView::QListView;
+};
+
 class ProcessWidget : public QWidget
 {
 public:
@@ -31,8 +40,11 @@ public:
   ~ProcessWidget();
 
 private:
-  ProcessesItemModel* m_model{};
+  ProcessesItemModel* m_processModel{};
+  PresetItemModel* m_presetModel{};
+  QSplitter m_split;
   ProcessTreeView m_tv;
+  PresetListView m_lv;
 };
 }
 

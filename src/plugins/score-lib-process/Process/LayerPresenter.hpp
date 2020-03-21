@@ -33,7 +33,7 @@ class SCORE_LIB_PROCESS_EXPORT LayerPresenter : public QObject
   W_OBJECT(LayerPresenter)
 
 public:
-  LayerPresenter(const Context& ctx, QObject* parent);
+  LayerPresenter(const ProcessModel& model, const LayerView* view, const Context& ctx, QObject* parent);
   ~LayerPresenter() override;
 
   const Process::LayerContext& context() const { return m_context; }

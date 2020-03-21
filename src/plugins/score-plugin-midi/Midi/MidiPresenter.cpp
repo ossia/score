@@ -43,7 +43,7 @@ Presenter::Presenter(
     View* view,
     const Process::Context& ctx,
     QObject* parent)
-    : LayerPresenter{ctx, parent}
+    : LayerPresenter{layer, view, ctx, parent}
     , m_layer{layer}
     , m_view{view}
     , m_moveDispatcher{ctx.commandStack}

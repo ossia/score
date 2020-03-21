@@ -22,7 +22,7 @@ public:
       View* view,
       const Process::Context& ctx,
       QObject* parent)
-      : LayerPresenter{ctx, parent}
+      : LayerPresenter{model, view, ctx, parent}
       , m_layer{model}
       , m_view{view}
       , m_disp{m_context.context.commandStack}

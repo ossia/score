@@ -14,6 +14,10 @@ inline constexpr auto processdata()
 {
   return "application/x-score-processdata";
 }
+inline constexpr auto processpreset()
+{
+  return "application/x-score-processpreset";
+}
 inline constexpr auto layerdata()
 {
   return "application/x-score-layerdata";

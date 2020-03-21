@@ -174,7 +174,7 @@ void View::dropEvent(QGraphicsSceneDragDropEvent* ev)
 }
 
 Presenter::Presenter(const ChainProcess& model, View* view, const Process::Context& ctx, QObject* parent)
-  : LayerPresenter{ctx, parent}, m_layer{model}, m_view{view}
+  : LayerPresenter{model, view, ctx, parent}, m_layer{model}, m_view{view}
 {
   putToFront();
   connect(view, &View::pressed, this, [&] {

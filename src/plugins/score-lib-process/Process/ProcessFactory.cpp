@@ -48,7 +48,7 @@ public:
       Process::LayerView* v,
       const Context& ctx,
       QObject* parent)
-      : LayerPresenter{ctx, parent}, m_model{model}, m_view{v}
+      : LayerPresenter{model, v, ctx, parent}, m_model{model}, m_view{v}
   {
     auto vi = dynamic_cast<DefaultLayerView*>(v);
     vi->m_txt = m_model.metadata().getName();

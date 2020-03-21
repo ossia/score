@@ -18,7 +18,7 @@ LayerPresenter::LayerPresenter(
     LayerView* view,
     const Process::Context& ctx,
     QObject* parent)
-    : Process::LayerPresenter{ctx, parent}, m_layer{layer}, m_view{view}
+    : Process::LayerPresenter{layer, view, ctx, parent}, m_layer{layer}, m_view{view}
 {
   connect(view, &LayerView::pressed, this, [&]() {
     m_context.context.focusDispatcher.focus(this);

@@ -56,7 +56,7 @@ EffectLayerPresenter::EffectLayerPresenter(
     Process::LayerView* view,
     const Context& ctx,
     QObject* parent)
-    : LayerPresenter{ctx, parent}, m_layer{model}, m_view{view}
+    : LayerPresenter{model, view, ctx, parent}, m_layer{model}, m_view{view}
 {
   putToFront();
   connect(view, &Process::LayerView::pressed, this, [&] {
