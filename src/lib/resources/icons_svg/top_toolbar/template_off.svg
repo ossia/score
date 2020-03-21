@@ -36,12 +36,12 @@
    id="namedview13"
    showgrid="false"
    inkscape:zoom="8.1660901"
-   inkscape:cx="-26.573305"
-   inkscape:cy="14.45"
+   inkscape:cx="-24.613983"
+   inkscape:cy="11.755932"
    inkscape:window-x="0"
    inkscape:window-y="0"
    inkscape:window-maximized="1"
-   inkscape:current-layer="layer1" />
+   inkscape:current-layer="layer2" />
 <style
    type="text/css"
    id="style2">
@@ -73,12 +73,12 @@
    transform="translate(0,19.1)"
    style="display:inline"
    sodipodi:insensitive="true"><rect
-     style="display:inline;opacity:1;vector-effect:none;fill:#c6e3e0;fill-opacity:1;stroke:none;stroke-width:10.24324131;stroke-linecap:square;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;paint-order:stroke fill markers"
+     style="display:inline;opacity:1;vector-effect:none;fill:#c6e3e0;fill-opacity:1;stroke:none;stroke-width:12.29188919;stroke-linecap:square;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;paint-order:stroke fill markers"
      id="rect22"
-     width="25"
-     height="25"
-     x="11.5"
-     y="-7.5999999" /></g><g
+     width="30"
+     height="30"
+     x="9"
+     y="-10.1" /></g><g
    inkscape:groupmode="layer"
    id="layer1"
    inkscape:label="Icon"
