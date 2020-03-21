@@ -1,19 +1,110 @@
-<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!-- Generator: Adobe Illustrator 21.0.2, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
-<svg version="1.1" id="Calque_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
-	 viewBox="0 0 28.9 28.9" style="enable-background:new 0 0 28.9 28.9;" xml:space="preserve">
-<style type="text/css">
+
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   version="1.1"
+   id="Calque_1"
+   x="0px"
+   y="0px"
+   viewBox="0 0 48.000001 48.000001"
+   xml:space="preserve"
+   sodipodi:docname="interpolate_disabled.svg"
+   width="48"
+   height="48"
+   inkscape:version="0.92.4 5da689c313, 2019-01-14"><metadata
+   id="metadata17"><rdf:RDF><cc:Work
+       rdf:about=""><dc:format>image/svg+xml</dc:format><dc:type
+         rdf:resource="http://purl.org/dc/dcmitype/StillImage" /><dc:title>boutons</dc:title></cc:Work></rdf:RDF></metadata><defs
+   id="defs15" /><sodipodi:namedview
+   pagecolor="#ffffff"
+   bordercolor="#666666"
+   borderopacity="1"
+   objecttolerance="10"
+   gridtolerance="10"
+   guidetolerance="10"
+   inkscape:pageopacity="0"
+   inkscape:pageshadow="2"
+   inkscape:window-width="1920"
+   inkscape:window-height="1015"
+   id="namedview13"
+   showgrid="false"
+   inkscape:zoom="16.33218"
+   inkscape:cx="28.919903"
+   inkscape:cy="24.950443"
+   inkscape:window-x="0"
+   inkscape:window-y="0"
+   inkscape:window-maximized="1"
+   inkscape:current-layer="layer1" />
+<style
+   type="text/css"
+   id="style2">
 	.st0{display:none;fill:#3D3D3D;}
 	.st1{display:none;fill:#000100;}
-	.st2{fill:#808080;stroke:#808080;stroke-miterlimit:10;}
-	.st3{fill:none;stroke:#808080;stroke-miterlimit:10;stroke-dasharray:1,1;}
-	.st4{fill:#808080;}
+	.st2{fill:#808080;}
 </style>
-<title>boutons</title>
-<rect x="0.5" y="0.5" class="st0" width="27.9" height="27.9"/>
-<path class="st1" d="M28.9,28.9H0V0h28.9V28.9z M1,27.9h26.9V1H1V27.9z"/>
-<circle class="st2" cx="9.2" cy="20.6" r="1.2"/>
-<circle class="st2" cx="21.4" cy="8.6" r="1.2"/>
-<line class="st3" x1="12.4" y1="17.8" x2="16.1" y2="14.2"/>
-<polygon class="st4" points="12.7,11.6 18.7,17.6 18.7,11.6 "/>
-</svg>
+<title
+   id="title4">boutons</title>
+<rect
+   x="0.5"
+   y="19.6"
+   class="st0"
+   width="27.9"
+   height="27.9"
+   id="rect6"
+   style="display:none;fill:#3d3d3d" />
+<path
+   class="st1"
+   d="M 28.9,48 H 0 V 19.1 H 28.9 Z M 1,47 H 27.9 V 20.1 H 1 Z"
+   id="path8"
+   inkscape:connector-curvature="0"
+   style="display:none;fill:#000100" />
+
+<g
+   inkscape:groupmode="layer"
+   id="layer2"
+   inkscape:label="Inside square - hide when exporting"
+   transform="translate(0,19.1)"
+   style="display:none"
+   sodipodi:insensitive="true"><rect
+     style="display:inline;opacity:1;vector-effect:none;fill:#c6e3e0;fill-opacity:1;stroke:none;stroke-width:12.29188919;stroke-linecap:square;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;paint-order:stroke fill markers"
+     id="rect22"
+     width="30"
+     height="30"
+     x="9"
+     y="-10.1" /></g><g
+   inkscape:groupmode="layer"
+   id="layer1"
+   inkscape:label="Icon"
+   style="display:inline"
+   transform="translate(0,19.1)"><circle
+     class="st2"
+     cx="13.554794"
+     cy="15.173973"
+     id="circle10"
+     style="fill:#808080;stroke-width:2.08333325"
+     r="2.5" /><circle
+     class="st2"
+     cx="34.445206"
+     cy="-5.3739729"
+     id="circle12"
+     style="fill:#808080;stroke-width:2.08333325"
+     r="2.5" /><line
+     class="st3"
+     x1="15.773355"
+     y1="12.955274"
+     x2="28.5277"
+     y2="0.54564816"
+     id="line14"
+     style="fill:none;stroke:#808080;stroke-width:2;stroke-miterlimit:4;stroke-dasharray:4, 2;stroke-dashoffset:0;stroke-opacity:1" /><polygon
+     transform="matrix(-1.0999439,1.0999439,1.0655034,1.0655034,20.161378,-22.43373)"
+     class="st2"
+     points="9.5,11.1 9.5,18.4 5,14.7 "
+     id="polygon10"
+     style="display:inline;fill:#808080;fill-opacity:1;stroke:none" /></g></svg>

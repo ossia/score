@@ -1,16 +1,92 @@
-<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!-- Generator: Adobe Illustrator 21.0.2, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
-<svg version="1.1" id="Calque_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
-	 viewBox="0 0 24 24" style="enable-background:new 0 0 24 24;" xml:space="preserve">
-<style type="text/css">
+
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   version="1.1"
+   id="Calque_1"
+   x="0px"
+   y="0px"
+   viewBox="0 0 48.000001 48.000001"
+   xml:space="preserve"
+   sodipodi:docname="delete_disabled.svg"
+   width="48"
+   height="48"
+   inkscape:version="0.92.4 5da689c313, 2019-01-14"><metadata
+   id="metadata17"><rdf:RDF><cc:Work
+       rdf:about=""><dc:format>image/svg+xml</dc:format><dc:type
+         rdf:resource="http://purl.org/dc/dcmitype/StillImage" /><dc:title>boutons</dc:title></cc:Work></rdf:RDF></metadata><defs
+   id="defs15" /><sodipodi:namedview
+   pagecolor="#ffffff"
+   bordercolor="#666666"
+   borderopacity="1"
+   objecttolerance="10"
+   gridtolerance="10"
+   guidetolerance="10"
+   inkscape:pageopacity="0"
+   inkscape:pageshadow="2"
+   inkscape:window-width="1920"
+   inkscape:window-height="1015"
+   id="namedview13"
+   showgrid="false"
+   inkscape:zoom="32.66436"
+   inkscape:cx="20.119366"
+   inkscape:cy="31.963201"
+   inkscape:window-x="0"
+   inkscape:window-y="0"
+   inkscape:window-maximized="1"
+   inkscape:current-layer="layer1" />
+<style
+   type="text/css"
+   id="style2">
 	.st0{display:none;fill:#3D3D3D;}
 	.st1{display:none;fill:#000100;}
 	.st2{fill:#808080;}
 </style>
-<title>boutons</title>
-<rect x="0.5" y="0.5" class="st0" width="23" height="23"/>
-<path class="st1" d="M24,24H0V0h24V24z M1,23h22V1H1V23z"/>
-<path class="st2" d="M9.7,6.9h1V6h2.8v0.9h0.9c-0.1-1.2-1.2-2-2.4-1.9l0,0l0,0C10.8,4.9,9.8,5.7,9.7,6.9 M8.9,7.9h-2v1.8h1V18
-	c0,0.6,0.4,1,1,1h6.3c0.6,0,1-0.4,1-1l0,0V9.7h0.9V7.8L8.9,7.9L8.9,7.9z M14.4,10.7h0.9v5.6h-0.9V10.7z M12.5,10.7h0.9v5.6h-0.9
-	V10.7L12.5,10.7z M10.6,10.7h0.9v5.6h-0.9V10.7L10.6,10.7z M8.7,10.7h0.9v5.6H8.8L8.7,10.7L8.7,10.7z"/>
-</svg>
+<title
+   id="title4">boutons</title>
+<rect
+   x="0.5"
+   y="19.6"
+   class="st0"
+   width="27.9"
+   height="27.9"
+   id="rect6"
+   style="display:none;fill:#3d3d3d" />
+<path
+   class="st1"
+   d="M 28.9,48 H 0 V 19.1 H 28.9 Z M 1,47 H 27.9 V 20.1 H 1 Z"
+   id="path8"
+   inkscape:connector-curvature="0"
+   style="display:none;fill:#000100" />
+
+<g
+   inkscape:groupmode="layer"
+   id="layer2"
+   inkscape:label="Inside square - hide when exporting"
+   transform="translate(0,19.1)"
+   style="display:none"
+   sodipodi:insensitive="true"><rect
+     style="display:inline;opacity:1;vector-effect:none;fill:#c6e3e0;fill-opacity:1;stroke:none;stroke-width:12.29188919;stroke-linecap:square;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;paint-order:stroke fill markers"
+     id="rect22"
+     width="30"
+     height="30"
+     x="9"
+     y="-10.1" /></g><g
+   inkscape:groupmode="layer"
+   id="layer1"
+   inkscape:label="Icon"
+   style="display:inline"
+   transform="translate(0,19.1)"><path
+     inkscape:connector-curvature="0"
+     class="st2"
+     d="M 19.490196,-4.6372545 H 22 c -0.11706,-2.381242 4.20365,-2.5327756 4,0 h 2.705882 C 28.509804,-6.9901965 26.32047,-8.3531708 24,-8.3627455 v 0 0 c -2.331293,-0.012073 -4.313725,1.372549 -4.509804,3.725491 m -1.568627,1.5062951 H 14 v 3.52941201 h 1.960784 V 16.672962 c 0,1.176471 0.784314,1.960784 1.960785,1.960784 H 30.27451 c 1.17647,0 1.960784,-0.784313 1.960784,-1.960784 v 0 V 0.39845261 H 34 V -3.3270384 Z m 10.784313,5.4901958 h 1.764706 V 13.339629 h -1.764706 z m -3.72549,0 h 1.764706 V 13.339629 h -1.764706 z m -3.72549,0 h 1.764706 V 13.339629 h -1.764706 z m -3.72549,0 h 1.764706 V 13.339629 H 17.72549 Z"
+     id="path10-3"
+     style="fill:#808080;stroke-width:1.96078432"
+     sodipodi:nodetypes="ccccccccccccssscccccccccccccccccccccccccc" /></g></svg>

@@ -1,16 +1,91 @@
-<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!-- Generator: Adobe Illustrator 21.0.2, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
-<svg version="1.1" id="Calque_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
-	 viewBox="0 0 28.9 28.9" style="enable-background:new 0 0 28.9 28.9;" xml:space="preserve">
-<style type="text/css">
+
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   version="1.1"
+   id="Calque_1"
+   x="0px"
+   y="0px"
+   viewBox="0 0 48.000001 48.000001"
+   xml:space="preserve"
+   sodipodi:docname="create_disabled.svg"
+   width="48"
+   height="48"
+   inkscape:version="0.92.4 5da689c313, 2019-01-14"><metadata
+   id="metadata17"><rdf:RDF><cc:Work
+       rdf:about=""><dc:format>image/svg+xml</dc:format><dc:type
+         rdf:resource="http://purl.org/dc/dcmitype/StillImage" /><dc:title>boutons</dc:title></cc:Work></rdf:RDF></metadata><defs
+   id="defs15" /><sodipodi:namedview
+   pagecolor="#ffffff"
+   bordercolor="#666666"
+   borderopacity="1"
+   objecttolerance="10"
+   gridtolerance="10"
+   guidetolerance="10"
+   inkscape:pageopacity="0"
+   inkscape:pageshadow="2"
+   inkscape:window-width="1920"
+   inkscape:window-height="1015"
+   id="namedview13"
+   showgrid="false"
+   inkscape:zoom="8.1660901"
+   inkscape:cx="-4.286017"
+   inkscape:cy="18.246187"
+   inkscape:window-x="0"
+   inkscape:window-y="0"
+   inkscape:window-maximized="1"
+   inkscape:current-layer="layer1" />
+<style
+   type="text/css"
+   id="style2">
 	.st0{display:none;fill:#3D3D3D;}
 	.st1{display:none;fill:#000100;}
 	.st2{fill:#808080;}
 </style>
-<title>boutons</title>
-<rect x="0.5" y="0.5" class="st0" width="27.9" height="27.9"/>
-<path class="st1" d="M28.9,28.9H0V0h28.9V28.9z M1,27.9h26.9V1H1V27.9z"/>
-<path class="st2" d="M8.2,6C7.5,6,7,6.5,7,7.1l0,0l0,0v14.7c0,0.6,0.5,1.1,1.1,1.1c0,0,0,0,0.1,0h12.5c0.6,0,1.1-0.5,1.1-1.1l0,0
-	v-9.5h-5.3V6H8.2z M10.2,14.5h3.2v-3.2h2.1v3.2h3.2v2.1h-3.1v3.2h-2.1v-3.2h-3.2L10.2,14.5L10.2,14.5z M17.6,11.3h4.2v-0.1l-4.2-4.3
-	L17.6,11.3L17.6,11.3z"/>
-</svg>
+<title
+   id="title4">boutons</title>
+<rect
+   x="0.5"
+   y="19.6"
+   class="st0"
+   width="27.9"
+   height="27.9"
+   id="rect6"
+   style="display:none;fill:#3d3d3d" />
+<path
+   class="st1"
+   d="M 28.9,48 H 0 V 19.1 H 28.9 Z M 1,47 H 27.9 V 20.1 H 1 Z"
+   id="path8"
+   inkscape:connector-curvature="0"
+   style="display:none;fill:#000100" />
+
+<g
+   inkscape:groupmode="layer"
+   id="layer2"
+   inkscape:label="Inside square - hide when exporting"
+   transform="translate(0,19.1)"
+   style="display:none"
+   sodipodi:insensitive="true"><rect
+     style="display:inline;opacity:1;vector-effect:none;fill:#c6e3e0;fill-opacity:1;stroke:none;stroke-width:12.29188919;stroke-linecap:square;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;paint-order:stroke fill markers"
+     id="rect22"
+     width="30"
+     height="30"
+     x="9"
+     y="-10.1" /></g><g
+   inkscape:groupmode="layer"
+   id="layer1"
+   inkscape:label="Icon"
+   style="display:inline"
+   transform="translate(0,19.1)"><path
+     inkscape:connector-curvature="0"
+     class="st2"
+     d="M 13.945945,-8.8027025 C 12.810811,-8.8027025 12,-7.9918925 12,-7.0189191 v 0 0 23.8378381 c 0,0.972972 0.810811,1.783783 1.783783,1.783783 0,0 0,0 0.162162,0 H 34.216217 C 35.189189,18.602702 36,17.791891 36,16.818919 v 0 V 1.4135132 H 27.405404 V -8.8027025 Z m 3.243244,13.7837834 h 5.18919 v -5.1891891 h 3.405404 v 5.1891891 h 5.18919 V 8.3864863 H 25.945945 V 13.575675 H 22.540541 V 8.3864863 h -5.189189 z m 12,-5.1891891 H 36 v -0.1621621 l -6.810811,-6.9729731 z"
+     id="path10-3"
+     style="fill:#808080;stroke-width:1.62162149;stroke:none" /></g></svg>
