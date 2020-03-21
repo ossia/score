@@ -19,19 +19,19 @@ A template file is available for each three states (**template_{disable;off;on}.
 
 ### Disabled state
 
-* Name: *button name***_disabled.svg**
+* Name: {*button name*}**_disabled.svg**
 * Contains one layer with the icon
 * Icon color: **#808080ff** (dark grey)
 
 ### Off state
 
-* Name: *button name***_off.svg**
+* Name: {*button name*}**_off.svg**
 * Contains one layer with the icon
 * Icon color: **#f0f0f0ff** (light grey)
 
 ### On state
 
-* Name: *button name***_on.svg**
+* Name: {*button name*}**_on.svg**
 * Contains two layers: one for the icon and the other for the background
 * The background has a contour of **1px** in **#000000ff** filled in **#f6a019ff**
 * Icon color: **#f0f0f0ff** (light grey)
