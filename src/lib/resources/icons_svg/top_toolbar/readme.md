@@ -33,6 +33,6 @@ A template file is available for each three states (**template_{disable;off;on}.
 
 * Name: {*button name*}**_on.svg**
 * Contains two layers: one for the icon and the other for the background
-* The background has a contour of **1px** in **#000000ff** (black) filled in **#f6a019ff** (orange)
+* The background has a contour of **2px** in **#000000ff** (black) filled in **#f6a019ff** (orange)
 * Icon color: **#000000ff** (black)
 
