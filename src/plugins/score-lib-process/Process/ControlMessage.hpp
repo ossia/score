@@ -6,7 +6,7 @@
 
 namespace Process
 {
-struct ControlMessage
+struct SCORE_LIB_PROCESS_EXPORT ControlMessage
 {
   Path<Process::Inlet> port;
   ossia::value value;
