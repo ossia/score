@@ -40,6 +40,7 @@
 #include <score/model/Identifier.hpp>
 #include <score/plugins/application/GUIApplicationPlugin.hpp>
 #include <score/plugins/documentdelegate/DocumentDelegateModel.hpp>
+#include <score/widgets/SetIcons.hpp>
 
 #include <Scenario/Application/Drops/AutomationDropHandler.hpp>
 #include <core/application/ApplicationSettings.hpp>
@@ -124,6 +125,11 @@ ScenarioApplicationPlugin::ScenarioApplicationPlugin(
     m_showCables = new QAction{this};
     m_showCables->setCheckable(true);
     m_showCables->setChecked(true);
+    setIcons(m_showCables
+             , QStringLiteral(":/icons/show_cables_on.png")
+             , QStringLiteral(":/icons/show_cables_off.png")
+             , QStringLiteral(":/icons/show_cables_disabled.png")
+             );
     connect(m_showCables, &QAction::toggled, this, [this](bool c) {
       auto doc = this->currentDocument();
       if (doc)
