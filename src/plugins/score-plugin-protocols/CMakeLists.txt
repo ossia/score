@@ -3,8 +3,8 @@ project(score_plugin_protocols LANGUAGES CXX)
 score_common_setup()
 
 # Packages
-find_package(Qt5 REQUIRED COMPONENTS Core Widgets Network)
-find_package(Qt5 OPTIONAL_COMPONENTS Qml)
+find_package(Qt5 5.9 REQUIRED COMPONENTS Core Widgets Network)
+find_package(Qt5 5.9 OPTIONAL_COMPONENTS Qml)
 
 # Files & main target
 set(HDRS

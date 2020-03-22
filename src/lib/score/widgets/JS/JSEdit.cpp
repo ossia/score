@@ -1185,12 +1185,21 @@ void JSEdit::updateSidebar()
     int maxLines = blockCount();
     for (int number = 10; number < maxLines; number *= 10)
       ++digits;
+
+#if QT_VERSION < QT_VERSION_CHECK(5,11,0)
+    sw += fontMetrics().width('w') * digits;
+#else
     sw += fontMetrics().horizontalAdvance('w') * digits;
+#endif
   }
   if (d->codeFolding)
   {
     int fh = fontMetrics().lineSpacing();
+#if QT_VERSION < QT_VERSION_CHECK(5,11,0)
+    int fw = fontMetrics().width('w');
+#else
     int fw = fontMetrics().horizontalAdvance('w');
+#endif
     d->sidebar->foldIndicatorWidth = qMax(fw, fh);
     sw += d->sidebar->foldIndicatorWidth;
   }

@@ -66,7 +66,7 @@ if(MSYS OR MINGW)
   find_package(ZLIB)
 endif()
 
-find_package(Qt5 5.12 REQUIRED
+find_package(Qt5 5.9 REQUIRED
              COMPONENTS
                Core
                Widgets

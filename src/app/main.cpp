@@ -115,7 +115,7 @@ static void setup_opengl()
   fmt.setDefaultFormat(fmt);
   }
   return;
-
+/*
 #if !defined(__EMSCRIPTEN__)
   QSurfaceFormat fmt = QSurfaceFormat::defaultFormat();
   fmt.setMajorVersion(4);
@@ -140,6 +140,7 @@ static void setup_opengl()
   fmt.setAlphaBufferSize(0);
   fmt.setDefaultFormat(fmt);
 #endif
+*/
 }
 
 static void setup_locale()

@@ -16,7 +16,7 @@
 #include <cmath>
 
 #include <score/tools/Debug.hpp>
-
+#include <mutex>
 #include <wobjectimpl.h>
 #include <score/widgets/DoubleSlider.hpp>
 #include <score/tools/std/Invoke.hpp>
@@ -153,7 +153,11 @@ struct QImagePool
     {
       for(QImage* img : pair.second.images)
       {
+#if QT_VERSION < QT_VERSION_CHECK(5,10,0)
+        bytes += img->byteCount();
+#else
         bytes += img->sizeInBytes();
+#endif
         images ++;
       }
     }
@@ -374,7 +378,7 @@ WaveformComputer::WaveformComputer(LayerView& layer)
     int64_t n = ++m_redraw_count;
 
      // qDebug() << "count: " << n;
-     QMetaObject::invokeMethod(this, [=] { on_recompute(arg_1, arg_2, cols, n); }, Qt::QueuedConnection);
+     ossia::qt::run_async(this, [=] { on_recompute(arg_1, arg_2, cols, n); });
   }, Qt::DirectConnection);
   startTimer(16, Qt::CoarseTimer);
 
@@ -384,7 +388,7 @@ WaveformComputer::WaveformComputer(LayerView& layer)
 
 void WaveformComputer::stop()
 {
-  QMetaObject::invokeMethod(this, [this] {
+  ossia::qt::run_async(this, [this] {
     moveToThread(m_layer.thread());
     m_drawThread.quit();
   });

@@ -14,7 +14,7 @@ DataStreamReader::DataStreamReader(QByteArray* array)
     : m_stream_impl{array, QIODevice::WriteOnly}
     , components{score::AppComponents()}
 {
-  m_stream_impl.setVersion(QDataStream::Qt_5_12);
+  m_stream_impl.setVersion(QDataStream::Qt_DefaultCompiledVersion);
 }
 
 DataStreamReader::DataStreamReader(QIODevice* dev)
@@ -28,7 +28,7 @@ DataStreamWriter::DataStreamWriter() : components{score::AppComponents()} {}
 DataStreamWriter::DataStreamWriter(const QByteArray& array)
     : components{score::AppComponents()}, m_stream_impl{array}
 {
-  m_stream_impl.setVersion(QDataStream::Qt_5_12);
+  m_stream_impl.setVersion(QDataStream::Qt_DefaultCompiledVersion);
 }
 
 DataStreamWriter::DataStreamWriter(QIODevice* dev)

@@ -1,6 +1,7 @@
 #pragma once
 #include <QCoreApplication>
 #include <QEvent>
+#include <ossia-qt/invoke.hpp>
 
 #include <score_lib_base_export.h>
 namespace score

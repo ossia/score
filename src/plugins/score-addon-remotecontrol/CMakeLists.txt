@@ -1,6 +1,6 @@
 project(score_addon_remotecontrol LANGUAGES CXX)
 
-find_package(Qt5 5.12 REQUIRED COMPONENTS WebSockets)
+find_package(Qt5 5.9 REQUIRED COMPONENTS WebSockets)
 
 # General initialization
 score_common_setup()

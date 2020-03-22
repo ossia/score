@@ -1,6 +1,6 @@
 project(IntegrationTests)
 
-find_package(Qt5 5.12 COMPONENTS Test)
+find_package(Qt5 5.9 COMPONENTS Test)
 enable_testing()
 include(CTest)
 set(CMAKE_AUTOMOC ON)

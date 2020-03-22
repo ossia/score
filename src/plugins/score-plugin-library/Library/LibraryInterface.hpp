@@ -3,7 +3,7 @@
 #include <score/document/DocumentContext.hpp>
 #include <score/plugins/Interface.hpp>
 #include <score/plugins/InterfaceList.hpp>
-
+#include <score/tools/std/StringHash.hpp>
 #include <score_plugin_library_export.h>
 class QAbstractItemModel;
 class QMimeData;
