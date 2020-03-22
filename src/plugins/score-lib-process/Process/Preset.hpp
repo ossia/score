@@ -25,7 +25,7 @@ struct ProcessIdentifier
   }
 };
 
-struct Preset
+struct SCORE_LIB_PROCESS_EXPORT Preset
 {
   QString name;
   ProcessIdentifier key;
