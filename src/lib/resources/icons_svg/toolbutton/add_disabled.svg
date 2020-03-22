@@ -36,7 +36,7 @@
    id="namedview13"
    showgrid="false"
    inkscape:zoom="8.1660901"
-   inkscape:cx="4.2661605"
+   inkscape:cx="-21.388712"
    inkscape:cy="19.161217"
    inkscape:window-x="0"
    inkscape:window-y="0"
@@ -67,17 +67,6 @@
    style="display:none;fill:#000100" />
 
 <g
-   inkscape:groupmode="layer"
-   id="layer2"
-   inkscape:label="Inside square - hide when exporting"
-   transform="translate(0,19.1)"
-   style="display:none"><rect
-     style="display:inline;opacity:1;vector-effect:none;fill:#c6e3e0;fill-opacity:1;stroke:none;stroke-width:16.38918495;stroke-linecap:square;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;paint-order:stroke fill markers"
-     id="rect22"
-     width="40"
-     height="40"
-     x="4"
-     y="-15.1" /></g><g
    inkscape:groupmode="layer"
    id="layer1"
    inkscape:label="Icon"
