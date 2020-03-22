@@ -285,14 +285,12 @@ target_link_libraries(${PROJECT_NAME} PUBLIC Qt5::WebSockets)
 endif()
 target_link_libraries(${PROJECT_NAME} PRIVATE ${CMAKE_DL_LIBS})
 
-if(TARGET Lilv)
-    target_link_libraries(${PROJECT_NAME} PUBLIC Lilv)
+if(TARGET Lilv AND TARGET Suil)
+    target_link_libraries(${PROJECT_NAME} PRIVATE Lilv)
     target_compile_definitions(${PROJECT_NAME} PUBLIC HAS_LV2)
     target_include_directories(${PROJECT_NAME} PRIVATE 3rdparty/readerwriterqueue)
 
-    if(TARGET Suil)
-        target_link_libraries(${PROJECT_NAME} PRIVATE Suil)
-    endif()
+    target_link_libraries(${PROJECT_NAME} PRIVATE Suil)
 endif()
 
 if(Faust_FOUND)

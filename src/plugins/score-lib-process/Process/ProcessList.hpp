@@ -12,7 +12,7 @@ public:
   using object_type = Process::ProcessModel;
   ~ProcessFactoryList();
 
-  object_type* loadMissing(const VisitorVariant& vis, QObject* parent) const;
+  object_type* loadMissing(const VisitorVariant& vis, const score::DocumentContext& ctx, QObject* parent) const;
 };
 
 class SCORE_LIB_PROCESS_EXPORT LayerFactoryList final

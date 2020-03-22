@@ -62,6 +62,7 @@ public:
   void addBus(const IntervalModel*);
   void removeBus(const IntervalModel*);
   std::vector<const IntervalModel*> busIntervals;
+  std::vector<const StateModel*> statesWithControls;
 
   void busesChanged() E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, busesChanged)
 

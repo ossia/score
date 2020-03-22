@@ -45,14 +45,18 @@ public:
   ProcessModel(
       const TimeVal& duration,
       const Id<Process::ProcessModel>& id,
+      const score::DocumentContext& ctx,
       QObject* parent);
   template <typename Impl>
-  ProcessModel(Impl& vis, QObject* parent) : Process::ProcessModel{vis, parent}
+  ProcessModel(Impl& vis, const score::DocumentContext& ctx, QObject* parent)
+    : Process::ProcessModel{vis, parent}
+    , m_context{ctx}
   {
     vis.writeTo(*this);
     init();
   }
 
+  const score::DocumentContext& context() const noexcept { return m_context; }
   void init();
 
   ~ProcessModel() override;
@@ -182,6 +186,7 @@ private:
     fun(&ProcessModel::timeSyncs);
     fun(&ProcessModel::comments);
   }
+  const score::DocumentContext& m_context;
 
   Id<TimeSyncModel> m_startTimeSyncId{};
   Id<EventModel> m_startEventId{};

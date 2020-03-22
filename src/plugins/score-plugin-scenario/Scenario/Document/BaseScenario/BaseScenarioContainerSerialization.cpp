@@ -35,7 +35,7 @@ SCORE_PLUGIN_SCENARIO_EXPORT void
 DataStreamWriter::write(Scenario::BaseScenarioContainer& base_scenario)
 {
   using namespace Scenario;
-  base_scenario.m_interval = new IntervalModel{*this, base_scenario.m_parent};
+  base_scenario.m_interval = new IntervalModel{*this, base_scenario.context(), base_scenario.m_parent};
 
   base_scenario.m_startNode = new TimeSyncModel{*this, base_scenario.m_parent};
   base_scenario.m_endNode = new TimeSyncModel{*this, base_scenario.m_parent};
@@ -43,8 +43,8 @@ DataStreamWriter::write(Scenario::BaseScenarioContainer& base_scenario)
   base_scenario.m_startEvent = new EventModel{*this, base_scenario.m_parent};
   base_scenario.m_endEvent = new EventModel{*this, base_scenario.m_parent};
 
-  base_scenario.m_startState = new StateModel{*this, base_scenario.m_parent};
-  base_scenario.m_endState = new StateModel{*this, base_scenario.m_parent};
+  base_scenario.m_startState = new StateModel{*this, base_scenario.context(), base_scenario.m_parent};
+  base_scenario.m_endState = new StateModel{*this, base_scenario.context(), base_scenario.m_parent};
 
   Scenario::SetPreviousInterval(
       *base_scenario.m_endState, *base_scenario.m_interval);
@@ -75,6 +75,7 @@ JSONObjectWriter::write(Scenario::BaseScenarioContainer& base_scenario)
   using namespace Scenario;
   base_scenario.m_interval = new IntervalModel{
       JSONObject::Deserializer{obj["Constraint"].toObject()},
+      base_scenario.context(),
       base_scenario.m_parent};
 
   base_scenario.m_startNode = new TimeSyncModel{
@@ -93,9 +94,11 @@ JSONObjectWriter::write(Scenario::BaseScenarioContainer& base_scenario)
 
   base_scenario.m_startState
       = new StateModel{JSONObject::Deserializer{obj["StartState"].toObject()},
+                       base_scenario.context(),
                        base_scenario.m_parent};
   base_scenario.m_endState
       = new StateModel{JSONObject::Deserializer{obj["EndState"].toObject()},
+                       base_scenario.context(),
                        base_scenario.m_parent};
 
   Scenario::SetPreviousInterval(

@@ -40,12 +40,13 @@ public:
   explicit ProcessModel(
       const TimeVal& duration,
       const Id<Process::ProcessModel>& id,
+      const score::DocumentContext& ctx,
       QObject* parentObject);
 
   template <typename Impl>
-  explicit ProcessModel(Impl& vis, QObject* parent)
+  explicit ProcessModel(Impl& vis, const score::DocumentContext& ctx,  QObject* parent)
       : Process::ProcessModel{vis, parent}
-      , BaseScenarioContainer{BaseScenarioContainer::no_init{}, this}
+      , BaseScenarioContainer{BaseScenarioContainer::no_init{}, ctx, this}
   {
     vis.writeTo(*this);
     init();

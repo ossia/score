@@ -26,6 +26,8 @@ class SCORE_PLUGIN_SCENARIO_EXPORT StateComponentBase
 {
   COMMON_COMPONENT_METADATA("b3905e79-2bd0-48bd-8654-8666455ceedd")
 public:
+  static constexpr bool is_unique = true;
+
   using parent_t = Execution::Component;
   using model_t = Process::ProcessModel;
   using component_t = ProcessComponent;
@@ -38,6 +40,7 @@ public:
 
   //! To be called from the GUI thread
   void onDelete() const;
+  void updateControls();
 
   ProcessComponent* make(
       const Id<score::Component>& id,

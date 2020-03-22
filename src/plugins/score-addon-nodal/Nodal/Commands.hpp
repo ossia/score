@@ -83,7 +83,7 @@ private:
 
     auto& fact = ctx.app.interfaces<Process::ProcessFactoryList>();
 
-    auto node = deserialize_interface(fact, s, &proc);
+    auto node = deserialize_interface(fact, s, ctx, &proc);
     proc.nodes.add(node);
 
     Dataflow::restoreCables(m_cables, ctx);

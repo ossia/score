@@ -112,7 +112,7 @@ void DataStreamWriter::write(Scenario::ProcessModel& scenario)
 
   for (; interval_count-- > 0;)
   {
-    auto interval = new Scenario::IntervalModel{*this, &scenario};
+    auto interval = new Scenario::IntervalModel{*this, scenario.context(), &scenario};
     scenario.intervals.add(interval);
   }
 
@@ -142,7 +142,7 @@ void DataStreamWriter::write(Scenario::ProcessModel& scenario)
 
   for (; state_count-- > 0;)
   {
-    auto stmodel = new Scenario::StateModel{*this, &scenario};
+    auto stmodel = new Scenario::StateModel{*this, scenario.context(), &scenario};
     scenario.states.add(stmodel);
   }
 
@@ -207,7 +207,7 @@ void JSONObjectWriter::write(Scenario::ProcessModel& scenario)
   for (const auto& json_vref : intervals)
   {
     auto interval = new Scenario::IntervalModel{
-        JSONObject::Deserializer{json_vref.toObject()}, &scenario};
+        JSONObject::Deserializer{json_vref.toObject()}, scenario.context(), &scenario};
     scenario.intervals.add(interval);
   }
 
@@ -255,7 +255,7 @@ void JSONObjectWriter::write(Scenario::ProcessModel& scenario)
   for (const auto& json_vref : states)
   {
     auto stmodel = new Scenario::StateModel{
-        JSONObject::Deserializer{json_vref.toObject()}, &scenario};
+        JSONObject::Deserializer{json_vref.toObject()}, scenario.context(), &scenario};
 
     scenario.states.add(stmodel);
   }

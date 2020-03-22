@@ -10,12 +10,14 @@
 #include <Scenario/Application/ScenarioActions.hpp>
 #include <Scenario/Document/BaseScenario/BaseScenario.hpp>
 #include <Scenario/Document/Interval/IntervalExecution.hpp>
+#include <Scenario/Document/State/StateExecution.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 #include <Scenario/Execution/score2OSSIA.hpp>
 
 #include <score/actions/ActionManager.hpp>
 #include <score/plugins/documentdelegate/plugin/DocumentPlugin.hpp>
 #include <score/tools/Bind.hpp>
+#include <score/model/ComponentUtils.hpp>
 
 #include <core/document/Document.hpp>
 #include <core/document/DocumentModel.hpp>
@@ -293,6 +295,15 @@ void DocumentPlugin::reload(Scenario::IntervalModel& cst)
   for (auto& cable : model.cables)
   {
     m_setup_ctx.connectCable(cable);
+  }
+
+  for(auto ctl : model.statesWithControls)
+  {
+    auto state_comp = score::findComponent<Execution::StateComponentBase>(ctl->components());
+    if(state_comp)
+    {
+      state_comp->updateControls();
+    }
   }
 
   m_tid = startTimer(32);

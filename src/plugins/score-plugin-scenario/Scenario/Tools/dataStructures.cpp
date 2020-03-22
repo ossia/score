@@ -75,7 +75,7 @@ void IntervalSaveData::reload(Scenario::IntervalModel& interval) const
   for (auto& sourceproc : processes)
   {
     DataStream::Deserializer des{sourceproc};
-    auto proc = deserialize_interface(procsfactories, des, &interval);
+    auto proc = deserialize_interface(procsfactories, des, interval.context(), &interval);
     if (proc)
       AddProcess(interval, proc);
     else

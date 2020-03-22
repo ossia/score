@@ -37,6 +37,7 @@ void CreateNode::redo(const score::DocumentContext& ctx) const
         nodal.duration(),
         m_data,
         m_createdNodeId,
+        ctx,
         &nodal);
 
   SCORE_ASSERT(proc);

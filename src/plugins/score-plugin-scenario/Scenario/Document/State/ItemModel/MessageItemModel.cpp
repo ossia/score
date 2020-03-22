@@ -93,6 +93,7 @@ QVariant valueColumnData(const MessageItemModel::node_type& node, int role)
       if (ossia::is_array(val))
       {
         // TODO a nice editor for lists.
+        // TODO use AddressItemModel's !
         return State::convert::toPrettyString(val);
       }
       else

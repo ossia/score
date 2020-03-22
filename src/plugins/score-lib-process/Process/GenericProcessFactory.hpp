@@ -41,9 +41,10 @@ private:
       const TimeVal& duration,
       const QString& data,
       const Id<Process::ProcessModel>& id,
+      const score::DocumentContext& ctx,
       QObject* parent) final override;
 
-  Model_T* load(const VisitorVariant& vis, QObject* parent) final override;
+  Model_T* load(const VisitorVariant& vis, const score::DocumentContext& ctx, QObject* parent) final override;
 };
 
 template <typename Model_T>
@@ -51,6 +52,7 @@ Model_T* ProcessFactory_T<Model_T>::make(
     const TimeVal& duration,
     const QString& data,
     const Id<Process::ProcessModel>& id,
+    const score::DocumentContext& ctx,
     QObject* parent)
 {
   if constexpr (std::is_constructible_v<
@@ -60,16 +62,26 @@ Model_T* ProcessFactory_T<Model_T>::make(
                     Id<Process::ProcessModel>,
                     QObject*>)
     return new Model_T{duration, data, id, parent};
+  else if constexpr (std::is_constructible_v<
+      Model_T,
+      TimeVal,
+      Id<Process::ProcessModel>,
+      const score::DocumentContext&,
+      QObject*>)
+    return new Model_T{duration, id, ctx, parent};
   else
     return new Model_T{duration, id, parent};
 }
 
 template <typename Model_T>
 Model_T*
-ProcessFactory_T<Model_T>::load(const VisitorVariant& vis, QObject* parent)
+ProcessFactory_T<Model_T>::load(const VisitorVariant& vis, const score::DocumentContext& ctx, QObject* parent)
 {
   return score::deserialize_dyn(vis, [&](auto&& deserializer) {
-    return new Model_T{deserializer, parent};
+    if constexpr (std::is_constructible_v<Model_T, decltype(deserializer), const score::DocumentContext&, QObject*>)
+      return new Model_T{deserializer, ctx, parent};
+    else
+      return new Model_T{deserializer, parent};
   });
 }
 

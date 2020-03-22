@@ -33,7 +33,7 @@ void RemoveStateProcess::undo(const score::DocumentContext& ctx) const
   DataStream::Deserializer s{m_data};
   auto& fact = ctx.app.interfaces<Process::ProcessFactoryList>();
 
-  auto proc = deserialize_interface(fact, s, &state);
+  auto proc = deserialize_interface(fact, s, ctx, &state);
   SCORE_ASSERT(proc);
   state.stateProcesses.add(proc);
 }

@@ -34,6 +34,7 @@
 
 #include <QAbstractProxyModel>
 #include <QHeaderView>
+#include <QListView>
 #include <QPushButton>
 #include <QTableView>
 #include <QWidget>
@@ -249,6 +250,21 @@ StateInspectorWidget::StateInspectorWidget(
     tab->setDocumentMode(true);
 
     properties.push_back(tab);
+  }
+  {
+    auto lv = new QTableView;
+    lv->verticalHeader()->hide();
+    lv->horizontalHeader()->setCascadingSectionResizes(true);
+    lv->horizontalHeader()->setSectionResizeMode(
+        QHeaderView::ResizeToContents);
+    lv->horizontalHeader()->setStretchLastSection(true);
+    lv->setAlternatingRowColors(true);
+    lv->setHorizontalScrollMode(QAbstractItemView::ScrollPerPixel);
+    lv->setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
+    lv->setSizeAdjustPolicy(QAbstractScrollArea::AdjustToContents);
+    lv->verticalHeader()->setDefaultSectionSize(14);
+    lv->setModel(&this->m_model.controlMessages());
+    properties.push_back(lv);
   }
   updateAreaLayout(properties);
 }

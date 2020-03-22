@@ -39,12 +39,13 @@ namespace Loop
 ProcessModel::ProcessModel(
     const TimeVal& duration,
     const Id<Process::ProcessModel>& id,
+    const score::DocumentContext& ctx,
     QObject* parent)
     : Process::ProcessModel{duration,
                             id,
                             Metadata<ObjectKey_k, ProcessModel>::get(),
                             parent}
-    , Scenario::BaseScenarioContainer{this}
+    , Scenario::BaseScenarioContainer{ctx, this}
     , inlet{Process::make_audio_inlet(Id<Process::Port>(0), this)}
     , outlet{Process::make_audio_outlet(Id<Process::Port>(0), this)}
 {

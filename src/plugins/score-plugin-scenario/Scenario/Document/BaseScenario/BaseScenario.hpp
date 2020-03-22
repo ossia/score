@@ -25,14 +25,18 @@ class BaseScenario final : public IdentifiedObject<BaseScenario>,
   SCORE_SERIALIZE_FRIENDS
 
 public:
-  BaseScenario(const Id<BaseScenario>& id, QObject* parentObject);
+  BaseScenario(const Id<BaseScenario>& id,
+               const score::DocumentContext& ctx,
+               QObject* parentObject);
 
   template <
       typename DeserializerVisitor,
       enable_if_deserializer<DeserializerVisitor>* = nullptr>
-  BaseScenario(DeserializerVisitor&& vis, QObject* parent)
+  BaseScenario(DeserializerVisitor&& vis,
+               const score::DocumentContext& ctx,
+               QObject* parent)
       : IdentifiedObject{vis, parent}
-      , BaseScenarioContainer{BaseScenarioContainer::no_init{}, this}
+      , BaseScenarioContainer{BaseScenarioContainer::no_init{}, ctx, this}
   {
     vis.writeTo(*this);
   }

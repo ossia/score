@@ -1,4 +1,5 @@
 #pragma once
+#include <Process/ControlMessage.hpp>
 #include <Process/State/MessageNode.hpp>
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
 #include <State/Message.hpp>
@@ -10,11 +11,10 @@
 #include <QMap>
 
 #include <score_plugin_scenario_export.h>
-struct DataStreamInput;
-struct DataStreamOutput;
 namespace Process
 {
 class ProcessModel;
+struct ControlMessage;
 }
 
 namespace Scenario
@@ -48,6 +48,29 @@ private:
 
   QMap<Id<Process::ProcessModel>, State::MessageList> m_previousBackup;
   QMap<Id<Process::ProcessModel>, State::MessageList> m_followingBackup;
+};
+
+class SCORE_PLUGIN_SCENARIO_EXPORT AddControlMessagesToState final
+    : public score::Command
+{
+  SCORE_COMMAND_DECL(
+      CommandFactoryName(),
+      AddControlMessagesToState,
+      "Add control messages to state")
+public:
+  AddControlMessagesToState(
+      const Scenario::StateModel& state,
+      std::vector<Process::ControlMessage>&& messages);
+
+  void undo(const score::DocumentContext& ctx) const override;
+  void redo(const score::DocumentContext& ctx) const override;
+
+private:
+  void serializeImpl(DataStreamInput&) const override;
+  void deserializeImpl(DataStreamOutput&) override;
+  Path<StateModel> m_path;
+
+  std::vector<Process::ControlMessage> m_old, m_new;
 };
 }
 }

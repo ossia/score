@@ -10,6 +10,17 @@ W_OBJECT_IMPL(Media::ChainProcess)
 namespace Media
 {
 
+ChainProcess::ChainProcess(
+      const TimeVal& duration,
+      const Id<Process::ProcessModel>& id,
+      const QString& name,
+      const score::DocumentContext& ctx,
+      QObject* parent)
+  : ::Process::ProcessModel{duration, id, name, parent}
+  , m_context{ctx}
+{
+}
+
 ChainProcess::~ChainProcess()
 {
   m_effects.clear();

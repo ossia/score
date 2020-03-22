@@ -32,7 +32,7 @@ void InsertEffect::redo(const score::DocumentContext& ctx) const
 
   if (auto fact = fact_list.get(m_effectKind))
   {
-    auto model = fact->make(TimeVal::zero(), m_data, m_id, &process);
+    auto model = fact->make(TimeVal::zero(), m_data, m_id, ctx, &process);
     process.insertEffect(model, m_pos);
   }
   else
@@ -82,7 +82,7 @@ void LoadEffect::redo(const score::DocumentContext& ctx) const
   SCORE_ASSERT(fac);
   // TODO handle missing effect
   JSONObject::Deserializer des{obj};
-  auto fx = fac->load(des.toVariant(), &echain);
+  auto fx = fac->load(des.toVariant(), ctx, &echain);
   const auto ports = fx->findChildren<Process::Port*>();
   for (Process::Port* port : ports)
   {
@@ -125,7 +125,7 @@ void RemoveEffect::undo(const score::DocumentContext& ctx) const
   auto& fact_list = ctx.app.interfaces<Process::ProcessFactoryList>();
 
   DataStream::Deserializer des{m_savedEffect};
-  if (auto fx = deserialize_interface(fact_list, des, &process))
+  if (auto fx = deserialize_interface(fact_list, des, ctx, &process))
   {
     process.insertEffect(fx, m_pos);
   }

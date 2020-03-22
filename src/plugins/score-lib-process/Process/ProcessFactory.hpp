@@ -49,10 +49,14 @@ public:
       const TimeVal& duration,
       const QString& data,
       const Id<ProcessModel>& id,
+      const score::DocumentContext& ctx,
       QObject* parent)
       = 0;
 
-  virtual Process::ProcessModel* load(const VisitorVariant&, QObject* parent)
+  virtual Process::ProcessModel* load(
+      const VisitorVariant&,
+      const score::DocumentContext& ctx,
+      QObject* parent)
       = 0;
 };
 

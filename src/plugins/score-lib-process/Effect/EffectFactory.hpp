@@ -41,12 +41,13 @@ public:
       const TimeVal& duration,
       const QString& data,
       const Id<Process::ProcessModel>& id,
+      const score::DocumentContext& ctx,
       QObject* parent) override
   {
     return new Model_T{duration, data, id, parent};
   }
 
-  Model_T* load(const VisitorVariant& vis, QObject* parent) final override
+  Model_T* load(const VisitorVariant& vis, const score::DocumentContext& ctx, QObject* parent) final override
   {
     return score::deserialize_dyn(vis, [&](auto&& deserializer) {
       return new Model_T{deserializer, parent};

@@ -5,6 +5,7 @@
 #include <State/Expression.hpp>
 #include <State/Relation.hpp>
 #include <State/Unit.hpp>
+#include <State/UpdateAddress.hpp>
 
 #include <score/tools/ForEach.hpp>
 #include <ossia/detail/algorithms.hpp>
@@ -375,6 +376,56 @@ QString toString(const ossia::destination_qualifiers& qualifiers)
   }
   return str;
 }
+
+
+std::optional<State::AddressAccessor> onUpdatableAddress(
+    const State::AddressAccessor& current,
+    const QMimeData& mime)
+{
+  if (mime.formats().contains(score::mime::messagelist()))
+  {
+    Mime<State::MessageList>::Deserializer des{mime};
+    State::MessageList ml = des.deserialize();
+    if (ml.empty())
+      return {};
+    auto& newAddr = ml[0].address;
+
+    if (newAddr == current)
+      return {};
+
+    // TODO do we want that ? we may want to clean the address...
+    if (newAddr.address.path.isEmpty())
+      return {};
+
+    return newAddr;
+  }
+  return {};
+}
+
+std::optional<State::Address> onUpdatableAddress(
+    const State::Address& current,
+    const QMimeData& mime)
+{
+  if (mime.formats().contains(score::mime::messagelist()))
+  {
+    Mime<State::MessageList>::Deserializer des{mime};
+    State::MessageList ml = des.deserialize();
+    if (ml.empty())
+      return {};
+    auto& newAddr = ml[0].address;
+
+    if (newAddr.address == current)
+      return {};
+
+    // TODO do we want that ? we may want to clean the address...
+    if (newAddr.address.path.isEmpty())
+      return {};
+
+    return newAddr.address;
+  }
+  return {};
+}
+
 }
 
 std::size_t std::hash<State::Address>::

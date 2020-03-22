@@ -97,7 +97,7 @@ StateModel& ScenarioCreate<StateModel>::redo(
     double y,
     Scenario::ProcessModel& s)
 {
-  auto state = new StateModel{id, ev.id(), y, &s};
+  auto state = new StateModel{id, ev.id(), y, s.context(), &s};
 
   s.states.add(state);
   ev.addState(state->id());
@@ -124,7 +124,7 @@ IntervalModel& ScenarioCreate<IntervalModel>::redo(
     double ypos,
     Scenario::ProcessModel& s)
 {
-  auto interval = new IntervalModel{id, ypos, &s};
+  auto interval = new IntervalModel{id, ypos, s.context(), &s};
 
   interval->setStartState(sst.id());
   interval->setEndState(est.id());

@@ -87,7 +87,7 @@ void RemoveProcessFromInterval::undo(const score::DocumentContext& ctx) const
   auto& interval = m_path.find(ctx);
   DataStream::Deserializer s{m_serializedProcessData};
   auto& fact = ctx.app.interfaces<Process::ProcessFactoryList>();
-  auto proc = deserialize_interface(fact, s, &interval);
+  auto proc = deserialize_interface(fact, s, ctx, &interval);
   SCORE_ASSERT(proc);
   AddProcess(interval, proc);
 

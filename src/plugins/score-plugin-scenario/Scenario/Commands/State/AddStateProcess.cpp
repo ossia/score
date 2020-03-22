@@ -43,7 +43,7 @@ void AddStateProcessToState::redo(const score::DocumentContext& ctx) const
   // Create process model
   auto proc = ctx.app.interfaces<Process::ProcessFactoryList>()
                   .get(m_processName)
-                  ->make(TimeVal::zero(), m_data, m_createdProcessId, &state);
+                  ->make(TimeVal::zero(), m_data, m_createdProcessId, ctx, &state);
 
   state.stateProcesses.add(proc);
 }

@@ -16,7 +16,7 @@
 #include <ossia/detail/small_vector.hpp>
 
 #include <QString>
-
+#include <smallfun.hpp>
 #include <score_lib_process_export.h>
 #include <verdigris>
 #include <Process/Preset.hpp>
@@ -123,6 +123,8 @@ public:
 
   virtual void loadPreset(const Preset& preset);
   virtual Preset savePreset() const noexcept;
+
+  virtual void forEachControl(smallfun::function<void(Process::Inlet&, const ossia::value&)>) const;
 
   // Clip duration things
   bool loops() const noexcept

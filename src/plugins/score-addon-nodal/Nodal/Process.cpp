@@ -17,10 +17,12 @@ namespace Nodal
 
 Model::Model(
     const TimeVal& duration, const Id<Process::ProcessModel>& id,
+      const score::DocumentContext& ctx,
     QObject* parent)
     : Process::ProcessModel{duration, id, "NodalProcess", parent}
     , inlet{Process::make_audio_inlet(Id<Process::Port>(0), this)}
     , outlet{Process::make_audio_outlet(Id<Process::Port>(0), this)}
+    , m_context{ctx}
 {
   metadata().setInstanceName(*this);
   outlet->setPropagate(true);
@@ -118,7 +120,7 @@ void DataStreamWriter::write(Nodal::Model& process)
   m_stream >> process_count;
   for (; process_count-- > 0;)
   {
-    auto proc = deserialize_interface(pl, *this, &process);
+    auto proc = deserialize_interface(pl, *this, process.m_context, &process);
     if (proc)
     {
       // TODO why isn't AddProcess used here ?!
@@ -157,7 +159,7 @@ void JSONObjectWriter::write(Nodal::Model& proc)
   for (const auto& json_vref : nodes)
   {
     JSONObject::Deserializer deserializer{json_vref.toObject()};
-    auto p = deserialize_interface(pl, deserializer, &proc);
+    auto p = deserialize_interface(pl, deserializer, proc.m_context, &proc);
     if (p)
       proc.nodes.add(p);
     else

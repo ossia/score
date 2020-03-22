@@ -441,14 +441,14 @@ void ScenarioPasteElementsAfter::redo(const score::DocumentContext& ctx) const
 
   for (const auto& state : m_json_states)
   {
-    auto st = new StateModel(JSONObject::Deserializer{state}, &scenario);
+    auto st = new StateModel(JSONObject::Deserializer{state}, scenario.context(), &scenario);
     scenario.states.add(st);
   }
 
   for (const auto& interval : m_json_intervals)
   {
     auto cst
-        = new IntervalModel(JSONObject::Deserializer{interval}, &scenario);
+        = new IntervalModel(JSONObject::Deserializer{interval}, scenario.context(), &scenario);
     scenario.intervals.add(cst);
   }
 

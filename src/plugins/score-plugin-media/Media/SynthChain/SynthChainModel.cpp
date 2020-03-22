@@ -14,11 +14,13 @@ namespace Media::SynthChain
 ProcessModel::ProcessModel(
     const TimeVal& duration,
     const Id<Process::ProcessModel>& id,
+      const score::DocumentContext& ctx,
     QObject* parent)
   : Media::ChainProcess{duration,
-                            id,
-                            Metadata<ObjectKey_k, ProcessModel>::get(),
-                            parent}
+                        id,
+                        Metadata<ObjectKey_k, ProcessModel>::get(),
+                        ctx,
+                        parent}
     , inlet{Process::make_midi_inlet(Id<Process::Port>(0), this)}
     , outlet{Process::make_audio_outlet(Id<Process::Port>(0), this)}
 {
@@ -61,7 +63,7 @@ void DataStreamWriter::write(Media::SynthChain::ProcessModel& proc)
   auto& fxs = components.interfaces<Process::ProcessFactoryList>();
   for (int i = 0; i < n; i++)
   {
-    auto fx = deserialize_interface(fxs, *this, &proc);
+    auto fx = deserialize_interface(fxs, *this, proc.context(), &proc);
     if (fx)
       proc.insertEffect(fx, i);
     else
@@ -96,7 +98,7 @@ void JSONObjectWriter::write(Media::SynthChain::ProcessModel& proc)
   for (const auto& json_vref : fx_array)
   {
     JSONObject::Deserializer deserializer{json_vref.toObject()};
-    auto fx = deserialize_interface(fxs, deserializer, &proc);
+    auto fx = deserialize_interface(fxs, deserializer, proc.context(), &proc);
     if (fx)
     {
       proc.m_effects.add(fx);

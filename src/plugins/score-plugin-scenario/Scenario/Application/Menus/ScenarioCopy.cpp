@@ -227,12 +227,13 @@ copySelected(const Scenario_T& sm, CategorisedScenario& cs, QObject* parent)
     copiedEvents.push_back(clone_ev);
   }
 
+  const auto& ctx = score::IDocument::documentContext(*parent);
   std::vector<StateModel*> copiedStates;
   copiedStates.reserve(cs.selectedStates.size());
   for (const StateModel* st : cs.selectedStates)
   {
     auto clone_st = new StateModel(
-        DataStreamWriter{score::marshall<DataStream>(*st)}, parent);
+        DataStreamWriter{score::marshall<DataStream>(*st)}, ctx, parent);
 
     // NOTE : we must not serialize the state with their previous / next
     // interval
@@ -246,7 +247,6 @@ copySelected(const Scenario_T& sm, CategorisedScenario& cs, QObject* parent)
     copiedStates.push_back(clone_st);
   }
 
-  const auto& ctx = score::IDocument::documentContext(*parent);
 
   QJsonObject base;
   base["Intervals"] = arrayToJson(cs.selectedIntervals);

@@ -3,6 +3,7 @@
 #include "AddMessagesToState.hpp"
 
 #include <Process/Process.hpp>
+#include <Process/ControlMessage.hpp>
 #include <Process/State/ProcessStateDataInterface.hpp>
 #include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
 #include <Scenario/Document/State/ItemModel/MessageItemModelAlgorithms.hpp>
@@ -78,6 +79,7 @@ void AddMessagesToState::undo(const score::DocumentContext& ctx) const
   auto& sm = m_path.find(ctx);
   auto& model = sm.messages();
   model = m_oldState;
+  // TODO we should reset the model
 
   // Restore the state of the processes.
   for (const ProcessStateWrapper& prevProc : sm.previousProcesses())
@@ -96,6 +98,7 @@ void AddMessagesToState::redo(const score::DocumentContext& ctx) const
 {
   auto& model = m_path.find(ctx).messages();
   model = m_newState;
+  // TODO we should reset the model
 }
 
 void AddMessagesToState::serializeImpl(DataStreamInput& d) const
@@ -108,6 +111,42 @@ void AddMessagesToState::deserializeImpl(DataStreamOutput& d)
 {
   d >> m_path >> m_oldState >> m_newState >> m_previousBackup
       >> m_followingBackup;
+}
+
+
+
+AddControlMessagesToState::AddControlMessagesToState(
+    const Scenario::StateModel& state,
+    std::vector<Process::ControlMessage>&& messages)
+    : m_path{state}
+{
+  m_old = state.controlMessages().messages();
+  m_new = m_old;
+  ControlItemModel::addMessages(m_new, std::move(messages));
+}
+
+void AddControlMessagesToState::undo(const score::DocumentContext& ctx) const
+{
+  auto& sm = m_path.find(ctx);
+  sm.controlMessages().replaceWith(m_old);
+  sm.sig_controlMessagesUpdated();
+}
+
+void AddControlMessagesToState::redo(const score::DocumentContext& ctx) const
+{
+  auto& sm = m_path.find(ctx);
+  sm.controlMessages().replaceWith(m_new);
+  sm.sig_controlMessagesUpdated();
+}
+
+void AddControlMessagesToState::serializeImpl(DataStreamInput& d) const
+{
+  d << m_path << m_old << m_new;
+}
+
+void AddControlMessagesToState::deserializeImpl(DataStreamOutput& d)
+{
+  d >> m_path >> m_old >> m_new;
 }
 }
 }

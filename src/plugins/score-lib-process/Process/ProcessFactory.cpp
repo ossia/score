@@ -150,6 +150,7 @@ bool LayerFactory::matches(const UuidKey<Process::ProcessModel>& p) const
 
 ProcessFactoryList::object_type* ProcessFactoryList::loadMissing(
     const VisitorVariant& vis,
+    const score::DocumentContext& ctx,
     QObject* parent) const
 {
   SCORE_TODO;

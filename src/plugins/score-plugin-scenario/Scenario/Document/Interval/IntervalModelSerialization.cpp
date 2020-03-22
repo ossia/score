@@ -168,7 +168,7 @@ DataStreamWriter::write(Scenario::IntervalModel& interval)
   static auto& pl = components.interfaces<Process::ProcessFactoryList>();
   for (; process_count-- > 0;)
   {
-    auto proc = deserialize_interface(pl, *this, &interval);
+    auto proc = deserialize_interface(pl, *this, interval.context(), &interval);
     if (proc)
     {
       // TODO why isn't AddProcess used here ?!
@@ -261,7 +261,7 @@ JSONObjectWriter::write(Scenario::IntervalModel& interval)
   for (const auto& json_vref : process_array)
   {
     JSONObject::Deserializer deserializer{json_vref.toObject()};
-    auto proc = deserialize_interface(pl, deserializer, &interval);
+    auto proc = deserialize_interface(pl, deserializer, interval.context(), &interval);
     if (proc)
       interval.processes.add(proc);
     else

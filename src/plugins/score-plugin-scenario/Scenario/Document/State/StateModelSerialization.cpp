@@ -66,13 +66,16 @@ DataStreamWriter::write(Scenario::StateModel& s)
   s.m_messageItemModel = new Scenario::MessageItemModel{s, &s};
   s.messages() = n;
 
+  // TODO load control tree
+
+
   // Processes plugins
   int32_t process_count;
   m_stream >> process_count;
   auto& pl = components.interfaces<Process::ProcessFactoryList>();
   for (; process_count-- > 0;)
   {
-    auto proc = deserialize_interface(pl, *this, &s);
+    auto proc = deserialize_interface(pl, *this, s.m_context, &s);
     if (proc)
       s.stateProcesses.add(proc);
     else
@@ -120,7 +123,7 @@ JSONObjectWriter::write(Scenario::StateModel& s)
   for (const auto& json_vref : process_array)
   {
     JSONObject::Deserializer deserializer{json_vref.toObject()};
-    auto proc = deserialize_interface(pl, deserializer, &s);
+    auto proc = deserialize_interface(pl, deserializer, s.m_context, &s);
     if (proc)
       s.stateProcesses.add(proc);
     else

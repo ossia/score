@@ -20,11 +20,15 @@ public:
   std::unique_ptr<Process::AudioOutlet> outlet;
 
   Model(
-      const TimeVal& duration, const Id<Process::ProcessModel>& id,
+      const TimeVal& duration,
+      const Id<Process::ProcessModel>& id,
+      const score::DocumentContext& ctx,
       QObject* parent);
 
   template <typename Impl>
-  Model(Impl& vis, QObject* parent) : Process::ProcessModel{vis, parent}
+  Model(Impl& vis, const score::DocumentContext& ctx, QObject* parent)
+    : Process::ProcessModel{vis, parent}
+    , m_context{ctx}
   {
     vis.writeTo(*this);
     init();
@@ -53,6 +57,8 @@ private:
   void startExecution() override;
   void stopExecution() override;
   void reset() override;
+
+  const score::DocumentContext& m_context;
 };
 
 using ProcessFactory = Process::ProcessFactory_T<Nodal::Model>;

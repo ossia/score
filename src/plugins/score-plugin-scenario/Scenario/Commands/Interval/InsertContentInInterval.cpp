@@ -90,7 +90,7 @@ void InsertContentInInterval::redo(const score::DocumentContext& ctx) const
   for (const auto& json_vref : json_array)
   {
     JSONObject::Deserializer deserializer{json_vref.toObject()};
-    auto newproc = deserialize_interface(pl, deserializer, &trg_interval);
+    auto newproc = deserialize_interface(pl, deserializer, ctx, &trg_interval);
     if (newproc)
     {
       AddProcess(trg_interval, newproc);

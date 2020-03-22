@@ -6,7 +6,7 @@
 #include <Device/Node/NodeListMimeSerialization.hpp>
 #include <Process/ProcessContext.hpp>
 #include <Process/ProcessMimeSerialization.hpp>
-#include <State/MessageListSerialization.hpp>
+#include <State/UpdateAddress.hpp>
 
 #include <verdigris>
 
@@ -63,27 +63,10 @@ private:
 
   void on_dropReceived(const QPointF& pos, const QMimeData& mime)
   {
-    auto& autom = this->model();
-    // TODO refactor with AddressEditWidget
-    if (mime.formats().contains(score::mime::messagelist()))
+    if(auto addr = State::onUpdatableAddress(model().address(), mime))
     {
-      Mime<State::MessageList>::Deserializer des{mime};
-      State::MessageList ml = des.deserialize();
-      if (ml.empty())
-        return;
-      auto& newAddr = ml[0].address;
-
-      if (newAddr == autom.address())
-        return;
-
-      if (newAddr.address.path.isEmpty())
-        return;
-
-      CommandDispatcher<> disp{context().context.commandStack};
-      disp.submit(new ChangeAddress{autom, newAddr});
-    }
-    else if (mime.formats().contains(score::mime::layerdata()))
-    {
+      CommandDispatcher<>{context().context.commandStack}
+        .submit(new ChangeAddress{model(), *addr});
     }
   }
 };

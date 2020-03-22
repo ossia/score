@@ -13,6 +13,8 @@
 #include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
 #include <Scenario/Process/ScenarioPresenter.hpp>
+#include <Process/ProcessMimeSerialization.hpp>
+#include <Process/ControlMessage.hpp>
 #include <State/Message.hpp>
 #include <State/MessageListSerialization.hpp>
 
@@ -102,7 +104,8 @@ bool StatePresenter::isSelected() const
 void StatePresenter::handleDrop(const QMimeData& mime)
 {
   // If the mime data has states in it we can handle it.
-  if (mime.formats().contains(score::mime::messagelist()))
+  const auto& fmt = mime.formats();
+  if (fmt.contains(score::mime::messagelist()))
   {
     Mime<State::MessageList>::Deserializer des{mime};
     State::MessageList ml = des.deserialize();
@@ -110,6 +113,29 @@ void StatePresenter::handleDrop(const QMimeData& mime)
     auto cmd = new Command::AddMessagesToState{m_model, ml};
 
     CommandDispatcher<>{m_ctx.commandStack}.submit(cmd);
+  }
+  else if (fmt.contains(score::mime::processcontrol()))
+  {
+
+  }
+  else if (fmt.contains(score::mime::layerdata()))
+  {
+    auto json = mime.data(score::mime::layerdata());
+    auto obj = fromJsonObject<Path<Process::ProcessModel>>(QJsonDocument::fromJson(json).object()["Path"]);
+
+    if(auto proc = obj.try_find(m_ctx))
+    {
+      std::vector<Process::ControlMessage> controls;
+      proc->forEachControl([&] (Process::Inlet& port, auto value) noexcept {
+        controls.push_back(Process::ControlMessage{port, std::move(value)});
+      });
+
+      if(!controls.empty())
+      {
+        auto cmd = new Command::AddControlMessagesToState{m_model, std::move(controls)};
+        CommandDispatcher<>{m_ctx.commandStack}.submit(cmd);
+      }
+    }
   }
   else if (mime.hasUrls())
   {

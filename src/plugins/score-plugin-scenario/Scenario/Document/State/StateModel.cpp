@@ -30,17 +30,24 @@ StateModel::StateModel(
     const Id<StateModel>& id,
     const Id<EventModel>& eventId,
     double yPos,
+    const score::DocumentContext& ctx,
     QObject* parent)
     : Entity{id, Metadata<ObjectKey_k, StateModel>::get(), parent}
+    , m_context{ctx}
     , m_eventId{eventId}
     , m_heightPercentage{yPos}
     , m_messageItemModel{new MessageItemModel{*this, this}}
+    , m_controlItemModel{new ControlItemModel{*this, this}}
 {
   metadata().setInstanceName(*this);
   init();
 }
 
-StateModel::~StateModel() {}
+StateModel::~StateModel()
+{
+  delete m_controlItemModel;
+  delete m_messageItemModel;
+}
 
 void StateModel::init()
 {
@@ -122,6 +129,11 @@ void StateModel::setPreviousInterval(const OptionalId<IntervalModel>& id)
 MessageItemModel& StateModel::messages() const
 {
   return *m_messageItemModel;
+}
+
+ControlItemModel& StateModel::controlMessages() const
+{
+  return *m_controlItemModel;
 }
 
 void StateModel::setStatus(ExecutionStatus status)

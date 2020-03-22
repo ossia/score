@@ -29,10 +29,16 @@ public:
   struct no_init
   {
   };
-  explicit BaseScenarioContainer(QObject* parentObject);
-  explicit BaseScenarioContainer(no_init, QObject* parentObject);
+  explicit BaseScenarioContainer(
+      const score::DocumentContext& ctx,
+      QObject* parentObject);
+  explicit BaseScenarioContainer(
+      no_init,
+      const score::DocumentContext& ctx,
+      QObject* parentObject);
 
   virtual ~BaseScenarioContainer() override;
+  const score::DocumentContext& context() const noexcept { return m_context; }
 
   QObject& parentObject() const { return *m_parent; }
 
@@ -100,6 +106,7 @@ public:
   }
 
 protected:
+  const score::DocumentContext& m_context;
   TimeSyncModel* m_startNode{};
   TimeSyncModel* m_endNode{};
 

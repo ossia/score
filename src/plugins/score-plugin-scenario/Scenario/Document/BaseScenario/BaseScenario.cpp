@@ -25,9 +25,11 @@
 W_OBJECT_IMPL(Scenario::BaseScenario)
 namespace Scenario
 {
-BaseScenario::BaseScenario(const Id<BaseScenario>& id, QObject* parent)
+BaseScenario::BaseScenario(const Id<BaseScenario>& id,
+                           const score::DocumentContext& ctx,
+                           QObject* parent)
     : IdentifiedObject<BaseScenario>{id, "Scenario::BaseScenario", parent}
-    , BaseScenarioContainer{this}
+    , BaseScenarioContainer{ctx, this}
 {
   m_endNode->setActive(true);
 }

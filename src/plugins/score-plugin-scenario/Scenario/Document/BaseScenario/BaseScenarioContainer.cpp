@@ -17,13 +17,20 @@
 namespace Scenario
 {
 
-BaseScenarioContainer::BaseScenarioContainer(no_init, QObject* parentObject)
-    : m_parent{parentObject}
+BaseScenarioContainer::BaseScenarioContainer(
+    no_init,
+    const score::DocumentContext& ctx,
+    QObject* parentObject)
+    : m_context{ctx}
+    , m_parent{parentObject}
 {
 }
 
-BaseScenarioContainer::BaseScenarioContainer(QObject* parentObject)
-    : m_parent{parentObject}
+BaseScenarioContainer::BaseScenarioContainer(
+    const score::DocumentContext& ctx,
+    QObject* parentObject)
+  : m_context{ctx}
+  , m_parent{parentObject}
 {
   m_startNode = new TimeSyncModel{Scenario::startId<TimeSyncModel>(),
                                   TimeVal::zero(),
@@ -43,12 +50,12 @@ BaseScenarioContainer::BaseScenarioContainer(QObject* parentObject)
                               m_parent};
   m_endEvent->metadata().setName("Event.end");
   m_startState = new StateModel{
-      Scenario::startId<StateModel>(), m_startEvent->id(), 0, m_parent};
+      Scenario::startId<StateModel>(), m_startEvent->id(), 0, ctx, m_parent};
   m_startState->metadata().setName("State.start");
   m_endState = new StateModel{
-      Scenario::endId<StateModel>(), m_endEvent->id(), 0, m_parent};
+      Scenario::endId<StateModel>(), m_endEvent->id(), 0, ctx, m_parent};
   m_endState->metadata().setName("State.end");
-  m_interval = new IntervalModel{Id<IntervalModel>{0}, 0, m_parent};
+  m_interval = new IntervalModel{Id<IntervalModel>{0}, 0, ctx, m_parent};
 
   m_startNode->addEvent(m_startEvent->id());
   m_endNode->addEvent(m_endEvent->id());

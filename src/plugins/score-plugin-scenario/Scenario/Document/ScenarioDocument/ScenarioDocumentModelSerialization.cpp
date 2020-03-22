@@ -46,7 +46,7 @@ void DataStreamReader::read(const Scenario::ScenarioDocumentModel& model)
 template <>
 void DataStreamWriter::write(Scenario::ScenarioDocumentModel& model)
 {
-  model.m_baseScenario = new Scenario::BaseScenario{*this, &model};
+  model.m_baseScenario = new Scenario::BaseScenario{*this, model.m_context, &model};
   QByteArray arr;
   m_stream >> arr;
   model.m_savedCables = QJsonDocument::fromBinaryData(arr).array();
@@ -80,7 +80,7 @@ template <>
 void JSONObjectWriter::write(Scenario::ScenarioDocumentModel& model)
 {
   model.m_baseScenario = new Scenario::BaseScenario(
-      JSONObject::Deserializer{obj["BaseScenario"].toObject()}, &model);
+      JSONObject::Deserializer{obj["BaseScenario"].toObject()}, model.m_context, &model);
 
   model.m_savedCables = obj["Cables"].toArray();
 

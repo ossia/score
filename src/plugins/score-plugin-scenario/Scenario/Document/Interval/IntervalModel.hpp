@@ -58,16 +58,17 @@ public:
   IntervalDurations duration{*this};
 
   /** The class **/
-  IntervalModel(const Id<IntervalModel>&, double yPos, QObject* parent);
+  IntervalModel(const Id<IntervalModel>&, double yPos, const score::DocumentContext& ctx, QObject* parent);
 
   ~IntervalModel();
 
   // Serialization
-  IntervalModel(DataStream::Deserializer& vis, QObject* parent);
-  IntervalModel(JSONObject::Deserializer& vis, QObject* parent);
-  IntervalModel(DataStream::Deserializer&& vis, QObject* parent);
-  IntervalModel(JSONObject::Deserializer&& vis, QObject* parent);
+  IntervalModel(DataStream::Deserializer& vis, const score::DocumentContext& ctx, QObject* parent);
+  IntervalModel(JSONObject::Deserializer& vis, const score::DocumentContext& ctx, QObject* parent);
+  IntervalModel(DataStream::Deserializer&& vis, const score::DocumentContext& ctx, QObject* parent);
+  IntervalModel(JSONObject::Deserializer&& vis, const score::DocumentContext& ctx, QObject* parent);
 
+  const score::DocumentContext& context() const noexcept { return m_context; }
   const Id<StateModel>& startState() const;
   void setStartState(const Id<StateModel>& eventId);
 
@@ -231,6 +232,7 @@ private:
 
   // Model for the full view.
   // Note : it is also present in m_intervalViewModels.
+  const score::DocumentContext& m_context;
 
   Rack m_smallView;
   FullRack m_fullView;

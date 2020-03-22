@@ -30,7 +30,7 @@ ScenarioDocumentModel::ScenarioDocumentModel(
                                    "Scenario::ScenarioDocumentModel",
                                    parent}
     , m_context{ctx}
-    , m_baseScenario{new BaseScenario{Id<BaseScenario>{0}, this}}
+    , m_baseScenario{new BaseScenario{Id<BaseScenario>{0}, ctx, this}}
 {
   auto& itv = m_baseScenario->interval();
   // Set default durations

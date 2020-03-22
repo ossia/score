@@ -49,7 +49,7 @@ void DuplicateInterval::redo(const score::DocumentContext& ctx) const
 
   auto obj = score::marshall<DataStream>(root);
   auto interval
-      = new Scenario::IntervalModel{DataStream::Deserializer{obj}, scenar};
+      = new Scenario::IntervalModel{DataStream::Deserializer{obj}, ctx, scenar};
   score::IDocument::changeObjectId(*interval, m_createdId);
 
   interval->setStartState(m_cmdStart.createdState());

@@ -20,13 +20,14 @@ public:
   explicit ProcessModel(
       const TimeVal& duration,
       const Id<Process::ProcessModel>& id,
+      const score::DocumentContext& ctx,
       QObject* parent);
 
   ~ProcessModel() override;
 
   template <typename Impl>
-  explicit ProcessModel(Impl& vis, QObject* parent)
-      : ChainProcess{vis, parent}
+  explicit ProcessModel(Impl& vis, const score::DocumentContext& ctx, QObject* parent)
+      : ChainProcess{vis, ctx, parent}
   {
     vis.writeTo(*this);
     init();

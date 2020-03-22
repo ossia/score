@@ -41,10 +41,12 @@ class TimeSyncModel;
 IntervalModel::IntervalModel(
     const Id<IntervalModel>& id,
     double yPos,
+    const score::DocumentContext& ctx,
     QObject* parent)
     : Entity{id, Metadata<ObjectKey_k, IntervalModel>::get(), parent}
     , inlet{Process::make_audio_inlet(Id<Process::Port>(0), this)}
     , outlet{Process::make_audio_outlet(Id<Process::Port>(0), this)}
+    , m_context{ctx}
     , m_executionState{}
     , m_viewMode{ViewMode::Temporal}
     , m_smallViewShown{}
@@ -77,8 +79,9 @@ void IntervalModel::initConnections()
   processes.removing.connect<&IntervalModel::on_removingProcess>(this);
 }
 
-IntervalModel::IntervalModel(DataStream::Deserializer& vis, QObject* parent)
+IntervalModel::IntervalModel(DataStream::Deserializer& vis, const score::DocumentContext& ctx, QObject* parent)
     : Entity{vis, parent}
+    , m_context{ctx}
     , m_executionState{}
     , m_viewMode{ViewMode::Temporal}
     , m_smallViewShown{}
@@ -90,8 +93,9 @@ IntervalModel::IntervalModel(DataStream::Deserializer& vis, QObject* parent)
   vis.writeTo(*this);
 }
 
-IntervalModel::IntervalModel(JSONObject::Deserializer& vis, QObject* parent)
+IntervalModel::IntervalModel(JSONObject::Deserializer& vis, const score::DocumentContext& ctx, QObject* parent)
     : Entity{vis, parent}
+    , m_context{ctx}
     , m_executionState{}
     , m_viewMode{ViewMode::Temporal}
     , m_smallViewShown{}
@@ -103,8 +107,9 @@ IntervalModel::IntervalModel(JSONObject::Deserializer& vis, QObject* parent)
   vis.writeTo(*this);
 }
 
-IntervalModel::IntervalModel(DataStream::Deserializer&& vis, QObject* parent)
+IntervalModel::IntervalModel(DataStream::Deserializer&& vis, const score::DocumentContext& ctx, QObject* parent)
     : Entity{vis, parent}
+    , m_context{ctx}
     , m_executionState{}
     , m_viewMode{ViewMode::Temporal}
     , m_smallViewShown{}
@@ -116,8 +121,9 @@ IntervalModel::IntervalModel(DataStream::Deserializer&& vis, QObject* parent)
   vis.writeTo(*this);
 }
 
-IntervalModel::IntervalModel(JSONObject::Deserializer&& vis, QObject* parent)
+IntervalModel::IntervalModel(JSONObject::Deserializer&& vis, const score::DocumentContext& ctx, QObject* parent)
     : Entity{vis, parent}
+    , m_context{ctx}
     , m_executionState{}
     , m_viewMode{ViewMode::Temporal}
     , m_smallViewShown{}

@@ -85,6 +85,7 @@ Process::ProcessModel& AddOnlyProcessToInterval::redo(
       interval.duration.defaultDuration(), // TODO should maybe be max ?
       m_data,
       m_createdProcessId,
+      ctx,
       &interval);
 
   AddProcess(interval, proc);
@@ -138,7 +139,7 @@ Process::ProcessModel& LoadOnlyProcessInInterval::redo(
   SCORE_ASSERT(fac);
   // TODO handle missing process
   JSONObject::Deserializer des{obj};
-  auto proc = fac->load(des.toVariant(), &interval);
+  auto proc = fac->load(des.toVariant(), ctx, &interval);
   const auto ports = proc->findChildren<Process::Port*>();
   for (Process::Port* port : ports)
   {
@@ -204,7 +205,7 @@ Process::ProcessModel& DuplicateOnlyProcessToInterval::redo(
   // Create process model
   auto& pl = ctx.app.interfaces<Process::ProcessFactoryList>();
   Process::ProcessModel* proc = deserialize_interface(
-      pl, DataStream::Deserializer{m_processData}, &interval);
+      pl, DataStream::Deserializer{m_processData}, ctx, &interval);
   score::IDocument::changeObjectId(*proc, m_createdProcessId);
 
   AddProcess(interval, proc);

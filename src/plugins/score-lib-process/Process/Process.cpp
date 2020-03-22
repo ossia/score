@@ -221,6 +221,17 @@ Preset ProcessModel::savePreset() const noexcept
   return p;
 }
 
+void ProcessModel::forEachControl(smallfun::function<void (Inlet&, const ossia::value&)> f) const
+{
+  for(const auto& inlet : m_inlets)
+  {
+    if(auto ctrl = qobject_cast<Process::ControlInlet*>(inlet))
+    {
+      f(*ctrl, ctrl->value());
+    }
+  }
+}
+
 void ProcessModel::setLoops(bool b)
 {
   if(b != m_loops)

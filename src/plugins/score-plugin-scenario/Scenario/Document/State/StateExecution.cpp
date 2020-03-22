@@ -1,5 +1,6 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+#include <Process/ControlMessage.hpp>
 #include <Process/ExecutionContext.hpp>
 #include <Process/ExecutionSetup.hpp>
 #include <Scenario/Document/State/StateExecution.hpp>
@@ -13,6 +14,30 @@
 
 namespace Execution
 {
+namespace
+{
+
+std::vector<ossia::control_message> toOssiaControls(const SetupContext& ctx, const Scenario::StateModel& state)
+{
+  const auto& msgs = state.controlMessages().messages();
+  std::vector<ossia::control_message> ossia_msgs;
+  ossia_msgs.reserve(msgs.size());
+  for(const Process::ControlMessage& msg : msgs)
+  {
+    auto port = msg.port.try_find(ctx.context.doc);
+    if(port)
+    {
+      auto it = ctx.inlets.find(port);
+      if(it != ctx.inlets.end()) {
+        ossia::inlet& inlet = *it->second.second;
+        if(ossia::value_port* port = inlet.target<ossia::value_port>())
+          ossia_msgs.push_back(ossia::control_message{port, msg.value});
+      }
+    }
+  }
+  return ossia_msgs;
+}
+}
 StateComponentBase::StateComponentBase(
     const Scenario::StateModel& element,
     const Execution::Context& ctx,
@@ -30,6 +55,24 @@ StateComponentBase::StateComponentBase(
           n->data = std::move(x);
         });
       });
+
+  connect(
+        &element, &Scenario::StateModel::sig_controlMessagesUpdated,
+        this, &StateComponentBase::updateControls);
+  // Note : they aren't updated in the constructor, but in DocumentPlugin::reload
+  // as the ports to which we're talking may not exist yet at this time
+}
+
+void StateComponentBase::updateControls()
+{
+  auto ossia_msgs = toOssiaControls(this->system().setup, state());
+  if(!ossia_msgs.empty())
+  {
+    in_exec([n = m_node,
+             x = std::move(ossia_msgs)] () mutable {
+      n->controls = std::move(x);
+    });
+  }
 }
 
 void StateComponentBase::onDelete() const
@@ -47,6 +90,7 @@ void StateComponentBase::onDelete() const
     });
   }
 }
+
 
 ProcessComponent* StateComponentBase::make(
     const Id<score::Component>& id,

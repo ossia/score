@@ -24,7 +24,7 @@ struct ScenarioBeingCopied
       for (const auto& element : json_arr)
       {
         intervals.emplace_back(
-            new IntervalModel{JSONObject::Deserializer{element.toObject()},
+            new IntervalModel{JSONObject::Deserializer{element.toObject()}, scenario.context(),
                               (QObject*)&scenario});
       }
     }
@@ -53,6 +53,7 @@ struct ScenarioBeingCopied
       {
         states.emplace_back(
             new StateModel{JSONObject::Deserializer{element.toObject()},
+                           scenario.context(),
                            (QObject*)&scenario});
       }
     }

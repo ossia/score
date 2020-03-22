@@ -4,6 +4,7 @@
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/Event/ExecutionStatus.hpp>
 #include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
+#include <Scenario/Document/State/ItemModel/ControlItemModel.hpp>
 
 #include <score/model/Component.hpp>
 #include <score/model/EntityImpl.hpp>
@@ -68,6 +69,7 @@ public:
       const Id<StateModel>& id,
       const Id<EventModel>& eventId,
       double yPos,
+      const score::DocumentContext& ctx,
       QObject* parent);
 
   ~StateModel() override;
@@ -76,15 +78,22 @@ public:
   template <
       typename DeserializerVisitor,
       enable_if_deserializer<DeserializerVisitor>* = nullptr>
-  StateModel(DeserializerVisitor&& vis, QObject* parent) : Entity{vis, parent}
+  StateModel(DeserializerVisitor&& vis,
+             const score::DocumentContext& ctx,
+             QObject* parent)
+    : Entity{vis, parent}
+    , m_context{ctx}
   {
     vis.writeTo(*this);
     init();
   }
 
+  const score::DocumentContext& context() const noexcept { return m_context; }
+
   double heightPercentage() const;
 
   MessageItemModel& messages() const;
+  ControlItemModel& controlMessages() const;
 
   const Id<EventModel>& eventId() const;
   void setEventId(const Id<EventModel>&);
@@ -115,6 +124,9 @@ public:
 public:
   void sig_statesUpdated()
       E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, sig_statesUpdated)
+  void sig_controlMessagesUpdated()
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, sig_controlMessagesUpdated)
+
   void heightPercentageChanged()
       E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, heightPercentageChanged)
   void statusChanged(Scenario::ExecutionStatus arg_1)
@@ -127,6 +139,8 @@ private:
   void statesUpdated_slt();
   void init(); // TODO check if other model elements need an init method too.
 
+  const score::DocumentContext& m_context;
+
   ProcessVector m_previousProcesses;
   ProcessVector m_nextProcesses;
   Id<EventModel> m_eventId;
@@ -138,6 +152,7 @@ private:
   double m_heightPercentage{0.5}; // In the whole scenario
 
   MessageItemModel* m_messageItemModel{};
+  ControlItemModel* m_controlItemModel{};
   ExecutionStatusProperty m_status{};
 };
 }

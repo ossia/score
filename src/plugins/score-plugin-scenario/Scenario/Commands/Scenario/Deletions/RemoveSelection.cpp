@@ -198,7 +198,7 @@ void RemoveSelection::undo(const score::DocumentContext& ctx) const
       std::back_inserter(states),
       [&](const auto& data) {
         DataStream::Deserializer s{data.second};
-        return new StateModel{s, &scenar};
+        return new StateModel{s, scenar.context(), &scenar};
       });
 
   QList<EventModel*> events;
@@ -317,7 +317,7 @@ void RemoveSelection::undo(const score::DocumentContext& ctx) const
   for (const auto& intervaldata : m_removedIntervals)
   {
     DataStream::Deserializer s{intervaldata.second};
-    auto itv = new IntervalModel{s, &scenar};
+    auto itv = new IntervalModel{s, scenar.context(), &scenar};
 
     scenar.intervals.add(itv);
 

@@ -11,6 +11,7 @@ set(PROCESS_HDRS
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Commands/EditPort.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Commands/SetControlValue.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Commands/Properties.hpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Process/ControlMessage.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Instantiations.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/ExecutionFunctions.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/ExpandMode.hpp"
@@ -97,6 +98,7 @@ set(PROCESS_SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/ProcessModelSerialization.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/State/MessageNodeSerialization.cpp"
 
+"${CMAKE_CURRENT_SOURCE_DIR}/Process/ControlMessage.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/HeaderDelegate.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/ProcessFactory.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Process.cpp"

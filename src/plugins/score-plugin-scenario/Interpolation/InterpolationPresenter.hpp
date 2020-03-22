@@ -2,7 +2,7 @@
 #include <Curve/CurveStyle.hpp>
 #include <Curve/Process/CurveProcessPresenter.hpp>
 #include <Device/Node/NodeListMimeSerialization.hpp>
-#include <State/MessageListSerialization.hpp>
+#include <State/UpdateAddress.hpp>
 
 #include <Interpolation/Commands/ChangeAddress.hpp>
 #include <Interpolation/InterpolationProcess.hpp>
@@ -55,24 +55,10 @@ private:
 
   void on_dropReceived(const QPointF&, const QMimeData& mime)
   {
-    auto& autom = this->model();
-    // TODO refactor with AddressEditWidget && AutomationPresenter
-    if (mime.formats().contains(score::mime::messagelist()))
+    if(auto newAddr = State::onUpdatableAddress(model().address(), mime))
     {
-      Mime<State::MessageList>::Deserializer des{mime};
-      State::MessageList ml = des.deserialize();
-      if (ml.empty())
-        return;
-      auto& newAddr = ml[0].address;
-
-      if (newAddr == autom.address())
-        return;
-
-      if (newAddr.address.path.isEmpty())
-        return;
-
       CommandDispatcher<> disp{context().context.commandStack};
-      ChangeInterpolationAddress(model(), std::move(newAddr), disp);
+      ChangeInterpolationAddress(model(), std::move(*newAddr), disp);
     }
   }
 };

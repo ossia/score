@@ -42,6 +42,7 @@ namespace Scenario
 ProcessModel::ProcessModel(
     const TimeVal& duration,
     const Id<Process::ProcessModel>& id,
+    const score::DocumentContext& ctx,
     QObject* parent)
     : Process::
           ProcessModel{duration,
@@ -50,6 +51,7 @@ ProcessModel::ProcessModel(
                        parent}
     , inlet{Process::make_audio_inlet(Id<Process::Port>(0), this)}
     , outlet{Process::make_audio_outlet(Id<Process::Port>(0), this)}
+    , m_context{ctx}
     , m_startTimeSyncId{Scenario::startId<TimeSyncModel>()}
     , m_startEventId{Scenario::startId<EventModel>()}
     , m_startStateId{Scenario::startId<StateModel>()}
