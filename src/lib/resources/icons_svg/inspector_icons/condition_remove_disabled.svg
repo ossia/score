@@ -15,7 +15,7 @@
    y="0px"
    viewBox="0 0 48.000001 48.000001"
    xml:space="preserve"
-   sodipodi:docname="condition_remove_off.svg"
+   sodipodi:docname="condition_remove_disabled.svg"
    width="48"
    height="48"
    inkscape:version="0.92.4 5da689c313, 2019-01-14"><metadata
@@ -36,7 +36,7 @@
    id="namedview13"
    showgrid="false"
    inkscape:zoom="8.1660901"
-   inkscape:cx="-31.675152"
+   inkscape:cx="-6.02028"
    inkscape:cy="20.998081"
    inkscape:window-x="0"
    inkscape:window-y="0"
@@ -78,4 +78,4 @@
      x2="10"
      y2="4.9000001"
      id="line10"
-     style="fill:none;stroke:#f0f0f0;stroke-width:8;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" /></g></svg>
+     style="fill:none;stroke:#808080;stroke-width:8;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" /></g></svg>

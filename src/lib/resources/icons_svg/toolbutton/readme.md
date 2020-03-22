@@ -14,7 +14,7 @@ A template file is available for each three states (**template_{disable;off;on}.
 * Make with Inkscape if possible (to avoid weird conversion problem)
 * Size: 48px x 48px
 * Three different svgs per button: disabled/off/on
-* The icon should be centered and inside approximately a 30 x 30 (px) square, corresponding to the layer **inside** in the template files
+* The icon should be centered and inside approximately a 40 x 40 (px) square, corresponding to the layer **inside** in the template files
 * Rounded corner
 * If possible, convert the objects into paths (seems like there is sometimes a display error otherwise) 
 

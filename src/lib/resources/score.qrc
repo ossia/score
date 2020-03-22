@@ -386,6 +386,8 @@
         <file>icons/add_sibling_off@2x.png</file>
         <file>icons/add_sibling_on.png</file>
         <file>icons/add_sibling_on@2x.png</file>
+        <file>icons/gear_on.png</file>
+        <file>icons/gear_on@2x.png</file>
     </qresource>
     <qresource prefix="/qss_icons">
         <file>rc/up_arrow_disabled.png</file>
