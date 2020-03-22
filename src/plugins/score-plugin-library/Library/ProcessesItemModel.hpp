@@ -6,6 +6,7 @@
 #include <verdigris>
 #include <QIcon>
 #include <QJsonObject>
+#include <score_plugin_library_export.h>
 
 namespace score
 {
@@ -24,7 +25,7 @@ struct ProcessData
 
 using ProcessNode = TreeNode<ProcessData>;
 
-class ProcessesItemModel : public TreeNodeBasedItemModel<ProcessNode>
+class SCORE_PLUGIN_LIBRARY_EXPORT ProcessesItemModel : public TreeNodeBasedItemModel<ProcessNode>
 {
 public:
   using QAbstractItemModel::beginResetModel;

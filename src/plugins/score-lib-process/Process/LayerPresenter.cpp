@@ -22,19 +22,28 @@ LayerPresenter::LayerPresenter(
       const LayerView* view,
       const Context& ctx,
       QObject* parent)
-  : QObject{parent}, m_context{ctx, *this}
+  : QObject{parent}
+  , m_context{ctx, *this}
+  , m_process{model}
 {
   connect(view, &LayerView::presetDropReceived,
-          this, [this, &model] (const QPointF& pt, const QMimeData& mime) {
-    auto data = mime.data(score::mime::processpreset());
-    auto& procs = m_context.context.app.interfaces<Process::ProcessFactoryList>();
-    if(auto preset = Process::Preset::fromJson(procs, QJsonDocument::fromJson(data).object())) {
-      if(preset->key.key == model.concreteKey()) // TODO effect
-        CommandDispatcher<>{m_context.context.commandStack}.submit<Process::LoadPreset>(model, *preset);
-    }
-  });
+          this, &LayerPresenter::handlePresetDrop);
 }
 
+void LayerPresenter::handlePresetDrop(const QPointF&, const QMimeData& mime)
+{
+  auto data = mime.data(score::mime::processpreset());
+  auto& procs = m_context.context.app.interfaces<Process::ProcessFactoryList>();
+  if(auto preset = Process::Preset::fromJson(procs, QJsonDocument::fromJson(data).object()))
+  {
+    // TODO effect
+    if(preset->key.key == m_process.concreteKey())
+    {
+      CommandDispatcher<>{m_context.context.commandStack}
+        .submit<Process::LoadPreset>(m_process, *preset);
+    }
+  }
+}
 bool LayerPresenter::focused() const
 {
   return m_focus;
@@ -49,6 +58,16 @@ void LayerPresenter::setFocus(bool focus)
 void LayerPresenter::on_focusChanged() {}
 
 void LayerPresenter::setFullView() {}
+
+const ProcessModel& LayerPresenter::model() const noexcept
+{
+  return m_process;
+}
+
+const Id<Process::ProcessModel>& LayerPresenter::modelId() const noexcept
+{
+  return m_process.id();
+}
 
 void LayerPresenter::fillContextMenu(
     QMenu&,

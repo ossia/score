@@ -32,8 +32,7 @@ public:
 
   void parentGeometryChanged() override;
 
-  const Midi::ProcessModel& model() const override;
-  const Id<Process::ProcessModel>& modelId() const override;
+  const Midi::ProcessModel& model() const noexcept;
 
 private:
   void setupNote(NoteView&);
@@ -44,7 +43,6 @@ private:
 
   std::vector<Id<Note>> selectedNotes() const;
 
-  const Midi::ProcessModel& m_layer;
   View* m_view{};
   std::vector<NoteView*> m_notes;
 

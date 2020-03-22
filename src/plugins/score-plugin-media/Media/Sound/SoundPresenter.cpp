@@ -18,18 +18,18 @@ LayerPresenter::LayerPresenter(
     LayerView* view,
     const Process::Context& ctx,
     QObject* parent)
-    : Process::LayerPresenter{layer, view, ctx, parent}, m_layer{layer}, m_view{view}
+    : Process::LayerPresenter{layer, view, ctx, parent}, m_view{view}
 {
   connect(view, &LayerView::pressed, this, [&]() {
     m_context.context.focusDispatcher.focus(this);
   });
 
   con(layer, &ProcessModel::fileChanged, this, [&]() {
-    m_view->setData(m_layer.file());
+    m_view->setData(layer.file());
     m_view->recompute(m_ratio);
   });
 
-  m_view->setData(m_layer.file());
+  m_view->setData(layer.file());
   m_view->recompute(m_ratio);
 
   connect(
@@ -72,16 +72,6 @@ void LayerPresenter::parentGeometryChanged()
   m_view->recompute(m_ratio);
 }
 
-const ProcessModel& LayerPresenter::model() const
-{
-  return m_layer;
-}
-
-const Id<Process::ProcessModel>& LayerPresenter::modelId() const
-{
-  return m_layer.id();
-}
-
 void LayerPresenter::onDrop(const QPointF& p, const QMimeData& mime)
 {
   DroppedAudioFiles drops{context().context, mime};
@@ -91,7 +81,7 @@ void LayerPresenter::onDrop(const QPointF& p, const QMimeData& mime)
   }
   CommandDispatcher<> disp{context().context.commandStack};
   disp.submit<Media::ChangeAudioFile>(
-      model(), std::move(drops.files.front().first));
+      static_cast<const Sound::ProcessModel&>(m_process), std::move(drops.files.front().first));
 }
 }
 }

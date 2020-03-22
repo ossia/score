@@ -19,7 +19,7 @@ namespace Library
 PresetItemModel::PresetItemModel(const score::GUIApplicationContext& ctx, QObject* parent)
   : QAbstractItemModel{parent}
 {
-  presets.container.reserve(500);
+  presets.reserve(500);
   auto& procs = ctx.interfaces<Process::ProcessFactoryList>();
   const QString& userLibDir = ctx.settings<Library::Settings::Model>().getPath();
   QDirIterator it(
@@ -46,7 +46,11 @@ void PresetItemModel::registerPreset(const Process::ProcessFactoryList& procs, c
     return;
 
   if(auto p = Process::Preset::fromJson(procs, preset.object()))
-    presets.insert(std::move(*p));
+  {
+    auto it = std::lower_bound(presets.begin(), presets.end(), *p, [] (const auto& lhs, const auto& rhs) { return lhs.key < rhs.key; });
+
+    presets.insert(it, std::move(*p));
+  }
 }
 
 QModelIndex PresetItemModel::index(int row, int column, const QModelIndex& parent) const
@@ -70,7 +74,7 @@ QVariant PresetItemModel::data(const QModelIndex& index, int role) const
     switch (role)
     {
     case Qt::DisplayRole:
-      return presets.container[index.row()].name;
+      return presets[index.row()].name;
     }
   }
 
@@ -116,7 +120,9 @@ bool PresetItemModel::dropMimeData(const QMimeData* data, Qt::DropAction act, in
   f.write(QJsonDocument{presetObj}.toJson().data());
 
   beginInsertRows(QModelIndex(), presets.size(), presets.size());
-  presets.insert(preset);
+  auto it = std::lower_bound(presets.begin(), presets.end(), preset, [] (const Process::Preset& lhs, const Process::Preset& rhs) { return lhs.key < rhs.key; });
+
+  presets.insert(it, std::move(preset));
   endInsertRows();
 
   return true;
@@ -137,7 +143,7 @@ QMimeData* PresetItemModel::mimeData(const QModelIndexList& indexes) const
     return nullptr;
 
   auto mime = new QMimeData;
-  const auto& preset = presets.container[row];
+  const auto& preset = presets[row];
   QByteArray data = QJsonDocument{preset.toJson()}.toJson();
   mime->setData(score::mime::processpreset(), data);
 
@@ -165,7 +171,7 @@ Qt::ItemFlags PresetItemModel::flags(const QModelIndex& index) const
 bool PresetFilterProxy::filterAcceptsRow(int srcRow, const QModelIndex& srcParent) const
 {
   PresetItemModel* model = safe_cast<PresetItemModel*>(sourceModel());
-  return model->presets.container[srcRow].key.key == currentFilter;
+  return model->presets[srcRow].key.key == currentFilter;
 }
 
 }

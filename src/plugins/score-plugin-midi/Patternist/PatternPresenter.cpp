@@ -12,7 +12,6 @@ Presenter::Presenter(
     const Process::Context& ctx,
     QObject* parent)
     : LayerPresenter{layer, view, ctx, parent}
-    , m_layer{layer}
     , m_view{view}
 {
   putToFront();
@@ -21,20 +20,20 @@ Presenter::Presenter(
     m_context.context.focusDispatcher.focus(this);
   });
   connect(m_view, &View::toggled, this, [&](int lane, int index) {
-    auto cur = m_layer.patterns()[m_layer.currentPattern()];
+    auto cur = layer.patterns()[layer.currentPattern()];
     bool b = cur.lanes[lane].pattern[index];
 
     cur.lanes[lane].pattern[index] = !b;
 
     CommandDispatcher<> disp{m_context.context.commandStack};
-    disp.submit<UpdatePattern>(m_layer, m_layer.currentPattern(), cur);
+    disp.submit<UpdatePattern>(layer, layer.currentPattern(), cur);
   });
   connect(m_view, &View::noteChanged, this, [&](int lane, int note) {
-    auto cur = m_layer.patterns()[m_layer.currentPattern()];
+    auto cur = layer.patterns()[layer.currentPattern()];
     cur.lanes[lane].note = note;
 
     auto& disp = m_context.context.dispatcher;
-    disp.submit<UpdatePattern>(m_layer, m_layer.currentPattern(), cur);
+    disp.submit<UpdatePattern>(layer, layer.currentPattern(), cur);
   });
   connect(m_view, &View::noteChangeFinished, this, [&]{
     auto& disp = m_context.context.dispatcher;
@@ -70,15 +69,5 @@ void Presenter::on_zoomRatioChanged(ZoomRatio zr)
 }
 
 void Presenter::parentGeometryChanged() {}
-
-const Patternist::ProcessModel& Presenter::model() const
-{
-  return m_layer;
-}
-
-const Id<Process::ProcessModel>& Presenter::modelId() const
-{
-  return m_layer.id();
-}
 
 }

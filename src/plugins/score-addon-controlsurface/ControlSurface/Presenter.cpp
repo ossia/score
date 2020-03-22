@@ -29,17 +29,17 @@ struct Presenter::Port
 Presenter::Presenter(
     const Model& layer, View* view,
     const Process::Context& ctx, QObject* parent)
-    : Process::LayerPresenter{layer, view, ctx, parent}, m_model{layer}, m_view{view}
+    : Process::LayerPresenter{layer, view, ctx, parent}, m_view{view}
 {
   connect(view, &View::addressesDropped,
-          this, [this] (State::MessageList lst) {
+          this, [this, &layer] (State::MessageList lst) {
     if(lst.isEmpty())
       return;
 
     auto& docctx = this->context().context;
     MacroCommandDispatcher<AddControlMacro> disp{docctx.commandStack};
     for(auto& message : lst) {
-      disp.submit(new AddControl{docctx, m_model, std::move(message)});
+      disp.submit(new AddControl{docctx, layer, std::move(message)});
     }
     disp.commit();
   });
@@ -95,16 +95,6 @@ void Presenter::parentGeometryChanged()
 {
 }
 
-const Process::ProcessModel& Presenter::model() const
-{
-  return m_model;
-}
-
-const Id<Process::ProcessModel>& Presenter::modelId() const
-{
-  return m_model.id();
-}
-
 void Presenter::setupInlet(
     Process::ControlInlet& port,
     const Process::PortFactoryList& portFactory,
@@ -135,7 +125,7 @@ void Presenter::setupInlet(
           [this, &port] {
       QTimer::singleShot(0, &port, [this, &port] {
         CommandDispatcher<> disp{m_context.context.commandStack};
-        disp.submit<RemoveControl>(m_model, port);
+        disp.submit<RemoveControl>(static_cast<const Model&>(m_process), port);
       });
     });
 
@@ -155,7 +145,7 @@ void Presenter::setupInlet(
 void Presenter::on_controlAdded(const Id<Process::Port>& id)
 {
   auto& portFactory = m_context.context.app.interfaces<Process::PortFactoryList>();
-  auto inlet = safe_cast<Process::ControlInlet*>(m_model.inlet(id));
+  auto inlet = safe_cast<Process::ControlInlet*>(m_process.inlet(id));
   setupInlet(*inlet, portFactory, m_context.context);
 }
 

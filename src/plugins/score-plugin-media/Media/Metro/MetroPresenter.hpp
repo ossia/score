@@ -18,7 +18,6 @@ public:
       const Process::Context& ctx,
       QObject* parent)
       : LayerPresenter{model, view, ctx, parent}
-      , m_layer{model}
       , m_view{view}
   {
     putToFront();
@@ -42,13 +41,7 @@ public:
 
   void parentGeometryChanged() override {}
 
-  const Process::ProcessModel& model() const override { return m_layer; }
-  const Id<Process::ProcessModel>& modelId() const override {
-    return m_layer.id();
-  }
-
 private:
-  const Process::ProcessModel& m_layer;
   View* m_view{};
   ZoomRatio m_ratio{};
 };

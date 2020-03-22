@@ -56,7 +56,7 @@ EffectLayerPresenter::EffectLayerPresenter(
     Process::LayerView* view,
     const Context& ctx,
     QObject* parent)
-    : LayerPresenter{model, view, ctx, parent}, m_layer{model}, m_view{view}
+    : LayerPresenter{model, view, ctx, parent}, m_view{view}
 {
   putToFront();
   connect(view, &Process::LayerView::pressed, this, [&] {
@@ -93,16 +93,6 @@ void EffectLayerPresenter::putBehind()
 void EffectLayerPresenter::on_zoomRatioChanged(ZoomRatio) {}
 
 void EffectLayerPresenter::parentGeometryChanged() {}
-
-const ProcessModel& EffectLayerPresenter::model() const
-{
-  return m_layer;
-}
-
-const Id<ProcessModel>& EffectLayerPresenter::modelId() const
-{
-  return m_layer.id();
-}
 
 void EffectLayerPresenter::fillContextMenu(
     QMenu& menu,

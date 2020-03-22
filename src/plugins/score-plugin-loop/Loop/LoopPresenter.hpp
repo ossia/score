@@ -52,8 +52,7 @@ public:
 
   void on_addProcess(const Process::ProcessModel& p);
   void on_removeProcess(const Process::ProcessModel& p);
-  const Loop::ProcessModel& model() const override;
-  const Id<Process::ProcessModel>& modelId() const override;
+  const Loop::ProcessModel& model() const noexcept;
 
   ZoomRatio zoomRatio() const { return m_zoomRatio; }
 
@@ -73,7 +72,6 @@ private:
   void updateAllElements();
   void on_intervalExecutionTimer();
 
-  const Loop::ProcessModel& m_layer;
   graphics_item_ptr<LayerView> m_view;
 
   ZoomRatio m_zoomRatio{};

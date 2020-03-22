@@ -174,7 +174,7 @@ void View::dropEvent(QGraphicsSceneDragDropEvent* ev)
 }
 
 Presenter::Presenter(const ChainProcess& model, View* view, const Process::Context& ctx, QObject* parent)
-  : LayerPresenter{model, view, ctx, parent}, m_layer{model}, m_view{view}
+  : LayerPresenter{model, view, ctx, parent}, m_view{view}
 {
   putToFront();
   connect(view, &View::pressed, this, [&] {
@@ -216,22 +216,16 @@ void Presenter::on_zoomRatioChanged(ZoomRatio) {}
 
 void Presenter::parentGeometryChanged() {}
 
-const Process::ProcessModel& Presenter::model() const { return m_layer; }
-
-const Id<Process::ProcessModel>& Presenter::modelId() const
-{
-  return m_layer.id();
-}
-
 void Presenter::on_drop(const QMimeData& mime, int pos)
 {
   const auto& ctx = context().context;
+  const auto& model = static_cast<const ChainProcess&>(m_process);
   if (mime.hasFormat(score::mime::processdata()))
   {
     Mime<Process::ProcessData>::Deserializer des{mime};
     Process::ProcessData p = des.deserialize();
 
-    auto cmd = new InsertEffect(m_layer, p.key, p.customData, pos);
+    auto cmd = new InsertEffect(model, p.key, p.customData, pos);
     CommandDispatcher<> d{ctx.commandStack};
     d.submit(cmd);
     return;
@@ -251,11 +245,11 @@ void Presenter::on_drop(const QMimeData& mime, int pos)
           = fromJsonObject<Path<Process::ProcessModel>>(json["Path"]);
       if (auto obj = old_p.try_find(ctx))
       {
-        if (obj->parent() == &m_layer)
+        if (obj->parent() == &model)
         {
-          QTimer::singleShot(0, [this, &ctx, id = obj->id(), pos] {
+          QTimer::singleShot(0, [this, &model, &ctx, id = obj->id(), pos] {
             CommandDispatcher<>{ctx.commandStack}.submit(
-                  new MoveEffect(m_layer, id, pos));
+                  new MoveEffect(model, id, pos));
           });
           return;
         }
@@ -275,7 +269,7 @@ void Presenter::on_drop(const QMimeData& mime, int pos)
 
     if (json.isEmpty())
       return;
-    auto cmd = new LoadEffect(m_layer, json, pos);
+    auto cmd = new LoadEffect(model, json, pos);
     CommandDispatcher<> d{ctx.commandStack};
     d.submit(cmd);
   }
@@ -293,7 +287,7 @@ void Presenter::on_drop(const QMimeData& mime, int pos)
         if (json.isEmpty())
           return;
 
-        auto cmd = new LoadEffect(m_layer, json, pos);
+        auto cmd = new LoadEffect(model, json, pos);
         CommandDispatcher<> d{ctx.commandStack};
         d.submit(cmd);
       }
@@ -310,10 +304,10 @@ void Presenter::on_drop(const QMimeData& mime, int pos)
         for (const auto& proc : res)
         {
           auto& p = proc.creation;
-          auto create = new InsertEffect(m_layer, p.key, p.customData, pos);
+          auto create = new InsertEffect(model, p.key, p.customData, pos);
           cmd.submit(create);
-          if (auto fx = m_layer.effects().find(create->processId());
-              fx != m_layer.effects().list().end())
+          if (auto fx = model.effects().find(create->processId());
+              fx != model.effects().list().end())
           {
             if (proc.setup)
             {

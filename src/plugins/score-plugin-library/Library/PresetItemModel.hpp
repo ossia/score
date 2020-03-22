@@ -1,7 +1,7 @@
 #pragma once
 #include <Process/Preset.hpp>
 
-#include <ossia/detail/flat_set.hpp>
+#include <map>
 
 #include <QAbstractItemModel>
 #include <QSortFilterProxyModel>
@@ -38,7 +38,8 @@ private:
   Qt::DropActions supportedDropActions() const override;
   Qt::ItemFlags flags(const QModelIndex& index) const override;
 
-  ossia::flat_set<Process::Preset> presets;
+  std::vector<Process::Preset> presets;
+
   friend class PresetFilterProxy;
 };
 

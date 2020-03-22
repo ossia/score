@@ -59,13 +59,9 @@ public:
   void on_zoomRatioChanged(ZoomRatio) override;
   void parentGeometryChanged() override;
 
-  const Process::ProcessModel& model() const override;
-  const Id<Process::ProcessModel>& modelId() const override;
-
   void on_drop(const QMimeData& mime, int pos);
 
 private:
-  const Media::ChainProcess& m_layer;
   View* m_view{};
 };
 }

@@ -44,7 +44,6 @@ Presenter::Presenter(
     const Process::Context& ctx,
     QObject* parent)
     : LayerPresenter{layer, view, ctx, parent}
-    , m_layer{layer}
     , m_view{view}
     , m_moveDispatcher{ctx.commandStack}
     , m_velocityDispatcher{ctx.commandStack}
@@ -91,7 +90,7 @@ Presenter::Presenter(
 
   connect(m_view, &View::deleteRequested, this, [&] {
     CommandDispatcher<>{context().context.commandStack}.submit(
-        new RemoveNotes{m_layer, selectedNotes()});
+        new RemoveNotes{this->model(), selectedNotes()});
   });
 
   connect(
@@ -135,7 +134,7 @@ void Presenter::fillContextMenu(
       return;
 
     CommandDispatcher<> c{context().context.commandStack};
-    c.submit<RescaleMidi>(m_layer, val);
+    c.submit<RescaleMidi>(model(), val);
   });
 
   auto act2 = menu.addAction(tr("Rescale all midi"));
@@ -168,7 +167,7 @@ void Presenter::fillContextMenu(
 void Presenter::setWidth(qreal val, qreal defaultWidth)
 {
   m_view->setWidth(val);
-  m_view->setDefaultWidth(m_layer.duration().toPixels(m_zr));
+  m_view->setDefaultWidth(model().duration().toPixels(m_zr));
   for (auto note : m_notes)
     updateNote(*note);
 }
@@ -193,21 +192,16 @@ void Presenter::putBehind()
 void Presenter::on_zoomRatioChanged(ZoomRatio zr)
 {
   m_zr = zr;
-  m_view->setDefaultWidth(m_layer.duration().toPixels(m_zr));
+  m_view->setDefaultWidth(model().duration().toPixels(m_zr));
   for (auto note : m_notes)
     updateNote(*note);
 }
 
 void Presenter::parentGeometryChanged() {}
 
-const Midi::ProcessModel& Presenter::model() const
+const Midi::ProcessModel& Presenter::model() const noexcept
 {
-  return m_layer;
-}
-
-const Id<Process::ProcessModel>& Presenter::modelId() const
-{
-  return m_layer.id();
+  return static_cast<const Midi::ProcessModel&>(m_process);
 }
 
 void Presenter::setupNote(NoteView& v)
@@ -219,7 +213,7 @@ void Presenter::setupNote(NoteView& v)
           n->setSelected(false);
   });
   con(v, &NoteView::noteChangeFinished, this, [&] {
-    const auto [min, max] = this->m_layer.range();
+    const auto [min, max] = this->model().range();
     auto newPos = v.pos();
     auto rect = m_view->boundingRect();
     auto height = rect.height();
@@ -240,7 +234,7 @@ void Presenter::setupNote(NoteView& v)
     }
 
     m_moveDispatcher.submit(
-        m_layer,
+        model(),
         notes,
         note - v.note.pitch(),
         newPos.x() / m_view->defaultWidth() - v.note.start());
@@ -257,7 +251,7 @@ void Presenter::setupNote(NoteView& v)
 
     auto dt = newScale - v.note.duration();
     CommandDispatcher<>{context().context.commandStack}.submit(
-        new ScaleNotes{m_layer, notes, dt});
+        new ScaleNotes{model(), notes, dt});
   });
 
   con(v, &NoteView::requestVelocityChange, this, [&](double velocityDelta) {
@@ -268,7 +262,7 @@ void Presenter::setupNote(NoteView& v)
       notes = {v.note.id()};
     }
 
-    m_velocityDispatcher.submit(m_layer, notes, velocityDelta / 5.);
+    m_velocityDispatcher.submit(model(), notes, velocityDelta / 5.);
   });
 
   con(v, &NoteView::velocityChangeFinished, this, [&] {
@@ -323,12 +317,12 @@ void Presenter::on_drop(const QPointF& pos, const QMimeData& md)
   for (auto& note : track.notes)
   {
     note.setStart(
-        song.durationInMs * note.start() / m_layer.duration().msec());
+        song.durationInMs * note.start() / model().duration().msec());
     note.setDuration(
-        song.durationInMs * note.duration() / m_layer.duration().msec());
+        song.durationInMs * note.duration() / model().duration().msec());
   }
   disp.submit<Midi::ReplaceNotes>(
-      m_layer, track.notes, track.min, track.max, m_layer.duration());
+      model(), track.notes, track.min, track.max, model().duration());
 }
 
 std::vector<Id<Note>> Presenter::selectedNotes() const

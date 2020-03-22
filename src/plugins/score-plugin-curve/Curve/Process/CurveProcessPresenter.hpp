@@ -34,13 +34,12 @@ public:
       const Process::Context& ctx,
       QObject* parent)
       : LayerPresenter{lm, view, ctx, parent}
-      , m_layer{lm}
       , m_view{static_cast<LayerView_T*>(view)}
-      , m_curve{ctx, style, m_layer.curve(), new View{m_view}, this}
+      , m_curve{ctx, style, lm.curve(), new View{m_view}, this}
       , m_commandDispatcher{ctx.commandStack}
       , m_sm{m_context, m_curve}
   {
-    con(m_layer,
+    con(lm,
         &CurveProcessModel::curveChanged,
         this,
         &CurveProcessPresenter::parentGeometryChanged);
@@ -113,17 +112,10 @@ public:
     QRectF rect = m_view->boundingRect(); // for the height
     m_curve.view().setRect(rect);
 
-    const auto dw = m_layer.duration().toPixels(m_zoomRatio);
+    const auto dw = m_process.duration().toPixels(m_zoomRatio);
     m_curve.view().setDefaultWidth(dw);
     rect.setWidth(dw);
     m_curve.setRect(rect);
-  }
-
-  const Model_T& model() const final override { return m_layer; }
-
-  const Id<Process::ProcessModel>& modelId() const final override
-  {
-    return m_layer.id();
   }
 
   void fillContextMenu(
@@ -136,9 +128,9 @@ public:
   }
 
   LayerView_T* view() { return m_view.impl; }
+  const Model_T& model() const { return static_cast<const Model_T&>(m_process); }
 
 protected:
-  const Model_T& m_layer;
   graphics_item_ptr<LayerView_T> m_view;
 
   Presenter m_curve;

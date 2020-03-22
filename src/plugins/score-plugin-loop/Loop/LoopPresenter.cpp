@@ -63,10 +63,9 @@ LayerPresenter::LayerPresenter(
     , BaseScenarioPresenter<
           Loop::ProcessModel,
           Scenario::TemporalIntervalPresenter>{layer}
-    , m_layer{layer}
     , m_view{view}
     , m_viewUpdater{*this}
-    , m_palette{m_layer, *this, m_context, *m_view}
+    , m_palette{layer, *this, m_context, *m_view}
 {
   using namespace Scenario;
   m_intervalPresenter = new TemporalIntervalPresenter{
@@ -238,14 +237,9 @@ void LayerPresenter::parentGeometryChanged()
   m_view->update();
 }
 
-const Loop::ProcessModel& LayerPresenter::model() const
+const Loop::ProcessModel& LayerPresenter::model() const noexcept
 {
-  return m_layer;
-}
-
-const Id<Process::ProcessModel>& LayerPresenter::modelId() const
-{
-  return m_layer.id();
+  return static_cast<const Loop::ProcessModel&>(m_process);
 }
 
 void LayerPresenter::updateAllElements()

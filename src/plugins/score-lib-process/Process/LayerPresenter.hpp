@@ -53,8 +53,8 @@ public:
   virtual void on_zoomRatioChanged(ZoomRatio) = 0;
   virtual void parentGeometryChanged() = 0;
 
-  virtual const ProcessModel& model() const = 0;
-  virtual const Id<ProcessModel>& modelId() const = 0;
+  const ProcessModel& model() const noexcept;
+  const Id<ProcessModel>& modelId() const noexcept;
 
   virtual void fillContextMenu(
       QMenu&,
@@ -69,7 +69,10 @@ public:
       E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, contextMenuRequested, arg_1, arg_2)
 
 protected:
+  void handlePresetDrop(const QPointF& pt, const QMimeData& mime);
+
   Process::LayerContext m_context;
+  const Process::ProcessModel& m_process;
 
 private:
   bool m_focus{false};

@@ -147,11 +147,7 @@ public:
 
   void parentGeometryChanged() override;
 
-  const Gradient::ProcessModel& model() const override;
-  const Id<Process::ProcessModel>& modelId() const override;
-
 private:
-  const Gradient::ProcessModel& m_layer;
   View* m_view{};
   ZoomRatio m_zoomRatio{};
 };

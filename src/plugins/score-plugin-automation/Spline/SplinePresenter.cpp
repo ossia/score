@@ -19,14 +19,14 @@ Presenter::Presenter(
     View* view,
     const Process::Context& ctx,
     QObject* parent)
-    : LayerPresenter{layer, view, ctx, parent}, m_layer{layer}, m_view{view}
+    : LayerPresenter{layer, view, ctx, parent},  m_view{view}
 {
   putToFront();
-  connect(&m_layer, &ProcessModel::splineChanged, this, [&] {
-    m_view->setSpline(m_layer.spline());
+  connect(&layer, &ProcessModel::splineChanged, this, [&] {
+    m_view->setSpline(layer.spline());
   });
 
-  m_view->setSpline(m_layer.spline());
+  m_view->setSpline(layer.spline());
   connect(m_view, &View::changed, this, [&] {
     CommandDispatcher<>{context().context.commandStack}.submit<ChangeSpline>(
         layer, m_view->spline());
@@ -67,13 +67,5 @@ void Presenter::on_zoomRatioChanged(ZoomRatio r)
 
 void Presenter::parentGeometryChanged() {}
 
-const Spline::ProcessModel& Presenter::model() const
-{
-  return m_layer;
-}
 
-const Id<Process::ProcessModel>& Presenter::modelId() const
-{
-  return m_layer.id();
-}
 }

@@ -47,7 +47,6 @@ ScenarioPresenter::ScenarioPresenter(
     const Process::Context& context,
     QObject* parent)
     : LayerPresenter{scenario, view, context, parent}
-    , m_layer{scenario}
     , m_view{static_cast<ScenarioView*>(view)}
     , m_viewInterface{*this}
     , m_editionSettings{e}
@@ -250,14 +249,9 @@ ScenarioPresenter::~ScenarioPresenter()
   m_comments.remove_all();
 }
 
-const Scenario::ProcessModel& ScenarioPresenter::model() const
+const Scenario::ProcessModel& ScenarioPresenter::model() const noexcept
 {
-  return m_layer;
-}
-
-const Id<Process::ProcessModel>& ScenarioPresenter::modelId() const
-{
-  return m_layer.id();
+  return static_cast<const Scenario::ProcessModel&>(m_process);
 }
 
 Point ScenarioPresenter::toScenarioPoint(QPointF pt) const noexcept
@@ -372,7 +366,7 @@ void ScenarioPresenter::fillContextMenu(
         scenepos, zoomRatio(), view().height());
 
     auto cmd = new Scenario::Command::CreateCommentBlock{
-        m_layer, scenPoint.date, scenPoint.y};
+        model(), scenPoint.date, scenPoint.y};
     CommandDispatcher<>{ctx.commandStack}.submit(cmd);
   });
 
@@ -382,7 +376,7 @@ void ScenarioPresenter::fillContextMenu(
 void ScenarioPresenter::drawDragLine(const StateModel& st, Point pt) const
 {
   auto& real_st = m_states.at(st.id());
-  auto& ev = Scenario::parentEvent(m_layer.states.at(st.id()), m_layer);
+  auto& ev = Scenario::parentEvent(model().states.at(st.id()), model());
   auto diff = pt.date - ev.date();
   m_view->drawDragLine(
       real_st.view()->pos(),
@@ -501,7 +495,7 @@ void ScenarioPresenter::on_intervalExecutionTimer()
 
 void ScenarioPresenter::selectLeft()
 {
-    CategorisedScenario selection{this->m_layer};
+    CategorisedScenario selection{this->model()};
 
     const auto n_itvs = selection.selectedIntervals.size();
     const auto n_ev = selection.selectedEvents.size();
@@ -514,7 +508,7 @@ void ScenarioPresenter::selectLeft()
         if(n_itvs == 1)
         {
             auto& itv = *selection.selectedIntervals.front();
-            auto& left_state = Scenario::startState(itv, m_layer);
+            auto& left_state = Scenario::startState(itv, model());
             score::SelectionDispatcher{m_context.context.selectionStack}.setAndCommit({&left_state});
         }
         else if(n_states == 1)
@@ -522,7 +516,7 @@ void ScenarioPresenter::selectLeft()
             const Scenario::StateModel& st = *selection.selectedStates.front();
             if(st.previousInterval())
             {
-                auto& left_itv = Scenario::previousInterval(st, m_layer);
+                auto& left_itv = Scenario::previousInterval(st, model());
                 score::SelectionDispatcher{m_context.context.selectionStack}.setAndCommit({&left_itv});
             }
         }
@@ -536,7 +530,7 @@ void ScenarioPresenter::selectLeft()
 
 void ScenarioPresenter::selectRight()
 {
-    CategorisedScenario selection{this->m_layer};
+    CategorisedScenario selection{this->model()};
 
     const auto n_itvs = selection.selectedIntervals.size();
     const auto n_ev = selection.selectedEvents.size();
@@ -549,7 +543,7 @@ void ScenarioPresenter::selectRight()
         if(n_itvs == 1)
         {
             auto& itv = *selection.selectedIntervals.front();
-            auto& left_state = Scenario::endState(itv, m_layer);
+            auto& left_state = Scenario::endState(itv, model());
             score::SelectionDispatcher{m_context.context.selectionStack}.setAndCommit({&left_state});
         }
         else if(n_states == 1)
@@ -557,7 +551,7 @@ void ScenarioPresenter::selectRight()
             const Scenario::StateModel& st = *selection.selectedStates.front();
             if(st.nextInterval())
             {
-                auto& left_itv = Scenario::nextInterval(st, m_layer);
+                auto& left_itv = Scenario::nextInterval(st, model());
                 score::SelectionDispatcher{m_context.context.selectionStack}.setAndCommit({&left_itv});
             }
         }
@@ -585,7 +579,7 @@ ossia::small_vector<StateModel*, 8> getStates(const TimeSyncModel& ts, const Sce
 
 void ScenarioPresenter::selectUp()
 {
-    CategorisedScenario selection{this->m_layer};
+    CategorisedScenario selection{this->model()};
 
     const auto n_itvs = selection.selectedIntervals.size();
     const auto n_ev = selection.selectedEvents.size();
@@ -598,8 +592,8 @@ void ScenarioPresenter::selectUp()
             return;
 
         const auto& sel_state = *selection.selectedStates.front();
-        const auto& parent_ts = Scenario::parentTimeSync(sel_state, m_layer);
-        const auto states = Scenario::getStates(parent_ts, m_layer);
+        const auto& parent_ts = Scenario::parentTimeSync(sel_state, model());
+        const auto states = Scenario::getStates(parent_ts, model());
         double min = -1.;
         const auto* cur_state = &sel_state;
         for(StateModel* state : states)
@@ -633,7 +627,7 @@ void ScenarioPresenter::selectUp()
             auto parent = ptr->parent();
             if(!parent)
                 continue;
-            if(auto gp = parent->parent(); gp != &m_layer)
+            if(auto gp = parent->parent(); gp != &model())
                 continue;
 
             auto itv = qobject_cast<IntervalModel*>(parent);
@@ -667,7 +661,7 @@ void ScenarioPresenter::selectUp()
 
 void ScenarioPresenter::selectDown()
 {
-    CategorisedScenario selection{this->m_layer};
+    CategorisedScenario selection{this->model()};
 
     const auto n_itvs = selection.selectedIntervals.size();
     const auto n_ev = selection.selectedEvents.size();
@@ -680,7 +674,7 @@ void ScenarioPresenter::selectDown()
             return;
 
         const auto& sel_sync = *selection.selectedTimeSyncs.front();
-        const auto states = Scenario::getStates(sel_sync, m_layer);
+        const auto states = Scenario::getStates(sel_sync, model());
         if(states.empty())
             return;
 
@@ -718,8 +712,8 @@ void ScenarioPresenter::selectDown()
             return;
 
         const auto& sel_state = *selection.selectedStates.front();
-        const auto& parent_ts = Scenario::parentTimeSync(sel_state, m_layer);
-        const auto states = Scenario::getStates(parent_ts, m_layer);
+        const auto& parent_ts = Scenario::parentTimeSync(sel_state, model());
+        const auto states = Scenario::getStates(parent_ts, model());
         double max = std::numeric_limits<double>::max();
         const auto* cur_state = &sel_state;
         for(StateModel* state : states)
@@ -749,7 +743,7 @@ void ScenarioPresenter::selectDown()
             auto parent = ptr->parent();
             if(!parent)
                 continue;
-            if(auto gp = parent->parent(); gp != &m_layer)
+            if(auto gp = parent->parent(); gp != &model())
                 continue;
 
             auto itv = qobject_cast<IntervalModel*>(parent);
@@ -784,7 +778,7 @@ void ScenarioPresenter::doubleClick(QPointF pt)
   auto sp = toScenarioPoint(pt);
 
   // Just create a dot
-  auto cmd = new Command::CreateTimeSync_Event_State{m_layer, sp.date, sp.y};
+  auto cmd = new Command::CreateTimeSync_Event_State{model(), sp.date, sp.y};
   CommandDispatcher<>{m_context.context.commandStack}.submit(cmd);
 }
 
@@ -932,8 +926,8 @@ void ScenarioPresenter::on_intervalCreated(const IntervalModel& interval)
     updateIntervalVerticalPos(*this, const_cast<IntervalModel&>(interval), y, m_view->height());
   });
 
-  auto& startEvent = Scenario::startEvent(interval, m_layer);
-  auto& endEvent = Scenario::endEvent(interval, m_layer);
+  auto& startEvent = Scenario::startEvent(interval, model());
+  auto& endEvent = Scenario::endEvent(interval, model());
   auto& startEventPres = m_events.at(startEvent.id());
   auto& endEventPres = m_events.at(endEvent.id());
 
@@ -1030,7 +1024,7 @@ void ScenarioPresenter::on_commentCreated(
     auto pos = Scenario::ConvertToScenarioPoint(
         scenPos, m_zoomRatio, m_view->height());
     m_ongoingDispatcher.submit<MoveCommentBlock>(
-        m_layer, comment_block_model.id(), pos.date, pos.y);
+        model(), comment_block_model.id(), pos.date, pos.y);
   });
   connect(
       cmt_pres, &CommentBlockPresenter::released, this, [&](QPointF scenPos) {

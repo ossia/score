@@ -8,7 +8,7 @@
 #include <Audio/Settings/Model.hpp>
 
 #include <ossia/detail/math.hpp>
-
+#include <score/tools/Bind.hpp>
 namespace Media
 {
 namespace Step
@@ -23,7 +23,6 @@ public:
       const Process::Context& ctx,
       QObject* parent)
       : LayerPresenter{model, view, ctx, parent}
-      , m_layer{model}
       , m_view{view}
       , m_disp{m_context.context.commandStack}
   {
@@ -77,21 +76,15 @@ public:
   {
     auto samplerate = 0.001 * context().context.app.settings<Audio::Settings::Model>().getRate();
     m_ratio = r;
-    auto& m = static_cast<const Step::Model&>(m_layer);
+    auto& m = static_cast<const Step::Model&>(m_process);
     auto v = TimeVal::fromMsecs(m.stepDuration() / samplerate).toPixels(r);
     m_view->setBarWidth(v);
   }
 
   void parentGeometryChanged() override {}
 
-  const Process::ProcessModel& model() const override { return m_layer; }
-  const Id<Process::ProcessModel>& modelId() const override
-  {
-    return m_layer.id();
-  }
 
 private:
-  const Process::ProcessModel& m_layer;
   View* m_view{};
   SingleOngoingCommandDispatcher<Media::ChangeSteps> m_disp;
   ZoomRatio m_ratio{};

@@ -67,12 +67,7 @@ public:
   void on_zoomRatioChanged(ZoomRatio) override;
 
   void parentGeometryChanged() override;
-
-  const Spline::ProcessModel& model() const override;
-  const Id<Process::ProcessModel>& modelId() const override;
-
 private:
-  const Spline::ProcessModel& m_layer;
   View* m_view{};
   ZoomRatio m_zoomRatio{};
 };

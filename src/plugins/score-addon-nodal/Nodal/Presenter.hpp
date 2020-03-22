@@ -31,9 +31,6 @@ public:
 
   void parentGeometryChanged() override;
 
-  const Process::ProcessModel& model() const override;
-  const Id<Process::ProcessModel>& modelId() const override;
-
   void on_created(Process::ProcessModel& n);
   void on_removing(const Process::ProcessModel& n);
 

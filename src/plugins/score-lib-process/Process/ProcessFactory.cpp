@@ -39,7 +39,6 @@ public:
 
 class DefaultLayerPresenter final : public LayerPresenter
 {
-  const Process::ProcessModel& m_model;
   Process::LayerView* m_view{};
 
 public:
@@ -48,12 +47,12 @@ public:
       Process::LayerView* v,
       const Context& ctx,
       QObject* parent)
-      : LayerPresenter{model, v, ctx, parent}, m_model{model}, m_view{v}
+      : LayerPresenter{model, v, ctx, parent}, m_view{v}
   {
     auto vi = dynamic_cast<DefaultLayerView*>(v);
-    vi->m_txt = m_model.metadata().getName();
+    vi->m_txt = model.metadata().getName();
     connect(
-        &m_model.metadata(),
+        &model.metadata(),
         &score::ModelMetadata::NameChanged,
         this,
         [=](auto t) {
@@ -72,9 +71,6 @@ public:
 
   void on_zoomRatioChanged(ZoomRatio) override {}
   void parentGeometryChanged() override {}
-
-  const ProcessModel& model() const override { return m_model; }
-  const Id<ProcessModel>& modelId() const override { return m_model.id(); }
 };
 LayerPresenter* LayerFactory::makeLayerPresenter(
     const ProcessModel& m,

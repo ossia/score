@@ -37,9 +37,6 @@ public:
 
   void parentGeometryChanged() override;
 
-  const Process::ProcessModel& model() const override;
-  const Id<Process::ProcessModel>& modelId() const override;
-
 private:
   void setupInlet(
       Process::ControlInlet& inlet,
@@ -48,7 +45,6 @@ private:
   void on_controlAdded(const Id<Process::Port>& id);
   void on_controlRemoved(const Process::Port& p);
 
-  const Model& m_model;
   View* m_view{};
   struct Port;
   std::vector<Port> m_ports;

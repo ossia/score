@@ -29,11 +29,8 @@ public:
 
   void parentGeometryChanged() override;
 
-  const Patternist::ProcessModel& model() const override;
-  const Id<Process::ProcessModel>& modelId() const override;
 
 private:
-  const Patternist::ProcessModel& m_layer;
   View* m_view{};
 };
 }

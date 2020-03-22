@@ -23,13 +23,13 @@ public:
       QObject* parent)
       : CurveProcessPresenter{style, layer, view, context, parent}
   {
-    con(m_layer,
+    con(layer,
         &ProcessModel::tweenChanged,
         this,
         &Presenter::on_tweenChanges);
     connect(m_view, &View::dropReceived, this, &Presenter::on_dropReceived);
 
-    on_tweenChanges(m_layer.tween());
+    on_tweenChanges(layer.tween());
     con(layer.curve(), &Curve::Model::curveReset, this, [&] {
       on_tweenChanges(layer.tween());
     });

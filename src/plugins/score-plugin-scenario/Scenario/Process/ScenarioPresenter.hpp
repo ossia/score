@@ -41,8 +41,7 @@ public:
       QObject* parent);
   ~ScenarioPresenter();
 
-  const Scenario::ProcessModel& model() const override;
-  const Id<Process::ProcessModel>& modelId() const override;
+  const Scenario::ProcessModel& model() const noexcept;
 
   /**
    * @brief toScenarioPoint
@@ -147,8 +146,6 @@ private:
 
   ZoomRatio m_zoomRatio{1};
   double m_graphicalScale{1.};
-
-  const Scenario::ProcessModel& m_layer;
 
   // The order of deletion matters!
   // m_view has to be deleted after the other elements.

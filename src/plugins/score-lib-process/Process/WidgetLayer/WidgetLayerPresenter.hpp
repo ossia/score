@@ -24,7 +24,7 @@ public:
       View* view,
       const Process::Context& ctx,
       QObject* parent)
-      : LayerPresenter{model, view, ctx, parent}, m_layer{model}, m_view{view}
+      : LayerPresenter{model, view, ctx, parent}, m_view{view}
   {
     putToFront();
     connect(view, &View::pressed, this, [&]() {
@@ -35,7 +35,7 @@ public:
         m_view, &View::askContextMenu, this, &Presenter::contextMenuRequested);
 
     m_view->setWidget(
-        new Widget_T{static_cast<const Process_T&>(m_layer), ctx, nullptr});
+        new Widget_T{static_cast<const Process_T&>(model), ctx, nullptr});
   }
 
   void setWidth(qreal width, qreal defaultWidth) override { m_view->setWidth(width); }
@@ -49,14 +49,8 @@ public:
 
   void parentGeometryChanged() override {}
 
-  const Process::ProcessModel& model() const override { return m_layer; }
-  const Id<Process::ProcessModel>& modelId() const override
-  {
-    return m_layer.id();
-  }
 
 private:
-  const Process::ProcessModel& m_layer;
   View* m_view{};
 };
 }

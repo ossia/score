@@ -19,17 +19,17 @@ Presenter::Presenter(
     View* view,
     const Process::Context& ctx,
     QObject* parent)
-    : LayerPresenter{layer, view, ctx, parent}, m_layer{layer}, m_view{view}
+    : LayerPresenter{layer, view, ctx, parent}, m_view{view}
 {
   putToFront();
-  connect(&m_layer, &ProcessModel::gradientChanged, this, [&] {
-    m_view->setGradient(m_layer.gradient());
+  connect(&layer, &ProcessModel::gradientChanged, this, [&] {
+    m_view->setGradient(layer.gradient());
   });
 
-  m_view->setGradient(m_layer.gradient());
+  m_view->setGradient(layer.gradient());
   connect(m_view, &View::doubleClicked, this, [&](QPointF pos) {
     auto np = pos.x() / m_view->dataWidth();
-    auto new_grad = m_layer.gradient();
+    auto new_grad = layer.gradient();
     auto prev = new_grad.lower_bound(np);
     if (prev == new_grad.begin())
       return;
@@ -44,7 +44,7 @@ Presenter::Presenter(
   });
 
   connect(m_view, &View::movePoint, this, [&](double orig, double cur) {
-    auto new_grad = m_layer.gradient();
+    auto new_grad = layer.gradient();
     auto it = new_grad.find(orig);
     if (it == new_grad.end())
       return;
@@ -57,7 +57,7 @@ Presenter::Presenter(
   });
 
   connect(m_view, &View::removePoint, this, [&](double orig) {
-    auto new_grad = m_layer.gradient();
+    auto new_grad = layer.gradient();
     auto it = new_grad.find(orig);
     if (it == new_grad.end())
       return;
@@ -68,7 +68,7 @@ Presenter::Presenter(
   });
 
   connect(m_view, &View::setColor, this, [&](double pos, QColor col) {
-    auto new_grad = m_layer.gradient();
+    auto new_grad = layer.gradient();
     auto it = new_grad.has(pos);
     if (!it)
       return;
@@ -113,16 +113,7 @@ void Presenter::on_zoomRatioChanged(ZoomRatio r)
 
 void Presenter::parentGeometryChanged()
 {
-  m_view->setDataWidth(m_layer.duration().toPixels(m_zoomRatio));
+  m_view->setDataWidth(m_process.duration().toPixels(m_zoomRatio));
 }
 
-const Gradient::ProcessModel& Presenter::model() const
-{
-  return m_layer;
-}
-
-const Id<Process::ProcessModel>& Presenter::modelId() const
-{
-  return m_layer.id();
-}
 }

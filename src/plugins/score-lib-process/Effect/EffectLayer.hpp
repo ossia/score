@@ -41,8 +41,6 @@ public:
   void putBehind() override;
   void on_zoomRatioChanged(ZoomRatio) override;
   void parentGeometryChanged() override;
-  const Process::ProcessModel& model() const override;
-  const Id<Process::ProcessModel>& modelId() const override;
   void fillContextMenu(
       QMenu& menu,
       QPoint pos,
@@ -50,7 +48,6 @@ public:
       const Process::LayerContextMenuManager&) final override;
 
 private:
-  const Process::ProcessModel& m_layer;
   Process::LayerView* m_view{};
 };
 

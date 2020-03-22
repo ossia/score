@@ -29,12 +29,8 @@ public:
 
   void parentGeometryChanged() override;
 
-  const ProcessModel& model() const override;
-  const Id<Process::ProcessModel>& modelId() const override;
-
 private:
   void onDrop(const QPointF& p, const QMimeData& mime);
-  const ProcessModel& m_layer;
   LayerView* m_view{};
   ZoomRatio m_ratio{1};
 };

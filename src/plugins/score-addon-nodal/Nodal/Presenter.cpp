@@ -139,16 +139,6 @@ void Presenter::parentGeometryChanged()
 {
 }
 
-const Process::ProcessModel& Presenter::model() const
-{
-  return m_model;
-}
-
-const Id<Process::ProcessModel>& Presenter::modelId() const
-{
-  return m_model.id();
-}
-
 void Presenter::on_created(Process::ProcessModel& n)
 {
   auto item = new Process::NodeItem{n, m_context.context, m_view};

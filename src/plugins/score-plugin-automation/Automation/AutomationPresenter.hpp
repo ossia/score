@@ -26,7 +26,7 @@ public:
       : CurveProcessPresenter{style, layer, view, context, parent}
   {
     // TODO instead have a prettyNameChanged signal.
-    con(m_layer,
+    con(layer,
         &ProcessModel::tweenChanged,
         this,
         &LayerPresenter::on_tweenChanges);
@@ -37,7 +37,7 @@ public:
         this,
         &LayerPresenter::on_dropReceived);
 
-    on_tweenChanges(m_layer.tween());
+    on_tweenChanges(layer.tween());
     con(layer.curve(), &Curve::Model::curveReset, this, [&] {
       on_tweenChanges(layer.tween());
     });
@@ -67,6 +67,10 @@ private:
     {
       CommandDispatcher<>{context().context.commandStack}
         .submit(new ChangeAddress{model(), *addr});
+    }
+    else if(mime.formats().contains(score::mime::processpreset()))
+    {
+      handlePresetDrop(pos, mime);
     }
   }
 };
