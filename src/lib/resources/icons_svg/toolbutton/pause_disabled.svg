@@ -32,11 +32,11 @@
    inkscape:pageopacity="0"
    inkscape:pageshadow="2"
    inkscape:window-width="1920"
-   inkscape:window-height="1015"
+   inkscape:window-height="1007"
    id="namedview13"
    showgrid="false"
    inkscape:zoom="8.1660901"
-   inkscape:cx="-9.9802964"
+   inkscape:cx="-35.635169"
    inkscape:cy="17.633899"
    inkscape:window-x="0"
    inkscape:window-y="0"
@@ -68,29 +68,17 @@
 
 <g
    inkscape:groupmode="layer"
-   id="layer2"
-   inkscape:label="Inside square - hide when exporting"
-   transform="translate(0,19.1)"
-   style="display:none"
-   sodipodi:insensitive="true"><rect
-     style="display:inline;opacity:1;vector-effect:none;fill:#c6e3e0;fill-opacity:1;stroke:none;stroke-width:12.29188919;stroke-linecap:square;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;paint-order:stroke fill markers"
-     id="rect22"
-     width="30"
-     height="30"
-     x="9"
-     y="-10.1" /></g><g
-   inkscape:groupmode="layer"
    id="layer1"
    inkscape:label="Icon"
    style="display:inline"
    transform="translate(0,19.1)"><path
-     style="fill:#808080;stroke-width:1.64835167"
+     style="fill:#808080;stroke-width:2.5454545"
      id="path3988"
      inkscape:connector-curvature="0"
      class="st2"
-     d="M 25.401099,-4.165934 H 31.5 v 18.131868 h -6.098901 z" /><path
-     style="fill:#808080;stroke-width:1.64835167"
+     d="m 26.163636,-9.1 h 9.418182 v 28 h -9.418182 z" /><path
+     style="fill:#808080;stroke-width:2.5454545"
      id="path3990"
      inkscape:connector-curvature="0"
      class="st2"
-     d="m 16.5,-4.165934 h 6.098901 V 13.965934 H 16.5 Z" /></g></svg>
+     d="m 12.418181,-9.1 h 9.418182 v 28 h -9.418182 z" /></g></svg>

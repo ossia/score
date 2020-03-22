@@ -32,12 +32,12 @@
    inkscape:pageopacity="0"
    inkscape:pageshadow="2"
    inkscape:window-width="1920"
-   inkscape:window-height="1015"
+   inkscape:window-height="1007"
    id="namedview13"
    showgrid="false"
    inkscape:zoom="8.1660901"
-   inkscape:cx="-32.941101"
-   inkscape:cy="13.102967"
+   inkscape:cx="5.0819916"
+   inkscape:cy="20.205509"
    inkscape:window-x="0"
    inkscape:window-y="0"
    inkscape:window-maximized="1"
@@ -68,24 +68,12 @@
 
 <g
    inkscape:groupmode="layer"
-   id="layer2"
-   inkscape:label="Inside square - hide when exporting"
-   transform="translate(0,19.1)"
-   style="display:none"
-   sodipodi:insensitive="true"><rect
-     style="display:inline;opacity:1;vector-effect:none;fill:#c6e3e0;fill-opacity:1;stroke:none;stroke-width:12.29188919;stroke-linecap:square;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;paint-order:stroke fill markers"
-     id="rect22"
-     width="30"
-     height="30"
-     x="9"
-     y="-10.1" /></g><g
-   inkscape:groupmode="layer"
    id="layer1"
    inkscape:label="Icon"
    style="display:inline"
    transform="translate(0,19.1)"><polygon
-     transform="matrix(1.6568047,0,0,1.6568047,-0.27218885,-19.206508)"
+     transform="matrix(2.0710059,0,0,2.0710059,-6.3402364,-25.233136)"
      class="st2"
-     points="19.9,15.6 19.9,17.7 23.1,14.5 19.9,11.4 19.9,13.5 15.7,13.5 15.7,9.2 17.8,9.2 14.6,6.1 11.5,9.2 13.6,9.2 13.6,13.5 9.4,13.5 9.4,11.4 6.2,14.5 9.4,17.7 9.4,15.6 13.6,15.6 13.6,19.8 11.5,19.8 14.6,23 17.8,19.8 15.7,19.8 15.7,15.6 "
+     points="19.9,11.4 19.9,13.5 15.7,13.5 15.7,9.2 17.8,9.2 14.6,6.1 11.5,9.2 13.6,9.2 13.6,13.5 9.4,13.5 9.4,11.4 6.2,14.5 9.4,17.7 9.4,15.6 13.6,15.6 13.6,19.8 11.5,19.8 14.6,23 17.8,19.8 15.7,19.8 15.7,15.6 19.9,15.6 19.9,17.7 23.1,14.5 "
      id="polygon10"
      style="fill:#f0f0f0;fill-opacity:1;stroke:none" /></g></svg>

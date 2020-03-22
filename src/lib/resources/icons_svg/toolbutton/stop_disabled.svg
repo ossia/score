@@ -32,11 +32,11 @@
    inkscape:pageopacity="0"
    inkscape:pageshadow="2"
    inkscape:window-width="1920"
-   inkscape:window-height="1015"
+   inkscape:window-height="1007"
    id="namedview13"
    showgrid="false"
    inkscape:zoom="8.1660901"
-   inkscape:cx="9.8578388"
+   inkscape:cx="-15.797034"
    inkscape:cy="11.021187"
    inkscape:window-x="0"
    inkscape:window-y="0"
@@ -68,24 +68,12 @@
 
 <g
    inkscape:groupmode="layer"
-   id="layer2"
-   inkscape:label="Inside square - hide when exporting"
-   transform="translate(0,19.1)"
-   style="display:none"
-   sodipodi:insensitive="true"><rect
-     style="display:inline;opacity:1;vector-effect:none;fill:#c6e3e0;fill-opacity:1;stroke:none;stroke-width:12.29188919;stroke-linecap:square;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;paint-order:stroke fill markers"
-     id="rect22"
-     width="30"
-     height="30"
-     x="9"
-     y="-10.1" /></g><g
-   inkscape:groupmode="layer"
    id="layer1"
    inkscape:label="Icon"
    style="display:inline"
    transform="translate(0,19.1)"><path
      inkscape:connector-curvature="0"
      class="st2"
-     d="m 14.5,-4.5999999 h 19 V 14.4 h -19 z"
+     d="m 11.5,-7.6 h 25 v 25 h -25 z"
      id="path10-3"
-     style="fill:#808080;fill-opacity:1;stroke-width:1.72727263" /></g></svg>
+     style="fill:#808080;fill-opacity:1;stroke-width:2.27272725" /></g></svg>

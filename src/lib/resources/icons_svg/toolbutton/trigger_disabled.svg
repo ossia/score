@@ -32,11 +32,11 @@
    inkscape:pageopacity="0"
    inkscape:pageshadow="2"
    inkscape:window-width="1920"
-   inkscape:window-height="1015"
+   inkscape:window-height="1007"
    id="namedview13"
    showgrid="false"
    inkscape:zoom="8.1660901"
-   inkscape:cx="-9.8578388"
+   inkscape:cx="-35.512711"
    inkscape:cy="9.0618649"
    inkscape:window-x="0"
    inkscape:window-y="0"
@@ -68,28 +68,16 @@
 
 <g
    inkscape:groupmode="layer"
-   id="layer2"
-   inkscape:label="Inside square - hide when exporting"
-   transform="translate(0,19.1)"
-   style="display:none"
-   sodipodi:insensitive="true"><rect
-     style="display:inline;opacity:1;vector-effect:none;fill:#c6e3e0;fill-opacity:1;stroke:none;stroke-width:12.29188919;stroke-linecap:square;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;paint-order:stroke fill markers"
-     id="rect22"
-     width="30"
-     height="30"
-     x="9"
-     y="-10.1" /></g><g
-   inkscape:groupmode="layer"
    id="layer1"
    inkscape:label="Icon"
    style="display:inline"
    transform="translate(0,19.1)"><path
      inkscape:connector-curvature="0"
      class="st2"
-     d="M 35.837838,-1.748649 H 25.783784 V 10.9 h -3.72973 V -1.748649 H 12 v -3.729729 h 24 v 3.729729 z"
+     d="M 41.263514,-6.2542783 H 26.601352 V 12.191668 h -5.43919 V -6.2542783 H 6.5 v -5.4391887 h 35 v 5.4391887 z"
      id="path10"
-     style="fill:#808080;stroke-width:1.62162161" /><polygon
-     transform="matrix(1.8181818,0,0,1.8181818,-2.7272725,-21.448895)"
+     style="fill:#808080;stroke-width:2.36486483" /><polygon
+     transform="matrix(2.6515151,0,0,2.6515151,-14.977272,-34.983804)"
      class="st2"
      points="14.7,21.3 10.3,15.9 19.1,15.9 "
      id="polygon12"
