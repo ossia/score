@@ -61,15 +61,8 @@ public:
   State::Unit unit() const;
   void setUnit(const State::Unit&);
 
-  bool tween() const { return m_tween; }
-  void setTween(bool tween)
-  {
-    if (m_tween == tween)
-      return;
-
-    m_tween = tween;
-    tweenChanged(tween);
-  }
+  bool tween() const;
+  void setTween(bool tween);
 
   QString prettyName() const noexcept override;
   QString prettyValue(double x, double y) const noexcept override;
@@ -102,6 +95,9 @@ private:
   void setDurationAndScale(const TimeVal& newDuration) noexcept override;
   void setDurationAndGrow(const TimeVal& newDuration) noexcept override;
   void setDurationAndShrink(const TimeVal& newDuration) noexcept override;
+
+  void loadPreset(const Process::Preset& preset) override;
+  Process::Preset savePreset() const noexcept override;
 
   /// States
   ProcessState* startStateData() const noexcept override;

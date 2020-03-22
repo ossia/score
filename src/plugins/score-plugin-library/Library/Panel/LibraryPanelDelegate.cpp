@@ -2,10 +2,10 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "LibraryPanelDelegate.hpp"
 
-#include <Library/FileSystemModel.hpp>
 #include <Library/LibrarySettings.hpp>
-#include <Library/LibraryWidget.hpp>
-#include <Library/ProcessesItemModel.hpp>
+#include <Library/SystemLibraryWidget.hpp>
+#include <Library/ProcessWidget.hpp>
+#include <Library/ProjectLibraryWidget.hpp>
 #include <Process/ProcessList.hpp>
 
 #include <score/application/GUIApplicationContext.hpp>
@@ -14,6 +14,7 @@
 
 #include <core/document/Document.hpp>
 
+#include <QFileInfo>
 #include <QTabWidget>
 namespace Library
 {

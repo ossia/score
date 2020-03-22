@@ -105,7 +105,8 @@ ProcessModel::ProcessModel(DataStream::Deserializer& vis, QObject* parent)
 
 QString ProcessModel::prettyName() const noexcept
 {
-  if(const auto& cables = outlet->cables(); !cables.empty()) {
+  if(const auto& cables = outlet->cables(); !cables.empty())
+  {
     auto& doc = score::IDocument::documentContext(*this);
     if(Process::Cable* cbl = cables.front().try_find(doc))
       if(Process::Port* inlet = cbl->sink().try_find(doc))
@@ -116,10 +117,6 @@ QString ProcessModel::prettyName() const noexcept
         {
            name += " (" + process->prettyName() + ")";
         }
-        //if(auto meta = process->findChild<score::ModelMetadata*>({}, Qt::FindDirectChildrenOnly))
-        //{
-        //  name += " (" + meta->getName() + ")";
-        //}
         return name;
       }
   }
@@ -291,4 +288,32 @@ void ProcessModel::setUnit(const State::Unit& u)
     unitChanged(u);
   }
 }
+
+bool ProcessModel::tween() const { return m_tween; }
+
+void ProcessModel::setTween(bool tween)
+{
+  if (m_tween == tween)
+    return;
+
+  m_tween = tween;
+  tweenChanged(tween);
+}
+
+
+void ProcessModel::loadPreset(const Process::Preset& preset)
+{
+  JSONObject::Deserializer curve_deser{preset.data["Curve"].toObject()};
+  setCurve(new Curve::Model{curve_deser, this});
+}
+
+Process::Preset ProcessModel::savePreset() const noexcept
+{
+  Process::Preset p;
+  p.name = this->metadata().getName();
+  p.key = {this->concreteKey(), {}};
+  p.data["Curve"] = toJsonObject(*this->m_curve);
+  return p;
+}
+
 }

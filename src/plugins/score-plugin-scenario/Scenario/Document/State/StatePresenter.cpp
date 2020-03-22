@@ -58,6 +58,10 @@ StatePresenter::StatePresenter(
       &StateModel::sig_statesUpdated,
       this,
       &StatePresenter::updateStateView);
+  con(m_model,
+      &StateModel::sig_controlMessagesUpdated,
+      this,
+      &StatePresenter::updateStateView);
 
   con(m_model, &StateModel::statusChanged, m_view, &StateView::setStatus);
   m_view->setStatus(m_model.status());
@@ -195,6 +199,7 @@ void StatePresenter::handleDrop(const QMimeData& mime)
 
 void StatePresenter::updateStateView()
 {
-  m_view->setContainMessage(m_model.messages().rootNode().hasChildren());
+  m_view->setContainMessage(m_model.messages().rootNode().hasChildren()
+                        || !m_model.controlMessages().messages().empty());
 }
 }

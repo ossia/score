@@ -1,0 +1,95 @@
+#include "SystemLibraryWidget.hpp"
+#include <Library/FileSystemModel.hpp>
+#include <Library/ItemModelFilterLineEdit.hpp>
+#include <Library/RecursiveFilterProxy.hpp>
+#include <Library/LibrarySettings.hpp>
+#include <Library/LibraryWidget.hpp>
+
+#include <score/application/GUIApplicationContext.hpp>
+#include <score/widgets/MarginLess.hpp>
+#include <core/presenter/DocumentManager.hpp>
+
+#include <QVBoxLayout>
+
+
+namespace Library
+{
+SystemLibraryWidget::SystemLibraryWidget(
+    const score::GUIApplicationContext& ctx,
+    QWidget* parent)
+    : QWidget{parent}
+    , m_model{new FileSystemModel{ctx, this}}
+    , m_proxy{new RecursiveFilterProxy{this}}
+    , m_preview{this}
+{
+  setStatusTip(QObject::tr("This panel shows the system library.\n"
+                           "It is present by default in your user's Documents folder, \n"
+                           "in a subfolder named ossia score library."
+                           "A user-provided library is available on : \n"
+                           "github.com/OSSIA/score-user-library"));
+  auto lay = new score::MarginLess<QVBoxLayout>;
+
+  this->setLayout(lay);
+
+  m_proxy->setSourceModel(m_model);
+  m_proxy->setFilterKeyColumn(0);
+  lay->addWidget(new ItemModelFilterLineEdit{*m_proxy, m_tv, this});
+  lay->addWidget(&m_tv);
+  lay->addWidget(&m_preview);
+  m_tv.setModel(m_proxy);
+  setup_treeview(m_tv);
+
+  {
+    auto previewLay = new QHBoxLayout{&m_preview};
+    m_preview.setLayout(previewLay);
+    //m_preview.setMinimumWidth(150);
+    //m_preview.setMinimumHeight(30);
+    //m_preview.setMaximumHeight(30);
+  }
+
+  connect(&m_tv, &QTreeView::pressed, this, [&](const QModelIndex& idx) {
+    auto doc = ctx.docManager.currentDocument();
+    if (!doc)
+      return;
+
+    delete m_previewChild;
+    m_previewChild = nullptr;
+
+    auto path = m_model->filePath(m_proxy->mapToSource(idx));
+    for (auto lib : libraryInterface(path))
+    {
+      if ((m_previewChild = lib->previewWidget(path, &m_preview)))
+      {
+        m_preview.layout()->addWidget(m_previewChild);
+      }
+    }
+  });
+  connect(&m_tv, &QTreeView::doubleClicked, this, [&](const QModelIndex& idx) {
+    auto doc = ctx.docManager.currentDocument();
+    if (!doc)
+      return;
+
+    auto path = m_model->filePath(m_proxy->mapToSource(idx));
+    for (auto lib : libraryInterface(path))
+    {
+      if (lib->onDoubleClick(path, doc->context()))
+        return;
+    }
+  });
+  m_tv.setAcceptDrops(true);
+
+  setRoot(ctx.settings<Library::Settings::Model>().getPath());
+}
+
+SystemLibraryWidget::~SystemLibraryWidget() {}
+
+void SystemLibraryWidget::setRoot(QString path)
+{
+  auto idx = m_model->setRootPath(path);
+  m_tv.setRootIndex(m_proxy->mapFromSource(idx));
+  for (int i = 1; i < m_model->columnCount(); ++i)
+    m_tv.hideColumn(i);
+}
+
+
+}

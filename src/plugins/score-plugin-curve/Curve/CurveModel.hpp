@@ -3,9 +3,7 @@
 
 #include <score/model/IdentifiedObject.hpp>
 #include <score/model/IdentifiedObjectMap.hpp>
-#include <score/selection/Selection.hpp>
 #include <score/serialization/VisitorInterface.hpp>
-#include <score/tools/std/Optional.hpp>
 
 #include <verdigris>
 
