@@ -99,10 +99,6 @@
         <file>icons/process_off@2x.png</file>
         <file>icons/process_on.png</file>
         <file>icons/process_on@2x.png</file>
-        <file>icons/record_off.png</file>
-        <file>icons/record_off@2x.png</file>
-        <file>icons/record_on.png</file>
-        <file>icons/record_on@2x.png</file>
         <file>icons/refresh_off.png</file>
         <file>icons/refresh_on.png</file>
         <file>icons/reinitialize_off.png</file>
@@ -121,10 +117,6 @@
         <file>icons/sequence_on.png</file>
         <file>icons/snapshot_off.png</file>
         <file>icons/snapshot_on.png</file>
-        <file>icons/start_off.png</file>
-        <file>icons/start_off@2x.png</file>
-        <file>icons/start_on.png</file>
-        <file>icons/start_on@2x.png</file>
         <file>icons/stop_off.png</file>
         <file>icons/stop_off@2x.png</file>
         <file>icons/stop_on.png</file>
@@ -218,8 +210,6 @@
         <file>icons/reinit_new_disabled@2x.png</file>
         <file>icons/refresh_disabled.png</file>
         <file>icons/refresh_disabled@2x.png</file>
-        <file>icons/record_disabled.png</file>
-        <file>icons/record_disabled@2x.png</file>
         <file>icons/playfromhere_disabled.png</file>
         <file>icons/playfromhere_disabled@2x.png</file>
         <file>icons/play_disabled.png</file>
@@ -374,6 +364,30 @@
         <file>icons/waves/noise3_off@2x.png</file>
         <file>icons/waves/triangle_on.png</file>
         <file>icons/waves/triangle_off.png</file>
+        <file>icons/music_disabled.png</file>
+        <file>icons/music_disabled@2x.png</file>
+        <file>icons/nodal_disabled.png</file>
+        <file>icons/nodal_disabled@2x.png</file>
+        <file>icons/timeline_disabled.png</file>
+        <file>icons/timeline_disabled@2x.png</file>
+        <file>icons/add_child_disabled.png</file>
+        <file>icons/add_child_disabled@2x.png</file>
+        <file>icons/add_child_off.png</file>
+        <file>icons/add_child_off@2x.png</file>
+        <file>icons/add_child_on.png</file>
+        <file>icons/add_child_on@2x.png</file>
+        <file>icons/add_device_disabled.png</file>
+        <file>icons/add_device_disabled@2x.png</file>
+        <file>icons/add_device_off.png</file>
+        <file>icons/add_device_off@2x.png</file>
+        <file>icons/add_device_on.png</file>
+        <file>icons/add_device_on@2x.png</file>
+        <file>icons/add_sibling_disabled.png</file>
+        <file>icons/add_sibling_disabled@2x.png</file>
+        <file>icons/add_sibling_off.png</file>
+        <file>icons/add_sibling_off@2x.png</file>
+        <file>icons/add_sibling_on.png</file>
+        <file>icons/add_sibling_on@2x.png</file>
     </qresource>
     <qresource prefix="/qss_icons">
         <file>rc/up_arrow_disabled.png</file>

@@ -354,13 +354,15 @@ void DeviceExplorerWidget::buildGUI()
   auto* addButton = new QPushButton(this);
 
   QIcon addButtonIcon;
-  addButtonIcon.addPixmap(QString(":/resources/images/add_off.png"));
+  addButtonIcon.addPixmap(QString(":/icons/add_off.png"));
   addButtonIcon.addPixmap(
-      QString(":/resources/images/add_on.png"), QIcon::Mode::Selected);
+      QString(":/icons/add_on.png"), QIcon::Mode::Selected);
   addButtonIcon.addPixmap(
-      QString(":/resources/images/add_on.png"), QIcon::Mode::Active);
+      QString(":/icons/add_on.png"), QIcon::Mode::Active);
   addButtonIcon.addPixmap(
-      QString(":/resources/images/add_off.png"),
+      QString(":/icons/add_disabled.png"), QIcon::Mode::Disabled);
+  addButtonIcon.addPixmap(
+      QString(":/icons/add_off.png"),
       QIcon::Mode::Normal,
       QIcon::State::On);
 
@@ -370,14 +372,27 @@ void DeviceExplorerWidget::buildGUI()
 
   addButton->setObjectName("buttonWithoutArrow");
 
-  m_addDeviceAction = new QAction(
-      QIcon(":/resources/images/addDevice.png"), tr("Add device"), this);
+  m_addDeviceAction = new QAction(tr("Add device"), this);
+  setIcons(m_addDeviceAction
+           , QStringLiteral(":/icons/add_device_on.png")
+           , QStringLiteral(":/icons/add_device_off.png")
+           , QStringLiteral(":/icons/add_device_disabled.png")
+           );
   m_addDeviceAction->setShortcut(tr("Ctrl+B"));
-  m_addSiblingAction = new QAction(
-      QIcon(":/resources/images/addSibling.png"), tr("Add sibling"), this);
-  m_addChildAction = new QAction(
-      QIcon(":/resources/images/addChild.png"), tr("Add child"), this);
 
+  m_addSiblingAction = new QAction(tr("Add sibling"), this);
+  setIcons(m_addSiblingAction
+           , QStringLiteral(":/icons/add_sibling_on.png")
+           , QStringLiteral(":/icons/add_sibling_off.png")
+           , QStringLiteral(":/icons/add_sibling_disabled.png")
+           );
+
+  m_addChildAction = new QAction(tr("Add child"), this);
+  setIcons(m_addChildAction
+           , QStringLiteral(":/icons/add_child_on.png")
+           , QStringLiteral(":/icons/add_child_off.png")
+           , QStringLiteral(":/icons/add_child_disabled.png")
+           );
   connect(
       m_addDeviceAction,
       &QAction::triggered,
@@ -413,15 +428,17 @@ void DeviceExplorerWidget::buildGUI()
   auto* editButton = new QPushButton(this);
 
   QIcon editButtonIcon;
-  editButtonIcon.addPixmap(QString(":/resources/images/edit_off.png"));
+  editButtonIcon.addPixmap(QString(":/icons/edit_off.png"));
   editButtonIcon.addPixmap(
-      QString(":/resources/images/edit_off.png"),
+      QString(":/icons/edit_off.png"),
       QIcon::Mode::Normal,
       QIcon::State::On);
   editButtonIcon.addPixmap(
-      QString(":/resources/images/edit_on.png"), QIcon::Mode::Selected);
+      QString(":/icons/edit_on.png"), QIcon::Mode::Selected);
   editButtonIcon.addPixmap(
-      QString(":/resources/images/edit_on.png"), QIcon::Mode::Active);
+      QString(":/icons/edit_on.png"), QIcon::Mode::Active);
+  editButtonIcon.addPixmap(
+      QString(":/icons/edit_disabled.png"), QIcon::Mode::Disabled);
 
   editButton->setIcon(editButtonIcon);
 

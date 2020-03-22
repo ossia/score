@@ -231,7 +231,7 @@ score::GUIElements ApplicationPlugin::makeGUIElements()
       setIcons(timeline_act
                , QStringLiteral(":/icons/timeline_on.png")
                , QStringLiteral(":/icons/timeline_off.png")
-               , QStringLiteral(":/icons/timeline_off.png")
+               , QStringLiteral(":/icons/timeline_disabled.png")
                );
 
       ui_toolbar->addAction(timeline_act);
@@ -259,7 +259,7 @@ score::GUIElements ApplicationPlugin::makeGUIElements()
       setIcons(musical_act
                , QStringLiteral(":/icons/music_on.png")
                , QStringLiteral(":/icons/music_off.png")
-               , QStringLiteral(":/icons/music_off.png")
+               , QStringLiteral(":/icons/music_disabled.png")
                );
       connect(musical_act, &QAction::toggled, this, [this] (bool ok) {
         auto& settings = this->context.settings<Scenario::Settings::Model>();

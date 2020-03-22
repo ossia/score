@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Generator: Adobe Illustrator 21.0.2, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
+
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   version="1.1"
+   id="Calque_1"
+   x="0px"
+   y="0px"
+   viewBox="0 0 48.000001 48.000001"
+   xml:space="preserve"
+   sodipodi:docname="nodal_off.svg"
+   width="48"
+   height="48"
+   inkscape:version="0.92.4 5da689c313, 2019-01-14"><metadata
+   id="metadata17"><rdf:RDF><cc:Work
+       rdf:about=""><dc:format>image/svg+xml</dc:format><dc:type
+         rdf:resource="http://purl.org/dc/dcmitype/StillImage" /><dc:title>boutons</dc:title></cc:Work></rdf:RDF></metadata><defs
+   id="defs15" /><sodipodi:namedview
+   pagecolor="#ffffff"
+   bordercolor="#666666"
+   borderopacity="1"
+   objecttolerance="10"
+   gridtolerance="10"
+   guidetolerance="10"
+   inkscape:pageopacity="0"
+   inkscape:pageshadow="2"
+   inkscape:window-width="1920"
+   inkscape:window-height="1015"
+   id="namedview13"
+   showgrid="false"
+   inkscape:zoom="16.33218"
+   inkscape:cx="15.697309"
+   inkscape:cy="23.467988"
+   inkscape:window-x="0"
+   inkscape:window-y="0"
+   inkscape:window-maximized="1"
+   inkscape:current-layer="g4" />
+<style
+   type="text/css"
+   id="style2">
+	.st0{display:none;fill:#3D3D3D;}
+	.st1{display:none;fill:#000100;}
+	.st2{fill:#808080;}
+</style>
+<title
+   id="title4">boutons</title>
+<rect
+   x="0.5"
+   y="19.6"
+   class="st0"
+   width="27.9"
+   height="27.9"
+   id="rect6"
+   style="display:none;fill:#3d3d3d" />
+<path
+   class="st1"
+   d="M 28.9,48 H 0 V 19.1 H 28.9 Z M 1,47 H 27.9 V 20.1 H 1 Z"
+   id="path8"
+   inkscape:connector-curvature="0"
+   style="display:none;fill:#000100" />
+
+<g
+   inkscape:groupmode="layer"
+   id="layer2"
+   inkscape:label="Inside square - hide when exporting"
+   transform="translate(0,19.1)"
+   style="display:none"
+   sodipodi:insensitive="true"><rect
+     style="display:inline;opacity:1;vector-effect:none;fill:#c6e3e0;fill-opacity:1;stroke:none;stroke-width:12.29188919;stroke-linecap:square;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;paint-order:stroke fill markers"
+     id="rect22"
+     width="30"
+     height="30"
+     x="9"
+     y="-10.1" /></g><g
+   inkscape:groupmode="layer"
+   id="layer1"
+   inkscape:label="Icon"
+   style="display:inline"
+   transform="translate(0,19.1)"><g
+     transform="matrix(0.33527195,0,0,0.33527195,7.3060217,-11.860781)"
+     id="g4"><path
+       inkscape:connector-curvature="0"
+       style="fill:#f0f0f0;fill-opacity:1;stroke-width:1.06666672"
+       d="m 76.352484,10.747185 c -7.34752,0.09664 -13.2688,6.077654 -13.2688,13.438934 0,5.093333 2.834773,9.525973 7.012373,11.805654 l -0.25024,0.78208 c -2.54784,5.807253 -7.981013,9.924374 -14.434773,10.55424 l -0.498561,0.0058 c -5.836907,0.560535 -11.025706,2.972695 -15.0608,6.633602 l 0.0208,-25.513602 c 5.375787,-1.839679 9.173334,-6.8496 9.173334,-12.744747 0,-7.4214396 -6.018561,-13.4399996 -13.440001,-13.4399996 -7.42144,0 -13.44,6.01856 -13.44,13.4399996 0,5.895147 3.797546,10.905068 9.079254,12.716481 l 0.09408,43.121602 c -5.347841,1.855359 -9.120001,6.851413 -9.120001,12.726823 0,7.42144 6.01856,13.44 13.440001,13.44 7.42144,0 13.44,-6.01856 13.44,-13.44 0,-5.87541 -3.77216,-10.871464 -9.026134,-12.69813 0.810881,-8.311041 7.384641,-14.811627 15.622614,-15.596587 l 0.496853,-0.0055 c 9.670721,-1.000514 17.701122,-7.14654 21.374402,-15.618648 l 1.238933,-3.048 c 6.074455,-1.375467 10.54368,-6.72896 10.54368,-13.12416 0,-7.303254 -5.828267,-13.247894 -13.0864,-13.435521 z M 35.605816,89.147192 v 0 c -2.70944,0 -4.906666,-2.19723 -4.906666,-4.90667 0,-2.709441 2.197226,-4.906668 4.906666,-4.906668 2.70944,0 4.906667,2.197227 4.906667,4.906668 0,2.70944 -2.197227,4.90667 -4.906667,4.90667 z"
+       id="path2"
+       sodipodi:nodetypes="csccccccsssccssscccccsccccsssc" /></g></g></svg>
