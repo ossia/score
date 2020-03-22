@@ -4,7 +4,7 @@
 #include <Library/LibraryInterface.hpp>
 #include <score/application/GUIApplicationContext.hpp>
 #include <QFileInfo>
-
+#include <unordered_map>
 namespace Library
 {
 
