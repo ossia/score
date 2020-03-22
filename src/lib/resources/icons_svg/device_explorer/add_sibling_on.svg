@@ -25,8 +25,8 @@
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
      inkscape:zoom="11.313708"
-     inkscape:cx="-3.1326266"
-     inkscape:cy="15.680616"
+     inkscape:cx="-7.6404326"
+     inkscape:cy="23.458791"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      showgrid="false"
@@ -67,41 +67,46 @@
      id="layer1"
      transform="translate(0,-1074.5196)"
      style="display:inline">
-    <line
-       class="st2"
-       x1="27.51363"
-       y1="1106.9296"
-       x2="20.486366"
-       y2="1106.9296"
-       id="line10-3"
-       style="display:inline;fill:none;stroke:#000000;stroke-width:2.6474328;stroke-linecap:square;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
-    <line
-       class="st2"
-       x1="23.999992"
-       y1="1103.4159"
-       x2="23.999992"
-       y2="1110.4436"
-       id="line12-6"
-       style="display:inline;fill:none;stroke:#000000;stroke-width:2.6474328;stroke-linecap:square;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
     <path
-       style="display:inline;fill:none;stroke:#000000;stroke-width:1.69038582;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
-       d="m 23.999998,1086.7931 v 12.1945"
-       id="path850-6-7"
+       style="display:inline;fill:none;stroke:#000000;stroke-width:2.05444407;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+       d="m 23.76314,1085.3234 v 8.8887"
+       id="path850-6"
        inkscape:connector-curvature="0"
        sodipodi:nodetypes="cc" />
     <rect
-       style="display:inline;opacity:1;vector-effect:none;fill:#000000;fill-opacity:1;stroke:none;stroke-width:4.85109282;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:9.7021856, 9.7021856;stroke-dashoffset:0;stroke-opacity:1;paint-order:stroke fill markers"
-       id="rect936-5"
-       width="9.2660151"
-       height="9.2660151"
-       x="19.366993"
-       y="1079.5195" />
-    <rect
-       style="display:inline;opacity:1;vector-effect:none;fill:none;fill-opacity:1;stroke:#000000;stroke-width:3.56476736;stroke-linecap:square;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;paint-order:stroke fill markers"
-       id="rect938-3"
-       width="17.614695"
-       height="17.614695"
-       x="15.192653"
-       y="1098.1226" />
+       style="display:inline;opacity:1;vector-effect:none;fill:#000000;fill-opacity:1;stroke:none;stroke-width:4.55114174;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:9.10228344, 9.10228344;stroke-dashoffset:0;stroke-opacity:1;paint-order:stroke fill markers"
+       id="rect936"
+       width="8.6930819"
+       height="8.6930819"
+       x="19.416599"
+       y="1077.803" />
+    <g
+       style="display:inline"
+       id="g18"
+       transform="translate(4.5717607,14.380634)">
+      <line
+         style="display:inline;fill:none;stroke:#000000;stroke-width:3.96469927;stroke-linecap:square;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         id="line10"
+         y2="1091.6874"
+         x2="14.166351"
+         y1="1091.6874"
+         x1="24.690125"
+         class="st2" />
+      <line
+         style="display:inline;fill:none;stroke:#000000;stroke-width:3.96469927;stroke-linecap:square;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         id="line12"
+         y2="1096.95"
+         x2="19.428228"
+         y1="1086.4254"
+         x1="19.428228"
+         class="st2" />
+      <rect
+         y="1079.9685"
+         x="7.7091327"
+         height="23.438213"
+         width="23.438213"
+         id="rect938"
+         style="opacity:1;vector-effect:none;fill:none;fill-opacity:1;stroke:#000000;stroke-width:2.89769387;stroke-linecap:square;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;paint-order:stroke fill markers" />
+    </g>
   </g>
 </svg>
