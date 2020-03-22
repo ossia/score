@@ -65,6 +65,7 @@ void CurveProcessModel::setCurve(Model* newCurve)
         &Curve::Model::changed,
         this,
         &CurveProcessModel::curveChanged);
+
   m_curve->changed();
 }
 

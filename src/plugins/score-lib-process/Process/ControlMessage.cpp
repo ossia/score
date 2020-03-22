@@ -24,7 +24,7 @@ QString ControlMessage::name(const score::DocumentContext& ctx) const noexcept
 }
 
 template <>
-SCORE_LIB_STATE_EXPORT void DataStreamReader::read(const Process::ControlMessage& mess)
+SCORE_LIB_PROCESS_EXPORT void DataStreamReader::read(const Process::ControlMessage& mess)
 {
   readFrom(mess.port);
   readFrom(mess.value);
@@ -32,7 +32,7 @@ SCORE_LIB_STATE_EXPORT void DataStreamReader::read(const Process::ControlMessage
 }
 
 template <>
-SCORE_LIB_STATE_EXPORT void JSONObjectReader::read(const Process::ControlMessage& mess)
+SCORE_LIB_PROCESS_EXPORT void JSONObjectReader::read(const Process::ControlMessage& mess)
 {
   obj[strings.Address] = toJsonObject(mess.port);
   obj[strings.Type] = State::convert::textualType(mess.value);
@@ -40,7 +40,17 @@ SCORE_LIB_STATE_EXPORT void JSONObjectReader::read(const Process::ControlMessage
 }
 
 template <>
-SCORE_LIB_STATE_EXPORT void DataStreamWriter::write(Process::ControlMessage& mess)
+SCORE_LIB_PROCESS_EXPORT void JSONValueReader::read(const Process::ControlMessage& mess)
+{
+  QJsonObject obj;
+  obj[strings.Address] = toJsonObject(mess.port);
+  obj[strings.Type] = State::convert::textualType(mess.value);
+  obj[strings.Value] = ValueToJson(mess.value);
+  this->val = obj;
+}
+
+template <>
+SCORE_LIB_PROCESS_EXPORT void DataStreamWriter::write(Process::ControlMessage& mess)
 {
   writeTo(mess.port);
   writeTo(mess.value);
@@ -49,7 +59,16 @@ SCORE_LIB_STATE_EXPORT void DataStreamWriter::write(Process::ControlMessage& mes
 }
 
 template <>
-SCORE_LIB_STATE_EXPORT void JSONObjectWriter::write(Process::ControlMessage& mess)
+SCORE_LIB_PROCESS_EXPORT void JSONValueWriter::write(Process::ControlMessage& mess)
+{
+  const auto& obj = this->val.toObject();
+  mess.port = fromJsonObject<Path<Process::Inlet>>(obj[strings.Address]);
+  mess.value = State::convert::fromQJsonValue(
+      obj[strings.Value], obj[strings.Type].toString());
+}
+
+template <>
+SCORE_LIB_PROCESS_EXPORT void JSONObjectWriter::write(Process::ControlMessage& mess)
 {
   mess.port = fromJsonObject<Path<Process::Inlet>>(obj[strings.Address]);
   mess.value = State::convert::fromQJsonValue(

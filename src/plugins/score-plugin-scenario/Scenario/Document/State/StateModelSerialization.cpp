@@ -2,6 +2,7 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include <Process/Process.hpp>
 #include <Process/ProcessList.hpp>
+#include <Process/ControlMessage.hpp>
 #include <Process/State/MessageNode.hpp>
 #include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
@@ -42,6 +43,7 @@ DataStreamReader::read(const Scenario::StateModel& s)
 
   // Message tree
   m_stream << s.m_messageItemModel->rootNode();
+  m_stream << s.m_controlItemModel->messages();
 
   // Processes plugins
   m_stream << (int32_t)s.stateProcesses.size();
@@ -67,7 +69,10 @@ DataStreamWriter::write(Scenario::StateModel& s)
   s.messages() = n;
 
   // TODO load control tree
-
+  std::vector<Process::ControlMessage> ctrls;
+  m_stream >> ctrls;
+  s.m_controlItemModel = new Scenario::ControlItemModel{s, &s};
+  s.m_controlItemModel->replaceWith(std::move(ctrls));
 
   // Processes plugins
   int32_t process_count;
@@ -96,6 +101,7 @@ JSONObjectReader::read(const Scenario::StateModel& s)
 
   // Message tree
   obj[strings.Messages] = toJsonObject(s.m_messageItemModel->rootNode());
+  obj["Controls"] = toJsonValueArray(s.m_controlItemModel->messages());
 
   // Processes plugins
   obj[strings.StateProcesses] = toJsonArray(s.stateProcesses);
@@ -115,6 +121,10 @@ JSONObjectWriter::write(Scenario::StateModel& s)
   // Message tree
   s.m_messageItemModel = new Scenario::MessageItemModel{s, &s};
   s.messages() = fromJsonObject<Process::MessageNode>(obj[strings.Messages]);
+
+  auto ctrls = fromJsonValueArray<std::vector<Process::ControlMessage>>(obj["Controls"].toArray());
+  s.m_controlItemModel = new Scenario::ControlItemModel{s, &s};
+  s.m_controlItemModel->replaceWith(std::move(ctrls));
 
   // Processes plugins
   auto& pl = components.interfaces<Process::ProcessFactoryList>();

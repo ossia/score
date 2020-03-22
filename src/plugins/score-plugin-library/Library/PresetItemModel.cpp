@@ -74,11 +74,88 @@ QVariant PresetItemModel::data(const QModelIndex& index, int role) const
     switch (role)
     {
     case Qt::DisplayRole:
+    case Qt::EditRole:
       return presets[index.row()].name;
     }
   }
 
   return {};
+}
+
+static bool isValidForFilename(const QString& name)
+{
+  if(name.isEmpty())
+    return false;
+
+  for(QChar c : ",^@=+{}[]~!?:&*\"|#%<>$\"';`'")
+    if(name.contains(c))
+      return false;
+
+  return true;
+}
+
+static bool updatePresetFilename(Process::Preset& preset, QString old = {})
+{
+  const auto& ctx = score::GUIAppContext();
+
+  const auto& procs = ctx.interfaces<Process::ProcessFactoryList>();
+  const auto& desc = (*procs.find(preset.key.key)).descriptor(""); // TODO
+  const QString& userLibDir = ctx.settings<Library::Settings::Model>().getPath();
+  const QString& presetFolder = userLibDir + "/Presets/" + desc.prettyName;
+  QDir{}.mkpath(presetFolder);
+  QString presetPath = presetFolder + "/" + preset.name + ".scorepreset";
+
+  if(QFile::exists(presetPath))
+  {
+    presetPath = presetFolder + "/" + preset.name + " (%1).scorepreset";
+
+    int idx = 1;
+    while(QFile::exists(presetPath.arg(idx)))
+      idx++;
+    presetPath = presetPath.arg(idx);
+    preset.name = preset.name + QString("(%1)").arg(idx);
+  }
+
+  QFile f{presetPath};
+  if(!f.open(QIODevice::WriteOnly))
+    return false;
+
+  f.write(QJsonDocument{preset.toJson()}.toJson().data());
+
+  if(!old.isEmpty())
+  {
+    // Remove the old file
+    const QString oldPath = presetFolder + "/" + old + ".scorepreset";
+    QFile::remove(oldPath);
+  }
+
+  return true;
+}
+
+
+bool PresetItemModel::setData(const QModelIndex& index, const QVariant& value, int role)
+{
+  if(!index.isValid())
+    return false;
+  if(index.row() < 0 || index.row() >= presets.size())
+    return false;
+  if(role != Qt::EditRole)
+    return false;
+  auto str = value.toString();
+  if(!isValidForFilename(str))
+    return false;
+
+  auto& preset = presets[index.row()];
+
+  auto old = preset.name;
+  preset.name = str;
+  if(!updatePresetFilename(preset, old))
+  {
+    preset.name = old;
+    return false;
+  }
+
+  return true;
 }
 
 bool PresetItemModel::dropMimeData(const QMimeData* data, Qt::DropAction act, int row, int col, const QModelIndex& parent)
@@ -94,36 +171,16 @@ bool PresetItemModel::dropMimeData(const QMimeData* data, Qt::DropAction act, in
     return false;
 
   auto preset = proc->savePreset();
-  QJsonObject presetObj = preset.toJson();
-
-  const auto& procs = ctx.interfaces<Process::ProcessFactoryList>();
-  const auto& desc = (*procs.find(proc->concreteKey())).descriptor(""); // TODO
-  const QString& userLibDir = ctx.settings<Library::Settings::Model>().getPath();
-  const QString& presetFolder = userLibDir + "/Presets/" + desc.prettyName;
-  QDir{}.mkpath(presetFolder);
-  QString presetPath = presetFolder + "/" + preset.name + ".scorepreset";
-  if(QFile::exists(presetPath))
-  {
-    presetPath = presetFolder + "/" + preset.name + " (%1).scorepreset";
-
-    int idx = 1;
-    while(QFile::exists(presetPath.arg(idx)))
-      idx++;
-    presetPath = presetPath.arg(idx);
-    preset.name = preset.name + QString("(%1)").arg(idx);
-    presetObj["Name"] = preset.name;
-  }
-
-  QFile f{presetPath};
-  if(!f.open(QIODevice::WriteOnly))
+  if(!updatePresetFilename(preset))
     return false;
-  f.write(QJsonDocument{presetObj}.toJson().data());
 
-  beginInsertRows(QModelIndex(), presets.size(), presets.size());
+  beginResetModel();
+  //beginInsertRows(QModelIndex(), presets.size(), presets.size());
   auto it = std::lower_bound(presets.begin(), presets.end(), preset, [] (const Process::Preset& lhs, const Process::Preset& rhs) { return lhs.key < rhs.key; });
 
   presets.insert(it, std::move(preset));
-  endInsertRows();
+  //endInsertRows();
+  endResetModel();
 
   return true;
 }
@@ -165,6 +222,7 @@ Qt::ItemFlags PresetItemModel::flags(const QModelIndex& index) const
   Qt::ItemFlags f = QAbstractItemModel::flags(index);
   f |= Qt::ItemIsDragEnabled;
   f |= Qt::ItemIsDropEnabled;
+  f |= Qt::ItemIsEditable;
   return f;
 }
 

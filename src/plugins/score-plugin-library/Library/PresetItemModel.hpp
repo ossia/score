@@ -30,6 +30,8 @@ private:
   int columnCount(const QModelIndex& parent) const override;
   QVariant data(const QModelIndex& index, int role) const override;
 
+  bool setData(const QModelIndex &index, const QVariant &value, int role) override;
+
   bool dropMimeData(const QMimeData* data, Qt::DropAction act, int row, int col, const QModelIndex& parent) override;
   bool canDropMimeData(const QMimeData* data, Qt::DropAction act, int row, int col, const QModelIndex& parent) const override;
 
