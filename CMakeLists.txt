@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.13 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.10 FATAL_ERROR)
 set(CMAKE_MODULE_PATH
     "${CMAKE_MODULE_PATH}"
     "${CMAKE_CURRENT_SOURCE_DIR}/cmake"
@@ -34,11 +34,16 @@ endif()
 include("${SCORE_CONFIGURATION}")
 
 project(score LANGUAGES C CXX)
-
+if(CMAKE_VERSION VERSION_LESS 3.13)
+cmake_policy(VERSION 3.10)
+cmake_policy(SET CMP0025 NEW)
+cmake_policy(SET CMP0063 NEW)
+else()
 cmake_policy(VERSION 3.13)
 cmake_policy(SET CMP0025 NEW)
 cmake_policy(SET CMP0063 NEW)
 cmake_policy(SET CMP0079 NEW)
+endif()
 
 set(SCORE_VERSION_MAJOR 3)
 set(SCORE_VERSION_MINOR 0)
@@ -58,7 +63,9 @@ if(MSVC)
                   /DWIN32_LEAN_AND_MEAN
                   )
 else()
-  set(CMAKE_CXX_STANDARD 20)
+  if(CMAKE_VERSION VERSION_GREATER 3.16)
+    set(CMAKE_CXX_STANDARD 20)
+  endif()
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++2a -fno-stack-protector ")
 endif()
 
