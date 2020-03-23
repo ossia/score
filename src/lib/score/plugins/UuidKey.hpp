@@ -340,7 +340,7 @@ using uuid_t = uuids::uuid;
 }
 
 #if defined(_MSC_VER)
-#define MSVC_BUGGY_CONSTEXPR 
+#define MSVC_BUGGY_CONSTEXPR
 #else
 #define MSVC_BUGGY_CONSTEXPR constexpr
 #endif
@@ -348,7 +348,7 @@ using uuid_t = uuids::uuid;
 #define return_uuid(text)                                                     \
   do                                                                          \
   {                                                                           \
-    static MSVC_BUGGY_CONSTEXPR const auto t = score::uuids::string_generator::compute((text)); \
+    MSVC_BUGGY_CONSTEXPR const auto t = score::uuids::string_generator::compute((text)); \
     return t;                                                                 \
   } while (0)
 
