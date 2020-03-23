@@ -114,6 +114,24 @@ WindowsArguments = fontengine=freetype
          )
 endif()
 
+if(UNIX AND NOT APPLE)
+  if(NOT EXISTS "${CMAKE_BINARY_DIR}/run.sh")
+      get_target_property(QtCore_LIB Qt5::Core LOCATION)
+      get_filename_component(QT_ROOT_FOLDER "${QtCore_LIB}" DIRECTORY)
+      get_filename_component(QT_ROOT_FOLDER "${QT_ROOT_FOLDER}" ABSOLUTE)
+      file(
+        WRITE "${CMAKE_CURRENT_BINARY_DIR}/run.sh"
+        "#!/bin/sh\nLD_LIBRARY_PATH=${QT_ROOT_FOLDER} ./ossia-score\n"
+      )
+
+      file(
+        COPY "${CMAKE_CURRENT_BINARY_DIR}/run.sh"
+        DESTINATION "${CMAKE_BINARY_DIR}"
+        FILE_PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE
+      )
+  endif()
+endif()
+
 if(WIN32)
   install(
     TARGETS ${APPNAME}
