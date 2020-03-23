@@ -178,7 +178,7 @@ struct DefaultGraphicsKnobImpl
   template <typename T>
   static void contextMenuEvent(T& self, QPointF pos)
   {
-    QTimer::singleShot(0, [&, pos] {
+    QTimer::singleShot(0, [&, self_p = &self, pos] {
       auto w = new DoubleSpinboxWithEnter;
       w->setRange(self.min, self.max);
 
@@ -205,12 +205,12 @@ struct DefaultGraphicsKnobImpl
           w,
           &DoubleSpinboxWithEnter::editingFinished,
           &self,
-          [obj, con, &self]() mutable {
+          [obj, con, self_p]() mutable {
             if (obj != nullptr)
             {
-              self.sliderReleased();
+              self_p->sliderReleased();
               QObject::disconnect(con);
-              QTimer::singleShot(0, obj, [scene = self.scene(), obj] {
+              QTimer::singleShot(0, obj, [scene = self_p->scene(), obj] {
                 scene->removeItem(obj);
                 delete obj;
               });

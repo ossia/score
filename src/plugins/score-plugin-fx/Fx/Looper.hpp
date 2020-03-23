@@ -14,7 +14,7 @@ struct Node
     static const constexpr auto tags = std::array<const char*, 0>{};
     static const constexpr auto kind = Process::ProcessCategory::AudioEffect;
     static const constexpr auto description = "Loop audio";
-    static const constexpr auto uuid = make_uuid("a0ad4227-ac3d-448b-a19b-19581ed4e2c6");
+    static const uuid_constexpr auto uuid = make_uuid("a0ad4227-ac3d-448b-a19b-19581ed4e2c6");
 
     static const constexpr auto controls
         = std::make_tuple(Control::Widgets::LoopChooser(), Control::Widgets::QuantificationChooser());

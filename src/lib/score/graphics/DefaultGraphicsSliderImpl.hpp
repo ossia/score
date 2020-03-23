@@ -137,7 +137,7 @@ struct DefaultGraphicsSliderImpl
   template <typename T>
   static void contextMenuEvent(T& self, QPointF pos)
   {
-    QTimer::singleShot(0, [&, pos] {
+    QTimer::singleShot(0, [&, self_p = &self, pos] {
       auto w = new DoubleSpinboxWithEnter;
       self.spinbox = w;
       w->setRange(self.min, self.max);
@@ -163,19 +163,19 @@ struct DefaultGraphicsSliderImpl
           });
 
       QObject::connect(
-          w, &DoubleSpinboxWithEnter::editingFinished, &self, [obj, con, &self] {
-            if (self.spinbox)
+          w, &DoubleSpinboxWithEnter::editingFinished, &self, [obj, con, self_p] {
+            if (self_p->spinbox)
             {
-              self.sliderReleased();
+              self_p->sliderReleased();
               QObject::disconnect(con);
-              QTimer::singleShot(0, &self, [&self, scene = self.scene(), obj] {
+              QTimer::singleShot(0, self_p, [self_p, scene = self_p->scene(), obj] {
                 scene->removeItem(obj);
                 delete obj;
-                self.spinbox = nullptr;
-                self.spinboxProxy = nullptr;
+                self_p->spinbox = nullptr;
+                self_p->spinboxProxy = nullptr;
               });
-              self.spinbox = nullptr;
-              self.spinboxProxy = nullptr;
+              self_p->spinbox = nullptr;
+              self_p->spinboxProxy = nullptr;
             }
           });
     });

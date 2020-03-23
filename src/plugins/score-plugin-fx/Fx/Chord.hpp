@@ -19,7 +19,7 @@ struct Node
     static const constexpr auto kind = Process::ProcessCategory::Mapping;
     static const constexpr auto description
         = "Generate a chord from a single note";
-    static const constexpr auto uuid
+    static const uuid_constexpr auto uuid
         = make_uuid("F0904279-EA26-48DB-B0DF-F68FE3091DA1");
 
     static const constexpr midi_in midi_ins[]{"in"};

@@ -212,7 +212,7 @@ struct Node
     static const constexpr auto kind = Process::ProcessCategory::MidiEffect;
     static const constexpr auto description
         = "Maps a midi input to a given scale";
-    static const constexpr auto uuid
+    static const uuid_constexpr auto uuid
         = make_uuid("06b33b83-bb67-4f7a-9980-f5d66e4266c5");
 
     static const constexpr midi_in midi_ins[]{"in"};
@@ -412,7 +412,7 @@ struct Node
     static const constexpr auto kind = Process::ProcessCategory::MidiEffect;
     static const constexpr auto description = "Extract a MIDI pitch";
     static const constexpr auto tags = std::array<const char*, 0>{};
-    static const constexpr auto uuid
+    static const uuid_constexpr auto uuid
         = make_uuid("29ce484f-cb56-4501-af79-88768fa261c3");
 
     static const constexpr midi_in midi_ins[]{"in"};

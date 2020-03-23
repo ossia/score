@@ -30,7 +30,7 @@ struct Node
           "output will be the relevant note.";
 
     static const constexpr auto tags = std::array<const char*, 0>{};
-    static const constexpr auto uuid
+    static const uuid_constexpr auto uuid
         = make_uuid("2c6493c3-5449-4e52-ae04-9aee3be5fb6a");
 
     static const constexpr value_in value_ins[]{{"in", true}};

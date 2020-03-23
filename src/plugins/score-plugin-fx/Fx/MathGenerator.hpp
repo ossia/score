@@ -73,7 +73,7 @@ struct Node
         = "Generate a signal from a math expression.\n"
           "Available variables: a,b,c, t (samples), dt (delta), pos (position in parent)\n"
           "See the documentation at http://www.partow.net/programming/exprtk";
-    static const constexpr auto uuid
+    static const uuid_constexpr auto uuid
         = make_uuid("d757bd0d-c0a1-4aec-bf72-945b722ab85b");
 
     static const constexpr value_out value_outs[]{"out"};
@@ -158,7 +158,7 @@ struct Node
         = "Generate an audio signal from a math expression.\n"
           "Available variables: a,b,c, t (samples), fs (sampling frequency)\n"
           "See the documentation at http://www.partow.net/programming/exprtk";
-    static const constexpr auto uuid
+    static const uuid_constexpr auto uuid
         = make_uuid("eae294b3-afeb-4fba-bbe4-337998d3748a");
 
     static const constexpr audio_out audio_outs[]{"out"};

@@ -280,7 +280,7 @@ AmovibleSlotFooter::AmovibleSlotFooter(
     int slotIndex,
     QGraphicsItem* parent):
   SlotFooter{slotView, slotIndex, parent}
-, m_fullView{qobject_cast<const FullViewIntervalPresenter*>(&m_presenter)}
+, m_fullView{bool(qobject_cast<const FullViewIntervalPresenter*>(&m_presenter))}
 {
   this->setCursor(Qt::SizeVerCursor);
 }

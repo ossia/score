@@ -15,6 +15,12 @@
 #include <Engine/Node/Process.hpp>
 
 #define make_uuid(text) score::uuids::string_generator::compute((text))
+#if defined(_MSC_VER)
+#define uuid_constexpr inline
+#else
+#define uuid_constexpr constexpr
+#endif
+
 
 namespace Control
 {
@@ -86,7 +92,7 @@ template <typename T>
 struct score_generic_plugin final : public score::FactoryInterface_QtInterface,
                                     public score::Plugin_QtInterface
 {
-  static Q_DECL_RELAXED_CONSTEXPR score::PluginKey static_key()
+  static MSVC_BUGGY_CONSTEXPR score::PluginKey static_key()
   {
     return T::Metadata::uuid;
   }

@@ -18,7 +18,7 @@ struct Node
     static const constexpr auto description = "Metronome which is not synced to the parent quantization settings";
 
     static const constexpr auto tags = std::array<const char*, 0>{};
-    static const constexpr auto uuid
+    static const uuid_constexpr auto uuid
         = make_uuid("50439197-521E-4ED0-A3B7-EDD8DEAEAC93");
 
     static const constexpr value_out value_outs[]{"out"};

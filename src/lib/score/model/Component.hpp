@@ -88,12 +88,12 @@ extern template class SCORE_LIB_BASE_EXPORT
 public:                                                                \
   using base_component_type = Type;                                    \
                                                                        \
-  static Q_DECL_RELAXED_CONSTEXPR Component::Key static_key() noexcept \
+  static MSVC_BUGGY_CONSTEXPR Component::Key static_key() noexcept \
   {                                                                    \
     return_uuid(Uuid);                                                 \
   }                                                                    \
                                                                        \
-  static Q_DECL_RELAXED_CONSTEXPR bool base_key_match(                 \
+  static MSVC_BUGGY_CONSTEXPR bool base_key_match(                 \
       Component::Key other) noexcept                                   \
   {                                                                    \
     return static_key() == other;                                      \
@@ -106,7 +106,7 @@ private:
  */
 #define COMPONENT_METADATA(Uuid)                                              \
 public:                                                                       \
-  static Q_DECL_RELAXED_CONSTEXPR Component::Key static_key() noexcept        \
+  static MSVC_BUGGY_CONSTEXPR Component::Key static_key() noexcept        \
   {                                                                           \
     return_uuid(Uuid);                                                        \
   }                                                                           \
@@ -126,7 +126,7 @@ private:
  */
 #define COMMON_COMPONENT_METADATA(Uuid)                                       \
 public:                                                                       \
-  static Q_DECL_RELAXED_CONSTEXPR Component::Key static_key() noexcept        \
+  static MSVC_BUGGY_CONSTEXPR Component::Key static_key() noexcept        \
   {                                                                           \
     return_uuid(Uuid);                                                        \
   }                                                                           \

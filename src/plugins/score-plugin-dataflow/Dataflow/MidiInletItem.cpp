@@ -15,7 +15,7 @@ void MidiInletFactory::setupInletInspector(
         Inspector::Layout &lay,
         QObject *context)
 {
-  static const constexpr auto midi_uuid = Protocols::MIDIProtocolFactory::static_concreteKey();
+  static const MSVC_BUGGY_CONSTEXPR auto midi_uuid = Protocols::MIDIProtocolFactory::static_concreteKey();
 
     auto& p = static_cast<Process::MidiInlet&>(port);
 

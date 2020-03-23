@@ -136,9 +136,9 @@ class Json_k;
   template <>                                            \
   struct Export Metadata<Key, Model>                     \
   {                                                      \
-    static Q_DECL_RELAXED_CONSTEXPR Type get()           \
+    static MSVC_BUGGY_CONSTEXPR Type get()               \
     {                                                    \
-      const Q_DECL_RELAXED_CONSTEXPR Type k{Value};      \
+      const MSVC_BUGGY_CONSTEXPR Type k{Value};          \
       return k;                                          \
     }                                                    \
   };

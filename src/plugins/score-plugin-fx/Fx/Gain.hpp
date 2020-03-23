@@ -14,7 +14,7 @@ struct Node
     static const constexpr auto tags = std::array<const char*, 0>{};
     static const constexpr auto kind = Process::ProcessCategory::AudioEffect;
     static const constexpr auto description = "A simple volume control";
-    static const constexpr auto uuid
+    static const uuid_constexpr auto uuid
         = make_uuid("6c158669-0f81-41c9-8cc6-45820dcda867");
 
     static const constexpr auto controls

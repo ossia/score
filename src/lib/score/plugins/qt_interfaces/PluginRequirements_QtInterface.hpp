@@ -41,7 +41,7 @@ public:
  */
 #define SCORE_PLUGIN_METADATA(Ver, Uuid)                                  \
 public:                                                                   \
-  static Q_DECL_RELAXED_CONSTEXPR score::PluginKey static_key()           \
+  static MSVC_BUGGY_CONSTEXPR score::PluginKey static_key()               \
   {                                                                       \
     return_uuid(Uuid);                                                    \
   }                                                                       \

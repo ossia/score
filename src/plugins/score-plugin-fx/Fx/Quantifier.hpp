@@ -19,7 +19,7 @@ struct Node
     static const constexpr auto kind = Process::ProcessCategory::MidiEffect;
     static const constexpr auto description = "Quantifies a MIDI input";
     static const constexpr auto tags = std::array<const char*, 0>{};
-    static const constexpr auto uuid
+    static const uuid_constexpr auto uuid
         = make_uuid("b8e2e5ad-17e4-43de-8d79-660a29d5c4f4");
 
     static const constexpr midi_in midi_ins[]{"in"};

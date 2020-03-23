@@ -18,7 +18,7 @@ struct Node
     static const constexpr auto description
         = "Converts an audio signal into RMS and peak values";
     static const constexpr auto tags = std::array<const char*, 0>{};
-    static const constexpr auto uuid
+    static const uuid_constexpr auto uuid
         = make_uuid("95F44151-13EF-4537-8189-0CC243341269");
 
     static const constexpr audio_in audio_ins[]{"in"};

@@ -16,7 +16,7 @@ struct Node
     static const constexpr auto kind = Process::ProcessCategory::Mapping;
     static const constexpr auto description
         = "Copies its inputs to its outputs";
-    static const constexpr auto uuid
+    static const uuid_constexpr auto uuid
         = make_uuid("70B12B42-BB4B-4A13-861B-53C577601186");
 
     static const constexpr value_in value_ins[]{"in"};
@@ -49,7 +49,7 @@ struct Node
     static const constexpr auto description
         = "Copies its inputs to its outputs";
     static const constexpr auto tags = std::array<const char*, 0>{};
-    static const constexpr auto uuid
+    static const uuid_constexpr auto uuid
         = make_uuid("2CE4F3F3-E04F-48CD-B81C-1F6537EC8CFA");
 
     static const constexpr midi_in midi_ins[]{"in"};
@@ -82,7 +82,7 @@ struct Node
     static const constexpr auto description
         = "Copies its inputs to its outputs";
     static const constexpr auto tags = std::array<const char*, 0>{};
-    static const constexpr auto uuid
+    static const uuid_constexpr auto uuid
         = make_uuid("D074CC6C-D1CB-47F8-871D-CC949D8EEBEC");
 
     static const constexpr audio_in audio_ins[]{"in"};

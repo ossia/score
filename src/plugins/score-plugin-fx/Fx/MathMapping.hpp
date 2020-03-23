@@ -18,7 +18,7 @@ struct Node
           "Available variables: a,b,c, t (samples), dt (delta), pos (position in parent), x (value)\n"
           "See the documentation at http://www.partow.net/programming/exprtk";
     static const constexpr auto tags = std::array<const char*, 0>{};
-    static const constexpr auto uuid
+    static const uuid_constexpr auto uuid
         = make_uuid("ae84e8b6-74ff-4259-aeeb-305d95cdfcab");
 
     static const constexpr value_in value_ins[]{"in"};
@@ -112,7 +112,7 @@ struct Node
           "Available variables: a,b,c, t (samples), fs (sampling frequency), \n"
           "x (value), px (previous value)\n"
           "See the documentation at http://www.partow.net/programming/exprtk";
-    static const constexpr auto uuid
+    static const uuid_constexpr auto uuid
         = make_uuid("13e1f4b0-1c2c-40e6-93ad-dfc91aac5335");
 
     static const constexpr audio_in audio_ins[]{"in"};
