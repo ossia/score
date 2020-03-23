@@ -57,6 +57,8 @@ if(UNIX AND NOT APPLE)
   set_target_properties(${APPNAME}
     PROPERTIES
       OUTPUT_NAME ossia-score)
+
+  target_link_libraries(${APPNAME} PRIVATE ${CMAKE_DL_LIBS})
 endif()
 
 if(APPLE)
