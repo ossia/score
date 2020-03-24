@@ -14,7 +14,7 @@ class LibraryHandler final : public QObject, public Library::LibraryInterface
       Library::ProcessesItemModel& model,
       const score::GUIApplicationContext& ctx) override
   {
-    Q_DECL_CONSTEXPR static const auto key
+    MSVC_BUGGY_CONSTEXPR static const auto key
         = Metadata<ConcreteKey_k, VSTEffectModel>::get();
 
     QModelIndex node = model.find(key);

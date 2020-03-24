@@ -363,7 +363,7 @@ void AudioFile::load_ffmpeg(int rate)
   // Loading with libav is used :
   // - when resampling is required
   // - when the file is not a .wav
-  const auto ptr = std::make_shared<LibavReader>(rate);
+  auto ptr = std::make_shared<LibavReader>(rate);
   auto& r = *ptr;
   QFile f{m_file};
   if (isSupported(f))
