@@ -33,6 +33,11 @@ if(NOT SCORE_CONFIGURATION)
 endif()
 include("${SCORE_CONFIGURATION}")
 
+# Ninja does not handle unity builds well
+if("${CMAKE_GENERATOR}" MATCHES "^Ninja")
+  set(SCORE_COTIRE_DISABLE_UNITY True)
+endif()
+
 project(score LANGUAGES C CXX)
 if(CMAKE_VERSION VERSION_LESS 3.13)
 cmake_policy(VERSION 3.10)
