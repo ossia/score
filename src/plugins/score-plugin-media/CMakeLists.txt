@@ -322,4 +322,8 @@ if(Faust_FOUND)
   if(TARGET ${PROJECT_NAME}_unity)
     add_dependencies(${PROJECT_NAME}_unity faustlibs)
   endif()
+   
+  if(WIN32)
+    target_link_libraries(${PROJECT_NAME} PRIVATE Ws2_32)
+  endif()
 endif()

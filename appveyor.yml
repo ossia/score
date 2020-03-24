@@ -12,6 +12,8 @@ install:
   - nsis.exe /S
   - appveyor DownloadFile "https://github.com/OSSIA/score-sdk/releases/download/sdk9/win-audio-sdk.zip" -FileName win-audio-sdk.zip
   - 7z x win-audio-sdk.zip
+  - appveyor DownloadFile "http://download.qt.io/official_releases/jom/jom.zip" -FileName jom.zip
+  - 7z x jom.zip
   - move portaudio c:\portaudio
   - move ffmpeg c:\ffmpeg
 
@@ -19,8 +21,9 @@ build_script:
   - git submodule update --init --recursive
   - mkdir build
   - cd build
-  - cmake -T host=x64 -G "Visual Studio 16 2019" -A x64 -DSCORE_CONFIGURATION=static-release -DBOOST_ROOT="%BOOST_ROOT%" -DCMAKE_PREFIX_PATH="%QTDIR%/lib/cmake/Qt5" -DSCORE_ENABLE_LTO=0 ..
-  - cmake --build . --config Release --target all_unity
+  # - cmake -T host=x64 -G "Visual Studio 16 2019" -A x64 -DSCORE_CONFIGURATION=static-release -DBOOST_ROOT="%BOOST_ROOT%" -DCMAKE_PREFIX_PATH="%QTDIR%/lib/cmake/Qt5" -DSCORE_ENABLE_LTO=0 ..
+  - cmake -T host=x64 -G "NMake Makefiles JOM" -A x64 -DSCORE_CONFIGURATION=static-release -DBOOST_ROOT="%BOOST_ROOT%" -DCMAKE_PREFIX_PATH="%QTDIR%/lib/cmake/Qt5" -DCMAKE_MAKE_PROGRAM=jom.exe ..
+  - cmake --build . --config Release --target all_unity -- -j4
   - cmake --build . --config Release --target Package
 
 artifacts:

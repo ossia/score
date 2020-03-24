@@ -233,4 +233,8 @@ if(TARGET Qt5::Qml)
     target_link_libraries(${PROJECT_NAME} PRIVATE Qt5::Qml)
 endif()
 
+if(WIN32)
+  target_link_libraries(${PROJECT_NAME} PRIVATE Ws2_32)
+endif()
+
 setup_score_plugin(${PROJECT_NAME})
