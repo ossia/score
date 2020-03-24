@@ -23,8 +23,8 @@ build_script:
   - set PATH=%CD%;%PATH%
   - mkdir build
   - cd build
-  - call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" amd64
-  - cmake -G "NMake Makefiles JOM" -DSCORE_CONFIGURATION=static-release -DBOOST_ROOT="%BOOST_ROOT%" -DCMAKE_PREFIX_PATH="%QTDIR%/lib/cmake/Qt5" -DCMAKE_MAKE_PROGRAM=jom.exe ..
+  - call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Auxiliary\Build\vcvarsall.bat" amd64
+  - cmake -G "NMake Makefiles JOM" -DSCORE_CONFIGURATION=static-release -DBOOST_ROOT="%BOOST_ROOT%" -DCMAKE_PREFIX_PATH="%QTDIR%/lib/cmake/Qt5" ..
   - cmake --build . --config Release --target all_unity -- -j4
   - cmake --build . --config Release --target Package
 
