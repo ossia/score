@@ -93,7 +93,7 @@ SCORE_LIB_PROCESS_EXPORT State::MessageList
 getUserMessages(const MessageNode&);
 }
 
-#if !defined(SCORE_ALL_UNITY)
+#if !defined(SCORE_ALL_UNITY) && !defined(__MINGW32__)
 extern template class SCORE_LIB_PROCESS_EXPORT
     TreeNode<Process::StateNodeData>;
 #endif

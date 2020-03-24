@@ -37,7 +37,7 @@ bool operator==(
 }
 }
 
-#if !defined(SCORE_ALL_UNITY)
+#if !defined(SCORE_ALL_UNITY) && !defined(__MINGW32__)
 template class SCORE_LIB_PROCESS_EXPORT TreeNode<Process::StateNodeData>;
 #endif
 
