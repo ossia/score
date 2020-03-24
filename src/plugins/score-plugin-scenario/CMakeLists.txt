@@ -645,5 +645,8 @@ if(TARGET Qt5::Svg)
   )
 endif()
 
+if(APPLE)
+  target_link_libraries(score_plugin_scenario PRIVATE "-framework CoreFoundation" "-framework Foundation" "-framework ApplicationServices")
+endif()
 setup_score_plugin(score_plugin_scenario)
 
