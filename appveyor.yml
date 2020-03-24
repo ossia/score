@@ -22,7 +22,7 @@ build_script:
   - mkdir build
   - cd build
   # - cmake -T host=x64 -G "Visual Studio 16 2019" -A x64 -DSCORE_CONFIGURATION=static-release -DBOOST_ROOT="%BOOST_ROOT%" -DCMAKE_PREFIX_PATH="%QTDIR%/lib/cmake/Qt5" -DSCORE_ENABLE_LTO=0 ..
-  - cmake -T host=x64 -G "NMake Makefiles JOM" -A x64 -DSCORE_CONFIGURATION=static-release -DBOOST_ROOT="%BOOST_ROOT%" -DCMAKE_PREFIX_PATH="%QTDIR%/lib/cmake/Qt5" -DCMAKE_MAKE_PROGRAM=jom.exe ..
+  - cmake -T host=x64 -G "NMake Makefiles JOM" -DSCORE_CONFIGURATION=static-release -DBOOST_ROOT="%BOOST_ROOT%" -DCMAKE_PREFIX_PATH="%QTDIR%/lib/cmake/Qt5" -DCMAKE_MAKE_PROGRAM=jom.exe ..
   - cmake --build . --config Release --target all_unity -- -j4
   - cmake --build . --config Release --target Package
 
