@@ -15,7 +15,9 @@
 
 #include <ossia/detail/small_vector.hpp>
 
+#include <QIcon>
 #include <QString>
+
 #include <smallfun.hpp>
 #include <score_lib_process_export.h>
 #include <verdigris>
@@ -41,7 +43,6 @@ class ProcessModel;
 class LayerFactory;
 using Inlets = ossia::small_vector<Process::Inlet*, 4>;
 using Outlets = ossia::small_vector<Process::Outlet*, 4>;
-
 
 /**
  * @brief The Process class

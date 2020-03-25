@@ -13,7 +13,8 @@
 
 namespace Process
 {
-
+SCORE_LIB_PROCESS_EXPORT
+const QIcon& getCategoryIcon(const QString& category) noexcept;
 enum ProcessCategory
 {
   Other,

@@ -567,10 +567,9 @@ QVariant ObjectItemModel::data(const QModelIndex& index, int role) const
           return icon;
         }
       }
-      else if (qobject_cast<Process::ProcessModel*>(sel))
+      else if (auto pm = qobject_cast<Process::ProcessModel*>(sel))
       {
-        static const QIcon icon(":/images/process.png");
-        return icon;
+        return Process::getCategoryIcon(pm->category());
       }
     }
     else if (role == Qt::ToolTipRole)

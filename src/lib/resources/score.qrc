@@ -394,6 +394,24 @@
         <file>icons/show_cables_off@2x.png</file>
         <file>icons/show_cables_on.png</file>
         <file>icons/show_cables_on@2x.png</file>
+        <file>icons/midi.png</file>
+        <file>icons/midi@2x.png</file>
+        <file>icons/audio.png</file>
+        <file>icons/audio@2x.png</file>
+        <file>icons/automation.png</file>
+        <file>icons/automation@2x.png</file>
+        <file>icons/filter.png</file>
+        <file>icons/filter@2x.png</file>
+        <file>icons/controls.png</file>
+        <file>icons/controls@2x.png</file>
+        <file>icons/script.png</file>
+        <file>icons/script@2x.png</file>
+        <file>icons/ui.png</file>
+        <file>icons/ui@2x.png</file>
+        <file>icons/structure.png</file>
+        <file>icons/structure@2x.png</file>
+        <file>icons/gfx@2x.png</file>
+        <file>icons/gfx.png</file>
     </qresource>
     <qresource prefix="/qss_icons">
         <file>rc/up_arrow_disabled.png</file>

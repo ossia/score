@@ -1,11 +1,14 @@
 #include "ProcessesItemModel.hpp"
 #include <Library/LibraryInterface.hpp>
+#include <Process/Process.hpp>
 #include <Process/ProcessList.hpp>
 #include <Process/ProcessMimeSerialization.hpp>
 #include <score/application/GUIApplicationContext.hpp>
 
 #include <QMimeData>
+#include <QIcon>
 #include <QJsonDocument>
+
 #include <map>
 
 namespace Library
@@ -24,7 +27,8 @@ ProcessesItemModel::ProcessesItemModel(const score::GUIApplicationContext& ctx, 
   for (auto& e : sorted)
   {
     auto& cat = m_root.emplace_back(
-          ProcessData{e.first, QIcon{}, QJsonObject{}, {}}, &m_root);
+          ProcessData{e.first, Process::getCategoryIcon(e.first), QJsonObject{}, {}}, &m_root);
+
     for (auto p : e.second)
     {
       QJsonObject obj;
@@ -76,6 +80,8 @@ QVariant ProcessesItemModel::data(const QModelIndex& index, int role) const
   {
   case Qt::DisplayRole:
     return node.name;
+  case Qt::DecorationRole:
+      return node.icon;
   }
   return QVariant{};
 }

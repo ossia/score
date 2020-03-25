@@ -27,6 +27,28 @@ template class score::SerializableInterface<Process::ProcessModelFactory>;
 #endif
 namespace Process
 {
+
+const QIcon& getCategoryIcon(const QString& category) noexcept
+{
+    static const std::map<QString, QIcon> categoryIcon{
+        { "Audio", QIcon{QStringLiteral(":/icons/audio.png")} },
+        { "Mappings", QIcon{QStringLiteral(":/icons/filter.png") } },
+        { "Midi", QIcon{QStringLiteral(":/icons/midi.png") } },
+        { "Control", QIcon{QStringLiteral(":/icons/controls.png") } },
+        { "Automations", QIcon{QStringLiteral(":/icons/automation.png") } },
+        { "Impro", QIcon{QStringLiteral(":/icons/controls.png") }  },
+        { "Script", QIcon{QStringLiteral(":/icons/script.png") } },
+        { "Structure", QIcon{QStringLiteral(":/icons/structure.png") } },
+        { "Ui", QIcon{QStringLiteral(":/icons/ui.png")} }
+    };
+    static const QIcon invalid;
+    if(auto it = categoryIcon.find(category);
+       it != categoryIcon.end())
+    {
+        return it->second;
+    }
+    return invalid;
+}
 ProcessModel::ProcessModel(
     TimeVal duration,
     const Id<ProcessModel>& id,
