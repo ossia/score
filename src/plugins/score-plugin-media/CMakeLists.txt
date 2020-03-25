@@ -286,11 +286,12 @@ endif()
 target_link_libraries(${PROJECT_NAME} PRIVATE ${CMAKE_DL_LIBS})
 
 if(TARGET Lilv AND TARGET Suil)
-    target_link_libraries(${PROJECT_NAME} PRIVATE Lilv)
-    target_compile_definitions(${PROJECT_NAME} PUBLIC HAS_LV2)
-    target_include_directories(${PROJECT_NAME} PRIVATE 3rdparty/readerwriterqueue)
+  # Lilv is used in API header, it must stay public
+  target_link_libraries(${PROJECT_NAME} PUBLIC Lilv)
+  target_compile_definitions(${PROJECT_NAME} PUBLIC HAS_LV2)
+  target_include_directories(${PROJECT_NAME} PRIVATE 3rdparty/readerwriterqueue)
 
-    target_link_libraries(${PROJECT_NAME} PRIVATE Suil)
+  target_link_libraries(${PROJECT_NAME} PRIVATE Suil)
 endif()
 
 if(Faust_FOUND)
@@ -322,7 +323,7 @@ if(Faust_FOUND)
   if(TARGET ${PROJECT_NAME}_unity)
     add_dependencies(${PROJECT_NAME}_unity faustlibs)
   endif()
-   
+
   if(WIN32)
     target_link_libraries(${PROJECT_NAME} PRIVATE Ws2_32)
   endif()

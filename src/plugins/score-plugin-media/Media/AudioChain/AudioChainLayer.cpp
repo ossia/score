@@ -247,7 +247,7 @@ void Presenter::on_drop(const QMimeData& mime, int pos)
       {
         if (obj->parent() == &model)
         {
-          QTimer::singleShot(0, [this, &model, &ctx, id = obj->id(), pos] {
+          QTimer::singleShot(0, [&model, &ctx, id = obj->id(), pos] {
             CommandDispatcher<>{ctx.commandStack}.submit(
                   new MoveEffect(model, id, pos));
           });

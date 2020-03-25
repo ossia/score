@@ -95,7 +95,7 @@ public:
       const QString& data)
   {
     return *safe_cast<T*>(this->createProcessInNewSlot(
-        interval, Metadata<ConcreteKey_k, T>::get(), data));
+                            interval, Metadata<ConcreteKey_k, T>::get(), data, {}));
   }
 
   Process::ProcessModel* loadProcessInSlot(

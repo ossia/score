@@ -20,10 +20,6 @@ class EffectFactory;
 }
 namespace Media
 {
-namespace Effect
-{
-class ProcessModel;
-}
 
 class InsertEffect final : public score::Command
 {

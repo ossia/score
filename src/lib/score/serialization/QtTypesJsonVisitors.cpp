@@ -16,13 +16,11 @@
 
 #include <array>
 
-template <typename T>
-class Reader;
-template <typename T>
-class Writer;
+#if QT_VERSION >= QT_VERSION_CHECK(5, 15, 0)
+#include <QCborValue>
+#endif
 
-auto makeJsonArray(std::initializer_list<QJsonValue> lst);
-auto makeJsonArray(std::initializer_list<QJsonValue> lst)
+static auto makeJsonArray(std::initializer_list<QJsonValue> lst)
 {
 #if (QT_VERSION < QT_VERSION_CHECK(5, 6, 0))
   QJsonArray arr;
@@ -177,8 +175,12 @@ SCORE_LIB_BASE_EXPORT void DataStreamWriter::write(std::array<float, 4>& obj)
 template <>
 SCORE_LIB_BASE_EXPORT void DataStreamReader::read(const QJsonObject& obj)
 {
+#if QT_VERSION < QT_VERSION_CHECK(5, 15, 0)
   QJsonDocument doc{obj};
   m_stream << doc.toBinaryData();
+#else
+  m_stream << QCborValue::fromJsonValue(obj);
+#endif
   insertDelimiter();
 }
 
