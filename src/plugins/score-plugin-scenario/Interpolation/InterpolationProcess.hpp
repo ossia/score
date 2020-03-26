@@ -114,13 +114,13 @@ public:
 
 public:
   void addressChanged(const ::State::AddressAccessor& arg_1)
-      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, addressChanged, arg_1);
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, addressChanged, arg_1)
   void startChanged(const ossia::value& arg_1)
-      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, startChanged, arg_1);
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, startChanged, arg_1)
   void endChanged(const ossia::value& arg_1)
-      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, endChanged, arg_1);
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, endChanged, arg_1)
   void tweenChanged(bool tween)
-      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, tweenChanged, tween);
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, tweenChanged, tween)
 
 private:
   //// ProcessModel ////

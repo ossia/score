@@ -124,8 +124,6 @@ struct Node
       auto& out = p2.samples[i];
       auto& record = state.audio[i];
 
-      const int64_t samples = N;
-
       out.resize(N);
       k = state.playbackPos;
       if (state.playbackPos + N < record.size())

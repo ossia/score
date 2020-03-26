@@ -343,7 +343,7 @@ struct LineEdit final : ossia::safe_nodes::control_in, WidgetFactory::LineEdit
 
   using type = std::string;
   using port_type = Process::LineEdit;
-  const QLatin1Literal init{};
+  const QLatin1String init{};
   auto create_inlet(Id<Process::Port> id, QObject* parent) const
   {
     return new Process::LineEdit{

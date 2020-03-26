@@ -43,7 +43,6 @@ public:
 
 private:
   View* m_view{};
-  ZoomRatio m_ratio{};
 };
 }
 }
