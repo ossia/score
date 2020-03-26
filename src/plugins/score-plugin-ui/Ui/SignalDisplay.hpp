@@ -13,7 +13,7 @@ struct Node
   {
     static const constexpr auto prettyName = "Signal display";
     static const constexpr auto objectKey = "SignalDisplay";
-    static const constexpr auto category = "Ui";
+    static const constexpr auto category = "Monitoring";
     static const constexpr auto author = "ossia score";
     static const constexpr auto tags = std::array<const char*, 0>{};
     static const constexpr auto kind = Process::ProcessCategory::Analyzer;

@@ -39,7 +39,7 @@ const QIcon& getCategoryIcon(const QString& category) noexcept
         { "Impro", QIcon{QStringLiteral(":/icons/controls.png") }  },
         { "Script", QIcon{QStringLiteral(":/icons/script.png") } },
         { "Structure", QIcon{QStringLiteral(":/icons/structure.png") } },
-        { "Ui", QIcon{QStringLiteral(":/icons/ui.png")} }
+        { "Monitoring", QIcon{QStringLiteral(":/icons/ui.png")} }
     };
     static const QIcon invalid;
     if(auto it = categoryIcon.find(category);
