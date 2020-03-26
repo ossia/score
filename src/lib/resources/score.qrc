@@ -412,6 +412,38 @@
         <file>icons/structure@2x.png</file>
         <file>icons/gfx@2x.png</file>
         <file>icons/gfx.png</file>
+        <file>icons/console_on.png</file>
+        <file>icons/console_on@2x.png</file>
+        <file>icons/history_on.png</file>
+        <file>icons/history_on@2x.png</file>
+        <file>icons/info_on.png</file>
+        <file>icons/info_on@2x.png</file>
+        <file>icons/messages_on.png</file>
+        <file>icons/messages_on@2x.png</file>
+        <file>icons/console_off.png</file>
+        <file>icons/console_off@2x.png</file>
+        <file>icons/history_off.png</file>
+        <file>icons/history_off@2x.png</file>
+        <file>icons/messages_off.png</file>
+        <file>icons/messages_off@2x.png</file>
+        <file>icons/info_off.png</file>
+        <file>icons/info_off@2x.png</file>
+        <file>icons/audio_off.png</file>
+        <file>icons/audio_off@2x.png</file>
+        <file>icons/audio_on.png</file>
+        <file>icons/audio_on@2x.png</file>
+        <file>icons/device_explorer_off.png</file>
+        <file>icons/device_explorer_off@2x.png</file>
+        <file>icons/device_explorer_on.png</file>
+        <file>icons/device_explorer_on@2x.png</file>
+        <file>icons/inspector_off.png</file>
+        <file>icons/inspector_off@2x.png</file>
+        <file>icons/inspector_on.png</file>
+        <file>icons/inspector_on@2x.png</file>
+        <file>icons/library_off.png</file>
+        <file>icons/library_off@2x.png</file>
+        <file>icons/library_on.png</file>
+        <file>icons/library_on@2x.png</file>
     </qresource>
     <qresource prefix="/qss_icons">
         <file>rc/up_arrow_disabled.png</file>
