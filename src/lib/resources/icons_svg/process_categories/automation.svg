@@ -25,9 +25,9 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="42.934526"
-     inkscape:cx="0.3023166"
-     inkscape:cy="10.706741"
+     inkscape:zoom="13.821336"
+     inkscape:cx="0.77315171"
+     inkscape:cy="13.509951"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      showgrid="false"
@@ -56,25 +56,25 @@
      transform="translate(0,-292.76665)"
      style="display:inline">
     <path
-       style="fill:none;stroke:#e80022;stroke-width:0.52916664;stroke-linecap:square;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-       d="M 0.52916666,293.82498 H 1.5875 l 1.0583333,2.38125 h 1.0583333"
+       style="fill:none;stroke:#f44346;stroke-width:0.52916664;stroke-linecap:square;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="M 0.52916666,293.82498 H 1.3229167 c 1.0651331,0.2397 0.5619421,1.73846 1.5874999,2.11667 h 0.79375"
        id="path21"
        inkscape:connector-curvature="0"
        sodipodi:nodetypes="cccc" />
     <rect
-       style="opacity:1;vector-effect:none;fill:#ffb100;fill-opacity:1;stroke:none;stroke-width:0.57378238;stroke-linecap:square;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;paint-order:stroke fill markers"
+       style="opacity:1;vector-effect:none;fill:#fdbf06;fill-opacity:1;stroke:none;stroke-width:0.57378238;stroke-linecap:square;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;paint-order:stroke fill markers"
        id="rect831"
        width="0.52916664"
        height="0.52916664"
-       x="1.3229166"
+       x="1.0583333"
        y="293.56039" />
     <rect
-       style="display:inline;opacity:1;vector-effect:none;fill:#ffb100;fill-opacity:1;stroke:none;stroke-width:0.57378238;stroke-linecap:square;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;paint-order:stroke fill markers"
+       style="display:inline;opacity:1;vector-effect:none;fill:#fdbf06;fill-opacity:1;stroke:none;stroke-width:0.57378238;stroke-linecap:square;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;paint-order:stroke fill markers"
        id="rect831-3"
        width="0.52916664"
        height="0.52916664"
-       x="2.3812499"
-       y="295.94165" />
+       x="2.6458333"
+       y="295.67706" />
   </g>
   <g
      transform="translate(0,-292.76665)"
