@@ -46,6 +46,7 @@ const score::PanelStatus& PanelDelegate::defaultPanelStatus() const
                                          Qt::LeftDockWidgetArea,
                                          0,
                                          QObject::tr("Library"),
+                                         "library",
                                          QObject::tr("Ctrl+Shift+B")};
 
   return status;

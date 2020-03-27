@@ -83,7 +83,7 @@ struct StyleLoader : public QObject
 
   void on_styleChanged()
   {
-    qApp->setStyleSheet(readStyleSheet());
+  //  qApp->setStyleSheet(readStyleSheet());
   }
 };
 

@@ -31,6 +31,7 @@ const score::PanelStatus& PanelDelegate::defaultPanelStatus() const
                                          Qt::LeftDockWidgetArea,
                                          10,
                                          QObject::tr("Device Explorer"),
+                                         "device_explorer",
                                          QObject::tr("Ctrl+Shift+D")};
 
   return status;

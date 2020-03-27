@@ -248,6 +248,7 @@ private:
                                            Qt::BottomDockWidgetArea,
                                            0,
                                            QObject::tr("Console"),
+                                           "console",
                                            QObject::tr("Ctrl+Shift+C")};
 
     return status;

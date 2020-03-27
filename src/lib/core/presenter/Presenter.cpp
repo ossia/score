@@ -156,7 +156,7 @@ void Presenter::setupGUI()
       bw->setContentsMargins(0, 0, 0, 0);
 
       auto bl = new score::MarginLess<QGridLayout>{bw};
-      view()->centralWidget()->layout()->addWidget(bw);
+      view()->centralDocumentWidget->layout()->addWidget(bw);
 
       int i = 0;
       for (const Toolbar& tb : toolbars[Qt::BottomToolBarArea])

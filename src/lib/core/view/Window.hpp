@@ -16,11 +16,13 @@
 class QCloseEvent;
 class QDockWidget;
 class QEvent;
+class QSplitter;
 class QObject;
 class QTabWidget;
 class QLabel;
 namespace score
 {
+class FixedTabWidget;
 class DocumentModel;
 class DocumentView;
 class PanelView;
@@ -60,18 +62,22 @@ public:
       : void on_fileNameChanged(DocumentView* d, const QString& newName);
   W_SLOT(on_fileNameChanged);
 
+  QWidget* centralDocumentWidget{};
+  QSplitter* rightSplitter{};
+  FixedTabWidget* leftTabs{};
+  //QTabWidget* rightTabs{};
+  QTabWidget* bottomTabs{};
+  QTabWidget* centralTabs{};
 private:
   bool event(QEvent* event) override;
   void changeEvent(QEvent*) override;
   void resizeEvent(QResizeEvent*) override;
 
   std::map<QWidget*, DocumentView*> m_documents;
-  std::vector<QPair<PanelDelegate*, QDockWidget*>> m_leftPanels;
-  std::vector<QPair<PanelDelegate*, QDockWidget*>> m_rightPanels;
+  std::vector<QPair<PanelDelegate*, QWidget*>> m_leftPanels;
+  std::vector<QPair<PanelDelegate*, QWidget*>> m_rightPanels;
 
   Presenter* m_presenter{};
-  QTabWidget* m_tabWidget{};
-  QTabWidget* m_bottomTabs{};
   QLabel* m_status{};
 };
 }

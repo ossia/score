@@ -24,12 +24,12 @@ class SizedWidget : public QWidget
 };
 
 PanelDelegate::PanelDelegate(const score::GUIApplicationContext& ctx)
-    : score::PanelDelegate{ctx}, m_widget{new SizedWidget<250, 600>}
+    : score::PanelDelegate{ctx}, m_widget{new SizedWidget<200, 600>}
 {
   new score::MarginLess<QVBoxLayout>{m_widget};
   m_widget->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Minimum);
   m_widget->setMinimumHeight(400);
-  m_widget->setMinimumWidth(250);
+  m_widget->setMinimumWidth(200);
 
   m_widget->setStatusTip(QObject::tr("The inspector show information on the currently selected items."));
 }
@@ -45,6 +45,7 @@ const score::PanelStatus& PanelDelegate::defaultPanelStatus() const
                                          Qt::RightDockWidgetArea,
                                          10,
                                          QObject::tr("Inspector"),
+                                         "inspector",
                                          QObject::tr("Ctrl+Shift+I")};
 
   return status;

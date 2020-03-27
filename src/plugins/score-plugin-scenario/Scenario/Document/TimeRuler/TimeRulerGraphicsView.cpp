@@ -27,6 +27,7 @@ TimeRulerGraphicsView::TimeRulerGraphicsView(QGraphicsScene* scene)
   setFocusPolicy(Qt::NoFocus);
   setSceneRect(ScenarioLeftSpace, -70, 800, 28);
   setFixedHeight(10);
+  setFrameStyle(0);
   setBackgroundBrush(Process::Style::instance().MinimapBackground());
   setOptimizationFlag(QGraphicsView::DontSavePainterState, true);
 
@@ -53,6 +54,7 @@ MinimapGraphicsView::MinimapGraphicsView(QGraphicsScene* s)
         | QPainter::TextAntialiasing);
   setSceneRect({0, 0, 2000, 100});
   setFixedHeight(15);
+  setFrameStyle(0);
 
   setDragMode(DragMode::NoDrag);
   setBackgroundBrush(Process::Style::instance().MinimapBackground());

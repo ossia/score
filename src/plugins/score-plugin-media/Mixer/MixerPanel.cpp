@@ -375,6 +375,7 @@ const score::PanelStatus& PanelDelegate::defaultPanelStatus() const
                                          Qt::BottomDockWidgetArea,
                                          10,
                                          QObject::tr("Audio"),
+                                         "audio",
                                          QObject::tr("Ctrl+Shift+A")};
 
   return status;

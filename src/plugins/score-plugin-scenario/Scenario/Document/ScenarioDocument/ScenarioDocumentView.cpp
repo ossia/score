@@ -40,6 +40,7 @@
 #endif
 #include <Process/Style/ScenarioStyle.hpp>
 
+#include <QGLWidget>
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Scenario::ScenarioDocumentView)
 W_OBJECT_IMPL(Scenario::ProcessGraphicsView)
@@ -357,16 +358,16 @@ ScenarioDocumentView::ScenarioDocumentView(
   const bool opengl = ctx.app.applicationSettings.opengl;
   if (opengl)
   {
-    m_minimapView.setViewport(new QOpenGLWidget);
-    m_timeRulerView.setViewport(new QOpenGLWidget);
-    m_view.setViewport(new QOpenGLWidget);
+    //m_minimapView.setViewport(new QOpenGLWidget);
+    //m_timeRulerView.setViewport(new QOpenGLWidget);
+    m_view.setViewport(new QGLWidget);
 
-    m_minimapView.setViewportUpdateMode(QGraphicsView::NoViewportUpdate);
-    m_timeRulerView.setViewportUpdateMode(QGraphicsView::NoViewportUpdate);
+    //m_minimapView.setViewportUpdateMode(QGraphicsView::NoViewportUpdate);
+    //m_timeRulerView.setViewportUpdateMode(QGraphicsView::NoViewportUpdate);
     m_view.setViewportUpdateMode(QGraphicsView::NoViewportUpdate);
 
-    m_minimapView.viewport()->setUpdatesEnabled(true);
-    m_timeRulerView.viewport()->setUpdatesEnabled(true);
+    //m_minimapView.viewport()->setUpdatesEnabled(true);
+    //m_timeRulerView.viewport()->setUpdatesEnabled(true);
     m_view.viewport()->setUpdatesEnabled(true);
 
     const auto tcount = QThread::idealThreadCount();
@@ -379,9 +380,9 @@ ScenarioDocumentView::ScenarioDocumentView(
   }
   else
   {
-    m_minimapView.setViewportUpdateMode(QGraphicsView::FullViewportUpdate);
+    //m_minimapView.setViewportUpdateMode(QGraphicsView::FullViewportUpdate);
     m_view.setViewportUpdateMode(QGraphicsView::SmartViewportUpdate);
-    m_timeRulerView.setViewportUpdateMode(QGraphicsView::NoViewportUpdate);
+    //m_timeRulerView.setViewportUpdateMode(QGraphicsView::NoViewportUpdate);
   }
 }
 
@@ -411,9 +412,9 @@ QRectF ScenarioDocumentView::visibleSceneRect() const
 
 void ScenarioDocumentView::timerEvent(QTimerEvent* event)
 {
-  m_minimapView.viewport()->update();
+  //m_minimapView.viewport()->update();
   m_timeRulerView.viewport()->update();
-  m_view.viewport()->update();
+  //m_view.viewport()->update();
 }
 }
 
