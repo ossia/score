@@ -93,17 +93,21 @@ static void setQApplicationSettings(QApplication& m_app)
   auto pal = qApp->palette();
   pal.setBrush(QPalette::Window, QColor("#1A2024"));
   pal.setBrush(QPalette::Base, QColor("#12171A"));          // lineedit bg
-  pal.setBrush(QPalette::Button, QColor("#12171A"));        // lineedit bg
+  pal.setBrush(QPalette::Button, QColor("#1A2024"));        // lineedit bg
   pal.setBrush(QPalette::AlternateBase, QColor("#1f2a30")); // alternate bg
-  pal.setBrush(QPalette::Highlight, QColor("#3d8ec9"));     // tableview bg
+  pal.setBrush(QPalette::Highlight, QColor("#27435E"));     // tableview bg
+  pal.setBrush(QPalette::HighlightedText, QColor("#FDFDFD"));     // tableview bg
   pal.setBrush(QPalette::WindowText, QColor("silver"));     // color
   pal.setBrush(QPalette::Text, QColor("silver"));           // color
   pal.setBrush(QPalette::ButtonText, QColor("silver"));     // color
-  pal.setBrush(QPalette::Light, QColor("#666666"));
-  pal.setBrush(QPalette::Midlight, QColor("#666666"));
-  pal.setBrush(QPalette::Mid, QColor("#666666"));
-  pal.setBrush(QPalette::Dark, QColor("#666666"));
-  pal.setBrush(QPalette::Shadow, QColor("#666666"));
+  pal.setBrush(QPalette::ToolTipBase, QColor("#12171A"));
+  pal.setBrush(QPalette::ToolTipText, QColor("silver"));
+
+ // pal.setBrush(QPalette::Light, QColor("#666666"));
+  pal.setBrush(QPalette::Midlight, QColor("#444444"));
+ pal.setBrush(QPalette::Mid, QColor("#252930"));
+//  pal.setBrush(QPalette::Dark, QColor("#808080"));
+ // pal.setBrush(QPalette::Shadow, QColor("#666666"));
 
   // note : on win32 this does not seem to have any impact
   // check whether it is used somewhere...
