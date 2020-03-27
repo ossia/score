@@ -32,6 +32,7 @@
 
 #include <wobjectimpl.h>
 
+#include <QPainter>
 #include <QPushButton>
 #include <QStackedWidget>
 #include <QToolBar>
@@ -80,11 +81,26 @@ class FixedTabWidget : public QWidget
 public:
   FixedTabWidget() noexcept
   {
+    this->setContentsMargins(0, 0, 0, 0);
     this->setLayout(&m_layout);
-    m_layout.addWidget(&m_stack);
+    auto layout = new QVBoxLayout;
+    layout->setMargin(9);
+    layout->setSpacing(6);
+    layout->addWidget(&m_stack);
+    m_layout.addLayout(layout);
     m_layout.addWidget(&m_buttons);
+    QPalette transp = this->palette();
+    transp.setColor(QPalette::Background, Qt::transparent);
+    m_buttons.setPalette(transp);
+    m_buttons.setContentsMargins(0, 0, 0, 0);
+
     m_actGrp = new QActionGroup{&m_buttons};
     m_actGrp->setExclusive(true);
+  }
+
+  QSize sizeHint() const override
+  {
+    return {200, 1000};
   }
 
   void setTab(int index)
@@ -113,20 +129,67 @@ public:
     return idx;
   }
 
+  void paintEvent(QPaintEvent* ev) override
+  {
+    QPainter p{this};
+    p.setPen(Qt::transparent);
+    p.setBrush(QColor("#121216"));
+    p.drawRoundedRect(rect(), 3, 3);
+  }
 private:
   score::MarginLess<QVBoxLayout> m_layout;
+  //QVBoxLayout m_layout;
   QToolBar m_buttons;
   QStackedWidget m_stack;
   QActionGroup* m_actGrp{};
 };
 
+class RectSplitter : public QSplitter
+{
+public:
+  using QSplitter::QSplitter;
+  void paintEvent(QPaintEvent* ev) override
+  {
+    QPainter p{this};
+    p.setPen(Qt::transparent);
+    p.setBrush(QColor("#121216"));
+    p.drawRoundedRect(rect(), 3, 3);
+  }
+};
+class RectWidget : public QWidget
+{
+public:
+  void paintEvent(QPaintEvent* ev) override
+  {
+    QPainter p{this};
+    p.setPen(Qt::transparent);
+    p.setBrush(QColor("#1F1F20"));
+    p.drawRect(rect());
+  }
+};
+/*
+class RectTabWidget: public QTabWidget
+{
+public:
+  using QTabWidget::QTabWidget;
+  void paintEvent(QPaintEvent* ev) override
+  {
+    QPainter p{this};
+    p.setPen(palette().color(QPalette::Button));
+    p.setBrush(QColor("#21FF25"));
+    p.drawRoundedRect(rect(), 3, 3);
+  }
+};
+*/
 View::View(QObject* parent)
   : QMainWindow{}
 {
   leftTabs = new FixedTabWidget;
-  rightSplitter = new QSplitter{Qt::Vertical};
+  rightSplitter = new RectSplitter{Qt::Vertical};
   bottomTabs = new QTabWidget;
   centralTabs = new QTabWidget;
+  centralTabs->setContentsMargins(0, 0, 0, 0);
+
   for(auto tabs : { bottomTabs, centralTabs})
   {
     tabs->setMovable(false);
@@ -143,11 +206,12 @@ View::View(QObject* parent)
       static_cast<int>(rect.width() * 0.75),
       static_cast<int>(rect.height() * 0.75));
 
-  auto totalWidg = new QSplitter;
+  auto totalWidg = new RectSplitter;
+  totalWidg->setContentsMargins(0,0,0,0);
   totalWidg->addWidget(leftTabs);
 
   {
-    centralDocumentWidget = new QWidget;
+    centralDocumentWidget = new RectWidget;
     totalWidg->addWidget(centralDocumentWidget);
     centralDocumentWidget->setContentsMargins(0, 0, 0, 0);
 
@@ -172,6 +236,7 @@ View::View(QObject* parent)
     lay->addWidget(bottomTabs);
   }
   totalWidg->addWidget(rightSplitter);
+  totalWidg->setHandleWidth(1);
 
   setCentralWidget(totalWidg);
   connect(
@@ -235,7 +300,7 @@ public:
     widg->setMaximumHeight(100);
     widg->setMinimumWidth(180);
 
-    auto l = new score::MarginLess<QVBoxLayout>{widg};
+    auto l = new QVBoxLayout{widg};
 
     status = new QLabel;
     status->setTextFormat(Qt::RichText);

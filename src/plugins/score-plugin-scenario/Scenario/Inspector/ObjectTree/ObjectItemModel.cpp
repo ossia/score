@@ -987,11 +987,11 @@ ObjectPanelDelegate::ObjectPanelDelegate(
     const score::GUIApplicationContext& ctx)
     : score::PanelDelegate{ctx}
     , m_widget{new SizePolicyWidget}
-    , m_lay{new score::MarginLess<QVBoxLayout>{m_widget}}
+    , m_lay{new QVBoxLayout{m_widget}}
     , m_searchWidget{new SearchWidget{ctx}}
 {
   m_widget->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
-  m_widget->setMinimumHeight(100);
+  m_widget->setMinimumHeight(160);
   m_widget->setSizeHint({250, 100});
   m_widget->setMinimumWidth(250);
   m_widget->setStatusTip(QObject::tr("Shows the currently selected items.\n"

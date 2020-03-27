@@ -25,6 +25,7 @@
 #include <QMenuBar>
 #include <QObject>
 #include <QToolBar>
+#include <QApplication>
 #include <qnamespace.h>
 
 #include <sys/types.h>
@@ -35,6 +36,7 @@
 #include <utility>
 #include <vector>
 
+#include <QPainter>
 #include <unordered_map>
 W_OBJECT_IMPL(score::Presenter)
 namespace score
@@ -93,6 +95,20 @@ View* Presenter::view() const
 {
   return m_view;
 }
+class BottomToolbarWidget : public QWidget
+{
+public:
+  void paintEvent(QPaintEvent* ev) override
+  {/*
+    QPainter p{this};
+    QPen pen = qApp->palette().brush(QPalette::Base).color();
+    pen.setWidth(2);
+    p.setPen(pen);
+    p.drawRect(rect().adjusted(2, 2, -2, -2));
+    //p.fillRect(rect(), qApp->palette().brush(QPalette::Base));
+    */
+  }
+};
 
 void Presenter::setupGUI()
 {
@@ -151,12 +167,16 @@ void Presenter::setupGUI()
     }
 
     {
-      auto bw = new QWidget;
-      bw->setFixedHeight(45);
-      bw->setContentsMargins(0, 0, 0, 0);
+      auto bw = new BottomToolbarWidget;
+      bw->setFixedHeight(35);
 
       auto bl = new score::MarginLess<QGridLayout>{bw};
       view()->centralDocumentWidget->layout()->addWidget(bw);
+
+
+      QPalette pal;
+      pal.setColor(QPalette::Window, Qt::transparent);
+      bw->setPalette(pal);
 
       int i = 0;
       for (const Toolbar& tb : toolbars[Qt::BottomToolBarArea])
@@ -171,13 +191,15 @@ void Presenter::setupGUI()
           i++;
         }
 
-        tb.toolbar()->setIconSize({32, 32});
-        tb.toolbar()->setStyleSheet("QToolBar { border: none; }");
+        tb.toolbar()->setIconSize({24, 24});
+        //tb.toolbar()->setStyleSheet("QToolBar { border: none; }");
         bl->addWidget(tb.toolbar(), 0, i, Qt::AlignCenter);
         // bl->addWidget(new ToolbarLabel{tb}, 1, i, Qt::AlignCenter); //Label
         // below
         tb.toolbar()->setFloatable(false);
         tb.toolbar()->setMovable(false);
+
+        tb.toolbar()->setPalette(pal);
 
         i++;
 
