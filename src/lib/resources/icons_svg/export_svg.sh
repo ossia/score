@@ -9,7 +9,7 @@ for d in $svg_dir ; do
                 filename="${filename%.*}"
                 
                 echo "Now Processing File: ${filename}"
-                inkscape -z -e "$png_dir/$filename".png -w $3 -h $3 "$f"
+                inkscape -z -e "$png_dir/$filename".png -w $size -h $size "$f"
                 inkscape -z -e "$png_dir/$filename"@2x.png -w $((2*$size)) -h  $((2*$size)) "$f"
         done
 done
