@@ -57,8 +57,6 @@
         <file>icons/delete_off@2x.png</file>
         <file>icons/delete_on.png</file>
         <file>icons/delete_on@2x.png</file>
-        <file>icons/edit_off.png</file>
-        <file>icons/edit_on.png</file>
         <file>icons/end_off.png</file>
         <file>icons/end_off@2x.png</file>
         <file>icons/end_on.png</file>
@@ -135,8 +133,6 @@
         <file>icons/write_on@2x.png</file>
         <file>icons/clip_duration_off@2x.png</file>
         <file>icons/clip_duration_on@2x.png</file>
-        <file>icons/edit_off@2x.png</file>
-        <file>icons/edit_on@2x.png</file>
         <file>icons/pause_off@2x.png</file>
         <file>icons/pause_on@2x.png</file>
         <file>icons/sequence_off@2x.png</file>
@@ -232,8 +228,6 @@
         <file>icons/engine_disabled@2x.png</file>
         <file>icons/end_disabled.png</file>
         <file>icons/end_disabled@2x.png</file>
-        <file>icons/edit_disabled.png</file>
-        <file>icons/edit_disabled@2x.png</file>
         <file>icons/delete_disabled.png</file>
         <file>icons/delete_disabled@2x.png</file>
         <file>icons/create_disabled.png</file>

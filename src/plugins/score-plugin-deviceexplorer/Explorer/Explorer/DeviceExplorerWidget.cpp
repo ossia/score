@@ -66,13 +66,13 @@
 #include <QListWidget>
 #include <QMenu>
 #include <QPair>
-#include <QPushButton>
 #include <QRegExp>
 #include <QSize>
 #include <QStackedLayout>
 #include <QString>
 #include <QStringList>
 #include <QTableView>
+#include <QToolBar>
 #include <QTreeView>
 #include <qnamespace.h>
 
@@ -351,26 +351,12 @@ void DeviceExplorerWidget::buildGUI()
       this,
       &DeviceExplorerWidget::findUsage);
 
-  auto* addButton = new QPushButton(this);
-
-  QIcon addButtonIcon;
-  addButtonIcon.addPixmap(QString(":/icons/add_off.png"));
-  addButtonIcon.addPixmap(
-      QString(":/icons/add_on.png"), QIcon::Mode::Selected);
-  addButtonIcon.addPixmap(
-      QString(":/icons/add_on.png"), QIcon::Mode::Active);
-  addButtonIcon.addPixmap(
-      QString(":/icons/add_disabled.png"), QIcon::Mode::Disabled);
-  addButtonIcon.addPixmap(
-      QString(":/icons/add_off.png"),
-      QIcon::Mode::Normal,
-      QIcon::State::On);
-
-  addButton->setIcon(addButtonIcon);
-  addButton->setFixedSize(QSize(24, 24));
-  addButton->setIconSize(QSize(24, 24));
-
-  addButton->setObjectName("buttonWithoutArrow");
+  m_openAddMenuAction= new QAction(tr("Open add menu"), this);
+  setIcons(m_openAddMenuAction
+           , QStringLiteral(":/icons/add_on.png")
+           , QStringLiteral(":/icons/add_off.png")
+           , QStringLiteral(":/icons/add_disabled.png")
+           );
 
   m_addDeviceAction = new QAction(tr("Add device"), this);
   setIcons(m_addDeviceAction
@@ -422,31 +408,22 @@ void DeviceExplorerWidget::buildGUI()
   addMenu->addSeparator();
   addMenu->addAction(m_removeNodeAction);
 
-  addButton->setMenu(addMenu);
+  connect(
+      m_openAddMenuAction,
+      &QAction::triggered,
+      addMenu,
+      [addMenu]()
+  {
+      addMenu->popup(QCursor::pos());
+  });
 
-  QMenu* editMenu = new QMenu(this);
-  auto* editButton = new QPushButton(this);
-
-  QIcon editButtonIcon;
-  editButtonIcon.addPixmap(QString(":/icons/edit_off.png"));
-  editButtonIcon.addPixmap(
-      QString(":/icons/edit_off.png"),
-      QIcon::Mode::Normal,
-      QIcon::State::On);
-  editButtonIcon.addPixmap(
-      QString(":/icons/edit_on.png"), QIcon::Mode::Selected);
-  editButtonIcon.addPixmap(
-      QString(":/icons/edit_on.png"), QIcon::Mode::Active);
-  editButtonIcon.addPixmap(
-      QString(":/icons/edit_disabled.png"), QIcon::Mode::Disabled);
-
-  editButton->setIcon(editButtonIcon);
-
-  editButton->setFixedSize(QSize(24, 24));
-  editButton->setIconSize(QSize(24, 24));
-  editButton->setObjectName("buttonWithoutArrow");
-
-  editButton->setMenu(editMenu);
+  auto ui_toolbar = new QToolBar(tr("DeviceExplorerToolBar"));
+  ui_toolbar->addAction(m_openAddMenuAction);
+  ui_toolbar->setIconSize(QSize{16,16});
+  ui_toolbar->setContentsMargins(0,0,0,0);
+  QPalette transp = this->palette();
+  transp.setColor(QPalette::Background, Qt::transparent);
+  ui_toolbar->setPalette(transp);
 
   // Add actions to the current widget so that shortcuts work
   {
@@ -477,18 +454,11 @@ void DeviceExplorerWidget::buildGUI()
       this,
       &DeviceExplorerWidget::filterChanged);
 
-  auto filterHLayout = new score::MarginLess<QHBoxLayout>;
-  filterHLayout->setSpacing(2);
-
-  filterHLayout->addWidget(m_columnCBox);
-  filterHLayout->addWidget(m_nameLEdit);
-
-  auto hLayout =  new score::MarginLess<QHBoxLayout>;
-  hLayout->addWidget(addButton);
-  hLayout->addWidget(editButton);
-  hLayout->addStretch(0);
-  hLayout->addLayout(filterHLayout);
-  hLayout->setContentsMargins(0, 0, 0, 0);
+  auto hLayout = new score::MarginLess<QHBoxLayout>;
+  hLayout->setSpacing(2);
+  hLayout->addWidget(ui_toolbar);
+  hLayout->addWidget(m_columnCBox);
+  hLayout->addWidget(m_nameLEdit);
 
   QWidget* mainWidg = new QWidget;
   mainWidg->setContentsMargins(0, 0, 0, 2);
