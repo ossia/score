@@ -444,6 +444,14 @@
         <file>icons/library_off@2x.png</file>
         <file>icons/library_on.png</file>
         <file>icons/library_on@2x.png</file>
+        <file>icons/project_off.png</file>
+        <file>icons/project_off@2x.png</file>
+        <file>icons/project_on.png</file>
+        <file>icons/project_on@2x.png</file>
+        <file>icons/process_library_off.png</file>
+        <file>icons/process_library_off@2x.png</file>
+        <file>icons/process_library_on.png</file>
+        <file>icons/process_library_on@2x.png</file>
     </qresource>
     <qresource prefix="/qss_icons">
         <file>rc/up_arrow_disabled.png</file>

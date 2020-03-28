@@ -185,7 +185,7 @@ const score::PanelStatus& MessagesPanelDelegate::defaultPanelStatus() const
                                          0,
                                          QObject::tr("Messages"),
                                          "messages",
-                                         QObject::tr("Ctrl+Shift+M")};
+                                         QObject::tr("Ctrl+Shift+E")};
 
   return status;
 }

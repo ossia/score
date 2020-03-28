@@ -6,20 +6,41 @@ namespace Library
 class ProjectLibraryWidget;
 class SystemLibraryWidget;
 class FileSystemModel;
-class PanelDelegate final : public score::PanelDelegate
+class UserPanel final : public score::PanelDelegate
 {
 public:
-  PanelDelegate(const score::GUIApplicationContext& ctx);
+  UserPanel(const score::GUIApplicationContext& ctx);
 
 private:
   QWidget* widget() override;
+  const score::PanelStatus& defaultPanelStatus() const override;
 
+  QWidget* m_widget{};
+};
+
+class ProjectPanel final : public score::PanelDelegate
+{
+public:
+  ProjectPanel(const score::GUIApplicationContext& ctx);
+
+private:
+  QWidget* widget() override;
   const score::PanelStatus& defaultPanelStatus() const override;
   void on_modelChanged(score::MaybeDocument oldm, score::MaybeDocument newm)
       override;
 
-  QTabWidget* m_widget{};
+  ProjectLibraryWidget* m_widget{};
+};
 
-  ProjectLibraryWidget* m_projectView{};
+class ProcessPanel final : public score::PanelDelegate
+{
+public:
+  ProcessPanel(const score::GUIApplicationContext& ctx);
+
+private:
+  QWidget* widget() override;
+  const score::PanelStatus& defaultPanelStatus() const override;
+
+  QWidget* m_widget{};
 };
 }

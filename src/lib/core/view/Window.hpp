@@ -4,14 +4,19 @@
 
 #include <core/document/Document.hpp>
 
+#include <QActionGroup>
 #include <QMainWindow>
 #include <QPair>
 #include <QString>
+#include <QVBoxLayout>
 
 #include <score_lib_base_export.h>
 
+#include <QStackedWidget>
 #include <vector>
 #include <verdigris>
+
+#include <score/widgets/MarginLess.hpp>
 
 class QCloseEvent;
 class QDockWidget;
@@ -22,6 +27,7 @@ class QTabWidget;
 class QLabel;
 namespace score
 {
+class PanelStatus;
 class FixedTabWidget;
 class DocumentModel;
 class DocumentView;
@@ -66,8 +72,9 @@ public:
   QSplitter* rightSplitter{};
   FixedTabWidget* leftTabs{};
   //QTabWidget* rightTabs{};
-  QTabWidget* bottomTabs{};
+  FixedTabWidget* bottomTabs{};
   QTabWidget* centralTabs{};
+  QWidget* transportBar{};
 private:
   bool event(QEvent* event) override;
   void changeEvent(QEvent*) override;
@@ -79,5 +86,28 @@ private:
 
   Presenter* m_presenter{};
   QLabel* m_status{};
+};
+class FixedTabWidget : public QWidget
+{
+  W_OBJECT(FixedTabWidget)
+public:
+  FixedTabWidget() noexcept;
+
+  QActionGroup* actionGroup() const noexcept;
+  QToolBar* toolbar() const noexcept;
+
+  QSize sizeHint() const override;
+  void setTab(int index);
+  std::pair<int, QAction*> addTab(QWidget* widg, const score::PanelStatus& v);
+
+  QBrush brush;
+  void paintEvent(QPaintEvent* ev) override;
+  void actionTriggered(bool b) W_SIGNAL(actionTriggered, b)
+
+private:
+  score::MarginLess<QVBoxLayout> m_layout;
+  QToolBar* m_buttons{};
+  QStackedWidget m_stack;
+  QActionGroup* m_actGrp{};
 };
 }

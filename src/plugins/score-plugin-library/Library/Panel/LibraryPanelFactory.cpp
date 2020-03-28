@@ -6,10 +6,19 @@
 
 namespace Library
 {
-
 std::unique_ptr<score::PanelDelegate>
-PanelDelegateFactory::make(const score::GUIApplicationContext& ctx)
+UserPanelFactory::make(const score::GUIApplicationContext& ctx)
 {
-  return std::make_unique<PanelDelegate>(ctx);
+  return std::make_unique<UserPanel>(ctx);
+}
+std::unique_ptr<score::PanelDelegate>
+ProjectPanelFactory::make(const score::GUIApplicationContext& ctx)
+{
+  return std::make_unique<ProjectPanel>(ctx);
+}
+std::unique_ptr<score::PanelDelegate>
+ProcessPanelFactory::make(const score::GUIApplicationContext& ctx)
+{
+  return std::make_unique<ProcessPanel>(ctx);
 }
 }

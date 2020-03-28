@@ -111,7 +111,7 @@ void DeviceExplorerView::setInitialColumnsSizes()
 {
   SCORE_ASSERT(model());
 
-  header()->resizeSection((int)Explorer::Column::Name, 220);
+  header()->resizeSection((int)Explorer::Column::Name, 180);
   header()->resizeSection((int)Explorer::Column::Value, 50);
 }
 

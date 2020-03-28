@@ -76,83 +76,17 @@ setTitle(View& view, const score::Document* document, bool save_state) noexcept
   view.setWindowTitle(title);
 }
 
-class FixedTabWidget : public QWidget
-{
-public:
-  FixedTabWidget() noexcept
-  {
-    this->setContentsMargins(2, 2, 2, 2);
-    this->setLayout(&m_layout);
-    auto layout = new QVBoxLayout;
-    layout->setMargin(9);
-    layout->setSpacing(6);
-    layout->addWidget(&m_stack);
-    m_layout.addLayout(layout);
-    m_layout.addWidget(&m_buttons);
-    QPalette transp = this->palette();
-    transp.setColor(QPalette::Background, Qt::transparent);
-    m_buttons.setPalette(transp);
-    m_buttons.setContentsMargins(0, 0, 0, 0);
-    m_buttons.setIconSize(QSize{24,24});
-    m_actGrp = new QActionGroup{&m_buttons};
-    m_actGrp->setExclusive(true);
-  }
-
-  QSize sizeHint() const override
-  {
-    return {200, 1000};
-  }
-
-  void setTab(int index)
-  {
-    m_actGrp->actions()[index]->trigger();
-  }
-
-  int addTab(QWidget* widg, const score::PanelStatus& v)
-  {
-    int idx = m_stack.addWidget(widg);
-
-    auto btn = m_buttons.addAction(v.icon, v.prettyName);
-    m_actGrp->addAction(btn);
-    btn->setCheckable(true);
-    btn->setIcon(v.icon);
-
-    btn->setToolTip(v.prettyName);
-    btn->setWhatsThis(widg->whatsThis());
-    btn->setStatusTip(widg->statusTip());
-
-    connect(btn, &QAction::triggered,
-            &m_stack, [this, idx] {
-      m_stack.setCurrentIndex(idx);
-    });
-
-    return idx;
-  }
-
-  void paintEvent(QPaintEvent* ev) override
-  {
-    QPainter p{this};
-    p.setPen(Qt::transparent);
-    p.setBrush(QColor("#121216"));
-    p.drawRoundedRect(rect(), 3, 3);
-  }
-private:
-  score::MarginLess<QVBoxLayout> m_layout;
-  //QVBoxLayout m_layout;
-  QToolBar m_buttons;
-  QStackedWidget m_stack;
-  QActionGroup* m_actGrp{};
-};
-
+W_OBJECT_IMPL(FixedTabWidget)
 class RectSplitter : public QSplitter
 {
 public:
+  QBrush brush ;
   using QSplitter::QSplitter;
   void paintEvent(QPaintEvent* ev) override
-  {
+  {if(brush == QBrush()) return;
     QPainter p{this};
     p.setPen(Qt::transparent);
-    p.setBrush(QColor("#121216"));
+    p.setBrush(brush);
     p.drawRoundedRect(rect(), 3, 3);
   }
 };
@@ -181,26 +115,27 @@ public:
   }
 };
 */
+class BottomToolbarWidget : public QWidget
+{
+public:
+  void paintEvent(QPaintEvent* ev) override
+  {
+    QPainter p{this};
+    p.fillRect(rect(), Qt::transparent);
+
+  }
+};
+
 View::View(QObject* parent)
   : QMainWindow{}
 {
-  leftTabs = new FixedTabWidget;
-  rightSplitter = new RectSplitter{Qt::Vertical};
-  bottomTabs = new QTabWidget;
-  centralTabs = new QTabWidget;
-  centralTabs->setContentsMargins(0, 0, 0, 0);
-
-  for(auto tabs : { bottomTabs, centralTabs})
-  {
-    tabs->setMovable(false);
-    tabs->setTabsClosable(false);
-  }
   setAutoFillBackground(false);
   setObjectName("View");
-  this->setWindowIcon(QIcon("://ossia-score.png"));
-
+  setWindowIcon(QIcon("://ossia-score.png"));
   setTitle(*this, nullptr, false);
 
+  leftTabs = new FixedTabWidget;
+  rightSplitter = new RectSplitter{Qt::Vertical};
   auto rect = QGuiApplication::primaryScreen()->availableGeometry();
   this->resize(
       static_cast<int>(rect.width() * 0.75),
@@ -211,29 +146,62 @@ View::View(QObject* parent)
   totalWidg->addWidget(leftTabs);
 
   {
-    centralDocumentWidget = new RectWidget;
+    auto rs = new RectSplitter{Qt::Vertical};
+    rs->brush = QColor("#1F1F20");
+    centralDocumentWidget = rs;
     totalWidg->addWidget(centralDocumentWidget);
     centralDocumentWidget->setContentsMargins(0, 0, 0, 0);
 
-    auto lay = new score::MarginLess<QVBoxLayout>(centralDocumentWidget);
-    lay->addWidget(centralTabs);
+    //auto lay = new score::MarginLess<QVBoxLayout>(centralDocumentWidget);
+    centralTabs = new QTabWidget;
+    centralTabs->setContentsMargins(0, 0, 0, 0);
+    centralTabs->setMovable(false);
+
     centralTabs->setObjectName("Documents");
     centralTabs->setContentsMargins(0, 0, 0, 0);
     centralTabs->tabBar()->setDocumentMode(true);
     centralTabs->tabBar()->setDrawBase(false);
     centralTabs->tabBar()->setAutoHide(true);
+    //centralTabs->setSizePolicy(QSizePolicy::Minimum,QSizePolicy::Minimum);
+    rs->addWidget(centralTabs);
 
-    bottomTabs->setVisible(false);
-    bottomTabs->setTabPosition(QTabWidget::South);
-    bottomTabs->setTabsClosable(false);
+    transportBar = new BottomToolbarWidget;
+    auto transportLay = new score::MarginLess<QGridLayout>{transportBar};
+    QPalette pal;
+    pal.setColor(QPalette::Window, Qt::blue);
+    transportBar->setPalette(pal);
+    transportBar->setFixedHeight(35);
+    rs->addWidget(transportBar);
 
+    bottomTabs = new FixedTabWidget;
+    bottomTabs->brush = qApp->palette().brush(QPalette::Window);
     bottomTabs->setContentsMargins(0, 0, 0, 0);
-    bottomTabs->tabBar()->setDocumentMode(false);
-    bottomTabs->tabBar()->setDrawBase(false);
-    bottomTabs->tabBar()->setAutoHide(true);
-    bottomTabs->tabBar()->setContentsMargins(0, 0, 0, 0);
-
-    lay->addWidget(bottomTabs);
+    bottomTabs->setMaximumHeight(300);
+    bottomTabs->actionGroup()->setExclusionPolicy(QActionGroup::ExclusionPolicy::ExclusiveOptional);
+    rs->addWidget(bottomTabs);
+    rs->setCollapsible(0, false);
+    rs->setCollapsible(1, false);
+    rs->setCollapsible(2, true);
+    QList<int> sz = rs->sizes();
+    sz[2] = 0;
+    rs->setSizes(sz);
+    connect(bottomTabs, &FixedTabWidget::actionTriggered, this, [rs, this] (bool ok) {
+      if(ok)
+      {
+        QList<int> sz = rs->sizes();
+        if(sz[2] <= 1)
+        {
+          sz[2] = 200;
+          rs->setSizes(sz);
+        }
+      }
+      else
+      {
+        QList<int> sz = rs->sizes();
+        sz[2] = 0;
+        rs->setSizes(sz);
+      }
+    });
   }
   totalWidg->addWidget(rightSplitter);
   totalWidg->setHandleWidth(1);
@@ -343,140 +311,44 @@ void View::setupPanel(PanelDelegate* v)
   using namespace std;
   auto w = v->widget();
 
-  if (v->defaultPanelStatus().dock == Qt::BottomDockWidgetArea)
-  {
-    bottomTabs->addTab(w, v->defaultPanelStatus().icon, {});
-
-    auto& mw = v->context().menus.get().at(score::Menus::Windows());
-    auto toggle = new QAction{v->defaultPanelStatus().prettyName.toUpper(), this};
-    toggle->setCheckable(true);
-    toggle->setShortcut(v->defaultPanelStatus().shortcut);
-    addAction(toggle);
-    connect(toggle, &QAction::toggled, this, [=] (bool b) {
-        bottomTabs->setVisible(b);
-        bottomTabs->setCurrentWidget(w);
-    });
-
-    mw.menu()->addAction(toggle);
-
-    if(v->defaultPanelStatus().shown)
-        toggle->toggle();
-    return;
-  }
-  const QString& tabName = v->defaultPanelStatus().prettyName.toUpper();
-/*
-  auto dial
-      = new QDockWidget{v->defaultPanelStatus().prettyName.toUpper(), this};
-  if (v->defaultPanelStatus().fixed)
-    dial->setFeatures(QDockWidget::DockWidgetFeature::DockWidgetClosable);
-
-  dial->setWidget(w);
-  dial->setStatusTip(w->statusTip());
-  dial->toggleViewAction()->setShortcut(v->defaultPanelStatus().shortcut);
-
-  auto& mw = v->context().menus.get().at(score::Menus::Windows());
-  mw.menu()->addAction(dial->toggleViewAction());
-*/
-  // Note : this only has meaning at initialisation time.
-  auto dock = v->defaultPanelStatus().dock;
-
-  switch (dock)
+  QAction* toggle{};
+  // Add the panel
+  switch (v->defaultPanelStatus().dock)
   {
     case Qt::LeftDockWidgetArea:
     {
-      int idx = leftTabs->addTab(w, v->defaultPanelStatus());
-
-      m_leftPanels.push_back({v, w});
-      if (m_leftPanels.size() > 1)
-      {
-        // Find the one with the biggest priority
-        auto it = ossia::max_element(m_leftPanels, PanelComparator{});
-
-        if (w != it->second)
-        {
-          //leftTabs->setCurrentWidget(it->second);
-        }
-        else
-        {
-          leftTabs->setTab(idx);
-        }
-      }
+      auto [idx, act] = leftTabs->addTab(w, v->defaultPanelStatus());
+      toggle = act;
 
       break;
     }
     case Qt::RightDockWidgetArea:
     {
       rightSplitter->insertWidget(0, w);
+
       break;
     }
     case Qt::BottomDockWidgetArea:
     {
-      bottomTabs->addTab(w, v->defaultPanelStatus().icon, {});
+      auto [tabIdx, act] = bottomTabs->addTab(w, v->defaultPanelStatus());
+      toggle = act;
+
       break;
     }
     default:
       SCORE_ABORT;
   }
-  /*
-  switch (dock)
+
+  if(toggle)
   {
-    case Qt::LeftDockWidgetArea:
-    {
-      addDockWidget(dock, dial);
-      m_leftPanels.push_back({v, dial});
-      if (m_leftPanels.size() > 1)
-      {
-        // Find the one with the biggest priority
-        auto it = ossia::max_element(m_leftPanels, PanelComparator{});
+    auto& mw = v->context().menus.get().at(score::Menus::Windows());
+    addAction(toggle);
+    mw.menu()->addAction(toggle);
 
-        if (dial != it->second)
-        {
-          // dial is not on top
-          //tabifyDockWidget(dial, it->second);
-          it->second->raise();
-        }
-        else
-        {
-          // dial is on top
-          auto it = ossia::find_if(
-              m_leftPanels, [=](auto elt) { return elt.second != dial; });
-          SCORE_ASSERT(it != m_leftPanels.end());
-          //tabifyDockWidget(it->second, dial);
-          dial->raise();
-        }
-      }
-      break;
-    }
-
-    case Qt::RightDockWidgetArea:
-    {
-      m_rightPanels.push_back({v, dial});
-      if (m_rightPanels.size() > 1)
-      {
-        ossia::sort(m_rightPanels, PanelComparator{});
-        for (auto it = m_rightPanels.rbegin(); it != m_rightPanels.rend();
-             ++it)
-        {
-          //addDockWidget(dock, it->second);
-          it->second->raise();
-        }
-      }
-      else
-      {
-        //addDockWidget(dock, dial);
-      }
-
-      break;
-    }
-
-    case Qt::TopDockWidgetArea:
-    case Qt::BottomDockWidgetArea:
-    default:
-      SCORE_ABORT;
+    // Maybe show the panel
+    if(v->defaultPanelStatus().shown)
+        toggle->toggle();
   }
-  */
-  // TODO why isn't there a title and how to access it ?
-
 }
 
 void View::closeDocument(DocumentView* doc)
@@ -579,4 +451,82 @@ bool score::View::event(QEvent* event)
 
   return QMainWindow::event(event);
 }
+
+FixedTabWidget::FixedTabWidget() noexcept
+  : m_buttons{new QToolBar}
+{
+  this->setContentsMargins(2, 2, 2, 2);
+  this->setLayout(&m_layout);
+  auto layout = new QVBoxLayout;
+  layout->setMargin(9);
+  layout->setSpacing(6);
+  layout->addWidget(&m_stack);
+  m_layout.addLayout(layout);
+  m_layout.addWidget(m_buttons);
+  QPalette transp = this->palette();
+  transp.setColor(QPalette::Background, Qt::transparent);
+  m_buttons->setPalette(transp);
+  m_buttons->setIconSize(QSize{24,24});
+  m_buttons->setContentsMargins(0, 0, 0, 0);
+
+  m_actGrp = new QActionGroup{m_buttons};
+  m_actGrp->setExclusive(true);
+}
+
+
+QActionGroup* FixedTabWidget::actionGroup() const noexcept { return m_actGrp; }
+
+
+QToolBar* FixedTabWidget::toolbar() const noexcept { return m_buttons; }
+
+
+QSize FixedTabWidget::sizeHint() const
+{
+  return {200, 1000};
+}
+
+
+void FixedTabWidget::setTab(int index)
+{
+  if(m_actGrp->actions()[index]->isChecked())
+    return;
+
+  m_actGrp->actions()[index]->trigger();
+}
+
+
+std::pair<int, QAction*> FixedTabWidget::addTab(QWidget* widg, const PanelStatus& v)
+{
+  int idx = m_stack.addWidget(widg);
+
+  auto btn = m_buttons->addAction(v.icon, v.prettyName);
+  m_actGrp->addAction(btn);
+  btn->setCheckable(true);
+  btn->setShortcut(v.shortcut);
+  btn->setIcon(v.icon);
+
+  btn->setToolTip(v.prettyName);
+  btn->setWhatsThis(widg->whatsThis());
+  btn->setStatusTip(widg->statusTip());
+
+  connect(btn, &QAction::triggered,
+          &m_stack, [this, idx] (bool checked) {
+    m_stack.setCurrentIndex(idx);
+    actionTriggered(checked);
+  });
+
+  return std::make_pair(idx, btn);
+}
+
+
+void FixedTabWidget::paintEvent(QPaintEvent* ev)
+{
+  if(brush == QBrush()) return;
+  QPainter p{this};
+  p.setPen(Qt::transparent);
+  //p.setBrush(QColor("#121216"));
+  p.setBrush(brush);
+  p.drawRoundedRect(rect(), 3, 3);
+}
+
 }

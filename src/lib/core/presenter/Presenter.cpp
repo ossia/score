@@ -95,20 +95,6 @@ View* Presenter::view() const
 {
   return m_view;
 }
-class BottomToolbarWidget : public QWidget
-{
-public:
-  void paintEvent(QPaintEvent* ev) override
-  {/*
-    QPainter p{this};
-    QPen pen = qApp->palette().brush(QPalette::Base).color();
-    pen.setWidth(2);
-    p.setPen(pen);
-    p.drawRect(rect().adjusted(2, 2, -2, -2));
-    //p.fillRect(rect(), qApp->palette().brush(QPalette::Base));
-    */
-  }
-};
 
 void Presenter::setupGUI()
 {
@@ -167,16 +153,10 @@ void Presenter::setupGUI()
     }
 
     {
-      auto bw = new BottomToolbarWidget;
-      bw->setFixedHeight(35);
-
-      auto bl = new score::MarginLess<QGridLayout>{bw};
-      view()->centralDocumentWidget->layout()->addWidget(bw);
+      auto bw = view()->transportBar;
+      auto bl = (QGridLayout*)bw->layout();
 
 
-      QPalette pal;
-      pal.setColor(QPalette::Window, Qt::transparent);
-      bw->setPalette(pal);
 
       int i = 0;
       for (const Toolbar& tb : toolbars[Qt::BottomToolBarArea])
@@ -186,19 +166,17 @@ void Presenter::setupGUI()
           auto dummy = new QWidget;
           dummy->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Minimum);
           bl->addWidget(dummy, 0, i, 1, 1);
-          // bl->setColumnStretch(i, 10);
           i++;
           i++;
         }
 
-        tb.toolbar()->setIconSize({24, 24});
-        //tb.toolbar()->setStyleSheet("QToolBar { border: none; }");
         bl->addWidget(tb.toolbar(), 0, i, Qt::AlignCenter);
-        // bl->addWidget(new ToolbarLabel{tb}, 1, i, Qt::AlignCenter); //Label
-        // below
+        tb.toolbar()->setIconSize({24, 24});
         tb.toolbar()->setFloatable(false);
         tb.toolbar()->setMovable(false);
 
+        QPalette pal;
+        pal.setColor(QPalette::Window, Qt::transparent);
         tb.toolbar()->setPalette(pal);
 
         i++;
@@ -208,6 +186,8 @@ void Presenter::setupGUI()
         bl->addWidget(sp, 0, i, Qt::AlignCenter);
         i++;
       }
+
+      bl->addWidget(view()->bottomTabs->toolbar(), 0, i, Qt::AlignRight);
     }
   }
 }

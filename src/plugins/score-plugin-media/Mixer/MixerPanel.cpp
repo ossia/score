@@ -376,7 +376,7 @@ const score::PanelStatus& PanelDelegate::defaultPanelStatus() const
                                          10,
                                          QObject::tr("Audio"),
                                          "audio",
-                                         QObject::tr("Ctrl+Shift+A")};
+                                         QObject::tr("Ctrl+Shift+M")};
 
   return status;
 }
