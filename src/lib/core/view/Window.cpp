@@ -81,7 +81,7 @@ class FixedTabWidget : public QWidget
 public:
   FixedTabWidget() noexcept
   {
-    this->setContentsMargins(0, 0, 0, 0);
+    this->setContentsMargins(2, 2, 2, 2);
     this->setLayout(&m_layout);
     auto layout = new QVBoxLayout;
     layout->setMargin(9);
@@ -93,7 +93,7 @@ public:
     transp.setColor(QPalette::Background, Qt::transparent);
     m_buttons.setPalette(transp);
     m_buttons.setContentsMargins(0, 0, 0, 0);
-
+    m_buttons.setIconSize(QSize{24,24});
     m_actGrp = new QActionGroup{&m_buttons};
     m_actGrp->setExclusive(true);
   }
