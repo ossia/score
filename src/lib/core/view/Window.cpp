@@ -134,6 +134,8 @@ View::View(QObject* parent)
   setWindowIcon(QIcon("://ossia-score.png"));
   setTitle(*this, nullptr, false);
 
+  setIconSize(QSize{24,24});
+
   leftTabs = new FixedTabWidget;
   rightSplitter = new RectSplitter{Qt::Vertical};
   auto rect = QGuiApplication::primaryScreen()->availableGeometry();

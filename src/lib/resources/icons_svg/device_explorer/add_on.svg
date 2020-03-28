@@ -32,16 +32,16 @@
    inkscape:pageopacity="0"
    inkscape:pageshadow="2"
    inkscape:window-width="1920"
-   inkscape:window-height="1007"
+   inkscape:window-height="1015"
    id="namedview13"
    showgrid="false"
-   inkscape:zoom="5.7742977"
-   inkscape:cx="-21.627488"
-   inkscape:cy="9.4750756"
+   inkscape:zoom="4.7705624"
+   inkscape:cx="-9.7455851"
+   inkscape:cy="14.417383"
    inkscape:window-x="0"
    inkscape:window-y="0"
    inkscape:window-maximized="1"
-   inkscape:current-layer="layer1" />
+   inkscape:current-layer="layer3" />
 <style
    type="text/css"
    id="style2">
@@ -70,9 +70,8 @@
    inkscape:groupmode="layer"
    id="layer3"
    inkscape:label="Background"
-   style="display:inline"
-   sodipodi:insensitive="true"><rect
-     style="opacity:1;vector-effect:none;fill:#f6a019;fill-opacity:1;stroke:#000000;stroke-width:2;stroke-linecap:square;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;paint-order:stroke fill markers"
+   style="display:inline"><rect
+     style="opacity:1;vector-effect:none;fill:#f6a019;fill-opacity:1;stroke:#f6a019;stroke-width:2;stroke-linecap:square;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;paint-order:stroke fill markers"
      id="rect823"
      width="46"
      height="46"
