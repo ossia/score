@@ -72,7 +72,7 @@
 #include <QString>
 #include <QStringList>
 #include <QTableView>
-#include <QToolBar>
+#include <QToolButton>
 #include <QTreeView>
 #include <qnamespace.h>
 
@@ -351,12 +351,12 @@ void DeviceExplorerWidget::buildGUI()
       this,
       &DeviceExplorerWidget::findUsage);
 
-  m_openAddMenuAction= new QAction(tr("Open add menu"), this);
-  setIcons(m_openAddMenuAction
-           , QStringLiteral(":/icons/add_on.png")
+  auto openMenu = new QToolButton(this);
+  openMenu->setIcon(makeIcons( QStringLiteral(":/icons/add_on.png")
            , QStringLiteral(":/icons/add_off.png")
            , QStringLiteral(":/icons/add_disabled.png")
-           );
+           ));
+  openMenu->setAutoRaise(true);
 
   m_addDeviceAction = new QAction(tr("Add device"), this);
   setIcons(m_addDeviceAction
@@ -409,21 +409,13 @@ void DeviceExplorerWidget::buildGUI()
   addMenu->addAction(m_removeNodeAction);
 
   connect(
-      m_openAddMenuAction,
-      &QAction::triggered,
+      openMenu,
+      &QToolButton::clicked,
       addMenu,
       [addMenu]()
   {
       addMenu->popup(QCursor::pos());
   });
-
-  auto ui_toolbar = new QToolBar(tr("DeviceExplorerToolBar"));
-  ui_toolbar->addAction(m_openAddMenuAction);
-  ui_toolbar->setIconSize(QSize{16,16});
-  ui_toolbar->setContentsMargins(0,0,0,0);
-  QPalette transp = this->palette();
-  transp.setColor(QPalette::Background, Qt::transparent);
-  ui_toolbar->setPalette(transp);
 
   // Add actions to the current widget so that shortcuts work
   {
@@ -456,7 +448,7 @@ void DeviceExplorerWidget::buildGUI()
 
   auto hLayout = new score::MarginLess<QHBoxLayout>;
   hLayout->setSpacing(2);
-  hLayout->addWidget(ui_toolbar);
+  hLayout->addWidget(openMenu);
   hLayout->addWidget(m_columnCBox);
   hLayout->addWidget(m_nameLEdit);
 

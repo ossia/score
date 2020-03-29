@@ -105,7 +105,6 @@ private:
   QAction* m_editAction{};
   QAction* m_refreshAction{};
   QAction* m_refreshValueAction{};
-  QAction* m_openAddMenuAction{};
   QAction* m_addDeviceAction{};
   QAction* m_addSiblingAction{};
   QAction* m_addChildAction{};

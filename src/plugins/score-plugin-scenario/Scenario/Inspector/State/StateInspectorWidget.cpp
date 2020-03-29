@@ -29,7 +29,6 @@
 #include <score/widgets/MarginLess.hpp>
 #include <score/widgets/Separator.hpp>
 #include <score/widgets/SetIcons.hpp>
-#include <score/widgets/StyledButton.hpp>
 #include <score/widgets/TextLabel.hpp>
 
 #include <QAbstractProxyModel>
@@ -177,12 +176,15 @@ StateInspectorWidget::StateInspectorWidget(
 
   // State setup
   {
-    auto splitEvent = new score::StyledButton;
-
-    splitEvent->setObjectName("SplitCondition");
+    auto splitEvent = new QToolButton;
+    splitEvent->setIcon(makeIcons(QStringLiteral(":/icons/split_condition_on.png")
+                                  , QStringLiteral(":/icons/split_condition_off.png")
+                                  , QStringLiteral(":/icons/split_condition_off.png")));
     splitEvent->setToolTip(tr("Split condition"));
     splitEvent->setStatusTip(tr("Split condition"));
 
+    splitEvent->setAutoRaise(true);
+    splitEvent->setIconSize(QSize{32,32});
     m_btnLayout.addWidget(splitEvent);
     connect(
         splitEvent,
@@ -193,11 +195,16 @@ StateInspectorWidget::StateInspectorWidget(
   }
 
   {
-    auto desynchronize = new score::StyledButton;
-
-    desynchronize->setObjectName("Desynchronize");
+    auto desynchronize = new QToolButton;
+    desynchronize->setIcon(makeIcons(QStringLiteral(":/icons/desynchronize_on.png")
+                                     , QStringLiteral(":/icons/desynchronize_off.png")
+                                     , QStringLiteral(":/icons/desynchronize_off.png")));
     desynchronize->setToolTip(tr("Desynchronize"));
     desynchronize->setStatusTip(tr("Desynchronize"));
+
+    desynchronize->setAutoRaise(true);
+    desynchronize->setIconSize(QSize{32,32});
+
     m_btnLayout.addWidget(desynchronize);
 
     connect(
@@ -207,8 +214,14 @@ StateInspectorWidget::StateInspectorWidget(
         &StateInspectorWidget::splitFromNode);
    // properties.push_back(splitNode);
   }
-  m_btnLayout.layout()->setSpacing(5);
-  m_btnLayout.layout()->setContentsMargins(0,5,0,0);
+  {
+    QWidget *spacerWidget = new QWidget(this);
+    spacerWidget->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Preferred);
+    spacerWidget->setVisible(true);
+    m_btnLayout.addWidget(spacerWidget);
+  }
+
+  m_btnLayout.layout()->setContentsMargins(0,0,0,0);
 
   auto btns = new QWidget(this);
   btns->setLayout(m_btnLayout.layout());

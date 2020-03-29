@@ -19,10 +19,13 @@
 #include <score/document/DocumentContext.hpp>
 #include <score/widgets/MarginLess.hpp>
 #include <score/widgets/Separator.hpp>
-#include <score/widgets/StyledButton.hpp>
+#include <score/widgets/SetIcons.hpp>
 #include <score/widgets/StyleSheets.hpp>
 #include <score/widgets/TextLabel.hpp>
+
 #include <QCheckBox>
+#include <QToolBar>
+
 namespace Scenario
 {
 IntervalInspectorWidget::IntervalInspectorWidget(
@@ -56,20 +59,20 @@ IntervalInspectorWidget::IntervalInspectorWidget(
   parts.push_back(w);
 
   // Full View
-  auto fullview = new StyledButton;
-  fullview->setObjectName("FullView");
+  auto fullview = new QToolButton;
+  fullview->setIcon(makeIcons(QStringLiteral(":/icons/fullview_on.png")
+                              , QStringLiteral(":/icons/fullview_off.png")
+                              , QStringLiteral(":/icons/fullview_off.png")));
   fullview->setToolTip(tr("FullView"));
-  fullview->setStatusTip(tr("FullView"));
-
- // fullview->setStyleSheet(score::ValueStylesheet);
-  connect(fullview, &QPushButton::clicked, this, [this] {
+  fullview->setAutoRaise(true);
+  fullview->setIconSize(QSize{32,32});
+  connect(fullview, &QToolButton::clicked, this, [this] {
     auto base = get<ScenarioDocumentPresenter>(*documentFromObject(m_model));
-
     if (base)
       base->setDisplayedInterval(model());
   });
-
   lay->addRow(fullview);
+  lay->setAlignment(fullview, Qt::AlignHCenter);
 
   // Audio
   ScenarioDocumentModel& doc = get<ScenarioDocumentModel>(*documentFromObject(m_model));
