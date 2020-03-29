@@ -83,9 +83,9 @@ QIcon genIconFromPixmaps(
   else
   {
     QIcon icon;
-    QPixmap on(iconOn);
-    QPixmap off(iconOff);
-    QPixmap disabled(iconDisabled);
+    QPixmap on(score::get_pixmap(iconOn));
+    QPixmap off(score::get_pixmap(iconOff));
+    QPixmap disabled(score::get_pixmap(iconDisabled));
 
     icon.addPixmap(on, QIcon::Mode::Selected);
     icon.addPixmap(on, QIcon::Mode::Active);
@@ -93,7 +93,7 @@ QIcon genIconFromPixmaps(
     icon.addPixmap(on, QIcon::Mode::Selected, QIcon::State::On);
     icon.addPixmap(on, QIcon::Mode::Active, QIcon::State::On);
     icon.addPixmap(off, QIcon::Mode::Normal);
-    icon.addPixmap(iconDisabled, QIcon::Mode::Disabled);
+    icon.addPixmap(disabled, QIcon::Mode::Disabled);
 
     map.insert(std::make_pair(std::move(pair), icon));
     return icon;
@@ -114,6 +114,7 @@ QPixmap get_pixmap(QString str)
       newstr.replace(".png", "@2x.png", Qt::CaseInsensitive);
       if (QFile::exists(newstr))
       {
+        img.setDevicePixelRatio(2.);
         str = newstr;
       }
       else
@@ -137,6 +138,7 @@ QImage get_image(QString str)
       newstr.replace(".png", "@2x.png", Qt::CaseInsensitive);
       if (QFile::exists(newstr))
       {
+        img.setDevicePixelRatio(2.);
         str = newstr;
       }
       else
