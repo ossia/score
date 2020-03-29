@@ -1,7 +1,6 @@
 <RCC>
     <qresource prefix="/">
         <file>DefaultSkin.json</file>
-        <file>images/arrow.png</file>
         <file>images/trigger.png</file>
         <file>images/trigger@2x.png</file>
         <file>images/trigger-selected@2x.png</file>
