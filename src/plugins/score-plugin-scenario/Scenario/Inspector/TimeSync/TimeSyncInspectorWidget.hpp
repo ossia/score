@@ -39,6 +39,7 @@ private:
   MetadataWidget* m_metadata{};
   QLabel* m_date{};
   QCheckBox* m_autotrigger{};
+  QCheckBox* m_isStart{};
   TriggerInspectorWidget* m_trigwidg{};
 };
 }

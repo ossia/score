@@ -116,9 +116,9 @@ void updateIntervalVerticalPos(
   StateModel* rec_state = &s.state(itv.startState());
 
   statesToUpdate.insert(rec_state);
-  while (rec_state->previousInterval())
+  while (auto prev_itv = rec_state->previousInterval())
   {
-    IntervalModel* rec_cst = &s.intervals.at(*rec_state->previousInterval());
+    IntervalModel* rec_cst = &s.intervals.at(*prev_itv);
     intervalsToUpdate.insert(rec_cst);
     statesToUpdate.insert(rec_state);
     rec_state = &s.states.at(rec_cst->startState());
@@ -127,9 +127,9 @@ void updateIntervalVerticalPos(
 
   rec_state = &s.state(itv.endState());
   statesToUpdate.insert(rec_state);
-  while (rec_state->nextInterval())
+  while (auto next_itv =rec_state->nextInterval())
   {
-    IntervalModel* rec_cst = &s.intervals.at(*rec_state->nextInterval());
+    IntervalModel* rec_cst = &s.intervals.at(*next_itv);
     intervalsToUpdate.insert(rec_cst);
     statesToUpdate.insert(rec_state);
     rec_state = &s.states.at(rec_cst->endState());

@@ -7,9 +7,6 @@
 #include <score/command/Command.hpp>
 #include <score/model/path/Path.hpp>
 
-struct DataStreamInput;
-struct DataStreamOutput;
-
 namespace Scenario
 {
 class TimeSyncModel;
@@ -36,9 +33,12 @@ private:
   Path<TimeSyncModel> m_path;
   bool m_old{}, m_new{};
 };
+
 }
 }
 
 PROPERTY_COMMAND_T(Scenario::Command, SetTimeSyncMusicalSync, TimeSyncModel::p_musicalSync, "Set sync")
-
 SCORE_COMMAND_DECL_T(Scenario::Command::SetTimeSyncMusicalSync)
+
+PROPERTY_COMMAND_T(Scenario::Command, SetTimeSyncIsStartPoint, TimeSyncModel::p_startPoint, "Set start point")
+SCORE_COMMAND_DECL_T(Scenario::Command::SetTimeSyncIsStartPoint)

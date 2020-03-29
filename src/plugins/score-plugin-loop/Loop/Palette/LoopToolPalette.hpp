@@ -25,7 +25,7 @@ struct LayerContext;
 
 namespace Scenario
 {
-class MoveIntervalInBaseScenario_StateWrapper;
+class DoNotMoveInterval_StateWrapper;
 class MoveEventInBaseScenario_StateWrapper;
 class MoveTimeSyncInBaseScenario_StateWrapper;
 }
@@ -73,7 +73,7 @@ private:
       Loop::ProcessModel,
       ToolPalette,
       LayerView,
-      Scenario::MoveIntervalInBaseScenario_StateWrapper,
+      Scenario::DoNotMoveInterval_StateWrapper,
       Scenario::MoveLeftBraceInScenario_StateWrapper,
       Scenario::MoveRightBraceInScenario_StateWrapper,
       Scenario::MoveEventInBaseScenario_StateWrapper,
@@ -125,7 +125,7 @@ private:
       Loop::ProcessModel,
       DisplayedElementsToolPalette,
       BaseGraphicsObject,
-      Scenario::MoveIntervalInBaseScenario_StateWrapper,
+      Scenario::DoNotMoveInterval_StateWrapper,
       Scenario::MoveLeftBraceInScenario_StateWrapper,
       Scenario::MoveRightBraceInScenario_StateWrapper,
       Scenario::MoveEventInBaseScenario_StateWrapper,

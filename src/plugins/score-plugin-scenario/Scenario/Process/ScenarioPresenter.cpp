@@ -819,13 +819,6 @@ void ScenarioPresenter::on_eventCreated(const EventModel& event_model)
     m_viewInterface.on_eventMoved(*ev_pres);
   });
 
-  connect(ev_pres, &EventPresenter::eventHoverEnter, this, [=]() {
-    m_viewInterface.on_hoverOnEvent(ev_pres->id(), true);
-  });
-  connect(ev_pres, &EventPresenter::eventHoverLeave, this, [=]() {
-    m_viewInterface.on_hoverOnEvent(ev_pres->id(), false);
-  });
-
   // For the state machine
   connect(
       ev_pres, &EventPresenter::pressed, m_view, &ScenarioView::pressedAsked);
@@ -970,13 +963,6 @@ void ScenarioPresenter::on_intervalCreated(const IntervalModel& interval)
       &TemporalIntervalPresenter::askUpdate,
       this,
       &ScenarioPresenter::on_askUpdate);
-
-  connect(cst_pres, &TemporalIntervalPresenter::intervalHoverEnter, [=]() {
-    m_viewInterface.on_hoverOnInterval(cst_pres->model().id(), true);
-  });
-  connect(cst_pres, &TemporalIntervalPresenter::intervalHoverLeave, [=]() {
-    m_viewInterface.on_hoverOnInterval(cst_pres->model().id(), false);
-  });
 
   // For the state machine
   connect(

@@ -359,6 +359,22 @@ CategorisedScenario::CategorisedScenario(const BaseScenarioContainer& sm)
   selectedStates = selectedElementsVec(getStates(sm));
 }
 
+CategorisedScenario::CategorisedScenario(const ScenarioInterface& sm)
+{
+  for(auto& itv : sm.getIntervals())
+    if(itv.selection.get())
+      selectedIntervals.push_back(&itv);
+  for(auto& itv : sm.getEvents())
+    if(itv.selection.get())
+      selectedEvents.push_back(&itv);
+  for(auto& itv : sm.getStates())
+    if(itv.selection.get())
+      selectedStates.push_back(&itv);
+  for(auto& itv : sm.getTimeSyncs())
+    if(itv.selection.get())
+      selectedTimeSyncs.push_back(&itv);
+}
+
 CategorisedScenario::CategorisedScenario(const Selection& sm)
 {
   for (auto elt : sm)

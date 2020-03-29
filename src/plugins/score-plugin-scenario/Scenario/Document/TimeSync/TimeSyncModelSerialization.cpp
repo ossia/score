@@ -26,7 +26,10 @@ DataStreamReader::read(const Scenario::TimeSyncModel& timesync)
 {
   m_stream << timesync.m_date << timesync.m_events
            << timesync.m_musicalSync
-           << timesync.m_active << timesync.m_expression;
+           << timesync.m_active
+           << timesync.m_autotrigger
+           << timesync.m_startPoint
+           << timesync.m_expression;
 
   insertDelimiter();
 }
@@ -37,7 +40,10 @@ DataStreamWriter::write(Scenario::TimeSyncModel& timesync)
 {
   m_stream >> timesync.m_date >> timesync.m_events
       >> timesync.m_musicalSync
-      >> timesync.m_active >> timesync.m_expression;
+      >> timesync.m_active
+      >> timesync.m_autotrigger
+      >> timesync.m_startPoint
+      >> timesync.m_expression;
 
   checkDelimiter();
 }
@@ -49,7 +55,8 @@ JSONObjectReader::read(const Scenario::TimeSyncModel& timesync)
   obj[strings.Date] = toJsonValue(timesync.date());
   obj[strings.Events] = toJsonArray(timesync.m_events);
   obj["MusicalSync"] = timesync.m_musicalSync;
-  obj[strings.AutoTrigger] = toJsonValue(timesync.m_autotrigger);
+  obj[strings.AutoTrigger] = timesync.m_autotrigger;
+  obj["Start"] = timesync.m_startPoint;
 
   QJsonObject trig;
   trig[strings.Active] = timesync.m_active;
@@ -71,4 +78,5 @@ JSONObjectWriter::write(Scenario::TimeSyncModel& timesync)
   timesync.m_expression = std::move(t);
   timesync.m_active = trig_obj[strings.Active].toBool();
   timesync.m_autotrigger = obj[strings.AutoTrigger].toBool();
+  timesync.m_startPoint = obj["Start"].toBool();
 }

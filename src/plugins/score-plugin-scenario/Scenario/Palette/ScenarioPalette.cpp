@@ -31,7 +31,7 @@ ToolPalette::ToolPalette(
     ScenarioPresenter& presenter)
     : GraphicsSceneToolPalette{*presenter.view().scene()}
     , m_presenter{presenter}
-    , m_model{static_cast<const Scenario::ProcessModel&>(m_presenter.model())}
+    , m_model{m_presenter.model()}
     , m_context{lay}
     , m_magnetic{(Process::MagnetismAdjuster&)lay.context.app.interfaces<Process::MagnetismAdjuster>()}
     , m_createTool{*this}

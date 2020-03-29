@@ -138,14 +138,8 @@ public:
   score::EntityMap<CommentBlockModel> comments;
 
 public:
-  void stateMoved(const Scenario::StateModel& arg_1)
-      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, stateMoved, arg_1)
-  void eventMoved(const Scenario::EventModel& arg_1)
-      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, eventMoved, arg_1)
   void intervalMoved(const Scenario::IntervalModel& arg_1) const
       E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, intervalMoved, arg_1)
-  void commentMoved(const Scenario::CommentBlockModel& arg_1)
-      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, commentMoved, arg_1)
 
   void locked() E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, locked)
   void unlocked() E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, unlocked)

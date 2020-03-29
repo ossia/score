@@ -120,6 +120,19 @@ void TimeSyncModel::setAutotrigger(bool a)
   autotriggerChanged(a);
 }
 
+
+bool TimeSyncModel::isStartPoint() const noexcept
+{
+  return m_startPoint;
+}
+void TimeSyncModel::setStartPoint(bool a)
+{
+  if (a == m_startPoint)
+    return;
+  m_startPoint = a;
+  startPointChanged(a);
+}
+
 Control::musical_sync TimeSyncModel::musicalSync() const noexcept
 {
   return m_musicalSync;

@@ -160,25 +160,45 @@ TimeSyncInspectorWidget::TimeSyncInspectorWidget(
       = new TextLabel{tr("Default date: ") + m_model.date().toString(), this};
 
   // Trigger
-  m_autotrigger = new QCheckBox{tr("Auto-trigger")};
-  m_autotrigger->setChecked(object.autotrigger());
-  m_autotrigger->setWhatsThis(tr(R"_(Auto-trigger timesyncs are timesyncs which will
-                                  directly restart their following floating scenario upon triggering.
-                                  Else, triggering the timesync will stop the following subgraph and
-                                  it will be necessary to trigger it again to restart it.
-                                  This is only relevant for subgraphs not connected
-                                  to the root of a score.)_"));
-  m_autotrigger->setToolTip(m_autotrigger->whatsThis());
-  connect(m_autotrigger, &QCheckBox::toggled,
-          this, [&] (bool t) {
-    if(t != object.autotrigger())
-      CommandDispatcher<>{ctx.commandStack}.submit<Scenario::Command::SetAutoTrigger>(object, t);
-  });
-  connect(&object, &TimeSyncModel::autotriggerChanged,
-          this, [&] (bool t) {
-    if(t != m_autotrigger->isChecked())
-      m_autotrigger->setChecked(t);
-  });
+  {
+    m_autotrigger = new QCheckBox{tr("Auto-trigger")};
+    m_autotrigger->setChecked(object.autotrigger());
+    m_autotrigger->setWhatsThis(tr(R"_(Auto-trigger timesyncs are timesyncs which will
+                                   directly restart their following floating scenario upon triggering.
+                                   Else, triggering the timesync will stop the following subgraph and
+                                   it will be necessary to trigger it again to restart it.
+                                   This is only relevant for subgraphs not connected
+                                   to the root of a score.)_"));
+    m_autotrigger->setToolTip(m_autotrigger->whatsThis());
+    connect(m_autotrigger, &QCheckBox::toggled,
+            this, [&] (bool t) {
+      if(t != object.autotrigger())
+        CommandDispatcher<>{ctx.commandStack}.submit<Scenario::Command::SetAutoTrigger>(object, t);
+    });
+    connect(&object, &TimeSyncModel::autotriggerChanged,
+            this, [&] (bool t) {
+      if(t != m_autotrigger->isChecked())
+        m_autotrigger->setChecked(t);
+    });
+  }
+
+  {
+    m_isStart = new QCheckBox{tr("Start on play")};
+    m_isStart->setChecked(object.isStartPoint());
+    m_isStart->setWhatsThis(tr(R"_(If this is checked, this time sync will start automatically when
+                                   entering this scenario.)_"));
+    m_isStart->setToolTip(m_isStart->whatsThis());
+    connect(m_isStart, &QCheckBox::toggled,
+            this, [&] (bool t) {
+      if(t != object.isStartPoint())
+        CommandDispatcher<>{ctx.commandStack}.submit<Scenario::Command::SetTimeSyncIsStartPoint>(object, t);
+    });
+    connect(&object, &TimeSyncModel::startPointChanged,
+            this, [&] (bool t) {
+      if(t != m_isStart->isChecked())
+        m_isStart->setChecked(t);
+    });
+  }
 
   // Synchronization
   auto musicalSync = new QuantificationWidget{this};
@@ -198,7 +218,7 @@ TimeSyncInspectorWidget::TimeSyncInspectorWidget(
       ctx.app.interfaces<Command::TriggerCommandFactoryList>(),
       m_model,
       this};
-  updateAreaLayout({m_date, m_autotrigger,
+  updateAreaLayout({m_date, m_isStart, m_autotrigger,
                     musicalSync,
                     new TextLabel{tr("Trigger")}, m_trigwidg});
 

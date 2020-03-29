@@ -136,33 +136,6 @@ void update_min_max(const T& val, T& min, T& max)
   max = val > max ? val : max;
 }
 
-void ScenarioViewInterface::on_hoverOnInterval(
-    const Id<IntervalModel>& intervalId,
-    bool enter)
-{
-  /*
-  const auto& interval = m_presenter.m_intervals.at(intervalId)->model();
-  EventPresenter* start = m_presenter.m_events.at(interval.startEvent());
-  start->view()->setShadow(enter);
-  EventPresenter* end = m_presenter.m_events.at(interval.endEvent());
-  end->view()->setShadow(enter);
-  */
-}
-
-void ScenarioViewInterface::on_hoverOnEvent(
-    const Id<EventModel>& eventId,
-    bool enter)
-{
-  /*
-  const auto& event = m_presenter.m_events.at(eventId)->model();
-  for (const auto& cstr : event.intervals())
-  {
-      auto cstrView = view(m_presenter.m_intervals.at(cstr));
-      cstrView->setShadow(enter);
-  }
-  */
-}
-
 void ScenarioViewInterface::on_graphicalScaleChanged(double scale)
 {
   for (auto& e : m_presenter.getEvents())

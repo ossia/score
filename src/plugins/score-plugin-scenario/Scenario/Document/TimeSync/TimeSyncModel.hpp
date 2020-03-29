@@ -72,6 +72,9 @@ public:
   bool autotrigger() const noexcept;
   void setAutotrigger(bool t);
 
+  bool isStartPoint() const noexcept;
+  void setStartPoint(bool t);
+
   Control::musical_sync musicalSync() const noexcept;
   void setMusicalSync(Control::musical_sync sig);
 
@@ -87,7 +90,9 @@ public:
   void triggerChanged(const State::Expression& arg_1)
       E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, triggerChanged, arg_1)
   void activeChanged() E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, activeChanged)
+
   void autotriggerChanged(bool b) E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, autotriggerChanged, b)
+  void startPointChanged(bool b) E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, startPointChanged, b)
 
   void triggeredByGui() const
       E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, triggeredByGui)
@@ -96,6 +101,7 @@ public:
   E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, musicalSyncChanged, sync)
 
   PROPERTY(Control::musical_sync, musicalSync READ musicalSync WRITE setMusicalSync NOTIFY musicalSyncChanged)
+  PROPERTY(bool, startPoint READ isStartPoint WRITE setStartPoint NOTIFY startPointChanged)
 
 private:
   TimeVal m_date{std::chrono::seconds{0}};
@@ -105,6 +111,7 @@ private:
   Control::musical_sync m_musicalSync{1.};
   bool m_active{false};
   bool m_autotrigger{false};
+  bool m_startPoint{false};
 };
 }
 

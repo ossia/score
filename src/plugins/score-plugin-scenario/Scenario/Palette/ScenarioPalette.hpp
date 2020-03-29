@@ -81,6 +81,6 @@ private:
       ToolPalette,
       Process::LayerContext,
       Process::LayerView>
-      m_inputDisp;
+  m_inputDisp;
 };
 }

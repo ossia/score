@@ -20,28 +20,28 @@ StateModel& endState(const IntervalModel& cst, const Scenario_T& scenario)
 }
 
 template <typename Scenario_T>
-const EventModel&
+EventModel&
 startEvent(const IntervalModel& cst, const Scenario_T& scenario)
 {
   return scenario.event(startState(cst, scenario).eventId());
 }
 
 template <typename Scenario_T>
-const EventModel&
+EventModel&
 endEvent(const IntervalModel& cst, const Scenario_T& scenario)
 {
   return scenario.event(endState(cst, scenario).eventId());
 }
 
 template <typename Scenario_T>
-const TimeSyncModel&
+TimeSyncModel&
 startTimeSync(const IntervalModel& cst, const Scenario_T& scenario)
 {
   return scenario.timeSync(startEvent(cst, scenario).timeSync());
 }
 
 template <typename Scenario_T>
-const TimeSyncModel&
+TimeSyncModel&
 endTimeSync(const IntervalModel& cst, const Scenario_T& scenario)
 {
   return scenario.timeSync(endEvent(cst, scenario).timeSync());

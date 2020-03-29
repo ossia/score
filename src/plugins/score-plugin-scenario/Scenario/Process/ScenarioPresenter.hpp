@@ -30,7 +30,6 @@ class SCORE_PLUGIN_SCENARIO_EXPORT ScenarioPresenter final
 
   friend class Scenario::ToolPalette;
   friend class ScenarioViewInterface;
-  friend class ScenarioSelectionManager;
 
 public:
   ScenarioPresenter(
@@ -142,7 +141,6 @@ private:
   void removeElement(Map& map, const Id& id);
 
   void updateAllElements();
-  void eventHasTrigger(const EventPresenter&, bool);
 
   ZoomRatio m_zoomRatio{1};
   double m_graphicalScale{1.};

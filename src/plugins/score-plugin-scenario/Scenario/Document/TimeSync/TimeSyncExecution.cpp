@@ -88,6 +88,7 @@ void TimeSyncComponent::onSetup(
   {
     updateTriggerTime();
     m_ossia_node->set_autotrigger(m_score_node->autotrigger());
+    m_ossia_node->set_start(m_score_node->isStartPoint());
   }
 }
 

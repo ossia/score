@@ -59,6 +59,8 @@ ProcessModel::ProcessModel(
   auto& start_tn = ScenarioCreate<TimeSyncModel>::redo(
       m_startTimeSyncId, TimeVal::zero(), *this);
   start_tn.metadata().setName("Sync.start");
+  start_tn.setStartPoint(true);
+
   auto& start_ev = ScenarioCreate<EventModel>::redo(
       m_startEventId, start_tn, *this);
   start_ev.metadata().setName("Event.start");
@@ -116,7 +118,6 @@ void ProcessModel::setDurationAndScale(const TimeVal& newDuration) noexcept
   for (auto& event : events)
   {
     event.setDate(event.date() * scale);
-    eventMoved(event);
   }
   for (auto& cmt : comments)
   {
