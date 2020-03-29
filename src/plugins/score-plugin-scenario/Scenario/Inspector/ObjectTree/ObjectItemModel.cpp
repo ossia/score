@@ -44,6 +44,7 @@
 
 #include <score/application/ApplicationContext.hpp>
 #include <score/plugins/panel/PanelDelegate.hpp>
+#include <score/widgets/SetIcons.hpp>
 
 #include <core/presenter/DocumentManager.hpp>
 
@@ -920,49 +921,72 @@ SelectionStackWidget::SelectionStackWidget(
     : QWidget{parent}, m_stack{s}, m_selector{s, objects}
 {
   m_prev = new QToolButton{this};
-  m_prev->setArrowType(Qt::LeftArrow);
   m_prev->setEnabled(m_stack.canUnselect());
   m_prev->setStatusTip(tr("Previous selection."));
+  m_prev->setAutoRaise(true);
+  m_prev->setIcon(makeIcons(QStringLiteral(":/icons/arrow_left_on.png")
+                            , QStringLiteral(":/icons/arrow_left_off.png")
+                            , QStringLiteral(":/icons/arrow_left_disabled.png")));
+  m_prev->setIconSize(QSize{8,8});
 
   m_label = new TextLabel{"History", this};
   m_label->setStatusTip(tr("Go back and forth in the selected items."));
 
   m_next = new QToolButton{this};
-  m_next->setArrowType(Qt::RightArrow);
   m_next->setEnabled(m_stack.canReselect());
   m_next->setStatusTip(tr("Next selection."));
+  m_next->setAutoRaise(true);
+  m_next->setIcon(makeIcons(QStringLiteral(":/icons/arrow_right_on.png")
+                            , QStringLiteral(":/icons/arrow_right_off.png")
+                            , QStringLiteral(":/icons/arrow_right_disabled.png")));
+  m_next->setIconSize(QSize{8,8});
 
   m_left = new QToolButton{this};
-  m_left->setArrowType(Qt::LeftArrow);
   m_left->setEnabled(m_selector.hasLeft());
   m_left->setStatusTip(tr("Select the item to the left."));
+  m_left->setAutoRaise(true);
+  m_left->setIcon(makeIcons(QStringLiteral(":/icons/arrow_left_on.png")
+                            , QStringLiteral(":/icons/arrow_left_off.png")
+                            , QStringLiteral(":/icons/arrow_left_disabled.png")));
+  m_left->setIconSize(QSize{8,8});
 
   m_right = new QToolButton{this};
-  m_right->setArrowType(Qt::RightArrow);
   m_right->setEnabled(m_selector.hasRight());
+  m_right->setAutoRaise(true);
   m_right->setStatusTip(tr("Select the item to the right."));
+  m_right->setIcon(makeIcons(QStringLiteral(":/icons/arrow_right_on.png")
+                             , QStringLiteral(":/icons/arrow_right_off.png")
+                             , QStringLiteral(":/icons/arrow_right_disabled.png")));
+  m_right->setIconSize(QSize{8,8});
 
   m_up = new QToolButton{this};
-  m_up->setArrowType(Qt::UpArrow);
   m_up->setEnabled(m_selector.hasUp());
+  m_up->setAutoRaise(true);
   m_up->setStatusTip(tr("Select the item above."));
+  m_up->setIcon(makeIcons(QStringLiteral(":/icons/arrow_up_on.png")
+                          , QStringLiteral(":/icons/arrow_up_off.png")
+                          , QStringLiteral(":/icons/arrow_up_disabled.png")));
+  m_up->setIconSize(QSize{8,8});
 
   m_down = new QToolButton{this};
-  m_down->setArrowType(Qt::DownArrow);
   m_down->setEnabled(m_selector.hasDown());
+  m_down->setAutoRaise(true);
   m_down->setStatusTip(tr("Select the item below."));
+  m_down->setIcon(makeIcons(QStringLiteral(":/icons/arrow_down_on.png")
+                            , QStringLiteral(":/icons/arrow_down_off.png")
+                            , QStringLiteral(":/icons/arrow_down_disabled.png")));
+  m_down->setIconSize(QSize{8,8});
 
   auto lay = new score::MarginLess<QHBoxLayout>{this};
-
   lay->setSizeConstraint(QLayout::SetMinimumSize);
-  lay->addWidget(m_prev);
+  lay->addWidget(m_prev, 0, Qt::AlignVCenter);
   lay->addWidget(m_label);
-  lay->addWidget(m_next);
+  lay->addWidget(m_next, 0, Qt::AlignVCenter);
   lay->addStretch(8);
-  lay->addWidget(m_left);
-  lay->addWidget(m_up);
-  lay->addWidget(m_down);
-  lay->addWidget(m_right);
+  lay->addWidget(m_left, 0, Qt::AlignVCenter);
+  lay->addWidget(m_up, 0, Qt::AlignVCenter);
+  lay->addWidget(m_down, 0, Qt::AlignVCenter);
+  lay->addWidget(m_right, 0, Qt::AlignVCenter);
   setLayout(lay);
 
   connect(m_prev, &QToolButton::pressed, [&]() { m_stack.unselect(); });

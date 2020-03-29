@@ -70,6 +70,8 @@ private:
   score::MarginLess<QHBoxLayout> m_titleLayout;
 
   QToolButton m_unfoldBtn; /*!< button for the fold/unfold action */
+  QIcon m_downArrow;
+  QIcon m_rightArrow;
 
   QPushButton m_buttonTitle;
   QLineEdit m_sectionTitle; /*!< header label editable ? */

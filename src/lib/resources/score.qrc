@@ -446,47 +446,32 @@
         <file>icons/process_library_off@2x.png</file>
         <file>icons/process_library_on.png</file>
         <file>icons/process_library_on@2x.png</file>
+        <file>icons/arrow_down_disabled.png</file>
+        <file>icons/arrow_down_disabled@2x.png</file>
+        <file>icons/arrow_down_off.png</file>
+        <file>icons/arrow_down_off@2x.png</file>
+        <file>icons/arrow_left_disabled.png</file>
+        <file>icons/arrow_left_disabled@2x.png</file>
+        <file>icons/arrow_left_off.png</file>
+        <file>icons/arrow_left_off@2x.png</file>
+        <file>icons/arrow_right_disabled.png</file>
+        <file>icons/arrow_right_disabled@2x.png</file>
+        <file>icons/arrow_right_off.png</file>
+        <file>icons/arrow_right_off@2x.png</file>
+        <file>icons/arrow_up_disabled.png</file>
+        <file>icons/arrow_up_disabled@2x.png</file>
+        <file>icons/arrow_up_off.png</file>
+        <file>icons/arrow_up_off@2x.png</file>
+        <file>icons/arrow_down_on.png</file>
+        <file>icons/arrow_down_on@2x.png</file>
+        <file>icons/arrow_left_on.png</file>
+        <file>icons/arrow_left_on@2x.png</file>
+        <file>icons/arrow_right_on.png</file>
+        <file>icons/arrow_right_on@2x.png</file>
+        <file>icons/arrow_up_on.png</file>
+        <file>icons/arrow_up_on@2x.png</file>
     </qresource>
     <qresource prefix="/qss_icons">
-        <file>rc/up_arrow_disabled.png</file>
-        <file>rc/Hmovetoolbar.png</file>
-        <file>rc/stylesheet-branch-end.png</file>
-        <file>rc/branch_closed-on.png</file>
-        <file>rc/stylesheet-vline.png</file>
-        <file>rc/branch_closed.png</file>
-        <file>rc/branch_open-on.png</file>
-        <file>rc/transparent.png</file>
-        <file>rc/right_arrow_disabled.png</file>
-        <file>rc/sizegrip.png</file>
-        <file>rc/close.png</file>
-        <file>rc/close-hover.png</file>
-        <file>rc/close-pressed.png</file>
-        <file>rc/down_arrow.png</file>
-        <file>rc/Vmovetoolbar.png</file>
-        <file>rc/left_arrow.png</file>
-        <file>rc/stylesheet-branch-more.png</file>
-        <file>rc/up_arrow.png</file>
-        <file>rc/right_arrow.png</file>
-        <file>rc/left_arrow_disabled.png</file>
-        <file>rc/Hsepartoolbar.png</file>
-        <file>rc/branch_open.png</file>
-        <file>rc/Vsepartoolbar.png</file>
-        <file>rc/down_arrow_disabled.png</file>
-        <file>rc/undock.png</file>
-        <file>rc/checkbox_checked_disabled.png</file>
-        <file>rc/checkbox_checked_focus.png</file>
-        <file>rc/checkbox_checked.png</file>
-        <file>rc/checkbox_indeterminate.png</file>
-        <file>rc/checkbox_indeterminate_focus.png</file>
-        <file>rc/checkbox_unchecked_disabled.png</file>
-        <file>rc/checkbox_unchecked_focus.png</file>
-        <file>rc/checkbox_unchecked.png</file>
-        <file>rc/radio_checked_disabled.png</file>
-        <file>rc/radio_checked_focus.png</file>
-        <file>rc/radio_checked.png</file>
-        <file>rc/radio_unchecked_disabled.png</file>
-        <file>rc/radio_unchecked_focus.png</file>
-        <file>rc/radio_unchecked.png</file>
         <file>icons/blank.png</file>
     </qresource>
 </RCC>
