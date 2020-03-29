@@ -413,8 +413,8 @@ QRectF ScenarioDocumentView::visibleSceneRect() const
 void ScenarioDocumentView::timerEvent(QTimerEvent* event)
 {
   //m_minimapView.viewport()->update();
-  m_timeRulerView.viewport()->update();
-  //m_view.viewport()->update();
+  //m_timeRulerView.viewport()->update();
+  m_view.viewport()->update();
 }
 }
 
