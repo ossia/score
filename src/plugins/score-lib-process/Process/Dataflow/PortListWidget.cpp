@@ -9,6 +9,7 @@
 
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/document/DocumentContext.hpp>
+#include <score/widgets/ArrowButton.hpp>
 #include <score/widgets/ClearLayout.hpp>
 #include <score/widgets/MarginLess.hpp>
 #include <score/widgets/TextLabel.hpp>
@@ -103,8 +104,7 @@ void PortWidgetSetup::setupControl(
     QWidget* parent)
 {
   auto widg = new QWidget;
-  auto advBtn = new QToolButton{widg};
-  advBtn->setText("●");
+  auto advBtn = new score::ArrowButton{Qt::RightArrow, widg};
 
   auto lab = new TextLabel{inlet.customData(), widg};
   auto hl = new score::MarginLess<QHBoxLayout>{widg};
@@ -121,6 +121,7 @@ void PortWidgetSetup::setupControl(
 
   QObject::connect(advBtn, &QToolButton::clicked, sw, [=] {
     sw->setVisible(!sw->isVisible());
+    advBtn->setArrowType(advBtn->arrowType() == Qt::RightArrow ? Qt::DownArrow : Qt::RightArrow);
   });
   sw->setVisible(false);
 
@@ -178,6 +179,7 @@ void PortWidgetSetup::setupImpl(
   hl->addWidget(lab);
 
   auto advBtn = new QToolButton{widg};
+  advBtn->setIconSize(QSize{16,16});
   hl->addWidget(advBtn);
 
   auto port_widg = PortWidgetSetup::makeAddressWidget(port, ctx, parent);
@@ -186,16 +188,16 @@ void PortWidgetSetup::setupImpl(
   switch (port.type())
   {
     case Process::PortType::Audio:
-      advBtn->setText(QString::fromUtf8("〜"));
+      advBtn->setIcon(QIcon(QStringLiteral(":/icons/port_audio.png")));
       break;
     case Process::PortType::Midi:
-      advBtn->setText(QString::fromUtf8("♪"));
+      advBtn->setIcon(QIcon(QStringLiteral(":/icons/port_midi.png")));
       break;
     case Process::PortType::Message:
-      advBtn->setText(QString::fromUtf8("⇢"));
+      advBtn->setIcon(QIcon(QStringLiteral(":/icons/port_message.png")));
       break;
     case Process::PortType::Texture:
-      advBtn->setText(QString::fromUtf8("📺"));
+      advBtn->setIcon(QIcon(QStringLiteral(":/icons/port_texture.png")));
       break;
   }
 }

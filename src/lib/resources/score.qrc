@@ -472,16 +472,12 @@
         <file>icons/audio_bus_off@2x.png</file>
         <file>icons/audio_bus_on.png</file>
         <file>icons/audio_bus_on@2x.png</file>
-        <file>icons/audio_grey.png</file>
-        <file>icons/audio_grey@2x.png</file>
         <file>icons/auto_trigger_off.png</file>
         <file>icons/auto_trigger_off@2x.png</file>
         <file>icons/auto_trigger_on.png</file>
         <file>icons/auto_trigger_on@2x.png</file>
         <file>icons/condition_remove_disabled.png</file>
         <file>icons/condition_remove_disabled@2x.png</file>
-        <file>icons/midi_grey.png</file>
-        <file>icons/midi_grey@2x.png</file>
         <file>icons/reinit_new_off.png</file>
         <file>icons/reinit_new_off@2x.png</file>
         <file>icons/start_on_play_off.png</file>
@@ -492,6 +488,14 @@
         <file>icons/time_signature_off@2x.png</file>
         <file>icons/time_signature_on.png</file>
         <file>icons/time_signature_on@2x.png</file>
+        <file>icons/port_audio.png</file>
+        <file>icons/port_audio@2x.png</file>
+        <file>icons/port_message.png</file>
+        <file>icons/port_message@2x.png</file>
+        <file>icons/port_midi.png</file>
+        <file>icons/port_midi@2x.png</file>
+        <file>icons/port_texture.png</file>
+        <file>icons/port_texture@2x.png</file>
     </qresource>
     <qresource prefix="/qss_icons">
         <file>icons/blank.png</file>
