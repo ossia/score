@@ -15,7 +15,7 @@ class QMenu;
 
 namespace Inspector
 {
-class SCORE_LIB_INSPECTOR_EXPORT MenuButton final : public QPushButton
+class SCORE_LIB_INSPECTOR_EXPORT MenuButton final : public QToolButton
 {
 public:
   MenuButton(QWidget* parent);

@@ -11,6 +11,7 @@ class InspectorSectionWidget;
 }
 class QCheckBox;
 class QLabel;
+class QToolButton;
 namespace Scenario
 {
 class MetadataWidget;
@@ -38,7 +39,7 @@ private:
 
   MetadataWidget* m_metadata{};
   QLabel* m_date{};
-  QCheckBox* m_autotrigger{};
+  QToolButton* m_autotrigger{};
   QCheckBox* m_isStart{};
   TriggerInspectorWidget* m_trigwidg{};
 };

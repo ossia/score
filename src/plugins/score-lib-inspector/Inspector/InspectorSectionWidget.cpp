@@ -13,15 +13,14 @@ W_OBJECT_IMPL(Inspector::InspectorSectionWidget)
 namespace Inspector
 {
 MenuButton::MenuButton(QWidget* parent)
-    : QPushButton{QStringLiteral("o"), parent}
+    : QToolButton{parent}
 {
-  setFlat(true);
+  setAutoRaise(true);
   setObjectName(QStringLiteral("SettingsMenu"));
-  auto icon = makeIcons(
-      QStringLiteral(":/icons/gear_on.png"),
-      QStringLiteral(":/icons/gear_off.png"),
-      QStringLiteral(":/icons/gear_disabled.png"));
-  setIcon(icon);
+  setIcon(makeIcons(
+            QStringLiteral(":/icons/gear_on.png"),
+            QStringLiteral(":/icons/gear_off.png"),
+            QStringLiteral(":/icons/gear_disabled.png")));
   setIconSize(QSize(16, 16));
 }
 
@@ -54,9 +53,16 @@ InspectorSectionWidget::InspectorSectionWidget(bool editable, QWidget* parent)
 
   m_menuBtn.setObjectName(QStringLiteral("SettingsMenu"));
   m_menuBtn.setHidden(true);
-  m_menuBtn.setFlat(true);
+
   m_menu = new QMenu{&m_menuBtn};
-  m_menuBtn.setMenu(m_menu);
+  connect(
+      &m_menuBtn,
+      &QToolButton::clicked,
+      this,
+      [this]()
+  {
+      m_menu->popup(QCursor::pos());
+  });
 
   m_titleLayout.addWidget(&m_unfoldBtn);
   m_titleLayout.addWidget(&m_sectionTitle);

@@ -43,7 +43,7 @@ InspectorWidgetBase::InspectorWidgetBase(
       QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
   auto scrollAreaContentWidget = new QWidget;
   m_scrollAreaLayout
-      = new score::MarginLess<QVBoxLayout>{scrollAreaContentWidget};
+      = new QVBoxLayout{scrollAreaContentWidget};
   m_scrollAreaLayout->setSizeConstraint(QLayout::SetMinimumSize);
   scrollArea->setWidget(scrollAreaContentWidget);
 
