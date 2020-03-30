@@ -175,12 +175,12 @@ void PortWidgetSetup::setupImpl(
   auto widg = new QWidget;
   auto hl = new score::MarginLess<QHBoxLayout>{widg};
 
-  auto lab = new TextLabel{txt, widg};
-  hl->addWidget(lab);
-
   auto advBtn = new QToolButton{widg};
   advBtn->setIconSize(QSize{16,16});
   hl->addWidget(advBtn);
+
+  auto lab = new TextLabel{txt, widg};
+  hl->addWidget(lab);
 
   auto port_widg = PortWidgetSetup::makeAddressWidget(port, ctx, parent);
   lay.addRow(widg, port_widg);
