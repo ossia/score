@@ -30,7 +30,7 @@ InspectorSectionWidget::InspectorSectionWidget(bool editable, QWidget* parent)
     , m_generalLayout{this}
     , m_title{this}
     , m_titleLayout{&m_title}
-    , m_unfoldBtn{&m_title}
+    , m_unfoldBtn{Qt::DownArrow, &m_title}
     , m_buttonTitle{&m_title}
     , m_sectionTitle{&m_title}
     , m_menuBtn{&m_title}
@@ -38,18 +38,6 @@ InspectorSectionWidget::InspectorSectionWidget(bool editable, QWidget* parent)
   // HEADER : arrow button and name
   this->setContentsMargins(0, 0, 0, 0);
   m_title.setContentsMargins(0, 0, 0, 0);
-
-  m_unfoldBtn.setAutoRaise(true);
-  m_unfoldBtn.setIconSize(QSize{8,8});
-
-  m_downArrow = makeIcons(QStringLiteral(":/icons/arrow_down_on.png")
-                          , QStringLiteral(":/icons/arrow_down_off.png")
-                          , QStringLiteral(":/icons/arrow_down_disabled.png"));
-  m_rightArrow = makeIcons(QStringLiteral(":/icons/arrow_right_on.png")
-                           , QStringLiteral(":/icons/arrow_right_off.png")
-                           , QStringLiteral(":/icons/arrow_right_disabled.png"));
-
-  m_unfoldBtn.setIcon(m_downArrow);
 
   m_buttonTitle.setObjectName(QStringLiteral("ButtonTitle"));
   m_buttonTitle.setText(QStringLiteral("section name"));
@@ -123,11 +111,11 @@ void InspectorSectionWidget::expand(bool b)
 
   if (m_isUnfolded)
   {
-    m_unfoldBtn.setIcon(m_downArrow);
+    m_unfoldBtn.setArrowType(Qt::DownArrow);
   }
   else
   {
-    m_unfoldBtn.setIcon(m_rightArrow);
+    m_unfoldBtn.setArrowType(Qt::RightArrow);
   }
 }
 
