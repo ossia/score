@@ -5,6 +5,7 @@
 #include <Scenario/Document/Event/EventPresenter.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/Interval/Temporal/TemporalIntervalPresenter.hpp>
+#include <Scenario/Document/Interval/Graph/GraphIntervalPresenter.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
 #include <Scenario/Document/State/StatePresenter.hpp>
 #include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
@@ -19,6 +20,8 @@ extern template class SCORE_PLUGIN_SCENARIO_EXPORT
     IdContainer<Scenario::TimeSyncPresenter, Scenario::TimeSyncModel>;
 extern template class SCORE_PLUGIN_SCENARIO_EXPORT
     IdContainer<Scenario::TemporalIntervalPresenter, Scenario::IntervalModel>;
+extern template class SCORE_PLUGIN_SCENARIO_EXPORT
+    IdContainer<Scenario::GraphalIntervalPresenter, Scenario::IntervalModel>;
 extern template class SCORE_PLUGIN_SCENARIO_EXPORT
     IdContainer<Scenario::CommentBlockPresenter, Scenario::CommentBlockModel>;
 #endif

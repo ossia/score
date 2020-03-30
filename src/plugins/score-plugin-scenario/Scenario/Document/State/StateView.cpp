@@ -245,11 +245,16 @@ void StateView::updateOverlay()
 
       m_overlay = new StatePlusOverlay{this};
       m_overlay->setPos(0, -14);
+
+      m_graphOverlay = new StateGraphPlusOverlay{this};
+      m_graphOverlay->setPos(0, 10);
     }
     else
     {
       delete m_overlay;
       m_overlay = nullptr;
+      delete m_graphOverlay;
+      m_graphOverlay = nullptr;
     }
   }
 }

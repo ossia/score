@@ -85,6 +85,8 @@ void GoodOldDisplacementPolicy::computeDisplacement(
           {
             auto curIntervalId = *optCurIntervalId;
             auto& curInterval = scenario.intervals.at(curIntervalId);
+            if(curInterval.graphal())
+              continue;
             // if timesync NOT already in element properties, create new
             // element properties and set old values
             auto cur_interval_it

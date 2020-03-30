@@ -105,6 +105,24 @@ nextIntervals(const EventModel& ev, const Scenario_T& scenario)
   }
   return intervals;
 }
+
+template <typename Scenario_T>
+std::list<Id<IntervalModel>>
+nextNonGraphIntervals(const EventModel& ev, const Scenario_T& scenario)
+{
+  std::list<Id<IntervalModel>> intervals;
+  for (const Id<StateModel>& state : ev.states())
+  {
+    const StateModel& st = scenario.state(state);
+    if (const auto& cst_id = st.nextInterval())
+    {
+      if(!scenario.interval(*cst_id).graphal())
+        intervals.push_back(*cst_id);
+    }
+  }
+  return intervals;
+}
+
 template <typename Scenario_T>
 std::list<Id<IntervalModel>>
 previousIntervals(const EventModel& ev, const Scenario_T& scenario)
@@ -115,6 +133,23 @@ previousIntervals(const EventModel& ev, const Scenario_T& scenario)
     const StateModel& st = scenario.state(state);
     if (const auto& cst_id = st.previousInterval())
       intervals.push_back(*cst_id);
+  }
+  return intervals;
+}
+
+template <typename Scenario_T>
+std::list<Id<IntervalModel>>
+previousNonGraphIntervals(const EventModel& ev, const Scenario_T& scenario)
+{
+  std::list<Id<IntervalModel>> intervals;
+  for (const Id<StateModel>& state : ev.states())
+  {
+    const StateModel& st = scenario.state(state);
+    if (const auto& cst_id = st.previousInterval())
+    {
+      if(!scenario.interval(*cst_id).graphal())
+        intervals.push_back(*cst_id);
+    }
   }
   return intervals;
 }
@@ -191,6 +226,21 @@ nextIntervals(const TimeSyncModel& tn, const Scenario_T& scenario)
 
 template <typename Scenario_T>
 std::list<Id<IntervalModel>>
+nextNonGraphIntervals(const TimeSyncModel& tn, const Scenario_T& scenario)
+{
+  std::list<Id<IntervalModel>> intervals;
+  for (const Id<EventModel>& event_id : tn.events())
+  {
+    const EventModel& event = scenario.event(event_id);
+    auto next = nextNonGraphIntervals(event, scenario);
+    intervals.splice(intervals.end(), next);
+  }
+
+  return intervals;
+}
+
+template <typename Scenario_T>
+std::list<Id<IntervalModel>>
 previousIntervals(const TimeSyncModel& tn, const Scenario_T& scenario)
 {
   std::list<Id<IntervalModel>> intervals;
@@ -203,6 +253,22 @@ previousIntervals(const TimeSyncModel& tn, const Scenario_T& scenario)
 
   return intervals;
 }
+
+template <typename Scenario_T>
+std::list<Id<IntervalModel>>
+previousNonGraphIntervals(const TimeSyncModel& tn, const Scenario_T& scenario)
+{
+  std::list<Id<IntervalModel>> intervals;
+  for (const Id<EventModel>& event_id : tn.events())
+  {
+    const EventModel& event = scenario.event(event_id);
+    auto prev = previousNonGraphIntervals(event, scenario);
+    intervals.splice(intervals.end(), prev);
+  }
+
+  return intervals;
+}
+
 
 template <typename Scenario_T>
 bool hasPreviousIntervals(const TimeSyncModel& tn, const Scenario_T& scenario)

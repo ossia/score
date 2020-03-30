@@ -7,6 +7,7 @@
 
 #include <score/graphics/YPos.hpp>
 #include <score/model/Skin.hpp>
+#include <score/graphics/PainterPath.hpp>
 
 #include <ossia/detail/config.hpp>
 
@@ -208,7 +209,7 @@ void TimeRuler::createRulerPath()
   m_marks.clear();
   m_marks.reserve(16);
 
-  m_path = QPainterPath{};
+  clearPainterPath(m_path);
 
   if (m_width == 0)
   {

@@ -56,7 +56,7 @@ public:
 
         m_intervalInitialPoint = {cst.date(), cst.heightPercentage()};
 
-        auto prev_csts = previousIntervals(sev, scenar);
+        auto prev_csts = previousNonGraphIntervals(sev, scenar);
         if (!prev_csts.empty())
         {
           // We find the one that starts the latest.
@@ -270,7 +270,7 @@ public:
 
         auto& scenar = stateMachine.model();
 
-        auto prev_csts = previousIntervals(
+        auto prev_csts = previousNonGraphIntervals(
             scenar.timeSync(*this->clickedTimeSync), scenar);
         if (!prev_csts.empty())
         {

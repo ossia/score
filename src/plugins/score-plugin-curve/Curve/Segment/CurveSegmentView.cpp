@@ -7,6 +7,7 @@
 #include <Curve/CurveStyle.hpp>
 #include <Curve/Palette/CurvePoint.hpp>
 #include <Process/Style/ScenarioStyle.hpp>
+#include <score/graphics/PainterPath.hpp>
 
 #include <score/model/Identifier.hpp>
 #include <score/selection/Selectable.hpp>
@@ -195,7 +196,7 @@ void SegmentView::updatePoints()
   }
   else
   {
-    m_unstrokedShape = QPainterPath{};
+    clearPainterPath(m_unstrokedShape);
   }
   m_needsRecompute = true;
   update();

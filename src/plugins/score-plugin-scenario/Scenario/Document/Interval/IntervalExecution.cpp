@@ -46,6 +46,9 @@ IntervalComponentBase::IntervalComponentBase(
                                                         "Executor::Interval",
                                                         nullptr}
 {
+  if(score_cst.graphal())
+    return;
+
   con(interval().duration,
       &Scenario::IntervalDurations::speedChanged,
       this,
@@ -195,7 +198,11 @@ void IntervalComponent::cleanup(const std::shared_ptr<IntervalComponent>& self)
 
 interval_duration_data IntervalComponentBase::makeDurations() const
 {
-  return {context().time(interval().duration.defaultDuration()),
+  using namespace ossia;
+  if(interval().graphal())
+    return {0_tv, 0_tv, 0_tv, 1.};
+  else
+    return {context().time(interval().duration.defaultDuration()),
           context().time(interval().duration.minDuration()),
           context().time(interval().duration.maxDuration()),
           interval().duration.speed()};
@@ -208,17 +215,20 @@ void IntervalComponent::onSetup(
 {
   m_ossia_interval = ossia_cst;
 
-  auto& audio_out = static_cast<ossia::nodes::interval*>(m_ossia_interval->node.get())->audio_out;
-  audio_out.has_gain = Scenario::isBus(*m_interval, context().doc);
-  audio_out.gain = m_interval->outlet->gain();
-  audio_out.pan = m_interval->outlet->pan();
+  if(!interval().graphal())
+  {
+    auto& audio_out = static_cast<ossia::nodes::interval*>(m_ossia_interval->node.get())->audio_out;
+    audio_out.has_gain = Scenario::isBus(*m_interval, context().doc);
+    audio_out.gain = m_interval->outlet->gain();
+    audio_out.pan = m_interval->outlet->pan();
 
-  m_ossia_interval->set_min_duration(dur.minDuration);
-  m_ossia_interval->set_max_duration(dur.maxDuration);
-  m_ossia_interval->set_speed(dur.speed);
-  m_ossia_interval->set_tempo_curve(tempoCurve(interval(), context()));
-  m_ossia_interval->set_time_signature_map(timeSignatureMap(interval(), context()));
-  m_ossia_interval->set_quarter_duration(ossia::quarter_duration<double>); // In our ideal musical world, a "quarter" is half a logical second
+    m_ossia_interval->set_min_duration(dur.minDuration);
+    m_ossia_interval->set_max_duration(dur.maxDuration);
+    m_ossia_interval->set_speed(dur.speed);
+    m_ossia_interval->set_tempo_curve(tempoCurve(interval(), context()));
+    m_ossia_interval->set_time_signature_map(timeSignatureMap(interval(), context()));
+    m_ossia_interval->set_quarter_duration(ossia::quarter_duration<double>); // In our ideal musical world, a "quarter" is half a logical second
+  }
 
   if(context().doc.app.applicationSettings.gui)
   {

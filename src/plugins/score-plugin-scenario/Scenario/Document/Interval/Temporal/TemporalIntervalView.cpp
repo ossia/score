@@ -14,6 +14,7 @@
 #include <Scenario/Document/Interval/IntervalPixmaps.hpp>
 #include <Scenario/Document/Interval/SlotHandle.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
+#include <score/graphics/PainterPath.hpp>
 
 #include <score/graphics/GraphicsItem.hpp>
 #include <score/model/Skin.hpp>
@@ -62,8 +63,8 @@ const TemporalIntervalPresenter& TemporalIntervalView::presenter() const
 
 void TemporalIntervalView::updatePaths()
 {
-  solidPath = QPainterPath{};
-  playedSolidPath = QPainterPath{};
+  clearPainterPath(solidPath);
+  clearPainterPath(playedSolidPath);
 
   const qreal min_w = minWidth();
   const qreal max_w = maxWidth();
@@ -188,7 +189,7 @@ void TemporalIntervalView::drawPlayDashedPath(
 
 void TemporalIntervalView::updatePlayPaths()
 {
-  playedSolidPath = QPainterPath{};
+  clearPainterPath(playedSolidPath);
 
   const qreal min_w = minWidth();
   const qreal max_w = maxWidth();

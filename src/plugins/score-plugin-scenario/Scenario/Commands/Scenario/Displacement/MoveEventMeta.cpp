@@ -187,13 +187,15 @@ void MoveEventMeta::updateY(Scenario::ProcessModel& scenar, double y) const
   if (stp)
   {
     auto& st = *stp;
-    if (!st.previousInterval() && !st.nextInterval())
+    bool hasPrevious = st.previousInterval() && !scenar.interval(*st.previousInterval()).graphal();
+    bool hasNext = st.nextInterval() && !scenar.interval(*st.nextInterval()).graphal();
+    if (!hasPrevious && !hasNext)
     {
       st.setHeightPercentage(y);
     }
-    if (st.previousInterval())
+    if (hasPrevious)
       scenar.intervals.at(*st.previousInterval()).requestHeightChange(y);
-    if (st.nextInterval())
+    if (hasNext)
       scenar.intervals.at(*st.nextInterval()).requestHeightChange(y);
   }
 }

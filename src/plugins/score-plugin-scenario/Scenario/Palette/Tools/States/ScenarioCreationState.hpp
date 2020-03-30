@@ -13,6 +13,7 @@
 #include <Scenario/Palette/Tools/ScenarioRollbackStrategy.hpp>
 #include <Scenario/Settings/ScenarioSettingsModel.hpp>
 #include <Scenario/Tools/elementFindingHelper.hpp>
+#include <Scenario/Palette/Tool.hpp>
 
 #include <score/command/Dispatchers/MultiOngoingCommandDispatcher.hpp>
 #include <score/document/DocumentInterface.hpp>
@@ -76,18 +77,32 @@ protected:
   {
     if (this->hoveredState)
     {
-      // make sure the hovered corresponding timesync dont have a date prior to
-      // original state date
-      if (getDate(m_parentSM.model(), originalState)
-          < getDate(m_parentSM.model(), *this->hoveredState))
+      bool graphal = this->m_parentSM.editionSettings().tool() == Scenario::Tool::CreateGraph;
+
+      if(graphal)
       {
         auto cmd = new Scenario::Command::CreateInterval{
-            this->m_scenario, originalState, *this->hoveredState};
+            this->m_scenario, originalState, *this->hoveredState, true};
 
         m_dispatcher.submit(cmd);
 
         this->createdIntervals.append(cmd->createdInterval());
-      } // else do nothing
+      }
+      else
+      {
+        // make sure the hovered corresponding timesync dont have a date prior to
+        // original state date
+        if (getDate(m_parentSM.model(), originalState)
+            < getDate(m_parentSM.model(), *this->hoveredState))
+        {
+          auto cmd = new Scenario::Command::CreateInterval{
+              this->m_scenario, originalState, *this->hoveredState};
+
+          m_dispatcher.submit(cmd);
+
+          this->createdIntervals.append(cmd->createdInterval());
+        }
+      }
     }
   }
 

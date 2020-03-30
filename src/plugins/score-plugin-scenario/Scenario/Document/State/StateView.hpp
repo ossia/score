@@ -21,6 +21,7 @@ class QWidget;
 namespace Scenario
 {
 class StatePlusOverlay;
+class StateGraphPlusOverlay;
 class StatePresenter;
 
 class SCORE_PLUGIN_SCENARIO_EXPORT StateView final : public QObject,
@@ -62,6 +63,8 @@ public:
       E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, dropReceived, arg_1)
   void startCreateMode()
       E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, startCreateMode)
+  void startCreateGraphalMode()
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, startCreateGraphalMode)
 
 protected:
   void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
@@ -79,6 +82,7 @@ private:
   void updateOverlay();
   StatePresenter& m_presenter;
   StatePlusOverlay* m_overlay{};
+  StateGraphPlusOverlay* m_graphOverlay{};
   ExecutionStatusProperty m_status{};
 
   bool m_dilated : 1;

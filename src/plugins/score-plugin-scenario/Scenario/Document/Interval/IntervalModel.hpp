@@ -151,6 +151,9 @@ public:
   bool muted() const noexcept { return m_muted; }
   void setMuted(bool m);
 
+  bool graphal() const noexcept { return m_graphal; }
+  void setGraphal(bool m);
+
   // Tempo stuff
   bool hasTimeSignature() const noexcept { return m_hasSignature; }
   void setHasTimeSignature(bool b);
@@ -222,7 +225,11 @@ public:
   void busChanged(bool arg_1)
       E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, busChanged, arg_1)
 
-  PROPERTY(double, muted READ muted WRITE setMuted NOTIFY mutedChanged)
+  void graphalChanged(bool arg_1)
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, graphalChanged, arg_1)
+
+  PROPERTY(bool, muted READ muted WRITE setMuted NOTIFY mutedChanged)
+  PROPERTY(bool, graphal READ graphal WRITE setGraphal NOTIFY graphalChanged)
   PROPERTY(double, heightPercentage READ heightPercentage WRITE setHeightPercentage NOTIFY heightPercentageChanged)
 
 private:
@@ -254,6 +261,7 @@ private:
   bool m_executing : 1;
 
   bool m_hasSignature : 1;
+  bool m_graphal : 1;
 };
 
 SCORE_PLUGIN_SCENARIO_EXPORT

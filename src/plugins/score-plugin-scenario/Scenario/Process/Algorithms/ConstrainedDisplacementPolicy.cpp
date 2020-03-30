@@ -20,8 +20,8 @@ void ConstrainedDisplacementPolicy::computeDisplacement(
     return;
   auto tn_id = draggedElements[0];
   auto& tn = scenario.timeSyncs.at(tn_id);
-  const auto& intervalsBefore = Scenario::previousIntervals(tn, scenario);
-  const auto& intervalsAfter = Scenario::nextIntervals(tn, scenario);
+  const auto& intervalsBefore = Scenario::previousNonGraphIntervals(tn, scenario);
+  const auto& intervalsAfter = Scenario::nextNonGraphIntervals(tn, scenario);
   QObjectList processesToSave;
 
   // 1. Find the delta bounds.

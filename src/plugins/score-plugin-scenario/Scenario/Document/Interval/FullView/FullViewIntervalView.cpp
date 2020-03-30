@@ -9,6 +9,7 @@
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <score/graphics/GraphicsItem.hpp>
 #include <Scenario/Document/Interval/IntervalPixmaps.hpp>
+#include <score/graphics/PainterPath.hpp>
 
 #include <QGraphicsView>
 #include <QGraphicsItem>
@@ -99,8 +100,8 @@ void FullViewIntervalView::drawPlayDashedPath(
 
 void FullViewIntervalView::updatePaths() {
 
-  solidPath = QPainterPath{};
-  playedSolidPath = QPainterPath{};
+  clearPainterPath(solidPath);
+  clearPainterPath(playedSolidPath);
 
   const qreal min_w = minWidth();
   const qreal max_w = maxWidth();
@@ -172,7 +173,7 @@ void FullViewIntervalView::drawPaths(
 
 void FullViewIntervalView::updatePlayPaths()
 {
-  playedSolidPath = QPainterPath{};
+  clearPainterPath(playedSolidPath);
 
   const qreal min_w = minWidth();
   const qreal max_w = maxWidth();

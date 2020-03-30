@@ -153,6 +153,7 @@ private:
   IdContainer<EventPresenter, EventModel> m_events;
   IdContainer<TimeSyncPresenter, TimeSyncModel> m_timeSyncs;
   IdContainer<TemporalIntervalPresenter, IntervalModel> m_intervals;
+  IdContainer<GraphalIntervalPresenter, IntervalModel> m_graphIntervals;
   IdContainer<CommentBlockPresenter, CommentBlockModel> m_comments;
 
   ScenarioViewInterface m_viewInterface;

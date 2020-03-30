@@ -122,10 +122,11 @@ IntervalModel& ScenarioCreate<IntervalModel>::redo(
     StateModel& sst,
     StateModel& est,
     double ypos,
+    bool graphal,
     Scenario::ProcessModel& s)
 {
   auto interval = new IntervalModel{id, ypos, s.context(), &s};
-
+  interval->setGraphal(graphal);
   interval->setStartState(sst.id());
   interval->setEndState(est.id());
 

@@ -495,6 +495,15 @@ void IntervalModel::setMuted(bool m)
   }
 }
 
+void IntervalModel::setGraphal(bool m)
+{
+  if (m != m_graphal)
+  {
+    m_graphal = m;
+    graphalChanged(m);
+  }
+}
+
 double IntervalModel::getSlotHeight(const SlotId& slot) const
 {
   if (slot.fullView())

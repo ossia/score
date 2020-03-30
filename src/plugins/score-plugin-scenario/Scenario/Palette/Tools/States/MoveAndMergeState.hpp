@@ -143,7 +143,7 @@ public:
         const Scenario::EventModel& ev = scenar.event(*evId);
         m_origPos.date = ev.date();
 
-        auto prev_csts = previousIntervals(ev, scenar);
+        auto prev_csts = previousNonGraphIntervals(ev, scenar);
         if (!prev_csts.empty())
         {
           // We find the one that starts the latest.
