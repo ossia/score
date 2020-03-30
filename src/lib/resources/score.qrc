@@ -127,10 +127,6 @@
         <file>icons/undock_off@2x.png</file>
         <file>icons/undock_on.png</file>
         <file>icons/undock_on@2x.png</file>
-        <file>icons/write_off.png</file>
-        <file>icons/write_off@2x.png</file>
-        <file>icons/write_on.png</file>
-        <file>icons/write_on@2x.png</file>
         <file>icons/clip_duration_off@2x.png</file>
         <file>icons/clip_duration_on@2x.png</file>
         <file>icons/pause_off@2x.png</file>
@@ -192,8 +188,6 @@
         <file>icons/search@2x.png</file>
         <file>icons/play_glob_off@2x.png</file>
         <file>icons/play_glob_on@2x.png</file>
-        <file>icons/write_disabled.png</file>
-        <file>icons/write_disabled@2x.png</file>
         <file>icons/trigger_disabled.png</file>
         <file>icons/trigger_disabled@2x.png</file>
         <file>icons/select_and_move_disabled.png</file>
