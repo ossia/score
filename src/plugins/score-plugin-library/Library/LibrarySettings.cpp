@@ -4,6 +4,7 @@
 #include <score/command/Dispatchers/ICommandDispatcher.hpp>
 #include <score/command/SettingsCommand.hpp>
 #include <score/tools/Bind.hpp>
+#include <score/widgets/SetIcons.hpp>
 
 #include <QApplication>
 #include <QDir>
@@ -90,7 +91,10 @@ QString Presenter::settingsName()
 
 QIcon Presenter::settingsIcon()
 {
-  return QApplication::style()->standardIcon(QStyle::SP_DriveHDIcon);
+  return makeIcons(QStringLiteral(":/icons/settings_library_on.png")
+                   , QStringLiteral(":/icons/settings_library_off.png")
+                   , QStringLiteral(":/icons/settings_library_off.png"));
+
 }
 
 View::View() : m_widg{new QWidget}

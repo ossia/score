@@ -19,11 +19,6 @@
         <file>icons/prev_on.png</file>
         <file>icons/create_curve_off.png</file>
         <file>icons/create_curve_on.png</file>
-        <file>icons/ic_extension_black_48dp.png</file>
-        <file>icons/ic_fiber_manual_record_black_48dp.png</file>
-        <file>icons/ic_library_music_black_48dp.png</file>
-        <file>icons/ic_play_circle_filled_black_48dp.png</file>
-        <file>icons/ic_share_black_48dp.png</file>
         <file>icons/add_off.png</file>
         <file>icons/add_off@2x.png</file>
         <file>icons/add_on.png</file>
@@ -490,6 +485,38 @@
         <file>icons/port_midi@2x.png</file>
         <file>icons/port_texture.png</file>
         <file>icons/port_texture@2x.png</file>
+        <file>icons/settings_audio_off.png</file>
+        <file>icons/settings_audio_off@2x.png</file>
+        <file>icons/settings_audio_on.png</file>
+        <file>icons/settings_audio_on@2x.png</file>
+        <file>icons/settings_device_explorer_off.png</file>
+        <file>icons/settings_device_explorer_off@2x.png</file>
+        <file>icons/settings_device_explorer_on.png</file>
+        <file>icons/settings_device_explorer_on@2x.png</file>
+        <file>icons/settings_library_off.png</file>
+        <file>icons/settings_library_off@2x.png</file>
+        <file>icons/settings_library_on.png</file>
+        <file>icons/settings_library_on@2x.png</file>
+        <file>icons/settings_play_off.png</file>
+        <file>icons/settings_play_off@2x.png</file>
+        <file>icons/settings_play_on.png</file>
+        <file>icons/settings_play_on@2x.png</file>
+        <file>icons/settings_recording_off.png</file>
+        <file>icons/settings_recording_off@2x.png</file>
+        <file>icons/settings_recording_on.png</file>
+        <file>icons/settings_recording_on@2x.png</file>
+        <file>icons/settings_ui_off.png</file>
+        <file>icons/settings_ui_off@2x.png</file>
+        <file>icons/settings_ui_on.png</file>
+        <file>icons/settings_ui_on@2x.png</file>
+        <file>icons/settings_remote_control_off.png</file>
+        <file>icons/settings_remote_control_off@2x.png</file>
+        <file>icons/settings_remote_control_on.png</file>
+        <file>icons/settings_remote_control_on@2x.png</file>
+        <file>icons/settings_effect_off.png</file>
+        <file>icons/settings_effect_off@2x.png</file>
+        <file>icons/settings_effect_on.png</file>
+        <file>icons/settings_effect_on@2x.png</file>
     </qresource>
     <qresource prefix="/qss_icons">
         <file>icons/blank.png</file>
