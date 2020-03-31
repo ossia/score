@@ -191,7 +191,6 @@ StateInspectorWidget::StateInspectorWidget(
         &QPushButton::clicked,
         this,
         &StateInspectorWidget::splitFromEvent);
-    //properties.push_back(splitEvent);
   }
 
   {
@@ -212,7 +211,6 @@ StateInspectorWidget::StateInspectorWidget(
         &QPushButton::clicked,
         this,
         &StateInspectorWidget::splitFromNode);
-   // properties.push_back(splitNode);
   }
   {
     QWidget *spacerWidget = new QWidget(this);
@@ -224,7 +222,7 @@ StateInspectorWidget::StateInspectorWidget(
   m_btnLayout.layout()->setContentsMargins(0,0,0,0);
 
   auto btns = new QWidget(this);
-  btns->setLayout(m_btnLayout.layout());
+  btns->setLayout(&m_btnLayout);
   properties.push_back(btns);
 
   {
