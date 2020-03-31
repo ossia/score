@@ -17,6 +17,7 @@ struct SCORE_PLUGIN_SCENARIO_EXPORT ObjectMapper {
   static OptionalId<TimeSyncModel> itemToTimeSyncId(const QGraphicsItem* pressedItem, const QObject* parentModel) noexcept;
   static OptionalId<TimeSyncModel> itemToTriggerId(const QGraphicsItem* pressedItem, const QObject* parentModel) noexcept;
   static OptionalId<IntervalModel> itemToIntervalId(const QGraphicsItem* pressedItem, const QObject* parentModel) noexcept;
+  static OptionalId<IntervalModel> itemToGraphIntervalId(const QGraphicsItem* pressedItem, const QObject* parentModel) noexcept;
   static OptionalId<StateModel> itemToStateId(const QGraphicsItem* pressedItem, const QObject* parentModel) noexcept;
 
   static optional<SlotPath>

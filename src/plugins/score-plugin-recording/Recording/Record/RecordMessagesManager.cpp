@@ -92,7 +92,8 @@ void MessageRecorder::stop()
         *m_createdProcess,
         startState,
         TimeVal::fromMsecs(val.percentage),
-        0.5};
+        0.5,
+        false};
     cmd->redo(context.context);
     startState = cmd->createdState();
     context.dispatcher.submit(cmd);

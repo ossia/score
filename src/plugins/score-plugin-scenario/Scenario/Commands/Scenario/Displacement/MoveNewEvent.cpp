@@ -63,7 +63,12 @@ void MoveNewEvent::redo(const score::DocumentContext& ctx) const
   if (!m_yLocked)
   {
     auto& scenar = m_cmd.path().find(ctx);
-    scenar.intervals.at(m_intervalId).requestHeightChange(m_y);
+    auto& itv = scenar.intervals.at(m_intervalId);
+    if(itv.graphal())
+    {
+      scenar.states.at(itv.endState()).setHeightPercentage(m_y);
+    }
+    itv.requestHeightChange(m_y);
   }
 }
 

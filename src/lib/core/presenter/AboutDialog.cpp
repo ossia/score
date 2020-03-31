@@ -6,7 +6,6 @@
 #include <QListWidget>
 #include <QPlainTextEdit>
 #include <QScreen>
-#include <QUrl>
 
 #include <score_git_info.hpp>
 #if __has_include(<score_licenses.hpp>)
@@ -17,7 +16,6 @@
 #include <QDesktopServices>
 #include <QPainter>
 
-#include <map>
 namespace score
 {
 AboutDialog::AboutDialog(QWidget* parent)

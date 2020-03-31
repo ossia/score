@@ -2,8 +2,6 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "Application.hpp"
 
-#include <score/application/ApplicationComponents.hpp>
-#include <score/application/GUIApplicationContext.hpp>
 #include <score/command/Validity/ValidityChecker.hpp>
 #include <score/model/Identifier.hpp>
 #include <score/model/path/ObjectIdentifier.hpp>
@@ -11,43 +9,27 @@
 #include <score/plugins/documentdelegate/DocumentDelegateFactory.hpp>
 #include <score/selection/Selection.hpp>
 #include <score/tools/IdentifierGeneration.hpp>
-#include <score/tools/std/Optional.hpp>
 #include <score/widgets/Pixmap.hpp>
-#include <core/view/StyleLoader.hpp>
 
 #include <core/application/ApplicationRegistrar.hpp>
-#include <core/application/ApplicationSettings.hpp>
 #include <core/application/SafeQApplication.hpp>
 #include <core/document/DocumentBackups.hpp>
 #include <core/document/DocumentModel.hpp>
 #include <core/presenter/DocumentManager.hpp>
 #include <core/presenter/Presenter.hpp>
+#include <core/view/StyleLoader.hpp>
 #include <core/view/Window.hpp>
 
 #include <ossia-qt/qt_logger.hpp>
 #include <ossia/context.hpp>
-#include <ossia/detail/logger.hpp>
 
-#include <QByteArray>
-#include <QCoreApplication>
-#include <QDir>
-#include <QFile>
-#include <QFont>
 #include <QFontDatabase>
-#include <QPainter>
-#include <QPixmap>
-#include <QSplashScreen>
-#include <QString>
-#include <QStringList>
-#include <qnamespace.h>
-
-#include <spdlog/spdlog.h>
-#include <spdlog/sinks/stdout_sinks.h>
-
-#include <algorithm>
-#include <vector>
-
 #include <QOpenGLContext>
+#include <QPainter>
+#include <QSplashScreen>
+
+#include <spdlog/sinks/stdout_sinks.h>
+#include <spdlog/spdlog.h>
 #if __has_include(<QQuickStyle>)
 #include <QQuickStyle>
 #endif

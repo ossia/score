@@ -2,6 +2,7 @@
 #include <QObject>
 #include <QGraphicsItem>
 #include <score/model/Identifier.hpp>
+#include <Scenario/Document/ScenarioDocument/ScenarioDocumentViewConstants.hpp>
 #include <verdigris>
 #include <QPainterPath>
 #include <score_plugin_scenario_export.h>
@@ -29,6 +30,13 @@ public:
 
   const Id<IntervalModel>& id() const;
   const IntervalModel& model() const;
+
+  static constexpr int static_type()
+  {
+    return ItemType::GraphInterval;
+  }
+  int type() const final override { return static_type(); }
+
 
   void pressed(QPointF arg_1) const
   E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, pressed, arg_1)

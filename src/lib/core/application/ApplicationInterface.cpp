@@ -2,13 +2,10 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "ApplicationInterface.hpp"
 
-#include <score/application/ApplicationContext.hpp>
 #include <score/model/ComponentSerialization.hpp>
 #include <score/model/ObjectRemover.hpp>
 #include <score/plugins/ProjectSettings/ProjectSettingsFactory.hpp>
 #include <score/plugins/documentdelegate/DocumentDelegateFactory.hpp>
-#include <score/plugins/documentdelegate/plugin/DocumentPlugin.hpp>
-#include <score/plugins/documentdelegate/plugin/DocumentPluginCreator.hpp>
 #include <score/plugins/panel/PanelDelegateFactory.hpp>
 #include <score/plugins/qt_interfaces/CommandFactory_QtInterface.hpp>
 #include <score/plugins/qt_interfaces/FactoryFamily_QtInterface.hpp>
@@ -20,8 +17,6 @@
 #include <core/messages/MessagesPanel.hpp>
 #include <core/plugin/PluginManager.hpp>
 #include <core/presenter/CoreApplicationPlugin.hpp>
-#include <core/presenter/Presenter.hpp>
-#include <core/settings/Settings.hpp>
 #include <core/undo/Panel/UndoPanelFactory.hpp>
 #include <core/undo/UndoApplicationPlugin.hpp>
 #include <core/view/Window.hpp>

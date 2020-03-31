@@ -175,6 +175,20 @@ public:
           return;
         }
 
+        Scenario::EditionSettings& settings
+            = this->m_parentSM.editionSettings();
+        if (settings.tool() == Scenario::Tool::CreateGraph)
+        {
+          this->m_dispatcher.template submit<MoveNewEvent>(
+              this->m_scenario,
+              this->createdIntervals.last(),
+              this->createdEvents.last(),
+              this->currentPoint.date,
+              this->currentPoint.y,
+              false);
+          return;
+        }
+
         this->currentPoint.date = stateMachine.magnetic().getPosition(&stateMachine.model(), this->currentPoint.date);
 
         if (this->currentPoint.date <= this->m_clickedPoint.date)
@@ -189,8 +203,6 @@ public:
         //
         // Else, if we're < 10 pixels, we switch to "sequence"
         // Else, we keep the normal state.
-        Scenario::EditionSettings& settings
-            = this->m_parentSM.editionSettings();
         bool manual_sequence = qApp->keyboardModifiers() & Qt::ShiftModifier;
         if (!manual_sequence)
         {
@@ -312,7 +324,14 @@ private:
     }
     else
     {
-      if (!sequence)
+      if(this->m_parentSM.editionSettings().tool() == Scenario::Tool::CreateGraph) {
+
+        this->currentPoint.y = st.heightPercentage();
+        fun(*this->clickedState);
+        return;
+      }
+
+      else if (!sequence)
       {
         // Create new state on the event
         auto cmd = new Scenario::Command::CreateState{

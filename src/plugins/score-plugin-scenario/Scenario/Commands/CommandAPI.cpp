@@ -52,7 +52,7 @@ IntervalModel& Macro::createBox(
   m.submit(c_st);
 
   auto c_itv = new CreateInterval_State_Event_TimeSync{
-      scenar, c_st->createdState(), end, y};
+      scenar, c_st->createdState(), end, y, false};
   m.submit(c_itv);
 
   return scenar.intervals.at(c_itv->createdInterval());
@@ -64,7 +64,7 @@ IntervalModel& Macro::createIntervalAfter(
     Point pt)
 {
   auto cmd
-      = new CreateInterval_State_Event_TimeSync{scenar, state, pt.date, pt.y};
+      = new CreateInterval_State_Event_TimeSync{scenar, state, pt.date, pt.y, false};
   m.submit(cmd);
   return scenar.intervals.at(cmd->createdInterval());
 }

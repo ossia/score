@@ -26,10 +26,11 @@ CreateInterval_State::CreateInterval_State(
     const Scenario::ProcessModel& scenario,
     Id<StateModel> startState,
     Id<EventModel> endEvent,
-    double endStateY)
+    double endStateY,
+    bool graphal)
     : m_createdName{RandomNameProvider::generateName<StateModel>()}
     , m_newState{getStrongId(scenario.states)}
-    , m_command{scenario, std::move(startState), m_newState}
+    , m_command{scenario, std::move(startState), m_newState, graphal}
     , m_endEvent{std::move(endEvent)}
     , m_stateY{endStateY}
 {

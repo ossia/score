@@ -17,8 +17,6 @@
 #include <QString>
 #include <QToolBar>
 
-class QObject;
-
 score::UndoApplicationPlugin::UndoApplicationPlugin(
     const score::GUIApplicationContext& app)
     : score::GUIApplicationPlugin{app}

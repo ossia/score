@@ -25,10 +25,11 @@ CreateInterval_State_Event::CreateInterval_State_Event(
     const Scenario::ProcessModel& scenario,
     Id<StateModel> startState,
     Id<TimeSyncModel> endTimeSync,
-    double endStateY)
+    double endStateY,
+    bool graph)
     : m_newEvent{getStrongId(scenario.events)}
     , m_createdName{RandomNameProvider::generateName<EventModel>()}
-    , m_command{scenario, std::move(startState), m_newEvent, endStateY}
+    , m_command{scenario, std::move(startState), m_newEvent, endStateY, graph}
     , m_endTimeSync{std::move(endTimeSync)}
 {
 }

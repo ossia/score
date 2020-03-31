@@ -360,7 +360,10 @@ ScenarioDocumentView::ScenarioDocumentView(
   {
     //m_minimapView.setViewport(new QOpenGLWidget);
     //m_timeRulerView.setViewport(new QOpenGLWidget);
-    m_view.setViewport(new QGLWidget);
+    QGLFormat fmt;
+    fmt.setSamples(4);
+    auto vp = new QGLWidget{fmt};
+    m_view.setViewport(vp);
 
     //m_minimapView.setViewportUpdateMode(QGraphicsView::NoViewportUpdate);
     //m_timeRulerView.setViewportUpdateMode(QGraphicsView::NoViewportUpdate);

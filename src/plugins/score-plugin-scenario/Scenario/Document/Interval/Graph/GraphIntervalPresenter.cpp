@@ -89,11 +89,16 @@ void GraphalIntervalPresenter::resize()
 void GraphalIntervalPresenter::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
   auto& style = Process::Style::instance();
+  static auto pdotted = style.IntervalBase().main.pen1_5;
+  pdotted.setStyle(Qt::DotLine);
+
   painter->setRenderHint(QPainter::Antialiasing, true);
-  painter->setPen(style.IntervalBase().main.pen3);
+  painter->setPen(pdotted);
   painter->setBrush(style.TransparentBrush());
   painter->drawPath(m_path);
   painter->setRenderHint(QPainter::Antialiasing, false);
+
+  // TODO draw an arrow
 }
 
 QPainterPath GraphalIntervalPresenter::shape() const

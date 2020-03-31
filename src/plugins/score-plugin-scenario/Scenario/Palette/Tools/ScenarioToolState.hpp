@@ -106,6 +106,9 @@ protected:
       case ItemType::Interval:
         tryFun(cst_fun, itemToIntervalId(item, parent));
         break;
+      case ItemType::GraphInterval:
+        tryFun(cst_fun, itemToGraphIntervalId(item, parent));
+        break;
       case ItemType::IntervalHeader:
         tryFun(cst_fun, itemToIntervalId(item->parentItem(), parent));
         break;
