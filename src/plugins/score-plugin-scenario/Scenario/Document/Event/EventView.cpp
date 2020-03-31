@@ -48,6 +48,16 @@ EventView::EventView(EventPresenter& presenter, QGraphicsItem* parent)
 
 EventView::~EventView() {}
 
+void EventView::setStatus(ExecutionStatus status)
+{
+  if(status == ExecutionStatus::Happened)
+  {
+    m_execPing.start();
+  }
+  update();
+  conditionItem().update();
+}
+
 void EventView::setCondition(const QString& cond)
 {
   if (m_condition == cond)
@@ -77,7 +87,19 @@ void EventView::paint(
   }
   else
   {
-    painter->fillRect(rect, m_presenter.model().color(skin));
+    if(Q_UNLIKELY(m_execPing.running()))
+    {
+      const auto& nextPen = m_execPing.getNextPen(
+            m_presenter.model().color(skin).color(),
+            skin.EventHappened().color(),
+            skin.StateDot().main.pen_cosmetic);
+      painter->fillRect(rect, nextPen.brush());
+      update();
+    }
+    else
+    {
+      painter->fillRect(rect, m_presenter.model().color(skin));
+    }
   }
 
 #if defined(SCORE_SCENARIO_DEBUG_RECTS)

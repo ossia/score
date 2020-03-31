@@ -2,6 +2,7 @@
 #include <Scenario/Document/Interval/ExecutionState.hpp>
 #include <Scenario/Document/Interval/Temporal/Braces/LeftBrace.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentViewConstants.hpp>
+#include <score/model/ColorInterpolator.hpp>
 
 #include <score/graphics/TextItem.hpp>
 
@@ -127,6 +128,7 @@ protected:
   double m_minWidth{};
   double m_playWidth{};
   double m_height{};
+  score::ColorBang m_execPing;
 
   bool m_selected : 1;
   bool m_infinite : 1;

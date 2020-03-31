@@ -1,9 +1,7 @@
 #pragma once
 #include <Scenario/Document/Event/ExecutionStatus.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentViewConstants.hpp>
-
-#include <score/model/ColorReference.hpp>
-#include <score/widgets/MimeData.hpp>
+#include <score/model/ColorInterpolator.hpp>
 
 #include <QGraphicsItem>
 #include <QRect>
@@ -84,6 +82,7 @@ private:
   StatePlusOverlay* m_overlay{};
   StateGraphPlusOverlay* m_graphOverlay{};
   ExecutionStatusProperty m_status{};
+  score::ColorBang m_execPing;
 
   bool m_dilated : 1;
   bool m_containMessage : 1;

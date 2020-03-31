@@ -284,7 +284,25 @@ void TemporalIntervalView::paint(
 
   if (!playedSolidPath.isEmpty())
   {
-    painter.setPen(skin.IntervalSolidPen(skin.IntervalPlayFill()));
+    if(m_execPing.running())
+    {
+      const auto& nextPen = m_execPing.getNextPen(
+            defaultColor.color(),
+            skin.IntervalPlayFill().color(),
+            skin.IntervalSolidPen(skin.IntervalPlayFill()));
+      painter.setPen(nextPen);
+      update();
+      if(!m_execPing.running())
+      {
+        m_playWidth = 0.;
+        updatePlayPaths();
+      }
+    }
+    else
+    {
+      painter.setPen(skin.IntervalSolidPen(skin.IntervalPlayFill()));
+    }
+
     painter.drawPath(playedSolidPath);
   }
 

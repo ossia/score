@@ -179,11 +179,15 @@ void GoodOldDisplacementPolicy::getRelatedTimeSyncs(
       const auto& state = scenario.states.at(state_id);
       if (const auto& cons = state.nextInterval())
       {
-        const auto& endStateId = scenario.intervals.at(*cons).endState();
-        const auto& endTnId
-            = scenario.events.at(scenario.state(endStateId).eventId())
-                  .timeSync();
-        getRelatedTimeSyncs(scenario, endTnId, translatedTimeSyncs);
+        const auto& itv = scenario.intervals.at(*cons);
+        if(Q_LIKELY(!itv.graphal()))
+        {
+          const auto& endStateId = itv.endState();
+          const auto& endTnId
+              = scenario.events.at(scenario.state(endStateId).eventId())
+                    .timeSync();
+          getRelatedTimeSyncs(scenario, endTnId, translatedTimeSyncs);
+        }
       }
     }
   }

@@ -154,6 +154,9 @@ public:
   bool graphal() const noexcept { return m_graphal; }
   void setGraphal(bool m);
 
+  bool executing() const noexcept { return m_executing; }
+  void setExecuting(bool m);
+
   // Tempo stuff
   bool hasTimeSignature() const noexcept { return m_hasSignature; }
   void setHasTimeSignature(bool b);

@@ -11,6 +11,9 @@
 #include <Scenario/Document/State/StateModel.hpp>
 #include <Scenario/Process/ScenarioInterface.hpp>
 
+#include <score/model/ColorReference.hpp>
+#include <score/widgets/MimeData.hpp>
+
 #include <QApplication>
 #include <QCursor>
 #include <QDrag>
@@ -98,13 +101,26 @@ void StateView::paint(
       painter->drawPath(fullNonDilated);
   }
 
-  auto& brush =
-      (m_status.get() != ExecutionStatus::Editing)
-      ? m_status.stateStatusColor(skin)
-      : (m_selected ? skin.StateSelected() : skin.StateDot());
+  if(m_execPing.running())
+  {
+    const auto& nextPen = m_execPing.getNextPen(
+          skin.StateDot().color(),
+          skin.EventHappened().color(),
+          skin.StateDot().main.pen_cosmetic);
+    painter->setPen(nextPen);
+    painter->setBrush(nextPen.brush());
+    update();
+  }
+  else
+  {
+    auto& brush =
+        (m_status.get() != ExecutionStatus::Editing)
+        ? m_status.stateStatusColor(skin)
+        : (m_selected ? skin.StateSelected() : skin.StateDot());
 
-  painter->setBrush(brush);
-  painter->setPen(skin.StateTemporalPointPen(brush));
+    painter->setPen(skin.StateTemporalPointPen(brush));
+    painter->setBrush(brush);
+  }
   if (m_dilated)
     painter->drawPath(smallDilated);
   else
@@ -139,6 +155,10 @@ void StateView::setStatus(ExecutionStatus status)
   if (m_status.get() == status)
     return;
   m_status.set(status);
+  if(status == ExecutionStatus::Happened)
+  {
+    m_execPing.start();
+  }
   update();
 }
 

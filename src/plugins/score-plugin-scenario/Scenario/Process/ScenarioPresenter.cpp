@@ -464,10 +464,14 @@ void ScenarioPresenter::on_intervalExecutionTimer()
 
   for (TemporalIntervalPresenter& cst : m_intervals)
   {
-    auto& v = *cst.view();
-    auto& dur = cst.model().duration;
+    const auto& m = cst.model();
+    if(!m.executing())
+      continue;
 
-    auto pp = cst.model().duration.playPercentage();
+    auto& v = *cst.view();
+    const auto& dur = m.duration;
+
+    const auto pp = dur.playPercentage();
 
     if (double w = cst.on_playPercentageChanged(pp))
     {

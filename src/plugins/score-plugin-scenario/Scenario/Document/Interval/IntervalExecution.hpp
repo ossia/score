@@ -174,7 +174,9 @@ public:
       interval_duration_data dur);
 
 public:
-  void slot_callback(ossia::time_value date);
+  void slot_callback(bool running, ossia::time_value date);
   W_SLOT(slot_callback);
+  void graph_slot_callback(bool running, ossia::time_value date);
+  W_SLOT(graph_slot_callback);
 };
 }

@@ -5,7 +5,6 @@
 #include <score/graphics/DefaultGraphicsSliderImpl.hpp>
 #include <score/graphics/GraphicsSliderBaseImpl.hpp>
 #include <score/model/Skin.hpp>
-#include <score/tools/ForEach.hpp>
 
 #include <QGraphicsProxyWidget>
 #include <QGraphicsScene>

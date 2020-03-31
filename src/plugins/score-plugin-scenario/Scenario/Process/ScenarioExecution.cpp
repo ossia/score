@@ -307,7 +307,7 @@ std::function<void()> ScenarioComponentBase::removing(
   return {};
 }
 
-static void ScenarioIntervalCallback(ossia::time_value) {}
+static void ScenarioIntervalCallback(bool, ossia::time_value) {}
 
 template <>
 IntervalComponent*
@@ -332,7 +332,7 @@ ScenarioComponentBase::make<IntervalComponent, Scenario::IntervalModel>(
   // Create the time_interval
   auto dur = elt->makeDurations();
   auto ossia_cst = std::make_shared<ossia::time_interval>(
-      smallfun::function<void(ossia::time_value), 32>{
+      smallfun::function<void(bool, ossia::time_value), 32>{
           &ScenarioIntervalCallback},
       *ossia_sev->OSSIAEvent(),
       *ossia_eev->OSSIAEvent(),

@@ -79,6 +79,11 @@ void IntervalView::setInfinite(bool infinite)
 
 void IntervalView::setExecuting(bool e)
 {
+  if(m_waiting && !e)
+  {
+    m_execPing.start();
+  }
+
   m_waiting = e;
   update();
 }

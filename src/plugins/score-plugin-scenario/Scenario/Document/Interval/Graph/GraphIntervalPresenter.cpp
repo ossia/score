@@ -36,6 +36,15 @@ GraphalIntervalPresenter::GraphalIntervalPresenter(
   , m_context{ctx}
 {
   resize();
+  connect(&model.selection, &Selectable::changed,
+          this, [this] { update(); });
+  connect(&model, &IntervalModel::executionStateChanged,
+          this, [this] { update(); });
+  connect(&model, &IntervalModel::executionStarted,
+          this, [this] {
+    m_execPing.start();
+    update();
+  });
 }
 
 const Id<IntervalModel>& GraphalIntervalPresenter::id() const { return m_model.id(); }
@@ -86,14 +95,44 @@ void GraphalIntervalPresenter::resize()
   update();
 }
 
+const score::Brush& GraphalIntervalPresenter::intervalColor(const Process::Style& skin) noexcept
+{
+  if (Q_UNLIKELY(m_model.selection.get()))
+  {
+    return skin.IntervalSelected();
+  }
+  else if (Q_UNLIKELY(m_model.executionState() == IntervalExecutionState::Disabled))
+  {
+    return skin.IntervalInvalid();
+  }
+  else
+  {
+    return skin.IntervalBase();
+  }
+}
+
+
 void GraphalIntervalPresenter::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
 {
   auto& style = Process::Style::instance();
-  static auto pdotted = style.IntervalBase().main.pen1_5;
-  pdotted.setStyle(Qt::DotLine);
+  auto& brush = this->intervalColor(style);
 
   painter->setRenderHint(QPainter::Antialiasing, true);
-  painter->setPen(pdotted);
+
+  if(m_execPing.running())
+  {
+     const auto& nextPen = m_execPing.getNextPen(
+           brush.color(),
+           style.IntervalPlayFill().color(),
+           brush.main.pen2_dotted_square_miter);
+     painter->setPen(nextPen);
+     update();
+  }
+  else
+  {
+    painter->setPen(brush.main.pen2_dotted_square_miter);
+  }
+
   painter->setBrush(style.TransparentBrush());
   painter->drawPath(m_path);
   painter->setRenderHint(QPainter::Antialiasing, false);

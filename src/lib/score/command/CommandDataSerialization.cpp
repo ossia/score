@@ -2,14 +2,8 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "CommandData.hpp"
 
-#include <score/plugins/StringFactoryKey.hpp>
 #include <score/plugins/StringFactoryKeySerialization.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
-
-template <typename T>
-class Reader;
-template <typename T>
-class Writer;
 
 template <>
 void DataStreamReader::read(const score::CommandData& d)

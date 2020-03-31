@@ -91,6 +91,7 @@ set(HEADERS
     "${CMAKE_CURRENT_SOURCE_DIR}/score/document/DocumentContext.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/document/DocumentInterface.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/locking/ObjectLocker.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/score/model/ColorInterpolator.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/model/ColorReference.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/model/Component.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/model/ComponentFactory.hpp"
@@ -293,6 +294,7 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/score/command/Validity/ValidityChecker.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/score/model/Component.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/score/model/ColorInterpolator.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/score/application/ApplicationContext.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/score/application/ApplicationComponents.cpp"

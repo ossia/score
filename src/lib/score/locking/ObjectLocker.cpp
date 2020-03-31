@@ -3,7 +3,6 @@
 #include "ObjectLocker.hpp"
 
 #include <score/document/DocumentInterface.hpp>
-#include <score/model/path/ObjectPath.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
 
 #include <wobjectimpl.h>

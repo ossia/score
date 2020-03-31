@@ -5,6 +5,7 @@
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentViewConstants.hpp>
 #include <Scenario/Document/VerticalExtent.hpp>
 
+#include <score/model/ColorInterpolator.hpp>
 #include <score/model/ColorReference.hpp>
 #include <score/widgets/MimeData.hpp>
 
@@ -49,6 +50,7 @@ public:
   {
     return {-1, 0., 6, m_height};
   }
+  void setStatus(ExecutionStatus);
 
   void paint(
       QPainter* painter,
@@ -93,6 +95,7 @@ private:
   QString m_condition;
   score::ColorRef m_color;
   double m_height{};
+  score::ColorBang m_execPing;
 
   bool m_selected{};
 };

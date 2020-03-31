@@ -5,11 +5,9 @@
 #include "SettingsCommand.hpp"
 
 #include <score/application/ApplicationContext.hpp>
-#include <score/command/Command.hpp>
 #include <score/command/Dispatchers/RuntimeDispatcher.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
 
-#include <QDataStream>
 namespace score
 {
 Dispatcher::~Dispatcher() = default;

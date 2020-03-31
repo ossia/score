@@ -6,8 +6,6 @@
 #include <score/serialization/JSONVisitor.hpp>
 
 #include <boost/uuid/nil_generator.hpp>
-#include <boost/uuid/string_generator.hpp>
-#include <boost/uuid/uuid_io.hpp>
 
 namespace score
 {

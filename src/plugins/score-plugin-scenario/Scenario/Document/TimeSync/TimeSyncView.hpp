@@ -3,11 +3,8 @@
 #include <Scenario/Document/VerticalExtent.hpp>
 
 #include <score/graphics/TextItem.hpp>
-#include <score/model/ColorReference.hpp>
 
 #include <QGraphicsItem>
-#include <QPoint>
-#include <QRect>
 
 #include <score_plugin_scenario_export.h>
 class QGraphicsSceneMouseEvent;

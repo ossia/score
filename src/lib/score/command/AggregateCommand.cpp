@@ -4,11 +4,8 @@
 
 #include <score/application/ApplicationComponents.hpp>
 #include <score/application/ApplicationContext.hpp>
-#include <score/command/Command.hpp>
-#include <score/plugins/StringFactoryKey.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
 
-#include <boost/concept/usage.hpp>
 #include <boost/range/adaptor/reversed.hpp>
 
 namespace score

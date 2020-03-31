@@ -233,16 +233,33 @@ void IntervalComponent::onSetup(
   if(context().doc.app.applicationSettings.gui)
   {
     std::weak_ptr<IntervalComponent> weak_self = self;
-    in_exec([weak_self, ossia_cst, &edit = system().editionQueue] {
-      ossia_cst->set_stateless_callback(
-            smallfun::function<void(ossia::time_value), 32>{
-              [weak_self, &edit](ossia::time_value date) {
-                edit.enqueue([weak_self, date] {
-                  if (auto self = weak_self.lock())
-                  self->slot_callback(date);
-                });
-              }});
-    });
+
+    if(Q_UNLIKELY(interval().graphal()))
+    {
+      in_exec([weak_self, ossia_cst, &edit = system().editionQueue] {
+        ossia_cst->set_stateless_callback(
+              smallfun::function<void(bool, ossia::time_value), 32>{
+                [weak_self, &edit](bool running, ossia::time_value date) {
+                  edit.enqueue([weak_self, running, date] {
+                    if (auto self = weak_self.lock())
+                    self->graph_slot_callback(running, date);
+                  });
+                }});
+      });
+    }
+    else
+    {
+      in_exec([weak_self, ossia_cst, &edit = system().editionQueue] {
+        ossia_cst->set_stateless_callback(
+              smallfun::function<void(bool, ossia::time_value), 32>{
+                [weak_self, &edit](bool running, ossia::time_value date) {
+                  edit.enqueue([weak_self, running, date] {
+                    if (auto self = weak_self.lock())
+                    self->slot_callback(running, date);
+                  });
+                }});
+      });
+    }
   }
 
   // set-up the interval ports
@@ -254,19 +271,33 @@ void IntervalComponent::onSetup(
   init();
 }
 
-void IntervalComponent::slot_callback(ossia::time_value date)
+void IntervalComponent::graph_slot_callback(bool running, ossia::time_value date)
+{
+  interval().setExecuting(running);
+}
+
+void IntervalComponent::slot_callback(bool running, ossia::time_value date)
 {
   if (m_ossia_interval)
   {
-    auto currentTime = this->context().reverseTime(date);
+    if(running)
+    {
+      auto& cstdur = interval().duration;
+      const auto& maxdur = cstdur.maxDuration();
 
-    auto& cstdur = interval().duration;
-    const auto& maxdur = cstdur.maxDuration();
-
-    if (!maxdur.isInfinite())
-      cstdur.setPlayPercentage(currentTime / cstdur.maxDuration());
-    else
-      cstdur.setPlayPercentage(currentTime / cstdur.defaultDuration());
+      auto currentTime = this->context().reverseTime(date);
+      if (!maxdur.isInfinite())
+      {
+        if(maxdur > TimeVal::zero())
+          cstdur.setPlayPercentage(currentTime / cstdur.maxDuration());
+      }
+      else
+      {
+        if(cstdur.defaultDuration() > TimeVal::zero())
+          cstdur.setPlayPercentage(currentTime / cstdur.defaultDuration());
+      }
+    }
+    interval().setExecuting(running);
   }
 }
 

@@ -5,11 +5,13 @@
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentViewConstants.hpp>
 #include <verdigris>
 #include <QPainterPath>
+#include <score/model/ColorInterpolator.hpp>
 #include <score_plugin_scenario_export.h>
 
 namespace Process
 {
 struct Context;
+struct Style;
 }
 namespace Scenario
 {
@@ -60,11 +62,13 @@ public:
   void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
   void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override;
   void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override;
+  const score::Brush& intervalColor(const Process::Style& skin) noexcept;
 
   const IntervalModel& m_model;
   const StateView& m_start;
   const StateView& m_end;
   const Process::Context& m_context;
   QPainterPath m_path;
+  score::ColorBang m_execPing;
 };
 }

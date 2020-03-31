@@ -3,12 +3,9 @@
 
 #include <score/actions/Menu.hpp>
 #include <score/application/ApplicationComponents.hpp>
-#include <score/model/Identifier.hpp>
 #include <score/plugins/StringFactoryKey.hpp>
 #include <score/plugins/application/GUIApplicationPlugin.hpp>
 #include <score/plugins/documentdelegate/DocumentDelegateFactory.hpp>
-#include <score/tools/IdentifierGeneration.hpp>
-#include <score/tools/std/Optional.hpp>
 #include <score/widgets/MarginLess.hpp>
 
 #include <core/document/Document.hpp>
@@ -21,19 +18,14 @@
 
 #include <ossia/detail/algorithms.hpp>
 
-#include <QMenu>
 #include <QMenuBar>
 #include <QObject>
 #include <QToolBar>
 #include <QApplication>
 #include <qnamespace.h>
 
-#include <sys/types.h>
 #include <wobjectimpl.h>
 
-#include <cstdint>
-#include <functional>
-#include <utility>
 #include <vector>
 
 #include <QPainter>

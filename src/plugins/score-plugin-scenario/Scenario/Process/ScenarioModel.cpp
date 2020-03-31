@@ -156,20 +156,10 @@ void ProcessModel::setDurationAndShrink(const TimeVal& newDuration) noexcept
 
 void ProcessModel::startExecution()
 {
-  // TODO this is called for each process!!
-  // But it should be done only once at the global level.
-  for (IntervalModel& interval : intervals)
-  {
-    interval.startExecution();
-  }
 }
 
 void ProcessModel::stopExecution()
 {
-  for (IntervalModel& interval : intervals)
-  {
-    interval.stopExecution();
-  }
   for (EventModel& ev : events)
   {
     ev.setStatus(ExecutionStatus::Editing, *this);
