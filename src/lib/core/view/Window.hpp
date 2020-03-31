@@ -53,6 +53,7 @@ public:
   void closeDocument(score::DocumentView* doc);
   void restoreLayout();
   void closeEvent(QCloseEvent*) override;
+  void allPanelsAdded();
 
 public:
   void activeDocumentChanged(const Id<DocumentModel>& arg_1) E_SIGNAL(
@@ -87,6 +88,7 @@ private:
   Presenter* m_presenter{};
   QLabel* m_status{};
 };
+
 class FixedTabWidget : public QWidget
 {
   W_OBJECT(FixedTabWidget)
@@ -99,10 +101,11 @@ public:
   QSize sizeHint() const override;
   void setTab(int index);
   std::pair<int, QAction*> addTab(QWidget* widg, const score::PanelStatus& v);
+  QAction* addAction(QWidget* widg, const PanelStatus& v);
 
   QBrush brush;
   void paintEvent(QPaintEvent* ev) override;
-  void actionTriggered(bool b) W_SIGNAL(actionTriggered, b)
+  void actionTriggered(QAction* act, bool b) W_SIGNAL(actionTriggered, act, b)
 
 private:
   score::MarginLess<QVBoxLayout> m_layout;
@@ -111,3 +114,4 @@ private:
   QActionGroup* m_actGrp{};
 };
 }
+W_REGISTER_ARGTYPE(QAction*)

@@ -182,7 +182,7 @@ const score::PanelStatus& MessagesPanelDelegate::defaultPanelStatus() const
   static const score::PanelStatus status{false,
                                          false,
                                          Qt::LeftDockWidgetArea,
-                                         0,
+                                         10,
                                          QObject::tr("Messages"),
                                          "messages",
                                          QObject::tr("Ctrl+Shift+E")};

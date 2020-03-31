@@ -36,7 +36,7 @@ const score::PanelStatus& UserPanel::defaultPanelStatus() const
 {
   static const score::PanelStatus status{true, false,
                                          Qt::LeftDockWidgetArea,
-                                         0,
+                                         40,
                                          QObject::tr("User Library"),
                                          "library",
                                          QObject::tr("Ctrl+Shift+B")};
@@ -62,8 +62,8 @@ const score::PanelStatus& ProjectPanel::defaultPanelStatus() const
 {
   static const score::PanelStatus status{true, false,
                                          Qt::LeftDockWidgetArea,
-                                         0,
-                                         QObject::tr("Library"),
+                                         30,
+                                         QObject::tr("Project folder"),
                                          "project",
                                          QObject::tr("Ctrl+Shift+L")};
 
@@ -102,7 +102,7 @@ const score::PanelStatus& ProcessPanel::defaultPanelStatus() const
 {
   static const score::PanelStatus status{true, false,
                                          Qt::LeftDockWidgetArea,
-                                         0,
+                                         50,
                                          QObject::tr("Processes"),
                                          "process_library",
                                          QObject::tr("Ctrl+Shift+P")};

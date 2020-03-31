@@ -30,7 +30,7 @@ const PanelStatus& UndoPanelDelegate::defaultPanelStatus() const
       false,
       false,
       Qt::LeftDockWidgetArea,
-      1,
+      20,
       QObject::tr("History"),
       "history",
       QKeySequence::fromString("Ctrl+Shift+H")};

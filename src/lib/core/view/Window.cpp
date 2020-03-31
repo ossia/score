@@ -27,6 +27,7 @@
 #include <QTabWidget>
 #include <QVBoxLayout>
 #include <QWidget>
+#include <QStyleOptionTitleBar>
 #include <qcoreevent.h>
 #include <qnamespace.h>
 
@@ -126,6 +127,36 @@ public:
   }
 };
 
+class TitleBar : public QWidget
+{
+public:
+  TitleBar()
+  {
+    setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Fixed);
+  }
+
+  void setText(const QString& txt)
+  {
+    m_text = txt.toUpper();
+    update();
+  }
+
+  QSize sizeHint() const override
+  {
+    return {100, 15};
+  }
+
+  void paintEvent(QPaintEvent* ev) override
+  {
+    QPainter painter{this};
+    painter.setFont(QFont("Ubuntu", 9, QFont::Bold));
+    painter.drawText(rect(), Qt::AlignCenter, m_text);
+  }
+
+private:
+  QString m_text;
+};
+
 View::View(QObject* parent)
   : QMainWindow{}
 {
@@ -136,7 +167,13 @@ View::View(QObject* parent)
 
   setIconSize(QSize{24,24});
 
+  auto leftLabel = new TitleBar;
   leftTabs = new FixedTabWidget;
+  connect(leftTabs, &FixedTabWidget::actionTriggered,
+          this, [=] (QAction* act, bool b) {
+    leftLabel->setText(act->text());
+  });
+  ((QVBoxLayout*)leftTabs->layout())->insertWidget(0, leftLabel);
   rightSplitter = new RectSplitter{Qt::Vertical};
   auto rect = QGuiApplication::primaryScreen()->availableGeometry();
   this->resize(
@@ -187,7 +224,7 @@ View::View(QObject* parent)
     QList<int> sz = rs->sizes();
     sz[2] = 0;
     rs->setSizes(sz);
-    connect(bottomTabs, &FixedTabWidget::actionTriggered, this, [rs, this] (bool ok) {
+    connect(bottomTabs, &FixedTabWidget::actionTriggered, this, [rs, leftLabel, this] (QAction* act, bool ok) {
       if(ok)
       {
         QList<int> sz = rs->sizes();
@@ -353,6 +390,39 @@ void View::setupPanel(PanelDelegate* v)
   }
 }
 
+void View::allPanelsAdded()
+{
+  for(auto& panel : score::GUIAppContext().panels())
+  {
+    if(panel.defaultPanelStatus().prettyName == QObject::tr("Inspector"))
+    {
+      auto splitter = (RectSplitter*)centralWidget();
+      auto act = bottomTabs->addAction(rightSplitter->widget(1), panel.defaultPanelStatus());
+      connect(act, &QAction::toggled, this, [splitter] (bool ok) {
+        if(ok)
+        {
+          QList<int> sz = splitter->sizes();
+          if(sz[2] <= 1)
+          {
+            sz[2] = 200;
+            splitter->setSizes(sz);
+          }
+        }
+        else
+        {
+          QList<int> sz = splitter->sizes();
+          sz[2] = 0;
+          splitter->setSizes(sz);
+        }
+      });
+      break;
+    }
+  }
+
+  // Show the device explorer first
+  leftTabs->toolbar()->actions().front()->trigger();
+}
+
 void View::closeDocument(DocumentView* doc)
 {
   for (int i = 0; i < centralTabs->count(); i++)
@@ -512,12 +582,27 @@ std::pair<int, QAction*> FixedTabWidget::addTab(QWidget* widg, const PanelStatus
   btn->setStatusTip(widg->statusTip());
 
   connect(btn, &QAction::triggered,
-          &m_stack, [this, idx] (bool checked) {
+          &m_stack, [this, btn, idx] (bool checked) {
     m_stack.setCurrentIndex(idx);
-    actionTriggered(checked);
+    actionTriggered(btn, checked);
   });
 
   return std::make_pair(idx, btn);
+}
+
+QAction* FixedTabWidget::addAction(QWidget* widg, const PanelStatus& v)
+{
+  auto btn = m_buttons->addAction(v.icon, v.prettyName);
+  m_actGrp->addAction(btn);
+  btn->setCheckable(true);
+  btn->setShortcut(v.shortcut);
+  btn->setIcon(v.icon);
+
+  btn->setToolTip(v.prettyName);
+  btn->setWhatsThis(widg->whatsThis());
+  btn->setStatusTip(widg->statusTip());
+
+  return btn;
 }
 
 

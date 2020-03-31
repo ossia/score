@@ -1003,7 +1003,7 @@ const score::PanelStatus& ObjectPanelDelegate::defaultPanelStatus() const
 {
   static const score::PanelStatus status{true, false,
                                          Qt::RightDockWidgetArea,
-                                         12,
+                                         8,
                                          QObject::tr("Objects"),
                                          "objects",
                                          QObject::tr("Ctrl+Shift+O")};
