@@ -26,7 +26,8 @@ namespace Scenario
 /*
 struct CycleDetector : public boost::dfs_visitor<>
 {
-  CycleDetector( )
+  CycleDetector( std::vector<Scenario::IntervalModel*>& intervalsInCycles)
+  : intervalsInCycles{intervalsInCycles}
   {
 
   }
@@ -38,77 +39,95 @@ struct CycleDetector : public boost::dfs_visitor<>
     if(itv->graphal())
       intervalsInCycles.push_back(itv);
   }
+  std::vector<Scenario::IntervalModel*>& intervalsInCycles;
 
-  std::vector<Scenario::IntervalModel*> intervalsInCycles;
 };
 */
 struct CycleDetector
 {
   const Scenario::ProcessModel& scenario;
-    CycleDetector(const Scenario::ProcessModel& scenar)
-      : scenario{scenar}
-    { }
+  bool& cycles;
 
-    bool allIntersectGraphal(std::vector<Id<IntervalModel>>& a, std::vector<Id<IntervalModel>>& b)
+  ossia::small_vector<IntervalModel*, 4> this_path_itvs;
+  CycleDetector(const Scenario::ProcessModel& scenar, bool& cycles)
+    : scenario{scenar}
+    , cycles{cycles}
+  { }
+
+  bool allIntersectGraphal(std::vector<Id<IntervalModel>>& a, std::vector<Id<IntervalModel>>& b)
+  {
+    ossia::small_vector<Id<IntervalModel>, 4> intersect;
+    std::sort(a.begin(), a.end(), [] (const auto& lhs, const auto& rhs) { return lhs.val() < rhs.val(); });
+    std::sort(b.begin(), b.end(), [] (const auto& lhs, const auto& rhs) { return lhs.val() < rhs.val(); });
+    std::set_intersection(a.begin(), a.end(), b.begin(), b.end(), std::back_inserter(intersect));
+
+    for(const auto& itv : intersect)
     {
-      std::vector<Id<IntervalModel>> intersect;
-      std::sort(a.begin(), a.end(), [] (const auto& lhs, const auto& rhs) { return lhs.val() < rhs.val(); });
-      std::sort(b.begin(), b.end(), [] (const auto& lhs, const auto& rhs) { return lhs.val() < rhs.val(); });
-      std::set_intersection(a.begin(), a.end(), b.begin(), b.end(), std::back_inserter(intersect));
-
-      std::vector<IntervalModel*> itvs;
-      for(const auto& itv : intersect)
+      auto& m = scenario.interval(itv);
+      if(!m.graphal())
       {
-        auto& m = scenario.interval(itv);
-        if(!m.graphal())
-        {
-          return false;
-        }
-        itvs.push_back(&m);
+        return false;
+      }
+    }
+
+    for(const auto& itv : intersect)
+    {
+      auto& m = scenario.interval(itv);
+      this_path_itvs.push_back(&m);
+    }
+
+    return true;
+  }
+
+  bool allIntervalsAreGraph(TimeSyncModel& a, TimeSyncModel& b)
+  {
+    //auto prev_a = Scenario::previousIntervals(a, scenario);
+    auto next_a = Scenario::nextIntervals(a, scenario);
+    auto prev_b = Scenario::previousIntervals(b, scenario);
+    //auto next_b = Scenario::nextIntervals(b, scenario);
+
+    //auto prev_av = std::vector(prev_a.begin(), prev_a.end());
+    auto next_av = std::vector(next_a.begin(), next_a.end());
+
+    auto prev_bv = std::vector(prev_b.begin(), prev_b.end());
+    //auto next_bv = std::vector(next_b.begin(), next_b.end());
+    return allIntersectGraphal(next_av, prev_bv);
+    //else if(allIntersectGraphal(next_bv, prev_av))
+    //{
+    //  cycles = true;
+    //}
+  }
+
+  template <typename Path>
+  void cycle(const Path& p, const Scenario::Graph& g)
+  {
+    this_path_itvs.clear();
+    bool has_non_graphal = false;
+    for(auto it = p.begin(), end = p.end(); it != end; ++it)
+    {
+      TimeSyncModel* this_ts = (TimeSyncModel*)g[*it];
+      TimeSyncModel* next_ts = nullptr;
+      auto next = it+1;
+      if(next != p.end())
+      {
+        next_ts = (TimeSyncModel*)g[*next];
+      }
+      else
+      {
+        next_ts = (TimeSyncModel*)g[*p.begin()];
       }
 
-      for(auto itv : itvs)
+      if(!allIntervalsAreGraph(*this_ts, *next_ts))
+        has_non_graphal = true;
+    }
+
+    if(!has_non_graphal)
+    {
+      cycles = true;
+      for(auto itv : this_path_itvs)
         itv->consistency.setValid(false);
-      return true;
     }
-
-    void checkIntervalsGraphal(TimeSyncModel& a, TimeSyncModel& b)
-    {
-      auto prev_a = Scenario::previousIntervals(a, scenario);
-      auto next_a = Scenario::nextIntervals(a, scenario);
-      auto prev_b = Scenario::previousIntervals(b, scenario);
-      auto next_b = Scenario::nextIntervals(b, scenario);
-
-      auto prev_av = std::vector(prev_a.begin(), prev_a.end());
-      auto next_av = std::vector(next_a.begin(), next_a.end());
-
-      auto prev_bv = std::vector(prev_b.begin(), prev_b.end());
-      auto next_bv = std::vector(next_b.begin(), next_b.end());
-      if(allIntersectGraphal(next_av, prev_bv))
-        return;
-      else if(allIntersectGraphal(next_bv, prev_av))
-        return;
-    }
-
-    template <typename Path>
-    void cycle(const Path& p, const Scenario::Graph& g)
-    {
-        for(auto i = p.begin(); i != p.end(); ++i) {
-          TimeSyncModel* this_ts = (TimeSyncModel*)g[*i];
-          TimeSyncModel* next_ts = nullptr;
-          auto next = i+1;
-          if(next != p.end())
-          {
-            next_ts = (TimeSyncModel*)g[*next];
-          }
-          else
-          {
-            next_ts = (TimeSyncModel*)g[*p.begin()];
-          }
-
-          checkIntervalsGraphal(*this_ts, *next_ts);
-        }
-    }
+  }
 };
 
 TimenodeGraph::TimenodeGraph(const Scenario::ProcessModel& scenar)
@@ -130,13 +149,19 @@ TimenodeGraph::TimenodeGraph(const Scenario::ProcessModel& scenar)
   }
 
   scenar.intervals.added.connect<&TimenodeGraph::intervalsChanged>(this);
-  scenar.intervals.removing.connect<&TimenodeGraph::intervalsChanged>(this);
+  scenar.intervals.removed.connect<&TimenodeGraph::intervalsChanged>(this);
   scenar.timeSyncs.added.connect<&TimenodeGraph::timeSyncsChanged>(this);
-  scenar.timeSyncs.removing.connect<&TimenodeGraph::timeSyncsChanged>(this);
+  scenar.timeSyncs.removed.connect<&TimenodeGraph::timeSyncsChanged>(this);
+}
+
+bool TimenodeGraph::hasCycles() const noexcept
+{
+  return m_cycles;
 }
 
 void TimenodeGraph::recompute()
 {
+  m_cycles = false;
   m_vertices.clear();
   m_edges.clear();
   m_graph.clear();
@@ -157,7 +182,7 @@ void TimenodeGraph::recompute()
                         .first;
   }
 
-  CycleDetector vis{m_scenario};
+  CycleDetector vis{m_scenario, m_cycles};
   tiernan_all_cycles(m_graph, vis);
 }
 

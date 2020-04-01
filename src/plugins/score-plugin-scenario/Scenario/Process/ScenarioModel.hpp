@@ -60,6 +60,7 @@ public:
 
   const score::DocumentContext& context() const noexcept { return m_context; }
   void init();
+  bool hasCycles() const noexcept;
 
   ~ProcessModel() override;
 

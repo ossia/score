@@ -14,6 +14,7 @@
 #include <Scenario/Settings/ScenarioSettingsModel.hpp>
 #include <Scenario/Tools/elementFindingHelper.hpp>
 #include <Scenario/Palette/Tool.hpp>
+#include <Scenario/Process/Algorithms/Accessors.hpp>
 
 #include <score/command/Dispatchers/MultiOngoingCommandDispatcher.hpp>
 #include <score/document/DocumentInterface.hpp>
@@ -78,8 +79,9 @@ protected:
     if (this->hoveredState)
     {
       const bool graphal = isCreatingGraph();
+      const bool differentParents = Scenario::parentEvent(originalState, m_parentSM.model()).timeSync() != Scenario::parentEvent(*this->hoveredState, m_parentSM.model()).timeSync();
 
-      if(graphal)
+      if(graphal && differentParents)
       {
         auto cmd = new Scenario::Command::CreateInterval{
             this->m_scenario, originalState, *this->hoveredState, true};
@@ -111,17 +113,18 @@ protected:
     if (this->hoveredEvent)
     {
       const bool graphal = isCreatingGraph();
+      const bool differentParents = Scenario::parentEvent(originalState, m_parentSM.model()).timeSync() != m_parentSM.model().event(*this->hoveredEvent).timeSync();
       const bool timeIsInOrder = getDate(m_parentSM.model(), originalState) < getDate(m_parentSM.model(), *this->hoveredEvent);
       // make sure the hovered corresponding timesync dont have a date prior to
       // original state date
-      if (graphal || timeIsInOrder)
+      if ((graphal || timeIsInOrder) && differentParents)
       {
         auto cmd = new Scenario::Command::CreateInterval_State{
             this->m_scenario,
             originalState,
             *this->hoveredEvent,
             this->currentPoint.y,
-            false};
+            graphal};
 
         m_dispatcher.submit(cmd);
 
@@ -136,10 +139,11 @@ protected:
     if (this->hoveredTimeSync)
     {
       const bool graphal = isCreatingGraph();
+      const bool differentParents = Scenario::parentEvent(originalState, m_parentSM.model()).timeSync() != *this->hoveredTimeSync;
       const bool timeIsInOrder = getDate(m_parentSM.model(), originalState) < getDate(m_parentSM.model(), *this->hoveredTimeSync);
       // make sure the hovered corresponding timesync dont have a date prior to
       // original state date
-      if (graphal || timeIsInOrder)
+      if ((graphal || timeIsInOrder) && differentParents)
       {
         auto cmd = new Scenario::Command::CreateInterval_State_Event{
             this->m_scenario,

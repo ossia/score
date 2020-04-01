@@ -821,12 +821,6 @@ void ScenarioPresenter::on_eventCreated(const EventModel& event_model)
   m_viewInterface.on_eventMoved(*ev_pres);
 
   con(*ev_pres,
-      &EventPresenter::recomputeExtent,
-      this,
-      [this, ev_pres] {
-    updateEventExtent(*this, *ev_pres, m_view->height());
-  });
-  con(*ev_pres,
       &EventPresenter::extentChanged,
       this,
       [=](const VerticalExtent&) { m_viewInterface.on_eventMoved(*ev_pres); });
@@ -848,12 +842,6 @@ void ScenarioPresenter::on_timeSyncCreated(const TimeSyncModel& timeSync_model)
 
   m_viewInterface.on_timeSyncMoved(*tn_pres);
 
-  con(*tn_pres,
-      &TimeSyncPresenter::recomputeExtent,
-      this,
-      [tn_pres] {
-    updateTimeSyncExtent(*tn_pres);
-  });
   con(*tn_pres,
       &TimeSyncPresenter::extentChanged,
       this,
@@ -922,6 +910,8 @@ void ScenarioPresenter::on_intervalCreated(const IntervalModel& interval)
 {
   auto& startEvent = Scenario::startEvent(interval, model());
   auto& endEvent = Scenario::endEvent(interval, model());
+  auto& startEventPres = m_events.at(startEvent.id());
+  auto& endEventPres = m_events.at(endEvent.id());
   if(Q_UNLIKELY(interval.graphal()))
   {
     auto& startState = Scenario::startState(interval, model());
@@ -961,12 +951,16 @@ void ScenarioPresenter::on_intervalCreated(const IntervalModel& interval)
     con(endEvent, &EventModel::dateChanged, cst_pres,
         &GraphalIntervalPresenter::resize);
 
+    auto updateHeight = [&] {
+      auto h = m_view->height();
+      updateEventExtent(*this, startEventPres, h);
+      updateEventExtent(*this, endEventPres, h);
+    };
+    updateEventExtent(*this, startEventPres, m_view->height());
+    updateEventExtent(*this, endEventPres, m_view->height());
   }
   else
   {
-    auto& startEventPres = m_events.at(startEvent.id());
-    auto& endEventPres = m_events.at(endEvent.id());
-
     auto cst_pres = new TemporalIntervalPresenter{
         interval, m_context.context, true, m_view, this};
     m_intervals.insert(cst_pres);

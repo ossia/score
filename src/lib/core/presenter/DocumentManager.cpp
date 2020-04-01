@@ -12,7 +12,7 @@
 #include <score/tools/IdentifierGeneration.hpp>
 #include <score/tools/std/Optional.hpp>
 #include <score/widgets/Pixmap.hpp>
-#include <score/widgets/MessageBox.hpp>.hpp>
+#include <score/widgets/MessageBox.hpp>
 
 #include <core/application/ApplicationSettings.hpp>
 #include <core/command/CommandStack.hpp>

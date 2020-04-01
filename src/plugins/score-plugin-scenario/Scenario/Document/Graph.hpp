@@ -64,6 +64,7 @@ struct SCORE_PLUGIN_SCENARIO_EXPORT TimenodeGraph
   const auto& edges() const { return m_edges; }
   const auto& vertices() const { return m_vertices; }
 
+  bool hasCycles() const noexcept;
   //! Writes graphviz output on stdout
   void writeGraphviz();
 
@@ -76,6 +77,7 @@ private:
 
   const Scenario::ProcessModel& m_scenario;
   Graph m_graph;
+  bool m_cycles{};
 
   score::hash_map<const Scenario::TimeSyncModel*, Graph::vertex_descriptor>
       m_vertices;

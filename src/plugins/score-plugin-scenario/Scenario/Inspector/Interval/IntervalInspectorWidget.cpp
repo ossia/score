@@ -36,12 +36,14 @@ IntervalInspectorWidget::IntervalInspectorWidget(
     : InspectorWidgetBase{object,
                           ctx,
                           parent,
-                          tr("Interval (%1)").arg(object.metadata().getName())}
+                          object.graphal() ? tr("Direct transition") : tr("Interval (%1)").arg(object.metadata().getName())}
     , m_model{object}
 {
   using namespace score;
   using namespace score::IDocument;
   setObjectName("Interval");
+  if(object.graphal())
+    return;
 
   std::vector<QWidget*> parts;
   ////// HEADER

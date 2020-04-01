@@ -71,6 +71,7 @@ public:
   const auto& getEvents() const { return m_events; }
   const auto& getTimeSyncs() const { return m_timeSyncs; }
   const auto& getIntervals() const { return m_intervals; }
+  const auto& getGraphIntervals() const { return m_graphIntervals; }
   const auto& getStates() const { return m_states; }
   const auto& getComments() const { return m_comments; }
 

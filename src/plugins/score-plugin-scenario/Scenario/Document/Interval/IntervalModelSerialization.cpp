@@ -126,6 +126,15 @@ SCORE_PLUGIN_SCENARIO_EXPORT void
 DataStreamReader::read(const Scenario::IntervalModel& interval)
 {
   insertDelimiter();
+  m_stream << interval.m_graphal;
+  if(interval.m_graphal)
+  {
+    m_stream
+        << interval.duration << interval.m_startState << interval.m_endState
+        << interval.m_date << interval.m_heightPercentage;
+    return;
+  }
+
   // Ports
   m_stream << *interval.inlet << *interval.outlet;
 
@@ -157,6 +166,16 @@ SCORE_PLUGIN_SCENARIO_EXPORT void
 DataStreamWriter::write(Scenario::IntervalModel& interval)
 {
   checkDelimiter();
+  bool gr{};
+  m_stream >> gr;
+  if((interval.m_graphal = gr))
+  {
+    m_stream
+        >> interval.duration >> interval.m_startState >> interval.m_endState
+        >> interval.m_date >> interval.m_heightPercentage;
+    return;
+  }
+
   // Ports
   interval.inlet = Process::load_audio_inlet(*this, &interval);
   interval.outlet = Process::load_audio_outlet(*this, &interval);
@@ -207,6 +226,18 @@ template <>
 SCORE_PLUGIN_SCENARIO_EXPORT void
 JSONObjectReader::read(const Scenario::IntervalModel& interval)
 {
+  if(interval.graphal())
+  {
+    obj["Graphal"] = true;
+    readFrom(interval.duration);
+    obj[strings.StartState] = toJsonValue(interval.m_startState);
+    obj[strings.EndState] = toJsonValue(interval.m_endState);
+
+    obj[strings.StartDate] = toJsonValue(interval.m_date);
+    obj[strings.HeightPercentage] = interval.m_heightPercentage;
+    return;
+  }
+
   // Ports
   obj["Inlet"] = toJsonObject(*interval.inlet);
   obj["Outlet"] = toJsonObject(*interval.outlet);
@@ -246,6 +277,21 @@ template <>
 SCORE_PLUGIN_SCENARIO_EXPORT void
 JSONObjectWriter::write(Scenario::IntervalModel& interval)
 {
+  interval.m_graphal = obj["Graphal"] .toBool();
+  if(interval.m_graphal)
+  {
+    writeTo(interval.duration);
+
+    interval.m_startState
+        = fromJsonValue<Id<Scenario::StateModel>>(obj[strings.StartState]);
+    interval.m_endState
+        = fromJsonValue<Id<Scenario::StateModel>>(obj[strings.EndState]);
+
+    interval.m_date = fromJsonValue<TimeVal>(obj[strings.StartDate]);
+    interval.m_heightPercentage = obj[strings.HeightPercentage].toDouble();
+    return;
+  }
+
   {
     JSONObjectWriter writer{obj["Inlet"].toObject()};
     interval.inlet = Process::load_audio_inlet(writer, &interval);

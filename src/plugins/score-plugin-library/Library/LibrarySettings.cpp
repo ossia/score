@@ -14,7 +14,6 @@
 #include <QFormLayout>
 #include <QStandardPaths>
 #include <QStyle>
-#include <QMessageBox>
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
 #include <zipdownloader.hpp>

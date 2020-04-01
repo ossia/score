@@ -1,6 +1,8 @@
 #include "GraphIntervalPresenter.hpp"
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/State/StateView.hpp>
+#include <Scenario/Document/State/StatePresenter.hpp>
+#include <Scenario/Document/State/StateModel.hpp>
 #include <Process/Style/ScenarioStyle.hpp>
 #include <score/graphics/PainterPath.hpp>
 #include <QGraphicsSceneMouseEvent>
@@ -74,8 +76,18 @@ void GraphalIntervalPresenter::resize()
     p2 = mapFromParent(p2);
 
     bool x_dir = p1.x() > p2.x();
-    auto first = x_dir ? p1 : p2;
-    auto last = !x_dir ? p1 : p2;
+    auto& first = x_dir ? p1 : p2;
+    auto& last = !x_dir ? p1 : p2;
+    if(x_dir)
+    {
+      p1.rx() -= 4.;
+      p2.rx() += 4.;
+    }
+    else
+    {
+      p1.rx() += 4.;
+      p2.rx() -= 4.;
+    }
 
     int half_length = std::floor(0.5 * (last.x() - first.x()));
 
@@ -90,6 +102,47 @@ void GraphalIntervalPresenter::resize()
           last.y() - offset_y,
           last.x(),
           last.y());
+
+    auto cur = m_path.currentPosition();
+    auto angle = m_path.angleAtPercent(0.95);
+    {
+      if(!x_dir)
+      {
+        QLineF direct{p2, p1};
+        direct.setLength(5);
+        direct.setAngle(angle + 45);
+        m_path.moveTo(p2);
+        m_path.lineTo(direct.p2());
+      }
+      else
+      {
+        QLineF direct{p2, p1};
+        direct.setLength(5);
+        direct.setAngle(-angle + 45);
+        m_path.moveTo(p2);
+        m_path.lineTo({direct.p2().x() + 2 * std::abs(direct.p2().x()  - p2.rx()), direct.p2().y()});
+      }
+    }
+
+    m_path.moveTo(cur);
+    {
+      if(!x_dir)
+      {
+        QLineF direct{p2, p1};
+        direct.setLength(5);
+        direct.setAngle(angle - 45);
+        m_path.moveTo(p2);
+        m_path.lineTo(direct.p2());
+      }
+      else
+      {
+        QLineF direct{p2, p1};
+        direct.setLength(5);
+        direct.setAngle(-angle - 45);
+        m_path.moveTo(p2);
+        m_path.lineTo({direct.p2().x() + 2 * std::abs(direct.p2().x()  - p2.rx()), direct.p2().y()});
+      }
+    }
   }
 
   update();
@@ -105,7 +158,7 @@ const score::Brush& GraphalIntervalPresenter::intervalColor(const Process::Style
   {
     return skin.IntervalInvalid();
   }
-  else if (Q_UNLIKELY(!m_model.consistency.warning()))
+  else if (Q_UNLIKELY(m_model.consistency.warning()))
   {
     return skin.IntervalWarning();
   }

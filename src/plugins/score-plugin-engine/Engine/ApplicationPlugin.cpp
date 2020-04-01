@@ -44,7 +44,6 @@
 
 #include <QAction>
 #include <QLabel>
-#include <QMessageBox>
 #include <QTabWidget>
 #include <QToolBar>
 #include <QMainWindow>

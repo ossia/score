@@ -10,12 +10,12 @@ int question(
       const QString& title,
       const QString& text)
 {
-  auto msg = new QMessageBox{parent};
+  auto msg = new QMessageBox{{}, title, text, QMessageBox::Yes | QMessageBox::No, parent};
   msg->setIconPixmap(score::get_pixmap( QStringLiteral(":/icons/message_question.png")));
-  msg->setWindowTitle(title);
-  msg->setText(text);
 
-  return msg->exec();
+  int idx = msg->exec();
+  msg->deleteLater();
+  return idx;
 }
 
 int information(
@@ -23,13 +23,12 @@ int information(
       const QString& title,
       const QString& text)
 {
-  auto msg = new QMessageBox{parent};
+  auto msg = new QMessageBox{{}, title, text, QMessageBox::Ok, parent};
   msg->setIconPixmap(score::get_pixmap( QStringLiteral(":/icons/message_information.png")));
-  msg->setWindowTitle(title);
-  msg->setText(text);
-  msg->addButton(QMessageBox::Ok);
 
-  return msg->exec();
+  int idx = msg->exec();
+  msg->deleteLater();
+  return idx;
 }
 
 int warning(
@@ -37,11 +36,11 @@ int warning(
       const QString& title,
       const QString& text)
 {
-  auto msg = new QMessageBox{parent};
+  auto msg = new QMessageBox{{}, title, text, QMessageBox::Ok, parent};
   msg->setIconPixmap(score::get_pixmap( QStringLiteral(":/icons/message_warning.png")));
-  msg->setWindowTitle(title);
-  msg->setText(text);
 
-  return msg->exec();
+  int idx = msg->exec();
+  msg->deleteLater();
+  return idx;
 }
 }

@@ -324,14 +324,7 @@ private:
     }
     else
     {
-      if(this->m_parentSM.editionSettings().tool() == Scenario::Tool::CreateGraph) {
-
-        this->currentPoint.y = st.heightPercentage();
-        fun(*this->clickedState);
-        return;
-      }
-
-      else if (!sequence)
+      if (!sequence)
       {
         // Create new state on the event
         auto cmd = new Scenario::Command::CreateState{

@@ -55,7 +55,21 @@ parentTimeSync(const EventModel& ev, const Scenario_T& scenario)
   return scenario.timeSync(ev.timeSync());
 }
 
+template <typename Scenario_T>
+const TimeSyncModel&
+parentTimeSync(const Id<EventModel>& ev, const Scenario_T& scenario)
+{
+  return scenario.timeSync(scenario.event(ev).timeSync());
+}
+
+
 // States
+template <typename Scenario_T>
+const EventModel& parentEvent(const Id<StateModel>& st, const Scenario_T& scenario)
+{
+  return scenario.event(scenario.state(st).eventId());
+}
+
 template <typename Scenario_T>
 const EventModel& parentEvent(const StateModel& st, const Scenario_T& scenario)
 {
@@ -65,6 +79,13 @@ const EventModel& parentEvent(const StateModel& st, const Scenario_T& scenario)
 template <typename Scenario_T>
 const TimeSyncModel&
 parentTimeSync(const StateModel& st, const Scenario_T& scenario)
+{
+  return parentTimeSync(parentEvent(st, scenario), scenario);
+}
+
+template <typename Scenario_T>
+const TimeSyncModel&
+parentTimeSync(const Id<StateModel>& st, const Scenario_T& scenario)
 {
   return parentTimeSync(parentEvent(st, scenario), scenario);
 }

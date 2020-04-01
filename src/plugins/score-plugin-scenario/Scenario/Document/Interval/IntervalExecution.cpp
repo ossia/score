@@ -200,7 +200,7 @@ interval_duration_data IntervalComponentBase::makeDurations() const
 {
   using namespace ossia;
   if(interval().graphal())
-    return {0_tv, 0_tv, 0_tv, 1.};
+    return {0_tv, 0_tv, ossia::Infinite, 1.};
   else
     return {context().time(interval().duration.defaultDuration()),
           context().time(interval().duration.minDuration()),
@@ -228,6 +228,12 @@ void IntervalComponent::onSetup(
     m_ossia_interval->set_tempo_curve(tempoCurve(interval(), context()));
     m_ossia_interval->set_time_signature_map(timeSignatureMap(interval(), context()));
     m_ossia_interval->set_quarter_duration(ossia::quarter_duration<double>); // In our ideal musical world, a "quarter" is half a logical second
+  }
+  else
+  {
+    using namespace ossia;
+    m_ossia_interval->set_min_duration(0_tv);
+    m_ossia_interval->set_max_duration(ossia::Infinite);
   }
 
   if(context().doc.app.applicationSettings.gui)

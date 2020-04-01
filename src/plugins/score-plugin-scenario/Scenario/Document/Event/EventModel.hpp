@@ -55,7 +55,7 @@ public:
 
   // Timenode
   void changeTimeSync(const Id<TimeSyncModel>& elt) { m_timeSync = elt; }
-  const auto& timeSync() const noexcept { return m_timeSync; }
+  const Id<TimeSyncModel>& timeSync() const noexcept { return m_timeSync; }
 
   // States
   void addState(const Id<StateModel>& ds);

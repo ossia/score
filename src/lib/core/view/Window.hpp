@@ -27,7 +27,7 @@ class QTabWidget;
 class QLabel;
 namespace score
 {
-class PanelStatus;
+struct PanelStatus;
 class FixedTabWidget;
 class DocumentModel;
 class DocumentView;

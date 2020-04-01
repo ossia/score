@@ -87,6 +87,11 @@ void ProcessModel::init()
   m_graph = std::make_unique<TimenodeGraph>(*this);
 }
 
+bool ProcessModel::hasCycles() const noexcept
+{
+  return m_graph->hasCycles();
+}
+
 ProcessModel::~ProcessModel()
 {
   try

@@ -10,6 +10,7 @@
 namespace Scenario
 {
 class ToolPalette;
+class ScenarioPresenter;
 template <typename ToolPalette_T, typename View_T>
 class SelectionState final : public CommonSelectionState
 {
@@ -71,7 +72,9 @@ public:
     using namespace std;
     Selection sel;
 
-    for (const auto& elt : m_parentSM.presenter().getIntervals())
+    auto& presenter = m_parentSM.presenter();
+
+    for (const auto& elt : presenter.getIntervals())
     {
       if (area.intersects(
               elt.view()->boundingRect().translated(elt.view()->pos())))
@@ -79,7 +82,20 @@ public:
         sel.append(&elt.model());
       }
     }
-    for (const auto& elt : m_parentSM.presenter().getTimeSyncs())
+
+    if constexpr(std::is_same_v<std::remove_reference_t<decltype(presenter)>, const Scenario::ScenarioPresenter>)
+    {
+      for (const auto& elt : presenter.getGraphIntervals())
+      {
+        if (area.intersects(
+              elt.boundingRect().translated(elt.pos())))
+        {
+          sel.append(&elt.model());
+        }
+      }
+    }
+
+    for (const auto& elt : presenter.getTimeSyncs())
     {
       if (area.intersects(
               elt.view()->boundingRect().translated(elt.view()->pos())))
@@ -87,7 +103,7 @@ public:
         sel.append(&elt.model());
       }
     }
-    for (const auto& elt : m_parentSM.presenter().getEvents())
+    for (const auto& elt : presenter.getEvents())
     {
       if (area.intersects(
               elt.view()->boundingRect().translated(elt.view()->pos())))
@@ -95,7 +111,7 @@ public:
         sel.append(&elt.model());
       }
     }
-    for (const auto& elt : m_parentSM.presenter().getStates())
+    for (const auto& elt : presenter.getStates())
     {
       if (area.intersects(
               elt.view()->boundingRect().translated(elt.view()->pos())))

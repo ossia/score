@@ -44,11 +44,8 @@ public:
   VerticalExtent extent() const noexcept;
   void setExtent(const Scenario::VerticalExtent& extent);
 
-  void recomputeExtent()
-      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, recomputeExtent)
   void extentChanged(const Scenario::VerticalExtent& extent)
       E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, extentChanged, extent)
-
 
   void pressed(const QPointF& arg_1)
       E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, pressed, arg_1)

@@ -583,9 +583,9 @@ void BrushSet::setupPens()
 
   pen2_dotted_square_miter.setBrush(brush);
   pen2_dotted_square_miter.setWidth(2);
-  pen2_dotted_square_miter.setStyle(Qt::DotLine);
-  pen2_dotted_square_miter.setCapStyle(Qt::SquareCap);
-  pen2_dotted_square_miter.setJoinStyle(Qt::MiterJoin);
+  pen2_dotted_square_miter.setStyle(Qt::DashDotLine);
+  //pen2_dotted_square_miter.setCapStyle(Qt::SquareCap);
+  //pen2_dotted_square_miter.setJoinStyle(Qt::MiterJoin);
 
   pen3.setBrush(brush);
   pen3.setWidth(3);
