@@ -11,10 +11,13 @@
 #include <score/tools/Bind.hpp>
 #include <score/widgets/MarginLess.hpp>
 #include <score/widgets/SpinBoxes.hpp>
+#include <score/widgets/SetIcons.hpp>
 
 #include <QCheckBox>
 #include <QFormLayout>
 #include <QTabWidget>
+#include <QToolButton>
+
 #include <QVBoxLayout>
 #include <QWidget>
 namespace Process
@@ -73,19 +76,27 @@ public:
 
       // Loops
       {
-        auto cb = new QCheckBox;
-        cb->setChecked(process.loops());
-        connect(cb, &QCheckBox::toggled,
+        auto loop_btn = new QToolButton;
+        loop_btn->setIcon(makeIcons(QStringLiteral(":/icons/loop_on.png")
+                                      , QStringLiteral(":/icons/loop_off.png")
+                                      , QStringLiteral(":/icons/loop_off.png")));
+        loop_btn->setToolTip(tr("Loop"));
+
+        loop_btn->setAutoRaise(true);
+        loop_btn->setIconSize(QSize{32,32});
+        loop_btn->setCheckable(true);
+        loop_btn->setChecked(process.loops());
+        connect(loop_btn, &QToolButton::toggled,
                 this, [&] (bool b) {
-          if(b != process.loops())
-            CommandDispatcher<>{doc.commandStack}.submit<SetLoop>(process, b);
-        });
+            if(b != process.loops())
+              CommandDispatcher<>{doc.commandStack}.submit<SetLoop>(process, b);
+          });
         con(process, &ProcessModel::loopsChanged,
-            this, [cb] (bool b) {
-          if(b != cb->isChecked())
-            cb->setChecked(b);
-        });
-        loop_lay->addRow(tr("Loops"), cb);
+                this, [loop_btn] (bool b) {
+            if(b != loop_btn->isChecked())
+              loop_btn->setChecked(b);
+          });
+        loop_lay->addRow(loop_btn);
       }
 
       // Start offset

@@ -523,6 +523,10 @@
         <file>icons/message_information@2x.png</file>
         <file>icons/message_warning.png</file>
         <file>icons/message_warning@2x.png</file>
+        <file>icons/loop_off.png</file>
+        <file>icons/loop_off@2x.png</file>
+        <file>icons/loop_on.png</file>
+        <file>icons/loop_on@2x.png</file>
     </qresource>
     <qresource prefix="/qss_icons">
         <file>icons/blank.png</file>
