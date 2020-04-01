@@ -19,6 +19,7 @@
 #include <Scenario/Process/Algorithms/ProcessPolicy.hpp>
 #include <Scenario/Process/ScenarioProcessMetadata.hpp>
 
+#include <Scenario/Document/Graph.hpp>
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/document/DocumentContext.hpp>
 #include <score/document/DocumentInterface.hpp>
@@ -82,6 +83,8 @@ void ProcessModel::init()
   outlet->setCustomData("Out");
   m_inlets.push_back(inlet.get());
   m_outlets.push_back(outlet.get());
+
+  m_graph = std::make_unique<TimenodeGraph>(*this);
 }
 
 ProcessModel::~ProcessModel()

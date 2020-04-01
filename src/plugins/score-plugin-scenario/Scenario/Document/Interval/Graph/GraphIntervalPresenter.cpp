@@ -101,6 +101,14 @@ const score::Brush& GraphalIntervalPresenter::intervalColor(const Process::Style
   {
     return skin.IntervalSelected();
   }
+  else if (Q_UNLIKELY(!m_model.consistency.isValid()))
+  {
+    return skin.IntervalInvalid();
+  }
+  else if (Q_UNLIKELY(!m_model.consistency.warning()))
+  {
+    return skin.IntervalWarning();
+  }
   else if (Q_UNLIKELY(m_model.executionState() == IntervalExecutionState::Disabled))
   {
     return skin.IntervalInvalid();

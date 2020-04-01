@@ -2,6 +2,7 @@
 #include <score/tools/std/HashMap.hpp>
 
 #include <boost/graph/adjacency_list.hpp>
+#include <boost/graph/directed_graph.hpp>
 
 #include <nano_observer.hpp>
 #include <score_plugin_scenario_export.h>
@@ -18,13 +19,15 @@ class ProcessModel;
 using GraphVertex = Scenario::TimeSyncModel*;
 using GraphEdge = Scenario::IntervalModel*;
 
+using Graph = boost::directed_graph<GraphVertex, GraphEdge>;
+/*
 using Graph = boost::adjacency_list<
     boost::vecS,
     boost::vecS,
     boost::directedS,
     GraphVertex,
     GraphEdge>;
-
+*/
 /**
  * @brief A directed graph of all the TimeSync%s in a ScenarioInterface.
  *

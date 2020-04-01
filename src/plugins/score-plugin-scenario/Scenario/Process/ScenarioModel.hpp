@@ -25,6 +25,8 @@
 #include <verdigris>
 namespace Scenario
 {
+struct TimenodeGraph;
+
 /**
  * @brief The core hierarchical and temporal process of score
  */
@@ -187,6 +189,8 @@ private:
   Id<StateModel> m_startStateId{};
   // By default, creation in the void will make a interval
   // that goes to the startEvent and add a new state
+
+  std::unique_ptr<TimenodeGraph> m_graph;
 };
 }
 // TODO this ought to go in Selection.hpp ?
