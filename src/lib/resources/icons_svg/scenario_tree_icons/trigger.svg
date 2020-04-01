@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Generator: Adobe Illustrator 16.0.4, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
+
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   version="1.1"
+   x="0px"
+   y="0px"
+   width="16"
+   height="16"
+   viewBox="0 0 16 16"
+   enable-background="new 0 0 10.104 12.644"
+   xml:space="preserve"
+   id="svg13"
+   sodipodi:docname="trigger.svg"
+   inkscape:version="0.92.4 5da689c313, 2019-01-14"><metadata
+   id="metadata19"><rdf:RDF><cc:Work
+       rdf:about=""><dc:format>image/svg+xml</dc:format><dc:type
+         rdf:resource="http://purl.org/dc/dcmitype/StillImage" /><dc:title></dc:title></cc:Work></rdf:RDF></metadata><defs
+   id="defs17" /><sodipodi:namedview
+   pagecolor="#ffffff"
+   bordercolor="#666666"
+   borderopacity="1"
+   objecttolerance="10"
+   gridtolerance="10"
+   guidetolerance="10"
+   inkscape:pageopacity="0"
+   inkscape:pageshadow="2"
+   inkscape:window-width="1920"
+   inkscape:window-height="1015"
+   id="namedview15"
+   showgrid="false"
+   inkscape:zoom="12.203608"
+   inkscape:cx="-1.6719276"
+   inkscape:cy="13.056313"
+   inkscape:window-x="0"
+   inkscape:window-y="0"
+   inkscape:window-maximized="1"
+   inkscape:current-layer="svg13" />
+<g
+   id="Trigger"
+   transform="matrix(1.1072445,0,0,1.1072445,2.4062008,1.0000003)">
+	<g
+   id="g8">
+		<g
+   id="g4">
+			<path
+   d="M 10.104,1.585 H 5.836 V 12.644 H 4.269 V 1.585 H 0 V 0 h 10.104 z"
+   id="path2"
+   inkscape:connector-curvature="0"
+   style="fill:#ffe100" />
+		</g>
+		<polygon
+   points="5.052,9.069 2.052,5.36 8.052,5.36 "
+   id="polygon6"
+   style="fill:#ffe100" />
+	</g>
+</g>
+<g
+   id="Exit"
+   transform="matrix(1.9794141,0,0,1.9794141,-10.722625,0.451058)">
+</g>
+<g
+   id="Loop"
+   transform="matrix(1.9794141,0,0,1.9794141,-10.722625,0.451058)">
+</g>
+</svg>

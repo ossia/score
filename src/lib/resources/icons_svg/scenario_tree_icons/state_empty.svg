@@ -9,13 +9,13 @@
    xmlns="http://www.w3.org/2000/svg"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   width="53.390495mm"
-   height="53.390491mm"
-   viewBox="0 0 53.390495 53.390491"
+   width="16"
+   height="16"
+   viewBox="0 0 4.2333333 4.2333332"
    version="1.1"
    id="svg821"
-   inkscape:version="0.92+devel (7f3bd2b258, 2017-08-07, custom)"
-   sodipodi:docname="state-empty.svg">
+   inkscape:version="0.92.4 5da689c313, 2019-01-14"
+   sodipodi:docname="state_empty.svg">
   <defs
      id="defs815" />
   <sodipodi:namedview
@@ -25,10 +25,10 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="1.4"
-     inkscape:cx="-201.60123"
-     inkscape:cy="80.431307"
-     inkscape:document-units="mm"
+     inkscape:zoom="16.74766"
+     inkscape:cx="-4.4954821"
+     inkscape:cy="14.396065"
+     inkscape:document-units="px"
      inkscape:current-layer="layer1"
      inkscape:document-rotation="0"
      showgrid="false"
@@ -37,10 +37,11 @@
      fit-margin-right="0"
      fit-margin-bottom="0"
      inkscape:window-width="1918"
-     inkscape:window-height="1059"
+     inkscape:window-height="1015"
      inkscape:window-x="0"
      inkscape:window-y="0"
-     inkscape:window-maximized="0" />
+     inkscape:window-maximized="0"
+     units="px" />
   <metadata
      id="metadata818">
     <rdf:RDF>
@@ -57,12 +58,12 @@
      inkscape:label="Layer 1"
      inkscape:groupmode="layer"
      id="layer1"
-     transform="translate(-38.683972,-64.521131)">
+     transform="translate(-38.683972,-113.67829)">
     <circle
-       style="fill:#03c3dd;fill-opacity:1;stroke:none;stroke-width:0;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       style="fill:#03c3dd;fill-opacity:1;stroke:none;stroke-width:0.66247344;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
        id="path1368"
-       cx="65.379219"
-       cy="91.216377"
-       r="17.003864" />
+       cx="40.80064"
+       cy="115.79496"
+       r="1.8520833" />
   </g>
 </svg>

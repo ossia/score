@@ -9,15 +9,15 @@
    xmlns="http://www.w3.org/2000/svg"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   width="2.4190474mm"
-   height="10.180161mm"
-   viewBox="0 0 8.5714276 36.071438"
-   id="svg2"
+   width="16"
+   height="16"
+   viewBox="0 0 4.2333334 4.2333332"
    version="1.1"
-   inkscape:version="0.91 r13725"
-   sodipodi:docname="event.svg">
+   id="svg873"
+   sodipodi:docname="interval.svg"
+   inkscape:version="0.92.4 5da689c313, 2019-01-14">
   <defs
-     id="defs4" />
+     id="defs867" />
   <sodipodi:namedview
      id="base"
      pagecolor="#ffffff"
@@ -25,23 +25,25 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="2.8"
-     inkscape:cx="-24.216656"
-     inkscape:cy="-30.875585"
+     inkscape:zoom="16.365103"
+     inkscape:cx="5.0558048"
+     inkscape:cy="10.602887"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
+     inkscape:document-rotation="0"
      showgrid="false"
+     inkscape:window-width="1606"
+     inkscape:window-height="923"
+     inkscape:window-x="156"
+     inkscape:window-y="68"
+     inkscape:window-maximized="0"
      fit-margin-top="0"
      fit-margin-left="0"
      fit-margin-right="0"
      fit-margin-bottom="0"
-     inkscape:window-width="1376"
-     inkscape:window-height="855"
-     inkscape:window-x="64"
-     inkscape:window-y="1"
-     inkscape:window-maximized="1" />
+     units="px" />
   <metadata
-     id="metadata7">
+     id="metadata870">
     <rdf:RDF>
       <cc:Work
          rdf:about="">
@@ -53,16 +55,14 @@
     </rdf:RDF>
   </metadata>
   <g
-     inkscape:label="Calque 1"
+     inkscape:label="Layer 1"
      inkscape:groupmode="layer"
      id="layer1"
-     transform="translate(-74.285713,-60.933632)">
-    <rect
-       style="fill:#ffffff"
-       id="rect3336"
-       width="8.5714273"
-       height="36.071438"
-       x="74.285713"
-       y="60.933632" />
+     transform="translate(-38.543375,-41.032832)">
+    <path
+       style="fill:none;fill-rule:evenodd;stroke:#03c3dd;stroke-width:1.05833328;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m 38.807958,43.149499 h 3.704167"
+       id="path1418"
+       inkscape:connector-curvature="0" />
   </g>
 </svg>

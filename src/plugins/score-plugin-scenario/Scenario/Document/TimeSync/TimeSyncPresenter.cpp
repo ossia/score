@@ -56,7 +56,7 @@ TimeSyncPresenter::TimeSyncPresenter(
   // extentChanged is updated in scenario.
 
   m_triggerView->setVisible(m_model.active());
-  m_triggerView->setPos(-8., -25.);
+  m_triggerView->setPos(-10., -25.);
 
   m_triggerView->setToolTip(m_model.expression().toString());
   con(m_model,

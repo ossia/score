@@ -9,15 +9,15 @@
    xmlns="http://www.w3.org/2000/svg"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   width="4.7656002mm"
-   height="5mm"
-   viewBox="0 0 4.7656002 5"
+   width="16"
+   height="16"
+   viewBox="0 0 14.999999 15"
+   id="svg2"
    version="1.1"
-   id="svg873"
-   sodipodi:docname="constraint.svg"
-   inkscape:version="0.92+devel (7f3bd2b258, 2017-08-07, custom)">
+   inkscape:version="0.92.4 5da689c313, 2019-01-14"
+   sodipodi:docname="timenode.svg">
   <defs
-     id="defs867" />
+     id="defs4" />
   <sodipodi:namedview
      id="base"
      pagecolor="#ffffff"
@@ -25,24 +25,24 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="7.9195959"
-     inkscape:cx="31.576424"
-     inkscape:cy="0.75356905"
-     inkscape:document-units="mm"
+     inkscape:zoom="10.356042"
+     inkscape:cx="-16.663245"
+     inkscape:cy="9.6825807"
+     inkscape:document-units="px"
      inkscape:current-layer="layer1"
-     inkscape:document-rotation="0"
      showgrid="false"
-     inkscape:window-width="1606"
-     inkscape:window-height="923"
-     inkscape:window-x="156"
-     inkscape:window-y="68"
-     inkscape:window-maximized="0"
      fit-margin-top="0"
      fit-margin-left="0"
      fit-margin-right="0"
-     fit-margin-bottom="0" />
+     fit-margin-bottom="0"
+     inkscape:window-width="1920"
+     inkscape:window-height="1015"
+     inkscape:window-x="0"
+     inkscape:window-y="0"
+     inkscape:window-maximized="1"
+     units="px" />
   <metadata
-     id="metadata870">
+     id="metadata7">
     <rdf:RDF>
       <cc:Work
          rdf:about="">
@@ -54,14 +54,14 @@
     </rdf:RDF>
   </metadata>
   <g
-     inkscape:label="Layer 1"
+     inkscape:label="Calque 1"
      inkscape:groupmode="layer"
      id="layer1"
-     transform="translate(-38.543375,-40.266165)">
+     transform="translate(-74.285713,-82.005067)">
     <path
-       style="fill:none;fill-rule:evenodd;stroke:#03c3dd;stroke-width:1;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
-       d="m 38.543375,42.796595 h 4.765597"
-       id="path1418"
+       style="fill:none;fill-opacity:1;fill-rule:evenodd;stroke:#a4a4a4;stroke-width:1.87499988;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:1.87499994, 1.87499994;stroke-dashoffset:0;stroke-opacity:1"
+       d="m 81.785713,82.942567 v 13.125"
+       id="path4193"
        inkscape:connector-curvature="0" />
   </g>
 </svg>

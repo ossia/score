@@ -1,23 +1,5 @@
 <RCC>
     <qresource prefix="/">
         <file>DefaultSkin.json</file>
-        <file>images/trigger.png</file>
-        <file>images/trigger@2x.png</file>
-        <file>images/trigger-selected@2x.png</file>
-        <file>images/trigger-selected.png</file>
-        <file>images/trigger-hovered.png</file>
-        <file>images/trigger-hovered@2x.png</file>
-        <file>images/event.png</file>
-        <file>images/event@2x.png</file>
-        <file>images/interval.png</file>
-        <file>images/interval@2x.png</file>
-        <file>images/state.png</file>
-        <file>images/state-empty.png</file>
-        <file>images/state-empty@2x.png</file>
-        <file>images/state@2x.png</file>
-        <file>images/cond.png</file>
-        <file>images/cond@2x.png</file>
-        <file>images/timenode@2x.png</file>
-        <file>images/timenode.png</file>
     </qresource>
 </RCC>

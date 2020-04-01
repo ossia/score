@@ -10,15 +10,15 @@ W_OBJECT_IMPL(Scenario::TriggerView)
 namespace Scenario
 {
   static const QPixmap& triggerPixmap() {
-    static const auto p = score::get_pixmap(":/images/trigger.png");
+    static const auto p = score::get_pixmap(":/icons/scenario_trigger.png");
     return p;
   }
   static const QPixmap& selectedTriggerPixmap() {
-    static const auto p = score::get_pixmap(":/images/trigger-selected.png");
+    static const auto p = score::get_pixmap(":/icons/scenario_trigger_selected.png");
     return p;
   }
   static const QPixmap& hoveredTriggerPixmap() {
-    static const auto p = score::get_pixmap(":/images/trigger-hovered.png");
+    static const auto p = score::get_pixmap(":/icons/scenario_trigger_hovered.png");
     return p;
   }
 TriggerView::TriggerView(QGraphicsItem* parent)

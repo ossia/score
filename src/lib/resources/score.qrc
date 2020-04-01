@@ -527,6 +527,26 @@
         <file>icons/loop_off@2x.png</file>
         <file>icons/loop_on.png</file>
         <file>icons/loop_on@2x.png</file>
+        <file>icons/cond.png</file>
+        <file>icons/cond@2x.png</file>
+        <file>icons/event.png</file>
+        <file>icons/event@2x.png</file>
+        <file>icons/interval.png</file>
+        <file>icons/interval@2x.png</file>
+        <file>icons/state_empty.png</file>
+        <file>icons/state_empty@2x.png</file>
+        <file>icons/state.png</file>
+        <file>icons/state@2x.png</file>
+        <file>icons/timenode.png</file>
+        <file>icons/timenode@2x.png</file>
+        <file>icons/trigger.png</file>
+        <file>icons/trigger@2x.png</file>
+        <file>icons/scenario_trigger_hovered.png</file>
+        <file>icons/scenario_trigger_hovered@2x.png</file>
+        <file>icons/scenario_trigger_selected.png</file>
+        <file>icons/scenario_trigger_selected@2x.png</file>
+        <file>icons/scenario_trigger.png</file>
+        <file>icons/scenario_trigger@2x.png</file>
     </qresource>
     <qresource prefix="/qss_icons">
         <file>icons/blank.png</file>
