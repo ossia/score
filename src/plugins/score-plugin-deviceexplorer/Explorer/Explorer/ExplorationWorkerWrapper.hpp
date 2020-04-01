@@ -5,7 +5,7 @@
 #include <Explorer/Explorer/DeviceExplorerWidget.hpp>
 
 #include <QApplication>
-#include <QMessageBox>
+#include <score/widgets/MessageBox.hpp>
 #include <QThread>
 
 namespace Explorer
@@ -87,7 +87,7 @@ private:
 
   void on_fail(const QString& str)
   {
-    QMessageBox::warning(
+    score::warning(
         QApplication::activeWindow(),
         QObject::tr("Unable to refresh the device"),
         QObject::tr("Unable to refresh the device: ")

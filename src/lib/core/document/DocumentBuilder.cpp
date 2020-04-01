@@ -9,6 +9,7 @@
 #include <score/plugins/documentdelegate/plugin/DocumentPluginCreator.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/tools/RandomNameProvider.hpp>
+#include <score/widgets/MessageBox.hpp>
 
 #include <core/command/CommandStackSerialization.hpp>
 #include <core/document/Document.hpp>
@@ -19,7 +20,6 @@
 
 #include <QByteArray>
 #include <QDebug>
-#include <QMessageBox>
 #include <QObject>
 #include <QString>
 #include <QVariant>
@@ -105,7 +105,7 @@ Document* DocumentBuilder::loadDocument(
   catch (std::runtime_error& e)
   {
     if (m_parentView)
-      QMessageBox::warning(m_parentView, QObject::tr("Error"), e.what());
+      score::warning(m_parentView, QObject::tr("Error"), e.what());
     else
       qDebug() << "Error while loading: " << e.what();
 
@@ -161,7 +161,7 @@ Document* DocumentBuilder::restoreDocument(
   catch (std::runtime_error& e)
   {
     if (m_parentView)
-      QMessageBox::warning(m_parentView, QObject::tr("Error"), e.what());
+      score::warning(m_parentView, QObject::tr("Error"), e.what());
     else
       qDebug() << "Error while loading: " << e.what();
 

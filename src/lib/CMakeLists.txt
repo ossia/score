@@ -247,6 +247,7 @@ set(HEADERS
     "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/SpinBoxes.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/TextLabel.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/WidgetWrapper.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/MessageBox.hpp"
 
      "${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/QProgressIndicator/QProgressIndicator.h"
 
@@ -367,6 +368,7 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/Separator.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/ArrowButton.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/JS/JSEdit.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/MessageBox.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/core/application/SafeQApplication.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/core/application/ApplicationInterface.cpp"

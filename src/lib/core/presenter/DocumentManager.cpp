@@ -11,6 +11,8 @@
 #include <score/plugins/qt_interfaces/PluginRequirements_QtInterface.hpp>
 #include <score/tools/IdentifierGeneration.hpp>
 #include <score/tools/std/Optional.hpp>
+#include <score/widgets/Pixmap.hpp>
+#include <score/widgets/MessageBox.hpp>.hpp>
 
 #include <core/application/ApplicationSettings.hpp>
 #include <core/command/CommandStack.hpp>
@@ -222,6 +224,8 @@ bool DocumentManager::closeDocument(
     QMessageBox msgBox;
     msgBox.setText(tr("The document has been modified."));
     msgBox.setInformativeText(tr("Do you want to save your changes?"));
+    msgBox.setIconPixmap(score::get_pixmap(QStringLiteral(":/icons/message_question.png")));
+
     msgBox.setStandardButtons(
         QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel);
     msgBox.setDefaultButton(QMessageBox::Save);
@@ -497,7 +501,7 @@ Document* DocumentManager::loadFile(
         }
         else
         {
-          QMessageBox::warning(
+          score::warning(
               qApp->activeWindow(),
               tr("Unable to load"),
               tr("Unable to load file : "

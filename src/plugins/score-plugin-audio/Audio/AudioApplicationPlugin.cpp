@@ -7,11 +7,12 @@
 #include <score/tools/Bind.hpp>
 #include <score/widgets/ControlWidgets.hpp>
 #include <score/widgets/SetIcons.hpp>
+#include <score/widgets/MessageBox.hpp>
+
 #include <score/actions/ActionManager.hpp>
 #include <core/application/ApplicationSettings.hpp>
 #include <core/presenter/DocumentManager.hpp>
 #include <Audio/AudioPreviewExecutor.hpp>
-#include <QMessageBox>
 #include <QToolBar>
 
 #include <Process/ExecutionAction.hpp>
@@ -250,7 +251,7 @@ void ApplicationPlugin::setup_engine()
     catch (...)
     {
       /*
-      QMessageBox::warning(
+      score::warning(
             nullptr,
             tr("Audio error"),
             tr("The desired audio settings could not be applied.\nPlease change "

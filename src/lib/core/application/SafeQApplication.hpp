@@ -9,6 +9,7 @@
 #endif
 
 #include <score_lib_base_export.h>
+#include <score/widgets/MessageBox.hpp>
 
 /**
  * @brief C++ abstraction over fopen/fclose.
@@ -55,8 +56,8 @@ public:
 #if !defined(SCORE_DEBUG)
   void inform(const QString& str)
   {
-    QMessageBox::information(
-        QApplication::activeWindow(), "", str, QMessageBox::Ok);
+    score::information(
+        QApplication::activeWindow(), "", str);
   }
 
   bool notify(QObject* receiver, QEvent* event) override

@@ -3,11 +3,13 @@
 #include "DocumentBackups.hpp"
 
 #include <score/tools/QMapHelper.hpp>
+#include <score/widgets/MessageBox.hpp>
 
 #include <core/application/OpenDocumentsFile.hpp>
 
 #include <QApplication>
 #include <QFile>
+#include <QIcon>
 #include <QMap>
 #include <QMessageBox>
 #include <QObject>
@@ -20,11 +22,10 @@ bool score::DocumentBackups::canRestoreDocuments()
   // Try to reload if there was a crash
   if (OpenDocumentsFile::exists())
   {
-    if (QMessageBox::question(
-            qApp->activeWindow(),
-            QObject::tr("Reload?"),
-            QObject::tr("It seems that score previously crashed. Do you "
-                        "wish to reload your work?"))
+    if (score::question(qApp->activeWindow(),
+                        QObject::tr("Reload?"),
+                        QObject::tr("It seems that score previously crashed. Do you "
+                                                             "wish to reload your work?"))
         == QMessageBox::Yes)
     {
       return true;

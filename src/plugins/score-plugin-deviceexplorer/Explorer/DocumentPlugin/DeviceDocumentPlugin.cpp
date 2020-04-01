@@ -23,14 +23,16 @@
 #include <score/plugins/documentdelegate/plugin/DocumentPlugin.hpp>
 #include <score/serialization/VisitorCommon.hpp>
 #include <score/tools/Bind.hpp>
+#include <score/widgets/Pixmap.hpp>
+#include <score/widgets/MessageBox.hpp>
 
 #include <QApplication>
 #include <QDebug>
-#include <QMessageBox>
 #include <QObject>
 #include <QPushButton>
 #include <QString>
 #include <QMainWindow>
+#include <QMessageBox>
 
 #include <wobjectimpl.h>
 
@@ -75,13 +77,14 @@ void DeviceDocumentPlugin::asyncConnect(Device::DeviceInterface& newdev)
     w->setEnabled(false);
 
     QMessageBox b(
-        QMessageBox::Icon{},
+        QMessageBox::NoIcon,
         QString{"Waiting"},
         QString{"Waiting for a device: " + newdev.settings().name},
         QMessageBox::StandardButton::NoButton,
         nullptr,
         Qt::CustomizeWindowHint | Qt::WindowTitleHint);
     b.setStandardButtons(QMessageBox::StandardButton::Cancel);
+    b.setIconPixmap(score::get_pixmap(QStringLiteral(":/icons/message_information.png")));
 
     connect(
         b.button(QMessageBox::StandardButton::Cancel),
@@ -134,7 +137,7 @@ DeviceDocumentPlugin::createDeviceFromNode(const Device::Node& node)
   }
   catch (const std::runtime_error& e)
   {
-    QMessageBox::warning(
+    score::warning(
         QApplication::activeWindow(),
         QObject::tr("Error loading device"),
         node.get<Device::DeviceSettings>().name + ": "
@@ -176,7 +179,7 @@ DeviceDocumentPlugin::loadDeviceFromNode(const Device::Node& node)
   }
   catch (const std::runtime_error& e)
   {
-    QMessageBox::warning(
+    score::warning(
         QApplication::activeWindow(),
         QObject::tr("Error loading device"),
         node.get<Device::DeviceSettings>().name + ": "

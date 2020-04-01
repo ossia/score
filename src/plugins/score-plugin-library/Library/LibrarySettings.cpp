@@ -4,6 +4,8 @@
 #include <score/command/Dispatchers/ICommandDispatcher.hpp>
 #include <score/command/SettingsCommand.hpp>
 #include <score/tools/Bind.hpp>
+
+#include <score/widgets/MessageBox.hpp>
 #include <score/widgets/SetIcons.hpp>
 
 #include <QApplication>
@@ -62,10 +64,12 @@ Model::Model(QSettings& set, const score::ApplicationContext& ctx)
     {
       initSystemLibrary(dir);
 
-      auto dl = QMessageBox::question(qApp->activeWindow(), tr("Download the user library ?"), tr("The user library has not been found. \n"
-                                                                                                  "Do you want to download it from the internet ? \n\n"
-                                                                                                  "Note: you can always download it later from : \n"
-                                                                                                  "https://github.com/OSSIA/score-user-library"));
+      auto dl = score::question(qApp->activeWindow(),
+                                tr("Download the user library ?"),
+                                tr("The user library has not been found. \n"
+                                   "Do you want to download it from the internet ? \n\n"
+                                   "Note: you can always download it later from : \n"
+                                   "https://github.com/OSSIA/score-user-library"));
       if(dl)
       {
         zdl::download_and_extract(

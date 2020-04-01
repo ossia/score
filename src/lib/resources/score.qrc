@@ -517,6 +517,12 @@
         <file>icons/settings_effect_off@2x.png</file>
         <file>icons/settings_effect_on.png</file>
         <file>icons/settings_effect_on@2x.png</file>
+        <file>icons/message_question.png</file>
+        <file>icons/message_question@2x.png</file>
+        <file>icons/message_information.png</file>
+        <file>icons/message_information@2x.png</file>
+        <file>icons/message_warning.png</file>
+        <file>icons/message_warning@2x.png</file>
     </qresource>
     <qresource prefix="/qss_icons">
         <file>icons/blank.png</file>
