@@ -124,6 +124,32 @@ void ToolPalette::activate(Tool t) {}
 
 void ToolPalette::desactivate(Tool t) {}
 
+QGraphicsItem* ToolPalette::itemAt(const Point& pt, const std::vector<QGraphicsItem*>& ignore) const noexcept
+{
+  auto pres_pt = presenter().fromScenarioPoint(pt);
+  auto scene_pt = presenter().view().mapToScene(pres_pt);
+  auto scene_items = scene().items(scene_pt);
+  QVarLengthArray<QGraphicsItem*> items;
+  for(auto it : scene_items)
+  {
+    if(it->parentItem() == &presenter().view())
+      if(!ossia::contains(ignore, it))
+        items.push_back(it);
+  }
+  for(auto it : items)
+    if(qgraphicsitem_cast<StateView*>(it))
+      return it;
+  for(auto it : items)
+    if(qgraphicsitem_cast<EventView*>(it))
+      return it;
+  for(auto it : items)
+    if(qgraphicsitem_cast<TimeSyncView*>(it))
+      return it;
+  if(!items.empty())
+    return items.front();
+  return nullptr;
+}
+
 Scenario::Point ToolPalette::ScenePointToScenarioPoint(QPointF point)
 {
   return ConvertToScenarioPoint(

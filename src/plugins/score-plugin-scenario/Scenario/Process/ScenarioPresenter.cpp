@@ -820,17 +820,26 @@ void ScenarioPresenter::on_eventCreated(const EventModel& event_model)
   ev_pres->view()->setWidthScale(m_graphicalScale);
   m_viewInterface.on_eventMoved(*ev_pres);
 
-  con(*ev_pres,
-      &EventPresenter::extentChanged,
-      this,
-      [=](const VerticalExtent&) { m_viewInterface.on_eventMoved(*ev_pres); });
-  con(event_model, &EventModel::dateChanged, this, [=](const TimeVal&) {
+  con(*ev_pres, &EventPresenter::extentChanged,
+      this, [=](const VerticalExtent&) {
     m_viewInterface.on_eventMoved(*ev_pres);
   });
 
+  con(event_model, &EventModel::dateChanged,
+      this, [=](const TimeVal&) {
+    m_viewInterface.on_eventMoved(*ev_pres);
+  });
+
+  con(event_model, &EventModel::timeSyncChanged,
+      this, [=](const Id<TimeSyncModel>& old_id, const Id<TimeSyncModel>& new_id) {
+    auto& old_t = m_timeSyncs.at(old_id);
+    old_t.removeEvent(ev_pres);
+    auto& new_t = m_timeSyncs.at(new_id);
+    new_t.addEvent(ev_pres);
+  });
+
   // For the state machine
-  connect(
-      ev_pres, &EventPresenter::pressed, m_view, &ScenarioView::pressedAsked);
+  connect(ev_pres, &EventPresenter::pressed, m_view, &ScenarioView::pressedAsked);
   connect(ev_pres, &EventPresenter::moved, m_view, &ScenarioView::movedAsked);
   connect(ev_pres, &EventPresenter::released, m_view, &ScenarioView::released);
 }
@@ -900,8 +909,7 @@ void ScenarioPresenter::on_stateCreated(const StateModel& state)
   updateEventExtent(*this, ev_pres, m_view->height());
 
   // For the state machine
-  connect(
-      st_pres, &StatePresenter::pressed, m_view, &ScenarioView::pressedAsked);
+  connect(st_pres, &StatePresenter::pressed, m_view, &ScenarioView::pressedAsked);
   connect(st_pres, &StatePresenter::moved, m_view, &ScenarioView::movedAsked);
   connect(st_pres, &StatePresenter::released, m_view, &ScenarioView::released);
 }
@@ -977,8 +985,12 @@ void ScenarioPresenter::on_intervalCreated(const IntervalModel& interval)
     con(endEvent, &EventModel::statusChanged, cst_pres,
         [cst_pres] { cst_pres->view()->update(); });
 
-    auto updateHeight = [&] {
+    auto updateHeight = [this, &interval] {
       auto h = m_view->height();
+      auto& startEvent = Scenario::startEvent(interval, model());
+      auto& endEvent = Scenario::endEvent(interval, model());
+      auto& startEventPres = m_events.at(startEvent.id());
+      auto& endEventPres = m_events.at(endEvent.id());
       updateEventExtent(*this, startEventPres, h);
       updateEventExtent(*this, endEventPres, h);
     };

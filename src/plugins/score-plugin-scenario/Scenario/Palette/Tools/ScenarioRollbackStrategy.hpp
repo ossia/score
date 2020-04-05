@@ -14,3 +14,10 @@ struct ScenarioRollbackStrategy
       const score::DocumentContext& ctx,
       const std::vector<score::Command*>& cmds);
 };
+
+struct DefaultRollbackStrategy
+{
+  static void rollback(
+      const score::DocumentContext& ctx,
+      const std::vector<score::Command*>& cmds);
+};

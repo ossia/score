@@ -37,7 +37,7 @@ protected:
 
     switch (pressedItem->type())
     {
-      case PointView::static_type():
+      case PointView::Type:
       {
         auto pt = safe_cast<const PointView*>(pressedItem);
         if (pt->contains(pt->mapFromScene(scenePoint)))
@@ -45,7 +45,7 @@ protected:
         break;
       }
 
-      case SegmentView::static_type():
+      case SegmentView::Type:
       {
         auto segt = safe_cast<const SegmentView*>(pressedItem);
         if (segt->contains(segt->mapFromScene(scenePoint)))

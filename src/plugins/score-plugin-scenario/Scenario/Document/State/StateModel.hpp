@@ -5,6 +5,7 @@
 #include <Scenario/Document/Event/ExecutionStatus.hpp>
 #include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
 #include <Scenario/Document/State/ItemModel/ControlItemModel.hpp>
+#include <Scenario/Document/Metatypes.hpp>
 
 #include <score/model/Component.hpp>
 #include <score/model/EntityImpl.hpp>
@@ -158,11 +159,4 @@ private:
 }
 
 DEFAULT_MODEL_METADATA(Scenario::StateModel, "State")
-
 TR_TEXT_METADATA(, Scenario::StateModel, PrettyName_k, "State")
-
-Q_DECLARE_METATYPE(Id<Scenario::StateModel>)
-W_REGISTER_ARGTYPE(Id<Scenario::StateModel>)
-W_REGISTER_ARGTYPE(Scenario::StateModel)
-W_REGISTER_ARGTYPE(const Scenario::StateModel&)
-W_REGISTER_ARGTYPE(Scenario::StateModel&)

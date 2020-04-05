@@ -10,22 +10,21 @@ Event::Event(
     DocumentPlugin& doc,
     QObject* parent_comp)
     : Component{id, "EventComponent", parent_comp}
-    , m_parent{Scenario::parentTimeSync(
-          event,
-          *dynamic_cast<Scenario::ScenarioInterface*>(event.parent()))}
 {
+  auto si = dynamic_cast<Scenario::ScenarioInterface*>(event.parent());
   connect(
       &event,
       &Scenario::EventModel::statusChanged,
       this,
-      [&](Scenario::ExecutionStatus st) {
+      [&,si](Scenario::ExecutionStatus st) {
+        auto& parent = Scenario::parentTimeSync(event, *si);
         switch (st)
         {
           case Scenario::ExecutionStatus::Pending:
-            doc.receiver.registerSync(m_parent);
+            doc.receiver.registerSync(parent);
             break;
           default:
-            doc.receiver.unregisterSync(m_parent);
+            doc.receiver.unregisterSync(parent);
             break;
         }
       });

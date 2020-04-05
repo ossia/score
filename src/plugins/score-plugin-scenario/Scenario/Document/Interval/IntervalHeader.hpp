@@ -20,11 +20,8 @@ public:
 
   using QGraphicsItem::QGraphicsItem;
 
-  static constexpr int static_type()
-  {
-    return ItemType::IntervalHeader;
-  }
-  int type() const override { return static_type(); }
+  static const constexpr int Type = ItemType::IntervalHeader;
+  int type() const final override { return Type; }
 
   void setIntervalView(IntervalView* view) { m_view = view; }
   static constexpr double headerHeight() { return IntervalHeaderHeight; }

@@ -236,11 +236,6 @@ SlotFooter::SlotFooter(
   this->setZValue(ZPos::Header);
 }
 
-int SlotFooter::type() const
-{
-  return static_type();
-}
-
 int SlotFooter::slotIndex() const
 {
   return m_slotIndex;

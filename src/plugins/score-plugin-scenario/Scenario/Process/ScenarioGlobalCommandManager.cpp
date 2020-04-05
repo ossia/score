@@ -242,16 +242,16 @@ void mergeEvents(
     for (++it; it != sel.end();)
     {
       // Check if Events have the same TimeSync parent
-      if (first_ev->timeSync() == (*it)->timeSync())
+      //if (first_ev->timeSync() == (*it)->timeSync())
       {
-        auto cmd
-            = new Command::MergeEvents(scenario, first_ev->id(), (*it)->id());
+        auto cmd = new Command::MergeEvents(scenario, first_ev->id(), (*it)->id());
+        //auto cmd = new Command::MergeTimeSyncs(scenario, first_ev->timeSync(), (*it)->timeSync());
         // f.redoAndPush(cmd);
         merger.submit(cmd);
         it = sel.erase(it);
       }
-      else
-        ++it;
+      //else
+      //  ++it;
     }
     sel.removeOne(first_ev);
   }

@@ -56,7 +56,7 @@ void View::paint_impl(QPainter* p) const
   {
     p->save();
     p->translate(col.first * m_dataWidth - side / 2., 0);
-    p->setCompositionMode(QPainter::CompositionMode_Exclusion);
+    p->setCompositionMode(QPainter::CompositionMode_Source);
     p->drawLine(QPointF{side / 2., 0}, QPointF{side / 2., height()});
     p->setCompositionMode(QPainter::CompositionMode_SourceOver);
     p->drawPath(triangle);

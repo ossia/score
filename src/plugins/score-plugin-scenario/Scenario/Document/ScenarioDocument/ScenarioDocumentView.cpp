@@ -223,8 +223,8 @@ void ProcessGraphicsView::mousePressEvent(QMouseEvent* event)
     const auto other = itemAt(event->pos());
     switch(other->type())
     {
-      case Dataflow::PortItem::static_type():
-      case Dataflow::CableItem::static_type():
+      case Dataflow::PortItem::Type:
+      case Dataflow::CableItem::Type:
         break;
 
       default:

@@ -22,7 +22,7 @@ LayerView::~LayerView()
   const auto& items = childItems();
   for (auto item : items)
   {
-    if (item->type() == Dataflow::CableItem::static_type())
+    if (item->type() == Dataflow::CableItem::Type)
     {
       item->setParentItem(nullptr);
     }

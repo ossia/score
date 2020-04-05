@@ -8,6 +8,7 @@
 #include <Scenario/Document/Interval/IntervalDurations.hpp>
 #include <Scenario/Document/Interval/Slot.hpp>
 #include <Scenario/Document/ModelConsistency.hpp>
+#include <Scenario/Document/Metatypes.hpp>
 
 #include <score/model/Component.hpp>
 #include <score/model/EntityImpl.hpp>
@@ -293,20 +294,11 @@ TimeVal timeDelta(const IntervalModel* child, const IntervalModel* parent);
 
 DEFAULT_MODEL_METADATA(Scenario::IntervalModel, "Interval")
 
-Q_DECLARE_METATYPE(Id<Scenario::IntervalModel>)
-Q_DECLARE_METATYPE(Path<Scenario::IntervalModel>)
-Q_DECLARE_METATYPE(QPointer<const Scenario::IntervalModel>)
-Q_DECLARE_METATYPE(Scenario::IntervalModel::ViewMode)
-
-W_REGISTER_ARGTYPE(Id<Scenario::IntervalModel>)
-W_REGISTER_ARGTYPE(OptionalId<Scenario::IntervalModel>)
-W_REGISTER_ARGTYPE(Path<Scenario::IntervalModel>)
-W_REGISTER_ARGTYPE(QPointer<const Scenario::IntervalModel>)
-W_REGISTER_ARGTYPE(Scenario::IntervalModel)
-W_REGISTER_ARGTYPE(Scenario::IntervalModel&)
-W_REGISTER_ARGTYPE(Scenario::IntervalModel::ViewMode)
-
 Q_DECLARE_METATYPE(Scenario::TimeSignatureMap)
 W_REGISTER_ARGTYPE(Scenario::TimeSignatureMap)
+Q_DECLARE_METATYPE(Scenario::IntervalModel::ViewMode)
+W_REGISTER_ARGTYPE(Scenario::IntervalModel::ViewMode)
+Q_DECLARE_METATYPE(QPointer<const Scenario::IntervalModel>)
+W_REGISTER_ARGTYPE(QPointer<const Scenario::IntervalModel>)
 
 TR_TEXT_METADATA(, Scenario::IntervalModel, PrettyName_k, "Interval")

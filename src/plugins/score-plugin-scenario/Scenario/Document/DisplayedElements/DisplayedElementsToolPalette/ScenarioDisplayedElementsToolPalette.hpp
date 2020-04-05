@@ -20,7 +20,7 @@ class MagnetismAdjuster;
 namespace Scenario
 {
 class EditionSettings;
-class MoveIntervalInScenario_StateWrapper;
+class DoNotMoveInterval_StateWrapper;
 class MoveLeftBraceInScenario_StateWrapper;
 class MoveRightBraceInScenario_StateWrapper;
 class MoveEventInTopScenario_StateWrapper;
@@ -68,7 +68,7 @@ private:
       Scenario::ProcessModel,
       ScenarioDisplayedElementsToolPalette,
       BaseGraphicsObject,
-      Scenario::MoveIntervalInScenario_StateWrapper,
+      Scenario::DoNotMoveInterval_StateWrapper,
       Scenario::MoveLeftBraceInScenario_StateWrapper,
       Scenario::MoveRightBraceInScenario_StateWrapper,
       Scenario::MoveEventInTopScenario_StateWrapper,

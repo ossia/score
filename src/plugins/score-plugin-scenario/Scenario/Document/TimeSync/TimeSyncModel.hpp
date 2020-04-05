@@ -4,6 +4,7 @@
 #include <Scenario/Document/VerticalExtent.hpp>
 #include <State/Expression.hpp>
 #include <Process/Dataflow/TimeSignature.hpp>
+#include <Scenario/Document/Metatypes.hpp>
 
 #include <score/model/Component.hpp>
 #include <score/model/EntityImpl.hpp>
@@ -117,9 +118,6 @@ private:
 
 DEFAULT_MODEL_METADATA(Scenario::TimeSyncModel, "Sync")
 TR_TEXT_METADATA(, Scenario::TimeSyncModel, PrettyName_k, "Sync")
-
-Q_DECLARE_METATYPE(Id<Scenario::TimeSyncModel>)
-W_REGISTER_ARGTYPE(Id<Scenario::TimeSyncModel>)
 
 Q_DECLARE_METATYPE(optional<Control::time_signature>)
 W_REGISTER_ARGTYPE(optional<Control::time_signature>)

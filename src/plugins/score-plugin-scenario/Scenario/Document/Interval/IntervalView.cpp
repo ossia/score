@@ -56,7 +56,7 @@ IntervalView::~IntervalView()
 {
   for (auto item : childItems())
   {
-    if (item->type() == Dataflow::CableItem::static_type())
+    if (item->type() == Dataflow::CableItem::Type)
     {
       item->setParentItem(nullptr);
     }

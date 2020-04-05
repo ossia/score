@@ -25,11 +25,8 @@ class SCORE_PLUGIN_SCENARIO_EXPORT TriggerView final
 public:
   TriggerView(QGraphicsItem* parent);
 
-  static constexpr int static_type()
-  {
-    return ItemType::Trigger;
-  }
-  int type() const override { return static_type(); }
+  static const constexpr int Type = ItemType::Trigger;
+  int type() const final override { return Type; }
 
   void setSelected(bool b) noexcept;
 
