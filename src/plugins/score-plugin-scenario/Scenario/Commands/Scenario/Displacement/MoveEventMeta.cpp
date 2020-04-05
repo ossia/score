@@ -179,10 +179,14 @@ void MoveEventMeta::updateY(Scenario::ProcessModel& scenar, double y) const
   {
     stp = &scenar.states.at(*m_stateId);
   }
+  /*
+  // This has been disabled to make sure that moving an event
+  // through a process sidebar does not set the process to the height of the state.
   else if (states.size() == 1)
   {
     stp = &scenar.states.at(states.front());
   }
+  */
 
   if (stp)
   {

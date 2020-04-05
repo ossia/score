@@ -191,7 +191,7 @@ void GraphalIntervalPresenter::paint(QPainter* painter, const QStyleOptionGraphi
   }
   else
   {
-    painter->setPen(brush.main.pen2_dotted_square_miter);
+    painter->setPen(brush.main.pen2_dashdot_square_miter);
   }
 
   painter->setBrush(style.TransparentBrush());

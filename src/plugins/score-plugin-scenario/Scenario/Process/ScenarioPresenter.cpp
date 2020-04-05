@@ -951,11 +951,7 @@ void ScenarioPresenter::on_intervalCreated(const IntervalModel& interval)
     con(endEvent, &EventModel::dateChanged, cst_pres,
         &GraphalIntervalPresenter::resize);
 
-    auto updateHeight = [&] {
-      auto h = m_view->height();
-      updateEventExtent(*this, startEventPres, h);
-      updateEventExtent(*this, endEventPres, h);
-    };
+    // TODO are these two calls useful ?
     updateEventExtent(*this, startEventPres, m_view->height());
     updateEventExtent(*this, endEventPres, m_view->height());
   }

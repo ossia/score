@@ -453,7 +453,7 @@ BrushSet::BrushSet(const BrushSet& other) noexcept
     , pen2{other.pen2}
     , pen2_solid_round_round{other.pen2_solid_round_round}
     , pen2_solid_flat_miter{other.pen2_solid_flat_miter}
-    , pen2_dashed_flat_miter{other.pen2_dashed_flat_miter}
+    , pen2_dashdot_square_miter{other.pen2_dashdot_square_miter}
     , pen2_dotted_square_miter{other.pen2_dotted_square_miter}
     , pen3{other.pen3}
     , pen3_solid_flat_miter{other.pen3_solid_flat_miter}
@@ -473,7 +473,7 @@ BrushSet::BrushSet(BrushSet&& other) noexcept
     , pen2{other.pen2}
     , pen2_solid_round_round{other.pen2_solid_round_round}
     , pen2_solid_flat_miter{other.pen2_solid_flat_miter}
-    , pen2_dashed_flat_miter{other.pen2_dashed_flat_miter}
+    , pen2_dashdot_square_miter{other.pen2_dashdot_square_miter}
     , pen2_dotted_square_miter{other.pen2_dotted_square_miter}
     , pen3{other.pen3}
     , pen3_solid_flat_miter{other.pen3_solid_flat_miter}
@@ -494,7 +494,7 @@ BrushSet& BrushSet::operator=(const BrushSet& other) noexcept
   pen2 = other.pen2;
   pen2_solid_round_round = other.pen2_solid_round_round;
   pen2_solid_flat_miter = other.pen2_solid_flat_miter;
-  pen2_dashed_flat_miter = other.pen2_dashed_flat_miter;
+  pen2_dashdot_square_miter = other.pen2_dashdot_square_miter;
   pen2_dotted_square_miter = other.pen2_dotted_square_miter;
   pen3 = other.pen3;
   pen3_solid_flat_miter = other.pen3_solid_flat_miter;
@@ -515,7 +515,7 @@ BrushSet& BrushSet::operator=(BrushSet&& other) noexcept
   pen2 = other.pen2;
   pen2_solid_round_round = other.pen2_solid_round_round;
   pen2_solid_flat_miter = other.pen2_solid_flat_miter;
-  pen2_dashed_flat_miter = other.pen2_dashed_flat_miter;
+  pen2_dashdot_square_miter = other.pen2_dashdot_square_miter;
   pen2_dotted_square_miter = other.pen2_dotted_square_miter;
   pen3 = other.pen3;
   pen3_solid_flat_miter = other.pen3_solid_flat_miter;
@@ -575,17 +575,17 @@ void BrushSet::setupPens()
   pen2_solid_flat_miter.setCapStyle(Qt::FlatCap);
   pen2_solid_flat_miter.setJoinStyle(Qt::MiterJoin);
 
-  pen2_dashed_flat_miter.setBrush(brush);
-  pen2_dashed_flat_miter.setWidth(2);
-  pen2_dashed_flat_miter.setStyle(Qt::DashLine);
-  pen2_dashed_flat_miter.setCapStyle(Qt::FlatCap);
-  pen2_dashed_flat_miter.setJoinStyle(Qt::MiterJoin);
+  pen2_dashdot_square_miter.setBrush(brush);
+  pen2_dashdot_square_miter.setWidth(2);
+  pen2_dashdot_square_miter.setStyle(Qt::DashDotLine);
+  pen2_dashdot_square_miter.setCapStyle(Qt::FlatCap);
+  pen2_dashdot_square_miter.setJoinStyle(Qt::MiterJoin);
 
   pen2_dotted_square_miter.setBrush(brush);
   pen2_dotted_square_miter.setWidth(2);
-  pen2_dotted_square_miter.setStyle(Qt::DashDotLine);
-  //pen2_dotted_square_miter.setCapStyle(Qt::SquareCap);
-  //pen2_dotted_square_miter.setJoinStyle(Qt::MiterJoin);
+  pen2_dotted_square_miter.setStyle(Qt::DotLine);
+  pen2_dotted_square_miter.setCapStyle(Qt::SquareCap);
+  pen2_dotted_square_miter.setJoinStyle(Qt::MiterJoin);
 
   pen3.setBrush(brush);
   pen3.setWidth(3);
