@@ -40,8 +40,6 @@ GraphalIntervalPresenter::GraphalIntervalPresenter(
   resize();
   connect(&model.selection, &Selectable::changed,
           this, [this] { update(); });
-  connect(&model, &IntervalModel::executionStateChanged,
-          this, [this] { update(); });
   connect(&model, &IntervalModel::executionStarted,
           this, [this] {
     m_execPing.start();
@@ -185,7 +183,7 @@ void GraphalIntervalPresenter::paint(QPainter* painter, const QStyleOptionGraphi
      const auto& nextPen = m_execPing.getNextPen(
            brush.color(),
            style.IntervalPlayFill().color(),
-           brush.main.pen2_dotted_square_miter);
+           brush.main.pen2_dashdot_square_miter);
      painter->setPen(nextPen);
      update();
   }

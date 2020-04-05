@@ -58,6 +58,11 @@ void score::ColorBang::start() noexcept
   pos = 59;
 }
 
+void score::ColorBang::stop() noexcept
+{
+  pos = 0;
+}
+
 bool ColorBang::running() const noexcept
 {
   return pos > 0;

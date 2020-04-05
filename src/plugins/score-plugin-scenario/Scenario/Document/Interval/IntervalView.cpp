@@ -83,6 +83,10 @@ void IntervalView::setExecuting(bool e)
   {
     m_execPing.start();
   }
+  else if(e)
+  {
+    m_execPing.stop();
+  }
 
   m_waiting = e;
   update();

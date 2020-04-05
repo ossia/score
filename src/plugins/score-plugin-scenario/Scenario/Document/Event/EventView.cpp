@@ -54,6 +54,10 @@ void EventView::setStatus(ExecutionStatus status)
   {
     m_execPing.start();
   }
+  else
+  {
+    m_execPing.stop();
+  }
   update();
   conditionItem().update();
 }

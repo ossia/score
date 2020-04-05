@@ -159,6 +159,10 @@ void StateView::setStatus(ExecutionStatus status)
   {
     m_execPing.start();
   }
+  else
+  {
+    m_execPing.stop();
+  }
   update();
 }
 
