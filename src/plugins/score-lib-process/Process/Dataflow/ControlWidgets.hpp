@@ -952,6 +952,58 @@ struct HSVSlider
   }
 };
 
+struct XYSlider
+{
+  template <typename T, typename Control_T>
+  static auto make_widget(
+      const T& slider,
+      Control_T& inlet,
+      const score::DocumentContext& ctx,
+      QWidget* parent,
+      QObject* context)
+  {
+    return nullptr; // TODO
+  }
+
+  template <typename T, typename Control_T>
+  static QGraphicsItem* make_item(
+      const T& slider,
+      Control_T& inlet,
+      const score::DocumentContext& ctx,
+      QGraphicsItem* parent,
+      QObject* context)
+  {
+    auto sl = new score::QGraphicsXYChooser{nullptr};
+    sl->setValue(ossia::convert<ossia::vec2f>(inlet.value()));
+
+    QObject::connect(
+        sl,
+        &score::QGraphicsXYChooser::sliderMoved,
+        context,
+        [=, &inlet, &ctx] {
+          sl->moving = true;
+          ctx.dispatcher.submit<SetControlValue<Control_T>>(inlet, sl->value());
+        });
+    QObject::connect(
+        sl, &score::QGraphicsXYChooser::sliderReleased, context, [&ctx, sl]() {
+          ctx.dispatcher.commit();
+          sl->moving = false;
+        });
+
+    QObject::connect(
+        &inlet,
+        &Control_T::valueChanged,
+        sl,
+        [=](ossia::value val) {
+          if (!sl->moving)
+            sl->setValue(ossia::convert<ossia::vec2f>(val));
+        });
+
+    return sl;
+  }
+};
+
+
 using FloatSlider = FloatControl<score::QGraphicsSlider>;
 using LogFloatSlider = LogFloatControl<score::QGraphicsLogSlider>;
 using FloatKnob = FloatControl<score::QGraphicsKnob>;

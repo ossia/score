@@ -35,6 +35,7 @@ const QIcon& getCategoryIcon(const QString& category) noexcept
         { "Mappings", QIcon{QStringLiteral(":/icons/filter.png") } },
         { "Midi", QIcon{QStringLiteral(":/icons/midi.png") } },
         { "Control", QIcon{QStringLiteral(":/icons/controls.png") } },
+        { "GFX", QIcon{QStringLiteral(":/icons/gfx.png") } },
         { "Automations", QIcon{QStringLiteral(":/icons/automation.png") } },
         { "Impro", QIcon{QStringLiteral(":/icons/controls.png") }  },
         { "Script", QIcon{QStringLiteral(":/icons/script.png") } },

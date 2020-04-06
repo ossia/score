@@ -17,6 +17,7 @@ struct Enum;
 struct TimeSignatureChooser;
 struct Button;
 struct HSVSlider;
+struct XYSlider;
 }
 UUID_METADATA(
     SCORE_LIB_PROCESS_EXPORT,
@@ -88,6 +89,11 @@ UUID_METADATA(
     Process::Port,
     Process::HSVSlider,
     "8f38638e-9f9f-48b0-ae36-1cba86ef5703")
+UUID_METADATA(
+    SCORE_LIB_PROCESS_EXPORT,
+    Process::Port,
+    Process::XYSlider,
+    "8093743c-584f-4bb9-97d4-6c7602f87116")
 
 namespace Process
 {
@@ -391,6 +397,27 @@ struct HSVSlider : public Process::ControlInlet
 
   auto getMin() const noexcept { return ossia::vec4f{0., 0., 0., 0.}; }
   auto getMax() const noexcept { return ossia::vec4f{1., 1., 1., 1.}; }
+  using Process::ControlInlet::ControlInlet;
+};
+
+struct XYSlider : public Process::ControlInlet
+{
+  MODEL_METADATA_IMPL(XYSlider)
+  using control_type = WidgetFactory::XYSlider;
+  XYSlider(
+      ossia::vec2f init,
+      const QString& name,
+      Id<Process::Port> id,
+      QObject* parent)
+      : ControlInlet{id, parent}
+  {
+    hidden = true;
+    setValue(init);
+    setCustomData(name);
+  }
+
+  auto getMin() const noexcept { return ossia::vec4f{0., 0.}; }
+  auto getMax() const noexcept { return ossia::vec4f{1., 1.}; }
   using Process::ControlInlet::ControlInlet;
 };
 
