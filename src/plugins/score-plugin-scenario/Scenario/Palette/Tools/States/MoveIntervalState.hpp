@@ -28,24 +28,9 @@
 
 namespace Scenario
 {
-namespace Command
-{
-class MoveIntervalMacro final : public score::AggregateCommand
-{
-  SCORE_COMMAND_DECL(
-      CommandFactoryName(),
-      MoveIntervalMacro,
-      "Move an interval")
-};
-}
-}
-
-namespace Scenario
-{
 template <typename T>
 class MoveIntervalState final : public StateBase<Scenario::ProcessModel>
 {
-  const T& m_sm;
 public:
   MoveIntervalState(
       const T& stateMachine,
@@ -126,6 +111,7 @@ public:
         auto& cst = scenario.interval(*this->clickedInterval);
         auto& sst = Scenario::startState(cst, scenario);
         auto& sev = Scenario::parentEvent(sst, scenario);
+        auto& sts = Scenario::parentTimeSync(sev, scenario);
 
         if (qApp->keyboardModifiers() & Qt::ShiftModifier)
           m_lastDate = m_intervalInitialPoint.date
@@ -135,7 +121,7 @@ public:
         if (this->m_pressedPrevious)
           m_lastDate = std::max(m_lastDate, *this->m_pressedPrevious);
 
-        m_lastDate = stateMachine.magnetic().getPosition(&stateMachine.model(), m_lastDate);
+        m_lastDate = stateMachine.magnetic().getPosition(&sts, m_lastDate);
         m_lastDate = std::max(m_lastDate, TimeVal{});
 
         // If the start event does not have previous intervals
@@ -156,7 +142,6 @@ public:
       });
 
       QObject::connect(released, &QState::entered, [&]() {
-
         auto& cst = m_scenario.interval(*this->clickedInterval);
         if(this->m_startEventCanBeMerged)
         {
@@ -183,9 +168,7 @@ public:
     this->setInitialState(mainState);
   }
 
-  // SingleOngoingCommandDispatcher<MoveIntervalCommand_T> m_dispatcher;
-  MultiOngoingCommandDispatcher m_movingDispatcher;
-
+private:
   void rollback()
   {
     m_movingDispatcher.template rollback<DefaultRollbackStrategy>();
@@ -234,7 +217,10 @@ public:
             syncToMerge->presenter().model().id());
     }
   }
-private:
+
+  const T& m_sm;
+  MultiOngoingCommandDispatcher m_movingDispatcher;
+
   Scenario::Point m_initialClick{};
   Scenario::Point m_intervalInitialPoint{};
   optional<TimeVal> m_pressedPrevious;

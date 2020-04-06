@@ -42,6 +42,7 @@
 #include <QMenu>
 #include <QToolBar>
 #include <Automation/AutomationColors.hpp>
+#include <Scenario/Process/ScenarioModel.hpp>
 
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Scenario::FullViewIntervalPresenter)
@@ -619,10 +620,38 @@ void FullViewIntervalPresenter::on_zoomRatioChanged(ZoomRatio ratio)
   updateProcessesShape();
 }
 
-TimeVal FullViewIntervalPresenter::magneticPosition(const QObject* o, TimeVal t) const noexcept
+TimeVal FullViewIntervalPresenter::magneticPosition(const QObject* o, const TimeVal t) const noexcept
 {
+  // TODO instead call a virtual function on the process that return the date of the closest thing
+  // If it's less close than the grid... return
+  TimeVal scenarioT = t;
+  TimeVal closestTimeSyncT = TimeVal::fromMsecs(std::numeric_limits<int32_t>::max());
+  bool snapToScenario{};
+  if(auto given_ts = qobject_cast<const Scenario::TimeSyncModel*>(o))
+  {
+    if(auto scenario = qobject_cast<Scenario::ProcessModel*>(given_ts->parent()))
+    {
+      for(auto& ts : scenario->timeSyncs)
+      {
+        if(given_ts == &ts)
+          continue;
+
+        if(std::abs(ts.date().msec() - t.msec()) < std::abs(closestTimeSyncT.msec() - t.msec()))
+        {
+          closestTimeSyncT = ts.date();
+        }
+      }
+      double delta = std::abs((closestTimeSyncT - t).toPixels(m_zoomRatio));
+      if(delta < 10)
+      {
+        scenarioT = closestTimeSyncT;
+        snapToScenario = true;
+      }
+    }
+  }
+
   if(!m_settings.getMagneticMeasures() || !m_settings.getMeasureBars())
-    return t;
+    return scenarioT;
 
   // t is the time in the context of obj
   // we have to find its closest parent interval with a time signature definition
@@ -634,7 +663,7 @@ TimeVal FullViewIntervalPresenter::magneticPosition(const QObject* o, TimeVal t)
     if(o == &m_model)
     {
       if(!m_model.hasTimeSignature())
-        return t;
+        return scenarioT;
 
       break;
     }
@@ -665,13 +694,13 @@ TimeVal FullViewIntervalPresenter::magneticPosition(const QObject* o, TimeVal t)
   }
 
   if(!o)
-    return t;
+    return scenarioT;
 
   // Find leftmost signature
   const double msecs = (t + timeDelta).msec();
   const auto& sig = m_model.timeSignatureMap();
   if(sig.empty())
-      return t;
+    return scenarioT;
 
   auto leftmost_sig = sig.lower_bound(TimeVal::fromMsecs(msecs));
   if(leftmost_sig != sig.begin())
@@ -685,11 +714,17 @@ TimeVal FullViewIntervalPresenter::magneticPosition(const QObject* o, TimeVal t)
   {
     const double rounded_date = std::round((msecs - orig_date) / division) * division + orig_date;
 
-    return TimeVal::fromMsecs(rounded_date) - timeDelta;
+    auto closestBar = TimeVal::fromMsecs(rounded_date) - timeDelta;
+    if(!snapToScenario)
+      return closestBar;
+    else if(std::abs(closestBar.msec() - t.msec()) < std::abs(scenarioT.msec() - t.msec()))
+      return closestBar;
+    else
+      return scenarioT;
   }
   else
   {
-    return t;
+    return scenarioT;
   }
 }
 
