@@ -109,20 +109,26 @@ public:
         if (!this->clickedInterval)
           return;
         auto& cst = scenario.interval(*this->clickedInterval);
+        if(cst.graphal())
+          return;
         auto& sst = Scenario::startState(cst, scenario);
         auto& sev = Scenario::parentEvent(sst, scenario);
         auto& sts = Scenario::parentTimeSync(sev, scenario);
 
         if (qApp->keyboardModifiers() & Qt::ShiftModifier)
+        {
           m_lastDate = m_intervalInitialPoint.date
                  + (this->currentPoint.date - m_initialClick.date);
-        else
-          m_lastDate = m_intervalInitialPoint.date;
-        if (this->m_pressedPrevious)
-          m_lastDate = std::max(m_lastDate, *this->m_pressedPrevious);
+          if (this->m_pressedPrevious)
+            m_lastDate = std::max(m_lastDate, *this->m_pressedPrevious);
 
-        m_lastDate = stateMachine.magnetic().getPosition(&sts, m_lastDate);
-        m_lastDate = std::max(m_lastDate, TimeVal{});
+          m_lastDate = stateMachine.magnetic().getPosition(&sts, m_lastDate);
+          m_lastDate = std::max(m_lastDate, TimeVal{});
+        }
+        else
+        {
+          m_lastDate = m_intervalInitialPoint.date;
+        }
 
         // If the start event does not have previous intervals
         // we will try to merge the start sync with other syncs...
@@ -142,14 +148,25 @@ public:
       });
 
       QObject::connect(released, &QState::entered, [&]() {
-        auto& cst = m_scenario.interval(*this->clickedInterval);
-        if(this->m_startEventCanBeMerged)
+
+        if (!this->clickedInterval)
+          return;
+        auto& cst = scenario.interval(*this->clickedInterval);
+        if(cst.graphal())
+          return;
+
+        if (qApp->keyboardModifiers() & Qt::ShiftModifier)
         {
-          merge(cst, Scenario::startState(cst, m_scenario), m_lastDate);
-        }
-        if(this->m_endEventCanBeMerged)
-        {
-          merge(cst, Scenario::endState(cst, m_scenario), m_lastDate + cst.duration.defaultDuration());
+          if(this->m_startEventCanBeMerged)
+          {
+            merge(cst, Scenario::startState(cst, m_scenario), m_lastDate);
+          }
+          /*
+          if(this->m_endEventCanBeMerged)
+          {
+            merge(cst, Scenario::endState(cst, m_scenario), m_lastDate + cst.duration.defaultDuration());
+          }
+          */
         }
 
         m_movingDispatcher.template commit<Command::MoveIntervalMacro>();

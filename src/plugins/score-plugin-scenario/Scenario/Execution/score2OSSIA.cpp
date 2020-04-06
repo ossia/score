@@ -16,6 +16,10 @@
 #include <ossia/editor/state/state.hpp>
 #include <ossia/network/value/value.hpp>
 
+extern "C" float __log_finite(float f)
+{
+  return std::log(f);
+}
 class NodeNotFoundException : public std::runtime_error
 {
 public:
