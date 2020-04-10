@@ -81,7 +81,6 @@ void VideoDecoder::seek(int64_t dts)
 AVFrame* VideoDecoder::dequeue_frame() noexcept
 {
   AVFrame* f{};
-  // m_framesMutex.lock();
   if (auto to_discard = m_discardUntil.exchange(nullptr))
   {
     while (m_frames.try_dequeue(f) && f != to_discard)
@@ -89,13 +88,11 @@ AVFrame* VideoDecoder::dequeue_frame() noexcept
       av_frame_free(&f);
     }
 
-    // m_framesMutex.unlock();
     return to_discard;
   }
 
   m_frames.try_dequeue(f);
   m_condVar.notify_one();
-  // m_framesMutex.unlock();
   return f;
 }
 
@@ -116,19 +113,11 @@ void VideoDecoder::buffer_thread() noexcept
       });
       if (!m_running.load(std::memory_order_acquire))
         return;
-      // bool mustRead{};
-      // {
-      //   //std::lock_guard _{m_framesMutex};
-      //   mustRead = m_frames.size_approx() < frames_to_buffer;
-      // }
 
-      // if (mustRead)
+      if (auto f = read_frame_impl())
       {
-        if (auto f = read_frame_impl())
-        {
-          m_last_dts = f->pkt_dts;
-          m_frames.enqueue(f);
-        }
+        m_last_dts = f->pkt_dts;
+        m_frames.enqueue(f);
       }
     }
   }
@@ -153,14 +142,6 @@ void VideoDecoder::close_file() noexcept
 
 bool VideoDecoder::seek_impl(int64_t dts) noexcept
 {
-  {
-    // std::lock_guard _{m_framesMutex};
-    // if (!m_frames.empty() && m_frames.front()->pkt_dts == dts)
-    // {
-    //   return false;
-    // }
-  }
-
   int flags = AVSEEK_FLAG_FRAME;
   if (dts < this->m_last_dts)
   {
@@ -192,11 +173,8 @@ bool VideoDecoder::seek_impl(int64_t dts) noexcept
   } while (!(got_frame && f->pkt_dts >= dts));
 
   m_last_dts = f->pkt_dts;
-  {
-    // std::lock_guard _{m_framesMutex};
-    m_frames.enqueue(f);
-    m_discardUntil = f;
-  }
+  m_frames.enqueue(f);
+  m_discardUntil = f;
   return true;
 }
 
