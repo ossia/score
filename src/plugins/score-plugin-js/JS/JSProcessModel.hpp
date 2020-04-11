@@ -40,14 +40,14 @@ public:
 
   QObject* m_dummyObject{};
 
-public:
-  void scriptError(int arg_1, const QString& arg_2)
-      W_SIGNAL(scriptError, arg_1, arg_2);
+  void errorMessage(int arg_1, const QString& arg_2)
+      W_SIGNAL(errorMessage, arg_1, arg_2);
   void scriptOk() W_SIGNAL(scriptOk);
   void scriptChanged(const QString& arg_1) W_SIGNAL(scriptChanged, arg_1);
 
   void qmlDataChanged(const QString& arg_1) W_SIGNAL(qmlDataChanged, arg_1);
 
+  PROPERTY(QString, script READ script WRITE setScript NOTIFY scriptChanged)
 private:
   QString m_script, m_qmlData;
   QQmlEngine m_dummyEngine;

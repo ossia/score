@@ -99,6 +99,7 @@ find_package(Qt5 5.9 REQUIRED
 )
 
 include(3rdparty/libossia.cmake)
+add_subdirectory(3rdparty/QCodeEditor)
 enable_testing()
 include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/ScoreFunctions.cmake")
 include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/ScoreConfiguration.cmake")

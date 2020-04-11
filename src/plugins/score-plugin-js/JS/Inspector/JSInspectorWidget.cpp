@@ -35,7 +35,7 @@ void JSWidgetBase::init(Widg* self, T& model)
 
   m_errorLabel = new QLabel{self};
 
-  con(model, &T::scriptError, self, [=](int line, const QString& err) {
+  con(model, &T::errorMessage, self, [=](int line, const QString& err) {
     m_edit->setError(line);
     m_errorLabel->setText(err);
     m_errorLabel->setVisible(true);
@@ -161,7 +161,7 @@ void InspectorWidget::on_textChange(const QString& newTxt)
   if (newTxt == m_script)
     return;
 
-  auto cmd = new JS::EditScript{process(), newTxt};
+  auto cmd = new score::StaticPropertyCommand<JS::ProcessModel::p_script>{process(), newTxt};
 
   m_dispatcher.submit(cmd);
 }

@@ -24,11 +24,6 @@
 #include <ossia/detail/algorithms.hpp>
 #include <ossia/network/domain/domain_base.hpp>
 
-#include <multi_index/hashed_index.hpp>
-#include <multi_index/mem_fun.hpp>
-#include <multi_index/member.hpp>
-#include <multi_index/ordered_index.hpp>
-#include <multi_index_container.hpp>
 #include <wobjectimpl.h>
 
 W_OBJECT_IMPL(Curve::Model)
@@ -257,14 +252,6 @@ std::vector<SegmentData> Model::toCurveData() const
   return dat;
 }
 
-namespace bmi = multi_index;
-using CurveSegmentOrderedMap = bmi::multi_index_container<
-    SegmentData,
-    bmi::indexed_by<
-        bmi::hashed_unique<
-            bmi::member<SegmentData, Id<SegmentModel>, &SegmentData::id>,
-            CurveDataHash>,
-        bmi::ordered_unique<bmi::identity<SegmentData>>>>;
 
 void Model::fromCurveData(const std::vector<SegmentData>& curve)
 {
@@ -273,11 +260,16 @@ void Model::fromCurveData(const std::vector<SegmentData>& curve)
 
   auto& context = score::IDocument::documentContext(*this).app;
   auto& csl = context.interfaces<SegmentList>();
-  CurveSegmentOrderedMap map(curve.begin(), curve.end());
-  for (const auto& elt : map.get<Segments::Ordered>())
+
+
+  static std::vector<SegmentData> map;
+  map.assign(curve.begin(), curve.end());
+  std::sort(map.begin(), map.end());
+  for (const auto& elt : map)
   {
     addSortedSegment(createCurveSegment(csl, elt, this));
   }
+  map.clear();
   this->blockSignals(false);
   curveReset();
   changed();
@@ -360,17 +352,8 @@ void Model::removePoint(PointModel* pt)
 std::vector<SegmentData> orderedSegments(const Model& curve)
 {
   auto vec = curve.toCurveData();
-
-  decltype(vec) vec2;
-  vec2.reserve(vec.size());
-
-  CurveSegmentOrderedMap map{vec.begin(), vec.end()};
-  for (const auto& elt : map.get<Segments::Ordered>())
-  {
-    vec2.push_back(elt);
-  }
-
-  return vec2;
+  std::sort(vec.begin(), vec.end());
+  return vec;
 }
 
 CurveDomain::CurveDomain(const ossia::domain& dom)

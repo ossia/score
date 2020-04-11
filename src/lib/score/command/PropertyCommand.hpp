@@ -104,6 +104,9 @@ private:
   Path<model_t> m_path;
   param_t m_old, m_new;
 };
+
+template<typename T>
+using StaticPropertyCommand = typename score::PropertyCommand_T<T>::template command<void>::type;
 }
 
 #define PROPERTY_COMMAND_T(NS, Name, Property, Description)         \

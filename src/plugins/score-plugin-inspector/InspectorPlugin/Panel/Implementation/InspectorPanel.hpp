@@ -7,11 +7,6 @@
 
 #include <QWidget>
 
-#include <multi_index/hashed_index.hpp>
-#include <multi_index/identity_fwd.hpp>
-#include <multi_index/indexed_by.hpp>
-#include <multi_index/mem_fun.hpp>
-#include <multi_index_container.hpp>
 #include <verdigris>
 
 class IdentifiedObjectAbstract;

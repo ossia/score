@@ -438,7 +438,7 @@ target_include_directories(score_lib_base PUBLIC "${3RDPARTY_FOLDER}/zipdownload
 target_include_directories(score_lib_base PUBLIC "${OSSIA_3RDPARTY_FOLDER}/rnd/include")
 
 target_link_libraries(score_lib_base
-    PUBLIC Qt5::Core Qt5::Widgets ossia # Qt5::Qml Qt5::QuickWidgets
+    PUBLIC Qt5::Core Qt5::Widgets ossia QCodeEditor # Qt5::Qml Qt5::QuickWidgets
     )
 if(TARGET Qt5::Svg)
   target_link_libraries(score_lib_base

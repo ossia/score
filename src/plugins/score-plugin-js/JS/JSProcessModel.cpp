@@ -138,7 +138,7 @@ void ProcessModel::setQmlData(const QByteArray& data, bool isFile)
   {
     const auto& err = errs.first();
     qDebug() << err.line() << err.toString();
-    scriptError(err.line(), err.toString());
+    errorMessage(err.line(), err.toString());
     return;
   }
 
