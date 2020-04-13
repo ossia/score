@@ -35,16 +35,20 @@ namespace Scenario
     static constexpr double min = 20.;
     static constexpr double max = 500.;
 
+    std::unique_ptr<Process::Inlet> inlet;
+
     TempoProcess(
           const TimeVal& duration,
           const Id<Process::ProcessModel>& id,
           QObject* parent);
     ~TempoProcess() override;
+    void init();
 
     template <typename Impl>
     TempoProcess(Impl& vis, QObject* parent) : CurveProcessModel{vis, parent}
     {
       vis.writeTo(*this);
+      init();
     }
 
     QString prettyName() const noexcept override;

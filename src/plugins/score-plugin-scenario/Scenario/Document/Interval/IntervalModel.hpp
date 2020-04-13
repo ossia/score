@@ -35,6 +35,7 @@ class Model;
 namespace Scenario
 {
 class StateModel;
+class TempoProcess;
 
 using TimeSignatureMap = ossia::flat_map<TimeVal, Control::time_signature>;
 class SCORE_PLUGIN_SCENARIO_EXPORT IntervalModel final
@@ -164,7 +165,7 @@ public:
 
   TimeVal contentDuration() const noexcept;
 
-  Curve::Model* tempoCurve() const noexcept;
+  TempoProcess* tempoCurve() const noexcept;
 
   void addSignature(TimeVal t, Control::time_signature sig);
   void removeSignature(TimeVal t);

@@ -17,13 +17,14 @@ namespace Execution
 {
 
 
-inline optional<ossia::tempo_curve> tempoCurve(
+inline std::pair<optional<ossia::tempo_curve>, Scenario::TempoProcess*> tempoCurve(
     const Scenario::IntervalModel& itv,
     const Execution::Context& ctx)
 {
   // TODO
-  if(auto curve = itv.tempoCurve())
+  if(auto proc = itv.tempoCurve())
   {
+    auto& curve = proc->curve();
     // TODO recompute whenever tempo changes
     const auto defaultdur = itv.duration.defaultDuration().msec();
     auto scale_x = [&ctx, defaultdur](double val) -> int64_t {
@@ -36,18 +37,18 @@ inline optional<ossia::tempo_curve> tempoCurve(
 
     ossia::tempo_curve t;
 
-    auto segt_data = curve->sortedSegments();
+    auto segt_data = curve.sortedSegments();
     if (segt_data.size() != 0)
     {
       t = std::move(*Engine::score_to_ossia::curve<int64_t, double>(
           scale_x, scale_y, segt_data, {}));
     }
 
-    return optional<ossia::tempo_curve>{std::move(t)};
+    return {optional<ossia::tempo_curve>{std::move(t)}, proc};
   }
   else
   {
-    return ossia::none;
+    return {};
   }
 }
 inline optional<ossia::time_signature_map> timeSignatureMap(

@@ -200,6 +200,7 @@ void IntervalRawPtrComponent::onSetup(
     interval_duration_data dur)
 {
   m_ossia_interval = ossia_cst;
+  Scenario::TempoProcess* tempo_proc{};
 
   auto& audio_out = static_cast<ossia::nodes::interval*>(m_ossia_interval->node.get())->audio_out;
   audio_out.has_gain = Scenario::isBus(*m_interval, context().doc);
@@ -209,7 +210,9 @@ void IntervalRawPtrComponent::onSetup(
   m_ossia_interval->set_min_duration(dur.minDuration);
   m_ossia_interval->set_max_duration(dur.maxDuration);
   m_ossia_interval->set_speed(dur.speed);
-  m_ossia_interval->set_tempo_curve(tempoCurve(interval(), context()));
+  auto tdata = tempoCurve(interval(), context());
+  tempo_proc = tdata.second;
+  m_ossia_interval->set_tempo_curve(std::move(tdata).first);
   m_ossia_interval->set_time_signature_map(timeSignatureMap(interval(), context()));
   m_ossia_interval->set_quarter_duration(ossia::quarter_duration<double>); // In our ideal musical world, a "quarter" is half a logical second
 
@@ -229,8 +232,14 @@ void IntervalRawPtrComponent::onSetup(
   }
 
   // set-up the interval ports
+  Process::Inlets toRegister;
+  toRegister.push_back(interval().inlet.get());
+  if(tempo_proc)
+  {
+    toRegister.push_back(tempo_proc->inlet.get());
+  }
   system().setup.register_node(
-      {interval().inlet.get()},
+      toRegister,
       {interval().outlet.get()},
       m_ossia_interval->node);
 

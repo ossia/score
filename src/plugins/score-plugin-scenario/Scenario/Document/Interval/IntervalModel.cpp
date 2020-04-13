@@ -170,13 +170,13 @@ TimeVal IntervalModel::contentDuration() const noexcept
   return min_time * 1.1;
 }
 
-Curve::Model* IntervalModel::tempoCurve() const noexcept
+TempoProcess* IntervalModel::tempoCurve() const noexcept
 {
   for(auto& proc : processes)
   {
     if(auto tempo = qobject_cast<TempoProcess*>(&proc))
     {
-      return &tempo->curve();
+      return tempo;
     }
   }
   return nullptr;

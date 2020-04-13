@@ -293,6 +293,7 @@ private:
       , m_magnetic{(Process::MagnetismAdjuster&)m_itv.context().app.interfaces<Process::MagnetismAdjuster>()}
     {
       setZValue(200);
+      setCursor(Qt::CrossCursor);
       setFlag(ItemHasNoContents, true);
       setFlag(ItemClipsChildrenToShape, false);
 
@@ -507,7 +508,7 @@ private:
 
     QRectF boundingRect() const final override
     {
-      return {0., 0., m_width, 1.};
+      return {0., 0., m_width, 20.};
     }
 
     void paint(
