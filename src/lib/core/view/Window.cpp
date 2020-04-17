@@ -216,7 +216,9 @@ View::View(QObject* parent)
     bottomTabs->brush = qApp->palette().brush(QPalette::Window);
     bottomTabs->setContentsMargins(0, 0, 0, 0);
     bottomTabs->setMaximumHeight(300);
+#if QT_VESION >= QT_VERSION_CHECK(5, 14, 0)
     bottomTabs->actionGroup()->setExclusionPolicy(QActionGroup::ExclusionPolicy::ExclusiveOptional);
+#endif
     rs->addWidget(bottomTabs);
     rs->setCollapsible(0, false);
     rs->setCollapsible(1, false);
