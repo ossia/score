@@ -3,8 +3,6 @@ enable_testing()
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}")
 
-include(app/StaticApp.cmake)
-
 add_subdirectory(lib)
 add_subdirectory(plugins)
 

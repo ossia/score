@@ -1,5 +1,0 @@
-<RCC>
-    <qresource prefix="/">
-        <file>DummyProcess.qml</file>
-    </qresource>
-</RCC>

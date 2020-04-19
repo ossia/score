@@ -464,13 +464,9 @@ FaustEffectComponent::FaustEffectComponent(
     if(this->node)
     {
       setup.register_node(process(), this->node);
-      std::vector<ExecutionCommand> commands;
+      Execution::Transaction commands{ctx};
       nodeChanged(old_node, this->node, commands);
-      // TODO add a "exec all commands macro
-      in_exec([f = std::move(commands)] {
-        for (auto& cmd : f)
-          cmd();
-      });
+      commands.run_all();
     }
   });
 }

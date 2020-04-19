@@ -65,15 +65,19 @@ Port::Port(JSONObject::Deserializer&& vis, QObject* parent)
   vis.writeTo(*this);
 }
 
-void Port::addCable(const Path<Cable>& c)
+void Port::addCable(const Cable& c)
 {
+  c.resetCache();
   m_cables.push_back(c);
   cablesChanged();
 }
-void Port::setCables(const std::vector<Path<Cable>>& c)
+
+void Port::takeCables(Port&& c)
 {
-  m_cables = c;
+  // TODO how do we reset their cache
+  m_cables = std::move(c.cables());
   cablesChanged();
+  c.cablesChanged();
 }
 
 void Port::removeCable(const Path<Cable>& c)
@@ -145,6 +149,22 @@ void Port::setAddress(const State::AddressAccessor& address)
   addressChanged(m_address);
 }
 
+QByteArray Port::saveData() const noexcept
+{
+  QByteArray arr;
+  {
+    QDataStream p{&arr, QIODevice::WriteOnly};
+    p << m_cables << m_address;
+  }
+  return arr;
+}
+
+void Port::loadData(const QByteArray& arr) noexcept
+{
+  QDataStream p{arr};
+  p >> m_cables >> m_address;
+}
+
 ///////////////////////////////
 /// Inlet
 ///////////////////////////////
@@ -210,6 +230,18 @@ ControlInlet::ControlInlet(JSONObject::Deserializer&& vis, QObject* parent)
     : Inlet{vis, parent}
 {
   vis.writeTo(*this);
+}
+
+QByteArray ControlInlet::saveData() const noexcept
+{
+  return Port::saveData();
+
+}
+
+void ControlInlet::loadData(const QByteArray& arr) noexcept
+{
+  Port::loadData(arr);
+
 }
 
 Outlet::~Outlet() {}
@@ -319,6 +351,18 @@ void AudioOutlet::mapExecution(ossia::outlet& exec, const smallfun::function<voi
   auto audio_exec = safe_cast<ossia::audio_outlet*>(&exec);
   f(*gainInlet, audio_exec->gain_inlet);
   f(*panInlet, audio_exec->pan_inlet);
+}
+
+QByteArray AudioOutlet::saveData() const noexcept
+{
+  return Port::saveData();
+
+}
+
+void AudioOutlet::loadData(const QByteArray& arr) noexcept
+{
+  Port::loadData(arr);
+
 }
 
 bool AudioOutlet::propagate() const
@@ -446,6 +490,16 @@ ControlOutlet::ControlOutlet(JSONObject::Deserializer&& vis, QObject* parent)
     : Outlet{vis, parent}
 {
   vis.writeTo(*this);
+}
+
+QByteArray ControlOutlet::saveData() const noexcept
+{
+  return Port::saveData();
+}
+
+void ControlOutlet::loadData(const QByteArray& arr) noexcept
+{
+  Port::loadData(arr);
 }
 
 
@@ -653,15 +707,14 @@ std::unique_ptr<Outlet> load_outlet(JSONObjectWriter& wr, QObject* parent)
   return std::unique_ptr<Process::Outlet>((Process::Outlet*)deserialize_interface(il, wr, parent));
 }
 
-static auto copy_port(const Port& src, Port& dst)
+static auto copy_port(Port&& src, Port& dst)
 {
   dst.hidden = src.hidden;
   dst.setCustomData(src.customData());
   dst.setAddress(src.address());
   dst.setExposed(src.exposed());
   dst.setDescription(src.description());
-  for(auto& cable : src.cables())
-    dst.addCable(cable);
+  dst.takeCables(std::move(src));
 }
 
 template<typename T, typename W>
@@ -684,7 +737,7 @@ auto load_port_t(W& wr, QObject* parent)
   {
     // Pre 2.0
     auto new_p = std::make_unique<T>(out->id(), parent);
-    copy_port(*out, *new_p);
+    copy_port(std::move(*out), *new_p);
     delete out;
     return new_p;
   }

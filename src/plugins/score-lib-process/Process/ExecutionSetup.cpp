@@ -22,7 +22,7 @@ static auto enqueue_in_context(SetupContext& self) noexcept
   };
 }
 
-static auto enqueue_in_vector(std::vector<ExecutionCommand>& vec) noexcept
+static auto enqueue_in_vector(Transaction& vec) noexcept
 {
   return [&vec](auto&& f) {
     vec.push_back(std::move(f));
@@ -247,7 +247,7 @@ void SetupContext::unregister_node(
 void SetupContext::register_node(
     const Process::ProcessModel& proc,
     const std::shared_ptr<ossia::graph_node>& node,
-    std::vector<ExecutionCommand>& vec)
+    Transaction& vec)
 {
   register_node(proc.inlets(), proc.outlets(), node, vec);
   proc_map[node.get()] = &proc;
@@ -256,7 +256,7 @@ void SetupContext::register_node(
 void SetupContext::unregister_node(
     const Process::ProcessModel& proc,
     const std::shared_ptr<ossia::graph_node>& node,
-    std::vector<ExecutionCommand>& vec)
+    Transaction& vec)
 {
   unregister_node(proc.inlets(), proc.outlets(), node, vec);
   proc_map.erase(node.get());
@@ -400,9 +400,26 @@ void SetupContext::register_node(
     const Process::Inlets& proc_inlets,
     const Process::Outlets& proc_outlets,
     const std::shared_ptr<ossia::graph_node>& node,
-    std::vector<ExecutionCommand>& vec)
+    Transaction& vec)
 {
   register_node_impl(proc_inlets, proc_outlets, node, enqueue_in_vector(vec));
+}
+
+void SetupContext::register_inlet(
+    Process::Inlet& inlet,
+    const ossia::inlet_ptr& exec,
+    const std::shared_ptr<ossia::graph_node>& node,
+    Transaction& vec)
+{
+  register_inlet_impl(inlet, exec, node, enqueue_in_vector(vec));
+}
+void SetupContext::register_outlet(
+    Process::Outlet& outlet,
+    const ossia::outlet_ptr& exec,
+    const std::shared_ptr<ossia::graph_node>& node,
+    Transaction& vec)
+{
+  register_outlet_impl(outlet, exec, node, enqueue_in_vector(vec));
 }
 
 template <typename Impl>
@@ -496,6 +513,62 @@ void SetupContext::unregister_outlet(
   outlets.erase(const_cast<Process::Outlet*>(&proc_port));
 }
 
+void SetupContext::unregister_inlet(
+    const Process::Inlet& proc_port,
+    const std::shared_ptr<ossia::graph_node>& node,
+    Transaction& commands)
+{
+  if (node)
+  {
+    auto& runtime_connection = runtime_connections[node];
+    auto it = runtime_connection.find(proc_port.id());
+    if(it != runtime_connection.end())
+    {
+      QObject::disconnect(it->second);
+      runtime_connection.erase(it);
+    }
+
+    auto ossia_port_it = inlets.find(const_cast<Process::Inlet*>(&proc_port));
+    if(ossia_port_it != inlets.end())
+    {
+      std::weak_ptr<ossia::execution_state> ws = context.execState;
+      commands.push_back([ws, ossia_port=ossia_port_it.value().second] {
+        if (auto state = ws.lock())
+          state->unregister_port(*ossia_port);
+      });
+
+      inlets.erase(ossia_port_it);
+    }
+  }
+  else
+  {
+    inlets.erase(const_cast<Process::Inlet*>(&proc_port));
+  }
+}
+
+void SetupContext::unregister_outlet(
+    const Process::Outlet& proc_port,
+    const std::shared_ptr<ossia::graph_node>& node,
+    Transaction& commands)
+{
+  if (node)
+  {
+    auto& runtime_connection = runtime_connections[node];
+    auto it = runtime_connection.find(proc_port.id());
+    if(it != runtime_connection.end())
+    {
+      QObject::disconnect(it->second);
+      runtime_connection.erase(it);
+    }
+
+    proc_port.forChildInlets([&] (Process::Inlet& model_inl) {
+      unregister_inlet(model_inl, node);
+    });
+  }
+
+  outlets.erase(const_cast<Process::Outlet*>(&proc_port));
+}
+
 void SetupContext::unregister_node(
     const Process::Inlets& proc_inlets,
     const Process::Outlets& proc_outlets,
@@ -529,7 +602,7 @@ void SetupContext::unregister_node(
     const Process::Inlets& proc_inlets,
     const Process::Outlets& proc_outlets,
     const std::shared_ptr<ossia::graph_node>& node,
-    std::vector<ExecutionCommand>& vec)
+    Transaction& vec)
 {
   if (node)
   {

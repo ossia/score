@@ -83,35 +83,35 @@ protected:
 
   void unreg(const RegisteredEffect& fx);
   void
-  reg(const RegisteredEffect& fx, std::vector<Execution::ExecutionCommand>&);
+  reg(const RegisteredEffect& fx, Execution::Transaction&);
   void unregister_old_first_node(
       std::pair<
           Id<Process::ProcessModel>,
           AudioChainComponentBase::RegisteredEffect>& new_first,
-      std::vector<Execution::ExecutionCommand>& commands);
+      Execution::Transaction& commands);
   void register_new_first_node(
       std::pair<
           Id<Process::ProcessModel>,
           AudioChainComponentBase::RegisteredEffect>& new_first,
-      std::vector<Execution::ExecutionCommand>& commands);
+      Execution::Transaction& commands);
   void unregister_old_last_node(
       std::pair<
           Id<Process::ProcessModel>,
           AudioChainComponentBase::RegisteredEffect>& new_first,
-      std::vector<Execution::ExecutionCommand>& commands);
+      Execution::Transaction& commands);
   void register_new_last_node(
       std::pair<
           Id<Process::ProcessModel>,
           AudioChainComponentBase::RegisteredEffect>& new_first,
-      std::vector<Execution::ExecutionCommand>& commands);
+      Execution::Transaction& commands);
 
   void register_node_again(
       std::pair<
           Id<Process::ProcessModel>,
           AudioChainComponentBase::RegisteredEffect>& new_first,
-      std::vector<Execution::ExecutionCommand>& commands);
-  void createPassthrough(std::vector<Execution::ExecutionCommand>&);
-  void removePassthrough(std::vector<Execution::ExecutionCommand>&);
+      Execution::Transaction& commands);
+  void createPassthrough(Execution::Transaction&);
+  void removePassthrough(Execution::Transaction&);
 
   std::shared_ptr<ossia::graph_node> m_passthrough{};
 };

@@ -9,21 +9,6 @@
 
 namespace score
 {
-class SCORE_LIB_BASE_EXPORT AbsoluteSliderStyle final : public QProxyStyle
-{
-public:
-  using QProxyStyle::QProxyStyle;
-  ~AbsoluteSliderStyle() override;
-
-  static AbsoluteSliderStyle* instance() noexcept;
-
-  int styleHint(
-      QStyle::StyleHint hint,
-      const QStyleOption* option,
-      const QWidget* widget,
-      QStyleHintReturn* returnData) const override;
-};
-
 class SCORE_LIB_BASE_EXPORT Slider : public QSlider
 {
 public:

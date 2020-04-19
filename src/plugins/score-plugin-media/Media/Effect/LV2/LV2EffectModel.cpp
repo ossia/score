@@ -346,8 +346,8 @@ void LV2EffectModel::readPlugin()
   data.effect.plugin.get_port_ranges_float(
       fParamMin.data(), fParamMax.data(), fParamInit.data());
 
-  score::deleteAndClear(m_inlets);
-  score::deleteAndClear(m_outlets);
+  auto old_inlets = score::clearAndDeleteLater(m_inlets);
+  auto old_outlets = score::clearAndDeleteLater(m_outlets);
 
   int in_id = 0;
   int out_id = 0;

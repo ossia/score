@@ -32,7 +32,10 @@ InspectorWidgetBase::InspectorWidgetBase(
   setLayout(m_layout);
 
   m_label = new TextLabel{name, this};
+
+#ifndef QT_NO_STYLE_STYLESHEET
   m_label->setStyleSheet("font-weight: bold; font-size: 18;");
+#endif
   m_sections.push_back(m_label);
 
   // scroll Area

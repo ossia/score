@@ -30,6 +30,11 @@ public:
       const Id<score::Component>& id,
       QObject* parent);
   ~Component() override;
+
+private:
+  void on_scriptChange(const QString& script);
+  Process::Inlets m_oldInlets;
+  Process::Outlets m_oldOutlets;
 };
 
 using ComponentFactory = ::Execution::ProcessComponentFactory_T<Component>;

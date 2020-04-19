@@ -112,6 +112,7 @@ public:
   {
     connect(this, &QLineEdit::textEdited, this, [=] { search(); });
 
+#ifndef QT_NO_STYLE_STYLESHEET
     setStyleSheet(R"_(
 QScrollArea
 {
@@ -125,6 +126,7 @@ QScrollArea QLabel
     background-color: #12171A;
 }
 )_");
+#endif
   }
 
   void search() override
@@ -468,8 +470,11 @@ void DeviceExplorerWidget::buildGUI()
   auto refreshLay = new QGridLayout;
   refreshParent->setLayout(refreshLay);
   m_refreshIndicator = new QProgressIndicator{refreshParent};
+
+#ifndef QT_NO_STYLE_STYLESHEET
   m_refreshIndicator->setStyleSheet("background:transparent");
   m_refreshIndicator->setAttribute(Qt::WA_TranslucentBackground);
+#endif
   refreshLay->addWidget(m_refreshIndicator);
   m_lay->addWidget(refreshParent);
   setLayout(m_lay);

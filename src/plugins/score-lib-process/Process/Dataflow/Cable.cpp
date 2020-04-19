@@ -29,6 +29,8 @@ Cable::Cable(Id<Cable> c, const CableData& data, QObject* parent)
   m_type = data.type;
   m_source = data.source;
   m_sink = data.sink;
+  m_source.unsafePath().resetCache();
+  m_sink.unsafePath().resetCache();
 }
 
 void Cable::update(const CableData& data)
@@ -36,6 +38,8 @@ void Cable::update(const CableData& data)
   m_type = data.type;
   m_source = data.source;
   m_sink = data.sink;
+  m_source.unsafePath().resetCache();
+  m_sink.unsafePath().resetCache();
 }
 
 CableData Cable::toCableData() const
@@ -70,6 +74,13 @@ void Cable::setType(CableType type)
 
   m_type = type;
   typeChanged(m_type);
+}
+
+void Cable::resetCache() const noexcept
+{
+  IdentifiedObject::resetCache();
+  m_source.unsafePath().resetCache();
+  m_sink.unsafePath().resetCache();
 }
 }
 template <>

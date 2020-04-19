@@ -426,9 +426,12 @@ public:
 
     score::StyleLoader loader;
     css.document()->setPlainText(loader.readStyleSheet());
+
+#ifndef QT_NO_STYLE_STYLESHEET
     connect(css.document(), &QTextDocument::contentsChanged, this, [=] {
       qApp->setStyleSheet(css.document()->toPlainText());
     });
+#endif
   }
 };
 

@@ -211,6 +211,12 @@ PortItem::PortItem(
   this->setFlag(QGraphicsItem::ItemSendsScenePositionChanges, true);
   this->setToolTip(p.customData());
 
+  connect(&p, &QObject::destroyed,
+          this, [] {
+    qDebug("Port destroyed before its item");
+    SCORE_ASSERT(false);
+  });
+
   con(p.selection, &Selectable::changed,
       this, [this] (bool b) {
     for(const auto& cable : cables) {

@@ -27,8 +27,10 @@ inline QGraphicsItem* wrapWidget(QWidget* widg)
   widg->setContentsMargins(0, 0, 0, 0);
   widg->setPalette(score::transparentPalette());
   widg->setAutoFillBackground(false);
-  widg->setStyleSheet(score::transparentStylesheet());
 
+#ifndef QT_NO_STYLE_STYLESHEET
+  widg->setStyleSheet(score::transparentStylesheet());
+#endif
   auto wrap = new QGraphicsProxyWidget{};
   wrap->setWidget(widg);
   wrap->setContentsMargins(0, 0, 0, 0);

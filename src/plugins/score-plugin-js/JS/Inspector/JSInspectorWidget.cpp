@@ -45,7 +45,7 @@ void JSWidgetBase::init(Widg* self, T& model)
     m_errorLabel->clear();
     m_errorLabel->setVisible(false);
   });
-  con(model, &T::scriptChanged, self, [=](const QString& str) {
+  con(model, &T::qmlDataChanged, self, [=](const QString& str) {
     on_modelChanged(str);
   });
 
@@ -95,7 +95,7 @@ InspectorWidget::InspectorWidget(
   });
 }
 void InspectorWidget::updateControls(const score::DocumentContext& doc)
-{
+{/*
   delete m_ctrlWidg;
   m_ctrlWidg = nullptr;
 
@@ -153,7 +153,7 @@ void InspectorWidget::updateControls(const score::DocumentContext& doc)
 
       i++;
     }
-  }
+  }*/
 }
 
 void InspectorWidget::on_textChange(const QString& newTxt)

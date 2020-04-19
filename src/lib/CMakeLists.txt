@@ -236,7 +236,6 @@ set(HEADERS
     "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/Layout.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/MarginLess.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/MimeData.hpp"
-#    "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/QmlContainerPanel.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/Pixmap.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/ReactiveLabel.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/Separator.hpp"
@@ -364,11 +363,11 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/DoubleSlider.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/DoubleSpinBox.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/SetIcons.cpp"
-# "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/QmlContainerPanel.cpp" # TODO MOVEME
 "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/Separator.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/ArrowButton.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/JS/JSEdit.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/MessageBox.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/SpinBoxes.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/core/application/SafeQApplication.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/core/application/ApplicationInterface.cpp"
@@ -438,7 +437,7 @@ target_include_directories(score_lib_base PUBLIC "${3RDPARTY_FOLDER}/zipdownload
 target_include_directories(score_lib_base PUBLIC "${OSSIA_3RDPARTY_FOLDER}/rnd/include")
 
 target_link_libraries(score_lib_base
-    PUBLIC Qt5::Core Qt5::Widgets ossia QCodeEditor # Qt5::Qml Qt5::QuickWidgets
+    PUBLIC Qt5::Core Qt5::Widgets ossia QCodeEditor
     )
 if(TARGET Qt5::Svg)
   target_link_libraries(score_lib_base

@@ -307,7 +307,7 @@ void DocumentPlugin::reload(Scenario::IntervalModel& cst)
   }
 
   m_tid = startTimer(32);
-  runAllCommands();
+  //runAllCommands();
 }
 
 void DocumentPlugin::clear()

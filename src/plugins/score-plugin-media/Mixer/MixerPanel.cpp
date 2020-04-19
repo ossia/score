@@ -35,7 +35,6 @@ public:
   AudioSliderWidget(QWidget* widg) : score::DoubleSlider{widg}
   {
     setOrientation(Qt::Vertical);
-    setStyle(score::AbsoluteSliderStyle::instance());
     setMinimumSize(20, 100);
   }
   ~AudioSliderWidget() override { }
@@ -71,7 +70,6 @@ public:
   PanSliderWidget(QWidget* widg) : score::DoubleSlider{widg}
   {
     setOrientation(Qt::Horizontal);
-    setStyle(score::AbsoluteSliderStyle::instance());
     setMinimumSize(20, 10);
   }
   ~PanSliderWidget() override { }
@@ -175,12 +173,17 @@ public:
   AudioBusWidget(const Scenario::IntervalModel* param, const score::DocumentContext& ctx, QWidget* parent)
     : QWidget{parent}, m_context{ctx}, m_lay{this}, m_title{this}, m_gainSlider{this}, m_panSlider{this}, m_model{param}
   {
+#ifndef QT_NO_STYLE_STYLESHEET
     setStyleSheet("QWidget { font: 7pt \"Ubuntu\"; }");
+#endif
     setMinimumSize(60, 130);
     setMaximumSize(60, 130);
 
     m_title.setFlat(true);
+
+#ifndef QT_NO_STYLE_STYLESHEET
     m_title.setStyleSheet("QPushButton { border: none }");
+#endif
     m_title.setText(m_model->metadata().getName());
     m_gainSlider.setWhatsThis("Gain control");
     m_gainSlider.setToolTip(m_gainSlider.whatsThis());

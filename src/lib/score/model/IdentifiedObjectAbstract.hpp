@@ -21,14 +21,13 @@ public:
 
   //! To be called by subclasses
   void identified_object_destroying(IdentifiedObjectAbstract* o)
-      E_SIGNAL(SCORE_LIB_BASE_EXPORT, identified_object_destroying, o)
+  E_SIGNAL(SCORE_LIB_BASE_EXPORT, identified_object_destroying, o)
 
-      //! Will be called in the IdentifiedObjectAbstract destructor.
-      void identified_object_destroyed(IdentifiedObjectAbstract* o)
-          E_SIGNAL(SCORE_LIB_BASE_EXPORT, identified_object_destroyed, o)
+  //! Will be called in the IdentifiedObjectAbstract destructor.
+  void identified_object_destroyed(IdentifiedObjectAbstract* o)
+  E_SIGNAL(SCORE_LIB_BASE_EXPORT, identified_object_destroyed, o)
 
-              virtual void resetCache()
-      = 0;
+  virtual void resetCache() const noexcept = 0;
 
 protected:
   using QObject::QObject;

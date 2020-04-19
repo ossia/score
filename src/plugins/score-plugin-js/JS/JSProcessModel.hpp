@@ -12,12 +12,32 @@
 #include <memory>
 namespace JS
 {
+class Script;
+class ProcessModel;
+struct ComponentCache
+{
+public:
+  JS::Script* get(JS::ProcessModel& process, const QByteArray& str, bool isFile) noexcept;
+  JS::Script* tryGet(const QByteArray& str, bool isFile) const noexcept;
+  ComponentCache();
+  ~ComponentCache();
+private:
+  struct Cache {
+    QByteArray key;
+    std::unique_ptr<QQmlComponent> component{};
+    std::unique_ptr<JS::Script> object{};
+  };
+  std::vector<Cache> m_map;
+};
+
 class SCORE_PLUGIN_JS_EXPORT ProcessModel final : public Process::ProcessModel
 {
   SCORE_SERIALIZE_FRIENDS
   PROCESS_METADATA_IMPL(JS::ProcessModel)
   W_OBJECT(ProcessModel)
 public:
+  static constexpr bool hasExternalUI() noexcept { return true; }
+
   explicit ProcessModel(
       const TimeVal& duration,
       const QString& data,
@@ -33,12 +53,13 @@ public:
 
   void setScript(const QString& script);
   void setQmlData(const QByteArray&, bool isFile);
-  const QString& script() const { return m_script; }
-  const QString& qmlData() const { return m_qmlData; }
+  const QString& script() const noexcept { return m_script; }
+  const QByteArray& qmlData() const noexcept { return m_qmlData; }
+  QQmlEngine& engine() noexcept { return m_dummyEngine; }
+
+  JS::Script* currentObject() const noexcept;
 
   ~ProcessModel() override;
-
-  QObject* m_dummyObject{};
 
   void errorMessage(int arg_1, const QString& arg_2)
       W_SIGNAL(errorMessage, arg_1, arg_2);
@@ -47,11 +68,14 @@ public:
 
   void qmlDataChanged(const QString& arg_1) W_SIGNAL(qmlDataChanged, arg_1);
 
+
   PROPERTY(QString, script READ script WRITE setScript NOTIFY scriptChanged)
 private:
-  QString m_script, m_qmlData;
+  QString m_script;
+  QByteArray m_qmlData;
   QQmlEngine m_dummyEngine;
-  std::unique_ptr<QQmlComponent> m_dummyComponent;
+  ComponentCache m_cache;
   std::unique_ptr<QFileSystemWatcher> m_watch;
+  bool m_isFile{};
 };
 }

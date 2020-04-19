@@ -41,16 +41,20 @@ ProcessModel::ProcessModel(
   if (data.isEmpty())
   {
     setScript(
-        R"_(import QtQuick 2.0
-import Score 1.0
-Item {
+        R"_(import Score 1.0
+Script {
   ValueInlet { id: in1 }
   ValueOutlet { id: out1 }
   FloatSlider { id: sl; min: 10; max: 100; }
 
-  function onTick(oldtime, time, position, offset) {
+  tick: function(oldtime, time, position, offset) {
+          console.log(in1.value);
     out1.value = in1.value + sl.value * Math.random();
   }
+  start: function() { console.log("I am called on start"); }
+  stop: function() { console.log("I am called on stop"); }
+  pause: function() { console.log("I am called on pause"); }
+  resume: function() { console.log("I am called on resume"); }
 })_");
   }
   else
@@ -62,19 +66,18 @@ Item {
 
 ProcessModel::~ProcessModel()
 {
-  if (m_dummyObject)
-    m_dummyObject->deleteLater();
 }
 
 void ProcessModel::setScript(const QString& script)
 {
   m_watch.reset();
+  /*
   if (m_dummyObject)
     m_dummyObject->deleteLater();
   m_dummyObject = nullptr;
   m_dummyComponent.reset();
   m_dummyComponent = std::make_unique<QQmlComponent>(&m_dummyEngine);
-
+  */
   m_script = script;
   scriptChanged(script);
   auto trimmed = script.trimmed();
@@ -83,8 +86,11 @@ void ProcessModel::setScript(const QString& script)
 
   auto path = score::locateFilePath(
       trimmed, score::IDocument::documentContext(*this));
+
   if (QFileInfo{path}.exists())
   {
+    /* Disabling the watch feature for now :
+     * it does not fix the cables, etc.
     m_watch = std::make_unique<QFileSystemWatcher>(QStringList{trimmed});
     connect(
         m_watch.get(),
@@ -104,6 +110,7 @@ void ProcessModel::setScript(const QString& script)
           });
         });
 
+    */
     setQmlData(path.toUtf8(), true);
   }
   else
@@ -117,51 +124,21 @@ void ProcessModel::setQmlData(const QByteArray& data, bool isFile)
   if (!isFile && !data.startsWith("import"))
     return;
 
+  m_isFile = isFile;
   m_qmlData = data;
-  if (m_dummyObject)
-    m_dummyObject->deleteLater();
-  m_dummyObject = nullptr;
-  m_dummyComponent.reset();
-  if (isFile)
-  {
-    m_dummyComponent = std::make_unique<QQmlComponent>(
-        &m_dummyEngine, QUrl::fromLocalFile(data));
-  }
-  else
-  {
-    m_dummyComponent = std::make_unique<QQmlComponent>(&m_dummyEngine);
-    m_dummyComponent->setData(data, QUrl());
-  }
 
-  const auto& errs = m_dummyComponent->errors();
-  if (!errs.empty())
-  {
-    const auto& err = errs.first();
-    qDebug() << err.line() << err.toString();
-    errorMessage(err.line(), err.toString());
+  auto script = m_cache.get(*this, data, isFile);
+  if(!script)
     return;
-  }
 
-  std::vector<State::AddressAccessor> oldInletAddresses, oldOutletAddresses;
-  std::vector<std::vector<Path<Process::Cable>>> oldInletCable, oldOutletCable;
-  for (Process::Inlet* in : m_inlets)
-  {
-    oldInletAddresses.push_back(in->address());
-    oldInletCable.push_back(in->cables());
-  }
-  for (Process::Outlet* in : m_outlets)
-  {
-    oldOutletAddresses.push_back(in->address());
-    oldOutletCable.push_back(in->cables());
-  }
+  auto old_inlets = score::clearAndDeleteLater(m_inlets);
+  auto old_outlets = score::clearAndDeleteLater(m_outlets);
 
-  score::deleteAndClear(m_inlets);
-  score::deleteAndClear(m_outlets);
-
-  m_dummyObject = m_dummyComponent->create();
+  SCORE_ASSERT(m_inlets.size() == 0);
+  SCORE_ASSERT(m_outlets.size() == 0);
 
   {
-    auto cld_inlet = m_dummyObject->findChildren<Inlet*>();
+    auto cld_inlet = script->findChildren<Inlet*>();
     int i = 0;
     for (auto n : cld_inlet)
     {
@@ -174,7 +151,7 @@ void ProcessModel::setQmlData(const QByteArray& data, bool isFile)
   }
 
   {
-    auto cld_outlet = m_dummyObject->findChildren<Outlet*>();
+    auto cld_outlet = script->findChildren<Outlet*>();
     int i = 0;
     for (auto n : cld_outlet)
     {
@@ -187,33 +164,105 @@ void ProcessModel::setQmlData(const QByteArray& data, bool isFile)
   }
   scriptOk();
 
-  std::size_t i = 0;
-  for (Process::Inlet* in : m_inlets)
-  {
-    if (i < oldInletAddresses.size())
-    {
-      if (!oldInletAddresses[i].address.device.isEmpty())
-        in->setAddress(oldInletAddresses[i]);
-      for (const auto& cbl : oldInletCable[i])
-        in->addCable(cbl);
-    }
-    i++;
-  }
-  i = 0;
-  for (Process::Outlet* out : m_outlets)
-  {
-    if (i < oldOutletAddresses.size())
-    {
-      if (!oldOutletAddresses[i].address.device.isEmpty())
-        out->setAddress(oldOutletAddresses[i]);
-      for (const auto& cbl : oldOutletCable[i])
-        out->addCable(cbl);
-    }
-    i++;
-  }
-
   qmlDataChanged(data);
   inletsChanged();
   outletsChanged();
 }
+
+Script* ProcessModel::currentObject() const noexcept
+{
+  return m_cache.tryGet(m_qmlData, m_isFile);
+
+}
+
+ComponentCache::ComponentCache() { }
+ComponentCache::~ComponentCache() { }
+
+Script* ComponentCache::tryGet(const QByteArray& str, bool isFile) const noexcept
+{
+  QByteArray content;
+  if (isFile)
+  {
+    QFile f{str};
+    f.open(QIODevice::ReadOnly);
+    content = f.readAll();
+  }
+  else
+  {
+    content = str;
+  }
+
+  auto it = ossia::find_if(m_map, [&] (const auto& k) { return k.key == content; });
+  if(it != m_map.end())
+  {
+    return it->object.get();
+  }
+  else
+  {
+    return nullptr;
+  }
+}
+
+Script* ComponentCache::get(ProcessModel& process, const QByteArray& str, bool isFile) noexcept
+{
+  QByteArray content;
+  if (isFile)
+  {
+    QFile f{str};
+    f.open(QIODevice::ReadOnly);
+    content = f.readAll();
+  }
+  else
+  {
+    content = str;
+  }
+
+  auto it = ossia::find_if(m_map, [&] (const auto& k) { return k.key == content; });
+  if(it != m_map.end())
+  {
+    return it->object.get();
+  }
+  else
+  {
+    auto comp = std::make_unique<QQmlComponent>(&process.engine());
+    if(!isFile)
+    {
+      comp->setData(str, QUrl());
+    }
+    else
+    {
+      comp->loadUrl(QUrl::fromLocalFile(str));
+    }
+
+    const auto& errs = comp->errors();
+    if (!errs.empty())
+    {
+      const auto& err = errs.first();
+      qDebug() << err.line() << err.toString();
+      process.errorMessage(err.line(), err.toString());
+      return nullptr;
+    }
+
+    auto obj = comp->create();
+    auto script = qobject_cast<JS::Script*>(obj);
+    if(script)
+    {
+      if(m_map.size() > 5)
+        m_map.erase(m_map.begin());
+
+      m_map.emplace_back(Cache{str, std::move(comp), std::unique_ptr<JS::Script>(script)});
+      return script;
+    }
+    else
+    {
+      process.errorMessage(0, "The component must be of type Script");
+      if(obj)
+      {
+        delete obj;
+      }
+      return nullptr;
+    }
+  }
+}
+
 }

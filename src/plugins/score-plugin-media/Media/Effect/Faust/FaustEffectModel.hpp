@@ -142,7 +142,7 @@ class InspectorFactory final
 using FaustEffectFactory = Process::EffectProcessFactory_T<FaustEffectModel>;
 using LayerFactory = Process::EffectLayerFactory_T<
     FaustEffectModel,
-    Media::Effect::DefaultEffectItem,
+    Process::DefaultEffectItem,
     FaustEditDialog>;
 }
 

@@ -42,6 +42,7 @@
 #include <score/statemachine/GraphicsSceneToolPalette.hpp>
 #include <score/tools/Clamp.hpp>
 #include <score/tools/Bind.hpp>
+#include <ossia-qt/invoke.hpp>
 #include <score/widgets/DoubleSlider.hpp>
 #include <core/application/ApplicationSettings.hpp>
 
@@ -462,9 +463,18 @@ void ScenarioDocumentPresenter::on_viewReady()
 
 void ScenarioDocumentPresenter::on_cableAdded(Process::Cable& c)
 {
-  auto it = new Dataflow::CableItem{c, m_context, nullptr};
-  if(!it->parentItem())
-    view().scene().addItem(it);
+  // Run async because the cable model may have been
+  // created before the port item have in e.g. an undo command
+  ossia::qt::run_async(
+        this,
+        [this, ptr = QPointer{&c}] {
+    if(ptr)
+    {
+      auto it = new Dataflow::CableItem{*ptr, m_context, nullptr};
+      if(!it->parentItem())
+        view().scene().addItem(it);
+    }
+  });
 }
 
 void ScenarioDocumentPresenter::on_cableRemoving(const Process::Cable& c)

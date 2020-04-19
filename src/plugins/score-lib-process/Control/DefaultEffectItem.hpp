@@ -11,10 +11,7 @@ namespace Process
 {
 class PortFactoryList;
 struct Context;
-}
 
-namespace Media::Effect
-{
 class SCORE_LIB_PROCESS_EXPORT DefaultEffectItem final : public score::EmptyRectItem
 {
 public:

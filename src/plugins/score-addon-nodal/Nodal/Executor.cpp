@@ -170,7 +170,7 @@ void NodalExecutorBase::unreg(
 
 void NodalExecutorBase::reg(
     const RegisteredNode& fx,
-    std::vector<Execution::ExecutionCommand>& vec)
+    Execution::Transaction& vec)
 {
   auto& proc = fx.comp->process();
   system().setup.register_node(proc.inlets(), proc.outlets(), fx.comp->node, vec);
@@ -186,7 +186,7 @@ void NodalExecutorBase::reg(
           this, reconnectOutlets);
   reconnectOutlets();
 
-  vec.emplace_back(AddNode{
+  vec.push_back(AddNode{
             this->node,
             fx.comp->node,
             system().execGraph,
@@ -200,7 +200,7 @@ Execution::ProcessComponent* NodalExecutorBase::make(
     Execution::ProcessComponentFactory& factory,
     Process::ProcessModel& proc)
 {
-  std::vector<Execution::ExecutionCommand> commands;
+  Execution::Transaction commands{system()};
   auto comp = factory.make(proc, this->system(), id, this);
   if (comp)
   {
@@ -216,11 +216,7 @@ Execution::ProcessComponent* NodalExecutorBase::make(
       });
     }
 
-    // TODO memory should be brought back in the main thread to be freed
-    in_exec([f = std::move(commands)] {
-      for (auto& cmd : f)
-        cmd();
-    });
+    commands.run_all();
   }
 
   return comp.get();
@@ -235,7 +231,7 @@ std::function<void()> NodalExecutorBase::removing(
     const Process::ProcessModel& e,
     ::Execution::ProcessComponent& c)
 {
-  std::vector<Execution::ExecutionCommand> commands;
+  Execution::Transaction commands{system()};
 
   auto it = ossia::find_if(
       m_nodes, [&](const auto& v) { return v.first == e.id(); });
@@ -255,11 +251,7 @@ std::function<void()> NodalExecutorBase::removing(
     p->remove_process(child_p, child_n);
   });
 
-  // TODO add a "exec all commands macro
-  in_exec([f = std::move(commands)] {
-    for (auto& cmd : f)
-      cmd();
-  });
+  commands.run_all();
 
   c.node.reset();
   return {};

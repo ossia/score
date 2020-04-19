@@ -2,7 +2,7 @@
 #include <score/command/PropertyCommand.hpp>
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/document/DocumentContext.hpp>
-
+#include <score/tools/Bind.hpp>
 #include <QDialog>
 
 class QPlainTextEdit;
@@ -22,7 +22,7 @@ public:
   QString text() const noexcept;
 
   void setText(const QString& str);
-  void setError(const QString& str);
+  void setError(int line, const QString& str);
 
 protected:
   virtual void on_accepted() = 0;
@@ -53,7 +53,7 @@ public:
 
   void on_accepted() override
   {
-    setError(QString{});
+    setError(0, QString{});
     if(this->text() != (m_process.*Property_T::get)())
     {
       CommandDispatcher<>{m_context.commandStack}.submit(

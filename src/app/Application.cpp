@@ -30,9 +30,6 @@
 
 #include <spdlog/sinks/stdout_sinks.h>
 #include <spdlog/spdlog.h>
-#if __has_include(<QQuickStyle>)
-#include <QQuickStyle>
-#endif
 
 #if defined(SCORE_STATIC_PLUGINS)
 #include <score_static_plugins.hpp>
@@ -102,10 +99,6 @@ static void setQApplicationSettings(QApplication& m_app)
   qApp->setFont(f);
 
   qApp->setPalette(pal);
-
-#if __has_include(<QQuickStyle>)
-  QQuickStyle::setStyle(":/desktopqqc2style/Desktop");
-#endif
 }
 
 } // namespace score

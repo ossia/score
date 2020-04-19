@@ -11,30 +11,8 @@
 W_OBJECT_IMPL(score::DoubleSlider)
 namespace score
 {
-AbsoluteSliderStyle::~AbsoluteSliderStyle() = default;
 Slider::~Slider() = default;
 DoubleSlider::~DoubleSlider() = default;
-
-AbsoluteSliderStyle* AbsoluteSliderStyle::instance() noexcept
-{
-  static AbsoluteSliderStyle style;
-  return &style;
-}
-
-int AbsoluteSliderStyle::styleHint(
-    QStyle::StyleHint hint,
-    const QStyleOption* option,
-    const QWidget* widget,
-    QStyleHintReturn* returnData) const
-{
-  switch (hint)
-  {
-    case QStyle::SH_Slider_AbsoluteSetButtons:
-      return Qt::AllButtons;
-    default:
-      return QProxyStyle::styleHint(hint, option, widget, returnData);
-  }
-}
 
 DoubleSlider::DoubleSlider(QWidget* parent) : Slider{Qt::Horizontal, parent}
 {
@@ -62,7 +40,6 @@ double DoubleSlider::value() const
 
 Slider::Slider(Qt::Orientation ort, QWidget* widg) : QSlider{ort, widg}
 {
-  setStyle(AbsoluteSliderStyle::instance());
   switch (ort)
   {
     case Qt::Vertical:

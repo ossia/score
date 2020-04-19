@@ -41,8 +41,8 @@ void CreateCable::redo(const score::DocumentContext& ctx) const
 
   model.cables.add(c);
   auto ext = m_model.extend(m_cable);
-  m_dat.source.find(ctx).addCable(ext);
-  m_dat.sink.find(ctx).addCable(ext);
+  m_dat.source.find(ctx).addCable(*c);
+  m_dat.sink.find(ctx).addCable(*c);
 }
 
 void CreateCable::serializeImpl(DataStreamInput& s) const

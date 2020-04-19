@@ -38,7 +38,7 @@ cd ./$BUILD_DIR
   cd score/
   $GIT checkout $TRAVIS_COMMIT
   $GIT submodule update --init --recursive
-  
+
   # cd base/addons
   # $GIT clone https://github.com/OSSIA/score-addon-jit
 )
@@ -75,7 +75,6 @@ cp $APP.AppDir/usr/share/pixmaps/ossia-score.png $APP.AppDir/
 (
     cd $APP.AppDir
     mkdir -p ./usr/lib/qt5/qml
-    cp -rf "$QTDIR/qml/QtQuick.2"  ./usr/lib/qt5/qml || true
 
     # Fonts
     mkdir -p ./usr/bin/lib/fonts
@@ -144,31 +143,31 @@ cp $APP.AppDir/usr/share/pixmaps/ossia-score.png $APP.AppDir/
 
     cd usr/ ; find . -type f -exec sed -i -e 's|/usr/lib|././/lib|g' {} \; ; cd ..
     cd usr/ ; find . -type f -exec sed -i -e "s|$QTDIR/lib|././/lib|g" {} \; ; cd ..
-)   
+)
 
 # (
 #     # Copy headers
-#     
+#
 #     cd $APP.AppDir
 #     export HEADERS=$PWD/usr/include
 #     mkdir -p $HEADERS
 #     for package in glibc-headers glibc-devel alsa-lib-devel mesa-libGL-devel libxkbcommon-x11-devel kernel-headers ; do
 #       (
-#         cd /usr/include 
+#         cd /usr/include
 #         rsync -aR $(rpm -ql $package | grep '/usr/include' | grep '\.h' | cut -c 14-  | sort | uniq) $HEADERS
 #       )
 #     done
-#     
+#
 #     mkdir $HEADERS/qt
 #     rsync -a $OSSIA_SDK/qt5-static/include/ $HEADERS/qt/
-#     
+#
 #     rsync -a $OSSIA_SDK/llvm/include/ $HEADERS/
 #     rsync -a $OSSIA_SDK/ffmpeg/include/ $HEADERS/
 #     rsync -a $OSSIA_SDK/portaudio/include/ $HEADERS/
-#     
+#
 #     mkdir -p $PWD/usr/lib/clang/7.0.1/include
 #     rsync -a $OSSIA_SDK/llvm/lib/clang/7.0.1/include/ $PWD/usr/lib/clang/7.0.1/include/
-#     
+#
 #     # Strip binaries
 #     # strip usr/bin/ossia-score usr/bin/ossia-score-vstpuppet || true
 # )

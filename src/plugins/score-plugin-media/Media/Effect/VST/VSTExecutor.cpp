@@ -48,13 +48,18 @@ void VSTEffectComponent::setupNode(Node_T& node)
       {
         Execution::SetupContext& setup = system().context().setup;
         auto inlet = new ossia::value_inlet;
-        in_exec([n, inlet, val = ctrl->value(), num = ctrl->fxNum]{
+
+        Execution::Transaction commands{system()};
+
+        commands.push_back([n, inlet, val = ctrl->value(), num = ctrl->fxNum]{
           n->controls.push_back(
             {num, val, inlet->target<ossia::value_port>()});
           n->root_inputs().push_back(inlet);
           });
 
-        setup.register_inlet(*ctrl, inlet, n);
+        setup.register_inlet(*ctrl, inlet, n, commands);
+
+        commands.run_all();
       }
     });
   connect(

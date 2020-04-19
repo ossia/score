@@ -418,8 +418,8 @@ void ScenarioPasteElements::redo(const score::DocumentContext& ctx) const
 
     model.cables.add(c);
     auto ext = model_path.extend(cable_id);
-    dat.source.find(ctx).addCable(ext);
-    dat.sink.find(ctx).addCable(ext);
+    dat.source.find(ctx).addCable(*c);
+    dat.sink.find(ctx).addCable(*c);
   }
 }
 

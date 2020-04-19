@@ -37,11 +37,6 @@ if(TARGET score_addon_jit)
   endif()
 endif()
 
-find_package(Qt5 5.7 OPTIONAL_COMPONENTS QuickControls2)
-if(TARGET Qt5::QuickControls2)
-  target_link_libraries(${APPNAME} PUBLIC score_lib_base Qt5::QuickControls2)
-endif()
-
 if(MSVC)
   # Necessary for JACK on windows.
   # http://jack-audio.10948.n7.nabble.com/Cannot-run-64bit-windows-client-td18952.html
@@ -76,8 +71,6 @@ if(APPLE)
       set_target_properties(${APPNAME} PROPERTIES MACOSX_BUNDLE TRUE)
     endif()
 endif()
-
-static_link_qt(${APPNAME})
 
 if(IOS)
   find_library(COREFOUNDATION_LIBRARY CoreFoundation)

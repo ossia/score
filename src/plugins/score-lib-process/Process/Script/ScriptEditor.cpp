@@ -74,7 +74,7 @@ void ScriptDialog::setText(const QString& str)
     m_textedit->setText(str);
 }
 
-void ScriptDialog::setError(const QString& str)
+void ScriptDialog::setError(int line, const QString& str)
 {
   m_error->setPlainText(str);
 }

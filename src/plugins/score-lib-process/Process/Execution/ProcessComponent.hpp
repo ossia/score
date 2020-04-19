@@ -26,6 +26,7 @@ class time_process;
 namespace Execution
 {
 struct Context;
+struct Transaction;
 template <typename T>
 class InvalidProcessException : public std::runtime_error
 {
@@ -76,7 +77,7 @@ public:
   void nodeChanged(
       const ossia::node_ptr& old_node,
       const ossia::node_ptr& new_node,
-      std::vector<Execution::ExecutionCommand>& commands)
+      Execution::Transaction& commands)
       E_SIGNAL(
           SCORE_LIB_PROCESS_EXPORT,
           nodeChanged,
@@ -159,4 +160,4 @@ W_REGISTER_ARGTYPE(ossia::node_ptr)
 Q_DECLARE_METATYPE(std::shared_ptr<Execution::ProcessComponent>)
 W_REGISTER_ARGTYPE(std::shared_ptr<Execution::ProcessComponent>)
 W_REGISTER_ARGTYPE(const std::shared_ptr<Execution::ProcessComponent>&)
-W_REGISTER_ARGTYPE(std::vector<Execution::ExecutionCommand>&)
+W_REGISTER_ARGTYPE(Execution::Transaction&)

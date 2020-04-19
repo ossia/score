@@ -315,7 +315,10 @@ public:
     status->setTextFormat(Qt::RichText);
     status->setText("<i>Remember those quiet evenings</i>");
     status->setWordWrap(true);
+
+#ifndef QT_NO_STYLE_STYLESHEET
     status->setStyleSheet("color: #787876;");
+#endif
     l->addWidget(status);
     l->addStretch(12);
   }

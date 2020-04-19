@@ -62,9 +62,11 @@ DeviceExplorerView::DeviceExplorerView(QWidget* parent)
 
   setDragDropOverwriteMode(false);
 
+#ifndef QT_NO_STYLE_STYLESHEET
   QFile f(":/DeviceExplorer.qss");
   if (f.open(QFile::ReadOnly))
     setStyleSheet(f.readAll());
+#endif
 }
 
 DeviceExplorerView::~DeviceExplorerView()

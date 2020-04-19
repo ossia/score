@@ -8,6 +8,8 @@
 #include <QObject>
 #include <QVariant>
 #include <QVector>
+#include <QJSValue>
+#include <QQmlListProperty>
 
 #include <rtmidi17/message.hpp>
 #include <verdigris>
@@ -360,6 +362,64 @@ public:
 
 private:
   QVector<QVector<int>> m_midi;
+};
+
+class Script : public QObject
+{
+  W_OBJECT(Script)
+  W_CLASSINFO("DefaultProperty", "data")
+  W_CLASSINFO("qt_QmlJSWrapperFactoryMethod", "_q_createJSWrapper(QV4::ExecutionEngine*)")
+
+public:
+  QQmlListProperty<QObject> data() noexcept
+  {
+    return {this, &m_data};
+  }
+
+  QJSValue& tick() /*Qt6: const*/ noexcept {
+    return m_tick;
+  }
+  void setTick(const QJSValue& v) {
+    m_tick = v;
+  }
+  QJSValue& start() /*Qt6: const*/ noexcept {
+    return m_start;
+  }
+  void setStart(const QJSValue& v) {
+    m_start = v;
+  }
+  QJSValue& stop() /*Qt6: const*/ noexcept {
+    return m_stop;
+  }
+  void setStop(const QJSValue& v) {
+    m_stop = v;
+  }
+  QJSValue& pause() /*Qt6: const*/ noexcept {
+    return m_pause;
+  }
+  void setPause(const QJSValue& v) {
+    m_pause = v;
+  }
+  QJSValue& resume() /*Qt6: const*/ noexcept {
+    return m_resume;
+  }
+  void setResume(const QJSValue& v) {
+    m_resume = v;
+  }
+  W_PROPERTY(QJSValue, tick READ tick WRITE setTick CONSTANT)
+  W_PROPERTY(QJSValue, start READ start WRITE setStart CONSTANT)
+  W_PROPERTY(QJSValue, stop READ stop WRITE setStop CONSTANT)
+  W_PROPERTY(QJSValue, pause READ pause WRITE setPause CONSTANT)
+  W_PROPERTY(QJSValue, resume READ resume WRITE setResume CONSTANT)
+  W_PROPERTY(QQmlListProperty<QObject>, data READ data)
+
+private:
+  QList<QObject*> m_data;
+  QJSValue m_tick;
+  QJSValue m_start;
+  QJSValue m_stop;
+  QJSValue m_pause;
+  QJSValue m_resume;
 };
 }
 Q_DECLARE_METATYPE(JS::ValueInlet*)

@@ -3,7 +3,6 @@ project(score_player LANGUAGES CXX)
 score_common_setup()
 enable_testing()
 set(CMAKE_AUTOMOC ON)
-find_package(Qt5 5.7 COMPONENTS QuickControls2)
 
 option(SCORE_PLAYER_PD "Build player object for PD" OFF)
 option(SCORE_PLAYER_MAX "Build player object for Max" OFF)
@@ -32,8 +31,7 @@ foreach(plugin ${SCORE_PLUGINS_LIST})
   target_link_libraries(score_player PUBLIC ${plugin})
 endforeach()
 target_link_libraries(score_player PUBLIC
-  ossia
-  Qt5::QuickControls2)
+  ossia)
 
 add_library(score_player_plugin SHARED
     "${CMAKE_CURRENT_SOURCE_DIR}/player_qml_plugin.hpp"

@@ -108,9 +108,9 @@ public:
   Selectable selection;
   bool hidden{};
 
-  void addCable(const Path<Process::Cable>& c);
+  void addCable(const Process::Cable& c);
   void removeCable(const Path<Process::Cable>& c);
-  void setCables(const std::vector<Path<Cable>>& c);
+  void takeCables(Process::Port&& c);
 
   const QString& customData() const noexcept;
   const State::AddressAccessor& address() const noexcept;
@@ -146,6 +146,9 @@ public:
   PROPERTY(
       QString,
       customData READ customData WRITE setCustomData NOTIFY customDataChanged)
+
+  virtual QByteArray saveData() const noexcept;
+  virtual void loadData(const QByteArray& arr) noexcept;
 protected:
   Port() = delete;
   ~Port() override;
@@ -209,6 +212,8 @@ public:
   const ossia::value& value() const noexcept { return m_value; }
   const State::Domain& domain() const noexcept { return m_domain; }
 
+  QByteArray saveData() const noexcept override;
+  void loadData(const QByteArray& arr) noexcept override;
 public:
   void valueChanged(const ossia::value& v)
       E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, valueChanged, v)
@@ -311,6 +316,9 @@ public:
   void forChildInlets(const smallfun::function<void(Inlet&)>&) const noexcept override;
   void mapExecution(ossia::outlet&, const smallfun::function<void(Inlet&, ossia::inlet&)>&) const noexcept override;
 
+  QByteArray saveData() const noexcept override;
+  void loadData(const QByteArray& arr) noexcept override;
+
   bool propagate() const;
   void setPropagate(bool propagate);
   void propagateChanged(bool propagate)
@@ -398,6 +406,9 @@ public:
   ControlOutlet(JSONObject::Deserializer&& vis, QObject* parent);
 
   VIRTUAL_CONSTEXPR PortType type() const noexcept override { return Process::PortType::Message; }
+
+  QByteArray saveData() const noexcept override;
+  void loadData(const QByteArray& arr) noexcept override;
 
   const ossia::value& value() const { return m_value; }
   const State::Domain& domain() const { return m_domain; }

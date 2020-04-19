@@ -44,9 +44,4 @@ void loadCables(
     const ObjectPath& new_path,
     Dataflow::SerializedCables& cables,
     const score::DocumentContext& ctx);
-SCORE_PLUGIN_SCENARIO_EXPORT
-void loadRelativeCables(
-    const ObjectPath& new_path,
-    Dataflow::SerializedCables& cables,
-    const score::DocumentContext& ctx);
 }

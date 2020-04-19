@@ -47,8 +47,6 @@ else()
     COMPONENT OssiaScore)
 endif()
 
-static_link_qt(ossia-score-vstpuppet)
-
 if(SCORE_COTIRE)
   cotire(ossia-score-vstpuppet)
 endif()

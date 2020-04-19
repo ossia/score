@@ -454,8 +454,8 @@ void VSTEffectModel::closePlugin()
     }
     fx = nullptr;
   }
-  score::deleteAndClear(m_inlets);
-  score::deleteAndClear(m_outlets);
+  auto old_inlets = score::clearAndDeleteLater(m_inlets);
+  auto old_outlets = score::clearAndDeleteLater(m_outlets);
   metadata().setLabel("Dead VST");
 }
 

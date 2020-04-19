@@ -10,6 +10,7 @@
 #include <JS/Inspector/JSInspectorFactory.hpp>
 #include <JS/JSProcessFactory.hpp>
 #include <JS/Qml/QmlObjects.hpp>
+#include <QQmlListProperty>
 #include <Library/LibraryInterface.hpp>
 #include <Process/Drop/ProcessDropHandler.hpp>
 #include <Process/ProcessFactory.hpp>
@@ -23,6 +24,7 @@
 #include <score_plugin_js_commands_files.hpp>
 
 #include <QFileInfo>
+#include <wobjectimpl.h>
 
 W_OBJECT_IMPL(JS::EditJsContext)
 
@@ -66,7 +68,9 @@ class DropHandler final : public Process::ProcessDropHandler
     return vec;
   }
 };
+
 }
+W_OBJECT_IMPL(JS::Script)
 
 score_plugin_js::score_plugin_js()
 {
@@ -82,6 +86,7 @@ score_plugin_js::score_plugin_js()
   qmlRegisterType<JS::Enum>("Score", 1, 0, "Enum");
   qmlRegisterType<JS::Toggle>("Score", 1, 0, "Toggle");
   qmlRegisterType<JS::LineEdit>("Score", 1, 0, "LineEdit");
+  qmlRegisterType<JS::Script>("Score", 1, 0, "Script");
 
   qRegisterMetaType<QVector<JS::MidiMessage>>();
 }

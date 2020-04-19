@@ -45,7 +45,7 @@ void AudioChainComponentBase::unregister_old_first_node(
     std::pair<
         Id<Process::ProcessModel>,
         AudioChainComponentBase::RegisteredEffect>& old_first,
-    std::vector<Execution::ExecutionCommand>& commands)
+    Execution::Transaction& commands)
 {
   if (old_first.second)
   {
@@ -60,7 +60,7 @@ void AudioChainComponentBase::register_new_first_node(
     std::pair<
         Id<Process::ProcessModel>,
         AudioChainComponentBase::RegisteredEffect>& new_first,
-    std::vector<Execution::ExecutionCommand>& commands)
+    Execution::Transaction& commands)
 {
   if (new_first.second)
   {
@@ -79,7 +79,7 @@ void AudioChainComponentBase::unregister_old_last_node(
     std::pair<
         Id<Process::ProcessModel>,
         AudioChainComponentBase::RegisteredEffect>& old_last,
-    std::vector<Execution::ExecutionCommand>& commands)
+    Execution::Transaction& commands)
 {
   if (old_last.second)
   {
@@ -93,7 +93,7 @@ void AudioChainComponentBase::register_new_last_node(
     std::pair<
         Id<Process::ProcessModel>,
         AudioChainComponentBase::RegisteredEffect>& new_last,
-    std::vector<Execution::ExecutionCommand>& commands)
+    Execution::Transaction& commands)
 {
   if (new_last.second)
   {
@@ -126,7 +126,7 @@ Execution::ProcessComponent* AudioChainComponentBase::make(
   const Execution::Context& ctx = system();
   const auto& echain
       = std::dynamic_pointer_cast<ossia::node_chain_process>(m_ossia_process);
-  std::vector<Execution::ExecutionCommand> commands;
+  Execution::Transaction commands{system()};
   commands.reserve(4);
 
   std::shared_ptr<ProcessComponent> fx
@@ -350,19 +350,13 @@ Execution::ProcessComponent* AudioChainComponentBase::make(
     in_exec([f = std::move(commands),
              g = ctx.execGraph,
              proc = echain,
-             test_fx = get_nodes(m_fxes)] {
-      for (auto& cmd : f)
-      {
-        cmd();
-      }
+             test_fx = get_nodes(m_fxes)] () mutable {
+      f.run_all_in_exec();
       check_exec_validity(*g, *proc);
       check_exec_order(test_fx, *proc);
     });
 #else
-    in_exec([f = std::move(commands), g = ctx.execGraph, proc = echain] {
-      for (auto& cmd : f)
-        cmd();
-    });
+    f.run_all();
 #endif
   }
   return fx.get();
@@ -382,7 +376,7 @@ std::function<void()> AudioChainComponentBase::removing(
 
   const Execution::Context& ctx = system();
 
-  std::vector<Execution::ExecutionCommand> commands;
+  Execution::Transaction commands{ctx};
 
   auto it = ossia::find_if(
       m_fxes, [&](const auto& v) { return v.first == e.id(); });
@@ -486,41 +480,33 @@ std::function<void()> AudioChainComponentBase::removing(
     g->remove_node(n);
   });
 
-
-  if (!commands.empty())
-  {
 #if !defined(NDEBUG)
-    auto test_fx = get_nodes(m_fxes);
-    if(m_passthrough)
-      test_fx = {m_passthrough};
-    ossia::remove_erase(test_fx, this_fx.node());
-    in_exec([f = std::move(commands),
-             g = ctx.execGraph,
-             proc = echain,
-             test_fx,
-             clearing = m_clearing] {
-      for (auto& cmd : f)
-        cmd();
-      if (!clearing)
-      {
-        check_exec_validity(*g, *proc);
-        check_last_validity(*g, *proc);
-        check_exec_order(test_fx, *proc);
-      }
-    });
+  auto test_fx = get_nodes(m_fxes);
+  if(m_passthrough)
+    test_fx = {m_passthrough};
+  ossia::remove_erase(test_fx, this_fx.node());
+  in_exec([f = std::move(commands),
+          g = ctx.execGraph,
+          proc = echain,
+          test_fx,
+          clearing = m_clearing] () mutable{
+    f.run_all_in_exec();
+    if (!clearing)
+    {
+      check_exec_validity(*g, *proc);
+      check_last_validity(*g, *proc);
+      check_exec_order(test_fx, *proc);
+    }
+  });
 #else
-    in_exec([f = std::move(commands)] {
-      for (auto& cmd : f)
-        cmd();
-    });
+  f.run_all();
 #endif
-  }
 
   this_fx.comp->node.reset();
   return [=] { m_fxes.erase(it); };
 }
 
-void AudioChainComponentBase::createPassthrough(std::vector<Execution::ExecutionCommand>& commands)
+void AudioChainComponentBase::createPassthrough(Execution::Transaction& commands)
 {
   if(m_passthrough)
     return;
@@ -576,7 +562,7 @@ void AudioChainComponentBase::on_orderChanged()
 
   const Execution::Context& ctx = system();
 
-  std::vector<Execution::ExecutionCommand> commands;
+  Execution::Transaction commands{ctx};
 
   if (first_changed && old_first.second.node())
   {
@@ -637,19 +623,14 @@ void AudioChainComponentBase::on_orderChanged()
     in_exec([f = std::move(commands),
              g = ctx.execGraph,
              proc = echain,
-             test_fx = get_nodes(m_fxes)] {
-      for (auto& cmd : f)
-        cmd();
-
+             test_fx = get_nodes(m_fxes)] () mutable {
+      f.run_all_in_exec();
       check_exec_validity(*g, *proc);
       check_last_validity(*g, *proc);
       check_exec_order(test_fx, *proc);
     });
 #else
-    in_exec([f = std::move(commands)] {
-      for (auto& cmd : f)
-        cmd();
-    });
+    f.run_all();
 #endif
   }
 }
@@ -663,7 +644,7 @@ void AudioChainComponentBase::unreg(
 
 void AudioChainComponentBase::reg(
     const RegisteredEffect& fx,
-    std::vector<Execution::ExecutionCommand>& vec)
+    Execution::Transaction& vec)
 {
   system().setup.register_node(
       fx.registeredInlets, fx.registeredOutlets, fx.node(), vec);
@@ -697,12 +678,9 @@ AudioChainComponent::AudioChainComponent(
 
   if(element.effects().empty())
   {
-    std::vector<Execution::ExecutionCommand> commands;
+    Execution::Transaction commands{ctx};
     createPassthrough(commands);
-    in_exec([f = std::move(commands)] {
-      for (auto& cmd : f)
-        cmd();
-    });
+    commands.run_all();
   }
 }
 

@@ -25,6 +25,7 @@ public:
     connect(this, &QLineEdit::textChanged, this, [&](const QString& str) {
       QString s = str;
       int i = 0;
+#ifndef QT_NO_STYLE_STYLESHEET
       if (m_validator.validate(s, i) == QValidator::State::Acceptable)
       {
         this->setStyleSheet("QLineEdit { background: black; }");
@@ -33,6 +34,7 @@ public:
       {
         this->setStyleSheet("QLineEdit { background: #660000; }");
       }
+#endif
     });
   }
 

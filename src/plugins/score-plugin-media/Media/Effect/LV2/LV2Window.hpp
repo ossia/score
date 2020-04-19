@@ -32,7 +32,7 @@ private:
 
 using LayerFactory = Process::EffectLayerFactory_T<
     LV2EffectModel,
-    Media::Effect::DefaultEffectItem,
+    Process::DefaultEffectItem,
     Window>;
 }
 #endif

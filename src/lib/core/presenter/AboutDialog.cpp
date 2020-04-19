@@ -164,9 +164,6 @@ AboutDialog::AboutDialog(QWidget* parent)
       = License{"https://github.com/jcelerier/Qt-Color-Widgets.git",
                 qtcolorwidgets_LICENSE};
   map["PSIMPL"] = License{"http://psimpl.sf.net", "MPL 1.1"};
-  map["desktopqqc2style"]
-      = License{"https://anongit.kde.org/scratch/mart/desktopqqc2style.git",
-                "MIT License"};
 
   // TODO ifdefs
   map["SDL"] = License{"", "Boost License"};
@@ -194,6 +191,7 @@ AboutDialog::AboutDialog(QWidget* parent)
   auto softwareList = new QListWidget{this};
   softwareList->move(145, 230);
   softwareList->resize(120, 183);
+#ifndef QT_NO_STYLE_STYLESHEET
   softwareList->setStyleSheet(R"_(
                               QListView::item:!selected:hover{
                               background-color:#415491;
@@ -223,6 +221,7 @@ AboutDialog::AboutDialog(QWidget* parent)
                               background: none;
                               }
                               )_");
+#endif
   softwareList->setFont(m_catamaranFont);
   softwareList->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
   softwareList->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);

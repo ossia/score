@@ -37,7 +37,10 @@ InspectorWidget::InspectorWidget(
   QString name = tr("Interpolation");
   m_label = new TextLabel{name, this};
   // TODO use the same style as InspectorWidgetBase
+
+#ifndef QT_NO_STYLE_STYLESHEET
   m_label->setStyleSheet("font-weight: bold; font-size: 18");
+#endif
   vlay->addWidget(m_label);
 
   // Address

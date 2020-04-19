@@ -1,7 +1,7 @@
-import QtQuick 2.0
+import QtQml 2.0
 import Score 1.0
 
-Item {
+QtObject {
     ValueInlet { id: in1 }
     ValueInlet { id: in2 }
     ValueOutlet { id: out }

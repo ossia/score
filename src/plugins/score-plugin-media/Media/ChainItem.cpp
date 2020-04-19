@@ -32,7 +32,7 @@ EffectItem::EffectItem(
 
   if (!m_fx)
   {
-    m_fx = new Media::Effect::DefaultEffectItem{m_model, m_context.context, this};
+    m_fx = new Process::DefaultEffectItem{m_model, m_context.context, this};
   }
 
   m_fx->setParentItem(this);

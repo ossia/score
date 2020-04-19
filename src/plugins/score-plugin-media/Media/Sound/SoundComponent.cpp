@@ -140,16 +140,12 @@ public:
     else
     {
       construct_ffmpeg(r, component);
-      std::vector<Execution::ExecutionCommand> commands;
+      Execution::Transaction commands{component.system()};
       component.system().setup.unregister_node(component.process(), old_node, commands);
       component.system().setup.register_node(component.process(), component.node, commands);
       component.nodeChanged(old_node, component.node, commands);
 
-      // TODO add a "exec all commands macro
-      component.in_exec([f = std::move(commands)] {
-        for (auto& cmd : f)
-          cmd();
-      });
+      commands.run_all();
     }
   }
   static void recompute_drwav(
@@ -182,16 +178,12 @@ public:
     else
     {
       construct_drwav(r, component);
-      std::vector<Execution::ExecutionCommand> commands;
+      Execution::Transaction commands{component.system()};
       component.system().setup.unregister_node(component.process(), old_node, commands);
       component.system().setup.register_node(component.process(), component.node, commands);
       component.nodeChanged(old_node, component.node, commands);
 
-      // TODO add a "exec all commands macro
-      component.in_exec([f = std::move(commands)] {
-        for (auto& cmd : f)
-          cmd();
-      });
+      commands.run_all();
     }
 
   }
