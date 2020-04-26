@@ -71,14 +71,11 @@ bool SlotLibraryHandler::onDrop(
   auto file = model.fileInfo(parent);
 
   auto json
-      = QJsonDocument::fromJson(mime.data(score::mime::layerdata())).object();
+      = readJson(mime.data(score::mime::layerdata()));
 
   QString path = file.isDir() ? file.absoluteFilePath() : file.absolutePath();
 
-  auto basename = json["Process"]
-                      .toObject()["Metadata"]
-                      .toObject()["ScriptingName"]
-                      .toString();
+  auto basename = JsonValue{json["Process"]["Metadata"]["ScriptingName"]}.toString();
   if (basename.isEmpty())
     basename = "Process";
 
@@ -86,8 +83,8 @@ bool SlotLibraryHandler::onDrop(
 
   if (QFile f(filename); f.open(QIODevice::WriteOnly))
   {
-    json.remove("PID");
-    f.write(QJsonDocument{json}.toJson());
+    json.RemoveMember("PID");
+    f.write(jsonToByteArray(json));
   }
 
   return true;
@@ -116,23 +113,20 @@ bool ScenarioLibraryHandler::onDrop(
     QString path
         = file.isDir() ? file.absoluteFilePath() : file.absolutePath();
 
-    auto obj = QJsonDocument::fromJson(mime.data(score::mime::scenariodata()))
-                   .object();
-    const auto& states = obj["States"].toArray();
-    if (states.size() == 1 && obj["Intervals"].toArray().size() == 0)
+    auto obj = readJson(mime.data(score::mime::scenariodata()));
+    const auto& states = obj["States"].GetArray();
+    if (states.Size() == 1 && obj["Intervals"].GetArray().Size() == 0)
     {
-      const auto& state = states.first().toObject();
+      const auto& state = states[0];
 
       // Go from a tree to a list
-      auto msgs = toJsonObject(flatten(fromJsonObject<Process::MessageNode>(
-          state["Messages"].toObject())))["Data"]
-                      .toArray();
+      const State::MessageList& flattened = flatten(JsonValue{state["Messages"]}.to<Process::MessageNode>());
 
-      auto basename = state["Metadata"].toObject()["ScriptingName"].toString();
+      auto basename = JsonValue{state["Metadata"]["ScriptingName"]}.toString();
       QString filename = addUniqueSuffix(path + "/" + basename + ".cues");
       if (QFile f(filename); f.open(QIODevice::WriteOnly))
       {
-        f.write(QJsonDocument{msgs}.toJson());
+        f.write(score::marshall<JSONObject>(flattened).toByteArray());
       }
     }
     else
@@ -161,7 +155,6 @@ bool ScenarioLibraryHandler::onDrop(
     }
     return true;
   }
-
   return false;
 }
 

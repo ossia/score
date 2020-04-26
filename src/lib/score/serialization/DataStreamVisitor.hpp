@@ -3,6 +3,7 @@
 #include <score/plugins/UuidKey.hpp>
 #include <score/serialization/VisitorInterface.hpp>
 #include <score/serialization/VisitorTags.hpp>
+#include <score/serialization/CommonTypes.hpp>
 #include <score/tools/std/HashMap.hpp>
 #include <score/tools/std/Optional.hpp>
 
@@ -210,6 +211,11 @@ public:
     TSerializer<DataStream, IdentifiedObject<T>>::readFrom(*this, obj);
   }
 
+  void readFrom(const QByteArray& obj)
+  {
+    m_stream_impl << obj;
+  }
+
   template <typename T>
   void readFrom(const T& obj)
   {
@@ -370,6 +376,11 @@ public:
   //! It is not to be called by user code.
   template <typename T>
   void write(T&);
+
+  void writeTo(QByteArray& obj)
+  {
+    m_stream_impl >> obj;
+  }
 
   template <typename T>
   void writeTo(T& obj)
@@ -613,8 +624,11 @@ template <typename T, typename Alloc>
 struct TSerializer<
     DataStream,
     std::vector<T, Alloc>,
-    std::enable_if_t<!is_QDataStreamSerializable<
-        typename std::vector<T, Alloc>::value_type>::value>>
+    std::enable_if_t<
+          !is_QDataStreamSerializable<typename std::vector<T, Alloc>::value_type>::value
+       && !std::is_pointer_v<T>
+      >
+    >
 {
   static void
   readFrom(DataStream::Serializer& s, const std::vector<T, Alloc>& vec)
@@ -674,25 +688,6 @@ struct TSerializer<
     SCORE_DEBUG_CHECK_DELIMITER2(s);
   }
 };
-
-template <typename U>
-struct TSerializer<DataStream, UuidKey<U>>
-{
-  static void readFrom(DataStream::Serializer& s, const UuidKey<U>& uid)
-  {
-    s.stream().stream.writeRawData(
-        (const char*)uid.impl().data, sizeof(uid.impl().data));
-    SCORE_DEBUG_INSERT_DELIMITER2(s);
-  }
-
-  static void writeTo(DataStream::Deserializer& s, UuidKey<U>& uid)
-  {
-    s.stream().stream.readRawData(
-        (char*)uid.impl().data, sizeof(uid.impl().data));
-    SCORE_DEBUG_CHECK_DELIMITER2(s);
-  }
-};
-
 template <typename T, typename U>
 struct TSerializer<DataStream, score::hash_map<T, U>>
 {

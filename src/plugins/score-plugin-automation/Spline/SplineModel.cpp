@@ -118,19 +118,24 @@ void DataStreamWriter::write(ossia::nodes::spline_point& autom)
 {
   m_stream >> autom.m_x >> autom.m_y;
 }
+
 template <>
-void JSONValueReader::read(const ossia::nodes::spline_point& autom)
+void JSONReader::read(const ossia::nodes::spline_point& autom)
 {
-  val = QJsonArray{autom.x(), autom.y()};
+  stream.StartArray();
+  stream.Double(autom.x());
+  stream.Double(autom.y());
+  stream.EndArray();
 }
 
 template <>
-void JSONValueWriter::write(ossia::nodes::spline_point& autom)
+void JSONWriter::write(ossia::nodes::spline_point& autom)
 {
-  auto arr = val.toArray();
-  autom.m_x = arr[0].toDouble();
-  autom.m_y = arr[1].toDouble();
+  const auto& arr = base.GetArray();
+  autom.m_x = arr[0].GetDouble();
+  autom.m_y = arr[1].GetDouble();
 }
+
 
 /// Data ///
 template <>
@@ -145,17 +150,6 @@ void DataStreamWriter::write(ossia::nodes::spline_data& autom)
 {
   m_stream >> autom.points;
   checkDelimiter();
-}
-template <>
-void JSONValueReader::read(const ossia::nodes::spline_data& autom)
-{
-  val = toJsonValueArray(autom.points);
-}
-template <>
-void JSONValueWriter::write(ossia::nodes::spline_data& autom)
-{
-  autom.points = fromJsonValueArray<std::vector<ossia::nodes::spline_point>>(
-      val.toArray());
 }
 
 template <>
@@ -175,23 +169,19 @@ void DataStreamWriter::write(Spline::ProcessModel& autom)
 }
 
 template <>
-void JSONObjectReader::read(const Spline::ProcessModel& autom)
+void JSONReader::read(const Spline::ProcessModel& autom)
 {
-  obj["Outlet"] = toJsonObject(*autom.outlet);
-  JSONValueReader v{};
-  v.readFrom(autom.m_spline);
-  obj["Spline"] = v.val;
+  obj["Outlet"] = *autom.outlet;
+  obj["Spline"] = autom.m_spline.points;
   obj["Tween"] = autom.tween();
 }
 
 template <>
-void JSONObjectWriter::write(Spline::ProcessModel& autom)
+void JSONWriter::write(Spline::ProcessModel& autom)
 {
-  JSONObjectWriter writer{obj["Outlet"].toObject()};
+  JSONWriter writer{obj["Outlet"]};
   autom.outlet = Process::load_value_outlet(writer, &autom);
 
   autom.setTween(obj["Tween"].toBool());
-  JSONValueWriter v{};
-  v.val = obj["Spline"];
-  v.writeTo(autom.m_spline);
+  autom.m_spline.points <<= obj["Spline"];
 }

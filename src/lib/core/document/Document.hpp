@@ -7,8 +7,8 @@
 #include <core/command/CommandStack.hpp>
 #include <core/document/DocumentMetadata.hpp>
 
+#include <ossia/detail/json.hpp>
 #include <QByteArray>
-#include <QJsonObject>
 #include <QString>
 #include <QTimer>
 #include <QVariant>
@@ -27,6 +27,8 @@ class DocumentBackupManager;
 
 namespace score
 {
+using JsonWriter = rapidjson::Writer<rapidjson::StringBuffer>;
+
 class DocumentDelegateFactory;
 class DocumentModel;
 class DocumentPresenter;
@@ -73,10 +75,10 @@ public:
 
   DocumentView* view() const { return m_view; }
 
-  QJsonObject saveDocumentModelAsJson();
+  void saveDocumentModelAsJson(JSONObject::Serializer & writer);
   QByteArray saveDocumentModelAsByteArray();
 
-  QJsonObject saveAsJson();
+  void saveAsJson(JSONObject::Serializer & writer);
   QByteArray saveAsByteArray();
 
   DocumentBackupManager* backupManager() const { return m_backupMgr; }
@@ -93,7 +95,6 @@ public:
   // Load without creating presenter and view
   Document(
       const QString& name,
-      const QVariant& data,
       DocumentDelegateFactory& type,
       QObject* parent);
 
@@ -108,11 +109,11 @@ private:
 
   Document(
       const QString& name,
-      const QVariant& data,
       DocumentDelegateFactory& type,
       QWidget* parentview,
       QObject* parent);
 
+  void loadModel(const QString& fileName, DocumentDelegateFactory& factory);
   void init();
 
   DocumentMetadata m_metadata;
@@ -142,5 +143,6 @@ private:
 
 Q_DECLARE_METATYPE(score::Document*)
 Q_DECLARE_METATYPE(Id<score::DocumentModel>)
+Q_DECLARE_METATYPE(rapidjson::Value*)
 W_REGISTER_ARGTYPE(score::Document*)
 W_REGISTER_ARGTYPE(Id<score::DocumentModel>)

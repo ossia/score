@@ -6,6 +6,7 @@
 #include "ValueParser.hpp"
 
 #include <State/ValueConversion.hpp>
+#include <State/ValueSerialization.hpp>
 
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/serialization/JSONVisitor.hpp>

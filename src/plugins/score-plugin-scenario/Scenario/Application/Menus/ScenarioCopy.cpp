@@ -17,6 +17,7 @@
 #include <score/document/DocumentContext.hpp>
 #include <score/model/EntitySerialization.hpp>
 #include <score/model/EntityMap.hpp>
+#include <score/model/EntityMapSerialization.hpp>
 #include <score/model/Identifier.hpp>
 #include <score/serialization/VisitorCommon.hpp>
 #include <score/tools/std/Optional.hpp>
@@ -27,27 +28,9 @@
 #include <ossia/detail/ptr_set.hpp>
 #include <ossia/detail/thread.hpp>
 
-#include <QJsonArray>
-#include <QJsonObject>
-
 #include <vector>
 namespace Scenario
 {
-template <typename Selected_T>
-static auto arrayToJson(Selected_T&& selected)
-{
-  QJsonArray array;
-  if (!selected.empty())
-  {
-    for (const auto& element : selected)
-    {
-      array.push_back(score::marshall<JSONObject>(*element));
-    }
-  }
-
-  return array;
-}
-
 // MOVEME
 bool verifyAndUpdateIfChildOf(ObjectPath& path, const ObjectPath& parent)
 {
@@ -132,8 +115,8 @@ Dataflow::SerializedCables cablesToCopy(
 }
 
 template <typename Scenario_T>
-QJsonObject
-copySelected(const Scenario_T& sm, CategorisedScenario& cs, QObject* parent)
+void
+copySelected(JSONReader& r, const Scenario_T& sm, CategorisedScenario& cs, QObject* parent)
 {
   std::vector<Path<Scenario::IntervalModel>> itv_paths;
   for (const IntervalModel* interval : cs.selectedIntervals)
@@ -248,13 +231,11 @@ copySelected(const Scenario_T& sm, CategorisedScenario& cs, QObject* parent)
   }
 
 
-  QJsonObject base;
-  base["Intervals"] = arrayToJson(cs.selectedIntervals);
-  base["Events"] = arrayToJson(copiedEvents);
-  base["TimeNodes"] = arrayToJson(copiedTimeSyncs);
-  base["States"] = arrayToJson(copiedStates);
-  base["Cables"]
-      = toJsonValueArray(cablesToCopy(cs.selectedIntervals, itv_paths, ctx));
+  r.obj["Intervals"] = cs.selectedIntervals;
+  r.obj["Events"] = copiedEvents;
+  r.obj["TimeNodes"] = copiedTimeSyncs;
+  r.obj["States"] = copiedStates;
+  r.obj["Cables"] = cablesToCopy(cs.selectedIntervals, itv_paths, ctx);
 
   for (auto elt : copiedTimeSyncs)
     delete elt;
@@ -262,35 +243,36 @@ copySelected(const Scenario_T& sm, CategorisedScenario& cs, QObject* parent)
     delete elt;
   for (auto elt : copiedStates)
     delete elt;
-
-  return base;
 }
 
-QJsonObject copyProcess(const Process::ProcessModel& proc)
+void copyProcess(JSONReader& r, const Process::ProcessModel& proc)
 {
   const auto& ctx = score::IDocument::documentContext(proc);
-  QJsonObject base;
+
   std::vector<const Process::ProcessModel*> vp{&proc};
   std::vector<Path<Process::ProcessModel>> vpath{proc};
-  base["PID"] = ossia::get_pid();
-  base["Document"] = toJsonValue(ctx.document.id());
-  base["Process"] = toJsonObject(proc);
-  base["Cables"] = toJsonValueArray(cablesToCopy(vp, vpath, ctx));
-  return base;
+  // Object is not created here but in SlotHeader
+  r.obj["PID"] = ossia::get_pid();
+  r.obj["Document"] = ctx.document.id();
+  r.obj["Process"] = proc;
+  r.obj["Cables"] = cablesToCopy(vp, vpath, ctx);
 }
 
-QJsonObject copySelectedScenarioElements(
+void copySelectedScenarioElements(
+    JSONReader& r,
     const Scenario::ProcessModel& sm,
     CategorisedScenario& cat)
 {
-  auto obj = copySelected(sm, cat, const_cast<Scenario::ProcessModel*>(&sm));
+  r.stream.StartObject();
+  copySelected(r, sm, cat, const_cast<Scenario::ProcessModel*>(&sm));
 
-  obj["Comments"] = arrayToJson(selectedElements(sm.comments));
+  r.obj["Comments"] = selectedElements(sm.comments);
 
-  return obj;
+  r.stream.EndObject();
 }
 
-QJsonObject copyWholeScenario(const Scenario::ProcessModel& sm)
+void copyWholeScenario(JSONReader& r,
+                       const Scenario::ProcessModel& sm)
 {
   const auto& ctx = score::IDocument::documentContext(sm);
 
@@ -302,29 +284,31 @@ QJsonObject copyWholeScenario(const Scenario::ProcessModel& sm)
     itv_paths.push_back(itv);
   }
 
-  QJsonObject base;
-
-  base["Intervals"] = toJsonArray(sm.intervals);
-  base["Events"] = toJsonArray(sm.events);
-  base["TimeNodes"] = toJsonArray(sm.timeSyncs);
-  base["States"] = toJsonArray(sm.states);
-  base["Cables"] = toJsonValueArray(cablesToCopy(itvs, itv_paths, ctx));
-  base["Comments"] = toJsonArray(sm.comments);
-
-  return base;
+  r.stream.StartObject();
+  r.obj["Intervals"] = sm.intervals;
+  r.obj["Events"] = sm.events;
+  r.obj["TimeNodes"] = sm.timeSyncs;
+  r.obj["States"] = sm.states;
+  r.obj["Cables"] = cablesToCopy(itvs, itv_paths, ctx);
+  r.obj["Comments"] = sm.comments;
+  r.stream.EndObject();
 }
 
-QJsonObject copySelectedScenarioElements(const Scenario::ProcessModel& sm)
+void copySelectedScenarioElements(
+    JSONReader& r,
+    const Scenario::ProcessModel& sm)
 {
   CategorisedScenario cat{sm};
-  return copySelectedScenarioElements(sm, cat);
+  return copySelectedScenarioElements(r, sm, cat);
 }
 
-QJsonObject
-copySelectedScenarioElements(const BaseScenarioContainer& sm, QObject* parent)
+void
+copySelectedScenarioElements(
+    JSONReader& r,
+    const BaseScenarioContainer& sm, QObject* parent)
 {
   CategorisedScenario cat{sm};
-  return copySelected(sm, cat, parent);
+  return copySelected(r, sm, cat, parent);
 }
 
 CategorisedScenario::CategorisedScenario() {}
@@ -392,19 +376,20 @@ CategorisedScenario::CategorisedScenario(const Selection& sm)
   }
 }
 
-QJsonObject copySelectedElementsToJson(
+void copySelectedElementsToJson(
+    JSONReader& r,
     ScenarioInterface& si,
     const score::DocumentContext& ctx)
 {
   auto si_obj = dynamic_cast<QObject*>(&si);
   if (auto sm = dynamic_cast<const Scenario::ProcessModel*>(&si))
   {
-    return copySelectedScenarioElements(*sm);
+    return copySelectedScenarioElements(r, *sm);
   }
   else if (
       auto bsm = dynamic_cast<const Scenario::BaseScenarioContainer*>(&si))
   {
-    return copySelectedScenarioElements(*bsm, si_obj);
+    return copySelectedScenarioElements(r, *bsm, si_obj);
   }
   else
   {
@@ -414,11 +399,9 @@ QJsonObject copySelectedElementsToJson(
             ctx.document);
     if (!bem.baseScenario().selectedChildren().empty())
     {
-      return copySelectedScenarioElements(
+      return copySelectedScenarioElements(r,
           bem.baseScenario(), &bem.baseScenario());
     }
   }
-
-  return {};
 }
 }

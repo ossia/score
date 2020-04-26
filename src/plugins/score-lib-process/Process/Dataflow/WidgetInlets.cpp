@@ -58,13 +58,13 @@ DataStreamWriter::write<Process::FloatSlider>(Process::FloatSlider& p)
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void
-JSONObjectReader::read<Process::FloatSlider>(const Process::FloatSlider& p)
+JSONReader::read<Process::FloatSlider>(const Process::FloatSlider& p)
 {
   read((const Process::ControlInlet&) p);
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void
-JSONObjectWriter::write<Process::FloatSlider>(Process::FloatSlider& p)
+JSONWriter::write<Process::FloatSlider>(Process::FloatSlider& p)
 {
 }
 
@@ -80,14 +80,14 @@ DataStreamWriter::write<Process::LogFloatSlider>(Process::LogFloatSlider& p)
 {
 }
 template <>
-SCORE_LIB_PROCESS_EXPORT void JSONObjectReader::read<Process::LogFloatSlider>(
+SCORE_LIB_PROCESS_EXPORT void JSONReader::read<Process::LogFloatSlider>(
     const Process::LogFloatSlider& p)
 {
   read((const Process::ControlInlet&) p);
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void
-JSONObjectWriter::write<Process::LogFloatSlider>(Process::LogFloatSlider& p)
+JSONWriter::write<Process::LogFloatSlider>(Process::LogFloatSlider& p)
 {
 }
 
@@ -104,13 +104,13 @@ DataStreamWriter::write<Process::IntSlider>(Process::IntSlider& p)
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void
-JSONObjectReader::read<Process::IntSlider>(const Process::IntSlider& p)
+JSONReader::read<Process::IntSlider>(const Process::IntSlider& p)
 {
   read((const Process::ControlInlet&) p);
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void
-JSONObjectWriter::write<Process::IntSlider>(Process::IntSlider& p)
+JSONWriter::write<Process::IntSlider>(Process::IntSlider& p)
 {
 }
 
@@ -127,13 +127,13 @@ DataStreamWriter::write<Process::IntSpinBox>(Process::IntSpinBox& p)
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void
-JSONObjectReader::read<Process::IntSpinBox>(const Process::IntSpinBox& p)
+JSONReader::read<Process::IntSpinBox>(const Process::IntSpinBox& p)
 {
   read((const Process::ControlInlet&) p);
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void
-JSONObjectWriter::write<Process::IntSpinBox>(Process::IntSpinBox& p)
+JSONWriter::write<Process::IntSpinBox>(Process::IntSpinBox& p)
 {
 }
 
@@ -150,13 +150,13 @@ DataStreamWriter::write<Process::Toggle>(Process::Toggle& p)
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void
-JSONObjectReader::read<Process::Toggle>(const Process::Toggle& p)
+JSONReader::read<Process::Toggle>(const Process::Toggle& p)
 {
   read((const Process::ControlInlet&) p);
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void
-JSONObjectWriter::write<Process::Toggle>(Process::Toggle& p)
+JSONWriter::write<Process::Toggle>(Process::Toggle& p)
 {
 }
 
@@ -173,13 +173,13 @@ DataStreamWriter::write<Process::ChooserToggle>(Process::ChooserToggle& p)
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void
-JSONObjectReader::read<Process::ChooserToggle>(const Process::ChooserToggle& p)
+JSONReader::read<Process::ChooserToggle>(const Process::ChooserToggle& p)
 {
   read((const Process::ControlInlet&) p);
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void
-JSONObjectWriter::write<Process::ChooserToggle>(Process::ChooserToggle& p)
+JSONWriter::write<Process::ChooserToggle>(Process::ChooserToggle& p)
 {
 }
 
@@ -196,13 +196,13 @@ DataStreamWriter::write<Process::LineEdit>(Process::LineEdit& p)
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void
-JSONObjectReader::read<Process::LineEdit>(const Process::LineEdit& p)
+JSONReader::read<Process::LineEdit>(const Process::LineEdit& p)
 {
   read((const Process::ControlInlet&) p);
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void
-JSONObjectWriter::write<Process::LineEdit>(Process::LineEdit& p)
+JSONWriter::write<Process::LineEdit>(Process::LineEdit& p)
 {
 }
 
@@ -222,18 +222,18 @@ DataStreamWriter::write<Process::Enum>(Process::Enum& p)
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void
-JSONObjectReader::read<Process::Enum>(const Process::Enum& p)
+JSONReader::read<Process::Enum>(const Process::Enum& p)
 {
   read((const Process::ControlInlet&) p);
-  obj["Values"] = toJsonValueArray(p.values);
-  obj["Pixmaps"] = toJsonValueArray(p.pixmaps);
+  obj["Values"] = p.values;
+  obj["Pixmaps"] = p.pixmaps;
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void
-JSONObjectWriter::write<Process::Enum>(Process::Enum& p)
+JSONWriter::write<Process::Enum>(Process::Enum& p)
 {
-  p.values = fromJsonValueArray<decltype(p.values)>(obj["Values"].toArray());
-  p.pixmaps = fromJsonValueArray<decltype(p.pixmaps)>(obj["Pixmaps"].toArray());
+  p.values <<= obj["Values"];
+  p.pixmaps <<= obj["Pixmaps"];
 }
 
 template <>
@@ -251,14 +251,14 @@ DataStreamWriter::write<Process::TimeSignatureChooser>(
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void
-JSONObjectReader::read<Process::TimeSignatureChooser>(
+JSONReader::read<Process::TimeSignatureChooser>(
     const Process::TimeSignatureChooser& p)
 {
   read((const Process::ControlInlet&) p);
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void
-JSONObjectWriter::write<Process::TimeSignatureChooser>(
+JSONWriter::write<Process::TimeSignatureChooser>(
     Process::TimeSignatureChooser& p)
 {
 }
@@ -278,16 +278,16 @@ DataStreamWriter::write<Process::ComboBox>(Process::ComboBox& p)
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void
-JSONObjectReader::read<Process::ComboBox>(const Process::ComboBox& p)
+JSONReader::read<Process::ComboBox>(const Process::ComboBox& p)
 {
   read((const Process::ControlInlet&) p);
-  obj["Values"] = toJsonValueArray(p.alternatives);
+  obj["Values"] = p.alternatives;
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void
-JSONObjectWriter::write<Process::ComboBox>(Process::ComboBox& p)
+JSONWriter::write<Process::ComboBox>(Process::ComboBox& p)
 {
-  p.alternatives = fromJsonValueArray<decltype(p.alternatives)>(obj["Values"].toArray());
+  p.alternatives <<= obj["Values"];
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void
@@ -302,13 +302,13 @@ DataStreamWriter::write<Process::Button>(Process::Button& p)
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void
-JSONObjectReader::read<Process::Button>(const Process::Button& p)
+JSONReader::read<Process::Button>(const Process::Button& p)
 {
   read((const Process::ControlInlet&) p);
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void
-JSONObjectWriter::write<Process::Button>(Process::Button& p)
+JSONWriter::write<Process::Button>(Process::Button& p)
 {
 }
 
@@ -325,13 +325,13 @@ DataStreamWriter::write<Process::HSVSlider>(Process::HSVSlider& p)
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void
-JSONObjectReader::read<Process::HSVSlider>(const Process::HSVSlider& p)
+JSONReader::read<Process::HSVSlider>(const Process::HSVSlider& p)
 {
   read((const Process::ControlInlet&) p);
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void
-JSONObjectWriter::write<Process::HSVSlider>(Process::HSVSlider& p)
+JSONWriter::write<Process::HSVSlider>(Process::HSVSlider& p)
 {
 }
 
@@ -348,13 +348,13 @@ DataStreamWriter::write<Process::XYSlider>(Process::XYSlider& p)
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void
-JSONObjectReader::read<Process::XYSlider>(const Process::XYSlider& p)
+JSONReader::read<Process::XYSlider>(const Process::XYSlider& p)
 {
   read((const Process::ControlInlet&) p);
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void
-JSONObjectWriter::write<Process::XYSlider>(Process::XYSlider& p)
+JSONWriter::write<Process::XYSlider>(Process::XYSlider& p)
 {
 }
 
@@ -369,16 +369,4 @@ SCORE_LIB_PROCESS_EXPORT void
 DataStreamWriter::write<QString>(QString& p)
 {
   m_stream >> p;
-}
-template <>
-SCORE_LIB_PROCESS_EXPORT void
-JSONValueReader::read<QString>(const QString& p)
-{
-  val = p;
-}
-template <>
-SCORE_LIB_PROCESS_EXPORT void
-JSONValueWriter::write<QString>(QString& p)
-{
-  p = val.toString();
 }

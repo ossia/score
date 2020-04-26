@@ -54,6 +54,7 @@ struct SCORE_LIB_PROCESS_EXPORT CableData
 class SCORE_LIB_PROCESS_EXPORT Cable final : public IdentifiedObject<Cable>
 {
   W_OBJECT(Cable)
+  SCORE_SERIALIZE_FRIENDS
 
 public:
   Selectable selection;

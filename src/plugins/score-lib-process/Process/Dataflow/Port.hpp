@@ -529,49 +529,49 @@ SCORE_LIB_PROCESS_EXPORT
 std::unique_ptr<ValueInlet> load_value_inlet(DataStreamWriter& wr, QObject* parent);
 
 SCORE_LIB_PROCESS_EXPORT
-std::unique_ptr<ValueInlet> load_value_inlet(JSONObjectWriter& wr, QObject* parent);
+std::unique_ptr<ValueInlet> load_value_inlet(JSONWriter& wr, QObject* parent);
 
 SCORE_LIB_PROCESS_EXPORT
 std::unique_ptr<ValueOutlet> load_value_outlet(DataStreamWriter& wr, QObject* parent);
 
 SCORE_LIB_PROCESS_EXPORT
-std::unique_ptr<ValueOutlet> load_value_outlet(JSONObjectWriter& wr, QObject* parent);
+std::unique_ptr<ValueOutlet> load_value_outlet(JSONWriter& wr, QObject* parent);
 
 SCORE_LIB_PROCESS_EXPORT
 std::unique_ptr<ControlInlet> load_control_inlet(DataStreamWriter& wr, QObject* parent);
 
 SCORE_LIB_PROCESS_EXPORT
-std::unique_ptr<ControlInlet> load_control_inlet(JSONObjectWriter& wr, QObject* parent);
+std::unique_ptr<ControlInlet> load_control_inlet(JSONWriter& wr, QObject* parent);
 
 SCORE_LIB_PROCESS_EXPORT
 std::unique_ptr<ControlOutlet> load_control_outlet(DataStreamWriter& wr, QObject* parent);
 
 SCORE_LIB_PROCESS_EXPORT
-std::unique_ptr<ControlOutlet> load_control_outlet(JSONObjectWriter& wr, QObject* parent);
+std::unique_ptr<ControlOutlet> load_control_outlet(JSONWriter& wr, QObject* parent);
 
 SCORE_LIB_PROCESS_EXPORT
 std::unique_ptr<AudioInlet> load_audio_inlet(DataStreamWriter& wr, QObject* parent);
 
 SCORE_LIB_PROCESS_EXPORT
-std::unique_ptr<AudioInlet> load_audio_inlet(JSONObjectWriter& wr, QObject* parent);
+std::unique_ptr<AudioInlet> load_audio_inlet(JSONWriter& wr, QObject* parent);
 
 SCORE_LIB_PROCESS_EXPORT
 std::unique_ptr<AudioOutlet> load_audio_outlet(DataStreamWriter& wr, QObject* parent);
 
 SCORE_LIB_PROCESS_EXPORT
-std::unique_ptr<AudioOutlet> load_audio_outlet(JSONObjectWriter& wr, QObject* parent);
+std::unique_ptr<AudioOutlet> load_audio_outlet(JSONWriter& wr, QObject* parent);
 
 SCORE_LIB_PROCESS_EXPORT
 std::unique_ptr<MidiInlet> load_midi_inlet(DataStreamWriter& wr, QObject* parent);
 
 SCORE_LIB_PROCESS_EXPORT
-std::unique_ptr<MidiInlet> load_midi_inlet(JSONObjectWriter& wr, QObject* parent);
+std::unique_ptr<MidiInlet> load_midi_inlet(JSONWriter& wr, QObject* parent);
 
 SCORE_LIB_PROCESS_EXPORT
 std::unique_ptr<MidiOutlet> load_midi_outlet(DataStreamWriter& wr, QObject* parent);
 
 SCORE_LIB_PROCESS_EXPORT
-std::unique_ptr<MidiOutlet> load_midi_outlet(JSONObjectWriter& wr, QObject* parent);
+std::unique_ptr<MidiOutlet> load_midi_outlet(JSONWriter& wr, QObject* parent);
 
 using Inlets = ossia::small_vector<Process::Inlet*, 4>;
 using Outlets = ossia::small_vector<Process::Outlet*, 4>;

@@ -5,7 +5,7 @@
 #include <score/model/Identifier.hpp>
 #include <score/model/path/Path.hpp>
 #include <score/tools/std/Optional.hpp>
-#include <QJsonObject>
+#include <rapidjson/document.h>
 #include <QPointF>
 #include <score_plugin_scenario_export.h>
 struct DataStreamInput;
@@ -86,7 +86,7 @@ public:
   LoadOnlyProcessInInterval(
       const IntervalModel& cst,
       Id<Process::ProcessModel> idToUse,
-      const QJsonObject& obj);
+      const rapidjson::Value& obj);
 
   void undo(const score::DocumentContext& ctx) const override;
   void redo(const score::DocumentContext& ctx) const override;
@@ -109,7 +109,7 @@ protected:
 private:
   Path<IntervalModel> m_path;
   Id<Process::ProcessModel> m_createdProcessId{};
-  QJsonObject m_data;
+  rapidjson::Document m_data;
 };
 
 class SCORE_PLUGIN_SCENARIO_EXPORT DuplicateOnlyProcessToInterval final

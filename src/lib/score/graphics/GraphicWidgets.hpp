@@ -414,7 +414,7 @@ protected:
   QRectF m_smallRect;
 
 public:
-  QStringList array;
+  std::vector<QString> array;
   int rows{1};
   int columns{4};
 
@@ -426,7 +426,7 @@ public:
     for (auto str : arr)
       array.push_back(str);
   }
-  QGraphicsEnum(QStringList arr, QGraphicsItem* parent) : QGraphicsEnum{parent}
+  QGraphicsEnum(std::vector<QString> arr, QGraphicsItem* parent) : QGraphicsEnum{parent}
   {
     array = std::move(arr);
   }
@@ -478,7 +478,7 @@ public:
     }
   }
 
-  QGraphicsPixmapEnum(QStringList arr,
+  QGraphicsPixmapEnum(std::vector<QString> arr,
                       const std::vector<QString>& pixmaps,
                       QGraphicsItem* parent)
     : QGraphicsPixmapEnum{parent}

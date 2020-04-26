@@ -33,7 +33,6 @@ public:
   Document* loadDocument(
       const score::GUIApplicationContext& ctx,
       QString filename,
-      const QVariant& data,
       score::DocumentDelegateFactory& doctype);
   Document* restoreDocument(
       const score::GUIApplicationContext& ctx,

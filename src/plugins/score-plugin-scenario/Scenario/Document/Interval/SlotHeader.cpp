@@ -16,7 +16,6 @@
 #include <score/model/path/PathSerialization.hpp>
 
 #include <QDrag>
-#include <QJsonDocument>
 #include <QMimeData>
 #include <QWidget>
 #include <QGraphicsView>
@@ -146,12 +145,17 @@ void SlotHeader::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
                    : m_presenter.model().fullView()[m_slotIndex].process;
 
     auto& proc = m_presenter.model().processes.at(proc_id);
-    auto json = copyProcess(proc);
-    json["Path"] = toJsonObject(score::IDocument::path(proc));
-    json["Duration"] = m_presenter.model().duration.defaultDuration().msec();
-    json["SlotIndex"] = m_slotIndex;
-    json["View"] = temporal ? QStringLiteral("Small") : QStringLiteral("Full");
-    mime->setData(score::mime::layerdata(), QJsonDocument{json}.toJson());
+    JSONReader r;
+    {
+      r.stream.StartObject();
+      copyProcess(r, proc);
+      r.obj["Path"] = score::IDocument::path(proc);
+      r.obj["Duration"] = m_presenter.model().duration.defaultDuration().msec();
+      r.obj["SlotIndex"] = m_slotIndex;
+      r.obj["View"] = temporal ? QStringLiteral("Small") : QStringLiteral("Full");
+      r.stream.EndObject();
+    }
+    mime->setData(score::mime::layerdata(), r.toByteArray());
     slot_header_drag->setMimeData(mime);
 
     auto& slot = m_presenter.getSlots()[m_slotIndex];

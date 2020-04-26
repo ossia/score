@@ -21,10 +21,10 @@ SCORE_LIB_STATE_EXPORT void DataStreamReader::read(const State::Address& a)
 }
 
 template <>
-SCORE_LIB_STATE_EXPORT void JSONObjectReader::read(const State::Address& a)
+SCORE_LIB_STATE_EXPORT void JSONReader::read(const State::Address& a)
 {
-  obj[strings.Device] = a.device;
-  obj[strings.Path] = a.path.join('/');
+  const auto& str = a.toString().toUtf8();
+  stream.String(str.data(), str.size());
 }
 
 template <>
@@ -35,14 +35,11 @@ SCORE_LIB_STATE_EXPORT void DataStreamWriter::write(State::Address& a)
 }
 
 template <>
-SCORE_LIB_STATE_EXPORT void JSONObjectWriter::write(State::Address& a)
+SCORE_LIB_STATE_EXPORT void JSONWriter::write(State::Address& a)
 {
-  a.device = obj[strings.Device].toString();
-
-  auto path = obj[strings.Path].toString();
-
-  if (!path.isEmpty())
-    a.path = obj[strings.Path].toString().split('/');
+  auto addr = State::parseAddress(QString::fromUtf8(base.GetString(), base.GetStringLength()));
+  if(addr)
+    a = *std::move(addr);
 }
 
 /// AddressQualifiers ///
@@ -55,9 +52,9 @@ DataStreamReader::read(const ossia::destination_qualifiers& a)
 
 template <>
 SCORE_LIB_STATE_EXPORT void
-JSONObjectReader::read(const ossia::destination_qualifiers& a)
+JSONReader::read(const ossia::destination_qualifiers& a)
 {
-  obj[strings.Accessors] = toJsonValueArray(a.accessors);
+  obj[strings.Accessors] = a.accessors;
   obj[strings.Unit] = State::prettyUnitText(a.unit);
 }
 
@@ -70,15 +67,11 @@ DataStreamWriter::write(ossia::destination_qualifiers& a)
 
 template <>
 SCORE_LIB_STATE_EXPORT void
-JSONObjectWriter::write(ossia::destination_qualifiers& a)
+JSONWriter::write(ossia::destination_qualifiers& a)
 {
-  auto arr = obj[strings.Accessors].toArray();
-  for (auto v : arr)
-  {
-    a.accessors.push_back(v.toInt());
-  }
+  a.accessors <<= obj[strings.Accessors];
   a.unit
-      = ossia::parse_pretty_unit(obj[strings.Unit].toString().toStdString());
+      = ossia::parse_pretty_unit(obj[strings.Unit].toStdString());
 }
 
 template <>
@@ -90,9 +83,9 @@ DataStreamReader::read(const State::DestinationQualifiers& a)
 
 template <>
 SCORE_LIB_STATE_EXPORT void
-JSONObjectReader::read(const State::DestinationQualifiers& a)
+JSONReader::read(const State::DestinationQualifiers& a)
 {
-  readFrom(a.get());
+  read(a.get());
 }
 
 template <>
@@ -104,9 +97,9 @@ DataStreamWriter::write(State::DestinationQualifiers& a)
 
 template <>
 SCORE_LIB_STATE_EXPORT void
-JSONObjectWriter::write(State::DestinationQualifiers& a)
+JSONWriter::write(State::DestinationQualifiers& a)
 {
-  writeTo(a.get());
+  write(a.get());
 }
 
 /// AddressAccessor ///
@@ -121,10 +114,10 @@ DataStreamReader::read(const State::AddressAccessor& rel)
 
 template <>
 SCORE_LIB_STATE_EXPORT void
-JSONObjectReader::read(const State::AddressAccessor& rel)
+JSONReader::read(const State::AddressAccessor& rel)
 {
-  obj[strings.address] = toJsonObject(rel.address);
-  readFrom(rel.qualifiers);
+  const auto& str = rel.toString().toUtf8();
+  stream.String(str.data(), str.size());
 }
 
 template <>
@@ -138,10 +131,11 @@ DataStreamWriter::write(State::AddressAccessor& rel)
 
 template <>
 SCORE_LIB_STATE_EXPORT void
-JSONObjectWriter::write(State::AddressAccessor& rel)
+JSONWriter::write(State::AddressAccessor& rel)
 {
-  fromJsonObject(obj[strings.address], rel.address);
-  writeTo(rel.qualifiers);
+  auto addr = State::parseAddressAccessor(QString::fromUtf8(base.GetString(), base.GetStringLength()));
+  if(addr)
+    rel = *std::move(addr);
 }
 
 /// AddressAccessorHead ///
@@ -156,7 +150,7 @@ DataStreamReader::read(const State::AddressAccessorHead& rel)
 
 template <>
 SCORE_LIB_STATE_EXPORT void
-JSONObjectReader::read(const State::AddressAccessorHead& rel)
+JSONReader::read(const State::AddressAccessorHead& rel)
 {
   obj[strings.Name] = rel.name;
   readFrom(rel.qualifiers);
@@ -173,7 +167,7 @@ DataStreamWriter::write(State::AddressAccessorHead& rel)
 
 template <>
 SCORE_LIB_STATE_EXPORT void
-JSONObjectWriter::write(State::AddressAccessorHead& rel)
+JSONWriter::write(State::AddressAccessorHead& rel)
 {
   rel.name = obj[strings.Name].toString();
   writeTo(rel.qualifiers);

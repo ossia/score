@@ -30,7 +30,6 @@
 
 #include <QFile>
 #include <QFileInfo>
-#include <QJsonDocument>
 #include <QMimeData>
 #include <QUrl>
 
@@ -113,6 +112,8 @@ bool StatePresenter::isSelected() const
 
 void StatePresenter::handleDrop(const QMimeData& mime)
 {
+  SCORE_ABORT;
+  /*
   // If the mime data has states in it we can handle it.
   const auto& fmt = mime.formats();
   if (fmt.contains(score::mime::messagelist()))
@@ -201,6 +202,7 @@ void StatePresenter::handleDrop(const QMimeData& mime)
       }
     }
   }
+  */
 }
 
 void StatePresenter::updateStateView()

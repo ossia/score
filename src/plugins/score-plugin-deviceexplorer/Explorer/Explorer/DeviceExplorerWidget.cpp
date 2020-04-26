@@ -58,7 +58,6 @@
 #include <QGridLayout>
 #include <QHeaderView>
 #include <QIcon>
-#include <QJsonDocument>
 #include <QKeySequence>
 #include <QLabel>
 #include <QLineEdit>
@@ -974,14 +973,11 @@ void DeviceExplorerWidget::exportDevice()
   if (!n.is<Device::DeviceSettings>())
     return;
 
-  auto obj = toJsonObject(n);
-  auto txt = QJsonDocument(obj).toJson();
-
   QFile f{QFileDialog::getSaveFileName(
       this, tr("Device file"), QString{}, tr("Device file (*.device)"))};
   if (f.open(QIODevice::WriteOnly))
   {
-    f.write(txt);
+    f.write(toJson(n));
   }
 }
 

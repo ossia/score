@@ -7,7 +7,6 @@
 
 #include <QMimeData>
 #include <QIcon>
-#include <QJsonDocument>
 
 #include <map>
 
@@ -26,18 +25,15 @@ ProcessesItemModel::ProcessesItemModel(const score::GUIApplicationContext& ctx, 
 
   for (auto& e : sorted)
   {
+    ProcessData p;
+
     auto& cat = m_root.emplace_back(
-          ProcessData{e.first, Process::getCategoryIcon(e.first), QJsonObject{}, {}}, &m_root);
+          ProcessData{{{}, e.first, {}}, Process::getCategoryIcon(e.first)}, &m_root);
 
     for (auto p : e.second)
     {
-      QJsonObject obj;
-      obj["Type"] = "Process";
-      if(!(p->flags() & Process::ProcessFlags::RequiresCustomData))
-        obj["Data"] = p->customConstructionData();
-      obj["uuid"] = toJsonValue(p->concreteKey().impl());
       cat.emplace_back(
-            ProcessData{p->prettyName(), QIcon{}, obj, p->concreteKey()},
+            ProcessData{{p->concreteKey(), p->prettyName(), {}}, QIcon{}},
             &cat);
     }
   }
@@ -79,7 +75,7 @@ QVariant ProcessesItemModel::data(const QModelIndex& index, int role) const
   switch (role)
   {
   case Qt::DisplayRole:
-    return node.name;
+    return node.prettyName;
   case Qt::DecorationRole:
       return node.icon;
   }
@@ -110,9 +106,7 @@ QMimeData* ProcessesItemModel::mimeData(const QModelIndexList& indexes) const
 
   const auto& index = indexes.first();
   const auto& node = nodeFromModelIndex(index);
-
-  mimeData->setData(
-        score::mime::processdata(), QJsonDocument{node.json}.toJson());
+  MimeReader<Process::ProcessData>{*mimeData}.serialize(node);
   return mimeData;
 }
 

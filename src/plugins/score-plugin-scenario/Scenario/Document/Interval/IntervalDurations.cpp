@@ -277,12 +277,12 @@ void DataStreamWriter::write(Scenario::IntervalDurations& durs)
 }
 
 template <>
-void JSONObjectReader::read(const Scenario::IntervalDurations& durs)
+void JSONReader::read(const Scenario::IntervalDurations& durs)
 {
-  obj[strings.DefaultDuration] = toJsonValue(durs.m_defaultDuration);
-  obj[strings.MinDuration] = toJsonValue(durs.m_minDuration);
-  obj[strings.MaxDuration] = toJsonValue(durs.m_maxDuration);
-  obj[strings.GuiDuration] = toJsonValue(durs.m_guiDuration);
+  obj[strings.DefaultDuration] = durs.m_defaultDuration;
+  obj[strings.MinDuration] = durs.m_minDuration;
+  obj[strings.MaxDuration] = durs.m_maxDuration;
+  obj[strings.GuiDuration] = durs.m_guiDuration;
   obj["Speed"] = durs.m_speed;
   obj[strings.Rigidity] = durs.m_rigidity;
   obj[strings.MinNull] = durs.m_isMinNull;
@@ -290,12 +290,12 @@ void JSONObjectReader::read(const Scenario::IntervalDurations& durs)
 }
 
 template <>
-void JSONObjectWriter::write(Scenario::IntervalDurations& durs)
+void JSONWriter::write(Scenario::IntervalDurations& durs)
 {
   durs.m_defaultDuration
-      = fromJsonValue<TimeVal>(obj[strings.DefaultDuration]);
-  durs.m_minDuration = fromJsonValue<TimeVal>(obj[strings.MinDuration]);
-  durs.m_maxDuration = fromJsonValue<TimeVal>(obj[strings.MaxDuration]);
+      <<= obj[strings.DefaultDuration];
+  durs.m_minDuration <<= obj[strings.MinDuration];
+  durs.m_maxDuration <<= obj[strings.MaxDuration];
 
   durs.m_speed = obj["Speed"].toDouble();
   durs.m_rigidity = obj[strings.Rigidity].toBool();
@@ -313,9 +313,9 @@ void JSONObjectWriter::write(Scenario::IntervalDurations& durs)
     durs.m_maxDuration = durs.m_defaultDuration;
   }
 
-  auto guidur = obj.find(strings.GuiDuration);
-  if (guidur != obj.end())
-    durs.m_guiDuration = fromJsonValue<TimeVal>(*guidur);
+  auto guidur = obj.constFind(strings.GuiDuration);
+  if (guidur != obj.constEnd())
+    durs.m_guiDuration <<= *guidur;
   else
   {
     if (durs.m_isMaxInfinite)

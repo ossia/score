@@ -8,11 +8,6 @@
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/selection/Selection.hpp>
 
-#include <QJsonObject>
-class QAction;
-class QMenu;
-class QToolBar;
-
 namespace Scenario
 {
 struct Point;
@@ -33,14 +28,14 @@ public:
   auto appPlugin() const { return m_parent; }
 
 private:
-  QJsonObject copySelectedElementsToJson();
-  QJsonObject cutSelectedElementsToJson();
-  void pasteElements(const QJsonObject& obj, const Scenario::Point& origin);
+  void copySelectedElementsToJson(JSONReader& r);
+  void cutSelectedElementsToJson(JSONReader& r);
+  void pasteElements(const rapidjson::Value& obj, const Scenario::Point& origin);
   void pasteElementsAfter(
-      const QJsonObject& obj,
+      const rapidjson::Value& obj,
       const Scenario::Point& origin,
       const Selection& sel);
-  void writeJsonToSelectedElements(const QJsonObject& obj);
+  void writeJsonToSelectedElements(const rapidjson::Value& obj);
 
   ScenarioDocumentModel* getScenarioDocModel() const;
   ScenarioDocumentPresenter* getScenarioDocPresenter() const;

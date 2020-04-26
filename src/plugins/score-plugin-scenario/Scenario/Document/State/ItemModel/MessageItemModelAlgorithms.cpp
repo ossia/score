@@ -16,7 +16,6 @@
 
 #include <QString>
 #include <QStringList>
-#include <QVector>
 
 #include <set>
 #include <vector>
@@ -139,7 +138,7 @@ static bool match(Process::MessageNode& node, const State::Message& mess)
 }
 
 static void updateNode(
-    QVector<Process::ProcessStateData>& vec,
+    std::vector<Process::ProcessStateData>& vec,
     const ossia::value& val,
     const Id<Process::ProcessModel>& proc)
 {
@@ -180,8 +179,8 @@ static void rec_delete(Process::MessageNode& node)
 static bool nodePruneAction_impl(
     Process::MessageNode& node,
     const Id<Process::ProcessModel>& proc,
-    QVector<Process::ProcessStateData>& vec,
-    const QVector<Process::ProcessStateData>& other_vec)
+    std::vector<Process::ProcessStateData>& vec,
+    const std::vector<Process::ProcessStateData>& other_vec)
 {
   int vec_size = vec.size();
   if (vec_size > 1)
@@ -203,7 +202,7 @@ static bool nodePruneAction_impl(
       vec.clear();
 
     // If false, nothing is removed.
-    return vec.isEmpty() && other_vec.isEmpty() && !node.values.userValue;
+    return vec.empty() && other_vec.empty() && !node.values.userValue;
   }
 
   return false;
@@ -500,14 +499,14 @@ static void nodePruneAction(Process::MessageNode& node, ProcessPosition pos)
     {
       node.values.previousProcessValues.clear();
       deleteMe &= !node.values.userValue
-                  && node.values.followingProcessValues.isEmpty();
+                  && node.values.followingProcessValues.empty();
       break;
     }
     case ProcessPosition::Following:
     {
       node.values.followingProcessValues.clear();
       deleteMe &= !node.values.userValue
-                  && node.values.previousProcessValues.isEmpty();
+                  && node.values.previousProcessValues.empty();
       break;
     }
     default:
@@ -555,8 +554,8 @@ void updateTreeWithRemovedUserMessage(
     node->values.userValue = State::OptionalValue{};
 
     // If it is empty, delete it.
-    if (node->values.previousProcessValues.isEmpty()
-        && node->values.followingProcessValues.isEmpty()
+    if (node->values.previousProcessValues.empty()
+        && node->values.followingProcessValues.empty()
         && node->childCount() == 0)
     {
       rec_delete(*node);
@@ -592,8 +591,8 @@ static bool rec_cleanup(Process::MessageNode& node)
   });
   node.erase(remove_it, node.end());
 
-  return node.values.previousProcessValues.isEmpty()
-         && node.values.followingProcessValues.isEmpty()
+  return node.values.previousProcessValues.empty()
+         && node.values.followingProcessValues.empty()
          && node.childCount() == 0;
 }
 
@@ -613,8 +612,8 @@ void updateTreeWithRemovedNode(
     // If it is empty, delete it
     rec_cleanup(node);
 
-    if (node.values.previousProcessValues.isEmpty()
-        && node.values.followingProcessValues.isEmpty()
+    if (node.values.previousProcessValues.empty()
+        && node.values.followingProcessValues.empty()
         && node.childCount() == 0)
     {
       rec_delete(node);

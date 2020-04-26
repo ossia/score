@@ -45,7 +45,6 @@ struct Transaction
     : context{other.context}
     , commands(std::move(other.commands))
   {
-
   }
 
   Transaction& operator=(Transaction&& other) noexcept

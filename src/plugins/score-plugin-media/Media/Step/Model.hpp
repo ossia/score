@@ -43,23 +43,23 @@ public:
 
   std::unique_ptr<Process::Outlet> outlet;
 
-  quint64 stepCount() const;
-  quint64 stepDuration() const;
+  int stepCount() const;
+  int stepDuration() const;
   const ossia::float_vector& steps() const;
   double min() const;
   double max() const;
 
 public:
-  void stepCountChanged(quint64 arg_1) W_SIGNAL(stepCountChanged, arg_1);
-  void stepDurationChanged(quint64 arg_1) W_SIGNAL(stepDurationChanged, arg_1);
+  void stepCountChanged(int arg_1) W_SIGNAL(stepCountChanged, arg_1);
+  void stepDurationChanged(int arg_1) W_SIGNAL(stepDurationChanged, arg_1);
   void stepsChanged() W_SIGNAL(stepsChanged);
   void minChanged(double arg_1) W_SIGNAL(minChanged, arg_1);
   void maxChanged(double arg_1) W_SIGNAL(maxChanged, arg_1);
 
 public:
-  void setStepCount(quint64 s);
+  void setStepCount(int s);
   W_SLOT(setStepCount);
-  void setStepDuration(quint64 s);
+  void setStepDuration(int s);
   W_SLOT(setStepDuration);
   void setSteps(ossia::float_vector v);
   W_SLOT(setSteps);
@@ -70,8 +70,8 @@ public:
 
 private:
   ossia::float_vector m_steps;
-  quint64 m_stepCount{8};
-  quint64 m_stepDuration{22000};
+  int m_stepCount{8};
+  int m_stepDuration{22000};
   double m_min{}, m_max{};
 
   W_PROPERTY(double, max READ max WRITE setMax NOTIFY maxChanged)
@@ -79,12 +79,12 @@ private:
   W_PROPERTY(double, min READ min WRITE setMin NOTIFY minChanged)
 
   W_PROPERTY(
-      quint64,
+      int,
       stepDuration READ stepDuration WRITE setStepDuration NOTIFY
           stepDurationChanged)
 
   W_PROPERTY(
-      quint64,
+      int,
       stepCount READ stepCount WRITE setStepCount NOTIFY stepCountChanged)
 };
 }

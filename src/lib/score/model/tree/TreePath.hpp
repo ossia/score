@@ -122,12 +122,11 @@ struct TSerializer<JSONObject, TreePath<T>>
 {
   static void readFrom(JSONObject::Serializer& s, const TreePath<T>& path)
   {
-    s.obj[s.strings.Path] = toJsonArray(static_cast<const QList<int>&>(path));
+    s.obj[s.strings.Path] = static_cast<const QList<int>&>(path);
   }
 
   static void writeTo(JSONObject::Deserializer& s, TreePath<T>& path)
   {
-    fromJsonArray(
-        s.obj[s.strings.Path].toArray(), static_cast<QList<int>&>(path));
+    static_cast<QList<int>&>(path) <<= s.obj[s.strings.Path];
   }
 };

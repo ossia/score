@@ -62,7 +62,7 @@ void DataStreamWriter::write(Explorer::ProjectSettings::Model& model)
 }
 
 template <>
-void JSONObjectReader::read(const Explorer::ProjectSettings::Model& model)
+void JSONReader::read(const Explorer::ProjectSettings::Model& model)
 {
   obj["Refresh"] = model.m_RefreshOnStart;
   obj["Reconnect"] = model.m_ReconnectOnStart;
@@ -70,7 +70,7 @@ void JSONObjectReader::read(const Explorer::ProjectSettings::Model& model)
 }
 
 template <>
-void JSONObjectWriter::write(Explorer::ProjectSettings::Model& model)
+void JSONWriter::write(Explorer::ProjectSettings::Model& model)
 {
   model.m_RefreshOnStart = obj["Refresh"].toBool();
   model.m_ReconnectOnStart = obj["Reconnect"].toBool();

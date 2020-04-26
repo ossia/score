@@ -25,42 +25,28 @@ struct TSerializer<JSONObject, ossia::vecf_domain<N>>
   using domain_t = ossia::vecf_domain<N>;
   static void readFrom(JSONObject::Serializer& s, const domain_t& domain)
   {
-    s.obj[s.strings.Min] = toJsonArray(domain.min);
-    s.obj[s.strings.Max] = toJsonArray(domain.max);
-    s.obj[s.strings.Values] = toJsonArray(domain.values);
+    s.stream.StartObject();
+    s.obj[s.strings.Min] = domain.min;
+    s.obj[s.strings.Max] = domain.max;
+    s.obj[s.strings.Values] = domain.values;
+    s.stream.EndObject();
   }
 
   static void writeTo(JSONObject::Deserializer& s, domain_t& domain)
   {
     // OPTIMIZEME there should be something in boost
     // to get multiple iterators from multiple keys in one pass...
-    auto it_min = s.obj.constFind(s.strings.Min);
-    auto it_max = s.obj.constFind(s.strings.Max);
-    auto it_values = s.obj.constFind(s.strings.Values);
-    if (it_min != s.obj.constEnd())
+    if (auto it = s.obj.tryGet(s.strings.Min))
     {
-      domain.min = fromJsonValue<std::array<optional<float>, N>>(*it_min);
+      domain.min = *it;
     }
-    if (it_max != s.obj.constEnd())
+    if (auto it = s.obj.tryGet(s.strings.Max))
     {
-      domain.max = fromJsonValue<std::array<optional<float>, N>>(*it_max);
+      domain.max = *it;
     }
-    if (it_values != s.obj.constEnd())
+    if (auto it = s.obj.tryGet(s.strings.Values))
     {
-      const auto arr = it_values->toArray();
-      std::size_t i = 0;
-      for (const auto& v : arr)
-      {
-        if (i < N)
-        {
-          if (v.isArray())
-          {
-            for (const auto& u : v.toArray())
-              domain.values[i].insert(fromJsonValue<float>(u));
-          }
-          i++;
-        }
-      }
+      domain.values = *it;
     }
   }
 };
@@ -86,12 +72,16 @@ struct TSerializer<JSONObject, ossia::domain_base<T>>
   using domain_t = ossia::domain_base<T>;
   static void readFrom(JSONObject::Serializer& s, const domain_t& domain)
   {
+    s.stream.StartObject();
+
     if (domain.min)
-      s.obj[s.strings.Min] = toJsonValue(*domain.min);
+      s.obj[s.strings.Min] = *domain.min;
     if (domain.max)
-      s.obj[s.strings.Max] = toJsonValue(*domain.max);
+      s.obj[s.strings.Max] = *domain.max;
     if (!domain.values.empty())
-      s.obj[s.strings.Values] = toJsonArray(domain.values);
+      s.obj[s.strings.Values] = domain.values;
+
+    s.stream.EndObject();
   }
 
   static void writeTo(const JSONObject::Deserializer& s, domain_t& domain)
@@ -99,24 +89,17 @@ struct TSerializer<JSONObject, ossia::domain_base<T>>
     using val_t = typename domain_t::value_type;
     // OPTIMIZEME there should be something in boost
     // to get multiple iterators from multiple keys in one pass...
-    auto it_min = s.obj.constFind(s.strings.Min);
-    auto it_max = s.obj.constFind(s.strings.Max);
-    auto it_values = s.obj.constFind(s.strings.Values);
-    if (it_min != s.obj.constEnd())
+    if (auto it = s.obj.tryGet(s.strings.Min))
     {
-      domain.min = fromJsonValue<val_t>(*it_min);
+      domain.min = *it;
     }
-    if (it_max != s.obj.constEnd())
+    if (auto it = s.obj.tryGet(s.strings.Max))
     {
-      domain.max = fromJsonValue<val_t>(*it_max);
+      domain.max = *it;
     }
-    if (it_values != s.obj.constEnd())
+    if (auto it = s.obj.tryGet(s.strings.Values))
     {
-      const auto arr = it_values->toArray();
-      for (const auto& v : arr)
-      {
-        domain.values.insert(fromJsonValue<val_t>(v));
-      }
+      domain.values = *it;
     }
   }
 };
@@ -127,20 +110,17 @@ struct TSerializer<JSONObject, ossia::domain_base<std::string>>
   using domain_t = ossia::domain_base<std::string>;
   static void readFrom(JSONObject::Serializer& s, const domain_t& domain)
   {
+    s.stream.StartObject();
     if (!domain.values.empty())
-      s.obj[s.strings.Values] = toJsonArray(domain.values);
+      s.obj[s.strings.Values] = domain.values;
+    s.stream.EndObject();
   }
 
   static void writeTo(JSONObject::Deserializer& s, domain_t& domain)
   {
-    auto it_values = s.obj.constFind(s.strings.Values);
-    if (it_values != s.obj.constEnd())
+    if (auto it_values = s.obj.tryGet(s.strings.Values))
     {
-      const auto arr = it_values->toArray();
-      for (const auto& v : arr)
-      {
-        domain.values.insert(fromJsonValue<std::string>(v));
-      }
+      domain.values <<= *it_values;
     }
   }
 };
@@ -149,7 +129,10 @@ template <>
 struct TSerializer<JSONObject, ossia::domain_base<ossia::impulse>>
 {
   using domain_t = ossia::domain_base<ossia::impulse>;
-  static void readFrom(JSONObject::Serializer& s, const domain_t& domain) {}
+  static void readFrom(JSONObject::Serializer& s, const domain_t& domain)
+  {
+    s.stream.Null();
+  }
 
   static void writeTo(JSONObject::Deserializer& s, domain_t& domain) {}
 };
@@ -158,7 +141,10 @@ template <>
 struct TSerializer<JSONObject, ossia::domain_base<bool>>
 {
   using domain_t = ossia::domain_base<bool>;
-  static void readFrom(JSONObject::Serializer& s, const domain_t& domain) {}
+  static void readFrom(JSONObject::Serializer& s, const domain_t& domain)
+  {
+    s.stream.Null();
+  }
 
   static void writeTo(JSONObject::Deserializer& s, domain_t& domain) {}
 };
@@ -169,40 +155,29 @@ struct TSerializer<JSONObject, ossia::vector_domain>
   using domain_t = ossia::vector_domain;
   static void readFrom(JSONObject::Serializer& s, const domain_t& domain)
   {
-    s.obj[s.strings.Min] = toJsonArray(domain.min);
-    s.obj[s.strings.Max] = toJsonArray(domain.max);
-    s.obj[s.strings.Values] = toJsonArray(domain.values);
+    s.stream.StartObject();
+    s.obj[s.strings.Min] = domain.min;
+    s.obj[s.strings.Max] = domain.max;
+    s.obj[s.strings.Values] = domain.values;
+    s.stream.EndObject();
   }
 
   static void writeTo(JSONObject::Deserializer& s, domain_t& domain)
   {
     // OPTIMIZEME there should be something in boost
     // to get multiple iterators from multiple keys in one pass...
-    auto it_min = s.obj.constFind(s.strings.Min);
-    auto it_max = s.obj.constFind(s.strings.Max);
-    auto it_values = s.obj.constFind(s.strings.Values);
-    if (it_min != s.obj.constEnd())
+
+    if (auto it = s.obj.tryGet(s.strings.Min))
     {
-      domain.min = fromJsonValue<std::vector<ossia::value>>(*it_min);
+      domain.min <<= *it;
     }
-    if (it_max != s.obj.constEnd())
+    if (auto it = s.obj.tryGet(s.strings.Max))
     {
-      domain.max = fromJsonValue<std::vector<ossia::value>>(*it_max);
+      domain.max <<= *it;
     }
-    if (it_values != s.obj.constEnd())
+    if (auto it = s.obj.tryGet(s.strings.Values))
     {
-      const auto arr = it_values->toArray();
-      domain.values.resize(arr.size());
-      int i = 0;
-      for (const auto& v : arr)
-      {
-        if (v.isArray())
-        {
-          for (const auto& u : v.toArray())
-            domain.values[i].insert(fromJsonValue<ossia::value>(u));
-        }
-        i++;
-      }
+      domain.values <<= *it;
     }
   }
 };
@@ -364,25 +339,7 @@ void apply_typeonly(
       throw;
   }
 }
-struct DomainVariantJsonSerializer
-{
-  QJsonObject& m_obj;
-  template <typename T>
-  void operator()(const T& value)
-  {
-    m_obj[Metadata<Json_k, T>::get()] = toJsonObject(value);
-  }
-};
 
-struct DomainVariantDatastreamSerializer
-{
-  DataStream::Serializer& s;
-  template <typename T>
-  void operator()(const T& value)
-  {
-    s.stream() << value;
-  }
-};
 template <>
 struct TSerializer<DataStream, ossia::domain_base_variant>
 {
@@ -393,7 +350,7 @@ struct TSerializer<DataStream, ossia::domain_base_variant>
 
     if (var)
     {
-      ossia::apply_nonnull(DomainVariantDatastreamSerializer{s}, var);
+      ossia::apply_nonnull([&] (const auto& v) { s.stream() << v; }, var);
     }
 
     s.insertDelimiter();
@@ -425,10 +382,16 @@ struct TSerializer<JSONObject, ossia::domain_base_variant>
   using var_t = ossia::domain_base_variant;
   static void readFrom(JSONObject::Serializer& s, const var_t& var)
   {
+    s.stream.StartObject();
     if (var)
     {
-      ossia::apply_nonnull(DomainVariantJsonSerializer{s.obj}, var);
+      ossia::apply_nonnull([&] (const auto& domain) {
+        using type = std::remove_const_t<std::remove_reference_t<decltype(domain)>>;
+        s.obj[Metadata<Json_k, type>::get()] = domain;
+
+      }, var);
     }
+    s.stream.EndObject();
   }
 
   using value_type_list = brigand::list<
@@ -463,6 +426,8 @@ struct TSerializer<JSONObject, ossia::domain_base_variant>
 
   static void writeTo(JSONObject::Deserializer& s, var_t& var)
   {
+    if(s.base.MemberCount() == 0)
+      return;
     const auto& keys = keys_list();
     for (std::size_t i = 0; i < keys.size(); i++)
     {
@@ -471,7 +436,7 @@ struct TSerializer<JSONObject, ossia::domain_base_variant>
       {
         apply_typeonly(
             [&](auto type, var_t& var) {
-              var = fromJsonObject<typename decltype(type)::type>(*it);
+              var <<= *it;
             },
             (var_t::Type)i,
             var);

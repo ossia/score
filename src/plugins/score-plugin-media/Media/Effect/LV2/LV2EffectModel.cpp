@@ -498,13 +498,13 @@ void DataStreamWriter::write(Media::LV2::LV2EffectModel& eff)
 }
 
 template <>
-void JSONObjectReader::read(const Media::LV2::LV2EffectModel& eff)
+void JSONReader::read(const Media::LV2::LV2EffectModel& eff)
 {
   obj["Effect"] = eff.effect();
 }
 
 template <>
-void JSONObjectWriter::write(Media::LV2::LV2EffectModel& eff)
+void JSONWriter::write(Media::LV2::LV2EffectModel& eff)
 {
   eff.m_effectPath = obj["Effect"].toString();
 }

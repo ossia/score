@@ -39,7 +39,6 @@
 
 #include <QAbstractProxyModel>
 #include <QApplication>
-#include <QJsonDocument>
 #include <QMap>
 #include <QMimeData>
 #include <QObject>
@@ -841,8 +840,8 @@ bool DeviceExplorerModel::dropMimeData(
     // if there is an existing device that would use the same ports, etc.
     // we have to open a dialog to change the device settings.
 
-    JSONObject::Deserializer deser{
-        QJsonDocument::fromJson(mimeData->data(mimeType)).object()};
+    const auto& json = readJson(mimeData->data(mimeType));
+    JSONObject::Deserializer deser{json};
     Device::Node n;
     deser.writeTo(n);
 
@@ -871,7 +870,6 @@ bool DeviceExplorerModel::dropMimeData(
 
     return true;
   }
-
   return false;
 }
 

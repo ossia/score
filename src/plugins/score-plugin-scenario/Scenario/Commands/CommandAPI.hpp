@@ -100,12 +100,12 @@ public:
 
   Process::ProcessModel* loadProcessInSlot(
       const Scenario::IntervalModel& interval,
-      const QJsonObject& procdata);
+      const rapidjson::Value& procdata);
 
   void clearInterval(const Scenario::IntervalModel&);
 
   void insertInInterval(
-      QJsonObject&& sourceInterval,
+      rapidjson::Value&& sourceInterval,
       const IntervalModel& targetInterval,
       ExpandMode mode);
 
@@ -164,13 +164,13 @@ public:
 
   void pasteElements(
       const Scenario::ProcessModel& scenario,
-      const QJsonObject& objs,
+      const rapidjson::Value& objs,
       Scenario::Point pos);
 
   void pasteElementsAfter(
       const ProcessModel& scenario,
       const TimeSyncModel& sync,
-      const QJsonObject& objs,
+      const rapidjson::Value& objs,
       double scale);
 
   void mergeTimeSyncs(

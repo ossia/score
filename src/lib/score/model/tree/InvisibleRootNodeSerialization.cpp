@@ -17,11 +17,12 @@ SCORE_LIB_BASE_EXPORT void DataStreamWriter::write(InvisibleRootNode&)
 }
 
 template <>
-SCORE_LIB_BASE_EXPORT void JSONObjectReader::read(const InvisibleRootNode&)
+SCORE_LIB_BASE_EXPORT void JSONReader::read(const InvisibleRootNode&)
 {
+  stream.Null();
 }
 
 template <>
-SCORE_LIB_BASE_EXPORT void JSONObjectWriter::write(InvisibleRootNode&)
+SCORE_LIB_BASE_EXPORT void JSONWriter::write(InvisibleRootNode&)
 {
 }

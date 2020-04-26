@@ -2,12 +2,10 @@
 #include <score/plugins/UuidKey.hpp>
 #include <score/tools/Version.hpp>
 
-#include <QJsonObject>
-
 #include <score_lib_base_export.h>
 
 #include <vector>
-
+#include <rapidjson/document.h>
 namespace score
 {
 struct Plugin
@@ -27,7 +25,7 @@ public:
   virtual UuidKey<Plugin> key() const = 0;
 
   virtual void updateSaveFile(
-      QJsonObject& obj,
+      rapidjson::Value& obj,
       Version obj_version,
       Version current_version)
   {

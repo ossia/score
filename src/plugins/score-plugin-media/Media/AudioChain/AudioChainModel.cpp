@@ -5,6 +5,7 @@
 
 #include <score/plugins/SerializableHelpers.hpp>
 #include <score/model/EntitySerialization.hpp>
+#include <score/model/EntityMapSerialization.hpp>
 #include <Effect/EffectFactory.hpp>
 #include <wobjectimpl.h>
 
@@ -72,31 +73,31 @@ void DataStreamWriter::write(Media::AudioChain::ProcessModel& proc)
 }
 
 template <>
-void JSONObjectReader::read(const Media::AudioChain::ProcessModel& proc)
+void JSONReader::read(const Media::AudioChain::ProcessModel& proc)
 {
-  obj["Inlet"] = toJsonObject(*proc.inlet);
-  obj["Outlet"] = toJsonObject(*proc.outlet);
-  obj["Effects"] = toJsonArray(proc.effects());
+  obj["Inlet"] = *proc.inlet;
+  obj["Outlet"] = *proc.outlet;
+  obj["Effects"] = proc.effects();
 }
 
 template <>
-void JSONObjectWriter::write(Media::AudioChain::ProcessModel& proc)
+void JSONWriter::write(Media::AudioChain::ProcessModel& proc)
 {
   {
-    JSONObjectWriter writer{obj["Inlet"].toObject()};
+    JSONWriter writer{obj["Inlet"]};
     proc.inlet = Process::load_audio_inlet(writer, &proc);
   }
   {
-    JSONObjectWriter writer{obj["Outlet"].toObject()};
+    JSONWriter writer{obj["Outlet"]};
     proc.outlet = Process::load_audio_outlet(writer, &proc);
   }
 
-  const QJsonArray fx_array = obj["Effects"].toArray();
+  const auto& fx_array = obj["Effects"].toArray();
   auto& fxs = components.interfaces<Process::ProcessFactoryList>();
 
   for (const auto& json_vref : fx_array)
   {
-    JSONObject::Deserializer deserializer{json_vref.toObject()};
+    JSONObject::Deserializer deserializer{json_vref};
     auto fx = deserialize_interface(fxs, deserializer, proc.context(), &proc);
     if (fx)
     {

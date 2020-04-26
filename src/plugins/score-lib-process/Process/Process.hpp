@@ -228,5 +228,5 @@ W_REGISTER_ARGTYPE(const Process::ProcessModel*)
 W_REGISTER_ARGTYPE(QPointer<const Process::ProcessModel>)
 W_REGISTER_ARGTYPE(QPointer<Process::ProcessModel>)
 
-Q_DECLARE_METATYPE(Process::Preset)
-W_REGISTER_ARGTYPE(Process::Preset)
+Q_DECLARE_METATYPE(std::shared_ptr<Process::Preset>)
+W_REGISTER_ARGTYPE(std::shared_ptr<Process::Preset>)

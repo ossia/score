@@ -21,7 +21,7 @@ class IntervalModel;
 namespace Command
 {
 void InterpolateStates(
-    const QList<const IntervalModel*>&,
+    const std::vector<const IntervalModel*>&,
     const score::CommandStackFacade&);
 }
 

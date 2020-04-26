@@ -32,21 +32,12 @@ SCORE_LIB_PROCESS_EXPORT void DataStreamReader::read(const Process::ControlMessa
 }
 
 template <>
-SCORE_LIB_PROCESS_EXPORT void JSONObjectReader::read(const Process::ControlMessage& mess)
+SCORE_LIB_PROCESS_EXPORT void JSONReader::read(const Process::ControlMessage& mess)
 {
-  obj[strings.Address] = toJsonObject(mess.port);
-  obj[strings.Type] = State::convert::textualType(mess.value);
-  obj[strings.Value] = ValueToJson(mess.value);
-}
-
-template <>
-SCORE_LIB_PROCESS_EXPORT void JSONValueReader::read(const Process::ControlMessage& mess)
-{
-  QJsonObject obj;
-  obj[strings.Address] = toJsonObject(mess.port);
-  obj[strings.Type] = State::convert::textualType(mess.value);
-  obj[strings.Value] = ValueToJson(mess.value);
-  this->val = obj;
+  stream.StartObject();
+  obj[strings.Address] = mess.port;
+  obj[strings.Value] = mess.value;
+  stream.EndObject();
 }
 
 template <>
@@ -59,18 +50,8 @@ SCORE_LIB_PROCESS_EXPORT void DataStreamWriter::write(Process::ControlMessage& m
 }
 
 template <>
-SCORE_LIB_PROCESS_EXPORT void JSONValueWriter::write(Process::ControlMessage& mess)
+SCORE_LIB_PROCESS_EXPORT void JSONWriter::write(Process::ControlMessage& mess)
 {
-  const auto& obj = this->val.toObject();
-  mess.port = fromJsonObject<Path<Process::Inlet>>(obj[strings.Address]);
-  mess.value = State::convert::fromQJsonValue(
-      obj[strings.Value], obj[strings.Type].toString());
-}
-
-template <>
-SCORE_LIB_PROCESS_EXPORT void JSONObjectWriter::write(Process::ControlMessage& mess)
-{
-  mess.port = fromJsonObject<Path<Process::Inlet>>(obj[strings.Address]);
-  mess.value = State::convert::fromQJsonValue(
-      obj[strings.Value], obj[strings.Type].toString());
+  mess.port <<= obj[strings.Address];
+  mess.value <<= obj[strings.Value];
 }

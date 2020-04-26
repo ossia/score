@@ -4,7 +4,6 @@
 
 #include <QFile>
 #include <QFileInfo>
-#include <QJsonDocument>
 #include <QTimer>
 #include <QUrl>
 
@@ -232,17 +231,15 @@ void Presenter::on_drop(const QMimeData& mime, int pos)
   }
   else if (mime.hasFormat(score::mime::effect()))
   {
-    auto json
-        = QJsonDocument::fromJson(mime.data(score::mime::effect())).object();
+    auto json = readJson(mime.data(score::mime::effect()));
     const auto pid = ossia::get_pid();
     const bool same_doc
-        = (pid == json["PID"].toInt())
-        && (ctx.document.id().val() == json["Document"].toInt());
+        = (pid == json["PID"].GetInt())
+        && (ctx.document.id().val() == json["Document"].GetInt());
 
     if (same_doc)
     {
-      const auto old_p
-          = fromJsonObject<Path<Process::ProcessModel>>(json["Path"]);
+      const auto old_p = JsonValue{json["Path"]}.to<Path<Process::ProcessModel>>();
       if (auto obj = old_p.try_find(ctx))
       {
         if (obj->parent() == &model)
@@ -263,11 +260,9 @@ void Presenter::on_drop(const QMimeData& mime, int pos)
   }
   else if (mime.hasFormat(score::mime::layerdata()))
   {
-    QJsonObject json
-        = QJsonDocument::fromJson(mime.data(score::mime::layerdata()))
-        .object();
+  auto json = readJson(mime.data(score::mime::layerdata()));
 
-    if (json.isEmpty())
+    if ((json.IsArray() && json.GetArray().Empty()) || (json.IsObject() && json.MemberCount() == 0))
       return;
     auto cmd = new LoadEffect(model, json, pos);
     CommandDispatcher<> d{ctx.commandStack};
@@ -283,8 +278,8 @@ void Presenter::on_drop(const QMimeData& mime, int pos)
       auto path = mime.urls().first().toLocalFile();
       if (QFile f{path}; f.open(QIODevice::ReadOnly))
       {
-        auto json = QJsonDocument::fromJson(f.readAll()).object();
-        if (json.isEmpty())
+        auto json = readJson(f.readAll());
+        if (!json.IsObject() || json.MemberCount() == 0)
           return;
 
         auto cmd = new LoadEffect(model, json, pos);

@@ -4,19 +4,6 @@
 #include <score/serialization/JSONVisitor.hpp>
 #include <score/serialization/VisitorCommon.hpp>
 
-template <typename Type>
-Type deserialize_key(JSONObject::Deserializer& des)
-{
-  return fromJsonValue<score::uuid_t>(des.obj[des.strings.uuid]);
-}
-
-template <typename Type>
-Type deserialize_key(DataStream::Deserializer& des)
-{
-  score::uuid_t uid;
-  des.writeTo(uid);
-  return uid;
-}
 /**
  * @brief deserialize_interface Reload a polymorphic type
  * @param factories The list of factories where the correct factory is.
@@ -42,9 +29,8 @@ auto deserialize_interface(
   try
   {
     SCORE_DEBUG_CHECK_DELIMITER2(sub);
-    auto k
-        = deserialize_key<typename FactoryList_T::factory_type::ConcreteKey>(
-            sub);
+    typename FactoryList_T::factory_type::ConcreteKey k;
+    TSerializer<DataStream, typename FactoryList_T::factory_type::ConcreteKey>::writeTo(des, k);
 
     SCORE_DEBUG_CHECK_DELIMITER2(sub);
     // Get the factory
@@ -82,9 +68,8 @@ auto deserialize_interface(
   try
   {
     SCORE_DEBUG_CHECK_DELIMITER2(sub);
-    auto k
-        = deserialize_key<typename FactoryList_T::factory_type::ConcreteKey>(
-            sub);
+    typename FactoryList_T::factory_type::ConcreteKey k;
+    TSerializer<DataStream, typename FactoryList_T::factory_type::ConcreteKey>::writeTo(des, k);
 
     SCORE_DEBUG_CHECK_DELIMITER2(sub);
     // Get the factory
@@ -117,9 +102,9 @@ auto deserialize_interface(
   // Deserialize the interface identifier
   try
   {
-    auto k
-        = deserialize_key<typename FactoryList_T::factory_type::ConcreteKey>(
-            des);
+    typename FactoryList_T::factory_type::ConcreteKey k;
+    JSONWriter wr{des.obj[des.strings.uuid]};
+    TSerializer<JSONObject, typename FactoryList_T::factory_type::ConcreteKey>::writeTo(wr, k);
 
     // Get the factory
     if (auto concrete_factory = factories.get(k))
@@ -147,9 +132,9 @@ auto deserialize_interface(
   // Deserialize the interface identifier
   try
   {
-    auto k
-        = deserialize_key<typename FactoryList_T::factory_type::ConcreteKey>(
-            des);
+    typename FactoryList_T::factory_type::ConcreteKey k;
+    JSONWriter wr{des.obj[des.strings.uuid]};
+    TSerializer<JSONObject, typename FactoryList_T::factory_type::ConcreteKey>::writeTo(wr, k);
 
     // Get the factory
     if (auto concrete_factory = factories.get(k))

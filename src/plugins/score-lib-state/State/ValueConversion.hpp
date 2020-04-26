@@ -2,7 +2,6 @@
 #include <State/Value.hpp>
 
 #include <QChar>
-#include <QJsonValue>
 #include <QString>
 #include <QVariant>
 
@@ -21,8 +20,6 @@ To value(const ossia::value& val)
 
 template <>
 SCORE_LIB_STATE_EXPORT QVariant value(const ossia::value& val);
-template <>
-SCORE_LIB_STATE_EXPORT QJsonValue value(const ossia::value& val);
 template <>
 SCORE_LIB_STATE_EXPORT int value(const ossia::value& val);
 template <>
@@ -62,13 +59,6 @@ SCORE_LIB_STATE_EXPORT QString toPrettyString(const ossia::value& val);
 SCORE_LIB_STATE_EXPORT QString
 textualType(const ossia::value& val); // For JSONValue serialization
 SCORE_LIB_STATE_EXPORT ossia::value fromQVariant(const QVariant& val);
-SCORE_LIB_STATE_EXPORT ossia::value
-fromQJsonValue(const QJsonValue& val); // Best effort
-SCORE_LIB_STATE_EXPORT ossia::value
-fromQJsonValue(const QJsonValue& val, ossia::val_type type);
-SCORE_LIB_STATE_EXPORT ossia::value
-fromQJsonValue(const QJsonValue& val, const QString& type);
-
 SCORE_LIB_STATE_EXPORT QString
 prettyType(const ossia::value& val); // For display to the user, translated
 SCORE_LIB_STATE_EXPORT

@@ -32,12 +32,12 @@ Model::Model(
 
 Model::~Model() {}
 
-quint64 Model::stepCount() const
+int Model::stepCount() const
 {
   return m_stepCount;
 }
 
-quint64 Model::stepDuration() const
+int Model::stepDuration() const
 {
   return m_stepDuration;
 }
@@ -57,7 +57,7 @@ double Model::max() const
   return m_max;
 }
 
-void Model::setStepCount(quint64 s)
+void Model::setStepCount(int s)
 {
   if (s != m_stepCount)
   {
@@ -67,7 +67,7 @@ void Model::setStepCount(quint64 s)
   }
 }
 
-void Model::setStepDuration(quint64 s)
+void Model::setStepDuration(int s)
 {
   if (s != m_stepDuration)
   {
@@ -122,26 +122,25 @@ void DataStreamWriter::write(Media::Step::Model& proc)
 }
 
 template <>
-void JSONObjectReader::read(const Media::Step::Model& proc)
+void JSONReader::read(const Media::Step::Model& proc)
 {
-  obj["Outlet"] = toJsonObject(*proc.outlet);
-  obj["Steps"] = toJsonValueArray(proc.m_steps);
-  obj["StepCount"] = (qint64)proc.m_stepCount;
-  obj["StepDur"] = (qint64)proc.m_stepDuration;
-  obj["StepMin"] = (qint64)proc.m_min;
-  obj["StepMax"] = (qint64)proc.m_max;
+  obj["Outlet"] = *proc.outlet;
+  obj["Steps"] = proc.m_steps;
+  obj["StepCount"] = proc.m_stepCount;
+  obj["StepDur"] = proc.m_stepDuration;
+  obj["StepMin"] = proc.m_min;
+  obj["StepMax"] = proc.m_max;
 }
 
 template <>
-void JSONObjectWriter::write(Media::Step::Model& proc)
+void JSONWriter::write(Media::Step::Model& proc)
 {
   {
-    JSONObjectWriter writer{obj["Outlet"].toObject()};
+    JSONWriter writer{obj["Outlet"]};
     proc.outlet = Process::load_value_outlet(writer, &proc);
   }
 
-  proc.m_steps
-      = fromJsonValueArray<ossia::float_vector>(obj["Steps"].toArray());
+  proc.m_steps <<= obj["Steps"];
   proc.m_stepCount = obj["StepCount"].toInt();
   proc.m_stepDuration = obj["StepDur"].toInt();
   proc.m_min = obj["StepMin"].toDouble();

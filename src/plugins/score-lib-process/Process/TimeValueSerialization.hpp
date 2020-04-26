@@ -2,7 +2,7 @@
 #include <Process/TimeValue.hpp>
 
 #include <score/serialization/DataStreamVisitor.hpp>
-#include <score/serialization/JSONValueVisitor.hpp>
+#include <score/serialization/JSONVisitor.hpp>
 
 #include <QDebug>
 
@@ -52,29 +52,32 @@ struct TSerializer<DataStream, TimeVal>
 };
 
 template <>
-struct TSerializer<JSONValue, TimeVal>
+struct TSerializer<JSONObject, TimeVal>
 {
-  static void readFrom(JSONValue::Serializer& s, const TimeVal& tv)
+  static void readFrom(JSONObject::Serializer& s, const TimeVal& tv)
   {
     if (tv.isInfinite())
     {
-      s.val = "inf";
+      s.stream.String("inf");
     }
     else
     {
-      s.val = tv.msec();
+      s.stream.Double(tv.msec());
     }
   }
 
-  static void writeTo(JSONValue::Deserializer& s, TimeVal& tv)
+  static void writeTo(JSONObject::Deserializer& s, TimeVal& tv)
   {
-    if (s.val.toString() == "inf")
+    using namespace std;
+    using namespace std::literals;
+    if (s.base.IsString() && s.base.GetString() == "inf"sv)
     {
       tv = TimeVal::infinite();
     }
     else
     {
-      tv.setMSecs(s.val.toDouble());
+      tv.setMSecs(s.base.GetDouble());
     }
   }
 };
+

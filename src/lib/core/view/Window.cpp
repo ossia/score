@@ -482,3 +482,4 @@ bool score::View::event(QEvent* event)
 
 
 }
+

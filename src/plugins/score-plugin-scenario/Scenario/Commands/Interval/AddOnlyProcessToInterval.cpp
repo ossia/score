@@ -106,8 +106,8 @@ void AddOnlyProcessToInterval::deserializeImpl(DataStreamOutput& s)
 LoadOnlyProcessInInterval::LoadOnlyProcessInInterval(
     const IntervalModel& cst,
     Id<Process::ProcessModel> processId,
-    const QJsonObject& dat)
-    : m_path{cst}, m_createdProcessId{std::move(processId)}, m_data{dat}
+    const rapidjson::Value& dat)
+    : m_path{cst}, m_createdProcessId{std::move(processId)}, m_data{clone(dat)}
 {
 }
 
@@ -130,11 +130,11 @@ Process::ProcessModel& LoadOnlyProcessInInterval::redo(
     IntervalModel& interval,
     const score::DocumentContext& ctx) const
 {
-
   // Create process model
-  auto obj = m_data[score::StringConstant().Process].toObject();
-  auto key = fromJsonValue<UuidKey<Process::ProcessModel>>(
-      obj[score::StringConstant().uuid]);
+  JSONWriter r{m_data};
+  const auto& obj = r.obj[score::StringConstant().Process];
+  auto key = obj[score::StringConstant().uuid].to<UuidKey<Process::ProcessModel>>();
+
   auto fac = ctx.app.interfaces<Process::ProcessFactoryList>().get(key);
   SCORE_ASSERT(fac);
   // TODO handle missing process

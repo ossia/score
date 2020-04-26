@@ -4,18 +4,15 @@
 #include <QMimeData>
 
 template <typename T>
-struct Mime;
-
+struct MimeReader;
 template <typename T>
-class Visitor<Reader<Mime<T>>>;
-template <typename T>
-class Visitor<Writer<Mime<T>>>;
+struct MimeWriter;
 
 template <typename T>
 struct Mime
 {
-  using Serializer = Visitor<Reader<Mime<T>>>;
-  using Deserializer = Visitor<Writer<Mime<T>>>;
+  using Serializer = MimeReader<T>;
+  using Deserializer = MimeWriter<T>;
 
   static constexpr SerializationIdentifier type() { return 4; }
 };

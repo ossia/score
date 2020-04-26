@@ -90,29 +90,27 @@ DataStreamWriter::write(Curve::SegmentModel& segmt)
 
 template <>
 SCORE_PLUGIN_CURVE_EXPORT void
-JSONObjectReader::read(const Curve::SegmentModel& segmt)
+JSONReader::read(const Curve::SegmentModel& segmt)
 {
   using namespace Curve;
 
   // Save this class (this will be loaded by writeTo(*this) in
   // CurveSegmentModel ctor
-  obj[strings.Previous] = toJsonValue(segmt.previous());
-  obj[strings.Following] = toJsonValue(segmt.following());
-  obj[strings.Start] = toJsonValue(segmt.start());
-  obj[strings.End] = toJsonValue(segmt.end());
+  obj[strings.Previous] = segmt.previous();
+  obj[strings.Following] = segmt.following();
+  obj[strings.Start] = segmt.start();
+  obj[strings.End] = segmt.end();
 }
 
 template <>
 SCORE_PLUGIN_CURVE_EXPORT void
-JSONObjectWriter::write(Curve::SegmentModel& segmt)
+JSONWriter::write(Curve::SegmentModel& segmt)
 {
   using namespace Curve;
-  segmt.m_previous
-      = fromJsonValue<OptionalId<SegmentModel>>(obj[strings.Previous]);
-  segmt.m_following
-      = fromJsonValue<OptionalId<SegmentModel>>(obj[strings.Following]);
-  segmt.m_start = fromJsonValue<Curve::Point>(obj[strings.Start]);
-  segmt.m_end = fromJsonValue<Curve::Point>(obj[strings.End]);
+  segmt.m_previous <<= obj[strings.Previous];
+  segmt.m_following <<= obj[strings.Following];
+  segmt.m_start <<= obj[strings.Start];
+  segmt.m_end <<= obj[strings.End];
 }
 
 namespace Curve

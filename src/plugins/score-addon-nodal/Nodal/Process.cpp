@@ -7,6 +7,7 @@
 #include <score/tools/std/Invoke.hpp>
 
 #include <score/model/EntitySerialization.hpp>
+#include <score/model/EntityMapSerialization.hpp>
 #include <score/document/DocumentContext.hpp>
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 
@@ -135,22 +136,22 @@ void DataStreamWriter::write(Nodal::Model& process)
 }
 
 template <>
-void JSONObjectReader::read(const Nodal::Model& proc)
+void JSONReader::read(const Nodal::Model& proc)
 {
-  obj["Nodes"] = toJsonArray(proc.nodes);
-  obj["Inlet"] = toJsonObject(*proc.inlet);
-  obj["Outlet"] = toJsonObject(*proc.outlet);
+  obj["Nodes"] = proc.nodes;
+  obj["Inlet"] = *proc.inlet;
+  obj["Outlet"] = *proc.outlet;
 }
 
 template <>
-void JSONObjectWriter::write(Nodal::Model& proc)
+void JSONWriter::write(Nodal::Model& proc)
 {
   {
-    JSONObjectWriter writer{obj["Inlet"].toObject()};
+    JSONWriter writer{obj["Inlet"]};
     proc.inlet = Process::load_audio_inlet(writer, &proc);
   }
   {
-    JSONObjectWriter writer{obj["Outlet"].toObject()};
+    JSONWriter writer{obj["Outlet"]};
     proc.outlet = Process::load_audio_outlet(writer, &proc);
   }
 
@@ -158,7 +159,7 @@ void JSONObjectWriter::write(Nodal::Model& proc)
   const auto& nodes = obj["Nodes"].toArray();
   for (const auto& json_vref : nodes)
   {
-    JSONObject::Deserializer deserializer{json_vref.toObject()};
+    JSONObject::Deserializer deserializer{json_vref};
     auto p = deserialize_interface(pl, deserializer, proc.m_context, &proc);
     if (p)
       proc.nodes.add(p);

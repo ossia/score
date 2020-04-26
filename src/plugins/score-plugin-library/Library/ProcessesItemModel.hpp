@@ -1,11 +1,11 @@
 #pragma once
 #include <Process/ProcessFactory.hpp>
+#include <Process/ProcessMimeSerialization.hpp>
 #include <score/model/tree/TreeNode.hpp>
 #include <score/model/tree/TreeNodeItemModel.hpp>
 #include <score/tools/std/Optional.hpp>
 #include <verdigris>
 #include <QIcon>
-#include <QJsonObject>
 #include <score_plugin_library_export.h>
 
 namespace score
@@ -15,12 +15,9 @@ struct GUIApplicationContext;
 
 namespace Library
 {
-struct ProcessData
+struct ProcessData : Process::ProcessData
 {
-  QString name;
   QIcon icon;
-  QJsonObject json;
-  Process::ProcessModelFactory::ConcreteKey key;
 };
 
 using ProcessNode = TreeNode<ProcessData>;

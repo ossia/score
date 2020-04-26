@@ -21,7 +21,7 @@ namespace Command
 {
 
 InsertContentInState::InsertContentInState(
-    const QJsonObject& stateData,
+    const rapidjson::Value& stateData,
     const Scenario::StateModel& state)
     : m_state{state}
 {
@@ -38,7 +38,7 @@ InsertContentInState::InsertContentInState(
   updateTreeWithMessageList(
       m_newNode,
       Process::flatten(score::unmarshall<Process::MessageNode>(
-          stateData["Messages"].toObject())));
+          stateData["Messages"])));
 }
 
 void InsertContentInState::undo(const score::DocumentContext& ctx) const

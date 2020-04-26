@@ -22,12 +22,12 @@ void DataStreamWriter::write(Protocols::PhidgetSpecificSettings& n)
 }
 
 template <>
-void JSONObjectReader::read(const Protocols::PhidgetSpecificSettings& n)
+void JSONReader::read(const Protocols::PhidgetSpecificSettings& n)
 {
 }
 
 template <>
-void JSONObjectWriter::write(Protocols::PhidgetSpecificSettings& n)
+void JSONWriter::write(Protocols::PhidgetSpecificSettings& n)
 {
 }
 #endif

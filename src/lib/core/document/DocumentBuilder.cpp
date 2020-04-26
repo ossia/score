@@ -75,7 +75,6 @@ SCORE_LIB_BASE_EXPORT
 Document* DocumentBuilder::loadDocument(
     const score::GUIApplicationContext& ctx,
     QString filename,
-    const QVariant& docData,
     DocumentDelegateFactory& doctype)
 {
   Document* doc = nullptr;
@@ -83,7 +82,7 @@ Document* DocumentBuilder::loadDocument(
   try
   {
     doc = new Document{
-        filename, docData, doctype, m_parentView, m_parentPresenter};
+        filename, doctype, m_parentView, m_parentPresenter};
     for (auto& appPlug : ctx.guiApplicationPlugins())
     {
       appPlug->on_loadedDocument(*doc);
@@ -132,7 +131,7 @@ Document* DocumentBuilder::restoreDocument(
     // (potentially a blank document which is saved at the beginning, once
     // every plug-in has been loaded)
     doc = new Document{
-        filename, docData, doctype, m_parentView, m_parentPresenter};
+        filename, doctype, m_parentView, m_parentPresenter};
     for (auto& appPlug : ctx.guiApplicationPlugins())
     {
       appPlug->on_loadedDocument(*doc);

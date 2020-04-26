@@ -2,8 +2,10 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include <Midi/MidiProcess.hpp>
 #include <Process/Dataflow/Port.hpp>
+#include <score/model/EntityMapSerialization.hpp>
 #include <cmath>
 #include <wobjectimpl.h>
+
 W_OBJECT_IMPL(Midi::ProcessModel)
 
 namespace Midi
@@ -134,21 +136,24 @@ void DataStreamWriter::write(Midi::NoteData& n)
 }
 
 template <>
-void JSONObjectReader::read(const Midi::NoteData& n)
+void JSONReader::read(const Midi::NoteData& n)
 {
-  obj["Start"] = n.m_start;
-  obj["Duration"] = n.m_duration;
-  obj["Pitch"] = n.m_pitch;
-  obj["Velocity"] = n.m_velocity;
+  stream.StartArray();
+  stream.Double(n.m_start);
+  stream.Double(n.m_duration);
+  stream.Int(n.m_pitch);
+  stream.Int(n.m_velocity);
+  stream.EndArray();
 }
 
 template <>
-void JSONObjectWriter::write(Midi::NoteData& n)
+void JSONWriter::write(Midi::NoteData& n)
 {
-  n.m_start = obj["Start"].toDouble();
-  n.m_duration = obj["Duration"].toDouble();
-  n.m_pitch = obj["Pitch"].toInt();
-  n.m_velocity = obj["Velocity"].toInt();
+  const auto& arr = base.GetArray();
+  n.m_start = arr[0].GetDouble();
+  n.m_duration = arr[1].GetDouble();
+  n.m_pitch = arr[2].GetInt();
+  n.m_velocity = arr[3].GetInt();
 }
 
 template <>
@@ -168,17 +173,25 @@ void DataStreamWriter::write(Midi::Note& n)
 }
 
 template <>
-void JSONObjectReader::read(const Midi::Note& n)
+void JSONReader::read(const Midi::Note& n)
 {
-  readFrom(n.noteData());
+  stream.Key("Note");
+  stream.StartArray();
+  stream.Double(n.m_start);
+  stream.Double(n.m_duration);
+  stream.Int(n.m_pitch);
+  stream.Int(n.m_velocity);
+  stream.EndArray();
 }
 
 template <>
-void JSONObjectWriter::write(Midi::Note& n)
+void JSONWriter::write(Midi::Note& n)
 {
-  Midi::NoteData d;
-  writeTo(d);
-  n.setData(d);
+  const auto& arr = obj["Note"].toArray();
+  n.m_start = arr[0].GetDouble();
+  n.m_duration = arr[1].GetDouble();
+  n.m_pitch = arr[2].GetInt();
+  n.m_velocity = arr[3].GetInt();
 }
 
 template <>
@@ -213,26 +226,26 @@ void DataStreamWriter::write(Midi::ProcessModel& proc)
 }
 
 template <>
-void JSONObjectReader::read(const Midi::ProcessModel& proc)
+void JSONReader::read(const Midi::ProcessModel& proc)
 {
-  obj["Outlet"] = toJsonObject(*proc.outlet);
+  obj["Outlet"] = *proc.outlet;
   obj["Channel"] = proc.channel();
   obj["Min"] = proc.range().first;
   obj["Max"] = proc.range().second;
-  obj["Notes"] = toJsonArray(proc.notes);
+  obj["Notes"] = proc.notes;
 }
 
 template <>
-void JSONObjectWriter::write(Midi::ProcessModel& proc)
+void JSONWriter::write(Midi::ProcessModel& proc)
 {
   {
-    JSONObjectWriter writer{obj["Outlet"].toObject()};
+    JSONWriter writer{obj["Outlet"]};
     proc.outlet = Process::load_midi_outlet(writer, &proc);
   }
 
   for (const auto& json_vref : obj["Notes"].toArray())
   {
-    auto note = new Midi::Note{JSONObject::Deserializer{json_vref.toObject()},
+    auto note = new Midi::Note{JSONObject::Deserializer{json_vref},
                                &proc};
     proc.notes.add(note);
   }

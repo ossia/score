@@ -54,50 +54,50 @@ DataStreamWriter::write(Scenario::BaseScenarioContainer& base_scenario)
 
 template <>
 SCORE_PLUGIN_SCENARIO_EXPORT void
-JSONObjectReader::read(const Scenario::BaseScenarioContainer& base_scenario)
+JSONReader::read(const Scenario::BaseScenarioContainer& base_scenario)
 {
-  obj["Constraint"] = toJsonObject(*base_scenario.m_interval);
+  obj["Constraint"] = *base_scenario.m_interval;
 
-  obj["StartTimeNode"] = toJsonObject(*base_scenario.m_startNode);
-  obj["EndTimeNode"] = toJsonObject(*base_scenario.m_endNode);
+  obj["StartTimeNode"] = *base_scenario.m_startNode;
+  obj["EndTimeNode"] = *base_scenario.m_endNode;
 
-  obj["StartEvent"] = toJsonObject(*base_scenario.m_startEvent);
-  obj["EndEvent"] = toJsonObject(*base_scenario.m_endEvent);
+  obj["StartEvent"] = *base_scenario.m_startEvent;
+  obj["EndEvent"] = *base_scenario.m_endEvent;
 
-  obj["StartState"] = toJsonObject(*base_scenario.m_startState);
-  obj["EndState"] = toJsonObject(*base_scenario.m_endState);
+  obj["StartState"] = *base_scenario.m_startState;
+  obj["EndState"] = *base_scenario.m_endState;
 }
 
 template <>
 SCORE_PLUGIN_SCENARIO_EXPORT void
-JSONObjectWriter::write(Scenario::BaseScenarioContainer& base_scenario)
+JSONWriter::write(Scenario::BaseScenarioContainer& base_scenario)
 {
   using namespace Scenario;
   base_scenario.m_interval = new IntervalModel{
-      JSONObject::Deserializer{obj["Constraint"].toObject()},
+      JSONObject::Deserializer{obj["Constraint"]},
       base_scenario.context(),
       base_scenario.m_parent};
 
   base_scenario.m_startNode = new TimeSyncModel{
-      JSONObject::Deserializer{obj["StartTimeNode"].toObject()},
+      JSONObject::Deserializer{obj["StartTimeNode"]},
       base_scenario.m_parent};
   base_scenario.m_endNode = new TimeSyncModel{
-      JSONObject::Deserializer{obj["EndTimeNode"].toObject()},
+      JSONObject::Deserializer{obj["EndTimeNode"]},
       base_scenario.m_parent};
 
   base_scenario.m_startEvent
-      = new EventModel{JSONObject::Deserializer{obj["StartEvent"].toObject()},
+      = new EventModel{JSONObject::Deserializer{obj["StartEvent"]},
                        base_scenario.m_parent};
   base_scenario.m_endEvent
-      = new EventModel{JSONObject::Deserializer{obj["EndEvent"].toObject()},
+      = new EventModel{JSONObject::Deserializer{obj["EndEvent"]},
                        base_scenario.m_parent};
 
   base_scenario.m_startState
-      = new StateModel{JSONObject::Deserializer{obj["StartState"].toObject()},
+      = new StateModel{JSONObject::Deserializer{obj["StartState"]},
                        base_scenario.context(),
                        base_scenario.m_parent};
   base_scenario.m_endState
-      = new StateModel{JSONObject::Deserializer{obj["EndState"].toObject()},
+      = new StateModel{JSONObject::Deserializer{obj["EndState"]},
                        base_scenario.context(),
                        base_scenario.m_parent};
 

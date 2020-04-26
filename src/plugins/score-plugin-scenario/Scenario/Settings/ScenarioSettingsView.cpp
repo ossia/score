@@ -12,8 +12,6 @@
 #include <QDialog>
 #include <QFileDialog>
 #include <QFormLayout>
-#include <QJsonDocument>
-#include <QJsonObject>
 #include <QLineEdit>
 #include <QListWidget>
 #include <QPushButton>
@@ -404,6 +402,9 @@ public:
     });
 
     connect(&save, &QPushButton::clicked, this, [] {
+      SCORE_ABORT;
+      return ;
+      /*
       auto f = QFileDialog::getSaveFileName(
           nullptr, tr("Skin"), "", tr("*.json"));
       if (f.isEmpty())
@@ -422,6 +423,7 @@ public:
       QJsonDocument doc;
       doc.setObject(obj);
       fl.write(doc.toJson());
+      */
     });
 
     score::StyleLoader loader;

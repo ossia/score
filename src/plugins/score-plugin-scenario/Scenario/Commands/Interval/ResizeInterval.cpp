@@ -49,15 +49,15 @@ score::Command* ScenarioIntervalResizer::make(
     if(!intervalHasNoFollowers(*scenar, interval))
       return nullptr;
 
-    auto& ev = Scenario::endState(interval, *scenar).eventId();
-    auto resize_cmd
-        = new Scenario::Command::MoveEventMeta{*scenar,
-                                               ev,
-                                               interval.date() + new_duration,
-                                               interval.heightPercentage(),
-                                               e,
-                                               l};
-    return resize_cmd;
+  auto& ev = Scenario::endState(interval, *scenar).eventId();
+  auto resize_cmd
+      = new Scenario::Command::MoveEventMeta{*scenar,
+                                             ev,
+                                             interval.date() + new_duration,
+                                             interval.heightPercentage(),
+                                             e,
+                                             l};
+  return resize_cmd;
 }
 
 void ScenarioIntervalResizer::update(

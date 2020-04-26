@@ -135,7 +135,7 @@ struct MessagePairs
 };
 
 void InterpolateStates(
-    const QList<const IntervalModel*>& selected_intervals,
+    const std::vector<const IntervalModel*>& selected_intervals,
     const score::CommandStackFacade& stack)
 {
   // For each interval, interpolate between the states in its start event and
@@ -145,12 +145,12 @@ void InterpolateStates(
 
   // They should all be in the same scenario so we can select the first.
   auto scenar = dynamic_cast<Scenario::ScenarioInterface*>(
-      selected_intervals.first()->parent());
+      selected_intervals.front()->parent());
   if (!scenar)
     return;
 
   auto& devPlugin
-      = score::IDocument::documentContext(*selected_intervals.first())
+      = score::IDocument::documentContext(*selected_intervals.front())
             .plugin<Explorer::DeviceDocumentPlugin>();
   auto& rootNode = devPlugin.rootNode();
 

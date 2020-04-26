@@ -154,12 +154,12 @@ inline void DataStreamWriter::write(Curve::EasingData& segmt)
 }
 
 template <>
-inline void JSONObjectReader::read(const Curve::EasingData& segmt)
+inline void JSONReader::read(const Curve::EasingData& segmt)
 {
 }
 
 template <>
-inline void JSONObjectWriter::write(Curve::EasingData& segmt)
+inline void JSONWriter::write(Curve::EasingData& segmt)
 {
 }
 

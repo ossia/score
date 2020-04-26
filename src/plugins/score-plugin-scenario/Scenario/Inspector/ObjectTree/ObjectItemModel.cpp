@@ -49,9 +49,6 @@
 
 #include <core/presenter/DocumentManager.hpp>
 
-#include <QJsonDocument>
-#include <QJsonObject>
-
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Scenario::ObjectItemModel)
 namespace Scenario
@@ -1378,11 +1375,14 @@ SearchWidget::SearchWidget(const score::GUIApplicationContext& ctx)
 template <typename Object>
 void add_if_contains(const Object& obj, const QString& str, Selection& sel)
 {
+  SCORE_ABORT;
+  /*
   QJsonObject json = score::marshall<JSONObject>(obj);
   QJsonDocument doc{json};
   QString jstr{doc.toJson(QJsonDocument::Compact)};
   if (jstr.contains(str))
     sel.append(&obj);
+    */
 }
 
 void SearchWidget::on_findAddresses(QStringList strlst)

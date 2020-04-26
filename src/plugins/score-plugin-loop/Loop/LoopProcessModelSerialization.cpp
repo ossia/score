@@ -33,23 +33,23 @@ void DataStreamWriter::write(Loop::ProcessModel& proc)
 }
 
 template <>
-void JSONObjectReader::read(const Loop::ProcessModel& proc)
+void JSONReader::read(const Loop::ProcessModel& proc)
 {
   readFrom(static_cast<const Scenario::BaseScenarioContainer&>(proc));
-  obj["Inlet"] = toJsonObject(*proc.inlet);
-  obj["Outlet"] = toJsonObject(*proc.outlet);
+  obj["Inlet"] = *proc.inlet;
+  obj["Outlet"] = *proc.outlet;
 }
 
 template <>
-void JSONObjectWriter::write(Loop::ProcessModel& proc)
+void JSONWriter::write(Loop::ProcessModel& proc)
 {
   writeTo(static_cast<Scenario::BaseScenarioContainer&>(proc));
   {
-    JSONObjectWriter writer{obj["Inlet"].toObject()};
+    JSONWriter writer{obj["Inlet"]};
     proc.inlet = Process::load_audio_inlet(writer, &proc);
   }
   {
-    JSONObjectWriter writer{obj["Outlet"].toObject()};
+    JSONWriter writer{obj["Outlet"]};
     proc.outlet = Process::load_audio_outlet(writer, &proc);
   }
 }

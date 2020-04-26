@@ -301,13 +301,13 @@ void DataStreamWriter::write(Curve::PointArraySegment& segmt)
 }
 
 template <>
-void JSONObjectReader::read(const Curve::PointArraySegment& segmt)
+void JSONReader::read(const Curve::PointArraySegment& segmt)
 {
   SCORE_TODO;
 }
 
 template <>
-void JSONObjectWriter::write(Curve::PointArraySegment& segmt)
+void JSONWriter::write(Curve::PointArraySegment& segmt)
 {
   SCORE_TODO;
 }
@@ -325,13 +325,13 @@ void DataStreamWriter::write(Curve::PointArraySegmentData& segmt)
 }
 
 template <>
-void JSONObjectReader::read(const Curve::PointArraySegmentData& segmt)
+void JSONReader::read(const Curve::PointArraySegmentData& segmt)
 {
   SCORE_TODO;
 }
 
 template <>
-void JSONObjectWriter::write(Curve::PointArraySegmentData& segmt)
+void JSONWriter::write(Curve::PointArraySegmentData& segmt)
 {
   SCORE_TODO;
 }

@@ -21,14 +21,14 @@ void DataStreamWriter::write(Protocols::LocalSpecificSettings& n)
 }
 
 template <>
-void JSONObjectReader::read(const Protocols::LocalSpecificSettings& n)
+void JSONReader::read(const Protocols::LocalSpecificSettings& n)
 {
   obj["WSPort"] = n.wsPort;
   obj["OSCPort"] = n.oscPort;
 }
 
 template <>
-void JSONObjectWriter::write(Protocols::LocalSpecificSettings& n)
+void JSONWriter::write(Protocols::LocalSpecificSettings& n)
 {
   n.wsPort = obj["WSPort"].toInt();
   n.oscPort = obj["OSCPort"].toInt();

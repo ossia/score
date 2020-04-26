@@ -57,7 +57,7 @@ getSelectedAddresses(const score::DocumentContext& doc)
 }
 
 void CreateCurves(
-    const QList<const Scenario::IntervalModel*>& selected_intervals,
+    const std::vector<const Scenario::IntervalModel*>& selected_intervals,
     const score::CommandStackFacade& stack)
 {
   if (selected_intervals.empty())
@@ -65,7 +65,7 @@ void CreateCurves(
 
   // For each interval, interpolate between the states in its start event and
   // end event.
-  auto& doc = score::IDocument::documentContext(*selected_intervals.first());
+  auto& doc = score::IDocument::documentContext(*selected_intervals.front());
 
   auto addresses = getSelectedAddresses(doc);
   if (addresses.empty())
@@ -725,7 +725,7 @@ std::vector<Process::ProcessModel*> CreateCurvesFromAddresses(
 }
 
 std::vector<Process::ProcessModel*> CreateCurvesFromAddresses(
-    const QList<const Scenario::IntervalModel*>& selected_intervals,
+    const std::vector<const Scenario::IntervalModel*>& selected_intervals,
     const std::vector<Device::FullAddressSettings>& a,
     Scenario::Command::Macro& m)
 {
@@ -738,7 +738,7 @@ std::vector<Process::ProcessModel*> CreateCurvesFromAddresses(
   // FIXME check that the other "cohesion" methods also use ScenarioInterface
   // and not Scenario::ProcessModel
   auto scenar = dynamic_cast<Scenario::ScenarioInterface*>(
-      selected_intervals.first()->parent());
+      selected_intervals.front()->parent());
 
   bool added_processes = false;
   CategorizedAddresses addresses{a};
@@ -761,7 +761,7 @@ std::vector<Process::ProcessModel*> CreateCurvesFromAddresses(
 }
 
 void CreateCurvesFromAddresses(
-    const QList<const Scenario::IntervalModel*>& selected_intervals,
+    const std::vector<const Scenario::IntervalModel*>& selected_intervals,
     const std::vector<Device::FullAddressSettings>& a,
     const score::CommandStackFacade& stack)
 {

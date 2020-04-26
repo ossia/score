@@ -37,8 +37,8 @@ struct SCORE_LIB_PROCESS_EXPORT StateNodeValues
   bool empty() const;
 
   // TODO use lists or queues instead to manage the priorities
-  QVector<ProcessStateData> previousProcessValues;
-  QVector<ProcessStateData> followingProcessValues;
+  std::vector<ProcessStateData> previousProcessValues;
+  std::vector<ProcessStateData> followingProcessValues;
   State::OptionalValue userValue;
 
   std::array<PriorityPolicy, 3> priorities{{PriorityPolicy::Previous,
@@ -47,9 +47,9 @@ struct SCORE_LIB_PROCESS_EXPORT StateNodeValues
 
   bool hasValue() const;
 
-  static bool hasValue(const QVector<ProcessStateData>& vec);
-  static QVector<ProcessStateData>::const_iterator
-  value(const QVector<ProcessStateData>& vec);
+  static bool hasValue(const std::vector<ProcessStateData>& vec);
+  static std::vector<ProcessStateData>::const_iterator
+  value(const std::vector<ProcessStateData>& vec);
 
   // TODO here we have to choose a policy
   // if we have both previous and following processes ?

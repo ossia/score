@@ -294,7 +294,7 @@ struct SCORE_LIB_PROCESS_EXPORT Enum : public Process::ControlInlet
 {
   MODEL_METADATA_IMPL(Enum)
   using control_type = WidgetFactory::Enum;
-  QStringList values;
+  std::vector<QString> values;
   std::vector<QString> pixmaps;
   Enum(
       const ossia::flat_set<std::string>& dom,
@@ -321,7 +321,7 @@ struct SCORE_LIB_PROCESS_EXPORT Enum : public Process::ControlInlet
       const QString& name,
       Id<Process::Port> id,
       QObject* parent)
-    : ControlInlet{id, parent}, values{values}, pixmaps{std::move(pixmaps)}
+    : ControlInlet{id, parent}, values{values.begin(), values.end()}, pixmaps{std::move(pixmaps)}
   {
     hidden = true;
     setValue(init);
@@ -332,7 +332,7 @@ struct SCORE_LIB_PROCESS_EXPORT Enum : public Process::ControlInlet
     setCustomData(name);
   }
 
-  const QStringList& getValues() const { return values; }
+  const std::vector<QString>& getValues() const { return values; }
 
   Enum(DataStream::Deserializer& vis, QObject* parent);
   Enum(JSONObject::Deserializer& vis, QObject* parent);

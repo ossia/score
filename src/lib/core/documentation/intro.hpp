@@ -488,8 +488,8 @@ reimplemented :
  * * `template<> void DataStreamWriter::write(Foo& dom);`
  *
  * If the object is a "big" object with multiple members, etc:
- * * `template<> void JSONObjectReader::read(const Foo& dom);`
- * * `template<> void JSONObjectWriter::write(Foo& dom);`
+ * * `template<> void JSONReader::read(const Foo& dom);`
+ * * `template<> void JSONWriter::write(Foo& dom);`
  *
  * If the object is a "small" value-like data structure (for instance a (x,y)
 array):
@@ -569,7 +569,7 @@ tree,
  *
  * \code
    template <>
-   void JSONObjectReader::read(const Foo& foo) {
+   void JSONReader::read(const Foo& foo) {
      obj["MyChild"] = toJsonObject(foo.theChildObject());
    }
    \endcode
@@ -601,7 +601,7 @@ etc...
  *
  * \code
    template <>
-   void JSONObjectWriter::writer(Foo& foo) {
+   void JSONWriter::writer(Foo& foo) {
      foo.m_theChildObject = new
 ChildObject{JSONObject::Deserializer{obj["MyChild"].toObject()}, &foo};
    }

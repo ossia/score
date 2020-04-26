@@ -24,14 +24,36 @@ DataStreamWriter::write(Device::DeviceExplorerNode& n)
 
 template <>
 SCORE_LIB_DEVICE_EXPORT void
-JSONObjectReader::read(const Device::DeviceExplorerNode& n)
+JSONReader::read(const Device::DeviceExplorerNode& n)
 {
-  readFrom(n.m_data);
+  switch(n.m_data.which())
+  {
+    case 0:
+      // invisible root node
+      break;
+    case 1:
+      obj[strings.Device] = *n.m_data.target<Device::DeviceSettings>();
+      break;
+    case 2:
+      obj[strings.Address] = *n.m_data.target<Device::AddressSettings>();
+      break;
+    default:
+      SCORE_ABORT;
+  }
 }
 
 template <>
 SCORE_LIB_DEVICE_EXPORT void
-JSONObjectWriter::write(Device::DeviceExplorerNode& n)
+JSONWriter::write(Device::DeviceExplorerNode& n)
 {
-  writeTo(n.m_data);
+  if(auto it = obj.tryGet(strings.Device)) {
+    Device::DeviceSettings res;
+    res <<= it.value();
+    n = std::move(res);
+  }
+  else if(auto it = obj.tryGet(strings.Address)) {
+    Device::AddressSettings res;
+    res <<= it.value();
+    n = std::move(res);
+  }
 }

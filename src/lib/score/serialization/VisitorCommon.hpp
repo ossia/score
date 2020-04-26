@@ -124,11 +124,16 @@ auto marshall(const Object& obj)
 {
   return Type::Serializer::marshall(obj);
 }
+
 template <typename Object>
-auto unmarshall(const QJsonObject& obj)
+auto unmarshall(const rapidjson::Value& obj)
 {
-  return JSONObjectWriter::unmarshall<Object>(obj);
+  Object data;
+  JSONWriter wrt{obj};
+  wrt.writeTo(data);
+  return data;
 }
+
 template <typename Object>
 auto unmarshall(const QByteArray& arr)
 {

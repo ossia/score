@@ -172,6 +172,7 @@ set(HEADERS
     "${CMAKE_CURRENT_SOURCE_DIR}/score/serialization/AnySerialization.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/serialization/DataStreamVisitor.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/serialization/IsTemplate.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/score/serialization/CommonTypes.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/serialization/JSONValueVisitor.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/serialization/JSONVisitor.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/serialization/MimeVisitor.hpp"

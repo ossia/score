@@ -115,22 +115,22 @@ public:
 
   bool preparingNewDocument() const;
 
-public:
-  void documentChanged(score::Document* arg_1)
-      E_SIGNAL(SCORE_LIB_BASE_EXPORT, documentChanged, arg_1)
-
-          private
-      : void prepareNewDocument(const score::GUIApplicationContext& ctx);
-
   /**
    * @brief checkAndUpdateJson
    * @return boolean indicating if the document is loadable
    */
-  bool
-  checkAndUpdateJson(QJsonDocument&, const score::GUIApplicationContext& ctx);
+  static bool
+  checkAndUpdateJson(rapidjson::Value&, const score::GUIApplicationContext& ctx);
 
-  bool updateJson(
-      QJsonObject& object,
+public:
+  void documentChanged(score::Document* arg_1)
+  E_SIGNAL(SCORE_LIB_BASE_EXPORT, documentChanged, arg_1)
+
+private:
+  void prepareNewDocument(const score::GUIApplicationContext& ctx);
+
+  static bool updateJson(
+      rapidjson::Value& object,
       score::Version json_ver,
       score::Version score_ver);
 

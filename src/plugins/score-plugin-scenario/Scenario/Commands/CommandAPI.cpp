@@ -123,7 +123,7 @@ Process::ProcessModel* Macro::createProcessInNewSlot(
 
 Process::ProcessModel* Macro::loadProcessInSlot(
     const IntervalModel& interval,
-    const QJsonObject& procdata)
+    const rapidjson::Value& procdata)
 {
   auto process_cmd = new LoadProcessInInterval{interval, procdata};
   m.submit(process_cmd);
@@ -210,7 +210,7 @@ Process::ProcessModel& Macro::duplicateProcess(
 
 void Macro::pasteElements(
     const ProcessModel& scenario,
-    const QJsonObject& objs,
+    const rapidjson::Value& objs,
     Point pos)
 {
   auto cmd = new ScenarioPasteElements(scenario, objs, pos);
@@ -220,7 +220,7 @@ void Macro::pasteElements(
 void Macro::pasteElementsAfter(
     const ProcessModel& scenario,
     const TimeSyncModel& sync,
-    const QJsonObject& objs,
+    const rapidjson::Value& objs,
     double scale)
 {
   auto cmd = new ScenarioPasteElementsAfter(scenario, sync, objs, scale);
@@ -356,7 +356,7 @@ void Macro::clearInterval(const IntervalModel& itv)
 }
 
 void Macro::insertInInterval(
-    QJsonObject&& json,
+    rapidjson::Value&& json,
     const IntervalModel& itv,
     ExpandMode mode)
 {

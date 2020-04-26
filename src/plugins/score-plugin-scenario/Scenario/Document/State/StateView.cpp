@@ -186,18 +186,17 @@ void StateView::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
     if (auto si = dynamic_cast<Scenario::ScenarioInterface*>(
             presenter().model().parent()))
     {
-      auto obj = copySelectedElementsToJson(
+      JSONReader r;
+      copySelectedElementsToJson(r,
           *const_cast<ScenarioInterface*>(si),
           score::IDocument::documentContext(*m_presenter.model().parent()));
 
-      if (!obj.empty())
+      if (!r.empty())
       {
         QDrag d{this};
         auto m = new QMimeData;
-        QJsonDocument doc{obj};
-        ;
         m->setData(
-            score::mime::scenariodata(), doc.toJson(QJsonDocument::Indented));
+            score::mime::scenariodata(), r.toByteArray());
         d.setMimeData(m);
         d.exec();
       }

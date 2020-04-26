@@ -36,15 +36,6 @@ DocumentPluginFactoryList::object_type* DocumentPluginFactoryList::loadMissing(
   SCORE_TODO;
   return nullptr;
 }
-
-void SerializableDocumentPlugin::serializeAfterDocument(
-    const VisitorVariant& vis) const
-{
-}
-
-void SerializableDocumentPlugin::reloadAfterDocument(const VisitorVariant& vis)
-{
-}
 }
 
 template <>
@@ -53,6 +44,6 @@ void DataStreamReader::read(const score::SerializableDocumentPlugin& dpm)
 }
 
 template <>
-void JSONObjectReader::read(const score::SerializableDocumentPlugin& dpm)
+void JSONReader::read(const score::SerializableDocumentPlugin& dpm)
 {
 }

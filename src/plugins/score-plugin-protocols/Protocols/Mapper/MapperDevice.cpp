@@ -725,13 +725,13 @@ void DataStreamWriter::write(Protocols::MapperSpecificSettings& n)
 }
 
 template <>
-void JSONObjectReader::read(const Protocols::MapperSpecificSettings& n)
+void JSONReader::read(const Protocols::MapperSpecificSettings& n)
 {
   obj["Text"] = n.text;
 }
 
 template <>
-void JSONObjectWriter::write(Protocols::MapperSpecificSettings& n)
+void JSONWriter::write(Protocols::MapperSpecificSettings& n)
 {
   n.text = obj["Text"].toString();
 }

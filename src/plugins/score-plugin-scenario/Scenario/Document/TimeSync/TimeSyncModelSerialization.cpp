@@ -17,9 +17,6 @@
 #include <score/serialization/JSONVisitor.hpp>
 #include <score/tools/std/Optional.hpp>
 
-#include <QJsonObject>
-
-
 template <>
 SCORE_PLUGIN_SCENARIO_EXPORT void
 DataStreamReader::read(const Scenario::TimeSyncModel& timesync)
@@ -50,33 +47,28 @@ DataStreamWriter::write(Scenario::TimeSyncModel& timesync)
 
 template <>
 SCORE_PLUGIN_SCENARIO_EXPORT void
-JSONObjectReader::read(const Scenario::TimeSyncModel& timesync)
+JSONReader::read(const Scenario::TimeSyncModel& timesync)
 {
-  obj[strings.Date] = toJsonValue(timesync.date());
-  obj[strings.Events] = toJsonArray(timesync.m_events);
+  obj[strings.Date] = timesync.date();
+  obj[strings.Events] = timesync.m_events;
   obj["MusicalSync"] = timesync.m_musicalSync;
   obj[strings.AutoTrigger] = timesync.m_autotrigger;
   obj["Start"] = timesync.m_startPoint;
-
-  QJsonObject trig;
-  trig[strings.Active] = timesync.m_active;
-  trig[strings.Expression] = toJsonObject(timesync.m_expression);
-  obj[strings.Trigger] = trig;
+  obj[strings.Active] = timesync.m_active;
+  obj[strings.Expression] = timesync.m_expression.toString();
 }
 
 template <>
 SCORE_PLUGIN_SCENARIO_EXPORT void
-JSONObjectWriter::write(Scenario::TimeSyncModel& timesync)
+JSONWriter::write(Scenario::TimeSyncModel& timesync)
 {
-  timesync.m_date = fromJsonValue<TimeVal>(obj[strings.Date]);
-  fromJsonValueArray(obj[strings.Events].toArray(), timesync.m_events);
+  timesync.m_date <<= obj[strings.Date];
+  timesync.m_events <<= obj[strings.Events];
   timesync.m_musicalSync = obj["MusicalSync"].toDouble();
-
-  State::Expression t;
-  const auto& trig_obj = obj[strings.Trigger].toObject();
-  fromJsonObject(trig_obj[strings.Expression], t);
-  timesync.m_expression = std::move(t);
-  timesync.m_active = trig_obj[strings.Active].toBool();
   timesync.m_autotrigger = obj[strings.AutoTrigger].toBool();
   timesync.m_startPoint = obj["Start"].toBool();
+  timesync.m_active = obj[strings.Active].toBool();
+  auto exprstr = obj[strings.Expression].toString();
+  if(auto expr = State::parseExpression(exprstr))
+    timesync.m_expression = *std::move(expr);
 }

@@ -196,22 +196,22 @@ private:
 }
 // TODO this ought to go in Selection.hpp ?
 template <typename Vector>
-QList<const typename Vector::value_type*> selectedElements(const Vector& in)
+std::vector<const typename Vector::value_type*> selectedElements(const Vector& in)
 {
-  QList<const typename Vector::value_type*> out;
+  std::vector<const typename Vector::value_type*> out;
   for (const auto& elt : in)
   {
     if (elt.selection.get())
-      out.append(&elt);
+      out.push_back(&elt);
   }
 
   return out;
 }
 
 template <typename T, typename Container>
-QList<const T*> filterSelectionByType(const Container& sel)
+std::vector<const T*> filterSelectionByType(const Container& sel)
 {
-  QList<const T*> selected_elements;
+  std::vector<const T*> selected_elements;
   for (auto obj : sel)
   {
     // TODO replace with a virtual Element::type() which will be faster.

@@ -8,7 +8,7 @@
 #include <score/selection/Selection.hpp>
 #include <score/tools/std/Optional.hpp>
 
-#include <QJsonObject>
+#include <rapidjson/document.h>
 #include <QMap>
 #include <QVector>
 namespace Scenario
@@ -31,7 +31,7 @@ public:
   ScenarioPasteElementsAfter(
       const Scenario::ProcessModel& path,
       const Scenario::TimeSyncModel& attach_sync,
-      const QJsonObject& obj,
+      const rapidjson::Value& obj,
       double scale);
 
   void undo(const score::DocumentContext& ctx) const override;
@@ -52,10 +52,10 @@ private:
   QVector<Id<EventModel>> m_ids_events;
   QVector<Id<StateModel>> m_ids_states;
 
-  QVector<QJsonObject> m_json_timesyncs;
-  QVector<QJsonObject> m_json_intervals;
-  QVector<QJsonObject> m_json_events;
-  QVector<QJsonObject> m_json_states;
+  QVector<QByteArray> m_json_timesyncs;
+  QVector<QByteArray> m_json_intervals;
+  QVector<QByteArray> m_json_events;
+  QVector<QByteArray> m_json_states;
 
   QMap<Id<Process::Cable>, Process::CableData> m_cables;
 };

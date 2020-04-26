@@ -5,8 +5,6 @@
 #include <score/serialization/JSONVisitor.hpp>
 #include <score/serialization/MimeVisitor.hpp>
 
-#include <QJsonDocument>
-
 namespace score::mime
 {
 inline constexpr const char* nodelist() noexcept
@@ -15,45 +13,44 @@ inline constexpr const char* nodelist() noexcept
 }
 }
 template <>
-struct Visitor<Reader<Mime<Device::NodeList>>> : public MimeDataReader
+struct MimeReader<Device::NodeList> : public MimeDataReader
 {
   using MimeDataReader::MimeDataReader;
   void serialize(const Device::NodeList& lst) const
   {
-    QJsonArray arr;
+    JSONReader r;
 
+    r.stream.StartArray();
     for (const auto& elt : lst)
     {
-      auto node_obj = toJsonObject(*elt);
-      node_obj.insert("Address", toJsonObject(Device::address(*elt).address));
-      arr.append(std::move(node_obj));
+      r.stream.StartObject();
+      r.obj["Node"] = *elt;
+      r.obj["Address"] = Device::address(*elt).address;
+      r.stream.EndObject();
     }
+    r.stream.EndArray();
 
-    m_mime.setData(
-        score::mime::nodelist(),
-        QJsonDocument(std::move(arr)).toJson(QJsonDocument::Indented));
+    m_mime.setData(score::mime::nodelist(), r.toByteArray());
   }
 };
 
 template <>
-struct Visitor<Writer<Mime<Device::FreeNodeList>>> : public MimeDataWriter
+struct MimeWriter<Device::FreeNodeList> : public MimeDataWriter
 {
   using MimeDataWriter::MimeDataWriter;
   auto deserialize()
   {
     Device::FreeNodeList ml;
-    auto arr = QJsonDocument::fromJson(m_mime.data(score::mime::nodelist()))
-                   .array();
+    auto json = readJson(m_mime.data(score::mime::nodelist()));
+    const auto& arr = json.GetArray();
 
     auto& strings = score::StringConstant();
-    for (const auto& elt : arr)
+    for (const rapidjson::Value& elt : arr)
     {
+      JSONObject::Deserializer des{elt};
       Device::FreeNode n;
-      auto obj = elt.toObject();
-      n.first = fromJsonObject<State::Address>(obj[strings.Address]);
-
-      JSONObject::Deserializer des{obj};
-      des.writeTo(n.second);
+      n.first <<= des.obj[strings.Address];
+      n.second <<= des.obj["Node"];
       ml.push_back(n);
     }
 

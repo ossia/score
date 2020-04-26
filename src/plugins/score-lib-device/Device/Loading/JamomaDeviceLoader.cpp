@@ -8,6 +8,9 @@
 
 #include <QFile>
 #include <QJsonDocument>
+#include <QJsonObject>
+#include <QJsonValue>
+#include <QJsonArray>
 #include <QDebug>
 #include <qdom.h>
 

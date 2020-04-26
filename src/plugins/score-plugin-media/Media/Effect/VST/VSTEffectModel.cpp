@@ -742,9 +742,9 @@ void DataStreamWriter::write(Media::VST::VSTEffectModel& eff)
 }
 
 template <>
-void JSONObjectReader::read(const Media::VST::VSTEffectModel& eff)
+void JSONReader::read(const Media::VST::VSTEffectModel& eff)
 {
-  readPorts(obj, eff.m_inlets, eff.m_outlets);
+  readPorts(*this, eff.m_inlets, eff.m_outlets);
   obj["EffectId"] = eff.m_effectId;
 
   if (eff.fx)
@@ -762,28 +762,29 @@ void JSONObjectReader::read(const Media::VST::VSTEffectModel& eff)
     }
     else
     {
-      QJsonArray arr;
+      stream.Key("Params");
+      stream.StartArray();
       for (int i = 0; i < eff.fx->fx->numParams; i++)
-        arr.push_back(eff.fx->getParameter(i));
-      obj["Params"] = std::move(arr);
+        stream.Double(eff.fx->getParameter(i));
+      stream.EndArray();
     }
   }
 }
 
 template <>
-void JSONObjectWriter::write(Media::VST::VSTEffectModel& eff)
+void JSONWriter::write(Media::VST::VSTEffectModel& eff)
 {
   writePorts(
-      obj,
+      *this,
       components.interfaces<Process::PortFactoryList>(),
       eff.m_inlets,
       eff.m_outlets,
       &eff);
 
-  auto it = obj.find("EffectId");
-  if (it != obj.end())
+  auto it = base.FindMember("EffectId");
+  if (it != base.MemberEnd())
   {
-    eff.m_effectId = it->toInt();
+    eff.m_effectId = it->value.GetInt();
   }
   else
   {
@@ -801,7 +802,7 @@ void JSONObjectWriter::write(Media::VST::VSTEffectModel& eff)
 
   eff.load();
   QPointer<Media::VST::VSTEffectModel> ptr = &eff;
-  QTimer::singleShot(1000, [obj = this->obj, ptr] {
+  QTimer::singleShot(1000, [base = clone(this->base), ptr] {
     if (!ptr)
       return;
     auto& eff = *ptr;
@@ -809,10 +810,10 @@ void JSONObjectWriter::write(Media::VST::VSTEffectModel& eff)
     {
       if (eff.fx->fx->flags & effFlagsProgramChunks)
       {
-        auto it = obj.find("Data");
-        if (it != obj.end())
+        auto it = base.FindMember("Data");
+        if (it != base.MemberEnd())
         {
-          auto b64 = websocketpp::base64_decode(it->toString().toStdString());
+          auto b64 = websocketpp::base64_decode(JsonValue{it->value}.toStdString());
           eff.fx->dispatch(effSetChunk, 0, b64.size(), b64.data(), 0.f);
 
           for (std::size_t i = 3; i < eff.inlets().size(); i++)
@@ -825,13 +826,13 @@ void JSONObjectWriter::write(Media::VST::VSTEffectModel& eff)
       }
       else
       {
-        auto it = obj.find("Params");
-        if (it != obj.end())
+        auto it = base.FindMember("Params");
+        if (it != base.MemberEnd())
         {
-          QJsonArray arr = it->toArray();
-          for (int i = 0; i < arr.size(); i++)
+          const auto& arr = it->value.GetArray();
+          for (std::size_t i = 0; i < arr.Size(); i++)
           {
-            eff.fx->setParameter(i, arr[i].toDouble());
+            eff.fx->setParameter(i, arr[i].GetDouble());
           }
         }
       }
@@ -853,14 +854,14 @@ void DataStreamWriter::write<Media::VST::VSTControlInlet>(
 }
 
 template <>
-void JSONObjectReader::read<Media::VST::VSTControlInlet>(
+void JSONReader::read<Media::VST::VSTControlInlet>(
     const Media::VST::VSTControlInlet& p)
 {
   obj["FxNum"] = p.fxNum;
   obj["Value"] = p.value();
 }
 template <>
-void JSONObjectWriter::write<Media::VST::VSTControlInlet>(
+void JSONWriter::write<Media::VST::VSTControlInlet>(
     Media::VST::VSTControlInlet& p)
 {
   p.fxNum = obj["FxNum"].toInt();

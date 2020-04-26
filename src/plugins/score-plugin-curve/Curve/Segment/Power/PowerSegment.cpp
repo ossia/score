@@ -172,13 +172,13 @@ void DataStreamWriter::write(Curve::PowerSegment& segmt)
 }
 
 template <>
-void JSONObjectReader::read(const Curve::PowerSegment& segmt)
+void JSONReader::read(const Curve::PowerSegment& segmt)
 {
   obj[strings.Power] = segmt.gamma;
 }
 
 template <>
-void JSONObjectWriter::write(Curve::PowerSegment& segmt)
+void JSONWriter::write(Curve::PowerSegment& segmt)
 {
   segmt.gamma = obj[strings.Power].toDouble();
 }
@@ -196,13 +196,13 @@ void DataStreamWriter::write(Curve::PowerSegmentData& segmt)
 }
 
 template <>
-void JSONObjectReader::read(const Curve::PowerSegmentData& segmt)
+void JSONReader::read(const Curve::PowerSegmentData& segmt)
 {
   obj[strings.Power] = segmt.gamma;
 }
 
 template <>
-void JSONObjectWriter::write(Curve::PowerSegmentData& segmt)
+void JSONWriter::write(Curve::PowerSegmentData& segmt)
 {
   segmt.gamma = obj[strings.Power].toDouble();
 }

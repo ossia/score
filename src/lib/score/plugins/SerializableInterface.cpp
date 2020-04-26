@@ -4,7 +4,7 @@
 
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/serialization/JSONVisitor.hpp>
-
+#include <score/plugins/UuidKey.hpp>
 #include <boost/uuid/nil_generator.hpp>
 
 namespace score
@@ -47,29 +47,29 @@ QByteArray toByteArray(uuid const& u)
 }
 }
 
-template <>
-SCORE_LIB_BASE_EXPORT void DataStreamReader::read(const score::uuid_t& obj)
+
+void TSerializer<DataStream, score::uuid_t>::readFrom(DataStream::Serializer& s, const score::uuid_t& uid)
 {
-  m_stream << score::uuids::toByteArray(obj);
+  s.stream().stream.writeRawData(
+      (const char*)uid.data, sizeof(uid.data));
+  SCORE_DEBUG_INSERT_DELIMITER2(s);
 }
 
-template <>
-SCORE_LIB_BASE_EXPORT void DataStreamWriter::write(score::uuid_t& obj)
+void TSerializer<DataStream, score::uuid_t>::writeTo(DataStream::Deserializer& s, score::uuid_t& uid)
 {
-  QByteArray s;
-  m_stream >> s;
-  obj = score::uuids::string_generator::compute(s.begin(), s.end());
+  s.stream().stream.readRawData(
+      (char*)uid.data, sizeof(uid.data));
+  SCORE_DEBUG_INSERT_DELIMITER2(s);
 }
 
-template <>
-SCORE_LIB_BASE_EXPORT void JSONValueReader::read(const score::uuid_t& obj)
+void TSerializer<JSONObject, score::uuid_t>::readFrom(JSONObject::Serializer& s, const score::uuid_t& uid)
 {
-  val = QString(score::uuids::toByteArray(obj));
+  JSONReader::assigner{s} = score::uuids::toByteArray(uid);
 }
 
-template <>
-SCORE_LIB_BASE_EXPORT void JSONValueWriter::write(score::uuid_t& obj)
+void TSerializer<JSONObject, score::uuid_t>::writeTo(JSONObject::Deserializer& s, score::uuid_t& uid)
 {
-  auto str = val.toString();
-  obj = score::uuids::string_generator::compute(str.begin(), str.end());
+  QByteArray str = JsonValue{s.base}.toByteArray();
+  uid = score::uuids::string_generator::compute(str.begin(), str.end());
 }
+

@@ -5,11 +5,6 @@
 #include <score/command/Command.hpp>
 #include <score/model/path/Path.hpp>
 
-#include <QJsonObject>
-
-struct DataStreamInput;
-struct DataStreamOutput;
-
 namespace Scenario
 {
 class StateModel;
@@ -25,7 +20,7 @@ class InsertContentInState final : public score::Command
 
 public:
   InsertContentInState(
-      const QJsonObject& stateData,
+      const rapidjson::Value& stateData,
       const Scenario::StateModel& state);
 
   void undo(const score::DocumentContext& ctx) const override;

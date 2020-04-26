@@ -11,7 +11,6 @@
 
 #include <QDirIterator>
 #include <QFile>
-#include <QJsonDocument>
 
 namespace Library
 {
@@ -40,12 +39,7 @@ void PresetItemModel::registerPreset(const Process::ProcessFactoryList& procs, c
   if(!f.open(QIODevice::ReadOnly))
     return;
 
-  QJsonParseError ok{};
-  auto preset = QJsonDocument::fromJson(f.readAll(), &ok);
-  if (ok.error != QJsonParseError::NoError)
-    return;
-
-  if(auto p = Process::Preset::fromJson(procs, preset.object()))
+  if(auto p = Process::Preset::fromJson(procs, f.readAll()))
   {
     auto it = std::lower_bound(presets.begin(), presets.end(), *p, [] (const auto& lhs, const auto& rhs) { return lhs.key < rhs.key; });
 
@@ -120,7 +114,7 @@ static bool updatePresetFilename(Process::Preset& preset, QString old = {})
   if(!f.open(QIODevice::WriteOnly))
     return false;
 
-  f.write(QJsonDocument{preset.toJson()}.toJson().data());
+  f.write(preset.toJson());
 
   if(!old.isEmpty())
   {
@@ -161,8 +155,8 @@ bool PresetItemModel::setData(const QModelIndex& index, const QVariant& value, i
 bool PresetItemModel::dropMimeData(const QMimeData* data, Qt::DropAction act, int row, int col, const QModelIndex& parent)
 {
   const auto& ctx = score::GUIAppContext();
-  auto json = data->data(score::mime::layerdata());
-  auto obj = fromJsonObject<Path<Process::ProcessModel>>(QJsonDocument::fromJson(json).object()["Path"]);
+  const rapidjson::Document jsondoc = readJson(data->data(score::mime::layerdata()));
+  auto obj = JsonValue{jsondoc}["Path"].to<Path<Process::ProcessModel>>();
   auto doc = ctx.docManager.currentDocument();
   if(!doc)
     return false;
@@ -201,8 +195,8 @@ QMimeData* PresetItemModel::mimeData(const QModelIndexList& indexes) const
 
   auto mime = new QMimeData;
   const auto& preset = presets[row];
-  QByteArray data = QJsonDocument{preset.toJson()}.toJson();
-  mime->setData(score::mime::processpreset(), data);
+
+  mime->setData(score::mime::processpreset(), preset.toJson());
 
   return mime;
 }

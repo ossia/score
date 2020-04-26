@@ -16,16 +16,21 @@ void DataStreamReader::read(const Explorer::DeviceDocumentPlugin& dev)
 }
 
 template <>
-void JSONObjectReader::read(const Explorer::DeviceDocumentPlugin& plug)
+void JSONReader::read(const Explorer::DeviceDocumentPlugin& plug)
 {
   // Childrens of the root node are the devices
   // We don't save their children if they don't have canSerialize().
 
-  obj["RootNode"] = QJsonObject{};
-  QJsonArray children;
+  // TODO WTF
+  this->stream.Key("RootNode");
+  this->stream.StartObject();
+  this->stream.EndObject();
+
+  this->stream.Key("Children");
+  this->stream.StartArray();
   for (const Device::Node& node : plug.rootNode().children())
   {
-    QJsonObject this_node;
+    // TODO maybe objects shouldn't be there actually ?
 
     SCORE_ASSERT(node.is<Device::DeviceSettings>());
     const Device::DeviceSettings& dev = node.get<Device::DeviceSettings>();
@@ -33,16 +38,15 @@ void JSONObjectReader::read(const Explorer::DeviceDocumentPlugin& plug)
     SCORE_ASSERT(actual);
     if (actual->capabilities().canSerialize)
     {
-      this_node = toJsonObject(node);
+      this->readFrom(node);
     }
     else
     {
-      this_node = toJsonObject(node.impl());
+      this->readFrom(node.impl());
     }
 
-    children.push_back(std::move(this_node));
   }
-  obj["Children"] = children;
+  this->stream.EndArray();
 }
 
 template <>
@@ -64,7 +68,7 @@ void DataStreamWriter::write(Explorer::DeviceDocumentPlugin& plug)
 }
 
 template <>
-void JSONObjectWriter::write(Explorer::DeviceDocumentPlugin& plug)
+void JSONWriter::write(Explorer::DeviceDocumentPlugin& plug)
 {
   Device::Node n;
   writeTo(n);

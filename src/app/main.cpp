@@ -239,3 +239,7 @@ WinMain(HINSTANCE, HINSTANCE, LPSTR /*cmdParamarg*/, int /* cmdShow */)
 }
 
 #endif
+
+
+SCORE_LIB_BASE_EXPORT
+    extern "C" float __log_finite(float v) { return std::log(v); }

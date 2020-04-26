@@ -320,7 +320,7 @@ bool DropScenario::drop(
       CommandDispatcher<> d{doc.commandStack};
       d.submit(new Scenario::Command::ScenarioPasteElements(
                  sm,
-                 QJsonDocument::fromJson(f.readAll()).object(),
+                 readJson(f.readAll()),
                  pres.toScenarioPoint(pos)));
       return true;
     }
@@ -345,18 +345,37 @@ bool DropScore::drop(const ScenarioPresenter& pres, QPointF pos, const QMimeData
     if (QFile f{path};
         QFileInfo{f}.suffix() == "score" && f.open(QIODevice::ReadOnly))
     {
-      QJsonObject res;
+      rapidjson::Document res;
 
-      auto obj = QJsonDocument::fromJson(f.readAll()).object();
-      auto docobj = obj["Document"].toObject();
+      auto obj = readJson(f.readAll());
+      auto& docobj = obj["Document"];
       res["Cables"] = docobj["Cables"];
 
-      obj = docobj["BaseScenario"].toObject();
+      auto& scenar = docobj["BaseScenario"];
 
-      res["Intervals"] = QJsonArray{obj["Constraint"].toObject()};
-      res["States"] = QJsonArray{obj["StartState"].toObject(), obj["EndState"].toObject()};
-      res["Events"] = QJsonArray{obj["StartEvent"].toObject(), obj["EndEvent"].toObject()};
-      res["TimeNodes"] = QJsonArray{obj["StartTimeNode"].toObject(), obj["EndTimeNode"].toObject()};
+      {
+        rapidjson::Value arr(rapidjson::kArrayType);
+        arr.PushBack(scenar["Constraint"], obj.GetAllocator());
+        res["Intervals"] = arr;
+      }
+      {
+        rapidjson::Value arr(rapidjson::kArrayType);
+        arr.PushBack(scenar["StartState"], obj.GetAllocator());
+        arr.PushBack(scenar["EndState"], obj.GetAllocator());
+        res["States"] = arr;
+      }
+      {
+        rapidjson::Value arr(rapidjson::kArrayType);
+        arr.PushBack(scenar["StartEvent"], obj.GetAllocator());
+        arr.PushBack(scenar["EndEvent"], obj.GetAllocator());
+        res["Events"] = arr;
+      }
+      {
+        rapidjson::Value arr(rapidjson::kArrayType);
+        arr.PushBack(scenar["StartTimeNode"], obj.GetAllocator());
+        arr.PushBack(scenar["EndTimeNode"], obj.GetAllocator());
+        res["TimeNodes"] = arr;
+      }
 
       CommandDispatcher<> d{doc.commandStack};
       d.submit(new Scenario::Command::ScenarioPasteElements(
@@ -381,12 +400,11 @@ bool DropLayerInScenario::drop(
     QPointF pos,
     const QMimeData& mime)
 {
-  QJsonObject json;
+  rapidjson::Document json;
   QString filename;
   if (mime.formats().contains(score::mime::layerdata()))
   {
-    json = QJsonDocument::fromJson(mime.data(score::mime::layerdata()))
-        .object();
+    json = readJson(mime.data(score::mime::layerdata()));
   }
   else if (mime.hasUrls())
   {
@@ -394,11 +412,15 @@ bool DropLayerInScenario::drop(
         QFileInfo{f}.suffix() == "layer" && f.open(QIODevice::ReadOnly))
     {
       filename = QFileInfo{f}.fileName();
-      json = QJsonDocument::fromJson(f.readAll()).object();
+      json = readJson(f.readAll());
     }
   }
+  else
+  {
+    return false;
+  }
 
-  if (json.empty())
+  if (json.MemberCount() == 0)
     return false;
 
   Scenario::Command::Macro m{new Scenario::Command::AddProcessInNewBoxMacro,
@@ -408,7 +430,7 @@ bool DropLayerInScenario::drop(
   const Scenario::ProcessModel& scenar = pres.model();
   const Scenario::Point pt = pres.toScenarioPoint(pos);
 
-  const TimeVal t = TimeVal::fromMsecs(json["Duration"].toDouble());
+  const TimeVal t = TimeVal::fromMsecs(json["Duration"].GetDouble());
 
   auto& interval = m.createBox(scenar, pt.date, pt.date + t, pt.y);
 
@@ -423,19 +445,21 @@ void DropLayerInInterval::perform(
     const IntervalModel& interval,
     const score::DocumentContext& ctx,
     Scenario::Command::Macro& m,
-    const QJsonObject& json)
+    const rapidjson::Document& json)
 {
   const auto pid = ossia::get_pid();
-  const bool same_doc
-      = (pid == json["PID"].toInt())
-      && (ctx.document.id().val() == json["Document"].toInt());
-  const bool small_view = json["View"].toString() == "Small";
-  const int slot_index = json["SlotIndex"].toInt();
+  bool same_doc = false;
+  if(json.HasMember("PID") && json.HasMember("Document"))
+  {
+    same_doc = (pid == json["PID"].GetInt());
+    same_doc &= (ctx.document.id().val() == json["Document"].GetInt());
+  }
+  const bool small_view = JsonValue{json["View"]}.toString() == "Small";
+  const int slot_index = json["SlotIndex"].GetInt();
 
   if (same_doc)
   {
-    const auto old_p
-        = fromJsonObject<Path<Process::ProcessModel>>(json["Path"]);
+    auto old_p = JsonValue{json["Path"]}.to<Path<Process::ProcessModel>>();
     if (auto obj = old_p.try_find(ctx))
       if (auto itv = qobject_cast<IntervalModel*>(obj->parent()))
       {
@@ -470,8 +494,7 @@ void DropLayerInInterval::perform(
   // Reload cables
   {
     auto new_path = score::IDocument::path(interval).unsafePath();
-    auto cables = fromJsonValueArray<Dataflow::SerializedCables>(
-          json["Cables"].toArray());
+    auto cables = JsonValue{json["Cables"]}.to<Dataflow::SerializedCables>();
 
     auto& document
         = score::IDocument::get<Scenario::ScenarioDocumentModel>(ctx.document);
@@ -498,9 +521,7 @@ bool DropLayerInInterval::drop(
     Scenario::Command::Macro m{
       new Scenario::Command::DropProcessInIntervalMacro, ctx};
 
-    const auto json
-        = QJsonDocument::fromJson(mime.data(score::mime::layerdata()))
-        .object();
+    const auto json = readJson(mime.data(score::mime::layerdata()));
     perform(interval, ctx, m, json);
     m.commit();
     return true;
@@ -517,10 +538,7 @@ bool DropLayerInInterval::drop(
           QFileInfo{f}.suffix() == "layer" && f.open(QIODevice::ReadOnly))
       {
         ok = true;
-        QJsonParseError e{};
-        const auto json = QJsonDocument::fromJson(f.readAll(), &e).object();
-        if (e.error == QJsonParseError::NoError)
-          perform(interval, ctx, m, json);
+        perform(interval, ctx, m, readJson(f.readAll()));
       }
     }
 

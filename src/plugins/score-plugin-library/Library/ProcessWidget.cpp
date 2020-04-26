@@ -48,7 +48,7 @@ public:
                        .get(d->key))
       {
         setVisible(true);
-        auto desc = f->descriptor(d->json["Data"].toString());
+        auto desc = f->descriptor(QString{/*TODO pass customdata ?*/});
         m_name.setText(desc.prettyName);
         m_author.setText(tr("Provided by ") + desc.author);
         m_description.setText(desc.description);

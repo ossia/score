@@ -146,7 +146,7 @@ DataStreamReader::read<score::SerializableComponent>(
 }
 template <>
 SCORE_LIB_BASE_EXPORT void
-JSONObjectReader::read<score::SerializableComponent>(
+JSONReader::read<score::SerializableComponent>(
     const score::SerializableComponent&)
 {
 }

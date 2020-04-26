@@ -12,6 +12,7 @@
 #include <Scenario/Process/Algorithms/VerticalMovePolicy.hpp>
 #include <score/document/DocumentContext.hpp>
 #include <score/model/EntityMap.hpp>
+#include <score/model/EntityMapSerialization.hpp>
 #include <score/model/Identifier.hpp>
 #include <score/model/ModelMetadata.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
@@ -25,17 +26,6 @@
 
 #include <sys/types.h>
 
-
-namespace Process
-{
-class ProcessModel;
-}
-class QObject;
-struct VisitorVariant;
-template <typename T>
-class Reader;
-template <typename T>
-class Writer;
 
 template <>
 void DataStreamReader::read(const Scenario::ProcessModel& scenario)
@@ -169,45 +159,42 @@ void DataStreamWriter::write(Scenario::ProcessModel& scenario)
 }
 
 template <>
-void JSONObjectReader::read(const Scenario::ProcessModel& scenario)
+void JSONReader::read(const Scenario::ProcessModel& scenario)
 {
-  obj["Inlet"] = toJsonObject(*scenario.inlet);
-  obj["Outlet"] = toJsonObject(*scenario.outlet);
-  obj["StartTimeNodeId"] = toJsonValue(scenario.m_startTimeSyncId);
-  obj["StartEventId"] = toJsonValue(scenario.m_startEventId);
-  obj["StartStateId"] = toJsonValue(scenario.m_startStateId);
+  obj["Inlet"] = *scenario.inlet;
+  obj["Outlet"] = *scenario.outlet;
+  obj["StartTimeNodeId"] = scenario.m_startTimeSyncId;
+  obj["StartEventId"] = scenario.m_startEventId;
+  obj["StartStateId"] = scenario.m_startStateId;
 
-  obj["TimeNodes"] = toJsonArray(scenario.timeSyncs);
-  obj["Events"] = toJsonArray(scenario.events);
-  obj["States"] = toJsonArray(scenario.states);
-  obj["Constraints"] = toJsonArray(scenario.intervals);
-  obj["Comments"] = toJsonArray(scenario.comments);
+  obj["TimeNodes"] = scenario.timeSyncs;
+  obj["Events"] = scenario.events;
+  obj["States"] = scenario.states;
+  obj["Constraints"] = scenario.intervals;
+  obj["Comments"] = scenario.comments;
 }
 
 template <>
-void JSONObjectWriter::write(Scenario::ProcessModel& scenario)
+void JSONWriter::write(Scenario::ProcessModel& scenario)
 {
   {
-    JSONObjectWriter writer{obj["Inlet"].toObject()};
+    JSONWriter writer{obj["Inlet"]};
     scenario.inlet = Process::load_audio_inlet(writer, &scenario);
   }
   {
-    JSONObjectWriter writer{obj["Outlet"].toObject()};
+    JSONWriter writer{obj["Outlet"]};
     scenario.outlet = Process::load_audio_outlet(writer, &scenario);
   }
 
-  scenario.m_startTimeSyncId
-      = fromJsonValue<Id<Scenario::TimeSyncModel>>(obj["StartTimeNodeId"]);
-  scenario.m_startEventId
-      = fromJsonValue<Id<Scenario::EventModel>>(obj["StartEventId"]);
-  scenario.m_startStateId
-      = fromJsonValue<Id<Scenario::StateModel>>(obj["StartStateId"]);
+  scenario.m_startTimeSyncId <<= obj["StartTimeNodeId"];
+  scenario.m_startEventId <<= obj["StartEventId"];
+  scenario.m_startStateId <<= obj["StartStateId"];
 
   const auto& intervals = obj["Constraints"].toArray();
   for (const auto& json_vref : intervals)
   {
     auto interval = new Scenario::IntervalModel{
-        JSONObject::Deserializer{json_vref.toObject()}, scenario.context(), &scenario};
+        JSONObject::Deserializer{json_vref}, scenario.context(), &scenario};
     scenario.intervals.add(interval);
   }
 
@@ -215,7 +202,7 @@ void JSONObjectWriter::write(Scenario::ProcessModel& scenario)
   for (const auto& json_vref : timesyncs)
   {
     auto tnmodel = new Scenario::TimeSyncModel{
-        JSONObject::Deserializer{json_vref.toObject()}, &scenario};
+        JSONObject::Deserializer{json_vref}, &scenario};
 
     scenario.timeSyncs.add(tnmodel);
   }
@@ -224,7 +211,7 @@ void JSONObjectWriter::write(Scenario::ProcessModel& scenario)
   for (const auto& json_vref : events)
   {
     auto evmodel = new Scenario::EventModel{
-        JSONObject::Deserializer{json_vref.toObject()}, &scenario};
+        JSONObject::Deserializer{json_vref}, &scenario};
     if (!evmodel->states().empty())
     {
       scenario.events.add(evmodel);
@@ -246,7 +233,7 @@ void JSONObjectWriter::write(Scenario::ProcessModel& scenario)
   for (const auto& json_vref : comments)
   {
     auto cmtmodel = new Scenario::CommentBlockModel{
-        JSONObject::Deserializer{json_vref.toObject()}, &scenario};
+        JSONObject::Deserializer{json_vref}, &scenario};
 
     scenario.comments.add(cmtmodel);
   }
@@ -255,7 +242,7 @@ void JSONObjectWriter::write(Scenario::ProcessModel& scenario)
   for (const auto& json_vref : states)
   {
     auto stmodel = new Scenario::StateModel{
-        JSONObject::Deserializer{json_vref.toObject()}, scenario.context(), &scenario};
+        JSONObject::Deserializer{json_vref}, scenario.context(), &scenario};
 
     scenario.states.add(stmodel);
   }

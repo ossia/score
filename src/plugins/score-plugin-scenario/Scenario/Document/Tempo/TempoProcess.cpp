@@ -131,19 +131,19 @@ void DataStreamWriter::write(Scenario::TempoProcess& autom)
 }
 
 template <>
-void JSONObjectReader::read(const Scenario::TempoProcess& autom)
+void JSONReader::read(const Scenario::TempoProcess& autom)
 {
-  obj["Inlet"] = toJsonObject(*autom.inlet);
-  obj["Curve"] = toJsonObject(autom.curve());
+  obj["Inlet"] = *autom.inlet;
+  obj["Curve"] = autom.curve();
 }
 
 template <>
-void JSONObjectWriter::write(Scenario::TempoProcess& autom)
+void JSONWriter::write(Scenario::TempoProcess& autom)
 {
   {
-    JSONObjectWriter writer{obj["Inlet"].toObject()};
+    JSONWriter writer{obj["Inlet"]};
     autom.inlet = Process::load_value_inlet(writer, &autom);
   }
-  JSONObject::Deserializer curve_deser{obj["Curve"].toObject()};
+  JSONObject::Deserializer curve_deser{obj["Curve"]};
   autom.setCurve(new Curve::Model{curve_deser, &autom});
 }

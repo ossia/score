@@ -16,9 +16,11 @@
 
 #include <QCoreApplication>
 #include <QDir>
-#include <QJsonDocument>
 #include <QSettings>
 #include <QStandardPaths>
+#include <QJsonValue>
+#include <QJsonObject>
+#include <QJsonDocument>
 
 #include <utility>
 

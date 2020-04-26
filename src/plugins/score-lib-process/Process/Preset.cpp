@@ -1,38 +1,39 @@
 #include "Preset.hpp"
 #include <Process/ProcessList.hpp>
+using JsonWriter = rapidjson::Writer<rapidjson::StringBuffer>;
 
 namespace Process
 {
 
-std::optional<Preset> Preset::fromJson(const ProcessFactoryList& procs, const QJsonObject& obj) noexcept
+std::shared_ptr<Preset> Preset::fromJson(const ProcessFactoryList& procs, const QByteArray& obj) noexcept
 {
-  auto k = obj["Key"].toObject();
-  auto uuid_k = fromJsonValue<score::uuid_t>(k["Uuid"]);
-  auto sub_k = k["Effect"].toString();
-
-  auto it = procs.find(uuid_k);
-  if(it == procs.end())
-    return std::nullopt;
-
+  rapidjson::Document doc;
   Process::Preset p;
-  p.key = {uuid_k, sub_k};
-  p.data = obj["Preset"].toObject();
-  p.name = obj["Name"].toString();
+  doc.Parse(obj.data(), obj.size());
 
-  return p;
+  JSONWriter wr{doc};
+  const auto& k = wr.obj["Key"];
+  p.key.key <<= k["Uuid"];
+  p.key.effect = k["Effect"].toString();
+
+  auto it = procs.find(p.key.key);
+  if(it == procs.end())
+    return {};
+
+  rapidjson::StringBuffer buf;
+  JsonWriter writer(buf);
+  wr.obj["Preset"].obj.Accept(writer);
+  p.data = QByteArray(buf.GetString(), buf.GetSize());
+  p.name = wr.obj["Name"].toString();
+
+  return std::make_shared<Process::Preset>(std::move(p));
 }
 
-QJsonObject Preset::toJson() const noexcept
+QByteArray Preset::toJson() const noexcept
 {
-  QJsonObject presetObj;
-  QJsonObject keyObj;
-  keyObj["Uuid"] = toJsonValue(key.key);
-  keyObj["Effect"] = key.effect;
-
-  presetObj["Name"] = name;
-  presetObj["Key"] = keyObj;
-  presetObj["Preset"] = data;
-  return presetObj;
+  JSONReader ser;
+  ser.readFrom(*this);
+  return ser.toByteArray();
 }
 
 }
@@ -54,21 +55,43 @@ DataStreamWriter::write(Process::Preset& p)
 
 template <>
 SCORE_LIB_PROCESS_EXPORT void
-JSONObjectReader::read(const Process::Preset& p)
+JSONReader::read(const Process::Preset& p)
 {
-  obj = p.toJson();
+  stream.StartObject();
+  stream.Key("Key");
+  stream.StartObject();
+  readFrom(p.key.key);
+  readFrom(p.key.effect);
+  stream.EndObject();
+
+  obj["Name"] = p.name;
+
+  {
+    // TODO not very optimal...
+    rapidjson::Document doc;
+    doc.Parse(p.data.data(), p.data.size());
+
+    stream.Key("Preset");
+    doc.Accept(stream);
+  }
+  stream.EndObject();
 }
 
 // We only load the members of the process here.
 template <>
 SCORE_LIB_PROCESS_EXPORT void
-JSONObjectWriter::write(Process::Preset& p)
+JSONWriter::write(Process::Preset& p)
 {
-  auto k = obj["Key"].toObject();
-  auto uuid_k = fromJsonValue<score::uuid_t>(k["Uuid"]);
-  auto sub_k = k["Effect"].toString();
+  const auto& k = obj["Key"];
+  p.key.key <<= k["Uuid"];
+  p.key.effect = k["Effect"].toString();
 
-  p.key = {uuid_k, sub_k};
-  p.data = obj["Preset"].toObject();
+  {
+    // TODO not very optimal...
+    rapidjson::StringBuffer buf;
+    JsonWriter writer(buf);
+    obj["Preset"].obj.Accept(writer);
+    p.data = QByteArray(buf.GetString(), buf.GetSize());
+  }
   p.name = obj["Name"].toString();
 }

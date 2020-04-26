@@ -827,7 +827,7 @@ void QGraphicsEnum::setRect(const QRectF& r)
 
 void QGraphicsEnum::setValue(int v)
 {
-  m_value = ossia::clamp(v, 0, array.size() - 1);
+  m_value = ossia::clamp(v, 0, (int)array.size() - 1);
   update();
 }
 

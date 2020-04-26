@@ -192,17 +192,14 @@ void IntervalView::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
     if (auto si = dynamic_cast<Scenario::ScenarioInterface*>(
             presenter().model().parent()))
     {
-      auto obj = copySelectedElementsToJson(
-          *const_cast<ScenarioInterface*>(si), m_presenter.context());
+      JSONReader r;
+      copySelectedElementsToJson(r, *const_cast<ScenarioInterface*>(si), m_presenter.context());
 
-      if (!obj.empty())
+      if (!r.empty())
       {
         QDrag d{this};
         auto m = new QMimeData;
-        QJsonDocument doc{obj};
-        ;
-        m->setData(
-            score::mime::scenariodata(), doc.toJson(QJsonDocument::Indented));
+        m->setData(score::mime::scenariodata(), r.toByteArray());
         d.setMimeData(m);
         d.exec();
       }

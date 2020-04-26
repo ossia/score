@@ -54,11 +54,11 @@ void InsertEffect::deserializeImpl(DataStreamOutput& s)
 
 LoadEffect::LoadEffect(
     const Media::ChainProcess& model,
-    const QJsonObject& data,
+    const rapidjson::Document& data,
     std::size_t effectPos)
     : m_path{model}
     , m_id{getStrongId(model.effects())}
-    , m_data{data}
+    , m_data{clone(data)}
     , m_pos{effectPos}
 {
 }
@@ -75,9 +75,9 @@ void LoadEffect::redo(const score::DocumentContext& ctx) const
   auto& echain = m_path.find(ctx);
 
   // Create process model
-  auto obj = m_data[score::StringConstant().Process].toObject();
-  auto key = fromJsonValue<UuidKey<Process::ProcessModel>>(
-      obj[score::StringConstant().uuid]);
+  JSONWriter r{m_data};
+  const auto& obj = r.obj[score::StringConstant().Process];
+  auto key = r.obj[score::StringConstant().uuid].to<UuidKey<Process::ProcessModel>>();
   auto fac = ctx.app.interfaces<Process::ProcessFactoryList>().get(key);
   SCORE_ASSERT(fac);
   // TODO handle missing effect

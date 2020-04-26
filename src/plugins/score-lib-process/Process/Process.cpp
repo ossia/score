@@ -203,12 +203,12 @@ Process::Outlet* ProcessModel::outlet(const Id<Process::Port>& p) const
 
 void ProcessModel::loadPreset(const Preset& preset)
 {
-  auto ctrls = preset.data["Controls"].toArray();
+  const rapidjson::Document doc = readJson(preset.data);
+  const auto& ctrls = doc["Controls"].GetArray();
 
-  for(const auto& json_val : ctrls) {
-    const auto& arr = json_val.toArray();
-    const auto& id = arr[0].toInt();
-    const auto& val = fromJsonValue<ossia::value>(arr[1]);
+  for(const auto& arr : ctrls) {
+    const auto& id = arr[0].GetInt();
+    ossia::value val = JsonValue{arr[1]}.to<ossia::value>();
 
     auto it = ossia::find_if(m_inlets, [&] (const auto& inl) { return inl->id().val() == id; });
     if(it != m_inlets.end())
@@ -228,19 +228,20 @@ Preset ProcessModel::savePreset() const noexcept
   p.name = this->metadata().getName();
   p.key.key = this->concreteKey();
 
-  QJsonArray values;
+  JSONReader r;
+  r.stream.StartArray();
   for(const auto& inlet : m_inlets)
   {
     if(auto ctrl = qobject_cast<Process::ControlInlet*>(inlet))
     {
-      QJsonArray json_ctrl;
-      json_ctrl.push_back(ctrl->id().val());
-      json_ctrl.push_back(toJsonValue(ctrl->value()));
-      values.push_back(json_ctrl);
+      r.stream.StartArray();
+      r.stream.Int(ctrl->id().val());
+      r.readFrom(ctrl->value());
+      r.stream.EndArray();
     }
   }
-  p.data["Controls"] = values;
-
+  r.stream.EndArray();
+  p.data = r.toByteArray();
   return p;
 }
 

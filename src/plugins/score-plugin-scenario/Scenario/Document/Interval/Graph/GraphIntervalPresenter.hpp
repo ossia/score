@@ -7,7 +7,10 @@
 #include <QPainterPath>
 #include <score/model/ColorInterpolator.hpp>
 #include <score_plugin_scenario_export.h>
-
+namespace score
+{
+struct Brush;
+}
 namespace Process
 {
 struct Context;

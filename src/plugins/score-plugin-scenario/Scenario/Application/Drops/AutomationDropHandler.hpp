@@ -106,7 +106,7 @@ public:
       const IntervalModel& interval,
       const score::DocumentContext& doc,
       Scenario::Command::Macro& m,
-      const QJsonObject& json);
+      const rapidjson::Document& json);
 };
 /**
  * @brief The ProcessDropHandler class

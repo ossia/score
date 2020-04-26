@@ -21,14 +21,14 @@ void DataStreamWriter::write(Protocols::WSSpecificSettings& n)
 }
 
 template <>
-void JSONObjectReader::read(const Protocols::WSSpecificSettings& n)
+void JSONReader::read(const Protocols::WSSpecificSettings& n)
 {
   obj[strings.Address] = n.address;
   obj["Text"] = n.text;
 }
 
 template <>
-void JSONObjectWriter::write(Protocols::WSSpecificSettings& n)
+void JSONWriter::write(Protocols::WSSpecificSettings& n)
 {
   n.address = obj[strings.Address].toString();
   n.text = obj["Text"].toString();
