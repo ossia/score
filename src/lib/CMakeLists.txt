@@ -58,6 +58,8 @@ set(HEADERS
     "${CMAKE_CURRENT_SOURCE_DIR}/core/undo/Panel/Widgets/UndoListWidget.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/core/undo/UndoApplicationPlugin.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/core/view/Window.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/core/view/FixedTabWidget.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/core/view/HelperPanelDelegate.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/core/view/QRecentFilesMenu.h"
 
     "${CMAKE_CURRENT_SOURCE_DIR}/score/actions/Action.hpp"
@@ -398,6 +400,7 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/core/undo/Panel/UndoPanelFactory.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/core/undo/UndoApplicationPlugin.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/core/view/Window.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/core/view/FixedTabWidget.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/core/view/QRecentFilesMenu.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/QProgressIndicator/QProgressIndicator.cpp"

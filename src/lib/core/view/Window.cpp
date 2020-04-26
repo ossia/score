@@ -1,5 +1,7 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+#include "HelperPanelDelegate.hpp"
+
 #include <score/actions/Menu.hpp>
 #include <score/plugins/application/GUIApplicationPlugin.hpp>
 #include <score/plugins/documentdelegate/DocumentDelegateView.hpp>
@@ -11,6 +13,7 @@
 #include <core/document/DocumentView.hpp>
 #include <core/presenter/Presenter.hpp>
 #include <core/view/Window.hpp>
+#include <core/view/FixedTabWidget.hpp>
 
 #include <ossia/detail/algorithms.hpp>
 
@@ -41,16 +44,6 @@
 W_OBJECT_IMPL(score::View)
 namespace score
 {
-struct PanelComparator
-{
-  bool operator()(
-      const QPair<score::PanelDelegate*, QWidget*>& lhs,
-      const QPair<score::PanelDelegate*, QWidget*>& rhs) const
-  {
-    return lhs.first->defaultPanelStatus().priority
-           < rhs.first->defaultPanelStatus().priority;
-  }
-};
 View::~View() {}
 
 static void
@@ -77,7 +70,6 @@ setTitle(View& view, const score::Document* document, bool save_state) noexcept
   view.setWindowTitle(title);
 }
 
-W_OBJECT_IMPL(FixedTabWidget)
 class RectSplitter : public QSplitter
 {
 public:
@@ -123,7 +115,6 @@ public:
   {
     QPainter p{this};
     p.fillRect(rect(), Qt::transparent);
-
   }
 };
 
@@ -148,8 +139,9 @@ public:
 
   void paintEvent(QPaintEvent* ev) override
   {
+    static const QFont font("Ubuntu", 9, QFont::Bold);
     QPainter painter{this};
-    painter.setFont(QFont("Ubuntu", 9, QFont::Bold));
+    painter.setFont(font);
     painter.drawText(rect(), Qt::AlignCenter, m_text);
   }
 
@@ -297,48 +289,6 @@ void View::addDocumentView(DocumentView* doc)
   sizeChanged(size());
 }
 
-class HelperPanelDelegate : public PanelDelegate
-{
-public:
-  HelperPanelDelegate(const score::GUIApplicationContext& ctx)
-      : PanelDelegate{ctx}
-  {
-    widg = new QWidget;
-    widg->setContentsMargins(3, 2, 3, 2);
-    widg->setMinimumHeight(100);
-    widg->setMaximumHeight(100);
-    widg->setMinimumWidth(180);
-
-    auto l = new QVBoxLayout{widg};
-
-    status = new QLabel;
-    status->setTextFormat(Qt::RichText);
-    status->setText("<i>Remember those quiet evenings</i>");
-    status->setWordWrap(true);
-
-#ifndef QT_NO_STYLE_STYLESHEET
-    status->setStyleSheet("color: #787876;");
-#endif
-    l->addWidget(status);
-    l->addStretch(12);
-  }
-
-  QWidget* widget() override { return widg; }
-
-  const PanelStatus& defaultPanelStatus() const override
-  {
-    static const PanelStatus stat{true,
-                                  true,
-                                  Qt::RightDockWidgetArea,
-                                  -100000,
-                                  "Info",
-                                  "info",
-                                  QKeySequence::HelpContents};
-    return stat;
-  }
-  QWidget* widg{};
-  QLabel* status{};
-};
 void View::setupPanel(PanelDelegate* v)
 {
   {
@@ -403,10 +353,12 @@ void View::allPanelsAdded()
     {
       auto splitter = (RectSplitter*)centralWidget();
       auto act = bottomTabs->addAction(rightSplitter->widget(1), panel.defaultPanelStatus());
+      bottomTabs->actionGroup()->removeAction(act);
+      act->setChecked(true);
       connect(act, &QAction::toggled, this, [splitter] (bool ok) {
+        QList<int> sz = splitter->sizes();
         if(ok)
         {
-          QList<int> sz = splitter->sizes();
           if(sz[2] <= 1)
           {
             sz[2] = 200;
@@ -415,7 +367,6 @@ void View::allPanelsAdded()
         }
         else
         {
-          QList<int> sz = splitter->sizes();
           sz[2] = 0;
           splitter->setSizes(sz);
         }
@@ -529,96 +480,5 @@ bool score::View::event(QEvent* event)
   return QMainWindow::event(event);
 }
 
-FixedTabWidget::FixedTabWidget() noexcept
-  : m_buttons{new QToolBar}
-{
-  this->setContentsMargins(2, 2, 2, 2);
-  this->setLayout(&m_layout);
-  auto layout = new QVBoxLayout;
-  layout->setMargin(9);
-  layout->setSpacing(6);
-  layout->addWidget(&m_stack);
-  m_layout.addLayout(layout);
-  m_layout.addWidget(m_buttons);
-  QPalette transp = this->palette();
-  transp.setColor(QPalette::Background, Qt::transparent);
-  m_buttons->setPalette(transp);
-  m_buttons->setIconSize(QSize{24,24});
-  m_buttons->setContentsMargins(0, 0, 0, 0);
-
-  m_actGrp = new QActionGroup{m_buttons};
-  m_actGrp->setExclusive(true);
-}
-
-
-QActionGroup* FixedTabWidget::actionGroup() const noexcept { return m_actGrp; }
-
-
-QToolBar* FixedTabWidget::toolbar() const noexcept { return m_buttons; }
-
-
-QSize FixedTabWidget::sizeHint() const
-{
-  return {200, 1000};
-}
-
-
-void FixedTabWidget::setTab(int index)
-{
-  if(m_actGrp->actions()[index]->isChecked())
-    return;
-
-  m_actGrp->actions()[index]->trigger();
-}
-
-
-std::pair<int, QAction*> FixedTabWidget::addTab(QWidget* widg, const PanelStatus& v)
-{
-  int idx = m_stack.addWidget(widg);
-
-  auto btn = m_buttons->addAction(v.icon, v.prettyName);
-  m_actGrp->addAction(btn);
-  btn->setCheckable(true);
-  btn->setShortcut(v.shortcut);
-  btn->setIcon(v.icon);
-
-  btn->setToolTip(v.prettyName);
-  btn->setWhatsThis(widg->whatsThis());
-  btn->setStatusTip(widg->statusTip());
-
-  connect(btn, &QAction::triggered,
-          &m_stack, [this, btn, idx] (bool checked) {
-    m_stack.setCurrentIndex(idx);
-    actionTriggered(btn, checked);
-  });
-
-  return std::make_pair(idx, btn);
-}
-
-QAction* FixedTabWidget::addAction(QWidget* widg, const PanelStatus& v)
-{
-  auto btn = m_buttons->addAction(v.icon, v.prettyName);
-  m_actGrp->addAction(btn);
-  btn->setCheckable(true);
-  btn->setShortcut(v.shortcut);
-  btn->setIcon(v.icon);
-
-  btn->setToolTip(v.prettyName);
-  btn->setWhatsThis(widg->whatsThis());
-  btn->setStatusTip(widg->statusTip());
-
-  return btn;
-}
-
-
-void FixedTabWidget::paintEvent(QPaintEvent* ev)
-{
-  if(brush == QBrush()) return;
-  QPainter p{this};
-  p.setPen(Qt::transparent);
-  //p.setBrush(QColor("#121216"));
-  p.setBrush(brush);
-  p.drawRoundedRect(rect(), 3, 3);
-}
 
 }

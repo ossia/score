@@ -15,6 +15,7 @@
 #include <core/settings/SettingsView.hpp>
 #include <core/view/QRecentFilesMenu.h>
 #include <core/view/Window.hpp>
+#include <core/view/FixedTabWidget.hpp>
 
 #include <ossia/detail/algorithms.hpp>
 
