@@ -160,7 +160,9 @@ public:
 
       // What happens in each state.
       QObject::connect(pressed, &QState::entered, [&]() {
+        this->currentPoint.date = stateMachine.magnetic().getPosition(&stateMachine.model(), this->currentPoint.date);
         this->m_clickedPoint = this->currentPoint;
+
         this->clickedEvent = this->m_parentSM.model().startEvent().id();
         createToNothing();
       });
