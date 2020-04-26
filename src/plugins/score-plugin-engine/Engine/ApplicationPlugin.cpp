@@ -254,6 +254,7 @@ score::GUIElements ApplicationPlugin::makeGUIElements()
     {
       auto musical_act = new QAction{tr("Enable musical mode"), this};
       musical_act->setCheckable(true);
+      musical_act->setChecked(true);
       musical_act->setStatusTip(tr("Enable musical mode"));
       setIcons(musical_act
                , QStringLiteral(":/icons/music_on.png")
