@@ -1,5 +1,6 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+
 #include "DefaultClock.hpp"
 
 #include <Process/ExecutionContext.hpp>
@@ -144,12 +145,16 @@ std::unique_ptr<Clock> ControlClockFactory::make(const Execution::Context& ctx)
 Execution::time_function
 ControlClockFactory::makeTimeFunction(const score::DocumentContext& ctx) const
 {
-  return &Engine::score_to_ossia::defaultTime;
+  SCORE_ABORT;
+  return {};
+  //return &Engine::score_to_ossia::defaultTime;
 }
 
 Execution::reverse_time_function ControlClockFactory::makeReverseTimeFunction(
     const score::DocumentContext& ctx) const
 {
-  return &Engine::ossia_to_score::defaultTime;
+  SCORE_ABORT;
+  return {};
+  //return &Engine::ossia_to_score::defaultTime;
 }
 }

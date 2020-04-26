@@ -14,17 +14,24 @@ namespace score
  *
  * Adapted for the score usage in various duration widgets.
  */
-class TimeSpinBox final : public QTimeEdit
+class TimeSpinBox final : public QAbstractSpinBox
 {
+  W_OBJECT(TimeSpinBox)
 public:
-  TimeSpinBox(QWidget* parent = nullptr) : QTimeEdit(parent)
+  TimeSpinBox(QWidget* parent = nullptr) : QAbstractSpinBox(parent)
   {
-    setDisplayFormat(QStringLiteral("h.mm.ss.zzz"));
+  //setDisplayFormat(QStringLiteral("h.mm.ss.zzz"));
     setAlignment(Qt::AlignRight);
   }
 
+  void setMinimumTime(QTime) { }
+  void setMaximumTime(QTime) { }
+  void setTime(QTime) {}
+  QTime time() const noexcept {  return {}; }
+  void timeChanged(QTime t) W_SIGNAL(timeChanged, t);
   void wheelEvent(QWheelEvent* event) override { event->ignore(); }
 };
+
 
 template <typename T>
 /**

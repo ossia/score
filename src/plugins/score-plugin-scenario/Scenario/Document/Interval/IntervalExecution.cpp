@@ -301,7 +301,7 @@ void IntervalComponent::slot_callback(bool running, ossia::time_value date)
       const auto& maxdur = cstdur.maxDuration();
 
       auto currentTime = this->context().reverseTime(date);
-      if (!maxdur.isInfinite())
+      if (!maxdur.infinite())
       {
         if(maxdur > TimeVal::zero())
           cstdur.setPlayPercentage(currentTime / cstdur.maxDuration());

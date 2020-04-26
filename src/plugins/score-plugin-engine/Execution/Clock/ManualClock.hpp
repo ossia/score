@@ -92,6 +92,7 @@ private:
   bool m_paused{};
 };
 
+/*
 class ClockFactory final : public Execution::ClockFactory
 {
   SCORE_CONCRETE("5e8d0f1b-752f-4e29-8c8c-ecd65bd69806")
@@ -125,5 +126,6 @@ class ClockFactory final : public Execution::ClockFactory
     };
   }
 };
+*/
 }
 }

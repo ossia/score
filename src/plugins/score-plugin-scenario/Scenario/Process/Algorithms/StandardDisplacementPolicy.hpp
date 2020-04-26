@@ -73,7 +73,8 @@ public:
       TimeVal defaultDuration = endDate - date;
 
       // set start date and default duration
-      if (!(curIntervalToUpdate.date() - date).isZero())
+      using namespace ossia;
+      if ((curIntervalToUpdate.date() - date) != 0_tv)
       {
         curIntervalToUpdate.setStartDate(date);
       }
@@ -141,7 +142,8 @@ public:
       TimeVal defaultDuration = endDate - date;
 
       // set start date and default duration
-      if (!(curIntervalToUpdate.date() - date).isZero())
+      using namespace ossia;
+      if ((curIntervalToUpdate.date() - date) != 0_tv)
       {
         curIntervalToUpdate.setStartDate(date);
       }

@@ -8,7 +8,7 @@
 
 inline QDebug operator<<(QDebug d, const TimeVal& tv)
 {
-  if (!tv.isInfinite())
+  if (!tv.infinite())
   {
     d << tv.msec() << "ms";
   }
@@ -25,29 +25,12 @@ struct TSerializer<DataStream, TimeVal>
 {
   static void readFrom(DataStream::Serializer& s, const TimeVal& tv)
   {
-    s.stream() << tv.isInfinite();
-
-    if (!tv.isInfinite())
-    {
-      s.stream() << tv.msec();
-    }
+    s.stream() << tv.impl;
   }
 
   static void writeTo(DataStream::Deserializer& s, TimeVal& tv)
   {
-    bool inf;
-    s.stream() >> inf;
-
-    if (!inf)
-    {
-      double msec;
-      s.stream() >> msec;
-      tv.setMSecs(msec);
-    }
-    else
-    {
-      tv = TimeVal::infinite();
-    }
+    s.stream() >> tv.impl;
   }
 };
 
@@ -56,28 +39,14 @@ struct TSerializer<JSONObject, TimeVal>
 {
   static void readFrom(JSONObject::Serializer& s, const TimeVal& tv)
   {
-    if (tv.isInfinite())
-    {
-      s.stream.String("inf");
-    }
-    else
-    {
-      s.stream.Double(tv.msec());
-    }
+    s.stream.Int64(tv.impl);
   }
 
   static void writeTo(JSONObject::Deserializer& s, TimeVal& tv)
   {
     using namespace std;
     using namespace std::literals;
-    if (s.base.IsString() && s.base.GetString() == "inf"sv)
-    {
-      tv = TimeVal::infinite();
-    }
-    else
-    {
-      tv.setMSecs(s.base.GetDouble());
-    }
+    tv.impl = s.base.GetInt64();
   }
 };
 

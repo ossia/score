@@ -193,7 +193,7 @@ QWidget* ApplicationPlugin::setupTimingWidget(QLabel* time_label) const
     if (m_clock)
     {
       auto& itv = m_clock->scenario.baseInterval().scoreInterval().duration;
-      auto time = (itv.defaultDuration() * itv.playPercentage()).toQTime();
+      auto time = TimeVal(itv.defaultDuration() * itv.playPercentage()).toQTime();
       time_label->setText(time.toString("HH:mm:ss.zzz"));
     }
     else

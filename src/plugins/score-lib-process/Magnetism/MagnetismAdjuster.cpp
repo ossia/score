@@ -45,13 +45,13 @@ TimeVal MagnetismAdjuster::getPosition(
   // Find the min of the distances and return the related Position
   auto it = results.begin();
 
-  double min_distance = std::abs((original - *it).msec());
+  int64_t min_distance = std::abs((original - *it).impl);
   TimeVal min_pos = *it;
 
   ++it;
   for(; it != results.end(); ++it)
   {
-    const double d = std::abs((original - *it).msec());
+    const int64_t d = std::abs((original - *it).impl);
     if(d < min_distance)
     {
       min_distance = d;

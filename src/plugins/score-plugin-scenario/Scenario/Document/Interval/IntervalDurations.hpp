@@ -45,7 +45,7 @@ public:
   TimeVal maxDuration() const
   {
     if (m_isMaxInfinite)
-      return TimeVal::infinite();
+      return TimeVal{TimeVal::infinity};
     return m_maxDuration;
   }
 

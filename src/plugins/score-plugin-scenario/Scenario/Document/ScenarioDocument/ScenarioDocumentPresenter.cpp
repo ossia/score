@@ -434,7 +434,7 @@ ZoomRatio ScenarioDocumentPresenter::computeZoom(double l, double r)
   const auto dur = displayedInterval().duration.guiDuration();
 
   // Compute new zoom level
-  const auto disptime = (dur * ((r - l) / map_w)).msec();
+  const auto disptime = TimeVal(dur * ((r - l) / map_w)).msec();
   return disptime / view_width;
 }
 

@@ -30,8 +30,8 @@ namespace score_to_ossia
 //// Other conversions
 inline ossia::time_value defaultTime(const TimeVal& t)
 {
-  return t.isInfinite() ? ossia::Infinite
-                        : ossia::time_value{int64_t(t.msec() * 1000)};
+  return t.infinite() ? ossia::Infinite
+                      : ossia::time_value{int64_t(t.msec() * 1000)};
 }
 
 void state(

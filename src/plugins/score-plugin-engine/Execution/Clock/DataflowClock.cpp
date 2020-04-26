@@ -189,11 +189,14 @@ Execution::time_function
 ClockFactory::makeTimeFunction(const score::DocumentContext& ctx) const
 {
   return [=](const TimeVal& v) -> ossia::time_value {
+    return v;
+    /*
     // Go from milliseconds to flicks
     // 1000 ms = sr samples
     // x ms    = k samples
-    return v.isInfinite() ? ossia::Infinite
-                          : ossia::time_value{int64_t(std::llround(v.msec() * ossia::flicks_per_millisecond<double>))};
+    return v.infinite() ? ossia::Infinite
+                        : ossia::time_value{int64_t(std::llround(v.msec() * ossia::flicks_per_millisecond<double>))};
+                        */
   };
 }
 
@@ -201,10 +204,13 @@ Execution::reverse_time_function
 ClockFactory::makeReverseTimeFunction(const score::DocumentContext& ctx) const
 {
   return [=](const ossia::time_value& v) -> TimeVal {
+    return v;
+    /*
     static const constexpr double ratio = 1. / ossia::flicks_per_millisecond<double>;
 
     return v.infinite() ? TimeVal::infinite()
                         : TimeVal::fromMsecs(v.impl * ratio);
+    */
   };
 }
 
