@@ -43,16 +43,6 @@ static auto makeDefaultTick(const score::ApplicationContext& app)
 ApplicationPlugin::ApplicationPlugin(const score::GUIApplicationContext& ctx)
   : score::GUIApplicationPlugin{ctx}
 {
-  if (ctx.applicationSettings.gui)
-  {
-    auto& stop_action = ctx.actions.action<Actions::Stop>();
-    connect(
-          stop_action.action(),
-          &QAction::triggered,
-          this,
-          &ApplicationPlugin::on_stop,
-          Qt::QueuedConnection);
-  }
 }
 
 void ApplicationPlugin::initialize()
@@ -71,6 +61,16 @@ void ApplicationPlugin::initialize()
   }
   catch (...)
   {
+  }
+  if (context.applicationSettings.gui)
+  {
+    auto& stop_action = context.actions.action<Actions::Stop>();
+    connect(
+          stop_action.action(),
+          &QAction::triggered,
+          this,
+          &ApplicationPlugin::on_stop,
+          Qt::QueuedConnection);
   }
 }
 
