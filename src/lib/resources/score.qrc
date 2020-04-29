@@ -511,6 +511,7 @@
         <file>icons/scenario_trigger.png</file>
         <file>icons/scenario_trigger@2x.png</file>
         <file>drakula.xml</file>
+        <file>icons/trigger_sprite.png</file>
     </qresource>
     <qresource prefix="/qss_icons">
         <file>icons/blank.png</file>
