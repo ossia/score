@@ -6,9 +6,14 @@
 #include <QGraphicsSceneMouseEvent>
 
 #include <wobjectimpl.h>
+
+#include <QPainter>
+
 W_OBJECT_IMPL(Scenario::TriggerView)
 namespace Scenario
 {
+  static const constexpr int iconSize = 20;
+
   static const QPixmap& triggerPixmap() {
     static const auto p = score::get_pixmap(":/icons/scenario_trigger.png");
     return p;
@@ -21,26 +26,41 @@ namespace Scenario
     static const auto p = score::get_pixmap(":/icons/scenario_trigger_hovered.png");
     return p;
   }
+  static const QPixmap& triggerSpriteSheet() {
+    static const auto p = score::get_pixmap(":/icons/trigger_sprite.png");
+    return p;
+  }
+
 TriggerView::TriggerView(QGraphicsItem* parent)
-    : QGraphicsPixmapItem{triggerPixmap(), parent}
+    : QGraphicsItem{parent}
     , m_selected{false}
     , m_hovered{false}
+    , m_waiting{false}
+    , m_currentFrame{0}
+    , m_frameDirection{1}
 {
   this->setCacheMode(QGraphicsItem::NoCache);
   this->setAcceptHoverEvents(true);
   this->setAcceptDrops(true);
+
+  m_currentPixmap = triggerPixmap();
+  //connect(m_timer, &QTimer::timeout, this, &TriggerView::nextFrame);
 }
 
 void TriggerView::setSelected(bool b) noexcept
 {
   m_selected = b;
-  if(m_selected) {
-    setPixmap(selectedTriggerPixmap());
-  } else if (m_hovered) {
-    setPixmap(hoveredTriggerPixmap());
-  } else {
-    setPixmap(triggerPixmap());
-  }
+  updatePixmap();
+}
+
+QRectF TriggerView::boundingRect() const
+{
+  return {0, 0, iconSize,iconSize};
+}
+
+void TriggerView::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
+{
+  painter->drawPixmap(QRect{0,0,iconSize,iconSize}, m_currentPixmap, QRect{m_currentFrame,0,iconSize,iconSize});
 }
 
 void TriggerView::mousePressEvent(QGraphicsSceneMouseEvent* event)
@@ -52,31 +72,66 @@ void TriggerView::mousePressEvent(QGraphicsSceneMouseEvent* event)
 void TriggerView::hoverEnterEvent(QGraphicsSceneHoverEvent* event)
 {
   m_hovered = true;
-  if(m_selected) {
-    setPixmap(selectedTriggerPixmap());
-  } else if (m_hovered) {
-    setPixmap(hoveredTriggerPixmap());
-  } else {
-    setPixmap(triggerPixmap());
-  }
+  updatePixmap();
   event->accept();
 }
 
 void TriggerView::hoverLeaveEvent(QGraphicsSceneHoverEvent* event)
 {
   m_hovered = false;
-  if(m_selected) {
-    setPixmap(selectedTriggerPixmap());
-  } else if (m_hovered) {
-    setPixmap(hoveredTriggerPixmap());
-  } else {
-    setPixmap(triggerPixmap());
-  }
+  updatePixmap();
   event->accept();
 }
 
 void TriggerView::dropEvent(QGraphicsSceneDragDropEvent* event)
 {
   dropReceived(event->scenePos(), *event->mimeData());
+}
+
+void TriggerView::nextFrame()
+{
+  if(!m_waiting)
+    return;
+
+  m_currentFrame += m_frameDirection * iconSize;
+  if( m_currentFrame >= triggerSpriteSheet().width())
+  {
+    m_currentFrame = triggerSpriteSheet().width() - iconSize;
+    m_frameDirection = -1;
+  }
+  else if(m_currentFrame < 0)
+  {
+    m_currentFrame = 0;
+    m_frameDirection = 1;
+  }
+  update();
+}
+
+void TriggerView::updatePixmap()
+{
+  if(m_selected) {
+    m_currentPixmap = selectedTriggerPixmap();
+  } else if (m_hovered) {
+    m_currentPixmap = hoveredTriggerPixmap();
+  } else if (m_waiting) {
+    m_currentPixmap = triggerSpriteSheet();
+  } else {
+    m_currentPixmap = triggerPixmap();
+  }
+}
+
+void TriggerView::onWaitStart()
+{
+  m_waiting = true;
+  updatePixmap();
+  update();
+}
+
+void TriggerView::onWaitEnd()
+{
+  m_waiting = false;
+  m_currentFrame = 0;
+  updatePixmap();
+  update();
 }
 }
