@@ -8,6 +8,7 @@
 #include <wobjectimpl.h>
 
 #include <QPainter>
+#include <QBitmap>
 
 W_OBJECT_IMPL(Scenario::TriggerView)
 namespace Scenario
@@ -44,6 +45,7 @@ TriggerView::TriggerView(QGraphicsItem* parent)
   this->setAcceptDrops(true);
 
   m_currentPixmap = triggerPixmap();
+  m_image = m_currentPixmap.toImage();
   //connect(m_timer, &QTimer::timeout, this, &TriggerView::nextFrame);
 }
 
@@ -61,6 +63,11 @@ QRectF TriggerView::boundingRect() const
 void TriggerView::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
   painter->drawPixmap(QRect{0,0,iconSize,iconSize}, m_currentPixmap, QRect{m_currentFrame,0,iconSize,iconSize});
+}
+
+bool TriggerView::contains(const QPointF& point) const
+{
+  return m_image.pixelColor(point.x(), point.y()).alpha() > 0 ;
 }
 
 void TriggerView::mousePressEvent(QGraphicsSceneMouseEvent* event)

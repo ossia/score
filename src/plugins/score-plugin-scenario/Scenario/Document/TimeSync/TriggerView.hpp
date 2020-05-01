@@ -37,6 +37,8 @@ public:
   QRectF boundingRect() const;
   void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) override;
 
+  bool contains(const QPointF& point) const override;
+
 protected:
   void dropEvent(QGraphicsSceneDragDropEvent* event) override;
   void nextFrame();
@@ -56,6 +58,7 @@ private:
   bool m_waiting: 1;
 
   QPixmap m_currentPixmap;
+  QImage m_image;
   int m_currentFrame;
   int m_frameDirection;
 };
