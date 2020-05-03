@@ -356,7 +356,7 @@ Execution::ProcessComponent* AudioChainComponentBase::make(
       check_exec_order(test_fx, *proc);
     });
 #else
-    f.run_all();
+    commands.run_all();
 #endif
   }
   return fx.get();
@@ -499,7 +499,7 @@ std::function<void()> AudioChainComponentBase::removing(
     }
   });
 #else
-  f.run_all();
+  commands.run_all();
 #endif
 
   this_fx.comp->node.reset();
@@ -630,7 +630,7 @@ void AudioChainComponentBase::on_orderChanged()
       check_exec_order(test_fx, *proc);
     });
 #else
-    f.run_all();
+    commands.run_all();
 #endif
   }
 }

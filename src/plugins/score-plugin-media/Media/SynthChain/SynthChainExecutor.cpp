@@ -354,7 +354,7 @@ Execution::ProcessComponent* SynthChainComponentBase::make(
       check_exec_order(test_fx, *proc);
     });
 #else
-    f.run_all();
+    commands.run_all();
 #endif
   }
   return fx.get();
@@ -497,7 +497,7 @@ std::function<void()> SynthChainComponentBase::removing(
     }
   });
 #else
-  f.run_all();
+  commands.run_all();
 #endif
 
   this_fx.comp->node.reset();
@@ -629,7 +629,7 @@ void SynthChainComponentBase::on_orderChanged()
       check_exec_order(test_fx, *proc);
     });
 #else
-    f.run_all();
+    commands.run_all();
 #endif
   }
 }
