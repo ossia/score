@@ -33,6 +33,7 @@
 #include <QPainter>
 #include <core/view/QRecentFilesMenu.h>
 
+
 #include <spdlog/sinks/stdout_sinks.h>
 #include <spdlog/spdlog.h>
 
@@ -50,7 +51,7 @@ W_OBJECT_IMPL(Application)
 int qInitResources_score();
 #endif
 
-#if 1//!defined(SCORE_DEBUG) && !defined(__EMSCRIPTEN__)
+#if !defined(SCORE_DEBUG) && !defined(__EMSCRIPTEN__)
 #define SCORE_SPLASH_SCREEN 1
 #endif
 
@@ -119,7 +120,6 @@ namespace score
     {
       m_interactive = false;
       setCursor(Qt::ArrowCursor);
-     // m_currentColor = QColor{"#808080"};
     }
 
     void InteractiveLabel::setActiveColor(const QColor& c)
@@ -214,6 +214,7 @@ namespace score
     {
       this->setEnabled(true);
       setWindowFlags( Qt::Dialog | Qt::FramelessWindowHint );//| Qt::WindowStaysOnTopHint);
+      setWindowModality(Qt::ApplicationModal);
       m_background = score::get_pixmap(":/startscreensplash.png");
 
       QPainter painter;
@@ -256,9 +257,17 @@ namespace score
         connect(label, &score::InteractiveLabel::labelPressed,
                 this, &score::StartScreen::openFileDialog);
         label->move(100,label_y);
+        label_y += 35;
+      }
+      { // Load Examples
+        auto paths = QStandardPaths::standardLocations(
+            QStandardPaths::DocumentsLocation);
+        InteractiveLabel* label = new InteractiveLabel{titleFont, qApp->tr("Examples"), "file://" + paths[0] + "/ossia score library/", this};
+        label->setPixmaps(score::get_pixmap(":/icons/load_example_off.png"),score::get_pixmap(":/icons/load_example_on.png"));
+        label->setOpenExternalLink(true);
+        label->move(100,label_y);
         label_y += 50;
       }
-
       label_y = 285;
       { // recent files
         InteractiveLabel* label = new InteractiveLabel{titleFont, qApp->tr("Recent files"), "", this};
@@ -308,7 +317,6 @@ namespace score
 
     void StartScreen::addLoadCrashedSession()
     {
-      qDebug()<<"you picopousti";
       m_crashLabel->show();
       m_crashLabel->setEnabled(true);
       update();
@@ -414,6 +422,7 @@ Application::~Application()
   this->setParent(nullptr);
   delete m_view;
   delete m_presenter;
+  delete m_startScreen;
 
   score::DocumentBackups::clear();
   QCoreApplication::processEvents();
@@ -501,15 +510,15 @@ void Application::init()
 
     auto& ctx = m_presenter->applicationContext();
     connect(
-        m_startScreen, &score::StartScreen::openFile, this, [&](const QString& file) {
-          m_startScreen->close();
-          m_presenter->documentManager().loadFile(ctx, file);
-        });
+          m_startScreen, &score::StartScreen::openFile, this, [&](const QString& file) {
+      m_startScreen->close();
+      m_presenter->documentManager().loadFile(ctx, file);
+    });
     connect(
-        m_startScreen, &score::StartScreen::openFileDialog, this, [&]() {
-           m_startScreen->close();
-          m_presenter->documentManager().loadFile(ctx);
-        });
+          m_startScreen, &score::StartScreen::openFileDialog, this, [&]() {
+      m_startScreen->close();
+      m_presenter->documentManager().loadFile(ctx);
+    });
   }
 #endif
 
@@ -551,6 +560,7 @@ void Application::initDocuments()
   // Try to reload if there was a crash
   if (m_applicationSettings.tryToRestore)
   {
+    #if defined(SCORE_SPLASH_SCREEN)
     if(m_startScreen && score::OpenDocumentsFile::exists())
     {
       m_startScreen->addLoadCrashedSession();
@@ -560,10 +570,13 @@ void Application::initDocuments()
             m_presenter->documentManager().restoreDocuments(ctx);
           });
     }
-    else if(score::DocumentBackups::canRestoreDocuments())
+    #else
+    if(score::DocumentBackups::canRestoreDocuments())
     {
       m_presenter->documentManager().restoreDocuments(ctx);
     }
+    #endif
+
   }
 
   // If nothing was reloaded, open a normal document
@@ -589,5 +602,10 @@ int Application::exec()
   return m_app->exec();
 }
 
+#if defined(SCORE_SPLASH_SCREEN)
+
 W_OBJECT_IMPL(score::StartScreen)
 W_OBJECT_IMPL(score::InteractiveLabel)
+
+#endif
+

@@ -549,5 +549,9 @@
         <file>icons/reload_crash_off@2x.png</file>
         <file>icons/reload_crash_on.png</file>
         <file>icons/reload_crash_on@2x.png</file>
+        <file>icons/load_example_off.png</file>
+        <file>icons/load_example_off@2x.png</file>
+        <file>icons/load_example_on.png</file>
+        <file>icons/load_example_on@2x.png</file>
     </qresource>
 </RCC>
