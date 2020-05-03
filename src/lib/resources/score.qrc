@@ -512,8 +512,42 @@
         <file>icons/scenario_trigger@2x.png</file>
         <file>drakula.xml</file>
         <file>icons/trigger_sprite.png</file>
-    </qresource>
-    <qresource prefix="/qss_icons">
-        <file>icons/blank.png</file>
+        <file>startscreensplash.png</file>
+        <file>startscreensplash@2x.png</file>
+        <file>Montserrat-SemiBold.ttf</file>
+        <file>icons/chat_on.png</file>
+        <file>icons/contribute_on.png</file>
+        <file>icons/forum_on.png</file>
+        <file>icons/tutorials_on.png</file>
+        <file>icons/chat_off.png</file>
+        <file>icons/chat@2x.png</file>
+        <file>icons/contribute_off.png</file>
+        <file>icons/contribute@2x.png</file>
+        <file>icons/forum_off.png</file>
+        <file>icons/forum@2x.png</file>
+        <file>icons/new_file_off.png</file>
+        <file>icons/new_file_on.png</file>
+        <file>icons/tutorials_off.png</file>
+        <file>icons/tutorials@2x.png</file>
+        <file>icons/chat_off@2x.png</file>
+        <file>icons/chat_on@2x.png</file>
+        <file>icons/contribute_off@2x.png</file>
+        <file>icons/contribute_on@2x.png</file>
+        <file>icons/forum_off@2x.png</file>
+        <file>icons/forum_on@2x.png</file>
+        <file>icons/load_off.png</file>
+        <file>icons/load_off@2x.png</file>
+        <file>icons/load_on.png</file>
+        <file>icons/load_on@2x.png</file>
+        <file>icons/new_file_off@2x.png</file>
+        <file>icons/new_file_on@2x.png</file>
+        <file>icons/tutorials_off@2x.png</file>
+        <file>icons/tutorials_on@2x.png</file>
+        <file>icons/recent_files.png</file>
+        <file>icons/recent_files@2x.png</file>
+        <file>icons/reload_crash_off.png</file>
+        <file>icons/reload_crash_off@2x.png</file>
+        <file>icons/reload_crash_on.png</file>
+        <file>icons/reload_crash_on@2x.png</file>
     </qresource>
 </RCC>
