@@ -373,7 +373,11 @@ class Script : public QObject
 public:
   QQmlListProperty<QObject> data() noexcept
   {
+#if QT_VERSION >= QT_VERSION_CHECK(5, 15, 0)
     return {this, &m_data};
+#else
+    return {this, m_data};
+#endif
   }
 
   QJSValue& tick() /*Qt6: const*/ noexcept {
