@@ -12,6 +12,7 @@
 #include <score/widgets/Pixmap.hpp>
 
 #include <core/application/ApplicationRegistrar.hpp>
+#include <core/application/OpenDocumentsFile.hpp>
 #include <core/application/SafeQApplication.hpp>
 #include <core/document/DocumentBackups.hpp>
 #include <core/document/DocumentModel.hpp>
@@ -191,11 +192,13 @@ namespace score
 
         void openFile(const QString& file) W_SIGNAL( openFile, file)
         void openFileDialog() W_SIGNAL( openFileDialog )
+        void loadCrashedSession() W_SIGNAL( loadCrashedSession )
 
         void addLoadCrashedSession();
 
       private:
         QPixmap m_background;
+        InteractiveLabel* m_crashLabel;
     };
     struct StartScreenLink
     {
@@ -251,10 +254,7 @@ namespace score
         InteractiveLabel* label = new InteractiveLabel{titleFont, qApp->tr("Load"), "", this};
         label->setPixmaps(score::get_pixmap(":/icons/load_off.png"),score::get_pixmap(":/icons/load_on.png"));
         connect(label, &score::InteractiveLabel::labelPressed,
-                this, [&] (const QString& file){
-         this->openFileDialog();
-         this->close();
-        });
+                this, &score::StartScreen::openFileDialog);
         label->move(100,label_y);
         label_y += 50;
       }
@@ -272,7 +272,7 @@ namespace score
       {
         InteractiveLabel* fileLabel = new InteractiveLabel{f, action->text(), action->data().toString(), this};
         connect(fileLabel, &score::InteractiveLabel::labelPressed,
-                this, [&] (const QString& file){ this->openFile(file); this->close(); });
+                this, &score::StartScreen::openFile);
 
         fileLabel->move(310,label_y);
 
@@ -295,22 +295,23 @@ namespace score
         label_y+=40;
       }
 
-      addLoadCrashedSession();
+      m_crashLabel = new InteractiveLabel{titleFont, qApp->tr("Reload your previously crashed work ?"), "", this};
+      m_crashLabel->setPixmaps(score::get_pixmap(":/icons/reload_crash_off.png"),score::get_pixmap(":/icons/reload_crash_on.png"));
+      m_crashLabel->move(150,460);
+      m_crashLabel->setFixedWidth(600);
+      m_crashLabel->setActiveColor(QColor{"#f6a019"});
+      m_crashLabel->setDisabled(true);
+      m_crashLabel->hide();
+      connect(m_crashLabel, &score::InteractiveLabel::labelPressed,
+              this, &score::StartScreen::loadCrashedSession);
     }
 
     void StartScreen::addLoadCrashedSession()
     {
-      QFont titleFont("Montserrat", 18, QFont::DemiBold);
-      titleFont.setHintingPreference(QFont::HintingPreference::PreferFullHinting);
-      titleFont.setStyleStrategy(QFont::PreferAntialias);
-
-      InteractiveLabel* label = new InteractiveLabel{titleFont, qApp->tr("Reload your previously crashed work ?"), "", this};
-      label->setPixmaps(score::get_pixmap(":/icons/reload_crash_off.png"),score::get_pixmap(":/icons/reload_crash_on.png"));
-      label->move(150,460);
-      label->setFixedWidth(600);
-      label->setActiveColor(QColor{"#f6a019"});
-      connect(label, &score::InteractiveLabel::labelPressed,
-              this, [&] (const QString& file){ this->openFile(file); this->close(); });
+      qDebug()<<"you picopousti";
+      m_crashLabel->show();
+      m_crashLabel->setEnabled(true);
+      update();
     }
 
     void StartScreen::paintEvent(QPaintEvent* event)
@@ -493,19 +494,20 @@ void Application::init()
   }
 
 #if defined(SCORE_SPLASH_SCREEN)
-  score::StartScreen* startscreen{};
   if (m_applicationSettings.gui)
   {
-    startscreen = new score::StartScreen{this->context().docManager.recentFiles()};
-    startscreen->show();
+    m_startScreen = new score::StartScreen{this->context().docManager.recentFiles()};
+    m_startScreen->show();
 
     auto& ctx = m_presenter->applicationContext();
     connect(
-        startscreen, &score::StartScreen::openFile, this, [&](const QString& file) {
+        m_startScreen, &score::StartScreen::openFile, this, [&](const QString& file) {
+          m_startScreen->close();
           m_presenter->documentManager().loadFile(ctx, file);
         });
     connect(
-        startscreen, &score::StartScreen::openFileDialog, this, [&]() {
+        m_startScreen, &score::StartScreen::openFileDialog, this, [&]() {
+           m_startScreen->close();
           m_presenter->documentManager().loadFile(ctx);
         });
   }
@@ -547,10 +549,21 @@ void Application::initDocuments()
   }
 
   // Try to reload if there was a crash
-  if (m_applicationSettings.tryToRestore
-      && score::DocumentBackups::canRestoreDocuments())
+  if (m_applicationSettings.tryToRestore)
   {
-    m_presenter->documentManager().restoreDocuments(ctx);
+    if(m_startScreen && score::OpenDocumentsFile::exists())
+    {
+      m_startScreen->addLoadCrashedSession();
+      connect(
+          m_startScreen, &score::StartScreen::loadCrashedSession, this, [&]() {
+            m_startScreen->close();
+            m_presenter->documentManager().restoreDocuments(ctx);
+          });
+    }
+    else if(score::DocumentBackups::canRestoreDocuments())
+    {
+      m_presenter->documentManager().restoreDocuments(ctx);
+    }
   }
 
   // If nothing was reloaded, open a normal document
