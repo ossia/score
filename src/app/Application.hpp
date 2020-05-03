@@ -22,6 +22,7 @@ namespace score
 {
 class Presenter;
 class View;
+class StartScreen;
 }
 
 /**
@@ -63,6 +64,7 @@ private:
   // MVP
   score::View* m_view{};
   score::Presenter* m_presenter{};
+  score::StartScreen* m_startScreen{};
 
   score::ApplicationSettings m_applicationSettings;
 };
