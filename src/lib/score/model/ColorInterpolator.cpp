@@ -14,7 +14,7 @@ namespace
 struct ColorInterpolator
 {
   std::array<QPen, 60> pens;
-  ColorInterpolator() noexcept = default;
+  ColorInterpolator() noexcept { }
 
   void init(QColor c1, QColor c2, QPen sourcePen) noexcept
   {

@@ -43,7 +43,7 @@ struct Transaction
 
   Transaction(Transaction&& other) noexcept
     : context{other.context}
-    , commands{std::move(other.commands)}
+    , commands(std::move(other.commands))
   {
 
   }
