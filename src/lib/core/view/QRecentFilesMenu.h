@@ -75,6 +75,7 @@ public:
 
     //! Sets the maximum number of entries int he menu.
     void setMaxCount(int);
+
 public:
     //! This signal is emitted when a recent file in this menu is triggered.
     void recentFileTriggered(const QString & filename)

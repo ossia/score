@@ -13,7 +13,7 @@ QRecentFilesMenu::QRecentFilesMenu(QWidget* parent)
 }
 
 QRecentFilesMenu::QRecentFilesMenu(const QString& title, QWidget* parent)
-    : QMenu(title, parent), m_maxCount(5), m_format(QLatin1String("%d %s"))
+    : QMenu(title, parent), m_maxCount(5), m_format(QLatin1String("%s"))
 {
   connect(
       this,
@@ -124,8 +124,8 @@ void QRecentFilesMenu::updateRecentFileActions()
     QAction* recentFileAct = addAction(text);
     recentFileAct->setData(m_files[i]);
   }
-  addSeparator();
-  addAction(tr("Clear Menu"), this, SLOT(clearMenu()));
+ // addSeparator();
+//  addAction(tr("Clear Menu"), this, SLOT(clearMenu()));
 
   setEnabled(numRecentFiles > 0);
 }
