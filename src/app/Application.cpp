@@ -26,6 +26,7 @@
 
 #include <QFontDatabase>
 #include <QDesktopServices>
+#include <QKeyEvent>
 #include <QUrl>
 #include <QOpenGLContext>
 #include <QPushButton>
@@ -75,7 +76,7 @@ namespace score
         void setActiveColor(const QColor& c);
 
         void labelPressed(const QString& file) W_SIGNAL( labelPressed, file)
-        // QWidget interface
+
       protected:
         void paintEvent(QPaintEvent* event) override;
         void enterEvent(QEvent* event)  override;
@@ -186,15 +187,15 @@ namespace score
       W_OBJECT(StartScreen)
       public:
         StartScreen(const QPointer<QRecentFilesMenu>& recentFiles, QWidget* parent = 0);
-        void paintEvent(QPaintEvent* event) override;
-
-        void focusOutEvent(QFocusEvent* event) override;
-
         void openFile(const QString& file) W_SIGNAL( openFile, file)
         void openFileDialog() W_SIGNAL( openFileDialog )
         void loadCrashedSession() W_SIGNAL( loadCrashedSession )
 
         void addLoadCrashedSession();
+
+      protected:
+        void paintEvent(QPaintEvent* event) override;
+        void keyPressEvent(QKeyEvent* event) override;
 
       private:
         QPixmap m_background;
@@ -215,6 +216,7 @@ namespace score
       this->setEnabled(true);
       setWindowFlags( Qt::Dialog | Qt::FramelessWindowHint );//| Qt::WindowStaysOnTopHint);
       setWindowModality(Qt::ApplicationModal);
+
       m_background = score::get_pixmap(":/startscreensplash.png");
 
       QPainter painter;
@@ -328,10 +330,13 @@ namespace score
       painter.drawPixmap(0,0, m_background);
     }
 
-    void StartScreen::focusOutEvent(QFocusEvent* event)
+    void StartScreen::keyPressEvent(QKeyEvent* event)
     {
-      QWidget::focusOutEvent(event);
-      close();
+      if (event->key() == Qt::Key_Escape)
+      {
+          this->close();
+          return QWidget::keyPressEvent(event);
+      }
     }
 
 #endif
