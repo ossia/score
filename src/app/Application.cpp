@@ -265,7 +265,7 @@ namespace score
         auto paths = QStandardPaths::standardLocations(
             QStandardPaths::DocumentsLocation);
         InteractiveLabel* label = new InteractiveLabel{titleFont, qApp->tr("Examples"), "file://" + paths[0] + "/ossia score library/", this};
-        label->setPixmaps(score::get_pixmap(":/icons/load_example_off.png"),score::get_pixmap(":/icons/load_example_on.png"));
+        label->setPixmaps(score::get_pixmap(":/icons/load_examples_off.png"),score::get_pixmap(":/icons/load_examples_on.png"));
         label->setOpenExternalLink(true);
         label->move(100,label_y);
         label_y += 50;

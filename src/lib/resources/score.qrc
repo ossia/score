@@ -520,15 +520,11 @@
         <file>icons/forum_on.png</file>
         <file>icons/tutorials_on.png</file>
         <file>icons/chat_off.png</file>
-        <file>icons/chat@2x.png</file>
         <file>icons/contribute_off.png</file>
-        <file>icons/contribute@2x.png</file>
         <file>icons/forum_off.png</file>
-        <file>icons/forum@2x.png</file>
         <file>icons/new_file_off.png</file>
         <file>icons/new_file_on.png</file>
         <file>icons/tutorials_off.png</file>
-        <file>icons/tutorials@2x.png</file>
         <file>icons/chat_off@2x.png</file>
         <file>icons/chat_on@2x.png</file>
         <file>icons/contribute_off@2x.png</file>
@@ -549,9 +545,9 @@
         <file>icons/reload_crash_off@2x.png</file>
         <file>icons/reload_crash_on.png</file>
         <file>icons/reload_crash_on@2x.png</file>
-        <file>icons/load_example_off.png</file>
-        <file>icons/load_example_off@2x.png</file>
-        <file>icons/load_example_on.png</file>
-        <file>icons/load_example_on@2x.png</file>
+        <file>icons/load_examples_off.png</file>
+        <file>icons/load_examples_off@2x.png</file>
+        <file>icons/load_examples_on.png</file>
+        <file>icons/load_examples_on@2x.png</file>
     </qresource>
 </RCC>
