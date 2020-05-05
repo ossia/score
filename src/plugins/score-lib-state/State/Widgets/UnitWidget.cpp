@@ -12,7 +12,7 @@
 
 #include <QComboBox>
 #include <QHBoxLayout>
-#include <QMenuView.h>
+#include <QMenuView/qmenuview.h>
 
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(State::UnitWidget)
@@ -447,177 +447,48 @@ DestinationQualifierWidget::DestinationQualifierWidget(QWidget* parent)
 {
   // auto& empty = empty_model();
   auto& m = unit_model();
-  auto lay = new score::MarginLess<QHBoxLayout>{this};
-
   m_unitMenu = new QMenuView{this};
-  m_unitMenu->setModel(m);
-/*
-  using namespace ossia;
-  ossia::for_each_tagged(dataspace_u_list{}, [&](auto t) {
-    using dataspace_type = typename decltype(t)::type;
-
-    std::string_view dataspace_name = dataspace_traits<dataspace_type>::text()[0];
-    QMenu* dataspace_menu = m_unitMenu->addMenu(QString::fromUtf8(dataspace_name.data(), dataspace_name.size()));
-
-    ossia::for_each_tagged(dataspace_type{}, [&](auto u) {
-      using unit_type = typename decltype(u)::type;
-
-      std::string_view unit_text = unit_traits<unit_type>::text()[0];
-      QString unit_name = QString::fromUtf8(unit_text.data(), unit_text.size());
-      if constexpr (unit_type::is_multidimensional::value)
-      {
-        QMenu* unit_menu = dataspace_menu->addMenu(unit_name);
-        std::string_view param_names = unit_type::array_parameters();
-        for(const auto& ch: param_names)
-        {
-          auto action = unit_menu->addAction(QString{ch});
-        }
-      }
-      else
-      {
-        auto action = dataspace_menu->addAction(unit_name);
-      }
-    });
-  });
-*/
-  connect(m_button, &QPushButton::pressed,this,
-          [=]() {
-            m_unitMenu->exec(QCursor::pos());
-          });
-
-  connect(m_unitMenu, &QMenu::triggered,this,
-          [=](QAction* action)
-  {m_button->setText(action->text());});
-
-  lay->addWidget(m_button);
-
-  m_ds = new QComboBox;
-  m_ds->setModel(&m);
-  // m_ds->setMinimumWidth(75);
-  // m_ds->setMaximumWidth(75);
-  //lay->addWidget(m_ds);
-
-  m_unit = new QComboBox;
-  // m_unit->setMinimumWidth(75);
-  // m_unit->setMaximumWidth(75);
- // lay->addWidget(m_unit);
-
-  m_ac = new QComboBox;
-  m_ac->setMinimumWidth(45);
-  m_ac->setMaximumWidth(45);
- // lay->addWidget(m_ac);
+  m_unitMenu->setModel(&m);
   connect(
-      m_ds,
-      qOverload<int>(&QComboBox::currentIndexChanged),
-      this,
-      &DestinationQualifierWidget::on_dataspaceChanged);
-
-  connect(
-      m_unit,
-      qOverload<int>(&QComboBox::currentIndexChanged),
+      m_unitMenu,
+      &QMenuView::triggered,
       this,
       &DestinationQualifierWidget::on_unitChanged);
-
-  connect(
-      m_ac,
-      qOverload<int>(&QComboBox::currentIndexChanged),
-      this,
-      [=](int idx) { qualifiersChanged(qualifiers()); });
 }
 
-DestinationQualifierWidget::DestinationQualifierWidget(
-    const State::DestinationQualifiers& u,
-    QWidget* parent)
-    : DestinationQualifierWidget{parent}
+void DestinationQualifierWidget::chooseQualifier()
 {
-  setQualifiers(u);
-}
-
-void DestinationQualifierWidget::on_dataspaceChanged(int idx)
-{
-  auto& e = empty_model();
-  auto& m = unit_model();
+  if(!m_unitMenu->isVisible())
   {
-    QSignalBlocker b{m_unit};
-    QSignalBlocker b2{m_ac};
-    m_unit->setModel(&e);
-    m_ac->setModel(&e);
-    if (idx != 0)
-    {
-      m_unit->setModel(&unit_model());
-      m_unit->setRootModelIndex(m.index(idx, 0, QModelIndex()));
-      m_unit->setCurrentIndex(0);
-    }
-    else
-    {
-      m_unit->setCurrentIndex(-1);
-    }
+    m_unitMenu->exec(QCursor::pos());
+  }
+}
+
+void DestinationQualifierWidget::on_unitChanged(const QModelIndex& idx)
+{
+  if (m_unitMenu->model() == &empty_model())
+  {
+    qualifiersChanged({});
+    return;
   }
 
-  on_unitChanged(m_unit->currentIndex());
-  qualifiersChanged(qualifiers());
-}
+  if (!idx.isValid())
+    return;
 
-void DestinationQualifierWidget::on_unitChanged(int idx)
-{
-  auto& e = empty_model();
-  auto& m = unit_model();
-  auto unit_idx = m.index(idx, 0, m_unit->rootModelIndex());
+  if(idx.parent().parent().isValid())// accessor
   {
-    QSignalBlocker b{m_ac};
-    m_ac->setModel(&e);
-    if (m.hasChildren(unit_idx) && idx != -1)
-    {
-      m_ac->setModel(&m);
-      m_ac->setRootModelIndex(unit_idx);
-      m_ac->setCurrentIndex(0);
-    }
-    else
-    {
-      m_ac->setCurrentIndex(-1);
-    }
+    if (auto acc = (UnitModel::AccessorModel*)idx.internalPointer())
+      qualifiersChanged(acc->accessor);
   }
-
-  qualifiersChanged(qualifiers());
-}
-
-State::DestinationQualifiers DestinationQualifierWidget::qualifiers() const
-{
-  if (m_unit->model() == &empty_model())
-    return {};
-  if (m_unit->currentIndex() == -1)
-    return {};
-
-  if (m_ac->model() == &empty_model())
+  else if(idx.parent().isValid())
   {
-    auto ds = m_unit->rootModelIndex();
-    auto idx = unit_model().index(m_unit->currentIndex(), 0, ds);
     if (auto unit = (UnitModel::UnitDataModel*)idx.internalPointer())
-      return State::DestinationQualifiers{
-          ossia::destination_qualifiers{{}, unit->unit}};
+    qualifiersChanged(State::DestinationQualifiers{
+        ossia::destination_qualifiers{{}, unit->unit}});
   }
   else
   {
-    if (m_ac->currentIndex() == -1)
-      return {};
-
-    auto unit = m_ac->rootModelIndex();
-    auto idx = unit_model().index(m_ac->currentIndex(), 0, unit);
-    if (auto acc = (UnitModel::AccessorModel*)idx.internalPointer())
-      return acc->accessor;
+    qualifiersChanged({});
   }
-
-  return {};
-}
-
-void DestinationQualifierWidget::setQualifiers(
-    const State::DestinationQualifiers& unit)
-{
-  const auto& [ds, u, acc] = unit_model().from(unit);
-  m_ds->setCurrentIndex(ds);
-  if (u != -1)
-    m_unit->setCurrentIndex(u);
-  if (acc != -1)
-    m_ac->setCurrentIndex(acc);
 }
 }

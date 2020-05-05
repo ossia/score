@@ -35,7 +35,6 @@ AddressAccessorEditWidget::AddressAccessorEditWidget(
       = new State::AddressAccessorLineEdit<AddressAccessorEditWidget>{this};
 
   m_qualifiers = new State::DestinationQualifierWidget{this};
-  m_qualifiers->setVisible(false);
   connect(
       m_qualifiers,
       &State::DestinationQualifierWidget::qualifiersChanged,
@@ -47,6 +46,13 @@ AddressAccessorEditWidget::AddressAccessorEditWidget(
           m_lineEdit->setText(m_address.address.toString_unsafe());
           addressChanged(m_address);
         }
+        const auto ad = m_address.address.toString_unsafe();
+        if(m_lineEdit->text() != ad)
+        {
+          m_lineEdit->blockSignals(true);
+          m_lineEdit->setText(ad);
+          m_lineEdit->blockSignals(false);
+        }
       });
 
   auto act = new QAction{tr("Show Unit selector"), this};
@@ -57,11 +63,10 @@ AddressAccessorEditWidget::AddressAccessorEditWidget(
            , QStringLiteral(":/icons/port_address_unit.png")
            );
 
-
   m_lineEdit->addAction(act, QLineEdit::TrailingPosition);
 
   connect(act, &QAction::triggered, [=]() {
-    m_qualifiers->setVisible(!m_qualifiers->isVisible());
+    m_qualifiers->chooseQualifier();
   });
 
   {
@@ -119,16 +124,13 @@ void AddressAccessorEditWidget::setAddress(const State::AddressAccessor& addr)
   m_address = Device::FullAddressAccessorSettings{};
   m_address.address = addr;
   m_lineEdit->setText(m_address.address.toString_unsafe());
-  if (m_qualifiers->qualifiers() != m_address.address.qualifiers)
-    m_qualifiers->setQualifiers(m_address.address.qualifiers);
+
 }
 void AddressAccessorEditWidget::setFullAddress(
     Device::FullAddressAccessorSettings&& addr)
 {
   m_address = std::move(addr);
   m_lineEdit->setText(m_address.address.toString_unsafe());
-  if (m_qualifiers->qualifiers() != m_address.address.qualifiers)
-    m_qualifiers->setQualifiers(m_address.address.qualifiers);
 }
 
 const Device::FullAddressAccessorSettings&
