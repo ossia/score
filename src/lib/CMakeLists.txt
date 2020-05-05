@@ -252,6 +252,8 @@ set(HEADERS
 
      "${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/QProgressIndicator/QProgressIndicator.h"
 
+     "${3RDPARTY_FOLDER}/QMenuView/qmenuview.h"
+     "${3RDPARTY_FOLDER}/QMenuView/qmenuview_p.h"
      #"${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/Qt-Color-Widgets/QtColorWidgets/color_palette_model.hpp"
      #"${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/Qt-Color-Widgets/QtColorWidgets/color_palette_widget.hpp"
      #"${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/Qt-Color-Widgets/QtColorWidgets/colorwidgets_global.hpp"
@@ -273,6 +275,7 @@ set(HEADERS
 )
 
 set(SRCS
+"${3RDPARTY_FOLDER}/QMenuView/qmenuview.cpp" 
 "${3RDPARTY_FOLDER}/zipdownloader/src/miniz.cpp"
 "${3RDPARTY_FOLDER}/zipdownloader/src/zipdownloader.cpp"
 "${OSSIA_3RDPARTY_FOLDER}/rnd/src/random.cpp"
@@ -436,6 +439,7 @@ if(APPLE)
         )
 endif()
 
+target_include_directories(score_lib_base PUBLIC "${3RDPARTY_FOLDER}")
 target_include_directories(score_lib_base PUBLIC "${3RDPARTY_FOLDER}/zipdownloader/src")
 target_include_directories(score_lib_base PUBLIC "${OSSIA_3RDPARTY_FOLDER}/rnd/include")
 

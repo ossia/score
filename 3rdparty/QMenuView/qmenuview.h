@@ -45,14 +45,14 @@ J'ai apporté quelques modifications en plus.
 #include <qscopedpointer.h>
 #include <qstring.h>
 #include <verdigris>
-#include <score_lib_device_export.h>
-// TODO put me in 3rdparty
+#include <score_lib_base_export.h>
+
 
 class QMenuViewPrivate;
 class QMouseEvent;
 class QWidget;
 
-class SCORE_LIB_DEVICE_EXPORT  ClickableMenu : public QMenu
+class SCORE_LIB_BASE_EXPORT  ClickableMenu : public QMenu
 {
         W_OBJECT(ClickableMenu)
     public:
@@ -61,7 +61,7 @@ class SCORE_LIB_DEVICE_EXPORT  ClickableMenu : public QMenu
         virtual void mouseReleaseEvent(QMouseEvent *event) override;
 };
 
-class SCORE_LIB_DEVICE_EXPORT QMenuView final : public ClickableMenu
+class SCORE_LIB_BASE_EXPORT QMenuView final : public ClickableMenu
 {
   W_OBJECT(QMenuView)
     public:
@@ -80,8 +80,8 @@ class SCORE_LIB_DEVICE_EXPORT QMenuView final : public ClickableMenu
         void createMenu(const QModelIndex &parent, QMenu& parentMenu, QMenu *menu = nullptr);
 
     public:
-        void hovered(const QString &text) const E_SIGNAL(SCORE_LIB_DEVICE_EXPORT, hovered, text);
-        void triggered(const QModelIndex & index) const E_SIGNAL(SCORE_LIB_DEVICE_EXPORT, triggered, index);
+        void hovered(const QString &text) const E_SIGNAL(SCORE_LIB_BASE_EXPORT, hovered, text);
+        void triggered(const QModelIndex & index) const E_SIGNAL(SCORE_LIB_BASE_EXPORT, triggered, index);
 
     private:
         QScopedPointer<QMenuViewPrivate> d;

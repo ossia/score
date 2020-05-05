@@ -22,8 +22,6 @@ set(HEADERS
 "${CMAKE_CURRENT_SOURCE_DIR}/Device/Protocol/ProtocolFactoryInterface.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Device/Protocol/ProtocolList.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Device/Protocol/ProtocolSettingsWidget.hpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Device/QMenuView/qmenuview.h"
-"${CMAKE_CURRENT_SOURCE_DIR}/Device/QMenuView/qmenuview_p.h"
 "${CMAKE_CURRENT_SOURCE_DIR}/Device/Widgets/DeviceCompleter.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Device/Widgets/DeviceModelProvider.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Device/Widgets/AddressAccessorEditWidget.hpp"
@@ -49,7 +47,6 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Device/ItemModels/NodeBasedItemModel.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Device/ItemModels/NodeDisplayMethods.cpp"
 
-"${CMAKE_CURRENT_SOURCE_DIR}/Device/QMenuView/qmenuview.cpp" # TODO move in 3rdparty
 "${CMAKE_CURRENT_SOURCE_DIR}/Device/Loading/JamomaDeviceLoader.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Device/Loading/ScoreDeviceLoader.cpp"
 

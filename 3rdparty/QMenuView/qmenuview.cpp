@@ -41,8 +41,7 @@ J'ai apporté quelques modifications en plus.
 */
 
 #include "qmenuview_p.h"
-
-#include <Device/QMenuView/qmenuview.h>
+#include "qmenuview.h"
 
 #include <QAbstractItemModel>
 #include <QAction>

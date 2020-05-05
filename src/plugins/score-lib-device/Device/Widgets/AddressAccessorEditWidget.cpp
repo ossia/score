@@ -4,7 +4,7 @@
 
 #include <Device/ItemModels/NodeBasedItemModel.hpp>
 #include <Device/Node/NodeListMimeSerialization.hpp>
-#include <Device/QMenuView/qmenuview.h>
+#include <QMenuView/qmenuview.h>
 #include <Device/Widgets/DeviceCompleter.hpp>
 #include <Device/Widgets/DeviceModelProvider.hpp>
 #include <State/Widgets/AddressLineEdit.hpp>

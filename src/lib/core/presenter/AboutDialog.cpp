@@ -133,8 +133,6 @@ AboutDialog::AboutDialog(QWidget* parent)
       "https://github.com/jcelerier/nano-signal-slot", nanosignal_LICENSE};
   map["OSCPack"]
       = License{"https://github.com/jcelerier/oscpack", "Boost License"};
-  map["Pure Data"]
-      = License{"https://github.com/pure-data/pure-data.git", pd_LICENSE};
   map["pybind11"]
       = License{"https://github.com/pybind/pybind11", pybind11_LICENSE};
   map["rapidjson"]
@@ -169,7 +167,6 @@ AboutDialog::AboutDialog(QWidget* parent)
   map["SDL"] = License{"", "Boost License"};
   map["Faust"]
       = License{"https://faust.grame.fr", "GNU General Public License"};
-  map["PortAudio"] = License{"https://www.portaudio.com", portaudio_LICENSE};
   map["libJACK"]
       = License{"https://jackaudio.org", "GNU Lesser General Public License"};
   map["Phidgets"] = License{"https://www.phidgets.com/", "Boost License"};
