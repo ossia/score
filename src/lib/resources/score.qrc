@@ -232,8 +232,6 @@
         <file>icons/radio_checked_disabled@2x.png</file>
         <file>icons/radio_unchecked@2x.png</file>
         <file>icons/radio_checked@2x.png</file>
-        <file>icons/unit_icon.png</file>
-        <file>icons/unit_icon@2x.png</file>
         <file>style/linux.qss</file>
         <file>style/macos.qss</file>
         <file>style/windows.qss</file>
@@ -549,5 +547,9 @@
         <file>icons/load_examples_off@2x.png</file>
         <file>icons/load_examples_on.png</file>
         <file>icons/load_examples_on@2x.png</file>
+        <file>icons/port_address_unit_on.png</file>
+        <file>icons/port_address_unit_on@2x.png</file>
+        <file>icons/port_address_unit.png</file>
+        <file>icons/port_address_unit@2x.png</file>
     </qresource>
 </RCC>

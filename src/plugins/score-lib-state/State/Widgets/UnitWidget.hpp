@@ -11,6 +11,8 @@ class QPushButton;
 class QColumnView;
 class QComboBox;
 class QHBoxLayout;
+class QMenuView;
+class QPushButton;
 namespace State
 {
 class SCORE_LIB_STATE_EXPORT UnitWidget : public QWidget
@@ -54,6 +56,9 @@ public:
 private:
   void on_dataspaceChanged(int idx);
   void on_unitChanged(int idx);
+
+  QMenuView* m_unitMenu{};
+
   QComboBox* m_ds{};
   QComboBox* m_unit{};
   QComboBox* m_ac{};

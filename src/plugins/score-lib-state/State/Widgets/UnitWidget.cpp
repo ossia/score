@@ -12,6 +12,7 @@
 
 #include <QComboBox>
 #include <QHBoxLayout>
+#include <QMenuView.h>
 
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(State::UnitWidget)
@@ -448,51 +449,63 @@ DestinationQualifierWidget::DestinationQualifierWidget(QWidget* parent)
   auto& m = unit_model();
   auto lay = new score::MarginLess<QHBoxLayout>{this};
 
-  QString combo_style = R"_(
-QComboBox {
-   font: 8pt;
-   padding: -2px 0px -2px 2px;
-   margin: 0px 0px 0px 0px;
-}
+  m_unitMenu = new QMenuView{this};
+  m_unitMenu->setModel(m);
+/*
+  using namespace ossia;
+  ossia::for_each_tagged(dataspace_u_list{}, [&](auto t) {
+    using dataspace_type = typename decltype(t)::type;
 
-QComboBox::down-arrow {
-   width:10px;
-   height: 10px;
-   right:-8px;
-   padding: 0px;
-   margin: 0px;
-}
+    std::string_view dataspace_name = dataspace_traits<dataspace_type>::text()[0];
+    QMenu* dataspace_menu = m_unitMenu->addMenu(QString::fromUtf8(dataspace_name.data(), dataspace_name.size()));
 
-QComboBox::drop-down {
-  padding: 0px;
-  margin: 0px;
-}
-  )_";
+    ossia::for_each_tagged(dataspace_type{}, [&](auto u) {
+      using unit_type = typename decltype(u)::type;
+
+      std::string_view unit_text = unit_traits<unit_type>::text()[0];
+      QString unit_name = QString::fromUtf8(unit_text.data(), unit_text.size());
+      if constexpr (unit_type::is_multidimensional::value)
+      {
+        QMenu* unit_menu = dataspace_menu->addMenu(unit_name);
+        std::string_view param_names = unit_type::array_parameters();
+        for(const auto& ch: param_names)
+        {
+          auto action = unit_menu->addAction(QString{ch});
+        }
+      }
+      else
+      {
+        auto action = dataspace_menu->addAction(unit_name);
+      }
+    });
+  });
+*/
+  connect(m_button, &QPushButton::pressed,this,
+          [=]() {
+            m_unitMenu->exec(QCursor::pos());
+          });
+
+  connect(m_unitMenu, &QMenu::triggered,this,
+          [=](QAction* action)
+  {m_button->setText(action->text());});
+
+  lay->addWidget(m_button);
 
   m_ds = new QComboBox;
-#ifndef QT_NO_STYLE_STYLESHEET
-  m_ds->setStyleSheet(combo_style);
-#endif
   m_ds->setModel(&m);
   // m_ds->setMinimumWidth(75);
   // m_ds->setMaximumWidth(75);
-  lay->addWidget(m_ds);
+  //lay->addWidget(m_ds);
 
   m_unit = new QComboBox;
-#ifndef QT_NO_STYLE_STYLESHEET
-  m_unit->setStyleSheet(combo_style);
-#endif
   // m_unit->setMinimumWidth(75);
   // m_unit->setMaximumWidth(75);
-  lay->addWidget(m_unit);
+ // lay->addWidget(m_unit);
 
   m_ac = new QComboBox;
-#ifndef QT_NO_STYLE_STYLESHEET
-  m_ac->setStyleSheet(combo_style);
-#endif
   m_ac->setMinimumWidth(45);
   m_ac->setMaximumWidth(45);
-  lay->addWidget(m_ac);
+ // lay->addWidget(m_ac);
   connect(
       m_ds,
       qOverload<int>(&QComboBox::currentIndexChanged),

@@ -13,6 +13,7 @@
 #include <score/document/DocumentContext.hpp>
 #include <score/model/tree/TreeNodeSerialization.hpp>
 #include <score/widgets/MarginLess.hpp>
+#include <score/widgets/SetIcons.hpp>
 
 #include <ossia/editor/state/destination_qualifiers.hpp>
 #include <ossia/network/value/value.hpp>
@@ -48,20 +49,19 @@ AddressAccessorEditWidget::AddressAccessorEditWidget(
         }
       });
 
-  auto act = new QAction{this};
-  act->setIcon(QIcon(":/icons/unit_icon.png"));
+  auto act = new QAction{tr("Show Unit selector"), this};
   act->setStatusTip(tr("Show the unit selector"));
+  setIcons(act
+           , QStringLiteral(":/icons/port_address_unit_on.png")
+           , QStringLiteral(":/icons/port_address_unit.png")
+           , QStringLiteral(":/icons/port_address_unit.png")
+           );
+
+
   m_lineEdit->addAction(act, QLineEdit::TrailingPosition);
 
-  connect(act, &QAction::triggered, [=] {
-    if (m_qualifiers->isVisible())
-    {
-      m_qualifiers->setVisible(false);
-    }
-    else
-    {
-      m_qualifiers->setVisible(true);
-    }
+  connect(act, &QAction::triggered, [=]() {
+    m_qualifiers->setVisible(!m_qualifiers->isVisible());
   });
 
   {
