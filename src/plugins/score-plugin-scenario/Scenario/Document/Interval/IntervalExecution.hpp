@@ -6,7 +6,7 @@
 #include <score/model/ComponentHierarchy.hpp>
 #include <score/model/Identifier.hpp>
 
-#include <ossia/editor/scenario/time_value.hpp>
+#include <ossia-qt/time.hpp>
 
 #include <QObject>
 
@@ -14,8 +14,6 @@
 
 #include <memory>
 
-Q_DECLARE_METATYPE(ossia::time_value)
-W_REGISTER_ARGTYPE(ossia::time_value)
 namespace Process
 {
 class ProcessModel;

@@ -122,9 +122,9 @@ public:
     m_maxSpin = new TimeSpinBox{this};
     m_valueSpin = new TimeSpinBox{this};
     m_valueSpin->setEnabled(bool(m_moveFactory));
-    m_maxSpin->setTime(m_dur.maxDuration().toQTime());
-    m_minSpin->setTime(m_dur.minDuration().toQTime());
-    m_valueSpin->setTime(m_dur.defaultDuration().toQTime());
+    m_maxSpin->setTime(m_dur.maxDuration());
+    m_minSpin->setTime(m_dur.minDuration());
+    m_valueSpin->setTime(m_dur.defaultDuration());
 
     // CHECKBOXES
     m_minNonNullBox = new QCheckBox{};
@@ -224,21 +224,21 @@ public:
     if (m_resizeCommand)
       delete m_resizeCommand;
   }
-  void defaultDurationSpinboxChanged(int val)
+  void defaultDurationSpinboxChanged(ossia::time_value val)
   {
     if (m_moveFactory)
     {
       if (m_resizeCommand)
       {
         m_moveFactory->update(
-            *m_resizeCommand, m_model, TimeVal::fromMsecs(val));
+            *m_resizeCommand, m_model, val);
         m_resizeCommand->redo(m_dispatcher.stack().context());
       }
       else
       {
         m_resizeCommand = m_moveFactory->make(
             m_model,
-            TimeVal::fromMsecs(val),
+            val,
             m_editionSettings.expandMode(),
             LockMode::Free);
         if (m_resizeCommand)
@@ -280,49 +280,48 @@ public:
 
   void on_modelDefaultDurationChanged(const TimeVal& dur)
   {
-    if (dur.toQTime() == m_valueSpin->time())
+    if (dur == m_valueSpin->time())
       return;
 
-    m_valueSpin->setTime(dur.toQTime());
+    m_valueSpin->setTime(dur);
   }
 
   void on_modelMinDurationChanged(const TimeVal& dur)
   {
-    if (dur.toQTime() == m_minSpin->time())
+    if (dur == m_minSpin->time())
       return;
 
-    m_minSpin->setTime(dur.toQTime());
+    m_minSpin->setTime(dur);
     m_min = dur;
   }
 
   void on_modelMaxDurationChanged(const TimeVal& dur)
   {
-    if (dur.toQTime() == m_maxSpin->time())
+    if (dur == m_maxSpin->time())
       return;
 
-    m_maxSpin->setTime(dur.toQTime());
+    m_maxSpin->setTime(dur);
     m_max = dur;
   }
 
   void on_durationsChanged()
   {
-    if (m_dur.defaultDuration().toQTime() != m_valueSpin->time())
+    if (m_dur.defaultDuration() != m_valueSpin->time())
     {
-      defaultDurationSpinboxChanged(
-          m_valueSpin->time().msecsSinceStartOfDay());
+      defaultDurationSpinboxChanged(m_valueSpin->time());
       if (m_resizeCommand)
         m_dispatcher.stack().push(m_resizeCommand);
       m_resizeCommand = nullptr;
     }
 
-    if (m_dur.minDuration().toQTime() != m_minSpin->time())
+    if (m_dur.minDuration() != m_minSpin->time())
     {
-      minDurationSpinboxChanged(m_minSpin->time().msecsSinceStartOfDay());
+      minDurationSpinboxChanged(m_minSpin->time());
       m_dispatcher.commit();
     }
-    if (m_dur.maxDuration().toQTime() != m_maxSpin->time())
+    if (m_dur.maxDuration() != m_maxSpin->time())
     {
-      maxDurationSpinboxChanged(m_maxSpin->time().msecsSinceStartOfDay());
+      maxDurationSpinboxChanged(m_maxSpin->time());
       m_dispatcher.commit();
     }
   }
@@ -351,21 +350,21 @@ public:
     m_simpleDispatcher.submit(cmd);
   }
 
-  void minDurationSpinboxChanged(int val)
+  void minDurationSpinboxChanged(ossia::time_value val)
   {
     using namespace Scenario::Command;
     m_dispatcher.submit<SetMinDuration>(
         m_model,
-        TimeVal{std::chrono::milliseconds{val}},
+        val,
         !m_minNonNullBox->isChecked());
   }
 
-  void maxDurationSpinboxChanged(int val)
+  void maxDurationSpinboxChanged(ossia::time_value val)
   {
     using namespace Scenario::Command;
     m_dispatcher.submit<SetMaxDuration>(
         m_model,
-        TimeVal{std::chrono::milliseconds{val}},
+        val,
         !m_maxFiniteBox->isChecked());
   }
 

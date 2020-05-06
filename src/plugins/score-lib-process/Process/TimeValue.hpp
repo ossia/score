@@ -12,45 +12,40 @@
 #include <verdigris>
 
 #include <chrono>
-#if defined(_MSC_VER)
-#define OPTIONAL_CONSTEXPR constexpr
-#else
-#define OPTIONAL_CONSTEXPR
-#endif
-struct TimeValue_T : ossia::time_value
+struct TimeVal : ossia::time_value
 {
   using ossia::time_value::time_value;
 
   template<typename T>
-  static constexpr TimeValue_T fromMsecs(T msecs)
+  static constexpr TimeVal fromMsecs(T msecs)
   {
-    TimeValue_T time;
+    TimeVal time;
     time.impl = msecs * ossia::flicks_per_millisecond<T>;
     return time;
   }
 
 
-  constexpr TimeValue_T() noexcept
+  constexpr TimeVal() noexcept
     : time_value{0}
   {
 
   }
 
-  constexpr ~TimeValue_T() = default;
-  constexpr TimeValue_T(const TimeValue_T&) = default;
-  constexpr TimeValue_T(TimeValue_T&&) noexcept = default;
-  constexpr TimeValue_T& operator=(const TimeValue_T&) = default;
-  constexpr TimeValue_T& operator=(TimeValue_T&&) noexcept = default;
+  constexpr ~TimeVal() = default;
+  constexpr TimeVal(const TimeVal&) = default;
+  constexpr TimeVal(TimeVal&&) noexcept = default;
+  constexpr TimeVal& operator=(const TimeVal&) = default;
+  constexpr TimeVal& operator=(TimeVal&&) noexcept = default;
 
-  constexpr TimeValue_T(ossia::time_value v) noexcept: time_value{v} { }
-  explicit constexpr TimeValue_T(int64_t v) noexcept: time_value{v} { }
+  constexpr TimeVal(ossia::time_value v) noexcept: time_value{v} { }
+  explicit constexpr TimeVal(int64_t v) noexcept: time_value{v} { }
 
-  static constexpr TimeValue_T zero() noexcept
+  static constexpr TimeVal zero() noexcept
   {
-    return TimeValue_T{time_value{}};
+    return TimeVal{time_value{}};
   }
 
-  TimeValue_T(QTime t) noexcept
+  TimeVal(QTime t) noexcept
       : time_value{int64_t(ossia::flicks_per_millisecond<double> *
             (t.msec() + 1000. * t.second() + 60000. * t.minute()
               + 3600000. * t.hour()))}
@@ -62,44 +57,44 @@ struct TimeValue_T : ossia::time_value
       typename Duration,
       std::enable_if_t<
           std::is_class<typename Duration::period>::value>* = nullptr>
-  OPTIONAL_CONSTEXPR TimeValue_T(Duration&& dur) noexcept
+  constexpr TimeVal(Duration&& dur) noexcept
       : time_value{util::flicks_cast(dur).count()}
   {
   }
 
-  constexpr TimeValue_T operator-(TimeValue_T t) const noexcept
+  constexpr TimeVal operator-(TimeVal t) const noexcept
   {
     if (infinite() || t.infinite())
-      return TimeValue_T{infinity};
+      return TimeVal{infinity};
 
-    return TimeValue_T{impl - t.impl};
+    return TimeVal{impl - t.impl};
   }
-  constexpr TimeValue_T operator+(TimeValue_T t) const noexcept
+  constexpr TimeVal operator+(TimeVal t) const noexcept
   {
     if (infinite() || t.infinite())
-      return TimeValue_T{infinity};
+      return TimeVal{infinity};
 
-    return TimeValue_T{impl + t.impl};
+    return TimeVal{impl + t.impl};
   }
 
 
-  constexpr TimeValue_T& operator=(bool d) noexcept = delete;
-  constexpr TimeValue_T& operator=(double d) noexcept = delete;
-  constexpr TimeValue_T& operator=(float d) noexcept = delete;
-  constexpr TimeValue_T& operator=(uint64_t d) noexcept = delete;
+  constexpr TimeVal& operator=(bool d) noexcept = delete;
+  constexpr TimeVal& operator=(double d) noexcept = delete;
+  constexpr TimeVal& operator=(float d) noexcept = delete;
+  constexpr TimeVal& operator=(uint64_t d) noexcept = delete;
 
-  constexpr TimeValue_T& operator=(int64_t d) noexcept
+  constexpr TimeVal& operator=(int64_t d) noexcept
   {
     impl = d;
     return *this;
   }
-  constexpr TimeValue_T& operator=(int32_t d) noexcept
+  constexpr TimeVal& operator=(int32_t d) noexcept
   {
     impl = d;
     return *this;
   }
 
-  constexpr TimeValue_T& operator-() noexcept
+  constexpr TimeVal& operator-() noexcept
   {
     if (!infinite())
       impl = -impl;
@@ -156,32 +151,32 @@ struct TimeValue_T : ossia::time_value
 
   constexpr void setMSecs(double msecs) noexcept { impl = msecs * ossia::flicks_per_millisecond<double>; }
 
-  constexpr bool operator==(TimeValue_T other) const noexcept
+  constexpr bool operator==(TimeVal other) const noexcept
   {
     return impl == other.impl;
   }
 
-  constexpr bool operator!=(TimeValue_T other) const noexcept
+  constexpr bool operator!=(TimeVal other) const noexcept
   {
     return impl != other.impl;
   }
 
-  constexpr bool operator>(TimeValue_T other) const noexcept
+  constexpr bool operator>(TimeVal other) const noexcept
   {
     return impl > other.impl;
   }
 
-  constexpr bool operator>=(TimeValue_T other) const noexcept
+  constexpr bool operator>=(TimeVal other) const noexcept
   {
     return impl >= other.impl;
   }
 
-  constexpr bool operator<(TimeValue_T other) const noexcept
+  constexpr bool operator<(TimeVal other) const noexcept
   {
     return impl < other.impl;
   }
 
-  constexpr bool operator<=(TimeValue_T other) const noexcept
+  constexpr bool operator<=(TimeVal other) const noexcept
   {
     return impl <= other.impl;
   }
@@ -215,10 +210,7 @@ struct TimeValue_T : ossia::time_value
   {
     return impl <= other.impl;
   }
-
 };
-
-using TimeVal = TimeValue_T;
 
 inline const TimeVal& max(const TimeVal& lhs, const TimeVal& rhs) noexcept
 {

@@ -21,6 +21,7 @@ bool ScenarioValidityChecker::validate(const score::DocumentContext& ctx)
 
 void ScenarioValidityChecker::checkValidity(const ProcessModel& scenar)
 {
+  using namespace ossia;
 #if defined(SCORE_DEBUG)
   for (const IntervalModel& interval : scenar.intervals)
   {
@@ -33,10 +34,10 @@ void ScenarioValidityChecker::checkValidity(const ProcessModel& scenar)
     SCORE_ASSERT(es->previousInterval() == interval.id());
 
     auto& dur = interval.duration;
-    SCORE_ASSERT(dur.defaultDuration() >= TimeVal{0});
+    SCORE_ASSERT(dur.defaultDuration() >= 0_tv);
 
     SCORE_ASSERT(!dur.minDuration().infinite());
-    SCORE_ASSERT(dur.minDuration() >= TimeVal{0});
+    SCORE_ASSERT(dur.minDuration() >= 0_tv);
     SCORE_ASSERT(dur.minDuration() <= dur.maxDuration());
     SCORE_ASSERT(
         (qFuzzyCompare(dur.defaultDuration().msec(), dur.maxDuration().msec()))

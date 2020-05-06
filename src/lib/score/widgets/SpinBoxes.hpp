@@ -4,9 +4,10 @@
 #include <QSpinBox>
 #include <QTimeEdit>
 #include <QWheelEvent>
-
 #include <type_traits>
-
+#include <ossia-qt/time.hpp>
+#include <score_lib_base_export.h>
+class QStyleOptionFrame;
 namespace score
 {
 /**
@@ -14,22 +15,39 @@ namespace score
  *
  * Adapted for the score usage in various duration widgets.
  */
-class TimeSpinBox final : public QAbstractSpinBox
+class SCORE_LIB_BASE_EXPORT TimeSpinBox final : public QWidget
 {
   W_OBJECT(TimeSpinBox)
 public:
-  TimeSpinBox(QWidget* parent = nullptr) : QAbstractSpinBox(parent)
-  {
-  //setDisplayFormat(QStringLiteral("h.mm.ss.zzz"));
-    setAlignment(Qt::AlignRight);
-  }
+  TimeSpinBox(QWidget* parent = nullptr);
 
-  void setMinimumTime(QTime) { }
-  void setMaximumTime(QTime) { }
-  void setTime(QTime) {}
-  QTime time() const noexcept {  return {}; }
-  void timeChanged(QTime t) W_SIGNAL(timeChanged, t);
-  void wheelEvent(QWheelEvent* event) override { event->ignore(); }
+  void setMinimumTime(ossia::time_value t);
+  void setMaximumTime(ossia::time_value t);
+  void setTime(ossia::time_value t);
+  ossia::time_value time() const noexcept;
+  void timeChanged(ossia::time_value t) E_SIGNAL(SCORE_LIB_BASE_EXPORT, timeChanged, t)
+  void editingFinished() E_SIGNAL(SCORE_LIB_BASE_EXPORT, editingFinished)
+  void wheelEvent(QWheelEvent* event) override;
+
+  void mousePressEvent(QMouseEvent* event) override;
+  void mouseReleaseEvent(QMouseEvent* event) override;
+  void mouseDoubleClickEvent(QMouseEvent* event) override;
+  void mouseMoveEvent(QMouseEvent* event) override;
+  void paintEvent(QPaintEvent* event) override;
+  void initStyleOption(QStyleOptionFrame *option) const noexcept;
+  QSize sizeHint() const override;
+  QSize minimumSizeHint() const override;
+
+private:
+  int64_t m_flicks{};
+  int64_t m_min{};
+  int64_t m_max{};
+  int m_grab{-1};
+  enum TimeMode {
+    Bars,
+    Seconds,
+    Flicks
+  } m_mode{};
 };
 
 

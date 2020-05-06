@@ -104,20 +104,17 @@ public:
       // Start offset
       {
         auto so = new score::TimeSpinBox;
-        so->setMinimumTime(QTime{0,0,0,0});
-        so->setTime(process.startOffset().toQTime());
+        so->setMinimumTime({});
+        so->setTime(process.startOffset());
         connect(so, &score::TimeSpinBox::timeChanged,
-                this, [&] (const QTime& time) {
-          auto t = TimeVal{time};
-
+                this, [&] (const ossia::time_value& t) {
           if(t != process.startOffset())
             CommandDispatcher<>{doc.commandStack}.submit<SetStartOffset>(process, t);
         });
         con(process, &ProcessModel::startOffsetChanged,
             this, [so] (TimeVal t) {
-          auto tm = t.toQTime();
-          if(tm != so->time())
-            so->setTime(tm);
+          if(t != so->time())
+            so->setTime(t);
         });
         loop_lay->addRow(tr("Start offset"), so);
       }
@@ -125,20 +122,17 @@ public:
       // Loop duration
       {
         auto so = new score::TimeSpinBox;
-        so->setMinimumTime(QTime{0, 0, 0, 10});
-        so->setTime(process.loopDuration().toQTime());
+        so->setMinimumTime(TimeVal::fromMsecs(10));
+        so->setTime(process.loopDuration());
         connect(so, &score::TimeSpinBox::timeChanged,
-                this, [&] (const QTime& time) {
-          auto t = TimeVal{time};
-
+                this, [&] (const ossia::time_value& t) {
           if(t != process.loopDuration())
             CommandDispatcher<>{doc.commandStack}.submit<SetLoopDuration>(process, t);
         });
         con(process, &ProcessModel::loopDurationChanged,
             this, [so] (TimeVal t) {
-          auto tm = t.toQTime();
-          if(tm != so->time())
-            so->setTime(tm);
+          if(t != so->time())
+            so->setTime(t);
         });
         loop_lay->addRow(tr("Loop duration"), so);
       }

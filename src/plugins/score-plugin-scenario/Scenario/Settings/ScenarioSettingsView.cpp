@@ -519,7 +519,7 @@ View::View() : m_widg{new QWidget}
       m_defaultDur,
       &score::TimeSpinBox::timeChanged,
       this,
-      [=](const QTime& t) { DefaultDurationChanged(TimeVal{t}); });
+      [=](const TimeVal& t) { DefaultDurationChanged(t); });
   lay->addRow(tr("New score duration"), m_defaultDur);
 
   m_sequence = new QCheckBox{m_widg};
@@ -560,9 +560,8 @@ void View::setZoom(const int val)
 
 void View::setDefaultDuration(const TimeVal& t)
 {
-  auto qtime = t.toQTime();
-  if (qtime != m_defaultDur->time())
-    m_defaultDur->setTime(qtime);
+  if (t != m_defaultDur->time())
+    m_defaultDur->setTime(t);
 }
 
 void View::setSlotHeight(const double val)
