@@ -75,7 +75,7 @@ public:
   void deselectAll();
   void selectTop();
 
-  void setMillisPerPixel(ZoomRatio newFactor);
+  void setZoomRatio(ZoomRatio newFactor);
   void updateRect(const QRectF& rect);
 
   void setNewSelection(const Selection& old, const Selection& s) override;
@@ -124,7 +124,7 @@ private:
   ZoomRatio computeZoom(double l, double r);
 
   void updateMinimap();
-  double displayedDuration() const;
+  //double displayedDuration() const;
 
   Process::DataflowManager m_dataflow;
   DisplayedElementsPresenter m_scenarioPresenter;

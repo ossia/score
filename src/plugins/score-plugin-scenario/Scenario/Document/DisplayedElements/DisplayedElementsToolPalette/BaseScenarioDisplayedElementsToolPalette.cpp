@@ -30,7 +30,7 @@ Scenario::Point
 BaseScenarioDisplayedElementsToolPalette::ScenePointToScenarioPoint(
     QPointF point)
 {
-  return {TimeVal::fromMsecs(point.x() * m_presenter.zoomRatio()), 0};
+  return {TimeVal::fromPixels(point.x(), m_presenter.zoomRatio()), 0};
 }
 
 // We need two tool palettes : one for the case where we're viewing a

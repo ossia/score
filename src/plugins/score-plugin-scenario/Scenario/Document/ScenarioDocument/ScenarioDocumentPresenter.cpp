@@ -256,11 +256,11 @@ void ScenarioDocumentPresenter::selectTop()
        &displayedElements.endState()});
 }
 
-void ScenarioDocumentPresenter::setMillisPerPixel(ZoomRatio newRatio)
+void ScenarioDocumentPresenter::setZoomRatio(ZoomRatio newRatio)
 {
   m_zoomRatio = newRatio;
 
-  view().timeRuler().setPixelPerMillis(1.0 / m_zoomRatio);
+  view().timeRuler().setPixelPerMillis(ossia::flicks_per_millisecond<double> / m_zoomRatio);
   m_scenarioPresenter.on_zoomRatioChanged(m_zoomRatio);
 
   for (auto& cbl : m_dataflow.cables())
@@ -356,7 +356,7 @@ void ScenarioDocumentPresenter::on_windowSizeChanged(QSize sz)
   auto visible_rect = view().visibleSceneRect();
   if (visible_rect.width() > c.duration.guiDuration().toPixels(m_zoomRatio))
   {
-    auto t = TimeVal::fromMsecs(m_zoomRatio * visible_rect.width());
+    auto t = TimeVal::fromPixels(visible_rect.width(), m_zoomRatio);
     auto min_time = c.contentDuration();
 
     c.duration.setGuiDuration((min_time > t ? min_time : t));
@@ -379,8 +379,9 @@ void ScenarioDocumentPresenter::on_horizontalPositionChanged(int dx)
     auto scene_rect = gv.sceneRect();
     if (cur_rect.x() + cur_rect.width() - dx > (scene_rect.width()))
     {
-      auto t = TimeVal::fromMsecs(
-          m_zoomRatio * (cur_rect.x() + cur_rect.width() - dx));
+      auto t = TimeVal::fromPixels(
+            cur_rect.x() + cur_rect.width() - dx,
+            m_zoomRatio);
       c.duration.setGuiDuration(t);
       scene_rect.adjust(0, 0, 5, 0);
       gv.setSceneRect(scene_rect);
@@ -393,8 +394,7 @@ void ScenarioDocumentPresenter::on_horizontalPositionChanged(int dx)
     {
       auto cur_rect = gv.mapToScene(gv.rect()).boundingRect();
       auto t = std::max(
-          TimeVal::fromMsecs(
-              m_zoomRatio * (cur_rect.x() + cur_rect.width() - dx)),
+          TimeVal::fromPixels(cur_rect.x() + cur_rect.width() - dx, m_zoomRatio),
           min_time);
       c.duration.setGuiDuration(t);
 
@@ -424,7 +424,7 @@ double ScenarioDocumentPresenter::computeReverseZoom(ZoomRatio r)
 
   const auto map_w = view().minimap().width();
 
-  return map_w * r * view_width / dur.msec();
+  return map_w * r * view_width / dur.impl;
 }
 
 ZoomRatio ScenarioDocumentPresenter::computeZoom(double l, double r)
@@ -434,7 +434,7 @@ ZoomRatio ScenarioDocumentPresenter::computeZoom(double l, double r)
   const auto dur = displayedInterval().duration.guiDuration();
 
   // Compute new zoom level
-  const auto disptime = TimeVal(dur * ((r - l) / map_w)).msec();
+  const auto disptime = dur.impl * ((r - l) / map_w);
   return disptime / view_width;
 }
 
@@ -512,7 +512,7 @@ void ScenarioDocumentPresenter::on_minimapChanged(double l, double r)
 
   // Set zoom
   if (newZoom != m_zoomRatio)
-    setMillisPerPixel(newZoom);
+    setZoomRatio(newZoom);
 
   // Set viewport position
   auto newView = QRectF{newX, y, (qreal)w, (qreal)h};
@@ -565,7 +565,7 @@ void ScenarioDocumentPresenter::updateMinimap()
   const auto cstWidth = cstDur.toPixels(m_zoomRatio);
 
   // ZoomRatio in the minimap view
-  const auto zoomRatio = cstDur.msec() / viewWidth;
+  const auto zoomRatio = cstDur.impl / viewWidth;
 
   minimap.setWidth(viewWidth);
   if (m_miniLayer)
@@ -577,7 +577,7 @@ void ScenarioDocumentPresenter::updateMinimap()
   // Compute min handle spacing.
   // The maximum zoom in the main view should be 10 pixels for one millisecond.
   // Given the viewWidth and the guiDuration, compute the distance required.
-  minimap.setMinDistance(2 * viewWidth / cstDur.msec());
+  minimap.setMinDistance(2 * viewWidth / cstDur.impl);
 
   // Compute handle positions.
   const auto vp_x1 = visibleSceneRect.left();
@@ -589,11 +589,6 @@ void ScenarioDocumentPresenter::updateMinimap()
   const auto rh_x = viewWidth * (vp_x2 / cstWidth);
   minimap.setHandles(lh_x, rh_x);
   // minimap.setRightHandle(rh_x);
-}
-
-double ScenarioDocumentPresenter::displayedDuration() const
-{
-  return 0.9 * displayedInterval().duration.guiDuration().msec();
 }
 
 void ScenarioDocumentPresenter::setDisplayedInterval(IntervalModel& interval)

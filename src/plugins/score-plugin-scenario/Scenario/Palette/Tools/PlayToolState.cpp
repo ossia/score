@@ -33,7 +33,7 @@ void PlayToolState::on_pressed(
   SCORE_ASSERT(root);
   auto root_itv = root->presenters().intervalPresenter();
   auto itv_pt = root_itv->view()->mapFromScene(scenePoint);
-  auto global_time = TimeVal::fromMsecs(itv_pt.x() * root_itv->zoomRatio());
+  auto global_time = TimeVal::fromPixels(itv_pt.x(), root_itv->zoomRatio());
 
   switch (item->type())
   {

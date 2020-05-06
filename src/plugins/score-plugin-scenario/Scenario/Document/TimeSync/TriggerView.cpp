@@ -16,19 +16,23 @@ namespace Scenario
   static const constexpr int iconSize = 20;
 
   static const QPixmap& triggerPixmap() {
-    static const auto p = score::get_pixmap(":/icons/scenario_trigger.png");
+    static auto p = score::get_pixmap(":/icons/scenario_trigger.png");
+    p.setDevicePixelRatio(2.);
     return p;
   }
   static const QPixmap& selectedTriggerPixmap() {
-    static const auto p = score::get_pixmap(":/icons/scenario_trigger_selected.png");
+    static auto p = score::get_pixmap(":/icons/scenario_trigger_selected.png");
+    p.setDevicePixelRatio(2.);
     return p;
   }
   static const QPixmap& hoveredTriggerPixmap() {
-    static const auto p = score::get_pixmap(":/icons/scenario_trigger_hovered.png");
+    static auto p = score::get_pixmap(":/icons/scenario_trigger_hovered.png");
+    p.setDevicePixelRatio(2.);
     return p;
   }
   static const QPixmap& triggerSpriteSheet() {
-    static const auto p = score::get_pixmap(":/icons/trigger_sprite.png");
+    static auto p = score::get_pixmap(":/icons/trigger_sprite.png");
+    p.setDevicePixelRatio(2.);
     return p;
   }
 
@@ -62,7 +66,11 @@ QRectF TriggerView::boundingRect() const
 
 void TriggerView::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
-  painter->drawPixmap(QRect{0,0,iconSize,iconSize}, m_currentPixmap, QRect{m_currentFrame,0,iconSize,iconSize});
+  const qreal sz = painter->device()->devicePixelRatioF() * iconSize;
+  painter->drawPixmap(
+        QRectF{0,0,iconSize,iconSize},
+        m_currentPixmap,
+        QRectF{qreal(m_currentFrame),0,sz,sz});
 }
 
 bool TriggerView::contains(const QPointF& point) const

@@ -27,12 +27,6 @@ namespace Engine
 {
 namespace score_to_ossia
 {
-//// Other conversions
-inline ossia::time_value defaultTime(const TimeVal& t)
-{
-  return t.infinite() ? ossia::Infinite
-                      : ossia::time_value{int64_t(t.msec() * 1000)};
-}
 
 void state(
     ossia::state& ossia_state,

@@ -63,7 +63,7 @@ private:
   double m_rightHandle{};
   double m_width{100.};
   double m_minDist{10.};
-  QPointF m_startPos;
+  QPointF m_startPos{};
   double m_startY{};
   double m_relativeStartX{};
 

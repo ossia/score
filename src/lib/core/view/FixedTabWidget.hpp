@@ -1,6 +1,7 @@
 #pragma once
 #include <score/plugins/panel/PanelDelegate.hpp>
 #include <score/widgets/MarginLess.hpp>
+#include <QMenuView/qmenuview.h>
 
 #include <verdigris>
 #include <QWidget>
@@ -38,4 +39,3 @@ private:
 };
 }
 
-W_REGISTER_ARGTYPE(QAction*)

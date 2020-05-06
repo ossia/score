@@ -276,10 +276,9 @@ void ProcessModel::setStartOffset(TimeVal b)
 
 void ProcessModel::setLoopDuration(TimeVal b)
 {
-  auto ms = b.msec();
-  if(ms < 0.1)
-    ms = 0.1;
-  b = TimeVal::fromMsecs(ms);
+  if(b.msec() < 0.1)
+    b = TimeVal::fromMsecs(0.1);
+
   if(b != m_loopDuration)
   {
     m_loopDuration = b;

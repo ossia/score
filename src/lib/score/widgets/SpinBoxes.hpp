@@ -39,15 +39,34 @@ public:
   QSize minimumSizeHint() const override;
 
 private:
+  void updateTime();
+  QPoint m_startPos{};
+  int64_t m_prevY{};
+  int64_t m_travelledY{};
+
+  int64_t m_origFlicks{};
+
   int64_t m_flicks{};
   int64_t m_min{};
   int64_t m_max{};
-  int m_grab{-1};
+
+  struct BarTime {
+    uint32_t bars{};
+    uint8_t quarters{};
+    uint8_t semiquavers{};
+    uint8_t cents{};
+  } m_barTime{};
+
+  enum GrabbedHandle {
+    None, Bar, Quarter, Semiquaver, Cent
+  } m_grab{None};
+
   enum TimeMode {
     Bars,
     Seconds,
     Flicks
-  } m_mode{};
+  } m_mode{Bars};
+
 };
 
 

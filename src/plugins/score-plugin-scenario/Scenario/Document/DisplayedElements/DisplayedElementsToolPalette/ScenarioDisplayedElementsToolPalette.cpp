@@ -31,7 +31,7 @@ class EditionSettings;
 Scenario::Point
 ScenarioDisplayedElementsToolPalette::ScenePointToScenarioPoint(QPointF point)
 {
-  return {TimeVal::fromMsecs(point.x() * m_presenter.zoomRatio())
+  return {TimeVal::fromPixels(point.x(), m_presenter.zoomRatio())
               + m_presenter.presenters().startTimeSync().date(),
           0};
 }

@@ -3,9 +3,13 @@
 #include <wobjectimpl.h>
 #include <QStyleOptionComplex>
 #include <QPainter>
+#include <score/tools/Cursor.hpp>
 W_OBJECT_IMPL(score::TimeSpinBox)
 namespace score
 {
+  static const constexpr int centStart = 20;
+  static const constexpr int semiquaverStart = 40;
+  static const constexpr int quarterStart = 60;
 TimeSpinBox::TimeSpinBox(QWidget* parent)
   : QWidget(parent)
 {
@@ -26,7 +30,28 @@ void TimeSpinBox::setMaximumTime(ossia::time_value t)
 
 void TimeSpinBox::setTime(ossia::time_value t)
 {
-  m_flicks = t.impl;
+  if(m_flicks != t.impl)
+  {
+      m_flicks = t.impl;
+      updateTime();
+  }
+}
+
+void TimeSpinBox::updateTime()
+{
+  constexpr const auto bar_duration = 4 * ossia::quarter_duration<int64_t>;
+  constexpr const auto qrt_duration = ossia::quarter_duration<int64_t>;
+  constexpr const auto sem_duration = ossia::quarter_duration<int64_t> / 4;
+  constexpr const auto cnt_duration = ossia::quarter_duration<int64_t> / 400;
+  const int64_t bars = m_flicks / (bar_duration);
+  const int64_t quarters = (m_flicks - (bars * bar_duration)) / qrt_duration;
+  const int64_t semiquavers = (m_flicks - (bars * bar_duration) - (quarters * qrt_duration)) / sem_duration;
+  const int64_t cents = (m_flicks - (bars * bar_duration) - (quarters * qrt_duration)- (semiquavers * sem_duration)) / cnt_duration;
+  m_barTime.bars = bars;
+  m_barTime.quarters = quarters;
+  m_barTime.semiquavers = semiquavers;
+  m_barTime.cents = cents;
+  update();
 }
 
 ossia::time_value TimeSpinBox::time() const noexcept
@@ -41,19 +66,99 @@ void TimeSpinBox::wheelEvent(QWheelEvent* event)
 
 void TimeSpinBox::mousePressEvent(QMouseEvent* event)
 {
+  const auto text_rect = rect().adjusted(2, 2, -4, -2);
+  const auto w = text_rect.width();
+  const auto cent_start = w - centStart;
+  const auto sq_start = w - semiquaverStart;
+  const auto q_start = w - quarterStart;
+  const auto bar_w = q_start - text_rect.x();
+
+#if defined(__APPLE__)
+  CGEventRef event = CGEventCreate(nullptr);
+  CGPoint loc = CGEventGetLocation(event);
+  CFRelease(event);
+
+  m_startPos = {loc.x, loc.y};
+#else
+  m_startPos = event->globalPos();
+#endif
+
+  m_origFlicks = m_flicks;
+  m_travelledY = 0;
+  m_prevY = event->y();
+  if(event->x() < bar_w)
+  {
+    m_grab = Bar;
+    event->accept();
+  }
+  else if(event->x() > q_start && event->x() < sq_start)
+  {
+    m_grab = Quarter;
+    event->accept();
+  }
+  else if(event->x() > sq_start && event->x() < cent_start)
+  {
+    m_grab = Semiquaver;
+    event->accept();
+  }
+  else
+  {
+    m_grab = Cent;
+    event->accept();
+  }
+
+#if defined(__APPLE__)
+    score::hideCursor(true);
+#else
+    QGuiApplication::setOverrideCursor(QCursor(Qt::BlankCursor));
+#endif
+}
+
+void TimeSpinBox::mouseMoveEvent(QMouseEvent* event)
+{
+  int pixelsTraveled = m_prevY - event->globalPos().y();
+  m_travelledY += pixelsTraveled;
+  m_prevY = event->globalPos().y();
+
+  double subdivDelta = m_travelledY / 5.;
+
+  switch(m_grab)
+  {
+    case Bar:
+      m_flicks = m_origFlicks + subdivDelta * 4 * ossia::quarter_duration<int64_t>;
+      break;
+    case Quarter:
+      m_flicks = m_origFlicks + subdivDelta * ossia::quarter_duration<int64_t>;
+      break;
+    case Semiquaver:
+      m_flicks = m_origFlicks + subdivDelta * ossia::quarter_duration<int64_t> / 4;
+      break;
+    case Cent:
+      m_flicks = m_origFlicks + subdivDelta * ossia::quarter_duration<int64_t> / 400;
+      break;
+    default:
+      break;
+  }
+
+  if (m_flicks < 0)
+    m_flicks = 0;
+
+  score::moveCursorPos(m_startPos);
+  score::hideCursor(true);
+  updateTime();
 }
 
 void TimeSpinBox::mouseReleaseEvent(QMouseEvent* event)
 {
+  score::showCursor();
+
+  score::setCursorPos(m_startPos);
 }
 
 void TimeSpinBox::mouseDoubleClickEvent(QMouseEvent* event)
 {
 }
 
-void TimeSpinBox::mouseMoveEvent(QMouseEvent* event)
-{
-}
 
 void TimeSpinBox::initStyleOption(QStyleOptionFrame *option) const noexcept
 {
@@ -92,16 +197,26 @@ void TimeSpinBox::paintEvent(QPaintEvent* event)
     // r = r.marginsRemoved(d->effectiveTextMargins());
     p.setClipRect(r);
 
+
     QFontMetrics fm = fontMetrics();
 
-    constexpr const auto bar_duration = 4 * ossia::quarter_duration<int64_t>;
-    constexpr const auto qrt_duration = ossia::quarter_duration<int64_t>;
-    constexpr const auto cnt_duration = ossia::quarter_duration<int64_t> / 100;
-    int bars = m_flicks / (bar_duration);
-    int quarters = (m_flicks - (bars * bar_duration)) / qrt_duration;
-    int rem = (m_flicks - (bars * bar_duration) - (quarters * qrt_duration)) / cnt_duration;
+    const auto text_rect = rect().adjusted(2, 2, -4, -2);
+    const auto w = text_rect.width();
+    const auto cent_start = w - centStart;
+    const auto sq_start = w - semiquaverStart;
+    const auto q_start = w - quarterStart;
+    const auto bar_w = q_start - text_rect.x();
 
-    p.drawText(rect().adjusted(2, 2, -4, -2), QString("%1 . %2 . %3").arg(bars).arg(quarters).arg(rem), QTextOption(Qt::AlignRight));
+    p.drawText(QRect{text_rect.x(), text_rect.y(), bar_w, text_rect.height()}, QString::number(m_barTime.bars), QTextOption(Qt::AlignRight));
+    p.drawText(QRect{q_start, text_rect.y(), 20, text_rect.height()}, QString::number(m_barTime.quarters), QTextOption(Qt::AlignRight));
+    p.drawText(QRect{sq_start, text_rect.y(), 20, text_rect.height()}, QString::number(m_barTime.semiquavers), QTextOption(Qt::AlignRight));
+    p.drawText(QRect{cent_start, text_rect.y(), 20, text_rect.height()}, QString{"%1"}.arg(m_barTime.cents, 2, 10, QChar('0')), QTextOption(Qt::AlignRight));
+
+    QString txt = QString("%1 . %2 . %3 . %4")
+        .arg(m_barTime.bars)
+        .arg(m_barTime.quarters)
+        .arg(m_barTime.semiquavers)
+        .arg(m_barTime.cents);
 
     /*
     Qt::Alignment va = QStyle::visualAlignment(d->control->layoutDirection(), QFlag(d->alignment));

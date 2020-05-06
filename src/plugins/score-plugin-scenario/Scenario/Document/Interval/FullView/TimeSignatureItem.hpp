@@ -479,7 +479,7 @@ private:
       // TODO what if we pass on top of another :|
 
       // Find leftmost signature
-      const auto msecs = TimeVal::fromMsecs(x * m_ratio);
+      const auto msecs = TimeVal::fromPixels(x, m_ratio);
 
       const auto new_time = m_magnetic.getPosition(m_model, msecs);
 
@@ -490,7 +490,7 @@ private:
       signatures[new_time] = m_origSig;
 
       // Set new position for the handle
-      handle.setX(new_time.msec() / m_ratio);
+      handle.setX(new_time.toPixels(m_ratio));
       handle.setSignature(new_time, handle.signature());
 
       m_itv.context().dispatcher.submit<Scenario::Command::SetTimeSignatures>(*m_model, signatures);
@@ -522,7 +522,7 @@ private:
     {
       assert(m_model);
       auto signatures = m_model->timeSignatureMap();
-      signatures[TimeVal::fromMsecs(pos.x() * m_ratio)] = Control::time_signature{4, 4};
+      signatures[TimeVal::fromPixels(pos.x(), m_ratio)] = Control::time_signature{4, 4};
       CommandDispatcher<> disp{m_itv.context().commandStack};
       disp.submit<Scenario::Command::SetTimeSignatures>(*m_model, signatures);
     }

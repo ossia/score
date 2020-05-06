@@ -16,11 +16,16 @@ struct TimeVal : ossia::time_value
 {
   using ossia::time_value::time_value;
 
-  template<typename T>
-  static constexpr TimeVal fromMsecs(T msecs)
+  static constexpr TimeVal fromMsecs(double msecs)
   {
     TimeVal time;
-    time.impl = msecs * ossia::flicks_per_millisecond<T>;
+    time.impl = msecs * ossia::flicks_per_millisecond<double>;
+    return time;
+  }
+  static constexpr TimeVal fromPixels(double pixels, double flicksPerPixel)
+  {
+    TimeVal time;
+    time.impl = pixels * flicksPerPixel;
     return time;
   }
 
@@ -31,7 +36,7 @@ struct TimeVal : ossia::time_value
 
   }
 
-  constexpr ~TimeVal() = default;
+  ~TimeVal() = default;
   constexpr TimeVal(const TimeVal&) = default;
   constexpr TimeVal(TimeVal&&) noexcept = default;
   constexpr TimeVal& operator=(const TimeVal&) = default;
@@ -123,7 +128,7 @@ struct TimeVal : ossia::time_value
   constexpr double toPixels(ZoomRatio ratio) const noexcept
   {
     return (ratio > 0 && !infinite())
-        ? impl / (ratio * ossia::flicks_per_millisecond<double>)
+        ? impl / ratio
         : 0;
   }
 

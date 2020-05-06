@@ -34,7 +34,7 @@ public:
   void dropReceived(const QPointF& pos, const QMimeData& arg_2)
       W_SIGNAL(dropReceived, pos, arg_2);
 
-  QRectF boundingRect() const;
+  QRectF boundingRect() const override;
   void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) override;
 
   bool contains(const QPointF& point) const override;
