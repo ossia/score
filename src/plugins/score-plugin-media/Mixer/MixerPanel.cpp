@@ -55,12 +55,14 @@ protected:
     p.setBrush(skin.SliderBrush);
     p.drawRoundedRect(rect(), round, round);
 
-    p.setPen(skin.LightGray.main.pen0);
     p.setBrush(skin.SliderExtBrush);
 
-    double h = ratio * (height() - 2);
-    double y = 1. + ((height() - 2) - h);
-    p.drawRect(QRect{1, int(y), (width() - 2), int(h)});
+    double h = ratio * height();
+    double y = height() - h;
+    p.drawRect(QRect{0, int(y), width(), int(h)});
+
+    p.setPen(skin.SliderLine);
+    p.drawLine(0, height() + 1, 0, int(y));
   }
 };
 
