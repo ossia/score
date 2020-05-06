@@ -67,7 +67,7 @@ void Slider::paint(QPainter& p)
 
   double ratio = 1. - (max - val) / (max - min);
 
-  static constexpr auto round = 1.5;
+  static constexpr auto round = 1;//1.5;
   p.setPen(Qt::transparent);
   p.setBrush(skin.SliderBrush);
   p.drawRoundedRect(rect(), round, round);
@@ -75,19 +75,27 @@ void Slider::paint(QPainter& p)
   p.setBrush(skin.SliderExtBrush);
   if(orientation() == Qt::Horizontal)
   {
+    const int current = int(ratio * width());
     p.drawRoundedRect(
-        QRect{1, 1,
-              int(ratio * (width() - 2)),
-              (height() - 2)
+        QRect{0, 0,
+              current,height()
           }, round, round);
+
+    p.setPen(skin.SliderLine);
+    p.drawLine(0, 0,current-1,0);
   }
   else
   {
+    const int start = int((1. - ratio) * height());
+    const int current = int(ratio * height());
     p.drawRoundedRect(
-        QRect{1, int((1. - ratio) * (height() - 2)),
-             (width() - 2),
-              int(ratio * (height() - 2))
+        QRect{0, start,
+              width(),
+              current
           }, round, round);
+
+    p.setPen(skin.SliderLine);
+    p.drawLine(0, start,0, current-1);
   }
 }
 

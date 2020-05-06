@@ -163,6 +163,7 @@ public:
 
   QBrush SliderBrush;
   QBrush SliderExtBrush;
+  QPen SliderLine;
   QPen SliderTextPen;
   QFont SliderFont;
 
