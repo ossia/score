@@ -81,8 +81,11 @@ void Slider::paint(QPainter& p)
               current,height()
           }, round, round);
 
-    p.setPen(skin.SliderLine);
-    p.drawLine(0, 0,current-1,0);
+    if(current != 0)
+    {
+      p.setPen(skin.SliderLine);
+      p.drawLine(0, 0,current-1,0);
+    }
   }
   else
   {
@@ -94,8 +97,11 @@ void Slider::paint(QPainter& p)
               current
           }, round, round);
 
-    p.setPen(skin.SliderLine);
-    p.drawLine(0, start,0, current-1);
+    if(current != 0)
+    {
+      p.setPen(skin.SliderLine);
+      p.drawLine(0, start,0, current-1);
+    }
   }
 }
 
