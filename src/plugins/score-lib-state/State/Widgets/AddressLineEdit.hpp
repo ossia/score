@@ -6,6 +6,7 @@
 
 #include <QDropEvent>
 #include <QLineEdit>
+#include <QPalette>
 #include <QValidator>
 
 namespace State
@@ -22,19 +23,24 @@ public:
   explicit AddressLineEditBase(Parent_T* parent) : QLineEdit{parent}
   {
     setAcceptDrops(true);
+    setMinimumHeight(20);
     connect(this, &QLineEdit::textChanged, this, [&](const QString& str) {
       QString s = str;
       int i = 0;
-#ifndef QT_NO_STYLE_STYLESHEET
+      QPalette palette{this->palette()};
       if (m_validator.validate(s, i) == QValidator::State::Acceptable)
       {
-        this->setStyleSheet("QLineEdit { background: black; }");
+        palette.setColor(QPalette::Base, QColor{"#12171A"});
+        palette.setColor(QPalette::WindowText, QColor{"#c58014"});
+        palette.setColor(QPalette::Midlight, QColor{"#12171A"});
       }
       else
       {
-        this->setStyleSheet("QLineEdit { background: #660000; }");
+        palette.setColor(QPalette::Base, QColor{"#300000"});
+        palette.setColor(QPalette::WindowText, QColor{"#660000"});
+        palette.setColor(QPalette::Midlight, QColor{"#300000"});
       }
-#endif
+      this->setPalette(palette);
     });
   }
 
