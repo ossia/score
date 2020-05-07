@@ -551,5 +551,6 @@
         <file>icons/port_address_unit_on@2x.png</file>
         <file>icons/port_address_unit.png</file>
         <file>icons/port_address_unit@2x.png</file>
+        <file>icons/trigger_sprite@2x.png</file>
     </qresource>
 </RCC>
