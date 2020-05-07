@@ -31,13 +31,13 @@ public:
       if (m_validator.validate(s, i) == QValidator::State::Acceptable)
       {
         palette.setColor(QPalette::Base, QColor{"#12171A"});
-        palette.setColor(QPalette::WindowText, QColor{"#c58014"});
+        palette.setColor(QPalette::Light, QColor{"#c58014"});
         palette.setColor(QPalette::Midlight, QColor{"#12171A"});
       }
       else
       {
         palette.setColor(QPalette::Base, QColor{"#300000"});
-        palette.setColor(QPalette::WindowText, QColor{"#660000"});
+        palette.setColor(QPalette::Light, QColor{"#660000"});
         palette.setColor(QPalette::Midlight, QColor{"#300000"});
       }
       this->setPalette(palette);

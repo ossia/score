@@ -15,6 +15,7 @@
 #include <QGraphicsProxyWidget>
 #include <QLineEdit>
 #include <QCheckBox>
+#include <QPalette>
 #include <ossia/detail/algorithms.hpp>
 #include <score_lib_process_export.h>
 
@@ -370,6 +371,13 @@ struct IntSpinBox
     sl->setValue(ossia::convert<int>(inlet.value()));
     sl->setContentsMargins(0, 0, 0, 0);
 
+    QPalette palette;
+    palette.setColor(QPalette::Highlight, QColor{"#62400a"});
+    palette.setColor(QPalette::HighlightedText, QColor{"silver"});
+    palette.setColor(QPalette::WindowText, QColor{"#f6a019"});
+    palette.setColor(QPalette::Window, QColor{"#62400a"});
+    sl->setPalette(palette);
+
     QObject::connect(
         sl,
         SignalUtils::QSpinBox_valueChanged_int(),
@@ -442,10 +450,17 @@ struct Toggle
       QWidget* parent,
       QObject* context)
   {
+    QPalette palette;
+    palette.setColor(QPalette::Highlight, QColor{"#62400a"});
+    palette.setColor(QPalette::HighlightedText, QColor{"silver"});
+    palette.setColor(QPalette::WindowText, QColor{"#f6a019"});
+    palette.setColor(QPalette::Window, QColor{"#62400a"});
+
     auto sl = new QCheckBox{parent};
     sl->setChecked(ossia::convert<bool>(inlet.value()));
     sl->setContentsMargins(0, 0, 0, 0);
-
+    sl->setMinimumWidth(18);
+    sl->setPalette(palette);
     QObject::connect(
         sl, &QCheckBox::toggled, context, [&inlet, &ctx](bool val) {
           CommandDispatcher<>{ctx.commandStack}.submit<SetControlValue<Control_T>>(

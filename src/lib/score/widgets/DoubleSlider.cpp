@@ -73,6 +73,7 @@ void Slider::paint(QPainter& p)
   p.drawRoundedRect(rect(), round, round);
 
   p.setBrush(skin.SliderExtBrush);
+
   if(orientation() == Qt::Horizontal)
   {
     const int current = int(ratio * width());
