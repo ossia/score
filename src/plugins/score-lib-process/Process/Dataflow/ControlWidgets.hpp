@@ -371,13 +371,6 @@ struct IntSpinBox
     sl->setValue(ossia::convert<int>(inlet.value()));
     sl->setContentsMargins(0, 0, 0, 0);
 
-    QPalette palette;
-    palette.setColor(QPalette::Highlight, QColor{"#62400a"});
-    palette.setColor(QPalette::HighlightedText, QColor{"silver"});
-    palette.setColor(QPalette::WindowText, QColor{"#f6a019"});
-    palette.setColor(QPalette::Window, QColor{"#62400a"});
-    sl->setPalette(palette);
-
     QObject::connect(
         sl,
         SignalUtils::QSpinBox_valueChanged_int(),

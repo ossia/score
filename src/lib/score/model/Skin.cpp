@@ -140,7 +140,7 @@ Skin::Skin() noexcept
   SliderBrush = QColor("#12171A");
   SliderExtBrush = QColor("#62400a");
   SliderLine = QPen{QColor("#f6a019"), 1, Qt::SolidLine, Qt::RoundCap};
-  SliderTextPen = QColor("silver");
+  SliderTextPen = QColor("#d0d0d0");
   SliderFont = SansFont;
   SliderFont.setPixelSize(10 * 96./ 72.);
   SliderFont.setWeight(QFont::DemiBold);

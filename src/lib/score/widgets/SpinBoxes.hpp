@@ -21,13 +21,6 @@ public:
   {
     setDisplayFormat(QStringLiteral("h.mm.ss.zzz"));
     setAlignment(Qt::AlignRight);
-    QPalette palette;
-    palette.setColor(QPalette::Highlight, QColor{"#62400a"});
-    palette.setColor(QPalette::HighlightedText, QColor{"silver"});
-    palette.setColor(QPalette::WindowText, QColor{"#f6a019"});
-    palette.setColor(QPalette::Window, QColor{"#62400a"});
-    palette.setColor(QPalette::Midlight, QColor{"#62400a"});
-    setPalette(palette);
   }
 
   void wheelEvent(QWheelEvent* event) override { event->ignore(); }

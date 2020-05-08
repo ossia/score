@@ -35,35 +35,9 @@ public:
   AudioSliderWidget(QWidget* widg) : score::DoubleSlider{widg}
   {
     setOrientation(Qt::Vertical);
-    setMinimumSize(20, 100);
+    setMinimumSize(20, 50);
   }
   ~AudioSliderWidget() override { }
-
-protected:
-  void paintEvent(QPaintEvent*) override {
-
-    QPainter p{this};
-    auto& skin = score::Skin::instance();
-    double min = QSlider::minimum();
-    double max = QSlider::maximum();
-    double val = QSlider::value();
-
-    double ratio = 1. - (max - val) / (max - min);
-
-    static constexpr auto round = 1.5;
-    p.setPen(Qt::transparent);
-    p.setBrush(skin.SliderBrush);
-    p.drawRoundedRect(rect(), round, round);
-
-    p.setBrush(skin.SliderExtBrush);
-
-    double h = ratio * height();
-    double y = height() - h;
-    p.drawRect(QRect{0, int(y), width(), int(h)});
-
-    p.setPen(skin.SliderLine);
-    p.drawLine(0, height() + 1, 0, int(y));
-  }
 };
 
 class PanSliderWidget : public score::DoubleSlider
@@ -72,7 +46,7 @@ public:
   PanSliderWidget(QWidget* widg) : score::DoubleSlider{widg}
   {
     setOrientation(Qt::Horizontal);
-    setMinimumSize(20, 10);
+    setMinimumSize(20, 18);
   }
   ~PanSliderWidget() override { }
 
@@ -100,31 +74,42 @@ protected:
 
     double ratio = 1. - 2. * (max - val) / (max - min);
 
-    static constexpr auto round = 1.5;
+    static constexpr auto round = 0.;
     p.setPen(skin.TransparentPen);
     p.setBrush(skin.SliderBrush);
     p.drawRoundedRect(rect(), round, round);
 
-    //p.setPen(Qt::white);
-    p.setPen(skin.LightGray.main.pen0);
+    p.setPen(skin.TransparentPen);
     p.setBrush(skin.SliderExtBrush);
 
-    const int y = 1;
-    const int h = (height() - 2);
+    const int y = 0;
+    const int h = height();
     const double hw = width() / 2.;
     const int w = hw * std::abs(ratio);
+
     if(ratio <= 0)
     {
-      p.drawRect(QRect{int(hw - w + 1), y, std::max(2, w - 2), h});
+      p.drawRect(QRect{int(hw - w), y, w, h});
+      p.setPen(skin.SliderLine);
+      p.drawLine(QPoint{int(hw - w), h - 1}, QPoint{int(hw) - 1, h - 1});
+
+      p.setFont(skin.SansFontSmall);
+      p.drawText(rect(), "  L", Qt::AlignLeft | Qt::AlignVCenter);
+      p.setPen(skin.LightGray.main.pen0);
+      p.drawText(rect(), "R  ", Qt::AlignRight | Qt::AlignVCenter);
     }
     else
     {
-      p.drawRect(QRect{int(hw + 1), y, std::max(2, w - 2), h});
-    }
+      p.drawRect(QRect{int(hw), y, w, h});
+      p.setPen(skin.SliderLine);
+      p.drawLine(QPoint{int(hw), h - 1}, QPoint{int(hw) + w  - 1, h - 1});
 
-    p.setFont(skin.SansFontSmall);
-    p.drawText(rect(), "  L", Qt::AlignLeft | Qt::AlignVCenter);
-    p.drawText(rect(), "R  ", Qt::AlignRight | Qt::AlignVCenter);
+      p.setFont(skin.SansFontSmall);
+      p.setPen(skin.LightGray.main.pen0);
+      p.drawText(rect(), "  L", Qt::AlignLeft | Qt::AlignVCenter);
+      p.setPen(skin.SliderLine);
+      p.drawText(rect(), "R  ", Qt::AlignRight | Qt::AlignVCenter);
+    }
   }
 };
 
@@ -175,17 +160,11 @@ public:
   AudioBusWidget(const Scenario::IntervalModel* param, const score::DocumentContext& ctx, QWidget* parent)
     : QWidget{parent}, m_context{ctx}, m_lay{this}, m_title{this}, m_gainSlider{this}, m_panSlider{this}, m_model{param}
   {
-#ifndef QT_NO_STYLE_STYLESHEET
-    setStyleSheet("QWidget { font: 7pt \"Ubuntu\"; }");
-#endif
-    setMinimumSize(60, 130);
-    setMaximumSize(60, 130);
+    setMinimumSize(60, 140);
+    setMaximumSize(60, 140);
 
     m_title.setFlat(true);
 
-#ifndef QT_NO_STYLE_STYLESHEET
-    m_title.setStyleSheet("QPushButton { border: none }");
-#endif
     m_title.setText(m_model->metadata().getName());
     m_gainSlider.setWhatsThis("Gain control");
     m_gainSlider.setToolTip(m_gainSlider.whatsThis());
@@ -202,13 +181,13 @@ public:
     m_panSlider.setWhatsThis(m_panSlider.whatsThis());
 
     m_lay.addWidget(&m_title,      0, 0, 1, 2, Qt::AlignLeft);
-    m_lay.addWidget(&m_gainSlider, 1, 0, 6, 1);
+    m_lay.addWidget(&m_gainSlider, 1, 0, 3, 1);
     m_lay.addWidget(&m_mute,       1, 1, 1, 1);
     m_lay.addWidget(&m_upmix,      2, 1, 1, 1);
     m_lay.addWidget(&m_propagate,  3, 1, 1, 1);
     m_lay.addWidget(&m_panSlider,  7, 0, 1, 2);
-    m_lay.setMargin(1);
-    m_lay.setSpacing(2);
+    m_lay.setMargin(3);
+    m_lay.setSpacing(4);
 
     con(m_title, &QPushButton::clicked, this, [this] {
         m_context.selectionStack.pushNewSelection({m_model});

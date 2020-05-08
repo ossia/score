@@ -15,14 +15,14 @@ class MarginLess final : public Layout
 public:
   MarginLess(QWidget* widg) : Layout{widg}
   {
-    this->setContentsMargins(0, 0, 0, 0);
-    this->setSpacing(0);
+    this->setContentsMargins(2, 2, 2, 2);
+    this->setSpacing(2);
     widg->setLayout(this);
   }
   MarginLess()
   {
-    this->setContentsMargins(0, 0, 0, 0);
-    this->setSpacing(0);
+    this->setContentsMargins(2, 2, 2, 2);
+    this->setSpacing(2);
   }
 };
 }

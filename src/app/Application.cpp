@@ -365,13 +365,15 @@ static void setQApplicationSettings(QApplication& m_app)
   auto pal = qApp->palette();
   pal.setBrush(QPalette::Window, QColor("#1A2024"));
   pal.setBrush(QPalette::Base, QColor("#12171A"));
-  pal.setBrush(QPalette::Button, QColor("#1A2024"));
   pal.setBrush(QPalette::AlternateBase, QColor("#1f2a30")); // alternate bg
   pal.setBrush(QPalette::Highlight, QColor("#444"));
   pal.setBrush(QPalette::HighlightedText, QColor("#FDFDFD"));
   pal.setBrush(QPalette::WindowText, QColor("silver"));     // color
-  pal.setBrush(QPalette::Text, QColor("silver"));           // color
-  pal.setBrush(QPalette::ButtonText, QColor("silver"));     // color
+  pal.setBrush(QPalette::Text, QColor("#d0d0d0"));           // color
+
+  pal.setBrush(QPalette::Button, QColor("#1A2024"));
+  pal.setBrush(QPalette::ButtonText, QColor("#f0f0f0"));
+
   pal.setBrush(QPalette::ToolTipBase, QColor("#12171A"));
   pal.setBrush(QPalette::ToolTipText, QColor("silver"));
 

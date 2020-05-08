@@ -43,10 +43,10 @@ Slider::Slider(Qt::Orientation ort, QWidget* widg) : QSlider{ort, widg}
   switch (ort)
   {
     case Qt::Vertical:
-      setMinimumSize(20, 30);
+      setMinimumSize(18, 30);
       break;
     case Qt::Horizontal:
-      setMinimumSize(30, 20);
+      setMinimumSize(30, 18);
       break;
   }
 }
@@ -67,11 +67,14 @@ void Slider::paint(QPainter& p)
 
   double ratio = 1. - (max - val) / (max - min);
 
-  static constexpr auto round = 1;//1.5;
-  p.setPen(Qt::transparent);
+  static constexpr auto round = 0;//1.5;
+  p.setPen(QPen{QColor{"#62400a"},1});
   p.setBrush(skin.SliderBrush);
-  p.drawRoundedRect(rect(), round, round);
+  QRect stroke_rect{rect().topLeft(),
+                     QSize{rect().width()-1, rect().height()-1}};
+  p.drawRoundedRect(stroke_rect, round, round);
 
+  p.setPen(skin.TransparentPen);
   p.setBrush(skin.SliderExtBrush);
 
   if(orientation() == Qt::Horizontal)
@@ -85,23 +88,20 @@ void Slider::paint(QPainter& p)
     if(current != 0)
     {
       p.setPen(skin.SliderLine);
-      p.drawLine(0, 0,current-1,0);
+      p.drawLine(QPoint{0, 0}, QPoint{current - 1, 0});
     }
   }
   else
   {
-    const int start = int((1. - ratio) * height());
-    const int current = int(ratio * height());
-    p.drawRoundedRect(
-        QRect{0, start,
-              width(),
-              current
-          }, round, round);
+    const int h = int((1. - ratio) * height());
 
-    if(current != 0)
+    p.drawRoundedRect(QRect{0, h, width(), height() - h},
+                      round, round);
+
+    if(int(h) != height())
     {
       p.setPen(skin.SliderLine);
-      p.drawLine(0, start,0, current-1);
+      p.drawLine(QPoint{0, rect().bottomLeft().y()},QPoint{0, h});
     }
   }
 }
