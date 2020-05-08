@@ -50,12 +50,7 @@ private:
   int64_t m_min{};
   int64_t m_max{};
 
-  struct BarTime {
-    uint32_t bars{};
-    uint8_t quarters{};
-    uint8_t semiquavers{};
-    uint8_t cents{};
-  } m_barTime{};
+  ossia::bar_time m_barTime{};
 
   enum GrabbedHandle {
     None, Bar, Quarter, Semiquaver, Cent

@@ -55,6 +55,7 @@ Model::Model(QSettings& set, const score::ApplicationContext& ctx)
 
   if(m_DefaultDuration > TimeVal::fromMsecs(10000000))
     setDefaultDuration(TimeVal::fromMsecs(100000));
+  setDefaultDuration(TimeVal::fromMsecs(100000));
 }
 
 QString Model::getSkin() const

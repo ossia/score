@@ -1,20 +1,22 @@
 #pragma once
+#include <Scenario/Document/Interval/IntervalModel.hpp>
+#include <Scenario/Document/Interval/IntervalPresenter.hpp>
+#include <Scenario/Document/Interval/FullView/Timebar.hpp>
+#include <Scenario/Commands/Signature/SignatureCommands.hpp>
+#include <score/command/Dispatchers/CommandDispatcher.hpp>
+#include <Process/Style/Pixmaps.hpp>
+#include <Process/Style/ScenarioStyle.hpp>
+#include <Magnetism/MagnetismAdjuster.hpp>
 #include <QObject>
 #include <QGraphicsItem>
 #include <QPainter>
-#include <Scenario/Document/Interval/IntervalModel.hpp>
-#include <Scenario/Document/Interval/IntervalPresenter.hpp>
 #include <QGraphicsSceneMouseEvent>
 #include <QMenu>
 #include <QTextLayout>
 #include <verdigris>
 #include <QApplication>
 #include <score/tools/Bind.hpp>
-#include <Scenario/Commands/Signature/SignatureCommands.hpp>
-#include <score/command/Dispatchers/CommandDispatcher.hpp>
-#include <Process/Style/Pixmaps.hpp>
-#include <Process/Style/ScenarioStyle.hpp>
-#include <Magnetism/MagnetismAdjuster.hpp>
+
 namespace Scenario
 {
 
@@ -552,6 +554,17 @@ private:
     TimeVal m_origTime{};
     Control::time_signature m_origSig{};
 
+};
+
+class FullViewIntervalPresenter;
+struct Timebars
+{
+  Timebars(FullViewIntervalPresenter& self);
+
+  TimeSignatureItem timebar;
+
+  LightBars lightBars;
+  LighterBars lighterBars;
 };
 }
 

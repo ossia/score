@@ -201,6 +201,7 @@ set(HDRS
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/ScenarioDocument/ScenarioScene.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/ScenarioDocument/SnapshotAction.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/ScenarioDocument/Widgets/ProgressBar.hpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/ScenarioDocument/MusicalGrid.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/ScenarioDocument/ZoomPolicy.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/ScenarioDocument/TimeBar.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/State/ItemModel/MessageItemModelAlgorithms.hpp"
@@ -486,6 +487,7 @@ set(SRCS ${SRCS}
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/ScenarioDocument/ScenarioScene.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/ScenarioDocument/TimeBar.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/ScenarioDocument/SnapshotAction.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/ScenarioDocument/MusicalGrid.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/DisplayedElements/DisplayedElementsModel.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Document/DisplayedElements/DisplayedElementsPresenter.cpp"

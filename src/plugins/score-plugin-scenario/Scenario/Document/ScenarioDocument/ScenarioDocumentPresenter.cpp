@@ -260,7 +260,7 @@ void ScenarioDocumentPresenter::setZoomRatio(ZoomRatio newRatio)
 {
   m_zoomRatio = newRatio;
 
-  view().timeRuler().setPixelPerMillis(ossia::flicks_per_millisecond<double> / m_zoomRatio);
+  view().timeRuler().setZoomRatio(newRatio);
   m_scenarioPresenter.on_zoomRatioChanged(m_zoomRatio);
 
   for (auto& cbl : m_dataflow.cables())
@@ -406,7 +406,7 @@ void ScenarioDocumentPresenter::on_horizontalPositionChanged(int dx)
 
   QRectF visible_scene_rect = view().visibleSceneRect();
 
-  view().timeRuler().setStartPoint(std::chrono::nanoseconds(int64_t(1e6 * visible_scene_rect.x() * m_zoomRatio)));
+  view().timeRuler().setStartPoint(TimeVal::fromPixels(visible_scene_rect.x(), m_zoomRatio));
   const auto dur = c.duration.guiDuration();
   c.setMidTime(
       dur * (visible_scene_rect.center().x() / dur.toPixels(m_zoomRatio)));
@@ -524,7 +524,7 @@ void ScenarioDocumentPresenter::on_minimapChanged(double l, double r)
   // Save state in interval
   c.setZoom(newZoom);
   c.setMidTime(
-      dur * (view().visibleSceneRect().center().x() / dur.toPixels(newZoom)));
+      TimeVal(dur.impl * (view().visibleSceneRect().center().x() / dur.toPixels(newZoom))));
 
   m_zooming = false;
 
@@ -675,6 +675,8 @@ void ScenarioDocumentPresenter::setDisplayedInterval(IntervalModel& interval)
   on_viewReady();
   updateMinimap();
   view().view().verticalScrollBar()->setValue(0);
+
+  view().timeRuler().setGrid(m_scenarioPresenter.intervalPresenter()->grid());
 }
 
 void ScenarioDocumentPresenter::on_viewModelDefocused(

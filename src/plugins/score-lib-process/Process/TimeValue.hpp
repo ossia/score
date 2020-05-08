@@ -1,10 +1,11 @@
 #pragma once
 #include <Process/ZoomHelper.hpp>
-#include <ossia/detail/flicks.hpp>
-#include <flicks.h>
 #include <ossia/editor/scenario/time_value.hpp>
 #include <score/serialization/IsTemplate.hpp>
 #include <score/tools/std/Optional.hpp>
+#include <ossia/detail/flicks.hpp>
+#include <ossia-qt/time.hpp>
+#include <flicks.h>
 
 #include <QTime>
 #include <QStringBuilder>
@@ -105,6 +106,22 @@ struct TimeVal : ossia::time_value
       impl = -impl;
 
     return *this;
+  }
+
+  constexpr time_value operator*(time_value d) const noexcept
+  {
+    return time_value{impl * d.impl};
+  }
+
+  constexpr time_value operator*(double d) const noexcept
+  {
+    time_value res = *this;
+    res.impl *= d;
+    return res;
+  }
+  constexpr time_value operator*(int64_t d) const noexcept
+  {
+    return time_value{impl * d};
   }
 
 

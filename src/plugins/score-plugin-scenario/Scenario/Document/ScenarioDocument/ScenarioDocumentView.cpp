@@ -267,7 +267,7 @@ ScenarioDocumentView::ScenarioDocumentView(
     , m_scene{m_widget}
     , m_view{ctx.app, &m_scene, m_widget}
     , m_timeRulerView{&m_timeRulerScene}
-    , m_timeRuler{&m_timeRulerView}
+    , m_timeRuler{new MusicalRuler{&m_timeRulerView}}
     , m_minimapScene{m_widget}
     , m_minimapView{&m_minimapScene}
     , m_minimap{&m_minimapView}
@@ -289,7 +289,7 @@ ScenarioDocumentView::ScenarioDocumentView(
 
   m_widget->addAction(new SnapshotAction{m_scene, m_widget});
 
-  m_timeRulerScene.addItem(&m_timeRuler);
+  m_timeRulerScene.addItem(m_timeRuler);
   // Transport
   /// Zoom
   QAction* zoomIn = new QAction(tr("Zoom in"), m_widget);
@@ -312,7 +312,7 @@ ScenarioDocumentView::ScenarioDocumentView(
       this,
       [this] { setLargeView(); },
       Qt::QueuedConnection);
-  con(m_timeRuler, &TimeRuler::rescale, largeView, &QAction::trigger);
+  connect(m_timeRuler, &TimeRuler::rescale, largeView, &QAction::trigger);
   con(m_minimap, &Minimap::rescale, largeView, &QAction::trigger);
 
   // view layout

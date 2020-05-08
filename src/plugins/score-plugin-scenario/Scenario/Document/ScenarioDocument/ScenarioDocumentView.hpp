@@ -111,7 +111,7 @@ public:
 
   QGraphicsView& rulerView() { return m_timeRulerView; }
 
-  TimeRuler& timeRuler() { return m_timeRuler; }
+  TimeRulerBase& timeRuler() { return *m_timeRuler; }
 
   Minimap& minimap() { return m_minimap; }
 
@@ -134,7 +134,7 @@ private:
 
   QGraphicsScene m_timeRulerScene;
   TimeRulerGraphicsView m_timeRulerView;
-  TimeRuler m_timeRuler;
+  TimeRulerBase* m_timeRuler{};
   QGraphicsScene m_minimapScene;
   MinimapGraphicsView m_minimapView;
   Minimap m_minimap;

@@ -86,4 +86,5 @@ public:
 
   void updateShapes() { prepareGeometryChange(); update();}
 };
+
 }

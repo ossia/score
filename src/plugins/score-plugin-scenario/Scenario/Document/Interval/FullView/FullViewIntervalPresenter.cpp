@@ -24,6 +24,7 @@
 #include <Scenario/Document/Interval/FullView/TimeSignatureItem.hpp>
 #include <Scenario/Document/Interval/FullView/NodalIntervalView.hpp>
 #include <Scenario/Document/Interval/FullView/Timebar.hpp>
+#include <Scenario/Document/ScenarioDocument/MusicalGrid.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentPresenter.hpp>
 #include <score/actions/Toolbar.hpp>
 #include <score/actions/ToolbarManager.hpp>
@@ -54,22 +55,15 @@ namespace Scenario
   static int timeSignatureHeight = 20;
   static double timeSignatureBarY = -45.;
 
-struct Timebars
-{
-  Timebars(FullViewIntervalPresenter& self):
-    timebar{self, self.view()}
-  {
-    timebar.setPos(0, -47);
-  }
-
-  TimeSignatureItem timebar;
-
-  LightBars lightBars;
-  LighterBars lighterBars;
-};
 
 static SlotDragOverlay* full_slot_drag_overlay{};
 
+
+Timebars::Timebars(FullViewIntervalPresenter& self):
+  timebar{self, self.view()}
+{
+  timebar.setPos(0, -47);
+}
 
 void FullViewIntervalPresenter::startSlotDrag(int curslot, QPointF pos) const
 {
@@ -108,6 +102,7 @@ FullViewIntervalPresenter::FullViewIntervalPresenter(
                         ctx,
                         parent}
     , m_timebars{new Timebars{*this}}
+    , m_grid{new MusicalGrid{interval.timeSignatureMap(), m_timebars, m_magneticDivision, {}, {}}}
     , m_settings{ctx.app.settings<Scenario::Settings::Model>()}
 {
   m_view->setPos(0, 0);
@@ -268,6 +263,7 @@ FullViewIntervalPresenter::FullViewIntervalPresenter(
 
 FullViewIntervalPresenter::~FullViewIntervalPresenter()
 {
+  delete m_grid;
   auto view = Scenario::view(this);
   QGraphicsScene* sc = view->scene();
 
@@ -697,24 +693,24 @@ TimeVal FullViewIntervalPresenter::magneticPosition(const QObject* o, const Time
     return scenarioT;
 
   // Find leftmost signature
-  const double msecs = (t + timeDelta).msec();
+  const TimeVal msecs = t + timeDelta;
   const auto& sig = m_model.timeSignatureMap();
   if(sig.empty())
     return scenarioT;
 
-  auto leftmost_sig = sig.lower_bound(TimeVal::fromMsecs(msecs));
+  auto leftmost_sig = sig.lower_bound(msecs);
   if(leftmost_sig != sig.begin())
     leftmost_sig--;
 
-  const auto orig_date = leftmost_sig->first.msec();
+  const TimeVal orig_date = leftmost_sig->first;
 
   // Snap to grid
-  const auto division = m_magneticDivision.msec();
-  if(division > 0)
+  const TimeVal& division = m_magneticDivision;
+  if(division.impl > 0)
   {
-    const double rounded_date = std::round((msecs - orig_date) / division) * division + orig_date;
+    TimeVal rounded_date{int64_t(std::round((msecs - orig_date) / division)) * division.impl + orig_date.impl};
 
-    auto closestBar = TimeVal::fromMsecs(rounded_date) - timeDelta;
+    auto closestBar = rounded_date - timeDelta;
     if(!snapToScenario)
       return closestBar;
     else if(std::abs(closestBar.impl - t.impl) < std::abs(scenarioT.impl - t.impl))
@@ -744,6 +740,11 @@ double FullViewIntervalPresenter::on_playPercentageChanged(double t)
   return IntervalPresenter::on_playPercentageChanged(t);
 }
 
+MusicalGrid& FullViewIntervalPresenter::grid() const noexcept
+{
+  return *m_grid;
+}
+
 void FullViewIntervalPresenter::on_visibleRectChanged(QRectF r)
 {
   if(r != m_sceneRect)
@@ -751,132 +752,6 @@ void FullViewIntervalPresenter::on_visibleRectChanged(QRectF r)
     m_sceneRect = r;
     updateTimeBars();
   }
-}
-
-static void draw_main_bars(const TimeSignatureMap& measures, LightBars& bars, TimeSignatureMap::const_iterator last_before,
-               double zoom, double last_quarter_pixels, double division_pixels, double pow2, double delta_pixels, QRectF sceneRect)
-{
-  int i = 0;
-  int k = 0;
-  const double y0 = sceneRect.y();
-  const double y1 = sceneRect.y() + sceneRect.height();
-
-  double bar_x_pos{};
-  while((bar_x_pos - last_quarter_pixels) < sceneRect.width())
-  {
-    bar_x_pos = last_quarter_pixels + k * division_pixels;
-    SCORE_ASSERT(last_before != measures.end());
-
-    auto next = last_before + 1;
-    if(next == measures.end())
-    {
-      bars[i] = QLineF(bar_x_pos, y0, bar_x_pos, y1);
-      i++;
-      k++;
-      continue;
-    }
-    else
-    {
-      if(bar_x_pos >= (next->first.toPixels(zoom) - delta_pixels))
-      {
-        last_before = next;
-
-        const auto sig_upper = last_before->second.upper;
-        const auto sig_lower = last_before->second.lower;
-
-        const double tempo = ossia::root_tempo;
-
-        // Duration of a quarter note in milliseconds
-        const double quarter = 60000. / tempo;
-
-        // Duration of a bar in milliseconds.
-        const double whole = quarter * (4. * double(sig_upper) / sig_lower);
-
-        double main_div_source{};
-
-        if(pow2 >= 1. && pow2 <= 2.) // between bars and 8th notes
-        {
-          main_div_source = whole * pow2;
-        }
-        else if(pow2 > 2 && pow2 <= 8) // between 16th and 32th notes
-        {
-          main_div_source = quarter * pow2; // main is quarter notes
-        }
-        else
-        {
-          // Else we just divide by 2
-          // -> ratio of 2 between main and sub
-          main_div_source = whole;
-        }
-
-        const TimeVal main_division = TimeVal::fromMsecs(main_div_source / pow2);
-        division_pixels = main_division.toPixels(zoom);
-
-        last_quarter_pixels = last_before->first.toPixels(zoom) - delta_pixels;
-
-        bars[i] = QLineF(last_quarter_pixels, y0, last_quarter_pixels, y1);
-
-        i++;
-        k = 0;
-        continue;
-      }
-    }
-
-    bars[i] = QLineF(bar_x_pos, y0, bar_x_pos, y1);
-    i++;
-    k++;
-  }
-
-  if(i > 0)
-    bars.positions.resize(i - 1);
-}
-
-static void draw_sub_bars(
-      const TimeSignatureMap& measures,
-      LighterBars& bars, TimeSignatureMap::const_iterator last_before,
-      double zoom, double last_quarter_pixels, double division_pixels, double delta_pixels, QRectF sceneRect)
-{
-  int i = 0;
-  int k = 0;
-  const double y0 = sceneRect.y();
-  const double y1 = sceneRect.y() + sceneRect.height();
-
-  double bar_x_pos{};
-  while((bar_x_pos - last_quarter_pixels) < sceneRect.width())
-  {
-    bar_x_pos = last_quarter_pixels + k * division_pixels;
-    SCORE_ASSERT(last_before != measures.end());
-
-    auto next = last_before + 1;
-    if(next == measures.end())
-    {
-      bars[i] = QLineF(bar_x_pos, y0, bar_x_pos, y1);
-      i++;
-      k++;
-      continue;
-    }
-    else
-    {
-      if(bar_x_pos >= (next->first.toPixels(zoom) - delta_pixels))
-      {
-        last_before = next;
-
-        last_quarter_pixels = last_before->first.toPixels(zoom) - delta_pixels;
-
-        bars[i] = QLineF(last_quarter_pixels, y0, last_quarter_pixels, y1);
-
-        i++;
-        k = 0;
-        continue;
-      }
-    }
-
-    bars[i] = QLineF(bar_x_pos, y0, bar_x_pos, y1);
-    i++;
-    k++;
-  }
-  if(i > 0)
-    bars.positions.resize(i - 1);
 }
 
 void FullViewIntervalPresenter::updateTimeBars()
@@ -910,87 +785,17 @@ void FullViewIntervalPresenter::updateTimeBars()
     }
   }
 
+  m_timebars->timebar.setZoomRatio(m_zoomRatio);
+
   auto scene_x0 = m_view->mapToScene(QPointF{}).x();
 
   QRectF sceneRect = m_sceneRect;
-  sceneRect.adjust(-100, timeSignatureBarY, 100, timeSignatureBarY);
+  sceneRect.adjust(-10, timeSignatureBarY, 10, timeSignatureBarY);
 
   // x0_time: time of the currently visible leftmost pixel
   TimeVal x0_time = TimeVal::fromPixels(sceneRect.x() - scene_x0, m_zoomRatio) + timeDelta;
 
-  // Find the last measure change before x0_time.
-  // Find the first measure we see
-
-  const auto& measures = model->timeSignatureMap();
-  auto last_before = ossia::last_before(measures, x0_time);
-
-  m_timebars->timebar.setZoomRatio(m_zoomRatio);
-
-  // We want to find the subdivision that will result in the smallest bars being at least pixels_width_min pixels.
-  // We have to solve : main_division_pixels > pixels_width_min.
-  // This gives : subdivision < whole_duration / (zoom_ratio * pixels_width_min)
-
-  const auto sig_upper = last_before->second.upper;
-  const auto sig_lower = last_before->second.lower;
-  const double pixels_width_min = 30.;
-
-  // Duration of a quarter note in milliseconds
-  constexpr const double quarter = ossia::quarter_duration<double>;
-
-  // Duration of a bar in milliseconds.
-  const double whole = quarter * (4. * double(sig_upper) / sig_lower);
-
-  const double res = whole / (pixels_width_min * m_zoomRatio);
-  const double pow2 = std::pow(2, std::floor(log2(res)));
-
-  double main_div_source{};
-  double sub_div_source{};
-
-  if(pow2 >= 1. && pow2 <= 2.) // between bars and 8th notes
-  {
-    main_div_source = whole * pow2;
-    sub_div_source = quarter;
-  }
-  else if(pow2 > 2 && pow2 <= 8) // between 16th and 32th notes
-  {
-    main_div_source = quarter * pow2; // main is quarter notes
-    sub_div_source = quarter;
-  }
-  else
-  {
-    // Else we just divide by 2
-    // -> ratio of 2 between main and sub
-    main_div_source = whole;
-    sub_div_source = whole / 2.;
-  }
-
-  const double deltaPixels = timeDelta.toPixels(m_zoomRatio);
-
-  const TimeVal main_division = TimeVal(main_div_source / pow2);
-  const double main_division_pixels = main_division.toPixels(m_zoomRatio);
-
-  const TimeVal sub_division = TimeVal(sub_div_source / pow2);
-  const double sub_division_pixels = sub_division.toPixels(m_zoomRatio);
-
-  const double q = std::floor((x0_time - last_before->first).impl / main_division.impl);
-  const double last_quarter_before = last_before->first.impl + q * main_division.impl;
-
-  // Where we start counting from
-  double last_quarter_pixels = TimeVal(last_quarter_before).toPixels(m_zoomRatio) - deltaPixels;
-
-  auto& lightBars = m_timebars->lightBars;
-  auto& lighterBars = m_timebars->lighterBars;
-
-  m_magneticDivision = sub_division;
-
-  SCORE_ASSERT(main_division_pixels > 0);
-  SCORE_ASSERT(sub_division_pixels > 0);
-
-  draw_sub_bars(measures, lighterBars, last_before, m_zoomRatio, last_quarter_pixels, sub_division_pixels, deltaPixels, sceneRect);
-  draw_main_bars(measures, lightBars, last_before, m_zoomRatio, last_quarter_pixels, main_division_pixels, pow2, deltaPixels, sceneRect);
-
-  this->m_timebars->lightBars.updateShapes();
-  this->m_timebars->lighterBars.updateShapes();
+  m_grid->compute(timeDelta, m_zoomRatio, sceneRect, x0_time);
 }
 
 void FullViewIntervalPresenter::on_modeChanged(IntervalModel::ViewMode m)

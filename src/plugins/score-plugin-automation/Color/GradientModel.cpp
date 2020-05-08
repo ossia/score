@@ -115,7 +115,7 @@ TimeVal ProcessModel::contentDuration() const noexcept
     lastPoint = std::max(1., back);
   }
 
-  return duration() * lastPoint;
+  return TimeVal(duration().impl * lastPoint);
 }
 }
 

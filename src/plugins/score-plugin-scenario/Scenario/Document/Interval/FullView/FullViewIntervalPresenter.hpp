@@ -16,6 +16,7 @@ class DefaultHeaderDelegate;
 namespace Scenario
 {
 namespace Settings { class Model; }
+class MusicalGrid;
 class SlotView;
 class SlotHandle;
 class NodalIntervalView;
@@ -46,6 +47,8 @@ public:
   const std::vector<SlotPresenter>& getSlots() const { return m_slots; }
   double on_playPercentageChanged(double t);
 
+  MusicalGrid& grid() const noexcept;
+
   void on_visibleRectChanged(QRectF);
 public:
   void intervalSelected(IntervalModel& arg_1)
@@ -74,12 +77,14 @@ private:
   double rackHeight() const;
   void on_rackChanged();
 
+
   NodalIntervalView* m_nodal{};
   QRectF m_sceneRect{};
 
   Timebars* m_timebars{};
   TimeVal m_magneticDivision{};
 
+  MusicalGrid* m_grid{};
   const Scenario::Settings::Model& m_settings;
 
 };
