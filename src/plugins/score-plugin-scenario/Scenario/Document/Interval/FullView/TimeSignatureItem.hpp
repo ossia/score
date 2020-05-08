@@ -488,7 +488,14 @@ private:
       // Replace it in the signatures
       TimeSignatureMap signatures = m_origHandles;
       auto it = signatures.find(m_origTime);
-      signatures.erase(it);
+      if(it == signatures.end())
+      {
+        qWarning("Time signature not found");
+      }
+      else
+      {
+        signatures.erase(it);
+      }
       signatures[new_time] = m_origSig;
 
       // Set new position for the handle
@@ -500,6 +507,8 @@ private:
 
     void removeHandle(TimeSignatureHandle& handle)
     {
+      if(handle.pressed)
+        return;
       TimeSignatureMap signatures = m_model->timeSignatureMap();
       auto it = signatures.find(handle.time());
       signatures.erase(it);
@@ -531,6 +540,9 @@ private:
 
     void contextMenuEvent(QGraphicsSceneContextMenuEvent* event) override
     {
+      if(ossia::any_of(m_handles, [] (auto handle) { return handle->pressed; }))
+        return;
+
       QMenu menu;
       auto act = menu.addAction("Add signature change");
       connect(act, &QAction::triggered, this, [this, pos=event->pos()] {

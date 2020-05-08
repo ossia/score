@@ -46,6 +46,7 @@ public:
 
   void updateShapes() { prepareGeometryChange(); update(); }
 };
+
 class LighterBars : public QGraphicsItem
 {
 public:
