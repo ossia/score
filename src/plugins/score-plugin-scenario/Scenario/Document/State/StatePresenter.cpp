@@ -112,8 +112,6 @@ bool StatePresenter::isSelected() const
 
 void StatePresenter::handleDrop(const QMimeData& mime)
 {
-  SCORE_ABORT;
-  /*
   // If the mime data has states in it we can handle it.
   const auto& fmt = mime.formats();
   if (fmt.contains(score::mime::messagelist()))
@@ -131,8 +129,8 @@ void StatePresenter::handleDrop(const QMimeData& mime)
   }
   else if (fmt.contains(score::mime::layerdata()))
   {
-    auto json = mime.data(score::mime::layerdata());
-    auto obj = fromJsonObject<Path<Process::ProcessModel>>(QJsonDocument::fromJson(json).object()["Path"]);
+    const auto json = readJson(mime.data(score::mime::layerdata()));
+    const auto& obj = JsonValue{json["Path"]}.to<Path<Process::ProcessModel>>();
 
     if(auto proc = obj.try_find(m_ctx))
     {
@@ -161,9 +159,7 @@ void StatePresenter::handleDrop(const QMimeData& mime)
         auto path = u.toLocalFile();
         if (QFile f{path}; f.open(QIODevice::ReadOnly))
         {
-          State::MessageList sub;
-          fromJsonArray(QJsonDocument::fromJson(f.readAll()).array(), sub);
-          ml += sub;
+          ml += JsonValue{readJson(f.readAll())}.to<State::MessageList>();
         }
       }
       if (!ml.empty())
@@ -183,14 +179,14 @@ void StatePresenter::handleDrop(const QMimeData& mime)
       if (QFile f{path}; f.open(QIODevice::ReadOnly))
       {
         const auto& ctx = scenario->context().context;
-        auto json = QJsonDocument::fromJson(f.readAll()).object();
+        auto json = readJson(f.readAll());
         Scenario::Command::Macro m{
             new Scenario::Command::AddProcessInNewBoxMacro, ctx};
 
         // Create a box.
         const Scenario::ProcessModel& scenar = scenario->model();
 
-        const TimeVal t = TimeVal::fromMsecs(json["Duration"].toDouble());
+        const TimeVal t = TimeVal::fromMsecs(json["Duration"].GetDouble());
 
         auto& interval = m.createIntervalAfter(
             scenar,
@@ -202,7 +198,6 @@ void StatePresenter::handleDrop(const QMimeData& mime)
       }
     }
   }
-  */
 }
 
 void StatePresenter::updateStateView()
