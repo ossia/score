@@ -371,7 +371,7 @@ static void setQApplicationSettings(QApplication& m_app)
   pal.setBrush(QPalette::WindowText, QColor("silver"));     // color
   pal.setBrush(QPalette::Text, QColor("#d0d0d0"));           // color
 
-  pal.setBrush(QPalette::Button, QColor("#1A2024"));
+  pal.setBrush(QPalette::Button, QColor("#12171A"));
   pal.setBrush(QPalette::ButtonText, QColor("#f0f0f0"));
 
   pal.setBrush(QPalette::ToolTipBase, QColor("#12171A"));
