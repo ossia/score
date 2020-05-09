@@ -134,8 +134,6 @@
         <file>icons/gear_off@2x.png</file>
         <file>icons/play_glob_off.png</file>
         <file>icons/play_glob_on.png</file>
-        <file>splash.png</file>
-        <file>splash@2x.png</file>
         <file>icons/engine_off.png</file>
         <file>icons/engine_off@2x.png</file>
         <file>icons/engine_on.png</file>
@@ -510,8 +508,6 @@
         <file>icons/scenario_trigger@2x.png</file>
         <file>drakula.xml</file>
         <file>icons/trigger_sprite.png</file>
-        <file>startscreensplash.png</file>
-        <file>startscreensplash@2x.png</file>
         <file>Montserrat-SemiBold.ttf</file>
         <file>icons/chat_on.png</file>
         <file>icons/contribute_on.png</file>
@@ -552,5 +548,8 @@
         <file>icons/port_address_unit.png</file>
         <file>icons/port_address_unit@2x.png</file>
         <file>icons/trigger_sprite@2x.png</file>
+        <file>startscreen/startscreensplash.png</file>
+        <file>startscreen/startscreensplash@2x.png</file>
+        <file>Montserrat-Light.ttf</file>
     </qresource>
 </RCC>

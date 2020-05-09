@@ -357,6 +357,7 @@ static void setQApplicationSettings(QApplication& m_app)
   QFontDatabase::addApplicationFont(":/Catamaran-Regular.ttf"); // Catamaran Regular
   QFontDatabase::addApplicationFont(":/Montserrat-Regular.ttf"); // Montserrat
   QFontDatabase::addApplicationFont(":/Montserrat-SemiBold.ttf"); // Montserrat
+  QFontDatabase::addApplicationFont(":/Montserrat-Light.ttf"); // Montserrat
 
   static score::StyleLoader style;
   style.on_styleChanged();
