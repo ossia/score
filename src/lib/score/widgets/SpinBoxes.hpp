@@ -15,11 +15,23 @@ namespace score
  *
  * Adapted for the score usage in various duration widgets.
  */
+
+struct BarSpinBox;
+struct SecondSpinBox;
+struct FlicksSpinBox;
 class SCORE_LIB_BASE_EXPORT TimeSpinBox final : public QWidget
 {
   W_OBJECT(TimeSpinBox)
 public:
   TimeSpinBox(QWidget* parent = nullptr);
+  ~TimeSpinBox();
+
+  enum TimeMode {
+    Bars,
+    Seconds,
+    Flicks
+  };
+  static void setGlobalTimeMode(TimeMode);
 
   void setMinimumTime(ossia::time_value t);
   void setMaximumTime(ossia::time_value t);
@@ -56,12 +68,11 @@ private:
     None, Bar, Quarter, Semiquaver, Cent
   } m_grab{None};
 
-  enum TimeMode {
-    Bars,
-    Seconds,
-    Flicks
-  } m_mode{Bars};
+  TimeMode m_mode{Bars};
 
+  friend struct BarSpinBox;
+  friend struct SecondSpinBox;
+  friend struct FlicksSpinBox;
 };
 
 

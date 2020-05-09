@@ -189,9 +189,9 @@ TransportActions::TransportActions(const score::GUIApplicationContext& context)
   //    connect(m_record, &QAction::toggled, this, [&] (bool b) {
   //    });
 
-  if (context.mainWindow)
+  if (context.documentTabWidget)
   {
-    auto obj = context.mainWindow->centralWidget();
+    auto obj = context.documentTabWidget;
     obj->addAction(m_play);
     obj->addAction(m_playGlobal);
     obj->addAction(m_stop);

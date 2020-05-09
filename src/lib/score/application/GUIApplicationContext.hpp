@@ -106,6 +106,7 @@ struct GUIApplicationContext : public score::ApplicationContext
   ToolbarManager& toolbars;
   ActionManager& actions;
   QMainWindow* mainWindow{};
+  QWidget* documentTabWidget{};
 };
 
 SCORE_LIB_BASE_EXPORT const GUIApplicationContext& GUIAppContext();

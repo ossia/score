@@ -7,15 +7,162 @@
 W_OBJECT_IMPL(score::TimeSpinBox)
 namespace score
 {
-  static const constexpr int centStart = 20;
-  static const constexpr int semiquaverStart = 40;
-  static const constexpr int quarterStart = 60;
+static const constexpr int centStart = 20;
+static const constexpr int semiquaverStart = 40;
+static const constexpr int quarterStart = 60;
+
+
+struct BarSpinBox {
+  TimeSpinBox& self;
+  void paint(QPainter& p, QRect text_rect)
+  {
+    auto& m_barTime = self.m_barTime;
+    const auto w = text_rect.width();
+    const auto cent_start = w - centStart;
+    const auto sq_start = w - semiquaverStart;
+    const auto q_start = w - quarterStart;
+    const auto bar_w = q_start - text_rect.x();
+
+    p.drawText(QRect{text_rect.x(), text_rect.y(), bar_w, text_rect.height()}, QString::number(m_barTime.bars), QTextOption(Qt::AlignRight));
+    p.drawText(QRect{q_start, text_rect.y(), 20, text_rect.height()}, QString::number(m_barTime.quarters), QTextOption(Qt::AlignRight));
+    p.drawText(QRect{sq_start, text_rect.y(), 20, text_rect.height()}, QString::number(m_barTime.semiquavers), QTextOption(Qt::AlignRight));
+    p.drawText(QRect{cent_start, text_rect.y(), 20, text_rect.height()}, QString{"%1"}.arg(m_barTime.cents, 2, 10, QChar('0')), QTextOption(Qt::AlignRight));
+
+    QString txt = QString("%1 . %2 . %3 . %4")
+        .arg(m_barTime.bars)
+        .arg(m_barTime.quarters)
+        .arg(m_barTime.semiquavers)
+        .arg(m_barTime.cents);
+  }
+
+  void mousePress(QRect text_rect, QMouseEvent* event)
+  {
+    const auto w = text_rect.width();
+    const auto cent_start = w - centStart;
+    const auto sq_start = w - semiquaverStart;
+    const auto q_start = w - quarterStart;
+    const auto bar_w = q_start - text_rect.x();
+
+    self.m_origFlicks = self.m_flicks;
+    self.m_travelledY = 0;
+    self.m_prevY = event->y();
+    if(event->x() < bar_w)
+    {
+      self.m_grab = TimeSpinBox::Bar;
+      event->accept();
+    }
+    else if(event->x() > q_start && event->x() < sq_start)
+    {
+      self.m_grab = TimeSpinBox::Quarter;
+      event->accept();
+    }
+    else if(event->x() > sq_start && event->x() < cent_start)
+    {
+      self.m_grab = TimeSpinBox::Semiquaver;
+      event->accept();
+    }
+    else
+    {
+      self.m_grab = TimeSpinBox::Cent;
+      event->accept();
+    }
+  }
+
+  void mouseMove(QMouseEvent* event)
+  {
+    int pixelsTraveled = self.m_prevY - event->globalPos().y();
+    self.m_travelledY += pixelsTraveled;
+    self.m_prevY = event->globalPos().y();
+
+    double subdivDelta = self.m_travelledY / 5.;
+
+    switch(self.m_grab)
+    {
+      case TimeSpinBox::Bar:
+        self.m_flicks = self.m_origFlicks + subdivDelta * 4 * ossia::quarter_duration<int64_t>;
+        break;
+      case TimeSpinBox::Quarter:
+        self.m_flicks = self.m_origFlicks + subdivDelta * ossia::quarter_duration<int64_t>;
+        break;
+      case TimeSpinBox::Semiquaver:
+        self.m_flicks = self.m_origFlicks + subdivDelta * ossia::quarter_duration<int64_t> / 4;
+        break;
+      case TimeSpinBox::Cent:
+        self.m_flicks = self.m_origFlicks + subdivDelta * ossia::quarter_duration<int64_t> / 400;
+        break;
+      default:
+        break;
+    }
+
+    if (self.m_flicks < 0)
+      self.m_flicks = 0;
+  }
+
+  void mouseRelease(QMouseEvent* event)
+  {
+  }
+};
+
+struct SecondsSpinBox {
+  TimeSpinBox& self;
+  void paint(QPainter& p, QRect text_rect)
+  {
+  }
+
+  void mousePress(QRect text_rect, QMouseEvent* event)
+  {
+  }
+
+  void mouseMove(QMouseEvent* event)
+  {
+  }
+
+  void mouseRelease(QMouseEvent* event)
+  {
+  }
+};
+
+struct FlicksSpinBox {
+  TimeSpinBox& self;
+  void paint(QPainter& p, QRect text_rect)
+  {
+  }
+
+  void mousePress(QRect text_rect, QMouseEvent* event)
+  {
+  }
+
+  void mouseMove(QMouseEvent* event)
+  {
+  }
+
+  void mouseRelease(QMouseEvent* event)
+  {
+  }
+};
+
+static std::vector<TimeSpinBox*> spinBoxes;
+TimeSpinBox::TimeMode globalTimeMode = TimeSpinBox::TimeMode::Bars;
+
 TimeSpinBox::TimeSpinBox(QWidget* parent)
   : QWidget(parent)
 {
-  m_flicks = 12345678910;
-  //setDisplayFormat(QStringLiteral("h.mm.ss.zzz"));
-  //setAlignment(Qt::AlignRight);
+  spinBoxes.push_back(this);
+}
+
+TimeSpinBox::~TimeSpinBox()
+{
+  ossia::remove_one(spinBoxes, this);
+}
+
+void TimeSpinBox::setGlobalTimeMode(TimeSpinBox::TimeMode mode)
+{
+  globalTimeMode = mode;
+  for(auto sb : spinBoxes)
+  {
+    sb->m_mode = mode;
+    sb->update();
+  }
 }
 
 void TimeSpinBox::setMinimumTime(ossia::time_value t)
@@ -32,8 +179,8 @@ void TimeSpinBox::setTime(ossia::time_value t)
 {
   if(m_flicks != t.impl)
   {
-      m_flicks = t.impl;
-      updateTime();
+    m_flicks = t.impl;
+    updateTime();
   }
 }
 
@@ -67,11 +214,6 @@ void TimeSpinBox::wheelEvent(QWheelEvent* event)
 void TimeSpinBox::mousePressEvent(QMouseEvent* event)
 {
   const auto text_rect = rect().adjusted(2, 2, -4, -2);
-  const auto w = text_rect.width();
-  const auto cent_start = w - centStart;
-  const auto sq_start = w - semiquaverStart;
-  const auto q_start = w - quarterStart;
-  const auto bar_w = q_start - text_rect.x();
 
 #if defined(__APPLE__)
   CGEventRef event = CGEventCreate(nullptr);
@@ -83,28 +225,11 @@ void TimeSpinBox::mousePressEvent(QMouseEvent* event)
   m_startPos = event->globalPos();
 #endif
 
-  m_origFlicks = m_flicks;
-  m_travelledY = 0;
-  m_prevY = event->y();
-  if(event->x() < bar_w)
+  switch(m_mode)
   {
-    m_grab = Bar;
-    event->accept();
-  }
-  else if(event->x() > q_start && event->x() < sq_start)
-  {
-    m_grab = Quarter;
-    event->accept();
-  }
-  else if(event->x() > sq_start && event->x() < cent_start)
-  {
-    m_grab = Semiquaver;
-    event->accept();
-  }
-  else
-  {
-    m_grab = Cent;
-    event->accept();
+    case Bars: BarSpinBox{*this}.mousePress(text_rect, event); break;
+    case Seconds: SecondsSpinBox{*this}.mousePress(text_rect, event); break;
+    case Flicks: FlicksSpinBox{*this}.mousePress(text_rect, event); break;
   }
 
 #if defined(__APPLE__)
@@ -116,32 +241,12 @@ void TimeSpinBox::mousePressEvent(QMouseEvent* event)
 
 void TimeSpinBox::mouseMoveEvent(QMouseEvent* event)
 {
-  int pixelsTraveled = m_prevY - event->globalPos().y();
-  m_travelledY += pixelsTraveled;
-  m_prevY = event->globalPos().y();
-
-  double subdivDelta = m_travelledY / 5.;
-
-  switch(m_grab)
+  switch(m_mode)
   {
-    case Bar:
-      m_flicks = m_origFlicks + subdivDelta * 4 * ossia::quarter_duration<int64_t>;
-      break;
-    case Quarter:
-      m_flicks = m_origFlicks + subdivDelta * ossia::quarter_duration<int64_t>;
-      break;
-    case Semiquaver:
-      m_flicks = m_origFlicks + subdivDelta * ossia::quarter_duration<int64_t> / 4;
-      break;
-    case Cent:
-      m_flicks = m_origFlicks + subdivDelta * ossia::quarter_duration<int64_t> / 400;
-      break;
-    default:
-      break;
+    case Bars: BarSpinBox{*this}.mouseMove(event); break;
+    case Seconds: SecondsSpinBox{*this}.mouseMove(event); break;
+    case Flicks: FlicksSpinBox{*this}.mouseMove(event); break;
   }
-
-  if (m_flicks < 0)
-    m_flicks = 0;
 
   score::moveCursorPos(m_startPos);
   score::hideCursor(true);
@@ -150,15 +255,21 @@ void TimeSpinBox::mouseMoveEvent(QMouseEvent* event)
 
 void TimeSpinBox::mouseReleaseEvent(QMouseEvent* event)
 {
-  score::showCursor();
+  switch(m_mode)
+  {
+    case Bars: BarSpinBox{*this}.mouseRelease(event); break;
+    case Seconds: SecondsSpinBox{*this}.mouseRelease(event); break;
+    case Flicks: FlicksSpinBox{*this}.mouseRelease(event); break;
+  }
 
+  score::showCursor();
   score::setCursorPos(m_startPos);
+  updateTime();
 }
 
 void TimeSpinBox::mouseDoubleClickEvent(QMouseEvent* event)
 {
 }
-
 
 void TimeSpinBox::initStyleOption(QStyleOptionFrame *option) const noexcept
 {
@@ -185,38 +296,28 @@ QSize TimeSpinBox::minimumSizeHint() const
   return {50, 20};
 }
 
+
 void TimeSpinBox::paintEvent(QPaintEvent* event)
 {
-    QPainter p(this);
-    QPalette pal = palette();
+  QPainter p(this);
+  QPalette pal = palette();
 
-    QStyleOptionFrame panel;
-    initStyleOption(&panel);
-    style()->drawPrimitive(QStyle::PE_PanelLineEdit, &panel, &p, this);
-    QRect r = style()->subElementRect(QStyle::SE_LineEditContents, &panel, this);
-    // r = r.marginsRemoved(d->effectiveTextMargins());
-    p.setClipRect(r);
+  QStyleOptionFrame panel;
+  initStyleOption(&panel);
+  style()->drawPrimitive(QStyle::PE_PanelLineEdit, &panel, &p, this);
+  QRect r = style()->subElementRect(QStyle::SE_LineEditContents, &panel, this);
+  // r = r.marginsRemoved(d->effectiveTextMargins());
+  p.setClipRect(r);
 
+  QFontMetrics fm = fontMetrics();
 
-    QFontMetrics fm = fontMetrics();
-
-    const auto text_rect = rect().adjusted(2, 2, -4, -2);
-    const auto w = text_rect.width();
-    const auto cent_start = w - centStart;
-    const auto sq_start = w - semiquaverStart;
-    const auto q_start = w - quarterStart;
-    const auto bar_w = q_start - text_rect.x();
-
-    p.drawText(QRect{text_rect.x(), text_rect.y(), bar_w, text_rect.height()}, QString::number(m_barTime.bars), QTextOption(Qt::AlignRight));
-    p.drawText(QRect{q_start, text_rect.y(), 20, text_rect.height()}, QString::number(m_barTime.quarters), QTextOption(Qt::AlignRight));
-    p.drawText(QRect{sq_start, text_rect.y(), 20, text_rect.height()}, QString::number(m_barTime.semiquavers), QTextOption(Qt::AlignRight));
-    p.drawText(QRect{cent_start, text_rect.y(), 20, text_rect.height()}, QString{"%1"}.arg(m_barTime.cents, 2, 10, QChar('0')), QTextOption(Qt::AlignRight));
-
-    QString txt = QString("%1 . %2 . %3 . %4")
-        .arg(m_barTime.bars)
-        .arg(m_barTime.quarters)
-        .arg(m_barTime.semiquavers)
-        .arg(m_barTime.cents);
+  const auto text_rect = rect().adjusted(2, 2, -4, -2);
+  switch(m_mode)
+  {
+    case Bars: BarSpinBox{*this}.paint(p, text_rect); break;
+    case Seconds: SecondsSpinBox{*this}.paint(p, text_rect); break;
+    case Flicks: FlicksSpinBox{*this}.paint(p, text_rect); break;
+  }
 
     /*
     Qt::Alignment va = QStyle::visualAlignment(d->control->layoutDirection(), QFlag(d->alignment));

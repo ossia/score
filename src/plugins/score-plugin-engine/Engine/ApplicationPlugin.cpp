@@ -28,6 +28,7 @@
 #include <score/widgets/ControlWidgets.hpp>
 #include <score/widgets/DoubleSlider.hpp>
 #include <score/widgets/SetIcons.hpp>
+#include <score/widgets/SpinBoxes.hpp>
 #include <score/tools/Bind.hpp>
 #include <score/actions/ToolbarManager.hpp>
 #include <core/application/ApplicationInterface.hpp>
@@ -265,6 +266,10 @@ score::GUIElements ApplicationPlugin::makeGUIElements()
         auto& settings = this->context.settings<Scenario::Settings::Model>();
         settings.setMeasureBars(ok);
         settings.setMagneticMeasures(ok);
+        score::TimeSpinBox::setGlobalTimeMode(
+              ok
+              ? score::TimeSpinBox::TimeMode::Bars
+              : score::TimeSpinBox::TimeMode::Seconds);
 
         if(auto doc = this->currentDocument())
         {

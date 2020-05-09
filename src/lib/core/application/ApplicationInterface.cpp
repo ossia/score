@@ -273,6 +273,9 @@ GUIApplicationContext::GUIApplicationContext(
     , actions{f}
     , mainWindow{mw}
 {
+  if(auto win = qobject_cast<score::View*>(mw)) {
+    documentTabWidget = win->centralTabs;
+  }
 }
 
 SCORE_LIB_BASE_EXPORT const ApplicationContext& AppContext()

@@ -55,7 +55,6 @@ int qInitResources_score();
 #if !defined(SCORE_DEBUG) && !defined(__EMSCRIPTEN__)
 #define SCORE_SPLASH_SCREEN 1
 #endif
-
 #include <phantom/phantomstyle.h>
 namespace score
 {
@@ -141,8 +140,8 @@ namespace score
       if(m_drawPixmap)
       {
         int size = m_currentPixmap.width();
-        painter.drawPixmap(0,0,size,size,m_currentPixmap);
-        textRect.setX( textRect.x() +size + 6);
+        painter.drawPixmap(0,0,m_currentPixmap);
+        textRect.setX( textRect.x() + size / qApp->devicePixelRatio() + 6);
       }
       painter.setFont(m_font);
       painter.drawText(textRect,m_title);
@@ -217,9 +216,9 @@ namespace score
       setWindowFlags( Qt::Dialog | Qt::FramelessWindowHint );//| Qt::WindowStaysOnTopHint);
       setWindowModality(Qt::ApplicationModal);
 
-      m_background = score::get_pixmap(":/startscreensplash.png");
+      m_background = score::get_pixmap(":/startscreen/startscreensplash.png");
 
-      QPainter painter;
+
       QFont f("Ubuntu", 14, QFont::Light);
       f.setHintingPreference(QFont::HintingPreference::PreferFullHinting);
       f.setStyleStrategy(QFont::PreferAntialias);
@@ -228,7 +227,7 @@ namespace score
       titleFont.setHintingPreference(QFont::HintingPreference::PreferFullHinting);
       titleFont.setStyleStrategy(QFont::PreferAntialias);
 
-      if (painter.begin(&m_background))
+      if (QPainter painter; painter.begin(&m_background))
       {
         painter.setRenderHint(QPainter::Antialiasing, true);
         painter.setRenderHint(QPainter::TextAntialiasing, true);
@@ -240,7 +239,7 @@ namespace score
         painter.drawText(QPointF(381, 195), QCoreApplication::applicationVersion());
         painter.end();
       }
-      setFixedSize(m_background.size());
+      setFixedSize(m_background.size() / qApp->devicePixelRatio());
 
       float label_y = 285;
       { // Create new
