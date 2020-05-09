@@ -1371,18 +1371,21 @@ SearchWidget::SearchWidget(const score::GUIApplicationContext& ctx)
     }
   }
 }
-
-template <typename Object>
-void add_if_contains(const Object& obj, const QString& str, Selection& sel)
+template<typename T>
+void add_if_contains(const T& o, const QString& str, Selection& sel)
 {
-  SCORE_ABORT;
-  /*
-  QJsonObject json = score::marshall<JSONObject>(obj);
-  QJsonDocument doc{json};
-  QString jstr{doc.toJson(QJsonDocument::Compact)};
-  if (jstr.contains(str))
-    sel.append(&obj);
-    */
+  const auto& obj = o.metadata();
+  if(obj.getName().contains(str) || obj.getComment().contains(str) || obj.getLabel().contains(str))
+  {
+    sel.append(&o);
+  }
+}
+void add_if_contains(const Scenario::CommentBlockModel& o, const QString& str, Selection& sel)
+{
+  if(o.content().contains(str))
+  {
+    sel.append(&o);
+  }
 }
 
 void SearchWidget::on_findAddresses(QStringList strlst)

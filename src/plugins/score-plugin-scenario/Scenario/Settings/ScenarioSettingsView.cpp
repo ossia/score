@@ -402,7 +402,6 @@ public:
     });
 
     connect(&save, &QPushButton::clicked, this, [] {
-      SCORE_ABORT;
       return ;
       /*
       auto f = QFileDialog::getSaveFileName(
