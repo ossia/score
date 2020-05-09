@@ -137,9 +137,9 @@ Skin::Skin() noexcept
   Medium12Pt = SansFont;
   Medium12Pt.setPixelSize(12 * 96./ 72.);
 
-  SliderBrush = QColor("#12171A");
+  SliderBrush = QColor("#161514");
   SliderExtBrush = QColor("#62400a");
-  SliderLine = QPen{QColor("#f6a019"), 1, Qt::SolidLine, Qt::RoundCap};
+  SliderLine = QPen{QColor("#c58014"), 1, Qt::SolidLine, Qt::RoundCap};
   SliderTextPen = QColor("#d0d0d0");
   SliderFont = SansFont;
   SliderFont.setPixelSize(10 * 96./ 72.);

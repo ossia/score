@@ -111,22 +111,6 @@ public:
       , m_widget{parent}
   {
     connect(this, &QLineEdit::textEdited, this, [=] { search(); });
-
-#ifndef QT_NO_STYLE_STYLESHEET
-    setStyleSheet(R"_(
-QScrollArea
-{
-    border: 1px solid #3A3939;
-    border-radius: 2px;
-    padding: 0;
-    background-color: #12171A;
-}
-QScrollArea QLabel
-{
-    background-color: #12171A;
-}
-)_");
-#endif
   }
 
   void search() override
