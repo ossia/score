@@ -26,28 +26,13 @@ AboutDialog::AboutDialog(QWidget* parent)
     , m_montserratFont("Montserrat", 12, QFont::Weight::Normal)
     , m_montserratLightFont("Montserrat", 12, QFont::Weight::Light)
     , m_mouseAreaOssiaScore(122, 30, 554, 130)
-    , m_mouseAreaLabri(62, 360, 188, 60)
-    , m_mouseAreaScrime(60, 450, 200, 70)
-    , m_mouseAreaBlueYeti(85, 530, 150, 150)
+    , m_mouseAreaLabri(93, 370, 126, 40)
+    , m_mouseAreaScrime(56, 435, 200, 70)
+    , m_mouseAreaBlueYeti(81, 515, 150, 150)
 {
   setWindowFlags(windowFlags() | Qt::FramelessWindowHint);
   resize(m_windowSize.width(), m_windowSize.height());
   setMouseTracking(true);
-
-  /*if (auto scr = qApp->screens(); !scr.empty())
-  {
-    auto dpi = scr.first()->devicePixelRatio();
-    if (dpi >= 2.)
-    {
-     // m_catamaranFont.setPointSize(13);
-      m_montserratFont.setPointSize(10);
-    }
-    else
-    {
-     // m_catamaranFont.setPointSize(11);
-      m_montserratFont.setPointSize(9);
-    }
-  }*/
 
   // map
   struct License
@@ -189,37 +174,7 @@ AboutDialog::AboutDialog(QWidget* parent)
   auto softwareList = new QListWidget{this};
   softwareList->move(307, 398);
   softwareList->resize(185, 263);
-/*#ifndef QT_NO_STYLE_STYLESHEET
-  softwareList->setStyleSheet(R"_(
-                              QListView::item:!selected:hover{
-                              background-color:#415491;
-                              color: #ffffff;
-                              }
-                              QListView::item:selected:active, QListView::item:selected:!active{
-                              background-color:#73C1C6;
-                              color: #1A2024;
-                              }
-                              QListView {
-                              background-color: rgb(18,23,26);
-                              margin:0px;
-                              }
 
-                              QScrollBar::right-arrow:horizontal, QScrollBar::left-arrow:horizontal
-                              {
-                              border: none;
-                              background: none;
-                              color: none;
-                              }
-                              QScrollBar::add-line:vertical {
-                              border: none;
-                              background: none;
-                              }
-                              QScrollBar::sub-line:vertical {
-                              border: none;
-                              background: none;
-                              }
-                              )_");
-#endif*/
   softwareList->setFont(m_catamaranFont);
   softwareList->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
   softwareList->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
