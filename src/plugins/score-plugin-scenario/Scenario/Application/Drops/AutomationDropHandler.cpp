@@ -420,7 +420,7 @@ bool DropLayerInScenario::drop(
     return false;
   }
 
-  if (json.MemberCount() == 0)
+  if (!json.IsObject() || json.MemberCount() == 0)
     return false;
 
   Scenario::Command::Macro m{new Scenario::Command::AddProcessInNewBoxMacro,

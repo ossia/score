@@ -81,7 +81,7 @@ Durations computeDurations(ossia::time_signature sig, double zoom)
     pow2 = 4.;
     b.quarters = 1;
   }
-  else if(pow2 > 8) // between 16th and ..th notes
+  else if(pow2 > 8 && pow2 < 12) // between 16th and ..th notes
   {
     pow2 = 10.;
     b.semiquavers = 1;
@@ -89,6 +89,11 @@ Durations computeDurations(ossia::time_signature sig, double zoom)
   else if(pow2 < 1.)
   {
     b.bars = 1. / pow2;
+  }
+  else
+  {
+    if(pow2 > 14) pow2 = 14;
+    b.cents = 1;
   }
 
   pow2 /= (double(sig.upper) / sig.lower);

@@ -494,8 +494,8 @@ void ScenarioDocumentPresenter::on_minimapChanged(double l, double r)
   const auto dur = c.duration.guiDuration();
 
   // Compute new zoom level
-  // 10000 flicks per pixels -> roughly 80 pixels for one millisecond
-  const auto newZoom = std::max(computeZoom(l, r), 10000.);
+  // 1000 flicks per pixels -> roughly 800 pixels for one millisecond
+  const auto newZoom = std::max(computeZoom(l, r), 1000.);
 
   // Compute new x position
   const auto newCstWidth = dur.toPixels(newZoom);
