@@ -433,7 +433,7 @@ void DeviceExplorerWidget::buildGUI()
       &DeviceExplorerWidget::filterChanged);
 
   auto hLayout = new score::MarginLess<QHBoxLayout>;
-  hLayout->setSpacing(2);
+  hLayout->setSpacing(0);
   hLayout->addWidget(openMenu);
   hLayout->addWidget(m_columnCBox);
   hLayout->addWidget(m_nameLEdit);
