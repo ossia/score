@@ -577,6 +577,7 @@ struct Timebars
 
   LightBars lightBars;
   LighterBars lighterBars;
+  std::vector<TimeVal> magneticTimings;
 };
 }
 

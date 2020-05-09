@@ -102,7 +102,7 @@ FullViewIntervalPresenter::FullViewIntervalPresenter(
                         ctx,
                         parent}
     , m_timebars{new Timebars{*this}}
-    , m_grid{new MusicalGrid{interval.timeSignatureMap(), m_timebars, m_magneticDivision, {}, {}}}
+    , m_grid{new MusicalGrid{interval.timeSignatureMap(), *m_timebars}}
     , m_settings{ctx.app.settings<Scenario::Settings::Model>()}
 {
   m_view->setPos(0, 0);
@@ -616,6 +616,30 @@ void FullViewIntervalPresenter::on_zoomRatioChanged(ZoomRatio ratio)
   updateProcessesShape();
 }
 
+template<typename T, typename U>
+auto closest_element(const T& vec, const U& val) noexcept {
+    assert(!vec.empty());
+    auto it = std::lower_bound(vec.begin(), vec.end(), val);
+    if(it != vec.end())
+    {
+        if(it != vec.begin())
+        {
+            auto prev = it-1;
+            if(abs(*prev - val) < abs(*it - val))
+                return *prev;
+            else
+                return *it;
+        }
+        else
+        {
+            return *it;
+        }
+    }
+    else
+    {
+        return *vec.rbegin();
+    }
+}
 TimeVal FullViewIntervalPresenter::magneticPosition(const QObject* o, const TimeVal t) const noexcept
 {
   // TODO instead call a virtual function on the process that return the date of the closest thing
@@ -705,23 +729,18 @@ TimeVal FullViewIntervalPresenter::magneticPosition(const QObject* o, const Time
   const TimeVal orig_date = leftmost_sig->first;
 
   // Snap to grid
-  const TimeVal& division = m_magneticDivision;
-  if(division.impl > 0)
-  {
-    TimeVal rounded_date{int64_t(std::round((msecs - orig_date) / division)) * division.impl + orig_date.impl};
-
-    auto closestBar = rounded_date - timeDelta;
-    if(!snapToScenario)
-      return closestBar;
-    else if(std::abs(closestBar.impl - t.impl) < std::abs(scenarioT.impl - t.impl))
-      return closestBar;
-    else
-      return scenarioT;
-  }
-  else
-  {
+  if(m_timebars->magneticTimings.empty())
     return scenarioT;
-  }
+
+  const TimeVal& closestBar = closest_element(m_timebars->magneticTimings, msecs);
+
+  if(!snapToScenario)
+    return closestBar;
+  else if(std::abs(closestBar.impl - t.impl) < std::abs(scenarioT.impl - t.impl))
+    return closestBar;
+  else
+    return scenarioT;
+
 }
 
 void FullViewIntervalPresenter::requestModeChange(bool state)
@@ -790,7 +809,7 @@ void FullViewIntervalPresenter::updateTimeBars()
   auto scene_x0 = m_view->mapToScene(QPointF{}).x();
 
   QRectF sceneRect = m_sceneRect;
-  sceneRect.adjust(-10, timeSignatureBarY, 10, timeSignatureBarY);
+  sceneRect.adjust(-100, timeSignatureBarY, 100, timeSignatureBarY);
 
   // x0_time: time of the currently visible leftmost pixel
   TimeVal x0_time = TimeVal::fromPixels(sceneRect.x() - scene_x0, m_zoomRatio) + timeDelta;

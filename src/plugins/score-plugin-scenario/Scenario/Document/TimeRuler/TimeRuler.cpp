@@ -31,21 +31,6 @@ static const constexpr qreal graduationHeight = -15.;
 static const constexpr qreal timeRulerHeight = 30.;
 static const constexpr qreal textPosition = SCORE_YPOS(-22.75, -27.75);
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 static const constexpr std::
     array<std::pair<double, ossia::time_value>, 22>
         musical_graduations{{
@@ -81,10 +66,7 @@ static const constexpr std::
 
 
 MusicalRuler::MusicalRuler(QGraphicsView* v)
-    : m_graduationsSpacing{10}
-    , m_graduationDelta{10}
-    , m_intervalsBetweenMark{1}
-    , m_viewport{v}
+    : m_viewport{v}
 {
   m_width = 800;
   setY(-28.5);
@@ -104,19 +86,26 @@ void MusicalRuler::paint(
     const QStyleOptionGraphicsItem* option,
     QWidget* widget)
 {
-  if (m_width > 0. && m_grid)
+  if (m_width > 0. && m_grid && !m_grid->mainPositions.empty())
   {
     auto& painter = *p;
     const auto& style = Process::Style::instance();
     painter.setRenderHint(QPainter::Antialiasing, false);
-    painter.setPen(style.TimeRulerLargePen());
-    painter.drawLine(QPointF{0., 0.}, QPointF{m_width, 0.});
     painter.setPen(style.TimeRulerSmallPen());
     painter.setBrush(style.TimeRuler());
 
-    for(std::size_t i = 0; i < m_grid->mainPositions.size(); i++)
+    double last_pos = m_grid->mainPositions.front().pos_x;
+
+    for(auto& [pos_x, timings, increment] : m_grid->mainPositions)
     {
-      painter.drawText(QPointF{m_grid->mainPositions[i].first, textPosition + 8 }, QString::number(m_grid->startBar + i));
+      const auto& glyphs = getGlyphs(timings, increment);
+      const auto w = glyphs.boundingRect().width();
+
+      if(w < (pos_x - last_pos) || pos_x == last_pos)
+      {
+        painter.drawGlyphRun(QPointF{pos_x, textPosition}, glyphs);
+        last_pos = pos_x;
+      }
     }
   }
 }
@@ -124,121 +113,60 @@ void MusicalRuler::paint(
 
 void MusicalRuler::setZoomRatio(double factor)
 {
-  if (factor != m_ratio)
-  {
-    m_ratio = factor;
-    computeGraduationSpacing();
-  }
+  update();
 }
 
 void MusicalRuler::computeGraduationSpacing()
-{/*
-  double pixPerSec = 1000. * m_ratio;
-  m_graduationsSpacing = pixPerSec;
-
-  m_graduationDelta = 100.;
-  m_intervalsBetweenMark = 5;
-
-  int i = 0;
-  const constexpr int n = graduations.size();
-  for (i = 0; i < n - 1; i++)
-  {
-    if (pixPerSec > graduations[i].first
-        && pixPerSec < graduations[i + 1].first)
-    {
-      m_graduationDelta = graduations[i].second.count() / double(1e6);
-      m_graduationsSpacing = pixPerSec * graduations[i].second.count() / double(1e9);
-      break;
-    }
-  }
-
-  auto oldFormat = m_timeFormat;
-  if (i > 17)
-  {
-    m_timeFormat = Format::Microseconds;
-    m_intervalsBetweenMark = 10;
-  }
-  else if (i > 7)
-  {
-    m_timeFormat = Format::Milliseconds;
-    m_intervalsBetweenMark = 10;
-  }
-  else if (i >= 1)
-  {
-    m_timeFormat = Format::Seconds;
-  }
-  else
-  {
-    m_timeFormat = Format::Hours;
-  }
-
-  if (oldFormat != m_timeFormat)
-    m_stringCache.clear();
-*/
+{
   createRulerPath();
 }
 
 void MusicalRuler::createRulerPath()
-{/*
-  m_marks.clear();
-  m_marks.reserve(16);
-
-  clearPainterPath(m_path);
-
-  if (m_width == 0)
-  {
-    update();
-    return;
-  }
-
-  // If we are between two graduations, we adjust our origin.
-  int64_t start_nsec = m_startPoint.impl / (ossia::flicks_per_second<double> / 1e9);
-
-  double big_delta = m_graduationDelta * 5. * 2. * 1e6;
-  double prev_big_grad_nsec
-      = std::floor(start_nsec / big_delta) * big_delta;
-
-  double startTime = start_nsec - prev_big_grad_nsec;
-  std::chrono::nanoseconds time{(int64_t)(prev_big_grad_nsec)};
-  double t = -startTime * (m_ratio / 1e6);
-
-  double i = 0;
-
-  while (t < m_width + 1.)
-  {
-    double res = std::fmod(i, m_intervalsBetweenMark);
-    if (res == 0)
-    {
-      m_marks.emplace_back(Mark{t, time, getGlyphs(time)});
-      m_path.addRect(t, 0., 1., graduationHeight * 3.);
-    }
-
-    t += m_graduationsSpacing;
-    time += std::chrono::nanoseconds((int64_t)(1000000. * m_graduationDelta));
-    i++;
-  }*/
+{
   update();
   m_viewport->viewport()->update();
 }
 
 
-void layoutTimeText(MusicalRuler::Format format, QTextLayout& layout, std::chrono::nanoseconds t)
+void layoutTimeText(ossia::bar_time timings, ossia::bar_time increment, QTextLayout& layout)
 {
+  QString txt;
+
+  if(increment.bars > 0)
+  {
+    layout.setText(
+          QString::fromStdString(
+            fmt::format("{0}", timings.bars + 1)));
+  }
+  else if(increment.quarters > 0)
+  {
+    layout.setText(
+          QString::fromStdString(
+            fmt::format("{0}:{1}", timings.bars + 1, timings.quarters + 1)));
+  }
+  else
+  {
+    layout.setText(
+          QString::fromStdString(
+            fmt::format("{0}:{1:02}.{2:03}", timings.bars + 1, timings.quarters + 1, timings.semiquavers + 1)));
+  }
 }
 
 
 
-QGlyphRun MusicalRuler::getGlyphs(std::chrono::nanoseconds t)
-{/*
+QGlyphRun MusicalRuler::getGlyphs(ossia::bar_time timings, ossia::bar_time increments)
+{
   auto it
-      = ossia::find_if(m_stringCache, [&](auto& v) { return v.first == t; });
+      = ossia::find_if(m_stringCache, [&](std::tuple<ossia::bar_time, ossia::bar_time, QGlyphRun>& v) {
+      return std::get<0>(v) == timings && std::get<1>(v) == increments;
+});
   if (it != m_stringCache.end())
   {
-    return it->second;
+    return std::get<2>(*it);
   }
   else
   {
-    layoutTimeText(m_timeFormat, m_layout, t);
+    layoutTimeText(timings, increments, m_layout);
 
     m_layout.beginLayout();
     auto line = m_layout.createLine();
@@ -250,39 +178,23 @@ QGlyphRun MusicalRuler::getGlyphs(std::chrono::nanoseconds t)
     if (!glr.isEmpty())
       gr = std::move(glr.first());
 
-    m_stringCache.push_back(std::make_pair(t, gr));
+    m_stringCache.push_back(std::make_tuple(timings, increments, gr));
     if (m_stringCache.size() > 16)
       m_stringCache.pop_front();
 
     m_layout.clearLayout();
 
     return gr;
-  }*/
+  }
   return {};
 }
 
 void MusicalRuler::setGrid(MusicalGrid& grid)
 {
   m_grid = &grid;
+  connect(m_grid, &MusicalGrid::changed,
+          this, [this] { update(); });
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -642,16 +554,4 @@ QGlyphRun TimeRuler::getGlyphs(std::chrono::nanoseconds t)
 }
 
 
-
-
-
-
-
-
-
-
-
 }
-
-
-

@@ -82,7 +82,6 @@ private:
   QRectF m_sceneRect{};
 
   Timebars* m_timebars{};
-  TimeVal m_magneticDivision{};
 
   MusicalGrid* m_grid{};
   const Scenario::Settings::Model& m_settings;

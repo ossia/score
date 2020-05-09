@@ -25,7 +25,7 @@ class QGraphicsView;
 
 namespace Scenario
 {
-class MusicalGrid;
+struct MusicalGrid;
 class TimeRulerBase
     : public QObject
     , public QGraphicsItem
@@ -135,39 +135,18 @@ private:
       const QStyleOptionGraphicsItem* option,
       QWidget* widget) override;
 
-  qreal graduationSpacing() const
-  {
-    return m_intervalsBetweenMark * m_graduationsSpacing;
-  }
 
   void computeGraduationSpacing() override;
   void createRulerPath() override;
   void setZoomRatio(double factor) final override;
   void setGrid(MusicalGrid& grid) final override;
 
-  struct Mark
-  {
-    double pos;
-    std::chrono::nanoseconds time;
-    QGlyphRun text;
-  };
-
   MusicalGrid* m_grid{};
-  double m_ratio{0.01};
-
-  std::vector<Mark> m_marks;
-
-  qreal m_graduationsSpacing{};
-  qreal m_graduationDelta{};
-  qreal m_intervalsBetweenMark{};
-  Format m_timeFormat{};
-
-  QPainterPath m_path;
 
   QGraphicsView* m_viewport{};
 
-  QGlyphRun getGlyphs(std::chrono::nanoseconds);
+  QGlyphRun getGlyphs(ossia::bar_time timings, ossia::bar_time increments);
   QTextLayout m_layout;
-  std::deque<std::pair<std::chrono::nanoseconds, QGlyphRun>> m_stringCache;
+  std::deque<std::tuple<ossia::bar_time, ossia::bar_time, QGlyphRun>> m_stringCache;
 };
 }
