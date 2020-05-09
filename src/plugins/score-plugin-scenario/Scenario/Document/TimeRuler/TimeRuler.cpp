@@ -142,13 +142,19 @@ void layoutTimeText(ossia::bar_time timings, ossia::bar_time increment, QTextLay
   {
     layout.setText(
           QString::fromStdString(
-            fmt::format("{0}:{1}", timings.bars + 1, timings.quarters + 1)));
+            fmt::format("{0}.{1}", timings.bars + 1, timings.quarters + 1)));
   }
-  else
+  else if(increment.semiquavers > 0)
   {
     layout.setText(
           QString::fromStdString(
-            fmt::format("{0}:{1:02}.{2:03}", timings.bars + 1, timings.quarters + 1, timings.semiquavers + 1)));
+            fmt::format("{0}.{1}.{2}", timings.bars + 1, timings.quarters + 1, timings.semiquavers + 1)));
+  }
+  else if(increment.cents > 0)
+  {
+    layout.setText(
+          QString::fromStdString(
+            fmt::format("{0}.{1}.{2}.{3:03}", timings.bars + 1, timings.quarters + 1, timings.semiquavers + 1, timings.cents)));
   }
 }
 

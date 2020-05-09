@@ -39,10 +39,13 @@ ossia::bar_time timeToMetrics(MusicalGrid& grid, TimeVal x0_time)
   {
     const auto sig_upper = last_before->second.upper;
     const auto sig_lower = last_before->second.lower;
-    int32_t quarters = (x0_time.impl - last_before->first.impl) / ossia::quarter_duration<int64_t>;
-    int32_t bars = quarters / (4. * double(sig_upper) / sig_lower);
+    int64_t flicks_since_last_signature = (x0_time.impl - last_before->first.impl);
+    int64_t quarters = flicks_since_last_signature / ossia::quarter_duration<int64_t>;
+    int64_t bars = quarters / (4. * double(sig_upper) / sig_lower);
     start.bars += bars;
     start.quarters = quarters - bars * (4. * double(sig_upper) / sig_lower);
+    start.semiquavers = (flicks_since_last_signature - quarters * ossia::quarter_duration<int64_t>) / (ossia::quarter_duration<int64_t> / 4);
+    start.cents = (flicks_since_last_signature - quarters * ossia::quarter_duration<int64_t> - start.semiquavers * (ossia::quarter_duration<int64_t> / 4)) / (ossia::quarter_duration<int64_t> / 400);
   }
   return start;
 }
@@ -78,13 +81,14 @@ Durations computeDurations(ossia::time_signature sig, double zoom)
     pow2 = 4.;
     b.quarters = 1;
   }
+  else if(pow2 > 8) // between 16th and ..th notes
+  {
+    pow2 = 10.;
+    b.semiquavers = 1;
+  }
   else if(pow2 < 1.)
   {
     b.bars = 1. / pow2;
-  }
-  else if(pow2 > 8)
-  {
-    SCORE_TODO_("yuck");
   }
 
   pow2 /= (double(sig.upper) / sig.lower);
