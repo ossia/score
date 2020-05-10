@@ -68,12 +68,6 @@ std::vector<std::unique_ptr<score::InterfaceBase>> instantiate_fx(
     return create_types<Nodes...>{}
         .template perform<Control::ProcessFactory>();
   }
-  else if (
-      key == Process::InspectorWidgetDelegateFactory::static_interfaceKey())
-  {
-    return create_types<Nodes...>{}
-        .template perform<Control::InspectorFactory>();
-  }
   else if (key == Process::LayerFactory::static_interfaceKey())
   {
     return create_types<Nodes...>{}.template perform<Control::LayerFactory>();

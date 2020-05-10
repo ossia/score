@@ -16,8 +16,7 @@ std::shared_ptr<Preset> Preset::fromJson(const ProcessFactoryList& procs, const 
   p.key.key <<= k["Uuid"];
   p.key.effect = k["Effect"].toString();
 
-  auto it = procs.find(p.key.key);
-  if(it == procs.end())
+  if(!procs.get(p.key.key))
     return {};
 
   rapidjson::StringBuffer buf;

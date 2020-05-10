@@ -133,17 +133,5 @@ private:
 using LayerFactory
     = Process::EffectLayerFactory_T<VSTEffectModel, VSTEffectItem, VSTWindow>;
 
-class VSTInspector final
-    : public Process::GenericInspectorWidget<VSTEffectModel>
-{
-public:
-  using GenericInspectorWidget::GenericInspectorWidget;
-};
-
-class VSTInspectorFactory final
-    : public Process::InspectorWidgetDelegateFactory_T<VSTEffectModel, VSTInspector>
-{
-  SCORE_CONCRETE("26a8d3ef-1a77-4d58-961b-a43d7539bc22")
-};
 }
 #endif

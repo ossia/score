@@ -89,26 +89,24 @@ Model::Model(QSettings& set, const score::ApplicationContext& ctx)
 
 std::unique_ptr<Clock> Model::makeClock(const Execution::Context& ctx) const
 {
-  auto it = m_clockFactories.find(m_Clock);
-  return it != m_clockFactories.end() ? it->make(ctx)
-                                      : std::make_unique<Dataflow::Clock>(ctx);
+  auto it = m_clockFactories.get(m_Clock);
+  return it ? it->make(ctx)
+            : std::make_unique<Dataflow::Clock>(ctx);
 }
 
 time_function Model::makeTimeFunction(const score::DocumentContext& ctx) const
 {
-  auto it = m_clockFactories.find(m_Clock);
-  return it != m_clockFactories.end()
-             ? it->makeTimeFunction(ctx)
+  auto it = m_clockFactories.get(m_Clock);
+  return it  ? it->makeTimeFunction(ctx)
              : Dataflow::ClockFactory{}.makeTimeFunction(ctx);
 }
 
 reverse_time_function
 Model::makeReverseTimeFunction(const score::DocumentContext& ctx) const
 {
-  auto it = m_clockFactories.find(m_Clock);
-  return it != m_clockFactories.end()
-             ? it->makeReverseTimeFunction(ctx)
-             : Dataflow::ClockFactory{}.makeReverseTimeFunction(ctx);
+  auto it = m_clockFactories.get(m_Clock);
+  return it ? it->makeReverseTimeFunction(ctx)
+            : Dataflow::ClockFactory{}.makeReverseTimeFunction(ctx);
 }
 
 SCORE_SETTINGS_PARAMETER_CPP(ClockFactory::ConcreteKey, Model, Clock)

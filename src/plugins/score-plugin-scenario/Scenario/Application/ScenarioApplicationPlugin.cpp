@@ -42,6 +42,8 @@
 #include <score/plugins/documentdelegate/DocumentDelegateModel.hpp>
 #include <score/widgets/SetIcons.hpp>
 
+#include <Inspector/InspectorWidgetList.hpp>
+#include <Process/Inspector/ProcessInspectorWidgetDelegateFactory.hpp>
 #include <Scenario/Application/Drops/AutomationDropHandler.hpp>
 #include <core/application/ApplicationSettings.hpp>
 #include <core/document/Document.hpp>
@@ -219,10 +221,19 @@ ScenarioApplicationPlugin::ScenarioApplicationPlugin(
 void ScenarioApplicationPlugin::initialize()
 {
   // Needs a delayed init because it scans all the registered factories
-  auto& droppers = context.interfaces<Scenario::DropHandlerList>();
-  auto dropper = (DropProcessInScenario*)droppers.get(DropProcessInScenario::static_concreteKey());
-  SCORE_ASSERT(dropper);
-  dropper->init();
+  {
+    auto& droppers = context.interfaces<Scenario::DropHandlerList>();
+    auto dropper = (DropProcessInScenario*)droppers.get(DropProcessInScenario::static_concreteKey());
+    SCORE_ASSERT(dropper);
+    dropper->init();
+  }
+
+  // Add a default factory for process inspectors, after everything else is done
+  {
+    auto& pw = const_cast<Inspector::InspectorWidgetList&>(context.interfaces<Inspector::InspectorWidgetList>());
+    pw.insert(std::make_unique<Process::DefaultInspectorWidgetDelegateFactory>());
+  }
+
 }
 
 auto ScenarioApplicationPlugin::makeGUIElements() -> GUIElements

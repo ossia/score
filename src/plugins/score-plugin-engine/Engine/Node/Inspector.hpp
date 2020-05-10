@@ -128,46 +128,4 @@ struct inlet_visitor
   }
 };
 
-template <typename Info>
-class InspectorWidget final
-    : public Process::InspectorWidgetDelegate_T<ControlProcess<Info>>
-{
-public:
-  explicit InspectorWidget(
-      const ControlProcess<Info>& object,
-      const score::DocumentContext& doc,
-      QWidget* parent)
-      : Process::InspectorWidgetDelegate_T<ControlProcess<Info>>{object,
-                                                                 parent}
-  {
-    using namespace ossia::safe_nodes;
-    auto vlay = new Inspector::Layout{this};
-
-    visit_ports(
-        inlet_visitor<ControlProcess<Info>>{object, doc, *vlay, this}, object);
-  }
-
-private:
-};
-
-template <typename Info>
-class InspectorFactory final
-    : public Process::InspectorWidgetDelegateFactory_T<
-          ControlProcess<Info>,
-          InspectorWidget<Info>>
-{
-public:
-  static Q_DECL_RELAXED_CONSTEXPR
-      Process::InspectorWidgetDelegateFactory::ConcreteKey
-      static_concreteKey() noexcept
-  {
-    return Info::Metadata::uuid;
-  }
-
-  Process::InspectorWidgetDelegateFactory::ConcreteKey concreteKey() const
-      noexcept final override
-  {
-    return static_concreteKey();
-  }
-};
 }

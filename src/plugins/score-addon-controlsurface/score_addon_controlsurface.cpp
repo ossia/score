@@ -26,7 +26,6 @@ score_addon_controlsurface::factories(
       score::ApplicationContext,
       FW<Process::ProcessModelFactory, ControlSurface::ProcessFactory>,
       FW<Process::LayerFactory, ControlSurface::LayerFactory>,
-      FW<Process::InspectorWidgetDelegateFactory, ControlSurface::InspectorFactory>,
       FW<Execution::ProcessComponentFactory,
          ControlSurface::ProcessExecutorComponentFactory>,
       FW<LocalTree::ProcessComponentFactory,

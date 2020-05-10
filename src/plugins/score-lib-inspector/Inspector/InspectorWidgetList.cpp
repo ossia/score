@@ -39,7 +39,10 @@ QList<QWidget*> InspectorWidgetList::make(
     {
       auto widg = factory.make(models, doc, parent);
       if (widg)
+      {
         widgs.push_back(widg);
+        return widgs;
+      }
     }
   }
 

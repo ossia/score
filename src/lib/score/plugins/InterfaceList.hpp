@@ -98,6 +98,7 @@ public:
     {
       e.release();
       std::unique_ptr<factory_type> pf{result};
+      vec.push_back(pf.get());
 
       auto k = pf->concreteKey();
       auto it = this->map.find(k);
@@ -120,39 +121,35 @@ public:
     return (it != this->map.end()) ? it->second.get() : nullptr;
   }
 
-  auto begin() noexcept { return make_indirect_map_iterator(map.begin()); }
+  auto begin() noexcept { return make_indirect_iterator(vec.begin()); }
   auto begin() const noexcept
   {
-    return make_indirect_map_iterator(map.begin());
+    return make_indirect_iterator(vec.begin());
   }
 
-  auto cbegin() noexcept { return make_indirect_map_iterator(map.cbegin()); }
+  auto cbegin() noexcept { return make_indirect_iterator(vec.cbegin()); }
   auto cbegin() const noexcept
   {
-    return make_indirect_map_iterator(map.cbegin());
+    return make_indirect_iterator(vec.cbegin());
   }
 
-  auto end() noexcept { return make_indirect_map_iterator(map.end()); }
-  auto end() const noexcept { return make_indirect_map_iterator(map.end()); }
+  auto end() noexcept { return make_indirect_iterator(vec.end()); }
+  auto end() const noexcept { return make_indirect_iterator(vec.end()); }
 
-  auto cend() noexcept { return make_indirect_map_iterator(map.cend()); }
-  auto cend() const noexcept { return make_indirect_map_iterator(map.cend()); }
+  auto cend() noexcept { return make_indirect_iterator(vec.cend()); }
+  auto cend() const noexcept { return make_indirect_iterator(vec.cend()); }
 
-  auto empty() const noexcept { return map.empty(); }
+  auto empty() const noexcept { return vec.empty(); }
 
-  template <typename K>
-  auto find(K&& key) const noexcept
-  {
-    return make_indirect_map_iterator(map.find(std::forward<K>(key)));
-  }
-
-  auto size() const noexcept { return map.size(); }
+  auto size() const noexcept { return vec.size(); }
 
 protected:
   ossia::fast_hash_map<
       typename FactoryType::ConcreteKey,
       std::unique_ptr<FactoryType>>
       map;
+
+  std::vector<FactoryType*> vec;
 
 private:
   void optimize() noexcept final override

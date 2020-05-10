@@ -15,7 +15,6 @@
 
 #include <QCheckBox>
 #include <QFormLayout>
-#include <QTabWidget>
 #include <QToolButton>
 
 #include <QVBoxLayout>
@@ -138,12 +137,15 @@ public:
       }
     }
 
-    auto ports = new PortListWidget{process, doc, this};
-    auto tab = new QTabWidget;
-    tab->setTabPosition(QTabWidget::South);
-    tab->addTab(w, "Basic");
-    tab->addTab(ports, "Ports");
-    lay->addWidget(tab);
+    if(w)
+    {
+      lay->addWidget(w);
+    }
+    else
+    {
+      lay->addWidget(new PortListWidget{process, doc, this});
+    }
+    lay->addStretch(100);
   }
 };
 

@@ -93,7 +93,7 @@ static bool updatePresetFilename(Process::Preset& preset, QString old = {})
   const auto& ctx = score::GUIAppContext();
 
   const auto& procs = ctx.interfaces<Process::ProcessFactoryList>();
-  const auto& desc = (*procs.find(preset.key.key)).descriptor(""); // TODO
+  const auto& desc = (*procs.get(preset.key.key)).descriptor(""); // TODO
   const QString& userLibDir = ctx.settings<Library::Settings::Model>().getPath();
   const QString& presetFolder = userLibDir + "/Presets/" + desc.prettyName;
   QDir{}.mkpath(presetFolder);

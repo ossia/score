@@ -62,7 +62,7 @@ void Model::setDriver(Audio::AudioFactory::ConcreteKey val)
 {
   // Reset to default in case of invalid parameters.
   auto& factories = score::AppContext().interfaces<AudioFactoryList>();
-  if (factories.find(val) == factories.end())
+  if (!factories.get(val))
   {
     val = Parameters::Driver.def;
   }

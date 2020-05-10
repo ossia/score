@@ -199,7 +199,6 @@ score_addon_nodal::factories(
       score::ApplicationContext,
       FW<Process::ProcessModelFactory, Nodal::ProcessFactory>,
       FW<Process::LayerFactory, Nodal::LayerFactory>,
-      FW<Process::InspectorWidgetDelegateFactory, Nodal::InspectorFactory>,
       FW<Execution::ProcessComponentFactory,
          Nodal::ProcessExecutorComponentFactory>,
       FW<score::ObjectRemover, Nodal::NodeRemover>

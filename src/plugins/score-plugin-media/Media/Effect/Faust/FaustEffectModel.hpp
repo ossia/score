@@ -115,20 +115,6 @@ EffectProcessFactory_T<Media::Faust::FaustEffectModel>::descriptor(
 
 namespace Media::Faust
 {
-class InspectorWidget final
-    : public Process::GenericInspectorWidget<FaustEffectModel>
-{
-public:
-  using GenericInspectorWidget::GenericInspectorWidget;
-};
-
-class InspectorFactory final
-    : public Process::
-          InspectorWidgetDelegateFactory_T<FaustEffectModel, InspectorWidget>
-{
-  SCORE_CONCRETE("6f1b2f7f-29ec-4ba4-b07e-8aa227ec3806")
-};
-
 using FaustEffectFactory = Process::EffectProcessFactory_T<FaustEffectModel>;
 using LayerFactory = Process::EffectLayerFactory_T<
     FaustEffectModel,

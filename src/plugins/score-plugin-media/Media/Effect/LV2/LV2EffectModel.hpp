@@ -121,22 +121,4 @@ using LV2EffectComponentFactory
     = Execution::ProcessComponentFactory_T<LV2EffectComponent>;
 }
 
-// Inspectors
-
-#include <Process/Inspector/GenericProcessInspector.hpp>
-namespace Media::LV2
-{
-class LV2Inspector final
-    : public Process::GenericInspectorWidget<LV2EffectModel>
-{
-public:
-  using GenericInspectorWidget::GenericInspectorWidget;
-};
-
-class LV2InspectorFactory final
-    : public Process::InspectorWidgetDelegateFactory_T<LV2EffectModel, LV2Inspector>
-{
-  SCORE_CONCRETE("70b08da5-c6c9-4ca2-8146-efbadb292738")
-};
-}
 #endif

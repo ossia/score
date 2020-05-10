@@ -101,7 +101,6 @@ std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_js::factories(
       score::ApplicationContext,
       FW<Process::ProcessModelFactory, JS::ProcessFactory>,
       FW<Process::LayerFactory, JS::LayerFactory>,
-      FW<Inspector::InspectorWidgetFactory, JS::InspectorFactory>,
       FW<score::PanelDelegateFactory, JS::PanelDelegateFactory>,
       FW<Library::LibraryInterface, JS::LibraryHandler>,
       FW<Process::ProcessDropHandler, JS::DropHandler>,
