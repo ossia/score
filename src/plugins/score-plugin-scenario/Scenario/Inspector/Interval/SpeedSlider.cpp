@@ -43,9 +43,9 @@ SpeedWidget::SpeedWidget(
   {
     // Buttons
     int btn_col = 0;
-    for (double factor : {0., 50., 100., 200., 500.})
+    for (double factor : {0., 0.5, 1., 2., 5.})
     {
-      auto pb = new QPushButton{"× " + QString::number(factor * 0.01), this};
+      auto pb = new QPushButton{"× " + QString::number(factor), this};
       pb->setMinimumWidth(35);
       pb->setMaximumWidth(45);
       pb->setFlat(true);
@@ -58,7 +58,7 @@ SpeedWidget::SpeedWidget(
           + "QPushButton:hover { border: 1px solid #aaa;} ");
 #endif
 
-      connect(pb, &QPushButton::clicked, this, [=] { setSpeedFun(factor); });
+      connect(pb, &QPushButton::clicked, this, [=] { m_slider->setSpeed(factor); });
       lay->addWidget(pb, 1, btn_col++, 1, 1);
     }
   }
