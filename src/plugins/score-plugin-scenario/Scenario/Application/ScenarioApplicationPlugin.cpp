@@ -200,13 +200,16 @@ ScenarioApplicationPlugin::ScenarioApplicationPlugin(
         return;
 
       const auto cst_pres = pres->presenters().intervalPresenter();
-      const QObject* itv = &cst_pres->model();
-      while(itv) {
-        itv = itv->parent();
-        if(auto itv_ = qobject_cast<const IntervalModel*>(itv))
-        {
-          pres->setDisplayedInterval(const_cast<IntervalModel&>(*itv_));
-          return;
+      if(cst_pres)
+      {
+        const QObject* itv = &cst_pres->model();
+        while(itv) {
+          itv = itv->parent();
+          if(auto itv_ = qobject_cast<const IntervalModel*>(itv))
+          {
+            pres->setDisplayedInterval(const_cast<IntervalModel&>(*itv_));
+            return;
+          }
         }
       }
     });
@@ -376,7 +379,7 @@ void ScenarioApplicationPlugin::on_documentChanged(
       FullViewIntervalPresenter* cst_pres
           = pres->presenters().intervalPresenter();
 
-      if (!cst_pres->getSlots().empty())
+      if (cst_pres && !cst_pres->getSlots().empty())
       {
         auto p = cst_pres->getSlots().front().layers.front().mainPresenter();
         if(p)

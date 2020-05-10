@@ -133,6 +133,7 @@ public:
   void elementsScaleChanged(double arg_1)
       W_SIGNAL(elementsScaleChanged, arg_1);
   void setLargeView() W_SIGNAL(setLargeView);
+  void timeRulerChanged() W_SIGNAL(timeRulerChanged);
 
 private:
   void timerEvent(QTimerEvent* event) override;

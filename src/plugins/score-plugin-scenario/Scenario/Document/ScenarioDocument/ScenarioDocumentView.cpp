@@ -304,7 +304,6 @@ ScenarioDocumentView::ScenarioDocumentView(
     , m_minimapView{&m_minimapScene}
     , m_minimap{&m_minimapView}
     , m_bar{&m_baseObject}
-
 {
   con(ctx.document.commandStack(), &score::CommandStack::stackChanged,
       this, [&] { m_view.viewport()->update(); });
@@ -321,7 +320,6 @@ ScenarioDocumentView::ScenarioDocumentView(
 
   m_widget->addAction(new SnapshotAction{m_scene, m_widget});
 
-  m_timeRulerScene.addItem(m_timeRuler);
   // Transport
   /// Zoom
   QAction* zoomIn = new QAction(tr("Zoom in"), m_widget);
@@ -344,8 +342,29 @@ ScenarioDocumentView::ScenarioDocumentView(
       this,
       [this] { setLargeView(); },
       Qt::QueuedConnection);
-  connect(m_timeRuler, &TimeRuler::rescale, largeView, &QAction::trigger);
   con(m_minimap, &Minimap::rescale, largeView, &QAction::trigger);
+
+  // Time Ruler
+
+  {
+    auto& settings = ctx.app.settings<Scenario::Settings::Model>();
+
+    auto setupTimeRuler = [=] (bool b) {
+        delete m_timeRuler;
+        if(b)
+          m_timeRuler = new MusicalRuler{&m_timeRulerView};
+        else
+          m_timeRuler = new TimeRuler{&m_timeRulerView};
+
+        connect(m_timeRuler, &TimeRuler::rescale, largeView, &QAction::trigger);
+        m_timeRulerScene.addItem(m_timeRuler);
+        timeRulerChanged();
+    };
+
+    con(settings, &Settings::Model::MeasureBarsChanged,
+        this, [=] (bool b) { setupTimeRuler(b); });
+    setupTimeRuler(settings.getMeasureBars());
+  }
 
   // view layout
   m_scene.addItem(&m_baseObject);

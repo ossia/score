@@ -152,6 +152,20 @@ ScenarioDocumentPresenter::ScenarioDocumentPresenter(
       &TimeRuler::drag,
       this,
       &ScenarioDocumentPresenter::on_timeRulerScrollEvent);
+  con(view(), &ScenarioDocumentView::timeRulerChanged,
+      this, [this] {
+    auto& tr = view().timeRuler();
+    con(tr,
+        &TimeRuler::drag,
+        this,
+        &ScenarioDocumentPresenter::on_timeRulerScrollEvent);
+
+    tr.setZoomRatio(m_zoomRatio);
+    tr.setWidth(view().viewWidth());
+    if(auto p = m_scenarioPresenter.intervalPresenter())
+      tr.setGrid(p->grid());
+    on_horizontalPositionChanged(0);
+  });
 
   con(view().minimap(),
       &Minimap::visibleRectChanged,
@@ -802,17 +816,16 @@ void ScenarioDocumentPresenter::createDisplayedIntervalPresenter(IntervalModel& 
   m_updatingView = true;
   m_scenarioPresenter.on_displayedIntervalChanged(interval);
   m_updatingView = false;
-  connect(
-      m_scenarioPresenter.intervalPresenter(),
-      &FullViewIntervalPresenter::intervalSelected,
-      this,
-      &ScenarioDocumentPresenter::setDisplayedInterval);
+  auto p = m_scenarioPresenter.intervalPresenter();
+  SCORE_ASSERT(p);
+  connect(p, &FullViewIntervalPresenter::intervalSelected,
+          this, &ScenarioDocumentPresenter::setDisplayedInterval);
 
   on_viewReady();
   updateMinimap();
   view().view().verticalScrollBar()->setValue(0);
 
-  view().timeRuler().setGrid(m_scenarioPresenter.intervalPresenter()->grid());
+  view().timeRuler().setGrid(p->grid());
 }
 
 void ScenarioDocumentPresenter::on_viewModelDefocused(
