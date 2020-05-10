@@ -43,76 +43,81 @@ Slider::Slider(Qt::Orientation ort, QWidget* widg) : QSlider{ort, widg}
   switch (ort)
   {
     case Qt::Vertical:
-      setMinimumSize(18, 30);
+      setMinimumSize(20, 30);
       break;
     case Qt::Horizontal:
-      setMinimumSize(30, 18);
+      setMinimumSize(30, 20);
       break;
   }
 }
 
 Slider::Slider(QWidget* widg) : Slider{Qt::Horizontal, widg} {}
 
-void Slider::paintEvent(QPaintEvent*)
+void Slider::paintEvent(QPaintEvent* e)
 {
   QPainter p{this};
-  paint(p);
+ paint(p);
 }
+
 void Slider::paint(QPainter& p)
 {
   auto& skin = score::Skin::instance();
-  double min = minimum();
-  double max = maximum();
+  const double min = minimum();
+  const double max = maximum();
   double val = value();
 
   double ratio = 1. - (max - val) / (max - min);
 
-  static constexpr auto round = 0;//1.5;
-  p.setPen(QPen{QColor{"#62400a"},1});
+  p.setPen(skin.SliderPen);
   p.setBrush(skin.SliderBrush);
-  QRect stroke_rect{rect().topLeft(),
-                     QSize{rect().width()-1, rect().height()-1}};
-  p.drawRoundedRect(stroke_rect, round, round);
+  const double penWidth = p.pen().width();
+  p.drawRect(QRectF{QPointF{rect().topLeft().x() + penWidth/2.,
+                            rect().topLeft().y() + penWidth/2.},
+                    QSizeF{rect().width()-penWidth, rect().height()-penWidth}});
 
   p.setPen(skin.TransparentPen);
-  p.setBrush(skin.SliderExtBrush);
+  p.setBrush(skin.SliderInteriorBrush);
 
+  const double interiorWidth = (double)width() - 2.* penWidth;
+  const double interiorHeight = (double)height() - 2.* penWidth;
   if(orientation() == Qt::Horizontal)
   {
-    const int current = int(ratio * width());
-    p.drawRoundedRect(
-        QRect{0, 0,
-              current,height()
-          }, round, round);
+    const double current = ratio * interiorWidth;
+    p.drawRect(
+        QRectF{QPointF{penWidth, penWidth},
+              QSizeF{current, interiorHeight}
+          });
 
-    if(current != 0)
+    if(!qFuzzyIsNull(current))
     {
       p.setPen(skin.SliderLine);
-      p.drawLine(QPoint{0, 0}, QPoint{current - 1, 0});
+      const double linePenWidth = p.pen().width();
+      p.drawLine(QPointF{penWidth, linePenWidth/2.}, QPointF{current + penWidth, linePenWidth/2.});
     }
   }
   else
   {
-    const int h = int((1. - ratio) * height());
+    const double h = (1. - ratio) * interiorHeight;
 
-    p.drawRoundedRect(QRect{0, h, width(), height() - h},
-                      round, round);
+    p.drawRect(QRectF{QPointF{penWidth, h + penWidth},
+                      QSizeF{interiorWidth, (double)height()- h}});
 
-    if(int(h) != height())
+    if(!qFuzzyCompare(h, interiorHeight))
     {
       p.setPen(skin.SliderLine);
-      p.drawLine(QPoint{0, rect().bottomLeft().y()},QPoint{0, h});
+      const double linePenWidth = p.pen().width();
+      p.drawLine(QPointF{linePenWidth/2., height() - penWidth},
+                 QPointF{linePenWidth/2., h + penWidth});
     }
   }
 }
 
 void Slider::paintWithText(const QString& s)
 {
-  auto& skin = score::Skin::instance();
+   auto& skin = score::Skin::instance();
 
   QPainter p{this};
   paint(p);
-
   p.setPen(skin.SliderTextPen);
   p.setFont(skin.SliderFont);
   p.drawText(

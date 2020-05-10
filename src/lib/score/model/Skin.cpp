@@ -140,10 +140,11 @@ Skin::Skin() noexcept
   Medium12Pt = SansFont;
   Medium12Pt.setPixelSize(12 * 96./ 72.);
 
-  SliderBrush = QColor("#161514");
-  SliderExtBrush = QColor("#62400a");
-  SliderLine = QPen{QColor("#c58014"), 1, Qt::SolidLine, Qt::RoundCap};
-  SliderTextPen = QColor("#d0d0d0");
+  SliderBrush = QColor{"#161514"};
+  SliderPen = QPen{QColor{"#62400a"}, 1};
+  SliderInteriorBrush = QColor{"#62400a"};
+  SliderLine = QPen{QColor{"#c58014"}, 1, Qt::SolidLine, Qt::FlatCap};
+  SliderTextPen = QColor{"#d0d0d0"};
   SliderFont = SansFont;
   SliderFont.setPixelSize(10 * 96./ 72.);
   SliderFont.setWeight(QFont::DemiBold);

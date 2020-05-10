@@ -162,7 +162,8 @@ public:
   QPen TextItemPen;
 
   QBrush SliderBrush;
-  QBrush SliderExtBrush;
+  QPen SliderPen;
+  QBrush SliderInteriorBrush;
   QPen SliderLine;
   QPen SliderTextPen;
   QFont SliderFont;
