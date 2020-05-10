@@ -28,6 +28,7 @@
 #include <score/widgets/ControlWidgets.hpp>
 #include <score/widgets/DoubleSlider.hpp>
 #include <score/widgets/SetIcons.hpp>
+#include <score/widgets/MessageBox.hpp>
 #include <score/widgets/SpinBoxes.hpp>
 #include <score/tools/Bind.hpp>
 #include <score/actions/ToolbarManager.hpp>
@@ -57,6 +58,7 @@
 #include <LocalTree/LocalTreeDocumentPlugin.hpp>
 #include <wobjectimpl.h>
 
+#include <Audio/AudioApplicationPlugin.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <Scenario/Settings/ScenarioSettingsModel.hpp>
 #include <vector>
@@ -460,6 +462,27 @@ void ApplicationPlugin::on_play(
   auto plugmodel = doc->context().findPlugin<Execution::DocumentPlugin>();
   if (!plugmodel)
     return;
+
+  auto& audio_engine = this->context.guiApplicationPlugin<Audio::ApplicationPlugin>();
+  if(!audio_engine.audio)
+  {
+    if(this->context.mainWindow)
+    {
+     score::warning(
+           this->context.mainWindow,
+           tr("Cannot play"),
+           tr("Cannot start playback. It looks like the audio engine is not running.\n"
+              "Check the audio settings in the software settings to ensure that a sound card "
+              "is correctly configured.\n\n"
+              "Check Settings > Audio > Device in particular. "
+              "The power-on icon at the bottom of the transport toolbar will light up when the engine is running."));
+     return;
+    }
+    else
+    {
+      qFatal("Cannot playback without an audio engine set up");
+    }
+  }
 
   if (b)
   {
