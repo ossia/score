@@ -17,6 +17,7 @@
 #include <QFormLayout>
 #include <QToolButton>
 
+#include <QScrollArea>
 #include <QVBoxLayout>
 #include <QWidget>
 namespace Process
@@ -143,7 +144,14 @@ public:
     }
     else
     {
-      lay->addWidget(new PortListWidget{process, doc, this});
+      auto scroll = new QScrollArea;
+      scroll->setFrameShape(QFrame::NoFrame);
+      scroll->setSizePolicy(QSizePolicy::MinimumExpanding,QSizePolicy::MinimumExpanding);
+      scroll->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+      scroll->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+      scroll->setWidgetResizable(true);
+      scroll->setWidget(new PortListWidget{process, doc, this});
+      lay->addWidget(scroll);
     }
     lay->addStretch(100);
   }

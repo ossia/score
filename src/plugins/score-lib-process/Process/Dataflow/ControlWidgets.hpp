@@ -15,6 +15,7 @@
 #include <QGraphicsProxyWidget>
 #include <QLineEdit>
 #include <QCheckBox>
+#include <QTextDocument>
 #include <QPalette>
 #include <ossia/detail/algorithms.hpp>
 #include <score_lib_process_export.h>
@@ -615,6 +616,12 @@ struct LineEdit
 
     return sl;
   }
+  struct LineEditItem : public QGraphicsTextItem {
+      LineEditItem()
+      {
+        setTextInteractionFlags(Qt::TextEditorInteraction);
+      }
+  };
   template <typename T, typename Control_T>
   static QGraphicsItem* make_item(
       const T& slider,
@@ -623,7 +630,31 @@ struct LineEdit
       QGraphicsItem* parent,
       QObject* context)
   {
-    return wrapWidget(make_widget(slider, inlet, ctx, nullptr, context));
+    auto sl = new LineEditItem{};
+    sl->setTextWidth(280.);
+
+    sl->setPlainText(
+        QString::fromStdString(ossia::convert<std::string>(inlet.value())));
+
+    auto doc = sl->document();
+    QObject::connect(
+        doc,
+        &QTextDocument::contentsChanged,
+        context,
+        [=, &inlet, &ctx] {
+          CommandDispatcher<>{ctx.commandStack}.submit<SetControlValue<Control_T>>(inlet, doc->toPlainText().toStdString());
+        });
+    QObject::connect(
+        &inlet,
+        &Control_T::valueChanged,
+        sl,
+        [=](const ossia::value& val) {
+          auto str = QString::fromStdString(ossia::convert<std::string>(val));
+          if(str != doc->toPlainText())
+            doc->setPlainText(str);
+    });
+
+    return sl;
   }
 };
 
