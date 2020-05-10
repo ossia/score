@@ -286,6 +286,11 @@ score::GUIElements ApplicationPlugin::makeGUIElements()
       });
       ui_toolbar->addAction(musical_act);
     }
+
+    {
+      auto show_cables_act = context.actions.action<Actions::ShowCables>();
+      ui_toolbar->addAction(show_cables_act.action());
+    }
   }
 
 

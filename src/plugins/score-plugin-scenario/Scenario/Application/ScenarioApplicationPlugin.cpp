@@ -62,11 +62,6 @@
 
 W_OBJECT_IMPL(Scenario::ScenarioExecution)
 W_OBJECT_IMPL(Scenario::ScenarioApplicationPlugin)
-SCORE_DECLARE_ACTION(
-    ShowCables,
-    "&Show cables",
-    Dataflow,
-    Qt::ALT + Qt::SHIFT + Qt::Key_G)
 namespace Scenario
 {
 ScenarioExecution::ScenarioExecution() {}
