@@ -202,10 +202,8 @@ public:
         &IntervalDurations::maxInfiniteChanged,
         this,
         &EditionGrid::on_modelMaxInfiniteChanged);
-
     minstack->setCurrentIndex(m_model.duration.isMinNull() ? 0 : 1);
     maxstack->setCurrentIndex(m_model.duration.isMaxInfinite() ? 0 : 1);
-
     on_modelRigidityChanged(m_model.duration.isRigid());
 
     // We disable changing duration for the full view unless
@@ -249,13 +247,21 @@ public:
 
   void on_modelRigidityChanged(bool b)
   {
-    m_minNonNullBox->setHidden(b);
-    m_minSpin->setHidden(b);
     m_minTitle->setHidden(b);
-
-    m_maxSpin->setHidden(b);
-    m_maxFiniteBox->setHidden(b);
     m_maxTitle->setHidden(b);
+    if(b)
+    {
+      m_minNonNullBox->setHidden(b);
+      m_minSpin->setHidden(b);
+
+      m_maxSpin->setHidden(b);
+      m_maxFiniteBox->setHidden(b);
+    }
+    else
+    {
+      on_modelMinNullChanged(m_dur.isMinNull());
+      on_modelMaxInfiniteChanged(m_dur.isMaxInfinite());
+    }
   }
 
   void on_modelMinNullChanged(bool b)
