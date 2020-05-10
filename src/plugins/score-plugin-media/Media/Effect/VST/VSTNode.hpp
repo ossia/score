@@ -62,16 +62,30 @@ public:
   auto& prepareInput(std::size_t samples)
   {
     auto& ip = m_inlets[0]->template target<ossia::audio_port>()->samples;
-    if (ip.size() < 2)
-      ip.resize(2);
-    if (ip[0].size() < samples)
+    switch(ip.size())
     {
-      ip[0].resize(samples);
+      case 0:
+      {
+        ip.resize(2);
+        ip[0].resize(samples);
+        ip[1].resize(samples);
+        break;
+      }
+      case 1:
+      {
+        ip.resize(2);
+        ip[0].resize(samples);
+        ip[1].assign(ip[0].begin(), ip[0].end());
+        break;
+      }
+      default:
+      {
+        for(auto& i : ip)
+          i.resize(samples);
+        break;
+      }
     }
-    if (ip[1].size() < samples)
-    {
-      ip[1].resize(samples);
-    }
+
     return ip;
   }
 
@@ -354,6 +368,13 @@ public:
           float_v[0].clear();
           float_v[1].clear();
         }
+      }
+
+      // upmix mono VSTs to stereo
+      if(this->fx->fx->numOutputs == 1)
+      {
+        auto& op = m_outlets[0]->template target<ossia::audio_port>()->samples;
+        op[1].assign(op[0].begin(), op[0].end());
       }
     }
   }

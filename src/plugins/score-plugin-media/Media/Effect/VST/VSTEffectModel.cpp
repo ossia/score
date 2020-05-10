@@ -589,19 +589,6 @@ void VSTEffectModel::create()
     m_inlets.push_back(new Process::AudioInlet(Id<Process::Port>{inlet_i++}, this));
   }
 
-  // Tempo
-  {
-    auto tempo = new Process::FloatSlider(
-        20., 200., 120., "Tempo", Id<Process::Port>{inlet_i++}, this);
-    m_inlets.push_back(tempo);
-  }
-  {
-    // Signature
-    auto sig = new Process::TimeSignatureChooser(
-        "4/4", "Time signature", Id<Process::Port>{inlet_i++}, this);
-    m_inlets.push_back(sig);
-  }
-
   if (fx->fx->numParams < 10
       || !(fx->fx->flags & VstAEffectFlags::effFlagsHasEditor))
   {
@@ -623,7 +610,7 @@ void VSTEffectModel::load()
   if (!fx)
     return;
 
-  for (std::size_t i = 3; i < m_inlets.size(); i++)
+  for (std::size_t i = VST_FIRST_CONTROL_INDEX; i < m_inlets.size(); i++)
   {
     auto inlet = safe_cast<VSTControlInlet*>(m_inlets[i]);
     int ctrl = inlet->fxNum;
@@ -707,7 +694,7 @@ void DataStreamWriter::write(Media::VST::VSTEffectModel& eff)
           {
             eff.fx->dispatch(effSetChunk, 0, chunk.size(), chunk.data(), 0.f);
 
-            for (std::size_t i = 3; i < eff.inlets().size(); i++)
+            for (std::size_t i = VST_FIRST_CONTROL_INDEX; i < eff.inlets().size(); i++)
             {
               auto inlet
                   = safe_cast<Media::VST::VSTControlInlet*>(eff.inlets()[i]);
@@ -816,7 +803,7 @@ void JSONWriter::write(Media::VST::VSTEffectModel& eff)
           auto b64 = websocketpp::base64_decode(JsonValue{it->value}.toStdString());
           eff.fx->dispatch(effSetChunk, 0, b64.size(), b64.data(), 0.f);
 
-          for (std::size_t i = 3; i < eff.inlets().size(); i++)
+          for (std::size_t i = VST_FIRST_CONTROL_INDEX; i < eff.inlets().size(); i++)
           {
             auto inlet
                 = safe_cast<Media::VST::VSTControlInlet*>(eff.inlets()[i]);

@@ -24,7 +24,7 @@ void VSTEffectComponent::setupNode(Node_T& node)
   const auto& proc = this->process();
   node->controls.reserve(proc.controls.size());
   const auto& inlets = proc.inlets();
-  for (std::size_t i = 3; i < inlets.size(); i++)
+  for (std::size_t i = VST_FIRST_CONTROL_INDEX; i < inlets.size(); i++)
   {
     auto ctrl = safe_cast<Media::VST::VSTControlInlet*>(inlets[i]);
     auto inlet = new ossia::value_inlet;
