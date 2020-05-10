@@ -32,6 +32,7 @@ template <typename model>
 class Entity;
 class ApplicationComponents;
 }
+
 #if defined(SCORE_DEBUG_DELIMITERS)
 #define SCORE_DEBUG_INSERT_DELIMITER \
   do                                 \

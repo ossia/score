@@ -50,6 +50,7 @@ QByteArray toByteArray(uuid const& u)
 
 void TSerializer<DataStream, score::uuid_t>::readFrom(DataStream::Serializer& s, const score::uuid_t& uid)
 {
+  SCORE_DEBUG_INSERT_DELIMITER2(s);
   s.stream().stream.writeRawData(
       (const char*)uid.data, sizeof(uid.data));
   SCORE_DEBUG_INSERT_DELIMITER2(s);
@@ -57,9 +58,10 @@ void TSerializer<DataStream, score::uuid_t>::readFrom(DataStream::Serializer& s,
 
 void TSerializer<DataStream, score::uuid_t>::writeTo(DataStream::Deserializer& s, score::uuid_t& uid)
 {
+  SCORE_DEBUG_CHECK_DELIMITER2(s);
   s.stream().stream.readRawData(
       (char*)uid.data, sizeof(uid.data));
-  SCORE_DEBUG_INSERT_DELIMITER2(s);
+  SCORE_DEBUG_CHECK_DELIMITER2(s);
 }
 
 void TSerializer<JSONObject, score::uuid_t>::readFrom(JSONObject::Serializer& s, const score::uuid_t& uid)

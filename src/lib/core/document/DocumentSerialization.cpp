@@ -163,6 +163,44 @@ Document::Document(
   init();
 }
 
+// Restore
+Document::Document(
+    const QString& fileName,
+    const QByteArray& data,
+    DocumentDelegateFactory& factory,
+    QWidget* parentview,
+    QObject* parent)
+  : QObject{parent}
+  , m_metadata{fileName}
+  , m_commandStack{*this}
+  , m_objectLocker{this}
+  , m_context{*this}
+{
+  restoreModel(data, factory);
+
+  if (parentview)
+  {
+    m_view = new DocumentView{factory, *this, parentview};
+    m_presenter
+        = new DocumentPresenter{m_context, factory, *m_model, *m_view, this};
+  }
+  init();
+}
+
+void Document::restoreModel(const QByteArray& data, DocumentDelegateFactory& factory)
+{
+  std::allocator<DocumentModel> allocator;
+  m_model = allocator.allocate(1);
+  allocator.construct(m_model, this);
+
+  for (auto& appPlug : m_context.app.guiApplicationPlugins())
+  {
+    appPlug->on_initDocument(*this);
+  }
+
+  m_model->loadDocumentAsByteArray(m_context, data, factory);
+}
+
 void Document::loadModel(const QString& fileName, DocumentDelegateFactory& factory)
 {
   std::allocator<DocumentModel> allocator;

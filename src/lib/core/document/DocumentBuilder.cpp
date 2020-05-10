@@ -131,7 +131,7 @@ Document* DocumentBuilder::restoreDocument(
     // (potentially a blank document which is saved at the beginning, once
     // every plug-in has been loaded)
     doc = new Document{
-        filename, doctype, m_parentView, m_parentPresenter};
+        filename, docData, doctype, m_parentView, m_parentPresenter};
     for (auto& appPlug : ctx.guiApplicationPlugins())
     {
       appPlug->on_loadedDocument(*doc);

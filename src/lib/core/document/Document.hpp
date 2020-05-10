@@ -107,13 +107,23 @@ private:
       QWidget* parentview,
       QObject* parent);
 
+  // Load
   Document(
       const QString& name,
       DocumentDelegateFactory& type,
       QWidget* parentview,
       QObject* parent);
 
+  // Restore
+  Document(
+      const QString& name,
+      const QByteArray& data,
+      DocumentDelegateFactory& type,
+      QWidget* parentview,
+      QObject* parent);
+
   void loadModel(const QString& fileName, DocumentDelegateFactory& factory);
+  void restoreModel(const QByteArray& data, DocumentDelegateFactory& factory);
   void init();
 
   DocumentMetadata m_metadata;

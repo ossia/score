@@ -30,7 +30,7 @@ auto deserialize_interface(
   {
     SCORE_DEBUG_CHECK_DELIMITER2(sub);
     typename FactoryList_T::factory_type::ConcreteKey k;
-    TSerializer<DataStream, typename FactoryList_T::factory_type::ConcreteKey>::writeTo(des, k);
+    TSerializer<DataStream, typename FactoryList_T::factory_type::ConcreteKey>::writeTo(sub, k);
 
     SCORE_DEBUG_CHECK_DELIMITER2(sub);
     // Get the factory
@@ -69,7 +69,7 @@ auto deserialize_interface(
   {
     SCORE_DEBUG_CHECK_DELIMITER2(sub);
     typename FactoryList_T::factory_type::ConcreteKey k;
-    TSerializer<DataStream, typename FactoryList_T::factory_type::ConcreteKey>::writeTo(des, k);
+    TSerializer<DataStream, typename FactoryList_T::factory_type::ConcreteKey>::writeTo(sub, k);
 
     SCORE_DEBUG_CHECK_DELIMITER2(sub);
     // Get the factory
