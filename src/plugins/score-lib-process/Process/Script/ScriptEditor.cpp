@@ -70,8 +70,10 @@ QString ScriptDialog::text() const noexcept
 
 void ScriptDialog::setText(const QString& str)
 {
-  if(str != m_textedit->document()->toRawText())
-    m_textedit->setText(str);
+  if(str != text())
+  {
+    m_textedit->setPlainText(str);
+  }
 }
 
 void ScriptDialog::setError(int line, const QString& str)

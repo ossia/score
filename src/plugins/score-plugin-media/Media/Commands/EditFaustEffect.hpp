@@ -1,36 +1,27 @@
 #pragma once
-#if defined(HAS_FAUST)
+#include <Media/Effect/Faust/FaustEffectModel.hpp>
 #include <Media/Commands/MediaCommandFactory.hpp>
-
-#include <score/command/Command.hpp>
-#include <score/model/path/Path.hpp>
-
+#include <Scenario/Commands/ScriptEditCommand.hpp>
 namespace Media::Faust
 {
-class FaustEffectModel;
-}
-
-namespace Media
-{
-class EditFaustEffect final : public score::Command
+class EditScript
+    : public Scenario::EditScript<FaustEffectModel, FaustEffectModel::p_text>
 {
   SCORE_COMMAND_DECL(
-      Media::CommandFactoryName(),
-      EditFaustEffect,
-      "Edit Faust effect")
-public:
-  EditFaustEffect(const Faust::FaustEffectModel& model, const QString& text);
-
-  void undo(const score::DocumentContext& ctx) const override;
-  void redo(const score::DocumentContext& ctx) const override;
-
-protected:
-  void serializeImpl(DataStreamInput& s) const override;
-  void deserializeImpl(DataStreamOutput& s) override;
-
-private:
-  Path<Faust::FaustEffectModel> m_model;
-  QString m_old, m_new;
+      CommandFactoryName(),
+      EditScript,
+      "Edit a faust script")
+  public:
+    using Scenario::EditScript<FaustEffectModel, FaustEffectModel::p_text>::EditScript;
 };
 }
-#endif
+
+namespace score
+{
+template<>
+struct StaticPropertyCommand<Media::Faust::FaustEffectModel::p_text> : Media::Faust::EditScript
+{
+  using Media::Faust::EditScript::EditScript;
+};
+}
+

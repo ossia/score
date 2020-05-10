@@ -88,6 +88,9 @@ score_plugin_media::make_commands()
 #if defined(HAS_VST2)
   using namespace Media::VST;
 #endif
+#if defined(HAS_FAUST)
+  using namespace Media::Faust;
+#endif
   std::pair<const CommandGroupKey, CommandGeneratorMap> cmds{
       Media::CommandFactoryName(), CommandGeneratorMap{}};
 

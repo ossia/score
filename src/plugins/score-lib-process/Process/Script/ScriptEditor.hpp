@@ -3,6 +3,7 @@
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/document/DocumentContext.hpp>
 #include <score/tools/Bind.hpp>
+#include <score_lib_process_export.h>
 #include <QDialog>
 
 class QPlainTextEdit;
@@ -10,7 +11,7 @@ class QCodeEditor;
 namespace Process
 {
 class ProcessModel;
-class ScriptDialog
+class SCORE_LIB_PROCESS_EXPORT ScriptDialog
     : public QDialog
 {
 public:
@@ -44,7 +45,7 @@ public:
     : ScriptDialog{ctx, parent}
     , m_process{process}
   {
-    setText(m_process.script());
+    setText((m_process.*Property_T::get)());
     con(m_process, &Process_T::errorMessage,
         this, &ScriptDialog::setError);
     con(m_process, Property_T::notify,
