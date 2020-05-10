@@ -146,6 +146,9 @@ score_plugin_media::factories(
     #if defined(HAS_VST2)
        , Media::VST::VSTInspectorFactory
     #endif
+    #if defined(HAS_LV2)
+      , Media::LV2::LV2InspectorFactory
+    #endif
        , Media::Step::InspectorFactory
        // , Media::Metro::InspectorFactory
        , Media::Merger::InspectorFactory>,
