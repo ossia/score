@@ -24,6 +24,8 @@ public:
 
   QRectF boundingRect() const
   {
+    if(positions.empty())
+      return {};
     return {positions.front().x1(), 0,
             positions.back().x1() - positions.front().x1(), 10000};
   }
@@ -65,6 +67,8 @@ public:
 
   QRectF boundingRect() const
   {
+    if(positions.empty())
+      return {};
     return {positions.front().x1(), 0,
             positions.back().x1() - positions.front().x1(), 10000};
   }

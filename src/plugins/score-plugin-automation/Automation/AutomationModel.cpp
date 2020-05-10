@@ -314,7 +314,9 @@ Process::Preset ProcessModel::savePreset() const noexcept
   p.key = {this->concreteKey(), {}};
 
   JSONReader r;
+  r.stream.StartObject();
   r.read(*m_curve);
+  r.stream.EndObject();
 
   p.data = r.toByteArray();
   return p;

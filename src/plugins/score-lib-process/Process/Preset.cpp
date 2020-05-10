@@ -60,7 +60,9 @@ JSONReader::read(const Process::Preset& p)
   stream.StartObject();
   stream.Key("Key");
   stream.StartObject();
+  stream.Key("Uuid");
   readFrom(p.key.key);
+  stream.Key("Effect");
   readFrom(p.key.effect);
   stream.EndObject();
 
