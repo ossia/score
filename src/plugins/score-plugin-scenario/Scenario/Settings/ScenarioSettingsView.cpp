@@ -441,6 +441,7 @@ View::View() : m_widg{new QWidget}
   auto lay = new QFormLayout;
   m_widg->setLayout(lay);
   lay->setLabelAlignment(Qt::AlignRight);
+  /*
   // SKIN
   {
     m_skin = new QComboBox;
@@ -461,6 +462,7 @@ View::View() : m_widg{new QWidget}
 
     connect(m_skin, &QComboBox::currentTextChanged, this, &View::SkinChanged);
   }
+  */
 
   {
     auto subw = new QWidget;
@@ -536,6 +538,8 @@ SETTINGS_UI_TOGGLE_IMPL(MagneticMeasures)
 
 void View::setSkin(const QString& val)
 {
+  return;
+  /*
   if (val != m_skin->currentText())
   {
     int index = m_skin->findText(val);
@@ -544,6 +548,7 @@ void View::setSkin(const QString& val)
       m_skin->setCurrentIndex(index);
     }
   }
+  */
 }
 
 void View::setDefaultEditor(QString val)
