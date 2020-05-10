@@ -64,7 +64,7 @@ Document::Document(
   // which requires the pointer to m_model to be intialized.
   std::allocator<DocumentModel> allocator;
   m_model = allocator.allocate(1);
-  allocator.construct(m_model, id, m_context, factory, this);
+  new (m_model) DocumentModel(id, m_context, factory, this);
 
   // TODO don't build them / destroy them if !application.gui.
   if (parentview)

@@ -191,7 +191,7 @@ void Document::restoreModel(const QByteArray& data, DocumentDelegateFactory& fac
 {
   std::allocator<DocumentModel> allocator;
   m_model = allocator.allocate(1);
-  allocator.construct(m_model, this);
+  new (m_model) DocumentModel(this);
 
   for (auto& appPlug : m_context.app.guiApplicationPlugins())
   {
@@ -205,7 +205,7 @@ void Document::loadModel(const QString& fileName, DocumentDelegateFactory& facto
 {
   std::allocator<DocumentModel> allocator;
   m_model = allocator.allocate(1);
-  allocator.construct(m_model, this);
+  new (m_model) DocumentModel(this);
 
   for (auto& appPlug : m_context.app.guiApplicationPlugins())
   {

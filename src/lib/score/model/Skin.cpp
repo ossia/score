@@ -3,7 +3,7 @@
 #include "Skin.hpp"
 
 #include <boost/assign/list_of.hpp>
-#include <boost/bimap.hpp>
+#include <ossia/detail/flat_map.hpp>
 
 #include <QJsonArray>
 #include <QJsonObject>
@@ -24,14 +24,16 @@ namespace score
 struct Skin::color_map
 {
   color_map(
-      std::initializer_list<boost::bimap<QString, Brush*>::value_type> list)
-      : the_map(list.begin(), list.end())
+      std::initializer_list<std::pair<QString, Brush*>> list)
+      : left(list.begin(), list.end())
   {
+    for(auto& pair : list) {
+      right.insert({pair.second, pair.first});
+    }
   }
 
-  boost::bimap<QString, Brush*> the_map;
-  decltype(boost::bimap<QString, Brush*>{}.left)& left{the_map.left};
-  decltype(boost::bimap<QString, Brush*>{}.right)& right{the_map.right};
+  ossia::flat_map<QString, Brush*> left;
+  ossia::flat_map<Brush*, QString> right;
 };
 Skin::~Skin()
 {
@@ -107,6 +109,7 @@ Skin::Skin() noexcept
   for (auto& c : m_defaultPalette)
   {
     m_colorMap->left.insert({c.first, &c.second});
+    m_colorMap->right.insert({&c.second, c.first});
   }
 
   // make the "lighter" of black more light.
