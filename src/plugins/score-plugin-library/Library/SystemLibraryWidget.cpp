@@ -19,9 +19,10 @@ SystemLibraryWidget::SystemLibraryWidget(
     QWidget* parent)
     : QWidget{parent}
     , m_model{new FileSystemModel{ctx, this}}
-    , m_proxy{new RecursiveFilterProxy{this}}
+    , m_proxy{new QSortFilterProxyModel{this}}
     , m_preview{this}
 {
+  m_proxy->setRecursiveFilteringEnabled(true);
   setStatusTip(QObject::tr("This panel shows the system library.\n"
                            "It is present by default in your user's Documents folder, \n"
                            "in a subfolder named ossia score library."
@@ -33,7 +34,8 @@ SystemLibraryWidget::SystemLibraryWidget(
 
   m_proxy->setSourceModel(m_model);
   m_proxy->setFilterKeyColumn(0);
-  lay->addWidget(new ItemModelFilterLineEdit{*m_proxy, m_tv, this});
+  auto il = new ItemModelFilterLineEdit{*m_proxy, m_tv, this};
+  lay->addWidget(il);
   lay->addWidget(&m_tv);
   lay->addWidget(&m_preview);
   m_tv.setModel(m_proxy);
@@ -78,7 +80,13 @@ SystemLibraryWidget::SystemLibraryWidget(
   });
   m_tv.setAcceptDrops(true);
 
-  setRoot(ctx.settings<Library::Settings::Model>().getPath());
+  auto& settings = ctx.settings<Library::Settings::Model>();
+  il->reset = [this, &settings] { setRoot(settings.getPath()); };
+  il->reset();
+  con(settings, &Library::Settings::Model::PathChanged,
+      this, [=] {
+    il->reset();
+  });
 }
 
 SystemLibraryWidget::~SystemLibraryWidget() {}
