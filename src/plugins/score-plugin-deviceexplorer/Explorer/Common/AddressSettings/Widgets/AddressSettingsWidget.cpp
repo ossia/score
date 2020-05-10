@@ -7,6 +7,7 @@
 #include <Device/Address/IOType.hpp>
 #include <State/Widgets/UnitWidget.hpp>
 
+#include <score/widgets/MarginLess.hpp>
 #include <score/widgets/SignalUtils.hpp>
 #include <score/tools/Debug.hpp>
 
@@ -29,8 +30,9 @@ W_OBJECT_IMPL(Explorer::BoundingModeComboBox)
 namespace Explorer
 {
 AddressSettingsWidget::AddressSettingsWidget(QWidget* parent)
-    : QWidget(parent), m_layout{new QFormLayout}, m_none_type{false}
+    : QWidget(parent), m_layout{new score::MarginLess<QFormLayout>}, m_none_type{false}
 {
+  setContentsMargins(0,0,0,0);
   m_ioTypeCBox = new AccessModeComboBox{this};
   m_clipModeCBox = new BoundingModeComboBox{this};
   m_repetition = new QCheckBox;
@@ -80,8 +82,9 @@ AddressSettingsWidget::AddressSettingsWidget(QWidget* parent)
 AddressSettingsWidget::AddressSettingsWidget(
     AddressSettingsWidget::no_widgets_t,
     QWidget* parent)
-    : QWidget(parent), m_layout{new QFormLayout}, m_none_type{true}
+  : QWidget(parent), m_layout{new score::MarginLess<QFormLayout>}, m_none_type{true}
 {
+  setContentsMargins(0,0,0,0);
   m_tagsEdit = new QComboBox{this};
   m_tagsEdit->setEditable(true);
   m_tagsEdit->setInsertPolicy(QComboBox::InsertAtCurrent);
