@@ -8,18 +8,20 @@ struct Timebars;
 class LightBars;
 class LighterBars;
 
-struct MusicalGrid : public QObject
+class MusicalGrid : public QObject
 {
   W_OBJECT(MusicalGrid)
 public:
-  MusicalGrid(const TimeSignatureMap& measures, Timebars& timebars)
-    : measures{measures}
-    , timebars{timebars}
+  MusicalGrid(Timebars& timebars)
+    : timebars{timebars}
   {
   }
 
-  const TimeSignatureMap& measures;
   Timebars& timebars;
+  void setMeasures(const TimeSignatureMap& m)
+  {
+    m_measures = &m;
+  }
 
   struct timings {
     double pos_x{};
@@ -37,6 +39,8 @@ public:
       , ZoomRatio m_zoomRatio
       , QRectF sceneRect
       , TimeVal x0_time);
+
+  const TimeSignatureMap* m_measures{};
 };
 
 }

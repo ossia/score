@@ -61,25 +61,24 @@ void PowerSegment::updateData(int numInterp) const
       double end_x = end().x();
       double end_y = end().y();
 
-      double power = PowerSegmentData::linearGamma + 1 - gamma;
-
-      if (power < 0.5)
+      if (gamma < 1.)
       {
         for (int j = 0; j <= numInterp; j++)
         {
-          double pos_x = std::pow(double(j) / numInterp, 1. / power);
-          m_data[j] = {start_x + pos_x * (end_x - start_x),
-                       start_y + std::pow(pos_x, power) * (end_y - start_y)};
+          double pos_x = std::pow(double(j) / numInterp, 3.);
+          m_data[numInterp - j]
+              = {start_x + pos_x * (end_x - start_x),
+                 start_y + std::pow(pos_x, gamma) * (end_y - start_y)};
         }
       }
       else
       {
         for (int j = 0; j <= numInterp; j++)
         {
-          double pos_x = double(j) / numInterp;
+          double pos_x = 1. - std::pow(double(j) / numInterp, 3.);
           m_data[numInterp - j]
               = {start_x + pos_x * (end_x - start_x),
-                 start_y + std::pow(pos_x, power) * (end_y - start_y)};
+                 start_y + std::pow(pos_x, gamma) * (end_y - start_y)};
         }
       }
     }
@@ -96,9 +95,8 @@ double PowerSegment::valueAt(double x) const
   }
   else
   {
-    double power = PowerSegmentData::linearGamma + 1 - gamma;
     return start().y()
-           + (end().y() - start().y()) * (std::pow(x, power) - start().x())
+           + (end().y() - start().y()) * (std::pow(x, gamma) - start().x())
                  / (end().x() - start().x());
   }
 }
@@ -106,9 +104,9 @@ double PowerSegment::valueAt(double x) const
 void PowerSegment::setVerticalParameter(double p)
 {
   if (start().y() < end().y())
-    gamma = (p + 1) * 6.;
+    gamma = std::pow(16., -p);
   else
-    gamma = (1 - p) * 6.;
+    gamma = std::pow(16., p);
 
   dataChanged();
 }
@@ -151,11 +149,14 @@ ossia::curve_segment<int> PowerSegment::makeIntFunction() const
 
 optional<double> PowerSegment::verticalParameter() const
 {
-
   if (start().y() < end().y())
-    return gamma / 6. - 1;
+  {
+    return -std::log(gamma) / std::log(16.);
+  }
   else
-    return -(gamma / 6. - 1);
+  {
+    return std::log(gamma) / std::log(16.);
+  }
 }
 }
 

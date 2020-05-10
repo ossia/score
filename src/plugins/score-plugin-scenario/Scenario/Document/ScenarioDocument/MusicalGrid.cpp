@@ -12,16 +12,17 @@ namespace
 
 ossia::bar_time timeToMetrics(MusicalGrid& grid, TimeVal x0_time)
 {
+  auto& measures = *grid.m_measures;
   // Compute the amount of bars before so that we can index them
   ossia::bar_time start{};
-  auto last_before = ossia::last_before(grid.measures, x0_time);
+  auto last_before = ossia::last_before(measures, x0_time);
 
-  if(last_before != grid.measures.begin())
+  if(last_before != measures.begin())
   {
     int64_t prev_bar_date = 0;
-    ossia::time_signature prev_sig = grid.measures.begin()->second;
+    ossia::time_signature prev_sig = measures.begin()->second;
 
-    auto it = grid.measures.begin() + 1;
+    auto it = measures.begin() + 1;
     for (; it <= last_before; ++it)
     {
       const auto sig_upper = prev_sig.upper;
@@ -122,7 +123,7 @@ void computeAll(
 {
   auto& bars = grid.timebars.lightBars;
   auto& sub = grid.timebars.lighterBars;
-  auto& measures = grid.measures;
+  auto& measures = *grid.m_measures;
   auto& magneticTimings = grid.timebars.magneticTimings;
 
   int k = 0;
@@ -282,23 +283,20 @@ void MusicalGrid::compute(
   QRectF sceneRect,
   TimeVal x0_time)
 {
+  SCORE_ASSERT(m_measures);
+  auto& measures = *m_measures;
   // Find the last measure change before x0_time.
-  // Find the first measure we see
-  auto last_signature_change = ossia::last_before(measures, x0_time);
-
-  //this->start = computeStart(*this, x0_time, last_signature_change);
-
-  // TODO compute instead everything in time_values, store them, and then map those to pixels
-
+  // this->start = computeStart(*this, x0_time, last_signature_change);
   mainPositions.clear();
   subPositions.clear();
   timebars.lightBars.positions.clear();
   timebars.lighterBars.positions.clear();
   timebars.magneticTimings.clear();
 
-  // We want to find the subdivision that will result in the smallest bars being at least pixels_width_min pixels.
-  // We have to solve : main_division_pixels > pixels_width_min.
-  // This gives : subdivision < whole_duration / (zoom_ratio * pixels_width_min)
+  // Find the first measure we see
+  auto last_signature_change = ossia::last_before(measures, x0_time);
+  if(last_signature_change == measures.end())
+    return;
 
   const auto [pow2, inc, main_div_source] = computeDurations(last_signature_change->second, zoom);
 

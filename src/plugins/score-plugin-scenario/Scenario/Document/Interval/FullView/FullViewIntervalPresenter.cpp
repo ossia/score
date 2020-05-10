@@ -102,7 +102,7 @@ FullViewIntervalPresenter::FullViewIntervalPresenter(
                         ctx,
                         parent}
     , m_timebars{new Timebars{*this}}
-    , m_grid{new MusicalGrid{interval.timeSignatureMap(), *m_timebars}}
+    , m_grid{new MusicalGrid{*m_timebars}}
     , m_settings{ctx.app.settings<Scenario::Settings::Model>()}
 {
   m_view->setPos(0, 0);
@@ -814,6 +814,7 @@ void FullViewIntervalPresenter::updateTimeBars()
   // x0_time: time of the currently visible leftmost pixel
   TimeVal x0_time = TimeVal::fromPixels(sceneRect.x() - scene_x0, m_zoomRatio) + timeDelta;
 
+  m_grid->setMeasures(model->timeSignatureMap());
   m_grid->compute(timeDelta, m_zoomRatio, sceneRect, x0_time);
 }
 
