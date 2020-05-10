@@ -127,8 +127,8 @@ public:
     m_valueSpin->setTime(m_dur.defaultDuration());
 
     // CHECKBOXES
-    m_minNonNullBox = new QCheckBox{};
-    m_maxFiniteBox = new QCheckBox{};
+    m_minNonNullBox = new QCheckBox{tr("Min")};
+    m_maxFiniteBox = new QCheckBox{tr("Max")};
 
     m_minNonNullBox->setChecked(!m_dur.isMinNull());
     m_maxFiniteBox->setChecked(!m_dur.isMaxInfinite());
@@ -153,8 +153,6 @@ public:
 
     editableGrid->addRow(tr("Duration"), m_valueSpin);
 
-    m_minTitle = new TextLabel(tr("Min"));
-    m_maxTitle = new TextLabel(tr("Max"));
     auto minstack = new QStackedWidget;
     minstack->setSizePolicy(
         QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
@@ -163,7 +161,6 @@ public:
     auto minboxwidg = new QWidget;
     auto minboxlay = new score::MarginLess<QHBoxLayout>{minboxwidg};
     minboxlay->addWidget(m_minNonNullBox);
-    minboxlay->addWidget(m_minTitle);
     editableGrid->addRow(minboxwidg, minstack);
 
     auto maxstack = new QStackedWidget;
@@ -172,7 +169,6 @@ public:
     auto maxboxwidg = new QWidget;
     auto maxboxlay = new score::MarginLess<QHBoxLayout>{maxboxwidg};
     maxboxlay->addWidget(m_maxFiniteBox);
-    maxboxlay->addWidget(m_maxTitle);
     editableGrid->addRow(maxboxwidg, maxstack);
 
     connect(
@@ -247,6 +243,7 @@ public:
 
   void on_modelRigidityChanged(bool b)
   {
+<<<<<<< HEAD
     m_minTitle->setHidden(b);
     m_maxTitle->setHidden(b);
     if(b)
@@ -262,6 +259,13 @@ public:
       on_modelMinNullChanged(m_dur.isMinNull());
       on_modelMaxInfiniteChanged(m_dur.isMaxInfinite());
     }
+=======
+    m_minNonNullBox->setHidden(b);
+    m_minSpin->setHidden(b);
+
+    m_maxSpin->setHidden(b);
+    m_maxFiniteBox->setHidden(b);
+>>>>>>> b921ee801... checkbox are smaller and the label is directly set
   }
 
   void on_modelMinNullChanged(bool b)
@@ -383,12 +387,10 @@ public:
   score::TimeSpinBox* m_valueSpin{};
 
   QCheckBox* m_minNonNullBox{};
-  QLabel* m_minTitle{};
   QLabel* m_minNull{};
   score::TimeSpinBox* m_minSpin{};
 
   QCheckBox* m_maxFiniteBox{};
-  QLabel* m_maxTitle{};
   QLabel* m_maxInfinity{};
   score::TimeSpinBox* m_maxSpin{};
 

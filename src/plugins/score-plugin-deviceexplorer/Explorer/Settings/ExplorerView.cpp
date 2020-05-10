@@ -13,12 +13,13 @@ namespace Explorer::Settings
 View::View() : m_widg{new QWidget}
 {
   auto lay = new QFormLayout;
+  lay->setSpacing(10);
   SETTINGS_UI_COMBOBOX_SETUP("Log level", LogLevel, DeviceLogLevel{});
 
   m_widg->setLayout(lay);
 
-  m_cb = new QCheckBox;
-  lay->addRow(tr("Enable local tree"), m_cb);
+  m_cb = new QCheckBox{tr("Enable local tree")};
+  lay->addRow(m_cb);
 
   connect(m_cb, &QCheckBox::stateChanged, this, &View::localTreeChanged);
 }

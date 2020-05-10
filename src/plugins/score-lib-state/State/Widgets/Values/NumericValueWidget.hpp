@@ -137,18 +137,12 @@ public:
     auto lay = new score::MarginLess<QHBoxLayout>{this};
     this->setLayout(lay);
 
-    m_minCB = new QCheckBox{this};
-    m_maxCB = new QCheckBox{this};
-    auto min_l = new TextLabel{tr("Min"), this};
-    min_l->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Maximum);
+    m_minCB = new QCheckBox{tr("Min"), this};
+    m_maxCB = new QCheckBox{tr("Max"), this};
     m_min = new score::SpinBox<T>{this};
-    auto max_l = new TextLabel{tr("Max"), this};
-    max_l->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Maximum);
     m_max = new score::SpinBox<T>{this};
-    lay->addWidget(min_l);
     lay->addWidget(m_minCB);
     lay->addWidget(m_min);
-    lay->addWidget(max_l);
     lay->addWidget(m_maxCB);
     lay->addWidget(m_max);
 

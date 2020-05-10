@@ -35,7 +35,7 @@ AddressSettingsWidget::AddressSettingsWidget(QWidget* parent)
   setContentsMargins(0,0,0,0);
   m_ioTypeCBox = new AccessModeComboBox{this};
   m_clipModeCBox = new BoundingModeComboBox{this};
-  m_repetition = new QCheckBox;
+  m_repetition = new QCheckBox{tr("Repetition filter"), this};
   m_repetition->setToolTip(
       tr("When repetitions are filtered, if two identical values are sent one "
          "after the other, the second is ignored."));
@@ -71,7 +71,7 @@ AddressSettingsWidget::AddressSettingsWidget(QWidget* parent)
 
   m_layout->addRow(makeLabel(tr("Clip mode"), this), m_clipModeCBox);
   m_layout->addRow(makeLabel(tr("I/O type"), this), m_ioTypeCBox);
-  m_layout->addRow(makeLabel(tr("Repetition filter"), this), m_repetition);
+  m_layout->addRow(m_repetition);
   m_layout->addRow(makeLabel(tr("Tags"), this), tagLayout);
   m_layout->addRow(makeLabel(tr("Unit"), this), m_unit);
   m_layout->addRow(makeLabel(tr("Description"), this), m_description);

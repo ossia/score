@@ -64,8 +64,8 @@ InspectorWidget::InspectorWidget(
   vlay->addRow(tr("Address"), m_lineEdit);
 
   // Tween
-  m_tween = new QCheckBox{this};
-  vlay->addRow(tr("Tween"), m_tween);
+  m_tween = new QCheckBox{tr("Tween"), this};
+  vlay->addRow(m_tween);
   m_tween->setChecked(process().tween());
   con(process(), &ProcessModel::tweenChanged, m_tween, &QCheckBox::setChecked);
   connect(
@@ -190,8 +190,8 @@ InspectorWidget::InspectorWidget(
   */
 
   // Tween
-  m_tween = new QCheckBox{this};
-  vlay->addRow(tr("Tween"), m_tween);
+  m_tween = new QCheckBox{tr("Tween"), this};
+  vlay->addRow(m_tween);
   m_tween->setChecked(process().tween());
   con(process(), &ProcessModel::tweenChanged, m_tween, &QCheckBox::setChecked);
   connect(

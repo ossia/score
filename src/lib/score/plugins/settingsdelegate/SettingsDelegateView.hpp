@@ -115,8 +115,8 @@ private:                                                             \
       &View::Control##Changed);
 
 #define SETTINGS_UI_TOGGLE_SETUP(Text, Control) \
-  m_##Control = new QCheckBox{m_widg};          \
-  lay->addRow(tr(Text), m_##Control);           \
+  m_##Control = new QCheckBox{tr(Text), m_widg};          \
+  lay->addRow(m_##Control);           \
   connect(m_##Control, &QCheckBox::toggled, this, &View::Control##Changed);
 
 #define SETTINGS_UI_COMBOBOX_IMPL(Control)                     \

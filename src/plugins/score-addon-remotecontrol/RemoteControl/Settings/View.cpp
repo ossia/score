@@ -16,7 +16,7 @@ View::View() : m_widg{new QWidget}
   auto lay = new QFormLayout;
 
   {
-    m_enabled = new QCheckBox;
+    m_enabled = new QCheckBox{tr("Enabled")};
 
     connect(m_enabled, &QCheckBox::stateChanged, this, [&](int t) {
       switch (t)
@@ -32,7 +32,7 @@ View::View() : m_widg{new QWidget}
       }
     });
 
-    lay->addRow(tr("Enabled"), m_enabled);
+    lay->addRow(m_enabled);
   }
 
   m_widg->setLayout(lay);
