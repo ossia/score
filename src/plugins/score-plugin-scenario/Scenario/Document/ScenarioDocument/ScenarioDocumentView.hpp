@@ -10,6 +10,7 @@
 #include <score/plugins/documentdelegate/DocumentDelegateView.hpp>
 
 #include <QGraphicsView>
+#include <QMimeData>
 #include <QPoint>
 #include <QPointer>
 
@@ -66,6 +67,8 @@ public:
 
   void visibleRectChanged(QRectF r)
   E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, visibleRectChanged, r)
+  void dropRequested(QPoint pos, const QMimeData* mime)
+  E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, dropRequested, pos, mime)
 
 private:
   void resizeEvent(QResizeEvent* ev) override;
@@ -78,6 +81,10 @@ private:
   void mousePressEvent(QMouseEvent* event) override;
   void mouseMoveEvent(QMouseEvent* event) override;
   void mouseReleaseEvent(QMouseEvent* event) override;
+  void dragEnterEvent(QDragEnterEvent* event) override;
+  void dragMoveEvent(QDragMoveEvent* event) override;
+  void dragLeaveEvent(QDragLeaveEvent* event) override;
+  void dropEvent(QDropEvent* event) override;
   //void drawBackground(QPainter* painter, const QRectF& rect) override;
 
   const score::GUIApplicationContext& m_app;
@@ -120,6 +127,8 @@ public:
   QRectF viewportRect() const;
   QRectF visibleSceneRect() const;
 
+  void showRulers(bool);
+
 public:
   void elementsScaleChanged(double arg_1)
       W_SIGNAL(elementsScaleChanged, arg_1);
@@ -143,3 +152,6 @@ private:
   int m_timer{};
 };
 }
+
+Q_DECLARE_METATYPE(const QMimeData*)
+W_REGISTER_ARGTYPE(const QMimeData*)

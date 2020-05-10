@@ -85,27 +85,7 @@ BaseGraphicsObject& DisplayedElementsPresenter::view() const
 void DisplayedElementsPresenter::on_displayedIntervalChanged(
     const IntervalModel& m)
 {
-  auto& magnetismHandler = (Process::MagnetismAdjuster&)m_model.context().app.interfaces<Process::MagnetismAdjuster>();
-  magnetismHandler.unregisterHandler(m_intervalPresenter);
-
-  disconnect(
-      &m_model.context().execTimer,
-      &QTimer::timeout,
-      this,
-      &DisplayedElementsPresenter::on_intervalExecutionTimer);
-
-  for (auto& con : m_connections)
-    QObject::disconnect(con);
-
-  m_connections.clear();
-  // TODO use directly displayedelementspresentercontainer
-  delete m_intervalPresenter;
-  delete m_startStatePresenter;
-  delete m_endStatePresenter;
-  delete m_startEventPresenter;
-  delete m_endEventPresenter;
-  delete m_startNodePresenter;
-  delete m_endNodePresenter;
+  remove();
 
   // Create states / events
   auto& ctx = m_model.context();
@@ -171,6 +151,8 @@ void DisplayedElementsPresenter::on_displayedIntervalChanged(
 
   elts.startState->view()->disableOverlay();
   elts.endState->view()->disableOverlay();
+
+  auto& magnetismHandler = (Process::MagnetismAdjuster&)m_model.context().app.interfaces<Process::MagnetismAdjuster>();
   magnetismHandler.registerHandler(*m_intervalPresenter);
 
   showInterval();
@@ -228,10 +210,11 @@ void DisplayedElementsPresenter::on_displayedIntervalHeightChanged(double size)
     new_rect.setHeight(std::max(new_rect.height(), cur_rect.height()));
   m_model.updateRect(new_rect);
 
-  m_startEventPresenter->view()->setPos(deltaX, deltaY);
-  m_startNodePresenter->view()->setPos(deltaX, deltaY);
-  m_startStatePresenter->view()->setPos(deltaX, deltaY);
-  m_intervalPresenter->view()->setPos(deltaX, deltaY);
+  const double Y = m_model.isNodal() ? 20 : deltaY;
+  m_startEventPresenter->view()->setPos(deltaX, Y);
+  m_startNodePresenter->view()->setPos(deltaX, Y);
+  m_startStatePresenter->view()->setPos(deltaX, Y);
+  m_intervalPresenter->view()->setPos(deltaX, Y);
 
   m_startEventPresenter->view()->setExtent({0., 1.});
   m_startNodePresenter->view()->setExtent({0., (qreal)size});
@@ -246,12 +229,71 @@ void DisplayedElementsPresenter::on_displayedIntervalHeightChanged(double size)
   m_startStatePresenter->view()->setZValue(2);
 }
 
+void DisplayedElementsPresenter::recomputeHeight()
+{
+  const double rightX = m_endStatePresenter->view()->x();
+  const double Y = deltaY;
+
+  m_startEventPresenter->view()->setPos(deltaX, Y);
+  m_startNodePresenter->view()->setPos(deltaX, Y);
+  m_startStatePresenter->view()->setPos(deltaX, Y);
+  m_intervalPresenter->view()->setPos(deltaX, Y);
+
+  m_endStatePresenter->view()->setPos({rightX, Y});
+  m_endEventPresenter->view()->setPos({rightX, Y});
+  m_endNodePresenter->view()->setPos({rightX, Y});
+}
+
+void DisplayedElementsPresenter::setVisible(bool b)
+{
+  m_startEventPresenter->view()->setVisible(b);
+  m_startNodePresenter->view()->setVisible(b);
+  m_startStatePresenter->view()->setVisible(b);
+  m_intervalPresenter->view()->setVisible(b);
+  m_endStatePresenter->view()->setVisible(b);
+  m_endEventPresenter->view()->setVisible(b);
+  m_endNodePresenter->view()->setVisible(b);
+}
+
+void DisplayedElementsPresenter::remove()
+{
+  auto& magnetismHandler = (Process::MagnetismAdjuster&)m_model.context().app.interfaces<Process::MagnetismAdjuster>();
+  magnetismHandler.unregisterHandler(m_intervalPresenter);
+
+  disconnect(
+      &m_model.context().execTimer,
+      &QTimer::timeout,
+      this,
+      &DisplayedElementsPresenter::on_intervalExecutionTimer);
+
+  for (auto& con : m_connections)
+    QObject::disconnect(con);
+
+  m_connections.clear();
+  // TODO use directly displayedelementspresentercontainer
+  delete m_intervalPresenter;
+  m_intervalPresenter = nullptr;
+  delete m_startStatePresenter;
+  m_startStatePresenter = nullptr;
+  delete m_endStatePresenter;
+  m_endStatePresenter = nullptr;
+  delete m_startEventPresenter;
+  m_startEventPresenter = nullptr;
+  delete m_endEventPresenter;
+  m_endEventPresenter = nullptr;
+  delete m_startNodePresenter;
+  m_startNodePresenter = nullptr;
+  delete m_endNodePresenter;
+  m_endNodePresenter = nullptr;
+}
+
 void DisplayedElementsPresenter::updateLength(double length)
 {
+  const double Y = m_model.isNodal() ? 20 : deltaY;
   // TODO why isn't rect updated here.
-  m_endStatePresenter->view()->setPos({deltaX + length, deltaY});
-  m_endEventPresenter->view()->setPos({deltaX + length, deltaY});
-  m_endNodePresenter->view()->setPos({deltaX + length, deltaY});
+  m_endStatePresenter->view()->setPos({deltaX + length, Y});
+  m_endEventPresenter->view()->setPos({deltaX + length, Y});
+  m_endNodePresenter->view()->setPos({deltaX + length, Y});
 }
 
 void DisplayedElementsPresenter::on_intervalExecutionTimer()

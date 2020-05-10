@@ -81,6 +81,7 @@ public:
   void setNewSelection(const Selection& old, const Selection& s) override;
 
   void setDisplayedInterval(Scenario::IntervalModel& interval);
+  void createDisplayedIntervalPresenter(Scenario::IntervalModel& interval);
 
   void on_viewModelDefocused(const Process::ProcessModel* vm);
   void on_viewModelFocused(const Process::ProcessModel* vm);
@@ -91,6 +92,8 @@ public:
 
   void startTimeBar(Scenario::IntervalModel& itv);
   void stopTimeBar();
+
+  bool isNodal() const noexcept;
 
 public:
   void pressed(QPointF arg_1)
@@ -148,5 +151,13 @@ private:
   bool m_updatingView{false};
 
   double computeReverseZoom(ZoomRatio r);
+
+  NodalIntervalView* m_nodal{};
+
+  QAction* m_timelineAction{};
+  QAction* m_nodalAction{};
+  void switchMode(bool nodal);
+  void removeDisplayedIntervalPresenter();
+  void recenterNodal();
 };
 }

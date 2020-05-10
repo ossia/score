@@ -19,6 +19,7 @@
 #include <Scenario/Document/DisplayedElements/DisplayedElementsProviderList.hpp>
 #include <Scenario/Document/DisplayedElements/DisplayedElementsToolPalette/DisplayedElementsToolPaletteFactoryList.hpp>
 #include <Scenario/Document/Interval/FullView/FullViewIntervalPresenter.hpp>
+#include <Scenario/Document/Interval/FullView/NodalIntervalView.hpp>
 #include <Scenario/Document/Interval/IntervalDurations.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/Interval/Temporal/TemporalIntervalPresenter.hpp>
@@ -43,6 +44,8 @@
 #include <score/tools/Clamp.hpp>
 #include <score/tools/Bind.hpp>
 #include <ossia-qt/invoke.hpp>
+#include <score/actions/Toolbar.hpp>
+#include <score/actions/ToolbarManager.hpp>
 #include <score/widgets/DoubleSlider.hpp>
 #include <core/application/ApplicationSettings.hpp>
 
@@ -51,8 +54,10 @@
 #include <ossia/detail/math.hpp>
 
 #include <QDebug>
+#include <QToolBar>
 #include <QSize>
 #include <QScrollBar>
+#include <QMenu>
 
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Scenario::ScenarioDocumentPresenter)
@@ -199,13 +204,38 @@ ScenarioDocumentPresenter::ScenarioDocumentPresenter(
       },
       Qt::QueuedConnection);
 
+  // Execution timers
   con(m_context.coarseUpdateTimer, &QTimer::timeout, this, [&] {
     auto pctg = displayedInterval().duration.playPercentage();
-    auto& itv = *presenters().intervalPresenter()->view();
-    auto x = pctg * itv.defaultWidth() + itv.pos().x();
-    if(x != view().timeBar().x())
-      view().timeBar().setPos(x, 0);
+    if(auto p = presenters().intervalPresenter())
+    {
+      auto& itv = *p->view();
+      auto x = pctg * itv.defaultWidth() + itv.pos().x();
+      if(x != view().timeBar().x())
+        view().timeBar().setPos(x, 0);
+    }
+    else if(m_nodal)
+    {
+      m_nodal->on_playPercentageChanged(pctg);
+    }
   });
+
+  // Nodal mode control
+  if(auto tb = ctx.app.toolbars.get().find(StringKey<score::Toolbar>("UISetup"));
+     tb != ctx.app.toolbars.get().end())
+  {
+    // Nodal stuff
+    auto actions = tb->second.toolbar()->actions();
+
+    m_timelineAction = actions[0];
+    m_nodalAction = actions[1];
+
+    auto grp = qobject_cast<QActionGroup*>(m_timelineAction->parent());
+    connect(grp, &QActionGroup::triggered,
+            this, [=] (QAction* act){
+      switchMode(act != m_timelineAction);
+    });
+  }
 
   setDisplayedInterval(model().baseInterval());
 
@@ -215,6 +245,73 @@ ScenarioDocumentPresenter::ScenarioDocumentPresenter(
   model()
       .cables.removing.connect<&ScenarioDocumentPresenter::on_cableRemoving>(
           *this);
+}
+
+void ScenarioDocumentPresenter::recenterNodal()
+{
+  if(!m_nodal)
+    return;
+
+  const auto& nodes = m_nodal->enclosingRect();
+  view().view().centerOn(m_nodal->mapToScene(nodes.center()));
+}
+
+void ScenarioDocumentPresenter::switchMode(bool nodal)
+{
+  const auto mode = nodal
+      ? IntervalModel::ViewMode::Nodal
+      : IntervalModel::ViewMode::Temporal;
+  displayedInterval().setViewMode(mode);
+
+  if(nodal)
+  {
+    removeDisplayedIntervalPresenter();
+
+    m_nodal = new NodalIntervalView{displayedInterval(), context(), &view().baseItem()};
+
+    view().view().setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+    view().view().setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+    view().view().setDragMode(QGraphicsView::ScrollHandDrag);
+    view().view().setSceneRect(QRectF{-5000,-5000,10000,10000});
+
+    view().view().setContextMenuPolicy(Qt::CustomContextMenu);
+
+    connect(&view().view(), &ProcessGraphicsView::dropRequested,
+            m_nodal, [=] (QPoint viewPos, const QMimeData* data) {
+      auto sp = view().view().mapToScene(viewPos);
+      auto ip = m_nodal->mapFromScene(sp);
+      m_nodal->on_drop(ip, data);
+    });
+
+    con(view().view(), &QGraphicsView::customContextMenuRequested,
+        this, [this] (const QPoint& pos) {
+      QMenu contextMenu(&view().view());
+      auto recenter = contextMenu.addAction(tr("Recenter"));
+
+      auto act = contextMenu.exec(view().view().mapToGlobal(pos));
+      if(act == recenter)
+        recenterNodal();
+    });
+  }
+  else
+  {
+    delete m_nodal;
+    m_nodal = nullptr;
+
+    createDisplayedIntervalPresenter(displayedInterval());
+
+    view().view().setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    view().view().setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    view().view().setDragMode(QGraphicsView::NoDrag);
+  }
+
+  /*
+  for(auto& cable : m_dataflow.cables())
+  {
+    cable.second->check();
+  }
+  */
+  view().showRulers(!nodal);
 }
 
 ScenarioDocumentPresenter::~ScenarioDocumentPresenter()
@@ -338,6 +435,11 @@ void ScenarioDocumentPresenter::stopTimeBar()
   bar.setVisible(false);
   bar.playing = false;
   bar.setInterval(nullptr);
+}
+
+bool ScenarioDocumentPresenter::isNodal() const noexcept
+{
+  return !m_timelineAction->isChecked();
 }
 static bool window_size_set = false;
 void ScenarioDocumentPresenter::on_windowSizeChanged(QSize sz)
@@ -546,10 +648,12 @@ ScenarioDocumentPresenter::context() const
 void ScenarioDocumentPresenter::updateTimeBar()
 {
   auto& set = m_context.app.settings<Settings::Model>();
-  view().timeBar().setVisible(
-      view().timeBar().playing && set.getTimeBar()
-      && (&m_scenarioPresenter.intervalPresenter()->model()
-          == view().timeBar().interval()));
+  auto& tb = view().timeBar();
+  tb.setVisible(
+        tb.playing
+        && set.getTimeBar()
+        && !m_nodal
+        && (&displayedInterval() == tb.interval()));
 }
 
 void ScenarioDocumentPresenter::updateMinimap()
@@ -655,15 +759,46 @@ void ScenarioDocumentPresenter::setDisplayedInterval(IntervalModel& interval)
     }
   }
 
+  // Setup of the nodal stuff
+  {
+    if(m_timelineAction && m_nodalAction)
+    {
+      switch(interval.viewMode())
+      {
+        case Scenario::IntervalModel::Temporal:
+          m_timelineAction->setChecked(true);
+          m_nodalAction->setChecked(false);
+          break;
+        case Scenario::IntervalModel::Nodal:
+          m_timelineAction->setChecked(false);
+          m_nodalAction->setChecked(true);
+          break;
+      }
+    }
+  }
+
+
+  switchMode(interval.viewMode() == IntervalModel::ViewMode::Nodal);
+
+}
+
+void ScenarioDocumentPresenter::removeDisplayedIntervalPresenter()
+{
+  m_scenarioPresenter.remove();
+}
+
+void ScenarioDocumentPresenter::createDisplayedIntervalPresenter(IntervalModel& interval)
+{
   // Setup of the state machine.
   const auto& fact
-      = ctx.app.interfaces<DisplayedElementsToolPaletteFactoryList>();
+      = context().app.interfaces<DisplayedElementsToolPaletteFactoryList>();
   m_stateMachine = fact.make(
       &DisplayedElementsToolPaletteFactory::make,
       *this,
       interval,
       &view().baseItem());
 
+  // Creation of the presenters
   m_updatingView = true;
   m_scenarioPresenter.on_displayedIntervalChanged(interval);
   m_updatingView = false;

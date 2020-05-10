@@ -25,7 +25,7 @@ class QGraphicsView;
 
 namespace Scenario
 {
-struct MusicalGrid;
+class MusicalGrid;
 class TimeRulerBase
     : public QObject
     , public QGraphicsItem

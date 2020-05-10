@@ -44,6 +44,11 @@ public:
   void on_displayedIntervalDurationChanged(TimeVal);
   void on_displayedIntervalHeightChanged(double);
 
+  void recomputeHeight();
+
+  void setVisible(bool);
+  void remove();
+
 public:
   void requestFocusedPresenterChange(Process::LayerPresenter* arg_1) E_SIGNAL(
       SCORE_PLUGIN_SCENARIO_EXPORT,

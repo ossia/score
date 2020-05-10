@@ -42,8 +42,6 @@ public:
 
   TimeVal magneticPosition(const QObject* obj, TimeVal t) const noexcept;
 
-  void requestModeChange(bool);
-
   const std::vector<SlotPresenter>& getSlots() const { return m_slots; }
   double on_playPercentageChanged(double t);
 
@@ -78,7 +76,7 @@ private:
   void on_rackChanged();
 
 
-  NodalIntervalView* m_nodal{};
+  //NodalIntervalView* m_nodal{};
   QRectF m_sceneRect{};
 
   Timebars* m_timebars{};

@@ -26,8 +26,6 @@
 #include <Scenario/Document/Interval/FullView/Timebar.hpp>
 #include <Scenario/Document/ScenarioDocument/MusicalGrid.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentPresenter.hpp>
-#include <score/actions/Toolbar.hpp>
-#include <score/actions/ToolbarManager.hpp>
 #include <Process/Dataflow/NodeItem.hpp>
 #include <Process/Style/Pixmaps.hpp>
 #include <Scenario/Application/Drops/ScenarioDropHandler.hpp>
@@ -41,7 +39,6 @@
 #include <QGraphicsScene>
 #include <QGraphicsView>
 #include <QMenu>
-#include <QToolBar>
 #include <Automation/AutomationColors.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
 
@@ -149,47 +146,19 @@ FullViewIntervalPresenter::FullViewIntervalPresenter(
     this->m_timebars->lighterBars.setVisible(show);
   });
 
-
-  if(auto tb = ctx.app.toolbars.get().find(StringKey<score::Toolbar>("UISetup"));
-     tb != ctx.app.toolbars.get().end())
-  {
-    // Nodal stuff
-    auto actions = tb->second.toolbar()->actions();
-
-    auto timeline_act = actions[0];
-    auto nodal_act = actions[1];
-    auto grp = qobject_cast<QActionGroup*>(timeline_act->parent());
-    switch(interval.viewMode())
-    {
-      case Scenario::IntervalModel::Temporal:
-        timeline_act->setChecked(true);
-        nodal_act->setChecked(false);
-        break;
-      case Scenario::IntervalModel::Nodal:
-        timeline_act->setChecked(false);
-        nodal_act->setChecked(true);
-        break;
-    }
-
-    connect(grp, &QActionGroup::triggered,
-            this, [=] (QAction* act){
-      requestModeChange(act != timeline_act);
-    });
-  }
-
   // Slots
   con(m_model, &IntervalModel::rackChanged, this, [=](Slot::RackView t) {
-    if (t == Slot::FullView && !m_nodal)
+    if (t == Slot::FullView)
       on_rackChanged();
   });
 
   con(m_model, &IntervalModel::slotAdded, this, [=](const SlotId& s) {
-    if (s.fullView() && !m_nodal)
+    if (s.fullView())
       on_rackChanged();
   });
 
   con(m_model, &IntervalModel::slotRemoved, this, [=](const SlotId& s) {
-    if (s.fullView() && !m_nodal)
+    if (s.fullView())
       on_rackChanged();
   });
 
@@ -197,12 +166,12 @@ FullViewIntervalPresenter::FullViewIntervalPresenter(
       &IntervalModel::slotsSwapped,
       this,
       [=](int i, int j, Slot::RackView v) {
-        if (v == Slot::FullView && !m_nodal)
+        if (v == Slot::FullView)
           on_rackChanged();
       });
 
   con(m_model, &IntervalModel::slotResized, this, [this](const SlotId& s) {
-    if (s.fullView() && !m_nodal)
+    if (s.fullView())
       this->updatePositions();
   });
 
@@ -229,10 +198,6 @@ FullViewIntervalPresenter::FullViewIntervalPresenter(
       [=] {
         m_view->setExecuting(false);
         m_view->setPlayWidth(0.);
-        if(m_nodal)
-        {
-          m_nodal->on_playPercentageChanged(0.);
-        }
         m_view->updatePaths();
         m_view->update();
       },
@@ -244,16 +209,8 @@ FullViewIntervalPresenter::FullViewIntervalPresenter(
       &IntervalView::dropReceived,
       this,
       [=](const QPointF& pos, const QMimeData& mime) {
-    if(m_nodal)
-    {
-      m_context.app.interfaces<Scenario::IntervalDropHandlerList>().drop(
-          m_context, m_model, pos, mime);
-    }
-    else
-    {
       m_context.app.interfaces<Scenario::IntervalDropHandlerList>().drop(
           m_context, m_model, {}, mime);
-    }
       });
 
 
@@ -279,9 +236,6 @@ FullViewIntervalPresenter::~FullViewIntervalPresenter()
 
 void FullViewIntervalPresenter::createSlot(int slot_i, const FullSlot& slt)
 {
-  if(m_nodal)
-    return;
-
   // Create the slot
   {
     SlotPresenter p;
@@ -367,9 +321,6 @@ void FullViewIntervalPresenter::requestSlotMenu(
     QPoint pos,
     QPointF sp) const
 {
-  if(m_nodal)
-    return;
-
   auto menu = new QMenu;
   auto& reg = score::GUIAppContext()
                   .guiApplicationPlugin<ScenarioApplicationPlugin>()
@@ -386,9 +337,6 @@ void FullViewIntervalPresenter::updateProcessShape(
     const LayerData& ld,
     const SlotPresenter& slot)
 {
-  if(m_nodal)
-    return;
-
   const auto h = ld.model().getSlotHeight();
   ld.setHeight(h);
   ld.updateContainerHeights(h); // TODO merge with setHeight
@@ -413,9 +361,6 @@ void FullViewIntervalPresenter::updateProcessShape(
 
 void FullViewIntervalPresenter::updateProcessShape(int slot)
 {
-  if(m_nodal)
-    return;
-
   auto& slt = m_slots.at(slot);
   if (!slt.layers.empty())
     updateProcessShape(slt.layers.front(), slt);
@@ -423,9 +368,6 @@ void FullViewIntervalPresenter::updateProcessShape(int slot)
 
 void FullViewIntervalPresenter::on_slotRemoved(int pos)
 {
-  if(m_nodal)
-    return;
-
   SlotPresenter& slot = m_slots.at(pos);
   for(const LayerData& proc : slot.layers)
   {
@@ -438,9 +380,6 @@ void FullViewIntervalPresenter::on_slotRemoved(int pos)
 
 void FullViewIntervalPresenter::updateProcessesShape()
 {
-  if(m_nodal)
-    return;
-
   for (int i = 0; i < (int)m_slots.size(); i++)
   {
     updateProcessShape(i);
@@ -449,9 +388,6 @@ void FullViewIntervalPresenter::updateProcessesShape()
 
 void FullViewIntervalPresenter::updatePositions()
 {
-  if(m_nodal)
-    return;
-
   using namespace std;
   // Vertical shape
   m_view->setHeight(rackHeight() + IntervalHeader::headerHeight());
@@ -497,9 +433,6 @@ void FullViewIntervalPresenter::updatePositions()
 
 double FullViewIntervalPresenter::rackHeight() const
 {
-  if(m_nodal)
-    return 0.;
-
   qreal height = 0;
   for (const SlotPresenter& slot : m_slots)
   {
@@ -522,36 +455,16 @@ void FullViewIntervalPresenter::on_rackChanged()
     }
   }
 
-  delete m_nodal;
-  m_nodal = nullptr;
+  // Recreate
+  m_slots.reserve(m_model.fullView().size());
 
-  switch(m_model.viewMode())
+  int i = 0;
+  for (const auto& slt : m_model.fullView())
   {
-    case IntervalModel::ViewMode::Temporal:
-    {
-      // Recreate
-      m_slots.reserve(m_model.fullView().size());
-
-      int i = 0;
-      for (const auto& slt : m_model.fullView())
-      {
-        createSlot(i, slt);
-        i++;
-      }
-
-      break;
-    }
-    case IntervalModel::ViewMode::Nodal:
-    {
-      m_nodal = new NodalIntervalView{*this, m_context, m_view};
-
-      m_view->setHeight(3000);
-      updateChildren();
-      heightChanged();
-
-      return;
-    }
+    createSlot(i, slt);
+    i++;
   }
+
   // Update view
   updatePositions();
 }
@@ -588,12 +501,6 @@ void FullViewIntervalPresenter::on_defaultDurationChanged(const TimeVal& val)
 void FullViewIntervalPresenter::on_zoomRatioChanged(ZoomRatio ratio)
 {
   IntervalPresenter::on_zoomRatioChanged(ratio);
-
-  if(m_nodal)
-  {
-    m_nodal->on_zoomRatioChanged(ratio);
-    return;
-  }
 
   updateTimeBars();
 
@@ -743,19 +650,9 @@ TimeVal FullViewIntervalPresenter::magneticPosition(const QObject* o, const Time
 
 }
 
-void FullViewIntervalPresenter::requestModeChange(bool state)
-{
-  auto mode = state ? IntervalModel::ViewMode::Nodal : IntervalModel::ViewMode::Temporal;
-  ((IntervalModel&)m_model).setViewMode(mode);
-  on_modeChanged(mode);
-}
 
 double FullViewIntervalPresenter::on_playPercentageChanged(double t)
 {
-  if(m_nodal)
-  {
-    m_nodal->on_playPercentageChanged(ossia::clamp(t, 0., 1.));
-  }
   return IntervalPresenter::on_playPercentageChanged(t);
 }
 
@@ -820,7 +717,8 @@ void FullViewIntervalPresenter::updateTimeBars()
 
 void FullViewIntervalPresenter::on_modeChanged(IntervalModel::ViewMode m)
 {
-  on_rackChanged();
+  // on_rackChanged();
+  // updateTimeBars();
 }
 
 void FullViewIntervalPresenter::on_guiDurationChanged(const TimeVal& val)
@@ -831,9 +729,6 @@ void FullViewIntervalPresenter::on_guiDurationChanged(const TimeVal& val)
   m_timebars->timebar.setWidth(gui_width);
 
   static_cast<FullViewIntervalView*>(m_view)->setGuiWidth(gui_width);
-
-  if(m_nodal)
-    return;
 
   for (SlotPresenter& slot : m_slots)
   {

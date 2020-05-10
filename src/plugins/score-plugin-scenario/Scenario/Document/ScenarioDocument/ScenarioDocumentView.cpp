@@ -60,6 +60,7 @@ ProcessGraphicsView::ProcessGraphicsView(
   setAlignment(Qt::AlignTop | Qt::AlignLeft);
   setFrameStyle(0);
   setDragMode(QGraphicsView::NoDrag);
+  setAcceptDrops(true);
 
   setRenderHints(
       QPainter::Antialiasing | QPainter::SmoothPixmapTransform
@@ -259,6 +260,37 @@ void ProcessGraphicsView::mouseReleaseEvent(QMouseEvent* event)
     viewport()->update();
 }
 
+void ProcessGraphicsView::dragEnterEvent(QDragEnterEvent* event)
+{
+  QGraphicsView::dragEnterEvent(event);
+  event->accept();
+}
+
+void ProcessGraphicsView::dragMoveEvent(QDragMoveEvent* event)
+{
+  QGraphicsView::dragMoveEvent(event);
+  event->accept();
+}
+
+void ProcessGraphicsView::dragLeaveEvent(QDragLeaveEvent* event)
+{
+  QGraphicsView::dragLeaveEvent(event);
+  event->accept();
+}
+
+void ProcessGraphicsView::dropEvent(QDropEvent* event)
+{
+  if(!itemAt(event->pos()))
+  {
+    dropRequested(event->pos(), event->mimeData());
+    event->accept();
+  }
+  else
+  {
+    QGraphicsView::dropEvent(event);
+  }
+}
+
 ScenarioDocumentView::ScenarioDocumentView(
     const score::DocumentContext& ctx,
     QObject* parent)
@@ -411,6 +443,12 @@ QRectF ScenarioDocumentView::visibleSceneRect() const
   const auto viewRect = m_view.viewport()->rect();
   return QRectF{m_view.mapToScene(viewRect.topLeft()),
         m_view.mapToScene(viewRect.bottomRight())};
+}
+
+void ScenarioDocumentView::showRulers(bool b)
+{
+  m_minimapView.setVisible(b);
+  m_timeRulerView.setVisible(b);
 }
 
 void ScenarioDocumentView::timerEvent(QTimerEvent* event)
