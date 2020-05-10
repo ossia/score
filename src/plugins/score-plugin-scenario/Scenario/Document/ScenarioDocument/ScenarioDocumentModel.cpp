@@ -59,7 +59,6 @@ ScenarioDocumentModel::ScenarioDocumentModel(
       this,
       [&](const QString& newName) {
         QFileInfo info(newName);
-
         itv.metadata().setName(info.baseName());
       });
 

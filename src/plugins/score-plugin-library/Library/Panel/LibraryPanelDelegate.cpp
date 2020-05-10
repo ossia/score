@@ -76,14 +76,12 @@ void ProjectPanel::on_modelChanged(
 {
   if (newm)
   {
-    if (auto file = newm->document.metadata().fileName(); QFile::exists(file))
-    {
-      m_widget->setRoot(QFileInfo{file}.absolutePath());
-      return;
-    }
+    auto& meta = newm->document.metadata();
+    m_widget->setRoot(meta);
+    return;
   }
 
-  m_widget->setRoot({});
+  m_widget->unsetRoot();
 }
 
 
