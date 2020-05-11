@@ -236,3 +236,53 @@ QWidget* ALSAFactory::make_settings(
 #endif
 
 }
+
+
+
+
+
+
+
+namespace Audio
+{
+
+#if defined(OSSIA_AUDIO_PULSEAUDIO)
+PulseAudioFactory::PulseAudioFactory()
+{
+}
+
+PulseAudioFactory::~PulseAudioFactory()
+{
+
+}
+
+QString PulseAudioFactory::prettyName() const
+{
+  return QObject::tr("PulseAudio");
+}
+
+std::unique_ptr<ossia::audio_engine> PulseAudioFactory::make_engine(
+    const Audio::Settings::Model& set,
+    const score::ApplicationContext& ctx)
+{
+  return std::make_unique<ossia::pulseaudio_engine>(
+      "ossia score",
+      set.getCardIn().toStdString(),
+      set.getCardOut().toStdString(),
+      set.getDefaultIn(),
+      set.getDefaultOut(),
+      set.getRate(),
+      set.getBufferSize());
+}
+
+QWidget* PulseAudioFactory::make_settings(
+    Audio::Settings::Model& m,
+    Audio::Settings::View& v,
+    score::SettingsCommandDispatcher& m_disp,
+    QWidget* parent)
+{
+  return new QWidget;
+}
+#endif
+
+}
