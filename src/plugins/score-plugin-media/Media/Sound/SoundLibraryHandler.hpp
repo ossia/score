@@ -5,7 +5,6 @@
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QPushButton>
-#include <QToolButton>
 
 #include <Engine/ApplicationPlugin.hpp>
 
@@ -22,6 +21,8 @@
 #include <Audio/Settings/Model.hpp>
 #include <Audio/AudioPreviewExecutor.hpp>
 #include <score/widgets/MarginLess.hpp>
+#include <score/widgets/Pixmap.hpp>
+
 namespace Media::Sound
 {
 
@@ -37,19 +38,24 @@ public:
       int rate = audio.getRate();
 
       auto lay = new score::MarginLess<QHBoxLayout>{this};
+      lay->setSpacing(8);
       lay->addWidget(&m_playstop);
       lay->addWidget(&m_name);
       m_name.setText(QFileInfo{path}.fileName());
       m_reader.on_finishedDecoding.connect<&AudioPreviewWidget::on_finishedDecoding>(*this);
       m_reader.load(path, path, DecodingMethod::Libav);
 
-      m_playstop.setText("⏵");
-      m_playstop.setMinimumWidth(30);
-      m_playstop.setMaximumWidth(30);
+      m_playPixmap = score::get_pixmap(":/icons/play_off.png");
+      m_stopPixmap = score::get_pixmap(":/icons/stop_off.png");
+
+      m_playstop.setIcon(m_playPixmap);
+
+      m_playstop.setMinimumWidth(24);
+      m_playstop.setMaximumWidth(24);
 
       connect(&m_playstop, &QPushButton::clicked,
-              this, [&] {
-        if(m_playstop.text() == "⏵")
+              this, [&]() {
+        if(!m_autoPlay)
         {
           setAutoPlay(true);
           startPlayback();
@@ -66,7 +72,7 @@ public:
     {
       if(m_autoPlay)
       {
-        m_playstop.setText("⏹");
+        m_playstop.setChecked(false);
         startPlayback();
       }
     }
@@ -85,19 +91,23 @@ public:
       SCORE_ASSERT((*reader)->handle);
       inst.queue.enqueue({(*reader)->handle, (int)m_reader.channels(), (int)rate});
 
-      m_playstop.setText("⏹");
+      m_playstop.setIcon(m_stopPixmap);
     }
 
     void stopPlayback()
     {
       auto& inst = Audio::AudioPreviewExecutor::instance();
       inst.queue.enqueue({});
-      m_playstop.setText("⏵");
+
+      m_playstop.setIcon(m_playPixmap);
     }
 
 private:
   QPushButton m_playstop{this};
   QLabel m_name{this};
+  QPixmap m_playPixmap;
+  QPixmap m_stopPixmap;
+
   static inline bool m_autoPlay{false};
 };
 
