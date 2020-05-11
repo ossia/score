@@ -150,6 +150,7 @@ score::GUIElements ApplicationPlugin::makeGUIElements()
 
   return e;
 }
+
 void ApplicationPlugin::restart_engine()
 try
 {

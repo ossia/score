@@ -207,7 +207,7 @@ public:
     });
 
     m_upmix.setChecked(false);
-    con(m_upmix, &QPushButton::toggled, this, [this] {
+    con(m_upmix, &QPushButton::toggled, this, [] {
         // TODO
     });
 
@@ -252,9 +252,27 @@ class MixerPanel final : public QTabWidget
 public:
   const score::DocumentContext& ctx;
   QTabWidget m_tabs;
-  QScrollArea m_deviceArea;
-  QWidget m_deviceWidget;
-  score::MarginLess<QHBoxLayout> m_deviceLayout;
+
+  QScrollArea m_physicalInArea;
+  QWidget m_physicalInWidget;
+  score::MarginLess<QHBoxLayout> m_physicalInLayout;
+
+  QScrollArea m_physicalOutArea;
+  QWidget m_physicalOutWidget;
+  score::MarginLess<QHBoxLayout> m_physicalOutLayout;
+
+  QScrollArea m_mappingInArea;
+  QWidget m_mappingInWidget;
+  score::MarginLess<QHBoxLayout> m_mappingInLayout;
+
+  QScrollArea m_mappingOutArea;
+  QWidget m_mappingOutWidget;
+  score::MarginLess<QHBoxLayout> m_mappingOutLayout;
+
+  QScrollArea m_virtualArea;
+  QWidget m_virtualWidget;
+  score::MarginLess<QHBoxLayout> m_virtualLayout;
+
   QScrollArea m_busArea;
   QWidget m_busWidget;
   score::MarginLess<QHBoxLayout> m_busLayout;
@@ -262,69 +280,142 @@ public:
   MixerPanel(const score::DocumentContext& ctx, QWidget* parent)
       : QTabWidget{parent}
       , ctx{ctx}
-      , m_deviceArea{this}
-      , m_deviceWidget{&m_deviceArea}
-      , m_deviceLayout{&m_deviceWidget}
+      , m_physicalInArea{this}
+      , m_physicalInWidget{&m_physicalInArea}
+      , m_physicalInLayout{&m_physicalInWidget}
+
+      , m_physicalOutArea{this}
+      , m_physicalOutWidget{&m_physicalOutArea}
+      , m_physicalOutLayout{&m_physicalOutWidget}
+
+      , m_mappingInArea{this}
+      , m_mappingInWidget{&m_mappingInArea}
+      , m_mappingInLayout{&m_mappingInWidget}
+
+      , m_mappingOutArea{this}
+      , m_mappingOutWidget{&m_mappingOutArea}
+      , m_mappingOutLayout{&m_mappingOutWidget}
+
+      , m_virtualArea{this}
+      , m_virtualWidget{&m_virtualArea}
+      , m_virtualLayout{&m_virtualWidget}
+
       , m_busArea{this}
       , m_busWidget{&m_busArea}
       , m_busLayout{&m_busWidget}
   {
+    auto setup_tab = [] (auto& tab) {
+      tab.setMinimumHeight(150);
+      tab.setMinimumWidth(150);
+      tab.setWidgetResizable(true);
+    };
     this->addTab(&m_busArea, "Buses");
     m_busArea.setWidget(&m_busWidget);
-    m_busArea.setMinimumHeight(150);
-    m_busArea.setMinimumWidth(150);
-    m_busArea.setWidgetResizable(true);
+    setup_tab(m_busArea);
 
-    this->addTab(&m_deviceArea, "Devices");
-    m_deviceArea.setWidget(&m_deviceWidget);
-    m_deviceArea.setMinimumHeight(150);
-    m_deviceArea.setMinimumWidth(150);
-    m_deviceArea.setWidgetResizable(true);
+    this->addTab(&m_physicalInArea, "Physical\ninputs");
+    m_physicalInArea.setWidget(&m_physicalInWidget);
+    setup_tab(m_physicalInArea);
+    this->addTab(&m_physicalOutArea, "Physical\noutputs");
+    m_physicalOutArea.setWidget(&m_physicalOutWidget);
+    setup_tab(m_physicalOutArea);
 
-    setupDevice();
+    this->addTab(&m_mappingInArea, "Mapping\ninputs");
+    m_mappingInArea.setWidget(&m_mappingInWidget);
+    setup_tab(m_mappingInArea);
+    this->addTab(&m_mappingOutArea, "Mapping\noutputs");
+    m_mappingOutArea.setWidget(&m_mappingOutWidget);
+    setup_tab(m_mappingOutArea);
+
+    this->addTab(&m_virtualArea, "Virtual ports");
+    m_virtualArea.setWidget(&m_virtualWidget);
+    setup_tab(m_virtualArea);
+
+    auto& aplug = ctx.plugin<Explorer::DeviceDocumentPlugin>();
+    if (auto audio = aplug.list().audioDevice())
+    {
+      auto dev = static_cast<Dataflow::AudioDevice*>(audio);
+      connect(dev, &Dataflow::AudioDevice::changed,
+              this, [=] { setupDevice(dev); });
+      setupDevice(dev);
+    }
 
     auto& plug = ctx.model<Scenario::ScenarioDocumentModel>();
     con(plug, &Scenario::ScenarioDocumentModel::busesChanged,
         this, &MixerPanel::setupBuses);
     setupBuses();
-
   }
 
-  void setupDevice()
+  void setupDevice(Dataflow::AudioDevice* dev)
   {
-    auto& plug = ctx.plugin<Explorer::DeviceDocumentPlugin>();
-    int i = 0;
-    if (auto audio = plug.list().audioDevice())
-    {
-      auto dev = static_cast<Dataflow::AudioDevice*>(audio);
-      auto& proto = static_cast<ossia::audio_protocol&>(
-            dev->getDevice()->get_protocol());
+    score::clearLayout(&m_physicalInLayout);
+    score::clearLayout(&m_physicalOutLayout);
+    score::clearLayout(&m_mappingInLayout);
+    score::clearLayout(&m_mappingOutLayout);
+    score::clearLayout(&m_virtualLayout);
 
-      for (auto& out : proto.virtaudio)
+    auto& proto = static_cast<ossia::audio_protocol&>(
+          dev->getDevice()->get_protocol());
+    {
+
+      if (proto.main_audio_in) {
+        // Main in
+        auto w = new AudioDeviceSlider{*proto.main_audio_in, &m_physicalInWidget};
+        m_mappingInLayout.addWidget(w);
+      }
+      for (auto& in : proto.audio_ins)
       {
-        auto w = new AudioDeviceSlider{*out, &m_deviceWidget};
-        m_deviceLayout.addWidget(w);
-        i++;
+        auto w = new AudioDeviceSlider{*in, &m_physicalInWidget};
+        m_physicalInLayout.addWidget(w);
+      }
+      for (auto& in : proto.in_mappings)
+      {
+        auto w = new AudioDeviceSlider{*in, &m_mappingInArea};
+        m_mappingInLayout.addWidget(w);
+      }
+
+      if (proto.main_audio_out) {
+        // Main out
+        auto w = new AudioDeviceSlider{*proto.main_audio_out, &m_physicalOutWidget};
+        m_mappingOutLayout.addWidget(w);
+      }
+      for (auto& out : proto.audio_outs)
+      {
+        auto w = new AudioDeviceSlider{*out, &m_physicalOutWidget};
+        m_physicalOutLayout.addWidget(w);
       }
       for (auto& out : proto.out_mappings)
       {
-        auto w = new AudioDeviceSlider{*out, &m_deviceWidget};
-        m_deviceLayout.addWidget(w);
-        i++;
+        auto w = new AudioDeviceSlider{*out, &m_mappingOutArea};
+        m_mappingOutLayout.addWidget(w);
       }
 
-      for (auto& out : proto.audio_outs)
+      for (auto& out : proto.virtaudio)
       {
-        auto w = new AudioDeviceSlider{*out, &m_deviceWidget};
-        m_deviceLayout.addWidget(w);
-        i++;
+        auto w = new AudioDeviceSlider{*out, &m_virtualWidget};
+        m_virtualLayout.addWidget(w);
       }
+
     }
 
-    m_deviceWidget.setMinimumSize(i * 100, 150);
-    m_deviceLayout.addStretch(1);
+    constexpr double width = 75;
 
+    m_physicalInWidget.setMinimumSize((proto.audio_ins.size() + 1) * width, 150);
+    m_physicalInLayout.addStretch(1);
+
+    m_physicalOutWidget.setMinimumSize((proto.audio_outs.size() + 1) * width, 150);
+    m_physicalOutLayout.addStretch(1);
+
+    m_mappingInWidget.setMinimumSize((proto.in_mappings.size()) * width, 150);
+    m_mappingInLayout.addStretch(1);
+
+    m_mappingOutWidget.setMinimumSize((proto.out_mappings.size() ) * width, 150);
+    m_mappingOutLayout.addStretch(1);
+
+    m_virtualWidget.setMinimumSize((proto.virtaudio.size()) * width, 150);
+    m_virtualLayout.addStretch(1);
   }
+
   void setupBuses()
   {
     auto& plug = ctx.model<Scenario::ScenarioDocumentModel>();

@@ -47,7 +47,6 @@ class ALSAWidget : public QWidget
       m_disp.submitDeferredCommand<Audio::Settings::SetModelRate>(
           m, dev.rate);
 
-      qDebug() << dev.raw_name << dev.raw_name << dev.inputChan << dev.outputChan << dev.rate;
       setInfos(dev);
     }
   }
