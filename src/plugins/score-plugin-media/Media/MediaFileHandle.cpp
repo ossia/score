@@ -217,7 +217,6 @@ struct FrameComputer
         sum[c] = fun.init(vals[start_frame]);
         for(int64_t i = start_frame + 1; i < end_frame; i++)
           sum[c] = fun(sum[c], (float)vals[i]);
-        sum[c] = sum[c];
       }
     }
     else if(end_frame == start_frame)
