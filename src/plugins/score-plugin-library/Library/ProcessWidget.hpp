@@ -24,7 +24,6 @@ public:
 private:
   ProcessesItemModel* m_processModel{};
   PresetItemModel* m_presetModel{};
-  QSplitter m_split;
   ProcessTreeView m_tv;
   PresetListView m_lv;
 };

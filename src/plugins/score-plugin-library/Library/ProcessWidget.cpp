@@ -110,22 +110,21 @@ ProcessWidget::ProcessWidget(
     : QWidget{parent}
     , m_processModel{new ProcessesItemModel{ctx, this}}
     , m_presetModel{new PresetItemModel{ctx, this}}
-    , m_split{Qt::Vertical, this}
 {
   auto slay = new score::MarginLess<QVBoxLayout>{this};
-  slay->addWidget(&m_split);
+  setLayout(slay);
+
   setStatusTip(QObject::tr("This panel shows the available processes.\n"
                            "They can be drag'n'dropped in the score, in intervals, "
                            "and sometimes in effect chains."));
   auto top_w = new QWidget;
-  auto lay = new score::MarginLess<QVBoxLayout>{top_w};
 
   {
     auto processFilterProxy = new RecursiveFilterProxy{this};
     processFilterProxy->setSourceModel(m_processModel);
     processFilterProxy->setFilterKeyColumn(0);
-    lay->addWidget(new ItemModelFilterLineEdit{*processFilterProxy, m_tv, this});
-    lay->addWidget(&m_tv);
+    slay->addWidget(new ItemModelFilterLineEdit{*processFilterProxy, m_tv, this});
+    slay->addWidget(&m_tv, 3);
     m_tv.setModel(processFilterProxy);
     m_tv.setStatusTip(statusTip());
     setup_treeview(m_tv);
@@ -137,10 +136,12 @@ ProcessWidget::ProcessWidget(
     m_lv.setModel(presetFilterProxy);
     m_lv.setAcceptDrops(true);
     m_lv.setDragEnabled(true);
+    slay->addWidget(&m_lv, 1);
   }
 
   auto infoWidg = new InfoWidget{this};
   infoWidg->setStatusTip(statusTip());
+  slay->addWidget(infoWidg,1);
 
   connect(&m_tv, &ProcessTreeView::selected, this, [=](const auto& pdata) {
 
@@ -152,17 +153,8 @@ ProcessWidget::ProcessWidget(
     presetFilterProxy->invalidate();
   });
 
-  m_split.addWidget(top_w);
-  m_split.addWidget(&m_lv);
-  m_split.addWidget(infoWidg);
   top_w->setMinimumHeight(100);
   m_lv.setMinimumHeight(100);
-  m_split.setCollapsible(0, false);
-  m_split.setCollapsible(1, false);
-  m_split.setCollapsible(2, false);
-  m_split.setStretchFactor(0, 3);
-  m_split.setStretchFactor(1, 1);
-  m_split.setStretchFactor(2, 1);
 }
 
 ProcessWidget::~ProcessWidget()
