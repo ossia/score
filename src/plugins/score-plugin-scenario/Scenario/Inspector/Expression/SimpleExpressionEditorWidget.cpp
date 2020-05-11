@@ -53,12 +53,6 @@ public:
     setMaximumSize(40, 16);
     setFont(score::Skin::instance().MonoFontSmall);
 
-#ifndef QT_NO_STYLE_STYLESHEET
-    setStyleSheet(
-            "QComboBox { padding: 0px 0px 0px 0px; border-style: none; }\n"
-            "QComboBox::down-arrow { image: none; }"
-            );
-#endif
     setFrame(false);
   }
   void paintEvent (QPaintEvent *ev)

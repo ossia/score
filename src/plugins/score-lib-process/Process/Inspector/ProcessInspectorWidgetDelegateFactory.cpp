@@ -64,9 +64,10 @@ public:
     auto lay = new QVBoxLayout{this};
 
     auto label = new TextLabel{process.prettyShortName(), this};
-#ifndef QT_NO_STYLE_STYLESHEET
-    label->setStyleSheet("font-weight: bold; font-size: 18");
-#endif
+    auto f = label->font();
+    f.setBold(true);
+    f.setPointSize(18);
+    label->setFont(f);
     lay->addWidget(label);
     if(!(process.flags() & ProcessFlags::TimeIndependent))
     {

@@ -453,11 +453,10 @@ void DeviceExplorerWidget::buildGUI()
   auto refreshLay = new QGridLayout;
   refreshParent->setLayout(refreshLay);
   m_refreshIndicator = new QProgressIndicator{refreshParent};
+  QPalette palette;
+  palette.setBrush(QPalette::Window, Qt::transparent);
+  m_refreshIndicator->setPalette(palette);
 
-#ifndef QT_NO_STYLE_STYLESHEET
-  m_refreshIndicator->setStyleSheet("background:transparent");
-  m_refreshIndicator->setAttribute(Qt::WA_TranslucentBackground);
-#endif
   refreshLay->addWidget(m_refreshIndicator);
   m_lay->addWidget(refreshParent);
   setLayout(m_lay);
