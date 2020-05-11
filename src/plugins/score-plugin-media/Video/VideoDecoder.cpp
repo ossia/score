@@ -6,6 +6,7 @@ extern "C"
 #include <libswscale/swscale.h>
 }
 #include <QElapsedTimer>
+#include <ossia/detail/flicks.hpp>
 #include <QDebug>
 #include <functional>
 namespace Video
@@ -50,6 +51,12 @@ bool VideoDecoder::load(
   m_running.store(true, std::memory_order_release);
   m_thread = std::thread{[this] { this->buffer_thread(); }};
 
+  int64_t secs = m_formatContext->duration / AV_TIME_BASE;
+  int64_t us = m_formatContext->duration % AV_TIME_BASE;
+
+  m_duration = secs * ossia::flicks_per_second<int64_t>;
+  m_duration += us * ossia::flicks_per_millisecond<int64_t> / 1000;
+
   return true;
 }
 
@@ -66,6 +73,11 @@ int VideoDecoder::height() const noexcept
 double VideoDecoder::fps() const noexcept
 {
   return m_rate;
+}
+
+int64_t VideoDecoder::duration() const noexcept
+{
+  return m_duration;
 }
 
 AVPixelFormat VideoDecoder::pixel_format() const noexcept
