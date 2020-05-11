@@ -60,6 +60,13 @@ void setIcons(
   }
 }
 
+
+QIcon makeIcon(
+    const QString& icon)
+{
+  return genIconFromPixmaps(icon, icon, icon);
+}
+
 QIcon makeIcons(
     const QString& iconOn,
     const QString& iconOff,

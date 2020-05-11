@@ -21,6 +21,7 @@ AddProcessDialog::AddProcessDialog(
     QWidget* parent)
     : QDialog{parent}, m_factoryList{plist}, m_flags{acceptable}
 {
+  setWindowTitle(tr("Add process"));
   auto lay = new QHBoxLayout;
   this->setLayout(lay);
   m_categories = new QListWidget;
@@ -105,7 +106,8 @@ void AddProcessDialog::setup()
   }
   for (const auto& str : categories)
   {
-    m_categories->addItem(str);
+    auto item = new ProcessItem{Process::getCategoryIcon(str), str};
+    m_categories->addItem(item);
   }
 }
 }

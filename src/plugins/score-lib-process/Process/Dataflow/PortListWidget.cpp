@@ -13,6 +13,7 @@
 #include <score/widgets/ClearLayout.hpp>
 #include <score/widgets/MarginLess.hpp>
 #include <score/widgets/TextLabel.hpp>
+#include <score/widgets/SetIcons.hpp>
 #include <score/tools/Bind.hpp>
 #include <Device/ItemModels/NodeBasedItemModel.hpp>
 
@@ -188,16 +189,16 @@ void PortWidgetSetup::setupImpl(
   switch (port.type())
   {
     case Process::PortType::Audio:
-      advBtn->setIcon(QIcon(QStringLiteral(":/icons/port_audio.png")));
+      advBtn->setIcon(makeIcon(QStringLiteral(":/icons/port_audio.png")));
       break;
     case Process::PortType::Midi:
-      advBtn->setIcon(QIcon(QStringLiteral(":/icons/port_midi.png")));
+      advBtn->setIcon(makeIcon(QStringLiteral(":/icons/port_midi.png")));
       break;
     case Process::PortType::Message:
-      advBtn->setIcon(QIcon(QStringLiteral(":/icons/port_message.png")));
+      advBtn->setIcon(makeIcon(QStringLiteral(":/icons/port_message.png")));
       break;
     case Process::PortType::Texture:
-      advBtn->setIcon(QIcon(QStringLiteral(":/icons/port_texture.png")));
+      advBtn->setIcon(makeIcon(QStringLiteral(":/icons/port_texture.png")));
       break;
   }
 }

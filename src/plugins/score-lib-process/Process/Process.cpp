@@ -11,6 +11,7 @@
 #include <score/model/ModelMetadata.hpp>
 #include <score/model/EntitySerialization.hpp>
 #include <score/tools/Bind.hpp>
+#include <score/widgets/SetIcons.hpp>
 
 #include <ossia/detail/algorithms.hpp>
 
@@ -31,16 +32,16 @@ namespace Process
 const QIcon& getCategoryIcon(const QString& category) noexcept
 {
     static const std::map<QString, QIcon> categoryIcon{
-        { "Audio", QIcon{QStringLiteral(":/icons/audio.png")} },
-        { "Mappings", QIcon{QStringLiteral(":/icons/filter.png") } },
-        { "Midi", QIcon{QStringLiteral(":/icons/midi.png") } },
-        { "Control", QIcon{QStringLiteral(":/icons/controls.png") } },
-        { "GFX", QIcon{QStringLiteral(":/icons/gfx.png") } },
-        { "Automations", QIcon{QStringLiteral(":/icons/automation.png") } },
-        { "Impro", QIcon{QStringLiteral(":/icons/controls.png") }  },
-        { "Script", QIcon{QStringLiteral(":/icons/script.png") } },
-        { "Structure", QIcon{QStringLiteral(":/icons/structure.png") } },
-        { "Monitoring", QIcon{QStringLiteral(":/icons/ui.png")} }
+        { "Audio",  makeIcon(QStringLiteral(":/icons/audio.png")) },
+        { "Mappings", makeIcon(QStringLiteral(":/icons/filter.png")) },
+        { "Midi", makeIcon(QStringLiteral(":/icons/midi.png"))  },
+        { "Control", makeIcon(QStringLiteral(":/icons/controls.png") )},
+        { "GFX", makeIcon(QStringLiteral(":/icons/gfx.png")) },
+        { "Automations", makeIcon(QStringLiteral(":/icons/automation.png")) },
+        { "Impro", makeIcon(QStringLiteral(":/icons/controls.png"))  },
+        { "Script", makeIcon(QStringLiteral(":/icons/script.png")) },
+        { "Structure", makeIcon(QStringLiteral(":/icons/structure.png")) },
+        { "Monitoring", makeIcon(QStringLiteral(":/icons/ui.png")) }
     };
     static const QIcon invalid;
     if(auto it = categoryIcon.find(category);
