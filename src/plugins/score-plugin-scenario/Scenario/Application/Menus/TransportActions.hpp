@@ -18,6 +18,7 @@ class TransportActions final : public QObject
 {
 public:
   TransportActions(const score::GUIApplicationContext&);
+  ~TransportActions();
 
   void makeGUIElements(score::GUIElements& ref);
 

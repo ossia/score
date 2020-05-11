@@ -14,7 +14,16 @@ ActionManager::ActionManager()
   onDocumentChange(std::make_unique<EnableActionIfDocument>());
 }
 
-ActionManager::~ActionManager() {}
+ActionManager::~ActionManager()
+{
+  for(auto& act : m_container)
+  {
+    if(QAction* a = act.second.action()) {
+      delete a;
+    }
+  }
+  m_container.clear();
+}
 
 void ActionManager::insert(Action val)
 {

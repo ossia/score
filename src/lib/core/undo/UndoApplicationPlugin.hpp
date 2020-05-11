@@ -39,7 +39,7 @@ private:
   // Connections to keep for the running document.
   QList<QMetaObject::Connection> m_connections;
 
-  QAction m_undoAction;
-  QAction m_redoAction;
+  QAction* m_undoAction{};
+  QAction* m_redoAction{};
 };
 }

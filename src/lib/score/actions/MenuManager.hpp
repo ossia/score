@@ -14,6 +14,7 @@ namespace score
 class SCORE_LIB_BASE_EXPORT MenuManager
 {
 public:
+  ~MenuManager();
   void insert(Menu val);
 
   void insert(std::vector<Menu> vals);

@@ -199,6 +199,10 @@ TransportActions::TransportActions(const score::GUIApplicationContext& context)
   }
 }
 
+TransportActions::~TransportActions()
+{
+}
+
 void TransportActions::makeGUIElements(score::GUIElements& ref)
 {
   auto& cond = m_context.actions.condition<

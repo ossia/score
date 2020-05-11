@@ -3,6 +3,7 @@
 #include <score/plugins/StringFactoryKey.hpp>
 
 #include <QAction>
+#include <QPointer>
 #include <QString>
 
 #include <memory>
@@ -109,7 +110,7 @@ public:
 private:
   void updateTexts();
 
-  QAction* m_impl{};
+  QPointer<QAction> m_impl{};
   QString m_text;
   ActionKey m_key;
   ActionGroupKey m_groupKey;
