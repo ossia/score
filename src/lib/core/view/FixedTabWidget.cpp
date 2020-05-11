@@ -14,7 +14,7 @@ FixedTabWidget::FixedTabWidget() noexcept
 {
   this->setContentsMargins(2, 2, 2, 2);
   this->setLayout(&m_layout);
-  auto layout = new QVBoxLayout;
+  auto layout = new score::MarginLess<QVBoxLayout>;
   layout->setMargin(9);
   layout->setSpacing(6);
   layout->addWidget(&m_stack);

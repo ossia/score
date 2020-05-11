@@ -22,9 +22,8 @@ class InfoWidget final : public QScrollArea
 public:
   InfoWidget(QWidget* parent)
   {
-    setMinimumHeight(120);
-    setMaximumHeight(160);
-    auto lay = new QVBoxLayout{this};
+    auto lay = new score::MarginLess<QVBoxLayout>{this};
+    lay->setMargin(6);
     QFont f;
     f.setBold(true);
     m_name.setFont(f);
