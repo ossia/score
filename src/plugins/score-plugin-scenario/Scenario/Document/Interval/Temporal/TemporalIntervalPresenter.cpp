@@ -914,8 +914,16 @@ void TemporalIntervalPresenter::selectedSlot(int i) const
     auto proc = m_model.getSmallViewSlot(i).frontProcess;
     if (proc)
     {
-      m_context.focusDispatcher.focus(m_slots[i].headerDelegate->m_presenter);
-      disp.setAndCommit({&m_model.processes.at(*proc)});
+      auto h = m_slots[i].headerDelegate;
+      if(h)
+      {
+        m_context.focusDispatcher.focus(h->m_presenter);
+        disp.setAndCommit({&m_model.processes.at(*proc)});
+      }
+      else
+      {
+        SCORE_SOFT_ASSERT(("No header delegate!", false));
+      }
     }
   }
 }
