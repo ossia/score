@@ -1,0 +1,3 @@
+[submodule "3rdparty/libisf"]
+	path = 3rdparty/libisf
+	url = https://github.com/jcelerier/libisf

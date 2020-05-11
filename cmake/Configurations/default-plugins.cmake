@@ -38,4 +38,6 @@ score-addon-controlsurface
 score-addon-remotecontrol
 
 score-plugin-ui
+
+score-addon-gfx
 )
