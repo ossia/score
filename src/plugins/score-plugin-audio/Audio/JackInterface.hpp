@@ -7,6 +7,7 @@
 #include <QLabel>
 #include <QSpinBox>
 #include <QWidget>
+#include <QTimer>
 #include <QDebug>
 
 #include <Audio/AudioInterface.hpp>
@@ -43,20 +44,16 @@ public:
         set.getDefaultOut());
   }
 
-  QWidget* make_settings(
+  void setupSettingsWidget(
+      QWidget* w, QFormLayout* lay,
       Audio::Settings::Model& m,
       Audio::Settings::View& v,
-      score::SettingsCommandDispatcher& m_disp,
-      QWidget* parent) override
+      score::SettingsCommandDispatcher& m_disp)
   {
-    auto w = new QWidget{parent};
-    auto lay = new QFormLayout{w};
-
     using Model = Audio::Settings::Model;
 
     auto in_count = new QSpinBox{w};
     auto out_count = new QSpinBox{w};
-
 
 #if defined(_WIN32)
     {
@@ -71,7 +68,10 @@ public:
     qDebug() << "JACK: " << WeakJack::instance().available();
     std::shared_ptr<ossia::jack_client> client = m_client.lock();
     if(!client)
+    {
       m_client = (client = std::make_shared<ossia::jack_client>("ossia score"));
+      qDebug("Creating a jack client");
+    }
 
     {
       auto rate = jack_get_sample_rate(*client);
@@ -130,6 +130,25 @@ public:
           out_count->setValue(val);
       }
     });
+  }
+
+  QWidget* make_settings(
+      Audio::Settings::Model& m,
+      Audio::Settings::View& v,
+      score::SettingsCommandDispatcher& m_disp,
+      QWidget* parent) override
+  {
+    auto w = new QWidget{parent};
+    auto lay = new QFormLayout{w};
+
+    QTimer::singleShot(1000, [=,&m,&v,&m_disp] {
+      try {
+        setupSettingsWidget(w, lay, m, v, m_disp);
+      }  catch (...) {
+        qDebug("Could not set up JACK !");
+      }
+    });
+
     return w;
   }
 };

@@ -6,6 +6,8 @@
 #include <score/command/Dispatchers/SettingsCommandDispatcher.hpp>
 #include <QComboBox>
 #include <QLabel>
+#include <QTimer>
+#include <QPushButton>
 #include <QFormLayout>
 
 namespace Audio
@@ -14,33 +16,49 @@ namespace Audio
 
 class ALSAWidget : public QWidget
 {
-
   ALSAFactory& m_factory;
-public:
-  ALSAWidget(
-      ALSAFactory& fact,
-      Audio::Settings::Model& m,
-      Audio::Settings::View& v,
-      score::SettingsCommandDispatcher& m_disp,
-      QWidget* parent = nullptr)
-    : QWidget{parent}
-    , m_factory{fact}
+  Audio::Settings::Model& m_model;
+
+  score::SettingsCommandDispatcher& m_disp;
+  QComboBox* card_list{};
+  QLabel* informations{};
+
+  void setInfos(const PortAudioCard& dev)
   {
-    auto& devices = fact.devices;
-    auto lay = new QFormLayout{this};
+    informations->setText(tr("Inputs:\t%1\nOutputs:\t%2\nRate:\t%3")
+                              .arg(dev.inputChan)
+                              .arg(dev.outputChan)
+                              .arg(dev.rate));
+  }
 
-    auto card_list = new QComboBox{this};
+  void updateDevice(const PortAudioCard& dev)
+  {
+    auto& m = m_model;
+    if (dev.raw_name != m.getCardOut())
+    {
+      m_disp.submitDeferredCommand<Audio::Settings::SetModelCardIn>(
+          m, dev.raw_name);
+      m_disp.submitDeferredCommand<Audio::Settings::SetModelCardOut>(
+          m, dev.raw_name);
+      m_disp.submitDeferredCommand<Audio::Settings::SetModelDefaultIn>(
+          m, dev.inputChan);
+      m_disp.submitDeferredCommand<Audio::Settings::SetModelDefaultOut>(
+          m, dev.outputChan);
+      m_disp.submitDeferredCommand<Audio::Settings::SetModelRate>(
+          m, dev.rate);
 
-    auto informations = new QLabel{this};
+      qDebug() << dev.raw_name << dev.raw_name << dev.inputChan << dev.outputChan << dev.rate;
+      setInfos(dev);
+    }
+  }
 
-    auto set_informations = [=](const PortAudioCard& dev) {
-      informations->setText(tr("Inputs:\t%1\nOutputs:\t%2\nRate:\t%3")
-                                .arg(dev.inputChan)
-                                .arg(dev.outputChan)
-                                .arg(dev.rate));
-    };
+  void rescanUI()
+  {
+    card_list->clear();
+    m_factory.rescan();
 
-    // Disabled case
+    auto& devices = m_factory.devices;
+
     card_list->addItem(devices.front().pretty_name, 0);
     devices.front().out_index = 0;
 
@@ -51,6 +69,39 @@ public:
       card_list->addItem(card.pretty_name, (int)i);
       card.out_index = card_list->count() - 1;
     }
+  }
+
+public:
+  ALSAWidget(
+      ALSAFactory& fact,
+      Audio::Settings::Model& m,
+      Audio::Settings::View& v,
+      score::SettingsCommandDispatcher& m_disp,
+      QWidget* parent = nullptr)
+    : QWidget{parent}
+    , m_factory{fact}
+    , m_model{m}
+    , m_disp{m_disp}
+  {
+    auto& devices = fact.devices;
+    auto lay = new QFormLayout{this};
+    auto rescan = new QPushButton{tr("Rescan"), this};
+
+    card_list = new QComboBox{this};
+
+    informations = new QLabel{this};
+
+    // Disabled case
+
+    QString res = qgetenv("SCORE_DISABLE_ALSA");
+    if(res.isEmpty())
+    {
+      QTimer::singleShot(1000, [this] {
+        rescanUI();
+      });
+    }
+    connect(rescan, &QPushButton::clicked,
+            this, &ALSAWidget::rescanUI);
 
     fact.addBufferSizeWidget(*this, m, v);
     fact.addSampleRateWidget(*this, m, v);
@@ -59,39 +110,20 @@ public:
 
     {
       lay->addRow(QObject::tr("Device"), card_list);
+      lay->addRow(rescan);
 
-      auto update_dev = [=, &m, &m_disp](const PortAudioCard& dev) {
-        if (dev.raw_name != m.getCardOut())
-        {
-          m_disp.submitDeferredCommand<Audio::Settings::SetModelCardIn>(
-              m, dev.raw_name);
-          m_disp.submitDeferredCommand<Audio::Settings::SetModelCardOut>(
-              m, dev.raw_name);
-          m_disp.submitDeferredCommand<Audio::Settings::SetModelDefaultIn>(
-              m, dev.inputChan);
-          m_disp.submitDeferredCommand<Audio::Settings::SetModelDefaultOut>(
-              m, dev.outputChan);
-          m_disp.submitDeferredCommand<Audio::Settings::SetModelRate>(
-              m, dev.rate);
-
-          set_informations(dev);
-        }
-      };
-
-      QObject::connect(
-          card_list,
-          SignalUtils::QComboBox_currentIndexChanged_int(),
-          &v,
-          [=](int i) {
-            auto& device = devices[card_list->itemData(i).toInt()];
-            update_dev(device);
-          });
+      QObject::connect(card_list, SignalUtils::QComboBox_currentIndexChanged_int(),
+                       &v, [this](int i) {
+        auto& devices = m_factory.devices;
+        auto& device = devices[card_list->itemData(i).toInt()];
+        updateDevice(device);
+      });
 
       if (m.getCardOut().isEmpty())
       {
         if (!devices.empty())
         {
-          update_dev(devices.front());
+          updateDevice(devices.front());
         }
       }
       else
@@ -102,8 +134,11 @@ public:
 
     {
       lay->addWidget(informations);
-      set_informations(
-          devices[card_list->itemData(card_list->currentIndex()).toInt()]);
+      std::size_t dev_idx = card_list->itemData(card_list->currentIndex()).toInt();
+      if(dev_idx < devices.size())
+      {
+        setInfos(devices[dev_idx]);
+      }
     }
     con(m, &Model::changed, this, [=, &m] {
       setCard(card_list, m.getCardOut());
@@ -123,9 +158,6 @@ public:
 
 ALSAFactory::ALSAFactory()
 {
-  QString res = qgetenv("SCORE_DISABLE_ALSA");
-  if(res.isEmpty())
-    rescan();
 }
 
 ALSAFactory::~ALSAFactory()
