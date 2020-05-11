@@ -12,11 +12,11 @@ namespace score
 FixedTabWidget::FixedTabWidget() noexcept
   : m_buttons{new QToolBar}
 {
-  this->setContentsMargins(2, 2, 2, 2);
+  m_layout.setMargin(10);
+  m_layout.setSpacing(6);
   this->setLayout(&m_layout);
   auto layout = new score::MarginLess<QVBoxLayout>;
-  layout->setMargin(9);
-  layout->setSpacing(6);
+
   layout->addWidget(&m_stack);
   m_layout.addLayout(layout);
   m_layout.addWidget(m_buttons);

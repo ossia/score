@@ -134,12 +134,12 @@ public:
 
   QSize sizeHint() const override
   {
-    return {100, 15};
+    return {100, 19};
   }
 
   void paintEvent(QPaintEvent* ev) override
   {
-    static const QFont font("Ubuntu", 9, QFont::Bold);
+    static const QFont font("Ubuntu", 11, QFont::Bold);
     QPainter painter{this};
     painter.setFont(font);
     painter.drawText(rect(), Qt::AlignCenter, m_text);
