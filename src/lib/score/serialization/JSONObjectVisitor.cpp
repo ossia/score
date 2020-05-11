@@ -16,7 +16,7 @@ rapidjson::Document clone(const rapidjson::Value& val) noexcept
   v.CopyFrom(val, JsonPool(), true);
   return v;
 }
-
+SCORE_LIB_BASE_EXPORT
 rapidjson::Document toValue(const JSONReader& r) noexcept
 {
   rapidjson::Document doc;

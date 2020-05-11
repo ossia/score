@@ -229,15 +229,15 @@ public:
   const score::ApplicationComponents& components;
   const score::StringConstants& strings;
 
-  QByteArray toByteArray()  noexcept {
+  QByteArray toByteArray() const {
     SCORE_ASSERT(stream.IsComplete());
     return QByteArray{buffer.GetString(), (int)buffer.GetLength()};
   }
-  std::string toStdString()  noexcept {
+  std::string toStdString() const {
     SCORE_ASSERT(stream.IsComplete());
     return std::string{buffer.GetString(), buffer.GetLength()};
   }
-  QString toString()  noexcept {
+  QString toString() const {
     SCORE_ASSERT(stream.IsComplete());
     return QString::fromUtf8(buffer.GetString(), buffer.GetLength());
   }
@@ -1211,13 +1211,13 @@ struct TSerializer<JSONObject, Id<T>>
 
 
 template <>
-struct TSerializer<DataStream, rapidjson::Document>
+struct SCORE_LIB_BASE_EXPORT TSerializer<DataStream, rapidjson::Document>
 {
   static void readFrom(DataStream::Serializer& s, const rapidjson::Document& obj);
   static void writeTo(DataStream::Deserializer& s, rapidjson::Document& obj);
 };
 template <>
-struct TSerializer<DataStream, rapidjson::Value>
+struct SCORE_LIB_BASE_EXPORT TSerializer<DataStream, rapidjson::Value>
 {
   static void readFrom(DataStream::Serializer& s, rapidjson::Value& obj) = delete;
   static void writeTo(DataStream::Deserializer& s, rapidjson::Value& obj) = delete;
@@ -1233,7 +1233,7 @@ void JSONReader::read<Process::Inlet*>(Process::Inlet* const &) = delete;
 
 
 
-rapidjson::MemoryPoolAllocator<>& JsonPool() noexcept;
+SCORE_LIB_BASE_EXPORT
 rapidjson::Document clone(const rapidjson::Value& val) noexcept;
 
 inline

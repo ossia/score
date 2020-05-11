@@ -79,7 +79,7 @@ public:
   Path<Process::Inlet> sink() const;
 
   void setType(CableType type);
-  void resetCache() const noexcept;
+  void resetCache() const noexcept override;
 
 public:
   void typeChanged(CableType type)
