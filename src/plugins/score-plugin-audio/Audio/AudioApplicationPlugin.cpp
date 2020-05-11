@@ -55,13 +55,6 @@ void ApplicationPlugin::initialize()
       &ApplicationPlugin::restart_engine,
       Qt::QueuedConnection);
 
-  try
-  {
-    setup_engine();
-  }
-  catch (...)
-  {
-  }
   if (context.applicationSettings.gui)
   {
     auto& stop_action = context.actions.action<Actions::Stop>();
@@ -95,7 +88,7 @@ void ApplicationPlugin::on_documentChanged(
             score::Document *olddoc,
             score::Document *newdoc)
 {
-    restart_engine();
+  restart_engine();
 }
 
 score::GUIElements ApplicationPlugin::makeGUIElements()
@@ -152,49 +145,18 @@ score::GUIElements ApplicationPlugin::makeGUIElements()
   e.actions.container.reserve(2);
   e.actions.add<Actions::RestartAudio>(m_audioEngineAct);
 
-  connect(m_audioEngineAct, &QAction::triggered, this, [=](bool) {
-    auto& preview = AudioPreviewExecutor::instance();
-    preview.audio = nullptr;
-
-    if (audio)
-    {
-      audio->stop();
-      audio.reset();
-    }
-    else
-    {
-      setup_engine();
-    }
-    m_audioEngineAct->setChecked(bool(audio));
-
-    if (auto doc = currentDocument())
-    {
-      auto dev = doc->context()
-          .plugin<Explorer::DeviceDocumentPlugin>()
-          .list()
-          .audioDevice();
-      if (!dev)
-        return;
-
-      dev->reconnect();
-      if(audio)
-      {
-        preview.audio = audio->protocol;
-        preview.audio->set_tick(makeDefaultTick(this->context));
-      }
-      else
-      {
-        preview.audio = nullptr;
-      }
-    }
-  });
+  connect(m_audioEngineAct, &QAction::triggered,
+          this, &ApplicationPlugin::restart_engine);
 
   return e;
 }
 void ApplicationPlugin::restart_engine()
+try
 {
   if (m_updating_audio)
     return;
+  auto& preview = AudioPreviewExecutor::instance();
+  preview.audio = nullptr;
 
   if (auto doc = this->currentDocument())
   {
@@ -205,9 +167,14 @@ void ApplicationPlugin::restart_engine()
     if (!dev)
       return;
     if (audio)
+    {
       audio->stop();
+      audio.reset();
+    }
 
     setup_engine();
+
+    m_audioEngineAct->setChecked(bool(audio));
 
     auto& preview = AudioPreviewExecutor::instance();
     preview.audio = nullptr;
@@ -222,6 +189,14 @@ void ApplicationPlugin::restart_engine()
       preview.audio = nullptr;
     }
   }
+}
+catch(...)
+{
+  score::warning(context.documentTabWidget,
+                 tr("Audio Error"),
+                 tr("Warning: audio engine stuck. "
+                    "Operation aborted. "
+                    "Check the audio settings."));
 }
 
 void ApplicationPlugin::setup_engine()
@@ -250,13 +225,11 @@ void ApplicationPlugin::setup_engine()
     }
     catch (...)
     {
-      /*
       score::warning(
             nullptr,
             tr("Audio error"),
             tr("The desired audio settings could not be applied.\nPlease change "
                "them."));
-               */
     }
   }
 
