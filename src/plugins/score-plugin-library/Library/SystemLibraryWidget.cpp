@@ -42,14 +42,13 @@ SystemLibraryWidget::SystemLibraryWidget(
   setup_treeview(m_tv);
 
   {
-    auto previewLay = new QHBoxLayout{&m_preview};
+    auto previewLay = new score::MarginLess<QHBoxLayout>{&m_preview};
     m_preview.setLayout(previewLay);
-    //m_preview.setMinimumWidth(150);
-    //m_preview.setMinimumHeight(30);
-    //m_preview.setMaximumHeight(30);
+    m_preview.hide();
   }
 
   connect(&m_tv, &QTreeView::pressed, this, [&](const QModelIndex& idx) {
+    m_preview.hide();
     auto doc = ctx.docManager.currentDocument();
     if (!doc)
       return;
@@ -63,6 +62,7 @@ SystemLibraryWidget::SystemLibraryWidget(
       if ((m_previewChild = lib->previewWidget(path, &m_preview)))
       {
         m_preview.layout()->addWidget(m_previewChild);
+        m_preview.show();
       }
     }
   });
