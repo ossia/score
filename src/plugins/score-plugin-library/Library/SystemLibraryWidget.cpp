@@ -80,12 +80,14 @@ SystemLibraryWidget::SystemLibraryWidget(
   });
   m_tv.setAcceptDrops(true);
 
-  auto& settings = ctx.settings<Library::Settings::Model>();
-  il->reset = [this, &settings] { setRoot(settings.getPath()); };
-  il->reset();
-  con(settings, &Library::Settings::Model::PathChanged,
-      this, [=] {
+  QTimer::singleShot(1000, [this, il, &ctx] {
+    auto& settings = ctx.settings<Library::Settings::Model>();
+    il->reset = [this, &settings] { setRoot(settings.getPath()); };
     il->reset();
+    con(settings, &Library::Settings::Model::PathChanged,
+        this, [=] {
+      il->reset();
+    });
   });
 }
 

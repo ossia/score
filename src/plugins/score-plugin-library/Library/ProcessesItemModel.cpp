@@ -7,6 +7,7 @@
 
 #include <QMimeData>
 #include <QIcon>
+#include <QTimer>
 
 #include <map>
 
@@ -39,9 +40,12 @@ ProcessesItemModel::ProcessesItemModel(const score::GUIApplicationContext& ctx, 
   }
 
   auto& lib_setup = ctx.interfaces<Library::LibraryInterfaceList>();
+  int k = 0;
   for (auto& lib : lib_setup)
   {
-    lib.setup(*this, ctx);
+    QTimer::singleShot(k++ * 100, [&] {
+      lib.setup(*this, ctx);
+    });
   }
 }
 
