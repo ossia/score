@@ -178,7 +178,7 @@ View::View(QObject* parent)
 
   {
     auto rs = new RectSplitter{Qt::Vertical};
-    rs->brush = QColor("#1F1F20");
+    rs->brush = QColor("#1D1D1D");
     centralDocumentWidget = rs;
     totalWidg->addWidget(centralDocumentWidget);
     centralDocumentWidget->setContentsMargins(0, 0, 0, 0);
