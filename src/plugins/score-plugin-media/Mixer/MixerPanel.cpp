@@ -80,7 +80,7 @@ protected:
     p.drawRoundedRect(rect(), round, round);
 
     p.setPen(skin.TransparentPen);
-    p.setBrush(skin.SliderBrush);
+    p.setBrush(skin.SliderInteriorBrush);
 
     const int y = 0;
     const int h = height();
