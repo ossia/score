@@ -4,7 +4,7 @@
 #include <score/model/EntityList.hpp>
 #include <score/serialization/JSONVisitor.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
-#include </home/jcelerier/score/src/lib/score/plugins/SerializableHelpers.hpp>
+#include <score/plugins/SerializableHelpers.hpp>
 
 struct EntityMapSerializer {
 

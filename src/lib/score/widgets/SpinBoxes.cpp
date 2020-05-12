@@ -288,11 +288,13 @@ void TimeSpinBox::mousePressEvent(QMouseEvent* event)
   const auto text_rect = rect().adjusted(2, 2, -4, -2);
 
 #if defined(__APPLE__)
-  CGEventRef event = CGEventCreate(nullptr);
-  CGPoint loc = CGEventGetLocation(event);
-  CFRelease(event);
-
-  m_startPos = {loc.x, loc.y};
+  CGPoint loc;
+  {
+    CGEventRef event = CGEventCreate(nullptr);
+    loc = CGEventGetLocation(event);
+    CFRelease(event);
+  }
+  m_startPos = QPoint(loc.x, loc.y);
 #else
   m_startPos = event->globalPos();
 #endif

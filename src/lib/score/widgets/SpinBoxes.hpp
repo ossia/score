@@ -2,7 +2,6 @@
 
 #include <QDoubleSpinBox>
 #include <QSpinBox>
-#include <QTimeEdit>
 #include <QWheelEvent>
 #include <type_traits>
 #include <ossia-qt/time.hpp>
