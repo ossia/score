@@ -125,6 +125,6 @@ void TimeSyncRawPtrComponent::updateTriggerTime()
 
 void TimeSyncRawPtrComponent::on_GUITrigger()
 {
-  this->in_exec([e = m_ossia_node] { e->trigger_request = true; });
+  this->in_exec([e = m_ossia_node] { e->start_trigger_request(); });
 }
 }

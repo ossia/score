@@ -89,6 +89,34 @@ void TimeSyncComponent::onSetup(
     updateTriggerTime();
     m_ossia_node->set_autotrigger(m_score_node->autotrigger());
     m_ossia_node->set_start(m_score_node->isStartPoint());
+
+    using namespace ossia;
+    auto startWait = [&edit = system().editionQueue, score_node = m_score_node] (ossia::time_value = 0_tv) {
+      edit.enqueue([score_node] {
+        if(score_node)
+        {
+          auto v = const_cast<Scenario::TimeSyncModel*>(score_node.data());
+          v->setWaiting(true);
+        }
+      });
+    };
+
+    auto endWait = [&edit = system().editionQueue, score_node = m_score_node] (bool = false) {
+      edit.enqueue([score_node] {
+        if(score_node)
+        {
+          auto v = const_cast<Scenario::TimeSyncModel*>(score_node.data());
+          v->setWaiting(false);
+        }
+      });
+    };
+    //m_ossia_node->entered_evaluation.add_callback([] { });
+    m_ossia_node->entered_triggering.add_callback(startWait);
+    m_ossia_node->trigger_date_fixed.add_callback(startWait);
+
+    m_ossia_node->left_evaluation.add_callback(endWait);
+    m_ossia_node->finished_evaluation.add_callback(endWait);
+    // m_ossia_node->triggered.add_callback([] { });
   }
 }
 
@@ -126,6 +154,6 @@ void TimeSyncComponent::updateTriggerTime()
 
 void TimeSyncComponent::on_GUITrigger()
 {
-  this->in_exec([e = m_ossia_node] { e->trigger_request = true; });
+  this->in_exec([e = m_ossia_node] { e->start_trigger_request(); });
 }
 }

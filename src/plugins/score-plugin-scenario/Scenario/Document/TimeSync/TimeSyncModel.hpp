@@ -79,6 +79,8 @@ public:
   Control::musical_sync musicalSync() const noexcept;
   void setMusicalSync(Control::musical_sync sig);
 
+  void setWaiting(bool);
+  bool waiting() const noexcept;
 public:
   void dateChanged(const TimeVal& arg_1)
       E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, dateChanged, arg_1)
@@ -96,7 +98,10 @@ public:
   void startPointChanged(bool b) E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, startPointChanged, b)
 
   void triggeredByGui() const
-      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, triggeredByGui)
+  E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, triggeredByGui)
+
+  void waitingChanged(bool b) const
+  E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, waitingChanged, b)
 
   double musicalSyncChanged(Control::musical_sync sync)
   E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, musicalSyncChanged, sync)
@@ -113,6 +118,7 @@ private:
   bool m_active{false};
   bool m_autotrigger{false};
   bool m_startPoint{false};
+  bool m_waiting{false};
 };
 }
 

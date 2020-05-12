@@ -3,6 +3,7 @@
 #include <wobjectimpl.h>
 #include <QStyleOptionComplex>
 #include <QPainter>
+#include <QTime>
 #include <score/tools/Cursor.hpp>
 W_OBJECT_IMPL(score::TimeSpinBox)
 namespace score

@@ -632,6 +632,10 @@ void ApplicationPlugin::on_stop()
           itv.reset();
           itv.executionFinished();
         }
+        for (auto& ts : e->timeSyncs)
+        {
+          ts.setWaiting(false);
+        }
         for (auto& ev : e->events)
         {
           ev.setStatus(Scenario::ExecutionStatus::Editing, *e);
@@ -647,6 +651,8 @@ void ApplicationPlugin::on_stop()
         lp->endEvent().setStatus(Scenario::ExecutionStatus::Editing, *lp);
         lp->startState().setStatus(Scenario::ExecutionStatus::Editing);
         lp->endState().setStatus(Scenario::ExecutionStatus::Editing);
+        lp->startTimeSync().setWaiting(false);
+        lp->endTimeSync().setWaiting(false);
       }
     });
   }

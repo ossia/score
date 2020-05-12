@@ -20,6 +20,10 @@ namespace Scenario
     p.setDevicePixelRatio(2.);
     return p;
   }
+  static const QImage& triggerImage() {
+    static auto p = triggerPixmap().toImage();
+    return p;
+  }
   static const QPixmap& selectedTriggerPixmap() {
     static auto p = score::get_pixmap(":/icons/scenario_trigger_selected.png");
     p.setDevicePixelRatio(2.);
@@ -38,25 +42,22 @@ namespace Scenario
 
 TriggerView::TriggerView(QGraphicsItem* parent)
     : QGraphicsItem{parent}
+    , m_currentFrame{0}
+    , m_frameDirection{1}
     , m_selected{false}
     , m_hovered{false}
     , m_waiting{false}
-    , m_currentFrame{0}
-    , m_frameDirection{1}
 {
+  this->setCursor(Qt::OpenHandCursor);
   this->setCacheMode(QGraphicsItem::NoCache);
   this->setAcceptHoverEvents(true);
   this->setAcceptDrops(true);
-
-  m_currentPixmap = triggerPixmap();
-  m_image = m_currentPixmap.toImage();
-  //connect(m_timer, &QTimer::timeout, this, &TriggerView::nextFrame);
 }
 
 void TriggerView::setSelected(bool b) noexcept
 {
   m_selected = b;
-  updatePixmap();
+  update();
 }
 
 QRectF TriggerView::boundingRect() const
@@ -67,15 +68,26 @@ QRectF TriggerView::boundingRect() const
 void TriggerView::paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget)
 {
   const qreal sz = painter->device()->devicePixelRatioF() * iconSize;
-  painter->drawPixmap(
-        QRectF{0,0,iconSize,iconSize},
-        m_currentPixmap,
-        QRectF{qreal(m_currentFrame),0,sz,sz});
+  auto& pixmap = currentPixmap();
+  if(&pixmap == &triggerSpriteSheet())
+  {
+    painter->drawPixmap(
+          QPointF{},
+          pixmap,
+          QRectF{qreal(m_currentFrame),0,sz,sz});
+    nextFrame();
+  }
+  else
+  {
+    painter->drawPixmap(QPointF{}, pixmap);
+  }
 }
 
 bool TriggerView::contains(const QPointF& point) const
 {
-  return m_image.pixelColor(point.x(), point.y()).alpha() > 0 ;
+  return boundingRect().contains(point);
+  //const double p = triggerImage().devicePixelRatio();
+  //return triggerImage().pixelColor(point.x() * p, point.y() * p).alpha() > 0 ;
 }
 
 void TriggerView::mousePressEvent(QGraphicsSceneMouseEvent* event)
@@ -87,14 +99,14 @@ void TriggerView::mousePressEvent(QGraphicsSceneMouseEvent* event)
 void TriggerView::hoverEnterEvent(QGraphicsSceneHoverEvent* event)
 {
   m_hovered = true;
-  updatePixmap();
+  update();
   event->accept();
 }
 
 void TriggerView::hoverLeaveEvent(QGraphicsSceneHoverEvent* event)
 {
   m_hovered = false;
-  updatePixmap();
+  update();
   event->accept();
 }
 
@@ -108,10 +120,12 @@ void TriggerView::nextFrame()
   if(!m_waiting)
     return;
 
-  m_currentFrame += m_frameDirection * iconSize;
+  const double p = triggerImage().devicePixelRatio();
+  const auto sz = p * iconSize;
+  m_currentFrame += m_frameDirection * sz;
   if( m_currentFrame >= triggerSpriteSheet().width())
   {
-    m_currentFrame = triggerSpriteSheet().width() - iconSize;
+    m_currentFrame = triggerSpriteSheet().width() - sz;
     m_frameDirection = -1;
   }
   else if(m_currentFrame < 0)
@@ -122,23 +136,22 @@ void TriggerView::nextFrame()
   update();
 }
 
-void TriggerView::updatePixmap()
+const QPixmap& TriggerView::currentPixmap() const noexcept
 {
   if(m_selected) {
-    m_currentPixmap = selectedTriggerPixmap();
+    return selectedTriggerPixmap();
   } else if (m_hovered) {
-    m_currentPixmap = hoveredTriggerPixmap();
+    return hoveredTriggerPixmap();
   } else if (m_waiting) {
-    m_currentPixmap = triggerSpriteSheet();
+    return triggerSpriteSheet();
   } else {
-    m_currentPixmap = triggerPixmap();
+    return triggerPixmap();
   }
 }
 
 void TriggerView::onWaitStart()
 {
   m_waiting = true;
-  updatePixmap();
   update();
 }
 
@@ -146,7 +159,6 @@ void TriggerView::onWaitEnd()
 {
   m_waiting = false;
   m_currentFrame = 0;
-  updatePixmap();
   update();
 }
 }

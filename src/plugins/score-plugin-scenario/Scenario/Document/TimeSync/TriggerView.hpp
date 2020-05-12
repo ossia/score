@@ -27,6 +27,9 @@ public:
   int type() const final override { return Type; }
 
   void setSelected(bool b) noexcept;
+  void onWaitStart();
+  void onWaitEnd();
+  void nextFrame();
 
 public:
   void pressed(QPointF arg_1) W_SIGNAL(pressed, arg_1);
@@ -35,31 +38,25 @@ public:
       W_SIGNAL(dropReceived, pos, arg_2);
 
   QRectF boundingRect() const override;
-  void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) override;
 
+private:
+  void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) override;
   bool contains(const QPointF& point) const override;
 
-protected:
   void dropEvent(QGraphicsSceneDragDropEvent* event) override;
-  void nextFrame();
-private:
   void mousePressEvent(QGraphicsSceneMouseEvent*) override;
 
   void hoverEnterEvent(QGraphicsSceneHoverEvent*) override;
   void hoverLeaveEvent(QGraphicsSceneHoverEvent*) override;
 
-  void updatePixmap();
+  const QPixmap& currentPixmap() const noexcept;
 
-  void onWaitStart();
-  void onWaitEnd();
+  int m_currentFrame{};
+  int m_frameDirection{};
 
   bool m_selected: 1;
   bool m_hovered: 1;
   bool m_waiting: 1;
 
-  QPixmap m_currentPixmap;
-  QImage m_image;
-  int m_currentFrame;
-  int m_frameDirection;
 };
 }

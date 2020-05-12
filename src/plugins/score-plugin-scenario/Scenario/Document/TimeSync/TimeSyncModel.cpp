@@ -147,4 +147,15 @@ void TimeSyncModel::setMusicalSync(Control::musical_sync s)
   }
 }
 
+void TimeSyncModel::setWaiting(bool b)
+{
+  m_waiting = b;
+  waitingChanged(b);
+}
+
+bool TimeSyncModel::waiting() const noexcept
+{
+  return m_waiting;
+}
+
 }

@@ -34,6 +34,12 @@ TimeSyncPresenter::TimeSyncPresenter(
     m_view->setSelected(b);
     m_triggerView->setSelected(b);
   });
+  con(m_model, &TimeSyncModel::waitingChanged, this, [=](bool b) {
+    if(b)
+      m_triggerView->onWaitStart();
+    else
+      m_triggerView->onWaitEnd();
+  });
 
   con(m_model.metadata(),
       &score::ModelMetadata::ColorChanged,
