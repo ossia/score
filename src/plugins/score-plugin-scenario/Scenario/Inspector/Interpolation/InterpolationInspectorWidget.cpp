@@ -38,7 +38,7 @@ InspectorWidget::InspectorWidget(
   m_label = new TextLabel{name, this};
   auto f = m_label->font();
   f.setBold(true);
-  f.setPointSize(18);
+  f.setPixelSize(18);
   m_label->setFont(f);
 
   // TODO use the same style as InspectorWidgetBase

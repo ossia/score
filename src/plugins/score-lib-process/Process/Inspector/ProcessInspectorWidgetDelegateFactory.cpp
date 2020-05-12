@@ -66,7 +66,7 @@ public:
     auto label = new TextLabel{process.prettyShortName(), this};
     auto f = label->font();
     f.setBold(true);
-    f.setPointSize(18);
+    f.setPixelSize(18);
     label->setFont(f);
     lay->addWidget(label);
     if(!(process.flags() & ProcessFlags::TimeIndependent))
