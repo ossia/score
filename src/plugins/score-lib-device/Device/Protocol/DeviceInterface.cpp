@@ -308,6 +308,11 @@ QMimeData* DeviceInterface::mimeData() const
   return nullptr;
 }
 
+void DeviceInterface::setupContextMenu(QMenu&) const
+{
+
+}
+
 DeviceInterface::DeviceInterface(Device::DeviceSettings s)
     : m_settings(std::move(s))
 {

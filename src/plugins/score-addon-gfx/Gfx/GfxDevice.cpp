@@ -8,6 +8,7 @@
 
 #include <QFormLayout>
 #include <QMimeData>
+#include <QMenu>
 
 #include <Gfx/GfxApplicationPlugin.hpp>
 #include <wobjectimpl.h>
@@ -45,6 +46,40 @@ QMimeData* GfxDevice::mimeData() const
   s.serialize({mess});
   return mimeData;
 }
+
+void GfxDevice::setupContextMenu(QMenu& menu) const
+{
+  if(m_dev)
+  {
+    auto p = m_dev.get()->get_root_node().get_parameter();
+    if(p)
+    {
+      if(auto s = p->screen)
+      {
+        if(auto w = s->window)
+        {
+          auto showhide = new QAction;
+          if(!w->isVisible())
+          {
+            showhide->setText(tr("Show"));
+            connect(showhide, &QAction::triggered, w.get(), [w] {
+              w->show();
+            });
+          }
+          else
+          {
+            showhide->setText(tr("Hide"));
+            connect(showhide, &QAction::triggered, w.get(), [w] {
+              w->hide();
+            });
+          }
+          menu.addAction(showhide);
+        }
+      }
+    }
+  }
+}
+
 void GfxDevice::addAddress(const Device::FullAddressSettings& settings)
 {
   using namespace ossia;

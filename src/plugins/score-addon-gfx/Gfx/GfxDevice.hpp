@@ -33,13 +33,14 @@ class gfx_parameter : public ossia::net::parameter_base
 
 public:
   int32_t node_id{};
+  ScreenNode* screen{};
 
-  gfx_parameter(ossia::net::node_base& n)
+  gfx_parameter(ossia::net::node_base& n, GfxExecutionAction* ctx)
       : ossia::net::parameter_base{n}
-      , context{
-            dynamic_cast<gfx_protocol&>(n.get_device().get_protocol()).context}
+      , context{ctx}
   {
-    node_id = context->ui->register_node(std::make_unique<ScreenNode>());
+    screen = new ScreenNode;
+    node_id = context->ui->register_node(std::unique_ptr<ScreenNode>{screen});
   }
 
   virtual ~gfx_parameter() { context->ui->unregister_node(node_id); }
@@ -109,15 +110,23 @@ class gfx_node : public ossia::net::node_base
 {
   ossia::net::device_base& m_device;
   node_base* m_parent{};
-  std::unique_ptr<ossia::net::parameter_base> m_parameter;
+  std::unique_ptr<gfx_parameter> m_parameter;
 
 public:
   gfx_node(ossia::net::device_base& dev, std::string name)
-      : m_device{dev}, m_parameter{std::make_unique<gfx_parameter>(*this)}
+      : m_device{dev}
+      , m_parameter{
+          std::make_unique<gfx_parameter>(
+            *this,
+            dynamic_cast<gfx_protocol&>(dev.get_protocol()).context)}
   {
     m_name = std::move(name);
   }
 
+  gfx_parameter* get_parameter() const override
+  {
+    return m_parameter.get();
+  }
 private:
   ossia::net::device_base& get_device() const override { return m_device; }
   ossia::net::node_base* get_parent() const override { return m_parent; }
@@ -127,10 +136,7 @@ private:
     return m_parameter.get();
   }
   bool remove_parameter() override { return false; }
-  ossia::net::parameter_base* get_parameter() const override
-  {
-    return m_parameter.get();
-  }
+
   std::unique_ptr<ossia::net::node_base>
   make_child(const std::string& name) override
   {
@@ -151,8 +157,8 @@ public:
   {
   }
 
-  const ossia::net::node_base& get_root_node() const override { return root; }
-  ossia::net::node_base& get_root_node() override { return root; }
+  const gfx_node& get_root_node() const override { return root; }
+  gfx_node& get_root_node() override { return root; }
 };
 }
 
@@ -218,11 +224,12 @@ public:
 
 private:
   using Device::DeviceInterface::refresh;
-  QMimeData* mimeData() const;
-  void
-  setupNode(ossia::net::node_base&, const ossia::extended_attributes& attr);
+  QMimeData* mimeData() const override;
+  void setupContextMenu(QMenu&) const override;
   Device::Node refresh() override;
   void disconnect() override;
+
+  void setupNode(ossia::net::node_base&, const ossia::extended_attributes& attr);
 
   const score::DocumentContext& m_ctx;
   gfx_protocol* m_protocol{};

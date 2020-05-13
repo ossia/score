@@ -106,6 +106,7 @@ public:
   virtual void setLearning(bool);
 
   virtual QMimeData* mimeData() const;
+  virtual void setupContextMenu(QMenu&) const;
 
   void nodeCreated(const ossia::net::node_base&);
   void nodeRemoving(const ossia::net::node_base&);

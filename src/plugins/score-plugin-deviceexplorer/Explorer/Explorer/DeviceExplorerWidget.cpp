@@ -509,6 +509,26 @@ void DeviceExplorerWidget::contextMenuEvent(QContextMenuEvent* event)
   updateActions();
   QMenu* contextMenu = new QMenu{this};
 
+  if (auto m = model())
+  {
+    if (!m->isEmpty())
+    {
+      QModelIndexList selection = m_ntView->selectedIndexes();
+
+      if (selection.size() == 1)
+      {
+        auto& node = m->nodeFromModelIndex(m_ntView->selectedIndex());
+        if (node.is<Device::DeviceSettings>())
+        {
+          auto& lst = m->deviceModel().list();
+          auto& dev = lst.device(node.get<Device::DeviceSettings>().name);
+          dev.setupContextMenu(*contextMenu);
+          contextMenu->addSeparator();
+        }
+      }
+    }
+  }
+
   contextMenu->addAction(m_editAction);
   contextMenu->addAction(m_refreshAction);
   contextMenu->addAction(m_refreshValueAction);
