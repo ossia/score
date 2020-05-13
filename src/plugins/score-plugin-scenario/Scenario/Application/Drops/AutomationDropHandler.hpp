@@ -39,6 +39,15 @@ public:
   }
 };
 
+class DropProcessOnState
+{
+public:
+  bool drop(
+      const Scenario::StateModel&,
+      const Scenario::ProcessModel&,
+      const QMimeData& mime,
+      const score::DocumentContext& ctx);
+};
 class DropProcessInScenario final : public GhostIntervalDropHandler
 {
   SCORE_CONCRETE("9a094988-b05f-4e10-8e0d-56e8d46e084d")

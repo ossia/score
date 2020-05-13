@@ -198,6 +198,13 @@ void StatePresenter::handleDrop(const QMimeData& mime)
       }
     }
   }
+  else
+  {
+    if(auto scenar = qobject_cast<Scenario::ProcessModel*>(m_model.parent()))
+    {
+      DropProcessOnState{}.drop(this->m_model, *scenar, mime, m_ctx);
+    }
+  }
 }
 
 void StatePresenter::updateStateView()
