@@ -4,9 +4,11 @@
 
 #include <boost/assign/list_of.hpp>
 #include <ossia/detail/flat_map.hpp>
+#include <score/widgets/Pixmap.hpp>
 
 #include <QJsonArray>
 #include <QJsonObject>
+#include <QGuiApplication>
 
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(score::Skin)
@@ -148,6 +150,39 @@ Skin::Skin() noexcept
   SliderFont = SansFont;
   SliderFont.setPixelSize(10 * 96./ 72.);
   SliderFont.setWeight(QFont::DemiBold);
+
+  int hotspotX = 12 * qApp->devicePixelRatio();
+  int hotspotY = 10 * qApp->devicePixelRatio();
+  CursorPointer = QCursor{score::get_pixmap(":/icons/cursor_pointer.png"), hotspotX, hotspotY};
+
+  int hotspot = 16 * qApp->devicePixelRatio();
+  CursorHand = QCursor{score::get_pixmap(":/icons/cursor_hand.png"), hotspot, hotspot};
+
+  hotspot = 15 * qApp->devicePixelRatio();
+  CursorMagnifier = QCursor{score::get_pixmap(":/icons/cursor_magnifier.png"), hotspot, hotspot};
+
+  hotspot = 15 * qApp->devicePixelRatio();
+  CursorMove = QCursor{score::get_pixmap(":/icons/cursor_move.png"), hotspot, hotspot};
+
+  hotspotX = 16 * qApp->devicePixelRatio();
+  hotspotY = 15 * qApp->devicePixelRatio();
+  CursorScaleH = QCursor{score::get_pixmap(":/icons/cursor_scale_h.png"), hotspotX, hotspotY};
+  CursorScaleV = QCursor{score::get_pixmap(":/icons/cursor_scale_v.png"), hotspotY, hotspotX};
+
+  hotspotX = 12 * qApp->devicePixelRatio();
+  hotspotY = 10 * qApp->devicePixelRatio();
+  CursorPlayFromHere = QCursor{score::get_pixmap(":/icons/cursor_play_from_here.png"), hotspotX, hotspotY};
+  CursorCreationMode = QCursor{score::get_pixmap(":/icons/cursor_creation_mode.png"), hotspotY, hotspotX};
+
+  CursorProcessAudio = QCursor{score::get_pixmap(":/icons/cursor_process_audio.png"), hotspotX, hotspotY};
+  CursorProcessAutomation = QCursor{score::get_pixmap(":/icons/cursor_process_automation.png"), hotspotX, hotspotY};
+  CursorProcessControls = QCursor{score::get_pixmap(":/icons/cursor_process_controls.png"), hotspotX, hotspotY};
+  CursorProcessFilter = QCursor{score::get_pixmap(":/icons/cursor_process_filter.png"), hotspotX, hotspotY};
+  CursorProcessGfx = QCursor{score::get_pixmap(":/icons/cursor_process_gfx.png"), hotspotX, hotspotY};
+  CursorProcessMidi = QCursor{score::get_pixmap(":/icons/cursor_process_midi.png"), hotspotX, hotspotY};
+  CursorProcessScript = QCursor{score::get_pixmap(":/icons/cursor_process_script.png"), hotspotX, hotspotY};
+  CursorProcessStructure = QCursor{score::get_pixmap(":/icons/cursor_process_structure.png"), hotspotX, hotspotY};
+  CursorProcessUi = QCursor{score::get_pixmap(":/icons/cursor_process_ui.png"), hotspotX, hotspotY};
 
   std::initializer_list<QFont*> mono_fonts = {
      &MonoFont, &MonoFontSmall

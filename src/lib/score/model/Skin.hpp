@@ -1,5 +1,6 @@
 #pragma once
 #include <QBrush>
+#include <QCursor>
 #include <QFont>
 #include <QObject>
 #include <QPair>
@@ -167,6 +168,27 @@ public:
   QPen SliderLine;
   QPen SliderTextPen;
   QFont SliderFont;
+
+  QCursor CursorPointer;
+  QCursor CursorHand;
+  QCursor CursorMagnifier;
+  QCursor CursorMove;
+  QCursor CursorScaleH;
+  QCursor CursorScaleV;
+
+  QCursor CursorPlayFromHere;
+  QCursor CursorCreationMode;
+
+  QCursor CursorProcessAudio;
+  QCursor CursorProcessAutomation;
+  QCursor CursorProcessControls;
+  QCursor CursorProcessFilter;
+  QCursor CursorProcessGfx;
+  QCursor CursorProcessMidi;
+  QCursor CursorProcessScript;
+  QCursor CursorProcessStructure;
+  QCursor CursorProcessUi;
+
 
   const Brush* fromString(const QString& s) const;
   Brush* fromString(const QString& s);

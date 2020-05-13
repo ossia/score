@@ -551,5 +551,39 @@
         <file>startscreen/startscreensplash.png</file>
         <file>startscreen/startscreensplash@2x.png</file>
         <file>Montserrat-Light.ttf</file>
+        <file>icons/cursor_hand.png</file>
+        <file>icons/cursor_hand@2x.png</file>
+        <file>icons/cursor_magnifier.png</file>
+        <file>icons/cursor_magnifier@2x.png</file>
+        <file>icons/cursor_move.png</file>
+        <file>icons/cursor_move@2x.png</file>
+        <file>icons/cursor_scale_h.png</file>
+        <file>icons/cursor_scale_h@2x.png</file>
+        <file>icons/cursor_scale_v.png</file>
+        <file>icons/cursor_scale_v@2x.png</file>
+        <file>icons/cursor_pointer.png</file>
+        <file>icons/cursor_pointer@2x.png</file>
+        <file>icons/cursor_play_from_here.png</file>
+        <file>icons/cursor_play_from_here@2x.png</file>
+        <file>icons/cursor_creation_mode.png</file>
+        <file>icons/cursor_creation_mode@2x.png</file>
+        <file>icons/cursor_process_audio.png</file>
+        <file>icons/cursor_process_audio@2x.png</file>
+        <file>icons/cursor_process_automation.png</file>
+        <file>icons/cursor_process_automation@2x.png</file>
+        <file>icons/cursor_process_controls.png</file>
+        <file>icons/cursor_process_controls@2x.png</file>
+        <file>icons/cursor_process_filter.png</file>
+        <file>icons/cursor_process_filter@2x.png</file>
+        <file>icons/cursor_process_gfx.png</file>
+        <file>icons/cursor_process_gfx@2x.png</file>
+        <file>icons/cursor_process_midi.png</file>
+        <file>icons/cursor_process_midi@2x.png</file>
+        <file>icons/cursor_process_script.png</file>
+        <file>icons/cursor_process_script@2x.png</file>
+        <file>icons/cursor_process_structure.png</file>
+        <file>icons/cursor_process_structure@2x.png</file>
+        <file>icons/cursor_process_ui.png</file>
+        <file>icons/cursor_process_ui@2x.png</file>
     </qresource>
 </RCC>
