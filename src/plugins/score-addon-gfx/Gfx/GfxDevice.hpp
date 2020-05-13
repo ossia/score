@@ -218,6 +218,7 @@ public:
 
 private:
   using Device::DeviceInterface::refresh;
+  QMimeData* mimeData() const;
   void
   setupNode(ossia::net::node_base&, const ossia::extended_attributes& attr);
   Device::Node refresh() override;

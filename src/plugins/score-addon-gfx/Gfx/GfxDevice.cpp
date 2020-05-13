@@ -3,8 +3,11 @@
 #include <State/Widgets/AddressFragmentLineEdit.hpp>
 
 #include <ossia-qt/name_utils.hpp>
+#include <score/serialization/MimeVisitor.hpp>
+#include <State/MessageListSerialization.hpp>
 
 #include <QFormLayout>
+#include <QMimeData>
 
 #include <Gfx/GfxApplicationPlugin.hpp>
 #include <wobjectimpl.h>
@@ -31,6 +34,17 @@ GfxDevice::GfxDevice(
 
 GfxDevice::~GfxDevice() {}
 
+QMimeData* GfxDevice::mimeData() const
+{
+  auto mimeData = new QMimeData;
+
+  State::Message mess;
+  mess.address.address.device = m_settings.name;
+
+  Mime<State::MessageList>::Serializer s{*mimeData};
+  s.serialize({mess});
+  return mimeData;
+}
 void GfxDevice::addAddress(const Device::FullAddressSettings& settings)
 {
   using namespace ossia;
