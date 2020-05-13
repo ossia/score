@@ -1,31 +1,29 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
-#include "DoubleSlider.hpp"
+#include "IntSlider.hpp"
 
 #include <score/model/Skin.hpp>
 #include <score/tools/Clamp.hpp>
 
 #include <QMouseEvent>
 #include <QPainter>
-#include <QStyleOptionSlider>
 
 #include <wobjectimpl.h>
-W_OBJECT_IMPL(score::DoubleSlider)
+W_OBJECT_IMPL(score::IntSlider)
 namespace score
 {
-DoubleSlider::~DoubleSlider() = default;
+IntSlider::~IntSlider() = default;
 
-
-DoubleSlider::DoubleSlider(Qt::Orientation ort, QWidget* widg) :
+IntSlider::IntSlider(Qt::Orientation ort, QWidget* widg) :
   QWidget{widg},
   m_orientation(ort)
 {
   setFocusPolicy(Qt::FocusPolicy(style()->styleHint(QStyle::SH_Button_FocusPolicy)));
-  QSizePolicy sp(QSizePolicy::Ignored, QSizePolicy::Fixed, QSizePolicy::Slider);
+  QSizePolicy sp(QSizePolicy::Expanding, QSizePolicy::Fixed, QSizePolicy::Slider);
   if (ort == Qt::Vertical)
       sp.transpose();
   setSizePolicy(sp);
-setAttribute(Qt::WA_WState_OwnSizePolicy, false);
+  setAttribute(Qt::WA_WState_OwnSizePolicy, false);
 
   auto& skin = score::Skin::instance();
   m_borderWidth = skin.SliderPen.width();
@@ -41,58 +39,64 @@ setAttribute(Qt::WA_WState_OwnSizePolicy, false);
   }
 }
 
-DoubleSlider::DoubleSlider(QWidget* widg) : DoubleSlider{Qt::Horizontal, widg} {}
+IntSlider::IntSlider(QWidget* widg) : IntSlider{Qt::Horizontal, widg} {}
 
-void DoubleSlider::setValue(double val)
+void IntSlider::setValue(int val)
 {
-  m_value = clamp(val, 0, 1);
-  valueChanged(m_value);
+  if(m_value == val)
+    return;
+
+  m_value = clamp(val, m_min, m_max);
   repaint();
+  valueChanged(m_value);
 }
 
-void DoubleSlider::updateValue(QPointF mousePos)
+void IntSlider::updateValue(QPointF mousePos)
 {
   if(m_orientation == Qt::Horizontal)
   {
     double clamped = clamp(mousePos.x(), m_borderWidth, width() - m_borderWidth);
-    m_value = (clamped - m_borderWidth) / (width() - 2 * m_borderWidth);
+    double ratio =  (clamped - m_borderWidth) / (width() - 2 * m_borderWidth);
+    m_value = m_min + (m_max - m_min) * ratio;
+
   }
   else
   {
     double clamped = clamp(mousePos.y(), m_borderWidth, height() - m_borderWidth);
-    m_value = 1 - (clamped - m_borderWidth) / (height() - 2 * m_borderWidth);
+    double ratio =  (clamped - m_borderWidth) / (height() - 2 * m_borderWidth);
+    m_value = m_min + (m_max - m_min) * (1. - ratio);
   }
-
   repaint();
   valueChanged(m_value);
 }
 
-void DoubleSlider::mousePressEvent(QMouseEvent* event)
+void IntSlider::mousePressEvent(QMouseEvent* event)
 {
   updateValue(event->localPos());
 }
 
-void DoubleSlider::mouseMoveEvent(QMouseEvent* event)
+void IntSlider::mouseMoveEvent(QMouseEvent* event)
 {
   updateValue(event->localPos());
   sliderMoved(m_value);
 }
 
-void DoubleSlider::mouseReleaseEvent(QMouseEvent *event)
+void IntSlider::mouseReleaseEvent(QMouseEvent *event)
 {
   sliderReleased();
 }
 
-void DoubleSlider::paintEvent(QPaintEvent* e)
+void IntSlider::paintEvent(QPaintEvent* e)
 {
   QPainter p{this};
   paint(p);
 }
 
-void DoubleSlider::paint(QPainter& p)
+void IntSlider::paint(QPainter& p)
 {
   auto& skin = score::Skin::instance();
 
+  double ratio = double(m_value - m_min) / double(m_max - m_min);
   p.setPen(skin.SliderPen);
   p.setBrush(skin.SliderBrush);
   const double penWidth = p.pen().width();
@@ -107,7 +111,7 @@ void DoubleSlider::paint(QPainter& p)
   const double interiorHeight = (double)height() - 2.* penWidth;
   if(m_orientation == Qt::Horizontal)
   {
-    const double current = m_value * interiorWidth;
+    const double current = ratio * interiorWidth;
     p.drawRect(
         QRectF{QPointF{penWidth, penWidth},
               QSizeF{current, interiorHeight}
@@ -122,7 +126,7 @@ void DoubleSlider::paint(QPainter& p)
   }
   else
   {
-    const double h = (1. - m_value) * interiorHeight;
+    const double h = (1. - ratio) * interiorHeight;
 
     p.drawRect(QRectF{QPointF{penWidth, h + penWidth},
                       QSizeF{interiorWidth, (double)height()- h}});
@@ -137,7 +141,7 @@ void DoubleSlider::paint(QPainter& p)
   }
 }
 
-void DoubleSlider::paintWithText(const QString& s)
+void IntSlider::paintWithText(const QString& s)
 {
    auto& skin = score::Skin::instance();
 

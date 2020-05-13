@@ -79,7 +79,7 @@ SpeedWidget::SpeedWidget(
   {
     lay->addWidget(m_slider, 0, 0, 1, 1);
   }
-  connect(m_slider, &score::SpeedSlider::doubleValueChanged, this, setSpeedFun);
+  connect(m_slider, &score::SpeedSlider::valueChanged, this, setSpeedFun);
 }
 
 SpeedWidget::~SpeedWidget() {}

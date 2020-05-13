@@ -113,12 +113,12 @@ score::GUIElements ApplicationPlugin::makeGUIElements()
   {
     auto bar = new QToolBar(tr("Volume"));
     auto sl = new score::VolumeSlider{bar};
-    sl->setMaximumSize(100, 20);
+    sl->setFixedSize(100, 20);
     sl->setValue(0.5);
     sl->setStatusTip("Change the master volume");
     bar->addWidget(sl);
     bar->addAction(m_audioEngineAct);
-    connect(sl, &score::VolumeSlider::doubleValueChanged, this, [=](double v) {
+    connect(sl, &score::VolumeSlider::valueChanged, this, [=](double v) {
       if(!this->audio)
         return;
       if(!this->audio->protocol)

@@ -1,44 +1,40 @@
 #pragma once
 #include <QProxyStyle>
-#include <QSlider>
 
 #include <score_lib_base_export.h>
 
-#include <limits>
 #include <verdigris>
 
 namespace score
 {
-/**
-- * @brief The DoubleSlider class
-- *
-- * Always between 0. - 1.
-- */
-class SCORE_LIB_BASE_EXPORT DoubleSlider: public QWidget //: public QSlider
+class SCORE_LIB_BASE_EXPORT IntSlider: public QWidget
 {
-    W_OBJECT(DoubleSlider)
+    W_OBJECT(IntSlider)
 public:
+  IntSlider(Qt::Orientation ort, QWidget* widg);
+  IntSlider(QWidget* widg);
+  ~IntSlider() override;
 
-  DoubleSlider(Qt::Orientation ort, QWidget* widg);
-  DoubleSlider(QWidget* widg);
-  ~DoubleSlider() override;
-
-  void setValue(double val);
+  void setValue(int val);
+  void setMinimum(int min) {m_min = min;}
+  void setMaximum(int max) {m_max = max;}
+  void setRange(int min, double max){m_min = min; m_max = max;}
   void setOrientation(Qt::Orientation ort) {m_orientation = ort;}
-  void setBorderWidth(double border){m_borderWidth = border;}
 
-  double value() const{return m_value;}
+  int value() const {return m_value;}
+  int minimum() const {return m_min;}
+  int maximum() const {return m_max;}
 
-  void valueChanged(double arg_1)
+  void valueChanged(int arg_1)
       E_SIGNAL(SCORE_LIB_BASE_EXPORT, valueChanged, arg_1)
-  void sliderMoved(double arg_1)
+  void sliderMoved(int arg_1)
       E_SIGNAL(SCORE_LIB_BASE_EXPORT, sliderMoved, arg_1)
   void sliderReleased()
       E_SIGNAL(SCORE_LIB_BASE_EXPORT, sliderReleased)
 
   void mousePressEvent(QMouseEvent* event) override;
   void mouseMoveEvent(QMouseEvent* event) override;
-  void mouseReleaseEvent(QMouseEvent *event) override;
+  void mouseReleaseEvent(QMouseEvent* event) override;
 
 protected:
   void paintEvent(QPaintEvent*) override;
@@ -48,10 +44,11 @@ protected:
 private:
   void updateValue(QPointF mousePos);
 
-  double m_value;
+  int m_value;
+  int m_min;
+  int m_max;
 
   Qt::Orientation m_orientation;
-
   double m_borderWidth;
 };
 }

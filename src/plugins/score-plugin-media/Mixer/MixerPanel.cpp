@@ -36,6 +36,7 @@ public:
   {
     setOrientation(Qt::Vertical);
     setMinimumSize(20, 50);
+    setBorderWidth(0);
   }
   ~AudioSliderWidget() override { }
 };
@@ -68,30 +69,25 @@ protected:
     auto& skin = score::Skin::instance();
     QPainter p{this};
 
-    double min = QSlider::minimum();
-    double max = QSlider::maximum();
-    double val = QSlider::value();
+    double ratio = 2. * value() - 1.;
 
-    double ratio = 1. - 2. * (max - val) / (max - min);
-
-    static constexpr auto round = 0.;
     p.setPen(skin.TransparentPen);
     p.setBrush(skin.SliderBrush);
-    p.drawRoundedRect(rect(), round, round);
+    p.drawRect(rect());
 
     p.setPen(skin.TransparentPen);
     p.setBrush(skin.SliderInteriorBrush);
 
-    const int y = 0;
-    const int h = height();
+    const double y = 0;
+    const double h = height();
     const double hw = width() / 2.;
-    const int w = hw * std::abs(ratio);
+    const double w = hw * std::abs(ratio);
 
     if(ratio <= 0)
     {
-      p.drawRect(QRect{int(hw - w), y, w, h});
+      p.drawRect(QRectF{hw - w, y, w, h});
       p.setPen(skin.SliderLine);
-      p.drawLine(QPoint{int(hw - w), h - 1}, QPoint{int(hw) - 1, h - 1});
+      p.drawLine(QPointF{hw - w, h - 1}, QPointF{hw - 1, h - 1});
 
       p.setFont(skin.SansFontSmall);
       p.drawText(rect(), "  L", Qt::AlignLeft | Qt::AlignVCenter);
@@ -100,9 +96,9 @@ protected:
     }
     else
     {
-      p.drawRect(QRect{int(hw), y, w, h});
+      p.drawRect(QRectF{hw, y, w, h});
       p.setPen(skin.SliderLine);
-      p.drawLine(QPoint{int(hw), h - 1}, QPoint{int(hw) + w  - 1, h - 1});
+      p.drawLine(QPointF{hw, h - 1}, QPointF{hw + w  - 1, h - 1});
 
       p.setFont(skin.SansFontSmall);
       p.setPen(skin.LightGray.main.pen0);
@@ -135,7 +131,7 @@ public:
     label.setText(addr);
 
     slider.setValue(*param.value().target<float>());
-    con(slider, &AudioSliderWidget::doubleValueChanged, this, [&](double d) {
+    con(slider, &AudioSliderWidget::valueChanged, this, [&](double d) {
       param.push_value(d);
     });
     idx = param.add_callback([=](const ossia::value& v) {
@@ -168,6 +164,8 @@ public:
     m_title.setText(m_model->metadata().getName());
     m_gainSlider.setWhatsThis("Gain control");
     m_gainSlider.setToolTip(m_gainSlider.whatsThis());
+    m_gainSlider.setAttribute(Qt::WA_WState_OwnSizePolicy, true);
+
     m_mute.setWhatsThis("Mute");
     m_mute.setToolTip(m_mute.whatsThis());
     m_mute.setCheckable(true);
@@ -194,7 +192,7 @@ public:
     });
 
     m_gainSlider.setValue(param->outlet->gain());
-    con(m_gainSlider, &AudioSliderWidget::doubleValueChanged, this, [this](double d) {
+    con(m_gainSlider, &AudioSliderWidget::valueChanged, this, [this](double d) {
       m_context.dispatcher.submit<Process::SetGain>(*m_model->outlet, d);
     });
     con(m_gainSlider, &AudioSliderWidget::sliderReleased, this, [this] {
@@ -218,7 +216,7 @@ public:
     });
 
     m_panSlider.setPan(param->outlet->pan());
-    con(m_panSlider, &PanSliderWidget::doubleValueChanged, this, [this] (double d) {
+    con(m_panSlider, &PanSliderWidget::valueChanged, this, [this] (double d) {
         double l = sin((1. - d) * ossia::half_pi);
         double r = sin(d * ossia::half_pi);
         m_context.dispatcher.submit<Process::SetPan>(*m_model->outlet, ossia::pan_weight{l, r});

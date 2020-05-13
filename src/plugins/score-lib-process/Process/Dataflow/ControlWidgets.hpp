@@ -69,10 +69,10 @@ struct FloatControl
         sl,
         &score::DoubleSlider::sliderMoved,
         context,
-        [=, &inlet, &ctx](int v) {
+        [=, &inlet, &ctx](double v) {
           sl->moving = true;
           ctx.dispatcher.submit<SetControlValue<Control_T>>(
-              inlet, min + (v / score::DoubleSlider::max) * (max - min));
+              inlet,min + sl->value() * (max-min));
         });
     QObject::connect(
         sl,
@@ -81,9 +81,7 @@ struct FloatControl
         [=, &inlet, &ctx]() {
           ctx.dispatcher.submit<SetControlValue<Control_T>>(
               inlet,
-              min
-                  + (((QSlider*)sl)->value() / score::DoubleSlider::max)
-                        * (max - min));
+              min + sl->value() * (max-min));
           ctx.dispatcher.commit();
           sl->moving = false;
         });
@@ -182,10 +180,10 @@ struct LogFloatControl
         sl,
         &score::DoubleSlider::sliderMoved,
         context,
-        [=, &inlet, &ctx](int v) {
+        [=, &inlet, &ctx](double v) {
           sl->moving = true;
           ctx.dispatcher.submit<SetControlValue<Control_T>>(
-              inlet, from01(min, range, v / score::DoubleSlider::max));
+              inlet, from01(min, range, v));
         });
     QObject::connect(
         sl, &score::DoubleSlider::sliderReleased, context, [=, &inlet, &ctx] {
@@ -194,7 +192,7 @@ struct LogFloatControl
               from01(
                   min,
                   range,
-                  ((QSlider*)sl)->value() / score::DoubleSlider::max));
+                  sl->value()));
           ctx.dispatcher.commit();
           sl->moving = false;
         });
@@ -281,12 +279,12 @@ struct IntSlider
     sl->setContentsMargins(0, 0, 0, 0);
 
     QObject::connect(
-        sl, &QSlider::sliderMoved, context, [sl, &inlet, &ctx](int p) {
+        sl, &score::IntSlider::sliderMoved, context, [sl, &inlet, &ctx](int p) {
           sl->moving = true;
           ctx.dispatcher.submit<SetControlValue<Control_T>>(inlet, p);
         });
     QObject::connect(
-        sl, &QSlider::sliderReleased, context, [sl, &inlet, &ctx] {
+        sl, &score::IntSlider::sliderReleased, context, [sl, &inlet, &ctx] {
           ctx.dispatcher.submit<SetControlValue<Control_T>>(inlet, sl->value());
           ctx.dispatcher.commit();
           sl->moving = false;

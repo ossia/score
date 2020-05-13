@@ -10,6 +10,7 @@
 
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/widgets/DoubleSlider.hpp>
+#include <score/widgets/IntSlider.hpp>
 #include <score/widgets/MarginLess.hpp>
 #include <score/widgets/SignalUtils.hpp>
 
@@ -670,7 +671,7 @@ public:
     m_edit.setContentsMargins(0, 0, 0, 0);
     this->setFocusProxy(&m_edit);
 
-    connect(&m_slider, &QSlider::valueChanged, this, [=](int v) {
+    connect(&m_slider, &score::IntSlider::valueChanged, this, [=](int v) {
       m_edit.setValue(v);
     });
 
@@ -692,7 +693,7 @@ public:
 
 private:
   score::MarginLess<QHBoxLayout> m_lay{this};
-  score::Slider m_slider;
+  score::IntSlider m_slider;
   QSpinBox m_edit;
 };
 
@@ -710,7 +711,7 @@ public:
     this->setFocusProxy(&m_edit);
 
     connect(
-        &m_slider, &score::DoubleSlider::doubleValueChanged, this, [=](double v) {
+        &m_slider, &score::DoubleSlider::valueChanged, this, [=](double v) {
           m_edit.setValue(min + v * (max - min));
         });
 
