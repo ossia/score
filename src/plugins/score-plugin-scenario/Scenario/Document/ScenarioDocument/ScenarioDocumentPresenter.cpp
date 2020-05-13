@@ -247,7 +247,11 @@ ScenarioDocumentPresenter::ScenarioDocumentPresenter(
     auto grp = qobject_cast<QActionGroup*>(m_timelineAction->parent());
     connect(grp, &QActionGroup::triggered,
             this, [=] (QAction* act){
-      switchMode(act != m_timelineAction);
+      const bool nodal = act != m_timelineAction;
+      if(nodal && !m_nodal)
+        switchMode(true);
+      else if(!nodal && m_nodal)
+        switchMode(false);
     });
   }
 
