@@ -337,6 +337,11 @@ namespace score
       }
     }
 
+#else
+class StartScreen : public QWidget
+{
+
+};
 #endif
 
 class DocumentModel;

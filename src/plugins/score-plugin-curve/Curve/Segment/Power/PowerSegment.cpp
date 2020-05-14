@@ -126,10 +126,16 @@ ossia::curve_segment<Y> PowerSegment::makeFunction() const
   }
   else
   {
-    double thepow = Curve::PowerSegmentData::linearGamma + 1 - gamma;
-    return [=](double ratio, Y start, Y end) {
-      return ossia::easing::ease{}(start, end, std::pow(ratio, thepow));
-    };
+    if(gamma < 1.) {
+      return [gamma=gamma](double ratio, Y start, Y end) {
+        return ossia::easing::ease{}(start, end, std::pow(ratio, gamma));
+      };
+    }
+    else {
+      return [gamma=gamma](double ratio, Y start, Y end) {
+        return ossia::easing::ease{}(start, end,  std::pow(ratio, gamma));
+      };
+    }
   }
 }
 ossia::curve_segment<double> PowerSegment::makeDoubleFunction() const

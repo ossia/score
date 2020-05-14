@@ -25,7 +25,8 @@ SOFTWARE.
 #include <QMenu>
 #include <QStringList>
 #include <wobjectdefs.h>
-class QRecentFilesMenu final : public QMenu
+#include <score_lib_base_export.h>
+class SCORE_LIB_BASE_EXPORT QRecentFilesMenu final : public QMenu
 {
     W_OBJECT(QRecentFilesMenu)
 public:

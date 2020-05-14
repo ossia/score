@@ -352,6 +352,8 @@ void View::allPanelsAdded()
     if(panel.defaultPanelStatus().prettyName == QObject::tr("Inspector"))
     {
       auto splitter = (RectSplitter*)centralWidget();
+      rightSplitter->insertWidget(1, panel.widget());
+
       auto act = bottomTabs->addAction(rightSplitter->widget(1), panel.defaultPanelStatus());
       bottomTabs->actionGroup()->removeAction(act);
       act->setChecked(true);
