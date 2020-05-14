@@ -551,8 +551,6 @@
         <file>startscreen/startscreensplash.png</file>
         <file>startscreen/startscreensplash@2x.png</file>
         <file>Montserrat-Light.ttf</file>
-        <file>icons/cursor_hand.png</file>
-        <file>icons/cursor_hand@2x.png</file>
         <file>icons/cursor_magnifier.png</file>
         <file>icons/cursor_magnifier@2x.png</file>
         <file>icons/cursor_move.png</file>
@@ -585,5 +583,9 @@
         <file>icons/cursor_process_structure@2x.png</file>
         <file>icons/cursor_process_ui.png</file>
         <file>icons/cursor_process_ui@2x.png</file>
+        <file>icons/cursor_closed_hand.png</file>
+        <file>icons/cursor_closed_hand@2x.png</file>
+        <file>icons/cursor_open_hand.png</file>
+        <file>icons/cursor_open_hand@2x.png</file>
     </qresource>
 </RCC>

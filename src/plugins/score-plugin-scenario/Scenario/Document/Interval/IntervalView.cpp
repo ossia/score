@@ -168,12 +168,14 @@ void IntervalView::setValid(bool val)
 
 void IntervalView::setGripCursor()
 {
-  this->setCursor(QCursor(Qt::ClosedHandCursor));
+  auto& skin = score::Skin::instance();
+  this->setCursor(skin.CursorClosedHand);
 }
 
 void IntervalView::setUngripCursor()
 {
-  this->setCursor(QCursor(Qt::OpenHandCursor));
+  auto& skin = score::Skin::instance();
+  this->setCursor(skin.CursorOpenHand);
 }
 
 void IntervalView::mousePressEvent(QGraphicsSceneMouseEvent* event)

@@ -170,7 +170,8 @@ public:
   QFont SliderFont;
 
   QCursor CursorPointer;
-  QCursor CursorHand;
+  QCursor CursorOpenHand;
+  QCursor CursorClosedHand;
   QCursor CursorMagnifier;
   QCursor CursorMove;
   QCursor CursorScaleH;
