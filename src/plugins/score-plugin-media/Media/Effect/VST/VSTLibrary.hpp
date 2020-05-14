@@ -36,7 +36,7 @@ class LibraryHandler final : public QObject, public Library::LibraryInterface
         {
           const auto& name
               = vst.displayName.isEmpty() ? vst.prettyName : vst.displayName;
-          Library::ProcessData pdata{{key, name, QString::number(vst.uniqueID)}, {}};
+          Library::ProcessData pdata{{key, name, QString::number(vst.uniqueID)}, {}, vst.author, {}};
           if (vst.isSynth)
           {
             inst.emplace_back(pdata, &inst);

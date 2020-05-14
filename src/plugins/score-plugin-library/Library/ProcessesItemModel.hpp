@@ -18,6 +18,8 @@ namespace Library
 struct ProcessData : Process::ProcessData
 {
   QIcon icon;
+  QString author;
+  QString description;
 };
 
 using ProcessNode = TreeNode<ProcessData>;

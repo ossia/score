@@ -29,12 +29,12 @@ ProcessesItemModel::ProcessesItemModel(const score::GUIApplicationContext& ctx, 
     ProcessData p;
 
     auto& cat = m_root.emplace_back(
-          ProcessData{{{}, e.first, {}}, Process::getCategoryIcon(e.first)}, &m_root);
+          ProcessData{{{}, e.first, {}}, Process::getCategoryIcon(e.first), {}, {}}, &m_root);
 
     for (auto p : e.second)
     {
       cat.emplace_back(
-            ProcessData{{p->concreteKey(), p->prettyName(), {}}, QIcon{}},
+            ProcessData{{p->concreteKey(), p->prettyName(), {}}, QIcon{}, {}, {}},
             &cat);
     }
   }

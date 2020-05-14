@@ -41,6 +41,11 @@ public:
 
   void setData(const optional<ProcessData>& d)
   {
+    m_author.setText(QString{});
+    m_description.setText(QString{});
+    m_io.setText(QString{});
+    m_tags.setText(QString{});
+
     if (d)
     {
       if (auto f = score::GUIAppContext()
@@ -49,9 +54,22 @@ public:
       {
         setVisible(true);
         auto desc = f->descriptor(QString{/*TODO pass customdata ?*/});
-        m_name.setText(desc.prettyName);
-        m_author.setText(tr("Provided by ") + desc.author);
-        m_description.setText(desc.description);
+
+        if(!d->prettyName.isEmpty())
+          m_name.setText(d->prettyName);
+        else
+          m_name.setText(desc.prettyName);
+
+        if(!d->author.isEmpty())
+          m_author.setText(tr("Provided by ") + d->author);
+        else if(!desc.author.isEmpty())
+          m_author.setText(tr("Provided by ") + desc.author);
+
+        if(!d->description.isEmpty())
+          m_description.setText(d->description);
+        else if(!desc.description.isEmpty())
+          m_description.setText(desc.description);
+
         QString io;
         if (desc.inlets)
         {
@@ -71,10 +89,6 @@ public:
         if (!desc.tags.empty())
         {
           m_tags.setText(tr("Tags: ") + desc.tags.join(", "));
-        }
-        else
-        {
-          m_tags.clear();
         }
         return;
       }
@@ -129,6 +143,7 @@ ProcessWidget::ProcessWidget(
   infoWidg->setStatusTip(statusTip());
 
   connect(&m_tv, &ProcessTreeView::selected, this, [=](const auto& pdata) {
+
     infoWidg->setData(pdata);
     if(pdata)
       presetFilterProxy->currentFilter = pdata->key;
