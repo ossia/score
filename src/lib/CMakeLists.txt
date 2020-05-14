@@ -504,22 +504,3 @@ if(NOT _score_license_written)
 
   score_write_file("${CMAKE_BINARY_DIR}/score_licenses.hpp" "${license_text}")
 endif()
-
-# Workaround for https://bugs.llvm.org/show_bug.cgi?id=44842
-if(UNIX AND NOT APPLE)
-  if(LINKER_IS_LLD)
-    if(TARGET rubberband)
-      get_target_property(OUT rubberband LINK_LIBRARIES)
-      if("${OUT}" MATCHES ".*fftw3.*")
-        if(NOT EXISTS "${CMAKE_CURRENT_BINARY_DIR}/bugfix-archlinux-fftw3-lld.cpp")
-          file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/bugfix-archlinux-fftw3-lld.cpp"
-  "#include <cmath>
-#include <score_lib_base_export.h>
-extern \"C\" SCORE_LIB_BASE_EXPORT float __log_finite(float v) { return std::log(v); }\n"
-         )
-       endif()
-       target_sources(score_lib_base PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/bugfix-archlinux-fftw3-lld.cpp")
-     endif()
-   endif()
-  endif()
-endif()

@@ -21,5 +21,3 @@ FilterNode::~FilterNode() {}
 
 ISFNode::~ISFNode() {}
 
-
-// extern "C" float __log_finite(float f ) { return std::log(f); }
