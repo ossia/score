@@ -222,6 +222,7 @@ ScenarioPresenter::ScenarioPresenter(
   auto& es = context.app.guiApplicationPlugin<ScenarioApplicationPlugin>()
                  .editionSettings();
   con(es, &EditionSettings::toolChanged, this, [=](Scenario::Tool t) {
+    auto& skin = score::Skin::instance();
     switch (t)
     {
       case Scenario::Tool::Select:
@@ -229,10 +230,10 @@ ScenarioPresenter::ScenarioPresenter(
         break;
       case Scenario::Tool::Create:
       case Scenario::Tool::CreateGraph:
-        m_view->setCursor(QCursor(Qt::CrossCursor));
+        m_view->setCursor(skin.CursorCreationMode);
         break;
       case Scenario::Tool::Play:
-        m_view->setCursor(QCursor(Qt::PointingHandCursor));
+        m_view->setCursor(skin.CursorPlayFromHere);
         break;
       default:
         m_view->unsetCursor();
