@@ -48,8 +48,10 @@ Script {
   FloatSlider { id: sl; min: 10; max: 100; }
 
   tick: function(oldtime, time, position, offset) {
-          console.log(in1.value);
-    out1.value = in1.value + sl.value * Math.random();
+    if (typeof in1.value !== 'undefined') {
+      console.log(in1.value);
+      out1.value = in1.value + sl.value * Math.random();
+    }
   }
   start: function() { console.log("I am called on start"); }
   stop: function() { console.log("I am called on stop"); }

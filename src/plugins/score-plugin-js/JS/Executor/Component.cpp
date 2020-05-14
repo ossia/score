@@ -144,6 +144,7 @@ Component::Component(
   con(element,
       &JS::ProcessModel::qmlDataChanged,
       this, &Component::on_scriptChange);
+  SCORE_TODO_("Reinstate JS panel live scripting");
   /*
   if (!node->m_object)
     throw std::runtime_error{"Invalid JS"};
