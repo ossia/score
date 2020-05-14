@@ -388,13 +388,8 @@ static void setQApplicationSettings(QApplication& m_app)
 //  pal.setBrush(QPalette::Dark, QColor("#808080"));
  // pal.setBrush(QPalette::Shadow, QColor("#666666"));
 
-  // note : on win32 this does not seem to have any impact
-  // check whether it is used somewhere...
-#if defined(_WIN32)
-  constexpr const int defaultFontSize = 7;
-#else
   constexpr const int defaultFontSize = 10;
-#endif
+
   QFont f("Ubuntu", defaultFontSize);
   qApp->setFont(f);
 

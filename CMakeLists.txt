@@ -53,8 +53,8 @@ endif()
 set(SCORE_VERSION_MAJOR 3)
 set(SCORE_VERSION_MINOR 0)
 set(SCORE_VERSION_PATCH 0)
-set(SCORE_VERSION_EXTRA "alpha1")
-set(SCORE_CODENAME "La poutine aux lardons : épistémologie d'une culture culinaire")
+set(SCORE_VERSION_EXTRA "alpha2")
+set(SCORE_CODENAME "The zoolok salpati drowns slorcily in globamate")
 
 set(SCORE_VERSION
     "${SCORE_VERSION_MAJOR}.${SCORE_VERSION_MINOR}.${SCORE_VERSION_PATCH}")
