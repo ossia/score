@@ -18,5 +18,9 @@ public:
   void selectionChanged(
       const QItemSelection& selected,
       const QItemSelection& deselected) override;
+
+private:
+  QModelIndexList selectedDraggableIndexes() const;
+  void startDrag(Qt::DropActions supportedActions) override;
 };
 }

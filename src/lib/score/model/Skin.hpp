@@ -180,17 +180,6 @@ public:
   QCursor CursorPlayFromHere;
   QCursor CursorCreationMode;
 
-  QCursor CursorProcessAudio;
-  QCursor CursorProcessAutomation;
-  QCursor CursorProcessControls;
-  QCursor CursorProcessFilter;
-  QCursor CursorProcessGfx;
-  QCursor CursorProcessMidi;
-  QCursor CursorProcessScript;
-  QCursor CursorProcessStructure;
-  QCursor CursorProcessUi;
-
-
   const Brush* fromString(const QString& s) const;
   Brush* fromString(const QString& s);
   QString toString(const Brush*) const;

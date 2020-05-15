@@ -587,5 +587,7 @@
         <file>icons/cursor_closed_hand@2x.png</file>
         <file>icons/cursor_open_hand.png</file>
         <file>icons/cursor_open_hand@2x.png</file>
+        <file>icons/cursor_drag_device.png</file>
+        <file>icons/cursor_drag_device@2x.png</file>
     </qresource>
 </RCC>

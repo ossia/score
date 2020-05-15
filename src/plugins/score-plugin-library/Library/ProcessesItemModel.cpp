@@ -93,8 +93,14 @@ QVariant ProcessesItemModel::headerData(int section, Qt::Orientation orientation
 
 Qt::ItemFlags ProcessesItemModel::flags(const QModelIndex& index) const
 {
-  Qt::ItemFlags f
-      = Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemIsDragEnabled;
+  Qt::ItemFlags f;
+
+  const auto& node = nodeFromModelIndex(index);
+  if(node.key == Process::ProcessModelFactory::ConcreteKey{})
+    f = Qt::ItemIsEnabled | Qt::ItemIsSelectable;
+  else
+    f = Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemIsDragEnabled;
+
   return f;
 }
 
