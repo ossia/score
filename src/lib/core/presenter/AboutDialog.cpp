@@ -1,6 +1,7 @@
 #include "AboutDialog.hpp"
 
 #include <score/widgets/Pixmap.hpp>
+#include <score/model/Skin.hpp>
 
 #include <QGuiApplication>
 #include <QListWidget>

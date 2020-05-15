@@ -243,9 +243,6 @@ public:
 
   void on_modelRigidityChanged(bool b)
   {
-<<<<<<< HEAD
-    m_minTitle->setHidden(b);
-    m_maxTitle->setHidden(b);
     if(b)
     {
       m_minNonNullBox->setHidden(b);
@@ -259,13 +256,6 @@ public:
       on_modelMinNullChanged(m_dur.isMinNull());
       on_modelMaxInfiniteChanged(m_dur.isMaxInfinite());
     }
-=======
-    m_minNonNullBox->setHidden(b);
-    m_minSpin->setHidden(b);
-
-    m_maxSpin->setHidden(b);
-    m_maxFiniteBox->setHidden(b);
->>>>>>> b921ee801... checkbox are smaller and the label is directly set
   }
 
   void on_modelMinNullChanged(bool b)
