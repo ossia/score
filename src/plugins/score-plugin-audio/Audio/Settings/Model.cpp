@@ -11,7 +11,7 @@ SETTINGS_PARAMETER_IMPL(Driver)
       Audio::AudioFactory::ConcreteKey
   {
     score::uuids::string_generator::compute(
-        "afcd9c64-0367-4fa1-b2bb-ee65b1c5e5a7")
+        "d98fca36-4e50-4802-a825-2fa213f95265")
   } // WASAPI
 #elif defined(__APPLE__)
       Audio::AudioFactory::ConcreteKey
@@ -23,8 +23,8 @@ SETTINGS_PARAMETER_IMPL(Driver)
       Audio::AudioFactory::ConcreteKey
   {
     score::uuids::string_generator::compute(
-        "3533ee88-9a8d-486c-b20b-6c966cf4eaa0")
-  } // ALSA
+        "015cb998-7bad-46e0-ba57-669b7733eadc")
+  } // PulseAudio
 #else
       Audio::AudioFactory::ConcreteKey
   {
