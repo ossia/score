@@ -155,16 +155,18 @@ Skin::Skin() noexcept
   int hotspotY = 10 * qApp->devicePixelRatio();
   CursorPointer = QCursor{score::get_pixmap(":/icons/cursor_pointer.png"), hotspotX, hotspotY};
 
-  CursorOpenHand = QCursor{score::get_pixmap(":/icons/cursor_open_hand.png")};
-  CursorClosedHand = QCursor{score::get_pixmap(":/icons/cursor_closed_hand.png")};
-  CursorPointingHand = QCursor{score::get_pixmap(":/icons/cursor_pointing_hand.png")};
+  int centerHotspot = 16 * qApp->devicePixelRatio();
+  CursorOpenHand = QCursor{score::get_pixmap(":/icons/cursor_open_hand.png"), centerHotspot, centerHotspot};
+  CursorClosedHand = QCursor{score::get_pixmap(":/icons/cursor_closed_hand.png"), centerHotspot, centerHotspot};
+  CursorPointingHand = QCursor{score::get_pixmap(":/icons/cursor_pointing_hand.png"), centerHotspot, centerHotspot};
+
   int hotspot = 15 * qApp->devicePixelRatio();
   CursorMagnifier = QCursor{score::get_pixmap(":/icons/cursor_magnifier.png"), hotspot, hotspot};
   CursorMove = QCursor{score::get_pixmap(":/icons/cursor_move.png"), hotspot, hotspot};
 
-  CursorScaleH = QCursor{score::get_pixmap(":/icons/cursor_scale_h.png")};
-  CursorScaleV = QCursor{score::get_pixmap(":/icons/cursor_scale_v.png")};
-  CursorScaleFDiag = QCursor{score::get_pixmap(":/icons/cursor_scale_fdiag.png")};
+  CursorScaleH = QCursor{score::get_pixmap(":/icons/cursor_scale_h.png"), centerHotspot, centerHotspot};
+  CursorScaleV = QCursor{score::get_pixmap(":/icons/cursor_scale_v.png"), centerHotspot, centerHotspot};
+  CursorScaleFDiag = QCursor{score::get_pixmap(":/icons/cursor_scale_fdiag.png"), centerHotspot, centerHotspot};
 
   hotspotX = 12 * qApp->devicePixelRatio();
   hotspotY = 10 * qApp->devicePixelRatio();

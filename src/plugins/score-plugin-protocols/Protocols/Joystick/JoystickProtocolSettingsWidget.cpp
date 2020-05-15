@@ -8,6 +8,7 @@
 #include <ossia/network/joystick/joystick_protocol.hpp>
 
 #include <QComboBox>
+#include <QFormLayout>
 #include <QPushButton>
 #include <QVariant>
 

@@ -262,7 +262,7 @@ void Minimap::hoverEnterEvent(QGraphicsSceneHoverEvent* ev)
   {
     if (!m_setCursor)
     {
-      QApplication::setOverrideCursor(skin.CursorMove);
+      QApplication::setOverrideCursor(skin.CursorMagnifier);
       m_setCursor = true;
     }
   }
