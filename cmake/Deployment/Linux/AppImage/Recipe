@@ -21,7 +21,7 @@ cd ./$BUILD_DIR
   git clone https://github.com/OSSIA/score
   cd score/
   git checkout $TRAVIS_COMMIT
-  git submodule update --init --recursive
+  git submodule update --init
 )
 # Build score in the AppDir
 mkdir -p $APP.AppDir/usr

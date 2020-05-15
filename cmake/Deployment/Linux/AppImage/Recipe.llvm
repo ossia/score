@@ -34,12 +34,12 @@ cd ./$BUILD_DIR
 
 # Get score from git
 (
-  $GIT clone --recursive -j16 https://github.com/OSSIA/score
+  $GIT clone -j16 https://github.com/OSSIA/score
   cd score/
   $GIT checkout $TRAVIS_COMMIT
   git reset --hard HEAD
   git clean -dffx
-  $GIT submodule update --init --recursive
+  $GIT submodule update --init 
 
   # cd base/addons
   # $GIT clone https://github.com/OSSIA/score-addon-jit
