@@ -9,6 +9,7 @@
 #include <score/selection/Selection.hpp>
 #include <score/tools/IdentifierGeneration.hpp>
 #include <score/widgets/Pixmap.hpp>
+#include <score/model/Skin.hpp>
 
 #include <core/application/ApplicationRegistrar.hpp>
 #include <core/application/OpenDocumentsFile.hpp>

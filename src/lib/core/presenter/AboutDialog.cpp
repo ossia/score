@@ -182,9 +182,10 @@ AboutDialog::AboutDialog(QWidget* parent)
 
   for (const auto& item : map)
   {
-    softwareList->addItem(item.first);
+    if(!item.second.license.isEmpty())
+      softwareList->addItem(item.first);
   }
-  for (std::size_t i = 0; i < map.size(); i++)
+  for (std::size_t i = 0; i < softwareList->count(); i++)
   {
     softwareList->item(i)->setTextAlignment(Qt::AlignHCenter);
   }

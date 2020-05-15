@@ -87,5 +87,10 @@ macro(AddLicenseFile _text _name _file)
       VARIABLE_NAME "${_name}_LICENSE"
       APPEND
       NULL_TERMINATE)
+  else()
+    set(arrayDefinition "const unsigned char ${_name}_LICENSE[] = { 0 }\;")
+    set(arraySizeDefinition "const size_t ${_name}_LICENSE_SIZE = 0\;")
+    set(declarations "${arrayDefinition}\n\n${arraySizeDefinition}\n\n")
+    set(_text "${_text}\n${declarations}")
   endif()
 endmacro()
