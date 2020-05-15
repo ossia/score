@@ -55,6 +55,7 @@ public:
 
 private:
   void initDocuments();
+  void openNewDocument();
 
   // Base stuff.
   QCoreApplication* m_app;

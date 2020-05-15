@@ -186,6 +186,8 @@ namespace score
       W_OBJECT(StartScreen)
       public:
         StartScreen(const QPointer<QRecentFilesMenu>& recentFiles, QWidget* parent = 0);
+
+        void openNewDocument() W_SIGNAL( openNewDocument)
         void openFile(const QString& file) W_SIGNAL( openFile, file)
         void openFileDialog() W_SIGNAL( openFileDialog )
         void loadCrashedSession() W_SIGNAL( loadCrashedSession )
@@ -246,9 +248,7 @@ namespace score
         InteractiveLabel* label = new InteractiveLabel{titleFont, qApp->tr("New"), "", this};
         label->setPixmaps(score::get_pixmap(":/icons/new_file_off.png"),score::get_pixmap(":/icons/new_file_on.png"));
         connect(label, &score::InteractiveLabel::labelPressed,
-                this, [&] (const QString& file){
-         this->close();
-        });
+                this, &score::StartScreen::openNewDocument);
         label->move(100,label_y);
         label_y += 35;
       }
@@ -518,6 +518,11 @@ void Application::init()
 
     auto& ctx = m_presenter->applicationContext();
     connect(
+          m_startScreen, &score::StartScreen::openNewDocument, this, [&]() {
+      m_startScreen->close();
+      openNewDocument();
+    });
+    connect(
           m_startScreen, &score::StartScreen::openFile, this, [&](const QString& file) {
       m_startScreen->close();
       m_presenter->documentManager().loadFile(ctx, file);
@@ -584,10 +589,17 @@ void Application::initDocuments()
       m_presenter->documentManager().restoreDocuments(ctx);
     }
     #endif
-
   }
 
   // If nothing was reloaded, open a normal document
+  #if !defined(SCORE_SPLASH_SCREEN)
+  openNewDocument();
+  #endif
+}
+
+void Application::openNewDocument()
+{
+  auto& ctx = m_presenter->applicationContext();
   if (m_presenter->documentManager().documents().empty())
   {
     auto& documentKinds = m_presenter->applicationComponents()
