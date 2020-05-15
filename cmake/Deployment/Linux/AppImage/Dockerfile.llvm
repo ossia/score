@@ -5,7 +5,7 @@ RUN yum -y install devtoolset-8-gcc devtoolset-8-make devtoolset-8 \
            wget xz rh-git218 cmake3  xcb-util xcb-util-devel libX11-devel libXrender-devel libXi-devel  dbus-devel glib2-devel mesa-libGL-devel  \
     nasm libxkbcommon-x11-devel alsa-lib-devel glib2-devel \
     vulkan vulkan-devel xcb-util-wm xcb-util-wm-devel libxkbcommon-devel \
-    xcb-util-image-devel xcb-util-keysyms-devel xcb-util-cursor-devel xcb-util-renderutil-devel
+    xcb-util-image-devel xcb-util-keysyms-devel xcb-util-cursor-devel xcb-util-renderutil-devel pulseaudio-libs-devel
 
 
 RUN mkdir -p /opt/score-sdk 

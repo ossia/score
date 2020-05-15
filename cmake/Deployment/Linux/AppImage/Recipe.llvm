@@ -61,9 +61,8 @@ export SOURCE_DIR=$PWD/score
       -DOSSIA_SDK=$OSSIA_SDK \
       -DCMAKE_SKIP_RPATH=ON \
       -DOSSIA_USE_FAST_LINKER=1 \
-      -DCMAKE_EXE_LINKER_FLAGS="-static-libstdc++ -lc++abi -pthread" #\
+      -DCMAKE_EXE_LINKER_FLAGS="-static-libstdc++ -pthread" #\
     # -DCMAKE_EXE_LINKER_FLAGS="-static-libgcc -static-libstdc++ -pthread"
-
 
     $CMAKE --build . --target all_unity -- -j$NPROC && $CMAKE --build . --target install/strip/fast
 )
@@ -97,6 +96,7 @@ cp $APP.AppDir/usr/share/pixmaps/ossia-score.png $APP.AppDir/
     rm -f usr/lib/libgpg-error.so.0 || true
     rm -f usr/lib/libjack* || true
     rm -f usr/lib/libasound* || true
+    rm -f usr/lib/libxcb* || true
     rm -f usr/lib/libgssapi_krb5.so.2 || true
     rm -f usr/lib/libgssapi.so.3 || true
     rm -f usr/lib/libhcrypto.so.4 || true

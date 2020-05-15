@@ -13,14 +13,22 @@ if(APPLE AND EXISTS /usr/local/opt/qt5)
   list(APPEND CMAKE_PREFIX_PATH "/usr/local/opt/qt5")
 endif()
 
-set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake"
-    "${CMAKE_MODULE_PATH}")
+set(CMAKE_MODULE_PATH
+  "${CMAKE_CURRENT_SOURCE_DIR}/cmake"
+  "${CMAKE_MODULE_PATH}"
+)
 
-set(CMAKE_PREFIX_PATH
-    "${OSSIA_SDK}/SDL2/cmake"
-    "${OSSIA_SDK}/portaudio/lib/cmake"
-    "${OSSIA_SDK}/portaudio/lib/cmake/portaudio"
-    "${CMAKE_PREFIX_PATH}")
+if(OSSIA_SDK)
+  set(CMAKE_PREFIX_PATH
+      "${OSSIA_SDK}/SDL2/cmake"
+      "${OSSIA_SDK}/qt5-static"
+      "${OSSIA_SDK}/llvm-libs"
+      "${OSSIA_SDK}/llvm"
+      "${OSSIA_SDK}/fftw"
+      "${OSSIA_SDK}/portaudio/lib/cmake"
+      "${OSSIA_SDK}/portaudio/lib/cmake/portaudio"
+      "${CMAKE_PREFIX_PATH}")
+endif()
 
 if(NOT SCORE_CONFIGURATION)
   if(${CMAKE_BUILD_TYPE} MATCHES Debug)
