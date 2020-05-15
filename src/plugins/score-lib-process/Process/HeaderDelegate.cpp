@@ -219,7 +219,8 @@ DefaultFooterDelegate::DefaultFooterDelegate(
     const Process::Context& context)
     : FooterDelegate{model, context}
 {
-  setCursor(Qt::SizeVerCursor);
+  auto& skin = score::Skin::instance();
+  setCursor(skin.CursorScaleV);
   setFlag(ItemHasNoContents, true);
   con(model, &Process::ProcessModel::outletsChanged, this, [=] {
     updatePorts();

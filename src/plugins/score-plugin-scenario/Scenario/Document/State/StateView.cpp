@@ -71,7 +71,8 @@ StateView::StateView(StatePresenter& pres, QGraphicsItem* parent)
     this->setCacheMode(QGraphicsItem::CacheMode::ItemCoordinateCache);
   this->setParentItem(parent);
 
-  this->setCursor(QCursor(Qt::CrossCursor));
+  auto& skin = score::Skin::instance();
+  this->setCursor(skin.CursorMove);
   this->setZValue(ZPos::State);
   this->setAcceptDrops(true);
   this->setAcceptHoverEvents(true);

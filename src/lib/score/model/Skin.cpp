@@ -157,14 +157,14 @@ Skin::Skin() noexcept
 
   CursorOpenHand = QCursor{score::get_pixmap(":/icons/cursor_open_hand.png")};
   CursorClosedHand = QCursor{score::get_pixmap(":/icons/cursor_closed_hand.png")};
-
+  CursorPointingHand = QCursor{score::get_pixmap(":/icons/cursor_pointing_hand.png")};
   int hotspot = 15 * qApp->devicePixelRatio();
   CursorMagnifier = QCursor{score::get_pixmap(":/icons/cursor_magnifier.png"), hotspot, hotspot};
   CursorMove = QCursor{score::get_pixmap(":/icons/cursor_move.png"), hotspot, hotspot};
 
-  hotspotY = 15 * qApp->devicePixelRatio();
-  CursorScaleH = QCursor{score::get_pixmap(":/icons/cursor_scale_h.png"), -1, hotspotY};
-  CursorScaleV = QCursor{score::get_pixmap(":/icons/cursor_scale_v.png"), hotspotY, -1};
+  CursorScaleH = QCursor{score::get_pixmap(":/icons/cursor_scale_h.png")};
+  CursorScaleV = QCursor{score::get_pixmap(":/icons/cursor_scale_v.png")};
+  CursorScaleFDiag = QCursor{score::get_pixmap(":/icons/cursor_scale_fdiag.png")};
 
   hotspotX = 12 * qApp->devicePixelRatio();
   hotspotY = 10 * qApp->devicePixelRatio();

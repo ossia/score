@@ -9,7 +9,7 @@
    xmlns:xlink="http://www.w3.org/1999/xlink"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   sodipodi:docname="cursor_scale_h.svg"
+   sodipodi:docname="cursor_scale_fdiag.svg"
    inkscape:version="1.0 (4035a4fb49, 2020-05-01)"
    id="svg16"
    version="1.1"
@@ -35,7 +35,7 @@
        x2="4.4109869"
        y2="2.1169281"
        gradientUnits="userSpaceOnUse"
-       gradientTransform="matrix(1.2537098,0,0,1.2537098,1.5796498,1.8438475)" />
+       gradientTransform="matrix(0.8865067,0.8865067,-0.8865067,0.8865067,4.1400354,0.57375605)" />
   </defs>
   <sodipodi:namedview
      inkscape:snap-global="false"
@@ -51,9 +51,9 @@
      inkscape:document-rotation="0"
      inkscape:current-layer="layer2"
      inkscape:document-units="px"
-     inkscape:cy="18.405486"
-     inkscape:cx="18.509504"
-     inkscape:zoom="31.368982"
+     inkscape:cy="14.386348"
+     inkscape:cx="13.736951"
+     inkscape:zoom="56.982233"
      inkscape:pageshadow="2"
      inkscape:pageopacity="0.0"
      borderopacity="1.0"
@@ -72,7 +72,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title />
+        <dc:title></dc:title>
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -84,7 +84,7 @@
     <path
        sodipodi:nodetypes="ccccccccccc"
        class="st2"
-       d="M 2.6458342,4.4978987 H 5.8208333 V 5.4239211 L 6.8791667,4.3655878 5.8208333,3.3072544 v 0.9270117 l -3.1749942,1.5e-5 -8e-6,-0.9270267 L 1.5875,4.3655878 2.6458276,5.4239211 Z"
+       d="M 3.0427083,3.3072917 5.159375,5.4239583 4.4979167,6.0854167 h 1.5875 v -1.5875 L 5.4239583,5.159375 3.3072917,3.0427083 3.96875,2.38125 h -1.5875 v 1.5875 z"
        style="display:inline;opacity:1;fill:#f0f0f0;fill-opacity:1;stroke:url(#linearGradient874);stroke-width:0.529167;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;paint-order:stroke fill markers"
        id="polygon10-3" />
   </g>

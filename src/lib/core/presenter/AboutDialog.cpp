@@ -234,7 +234,8 @@ void AboutDialog::mouseMoveEvent(QMouseEvent* event)
   if (m_mouseAreaOssiaScore.contains(pos) || m_mouseAreaLabri.contains(pos)
       || m_mouseAreaScrime.contains(pos) || m_mouseAreaBlueYeti.contains(pos))
   {
-    this->setCursor(Qt::PointingHandCursor);
+    auto& skin = score::Skin::instance();
+    this->setCursor(skin.CursorPointingHand);
   }
   else
   {

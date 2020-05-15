@@ -101,9 +101,10 @@ namespace score
     InteractiveLabel::InteractiveLabel(const QFont& font, const QString& title, const QString url, QWidget* parent)
       : QWidget{parent}, m_font(font), m_title(title), m_url(url), m_openExternalLink(false), m_drawPixmap(false), m_interactive(true)
     {
+      auto& skin = score::Skin::instance();
       m_currentColor = QColor{"#f0f0f0"};
       m_activeColor = QColor{"#03C3DD"};
-      setCursor(Qt::CursorShape::PointingHandCursor);
+      setCursor(skin.CursorPointingHand);
       setFixedSize(200,34);
     }
 

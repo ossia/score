@@ -40,7 +40,8 @@ EventView::EventView(EventPresenter& presenter, QGraphicsItem* parent)
       &EventPresenter::pressed);
 
   this->setParentItem(parent);
-  this->setCursor(Qt::SizeHorCursor);
+  auto& skin = score::Skin::instance();
+  this->setCursor(skin.CursorScaleH);
 
   this->setZValue(ZPos::Event);
   this->setAcceptHoverEvents(true);

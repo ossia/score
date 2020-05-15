@@ -205,7 +205,8 @@ PortItem::PortItem(
   , m_inlet{bool(qobject_cast<const Process::Inlet*>(&p))}
   , m_highlight{false}
 {
-  this->setCursor(QCursor(Qt::PointingHandCursor));
+  auto& skin = score::Skin::instance();
+  this->setCursor(skin.CursorPointingHand);
   this->setAcceptDrops(true);
   this->setAcceptHoverEvents(true);
   this->setFlag(QGraphicsItem::ItemSendsScenePositionChanges, true);

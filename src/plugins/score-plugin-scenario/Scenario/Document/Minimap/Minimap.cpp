@@ -239,12 +239,14 @@ void Minimap::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* ev)
 
 void Minimap::hoverEnterEvent(QGraphicsSceneHoverEvent* ev)
 {
+  auto& skin = score::Skin::instance();
+
   const auto pos_x = ev->pos().x();
   if (std::abs(pos_x - m_leftHandle) < 3.)
   {
     if (!m_setCursor)
     {
-      QApplication::setOverrideCursor(Qt::SizeHorCursor);
+      QApplication::setOverrideCursor(skin.CursorScaleH);
       m_setCursor = true;
     }
   }
@@ -252,7 +254,7 @@ void Minimap::hoverEnterEvent(QGraphicsSceneHoverEvent* ev)
   {
     if (!m_setCursor)
     {
-      QApplication::setOverrideCursor(Qt::SizeHorCursor);
+      QApplication::setOverrideCursor(skin.CursorScaleH);
       m_setCursor = true;
     }
   }
@@ -260,7 +262,7 @@ void Minimap::hoverEnterEvent(QGraphicsSceneHoverEvent* ev)
   {
     if (!m_setCursor)
     {
-      QApplication::setOverrideCursor(Qt::SizeAllCursor);
+      QApplication::setOverrideCursor(skin.CursorMove);
       m_setCursor = true;
     }
   }

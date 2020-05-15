@@ -328,7 +328,8 @@ void NodeItem::hoverEnterEvent(QGraphicsSceneHoverEvent* event)
 {
   if (isInSelectionCorner(event->pos(), boundingRect()))
   {
-    setCursor(Qt::SizeFDiagCursor);
+    auto& skin = score::Skin::instance();
+    setCursor(skin.CursorScaleFDiag);
   }
   else
   {
@@ -342,7 +343,8 @@ void NodeItem::hoverMoveEvent(QGraphicsSceneHoverEvent* event)
 {
   if (isInSelectionCorner(event->pos(), boundingRect()))
   {
-    setCursor(Qt::SizeFDiagCursor);
+    auto& skin = score::Skin::instance();
+    setCursor(skin.CursorScaleFDiag);
   }
   else
   {

@@ -281,7 +281,8 @@ AmovibleSlotFooter::AmovibleSlotFooter(
   SlotFooter{slotView, slotIndex, parent}
 , m_fullView{bool(qobject_cast<const FullViewIntervalPresenter*>(&m_presenter))}
 {
-  this->setCursor(Qt::SizeVerCursor);
+  auto& skin = score::Skin::instance();
+  this->setCursor(skin.CursorScaleV);
 }
 
 void AmovibleSlotFooter::mousePressEvent(QGraphicsSceneMouseEvent* event)

@@ -172,10 +172,12 @@ public:
   QCursor CursorPointer;
   QCursor CursorOpenHand;
   QCursor CursorClosedHand;
+  QCursor CursorPointingHand;
   QCursor CursorMagnifier;
   QCursor CursorMove;
   QCursor CursorScaleH;
   QCursor CursorScaleV;
+  QCursor CursorScaleFDiag;
 
   QCursor CursorPlayFromHere;
   QCursor CursorCreationMode;
