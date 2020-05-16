@@ -180,6 +180,7 @@ to the root of a score.)_"));
     m_autotrigger->setAutoRaise(true);
     m_autotrigger->setIconSize(QSize{32,32});
     m_autotrigger->setCheckable(true);
+    m_autotrigger->setChecked(object.autotrigger());
 
     m_btnLayout.addWidget(m_autotrigger);
     connect(m_autotrigger, &QAbstractButton::toggled,
@@ -208,6 +209,7 @@ to the root of a score.)_"));
     m_isStart->setAutoRaise(true);
     m_isStart->setIconSize(QSize{32,32});
     m_isStart->setCheckable(true);
+    m_isStart->setChecked(object.isStartPoint());
 
     m_btnLayout.addWidget(m_isStart);
     connect(m_isStart, &QAbstractButton::toggled,
