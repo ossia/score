@@ -237,6 +237,7 @@ void IntervalComponent::onSetup(
     using namespace ossia;
     m_ossia_interval->set_min_duration(0_tv);
     m_ossia_interval->set_max_duration(ossia::Infinite);
+    m_ossia_interval->graphal = true;
   }
 
   if(context().doc.app.applicationSettings.gui)
