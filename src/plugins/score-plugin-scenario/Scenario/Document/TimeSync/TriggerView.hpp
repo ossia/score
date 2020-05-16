@@ -45,6 +45,8 @@ private:
 
   void dropEvent(QGraphicsSceneDragDropEvent* event) override;
   void mousePressEvent(QGraphicsSceneMouseEvent*) override;
+  void mouseMoveEvent(QGraphicsSceneMouseEvent*) override;
+  void mouseReleaseEvent(QGraphicsSceneMouseEvent*) override;
 
   void hoverEnterEvent(QGraphicsSceneHoverEvent*) override;
   void hoverLeaveEvent(QGraphicsSceneHoverEvent*) override;

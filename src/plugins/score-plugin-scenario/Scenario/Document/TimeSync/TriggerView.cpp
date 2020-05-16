@@ -96,6 +96,16 @@ void TriggerView::mousePressEvent(QGraphicsSceneMouseEvent* event)
     pressed(event->scenePos());
 }
 
+void TriggerView::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
+{
+  event->accept();
+}
+
+void TriggerView::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
+{
+  event->accept();
+}
+
 void TriggerView::hoverEnterEvent(QGraphicsSceneHoverEvent* event)
 {
   m_hovered = true;

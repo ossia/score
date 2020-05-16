@@ -39,7 +39,7 @@ public:
   static const constexpr int Type = ItemType::State;
   int type() const final override { return Type; }
 
-  const StatePresenter& presenter() const { return m_presenter; }
+  StatePresenter& presenter() const { return m_presenter; }
 
   QRectF boundingRect() const override;
 

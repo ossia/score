@@ -69,14 +69,32 @@ public:
 private:
   void mousePressEvent(QGraphicsSceneMouseEvent* event) override
   {
-    auto st = static_cast<StateView*>(parentItem());
-    st->presenter().select();
-    if(auto p = event->pos(); p.x() > 4 && p.y() < 10)
+    if (event->button() == Qt::MouseButton::LeftButton)
     {
-      st->startCreateMode();
-    }
+      auto st = static_cast<StateView*>(parentItem());
+      st->presenter().select();
+      if(auto p = event->pos(); p.x() > 4 && p.y() < 10)
+      {
+        st->startCreateMode();
+      }
 
-    event->ignore();
+      st->presenter().pressed(event->scenePos());
+      event->accept();
+    }
+  }
+
+  void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override
+  {
+    auto st = static_cast<StateView*>(parentItem());
+    st->presenter().moved(event->scenePos());
+    event->accept();
+  }
+
+  void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override
+  {
+    auto st = static_cast<StateView*>(parentItem());
+    st->presenter().released(event->scenePos());
+    event->accept();
   }
 
   void hoverEnterEvent(QGraphicsSceneHoverEvent* event) override
@@ -159,14 +177,32 @@ public:
 private:
   void mousePressEvent(QGraphicsSceneMouseEvent* event) override
   {
-    auto st = static_cast<StateView*>(parentItem());
-    st->presenter().select();
-    if(auto p = event->pos(); p.x() > 4 && p.y() < 10)
+    if (event->button() == Qt::MouseButton::LeftButton)
     {
-      st->startCreateGraphalMode();
-    }
+      auto st = static_cast<StateView*>(parentItem());
+      st->presenter().select();
+      if(auto p = event->pos(); p.x() > 4 && p.y() < 10)
+      {
+        st->startCreateGraphalMode();
+      }
 
-    event->ignore();
+      st->presenter().pressed(event->scenePos());
+      event->accept();
+    }
+  }
+
+  void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override
+  {
+    auto st = static_cast<StateView*>(parentItem());
+    st->presenter().moved(event->scenePos());
+    event->accept();
+  }
+
+  void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override
+  {
+    auto st = static_cast<StateView*>(parentItem());
+    st->presenter().released(event->scenePos());
+    event->accept();
   }
 
   void hoverEnterEvent(QGraphicsSceneHoverEvent* event) override
