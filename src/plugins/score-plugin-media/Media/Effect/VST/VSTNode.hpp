@@ -135,11 +135,6 @@ public:
     else
       m_inlets.push_back(new ossia::audio_inlet);
 
-    // tempo
-    m_inlets.push_back(new ossia::value_inlet);
-    // time signature
-    m_inlets.push_back(new ossia::value_inlet);
-
     // audio output
     m_outlets.push_back(new ossia::audio_outlet);
 
