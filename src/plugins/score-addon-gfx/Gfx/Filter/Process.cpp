@@ -76,7 +76,10 @@ void Model::setFragment(QString f)
     return;
   m_fragment = f;
 
-  for (auto inlet : m_inlets)
+  auto inls = std::move(m_inlets);
+  inletsChanged();
+
+  for (auto inlet : inls)
     delete inlet;
   m_inlets.clear();
 
@@ -90,7 +93,6 @@ void Model::setFragment(QString f)
       setupIsf(m_isfDescriptor);
 
       inletsChanged();
-      outletsChanged();
 
       return;
     }
@@ -102,7 +104,6 @@ void Model::setFragment(QString f)
   setupNormalShader();
 
   inletsChanged();
-  outletsChanged();
 }
 
 QString Model::prettyName() const noexcept
