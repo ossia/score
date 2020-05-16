@@ -58,11 +58,12 @@ void ProcessTreeView::startDrag(Qt::DropActions)
       return;
 
     QDrag* drag = new QDrag(this);
-    auto p = score::get_pixmap(QStringLiteral(":/icons/cursor_process_audio.png"));
     drag->setMimeData(data);
+    /*
+    auto p = score::get_pixmap(QStringLiteral(":/icons/cursor_process_audio.png"));
     drag->setDragCursor(p, Qt::CopyAction);
     drag->setDragCursor(p, Qt::MoveAction);
-
+    */
     drag->exec();
   }
 }

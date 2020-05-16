@@ -93,7 +93,7 @@ void DeviceExplorerView::startDrag(Qt::DropActions)
 
     QDrag* drag = new QDrag(this);
     drag->setMimeData(data);
-
+/*
     auto p = score::get_pixmap(QStringLiteral(":/icons/cursor_drag_device.png"));
     drag->setPixmap(QPixmap());
     drag->setDragCursor(p, Qt::CopyAction);
@@ -102,6 +102,7 @@ void DeviceExplorerView::startDrag(Qt::DropActions)
     drag->setDragCursor(p, Qt::ActionMask);
     drag->setDragCursor(p, Qt::IgnoreAction);
     drag->setDragCursor(p, Qt::TargetMoveAction);
+    */
     drag->exec();
   }
 }
