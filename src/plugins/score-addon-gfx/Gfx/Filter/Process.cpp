@@ -77,6 +77,7 @@ void Model::setFragment(QString f)
   m_fragment = f;
 
   auto inls = std::move(m_inlets);
+  m_inlets.clear();
   inletsChanged();
 
   for (auto inlet : inls)
