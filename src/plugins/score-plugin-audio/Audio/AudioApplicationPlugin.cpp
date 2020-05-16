@@ -77,9 +77,7 @@ void ApplicationPlugin::on_stop()
   {
     // TODO we should untie audio_engine and audio_protocol so that
     // the audio_engine does not depend on a document running
-    // ossia::audio_protocol* p = audio->protocol;
-    // if(p)
-    //   p->set_tick(makeDefaultTick(this->context));
+    audio->set_tick(makeDefaultTick(this->context));
     audio->reload(nullptr);
   }
 }
@@ -183,7 +181,7 @@ try
     if(audio)
     {
       preview.audio = audio->protocol;
-      preview.audio->set_tick(makeDefaultTick(this->context));
+      audio->set_tick(makeDefaultTick(this->context));
     }
     else
     {
