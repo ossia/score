@@ -23,8 +23,8 @@ SETTINGS_PARAMETER_IMPL(Driver)
       Audio::AudioFactory::ConcreteKey
   {
     score::uuids::string_generator::compute(
-        "015cb998-7bad-46e0-ba57-669b7733eadc")
-  } // PulseAudio
+        "7ff2af00-f2f5-4930-beec-0e2d21eda195")
+  } // JACK
 #else
       Audio::AudioFactory::ConcreteKey
   {
