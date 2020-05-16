@@ -116,7 +116,6 @@ ProcessWidget::ProcessWidget(
   setStatusTip(QObject::tr("This panel shows the available processes.\n"
                            "They can be drag'n'dropped in the score, in intervals, "
                            "and sometimes in effect chains."));
-  auto top_w = new QWidget;
 
   {
     auto processFilterProxy = new RecursiveFilterProxy{this};
@@ -152,7 +151,6 @@ ProcessWidget::ProcessWidget(
     presetFilterProxy->invalidate();
   });
 
-  top_w->setMinimumHeight(100);
   m_lv.setMinimumHeight(100);
 }
 
