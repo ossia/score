@@ -63,6 +63,13 @@ public:
     thread->start();
   }
 
+  ~ExplorationWorkerWrapper()
+  {
+    thread->quit();
+    thread->wait();
+    delete thread;
+  }
+
 private:
   void on_start()
   {
