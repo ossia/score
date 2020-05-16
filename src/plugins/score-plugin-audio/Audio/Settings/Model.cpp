@@ -23,8 +23,8 @@ SETTINGS_PARAMETER_IMPL(Driver)
       Audio::AudioFactory::ConcreteKey
   {
     score::uuids::string_generator::compute(
-        "7ff2af00-f2f5-4930-beec-0e2d21eda195")
-  } // JACK
+        "3533ee88-9a8d-486c-b20b-6c966cf4eaa0")
+  } // ALSA
 #else
       Audio::AudioFactory::ConcreteKey
   {
