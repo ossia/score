@@ -426,7 +426,7 @@ struct TSerializer<JSONObject, ossia::domain_base_variant>
 
   static void writeTo(JSONObject::Deserializer& s, var_t& var)
   {
-    if(s.base.MemberCount() == 0)
+    if(!s.base.IsObject() || s.base.MemberCount() == 0)
       return;
     const auto& keys = keys_list();
     for (std::size_t i = 0; i < keys.size(); i++)
