@@ -32,12 +32,7 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Audio/Settings/View.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Audio/AudioInterface.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Audio/ALSAPortAudioInterface.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Audio/ASIOPortAudioInterface.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Audio/CoreAudioPortAudioInterface.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Audio/GenericPortAudioInterface.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Audio/MMEPortAudioInterface.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Audio/WASAPIPortAudioInterface.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Audio/WDMKSPortAudioInterface.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Audio/AudioApplicationPlugin.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Audio/AudioPreviewExecutor.cpp"
 

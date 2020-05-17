@@ -22,12 +22,9 @@ set(HDRS
     Gfx/CommandFactory.hpp
 
     Gfx/Filter/Executor.hpp
-    Gfx/Filter/Inspector.hpp
     Gfx/Filter/LocalTree.hpp
     Gfx/Filter/Metadata.hpp
-    Gfx/Filter/Presenter.hpp
     Gfx/Filter/Process.hpp
-    Gfx/Filter/View.hpp
     Gfx/Filter/Layer.hpp
 
     Gfx/Mesh/Executor.hpp
@@ -69,7 +66,6 @@ set(HDRS
     Gfx/Graph/uniforms.hpp
     Gfx/Graph/mesh.hpp
     Gfx/Graph/renderer.hpp
-    Gfx/Graph/videodecoder.hpp
     Gfx/Graph/videonode.hpp
     Gfx/Graph/phongnode.hpp
     Gfx/Graph/imagenode.hpp
@@ -89,11 +85,8 @@ set(HDRS
 
 set(SRCS
     Gfx/Filter/Executor.cpp
-    Gfx/Filter/Inspector.cpp
     Gfx/Filter/LocalTree.cpp
-    Gfx/Filter/Presenter.cpp
     Gfx/Filter/Process.cpp
-    Gfx/Filter/View.cpp
 
     Gfx/Mesh/Executor.cpp
     Gfx/Mesh/Inspector.cpp
@@ -125,7 +118,6 @@ set(SRCS
 
     Gfx/GfxApplicationPlugin.cpp
     Gfx/GfxDevice.cpp
-    Gfx/GfxExec.cpp
     Gfx/TexturePort.cpp
 
     # Gfx/graph/hap/source/hap.c

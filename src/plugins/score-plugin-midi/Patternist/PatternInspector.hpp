@@ -1,5 +1,4 @@
 #pragma once
-#include <Patternist/Commands/AddLane.hpp>
 #include <Patternist/Commands/PatternProperties.hpp>
 #include <Patternist/PatternModel.hpp>
 #include <Process/Inspector/ProcessInspectorWidgetDelegate.hpp>

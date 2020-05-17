@@ -4,7 +4,6 @@
 
 #include <Nodal/CommandFactory.hpp>
 #include <Nodal/Executor.hpp>
-#include <Nodal/Inspector.hpp>
 #include <Nodal/Layer.hpp>
 #include <Nodal/LocalTree.hpp>
 #include <Nodal/Process.hpp>

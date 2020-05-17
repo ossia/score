@@ -1,5 +1,4 @@
 #pragma once
-#include <JS/Inspector/JSInspectorWidget.hpp>
 #include <JS/JSProcessMetadata.hpp>
 #include <JS/JSProcessModel.hpp>
 #include <Effect/EffectFactory.hpp>

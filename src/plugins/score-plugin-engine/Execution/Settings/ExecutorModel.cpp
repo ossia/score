@@ -6,7 +6,7 @@
 
 #include <score/application/ApplicationContext.hpp>
 
-#include <Engine/OSSIA2score.hpp>
+
 #include <Execution/Clock/DataflowClock.hpp>
 #include <Execution/Clock/DefaultClock.hpp>
 

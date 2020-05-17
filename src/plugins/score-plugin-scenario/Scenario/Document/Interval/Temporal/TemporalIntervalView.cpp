@@ -7,12 +7,12 @@
 
 #include <Process/Style/ScenarioStyle.hpp>
 #include <Scenario/Document/Interval/IntervalHeader.hpp>
-#include <Scenario/Document/Interval/IntervalMenuOverlay.hpp>
+
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/Interval/IntervalPresenter.hpp>
 #include <Scenario/Document/Interval/IntervalView.hpp>
 #include <Scenario/Document/Interval/IntervalPixmaps.hpp>
-#include <Scenario/Document/Interval/SlotHandle.hpp>
+
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <score/graphics/PainterPath.hpp>
 

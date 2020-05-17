@@ -9,7 +9,7 @@
 #include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
 #include <Scenario/Process/Algorithms/ProcessPolicy.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
-#include <Scenario/Process/Algorithms/VerticalMovePolicy.hpp>
+
 #include <score/document/DocumentContext.hpp>
 #include <score/model/EntityMap.hpp>
 #include <score/model/EntityMapSerialization.hpp>

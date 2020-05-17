@@ -1,5 +1,5 @@
 #pragma once
-#include <Media/Input/InputModel.hpp>
+
 #include <Media/Sound/SoundModel.hpp>
 #include <Process/Inspector/ProcessInspectorWidgetDelegate.hpp>
 

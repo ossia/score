@@ -4,7 +4,6 @@
 #include "renderer.hpp"
 #include "renderstate.hpp"
 #include "uniforms.hpp"
-#include "videodecoder.hpp"
 
 #include <Video/VideoDecoder.hpp>
 using video_decoder = ::Video::VideoDecoder;

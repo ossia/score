@@ -8,7 +8,6 @@ find_package(Qt5 5.3 REQUIRED COMPONENTS Core Widgets)
 # Files & main target
 set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/State/AddressSerialization.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/State/ValueSerialization.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/State/MessageSerialization.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/State/Address.cpp"
@@ -16,7 +15,6 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/State/Value.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/State/ValueConversion.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/State/Relation.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/State/TraversalPath.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/State/Expression.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/State/ExpressionParser.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/State/ExpressionSerialization.cpp"
@@ -44,8 +42,6 @@ set(HDRS
   "${CMAKE_CURRENT_SOURCE_DIR}/State/MessageListSerialization.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/State/OSSIASerializationImpl.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/State/Relation.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/State/StateMimeTypes.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/State/TraversalPath.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/State/Unit.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/State/ValueConversion.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/State/Value.hpp"

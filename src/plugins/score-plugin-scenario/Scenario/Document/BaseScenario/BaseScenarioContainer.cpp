@@ -8,7 +8,7 @@
 #include <Scenario/Document/State/StateModel.hpp>
 #include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
 #include <Scenario/Process/Algorithms/ProcessPolicy.hpp>
-#include <Scenario/Process/Algorithms/VerticalMovePolicy.hpp>
+
 #include <Scenario/Process/ScenarioInterface.hpp>
 
 #include <score/document/DocumentContext.hpp>

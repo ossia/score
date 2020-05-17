@@ -14,7 +14,7 @@
 #include <Scenario/Commands/Scenario/Displacement/MoveCommentBlock.hpp>
 #include <Scenario/Document/State/ItemModel/MessageItemModel.hpp>
 #include <Scenario/Process/ScenarioView.hpp>
-#include <Scenario/Process/Algorithms/VerticalMovePolicy.hpp>
+
 #include <State/MessageListSerialization.hpp>
 
 #include <score/actions/ActionManager.hpp>

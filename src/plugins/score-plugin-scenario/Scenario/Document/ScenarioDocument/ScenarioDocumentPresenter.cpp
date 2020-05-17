@@ -12,7 +12,7 @@
 #include <Process/ProcessList.hpp>
 #include <Process/Style/ScenarioStyle.hpp>
 #include <Process/TimeValue.hpp>
-#include <Process/Tools/ProcessGraphicsView.hpp>
+
 #include <Scenario/Application/ScenarioApplicationPlugin.hpp>
 #include <Scenario/Document/DisplayedElements/DisplayedElementsModel.hpp>
 #include <Scenario/Document/DisplayedElements/DisplayedElementsPresenter.hpp>

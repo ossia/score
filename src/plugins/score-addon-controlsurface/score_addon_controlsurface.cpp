@@ -4,7 +4,6 @@
 
 #include <ControlSurface/CommandFactory.hpp>
 #include <ControlSurface/Executor.hpp>
-#include <ControlSurface/Inspector.hpp>
 #include <ControlSurface/Layer.hpp>
 #include <ControlSurface/LocalTree.hpp>
 #include <ControlSurface/Process.hpp>

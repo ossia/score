@@ -1,4 +1,4 @@
-#include "VideoDecoder.hpp"
+
 extern "C"
 {
 #include <libavcodec/avcodec.h>
@@ -9,6 +9,7 @@ extern "C"
 #include <ossia/detail/flicks.hpp>
 #include <QDebug>
 #include <functional>
+#include "VideoDecoder.hpp"
 namespace Video
 {
 

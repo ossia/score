@@ -4,7 +4,6 @@
 #include <score/model/IdentifiedObjectAbstract.hpp>
 #include <score/model/path/ObjectIdentifier.hpp>
 #include <score/model/path/ObjectPath.hpp>
-#include <score/model/path/RelativePath.hpp>
 #include <score/tools/std/Optional.hpp>
 
 #include <core/document/Document.hpp>

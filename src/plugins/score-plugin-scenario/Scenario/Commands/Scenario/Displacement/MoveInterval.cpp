@@ -4,7 +4,7 @@
 
 #include <Process/TimeValue.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
-#include <Scenario/Process/Algorithms/VerticalMovePolicy.hpp>
+
 #include <Scenario/Process/ScenarioModel.hpp>
 
 #include <score/model/EntityMap.hpp>

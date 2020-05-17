@@ -16,7 +16,6 @@ set(HDRS
     Dataflow/PortInspectorFactory.hpp
     Dataflow/ValueInletItem.hpp
     Dataflow/ValueOutletItem.hpp
-    Dataflow/SubportPanel.hpp
     Dataflow/DropPortInScenario.hpp
     score_plugin_dataflow.hpp
 )
@@ -28,9 +27,6 @@ set(SRCS
     Dataflow/MidiOutletItem.cpp
     Dataflow/AudioInletItem.cpp
     Dataflow/AudioOutletItem.cpp
-    Dataflow/ValueInletItem.cpp
-    Dataflow/ValueOutletItem.cpp
-    Dataflow/SubportPanel.cpp
     Dataflow/CableInspector.cpp
     Dataflow/DropPortInScenario.cpp
     score_plugin_dataflow.cpp

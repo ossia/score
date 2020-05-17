@@ -29,7 +29,7 @@
 #include <ossia/editor/scenario/time_value.hpp>
 #include <ossia/editor/state/state.hpp>
 
-#include <Engine/OSSIA2score.hpp>
+
 #include <wobjectimpl.h>
 
 #include <vector>

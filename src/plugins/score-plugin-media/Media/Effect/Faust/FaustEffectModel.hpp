@@ -2,7 +2,7 @@
 #if defined(HAS_FAUST)
 #include <Process/Execution/ProcessComponent.hpp>
 #include <Process/GenericProcessFactory.hpp>
-#include <Process/Inspector/GenericProcessInspector.hpp>
+
 #include <Process/Inspector/ProcessInspectorWidgetDelegate.hpp>
 #include <Process/Inspector/ProcessInspectorWidgetDelegateFactory.hpp>
 #include <Process/Process.hpp>

@@ -2,7 +2,7 @@
 
 #include <Process/HeaderDelegate.hpp>
 #include <Process/LayerPresenter.hpp>
-#include <Scenario/Document/Interval/SlotHandle.hpp>
+
 #include <Scenario/Document/Interval/SlotHeader.hpp>
 
 namespace Scenario

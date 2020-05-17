@@ -23,7 +23,6 @@ set(HDRS
   Execution/Clock/ClockFactory.hpp
   Execution/Clock/DefaultClock.hpp
 
-  Engine/OSSIA2score.hpp
   Engine/ApplicationPlugin.hpp
   Engine/Listening/PlayListeningHandler.hpp
   Engine/Listening/PlayListeningHandlerFactory.hpp

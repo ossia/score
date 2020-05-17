@@ -21,7 +21,6 @@
 #include <Media/Step/Inspector.hpp>
 #include <Media/Metro/MetroExecutor.hpp>
 #include <Media/Metro/MetroFactory.hpp>
-#include <Media/Metro/MetroInspector.hpp>
 #include <Scenario/Application/ScenarioApplicationPlugin.hpp>
 #include <Mixer/MixerPanel.hpp>
 

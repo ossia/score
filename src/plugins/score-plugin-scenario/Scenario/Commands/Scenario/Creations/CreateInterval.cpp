@@ -7,7 +7,7 @@
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentModel.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
 #include <Scenario/Process/Algorithms/StandardCreationPolicy.hpp>
-#include <Scenario/Process/Algorithms/VerticalMovePolicy.hpp>
+
 #include <Scenario/Process/ScenarioModel.hpp>
 
 #include <score/model/EntityMap.hpp>

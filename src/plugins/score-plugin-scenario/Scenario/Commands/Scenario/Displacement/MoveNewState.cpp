@@ -3,7 +3,7 @@
 #include "MoveNewState.hpp"
 
 #include <Scenario/Document/State/StateModel.hpp>
-#include <Scenario/Process/Algorithms/VerticalMovePolicy.hpp>
+
 #include <Scenario/Process/ScenarioModel.hpp>
 
 #include <score/model/Identifier.hpp>

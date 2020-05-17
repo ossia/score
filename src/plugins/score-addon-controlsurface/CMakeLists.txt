@@ -6,7 +6,6 @@ score_common_setup()
 # Source files
 set(HDRS
     ControlSurface/Executor.hpp
-    ControlSurface/Inspector.hpp
     ControlSurface/LocalTree.hpp
     ControlSurface/Metadata.hpp
     ControlSurface/Presenter.hpp
@@ -20,7 +19,6 @@ set(HDRS
 )
 set(SRCS
     ControlSurface/Executor.cpp
-    ControlSurface/Inspector.cpp
     ControlSurface/LocalTree.cpp
     ControlSurface/Presenter.cpp
     ControlSurface/Process.cpp

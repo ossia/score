@@ -34,7 +34,6 @@
 #include <Scenario/Inspector/Interpolation/InterpolationInspectorWidget.hpp>
 #include <Scenario/Inspector/Interval/IntervalInspectorFactory.hpp>
 #include <Scenario/Inspector/ObjectTree/ObjectItemModel.hpp>
-#include <Scenario/Inspector/Scenario/ScenarioInspectorFactory.hpp>
 #include <Scenario/Inspector/ScenarioInspectorWidgetFactoryWrapper.hpp>
 #include <Scenario/Library/SlotLibraryHandler.hpp>
 #include <Scenario/Process/ScenarioExecution.hpp>

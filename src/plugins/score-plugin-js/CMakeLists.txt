@@ -26,9 +26,6 @@ set(HDRS
   "${CMAKE_CURRENT_SOURCE_DIR}/JS/Executor/JSAPIWrapper.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/JS/Executor/ProcessScript.hpp"
 
-  "${CMAKE_CURRENT_SOURCE_DIR}/JS/Inspector/JSInspectorFactory.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/JS/Inspector/JSInspectorWidget.hpp"
-
   "${CMAKE_CURRENT_SOURCE_DIR}/JS/Qml/QmlObjects.hpp"
 
   "${CMAKE_CURRENT_SOURCE_DIR}/JS/JSProcessFactory.hpp"
@@ -43,10 +40,7 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/JS/Executor/Component.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/JS/Executor/JSAPIWrapper.cpp"
 
-"${CMAKE_CURRENT_SOURCE_DIR}/JS/Commands/EditScript.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/JS/Commands/JSCommandFactory.cpp"
-
-"${CMAKE_CURRENT_SOURCE_DIR}/JS/Inspector/JSInspectorWidget.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/JS/Qml/QmlObjects.cpp"
 

@@ -9,7 +9,7 @@
 #include <QDialog>
 
 #include <Control/Widgets.hpp>
-#include <Process/Inspector/GenericProcessInspector.hpp>
+
 #include <verdigris>
 
 namespace Process

@@ -7,7 +7,7 @@
 #include <Scenario/Document/State/StateModel.hpp>
 #include <State/Message.hpp>
 #include <State/MessageListSerialization.hpp>
-#include <State/StateMimeTypes.hpp>
+
 #include <State/ValueConversion.hpp>
 
 #include <score/command/Dispatchers/CommandDispatcher.hpp>

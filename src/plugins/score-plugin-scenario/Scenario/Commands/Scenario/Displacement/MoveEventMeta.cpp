@@ -6,7 +6,7 @@
 #include <Scenario/Commands/Scenario/Displacement/SerializableMoveEvent.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
-#include <Scenario/Process/Algorithms/VerticalMovePolicy.hpp>
+
 #include <Scenario/Process/ScenarioModel.hpp>
 
 #include <score/application/ApplicationContext.hpp>

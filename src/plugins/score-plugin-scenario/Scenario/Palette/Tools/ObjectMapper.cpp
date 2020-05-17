@@ -5,7 +5,7 @@
 #include <Scenario/Document/Interval/IntervalView.hpp>
 #include <Scenario/Document/TimeSync/TimeSyncView.hpp>
 #include <Scenario/Document/TimeSync/TriggerView.hpp>
-#include <Scenario/Document/Interval/SlotHandle.hpp>
+
 #include <Scenario/Document/Interval/Temporal/Braces/LeftBrace.hpp>
 #include <Scenario/Document/State/StateView.hpp>
 #include <Scenario/Document/State/StateMenuOverlay.hpp>

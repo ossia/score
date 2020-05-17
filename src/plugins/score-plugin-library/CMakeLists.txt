@@ -19,7 +19,6 @@ set(HDRS
     "${CMAKE_CURRENT_SOURCE_DIR}/Library/PresetItemModel.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Library/PresetListView.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Library/ProcessesItemModel.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Library/ProcessLibraryWidget.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Library/ProcessTreeView.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Library/ProcessWidget.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Library/ProjectLibraryWidget.hpp"

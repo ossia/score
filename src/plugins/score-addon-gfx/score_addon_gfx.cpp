@@ -4,7 +4,6 @@
 
 #include <Gfx/CommandFactory.hpp>
 #include <Gfx/Filter/Executor.hpp>
-#include <Gfx/Filter/Inspector.hpp>
 #include <Gfx/Filter/Layer.hpp>
 #include <Gfx/Filter/Process.hpp>
 #include <Gfx/GfxApplicationPlugin.hpp>

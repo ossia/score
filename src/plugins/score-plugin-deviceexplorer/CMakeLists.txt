@@ -100,7 +100,6 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Explorer/Widgets/DeviceEditDialog.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Explorer/Widgets/AddressEditDialog.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Explorer/DeviceExplorerModel.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Explorer/ExplorerModelProvider.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Explorer/AddressItemModel.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Explorer/DeviceExplorerWidget.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Explorer/Explorer/ListeningManager.cpp"

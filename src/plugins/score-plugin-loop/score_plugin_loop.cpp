@@ -4,7 +4,7 @@
 
 #include <Inspector/InspectorWidgetFactoryInterface.hpp>
 #include <Loop/Commands/LoopCommandFactory.hpp>
-#include <Loop/Inspector/LoopInspectorFactory.hpp>
+
 #include <Loop/Inspector/LoopTriggerCommandFactory.hpp>
 #include <Loop/LoopDisplayedElements.hpp>
 #include <Loop/LoopExecution.hpp>

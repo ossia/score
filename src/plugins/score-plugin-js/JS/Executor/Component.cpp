@@ -23,7 +23,7 @@
 #include <QQmlContext>
 #include <QQmlComponent>
 
-#include <Engine/OSSIA2score.hpp>
+
 #include <Execution/DocumentPlugin.hpp>
 
 #include <vector>

@@ -657,6 +657,36 @@ struct TSerializer<
   }
 };
 
+template <>
+struct TSerializer<DataStream, std::vector<bool>>
+{
+  static void readFrom(DataStream::Serializer& s, const std::vector<bool>& vec)
+  {
+    s.stream() << (int32_t)vec.size();
+    for (bool elt : vec)
+      s.stream() << elt;
+
+    SCORE_DEBUG_INSERT_DELIMITER2(s);
+  }
+
+  static void writeTo(DataStream::Deserializer& s, std::vector<bool>& vec)
+  {
+    int32_t n;
+    s.stream() >> n;
+
+    vec.clear();
+    vec.resize(n);
+    for (int i = 0; i < n; i++)
+    {
+      bool b;
+      s.stream() >> b;
+      vec[i] = b;
+    }
+
+    SCORE_DEBUG_CHECK_DELIMITER2(s);
+  }
+};
+
 template <typename T, typename Alloc>
 struct TSerializer<
     DataStream,

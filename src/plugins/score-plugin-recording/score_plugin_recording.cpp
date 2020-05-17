@@ -6,7 +6,7 @@
 #include <Recording/Commands/RecordingCommandFactory.hpp>
 
 #include <score/plugins/FactorySetup.hpp>
-#include <score/tools/ForEachType.hpp>
+
 #include <score/tools/std/HashMap.hpp>
 
 

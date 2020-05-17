@@ -1,6 +1,6 @@
 #pragma once
 #include <Media/Commands/MediaCommandFactory.hpp>
-#include <Media/Input/InputModel.hpp>
+
 #include <Media/MediaFileHandle.hpp>
 #include <Media/Sound/SoundModel.hpp>
 

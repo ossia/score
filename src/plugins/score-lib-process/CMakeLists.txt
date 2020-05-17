@@ -50,7 +50,6 @@ set(PROCESS_HDRS
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/TypeConversion.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/ProcessMimeSerialization.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Tools/ToolPalette.hpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Process/Tools/ProcessGraphicsView.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Tools/ProcessPanelGraphicsProxy.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Preset.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/ZoomHelper.hpp"
@@ -65,8 +64,6 @@ set(PROCESS_HDRS
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/ExecutionAction.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/ExecutionComponent.hpp"
 
-
-"${CMAKE_CURRENT_SOURCE_DIR}/Process/Inspector/GenericProcessInspector.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Inspector/ProcessInspectorWidgetDelegateFactory.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Inspector/ProcessInspectorWidgetDelegate.hpp"
 
@@ -78,7 +75,6 @@ set(PROCESS_HDRS
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Automatable/AutomatableFactory.hpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Script/ScriptEditor.hpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/Process/Script/MultiScriptEditor.hpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Effect/EffectFactory.hpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Effect/EffectLayer.hpp"
@@ -127,7 +123,6 @@ set(PROCESS_SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/State/MessageNode.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/State/ProcessStateDataInterface.cpp"
 
-"${CMAKE_CURRENT_SOURCE_DIR}/Process/Tools/ProcessGraphicsView.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/Tools/ProcessPanelGraphicsProxy.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/Process/ExecutionSetup.cpp"
@@ -145,7 +140,6 @@ set(PROCESS_SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/Effect/EffectLayer.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Magnetism/MagnetismAdjuster.cpp"
 
-"${CMAKE_CURRENT_SOURCE_DIR}/Control/Widgets.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Control/DefaultEffectItem.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/LocalTree/LTProcessComponent.cpp"

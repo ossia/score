@@ -8,10 +8,9 @@
 #include <Curve/Segment/CurveSegmentList.hpp>
 #include <Curve/Segment/EasingSegment.hpp>
 #include <Curve/Segment/Linear/LinearSegment.hpp>
-#include <Curve/Segment/Noise/NoiseSegment.hpp>
+
 #include <Curve/Segment/PointArray/PointArraySegment.hpp>
 #include <Curve/Segment/Power/PowerSegment.hpp>
-#include <Curve/Segment/Sin/SinSegment.hpp>
 #include <Curve/Settings/CurveSettingsFactory.hpp>
 
 #include <score/plugins/FactorySetup.hpp>

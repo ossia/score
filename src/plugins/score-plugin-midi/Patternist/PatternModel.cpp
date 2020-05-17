@@ -7,39 +7,6 @@
 
 W_OBJECT_IMPL(Patternist::ProcessModel)
 
-template <>
-struct TSerializer<
-    DataStream,
-    std::vector<bool>,
-    std::enable_if_t<is_QDataStreamSerializable<bool>::value>>
-{
-  static void
-  readFrom(DataStream::Serializer& s, const std::vector<bool>& vec)
-  {
-    s.stream() << (int32_t)vec.size();
-    for (bool elt : vec)
-      s.stream() << elt;
-
-    SCORE_DEBUG_INSERT_DELIMITER2(s);
-  }
-
-  static void writeTo(DataStream::Deserializer& s, std::vector<bool>& vec)
-  {
-    int32_t n = 0;
-    s.stream() >> n;
-
-    vec.clear();
-    vec.resize(n);
-    for (int32_t i = 0; i < n; i++)
-    {
-      bool b;
-      s.stream() >> b;
-      vec[i] = b;
-    }
-
-    SCORE_DEBUG_CHECK_DELIMITER2(s);
-  }
-};
 namespace Patternist
 {
 ProcessModel::ProcessModel(

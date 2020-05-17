@@ -18,7 +18,7 @@
 #include <Process/DocumentPlugin.hpp>
 #include <Process/LayerPresenter.hpp>
 #include <Process/Process.hpp>
-#include <Process/Tools/ProcessGraphicsView.hpp>
+
 #include <Scenario/Application/Menus/ObjectMenuActions.hpp>
 #include <Scenario/Application/Menus/ScenarioContextMenuManager.hpp>
 #include <Scenario/Application/ScenarioActions.hpp>

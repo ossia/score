@@ -7,7 +7,7 @@
 #include <Inspector/InspectorWidgetFactoryInterface.hpp>
 #include <JS/ConsolePanel.hpp>
 #include <JS/Executor/Component.hpp>
-#include <JS/Inspector/JSInspectorFactory.hpp>
+
 #include <JS/JSProcessFactory.hpp>
 #include <JS/Qml/QmlObjects.hpp>
 #include <QQmlListProperty>

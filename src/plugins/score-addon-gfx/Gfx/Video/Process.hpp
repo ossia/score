@@ -7,7 +7,6 @@
 #include <score/command/PropertyCommand.hpp>
 
 #include <Gfx/CommandFactory.hpp>
-#include <Gfx/Graph/videodecoder.hpp>
 #include <Gfx/Video/Metadata.hpp>
 #include <Video/VideoDecoder.hpp>
 namespace Gfx::Video

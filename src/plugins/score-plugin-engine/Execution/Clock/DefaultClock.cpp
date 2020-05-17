@@ -11,7 +11,7 @@
 #include <ossia/dataflow/execution_state.hpp>
 #include <ossia/dataflow/graph/graph_interface.hpp>
 
-#include <Engine/OSSIA2score.hpp>
+
 #include <Execution/BaseScenarioComponent.hpp>
 #include <Execution/Settings/ExecutorModel.hpp>
 #include <QDebug>

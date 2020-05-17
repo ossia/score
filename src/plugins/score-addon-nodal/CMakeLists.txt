@@ -6,7 +6,6 @@ score_common_setup()
 # Source files
 set(HDRS
     Nodal/Executor.hpp
-    Nodal/Inspector.hpp
     Nodal/LocalTree.hpp
     Nodal/Metadata.hpp
     Nodal/Presenter.hpp
@@ -20,7 +19,6 @@ set(HDRS
 )
 set(SRCS
     Nodal/Executor.cpp
-    Nodal/Inspector.cpp
     Nodal/LocalTree.cpp
     Nodal/Presenter.cpp
     Nodal/Process.cpp

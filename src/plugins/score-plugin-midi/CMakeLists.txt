@@ -32,7 +32,6 @@ set(HEADER_FILES
   Patternist/PatternMetadata.hpp
   Patternist/PatternCommandFactory.hpp
   Patternist/PatternInspector.hpp
-  Patternist/Commands/AddLane.hpp
   Patternist/Commands/PatternProperties.hpp
 
   "${CMAKE_CURRENT_SOURCE_DIR}/score_plugin_midi.hpp"
@@ -57,7 +56,6 @@ set(SOURCE_FILES
   Patternist/PatternModel.cpp
   Patternist/PatternView.cpp
   Patternist/PatternPresenter.cpp
-  Patternist/PatternFactory.cpp
   Patternist/PatternExecutor.cpp
 
   "${CMAKE_CURRENT_SOURCE_DIR}/score_plugin_midi.cpp"

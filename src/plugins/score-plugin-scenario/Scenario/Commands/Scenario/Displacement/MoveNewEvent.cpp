@@ -3,7 +3,7 @@
 #include "MoveNewEvent.hpp"
 
 #include <Scenario/Commands/Scenario/Displacement/MoveEventOnCreationMeta.hpp>
-#include <Scenario/Process/Algorithms/VerticalMovePolicy.hpp>
+
 #include <Scenario/Process/ScenarioModel.hpp>
 
 #include <score/model/path/PathSerialization.hpp>

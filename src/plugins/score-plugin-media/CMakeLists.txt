@@ -35,7 +35,6 @@ set(HDRS ${HDRS}
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/AudioArray.hpp"
 
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Commands/ChangeAudioFile.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Media/Commands/CreateSoundBox.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Commands/MediaCommandFactory.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Commands/InsertEffect.hpp"
 
@@ -51,10 +50,6 @@ set(HDRS ${HDRS}
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Sound/SoundComponent.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Sound/SoundLibraryHandler.hpp"
 
-    "${CMAKE_CURRENT_SOURCE_DIR}/Media/Input/InputModel.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Media/Input/InputFactory.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Media/Input/InputMetadata.hpp"
-
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/ChainProcess.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/ChainItem.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/ChainExecutor.hpp"
@@ -67,7 +62,6 @@ set(HDRS ${HDRS}
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/AudioChain/Inspector/AudioChainInspector.hpp"
 
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/SynthChain/SynthChainFactory.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Media/SynthChain/SynthChainLayer.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/SynthChain/SynthChainMetadata.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/SynthChain/SynthChainModel.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/SynthChain/SynthChainExecutor.hpp"
@@ -98,7 +92,6 @@ set(HDRS ${HDRS}
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Metro/MetroMetadata.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Metro/MetroExecutor.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Metro/MetroFactory.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Media/Metro/MetroInspector.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Metro/MetroModel.hpp"
 
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/MediaFileHandle.hpp"
@@ -126,8 +119,6 @@ set(SRCS
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Sound/Drop/SoundDrop.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Sound/SoundComponent.cpp"
 
-    "${CMAKE_CURRENT_SOURCE_DIR}/Media/Input/InputModel.cpp"
-
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/ChainProcess.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/ChainItem.cpp"
 
@@ -138,7 +129,6 @@ set(SRCS
 
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/SynthChain/SynthChainModel.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/SynthChain/SynthChainExecutor.cpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Media/SynthChain/SynthChainLayer.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/SynthChain/Inspector/SynthChainInspector.cpp"
 
     "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/Settings/Model.cpp"
@@ -178,7 +168,6 @@ if(Faust_FOUND)
         )
     set(FAUST_SRCS
       "${CMAKE_CURRENT_SOURCE_DIR}/Media/Effect/Faust/FaustEffectModel.cpp"
-      "${CMAKE_CURRENT_SOURCE_DIR}/Media/Commands/EditFaustEffect.cpp"
     )
 endif()
 

@@ -4,7 +4,7 @@
 #include "renderer.hpp"
 #include "renderstate.hpp"
 #include "uniforms.hpp"
-#include "videodecoder.hpp"
+
 struct TexgenNode : NodeModel
 {
   static const constexpr auto vertex = R"_(#version 450

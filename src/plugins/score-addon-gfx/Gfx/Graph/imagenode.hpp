@@ -4,7 +4,7 @@
 #include "renderer.hpp"
 #include "renderstate.hpp"
 #include "uniforms.hpp"
-#include "videodecoder.hpp"
+
 namespace Gfx
 {
 struct Image
