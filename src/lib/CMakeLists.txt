@@ -242,7 +242,7 @@ set(HEADERS
     "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/Pixmap.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/ReactiveLabel.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/Separator.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/SelectionButton.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/SelectionButton.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/SetIcons.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/SignalUtils.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/StyleSheets.hpp"
