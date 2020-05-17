@@ -4,8 +4,6 @@
 #include <Process/GenericProcessFactory.hpp>
 #include <Process/Process.hpp>
 
-#include <score/command/PropertyCommand.hpp>
-
 #include <Gfx/CommandFactory.hpp>
 #include <Gfx/Filter/Metadata.hpp>
 #include <isf.hpp>
@@ -23,6 +21,8 @@ class Model final : public Process::ProcessModel
   W_OBJECT(Model)
 
 public:
+  static constexpr bool hasExternalUI() noexcept { return true; }
+
   Model(
       const TimeVal& duration,
       const Id<Process::ProcessModel>& id,
@@ -43,6 +43,8 @@ public:
 
   const isf::descriptor& isfDescriptor() const noexcept
   { return m_isfDescriptor; }
+  void errorMessage(int arg_1, const QString& arg_2)
+      W_SIGNAL(errorMessage, arg_1, arg_2);
 
   PROPERTY(
       QString,
@@ -86,9 +88,28 @@ class DropHandler final : public Process::ProcessDropHandler
 
 }
 
-PROPERTY_COMMAND_T(
-    Gfx,
-    ChangeFragmentShader,
-    Filter::Model::p_fragment,
-    "Change fragment shader")
-SCORE_COMMAND_DECL_T(Gfx::ChangeFragmentShader)
+#include <Scenario/Commands/ScriptEditCommand.hpp>
+
+namespace Gfx
+{
+class ChangeFragmentShader
+    : public Scenario::EditScript<Filter::Model, Filter::Model::p_fragment>
+{
+  SCORE_COMMAND_DECL(
+      CommandFactoryName(),
+      ChangeFragmentShader,
+      "Edit a script")
+  public:
+    using EditScript::EditScript;
+};
+}
+
+namespace score
+{
+template<>
+struct StaticPropertyCommand<Gfx::Filter::Model::p_fragment> : Gfx::ChangeFragmentShader
+{
+  using ChangeFragmentShader::ChangeFragmentShader;
+};
+}
+

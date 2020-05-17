@@ -112,9 +112,15 @@ void RenderedNode::init(Renderer& renderer)
             m_materialSize += 4;
           break;
         case Types::Vec3:
+          while(m_materialSize % 16 != 0) {
+            m_materialSize += 4;
+          }
           m_materialSize += 12;
           break;
         case Types::Vec4:
+          while(m_materialSize % 16 != 0) {
+            m_materialSize += 4;
+          }
           m_materialSize += 16;
           break;
         case Types::Image:

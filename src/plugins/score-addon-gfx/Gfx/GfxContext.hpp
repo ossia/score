@@ -161,9 +161,15 @@ struct gfx_view_node
         }
       }
       void operator()(const std::string& v) const noexcept {}
-      void operator()(ossia::vec2f v) const noexcept { assert(type == Types::Vec2); memcpy(value, v.data(), 8); }
-      void operator()(ossia::vec3f v) const noexcept { assert(type == Types::Vec3); memcpy(value, v.data(), 12); }
-      void operator()(ossia::vec4f v) const noexcept { assert(type == Types::Vec4); memcpy(value, v.data(), 16); }
+      void operator()(ossia::vec2f v) const noexcept {
+        assert(type == Types::Vec2); memcpy(value, v.data(), 8);
+      }
+      void operator()(ossia::vec3f v) const noexcept {
+        assert(type == Types::Vec3); memcpy(value, v.data(), 12);
+      }
+      void operator()(ossia::vec4f v) const noexcept {
+        assert(type == Types::Vec4); memcpy(value, v.data(), 16);
+      }
       void operator()(const std::vector<ossia::value>& v) const noexcept
       {
         // TODOstd::visit(vec_visitor{v}, value);

@@ -73,6 +73,7 @@ set(HDRS
     Gfx/Graph/videonode.hpp
     Gfx/Graph/phongnode.hpp
     Gfx/Graph/imagenode.hpp
+    Gfx/Graph/shadercache.hpp
 
     Gfx/GfxApplicationPlugin.hpp
     Gfx/GfxContext.hpp

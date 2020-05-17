@@ -8,6 +8,7 @@
 
 #include <Gfx/Graph/node.hpp>
 #include <Gfx/Graph/nodes.hpp>
+#include <Gfx/Graph/shadercache.hpp>
 #include <Gfx/TexturePort.hpp>
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Gfx::Filter::Model)
@@ -114,6 +115,13 @@ QString Model::prettyName() const noexcept
 
 void Model::setupIsf(const isf::descriptor& desc)
 {
+  auto& [shader, error] = ShaderCache::get(
+      m_processedFragment.toLatin1(), QShader::Stage::FragmentStage);
+
+  if(!error.isEmpty()) {
+    errorMessage(0, error);
+  }
+
   int i = 0;
   using namespace isf;
   struct input_vis {
@@ -123,10 +131,14 @@ void Model::setupIsf(const isf::descriptor& desc)
 
     Process::Inlet* operator()(const float_input& v)
     {
-      return new Process::FloatSlider(
+      auto port = new Process::FloatSlider(
           v.min, v.max, v.def,
           QString::fromStdString(input.name),
           Id<Process::Port>(i), &self);
+
+      self.m_inlets.push_back(port);
+      self.controlAdded(port->id());
+      return port;
     }
 
     Process::Inlet* operator()(const long_input& v)
@@ -136,32 +148,62 @@ void Model::setupIsf(const isf::descriptor& desc)
       {
         alternatives.emplace_back(QString::fromStdString(v.labels[i]), (int)v.values[i]);
       }
-      return new Process::ComboBox(
+      auto port = new Process::ComboBox(
           std::move(alternatives), (int) v.def,
           QString::fromStdString(input.name),
           Id<Process::Port>(i), &self);
+
+      self.m_inlets.push_back(port);
+      self.controlAdded(port->id());
+      return port;
     }
     Process::Inlet* operator()(const event_input& v)
     {
-      return new Process::Button(
+      auto port = new Process::Button(
           QString::fromStdString(input.name),
           Id<Process::Port>(i), &self);
+
+      self.m_inlets.push_back(port);
+      self.controlAdded(port->id());
+      return port;
     }
     Process::Inlet* operator()(const bool_input& v)
     {
-      return new Process::Toggle(
+      auto port = new Process::Toggle(
           v.def,
           QString::fromStdString(input.name),
           Id<Process::Port>(i), &self);
+
+      self.m_inlets.push_back(port);
+      self.controlAdded(port->id());
+      return port;
     }
     Process::Inlet* operator()(const point2d_input& v)
     {
-      return new Process::ControlInlet{Id<Process::Port>(i), &self};
+      ossia::vec2f init{0.5, 0.5};
+      if(v.def)
+      {
+        std::copy_n(v.def->begin(), 2, init.begin());
+      }
+      auto port = new Process::XYSlider{
+          init,
+          QString::fromStdString(input.name),
+          Id<Process::Port>(i), &self};
+
+      self.m_inlets.push_back(port);
+      self.controlAdded(port->id());
+      return port;
     }
+
     Process::Inlet* operator()(const point3d_input& v)
     {
-      return new Process::ControlInlet{Id<Process::Port>(i), &self};
+      auto port = new Process::ControlInlet{Id<Process::Port>(i), &self};
+
+      self.m_inlets.push_back(port);
+      self.controlAdded(port->id());
+      return port;
     }
+
     Process::Inlet* operator()(const color_input& v)
     {
       ossia::vec4f init{0.5, 0.5, 0.5, 1.};
@@ -169,56 +211,56 @@ void Model::setupIsf(const isf::descriptor& desc)
       {
         std::copy_n(v.def->begin(), 4, init.begin());
       }
-      return new Process::HSVSlider(
+      auto port = new Process::HSVSlider(
           init,
           QString::fromStdString(input.name),
           Id<Process::Port>(i), &self);
+
+      self.m_inlets.push_back(port);
+      self.controlAdded(port->id());
+      return port;
     }
     Process::Inlet* operator()(const image_input& v)
     {
-      return new Gfx::TextureInlet(
+      auto port = new Gfx::TextureInlet(
           Id<Process::Port>(i), &self);
+      self.m_inlets.push_back(port);
+      return port;
     }
     Process::Inlet* operator()(const audio_input& v)
     {
-      return new Process::AudioInlet(
+      auto port = new Process::AudioInlet(
           Id<Process::Port>(i), &self);
+      self.m_inlets.push_back(port);
+      return port;
     }
     Process::Inlet* operator()(const audioFFT_input& v)
     {
-      return new Process::AudioInlet(
+      auto port = new Process::AudioInlet(
           Id<Process::Port>(i), &self);
+      self.m_inlets.push_back(port);
+      return port;
     }
   };
 
   for(const isf::input& input : desc.inputs)
   {
-    auto inlet = std::visit(input_vis{input, i, *this}, input.data);
-    if(inlet)
-    {
-      m_inlets.push_back(inlet);
-      controlAdded(inlet->id());
-    }
+    std::visit(input_vis{input, i, *this}, input.data);
     i++;
   }
 }
 
 void Model::setupNormalShader()
 {
-  QShaderBaker b;
-  b.setSourceString(m_fragment.toLatin1(), QShader::Stage::FragmentStage);
+  auto& [shader, error] = ShaderCache::get(
+      m_processedFragment.toLatin1(), QShader::Stage::FragmentStage);
 
-  b.setGeneratedShaders({
-             {QShader::SpirvShader, 100},
-             {QShader::GlslShader, 120}, // Only GLSL version supported by RHI right now.
-             {QShader::HlslShader, QShaderVersion(50)},
-             {QShader::MslShader, QShaderVersion(12)},
-  });
+  if(!error.isEmpty()) {
+    errorMessage(0, error);
+  }
 
   int i = 0;
-  auto s = b.bake();
-
-  const auto& d = s.description();
+  const auto& d = shader.description();
 
   for (auto& ub : d.combinedImageSamplers())
   {

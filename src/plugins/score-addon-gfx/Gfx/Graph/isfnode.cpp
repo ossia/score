@@ -5,54 +5,60 @@ namespace
 
 struct input_size_vis
 {
-  int operator()(const isf::float_input&) noexcept
+  int sz{};
+  void operator()(const isf::float_input&) noexcept
   {
-    return 4;
+    sz += 4;
   }
 
-  int operator()(const isf::long_input&) noexcept
+  void operator()(const isf::long_input&) noexcept
   {
-    return 4;
+    sz += 4;
   }
 
-  int operator()(const isf::event_input&) noexcept
+  void operator()(const isf::event_input&) noexcept
   {
-    return 4; // bool
+    sz += 4; // bool
   }
 
-  int operator()(const isf::bool_input&) noexcept
+  void operator()(const isf::bool_input&) noexcept
   {
-    return 4; // bool
+    sz += 4; // bool
   }
 
-  int operator()(const isf::point2d_input&) noexcept
+  void operator()(const isf::point2d_input&) noexcept
   {
-    return 2 * 4;
+    if(sz % 8 != 0)
+      sz += 4;
+    sz += 2 * 4;
   }
 
-  int operator()(const isf::point3d_input&) noexcept
+  void operator()(const isf::point3d_input&) noexcept
   {
-    return 3 * 4;
+    while(sz % 16 != 0) {
+      sz += 4;
+    }
+    sz += 3 * 4;
   }
 
-  int operator()(const isf::color_input&) noexcept
+  void operator()(const isf::color_input&) noexcept
   {
-    return 4 * 4;
+    while(sz % 16 != 0) {
+      sz += 4;
+    }
+    sz += 4 * 4;
   }
 
-  int operator()(const isf::image_input&) noexcept
+  void operator()(const isf::image_input&) noexcept
   {
-    return 0;
   }
 
-  int operator()(const isf::audio_input&) noexcept
+  void operator()(const isf::audio_input&) noexcept
   {
-    return 0;
   }
 
-  int operator()(const isf::audioFFT_input&)noexcept
+  void operator()(const isf::audioFFT_input&)noexcept
   {
-    return 0;
   }
 };
 
@@ -60,47 +66,67 @@ struct input_port_vis
 {
   ISFNode& self;
   char* data{};
+  int sz{};
 
   void operator()(const isf::float_input&) noexcept
   {
     self.input.push_back(new Port{&self, data, Types::Float, {}});
     data += 4;
+    sz += 4;
   }
 
   void operator()(const isf::long_input&) noexcept
   {
     self.input.push_back(new Port{&self, data, Types::Int, {}});
     data += 4;
+    sz += 4;
   }
 
   void operator()(const isf::event_input&) noexcept
   {
     self.input.push_back(new Port{&self, data, Types::Int, {}});
     data += 4;
+    sz += 4;
   }
 
   void operator()(const isf::bool_input&) noexcept
   {
     self.input.push_back(new Port{&self, data, Types::Int, {}});
     data += 4;
+    sz += 4;
   }
 
   void operator()(const isf::point2d_input&) noexcept
   {
+    if(sz % 8 != 0) {
+      sz += 4;
+      data += 4;
+    }
     self.input.push_back(new Port{&self, data, Types::Vec2, {}});
     data += 2 * 4;
+    sz += 2 * 4;
   }
 
   void operator()(const isf::point3d_input&) noexcept
   {
+    while(sz % 16 != 0) {
+      sz += 4;
+      data += 4;
+    }
     self.input.push_back(new Port{&self, data, Types::Vec3, {}});
     data += 3 * 4;
+    sz += 3 * 4;
   }
 
   void operator()(const isf::color_input&) noexcept
   {
+    while(sz % 16 != 0) {
+      sz += 4;
+      data += 4;
+    }
     self.input.push_back(new Port{&self, data, Types::Vec4, {}});
     data += 4 * 4;
+    sz += 4 * 4;
   }
 
   void operator()(const isf::image_input&) noexcept
@@ -133,17 +159,18 @@ ISFNode::ISFNode(const isf::descriptor& desc, QString vert, QString frag, const 
   : m_mesh{mesh}
 {
   setShaders(vert, frag);
-  int sz = 0;
+
 
   int i = 0;
+  input_size_vis sz_vis{};
   for(const isf::input& input : desc.inputs)
   {
-    sz += std::visit(input_size_vis{}, input.data);
+    std::visit(sz_vis, input.data);
     i++;
   }
 
-  m_materialData.reset(new char[sz]);
-  std::fill_n(m_materialData.get(), sz, 0);
+  m_materialData.reset(new char[sz_vis.sz]);
+  std::fill_n(m_materialData.get(), sz_vis.sz, 0);
   char* cur = m_materialData.get();
 
   input_port_vis visitor{*this, cur};

@@ -69,6 +69,7 @@ ProcessExecutorComponent::ProcessExecutorComponent(
       if (auto ctrl = dynamic_cast<Process::ControlInlet*>(ctl))
       {
         auto& p = n->add_control();
+        ctl->setupExecution(*n->root_inputs().back());
         *p.value = ctrl->value(); // TODO does this make sense ?
         p.changed = true;         // we will send the first value
 

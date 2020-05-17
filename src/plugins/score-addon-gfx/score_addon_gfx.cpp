@@ -56,7 +56,6 @@ std::vector<std::unique_ptr<score::InterfaceBase>> score_addon_gfx::factories(
          , Gfx::Images::ProcessExecutorComponentFactory
       >,
       FW<Inspector::InspectorWidgetFactory
-         , Gfx::Filter::InspectorFactory
          , Gfx::Video::InspectorFactory
          , Gfx::Mesh::InspectorFactory
          , Gfx::Images::InspectorFactory

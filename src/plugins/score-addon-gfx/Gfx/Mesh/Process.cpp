@@ -7,6 +7,7 @@
 #include <QShaderBaker>
 
 #include <Gfx/Graph/node.hpp>
+#include <Gfx/Graph/shadercache.hpp>
 #include <Gfx/Graph/nodes.hpp>
 #include <Gfx/TexturePort.hpp>
 #include <wobjectimpl.h>
@@ -212,20 +213,12 @@ void Model::setupIsf(const isf::descriptor& desc)
 
 void Model::setupNormalShader()
 {
-  QShaderBaker b;
-  b.setSourceString(m_fragment.toLatin1(), QShader::Stage::FragmentStage);
-
-  b.setGeneratedShaders({
-             {QShader::SpirvShader, 100},
-             {QShader::GlslShader, 120}, // Only GLSL version supported by RHI right now.
-             {QShader::HlslShader, QShaderVersion(50)},
-             {QShader::MslShader, QShaderVersion(12)},
-  });
+  auto& [shader, error] = ShaderCache::get(
+      m_processedFragment.toLatin1(), QShader::Stage::FragmentStage);
 
   int i = 0;
-  auto s = b.bake();
 
-  const auto& d = s.description();
+  const auto& d = shader.description();
 
   for (auto& ub : d.combinedImageSamplers())
   {

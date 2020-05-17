@@ -426,9 +426,9 @@ struct create_val_visitor
     std::string operator()(const long_input&)
     { return "uniform int"; }
     std::string operator()(const event_input&)
-    { return "uniform int"; }
+    { return "uniform bool"; }
     std::string operator()(const bool_input&)
-    { return "uniform int"; }
+    { return "uniform bool"; }
     std::string operator()(const point2d_input&)
     { return "uniform vec2"; }
     std::string operator()(const point3d_input&)
@@ -451,9 +451,9 @@ struct create_val_visitor_450
   return_type operator()(const long_input&)
   { return {"int", false}; }
   return_type operator()(const event_input&)
-  { return {"int", false}; }
+  { return {"bool", false}; }
   return_type operator()(const bool_input&)
-  { return {"int", false}; }
+  { return {"bool", false}; }
   return_type operator()(const point2d_input&)
   { return {"vec2", false}; }
   return_type operator()(const point3d_input&)
