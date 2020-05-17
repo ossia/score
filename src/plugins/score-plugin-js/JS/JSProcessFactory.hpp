@@ -8,6 +8,7 @@
 #include <Process/WidgetLayer/WidgetProcessFactory.hpp>
 #include <Process/Script/ScriptEditor.hpp>
 #include <Control/DefaultEffectItem.hpp>
+
 namespace JS
 {
 using ProcessFactory = Process::ProcessFactory_T<JS::ProcessModel>;
@@ -16,7 +17,4 @@ using LayerFactory = Process::EffectLayerFactory_T<
     Process::DefaultEffectItem,
     Process::ProcessScriptEditDialog<ProcessModel, ProcessModel::p_script>
 >;
-
-//using LayerFactory
-//    = WidgetLayer::LayerFactory<JS::ProcessModel, JS::InspectorWidget>;
 }

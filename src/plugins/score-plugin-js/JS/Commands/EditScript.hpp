@@ -4,25 +4,24 @@
 #include <Scenario/Commands/ScriptEditCommand.hpp>
 namespace JS
 {
-
-class EditScript
+class EditJSScript
     : public Scenario::EditScript<JS::ProcessModel, JS::ProcessModel::p_script>
 {
   SCORE_COMMAND_DECL(
       CommandFactoryName(),
-      EditScript,
+      EditJSScript,
       "Edit a script")
   public:
-    using Scenario::EditScript<JS::ProcessModel, JS::ProcessModel::p_script>::EditScript;
+    using EditScript::EditScript;
 };
 }
 
 namespace score
 {
 template<>
-struct StaticPropertyCommand<JS::ProcessModel::p_script> : JS::EditScript
+struct StaticPropertyCommand<JS::ProcessModel::p_script> : JS::EditJSScript
 {
-  using JS::EditScript::EditScript;
+  using EditJSScript::EditJSScript;
 };
 }
 
