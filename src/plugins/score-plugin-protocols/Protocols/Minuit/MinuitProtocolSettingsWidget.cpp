@@ -7,7 +7,7 @@
 #include <Device/Protocol/ProtocolSettingsWidget.hpp>
 #include <Protocols/RateWidget.hpp>
 #include <State/Widgets/AddressFragmentLineEdit.hpp>
-
+#include <score/widgets/Pixmap.hpp>
 #include <QAction>
 #include <QFormLayout>
 #include <QLineEdit>
@@ -42,7 +42,8 @@ MinuitProtocolSettingsWidget::MinuitProtocolSettingsWidget(QWidget* parent)
 
 #if defined(OSSIA_DNSSD)
   m_browser = new ZeroconfBrowser{"_minuit._tcp", this};
-  auto pb = new QPushButton{tr("Find devices..."), this};
+  auto pb = new QPushButton{score::get_pixmap(QStringLiteral(":/icons/search.png")),tr("Find devices..."), this};
+  pb->setMinimumHeight(30);
   connect(pb, &QPushButton::clicked, m_browser->makeAction(), &QAction::trigger);
   connect(
       m_browser,
