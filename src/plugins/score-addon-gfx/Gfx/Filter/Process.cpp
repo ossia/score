@@ -79,7 +79,6 @@ void Model::setFragment(QString f)
 
   for (auto inlet : inls)
     delete inlet;
-  m_inlets.clear();
 
   try
   {
