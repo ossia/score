@@ -1,5 +1,5 @@
-The ossia score software has been developed during multiple french public research projects :
-Virage, OSSIA.
+The ossia score software has been developed partly during 
+multiple French public research projects : ANR Virage, ANR OSSIA.
 
 SCRIME (https://scrime.u-bordeaux.fr/)
 LaBRI (https://www.labri.fr)
@@ -7,9 +7,10 @@ Blue Yeti (https://www.blueyeti.fr)
 GMEA (http://gmea.net/)
 
 Developers :
-Jean-Michaël Celerier (LaBRI / Blue Yeti)
+Jean-Michaël Celerier (LaBRI / Blue Yeti / Independently)
 Théo de la Hogue (GMEA)
 Nicolas Vuaille (LaBRI)
+Akané Levy (Independently)
 
 Authors :
 Pascal Baltazar (L'Arboretum)
@@ -17,9 +18,14 @@ Clément Bossut (LaBRI)
 Jaime Chao (LaBRI)
 Jean-Michel Couturier (Blue Yeti)
 Myriam Desainte-Catherine (LaBRI)
+Jean-Michaël Celerier (LaBRI / Blue Yeti / Independently)
+Akané Levy (Independently)
 
 
-the ossia team is thankful to :
+The ossia team is thankful to :
 Renaud Rubiano
 Antoine Villeret
+The OpenCollective fund
+The donors
+And all contributors listed at https://github.com/OSSIA/score/graphs/contributors
 
