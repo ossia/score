@@ -51,9 +51,8 @@ public:
   using model_t = std::remove_reference_t<decltype(std::declval<Layer_T>().model())>;
   MinMaxHeaderDelegate(
       const Process::ProcessModel& m,
-      const Process::Context& doc,
-      const Layer_T* layer)
-      : Process::DefaultHeaderDelegate{m, doc, layer}
+      const Process::Context& doc)
+      : Process::DefaultHeaderDelegate{m, doc}
   {
     const auto& model = static_cast<model_t&>(m_model);
 

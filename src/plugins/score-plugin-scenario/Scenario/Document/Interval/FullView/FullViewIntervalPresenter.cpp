@@ -243,7 +243,7 @@ void FullViewIntervalPresenter::createSlot(int slot_i, const FullSlot& slt)
   ld.updateLoops(m_context, m_zoomRatio, gui_width, def_width, slot_height, m_view, this);
 
   {
-    slot.headerDelegate = factory->makeHeaderDelegate(proc, m_context, ld.mainPresenter());
+    slot.headerDelegate = factory->makeHeaderDelegate(proc, m_context, slot.header);
     slot.headerDelegate->updateText();
     slot.headerDelegate->setParentItem(slot.header);
     // slot.headerDelegate->setFlag(QGraphicsItem::GraphicsItemFlag::ItemClipsToShape);
@@ -457,8 +457,22 @@ void FullViewIntervalPresenter::selectedSlot(int i) const
   SCORE_ASSERT(size_t(i) < m_slots.size());
   auto& slot = m_slots[i];
 
-  m_context.focusDispatcher.focus(m_slots[i].headerDelegate->m_presenter);
-  disp.setAndCommit({&slot.layers.front().model()});
+  if (!m_slots[i].layers.empty())
+  {
+    if(auto pres = m_slots[i].layers.front().mainPresenter())
+    {
+      m_context.focusDispatcher.focus(pres);
+      disp.setAndCommit({&slot.layers.front().model()});
+    }
+    else
+    {
+      SCORE_SOFT_ASSERT(!"No main presenter");
+    }
+  }
+  else
+  {
+    SCORE_SOFT_ASSERT(!"No layer!");
+  }
 }
 
 void FullViewIntervalPresenter::on_defaultDurationChanged(const TimeVal& val)

@@ -5,7 +5,7 @@
 #include <Inspector/InspectorSectionWidget.hpp>
 #include <Process/Process.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
-#include <Scenario/Inspector/SelectionButton.hpp>
+#include <score/widgets/SelectionButton.hpp>
 
 #include <score/document/DocumentContext.hpp>
 #include <score/widgets/TextLabel.hpp>

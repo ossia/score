@@ -3,7 +3,7 @@
 #include "TimeSyncSummaryWidget.hpp"
 
 #include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
-#include <Scenario/Inspector/SelectionButton.hpp>
+#include <score/widgets/SelectionButton.hpp>
 #include <State/Expression.hpp>
 
 #include <score/document/DocumentContext.hpp>

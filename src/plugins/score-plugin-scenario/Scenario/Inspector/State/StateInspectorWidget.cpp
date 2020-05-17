@@ -14,7 +14,7 @@
 #include <Scenario/Document/State/ItemModel/MessageItemModelAlgorithms.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
 #include <Scenario/Inspector/MetadataWidget.hpp>
-#include <Scenario/Inspector/SelectionButton.hpp>
+#include <score/widgets/SelectionButton.hpp>
 #include <Scenario/Process/Algorithms/Accessors.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
 

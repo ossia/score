@@ -15,9 +15,8 @@ class SCORE_LIB_PROCESS_EXPORT HeaderDelegate : public QObject, public Process::
 public:
   HeaderDelegate(
       const Process::ProcessModel& m,
-      const Process::Context& doc,
-      const Process::LayerPresenter* p)
-      : m_model{m}, m_context{doc}, m_presenter{const_cast<Process::LayerPresenter*>(p)}
+      const Process::Context& doc)
+      : m_model{m}, m_context{doc}
   {
   }
 
@@ -27,7 +26,6 @@ public:
 
   const Process::ProcessModel& m_model;
   const Process::Context& m_context;
-  QPointer<Process::LayerPresenter> m_presenter;
 };
 
 class SCORE_LIB_PROCESS_EXPORT DefaultHeaderDelegate : public Process::HeaderDelegate
@@ -35,8 +33,7 @@ class SCORE_LIB_PROCESS_EXPORT DefaultHeaderDelegate : public Process::HeaderDel
 public:
   DefaultHeaderDelegate(
       const Process::ProcessModel& m,
-      const Process::Context& doc,
-      const Process::LayerPresenter* p);
+      const Process::Context& doc);
   ~DefaultHeaderDelegate() override;
 
   void updateText() override;

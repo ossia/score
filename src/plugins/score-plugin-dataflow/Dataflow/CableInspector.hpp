@@ -3,6 +3,7 @@
 #include <Inspector/InspectorWidgetFactoryInterface.hpp>
 
 #include <score/plugins/Interface.hpp>
+#include <score/selection/SelectionDispatcher.hpp>
 
 #include <QComboBox>
 
@@ -14,7 +15,9 @@ namespace Dataflow
 {
 class CableWidget final : public Inspector::InspectorWidgetBase
 {
-  QComboBox m_cabletype;
+  QComboBox m_cableType;
+  QWidget m_portList;
+  score::SelectionDispatcher m_selectionDispatcher;
 
 public:
   CableWidget(const Process::Cable& cable, const score::DocumentContext& ctx, QWidget* parent);

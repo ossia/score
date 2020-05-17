@@ -241,7 +241,6 @@ set(HDRS
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Inspector/Interpolation/InterpolationInspectorWidget.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Inspector/MetadataWidget.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Inspector/ScenarioInspectorWidgetFactoryWrapper.hpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Inspector/SelectionButton.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Inspector/State/StateInspectorWidget.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Inspector/Summary/SummaryInspectorWidget.hpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Inspector/TimeSync/TimeSyncInspectorWidget.hpp"
@@ -569,7 +568,6 @@ set(SRCS ${SRCS}
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Settings/ScenarioSettingsView.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Settings/ScenarioSettingsPresenter.cpp"
 
-"${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Inspector/SelectionButton.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Inspector/Interval/IntervalInspectorFactory.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Inspector/Interval/Widgets/DurationSectionWidget.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/Scenario/Inspector/Interval/IntervalInspectorWidget.cpp"

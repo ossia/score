@@ -12,7 +12,7 @@
 #include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
 #include <Scenario/Inspector/Expression/ExpressionEditorWidget.hpp>
 #include <Scenario/Inspector/MetadataWidget.hpp>
-#include <Scenario/Inspector/SelectionButton.hpp>
+#include <score/widgets/SelectionButton.hpp>
 #include <Scenario/Inspector/TimeSync/TriggerInspectorWidget.hpp>
 #include <Scenario/Process/ScenarioInterface.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>

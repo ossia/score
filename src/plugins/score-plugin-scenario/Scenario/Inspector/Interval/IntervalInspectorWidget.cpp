@@ -13,7 +13,7 @@
 #include <Scenario/Inspector/Interval/SpeedSlider.hpp>
 #include <Scenario/Inspector/Interval/Widgets/DurationSectionWidget.hpp>
 #include <Scenario/Inspector/MetadataWidget.hpp>
-#include <Scenario/Inspector/SelectionButton.hpp>
+#include <score/widgets/SelectionButton.hpp>
 #include <Scenario/Process/ScenarioInterface.hpp>
 
 #include <score/document/DocumentContext.hpp>

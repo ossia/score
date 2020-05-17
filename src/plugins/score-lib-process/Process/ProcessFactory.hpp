@@ -91,7 +91,7 @@ public:
   virtual HeaderDelegate* makeHeaderDelegate(
       const ProcessModel& model,
       const Process::Context& ctx,
-      const LayerPresenter* pres) const;
+      QGraphicsItem* parent) const;
   virtual FooterDelegate*
   makeFooterDelegate(const ProcessModel& model, const Process::Context& ctx) const;
 

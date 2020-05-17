@@ -60,9 +60,8 @@ static double minPortWidth()
 
 DefaultHeaderDelegate::DefaultHeaderDelegate(
     const Process::ProcessModel& m,
-    const Process::Context& doc,
-    const Process::LayerPresenter* p)
-    : HeaderDelegate{m, doc, p}
+    const Process::Context& doc)
+    : HeaderDelegate{m, doc}
 {
   m_ui = Process::makeExternalUIButton(m_model, m_context, this, this);
   if (m_ui)

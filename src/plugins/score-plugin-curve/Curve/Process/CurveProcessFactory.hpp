@@ -58,12 +58,9 @@ public:
   Process::HeaderDelegate* makeHeaderDelegate(
       const Process::ProcessModel& model,
       const Process::Context& ctx,
-      const Process::LayerPresenter* pres) const override
+      QGraphicsItem* parent) const override
   {
-    const LayerPresenter_T* p{};
-    if (pres)
-      p = safe_cast<const LayerPresenter_T*>(pres);
-    return new HeaderDelegate_T{model, ctx, p};
+    return new HeaderDelegate_T{model, ctx};
   }
 
 private:

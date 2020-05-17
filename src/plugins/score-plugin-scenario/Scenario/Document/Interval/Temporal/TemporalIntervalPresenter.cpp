@@ -536,6 +536,7 @@ void TemporalIntervalPresenter::createLayer(int slot_i, const Process::ProcessMo
     const auto slot_height = m_model.smallView().at(slot_i).height;
 
     ld.updateLoops(m_context, m_zoomRatio, def_width, def_width, slot_height, m_view, this);
+    // TODO on_layerModelPutToFront(i, slot.layers.front().model());
 
     // TODO we should remove the connection when the layer is removed.
     // Maybe put the QMetaObject::Connection in a small struct - or just
@@ -584,6 +585,9 @@ void TemporalIntervalPresenter::createLayer(int slot_i, const Process::ProcessMo
         const auto slot_height = m_model.smallView().at(slot_i).height;
         ld.updateLoops(
             m_context, m_zoomRatio, def_width, def_width, slot_height, this->m_view, this);
+
+        // TODO on_layerModelPutToFront(i, slot.layers.front().model());
+
       }
     });
     /*
@@ -762,7 +766,7 @@ void TemporalIntervalPresenter::on_layerModelPutToFront(
           ld.putToFront();
           ld.setZValue(2);
           {
-            slt.headerDelegate = factory->makeHeaderDelegate(ld.model(), m_context, pres);
+            slt.headerDelegate = factory->makeHeaderDelegate(ld.model(), m_context, slt.header);
             slt.headerDelegate->updateText();
             slt.headerDelegate->setParentItem(slt.header);
             slt.headerDelegate->setFlag(QGraphicsItem::GraphicsItemFlag::ItemClipsToShape);
@@ -892,15 +896,21 @@ void TemporalIntervalPresenter::selectedSlot(int i) const
     auto proc = m_model.getSmallViewSlot(i).frontProcess;
     if (proc)
     {
-      auto h = m_slots[i].headerDelegate;
-      if (h)
+      if (!m_slots[i].layers.empty())
       {
-        m_context.focusDispatcher.focus(h->m_presenter);
-        disp.setAndCommit({&m_model.processes.at(*proc)});
+        if(auto pres = m_slots[i].layers.front().mainPresenter())
+        {
+          m_context.focusDispatcher.focus(m_slots[i].layers.front().mainPresenter());
+          disp.setAndCommit({&m_model.processes.at(*proc)});
+        }
+        else
+        {
+          SCORE_SOFT_ASSERT(!"No main presenter");
+        }
       }
       else
       {
-        SCORE_SOFT_ASSERT(("No header delegate!", false));
+        SCORE_SOFT_ASSERT(!"No layer!");
       }
     }
   }
@@ -997,13 +1007,19 @@ void TemporalIntervalPresenter::on_defaultDurationChanged(const TimeVal& val)
   {
     setHeaderWidth(slot, w);
     const auto slot_height = m_model.smallView()[i].height;
-    i++;
 
     for (LayerData& ld : slot.layers)
     {
       ld.setWidth(w, w);
       ld.updateLoops(m_context, m_zoomRatio, w, w, slot_height, m_view, this);
     }
+
+    if(!slot.layers.empty())
+    {
+      on_layerModelPutToFront(i, slot.layers.front().model());
+    }
+
+    i++;
   }
 }
 

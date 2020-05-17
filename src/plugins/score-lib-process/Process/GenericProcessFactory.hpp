@@ -130,12 +130,12 @@ private:
   HeaderDelegate* makeHeaderDelegate(
       const ProcessModel& model,
       const Process::Context& ctx,
-      const LayerPresenter* pres) const override
+      QGraphicsItem* parent) const override
   {
     if constexpr (std::is_same_v<HeaderDelegate_T, default_t>)
-      return LayerFactory::makeHeaderDelegate(model, ctx, pres);
+      return LayerFactory::makeHeaderDelegate(model, ctx, parent);
     else
-      return new HeaderDelegate_T{model, ctx, safe_cast<const LayerPresenter_T*>(&pres)};
+      return new HeaderDelegate_T{model, ctx};
   }
 };
 

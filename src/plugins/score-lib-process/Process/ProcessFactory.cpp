@@ -109,9 +109,9 @@ bool LayerFactory::hasExternalUI(const ProcessModel&, const score::DocumentConte
 HeaderDelegate* LayerFactory::makeHeaderDelegate(
     const ProcessModel& model,
     const Process::Context& ctx,
-    const LayerPresenter* pres) const
+    QGraphicsItem* parent) const
 {
-  return new DefaultHeaderDelegate{model, ctx, pres};
+  return new DefaultHeaderDelegate{model, ctx};
 }
 FooterDelegate*
 LayerFactory::makeFooterDelegate(const ProcessModel& model, const Process::Context& ctx) const
