@@ -192,7 +192,7 @@ Process::Outlet* ProcessModel::outlet(const Id<Process::Port>& p) const noexcept
 void ProcessModel::loadPreset(const Preset& preset)
 {
   const rapidjson::Document doc = readJson(preset.data);
-  const auto& ctrls = doc["Controls"].GetArray();
+  const auto& ctrls = doc.GetArray();
 
   for (const auto& arr : ctrls)
   {
