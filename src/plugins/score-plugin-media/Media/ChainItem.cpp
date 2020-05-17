@@ -10,7 +10,6 @@
 #include <Media/AudioChain/AudioChainLayer.hpp>
 #include <score/selection/SelectionDispatcher.hpp>
 #include <score/model/path/PathSerialization.hpp>
-#include <QJsonDocument>
 namespace Media
 {
 EffectItem::EffectItem(
@@ -32,7 +31,7 @@ EffectItem::EffectItem(
 
   if (!m_fx)
   {
-    m_fx = new Media::Effect::DefaultEffectItem{m_model, m_context.context, this};
+    m_fx = new Process::DefaultEffectItem{m_model, m_context.context, this};
   }
 
   m_fx->setParentItem(this);
@@ -156,10 +155,13 @@ void EffectItem::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
     auto drag = new QDrag{this};
     QMimeData* mime = new QMimeData;
 
-    auto json = Scenario::copyProcess(m_model);
-    json["Path"] = toJsonObject(score::IDocument::path(m_model));
+    JSONReader r;
+    r.stream.StartObject();
+    Scenario::copyProcess(r, m_model);
+    r.obj["Path"] = score::IDocument::path(m_model);
+    r.stream.EndObject();
     litHeight = this->boundingRect().height();
-    mime->setData(score::mime::effect(), QJsonDocument{json}.toJson());
+    mime->setData(score::mime::effect(), r.toByteArray());
     drag->setMimeData(mime);
 
     drag->exec();

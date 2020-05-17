@@ -80,6 +80,18 @@ StringKey<Menu> Menus::About()
   return StringKey<Menu>{"About"};
 }
 
+MenuManager::~MenuManager()
+{
+  for(auto& menu : m_container)
+  {
+    if(QMenu* m = menu.second.menu()) {
+      delete m;
+    }
+  }
+  m_container.clear();
+
+}
+
 void MenuManager::insert(Menu val)
 {
   m_container.insert(std::make_pair(val.key(), std::move(val)));

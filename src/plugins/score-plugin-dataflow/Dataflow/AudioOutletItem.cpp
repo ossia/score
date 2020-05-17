@@ -73,9 +73,9 @@ void AudioOutletFactory::setupOutletInspector(
     auto edit = Process::makeAddressCombo(root, node, port, ctx, parent);
     lay.addRow(edit);
 
-    auto cb = new QCheckBox{parent};
+    auto cb = new QCheckBox{QObject::tr("Propagate"), parent};
     cb->setChecked(outlet.propagate());
-    lay.addRow(QObject::tr("Propagate"), cb);
+    lay.addRow(cb);
     QObject::connect(cb, &QCheckBox::toggled,
                      &outlet, [&ctx, &out = outlet](auto ok) {
           if (ok != out.propagate())

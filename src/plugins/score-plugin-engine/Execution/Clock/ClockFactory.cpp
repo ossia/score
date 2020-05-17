@@ -6,11 +6,11 @@
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentPresenter.hpp>
 
 #include <score/document/DocumentInterface.hpp>
+#include <score/widgets/MessageBox.hpp>
 
 #include <core/document/DocumentView.hpp>
 
 #include <Execution/DocumentPlugin.hpp>
-#include <QMessageBox>
 #include <QApplication>
 namespace Execution
 {
@@ -37,7 +37,7 @@ void Clock::play(const TimeVal& t)
   }
   catch(const std::runtime_error& e)
   {
-    QMessageBox::warning(qApp->activeWindow(), QObject::tr("Error !"), e.what());
+    score::warning(qApp->activeWindow(), QObject::tr("Error !"), e.what());
   }
 }
 

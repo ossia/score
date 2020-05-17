@@ -10,10 +10,11 @@ extern "C"
 #include <thread>
 #include <condition_variable>
 #include <readerwriterqueue.h>
+#include <score_plugin_media_export.h>
 namespace Video
 {
 
-class VideoDecoder
+class SCORE_PLUGIN_MEDIA_EXPORT VideoDecoder
 {
 public:
   VideoDecoder() noexcept;
@@ -25,6 +26,7 @@ public:
   int width() const noexcept;
   int height() const noexcept;
   double fps() const noexcept;
+  int64_t duration() const noexcept;
 
   AVPixelFormat pixel_format() const noexcept;
 
@@ -66,6 +68,7 @@ private:
   int m_width{};
   int m_height{};
   double m_rate{};
+  int64_t m_duration{}; // in flicks
 
   std::atomic<AVFrame*> m_discardUntil{};
   std::atomic_int64_t m_seekTo = -1;

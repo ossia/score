@@ -322,8 +322,13 @@ void RemoveSelection::undo(const score::DocumentContext& ctx) const
     scenar.intervals.add(itv);
 
     // Set-up the start / end events correctly.
-    SetNextInterval(startState(*itv, scenar), *itv);
-    SetPreviousInterval(endState(*itv, scenar), *itv);
+    auto& ss = startState(*itv, scenar);
+    auto& es = endState(*itv, scenar);
+    SetNextInterval(ss, *itv);
+    SetPreviousInterval(es, *itv);
+
+    auto& sev = parentEvent(ss, scenar);
+    auto& eev = parentEvent(es, scenar);
   }
 
   for (const auto& cmd : m_cmds_set_rigidity)
@@ -332,7 +337,6 @@ void RemoveSelection::undo(const score::DocumentContext& ctx) const
   }
 
   // This will also recompute timesync extents
-
   Dataflow::restoreCables(m_cables, ctx);
 }
 

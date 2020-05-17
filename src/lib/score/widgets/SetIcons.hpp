@@ -11,6 +11,9 @@ SCORE_LIB_BASE_EXPORT void setIcons(
     const QString& iconDisable,
     bool enableHover = true);
 
+SCORE_LIB_BASE_EXPORT QIcon makeIcon(
+    const QString& icon);
+
 SCORE_LIB_BASE_EXPORT QIcon makeIcons(
     const QString& iconOn,
     const QString& iconOff,

@@ -238,7 +238,7 @@ bool value(const ossia::value& val)
     {
       auto& strings = score::StringConstant();
 
-      auto v = QString::fromStdString(ve);
+      auto& v = ve;
       return v == strings.lowercase_true || v == strings.True
              || v == strings.lowercase_yes || v == strings.Yes;
     }
@@ -293,9 +293,9 @@ QString value(const ossia::value& val)
     return_type operator()(float f) const { return QLocale::c().toString(f); }
     return_type operator()(bool b) const
     {
-      auto& strings = score::StringConstant();
-
-      return b ? strings.lowercase_true : strings.lowercase_false;
+      return QString::fromStdString(
+            b ? score::StringConstant().lowercase_true
+              : score::StringConstant().lowercase_false);
     }
     return_type operator()(const std::string& s) const
     {
@@ -535,8 +535,9 @@ QString toPrettyString(const ossia::value& val)
     }
     QString operator()(bool b) const
     {
-      return b ? score::StringConstant().lowercase_true
-               : score::StringConstant().lowercase_false;
+      return QString::fromStdString(
+            b ? score::StringConstant().lowercase_true
+              : score::StringConstant().lowercase_false);
     }
     QString operator()(const QString& s) const
     {

@@ -24,12 +24,12 @@ MIDIProtocolSettingsWidget::MIDIProtocolSettingsWidget(QWidget* parent)
     : ProtocolSettingsWidget(parent)
 {
   m_name = new QLineEdit{"MidiDevice"};
-  m_inButton = new QCheckBox(tr("Send"), this);
+  m_inButton = new QCheckBox{tr("Send"), this};
   m_inButton->setAutoExclusive(true);
-  m_outButton = new QCheckBox(tr("Receive"), this);
+  m_outButton = new QCheckBox{tr("Receive"), this};
   m_outButton->setAutoExclusive(true);
-  m_deviceCBox = new QComboBox(this);
-  m_createWhole = new QCheckBox(this);
+  m_deviceCBox = new QComboBox{this};
+  m_createWhole = new QCheckBox{tr("Create whole tree"), this};
 
   auto gb_lay = new QHBoxLayout;
   gb_lay->setContentsMargins(0, 0, 0, 0);
@@ -40,7 +40,7 @@ MIDIProtocolSettingsWidget::MIDIProtocolSettingsWidget(QWidget* parent)
   lay->addRow(tr("Name"), m_name);
   lay->addRow(tr("Type"), gb_lay);
   lay->addRow(tr("Device"), m_deviceCBox);
-  lay->addRow(tr("Create whole tree"), m_createWhole);
+  lay->addRow(m_createWhole);
 
   setLayout(lay);
 

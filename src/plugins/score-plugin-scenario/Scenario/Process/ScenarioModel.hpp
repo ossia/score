@@ -25,6 +25,8 @@
 #include <verdigris>
 namespace Scenario
 {
+struct TimenodeGraph;
+
 /**
  * @brief The core hierarchical and temporal process of score
  */
@@ -58,6 +60,7 @@ public:
 
   const score::DocumentContext& context() const noexcept { return m_context; }
   void init();
+  bool hasCycles() const noexcept;
 
   ~ProcessModel() override;
 
@@ -138,14 +141,8 @@ public:
   score::EntityMap<CommentBlockModel> comments;
 
 public:
-  void stateMoved(const Scenario::StateModel& arg_1)
-      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, stateMoved, arg_1)
-  void eventMoved(const Scenario::EventModel& arg_1)
-      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, eventMoved, arg_1)
   void intervalMoved(const Scenario::IntervalModel& arg_1) const
       E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, intervalMoved, arg_1)
-  void commentMoved(const Scenario::CommentBlockModel& arg_1)
-      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, commentMoved, arg_1)
 
   void locked() E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, locked)
   void unlocked() E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, unlocked)
@@ -193,26 +190,28 @@ private:
   Id<StateModel> m_startStateId{};
   // By default, creation in the void will make a interval
   // that goes to the startEvent and add a new state
+
+  std::unique_ptr<TimenodeGraph> m_graph;
 };
 }
 // TODO this ought to go in Selection.hpp ?
 template <typename Vector>
-QList<const typename Vector::value_type*> selectedElements(const Vector& in)
+std::vector<const typename Vector::value_type*> selectedElements(const Vector& in)
 {
-  QList<const typename Vector::value_type*> out;
+  std::vector<const typename Vector::value_type*> out;
   for (const auto& elt : in)
   {
     if (elt.selection.get())
-      out.append(&elt);
+      out.push_back(&elt);
   }
 
   return out;
 }
 
 template <typename T, typename Container>
-QList<const T*> filterSelectionByType(const Container& sel)
+std::vector<const T*> filterSelectionByType(const Container& sel)
 {
-  QList<const T*> selected_elements;
+  std::vector<const T*> selected_elements;
   for (auto obj : sel)
   {
     // TODO replace with a virtual Element::type() which will be faster.

@@ -22,6 +22,7 @@
 #include <QAction>
 #include <QDebug>
 #include <wobjectimpl.h>
+#include <Scenario/Document/Interval/Graph/GraphIntervalPresenter.hpp>
 W_OBJECT_IMPL(Scenario::ScenarioPresenter)
 namespace Scenario
 {
@@ -221,16 +222,18 @@ ScenarioPresenter::ScenarioPresenter(
   auto& es = context.app.guiApplicationPlugin<ScenarioApplicationPlugin>()
                  .editionSettings();
   con(es, &EditionSettings::toolChanged, this, [=](Scenario::Tool t) {
+    auto& skin = score::Skin::instance();
     switch (t)
     {
       case Scenario::Tool::Select:
         m_view->unsetCursor();
         break;
       case Scenario::Tool::Create:
-        m_view->setCursor(QCursor(Qt::CrossCursor));
+      case Scenario::Tool::CreateGraph:
+        m_view->setCursor(skin.CursorCreationMode);
         break;
       case Scenario::Tool::Play:
-        m_view->setCursor(QCursor(Qt::PointingHandCursor));
+        m_view->setCursor(skin.CursorPlayFromHere);
         break;
       default:
         m_view->unsetCursor();
@@ -302,10 +305,16 @@ void ScenarioPresenter::parentGeometryChanged()
 void ScenarioPresenter::on_zoomRatioChanged(ZoomRatio val)
 {
   m_zoomRatio = val;
+  if(val <= 0.)
+    return;
 
   for (auto& interval : m_intervals)
   {
     interval.on_zoomRatioChanged(m_zoomRatio);
+  }
+  for (auto& interval : m_graphIntervals)
+  {
+    interval.resize();
   }
   for (auto& comment : m_comments)
   {
@@ -431,7 +440,10 @@ void ScenarioPresenter::on_timeSyncRemoved(const TimeSyncModel& timeSync)
 
 void ScenarioPresenter::on_intervalRemoved(const IntervalModel& cvm)
 {
-  removeElement(m_intervals, cvm.id());
+  if(Q_LIKELY(!cvm.graphal()))
+    removeElement(m_intervals, cvm.id());
+  else
+    removeElement(m_graphIntervals, cvm.id());
 }
 
 void ScenarioPresenter::on_commentRemoved(const CommentBlockModel& cmt)
@@ -453,10 +465,14 @@ void ScenarioPresenter::on_intervalExecutionTimer()
 
   for (TemporalIntervalPresenter& cst : m_intervals)
   {
-    auto& v = *cst.view();
-    auto& dur = cst.model().duration;
+    const auto& m = cst.model();
+    if(!m.executing())
+      continue;
 
-    auto pp = cst.model().duration.playPercentage();
+    auto& v = *cst.view();
+    const auto& dur = m.duration;
+
+    const auto pp = dur.playPercentage();
 
     if (double w = cst.on_playPercentageChanged(pp))
     {
@@ -805,30 +821,26 @@ void ScenarioPresenter::on_eventCreated(const EventModel& event_model)
   ev_pres->view()->setWidthScale(m_graphicalScale);
   m_viewInterface.on_eventMoved(*ev_pres);
 
-  con(*ev_pres,
-      &EventPresenter::recomputeExtent,
-      this,
-      [this, ev_pres] {
-    updateEventExtent(*this, *ev_pres, m_view->height());
-  });
-  con(*ev_pres,
-      &EventPresenter::extentChanged,
-      this,
-      [=](const VerticalExtent&) { m_viewInterface.on_eventMoved(*ev_pres); });
-  con(event_model, &EventModel::dateChanged, this, [=](const TimeVal&) {
+  con(*ev_pres, &EventPresenter::extentChanged,
+      this, [=](const VerticalExtent&) {
     m_viewInterface.on_eventMoved(*ev_pres);
   });
 
-  connect(ev_pres, &EventPresenter::eventHoverEnter, this, [=]() {
-    m_viewInterface.on_hoverOnEvent(ev_pres->id(), true);
+  con(event_model, &EventModel::dateChanged,
+      this, [=](const TimeVal&) {
+    m_viewInterface.on_eventMoved(*ev_pres);
   });
-  connect(ev_pres, &EventPresenter::eventHoverLeave, this, [=]() {
-    m_viewInterface.on_hoverOnEvent(ev_pres->id(), false);
+
+  con(event_model, &EventModel::timeSyncChanged,
+      this, [=](const Id<TimeSyncModel>& old_id, const Id<TimeSyncModel>& new_id) {
+    auto& old_t = m_timeSyncs.at(old_id);
+    old_t.removeEvent(ev_pres);
+    auto& new_t = m_timeSyncs.at(new_id);
+    new_t.addEvent(ev_pres);
   });
 
   // For the state machine
-  connect(
-      ev_pres, &EventPresenter::pressed, m_view, &ScenarioView::pressedAsked);
+  connect(ev_pres, &EventPresenter::pressed, m_view, &ScenarioView::pressedAsked);
   connect(ev_pres, &EventPresenter::moved, m_view, &ScenarioView::movedAsked);
   connect(ev_pres, &EventPresenter::released, m_view, &ScenarioView::released);
 }
@@ -840,12 +852,6 @@ void ScenarioPresenter::on_timeSyncCreated(const TimeSyncModel& timeSync_model)
 
   m_viewInterface.on_timeSyncMoved(*tn_pres);
 
-  con(*tn_pres,
-      &TimeSyncPresenter::recomputeExtent,
-      this,
-      [tn_pres] {
-    updateTimeSyncExtent(*tn_pres);
-  });
   con(*tn_pres,
       &TimeSyncPresenter::extentChanged,
       this,
@@ -904,96 +910,139 @@ void ScenarioPresenter::on_stateCreated(const StateModel& state)
   updateEventExtent(*this, ev_pres, m_view->height());
 
   // For the state machine
-  connect(
-      st_pres, &StatePresenter::pressed, m_view, &ScenarioView::pressedAsked);
+  connect(st_pres, &StatePresenter::pressed, m_view, &ScenarioView::pressedAsked);
   connect(st_pres, &StatePresenter::moved, m_view, &ScenarioView::movedAsked);
   connect(st_pres, &StatePresenter::released, m_view, &ScenarioView::released);
 }
 
 void ScenarioPresenter::on_intervalCreated(const IntervalModel& interval)
 {
-  auto cst_pres = new TemporalIntervalPresenter{
-      interval, m_context.context, true, m_view, this};
-  m_intervals.insert(cst_pres);
-  cst_pres->on_zoomRatioChanged(m_zoomRatio);
-
-  m_viewInterface.on_intervalMoved(*cst_pres);
-
-  con(interval,
-      &IntervalModel::requestHeightChange,
-      this,
-      [this, &interval] (double y) {
-    updateIntervalVerticalPos(*this, const_cast<IntervalModel&>(interval), y, m_view->height());
-  });
-
   auto& startEvent = Scenario::startEvent(interval, model());
   auto& endEvent = Scenario::endEvent(interval, model());
   auto& startEventPres = m_events.at(startEvent.id());
   auto& endEventPres = m_events.at(endEvent.id());
+  if(Q_UNLIKELY(interval.graphal()))
+  {
+    auto& startState = Scenario::startState(interval, model());
+    auto& endState = Scenario::endState(interval, model());
+    auto& startStatePres = m_states.at(startState.id());
+    auto& endStatePres = m_states.at(endState.id());
 
-  con(startEvent, &EventModel::statusChanged, cst_pres,
-      [cst_pres] { cst_pres->view()->update(); });
-  con(endEvent, &EventModel::statusChanged, cst_pres,
-      [cst_pres] { cst_pres->view()->update(); });
+    auto cst_pres = new GraphalIntervalPresenter{
+        interval,
+        *startStatePres.view(),
+        *endStatePres.view(),
+        m_context.context,
+        this->m_view};
+    m_graphIntervals.insert(cst_pres);
+    connect(
+        cst_pres,
+        &GraphalIntervalPresenter::pressed,
+        m_view,
+        &ScenarioView::pressedAsked);
+    connect(
+        cst_pres,
+        &GraphalIntervalPresenter::moved,
+        m_view,
+        &ScenarioView::movedAsked);
+    connect(
+        cst_pres,
+        &GraphalIntervalPresenter::released,
+        m_view,
+        &ScenarioView::released);
 
-  auto updateHeight = [&] {
-    auto h = m_view->height();
-    updateEventExtent(*this, startEventPres, h);
-    updateEventExtent(*this, endEventPres, h);
-  };
-  updateEventExtent(*this, startEventPres, m_view->height());
-  updateEventExtent(*this, endEventPres, m_view->height());
-  con(interval, &IntervalModel::rackChanged,
-      this, updateHeight);
+    con(startState, &StateModel::heightPercentageChanged, cst_pres,
+        &GraphalIntervalPresenter::resize);
+    con(endState, &StateModel::heightPercentageChanged, cst_pres,
+         &GraphalIntervalPresenter::resize);
+    con(startEvent, &EventModel::dateChanged, cst_pres,
+        &GraphalIntervalPresenter::resize);
+    con(endEvent, &EventModel::dateChanged, cst_pres,
+        &GraphalIntervalPresenter::resize);
 
-  con(interval, &IntervalModel::smallViewVisibleChanged,
-      this, updateHeight);
+    // TODO are these two calls useful ?
+    updateEventExtent(*this, startEventPres, m_view->height());
+    updateEventExtent(*this, endEventPres, m_view->height());
+  }
+  else
+  {
+    auto cst_pres = new TemporalIntervalPresenter{
+        interval, m_context.context, true, m_view, this};
+    m_intervals.insert(cst_pres);
+    cst_pres->on_zoomRatioChanged(m_zoomRatio);
 
-  con(interval, &IntervalModel::slotResized,
-      this, updateHeight);
-
-  con(interval, &IntervalModel::slotAdded,
-      this, updateHeight);
-  con(interval, &IntervalModel::slotRemoved,
-      this, updateHeight);
-
-  connect(
-      cst_pres,
-      &TemporalIntervalPresenter::heightPercentageChanged,
-      this,
-      [=]() { m_viewInterface.on_intervalMoved(*cst_pres); });
-  con(interval, &IntervalModel::dateChanged, this, [=](const TimeVal&) {
     m_viewInterface.on_intervalMoved(*cst_pres);
-  });
-  connect(
-      cst_pres,
-      &TemporalIntervalPresenter::askUpdate,
-      this,
-      &ScenarioPresenter::on_askUpdate);
 
-  connect(cst_pres, &TemporalIntervalPresenter::intervalHoverEnter, [=]() {
-    m_viewInterface.on_hoverOnInterval(cst_pres->model().id(), true);
-  });
-  connect(cst_pres, &TemporalIntervalPresenter::intervalHoverLeave, [=]() {
-    m_viewInterface.on_hoverOnInterval(cst_pres->model().id(), false);
-  });
+    con(interval,
+        &IntervalModel::requestHeightChange,
+        this,
+        [this, &interval] (double y) {
+      updateIntervalVerticalPos(*this, const_cast<IntervalModel&>(interval), y, m_view->height());
+    });
 
-  // For the state machine
-  connect(
-      cst_pres,
-      &TemporalIntervalPresenter::pressed,
-      m_view,
-      &ScenarioView::pressedAsked);
-  connect(
-      cst_pres,
-      &TemporalIntervalPresenter::moved,
-      m_view,
-      &ScenarioView::movedAsked);
-  connect(
-      cst_pres,
-      &TemporalIntervalPresenter::released,
-      m_view,
-      &ScenarioView::released);
+
+    con(startEvent, &EventModel::statusChanged, cst_pres,
+        [cst_pres] { cst_pres->view()->update(); });
+    con(endEvent, &EventModel::statusChanged, cst_pres,
+        [cst_pres] { cst_pres->view()->update(); });
+
+    auto updateHeight = [this, &interval] {
+      auto h = m_view->height();
+      auto& startEvent = Scenario::startEvent(interval, model());
+      auto& endEvent = Scenario::endEvent(interval, model());
+      auto& startEventPres = m_events.at(startEvent.id());
+      auto& endEventPres = m_events.at(endEvent.id());
+      updateEventExtent(*this, startEventPres, h);
+      updateEventExtent(*this, endEventPres, h);
+    };
+    updateEventExtent(*this, startEventPres, m_view->height());
+    updateEventExtent(*this, endEventPres, m_view->height());
+    con(interval, &IntervalModel::rackChanged,
+        this, updateHeight);
+
+    con(interval, &IntervalModel::smallViewVisibleChanged,
+        this, updateHeight);
+
+    con(interval, &IntervalModel::slotResized,
+        this, updateHeight);
+
+    con(interval, &IntervalModel::slotAdded,
+        this, updateHeight);
+
+    con(interval, &IntervalModel::slotRemoved,
+        this, updateHeight);
+
+    connect(
+        cst_pres,
+        &TemporalIntervalPresenter::heightPercentageChanged,
+        this,
+        [=]() { m_viewInterface.on_intervalMoved(*cst_pres); });
+    con(interval, &IntervalModel::dateChanged, this, [=](const TimeVal&) {
+      m_viewInterface.on_intervalMoved(*cst_pres);
+    });
+    connect(
+        cst_pres,
+        &TemporalIntervalPresenter::askUpdate,
+        this,
+        &ScenarioPresenter::on_askUpdate);
+
+    // For the state machine
+    connect(
+        cst_pres,
+        &TemporalIntervalPresenter::pressed,
+        m_view,
+        &ScenarioView::pressedAsked);
+    connect(
+        cst_pres,
+        &TemporalIntervalPresenter::moved,
+        m_view,
+        &ScenarioView::movedAsked);
+    connect(
+        cst_pres,
+        &TemporalIntervalPresenter::released,
+        m_view,
+        &ScenarioView::released);
+  }
 }
 
 void ScenarioPresenter::on_commentCreated(
@@ -1064,6 +1113,11 @@ void ScenarioPresenter::updateAllElements()
   for (auto& comment : m_comments)
   {
     m_viewInterface.on_commentMoved(comment);
+  }
+
+  for (auto& interval : m_graphIntervals)
+  {
+    interval.resize();
   }
 }
 

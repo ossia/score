@@ -26,6 +26,56 @@ struct AddressAccessor;
 namespace Execution
 {
 struct Context;
+template<typename T>
+inline constexpr auto gc(T&& t) noexcept {
+  return [gced = std::move(t)] { };
+}
+
+struct Transaction
+{
+  const Context& context;
+  std::vector<ExecutionCommand> commands;
+  Transaction(const Context& ctx) noexcept
+    : context{ctx}
+  {
+
+  }
+
+  Transaction(Transaction&& other) noexcept
+    : context{other.context}
+    , commands(std::move(other.commands))
+  {
+  }
+
+  Transaction& operator=(Transaction&& other) noexcept
+  {
+    commands = std::move(other.commands);
+    return *this;
+  }
+  void reserve(std::size_t sz) noexcept { commands.reserve(sz); }
+  bool empty() const noexcept { return commands.empty(); }
+  template<typename T>
+  void push_back(T&& t) noexcept {
+    commands.push_back(std::move(t));
+  }
+
+  void run_all()
+  {
+    context.executionQueue.enqueue(
+          [t=std::move(*this)] () mutable {
+      t.run_all_in_exec();
+    });
+  }
+
+  void run_all_in_exec()
+  {
+    for(auto& cmd : commands)
+      cmd();
+
+    context.editionQueue.enqueue(gc(std::move(*this)));
+  }
+};
+
 struct SCORE_LIB_PROCESS_EXPORT SetupContext final : public QObject
 {
   SetupContext(Context& other) : context{other} {}
@@ -60,7 +110,6 @@ struct SCORE_LIB_PROCESS_EXPORT SetupContext final : public QObject
       Process::Inlet& inlet,
       const ossia::inlet_ptr& exec,
       const std::shared_ptr<ossia::graph_node>& node);
-
   void register_outlet(
       Process::Outlet& outlet,
       const ossia::outlet_ptr& exec,
@@ -78,20 +127,40 @@ struct SCORE_LIB_PROCESS_EXPORT SetupContext final : public QObject
       const Process::Inlets& inlets,
       const Process::Outlets& outlets,
       const std::shared_ptr<ossia::graph_node>& node,
-      std::vector<ExecutionCommand>& vec);
+      Transaction& vec);
   void unregister_node(
       const Process::Inlets& inlets,
       const Process::Outlets& outlets,
       const std::shared_ptr<ossia::graph_node>& node,
-      std::vector<ExecutionCommand>& vec);
+      Transaction& vec);
   void register_node(
       const Process::ProcessModel& proc,
       const std::shared_ptr<ossia::graph_node>& node,
-      std::vector<ExecutionCommand>& vec);
+      Transaction& vec);
   void unregister_node(
       const Process::ProcessModel& proc,
       const std::shared_ptr<ossia::graph_node>& node,
-      std::vector<ExecutionCommand>& vec);
+      Transaction& vec);
+
+  void register_inlet(
+      Process::Inlet& inlet,
+      const ossia::inlet_ptr& exec,
+      const std::shared_ptr<ossia::graph_node>& node,
+      Transaction& vec);
+  void register_outlet(
+      Process::Outlet& outlet,
+      const ossia::outlet_ptr& exec,
+      const std::shared_ptr<ossia::graph_node>& node,
+      Transaction& vec);
+
+  void unregister_inlet(
+      const Process::Inlet& inlet,
+      const std::shared_ptr<ossia::graph_node>& node,
+      Transaction& vec);
+  void unregister_outlet(
+      const Process::Outlet& outlet,
+      const std::shared_ptr<ossia::graph_node>& node,
+      Transaction& vec);
 
   void on_cableCreated(Process::Cable& c);
   void on_cableRemoved(const Process::Cable& c);

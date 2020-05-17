@@ -2,6 +2,7 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "Application.hpp"
 #include <ossia/detail/thread.hpp>
+#include <score/widgets/MessageBox.hpp>
 
 #include <QPixmapCache>
 #include <QSurfaceFormat>
@@ -40,12 +41,8 @@ void disableAppRestore()
 #if defined(QT_STATIC)
 #include <QtPlugin>
 Q_IMPORT_PLUGIN(QJpegPlugin)
-Q_IMPORT_PLUGIN(QSvgPlugin)
-Q_IMPORT_PLUGIN(QSvgIconPlugin)
-
-#if !defined(__EMSCRIPTEN__)
-Q_IMPORT_PLUGIN(QtQuick2Plugin)
-#endif
+// Q_IMPORT_PLUGIN(QSvgPlugin)
+// Q_IMPORT_PLUGIN(QSvgIconPlugin)
 
 #if defined(__linux__)
 Q_IMPORT_PLUGIN(QXcbIntegrationPlugin)
@@ -189,12 +186,12 @@ int main(int argc, char** argv)
 #if __has_include(<valgrind/callgrind.h>)
   /*
   QTimer::singleShot(5000, [] {
-    QMessageBox::information(nullptr, "debug start", "debug start", QMessageBox::Ok);
+    score::information(nullptr, "debug start", "debug start");
     CALLGRIND_START_INSTRUMENTATION;
     QTimer::singleShot(10000, [] {
       CALLGRIND_STOP_INSTRUMENTATION;
       CALLGRIND_DUMP_STATS;
-      QMessageBox::information(nullptr, "debug stop", "debug stop", QMessageBox::Ok);
+      score::information(nullptr, "debug stop", "debug stop");
     });
   });*/
 #endif

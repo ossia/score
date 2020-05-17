@@ -2,13 +2,13 @@
 #include <Process/TimeValue.hpp>
 
 #include <score/serialization/DataStreamVisitor.hpp>
-#include <score/serialization/JSONValueVisitor.hpp>
+#include <score/serialization/JSONVisitor.hpp>
 
 #include <QDebug>
 
 inline QDebug operator<<(QDebug d, const TimeVal& tv)
 {
-  if (!tv.isInfinite())
+  if (!tv.infinite())
   {
     d << tv.msec() << "ms";
   }
@@ -25,56 +25,28 @@ struct TSerializer<DataStream, TimeVal>
 {
   static void readFrom(DataStream::Serializer& s, const TimeVal& tv)
   {
-    s.stream() << tv.isInfinite();
-
-    if (!tv.isInfinite())
-    {
-      s.stream() << tv.msec();
-    }
+    s.stream() << tv.impl;
   }
 
   static void writeTo(DataStream::Deserializer& s, TimeVal& tv)
   {
-    bool inf;
-    s.stream() >> inf;
-
-    if (!inf)
-    {
-      double msec;
-      s.stream() >> msec;
-      tv.setMSecs(msec);
-    }
-    else
-    {
-      tv = TimeVal::infinite();
-    }
+    s.stream() >> tv.impl;
   }
 };
 
 template <>
-struct TSerializer<JSONValue, TimeVal>
+struct TSerializer<JSONObject, TimeVal>
 {
-  static void readFrom(JSONValue::Serializer& s, const TimeVal& tv)
+  static void readFrom(JSONObject::Serializer& s, const TimeVal& tv)
   {
-    if (tv.isInfinite())
-    {
-      s.val = "inf";
-    }
-    else
-    {
-      s.val = tv.msec();
-    }
+    s.stream.Int64(tv.impl);
   }
 
-  static void writeTo(JSONValue::Deserializer& s, TimeVal& tv)
+  static void writeTo(JSONObject::Deserializer& s, TimeVal& tv)
   {
-    if (s.val.toString() == "inf")
-    {
-      tv = TimeVal::infinite();
-    }
-    else
-    {
-      tv.setMSecs(s.val.toDouble());
-    }
+    using namespace std;
+    using namespace std::literals;
+    tv.impl = s.base.GetInt64();
   }
 };
+

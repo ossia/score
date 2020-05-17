@@ -37,7 +37,7 @@ void Clock::play_impl(const TimeVal& t, Execution::BaseScenarioElement& bs)
 }
 
 static
-ossia::audio_protocol::fun_type get_pause_tick(const score::DocumentContext& doc)
+ossia::audio_engine::fun_type get_pause_tick(const score::DocumentContext& doc)
 {
   auto actions = doc.plugin<Execution::DocumentPlugin>().actions();
   for (Execution::ExecutionAction& act: doc.app.interfaces<Execution::ExecutionActionList>())
@@ -54,7 +54,8 @@ ossia::audio_protocol::fun_type get_pause_tick(const score::DocumentContext& doc
 void Clock::pause_impl(Execution::BaseScenarioElement& bs)
 {
   m_paused = true;
-  m_plug.audioProto().set_tick(get_pause_tick(this->context.doc));
+  if(auto e = m_plug.audioProto().engine)
+    e->set_tick(get_pause_tick(this->context.doc));
   m_default.pause();
 }
 
@@ -98,7 +99,8 @@ void Clock::resume_impl(Execution::BaseScenarioElement& bs)
         *m_plug.execGraph,
         *m_cur->baseInterval().OSSIAInterval());
 
-    m_plug.audioProto().set_tick([tick, plug = &m_plug, actions = std::move(actions)](auto&&... args) {
+    if(auto e = m_plug.audioProto().engine)
+      e->set_tick([tick, plug = &m_plug, actions = std::move(actions)](auto&&... args) {
       // Run some commands if they have been submitted.
       Execution::ExecutionCommand c;
       while (plug->context().executionQueue.try_dequeue(c))
@@ -145,7 +147,8 @@ void Clock::resume_impl(Execution::BaseScenarioElement& bs)
         *m_plug.execGraph,
         *m_cur->baseInterval().OSSIAInterval());
 
-    m_plug.audioProto().set_tick([tick, plug = &m_plug, actions = std::move(actions)](auto&&... args) {
+    if(auto e = m_plug.audioProto().engine)
+      e->set_tick([tick, plug = &m_plug, actions = std::move(actions)](auto&&... args) {
       // Run some commands if they have been submitted.
       Execution::ExecutionCommand c;
       while (plug->context().executionQueue.try_dequeue(c))
@@ -153,9 +156,9 @@ void Clock::resume_impl(Execution::BaseScenarioElement& bs)
         c();
       }
 
-      for(auto act : actions) act->startTick(args...);
+      for(auto act : actions) { act->startTick(args...); }
       tick(args...);
-      for(auto act : actions) act->endTick(args...);
+      for(auto act : actions) { act->endTick(args...); }
     });
   }
 
@@ -167,8 +170,8 @@ void Clock::stop_impl(Execution::BaseScenarioElement& bs)
 {
   m_paused = false;
 
-  auto& proto = m_plug.audioProto();
-  proto.set_tick(get_pause_tick(this->context.doc));
+  if(auto e = m_plug.audioProto().engine)
+    e->set_tick(get_pause_tick(this->context.doc));
 
   m_plug.finished();
   m_default.stop();
@@ -189,11 +192,14 @@ Execution::time_function
 ClockFactory::makeTimeFunction(const score::DocumentContext& ctx) const
 {
   return [=](const TimeVal& v) -> ossia::time_value {
+    return v;
+    /*
     // Go from milliseconds to flicks
     // 1000 ms = sr samples
     // x ms    = k samples
-    return v.isInfinite() ? ossia::Infinite
-                          : ossia::time_value{int64_t(std::llround(v.msec() * ossia::flicks_per_millisecond<double>))};
+    return v.infinite() ? ossia::Infinite
+                        : ossia::time_value{int64_t(std::llround(v.msec() * ossia::flicks_per_millisecond<double>))};
+                        */
   };
 }
 
@@ -201,10 +207,13 @@ Execution::reverse_time_function
 ClockFactory::makeReverseTimeFunction(const score::DocumentContext& ctx) const
 {
   return [=](const ossia::time_value& v) -> TimeVal {
+    return v;
+    /*
     static const constexpr double ratio = 1. / ossia::flicks_per_millisecond<double>;
 
     return v.infinite() ? TimeVal::infinite()
                         : TimeVal::fromMsecs(v.impl * ratio);
+    */
   };
 }
 

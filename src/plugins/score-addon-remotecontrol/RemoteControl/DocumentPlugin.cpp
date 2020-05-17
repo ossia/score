@@ -14,8 +14,6 @@
 #include <score/tools/Bind.hpp>
 
 #include <QBuffer>
-#include <QJsonDocument>
-#include <QJsonObject>
 
 #include <RemoteControl/DocumentPlugin.hpp>
 #include <RemoteControl/Scenario/Scenario.hpp>
@@ -23,6 +21,7 @@
 #include <JS/ConsolePanel.hpp>
 namespace RemoteControl
 {
+using namespace std::literals;
 DocumentPlugin::DocumentPlugin(
     const score::DocumentContext& doc,
     Id<score::DocumentPlugin> id,
@@ -98,13 +97,12 @@ Receiver::Receiver(const score::DocumentContext& doc, quint16 port)
   }
 
   m_answers.insert(
-      std::make_pair("Trigger", [&](const QJsonObject& obj, const WSClient&) {
-        auto it = obj.find("Path");
-        if (it == obj.end())
+      std::make_pair("Trigger", [&](const rapidjson::Value& obj, const WSClient&) {
+        auto it = obj.FindMember("Path");
+        if (it == obj.MemberEnd())
           return;
 
-        auto path = score::unmarshall<Path<Scenario::TimeSyncModel>>(
-            (*it).toObject());
+        auto path = score::unmarshall<Path<Scenario::TimeSyncModel>>(it->value);
         if (!path.valid())
           return;
 
@@ -112,12 +110,11 @@ Receiver::Receiver(const score::DocumentContext& doc, quint16 port)
         tn.triggeredByGui();
       }));
 
-  m_answers.insert(std::make_pair(
-      score::StringConstant().Message,
-      [this](const QJsonObject& obj, const WSClient&) {
+  m_answers.insert(
+        std::make_pair("Message", [this](const rapidjson::Value& obj, const WSClient&) {
         // The message is stored at the "root" level of the json.
-        auto it = obj.find(score::StringConstant().Address);
-        if (it == obj.end())
+        auto it = obj.FindMember(score::StringConstant().Address);
+        if (it == obj.MemberEnd())
           return;
 
         auto message = score::unmarshall<::State::Message>(obj);
@@ -126,33 +123,33 @@ Receiver::Receiver(const score::DocumentContext& doc, quint16 port)
       }));
 
   m_answers.insert(
-      std::make_pair("Play", [&](const QJsonObject&, const WSClient&) {
+      std::make_pair("Play", [&](const rapidjson::Value&, const WSClient&) {
         doc.app.actions.action<Actions::Play>().action()->trigger();
       }));
   m_answers.insert(
-      std::make_pair("Pause", [&](const QJsonObject&, const WSClient&) {
+      std::make_pair("Pause", [&](const rapidjson::Value&, const WSClient&) {
         doc.app.actions.action<Actions::Play>().action()->trigger();
       }));
   m_answers.insert(
-      std::make_pair("Stop", [&](const QJsonObject&, const WSClient&) {
+      std::make_pair("Stop", [&](const rapidjson::Value&, const WSClient&) {
         doc.app.actions.action<Actions::Stop>().action()->trigger();
       }));
   m_answers.insert(
-        std::make_pair("Console", [&](const QJsonObject& obj, const WSClient&) {
-    auto it = obj.find("Code");
-    if (it == obj.end())
+        std::make_pair("Console", [&](const rapidjson::Value& obj, const WSClient&) {
+    auto it = obj.FindMember("Code");
+    if (it == obj.MemberEnd())
       return;
-    const auto& str = it->toString();
+    const auto& str = JsonValue{it->value}.toString();
     auto& console = doc.app.panel<JS::PanelDelegate>();
     console.engine().evaluate(str);
   }));
   m_answers.insert(std::make_pair(
-      "EnableListening", [&](const QJsonObject& obj, const WSClient& c) {
-        auto it = obj.find(score::StringConstant().Address);
-        if (it == obj.end())
+      "EnableListening", [&](const rapidjson::Value& obj, const WSClient& c) {
+        auto it = obj.FindMember(score::StringConstant().Address);
+        if (it == obj.MemberEnd())
           return;
 
-        auto addr = score::unmarshall<::State::Address>((*it).toObject());
+        auto addr = score::unmarshall<::State::Address>(it->value);
         auto d = m_dev.list().findDevice(addr.device);
         if (d)
         {
@@ -163,12 +160,12 @@ Receiver::Receiver(const score::DocumentContext& doc, quint16 port)
         }
       }));
   m_answers.insert(std::make_pair(
-      "DisableListening", [&](const QJsonObject& obj, const WSClient&) {
-        auto it = obj.find(score::StringConstant().Address);
-        if (it == obj.end())
+      "DisableListening", [&](const rapidjson::Value& obj, const WSClient&) {
+        auto it = obj.FindMember(score::StringConstant().Address);
+        if (it == obj.MemberEnd())
           return;
 
-        auto addr = score::unmarshall<::State::Address>((*it).toObject());
+        auto addr = score::unmarshall<::State::Address>(it->value);
         auto d = m_dev.list().findDevice(addr.device);
         if (d)
         {
@@ -193,14 +190,13 @@ void Receiver::registerSync(Path<Scenario::TimeSyncModel> tn)
 
   m_activeSyncs.push_back(tn);
 
-  QJsonObject mess;
-  mess[score::StringConstant().Message] = "TriggerAdded";
-  mess[score::StringConstant().Path] = toJsonObject(tn);
-  mess[score::StringConstant().Name]
-      = tn.find(m_dev.context()).metadata().getName();
-  QJsonDocument doc{mess};
-  auto json = doc.toJson();
-
+  JSONReader r;
+  r.stream.StartObject();
+  r.obj[score::StringConstant().Message] = "TriggerAdded"sv;
+  r.obj[score::StringConstant().Path] = tn;
+  r.obj[score::StringConstant().Name] = tn.find(m_dev.context()).metadata().getName();
+  r.stream.EndObject();
+  const auto& json = r.toString();
   for (auto client : m_clients)
   {
     client.socket->sendTextMessage(json);
@@ -214,12 +210,12 @@ void Receiver::unregisterSync(Path<Scenario::TimeSyncModel> tn)
 
   m_activeSyncs.remove(tn);
 
-  QJsonObject mess;
-  mess[score::StringConstant().Message] = "TriggerRemoved";
-  mess[score::StringConstant().Path] = toJsonObject(tn);
-  QJsonDocument doc{mess};
-  auto json = doc.toJson();
-
+  JSONReader r;
+  r.stream.StartObject();
+  r.obj[score::StringConstant().Message] = "TriggerRemoved"sv;
+  r.obj[score::StringConstant().Path] = tn;
+  r.stream.EndObject();
+  const auto& json = r.toString();
   for (auto client : m_clients)
   {
     client.socket->sendTextMessage(json);
@@ -247,24 +243,23 @@ void Receiver::onNewConnection()
       &Receiver::socketDisconnected);
 
   {
-    QJsonObject mess;
-    mess[score::StringConstant().Message] = "DeviceTree";
-    mess["Nodes"] = toJsonObject(m_dev.rootNode());
-    QJsonDocument doc{mess};
-    client.socket->sendTextMessage(doc.toJson());
+    JSONReader r;
+    r.obj[score::StringConstant().Message] = "DeviceTree"sv;
+    r.obj["Nodes"] = m_dev.rootNode();
+
+    client.socket->sendTextMessage(r.toString());
   }
 
   {
-    QJsonObject mess;
-    mess[score::StringConstant().Message] = "TriggerAdded";
     for (auto path : m_activeSyncs)
     {
-      mess[score::StringConstant().Path] = toJsonObject(path);
-      mess[score::StringConstant().Name]
+      JSONReader r;
+      r.obj[score::StringConstant().Message] = "TriggerAdded"sv;
+      r.obj[score::StringConstant().Path] = path;
+      r.obj[score::StringConstant().Name]
           = path.find(m_dev.context()).metadata().getName();
-      QJsonDocument doc{mess};
-      auto json = doc.toJson();
-      client.socket->sendTextMessage(json);
+
+      client.socket->sendTextMessage(r.toString());
     }
   }
 
@@ -278,22 +273,23 @@ void Receiver::processTextMessage(const QString& message, const WSClient& w)
 
 void Receiver::processBinaryMessage(QByteArray message, const WSClient& w)
 {
-  QJsonParseError error;
-  auto doc = QJsonDocument::fromJson(std::move(message), &error);
-  if (error.error)
+  auto doc = readJson(message);
+  JSONWriter wr{doc};
+
+  if(doc.HasParseError()) {
+    return;
+  }
+
+  auto it = wr.base.FindMember(score::StringConstant().Message);
+  if (it == wr.base.MemberEnd())
     return;
 
-  auto obj = doc.object();
-  auto it = obj.find(score::StringConstant().Message);
-  if (it == obj.end())
-    return;
-
-  auto mess = (*it).toString();
+  auto mess = JsonValue{it->value}.toString();
   auto answer_it = m_answers.find(mess);
   if (answer_it == m_answers.end())
     return;
 
-  answer_it->second(obj, w);
+  answer_it->second(wr.base, w);
 }
 
 void Receiver::socketDisconnected()
@@ -328,7 +324,7 @@ void Receiver::on_valueUpdated(
     s.readFrom(m);
     s.obj[score::StringConstant().Message] = score::StringConstant().Message;
     QWebSocket* w = it->second.socket;
-    w->sendTextMessage(QJsonDocument(s.obj).toJson());
+    w->sendTextMessage(s.toString());
   }
 }
 

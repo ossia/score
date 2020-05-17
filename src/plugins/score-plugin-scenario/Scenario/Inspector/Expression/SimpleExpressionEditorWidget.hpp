@@ -17,7 +17,6 @@ class QLabel;
 class QLineEdit;
 class QToolButton;
 class QMenu;
-class QPushButton;
 namespace Device
 {
 class AddressAccessorEditWidget;
@@ -88,7 +87,7 @@ private:
   QComboBox* m_binOperator{};
   QToolButton* m_rmBtn{};
   QToolButton* m_addBtn{};
-  QPushButton* m_menuBtn{};
+  QToolButton* m_menuBtn{};
 
   ExpressionValidator<State::Expression> m_validator;
   QString m_relation{};

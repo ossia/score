@@ -65,15 +65,19 @@ Port::Port(JSONObject::Deserializer&& vis, QObject* parent)
   vis.writeTo(*this);
 }
 
-void Port::addCable(const Path<Cable>& c)
+void Port::addCable(const Cable& c)
 {
+  c.resetCache();
   m_cables.push_back(c);
   cablesChanged();
 }
-void Port::setCables(const std::vector<Path<Cable>>& c)
+
+void Port::takeCables(Port&& c)
 {
-  m_cables = c;
+  // TODO how do we reset their cache
+  m_cables = std::move(c.cables());
   cablesChanged();
+  c.cablesChanged();
 }
 
 void Port::removeCable(const Path<Cable>& c)
@@ -145,11 +149,32 @@ void Port::setAddress(const State::AddressAccessor& address)
   addressChanged(m_address);
 }
 
+QByteArray Port::saveData() const noexcept
+{
+  QByteArray arr;
+  {
+    QDataStream p{&arr, QIODevice::WriteOnly};
+    p << m_cables << m_address;
+  }
+  return arr;
+}
+
+void Port::loadData(const QByteArray& arr) noexcept
+{
+  QDataStream p{arr};
+  p >> m_cables >> m_address;
+}
+
 ///////////////////////////////
 /// Inlet
 ///////////////////////////////
 
 Inlet::~Inlet() {}
+
+void Inlet::setupExecution(ossia::inlet&) const noexcept
+{
+
+}
 
 Inlet::Inlet(Id<Process::Port> c, QObject* parent)
     : Port{std::move(c), QStringLiteral("Inlet"), parent}
@@ -210,6 +235,18 @@ ControlInlet::ControlInlet(JSONObject::Deserializer&& vis, QObject* parent)
     : Inlet{vis, parent}
 {
   vis.writeTo(*this);
+}
+
+QByteArray ControlInlet::saveData() const noexcept
+{
+  return Port::saveData();
+
+}
+
+void ControlInlet::loadData(const QByteArray& arr) noexcept
+{
+  Port::loadData(arr);
+
 }
 
 Outlet::~Outlet() {}
@@ -319,6 +356,18 @@ void AudioOutlet::mapExecution(ossia::outlet& exec, const smallfun::function<voi
   auto audio_exec = safe_cast<ossia::audio_outlet*>(&exec);
   f(*gainInlet, audio_exec->gain_inlet);
   f(*panInlet, audio_exec->pan_inlet);
+}
+
+QByteArray AudioOutlet::saveData() const noexcept
+{
+  return Port::saveData();
+
+}
+
+void AudioOutlet::loadData(const QByteArray& arr) noexcept
+{
+  Port::loadData(arr);
+
 }
 
 bool AudioOutlet::propagate() const
@@ -446,6 +495,16 @@ ControlOutlet::ControlOutlet(JSONObject::Deserializer&& vis, QObject* parent)
     : Outlet{vis, parent}
 {
   vis.writeTo(*this);
+}
+
+QByteArray ControlOutlet::saveData() const noexcept
+{
+  return Port::saveData();
+}
+
+void ControlOutlet::loadData(const QByteArray& arr) noexcept
+{
+  Port::loadData(arr);
 }
 
 
@@ -632,7 +691,7 @@ std::unique_ptr<Inlet> load_inlet(DataStreamWriter& wr, QObject* parent)
   return std::unique_ptr<Process::Inlet>((Process::Inlet*)deserialize_interface(il, wr, parent));
 }
 
-std::unique_ptr<Inlet> load_inlet(JSONObjectWriter& wr, QObject* parent)
+std::unique_ptr<Inlet> load_inlet(JSONWriter& wr, QObject* parent)
 {
   static auto& il
       = score::AppComponents().interfaces<Process::PortFactoryList>();
@@ -646,22 +705,21 @@ std::unique_ptr<Outlet> load_outlet(DataStreamWriter& wr, QObject* parent)
   return std::unique_ptr<Process::Outlet>((Process::Outlet*)deserialize_interface(il, wr, parent));
 }
 
-std::unique_ptr<Outlet> load_outlet(JSONObjectWriter& wr, QObject* parent)
+std::unique_ptr<Outlet> load_outlet(JSONWriter& wr, QObject* parent)
 {
   static auto& il
       = score::AppComponents().interfaces<Process::PortFactoryList>();
   return std::unique_ptr<Process::Outlet>((Process::Outlet*)deserialize_interface(il, wr, parent));
 }
 
-static auto copy_port(const Port& src, Port& dst)
+static auto copy_port(Port&& src, Port& dst)
 {
   dst.hidden = src.hidden;
   dst.setCustomData(src.customData());
   dst.setAddress(src.address());
   dst.setExposed(src.exposed());
   dst.setDescription(src.description());
-  for(auto& cable : src.cables())
-    dst.addCable(cable);
+  dst.takeCables(std::move(src));
 }
 
 template<typename T, typename W>
@@ -684,7 +742,7 @@ auto load_port_t(W& wr, QObject* parent)
   {
     // Pre 2.0
     auto new_p = std::make_unique<T>(out->id(), parent);
-    copy_port(*out, *new_p);
+    copy_port(std::move(*out), *new_p);
     delete out;
     return new_p;
   }
@@ -700,7 +758,7 @@ std::unique_ptr<ValueInlet> load_value_inlet(DataStreamWriter& wr, QObject* pare
   return load_port_t<ValueInlet>(wr, parent);
 }
 
-std::unique_ptr<ValueInlet> load_value_inlet(JSONObjectWriter& wr, QObject* parent)
+std::unique_ptr<ValueInlet> load_value_inlet(JSONWriter& wr, QObject* parent)
 {
   return load_port_t<ValueInlet>(wr, parent);
 }
@@ -710,7 +768,7 @@ std::unique_ptr<ValueOutlet> load_value_outlet(DataStreamWriter& wr, QObject* pa
   return load_port_t<ValueOutlet>(wr, parent);
 }
 
-std::unique_ptr<ValueOutlet> load_value_outlet(JSONObjectWriter& wr, QObject* parent)
+std::unique_ptr<ValueOutlet> load_value_outlet(JSONWriter& wr, QObject* parent)
 {
   return load_port_t<ValueOutlet>(wr, parent);
 }
@@ -720,7 +778,7 @@ std::unique_ptr<ControlInlet> load_control_inlet(DataStreamWriter& wr, QObject* 
   return load_port_t<ControlInlet>(wr, parent);
 }
 
-std::unique_ptr<ControlInlet> load_control_inlet(JSONObjectWriter& wr, QObject* parent)
+std::unique_ptr<ControlInlet> load_control_inlet(JSONWriter& wr, QObject* parent)
 {
   return load_port_t<ControlInlet>(wr, parent);
 }
@@ -730,7 +788,7 @@ std::unique_ptr<ControlOutlet> load_control_outlet(DataStreamWriter& wr, QObject
   return load_port_t<ControlOutlet>(wr, parent);
 }
 
-std::unique_ptr<ControlOutlet> load_control_outlet(JSONObjectWriter& wr, QObject* parent)
+std::unique_ptr<ControlOutlet> load_control_outlet(JSONWriter& wr, QObject* parent)
 {
   return load_port_t<ControlOutlet>(wr, parent);
 }
@@ -740,7 +798,7 @@ std::unique_ptr<AudioInlet> load_audio_inlet(DataStreamWriter& wr, QObject* pare
     return load_port_t<AudioInlet>(wr, parent);
 }
 
-std::unique_ptr<AudioInlet> load_audio_inlet(JSONObjectWriter& wr, QObject* parent)
+std::unique_ptr<AudioInlet> load_audio_inlet(JSONWriter& wr, QObject* parent)
 {
     return load_port_t<AudioInlet>(wr, parent);
 }
@@ -750,7 +808,7 @@ std::unique_ptr<AudioOutlet> load_audio_outlet(DataStreamWriter& wr, QObject* pa
     return load_port_t<AudioOutlet>(wr, parent);
 }
 
-std::unique_ptr<AudioOutlet> load_audio_outlet(JSONObjectWriter& wr, QObject* parent)
+std::unique_ptr<AudioOutlet> load_audio_outlet(JSONWriter& wr, QObject* parent)
 {
     return load_port_t<AudioOutlet>(wr, parent);
 }
@@ -760,7 +818,7 @@ std::unique_ptr<MidiInlet> load_midi_inlet(DataStreamWriter& wr, QObject* parent
     return load_port_t<MidiInlet>(wr, parent);
 }
 
-std::unique_ptr<MidiInlet> load_midi_inlet(JSONObjectWriter& wr, QObject* parent)
+std::unique_ptr<MidiInlet> load_midi_inlet(JSONWriter& wr, QObject* parent)
 {
     return load_port_t<MidiInlet>(wr, parent);
 }
@@ -770,7 +828,7 @@ std::unique_ptr<MidiOutlet> load_midi_outlet(DataStreamWriter& wr, QObject* pare
     return load_port_t<MidiOutlet>(wr, parent);
 }
 
-std::unique_ptr<MidiOutlet> load_midi_outlet(JSONObjectWriter& wr, QObject* parent)
+std::unique_ptr<MidiOutlet> load_midi_outlet(JSONWriter& wr, QObject* parent)
 {
     return load_port_t<MidiOutlet>(wr, parent);
 }
@@ -797,23 +855,31 @@ DataStreamWriter::write<Process::Port>(Process::Port& p)
 
 template <>
 SCORE_LIB_PROCESS_EXPORT void
-JSONObjectReader::read<Process::Port>(const Process::Port& p)
+JSONReader::read<Process::Port>(const Process::Port& p)
 {
   obj["Hidden"] = (bool)p.hidden;
-  obj["Custom"] = p.m_customData;
-  obj["Exposed"] = p.m_exposed;
-  obj["Description"] = p.m_description;
-  obj["Address"] = toJsonObject(p.m_address);
+  if(!p.m_customData.isEmpty())
+    obj["Custom"] = p.m_customData;
+  if(!p.m_exposed.isEmpty())
+    obj["Exposed"] = p.m_exposed;
+  if(!p.m_description.isEmpty())
+    obj["Description"] = p.m_description;
+  if(!(p.m_address.address.path.isEmpty() || p.m_address.address.device.isEmpty()))
+    obj["Address"] = p.m_address;
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void
-JSONObjectWriter::write<Process::Port>(Process::Port& p)
+JSONWriter::write<Process::Port>(Process::Port& p)
 {
   p.hidden = obj["Hidden"].toBool();
-  p.m_customData = obj["Custom"].toString();
-  p.m_exposed = obj["Exposed"].toString();
-  p.m_description = obj["Description"].toString();
-  p.m_address = fromJsonObject<State::AddressAccessor>(obj["Address"]);
+  if(auto it = obj.tryGet("Custom"))
+    p.m_customData = it->toString();
+  if(auto it = obj.tryGet("Exposed"))
+    p.m_exposed = it->toString();
+  if(auto it = obj.tryGet("Description"))
+    p.m_description = it->toString();
+  if(auto it = obj.tryGet("Address"))
+    p.m_address <<= *it;
 }
 
 template <>
@@ -830,13 +896,13 @@ DataStreamWriter::write<Process::Inlet>(Process::Inlet& p)
 
 template <>
 SCORE_LIB_PROCESS_EXPORT void
-JSONObjectReader::read<Process::Inlet>(const Process::Inlet& p)
+JSONReader::read<Process::Inlet>(const Process::Inlet& p)
 {
   read((Process::Port&)p);
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void
-JSONObjectWriter::write<Process::Inlet>(Process::Inlet& p)
+JSONWriter::write<Process::Inlet>(Process::Inlet& p)
 {
 }
 
@@ -854,13 +920,13 @@ DataStreamWriter::write<Process::AudioInlet>(Process::AudioInlet& p)
 
 template <>
 SCORE_LIB_PROCESS_EXPORT void
-JSONObjectReader::read<Process::AudioInlet>(const Process::AudioInlet& p)
+JSONReader::read<Process::AudioInlet>(const Process::AudioInlet& p)
 {
   // read((Process::Outlet&)p);
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void
-JSONObjectWriter::write<Process::AudioInlet>(Process::AudioInlet& p)
+JSONWriter::write<Process::AudioInlet>(Process::AudioInlet& p)
 {
 }
 
@@ -878,13 +944,13 @@ DataStreamWriter::write<Process::MidiInlet>(Process::MidiInlet& p)
 
 template <>
 SCORE_LIB_PROCESS_EXPORT void
-JSONObjectReader::read<Process::MidiInlet>(const Process::MidiInlet& p)
+JSONReader::read<Process::MidiInlet>(const Process::MidiInlet& p)
 {
     // read((Process::Outlet&)p);
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void
-JSONObjectWriter::write<Process::MidiInlet>(Process::MidiInlet& p)
+JSONWriter::write<Process::MidiInlet>(Process::MidiInlet& p)
 {
 }
 
@@ -907,18 +973,18 @@ DataStreamWriter::write<Process::ControlInlet>(Process::ControlInlet& p)
 
 template <>
 SCORE_LIB_PROCESS_EXPORT void
-JSONObjectReader::read<Process::ControlInlet>(const Process::ControlInlet& p)
+JSONReader::read<Process::ControlInlet>(const Process::ControlInlet& p)
 {
   // read((Process::Inlet&)p);
-  obj[strings.Value] = toJsonObject(p.m_value);
-  obj[strings.Domain] = toJsonObject(p.m_domain);
+  obj[strings.Value] = p.m_value;
+  obj[strings.Domain] = p.m_domain;
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void
-JSONObjectWriter::write<Process::ControlInlet>(Process::ControlInlet& p)
+JSONWriter::write<Process::ControlInlet>(Process::ControlInlet& p)
 {
-  p.m_value = fromJsonObject<ossia::value>(obj[strings.Value]);
-  p.m_domain = fromJsonObject<State::Domain>(obj[strings.Domain].toObject());
+  p.m_value <<= obj[strings.Value];
+  p.m_domain <<= obj[strings.Domain];
 }
 
 template <>
@@ -935,13 +1001,13 @@ DataStreamWriter::write<Process::Outlet>(Process::Outlet& p)
 
 template <>
 SCORE_LIB_PROCESS_EXPORT void
-JSONObjectReader::read<Process::Outlet>(const Process::Outlet& p)
+JSONReader::read<Process::Outlet>(const Process::Outlet& p)
 {
   read((Process::Port&)p);
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void
-JSONObjectWriter::write<Process::Outlet>(Process::Outlet& p)
+JSONWriter::write<Process::Outlet>(Process::Outlet& p)
 {
 }
 
@@ -965,32 +1031,32 @@ DataStreamWriter::write<Process::AudioOutlet>(Process::AudioOutlet& p)
 
 template <>
 SCORE_LIB_PROCESS_EXPORT void
-JSONObjectReader::read<Process::AudioOutlet>(const Process::AudioOutlet& p)
+JSONReader::read<Process::AudioOutlet>(const Process::AudioOutlet& p)
 {
   // read((Process::Outlet&)p);
-  obj["GainInlet"] = toJsonObject(*p.gainInlet);
-  obj["PanInlet"] = toJsonObject(*p.panInlet);
+  obj["GainInlet"] = *p.gainInlet;
+  obj["PanInlet"] = *p.panInlet;
 
   obj["Gain"] = p.m_gain;
-  obj["Pan"] = toJsonValueArray(p.m_pan);
+  obj["Pan"] = p.m_pan;
   obj["Propagate"] = p.m_propagate;
 
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void
-JSONObjectWriter::write<Process::AudioOutlet>(Process::AudioOutlet& p)
+JSONWriter::write<Process::AudioOutlet>(Process::AudioOutlet& p)
 {
   {
-    JSONObjectWriter writer{obj["GainInlet"].toObject()};
+    JSONWriter writer{obj["GainInlet"]};
     p.gainInlet = Process::load_control_inlet(writer, &p);
   }
   {
-    JSONObjectWriter writer{obj["PanInlet"].toObject()};
+    JSONWriter writer{obj["PanInlet"]};
     p.panInlet = Process::load_control_inlet(writer, &p);
   }
 
   p.m_gain = obj["Gain"].toDouble();
-  p.m_pan = fromJsonValueArray<ossia::small_vector<double, 2>>(obj["Pan"].toArray());
+  p.m_pan <<= obj["Pan"];
   p.m_propagate = obj["Propagate"].toBool();
 }
 
@@ -1008,13 +1074,13 @@ DataStreamWriter::write<Process::MidiOutlet>(Process::MidiOutlet& p)
 
 template <>
 SCORE_LIB_PROCESS_EXPORT void
-JSONObjectReader::read<Process::MidiOutlet>(const Process::MidiOutlet& p)
+JSONReader::read<Process::MidiOutlet>(const Process::MidiOutlet& p)
 {
     // read((Process::Outlet&)p);
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void
-JSONObjectWriter::write<Process::MidiOutlet>(Process::MidiOutlet& p)
+JSONWriter::write<Process::MidiOutlet>(Process::MidiOutlet& p)
 {
 }
 
@@ -1036,18 +1102,18 @@ DataStreamWriter::write<Process::ControlOutlet>(Process::ControlOutlet& p)
 
 template <>
 SCORE_LIB_PROCESS_EXPORT void
-JSONObjectReader::read<Process::ControlOutlet>(const Process::ControlOutlet& p)
+JSONReader::read<Process::ControlOutlet>(const Process::ControlOutlet& p)
 {
   // read((Process::Outlet&)p);
-  obj[strings.Value] = toJsonValue(p.m_value);
-  obj[strings.Domain] = toJsonObject(p.m_domain);
+  obj[strings.Value] = p.m_value;
+  obj[strings.Domain] = p.m_domain;
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void
-JSONObjectWriter::write<Process::ControlOutlet>(Process::ControlOutlet& p)
+JSONWriter::write<Process::ControlOutlet>(Process::ControlOutlet& p)
 {
-  p.m_value = fromJsonValue<ossia::value>(obj[strings.Value]);
-  p.m_domain = fromJsonObject<State::Domain>(obj[strings.Domain].toObject());
+  p.m_value <<= obj[strings.Value];
+  p.m_domain <<= obj[strings.Domain];
 }
 
 template <>
@@ -1064,13 +1130,13 @@ DataStreamWriter::write<Process::ValueInlet>(Process::ValueInlet& p)
 
 template <>
 SCORE_LIB_PROCESS_EXPORT void
-JSONObjectReader::read<Process::ValueInlet>(const Process::ValueInlet& p)
+JSONReader::read<Process::ValueInlet>(const Process::ValueInlet& p)
 {
     // read((Process::Outlet&)p);
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void
-JSONObjectWriter::write<Process::ValueInlet>(Process::ValueInlet& p)
+JSONWriter::write<Process::ValueInlet>(Process::ValueInlet& p)
 {
 }
 
@@ -1089,13 +1155,13 @@ DataStreamWriter::write<Process::ValueOutlet>(Process::ValueOutlet& p)
 
 template <>
 SCORE_LIB_PROCESS_EXPORT void
-JSONObjectReader::read<Process::ValueOutlet>(const Process::ValueOutlet& p)
+JSONReader::read<Process::ValueOutlet>(const Process::ValueOutlet& p)
 {
     // read((Process::Outlet&)p);
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void
-JSONObjectWriter::write<Process::ValueOutlet>(Process::ValueOutlet& p)
+JSONWriter::write<Process::ValueOutlet>(Process::ValueOutlet& p)
 {
 }
 

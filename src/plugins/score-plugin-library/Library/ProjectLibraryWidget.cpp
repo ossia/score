@@ -50,21 +50,49 @@ ProjectLibraryWidget::ProjectLibraryWidget(
 
 ProjectLibraryWidget::~ProjectLibraryWidget() {}
 
-void ProjectLibraryWidget::setRoot(QString path)
+void ProjectLibraryWidget::unsetRoot()
 {
-  if (!path.isEmpty())
-  {
-    auto idx = m_model->setRootPath(path);
+  QObject::disconnect(m_con);
+  m_tv.setModel(nullptr);
+}
 
-    m_tv.setModel(m_proxy);
-    m_tv.setRootIndex(m_proxy->mapFromSource(idx));
-    for (int i = 1; i < m_model->columnCount(); ++i)
-      m_tv.hideColumn(i);
+void ProjectLibraryWidget::setRoot(score::DocumentMetadata& meta)
+{
+  auto setFilename = [this] (const QString& path) {
+    if (!path.isEmpty())
+    {
+      auto idx = m_model->setRootPath(path);
+
+      m_tv.setModel(m_proxy);
+      m_tv.setRootIndex(m_proxy->mapFromSource(idx));
+      for (int i = 1; i < m_model->columnCount(); ++i)
+        m_tv.hideColumn(i);
+    }
+    else
+    {
+      m_tv.setModel(nullptr);
+    }
+  };
+  QObject::disconnect(m_con);
+  m_con = con(meta, &score::DocumentMetadata::fileNameChanged,
+              this, [=] (const QString& filename) {
+    auto fi = QFileInfo{filename};
+    if(fi.exists())
+    {
+      auto path = fi.absolutePath();
+      setFilename(path);
+    }
+  }, Qt::QueuedConnection);
+
+  auto fi = QFileInfo{meta.fileName()};
+  if(fi.exists())
+  {
+    auto path = fi.absolutePath();
+    setFilename(path);
   }
   else
   {
     m_tv.setModel(nullptr);
   }
 }
-
 }

@@ -4,6 +4,7 @@
 
 #include <score/model/tree/TreeNodeSerialization.hpp>
 #include <score/model/EntitySerialization.hpp>
+#include <Scenario/Application/ScenarioValidity.hpp>
 
 namespace Scenario
 {
@@ -46,7 +47,6 @@ void MergeTimeSyncs::undo(const score::DocumentContext& ctx) const
 {
   auto& scenar = m_scenarioPath.find(ctx);
 
-  // ScenarioValidityChecker::checkValidity(scenar);
   auto& globalTn = scenar.timeSync(m_destinationTnId);
 
   DataStream::Deserializer s{m_serializedTimeSync};
@@ -60,27 +60,25 @@ void MergeTimeSyncs::undo(const score::DocumentContext& ctx) const
     recreatedTn->removeEvent(evId);
     globalTn.removeEvent(evId);
   }
+
+  scenar.timeSyncs.add(recreatedTn);
   for (auto evId : events_in_timesync)
   {
     recreatedTn->addEvent(evId);
   }
 
-  scenar.timeSyncs.add(recreatedTn);
-
   globalTn.setExpression(m_targetTrigger);
   globalTn.setActive(m_targetTriggerActive);
 
-  // ScenarioValidityChecker::checkValidity(scenar);
   m_moveCommand->undo(ctx);
-  // ScenarioValidityChecker::checkValidity(scenar);
 }
 
 void MergeTimeSyncs::redo(const score::DocumentContext& ctx) const
 {
   auto& scenar = m_scenarioPath.find(ctx);
-  // ScenarioValidityChecker::checkValidity(scenar);
+
+  ScenarioValidityChecker::checkValidity(scenar);
   m_moveCommand->redo(ctx);
-  // ScenarioValidityChecker::checkValidity(scenar);
 
   auto& movingTn = scenar.timeSync(m_movingTnId);
   auto& destinationTn = scenar.timeSync(m_destinationTnId);
@@ -95,7 +93,8 @@ void MergeTimeSyncs::redo(const score::DocumentContext& ctx) const
   destinationTn.setExpression(movingTn.expression());
 
   scenar.timeSyncs.remove(m_movingTnId);
-  // ScenarioValidityChecker::checkValidity(scenar);
+
+  ScenarioValidityChecker::checkValidity(scenar);
 }
 
 void MergeTimeSyncs::update(

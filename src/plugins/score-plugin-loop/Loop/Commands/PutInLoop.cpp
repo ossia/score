@@ -41,7 +41,8 @@ void EncapsulateInLoop(
   }
   else
   {
-    auto objects = copySelectedScenarioElements(scenar, cat);
+    JSONReader r;
+    copySelectedScenarioElements(r, scenar, cat);
 
     auto e = EncapsulateElements(disp, cat, scenar);
     if (!e.interval)
@@ -59,7 +60,7 @@ void EncapsulateInLoop(
       auto& sub_scenar
           = disp.createProcessInSlot<Scenario::ProcessModel>(itv, {}, {});
 
-      disp.pasteElements(sub_scenar, objects, Scenario::Point{{}, 0.1});
+      disp.pasteElements(sub_scenar, toValue(r), Scenario::Point{{}, 0.1});
 
       // Merge inside
       for (TimeSyncModel& sync : sub_scenar.timeSyncs)

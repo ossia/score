@@ -44,11 +44,10 @@
 
 #include <score/application/ApplicationContext.hpp>
 #include <score/plugins/panel/PanelDelegate.hpp>
+#include <score/widgets/SetIcons.hpp>
+#include <score/widgets/ArrowButton.hpp>
 
 #include <core/presenter/DocumentManager.hpp>
-
-#include <QJsonDocument>
-#include <QJsonObject>
 
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Scenario::ObjectItemModel)
@@ -525,19 +524,19 @@ QVariant ObjectItemModel::data(const QModelIndex& index, int role) const
     {
       if (qobject_cast<Scenario::IntervalModel*>(sel))
       {
-        static const QIcon icon(":/images/interval.png");
+        static const QIcon icon(":/icons/interval.png");
         return icon;
       }
       else if (auto ev = qobject_cast<Scenario::EventModel*>(sel))
       {
         if (ev->condition() == State::Expression{})
         {
-          static const QIcon icon(":/images/event.png");
+          static const QIcon icon(":/icons/event.png");
           return icon;
         }
         else
         {
-          static const QIcon icon(":/images/cond.png");
+          static const QIcon icon(":/icons/cond.png");
           return icon;
         }
       }
@@ -545,12 +544,12 @@ QVariant ObjectItemModel::data(const QModelIndex& index, int role) const
       {
         if (!tn->active())
         {
-          static const QIcon icon(":/images/timenode.png");
+          static const QIcon icon(":/icons/timenode.png");
           return icon;
         }
         else
         {
-          static const QIcon icon(":/images/trigger.png");
+          static const QIcon icon(":/icons/trigger.png");
           return icon;
         }
       }
@@ -558,12 +557,12 @@ QVariant ObjectItemModel::data(const QModelIndex& index, int role) const
       {
         if (st->messages().rootNode().hasChildren())
         {
-          static const QIcon icon(":/images/state.png");
+          static const QIcon icon(":/icons/state.png");
           return icon;
         }
         else
         {
-          static const QIcon icon(":/images/state-empty.png");
+          static const QIcon icon(":/icons/state_empty.png");
           return icon;
         }
       }
@@ -919,50 +918,43 @@ SelectionStackWidget::SelectionStackWidget(
     ObjectWidget* objects)
     : QWidget{parent}, m_stack{s}, m_selector{s, objects}
 {
-  m_prev = new QToolButton{this};
-  m_prev->setArrowType(Qt::LeftArrow);
+  m_prev = new score::ArrowButton{Qt::LeftArrow, this};
   m_prev->setEnabled(m_stack.canUnselect());
   m_prev->setStatusTip(tr("Previous selection."));
 
   m_label = new TextLabel{"History", this};
   m_label->setStatusTip(tr("Go back and forth in the selected items."));
 
-  m_next = new QToolButton{this};
-  m_next->setArrowType(Qt::RightArrow);
+  m_next = new score::ArrowButton{Qt::RightArrow, this};
   m_next->setEnabled(m_stack.canReselect());
   m_next->setStatusTip(tr("Next selection."));
 
-  m_left = new QToolButton{this};
-  m_left->setArrowType(Qt::LeftArrow);
+  m_left = new score::ArrowButton{Qt::LeftArrow, this};
   m_left->setEnabled(m_selector.hasLeft());
   m_left->setStatusTip(tr("Select the item to the left."));
 
-  m_right = new QToolButton{this};
-  m_right->setArrowType(Qt::RightArrow);
+  m_right = new score::ArrowButton{Qt::RightArrow, this};
   m_right->setEnabled(m_selector.hasRight());
   m_right->setStatusTip(tr("Select the item to the right."));
 
-  m_up = new QToolButton{this};
-  m_up->setArrowType(Qt::UpArrow);
+  m_up = new score::ArrowButton{Qt::UpArrow, this};
   m_up->setEnabled(m_selector.hasUp());
   m_up->setStatusTip(tr("Select the item above."));
 
-  m_down = new QToolButton{this};
-  m_down->setArrowType(Qt::DownArrow);
+  m_down = new score::ArrowButton{Qt::DownArrow, this};
   m_down->setEnabled(m_selector.hasDown());
   m_down->setStatusTip(tr("Select the item below."));
 
   auto lay = new score::MarginLess<QHBoxLayout>{this};
-
   lay->setSizeConstraint(QLayout::SetMinimumSize);
-  lay->addWidget(m_prev);
+  lay->addWidget(m_prev, 0, Qt::AlignVCenter);
   lay->addWidget(m_label);
-  lay->addWidget(m_next);
+  lay->addWidget(m_next, 0, Qt::AlignVCenter);
   lay->addStretch(8);
-  lay->addWidget(m_left);
-  lay->addWidget(m_up);
-  lay->addWidget(m_down);
-  lay->addWidget(m_right);
+  lay->addWidget(m_left, 0, Qt::AlignVCenter);
+  lay->addWidget(m_up, 0, Qt::AlignVCenter);
+  lay->addWidget(m_down, 0, Qt::AlignVCenter);
+  lay->addWidget(m_right, 0, Qt::AlignVCenter);
   setLayout(lay);
 
   connect(m_prev, &QToolButton::pressed, [&]() { m_stack.unselect(); });
@@ -987,11 +979,11 @@ ObjectPanelDelegate::ObjectPanelDelegate(
     const score::GUIApplicationContext& ctx)
     : score::PanelDelegate{ctx}
     , m_widget{new SizePolicyWidget}
-    , m_lay{new score::MarginLess<QVBoxLayout>{m_widget}}
+    , m_lay{new QVBoxLayout{m_widget}}
     , m_searchWidget{new SearchWidget{ctx}}
 {
   m_widget->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
-  m_widget->setMinimumHeight(100);
+  m_widget->setMinimumHeight(160);
   m_widget->setSizeHint({250, 100});
   m_widget->setMinimumWidth(250);
   m_widget->setStatusTip(QObject::tr("Shows the currently selected items.\n"
@@ -1008,8 +1000,9 @@ const score::PanelStatus& ObjectPanelDelegate::defaultPanelStatus() const
 {
   static const score::PanelStatus status{true, false,
                                          Qt::RightDockWidgetArea,
-                                         12,
+                                         8,
                                          QObject::tr("Objects"),
+                                         "objects",
                                          QObject::tr("Ctrl+Shift+O")};
 
   return status;
@@ -1378,15 +1371,21 @@ SearchWidget::SearchWidget(const score::GUIApplicationContext& ctx)
     }
   }
 }
-
-template <typename Object>
-void add_if_contains(const Object& obj, const QString& str, Selection& sel)
+template<typename T>
+void add_if_contains(const T& o, const QString& str, Selection& sel)
 {
-  QJsonObject json = score::marshall<JSONObject>(obj);
-  QJsonDocument doc{json};
-  QString jstr{doc.toJson(QJsonDocument::Compact)};
-  if (jstr.contains(str))
-    sel.append(&obj);
+  const auto& obj = o.metadata();
+  if(obj.getName().contains(str) || obj.getComment().contains(str) || obj.getLabel().contains(str))
+  {
+    sel.append(&o);
+  }
+}
+void add_if_contains(const Scenario::CommentBlockModel& o, const QString& str, Selection& sel)
+{
+  if(o.content().contains(str))
+  {
+    sel.append(&o);
+  }
 }
 
 void SearchWidget::on_findAddresses(QStringList strlst)

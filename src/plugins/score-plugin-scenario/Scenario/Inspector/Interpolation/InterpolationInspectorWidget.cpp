@@ -36,8 +36,12 @@ InspectorWidget::InspectorWidget(
 
   QString name = tr("Interpolation");
   m_label = new TextLabel{name, this};
+  auto f = m_label->font();
+  f.setBold(true);
+  f.setPixelSize(18);
+  m_label->setFont(f);
+
   // TODO use the same style as InspectorWidgetBase
-  m_label->setStyleSheet("font-weight: bold; font-size: 18");
   vlay->addWidget(m_label);
 
   // Address
@@ -58,8 +62,8 @@ InspectorWidget::InspectorWidget(
   vlay->addRow(tr("Address"), m_lineEdit);
 
   // Tween
-  m_tween = new QCheckBox{this};
-  vlay->addRow(tr("Tween"), m_tween);
+  m_tween = new QCheckBox{tr("Tween"), this};
+  vlay->addRow(m_tween);
   m_tween->setChecked(process().tween());
   con(process(), &ProcessModel::tweenChanged, m_tween, &QCheckBox::setChecked);
   connect(

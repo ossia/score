@@ -32,7 +32,10 @@ InspectorWidgetBase::InspectorWidgetBase(
   setLayout(m_layout);
 
   m_label = new TextLabel{name, this};
-  m_label->setStyleSheet("font-weight: bold; font-size: 18;");
+  auto f = m_label->font();
+  f.setBold(true);
+  f.setPixelSize(18);
+  m_label->setFont(f);
   m_sections.push_back(m_label);
 
   // scroll Area
@@ -43,7 +46,7 @@ InspectorWidgetBase::InspectorWidgetBase(
       QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
   auto scrollAreaContentWidget = new QWidget;
   m_scrollAreaLayout
-      = new score::MarginLess<QVBoxLayout>{scrollAreaContentWidget};
+      = new QVBoxLayout{scrollAreaContentWidget};
   m_scrollAreaLayout->setSizeConstraint(QLayout::SetMinimumSize);
   scrollArea->setWidget(scrollAreaContentWidget);
 

@@ -122,13 +122,13 @@ public:
     m_maxSpin = new TimeSpinBox{this};
     m_valueSpin = new TimeSpinBox{this};
     m_valueSpin->setEnabled(bool(m_moveFactory));
-    m_maxSpin->setTime(m_dur.maxDuration().toQTime());
-    m_minSpin->setTime(m_dur.minDuration().toQTime());
-    m_valueSpin->setTime(m_dur.defaultDuration().toQTime());
+    m_maxSpin->setTime(m_dur.maxDuration());
+    m_minSpin->setTime(m_dur.minDuration());
+    m_valueSpin->setTime(m_dur.defaultDuration());
 
     // CHECKBOXES
-    m_minNonNullBox = new QCheckBox{};
-    m_maxFiniteBox = new QCheckBox{};
+    m_minNonNullBox = new QCheckBox{tr("Min")};
+    m_maxFiniteBox = new QCheckBox{tr("Max")};
 
     m_minNonNullBox->setChecked(!m_dur.isMinNull());
     m_maxFiniteBox->setChecked(!m_dur.isMaxInfinite());
@@ -153,8 +153,6 @@ public:
 
     editableGrid->addRow(tr("Duration"), m_valueSpin);
 
-    m_minTitle = new TextLabel(tr("Min"));
-    m_maxTitle = new TextLabel(tr("Max"));
     auto minstack = new QStackedWidget;
     minstack->setSizePolicy(
         QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
@@ -163,7 +161,6 @@ public:
     auto minboxwidg = new QWidget;
     auto minboxlay = new score::MarginLess<QHBoxLayout>{minboxwidg};
     minboxlay->addWidget(m_minNonNullBox);
-    minboxlay->addWidget(m_minTitle);
     editableGrid->addRow(minboxwidg, minstack);
 
     auto maxstack = new QStackedWidget;
@@ -172,7 +169,6 @@ public:
     auto maxboxwidg = new QWidget;
     auto maxboxlay = new score::MarginLess<QHBoxLayout>{maxboxwidg};
     maxboxlay->addWidget(m_maxFiniteBox);
-    maxboxlay->addWidget(m_maxTitle);
     editableGrid->addRow(maxboxwidg, maxstack);
 
     connect(
@@ -202,10 +198,8 @@ public:
         &IntervalDurations::maxInfiniteChanged,
         this,
         &EditionGrid::on_modelMaxInfiniteChanged);
-
     minstack->setCurrentIndex(m_model.duration.isMinNull() ? 0 : 1);
     maxstack->setCurrentIndex(m_model.duration.isMaxInfinite() ? 0 : 1);
-
     on_modelRigidityChanged(m_model.duration.isRigid());
 
     // We disable changing duration for the full view unless
@@ -224,21 +218,21 @@ public:
     if (m_resizeCommand)
       delete m_resizeCommand;
   }
-  void defaultDurationSpinboxChanged(int val)
+  void defaultDurationSpinboxChanged(ossia::time_value val)
   {
     if (m_moveFactory)
     {
       if (m_resizeCommand)
       {
         m_moveFactory->update(
-            *m_resizeCommand, m_model, TimeVal::fromMsecs(val));
+            *m_resizeCommand, m_model, val);
         m_resizeCommand->redo(m_dispatcher.stack().context());
       }
       else
       {
         m_resizeCommand = m_moveFactory->make(
             m_model,
-            TimeVal::fromMsecs(val),
+            val,
             m_editionSettings.expandMode(),
             LockMode::Free);
         if (m_resizeCommand)
@@ -249,13 +243,19 @@ public:
 
   void on_modelRigidityChanged(bool b)
   {
-    m_minNonNullBox->setHidden(b);
-    m_minSpin->setHidden(b);
-    m_minTitle->setHidden(b);
+    if(b)
+    {
+      m_minNonNullBox->setHidden(b);
+      m_minSpin->setHidden(b);
 
-    m_maxSpin->setHidden(b);
-    m_maxFiniteBox->setHidden(b);
-    m_maxTitle->setHidden(b);
+      m_maxSpin->setHidden(b);
+      m_maxFiniteBox->setHidden(b);
+    }
+    else
+    {
+      on_modelMinNullChanged(m_dur.isMinNull());
+      on_modelMaxInfiniteChanged(m_dur.isMaxInfinite());
+    }
   }
 
   void on_modelMinNullChanged(bool b)
@@ -280,49 +280,48 @@ public:
 
   void on_modelDefaultDurationChanged(const TimeVal& dur)
   {
-    if (dur.toQTime() == m_valueSpin->time())
+    if (dur == m_valueSpin->time())
       return;
 
-    m_valueSpin->setTime(dur.toQTime());
+    m_valueSpin->setTime(dur);
   }
 
   void on_modelMinDurationChanged(const TimeVal& dur)
   {
-    if (dur.toQTime() == m_minSpin->time())
+    if (dur == m_minSpin->time())
       return;
 
-    m_minSpin->setTime(dur.toQTime());
+    m_minSpin->setTime(dur);
     m_min = dur;
   }
 
   void on_modelMaxDurationChanged(const TimeVal& dur)
   {
-    if (dur.toQTime() == m_maxSpin->time())
+    if (dur == m_maxSpin->time())
       return;
 
-    m_maxSpin->setTime(dur.toQTime());
+    m_maxSpin->setTime(dur);
     m_max = dur;
   }
 
   void on_durationsChanged()
   {
-    if (m_dur.defaultDuration().toQTime() != m_valueSpin->time())
+    if (m_dur.defaultDuration() != m_valueSpin->time())
     {
-      defaultDurationSpinboxChanged(
-          m_valueSpin->time().msecsSinceStartOfDay());
+      defaultDurationSpinboxChanged(m_valueSpin->time());
       if (m_resizeCommand)
         m_dispatcher.stack().push(m_resizeCommand);
       m_resizeCommand = nullptr;
     }
 
-    if (m_dur.minDuration().toQTime() != m_minSpin->time())
+    if (m_dur.minDuration() != m_minSpin->time())
     {
-      minDurationSpinboxChanged(m_minSpin->time().msecsSinceStartOfDay());
+      minDurationSpinboxChanged(m_minSpin->time());
       m_dispatcher.commit();
     }
-    if (m_dur.maxDuration().toQTime() != m_maxSpin->time())
+    if (m_dur.maxDuration() != m_maxSpin->time())
     {
-      maxDurationSpinboxChanged(m_maxSpin->time().msecsSinceStartOfDay());
+      maxDurationSpinboxChanged(m_maxSpin->time());
       m_dispatcher.commit();
     }
   }
@@ -351,21 +350,21 @@ public:
     m_simpleDispatcher.submit(cmd);
   }
 
-  void minDurationSpinboxChanged(int val)
+  void minDurationSpinboxChanged(ossia::time_value val)
   {
     using namespace Scenario::Command;
     m_dispatcher.submit<SetMinDuration>(
         m_model,
-        TimeVal{std::chrono::milliseconds{val}},
+        val,
         !m_minNonNullBox->isChecked());
   }
 
-  void maxDurationSpinboxChanged(int val)
+  void maxDurationSpinboxChanged(ossia::time_value val)
   {
     using namespace Scenario::Command;
     m_dispatcher.submit<SetMaxDuration>(
         m_model,
-        TimeVal{std::chrono::milliseconds{val}},
+        val,
         !m_maxFiniteBox->isChecked());
   }
 
@@ -378,12 +377,10 @@ public:
   score::TimeSpinBox* m_valueSpin{};
 
   QCheckBox* m_minNonNullBox{};
-  QLabel* m_minTitle{};
   QLabel* m_minNull{};
   score::TimeSpinBox* m_minSpin{};
 
   QCheckBox* m_maxFiniteBox{};
-  QLabel* m_maxTitle{};
   QLabel* m_maxInfinity{};
   score::TimeSpinBox* m_maxSpin{};
 

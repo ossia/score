@@ -30,12 +30,12 @@ Model::Model(
 
 Model::~Model() {}
 
-quint64 Model::inCount() const
+int Model::inCount() const
 {
   return m_inCount;
 }
 
-void Model::setInCount(quint64 s)
+void Model::setInCount(int s)
 {
   if (s != m_inCount)
   {
@@ -89,17 +89,17 @@ void DataStreamWriter::write(Media::Merger::Model& proc)
 }
 
 template <>
-void JSONObjectReader::read(const Media::Merger::Model& proc)
+void JSONReader::read(const Media::Merger::Model& proc)
 {
-  readPorts(obj, proc.m_inlets, proc.m_outlets);
-  obj["InCount"] = (qint64)proc.m_inCount;
+  readPorts(*this, proc.m_inlets, proc.m_outlets);
+  obj["InCount"] = proc.m_inCount;
 }
 
 template <>
-void JSONObjectWriter::write(Media::Merger::Model& proc)
+void JSONWriter::write(Media::Merger::Model& proc)
 {
   writePorts(
-      obj,
+      *this,
       components.interfaces<Process::PortFactoryList>(),
       proc.m_inlets,
       proc.m_outlets,

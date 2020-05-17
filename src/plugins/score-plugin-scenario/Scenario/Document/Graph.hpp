@@ -2,6 +2,7 @@
 #include <score/tools/std/HashMap.hpp>
 
 #include <boost/graph/adjacency_list.hpp>
+#include <boost/graph/directed_graph.hpp>
 
 #include <nano_observer.hpp>
 #include <score_plugin_scenario_export.h>
@@ -18,13 +19,15 @@ class ProcessModel;
 using GraphVertex = Scenario::TimeSyncModel*;
 using GraphEdge = Scenario::IntervalModel*;
 
+using Graph = boost::directed_graph<GraphVertex, GraphEdge>;
+/*
 using Graph = boost::adjacency_list<
     boost::vecS,
     boost::vecS,
     boost::directedS,
     GraphVertex,
     GraphEdge>;
-
+*/
 /**
  * @brief A directed graph of all the TimeSync%s in a ScenarioInterface.
  *
@@ -61,6 +64,7 @@ struct SCORE_PLUGIN_SCENARIO_EXPORT TimenodeGraph
   const auto& edges() const { return m_edges; }
   const auto& vertices() const { return m_vertices; }
 
+  bool hasCycles() const noexcept;
   //! Writes graphviz output on stdout
   void writeGraphviz();
 
@@ -73,6 +77,7 @@ private:
 
   const Scenario::ProcessModel& m_scenario;
   Graph m_graph;
+  bool m_cycles{};
 
   score::hash_map<const Scenario::TimeSyncModel*, Graph::vertex_descriptor>
       m_vertices;

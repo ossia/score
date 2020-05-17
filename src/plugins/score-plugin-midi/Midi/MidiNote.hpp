@@ -58,6 +58,7 @@ struct NoteComparator
 class Note final : public IdentifiedObject<Note>
 {
   W_OBJECT(Note)
+  SCORE_SERIALIZE_FRIENDS
 
 public:
   Selectable selection;

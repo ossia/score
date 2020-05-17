@@ -115,7 +115,7 @@ TimeVal ProcessModel::contentDuration() const noexcept
     lastPoint = std::max(1., back);
   }
 
-  return duration() * lastPoint;
+  return TimeVal(duration().impl * lastPoint);
 }
 }
 
@@ -137,23 +137,19 @@ void DataStreamWriter::write(Gradient::ProcessModel& autom)
 }
 
 template <>
-void JSONObjectReader::read(const Gradient::ProcessModel& autom)
+void JSONReader::read(const Gradient::ProcessModel& autom)
 {
-  obj["Outlet"] = toJsonObject(*autom.outlet);
-  JSONValueReader v{};
-  v.readFrom(autom.m_colors);
-  obj["Gradient"] = v.val;
+  obj["Outlet"] = *autom.outlet;
+  obj["Gradient"] = autom.m_colors;
   obj["Tween"] = autom.tween();
 }
 
 template <>
-void JSONObjectWriter::write(Gradient::ProcessModel& autom)
+void JSONWriter::write(Gradient::ProcessModel& autom)
 {
-  JSONObjectWriter writer{obj["Outlet"].toObject()};
+  JSONWriter writer{obj["Outlet"]};
   autom.outlet = Process::load_value_outlet(writer, &autom);
 
   autom.setTween(obj["Tween"].toBool());
-  JSONValueWriter v{};
-  v.val = obj["Gradient"];
-  v.writeTo(autom.m_colors);
+  autom.m_colors <<= obj["Gradient"];
 }

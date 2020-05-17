@@ -31,7 +31,7 @@ ToolPalette::ToolPalette(
     ScenarioPresenter& presenter)
     : GraphicsSceneToolPalette{*presenter.view().scene()}
     , m_presenter{presenter}
-    , m_model{static_cast<const Scenario::ProcessModel&>(m_presenter.model())}
+    , m_model{m_presenter.model()}
     , m_context{lay}
     , m_magnetic{(Process::MagnetismAdjuster&)lay.context.app.interfaces<Process::MagnetismAdjuster>()}
     , m_createTool{*this}
@@ -54,6 +54,7 @@ void ToolPalette::on_pressed(QPointF point)
   switch (editionSettings().tool())
   {
     case Scenario::Tool::Create:
+    case Scenario::Tool::CreateGraph:
       m_createTool.on_pressed(point, scenarioPoint);
       break;
     case Scenario::Tool::Playing:
@@ -76,6 +77,7 @@ void ToolPalette::on_moved(QPointF point)
   switch (editionSettings().tool())
   {
     case Scenario::Tool::Create:
+    case Scenario::Tool::CreateGraph:
       m_createTool.on_moved(point, scenarioPoint);
       break;
     case Scenario::Tool::Select:
@@ -95,6 +97,7 @@ void ToolPalette::on_released(QPointF point)
   switch (es.tool())
   {
     case Scenario::Tool::Create:
+    case Scenario::Tool::CreateGraph:
       m_createTool.on_released(point, scenarioPoint);
       es.setTool(Scenario::Tool::Select);
       break;
@@ -120,6 +123,32 @@ void ToolPalette::on_cancel()
 void ToolPalette::activate(Tool t) {}
 
 void ToolPalette::desactivate(Tool t) {}
+
+QGraphicsItem* ToolPalette::itemAt(const Point& pt, const std::vector<QGraphicsItem*>& ignore) const noexcept
+{
+  auto pres_pt = presenter().fromScenarioPoint(pt);
+  auto scene_pt = presenter().view().mapToScene(pres_pt);
+  auto scene_items = scene().items(scene_pt);
+  QVarLengthArray<QGraphicsItem*> items;
+  for(auto it : scene_items)
+  {
+    if(it->parentItem() == &presenter().view())
+      if(!ossia::contains(ignore, it))
+        items.push_back(it);
+  }
+  for(auto it : items)
+    if(qgraphicsitem_cast<StateView*>(it))
+      return it;
+  for(auto it : items)
+    if(qgraphicsitem_cast<EventView*>(it))
+      return it;
+  for(auto it : items)
+    if(qgraphicsitem_cast<TimeSyncView*>(it))
+      return it;
+  if(!items.empty())
+    return items.front();
+  return nullptr;
+}
 
 Scenario::Point ToolPalette::ScenePointToScenarioPoint(QPointF point)
 {

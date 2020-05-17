@@ -205,11 +205,18 @@ PortItem::PortItem(
   , m_inlet{bool(qobject_cast<const Process::Inlet*>(&p))}
   , m_highlight{false}
 {
-  this->setCursor(QCursor(Qt::PointingHandCursor));
+  auto& skin = score::Skin::instance();
+  this->setCursor(skin.CursorPointingHand);
   this->setAcceptDrops(true);
   this->setAcceptHoverEvents(true);
   this->setFlag(QGraphicsItem::ItemSendsScenePositionChanges, true);
   this->setToolTip(p.customData());
+
+  connect(&p, &QObject::destroyed,
+          this, [] {
+    qDebug("Port destroyed before its item");
+    SCORE_ASSERT(false);
+  });
 
   con(p.selection, &Selectable::changed,
       this, [this] (bool b) {

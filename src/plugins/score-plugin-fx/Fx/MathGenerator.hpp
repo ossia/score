@@ -40,21 +40,23 @@ static void mathItem(
   const auto c0 = 10;
 
   auto c0_bg = new score::BackgroundItem{&parent};
-  c0_bg->setRect({0., 0., 220., 75.});
+  c0_bg->setRect({0., 0., 300., 200.});
 
   auto edit_item = makeControl(std::get<0>(controls), edit, parent, context, doc, portFactory);
-  edit_item.root.setPos(c0, 5);
+  edit_item.root.setPos(c0, 40);
+  /*
   ((QGraphicsProxyWidget&)edit_item.control).setMinimumWidth(200);
   ((QGraphicsProxyWidget&)edit_item.control).setMaximumWidth(200);
   ((QGraphicsProxyWidget&)edit_item.control).widget()->setMinimumWidth(200);
   ((QGraphicsProxyWidget&)edit_item.control).widget()->setMaximumWidth(200);
+  */
 
   auto a_item = makeControl(std::get<1>(controls), a, parent, context, doc, portFactory);
-  a_item.root.setPos(c0, 40);
+  a_item.root.setPos(c0, 5);
   auto b_item = makeControl(std::get<2>(controls), b, parent, context, doc, portFactory);
-  b_item.root.setPos(c0 + 70, 40);
+  b_item.root.setPos(c0 + 70, 5);
   auto c_item = makeControl(std::get<3>(controls), c, parent, context, doc, portFactory);
-  c_item.root.setPos(c0 + 140, 40);
+  c_item.root.setPos(c0 + 140, 5);
 }
 
 namespace MathGenerator

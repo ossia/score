@@ -1,4 +1,5 @@
 #include "TempoProcess.hpp"
+#include <Process/Dataflow/Port.hpp>
 #include <Curve/Segment/CurveSegmentModel.hpp>
 #include <Curve/Segment/Linear/LinearSegment.hpp>
 #include <wobjectimpl.h>
@@ -14,6 +15,7 @@ TempoProcess::TempoProcess(
                       id,
                       Metadata<ObjectKey_k, ProcessModel>::get(),
                       parent}
+  , inlet{Process::make_value_inlet(Id<Process::Port>(0), this)}
 {
   setCurve(new Curve::Model{Id<Curve::Model>(45345), this});
 
@@ -26,9 +28,15 @@ TempoProcess::TempoProcess(
   m_curve->addSegment(s1);
 
   metadata().setInstanceName(*this);
+  init();
 }
 
 TempoProcess::~TempoProcess() {}
+
+void TempoProcess::init()
+{
+  m_inlets.push_back(inlet.get());
+}
 
 QString TempoProcess::prettyName() const noexcept {
   return tr("Tempo");
@@ -107,6 +115,7 @@ void TempoProcess::setCurve_impl() { }
 template <>
 void DataStreamReader::read(const Scenario::TempoProcess& autom)
 {
+  m_stream << *autom.inlet;
   readFrom(autom.curve());
 
   insertDelimiter();
@@ -115,20 +124,26 @@ void DataStreamReader::read(const Scenario::TempoProcess& autom)
 template <>
 void DataStreamWriter::write(Scenario::TempoProcess& autom)
 {
+  autom.inlet = Process::load_value_inlet(*this, &autom);
   autom.setCurve(new Curve::Model{*this, &autom});
 
   checkDelimiter();
 }
 
 template <>
-void JSONObjectReader::read(const Scenario::TempoProcess& autom)
+void JSONReader::read(const Scenario::TempoProcess& autom)
 {
-  obj["Curve"] = toJsonObject(autom.curve());
+  obj["Inlet"] = *autom.inlet;
+  obj["Curve"] = autom.curve();
 }
 
 template <>
-void JSONObjectWriter::write(Scenario::TempoProcess& autom)
+void JSONWriter::write(Scenario::TempoProcess& autom)
 {
-  JSONObject::Deserializer curve_deser{obj["Curve"].toObject()};
+  {
+    JSONWriter writer{obj["Inlet"]};
+    autom.inlet = Process::load_value_inlet(writer, &autom);
+  }
+  JSONObject::Deserializer curve_deser{obj["Curve"]};
   autom.setCurve(new Curve::Model{curve_deser, &autom});
 }

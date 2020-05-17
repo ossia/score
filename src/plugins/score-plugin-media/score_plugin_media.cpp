@@ -88,6 +88,9 @@ score_plugin_media::make_commands()
 #if defined(HAS_VST2)
   using namespace Media::VST;
 #endif
+#if defined(HAS_FAUST)
+  using namespace Media::Faust;
+#endif
   std::pair<const CommandGroupKey, CommandGeneratorMap> cmds{
       Media::CommandFactoryName(), CommandGeneratorMap{}};
 
@@ -139,13 +142,8 @@ score_plugin_media::factories(
          >,
       FW<Inspector::InspectorWidgetFactory,
          Media::Sound::InspectorFactory,
-         Media::AudioChain::InspectorFactory
-    #if defined(HAS_FAUST)
-       , Media::Faust::InspectorFactory
-    #endif
-    #if defined(HAS_VST2)
-       , Media::VST::VSTInspectorFactory
-    #endif
+         Media::AudioChain::InspectorFactory,
+         Media::SynthChain::InspectorFactory
        , Media::Step::InspectorFactory
        // , Media::Metro::InspectorFactory
        , Media::Merger::InspectorFactory>,

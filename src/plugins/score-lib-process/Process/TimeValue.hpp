@@ -1,8 +1,11 @@
 #pragma once
 #include <Process/ZoomHelper.hpp>
-
+#include <ossia/editor/scenario/time_value.hpp>
 #include <score/serialization/IsTemplate.hpp>
 #include <score/tools/std/Optional.hpp>
+#include <ossia/detail/flicks.hpp>
+#include <ossia-qt/time.hpp>
+#include <flicks.h>
 
 #include <QTime>
 #include <QStringBuilder>
@@ -10,91 +13,148 @@
 #include <verdigris>
 
 #include <chrono>
-#if defined(_MSC_VER)
-#define OPTIONAL_CONSTEXPR constexpr
-#else
-#define OPTIONAL_CONSTEXPR
-#endif
-struct TimeValue_T
+struct TimeVal : ossia::time_value
 {
-  using T = double;
-  static OPTIONAL_CONSTEXPR TimeValue_T zero()
-  {
-    return TimeValue_T{optional<T>{0}};
-  }
-  static OPTIONAL_CONSTEXPR TimeValue_T infinite()
-  {
-    return TimeValue_T{optional<T>{}};
-  }
+  using ossia::time_value::time_value;
 
-  OPTIONAL_CONSTEXPR static TimeValue_T fromMsecs(T msecs)
+  static constexpr TimeVal fromMsecs(double msecs)
   {
-    TimeValue_T time;
-    time.m_impl = msecs;
+    TimeVal time;
+    time.impl = msecs * ossia::flicks_per_millisecond<double>;
+    return time;
+  }
+  static constexpr TimeVal fromPixels(double pixels, double flicksPerPixel)
+  {
+    TimeVal time;
+    time.impl = pixels * flicksPerPixel;
     return time;
   }
 
-  OPTIONAL_CONSTEXPR TimeValue_T() noexcept { }
-  //~TimeValue_T() = default;
-  OPTIONAL_CONSTEXPR TimeValue_T(const TimeValue_T&) = default;
-  OPTIONAL_CONSTEXPR TimeValue_T(TimeValue_T&&) noexcept = default;
-  OPTIONAL_CONSTEXPR TimeValue_T& operator=(const TimeValue_T&) = default;
-  OPTIONAL_CONSTEXPR TimeValue_T& operator=(TimeValue_T&&) noexcept = default;
-  OPTIONAL_CONSTEXPR TimeValue_T(optional<T> t) : m_impl{std::move(t)} {}
 
-  TimeValue_T(QTime t) noexcept
-      : m_impl{
-            T(t.msec() + 1000 * t.second() + 60000 * t.minute()
-              + 3600000 * t.hour())}
+  constexpr TimeVal() noexcept
+    : time_value{0}
   {
+
   }
 
-  // These two overloads are here to please coverity...
-  OPTIONAL_CONSTEXPR TimeValue_T(std::chrono::seconds&& dur) noexcept
-      : m_impl{T(std::chrono::duration_cast<std::chrono::milliseconds>(dur)
-                     .count())}
+  ~TimeVal() = default;
+  constexpr TimeVal(const TimeVal&) = default;
+  constexpr TimeVal(TimeVal&&) noexcept = default;
+  constexpr TimeVal& operator=(const TimeVal&) = default;
+  constexpr TimeVal& operator=(TimeVal&&) noexcept = default;
+
+  constexpr TimeVal(ossia::time_value v) noexcept: time_value{v} { }
+  explicit constexpr TimeVal(int64_t v) noexcept: time_value{v} { }
+
+  static constexpr TimeVal zero() noexcept
+  {
+    return TimeVal{time_value{}};
+  }
+
+  TimeVal(QTime t) noexcept
+      : time_value{int64_t(ossia::flicks_per_millisecond<double> *
+            (t.msec() + 1000. * t.second() + 60000. * t.minute()
+              + 3600000. * t.hour()))}
   {
   }
-  OPTIONAL_CONSTEXPR TimeValue_T(std::chrono::milliseconds&& dur) noexcept
-      : m_impl{T(dur.count())}
-  {
-  }
+
 
   template <
       typename Duration,
       std::enable_if_t<
           std::is_class<typename Duration::period>::value>* = nullptr>
-  OPTIONAL_CONSTEXPR TimeValue_T(Duration&& dur) noexcept
-      : m_impl{T(std::chrono::duration_cast<std::chrono::milliseconds>(dur)
-                     .count())}
+  constexpr TimeVal(Duration&& dur) noexcept
+      : time_value{util::flicks_cast(dur).count()}
   {
   }
 
-  bool isInfinite() const noexcept { return !bool(m_impl); }
-
-  bool isZero() const noexcept { return !isInfinite() && (msec() == 0.f); }
-
-  T msec() const noexcept
+  constexpr TimeVal operator-(TimeVal t) const noexcept
   {
-    if (!isInfinite())
-      return *m_impl;
+    if (infinite() || t.infinite())
+      return TimeVal{infinity};
+
+    return TimeVal{impl - t.impl};
+  }
+  constexpr TimeVal operator+(TimeVal t) const noexcept
+  {
+    if (infinite() || t.infinite())
+      return TimeVal{infinity};
+
+    return TimeVal{impl + t.impl};
+  }
+
+
+  constexpr TimeVal& operator=(bool d) noexcept = delete;
+  constexpr TimeVal& operator=(double d) noexcept = delete;
+  constexpr TimeVal& operator=(float d) noexcept = delete;
+  constexpr TimeVal& operator=(uint64_t d) noexcept = delete;
+
+  constexpr TimeVal& operator=(int64_t d) noexcept
+  {
+    impl = d;
+    return *this;
+  }
+  constexpr TimeVal& operator=(int32_t d) noexcept
+  {
+    impl = d;
+    return *this;
+  }
+
+  constexpr TimeVal& operator-() noexcept
+  {
+    if (!infinite())
+      impl = -impl;
+
+    return *this;
+  }
+
+  constexpr time_value operator*(time_value d) const noexcept
+  {
+    return time_value{impl * d.impl};
+  }
+
+  constexpr time_value operator*(double d) const noexcept
+  {
+    time_value res = *this;
+    res.impl *= d;
+    return res;
+  }
+  constexpr time_value operator*(int64_t d) const noexcept
+  {
+    return time_value{impl * d};
+  }
+
+
+  operator bool() const noexcept = delete;
+
+  constexpr double msec() const noexcept
+  {
+    if (!infinite())
+      return impl / ossia::flicks_per_millisecond<double>;
 
     return 0;
   }
 
-  T sec() const noexcept { return double(*m_impl) / 1000; }
-
-  double toPixels(ZoomRatio ratio) const noexcept
+  constexpr double sec() const noexcept
   {
-    return (ratio > 0 && !isInfinite()) ? *m_impl / ratio : 0;
+    if (!infinite())
+      return double(impl) / ossia::flicks_per_second<double>;
+    return 0;
+  }
+
+  constexpr double toPixels(ZoomRatio ratio) const noexcept
+  {
+    return (ratio > 0 && !infinite())
+        ? impl / ratio
+        : 0;
   }
 
   QTime toQTime() const noexcept
   {
-    if (isInfinite())
+    if (infinite())
       return QTime(23, 59, 59, 999);
     else
-      return QTime(0, 0, 0, 0).addMSecs(static_cast<int>(*m_impl));
+      return QTime(0, 0, 0, 0).addMSecs(msec());
   }
 
   QString toString() const noexcept
@@ -111,142 +171,68 @@ struct TimeValue_T
             QString::number(qT.msec()));
   }
 
-  void addMSecs(T msecs) noexcept
+  constexpr void setMSecs(double msecs) noexcept { impl = msecs * ossia::flicks_per_millisecond<double>; }
+
+  constexpr bool operator==(TimeVal other) const noexcept
   {
-    if (m_impl)
-    {
-      *m_impl += msecs;
-    }
+    return impl == other.impl;
   }
 
-  void setMSecs(T msecs) noexcept { m_impl = msecs; }
-
-  bool operator==(const TimeValue_T& other) const noexcept
+  constexpr bool operator!=(TimeVal other) const noexcept
   {
-    return other.m_impl == m_impl;
+    return impl != other.impl;
   }
 
-  bool operator!=(const TimeValue_T& other) const noexcept
+  constexpr bool operator>(TimeVal other) const noexcept
   {
-    return other.m_impl != m_impl;
+    return impl > other.impl;
   }
 
-  bool operator>(const TimeValue_T& other) const noexcept
+  constexpr bool operator>=(TimeVal other) const noexcept
   {
-    if (isInfinite() && other.isInfinite())
-    {
-      return false;
-    }
-    else if (isInfinite() && !other.isInfinite())
-    {
-      return true;
-    }
-    else if (!isInfinite() && other.isInfinite())
-    {
-      return false;
-    }
-    else
-    {
-      return msec() > other.msec();
-    }
+    return impl >= other.impl;
   }
 
-  bool operator>=(const TimeValue_T& other) const noexcept
+  constexpr bool operator<(TimeVal other) const noexcept
   {
-    return *this > other || *this == other;
+    return impl < other.impl;
   }
 
-  bool operator<(const TimeValue_T& other) const noexcept
+  constexpr bool operator<=(TimeVal other) const noexcept
   {
-    if (isInfinite() && other.isInfinite())
-    {
-      return false;
-    }
-    else if (!isInfinite() && other.isInfinite())
-    {
-      return true;
-    }
-    else if (isInfinite() && !other.isInfinite())
-    {
-      return false;
-    }
-    else
-    {
-      return msec() < other.msec();
-    }
+    return impl <= other.impl;
   }
 
-  bool operator<=(const TimeValue_T& other) const noexcept
+  constexpr bool operator==(time_value other) const noexcept
   {
-    return *this < other || *this == other;
+    return impl == other.impl;
   }
 
-  TimeValue_T operator+(const TimeValue_T& other) const noexcept
+  constexpr bool operator!=(time_value other) const noexcept
   {
-    TimeValue_T res = TimeValue_T::infinite();
-
-    if (isInfinite() || other.isInfinite())
-    {
-      return res;
-    }
-
-    res.m_impl = *m_impl + *other.m_impl;
-    return res;
+    return impl != other.impl;
   }
 
-  TimeValue_T operator*(double other) const noexcept
+  constexpr bool operator>(time_value other) const noexcept
   {
-    TimeValue_T res = TimeValue_T::infinite();
-
-    if (isInfinite())
-    {
-      return res;
-    }
-
-    res.m_impl = *m_impl * other;
-    return res;
+    return impl > other.impl;
   }
 
-  double operator/(const TimeValue_T& other) const noexcept
+  constexpr bool operator>=(time_value other) const noexcept
   {
-    return double(*m_impl) / double(*other.m_impl);
+    return impl >= other.impl;
   }
 
-  TimeValue_T operator-(const TimeValue_T& other) const noexcept
+  constexpr bool operator<(time_value other) const noexcept
   {
-    TimeValue_T res = TimeValue_T::infinite();
-
-    if (isInfinite() || other.isInfinite())
-    {
-      return res;
-    }
-
-    res.m_impl = *m_impl - *other.m_impl;
-    return res;
+    return impl < other.impl;
   }
 
-  TimeValue_T operator-() const noexcept
+  constexpr bool operator<=(time_value other) const noexcept
   {
-    TimeValue_T res = TimeValue_T::zero();
-    OPTIONAL_CONSTEXPR TimeValue_T zero = TimeValue_T::zero();
-
-    res.m_impl = *zero.m_impl - *m_impl;
-
-    return res;
+    return impl <= other.impl;
   }
-
-  TimeValue_T operator+=(const TimeValue_T& other) noexcept
-  {
-    *this = *this + other;
-    return *this;
-  }
-
-  // We could use std::isinf instead but this would break
-  // -Ofast...
-  optional<T> m_impl{T(0.)};
 };
-
-using TimeVal = TimeValue_T;
 
 inline const TimeVal& max(const TimeVal& lhs, const TimeVal& rhs) noexcept
 {
@@ -266,7 +252,7 @@ namespace std
 template <>
 struct hash<TimeVal>
 {
-  std::size_t operator()(const TimeVal& t) const { return qHash(t.msec()); }
+  std::size_t operator()(const TimeVal& t) const { return qHash(t.impl); }
 };
 }
 

@@ -58,7 +58,6 @@
 #include <QGridLayout>
 #include <QHeaderView>
 #include <QIcon>
-#include <QJsonDocument>
 #include <QKeySequence>
 #include <QLabel>
 #include <QLineEdit>
@@ -66,13 +65,13 @@
 #include <QListWidget>
 #include <QMenu>
 #include <QPair>
-#include <QPushButton>
 #include <QRegExp>
 #include <QSize>
 #include <QStackedLayout>
 #include <QString>
 #include <QStringList>
 #include <QTableView>
+#include <QToolButton>
 #include <QTreeView>
 #include <qnamespace.h>
 
@@ -111,20 +110,6 @@ public:
       , m_widget{parent}
   {
     connect(this, &QLineEdit::textEdited, this, [=] { search(); });
-
-    setStyleSheet(R"_(
-QScrollArea
-{
-    border: 1px solid #3A3939;
-    border-radius: 2px;
-    padding: 0;
-    background-color: #12171A;
-}
-QScrollArea QLabel
-{
-    background-color: #12171A;
-}
-)_");
   }
 
   void search() override
@@ -351,26 +336,12 @@ void DeviceExplorerWidget::buildGUI()
       this,
       &DeviceExplorerWidget::findUsage);
 
-  auto* addButton = new QPushButton(this);
-
-  QIcon addButtonIcon;
-  addButtonIcon.addPixmap(QString(":/icons/add_off.png"));
-  addButtonIcon.addPixmap(
-      QString(":/icons/add_on.png"), QIcon::Mode::Selected);
-  addButtonIcon.addPixmap(
-      QString(":/icons/add_on.png"), QIcon::Mode::Active);
-  addButtonIcon.addPixmap(
-      QString(":/icons/add_disabled.png"), QIcon::Mode::Disabled);
-  addButtonIcon.addPixmap(
-      QString(":/icons/add_off.png"),
-      QIcon::Mode::Normal,
-      QIcon::State::On);
-
-  addButton->setIcon(addButtonIcon);
-  addButton->setFixedSize(QSize(24, 24));
-  addButton->setIconSize(QSize(24, 24));
-
-  addButton->setObjectName("buttonWithoutArrow");
+  auto openMenu = new QToolButton(this);
+  openMenu->setIcon(makeIcons( QStringLiteral(":/icons/add_on.png")
+           , QStringLiteral(":/icons/add_off.png")
+           , QStringLiteral(":/icons/add_disabled.png")
+           ));
+  openMenu->setAutoRaise(true);
 
   m_addDeviceAction = new QAction(tr("Add device"), this);
   setIcons(m_addDeviceAction
@@ -422,31 +393,14 @@ void DeviceExplorerWidget::buildGUI()
   addMenu->addSeparator();
   addMenu->addAction(m_removeNodeAction);
 
-  addButton->setMenu(addMenu);
-
-  QMenu* editMenu = new QMenu(this);
-  auto* editButton = new QPushButton(this);
-
-  QIcon editButtonIcon;
-  editButtonIcon.addPixmap(QString(":/icons/edit_off.png"));
-  editButtonIcon.addPixmap(
-      QString(":/icons/edit_off.png"),
-      QIcon::Mode::Normal,
-      QIcon::State::On);
-  editButtonIcon.addPixmap(
-      QString(":/icons/edit_on.png"), QIcon::Mode::Selected);
-  editButtonIcon.addPixmap(
-      QString(":/icons/edit_on.png"), QIcon::Mode::Active);
-  editButtonIcon.addPixmap(
-      QString(":/icons/edit_disabled.png"), QIcon::Mode::Disabled);
-
-  editButton->setIcon(editButtonIcon);
-
-  editButton->setFixedSize(QSize(24, 24));
-  editButton->setIconSize(QSize(24, 24));
-  editButton->setObjectName("buttonWithoutArrow");
-
-  editButton->setMenu(editMenu);
+  connect(
+      openMenu,
+      &QToolButton::clicked,
+      addMenu,
+      [addMenu]()
+  {
+      addMenu->popup(QCursor::pos());
+  });
 
   // Add actions to the current widget so that shortcuts work
   {
@@ -477,18 +431,11 @@ void DeviceExplorerWidget::buildGUI()
       this,
       &DeviceExplorerWidget::filterChanged);
 
-  auto filterHLayout = new score::MarginLess<QHBoxLayout>;
-  filterHLayout->setSpacing(2);
-
-  filterHLayout->addWidget(m_columnCBox);
-  filterHLayout->addWidget(m_nameLEdit);
-
-  auto hLayout =  new score::MarginLess<QHBoxLayout>;
-  hLayout->addWidget(addButton);
-  hLayout->addWidget(editButton);
-  hLayout->addStretch(0);
-  hLayout->addLayout(filterHLayout);
-  hLayout->setContentsMargins(0, 0, 0, 0);
+  auto hLayout = new score::MarginLess<QHBoxLayout>;
+  hLayout->setSpacing(0);
+  hLayout->addWidget(openMenu);
+  hLayout->addWidget(m_columnCBox);
+  hLayout->addWidget(m_nameLEdit);
 
   QWidget* mainWidg = new QWidget;
   mainWidg->setContentsMargins(0, 0, 0, 2);
@@ -506,8 +453,10 @@ void DeviceExplorerWidget::buildGUI()
   auto refreshLay = new QGridLayout;
   refreshParent->setLayout(refreshLay);
   m_refreshIndicator = new QProgressIndicator{refreshParent};
-  m_refreshIndicator->setStyleSheet("background:transparent");
-  m_refreshIndicator->setAttribute(Qt::WA_TranslucentBackground);
+  QPalette palette;
+  palette.setBrush(QPalette::Window, Qt::transparent);
+  m_refreshIndicator->setPalette(palette);
+
   refreshLay->addWidget(m_refreshIndicator);
   m_lay->addWidget(refreshParent);
   setLayout(m_lay);
@@ -558,6 +507,26 @@ void DeviceExplorerWidget::contextMenuEvent(QContextMenuEvent* event)
 {
   updateActions();
   QMenu* contextMenu = new QMenu{this};
+
+  if (auto m = model())
+  {
+    if (!m->isEmpty())
+    {
+      QModelIndexList selection = m_ntView->selectedIndexes();
+
+      if (selection.size() == 1)
+      {
+        auto& node = m->nodeFromModelIndex(m_ntView->selectedIndex());
+        if (node.is<Device::DeviceSettings>())
+        {
+          auto& lst = m->deviceModel().list();
+          auto& dev = lst.device(node.get<Device::DeviceSettings>().name);
+          dev.setupContextMenu(*contextMenu);
+          contextMenu->addSeparator();
+        }
+      }
+    }
+  }
 
   contextMenu->addAction(m_editAction);
   contextMenu->addAction(m_refreshAction);
@@ -1023,14 +992,11 @@ void DeviceExplorerWidget::exportDevice()
   if (!n.is<Device::DeviceSettings>())
     return;
 
-  auto obj = toJsonObject(n);
-  auto txt = QJsonDocument(obj).toJson();
-
   QFile f{QFileDialog::getSaveFileName(
       this, tr("Device file"), QString{}, tr("Device file (*.device)"))};
   if (f.open(QIODevice::WriteOnly))
   {
-    f.write(txt);
+    f.write(toJson(n));
   }
 }
 

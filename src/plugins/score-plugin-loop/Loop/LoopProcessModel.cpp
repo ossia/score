@@ -79,12 +79,10 @@ ProcessModel::~ProcessModel()
 
 void ProcessModel::startExecution()
 {
-  interval().startExecution();
 }
 
 void ProcessModel::stopExecution()
 {
-  interval().stopExecution();
 }
 
 void ProcessModel::reset()

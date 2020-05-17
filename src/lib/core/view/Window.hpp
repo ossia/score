@@ -4,23 +4,31 @@
 
 #include <core/document/Document.hpp>
 
+#include <QActionGroup>
 #include <QMainWindow>
 #include <QPair>
 #include <QString>
+#include <QVBoxLayout>
 
 #include <score_lib_base_export.h>
 
+#include <QStackedWidget>
 #include <vector>
 #include <verdigris>
+
+#include <score/widgets/MarginLess.hpp>
 
 class QCloseEvent;
 class QDockWidget;
 class QEvent;
+class QSplitter;
 class QObject;
 class QTabWidget;
 class QLabel;
 namespace score
 {
+struct PanelStatus;
+class FixedTabWidget;
 class DocumentModel;
 class DocumentView;
 class PanelView;
@@ -45,6 +53,7 @@ public:
   void closeDocument(score::DocumentView* doc);
   void restoreLayout();
   void closeEvent(QCloseEvent*) override;
+  void allPanelsAdded();
 
 public:
   void activeDocumentChanged(const Id<DocumentModel>& arg_1) E_SIGNAL(
@@ -60,18 +69,24 @@ public:
       : void on_fileNameChanged(DocumentView* d, const QString& newName);
   W_SLOT(on_fileNameChanged);
 
+  QWidget* centralDocumentWidget{};
+  QSplitter* rightSplitter{};
+  FixedTabWidget* leftTabs{};
+  //QTabWidget* rightTabs{};
+  FixedTabWidget* bottomTabs{};
+  QTabWidget* centralTabs{};
+  QWidget* transportBar{};
 private:
   bool event(QEvent* event) override;
   void changeEvent(QEvent*) override;
   void resizeEvent(QResizeEvent*) override;
 
   std::map<QWidget*, DocumentView*> m_documents;
-  std::vector<QPair<PanelDelegate*, QDockWidget*>> m_leftPanels;
-  std::vector<QPair<PanelDelegate*, QDockWidget*>> m_rightPanels;
+  std::vector<QPair<PanelDelegate*, QWidget*>> m_leftPanels;
+  std::vector<QPair<PanelDelegate*, QWidget*>> m_rightPanels;
 
   Presenter* m_presenter{};
-  QTabWidget* m_tabWidget{};
-  QTabWidget* m_bottomTabs{};
   QLabel* m_status{};
 };
+
 }

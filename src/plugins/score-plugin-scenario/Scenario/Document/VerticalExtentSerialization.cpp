@@ -19,7 +19,7 @@ void DataStreamWriter::write(Scenario::VerticalExtent& ve)
   m_stream >> static_cast<QPointF&>(ve);
   checkDelimiter();
 }
-
+/*
 template <>
 void JSONValueReader::read(const Scenario::VerticalExtent& ve)
 {
@@ -31,3 +31,4 @@ void JSONValueWriter::write(Scenario::VerticalExtent& ve)
 {
   write(static_cast<QPointF&>(ve));
 }
+*/

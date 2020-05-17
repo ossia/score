@@ -46,13 +46,11 @@
 
 #include <QAction>
 #include <QClipboard>
-#include <QJsonDocument>
 #include <QKeySequence>
 #include <QMainWindow>
 #include <QMenu>
 #include <QGraphicsView>
 #include <qnamespace.h>
-
 
 namespace Scenario
 {
@@ -88,24 +86,25 @@ ObjectMenuActions::ObjectMenuActions(ScenarioApplicationPlugin* parent)
   m_copyContent->setShortcut(QKeySequence::Copy);
   m_copyContent->setShortcutContext(Qt::ApplicationShortcut);
   connect(m_copyContent, &QAction::triggered, [this]() {
-    auto obj = copySelectedElementsToJson();
-    if (obj.empty())
+    JSONReader r;
+    copySelectedElementsToJson(r);
+    if (r.empty())
       return;
-    QJsonDocument doc{obj};
+
     auto clippy = QApplication::clipboard();
-    clippy->setText(doc.toJson(QJsonDocument::Indented));
+    clippy->setText(r.toString());
   });
 
   m_cutContent = new QAction{tr("Cut"), this};
   m_cutContent->setShortcut(QKeySequence::Cut);
   m_cutContent->setShortcutContext(Qt::ApplicationShortcut);
   connect(m_cutContent, &QAction::triggered, [this] {
-    auto obj = cutSelectedElementsToJson();
-    if (obj.empty())
+    JSONReader r;
+    cutSelectedElementsToJson(r);
+    if (r.empty())
       return;
-    QJsonDocument doc{obj};
     auto clippy = QApplication::clipboard();
-    clippy->setText(doc.toJson(QJsonDocument::Indented));
+    clippy->setText(r.toString());
   });
 
   m_pasteElements = new QAction{tr("Paste elements"), this};
@@ -131,10 +130,7 @@ ObjectMenuActions::ObjectMenuActions(ScenarioApplicationPlugin* parent)
       sv_pt = sv.mapToScene(sv.boundingRect().center());
     }
     auto pt = pres->toScenarioPoint(sv_pt);
-    pasteElements(
-        QJsonDocument::fromJson(QApplication::clipboard()->text().toUtf8())
-            .object(),
-        pt);
+    pasteElements(readJson(QApplication::clipboard()->text().toUtf8()), pt);
   });
 
   m_pasteElementsAfter = new QAction{tr("Paste (after)"), this};
@@ -158,18 +154,17 @@ ObjectMenuActions::ObjectMenuActions(ScenarioApplicationPlugin* parent)
       sv_pt = sv.mapToScene(sv.boundingRect().center());
     }
     auto pt = pres->toScenarioPoint(sv_pt);
-    pasteElementsAfter(
-        QJsonDocument::fromJson(QApplication::clipboard()->text().toUtf8())
-            .object(),
+    pasteElementsAfter(readJson(QApplication::clipboard()->text().toUtf8()),
         pt,
         pres->context().context.selectionStack.currentSelection());
   });
 
   // DISPLAY JSON
   m_elementsToJson = new QAction{tr("Convert selection to JSON"), this};
-  connect(m_elementsToJson, &QAction::triggered, [this]() {
-    QJsonDocument doc{copySelectedElementsToJson()};
-    TextDialog s{doc.toJson(QJsonDocument::Indented), qApp->activeWindow()};
+  connect(m_elementsToJson, &QAction::triggered, [this] {
+    JSONReader r;
+    copySelectedElementsToJson(r);
+    TextDialog s{r.toString(), qApp->activeWindow()};
 
     s.exec();
   });
@@ -267,7 +262,7 @@ ObjectMenuActions::ObjectMenuActions(ScenarioApplicationPlugin* parent)
   {
     auto doc
         = parent->context.mainWindow->centralWidget()->findChild<QWidget*>(
-            "Documents", Qt::FindDirectChildrenOnly);
+            "Documents");
     SCORE_ASSERT(doc);
     doc->addAction(m_removeElements);
     doc->addAction(m_pasteElements);
@@ -384,9 +379,7 @@ void ObjectMenuActions::setupContextMenu(
     pasteElements->setShortcut(QKeySequence::Paste);
     pasteElements->setShortcutContext(Qt::WidgetWithChildrenShortcut);
     connect(pasteElements, &QAction::triggered, [&, scenePoint]() {
-      this->pasteElements(
-          QJsonDocument::fromJson(QApplication::clipboard()->text().toUtf8())
-              .object(),
+      this->pasteElements(readJson(QApplication::clipboard()->text().toUtf8()),
           scenario.toScenarioPoint(scenario.view().mapFromScene(scenePoint)));
     });
     menu.addAction(pasteElements);
@@ -416,23 +409,20 @@ void ObjectMenuActions::setupContextMenu(
   ctxm.insert(std::move(scenario_object));
 }
 
-QJsonObject ObjectMenuActions::copySelectedElementsToJson()
+void ObjectMenuActions::copySelectedElementsToJson(JSONReader& r)
 {
   const auto& ctx = m_parent->currentDocument()->context();
   if (auto si = focusedScenarioInterface(ctx))
   {
-    return Scenario::copySelectedElementsToJson(
-        *const_cast<ScenarioInterface*>(si), ctx);
+    return Scenario::copySelectedElementsToJson(r, *const_cast<ScenarioInterface*>(si), ctx);
   }
-
-  return {};
 }
 
-QJsonObject ObjectMenuActions::cutSelectedElementsToJson()
+void ObjectMenuActions::cutSelectedElementsToJson(JSONReader& r)
 {
-  auto obj = copySelectedElementsToJson();
-  if (obj.empty())
-    return {};
+  copySelectedElementsToJson(r);
+  if (r.empty())
+    return;
 
   auto& ctx = m_parent->currentDocument()->context();
 
@@ -444,12 +434,10 @@ QJsonObject ObjectMenuActions::cutSelectedElementsToJson()
   {
     Scenario::clearContentFromSelection(*si, ctx);
   }
-
-  return obj;
 }
 
 void ObjectMenuActions::pasteElements(
-    const QJsonObject& obj,
+    const rapidjson::Value& obj,
     const Scenario::Point& origin)
 {
   // TODO check for unnecessary uses of focusedProcessModel after
@@ -466,7 +454,7 @@ void ObjectMenuActions::pasteElements(
 }
 
 void ObjectMenuActions::pasteElementsAfter(
-    const QJsonObject& obj,
+    const rapidjson::Value& obj,
     const Scenario::Point& origin,
     const Selection& sel)
 {
@@ -493,30 +481,30 @@ template <typename Scenario_T>
 static void writeJsonToScenario(
     const Scenario_T& scen,
     const ObjectMenuActions& self,
-    const QJsonObject& obj)
+    const rapidjson::Value& obj)
 {
   MacroCommandDispatcher<Command::ScenarioPasteContent> dispatcher{
       self.dispatcher().stack()};
   auto selectedIntervals = selectedElements(getIntervals(scen));
   auto expandMode = self.appPlugin()->editionSettings().expandMode();
-  for (const auto& json_vref : obj["Intervals"].toArray())
+  for (const rapidjson::Value& json_vref : obj["Intervals"].GetArray())
   {
     for (const auto& interval : selectedIntervals)
     {
       auto cmd = new Scenario::Command::InsertContentInInterval{
-          json_vref.toObject(), *interval, expandMode};
+          json_vref, *interval, expandMode};
 
       dispatcher.submit(cmd);
     }
   }
 
   auto selectedStates = selectedElements(getStates(scen));
-  for (const auto& json_vref : obj["States"].toArray())
+  for (const rapidjson::Value& json_vref : obj["States"].GetArray())
   {
     for (const auto& state : selectedStates)
     {
       auto cmd
-          = new Command::InsertContentInState{json_vref.toObject(), *state};
+          = new Command::InsertContentInState{json_vref, *state};
 
       dispatcher.submit(cmd);
     }
@@ -525,7 +513,7 @@ static void writeJsonToScenario(
   dispatcher.commit();
 }
 
-void ObjectMenuActions::writeJsonToSelectedElements(const QJsonObject& obj)
+void ObjectMenuActions::writeJsonToSelectedElements(const rapidjson::Value& obj)
 {
   auto si = focusedScenarioInterface(m_parent->currentDocument()->context());
   if (auto sm = dynamic_cast<const Scenario::ProcessModel*>(si))

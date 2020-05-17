@@ -1,0 +1,10 @@
+*.user
+CMakeCache.txt
+CMakeFiles
+Makefile
+cmake_install.cmake
+editor
+editor.app
+editor_autogen
+libisf.*
+*.qmlc

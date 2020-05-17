@@ -56,10 +56,7 @@ EventPresenter::EventPresenter(
       &EventView::changeToolTip);
 
   con(m_model, &EventModel::statusChanged, m_view,
-      [this] {
-    m_view->update();
-    m_view->conditionItem().update();
-  });
+      &EventView::setStatus);
 
   connect(
       m_view,

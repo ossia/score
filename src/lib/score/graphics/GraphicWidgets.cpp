@@ -5,7 +5,6 @@
 #include <score/graphics/DefaultGraphicsSliderImpl.hpp>
 #include <score/graphics/GraphicsSliderBaseImpl.hpp>
 #include <score/model/Skin.hpp>
-#include <score/tools/ForEach.hpp>
 
 #include <QGraphicsProxyWidget>
 #include <QGraphicsScene>
@@ -24,6 +23,7 @@ W_OBJECT_IMPL(score::QGraphicsIntSlider)
 W_OBJECT_IMPL(score::QGraphicsCombo)
 W_OBJECT_IMPL(score::QGraphicsEnum)
 W_OBJECT_IMPL(score::QGraphicsHSVChooser)
+W_OBJECT_IMPL(score::QGraphicsXYChooser)
 namespace score
 {
 
@@ -827,7 +827,7 @@ void QGraphicsEnum::setRect(const QRectF& r)
 
 void QGraphicsEnum::setValue(int v)
 {
-  m_value = ossia::clamp(v, 0, array.size() - 1);
+  m_value = ossia::clamp(v, 0, (int)array.size() - 1);
   update();
 }
 
@@ -983,6 +983,11 @@ void QGraphicsPixmapEnum::paint(
   }
 }
 
+
+
+
+
+
 QGraphicsHSVChooser::QGraphicsHSVChooser(QGraphicsItem* parent)
 {
 
@@ -990,7 +995,7 @@ QGraphicsHSVChooser::QGraphicsHSVChooser(QGraphicsItem* parent)
 
 void QGraphicsHSVChooser::setRect(const QRectF& r)
 {
-
+  SCORE_TODO;
 }
 
 namespace
@@ -1184,6 +1189,114 @@ void QGraphicsHSVChooser::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 QRectF QGraphicsHSVChooser::boundingRect() const
 {
   return QRectF{0, 0, 140, 100};
+}
+
+
+
+
+
+
+
+
+
+QGraphicsXYChooser::QGraphicsXYChooser(QGraphicsItem* parent)
+{
+
+}
+
+void QGraphicsXYChooser::setPoint(const QPointF& r)
+{
+  SCORE_TODO;
+}
+
+void QGraphicsXYChooser::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
+{
+  painter->fillRect(QRectF{0, 0, 100, 100},  score::Skin::instance().Dark.main.brush);
+
+  auto x = m_value[0] * 100.;
+  auto y = m_value[1] * 100.;
+
+  painter->setPen(score::Skin::instance().DarkGray.main.pen0);
+  painter->drawLine(QPointF{x, 0.}, QPointF{x, 100.});
+  painter->drawLine(QPointF{0, y}, QPointF{100., y});
+}
+
+std::array<float, 2> QGraphicsXYChooser::value() const
+{
+  return m_value;
+}
+
+void QGraphicsXYChooser::setValue(std::array<float, 2> v)
+{
+  m_value = v;
+  update();
+}
+
+void QGraphicsXYChooser::mousePressEvent(QGraphicsSceneMouseEvent* event)
+{
+  const auto p = event->pos();
+  float newX = qBound(0., p.x() / 100., 1.);
+  float newY = qBound(0., p.y() / 100., 1.);
+  m_grab = true;
+
+  ossia::vec2f newValue{newX, newY};
+  if(m_value != newValue)
+  {
+    m_value = newValue;
+    valueChanged(m_value);
+    sliderMoved();
+    update();
+  }
+  event->accept();
+}
+
+void QGraphicsXYChooser::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
+{
+  if(m_grab)
+  {
+    const auto p = event->pos();
+    float newX = qBound(0., p.x() / 100., 1.);
+    float newY = qBound(0., p.y() / 100., 1.);
+    m_grab = true;
+
+    ossia::vec2f newValue{newX, newY};
+    if(m_value != newValue)
+    {
+      m_value = newValue;
+      valueChanged(m_value);
+      sliderMoved();
+      update();
+    }
+  }
+  event->accept();
+}
+
+void QGraphicsXYChooser::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
+{
+  if(m_grab)
+  {
+    const auto p = event->pos();
+    float newX = qBound(0., p.x() / 100., 1.);
+    float newY = qBound(0., p.y() / 100., 1.);
+    m_grab = true;
+
+    ossia::vec2f newValue{newX, newY};
+    if(m_value != newValue)
+    {
+      m_value = newValue;
+      valueChanged(m_value);
+      update();
+    }
+    sliderReleased();
+    m_grab = false;
+  }
+  event->accept();
+
+}
+
+QRectF QGraphicsXYChooser::boundingRect() const
+{
+  return QRectF{0, 0, 100, 100};
 }
 
 }

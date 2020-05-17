@@ -20,6 +20,8 @@ void ScenarioRollbackStrategy::rollback(
   // TODO UPDATE THIS ELSE ROLLBACK WON'T WORK.
   // REFACTOR THIS IN A LIST SOMEWHERE.
   using namespace Scenario::Command;
+  if (cmds.empty())
+    return;
   for (int i = cmds.size() - 1; i >= 0; --i)
   {
     if (cmds[i]->key() == CreateInterval::static_key()
@@ -32,5 +34,18 @@ void ScenarioRollbackStrategy::rollback(
     {
       cmds[i]->undo(ctx);
     }
+  }
+}
+
+void DefaultRollbackStrategy::rollback(
+    const score::DocumentContext& ctx,
+    const std::vector<score::Command*>& cmds)
+{
+  if (cmds.empty())
+    return;
+
+  for (int i = cmds.size() - 1; i >= 0; --i)
+  {
+    cmds[i]->undo(ctx);
   }
 }

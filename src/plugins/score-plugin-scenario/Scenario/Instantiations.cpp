@@ -25,6 +25,10 @@ template class SCORE_PLUGIN_SCENARIO_EXPORT IdContainer<
     Scenario::IntervalModel,
     void>;
 template class SCORE_PLUGIN_SCENARIO_EXPORT IdContainer<
+    Scenario::GraphalIntervalPresenter,
+    Scenario::IntervalModel,
+    void>;
+template class SCORE_PLUGIN_SCENARIO_EXPORT IdContainer<
     Scenario::CommentBlockPresenter,
     Scenario::CommentBlockModel,
     void>;

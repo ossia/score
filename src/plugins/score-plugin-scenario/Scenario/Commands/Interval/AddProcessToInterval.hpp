@@ -74,7 +74,7 @@ class SCORE_PLUGIN_SCENARIO_EXPORT LoadProcessInInterval final
       "Load a process in an interval")
 
 public:
-  LoadProcessInInterval(const IntervalModel& interval, const QJsonObject& dat);
+  LoadProcessInInterval(const IntervalModel& interval, const rapidjson::Value& dat);
   ~LoadProcessInInterval();
 
   void undo(const score::DocumentContext& ctx) const override;

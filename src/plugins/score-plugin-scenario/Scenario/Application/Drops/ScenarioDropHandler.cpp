@@ -19,20 +19,20 @@ magneticStates(
   // Check if we keep the current magnetism
   if(cur.horizontal)
   {
-    const auto state_msec = scenario.events.at(cur.horizontal->eventId()).date().msec();
+    const auto state_date = scenario.events.at(cur.horizontal->eventId()).date();
 
     const double rel_y_distance = std::abs(cur.horizontal->heightPercentage() - pt.y);
     const double abs_y_distance = rel_y_distance * pres.view().height();
 
-    if(abs_y_distance < magnetic && state_msec < pt.date.msec())
+    if(abs_y_distance < magnetic && state_date < pt.date)
     {
       return {cur.horizontal, cur.vertical, true};
     }
   }
   else if(cur.vertical)
   {
-    auto cur_date = Scenario::parentEvent(*cur.vertical, scenario).date().msec();
-    const double abs_x_distance = std::abs((cur_date - pt.date.msec()) / pres.zoomRatio());
+    auto cur_date = Scenario::parentEvent(*cur.vertical, scenario).date();
+    const double abs_x_distance = std::abs((cur_date.impl - pt.date.impl) / pres.zoomRatio());
     if(abs_x_distance < magnetic)
     {
       return {cur.horizontal, cur.vertical, true};
@@ -42,13 +42,15 @@ magneticStates(
   EventModel& start_ev = scenario.startEvent();
   SCORE_ASSERT(!start_ev.states().empty());
 
-  ossia::fast_hash_map<Id<EventModel>, double> eventDates;
+  static ossia::fast_hash_map<Id<EventModel>, ossia::time_value> eventDates;
+  eventDates.clear();
+
   for(auto& ev : scenario.events)
-    eventDates[ev.id()] = ev.date().msec();
+    eventDates[ev.id()] = ev.date();
 
   Scenario::StateModel* start_st = &scenario.states.at(start_ev.states().front());
 
-  const double pt_msec = pt.date.msec();
+  const ossia::time_value pt_msec = pt.date;
   StateModel* min_x_state = start_st;
   double min_x_distance = std::numeric_limits<double>::max();
 
@@ -56,13 +58,13 @@ magneticStates(
   double min_y_distance = std::numeric_limits<double>::max();
   for(auto& state : scenario.states)
   {
-    const auto state_msec = eventDates[state.eventId()];
+    const auto state_date = eventDates[state.eventId()];
 
-    if(state_msec >= pt_msec)
+    if(state_date >= pt_msec)
       continue;
 
-    const double rel_x_distance = std::abs(state_msec - pt.date.msec());
-    const double abs_x_distance = rel_x_distance / pres.zoomRatio();
+    const TimeVal rel_x_distance{std::abs(state_date.impl - pt.date.impl)};
+    const double abs_x_distance = rel_x_distance.toPixels(pres.zoomRatio());
 
     const double rel_y_distance = std::abs(state.heightPercentage() - pt.y);
     const double abs_y_distance = rel_y_distance * pres.view().height();
@@ -80,6 +82,7 @@ magneticStates(
     }
   }
 
+  eventDates.clear();
   if(min_x_distance < min_y_distance)
   {
     return {nullptr, min_x_state, min_x_distance < magnetic};
@@ -176,9 +179,13 @@ bool GhostIntervalDropHandler::dragMove(
     else
     {
       if(magnetic)
+      {
         pres.drawDragLine(*x_state, {pt.date, x_state->heightPercentage()});
+      }
       else
+      {
         pres.drawDragLine(*x_state, pt);
+      }
     }
   }
   return true;

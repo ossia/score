@@ -148,33 +148,6 @@ struct TSerializer<DataStream, eggs::variant<Args...>>
 
 // TODO add some ASSERT for the variant being set on debug mode. npos case
 // should not happen since we have the OptionalVariant.
-// TODO qstring and Qt-serializable objects ???
-// The _eggs_impl functions are because enum's don't need full-fledged objects
-// in json.
-template <typename T, std::enable_if_t<!is_value_t<T>::value>* = nullptr>
-QJsonValue readFrom_eggs_impl(const T& res)
-{
-  return toJsonObject(res);
-}
-template <typename T, std::enable_if_t<is_value_t<T>::value>* = nullptr>
-QJsonValue readFrom_eggs_impl(const T& res)
-{
-  return toJsonValue(res);
-}
-
-/**
- * These two methods are because enum's don't need full-fledged objects.
- */
-template <typename T, std::enable_if_t<!is_value_t<T>::value>* = nullptr>
-auto writeTo_eggs_impl(const QJsonValue& res)
-{
-  return fromJsonObject<T>(res.toObject());
-}
-template <typename T, std::enable_if_t<is_value_t<T>::value>* = nullptr>
-auto writeTo_eggs_impl(const QJsonValue& res)
-{
-  return fromJsonValue<T>(res);
-}
 
 template <typename T>
 struct VariantJSONSerializer
@@ -201,7 +174,7 @@ void VariantJSONSerializer<T>::operator()()
 
   if (auto res = var.template target<TheClass>())
   {
-    s.obj[Metadata<Json_k, TheClass>::get()] = readFrom_eggs_impl(*res);
+    s.obj[Metadata<Json_k, TheClass>::get()] = *res;
     done = true;
   }
 }
@@ -228,10 +201,12 @@ void VariantJSONDeserializer<T>::operator()()
   if (done)
     return;
 
-  auto it = s.obj.constFind(Metadata<Json_k, TheClass>::get());
-  if (it != s.obj.constEnd())
+  if (auto it = s.obj.tryGet(Metadata<Json_k, TheClass>::get()))
   {
-    var = writeTo_eggs_impl<TheClass>(*it);
+    JSONWriter w{*it};
+    TheClass obj;
+    obj <<= JsonValue{w.base};
+    var = std::move(obj);
     done = true;
   }
 }
@@ -242,14 +217,18 @@ struct TSerializer<JSONObject, eggs::variant<Args...>>
   using var_t = eggs::variant<Args...>;
   static void readFrom(JSONObject::Serializer& s, const var_t& var)
   {
+    s.stream.StartObject();
     if ((quint64)var.which() != (quint64)var.npos)
     {
       ossia::for_each_type<Args...>(VariantJSONSerializer<var_t>{s, var});
     }
+    s.stream.EndObject();
   }
 
   static void writeTo(JSONObject::Deserializer& s, var_t& var)
   {
+    if(s.base.MemberCount() == 0)
+      return;
     ossia::for_each_type<Args...>(VariantJSONDeserializer<var_t>{s, var});
   }
 };

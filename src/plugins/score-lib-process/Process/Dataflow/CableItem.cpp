@@ -5,6 +5,7 @@
 #include <Process/DocumentPlugin.hpp>
 #include <Process/ProcessContext.hpp>
 #include <Process/Style/ScenarioStyle.hpp>
+#include <score/graphics/PainterPath.hpp>
 #include <score/tools/Bind.hpp>
 
 
@@ -175,7 +176,7 @@ void CableItem::resize()
 {
   prepareGeometryChange();
 
-  m_path = QPainterPath{};
+  clearPainterPath(m_path);
   if (m_p1 && m_p2)
   {
     auto p1 = m_p1->scenePos() + QPointF(6., 6.);

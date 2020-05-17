@@ -23,7 +23,7 @@ void DataStreamWriter::write(Protocols::OSCSpecificSettings& n)
 }
 
 template <>
-void JSONObjectReader::read(const Protocols::OSCSpecificSettings& n)
+void JSONReader::read(const Protocols::OSCSpecificSettings& n)
 {
   obj["OutputPort"] = n.outputPort;
   obj["InputPort"] = n.inputPort;
@@ -33,11 +33,11 @@ void JSONObjectReader::read(const Protocols::OSCSpecificSettings& n)
 }
 
 template <>
-void JSONObjectWriter::write(Protocols::OSCSpecificSettings& n)
+void JSONWriter::write(Protocols::OSCSpecificSettings& n)
 {
   n.outputPort = obj["OutputPort"].toInt();
   n.inputPort = obj["InputPort"].toInt();
   n.host = obj["Host"].toString();
-  if (obj.contains("Rate"))
-    n.rate = obj["Rate"].toInt();
+  if (auto it = obj.tryGet("Rate"))
+    n.rate = it->toInt();
 }

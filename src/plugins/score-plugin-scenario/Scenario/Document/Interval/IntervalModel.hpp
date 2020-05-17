@@ -8,6 +8,7 @@
 #include <Scenario/Document/Interval/IntervalDurations.hpp>
 #include <Scenario/Document/Interval/Slot.hpp>
 #include <Scenario/Document/ModelConsistency.hpp>
+#include <Scenario/Document/Metatypes.hpp>
 
 #include <score/model/Component.hpp>
 #include <score/model/EntityImpl.hpp>
@@ -34,6 +35,7 @@ class Model;
 namespace Scenario
 {
 class StateModel;
+class TempoProcess;
 
 using TimeSignatureMap = ossia::flat_map<TimeVal, Control::time_signature>;
 class SCORE_PLUGIN_SCENARIO_EXPORT IntervalModel final
@@ -151,13 +153,19 @@ public:
   bool muted() const noexcept { return m_muted; }
   void setMuted(bool m);
 
+  bool graphal() const noexcept { return m_graphal; }
+  void setGraphal(bool m);
+
+  bool executing() const noexcept { return m_executing; }
+  void setExecuting(bool m);
+
   // Tempo stuff
   bool hasTimeSignature() const noexcept { return m_hasSignature; }
   void setHasTimeSignature(bool b);
 
   TimeVal contentDuration() const noexcept;
 
-  Curve::Model* tempoCurve() const noexcept;
+  TempoProcess* tempoCurve() const noexcept;
 
   void addSignature(TimeVal t, Control::time_signature sig);
   void removeSignature(TimeVal t);
@@ -222,7 +230,11 @@ public:
   void busChanged(bool arg_1)
       E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, busChanged, arg_1)
 
-  PROPERTY(double, muted READ muted WRITE setMuted NOTIFY mutedChanged)
+  void graphalChanged(bool arg_1)
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, graphalChanged, arg_1)
+
+  PROPERTY(bool, muted READ muted WRITE setMuted NOTIFY mutedChanged)
+  PROPERTY(bool, graphal READ graphal WRITE setGraphal NOTIFY graphalChanged)
   PROPERTY(double, heightPercentage READ heightPercentage WRITE setHeightPercentage NOTIFY heightPercentageChanged)
 
 private:
@@ -254,6 +266,7 @@ private:
   bool m_executing : 1;
 
   bool m_hasSignature : 1;
+  bool m_graphal : 1;
 };
 
 SCORE_PLUGIN_SCENARIO_EXPORT
@@ -282,20 +295,11 @@ TimeVal timeDelta(const IntervalModel* child, const IntervalModel* parent);
 
 DEFAULT_MODEL_METADATA(Scenario::IntervalModel, "Interval")
 
-Q_DECLARE_METATYPE(Id<Scenario::IntervalModel>)
-Q_DECLARE_METATYPE(Path<Scenario::IntervalModel>)
-Q_DECLARE_METATYPE(QPointer<const Scenario::IntervalModel>)
-Q_DECLARE_METATYPE(Scenario::IntervalModel::ViewMode)
-
-W_REGISTER_ARGTYPE(Id<Scenario::IntervalModel>)
-W_REGISTER_ARGTYPE(OptionalId<Scenario::IntervalModel>)
-W_REGISTER_ARGTYPE(Path<Scenario::IntervalModel>)
-W_REGISTER_ARGTYPE(QPointer<const Scenario::IntervalModel>)
-W_REGISTER_ARGTYPE(Scenario::IntervalModel)
-W_REGISTER_ARGTYPE(Scenario::IntervalModel&)
-W_REGISTER_ARGTYPE(Scenario::IntervalModel::ViewMode)
-
 Q_DECLARE_METATYPE(Scenario::TimeSignatureMap)
 W_REGISTER_ARGTYPE(Scenario::TimeSignatureMap)
+Q_DECLARE_METATYPE(Scenario::IntervalModel::ViewMode)
+W_REGISTER_ARGTYPE(Scenario::IntervalModel::ViewMode)
+Q_DECLARE_METATYPE(QPointer<const Scenario::IntervalModel>)
+W_REGISTER_ARGTYPE(QPointer<const Scenario::IntervalModel>)
 
 TR_TEXT_METADATA(, Scenario::IntervalModel, PrettyName_k, "Interval")

@@ -11,6 +11,7 @@
 #include <score/model/ModelMetadata.hpp>
 #include <score/model/EntitySerialization.hpp>
 #include <score/tools/Bind.hpp>
+#include <score/widgets/SetIcons.hpp>
 
 #include <ossia/detail/algorithms.hpp>
 
@@ -31,15 +32,16 @@ namespace Process
 const QIcon& getCategoryIcon(const QString& category) noexcept
 {
     static const std::map<QString, QIcon> categoryIcon{
-        { "Audio", QIcon{QStringLiteral(":/icons/audio.png")} },
-        { "Mappings", QIcon{QStringLiteral(":/icons/filter.png") } },
-        { "Midi", QIcon{QStringLiteral(":/icons/midi.png") } },
-        { "Control", QIcon{QStringLiteral(":/icons/controls.png") } },
-        { "Automations", QIcon{QStringLiteral(":/icons/automation.png") } },
-        { "Impro", QIcon{QStringLiteral(":/icons/controls.png") }  },
-        { "Script", QIcon{QStringLiteral(":/icons/script.png") } },
-        { "Structure", QIcon{QStringLiteral(":/icons/structure.png") } },
-        { "Monitoring", QIcon{QStringLiteral(":/icons/ui.png")} }
+        { "Audio",  makeIcon(QStringLiteral(":/icons/audio.png")) },
+        { "Mappings", makeIcon(QStringLiteral(":/icons/filter.png")) },
+        { "Midi", makeIcon(QStringLiteral(":/icons/midi.png"))  },
+        { "Control", makeIcon(QStringLiteral(":/icons/controls.png") )},
+        { "GFX", makeIcon(QStringLiteral(":/icons/gfx.png")) },
+        { "Automations", makeIcon(QStringLiteral(":/icons/automation.png")) },
+        { "Impro", makeIcon(QStringLiteral(":/icons/controls.png"))  },
+        { "Script", makeIcon(QStringLiteral(":/icons/script.png")) },
+        { "Structure", makeIcon(QStringLiteral(":/icons/structure.png")) },
+        { "Monitoring", makeIcon(QStringLiteral(":/icons/ui.png")) }
     };
     static const QIcon invalid;
     if(auto it = categoryIcon.find(category);
@@ -202,12 +204,12 @@ Process::Outlet* ProcessModel::outlet(const Id<Process::Port>& p) const
 
 void ProcessModel::loadPreset(const Preset& preset)
 {
-  auto ctrls = preset.data["Controls"].toArray();
+  const rapidjson::Document doc = readJson(preset.data);
+  const auto& ctrls = doc["Controls"].GetArray();
 
-  for(const auto& json_val : ctrls) {
-    const auto& arr = json_val.toArray();
-    const auto& id = arr[0].toInt();
-    const auto& val = fromJsonValue<ossia::value>(arr[1]);
+  for(const auto& arr : ctrls) {
+    const auto& id = arr[0].GetInt();
+    ossia::value val = JsonValue{arr[1]}.to<ossia::value>();
 
     auto it = ossia::find_if(m_inlets, [&] (const auto& inl) { return inl->id().val() == id; });
     if(it != m_inlets.end())
@@ -227,19 +229,20 @@ Preset ProcessModel::savePreset() const noexcept
   p.name = this->metadata().getName();
   p.key.key = this->concreteKey();
 
-  QJsonArray values;
+  JSONReader r;
+  r.stream.StartArray();
   for(const auto& inlet : m_inlets)
   {
     if(auto ctrl = qobject_cast<Process::ControlInlet*>(inlet))
     {
-      QJsonArray json_ctrl;
-      json_ctrl.push_back(ctrl->id().val());
-      json_ctrl.push_back(toJsonValue(ctrl->value()));
-      values.push_back(json_ctrl);
+      r.stream.StartArray();
+      r.stream.Int(ctrl->id().val());
+      r.readFrom(ctrl->value());
+      r.stream.EndArray();
     }
   }
-  p.data["Controls"] = values;
-
+  r.stream.EndArray();
+  p.data = r.toByteArray();
   return p;
 }
 
@@ -274,10 +277,9 @@ void ProcessModel::setStartOffset(TimeVal b)
 
 void ProcessModel::setLoopDuration(TimeVal b)
 {
-  auto ms = b.msec();
-  if(ms < 0.1)
-    ms = 0.1;
-  b = TimeVal::fromMsecs(ms);
+  if(b.msec() < 0.1)
+    b = TimeVal::fromMsecs(0.1);
+
   if(b != m_loopDuration)
   {
     m_loopDuration = b;

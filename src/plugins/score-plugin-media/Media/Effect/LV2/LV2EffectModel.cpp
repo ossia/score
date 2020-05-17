@@ -346,8 +346,8 @@ void LV2EffectModel::readPlugin()
   data.effect.plugin.get_port_ranges_float(
       fParamMin.data(), fParamMax.data(), fParamInit.data());
 
-  score::deleteAndClear(m_inlets);
-  score::deleteAndClear(m_outlets);
+  auto old_inlets = score::clearAndDeleteLater(m_inlets);
+  auto old_outlets = score::clearAndDeleteLater(m_outlets);
 
   int in_id = 0;
   int out_id = 0;
@@ -498,13 +498,13 @@ void DataStreamWriter::write(Media::LV2::LV2EffectModel& eff)
 }
 
 template <>
-void JSONObjectReader::read(const Media::LV2::LV2EffectModel& eff)
+void JSONReader::read(const Media::LV2::LV2EffectModel& eff)
 {
   obj["Effect"] = eff.effect();
 }
 
 template <>
-void JSONObjectWriter::write(Media::LV2::LV2EffectModel& eff)
+void JSONWriter::write(Media::LV2::LV2EffectModel& eff)
 {
   eff.m_effectPath = obj["Effect"].toString();
 }

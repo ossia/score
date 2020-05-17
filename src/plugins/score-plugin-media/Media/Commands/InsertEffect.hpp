@@ -57,7 +57,7 @@ class LoadEffect final : public score::Command
 public:
   LoadEffect(
       const Media::ChainProcess& model,
-      const QJsonObject& obj,
+      const rapidjson::Document& obj,
       std::size_t effectPos);
 
   void undo(const score::DocumentContext& ctx) const override;
@@ -70,7 +70,7 @@ protected:
 private:
   Path<Media::ChainProcess> m_path;
   Id<Process::ProcessModel> m_id;
-  QJsonObject m_data;
+  rapidjson::Document m_data;
   quint64 m_pos{};
 };
 

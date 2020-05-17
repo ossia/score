@@ -256,27 +256,25 @@ void DataStreamWriter::write(Interpolation::ProcessModel& interp)
 }
 
 template <>
-void JSONObjectReader::read(const Interpolation::ProcessModel& interp)
+void JSONReader::read(const Interpolation::ProcessModel& interp)
 {
-  obj["Curve"] = toJsonObject(interp.curve());
-  obj[strings.Address] = toJsonObject(interp.address());
+  obj["Curve"] = interp.curve();
+  obj[strings.Address] = interp.address();
   obj[strings.Unit] = State::prettyUnitText(interp.sourceUnit());
-  obj[strings.Start] = toJsonObject(interp.start());
-  obj[strings.End] = toJsonObject(interp.end());
+  obj[strings.Start] = interp.start();
+  obj[strings.End] = interp.end();
   obj["Tween"] = interp.tween();
 }
 
 template <>
-void JSONObjectWriter::write(Interpolation::ProcessModel& interp)
+void JSONWriter::write(Interpolation::ProcessModel& interp)
 {
-  JSONObject::Deserializer curve_deser{obj["Curve"].toObject()};
+  JSONObject::Deserializer curve_deser{obj["Curve"]};
   interp.setCurve(new Curve::Model{curve_deser, &interp});
 
-  interp.setAddress(
-      fromJsonObject<State::AddressAccessor>(obj[strings.Address]));
-  interp.setSourceUnit(
-      ossia::parse_pretty_unit(obj[strings.Unit].toString().toStdString()));
-  interp.setStart(fromJsonObject<ossia::value>(obj[strings.Start]));
-  interp.setEnd(fromJsonObject<ossia::value>(obj[strings.End]));
-  interp.setTween(obj["Tween"].toBool());
+  interp.m_address <<= obj[strings.Address];
+  interp.m_sourceUnit = ossia::parse_pretty_unit(obj[strings.Unit].toStdString());
+  interp.m_start <<= obj[strings.Start];
+  interp.m_end <<= obj[strings.End];
+  interp.m_tween <<= obj["Tween"].toBool();
 }

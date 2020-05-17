@@ -119,19 +119,18 @@ void restoreCables(
   Scenario::ScenarioDocumentModel& doc
       = score::IDocument::get<Scenario::ScenarioDocumentModel>(ctx.document);
 
-  for (const auto& cid : cables)
+  for (const auto& [id, data] : cables)
   {
-    if (doc.cables.find(cid.first) == doc.cables.end())
+    if (doc.cables.find(id) == doc.cables.end())
     {
-      auto cbl = new Process::Cable{cid.first, cid.second, &doc};
-      doc.cables.add(cbl);
-      Path<Process::Cable> path = *cbl;
-      cbl->source().find(ctx).addCable(path);
-      cbl->sink().find(ctx).addCable(path);
+      auto c = new Process::Cable{id, data, &doc};
+      doc.cables.add(c);
+      c->source().find(ctx).addCable(*c);
+      c->sink().find(ctx).addCable(*c);
     }
     else
     {
-      qDebug() << "Warning: trying to add existing cable " << cid.first;
+      qDebug() << "Warning: trying to add existing cable " << id;
     }
   }
 }
@@ -155,11 +154,4 @@ void loadCables(
   Dataflow::restoreCables(cables, ctx);
 }
 
-void loadRelativeCables(
-    const ObjectPath& new_path,
-    Dataflow::SerializedCables& cables,
-    const score::DocumentContext& ctx)
-{
-  Dataflow::restoreCables(cables, ctx);
-}
 }

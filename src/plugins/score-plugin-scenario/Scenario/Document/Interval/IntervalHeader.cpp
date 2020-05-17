@@ -9,29 +9,19 @@
 class QGraphicsSceneMouseEvent;
 namespace Scenario
 {
-static const QCursor& openCursor()
-{
-  static const QCursor c{Qt::OpenHandCursor};
-  return c;
-}
-static const QCursor& closedCursor()
-{
-  static const QCursor c{Qt::ClosedHandCursor};
-  return c;
-}
 void IntervalHeader::setWidth(double width)
 {
   prepareGeometryChange();
   m_width = width;
-  if (this->cursor().shape() != openCursor().shape())
-    this->setCursor(openCursor());
+  auto& skin = score::Skin::instance();
+  this->setCursor(skin.CursorOpenHand);
   update();
 }
 
 void IntervalHeader::mousePressEvent(QGraphicsSceneMouseEvent* event)
 {
-  if (this->cursor().shape() != closedCursor().shape())
-    this->setCursor(closedCursor());
+  auto& skin = score::Skin::instance();
+  this->setCursor(skin.CursorClosedHand);
   m_view->mousePressEvent(event);
   event->accept();
 }
@@ -44,8 +34,8 @@ void IntervalHeader::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 
 void IntervalHeader::mouseReleaseEvent(QGraphicsSceneMouseEvent* event)
 {
-  if (this->cursor().shape() != openCursor().shape())
-    this->setCursor(openCursor());
+  auto& skin = score::Skin::instance();
+  this->setCursor(skin.CursorOpenHand);
   m_view->mouseReleaseEvent(event);
   event->accept();
 }

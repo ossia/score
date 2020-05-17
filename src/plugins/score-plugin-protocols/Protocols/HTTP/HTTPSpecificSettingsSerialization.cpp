@@ -21,13 +21,13 @@ void DataStreamWriter::write(Protocols::HTTPSpecificSettings& n)
 }
 
 template <>
-void JSONObjectReader::read(const Protocols::HTTPSpecificSettings& n)
+void JSONReader::read(const Protocols::HTTPSpecificSettings& n)
 {
   obj["Text"] = n.text;
 }
 
 template <>
-void JSONObjectWriter::write(Protocols::HTTPSpecificSettings& n)
+void JSONWriter::write(Protocols::HTTPSpecificSettings& n)
 {
   n.text = obj["Text"].toString();
 }

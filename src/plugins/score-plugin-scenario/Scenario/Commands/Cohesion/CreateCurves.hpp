@@ -32,10 +32,10 @@ std::vector<Process::ProcessModel*> CreateCurvesFromAddresses(
     Scenario::Command::Macro& m);
 
 void CreateCurves(
-    const QList<const Scenario::IntervalModel*>& selected_intervals,
+    const std::vector<const Scenario::IntervalModel*>& selected_intervals,
     const score::CommandStackFacade& stack);
 void CreateCurvesFromAddresses(
-    const QList<const Scenario::IntervalModel*>& selected_intervals,
+    const std::vector<const Scenario::IntervalModel*>& selected_intervals,
     const std::vector<Device::FullAddressSettings>& addresses,
     const score::CommandStackFacade& stack);
 }

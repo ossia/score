@@ -104,12 +104,18 @@ private:
   Path<model_t> m_path;
   param_t m_old, m_new;
 };
+
+template<typename T>
+struct StaticPropertyCommand : score::PropertyCommand_T<T>::template command<void>::type
+{
+  using score::PropertyCommand_T<T>::template command<void>::type::type;
+};
 }
 
 #define PROPERTY_COMMAND_T(NS, Name, Property, Description)         \
   namespace NS                                                      \
   {                                                                 \
-  class Name final : public score::PropertyCommand_T<Property>      \
+  class Name : public score::PropertyCommand_T<Property>            \
   {                                                                 \
     SCORE_COMMAND_DECL(NS::CommandFactoryName(), Name, Description) \
   public:                                                           \

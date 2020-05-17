@@ -33,11 +33,11 @@ void PlayToolState::on_pressed(
   SCORE_ASSERT(root);
   auto root_itv = root->presenters().intervalPresenter();
   auto itv_pt = root_itv->view()->mapFromScene(scenePoint);
-  auto global_time = TimeVal::fromMsecs(itv_pt.x() * root_itv->zoomRatio());
+  auto global_time = TimeVal::fromPixels(itv_pt.x(), root_itv->zoomRatio());
 
   switch (item->type())
   {
-    case StateView::static_type():
+    case StateView::Type:
     {
       const auto& state
           = safe_cast<const StateView*>(item)->presenter().model();
@@ -49,7 +49,7 @@ void PlayToolState::on_pressed(
         m_exec.playState(m_sm.model(), *id);
       break;
     }
-    case IntervalView::static_type():
+    case IntervalView::Type:
     {
       const auto& cst
           = safe_cast<const IntervalView*>(item)->presenter().model();

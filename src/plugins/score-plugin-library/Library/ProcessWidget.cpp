@@ -22,9 +22,8 @@ class InfoWidget final : public QScrollArea
 public:
   InfoWidget(QWidget* parent)
   {
-    setMinimumHeight(120);
-    setMaximumHeight(160);
-    auto lay = new QVBoxLayout{this};
+    auto lay = new score::MarginLess<QVBoxLayout>{this};
+    lay->setMargin(6);
     QFont f;
     f.setBold(true);
     m_name.setFont(f);
@@ -41,6 +40,11 @@ public:
 
   void setData(const optional<ProcessData>& d)
   {
+    m_author.setText(QString{});
+    m_description.setText(QString{});
+    m_io.setText(QString{});
+    m_tags.setText(QString{});
+
     if (d)
     {
       if (auto f = score::GUIAppContext()
@@ -48,10 +52,23 @@ public:
                        .get(d->key))
       {
         setVisible(true);
-        auto desc = f->descriptor(d->json["Data"].toString());
-        m_name.setText(desc.prettyName);
-        m_author.setText(tr("Provided by ") + desc.author);
-        m_description.setText(desc.description);
+        auto desc = f->descriptor(QString{/*TODO pass customdata ?*/});
+
+        if(!d->prettyName.isEmpty())
+          m_name.setText(d->prettyName);
+        else
+          m_name.setText(desc.prettyName);
+
+        if(!d->author.isEmpty())
+          m_author.setText(tr("Provided by ") + d->author);
+        else if(!desc.author.isEmpty())
+          m_author.setText(tr("Provided by ") + desc.author);
+
+        if(!d->description.isEmpty())
+          m_description.setText(d->description);
+        else if(!desc.description.isEmpty())
+          m_description.setText(desc.description);
+
         QString io;
         if (desc.inlets)
         {
@@ -71,10 +88,6 @@ public:
         if (!desc.tags.empty())
         {
           m_tags.setText(tr("Tags: ") + desc.tags.join(", "));
-        }
-        else
-        {
-          m_tags.clear();
         }
         return;
       }
@@ -96,22 +109,20 @@ ProcessWidget::ProcessWidget(
     : QWidget{parent}
     , m_processModel{new ProcessesItemModel{ctx, this}}
     , m_presetModel{new PresetItemModel{ctx, this}}
-    , m_split{Qt::Vertical, this}
 {
   auto slay = new score::MarginLess<QVBoxLayout>{this};
-  slay->addWidget(&m_split);
+  setLayout(slay);
+
   setStatusTip(QObject::tr("This panel shows the available processes.\n"
                            "They can be drag'n'dropped in the score, in intervals, "
                            "and sometimes in effect chains."));
-  auto top_w = new QWidget;
-  auto lay = new score::MarginLess<QVBoxLayout>{top_w};
 
   {
     auto processFilterProxy = new RecursiveFilterProxy{this};
     processFilterProxy->setSourceModel(m_processModel);
     processFilterProxy->setFilterKeyColumn(0);
-    lay->addWidget(new ItemModelFilterLineEdit{*processFilterProxy, m_tv, this});
-    lay->addWidget(&m_tv);
+    slay->addWidget(new ItemModelFilterLineEdit{*processFilterProxy, m_tv, this});
+    slay->addWidget(&m_tv, 3);
     m_tv.setModel(processFilterProxy);
     m_tv.setStatusTip(statusTip());
     setup_treeview(m_tv);
@@ -123,12 +134,15 @@ ProcessWidget::ProcessWidget(
     m_lv.setModel(presetFilterProxy);
     m_lv.setAcceptDrops(true);
     m_lv.setDragEnabled(true);
+    slay->addWidget(&m_lv, 1);
   }
 
   auto infoWidg = new InfoWidget{this};
   infoWidg->setStatusTip(statusTip());
+  slay->addWidget(infoWidg,1);
 
   connect(&m_tv, &ProcessTreeView::selected, this, [=](const auto& pdata) {
+
     infoWidg->setData(pdata);
     if(pdata)
       presetFilterProxy->currentFilter = pdata->key;
@@ -137,17 +151,7 @@ ProcessWidget::ProcessWidget(
     presetFilterProxy->invalidate();
   });
 
-  m_split.addWidget(top_w);
-  m_split.addWidget(&m_lv);
-  m_split.addWidget(infoWidg);
-  top_w->setMinimumHeight(100);
   m_lv.setMinimumHeight(100);
-  m_split.setCollapsible(0, false);
-  m_split.setCollapsible(1, false);
-  m_split.setCollapsible(2, false);
-  m_split.setStretchFactor(0, 3);
-  m_split.setStretchFactor(1, 1);
-  m_split.setStretchFactor(2, 1);
 }
 
 ProcessWidget::~ProcessWidget()

@@ -159,7 +159,8 @@ Box CreateBox(RecordContext& context)
       context.scenario,
       cmd_start->createdState(),
       default_end_date,
-      context.point.y};
+      context.point.y,
+      false};
   cmd_end->redo(context.context);
   context.dispatcher.submit(cmd_end);
 

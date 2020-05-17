@@ -27,14 +27,14 @@
 namespace Process
 {
 
-void NodeItem::resetInlets(const Process::ProcessModel& effect)
+void NodeItem::resetInlets()
 {
   qDeleteAll(m_inlets);
   m_inlets.clear();
   qreal x = InletX0;
   auto& portFactory
       = score::GUIAppContext().interfaces<Process::PortFactoryList>();
-  for (Process::Inlet* port : effect.inlets())
+  for (Process::Inlet* port : m_model.inlets())
   {
     if (port->hidden)
       continue;
@@ -49,7 +49,7 @@ void NodeItem::resetInlets(const Process::ProcessModel& effect)
   m_label->setPos(QPointF{x + 2., 0.});
 }
 
-void NodeItem::resetOutlets(const  Process::ProcessModel& effect)
+void NodeItem::resetOutlets()
 {
   qDeleteAll(m_outlets);
   m_outlets.clear();
@@ -57,7 +57,7 @@ void NodeItem::resetOutlets(const  Process::ProcessModel& effect)
   const qreal h = boundingRect().height() + OutletY0;
   auto& portFactory
       = score::AppContext().interfaces<Process::PortFactoryList>();
-  for (Process::Outlet* port : effect.outlets())
+  for (Process::Outlet* port : m_model.outlets())
   {
     if (port->hidden)
       continue;
@@ -104,14 +104,18 @@ NodeItem::NodeItem(
 
   if (!m_fx)
   {
-    m_fx = new Media::Effect::DefaultEffectItem{model, ctx, this};
+    m_fx = new Process::DefaultEffectItem{model, ctx, this};
     m_contentSize = m_fx->boundingRect().size();
   }
 
   m_contentSize = QSizeF{std::max(100., m_contentSize.width()), std::max(10., m_contentSize.height())};
 
-  resetInlets(model);
-  resetOutlets(model);
+  resetInlets();
+  resetOutlets();
+  connect(&model, &Process::ProcessModel::inletsChanged,
+          this, &NodeItem::resetInlets);
+  connect(&model, &Process::ProcessModel::outletsChanged,
+          this, &NodeItem::resetOutlets);
 
   if (m_ui)
   {
@@ -187,8 +191,8 @@ void NodeItem::setSize(QSizeF sz)
     m_presenter->on_zoomRatioChanged(m_ratio / sz.width());
     m_presenter->parentGeometryChanged();
 
-    resetInlets(m_model);
-    resetOutlets(m_model);
+    resetInlets();
+    resetOutlets();
     if (m_ui)
     {
       m_ui->setParentItem(this);
@@ -324,7 +328,8 @@ void NodeItem::hoverEnterEvent(QGraphicsSceneHoverEvent* event)
 {
   if (isInSelectionCorner(event->pos(), boundingRect()))
   {
-    setCursor(Qt::SizeFDiagCursor);
+    auto& skin = score::Skin::instance();
+    setCursor(skin.CursorScaleFDiag);
   }
   else
   {
@@ -338,7 +343,8 @@ void NodeItem::hoverMoveEvent(QGraphicsSceneHoverEvent* event)
 {
   if (isInSelectionCorner(event->pos(), boundingRect()))
   {
-    setCursor(Qt::SizeFDiagCursor);
+    auto& skin = score::Skin::instance();
+    setCursor(skin.CursorScaleFDiag);
   }
   else
   {

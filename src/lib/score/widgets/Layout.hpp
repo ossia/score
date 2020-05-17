@@ -38,7 +38,7 @@ public:
     this->setContentsMargins(2, 2, 2, 2);
     this->setMargin(0);
     this->setSpacing(3);
-    this->setLabelAlignment(Qt::AlignRight);
+   // this->setLabelAlignment(Qt::AlignRight);
   }
 };
 

@@ -2,7 +2,9 @@
 
 #include <Inspector/InspectorWidgetBase.hpp>
 #include <Process/TimeValue.hpp>
+#include <score/widgets/MarginLess.hpp>
 
+#include <QHBoxLayout>
 #include <vector>
 
 namespace Inspector
@@ -11,6 +13,7 @@ class InspectorSectionWidget;
 }
 class QCheckBox;
 class QLabel;
+class QToolButton;
 namespace Scenario
 {
 class MetadataWidget;
@@ -38,7 +41,9 @@ private:
 
   MetadataWidget* m_metadata{};
   QLabel* m_date{};
-  QCheckBox* m_autotrigger{};
+  QToolButton* m_autotrigger{};
+  QToolButton* m_isStart{};
   TriggerInspectorWidget* m_trigwidg{};
+  score::MarginLess<QHBoxLayout> m_btnLayout;
 };
 }

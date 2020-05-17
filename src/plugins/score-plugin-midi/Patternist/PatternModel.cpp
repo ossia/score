@@ -152,21 +152,24 @@ void DataStreamWriter::write(Patternist::Lane& proc)
 }
 
 template <>
-void JSONObjectReader::read(const Patternist::Lane& proc)
+void JSONReader::read(const Patternist::Lane& proc)
 {
-  obj["Note"] = proc.note;
-  QJsonArray arr;
-  for(bool b : proc.pattern)
-    arr.push_back(b ? 1 : 0);
-  obj["Pattern"] = arr;
+  obj["Note"] = (int)proc.note;
+
+  std::string str;
+  str.reserve(proc.pattern.size());
+  for(bool b: proc.pattern)
+    str.push_back(b? 'X' : '.');
+
+  obj["Pattern"] = str;
 }
 
 template <>
-void JSONObjectWriter::write(Patternist::Lane& proc)
+void JSONWriter::write(Patternist::Lane& proc)
 {
   proc.note = obj["Note"].toInt();
-  for(QJsonValue val : obj["Pattern"].toArray())
-    proc.pattern.push_back(val.toInt() == 1);
+  for(char c: obj["Pattern"].toStdString())
+    proc.pattern.push_back(c == 'X');
 }
 
 
@@ -184,19 +187,19 @@ void DataStreamWriter::write(Patternist::Pattern& proc)
 }
 
 template <>
-void JSONObjectReader::read(const Patternist::Pattern& proc)
+void JSONReader::read(const Patternist::Pattern& proc)
 {
   obj["Length"] = proc.length;
   obj["Division"] = proc.division;
-  obj["Lanes"] = toJsonArray(proc.lanes);
+  obj["Lanes"] = proc.lanes;
 }
 
 template <>
-void JSONObjectWriter::write(Patternist::Pattern& proc)
+void JSONWriter::write(Patternist::Pattern& proc)
 {
   proc.length = obj["Length"].toInt();
   proc.division = obj["Division"].toInt();
-  fromJsonArray(obj["Lanes"].toArray(), proc.lanes);
+  proc.lanes <<= obj["Lanes"];
 }
 
 
@@ -219,22 +222,22 @@ void DataStreamWriter::write(Patternist::ProcessModel& proc)
 }
 
 template <>
-void JSONObjectReader::read(const Patternist::ProcessModel& proc)
+void JSONReader::read(const Patternist::ProcessModel& proc)
 {
-  obj["Outlet"] = toJsonObject(*proc.outlet);
+  obj["Outlet"] = *proc.outlet;
   obj["Channel"] = proc.m_channel;
   obj["Pattern"] = proc.m_currentPattern;
-  obj["Patterns"] = toJsonArray(proc.m_patterns);
+  obj["Patterns"] = proc.m_patterns;
 }
 
 template <>
-void JSONObjectWriter::write(Patternist::ProcessModel& proc)
+void JSONWriter::write(Patternist::ProcessModel& proc)
 {
   {
-    JSONObjectWriter writer{obj["Outlet"].toObject()};
+    JSONWriter writer{obj["Outlet"]};
     proc.outlet = Process::load_midi_outlet(writer, &proc);
   }
   proc.m_channel = obj["Channel"].toInt();
   proc.m_currentPattern = obj["Pattern"].toInt();
-  fromJsonArray(obj["Patterns"].toArray(), proc.m_patterns);
+  proc.m_patterns <<= obj["Patterns"];
 }

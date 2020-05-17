@@ -8,6 +8,7 @@
 
 #include <score/application/ApplicationContext.hpp>
 #include <score/model/EntityMap.hpp>
+#include <score/model/EntityMapSerialization.hpp>
 #include <score/model/Identifier.hpp>
 #include <score/model/ModelMetadata.hpp>
 #include <score/model/path/PathSerialization.hpp>
@@ -20,8 +21,9 @@
 #include <score/serialization/JSONVisitor.hpp>
 #include <score/tools/std/Optional.hpp>
 
-#include <QJsonArray>
-
+static_assert(is_template<Scenario::Rack>::value);
+static_assert(std::is_same_v<serialization_tag<Scenario::Rack>::type, visitor_template_tag>);
+static_assert(std::is_same_v<serialization_tag<Scenario::FullRack>::type, visitor_template_tag>);
 template <>
 SCORE_PLUGIN_SCENARIO_EXPORT void
 DataStreamReader::read(const ossia::time_signature& slot)
@@ -34,19 +36,25 @@ SCORE_PLUGIN_SCENARIO_EXPORT void DataStreamWriter::write(ossia::time_signature&
 {
   m_stream >> slot.upper >> slot.lower;
 }
+
 template <>
 SCORE_PLUGIN_SCENARIO_EXPORT void
-JSONValueReader::read(const ossia::time_signature& slot)
+JSONReader::read(const ossia::time_signature& slot)
 {
-  val = QJsonArray{slot.upper, slot.lower};
+  stream.StartArray();
+  stream.Int(slot.upper);
+  stream.Int(slot.lower);
+  stream.EndArray();
 }
 template <>
-SCORE_PLUGIN_SCENARIO_EXPORT void JSONValueWriter::write(ossia::time_signature& slot)
+SCORE_PLUGIN_SCENARIO_EXPORT
+void JSONWriter::write(ossia::time_signature& slot)
 {
-  const auto& arr = val.toArray();
-  slot.upper = arr[0].toInt();
-  slot.lower = arr[1].toInt();
+  const auto& arr = base.GetArray();
+  slot.upper = arr[0].GetInt();
+  slot.lower = arr[1].GetInt();
 }
+
 
 
 template <>
@@ -64,19 +72,19 @@ SCORE_PLUGIN_SCENARIO_EXPORT void DataStreamWriter::write(Scenario::Slot& slot)
 
 template <>
 SCORE_PLUGIN_SCENARIO_EXPORT void
-JSONObjectReader::read(const Scenario::Slot& slot)
+JSONReader::read(const Scenario::Slot& slot)
 {
-  obj[strings.Processes] = toJsonValueArray(slot.processes);
-  obj[strings.Process] = toJsonValue(slot.frontProcess);
+  stream.StartObject();
+  obj[strings.Processes] = slot.processes;
+  obj[strings.Process] = slot.frontProcess;
   obj[strings.Height] = slot.height;
+  stream.EndObject();
 }
 template <>
-SCORE_PLUGIN_SCENARIO_EXPORT void JSONObjectWriter::write(Scenario::Slot& slot)
+SCORE_PLUGIN_SCENARIO_EXPORT void JSONWriter::write(Scenario::Slot& slot)
 {
-  slot.processes = fromJsonValueArray<decltype(slot.processes)>(
-      obj[strings.Processes].toArray());
-  slot.frontProcess
-      = fromJsonValue<decltype(slot.frontProcess)>(obj[strings.Process]);
+  slot.processes <<= obj[strings.Processes];
+  slot.frontProcess <<= obj[strings.Process];
   slot.height = obj[strings.Height].toDouble();
 }
 
@@ -96,15 +104,17 @@ DataStreamWriter::write(Scenario::FullSlot& slot)
 
 template <>
 SCORE_PLUGIN_SCENARIO_EXPORT void
-JSONObjectReader::read(const Scenario::FullSlot& slot)
+JSONReader::read(const Scenario::FullSlot& slot)
 {
-  obj[strings.Process] = toJsonValue(slot.process);
+  stream.StartObject();
+  obj[strings.Process] = slot.process;
+  stream.EndObject();
 }
 template <>
 SCORE_PLUGIN_SCENARIO_EXPORT void
-JSONObjectWriter::write(Scenario::FullSlot& slot)
+JSONWriter::write(Scenario::FullSlot& slot)
 {
-  slot.process = fromJsonValue<decltype(slot.process)>(obj[strings.Process]);
+  slot.process <<= obj[strings.Process];
 }
 
 template <>
@@ -126,6 +136,15 @@ SCORE_PLUGIN_SCENARIO_EXPORT void
 DataStreamReader::read(const Scenario::IntervalModel& interval)
 {
   insertDelimiter();
+  m_stream << interval.m_graphal;
+  if(interval.m_graphal)
+  {
+    m_stream
+        << interval.duration << interval.m_startState << interval.m_endState
+        << interval.m_date << interval.m_heightPercentage;
+    return;
+  }
+
   // Ports
   m_stream << *interval.inlet << *interval.outlet;
 
@@ -157,6 +176,16 @@ SCORE_PLUGIN_SCENARIO_EXPORT void
 DataStreamWriter::write(Scenario::IntervalModel& interval)
 {
   checkDelimiter();
+  bool gr{};
+  m_stream >> gr;
+  if((interval.m_graphal = gr))
+  {
+    m_stream
+        >> interval.duration >> interval.m_startState >> interval.m_endState
+        >> interval.m_date >> interval.m_heightPercentage;
+    return;
+  }
+
   // Ports
   interval.inlet = Process::load_audio_inlet(*this, &interval);
   interval.outlet = Process::load_audio_outlet(*this, &interval);
@@ -205,18 +234,30 @@ DataStreamWriter::write(Scenario::IntervalModel& interval)
 
 template <>
 SCORE_PLUGIN_SCENARIO_EXPORT void
-JSONObjectReader::read(const Scenario::IntervalModel& interval)
+JSONReader::read(const Scenario::IntervalModel& interval)
 {
+  if(interval.graphal())
+  {
+    obj["Graphal"] = true;
+    readFrom(interval.duration);
+    obj[strings.StartState] = interval.m_startState;
+    obj[strings.EndState] = interval.m_endState;
+
+    obj[strings.StartDate] = interval.m_date;
+    obj[strings.HeightPercentage] = interval.m_heightPercentage;
+    return;
+  }
+
   // Ports
-  obj["Inlet"] = toJsonObject(*interval.inlet);
-  obj["Outlet"] = toJsonObject(*interval.outlet);
+  obj["Inlet"] = *interval.inlet;
+  obj["Outlet"] = *interval.outlet;
 
   // Processes
-  obj[strings.Processes] = toJsonArray(interval.processes);
+  obj[strings.Processes] = interval.processes;
 
   // Rackes
-  obj[strings.SmallViewRack] = toJsonArray(interval.smallView());
-  obj[strings.FullViewRack] = toJsonArray(interval.fullView());
+  obj[strings.SmallViewRack] = interval.smallView();
+  obj[strings.FullViewRack] = interval.fullView();
 
 
   // Common data
@@ -225,16 +266,16 @@ JSONObjectReader::read(const Scenario::IntervalModel& interval)
   // rest of the interval
   readFrom(interval.duration);
 
-  obj["Signatures"] = toJsonValue(interval.m_signatures);
+  obj["Signatures"] = interval.m_signatures;
 
-  obj[strings.StartState] = toJsonValue(interval.m_startState);
-  obj[strings.EndState] = toJsonValue(interval.m_endState);
+  obj[strings.StartState] = interval.m_startState;
+  obj[strings.EndState] = interval.m_endState;
 
-  obj[strings.StartDate] = toJsonValue(interval.m_date);
+  obj[strings.StartDate] = interval.m_date;
   obj[strings.HeightPercentage] = interval.m_heightPercentage;
 
   obj[strings.Zoom] = interval.m_zoom;
-  obj[strings.Center] = toJsonValue(interval.m_center);
+  obj[strings.Center] = interval.m_center;
   obj["ViewMode"] = (int) interval.m_viewMode;
   obj[strings.SmallViewShown] = interval.m_smallViewShown;
 
@@ -244,23 +285,38 @@ JSONObjectReader::read(const Scenario::IntervalModel& interval)
 
 template <>
 SCORE_PLUGIN_SCENARIO_EXPORT void
-JSONObjectWriter::write(Scenario::IntervalModel& interval)
+JSONWriter::write(Scenario::IntervalModel& interval)
 {
+  if(auto it = obj.tryGet("Graphal"); it && it->toBool())
   {
-    JSONObjectWriter writer{obj["Inlet"].toObject()};
+    interval.m_graphal = true;
+    writeTo(interval.duration);
+
+    interval.m_startState
+        <<= obj[strings.StartState];
+    interval.m_endState
+        <<= obj[strings.EndState];
+
+    interval.m_date <<= obj[strings.StartDate];
+    interval.m_heightPercentage = obj[strings.HeightPercentage].toDouble();
+    return;
+  }
+
+  {
+    JSONWriter writer{obj["Inlet"]};
     interval.inlet = Process::load_audio_inlet(writer, &interval);
   }
   {
-    JSONObjectWriter writer{obj["Outlet"].toObject()};
+    JSONWriter writer{obj["Outlet"]};
     interval.outlet = Process::load_audio_outlet(writer, &interval);
   }
 
   static auto& pl = components.interfaces<Process::ProcessFactoryList>();
 
-  const QJsonArray process_array = obj[strings.Processes].toArray();
+  const auto& process_array = obj[strings.Processes].toArray();
   for (const auto& json_vref : process_array)
   {
-    JSONObject::Deserializer deserializer{json_vref.toObject()};
+    JSONObject::Deserializer deserializer{json_vref};
     auto proc = deserialize_interface(pl, deserializer, interval.context(), &interval);
     if (proc)
       interval.processes.add(proc);
@@ -271,7 +327,7 @@ JSONObjectWriter::write(Scenario::IntervalModel& interval)
   auto sv_it = obj.constFind(strings.SmallViewRack);
   if (sv_it != obj.constEnd())
   {
-    fromJsonArray(sv_it->toArray(), interval.m_smallView);
+    interval.m_smallView <<= *sv_it;
     interval.m_smallViewShown = obj[strings.SmallViewShown].toBool();
   }
   else if (!interval.processes.empty())
@@ -288,7 +344,7 @@ JSONObjectWriter::write(Scenario::IntervalModel& interval)
   auto fv_it = obj.constFind(strings.FullViewRack);
   if (fv_it != obj.constEnd())
   {
-    fromJsonArray(fv_it->toArray(), interval.m_fullView);
+    interval.m_fullView <<= *fv_it;
   }
   else
   {
@@ -300,23 +356,21 @@ JSONObjectWriter::write(Scenario::IntervalModel& interval)
 
   writeTo(interval.duration);
 
-  interval.m_signatures = fromJsonValue<Scenario::TimeSignatureMap>(obj["Signatures"].toArray());
+  interval.m_signatures <<= obj["Signatures"];
 
-  interval.m_startState
-      = fromJsonValue<Id<Scenario::StateModel>>(obj[strings.StartState]);
-  interval.m_endState
-      = fromJsonValue<Id<Scenario::StateModel>>(obj[strings.EndState]);
+  interval.m_startState <<= obj[strings.StartState];
+  interval.m_endState <<= obj[strings.EndState];
 
-  interval.m_date = fromJsonValue<TimeVal>(obj[strings.StartDate]);
+  interval.m_date <<= obj[strings.StartDate];
   interval.m_heightPercentage = obj[strings.HeightPercentage].toDouble();
   interval.m_viewMode = static_cast<Scenario::IntervalModel::ViewMode>(obj["ViewMode"].toInt());
 
-  auto zit = obj.find(strings.Zoom);
-  if (zit != obj.end())
+  auto zit = obj.constFind(strings.Zoom);
+  if (zit != obj.constEnd())
     interval.m_zoom = zit->toDouble();
-  auto cit = obj.find(strings.Center);
-  if (cit != obj.end() && cit->isDouble())
-    interval.m_center = fromJsonValue<TimeVal>(*cit);
+  auto cit = obj.constFind(strings.Center);
+  if (cit != obj.constEnd() && cit->isDouble())
+    interval.m_center <<= *cit;
 
   interval.m_hasSignature = obj["HasSignature"] .toBool();
 

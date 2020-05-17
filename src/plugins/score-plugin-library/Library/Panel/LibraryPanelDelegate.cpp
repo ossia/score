@@ -18,52 +18,94 @@
 #include <QTabWidget>
 namespace Library
 {
-PanelDelegate::PanelDelegate(const score::GUIApplicationContext& ctx)
-    : score::PanelDelegate{ctx}, m_widget{new QTabWidget}
+UserPanel::UserPanel(const score::GUIApplicationContext& ctx)
+    : score::PanelDelegate{ctx}
+    , m_widget{new SystemLibraryWidget{ctx, nullptr}}
 {
-  m_widget->setStatusTip(QObject::tr("This panel allows to browse medias, presets and processes."));
-
-  m_widget->addTab(
-      new SystemLibraryWidget{ctx, m_widget}, QObject::tr("System"));
-
-
-  m_projectView = new ProjectLibraryWidget{ctx, m_widget};
-  m_widget->addTab(m_projectView, QObject::tr("Project"));
-
-  m_widget->addTab(new ProcessWidget{ctx, m_widget}, QObject::tr("Processes"));
-
-  m_widget->setObjectName("LibraryExplorer");
+  m_widget->setStatusTip(QObject::tr("This panel allows to browse medias and presets in the documents. \n"
+                                     "Check for library updates on \n"
+                                     "github.com/OSSIA/score-user-library"));
 }
 
-QWidget* PanelDelegate::widget()
+QWidget* UserPanel::widget()
 {
   return m_widget;
 }
 
-const score::PanelStatus& PanelDelegate::defaultPanelStatus() const
+const score::PanelStatus& UserPanel::defaultPanelStatus() const
 {
   static const score::PanelStatus status{true, false,
                                          Qt::LeftDockWidgetArea,
-                                         0,
-                                         QObject::tr("Library"),
+                                         40,
+                                         QObject::tr("User Library"),
+                                         "library",
                                          QObject::tr("Ctrl+Shift+B")};
 
   return status;
 }
 
-void PanelDelegate::on_modelChanged(
+
+
+ProjectPanel::ProjectPanel(const score::GUIApplicationContext& ctx)
+    : score::PanelDelegate{ctx}
+    , m_widget{new ProjectLibraryWidget{ctx, nullptr}}
+{
+  m_widget->setStatusTip(QObject::tr("This panel allows to browse the content of the folder of the current project."));
+}
+
+QWidget* ProjectPanel::widget()
+{
+  return m_widget;
+}
+
+const score::PanelStatus& ProjectPanel::defaultPanelStatus() const
+{
+  static const score::PanelStatus status{true, false,
+                                         Qt::LeftDockWidgetArea,
+                                         30,
+                                         QObject::tr("Project folder"),
+                                         "project",
+                                         QObject::tr("Ctrl+Shift+L")};
+
+  return status;
+}
+
+void ProjectPanel::on_modelChanged(
     score::MaybeDocument oldm,
     score::MaybeDocument newm)
 {
   if (newm)
   {
-    if (auto file = newm->document.metadata().fileName(); QFile::exists(file))
-    {
-      m_projectView->setRoot(QFileInfo{file}.absolutePath());
-      return;
-    }
+    auto& meta = newm->document.metadata();
+    m_widget->setRoot(meta);
+    return;
   }
 
-  m_projectView->setRoot({});
+  m_widget->unsetRoot();
 }
+
+
+ProcessPanel::ProcessPanel(const score::GUIApplicationContext& ctx)
+    : score::PanelDelegate{ctx}, m_widget{new ProcessWidget{ctx, nullptr}}
+{
+  m_widget->setStatusTip(QObject::tr("This panel allows to list available processes, effects and plug-ins."));
+}
+
+QWidget* ProcessPanel::widget()
+{
+  return m_widget;
+}
+
+const score::PanelStatus& ProcessPanel::defaultPanelStatus() const
+{
+  static const score::PanelStatus status{true, false,
+                                         Qt::LeftDockWidgetArea,
+                                         50,
+                                         QObject::tr("Processes"),
+                                         "process_library",
+                                         QObject::tr("Ctrl+Shift+P")};
+
+  return status;
+}
+
 }

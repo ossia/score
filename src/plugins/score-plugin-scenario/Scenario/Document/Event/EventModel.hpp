@@ -2,6 +2,7 @@
 #include <Process/TimeValue.hpp>
 #include <Scenario/Document/Event/ExecutionStatus.hpp>
 #include <State/Expression.hpp>
+#include <Scenario/Document/Metatypes.hpp>
 
 #include <score/model/Component.hpp>
 #include <score/model/EntityImpl.hpp>
@@ -54,8 +55,8 @@ public:
   }
 
   // Timenode
-  void changeTimeSync(const Id<TimeSyncModel>& elt) { m_timeSync = elt; }
-  const auto& timeSync() const noexcept { return m_timeSync; }
+  void changeTimeSync(const Id<TimeSyncModel>& elt);
+  const Id<TimeSyncModel>& timeSync() const noexcept { return m_timeSync; }
 
   // States
   void addState(const Id<StateModel>& ds);
@@ -90,6 +91,8 @@ public:
       E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, statusChanged, status)
   void offsetBehaviorChanged(OffsetBehavior arg_1)
       E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, offsetBehaviorChanged, arg_1)
+  void timeSyncChanged(Id<Scenario::TimeSyncModel> oldt, Id<Scenario::TimeSyncModel> newt)
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, timeSyncChanged, oldt, newt)
 
 private:
   Id<TimeSyncModel> m_timeSync;
@@ -110,8 +113,3 @@ private:
 
 DEFAULT_MODEL_METADATA(Scenario::EventModel, "Event")
 TR_TEXT_METADATA(, Scenario::EventModel, PrettyName_k, "Event")
-Q_DECLARE_METATYPE(Id<Scenario::EventModel>)
-W_REGISTER_ARGTYPE(Id<Scenario::EventModel>)
-W_REGISTER_ARGTYPE(Scenario::EventModel)
-W_REGISTER_ARGTYPE(const Scenario::EventModel&)
-W_REGISTER_ARGTYPE(Scenario::EventModel&)

@@ -10,9 +10,6 @@
 [submodule "Documentation/Doxygen/doxygen-bootstrapped"]
 	path = docs/Doxygen/doxygen-bootstrapped
 	url = https://github.com/Velron/doxygen-bootstrapped
-[submodule "3rdparty/desktopqqc2style"]
-	path = src/lib/resources/desktopqqc2style
-	url = https://github.com/KDE/qqc2-desktop-style
 [submodule "3rdparty/phantomstyle"]
 	path = 3rdparty/phantomstyle
 	url = https://github.com/jcelerier/phantomstyle
@@ -22,3 +19,6 @@
 [submodule "3rdparty/magicitems"]
 	path = 3rdparty/magicitems
 	url = https://github.com/jcelerier/magicitems
+[submodule "3rdparty/QCodeEditor"]
+	path = 3rdparty/QCodeEditor
+	url = https://github.com/cpeditor/QCodeEditor

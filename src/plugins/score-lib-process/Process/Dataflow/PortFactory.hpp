@@ -95,33 +95,6 @@ private:
 };
 
 SCORE_LIB_PROCESS_EXPORT
-void writeInlets(
-    DataStreamWriter& wr,
-    const Process::PortFactoryList& pl,
-    Process::Inlets& ports,
-    QObject* parent);
-
-SCORE_LIB_PROCESS_EXPORT
-void writeInlets(
-    const QJsonArray& wr,
-    const Process::PortFactoryList& pl,
-    Process::Inlets& ports,
-    QObject* parent);
-
-SCORE_LIB_PROCESS_EXPORT
-void writeOutlets(
-    DataStreamWriter& wr,
-    const Process::PortFactoryList& pl,
-    Process::Outlets& ports,
-    QObject* parent);
-SCORE_LIB_PROCESS_EXPORT
-void writeOutlets(
-    const QJsonArray& wr,
-    const Process::PortFactoryList& pl,
-    Process::Outlets& ports,
-    QObject* parent);
-
-SCORE_LIB_PROCESS_EXPORT
 void readPorts(
     DataStreamReader& wr,
     const Process::Inlets& ins,
@@ -129,7 +102,7 @@ void readPorts(
 
 SCORE_LIB_PROCESS_EXPORT
 void readPorts(
-    QJsonObject& obj,
+    JSONReader& obj,
     const Process::Inlets& ins,
     const Process::Outlets& outs);
 
@@ -143,7 +116,7 @@ void writePorts(
 
 SCORE_LIB_PROCESS_EXPORT
 void writePorts(
-    const QJsonObject& obj,
+    const JSONWriter& obj,
     const Process::PortFactoryList& pl,
     Process::Inlets& ins,
     Process::Outlets& outs,

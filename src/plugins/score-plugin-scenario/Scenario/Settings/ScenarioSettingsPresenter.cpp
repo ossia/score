@@ -8,6 +8,7 @@
 #include <score/command/Command.hpp>
 #include <score/command/Dispatchers/ICommandDispatcher.hpp>
 #include <score/command/SettingsCommand.hpp>
+#include <score/widgets/SetIcons.hpp>
 
 #include <QApplication>
 #include <QStyle>
@@ -46,12 +47,15 @@ Presenter::Presenter(Model& m, View& v, QObject* parent)
 
 QString Presenter::settingsName()
 {
-  return tr("Theme");
+  return tr("User interface");
 }
 
 QIcon Presenter::settingsIcon()
 {
-  return QApplication::style()->standardIcon(QStyle::SP_DesktopIcon);
+  return makeIcons(QStringLiteral(":/icons/settings_ui_on.png")
+                   , QStringLiteral(":/icons/settings_ui_off.png")
+                   , QStringLiteral(":/icons/settings_ui_off.png"));
+
 }
 }
 }

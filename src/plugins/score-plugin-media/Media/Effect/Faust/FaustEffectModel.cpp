@@ -72,10 +72,14 @@ FaustEffectModel::~FaustEffectModel() {}
 
 void FaustEffectModel::setText(const QString& txt)
 {
-  m_text = txt;
-  if (m_text.isEmpty())
-    m_text = "process = _;";
-  reload();
+  if(txt != m_text)
+  {
+    m_text = txt;
+    if (m_text.isEmpty())
+      m_text = "process = _;";
+    reload();
+    textChanged(m_text);
+  }
 }
 
 void FaustEffectModel::init() {}
@@ -288,7 +292,10 @@ void FaustEffectModel::reload()
   dsp_factories.insert(fac);
 
   if (err[0] != 0)
+  {
+    errorMessage(0, QString::fromStdString(err));
     qDebug() << "Faust error: " << err;
+  }
   if (!fac)
   {
     // TODO mark as invalid, like JS
@@ -340,51 +347,6 @@ void FaustEffectModel::reload()
   changed();
 }
 
-InspectorWidget::InspectorWidget(
-    const Media::Faust::FaustEffectModel& fx,
-    const score::DocumentContext& doc,
-    QWidget* parent)
-    : InspectorWidgetDelegate_T{fx, parent}
-{
-  auto lay = new QVBoxLayout{this};
-  this->setLayout(lay);
-  m_textedit = new QPlainTextEdit{fx.text(), this};
-
-  lay->addWidget(m_textedit);
-
-  connect(m_textedit, &QPlainTextEdit::textChanged, this, [&] {
-    CommandDispatcher<>{doc.commandStack}.submit(
-        new Media::EditFaustEffect{fx, m_textedit->document()->toPlainText()});
-  });
-}
-
-FaustEditDialog::FaustEditDialog(
-    const FaustEffectModel& fx,
-    const score::DocumentContext& ctx,
-    QWidget* parent)
-    : QDialog{parent}, m_effect{fx}
-{
-  this->setWindowFlag(Qt::WindowCloseButtonHint, false);
-  auto lay = new QVBoxLayout{this};
-  this->setLayout(lay);
-
-  m_textedit = new QPlainTextEdit{m_effect.text(), this};
-
-  lay->addWidget(m_textedit);
-  auto bbox = new QDialogButtonBox{
-      QDialogButtonBox::Ok | QDialogButtonBox::Close, this};
-  lay->addWidget(bbox);
-  connect(bbox, &QDialogButtonBox::accepted, this, [&] {
-    CommandDispatcher<>{ctx.commandStack}.submit(
-        new Media::EditFaustEffect{fx, text()});
-  });
-  connect(bbox, &QDialogButtonBox::rejected, this, &QDialog::reject);
-}
-
-QString FaustEditDialog::text() const
-{
-  return m_textedit->document()->toPlainText();
-}
 }
 
 template <>
@@ -409,17 +371,17 @@ void DataStreamWriter::write(Media::Faust::FaustEffectModel& eff)
 }
 
 template <>
-void JSONObjectReader::read(const Media::Faust::FaustEffectModel& eff)
+void JSONReader::read(const Media::Faust::FaustEffectModel& eff)
 {
-  readPorts(obj, eff.m_inlets, eff.m_outlets);
+  readPorts(*this, eff.m_inlets, eff.m_outlets);
   obj["Text"] = eff.text();
 }
 
 template <>
-void JSONObjectWriter::write(Media::Faust::FaustEffectModel& eff)
+void JSONWriter::write(Media::Faust::FaustEffectModel& eff)
 {
   writePorts(
-      obj,
+      *this,
       components.interfaces<Process::PortFactoryList>(),
       eff.m_inlets,
       eff.m_outlets,
@@ -464,13 +426,9 @@ FaustEffectComponent::FaustEffectComponent(
     if(this->node)
     {
       setup.register_node(process(), this->node);
-      std::vector<ExecutionCommand> commands;
+      Execution::Transaction commands{ctx};
       nodeChanged(old_node, this->node, commands);
-      // TODO add a "exec all commands macro
-      in_exec([f = std::move(commands)] {
-        for (auto& cmd : f)
-          cmd();
-      });
+      commands.run_all();
     }
   });
 }

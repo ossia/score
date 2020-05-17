@@ -22,6 +22,7 @@ namespace score
 {
 class Presenter;
 class View;
+class StartScreen;
 }
 
 /**
@@ -54,6 +55,7 @@ public:
 
 private:
   void initDocuments();
+  void openNewDocument();
 
   // Base stuff.
   QCoreApplication* m_app;
@@ -63,6 +65,7 @@ private:
   // MVP
   score::View* m_view{};
   score::Presenter* m_presenter{};
+  score::StartScreen* m_startScreen{};
 
   score::ApplicationSettings m_applicationSettings;
 };

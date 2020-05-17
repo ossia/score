@@ -11,6 +11,7 @@
 #include <score/document/DocumentInterface.hpp>
 #include <score/model/Identifier.hpp>
 #include <score/model/EntitySerialization.hpp>
+#include <score/model/EntityMapSerialization.hpp>
 #include <score/model/ModelMetadata.hpp>
 #include <score/model/tree/TreeNode.hpp>
 #include <score/model/tree/TreeNodeSerialization.hpp>
@@ -18,21 +19,6 @@
 #include <score/serialization/JSONValueVisitor.hpp>
 #include <score/serialization/JSONVisitor.hpp>
 #include <score/plugins/SerializableHelpers.hpp>
-
-#include <QJsonArray>
-
-
-namespace Scenario
-{
-class IntervalModel;
-class EventModel;
-}
-template <typename T>
-class Reader;
-template <typename T>
-class Writer;
-template <typename model>
-class IdentifiedObject;
 
 template <>
 SCORE_PLUGIN_SCENARIO_EXPORT void
@@ -46,11 +32,7 @@ DataStreamReader::read(const Scenario::StateModel& s)
   m_stream << s.m_controlItemModel->messages();
 
   // Processes plugins
-  m_stream << (int32_t)s.stateProcesses.size();
-  for (const auto& process : s.stateProcesses)
-  {
-    readFrom(process);
-  }
+  m_stream << s.stateProcesses;
 
   insertDelimiter();
 }
@@ -75,68 +57,47 @@ DataStreamWriter::write(Scenario::StateModel& s)
   s.m_controlItemModel->replaceWith(std::move(ctrls));
 
   // Processes plugins
-  int32_t process_count;
-  m_stream >> process_count;
-  auto& pl = components.interfaces<Process::ProcessFactoryList>();
-  for (; process_count-- > 0;)
-  {
-    auto proc = deserialize_interface(pl, *this, s.m_context, &s);
-    if (proc)
-      s.stateProcesses.add(proc);
-    else
-      SCORE_TODO;
-  }
+  EntityMapSerializer::writeTo<Process::ProcessFactoryList>(*this, s.stateProcesses, s.m_context, &s);
 
   checkDelimiter();
 }
 
 template <>
 SCORE_PLUGIN_SCENARIO_EXPORT void
-JSONObjectReader::read(const Scenario::StateModel& s)
+JSONReader::read(const Scenario::StateModel& s)
 {
-  obj[strings.Event] = toJsonValue(s.m_eventId);
-  obj[strings.PreviousInterval] = toJsonValue(s.m_previousInterval);
-  obj[strings.NextInterval] = toJsonValue(s.m_nextInterval);
+  obj[strings.Event] = s.m_eventId;
+  obj[strings.PreviousInterval] = s.m_previousInterval;
+  obj[strings.NextInterval] = s.m_nextInterval;
   obj[strings.HeightPercentage] = s.m_heightPercentage;
 
   // Message tree
-  obj[strings.Messages] = toJsonObject(s.m_messageItemModel->rootNode());
-  obj["Controls"] = toJsonValueArray(s.m_controlItemModel->messages());
+  obj[strings.Messages] = s.m_messageItemModel->rootNode();
+  obj["Controls"] = s.m_controlItemModel->messages();
 
   // Processes plugins
-  obj[strings.StateProcesses] = toJsonArray(s.stateProcesses);
+  obj[strings.StateProcesses] = s.stateProcesses;
 }
 
 template <>
 SCORE_PLUGIN_SCENARIO_EXPORT void
-JSONObjectWriter::write(Scenario::StateModel& s)
+JSONWriter::write(Scenario::StateModel& s)
 {
-  s.m_eventId = fromJsonValue<Id<Scenario::EventModel>>(obj[strings.Event]);
-  s.m_previousInterval = fromJsonValue<OptionalId<Scenario::IntervalModel>>(
-      obj[strings.PreviousInterval]);
-  s.m_nextInterval = fromJsonValue<OptionalId<Scenario::IntervalModel>>(
-      obj[strings.NextInterval]);
+  s.m_eventId <<= obj[strings.Event];
+  s.m_previousInterval <<= obj[strings.PreviousInterval];
+  s.m_nextInterval <<= obj[strings.NextInterval];
   s.m_heightPercentage = obj[strings.HeightPercentage].toDouble();
 
   // Message tree
   s.m_messageItemModel = new Scenario::MessageItemModel{s, &s};
-  s.messages() = fromJsonObject<Process::MessageNode>(obj[strings.Messages]);
+  s.messages() = obj[strings.Messages].to<Process::MessageNode>();
 
-  auto ctrls = fromJsonValueArray<std::vector<Process::ControlMessage>>(obj["Controls"].toArray());
+  auto ctrls = obj["Controls"].to<std::vector<Process::ControlMessage>>();
   s.m_controlItemModel = new Scenario::ControlItemModel{s, &s};
   s.m_controlItemModel->replaceWith(std::move(ctrls));
 
   // Processes plugins
-  auto& pl = components.interfaces<Process::ProcessFactoryList>();
-
-  const QJsonArray process_array = obj[strings.StateProcesses].toArray();
-  for (const auto& json_vref : process_array)
-  {
-    JSONObject::Deserializer deserializer{json_vref.toObject()};
-    auto proc = deserialize_interface(pl, deserializer, s.m_context, &s);
-    if (proc)
-      s.stateProcesses.add(proc);
-    else
-      SCORE_TODO;
-  }
+  EntityMapSerializer::writeTo<Process::ProcessFactoryList>(
+        JSONWriter(obj[strings.StateProcesses].obj),
+        s.stateProcesses, s.m_context, &s);
 }

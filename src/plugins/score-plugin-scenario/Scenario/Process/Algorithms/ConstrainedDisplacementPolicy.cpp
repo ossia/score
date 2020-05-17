@@ -20,14 +20,14 @@ void ConstrainedDisplacementPolicy::computeDisplacement(
     return;
   auto tn_id = draggedElements[0];
   auto& tn = scenario.timeSyncs.at(tn_id);
-  const auto& intervalsBefore = Scenario::previousIntervals(tn, scenario);
-  const auto& intervalsAfter = Scenario::nextIntervals(tn, scenario);
+  const auto& intervalsBefore = Scenario::previousNonGraphIntervals(tn, scenario);
+  const auto& intervalsAfter = Scenario::nextNonGraphIntervals(tn, scenario);
   QObjectList processesToSave;
 
   // 1. Find the delta bounds.
   // We have to stop as soon as a interval would become too small.
-  TimeVal min = TimeVal::infinite();
-  TimeVal max = TimeVal::infinite();
+  TimeVal min{TimeVal::infinity};
+  TimeVal max{TimeVal::infinity};
   for (const auto& id : intervalsBefore)
   {
     auto it = elementsProperties.intervals.find(id);
@@ -76,11 +76,11 @@ void ConstrainedDisplacementPolicy::computeDisplacement(
 
   // 2. Rescale deltaTime
   auto dt = deltaTime;
-  if (min != TimeVal::infinite() && dt < TimeVal::zero() && dt < -min)
+  if (min != TimeVal{TimeVal::infinity} && dt < TimeVal::zero() && dt < -min)
   {
     dt = -min;
   }
-  else if (max != TimeVal::infinite() && dt > TimeVal::zero() && dt > max)
+  else if (max != TimeVal{TimeVal::infinity} && dt > TimeVal::zero() && dt > max)
   {
     dt = max;
   }

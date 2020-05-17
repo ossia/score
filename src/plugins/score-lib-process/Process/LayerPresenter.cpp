@@ -34,7 +34,7 @@ void LayerPresenter::handlePresetDrop(const QPointF&, const QMimeData& mime)
 {
   auto data = mime.data(score::mime::processpreset());
   auto& procs = m_context.context.app.interfaces<Process::ProcessFactoryList>();
-  if(auto preset = Process::Preset::fromJson(procs, QJsonDocument::fromJson(data).object()))
+  if(auto preset = Process::Preset::fromJson(procs, data))
   {
     // TODO effect
     if(preset->key.key == m_process.concreteKey())

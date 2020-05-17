@@ -13,6 +13,8 @@
 #include <Scenario/Palette/Tools/ScenarioRollbackStrategy.hpp>
 #include <Scenario/Settings/ScenarioSettingsModel.hpp>
 #include <Scenario/Tools/elementFindingHelper.hpp>
+#include <Scenario/Palette/Tool.hpp>
+#include <Scenario/Process/Algorithms/Accessors.hpp>
 
 #include <score/command/Dispatchers/MultiOngoingCommandDispatcher.hpp>
 #include <score/document/DocumentInterface.hpp>
@@ -76,18 +78,33 @@ protected:
   {
     if (this->hoveredState)
     {
-      // make sure the hovered corresponding timesync dont have a date prior to
-      // original state date
-      if (getDate(m_parentSM.model(), originalState)
-          < getDate(m_parentSM.model(), *this->hoveredState))
+      const bool graphal = isCreatingGraph();
+      const bool differentParents = Scenario::parentEvent(originalState, m_parentSM.model()).timeSync() != Scenario::parentEvent(*this->hoveredState, m_parentSM.model()).timeSync();
+
+      if(graphal && differentParents)
       {
         auto cmd = new Scenario::Command::CreateInterval{
-            this->m_scenario, originalState, *this->hoveredState};
+            this->m_scenario, originalState, *this->hoveredState, true};
 
         m_dispatcher.submit(cmd);
 
         this->createdIntervals.append(cmd->createdInterval());
-      } // else do nothing
+      }
+      else
+      {
+        // make sure the hovered corresponding timesync dont have a date prior to
+        // original state date
+        if (getDate(m_parentSM.model(), originalState)
+            < getDate(m_parentSM.model(), *this->hoveredState))
+        {
+          auto cmd = new Scenario::Command::CreateInterval{
+              this->m_scenario, originalState, *this->hoveredState};
+
+          m_dispatcher.submit(cmd);
+
+          this->createdIntervals.append(cmd->createdInterval());
+        }
+      }
     }
   }
 
@@ -95,16 +112,19 @@ protected:
   {
     if (this->hoveredEvent)
     {
+      const bool graphal = isCreatingGraph();
+      const bool differentParents = Scenario::parentEvent(originalState, m_parentSM.model()).timeSync() != m_parentSM.model().event(*this->hoveredEvent).timeSync();
+      const bool timeIsInOrder = getDate(m_parentSM.model(), originalState) < getDate(m_parentSM.model(), *this->hoveredEvent);
       // make sure the hovered corresponding timesync dont have a date prior to
       // original state date
-      if (getDate(m_parentSM.model(), originalState)
-          < getDate(m_parentSM.model(), *this->hoveredEvent))
+      if ((graphal || timeIsInOrder) && differentParents)
       {
         auto cmd = new Scenario::Command::CreateInterval_State{
             this->m_scenario,
             originalState,
             *this->hoveredEvent,
-            this->currentPoint.y};
+            this->currentPoint.y,
+            graphal};
 
         m_dispatcher.submit(cmd);
 
@@ -118,16 +138,19 @@ protected:
   {
     if (this->hoveredTimeSync)
     {
+      const bool graphal = isCreatingGraph();
+      const bool differentParents = Scenario::parentEvent(originalState, m_parentSM.model()).timeSync() != *this->hoveredTimeSync;
+      const bool timeIsInOrder = getDate(m_parentSM.model(), originalState) < getDate(m_parentSM.model(), *this->hoveredTimeSync);
       // make sure the hovered corresponding timesync dont have a date prior to
       // original state date
-      if (getDate(m_parentSM.model(), originalState)
-          < getDate(m_parentSM.model(), *this->hoveredTimeSync))
+      if ((graphal || timeIsInOrder) && differentParents)
       {
         auto cmd = new Scenario::Command::CreateInterval_State_Event{
             this->m_scenario,
             originalState,
             *this->hoveredTimeSync,
-            this->currentPoint.y};
+            this->currentPoint.y,
+            graphal};
 
         m_dispatcher.submit(cmd);
 
@@ -146,7 +169,8 @@ protected:
           this->m_scenario,
           originalState, // Put there in createInitialState
           this->currentPoint.date,
-          this->currentPoint.y};
+          this->currentPoint.y,
+          isCreatingGraph()};
 
       m_dispatcher.submit(cmd);
 
@@ -269,6 +293,11 @@ protected:
   {
     m_dispatcher.template rollback<ScenarioRollbackStrategy>();
     this->clearCreatedIds();
+  }
+
+  inline bool isCreatingGraph() const noexcept
+  {
+    return this->m_parentSM.editionSettings().tool() == Scenario::Tool::CreateGraph;
   }
 
   const ToolPalette_T& m_parentSM;

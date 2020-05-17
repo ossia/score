@@ -5,6 +5,7 @@
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentViewConstants.hpp>
 #include <Scenario/Document/VerticalExtent.hpp>
 
+#include <score/model/ColorInterpolator.hpp>
 #include <score/model/ColorReference.hpp>
 #include <score/widgets/MimeData.hpp>
 
@@ -37,11 +38,8 @@ public:
   EventView(EventPresenter& presenter, QGraphicsItem* parent);
   ~EventView() override;
 
-  static constexpr int static_type()
-  {
-    return ItemType::Event;
-  }
-  int type() const override { return static_type(); }
+  static const constexpr int Type = ItemType::Event;
+  int type() const final override { return Type; }
 
   const EventPresenter& presenter() const { return m_presenter; }
 
@@ -49,6 +47,7 @@ public:
   {
     return {-1, 0., 6, m_height};
   }
+  void setStatus(ExecutionStatus);
 
   void paint(
       QPainter* painter,
@@ -93,6 +92,7 @@ private:
   QString m_condition;
   score::ColorRef m_color;
   double m_height{};
+  score::ColorBang m_execPing;
 
   bool m_selected{};
 };

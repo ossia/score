@@ -91,6 +91,12 @@ void updateEventExtent(
     }
   }
 
+  if(Q_UNLIKELY(ev.states().empty()))
+  {
+    min = 0.;
+    max = 0.;
+  }
+
   ev.setExtent({min, max});
   // TODO we could maybe skip this in case where the event
   // grows ?
@@ -112,13 +118,18 @@ void updateIntervalVerticalPos(
   static ossia::flat_set<IntervalModel*> intervalsToUpdate;
   static ossia::flat_set<StateModel*> statesToUpdate;
 
-  intervalsToUpdate.insert(&itv);
+  if(Q_LIKELY(!itv.graphal()))
+  {
+    intervalsToUpdate.insert(&itv);
+  }
   StateModel* rec_state = &s.state(itv.startState());
 
   statesToUpdate.insert(rec_state);
-  while (rec_state->previousInterval())
+  while (auto prev_itv = rec_state->previousInterval())
   {
-    IntervalModel* rec_cst = &s.intervals.at(*rec_state->previousInterval());
+    IntervalModel* rec_cst = &s.intervals.at(*prev_itv);
+    if(rec_cst->graphal())
+      break;
     intervalsToUpdate.insert(rec_cst);
     statesToUpdate.insert(rec_state);
     rec_state = &s.states.at(rec_cst->startState());
@@ -127,9 +138,11 @@ void updateIntervalVerticalPos(
 
   rec_state = &s.state(itv.endState());
   statesToUpdate.insert(rec_state);
-  while (rec_state->nextInterval())
+  while (auto next_itv =rec_state->nextInterval())
   {
-    IntervalModel* rec_cst = &s.intervals.at(*rec_state->nextInterval());
+    IntervalModel* rec_cst = &s.intervals.at(*next_itv);
+    if(rec_cst->graphal())
+      break;
     intervalsToUpdate.insert(rec_cst);
     statesToUpdate.insert(rec_state);
     rec_state = &s.states.at(rec_cst->endState());

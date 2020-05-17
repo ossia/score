@@ -5,29 +5,6 @@
 #include <limits>
 #include <cinttypes>
 
-// Inherit from this to have
-// the type treated as a value in the serialization context. Useful
-// for choice between JSONObject / JSONValue
-template <typename T>
-struct is_value_tag
-{
-  static const constexpr bool value = false;
-};
-#define SCORE_DECL_VALUE_TYPE(Type)           \
-  template <>                                 \
-  struct is_value_tag<Type>                   \
-  {                                           \
-    static const constexpr bool value = true; \
-  };
-
-template <typename T>
-struct is_value_t
-{
-  static const constexpr bool value{std::is_arithmetic<T>::value
-                                    || std::is_enum<T>::value
-                                    || is_value_tag<T>::value};
-};
-
 //! \see SerializableInterface
 template <typename T>
 using enable_if_abstract_base = typename std::enable_if_t<

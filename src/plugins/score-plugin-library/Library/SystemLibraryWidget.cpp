@@ -19,9 +19,10 @@ SystemLibraryWidget::SystemLibraryWidget(
     QWidget* parent)
     : QWidget{parent}
     , m_model{new FileSystemModel{ctx, this}}
-    , m_proxy{new RecursiveFilterProxy{this}}
+    , m_proxy{new QSortFilterProxyModel{this}}
     , m_preview{this}
 {
+  m_proxy->setRecursiveFilteringEnabled(true);
   setStatusTip(QObject::tr("This panel shows the system library.\n"
                            "It is present by default in your user's Documents folder, \n"
                            "in a subfolder named ossia score library."
@@ -33,21 +34,21 @@ SystemLibraryWidget::SystemLibraryWidget(
 
   m_proxy->setSourceModel(m_model);
   m_proxy->setFilterKeyColumn(0);
-  lay->addWidget(new ItemModelFilterLineEdit{*m_proxy, m_tv, this});
+  auto il = new ItemModelFilterLineEdit{*m_proxy, m_tv, this};
+  lay->addWidget(il);
   lay->addWidget(&m_tv);
   lay->addWidget(&m_preview);
   m_tv.setModel(m_proxy);
   setup_treeview(m_tv);
 
   {
-    auto previewLay = new QHBoxLayout{&m_preview};
+    auto previewLay = new score::MarginLess<QHBoxLayout>{&m_preview};
     m_preview.setLayout(previewLay);
-    //m_preview.setMinimumWidth(150);
-    //m_preview.setMinimumHeight(30);
-    //m_preview.setMaximumHeight(30);
+    m_preview.hide();
   }
 
   connect(&m_tv, &QTreeView::pressed, this, [&](const QModelIndex& idx) {
+    m_preview.hide();
     auto doc = ctx.docManager.currentDocument();
     if (!doc)
       return;
@@ -61,6 +62,7 @@ SystemLibraryWidget::SystemLibraryWidget(
       if ((m_previewChild = lib->previewWidget(path, &m_preview)))
       {
         m_preview.layout()->addWidget(m_previewChild);
+        m_preview.show();
       }
     }
   });
@@ -78,7 +80,15 @@ SystemLibraryWidget::SystemLibraryWidget(
   });
   m_tv.setAcceptDrops(true);
 
-  setRoot(ctx.settings<Library::Settings::Model>().getPath());
+  QTimer::singleShot(1000, [this, il, &ctx] {
+    auto& settings = ctx.settings<Library::Settings::Model>();
+    il->reset = [this, &settings] { setRoot(settings.getPath()); };
+    il->reset();
+    con(settings, &Library::Settings::Model::PathChanged,
+        this, [=] {
+      il->reset();
+    });
+  });
 }
 
 SystemLibraryWidget::~SystemLibraryWidget() {}

@@ -37,8 +37,9 @@ IntervalSummaryWidget::IntervalSummaryWidget(
   }
   else
   {
+    using namespace ossia;
     QString text = tr("Flexible : ")
-                   % (object.duration.minDuration().isZero()
+                   % (object.duration.minDuration() == 0_tv
                           ? QStringLiteral("0")
                           : object.duration.minDuration().toString())
                    % tr(" to ")

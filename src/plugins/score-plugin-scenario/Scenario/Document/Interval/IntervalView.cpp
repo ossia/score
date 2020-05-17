@@ -56,7 +56,7 @@ IntervalView::~IntervalView()
 {
   for (auto item : childItems())
   {
-    if (item->type() == Dataflow::CableItem::static_type())
+    if (item->type() == Dataflow::CableItem::Type)
     {
       item->setParentItem(nullptr);
     }
@@ -79,6 +79,15 @@ void IntervalView::setInfinite(bool infinite)
 
 void IntervalView::setExecuting(bool e)
 {
+  if(m_waiting && !e)
+  {
+    m_execPing.start();
+  }
+  else if(e)
+  {
+    m_execPing.stop();
+  }
+
   m_waiting = e;
   update();
 }
@@ -159,12 +168,14 @@ void IntervalView::setValid(bool val)
 
 void IntervalView::setGripCursor()
 {
-  this->setCursor(QCursor(Qt::ClosedHandCursor));
+  auto& skin = score::Skin::instance();
+  this->setCursor(skin.CursorClosedHand);
 }
 
 void IntervalView::setUngripCursor()
 {
-  this->setCursor(QCursor(Qt::OpenHandCursor));
+  auto& skin = score::Skin::instance();
+  this->setCursor(skin.CursorOpenHand);
 }
 
 void IntervalView::mousePressEvent(QGraphicsSceneMouseEvent* event)
@@ -183,17 +194,14 @@ void IntervalView::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
     if (auto si = dynamic_cast<Scenario::ScenarioInterface*>(
             presenter().model().parent()))
     {
-      auto obj = copySelectedElementsToJson(
-          *const_cast<ScenarioInterface*>(si), m_presenter.context());
+      JSONReader r;
+      copySelectedElementsToJson(r, *const_cast<ScenarioInterface*>(si), m_presenter.context());
 
-      if (!obj.empty())
+      if (!r.empty())
       {
         QDrag d{this};
         auto m = new QMimeData;
-        QJsonDocument doc{obj};
-        ;
-        m->setData(
-            score::mime::scenariodata(), doc.toJson(QJsonDocument::Indented));
+        m->setData(score::mime::scenariodata(), r.toByteArray());
         d.setMimeData(m);
         d.exec();
       }

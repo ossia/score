@@ -127,15 +127,7 @@ VSTEffectItem::VSTEffectItem(
         updateRect();
       });
 
-  //{
-  //  auto tempo = safe_cast<Process::ControlInlet*>(effect.inlets()[1]);
-  //  setupInlet(TempoChooser(), *tempo, doc);
-  //}
-  //{
-  //  auto sg = safe_cast<Process::ControlInlet*>(effect.inlets()[2]);
-  //  setupInlet(TimeSigChooser(), *sg, doc);
-  //}
-  for (std::size_t i = 3; i < effect.inlets().size(); i++)
+  for (std::size_t i = VST_FIRST_CONTROL_INDEX; i < effect.inlets().size(); i++)
   {
     auto inlet = safe_cast<VSTControlInlet*>(effect.inlets()[i]);
     setupInlet(effect, *inlet, doc);

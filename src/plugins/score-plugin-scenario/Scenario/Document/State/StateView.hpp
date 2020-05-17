@@ -1,9 +1,7 @@
 #pragma once
 #include <Scenario/Document/Event/ExecutionStatus.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentViewConstants.hpp>
-
-#include <score/model/ColorReference.hpp>
-#include <score/widgets/MimeData.hpp>
+#include <score/model/ColorInterpolator.hpp>
 
 #include <QGraphicsItem>
 #include <QRect>
@@ -21,6 +19,7 @@ class QWidget;
 namespace Scenario
 {
 class StatePlusOverlay;
+class StateGraphPlusOverlay;
 class StatePresenter;
 
 class SCORE_PLUGIN_SCENARIO_EXPORT StateView final : public QObject,
@@ -37,13 +36,10 @@ public:
   StateView(StatePresenter& presenter, QGraphicsItem* parent = nullptr);
   virtual ~StateView() = default;
 
-  static constexpr int static_type()
-  {
-    return ItemType::State;
-  }
-  int type() const override { return static_type(); }
+  static const constexpr int Type = ItemType::State;
+  int type() const final override { return Type; }
 
-  const StatePresenter& presenter() const { return m_presenter; }
+  StatePresenter& presenter() const { return m_presenter; }
 
   QRectF boundingRect() const override;
 
@@ -62,6 +58,8 @@ public:
       E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, dropReceived, arg_1)
   void startCreateMode()
       E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, startCreateMode)
+  void startCreateGraphalMode()
+      E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, startCreateGraphalMode)
 
 protected:
   void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
@@ -79,7 +77,9 @@ private:
   void updateOverlay();
   StatePresenter& m_presenter;
   StatePlusOverlay* m_overlay{};
+  StateGraphPlusOverlay* m_graphOverlay{};
   ExecutionStatusProperty m_status{};
+  score::ColorBang m_execPing;
 
   bool m_dilated : 1;
   bool m_containMessage : 1;

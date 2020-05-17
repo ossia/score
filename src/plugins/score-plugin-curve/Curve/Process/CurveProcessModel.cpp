@@ -71,7 +71,7 @@ void CurveProcessModel::setCurve(Model* newCurve)
 
 TimeVal CurveProcessModel::contentDuration() const noexcept
 {
-  return duration() * std::max(1., m_curve->lastPointPos());
+  return TimeVal(duration().impl * double(std::max(1., m_curve->lastPointPos())));
 }
 
 void CurveProcessModel::setCurve_impl() {}

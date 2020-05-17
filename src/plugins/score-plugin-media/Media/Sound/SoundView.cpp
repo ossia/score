@@ -753,8 +753,7 @@ struct WaveformComputerImpl
     // only if we user the RMS cache :
     // There may be a ratio because the waveform could have been computed at a different samplerate.
     // infos.rate_ratio =  data.rms().sampleRateRatio(audioSampleRate);
-    infos.logical_samples_per_pixels = 0.001 * ratio * audioSampleRate;
-
+    infos.logical_samples_per_pixels = 0.001 * ratio * audioSampleRate / ossia::flicks_per_millisecond<double>;
     if(infos.logical_samples_per_pixels <= 1e-6)
       return;
 

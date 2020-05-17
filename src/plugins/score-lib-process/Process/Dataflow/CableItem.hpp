@@ -36,8 +36,8 @@ public:
   const Id<Process::Cable>& id() const { return m_cable.id(); }
   const Process::Cable& model() const { return m_cable; }
 
-  static constexpr int static_type() { return QGraphicsItem::UserType + 9999; }
-  int type() const final override { return static_type(); }
+  static const constexpr int Type = QGraphicsItem::UserType + 9999;
+  int type() const final override { return Type; }
 
   void resize();
   void check();

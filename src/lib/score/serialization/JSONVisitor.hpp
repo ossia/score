@@ -1,63 +1,73 @@
 #pragma once
-#include <score/serialization/JSONValueVisitor.hpp>
+#include <score/model/EntityBase.hpp>
 #include <score/serialization/StringConstants.hpp>
+#include <score/serialization/VisitorInterface.hpp>
+#include <score/serialization/VisitorTags.hpp>
+
+#include <score/serialization/StringConstants.hpp>
+#include <score/serialization/CommonTypes.hpp>
 #include <score/tools/ForEach.hpp>
 
+#include <ossia/detail/flat_set.hpp>
 #include <ossia/detail/small_vector.hpp>
+#include <ossia/detail/json.hpp>
+#include <ossia/detail/small_vector.hpp>
+#include <boost/container/small_vector.hpp>
+#include <boost/container/static_vector.hpp>
 
-#include <QJsonArray>
-#include <QJsonObject>
-#include <QMap>
-
+#include <ossia/detail/json.hpp>
+#include <rapidjson/document.h>
 /**
  * This file contains facilities
  * to serialize an object into a QJsonObject.
  */
 
-template <typename T>
-T fromJsonObject(QJsonObject&& json);
-template <typename T>
-T fromJsonObject(QJsonValue&& json);
-template <typename T>
-T fromJsonObject(QJsonValueRef json);
-
-template <class>
-class TreeNode;
-template <class>
-class TreePath;
-
-namespace eggs
-{
-namespace variants
-{
-template <class...>
-class variant;
-}
-}
-
 namespace score
 {
 class ApplicationComponents;
 }
-class SCORE_LIB_BASE_EXPORT JSONObjectReader : public AbstractVisitor
+using JsonStream = rapidjson::Writer<rapidjson::StringBuffer>;
+struct OptionalSentinel {
+  template<typename T>
+  friend bool operator==(optional<T>& lhs, const OptionalSentinel& rhs) { return !bool(lhs); }
+
+  template<typename T>
+  friend bool operator!=(optional<T>& lhs, const OptionalSentinel& rhs) { return bool(lhs); }
+};
+
+class SCORE_LIB_BASE_EXPORT JSONReader : public AbstractVisitor
 {
 public:
   using type = JSONObject;
   using is_visitor_tag = std::integral_constant<bool, true>;
 
-  JSONObjectReader();
-  JSONObjectReader(const JSONObjectReader&) = delete;
-  JSONObjectReader& operator=(const JSONObjectReader&) = delete;
+  JSONReader();
+  JSONReader(const JSONReader&) = delete;
+  JSONReader& operator=(const JSONReader&) = delete;
+  JSONReader(JSONReader&&) = default;
+  JSONReader& operator=(JSONReader&&) = delete;
 
   VisitorVariant toVariant() { return {*this, JSONObject::type()}; }
 
   template <typename T>
   static auto marshall(const T& t)
   {
-    JSONObjectReader reader;
+    JSONReader reader;
     reader.readFrom(t);
-    return reader.obj;
+    return reader;
   }
+
+  bool empty() const noexcept { return this->buffer.GetLength() == 0; }
+
+  void read(const QString&) const noexcept = delete;
+  void read(const float&) const noexcept = delete;
+  void read(const char&) const noexcept = delete;
+  void read(const int&) const noexcept = delete;
+  void read(const bool&) const noexcept = delete;
+  void read(const std::string&) const noexcept = delete;
+  void read(const unsigned int&) const noexcept = delete;
+  void read(const unsigned char&) const noexcept = delete;
+
 
   //! Called by code that wants to serialize.
   template <typename T>
@@ -72,6 +82,44 @@ public:
     TSerializer<JSONObject, IdentifiedObject<T>>::readFrom(*this, obj);
   }
 
+  void readFrom(const QString& obj) noexcept
+  {
+    readFrom(obj.toUtf8());
+  }
+  void readFrom(const QByteArray& t) noexcept
+  {
+    stream.String(t.data(), t.size());
+  }
+  void readFrom(const std::string& t) noexcept
+  {
+    stream.String(t.data(), t.size());
+  }
+  void readFrom(int64_t t) noexcept {
+    stream.Int64(t);
+  }
+  void readFrom(int32_t t) noexcept {
+    stream.Int(t);
+  }
+  void readFrom(uint64_t t) noexcept {
+    stream.Uint64(t);
+  }
+  void readFrom(uint32_t t) noexcept {
+    stream.Uint(t);
+  }
+  void readFrom(float t) noexcept {
+    stream.Double(t);
+  }
+  void readFrom(double t) noexcept {
+    stream.Double(t);
+  }
+  void readFrom(bool t) noexcept {
+    stream.Bool(t);
+  }
+  void readFrom(char t) noexcept {
+    stream.String(&t, 1);
+  }
+  void readFrom(const void*) noexcept = delete;
+
   template <typename T>
   void readFrom(const T& obj)
   {
@@ -82,97 +130,316 @@ public:
     {
       readFrom((const typename T::base_type&)obj);
     }
+    else if constexpr(std::is_enum_v<T>)
+    {
+      check_enum_size<T> _;
+      Q_UNUSED(_);
+      stream.Int(static_cast<int32_t>(obj));
+    }
     else
     {
+      if constexpr(std::is_same_v<tag, visitor_template_tag>)
+      {
+        TSerializer<JSONObject, T>::readFrom(*this, obj);
+      }
+      else if constexpr(std::is_same_v<tag, visitor_object_tag>)
+      {
+        stream.StartObject();
+        TSerializer<JSONObject, typename T::object_type>::readFrom(*this, obj);
 
-        if constexpr(std::is_same_v<tag, visitor_template_tag>)
-        {
+
+        if constexpr (is_custom_serialized<T>::value || is_template<T>::value)
           TSerializer<JSONObject, T>::readFrom(*this, obj);
-        }
-        else if constexpr(std::is_same_v<tag, visitor_object_tag>)
-        {
-          TSerializer<JSONObject, typename T::object_type>::readFrom(*this, obj);
-
-
-          if constexpr (is_custom_serialized<T>::value || is_template<T>::value)
-            TSerializer<JSONObject, T>::readFrom(*this, obj);
-          else
-            read(obj);
-        }
-        else if constexpr(std::is_same_v<tag, visitor_entity_tag>)
-        {
-          TSerializer<JSONObject, typename T::entity_type>::readFrom(*this, obj);
-
-          if constexpr (is_custom_serialized<T>::value || is_template<T>::value)
-            TSerializer<JSONObject, T>::readFrom(*this, obj);
-          else
-            read(obj);
-        }
-        else if constexpr(std::is_same_v<tag, visitor_abstract_tag>)
-        {
-          readFromAbstract(obj, [](JSONObjectReader& sub, const T& obj) {
-            // Read the implementation of the base object
-            sub.read(obj);
-          });
-        }
-        else if constexpr(std::is_same_v<tag, visitor_abstract_object_tag>)
-        {
-          readFromAbstract(obj, [](JSONObjectReader& sub, const T& obj) {
-              TSerializer<JSONObject, IdentifiedObject<T>>::readFrom(sub, obj);
-
-            if constexpr (is_custom_serialized<T>::value || is_template<T>::value)
-              TSerializer<JSONObject, T>::readFrom(sub, obj);
-            else
-              sub.read(obj);
-          });
-        }
-        else if constexpr(std::is_same_v<tag, visitor_abstract_entity_tag>)
-        {
-          readFromAbstract(obj, [](JSONObjectReader& sub, const T& obj) {
-
-            TSerializer<JSONObject, score::Entity<T>>::readFrom(sub, obj);
-
-
-            if constexpr (is_custom_serialized<T>::value || is_template<T>::value)
-              TSerializer<JSONObject, T>::readFrom(sub, obj);
-            else
-              sub.read(obj);
-          });
-        }
-        else if constexpr(std::is_same_v<tag, visitor_default_tag>)
-        {
-          //! Used to serialize general objects that won't fit in the other categories
-          read(obj);
-        }
         else
-        {
-          static_assert(std::is_same_v<tag, void>, "Unhandled serialization case");
-        }
+          read(obj);
 
+        stream.EndObject();
+      }
+      else if constexpr(std::is_same_v<tag, visitor_entity_tag>)
+      {
+        stream.StartObject();
+        TSerializer<JSONObject, typename T::entity_type>::readFrom(*this, obj);
+
+        if constexpr (is_custom_serialized<T>::value || is_template<T>::value)
+          TSerializer<JSONObject, T>::readFrom(*this, obj);
+        else
+          read(obj);
+        stream.EndObject();
+      }
+      else if constexpr(std::is_same_v<tag, visitor_abstract_tag>)
+      {
+        stream.StartObject();
+        readFromAbstract(obj, [](JSONReader& sub, const T& obj) {
+          // Read the implementation of the base object
+          sub.read(obj);
+        });
+        stream.EndObject();
+      }
+      else if constexpr(std::is_same_v<tag, visitor_abstract_object_tag>)
+      {
+        stream.StartObject();
+        readFromAbstract(obj, [](JSONReader& sub, const T& obj) {
+          TSerializer<JSONObject, IdentifiedObject<T>>::readFrom(sub, obj);
+
+          if constexpr (is_custom_serialized<T>::value || is_template<T>::value)
+              TSerializer<JSONObject, T>::readFrom(sub, obj);
+          else
+          sub.read(obj);
+        });
+        stream.EndObject();
+      }
+      else if constexpr(std::is_same_v<tag, visitor_abstract_entity_tag>)
+      {
+        stream.StartObject();
+        readFromAbstract(obj, [](JSONReader& sub, const T& obj) {
+
+          TSerializer<JSONObject, score::Entity<T>>::readFrom(sub, obj);
+
+
+          if constexpr (is_custom_serialized<T>::value || is_template<T>::value)
+              TSerializer<JSONObject, T>::readFrom(sub, obj);
+          else
+          sub.read(obj);
+        });
+        stream.EndObject();
+      }
+      else if constexpr(std::is_same_v<tag, visitor_default_tag>)
+      {
+        //! Used to serialize general objects that won't fit in the other categories
+        read(obj);
+      }
+      else
+      {
+        static_assert(std::is_same_v<tag, void>, "Unhandled serialization case");
+      }
     }
+  }
+
+  rapidjson::StringBuffer buffer;
+  JsonStream stream{buffer};
+  struct assigner;
+  struct fake_obj {
+    JSONReader& self;
+    assigner operator[](std::string_view str) const noexcept;
+    template<std::size_t N>
+    assigner operator[](const char (&str)[N]) const noexcept;
+    assigner operator[](const QString& str) const noexcept;
+  } obj;
+
+  const score::ApplicationComponents& components;
+  const score::StringConstants& strings;
+
+  QByteArray toByteArray() const {
+    SCORE_ASSERT(stream.IsComplete());
+    return QByteArray{buffer.GetString(), (int)buffer.GetLength()};
+  }
+  std::string toStdString() const {
+    SCORE_ASSERT(stream.IsComplete());
+    return std::string{buffer.GetString(), buffer.GetLength()};
+  }
+  QString toString() const {
+    SCORE_ASSERT(stream.IsComplete());
+    return QString::fromUtf8(buffer.GetString(), buffer.GetLength());
   }
 
   //! Serializable types should reimplement this method
   //! It is not to be called by user code.
   template <typename T>
   void read(const T&);
-
-  QJsonObject obj;
-
-  const score::ApplicationComponents& components;
-  const score::StringConstants& strings;
-
 private:
   template <typename T, typename Fun>
-  void readFromAbstract(const T& in, Fun f)
-  {
-    obj[strings.uuid] = toJsonValue(in.concreteKey().impl());
-    f(*this, in);
-    in.serialize_impl(this->toVariant());
+  void readFromAbstract(const T& in, Fun f);
+};
+
+struct JSONReader::assigner {
+  JSONReader& self;
+
+  void operator=(int64_t t) const noexcept {
+    self.stream.Int64(t);
+  }
+  void operator=(int32_t t) const noexcept {
+    self.stream.Int(t);
+  }
+  void operator=(uint64_t t) const noexcept {
+    self.stream.Uint64(t);
+  }
+  void operator=(uint32_t t) const noexcept {
+    self.stream.Uint(t);
+  }
+  void operator=(float t) const noexcept {
+    self.stream.Double(t);
+  }
+  void operator=(double t) const noexcept {
+    self.stream.Double(t);
+  }
+  void operator=(bool t) const noexcept {
+    self.stream.Bool(t);
+  }
+  void operator=(char t) const noexcept {
+    self.stream.String(&t, 1);
+  }
+  void operator=(QPoint t) const noexcept {
+    self.stream.StartArray();
+    self.stream.Int(t.x());
+    self.stream.Int(t.y());
+    self.stream.EndArray();
+  }
+  void operator=(QPointF t) const noexcept {
+    self.stream.StartArray();
+    self.stream.Double(t.x());
+    self.stream.Double(t.y());
+    self.stream.EndArray();
+  }
+  void operator=(QSize t) const noexcept {
+    self.stream.StartArray();
+    self.stream.Int(t.width());
+    self.stream.Int(t.height());
+    self.stream.EndArray();
+  }
+  void operator=(QSizeF t) const noexcept {
+    self.stream.StartArray();
+    self.stream.Double(t.width());
+    self.stream.Double(t.height());
+    self.stream.EndArray();
+  }
+  void operator=(QRect t) const noexcept {
+    self.stream.StartArray();
+    self.stream.Int(t.x());
+    self.stream.Int(t.y());
+    self.stream.Int(t.width());
+    self.stream.Int(t.height());
+    self.stream.EndArray();
+  }
+  void operator=(QRectF t) const noexcept {
+    self.stream.StartArray();
+    self.stream.Double(t.x());
+    self.stream.Double(t.y());
+    self.stream.Double(t.width());
+    self.stream.Double(t.height());
+    self.stream.EndArray();
+  }
+  void operator=(const QString& t) const noexcept {
+    *this = t.toUtf8();
+  }
+  void operator=(const QStringList& t) const noexcept {
+    self.stream.StartArray();
+    for(const auto& str : t)
+      *this = str.toUtf8();
+    self.stream.EndArray();
+  }
+  void operator=(const QLatin1String& t) const noexcept {
+    self.stream.String(t.data(), t.size());
+  }
+  void operator=(const std::string& t) const noexcept {
+    self.stream.String(t.data(), t.length());
+  }
+  void operator=(const std::string_view& t) const noexcept {
+    self.stream.String(t.data(), t.length());
+  }
+  void operator=(const QByteArray& t) const noexcept {
+    self.stream.String(t.data(), t.length());
+  }
+  void operator=(const QVariantMap& t) const noexcept {
+    SCORE_ABORT;
+  }
+
+  template<typename T>
+  void operator=(const T& t) const noexcept {
+    if constexpr(std::is_enum_v<T>)
+    {
+      check_enum_size<T> _;
+      Q_UNUSED(_);
+      self.stream.Int(static_cast<int32_t>(t));
+    }
+    else
+    {
+      self.readFrom(t);
+    }
   }
 };
 
-class SCORE_LIB_BASE_EXPORT JSONObjectWriter : public AbstractVisitor
+inline JSONReader::assigner JSONReader::fake_obj::operator[](std::string_view str) const noexcept
+{
+  self.stream.Key(str.data(), str.length());
+  return assigner{self};
+}
+inline JSONReader::assigner JSONReader::fake_obj::operator[](const QString& str) const noexcept
+{
+  const std::string& s = str.toStdString();
+  self.stream.Key(s.data(), s.length());
+  return assigner{self};
+}
+template<std::size_t N>
+inline JSONReader::assigner JSONReader::fake_obj::operator[](const char (&str)[N]) const noexcept {
+  return (*this)[std::string_view(str, N - 1)];
+}
+
+template <typename T, typename Fun>
+void JSONReader::readFromAbstract(const T& in, Fun f)
+{
+  obj[strings.uuid] = in.concreteKey().impl();
+  f(*this, in);
+  in.serialize_impl(this->toVariant());
+}
+
+struct JsonValue {
+  const rapidjson::Value& obj;
+  QString toString() const noexcept {
+    return QString::fromUtf8(obj.GetString(), obj.GetStringLength());
+  }
+  std::string toStdString() const noexcept {
+    return std::string(obj.GetString(), obj.GetStringLength());
+  }
+  QByteArray toByteArray() const noexcept {
+    return QByteArray(obj.GetString(), obj.GetStringLength());
+  }
+
+  int32_t toInt() const noexcept {
+    return obj.GetInt();
+  }
+  bool toBool() const noexcept {
+    return obj.GetBool();
+  }
+  double toDouble() const noexcept {
+    return obj.GetDouble();
+  }
+  bool isDouble() const noexcept {
+    return obj.IsDouble();
+  }
+  auto toArray() const noexcept {
+    return obj.GetArray();
+  }
+  auto toObject() const noexcept {
+    return obj.GetObject();
+  }
+  bool isString() const noexcept {
+    return obj.IsString();
+  }
+
+
+  template<std::size_t N>
+  JsonValue operator[](const char (&str)[N]) const noexcept {
+    return JsonValue{obj[str]};
+  }
+  JsonValue operator[](const std::string& str) const noexcept {
+    return JsonValue{obj[str]};
+  }
+  JsonValue operator[](const QString& str) const noexcept {
+    return (*this)[str.toStdString()];
+  }
+  template<typename T>
+  friend void operator<<=(T& t, const JsonValue& self);
+
+  template<typename T>
+  T to() const noexcept {
+    T t;
+    t <<= *this;
+    return t;
+  }
+};
+
+
+class SCORE_LIB_BASE_EXPORT JSONWriter : public AbstractVisitor
 {
 public:
   using type = JSONObject;
@@ -181,24 +448,31 @@ public:
 
   VisitorVariant toVariant() { return {*this, JSONObject::type()}; }
 
-  JSONObjectWriter();
-  JSONObjectWriter(const JSONObjectWriter&) = delete;
-  JSONObjectWriter& operator=(const JSONObjectWriter&) = delete;
+  JSONWriter() = delete;
+  JSONWriter(const JSONWriter&) = delete;
+  JSONWriter& operator=(const JSONWriter&) = delete;
 
-  JSONObjectWriter(const QJsonObject& obj);
-  JSONObjectWriter(QJsonObject&& obj);
+  explicit JSONWriter(const rapidjson::Value& obj);
+  explicit JSONWriter(const JsonValue& obj);
 
   template <typename T>
-  static auto unmarshall(const QJsonObject& obj)
+  static auto unmarshall(const rapidjson::Value& obj)
   {
     T data;
-    JSONObjectWriter wrt{obj};
+    JSONWriter wrt{obj};
     wrt.writeTo(data);
     return data;
   }
 
   template <typename T>
   void write(T&);
+
+  void write(QString&) = delete;
+  void write(float&) = delete;
+  void write(char&) = delete;
+  void write(int&) = delete;
+  void write(bool&) = delete;
+  void write(std::string&) = delete;
 
   template <typename T>
   void writeTo(T& obj)
@@ -208,16 +482,83 @@ public:
     {
       TSerializer<JSONObject, T>::writeTo(*this, obj);
     }
+    else if constexpr(std::is_enum_v<T>)
+    {
+      obj = static_cast<T>(base.GetInt());
+    }
     else
     {
       write(obj);
     }
   }
 
-  const QJsonObject obj;
+  const rapidjson::Value& base;
+
+
+  struct wrapper {
+    const rapidjson::Value& ref;
+    template<std::size_t N>
+    JsonValue operator[](const char (&str)[N]) const noexcept {
+      return JsonValue{ref[str]};
+    }
+    JsonValue operator[](const std::string& str) const noexcept {
+      return JsonValue{ref[str]};
+    }
+    JsonValue operator[](const QString& str) const noexcept {
+      return (*this)[str.toStdString()];
+    }
+    template<std::size_t N>
+    optional<JsonValue> tryGet(const char (&str)[N]) const noexcept {
+      if(auto it = ref.FindMember(str); it != ref.MemberEnd())
+        return JsonValue{it->value};
+      return ossia::none;
+    }
+    optional<JsonValue> tryGet(const std::string& str) const noexcept {
+      if(auto it = ref.FindMember(str); it != ref.MemberEnd())
+        return JsonValue{it->value};
+      return ossia::none;
+    }
+    optional<JsonValue> tryGet(const QString& str) const noexcept {
+      return tryGet(str.toStdString());
+    }
+    optional<JsonValue> constFind(const std::string& str) const noexcept {
+      return tryGet(str);
+    }
+    optional<JsonValue> constFind(const QString& str) const noexcept {
+      return tryGet(str.toStdString());
+    }
+    auto constEnd() const noexcept {
+      return OptionalSentinel{};
+    }
+  } obj{base};
+
   const score::ApplicationComponents& components;
   const score::StringConstants& strings;
 };
+
+template<typename T>
+inline void operator<<=(T& t, const JsonValue& self)
+{
+  JSONWriter w{self.obj};
+  w.writeTo(t);
+}
+
+inline void operator<<=(QString& t, const JsonValue& self)
+{ t = self.toString(); }
+inline void operator<<=(float& t, const JsonValue& self)
+{ t = self.obj.GetFloat(); }
+inline void operator<<=(double& t, const JsonValue& self)
+{ t = self.obj.GetDouble(); }
+inline void operator<<=(int& t, const JsonValue& self)
+{ t = self.obj.GetInt(); }
+inline void operator<<=(int64_t& t, const JsonValue& self)
+{ t = self.obj.GetInt(); }
+inline void operator<<=(std::string& t, const JsonValue& self)
+{ t = self.toStdString(); }
+inline void operator<<=(bool& t, const JsonValue& self)
+{ t = self.toBool(); }
+inline void operator<<=(char& t, const JsonValue& self)
+{ t = self.obj.GetStringLength() > 0 ? self.obj.GetString()[0] : '\0'; }
 
 template <typename T>
 struct TSerializer<JSONObject, IdentifiedObject<T>>
@@ -238,444 +579,699 @@ struct TSerializer<JSONObject, IdentifiedObject<T>>
   }
 };
 
-template <>
-struct TSerializer<JSONObject, optional<int32_t>>
-{
-  // TODO should not be used. Save as optional json value instead.
+Q_DECLARE_METATYPE(JSONReader*)
+Q_DECLARE_METATYPE(JSONWriter*)
+W_REGISTER_ARGTYPE(JSONReader*)
+W_REGISTER_ARGTYPE(JSONWriter*)
 
-  static void readFrom(JSONObject::Serializer& s, const optional<int32_t>& obj)
-  {
-    if (obj)
-    {
-      s.obj[s.strings.id] = *obj;
-    }
-    else
-    {
-      s.obj[s.strings.id] = s.strings.none;
+struct ArraySerializer
+{
+  template<typename T>
+  static void readFrom(JSONObject::Serializer& s, const T& vec) {
+    s.stream.StartArray();
+    for(const auto& elt : vec)
+      s.readFrom(elt);
+    s.stream.EndArray();
+  }
+
+  template<typename T>
+  static void writeTo(JSONObject::Deserializer& s, T& vec) {
+    const auto& array = s.base.GetArray();
+    vec.reserve(array.Size());
+    for(const auto& elt : array) {
+      typename T::value_type v;
+      JSONObject::Deserializer des{elt};
+      des.writeTo(v);
+      vec.push_back(std::move(v));
     }
   }
 
-  static void writeTo(JSONObject::Deserializer& s, optional<int32_t>& obj)
+
+  template<typename Arg, std::size_t N>
+  static void readFrom(JSONObject::Serializer& s, const std::array<Arg, N>& vec) {
+    s.stream.StartArray();
+    for(const auto& elt : vec)
+      s.readFrom(elt);
+    s.stream.EndArray();
+  }
+
+  template<typename Arg, std::size_t N>
+  static void writeTo(JSONObject::Deserializer& s, std::array<Arg, N>& vec) {
+    const auto& array = s.base.GetArray();
+    auto it = vec.begin();
+    for(const auto& elt : array) {
+      JSONObject::Deserializer des{elt};
+      des.writeTo(*it);
+      ++it;
+    }
+  }
+
+  template<std::size_t N>
+  static void readFrom(JSONObject::Serializer& s, const std::array<float, N>& vec) {
+    s.stream.StartArray();
+    for(auto elt : vec)
+      s.stream.Double(elt);
+    s.stream.EndArray();
+  }
+
+  template<std::size_t N>
+  static void writeTo(JSONObject::Deserializer& s, std::array<float, N>& vec) {
+    const auto& array = s.base.GetArray();
+    auto it = vec.begin();
+    for(const auto& elt : array) {
+      *it = elt.GetFloat();
+      ++it;
+    }
+  }
+
+
+
+  template<typename T>
+  static void readFrom(JSONObject::Serializer& s, const std::list<T>& vec) {
+    s.stream.StartArray();
+    for(const auto& elt : vec)
+      s.readFrom(elt);
+    s.stream.EndArray();
+  }
+
+  template<typename T>
+  static void writeTo(JSONObject::Deserializer& s, std::list<T>& vec) {
+    const auto& array = s.base.GetArray();
+    for(const auto& elt : array) {
+      T v;
+      JSONObject::Deserializer des{elt};
+      des.writeTo(v);
+      vec.push_back(std::move(v));
+    }
+  }
+
+
+  // REMOVEME
+  template<typename T>
+  static void readFrom(JSONObject::Serializer& s, const QList<T>& vec) {
+    s.stream.StartArray();
+    for(const auto& elt : vec)
+      s.readFrom(elt);
+    s.stream.EndArray();
+  }
+
+  template<typename T>
+  static void writeTo(JSONObject::Deserializer& s, QList<T>& vec) {
+    const auto& array = s.base.GetArray();
+    for(const auto& elt : array) {
+      T v;
+      JSONObject::Deserializer des{elt};
+      des.writeTo(v);
+      vec.push_back(std::move(v));
+    }
+  }
+
+
+  template<template<typename... Args> typename T, typename... Args>
+  static void readFrom(JSONObject::Serializer& s, const T<std::string, Args...>& vec) {
+    s.stream.StartArray();
+    for(const auto& elt : vec)
+      s.stream.String(elt.data(), elt.size());
+    s.stream.EndArray();
+  }
+
+  template<template<typename... Args> typename T, typename... Args>
+  static void writeTo(JSONObject::Deserializer& s, T<std::string, Args...>& vec) {
+    const auto& array = s.base.GetArray();
+    vec.reserve(array.Size());
+    for(const auto& elt : array) {
+      vec.push_back(std::string{elt.GetString(), elt.GetStringLength()});
+    }
+  }
+
+
+  template<template<typename... Args> typename T, typename... Args>
+  static void readFrom(JSONObject::Serializer& s, const T<QString, Args...>& vec) {
+    s.stream.StartArray();
+    for(const auto& elt : vec) {
+      const QByteArray& b = elt.toUtf8();
+      s.stream.String(b.data(), b.size());
+    }
+    s.stream.EndArray();
+  }
+
+  template<template<typename... Args> typename T, typename... Args>
+  static void writeTo(JSONObject::Deserializer& s, T<QString, Args...>& vec) {
+    const auto& array = s.base.GetArray();
+    vec.reserve(array.Size());
+    for(const auto& elt : array) {
+      vec.push_back(QString::fromUtf8(elt.GetString(), elt.GetStringLength()));
+    }
+  }
+
+  template<template<typename... Args> typename T, typename... Args>
+  static void readFrom(JSONObject::Serializer& s, const T<int, Args...>& vec) {
+    s.stream.StartArray();
+    for(auto elt : vec)
+      s.stream.Int(elt);
+    s.stream.EndArray();
+  }
+
+  template<template<typename... Args> typename T, typename... Args>
+  static void writeTo(JSONObject::Deserializer& s, T<int, Args...>& vec) {
+    const auto& array = s.base.GetArray();
+    vec.resize(array.Size());
+    auto it = vec.begin();
+    for(const auto& elt : array) {
+      *it = elt.GetInt();
+      ++it;
+    }
+  }
+
+  template<template<typename... Args> typename T, typename... Args>
+  static void readFrom(JSONObject::Serializer& s, const T<char, Args...>& vec) {
+    s.stream.StartArray();
+    for(char elt : vec)
+      s.stream.String(&elt, 1);
+    s.stream.EndArray();
+  }
+
+  template<template<typename... Args> typename T, typename... Args>
+  static void writeTo(JSONObject::Deserializer& s, T<char, Args...>& vec) {
+    const auto& array = s.base.GetArray();
+    vec.resize(array.Size());
+    auto it = vec.begin();
+    for(const auto& elt : array) {
+      *it = elt.GetString()[0];
+      ++it;
+    }
+  }
+
+  template<template<typename... Args> typename T, typename... Args>
+  static void readFrom(JSONObject::Serializer& s, const T<int64_t, Args...>& vec) {
+    s.stream.StartArray();
+    for(auto elt : vec)
+      s.stream.Int64(elt);
+    s.stream.EndArray();
+  }
+
+  template<template<typename... Args> typename T, typename... Args>
+  static void writeTo(JSONObject::Deserializer& s, T<int64_t, Args...>& vec) {
+    const auto& array = s.base.GetArray();
+    vec.resize(array.Size());
+    auto it = vec.begin();
+    for(const auto& elt : array) {
+      *it = elt.GetInt64();
+      ++it;
+    }
+  }
+
+  template<template<typename... Args> typename T, typename... Args>
+  static void readFrom(JSONObject::Serializer& s, const T<float, Args...>& vec) {
+    s.stream.StartArray();
+    for(auto elt : vec)
+      s.stream.Double(elt);
+    s.stream.EndArray();
+  }
+
+  template<template<typename... Args> typename T, typename... Args>
+  static void writeTo(JSONObject::Deserializer& s, T<float, Args...>& vec) {
+    const auto& array = s.base.GetArray();
+    vec.resize(array.Size());
+    auto it = vec.begin();
+    for(const auto& elt : array) {
+      *it = elt.GetFloat();
+      ++it;
+    }
+  }
+
+  template<template<typename... Args> typename T, typename... Args>
+  static void readFrom(JSONObject::Serializer& s, const T<double, Args...>& vec) {
+    s.stream.StartArray();
+    for(auto elt : vec)
+      s.stream.Double(elt);
+    s.stream.EndArray();
+  }
+
+  template<template<typename... Args> typename T, typename... Args>
+  static void writeTo(JSONObject::Deserializer& s, T<double, Args...>& vec) {
+    const auto& array = s.base.GetArray();
+    vec.resize(array.Size());
+    auto it = vec.begin();
+    for(const auto& elt : array) {
+      *it = elt.GetDouble();
+      ++it;
+    }
+  }
+
+
+  // Overloads for supporting static/small vectors... remove when we have concepts
+  template<template<typename, std::size_t, typename...> typename T, std::size_t N, typename... Args>
+  static void readFrom(JSONObject::Serializer& s, const T<int, N, Args...>& vec) {
+    s.stream.StartArray();
+    for(auto elt : vec)
+      s.stream.Int(elt);
+    s.stream.EndArray();
+  }
+
+  template<template<typename, std::size_t, typename...> typename T, std::size_t N, typename... Args>
+  static void writeTo(JSONObject::Deserializer& s, T<int, N, Args...>& vec) {
+    const auto& array = s.base.GetArray();
+    vec.resize(array.Size());
+    auto it = vec.begin();
+    for(const auto& elt : array) {
+      *it = elt.GetInt();
+      ++it;
+    }
+  }
+
+  template<template<typename, std::size_t, typename...> typename T, std::size_t N, typename... Args>
+  static void readFrom(JSONObject::Serializer& s, const T<char, N, Args...>& vec) {
+    s.stream.StartArray();
+    for(char elt : vec)
+      s.stream.String(&elt, 1);
+    s.stream.EndArray();
+  }
+
+  template<template<typename, std::size_t, typename...> typename T, std::size_t N, typename... Args>
+  static void writeTo(JSONObject::Deserializer& s, T<char, N, Args...>& vec) {
+    const auto& array = s.base.GetArray();
+    vec.resize(array.Size());
+    auto it = vec.begin();
+    for(const auto& elt : array) {
+      *it = elt.GetString()[0];
+      ++it;
+    }
+  }
+
+  template<template<typename, std::size_t, typename...> typename T, std::size_t N, typename... Args>
+  static void readFrom(JSONObject::Serializer& s, const T<int64_t, N, Args...>& vec) {
+    s.stream.StartArray();
+    for(auto elt : vec)
+      s.stream.Int64(elt);
+    s.stream.EndArray();
+  }
+
+  template<template<typename, std::size_t, typename...> typename T, std::size_t N, typename... Args>
+  static void writeTo(JSONObject::Deserializer& s, T<int64_t, N, Args...>& vec) {
+    const auto& array = s.base.GetArray();
+    vec.resize(array.Size());
+    auto it = vec.begin();
+    for(const auto& elt : array) {
+      *it = elt.GetInt64();
+      ++it;
+    }
+  }
+
+  template<template<typename, std::size_t, typename...> typename T, std::size_t N, typename... Args>
+  static void readFrom(JSONObject::Serializer& s, const T<float, N, Args...>& vec) {
+    s.stream.StartArray();
+    for(auto elt : vec)
+      s.stream.Double(elt);
+    s.stream.EndArray();
+  }
+
+  template<template<typename, std::size_t, typename...> typename T, std::size_t N, typename... Args>
+  static void writeTo(JSONObject::Deserializer& s, T<float, N, Args...>& vec) {
+    const auto& array = s.base.GetArray();
+    vec.resize(array.Size());
+    auto it = vec.begin();
+    for(const auto& elt : array) {
+      *it = elt.GetFloat();
+      ++it;
+    }
+  }
+
+  template<template<typename, std::size_t, typename...> typename T, std::size_t N, typename... Args>
+  static void readFrom(JSONObject::Serializer& s, const T<double, N, Args...>& vec) {
+    s.stream.StartArray();
+    for(auto elt : vec)
+      s.stream.Double(elt);
+    s.stream.EndArray();
+  }
+
+  template<template<typename, std::size_t, typename...> typename T, std::size_t N, typename... Args>
+  static void writeTo(JSONObject::Deserializer& s, T<double, N, Args...>& vec) {
+    const auto& array = s.base.GetArray();
+    vec.resize(array.Size());
+    auto it = vec.begin();
+    for(const auto& elt : array) {
+      *it = elt.GetDouble();
+      ++it;
+    }
+  }
+};
+
+
+template <typename... Args>
+struct TSerializer<JSONObject, std::vector<Args...>> : ArraySerializer
+{
+};
+
+template <typename... Args>
+struct TSerializer<JSONObject, std::list<Args...>> : ArraySerializer
+{
+};
+
+template <typename... Args>
+struct TSerializer<JSONObject, QList<Args...>> : ArraySerializer
+{
+};
+
+template <typename T, std::size_t N, typename Alloc>
+struct TSerializer<JSONObject, boost::container::small_vector<T, N, Alloc>> : ArraySerializer
+{
+};
+
+template <typename T, std::size_t N>
+struct TSerializer<JSONObject, boost::container::static_vector<T, N>> : ArraySerializer
+{
+};
+
+template <typename T, std::size_t N>
+struct TSerializer<JSONObject, std::array<T, N>> : ArraySerializer
+{
+};
+
+template <std::size_t N>
+struct TSerializer<JSONObject, std::array<float, N>> : ArraySerializer
+{
+};
+
+
+template <typename T, typename U>
+struct TSerializer<JSONObject, IdContainer<T, U>> : ArraySerializer
+{
+};
+
+template <typename T>
+struct TSerializer<JSONObject, optional<T>>
+{
+  static void readFrom(JSONObject::Serializer& s, const optional<T>& obj)
   {
-    if (s.obj[s.strings.id].toString() == s.strings.none)
+    if(obj)
+      s.readFrom(*obj);
+    else
+      s.stream.Null();
+  }
+
+  static void writeTo(JSONObject::Deserializer& s, optional<T>& obj)
+  {
+    if (s.base.IsNull())
     {
       obj = ossia::none;
     }
     else
     {
-      obj = s.obj[s.strings.id].toInt();
+      T t;
+      t <<= JsonValue{s.base};
+      obj = std::move(t);
     }
   }
 };
 
-template <typename T>
-QJsonObject toJsonObject(const T& obj)
+
+template <typename T, typename U>
+struct TSerializer<JSONObject, std::pair<T, U>>
 {
-  JSONObjectReader reader;
-  reader.readFrom(obj);
-
-  return reader.obj;
-}
-
-template <typename T>
-void fromJsonObject(QJsonObject&& json, T& obj)
-{
-  JSONObjectWriter writer{json};
-  writer.writeTo(obj);
-}
-
-template <typename T>
-void fromJsonObject(QJsonValue&& json, T& obj)
-{
-  JSONObjectWriter writer{json.toObject()};
-  writer.writeTo(obj);
-}
-
-template <typename T>
-void fromJsonObject(QJsonValueRef json, T& obj)
-{
-  JSONObjectWriter writer{json.toObject()};
-  writer.writeTo(obj);
-}
-
-template <typename T>
-T fromJsonObject(QJsonObject&& json)
-{
-  T obj;
-  JSONObjectWriter writer{json};
-  writer.writeTo(obj);
-
-  return obj;
-}
-
-template <typename T>
-T fromJsonObject(const QJsonObject& json)
-{
-  T obj;
-  JSONObjectWriter writer{json};
-  writer.writeTo(obj);
-
-  return obj;
-}
-template <typename T>
-T fromJsonObject(QJsonValue&& json)
-{
-  return fromJsonObject<T>(json.toObject());
-}
-
-template <typename T>
-T fromJsonObject(const QJsonValue& json)
-{
-  return fromJsonObject<T>(json.toObject());
-}
-
-template <typename T>
-T fromJsonObject(QJsonValueRef json)
-{
-  return fromJsonObject<T>(json.toObject());
-}
-
-template <template <typename...> class Container>
-QJsonArray toJsonArray(const Container<int>& array)
-{
-  QJsonArray arr;
-
-  for (auto elt : array)
+  using type = std::pair<T, U>;
+  static void readFrom(JSONObject::Serializer& s, const type& obj)
   {
-    arr.append(elt);
+    s.stream.StartArray();
+    s.readFrom(obj.first);
+    s.readFrom(obj.second);
+    s.stream.EndArray();
   }
 
-  return arr;
-}
-
-template <template <typename...> class Container>
-QJsonArray toJsonArray(const Container<unsigned int>& array)
-{
-  QJsonArray arr;
-
-  for (auto elt : array)
+  static void writeTo(JSONObject::Deserializer& s, type& obj)
   {
-    arr.append(elt);
+    const auto& arr = s.base.GetArray();
+    obj.first <<= JsonValue{arr[0]};
+    obj.second <<= JsonValue{arr[1]};
   }
-
-  return arr;
-}
-
-template <class Container>
-QJsonArray toJsonArray_sub(const Container& array, std::false_type)
-{
-  QJsonArray arr;
-
-  for (const auto& elt : array)
-  {
-    arr.append(toJsonObject(elt));
-  }
-
-  return arr;
-}
-
-template <class Container>
-QJsonArray toJsonArray_sub(const Container& array, std::true_type)
-{
-  QJsonArray arr;
-
-  for (const auto& elt : array)
-  {
-    arr.append(toJsonObject(*elt));
-  }
-
-  return arr;
-}
-
-template <typename Container>
-using return_type_of_iterator = typename std::remove_reference<decltype(
-    *std::declval<Container>().begin())>::type;
-
-template <class Container>
-QJsonArray toJsonArray(const Container& array)
-{
-  return toJsonArray_sub(
-      array, std::is_pointer<return_type_of_iterator<Container>>());
-}
-
-template <template <typename U> class T, typename V>
-QJsonArray toJsonArray(const T<Id<V>>& array)
-{
-  QJsonArray arr;
-
-  for (const auto& elt : array)
-  {
-    arr.append(toJsonValue(elt));
-  }
-
-  return arr;
-}
-
-template <
-    template <typename U, typename W>
-    class T,
-    typename V,
-    typename Alloc>
-QJsonArray toJsonArray(const T<Id<V>, Alloc>& array)
-{
-  QJsonArray arr;
-
-  for (const auto& elt : array)
-  {
-    arr.append(toJsonValue(elt));
-  }
-
-  return arr;
-}
-
-template <
-    template <typename U, std::size_t>
-    class T,
-    typename V,
-    std::size_t N>
-QJsonArray toJsonArray(const T<Id<V>, N>& array)
-{
-  QJsonArray arr;
-
-  for (const auto& elt : array)
-  {
-    arr.append(toJsonValue(elt));
-  }
-
-  return arr;
-}
-
-template <typename Value>
-QJsonArray toJsonMap(const QMap<double, Value>& map)
-{
-  QJsonArray arr;
-
-  auto& strings = score::StringConstant();
-  for (const auto& key : map.keys())
-  {
-    QJsonObject obj;
-    obj[strings.k] = key;
-    obj[strings.v] = map[key];
-    arr.append(obj);
-  }
-
-  return arr;
-}
-
-template <typename Key, typename Value>
-QJsonArray toJsonMap(const QMap<Key, Value>& map)
-{
-  QJsonArray arr;
-
-  auto& strings = score::StringConstant();
-  for (const auto& key : map.keys())
-  {
-    QJsonObject obj;
-    obj[strings.k] = *key.val();
-    obj[strings.v] = map[key];
-    arr.append(obj);
-  }
-
-  return arr;
-}
-
-template <
-    typename Key,
-    typename Value,
-    std::enable_if_t<std::is_same<bool, Value>::value>* = nullptr>
-QMap<Key, Value> fromJsonMap(const QJsonArray& array)
-{
-  QMap<Key, Value> map;
-
-  auto& strings = score::StringConstant();
-  for (const auto& value : array)
-  {
-    QJsonObject obj = value.toObject();
-    map[Key{obj[strings.k].toInt()}] = obj[strings.v].toBool();
-  }
-
-  return map;
-}
-
-template <typename Key>
-QMap<Key, double> fromJsonMap(const QJsonArray& array)
-{
-  QMap<Key, double> map;
-
-  auto& strings = score::StringConstant();
-  for (const auto& value : array)
-  {
-    QJsonObject obj = value.toObject();
-    map[Key{obj[strings.k].toInt()}] = obj[strings.v].toDouble();
-  }
-
-  return map;
-}
+};
 
 template <>
-inline QMap<int32_t, double> fromJsonMap(const QJsonArray& array)
+struct TSerializer<JSONObject, QVariantMap>
 {
-  QMap<int32_t, double> map;
-
-  auto& strings = score::StringConstant();
-  for (const auto& value : array)
+  using type = QVariantMap;
+  static void readFrom(JSONObject::Serializer& s, const type& obj)
   {
-    QJsonObject obj = value.toObject();
-    map[obj[strings.k].toInt()] = obj[strings.v].toDouble();
+    SCORE_ABORT;
+    /*
+    QJsonArray arr;
+    arr.append(toJsonValue(obj.first));
+    arr.append(toJsonValue(obj.second));
+    s.val = std::move(arr);
+    */
   }
 
-  return map;
-}
+  static void writeTo(JSONObject::Deserializer& s, type& obj)
+  {
+    SCORE_ABORT;
+    /*
+    const auto arr = s.val.toArray();
+    obj.first = fromJsonValue<T>(arr[0]);
+    obj.second = fromJsonValue<U>(arr[1]);
+    */
+  }
+};
+
+template <typename T>
+struct TSerializer<JSONObject, ossia::flat_set<T>>
+{
+  using type = ossia::flat_set<T>;
+  static void readFrom(JSONObject::Serializer& s, const type& obj)
+  {
+    ArraySerializer::readFrom(s, obj.container);
+  }
+
+  static void writeTo(JSONObject::Deserializer& s, type& obj)
+  {
+    ArraySerializer::writeTo(s, obj.container);
+  }
+};
+
 template <>
-inline QMap<double, double> fromJsonMap(const QJsonArray& array)
+struct TSerializer<JSONObject, QColor>
 {
-  QMap<double, double> map;
-
-  auto& strings = score::StringConstant();
-  for (const auto& value : array)
+  static void readFrom(JSONObject::Serializer& s, QColor c)
   {
-    QJsonObject obj = value.toObject();
-    map[obj[strings.k].toDouble()] = obj[strings.v].toDouble();
+    const auto col = c.rgba64();
+    s.stream.StartArray();
+    s.stream.Int(col.red());
+    s.stream.Int(col.green());
+    s.stream.Int(col.blue());
+    s.stream.Int(col.alpha());
+    s.stream.EndArray();
   }
 
-  return map;
-}
-
-template <template <typename U> class Container>
-void fromJsonArray(QJsonArray&& json_arr, Container<int>& arr)
-{
-  int n = json_arr.size();
-  arr.resize(n);
-  for (int i = 0; i < n; i++)
+  static void writeTo(JSONObject::Deserializer& s, QColor& c)
   {
-    arr[i] = json_arr.at(i).toInt();
+    const auto& array = s.base.GetArray();
+    QRgba64 col;
+    col.setRed(array[0].GetInt());
+    col.setGreen(array[1].GetInt());
+    col.setBlue(array[2].GetInt());
+    col.setAlpha(array[3].GetInt());
+    c = col;
   }
-}
+};
 
-template <template <typename U> class Container>
-void fromJsonArray(QJsonArray&& json_arr, Container<QString>& arr)
+template <>
+struct TSerializer<JSONObject, QPoint>
 {
-  arr.clear();
-  arr.reserve(json_arr.size());
-  Foreach(json_arr, [&](auto elt) { arr.push_back(elt.toString()); });
-}
-
-template <template <typename U> class Container, typename T>
-void fromJsonArray(QJsonArray&& json_arr, Container<T>& arr)
-{
-  arr.clear();
-  arr.reserve(json_arr.size());
-  Foreach(json_arr, [&](auto elt) {
-    T obj;
-    fromJsonObject(elt.toObject(), obj);
-    arr.push_back(obj);
-  });
-}
-
-template <
-    template <typename U, typename V>
-    class Container,
-    typename T1,
-    typename T2,
-    std::enable_if_t<!std::is_arithmetic<T1>::value>* = nullptr>
-void fromJsonArray(QJsonArray&& json_arr, Container<T1, T2>& arr)
-{
-  arr.clear();
-  arr.reserve(json_arr.size());
-  Foreach(json_arr, [&](auto elt) {
-    T1 obj;
-    fromJsonObject(elt.toObject(), obj);
-    arr.push_back(obj);
-  });
-}
-
-template <
-    template <typename U, typename V>
-    class Container,
-    typename T1,
-    typename T2,
-    std::enable_if_t<std::is_integral<T1>::value>* = nullptr>
-void fromJsonArray(QJsonArray&& json_arr, Container<T1, T2>& arr)
-{
-  int n = json_arr.size();
-  arr.resize(n);
-  for (int i = 0; i < n; i++)
+  static void readFrom(JSONObject::Serializer& s, QPoint c)
   {
-    arr[i] = json_arr.at(i).toInt();
+    s.stream.StartArray();
+    s.stream.Int(c.x());
+    s.stream.Int(c.y());
+    s.stream.EndArray();
   }
-}
 
-template <
-    template <typename U, typename V>
-    class Container,
-    typename T1,
-    typename T2,
-    std::enable_if_t<std::is_floating_point<T1>::value>* = nullptr>
-void fromJsonArray(QJsonArray&& json_arr, Container<T1, T2>& arr)
-{
-  int n = json_arr.size();
-  arr.resize(n);
-  for (int i = 0; i < n; i++)
+  static void writeTo(JSONObject::Deserializer& s, QPoint& c)
   {
-    arr[i] = json_arr.at(i).toDouble();
+    const auto& array = s.base.GetArray();
+    c.setX(array[0].GetInt());
+    c.setY(array[1].GetInt());
   }
-}
+};
 
-inline void fromJsonArray(QJsonArray&& json_arr, QStringList& arr)
+template <>
+struct TSerializer<JSONObject, QPointF>
 {
-  int n = json_arr.size();
-  arr.clear();
-  arr.reserve(n);
-  for (int i = 0; i < n; i++)
+  static void readFrom(JSONObject::Serializer& s, QPointF c)
   {
-    arr.push_back(json_arr.at(i).toString());
+    s.stream.StartArray();
+    s.stream.Double(c.x());
+    s.stream.Double(c.y());
+    s.stream.EndArray();
   }
-}
 
-inline QJsonArray toJsonArray(const QStringList& array)
+  static void writeTo(JSONObject::Deserializer& s, QPointF& c)
+  {
+    const auto& array = s.base.GetArray();
+    c.setX(array[0].GetDouble());
+    c.setY(array[1].GetDouble());
+  }
+};
+
+template <>
+struct TSerializer<JSONObject, QSize>
 {
-  QJsonArray arr;
-  for (auto& v : array)
-    arr.push_back(v);
-  return arr;
-}
+  static void readFrom(JSONObject::Serializer& s, QSize c)
+  {
+    s.stream.StartArray();
+    s.stream.Int(c.width());
+    s.stream.Int(c.height());
+    s.stream.EndArray();
+  }
 
+  static void writeTo(JSONObject::Deserializer& s, QSize& c)
+  {
+    const auto& array = s.base.GetArray();
+    c.setWidth(array[0].GetInt());
+    c.setHeight(array[1].GetInt());
+  }
+};
+
+template <>
+struct TSerializer<JSONObject, QSizeF>
+{
+  static void readFrom(JSONObject::Serializer& s, QSizeF c)
+  {
+    s.stream.StartArray();
+    s.stream.Double(c.width());
+    s.stream.Double(c.height());
+    s.stream.EndArray();
+  }
+
+  static void writeTo(JSONObject::Deserializer& s, QSizeF& c)
+  {
+    const auto& array = s.base.GetArray();
+    c.setWidth(array[0].GetDouble());
+    c.setHeight(array[1].GetDouble());
+  }
+};
+
+template <>
+struct TSerializer<JSONObject, QRect>
+{
+  static void readFrom(JSONObject::Serializer& s, QRect c)
+  {
+    s.stream.StartArray();
+    s.stream.Int(c.x());
+    s.stream.Int(c.y());
+    s.stream.Int(c.width());
+    s.stream.Int(c.height());
+    s.stream.EndArray();
+  }
+
+  static void writeTo(JSONObject::Deserializer& s, QRect& c)
+  {
+    const auto& array = s.base.GetArray();
+    c.setX(array[0].GetInt());
+    c.setY(array[1].GetInt());
+    c.setWidth(array[2].GetInt());
+    c.setHeight(array[3].GetInt());
+  }
+};
+
+template <>
+struct TSerializer<JSONObject, QRectF>
+{
+  static void readFrom(JSONObject::Serializer& s, QRectF c)
+  {
+    s.stream.StartArray();
+    s.stream.Double(c.x());
+    s.stream.Double(c.y());
+    s.stream.Double(c.width());
+    s.stream.Double(c.height());
+    s.stream.EndArray();
+  }
+
+  static void writeTo(JSONObject::Deserializer& s, QRectF& c)
+  {
+    const auto& array = s.base.GetArray();
+    c.setX(array[0].GetDouble());
+    c.setY(array[1].GetDouble());
+    c.setWidth(array[2].GetDouble());
+    c.setHeight(array[3].GetDouble());
+  }
+};
 template <typename T>
-QJsonArray toJsonArray(const std::vector<T*>& array)
+struct TSerializer<JSONObject, Id<T>>
 {
-  QJsonArray arr;
-  for (auto& v : array)
-    arr.push_back(toJsonObject(*v));
-  return arr;
-}
-
-template <typename T>
-void fromJsonArray(
-    const QJsonArray& arr,
-    std::vector<T*>& array,
-    QObject* parent)
-{
-  for (const auto& v : arr)
+  using type = Id<T>;
+  static void readFrom(JSONObject::Serializer& s, const type& obj)
   {
-    auto obj = v.toObject();
-    array.push_back(new T{JSONObjectWriter{obj}, parent});
+    s.stream.Int64(obj.val());
   }
-}
 
-template <typename T, std::size_t N>
-void fromJsonArray(
-    const QJsonArray& arr,
-    ossia::small_vector<T*, N>& array,
-    QObject* parent)
-{
-  for (const auto& v : arr)
+  static void writeTo(JSONObject::Deserializer& s, type& obj)
   {
-    auto obj = v.toObject();
-    array.push_back(new T{JSONObjectWriter{obj}, parent});
+    obj.setVal(s.base.GetInt64());
   }
+};
+
+
+template <>
+struct SCORE_LIB_BASE_EXPORT TSerializer<DataStream, rapidjson::Document>
+{
+  static void readFrom(DataStream::Serializer& s, const rapidjson::Document& obj);
+  static void writeTo(DataStream::Deserializer& s, rapidjson::Document& obj);
+};
+template <>
+struct SCORE_LIB_BASE_EXPORT TSerializer<DataStream, rapidjson::Value>
+{
+  static void readFrom(DataStream::Serializer& s, rapidjson::Value& obj) = delete;
+  static void writeTo(DataStream::Deserializer& s, rapidjson::Value& obj) = delete;
+};
+
+namespace Process
+{
+class Inlet;
+}
+template<>
+void JSONReader::read<Process::Inlet*>(Process::Inlet* const &) = delete;
+
+
+
+
+SCORE_LIB_BASE_EXPORT
+rapidjson::Document clone(const rapidjson::Value& val) noexcept;
+
+inline
+rapidjson::Document readJson(const QByteArray& arr) {
+  rapidjson::Document doc;
+  doc.Parse(arr.data(), arr.size());
+  if(doc.HasParseError()) {
+    throw std::runtime_error("Invalid JSON document !");
+  }
+  return doc;
 }
 
-Q_DECLARE_METATYPE(JSONObjectReader*)
-Q_DECLARE_METATYPE(JSONObjectWriter*)
-W_REGISTER_ARGTYPE(JSONObjectReader*)
-W_REGISTER_ARGTYPE(JSONObjectWriter*)
+inline
+QByteArray jsonToByteArray(const rapidjson::Value& arr) noexcept
+{
+  rapidjson::StringBuffer buf;
+  buf.Reserve(8192);
+  rapidjson::Writer<rapidjson::StringBuffer> w{buf};
+  arr.Accept(w);
+  return QByteArray(buf.GetString(), buf.GetSize());
+}
+
+rapidjson::Document toValue(const JSONReader&) noexcept;
+
+template<typename T>
+T fromJson(const QByteArray& rawData)
+{
+  const rapidjson::Document doc = readJson(rawData);
+  JSONWriter wr{doc};
+  T t;
+  wr.writeTo(t);
+  return t;
+}
+
+template<typename T>
+QByteArray toJson(const T& t)
+{
+  JSONReader reader;
+  reader.readFrom(t);
+  return reader.toByteArray();
+}

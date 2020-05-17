@@ -15,6 +15,8 @@
 #include <QGraphicsProxyWidget>
 #include <QLineEdit>
 #include <QCheckBox>
+#include <QTextDocument>
+#include <QPalette>
 #include <ossia/detail/algorithms.hpp>
 #include <score_lib_process_export.h>
 
@@ -27,7 +29,6 @@ inline QGraphicsItem* wrapWidget(QWidget* widg)
   widg->setContentsMargins(0, 0, 0, 0);
   widg->setPalette(score::transparentPalette());
   widg->setAutoFillBackground(false);
-  widg->setStyleSheet(score::transparentStylesheet());
 
   auto wrap = new QGraphicsProxyWidget{};
   wrap->setWidget(widg);
@@ -68,10 +69,10 @@ struct FloatControl
         sl,
         &score::DoubleSlider::sliderMoved,
         context,
-        [=, &inlet, &ctx](int v) {
+        [=, &inlet, &ctx](double v) {
           sl->moving = true;
           ctx.dispatcher.submit<SetControlValue<Control_T>>(
-              inlet, min + (v / score::DoubleSlider::max) * (max - min));
+              inlet,min + sl->value() * (max-min));
         });
     QObject::connect(
         sl,
@@ -80,9 +81,7 @@ struct FloatControl
         [=, &inlet, &ctx]() {
           ctx.dispatcher.submit<SetControlValue<Control_T>>(
               inlet,
-              min
-                  + (((QSlider*)sl)->value() / score::DoubleSlider::max)
-                        * (max - min));
+              min + sl->value() * (max-min));
           ctx.dispatcher.commit();
           sl->moving = false;
         });
@@ -181,10 +180,10 @@ struct LogFloatControl
         sl,
         &score::DoubleSlider::sliderMoved,
         context,
-        [=, &inlet, &ctx](int v) {
+        [=, &inlet, &ctx](double v) {
           sl->moving = true;
           ctx.dispatcher.submit<SetControlValue<Control_T>>(
-              inlet, from01(min, range, v / score::DoubleSlider::max));
+              inlet, from01(min, range, v));
         });
     QObject::connect(
         sl, &score::DoubleSlider::sliderReleased, context, [=, &inlet, &ctx] {
@@ -193,7 +192,7 @@ struct LogFloatControl
               from01(
                   min,
                   range,
-                  ((QSlider*)sl)->value() / score::DoubleSlider::max));
+                  sl->value()));
           ctx.dispatcher.commit();
           sl->moving = false;
         });
@@ -280,12 +279,12 @@ struct IntSlider
     sl->setContentsMargins(0, 0, 0, 0);
 
     QObject::connect(
-        sl, &QSlider::sliderMoved, context, [sl, &inlet, &ctx](int p) {
+        sl, &score::IntSlider::sliderMoved, context, [sl, &inlet, &ctx](int p) {
           sl->moving = true;
           ctx.dispatcher.submit<SetControlValue<Control_T>>(inlet, p);
         });
     QObject::connect(
-        sl, &QSlider::sliderReleased, context, [sl, &inlet, &ctx] {
+        sl, &score::IntSlider::sliderReleased, context, [sl, &inlet, &ctx] {
           ctx.dispatcher.submit<SetControlValue<Control_T>>(inlet, sl->value());
           ctx.dispatcher.commit();
           sl->moving = false;
@@ -440,10 +439,17 @@ struct Toggle
       QWidget* parent,
       QObject* context)
   {
+    QPalette palette;
+    palette.setColor(QPalette::Highlight, QColor{"#62400a"});
+    palette.setColor(QPalette::HighlightedText, QColor{"silver"});
+    palette.setColor(QPalette::WindowText, QColor{"#f6a019"});
+    palette.setColor(QPalette::Window, QColor{"#62400a"});
+
     auto sl = new QCheckBox{parent};
     sl->setChecked(ossia::convert<bool>(inlet.value()));
     sl->setContentsMargins(0, 0, 0, 0);
-
+    sl->setMinimumWidth(18);
+    sl->setPalette(palette);
     QObject::connect(
         sl, &QCheckBox::toggled, context, [&inlet, &ctx](bool val) {
           CommandDispatcher<>{ctx.commandStack}.submit<SetControlValue<Control_T>>(
@@ -605,6 +611,12 @@ struct LineEdit
 
     return sl;
   }
+  struct LineEditItem : public QGraphicsTextItem {
+      LineEditItem()
+      {
+        setTextInteractionFlags(Qt::TextEditorInteraction);
+      }
+  };
   template <typename T, typename Control_T>
   static QGraphicsItem* make_item(
       const T& slider,
@@ -613,7 +625,31 @@ struct LineEdit
       QGraphicsItem* parent,
       QObject* context)
   {
-    return wrapWidget(make_widget(slider, inlet, ctx, nullptr, context));
+    auto sl = new LineEditItem{};
+    sl->setTextWidth(280.);
+
+    sl->setPlainText(
+        QString::fromStdString(ossia::convert<std::string>(inlet.value())));
+
+    auto doc = sl->document();
+    QObject::connect(
+        doc,
+        &QTextDocument::contentsChanged,
+        context,
+        [=, &inlet, &ctx] {
+          CommandDispatcher<>{ctx.commandStack}.submit<SetControlValue<Control_T>>(inlet, doc->toPlainText().toStdString());
+        });
+    QObject::connect(
+        &inlet,
+        &Control_T::valueChanged,
+        sl,
+        [=](const ossia::value& val) {
+          auto str = QString::fromStdString(ossia::convert<std::string>(val));
+          if(str != doc->toPlainText())
+            doc->setPlainText(str);
+    });
+
+    return sl;
   }
 };
 
@@ -951,6 +987,58 @@ struct HSVSlider
     return sl;
   }
 };
+
+struct XYSlider
+{
+  template <typename T, typename Control_T>
+  static auto make_widget(
+      const T& slider,
+      Control_T& inlet,
+      const score::DocumentContext& ctx,
+      QWidget* parent,
+      QObject* context)
+  {
+    return nullptr; // TODO
+  }
+
+  template <typename T, typename Control_T>
+  static QGraphicsItem* make_item(
+      const T& slider,
+      Control_T& inlet,
+      const score::DocumentContext& ctx,
+      QGraphicsItem* parent,
+      QObject* context)
+  {
+    auto sl = new score::QGraphicsXYChooser{nullptr};
+    sl->setValue(ossia::convert<ossia::vec2f>(inlet.value()));
+
+    QObject::connect(
+        sl,
+        &score::QGraphicsXYChooser::sliderMoved,
+        context,
+        [=, &inlet, &ctx] {
+          sl->moving = true;
+          ctx.dispatcher.submit<SetControlValue<Control_T>>(inlet, sl->value());
+        });
+    QObject::connect(
+        sl, &score::QGraphicsXYChooser::sliderReleased, context, [&ctx, sl]() {
+          ctx.dispatcher.commit();
+          sl->moving = false;
+        });
+
+    QObject::connect(
+        &inlet,
+        &Control_T::valueChanged,
+        sl,
+        [=](ossia::value val) {
+          if (!sl->moving)
+            sl->setValue(ossia::convert<ossia::vec2f>(val));
+        });
+
+    return sl;
+  }
+};
+
 
 using FloatSlider = FloatControl<score::QGraphicsSlider>;
 using LogFloatSlider = LogFloatControl<score::QGraphicsLogSlider>;

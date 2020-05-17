@@ -6,6 +6,7 @@ class QSortFilterProxyModel;
 namespace score
 {
 struct GUIApplicationContext;
+struct DocumentMetadata;
 }
 
 namespace Library
@@ -18,11 +19,14 @@ public:
       QWidget* parent);
   ~ProjectLibraryWidget();
 
-  void setRoot(QString path);
+  void setRoot(score::DocumentMetadata& meta);
+  void unsetRoot();
+
 
 private:
   QFileSystemModel* m_model{};
   QSortFilterProxyModel* m_proxy{};
   QTreeView m_tv;
+  QMetaObject::Connection m_con;
 };
 }

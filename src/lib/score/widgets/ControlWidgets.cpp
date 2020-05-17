@@ -223,7 +223,7 @@ void ValueLogDoubleSlider::paintEvent(QPaintEvent* event)
 }
 
 ComboSlider::ComboSlider(const QStringList& arr, QWidget* parent)
-    : score::Slider{parent}, array{arr}
+    : score::IntSlider{parent}, array{arr}
 {
 }
 

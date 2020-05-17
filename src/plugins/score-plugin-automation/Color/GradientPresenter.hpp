@@ -4,86 +4,11 @@
 #include <Process/LayerPresenter.hpp>
 
 #include <score/model/path/PathSerialization.hpp>
+#include <score/serialization/MapSerialization.hpp>
 
 #include <Color/GradientModel.hpp>
 
-template <>
-struct is_custom_serialized<QColor> : public std::true_type
-{
-};
 
-template <typename T, typename U>
-struct TSerializer<DataStream, ossia::flat_map<T, U>>
-{
-  using type = ossia::flat_map<T, U>;
-  static void readFrom(DataStream::Serializer& s, const type& obj)
-  {
-    s.stream() << (int32_t)obj.size();
-    for (const auto& e : obj)
-      s.stream() << e.first << e.second;
-  }
-
-  static void writeTo(DataStream::Deserializer& s, type& obj)
-  {
-    int32_t n;
-    s.stream() >> n;
-    for (; n-- > 0;)
-    {
-      T k;
-      U v;
-      s.stream() >> k >> v;
-      obj.insert(std::make_pair(std::move(k), std::move(v)));
-    }
-  }
-};
-
-template <>
-struct TSerializer<JSONValue, QColor>
-{
-  static void readFrom(JSONValue::Serializer& s, QColor c)
-  {
-    if (c.spec() != QColor::Rgb)
-      c = c.toRgb();
-    s.val = QJsonArray{c.redF(), c.greenF(), c.blueF(), c.alphaF()};
-  }
-
-  static void writeTo(JSONValue::Deserializer& s, QColor& c)
-  {
-    auto arr = s.val.toArray();
-    c.setRgbF(
-        arr[0].toDouble(),
-        arr[1].toDouble(),
-        arr[2].toDouble(),
-        arr[3].toDouble());
-  }
-};
-
-template <typename U>
-struct TSerializer<JSONValue, ossia::flat_map<double, U>>
-{
-  using type = ossia::flat_map<double, U>;
-  static void readFrom(JSONValue::Serializer& s, const type& obj)
-  {
-    QJsonArray arr;
-    for (const auto& e : obj)
-    {
-      arr.append(e.first);
-      arr.append(toJsonValue(e.second));
-    }
-    s.val = arr;
-  }
-
-  static void writeTo(JSONValue::Deserializer& s, type& obj)
-  {
-    auto arr = s.val.toArray();
-    for (int i = 0; i < arr.size(); i += 2)
-    {
-      double k = arr[i].toDouble();
-      U v = fromJsonValue<U>(arr[i + 1]);
-      obj.insert(std::make_pair(std::move(k), std::move(v)));
-    }
-  }
-};
 
 namespace Gradient
 {

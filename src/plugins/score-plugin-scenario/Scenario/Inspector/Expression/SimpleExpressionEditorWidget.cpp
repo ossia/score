@@ -19,8 +19,8 @@
 
 #include <QComboBox>
 #include <QLineEdit>
+#include <QMenu>
 #include <QPainter>
-#include <QPushButton>
 #include <QToolButton>
 
 #include <wobjectimpl.h>
@@ -52,10 +52,7 @@ public:
     setMinimumSize(20, 16);
     setMaximumSize(40, 16);
     setFont(score::Skin::instance().MonoFontSmall);
-    setStyleSheet(
-            "QComboBox { padding: 0px 0px 0px 0px; border-style: none; }\n"
-            "QComboBox::down-arrow { image: none; }"
-            );
+
     setFrame(false);
   }
   void paintEvent (QPaintEvent *ev)
@@ -94,6 +91,7 @@ SimpleExpressionEditorWidget::SimpleExpressionEditorWidget(
   auto btnLay = new score::MarginLess<QHBoxLayout>{btnWidg};
   m_rmBtn = new QToolButton{btnWidg};
   m_rmBtn->setText(QStringLiteral("-"));
+  m_rmBtn->setAutoRaise(true);
   m_rmBtn->setMaximumSize(30, 30);
   auto remIcon = makeIcons(
       QStringLiteral(":/icons/condition_remove_on.png"),
@@ -105,6 +103,7 @@ SimpleExpressionEditorWidget::SimpleExpressionEditorWidget(
   m_addBtn = new QToolButton{btnWidg};
   m_addBtn->setText(QStringLiteral("+"));
   m_addBtn->setMaximumSize(30, 30);
+  m_addBtn->setAutoRaise(true);
   m_addBtn->setVisible(false);
   auto addIcon = makeIcons(
       QStringLiteral(":/icons/condition_add_on.png"),
@@ -113,10 +112,17 @@ SimpleExpressionEditorWidget::SimpleExpressionEditorWidget(
 
   m_addBtn->setIcon(addIcon);
 
-  m_menuBtn = new Inspector::MenuButton{this};
+  m_menuBtn = new Inspector::MenuButton{btnWidg};
   m_menuBtn->setObjectName(QStringLiteral("SettingsMenu"));
   m_menuBtn->setMaximumSize(30, 30);
-  m_menuBtn->setMenu(menu);
+  connect(
+      m_menuBtn,
+      &QToolButton::clicked,
+      menu,
+      [menu]()
+  {
+      menu->popup(QCursor::pos());
+  });
 
   QSizePolicy sp = m_menuBtn->sizePolicy();
   sp.setRetainSizeWhenHidden(true);
@@ -139,8 +145,8 @@ SimpleExpressionEditorWidget::SimpleExpressionEditorWidget(
 
   // Connections
 
-  connect(m_rmBtn, &QPushButton::clicked, this, [=]() { removeTerm(id); });
-  connect(m_addBtn, &QPushButton::clicked, this, [=]() { addTerm(); });
+  connect(m_rmBtn, &QToolButton::clicked, this, [=]() { removeTerm(id); });
+  connect(m_addBtn, &QToolButton::clicked, this, [=]() { addTerm(); });
 
   /// EDIT FINSHED
   connect(
@@ -438,6 +444,7 @@ void SimpleExpressionEditorWidget::enableAddButton(bool b)
 void SimpleExpressionEditorWidget::enableMenuButton(bool b)
 {
   m_menuBtn->setVisible(b);
+  m_menuBtn->setEnabled(b);
 }
 
 }

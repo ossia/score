@@ -19,23 +19,25 @@
 #include <score/serialization/JSONVisitor.hpp>
 #include <score/tools/IdentifierGeneration.hpp>
 #include <score/tools/std/Optional.hpp>
+#include <score/widgets/MessageBox.hpp>
 
 #include <core/application/ApplicationSettings.hpp>
 #include <core/command/CommandStack.hpp>
 #include <core/document/DocumentPresenter.hpp>
 #include <core/document/DocumentView.hpp>
 #include <core/presenter/DocumentManager.hpp>
-
+#include <fmt/format.h>
 #include <QByteArray>
 #include <QCryptographicHash>
 #include <QDataStream>
 #include <QIODevice>
-#include <QJsonObject>
+#include <QFile>
 #include <QMetaType>
 #include <QPair>
 #include <QString>
 #include <QVariant>
 #include <QVector>
+#include <QApplication>
 
 #include <stdexcept>
 #include <vector>
@@ -55,45 +57,44 @@ QByteArray Document::saveDocumentModelAsByteArray()
   return arr;
 }
 
-QJsonObject Document::saveDocumentModelAsJson()
+void Document::saveDocumentModelAsJson(JSONObject::Serializer & writer)
 {
-  JSONObject::Serializer s;
+  writer.stream.StartObject();
+
   TSerializer<JSONObject, IdentifiedObject<DocumentDelegateModel>>::readFrom(
-      s, m_model->modelDelegate());
-  m_model->modelDelegate().serialize(s.toVariant());
-  return s.obj;
+      writer, m_model->modelDelegate());
+  m_model->modelDelegate().serialize(writer.toVariant());
+
+  writer.stream.EndObject();
 }
 
-QJsonObject Document::saveAsJson()
+void Document::saveAsJson(JSONObject::Serializer & writer)
 {
   using namespace std;
-  QJsonObject complete, json_plugins;
+  writer.stream.StartObject();
+  writer.stream.Key("Document");
+  saveDocumentModelAsJson(writer);
 
+  rapidjson::Value complete, json_plugins;
+
+  writer.stream.Key("Plugins");
+  writer.stream.StartArray();
   for (const auto& plugin : model().pluginModels())
   {
     if (auto serializable_plugin
         = qobject_cast<SerializableDocumentPlugin*>(plugin))
     {
-      JSONObject::Serializer s_before;
-      s_before.readFrom(*serializable_plugin);
-
-      JSONObject::Serializer s_after;
-      serializable_plugin->serializeAfterDocument(s_after.toVariant());
-
-      s_before.obj["DocumentPostModelPart"] = std::move(s_after.obj);
-      json_plugins[serializable_plugin->objectName()]
-          = std::move(s_before.obj);
+      writer.readFrom(*serializable_plugin);
     }
   }
+  writer.stream.EndArray();
 
-  complete["Plugins"] = json_plugins;
-  complete["Document"] = saveDocumentModelAsJson();
-  complete["Version"]
-      = context().app.applicationSettings.saveFormatVersion.value();
+  writer.stream.Key("Version");
+  writer.stream.Int(context().app.applicationSettings.saveFormatVersion.value());
 
+  writer.stream.EndObject();
   // Indicate in the stack that the current position is saved
   m_commandStack.markCurrentIndexAsSaved();
-  return complete;
 }
 
 QByteArray Document::saveAsByteArray()
@@ -122,9 +123,7 @@ QByteArray Document::saveAsByteArray()
           "");
       QByteArray arr_before, arr_after;
       DataStream::Serializer s_before{&arr_before};
-      DataStream::Serializer s_after{&arr_after};
       s_before.readFrom(*serializable_plugin);
-      serializable_plugin->serializeAfterDocument(s_after.toVariant());
       documentPluginModels.push_back(
           {std::move(arr_before), std::move(arr_after)});
     }
@@ -143,28 +142,17 @@ QByteArray Document::saveAsByteArray()
 
 // Load document
 Document::Document(
-    const QString& name,
-    const QVariant& data,
+    const QString& fileName,
     DocumentDelegateFactory& factory,
     QWidget* parentview,
     QObject* parent)
     : QObject{parent}
-    , m_metadata{name}
+    , m_metadata{fileName}
     , m_commandStack{*this}
     , m_objectLocker{this}
     , m_context{*this}
 {
-  std::allocator<DocumentModel> allocator;
-  m_model = allocator.allocate(1);
-  try
-  {
-    allocator.construct(m_model, m_context, data, factory, this);
-  }
-  catch (...)
-  {
-    allocator.deallocate(m_model, 1);
-    throw;
-  }
+  loadModel(fileName, factory);
 
   if (parentview)
   {
@@ -175,28 +163,100 @@ Document::Document(
   init();
 }
 
+// Restore
 Document::Document(
-    const QString& name,
-    const QVariant& data,
+    const QString& fileName,
+    const QByteArray& data,
+    DocumentDelegateFactory& factory,
+    QWidget* parentview,
+    QObject* parent)
+  : QObject{parent}
+  , m_metadata{fileName}
+  , m_commandStack{*this}
+  , m_objectLocker{this}
+  , m_context{*this}
+{
+  restoreModel(data, factory);
+
+  if (parentview)
+  {
+    m_view = new DocumentView{factory, *this, parentview};
+    m_presenter
+        = new DocumentPresenter{m_context, factory, *m_model, *m_view, this};
+  }
+  init();
+}
+
+void Document::restoreModel(const QByteArray& data, DocumentDelegateFactory& factory)
+{
+  std::allocator<DocumentModel> allocator;
+  m_model = allocator.allocate(1);
+  new (m_model) DocumentModel(this);
+
+  for (auto& appPlug : m_context.app.guiApplicationPlugins())
+  {
+    appPlug->on_initDocument(*this);
+  }
+
+  m_model->loadDocumentAsByteArray(m_context, data, factory);
+}
+
+void Document::loadModel(const QString& fileName, DocumentDelegateFactory& factory)
+{
+  std::allocator<DocumentModel> allocator;
+  m_model = allocator.allocate(1);
+  new (m_model) DocumentModel(this);
+
+  for (auto& appPlug : m_context.app.guiApplicationPlugins())
+  {
+    appPlug->on_initDocument(*this);
+  }
+
+  if (fileName.indexOf(".scorebin") != -1)
+  {
+    QFile f(fileName);
+    f.open(QIODevice::ReadOnly);
+    auto data = f.readAll();
+    SCORE_ASSERT(!data.isEmpty());
+
+    m_model->loadDocumentAsByteArray(m_context, data, factory);
+  }
+  else if (fileName.indexOf(".score") != -1)
+  {
+    QFile f(fileName);
+    f.open(QIODevice::ReadOnly);
+    auto data = f.readAll();
+    SCORE_ASSERT(!data.isEmpty());
+
+    auto doc = readJson(data);
+    bool ok = DocumentManager::checkAndUpdateJson(doc, m_context.app);
+    if (!ok)
+    {
+      score::warning(
+            qApp->activeWindow(),
+            tr("Warning"),
+            tr("There is probably something wrong with the loaded file."));
+    }
+    m_model->loadDocumentAsJson(m_context, doc, factory);
+  }
+  else
+  {
+    // Create a blank document
+    factory.make(m_context, m_model->m_model, m_model);
+  }
+}
+
+Document::Document(
+    const QString& fileName,
     DocumentDelegateFactory& factory,
     QObject* parent)
     : QObject{parent}
-    , m_metadata{name}
+    , m_metadata{fileName}
     , m_commandStack{*this}
     , m_objectLocker{this}
     , m_context{*this}
 {
-  std::allocator<DocumentModel> allocator;
-  m_model = allocator.allocate(1);
-  try
-  {
-    allocator.construct(m_model, m_context, data, factory, this);
-  }
-  catch (...)
-  {
-    allocator.deallocate(m_model, 1);
-    throw;
-  }
+  loadModel(fileName, factory);
 }
 
 void DocumentModel::loadDocumentAsByteArray(
@@ -261,107 +321,51 @@ void DocumentModel::loadDocumentAsByteArray(
   // Load the document model
   fact.load(doc_writer.toVariant(), ctx, m_model, this);
 
-  for (int i = 0; i < plug_n; i++)
-  {
-    if (auto plug = qobject_cast<score::SerializableDocumentPlugin*>(docs[i]))
-    {
-      DataStream::Deserializer plug_writer{documentPluginModels[i].second};
-      plug->reloadAfterDocument(plug_writer.toVariant());
-    }
-  }
 }
 
 void DocumentModel::loadDocumentAsJson(
     score::DocumentContext& ctx,
-    const QJsonObject& json,
+    const rapidjson::Value& json,
     DocumentDelegateFactory& fact)
 {
-  const auto& doc_obj = json.find("Document");
-  if (doc_obj == json.end())
+  const auto& doc_obj = json.FindMember("Document");
+  if (doc_obj == json.MemberEnd())
     throw std::runtime_error(tr("Invalid document").toStdString());
 
-  const auto& doc = (*doc_obj).toObject();
+  const auto& doc = (*doc_obj).value;
   this->setId(getStrongId(ctx.app.documents.documents()));
 
-  score::hash_map<score::SerializableDocumentPlugin*, QJsonObject> docs;
   // Load the plug-in models
-  auto json_plugins = json["Plugins"].toObject();
+  auto json_plugins = json["Plugins"].GetArray();
   auto& plugin_factories = ctx.app.interfaces<DocumentPluginFactoryList>();
-  Foreach(json_plugins.keys(), [&](const auto& key) {
-    JSONObject::Deserializer plug_writer{json_plugins[key].toObject()};
+  for(const auto& plugin : json_plugins)
+  {
+    JSONObject::Deserializer plug_writer{plugin};
     auto plug
         = deserialize_interface(plugin_factories, plug_writer, ctx, this);
 
     if (plug)
     {
-      if (auto ser = qobject_cast<score::SerializableDocumentPlugin*>(plug))
-      {
-        auto it = plug_writer.obj.find("DocumentPostModelPart");
-        if ((it != plug_writer.obj.end()) && it->isObject())
-        {
-          docs.insert({ser, it->toObject()});
-        }
-      }
       this->addPluginModel(plug);
     }
     else
     {
       SCORE_TODO;
     }
-  });
+  }
 
   // Load the model
   JSONObject::Deserializer doc_writer{doc};
   fact.load(doc_writer.toVariant(), ctx, m_model, this);
-
-  auto it_end = docs.end();
-  for (auto it = docs.begin(); it != it_end; ++it)
-  {
-    JSONObject::Deserializer des{it.value()};
-    it->first->reloadAfterDocument(des.toVariant());
-  }
 }
 
 // Load document model
 DocumentModel::DocumentModel(
-    score::DocumentContext& ctx,
-    const QVariant& data,
-    DocumentDelegateFactory& fact,
     QObject* parent)
     : IdentifiedObject{Id<DocumentModel>(score::id_generator::getFirstId()),
                        "DocumentModel",
                        parent}
 {
-  using namespace std;
-
-  for (auto& appPlug : ctx.app.guiApplicationPlugins())
-  {
-    appPlug->on_initDocument(ctx.document);
-  }
-
-  try
-  {
-    if (data.canConvert(QMetaType::QByteArray))
-    {
-      loadDocumentAsByteArray(ctx, data.toByteArray(), fact);
-    }
-    else if (data.canConvert(QMetaType::QJsonObject))
-    {
-      loadDocumentAsJson(ctx, data.toJsonObject(), fact);
-    }
-    else
-    {
-      SCORE_ABORT;
-    }
-  }
-  catch (...)
-  {
-    // In case of exception, we just clear the container so that some plug-in
-    // does not try to access
-    // a "dead" plug-in due to the deletion order of QObject (e.g. calling
-    // findPlugin in a dtor).
-    m_pluginModels.clear();
-    throw;
-  }
 }
+
 }

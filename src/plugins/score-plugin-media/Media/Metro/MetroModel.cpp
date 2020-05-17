@@ -49,21 +49,21 @@ void DataStreamWriter::write(Media::Metro::Model& proc)
 }
 
 template <>
-void JSONObjectReader::read(const Media::Metro::Model& proc)
+void JSONReader::read(const Media::Metro::Model& proc)
 {
-  obj["Outlet"] = toJsonObject(*proc.audio_outlet);
-  obj["BangOutlet"] = toJsonObject(*proc.bang_outlet);
+  obj["Outlet"] = *proc.audio_outlet;
+  obj["BangOutlet"] = *proc.bang_outlet;
 }
 
 template <>
-void JSONObjectWriter::write(Media::Metro::Model& proc)
+void JSONWriter::write(Media::Metro::Model& proc)
 {
   {
-    JSONObjectWriter writer{obj["Outlet"].toObject()};
+    JSONWriter writer{obj["Outlet"]};
     proc.audio_outlet = Process::load_audio_outlet(writer, &proc);
   }
   {
-    JSONObjectWriter writer{obj["BangOutlet"].toObject()};
+    JSONWriter writer{obj["BangOutlet"]};
     proc.bang_outlet = Process::load_value_outlet(writer, &proc);
   }
 }

@@ -11,7 +11,7 @@ SETTINGS_PARAMETER_IMPL(Driver)
       Audio::AudioFactory::ConcreteKey
   {
     score::uuids::string_generator::compute(
-        "afcd9c64-0367-4fa1-b2bb-ee65b1c5e5a7")
+        "d98fca36-4e50-4802-a825-2fa213f95265")
   } // WASAPI
 #elif defined(__APPLE__)
       Audio::AudioFactory::ConcreteKey
@@ -62,7 +62,7 @@ void Model::setDriver(Audio::AudioFactory::ConcreteKey val)
 {
   // Reset to default in case of invalid parameters.
   auto& factories = score::AppContext().interfaces<AudioFactoryList>();
-  if (factories.find(val) == factories.end())
+  if (!factories.get(val))
   {
     val = Parameters::Driver.def;
   }

@@ -6,6 +6,7 @@
 #include <Process/TimeValue.hpp>
 #include <Scenario/Document/Event/ExecutionStatus.hpp>
 #include <Scenario/Document/State/StateModel.hpp>
+#include <Scenario/Document/TimeSync/TimeSyncModel.hpp>
 #include <Scenario/Document/VerticalExtent.hpp>
 #include <Scenario/Process/ScenarioInterface.hpp>
 #include <State/Expression.hpp>
@@ -34,6 +35,13 @@ EventModel::EventModel(
 {
   metadata().setInstanceName(*this);
   metadata().setColor(&score::Skin::Emphasis4);
+}
+
+void EventModel::changeTimeSync(const Id<TimeSyncModel>& elt)
+{
+  auto old = m_timeSync;
+  m_timeSync = elt;
+  timeSyncChanged(old, elt);
 }
 
 const TimeVal& EventModel::date() const noexcept

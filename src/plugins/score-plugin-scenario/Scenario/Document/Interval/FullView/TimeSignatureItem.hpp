@@ -1,20 +1,22 @@
 #pragma once
+#include <Scenario/Document/Interval/IntervalModel.hpp>
+#include <Scenario/Document/Interval/IntervalPresenter.hpp>
+#include <Scenario/Document/Interval/FullView/Timebar.hpp>
+#include <Scenario/Commands/Signature/SignatureCommands.hpp>
+#include <score/command/Dispatchers/CommandDispatcher.hpp>
+#include <Process/Style/Pixmaps.hpp>
+#include <Process/Style/ScenarioStyle.hpp>
+#include <Magnetism/MagnetismAdjuster.hpp>
 #include <QObject>
 #include <QGraphicsItem>
 #include <QPainter>
-#include <Scenario/Document/Interval/IntervalModel.hpp>
-#include <Scenario/Document/Interval/IntervalPresenter.hpp>
 #include <QGraphicsSceneMouseEvent>
 #include <QMenu>
 #include <QTextLayout>
 #include <verdigris>
 #include <QApplication>
 #include <score/tools/Bind.hpp>
-#include <Scenario/Commands/Signature/SignatureCommands.hpp>
-#include <score/command/Dispatchers/CommandDispatcher.hpp>
-#include <Process/Style/Pixmaps.hpp>
-#include <Process/Style/ScenarioStyle.hpp>
-#include <Magnetism/MagnetismAdjuster.hpp>
+
 namespace Scenario
 {
 
@@ -293,6 +295,7 @@ private:
       , m_magnetic{(Process::MagnetismAdjuster&)m_itv.context().app.interfaces<Process::MagnetismAdjuster>()}
     {
       setZValue(200);
+      setCursor(Qt::CrossCursor);
       setFlag(ItemHasNoContents, true);
       setFlag(ItemClipsChildrenToShape, false);
 
@@ -478,18 +481,25 @@ private:
       // TODO what if we pass on top of another :|
 
       // Find leftmost signature
-      const auto msecs = TimeVal::fromMsecs(x * m_ratio);
+      const auto msecs = TimeVal::fromPixels(x, m_ratio);
 
       const auto new_time = m_magnetic.getPosition(m_model, msecs);
 
       // Replace it in the signatures
       TimeSignatureMap signatures = m_origHandles;
       auto it = signatures.find(m_origTime);
-      signatures.erase(it);
+      if(it == signatures.end())
+      {
+        qWarning("Time signature not found");
+      }
+      else
+      {
+        signatures.erase(it);
+      }
       signatures[new_time] = m_origSig;
 
       // Set new position for the handle
-      handle.setX(new_time.msec() / m_ratio);
+      handle.setX(new_time.toPixels(m_ratio));
       handle.setSignature(new_time, handle.signature());
 
       m_itv.context().dispatcher.submit<Scenario::Command::SetTimeSignatures>(*m_model, signatures);
@@ -497,6 +507,8 @@ private:
 
     void removeHandle(TimeSignatureHandle& handle)
     {
+      if(handle.pressed)
+        return;
       TimeSignatureMap signatures = m_model->timeSignatureMap();
       auto it = signatures.find(handle.time());
       signatures.erase(it);
@@ -507,7 +519,7 @@ private:
 
     QRectF boundingRect() const final override
     {
-      return {0., 0., m_width, 1.};
+      return {0., 0., m_width, 20.};
     }
 
     void paint(
@@ -521,13 +533,16 @@ private:
     {
       assert(m_model);
       auto signatures = m_model->timeSignatureMap();
-      signatures[TimeVal::fromMsecs(pos.x() * m_ratio)] = Control::time_signature{4, 4};
+      signatures[TimeVal::fromPixels(pos.x(), m_ratio)] = Control::time_signature{4, 4};
       CommandDispatcher<> disp{m_itv.context().commandStack};
       disp.submit<Scenario::Command::SetTimeSignatures>(*m_model, signatures);
     }
 
     void contextMenuEvent(QGraphicsSceneContextMenuEvent* event) override
     {
+      if(ossia::any_of(m_handles, [] (auto handle) { return handle->pressed; }))
+        return;
+
       QMenu menu;
       auto act = menu.addAction("Add signature change");
       connect(act, &QAction::triggered, this, [this, pos=event->pos()] {
@@ -551,6 +566,18 @@ private:
     TimeVal m_origTime{};
     Control::time_signature m_origSig{};
 
+};
+
+class FullViewIntervalPresenter;
+struct Timebars
+{
+  Timebars(FullViewIntervalPresenter& self);
+
+  TimeSignatureItem timebar;
+
+  LightBars lightBars;
+  LighterBars lighterBars;
+  std::vector<TimeVal> magneticTimings;
 };
 }
 

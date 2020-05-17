@@ -175,8 +175,7 @@ void IntervalActions::setupContextMenu(Process::LayerContextMenuManager& ctxm)
         if (sel.empty())
           return;
 
-        QList<const IntervalModel*> selectedIntervals
-            = filterSelectionByType<IntervalModel>(sel);
+        auto selectedIntervals = filterSelectionByType<IntervalModel>(sel);
 
         if (selectedIntervals.size() >= 1)
         {

@@ -7,11 +7,12 @@
 #include <score/tools/Bind.hpp>
 #include <score/widgets/ControlWidgets.hpp>
 #include <score/widgets/SetIcons.hpp>
+#include <score/widgets/MessageBox.hpp>
+
 #include <score/actions/ActionManager.hpp>
 #include <core/application/ApplicationSettings.hpp>
 #include <core/presenter/DocumentManager.hpp>
 #include <Audio/AudioPreviewExecutor.hpp>
-#include <QMessageBox>
 #include <QToolBar>
 
 #include <Process/ExecutionAction.hpp>
@@ -42,16 +43,6 @@ static auto makeDefaultTick(const score::ApplicationContext& app)
 ApplicationPlugin::ApplicationPlugin(const score::GUIApplicationContext& ctx)
   : score::GUIApplicationPlugin{ctx}
 {
-  if (ctx.applicationSettings.gui)
-  {
-    auto& stop_action = ctx.actions.action<Actions::Stop>();
-    connect(
-          stop_action.action(),
-          &QAction::triggered,
-          this,
-          &ApplicationPlugin::on_stop,
-          Qt::QueuedConnection);
-  }
 }
 
 void ApplicationPlugin::initialize()
@@ -64,12 +55,15 @@ void ApplicationPlugin::initialize()
       &ApplicationPlugin::restart_engine,
       Qt::QueuedConnection);
 
-  try
+  if (context.applicationSettings.gui)
   {
-    setup_engine();
-  }
-  catch (...)
-  {
+    auto& stop_action = context.actions.action<Actions::Stop>();
+    connect(
+          stop_action.action(),
+          &QAction::triggered,
+          this,
+          &ApplicationPlugin::on_stop,
+          Qt::QueuedConnection);
   }
 }
 
@@ -83,9 +77,7 @@ void ApplicationPlugin::on_stop()
   {
     // TODO we should untie audio_engine and audio_protocol so that
     // the audio_engine does not depend on a document running
-    // ossia::audio_protocol* p = audio->protocol;
-    // if(p)
-    //   p->set_tick(makeDefaultTick(this->context));
+    audio->set_tick(makeDefaultTick(this->context));
     audio->reload(nullptr);
   }
 }
@@ -94,7 +86,7 @@ void ApplicationPlugin::on_documentChanged(
             score::Document *olddoc,
             score::Document *newdoc)
 {
-    restart_engine();
+  restart_engine();
 }
 
 score::GUIElements ApplicationPlugin::makeGUIElements()
@@ -119,12 +111,12 @@ score::GUIElements ApplicationPlugin::makeGUIElements()
   {
     auto bar = new QToolBar(tr("Volume"));
     auto sl = new score::VolumeSlider{bar};
-    sl->setMaximumSize(100, 20);
+    sl->setFixedSize(100, 20);
     sl->setValue(0.5);
     sl->setStatusTip("Change the master volume");
     bar->addWidget(sl);
     bar->addAction(m_audioEngineAct);
-    connect(sl, &score::VolumeSlider::doubleValueChanged, this, [=](double v) {
+    connect(sl, &score::VolumeSlider::valueChanged, this, [=](double v) {
       if(!this->audio)
         return;
       if(!this->audio->protocol)
@@ -151,49 +143,19 @@ score::GUIElements ApplicationPlugin::makeGUIElements()
   e.actions.container.reserve(2);
   e.actions.add<Actions::RestartAudio>(m_audioEngineAct);
 
-  connect(m_audioEngineAct, &QAction::triggered, this, [=](bool) {
-    auto& preview = AudioPreviewExecutor::instance();
-    preview.audio = nullptr;
-
-    if (audio)
-    {
-      audio->stop();
-      audio.reset();
-    }
-    else
-    {
-      setup_engine();
-    }
-    m_audioEngineAct->setChecked(bool(audio));
-
-    if (auto doc = currentDocument())
-    {
-      auto dev = doc->context()
-          .plugin<Explorer::DeviceDocumentPlugin>()
-          .list()
-          .audioDevice();
-      if (!dev)
-        return;
-
-      dev->reconnect();
-      if(audio)
-      {
-        preview.audio = audio->protocol;
-        preview.audio->set_tick(makeDefaultTick(this->context));
-      }
-      else
-      {
-        preview.audio = nullptr;
-      }
-    }
-  });
+  connect(m_audioEngineAct, &QAction::triggered,
+          this, &ApplicationPlugin::restart_engine);
 
   return e;
 }
+
 void ApplicationPlugin::restart_engine()
+try
 {
   if (m_updating_audio)
     return;
+  auto& preview = AudioPreviewExecutor::instance();
+  preview.audio = nullptr;
 
   if (auto doc = this->currentDocument())
   {
@@ -204,9 +166,14 @@ void ApplicationPlugin::restart_engine()
     if (!dev)
       return;
     if (audio)
+    {
       audio->stop();
+      audio.reset();
+    }
 
     setup_engine();
+
+    m_audioEngineAct->setChecked(bool(audio));
 
     auto& preview = AudioPreviewExecutor::instance();
     preview.audio = nullptr;
@@ -214,13 +181,21 @@ void ApplicationPlugin::restart_engine()
     if(audio)
     {
       preview.audio = audio->protocol;
-      preview.audio->set_tick(makeDefaultTick(this->context));
+      audio->set_tick(makeDefaultTick(this->context));
     }
     else
     {
       preview.audio = nullptr;
     }
   }
+}
+catch(...)
+{
+  score::warning(context.documentTabWidget,
+                 tr("Audio Error"),
+                 tr("Warning: audio engine stuck. "
+                    "Operation aborted. "
+                    "Check the audio settings."));
 }
 
 void ApplicationPlugin::setup_engine()
@@ -249,13 +224,11 @@ void ApplicationPlugin::setup_engine()
     }
     catch (...)
     {
-      /*
-      QMessageBox::warning(
+      score::warning(
             nullptr,
             tr("Audio error"),
             tr("The desired audio settings could not be applied.\nPlease change "
                "them."));
-               */
     }
   }
 

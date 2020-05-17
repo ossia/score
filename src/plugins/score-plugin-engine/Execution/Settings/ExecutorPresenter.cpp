@@ -8,6 +8,7 @@
 #include <score/command/Command.hpp>
 #include <score/command/Dispatchers/ICommandDispatcher.hpp>
 #include <score/command/SettingsCommand.hpp>
+#include <score/widgets/SetIcons.hpp>
 
 #include <QApplication>
 #include <QStyle>
@@ -28,7 +29,6 @@ Presenter::Presenter(Model& m, View& v, QObject* parent)
   SETTINGS_PRESENTER(Commit);
   SETTINGS_PRESENTER(Tick);
   SETTINGS_PRESENTER(Parallel);
-  SETTINGS_PRESENTER(Rate);
   SETTINGS_PRESENTER(Logging);
   SETTINGS_PRESENTER(Bench);
   SETTINGS_PRESENTER(ExecutionListening);
@@ -42,17 +42,6 @@ Presenter::Presenter(Model& m, View& v, QObject* parent)
   {
     clockMap.insert(std::make_pair(fact.prettyName(), fact.concreteKey()));
   }
-  v.populateClocks(clockMap);
-
-  con(v, &View::ClockChanged, this, [&](auto val) {
-    if (val.impl().data != m.getClock().impl().data)
-    {
-      m_disp.submit<SetModelClock>(this->model(this), val);
-    }
-  });
-
-  con(m, &Model::ClockChanged, &v, &View::setClock);
-  v.setClock(m.getClock());
 
   con(v, &View::ExecutionListeningChanged, this, [&](auto val) {
     if (val != m.getExecutionListening())
@@ -72,7 +61,9 @@ QString Presenter::settingsName()
 
 QIcon Presenter::settingsIcon()
 {
-  return QApplication::style()->standardIcon(QStyle::SP_MediaPlay);
+  return makeIcons(QStringLiteral(":/icons/settings_play_on.png")
+                   , QStringLiteral(":/icons/settings_play_off.png")
+                   , QStringLiteral(":/icons/settings_play_off.png"));
 }
 }
 }

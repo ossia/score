@@ -43,20 +43,20 @@ void DataStreamWriter::write(Automation::ProcessModel& autom)
 }
 
 template <>
-void JSONObjectReader::read(const Automation::ProcessModel& autom)
+void JSONReader::read(const Automation::ProcessModel& autom)
 {
-  obj["Outlet"] = toJsonObject(*autom.outlet);
-  obj["Curve"] = toJsonObject(autom.curve());
+  obj["Outlet"] = *autom.outlet;
+  obj["Curve"] = autom.curve();
   obj["Tween"] = autom.tween();
 }
 
 template <>
-void JSONObjectWriter::write(Automation::ProcessModel& autom)
+void JSONWriter::write(Automation::ProcessModel& autom)
 {
-  JSONObjectWriter writer{obj["Outlet"].toObject()};
+  JSONWriter writer{obj["Outlet"]};
   autom.outlet = Process::load_value_outlet(writer, &autom);
 
-  JSONObject::Deserializer curve_deser{obj["Curve"].toObject()};
+  JSONObject::Deserializer curve_deser{obj["Curve"]};
   autom.setCurve(new Curve::Model{curve_deser, &autom});
 
   autom.setTween(obj["Tween"].toBool());

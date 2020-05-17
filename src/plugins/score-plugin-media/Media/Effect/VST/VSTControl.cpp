@@ -3,13 +3,16 @@
 #include <Automation/AutomationModel.hpp>
 #include <Automation/Commands/SetAutomationMax.hpp>
 #include <Dataflow/Commands/EditConnection.hpp>
+#include <Inspector/InspectorLayout.hpp>
 #include <Media/Commands/VSTCommands.hpp>
 #include <Media/Effect/VST/VSTControl.hpp>
 #include <Media/Effect/VST/VSTWidgets.hpp>
 #include <Scenario/Commands/Interval/AddLayerInNewSlot.hpp>
 #include <Scenario/Commands/Interval/AddOnlyProcessToInterval.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
+#include <score/widgets/MarginLess.hpp>
 #include <score/widgets/TextLabel.hpp>
+#include <Process/Dataflow/PortListWidget.hpp>
 
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 

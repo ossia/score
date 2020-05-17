@@ -85,7 +85,7 @@ AddProcessToInterval::~AddProcessToInterval() {}
 
 LoadProcessInInterval::LoadProcessInInterval(
     const Scenario::IntervalModel& interval,
-    const QJsonObject& dat)
+    const rapidjson::Value& dat)
     : m_addProcessCommand{interval, getStrongId(interval.processes), dat}
     , m_addedSlot{interval.smallView().empty()}
 {

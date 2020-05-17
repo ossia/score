@@ -41,7 +41,7 @@ UUID_METADATA(
 DESCRIPTION_METADATA(, Media::VST::VSTEffectModel, "VST")
 namespace Media::VST
 {
-
+#define VST_FIRST_CONTROL_INDEX 1
 struct AEffectWrapper
 {
   AEffect* fx{};

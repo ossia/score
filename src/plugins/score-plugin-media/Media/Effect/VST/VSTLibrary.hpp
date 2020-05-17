@@ -25,10 +25,8 @@ class LibraryHandler final : public QObject, public Library::LibraryInterface
     auto& parent
         = *reinterpret_cast<Library::ProcessNode*>(node.internalPointer());
 
-    auto& fx = parent.emplace_back(
-        Library::ProcessData{"Effects", QIcon{}, {}, {}}, &parent);
-    auto& inst = parent.emplace_back(
-        Library::ProcessData{"Instruments", QIcon{}, {}, {}}, &parent);
+    auto& fx = parent.emplace_back(Library::ProcessData{{{}, "Effects", {}}, {}}, &parent);
+    auto& inst = parent.emplace_back(Library::ProcessData{{{}, "Instruments", {}}, {}}, &parent);
     auto& plug = ctx.applicationPlugin<Media::ApplicationPlugin>();
 
     auto reset_plugs = [=, &plug, &inst, &fx] {
@@ -36,22 +34,16 @@ class LibraryHandler final : public QObject, public Library::LibraryInterface
       {
         if (vst.isValid)
         {
-          QJsonObject obj;
-          obj["Type"] = "Process";
-          obj["uuid"] = toJsonValue(key.impl());
-          obj["Data"] = QString::number(vst.uniqueID);
-
           const auto& name
               = vst.displayName.isEmpty() ? vst.prettyName : vst.displayName;
+          Library::ProcessData pdata{{key, name, QString::number(vst.uniqueID)}, {}, vst.author, {}};
           if (vst.isSynth)
           {
-            inst.emplace_back(
-                Library::ProcessData{name, QIcon{}, obj, key}, &inst);
+            inst.emplace_back(pdata, &inst);
           }
           else
           {
-            fx.emplace_back(
-                Library::ProcessData{name, QIcon{}, obj, key}, &fx);
+            fx.emplace_back(pdata, &fx);
           }
         }
       }

@@ -5,19 +5,19 @@ export OSSIA_SDK=/opt/score-sdk
 export QT_DIR=$OSSIA_SDK/qt5-static
 export NPROC=$(nproc)
 export PATH=$OSSIA_SDK/llvm/bin:$PATH
-export GIT=/opt/rh/rh-git29/root/usr/bin/git
-export LD_LIBRARY_PATH=$OSSIA_SDK/llvm/lib:/opt/rh/rh-git29/root/usr/lib:/opt/rh/httpd24/root/usr/lib64
+export GIT=/opt/rh/rh-git218/root/usr/bin/git
+export LD_LIBRARY_PATH=$OSSIA_SDK/llvm/lib:/opt/rh/rh-git218/root/usr/lib:/opt/rh/httpd24/root/usr/lib64
 export QTDIR=$OSSIA_SDK/qt5-static
-
+ 
 export CC=$OSSIA_SDK/llvm/bin/clang
 export CXX=$OSSIA_SDK/llvm/bin/clang++
 export CFLAGS="-O3"
 export CXXFLAGS="-O3"
 
-ln -s /opt/rh/rh-git29/root/usr/bin/git /usr/bin/git || true
+ln -s /opt/rh/rh-git218/root/usr/bin/git /usr/bin/git || true
 
 (
-    wget -nv --no-check-certificate -c  https://github.com/Kitware/CMake/releases/download/v3.16.2/cmake-3.16.2-Linux-x86_64.tar.gz
+    wget -nv --no-check-certificate -c  https://github.com/Kitware/CMake/releases/download/v3.17.1/cmake-3.17.1-Linux-x86_64.tar.gz
     tar xaf cmake-*.tar.gz
 )
 
@@ -34,11 +34,13 @@ cd ./$BUILD_DIR
 
 # Get score from git
 (
-  $GIT clone --recursive -j16 https://github.com/OSSIA/score
+  $GIT clone -j16 https://github.com/OSSIA/score
   cd score/
   $GIT checkout $TRAVIS_COMMIT
-  $GIT submodule update --init --recursive
-  
+  $GIT reset --hard HEAD
+  $GIT clean -dffx
+  $GIT submodule update --init 
+
   # cd base/addons
   # $GIT clone https://github.com/OSSIA/score-addon-jit
 )
@@ -58,13 +60,11 @@ export SOURCE_DIR=$PWD/score
       -DCMAKE_PREFIX_PATH=$QT_DIR/lib/cmake/Qt5 \
       -DOSSIA_SDK=$OSSIA_SDK \
       -DCMAKE_SKIP_RPATH=ON \
-      -DOSSIA_USE_FAST_LINKER=1 #\
+      -DOSSIA_USE_FAST_LINKER=1 \
+      -DCMAKE_EXE_LINKER_FLAGS="-static-libstdc++ -pthread" #\
     # -DCMAKE_EXE_LINKER_FLAGS="-static-libgcc -static-libstdc++ -pthread"
 
-
-    $CMAKE --build . --target all_unity -- -j$NPROC
-    #$CMAKE --build . --target install/strip/fast
-    $CMAKE --build . --target install/fast
+    $CMAKE --build . --target all_unity -- -j$NPROC && $CMAKE --build . --target install/strip/fast
 )
 
 # Copy pixmaps
@@ -75,7 +75,6 @@ cp $APP.AppDir/usr/share/pixmaps/ossia-score.png $APP.AppDir/
 (
     cd $APP.AppDir
     mkdir -p ./usr/lib/qt5/qml
-    cp -rf "$QTDIR/qml/QtQuick.2"  ./usr/lib/qt5/qml || true
 
     # Fonts
     mkdir -p ./usr/bin/lib/fonts
@@ -97,6 +96,7 @@ cp $APP.AppDir/usr/share/pixmaps/ossia-score.png $APP.AppDir/
     rm -f usr/lib/libgpg-error.so.0 || true
     rm -f usr/lib/libjack* || true
     rm -f usr/lib/libasound* || true
+    rm -f usr/lib/libxcb* || true
     rm -f usr/lib/libgssapi_krb5.so.2 || true
     rm -f usr/lib/libgssapi.so.3 || true
     rm -f usr/lib/libhcrypto.so.4 || true
@@ -144,31 +144,31 @@ cp $APP.AppDir/usr/share/pixmaps/ossia-score.png $APP.AppDir/
 
     cd usr/ ; find . -type f -exec sed -i -e 's|/usr/lib|././/lib|g' {} \; ; cd ..
     cd usr/ ; find . -type f -exec sed -i -e "s|$QTDIR/lib|././/lib|g" {} \; ; cd ..
-)   
+)
 
 # (
 #     # Copy headers
-#     
+#
 #     cd $APP.AppDir
 #     export HEADERS=$PWD/usr/include
 #     mkdir -p $HEADERS
 #     for package in glibc-headers glibc-devel alsa-lib-devel mesa-libGL-devel libxkbcommon-x11-devel kernel-headers ; do
 #       (
-#         cd /usr/include 
+#         cd /usr/include
 #         rsync -aR $(rpm -ql $package | grep '/usr/include' | grep '\.h' | cut -c 14-  | sort | uniq) $HEADERS
 #       )
 #     done
-#     
+#
 #     mkdir $HEADERS/qt
 #     rsync -a $OSSIA_SDK/qt5-static/include/ $HEADERS/qt/
-#     
+#
 #     rsync -a $OSSIA_SDK/llvm/include/ $HEADERS/
 #     rsync -a $OSSIA_SDK/ffmpeg/include/ $HEADERS/
 #     rsync -a $OSSIA_SDK/portaudio/include/ $HEADERS/
-#     
+#
 #     mkdir -p $PWD/usr/lib/clang/7.0.1/include
 #     rsync -a $OSSIA_SDK/llvm/lib/clang/7.0.1/include/ $PWD/usr/lib/clang/7.0.1/include/
-#     
+#
 #     # Strip binaries
 #     # strip usr/bin/ossia-score usr/bin/ossia-score-vstpuppet || true
 # )

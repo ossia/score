@@ -32,30 +32,6 @@ struct TSerializer<DataStream, ossia::fast_hash_map<T, U>>
 };
 
 template <typename T, typename U>
-struct TSerializer<JSONValue, ossia::fast_hash_map<T, U>>
-{
-  using type = ossia::fast_hash_map<T, U>;
-  using pair_type = typename type::value_type;
-  static void readFrom(JSONValue::Serializer& s, const type& obj)
-  {
-    QJsonArray arr;
-    for(const auto& pair : obj)
-    {
-      arr.push_back(toJsonValue(pair));
-    }
-    s.val = std::move(arr);
-  }
-
-  static void writeTo(JSONValue::Deserializer& s, type& obj)
-  {
-    const auto arr = s.val.toArray();
-    for(const auto& e : arr) {
-      obj.insert(fromJsonValue<pair_type>(e));
-    }
-  }
-};
-
-template <typename T, typename U>
 struct TSerializer<DataStream, ossia::flat_map<T, U>>
 {
   using type = ossia::flat_map<T, U>;
@@ -81,26 +57,19 @@ struct TSerializer<DataStream, ossia::flat_map<T, U>>
   }
 };
 
+
 template <typename T, typename U>
-struct TSerializer<JSONValue, ossia::flat_map<T, U>>
+struct TSerializer<JSONObject, ossia::flat_map<T, U>>
 {
   using type = ossia::flat_map<T, U>;
-  using pair_type = typename type::value_type;
-  static void readFrom(JSONValue::Serializer& s, const type& obj)
+  static void readFrom(JSONObject::Serializer& s, const type& obj)
   {
-    QJsonArray arr;
-    for(const auto& pair : obj)
-    {
-      arr.push_back(toJsonValue(pair));
-    }
-    s.val = std::move(arr);
+    ArraySerializer::readFrom(s, obj.container);
   }
 
-  static void writeTo(JSONValue::Deserializer& s, type& obj)
+  static void writeTo(JSONObject::Deserializer& s, type& obj)
   {
-    const auto arr = s.val.toArray();
-    for(const auto& e : arr) {
-      obj.insert(fromJsonValue<pair_type>(e));
-    }
+    ArraySerializer::writeTo(s, obj.container);
   }
 };
+

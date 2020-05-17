@@ -69,6 +69,7 @@ public:
 private:
   const score::DocumentContext& m_context;
   BaseScenario* m_baseScenario{};
-  QJsonArray m_savedCables;
+  std::vector<QByteArray> m_savedCables;
+  rapidjson::Document m_savedCablesJson;
 };
 }

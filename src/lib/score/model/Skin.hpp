@@ -1,5 +1,6 @@
 #pragma once
 #include <QBrush>
+#include <QCursor>
 #include <QFont>
 #include <QObject>
 #include <QPair>
@@ -26,7 +27,7 @@ struct SCORE_LIB_BASE_EXPORT BrushSet
   QPen pen2;
   QPen pen2_solid_round_round;
   QPen pen2_solid_flat_miter;
-  QPen pen2_dashed_flat_miter;
+  QPen pen2_dashdot_square_miter;
   QPen pen2_dotted_square_miter;
   QPen pen3;
   QPen pen3_solid_flat_miter;
@@ -162,9 +163,24 @@ public:
   QPen TextItemPen;
 
   QBrush SliderBrush;
-  QBrush SliderExtBrush;
+  QPen SliderPen;
+  QBrush SliderInteriorBrush;
+  QPen SliderLine;
   QPen SliderTextPen;
   QFont SliderFont;
+
+  QCursor CursorPointer;
+  QCursor CursorOpenHand;
+  QCursor CursorClosedHand;
+  QCursor CursorPointingHand;
+  QCursor CursorMagnifier;
+  QCursor CursorMove;
+  QCursor CursorScaleH;
+  QCursor CursorScaleV;
+  QCursor CursorScaleFDiag;
+
+  QCursor CursorPlayFromHere;
+  QCursor CursorCreationMode;
 
   const Brush* fromString(const QString& s) const;
   Brush* fromString(const QString& s);

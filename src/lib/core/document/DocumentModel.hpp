@@ -1,14 +1,13 @@
 #pragma once
 #include <score/model/IdentifiedObject.hpp>
 #include <score/selection/Selection.hpp>
+#include <ossia/detail/json.hpp>
 
 #include <QByteArray>
-#include <QJsonObject>
 #include <QVariant>
 
 #include <vector>
 #include <verdigris>
-class QObject;
 #include <score/model/Identifier.hpp>
 
 namespace score
@@ -16,6 +15,7 @@ namespace score
 class DocumentDelegateFactory;
 class DocumentDelegateModel;
 class DocumentPlugin;
+class Document;
 struct ApplicationContext;
 
 /**
@@ -28,6 +28,7 @@ class SCORE_LIB_BASE_EXPORT DocumentModel final
     : public IdentifiedObject<DocumentModel>
 {
   W_OBJECT(DocumentModel)
+  friend class Document;
 public:
   DocumentModel(
       const Id<DocumentModel>& id,
@@ -35,9 +36,6 @@ public:
       DocumentDelegateFactory& fact,
       QObject* parent);
   DocumentModel(
-      score::DocumentContext& ctx,
-      const QVariant& data,
-      DocumentDelegateFactory& fact,
       QObject* parent);
   ~DocumentModel();
 
@@ -48,12 +46,13 @@ public:
   const std::vector<DocumentPlugin*>& pluginModels() { return m_pluginModels; }
 
   void pluginModelsChanged()
-      E_SIGNAL(SCORE_LIB_BASE_EXPORT, pluginModelsChanged)
+  E_SIGNAL(SCORE_LIB_BASE_EXPORT, pluginModelsChanged)
 
-          private : void loadDocumentAsJson(
-                        score::DocumentContext& ctx,
-                        const QJsonObject&,
-                        DocumentDelegateFactory& fact);
+  private :
+  void loadDocumentAsJson(
+      score::DocumentContext& ctx,
+      const rapidjson::Value&,
+      DocumentDelegateFactory& fact);
   void loadDocumentAsByteArray(
       score::DocumentContext& ctx,
       const QByteArray&,

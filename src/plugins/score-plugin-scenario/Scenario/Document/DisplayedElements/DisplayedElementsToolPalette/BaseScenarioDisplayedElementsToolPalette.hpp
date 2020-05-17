@@ -16,7 +16,7 @@ class EditionSettings;
 
 class BaseScenario;
 class DisplayedElementsPresenter;
-class MoveIntervalInBaseScenario_StateWrapper;
+class DoNotMoveInterval_StateWrapper;
 class MoveLeftBraceInBaseScenario_StateWrapper;
 class MoveRightBraceInBaseScenario_StateWrapper;
 class MoveEventInBaseScenario_StateWrapper;
@@ -55,7 +55,7 @@ private:
       BaseScenario,
       BaseScenarioDisplayedElementsToolPalette,
       BaseGraphicsObject,
-      MoveIntervalInBaseScenario_StateWrapper,
+      DoNotMoveInterval_StateWrapper,
       MoveLeftBraceInScenario_StateWrapper,
       MoveRightBraceInScenario_StateWrapper,
       MoveEventInBaseScenario_StateWrapper,

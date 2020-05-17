@@ -5,6 +5,7 @@
 #include <Scenario/Commands/Scenario/Displacement/MoveInterval.hpp>
 #include <Scenario/Palette/Tools/States/MoveAndMergeState.hpp>
 #include <Scenario/Palette/Tools/States/MoveStates.hpp>
+#include <Scenario/Palette/Tools/States/MoveIntervalState.hpp>
 #include <Scenario/Palette/Transitions/EventTransitions.hpp>
 #include <Scenario/Palette/Transitions/IntervalTransitions.hpp>
 #include <Scenario/Palette/Transitions/StateTransitions.hpp>

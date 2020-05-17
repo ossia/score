@@ -8,7 +8,6 @@ find "$1/Resources/qml" -name '*.dylib' -exec rm {} \;
 find "$1" -name '*dSYM' -exec rm -rf {} \;
 find "$1" -name '*_debug*' -exec rm -rf {} \;
 find "$1" -name '*qmlc' -exec rm -rf {} \;
-cp "$1/PlugIns/quick/libqtquick2plugin.dylib" "$1/Resources/qml/QtQuick.2"
 (
   cd "$1/Frameworks"
   rm -rf Qt3DCore.framework Qt3DInput.framework Qt3DLogic.framework Qt3DQuick.framework Qt3DQuickScene2D.framework Qt3DRender.framework QtXmlPatterns.framework QtSql.framework QtConcurrent.framework QtGamepad.framework QtQuickParticles.framework

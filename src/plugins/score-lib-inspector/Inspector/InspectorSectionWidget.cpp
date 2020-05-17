@@ -13,15 +13,14 @@ W_OBJECT_IMPL(Inspector::InspectorSectionWidget)
 namespace Inspector
 {
 MenuButton::MenuButton(QWidget* parent)
-    : QPushButton{QStringLiteral("o"), parent}
+    : QToolButton{parent}
 {
-  setFlat(true);
+  setAutoRaise(true);
   setObjectName(QStringLiteral("SettingsMenu"));
-  auto icon = makeIcons(
-      QStringLiteral(":/icons/gear_on.png"),
-      QStringLiteral(":/icons/gear_off.png"),
-      QStringLiteral(":/icons/gear_disabled.png"));
-  setIcon(icon);
+  setIcon(makeIcons(
+            QStringLiteral(":/icons/gear_on.png"),
+            QStringLiteral(":/icons/gear_off.png"),
+            QStringLiteral(":/icons/gear_disabled.png")));
   setIconSize(QSize(16, 16));
 }
 
@@ -30,7 +29,7 @@ InspectorSectionWidget::InspectorSectionWidget(bool editable, QWidget* parent)
     , m_generalLayout{this}
     , m_title{this}
     , m_titleLayout{&m_title}
-    , m_unfoldBtn{&m_title}
+    , m_unfoldBtn{Qt::DownArrow, &m_title}
     , m_buttonTitle{&m_title}
     , m_sectionTitle{&m_title}
     , m_menuBtn{&m_title}
@@ -38,7 +37,6 @@ InspectorSectionWidget::InspectorSectionWidget(bool editable, QWidget* parent)
   // HEADER : arrow button and name
   this->setContentsMargins(0, 0, 0, 0);
   m_title.setContentsMargins(0, 0, 0, 0);
-  m_unfoldBtn.setIconSize({4, 4});
 
   m_buttonTitle.setObjectName(QStringLiteral("ButtonTitle"));
   m_buttonTitle.setText(QStringLiteral("section name"));
@@ -55,9 +53,16 @@ InspectorSectionWidget::InspectorSectionWidget(bool editable, QWidget* parent)
 
   m_menuBtn.setObjectName(QStringLiteral("SettingsMenu"));
   m_menuBtn.setHidden(true);
-  m_menuBtn.setFlat(true);
+
   m_menu = new QMenu{&m_menuBtn};
-  m_menuBtn.setMenu(m_menu);
+  connect(
+      &m_menuBtn,
+      &QToolButton::clicked,
+      this,
+      [this]()
+  {
+      m_menu->popup(QCursor::pos());
+  });
 
   m_titleLayout.addWidget(&m_unfoldBtn);
   m_titleLayout.addWidget(&m_sectionTitle);
@@ -77,7 +82,6 @@ InspectorSectionWidget::InspectorSectionWidget(bool editable, QWidget* parent)
 
   // INIT
   m_isUnfolded = true;
-  m_unfoldBtn.setArrowType(Qt::DownArrow);
   renameSection(QStringLiteral("Section Name"));
 }
 

@@ -9,55 +9,49 @@
 
 namespace score
 {
-class SCORE_LIB_BASE_EXPORT AbsoluteSliderStyle final : public QProxyStyle
+/**
+- * @brief The DoubleSlider class
+- *
+- * Always between 0. - 1.
+- */
+class SCORE_LIB_BASE_EXPORT DoubleSlider: public QWidget //: public QSlider
 {
+    W_OBJECT(DoubleSlider)
 public:
-  using QProxyStyle::QProxyStyle;
-  ~AbsoluteSliderStyle() override;
 
-  static AbsoluteSliderStyle* instance() noexcept;
+  DoubleSlider(Qt::Orientation ort, QWidget* widg);
+  DoubleSlider(QWidget* widg);
+  ~DoubleSlider() override;
 
-  int styleHint(
-      QStyle::StyleHint hint,
-      const QStyleOption* option,
-      const QWidget* widget,
-      QStyleHintReturn* returnData) const override;
-};
+  void setValue(double val);
+  void setOrientation(Qt::Orientation ort) {m_orientation = ort;}
+  void setBorderWidth(double border){m_borderWidth = border;}
 
-class SCORE_LIB_BASE_EXPORT Slider : public QSlider
-{
-public:
-  Slider(Qt::Orientation ort, QWidget* widg);
-  Slider(QWidget* widg);
-  ~Slider() override;
+  double value() const{return m_value;}
+
+  void valueChanged(double arg_1)
+      E_SIGNAL(SCORE_LIB_BASE_EXPORT, valueChanged, arg_1)
+  void sliderMoved(double arg_1)
+      E_SIGNAL(SCORE_LIB_BASE_EXPORT, sliderMoved, arg_1)
+  void sliderReleased()
+      E_SIGNAL(SCORE_LIB_BASE_EXPORT, sliderReleased)
+
+  void mousePressEvent(QMouseEvent* event) override;
+  void mouseMoveEvent(QMouseEvent* event) override;
+  void mouseReleaseEvent(QMouseEvent *event) override;
 
 protected:
   void paintEvent(QPaintEvent*) override;
   void paint(QPainter& p);
   void paintWithText(const QString& s);
-};
 
-/**
- * @brief The DoubleSlider class
- *
- * Always between 0. - 1.
- */
-class SCORE_LIB_BASE_EXPORT DoubleSlider : public Slider
-{
-  W_OBJECT(DoubleSlider)
-
-public:
-  static const constexpr double max = std::numeric_limits<int>::max() / 65536.;
-  DoubleSlider(QWidget* parent);
-
-  ~DoubleSlider() override;
-  void setValue(double val);
-  double value() const;
-
-public:
-  void doubleValueChanged(double arg_1)
-      E_SIGNAL(SCORE_LIB_BASE_EXPORT, doubleValueChanged, arg_1)
 private:
-    using QSlider::valueChanged;
+  void updateValue(QPointF mousePos);
+
+  double m_value;
+
+  Qt::Orientation m_orientation;
+
+  double m_borderWidth;
 };
 }

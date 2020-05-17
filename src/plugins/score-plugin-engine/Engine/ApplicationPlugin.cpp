@@ -28,6 +28,8 @@
 #include <score/widgets/ControlWidgets.hpp>
 #include <score/widgets/DoubleSlider.hpp>
 #include <score/widgets/SetIcons.hpp>
+#include <score/widgets/MessageBox.hpp>
+#include <score/widgets/SpinBoxes.hpp>
 #include <score/tools/Bind.hpp>
 #include <score/actions/ToolbarManager.hpp>
 #include <core/application/ApplicationInterface.hpp>
@@ -44,7 +46,6 @@
 
 #include <QAction>
 #include <QLabel>
-#include <QMessageBox>
 #include <QTabWidget>
 #include <QToolBar>
 #include <QMainWindow>
@@ -57,6 +58,7 @@
 #include <LocalTree/LocalTreeDocumentPlugin.hpp>
 #include <wobjectimpl.h>
 
+#include <Audio/AudioApplicationPlugin.hpp>
 #include <Explorer/DocumentPlugin/DeviceDocumentPlugin.hpp>
 #include <Scenario/Settings/ScenarioSettingsModel.hpp>
 #include <vector>
@@ -194,7 +196,7 @@ QWidget* ApplicationPlugin::setupTimingWidget(QLabel* time_label) const
     if (m_clock)
     {
       auto& itv = m_clock->scenario.baseInterval().scoreInterval().duration;
-      auto time = (itv.defaultDuration() * itv.playPercentage()).toQTime();
+      auto time = TimeVal(itv.defaultDuration() * itv.playPercentage()).toQTime();
       time_label->setText(time.toString("HH:mm:ss.zzz"));
     }
     else
@@ -255,6 +257,7 @@ score::GUIElements ApplicationPlugin::makeGUIElements()
     {
       auto musical_act = new QAction{tr("Enable musical mode"), this};
       musical_act->setCheckable(true);
+      musical_act->setChecked(true);
       musical_act->setStatusTip(tr("Enable musical mode"));
       setIcons(musical_act
                , QStringLiteral(":/icons/music_on.png")
@@ -265,6 +268,10 @@ score::GUIElements ApplicationPlugin::makeGUIElements()
         auto& settings = this->context.settings<Scenario::Settings::Model>();
         settings.setMeasureBars(ok);
         settings.setMagneticMeasures(ok);
+        score::TimeSpinBox::setGlobalTimeMode(
+              ok
+              ? score::TimeSpinBox::TimeMode::Bars
+              : score::TimeSpinBox::TimeMode::Seconds);
 
         if(auto doc = this->currentDocument())
         {
@@ -278,6 +285,11 @@ score::GUIElements ApplicationPlugin::makeGUIElements()
         }
       });
       ui_toolbar->addAction(musical_act);
+    }
+
+    {
+      auto show_cables_act = context.actions.action<Actions::ShowCables>();
+      ui_toolbar->addAction(show_cables_act.action());
     }
   }
 
@@ -456,6 +468,27 @@ void ApplicationPlugin::on_play(
   if (!plugmodel)
     return;
 
+  auto& audio_engine = this->context.guiApplicationPlugin<Audio::ApplicationPlugin>();
+  if(!audio_engine.audio)
+  {
+    if(this->context.mainWindow)
+    {
+     score::warning(
+           this->context.mainWindow,
+           tr("Cannot play"),
+           tr("Cannot start playback. It looks like the audio engine is not running.\n"
+              "Check the audio settings in the software settings to ensure that a sound card "
+              "is correctly configured.\n\n"
+              "Check Settings > Audio > Device in particular. "
+              "The power-on icon at the bottom of the transport toolbar will light up when the engine is running."));
+     return;
+    }
+    else
+    {
+      qFatal("Cannot playback without an audio engine set up");
+    }
+  }
+
   if (b)
   {
     if (m_playing)
@@ -599,6 +632,10 @@ void ApplicationPlugin::on_stop()
           itv.reset();
           itv.executionFinished();
         }
+        for (auto& ts : e->timeSyncs)
+        {
+          ts.setWaiting(false);
+        }
         for (auto& ev : e->events)
         {
           ev.setStatus(Scenario::ExecutionStatus::Editing, *e);
@@ -614,6 +651,8 @@ void ApplicationPlugin::on_stop()
         lp->endEvent().setStatus(Scenario::ExecutionStatus::Editing, *lp);
         lp->startState().setStatus(Scenario::ExecutionStatus::Editing);
         lp->endState().setStatus(Scenario::ExecutionStatus::Editing);
+        lp->startTimeSync().setWaiting(false);
+        lp->endTimeSync().setWaiting(false);
       }
     });
   }

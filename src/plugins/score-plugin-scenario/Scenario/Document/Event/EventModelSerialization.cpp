@@ -39,28 +39,28 @@ DataStreamWriter::write(Scenario::EventModel& ev)
 
 template <>
 SCORE_PLUGIN_SCENARIO_EXPORT void
-JSONObjectReader::read(const Scenario::EventModel& ev)
+JSONReader::read(const Scenario::EventModel& ev)
 {
-  obj[strings.TimeSync] = toJsonValue(ev.m_timeSync);
-  obj[strings.States] = toJsonArray(ev.m_states);
+  obj[strings.TimeSync] = ev.m_timeSync;
+  obj[strings.States] = ev.m_states;
 
-  obj[strings.Condition] = toJsonObject(ev.m_condition);
+  obj[strings.Condition] = ev.m_condition;
 
-  obj[strings.Date] = toJsonValue(ev.m_date);
+  obj[strings.Date] = ev.m_date;
   obj[strings.Offset] = (int32_t)ev.m_offset;
 }
 
 template <>
 SCORE_PLUGIN_SCENARIO_EXPORT void
-JSONObjectWriter::write(Scenario::EventModel& ev)
+JSONWriter::write(Scenario::EventModel& ev)
 {
   ev.m_timeSync
-      = fromJsonValue<Id<Scenario::TimeSyncModel>>(obj[strings.TimeSync]);
-  fromJsonValueArray(obj[strings.States].toArray(), ev.m_states);
+      <<= obj[strings.TimeSync];
+  ev.m_states <<= obj[strings.States];
 
-  fromJsonObject(obj[strings.Condition], ev.m_condition);
+  ev.m_condition <<= obj[strings.Condition];
 
-  ev.m_date = fromJsonValue<TimeVal>(obj[strings.Date]);
+  ev.m_date <<= obj[strings.Date];
   ev.m_offset
       = static_cast<Scenario::OffsetBehavior>(obj[strings.Offset].toInt());
 }

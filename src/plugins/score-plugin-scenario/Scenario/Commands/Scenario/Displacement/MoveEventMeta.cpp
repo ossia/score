@@ -179,21 +179,27 @@ void MoveEventMeta::updateY(Scenario::ProcessModel& scenar, double y) const
   {
     stp = &scenar.states.at(*m_stateId);
   }
+  /*
+  // This has been disabled to make sure that moving an event
+  // through a process sidebar does not set the process to the height of the state.
   else if (states.size() == 1)
   {
     stp = &scenar.states.at(states.front());
   }
+  */
 
   if (stp)
   {
     auto& st = *stp;
-    if (!st.previousInterval() && !st.nextInterval())
+    bool hasPrevious = st.previousInterval() && !scenar.interval(*st.previousInterval()).graphal();
+    bool hasNext = st.nextInterval() && !scenar.interval(*st.nextInterval()).graphal();
+    if (!hasPrevious && !hasNext)
     {
       st.setHeightPercentage(y);
     }
-    if (st.previousInterval())
+    if (hasPrevious)
       scenar.intervals.at(*st.previousInterval()).requestHeightChange(y);
-    if (st.nextInterval())
+    if (hasNext)
       scenar.intervals.at(*st.nextInterval()).requestHeightChange(y);
   }
 }

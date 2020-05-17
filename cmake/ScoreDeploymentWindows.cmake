@@ -15,7 +15,7 @@ if(MINGW)
       get_target_property(ZLIB_LOCATION ZLIB::ZLIB IMPORTED_LOCATION)
     endif()
   endif()
-  
+
   get_filename_component(MINGW64_LIB ${ZLIB_LOCATION} DIRECTORY)
 
   get_filename_component(cxx_path ${CMAKE_CXX_COMPILER} PATH)
@@ -42,23 +42,6 @@ install(FILES "$<TARGET_FILE:ossia>"
         DESTINATION ${SCORE_BIN_INSTALL_DIR})
 endif()
 
-install(FILES
-  "${QT_DLL_DIR}/Qt5Core${DEBUG_CHAR}.dll"
-  "${QT_DLL_DIR}/Qt5Gui${DEBUG_CHAR}.dll"
-  "${QT_DLL_DIR}/Qt5Widgets${DEBUG_CHAR}.dll"
-  "${QT_DLL_DIR}/Qt5Network${DEBUG_CHAR}.dll"
-  "${QT_DLL_DIR}/Qt5Xml${DEBUG_CHAR}.dll"
-  "${QT_DLL_DIR}/Qt5Svg${DEBUG_CHAR}.dll"
-  "${QT_DLL_DIR}/Qt5Qml${DEBUG_CHAR}.dll"
-  "${QT_DLL_DIR}/Qt5WebSockets${DEBUG_CHAR}.dll"
-  "${QT_DLL_DIR}/Qt5SerialPort${DEBUG_CHAR}.dll"
-  "${QT_DLL_DIR}/Qt5Quick${DEBUG_CHAR}.dll"
-  "${QT_DLL_DIR}/Qt5QmlModels${DEBUG_CHAR}.dll"
-  "${QT_DLL_DIR}/Qt5QuickWidgets${DEBUG_CHAR}.dll"
-  "${QT_DLL_DIR}/Qt5QuickControls2${DEBUG_CHAR}.dll"
-  "${QT_DLL_DIR}/Qt5QuickTemplates2${DEBUG_CHAR}.dll"
-  DESTINATION "${SCORE_BIN_INSTALL_DIR}")
-
 # Qt conf file
 install(
   FILES
@@ -67,23 +50,30 @@ install(
   DESTINATION
     ${SCORE_BIN_INSTALL_DIR})
 
-# Qt plug-ins
-set(QT_PLUGINS_DIR "${QT_DLL_DIR}/../plugins")
-set(QT_QML_PLUGINS_DIR "${QT_DLL_DIR}/../qml")
-set(plugin_dest_dir "${SCORE_BIN_INSTALL_DIR}/plugins")
 
-install(FILES "${QT_PLUGINS_DIR}/platforms/qwindows${DEBUG_CHAR}.dll" DESTINATION "${plugin_dest_dir}/platforms")
-install(FILES "${QT_PLUGINS_DIR}/imageformats/qsvg${DEBUG_CHAR}.dll" DESTINATION "${plugin_dest_dir}/imageformats")
-install(FILES "${QT_PLUGINS_DIR}/iconengines/qsvgicon${DEBUG_CHAR}.dll" DESTINATION "${plugin_dest_dir}/iconengines")
-install(
-  DIRECTORY
-    "${QT_QML_PLUGINS_DIR}/QtQuick"
-    "${QT_QML_PLUGINS_DIR}/QtQuick.2"
-  DESTINATION
-    "${SCORE_BIN_INSTALL_DIR}/qml"
-  PATTERN
-    "*.qmlc" EXCLUDE
- )
+if(EXISTS "${QT_DLL_DIR}/Qt5Core${DEBUG_CHAR}.dll")
+  install(FILES
+    "${QT_DLL_DIR}/Qt5Core${DEBUG_CHAR}.dll"
+    "${QT_DLL_DIR}/Qt5Gui${DEBUG_CHAR}.dll"
+    "${QT_DLL_DIR}/Qt5Widgets${DEBUG_CHAR}.dll"
+    "${QT_DLL_DIR}/Qt5Network${DEBUG_CHAR}.dll"
+    "${QT_DLL_DIR}/Qt5Xml${DEBUG_CHAR}.dll"
+    "${QT_DLL_DIR}/Qt5Svg${DEBUG_CHAR}.dll"
+    "${QT_DLL_DIR}/Qt5Qml${DEBUG_CHAR}.dll"
+    "${QT_DLL_DIR}/Qt5OpenGL${DEBUG_CHAR}.dll"
+    "${QT_DLL_DIR}/Qt5WebSockets${DEBUG_CHAR}.dll"
+    "${QT_DLL_DIR}/Qt5SerialPort${DEBUG_CHAR}.dll"
+    DESTINATION "${SCORE_BIN_INSTALL_DIR}")
+
+  # Qt plug-ins
+  set(QT_PLUGINS_DIR "${QT_DLL_DIR}/../plugins")
+  set(QT_QML_PLUGINS_DIR "${QT_DLL_DIR}/../qml")
+  set(plugin_dest_dir "${SCORE_BIN_INSTALL_DIR}/plugins")
+
+  install(FILES "${QT_PLUGINS_DIR}/platforms/qwindows${DEBUG_CHAR}.dll" DESTINATION "${plugin_dest_dir}/platforms")
+  install(FILES "${QT_PLUGINS_DIR}/imageformats/qsvg${DEBUG_CHAR}.dll" DESTINATION "${plugin_dest_dir}/imageformats")
+  install(FILES "${QT_PLUGINS_DIR}/iconengines/qsvgicon${DEBUG_CHAR}.dll" DESTINATION "${plugin_dest_dir}/iconengines")
+endif()
 
 # Faust stuff
 if(EXISTS "${CMAKE_BINARY_DIR}/src/plugins/score-plugin-media/faustlibs-prefix/src/faustlibs")
@@ -125,11 +115,10 @@ if(NOT TARGET score_addon_jit)
     install(CODE "
         file(REMOVE_RECURSE
             \"\${CMAKE_INSTALL_PREFIX}/include\"
+            \"\${CMAKE_INSTALL_PREFIX}/lib\"
         )
     ")
 endif()
-
-install(FILES "${QT_QML_PLUGINS_DIR}/QtQuick.2/qtquick2plugin${DEBUG_CHAR}.dll" DESTINATION "${SCORE_BIN_INSTALL_DIR}/qml/QtQuick.2")
 
 # NSIS metadata
 set(CPACK_GENERATOR "NSIS")

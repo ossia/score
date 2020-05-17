@@ -118,7 +118,6 @@ struct SCORE_LIB_PROCESS_EXPORT Style
   const score::Brush& MutedIntervalHeaderBackground() const noexcept { return skin.HalfDark; }
 
   const QPen& IntervalHeaderSeparator() const noexcept { return IntervalHeaderSideBorder().main.pen2_solid_flat_miter; }
-  const QPen& FullViewIntervalHeaderSeparator() const noexcept { return IntervalHeaderSideBorder().main.pen2_dashed_flat_miter; }
 
   static const QPen& ConditionPen(const score::Brush& b) noexcept { return b.main.pen2; }
   static const QPen& ConditionTrianglePen(const score::Brush& b) noexcept { return b.main.pen_cosmetic; }

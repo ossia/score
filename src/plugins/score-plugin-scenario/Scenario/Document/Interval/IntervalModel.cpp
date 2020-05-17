@@ -53,6 +53,7 @@ IntervalModel::IntervalModel(
     , m_muted{}
     , m_executing{}
     , m_hasSignature{}
+    , m_graphal{}
 {
   initConnections();
   metadata().setInstanceName(*this);
@@ -88,6 +89,7 @@ IntervalModel::IntervalModel(DataStream::Deserializer& vis, const score::Documen
     , m_muted{}
     , m_executing{}
     , m_hasSignature{}
+    , m_graphal{}
 {
   initConnections();
   vis.writeTo(*this);
@@ -102,6 +104,7 @@ IntervalModel::IntervalModel(JSONObject::Deserializer& vis, const score::Documen
     , m_muted{}
     , m_executing{}
     , m_hasSignature{}
+    , m_graphal{}
 {
   initConnections();
   vis.writeTo(*this);
@@ -116,6 +119,7 @@ IntervalModel::IntervalModel(DataStream::Deserializer&& vis, const score::Docume
     , m_muted{}
     , m_executing{}
     , m_hasSignature{}
+    , m_graphal{}
 {
   initConnections();
   vis.writeTo(*this);
@@ -130,6 +134,7 @@ IntervalModel::IntervalModel(JSONObject::Deserializer&& vis, const score::Docume
     , m_muted{}
     , m_executing{}
     , m_hasSignature{}
+    , m_graphal{}
 {
   initConnections();
   vis.writeTo(*this);
@@ -165,13 +170,13 @@ TimeVal IntervalModel::contentDuration() const noexcept
   return min_time * 1.1;
 }
 
-Curve::Model* IntervalModel::tempoCurve() const noexcept
+TempoProcess* IntervalModel::tempoCurve() const noexcept
 {
   for(auto& proc : processes)
   {
     if(auto tempo = qobject_cast<TempoProcess*>(&proc))
     {
-      return &tempo->curve();
+      return tempo;
     }
   }
   return nullptr;
@@ -249,8 +254,6 @@ double IntervalModel::heightPercentage() const
 // Should go in an "execution" object.
 void IntervalModel::startExecution()
 {
-  m_executing = true;
-  executingChanged(true);
   for (Process::ProcessModel& proc : processes)
   {
     proc.startExecution(); // prevents editing
@@ -258,9 +261,6 @@ void IntervalModel::startExecution()
 }
 void IntervalModel::stopExecution()
 {
-  m_executing = false;
-  executingChanged(false);
-
   if(!m_hasSignature)
     duration.setSpeed(1.0);
 
@@ -492,6 +492,26 @@ void IntervalModel::setMuted(bool m)
     m_muted = m;
     mutedChanged(m);
     executionStateChanged(executionState());
+  }
+}
+
+void IntervalModel::setGraphal(bool m)
+{
+  if (m != m_graphal)
+  {
+    m_graphal = m;
+    graphalChanged(m);
+  }
+}
+
+void IntervalModel::setExecuting(bool m)
+{
+  if (m != m_executing)
+  {
+    m_executing = m;
+    executingChanged(m);
+    if(m_executing) startExecution();
+    else stopExecution();
   }
 }
 

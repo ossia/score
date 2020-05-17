@@ -13,14 +13,22 @@ if(APPLE AND EXISTS /usr/local/opt/qt5)
   list(APPEND CMAKE_PREFIX_PATH "/usr/local/opt/qt5")
 endif()
 
-set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake"
-    "${CMAKE_MODULE_PATH}")
+set(CMAKE_MODULE_PATH
+  "${CMAKE_CURRENT_SOURCE_DIR}/cmake"
+  "${CMAKE_MODULE_PATH}"
+)
 
-set(CMAKE_PREFIX_PATH
-    "${OSSIA_SDK}/SDL2/cmake"
-    "${OSSIA_SDK}/portaudio/lib/cmake"
-    "${OSSIA_SDK}/portaudio/lib/cmake/portaudio"
-    "${CMAKE_PREFIX_PATH}")
+if(OSSIA_SDK)
+  set(CMAKE_PREFIX_PATH
+      "${OSSIA_SDK}/SDL2/cmake"
+      "${OSSIA_SDK}/qt5-static"
+      "${OSSIA_SDK}/llvm-libs"
+      "${OSSIA_SDK}/llvm"
+      "${OSSIA_SDK}/fftw"
+      "${OSSIA_SDK}/portaudio/lib/cmake"
+      "${OSSIA_SDK}/portaudio/lib/cmake/portaudio"
+      "${CMAKE_PREFIX_PATH}")
+endif()
 
 if(NOT SCORE_CONFIGURATION)
   if(${CMAKE_BUILD_TYPE} MATCHES Debug)
@@ -53,8 +61,8 @@ endif()
 set(SCORE_VERSION_MAJOR 3)
 set(SCORE_VERSION_MINOR 0)
 set(SCORE_VERSION_PATCH 0)
-set(SCORE_VERSION_EXTRA "alpha1")
-set(SCORE_CODENAME "La poutine aux lardons : épistémologie d'une culture culinaire")
+set(SCORE_VERSION_EXTRA "alpha3")
+set(SCORE_CODENAME "The zoolok salpati drowns slorcily in globamate")
 
 set(SCORE_VERSION
     "${SCORE_VERSION_MAJOR}.${SCORE_VERSION_MINOR}.${SCORE_VERSION_PATCH}")
@@ -99,6 +107,7 @@ find_package(Qt5 5.9 REQUIRED
 )
 
 include(3rdparty/libossia.cmake)
+add_subdirectory(3rdparty/QCodeEditor)
 enable_testing()
 include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/ScoreFunctions.cmake")
 include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/ScoreConfiguration.cmake")

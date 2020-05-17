@@ -24,7 +24,7 @@ void VSTEffectComponent::setupNode(Node_T& node)
   const auto& proc = this->process();
   node->controls.reserve(proc.controls.size());
   const auto& inlets = proc.inlets();
-  for (std::size_t i = 3; i < inlets.size(); i++)
+  for (std::size_t i = VST_FIRST_CONTROL_INDEX; i < inlets.size(); i++)
   {
     auto ctrl = safe_cast<Media::VST::VSTControlInlet*>(inlets[i]);
     auto inlet = new ossia::value_inlet;
@@ -48,13 +48,18 @@ void VSTEffectComponent::setupNode(Node_T& node)
       {
         Execution::SetupContext& setup = system().context().setup;
         auto inlet = new ossia::value_inlet;
-        in_exec([n, inlet, val = ctrl->value(), num = ctrl->fxNum]{
+
+        Execution::Transaction commands{system()};
+
+        commands.push_back([n, inlet, val = ctrl->value(), num = ctrl->fxNum]{
           n->controls.push_back(
             {num, val, inlet->target<ossia::value_port>()});
           n->root_inputs().push_back(inlet);
           });
 
-        setup.register_inlet(*ctrl, inlet, n);
+        setup.register_inlet(*ctrl, inlet, n, commands);
+
+        commands.run_all();
       }
     });
   connect(

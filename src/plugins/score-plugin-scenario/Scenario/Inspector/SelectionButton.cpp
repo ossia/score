@@ -22,12 +22,15 @@ SelectionButton::SelectionButton(
 
   setObjectName("SelectionButton");
   setIcon(icon);
+
+#ifndef QT_NO_STYLE_STYLESHEET
   setStyleSheet(
       "margin: 5px;"
       "margin-left: 10px;"
       "text-align: left;"
       "text-decoration: underline;"
       "border: none;");
+#endif
   setFlat(true);
 
   connect(this, &QPushButton::clicked, this, [=]() {

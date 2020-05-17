@@ -2,9 +2,6 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "PropertyCommand.hpp"
 
-#include <score/model/path/ObjectPath.hpp>
-#include <score/serialization/DataStreamVisitor.hpp>
-
 score::PropertyCommand::~PropertyCommand() = default;
 
 void score::PropertyCommand::undo(const score::DocumentContext& ctx) const

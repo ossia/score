@@ -58,7 +58,7 @@ public:
     m_id.m_ptr = this;
   }
 
-  void resetCache() final override { m_path_cache.unsafePath().vec().clear(); }
+  void resetCache() const noexcept override { m_path_cache.unsafePath().vec().clear(); }
 
   mutable Path<model> m_path_cache;
   // TODO see

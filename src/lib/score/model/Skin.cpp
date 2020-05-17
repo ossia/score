@@ -3,10 +3,12 @@
 #include "Skin.hpp"
 
 #include <boost/assign/list_of.hpp>
-#include <boost/bimap.hpp>
+#include <ossia/detail/flat_map.hpp>
+#include <score/widgets/Pixmap.hpp>
 
 #include <QJsonArray>
 #include <QJsonObject>
+#include <QGuiApplication>
 
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(score::Skin)
@@ -24,14 +26,16 @@ namespace score
 struct Skin::color_map
 {
   color_map(
-      std::initializer_list<boost::bimap<QString, Brush*>::value_type> list)
-      : the_map(list.begin(), list.end())
+      std::initializer_list<std::pair<QString, Brush*>> list)
+      : left(list.begin(), list.end())
   {
+    for(auto& pair : list) {
+      right.insert({pair.second, pair.first});
+    }
   }
 
-  boost::bimap<QString, Brush*> the_map;
-  decltype(boost::bimap<QString, Brush*>{}.left)& left{the_map.left};
-  decltype(boost::bimap<QString, Brush*>{}.right)& right{the_map.right};
+  ossia::flat_map<QString, Brush*> left;
+  ossia::flat_map<Brush*, QString> right;
 };
 Skin::~Skin()
 {
@@ -107,6 +111,7 @@ Skin::Skin() noexcept
   for (auto& c : m_defaultPalette)
   {
     m_colorMap->left.insert({c.first, &c.second});
+    m_colorMap->right.insert({&c.second, c.first});
   }
 
   // make the "lighter" of black more light.
@@ -137,12 +142,36 @@ Skin::Skin() noexcept
   Medium12Pt = SansFont;
   Medium12Pt.setPixelSize(12 * 96./ 72.);
 
-  SliderBrush = QColor("#252930");
-  SliderExtBrush = QColor("#666");
-  SliderTextPen = QColor("silver");
+  SliderBrush = QColor{"#161514"};
+  SliderPen = QPen{QColor{"#62400a"}, 1};
+  SliderInteriorBrush = QColor{"#62400a"};
+  SliderLine = QPen{QColor{"#c58014"}, 1, Qt::SolidLine, Qt::FlatCap};
+  SliderTextPen = QColor{"#d0d0d0"};
   SliderFont = SansFont;
   SliderFont.setPixelSize(10 * 96./ 72.);
   SliderFont.setWeight(QFont::DemiBold);
+
+  int hotspotX = 12 * qApp->devicePixelRatio();
+  int hotspotY = 10 * qApp->devicePixelRatio();
+  CursorPointer = QCursor{score::get_pixmap(":/icons/cursor_pointer.png"), hotspotX, hotspotY};
+
+  int centerHotspot = 16 * qApp->devicePixelRatio();
+  CursorOpenHand = QCursor{score::get_pixmap(":/icons/cursor_open_hand.png"), centerHotspot, centerHotspot};
+  CursorClosedHand = QCursor{score::get_pixmap(":/icons/cursor_closed_hand.png"), centerHotspot, centerHotspot};
+  CursorPointingHand = QCursor{score::get_pixmap(":/icons/cursor_pointing_hand.png"), centerHotspot, centerHotspot};
+
+  int hotspot = 15 * qApp->devicePixelRatio();
+  CursorMagnifier = QCursor{score::get_pixmap(":/icons/cursor_magnifier.png"), hotspot, hotspot};
+  CursorMove = QCursor{score::get_pixmap(":/icons/cursor_move.png"), hotspot, hotspot};
+
+  CursorScaleH = QCursor{score::get_pixmap(":/icons/cursor_scale_h.png"), centerHotspot, centerHotspot};
+  CursorScaleV = QCursor{score::get_pixmap(":/icons/cursor_scale_v.png"), centerHotspot, centerHotspot};
+  CursorScaleFDiag = QCursor{score::get_pixmap(":/icons/cursor_scale_fdiag.png"), centerHotspot, centerHotspot};
+
+  hotspotX = 12 * qApp->devicePixelRatio();
+  hotspotY = 10 * qApp->devicePixelRatio();
+  CursorPlayFromHere = QCursor{score::get_pixmap(":/icons/cursor_play_from_here.png"), hotspotX, hotspotY};
+  CursorCreationMode = QCursor{score::get_pixmap(":/icons/cursor_creation_mode.png"), hotspotY, hotspotX};
 
   std::initializer_list<QFont*> mono_fonts = {
      &MonoFont, &MonoFontSmall
@@ -453,7 +482,7 @@ BrushSet::BrushSet(const BrushSet& other) noexcept
     , pen2{other.pen2}
     , pen2_solid_round_round{other.pen2_solid_round_round}
     , pen2_solid_flat_miter{other.pen2_solid_flat_miter}
-    , pen2_dashed_flat_miter{other.pen2_dashed_flat_miter}
+    , pen2_dashdot_square_miter{other.pen2_dashdot_square_miter}
     , pen2_dotted_square_miter{other.pen2_dotted_square_miter}
     , pen3{other.pen3}
     , pen3_solid_flat_miter{other.pen3_solid_flat_miter}
@@ -473,7 +502,7 @@ BrushSet::BrushSet(BrushSet&& other) noexcept
     , pen2{other.pen2}
     , pen2_solid_round_round{other.pen2_solid_round_round}
     , pen2_solid_flat_miter{other.pen2_solid_flat_miter}
-    , pen2_dashed_flat_miter{other.pen2_dashed_flat_miter}
+    , pen2_dashdot_square_miter{other.pen2_dashdot_square_miter}
     , pen2_dotted_square_miter{other.pen2_dotted_square_miter}
     , pen3{other.pen3}
     , pen3_solid_flat_miter{other.pen3_solid_flat_miter}
@@ -494,7 +523,7 @@ BrushSet& BrushSet::operator=(const BrushSet& other) noexcept
   pen2 = other.pen2;
   pen2_solid_round_round = other.pen2_solid_round_round;
   pen2_solid_flat_miter = other.pen2_solid_flat_miter;
-  pen2_dashed_flat_miter = other.pen2_dashed_flat_miter;
+  pen2_dashdot_square_miter = other.pen2_dashdot_square_miter;
   pen2_dotted_square_miter = other.pen2_dotted_square_miter;
   pen3 = other.pen3;
   pen3_solid_flat_miter = other.pen3_solid_flat_miter;
@@ -515,7 +544,7 @@ BrushSet& BrushSet::operator=(BrushSet&& other) noexcept
   pen2 = other.pen2;
   pen2_solid_round_round = other.pen2_solid_round_round;
   pen2_solid_flat_miter = other.pen2_solid_flat_miter;
-  pen2_dashed_flat_miter = other.pen2_dashed_flat_miter;
+  pen2_dashdot_square_miter = other.pen2_dashdot_square_miter;
   pen2_dotted_square_miter = other.pen2_dotted_square_miter;
   pen3 = other.pen3;
   pen3_solid_flat_miter = other.pen3_solid_flat_miter;
@@ -575,11 +604,11 @@ void BrushSet::setupPens()
   pen2_solid_flat_miter.setCapStyle(Qt::FlatCap);
   pen2_solid_flat_miter.setJoinStyle(Qt::MiterJoin);
 
-  pen2_dashed_flat_miter.setBrush(brush);
-  pen2_dashed_flat_miter.setWidth(2);
-  pen2_dashed_flat_miter.setStyle(Qt::DashLine);
-  pen2_dashed_flat_miter.setCapStyle(Qt::FlatCap);
-  pen2_dashed_flat_miter.setJoinStyle(Qt::MiterJoin);
+  pen2_dashdot_square_miter.setBrush(brush);
+  pen2_dashdot_square_miter.setWidth(2);
+  pen2_dashdot_square_miter.setStyle(Qt::DashDotLine);
+  pen2_dashdot_square_miter.setCapStyle(Qt::FlatCap);
+  pen2_dashdot_square_miter.setJoinStyle(Qt::MiterJoin);
 
   pen2_dotted_square_miter.setBrush(brush);
   pen2_dotted_square_miter.setWidth(2);

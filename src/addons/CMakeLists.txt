@@ -1,3 +1,4 @@
+return()
 project(score_addons LANGUAGES CXX)
 
 macro(SUBDIRLIST result curdir)

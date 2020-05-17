@@ -46,7 +46,7 @@ struct DefaultGraphicsSliderImpl
     static const constexpr auto dpi_adjust = -2;
 #endif
     painter->setPen(skin.Base4.lighter180.pen1);
-    painter->setFont(skin.SansFontSmall);
+    painter->setFont(skin.Medium8Pt);
     const auto textrect
         = brect.adjusted(2, srect.height() + 3 + dpi_adjust, -2, -1);
     painter->drawText(textrect, text, QTextOption(Qt::AlignCenter));

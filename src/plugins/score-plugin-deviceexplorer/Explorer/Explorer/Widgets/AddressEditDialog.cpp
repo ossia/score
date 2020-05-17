@@ -64,7 +64,7 @@ AddressEditDialog::AddressEditDialog(
 
   // AddressWidget
   m_addressWidget = new WidgetWrapper<AddressSettingsWidget>{this};
-  m_layout->addWidget(m_addressWidget);
+  m_layout->addRow(m_addressWidget);
 
   setValueSettings();
 

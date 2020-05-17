@@ -3,6 +3,7 @@
 #include <score/tools/std/Optional.hpp>
 
 #include <QKeySequence>
+#include <QIcon>
 
 #include <score_lib_base_export.h>
 class Selection;
@@ -27,6 +28,7 @@ struct SCORE_LIB_BASE_EXPORT PanelStatus
       Qt::DockWidgetArea d,
       int prio,
       QString name,
+      QString icon,
       const QKeySequence& sc);
 
   const bool shown; // Controls if it is shown by default.
@@ -34,6 +36,7 @@ struct SCORE_LIB_BASE_EXPORT PanelStatus
   const Qt::DockWidgetArea dock; // Which dock.
   const int priority;            // Higher priority will come up first.
   const QString prettyName;      // Used in the header.
+  const QIcon icon;            // Same
   const QKeySequence shortcut; // Keyboard shortcut to show or hide the panel.
 };
 

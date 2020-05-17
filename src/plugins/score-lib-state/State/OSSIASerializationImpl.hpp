@@ -37,16 +37,6 @@ JSON_METADATA(ossia::vector_domain, "Tuple")
 JSON_METADATA(ossia::domain_base<std::string>, "String")
 JSON_METADATA(ossia::domain_base<ossia::value>, "Generic")
 
-SCORE_DECL_VALUE_TYPE(int)
-SCORE_DECL_VALUE_TYPE(float)
-SCORE_DECL_VALUE_TYPE(bool)
-SCORE_DECL_VALUE_TYPE(char)
-SCORE_DECL_VALUE_TYPE(ossia::impulse)
-SCORE_DECL_VALUE_TYPE(std::string)
-SCORE_DECL_VALUE_TYPE(ossia::vec2f)
-SCORE_DECL_VALUE_TYPE(ossia::vec3f)
-SCORE_DECL_VALUE_TYPE(ossia::vec4f)
-
 template <>
 struct is_custom_serialized<ossia::vector_domain> : public std::true_type
 {

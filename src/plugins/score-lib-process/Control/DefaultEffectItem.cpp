@@ -12,7 +12,7 @@
 
 #include <Control/Widgets.hpp>
 #include <QGraphicsScene>
-namespace Media::Effect
+namespace Process
 {
 struct DefaultEffectItem::Port
 {

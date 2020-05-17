@@ -21,7 +21,7 @@ void DataStreamWriter::write(Protocols::MinuitSpecificSettings& n)
 }
 
 template <>
-void JSONObjectReader::read(const Protocols::MinuitSpecificSettings& n)
+void JSONReader::read(const Protocols::MinuitSpecificSettings& n)
 {
   obj["InPort"] = n.inputPort;
   obj["OutPort"] = n.outputPort;
@@ -32,12 +32,12 @@ void JSONObjectReader::read(const Protocols::MinuitSpecificSettings& n)
 }
 
 template <>
-void JSONObjectWriter::write(Protocols::MinuitSpecificSettings& n)
+void JSONWriter::write(Protocols::MinuitSpecificSettings& n)
 {
   n.inputPort = obj["InPort"].toInt();
   n.outputPort = obj["OutPort"].toInt();
   n.host = obj["Host"].toString();
   n.localName = obj["LocalName"].toString();
-  if (obj.contains("Rate"))
-    n.rate = obj["Rate"].toInt();
+  if (auto it = obj.tryGet("Rate"))
+    n.rate = it->toInt();
 }

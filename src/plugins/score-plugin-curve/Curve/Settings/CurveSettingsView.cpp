@@ -15,7 +15,7 @@ namespace Settings
 View::View() : m_widg{new QWidget}
 {
   auto lay = new QFormLayout;
-
+  lay->setSpacing(10);
   {
     m_sb = new QDoubleSpinBox;
 
@@ -31,7 +31,7 @@ View::View() : m_widg{new QWidget}
   }
 
   {
-    m_simpl = new QCheckBox;
+    m_simpl = new QCheckBox{tr("Simplify")};
 
     connect(m_simpl, &QCheckBox::stateChanged, this, [&](int t) {
       switch (t)
@@ -47,11 +47,11 @@ View::View() : m_widg{new QWidget}
       }
     });
 
-    lay->addRow(tr("Simplify"), m_simpl);
+    lay->addRow(m_simpl);
   }
 
   {
-    m_mode = new QCheckBox;
+    m_mode = new QCheckBox{tr("Ramp to new value")};
 
     connect(m_mode, &QCheckBox::stateChanged, this, [&](int t) {
       switch (t)
@@ -67,11 +67,11 @@ View::View() : m_widg{new QWidget}
       }
     });
 
-    lay->addRow(tr("Ramp to new value"), m_mode);
+    lay->addRow(m_mode);
   }
 
   {
-    m_playWhileRecording = new QCheckBox;
+    m_playWhileRecording = new QCheckBox{tr("Play while recording")};
 
     connect(m_playWhileRecording, &QCheckBox::stateChanged, this, [&](int t) {
       switch (t)
@@ -87,7 +87,7 @@ View::View() : m_widg{new QWidget}
       }
     });
 
-    lay->addRow(tr("Play while recording"), m_playWhileRecording);
+    lay->addRow(m_playWhileRecording);
   }
 
   m_widg->setLayout(lay);

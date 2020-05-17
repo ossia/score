@@ -76,6 +76,7 @@ public:
       StateModel& sst,
       StateModel& est,
       double ypos,
+      bool graphal,
       Scenario::ProcessModel& s);
 };
 

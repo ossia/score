@@ -17,11 +17,11 @@ void DataStreamWriter::write(Protocols::JoystickSpecificSettings& n)
 }
 
 template <>
-void JSONObjectReader::read(const Protocols::JoystickSpecificSettings& n)
+void JSONReader::read(const Protocols::JoystickSpecificSettings& n)
 {
 }
 
 template <>
-void JSONObjectWriter::write(Protocols::JoystickSpecificSettings& n)
+void JSONWriter::write(Protocols::JoystickSpecificSettings& n)
 {
 }

@@ -30,11 +30,13 @@ namespace Command
 CreateInterval::CreateInterval(
     const Scenario::ProcessModel& scenar,
     Id<StateModel> startState,
-    Id<StateModel> endState)
+    Id<StateModel> endState,
+    bool graph)
     : m_path{scenar}
     , m_createdName{RandomNameProvider::generateName<IntervalModel>()}
     , m_startStateId{std::move(startState)}
     , m_endStateId{std::move(endState)}
+    , m_graphal{graph}
 {
   auto ss = scenar.states.find(m_startStateId);
   if (ss != scenar.states.end())
@@ -68,7 +70,7 @@ void CreateInterval::redo(const score::DocumentContext& ctx) const
   auto& est = scenar.states.at(m_endStateId);
 
   ScenarioCreate<IntervalModel>::redo(
-      m_createdIntervalId, sst, est, sst.heightPercentage(), scenar);
+      m_createdIntervalId, sst, est, sst.heightPercentage(), m_graphal, scenar);
 
   auto& itv = scenar.intervals.at(m_createdIntervalId);
   itv.metadata().setName(m_createdName);
@@ -79,13 +81,13 @@ void CreateInterval::redo(const score::DocumentContext& ctx) const
 void CreateInterval::serializeImpl(DataStreamInput& s) const
 {
   s << m_path << m_createdName << m_createdIntervalId << m_startStateId
-    << m_endStateId << m_startStatePos << m_endStatePos;
+    << m_endStateId << m_startStatePos << m_endStatePos << m_graphal;
 }
 
 void CreateInterval::deserializeImpl(DataStreamOutput& s)
 {
   s >> m_path >> m_createdName >> m_createdIntervalId >> m_startStateId
-      >> m_endStateId >> m_startStatePos >> m_endStatePos;
+      >> m_endStateId >> m_startStatePos >> m_endStatePos >> m_graphal;
 }
 }
 }

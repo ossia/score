@@ -2,13 +2,10 @@
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 #include "ApplicationInterface.hpp"
 
-#include <score/application/ApplicationContext.hpp>
 #include <score/model/ComponentSerialization.hpp>
 #include <score/model/ObjectRemover.hpp>
 #include <score/plugins/ProjectSettings/ProjectSettingsFactory.hpp>
 #include <score/plugins/documentdelegate/DocumentDelegateFactory.hpp>
-#include <score/plugins/documentdelegate/plugin/DocumentPlugin.hpp>
-#include <score/plugins/documentdelegate/plugin/DocumentPluginCreator.hpp>
 #include <score/plugins/panel/PanelDelegateFactory.hpp>
 #include <score/plugins/qt_interfaces/CommandFactory_QtInterface.hpp>
 #include <score/plugins/qt_interfaces/FactoryFamily_QtInterface.hpp>
@@ -20,8 +17,6 @@
 #include <core/messages/MessagesPanel.hpp>
 #include <core/plugin/PluginManager.hpp>
 #include <core/presenter/CoreApplicationPlugin.hpp>
-#include <core/presenter/Presenter.hpp>
-#include <core/settings/Settings.hpp>
 #include <core/undo/Panel/UndoPanelFactory.hpp>
 #include <core/undo/UndoApplicationPlugin.hpp>
 #include <core/view/Window.hpp>
@@ -126,10 +121,17 @@ void GUIApplicationInterface::loadPluginData(
       registrar.registerPanel(panel_fac);
     }
 
-    for (auto& panel : registrar.components().panels)
+    auto& panels = registrar.components().panels;
+    std::sort(panels.begin(), panels.end(),
+              [] (const auto& lhs, const auto& rhs) {
+      return lhs->defaultPanelStatus().priority >= rhs->defaultPanelStatus().priority;
+    });
+
+    for (auto& panel : panels)
     {
       presenter.view()->setupPanel(panel.get());
     }
+    presenter.view()->allPanelsAdded();
   }
 }
 
@@ -271,6 +273,9 @@ GUIApplicationContext::GUIApplicationContext(
     , actions{f}
     , mainWindow{mw}
 {
+  if(auto win = qobject_cast<score::View*>(mw)) {
+    documentTabWidget = win->centralTabs;
+  }
 }
 
 SCORE_LIB_BASE_EXPORT const ApplicationContext& AppContext()

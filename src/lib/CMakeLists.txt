@@ -58,6 +58,8 @@ set(HEADERS
     "${CMAKE_CURRENT_SOURCE_DIR}/core/undo/Panel/Widgets/UndoListWidget.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/core/undo/UndoApplicationPlugin.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/core/view/Window.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/core/view/FixedTabWidget.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/core/view/HelperPanelDelegate.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/core/view/QRecentFilesMenu.h"
 
     "${CMAKE_CURRENT_SOURCE_DIR}/score/actions/Action.hpp"
@@ -91,6 +93,7 @@ set(HEADERS
     "${CMAKE_CURRENT_SOURCE_DIR}/score/document/DocumentContext.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/document/DocumentInterface.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/locking/ObjectLocker.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/score/model/ColorInterpolator.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/model/ColorReference.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/model/Component.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/model/ComponentFactory.hpp"
@@ -169,6 +172,7 @@ set(HEADERS
     "${CMAKE_CURRENT_SOURCE_DIR}/score/serialization/AnySerialization.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/serialization/DataStreamVisitor.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/serialization/IsTemplate.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/score/serialization/CommonTypes.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/serialization/JSONValueVisitor.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/serialization/JSONVisitor.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/serialization/MimeVisitor.hpp"
@@ -221,6 +225,7 @@ set(HEADERS
     "${CMAKE_CURRENT_SOURCE_DIR}/score/graphics/DefaultGraphicsSliderImpl.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/graphics/DefaultGraphicsKnobImpl.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/graphics/GraphicsProxyObject.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/score/graphics/PainterPath.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/graphics/RectItem.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/graphics/TextItem.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/graphics/YPos.hpp"
@@ -229,25 +234,28 @@ set(HEADERS
     "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/ControlWidgets.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/CommandSpinBox.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/DoubleSlider.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/IntSlider.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/DoubleSpinBox.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/JS/JSEdit.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/Layout.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/MarginLess.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/MimeData.hpp"
-#    "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/QmlContainerPanel.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/Pixmap.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/ReactiveLabel.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/Separator.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/SetIcons.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/SignalUtils.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/StyleSheets.hpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/StyledButton.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/ArrowButton.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/SpinBoxes.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/TextLabel.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/WidgetWrapper.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/MessageBox.hpp"
 
      "${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/QProgressIndicator/QProgressIndicator.h"
 
+     "${3RDPARTY_FOLDER}/QMenuView/qmenuview.h"
+     "${3RDPARTY_FOLDER}/QMenuView/qmenuview_p.h"
      #"${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/Qt-Color-Widgets/QtColorWidgets/color_palette_model.hpp"
      #"${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/Qt-Color-Widgets/QtColorWidgets/color_palette_widget.hpp"
      #"${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/Qt-Color-Widgets/QtColorWidgets/colorwidgets_global.hpp"
@@ -269,6 +277,7 @@ set(HEADERS
 )
 
 set(SRCS
+"${3RDPARTY_FOLDER}/QMenuView/qmenuview.cpp"
 "${3RDPARTY_FOLDER}/zipdownloader/src/miniz.cpp"
 "${3RDPARTY_FOLDER}/zipdownloader/src/zipdownloader.cpp"
 "${OSSIA_3RDPARTY_FOLDER}/rnd/src/random.cpp"
@@ -292,6 +301,7 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/score/command/Validity/ValidityChecker.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/score/model/Component.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/score/model/ColorInterpolator.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/score/application/ApplicationContext.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/score/application/ApplicationComponents.cpp"
@@ -358,12 +368,14 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/ClearLayout.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/ControlWidgets.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/DoubleSlider.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/IntSlider.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/DoubleSpinBox.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/SetIcons.cpp"
-# "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/QmlContainerPanel.cpp" # TODO MOVEME
 "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/Separator.cpp"
-"${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/StyledButton.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/ArrowButton.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/JS/JSEdit.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/MessageBox.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/SpinBoxes.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/core/application/SafeQApplication.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/core/application/ApplicationInterface.cpp"
@@ -394,6 +406,7 @@ set(SRCS
 "${CMAKE_CURRENT_SOURCE_DIR}/core/undo/Panel/UndoPanelFactory.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/core/undo/UndoApplicationPlugin.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/core/view/Window.cpp"
+"${CMAKE_CURRENT_SOURCE_DIR}/core/view/FixedTabWidget.cpp"
 "${CMAKE_CURRENT_SOURCE_DIR}/core/view/QRecentFilesMenu.cpp"
 
 "${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/QProgressIndicator/QProgressIndicator.cpp"
@@ -429,11 +442,12 @@ if(APPLE)
         )
 endif()
 
+target_include_directories(score_lib_base PUBLIC "${3RDPARTY_FOLDER}")
 target_include_directories(score_lib_base PUBLIC "${3RDPARTY_FOLDER}/zipdownloader/src")
 target_include_directories(score_lib_base PUBLIC "${OSSIA_3RDPARTY_FOLDER}/rnd/include")
 
 target_link_libraries(score_lib_base
-    PUBLIC Qt5::Core Qt5::Widgets ossia # Qt5::Qml Qt5::QuickWidgets
+    PUBLIC Qt5::Core Qt5::Widgets ossia QCodeEditor
     )
 if(TARGET Qt5::Svg)
   target_link_libraries(score_lib_base

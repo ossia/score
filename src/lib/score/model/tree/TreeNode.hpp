@@ -58,18 +58,18 @@ public:
   using iterator = typename impl_type::iterator;
   using const_iterator = typename impl_type::const_iterator;
 
-  auto begin() { return m_children.begin(); }
-  auto begin() const { return cbegin(); }
-  auto cbegin() const { return m_children.cbegin(); }
+  auto begin() noexcept { return m_children.begin(); }
+  auto begin() const noexcept { return cbegin(); }
+  auto cbegin() const noexcept { return m_children.cbegin(); }
 
-  auto end() { return m_children.end(); }
-  auto end() const { return cend(); }
-  auto cend() const { return m_children.cend(); }
+  auto end() noexcept { return m_children.end(); }
+  auto end() const noexcept { return cend(); }
+  auto cend() const noexcept { return m_children.cend(); }
 
   TreeNode() = default;
 
   // The parent has to be set afterwards.
-  TreeNode(const TreeNode& other)
+  TreeNode(const TreeNode& other) noexcept
       : DataType(static_cast<const DataType&>(other))
       , m_parent{other.m_parent}
       , m_children(other.m_children)
@@ -78,7 +78,7 @@ public:
       child.setParent(this);
   }
 
-  TreeNode(TreeNode&& other)
+  TreeNode(TreeNode&& other) noexcept
       : DataType(std::move(static_cast<DataType&&>(other)))
       , m_parent{other.m_parent}
       , m_children(std::move(other.m_children))
@@ -87,7 +87,7 @@ public:
       child.setParent(this);
   }
 
-  TreeNode& operator=(const TreeNode& source)
+  TreeNode& operator=(const TreeNode& source) noexcept
   {
     static_cast<DataType&>(*this) = static_cast<const DataType&>(source);
     m_parent = source.m_parent;
@@ -101,7 +101,7 @@ public:
     return *this;
   }
 
-  TreeNode& operator=(TreeNode&& source)
+  TreeNode& operator=(TreeNode&& source) noexcept
   {
     static_cast<DataType&>(*this) = static_cast<DataType&&>(source);
     m_parent = source.m_parent;
@@ -115,19 +115,19 @@ public:
     return *this;
   }
 
-  TreeNode(DataType data, TreeNode* parent)
+  TreeNode(DataType data, TreeNode* parent) noexcept
       : DataType(std::move(data)), m_parent{parent}
   {
   }
 
   // Clone
-  explicit TreeNode(TreeNode source, TreeNode* parent)
+  explicit TreeNode(TreeNode source, TreeNode* parent) noexcept
       : TreeNode{std::move(source)}
   {
     m_parent = parent;
   }
 
-  void push_back(const TreeNode& child)
+  void push_back(const TreeNode& child) noexcept
   {
     m_children.push_back(child);
 
@@ -135,7 +135,7 @@ public:
     cld.setParent(this);
   }
 
-  void push_back(TreeNode&& child)
+  void push_back(TreeNode&& child) noexcept
   {
     m_children.push_back(std::move(child));
 
@@ -144,7 +144,7 @@ public:
   }
 
   template <typename... Args>
-  auto& emplace_back(Args&&... args)
+  auto& emplace_back(Args&&... args) noexcept
   {
     m_children.emplace_back(std::forward<Args>(args)...);
 
@@ -154,31 +154,31 @@ public:
   }
 
   template <typename... Args>
-  auto& emplace(Args&&... args)
+  auto& emplace(Args&&... args) noexcept
   {
     auto& n = *m_children.emplace(std::forward<Args>(args)...);
     n.setParent(this);
     return n;
   }
 
-  TreeNode* parent() const { return m_parent; }
+  TreeNode* parent() const noexcept { return m_parent; }
 
-  bool hasChild(std::size_t index) const { return m_children.size() > index; }
+  bool hasChild(std::size_t index) const noexcept  { return m_children.size() > index; }
 
-  TreeNode& childAt(int index) { return child_at(m_children, index); }
+  TreeNode& childAt(int index) noexcept { return child_at(m_children, index); }
 
-  const TreeNode& childAt(int index) const
+  const TreeNode& childAt(int index) const noexcept
   {
     return child_at(m_children, index);
   }
 
   // returns -1 if not found
-  int indexOfChild(const TreeNode* child) const
+  int indexOfChild(const TreeNode* child) const noexcept
   {
     return index_of_child(m_children, child);
   }
 
-  auto iterOfChild(const TreeNode* child)
+  auto iterOfChild(const TreeNode* child) noexcept
   {
     const auto end = m_children.end();
     for (auto it = m_children.begin(); it != end; ++it)
@@ -189,28 +189,28 @@ public:
     return end;
   }
 
-  int childCount() const { return m_children.size(); }
+  int childCount() const noexcept { return m_children.size(); }
 
-  bool hasChildren() const { return !m_children.empty(); }
+  bool hasChildren() const noexcept { return !m_children.empty(); }
 
-  const auto& children() const { return m_children; }
-  void reserve(std::size_t s)
+  const auto& children() const noexcept { return m_children; }
+  void reserve(std::size_t s) noexcept
   {
     // m_children.reserve(s);
   }
-  void resize(std::size_t s) { m_children.resize(s); }
+  void resize(std::size_t s) noexcept  { m_children.resize(s); }
 
-  auto erase(const_iterator it) { return m_children.erase(it); }
+  auto erase(const_iterator it) noexcept { return m_children.erase(it); }
 
-  auto erase(const_iterator it_beg, const_iterator it_end)
+  auto erase(const_iterator it_beg, const_iterator it_end) noexcept
   {
     return m_children.erase(it_beg, it_end);
   }
 
-  void setParent(TreeNode* parent) { m_parent = parent; }
+  void setParent(TreeNode* parent) noexcept  { m_parent = parent; }
 
   template <typename Fun>
-  void visit(Fun f) const
+  void visit(Fun f) const noexcept(noexcept(f(*this)))
   {
     f(*this);
 
@@ -223,7 +223,7 @@ public:
 
 // True if gramps is a parent, grand-parent, etc. of node.
 template <typename Node_T>
-bool isAncestor(const Node_T& gramps, const Node_T* node)
+bool isAncestor(const Node_T& gramps, const Node_T* node) noexcept
 {
   auto parent = node->parent();
   if (!parent)
@@ -257,7 +257,7 @@ bool isAncestor(const Node_T& gramps, const Node_T* node)
  * TESTME
  */
 template <typename Node_T>
-std::vector<Node_T*> filterUniqueParents(std::vector<Node_T*>& nodes)
+std::vector<Node_T*> filterUniqueParents(std::vector<Node_T*>& nodes) noexcept
 {
   std::vector<Node_T*> cleaned_nodes;
 

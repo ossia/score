@@ -11,7 +11,7 @@
 
 namespace Scenario
 {
-class MoveIntervalInBaseScenario_StateWrapper
+class DoNotMoveInterval_StateWrapper
 {
 public:
   template <typename Scenario_T, typename ToolPalette_T>

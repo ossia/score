@@ -19,6 +19,7 @@
 #include <Scenario/Document/DisplayedElements/DisplayedElementsProviderList.hpp>
 #include <Scenario/Document/DisplayedElements/DisplayedElementsToolPalette/DisplayedElementsToolPaletteFactoryList.hpp>
 #include <Scenario/Document/Interval/FullView/FullViewIntervalPresenter.hpp>
+#include <Scenario/Document/Interval/FullView/NodalIntervalView.hpp>
 #include <Scenario/Document/Interval/IntervalDurations.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/Interval/Temporal/TemporalIntervalPresenter.hpp>
@@ -42,6 +43,9 @@
 #include <score/statemachine/GraphicsSceneToolPalette.hpp>
 #include <score/tools/Clamp.hpp>
 #include <score/tools/Bind.hpp>
+#include <ossia-qt/invoke.hpp>
+#include <score/actions/Toolbar.hpp>
+#include <score/actions/ToolbarManager.hpp>
 #include <score/widgets/DoubleSlider.hpp>
 #include <core/application/ApplicationSettings.hpp>
 
@@ -50,8 +54,10 @@
 #include <ossia/detail/math.hpp>
 
 #include <QDebug>
+#include <QToolBar>
 #include <QSize>
 #include <QScrollBar>
+#include <QMenu>
 
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Scenario::ScenarioDocumentPresenter)
@@ -146,6 +152,20 @@ ScenarioDocumentPresenter::ScenarioDocumentPresenter(
       &TimeRuler::drag,
       this,
       &ScenarioDocumentPresenter::on_timeRulerScrollEvent);
+  con(view(), &ScenarioDocumentView::timeRulerChanged,
+      this, [this] {
+    auto& tr = view().timeRuler();
+    con(tr,
+        &TimeRuler::drag,
+        this,
+        &ScenarioDocumentPresenter::on_timeRulerScrollEvent);
+
+    tr.setZoomRatio(m_zoomRatio);
+    tr.setWidth(view().viewWidth());
+    if(auto p = m_scenarioPresenter.intervalPresenter())
+      tr.setGrid(p->grid());
+    on_horizontalPositionChanged(0);
+  });
 
   con(view().minimap(),
       &Minimap::visibleRectChanged,
@@ -198,13 +218,42 @@ ScenarioDocumentPresenter::ScenarioDocumentPresenter(
       },
       Qt::QueuedConnection);
 
+  // Execution timers
   con(m_context.coarseUpdateTimer, &QTimer::timeout, this, [&] {
     auto pctg = displayedInterval().duration.playPercentage();
-    auto& itv = *presenters().intervalPresenter()->view();
-    auto x = pctg * itv.defaultWidth() + itv.pos().x();
-    if(x != view().timeBar().x())
-      view().timeBar().setPos(x, 0);
+    if(auto p = presenters().intervalPresenter())
+    {
+      auto& itv = *p->view();
+      auto x = pctg * itv.defaultWidth() + itv.pos().x();
+      if(x != view().timeBar().x())
+        view().timeBar().setPos(x, 0);
+    }
+    else if(m_nodal)
+    {
+      m_nodal->on_playPercentageChanged(pctg);
+    }
   });
+
+  // Nodal mode control
+  if(auto tb = ctx.app.toolbars.get().find(StringKey<score::Toolbar>("UISetup"));
+     tb != ctx.app.toolbars.get().end())
+  {
+    // Nodal stuff
+    auto actions = tb->second.toolbar()->actions();
+
+    m_timelineAction = actions[0];
+    m_nodalAction = actions[1];
+
+    auto grp = qobject_cast<QActionGroup*>(m_timelineAction->parent());
+    connect(grp, &QActionGroup::triggered,
+            this, [=] (QAction* act){
+      const bool nodal = act != m_timelineAction;
+      if(nodal && !m_nodal)
+        switchMode(true);
+      else if(!nodal && m_nodal)
+        switchMode(false);
+    });
+  }
 
   setDisplayedInterval(model().baseInterval());
 
@@ -214,6 +263,73 @@ ScenarioDocumentPresenter::ScenarioDocumentPresenter(
   model()
       .cables.removing.connect<&ScenarioDocumentPresenter::on_cableRemoving>(
           *this);
+}
+
+void ScenarioDocumentPresenter::recenterNodal()
+{
+  if(!m_nodal)
+    return;
+
+  const auto& nodes = m_nodal->enclosingRect();
+  view().view().centerOn(m_nodal->mapToScene(nodes.center()));
+}
+
+void ScenarioDocumentPresenter::switchMode(bool nodal)
+{
+  const auto mode = nodal
+      ? IntervalModel::ViewMode::Nodal
+      : IntervalModel::ViewMode::Temporal;
+  displayedInterval().setViewMode(mode);
+
+  if(nodal)
+  {
+    removeDisplayedIntervalPresenter();
+
+    m_nodal = new NodalIntervalView{displayedInterval(), context(), &view().baseItem()};
+
+    view().view().setHorizontalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+    view().view().setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
+    view().view().setDragMode(QGraphicsView::ScrollHandDrag);
+    view().view().setSceneRect(QRectF{-5000,-5000,10000,10000});
+
+    view().view().setContextMenuPolicy(Qt::CustomContextMenu);
+
+    connect(&view().view(), &ProcessGraphicsView::dropRequested,
+            m_nodal, [=] (QPoint viewPos, const QMimeData* data) {
+      auto sp = view().view().mapToScene(viewPos);
+      auto ip = m_nodal->mapFromScene(sp);
+      m_nodal->on_drop(ip, data);
+    });
+
+    con(view().view(), &QGraphicsView::customContextMenuRequested,
+        this, [this] (const QPoint& pos) {
+      QMenu contextMenu(&view().view());
+      auto recenter = contextMenu.addAction(tr("Recenter"));
+
+      auto act = contextMenu.exec(view().view().mapToGlobal(pos));
+      if(act == recenter)
+        recenterNodal();
+    });
+  }
+  else
+  {
+    delete m_nodal;
+    m_nodal = nullptr;
+
+    createDisplayedIntervalPresenter(displayedInterval());
+
+    view().view().setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    view().view().setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    view().view().setDragMode(QGraphicsView::NoDrag);
+  }
+
+  /*
+  for(auto& cable : m_dataflow.cables())
+  {
+    cable.second->check();
+  }
+  */
+  view().showRulers(!nodal);
 }
 
 ScenarioDocumentPresenter::~ScenarioDocumentPresenter()
@@ -255,11 +371,11 @@ void ScenarioDocumentPresenter::selectTop()
        &displayedElements.endState()});
 }
 
-void ScenarioDocumentPresenter::setMillisPerPixel(ZoomRatio newRatio)
+void ScenarioDocumentPresenter::setZoomRatio(ZoomRatio newRatio)
 {
   m_zoomRatio = newRatio;
 
-  view().timeRuler().setPixelPerMillis(1.0 / m_zoomRatio);
+  view().timeRuler().setZoomRatio(newRatio);
   m_scenarioPresenter.on_zoomRatioChanged(m_zoomRatio);
 
   for (auto& cbl : m_dataflow.cables())
@@ -338,6 +454,11 @@ void ScenarioDocumentPresenter::stopTimeBar()
   bar.playing = false;
   bar.setInterval(nullptr);
 }
+
+bool ScenarioDocumentPresenter::isNodal() const noexcept
+{
+  return !m_timelineAction->isChecked();
+}
 static bool window_size_set = false;
 void ScenarioDocumentPresenter::on_windowSizeChanged(QSize sz)
 {
@@ -355,7 +476,7 @@ void ScenarioDocumentPresenter::on_windowSizeChanged(QSize sz)
   auto visible_rect = view().visibleSceneRect();
   if (visible_rect.width() > c.duration.guiDuration().toPixels(m_zoomRatio))
   {
-    auto t = TimeVal::fromMsecs(m_zoomRatio * visible_rect.width());
+    auto t = TimeVal::fromPixels(visible_rect.width(), m_zoomRatio);
     auto min_time = c.contentDuration();
 
     c.duration.setGuiDuration((min_time > t ? min_time : t));
@@ -378,8 +499,9 @@ void ScenarioDocumentPresenter::on_horizontalPositionChanged(int dx)
     auto scene_rect = gv.sceneRect();
     if (cur_rect.x() + cur_rect.width() - dx > (scene_rect.width()))
     {
-      auto t = TimeVal::fromMsecs(
-          m_zoomRatio * (cur_rect.x() + cur_rect.width() - dx));
+      auto t = TimeVal::fromPixels(
+            cur_rect.x() + cur_rect.width() - dx,
+            m_zoomRatio);
       c.duration.setGuiDuration(t);
       scene_rect.adjust(0, 0, 5, 0);
       gv.setSceneRect(scene_rect);
@@ -392,8 +514,7 @@ void ScenarioDocumentPresenter::on_horizontalPositionChanged(int dx)
     {
       auto cur_rect = gv.mapToScene(gv.rect()).boundingRect();
       auto t = std::max(
-          TimeVal::fromMsecs(
-              m_zoomRatio * (cur_rect.x() + cur_rect.width() - dx)),
+          TimeVal::fromPixels(cur_rect.x() + cur_rect.width() - dx, m_zoomRatio),
           min_time);
       c.duration.setGuiDuration(t);
 
@@ -405,7 +526,7 @@ void ScenarioDocumentPresenter::on_horizontalPositionChanged(int dx)
 
   QRectF visible_scene_rect = view().visibleSceneRect();
 
-  view().timeRuler().setStartPoint(std::chrono::nanoseconds(int64_t(1e6 * visible_scene_rect.x() * m_zoomRatio)));
+  view().timeRuler().setStartPoint(TimeVal::fromPixels(visible_scene_rect.x(), m_zoomRatio));
   const auto dur = c.duration.guiDuration();
   c.setMidTime(
       dur * (visible_scene_rect.center().x() / dur.toPixels(m_zoomRatio)));
@@ -423,7 +544,7 @@ double ScenarioDocumentPresenter::computeReverseZoom(ZoomRatio r)
 
   const auto map_w = view().minimap().width();
 
-  return map_w * r * view_width / dur.msec();
+  return map_w * r * view_width / dur.impl;
 }
 
 ZoomRatio ScenarioDocumentPresenter::computeZoom(double l, double r)
@@ -433,7 +554,7 @@ ZoomRatio ScenarioDocumentPresenter::computeZoom(double l, double r)
   const auto dur = displayedInterval().duration.guiDuration();
 
   // Compute new zoom level
-  const auto disptime = (dur * ((r - l) / map_w)).msec();
+  const auto disptime = dur.impl * ((r - l) / map_w);
   return disptime / view_width;
 }
 
@@ -462,9 +583,18 @@ void ScenarioDocumentPresenter::on_viewReady()
 
 void ScenarioDocumentPresenter::on_cableAdded(Process::Cable& c)
 {
-  auto it = new Dataflow::CableItem{c, m_context, nullptr};
-  if(!it->parentItem())
-    view().scene().addItem(it);
+  // Run async because the cable model may have been
+  // created before the port item have in e.g. an undo command
+  ossia::qt::run_async(
+        this,
+        [this, ptr = QPointer{&c}] {
+    if(ptr)
+    {
+      auto it = new Dataflow::CableItem{*ptr, m_context, nullptr};
+      if(!it->parentItem())
+        view().scene().addItem(it);
+    }
+  });
 }
 
 void ScenarioDocumentPresenter::on_cableRemoving(const Process::Cable& c)
@@ -484,7 +614,8 @@ void ScenarioDocumentPresenter::on_minimapChanged(double l, double r)
   const auto dur = c.duration.guiDuration();
 
   // Compute new zoom level
-  const auto newZoom = computeZoom(l, r);
+  // 1000 flicks per pixels -> roughly 800 pixels for one millisecond
+  const auto newZoom = std::max(computeZoom(l, r), 1000.);
 
   // Compute new x position
   const auto newCstWidth = dur.toPixels(newZoom);
@@ -502,7 +633,7 @@ void ScenarioDocumentPresenter::on_minimapChanged(double l, double r)
 
   // Set zoom
   if (newZoom != m_zoomRatio)
-    setMillisPerPixel(newZoom);
+    setZoomRatio(newZoom);
 
   // Set viewport position
   auto newView = QRectF{newX, y, (qreal)w, (qreal)h};
@@ -514,7 +645,7 @@ void ScenarioDocumentPresenter::on_minimapChanged(double l, double r)
   // Save state in interval
   c.setZoom(newZoom);
   c.setMidTime(
-      dur * (view().visibleSceneRect().center().x() / dur.toPixels(newZoom)));
+      TimeVal(dur.impl * (view().visibleSceneRect().center().x() / dur.toPixels(newZoom))));
 
   m_zooming = false;
 
@@ -535,10 +666,12 @@ ScenarioDocumentPresenter::context() const
 void ScenarioDocumentPresenter::updateTimeBar()
 {
   auto& set = m_context.app.settings<Settings::Model>();
-  view().timeBar().setVisible(
-      view().timeBar().playing && set.getTimeBar()
-      && (&m_scenarioPresenter.intervalPresenter()->model()
-          == view().timeBar().interval()));
+  auto& tb = view().timeBar();
+  tb.setVisible(
+        tb.playing
+        && set.getTimeBar()
+        && !m_nodal
+        && (&displayedInterval() == tb.interval()));
 }
 
 void ScenarioDocumentPresenter::updateMinimap()
@@ -555,7 +688,7 @@ void ScenarioDocumentPresenter::updateMinimap()
   const auto cstWidth = cstDur.toPixels(m_zoomRatio);
 
   // ZoomRatio in the minimap view
-  const auto zoomRatio = cstDur.msec() / viewWidth;
+  const auto zoomRatio = cstDur.impl / viewWidth;
 
   minimap.setWidth(viewWidth);
   if (m_miniLayer)
@@ -567,7 +700,7 @@ void ScenarioDocumentPresenter::updateMinimap()
   // Compute min handle spacing.
   // The maximum zoom in the main view should be 10 pixels for one millisecond.
   // Given the viewWidth and the guiDuration, compute the distance required.
-  minimap.setMinDistance(2 * viewWidth / cstDur.msec());
+  minimap.setMinDistance(2 * viewWidth / cstDur.impl);
 
   // Compute handle positions.
   const auto vp_x1 = visibleSceneRect.left();
@@ -579,11 +712,6 @@ void ScenarioDocumentPresenter::updateMinimap()
   const auto rh_x = viewWidth * (vp_x2 / cstWidth);
   minimap.setHandles(lh_x, rh_x);
   // minimap.setRightHandle(rh_x);
-}
-
-double ScenarioDocumentPresenter::displayedDuration() const
-{
-  return 0.9 * displayedInterval().duration.guiDuration().msec();
 }
 
 void ScenarioDocumentPresenter::setDisplayedInterval(IntervalModel& interval)
@@ -649,27 +777,59 @@ void ScenarioDocumentPresenter::setDisplayedInterval(IntervalModel& interval)
     }
   }
 
+  // Setup of the nodal stuff
+  {
+    if(m_timelineAction && m_nodalAction)
+    {
+      switch(interval.viewMode())
+      {
+        case Scenario::IntervalModel::Temporal:
+          m_timelineAction->setChecked(true);
+          m_nodalAction->setChecked(false);
+          break;
+        case Scenario::IntervalModel::Nodal:
+          m_timelineAction->setChecked(false);
+          m_nodalAction->setChecked(true);
+          break;
+      }
+    }
+  }
+
+
+  switchMode(interval.viewMode() == IntervalModel::ViewMode::Nodal);
+
+}
+
+void ScenarioDocumentPresenter::removeDisplayedIntervalPresenter()
+{
+  m_scenarioPresenter.remove();
+}
+
+void ScenarioDocumentPresenter::createDisplayedIntervalPresenter(IntervalModel& interval)
+{
   // Setup of the state machine.
   const auto& fact
-      = ctx.app.interfaces<DisplayedElementsToolPaletteFactoryList>();
+      = context().app.interfaces<DisplayedElementsToolPaletteFactoryList>();
   m_stateMachine = fact.make(
       &DisplayedElementsToolPaletteFactory::make,
       *this,
       interval,
       &view().baseItem());
 
+  // Creation of the presenters
   m_updatingView = true;
   m_scenarioPresenter.on_displayedIntervalChanged(interval);
   m_updatingView = false;
-  connect(
-      m_scenarioPresenter.intervalPresenter(),
-      &FullViewIntervalPresenter::intervalSelected,
-      this,
-      &ScenarioDocumentPresenter::setDisplayedInterval);
+  auto p = m_scenarioPresenter.intervalPresenter();
+  SCORE_ASSERT(p);
+  connect(p, &FullViewIntervalPresenter::intervalSelected,
+          this, &ScenarioDocumentPresenter::setDisplayedInterval);
 
   on_viewReady();
   updateMinimap();
   view().view().verticalScrollBar()->setValue(0);
+
+  view().timeRuler().setGrid(p->grid());
 }
 
 void ScenarioDocumentPresenter::on_viewModelDefocused(

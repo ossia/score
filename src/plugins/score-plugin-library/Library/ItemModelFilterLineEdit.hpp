@@ -3,6 +3,7 @@
 
 #include <QSortFilterProxyModel>
 #include <QTreeView>
+#include <functional>
 
 namespace Library
 {
@@ -18,37 +19,37 @@ public:
       , m_proxy{proxy}
       , m_view{tv}
   {
-    connect(this, &QLineEdit::textEdited, this, [=] { search(); });
-
-    setStyleSheet(R"_(
-QScrollArea
-{
-    border: 1px solid #3A3939;
-    border-radius: 2px;
-    padding: 0;
-    background-color: #12171A;
-}
-QScrollArea QLabel
-{
-    background-color: #12171A;
-}
-)_");
+    connect(this, &QLineEdit::textEdited, this, [=]
+    {
+      search();
+    });
   }
 
   void search() override
   {
     if (text() != m_proxy.filterRegExp().pattern())
     {
-      m_proxy.setFilterRegExp(
-          QRegExp(text(), Qt::CaseInsensitive, QRegExp::FixedString));
+      m_proxy.setFilterFixedString(text());
+      m_proxy.setFilterCaseSensitivity(Qt::CaseInsensitive);
 
-      if (text().isEmpty())
-        m_view.collapseAll();
-      else
+      if(!text().isEmpty())
+      {
         m_view.expandAll();
+      }
+    }
+
+    if(text().isEmpty())
+    {
+      m_proxy.invalidate();
+      m_view.collapseAll();
+    }
+    if(reset)
+    {
+      reset();
     }
   }
 
+  std::function<void()> reset;
   QSortFilterProxyModel& m_proxy;
   QTreeView& m_view;
 };

@@ -122,10 +122,11 @@ IntervalModel& ScenarioCreate<IntervalModel>::redo(
     StateModel& sst,
     StateModel& est,
     double ypos,
+    bool graphal,
     Scenario::ProcessModel& s)
 {
   auto interval = new IntervalModel{id, ypos, s.context(), &s};
-
+  interval->setGraphal(graphal);
   interval->setStartState(sst.id());
   interval->setEndState(est.id());
 
@@ -138,8 +139,16 @@ IntervalModel& ScenarioCreate<IntervalModel>::redo(
   const auto& eev = s.event(est.eventId());
   const auto& tn = s.timeSync(eev.timeSync());
 
-  IntervalDurations::Algorithms::fixAllDurations(
-      *interval, eev.date() - sev.date());
+  if(graphal)
+  {
+    IntervalDurations::Algorithms::fixAllDurations(
+          *interval, TimeVal::zero());
+  }
+  else
+  {
+    IntervalDurations::Algorithms::fixAllDurations(
+          *interval, eev.date() - sev.date());
+  }
   interval->setStartDate(sev.date());
 
   if (tn.active())

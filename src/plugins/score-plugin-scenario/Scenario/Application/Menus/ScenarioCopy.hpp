@@ -31,6 +31,7 @@ struct SCORE_PLUGIN_SCENARIO_EXPORT CategorisedScenario
   CategorisedScenario();
   CategorisedScenario(const Scenario::ProcessModel& sm);
   CategorisedScenario(const BaseScenarioContainer& sm);
+  CategorisedScenario(const ScenarioInterface& sm);
   CategorisedScenario(const Selection& sm);
 
   std::vector<const IntervalModel*> selectedIntervals;
@@ -39,21 +40,22 @@ struct SCORE_PLUGIN_SCENARIO_EXPORT CategorisedScenario
   std::vector<const TimeSyncModel*> selectedTimeSyncs;
 };
 
-QJsonObject copyBaseInterval(const IntervalModel&);
+void copyBaseInterval(JSONReader&, const IntervalModel&);
 
 SCORE_PLUGIN_SCENARIO_EXPORT
-QJsonObject copySelectedScenarioElements(const Scenario::ProcessModel& sm);
+void copySelectedScenarioElements(JSONReader&, const Scenario::ProcessModel& sm);
 
 SCORE_PLUGIN_SCENARIO_EXPORT
-QJsonObject copyWholeScenario(const Scenario::ProcessModel& sm);
+void copyWholeScenario(JSONReader&, const Scenario::ProcessModel& sm);
 
 SCORE_PLUGIN_SCENARIO_EXPORT
-QJsonObject copySelectedScenarioElements(
+void copySelectedScenarioElements(
+    JSONReader&,
     const Scenario::ProcessModel& sm,
     CategorisedScenario& cat);
 
 SCORE_PLUGIN_SCENARIO_EXPORT
-QJsonObject copyProcess(const Process::ProcessModel&);
+void copyProcess(JSONReader&, const Process::ProcessModel&);
 
 /**
  * The parent should be in the object tree of the scenario.
@@ -71,10 +73,11 @@ QJsonObject copyProcess(const Process::ProcessModel&);
 // QJsonObject copySelectedScenarioElements(
 //        const BaseScenario& sm,
 //        QObject* parent);
-QJsonObject
-copySelectedScenarioElements(const BaseScenarioContainer& sm, QObject* parent);
+void
+copySelectedScenarioElements(JSONReader&, const BaseScenarioContainer& sm, QObject* parent);
 
-QJsonObject copySelectedElementsToJson(
+void  copySelectedElementsToJson(
+    JSONReader&,
     ScenarioInterface& s,
     const score::DocumentContext& ctx);
 }

@@ -2,6 +2,7 @@
 #include <Scenario/Document/Interval/ExecutionState.hpp>
 #include <Scenario/Document/Interval/Temporal/Braces/LeftBrace.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentViewConstants.hpp>
+#include <score/model/ColorInterpolator.hpp>
 
 #include <score/graphics/TextItem.hpp>
 
@@ -36,11 +37,8 @@ public:
   IntervalView(IntervalPresenter& presenter, QGraphicsItem* parent);
   virtual ~IntervalView();
 
-  static constexpr int static_type()
-  {
-    return ItemType::Interval;
-  }
-  int type() const final override { return static_type(); }
+  static const constexpr int Type = ItemType::Interval;
+  int type() const final override { return Type; }
 
   const IntervalPresenter& presenter() const { return m_presenter; }
 
@@ -127,6 +125,7 @@ protected:
   double m_minWidth{};
   double m_playWidth{};
   double m_height{};
+  score::ColorBang m_execPing;
 
   bool m_selected : 1;
   bool m_infinite : 1;

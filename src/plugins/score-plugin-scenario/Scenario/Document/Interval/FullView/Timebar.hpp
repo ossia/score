@@ -24,6 +24,8 @@ public:
 
   QRectF boundingRect() const
   {
+    if(positions.empty())
+      return {};
     return {positions.front().x1(), 0,
             positions.back().x1() - positions.front().x1(), 10000};
   }
@@ -46,6 +48,7 @@ public:
 
   void updateShapes() { prepareGeometryChange(); update(); }
 };
+
 class LighterBars : public QGraphicsItem
 {
 public:
@@ -64,6 +67,8 @@ public:
 
   QRectF boundingRect() const
   {
+    if(positions.empty())
+      return {};
     return {positions.front().x1(), 0,
             positions.back().x1() - positions.front().x1(), 10000};
   }
@@ -86,4 +91,5 @@ public:
 
   void updateShapes() { prepareGeometryChange(); update();}
 };
+
 }

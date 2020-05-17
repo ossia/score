@@ -2,6 +2,7 @@
 #if defined(HAS_FAUST)
 #include <Process/Execution/ProcessComponent.hpp>
 #include <Process/GenericProcessFactory.hpp>
+#include <Process/Inspector/GenericProcessInspector.hpp>
 #include <Process/Inspector/ProcessInspectorWidgetDelegate.hpp>
 #include <Process/Inspector/ProcessInspectorWidgetDelegateFactory.hpp>
 #include <Process/Process.hpp>
@@ -12,6 +13,7 @@
 
 #include <Control/DefaultEffectItem.hpp>
 #include <Effect/EffectFactory.hpp>
+#include <Process/Script/ScriptEditor.hpp>
 #include <verdigris>
 
 #include <faust/dsp/poly-llvm-dsp.h>
@@ -46,6 +48,8 @@ class FaustEffectModel : public Process::ProcessModel
   PROCESS_METADATA_IMPL(FaustEffectModel)
 
 public:
+  static constexpr bool hasExternalUI() noexcept { return true; }
+
   FaustEffectModel(
       TimeVal t,
       const QString& faustProgram,
@@ -66,10 +70,10 @@ public:
   QString prettyName() const noexcept override;
   void setText(const QString& txt);
 
-  Process::Inlets& inlets() { return m_inlets; }
-  Process::Outlets& outlets() { return m_outlets; }
-
-  bool hasExternalUI() const noexcept { return false; }
+  Process::Inlets& inlets() noexcept { return m_inlets; }
+  Process::Outlets& outlets() noexcept { return m_outlets; }
+  const Process::Inlets& inlets() const noexcept { return m_inlets; }
+  const Process::Outlets& outlets() const noexcept { return m_outlets; }
 
   llvm_dsp_factory* faust_factory{};
   llvm_dsp* faust_object{};
@@ -79,7 +83,13 @@ public:
 
   void changed()
   W_SIGNAL(changed);
+  void textChanged(const QString& str)
+  W_SIGNAL(textChanged, str);
 
+  void errorMessage(int line, const QString& e)
+  W_SIGNAL(errorMessage, line, e);
+
+  PROPERTY(QString, text READ text WRITE setText NOTIFY textChanged)
 private:
   void init();
   void reload();
@@ -101,49 +111,16 @@ Process::Descriptor
 EffectProcessFactory_T<Media::Faust::FaustEffectModel>::descriptor(
     QString d) const;
 }
-class QPlainTextEdit;
+
+
 namespace Media::Faust
 {
-struct FaustEditDialog : public QDialog
-{
-  const FaustEffectModel& m_effect;
-
-  QPlainTextEdit* m_textedit{};
-
-public:
-  FaustEditDialog(
-      const FaustEffectModel& e,
-      const score::DocumentContext& ctx,
-      QWidget* parent);
-
-  QString text() const;
-};
-
-class InspectorWidget final
-    : public Process::InspectorWidgetDelegate_T<Media::Faust::FaustEffectModel>
-{
-public:
-  explicit InspectorWidget(
-      const Media::Faust::FaustEffectModel& object,
-      const score::DocumentContext& doc,
-      QWidget* parent);
-
-private:
-  QPlainTextEdit* m_textedit{};
-};
-
-class InspectorFactory final
-    : public Process::
-          InspectorWidgetDelegateFactory_T<FaustEffectModel, InspectorWidget>
-{
-  SCORE_CONCRETE("6f1b2f7f-29ec-4ba4-b07e-8aa227ec3806")
-};
-
 using FaustEffectFactory = Process::EffectProcessFactory_T<FaustEffectModel>;
 using LayerFactory = Process::EffectLayerFactory_T<
     FaustEffectModel,
-    Media::Effect::DefaultEffectItem,
-    FaustEditDialog>;
+    Process::DefaultEffectItem,
+    Process::ProcessScriptEditDialog<FaustEffectModel, FaustEffectModel::p_text>
+>;
 }
 
 namespace Execution

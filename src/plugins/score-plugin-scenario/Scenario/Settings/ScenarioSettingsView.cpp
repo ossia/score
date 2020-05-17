@@ -12,8 +12,6 @@
 #include <QDialog>
 #include <QFileDialog>
 #include <QFormLayout>
-#include <QJsonDocument>
-#include <QJsonObject>
 #include <QLineEdit>
 #include <QListWidget>
 #include <QPushButton>
@@ -404,6 +402,8 @@ public:
     });
 
     connect(&save, &QPushButton::clicked, this, [] {
+      return ;
+      /*
       auto f = QFileDialog::getSaveFileName(
           nullptr, tr("Skin"), "", tr("*.json"));
       if (f.isEmpty())
@@ -422,13 +422,17 @@ public:
       QJsonDocument doc;
       doc.setObject(obj);
       fl.write(doc.toJson());
+      */
     });
 
     score::StyleLoader loader;
     css.document()->setPlainText(loader.readStyleSheet());
+
+#ifndef QT_NO_STYLE_STYLESHEET
     connect(css.document(), &QTextDocument::contentsChanged, this, [=] {
       qApp->setStyleSheet(css.document()->toPlainText());
     });
+#endif
   }
 };
 
@@ -436,7 +440,10 @@ View::View() : m_widg{new QWidget}
 {
   auto lay = new QFormLayout;
   m_widg->setLayout(lay);
-  lay->setLabelAlignment(Qt::AlignRight);
+  lay->setLabelAlignment(Qt::AlignLeft);
+  lay->setSpacing(10);
+  /*
+
   // SKIN
   {
     m_skin = new QComboBox;
@@ -457,6 +464,7 @@ View::View() : m_widg{new QWidget}
 
     connect(m_skin, &QComboBox::currentTextChanged, this, &View::SkinChanged);
   }
+  */
 
   {
     auto subw = new QWidget;
@@ -514,12 +522,12 @@ View::View() : m_widg{new QWidget}
       m_defaultDur,
       &score::TimeSpinBox::timeChanged,
       this,
-      [=](const QTime& t) { DefaultDurationChanged(TimeVal{t}); });
+      [=](const TimeVal& t) { DefaultDurationChanged(t); });
   lay->addRow(tr("New score duration"), m_defaultDur);
 
-  m_sequence = new QCheckBox{m_widg};
+  m_sequence = new QCheckBox{tr("Auto-Sequence"), m_widg};
   connect(m_sequence, &QCheckBox::toggled, this, &View::AutoSequenceChanged);
-  lay->addRow(tr("Auto-Sequence"), m_sequence);
+  lay->addRow(m_sequence);
 
   SETTINGS_UI_TOGGLE_SETUP("Time Bar", TimeBar);
   SETTINGS_UI_TOGGLE_SETUP("Show musical metrics", MeasureBars);
@@ -532,6 +540,8 @@ SETTINGS_UI_TOGGLE_IMPL(MagneticMeasures)
 
 void View::setSkin(const QString& val)
 {
+  return;
+  /*
   if (val != m_skin->currentText())
   {
     int index = m_skin->findText(val);
@@ -540,6 +550,7 @@ void View::setSkin(const QString& val)
       m_skin->setCurrentIndex(index);
     }
   }
+  */
 }
 
 void View::setDefaultEditor(QString val)
@@ -555,9 +566,8 @@ void View::setZoom(const int val)
 
 void View::setDefaultDuration(const TimeVal& t)
 {
-  auto qtime = t.toQTime();
-  if (qtime != m_defaultDur->time())
-    m_defaultDur->setTime(qtime);
+  if (t != m_defaultDur->time())
+    m_defaultDur->setTime(t);
 }
 
 void View::setSlotHeight(const double val)

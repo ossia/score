@@ -19,6 +19,7 @@ private:
   QImage m_backgroundImage;
   QFont m_catamaranFont;
   QFont m_montserratFont;
+  QFont m_montserratLightFont;
 
   QRectF m_mouseAreaOssiaScore;
   QRectF m_mouseAreaLabri;

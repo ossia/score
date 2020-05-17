@@ -52,3 +52,4 @@ Documentation/Doc_sources/score-documentation/site
 *.user.*
 .cmake
 
+.vscode

@@ -4,7 +4,8 @@
 #include <Scenario/Document/Interval/IntervalPresenter.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Process/Dataflow/NodeItem.hpp>
-
+#include <Scenario/Application/Drops/ScenarioDropHandler.hpp>
+#include <ossia/detail/math.hpp>
 
 namespace Scenario {
 
@@ -13,36 +14,50 @@ class NodalIntervalView
     , public Nano::Observer
 {
 public:
-  NodalIntervalView(IntervalPresenter& pres, const Process::Context& ctx, QGraphicsItem* parent)
+  NodalIntervalView(const IntervalModel& model, const Process::Context& ctx, QGraphicsItem* parent)
     : score::EmptyRectItem{parent}
-    , m_presenter{pres}
+    , m_model{model}
     , m_context{ctx}
   {
-    //setFlag(ItemHasNoContents, false);
+    //setAcceptDrops(false);
+    //setFlag(ItemHasNoContents, true);
     //setRect(QRectF{0, 0, 1000, 1000});
-    auto& itv = pres.model();
-    const auto r = m_presenter.zoomRatio() * m_presenter.model().duration.defaultDuration().toPixels(m_presenter.zoomRatio());
-    for(auto& proc : itv.processes)
+    const qreal r = m_model.duration.defaultDuration().impl;
+    for(auto& proc : m_model.processes)
     {
       auto item = new Process::NodeItem{proc, m_context, this};
       m_nodeItems.push_back(item);
       item->setZoomRatio(r);
     }
-    itv.processes.added.connect<&NodalIntervalView::on_processAdded>(*this);
-    itv.processes.removing.connect<&NodalIntervalView::on_processRemoving>(*this);
+    m_model.processes.added.connect<&NodalIntervalView::on_processAdded>(*this);
+    m_model.processes.removing.connect<&NodalIntervalView::on_processRemoving>(*this);
+
+    con(model,
+        &IntervalModel::executionFinished,
+        this,
+        [=] { on_playPercentageChanged(0.); },
+        Qt::QueuedConnection);
+  }
+
+  void on_drop(QPointF pos, const QMimeData* data)
+  {
+    m_context.app.interfaces<Scenario::IntervalDropHandlerList>().drop(
+        m_context, m_model, pos, *data);
   }
 
   void on_playPercentageChanged(double t)
   {
+    t = ossia::clamp(t, 0., 1.);
     for(Process::NodeItem* node : m_nodeItems)
     {
       node->setPlayPercentage(t);
     }
   }
+
   void on_processAdded(const Process::ProcessModel& proc)
   {
     auto item = new Process::NodeItem{proc, m_context, this};
-    const auto r = m_presenter.zoomRatio() * m_presenter.model().duration.defaultDuration().toPixels(m_presenter.zoomRatio());
+    const qreal r = m_model.duration.defaultDuration().impl;
 
     m_nodeItems.push_back(item);
     item->setZoomRatio(r);
@@ -63,19 +78,47 @@ public:
 
   void on_zoomRatioChanged(ZoomRatio ratio)
   {
-    const auto r = m_presenter.zoomRatio() * m_presenter.model().duration.defaultDuration().toPixels(ratio);
+    // TODO should be "on model duration changed"
+    const qreal r = m_model.duration.defaultDuration().impl;
     for(Process::NodeItem* node : m_nodeItems)
     {
       node->setZoomRatio(r);
     }
   }
-/*
+
+  QRectF enclosingRect() const noexcept
+  {
+    if(m_nodeItems.empty())
+      return {};
+    double x0{std::numeric_limits<double>::max()}, y0{x0}, x1{std::numeric_limits<double>::lowest()}, y1{x1};
+
+    for(QGraphicsItem* item : m_nodeItems)
+    {
+      const auto pos = item->pos();
+      const auto r = item->boundingRect();
+      if(x0 > pos.x()) x0 = pos.x();
+      if(y0 > pos.y()) y0 = pos.y();
+      if(x1 < pos.x() + r.width()) x1 = pos.x() + r.width();
+      if(y1 < pos.y() + r.height()) y1 = pos.y() + r.height();
+    }
+
+    x0 -= (0.1 * (x1 - x0));
+    y0 -= (0.1 * (x1 - x0));
+    const double w = 1.1 * (x1 - x0);
+    const double h = 1.1 * (y1 - y0);
+
+    return {x0,y0,w,h};
+  }
+
+  /*
   void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) override
   {
     painter->fillRect(m_rect, Qt::blue);
   }
-*/
-private: const IntervalPresenter& m_presenter;
+  */
+
+private:
+  const IntervalModel& m_model;
   const Process::Context& m_context;
   std::vector<Process::NodeItem*> m_nodeItems;
 };

@@ -7,6 +7,7 @@
 #include <Scenario/Document/BaseScenario/BaseElementContext.hpp>
 #include <Scenario/Document/DisplayedElements/DisplayedElementsModel.hpp>
 #include <Scenario/Document/DisplayedElements/DisplayedElementsPresenter.hpp>
+#include <Scenario/Document/DisplayedElements/DisplayedElementsToolPalette/BaseScenarioDisplayedElements_StateWrappers.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/ScenarioDocument/ProcessFocusManager.hpp>
 #include <Scenario/Document/ScenarioDocument/ScenarioDocumentPresenter.hpp>
@@ -30,7 +31,7 @@ class EditionSettings;
 Scenario::Point
 ScenarioDisplayedElementsToolPalette::ScenePointToScenarioPoint(QPointF point)
 {
-  return {TimeVal::fromMsecs(point.x() * m_presenter.zoomRatio())
+  return {TimeVal::fromPixels(point.x(), m_presenter.zoomRatio())
               + m_presenter.presenters().startTimeSync().date(),
           0};
 }

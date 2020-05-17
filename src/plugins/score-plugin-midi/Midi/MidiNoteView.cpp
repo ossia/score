@@ -110,7 +110,8 @@ void NoteView::hoverEnterEvent(QGraphicsSceneHoverEvent* event)
 {
   if (event->pos().x() >= this->boundingRect().width() - 2)
   {
-    this->setCursor(Qt::SplitHCursor);
+    auto& skin = score::Skin::instance();
+    this->setCursor(skin.CursorScaleH);
   }
   else
   {
@@ -124,7 +125,8 @@ void NoteView::hoverMoveEvent(QGraphicsSceneHoverEvent* event)
 {
   if (event->pos().x() >= this->boundingRect().width() - 2)
   {
-    this->setCursor(Qt::SplitHCursor);
+    auto& skin = score::Skin::instance();
+    this->setCursor(skin.CursorScaleH);
   }
   else
   {

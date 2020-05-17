@@ -2,10 +2,9 @@
 #include <Process/ProcessFactory.hpp>
 
 #include <score/plugins/SerializableInterface.hpp>
-#include <score/serialization/JSONVisitor.hpp>
+#include <score/serialization/DataStreamVisitor.hpp>
 #include <score/serialization/MimeVisitor.hpp>
 
-#include <QJsonDocument>
 namespace score
 {
 namespace mime
@@ -43,34 +42,25 @@ struct ProcessData
 };
 }
 template <>
-struct Visitor<Reader<Mime<Process::ProcessData>>> : public MimeDataReader
+struct MimeReader<Process::ProcessData> : public MimeDataReader
 {
   using MimeDataReader::MimeDataReader;
   void serialize(const Process::ProcessData& lst) const
   {
-    QJsonObject obj;
-    obj["Type"] = "Process";
-    obj["uuid"] = toJsonValue(lst.key.impl());
-    obj["PrettyName"] = lst.prettyName;
-    obj["Data"] = lst.customData;
     m_mime.setData(
         score::mime::processdata(),
-        QJsonDocument(obj).toJson(QJsonDocument::Indented));
+        DataStreamReader::marshall(lst));
   }
 };
 
 template <>
-struct Visitor<Writer<Mime<Process::ProcessData>>> : public MimeDataWriter
+struct MimeWriter<Process::ProcessData> : public MimeDataWriter
 {
   using MimeDataWriter::MimeDataWriter;
   auto deserialize()
   {
-    auto obj = QJsonDocument::fromJson(m_mime.data(score::mime::processdata()))
-                   .object();
-    Process::ProcessData p;
-    p.key = fromJsonValue<score::uuid_t>(obj["uuid"]);
-    p.customData = obj["Data"].toString();
-    p.prettyName = obj["PrettyName"].toString();
-    return p;
+    return DataStreamWriter::unmarshall<Process::ProcessData>(
+          m_mime.data(score::mime::processdata())
+          );
   }
 };

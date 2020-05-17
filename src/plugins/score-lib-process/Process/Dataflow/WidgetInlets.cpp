@@ -1,4 +1,5 @@
 #include <Process/Dataflow/WidgetInlets.hpp>
+#include <ossia/dataflow/port.hpp>
 #include <score/plugins/SerializableHelpers.hpp>
 namespace Process
 {
@@ -7,42 +8,262 @@ Enum::Enum(DataStream::Deserializer& vis, QObject* parent)
 {
   vis.writeTo(*this);
 }
+Enum::Enum(const ossia::flat_set<std::string>& dom, std::vector<QString> pixmaps, std::string init, const QString& name, Id<Port> id, QObject* parent)
+  : ControlInlet{id, parent}, pixmaps{std::move(pixmaps)}
+{
+  for (auto& val : dom)
+    values.push_back(QString::fromStdString(val));
+
+  hidden = true;
+  setValue(init);
+  setDomain(State::Domain{ossia::domain_base<std::string>{dom}});
+  setCustomData(name);
+}
+
+Enum::Enum(const QStringList& values, std::vector<QString> pixmaps, std::string init, const QString& name, Id<Port> id, QObject* parent)
+  : ControlInlet{id, parent}, values{values.begin(), values.end()}, pixmaps{std::move(pixmaps)}
+{
+  hidden = true;
+  setValue(init);
+  ossia::domain_base<std::string> dom;
+  for (auto& val : values)
+    dom.values.insert(val.toStdString());
+  setDomain(State::Domain{dom});
+  setCustomData(name);
+}
+
+Enum::~Enum()
+{
+
+}
+
 Enum::Enum(JSONObject::Deserializer& vis, QObject* parent)
-    : ControlInlet{vis, parent}
+  : ControlInlet{vis, parent}
 {
   vis.writeTo(*this);
 }
 Enum::Enum(DataStream::Deserializer&& vis, QObject* parent)
-    : ControlInlet{vis, parent}
+  : ControlInlet{vis, parent}
 {
   vis.writeTo(*this);
 }
 Enum::Enum(JSONObject::Deserializer&& vis, QObject* parent)
-    : ControlInlet{vis, parent}
+  : ControlInlet{vis, parent}
 {
   vis.writeTo(*this);
 }
 
 ComboBox::ComboBox(DataStream::Deserializer& vis, QObject* parent)
-    : ControlInlet{vis, parent}
+  : ControlInlet{vis, parent}
 {
   vis.writeTo(*this);
 }
+ComboBox::ComboBox(std::vector<std::pair<QString, ossia::value> > values, ossia::value init, const QString& name, Id<Port> id, QObject* parent)
+  : ControlInlet{id, parent}, alternatives{std::move(values)}
+{
+  hidden = true;
+  setValue(init);
+  std::vector<ossia::value> vals;
+  for (auto& v : alternatives)
+    vals.push_back(v.second);
+  setDomain(State::Domain{ossia::make_domain(vals)});
+  setCustomData(name);
+}
+
+ComboBox::~ComboBox()
+{
+
+}
+
 ComboBox::ComboBox(JSONObject::Deserializer& vis, QObject* parent)
-    : ControlInlet{vis, parent}
+  : ControlInlet{vis, parent}
 {
   vis.writeTo(*this);
 }
 ComboBox::ComboBox(DataStream::Deserializer&& vis, QObject* parent)
-    : ControlInlet{vis, parent}
+  : ControlInlet{vis, parent}
 {
   vis.writeTo(*this);
 }
 ComboBox::ComboBox(JSONObject::Deserializer&& vis, QObject* parent)
-    : ControlInlet{vis, parent}
+  : ControlInlet{vis, parent}
 {
   vis.writeTo(*this);
 }
+
+HSVSlider::HSVSlider(ossia::vec4f init, const QString& name, Id<Port> id, QObject* parent)
+  : ControlInlet{id, parent}
+{
+  hidden = true;
+  setValue(init);
+  setCustomData(name);
+}
+
+HSVSlider::~HSVSlider()
+{
+
+}
+
+void HSVSlider::setupExecution(ossia::inlet& i) const noexcept
+{
+  safe_cast<ossia::value_inlet*>(&i)->data.type = ossia::rgba_u{};
+}
+
+FloatSlider::FloatSlider(float min, float max, float init, const QString& name, Id<Port> id, QObject* parent)
+  : ControlInlet{id, parent}
+{
+  hidden = true;
+  setValue(init);
+  setDomain(ossia::make_domain(min, max));
+  setCustomData(name);
+}
+
+FloatSlider::~FloatSlider()
+{
+
+}
+
+LogFloatSlider::LogFloatSlider(float min, float max, float init, const QString& name, Id<Port> id, QObject* parent)
+  : ControlInlet{id, parent}
+{
+  hidden = true;
+  setValue(init);
+  setDomain(ossia::make_domain(min, max));
+  setCustomData(name);
+}
+
+LogFloatSlider::~LogFloatSlider()
+{
+
+}
+
+IntSlider::IntSlider(int min, int max, int init, const QString& name, Id<Port> id, QObject* parent)
+  : ControlInlet{id, parent}
+{
+  hidden = true;
+  setValue(init);
+  setDomain(ossia::make_domain(min, max));
+  setCustomData(name);
+}
+
+IntSlider::~IntSlider()
+{
+
+}
+
+IntSpinBox::IntSpinBox(int min, int max, int init, const QString& name, Id<Port> id, QObject* parent)
+  : ControlInlet{id, parent}
+{
+  hidden = true;
+  setValue(init);
+  setDomain(ossia::make_domain(min, max));
+  setCustomData(name);
+}
+
+IntSpinBox::~IntSpinBox()
+{
+
+}
+
+Toggle::Toggle(bool init, const QString& name, Id<Port> id, QObject* parent)
+  : ControlInlet{id, parent}
+{
+  hidden = true;
+  setValue(init);
+  setDomain(State::Domain{ossia::domain_base<bool>{}});
+  setCustomData(name);
+}
+
+Toggle::~Toggle()
+{
+
+}
+
+ChooserToggle::ChooserToggle(QStringList alternatives, bool init, const QString& name, Id<Port> id, QObject* parent)
+  : ControlInlet{id, parent}
+{
+  hidden = true;
+  setValue(
+        init ? alternatives[1].toStdString() : alternatives[0].toStdString());
+  setDomain(State::Domain{ossia::domain_base<std::string>{
+                            {alternatives[0].toStdString(), alternatives[1].toStdString()}}});
+  setCustomData(name);
+}
+
+ChooserToggle::~ChooserToggle()
+{
+
+}
+
+QStringList ChooserToggle::alternatives() const noexcept
+{
+  const auto& dom = *this->domain().get().v.target<ossia::domain_base<std::string>>();
+  auto it = dom.values.begin();
+  auto& s1 = *it;
+  auto& s2 = *(++it);
+  return {QString::fromStdString(s1), QString::fromStdString(s2)};
+}
+
+LineEdit::LineEdit(QString init, const QString& name, Id<Port> id, QObject* parent)
+  : ControlInlet{id, parent}
+{
+  hidden = true;
+  setValue(init.toStdString());
+  setCustomData(name);
+}
+
+LineEdit::~LineEdit()
+{
+
+}
+
+
+TimeSignatureChooser::TimeSignatureChooser(
+    std::string init,
+    const QString& name,
+    Id<Process::Port> id,
+    QObject* parent)
+    : ControlInlet{id, parent}
+{
+  using namespace std::literals;
+  hidden = true;
+  setValue(init);
+  setDomain(
+      State::Domain{ossia::domain_base<std::string>{{"3/4", "4/4"}}});
+  setCustomData(name);
+}
+
+TimeSignatureChooser::~TimeSignatureChooser() {
+
+}
+
+Button::Button(const QString& name, Id<Port> id, QObject* parent)
+  : ControlInlet{id, parent}
+{
+  hidden = true;
+  setValue(false);
+  setDomain(State::Domain{ossia::domain_base<bool>{}});
+  setCustomData(name);
+}
+
+Button::~Button()
+{
+
+}
+
+XYSlider::XYSlider(ossia::vec2f init, const QString& name, Id<Port> id, QObject* parent)
+  : ControlInlet{id, parent}
+{
+  hidden = true;
+  setValue(init);
+  setCustomData(name);
+}
+
+XYSlider::~XYSlider()
+{
+
+}
+
 
 }
 template <>
@@ -58,13 +279,13 @@ DataStreamWriter::write<Process::FloatSlider>(Process::FloatSlider& p)
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void
-JSONObjectReader::read<Process::FloatSlider>(const Process::FloatSlider& p)
+JSONReader::read<Process::FloatSlider>(const Process::FloatSlider& p)
 {
   read((const Process::ControlInlet&) p);
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void
-JSONObjectWriter::write<Process::FloatSlider>(Process::FloatSlider& p)
+JSONWriter::write<Process::FloatSlider>(Process::FloatSlider& p)
 {
 }
 
@@ -80,14 +301,14 @@ DataStreamWriter::write<Process::LogFloatSlider>(Process::LogFloatSlider& p)
 {
 }
 template <>
-SCORE_LIB_PROCESS_EXPORT void JSONObjectReader::read<Process::LogFloatSlider>(
+SCORE_LIB_PROCESS_EXPORT void JSONReader::read<Process::LogFloatSlider>(
     const Process::LogFloatSlider& p)
 {
   read((const Process::ControlInlet&) p);
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void
-JSONObjectWriter::write<Process::LogFloatSlider>(Process::LogFloatSlider& p)
+JSONWriter::write<Process::LogFloatSlider>(Process::LogFloatSlider& p)
 {
 }
 
@@ -104,13 +325,13 @@ DataStreamWriter::write<Process::IntSlider>(Process::IntSlider& p)
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void
-JSONObjectReader::read<Process::IntSlider>(const Process::IntSlider& p)
+JSONReader::read<Process::IntSlider>(const Process::IntSlider& p)
 {
   read((const Process::ControlInlet&) p);
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void
-JSONObjectWriter::write<Process::IntSlider>(Process::IntSlider& p)
+JSONWriter::write<Process::IntSlider>(Process::IntSlider& p)
 {
 }
 
@@ -127,13 +348,13 @@ DataStreamWriter::write<Process::IntSpinBox>(Process::IntSpinBox& p)
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void
-JSONObjectReader::read<Process::IntSpinBox>(const Process::IntSpinBox& p)
+JSONReader::read<Process::IntSpinBox>(const Process::IntSpinBox& p)
 {
   read((const Process::ControlInlet&) p);
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void
-JSONObjectWriter::write<Process::IntSpinBox>(Process::IntSpinBox& p)
+JSONWriter::write<Process::IntSpinBox>(Process::IntSpinBox& p)
 {
 }
 
@@ -150,13 +371,13 @@ DataStreamWriter::write<Process::Toggle>(Process::Toggle& p)
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void
-JSONObjectReader::read<Process::Toggle>(const Process::Toggle& p)
+JSONReader::read<Process::Toggle>(const Process::Toggle& p)
 {
   read((const Process::ControlInlet&) p);
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void
-JSONObjectWriter::write<Process::Toggle>(Process::Toggle& p)
+JSONWriter::write<Process::Toggle>(Process::Toggle& p)
 {
 }
 
@@ -173,13 +394,13 @@ DataStreamWriter::write<Process::ChooserToggle>(Process::ChooserToggle& p)
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void
-JSONObjectReader::read<Process::ChooserToggle>(const Process::ChooserToggle& p)
+JSONReader::read<Process::ChooserToggle>(const Process::ChooserToggle& p)
 {
   read((const Process::ControlInlet&) p);
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void
-JSONObjectWriter::write<Process::ChooserToggle>(Process::ChooserToggle& p)
+JSONWriter::write<Process::ChooserToggle>(Process::ChooserToggle& p)
 {
 }
 
@@ -196,13 +417,13 @@ DataStreamWriter::write<Process::LineEdit>(Process::LineEdit& p)
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void
-JSONObjectReader::read<Process::LineEdit>(const Process::LineEdit& p)
+JSONReader::read<Process::LineEdit>(const Process::LineEdit& p)
 {
   read((const Process::ControlInlet&) p);
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void
-JSONObjectWriter::write<Process::LineEdit>(Process::LineEdit& p)
+JSONWriter::write<Process::LineEdit>(Process::LineEdit& p)
 {
 }
 
@@ -222,18 +443,18 @@ DataStreamWriter::write<Process::Enum>(Process::Enum& p)
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void
-JSONObjectReader::read<Process::Enum>(const Process::Enum& p)
+JSONReader::read<Process::Enum>(const Process::Enum& p)
 {
   read((const Process::ControlInlet&) p);
-  obj["Values"] = toJsonValueArray(p.values);
-  obj["Pixmaps"] = toJsonValueArray(p.pixmaps);
+  obj["Values"] = p.values;
+  obj["Pixmaps"] = p.pixmaps;
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void
-JSONObjectWriter::write<Process::Enum>(Process::Enum& p)
+JSONWriter::write<Process::Enum>(Process::Enum& p)
 {
-  p.values = fromJsonValueArray<decltype(p.values)>(obj["Values"].toArray());
-  p.pixmaps = fromJsonValueArray<decltype(p.pixmaps)>(obj["Pixmaps"].toArray());
+  p.values <<= obj["Values"];
+  p.pixmaps <<= obj["Pixmaps"];
 }
 
 template <>
@@ -251,14 +472,14 @@ DataStreamWriter::write<Process::TimeSignatureChooser>(
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void
-JSONObjectReader::read<Process::TimeSignatureChooser>(
+JSONReader::read<Process::TimeSignatureChooser>(
     const Process::TimeSignatureChooser& p)
 {
   read((const Process::ControlInlet&) p);
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void
-JSONObjectWriter::write<Process::TimeSignatureChooser>(
+JSONWriter::write<Process::TimeSignatureChooser>(
     Process::TimeSignatureChooser& p)
 {
 }
@@ -278,16 +499,16 @@ DataStreamWriter::write<Process::ComboBox>(Process::ComboBox& p)
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void
-JSONObjectReader::read<Process::ComboBox>(const Process::ComboBox& p)
+JSONReader::read<Process::ComboBox>(const Process::ComboBox& p)
 {
   read((const Process::ControlInlet&) p);
-  obj["Values"] = toJsonValueArray(p.alternatives);
+  obj["Values"] = p.alternatives;
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void
-JSONObjectWriter::write<Process::ComboBox>(Process::ComboBox& p)
+JSONWriter::write<Process::ComboBox>(Process::ComboBox& p)
 {
-  p.alternatives = fromJsonValueArray<decltype(p.alternatives)>(obj["Values"].toArray());
+  p.alternatives <<= obj["Values"];
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void
@@ -302,15 +523,16 @@ DataStreamWriter::write<Process::Button>(Process::Button& p)
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void
-JSONObjectReader::read<Process::Button>(const Process::Button& p)
+JSONReader::read<Process::Button>(const Process::Button& p)
 {
   read((const Process::ControlInlet&) p);
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void
-JSONObjectWriter::write<Process::Button>(Process::Button& p)
+JSONWriter::write<Process::Button>(Process::Button& p)
 {
 }
+
 template <>
 SCORE_LIB_PROCESS_EXPORT void
 DataStreamReader::read<Process::HSVSlider>(const Process::HSVSlider& p)
@@ -324,15 +546,39 @@ DataStreamWriter::write<Process::HSVSlider>(Process::HSVSlider& p)
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void
-JSONObjectReader::read<Process::HSVSlider>(const Process::HSVSlider& p)
+JSONReader::read<Process::HSVSlider>(const Process::HSVSlider& p)
 {
   read((const Process::ControlInlet&) p);
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void
-JSONObjectWriter::write<Process::HSVSlider>(Process::HSVSlider& p)
+JSONWriter::write<Process::HSVSlider>(Process::HSVSlider& p)
 {
 }
+
+template <>
+SCORE_LIB_PROCESS_EXPORT void
+DataStreamReader::read<Process::XYSlider>(const Process::XYSlider& p)
+{
+  read((const Process::ControlInlet&) p);
+}
+template <>
+SCORE_LIB_PROCESS_EXPORT void
+DataStreamWriter::write<Process::XYSlider>(Process::XYSlider& p)
+{
+}
+template <>
+SCORE_LIB_PROCESS_EXPORT void
+JSONReader::read<Process::XYSlider>(const Process::XYSlider& p)
+{
+  read((const Process::ControlInlet&) p);
+}
+template <>
+SCORE_LIB_PROCESS_EXPORT void
+JSONWriter::write<Process::XYSlider>(Process::XYSlider& p)
+{
+}
+
 template <>
 SCORE_LIB_PROCESS_EXPORT void
 DataStreamReader::read<QString>(const QString& p)
@@ -345,15 +591,4 @@ DataStreamWriter::write<QString>(QString& p)
 {
   m_stream >> p;
 }
-template <>
-SCORE_LIB_PROCESS_EXPORT void
-JSONValueReader::read<QString>(const QString& p)
-{
-  val = p;
-}
-template <>
-SCORE_LIB_PROCESS_EXPORT void
-JSONValueWriter::write<QString>(QString& p)
-{
-  p = val.toString();
-}
+

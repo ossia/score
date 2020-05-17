@@ -9,6 +9,7 @@
 #include <score/plugins/documentdelegate/plugin/DocumentPluginCreator.hpp>
 #include <score/serialization/DataStreamVisitor.hpp>
 #include <score/tools/RandomNameProvider.hpp>
+#include <score/widgets/MessageBox.hpp>
 
 #include <core/command/CommandStackSerialization.hpp>
 #include <core/document/Document.hpp>
@@ -19,7 +20,6 @@
 
 #include <QByteArray>
 #include <QDebug>
-#include <QMessageBox>
 #include <QObject>
 #include <QString>
 #include <QVariant>
@@ -75,7 +75,6 @@ SCORE_LIB_BASE_EXPORT
 Document* DocumentBuilder::loadDocument(
     const score::GUIApplicationContext& ctx,
     QString filename,
-    const QVariant& docData,
     DocumentDelegateFactory& doctype)
 {
   Document* doc = nullptr;
@@ -83,7 +82,7 @@ Document* DocumentBuilder::loadDocument(
   try
   {
     doc = new Document{
-        filename, docData, doctype, m_parentView, m_parentPresenter};
+        filename, doctype, m_parentView, m_parentPresenter};
     for (auto& appPlug : ctx.guiApplicationPlugins())
     {
       appPlug->on_loadedDocument(*doc);
@@ -105,7 +104,7 @@ Document* DocumentBuilder::loadDocument(
   catch (std::runtime_error& e)
   {
     if (m_parentView)
-      QMessageBox::warning(m_parentView, QObject::tr("Error"), e.what());
+      score::warning(m_parentView, QObject::tr("Error"), e.what());
     else
       qDebug() << "Error while loading: " << e.what();
 
@@ -161,7 +160,7 @@ Document* DocumentBuilder::restoreDocument(
   catch (std::runtime_error& e)
   {
     if (m_parentView)
-      QMessageBox::warning(m_parentView, QObject::tr("Error"), e.what());
+      score::warning(m_parentView, QObject::tr("Error"), e.what());
     else
       qDebug() << "Error while loading: " << e.what();
 

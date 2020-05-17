@@ -11,6 +11,8 @@
 #include <score/plugins/qt_interfaces/PluginRequirements_QtInterface.hpp>
 #include <score/tools/IdentifierGeneration.hpp>
 #include <score/tools/std/Optional.hpp>
+#include <score/widgets/Pixmap.hpp>
+#include <score/widgets/MessageBox.hpp>
 
 #include <core/application/ApplicationSettings.hpp>
 #include <core/command/CommandStack.hpp>
@@ -29,7 +31,6 @@
 #include <QFile>
 #include <QFileDialog>
 #include <QIODevice>
-#include <QJsonDocument>
 #include <QMessageBox>
 #include <QSaveFile>
 #include <QSettings>
@@ -222,6 +223,8 @@ bool DocumentManager::closeDocument(
     QMessageBox msgBox;
     msgBox.setText(tr("The document has been modified."));
     msgBox.setInformativeText(tr("Do you want to save your changes?"));
+    msgBox.setIconPixmap(score::get_pixmap(QStringLiteral(":/icons/message_question.png")));
+
     msgBox.setStandardButtons(
         QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel);
     msgBox.setDefaultButton(QMessageBox::Save);
@@ -284,10 +287,11 @@ bool DocumentManager::saveDocument(Document& doc)
       f.write(doc.saveAsByteArray());
     else
     {
-      QJsonDocument json_doc;
-      json_doc.setObject(doc.saveAsJson());
+      JSONReader w;
+      w.buffer.Reserve(1024*1024*16);
+      doc.saveAsJson(w);
 
-      f.write(json_doc.toJson());
+      f.write(w.buffer.GetString(), w.buffer.GetSize());
     }
     f.commit();
 
@@ -339,10 +343,11 @@ bool DocumentManager::saveDocumentAs(Document& doc)
         f.write(doc.saveAsByteArray());
       else
       {
-        QJsonDocument json_doc;
-        json_doc.setObject(doc.saveAsJson());
+        JSONReader w;
+        w.buffer.Reserve(1024*1024*16);
+        doc.saveAsJson(w);
 
-        f.write(json_doc.toJson());
+        f.write(w.buffer.GetString(), w.buffer.GetSize());
       }
       f.commit();
 
@@ -466,9 +471,10 @@ Document* DocumentManager::loadFile(
           || fileName.indexOf(".scorejson") != -1
           || fileName.indexOf(".score") != 1))
   {
-    QFile f{fileName};
-    if (f.open(QIODevice::ReadOnly))
+
+    if (QFile f{fileName}; f.open(QIODevice::ReadOnly))
     {
+      f.close();
       if (m_recentFiles)
       {
         m_recentFiles->addRecentFile(fileName);
@@ -480,29 +486,14 @@ Document* DocumentManager::loadFile(
         doc = loadDocument(
             ctx,
             fileName,
-            f.readAll(),
             *ctx.interfaces<DocumentDelegateList>().begin());
       }
       else if (fileName.indexOf(".score") != -1)
       {
-        auto json = QJsonDocument::fromJson(f.readAll());
-        bool ok = checkAndUpdateJson(json, ctx);
-        if (true || ok)
-        {
-          doc = loadDocument(
-              ctx,
-              fileName,
-              json.object(),
-              *ctx.interfaces<DocumentDelegateList>().begin());
-        }
-        else
-        {
-          QMessageBox::warning(
-              qApp->activeWindow(),
-              tr("Unable to load"),
-              tr("Unable to load file : "
-                 "There is probably something wrong with the file format."));
-        }
+        doc = loadDocument(
+            ctx,
+            fileName,
+            *ctx.interfaces<DocumentDelegateList>().begin());
       }
     }
   }
@@ -540,18 +531,17 @@ bool DocumentManager::preparingNewDocument() const
 }
 
 bool DocumentManager::checkAndUpdateJson(
-    QJsonDocument& json,
+    rapidjson::Value& obj,
     const score::GUIApplicationContext& ctx)
 {
-  if (!json.isObject())
+  if (obj.GetType() != rapidjson::kObjectType)
     return false;
 
   // Check the version
-  auto obj = json.object();
   Version loaded_version{0};
-  auto it = obj.find("Version");
-  if (it != obj.end())
-    loaded_version = Version{(*it).toInt()};
+  auto it = obj.FindMember("Version");
+  if (it != obj.MemberEnd())
+    loaded_version = Version{it->value.GetInt()};
 
   LocalPluginVersionsMap local_plugins;
   for (const auto& plug : ctx.addons())
@@ -560,22 +550,25 @@ bool DocumentManager::checkAndUpdateJson(
   }
 
   std::vector<LoadedPluginVersions> loading_plugins;
-  auto plugin_it = obj.find("Plugins");
-  if (plugin_it != obj.end())
+  auto plugin_it = obj.FindMember("Plugins");
+  if (plugin_it != obj.MemberEnd())
   {
-    for (const auto& plugin_val : (*plugin_it).toObject())
+    for (const auto& plugin_val : plugin_it->value.GetArray())
     {
-      const auto& plugin_obj = plugin_val.toObject();
-      auto plugin_key_it = plugin_obj.find("Key");
-      if (plugin_key_it == plugin_obj.end())
+      const auto& plugin_obj = plugin_val.GetObject();
+      auto plugin_key_it = plugin_obj.FindMember("Key");
+      if (plugin_key_it == plugin_obj.MemberEnd())
         continue;
+      QByteArray key_arr = QByteArray::fromRawData(
+            plugin_key_it->value.GetString(),
+            plugin_key_it->value.GetStringLength());
       auto plugin_key
-          = UuidKey<score::Plugin>::fromString((*plugin_key_it).toString());
+          = UuidKey<score::Plugin>::fromString(key_arr);
 
       Version plugin_version{0};
-      auto plugin_ver_it = plugin_obj.find("Version");
-      if (plugin_ver_it != plugin_obj.end())
-        plugin_version = Version{(*plugin_ver_it).toInt()};
+      auto plugin_ver_it = plugin_obj.FindMember("Version");
+      if (plugin_ver_it != plugin_obj.MemberEnd())
+        plugin_version = Version{plugin_ver_it->value.GetInt()};
 
       loading_plugins.push_back({plugin_key, plugin_version});
     }
@@ -629,12 +622,11 @@ bool DocumentManager::checkAndUpdateJson(
     }
   }
 
-  json.setObject(obj);
   return mainLoadable && pluginsAvailable && pluginsLoadable;
 }
 
 bool DocumentManager::updateJson(
-    QJsonObject& object,
+    rapidjson::Value& object,
     Version json_ver,
     Version score_ver)
 {

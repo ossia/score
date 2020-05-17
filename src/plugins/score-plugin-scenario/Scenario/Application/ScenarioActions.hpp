@@ -252,6 +252,12 @@ SCORE_DECLARE_ACTION(
 
 SCORE_DECLARE_ACTION(Duplicate, "&Duplicate", Scenario, Qt::ALT + Qt::Key_D)
 
+SCORE_DECLARE_ACTION(
+    ShowCables,
+    "&Show cables",
+    Dataflow,
+    Qt::ALT + Qt::SHIFT + Qt::Key_G)
+
 // Navigation
 SCORE_DECLARE_ACTION(MoveUp, "&Move up", Scenario, Qt::UpArrow)
 SCORE_DECLARE_ACTION(MoveDown, "&Move down", Scenario, Qt::DownArrow)

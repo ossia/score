@@ -36,14 +36,14 @@ void DataStreamWriter::write(Protocols::SerialSpecificSettings& n)
 }
 
 template <>
-void JSONObjectReader::read(const Protocols::SerialSpecificSettings& n)
+void JSONReader::read(const Protocols::SerialSpecificSettings& n)
 {
   obj["Port"] = n.port.serialNumber();
   obj["Text"] = n.text;
 }
 
 template <>
-void JSONObjectWriter::write(Protocols::SerialSpecificSettings& n)
+void JSONWriter::write(Protocols::SerialSpecificSettings& n)
 {
   auto sn = obj["Port"].toString();
   for (const auto& port : QSerialPortInfo::availablePorts())

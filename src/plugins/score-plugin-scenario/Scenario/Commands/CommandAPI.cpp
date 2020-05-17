@@ -52,7 +52,7 @@ IntervalModel& Macro::createBox(
   m.submit(c_st);
 
   auto c_itv = new CreateInterval_State_Event_TimeSync{
-      scenar, c_st->createdState(), end, y};
+      scenar, c_st->createdState(), end, y, false};
   m.submit(c_itv);
 
   return scenar.intervals.at(c_itv->createdInterval());
@@ -64,7 +64,7 @@ IntervalModel& Macro::createIntervalAfter(
     Point pt)
 {
   auto cmd
-      = new CreateInterval_State_Event_TimeSync{scenar, state, pt.date, pt.y};
+      = new CreateInterval_State_Event_TimeSync{scenar, state, pt.date, pt.y, false};
   m.submit(cmd);
   return scenar.intervals.at(cmd->createdInterval());
 }
@@ -123,7 +123,7 @@ Process::ProcessModel* Macro::createProcessInNewSlot(
 
 Process::ProcessModel* Macro::loadProcessInSlot(
     const IntervalModel& interval,
-    const QJsonObject& procdata)
+    const rapidjson::Value& procdata)
 {
   auto process_cmd = new LoadProcessInInterval{interval, procdata};
   m.submit(process_cmd);
@@ -210,7 +210,7 @@ Process::ProcessModel& Macro::duplicateProcess(
 
 void Macro::pasteElements(
     const ProcessModel& scenario,
-    const QJsonObject& objs,
+    const rapidjson::Value& objs,
     Point pos)
 {
   auto cmd = new ScenarioPasteElements(scenario, objs, pos);
@@ -220,7 +220,7 @@ void Macro::pasteElements(
 void Macro::pasteElementsAfter(
     const ProcessModel& scenario,
     const TimeSyncModel& sync,
-    const QJsonObject& objs,
+    const rapidjson::Value& objs,
     double scale)
 {
   auto cmd = new ScenarioPasteElementsAfter(scenario, sync, objs, scale);
@@ -356,7 +356,7 @@ void Macro::clearInterval(const IntervalModel& itv)
 }
 
 void Macro::insertInInterval(
-    QJsonObject&& json,
+    rapidjson::Value&& json,
     const IntervalModel& itv,
     ExpandMode mode)
 {

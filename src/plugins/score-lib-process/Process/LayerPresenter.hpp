@@ -11,6 +11,7 @@
 class QMenu;
 class QPoint;
 class QPointF;
+class QMimeData;
 namespace Process
 {
 class ProcessModel;

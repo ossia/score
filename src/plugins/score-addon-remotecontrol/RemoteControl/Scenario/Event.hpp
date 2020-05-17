@@ -15,7 +15,5 @@ public:
       DocumentPlugin& doc,
       QObject* parent_comp);
 
-private:
-  Path<Scenario::TimeSyncModel> m_parent;
 };
 }

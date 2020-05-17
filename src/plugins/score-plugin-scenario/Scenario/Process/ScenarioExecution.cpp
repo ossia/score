@@ -36,6 +36,7 @@
 #include <ossia/editor/scenario/time_sync.hpp>
 #include <ossia/editor/scenario/time_value.hpp>
 #include <ossia/editor/state/state.hpp>
+#include <score/widgets/MessageBox.hpp>
 
 #include <wobjectimpl.h>
 
@@ -56,6 +57,12 @@ ScenarioComponentBase::ScenarioComponentBase(
     , m_graph{element}
 {
   this->setObjectName("OSSIAScenarioElement");
+
+  if(element.hasCycles())
+  {
+    score::warning(nullptr, "Warning !", "A scenario has cycles. It won't be executing. Look for the red transitions.");
+    throw std::runtime_error("Processus cannot execute");
+  }
 
   // Setup of the OSSIA API Part
   m_ossia_process = std::make_shared<ossia::scenario>();
@@ -307,7 +314,7 @@ std::function<void()> ScenarioComponentBase::removing(
   return {};
 }
 
-static void ScenarioIntervalCallback(ossia::time_value) {}
+static void ScenarioIntervalCallback(bool, ossia::time_value) {}
 
 template <>
 IntervalComponent*
@@ -332,7 +339,7 @@ ScenarioComponentBase::make<IntervalComponent, Scenario::IntervalModel>(
   // Create the time_interval
   auto dur = elt->makeDurations();
   auto ossia_cst = std::make_shared<ossia::time_interval>(
-      smallfun::function<void(ossia::time_value), 32>{
+      smallfun::function<void(bool, ossia::time_value), 32>{
           &ScenarioIntervalCallback},
       *ossia_sev->OSSIAEvent(),
       *ossia_eev->OSSIAEvent(),

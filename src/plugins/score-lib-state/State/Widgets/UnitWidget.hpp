@@ -11,6 +11,10 @@ class QPushButton;
 class QColumnView;
 class QComboBox;
 class QHBoxLayout;
+class QMenuView;
+class QPushutton;
+class QModelIndex;
+
 namespace State
 {
 class SCORE_LIB_STATE_EXPORT UnitWidget : public QWidget
@@ -40,22 +44,17 @@ class SCORE_LIB_STATE_EXPORT DestinationQualifierWidget : public QWidget
   W_OBJECT(DestinationQualifierWidget)
 public:
   DestinationQualifierWidget(QWidget* parent);
-  DestinationQualifierWidget(
-      const State::DestinationQualifiers& u,
-      QWidget* parent);
 
-  State::DestinationQualifiers qualifiers() const;
-  void setQualifiers(const State::DestinationQualifiers&);
+  void chooseQualifier();
 
 public:
   void qualifiersChanged(const State::DestinationQualifiers& arg_1)
       E_SIGNAL(SCORE_LIB_STATE_EXPORT, qualifiersChanged, arg_1)
 
 private:
-  void on_dataspaceChanged(int idx);
-  void on_unitChanged(int idx);
-  QComboBox* m_ds{};
-  QComboBox* m_unit{};
-  QComboBox* m_ac{};
+  void on_unitChanged(const QModelIndex& idx);
+
+  QMenuView* m_unitMenu{};
+  State::DestinationQualifiers m_qualifier;
 };
 }

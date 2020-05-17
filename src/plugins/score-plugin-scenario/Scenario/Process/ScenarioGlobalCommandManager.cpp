@@ -102,8 +102,7 @@ void removeSelection(
   auto& stack = ctx.commandStack;
   RedoMacroCommandDispatcher<ClearSelection> cleaner{stack};
 
-  const QList<const StateModel*>& states
-      = selectedElements(scenario.getStates());
+  const auto& states = selectedElements(scenario.getStates());
 
   // Create a Clear command for each.
   // TODO why ? except the first one, they are going to be removed anyways...
@@ -219,19 +218,17 @@ void mergeEvents(
     const score::CommandStackFacade& f)
 {
   // We merge all the furthest events to the first one.
-  const QList<const StateModel*>& states
-      = selectedElements(scenario.getStates());
-  const QList<const EventModel*>& events
-      = selectedElements(scenario.getEvents());
+  const auto& states = selectedElements(scenario.getStates());
+  const auto& events = selectedElements(scenario.getEvents());
 
-  QList<const EventModel*> sel = events;
+  auto sel = events;
 
   for (auto it = states.begin(); it != states.end(); ++it)
   {
     sel.push_back(&Scenario::parentEvent(**it, scenario));
   }
 
-  sel = sel.toSet().toList();
+  ossia::remove_duplicates(sel);
 
   MacroCommandDispatcher<MergeEventMacro> merger{f};
 
@@ -242,18 +239,18 @@ void mergeEvents(
     for (++it; it != sel.end();)
     {
       // Check if Events have the same TimeSync parent
-      if (first_ev->timeSync() == (*it)->timeSync())
+      //if (first_ev->timeSync() == (*it)->timeSync())
       {
-        auto cmd
-            = new Command::MergeEvents(scenario, first_ev->id(), (*it)->id());
+        auto cmd = new Command::MergeEvents(scenario, first_ev->id(), (*it)->id());
+        //auto cmd = new Command::MergeTimeSyncs(scenario, first_ev->timeSync(), (*it)->timeSync());
         // f.redoAndPush(cmd);
         merger.submit(cmd);
         it = sel.erase(it);
       }
-      else
-        ++it;
+      //else
+      //  ++it;
     }
-    sel.removeOne(first_ev);
+    ossia::remove_one(sel, first_ev);
   }
   merger.commit();
 }

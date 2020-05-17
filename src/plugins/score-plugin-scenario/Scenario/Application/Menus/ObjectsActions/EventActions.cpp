@@ -151,7 +151,7 @@ void EventActions::addTriggerToTimeSync()
 
   auto selectedTimeSyncs = selectedElements(si->getTimeSyncs());
 
-  if (selectedTimeSyncs.isEmpty())
+  if (selectedTimeSyncs.empty())
   {
     // take tn from a selected event
     auto selectedEvents = selectedElements(si->getEvents());
@@ -160,8 +160,8 @@ void EventActions::addTriggerToTimeSync()
       auto selectedStates = selectedElements(si->getStates());
       if (!selectedStates.empty())
       {
-        auto& tn = Scenario::parentTimeSync(*selectedStates.first(), *si);
-        selectedTimeSyncs.append(&tn);
+        auto& tn = Scenario::parentTimeSync(*selectedStates.front(), *si);
+        selectedTimeSyncs.push_back(&tn);
       }
       else
       {
@@ -170,13 +170,13 @@ void EventActions::addTriggerToTimeSync()
     }
     else
     {
-      auto ev = selectedEvents.first();
+      auto ev = selectedEvents.front();
       auto& tn = Scenario::parentTimeSync(*ev, *si);
-      selectedTimeSyncs.append(&tn);
+      selectedTimeSyncs.push_back(&tn);
     }
   }
 
-  selectedTimeSyncs = selectedTimeSyncs.toSet().toList();
+  ossia::remove_duplicates(selectedTimeSyncs);
 
   auto cmd = m_triggerCommandFactory.make(
       &Scenario::Command::TriggerCommandFactory::make_addTriggerCommand,
@@ -198,8 +198,8 @@ void EventActions::addCondition()
     auto selectedStates = selectedElements(si->getStates());
     if (!selectedStates.empty())
     {
-      auto& ev = Scenario::parentEvent(*selectedStates.first(), *si);
-      selectedEvents.append(&ev);
+      auto& ev = Scenario::parentEvent(*selectedStates.front(), *si);
+      selectedEvents.push_back(&ev);
     }
     else
     {
@@ -207,7 +207,7 @@ void EventActions::addCondition()
     }
   }
 
-  const EventModel& ev = *selectedEvents.first();
+  const EventModel& ev = *selectedEvents.front();
   if (ev.condition() == State::Expression{})
   {
     auto cmd = new Scenario::Command::SetCondition{
@@ -228,8 +228,8 @@ void EventActions::removeCondition()
     auto selectedStates = selectedElements(si->getStates());
     if (!selectedStates.empty())
     {
-      auto& ev = Scenario::parentEvent(*selectedStates.first(), *si);
-      selectedEvents.append(&ev);
+      auto& ev = Scenario::parentEvent(*selectedStates.front(), *si);
+      selectedEvents.push_back(&ev);
     }
     else
     {
@@ -237,7 +237,7 @@ void EventActions::removeCondition()
     }
   }
 
-  const EventModel& ev = *selectedEvents.first();
+  const EventModel& ev = *selectedEvents.front();
   if (ev.condition() != State::Expression{})
   {
     auto cmd = new Scenario::Command::SetCondition{ev, State::Expression{}};
@@ -249,7 +249,7 @@ void EventActions::removeTriggerFromTimeSync()
 {
   auto si = focusedScenarioInterface(m_parent->currentDocument()->context());
   auto selectedTimeSyncs = selectedElements(si->getTimeSyncs());
-  if (selectedTimeSyncs.isEmpty())
+  if (selectedTimeSyncs.empty())
   {
     auto selectedEvents = selectedElements(si->getEvents());
     if(selectedEvents.empty())
@@ -261,16 +261,16 @@ void EventActions::removeTriggerFromTimeSync()
       }
       else
       {
-        auto st = selectedStates.first();
+        auto st = selectedStates.front();
         auto& tn = Scenario::parentTimeSync(*st, *si);
-        selectedTimeSyncs.append(&tn);
+        selectedTimeSyncs.push_back(&tn);
       }
     }
     else
     {
-      auto ev = selectedEvents.first();
+      auto ev = selectedEvents.front();
       auto& tn = Scenario::parentTimeSync(*ev, *si);
-      selectedTimeSyncs.append(&tn);
+      selectedTimeSyncs.push_back(&tn);
     }
   }
 

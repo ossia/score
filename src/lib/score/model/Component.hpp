@@ -6,7 +6,6 @@
 #include <score/tools/std/HashMap.hpp>
 
 #include <QByteArray>
-#include <QJsonObject>
 #endif
 
 #include <utility>

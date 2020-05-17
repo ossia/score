@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   inkscape:export-ydpi="48"
+   inkscape:export-xdpi="48"
+   inkscape:export-filename="/home/alevy/dev/score/src/lib/resources/icons/new_file_off.png"
+   inkscape:version="1.0 (4035a4fb49, 2020-05-01)"
+   height="64"
+   width="64"
+   sodipodi:docname="new_file_off.svg"
+   xml:space="preserve"
+   viewBox="0 0 64.000001 64.000001"
+   y="0px"
+   x="0px"
+   id="Calque_1"
+   version="1.1"><metadata
+   id="metadata17"><rdf:RDF><cc:Work
+       rdf:about=""><dc:format>image/svg+xml</dc:format><dc:type
+         rdf:resource="http://purl.org/dc/dcmitype/StillImage" /><dc:title>boutons</dc:title></cc:Work></rdf:RDF></metadata><defs
+   id="defs15" /><sodipodi:namedview
+   inkscape:document-rotation="0"
+   inkscape:current-layer="layer1"
+   inkscape:window-maximized="0"
+   inkscape:window-y="569"
+   inkscape:window-x="364"
+   inkscape:cy="43.910404"
+   inkscape:cx="38.447746"
+   inkscape:zoom="4.0223632"
+   showgrid="false"
+   id="namedview13"
+   inkscape:window-height="667"
+   inkscape:window-width="1280"
+   inkscape:pageshadow="2"
+   inkscape:pageopacity="0"
+   guidetolerance="10"
+   gridtolerance="10"
+   objecttolerance="10"
+   borderopacity="1"
+   bordercolor="#666666"
+   pagecolor="#ffffff" />
+<style
+   id="style2"
+   type="text/css">
+	.st0{display:none;fill:#3D3D3D;}
+	.st1{display:none;fill:#000100;}
+	.st2{fill:#808080;}
+</style>
+<title
+   id="title4">boutons</title>
+<rect
+   style="display:none;fill:#3d3d3d"
+   id="rect6"
+   height="27.9"
+   width="27.9"
+   class="st0"
+   y="35.599998"
+   x="0.5" />
+<path
+   style="display:none;fill:#000100"
+   inkscape:connector-curvature="0"
+   id="path8"
+   d="M 28.9,64 H 0 V 35.1 H 28.9 Z M 1,63 H 27.9 V 36.1 H 1 Z"
+   class="st1" />
+
+<g
+   transform="translate(0,35.1)"
+   style="display:inline"
+   inkscape:label="Icon"
+   id="layer1"
+   inkscape:groupmode="layer"><path
+     sodipodi:nodetypes="cccscccccsc"
+     inkscape:connector-curvature="0"
+     id="rect12"
+     d="m 40.405249,-28.934415 15.179,14.679 M 15.226721,-2.4555835 V -26.172588 c 0,-1.529791 1.128207,-2.761337 2.529611,-2.761355 l 22.648917,-4.72e-4 v 14.679 h 15.179 v 29.917172 c 0,1.529791 -1.128679,2.761355 -2.530083,2.761355 H 31.804751"
+     style="opacity:1;vector-effect:none;fill:none;fill-opacity:1;fill-rule:nonzero;stroke:#f0f0f0;stroke-width:4;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:10;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;paint-order:normal" /><g
+     transform="translate(-8.3459058,5.5960743)"
+     id="g823"><path
+       style="fill:none;stroke:#f0f0f0;stroke-width:5;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="M 22.535606,4.6383426 H 35.987708"
+       id="path826"
+       inkscape:connector-curvature="0"
+       sodipodi:nodetypes="cc" /><path
+       sodipodi:nodetypes="cc"
+       inkscape:connector-curvature="0"
+       id="path828"
+       d="M 29.261657,-2.0877085 V 11.364394"
+       style="fill:none;stroke:#f0f0f0;stroke-width:5;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" /></g><circle
+     r="13.000528"
+     cy="10.234417"
+     cx="20.915751"
+     id="path825"
+     style="opacity:1;vector-effect:none;fill:none;fill-opacity:1;fill-rule:nonzero;stroke:#f0f0f0;stroke-width:2.99894;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;paint-order:normal" /></g></svg>

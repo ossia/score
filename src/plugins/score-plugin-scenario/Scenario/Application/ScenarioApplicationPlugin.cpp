@@ -42,6 +42,8 @@
 #include <score/plugins/documentdelegate/DocumentDelegateModel.hpp>
 #include <score/widgets/SetIcons.hpp>
 
+#include <Inspector/InspectorWidgetList.hpp>
+#include <Process/Inspector/ProcessInspectorWidgetDelegateFactory.hpp>
 #include <Scenario/Application/Drops/AutomationDropHandler.hpp>
 #include <core/application/ApplicationSettings.hpp>
 #include <core/document/Document.hpp>
@@ -60,11 +62,6 @@
 
 W_OBJECT_IMPL(Scenario::ScenarioExecution)
 W_OBJECT_IMPL(Scenario::ScenarioApplicationPlugin)
-SCORE_DECLARE_ACTION(
-    ShowCables,
-    "&Show cables",
-    Dataflow,
-    Qt::ALT + Qt::SHIFT + Qt::Key_G)
 namespace Scenario
 {
 ScenarioExecution::ScenarioExecution() {}
@@ -203,13 +200,16 @@ ScenarioApplicationPlugin::ScenarioApplicationPlugin(
         return;
 
       const auto cst_pres = pres->presenters().intervalPresenter();
-      const QObject* itv = &cst_pres->model();
-      while(itv) {
-        itv = itv->parent();
-        if(auto itv_ = qobject_cast<const IntervalModel*>(itv))
-        {
-          pres->setDisplayedInterval(const_cast<IntervalModel&>(*itv_));
-          return;
+      if(cst_pres)
+      {
+        const QObject* itv = &cst_pres->model();
+        while(itv) {
+          itv = itv->parent();
+          if(auto itv_ = qobject_cast<const IntervalModel*>(itv))
+          {
+            pres->setDisplayedInterval(const_cast<IntervalModel&>(*itv_));
+            return;
+          }
         }
       }
     });
@@ -219,10 +219,19 @@ ScenarioApplicationPlugin::ScenarioApplicationPlugin(
 void ScenarioApplicationPlugin::initialize()
 {
   // Needs a delayed init because it scans all the registered factories
-  auto& droppers = context.interfaces<Scenario::DropHandlerList>();
-  auto dropper = (DropProcessInScenario*)droppers.get(DropProcessInScenario::static_concreteKey());
-  SCORE_ASSERT(dropper);
-  dropper->init();
+  {
+    auto& droppers = context.interfaces<Scenario::DropHandlerList>();
+    auto dropper = (DropProcessInScenario*)droppers.get(DropProcessInScenario::static_concreteKey());
+    SCORE_ASSERT(dropper);
+    dropper->init();
+  }
+
+  // Add a default factory for process inspectors, after everything else is done
+  {
+    auto& pw = const_cast<Inspector::InspectorWidgetList&>(context.interfaces<Inspector::InspectorWidgetList>());
+    pw.insert(std::make_unique<Process::DefaultInspectorWidgetDelegateFactory>());
+  }
+
 }
 
 auto ScenarioApplicationPlugin::makeGUIElements() -> GUIElements
@@ -370,7 +379,7 @@ void ScenarioApplicationPlugin::on_documentChanged(
       FullViewIntervalPresenter* cst_pres
           = pres->presenters().intervalPresenter();
 
-      if (!cst_pres->getSlots().empty())
+      if (cst_pres && !cst_pres->getSlots().empty())
       {
         auto p = cst_pres->getSlots().front().layers.front().mainPresenter();
         if(p)

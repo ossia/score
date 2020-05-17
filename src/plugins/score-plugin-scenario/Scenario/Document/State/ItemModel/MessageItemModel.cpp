@@ -22,7 +22,6 @@
 
 #include <QFile>
 #include <QFileInfo>
-#include <QJsonDocument>
 #include <QMimeData>
 #include <QObject>
 #include <QString>
@@ -246,13 +245,9 @@ bool MessageItemModel::dropMimeData(
 
   if (data->hasFormat(score::mime::messagelist()))
   {
-    State::MessageList ml;
-    fromJsonArray(
-        QJsonDocument::fromJson(data->data(score::mime::messagelist()))
-            .array(),
-        ml);
+    State::MessageList ml = MimeWriter<State::MessageList>{*data}.deserialize();
 
-    auto cmd = new Command::AddMessagesToState{stateModel, ml};
+    auto cmd = new Command::AddMessagesToState{stateModel, std::move(ml)};
 
     CommandDispatcher<> disp(
         score::IDocument::documentContext(stateModel).commandStack);
@@ -269,9 +264,7 @@ bool MessageItemModel::dropMimeData(
       if (QFile f{path};
           QFileInfo{f}.suffix() == "cues" && f.open(QIODevice::ReadOnly))
       {
-        State::MessageList sub;
-        fromJsonArray(QJsonDocument::fromJson(f.readAll()).array(), sub);
-        ml += sub;
+        ml += fromJson<State::MessageList>(f.readAll());
       }
     }
 

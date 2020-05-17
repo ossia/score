@@ -60,11 +60,11 @@ void DataStreamWriter::write(Skeleton::Model& proc)
 }
 
 template <>
-void JSONObjectReader::read(const Skeleton::Model& proc)
+void JSONReader::read(const Skeleton::Model& proc)
 {
 }
 
 template <>
-void JSONObjectWriter::write(Skeleton::Model& proc)
+void JSONWriter::write(Skeleton::Model& proc)
 {
 }

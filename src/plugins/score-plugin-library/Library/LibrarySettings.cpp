@@ -5,13 +5,15 @@
 #include <score/command/SettingsCommand.hpp>
 #include <score/tools/Bind.hpp>
 
+#include <score/widgets/MessageBox.hpp>
+#include <score/widgets/SetIcons.hpp>
+
 #include <QApplication>
 #include <QDir>
 #include <QLineEdit>
 #include <QFormLayout>
 #include <QStandardPaths>
 #include <QStyle>
-#include <QMessageBox>
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
 #include <zipdownloader.hpp>
@@ -61,10 +63,12 @@ Model::Model(QSettings& set, const score::ApplicationContext& ctx)
     {
       initSystemLibrary(dir);
 
-      auto dl = QMessageBox::question(qApp->activeWindow(), tr("Download the user library ?"), tr("The user library has not been found. \n"
-                                                                                                  "Do you want to download it from the internet ? \n\n"
-                                                                                                  "Note: you can always download it later from : \n"
-                                                                                                  "https://github.com/OSSIA/score-user-library"));
+      auto dl = score::question(qApp->activeWindow(),
+                                tr("Download the user library ?"),
+                                tr("The user library has not been found. \n"
+                                   "Do you want to download it from the internet ? \n\n"
+                                   "Note: you can always download it later from : \n"
+                                   "https://github.com/OSSIA/score-user-library"));
       if(dl)
       {
         zdl::download_and_extract(
@@ -90,7 +94,10 @@ QString Presenter::settingsName()
 
 QIcon Presenter::settingsIcon()
 {
-  return QApplication::style()->standardIcon(QStyle::SP_DriveHDIcon);
+  return makeIcons(QStringLiteral(":/icons/settings_library_on.png")
+                   , QStringLiteral(":/icons/settings_library_off.png")
+                   , QStringLiteral(":/icons/settings_library_off.png"));
+
 }
 
 View::View() : m_widg{new QWidget}

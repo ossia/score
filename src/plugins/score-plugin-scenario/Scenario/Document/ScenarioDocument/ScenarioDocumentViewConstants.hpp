@@ -26,6 +26,7 @@ public:
     Comment,
     Condition,
     StateOverlay,
+    GraphInterval,
 
     SlotFooterDelegate = UserType + 10000
   };

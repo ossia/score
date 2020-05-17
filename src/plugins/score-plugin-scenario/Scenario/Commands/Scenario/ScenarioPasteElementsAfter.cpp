@@ -44,7 +44,7 @@ namespace Command
 ScenarioPasteElementsAfter::ScenarioPasteElementsAfter(
     const Scenario::ProcessModel& scenario,
     const Scenario::TimeSyncModel& attach_sync,
-    const QJsonObject& obj,
+    const rapidjson::Value& obj,
     double ratio)
     : m_ts{scenario}
 {
@@ -343,7 +343,7 @@ ScenarioPasteElementsAfter::ScenarioPasteElementsAfter(
   for (auto elt : intervals)
   {
     m_ids_intervals.push_back(elt->id());
-    m_json_intervals.push_back(score::marshall<JSONObject>(*elt));
+    m_json_intervals.push_back(score::marshall<DataStream>(*elt));
 
     delete elt;
   }
@@ -353,7 +353,7 @@ ScenarioPasteElementsAfter::ScenarioPasteElementsAfter(
   for (auto elt : timesyncs)
   {
     m_ids_timesyncs.push_back(elt->id());
-    m_json_timesyncs.push_back(score::marshall<JSONObject>(*elt));
+    m_json_timesyncs.push_back(score::marshall<DataStream>(*elt));
 
     delete elt;
   }
@@ -363,7 +363,7 @@ ScenarioPasteElementsAfter::ScenarioPasteElementsAfter(
   for (auto elt : events)
   {
     m_ids_events.push_back(elt->id());
-    m_json_events.push_back(score::marshall<JSONObject>(*elt));
+    m_json_events.push_back(score::marshall<DataStream>(*elt));
 
     delete elt;
   }
@@ -373,7 +373,7 @@ ScenarioPasteElementsAfter::ScenarioPasteElementsAfter(
   for (auto elt : states)
   {
     m_ids_states.push_back(elt->id());
-    m_json_states.push_back(score::marshall<JSONObject>(*elt));
+    m_json_states.push_back(score::marshall<DataStream>(*elt));
 
     delete elt;
   }
@@ -421,14 +421,14 @@ void ScenarioPasteElementsAfter::redo(const score::DocumentContext& ctx) const
   addedEvents.reserve(m_json_events.size());
   for (const auto& timesync : m_json_timesyncs)
   {
-    auto tn = new TimeSyncModel(JSONObject::Deserializer{timesync}, &scenario);
+    auto tn = new TimeSyncModel(DataStream::Deserializer{timesync}, &scenario);
     scenario.timeSyncs.add(tn);
     addedTimeSyncs.push_back(tn);
   }
 
   for (const auto& event : m_json_events)
   {
-    auto ev = new EventModel(JSONObject::Deserializer{event}, &scenario);
+    auto ev = new EventModel(DataStream::Deserializer{event}, &scenario);
     scenario.events.add(ev);
     addedEvents.push_back(ev);
   }
@@ -441,14 +441,14 @@ void ScenarioPasteElementsAfter::redo(const score::DocumentContext& ctx) const
 
   for (const auto& state : m_json_states)
   {
-    auto st = new StateModel(JSONObject::Deserializer{state}, scenario.context(), &scenario);
+    auto st = new StateModel(DataStream::Deserializer{state}, scenario.context(), &scenario);
     scenario.states.add(st);
   }
 
   for (const auto& interval : m_json_intervals)
   {
     auto cst
-        = new IntervalModel(JSONObject::Deserializer{interval}, scenario.context(), &scenario);
+        = new IntervalModel(DataStream::Deserializer{interval}, scenario.context(), &scenario);
     scenario.intervals.add(cst);
   }
 
@@ -463,8 +463,8 @@ void ScenarioPasteElementsAfter::redo(const score::DocumentContext& ctx) const
 
     model.cables.add(c);
     auto ext = model_path.extend(cable_id);
-    dat.source.find(ctx).addCable(ext);
-    dat.sink.find(ctx).addCable(ext);
+    dat.source.find(ctx).addCable(*c);
+    dat.sink.find(ctx).addCable(*c);
   }
 }
 

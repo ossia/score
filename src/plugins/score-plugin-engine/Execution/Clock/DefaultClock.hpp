@@ -25,7 +25,6 @@ private:
   void resume_impl(BaseScenarioElement&) override;
   void stop_impl(BaseScenarioElement&) override;
 };
-
 class ControlClock final : public Clock
 {
 public:

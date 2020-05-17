@@ -5,6 +5,8 @@
 #include "DeviceExplorerFilterProxyModel.hpp"
 #include "DeviceExplorerModel.hpp"
 #include <score/model/Skin.hpp>
+#include <score/widgets/Pixmap.hpp>
+
 #include <QAbstractItemView>
 #include <QAbstractProxyModel>
 #include <QAction>
@@ -61,10 +63,6 @@ DeviceExplorerView::DeviceExplorerView(QWidget* parent)
   setDefaultDropAction(Qt::MoveAction);
 
   setDragDropOverwriteMode(false);
-
-  QFile f(":/DeviceExplorer.qss");
-  if (f.open(QFile::ReadOnly))
-    setStyleSheet(f.readAll());
 }
 
 DeviceExplorerView::~DeviceExplorerView()
@@ -95,14 +93,16 @@ void DeviceExplorerView::startDrag(Qt::DropActions)
 
     QDrag* drag = new QDrag(this);
     drag->setMimeData(data);
+/*
+    auto p = score::get_pixmap(QStringLiteral(":/icons/cursor_drag_device.png"));
     drag->setPixmap(QPixmap());
-    drag->setDragCursor(QCursor{Qt::CrossCursor}.pixmap(), Qt::CopyAction);
-    drag->setDragCursor(QCursor{Qt::CrossCursor}.pixmap(), Qt::MoveAction);
-    drag->setDragCursor(QCursor{Qt::CrossCursor}.pixmap(), Qt::LinkAction);
-    drag->setDragCursor(QCursor{Qt::CrossCursor}.pixmap(), Qt::ActionMask);
-    drag->setDragCursor(QCursor{Qt::CrossCursor}.pixmap(), Qt::IgnoreAction);
-    drag->setDragCursor(QCursor{Qt::CrossCursor}.pixmap(), Qt::TargetMoveAction);
-
+    drag->setDragCursor(p, Qt::CopyAction);
+    drag->setDragCursor(p, Qt::MoveAction);
+    drag->setDragCursor(p, Qt::LinkAction);
+    drag->setDragCursor(p, Qt::ActionMask);
+    drag->setDragCursor(p, Qt::IgnoreAction);
+    drag->setDragCursor(p, Qt::TargetMoveAction);
+    */
     drag->exec();
   }
 }
@@ -111,7 +111,7 @@ void DeviceExplorerView::setInitialColumnsSizes()
 {
   SCORE_ASSERT(model());
 
-  header()->resizeSection((int)Explorer::Column::Name, 220);
+  header()->resizeSection((int)Explorer::Column::Name, 180);
   header()->resizeSection((int)Explorer::Column::Value, 50);
 }
 

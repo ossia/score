@@ -36,7 +36,8 @@ public:
       const Scenario::ProcessModel& scenario,
       Id<StateModel> startState,
       TimeVal date,
-      double endStateY);
+      double endStateY,
+      bool graphal);
 
   const Path<Scenario::ProcessModel>& scenarioPath() const
   {

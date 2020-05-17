@@ -135,11 +135,12 @@ public:
         },
         [&](const Id<IntervalModel>& id) // Interval
         {
-          const auto& elt = this->m_palette.presenter().interval(id);
-          if (!elt.isSelected())
+          const auto& model = this->m_palette.model().interval(id);
+
+          if (!model.selection.get())
           {
             m_state->dispatcher.setAndCommit(filterSelections(
-                &elt.model(),
+                &model,
                 this->m_palette.model().selectedChildren(),
                 m_state->multiSelection()));
           }

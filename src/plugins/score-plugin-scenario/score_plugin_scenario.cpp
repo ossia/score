@@ -202,7 +202,6 @@ score_plugin_scenario::factories(
       FW<Inspector::InspectorWidgetFactory,
          ScenarioInspectorWidgetFactoryWrapper,
          Interpolation::StateInspectorFactory,
-         ScenarioInspectorFactory,
          Interpolation::InspectorFactory>,
       FW<score::ValidityChecker, ScenarioValidityChecker>,
 

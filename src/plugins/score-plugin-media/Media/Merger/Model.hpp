@@ -34,20 +34,20 @@ public:
     vis.writeTo(*this);
   }
 
-  quint64 inCount() const;
+  int inCount() const;
 
 public:
-  void inCountChanged(quint64 arg_1) W_SIGNAL(inCountChanged, arg_1);
+  void inCountChanged(int arg_1) W_SIGNAL(inCountChanged, arg_1);
 
 public:
-  void setInCount(quint64 s);
+  void setInCount(int s);
   W_SLOT(setInCount);
 
 private:
-  quint64 m_inCount{};
+  int m_inCount{};
 
   W_PROPERTY(
-      quint64,
+      int,
       inCount READ inCount WRITE setInCount NOTIFY inCountChanged)
 };
 }

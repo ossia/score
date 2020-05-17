@@ -26,14 +26,16 @@ void DataStreamWriter::write(ObjectIdentifier& obj)
 }
 
 template <>
-void JSONObjectReader::read(const ObjectIdentifier& id)
+void JSONReader::read(const ObjectIdentifier& id)
 {
+  stream.StartObject();
   obj[strings.ObjectName] = id.objectName();
   obj[strings.ObjectId] = id.id();
+  stream.EndObject();
 }
 
 template <>
-void JSONObjectWriter::write(ObjectIdentifier& id)
+void JSONWriter::write(ObjectIdentifier& id)
 {
   id = ObjectIdentifier{obj[strings.ObjectName].toString(),
                         obj[strings.ObjectId].toInt()};

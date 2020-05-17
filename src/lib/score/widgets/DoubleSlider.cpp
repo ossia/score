@@ -5,64 +5,31 @@
 #include <score/model/Skin.hpp>
 #include <score/tools/Clamp.hpp>
 
+#include <QMouseEvent>
 #include <QPainter>
+#include <QStyleOptionSlider>
 
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(score::DoubleSlider)
 namespace score
 {
-AbsoluteSliderStyle::~AbsoluteSliderStyle() = default;
-Slider::~Slider() = default;
 DoubleSlider::~DoubleSlider() = default;
 
-AbsoluteSliderStyle* AbsoluteSliderStyle::instance() noexcept
-{
-  static AbsoluteSliderStyle style;
-  return &style;
-}
 
-int AbsoluteSliderStyle::styleHint(
-    QStyle::StyleHint hint,
-    const QStyleOption* option,
-    const QWidget* widget,
-    QStyleHintReturn* returnData) const
+DoubleSlider::DoubleSlider(Qt::Orientation ort, QWidget* widg) :
+  QWidget{widg},
+  m_orientation(ort)
 {
-  switch (hint)
-  {
-    case QStyle::SH_Slider_AbsoluteSetButtons:
-      return Qt::AllButtons;
-    default:
-      return QProxyStyle::styleHint(hint, option, widget, returnData);
-  }
-}
+  setFocusPolicy(Qt::FocusPolicy(style()->styleHint(QStyle::SH_Button_FocusPolicy)));
+  QSizePolicy sp(QSizePolicy::Ignored, QSizePolicy::Fixed, QSizePolicy::Slider);
+  if (ort == Qt::Vertical)
+      sp.transpose();
+  setSizePolicy(sp);
+setAttribute(Qt::WA_WState_OwnSizePolicy, false);
 
-DoubleSlider::DoubleSlider(QWidget* parent) : Slider{Qt::Horizontal, parent}
-{
-  setMinimum(0);
-  setMaximum(max + 1.);
+  auto& skin = score::Skin::instance();
+  m_borderWidth = skin.SliderPen.width();
 
-  connect(this, &QSlider::valueChanged, this, [&](int val) {
-    doubleValueChanged(double(val) / max);
-  });
-}
-
-void DoubleSlider::setValue(double val)
-{
-  val = clamp(val, 0, 1);
-  blockSignals(true);
-  QSlider::setValue(val * max);
-  blockSignals(false);
-  doubleValueChanged(val);
-}
-
-double DoubleSlider::value() const
-{
-  return QSlider::value() / max;
-}
-
-Slider::Slider(Qt::Orientation ort, QWidget* widg) : QSlider{ort, widg}
-{
-  setStyle(AbsoluteSliderStyle::instance());
   switch (ort)
   {
     case Qt::Vertical:
@@ -74,53 +41,108 @@ Slider::Slider(Qt::Orientation ort, QWidget* widg) : QSlider{ort, widg}
   }
 }
 
-Slider::Slider(QWidget* widg) : Slider{Qt::Horizontal, widg} {}
+DoubleSlider::DoubleSlider(QWidget* widg) : DoubleSlider{Qt::Horizontal, widg} {}
 
-void Slider::paintEvent(QPaintEvent*)
+void DoubleSlider::setValue(double val)
 {
-  QPainter p{this};
-  paint(p);
+  m_value = clamp(val, 0, 1);
+  valueChanged(m_value);
+  repaint();
 }
-void Slider::paint(QPainter& p)
+
+void DoubleSlider::updateValue(QPointF mousePos)
 {
-  auto& skin = score::Skin::instance();
-  double min = minimum();
-  double max = maximum();
-  double val = value();
-
-  double ratio = 1. - (max - val) / (max - min);
-
-  static constexpr auto round = 1.5;
-  p.setPen(Qt::transparent);
-  p.setBrush(skin.SliderBrush);
-  p.drawRoundedRect(rect(), round, round);
-
-  p.setBrush(skin.SliderExtBrush);
-  if(orientation() == Qt::Horizontal)
+  if(m_orientation == Qt::Horizontal)
   {
-    p.drawRoundedRect(
-        QRect{1, 1,
-              int(ratio * (width() - 2)),
-              (height() - 2)
-          }, round, round);
+    double clamped = clamp(mousePos.x(), m_borderWidth, width() - m_borderWidth);
+    m_value = (clamped - m_borderWidth) / (width() - 2 * m_borderWidth);
   }
   else
   {
-    p.drawRoundedRect(
-        QRect{1, int((1. - ratio) * (height() - 2)),
-             (width() - 2),
-              int(ratio * (height() - 2))
-          }, round, round);
+    double clamped = clamp(mousePos.y(), m_borderWidth, height() - m_borderWidth);
+    m_value = 1 - (clamped - m_borderWidth) / (height() - 2 * m_borderWidth);
   }
+
+  repaint();
+  valueChanged(m_value);
 }
 
-void Slider::paintWithText(const QString& s)
+void DoubleSlider::mousePressEvent(QMouseEvent* event)
+{
+  updateValue(event->localPos());
+}
+
+void DoubleSlider::mouseMoveEvent(QMouseEvent* event)
+{
+  updateValue(event->localPos());
+  sliderMoved(m_value);
+}
+
+void DoubleSlider::mouseReleaseEvent(QMouseEvent *event)
+{
+  sliderReleased();
+}
+
+void DoubleSlider::paintEvent(QPaintEvent* e)
+{
+  QPainter p{this};
+  paint(p);
+}
+
+void DoubleSlider::paint(QPainter& p)
 {
   auto& skin = score::Skin::instance();
 
+  p.setPen(skin.SliderPen);
+  p.setBrush(skin.SliderBrush);
+  const double penWidth = p.pen().width();
+  p.drawRect(QRectF{QPointF{rect().topLeft().x() + penWidth/2.,
+                            rect().topLeft().y() + penWidth/2.},
+                    QSizeF{rect().width()-penWidth, rect().height()-penWidth}});
+
+  p.setPen(skin.TransparentPen);
+  p.setBrush(skin.SliderInteriorBrush);
+
+  const double interiorWidth = (double)width() - 2.* penWidth;
+  const double interiorHeight = (double)height() - 2.* penWidth;
+  if(m_orientation == Qt::Horizontal)
+  {
+    const double current = m_value * interiorWidth;
+    p.drawRect(
+        QRectF{QPointF{penWidth, penWidth},
+              QSizeF{current, interiorHeight}
+          });
+
+    if(!qFuzzyIsNull(current))
+    {
+      p.setPen(skin.SliderLine);
+      const double linePenWidth = p.pen().width();
+      p.drawLine(QPointF{penWidth, linePenWidth/2.}, QPointF{current + penWidth, linePenWidth/2.});
+    }
+  }
+  else
+  {
+    const double h = (1. - m_value) * interiorHeight;
+
+    p.drawRect(QRectF{QPointF{penWidth, h + penWidth},
+                      QSizeF{interiorWidth, (double)height()- h}});
+
+    if(!qFuzzyCompare(h, interiorHeight))
+    {
+      p.setPen(skin.SliderLine);
+      const double linePenWidth = p.pen().width();
+      p.drawLine(QPointF{linePenWidth/2., height() - penWidth},
+                 QPointF{linePenWidth/2., h + penWidth});
+    }
+  }
+}
+
+void DoubleSlider::paintWithText(const QString& s)
+{
+   auto& skin = score::Skin::instance();
+
   QPainter p{this};
   paint(p);
-
   p.setPen(skin.SliderTextPen);
   p.setFont(skin.SliderFont);
   p.drawText(
@@ -128,4 +150,5 @@ void Slider::paintWithText(const QString& s)
       s,
       QTextOption(Qt::AlignLeft));
 }
+
 }

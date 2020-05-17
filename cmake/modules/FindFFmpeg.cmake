@@ -212,10 +212,12 @@ if(TARGET avutil)
     else()
       find_library(BCRYPT_LIBRARY libbcrypt.a HINTS ${OSSIA_SDK}/llvm/x86_64-w64-mingw32/lib)
       
-      set_target_properties(winbcrypt PROPERTIES
-        IMPORTED_LOCATION "${BCRYPT_LIBRARY}"
-        INTERFACE_LINK_LIBRARIES "${BCRYPT_LIBRARY}"
-      )
+      if(BCRYPT_LIBRARY)
+        set_target_properties(winbcrypt PROPERTIES
+          IMPORTED_LOCATION "${BCRYPT_LIBRARY}"
+          INTERFACE_LINK_LIBRARIES "${BCRYPT_LIBRARY}"
+        )
+      endif()
     endif()
     imported_link_libraries(avutil winbcrypt)
   endif()

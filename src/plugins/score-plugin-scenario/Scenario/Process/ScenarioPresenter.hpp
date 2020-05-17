@@ -30,7 +30,6 @@ class SCORE_PLUGIN_SCENARIO_EXPORT ScenarioPresenter final
 
   friend class Scenario::ToolPalette;
   friend class ScenarioViewInterface;
-  friend class ScenarioSelectionManager;
 
 public:
   ScenarioPresenter(
@@ -72,6 +71,7 @@ public:
   const auto& getEvents() const { return m_events; }
   const auto& getTimeSyncs() const { return m_timeSyncs; }
   const auto& getIntervals() const { return m_intervals; }
+  const auto& getGraphIntervals() const { return m_graphIntervals; }
   const auto& getStates() const { return m_states; }
   const auto& getComments() const { return m_comments; }
 
@@ -142,7 +142,6 @@ private:
   void removeElement(Map& map, const Id& id);
 
   void updateAllElements();
-  void eventHasTrigger(const EventPresenter&, bool);
 
   ZoomRatio m_zoomRatio{1};
   double m_graphicalScale{1.};
@@ -155,6 +154,7 @@ private:
   IdContainer<EventPresenter, EventModel> m_events;
   IdContainer<TimeSyncPresenter, TimeSyncModel> m_timeSyncs;
   IdContainer<TemporalIntervalPresenter, IntervalModel> m_intervals;
+  IdContainer<GraphalIntervalPresenter, IntervalModel> m_graphIntervals;
   IdContainer<CommentBlockPresenter, CommentBlockModel> m_comments;
 
   ScenarioViewInterface m_viewInterface;

@@ -1,32 +1,27 @@
 #pragma once
+#include <JS/JSProcessModel.hpp>
 #include <JS/Commands/JSCommandFactory.hpp>
-
-#include <score/command/Command.hpp>
-#include <score/model/path/Path.hpp>
-
-#include <QString>
-
-struct DataStreamInput;
-struct DataStreamOutput;
+#include <Scenario/Commands/ScriptEditCommand.hpp>
 namespace JS
 {
-class ProcessModel;
-
-class EditScript final : public score::Command
+class EditJSScript
+    : public Scenario::EditScript<JS::ProcessModel, JS::ProcessModel::p_script>
 {
-  SCORE_COMMAND_DECL(JS::CommandFactoryName(), EditScript, "Edit a JS script")
-public:
-  EditScript(const ProcessModel& model, const QString& text);
-
-  void undo(const score::DocumentContext& ctx) const override;
-  void redo(const score::DocumentContext& ctx) const override;
-
-protected:
-  void serializeImpl(DataStreamInput& s) const override;
-  void deserializeImpl(DataStreamOutput& s) override;
-
-private:
-  Path<ProcessModel> m_model;
-  QString m_old, m_new;
+  SCORE_COMMAND_DECL(
+      CommandFactoryName(),
+      EditJSScript,
+      "Edit a script")
+  public:
+    using EditScript::EditScript;
 };
 }
+
+namespace score
+{
+template<>
+struct StaticPropertyCommand<JS::ProcessModel::p_script> : JS::EditJSScript
+{
+  using EditJSScript::EditJSScript;
+};
+}
+

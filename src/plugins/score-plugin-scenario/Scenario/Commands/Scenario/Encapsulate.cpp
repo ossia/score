@@ -7,6 +7,7 @@
 #include <Scenario/Process/ScenarioGlobalCommandManager.hpp>
 #include <Scenario/Process/ScenarioModel.hpp>
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
+#include <QJsonObject>
 namespace Scenario
 {
 
@@ -49,12 +50,14 @@ void DecapsulateScenario(
   using namespace Command;
   Scenario::Command::Macro disp{new Decapsulate, stack.context()};
 
-  auto objects = copyWholeScenario(scenar);
+  JSONReader r;
+  copyWholeScenario(r, scenar);
 
+  auto doc = readJson(r.toByteArray()); // TODO UGH
   disp.pasteElementsAfter(
       *parent_s,
       Scenario::startTimeSync(*parent_itv, *parent_s),
-      objects,
+      doc,
       ratio);
 
   disp.removeProcess(*parent_itv, scenar.id());
@@ -72,7 +75,8 @@ void EncapsulateInScenario(
   if (cat.selectedIntervals.empty())
     return;
 
-  auto objects = copySelectedScenarioElements(scenar, cat);
+  JSONReader r;
+  copySelectedScenarioElements(r, scenar, cat);
 
   auto e = EncapsulateElements(disp, cat, scenar);
   if (!e.interval)
@@ -87,7 +91,7 @@ void EncapsulateInScenario(
       SlotPath{itv, 0, Slot::RackView::SmallView},
       100 + (e.bottomY - e.topY) * 400);
 
-  disp.pasteElements(sub_scenar, objects, Scenario::Point{{}, 0.1});
+  disp.pasteElements(sub_scenar, toValue(r), Scenario::Point{{}, 0.1});
 
   // Merge inside
   for (TimeSyncModel& sync : sub_scenar.timeSyncs)

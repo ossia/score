@@ -200,6 +200,7 @@ void IntervalRawPtrComponent::onSetup(
     interval_duration_data dur)
 {
   m_ossia_interval = ossia_cst;
+  Scenario::TempoProcess* tempo_proc{};
 
   auto& audio_out = static_cast<ossia::nodes::interval*>(m_ossia_interval->node.get())->audio_out;
   audio_out.has_gain = Scenario::isBus(*m_interval, context().doc);
@@ -209,7 +210,9 @@ void IntervalRawPtrComponent::onSetup(
   m_ossia_interval->set_min_duration(dur.minDuration);
   m_ossia_interval->set_max_duration(dur.maxDuration);
   m_ossia_interval->set_speed(dur.speed);
-  m_ossia_interval->set_tempo_curve(tempoCurve(interval(), context()));
+  auto tdata = tempoCurve(interval(), context());
+  tempo_proc = tdata.second;
+  m_ossia_interval->set_tempo_curve(std::move(tdata).first);
   m_ossia_interval->set_time_signature_map(timeSignatureMap(interval(), context()));
   m_ossia_interval->set_quarter_duration(ossia::quarter_duration<double>); // In our ideal musical world, a "quarter" is half a logical second
 
@@ -218,19 +221,25 @@ void IntervalRawPtrComponent::onSetup(
     std::weak_ptr<IntervalRawPtrComponent> weak_self = self;
     in_exec([weak_self, ossia_cst, &edit = system().editionQueue] {
       ossia_cst->set_stateless_callback(
-          smallfun::function<void(ossia::time_value), 32>{
-              [weak_self, &edit](ossia::time_value date) {
-                edit.enqueue([weak_self, date] {
+          smallfun::function<void(bool, ossia::time_value), 32>{
+              [weak_self, &edit](bool running, ossia::time_value date) {
+                edit.enqueue([weak_self, running, date] {
                   if (auto self = weak_self.lock())
-                    self->slot_callback(date);
+                    self->slot_callback(running, date);
                 });
               }});
     });
   }
 
   // set-up the interval ports
+  Process::Inlets toRegister;
+  toRegister.push_back(interval().inlet.get());
+  if(tempo_proc)
+  {
+    toRegister.push_back(tempo_proc->inlet.get());
+  }
   system().setup.register_node(
-      {interval().inlet.get()},
+      toRegister,
       {interval().outlet.get()},
       m_ossia_interval->node);
 
@@ -238,19 +247,29 @@ void IntervalRawPtrComponent::onSetup(
 }
 
 void IntervalRawPtrComponent::slot_callback(
+    bool running,
     ossia::time_value date)
 {
   if (m_ossia_interval)
   {
-    auto currentTime = this->context().reverseTime(date);
+    if(running)
+    {
+      auto& cstdur = interval().duration;
+      const auto& maxdur = cstdur.maxDuration();
 
-    auto& cstdur = interval().duration;
-    const auto& maxdur = cstdur.maxDuration();
-
-    if (!maxdur.isInfinite())
-      cstdur.setPlayPercentage(currentTime / cstdur.maxDuration());
-    else
-      cstdur.setPlayPercentage(currentTime / cstdur.defaultDuration());
+      auto currentTime = this->context().reverseTime(date);
+      if (!maxdur.infinite())
+      {
+        if(maxdur > TimeVal::zero())
+          cstdur.setPlayPercentage(currentTime / cstdur.maxDuration());
+      }
+      else
+      {
+        if(cstdur.defaultDuration() > TimeVal::zero())
+          cstdur.setPlayPercentage(currentTime / cstdur.defaultDuration());
+      }
+    }
+    interval().setExecuting(running);
   }
 }
 

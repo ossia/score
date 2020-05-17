@@ -1,5 +1,6 @@
 #pragma once
 #include <score/widgets/DoubleSlider.hpp>
+#include <score/widgets/IntSlider.hpp>
 
 #include <QPushButton>
 
@@ -23,10 +24,10 @@ protected:
   void paintEvent(QPaintEvent* event) override;
 };
 
-struct SCORE_LIB_BASE_EXPORT ValueSlider : public score::Slider
+struct SCORE_LIB_BASE_EXPORT ValueSlider : public score::IntSlider
 {
 public:
-  using Slider::Slider;
+  using IntSlider::IntSlider;
   bool moving = false;
 
 protected:
@@ -86,14 +87,14 @@ protected:
   void paintEvent(QPaintEvent* event) override;
 };
 
-struct SCORE_LIB_BASE_EXPORT ComboSlider : public score::Slider
+struct SCORE_LIB_BASE_EXPORT ComboSlider : public score::IntSlider
 {
   QStringList array;
 
 public:
   template <std::size_t N>
   ComboSlider(const std::array<const char*, N>& arr, QWidget* parent)
-      : score::Slider{parent}
+      : score::IntSlider{parent}
   {
     array.reserve(N);
     for (auto str : arr)

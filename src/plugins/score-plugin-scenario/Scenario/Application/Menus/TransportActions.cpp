@@ -189,14 +189,18 @@ TransportActions::TransportActions(const score::GUIApplicationContext& context)
   //    connect(m_record, &QAction::toggled, this, [&] (bool b) {
   //    });
 
-  if (context.mainWindow)
+  if (context.documentTabWidget)
   {
-    auto obj = context.mainWindow->centralWidget();
+    auto obj = context.documentTabWidget;
     obj->addAction(m_play);
     obj->addAction(m_playGlobal);
     obj->addAction(m_stop);
     obj->addAction(m_stopAndInit);
   }
+}
+
+TransportActions::~TransportActions()
+{
 }
 
 void TransportActions::makeGUIElements(score::GUIElements& ref)
@@ -213,8 +217,6 @@ void TransportActions::makeGUIElements(score::GUIElements& ref)
       time_label->setObjectName("TimeLabel");
       QFont time_font("Ubuntu", 18, QFont::Weight::DemiBold);
       time_label->setFont(time_font);
-      time_label->setStyleSheet(
-          "QLabel { font: 18pt \"Ubuntu\"; font-weight: 600; }");
       time_label->setText("00:00:00.000");
       bar->addWidget(time_label);
     }

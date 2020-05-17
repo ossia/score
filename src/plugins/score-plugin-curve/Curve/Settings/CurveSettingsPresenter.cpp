@@ -9,6 +9,7 @@
 #include <score/command/Dispatchers/ICommandDispatcher.hpp>
 #include <score/command/SettingsCommand.hpp>
 #include <score/tools/Bind.hpp>
+#include <score/widgets/SetIcons.hpp>
 
 #include <QApplication>
 #include <QStyle>
@@ -105,7 +106,10 @@ QString Presenter::settingsName()
 
 QIcon Presenter::settingsIcon()
 {
-  return QApplication::style()->standardIcon(QStyle::SP_DriveCDIcon);
+  return makeIcons(QStringLiteral(":/icons/settings_recording_on.png")
+                   , QStringLiteral(":/icons/settings_recording_off.png")
+                   , QStringLiteral(":/icons/settings_recording_off.png"));
+
 }
 }
 }

@@ -59,7 +59,6 @@ ScenarioDocumentModel::ScenarioDocumentModel(
       this,
       [&](const QString& newName) {
         QFileInfo info(newName);
-
         itv.metadata().setName(info.baseName());
       });
 
@@ -83,11 +82,10 @@ ScenarioDocumentModel::ScenarioDocumentModel(
 void ScenarioDocumentModel::finishLoading()
 {
   // Load cables
-  const auto& cbl = m_savedCables;
-  for (const auto& json_vref : cbl)
+  for (const auto& bytearray : qAsConst(m_savedCables))
   {
     auto cbl = new Process::Cable{
-        JSONObject::Deserializer{json_vref.toObject()}, this};
+        DataStream::Deserializer{bytearray}, this};
     auto src = cbl->source().try_find(m_context);
     auto snk = cbl->sink().try_find(m_context);
     if (src && snk)
@@ -104,7 +102,31 @@ void ScenarioDocumentModel::finishLoading()
       delete cbl;
     }
   }
-  m_savedCables = QJsonArray{};
+  m_savedCables.clear();
+
+  if(m_savedCablesJson.IsArray())
+  {
+    for (const auto& json : m_savedCablesJson.GetArray())
+    {
+      auto cbl = new Process::Cable{JSONObject::Deserializer{json}, this};
+      auto src = cbl->source().try_find(m_context);
+      auto snk = cbl->sink().try_find(m_context);
+      if (src && snk)
+      {
+        src->addCable(*cbl);
+        snk->addCable(*cbl);
+
+        cables.add(cbl);
+      }
+      else
+      {
+        qWarning() << "Could not find either source or sink for cable "
+                   << cbl->id() << src << snk;
+        delete cbl;
+      }
+    }
+    m_savedCablesJson.Clear();
+  }
 
   // Load buses
   for(auto itv : this->busIntervals)

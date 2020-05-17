@@ -30,7 +30,7 @@ struct SCORE_PLUGIN_CURVE_EXPORT PowerSegmentData
   PowerSegmentData(double d) : gamma{d} {}
 
   // Value of gamma for which the pow will be == 1.
-  static const constexpr double linearGamma = 11.05;
+  static const constexpr double linearGamma = 1;
   double gamma = linearGamma;
 };
 

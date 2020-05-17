@@ -20,9 +20,9 @@ void DataStreamReader::read(const State::Pulse& rel)
 }
 
 template <>
-void JSONObjectReader::read(const State::Pulse& rel)
+void JSONReader::read(const State::Pulse& rel)
 {
-  obj[strings.address] = toJsonObject(rel.address);
+  read(rel.address);
 }
 
 template <>
@@ -34,9 +34,9 @@ void DataStreamWriter::write(State::Pulse& rel)
 }
 
 template <>
-void JSONObjectWriter::write(State::Pulse& rel)
+void JSONWriter::write(State::Pulse& rel)
 {
-  fromJsonObject(obj[strings.address], rel.address);
+  write(rel.address);
 }
 
 template <>
@@ -48,12 +48,14 @@ void DataStreamReader::read(const State::Relation& rel)
 }
 
 template <>
-void JSONObjectReader::read(const State::Relation& rel)
+void JSONReader::read(const State::Relation& rel)
 {
+  stream.StartObject();
   // TODO harmonize from... with marshall(..) in VisitorCommon.hpp
-  obj[strings.LHS] = toJsonObject(rel.lhs);
-  obj[strings.Op] = toJsonValue(rel.op);
-  obj[strings.RHS] = toJsonObject(rel.rhs);
+  obj[strings.LHS] = rel.lhs;
+  obj[strings.Op] = rel.op;
+  obj[strings.RHS] = rel.rhs;
+  stream.EndObject();
 }
 
 template <>
@@ -65,11 +67,11 @@ void DataStreamWriter::write(State::Relation& rel)
 }
 
 template <>
-void JSONObjectWriter::write(State::Relation& rel)
+void JSONWriter::write(State::Relation& rel)
 {
-  fromJsonObject(obj[strings.LHS], rel.lhs);
-  fromJsonValue(obj[strings.Op], rel.op);
-  fromJsonObject(obj[strings.RHS], rel.rhs);
+  rel.lhs <<= obj[strings.LHS];
+  rel.op <<= obj[strings.Op];
+  rel.rhs <<= obj[strings.RHS];
 }
 
 template <>
@@ -80,9 +82,9 @@ SCORE_LIB_STATE_EXPORT void DataStreamReader::read(const State::ExprData& expr)
 }
 
 template <>
-SCORE_LIB_STATE_EXPORT void JSONObjectReader::read(const State::ExprData& expr)
+SCORE_LIB_STATE_EXPORT void JSONReader::read(const State::ExprData& expr)
 {
-  readFrom(expr.impl());
+  obj["Expression"] = expr.impl();
 }
 
 template <>
@@ -93,7 +95,7 @@ SCORE_LIB_STATE_EXPORT void DataStreamWriter::write(State::ExprData& expr)
 }
 
 template <>
-SCORE_LIB_STATE_EXPORT void JSONObjectWriter::write(State::ExprData& expr)
+SCORE_LIB_STATE_EXPORT void JSONWriter::write(State::ExprData& expr)
 {
-  writeTo(expr.impl());
+  expr.impl() <<= obj["Expression"];
 }

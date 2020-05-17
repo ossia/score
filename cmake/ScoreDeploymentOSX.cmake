@@ -70,16 +70,12 @@ set(plugin_dest_dir "${APPNAME}.app/Contents/PlugIns")
 set(qtconf_dest_dir "${APPNAME}.app/Contents/Resources")
 set(qml_dest_dir "${APPNAME}.app/Contents/Resources/qml")
 
-install(FILES "${QT_PLUGINS_DIR}/platforms/libqcocoa.dylib" DESTINATION "${plugin_dest_dir}/platforms")
-install(FILES "${QT_PLUGINS_DIR}/imageformats/libqsvg.dylib" DESTINATION "${plugin_dest_dir}/imageformats")
-install(FILES "${QT_PLUGINS_DIR}/iconengines/libqsvgicon.dylib" DESTINATION "${plugin_dest_dir}/iconengines")
-install(FILES "${QT_QML_PLUGINS_DIR}/QtQuick.2/libqtquick2plugin.dylib" DESTINATION "${plugin_dest_dir}/quick")
-install(
-  DIRECTORY
-    "${QT_QML_PLUGINS_DIR}/QtQuick"
-    "${QT_QML_PLUGINS_DIR}/QtQuick.2"
-  DESTINATION "${qml_dest_dir}"
-  PATTERN "*/Scene3d" EXCLUDE)
+# If we are in a dynamic build of qt
+if(EXISTS "${QT_PLUGINS_DIR}/platforms/libqcocoa.dylib")
+  install(FILES "${QT_PLUGINS_DIR}/platforms/libqcocoa.dylib" DESTINATION "${plugin_dest_dir}/platforms")
+  install(FILES "${QT_PLUGINS_DIR}/imageformats/libqsvg.dylib" DESTINATION "${plugin_dest_dir}/imageformats")
+  install(FILES "${QT_PLUGINS_DIR}/iconengines/libqsvgicon.dylib" DESTINATION "${plugin_dest_dir}/iconengines")
+endif()
 
 install(CODE "
     file(WRITE \"\${CMAKE_INSTALL_PREFIX}/${qtconf_dest_dir}/qt.conf\" \"[Paths]

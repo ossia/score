@@ -302,7 +302,7 @@ CreateSequence* CreateSequence::make(
   auto cmd = new CreateSequence;
 
   auto create_command = new CreateInterval_State_Event_TimeSync{
-      scenario, start, date, endStateY};
+      scenario, start, date, endStateY, false};
   cmd->m_newInterval = create_command->createdInterval();
   cmd->m_newState = create_command->createdState();
   cmd->m_newEvent = create_command->createdEvent();

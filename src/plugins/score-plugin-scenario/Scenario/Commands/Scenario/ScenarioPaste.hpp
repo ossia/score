@@ -3,13 +3,12 @@
 
 #include <score/tools/IdentifierGeneration.hpp>
 
-#include <QJsonObject>
 namespace Scenario
 {
 struct ScenarioBeingCopied
 {
   ScenarioBeingCopied(
-      const QJsonObject& obj,
+      const rapidjson::Value& obj,
       const Scenario::ProcessModel& scenario,
       const score::DocumentContext& ctx)
   {
@@ -19,59 +18,59 @@ struct ScenarioBeingCopied
     // have a parent because it tries to access the event in the scenario if it
     // has one) We deserialize everything
     {
-      const auto json_arr = obj["Intervals"].toArray();
-      intervals.reserve(json_arr.size());
+      const auto& json_arr = obj["Intervals"].GetArray();
+      intervals.reserve(json_arr.Size());
       for (const auto& element : json_arr)
       {
         intervals.emplace_back(
-            new IntervalModel{JSONObject::Deserializer{element.toObject()}, scenario.context(),
+            new IntervalModel{JSONObject::Deserializer{element}, scenario.context(),
                               (QObject*)&scenario});
       }
     }
     {
-      const auto json_arr = obj["TimeNodes"].toArray();
-      timesyncs.reserve(json_arr.size());
+      const auto& json_arr = obj["TimeNodes"].GetArray();
+      timesyncs.reserve(json_arr.Size());
       for (const auto& element : json_arr)
       {
         timesyncs.emplace_back(new TimeSyncModel{
-            JSONObject::Deserializer{element.toObject()}, nullptr});
+            JSONObject::Deserializer{element}, nullptr});
       }
     }
     {
-      const auto json_arr = obj["Events"].toArray();
-      events.reserve(json_arr.size());
+      const auto& json_arr = obj["Events"].GetArray();
+      events.reserve(json_arr.Size());
       for (const auto& element : json_arr)
       {
         events.emplace_back(new EventModel{
-            JSONObject::Deserializer{element.toObject()}, nullptr});
+            JSONObject::Deserializer{element}, nullptr});
       }
     }
     {
-      const auto json_arr = obj["States"].toArray();
-      states.reserve(json_arr.size());
+      const auto& json_arr = obj["States"].GetArray();
+      states.reserve(json_arr.Size());
       for (const auto& element : json_arr)
       {
         states.emplace_back(
-            new StateModel{JSONObject::Deserializer{element.toObject()},
+            new StateModel{JSONObject::Deserializer{element},
                            scenario.context(),
                            (QObject*)&scenario});
       }
     }
     {
-      const auto json_arr = obj["Cables"].toArray();
-      cables.reserve(json_arr.size());
+      const auto& json_arr = obj["Cables"].GetArray();
+      cables.reserve(json_arr.Size());
       for (const auto& element : json_arr)
       {
-        auto obj = element.toObject();
-        if(obj.contains("ObjectName"))
+        Process::CableData cd;
+        if(element.HasMember("ObjectName"))
         {
-          auto cd = fromJsonObject<Process::CableData>(obj["Data"].toObject());
+          cd <<= JsonValue{obj["Data"]};
           cables.emplace_back(std::move(cd));
         }
         else
         {
-          const auto data = fromJsonValue<Process::CableData>(element.toArray()[1]);
-          cables.emplace_back(data);
+          cd <<= JsonValue{element.GetArray()[1]};
+          cables.emplace_back(cd);
         }
       }
     }

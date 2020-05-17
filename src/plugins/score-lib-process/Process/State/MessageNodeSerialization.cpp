@@ -12,86 +12,10 @@
 #include <score/serialization/JSONVisitor.hpp>
 #include <score/serialization/VisitorCommon.hpp>
 
-#include <QJsonArray>
-#include <QJsonObject>
 #include <QString>
 
 #include <array>
 #include <cstddef>
-
-namespace Process
-{
-class ProcessModel;
-}
-namespace boost
-{
-template <class T>
-class optional;
-} // namespace boost
-
-template <typename T>
-void toJsonValue(
-    QJsonObject& object,
-    const QString& name,
-    const optional<T>& value)
-{
-  if (value)
-  {
-    object[name] = score::marshall<JSONObject>(*value);
-  }
-}
-
-template <typename T, std::size_t N>
-QJsonArray toJsonArray(const std::array<T, N>& array)
-{
-  QJsonArray arr;
-  for (std::size_t i = 0; i < N; i++)
-  {
-    arr.append(toJsonValue(array.at(i)));
-  }
-
-  return arr;
-}
-
-template <typename T, std::size_t N>
-void fromJsonArray(const QJsonArray& array, std::array<T, N>& res)
-{
-  for (std::size_t i = 0; i < N; i++)
-  {
-    res.at(i) = fromJsonValue<T>(array.at(i));
-  }
-}
-
-template <typename T>
-void fromJsonValue(
-    const QJsonObject& object,
-    const QString& name,
-    optional<T>& value)
-{
-  auto it = object.find(name);
-  if (it != object.end())
-  {
-    value = score::unmarshall<ossia::value>((*it).toObject());
-  }
-  else
-  {
-    value = ossia::none;
-  }
-}
-
-template <>
-void DataStreamReader::read(const std::array<Process::PriorityPolicy, 3>& val)
-{
-  for (int i = 0; i < 3; i++)
-    m_stream << val.at(i);
-}
-
-template <>
-void DataStreamWriter::write(std::array<Process::PriorityPolicy, 3>& val)
-{
-  for (int i = 0; i < 3; i++)
-    m_stream >> val.at(i);
-}
 
 template <>
 void DataStreamReader::read(const Process::ProcessStateData& val)
@@ -106,17 +30,19 @@ void DataStreamWriter::write(Process::ProcessStateData& val)
 }
 
 template <>
-void JSONObjectReader::read(const Process::ProcessStateData& val)
+void JSONReader::read(const Process::ProcessStateData& val)
 {
-  obj[strings.Process] = toJsonValue(val.process);
-  toJsonValue(obj, strings.Value, val.value);
+  stream.StartObject();
+  obj[strings.Process] = val.process;
+  obj[strings.Value] = val.value;
+  stream.EndObject();
 }
 
 template <>
-void JSONObjectWriter::write(Process::ProcessStateData& val)
+void JSONWriter::write(Process::ProcessStateData& val)
 {
-  val.process = fromJsonValue<Id<Process::ProcessModel>>(obj[strings.Process]);
-  fromJsonValue(obj, strings.Value, val.value);
+  val.process <<= obj[strings.Process];
+  val.value <<= obj[strings.Value];
 }
 
 template <>
@@ -134,21 +60,21 @@ void DataStreamWriter::write(Process::StateNodeValues& val)
 }
 
 template <>
-void JSONObjectReader::read(const Process::StateNodeValues& val)
+void JSONReader::read(const Process::StateNodeValues& val)
 {
-  obj[strings.Previous] = toJsonArray(val.previousProcessValues);
-  obj[strings.Following] = toJsonArray(val.followingProcessValues);
-  toJsonValue(obj, strings.User, val.userValue);
-  obj[strings.Priorities] = toJsonArray(val.priorities);
+  obj[strings.Previous] = val.previousProcessValues;
+  obj[strings.Following] = val.followingProcessValues;
+  obj[strings.User] = val.userValue;
+  obj[strings.Priorities] = val.priorities;
 }
 
 template <>
-void JSONObjectWriter::write(Process::StateNodeValues& val)
+void JSONWriter::write(Process::StateNodeValues& val)
 {
-  fromJsonArray(obj[strings.Previous].toArray(), val.previousProcessValues);
-  fromJsonArray(obj[strings.Following].toArray(), val.followingProcessValues);
-  fromJsonValue(obj, strings.User, val.userValue);
-  fromJsonArray(obj[strings.Priorities].toArray(), val.priorities);
+  val.previousProcessValues <<= obj[strings.Previous];
+  val.followingProcessValues <<= obj[strings.Following];
+  val.userValue <<= obj[strings.User];
+  val.priorities <<= obj[strings.Priorities];
 }
 
 template <>
@@ -169,7 +95,7 @@ DataStreamWriter::write(Process::StateNodeData& node)
 
 template <>
 SCORE_LIB_PROCESS_EXPORT void
-JSONObjectReader::read(const Process::StateNodeData& node)
+JSONReader::read(const Process::StateNodeData& node)
 {
   readFrom(node.name);
   readFrom(node.values);
@@ -177,7 +103,7 @@ JSONObjectReader::read(const Process::StateNodeData& node)
 
 template <>
 SCORE_LIB_PROCESS_EXPORT void
-JSONObjectWriter::write(Process::StateNodeData& node)
+JSONWriter::write(Process::StateNodeData& node)
 {
   writeTo(node.name);
   writeTo(node.values);

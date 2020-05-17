@@ -7,10 +7,9 @@
 #include <Scenario/Commands/Scenario/Displacement/SerializableMoveEvent.hpp>
 #include <Scenario/Commands/ScenarioCommandFactory.hpp>
 
+#include <score/command/AggregateCommand.hpp>
 #include <score/model/Identifier.hpp>
 #include <score/model/path/Path.hpp>
-struct DataStreamInput;
-struct DataStreamOutput;
 
 namespace Scenario
 {
@@ -144,6 +143,22 @@ private:
   Path<Scenario::ProcessModel> m_scenario;
   Id<EventModel> m_eventId;
   std::unique_ptr<SerializableMoveEvent> m_moveEventImplementation{};
+};
+
+class MoveIntervalMacro final : public score::AggregateCommand
+{
+  SCORE_COMMAND_DECL(
+      CommandFactoryName(),
+      MoveIntervalMacro,
+      "Move an interval")
+};
+
+class MoveStateMacro final : public score::AggregateCommand
+{
+  SCORE_COMMAND_DECL(
+      CommandFactoryName(),
+      MoveStateMacro,
+      "Move a state")
 };
 }
 }

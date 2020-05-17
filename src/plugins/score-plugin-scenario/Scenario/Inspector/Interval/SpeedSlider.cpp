@@ -43,19 +43,22 @@ SpeedWidget::SpeedWidget(
   {
     // Buttons
     int btn_col = 0;
-    for (double factor : {0., 50., 100., 200., 500.})
+    for (double factor : {0., 0.5, 1., 2., 5.})
     {
-      auto pb = new QPushButton{"× " + QString::number(factor * 0.01), this};
+      auto pb = new QPushButton{"× " + QString::number(factor), this};
       pb->setMinimumWidth(35);
       pb->setMaximumWidth(45);
       pb->setFlat(true);
       pb->setContentsMargins(0, 0, 0, 0);
+
+#ifndef QT_NO_STYLE_STYLESHEET
       pb->setStyleSheet(
           "QPushButton { margin: 0px; padding: 0px; border:  1px solid #252930; "
           + score::ValueStylesheet + "}"
           + "QPushButton:hover { border: 1px solid #aaa;} ");
+#endif
 
-      connect(pb, &QPushButton::clicked, this, [=] { setSpeedFun(factor); });
+      connect(pb, &QPushButton::clicked, this, [=] { m_slider->setSpeed(factor); });
       lay->addWidget(pb, 1, btn_col++, 1, 1);
     }
   }
@@ -76,7 +79,7 @@ SpeedWidget::SpeedWidget(
   {
     lay->addWidget(m_slider, 0, 0, 1, 1);
   }
-  connect(m_slider, &score::SpeedSlider::doubleValueChanged, this, setSpeedFun);
+  connect(m_slider, &score::SpeedSlider::valueChanged, this, setSpeedFun);
 }
 
 SpeedWidget::~SpeedWidget() {}

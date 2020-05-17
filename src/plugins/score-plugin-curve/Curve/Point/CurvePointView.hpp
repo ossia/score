@@ -31,8 +31,8 @@ public:
   const PointModel& model() const;
   const Id<PointModel>& id() const;
 
-  static constexpr int static_type() { return QGraphicsItem::UserType + 100; }
-  int type() const override { return static_type(); }
+  static const constexpr int Type = QGraphicsItem::UserType + 100;
+  int type() const final override { return Type; }
 
   QRectF boundingRect() const override;
   void paint(

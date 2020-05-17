@@ -18,13 +18,13 @@ SCORE_LIB_BASE_EXPORT void DataStreamWriter::write(ObjectPath& path)
 }
 
 template <>
-SCORE_LIB_BASE_EXPORT void JSONObjectReader::read(const ObjectPath& path)
+SCORE_LIB_BASE_EXPORT void JSONReader::read(const ObjectPath& path)
 {
-  obj[strings.Identifiers] = toJsonArray(path.vec());
+  readFrom(path.vec());
 }
 
 template <>
-SCORE_LIB_BASE_EXPORT void JSONObjectWriter::write(ObjectPath& path)
+SCORE_LIB_BASE_EXPORT void JSONWriter::write(ObjectPath& path)
 {
-  fromJsonArray(obj[strings.Identifiers].toArray(), path.vec());
+  writeTo(path.vec());
 }

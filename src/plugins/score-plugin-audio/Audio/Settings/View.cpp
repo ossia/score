@@ -15,6 +15,7 @@ View::View()
   : m_widg{new QWidget}
 {
   auto lay = new QFormLayout{m_widg};
+  lay->setSpacing(10);
 
   // General settings
   SETTINGS_UI_TOGGLE_SETUP(

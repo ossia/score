@@ -1,5 +1,7 @@
 // This is an open source non-commercial project. Dear PVS-Studio, please check
 // it. PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+#include "HelperPanelDelegate.hpp"
+
 #include <score/actions/Menu.hpp>
 #include <score/plugins/application/GUIApplicationPlugin.hpp>
 #include <score/plugins/documentdelegate/DocumentDelegateView.hpp>
@@ -11,39 +13,37 @@
 #include <core/document/DocumentView.hpp>
 #include <core/presenter/Presenter.hpp>
 #include <core/view/Window.hpp>
+#include <core/view/FixedTabWidget.hpp>
 
 #include <ossia/detail/algorithms.hpp>
 
 #include <QCloseEvent>
 #include <QDockWidget>
 #include <QEvent>
-#include <QGuiApplication>
+#include <QToolTip>
+#include <QApplication>
 #include <QLabel>
 #include <QScreen>
+#include <QToolButton>
 #include <QSplitter>
 #include <QTabBar>
 #include <QTabWidget>
 #include <QVBoxLayout>
 #include <QWidget>
+#include <QStyleOptionTitleBar>
 #include <qcoreevent.h>
 #include <qnamespace.h>
 
 #include <wobjectimpl.h>
 
+#include <QPainter>
+#include <QPushButton>
+#include <QStackedWidget>
+#include <QToolBar>
 #include <set>
 W_OBJECT_IMPL(score::View)
 namespace score
 {
-struct PanelComparator
-{
-  bool operator()(
-      const QPair<score::PanelDelegate*, QDockWidget*>& lhs,
-      const QPair<score::PanelDelegate*, QDockWidget*>& rhs) const
-  {
-    return lhs.first->defaultPanelStatus().priority
-           < rhs.first->defaultPanelStatus().priority;
-  }
-};
 View::~View() {}
 
 static void
@@ -70,57 +70,184 @@ setTitle(View& view, const score::Document* document, bool save_state) noexcept
   view.setWindowTitle(title);
 }
 
-View::View(QObject* parent) : QMainWindow{}, m_tabWidget{new QTabWidget}
+class RectSplitter : public QSplitter
+{
+public:
+  QBrush brush ;
+  using QSplitter::QSplitter;
+  void paintEvent(QPaintEvent* ev) override
+  {if(brush == QBrush()) return;
+    QPainter p{this};
+    p.setPen(Qt::transparent);
+    p.setBrush(brush);
+    p.drawRoundedRect(rect(), 3, 3);
+  }
+};
+class RectWidget : public QWidget
+{
+public:
+  void paintEvent(QPaintEvent* ev) override
+  {
+    QPainter p{this};
+    p.setPen(Qt::transparent);
+    p.setBrush(QColor("#1F1F20"));
+    p.drawRect(rect());
+  }
+};
+/*
+class RectTabWidget: public QTabWidget
+{
+public:
+  using QTabWidget::QTabWidget;
+  void paintEvent(QPaintEvent* ev) override
+  {
+    QPainter p{this};
+    p.setPen(palette().color(QPalette::Button));
+    p.setBrush(QColor("#21FF25"));
+    p.drawRoundedRect(rect(), 3, 3);
+  }
+};
+*/
+class BottomToolbarWidget : public QWidget
+{
+public:
+  void paintEvent(QPaintEvent* ev) override
+  {
+    QPainter p{this};
+    p.fillRect(rect(), Qt::transparent);
+  }
+};
+
+class TitleBar : public QWidget
+{
+public:
+  TitleBar()
+  {
+    setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Fixed);
+  }
+
+  void setText(const QString& txt)
+  {
+    m_text = txt.toUpper();
+    update();
+  }
+
+  QSize sizeHint() const override
+  {
+    return {100, 19};
+  }
+
+  void paintEvent(QPaintEvent* ev) override
+  {
+    static const QFont font("Ubuntu", 11, QFont::Bold);
+    QPainter painter{this};
+    painter.setFont(font);
+    painter.drawText(rect(), Qt::AlignCenter, m_text);
+  }
+
+private:
+  QString m_text;
+};
+
+View::View(QObject* parent)
+  : QMainWindow{}
 {
   setAutoFillBackground(false);
-  //setAttribute(Qt::WA_OpaquePaintEvent);
   setObjectName("View");
-  this->setWindowIcon(QIcon("://ossia-score.png"));
-  m_tabWidget->setObjectName("Documents");
-
+  setWindowIcon(QIcon("://ossia-score.png"));
   setTitle(*this, nullptr, false);
 
-  // setUnifiedTitleAndToolBarOnMac(true);
+  setIconSize(QSize{24,24});
 
-  setDockOptions(QMainWindow::VerticalTabs | QMainWindow::ForceTabbedDocks);
-  setCorner(Qt::BottomLeftCorner, Qt::LeftDockWidgetArea);
-  setCorner(Qt::BottomRightCorner, Qt::RightDockWidgetArea);
-
+  auto leftLabel = new TitleBar;
+  leftTabs = new FixedTabWidget;
+  connect(leftTabs, &FixedTabWidget::actionTriggered,
+          this, [=] (QAction* act, bool b) {
+    leftLabel->setText(act->text());
+  });
+  ((QVBoxLayout*)leftTabs->layout())->insertWidget(0, leftLabel);
+  rightSplitter = new RectSplitter{Qt::Vertical};
   auto rect = QGuiApplication::primaryScreen()->availableGeometry();
   this->resize(
       static_cast<int>(rect.width() * 0.75),
       static_cast<int>(rect.height() * 0.75));
 
-  auto centralWidg = new QWidget;
-  centralWidg->setContentsMargins(0, 0, 0, 0);
-  auto lay = new score::MarginLess<QVBoxLayout>(centralWidg);
-  lay->addWidget(m_tabWidget);
-  setCentralWidget(centralWidg);
-  m_tabWidget->setContentsMargins(0, 0, 0, 0);
-  m_tabWidget->tabBar()->setDocumentMode(true);
-  m_tabWidget->tabBar()->setDrawBase(false);
-  m_tabWidget->tabBar()->setAutoHide(true);
+  auto totalWidg = new RectSplitter;
+  totalWidg->setContentsMargins(0,0,0,0);
+  totalWidg->addWidget(leftTabs);
 
-  m_bottomTabs = new QTabWidget;
-  m_bottomTabs->setVisible(false);
-  m_bottomTabs->setTabPosition(QTabWidget::South);
-  m_bottomTabs->setTabsClosable(false);
+  {
+    auto rs = new RectSplitter{Qt::Vertical};
+    rs->brush = QColor("#1D1D1D");
+    centralDocumentWidget = rs;
+    totalWidg->addWidget(centralDocumentWidget);
+    centralDocumentWidget->setContentsMargins(0, 0, 0, 0);
 
-  m_bottomTabs->setContentsMargins(0, 0, 0, 0);
-  m_bottomTabs->tabBar()->setDocumentMode(false);
-  m_bottomTabs->tabBar()->setDrawBase(false);
-  m_bottomTabs->tabBar()->setAutoHide(true);
-  m_bottomTabs->tabBar()->setContentsMargins(0, 0, 0, 0);
+    //auto lay = new score::MarginLess<QVBoxLayout>(centralDocumentWidget);
+    centralTabs = new QTabWidget;
+    centralTabs->setContentsMargins(0, 0, 0, 0);
+    centralTabs->setMovable(false);
 
-  lay->addWidget(m_bottomTabs);
+    centralTabs->setObjectName("Documents");
+    centralTabs->setContentsMargins(0, 0, 0, 0);
+    centralTabs->tabBar()->setDocumentMode(true);
+    centralTabs->tabBar()->setDrawBase(false);
+    centralTabs->tabBar()->setAutoHide(true);
+    //centralTabs->setSizePolicy(QSizePolicy::Minimum,QSizePolicy::Minimum);
+    rs->addWidget(centralTabs);
+
+    transportBar = new BottomToolbarWidget;
+    auto transportLay = new score::MarginLess<QGridLayout>{transportBar};
+    QPalette pal;
+    pal.setColor(QPalette::Window, Qt::blue);
+    transportBar->setPalette(pal);
+    transportBar->setFixedHeight(35);
+    rs->addWidget(transportBar);
+
+    bottomTabs = new FixedTabWidget;
+    bottomTabs->brush = qApp->palette().brush(QPalette::Window);
+    bottomTabs->setContentsMargins(0, 0, 0, 0);
+    bottomTabs->setMaximumHeight(300);
+#if QT_VESION >= QT_VERSION_CHECK(5, 14, 0)
+    bottomTabs->actionGroup()->setExclusionPolicy(QActionGroup::ExclusionPolicy::ExclusiveOptional);
+#endif
+    rs->addWidget(bottomTabs);
+    rs->setCollapsible(0, false);
+    rs->setCollapsible(1, false);
+    rs->setCollapsible(2, true);
+    QList<int> sz = rs->sizes();
+    sz[2] = 0;
+    rs->setSizes(sz);
+    connect(bottomTabs, &FixedTabWidget::actionTriggered, this, [rs, leftLabel, this] (QAction* act, bool ok) {
+      if(ok)
+      {
+        QList<int> sz = rs->sizes();
+        if(sz[2] <= 1)
+        {
+          sz[2] = 200;
+          rs->setSizes(sz);
+        }
+      }
+      else
+      {
+        QList<int> sz = rs->sizes();
+        sz[2] = 0;
+        rs->setSizes(sz);
+      }
+    });
+  }
+  totalWidg->addWidget(rightSplitter);
+  totalWidg->setHandleWidth(1);
+
+  setCentralWidget(totalWidg);
   connect(
-      m_tabWidget,
+      centralTabs,
       &QTabWidget::currentChanged,
       this,
       [&](int index) {
         static QMetaObject::Connection saved_connection;
         QObject::disconnect(saved_connection);
-        auto widg = m_tabWidget->widget(index);
+        auto widg = centralTabs->widget(index);
         auto doc = m_documents.find(widg);
         if (doc == m_documents.end())
         {
@@ -142,9 +269,9 @@ View::View(QObject* parent) : QMainWindow{}, m_tabWidget{new QTabWidget}
       },
       Qt::QueuedConnection);
 
-  connect(m_tabWidget, &QTabWidget::tabCloseRequested, this, [&](int index) {
+  connect(centralTabs, &QTabWidget::tabCloseRequested, this, [&](int index) {
     closeRequested(
-        m_documents.at(m_tabWidget->widget(index))->document().model().id());
+        m_documents.at(centralTabs->widget(index))->document().model().id());
   });
 }
 void View::setPresenter(Presenter* p)
@@ -156,50 +283,12 @@ void View::addDocumentView(DocumentView* doc)
   doc->setParent(this);
   auto widg = doc->viewDelegate().getWidget();
   m_documents.insert(std::make_pair(widg, doc));
-  m_tabWidget->addTab(widg, doc->document().metadata().fileName());
-  m_tabWidget->setCurrentIndex(m_tabWidget->count() - 1);
-  m_tabWidget->setTabsClosable(true);
+  centralTabs->addTab(widg, doc->document().metadata().fileName());
+  centralTabs->setCurrentIndex(centralTabs->count() - 1);
+  centralTabs->setTabsClosable(true);
   sizeChanged(size());
 }
 
-class HelperPanelDelegate : public PanelDelegate
-{
-public:
-  HelperPanelDelegate(const score::GUIApplicationContext& ctx)
-      : PanelDelegate{ctx}
-  {
-    widg = new QWidget;
-    widg->setContentsMargins(3, 2, 3, 2);
-    widg->setMinimumHeight(60);
-    widg->setMaximumHeight(60);
-    widg->setMinimumWidth(250);
-
-    auto l = new score::MarginLess<QVBoxLayout>{widg};
-
-    status = new QLabel;
-    status->setTextFormat(Qt::RichText);
-    status->setText("<i>Remember those quiet evenings</i>");
-    status->setWordWrap(true);
-    status->setStyleSheet("color: #787876;");
-    l->addWidget(status);
-    l->addStretch(12);
-  }
-
-  QWidget* widget() override { return widg; }
-
-  const PanelStatus& defaultPanelStatus() const override
-  {
-    static const PanelStatus stat{true,
-                                  true,
-                                  Qt::RightDockWidgetArea,
-                                  -100000,
-                                  "Info",
-                                  QKeySequence::HelpContents};
-    return stat;
-  }
-  QWidget* widg{};
-  QLabel* status{};
-};
 void View::setupPanel(PanelDelegate* v)
 {
   {
@@ -216,130 +305,92 @@ void View::setupPanel(PanelDelegate* v)
   using namespace std;
   auto w = v->widget();
 
-  if (v->defaultPanelStatus().dock == Qt::BottomDockWidgetArea)
-  {
-    m_bottomTabs->addTab(w, v->defaultPanelStatus().prettyName);
-
-    auto& mw = v->context().menus.get().at(score::Menus::Windows());
-    auto toggle = new QAction{v->defaultPanelStatus().prettyName.toUpper(), this};
-    toggle->setCheckable(true);
-    toggle->setShortcut(v->defaultPanelStatus().shortcut);
-    addAction(toggle);
-    connect(toggle, &QAction::toggled, this, [=] (bool b) {
-        m_bottomTabs->setVisible(b);
-        m_bottomTabs->setCurrentWidget(w);
-    });
-
-    mw.menu()->addAction(toggle);
-
-    if(v->defaultPanelStatus().shown)
-        toggle->toggle();
-    return;
-  }
-
-  auto dial
-      = new QDockWidget{v->defaultPanelStatus().prettyName.toUpper(), this};
-  if (v->defaultPanelStatus().fixed)
-    dial->setFeatures(QDockWidget::DockWidgetFeature::DockWidgetClosable);
-
-  dial->setWidget(w);
-  dial->setStatusTip(w->statusTip());
-  dial->toggleViewAction()->setShortcut(v->defaultPanelStatus().shortcut);
-
-  auto& mw = v->context().menus.get().at(score::Menus::Windows());
-  mw.menu()->addAction(dial->toggleViewAction());
-
-  // Note : this only has meaning at initialisation time.
-  auto dock = v->defaultPanelStatus().dock;
-
-  switch (dock)
+  QAction* toggle{};
+  // Add the panel
+  switch (v->defaultPanelStatus().dock)
   {
     case Qt::LeftDockWidgetArea:
     {
-      addDockWidget(dock, dial);
-      m_leftPanels.push_back({v, dial});
-      if (m_leftPanels.size() > 1)
-      {
-        // Find the one with the biggest priority
-        auto it = ossia::max_element(m_leftPanels, PanelComparator{});
+      auto [idx, act] = leftTabs->addTab(w, v->defaultPanelStatus());
+      toggle = act;
 
-        if (dial != it->second)
+      break;
+    }
+    case Qt::RightDockWidgetArea:
+    {
+      rightSplitter->insertWidget(0, w);
+
+      break;
+    }
+    case Qt::BottomDockWidgetArea:
+    {
+      auto [tabIdx, act] = bottomTabs->addTab(w, v->defaultPanelStatus());
+      toggle = act;
+
+      break;
+    }
+    default:
+      SCORE_ABORT;
+  }
+
+  if(toggle)
+  {
+    auto& mw = v->context().menus.get().at(score::Menus::Windows());
+    addAction(toggle);
+    mw.menu()->addAction(toggle);
+
+    // Maybe show the panel
+    if(v->defaultPanelStatus().shown)
+        toggle->toggle();
+  }
+}
+
+void View::allPanelsAdded()
+{
+  for(auto& panel : score::GUIAppContext().panels())
+  {
+    if(panel.defaultPanelStatus().prettyName == QObject::tr("Inspector"))
+    {
+      auto splitter = (RectSplitter*)centralWidget();
+      rightSplitter->insertWidget(1, panel.widget());
+
+      auto act = bottomTabs->addAction(rightSplitter->widget(1), panel.defaultPanelStatus());
+      bottomTabs->actionGroup()->removeAction(act);
+      act->setChecked(true);
+      connect(act, &QAction::toggled, this, [splitter] (bool ok) {
+        QList<int> sz = splitter->sizes();
+        if(ok)
         {
-          // dial is not on top
-          tabifyDockWidget(dial, it->second);
-          it->second->raise();
+          if(sz[2] <= 1)
+          {
+            sz[2] = 200;
+            splitter->setSizes(sz);
+          }
         }
         else
         {
-          // dial is on top
-          auto it = ossia::find_if(
-              m_leftPanels, [=](auto elt) { return elt.second != dial; });
-          SCORE_ASSERT(it != m_leftPanels.end());
-          tabifyDockWidget(it->second, dial);
-          dial->raise();
+          sz[2] = 0;
+          splitter->setSizes(sz);
         }
-      }
-      break;
-    }
-
-    case Qt::RightDockWidgetArea:
-    {
-      m_rightPanels.push_back({v, dial});
-      if (m_rightPanels.size() > 1)
-      {
-        ossia::sort(m_rightPanels, PanelComparator{});
-        for (auto it = m_rightPanels.rbegin(); it != m_rightPanels.rend();
-             ++it)
-        {
-          addDockWidget(dock, it->second);
-          it->second->raise();
-        }
-      }
-      else
-      {
-        addDockWidget(dock, dial);
-      }
-
-      break;
-    }
-
-    case Qt::TopDockWidgetArea:
-    {
-      addDockWidget(dock, dial);
-      break;
-    }
-
-    case Qt::BottomDockWidgetArea:
-    {
-      addDockWidget(dock, dial);
-      break;
-    }
-
-    default:
-    {
-      addDockWidget(dock, dial);
+      });
       break;
     }
   }
-  // TODO why isn't there a title and how to access it ?
 
-  if (auto title = dial->titleBarWidget())
-    title->setStatusTip(w->statusTip());
-
-  if (!v->defaultPanelStatus().shown)
-    dial->hide();
+  // Show the device explorer first
+  leftTabs->toolbar()->actions().front()->trigger();
 }
 
 void View::closeDocument(DocumentView* doc)
 {
-  for (int i = 0; i < m_tabWidget->count(); i++)
+  for (int i = 0; i < centralTabs->count(); i++)
   {
     auto widg = doc->viewDelegate().getWidget();
-    if (widg == m_tabWidget->widget(i))
+    if (widg == centralTabs->widget(i))
     {
       m_documents.erase(widg);
 
-      m_tabWidget->removeTab(i);
+      centralTabs->removeTab(i);
       return;
     }
   }
@@ -347,19 +398,6 @@ void View::closeDocument(DocumentView* doc)
 
 void View::restoreLayout()
 {
-  for (auto panels : {m_leftPanels, m_rightPanels})
-  {
-    ossia::sort(panels, PanelComparator{});
-
-    for (auto& panel : panels)
-    {
-      auto dock = panel.second;
-      if (dock->isFloating())
-      {
-        dock->setFloating(false);
-      }
-    }
-  }
 }
 
 void View::closeEvent(QCloseEvent* ev)
@@ -376,9 +414,9 @@ void View::closeEvent(QCloseEvent* ev)
 
 void View::on_fileNameChanged(DocumentView* d, const QString& newName)
 {
-  for (int i = 0; i < m_tabWidget->count(); i++)
+  for (int i = 0; i < centralTabs->count(); i++)
   {
-    if (d->viewDelegate().getWidget() == m_tabWidget->widget(i))
+    if (d->viewDelegate().getWidget() == centralTabs->widget(i))
     {
       QString n = newName;
       while (n.contains("/"))
@@ -386,7 +424,7 @@ void View::on_fileNameChanged(DocumentView* d, const QString& newName)
         n.remove(0, n.indexOf("/") + 1);
       }
       n.truncate(n.lastIndexOf("."));
-      m_tabWidget->setTabText(i, n);
+      centralTabs->setTabText(i, n);
       return;
     }
   }
@@ -431,7 +469,19 @@ bool score::View::event(QEvent* event)
     tip.replace(QChar('\n'), "</br>");
     m_status->setText(tip);
   }
+  else if (event->type() == QEvent::ToolTip)
+  {
+    auto tip = ((QHelpEvent*)event)->globalPos();
+    auto pos = mapFromGlobal(tip);
+    if(auto w = childAt(pos))
+    {
+      m_status->setText(w->statusTip());
+    }
+  }
 
   return QMainWindow::event(event);
 }
+
+
 }
+

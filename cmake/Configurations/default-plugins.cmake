@@ -19,16 +19,16 @@ score-plugin-scenario
 
 score-plugin-loop
 
-
 score-plugin-protocols
-score-plugin-audio
 
+score-plugin-audio
 score-plugin-engine
 
 score-plugin-dataflow
 
 score-plugin-media
 score-plugin-fx
+
 score-plugin-js
 score-plugin-midi
 score-plugin-recording
@@ -38,4 +38,6 @@ score-addon-controlsurface
 score-addon-remotecontrol
 
 score-plugin-ui
+
+score-addon-gfx
 )

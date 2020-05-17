@@ -84,12 +84,12 @@ void DataStreamWriter::write(Curve::LinearSegment& segmt)
 }
 
 template <>
-void JSONObjectReader::read(const Curve::LinearSegment& segmt)
+void JSONReader::read(const Curve::LinearSegment& segmt)
 {
 }
 
 template <>
-void JSONObjectWriter::write(Curve::LinearSegment& segmt)
+void JSONWriter::write(Curve::LinearSegment& segmt)
 {
 }
 
@@ -104,11 +104,11 @@ void DataStreamWriter::write(Curve::LinearSegmentData& segmt)
 }
 
 template <>
-void JSONObjectReader::read(const Curve::LinearSegmentData& segmt)
+void JSONReader::read(const Curve::LinearSegmentData& segmt)
 {
 }
 
 template <>
-void JSONObjectWriter::write(Curve::LinearSegmentData& segmt)
+void JSONWriter::write(Curve::LinearSegmentData& segmt)
 {
 }

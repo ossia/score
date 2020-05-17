@@ -21,7 +21,7 @@ cd ./$BUILD_DIR
   git clone https://github.com/OSSIA/score
   cd score/
   git checkout $TRAVIS_COMMIT
-  git submodule update --init --recursive
+  git submodule update --init
 )
 # Build score in the AppDir
 mkdir -p $APP.AppDir/usr
@@ -58,7 +58,6 @@ export QTDIR=$(find /usr/local -type d -name 'Qt-5.*')
     mkdir -p ./usr/lib/qt5/plugins/platformthemes
     mkdir -p ./usr/lib/qt5/plugins/imageformats
     mkdir -p ./usr/lib/qt5/plugins/iconengines
-    mkdir -p ./usr/lib/qt5/plugins/quick
     mkdir -p ./usr/lib/qt5/qml
     cp -rf "$QTDIR/plugins/platforms/libqxcb.so"  ./usr/lib/qt5/plugins/platforms || true
     cp -rf "$QTDIR/plugins/platforms/libqwayland-generic.so"  ./usr/lib/qt5/plugins/platforms || true
@@ -69,8 +68,6 @@ export QTDIR=$(find /usr/local -type d -name 'Qt-5.*')
     cp -rf "$QTDIR/plugins/imageformats/libqtga.so"  ./usr/lib/qt5/plugins/imageformats || true
     cp -rf "$QTDIR/plugins/imageformats/libqtiff.so"  ./usr/lib/qt5/plugins/imageformats || true
     cp -rf "$QTDIR/plugins/iconengines/libqsvgicon.so"  ./usr/lib/qt5/plugins/iconengines || true
-    cp -rf "$QTDIR/qml/QtQuick.2/libqtquick2plugin.so"  ./usr/lib/qt5/plugins/quick || true
-    cp -rf "$QTDIR/qml/QtQuick.2"  ./usr/lib/qt5/qml || true
 
     # Fonts
     mkdir -p ./usr/bin/lib/fonts
@@ -92,17 +89,14 @@ export QTDIR=$(find /usr/local -type d -name 'Qt-5.*')
     ldd usr/lib/qt5/plugins/platforms/libqxcb.so | grep "=>" | awk '{print $3}'  |  xargs -I '{}' cp -v '{}' ./usr/lib || true
     ldd usr/lib/qt5/plugins/imageformats/libqsvg.so | grep "=>" | awk '{print $3}'  |  xargs -I '{}' cp -v '{}' ./usr/lib || true
     ldd usr/lib/qt5/plugins/iconengines/libqsvgicon.so | grep "=>" | awk '{print $3}'  |  xargs -I '{}' cp -v '{}' ./usr/lib || true
-    ldd usr/lib/qt5/plugins/quick/libqtquick2plugin.so | grep "=>" | awk '{print $3}'  |  xargs -I '{}' cp -v '{}' ./usr/lib || true
 
     cp -v $QTDIR/lib/libQt5XcbQpa.so.5 ./usr/lib || true
     ldd ./usr/lib/libQt5XcbQpa.so.5 | grep "=>" | awk '{print $3}'  |  xargs -I '{}' cp -v '{}' ./usr/lib || true
     cp -v $QTDIR/lib/libQt5DBus.so.5 ./usr/lib || true
-    cp -v $QTDIR/lib/libQt5QuickControls2.so.5 ./usr/lib || true
-    cp -v $QTDIR/lib/libQt5QuickTemplates2.so.5 ./usr/lib || true
     cp -v $QTDIR/lib/libQt5WebSockets.so.5 ./usr/lib || true
     cp -v $QTDIR/lib/libQt5SerialPort.so.5 ./usr/lib || true
     cp -v $QTDIR/lib/libQt5Xml.so.5 ./usr/lib || true
-    cp -v $QTDIR/lib/libQt5Quick.so.5 ./usr/lib || true
+    cp -v $QTDIR/lib/libQt5OpenGL.so.5 ./usr/lib || true
     cp -v $QTDIR/lib/libQt5Network.so.5 ./usr/lib || true
     cp -v $QTDIR/lib/libQt5Svg.so.5 ./usr/lib || true
     cp -v $QTDIR/lib/libQt5Widgets.so.5 ./usr/lib || true

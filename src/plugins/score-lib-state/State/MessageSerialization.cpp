@@ -9,22 +9,12 @@
 
 #include <score/serialization/DataStreamVisitor.hpp>
 
-#include <QJsonValue>
-
 template <>
 SCORE_LIB_STATE_EXPORT void DataStreamReader::read(const State::Message& mess)
 {
   readFrom(mess.address);
   readFrom(mess.value);
   insertDelimiter();
-}
-
-template <>
-SCORE_LIB_STATE_EXPORT void JSONObjectReader::read(const State::Message& mess)
-{
-  obj[strings.Address] = toJsonObject(mess.address);
-  obj[strings.Type] = State::convert::textualType(mess.value);
-  obj[strings.Value] = ValueToJson(mess.value);
 }
 
 template <>
@@ -37,9 +27,17 @@ SCORE_LIB_STATE_EXPORT void DataStreamWriter::write(State::Message& mess)
 }
 
 template <>
-SCORE_LIB_STATE_EXPORT void JSONObjectWriter::write(State::Message& mess)
+SCORE_LIB_STATE_EXPORT void JSONReader::read(const State::Message& mess)
 {
-  mess.address = fromJsonObject<State::AddressAccessor>(obj[strings.Address]);
-  mess.value = State::convert::fromQJsonValue(
-      obj[strings.Value], obj[strings.Type].toString());
+  stream.StartObject();
+  obj[strings.Address] = mess.address;
+  obj[strings.Value] = mess.value;
+  stream.EndObject();
+}
+
+template <>
+SCORE_LIB_STATE_EXPORT void JSONWriter::write(State::Message& mess)
+{
+  mess.address <<= obj[strings.Address];
+  mess.value <<= obj[strings.Value];
 }

@@ -1,4 +1,4 @@
-import QtQuick 2.0
-QtObject { 
-	property var value
+import QtQml 2.0
+QtObject {
+    property var value
 }

@@ -25,7 +25,8 @@ SOFTWARE.
 #include <QMenu>
 #include <QStringList>
 #include <wobjectdefs.h>
-class QRecentFilesMenu final : public QMenu
+#include <score_lib_base_export.h>
+class SCORE_LIB_BASE_EXPORT QRecentFilesMenu final : public QMenu
 {
     W_OBJECT(QRecentFilesMenu)
 public:
@@ -75,6 +76,7 @@ public:
 
     //! Sets the maximum number of entries int he menu.
     void setMaxCount(int);
+
 public:
     //! This signal is emitted when a recent file in this menu is triggered.
     void recentFileTriggered(const QString & filename)

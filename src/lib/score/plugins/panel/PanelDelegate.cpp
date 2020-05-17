@@ -11,12 +11,21 @@ PanelStatus::PanelStatus(
     Qt::DockWidgetArea d,
     int prio,
     QString name,
+    QString icon,
     const QKeySequence& sc)
     : shown{isShown}
     , fixed{fixed}
     , dock{d}
     , priority{prio}
     , prettyName{std::move(name)}
+    , icon{[&icon] {
+        QIcon ico;
+        ico.addFile(":/icons/" + icon + "_on.png", {}, QIcon::Mode::Active);
+        ico.addFile(":/icons/" + icon + "_on.png", {}, QIcon::Mode::Normal, QIcon::State::On);
+        ico.addFile(":/icons/" + icon + "_off.png", {}, QIcon::Mode::Normal, QIcon::State::Off);
+        ico.addFile(":/icons/" + icon + "_on.png", {}, QIcon::Mode::Selected);
+        return ico;
+      }()}
     , shortcut(sc)
 {
 }

@@ -95,30 +95,25 @@ void Minimap::paint(
 {
   auto& sk = Process::Style::instance();
   painter->setRenderHint(QPainter::Antialiasing, false);
-  painter->setPen(sk.NoPen());
-  painter->setBrush(sk.MinimapBrush());
-  painter->drawRect(
-      QRectF{m_leftHandle, 1., m_rightHandle - m_leftHandle, m_height - 2.});
+  painter->fillRect(
+      QRectF{m_leftHandle, 0., m_rightHandle - m_leftHandle, m_height }, sk.MinimapBrush());
 
   painter->setPen(sk.MinimapPen());
 
-  QGraphicsView* view = ::getView(*this);
-  const double offset = (view && view->devicePixelRatioF() > 1.) ? 0.5 : 0.;
-
   const double line_length = 5;
-  const QPointF top_left{m_leftHandle + 1. - offset, 1.5};
+  const QPointF top_left{m_leftHandle + 1., 0};
   painter->drawLine(top_left, top_left + QPointF{line_length, 0.});
   painter->drawLine(top_left, top_left + QPointF{0., line_length});
 
-  const QPointF top_right{m_rightHandle - 1. + offset, 1.5};
+  const QPointF top_right{m_rightHandle - 1., 0};
   painter->drawLine(top_right, top_right + QPointF{-line_length, 0.});
   painter->drawLine(top_right, top_right + QPointF{0., line_length});
 
-  const QPointF bottom_left{m_leftHandle + 1. - offset, m_height - 2. + offset};
+  const QPointF bottom_left{m_leftHandle + 1., m_height - 0.5};
   painter->drawLine(bottom_left, bottom_left + QPointF{line_length, 0.});
   painter->drawLine(bottom_left, bottom_left + QPointF{0., -line_length});
 
-  const QPointF bottom_right{m_rightHandle - 1. + offset, m_height - 2. + offset};
+  const QPointF bottom_right{m_rightHandle - 1., m_height - 0.5};
   painter->drawLine(bottom_right, bottom_right + QPointF{-line_length, 0.});
   painter->drawLine(bottom_right, bottom_right + QPointF{0., -line_length});
 }
@@ -244,12 +239,14 @@ void Minimap::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* ev)
 
 void Minimap::hoverEnterEvent(QGraphicsSceneHoverEvent* ev)
 {
+  auto& skin = score::Skin::instance();
+
   const auto pos_x = ev->pos().x();
   if (std::abs(pos_x - m_leftHandle) < 3.)
   {
     if (!m_setCursor)
     {
-      QApplication::setOverrideCursor(Qt::SizeHorCursor);
+      QApplication::setOverrideCursor(skin.CursorScaleH);
       m_setCursor = true;
     }
   }
@@ -257,7 +254,7 @@ void Minimap::hoverEnterEvent(QGraphicsSceneHoverEvent* ev)
   {
     if (!m_setCursor)
     {
-      QApplication::setOverrideCursor(Qt::SizeHorCursor);
+      QApplication::setOverrideCursor(skin.CursorScaleH);
       m_setCursor = true;
     }
   }
@@ -265,7 +262,7 @@ void Minimap::hoverEnterEvent(QGraphicsSceneHoverEvent* ev)
   {
     if (!m_setCursor)
     {
-      QApplication::setOverrideCursor(Qt::SizeAllCursor);
+      QApplication::setOverrideCursor(skin.CursorMagnifier);
       m_setCursor = true;
     }
   }

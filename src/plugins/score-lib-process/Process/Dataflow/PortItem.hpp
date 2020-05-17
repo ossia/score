@@ -54,14 +54,9 @@ public:
   void setHighlight(bool b);
 
   using QGraphicsItem::dropEvent;
-  static constexpr int static_type() noexcept
-  {
-    return QGraphicsItem::UserType + 700;
-  }
-  int type() const override
-  {
-    return QGraphicsItem::UserType + 700;
-  }
+  static const constexpr int Type = QGraphicsItem::UserType + 700;
+  int type() const final override { return Type; }
+
   void createCable(PortItem* src, PortItem* snk)
       E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, createCable, src, snk)
   void contextMenuRequested(QPointF scenepos, QPoint pos)

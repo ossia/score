@@ -63,8 +63,7 @@ private:
   Explorer::DeviceDocumentPlugin& m_dev;
   std::list<Path<Scenario::TimeSyncModel>> m_activeSyncs;
 
-  std::map<QString, std::function<void(const QJsonObject&, const WSClient&)>>
-      m_answers;
+  std::map<QString, std::function<void(const rapidjson::Value&, const WSClient&)>> m_answers;
   score::hash_map<::State::Address, WSClient> m_listenedAddresses;
 };
 

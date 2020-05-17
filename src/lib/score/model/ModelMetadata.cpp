@@ -9,8 +9,6 @@
 #include <ossia-qt/js_utilities.hpp>
 #include <ossia/network/base/name_validation.hpp>
 
-#include <QJsonObject>
-
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(score::ModelMetadata)
 namespace score
@@ -202,8 +200,9 @@ SCORE_LIB_BASE_EXPORT void DataStreamWriter::write(score::ModelMetadata& md)
 
 template <>
 SCORE_LIB_BASE_EXPORT void
-JSONObjectReader::read(const score::ModelMetadata& md)
+JSONReader::read(const score::ModelMetadata& md)
 {
+  stream.StartObject();
   obj[strings.ScriptingName] = md.m_scriptingName;
   obj[strings.Comment] = md.m_comment;
   obj[strings.Color] = md.m_color.name();
@@ -211,30 +210,19 @@ JSONObjectReader::read(const score::ModelMetadata& md)
   obj[strings.Touched] = md.m_touchedName;
   if (!md.m_extendedMetadata.empty())
   {
-    obj.insert(
-        strings.Extended, QJsonObject::fromVariantMap(md.m_extendedMetadata));
+    obj[strings.Extended] = md.m_extendedMetadata;
   }
+  stream.EndObject();
 }
 
 template <>
-SCORE_LIB_BASE_EXPORT void JSONObjectWriter::write(score::ModelMetadata& md)
+SCORE_LIB_BASE_EXPORT void JSONWriter::write(score::ModelMetadata& md)
 {
   md.m_scriptingName = obj[strings.ScriptingName].toString();
   md.m_comment = obj[strings.Comment].toString();
 
-  QJsonValue color_val = obj[strings.Color];
-  if (color_val.isArray())
-  {
-    // Old save format
-    const auto& color = color_val.toArray();
-    QColor col(color[0].toInt(), color[1].toInt(), color[2].toInt());
-    auto sim_col = score::ColorRef::SimilarColor(col);
-    if (sim_col)
-      md.m_color = *sim_col;
-    else
-      md.m_color = score::Skin::instance().fromString("Base1");
-  }
-  else if (color_val.isString())
+  const auto& color_val = obj[strings.Color];
+  if (color_val.isString())
   {
     auto col_name = color_val.toString();
     auto col = score::ColorRef::ColorFromString(col_name);
@@ -253,10 +241,9 @@ SCORE_LIB_BASE_EXPORT void JSONObjectWriter::write(score::ModelMetadata& md)
   md.m_label = obj[strings.Label].toString();
 
   {
-    auto it = obj.find(strings.Extended);
-    if (it != obj.end())
+    if (auto map = obj.tryGet(strings.Extended))
     {
-      md.m_extendedMetadata = it->toObject().toVariantMap();
+      md.m_extendedMetadata <<= *map;
     }
   }
 

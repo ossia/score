@@ -160,6 +160,7 @@ public:
 
   ObjectIdentifierVector& vec() noexcept { return m_objectIdentifiers; }
 
+  void resetCache() const noexcept { m_cache = {}; }
 private:
   // Throws
   QObject* find_impl(const score::DocumentContext& ctx) const;

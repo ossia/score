@@ -32,8 +32,8 @@ InspectorPanelWidget::InspectorPanelWidget(
     , m_list{list}
     , m_selectionDispatcher{s}
 {
-  m_layout->setContentsMargins(0, 0, 0, 0);
-  m_layout->setSpacing(0);
+  // m_layout->setContentsMargins(0, 0, 0, 0);
+  // m_layout->setSpacing(0);
 }
 
 void InspectorPanelWidget::newItemsInspected(const Selection& objects)

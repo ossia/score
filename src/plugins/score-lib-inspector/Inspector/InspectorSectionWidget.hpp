@@ -1,5 +1,6 @@
 #pragma once
 #include <score/widgets/MarginLess.hpp>
+#include <score/widgets/ArrowButton.hpp>
 
 #include <QLineEdit>
 #include <QPushButton>
@@ -14,7 +15,7 @@ class QMenu;
 
 namespace Inspector
 {
-class SCORE_LIB_INSPECTOR_EXPORT MenuButton final : public QPushButton
+class SCORE_LIB_INSPECTOR_EXPORT MenuButton final : public QToolButton
 {
 public:
   MenuButton(QWidget* parent);
@@ -69,7 +70,7 @@ private:
   QWidget m_title;
   score::MarginLess<QHBoxLayout> m_titleLayout;
 
-  QToolButton m_unfoldBtn; /*!< button for the fold/unfold action */
+  score::ArrowButton m_unfoldBtn; /*!< button for the fold/unfold action */
 
   QPushButton m_buttonTitle;
   QLineEdit m_sectionTitle; /*!< header label editable ? */

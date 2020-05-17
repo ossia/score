@@ -25,9 +25,9 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="11.313709"
-     inkscape:cx="8.8340673"
-     inkscape:cy="9.2021125"
+     inkscape:zoom="24.633836"
+     inkscape:cx="-1.7277511"
+     inkscape:cy="10.284165"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      showgrid="false"
@@ -55,11 +55,25 @@
      id="layer1"
      transform="translate(0,-290.64998)"
      style="display:inline">
+    <ellipse
+       style="opacity:1;vector-effect:none;fill:#f6a019;fill-opacity:1;fill-rule:nonzero;stroke:#f6a019;stroke-width:0.26846945;stroke-linecap:square;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;paint-order:stroke fill markers"
+       id="path8"
+       cx="3.175"
+       cy="293.69168"
+       rx="0.39493191"
+       ry="0.39493194" />
     <path
-       style="color:#000000;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:medium;line-height:normal;font-family:sans-serif;font-variant-ligatures:normal;font-variant-position:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-alternates:normal;font-feature-settings:normal;text-indent:0;text-align:start;text-decoration:none;text-decoration-line:none;text-decoration-style:solid;text-decoration-color:#000000;letter-spacing:normal;word-spacing:normal;text-transform:none;writing-mode:lr-tb;direction:ltr;text-orientation:mixed;dominant-baseline:auto;baseline-shift:baseline;text-anchor:start;white-space:normal;shape-padding:0;clip-rule:nonzero;display:inline;overflow:visible;visibility:visible;opacity:1;isolation:auto;mix-blend-mode:normal;color-interpolation:sRGB;color-interpolation-filters:linearRGB;solid-color:#000000;solid-opacity:1;vector-effect:none;fill:#f6a019;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:0.49382868;stroke-linecap:square;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;paint-order:stroke fill markers;color-rendering:auto;image-rendering:auto;shape-rendering:auto;text-rendering:auto;enable-background:accumulate"
-       d="m 0.52929688,291.70773 v 0.24805 3.98645 H 5.8203125 v -3.70496 H 2.9104167 L 2.3812175,291.70773 H 1.1906738 Z m 0.49414062,1.02331 h 1.0756836 1.0756836 2.1513672 v 2.71705 H 1.0234375 Z"
-       id="rect19"
+       style="fill:#f6a019;fill-opacity:1;stroke:#f6a019;stroke-width:0.22448973;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       d="m 2.3812218,295.03565 c -0.1623461,0 0.2035898,-0.76189 0.3968751,-0.76189 h 0.79375 c 0.2496681,0 0.5552908,0.76189 0.3968749,0.76189 z"
+       id="path10"
        inkscape:connector-curvature="0"
-       sodipodi:nodetypes="cccccccccccccccc" />
+       sodipodi:nodetypes="sssss" />
+    <path
+       transform="translate(0,4.7885827e-6)"
+       style="display:inline;color:#000000;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:medium;line-height:normal;font-family:sans-serif;font-variant-ligatures:normal;font-variant-position:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-alternates:normal;font-feature-settings:normal;text-indent:0;text-align:start;text-decoration:none;text-decoration-line:none;text-decoration-style:solid;text-decoration-color:#000000;letter-spacing:normal;word-spacing:normal;text-transform:none;writing-mode:lr-tb;direction:ltr;text-orientation:mixed;dominant-baseline:auto;baseline-shift:baseline;text-anchor:start;white-space:normal;shape-padding:0;clip-rule:nonzero;overflow:visible;visibility:visible;opacity:1;isolation:auto;mix-blend-mode:normal;color-interpolation:sRGB;color-interpolation-filters:linearRGB;solid-color:#000000;solid-opacity:1;vector-effect:none;fill:#f6a019;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:0.49382868;stroke-linecap:square;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;paint-order:stroke fill markers;color-rendering:auto;image-rendering:auto;shape-rendering:auto;text-rendering:auto;enable-background:accumulate"
+       d="m 0.5292969,291.70773 v 0.24805 3.98587 h 5.2915365 v -3.70438 H 2.9104167 L 2.3812175,291.70773 H 1.1906738 Z m 0.5290365,1.05892 h 4.2333333 v 2.64583 H 1.0583334 Z"
+       id="rect19-3"
+       inkscape:connector-curvature="0"
+       sodipodi:nodetypes="cccccccccccccc" />
   </g>
 </svg>

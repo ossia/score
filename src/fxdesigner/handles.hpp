@@ -16,7 +16,8 @@ class MoveHandle
 public:
   MoveHandle()
   {
-    setCursor(Qt::SizeAllCursor);
+    auto& skin = score::Skin::instance();
+    setCursor(skin.CursorMove);
     setAcceptHoverEvents(true);
     setFlag(ItemIsMovable, true);
     setFlag(ItemIsSelectable, true);
@@ -105,7 +106,8 @@ class ResizeHandle
 public:
   ResizeHandle()
   {
-    setCursor(Qt::SizeFDiagCursor);
+    auto& skin = score::Skin::instance();
+    setCursor(skin.CursorScaleFDiag);
     setFlag(ItemIsSelectable, true);
     setFlag(ItemIsMovable, true);
     setFlag(ItemSendsScenePositionChanges, true);

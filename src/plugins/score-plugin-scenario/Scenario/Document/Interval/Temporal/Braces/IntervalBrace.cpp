@@ -20,7 +20,8 @@ IntervalBrace::IntervalBrace(
     : QGraphicsItem(), m_parent{parentCstr}
 {
   this->setCacheMode(QGraphicsItem::NoCache);
-  this->setCursor(Qt::SizeHorCursor);
+  auto& skin = score::Skin::instance();
+  this->setCursor(skin.CursorScaleH);
   this->setZValue(ZPos::Brace);
 
   m_path.moveTo(10, -10);

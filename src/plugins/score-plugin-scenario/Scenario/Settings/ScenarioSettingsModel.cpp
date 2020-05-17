@@ -52,6 +52,12 @@ static auto list()
 Model::Model(QSettings& set, const score::ApplicationContext& ctx)
 {
   score::setupDefaultSettings(set, Parameters::list(), *this);
+
+  if(m_DefaultDuration < TimeVal::fromMsecs(1000))
+    setDefaultDuration(TimeVal::fromMsecs(15000));
+  if(m_DefaultDuration > TimeVal::fromMsecs(10000000))
+    setDefaultDuration(TimeVal::fromMsecs(100000));
+  //setDefaultDuration(TimeVal::fromMsecs(100000));
 }
 
 QString Model::getSkin() const

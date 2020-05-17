@@ -40,17 +40,17 @@ void DataStreamWriter::write(JS::ProcessModel& proc)
 }
 
 template <>
-void JSONObjectReader::read(const JS::ProcessModel& proc)
+void JSONReader::read(const JS::ProcessModel& proc)
 {
-  readPorts(obj, proc.m_inlets, proc.m_outlets);
+  readPorts(*this, proc.m_inlets, proc.m_outlets);
   obj["Script"] = proc.script();
 }
 
 template <>
-void JSONObjectWriter::write(JS::ProcessModel& proc)
+void JSONWriter::write(JS::ProcessModel& proc)
 {
   writePorts(
-      obj,
+      *this,
       components.interfaces<Process::PortFactoryList>(),
       proc.m_inlets,
       proc.m_outlets,

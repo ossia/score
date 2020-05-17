@@ -2,12 +2,16 @@ FROM centos:7
 RUN yum -y install epel-release centos-release-scl  
 RUN yum -y install devtoolset-8-gcc devtoolset-8-make devtoolset-8 \
            glibc-devel alsa-lib-devel mesa-libGL-devel libxkbcommon-x11-devel zlib-devel ncurses-devel \
-           wget xz rh-git29 cmake3 
+           wget xz rh-git218 cmake3  xcb-util xcb-util-devel libX11-devel libXrender-devel libXi-devel  dbus-devel glib2-devel mesa-libGL-devel  \
+    nasm libxkbcommon-x11-devel alsa-lib-devel glib2-devel \
+    vulkan vulkan-devel xcb-util-wm xcb-util-wm-devel libxkbcommon-devel \
+    xcb-util-image-devel xcb-util-keysyms-devel xcb-util-cursor-devel xcb-util-renderutil-devel pulseaudio-libs-devel
+
 
 RUN mkdir -p /opt/score-sdk 
 # WORKDIR /opt/score-sdk
-RUN wget https://github.com/OSSIA/sdk/releases/download/sdk14/score-sdk-linux-llvm.tar.xz && \
-     tar xaf score-sdk-linux-llvm.tar.xz && \
+RUN wget https://github.com/OSSIA/sdk/releases/download/sdk15/score-sdk-linux-llvm.tar.xz && \
+    tar xaf score-sdk-linux-llvm.tar.xz && \
     rm -rf score-sdk-linux-llvm.tar.xz
     
 #ADD Recipe.llvm /Recipe.llvm

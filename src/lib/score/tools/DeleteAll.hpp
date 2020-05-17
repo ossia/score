@@ -2,14 +2,32 @@
 #include <utility>
 namespace score
 {
+
 template <typename T>
-void deleteAndClear(T& container)
+[[nodiscard]]
+auto clearAndDeleteLater(T& container) noexcept
 {
-  auto tmp = std::move(container);
-  container.clear();
-  for (auto* e : tmp)
+  struct later
   {
-    delete e;
-  }
+    T container;
+
+    ~later() noexcept
+    {
+      for (auto* e : container)
+        e->deleteLater();
+    }
+  };
+
+  auto tmp = std::move(container);
+  for(auto ptr : tmp)
+    ptr->setParent(nullptr);
+
+  container.clear();
+
+  // Note ! this code *requires* RVO, which is guaranteed
+  // starting from C++17 in this specific case.
+  // Don't put later in a variable instead !
+  return later{std::move(tmp)};
 }
+
 }

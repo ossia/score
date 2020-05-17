@@ -40,6 +40,7 @@
 #endif
 #include <Process/Style/ScenarioStyle.hpp>
 
+#include <QGLWidget>
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Scenario::ScenarioDocumentView)
 W_OBJECT_IMPL(Scenario::ProcessGraphicsView)
@@ -59,6 +60,7 @@ ProcessGraphicsView::ProcessGraphicsView(
   setAlignment(Qt::AlignTop | Qt::AlignLeft);
   setFrameStyle(0);
   setDragMode(QGraphicsView::NoDrag);
+  setAcceptDrops(true);
 
   setRenderHints(
       QPainter::Antialiasing | QPainter::SmoothPixmapTransform
@@ -222,8 +224,8 @@ void ProcessGraphicsView::mousePressEvent(QMouseEvent* event)
     const auto other = itemAt(event->pos());
     switch(other->type())
     {
-      case Dataflow::PortItem::static_type():
-      case Dataflow::CableItem::static_type():
+      case Dataflow::PortItem::Type:
+      case Dataflow::CableItem::Type:
         break;
 
       default:
@@ -258,6 +260,37 @@ void ProcessGraphicsView::mouseReleaseEvent(QMouseEvent* event)
     viewport()->update();
 }
 
+void ProcessGraphicsView::dragEnterEvent(QDragEnterEvent* event)
+{
+  QGraphicsView::dragEnterEvent(event);
+  event->accept();
+}
+
+void ProcessGraphicsView::dragMoveEvent(QDragMoveEvent* event)
+{
+  QGraphicsView::dragMoveEvent(event);
+  event->accept();
+}
+
+void ProcessGraphicsView::dragLeaveEvent(QDragLeaveEvent* event)
+{
+  QGraphicsView::dragLeaveEvent(event);
+  event->accept();
+}
+
+void ProcessGraphicsView::dropEvent(QDropEvent* event)
+{
+  if(!itemAt(event->pos()))
+  {
+    dropRequested(event->pos(), event->mimeData());
+    event->accept();
+  }
+  else
+  {
+    QGraphicsView::dropEvent(event);
+  }
+}
+
 ScenarioDocumentView::ScenarioDocumentView(
     const score::DocumentContext& ctx,
     QObject* parent)
@@ -266,12 +299,11 @@ ScenarioDocumentView::ScenarioDocumentView(
     , m_scene{m_widget}
     , m_view{ctx.app, &m_scene, m_widget}
     , m_timeRulerView{&m_timeRulerScene}
-    , m_timeRuler{&m_timeRulerView}
+    , m_timeRuler{new MusicalRuler{&m_timeRulerView}}
     , m_minimapScene{m_widget}
     , m_minimapView{&m_minimapScene}
     , m_minimap{&m_minimapView}
     , m_bar{&m_baseObject}
-
 {
   con(ctx.document.commandStack(), &score::CommandStack::stackChanged,
       this, [&] { m_view.viewport()->update(); });
@@ -288,7 +320,6 @@ ScenarioDocumentView::ScenarioDocumentView(
 
   m_widget->addAction(new SnapshotAction{m_scene, m_widget});
 
-  m_timeRulerScene.addItem(&m_timeRuler);
   // Transport
   /// Zoom
   QAction* zoomIn = new QAction(tr("Zoom in"), m_widget);
@@ -311,8 +342,29 @@ ScenarioDocumentView::ScenarioDocumentView(
       this,
       [this] { setLargeView(); },
       Qt::QueuedConnection);
-  con(m_timeRuler, &TimeRuler::rescale, largeView, &QAction::trigger);
   con(m_minimap, &Minimap::rescale, largeView, &QAction::trigger);
+
+  // Time Ruler
+
+  {
+    auto& settings = ctx.app.settings<Scenario::Settings::Model>();
+
+    auto setupTimeRuler = [=] (bool b) {
+        delete m_timeRuler;
+        if(b)
+          m_timeRuler = new MusicalRuler{&m_timeRulerView};
+        else
+          m_timeRuler = new TimeRuler{&m_timeRulerView};
+
+        connect(m_timeRuler, &TimeRuler::rescale, largeView, &QAction::trigger);
+        m_timeRulerScene.addItem(m_timeRuler);
+        timeRulerChanged();
+    };
+
+    con(settings, &Settings::Model::MeasureBarsChanged,
+        this, [=] (bool b) { setupTimeRuler(b); });
+    setupTimeRuler(settings.getMeasureBars());
+  }
 
   // view layout
   m_scene.addItem(&m_baseObject);
@@ -357,16 +409,19 @@ ScenarioDocumentView::ScenarioDocumentView(
   const bool opengl = ctx.app.applicationSettings.opengl;
   if (opengl)
   {
-    m_minimapView.setViewport(new QOpenGLWidget);
-    m_timeRulerView.setViewport(new QOpenGLWidget);
-    m_view.setViewport(new QOpenGLWidget);
+    //m_minimapView.setViewport(new QOpenGLWidget);
+    //m_timeRulerView.setViewport(new QOpenGLWidget);
+    QGLFormat fmt;
+    fmt.setSamples(4);
+    auto vp = new QGLWidget{fmt};
+    m_view.setViewport(vp);
 
-    m_minimapView.setViewportUpdateMode(QGraphicsView::NoViewportUpdate);
-    m_timeRulerView.setViewportUpdateMode(QGraphicsView::NoViewportUpdate);
+    //m_minimapView.setViewportUpdateMode(QGraphicsView::NoViewportUpdate);
+    //m_timeRulerView.setViewportUpdateMode(QGraphicsView::NoViewportUpdate);
     m_view.setViewportUpdateMode(QGraphicsView::NoViewportUpdate);
 
-    m_minimapView.viewport()->setUpdatesEnabled(true);
-    m_timeRulerView.viewport()->setUpdatesEnabled(true);
+    //m_minimapView.viewport()->setUpdatesEnabled(true);
+    //m_timeRulerView.viewport()->setUpdatesEnabled(true);
     m_view.viewport()->setUpdatesEnabled(true);
 
     const auto tcount = QThread::idealThreadCount();
@@ -379,9 +434,9 @@ ScenarioDocumentView::ScenarioDocumentView(
   }
   else
   {
-    m_minimapView.setViewportUpdateMode(QGraphicsView::FullViewportUpdate);
+    //m_minimapView.setViewportUpdateMode(QGraphicsView::FullViewportUpdate);
     m_view.setViewportUpdateMode(QGraphicsView::SmartViewportUpdate);
-    m_timeRulerView.setViewportUpdateMode(QGraphicsView::NoViewportUpdate);
+    //m_timeRulerView.setViewportUpdateMode(QGraphicsView::NoViewportUpdate);
   }
 }
 
@@ -409,10 +464,16 @@ QRectF ScenarioDocumentView::visibleSceneRect() const
         m_view.mapToScene(viewRect.bottomRight())};
 }
 
+void ScenarioDocumentView::showRulers(bool b)
+{
+  m_minimapView.setVisible(b);
+  m_timeRulerView.setVisible(b);
+}
+
 void ScenarioDocumentView::timerEvent(QTimerEvent* event)
 {
-  m_minimapView.viewport()->update();
-  m_timeRulerView.viewport()->update();
+  //m_minimapView.viewport()->update();
+  //m_timeRulerView.viewport()->update();
   m_view.viewport()->update();
 }
 }

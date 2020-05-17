@@ -7,6 +7,7 @@ enum class Tool : int8_t
 {
   Disabled,
   Create,
+  CreateGraph,
   Select,
   Play,
   MoveSlot,

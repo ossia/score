@@ -1,12 +1,12 @@
 #include "AboutDialog.hpp"
 
 #include <score/widgets/Pixmap.hpp>
+#include <score/model/Skin.hpp>
 
 #include <QGuiApplication>
 #include <QListWidget>
 #include <QPlainTextEdit>
 #include <QScreen>
-#include <QUrl>
 
 #include <score_git_info.hpp>
 #if __has_include(<score_licenses.hpp>)
@@ -17,38 +17,23 @@
 #include <QDesktopServices>
 #include <QPainter>
 
-#include <map>
 namespace score
 {
 AboutDialog::AboutDialog(QWidget* parent)
     : QDialog(parent)
-    , m_windowSize(492, 437)
+    , m_windowSize(800, 700)
     , m_backgroundImage(score::get_image(":/about/about_background.png"))
     , m_catamaranFont("Catamaran", 13, QFont::Weight::Normal)
-    , m_montserratFont("Montserrat", 10, QFont::Weight::Normal)
-    , m_mouseAreaOssiaScore(102, 13, 295, 84)
-    , m_mouseAreaLabri(16, 218, 116, 55)
-    , m_mouseAreaScrime(21, 275, 114, 40)
-    , m_mouseAreaBlueYeti(33, 321, 85, 84)
+    , m_montserratFont("Montserrat", 12, QFont::Weight::Normal)
+    , m_montserratLightFont("Montserrat", 12, QFont::Weight::Light)
+    , m_mouseAreaOssiaScore(122, 30, 554, 130)
+    , m_mouseAreaLabri(93, 370, 126, 40)
+    , m_mouseAreaScrime(56, 435, 200, 70)
+    , m_mouseAreaBlueYeti(81, 515, 150, 150)
 {
   setWindowFlags(windowFlags() | Qt::FramelessWindowHint);
   resize(m_windowSize.width(), m_windowSize.height());
   setMouseTracking(true);
-
-  if (auto scr = qApp->screens(); !scr.empty())
-  {
-    auto dpi = scr.first()->devicePixelRatio();
-    if (dpi >= 2.)
-    {
-      m_catamaranFont.setPointSize(13);
-      m_montserratFont.setPointSize(10);
-    }
-    else
-    {
-      m_catamaranFont.setPointSize(11);
-      m_montserratFont.setPointSize(9);
-    }
-  }
 
   // map
   struct License
@@ -135,8 +120,6 @@ AboutDialog::AboutDialog(QWidget* parent)
       "https://github.com/jcelerier/nano-signal-slot", nanosignal_LICENSE};
   map["OSCPack"]
       = License{"https://github.com/jcelerier/oscpack", "Boost License"};
-  map["Pure Data"]
-      = License{"https://github.com/pure-data/pure-data.git", pd_LICENSE};
   map["pybind11"]
       = License{"https://github.com/pybind/pybind11", pybind11_LICENSE};
   map["rapidjson"]
@@ -166,15 +149,11 @@ AboutDialog::AboutDialog(QWidget* parent)
       = License{"https://github.com/jcelerier/Qt-Color-Widgets.git",
                 qtcolorwidgets_LICENSE};
   map["PSIMPL"] = License{"http://psimpl.sf.net", "MPL 1.1"};
-  map["desktopqqc2style"]
-      = License{"https://anongit.kde.org/scratch/mart/desktopqqc2style.git",
-                "MIT License"};
 
   // TODO ifdefs
   map["SDL"] = License{"", "Boost License"};
   map["Faust"]
       = License{"https://faust.grame.fr", "GNU General Public License"};
-  map["PortAudio"] = License{"https://www.portaudio.com", portaudio_LICENSE};
   map["libJACK"]
       = License{"https://jackaudio.org", "GNU Lesser General Public License"};
   map["Phidgets"] = License{"https://www.phidgets.com/", "Boost License"};
@@ -194,53 +173,26 @@ AboutDialog::AboutDialog(QWidget* parent)
 
   // software list
   auto softwareList = new QListWidget{this};
-  softwareList->move(145, 230);
-  softwareList->resize(120, 183);
-  softwareList->setStyleSheet(R"_(
-                              QListView::item:!selected:hover{
-                              background-color:#415491;
-                              color: #ffffff;
-                              }
-                              QListView::item:selected:active, QListView::item:selected:!active{
-                              background-color:#73C1C6;
-                              color: #1A2024;
-                              }
-                              QListView {
-                              background-color: rgb(18,23,26);
-                              margin:0px;
-                              }
+  softwareList->move(307, 398);
+  softwareList->resize(185, 263);
 
-                              QScrollBar::right-arrow:horizontal, QScrollBar::left-arrow:horizontal
-                              {
-                              border: none;
-                              background: none;
-                              color: none;
-                              }
-                              QScrollBar::add-line:vertical {
-                              border: none;
-                              background: none;
-                              }
-                              QScrollBar::sub-line:vertical {
-                              border: none;
-                              background: none;
-                              }
-                              )_");
   softwareList->setFont(m_catamaranFont);
   softwareList->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
   softwareList->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 
   for (const auto& item : map)
   {
-    softwareList->addItem(item.first);
+    if(!item.second.license.isEmpty())
+      softwareList->addItem(item.first);
   }
-  for (std::size_t i = 0; i < map.size(); i++)
+  for (std::size_t i = 0; i < softwareList->count(); i++)
   {
     softwareList->item(i)->setTextAlignment(Qt::AlignHCenter);
   }
   // license
   auto license = new QPlainTextEdit{this};
-  license->move(280, 230);
-  license->resize(185, 183);
+  license->move(537, 398);
+  license->resize(222, 263);
   QFont smallCata = m_catamaranFont;
   smallCata.setPointSize(m_catamaranFont.pointSize() - 2);
   license->setFont(smallCata);
@@ -284,7 +236,8 @@ void AboutDialog::mouseMoveEvent(QMouseEvent* event)
   if (m_mouseAreaOssiaScore.contains(pos) || m_mouseAreaLabri.contains(pos)
       || m_mouseAreaScrime.contains(pos) || m_mouseAreaBlueYeti.contains(pos))
   {
-    this->setCursor(Qt::PointingHandCursor);
+    auto& skin = score::Skin::instance();
+    this->setCursor(skin.CursorPointingHand);
   }
   else
   {
@@ -293,11 +246,6 @@ void AboutDialog::mouseMoveEvent(QMouseEvent* event)
 }
 void AboutDialog::paintEvent(QPaintEvent* event)
 {
-  QPen textPen(QColor("#0092cf"));
-  QPen titleText(QColor("#aaaaaa"));
-  QPen rectPen(QColor("#03c3dd"));
-  QBrush rectBrush(QColor(18, 23, 26));
-
   // draw background image
   QPainter painter(this);
   painter.drawImage(QPoint(0, 0), m_backgroundImage);
@@ -320,10 +268,10 @@ void AboutDialog::paintEvent(QPaintEvent* event)
     {
       version_text += tr("Commit: %1\n").arg(commit);
     }
-    painter.setPen(textPen);
-    painter.setFont(m_catamaranFont);
+    painter.setPen(QColor{"#0092cf"});
+    painter.setFont(m_montserratLightFont);
     painter.drawText(
-        QRectF(0, 100, m_windowSize.width(), 60),
+        QRectF(0, 180, m_windowSize.width(), 50),
         Qt::AlignHCenter,
         version_text);
   }
@@ -333,21 +281,22 @@ void AboutDialog::paintEvent(QPaintEvent* event)
     QString copyright_text = QString(
         "Copyright © ossia 2014-" + QString::number(QDate::currentDate().year())) + "\nossia score is distributed under the GNU General Public License 3.0";
 
+    painter.setPen(QColor{"#a0a0a0"});
     painter.setFont(m_montserratFont);
     painter.drawText(
-        QRectF(0, 160, m_windowSize.width(), 30),
+        QRectF(0, 249, m_windowSize.width(), 50),
         Qt::AlignHCenter,
         copyright_text);
   }
 
   // write title above listview
-  painter.setPen(titleText);
+  painter.setPen(QColor{"#aaaaaa"});
   QFont mb = m_montserratFont;
   mb.setBold(true);
   painter.setFont(mb);
-  painter.drawText(QRectF(145, 210, 120, 15), Qt::AlignHCenter, "Project");
+  painter.drawText(QRectF(307, 368, 185, 28), Qt::AlignHCenter, tr("Project"));
 
   // write title above license
-  painter.drawText(QRectF(280, 210, 185, 15), Qt::AlignHCenter, "License");
+  painter.drawText(QRectF(537, 368, 222, 28), Qt::AlignHCenter, tr("License"));
 }
 }

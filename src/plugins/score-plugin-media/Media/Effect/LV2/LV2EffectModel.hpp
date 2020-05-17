@@ -120,4 +120,5 @@ using LV2EffectFactory = Process::EffectProcessFactory_T<LV2EffectModel>;
 using LV2EffectComponentFactory
     = Execution::ProcessComponentFactory_T<LV2EffectComponent>;
 }
+
 #endif

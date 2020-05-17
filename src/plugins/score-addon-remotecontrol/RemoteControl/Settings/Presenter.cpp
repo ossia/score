@@ -6,6 +6,7 @@
 #include <score/command/Command.hpp>
 #include <score/command/Dispatchers/ICommandDispatcher.hpp>
 #include <score/command/SettingsCommand.hpp>
+#include <score/widgets/SetIcons.hpp>
 
 #include <QApplication>
 #include <QStyle>
@@ -36,12 +37,15 @@ Presenter::Presenter(Model& m, View& v, QObject* parent)
 
 QString Presenter::settingsName()
 {
-  return tr("Remote Control");
+  return tr("Remote control");
 }
 
 QIcon Presenter::settingsIcon()
 {
-  return QApplication::style()->standardIcon(QStyle::SP_CommandLink);
+  return makeIcons(QStringLiteral(":/icons/settings_remote_control_on.png")
+                   , QStringLiteral(":/icons/settings_remote_control_off.png")
+                   , QStringLiteral(":/icons/settings_remote_control_off.png"));
+
 }
 
 }

@@ -61,11 +61,11 @@ State::OptionalValue StateNodeData::value() const
 
 bool StateNodeValues::empty() const
 {
-  return previousProcessValues.isEmpty() && followingProcessValues.isEmpty()
+  return previousProcessValues.empty() && followingProcessValues.empty()
          && !userValue;
 }
 
-bool StateNodeValues::hasValue(const QVector<ProcessStateData>& vec)
+bool StateNodeValues::hasValue(const std::vector<ProcessStateData>& vec)
 {
   return std::any_of(
       vec.cbegin(), vec.cend(), [](const auto& pv) { return bool(pv.value); });
@@ -77,8 +77,8 @@ bool StateNodeValues::hasValue() const
          || bool(userValue);
 }
 
-QVector<ProcessStateData>::const_iterator
-StateNodeValues::value(const QVector<ProcessStateData>& vec)
+std::vector<ProcessStateData>::const_iterator
+StateNodeValues::value(const std::vector<ProcessStateData>& vec)
 {
   return std::find_if(
       vec.cbegin(), vec.cend(), [](const auto& pv) { return bool(pv.value); });

@@ -19,6 +19,7 @@
 #include <Scenario/Process/Algorithms/ProcessPolicy.hpp>
 #include <Scenario/Process/ScenarioProcessMetadata.hpp>
 
+#include <Scenario/Document/Graph.hpp>
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/document/DocumentContext.hpp>
 #include <score/document/DocumentInterface.hpp>
@@ -59,6 +60,8 @@ ProcessModel::ProcessModel(
   auto& start_tn = ScenarioCreate<TimeSyncModel>::redo(
       m_startTimeSyncId, TimeVal::zero(), *this);
   start_tn.metadata().setName("Sync.start");
+  start_tn.setStartPoint(true);
+
   auto& start_ev = ScenarioCreate<EventModel>::redo(
       m_startEventId, start_tn, *this);
   start_ev.metadata().setName("Event.start");
@@ -80,6 +83,13 @@ void ProcessModel::init()
   outlet->setCustomData("Out");
   m_inlets.push_back(inlet.get());
   m_outlets.push_back(outlet.get());
+
+  m_graph = std::make_unique<TimenodeGraph>(*this);
+}
+
+bool ProcessModel::hasCycles() const noexcept
+{
+  return m_graph->hasCycles();
 }
 
 ProcessModel::~ProcessModel()
@@ -116,7 +126,6 @@ void ProcessModel::setDurationAndScale(const TimeVal& newDuration) noexcept
   for (auto& event : events)
   {
     event.setDate(event.date() * scale);
-    eventMoved(event);
   }
   for (auto& cmt : comments)
   {
@@ -155,20 +164,10 @@ void ProcessModel::setDurationAndShrink(const TimeVal& newDuration) noexcept
 
 void ProcessModel::startExecution()
 {
-  // TODO this is called for each process!!
-  // But it should be done only once at the global level.
-  for (IntervalModel& interval : intervals)
-  {
-    interval.startExecution();
-  }
 }
 
 void ProcessModel::stopExecution()
 {
-  for (IntervalModel& interval : intervals)
-  {
-    interval.stopExecution();
-  }
   for (EventModel& ev : events)
   {
     ev.setStatus(ExecutionStatus::Editing, *this);

@@ -19,11 +19,6 @@
         <file>icons/prev_on.png</file>
         <file>icons/create_curve_off.png</file>
         <file>icons/create_curve_on.png</file>
-        <file>icons/ic_extension_black_48dp.png</file>
-        <file>icons/ic_fiber_manual_record_black_48dp.png</file>
-        <file>icons/ic_library_music_black_48dp.png</file>
-        <file>icons/ic_play_circle_filled_black_48dp.png</file>
-        <file>icons/ic_share_black_48dp.png</file>
         <file>icons/add_off.png</file>
         <file>icons/add_off@2x.png</file>
         <file>icons/add_on.png</file>
@@ -57,8 +52,6 @@
         <file>icons/delete_off@2x.png</file>
         <file>icons/delete_on.png</file>
         <file>icons/delete_on@2x.png</file>
-        <file>icons/edit_off.png</file>
-        <file>icons/edit_on.png</file>
         <file>icons/end_off.png</file>
         <file>icons/end_off@2x.png</file>
         <file>icons/end_on.png</file>
@@ -129,63 +122,18 @@
         <file>icons/undock_off@2x.png</file>
         <file>icons/undock_on.png</file>
         <file>icons/undock_on@2x.png</file>
-        <file>icons/write_off.png</file>
-        <file>icons/write_off@2x.png</file>
-        <file>icons/write_on.png</file>
-        <file>icons/write_on@2x.png</file>
         <file>icons/clip_duration_off@2x.png</file>
         <file>icons/clip_duration_on@2x.png</file>
-        <file>icons/edit_off@2x.png</file>
-        <file>icons/edit_on@2x.png</file>
         <file>icons/pause_off@2x.png</file>
         <file>icons/pause_on@2x.png</file>
         <file>icons/sequence_off@2x.png</file>
         <file>icons/sequence_on@2x.png</file>
         <file>icons/snapshot_off@2x.png</file>
         <file>icons/snapshot_on@2x.png</file>
-        <file>desktopqqc2style/Desktop/Button.qml</file>
-        <file>desktopqqc2style/Desktop/CheckBox.qml</file>
-        <file>desktopqqc2style/Desktop/CheckDelegate.qml</file>
-        <file>desktopqqc2style/Desktop/CheckIndicator.qml</file>
-        <file>desktopqqc2style/Desktop/ComboBox.qml</file>
-        <file>desktopqqc2style/Desktop/Container.qml</file>
-        <file>desktopqqc2style/Desktop/Control.qml</file>
-        <file>desktopqqc2style/Desktop/Dial.qml</file>
-        <file>desktopqqc2style/Desktop/Dialog.qml</file>
-        <file>desktopqqc2style/Desktop/DialogButtonBox.qml</file>
-        <file>desktopqqc2style/Desktop/Drawer.qml</file>
-        <file>desktopqqc2style/Desktop/Frame.qml</file>
-        <file>desktopqqc2style/Desktop/GroupBox.qml</file>
-        <file>desktopqqc2style/Desktop/ItemDelegate.qml</file>
-        <file>desktopqqc2style/Desktop/Label.qml</file>
-        <file>desktopqqc2style/Desktop/Menu.qml</file>
-        <file>desktopqqc2style/Desktop/MenuItem.qml</file>
-        <file>desktopqqc2style/Desktop/Popup.qml</file>
-        <file>desktopqqc2style/Desktop/ProgressBar.qml</file>
-        <file>desktopqqc2style/Desktop/RadioButton.qml</file>
-        <file>desktopqqc2style/Desktop/RadioDelegate.qml</file>
-        <file>desktopqqc2style/Desktop/RadioIndicator.qml</file>
-        <file>desktopqqc2style/Desktop/RangeSlider.qml</file>
-        <file>desktopqqc2style/Desktop/ScrollBar.qml</file>
-        <file>desktopqqc2style/Desktop/Slider.qml</file>
-        <file>desktopqqc2style/Desktop/SpinBox.qml</file>
-        <file>desktopqqc2style/Desktop/Switch.qml</file>
-        <file>desktopqqc2style/Desktop/SwitchDelegate.qml</file>
-        <file>desktopqqc2style/Desktop/SwitchIndicator.qml</file>
-        <file>desktopqqc2style/Desktop/TabBar.qml</file>
-        <file>desktopqqc2style/Desktop/TabButton.qml</file>
-        <file>desktopqqc2style/Desktop/TextArea.qml</file>
-        <file>desktopqqc2style/Desktop/TextField.qml</file>
-        <file>desktopqqc2style/Desktop/ToolBar.qml</file>
-        <file>desktopqqc2style/Desktop/ToolButton.qml</file>
-        <file>desktopqqc2style/Desktop/ToolTip.qml</file>
-        <file>desktopqqc2style/Desktop/private/DefaultListItemBackground.qml</file>
         <file>icons/gear_off.png</file>
         <file>icons/gear_off@2x.png</file>
         <file>icons/play_glob_off.png</file>
         <file>icons/play_glob_on.png</file>
-        <file>splash.png</file>
-        <file>splash@2x.png</file>
         <file>icons/engine_off.png</file>
         <file>icons/engine_off@2x.png</file>
         <file>icons/engine_on.png</file>
@@ -196,8 +144,6 @@
         <file>icons/search@2x.png</file>
         <file>icons/play_glob_off@2x.png</file>
         <file>icons/play_glob_on@2x.png</file>
-        <file>icons/write_disabled.png</file>
-        <file>icons/write_disabled@2x.png</file>
         <file>icons/trigger_disabled.png</file>
         <file>icons/trigger_disabled@2x.png</file>
         <file>icons/select_and_move_disabled.png</file>
@@ -210,8 +156,6 @@
         <file>icons/reinit_new_disabled@2x.png</file>
         <file>icons/refresh_disabled.png</file>
         <file>icons/refresh_disabled@2x.png</file>
-        <file>icons/playfromhere_disabled.png</file>
-        <file>icons/playfromhere_disabled@2x.png</file>
         <file>icons/play_disabled.png</file>
         <file>icons/play_disabled@2x.png</file>
         <file>icons/play_glob_disabled.png</file>
@@ -232,8 +176,6 @@
         <file>icons/engine_disabled@2x.png</file>
         <file>icons/end_disabled.png</file>
         <file>icons/end_disabled@2x.png</file>
-        <file>icons/edit_disabled.png</file>
-        <file>icons/edit_disabled@2x.png</file>
         <file>icons/delete_disabled.png</file>
         <file>icons/delete_disabled@2x.png</file>
         <file>icons/create_disabled.png</file>
@@ -288,8 +230,6 @@
         <file>icons/radio_checked_disabled@2x.png</file>
         <file>icons/radio_unchecked@2x.png</file>
         <file>icons/radio_checked@2x.png</file>
-        <file>icons/unit_icon.png</file>
-        <file>icons/unit_icon@2x.png</file>
         <file>style/linux.qss</file>
         <file>style/macos.qss</file>
         <file>style/windows.qss</file>
@@ -444,47 +384,214 @@
         <file>icons/library_off@2x.png</file>
         <file>icons/library_on.png</file>
         <file>icons/library_on@2x.png</file>
-    </qresource>
-    <qresource prefix="/qss_icons">
-        <file>rc/up_arrow_disabled.png</file>
-        <file>rc/Hmovetoolbar.png</file>
-        <file>rc/stylesheet-branch-end.png</file>
-        <file>rc/branch_closed-on.png</file>
-        <file>rc/stylesheet-vline.png</file>
-        <file>rc/branch_closed.png</file>
-        <file>rc/branch_open-on.png</file>
-        <file>rc/transparent.png</file>
-        <file>rc/right_arrow_disabled.png</file>
-        <file>rc/sizegrip.png</file>
-        <file>rc/close.png</file>
-        <file>rc/close-hover.png</file>
-        <file>rc/close-pressed.png</file>
-        <file>rc/down_arrow.png</file>
-        <file>rc/Vmovetoolbar.png</file>
-        <file>rc/left_arrow.png</file>
-        <file>rc/stylesheet-branch-more.png</file>
-        <file>rc/up_arrow.png</file>
-        <file>rc/right_arrow.png</file>
-        <file>rc/left_arrow_disabled.png</file>
-        <file>rc/Hsepartoolbar.png</file>
-        <file>rc/branch_open.png</file>
-        <file>rc/Vsepartoolbar.png</file>
-        <file>rc/down_arrow_disabled.png</file>
-        <file>rc/undock.png</file>
-        <file>rc/checkbox_checked_disabled.png</file>
-        <file>rc/checkbox_checked_focus.png</file>
-        <file>rc/checkbox_checked.png</file>
-        <file>rc/checkbox_indeterminate.png</file>
-        <file>rc/checkbox_indeterminate_focus.png</file>
-        <file>rc/checkbox_unchecked_disabled.png</file>
-        <file>rc/checkbox_unchecked_focus.png</file>
-        <file>rc/checkbox_unchecked.png</file>
-        <file>rc/radio_checked_disabled.png</file>
-        <file>rc/radio_checked_focus.png</file>
-        <file>rc/radio_checked.png</file>
-        <file>rc/radio_unchecked_disabled.png</file>
-        <file>rc/radio_unchecked_focus.png</file>
-        <file>rc/radio_unchecked.png</file>
-        <file>icons/blank.png</file>
+        <file>icons/project_off.png</file>
+        <file>icons/project_off@2x.png</file>
+        <file>icons/project_on.png</file>
+        <file>icons/project_on@2x.png</file>
+        <file>icons/process_library_off.png</file>
+        <file>icons/process_library_off@2x.png</file>
+        <file>icons/process_library_on.png</file>
+        <file>icons/process_library_on@2x.png</file>
+        <file>icons/arrow_down_disabled.png</file>
+        <file>icons/arrow_down_disabled@2x.png</file>
+        <file>icons/arrow_down_off.png</file>
+        <file>icons/arrow_down_off@2x.png</file>
+        <file>icons/arrow_left_disabled.png</file>
+        <file>icons/arrow_left_disabled@2x.png</file>
+        <file>icons/arrow_left_off.png</file>
+        <file>icons/arrow_left_off@2x.png</file>
+        <file>icons/arrow_right_disabled.png</file>
+        <file>icons/arrow_right_disabled@2x.png</file>
+        <file>icons/arrow_right_off.png</file>
+        <file>icons/arrow_right_off@2x.png</file>
+        <file>icons/arrow_up_disabled.png</file>
+        <file>icons/arrow_up_disabled@2x.png</file>
+        <file>icons/arrow_up_off.png</file>
+        <file>icons/arrow_up_off@2x.png</file>
+        <file>icons/arrow_down_on.png</file>
+        <file>icons/arrow_down_on@2x.png</file>
+        <file>icons/arrow_left_on.png</file>
+        <file>icons/arrow_left_on@2x.png</file>
+        <file>icons/arrow_right_on.png</file>
+        <file>icons/arrow_right_on@2x.png</file>
+        <file>icons/arrow_up_on.png</file>
+        <file>icons/arrow_up_on@2x.png</file>
+        <file>icons/audio_bus_off.png</file>
+        <file>icons/audio_bus_off@2x.png</file>
+        <file>icons/audio_bus_on.png</file>
+        <file>icons/audio_bus_on@2x.png</file>
+        <file>icons/auto_trigger_off.png</file>
+        <file>icons/auto_trigger_off@2x.png</file>
+        <file>icons/auto_trigger_on.png</file>
+        <file>icons/auto_trigger_on@2x.png</file>
+        <file>icons/condition_remove_disabled.png</file>
+        <file>icons/condition_remove_disabled@2x.png</file>
+        <file>icons/reinit_new_off.png</file>
+        <file>icons/reinit_new_off@2x.png</file>
+        <file>icons/start_on_play_off.png</file>
+        <file>icons/start_on_play_off@2x.png</file>
+        <file>icons/start_on_play_on.png</file>
+        <file>icons/start_on_play_on@2x.png</file>
+        <file>icons/time_signature_off.png</file>
+        <file>icons/time_signature_off@2x.png</file>
+        <file>icons/time_signature_on.png</file>
+        <file>icons/time_signature_on@2x.png</file>
+        <file>icons/port_audio.png</file>
+        <file>icons/port_audio@2x.png</file>
+        <file>icons/port_message.png</file>
+        <file>icons/port_message@2x.png</file>
+        <file>icons/port_midi.png</file>
+        <file>icons/port_midi@2x.png</file>
+        <file>icons/port_texture.png</file>
+        <file>icons/port_texture@2x.png</file>
+        <file>icons/settings_audio_off.png</file>
+        <file>icons/settings_audio_off@2x.png</file>
+        <file>icons/settings_audio_on.png</file>
+        <file>icons/settings_audio_on@2x.png</file>
+        <file>icons/settings_device_explorer_off.png</file>
+        <file>icons/settings_device_explorer_off@2x.png</file>
+        <file>icons/settings_device_explorer_on.png</file>
+        <file>icons/settings_device_explorer_on@2x.png</file>
+        <file>icons/settings_library_off.png</file>
+        <file>icons/settings_library_off@2x.png</file>
+        <file>icons/settings_library_on.png</file>
+        <file>icons/settings_library_on@2x.png</file>
+        <file>icons/settings_play_off.png</file>
+        <file>icons/settings_play_off@2x.png</file>
+        <file>icons/settings_play_on.png</file>
+        <file>icons/settings_play_on@2x.png</file>
+        <file>icons/settings_recording_off.png</file>
+        <file>icons/settings_recording_off@2x.png</file>
+        <file>icons/settings_recording_on.png</file>
+        <file>icons/settings_recording_on@2x.png</file>
+        <file>icons/settings_ui_off.png</file>
+        <file>icons/settings_ui_off@2x.png</file>
+        <file>icons/settings_ui_on.png</file>
+        <file>icons/settings_ui_on@2x.png</file>
+        <file>icons/settings_remote_control_off.png</file>
+        <file>icons/settings_remote_control_off@2x.png</file>
+        <file>icons/settings_remote_control_on.png</file>
+        <file>icons/settings_remote_control_on@2x.png</file>
+        <file>icons/settings_effect_off.png</file>
+        <file>icons/settings_effect_off@2x.png</file>
+        <file>icons/settings_effect_on.png</file>
+        <file>icons/settings_effect_on@2x.png</file>
+        <file>icons/message_question.png</file>
+        <file>icons/message_question@2x.png</file>
+        <file>icons/message_information.png</file>
+        <file>icons/message_information@2x.png</file>
+        <file>icons/message_warning.png</file>
+        <file>icons/message_warning@2x.png</file>
+        <file>icons/loop_off.png</file>
+        <file>icons/loop_off@2x.png</file>
+        <file>icons/loop_on.png</file>
+        <file>icons/loop_on@2x.png</file>
+        <file>icons/cond.png</file>
+        <file>icons/cond@2x.png</file>
+        <file>icons/event.png</file>
+        <file>icons/event@2x.png</file>
+        <file>icons/interval.png</file>
+        <file>icons/interval@2x.png</file>
+        <file>icons/state_empty.png</file>
+        <file>icons/state_empty@2x.png</file>
+        <file>icons/state.png</file>
+        <file>icons/state@2x.png</file>
+        <file>icons/timenode.png</file>
+        <file>icons/timenode@2x.png</file>
+        <file>icons/trigger.png</file>
+        <file>icons/trigger@2x.png</file>
+        <file>icons/scenario_trigger_hovered.png</file>
+        <file>icons/scenario_trigger_hovered@2x.png</file>
+        <file>icons/scenario_trigger_selected.png</file>
+        <file>icons/scenario_trigger_selected@2x.png</file>
+        <file>icons/scenario_trigger.png</file>
+        <file>icons/scenario_trigger@2x.png</file>
+        <file>drakula.xml</file>
+        <file>icons/trigger_sprite.png</file>
+        <file>Montserrat-SemiBold.ttf</file>
+        <file>icons/chat_on.png</file>
+        <file>icons/contribute_on.png</file>
+        <file>icons/forum_on.png</file>
+        <file>icons/tutorials_on.png</file>
+        <file>icons/chat_off.png</file>
+        <file>icons/contribute_off.png</file>
+        <file>icons/forum_off.png</file>
+        <file>icons/new_file_off.png</file>
+        <file>icons/new_file_on.png</file>
+        <file>icons/tutorials_off.png</file>
+        <file>icons/chat_off@2x.png</file>
+        <file>icons/chat_on@2x.png</file>
+        <file>icons/contribute_off@2x.png</file>
+        <file>icons/contribute_on@2x.png</file>
+        <file>icons/forum_off@2x.png</file>
+        <file>icons/forum_on@2x.png</file>
+        <file>icons/load_off.png</file>
+        <file>icons/load_off@2x.png</file>
+        <file>icons/load_on.png</file>
+        <file>icons/load_on@2x.png</file>
+        <file>icons/new_file_off@2x.png</file>
+        <file>icons/new_file_on@2x.png</file>
+        <file>icons/tutorials_off@2x.png</file>
+        <file>icons/tutorials_on@2x.png</file>
+        <file>icons/recent_files.png</file>
+        <file>icons/recent_files@2x.png</file>
+        <file>icons/reload_crash_off.png</file>
+        <file>icons/reload_crash_off@2x.png</file>
+        <file>icons/reload_crash_on.png</file>
+        <file>icons/reload_crash_on@2x.png</file>
+        <file>icons/load_examples_off.png</file>
+        <file>icons/load_examples_off@2x.png</file>
+        <file>icons/load_examples_on.png</file>
+        <file>icons/load_examples_on@2x.png</file>
+        <file>icons/port_address_unit_on.png</file>
+        <file>icons/port_address_unit_on@2x.png</file>
+        <file>icons/port_address_unit.png</file>
+        <file>icons/port_address_unit@2x.png</file>
+        <file>icons/trigger_sprite@2x.png</file>
+        <file>startscreen/startscreensplash.png</file>
+        <file>startscreen/startscreensplash@2x.png</file>
+        <file>Montserrat-Light.ttf</file>
+        <file>icons/cursor_magnifier.png</file>
+        <file>icons/cursor_magnifier@2x.png</file>
+        <file>icons/cursor_move.png</file>
+        <file>icons/cursor_move@2x.png</file>
+        <file>icons/cursor_scale_h.png</file>
+        <file>icons/cursor_scale_h@2x.png</file>
+        <file>icons/cursor_scale_v.png</file>
+        <file>icons/cursor_scale_v@2x.png</file>
+        <file>icons/cursor_pointer.png</file>
+        <file>icons/cursor_pointer@2x.png</file>
+        <file>icons/cursor_play_from_here.png</file>
+        <file>icons/cursor_play_from_here@2x.png</file>
+        <file>icons/cursor_creation_mode.png</file>
+        <file>icons/cursor_creation_mode@2x.png</file>
+        <file>icons/cursor_process_audio.png</file>
+        <file>icons/cursor_process_audio@2x.png</file>
+        <file>icons/cursor_process_automation.png</file>
+        <file>icons/cursor_process_automation@2x.png</file>
+        <file>icons/cursor_process_controls.png</file>
+        <file>icons/cursor_process_controls@2x.png</file>
+        <file>icons/cursor_process_filter.png</file>
+        <file>icons/cursor_process_filter@2x.png</file>
+        <file>icons/cursor_process_gfx.png</file>
+        <file>icons/cursor_process_gfx@2x.png</file>
+        <file>icons/cursor_process_midi.png</file>
+        <file>icons/cursor_process_midi@2x.png</file>
+        <file>icons/cursor_process_script.png</file>
+        <file>icons/cursor_process_script@2x.png</file>
+        <file>icons/cursor_process_structure.png</file>
+        <file>icons/cursor_process_structure@2x.png</file>
+        <file>icons/cursor_process_ui.png</file>
+        <file>icons/cursor_process_ui@2x.png</file>
+        <file>icons/cursor_closed_hand.png</file>
+        <file>icons/cursor_closed_hand@2x.png</file>
+        <file>icons/cursor_open_hand.png</file>
+        <file>icons/cursor_open_hand@2x.png</file>
+        <file>icons/cursor_drag_device.png</file>
+        <file>icons/cursor_drag_device@2x.png</file>
+        <file>icons/cursor_pointing_hand.png</file>
+        <file>icons/cursor_pointing_hand@2x.png</file>
+        <file>icons/cursor_scale_fdiag.png</file>
+        <file>icons/cursor_scale_fdiag@2x.png</file>
     </qresource>
 </RCC>

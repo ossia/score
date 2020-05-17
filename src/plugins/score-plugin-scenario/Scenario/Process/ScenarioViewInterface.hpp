@@ -22,9 +22,6 @@ public:
   void on_stateMoved(const StatePresenter& state);
   void on_commentMoved(const CommentBlockPresenter& comment);
 
-  void on_hoverOnInterval(const Id<IntervalModel>& intervalId, bool enter);
-  void on_hoverOnEvent(const Id<EventModel>& eventId, bool enter);
-
   void on_graphicalScaleChanged(double scale);
 
 private:

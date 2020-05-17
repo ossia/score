@@ -3,12 +3,9 @@
 
 #include <score/actions/Menu.hpp>
 #include <score/application/ApplicationComponents.hpp>
-#include <score/model/Identifier.hpp>
 #include <score/plugins/StringFactoryKey.hpp>
 #include <score/plugins/application/GUIApplicationPlugin.hpp>
 #include <score/plugins/documentdelegate/DocumentDelegateFactory.hpp>
-#include <score/tools/IdentifierGeneration.hpp>
-#include <score/tools/std/Optional.hpp>
 #include <score/widgets/MarginLess.hpp>
 
 #include <core/document/Document.hpp>
@@ -18,23 +15,21 @@
 #include <core/settings/SettingsView.hpp>
 #include <core/view/QRecentFilesMenu.h>
 #include <core/view/Window.hpp>
+#include <core/view/FixedTabWidget.hpp>
 
 #include <ossia/detail/algorithms.hpp>
 
-#include <QMenu>
 #include <QMenuBar>
 #include <QObject>
 #include <QToolBar>
+#include <QApplication>
 #include <qnamespace.h>
 
-#include <sys/types.h>
 #include <wobjectimpl.h>
 
-#include <cstdint>
-#include <functional>
-#include <utility>
 #include <vector>
 
+#include <QPainter>
 #include <unordered_map>
 W_OBJECT_IMPL(score::Presenter)
 namespace score
@@ -151,12 +146,10 @@ void Presenter::setupGUI()
     }
 
     {
-      auto bw = new QWidget;
-      bw->setFixedHeight(45);
-      bw->setContentsMargins(0, 0, 0, 0);
+      auto bw = view()->transportBar;
+      auto bl = (QGridLayout*)bw->layout();
 
-      auto bl = new score::MarginLess<QGridLayout>{bw};
-      view()->centralWidget()->layout()->addWidget(bw);
+
 
       int i = 0;
       for (const Toolbar& tb : toolbars[Qt::BottomToolBarArea])
@@ -166,18 +159,18 @@ void Presenter::setupGUI()
           auto dummy = new QWidget;
           dummy->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Minimum);
           bl->addWidget(dummy, 0, i, 1, 1);
-          // bl->setColumnStretch(i, 10);
           i++;
           i++;
         }
 
-        tb.toolbar()->setIconSize({32, 32});
-        tb.toolbar()->setStyleSheet("QToolBar { border: none; }");
         bl->addWidget(tb.toolbar(), 0, i, Qt::AlignCenter);
-        // bl->addWidget(new ToolbarLabel{tb}, 1, i, Qt::AlignCenter); //Label
-        // below
+        tb.toolbar()->setIconSize({24, 24});
         tb.toolbar()->setFloatable(false);
         tb.toolbar()->setMovable(false);
+
+        QPalette pal;
+        pal.setColor(QPalette::Window, Qt::transparent);
+        tb.toolbar()->setPalette(pal);
 
         i++;
 
@@ -186,6 +179,8 @@ void Presenter::setupGUI()
         bl->addWidget(sp, 0, i, Qt::AlignCenter);
         i++;
       }
+
+      bl->addWidget(view()->bottomTabs->toolbar(), 0, i, Qt::AlignRight);
     }
   }
 }

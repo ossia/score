@@ -17,11 +17,11 @@ void DataStreamWriter::write(Protocols::WiimoteSpecificSettings& n)
 }
 
 template <>
-void JSONObjectReader::read(const Protocols::WiimoteSpecificSettings& n)
+void JSONReader::read(const Protocols::WiimoteSpecificSettings& n)
 {
 }
 
 template <>
-void JSONObjectWriter::write(Protocols::WiimoteSpecificSettings& n)
+void JSONWriter::write(Protocols::WiimoteSpecificSettings& n)
 {
 }

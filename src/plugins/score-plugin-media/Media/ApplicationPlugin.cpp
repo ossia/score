@@ -19,8 +19,9 @@
 
 #include <QDirIterator>
 #include <QFileInfo>
-#include <QProcess>
 #include <QJsonDocument>
+#include <QJsonObject>
+#include <QProcess>
 
 #include <wobjectimpl.h>
 W_OBJECT_IMPL(Media::ApplicationPlugin)

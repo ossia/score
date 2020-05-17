@@ -16,10 +16,11 @@ struct TSerializer<DataStream, StringKey<U>>
   }
 };
 
+/*
 template <typename U>
 struct TSerializer<JSONValue, StringKey<U>>
 {
-  static void readFrom(JSONValue::Serializer& s, const StringKey<U>& key)
+  static void readFrom(JSONObject::Serializer& s, const StringKey<U>& key)
   {
     s.val = QString::fromStdString(key.toString());
   }
@@ -29,3 +30,4 @@ struct TSerializer<JSONValue, StringKey<U>>
     key.toString() = s.val.toString().toStdString();
   }
 };
+*/

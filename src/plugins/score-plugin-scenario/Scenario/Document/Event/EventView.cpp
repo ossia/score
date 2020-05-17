@@ -40,13 +40,28 @@ EventView::EventView(EventPresenter& presenter, QGraphicsItem* parent)
       &EventPresenter::pressed);
 
   this->setParentItem(parent);
-  this->setCursor(Qt::SizeHorCursor);
+  auto& skin = score::Skin::instance();
+  this->setCursor(skin.CursorScaleH);
 
   this->setZValue(ZPos::Event);
   this->setAcceptHoverEvents(true);
 }
 
 EventView::~EventView() {}
+
+void EventView::setStatus(ExecutionStatus status)
+{
+  if(status == ExecutionStatus::Happened)
+  {
+    m_execPing.start();
+  }
+  else
+  {
+    m_execPing.stop();
+  }
+  update();
+  conditionItem().update();
+}
 
 void EventView::setCondition(const QString& cond)
 {
@@ -77,7 +92,19 @@ void EventView::paint(
   }
   else
   {
-    painter->fillRect(rect, m_presenter.model().color(skin));
+    if(Q_UNLIKELY(m_execPing.running()))
+    {
+      const auto& nextPen = m_execPing.getNextPen(
+            m_presenter.model().color(skin).color(),
+            skin.EventHappened().color(),
+            skin.StateDot().main.pen_cosmetic);
+      painter->fillRect(rect, nextPen.brush());
+      update();
+    }
+    else
+    {
+      painter->fillRect(rect, m_presenter.model().color(skin));
+    }
   }
 
 #if defined(SCORE_SCENARIO_DEBUG_RECTS)

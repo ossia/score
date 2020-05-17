@@ -9,6 +9,7 @@
 #include <score/command/Dispatchers/ICommandDispatcher.hpp>
 #include <score/command/SettingsCommand.hpp>
 #include <score/tools/Bind.hpp>
+#include <score/widgets/SetIcons.hpp>
 
 #include <QApplication>
 #include <QStyle>
@@ -38,12 +39,14 @@ Presenter::Presenter(Model& m, View& v, QObject* parent)
 
 QString Presenter::settingsName()
 {
-  return tr("Device Explorer");
+  return tr("Device explorer");
 }
 
 QIcon Presenter::settingsIcon()
 {
-  return QApplication::style()->standardIcon(QStyle::SP_MediaPlay);
+  return makeIcons(QStringLiteral(":/icons/settings_device_explorer_on.png")
+                   , QStringLiteral(":/icons/settings_device_explorer_off.png")
+                   , QStringLiteral(":/icons/settings_device_explorer_off.png"));
 }
 }
 
@@ -59,11 +62,13 @@ Presenter::Presenter(Model& m, View& v, QObject* parent)
 
 QString Presenter::settingsName()
 {
-  return tr("Device Explorer");
+  return tr("Device explorer");
 }
 
 QIcon Presenter::settingsIcon()
 {
-  return QApplication::style()->standardIcon(QStyle::SP_MediaPlay);
+  return makeIcons(QStringLiteral(":/icons/settings_device_explorer_on.png")
+                   , QStringLiteral(":/icons/settings_device_explorer_off.png")
+                   , QStringLiteral(":/icons/settings_device_explorer_off.png"));
 }
 }

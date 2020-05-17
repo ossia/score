@@ -16,7 +16,6 @@
 #include <QFile>
 #include <QIODevice>
 #include <QDebug>
-#include <QJsonDocument>
 
 namespace Device
 {
@@ -31,8 +30,8 @@ bool loadDeviceFromScoreJSON(const QString& filePath, Device::Node& node)
     return false;
   }
 
-  auto json = QJsonDocument::fromJson(doc.readAll());
-  if (!json.isObject())
+  auto json = readJson(doc.readAll());
+  if (!json.IsObject())
   {
     qDebug() << "Erreur : Impossible de charger le ficher Device";
     doc.close();
@@ -41,10 +40,8 @@ bool loadDeviceFromScoreJSON(const QString& filePath, Device::Node& node)
 
   doc.close();
 
-  auto obj = json.object();
-  JSONObject::Deserializer des{obj};
+  JSONObject::Deserializer des{json};
   des.writeTo(node);
-
   return true;
 }
 }

@@ -19,10 +19,13 @@
 #include <score/document/DocumentContext.hpp>
 #include <score/widgets/MarginLess.hpp>
 #include <score/widgets/Separator.hpp>
-#include <score/widgets/StyledButton.hpp>
+#include <score/widgets/SetIcons.hpp>
 #include <score/widgets/StyleSheets.hpp>
 #include <score/widgets/TextLabel.hpp>
+
 #include <QCheckBox>
+#include <QToolBar>
+
 namespace Scenario
 {
 IntervalInspectorWidget::IntervalInspectorWidget(
@@ -33,12 +36,14 @@ IntervalInspectorWidget::IntervalInspectorWidget(
     : InspectorWidgetBase{object,
                           ctx,
                           parent,
-                          tr("Interval (%1)").arg(object.metadata().getName())}
+                          object.graphal() ? tr("Direct transition") : tr("Interval (%1)").arg(object.metadata().getName())}
     , m_model{object}
 {
   using namespace score;
   using namespace score::IDocument;
   setObjectName("Interval");
+  if(object.graphal())
+    return;
 
   std::vector<QWidget*> parts;
   ////// HEADER
@@ -55,53 +60,83 @@ IntervalInspectorWidget::IntervalInspectorWidget(
   auto lay = new Inspector::Layout{w};
   parts.push_back(w);
 
+  auto btnLayout = new QHBoxLayout;
+  btnLayout->setContentsMargins(0,0,0,0);
+
   // Full View
-  auto fullview = new StyledButton;
-  fullview->setObjectName("FullView");
-  fullview->setToolTip(tr("FullView"));
-  fullview->setStatusTip(tr("FullView"));
-
- // fullview->setStyleSheet(score::ValueStylesheet);
-  connect(fullview, &QPushButton::clicked, this, [this] {
-    auto base = get<ScenarioDocumentPresenter>(*documentFromObject(m_model));
-
-    if (base)
-      base->setDisplayedInterval(model());
-  });
-
-  lay->addRow(fullview);
+  {
+    auto fullview = new QToolButton;
+    fullview->setIcon(makeIcons(QStringLiteral(":/icons/fullview_on.png")
+                                , QStringLiteral(":/icons/fullview_off.png")
+                                , QStringLiteral(":/icons/fullview_off.png")));
+    fullview->setToolTip(tr("FullView"));
+    fullview->setAutoRaise(true);
+    fullview->setIconSize(QSize{32,32});
+    connect(fullview, &QToolButton::clicked, this, [this] {
+      auto base = get<ScenarioDocumentPresenter>(*documentFromObject(m_model));
+      if (base)
+        base->setDisplayedInterval(model());
+    });
+    btnLayout->addWidget(fullview);
+  }
 
   // Audio
-  ScenarioDocumentModel& doc = get<ScenarioDocumentModel>(*documentFromObject(m_model));
-  auto busWidg = new QCheckBox{this};
-  busWidg->setChecked(ossia::contains(doc.busIntervals, &m_model));
-  connect(busWidg, &QCheckBox::toggled,
-          this, [=, &ctx, &doc] (bool b) {
-    bool is_bus = ossia::contains(doc.busIntervals, &m_model);
-    if((b && !is_bus) || (!b && is_bus))
-    {
-        CommandDispatcher<> disp{ctx.commandStack};
-        disp.submit<Command::SetBus>(doc, m_model, b);
-    }
-  });
-  lay->addRow(tr("Audio bus"), busWidg);
+  {
+    ScenarioDocumentModel& doc = get<ScenarioDocumentModel>(*documentFromObject(m_model));
+    auto busWidg = new QToolButton{this};
+    busWidg->setIcon(makeIcons(QStringLiteral(":/icons/audio_bus_on.png")
+                                , QStringLiteral(":/icons/audio_bus_off.png")
+                                , QStringLiteral(":/icons/audio_bus_off.png")));
+    busWidg->setToolTip(tr("Audio bus"));
+    busWidg->setCheckable(true);
+    busWidg->setChecked(ossia::contains(doc.busIntervals, &m_model));
+    busWidg->setAutoRaise(true);
+    busWidg->setIconSize(QSize{32,32});
+    connect(busWidg, &QToolButton::toggled,
+            this, [=, &ctx, &doc] (bool b) {
+      bool is_bus = ossia::contains(doc.busIntervals, &m_model);
+      if((b && !is_bus) || (!b && is_bus))
+      {
+          CommandDispatcher<> disp{ctx.commandStack};
+          disp.submit<Command::SetBus>(doc, m_model, b);
+      }
+    });
+    btnLayout->addWidget(busWidg);
+  }
+  // Time signature
+  {
+    auto sigWidg = new QToolButton{this};
+    sigWidg->setIcon(makeIcons(QStringLiteral(":/icons/time_signature_on.png")
+                                , QStringLiteral(":/icons/time_signature_off.png")
+                                , QStringLiteral(":/icons/time_signature_off.png")));
+    sigWidg->setToolTip(tr("Time signature"));
+    sigWidg->setCheckable(true);
+    sigWidg->setAutoRaise(true);
+    sigWidg->setChecked(this->m_model.hasTimeSignature());
+
+    sigWidg->setIconSize(QSize{32,32});
+    connect(sigWidg, &QToolButton::toggled,
+            this, [=] (bool b) {
+      if(b != this->m_model.hasTimeSignature())
+      {
+        this->commandDispatcher()->submit<Command::SetHasTimeSignature>(m_model, b);
+      }
+    });
+    btnLayout->addWidget(sigWidg);
+  }
+  {
+    QWidget *spacerWidget = new QWidget(this);
+    spacerWidget->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Preferred);
+    spacerWidget->setVisible(true);
+    btnLayout->addWidget(spacerWidget);
+  }
+
+   lay->addRow(btnLayout);
 
   // Speed
   auto speedWidg = new SpeedWidget{true, true, this};
   speedWidg->setInterval(m_model);
   lay->addRow(tr("Speed"), speedWidg);
-
-  // signature
-  auto sigWidg = new QCheckBox{this};
-  sigWidg->setChecked(this->m_model.hasTimeSignature());
-  lay->addRow(tr("Time signature"), sigWidg);
-  connect(sigWidg, &QCheckBox::toggled,
-          this, [=] (bool b) {
-    if(b != this->m_model.hasTimeSignature())
-    {
-      this->commandDispatcher()->submit<Command::SetHasTimeSignature>(m_model, b);
-    }
-  });
 
   // Durations
   auto& ctrl = ctx.app.guiApplicationPlugin<ScenarioApplicationPlugin>();

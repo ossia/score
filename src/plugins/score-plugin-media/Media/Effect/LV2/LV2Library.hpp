@@ -42,15 +42,11 @@ class LibraryHandler final : public Library::LibraryInterface
 
     for (auto& category : categories)
     {
-      auto& cat = parent.emplace_back(
-          Library::ProcessData{category.first, QIcon{}, {}, {}}, &parent);
+      auto& cat = parent.emplace_back(Library::ProcessData{{{}, category.first, {}}, {}}, &parent);
       for (auto& plug : category.second)
       {
-        QJsonObject obj;
-        obj["Type"] = "Process";
-        obj["uuid"] = toJsonValue(key.impl());
-        obj["Data"] = plug;
-        cat.emplace_back(Library::ProcessData{plug, QIcon{}, obj, key}, &cat);
+        Library::ProcessData pdata{{key, plug, plug}, {}};
+        cat.emplace_back(pdata, &cat);
       }
     }
   }

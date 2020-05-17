@@ -4,6 +4,7 @@
 
 #include <core/document/Document.hpp>
 #include <core/undo/Panel/Widgets/UndoListWidget.hpp>
+#include <score/widgets/MarginLess.hpp>
 
 #include <QVBoxLayout>
 
@@ -12,7 +13,7 @@ namespace score
 UndoPanelDelegate::UndoPanelDelegate(const GUIApplicationContext& ctx)
     : PanelDelegate{ctx}, m_widget{new QWidget}
 {
-  m_widget->setLayout(new QVBoxLayout);
+  m_widget->setLayout(new score::MarginLess<QVBoxLayout>);
   m_widget->setObjectName("HistoryExplorer");
 }
 
@@ -29,8 +30,9 @@ const PanelStatus& UndoPanelDelegate::defaultPanelStatus() const
       false,
       false,
       Qt::LeftDockWidgetArea,
-      1,
+      20,
       QObject::tr("History"),
+      "history",
       QKeySequence::fromString("Ctrl+Shift+H")};
 
   return status;

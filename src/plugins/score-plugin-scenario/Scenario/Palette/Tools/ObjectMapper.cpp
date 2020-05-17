@@ -13,6 +13,7 @@
 
 #include <Scenario/Document/Event/EventModel.hpp>
 #include <Scenario/Document/Event/EventPresenter.hpp>
+#include <Scenario/Document/Interval/Graph/GraphIntervalPresenter.hpp>
 #include <Scenario/Document/Interval/IntervalModel.hpp>
 #include <Scenario/Document/Interval/IntervalPresenter.hpp>
 #include <Scenario/Document/Interval/Slot.hpp>
@@ -68,6 +69,15 @@ OptionalId<IntervalModel> ObjectMapper::itemToIntervalId(const QGraphicsItem* pr
 {
   const auto& interval
       = static_cast<const IntervalView*>(pressedItem)->presenter().model();
+  return interval.parent() == parentModel
+      ? interval.id()
+      : OptionalId<IntervalModel>{};
+}
+
+OptionalId<IntervalModel> ObjectMapper::itemToGraphIntervalId(const QGraphicsItem* pressedItem, const QObject* parentModel) noexcept
+{
+  const auto& interval
+      = static_cast<const GraphalIntervalPresenter*>(pressedItem)->model();
   return interval.parent() == parentModel
       ? interval.id()
       : OptionalId<IntervalModel>{};

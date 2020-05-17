@@ -19,12 +19,12 @@ void DataStreamWriter::write(Protocols::ArtnetSpecificSettings& n)
 }
 
 template <>
-void JSONObjectReader::read(const Protocols::ArtnetSpecificSettings& n)
+void JSONReader::read(const Protocols::ArtnetSpecificSettings& n)
 {
 }
 
 template <>
-void JSONObjectWriter::write(Protocols::ArtnetSpecificSettings& n)
+void JSONWriter::write(Protocols::ArtnetSpecificSettings& n)
 {
 }
 #endif

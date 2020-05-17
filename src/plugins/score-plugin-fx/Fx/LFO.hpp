@@ -200,18 +200,18 @@ struct Node
           const auto end_s = std::sin(custom_phase + ph + ph_delta);
           if ((start_s > 0 && end_s <= 0) || (start_s <= 0 && end_s > 0))
           {
-            add_val(std::uniform_real_distribution<float>(-1., 1.)(s.rd));
+            add_val(std::uniform_real_distribution<float>(-1.f, 1.f)(s.rd));
           }
           break;
         }
         case Noise1:
-          add_val(std::uniform_real_distribution<float>(-1., 1.)(s.rd));
+          add_val(std::uniform_real_distribution<float>(-1.f, 1.f)(s.rd));
           break;
         case Noise2:
-          add_val(std::normal_distribution<float>(0., 1.)(s.rd));
+          add_val(std::normal_distribution<float>(0.f, 1.f)(s.rd));
           break;
         case Noise3:
-          add_val(std::cauchy_distribution<float>(0., 1.)(s.rd));
+          add_val(std::clamp(std::cauchy_distribution<float>(0.f, 1.f)(s.rd), 0.f, 1.f));
           break;
       }
     }

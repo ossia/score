@@ -64,6 +64,10 @@ score_plugin_audio::factories(
          ,
          Audio::JackFactory
 #endif
+#if defined(OSSIA_AUDIO_PULSEAUDIO)
+         ,
+         Audio::PulseAudioFactory
+#endif
 #if defined(OSSIA_AUDIO_PORTAUDIO)
 #if __has_include(<pa_asio.h>)
          ,

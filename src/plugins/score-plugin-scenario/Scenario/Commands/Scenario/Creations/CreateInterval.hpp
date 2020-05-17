@@ -39,7 +39,8 @@ public:
   CreateInterval(
       const Scenario::ProcessModel& scenarioPath,
       Id<StateModel> startState,
-      Id<StateModel> endState);
+      Id<StateModel> endState,
+      bool graphal = false);
   CreateInterval& operator=(CreateInterval&&) = default;
 
   const Path<Scenario::ProcessModel>& scenarioPath() const { return m_path; }
@@ -68,6 +69,7 @@ private:
   Id<StateModel> m_endStateId{};
   double m_startStatePos{-1};
   double m_endStatePos{-1};
+  bool m_graphal{};
 };
 }
 }

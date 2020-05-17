@@ -6,8 +6,8 @@
 #include <score/model/Identifier.hpp>
 #include <score/model/path/Path.hpp>
 
-#include <QJsonObject>
 #include <score/tools/std/HashMap.hpp>
+#include <rapidjson/document.h>
 
 struct DataStreamInput;
 struct DataStreamOutput;
@@ -30,7 +30,7 @@ class SCORE_PLUGIN_SCENARIO_EXPORT InsertContentInInterval final
       "Insert content in a interval")
 public:
   InsertContentInInterval(
-      QJsonObject&& sourceInterval,
+      const rapidjson::Value& sourceInterval,
       const IntervalModel& targetInterval,
       ExpandMode mode);
 
@@ -42,7 +42,7 @@ protected:
   void deserializeImpl(DataStreamOutput&) override;
 
 private:
-  QJsonObject m_source;
+  rapidjson::Document m_source;
   Path<IntervalModel> m_target;
   ExpandMode m_mode{ExpandMode::GrowShrink};
 

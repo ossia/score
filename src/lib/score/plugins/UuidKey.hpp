@@ -422,3 +422,54 @@ struct hash<UuidKey<T>>
   }
 };
 }
+
+#include <score/serialization/VisitorInterface.hpp>
+template <>
+struct is_custom_serialized<score::uuid_t> : std::true_type
+{
+};
+
+template <>
+struct SCORE_LIB_BASE_EXPORT TSerializer<JSONObject, score::uuid_t>
+{
+  using type = score::uuid_t;
+  static void readFrom(JSONObject::Serializer& s, const type& obj);
+  static void writeTo(JSONObject::Deserializer& s, type& obj);
+};
+
+template <typename U>
+struct TSerializer<JSONObject, UuidKey<U>>
+{
+  static void readFrom(JSONObject::Serializer& s, const UuidKey<U>& uid)
+  {
+    TSerializer<JSONObject, score::uuid_t>::readFrom(s, uid.impl());
+  }
+
+  static void writeTo(JSONObject::Deserializer& s, UuidKey<U>& uid)
+  {
+    TSerializer<JSONObject, score::uuid_t>::writeTo(s, uid.impl());
+  }
+};
+
+template <>
+struct SCORE_LIB_BASE_EXPORT TSerializer<DataStream, score::uuid_t>
+{
+  static void readFrom(DataStream::Serializer& s, const score::uuid_t& obj);
+  static void writeTo(DataStream::Deserializer& s, score::uuid_t& obj);
+};
+
+template <typename U>
+struct TSerializer<DataStream, UuidKey<U>>
+{
+  static void readFrom(DataStream::Serializer& s, const UuidKey<U>& uid)
+  {
+    TSerializer<DataStream, score::uuid_t>::readFrom(s, uid.impl());
+  }
+
+  static void writeTo(DataStream::Deserializer& s, UuidKey<U>& uid)
+  {
+    TSerializer<DataStream, score::uuid_t>::writeTo(s, uid.impl());
+  }
+};
+
+

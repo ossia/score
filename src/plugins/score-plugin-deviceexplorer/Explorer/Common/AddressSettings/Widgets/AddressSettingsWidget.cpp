@@ -7,6 +7,7 @@
 #include <Device/Address/IOType.hpp>
 #include <State/Widgets/UnitWidget.hpp>
 
+#include <score/widgets/MarginLess.hpp>
 #include <score/widgets/SignalUtils.hpp>
 #include <score/tools/Debug.hpp>
 
@@ -29,11 +30,12 @@ W_OBJECT_IMPL(Explorer::BoundingModeComboBox)
 namespace Explorer
 {
 AddressSettingsWidget::AddressSettingsWidget(QWidget* parent)
-    : QWidget(parent), m_layout{new QFormLayout}, m_none_type{false}
+    : QWidget(parent), m_layout{new score::MarginLess<QFormLayout>}, m_none_type{false}
 {
+  setContentsMargins(0,0,0,0);
   m_ioTypeCBox = new AccessModeComboBox{this};
   m_clipModeCBox = new BoundingModeComboBox{this};
-  m_repetition = new QCheckBox;
+  m_repetition = new QCheckBox{tr("Repetition filter"), this};
   m_repetition->setToolTip(
       tr("When repetitions are filtered, if two identical values are sent one "
          "after the other, the second is ignored."));
@@ -69,7 +71,7 @@ AddressSettingsWidget::AddressSettingsWidget(QWidget* parent)
 
   m_layout->addRow(makeLabel(tr("Clip mode"), this), m_clipModeCBox);
   m_layout->addRow(makeLabel(tr("I/O type"), this), m_ioTypeCBox);
-  m_layout->addRow(makeLabel(tr("Repetition filter"), this), m_repetition);
+  m_layout->addRow(m_repetition);
   m_layout->addRow(makeLabel(tr("Tags"), this), tagLayout);
   m_layout->addRow(makeLabel(tr("Unit"), this), m_unit);
   m_layout->addRow(makeLabel(tr("Description"), this), m_description);
@@ -80,8 +82,9 @@ AddressSettingsWidget::AddressSettingsWidget(QWidget* parent)
 AddressSettingsWidget::AddressSettingsWidget(
     AddressSettingsWidget::no_widgets_t,
     QWidget* parent)
-    : QWidget(parent), m_layout{new QFormLayout}, m_none_type{true}
+  : QWidget(parent), m_layout{new score::MarginLess<QFormLayout>}, m_none_type{true}
 {
+  setContentsMargins(0,0,0,0);
   m_tagsEdit = new QComboBox{this};
   m_tagsEdit->setEditable(true);
   m_tagsEdit->setInsertPolicy(QComboBox::InsertAtCurrent);

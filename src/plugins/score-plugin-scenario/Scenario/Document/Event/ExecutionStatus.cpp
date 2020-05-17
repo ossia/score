@@ -19,7 +19,7 @@ const score::Brush& ExecutionStatusProperty::eventStatusColor(const Process::Sty
     case ExecutionStatus::Pending:
       return col.EventPending();
     case ExecutionStatus::Happened:
-      return col.EventHappened();
+      return col.EventDefault();
     case ExecutionStatus::Disposed:
       return col.EventDisposed();
     default:
@@ -38,7 +38,7 @@ const score::Brush& ExecutionStatusProperty::stateStatusColor(const Process::Sty
     case ExecutionStatus::Pending:
       return col.EventPending();
     case ExecutionStatus::Happened:
-      return col.EventHappened();
+      return col.StateDot();
     case ExecutionStatus::Disposed:
       return col.EventDisposed();
     default:

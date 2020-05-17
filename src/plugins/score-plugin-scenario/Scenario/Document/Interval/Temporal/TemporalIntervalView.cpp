@@ -14,6 +14,7 @@
 #include <Scenario/Document/Interval/IntervalPixmaps.hpp>
 #include <Scenario/Document/Interval/SlotHandle.hpp>
 #include <Scenario/Document/Event/EventModel.hpp>
+#include <score/graphics/PainterPath.hpp>
 
 #include <score/graphics/GraphicsItem.hpp>
 #include <score/model/Skin.hpp>
@@ -62,8 +63,8 @@ const TemporalIntervalPresenter& TemporalIntervalView::presenter() const
 
 void TemporalIntervalView::updatePaths()
 {
-  solidPath = QPainterPath{};
-  playedSolidPath = QPainterPath{};
+  clearPainterPath(solidPath);
+  clearPainterPath(playedSolidPath);
 
   const qreal min_w = minWidth();
   const qreal max_w = maxWidth();
@@ -188,7 +189,7 @@ void TemporalIntervalView::drawPlayDashedPath(
 
 void TemporalIntervalView::updatePlayPaths()
 {
-  playedSolidPath = QPainterPath{};
+  clearPainterPath(playedSolidPath);
 
   const qreal min_w = minWidth();
   const qreal max_w = maxWidth();
@@ -283,7 +284,25 @@ void TemporalIntervalView::paint(
 
   if (!playedSolidPath.isEmpty())
   {
-    painter.setPen(skin.IntervalSolidPen(skin.IntervalPlayFill()));
+    if(m_execPing.running())
+    {
+      const auto& nextPen = m_execPing.getNextPen(
+            defaultColor.color(),
+            skin.IntervalPlayFill().color(),
+            skin.IntervalSolidPen(skin.IntervalPlayFill()));
+      painter.setPen(nextPen);
+      update();
+      if(!m_execPing.running())
+      {
+        m_playWidth = 0.;
+        updatePlayPaths();
+      }
+    }
+    else
+    {
+      painter.setPen(skin.IntervalSolidPen(skin.IntervalPlayFill()));
+    }
+
     painter.drawPath(playedSolidPath);
   }
 

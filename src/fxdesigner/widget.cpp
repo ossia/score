@@ -467,12 +467,12 @@ void DataStreamWriter::write(fxd::BackgroundWidget& w)
 }
 
 template <>
-void JSONObjectReader::read(const fxd::BackgroundWidget& w)
+void JSONReader::read(const fxd::BackgroundWidget& w)
 {
 }
 
 template <>
-void JSONObjectWriter::write(fxd::BackgroundWidget& w)
+void JSONWriter::write(fxd::BackgroundWidget& w)
 {
 }
 
@@ -490,12 +490,12 @@ void DataStreamWriter::write(fxd::SliderWidget& w)
 }
 
 template <>
-void JSONObjectReader::read(const fxd::SliderWidget& w)
+void JSONReader::read(const fxd::SliderWidget& w)
 {
 }
 
 template <>
-void JSONObjectWriter::write(fxd::SliderWidget& w)
+void JSONWriter::write(fxd::SliderWidget& w)
 {
 }
 
@@ -515,7 +515,7 @@ void DataStreamWriter::write(fxd::EnumWidget& w)
 }
 
 template <>
-void JSONObjectReader::read(const fxd::EnumWidget& w)
+void JSONReader::read(const fxd::EnumWidget& w)
 {
   obj["Alternatives"] = toJsonArray(w.alternatives);
   obj["Columns"] = w.columns;
@@ -523,7 +523,7 @@ void JSONObjectReader::read(const fxd::EnumWidget& w)
 }
 
 template <>
-void JSONObjectWriter::write(fxd::EnumWidget& w)
+void JSONWriter::write(fxd::EnumWidget& w)
 {
   fromJsonArray(obj["Alternatives"].toArray(), w.alternatives);
   w.columns = obj["Columns"].toInt();
@@ -544,12 +544,12 @@ void DataStreamWriter::write(fxd::KnobWidget& w)
 }
 
 template <>
-void JSONObjectReader::read(const fxd::KnobWidget& w)
+void JSONReader::read(const fxd::KnobWidget& w)
 {
 }
 
 template <>
-void JSONObjectWriter::write(fxd::KnobWidget& w)
+void JSONWriter::write(fxd::KnobWidget& w)
 {
 }
 
@@ -566,12 +566,12 @@ void DataStreamWriter::write(fxd::SpinboxWidget& w)
 }
 
 template <>
-void JSONObjectReader::read(const fxd::SpinboxWidget& w)
+void JSONReader::read(const fxd::SpinboxWidget& w)
 {
 }
 
 template <>
-void JSONObjectWriter::write(fxd::SpinboxWidget& w)
+void JSONWriter::write(fxd::SpinboxWidget& w)
 {
 }
 template <>
@@ -587,12 +587,12 @@ void DataStreamWriter::write(fxd::EmptyWidget& w)
 }
 
 template <>
-void JSONObjectReader::read(const fxd::EmptyWidget& w)
+void JSONReader::read(const fxd::EmptyWidget& w)
 {
 }
 
 template <>
-void JSONObjectWriter::write(fxd::EmptyWidget& w)
+void JSONWriter::write(fxd::EmptyWidget& w)
 {
 }
 
@@ -611,13 +611,13 @@ void DataStreamWriter::write(fxd::ComboWidget& w)
 }
 
 template <>
-void JSONObjectReader::read(const fxd::ComboWidget& w)
+void JSONReader::read(const fxd::ComboWidget& w)
 {
   obj["Alternatives"] = toJsonArray(w.alternatives);
 }
 
 template <>
-void JSONObjectWriter::write(fxd::ComboWidget& w)
+void JSONWriter::write(fxd::ComboWidget& w)
 {
   fromJsonArray(obj["Alternatives"].toArray(), w.alternatives);
 }
@@ -637,13 +637,13 @@ void DataStreamWriter::write(fxd::TextWidget& w)
 }
 
 template <>
-void JSONObjectReader::read(const fxd::TextWidget& w)
+void JSONReader::read(const fxd::TextWidget& w)
 {
   obj["Text"] = w.text;
 }
 
 template <>
-void JSONObjectWriter::write(fxd::TextWidget& w)
+void JSONWriter::write(fxd::TextWidget& w)
 {
   w.text = obj["Text"].toString();
 }
@@ -663,7 +663,7 @@ void DataStreamWriter::write(fxd::Widget& w)
 }
 
 template <>
-void JSONObjectReader::read(const fxd::Widget& w)
+void JSONReader::read(const fxd::Widget& w)
 {
   obj["Name"] = w.m_name;
   obj["Index"] = w.m_controlIndex;
@@ -677,7 +677,7 @@ void JSONObjectReader::read(const fxd::Widget& w)
 }
 
 template <>
-void JSONObjectWriter::write(fxd::Widget& w)
+void JSONWriter::write(fxd::Widget& w)
 {
   w.m_name = obj["Name"].toString();
   w.m_controlIndex = obj["Index"].toInt();
@@ -723,14 +723,14 @@ void DataStreamWriter::write(fxd::DocumentModel& doc)
 }
 
 template <>
-void JSONObjectReader::read(const fxd::DocumentModel& doc)
+void JSONReader::read(const fxd::DocumentModel& doc)
 {
   obj["Widgets"] = toJsonArray(doc.widgets);
   obj["RectSize"] = toJsonValue(doc.m_rectSize);
 }
 
 template <>
-void JSONObjectWriter::write(fxd::DocumentModel& doc)
+void JSONWriter::write(fxd::DocumentModel& doc)
 {
   const auto& widgets = obj["Widgets"].toArray();
   for (const auto& json_vref : widgets)

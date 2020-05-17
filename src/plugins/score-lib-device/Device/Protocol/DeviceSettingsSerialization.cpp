@@ -61,10 +61,11 @@ SCORE_LIB_DEVICE_EXPORT void DataStreamWriter::write(Device::DeviceSettings& n)
 
 template <>
 SCORE_LIB_DEVICE_EXPORT void
-JSONObjectReader::read(const Device::DeviceSettings& n)
+JSONReader::read(const Device::DeviceSettings& n)
 {
+  stream.StartObject();
   obj[strings.Name] = n.name;
-  obj[strings.Protocol] = toJsonValue(n.protocol);
+  obj[strings.Protocol] = n.protocol;
 
   auto& pl = components.interfaces<Device::ProtocolFactoryList>();
   auto prot = pl.get(n.protocol);
@@ -77,14 +78,14 @@ JSONObjectReader::read(const Device::DeviceSettings& n)
   {
     qDebug() << "Warning: could not serialize device " << n.name;
   }
+  stream.EndObject();
 }
 
 template <>
-SCORE_LIB_DEVICE_EXPORT void JSONObjectWriter::write(Device::DeviceSettings& n)
+SCORE_LIB_DEVICE_EXPORT void JSONWriter::write(Device::DeviceSettings& n)
 {
   n.name = obj[strings.Name].toString();
-  n.protocol
-      = fromJsonValue<UuidKey<Device::ProtocolFactory>>(obj[strings.Protocol]);
+  n.protocol <<= obj[strings.Protocol];
 
   auto pl = components.findInterfaces<Device::ProtocolFactoryList>();
   if (pl)

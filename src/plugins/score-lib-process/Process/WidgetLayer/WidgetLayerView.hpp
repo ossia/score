@@ -7,9 +7,7 @@
 
 class QGraphicsItem;
 class QPainter;
-class QQuickView;
 class QGraphicsProxyWidget;
-class QQuickItem;
 
 namespace WidgetLayer
 {

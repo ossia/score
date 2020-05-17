@@ -110,6 +110,8 @@ bool AudioDevice::reconnect()
     // TODO save the reason of the non-connection.
   }
 
+  qDebug() << "Audio device emits changed:" << this;
+  changed();
   return connected();
 }
 

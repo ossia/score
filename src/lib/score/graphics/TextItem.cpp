@@ -30,6 +30,7 @@ void TextItem::focusOutEvent(QFocusEvent* event)
 SimpleTextItem::SimpleTextItem(const score::BrushSet& col, QGraphicsItem* p)
     : QGraphicsItem{p}, m_color{&col}
 {
+  setFont(score::Skin::instance().Medium8Pt);
 }
 
 QRectF SimpleTextItem::boundingRect() const

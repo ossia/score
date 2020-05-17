@@ -217,7 +217,6 @@ struct FrameComputer
         sum[c] = fun.init(vals[start_frame]);
         for(int64_t i = start_frame + 1; i < end_frame; i++)
           sum[c] = fun(sum[c], (float)vals[i]);
-        sum[c] = sum[c];
       }
     }
     else if(end_frame == start_frame)
@@ -390,7 +389,7 @@ void AudioFile::load_ffmpeg(int rate)
 
         for(auto& channel : handle)
         {
-          samples.emplace_back(channel.data(), gsl::span<ossia::audio_sample>::index_type(decoded));
+          samples.emplace_back(channel.data(), gsl::span<ossia::audio_sample>::size_type(decoded));
         }
         m_rms->decode(samples);
 
@@ -406,7 +405,7 @@ void AudioFile::load_ffmpeg(int rate)
 
         for(auto& channel : handle)
         {
-          samples.emplace_back(channel.data(), gsl::span<ossia::audio_sample>::index_type(decoded));
+          samples.emplace_back(channel.data(), gsl::span<ossia::audio_sample>::size_type(decoded));
         }
         m_rms->decodeLast(samples);
 

@@ -108,9 +108,9 @@ public:
   Selectable selection;
   bool hidden{};
 
-  void addCable(const Path<Process::Cable>& c);
+  void addCable(const Process::Cable& c);
   void removeCable(const Path<Process::Cable>& c);
-  void setCables(const std::vector<Path<Cable>>& c);
+  void takeCables(Process::Port&& c);
 
   const QString& customData() const noexcept;
   const State::AddressAccessor& address() const noexcept;
@@ -146,6 +146,9 @@ public:
   PROPERTY(
       QString,
       customData READ customData WRITE setCustomData NOTIFY customDataChanged)
+
+  virtual QByteArray saveData() const noexcept;
+  virtual void loadData(const QByteArray& arr) noexcept;
 protected:
   Port() = delete;
   ~Port() override;
@@ -174,6 +177,7 @@ public:
 
   ~Inlet() override;
 
+  virtual void setupExecution(ossia::inlet&) const noexcept;
   virtual void forChildInlets(const smallfun::function<void(Inlet&)>&) const noexcept;
   virtual void mapExecution(ossia::inlet&, const smallfun::function<void(Inlet&, ossia::inlet&)>&) const noexcept;
 protected:
@@ -209,6 +213,8 @@ public:
   const ossia::value& value() const noexcept { return m_value; }
   const State::Domain& domain() const noexcept { return m_domain; }
 
+  QByteArray saveData() const noexcept override;
+  void loadData(const QByteArray& arr) noexcept override;
 public:
   void valueChanged(const ossia::value& v)
       E_SIGNAL(SCORE_LIB_PROCESS_EXPORT, valueChanged, v)
@@ -311,6 +317,9 @@ public:
   void forChildInlets(const smallfun::function<void(Inlet&)>&) const noexcept override;
   void mapExecution(ossia::outlet&, const smallfun::function<void(Inlet&, ossia::inlet&)>&) const noexcept override;
 
+  QByteArray saveData() const noexcept override;
+  void loadData(const QByteArray& arr) noexcept override;
+
   bool propagate() const;
   void setPropagate(bool propagate);
   void propagateChanged(bool propagate)
@@ -398,6 +407,9 @@ public:
   ControlOutlet(JSONObject::Deserializer&& vis, QObject* parent);
 
   VIRTUAL_CONSTEXPR PortType type() const noexcept override { return Process::PortType::Message; }
+
+  QByteArray saveData() const noexcept override;
+  void loadData(const QByteArray& arr) noexcept override;
 
   const ossia::value& value() const { return m_value; }
   const State::Domain& domain() const { return m_domain; }
@@ -518,49 +530,49 @@ SCORE_LIB_PROCESS_EXPORT
 std::unique_ptr<ValueInlet> load_value_inlet(DataStreamWriter& wr, QObject* parent);
 
 SCORE_LIB_PROCESS_EXPORT
-std::unique_ptr<ValueInlet> load_value_inlet(JSONObjectWriter& wr, QObject* parent);
+std::unique_ptr<ValueInlet> load_value_inlet(JSONWriter& wr, QObject* parent);
 
 SCORE_LIB_PROCESS_EXPORT
 std::unique_ptr<ValueOutlet> load_value_outlet(DataStreamWriter& wr, QObject* parent);
 
 SCORE_LIB_PROCESS_EXPORT
-std::unique_ptr<ValueOutlet> load_value_outlet(JSONObjectWriter& wr, QObject* parent);
+std::unique_ptr<ValueOutlet> load_value_outlet(JSONWriter& wr, QObject* parent);
 
 SCORE_LIB_PROCESS_EXPORT
 std::unique_ptr<ControlInlet> load_control_inlet(DataStreamWriter& wr, QObject* parent);
 
 SCORE_LIB_PROCESS_EXPORT
-std::unique_ptr<ControlInlet> load_control_inlet(JSONObjectWriter& wr, QObject* parent);
+std::unique_ptr<ControlInlet> load_control_inlet(JSONWriter& wr, QObject* parent);
 
 SCORE_LIB_PROCESS_EXPORT
 std::unique_ptr<ControlOutlet> load_control_outlet(DataStreamWriter& wr, QObject* parent);
 
 SCORE_LIB_PROCESS_EXPORT
-std::unique_ptr<ControlOutlet> load_control_outlet(JSONObjectWriter& wr, QObject* parent);
+std::unique_ptr<ControlOutlet> load_control_outlet(JSONWriter& wr, QObject* parent);
 
 SCORE_LIB_PROCESS_EXPORT
 std::unique_ptr<AudioInlet> load_audio_inlet(DataStreamWriter& wr, QObject* parent);
 
 SCORE_LIB_PROCESS_EXPORT
-std::unique_ptr<AudioInlet> load_audio_inlet(JSONObjectWriter& wr, QObject* parent);
+std::unique_ptr<AudioInlet> load_audio_inlet(JSONWriter& wr, QObject* parent);
 
 SCORE_LIB_PROCESS_EXPORT
 std::unique_ptr<AudioOutlet> load_audio_outlet(DataStreamWriter& wr, QObject* parent);
 
 SCORE_LIB_PROCESS_EXPORT
-std::unique_ptr<AudioOutlet> load_audio_outlet(JSONObjectWriter& wr, QObject* parent);
+std::unique_ptr<AudioOutlet> load_audio_outlet(JSONWriter& wr, QObject* parent);
 
 SCORE_LIB_PROCESS_EXPORT
 std::unique_ptr<MidiInlet> load_midi_inlet(DataStreamWriter& wr, QObject* parent);
 
 SCORE_LIB_PROCESS_EXPORT
-std::unique_ptr<MidiInlet> load_midi_inlet(JSONObjectWriter& wr, QObject* parent);
+std::unique_ptr<MidiInlet> load_midi_inlet(JSONWriter& wr, QObject* parent);
 
 SCORE_LIB_PROCESS_EXPORT
 std::unique_ptr<MidiOutlet> load_midi_outlet(DataStreamWriter& wr, QObject* parent);
 
 SCORE_LIB_PROCESS_EXPORT
-std::unique_ptr<MidiOutlet> load_midi_outlet(JSONObjectWriter& wr, QObject* parent);
+std::unique_ptr<MidiOutlet> load_midi_outlet(JSONWriter& wr, QObject* parent);
 
 using Inlets = ossia::small_vector<Process::Inlet*, 4>;
 using Outlets = ossia::small_vector<Process::Outlet*, 4>;

@@ -162,7 +162,7 @@ void TemporalIntervalHeader::updateButtons()
       pos += interval_header_button_spacing;
   }
   if(m_speed)
-      m_speed->setPos(pos, headerHeight() * 0.05);
+      m_speed->setPos(pos, -1.);
 
   updateShape();
 }

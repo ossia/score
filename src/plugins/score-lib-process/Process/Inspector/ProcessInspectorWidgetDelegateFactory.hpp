@@ -69,4 +69,23 @@ private:
     return dynamic_cast<const Process_T*>(&process);
   }
 };
+
+class DefaultInspectorWidgetDelegateFactory
+    : public Process::InspectorWidgetDelegateFactory
+{
+  SCORE_CONCRETE("07c0f07b-f996-4aa9-88b9-664486ddbb00")
+private:
+  QWidget* make_process(
+      const Process::ProcessModel& process,
+      const score::DocumentContext& doc,
+      QWidget* parent) const override
+  {
+    return wrap(process, doc, nullptr, parent);
+  }
+
+  bool matches_process(const Process::ProcessModel& process) const override
+  {
+    return true;
+  }
+};
 }

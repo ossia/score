@@ -10,7 +10,6 @@ class SCORE_LIB_PROCESS_EXPORT InspectorWidgetDelegate : public QWidget
 public:
   using QWidget::QWidget;
   virtual ~InspectorWidgetDelegate();
-  virtual const Process::ProcessModel& process() const = 0;
 };
 
 template <typename Process_T>
@@ -24,7 +23,7 @@ public:
 
   ~InspectorWidgetDelegate_T() = default;
 
-  const Process_T& process() const final override { return m_process; }
+  const Process_T& process() const noexcept { return m_process; }
 
 private:
   const Process_T& m_process;

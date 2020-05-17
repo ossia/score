@@ -29,6 +29,8 @@ Cable::Cable(Id<Cable> c, const CableData& data, QObject* parent)
   m_type = data.type;
   m_source = data.source;
   m_sink = data.sink;
+  m_source.unsafePath().resetCache();
+  m_sink.unsafePath().resetCache();
 }
 
 void Cable::update(const CableData& data)
@@ -36,6 +38,8 @@ void Cable::update(const CableData& data)
   m_type = data.type;
   m_source = data.source;
   m_sink = data.sink;
+  m_source.unsafePath().resetCache();
+  m_sink.unsafePath().resetCache();
 }
 
 CableData Cable::toCableData() const
@@ -71,6 +75,13 @@ void Cable::setType(CableType type)
   m_type = type;
   typeChanged(m_type);
 }
+
+void Cable::resetCache() const noexcept
+{
+  IdentifiedObject::resetCache();
+  m_source.unsafePath().resetCache();
+  m_sink.unsafePath().resetCache();
+}
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void
@@ -89,32 +100,21 @@ DataStreamWriter::write<Process::CableData>(Process::CableData& p)
 
 template <>
 SCORE_LIB_PROCESS_EXPORT void
-JSONObjectReader::read<Process::CableData>(const Process::CableData& p)
+JSONReader::read<Process::CableData>(const Process::CableData& p)
 {
+  stream.StartObject();
   obj["Type"] = (int)p.type;
-  obj["Source"] = toJsonObject(p.source);
-  obj["Sink"] = toJsonObject(p.sink);
+  obj["Source"] = p.source;
+  obj["Sink"] = p.sink;
+  stream.EndObject();
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void
-JSONObjectWriter::write<Process::CableData>(Process::CableData& p)
+JSONWriter::write<Process::CableData>(Process::CableData& p)
 {
   p.type = (Process::CableType)obj["Type"].toInt();
-  p.source = fromJsonObject<Path<Process::Outlet>>(obj["Source"]);
-  p.sink = fromJsonObject<Path<Process::Inlet>>(obj["Sink"]);
-}
-
-template <>
-SCORE_LIB_PROCESS_EXPORT void
-JSONValueReader::read<Process::CableData>(const Process::CableData& p)
-{
-  this->val = toJsonObject(p);
-}
-template <>
-SCORE_LIB_PROCESS_EXPORT void
-JSONValueWriter::write<Process::CableData>(Process::CableData& p)
-{
-  p = fromJsonObject<Process::CableData>(this->val);
+  p.source <<= obj["Source"];
+  p.sink <<= obj["Sink"];
 }
 
 template <>
@@ -133,15 +133,19 @@ DataStreamWriter::write<Process::Cable>(Process::Cable& p)
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void
-JSONObjectReader::read<Process::Cable>(const Process::Cable& p)
+JSONReader::read<Process::Cable>(const Process::Cable& p)
 {
-  obj["Data"] = toJsonObject(p.toCableData());
+  obj["Type"] = (int)p.m_type;
+  obj["Source"] = p.m_source;
+  obj["Sink"] = p.m_sink;
 }
 template <>
 SCORE_LIB_PROCESS_EXPORT void
-JSONObjectWriter::write<Process::Cable>(Process::Cable& p)
+JSONWriter::write<Process::Cable>(Process::Cable& p)
 {
-  Process::CableData cd
-      = fromJsonObject<Process::CableData>(obj["Data"].toObject());
-  p.update(cd);
+  p.m_type = (Process::CableType)obj["Type"].toInt();
+  p.m_source <<= obj["Source"];
+  p.m_sink <<= obj["Sink"];
+  p.m_source.unsafePath().resetCache();
+  p.m_sink.unsafePath().resetCache();
 }

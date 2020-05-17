@@ -49,8 +49,8 @@ private:
   void hoverMoveEvent(QGraphicsSceneHoverEvent* event) override;
   void hoverLeaveEvent(QGraphicsSceneHoverEvent* event) override;
 
-  void resetInlets(const Process::ProcessModel& effect);
-  void resetOutlets(const Process::ProcessModel& effect);
+  void resetInlets();
+  void resetOutlets();
 
   const Process::ProcessModel& m_model;
 

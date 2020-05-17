@@ -105,13 +105,13 @@ void ToolPalette::on_cancel()
 
 Scenario::Point ToolPalette::ScenePointToScenarioPoint(QPointF point)
 {
-  return {TimeVal::fromMsecs(point.x() * m_presenter.zoomRatio()), 0};
+  return {TimeVal::fromPixels(point.x(), m_presenter.zoomRatio()), 0};
 }
 
 Scenario::Point
 DisplayedElementsToolPalette::ScenePointToScenarioPoint(QPointF point)
 {
-  return {TimeVal::fromMsecs(point.x() * m_presenter.zoomRatio()), 0};
+  return {TimeVal::fromPixels(point.x(), m_presenter.zoomRatio()), 0};
 }
 
 DisplayedElementsToolPalette::DisplayedElementsToolPalette(

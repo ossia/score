@@ -26,7 +26,11 @@ score_plugin_library::guiFactories(
 {
   return instantiate_factories<
       score::ApplicationContext,
-      FW<score::PanelDelegateFactory, Library::PanelDelegateFactory>,
+      FW<score::PanelDelegateFactory
+      , Library::UserPanelFactory
+      , Library::ProjectPanelFactory
+      , Library::ProcessPanelFactory
+      >,
       FW<Library::LibraryInterface, Library::LibraryDocumentLoader>,
       FW<score::SettingsDelegateFactory, Library::Settings::Factory>>(
       ctx, key);

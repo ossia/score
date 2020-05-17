@@ -11,6 +11,9 @@
 #include <Scenario/Document/State/StateModel.hpp>
 #include <Scenario/Process/ScenarioInterface.hpp>
 
+#include <score/model/ColorReference.hpp>
+#include <score/widgets/MimeData.hpp>
+
 #include <QApplication>
 #include <QCursor>
 #include <QDrag>
@@ -68,7 +71,8 @@ StateView::StateView(StatePresenter& pres, QGraphicsItem* parent)
     this->setCacheMode(QGraphicsItem::CacheMode::ItemCoordinateCache);
   this->setParentItem(parent);
 
-  this->setCursor(QCursor(Qt::CrossCursor));
+  auto& skin = score::Skin::instance();
+  this->setCursor(skin.CursorMove);
   this->setZValue(ZPos::State);
   this->setAcceptDrops(true);
   this->setAcceptHoverEvents(true);
@@ -98,13 +102,26 @@ void StateView::paint(
       painter->drawPath(fullNonDilated);
   }
 
-  auto& brush =
-      (m_status.get() != ExecutionStatus::Editing)
-      ? m_status.stateStatusColor(skin)
-      : (m_selected ? skin.StateSelected() : skin.StateDot());
+  if(m_execPing.running())
+  {
+    const auto& nextPen = m_execPing.getNextPen(
+          skin.StateDot().color(),
+          skin.EventHappened().color(),
+          skin.StateDot().main.pen_cosmetic);
+    painter->setPen(nextPen);
+    painter->setBrush(nextPen.brush());
+    update();
+  }
+  else
+  {
+    auto& brush =
+        (m_status.get() != ExecutionStatus::Editing)
+        ? m_status.stateStatusColor(skin)
+        : (m_selected ? skin.StateSelected() : skin.StateDot());
 
-  painter->setBrush(brush);
-  painter->setPen(skin.StateTemporalPointPen(brush));
+    painter->setPen(skin.StateTemporalPointPen(brush));
+    painter->setBrush(brush);
+  }
   if (m_dilated)
     painter->drawPath(smallDilated);
   else
@@ -139,6 +156,14 @@ void StateView::setStatus(ExecutionStatus status)
   if (m_status.get() == status)
     return;
   m_status.set(status);
+  if(status == ExecutionStatus::Happened)
+  {
+    m_execPing.start();
+  }
+  else
+  {
+    m_execPing.stop();
+  }
   update();
 }
 
@@ -162,18 +187,17 @@ void StateView::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
     if (auto si = dynamic_cast<Scenario::ScenarioInterface*>(
             presenter().model().parent()))
     {
-      auto obj = copySelectedElementsToJson(
+      JSONReader r;
+      copySelectedElementsToJson(r,
           *const_cast<ScenarioInterface*>(si),
           score::IDocument::documentContext(*m_presenter.model().parent()));
 
-      if (!obj.empty())
+      if (!r.empty())
       {
         QDrag d{this};
         auto m = new QMimeData;
-        QJsonDocument doc{obj};
-        ;
         m->setData(
-            score::mime::scenariodata(), doc.toJson(QJsonDocument::Indented));
+            score::mime::scenariodata(), r.toByteArray());
         d.setMimeData(m);
         d.exec();
       }
@@ -245,11 +269,16 @@ void StateView::updateOverlay()
 
       m_overlay = new StatePlusOverlay{this};
       m_overlay->setPos(0, -14);
+
+      m_graphOverlay = new StateGraphPlusOverlay{this};
+      m_graphOverlay->setPos(0, 10);
     }
     else
     {
       delete m_overlay;
       m_overlay = nullptr;
+      delete m_graphOverlay;
+      m_graphOverlay = nullptr;
     }
   }
 }

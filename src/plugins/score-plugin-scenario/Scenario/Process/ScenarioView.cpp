@@ -105,15 +105,13 @@ void ScenarioView::mouseMoveEvent(QGraphicsSceneMouseEvent* event)
 {
   if (event->buttons() & Qt::MiddleButton)
   {
-    auto obj = copySelectedScenarioElements(m_scenario->model());
-    if (!obj.empty())
+    JSONReader r;
+    copySelectedScenarioElements(r, m_scenario->model());
+    if (!r.empty())
     {
       QDrag d{this};
       auto m = new QMimeData;
-      QJsonDocument doc{obj};
-      ;
-      m->setData(
-          score::mime::scenariodata(), doc.toJson(QJsonDocument::Indented));
+      m->setData(score::mime::scenariodata(), r.toByteArray());
       d.setMimeData(m);
       d.exec();
     }

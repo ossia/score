@@ -104,7 +104,6 @@ score_plugin_loop::factories(
          Loop::RecreateOnPlay::ComponentFactory>,
       FW<Process::ProcessModelFactory, Loop::ProcessFactory>,
       FW<Process::LayerFactory, Loop::LayerFactory>,
-      FW<Inspector::InspectorWidgetFactory, Loop::InspectorFactory>,
       FW<TriggerCommandFactory, LoopTriggerCommandFactory>,
       FW<LocalTree::ProcessComponentFactory, LocalTree::LoopComponentFactory>,
       FW<Scenario::DisplayedElementsToolPaletteFactory,
