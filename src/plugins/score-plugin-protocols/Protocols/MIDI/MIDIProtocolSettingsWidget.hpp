@@ -6,7 +6,7 @@
 
 #include <verdigris>
 
-class QComboBox;
+namespace score { class ComboBox;}
 class QCheckBox;
 class QRadioButton;
 class QWidget;
@@ -33,7 +33,7 @@ private:
   QLineEdit* m_name{};
   QCheckBox* m_inButton{};
   QCheckBox* m_outButton{};
-  QComboBox* m_deviceCBox{};
+  score::ComboBox* m_deviceCBox{};
   QCheckBox* m_createWhole{};
 };
 }

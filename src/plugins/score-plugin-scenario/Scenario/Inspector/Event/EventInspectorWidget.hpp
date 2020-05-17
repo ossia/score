@@ -10,9 +10,7 @@
 #include <vector>
 #include <verdigris>
 
-class QLabel;
 class QComboBox;
-class QLineEdit;
 class QWidget;
 namespace Scenario
 {

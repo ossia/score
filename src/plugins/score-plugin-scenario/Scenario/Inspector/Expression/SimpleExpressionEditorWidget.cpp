@@ -14,10 +14,10 @@
 #include <score/widgets/SetIcons.hpp>
 #include <score/widgets/SignalUtils.hpp>
 #include <score/widgets/TextLabel.hpp>
+#include <score/widgets/ComboBox.hpp>
 
 #include <ossia/detail/hash_map.hpp>
 
-#include <QComboBox>
 #include <QLineEdit>
 #include <QMenu>
 #include <QPainter>
@@ -43,10 +43,10 @@ static const auto& ExpressionEditorComparators()
   return map;
 }
 
-class SimpleComboBox : public QComboBox
+class SimpleComboBox : public score::ComboBox
 {
 public:
-  SimpleComboBox(QWidget* parent) : QComboBox{parent}
+  SimpleComboBox(QWidget* parent) : score::ComboBox{parent}
   {
     setMinimumSize(20, 16);
     setMaximumSize(40, 16);

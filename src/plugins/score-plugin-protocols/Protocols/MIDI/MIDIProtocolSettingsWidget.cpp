@@ -5,9 +5,9 @@
 #include "MIDISpecificSettings.hpp"
 
 #include <Device/Protocol/ProtocolSettingsWidget.hpp>
+#include <score/widgets/ComboBox.hpp>
 
 #include <QCheckBox>
-#include <QComboBox>
 #include <QDebug>
 #include <QFormLayout>
 #include <QLineEdit>
@@ -28,7 +28,7 @@ MIDIProtocolSettingsWidget::MIDIProtocolSettingsWidget(QWidget* parent)
   m_inButton->setAutoExclusive(true);
   m_outButton = new QCheckBox{tr("Receive"), this};
   m_outButton->setAutoExclusive(true);
-  m_deviceCBox = new QComboBox{this};
+  m_deviceCBox = new score::ComboBox{this};
   m_createWhole = new QCheckBox{tr("Create whole tree"), this};
 
   auto gb_lay = new QHBoxLayout;

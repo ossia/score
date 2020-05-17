@@ -8,6 +8,7 @@
 #include <score/graphics/GraphicsItem.hpp>
 #include <score/tools/Unused.hpp>
 #include <score/widgets/ControlWidgets.hpp>
+#include <score/widgets/ComboBox.hpp>
 
 #include <ossia/detail/algorithms.hpp>
 #include <ossia/detail/math.hpp>
@@ -649,7 +650,7 @@ struct ComboBox
       QObject* context)
   {
     const auto& values = slider.getValues();
-    auto sl = new QComboBox{parent};
+    auto sl = new score::ComboBox{parent};
     for (auto& e : values)
     {
       sl->addItem(e.first);

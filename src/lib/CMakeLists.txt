@@ -229,6 +229,7 @@ set(HEADERS
     "${CMAKE_CURRENT_SOURCE_DIR}/score/graphics/YPos.hpp"
 
     "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/ClearLayout.hpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/ComboBox.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/ControlWidgets.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/CommandSpinBox.hpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/score/widgets/DoubleSlider.hpp"

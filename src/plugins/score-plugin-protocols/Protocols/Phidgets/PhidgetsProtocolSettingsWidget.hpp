@@ -3,10 +3,7 @@
 #include <Device/Protocol/DeviceSettings.hpp>
 #include <Device/Protocol/ProtocolSettingsWidget.hpp>
 class QLineEdit;
-class JSEdit;
-class QSpinBox;
 class QWidget;
-class QComboBox;
 
 namespace Protocols
 {

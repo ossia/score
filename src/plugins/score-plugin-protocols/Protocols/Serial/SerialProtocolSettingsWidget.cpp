@@ -11,8 +11,8 @@
 
 #include <score/widgets/JS/JSEdit.hpp>
 #include <score/widgets/Layout.hpp>
+#include <score/widgets/ComboBox.hpp>
 
-#include <QComboBox>
 #include <QLineEdit>
 #include <QVariant>
 namespace Protocols
@@ -21,7 +21,7 @@ SerialProtocolSettingsWidget::SerialProtocolSettingsWidget(QWidget* parent)
     : ProtocolSettingsWidget(parent)
 {
   m_name = new QLineEdit;
-  m_port = new QComboBox;
+  m_port = new score::ComboBox{this};
 
   m_codeEdit = new JSEdit(this);
   m_codeEdit->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);

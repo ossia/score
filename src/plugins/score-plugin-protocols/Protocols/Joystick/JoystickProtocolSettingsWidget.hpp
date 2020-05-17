@@ -5,7 +5,7 @@
 #include <verdigris>
 
 class QLineEdit;
-class QComboBox;
+namespace score { class ComboBox;}
 
 namespace Protocols
 {
@@ -25,6 +25,6 @@ public:
 
 protected:
   QLineEdit* m_deviceNameEdit{};
-  QComboBox* m_deviceChoice{};
+  score::ComboBox* m_deviceChoice{};
 };
 }

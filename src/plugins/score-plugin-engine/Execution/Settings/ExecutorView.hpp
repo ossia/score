@@ -5,7 +5,6 @@
 
 #include <verdigris>
 class QSpinBox;
-class QComboBox;
 class QCheckBox;
 namespace Execution
 {

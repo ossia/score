@@ -8,7 +8,6 @@
 #include <verdigris>
 
 class QLineEdit;
-class QComboBox;
 
 namespace Protocols
 {

@@ -6,8 +6,8 @@
 #include <State/Widgets/AddressFragmentLineEdit.hpp>
 
 #include <ossia/network/joystick/joystick_protocol.hpp>
+#include <score/widgets/ComboBox.hpp>
 
-#include <QComboBox>
 #include <QFormLayout>
 #include <QPushButton>
 #include <QVariant>
@@ -25,8 +25,7 @@ JoystickProtocolSettingsWidget::JoystickProtocolSettingsWidget(QWidget* parent)
   m_deviceNameEdit = new State::AddressFragmentLineEdit{this};
   m_deviceNameEdit->setText("Joystick");
 
-  m_deviceChoice = new QComboBox{this};
-
+  m_deviceChoice = new score::ComboBox{this};
   auto update_button = new QPushButton{"Update", this};
 
   auto layout = new QFormLayout;

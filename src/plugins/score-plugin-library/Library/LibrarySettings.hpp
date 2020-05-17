@@ -35,7 +35,6 @@ private:                                                              \
       m_##Control->setText(val);       \
   }
 
-class QComboBox;
 class QSpinBox;
 class QCheckBox;
 namespace Library::Settings

@@ -5,7 +5,6 @@
 #include <score/widgets/SignalUtils.hpp>
 
 #include <QCheckBox>
-#include <QComboBox>
 #include <QFormLayout>
 #include <QGroupBox>
 
