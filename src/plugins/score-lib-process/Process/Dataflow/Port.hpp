@@ -177,6 +177,7 @@ public:
 
   ~Inlet() override;
 
+  virtual void setupExecution(ossia::inlet&) const noexcept;
   virtual void forChildInlets(const smallfun::function<void(Inlet&)>&) const noexcept;
   virtual void mapExecution(ossia::inlet&, const smallfun::function<void(Inlet&, ossia::inlet&)>&) const noexcept;
 protected:

@@ -1,4 +1,5 @@
 #include <Process/Dataflow/WidgetInlets.hpp>
+#include <ossia/dataflow/port.hpp>
 #include <score/plugins/SerializableHelpers.hpp>
 namespace Process
 {
@@ -7,42 +8,262 @@ Enum::Enum(DataStream::Deserializer& vis, QObject* parent)
 {
   vis.writeTo(*this);
 }
+Enum::Enum(const ossia::flat_set<std::string>& dom, std::vector<QString> pixmaps, std::string init, const QString& name, Id<Port> id, QObject* parent)
+  : ControlInlet{id, parent}, pixmaps{std::move(pixmaps)}
+{
+  for (auto& val : dom)
+    values.push_back(QString::fromStdString(val));
+
+  hidden = true;
+  setValue(init);
+  setDomain(State::Domain{ossia::domain_base<std::string>{dom}});
+  setCustomData(name);
+}
+
+Enum::Enum(const QStringList& values, std::vector<QString> pixmaps, std::string init, const QString& name, Id<Port> id, QObject* parent)
+  : ControlInlet{id, parent}, values{values.begin(), values.end()}, pixmaps{std::move(pixmaps)}
+{
+  hidden = true;
+  setValue(init);
+  ossia::domain_base<std::string> dom;
+  for (auto& val : values)
+    dom.values.insert(val.toStdString());
+  setDomain(State::Domain{dom});
+  setCustomData(name);
+}
+
+Enum::~Enum()
+{
+
+}
+
 Enum::Enum(JSONObject::Deserializer& vis, QObject* parent)
-    : ControlInlet{vis, parent}
+  : ControlInlet{vis, parent}
 {
   vis.writeTo(*this);
 }
 Enum::Enum(DataStream::Deserializer&& vis, QObject* parent)
-    : ControlInlet{vis, parent}
+  : ControlInlet{vis, parent}
 {
   vis.writeTo(*this);
 }
 Enum::Enum(JSONObject::Deserializer&& vis, QObject* parent)
-    : ControlInlet{vis, parent}
+  : ControlInlet{vis, parent}
 {
   vis.writeTo(*this);
 }
 
 ComboBox::ComboBox(DataStream::Deserializer& vis, QObject* parent)
-    : ControlInlet{vis, parent}
+  : ControlInlet{vis, parent}
 {
   vis.writeTo(*this);
 }
+ComboBox::ComboBox(std::vector<std::pair<QString, ossia::value> > values, ossia::value init, const QString& name, Id<Port> id, QObject* parent)
+  : ControlInlet{id, parent}, alternatives{std::move(values)}
+{
+  hidden = true;
+  setValue(init);
+  std::vector<ossia::value> vals;
+  for (auto& v : alternatives)
+    vals.push_back(v.second);
+  setDomain(State::Domain{ossia::make_domain(vals)});
+  setCustomData(name);
+}
+
+ComboBox::~ComboBox()
+{
+
+}
+
 ComboBox::ComboBox(JSONObject::Deserializer& vis, QObject* parent)
-    : ControlInlet{vis, parent}
+  : ControlInlet{vis, parent}
 {
   vis.writeTo(*this);
 }
 ComboBox::ComboBox(DataStream::Deserializer&& vis, QObject* parent)
-    : ControlInlet{vis, parent}
+  : ControlInlet{vis, parent}
 {
   vis.writeTo(*this);
 }
 ComboBox::ComboBox(JSONObject::Deserializer&& vis, QObject* parent)
-    : ControlInlet{vis, parent}
+  : ControlInlet{vis, parent}
 {
   vis.writeTo(*this);
 }
+
+HSVSlider::HSVSlider(ossia::vec4f init, const QString& name, Id<Port> id, QObject* parent)
+  : ControlInlet{id, parent}
+{
+  hidden = true;
+  setValue(init);
+  setCustomData(name);
+}
+
+HSVSlider::~HSVSlider()
+{
+
+}
+
+void HSVSlider::setupExecution(ossia::inlet& i) const noexcept
+{
+  safe_cast<ossia::value_inlet*>(&i)->data.type = ossia::rgba_u{};
+}
+
+FloatSlider::FloatSlider(float min, float max, float init, const QString& name, Id<Port> id, QObject* parent)
+  : ControlInlet{id, parent}
+{
+  hidden = true;
+  setValue(init);
+  setDomain(ossia::make_domain(min, max));
+  setCustomData(name);
+}
+
+FloatSlider::~FloatSlider()
+{
+
+}
+
+LogFloatSlider::LogFloatSlider(float min, float max, float init, const QString& name, Id<Port> id, QObject* parent)
+  : ControlInlet{id, parent}
+{
+  hidden = true;
+  setValue(init);
+  setDomain(ossia::make_domain(min, max));
+  setCustomData(name);
+}
+
+LogFloatSlider::~LogFloatSlider()
+{
+
+}
+
+IntSlider::IntSlider(int min, int max, int init, const QString& name, Id<Port> id, QObject* parent)
+  : ControlInlet{id, parent}
+{
+  hidden = true;
+  setValue(init);
+  setDomain(ossia::make_domain(min, max));
+  setCustomData(name);
+}
+
+IntSlider::~IntSlider()
+{
+
+}
+
+IntSpinBox::IntSpinBox(int min, int max, int init, const QString& name, Id<Port> id, QObject* parent)
+  : ControlInlet{id, parent}
+{
+  hidden = true;
+  setValue(init);
+  setDomain(ossia::make_domain(min, max));
+  setCustomData(name);
+}
+
+IntSpinBox::~IntSpinBox()
+{
+
+}
+
+Toggle::Toggle(bool init, const QString& name, Id<Port> id, QObject* parent)
+  : ControlInlet{id, parent}
+{
+  hidden = true;
+  setValue(init);
+  setDomain(State::Domain{ossia::domain_base<bool>{}});
+  setCustomData(name);
+}
+
+Toggle::~Toggle()
+{
+
+}
+
+ChooserToggle::ChooserToggle(QStringList alternatives, bool init, const QString& name, Id<Port> id, QObject* parent)
+  : ControlInlet{id, parent}
+{
+  hidden = true;
+  setValue(
+        init ? alternatives[1].toStdString() : alternatives[0].toStdString());
+  setDomain(State::Domain{ossia::domain_base<std::string>{
+                            {alternatives[0].toStdString(), alternatives[1].toStdString()}}});
+  setCustomData(name);
+}
+
+ChooserToggle::~ChooserToggle()
+{
+
+}
+
+QStringList ChooserToggle::alternatives() const noexcept
+{
+  const auto& dom = *this->domain().get().v.target<ossia::domain_base<std::string>>();
+  auto it = dom.values.begin();
+  auto& s1 = *it;
+  auto& s2 = *(++it);
+  return {QString::fromStdString(s1), QString::fromStdString(s2)};
+}
+
+LineEdit::LineEdit(QString init, const QString& name, Id<Port> id, QObject* parent)
+  : ControlInlet{id, parent}
+{
+  hidden = true;
+  setValue(init.toStdString());
+  setCustomData(name);
+}
+
+LineEdit::~LineEdit()
+{
+
+}
+
+
+TimeSignatureChooser::TimeSignatureChooser(
+    std::string init,
+    const QString& name,
+    Id<Process::Port> id,
+    QObject* parent)
+    : ControlInlet{id, parent}
+{
+  using namespace std::literals;
+  hidden = true;
+  setValue(init);
+  setDomain(
+      State::Domain{ossia::domain_base<std::string>{{"3/4", "4/4"}}});
+  setCustomData(name);
+}
+
+TimeSignatureChooser::~TimeSignatureChooser() {
+
+}
+
+Button::Button(const QString& name, Id<Port> id, QObject* parent)
+  : ControlInlet{id, parent}
+{
+  hidden = true;
+  setValue(false);
+  setDomain(State::Domain{ossia::domain_base<bool>{}});
+  setCustomData(name);
+}
+
+Button::~Button()
+{
+
+}
+
+XYSlider::XYSlider(ossia::vec2f init, const QString& name, Id<Port> id, QObject* parent)
+  : ControlInlet{id, parent}
+{
+  hidden = true;
+  setValue(init);
+  setCustomData(name);
+}
+
+XYSlider::~XYSlider()
+{
+
+}
+
 
 }
 template <>
@@ -370,3 +591,4 @@ DataStreamWriter::write<QString>(QString& p)
 {
   m_stream >> p;
 }
+

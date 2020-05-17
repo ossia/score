@@ -171,6 +171,11 @@ void Port::loadData(const QByteArray& arr) noexcept
 
 Inlet::~Inlet() {}
 
+void Inlet::setupExecution(ossia::inlet&) const noexcept
+{
+
+}
+
 Inlet::Inlet(Id<Process::Port> c, QObject* parent)
     : Port{std::move(c), QStringLiteral("Inlet"), parent}
 {
