@@ -31,8 +31,8 @@ private:
   void updateOutputDevices();
 
   QLineEdit* m_name{};
-  QCheckBox* m_inButton{};
-  QCheckBox* m_outButton{};
+  QRadioButton* m_inButton{};
+  QRadioButton* m_outButton{};
   score::ComboBox* m_deviceCBox{};
   QCheckBox* m_createWhole{};
 };

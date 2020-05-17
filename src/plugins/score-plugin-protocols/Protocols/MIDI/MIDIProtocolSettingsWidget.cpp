@@ -9,6 +9,7 @@
 
 #include <QCheckBox>
 #include <QDebug>
+#include <QRadioButton>
 #include <QFormLayout>
 #include <QLineEdit>
 #include <QString>
@@ -24,9 +25,9 @@ MIDIProtocolSettingsWidget::MIDIProtocolSettingsWidget(QWidget* parent)
     : ProtocolSettingsWidget(parent)
 {
   m_name = new QLineEdit{"MidiDevice"};
-  m_inButton = new QCheckBox{tr("Send"), this};
+  m_inButton = new QRadioButton{tr("Send"), this};
   m_inButton->setAutoExclusive(true);
-  m_outButton = new QCheckBox{tr("Receive"), this};
+  m_outButton = new QRadioButton{tr("Receive"), this};
   m_outButton->setAutoExclusive(true);
   m_deviceCBox = new score::ComboBox{this};
   m_createWhole = new QCheckBox{tr("Create whole tree"), this};
