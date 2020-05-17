@@ -31,14 +31,8 @@ ZeroconfBrowser::ZeroconfBrowser(const QString& service, QWidget* parent)
     : QObject{parent}, m_dialog{new QDialog{parent}}
 {
   QGridLayout* lay = new QGridLayout;
-  auto buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
-
-  connect(buttonBox, &QDialogButtonBox::accepted, this, &ZeroconfBrowser::accept);
-  connect(buttonBox, &QDialogButtonBox::rejected, this, &ZeroconfBrowser::reject);
-
-  lay->addWidget(buttonBox);
   m_dialog->setLayout(lay);
-
+  m_dialog->setWindowTitle(tr("Find devices..."));
   try
   {
     m_serv = std::make_unique<servus::Servus>(service.toStdString());
@@ -70,6 +64,13 @@ ZeroconfBrowser::ZeroconfBrowser(const QString& service, QWidget* parent)
   manualWidg->layout()->addWidget(m_manualPort);
 
   lay->addWidget(manualWidg);
+
+  auto buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
+
+  connect(buttonBox, &QDialogButtonBox::accepted, this, &ZeroconfBrowser::accept);
+  connect(buttonBox, &QDialogButtonBox::rejected, this, &ZeroconfBrowser::reject);
+
+  lay->addWidget(buttonBox);
 }
 
 ZeroconfBrowser::~ZeroconfBrowser()
