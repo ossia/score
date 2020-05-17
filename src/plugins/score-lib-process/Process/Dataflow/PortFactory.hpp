@@ -35,13 +35,13 @@ public:
       QObject* context);
 
   virtual void setupInletInspector(
-      Process::Inlet& port,
+      const Process::Inlet& port,
       const score::DocumentContext& ctx,
       QWidget* parent,
       Inspector::Layout& lay,
       QObject* context);
   virtual void setupOutletInspector(
-      Process::Outlet& port,
+      const Process::Outlet& port,
       const score::DocumentContext& ctx,
       QWidget* parent,
       Inspector::Layout& lay,

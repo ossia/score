@@ -46,7 +46,6 @@ struct SCORE_LIB_PROCESS_EXPORT CableData
 {
   CableType type{};
   Path<Process::Port> source, sink;
-  QUuid sourceUuid, sinkUuid;
 
   SCORE_LIB_PROCESS_EXPORT
   friend bool operator==(const CableData& lhs, const CableData& rhs);

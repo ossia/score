@@ -62,6 +62,7 @@ public:
 
   void busesChanged() E_SIGNAL(SCORE_PLUGIN_SCENARIO_EXPORT, busesChanged)
 
+  const score::DocumentContext& context() const noexcept { return m_context; }
 private:
   const score::DocumentContext& m_context;
   BaseScenario* m_baseScenario{};

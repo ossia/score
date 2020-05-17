@@ -41,8 +41,6 @@ void onCreateCable(
 {
   auto& plug = ctx.model<Scenario::ScenarioDocumentModel>();
   CommandDispatcher<> disp{ctx.commandStack};
-  Process::CableData cd;
-  cd.type = Process::CableType::ImmediateGlutton;
 
   auto& port1 = p1->port();
   auto& port2 = p2->port();
@@ -55,12 +53,14 @@ void onCreateCable(
   if (port1.type() != port2.type())
     return;
 
+  const Process::Port* source{};
+  const Process::Port* sink{};
   auto o1 = qobject_cast<const Process::Outlet*>(&port1);
   auto i2 = qobject_cast<const Process::Inlet*>(&port2);
   if (o1 && i2)
   {
-    cd.source = port1;
-    cd.sink = port2;
+    source = &port1;
+    sink = &port2;
   }
   else
   {
@@ -68,8 +68,8 @@ void onCreateCable(
     auto i1 = qobject_cast<const Process::Inlet*>(&port1);
     if (o2 && i1)
     {
-      cd.source = port2;
-      cd.sink = port1;
+      source = &port2;
+      sink = &port1;
     }
     else
     {
@@ -77,7 +77,12 @@ void onCreateCable(
     }
   }
 
-  disp.submit<Dataflow::CreateCable>(plug, getStrongId(plug.cables), cd);
+  Process::CableData cd;
+  cd.type = Process::CableType::ImmediateGlutton;
+  disp.submit<Dataflow::CreateCable>(
+        plug, getStrongId(plug.cables),
+        Process::CableType::ImmediateGlutton,
+        *source, *sink);
 }
 
 AutomatablePortItem::~AutomatablePortItem() { }
@@ -143,12 +148,12 @@ bool AutomatablePortItem::on_createAutomation(
   macro(new Automation::SetMax{autom, max});
 
   auto& plug = ctx.model<Scenario::ScenarioDocumentModel>();
-  Process::CableData cd;
-  cd.type = Process::CableType::ImmediateGlutton;
-  cd.source = *autom.outlet;
-  cd.sink = m_port;
 
-  macro(new Dataflow::CreateCable{plug, getStrongId(plug.cables), std::move(cd)});
+  macro(new Dataflow::CreateCable{
+          plug, getStrongId(plug.cables),
+          Process::CableType::ImmediateGlutton,
+          *autom.outlet,
+          m_port});
   return true;
 }
 

@@ -95,7 +95,7 @@ public:
       QObject* context) override;
 
   void setupInletInspector(
-      Process::Inlet& port,
+      const Process::Inlet& port,
       const score::DocumentContext& ctx,
       QWidget* parent,
       Inspector::Layout& lay,

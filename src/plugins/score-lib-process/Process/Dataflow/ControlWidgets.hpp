@@ -402,7 +402,7 @@ struct Button
   template <typename T, typename Control_T>
   static auto make_widget(
       const T& slider,
-      Control_T& inlet,
+      const Control_T& inlet,
       const score::DocumentContext& ctx,
       QWidget* parent,
       QObject* context)
@@ -411,8 +411,10 @@ struct Button
     sl->setText(inlet.customData().isEmpty() ? QObject::tr("Bang") : inlet.customData());
     sl->setContentsMargins(0, 0, 0, 0);
 
-    QObject::connect(sl, &QPushButton::pressed, context, [&inlet] { inlet.setValue(true); });
-    QObject::connect(sl, &QPushButton::released, context, [&inlet] { inlet.setValue(false); });
+    // TODO should we not make a command here
+    auto& cinlet = const_cast<Control_T&>(inlet);
+    QObject::connect(sl, &QPushButton::pressed, context, [&cinlet] { cinlet.setValue(true); });
+    QObject::connect(sl, &QPushButton::released, context, [&cinlet] { cinlet.setValue(false); });
 
     return sl;
   }

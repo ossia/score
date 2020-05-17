@@ -19,7 +19,7 @@ struct SCORE_PLUGIN_DATAFLOW_EXPORT ControlOutletFactory final : public Automata
   }
 
   void setupOutletInspector(
-      Process::Outlet& port,
+      const Process::Outlet& port,
       const score::DocumentContext& ctx,
       QWidget* parent,
       Inspector::Layout& lay,

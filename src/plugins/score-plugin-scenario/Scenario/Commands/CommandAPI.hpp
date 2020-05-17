@@ -162,7 +162,7 @@ public:
   void
   removeProcess(const Scenario::IntervalModel& interval, const Id<Process::ProcessModel>& proc);
 
-  Process::Cable& createCable(const Scenario::ScenarioDocumentModel& dp, Process::CableData dat);
+  Process::Cable& createCable(const Scenario::ScenarioDocumentModel& dp, const Process::Port& source, const Process::Port& sink);
 
   void removeCable(const Scenario::ScenarioDocumentModel& dp, Process::Cable& theCable);
 

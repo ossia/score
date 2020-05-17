@@ -517,7 +517,7 @@ Dataflow::PortItem* PortFactory::makeItem(
 }
 
 void PortFactory::setupInletInspector(
-    Inlet& port,
+    const Inlet& port,
     const score::DocumentContext& ctx,
     QWidget* parent,
     Inspector::Layout& lay,
@@ -527,7 +527,7 @@ void PortFactory::setupInletInspector(
 }
 
 void PortFactory::setupOutletInspector(
-    Outlet& port,
+    const Outlet& port,
     const score::DocumentContext& ctx,
     QWidget* parent,
     Inspector::Layout& lay,

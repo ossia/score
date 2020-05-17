@@ -9,14 +9,12 @@
 namespace Dataflow
 {
 void AudioInletFactory::setupInletInspector(
-    Process::Inlet& port,
+    const Process::Inlet& port,
     const score::DocumentContext& ctx,
     QWidget* parent,
     Inspector::Layout& lay,
     QObject* context)
 {
-  auto& outlet = static_cast<Process::AudioInlet&>(port);
-
   auto root = State::Address{"audio", {"in"}};
   auto& device = *ctx.findPlugin<Explorer::DeviceDocumentPlugin>();
   auto d = device.list().audioDevice();

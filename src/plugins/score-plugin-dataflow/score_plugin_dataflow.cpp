@@ -30,7 +30,9 @@ std::vector<std::unique_ptr<score::InterfaceBase>> score_plugin_dataflow::factor
       score::ApplicationContext,
       FW<Inspector::InspectorWidgetFactory,
          Dataflow::CableInspectorFactory,
-         Dataflow::PortInspectorFactory>,
+         Dataflow::InletInspectorFactory,
+         Dataflow::OutletInspectorFactory
+      >,
       FW<Scenario::DropHandler, Dataflow::DropPortInScenario>,
       FW<Process::PortFactory,
          Dataflow::ControlInletFactory,

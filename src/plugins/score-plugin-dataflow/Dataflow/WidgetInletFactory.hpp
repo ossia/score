@@ -21,14 +21,14 @@ struct WidgetInletFactory : public AutomatablePortFactory
   }
 
   void setupInletInspector(
-      Process::Inlet& port,
+      const Process::Inlet& port,
       const score::DocumentContext& ctx,
       QWidget* parent,
       Inspector::Layout& lay,
       QObject* context) override
   {
     using factory = typename Model_T::control_type;
-    auto& ctrl = static_cast<Model_T&>(port);
+    auto& ctrl = static_cast<const Model_T&>(port);
     auto widg = factory::make_widget(ctrl, ctrl, ctx, parent, parent);
     Process::PortWidgetSetup::setupControl(ctrl, widg, ctx, lay, parent);
   }

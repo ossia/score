@@ -11,7 +11,7 @@
 namespace Dataflow
 {
 void MidiInletFactory::setupInletInspector(
-    Process::Inlet& port,
+    const Process::Inlet& port,
     const score::DocumentContext& ctx,
     QWidget* parent,
     Inspector::Layout& lay,
@@ -19,8 +19,6 @@ void MidiInletFactory::setupInletInspector(
 {
   static const MSVC_BUGGY_CONSTEXPR auto midi_uuid
       = Protocols::MIDIProtocolFactory::static_concreteKey();
-
-  auto& p = static_cast<Process::MidiInlet&>(port);
 
   auto& device = *ctx.findPlugin<Explorer::DeviceDocumentPlugin>();
   QStringList midiDevices;

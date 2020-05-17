@@ -15,6 +15,8 @@
 #include <score/command/Dispatchers/CommandDispatcher.hpp>
 #include <score/widgets/MarginLess.hpp>
 #include <score/widgets/TextLabel.hpp>
+#include <score/widgets/SetIcons.hpp>
+#include <score/tools/SafeCast.hpp>
 
 #include <QMenu>
 #include <QToolButton>
@@ -52,12 +54,11 @@ bool VSTControlPortItem::on_createAutomation(
   macro(new Automation::SetMax{autom, 1.});
 
   auto& plug = ctx.model<Scenario::ScenarioDocumentModel>();
-  Process::CableData cd;
-  cd.type = Process::CableType::ImmediateGlutton;
-  cd.source = *autom.outlet;
-  cd.sink = port();
 
-  macro(new Dataflow::CreateCable{plug, getStrongId(plug.cables), std::move(cd)});
+  macro(new Dataflow::CreateCable{
+          plug, getStrongId(plug.cables),
+          Process::CableType::ImmediateGlutton,
+          *autom.outlet, port()});
   return true;
 }
 
@@ -105,7 +106,7 @@ static void setupVSTControl(
   // TODO refactor with PortWidgetSetup::setupControl
   auto widg = new QWidget;
   auto advBtn = new QToolButton{widg};
-  advBtn->setText("●");
+  advBtn->setIcon(makeIcon(QStringLiteral(":/icons/port_message.png")));
 
   auto lab = new TextLabel{inlet.customData(), widg};
   auto hl = new score::MarginLess<QHBoxLayout>{widg};
@@ -128,13 +129,13 @@ static void setupVSTControl(
 }
 
 void VSTControlPortFactory::setupInletInspector(
-    Process::Inlet& port,
+    const Process::Inlet& port,
     const score::DocumentContext& ctx,
     QWidget* parent,
     Inspector::Layout& lay,
     QObject* context)
 {
-  auto& inl = safe_cast<VSTControlInlet&>(port);
+  auto& inl = safe_cast<const VSTControlInlet&>(port);
   auto proc = safe_cast<VSTEffectModel*>(port.parent());
   auto widg = VSTFloatSlider::make_widget(proc->fx->fx, inl, ctx, parent, context);
 

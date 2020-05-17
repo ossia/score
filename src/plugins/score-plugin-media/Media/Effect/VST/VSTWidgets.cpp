@@ -260,7 +260,7 @@ void VSTWindow::resize(int w, int h)
 
 QWidget* VSTFloatSlider::make_widget(
     AEffect* fx,
-    VSTControlInlet& inlet,
+    const VSTControlInlet& inlet,
     const score::DocumentContext& ctx,
     QWidget* parent,
     QObject* context)

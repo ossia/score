@@ -255,10 +255,10 @@ void Macro::removeProcess(const IntervalModel& interval, const Id<Process::Proce
   m.submit(new RemoveProcessFromInterval{interval, proc});
 }
 
-Process::Cable& Macro::createCable(const ScenarioDocumentModel& dp, Process::CableData dat)
+Process::Cable& Macro::createCable(const ScenarioDocumentModel& dp, const Process::Port& source, const Process::Port& sink)
 {
   auto id = getStrongId(dp.cables);
-  m.submit(new Dataflow::CreateCable(dp, id, std::move(dat)));
+  m.submit(new Dataflow::CreateCable(dp, id, Process::CableType::ImmediateGlutton, source, sink));
   return dp.cables.at(id);
 }
 

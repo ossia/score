@@ -39,7 +39,7 @@ struct SCORE_PLUGIN_DATAFLOW_EXPORT AudioOutletFactory final : public Automatabl
   }
 
   void setupOutletInspector(
-      Process::Outlet& port,
+      const Process::Outlet& port,
       const score::DocumentContext& ctx,
       QWidget* parent,
       Inspector::Layout& lay,
@@ -85,7 +85,7 @@ struct SCORE_PLUGIN_DATAFLOW_EXPORT MinMaxFloatOutletFactory final : public Auto
   }
 
   void setupOutletInspector(
-      Process::Outlet& port,
+      const Process::Outlet& port,
       const score::DocumentContext& ctx,
       QWidget* parent,
       Inspector::Layout& lay,

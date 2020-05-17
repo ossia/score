@@ -18,7 +18,7 @@ struct minmax
 
 struct control_visitor
 {
-  Process::ControlInlet& inlet;
+  const Process::ControlInlet& inlet;
   const score::DocumentContext& ctx;
   QWidget* parent{};
   QWidget* operator()(ossia::impulse) const noexcept
@@ -66,14 +66,14 @@ struct control_visitor
 };
 
 void ControlInletFactory::setupInletInspector(
-    Process::Inlet& port,
+    const Process::Inlet& port,
     const score::DocumentContext& ctx,
     QWidget* parent,
     Inspector::Layout& lay,
     QObject* context)
 {
   using namespace Process;
-  auto& ctrl = static_cast<Process::ControlInlet&>(port);
+  auto& ctrl = static_cast<const Process::ControlInlet&>(port);
   auto widg = ctrl.value().apply(control_visitor{ctrl, ctx, parent});
   if (widg)
   {

@@ -10,6 +10,7 @@
 #include <score/graphics/ArrowDialog.hpp>
 #include <score/widgets/MarginLess.hpp>
 #include <score/widgets/TextLabel.hpp>
+#include <score/widgets/SetIcons.hpp>
 
 #include <QCheckBox>
 #include <QGraphicsScene>
@@ -50,13 +51,13 @@ public:
 };
 
 void AudioOutletFactory::setupOutletInspector(
-    Process::Outlet& port,
+    const Process::Outlet& port,
     const score::DocumentContext& ctx,
     QWidget* parent,
     Inspector::Layout& lay,
     QObject* context)
 {
-  auto& outlet = static_cast<Process::AudioOutlet&>(port);
+  auto& outlet = static_cast<const Process::AudioOutlet&>(port);
 
   auto root = State::Address{"audio", {"out"}};
   auto& device = *ctx.findPlugin<Explorer::DeviceDocumentPlugin>();
@@ -175,14 +176,12 @@ public:
 };
 
 void MinMaxFloatOutletFactory::setupOutletInspector(
-    Process::Outlet& port,
+    const Process::Outlet& port,
     const score::DocumentContext& ctx,
     QWidget* parent,
     Inspector::Layout& lay,
     QObject* context)
 {
-  auto& outlet = static_cast<Process::MinMaxFloatOutlet&>(port);
-
   auto widg = new QWidget;
   auto hl = new score::MarginLess<QHBoxLayout>{widg};
 
@@ -190,7 +189,7 @@ void MinMaxFloatOutletFactory::setupOutletInspector(
   hl->addWidget(lab);
 
   auto advBtn = new QToolButton{widg};
-  advBtn->setText(QString::fromUtf8("⇢"));
+  advBtn->setIcon(makeIcon(QStringLiteral(":/icons/port_message.png")));
   hl->addWidget(advBtn);
 
   auto port_widg = Process::PortWidgetSetup::makeAddressWidget(port, ctx, parent);
